@@ -1155,7 +1155,7 @@ sendto_gnotice_flags(int flags, int level, char *origin,
               ((level == L_OPER) && IsAdmin(client_p)))
         continue;
 
-      sendto_one(client_p, ":%s NOTICE %s :%s", origin, target_p->name, nbuf);
+      sendto_one(target_p, ":%s NOTICE %s :%s", origin, target_p->name, nbuf);
     }
   }
   sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,

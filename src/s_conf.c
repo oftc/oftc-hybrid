@@ -221,6 +221,10 @@ make_conf_item(ConfType type)
       break;
 
     case GLINE_TYPE:
+      status = CONF_KILL;
+      dlinkAdd(conf, &conf->node, &gline_items);
+      break;
+
     case KLINE_TYPE:
       status = CONF_KILL;
       break;

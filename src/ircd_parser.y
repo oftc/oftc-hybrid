@@ -412,7 +412,6 @@ services_entry:           SERVICES
     if (ypass == 2)
     {
       yy_conf = make_conf_item(SERVICES_TYPE);
-      yy_aconf = (struct AccessItem *)map_to_conf(yy_conf);
     }
     else
     {
