@@ -85,16 +85,7 @@ mo_resv(struct Client *client_p, struct Client *source_p,
 {
   char *reason;
 
-  /* RESV #channel ON irc.server.com :abuse */
-  /* RESV kiddie ON irc.server.com :abuse */
-  if (parc == 5)
-    reason = parv[4];
-  /* RESV #channel :abuse */
-  /* RESV kiddie :abuse */
-  else
-    reason = parv[2];
-
-  if (EmptyString(parv[1]) || EmptyString(reason))
+  if (parc < 3)
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "RESV");
@@ -103,7 +94,16 @@ mo_resv(struct Client *client_p, struct Client *source_p,
 
   /* RESV #channel ON irc.server.com :abuse */
   /* RESV kiddie ON irc.server.com :abuse */
-  if ((parc == 5) && (irccmp(parv[2], "ON") == 0))
+  if (parc > 4)
+    reason = parv[4];
+  /* RESV #channel :abuse */
+  /* RESV kiddie :abuse */
+  else
+    reason = parv[2];
+
+  /* RESV #channel ON irc.server.com :abuse */
+  /* RESV kiddie ON irc.server.com :abuse */
+  if ((parc > 4) && (irccmp(parv[2], "ON") == 0))
   {
     sendto_match_servs(source_p, parv[3], CAP_CLUSTER,
                        "RESV %s %s :%s",
@@ -159,16 +159,16 @@ static void
 mo_unresv(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  if (EmptyString(parv[1]))
+  if (parc < 2)
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, source_p->name, "RESV");
+               me.name, source_p->name, "UNRESV");
     return;
   }
 
   /* UNRESV #channel ON irc.server.com */
   /* UNRESV kiddie ON irc.server.com */
-  if ((parc == 4) && (irccmp(parv[2], "ON") == 0))
+  if ((parc > 3) && (irccmp(parv[2], "ON") == 0))
   {
     sendto_match_servs(source_p, parv[3], CAP_CLUSTER,
                        "UNRESV %s %s",

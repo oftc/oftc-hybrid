@@ -201,7 +201,7 @@ auth_dns_callback(void* vptr, struct DNSReply *reply)
 	      sizeof(auth->client->host));
       sendheader(auth->client, REPORT_FIN_DNS);
     }
-    else
+    else if(strlen(reply->h_name) > HOSTLEN)
       sendheader(auth->client, REPORT_HOST_TOOLONG);
   }
   else

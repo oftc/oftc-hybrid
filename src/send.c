@@ -1151,8 +1151,8 @@ sendto_gnotice_flags(int flags, int level, char *origin,
        * Note that this wont make a difference at the other end because I
        * cocked up when i first did gnotices
        */
-      if (((level == L_ADMIN) && !IsAdmin(client_p)) ||
-              ((level == L_OPER) && IsAdmin(client_p)))
+      if (((level == L_ADMIN) && !IsAdmin(target_p)) ||
+              ((level == L_OPER) && IsAdmin(target_p)))
         continue;
 
       sendto_one(target_p, ":%s NOTICE %s :%s", origin, target_p->name, nbuf);
