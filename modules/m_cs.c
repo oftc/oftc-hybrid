@@ -16,6 +16,8 @@
  *   You should have received a copy of the GNU General Public Licecse
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ *
+ *   $Id$
  */
 
 #include "stdinc.h"
@@ -25,7 +27,6 @@
 #include "client.h"
 #include "channel.h"
 #include "channel_mode.h"
-#include "vchannel.h"
 #include "hash.h"
 #include "ircd.h"
 #include "numeric.h"
