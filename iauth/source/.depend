@@ -1,0 +1,26 @@
+auth.o: auth.c ../include/auth.h ../include/sock.h ../include/conf.h \
+ ../include/iauth.h ../include/log.h ../include/misc.h \
+ ../include/res.h ../include/setup.h
+class.o: class.c ../include/auth.h ../include/sock.h ../include/conf.h \
+ ../include/class.h ../include/iauth.h ../include/log.h \
+ ../include/match.h ../include/misc.h ../include/setup.h
+commands.o: commands.c ../include/auth.h ../include/sock.h \
+ ../include/conf.h ../include/class.h ../include/commands.h \
+ ../include/iauth.h ../include/log.h ../include/match.h \
+ ../include/misc.h ../include/setup.h
+conf.o: conf.c ../include/auth.h ../include/sock.h ../include/conf.h \
+ ../include/class.h ../include/iauth.h ../include/log.h \
+ ../include/match.h ../include/misc.h ../include/mtree.h \
+ ../include/setup.h
+iauth.o: iauth.c ../include/conf.h ../include/iauth.h ../include/log.h \
+ ../include/res.h ../include/setup.h ../include/sock.h
+log.o: log.c ../include/iauth.h ../include/log.h
+match.o: match.c ../include/match.h
+misc.o: misc.c ../include/iauth.h ../include/log.h ../include/misc.h
+mtree.o: mtree.c ../include/conf.h ../include/log.h ../include/match.h \
+ ../include/misc.h ../include/mtree.h ../include/sock.h
+res.o: res.c ../include/iauth.h ../include/log.h ../include/misc.h \
+ ../include/res.h ../include/sock.h
+sock.o: sock.c ../include/auth.h ../include/sock.h ../include/conf.h \
+ ../include/commands.h ../include/log.h ../include/iauth.h \
+ ../include/match.h ../include/misc.h ../include/res.h

@@ -1,0 +1,58 @@
+$Id$
+
+The hybrid team is a group of ircd coders who were frustrated
+with the instability and all-out "dirtiness" of the EFnet ircd's
+available. "hybrid" is the name for the collective efforts of a group
+of people, all of us.
+ 
+Anyone is welcome to contribute to this effort.  You are encouraged
+to participate in the Hybrid mailing list.  To subscribe to the
+Hybrid List, send email to listmanager@the-project.org with the
+subject "subscribe hybrid".
+ 
+The core team as, of this major release:
+ 
+A1kmm, Andrew Miller <a1kmm@mware.virtualave.net>
+adrian, Adrian Chadd <adrian@creative.net.au>
+AndroSyn, Aaron Sethman <androsyn@ratbox.org>
+billy-jon, Bill Jonus <bill@mu.org>
+cosine, Patrick Alken <wnder@uwns.underworld.net>
+David-T, David Taylor <davidt@yadt.co.uk>
+Dianora, Diane Bruce <db@db.net>
+einride, Erik S. Johansen, <einride@einride.org>
+fl, Lee Hardy <lee@leeh.co.uk>
+Hwy101, W. Campbell <wcampbel@botbay.net>
+larne, Edward Brocklesby <ejb@sdf.lonestar.org>
+isomer, Perry Lorier <perry@coders.net>
+jmallett, Juli Mallett <jmallett@FreeBSD.org>
+k9, Jeremy Chadwick <yoshi@parodius.com>
+Rodder, Jon Lusky <lusky@blown.net>
+toot, Toby Verrall <to7@antipope.fsnet.co.uk>
+Wohali, Joan Touzet <joant@ieee.org>
+xyst, Greg Prosser <gnp@arrogant.org>
+ 
+The following people have contributed blood, sweat, and/or code to
+this release of hybrid, in nick alphabetical order:
+ 
+adx, Piotr Nizynski <adx@crashnet.pl>
+bysin, Ben Kittridge <bkittridge@cfl.rr.com>
+desrt, Ryan Lortie <desertangel@mindless.com>
+Habeeb, David Supuran <habeeb@cfl.rr.com>
+jv, Jakub Vlasek <jv@pilsedu.cz>
+kre, Dinko Korunic <kreator@fly.srk.fer.hr>
+madmax, Paul Lomax <madmax@efnet.org>
+Neph|l|m, Adel Mezibra <adel@cybercable.fr>
+Riedel, Dennis Vink, <vink@vuurwerk.nl>
+Robert Alan Byer <byer@mail.ourservers.net>
+scuzzy, David Todd <scuzzy@aniverse.net>
+spookey, David Colburn <spookey@spookey.org>
+vulture, Sean Stanek <vulture@cs.iastate.edu>
+vx0, Mark Miller <mark@vx0.net>
+zb^3, Alfred Perlstein <alfred@freebsd.org>
+ 
+Others are welcome.  Always.  And if we left anyone off the above list,
+be sure to let us know that too.  Many others have contributed to
+previous versions of this ircd and it's ancestors, too many to list
+here.
+ 
+Send bug fixes/complaints/rotten tomatoes to ircd-hybrid@the-project.org.

@@ -1,0 +1,28 @@
+/* include/setup.h.in.  Generated automatically from autoconf/configure.in by autoheader.  */
+
+/* Define if you need to in order for stat and other things to work.  */
+#undef _POSIX_SOURCE
+
+/* Define if you have zlib available. */
+#undef HAVE_LIBZ
+
+/* Define if you have openssl available. */
+#undef HAVE_LIBCRYPTO
+
+/* Define if you have the EVP_bf_cfb function.  */
+#undef HAVE_EVP_BF_CFB
+
+/* Define if you have the EVP_cast5_cfb function.  */
+#undef HAVE_EVP_CAST5_CFB
+
+/* Define if you have the EVP_rc5_32_12_16_cfb function.  */
+#undef HAVE_EVP_RC5_32_12_16_CFB
+
+/* Define if you have the EVP_des_cfb function.  */
+#undef HAVE_EVP_DES_CFB
+
+/* Define if you have the EVP_des_ede3_cfb function.  */
+#undef HAVE_EVP_DES_EDE3_CFB
+
+/* Define if you have the EVP_idea_cfb function.  */
+#undef HAVE_EVP_IDEA_CFB

@@ -1,0 +1,54 @@
+                              Server VERSION Info
+
+   $Id$
+
+   Copyright (c) 2001 by ircd-hybrid team
+
+     ----------------------------------------------------------------------
+
+   Updated for Hybrid 7 (2000/12/28)
+
+   When you type /version, you will often see something like this:
+
+ hybrid-7beta7(20010803_2). irc.leeh.co.uk egGHIKMpTZp TS3ow
+
+   Ever wondered what those funny chars mean after the version number? Well
+   here they are:
+
+   +----------------------------+
+   | 'D'  | DEBUGMODE           |
+   |------+---------------------|
+   | 'e'  | USE_EXCEPT          |
+   |------+---------------------|
+   | 'g'  | NO_FAKE_GLINES      |
+   |------+---------------------|
+   | 'G'  | GLINES              |
+   |------+---------------------|
+   | 'H'  | HUB                 |
+   |------+---------------------|
+   | 'I'  | USE_INVEX           |
+   |------+---------------------|
+   | 'K'  | USE_KNOCK           |
+   |------+---------------------|
+   | 'M'  | IDLE_FROM_MSG       |
+   |------+---------------------|
+   | 'p'  | CRYPT_OPER_PASSWORD |
+   |------+---------------------|
+   | 'T'  | IGNORE_BOGUS_TS     |
+   |------+---------------------|
+   | 'Y'  | USE_SYSLOG          |
+   |------+---------------------|
+   | 'Z'  | ZIPLINKS            |
+   |------+---------------------|
+   | '6'  | IPv6                |
+   |------+---------------------|
+   |      |                     |
+   |------+---------------------|
+   | 'TS' | Supports TS         |
+   |------+---------------------|
+   | '5'  | TS Version 5        |
+   |------+---------------------|
+   | 'o'  | TS Only             |
+   |------+---------------------|
+   | 'w'  | TS Warnings         |
+   +----------------------------+

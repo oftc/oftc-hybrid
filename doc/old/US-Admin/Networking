@@ -1,0 +1,212 @@
+/************************************************************************
+ *   IRC - Internet Relay Chat, doc/NETWORKING
+ *   Copyright (C) 1990, Helen Rose
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 1, or (at your option)
+ *   any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+                                               Author: Helen Rose
+                                                       hrose@cs.bu.edu
+                                               Date: 10 Oct 1990
+
+*** Please read this before doing any connecting or writing to ask for
+connections. The information contained in this section is crucial to the
+way IRC is run.
+
+In August of 1990, IRC suffered a critical split in viewpoints of key
+people in the IRC heirarchy. The result was IRC split into two networks,
+EFnet (Eris Free network) and Anet (Anarchy network). This split continues
+today. There is some debate over whether IRC will ever reunite, however,
+neither side is willing to bend from their standpoint. 
+
+     Below is a paragraph from each side, listing their viewpoints on why their
+respective net is "better" than the other. Please read these, and decide
+for yourself which is the better network. Currently, there are about 95
+servers on EFnet (and the same number of users) and 15 servers on Anet (and
+about half the number of users). 
+
+Anet
+====
+joshua@coombs.anu.edu.au
+(DCLXVI == Josh Geller)
+   Arguments in favor of joining Anet include stabler links, ease of 
+connecting (just connect your server to eris.berkeley.edu; if you decide 
+later you wish to be on EFnet you merely have to add whatever patches are
+required and get a link from the appropriate EFnet server), no likelihood
+of regulation of numbers of servers (there has been some talk of limiting
+the number of servers on EFnet).
+
+EFnet
+*===*
+ckd@cs.bu.edu, hrose@cs.bu.edu
+(ckd = Christopher Davis, Trillian = Helen Rose)
+   Arguments in favor of joining EFnet are virtually limitless. From a
+redundant backbone plan (which assures everyone of getting a close,
+fast link and tries to keep traffic off of long haul networks) to the
+fact that the obvious security hole that exists with open-server servers
+does not exist. (Anyone running an open server allows any user with
+telnet access to crash the server's machine without too much work.)
+
+
+---real networking document---
+Throughout this document every effort will be made to apply to *BOTH* ANet
+and EFnet. If this is not possible, EFnet will be referred to, considering
+it is the side where the majority is located.
+
+Anet has one network coordinator:richardt@legato.com. Mail to him for all
+correspondence. At this time, no backbone layouts have been published for
+Anet.
+
+EFnet is coordinated in several areas:
+
+ckd@cs.bu.edu and hrose@cs.bu.edu coordinate the US routing. They also
+coordinate all incoming connections to the US. If you are in the United
+States and need a link, please mail to "operlist-request@cs.bu.edu"
+supplying the information listed below.
+
+savela@tel.vtt.fi, irc@tolsun.oulu.fi, and d88-skl@nada.kth.se coordinate
+the NORDUnet connections. (msa, WiZ, and meLazy on irc, respectively)
+
+muts@fysak.fys.ruu.nl coordinates Dutch servers.
+
+stumpf@Informatik.TU-Muenchen.de and Gruner@Informatik.TU-Muenchen.de
+coordinate German servers. (Maex and Armin/Gonzo)
+
+phil@cnam.cnam.fr coordinates the one French IRC server, and any others
+that might want be started.
+
+avalon@coombs.anu.oz.au coordinates the Australian servers. 
+
+bowles@is.s.u-tokyo.ac.jp coordinates the Japanese servers. 
+
+==how to get an IRC connection==
+
+(1) If you are in the United States and on Anet, mail to
+    richardt@legato.com.
+
+(2) If you are in the United States and on EFnet:
+      a) find out if your system has /etc/ping (sometimes /usr/etc/ping)
+      and ping the following hosts-
+
+      server/machine name        IP Address     Geographical Location
+      bucsd.bu.edu               128.197.10.2   Boston, MA
+      irc.mit.edu                18.70.0.224    Cambridge, MA
+      poe.acc.virginia.edu       128.143.20.20  Charlottesville, VA
+      sindri.cs.cornell.edu      128.84.254.96  Ithaca, NY
+      polaris.ctr.columbia.edu   128.59.64.79   New York City, NY
+      fairhope.andrew.cmu.edu    128.2.11.213   Pittsburgh, PA
+      *.umich.edu                141.212.66.36  Ann Arbor, MI
+      h.ece.uiuc.edu             128.174.115.18 Urbana-Champaign, IL
+      minnie.cc.utexas.edu       128.83.135.13  Austin, TX
+      ucsu.colorado.edu          128.138.129.83 Boulder, CO
+      badger.ugcs.caltech.edu    131.215.128.29 Pasadena, CA
+      *.spies.com                130.143.3.3    Cupertino, CA
+      *.washington.edu           128.95.152.35  Seattle, WA
+
+(yes, this seems like alot, but the backbone structure is quite complex and
+redundant so when we have a network break, servers can pick up other
+servers within moments)
+
+     b) a simple ping hostname (or ping IP address) will suffice. Ping the
+     five geographically closest machines. Let the ping run for 100 packets.
+     This allows the network coordinators to best evaluate your position 
+     on the network and to give you a connection that is fastest. 
+     Note: when using the SunOS version of ping, use ping -s machinename;
+           "regular" SunOS ping is useless.
+
+    c) mail these results to operlist-request@cs.bu.edu requesting a link. 
+
+  (3) If you are in Europe and are requesting a link, mail to the
+      appropriate contact listed above, and they will instruct you on how to
+      secure a link for your server.
+
+These are the results of the typical /etc/ping command:
+
+(note that since bucsd.bu.edu runs SunOS, I used ping -s...)
+
+bucsd% /usr/etc/ping -s betwixt.cs.caltech.edu
+PING betwixt.cs.caltech.edu: 56 data bytes
+64 bytes from betwixt.cs.caltech.edu (131.215.128.4): icmp_seq=0. time=169. ms
+64 bytes from betwixt.cs.caltech.edu (131.215.128.4): icmp_seq=1. time=190. ms
+64 bytes from betwixt.cs.caltech.edu (131.215.128.4): icmp_seq=2. time=200. ms
+64 bytes from betwixt.cs.caltech.edu (131.215.128.4): icmp_seq=3. time=170. ms
+[...]
+64 bytes from betwixt.cs.caltech.edu (131.215.128.4): icmp_seq=18. time=180. ms
+64 bytes from betwixt.cs.caltech.edu (131.215.128.4): icmp_seq=19. time=220. ms
+64 bytes from betwixt.cs.caltech.edu (131.215.128.4): icmp_seq=20. time=170. ms
+64 bytes from betwixt.cs.caltech.edu (131.215.128.4): icmp_seq=21. time=200. ms
+^^            ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^            ^^       ^^^^^^^
+Size of packet   hostname             IP address      packet number  trip time
+
+----betwixt.cs.caltech.edu PING Statistics----
+22 packets transmitted, 22 packets received, 0% packet loss
+round-trip (ms)  min/avg/max = 160/179/220
+
+When you send pings to operlist-request, please only send the results
+(the above three lines)--we *don't* need each packet's time.
+
+Guidelines:
+
+Avg Time        Connection is
+========        =============
+20-50 ms        Optimal
+50-80 ms        Excellent
+80-120 ms       Very Good
+120-180 ms      Average
+180-240 ms      Acceptable
+240-300 ms      Below Average
+300-400 ms      Bad
+400+    ms      Find a better link, if possible
+
+** *** WHERE TO FIND HELP!!! ***
+** 
+** If you have any other questions about connecting to an irc server, please
+** mail to operlist-request@cs.bu.edu.  If you have problems mailing there,
+** try mailing hrose@cs.bu.edu or ckd@cs.bu.edu. 
+** 
+** *** WHERE TO FIND HELP!!! ***
+
+If you are in need of further help, you may find it by using your IRC
+client, entering IRC, and sending a /wallops. Be sure to read the help
+information on /wallops before doing so. Please use /wallops for IRC
+questions or help only, and not for questions like "have you seen nicky
+I need to talk to him". /wallops with care, or you will be annoying
+every operator on IRC.
+
+Appendix
+========
+
+Open client servers
+Until such a time that your server becomes connected, you should use your
+irc client and connect to open client servers.  Some of these servers are-
+
+irc.mit.edu
+bucsd.bu.edu
+fairhope.andrew.cmu.edu
+hermes.tcad.ee.ufl.edu
+mingin.engin.umich.edu
+minnie.cc.utexas.edu
+badger.ugcs.caltech.edu
+ucsu.colorado.edu
+dharma.cpac.washington.edu
+
+fysak.fys.ruu.nl
+nic.funet.fi
+coombs.anu.edu.au
+
+Start up your irc client, and then type /help for help.
+Happy IRC'ing!
+
+

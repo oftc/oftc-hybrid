@@ -1,0 +1,56 @@
+Message customization/localization system
+David Taylor <davidt@yadt.co.uk>
+
+$Id$
+
+Please send any comments, questions, flames or suggestions to the
+above address :)
+
+How to use gettext() support
+----------------------------
+Assuming ircd-hybrid is compiled on a machine which supports gettext(),
+configure should automatically enable gettext() support, although this
+support can be explicitly disabled by removing the definition of MSGPATH in
+include/config.h
+
+If gettext() support is disabled, ircd-hybrid will use the default compiled
+in messages in src/messages.tab.
+
+If gettext() support is enabled, ircd-hybrid will attempt to load the
+messages from MSGPATH/<selected locale>/LC_MESSAGES/ircd-hybrid.mo.
+
+The selected locale can be set in the ircd.conf file, or by setting the
+LANGUAGE environment variable before running ircd-hybrid.  It can also be
+changed at run time using /quote set MSGLOCALE <new locale>.  Setting a
+locale that does not exist will cause ircd-hybrid to fall back on the
+compiled in standard messages.
+
+Currently available locales are:
+	custom		These are the messages you would have seen if
+			you used the old CUSTOM_ERR define in config.h.
+	ayb		'All Your Base'-type messages.
+	standard	(This doesn't actually exist as a locale, but
+			 using a non-existent locale will use the compiled
+			 in defaults).
+
+Customizing the messages
+------------------------
+In messages/, run ./create_po with the name of the new po file
+(<locale>.po), and add the new po file to Makefile.in.
+
+Then simply change any messages in the template file that you want to (""
+will cause gettext() to use the original message, unchanged), and run make.
+
+If any messages in the hybrid tree are added/removed, running make mrupdate
+will attempt to merge the changes into the po file, and will add any new
+messages to the end of the file.
+
+Running make install should install the compiled .mo file in the correct
+place.
+
+Notes
+-----
+Any message that should be translated should either be in src/messages.tab
+(if it's a numeric), or else should be written as _("string") instead of
+"string", which allows gettext() to translate it, if it's enabled, and also
+allows create_po to pick it up as a translatable string.

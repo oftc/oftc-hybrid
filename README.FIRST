@@ -1,0 +1,115 @@
+If you don't read this first, we won't help you.
+:-)
+
+******************************* IMPORTANT *************************************
+
+  *********** Note for those who dont bother reading docs *****************
+  * - Reading INSTALL is now a must, as the old DPATH is now specified    *
+  *   when configure is run.                                              *
+  *   You now need to ./configure --prefix="/path/to/install/it"          *
+  * - The old config format WILL NOT WORK.  Please see doc/example.conf ! *
+  * - The old kline format WILL NOT WORK.  Please use convertklines which *
+  *   will be installed with your ircd!					  *
+  * - If you get errors compiling custom.mo, check if you are using the   *
+  *   most recent version of gettext.  Tested with GNU gettext 0.10.35.   *
+  *************************************************************************
+
+  ALSO, IF YOU ARE UPGRADING YOUR CURRENT SOURCE TREE, AND YOU TRY TO BUILD
+  IN IT WITHOUT PERFORMING AT LEAST 'make clean', THINGS _WILL_ BREAK.  IT IS
+  RECOMMENDED THAT YOU RUN 'make distclean' AND THEN RERUN './configure'!
+
+******************************* REQUIREMENTS **********************************
+
+Necessary Requirements:
+
+- A supported platform (look below)
+
+- A working dynamic load library, unless
+  compiling as static, without module
+  support.
+
+- A working lex.  Solaris /usr/ccs/bin/lex
+  appears to be broken, on this system flex
+  should be used.
+
+- A working bison or byacc.  FreeBSD and BSD/OS
+  byacc are broken in some releases, and will
+  dump core when building the ircd_parser.y. The
+  solution to this is to upgrade to the most
+  recent release, or to simply obtain a current
+  copy of byacc (such as building source from
+  FreeBSD CVS/CVSup). This is fixed in FreeBSD
+  4.4-STABLE and later.
+
+Feature Specific Requirements:
+
+- For the SSL Challenge controlled OPER feature and encrypted server links,
+  a working OpenSSL library
+
+- For dynamic message locale support, a working gettext (intl) library
+
+- For encrypted oper and (optional) server passwords, a working DES and/or
+  MD5 library
+
+*******************************************************************************
+
+- To report bugs in hybrid, send the bug report to ircd-hybrid@the-project.org
+
+- Known bugs are listed in the BUGS file
+
+- See the INSTALL document for info on configuring and compiling
+  ircd-hybrid.
+
+- Please read doc/index.txt to get an overview of the current documentation.
+
+- Old Hybrid 5/6 configuration files are no longer supported.  All conf
+  files will have to be converted to the Hybrid 7 format.  A convertconf
+  utility is provided and installed into bin/.
+
+- If you are wondering why config.h is practically empty, its because many 
+  things that were once in config.h are now specified in the 'general'
+  block of ircd.conf.  Look at example.conf for more information about
+  these options.
+
+- The files, /etc/services, /etc/protocols, and /etc/resolv.conf, MUST be
+  readable by the user running the server in order for ircd to start.
+  Errors from adns causing the ircd to refuse to start up are often related
+  to permission problems on these files.
+
+- There is now a mailing list for general discussion of Hybrid.  To subscribe
+  to the Hybrid List, send email to listmanager@the-project.org with
+  the subject "subscribe hybrid".
+
+- If you run in to a problem you think may be specific to your platform,
+  check README.PLATFORMS for some hints.
+
+- SOLARIS USERS: this code appears to tickle a bug in older gcc and 
+  egcs ONLY on 64-bit Solaris7.  gcc-2.95 and SunPro C on 64bit should
+  work fine, and any gcc or SunPro compiled on 32bit.
+
+- DARWIN AND MACOS X USERS: You must be using at least the December 2001
+  Development Tools from Apple to build ircd-hybrid with shared modules.
+  Before then you MUST disable shared modules, as we do not have the proper
+  flags for cc(1) prior to that point to produce shared modules.
+
+- SUPPORTED PLATFORMS: this code should compile without any warnings
+  on FreeBSD 3.x/4.x, RedHat 6.2, Debian Potato and Solaris 7/8 sparc.  
+  Please let us know if you find otherwise.  
+  It probably does not compile on AIX, IRIX or libc5 Linux.
+
+- TESTED PLATFORMS:  The code has been tested on the following platforms, and
+  is known to run properly.
+  FreeBSD 3.x/4.x
+  Linux glibc
+  Solaris 2.6/7/8
+  OpenBSD 2.8
+  NetBSD 1.4
+  Cygwin 1.3+ (static modules, no servlink)
+  OpenVMS/Alpha 7.2 (static modules, no servlink)
+
+- Please read doc/whats-new.txt for information about what is in this release
+
+- Other files recommended for reading: BUGS, INSTALL
+
+--------------------------------------------------------------------------------
+$Id$

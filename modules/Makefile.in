@@ -1,0 +1,226 @@
+#
+# Makefile.in for ircd/modules
+#
+# $Id$
+#
+CC		= @CC@
+AR		= @AR@
+RANLIB		= @RANLIB@
+RM		= @RM@
+SED             = @SED@
+LEX		= @LEX@
+LEXLIB		= @LEXLIB@
+CFLAGS		= @IRC_CFLAGS@ -DIRCD_PREFIX=\"@prefix@\"
+PICFLAGS	= @PICFLAGS@
+MKDEP		= @MKDEP@ -DIRCD_PREFIX=\"@prefix@\"
+INSTALL		= @INSTALL@
+INSTALL_PROGRAM	= @INSTALL_PROGRAM@
+INSTALL_DATA	= @INSTALL_DATA@
+INSTALL_SUID    = @INSTALL_PROGRAM@ -o root -m 4755
+SEDOBJ		= @SEDOBJ@
+SHELL		= /bin/sh
+MV		= @MV@
+LD		= @LD@
+
+SSL_LIBS	= @SSL_LIBS@
+SSL_INCLUDES	= @SSL_INCLUDES@
+
+IRCDLIBS        = @LIBS@ $(SSL_LIBS)
+
+prefix          = @prefix@
+# Change this later! -- adrian
+moduledir       = @prefix@/modules
+automoduledir   = @prefix@/modules/autoload
+
+INCLUDES	= -I../include -I../adns $(SSL_INCLUDES)
+CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
+
+CORE_SRCS = \
+  core/m_die.c \
+  core/m_kick.c \
+  core/m_kill.c \
+  core/m_message.c \
+  core/m_mode.c \
+  core/m_nick.c \
+  core/m_part.c \
+  core/m_quit.c \
+  core/m_server.c \
+  core/m_sjoin.c \
+  core/m_squit.c
+
+SRCS =                          \
+  m_accept.c \
+  m_admin.c \
+  m_away.c \
+  m_capab.c \
+  m_cburst.c \
+  m_challenge.c \
+  m_cjoin.c \
+  m_close.c \
+  m_connect.c \
+  m_cryptlink.c \
+  m_cs.c\
+  m_dmem.c \
+  m_drop.c \
+  m_eob.c \
+  m_gline.c \
+  m_gnotice.c\
+  m_help.c \
+  m_hs.c\
+  m_info.c \
+  m_invite.c \
+  m_ison.c \
+  m_join.c \
+  m_kline.c \
+  m_knock.c \
+  m_links.c \
+  m_list.c \
+  m_lljoin.c \
+  m_llnick.c \
+  m_locops.c \
+  m_log.c\
+  m_lusers.c \
+  m_map.c\
+  m_motd.c \
+  m_ms.c\
+  m_names.c \
+  m_nburst.c \
+  m_ns.c\
+  m_oper.c \
+  m_operwall.c \
+  m_os.c\
+  m_pass.c \
+  m_ping.c \
+  m_pong.c \
+  m_post.c \
+  m_realhost.c\
+  m_rehash.c \
+  m_restart.c \
+  m_resv.c \
+  m_set.c \
+  m_spingtime.c\
+  m_stats.c \
+  m_svinfo.c\
+  m_svscloak.c\
+  m_svsnick.c\
+  m_svsmode.c\
+  m_testline.c \
+  m_time.c \
+  m_topic.c \
+  m_trace.c \
+  m_unkline.c \
+  m_user.c \
+  m_userhost.c \
+  m_users.c \
+  m_version.c \
+  m_wallops.c \
+  m_who.c \
+  m_whois.c \
+  m_whowas.c \
+  m_spiffy.c
+
+ALL_SRCS = $(CORE_SRCS) \
+           $(SRCS)
+
+SH_OBJS = ${SRCS:.c=.so}
+SH_CORE_OBJS = ${CORE_SRCS:.c=.so}
+
+HPUX_OBJS = ${SH_OBJS:.so=.sl}
+HPUX_CORE_OBJS = ${SH_CORE_OBJS:.so=.sl}
+
+S_OBJS = ${ALL_SRCS:.c=.o}
+
+DOLLAR = $$
+
+default:	build
+build: all
+all: @MOD_TARGET@
+
+shared_modules: $(SH_CORE_OBJS) $(SH_OBJS)
+
+hpux_modules: $(HPUX_CORE_OBJS) $(HPUX_OBJS)
+
+hpux_shared: $(SH_CORE_OBJS) $(SH_OBJS)
+	${MAKE} hpux_modules
+
+libmodules.a: $(S_OBJS)
+	$(RM) -f $@
+	$(AR) cqv $@ $(S_OBJS) 
+	$(RANLIB) $@
+
+
+install-mkdirs:
+	-@if test ! -d $(prefix); then \
+                echo "mkdir $(prefix)"; \
+                mkdir $(prefix); \
+        fi
+	
+	-@if test -d $(moduledir)-old; then \
+		echo "rm -rf $(moduledir)-old"; \
+		rm -rf $(moduledir)-old; \
+	fi
+	-@if test -d $(moduledir); then \
+		echo "mv $(moduledir) $(moduledir)-old"; \
+		mv $(moduledir) $(moduledir)-old; \
+	fi
+
+	-@if test ! -d $(moduledir); then \
+                echo "mkdir $(moduledir)"; \
+                mkdir $(moduledir); \
+        fi
+	-@if test ! -d $(automoduledir); then \
+                echo "mkdir $(automoduledir)"; \
+                mkdir $(automoduledir); \
+        fi
+
+install: install_@MOD_TARGET@
+
+install_libmodules.a: libmodules.a
+# Ye olde noop here.	
+
+install_shared_modules: install-mkdirs
+	@echo "Installing core modules into $(moduledir) .."
+	@for file in $(SH_CORE_OBJS); do \
+		$(INSTALL_DATA) $$file $(moduledir); \
+	done
+	@echo "Installing modules into $(automoduledir) .."
+	@for file in $(SH_OBJS); do \
+		$(INSTALL_DATA) $$file $(automoduledir); \
+	done
+
+install_hpux_shared: install-mkdirs
+	@echo "Installing core modules into $(moduledir) .."
+	@for file in $(HPUX_CORE_OBJS); do \
+		$(INSTALL_DATA) $$file $(moduledir); \
+	done
+	@echo "Installing modules into $(automoduledir) .."
+	@for file in $(HPUX_OBJS); do \
+		$(INSTALL_DATA) $$file $(automoduledir); \
+	done
+
+.SUFFIXES: .sl .so .o
+
+.c.o:
+	${CC} ${CPPFLAGS} ${CFLAGS} -c $< -o $@
+
+.c.so:
+	${CC} ${PICFLAGS} ${CPPFLAGS} ${CFLAGS} $< -o $@
+
+.so.sl:
+	$(LD) -b $< -o $@
+
+.PHONY: depend clean distclean
+depend:
+	${MKDEP} ${INCLUDES} ${ALL_SRCS} > .depend
+
+clean:
+	${RM} -f *.so *.sl *~ *.o *.a
+	${RM} -f core/*.so core/*.sl core/*~ core/*.o
+
+lint:
+	lint -aacgprxhH ${CPPFLAGS} -DIRCD_PREFIX=\"@prefix@\" $(ALL_SRCS) >../lint.out
+
+distclean: clean
+	${RM} -f Makefile
+
+include .depend

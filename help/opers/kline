@@ -1,0 +1,21 @@
+KLINE <nick|user@host> :[reason]
+
+Adds a KLINE to the ircd.conf or klines.conf file which
+will ban the specified user from using that server.
+The banned client will receive a message saying he/she
+is banned with reason [reason]
+
+KLINE user@ip.ip.ip.ip :[reason]
+will kline the user at the unresolved ip.
+ip.ip.ip.ip can be in CIDR form i.e. 192.168.0.0/24
+or 192.168.0.* (which is converted to CIDR form internally)
+
+For a temporary KLINE, length of kline is given in
+minutes as the first parameter i.e.
+KLINE 10 <nick|user@host> :cool off for 10 minutes
+
+KLINE <user@host ON irc.server :[reason]
+will kline the user on irc.server if irc.server accepts
+remote klines.
+
+- Requires Oper Priv: K

@@ -1,0 +1,40 @@
+$Id$
+
+This describes the debug (src/debug.c) debugging system in hybrid.
+
+1. How does it work?
+ Debug is based on a system of "entities", combined with the deprintf() function.
+ An entity is just a string describing something to debug, eg "send" or "modules".
+ 
+2. How do i use it?
+ First, check the end of this file to see if an entity for what you want to debug
+ already exists. If it does, you can just use the deprintf() function, like so:
+   deprintf(char *entity, char *fmt, ...);
+ For example:
+   deprintf("send", "Sending string [%s] to %s", line, source_p->name);
+ Don't put a \n at the end of fmt.
+
+ If the entity doesn't exist, then you'll have to add it. Edit src/debug.c, and
+ look for a line saying "Add new entities here". Add your entity to the list in
+ the table, and update the list in this file.  Then continue as above.
+
+3. My code is using deprintf(), how do I make it print anything?
+ deprintf() only prints anything if debugging for that entity is defined.
+ To do this, start ircd like so:
+  ircd -debug send [-debug another_entity ...]
+
+4. My code is a module.  Can I still use debug.c?
+ Yes.  Just use the add_mod_debug function in your _modinit, like so:
+   add_mod_debug("entity_name");
+ Then, when ircd is running, use the DEBUG command:
+   /debug +entity_name
+ Use /debug -entity_name to turn off debugging. (This also works for non-module
+ entities).
+
+5. What entities are available?
+  
+  Name           | Description
+-----------------+------------------------------
+  send           | send.c and related functions.
+  error          | errer messages from servers.
+-----------------+------------------------------

@@ -1,0 +1,7 @@
+DMEM [dump]
+
+DMEM is used if the memory debugging system
+is enabled.  Without a parameter, it will NOTICE
+you a memory report.  With a parameter, it will
+create memory.log in the server's prefix directory.
+The parameter is not used.

@@ -1,0 +1,284 @@
+There have been quite a few changes in Hybrid 7 and this is a list of the main 
+new features:
+
+The Config File has drastically changed.  It now however allows most of the
+options that were in config.h, to be changed with a /rehash.  
+
+------------------
+ Channel Changes:
+------------------
+
+- Channels are now flood controlled for unopped/voiced users.  If too many
+  messages are sent to the channel in 1 second they will be throttled.  The
+  value needed is set in /quote SET FLOODCOUNT, and is in the config as a
+  startup value.  A side effect is CTCPs will be throttled for non-ops, but
+  this cannot be helped.
+
+- Invite exemptions are included (channel mode +I).  This is similar to +e,
+  this is a nick!user@host mask of somebody who can join an invite-only (+i)
+  channel without having to be invited first.
+
+- Half Ops are added.  This gives a user most of the power of a chanop (@)
+  but without the ability to take over the channel.  Half-ops can kick
+  unopped users, voiced users, set channel modes including +v, but not kick
+  ops, or deop ops.   This leads to greater security on channels.  This is
+  the mode (+h) and is seen as % on the channel list.
+
+  NOTE:  Half ops are optional and enabled by default.
+
+- Channel Op Hiding is now included as a channel mode.  By setting the
+  mode +a when a user joins the channel, they will not see who is opped,
+  voiced, or halfopped.  They will see mode changes except +ohv but will
+  see them as: 
+
+       *** irc.server sets mode +b nick!user@host on #channel
+
+  When a user is opped, the user will see a server generated "massmode"
+  showing them the real list of who is opped/halfopped/voiced to keep
+  clients in sync.
+
+  NOTE: Anonymous ops are optional and disabled by default.
+  
+- The infamous VChans are included.  This allows multiple channels with the
+  same name.  When joining a channel with vchans, a simple JOIN #channel
+  will show a message saying which channels are available.  The user will
+  then have to JOIN #channel !key with one of the provided keys.  Creating
+  a new vchan is easy as well.  Part the channel and do /quote CJOIN #channel.
+  A new view of the channel is created.   A legitimate op can just CJOIN a
+  new vchan and get all of the old users over to the new vchan.  The takeover
+  people will then be sitting opped by themselves in a vchan while the
+  original users are back the way they were before in another vchan.
+
+  The command CJOIN and vchans are configurable in the config file:
+       vchans_oper_only=yes; will make CJOIN oper only
+       use_vchans=no;        will stop vchans from being recognised on
+                             this server
+
+  See doc/vchans.txt for more information.
+
+- Persistent channels are included.  With TS5 the only reason to enable
+  no_join_on_split is to prevent people gaining access to +ik channels on
+  a netsplit.  Persistent channels in combination with no_create_on_split
+  offer an alternative, by preserving a channel when it becomes empty, via
+  a split or the last user parting.  All of the channels modes and bans will be
+  kept for the time specified in the config file.  A user that does successfully
+  join an empty preserved channel will have ops and the channel timestamp will
+  be reset to the current time, so if there was a netsplit when the user joined
+  they will lose ops due to the rules of TS.
+
+  Persistent channels are configurable via:
+      persist_time = 30 minutes;   will persist channels for at least 30 mins.
+
+
+
+--------------
+ User Changes: 
+--------------
+
+- AWAY is now propagated from server to server
+
+- Server side ignore is included for all users.  Setting user mode +g will
+  make you ignore all private messages.  Channel messages are not affected.
+   People who you wish to communicate with can be permitted with the
+  /quote ACCEPT nick command.  The current accept list can be seen with  
+  /quote ACCEPT *, and nicks can be removed with /quote ACCEPT -nick.
+  When a user tries to message you when you are set +g, and they are not
+  on the accept list, they will receive a message saying you are on server
+  side ignore.  You will also receive a message, but it is paced, so you will
+  only receive a notification every 60 seconds.  When a user changes his or
+  her nick, he or she will be removed from any other user's ACCEPT list.  This
+  must be done in order to prevent other users from being able to trace another
+  user through NICK changes and the like.  When a user is placed on the ACCEPT
+  list, the user will be notified.  More information is available in the
+  modeg.txt document in this directory.
+
+
+------------------
+ Operator Changes:
+------------------
+
+- Unauthorized connection notices have been moved to the +u user mode.
+
+- The server can now differentiate between admins and opers.  This helps
+  to hide the IPs of servers, by only showing them to admins:
+     (indicated by umode +a and admin=yes; in oper block)
+
+  It also limits certain stats commands to admin only.  IPs can still be
+  fully removed from all admins and opers by defining HIDE_SERVERS_IPS in
+  config.h.
+
+- The /notice $irc.server command has been renamed to /notice $$irc.server
+
+- The /notice #*.hostmask command has been renamed to /notice $#*.hostmask
+  This avoids any further confusion between messaging a real channel and
+  messaging a hostmask.
+
+- Remote K-Lines are supported.  These allow you to permit operators on 
+  remote servers to place klines on your server.  The shared block in the
+  config specifices what server to allow remote klines from, and what
+  user/host on that server, to restrict it to a specific oper on there.
+  This is detailed more in doc/kline.txt
+
+  To K-Line on a specific server:
+     /quote kline user@host on irc.server :reason
+     /quote kline [time] user@host on irc.server :reason
+
+  To K-Line on multiple servers:
+     /quote kline user@host on *.uk :reason
+     /quote kline [time] user@host on *.uk :reason
+
+  To K-Line on all servers:
+     /quote kline user@host on * :reason
+     /quote kline [time] user@host on * :reason
+
+  To K-line locally only:
+     /quote kline user@host :reason
+     /quote kline [time] user@host :reason
+
+- Local operators are no longer part of ircd.  The oper flags are used to
+  restrict what each operator can do.
+
+- User modes can be specified oper only.  This is yet another start time
+  configurable option in ircd.conf.  See the comments in example.conf for
+  more details.
+
+- STATS e now shows events. (admin only)
+
+- STATS f now shows active file descriptors. (admin only)
+
+- LOCOPS have been moved away from the traditional +z usermode (operwall)
+  and into their own usermode: +l.  This allows oper to ignore operwall,
+  but still listen to locops.
+
+- Implemented local RESV.  This replaces:
+     /mode #channel +j and Q: lines in hybrid-6.
+
+  To RESV a nick:
+    /quote resv nick :reason
+
+  To RESV a wildcard nick (must be an admin)
+    /quote resv *nick :reason
+
+  To RESV a channel
+    /quote resv #channel :reason
+
+  You may also UNRESV, and add resv's in the config.  See resv.txt for more
+  details.
+
+
+-----------------------
+ Miscellaneous Changes:
+-----------------------
+
+- zlib is gone.  If you want ziplinks, you need to have zlib installed
+  somewhere configure can detect it.  Almost every system on the planet
+  should have zlib installed by now, if not, just install it yourself.
+
+- Encrypted server<->server links are now supported.
+  See doc/cryptlinks.txt and doc/example.conf.
+
+- Server hiding is also a conf file option.  This allows you to only show
+  a users server to opers, WHO, WHOIS and WHOWAS are modified to show 
+  NetworkName.  TRACE is disabled, LINKS can be made to show a "flat" tree,
+  giving the appearance everything is linked to the current server.  Servers
+  can also be hidden from this "flat" tree.
+
+  This feature needs to be enabled network wide for it to be fully effective.
+
+  See serverhide.txt for more information.
+
+- LazyLinks are now included.  These enable a leaf server to only need
+  information about channels that it's local users are on, and nicks that have
+  been used (in a channel, in a private message, or in a WHO or WHOIS by a user
+  or channel on the leaf).  Read the LazyLinks.as.implemented.txt document for
+  more information.
+
+- Nearly all commands are now modules.  MODLIST will list all loaded modules,
+  MODUNLOAD will remove a module from the ircd, and MODLOAD will load a new
+  module into the ircd.  MODRELOAD will unload then load the module in one
+  simple command.  All of these commands are documented in opers.txt and are
+  restricted to admins only.  These commands are disabled when compiled with
+  static modules.  If a module is to be upgraded it MUST be deleted first, as
+  otherwise some OSs can have problems and crash.
+
+  Some of these modules are defined as 'core'.  That means they cannot be 
+  unloaded, and may only be reloaded.  If the reload fails the ircd will exit.
+
+- HUB is now a runtime option.
+
+- Classes (formerly Y: lines) can now be names instead of numbers.
+
+- IPv6 is now supported, enabled via ./configure --enable-ipv6
+
+- Connection throttling has been included.  This allows fast reconnecting bots
+  to be throttled.  Similar to ircu's implementation.
+
+- Hybrid now supports IRCnet-like redirection.  The redirserv and redirport
+  options in an auth {} block will allow an admin to specify other servers
+  to forward user connections to.  The client must support the 010 numeric
+  for this to work (EPIC supports it).  Note that there must always be a class
+  field in auth blocks, even ones that will just do redirection.
+
+- Autoconnects are far more customizable now.
+
+- There are hooks in the code, that loadable modules can plug into.  These
+  hooks provide interfaces for user enhancement.  There are some hook modules
+  provided in contrib, providing WHOIS notice, STATS notice, and LINKS notice.
+  Others will be added as the ircd matures.
+
+- Hybrid now has the ISUPPORT/005 numeric, showing the client what modes this
+  server will support, and what commands:
+
+    KNOCK          - Support KNOCK
+    VCHANS         - Support Virtual Channels
+    EXCEPTS        - Support ban exceptions (+e)
+    INVEX          - Support invite exceptions (+I)
+    WALLCHOPS      - /notice @#channel will notice only ops
+                     /notice %#channel will notice only halfops/ops
+		     /notice +#channel will notice only voices/halfops/ops
+
+		     privmsg is also supported.
+    CALLERID       - Server supports the +g usermode for server-side ignore.
+    MODES=%i       - The number of channel modes accepted per MODE command
+    MAXCHANNELS=%i - The maximum channels per user
+    MAXBANS=%i     - The limit on the total number of bans, excepts and invite
+                     excepts per channel
+    MAXTARGETS=%i  - The number of users that may be chained together in a
+                     PRIVMSG or NOTICE (user1,user2,user3...)
+    NICKLEN=%i     - The maximum nickname length
+    TOPICLEN=%i    - The compiled in topic length
+    KICKLEN=%i     - The length of a KICK message
+    CHANTYPES=%s   - The types of channels supported (currently '#&')
+    PREFIX=%s      - The allowed PRIVMSG/NOTICE channel prefixes (server based
+                     /onotice, NOTICE @%#channel :message)
+    CHANMODES=%s   - How channel modes are used (see supported.h for details)
+    NETWORK=%s     - The IRC network name
+    CHARSET=%s     - The character set the ircd uses for channel names
+
+- CAPAB List:
+
+    TS      - Support the TS protocol
+    QS      - Remove the QUIT storm on splits
+    EX      - Support +e exceptions in channels
+    CHW     - Support PRIVMSG/NOTICE @#channel messages
+    LL      - LazyLink server
+    IE      - Invite Exceptions - +I on channels - All nick!user@hosts listed in
+              a +I are exempt from having to be invited to the channel before
+              JOINing
+    EOB     - End of Burst - Marks the end of a servers burst.  Will be used in
+              future to help prevent mode hacking by servers.
+    KLN     - Support remote K-lines
+    GLN     - Support G-lines
+    KNOCK   - Support propogated KNOCK
+    HOPS    - Support half-ops
+    HUB     - Is a hub server (used to prevent two LL hubs from linking in that
+              state)
+    AOPS    - Supports anonymous channel ops (channel mode +a)
+    UID     - Unique user-ID support
+    ZIP     - Ziplink (Link is compressed with zlib compression)
+    TBURST  - Supports topic bursting, a contrib/ module.
+    PARA    - Controls propogation of INVITE notices for +p (paranoid) channels
+    ENC:a   - Encrypted link, where 'a' is the cipher being used
+
+# $Id$
+

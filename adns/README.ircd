@@ -1,0 +1,11 @@
+
+The files in adns/ were borrowed from the ADNS library and modified quite
+heavily.  The original code's copyright notices are in adns/README.  
+
+The modified portions are Copyright 2000 Aaron Sethman <androsyn@ratbox.org>
+
+Basically what has changed is getting adns to work with our event loop and
+IPv6 support.  Note that the IPv6 support isn't real great right now and may
+not even work.  The IPv4 support seems okay though.
+
+ 

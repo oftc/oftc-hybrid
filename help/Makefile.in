@@ -1,0 +1,92 @@
+# Generated automatically from Makefile.in by configure.
+# $Id$
+# makefile for include/
+
+INSTALL=	@INSTALL@
+INSTALL_DATA=	@INSTALL_DATA@
+RM=		@RM@
+
+prefix=		@prefix@
+exec_prefix=	@execprefix@
+uhelpdir=	${prefix}/help/users
+ohelpdir=	${prefix}/help/opers
+
+SYMLINKS=	topic accept cjoin cmode admin names links away whowas \
+		version kick who invite quit join list nick oper part \
+		time credits motd userhost users whois ison lusers \
+		user help pass error challenge knock ping pong
+
+all:
+build:
+clean:
+depend:
+lint:
+
+index:
+	@echo building index files
+	rm -f users/index.tmp
+	@for help in users/*; do \
+		if [ -f $$help ]; then \
+			echo $$help >> users/index.tmp; \
+		fi \
+	done
+	@for help in $(SYMLINKS); do \
+		echo $$help >> users/index.tmp; \
+	done
+	echo 'Help topics available to users:' > users/index
+	echo '' >> users/index
+	cat users/index.tmp \
+		| sort -u \
+		| sed -e 's|^users/||' \
+		| tr a-z A-Z \
+		| column -c 65 -x \
+		| expand \
+		>> users/index
+	rm -f users/index.tmp
+	rm -f opers/index.tmp
+	@for help in opers/*; do \
+		if [ -f $$help ]; then \
+			echo $$help >> opers/index.tmp; \
+		fi \
+	done
+	echo 'Help topics available to opers:' > opers/index
+	echo '' >> opers/index
+	cat opers/index.tmp \
+		| sort -u \
+		| sed -e 's|^opers/||' \
+		| tr a-z A-Z \
+		| column -c 65 -s ' ' -x \
+		| expand \
+		>> opers/index
+	rm -f opers/index.tmp
+
+install:
+	@echo installing help files...
+	-@if test ! -d $(prefix)/help; then \
+		echo "mkdir $(prefix)/help"; \
+		mkdir $(prefix)/help; \
+		echo "mkdir $(prefix)/help/users"; \
+		mkdir $(prefix)/help/users; \
+		echo "mkdir $(prefix)/help/opers"; \
+		mkdir $(prefix)/help/opers; \
+	fi
+	@for help in opers/*; do \
+	if [ -f $$help ]; then \
+		${INSTALL_DATA} $$help $(ohelpdir); \
+	fi \
+	done
+	@for help in users/*; do \
+	if [ -f $$help ]; then \
+		$(INSTALL_DATA) $$help $(uhelpdir); \
+	fi \
+	done
+	@for link in $(SYMLINKS); do \
+		rm -f $(uhelpdir)/$$link; \
+		ln -s $(ohelpdir)/$$link $(uhelpdir); \
+	done
+
+
+distclean:
+	${RM} -f Makefile
+
+depend:

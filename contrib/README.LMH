@@ -1,0 +1,168 @@
++lmh patches by fl_
+
+The +lmh patch exists to add some functionality and features that I find
+useful and that people have requested.  This patch will not modify the
+example configs to show the new options, they are only contained in this
+readme.  I know its quite long, but..
+
+This patch is unofficial and is used at your own risk.
+
+To patch your ircd with this diff:
+  Change to your ircd-hybrid-7 directory.
+  If you have already compiled the ircd, run 'make clean' then:
+    patch -p1 < contrib/lmh.diff
+
+  Then run 'make' and 'make install'.
+  
+
+The following features have been added:
+
+i) Temp dline support and temp kline extensions.
+   Normal dlines may still be placed as normal via: 
+      /quote dline <nick|ip> :reason
+
+   However they can be made temporary by adding a duration:
+      /quote dline [duration] <nick|ip> :reason
+
+   The duration is in minutes.  Temp klines/dlines will now both have a 
+   maximum length of 4 weeks (40320 minutes).  This is because the ircd
+   now handles them more efficiently by grouping them and checking their
+   expiry as infrequently as possible.
+
+ii) Oper flood exemption
+    This is the equivalent of hybrid6's TRUE_NO_OPER_FLOOD, and will
+    remove all flood limits for opers.  Note this is dangerous as an oper
+    will not get rate limited no matter how many lines they send to the
+    server.  Use with great precaution.  Unlike hybrid6 however this
+    is configured per oper and defaults to disabled.  
+    
+    To grant an oper this exemption add to their oper {} block:
+      flood_exempt = yes;
+
+    Note the exemption only takes effect whilst opered, but once a user
+    has opered with the flood exemption, the exemption will remain until
+    that user is disconnected from the ircd, even if the exemption is
+    removed from their oper block and they reoper.
+
+    Note that opers without this exemption still have increased flood limits
+    of about 20 lines per second which is controlled by no_oper_flood
+    in the general {} block.
+
+iii) Remote unkline support.
+    This extends hybrid7s remote kline support to also allow unklines to
+    be done on remote servers by authorised users.
+
+    To facilitate this, the shared {}; block has been modified to give
+    remote opers specific permissions (similar to an oper {}).  By default
+    the permissions of a shared block are that an oper may remotely kline
+    but not unkline.
+
+    The two options added to the shared block are:
+       kline = <yes|no>;
+       unkline = <yes|no>;
+
+    To issue a remote unkline:
+       /quote unkline <user@host> on <server>
+
+    If you do not wish this to be supported, simply dont add any shared
+    blocks with 'unkline = yes'.
+
+iv) /quote XLINE support
+     This gives opers who do not have ircd.conf access the ability to set
+     XLINE's, or gecos bans.  These ban a user based on their realname, or
+     gecos field.  They will be added to an xline.conf file in the etc/
+     directory of your ircd.
+
+     To add an xline:
+        /quote xline <gecos> [type] :<reason>
+
+     The gecos field is the gecos that should be banned and may not contain
+     spaces.  If you need to add something that has a space you must use
+     '?' instead of spaces, ie:
+        /quote xline eggdrop?bot 2 :no bots
+
+     The type field denotes how the xline works and may be:
+        2 - Reject the user silently.
+	1 - Reject the user and send a warning to +r opers.
+	0 - Send a warning to +r opers but allow user to connect.
+
+     To allow an oper to use the xline command the following option has been
+     added to the oper {} block:
+        xline = <yes|no>;
+
+     The ability for a user to xline is marked by the 'X' priv.  Note that 
+     xlines are not checked for dupes and config access is required to
+     remove a placed xline.
+
+v) Global user@host limits.
+    Taken from ircnets ircd.  Currently you may limit a certain host to n 
+    number of connections to the ircd, however these do not stop a user
+    loading large amounts of clones on multiple servers.  The global limits
+    extend the host limits so you can set network-wide host limits.
+
+    Thus you could allow 2 local users from 'vanity.host.com' and 3 users
+    network wide from 'vanity.host.com'.  The network wide limit includes
+    the local server.  Thus if a user had three connections to the network
+    on another server, they would not be allowed to connect locally.  If
+    a user had two connections on another server and one connection locally,
+    they would not be allowed to connect another client locally either.
+
+    You may also limit the amount of connections from a specific user@host,
+    ie: 'abuser@vanity.host.com'.  Unidented connections will be counted
+    as having the same ident.  Ident limits are global only (thus they
+    include the local server in their limits).
+
+    Thus a global host limit of 3, local host limit of 2 and an ident limit 
+    of 1 would allow one connection from 'abuser@vanity.host.com' no matter
+    where on the network the connection was.  However 
+    'realuser@vanity.host.com' would be allowed to connect as the idents
+    are different, providing the host limits are not exceeded.
+
+    Users set 'exceed_limit = yes;' may exceed any limits.
+
+    The following option is added to the general {} block:
+       use_global_limits = <yes|no>;
+
+    This option is enabled by default and controls whether the global
+    user@host limits are used.  This option may not be changed once the
+    server is running and requires a restart to be modified.
+
+    The following options are added to the class {} block:
+       number_per_ident = <number>;
+       number_per_ip = <number>;    -- not really added, just noted here.
+       number_per_ip_global = <number>;
+
+    - number_per_ip will do the same function as in vanilla hybrid7, limiting
+      local connections per host.
+    - number_per_ident controls the user@ portion of the limits.
+    - number_per_ip_global controls how many connections a host may have 
+      network wide.
+
+    All three options default to 0 (unlimited).
+
+    The behaviour of class blocks are modified slightly and as a result you
+    *MUST* use 'connectfreq = <duration>;' in server class blocks, not
+    number_per_ip.
+
+vi) ASCII casemapping support (by AndroSyn)
+    IRCs scandinavian origins mean the characters are {}|~ are treated as
+    the lowercase of []\^.  Thus as the nicks "a" and "A" would be the same,
+    the nicks "[" and "{" would be.
+
+    If this is defined they are treated as individual characters, so the
+    nicks [foo] and {foo} would be two seperate clients.  If this is
+    enabled it MUST be done network wide or you will experience problems
+    with non-compatible servers.  Your locale(1) must also be set to "C"
+    or the system itself may treat the characters differently.
+
+    The following option is added to config.h that can be defined:
+       USE_ASCII_CASEMAP
+
+
+If you have any problems, questions or find any bugs, find me on irc 
+(ircnet/efnet) or email me.  Have fun. :)
+
+--
+Lee H <lee@leeh.co.uk>
+
+$Id$
