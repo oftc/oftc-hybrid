@@ -1,3 +1,15 @@
+stu         2003/09/20 15:46:53 UTC	(20030920_1)
+
+  Modified files:
+    modules              m_who.c 
+  Log:
+  removed help for +i, we dont support it
+  
+  Revision  Changes    Path
+  1.13      +7 -4      oftc-hybrid/modules/m_who.c
+
+
+
 stu         2003/09/20 15:02:07 UTC	(20030920_0)
 
   Modified files:
