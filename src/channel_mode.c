@@ -810,6 +810,7 @@ chm_simple(struct Client *client_p, struct Client *source_p,
            const char *chname)
 {
   long mode_type;
+  short gnote = 0;
 
   mode_type = (long)d;
 
@@ -843,6 +844,7 @@ chm_simple(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count].id = NULL;
     mode_changes[mode_count].mems = ALL_MEMBERS;
     mode_changes[mode_count++].arg = NULL;
+    gnote = 1;
   }
   else if ((dir == MODE_DEL) && (chptr->mode.mode & mode_type))
   {
@@ -857,8 +859,9 @@ chm_simple(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count].mems = ALL_MEMBERS;
     mode_changes[mode_count].id = NULL;
     mode_changes[mode_count++].arg = NULL;
+    gnote = 1;
   }
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
+  if(alev == (CHACCESS_CHANOP + 1) && MyClient(source_p) && gnote)
   {     
     char tmp[IRCD_BUFSIZE];
     ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
