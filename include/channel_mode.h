@@ -70,6 +70,7 @@ extern void unset_chcap_usage_counts(struct Client *serv_p);
 #define MODE_NOCOLOR        0x0040
 #define MODE_REGONLY        0x0080
 #define MODE_SPEAKONLYIFREG 0x0100
+#define MODE_SSLONLY        0x0200
 
 #define MODE_QUERY  0
 #define MODE_ADD    1
@@ -86,6 +87,8 @@ extern void unset_chcap_usage_counts(struct Client *serv_p);
 		                (MODE_PRIVATE|MODE_INVITEONLY))
 #define RegOnlyChannel(x)       ((x) && ((x)->mode.mode & MODE_REGONLY))
 #define SpeakOnlyIfReg(x)       ((x) && ((x)->mode.mode & MODE_SPEAKONLYIFREG))
+#define SSLonlyChannel(x)       ((x) && (x)->mode.mode & MODE_SSLONLY)
+    
 
 struct ChModeChange
 {

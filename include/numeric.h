@@ -387,6 +387,7 @@ extern const char *get_locale(void);
 /* 	ERR_LINKFAIL	     479	unreal */
 /*	ERR_CANNOTKNOCK	     480	unreal */
 /*	ERR_NOULINE	     480	austnet */
+#define ERR_SSLONLYCHAN      480
 #define ERR_NOPRIVILEGES     481
 #define ERR_CHANOPRIVSNEEDED 482
 #define ERR_CANTKILLSERVER   483
@@ -402,14 +403,13 @@ extern const char *get_locale(void);
 /*      ERR_TSLESSCHAN       488           IRCnet extension (?) */
 /*	ERR_VOICENEEDED      489           Undernet extension */
 #define ERR_NOOPERHOST       491
+#define ERR_DENIEDFROMCHAN   494
 /*      ERR_NOSERVICEHOST    492 	   IRCnet extension */
 
 #define ERR_UMODEUNKNOWNFLAG 501
 #define ERR_USERSDONTMATCH   502
-
 #define ERR_GHOSTEDCLIENT    503
 /*	ERR_VWORLDWARN	     503	   austnet */
-
 #define ERR_USERNOTONSERV    504
 
 /* #define ERR_LAST_ERR_MSG 505 

@@ -1,8 +1,10 @@
 -- oftc-hybrid 1.4.0 RELNOTES
 o) Add Client SSL Support
 o) Add user shedding
-o) Add new channel modes +R and +M (cannot join or talk on channels unless
-   regisitered with nickserv
+o) Add new channel modes:
+o) +R - Cannot join channel unless regisitered with NickServ
+o) +M - Cannot talk on channel unless registered with NickServ
+o) +S - Cannot join channel unless using SSL
 
 -- oftc-hybrid 1.3.3 RELNOTES
 o) Yet more God Mode bugfixes(yay)
