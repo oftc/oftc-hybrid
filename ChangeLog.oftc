@@ -1,3 +1,15 @@
+stu         2004/03/27 17:32:47 UTC	(20040327_4)
+
+  Modified files:
+    modules              m_who.c 
+  Log:
+  fixed bug causing /who to show garbage on +C
+  
+  Revision  Changes    Path
+  1.16      +6 -9      oftc-hybrid/modules/m_who.c
+
+
+
 stu         2004/03/27 16:51:55 UTC	(20040327_3)
 
   Modified files:
