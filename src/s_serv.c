@@ -1117,10 +1117,6 @@ server_estab(struct Client *client_p)
   /* fixing eob timings.. -gnp */
   client_p->firsttime = CurrentTime;
 
-  /* Show the real host/IP to admins */
-  sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
-                       "Link with %s established: (%s) link",
-                       inpath_ip,show_capabilities(client_p));
   /* Now show the masked hostname/IP to opers */
   sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
                        "Link with %s established: (%s) link",
