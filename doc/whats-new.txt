@@ -56,21 +56,6 @@ options that were in config.h, to be changed with a /rehash.
 
   See doc/vchans.txt for more information.
 
-- Persistent channels are included.  With TS5 the only reason to enable
-  no_join_on_split is to prevent people gaining access to +ik channels on
-  a netsplit.  Persistent channels in combination with no_create_on_split
-  offer an alternative, by preserving a channel when it becomes empty, via
-  a split or the last user parting.  All of the channels modes and bans will be
-  kept for the time specified in the config file.  A user that does successfully
-  join an empty preserved channel will have ops and the channel timestamp will
-  be reset to the current time, so if there was a netsplit when the user joined
-  they will lose ops due to the rules of TS.
-
-  Persistent channels are configurable via:
-      persist_time = 30 minutes;   will persist channels for at least 30 mins.
-
-
-
 --------------
  User Changes: 
 --------------
