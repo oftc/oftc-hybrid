@@ -88,28 +88,27 @@ static void m_svsnick(struct Client *client_p, struct Client *source_p,
 
   if (parc < 3)
   {
-      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-                 me.name, parv[0], "SVSNICK");
-      return;
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, parv[0], 
+        "SVSNICK");
+    return;
   }
 
   if ((target_p = find_person(parv[1])) == NULL)
   {
-      if (MyConnect(source_p))
-        sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-                   me.name, parv[0], parv[1]);
-      return;
+    if (MyConnect(source_p))
+      sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
+            me.name, parv[0], parv[1]);
+    return;
   }
 
   if(MyConnect(target_p))
   {
-     /* Prevent flood checks */
-     target_p->localClient->number_of_nick_changes = 0;
-     /* Start NICK change as though it originated from this server */
-     change_local_nick(target_p->servptr, target_p, parv[2]);
+    /* Prevent flood checks */
+    target_p->localClient->number_of_nick_changes = 0;
+    /* Start NICK change as though it originated from this server */
+    change_local_nick(target_p->servptr, target_p, parv[2]);
   } 
   else
-     sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
-                    ":%s SVSNICK %s %s", source_p->name, target_p->name,
-                  parv[2]);
+    sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
+        ":%s SVSNICK %s %s", parv[0], parv[1], parv[2]);
 }
