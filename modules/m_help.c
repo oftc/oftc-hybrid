@@ -213,5 +213,6 @@ sendhelpfile(struct Client *source_p, char *path,
 
   sendto_one(source_p, form_str(RPL_ENDOFHELP), me.name, nick, topic);
   return;
+  fbclose(file);
 }
 
