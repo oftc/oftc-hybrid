@@ -1,3 +1,15 @@
+stu         2004/03/27 16:47:36 UTC	(20040327_1)
+
+  Modified files:
+    modules              Makefile.in 
+  Log:
+  Added missing ms.c from makefile
+  
+  Revision  Changes    Path
+  1.9       +1 -0      oftc-hybrid/modules/Makefile.in
+
+
+
 stu         2004/03/27 16:43:25 UTC	(20040327_0)
 
   Modified files:
