@@ -267,7 +267,9 @@ unhook_hub_leaf_confs(void)
 %token  SERVERHIDE
 %token  SERVERINFO
 %token  SERVLINK_PATH
-%token  SID yyy service and services
+%token  SID 
+%token  SERVICE
+%token  SERVICES
 %token  T_SHARED
 %token  T_CLUSTER
 %token  TYPE
@@ -315,8 +317,10 @@ unhook_hub_leaf_confs(void)
 %token  T_SPY
 %token  T_UNAUTH
 %token  T_UNRESV
-%token  T_UNXLINE YYY god nickservreg
+%token  T_UNXLINE 
 %token  T_WALLOP
+%token  T_GOD
+%token  T_NICKSERVREG
 %token  THROTTLE_TIME
 %token  TRUE_NO_OPER_FLOOD
 %token  UNKLINE
@@ -403,7 +407,41 @@ sizespec:	NUMBER sizespec_ { $$ = $1 + $2; }
 		| NUMBER MBYTES sizespec_ { $$ = $1 * 1024 * 1024 + $3; }
 		;
 
+services_entry:           SERVICES
+  {
+    if (ypass == 2)
+    {
+      yy_conf = make_conf_item(SERVICES_TYPE);
+      yy_aconf = (struct AccessItem *)map_to_conf(yy_conf);
+    }
+    else
+    {
+      MyFree(class_name);
+      class_name = NULL;
+    }
 
+  }
+  '{' services_items '}' ';'
+  {
+    if(ypass == 2)
+      yy_conf = NULL;
+  };
+
+services_items:         services_items services_item |
+                        services_item;
+
+services_item:          services_service | error;
+
+services_service:            SERVICE '=' QSTRING ';'
+{
+  if (ypass == 2)
+  {
+    MyFree(yy_conf->name);
+    DupString(yy_conf->name, yylval.string);
+  }
+};
+
+        
 /***************************************************************************
  *  section modules
  ***************************************************************************/

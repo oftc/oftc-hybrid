@@ -227,7 +227,7 @@ check_pings(void *notused)
   check_unknowns_list();
 }
 
-/* check_pings_list()
+/* Check_pings_list()
  *
  * inputs	- pointer to list to check
  * output	- NONE
@@ -322,11 +322,12 @@ check_pings_list(dlink_list *list)
 	 */
 	SetPingSent(client_p);
 	client_p->lasttime = CurrentTime - ping;
+    gettimeofday(&client_p->ping_send_time, NULL); 
 	sendto_one(client_p, "PING :%s", me.name);
       }
     }
     /* ping_timeout: */
-    /* Safe list */ YYY gettimeofday(&client_p->ping_send_time, NULL); (= ping)
+    /* Safe list */ 
     if (client_p->localClient->list_task != NULL)
       safe_list_channels(client_p, client_p->localClient->list_task, 0, 0);
   }
@@ -387,7 +388,7 @@ check_conf_klines(void)
       if (aconf->status & CONF_EXEMPTDLINE)
 	continue;
 
-      sendto_gnotice_flags(UMODE_ALL, L_ALL,"DLINE active for %s", me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,"DLINE active for %s",
                            get_client_name(client_p, HIDE_IP));
 
       if (ConfigFileEntry.kline_with_connection_closed &&
@@ -463,273 +464,193 @@ check_conf_klines(void)
 	  sendto_one(client_p, form_str(ERR_YOUREBANNEDCREEP),
 		     me.name, client_p->name, reason);
 	}
-	
-	(void)exit_client(client_p, client_p, &me, reason);
+
+	exit_client(client_p, client_p, &me, reason);
 	/* and go examine next fd/client_p */    
 	continue;
       } 
-      else if((aconf = find_kill(client_p)) != NULL) 
+      else if ((aconf = find_kill(client_p)) != NULL) 
       {
-	/* if there is a returned struct ConfItem.. then kill it */
+	/* if there is a returned struct AccessItem.. then kill it */
 	if (IsExemptKline(client_p))
 	{
-	  sendto_gnotice_flags(FLAGS_ALL, L_ALL, me.name, &me, NULL,
+	  sendto_realops_flags(UMODE_ALL, L_ALL,
 			     "KLINE over-ruled for %s, client is kline_exempt",
 			     get_client_name(client_p, HIDE_IP));
 	  continue;
 	}
 
-	sendto_gnotice_flags(FLAGS_ALL, L_ALL, me.name, &me, NULL,
-            "KLINE active for %s",
+	sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "KLINE active for %s",
 			     get_client_name(client_p, HIDE_IP));
-	
-	if(ConfigFileEntry.kline_with_connection_closed &&
-	   ConfigFileEntry.kline_with_reason)
+
+	if (ConfigFileEntry.kline_with_connection_closed &&
+            ConfigFileEntry.kline_with_reason)
 	{
 	  reason = "Connection closed";
 
 	  sendto_one(client_p, form_str(ERR_YOUREBANNEDCREEP),
 		     me.name, client_p->name, 
-		     aconf->passwd ? aconf->passwd : "K-lined");
+		     aconf->reason ? aconf->reason : "K-lined");
 	}
 	else
 	{
-	  if(ConfigFileEntry.kline_with_connection_closed)
+	  if (ConfigFileEntry.kline_with_connection_closed)
 	    reason = "Connection closed";
-	  else if(ConfigFileEntry.kline_with_reason && aconf->passwd)
-	    reason = aconf->passwd;
+	  else if (ConfigFileEntry.kline_with_reason && aconf->reason)
+	    reason = aconf->reason;
 	  else
 	    reason = "K-lined";
 
 	  sendto_one(client_p, form_str(ERR_YOUREBANNEDCREEP),
 		     me.name, client_p->name, reason);
 	}
-	      
-	(void)exit_client(client_p, client_p, &me, reason);
+
+	exit_client(client_p, client_p, &me, reason);
 	continue; 
       }
     }
   }
- 
+
   /* also check the unknowns list for new dlines */
   DLINK_FOREACH_SAFE(ptr, next_ptr, unknown_list.head)
   {
     client_p = ptr->data;
 
-    if((aconf = find_dline_conf(&client_p->localClient->ip,
-				client_p->localClient->aftype)))
+    if ((aconf = find_dline_conf(&client_p->localClient->ip,
+                                  client_p->localClient->aftype)))
     {
-      if(aconf->status & CONF_EXEMPTDLINE)
+      if (aconf->status & CONF_EXEMPTDLINE)
         continue;
 
-      sendto_one(client_p, "NOTICE DLINE :*** You have been D-lined");
       exit_client(client_p, client_p, &me, "D-lined");
     }
   }
-
 }
 
-/*
- * update_client_exit_stats
+/* check_xlines()
+ *
+ * inputs       - NONE
+ * output       - NONE
+ * side effects - Check all connections for a pending xline against the
+ * 		  client, exit the client if a xline matches.
+ */
+void 
+check_xlines(void)
+{               
+  struct Client *client_p;       /* current local client_p being examined */
+  struct ConfItem *conf;
+  struct MatchItem *xconf = NULL;
+  const char *reason;            /* pointer to reason string */
+  dlink_node *ptr, *next_ptr;
+
+  DLINK_FOREACH_SAFE(ptr, next_ptr, local_client_list.head)
+  {
+    client_p = ptr->data;
+
+    /* If a client is already being exited
+     */
+    if (IsDead(client_p))
+      continue;
+	
+    /* if there is a returned struct AccessItem then kill it */
+    if ((conf = find_matching_name_conf(XLINE_TYPE, client_p->info,
+                                        NULL, NULL, 0)) != NULL)
+    {
+      xconf = (struct MatchItem *)map_to_conf(conf);
+
+      sendto_realops_flags(UMODE_ALL, L_ALL,"XLINE active for %s",
+			   get_client_name(client_p, HIDE_IP));
+      
+      if (ConfigFileEntry.kline_with_connection_closed &&
+	  ConfigFileEntry.kline_with_reason)
+      {
+	reason = "Connection closed";
+
+	if (IsPerson(client_p))
+	  sendto_one(client_p, form_str(ERR_YOUREBANNEDCREEP),
+		     me.name, client_p->name,
+		     xconf->reason ? xconf->reason : "X-lined");
+      }
+      else
+      {
+	if (ConfigFileEntry.kline_with_connection_closed)
+	  reason = "Connection closed";
+	else if (ConfigFileEntry.kline_with_reason && xconf->reason)
+	  reason = xconf->reason;
+	else
+	  reason = "X-lined";
+
+	if (IsPerson(client_p))
+	  sendto_one(client_p, form_str(ERR_YOUREBANNEDCREEP),
+		     me.name, client_p->name, reason);
+      }
+
+      exit_client(client_p, client_p, &me, reason);
+      continue; /* and go examine next fd/client_p */
+    }
+  }
+}
+
+/* update_client_exit_stats()
  *
  * input	- pointer to client
  * output	- NONE
  * side effects	- 
  */
 static void
-update_client_exit_stats(struct Client* client_p)
+update_client_exit_stats(struct Client *client_p)
 {
   if (IsServer(client_p))
   {
-    --Count.server;
+   
+
+
   }
   else if (IsClient(client_p))
   {
     --Count.total;
     if (IsOper(client_p))
       --Count.oper;
-    if (IsInvisible(client_p)) 
+    if (IsInvisible(client_p))
       --Count.invisi;
   }
 
-  if(splitchecking && !splitmode)
+  if (splitchecking && !splitmode)
     check_splitmode(NULL);
 }
 
-/*
- * release_client_state
+/* release_client_state()
  *
  * input	- pointer to client to release
  * output	- NONE
  * side effects	- 
  */
 static void
-release_client_state(struct Client* client_p)
+release_client_state(struct Client *client_p)
 {
   if (client_p->user != NULL)
-  {
     free_user(client_p->user, client_p); /* try this here */
-  }
 
   if (client_p->serv != NULL)
-  {
-    if (client_p->serv->user != NULL)
-      free_user(client_p->serv->user, client_p);
-    MyFree((char*) client_p->serv);
-  }
+    MyFree(client_p->serv);
 }
 
-/*
- * remove_client_from_list
- * inputs	- point to client to remove
- * output	- NONE
- * side effects - taken the code from ExitOneClient() for this
- *		  and placed it here. - avalon
- */
-void
-remove_client_from_list(struct Client* client_p)
-{
-  assert(client_p != NULL);
-
-  if(client_p == NULL)
-    return;
-
-/* XXX try without this as well */
-#if 1
-  /* A client made with make_client()
-   * is on the unknown_list until removed.
-   * If it =does= happen to exit before its removed from that list
-   * and its =not= on the GlobalClientList, it will core here.
-   * short circuit that case now -db
-   */
-  if (!client_p->prev && !client_p->next)
-    {
-      return;
-    }
-#endif
-
-  if (client_p->prev)
-    client_p->prev->next = client_p->next;
-  else
-    {
-      GlobalClientList = client_p->next;
-      GlobalClientList->prev = NULL;
-    }
-
-  if (client_p->next)
-    client_p->next->prev = client_p->prev;
-  client_p->next = client_p->prev = NULL;
-
-  update_client_exit_stats(client_p);
-}
-
-/*
- * add_client_to_list
- * input	- pointer to client
- * output	- NONE
- * side effects	- although only a small routine,
- *		  it appears in a number of places
- * 		  as a collection of a few lines...functions like this
- *		  should be in this file, shouldnt they ?  after all,
- *		  this is list.c, isnt it ? (no
- *		  -avalon
- */
-void
-add_client_to_list(struct Client *client_p)
-{
-  /*
-   * since we always insert new clients to the top of the list,
-   * this should mean the "me" is the bottom most item in the list.
-   */
-  client_p->next = GlobalClientList;
-  GlobalClientList = client_p;
-  if (client_p->next)
-    client_p->next->prev = client_p;
-  return;
-}
-
-/* Functions taken from +CSr31, paranoified to check that the client
-** isn't on a llist already when adding, and is there when removing -orabidoo
-*/
-void
-add_client_to_llist(struct Client **bucket, struct Client *client)
-{
-  if (!client->lprev && !client->lnext)
-    {
-      client->lprev = NULL;
-      if ((client->lnext = *bucket) != NULL)
-        client->lnext->lprev = client;
-      *bucket = client;
-    }
-}
-
-void
-del_client_from_llist(struct Client **bucket, struct Client *client)
-{
-  if (client->lprev)
-    {
-      client->lprev->lnext = client->lnext;
-    }
-  else if (*bucket == client)
-    {
-      *bucket = client->lnext;
-    }
-  if (client->lnext)
-    {
-      client->lnext->lprev = client->lprev;
-    }
-  client->lnext = client->lprev = NULL;
-}
-
-/*
- * next_client - find the next matching client. 
- * The search can be continued from the specified client entry. 
- * Normal usage loop is:
+/* find_person()
  *
- *      for (x = client; x = next_client(x,mask); x = x->next)
- *              HandleMatchingClient;
- *            
- */
-struct Client*
-next_client(struct Client *next,     /* First client to check */
-            const char* ch)          /* search string (may include wilds) */
-{
-  struct Client *tmp = next;
-
-  next = find_client(ch);
-
-  if (next == NULL)
-    next = tmp;
-
-  if (tmp && tmp->prev == next)
-    return (NULL);
-
-  if (next != tmp)
-    return next;
-
-  for ( ; next; next = next->next)
-    {
-      if (match(ch,next->name)) break;
-    }
-  return next;
-}
-
-/*
- * find_person	- find person by (nick)name.
  * inputs	- pointer to name
  * output	- return client pointer
- * side effects -
+ * side effects - find person by (nick)name
  */
 struct Client *
-find_person(char *name)
+find_person(const char *name)
 {
-  struct Client       *c2ptr;
+  struct Client *c2ptr;
 
   c2ptr = find_client(name);
 
-  if (c2ptr && IsPerson(c2ptr))
-    return (c2ptr);
-  return (NULL);
+  if (c2ptr != NULL && IsPerson(c2ptr))
+    return(c2ptr);
+  return(NULL);
 }
 
 /*
@@ -1142,15 +1063,7 @@ dead_link_on_write(struct Client *client_p, int ierrno)
     notice = "Max SendQ exceeded";
   else
     notice = "Write error: connection closed";
-
-  if (!IsPerson(client_p) && !IsUnknown(client_p) && !IsClosing(client_p))
-  {
-    sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL, "Closing link to %s: %s",
-                         get_client_name(client_p, HIDE_IP), notice);
-    sendto_gnotice_flags(UMODE_ALL, L_OPER,me.name, &me, NULL, "Closing link to %s: %s",
-                         get_client_name(client_p, MASK_IP), notice);
-  }
-  YYY move this to above 
+  
   assert(dlinkFind(&abort_list, client_p) == NULL);
   ptr = make_dlink_node();
   /* don't let exit_aborted_clients() finish yet */
@@ -1158,6 +1071,13 @@ dead_link_on_write(struct Client *client_p, int ierrno)
   if (eac_next == NULL)
     eac_next = ptr;
   SetDead(client_p); /* You are dead my friend */
+  if (!IsPerson(client_p) && !IsUnknown(client_p) && !IsClosing(client_p))
+  {
+    sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL, "Closing link to %s: %s",
+                         get_client_name(client_p, HIDE_IP), notice);
+    sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL, "Closing link to %s: %s",
+                         get_client_name(client_p, MASK_IP), notice);
+  }
 }
 
 /*

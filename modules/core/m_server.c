@@ -243,7 +243,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
     }
   } 
   /* Set FLAG_SERVICE if it matches a SERVICES block */ 
-  if(find_services_conf(name)) 
+  if(find_conf_name(&services_items, name, SERVICES_TYPE)) 
     SetService(client_p); 
 
   /* if we are connecting (Handshake), we already have the name from the

@@ -105,29 +105,27 @@ int chk_who(struct Client *, int);
 /* Externally defined stuffs */
 static struct flag_item user_modes[] = 
 {
-  {FLAGS_ADMIN, 'a'},
-  {FLAGS_BOTS,  'b'},
-  {FLAGS_CCONN, 'c'},
-  {FLAGS_DEBUG, 'd'},
-  {FLAGS_FULL,  'f'},
-  {FLAGS_CALLERID, 'g'},
-  {FLAGS_INVISIBLE, 'i'},
-  {FLAGS_SKILL, 'k'},
-  {FLAGS_LOCOPS, 'l'},
-  {FLAGS_NCHANGE, 'n'},
-  {FLAGS_OPER, 'o'},
-  {FLAGS_REJ, 'r'},
-  {FLAGS_SERVNOTICE, 's'},
-  {FLAGS_UNAUTH, 'u'},
-  {FLAGS_WALLOP, 'w'},
-  {FLAGS_EXTERNAL, 'x'},
-  {FLAGS_SPY, 'y'},
-  {FLAGS_OPERWALL, 'z'},
-  {FLAGS_GOD, 'G'},
+  {UMODE_ADMIN, 'a'},
+  {UMODE_BOTS,  'b'},
+  {UMODE_CCONN, 'c'},
+  {UMODE_DEBUG, 'd'},
+  {UMODE_FULL,  'f'},
+  {UMODE_CALLERID, 'g'},
+  {UMODE_INVISIBLE, 'i'},
+  {UMODE_SKILL, 'k'},
+  {UMODE_LOCOPS, 'l'},
+  {UMODE_NCHANGE, 'n'},
+  {UMODE_OPER, 'o'},
+  {UMODE_REJ, 'r'},
+  {UMODE_SERVNOTICE, 's'},
+  {UMODE_UNAUTH, 'u'},
+  {UMODE_WALLOP, 'w'},
+  {UMODE_EXTERNAL, 'x'},
+  {UMODE_SPY, 'y'},
+  {UMODE_OPERWALL, 'z'},
+  {UMODE_GOD, 'G'},
   {0, 0}
 };
-
-extern struct Link *find_channel_link(struct Link *, struct Channel *);
 
 int
 build_searchopts(struct Client *source_p, int parc, char *parv[])
@@ -182,7 +180,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
     {
 	  wsopts.check_umode=1;
 	  wsopts.umode_plus=1;
-	  wsopts.umodes=FLAGS_OPER;
+	  wsopts.umodes=UMODE_OPER;
     }
     wsopts.host_plus=1;
     wsopts.host="*";
@@ -315,7 +313,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 	      s++;
 	    }
 	    if(!IsOper(source_p)) /* only let users search for +/-oOaA */
-	      wsopts.umodes = (wsopts.umodes&(FLAGS_OPER|FLAGS_ADMIN));
+	      wsopts.umodes = (wsopts.umodes&(UMODE_OPER|UMODE_ADMIN));
 	    wsopts.umode_plus = change;
 	    if(wsopts.umodes)
 	      wsopts.check_umode = 1;
@@ -486,12 +484,10 @@ chk_who(struct Client *target_p, int showall)
 inline char *
 first_visible_channel(struct Client *client_p, struct Client *source_p)
 {
-  struct Link *lp;
   dlink_node *ptr;
   dlink_node *next_ptr;
         
   struct Channel *chptr = NULL;
-  static char chnbuf[CHANNELLEN + 2];
 
   DLINK_FOREACH(ptr, client_p->user->channel.head)
   {
@@ -513,7 +509,7 @@ first_visible_channel(struct Client *client_p, struct Client *source_p)
 #define WHO_HOPCOUNT(s, a) (a->hopcount)
 
 int
-do_who_channel_list(struct Client *source_p, dlink_list list, int showall)
+do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
 {
   struct Client *target_p;
   dlink_node *ptr;
@@ -522,7 +518,7 @@ do_who_channel_list(struct Client *source_p, dlink_list list, int showall)
   char status[4];
 
   shown = 0;
-  DLINK_FOREACH(ptr, list.head)
+  DLINK_FOREACH(ptr, chptr->members.head)
   {
     target_p = ptr->data;
     i = 0;
@@ -563,9 +559,8 @@ static void
 m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
   struct Client *target_p;
-  dlink_node *cm;
-  dlink_node *lp;
-  int shown = 0, i = 0, showall = IsOper(source_p);
+  dlink_node *ptr;
+  int shown = 0, showall = IsOper(source_p);
   char status[4];
   static int last_used = 0;
 
@@ -619,15 +614,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 	  showall=0;
 	if(showall || !SecretChannel(wsopts.channel))
 	{
-      do_who_channel_list(source_p, wsopts.channel->peons, showall);
-      do_who_channel_list(source_p, wsopts.channel->chanops, showall);
-#ifdef REQUIRE_OANDV
-      do_who_channel_list(source_p, wsopts.channel->chanops_voiced, showall);
-#endif
-#ifdef HALFOPS
-      do_who_channel_list(source_p, wsopts.channel->halfops, showall);
-#endif
-      do_who_channel_list(source_p, wsopts.channel->voiced, showall);
+      do_who_channel(source_p, wsopts.channel, showall);
 	}
 	sendto_one(source_p, form_str(RPL_ENDOFWHO), me.name, source_p->name,
 		   wsopts.channel->chname);
@@ -690,21 +677,14 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
         break;
       }
        
-      shown += do_who_channel_list(source_p, chan_p->peons, 1);
-      shown += do_who_channel_list(source_p, chan_p->chanops, 1);
-#ifdef REQUIRE_OANDV
-      shown += do_who_channel_list(source_p, chan_p->chanops_voiced, 1);
-#endif
-#ifdef HALFOPS
-      shown += do_who_channel_list(source_p, chan_p->halfops, 1);
-#endif
-      shown += do_who_channel_list(source_p, chan_p->voiced, 1);
+      shown += do_who_channel(source_p, chan_p, 1);
     }
   }
   else
   {
-    for(target_p = GlobalClientList; target_p; target_p = target_p->next)
+    DLINK_FOREACH(ptr, global_client_list.head)
 	{
+      target_p = ptr->data;
 	  if(!chk_who(target_p, showall))
 		continue;
 	    /* wow, they passed it all, give them the reply...

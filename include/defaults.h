@@ -51,6 +51,7 @@
 #define MSGPATH IRCD_PREFIX "/messages/"
 #define ETCPATH IRCD_PREFIX "/etc"
 #define LOGPATH IRCD_PREFIX "/logs"
+#define OFTCLOG LOGPATH "/oftc.log" 
 
 /* files */
 #define SPATH   BINPATH "/ircd"                 /* ircd executable */

@@ -1095,23 +1095,73 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
 
   if (IsPerson(source_p))
     len = ircsprintf(buffer, ":%s!%s@%s WALLOPS :",
-                     source_p->name, source_p->username, source_p->host); YYY EEK WALLOPS
+                     source_p->name, source_p->username, source_p->host); 
   else
-    len = ircsprintf(buffer, ":%s WALLOPS :", source_p->name); YYY EEEKGNOTICE
+    len = ircsprintf(buffer, ":%s WALLOPS :", source_p->name); 
 
   va_start(args, pattern);
   len += send_format(&buffer[len], IRCD_BUFSIZE - len, pattern, args);
   va_end(args);
 
-  DLINK_FOREACH(ptr, oper_list.head)
+  switch(flags)
   {
-    client_p = ptr->data;
-    assert(client_p->umodes & UMODE_OPER);
+      case UMODE_OPERWALL:
+        DLINK_FOREACH(ptr, oper_list.head)
+        {
+          client_p = ptr->data;
+          assert(client_p->umodes & UMODE_OPER);
 
-    if ((client_p->umodes & flags) && !IsDefunct(client_p))
-      send_message(client_p, buffer, len);
+          if ((client_p->umodes & flags) && !IsDefunct(client_p))
+            send_message(client_p, buffer, len);
+        }
+      case UMODE_WALLOP:
+        DLINK_FOREACH(ptr, local_client_list.head)
+        {
+            client_p = ptr->data;
+            if((client_p->umodes & flags) && !IsDefunct(client_p))
+              send_message(client_p, buffer, len);
+        }
   }
 }
+
+void
+sendto_gnotice_flags(int flags, int level, char *origin,
+        struct Client *source_p, struct Client *client_p,
+        const char *pattern, ...)
+{
+  struct Client *target_p;
+  dlink_node *ptr;
+  dlink_node *ptr_next;
+  va_list args;
+  char nbuf[IRCD_BUFSIZE*2];
+
+  va_start(args, pattern);
+  vsnprintf(nbuf, IRCD_BUFSIZE, pattern, args);
+  va_end(args);
+  
+  DLINK_FOREACH(ptr, oper_list.head)
+  {
+    ptr_next = ptr->next;
+    target_p = ptr->data;
+
+    if(target_p->umodes & flags)
+    {
+      /* If we're sending it to opers and theyre an admin, skip.
+       * If we're sending it to admins, and theyre not, skip.
+       * Note that this wont make a difference at the other end because I
+       * cocked up when i first did gnotices
+       */
+      if (((level == L_ADMIN) && !IsAdmin(client_p)) ||
+              ((level == L_OPER) && IsAdmin(client_p)))
+        continue;
+
+      sendto_one(client_p, ":%s NOTICE %s :%s", origin, target_p->name, nbuf);
+    }
+  }
+  sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
+    ":%s GNOTICE %s %d :%s", me.name, origin, flags, nbuf);
+}
+
 
 /* ts_warn()
  *

@@ -343,9 +343,30 @@ log_failed_oper(struct Client *source_p, const char *name)
       ircsprintf(linebuf, "%s FAILED OPER (%s) by (%s!%s@%s)\n",
 		 myctime(CurrentTime), name, source_p->name,
                  source_p->username, source_p->host);
- YYY readd oftc_log
       fbputs(linebuf,oper_fb);
       fbclose(oper_fb);
     }
   }
+}
+
+void
+oftc_log(char *pattern, ...)
+{
+  FBFILE *logfile = NULL;
+  va_list vl;
+  char buf[BUFSIZE], buf2[BUFSIZE];
+
+  if(!pattern)
+    return;
+  va_start(vl, pattern);
+
+  if((logfile = fbopen(OFTCLOG, "a+")) == NULL)
+    return;
+
+  vsprintf(buf, pattern, vl);
+  snprintf(buf2, BUFSIZE, "%s %s\n", myctime(time(NULL)), buf);
+  fbputs(buf2, logfile);
+
+  fbclose(logfile);
+  return;
 }

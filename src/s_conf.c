@@ -59,6 +59,7 @@ struct config_server_hide ConfigServerHide;
 
 /* general conf items link list root, other than k lines etc. */
 dlink_list server_items  = { NULL, NULL, 0 };
+dlink_list services_items= { NULL, NULL, 0 };
 dlink_list cluster_items = { NULL, NULL, 0 };
 dlink_list hub_items     = { NULL, NULL, 0 };
 dlink_list leaf_items    = { NULL, NULL, 0 };
@@ -202,6 +203,7 @@ make_conf_item(ConfType type)
   case CLIENT_TYPE:
   case OPER_TYPE:
   case SERVER_TYPE:
+  case SERVICES_TYPE:
     conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
                                        sizeof(struct AccessItem));
     aconf = (struct AccessItem *)map_to_conf(conf);
@@ -236,6 +238,9 @@ make_conf_item(ConfType type)
       status = CONF_SERVER;
       dlinkAdd(conf, &conf->node, &server_items);
       break;
+    case SERVICES_TYPE:
+      status = CONF_SERVICES;
+      dlinkAdd(conf, &conf->node, &services_items);
 
     default:
       break;
@@ -325,6 +330,7 @@ delete_conf_item(struct ConfItem *conf)
   case CLIENT_TYPE:
   case OPER_TYPE:
   case SERVER_TYPE:
+  case SERVICES_TYPE:
     aconf = (struct AccessItem *)map_to_conf(conf);
     if (aconf->dns_query != NULL)
       delete_resolver_queries(aconf->dns_query);
@@ -369,6 +375,10 @@ delete_conf_item(struct ConfItem *conf)
       aconf = (struct AccessItem *)map_to_conf(conf);
       if (!IsConfIllegal(aconf))
 	dlinkDelete(&conf->node, &server_items);
+      MyFree(conf);
+      break;
+    case SERVICES_TYPE:
+      dlinkDelete(&conf->node, &services_items);
       MyFree(conf);
       break;
 
@@ -638,6 +648,7 @@ report_confitem_types(struct Client *source_p, ConfType type)
   case GLINE_TYPE:
   case CRESV_TYPE:
   case NRESV_TYPE:
+  case SERVICES_TYPE:
     break;
   }
 }
@@ -1551,6 +1562,8 @@ map_to_list(ConfType type)
   case CLUSTER_TYPE:
     return(&cluster_items);
     break;
+  case SERVICES_TYPE:
+    return(&services_items);
   case CONF_TYPE:
   case KLINE_TYPE:
   case DLINE_TYPE:

@@ -853,11 +853,15 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
 	       target_p->user->server->id,
 	       target_p->id, target_p->info);
   else
-    sendto_one(client_p, "NICK %s %d %lu %s %s %s %s :%s", YYY if(*target_p->realhost) sendto_one(client_p, "REALHOST %s %s", target_p->name,  target_p->realhost);
+    sendto_one(client_p, "NICK %s %d %lu %s %s %s %s :%s",  
 	       target_p->name, target_p->hopcount + 1,
 	       (unsigned long) target_p->tsinfo,
 	       ubuf, target_p->username, target_p->host,
 	       target_p->user->server->name, target_p->info);
+  
+  if(*target_p->realhost) 
+      sendto_one(client_p, "REALHOST %s %s", target_p->name,  
+              target_p->realhost);
 }
 
 /* client_burst_if_needed()
@@ -1518,7 +1522,8 @@ server_burst(struct Client *client_p)
   else
   {
     burst_all(client_p);
-  } YYY gettimeofday(&client_p->ping_send_time, NULL);
+  } 
+  gettimeofday(&client_p->ping_send_time, NULL);
 
   /* EOB stuff is now in burst_all */
   /* Always send a PING after connect burst is done */
@@ -2082,29 +2087,25 @@ serv_connect_callback(int fd, int status, void *data)
         sizeof(struct irc_ssaddr));
     /* Check the status */
     if (status != COMM_OK)
-    { YYY - review
+    { 
       /* We have an error, so report it and quit
        * Admins get to see any IP, mere opers don't *sigh*
        */
        if (ConfigServerHide.hide_server_ips)
-         sendto_realops_flags(UMODE_ALL, L_ADMIN,
+         sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
                               "Error connecting to %s: %s",
                               client_p->name, comm_errstr(status));
        else
-         sendto_realops_flags(UMODE_ALL, L_ADMIN,
+         sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
 			      "Error connecting to %s[%s]: %s", client_p->name,
 			      client_p->host, comm_errstr(status));
-
-	sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
-			     "Error connecting to %s: %s",
-			     client_p->name, comm_errstr(status));
 
 	/* If a fd goes bad, call dead_link() the socket is no
 	 * longer valid for reading or writing.
 	 */
-	dead_link_on_write(client_p, 0);
-        return;
-      }
+       dead_link_on_write(client_p, 0);
+       return;
+    }
 
     /* COMM_OK, so continue the connection procedure */
     /* Get the C/N lines */

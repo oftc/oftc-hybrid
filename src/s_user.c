@@ -90,7 +90,9 @@ static const struct flag_item
   { UMODE_WALLOP,     'w' },
   { UMODE_EXTERNAL,   'x' },
   { UMODE_SPY,        'y' },
-  { UMODE_OPERWALL,   'z' }, {FLAGS_GOD, 'G'}, {FLAGS_NICKSERVREG, 'R'},
+  { UMODE_OPERWALL,   'z' }, 
+  { UMODE_GOD,        'G' }, 
+  { UMODE_NICKSERVREG,'R' },
   { 0, '\0' }
 };
 
@@ -641,7 +643,9 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
   }
 
   add_user_host(source_p->username, source_p->host, 1);
-  SetUserHost(source_p); YYY if(IsService(source_p)) SetService(client_p);
+  SetUserHost(source_p); 
+  if(IsService(source_p)) 
+      SetService(client_p);
 
   return(introduce_client(client_p, source_p));
 }
@@ -1062,7 +1066,8 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
         case ' ' :
         case '\n':
         case '\r':
-        case '\t': YYY case 'R': /* Users not allowed to change +R */
+        case '\t': 
+        case 'R': /* Users not allowed to change +R */
           break;
 
         default:

@@ -130,4 +130,6 @@ extern struct Membership *find_channel_link(struct Client *client_p,
 extern void set_channel_topic(struct Channel *chptr, const char *topic,
                               const char *topic_info, time_t topicts); 
 extern void free_topic(struct Channel *);
+extern int msg_has_colors(char*);
+extern char *strip_color(char *);
 #endif  /* INCLUDED_channel_h */

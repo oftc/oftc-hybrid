@@ -38,6 +38,8 @@
 #include "parse.h"
 #include "hash.h"
 #include "packet.h"
+#include "sprintf_irc.h"
+#include "s_log.h" /* oftc_log */
 
 
 static void m_kick(struct Client *, struct Client *, int, char **);
@@ -75,7 +77,6 @@ m_kick(struct Client *client_p, struct Client *source_p,
 {
   struct Client *who;
   struct Channel *chptr;
-  static char buf[BUFSIZE];
   int chasing = 0;
   char *comment;
   char *name;

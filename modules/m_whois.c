@@ -367,6 +367,9 @@ whois_person(struct Client *source_p,struct Client *target_p, int glob)
   sendto_one(source_p, form_str(RPL_WHOISUSER),
              me.name, source_p->name, target_p->name,
              target_p->username, target_p->host, target_p->info);
+  if(IsOper(source_p) && strlen(target_p->realhost) > 1)
+    sendto_one(source_p, form_str(RPL_WHOISREAL), me.name, source_p->name,
+            target_p->name, target_p->realhost);
   ircsprintf(buf, form_str(RPL_WHOISCHANNELS),
              me.name, source_p->name, target_p->name, "");
 
@@ -383,13 +386,12 @@ whois_person(struct Client *source_p,struct Client *target_p, int glob)
     {
       if ((cur_len + strlen(chptr->chname) + 2) > (BUFSIZE - 4))
       {
-	sendto_one(source_p, "%s", buf);
-	cur_len = mlen;
-	t = buf + mlen;
+	    sendto_one(source_p, "%s", buf);
+	    cur_len = mlen;
+	    t = buf + mlen;
       }
                              /* XXX -eeeek */
-      ircsprintf(t, "%s%s ",
-                 get_member_status(ms, YES), chptr->chname);
+      ircsprintf(t, "%s%s ", get_member_status(ms, YES), chptr->chname);
 
       tlen = strlen(t);
       t += tlen;
@@ -575,4 +577,3 @@ ms_whois(struct Client *client_p, struct Client *source_p,
   /* parc == 2, so its a lazylink client asking us about a nick, so do it */
   do_whois(client_p, source_p, parc, parv);
 }
-YYY whois broken

@@ -247,7 +247,7 @@ extern const char *get_locale(void);
 #define RPL_NOTOPIC          331
 #define RPL_TOPIC            332
 #define RPL_TOPICWHOTIME     333
-/*	RPL_COMMANDSYNTAX    334	   Dalnet */
+#define RPL_WHOHELP          334
 /*	RPL_LISTSYNTAX	     334	   unreal */
 /*      RPL_CHANPASSOK       338           IRCnet extension (?)*/
 #define	RPL_WHOISACTUALLY    338	/* dalnet */

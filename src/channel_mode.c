@@ -309,7 +309,8 @@ static const struct mode_letter
   { MODE_NOPRIVMSGS, 'n' },
   { MODE_PRIVATE,    'p' },
   { MODE_SECRET,     's' },
-  { MODE_TOPICLIMIT, 't' }, YYY { MODE_NOCOLOR, 'c' },
+  { MODE_TOPICLIMIT, 't' }, 
+  { MODE_NOCOLOR,    'c' },
   { 0, '\0' }
 };
 
@@ -650,6 +651,7 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
            char c, void *d, const char *chname)
 {
   long mode_type;
+  short gnote = 0;
 
   mode_type = (long)d;
 
@@ -680,7 +682,7 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
    * 
    * -Dianora 
    */ 
-  if ((dir == MODE_ADD))  && !(chptr->mode.mode & mode_type)) 
+  if ((dir == MODE_ADD)  && !(chptr->mode.mode & mode_type)) 
   {
     chptr->mode.mode |= mode_type;
 
@@ -692,7 +694,7 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
     mode_changes[mode_count].mems = ALL_MEMBERS;
     mode_changes[mode_count++].arg = NULL;
   }
-  else if ((dir == MODE_DEL)) && (chptr->mode.mode & mode_type)) YYY del anonop stuff
+  else if ((dir == MODE_DEL) && (chptr->mode.mode & mode_type)) 
   {
     /* setting - */
 
@@ -713,68 +715,11 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
     ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0],
         EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
+    sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
     oftc_log(tmp);
   } 
 
 }
-
-#ifdef ANONOPS
-static void
-chm_hideops(struct Client *client_p, struct Client *source_p,
-            struct Channel *chptr, int parc, int *parn,
-            char **parv, int *errors, int alev, int dir, char c, void *d,
-            const char *chname)
-{
-  /* if we dont support it, dont send it anywhere.  well only
-   * have the capab if we support it, so we should never get
-   * here for a remote server if we dont support it..
-   */
-  if(!ConfigChannel.use_anonops)
-    return;
-
-  if (alev < CHACCESS_HALFOP)
-  {
-    if (!(*errors & SM_ERR_NOOPS))
-      sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED), me.name,
-                 source_p->name, chname);
-    *errors |= SM_ERR_NOOPS;
-    return;
-  }
-
-  if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
-    return;
-
-  if (simple_modes_mask & MODE_HIDEOPS)
-    return;
-  simple_modes_mask |= MODE_HIDEOPS;
-
-  if (dir == MODE_ADD && !(chptr->mode.mode & MODE_HIDEOPS))
-  {
-    chptr->mode.mode |= MODE_HIDEOPS;
-
-    mode_changes[mode_count].letter = c;
-    mode_changes[mode_count].dir = MODE_ADD;
-    mode_changes[mode_count].caps = CAP_AOPS;
-    mode_changes[mode_count].nocaps = 0;
-    mode_changes[mode_count].id = NULL;
-    mode_changes[mode_count].mems = ALL_MEMBERS;
-    mode_changes[mode_count++].arg = NULL;
-  }
-  else if (dir == MODE_DEL && (chptr->mode.mode & MODE_HIDEOPS))
-  {
-    chptr->mode.mode &= ~MODE_HIDEOPS;
-
-    mode_changes[mode_count].letter = c;
-    mode_changes[mode_count].dir = MODE_DEL;
-    mode_changes[mode_count].caps = CAP_AOPS;
-    mode_changes[mode_count].nocaps = 0;
-    mode_changes[mode_count].id = NULL;
-    mode_changes[mode_count].mems = ALL_MEMBERS;
-    mode_changes[mode_count++].arg = NULL;
-  }
-}
-#endif
 
 static void
 chm_ban(struct Client *client_p, struct Client *source_p,
@@ -879,7 +824,7 @@ chm_ban(struct Client *client_p, struct Client *source_p,
     ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0],       
         EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
+    sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
     oftc_log(tmp);
   }
 }
@@ -957,7 +902,7 @@ chm_except(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count].nocaps = 0;
 
     if(ConfigChannel.use_except)
-      mode_changes[mode_count].mems = ONLY_CHANOPS; YYY do firther down
+      mode_changes[mode_count].mems = ONLY_CHANOPS;
     else
       mode_changes[mode_count].mems = ONLY_SERVERS;
 
@@ -981,7 +926,7 @@ chm_except(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count].dir = MODE_DEL;
     mode_changes[mode_count].caps = CAP_EX;
     mode_changes[mode_count].nocaps = 0;
-    mode_changes[mode_count].mems = ONLY_CHANOPS_HALFOPS;
+    mode_changes[mode_count].mems = ONLY_CHANOPS;
     mode_changes[mode_count].id = NULL;
     mode_changes[mode_count++].arg = mask;
   }
@@ -991,7 +936,7 @@ chm_except(struct Client *client_p, struct Client *source_p,
     ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0],       
         EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
+    sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
     oftc_log(tmp);
   }
 
@@ -1035,7 +980,7 @@ chm_invex(struct Client *client_p, struct Client *source_p,
     ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0], 
         EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
+    sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
     oftc_log(tmp);
   }
 
@@ -1118,7 +1063,7 @@ chm_op(struct Client *client_p, struct Client *source_p,
        char **parv, int *errors, int alev, int dir, char c, void *d,
        const char *chname)
 {
-  int i, was_hopped;
+  int i;
   char *opnick;
   struct Client *targ_p;
   struct Membership *member;
@@ -1150,333 +1095,231 @@ chm_op(struct Client *client_p, struct Client *source_p,
   opnick = parv[(*parn)++];
 
   if ((targ_p = find_chasing(source_p, opnick, NULL)) == NULL)
-  {
     return;
-  }
+  if (!IsClient(targ_p))
+    return;
 
-  if (!IsMember(targ_p, chptr))
+  if ((member = find_channel_link(targ_p, chptr)) == NULL)
   {
     if (!(*errors & SM_ERR_NOTONCHANNEL))
-      sendto_one(source_p, form_str(ERR_USERNOTINCHANNEL), me.name,
-                 source_p->name, chname, opnick);
+      sendto_one(source_p, form_str(ERR_USERNOTINCHANNEL),
+                 me.name, source_p->name, opnick, chname);
     *errors |= SM_ERR_NOTONCHANNEL;
     return;
   }
 
-  mode_get_status(chptr, targ_p, &t_op, &t_hop, &t_voice, 1);
-
-  if (((dir == MODE_ADD) && t_op) ||
-      ((dir == MODE_DEL) && !t_op
-#ifdef HALFOPS
-       && !t_hop
-#endif
-    ))
-    return;
-
   if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
     return;
 
-  /* Cancel mode changes... */
+  /* no redundant mode changes */
+  if (dir == MODE_ADD &&  has_member_flags(member, CHFL_CHANOP))
+    return;
+  if (dir == MODE_DEL && !has_member_flags(member, CHFL_CHANOP))
+    return;
 
-  for (i = 0; i < mode_count; i++)
-    if (mode_changes[i].dir == MODE_ADD && 
-        (mode_changes[i].letter == 'o'
-#ifdef HALFOPS
-         || mode_changes[i].letter == 'h'
-#endif
-#ifndef REQUIRE_OANDV
-         || mode_changes[i].letter == 'v'
-#endif
-       )
-        && mode_changes[i].client == targ_p)
+  if (dir == MODE_ADD)
+  {
+    for (i = 0; i < mode_count; i++)
+      if (mode_changes[i].client == targ_p)
+      {
+        if (mode_changes[i].dir == MODE_DEL && mode_changes[i].letter == 'o')
+        {
+          mode_changes[i].letter = 0;
+          return;
+        }
+	if (mode_changes[i].dir == MODE_ADD && mode_changes[i].letter == 'h')
+	{
+	  mode_changes[i].letter = 0;
+	  DelMemberFlag(member, CHFL_HALFOP);
+	}
+      }
+
+    if (has_member_flags(member, CHFL_HALFOP))
     {
-      if (mode_changes[i].letter == 'o')
+      mode_changes[mode_count].letter = 'h';
+      mode_changes[mode_count].dir = MODE_DEL;
+      mode_changes[mode_count].caps = 0;
+      mode_changes[mode_count].nocaps = 0;
+      mode_changes[mode_count].mems = ALL_MEMBERS;
+      mode_changes[mode_count].id = targ_p->id;
+      mode_changes[mode_count].arg = targ_p->name;
+      mode_changes[mode_count++].client = targ_p;
+
+      DelMemberFlag(member, CHFL_HALFOP);
+    }
+
+    mode_changes[mode_count].letter = 'o';
+    mode_changes[mode_count].dir = MODE_ADD;
+    mode_changes[mode_count].caps = 0;
+    mode_changes[mode_count].nocaps = 0;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count].id = targ_p->id;
+    mode_changes[mode_count].arg = targ_p->name;
+    mode_changes[mode_count++].client = targ_p;
+
+    AddMemberFlag(member, CHFL_CHANOP);
+    DelMemberFlag(member, CHFL_DEOPPED);
+  }
+  else
+  {
+    for (i = 0; i < mode_count; i++)
+      if (mode_changes[i].dir == MODE_ADD && mode_changes[i].letter == 'o' &&
+          mode_changes[i].client == targ_p)
       {
         mode_changes[i].letter = 0;
         return;
       }
-#ifdef HALFOPS
-      else if (mode_changes[i].letter == 'h')
-        wasnt_hopped = 1;
-#endif
-      else if (mode_changes[i].letter == 'v')
-        wasnt_voiced = 1;
-      mode_changes[i].letter = 0;
-    }
 
-  if (dir == MODE_ADD)
-  {
-
-#ifndef REQUIRE_OANDV
-    if (!wasnt_voiced && t_voice)
-    {
-      mode_changes[mode_count].letter = 'v';
-      mode_changes[mode_count].dir = MODE_DEL;
-      mode_changes[mode_count].caps = 0;
-      mode_changes[mode_count].nocaps = 0;
-      mode_changes[mode_count].mems = ONLY_CHANOPS_HALFOPS;
-      mode_changes[mode_count].id = targ_p->user->id;
-      mode_changes[mode_count].arg = targ_p->name;
-      mode_changes[mode_count++].client = targ_p;
-    }
-#endif
-#ifdef HALFOPS
-    if (!wasnt_hopped && t_hop)
-    {
-      mode_changes[mode_count].letter = 'h';
-      mode_changes[mode_count].dir = MODE_DEL;
-      mode_changes[mode_count].caps = CAP_HOPS;
-      mode_changes[mode_count].nocaps = 0;
-      mode_changes[mode_count].mems = ONLY_CHANOPS_HALFOPS;
-      mode_changes[mode_count].id = targ_p->user->id;
-      mode_changes[mode_count].arg = targ_p->name;
-      mode_changes[mode_count++].client = targ_p;
-    }
-#endif
-
-    mode_changes[mode_count].letter = c;
-    mode_changes[mode_count].dir = MODE_ADD;
+    mode_changes[mode_count].letter = 'o';
+    mode_changes[mode_count].dir = MODE_DEL;
     mode_changes[mode_count].caps = 0;
     mode_changes[mode_count].nocaps = 0;
-    mode_changes[mode_count].mems = ONLY_CHANOPS_HALFOPS;
-    mode_changes[mode_count].id = targ_p->user->id;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count].id = targ_p->id;
     mode_changes[mode_count].arg = targ_p->name;
     mode_changes[mode_count++].client = targ_p;
-  }
-  else
-  {
-#ifdef HALFOPS
-    /* Converting -o to -h... */
-    if (t_hop)
-    {
-      c = 'h';
 
-      /* This code previously only allowed us to convert if it was a local
-       * client, however, we may convert halfops to ops when sending to
-       * old servers (assuming the target isn't on the older server),
-       * so we should accept this from other servers too.
-       *
-       * -David-T
-       */
-
-      /* check if this just canceled out an earlier mode we cleared */
-      if (!wasnt_hopped)
-      {
-        mode_changes[mode_count].letter = 'h';
-        mode_changes[mode_count].dir = MODE_DEL;
-        mode_changes[mode_count].caps = CAP_HOPS;
-        mode_changes[mode_count].nocaps = 0;
-        mode_changes[mode_count].mems = ONLY_CHANOPS_HALFOPS;
-        mode_changes[mode_count].id = targ_p->user->id;
-        mode_changes[mode_count].arg = targ_p->name;
-	mode_changes[mode_count++].client = targ_p;
-
-#ifdef BOUNCE_BAD_HOPS
-        mode_changes[mode_count].letter = 'o';
-        mode_changes[mode_count].dir = MODE_DEL;
-        mode_changes[mode_count].caps = 0;
-        mode_changes[mode_count].nocaps = CAP_HOPS;
-        mode_changes[mode_count].mems = ONLY_SERVERS;
-        mode_changes[mode_count].id = targ_p->user->id;
-        mode_changes[mode_count].arg = targ_p->name;
-	mode_changes[mode_count++].client = targ_p;
-#endif
-      }
-    }
-    else
-#endif
-    {
-      mode_changes[mode_count].letter = c;
-      mode_changes[mode_count].dir = MODE_DEL;
-      mode_changes[mode_count].caps = 0;
-      mode_changes[mode_count].nocaps = 0;
-      mode_changes[mode_count].mems = ONLY_CHANOPS_HALFOPS;
-      mode_changes[mode_count].id = targ_p->user->id;
-      mode_changes[mode_count].arg = targ_p->name;
-      mode_changes[mode_count++].client = targ_p;
-    }
-  }
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
-  {
-    char tmp[IRCD_BUFSIZE];
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
-        source_p->name, chname, parv[0], 
-        EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
-    oftc_log(tmp);
+    DelMemberFlag(member, CHFL_CHANOP);
   }
 }
 
-#ifdef HALFOPS
+#ifdef USE_HALFOPS
 static void
-chm_halfop(struct Client *client_p, struct Client *source_p,
-           struct Channel *chptr, int parc, int *parn,
-           char **parv, int *errors, int alev, int dir, char c, void *d,
-           const char *chname)
+chm_hop(struct Client *client_p, struct Client *source_p,
+       struct Channel *chptr, int parc, int *parn,
+       char **parv, int *errors, int alev, int dir, char c, void *d,
+       const char *chname)
 {
-  int i, wasnt_voiced = 0, t_voice, t_op, t_hop;
+  int i;
   char *opnick;
   struct Client *targ_p;
+  struct Membership *member;
 
-  /* halfops have been disabled.. disallow local users to set,
-   * remote is taken care of via BOUNCE_BAD_HOPS, and we shouldnt
-   * get halfops because we unset CAP_HOPS anyway..
+  /* *sigh* - dont allow halfops to set +/-h, they could fully control a
+   * channel if there were no ops - it doesnt solve anything.. MODE_PRIVATE
+   * when used with MODE_SECRET is paranoid - cant use +p
+   *
+   * it needs to be optional per channel - but not via +p, that or remove
+   * paranoid.. -- fl_
+   *
+   * +p means paranoid, it is useless for anything else on modern IRC, as
+   * list isn't really usable. If you want to have a private channel these
+   * days, you set it +s. Halfops can no longer remove simple modes when
+   * +p is set (although they can set +p) so it is safe to use this to
+   * control whether they can (de)halfop...
    */
-  if(!ConfigChannel.use_halfops && MyClient(source_p))
-    return;
-
-/* *sigh* - dont allow halfops to set +/-h, they could fully control a
- * channel if there were no ops - it doesnt solve anything.. MODE_PRIVATE
- * when used with MODE_SECRET is paranoid - cant use +p
- *
- * it needs to be optional per channel - but not via +p, that or remove
- * paranoid.. -- fl_
- *
- * +p means paranoid, it is useless for anything else on modern IRC, as
- * list isn't really usable. If you want to have a private channel these
- * days, you set it +s. Halfops can no longer remove simple modes when
- * +p is set(although they can set +p) so it is safe to use this to
- * control whether they can (de)halfop...
- */
   if (alev <
-      ((chptr->mode.mode & MODE_PRIVATE) ?
-        CHACCESS_CHANOP : CHACCESS_HALFOP))
+      ((chptr->mode.mode & MODE_PRIVATE) ? CHACCESS_CHANOP : CHACCESS_HALFOP))
   {
     if (!(*errors & SM_ERR_NOOPS))
-      sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED), me.name,
-                 source_p->name, chname);
+      sendto_one(source_p, form_str(alev == CHACCESS_NOTONCHAN ?
+                                    ERR_NOTONCHANNEL : ERR_CHANOPRIVSNEEDED),
+                 me.name, source_p->name, chname); 
     *errors |= SM_ERR_NOOPS;
     return;
   }
-
-  if ((dir == MODE_QUERY) || parc <= *parn)
+  if ((dir == MODE_QUERY) || (parc <= *parn))
     return;
 
-  if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
+  if (IsRestricted(source_p) && (dir == MODE_ADD))
+  {
+    if (!(*errors & SM_ERR_RESTRICTED))
+      sendto_one(source_p,
+                 ":%s NOTICE %s :*** Notice -- You are restricted and cannot "
+                 "chanop others", me.name, source_p->name);
+
+    *errors |= SM_ERR_RESTRICTED;
     return;
+  }
 
   opnick = parv[(*parn)++];
 
   if ((targ_p = find_chasing(source_p, opnick, NULL)) == NULL)
-  {
     return;
-  }
+  if (!IsClient(targ_p))
+    return;
 
-  mode_get_status(chptr, targ_p, &t_op, &t_hop, &t_voice, 1);
-
-  if (!IsMember(targ_p, chptr))
+  if ((member = find_channel_link(targ_p, chptr)) == NULL)
   {
     if (!(*errors & SM_ERR_NOTONCHANNEL))
-      sendto_one(source_p, form_str(ERR_USERNOTINCHANNEL), me.name,
-                 source_p->name, chname, opnick);
+      sendto_one(source_p, form_str(ERR_USERNOTINCHANNEL),
+                 me.name, source_p->name, opnick, chname);
     *errors |= SM_ERR_NOTONCHANNEL;
     return;
   }
 
-  if (((dir == MODE_ADD) && (t_hop || t_op)) ||
-      ((dir == MODE_DEL) && !t_hop))
+  if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
     return;
 
-#ifdef BOUNCE_BAD_HOPS
-  if (!MyClient(targ_p) && !IsCapable(targ_p->from, CAP_HOPS))
-  {
-    if (IsServer(client_p))
-    {
-      mode_bounces[bounce_count].letter = 'h';
-      mode_bounces[bounce_count].dir = MODE_DEL;
-      mode_bounces[bounce_count].id = targ_p->user->id;
-      mode_bounces[bounce_count++].arg = targ_p->name;
-    }
-
-    if (IsClient(source_p))
-      sendto_one(source_p,
-                 ":%s NOTICE %s :Unable to halfop %s"
-                 " - server does not support halfops.",
-                 me.name, source_p->name, targ_p->name);
+  /* no redundant mode changes */
+  if (dir == MODE_ADD &&  has_member_flags(member, CHFL_HALFOP | CHFL_CHANOP))
     return;
-  }
-#endif
-
-  /* Cancel out all other mode changes... */
-  for (i = 0; i < mode_count; i++)
-    if (mode_changes[i].dir == MODE_ADD &&
-        (mode_changes[i].letter == 'v' ||
-         mode_changes[i].letter == 'h')
-        && mode_changes[i].client == targ_p)
-    {
-      if (mode_changes[i].letter == 'h')
-      {
-        mode_changes[i].letter = 0;
-        return;
-      }
-      mode_changes[i].letter = 0;
-      wasnt_voiced = 1;
-    }
+  if (dir == MODE_DEL && !has_member_flags(member, CHFL_HALFOP))
+    return;
 
   if (dir == MODE_ADD)
   {
-    if (!wasnt_voiced && t_voice)
+    for (i = 0; i < mode_count; i++)
+      if (mode_changes[i].client == targ_p)
+      {
+        if (mode_changes[i].dir == MODE_DEL && mode_changes[i].letter == 'h')
+        {
+          mode_changes[i].letter = 0;
+          return;
+        }
+	if (mode_changes[i].dir == MODE_ADD && mode_changes[i].letter == 'v')
+	{
+	  mode_changes[i].letter = 0;
+	  DelMemberFlag(member, CHFL_VOICE);
+	}
+      }
+
+    if (has_member_flags(member, CHFL_VOICE))
     {
       mode_changes[mode_count].letter = 'v';
       mode_changes[mode_count].dir = MODE_DEL;
       mode_changes[mode_count].caps = 0;
       mode_changes[mode_count].nocaps = 0;
-      mode_changes[mode_count].mems = ONLY_CHANOPS_HALFOPS;
-      mode_changes[mode_count].id = targ_p->user->id;
+      mode_changes[mode_count].mems = ALL_MEMBERS;
+      mode_changes[mode_count].id = targ_p->id;
       mode_changes[mode_count].arg = targ_p->name;
       mode_changes[mode_count++].client = targ_p;
+
+      DelMemberFlag(member, CHFL_VOICE);
     }
 
-    mode_changes[mode_count].letter = c;
+    mode_changes[mode_count].letter = 'h';
     mode_changes[mode_count].dir = MODE_ADD;
-    mode_changes[mode_count].caps = CAP_HOPS;
+    mode_changes[mode_count].caps = 0;
     mode_changes[mode_count].nocaps = 0;
-    mode_changes[mode_count].mems = ONLY_CHANOPS_HALFOPS;
-    mode_changes[mode_count].id = targ_p->user->id;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count].id = targ_p->id;
     mode_changes[mode_count].arg = targ_p->name;
     mode_changes[mode_count++].client = targ_p;
 
-  #ifdef BOUNCE_BAD_HOPS
-    mode_changes[mode_count].letter = 'o';
-    mode_changes[mode_count].dir = MODE_ADD;
-    mode_changes[mode_count].caps = 0;
-    mode_changes[mode_count].nocaps = CAP_HOPS;
-    mode_changes[mode_count].mems = ONLY_SERVERS;
-    mode_changes[mode_count].id = targ_p->user->id;
-    mode_changes[mode_count].arg = targ_p->name;
-    mode_changes[mode_count++].client = targ_p;
-  #endif
+    AddMemberFlag(member, CHFL_HALFOP);
+    DelMemberFlag(member, CHFL_DEOPPED);
   }
-  else 
-  { /* MODE_DEL */
+  else
+  {
+    for (i = 0; i < mode_count; i++)
+      if (mode_changes[i].dir == MODE_ADD && mode_changes[i].letter == 'h' &&
+          mode_changes[i].client == targ_p)
+      {
+        mode_changes[i].letter = 0;
+        return;
+      }
+
     mode_changes[mode_count].letter = 'h';
     mode_changes[mode_count].dir = MODE_DEL;
-    mode_changes[mode_count].caps = CAP_HOPS;
+    mode_changes[mode_count].caps = 0;
     mode_changes[mode_count].nocaps = 0;
-    mode_changes[mode_count].mems = ONLY_CHANOPS_HALFOPS;
-    mode_changes[mode_count].id = targ_p->user->id;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count].id = targ_p->id;
     mode_changes[mode_count].arg = targ_p->name;
     mode_changes[mode_count++].client = targ_p;
 
-#ifdef BOUNCE_BAD_HOPS
-    mode_changes[mode_count].letter = 'o';
-    mode_changes[mode_count].dir = MODE_DEL;
-    mode_changes[mode_count].caps = 0;
-    mode_changes[mode_count].nocaps = CAP_HOPS;
-    mode_changes[mode_count].mems = ONLY_SERVERS;
-    mode_changes[mode_count].id = targ_p->user->id;
-    mode_changes[mode_count].arg = targ_p->name;
-    mode_changes[mode_count++].client = targ_p;
-#endif
-  }
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
-  {
-    char tmp[IRCD_BUFSIZE];
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
-        source_p->name, chname, parv[0], 
-        EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
-    oftc_log(tmp);
+    DelMemberFlag(member, CHFL_HALFOP);
   }
 }
 #endif
@@ -1487,6 +1330,7 @@ chm_voice(struct Client *client_p, struct Client *source_p,
           char **parv, int *errors, int alev, int dir, char c, void *d,
           const char *chname)
 {
+  int i;
   char *opnick;
   struct Client *targ_p;
   struct Membership *member;
@@ -1524,24 +1368,53 @@ chm_voice(struct Client *client_p, struct Client *source_p,
     return;
 
   /* no redundant mode changes */
-  if (dir == MODE_ADD &&  has_member_flags(member, CHFL_VOICE))
+  if (dir == MODE_ADD &&  has_member_flags(member, CHFL_VOICE | CHFL_HALFOP))
     return;
   if (dir == MODE_DEL && !has_member_flags(member, CHFL_VOICE))
     return;
 
-  mode_changes[mode_count].letter = 'v';
-  mode_changes[mode_count].dir = dir;
-  mode_changes[mode_count].caps = 0;
-  mode_changes[mode_count].nocaps = 0;
-  mode_changes[mode_count].mems = ALL_MEMBERS;
-  mode_changes[mode_count].id = targ_p->id;
-  mode_changes[mode_count].arg = targ_p->name;
-  mode_changes[mode_count++].client = targ_p;
-
   if (dir == MODE_ADD)
+  {
+    for (i = 0; i < mode_count; i++)
+      if (mode_changes[i].dir == MODE_DEL && mode_changes[i].letter == 'v' &&
+          mode_changes[i].client == targ_p)
+      {
+        mode_changes[i].letter = 0;
+	return;
+      }
+
+    mode_changes[mode_count].letter = 'v';
+    mode_changes[mode_count].dir = MODE_ADD;
+    mode_changes[mode_count].caps = 0;
+    mode_changes[mode_count].nocaps = 0;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count].id = targ_p->id;
+    mode_changes[mode_count].arg = targ_p->name;
+    mode_changes[mode_count++].client = targ_p;
+
     AddMemberFlag(member, CHFL_VOICE);
+  }
   else
+  {
+    for (i = 0; i < mode_count; i++)
+      if (mode_changes[i].dir == MODE_ADD && mode_changes[i].letter == 'v' &&
+          mode_changes[i].client == targ_p)
+      {
+        mode_changes[i].letter = 0;
+        return;
+      }
+
+    mode_changes[mode_count].letter = 'v';
+    mode_changes[mode_count].dir = MODE_DEL;
+    mode_changes[mode_count].caps = 0;
+    mode_changes[mode_count].nocaps = 0;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count].id = targ_p->id;
+    mode_changes[mode_count].arg = targ_p->name;
+    mode_changes[mode_count++].client = targ_p;
+
     DelMemberFlag(member, CHFL_VOICE);
+  }
 }
 
 static void
@@ -1613,7 +1486,7 @@ chm_limit(struct Client *client_p, struct Client *source_p,
     ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0],       
         EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
+    sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
     oftc_log(tmp);
   }
 }
@@ -1694,7 +1567,7 @@ chm_key(struct Client *client_p, struct Client *source_p,
     ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0],       
         EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
+    sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
     oftc_log(tmp);
   }
 }
@@ -1777,36 +1650,41 @@ static struct ChannelMode ModeTable[255] =
 };
 /* *INDENT-ON* */
 
-/* int get_channel_access(struct Client *source_p, struct Channel *chptr)
- * Input: The client, the channel
- * Output: MODE_CHANOP if we should let them have chanop level access,
- *         MODE_HALFOP for halfop level access,
- *         MODE_PEON for peon level access.
- * Side-effects: None.
+/* get_channel_access()
+ *
+ * inputs       - pointer to Client struct
+ *              - pointer to Membership struct
+ * output       - CHACCESS_CHANOP if we should let them have
+ *                chanop level access, 0 for peon level access.
+ * side effects - NONE
  */
 static int
-get_channel_access(struct Client *source_p, struct Channel *chptr)
+get_channel_access(struct Client *source_p, struct Membership *member)
 {
   /* Let hacked servers in for now... */
-
   if (!MyClient(source_p))
+    return(CHACCESS_CHANOP); 
+  
+  /* Services always have access */ 
+  if(IsService(source_p)) 
     return CHACCESS_CHANOP;
 
-  /* Services always have access */
-  if(IsService(source_p))
-    return CHACCESS_CHANOP;   
+  if (member == NULL)
+    return(CHACCESS_NOTONCHAN);
 
-  if (is_chan_op(chptr, source_p))
-    return CHACCESS_CHANOP;
-  if(IsGod(source_p))
-    return CHACCESS_CHANOP+1;
+  /* just to be sure.. */
+  assert(source_p == member->client_p);
 
-#ifdef HALFOPS
-  if (is_half_op(chptr, source_p))
-    return CHACCESS_HALFOP;
-#endif
+  if (has_member_flags(member, CHFL_CHANOP))
+    return(CHACCESS_CHANOP);
 
-  return CHACCESS_PEON;
+  if (has_member_flags(member, CHFL_HALFOP))
+    return(CHACCESS_HALFOP); 
+  
+  if(IsGod(source_p)) 
+      return CHACCESS_CHANOP+1;
+
+  return(CHACCESS_PEON);
 }
 
 /* void send_cap_mode_changes(struct Client *client_p,

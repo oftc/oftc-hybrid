@@ -66,7 +66,8 @@ typedef enum {
   ULINE_TYPE,
   GLINE_TYPE,
   CRESV_TYPE,     
-  NRESV_TYPE
+  NRESV_TYPE,
+  SERVICES_TYPE,
 } ConfType;
 
 struct ConfItem
@@ -395,6 +396,7 @@ extern int specific_ipv4_vhost; /* used in s_bsd.c */
 extern int specific_ipv6_vhost;
 extern dlink_list class_items;
 extern dlink_list server_items;
+extern dlink_list services_items;
 extern dlink_list cluster_items;
 extern dlink_list hub_items;
 extern dlink_list leaf_items;

@@ -93,7 +93,7 @@ static void handle_special(int p_or_n, const char *command,
 			   struct Client *client_p,
 			   struct Client *source_p, char *nick, char *text);
 
-static int handle_nick_server(int p_or_n, char *command,
+static int handle_nick_server(int p_or_n, const char *command,
         struct Client *client_p,
         struct Client *source_p, char *nick, char *text);
 
@@ -937,7 +937,7 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
  * side effects	- nick@server is handled here
  */
 static int
-handle_nick_server(int p_or_n, char *command, struct Client *client_p,
+handle_nick_server(int p_or_n, const char *command, struct Client *client_p,
 		   struct Client *source_p, char *nick, char *text)
 {
   struct Client *target_p;

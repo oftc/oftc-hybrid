@@ -221,7 +221,7 @@ int unload_one_module(char *name, int warn)
   if (warn == 1)
   {
     ilog(L_INFO, "Module %s unloaded", name);
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,, "Module %s unloaded", name);
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s unloaded", name);
   }
 
   return(0);

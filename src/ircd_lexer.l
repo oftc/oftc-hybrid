@@ -257,7 +257,9 @@ serverinfo	{ return SERVERINFO; }
 servlink_path   { return SERVLINK_PATH; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }
-sid		{ return SID; } YYY service         { return SERVICE; } services { return SERVICES; }
+sid		{ return SID; } 
+service         { return SERVICE; } 
+services { return SERVICES; }
 silent          { return SILENT; }
 spoof		{ return SPOOF; }
 spoof_notice	{ return SPOOF_NOTICE; }
@@ -336,16 +338,6 @@ god                     { return T_GOD; }
 nickservreg             { return T_NICKSERVREG; } 
 
 
-millennia		{ return MILLENNIA; }
-millennium		{ return MILLENNIA; }
-centuries		{ return CENTURIES; }
-century			{ return CENTURIES; }
-decades			{ return DECADES; }
-decade			{ return DECADES; }
-years			{ return YEARS; }
-year			{ return YEARS; }
-months			{ return MONTHS; }
-month			{ return MONTHS; }
 weeks			{ return WEEKS; }
 week			{ return WEEKS; }
 days			{ return DAYS; }

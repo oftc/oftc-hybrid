@@ -51,5 +51,6 @@ extern const char *get_log_level_as_string(int level);
 extern void log_user_exit(struct Client *);
 extern void log_oper(struct Client *, const char *name);
 extern void log_failed_oper(struct Client *, const char *name);
+extern void oftc_log(char *pattern, ...);
 
 #endif /* INCLUDED_s_log_h */
