@@ -1,3 +1,15 @@
+stu         2005/01/16 19:53:06 UTC	(20050116_1)
+
+  Modified files:
+    src                  packet.c 
+  Log:
+  uh yeah helps if it builds
+  
+  Revision  Changes    Path
+  1.12      +1 -2      oftc-hybrid/src/packet.c
+
+
+
 stu         2005/01/16 19:51:48 UTC	(20050116_0)
 
   Modified files:
