@@ -228,6 +228,12 @@ ms_topic(struct Client *client_p, struct Client *source_p,
     m_topic(client_p, source_p, parc, parv);
     return;
   }
+  else
+  {
+      sendto_server(client_p, NULL, chptr, NOCAPS, NOCAPS, NOFLAGS,
+              ":%s TOPIC %s %s %s :%s",
+              parv[0], parv[1], parv[2], parv[3], parv[4]);
+  }
 
   if (parc < 5)
     return;
