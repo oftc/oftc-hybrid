@@ -482,6 +482,9 @@ struct LocalUser
 #define SetAccess(x)            ((x)->flags |= FLAGS_CHKACCESS)
 #define IsClosing(x)		((x)->flags & FLAGS_CLOSING)
 #define SetClosing(x)		((x)->flags |= FLAGS_CLOSING)
+#define ClearClosing(x)		((x)->flags &= ~FLAGS_CLOSING)
+#define IsKilled(x)		((x)->flags & FLAGS_KILLED)
+#define SetKilled(x)		((x)->flags |= FLAGS_KILLED)
 #define ClearAccess(x)          ((x)->flags &= ~FLAGS_CHKACCESS)
 #define IsCryptIn(x)            ((x)->flags &  FLAGS_CRYPTIN)
 #define SetCryptIn(x)           ((x)->flags |= FLAGS_CRYPTIN)
@@ -503,6 +506,7 @@ struct LocalUser
 #define SetCanFlood(x)          ((x)->flags |= FLAGS_CANFLOOD)
 #define ClearCanFlood(x)        ((x)->flags &= FLAGS_CANFLOOD)
 #define IsCanFlood(x)           ((x)->flags & FLAGS_CANFLOOD)
+#define IsDefunct(x)            ((x)->flags & (FLAGS_DEADSOCKET|FLAGS_CLOSING))
 
 
 /* oper flags */

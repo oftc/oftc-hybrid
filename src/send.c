@@ -162,7 +162,7 @@ _send_linebuf(struct Client *to, buf_head_t *linebuf)
     return 0;
   }
 #endif
-  if (IsDead(to))
+  if (IsDefunct(to))
     return 0; 
 
   if (linebuf_len(&to->localClient->buf_sendq) > get_sendq(to))
@@ -238,7 +238,7 @@ send_linebuf_remote(struct Client *to, struct Client *from,
                   me.name, to->name, me.name, to->name,
                   to->username, to->host, to->from->name);
 
-    to->flags |= FLAGS_KILLED;
+    SetKilled(to);
 
     if (IsPerson(from))
       sendto_one(from, form_str(ERR_GHOSTEDCLIENT),
@@ -274,7 +274,7 @@ send_queued_write(int fd, void *data)
    ** even if the error is removed...
    */
 #ifdef INVARIANTS
-  if (IsDead(to))
+  if (IsDefunct(to))
   {
     /*
      * Actually, we should *NEVER* get here--something is
@@ -282,7 +282,7 @@ send_queued_write(int fd, void *data)
      * dead socket... --msa
      */
     return;
-  } /* if (IsDead(to)) */
+  } /* if (IsDefunct(to)) */
 #endif
 
   /* Next, lets try to write some data */
@@ -354,14 +354,14 @@ send_queued_slink_write(int fd, void *data)
    ** even if the error is removed...
    */
 #ifdef INVARIANTS
-  if (IsDead(to)) {
+  if (IsDefunct(to)) {
     /*
      * Actually, we should *NEVER* get here--something is
      * not working correct if send_queued is called for a
      * dead socket... --msa
      */
     return;
-  } /* if (IsDead(to)) */
+  } /* if (IsDefunct(to)) */
 #endif
 
   /* Next, lets try to write some data */
@@ -422,7 +422,7 @@ sendto_one(struct Client *to, const char *pattern, ...)
   va_list args;
   buf_head_t linebuf;
 
-  if (IsDead(to))
+  if (IsDefunct(to))
     return; /* This socket has already been marked as dead */
 
   /* send remote if to->from non NULL */
@@ -458,7 +458,7 @@ sendto_one_prefix(struct Client *to, struct Client *prefix,
   struct Client *to_sendto;
   buf_head_t linebuf;
 
-  if (IsDead(to))
+  if (IsDefunct(to))
     return; /* This socket has already been marked as dead */
 
   /* send remote if to->from non NULL */
@@ -583,7 +583,7 @@ sendto_list_anywhere(struct Client *one, struct Client *from,
     if (target_p->from == one)
       continue;
 
-    if (MyConnect(target_p) && IsRegisteredUser(target_p) && !IsDead(target_p))
+    if (MyConnect(target_p) && IsRegisteredUser(target_p) && !IsDefunct(target_p))
     {
       if(target_p->serial != current_serial)
       {
@@ -942,7 +942,7 @@ sendto_list_local(dlink_list *list, buf_head_t *linebuf_ptr)
     if ((target_p = ptr->data) == NULL)
       continue;
 
-    if (!MyConnect(target_p) || IsDead(target_p))
+    if (!MyConnect(target_p) || IsDefunct(target_p))
       continue;
 
     if (target_p->serial == current_serial)
@@ -983,7 +983,7 @@ sendto_list_local_butone(struct Client *one, dlink_list *list,
     if (target_p == one)
       continue;
 
-    if (!MyConnect(target_p) || IsDead(target_p))
+    if (!MyConnect(target_p) || IsDefunct(target_p))
       continue;
    
     if (target_p->serial == current_serial)
@@ -1172,7 +1172,7 @@ sendto_anywhere(struct Client *to, struct Client *from,
   linebuf_newbuf(&linebuf);
   va_start(args, pattern);
 
-  if (IsDead(to))
+  if (IsDefunct(to))
     return;
 
   if(MyClient(to))

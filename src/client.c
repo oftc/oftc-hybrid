@@ -201,7 +201,8 @@ void free_local_client(struct Client *client_p)
   }
 }
 
-void free_client(struct Client* client_p)
+void
+free_client(struct Client* client_p)
 {
   assert(NULL != client_p);
   assert(&me != client_p);
@@ -855,7 +856,7 @@ get_client_name(struct Client* client, int showip)
 static void
 free_exited_clients(void *unused)
 {
-  dlink_node *ptr, *next;
+  dlink_node *ptr, *next, *ptr_a;
   struct Client *target_p;
   
   DLINK_FOREACH_SAFE(ptr, next, dead_list.head)
@@ -870,6 +871,20 @@ free_exited_clients(void *unused)
           free_dlink_node(ptr);
           continue;
         }
+
+      /* If client being exited is still on the abort_list, remove it now
+       * hopefully, this is rare. -db
+       */
+      if (IsClosing(target_p)) 
+      {
+	    if ((ptr_a = dlinkFind(&abort_list, target_p)) != NULL)
+        {
+          oftc_log("Well it happened.  We had to free %s from the abort list",
+                target_p->name);
+	      dlinkDelete(ptr_a, &abort_list);
+        }
+      }
+
       release_client_state(target_p);
       free_client(target_p);
       dlinkDelete(ptr, &dead_list);
@@ -888,6 +903,9 @@ exit_one_client(struct Client *client_p, struct Client *source_p,
   struct Client* target_p;
   dlink_node *lp;
   dlink_node *next_lp;
+
+  if (IsDead(source_p))
+    return 0;
 
   if (IsServer(source_p))
     {
@@ -946,7 +964,7 @@ exit_one_client(struct Client *client_p, struct Client *source_p,
 
       target_p = source_p->from;
       if (target_p && IsServer(target_p) && target_p != client_p && !IsMe(target_p) &&
-          (source_p->flags & FLAGS_KILLED) == 0)
+          (!IsKilled(source_p)))
         sendto_one(target_p, ":%s SQUIT %s :%s", from->name, source_p->name, comment);
     }
   else if (IsPerson(source_p)) /* ...just clean all others with QUIT... */
@@ -956,7 +974,7 @@ exit_one_client(struct Client *client_p, struct Client *source_p,
       ** is no sense in sending the QUIT--KILL's have been
       ** sent instead.
       */
-      if ((source_p->flags & FLAGS_KILLED) == 0)
+      if (!IsKilled(source_p))
         {
           sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS,
                         NOFLAGS, ":%s QUIT :%s", source_p->name, comment);
@@ -1065,7 +1083,8 @@ static void recurse_send_quits(struct Client *client_p, struct Client *source_p,
 /*
  * added sanity test code.... source_p->serv might be NULL...
  */
-static void recurse_remove_clients(struct Client* source_p, const char* comment)
+static void
+recurse_remove_clients(struct Client* source_p, const char* comment)
 {
   struct Client *target_p;
 
@@ -1077,7 +1096,7 @@ static void recurse_remove_clients(struct Client* source_p, const char* comment)
 
   while ((target_p = source_p->serv->users))
     {
-      target_p->flags |= FLAGS_KILLED;
+      SetKilled(target_p);
       exit_one_client(NULL, target_p, &me, comment);
     }
 
@@ -1088,7 +1107,7 @@ static void recurse_remove_clients(struct Client* source_p, const char* comment)
       ** a server marked as "KILLED" won't send a SQUIT 
       ** in exit_one_client()   -orabidoo
       */
-      target_p->flags |= FLAGS_KILLED;
+      SetKilled(target_p);
       exit_one_client(NULL, target_p, &me, me.name);
     }
 }
@@ -1134,18 +1153,17 @@ remove_dependents(struct Client* client_p,
   recurse_remove_clients(source_p, comment1);
 }
 
-
-
-
 /*
  * dead_link - Adds client to a list of clients that need an exit_client()
  *
  */
-void dead_link(struct Client *client_p)
+void
+dead_link(struct Client *client_p)
 {
   dlink_node *m;
   const char *notice;
-  if(IsClosing(client_p) || IsDead(client_p))
+
+  if(IsDefunct(client_p))
     return;
 
   if(client_p->flags & FLAGS_SENDQEX)
@@ -1159,8 +1177,8 @@ void dead_link(struct Client *client_p)
   assert(dlinkFind(&abort_list, client_p) == NULL);
   m = make_dlink_node();
   dlinkAdd(client_p, m, &abort_list);
-  SetDead(client_p); /* You are dead my friend */
-  if (!IsPerson(client_p) && !IsUnknown(client_p) && !IsClosing(client_p))
+  SetClosing(client_p); /* You are closing my friend */
+  if (!IsPerson(client_p) && !IsUnknown(client_p))
   {
     sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 		         "Closing link to %s: %s",
@@ -1186,14 +1204,18 @@ exit_aborted_clients(void)
           free_dlink_node(ptr);
           continue;
         }
+
       dlinkDelete(ptr, &abort_list);
+      free_dlink_node(ptr);
+
+      /* small optimisation here -db */
+      ClearClosing(target_p);
+
       if(target_p->flags & FLAGS_SENDQEX)
         notice = "Max SendQ exceeded";
       else
         notice = "Write error: connection closed";
-      
       exit_client(target_p, target_p, &me, notice);  
-      free_dlink_node(ptr);
     }
 }
 
@@ -1218,6 +1240,26 @@ exit_aborted_clients(void)
 **        CLIENT_EXITED        if (client_p == source_p)
 **        0                if (client_p != source_p)
 */
+
+/*
+ * 1. IsDead() protects us from entering exit_client() twice,
+ *    preventing us from putting a client on the dead_list twice.
+ * 2. IsClosing() protects us from entering dead_link() twice,
+ *    preventing us from putting a client on the abort_list twice.
+ * 3. IsDefunct() saves us from trying to write to a client that is
+ *    already dying. (already on abort_list or already on dead_list)
+ *    It also prevents putting a client on the abort list if its
+ *    already on the dead_list.
+ *
+ * If a client is placed on the abort_list but also gets exit_client()
+ * called on it, it will already be marked as IsClosing(). Hence,
+ * It must be removed from the abort_list at the same time it is removed
+ * from the dead_list. However, as an optimisation, as exit_aborted_clients()
+ * is run, ClearClosing() is used to clear the IsClosing flag.
+ *
+ * -db
+ */
+
 int
 exit_client(
 	    struct Client* client_p, /* The local client originating the
@@ -1234,16 +1276,13 @@ exit_client(
 {
   char comment1[HOSTLEN + HOSTLEN + 2];
   dlink_node *m;
+
+  if (IsDead(source_p))
+    return CLIENT_EXITED;
+
   if (MyConnect(source_p))
     {
-      /* DO NOT REMOVE. exit_client can be called twice after a failed
-       * read/write.
-       */
-      if(IsClosing(source_p))
-        return 0;
-
-      SetClosing(source_p);
-      if (source_p->flags & FLAGS_IPHASH)
+      if (IsIpHash(source_p))
         remove_one_ip(&source_p->localClient->ip);
 
       delete_adns_queries(source_p->localClient->dns_query);

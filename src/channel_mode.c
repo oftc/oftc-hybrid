@@ -896,6 +896,10 @@ chm_hideops(struct Client *client_p, struct Client *source_p,
   if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
     return;
 
+  if (simple_modes_mask & MODE_HIDEOPS)
+    return;
+  simple_modes_mask |= MODE_HIDEOPS;
+
   if (dir == MODE_ADD && !(chptr->mode.mode & MODE_HIDEOPS))
   {
     chptr->mode.mode |= MODE_HIDEOPS;
@@ -2885,7 +2889,7 @@ do_channel_integrity_check(void)
   struct Channel *ch;
   for (cl=GlobalClientList; cl; cl=cl->next)
   {
-    if (!IsRegisteredUser(cl) || IsDead(cl))
+    if (!IsRegisteredUser(cl) || IsDefunct(cl))
       continue;
     DLINK_FOREACH(ptr, cl->user->channel.head)
     {
