@@ -1,3 +1,27 @@
+stu         2003/05/28 01:52:23 GMT	(20030528_0)
+
+  Modified files:
+    src                  s_user.c 
+  Log:
+  testing serial number final time promise :)
+  
+  Revision  Changes    Path
+  1.10      +0 -0      oftc-hybrid/src/s_user.c
+
+
+
+stu         2003/05/28 01:53:05 GMT	(20030528_1)
+
+  Modified files:
+    src                  event.c 
+  Log:
+  lala
+  
+  Revision  Changes    Path
+  1.4       +1 -1      oftc-hybrid/src/event.c
+
+
+
 2003-02-19 22:41  lusky
 
 	* include/patchlevel.h: 
