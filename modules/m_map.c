@@ -29,18 +29,19 @@
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
+#include "s_serv.h"
 
-#define USER_COL       50 /* display | Users: %d at col 50 */
 
-static void m_map(struct Client *client_p, struct Client *source_p,
+static void ms_map(struct Client *client_p, struct Client *source_p,
                     int parc, char *parv[]);
 static void mo_map(struct Client *client_p, struct Client *source_p,
                     int parc, char *parv[]);
+
 static void dump_map(struct Client *client_p,struct Client *root, char *pbuf);
 
 struct Message map_msgtab = {
   "MAP", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_map, m_ignore, mo_map}
+  {m_unregistered, m_not_oper, ms_map, mo_map}
 };
 
 #ifndef STATIC_MODULES
@@ -59,23 +60,6 @@ const char *_version = "$Revision$";
 
 static char buf[BUFSIZE];
 
-/* m_map
-**	parv[0] = sender prefix
-*/
-static void m_map(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
-{
-  if (!ConfigServerHide.flatten_links)
-  {
-    dump_map(client_p,&me,buf);
-    sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
-    return;
-  }
-
-  m_not_oper(client_p,source_p,parc,parv);
-  return;
-}
-
 /*
 ** mo_map
 **      parv[0] = sender prefix
@@ -83,8 +67,49 @@ static void m_map(struct Client *client_p, struct Client *source_p,
 static void mo_map(struct Client *client_p, struct Client *source_p,
                     int parc, char *parv[])
 {
+  struct ConfItem *conf;
   dump_map(client_p,&me,buf);
+  for (conf = ConfigItemList; conf; conf = conf->next)
+  {
+    if (conf->status != CONF_SERVER)
+      continue;
+    if (strcmp(conf->name, me.name) == 0)
+      continue;
+    if (!find_server(conf->name))
+    {
+      char buffer[BUFSIZE];
+      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
+      sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buffer);
+    }
+  }
   sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
+}
+
+
+static void ms_map(struct Client *client_p, struct Client *source_p,
+                    int parc, char *parv[])
+{
+  struct ConfItem *conf;
+
+  if (parc > 1)
+    if (hunt_server(client_p, source_p, ":%s MAP %s", 1, parc, parv) 
+            != HUNTED_ISME)
+      return;
+  dump_map(source_p,&me,buf);
+  for (conf = ConfigItemList; conf; conf = conf->next)
+  {
+    if (conf->status != CONF_SERVER)
+      continue;
+    if (strcmp(conf->name, me.name) == 0)
+      continue;
+    if (!find_server(conf->name))
+    {
+      char buffer[BUFSIZE];
+      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
+      sendto_one(source_p, form_str(RPL_MAP), me.name, source_p->name, buffer);
+    }
+  }
+  sendto_one(source_p, form_str(RPL_MAPEND), me.name, source_p->name);
 }
 
 /*
@@ -103,20 +128,11 @@ static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
   len = strlen(buf);
   buf[len] = ' ';
 	
-  if (len < USER_COL)
-  {
-     for (i = len+1; i < USER_COL; i++)
-     {
-       buf[i] = '-';
-     }
-  }
-	
   /* FIXME: add serv->usercnt */
   for( user_p = root_p->serv->users; user_p; user_p = user_p->lnext )
     users++;
         
-  snprintf(buf + USER_COL, BUFSIZE - USER_COL,
-           " | Users: %5d (%4.1f%% - Last Ping: %lu", users,
+  snprintf(buf+len, BUFSIZE," (Users: %d [%.1f%%] - Last Ping: %lums)", users,
            100 * (float) users / (float) Count.total,
            (root_p->ping_time.tv_usec / 1000));
         
