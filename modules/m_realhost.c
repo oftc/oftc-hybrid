@@ -19,6 +19,8 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
+ *  $Id$
+ *
  */
 
 #include "stdinc.h"
@@ -58,23 +60,22 @@ const char *_version = "$Revision 0.1$";
 
 void _modinit(void)
 {
-          mod_add_cmd(&realhost_msgtab);
+  mod_add_cmd(&realhost_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-          mod_del_cmd(&realhost_msgtab);
+  mod_del_cmd(&realhost_msgtab);
 }
 
 static void ms_realhost(struct Client *source_p, struct Client *client_p, int parc, char **parv)
 {
-    struct Client *target_p;
-    if(parc < 3)
-        return;
-    if ((target_p = find_person(parv[1])) == NULL)
-        return;
-    strlcpy(target_p->realhost, parv[2], HOSTLEN);
+  struct Client *target_p;
+  
+  if ((target_p = find_person(parv[1])) == NULL)
     return;
+
+  strlcpy(target_p->realhost, parv[2], HOSTLEN);
 }
 
