@@ -1,3 +1,10 @@
+-- oftc-hybrid-1.3.0 RELNOTES
+o) Added +S usermode for server connect notices
+o) Added channel creation notices
+o) fixed a lot of the god mode notice bugs
+o) fixed new /who
+o) updated to new upstream code including resolver rewrite
+
 -- ircd-hybrid-7.0 RELNOTES
 o) BF/256 encryption replaced by BF168
 o) many intermittant cryptlink bugs fixed
