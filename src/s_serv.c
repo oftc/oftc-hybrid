@@ -2377,8 +2377,6 @@ cryptlink_error(struct Client *client_p, char *type,
 		char *reason, char *client_reason)
 {
   sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
-                       get_client_name(client_p, SHOW_IP), type, reason);
-  sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
                        get_client_name(client_p, MASK_IP), type, reason);
   ilog(L_ERROR, "%s: CRYPTLINK %s error - %s",
                 get_client_name(client_p, SHOW_IP), type, reason);
