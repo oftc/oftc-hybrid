@@ -1,3 +1,22 @@
+stu         2003/08/16 11:57:33 UTC	(20030816_1)
+
+  Modified files:
+    include              patchlevel.h 
+    modules              m_kline.c m_resv.c 
+    src                  s_auth.c send.c 
+  Log:
+  - merged a couple of new patches from hybrid and fixed a core in
+    sendto_gnotice
+  
+  Revision  Changes    Path
+  1.6       +2 -2      oftc-hybrid/include/patchlevel.h
+  1.7       +4 -6      oftc-hybrid/modules/m_kline.c
+  1.8       +13 -13    oftc-hybrid/modules/m_resv.c
+  1.6       +1 -1      oftc-hybrid/src/s_auth.c
+  1.13      +2 -2      oftc-hybrid/src/send.c
+
+
+
 stu         2003/08/16 10:45:21 UTC	(20030816_0)
 
   Modified files:
