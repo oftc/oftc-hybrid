@@ -113,7 +113,7 @@ static void ms_resv(struct Client *client_p, struct Client *source_p,
              resv_p->name, resv_p->reason);
   }
   sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS, 
-             ":%s RESV :%s", me.name, parv[1]);
+             ":%s RESV %s :%s", me.name, parv[1], parv[2]);
 }
 
 
@@ -122,12 +122,13 @@ static void ms_resv(struct Client *client_p, struct Client *source_p,
  * mo_resv()
  *      parv[0] = sender prefix
  *      parv[1] = channel/nick to forbid
+ *      parv[2] = reason
  */
 
 static void mo_resv(struct Client *client_p, struct Client *source_p,
                     int parc, char *parv[])
 {
-  if(BadPtr(parv[1]))
+  if(EmptyString(parv[2]))
     return;
 
   if(IsChannelName(parv[1]))
@@ -190,7 +191,7 @@ static void mo_resv(struct Client *client_p, struct Client *source_p,
               ":%s NOTICE %s :You have specified an invalid resv: [%s]",
 	      me.name, source_p->name, parv[1]);
     sendto_server(NULL, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
-                         ":%s RESV :%s", me.name, parv[1]);
+                         ":%s RESV %s :%s", me.name, parv[1], parv[2]);
 }
 
 /*
