@@ -1,3 +1,15 @@
+dbharris    2003/10/14 23:52:48 UTC	(20031014_0)
+
+  Modified files:
+    src                  s_serv.c 
+  Log:
+  Remove duplicate 'Link with %s established' notice. Kept the one which shows IP address.
+  
+  Revision  Changes    Path
+  1.14      +0 -4      oftc-hybrid/src/s_serv.c
+
+
+
 stu         2003/10/08 21:26:03 UTC	(20031008_0)
 
   Modified files:
