@@ -1148,20 +1148,19 @@ dead_link(struct Client *client_p)
   if(IsDead(client_p))
     return;
 
+  SetDead(client_p);
+
   if(client_p->flags & FLAGS_SENDQEX)
     notice = "Max SendQ exceeded";
   else
     notice = "Write error: connection closed";
 
-/*
- * Removed this notice, as it causes more problems than it's worth - stu
- * if (!IsPerson(client_p) && !IsUnknown(client_p))
+  if (!IsPerson(client_p) && !IsUnknown(client_p))
   {
     sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, client_p,
 		         "Closing link to %s: %s",
                          get_client_name(client_p, MASK_IP), notice);
   }
-*/
   Debug((DEBUG_ERROR, "Closing link to %s: %s", get_client_name(to, HIDE_IP), 
               notice));
   exit_client(client_p, client_p, &me, "Closing link");
@@ -1345,8 +1344,8 @@ exit_client(
   if(MyConnect(source_p))
   {
      close_connection(source_p);
+     SetDead(source_p); /* You are dead my friend */
   }
-  SetDead(source_p); /* You are dead my friend */
 
   /* The client *better* be off all of the lists */
   assert(dlinkFind(&unknown_list, source_p) == NULL);
