@@ -49,15 +49,22 @@ struct Message hs_msgtab = {
         {m_unregistered, m_hs, m_hs, m_hs}
 };
 
+struct Message hs_msgtab2 = {
+    "helpserv", 0, 0, 0, 0, MFLG_SLOW, 0,
+    {m_unregistered, m_hs, m_hs, m_hs}
+};
+
 void _modinit(void)
 {
       mod_add_cmd(&hs_msgtab);
+      mod_add_cmd(&hs_msgtab2);
 }
 
 void
 _moddeinit(void)
 {
       mod_del_cmd(&hs_msgtab);
+      mod_del_cmd(&hs_msgtab2);
 }
 
 static void m_hs(struct Client *client_p, struct Client *source_p, int parc, char *parv[])

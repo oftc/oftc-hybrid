@@ -49,15 +49,22 @@ struct Message os_msgtab = {
         {m_unregistered, m_os, m_os, m_os}
 };
 
+struct Message os_msgtab2 = {
+    "operserv", 0, 0, 0, 0, MFLG_SLOW, 0,
+    {m_unregistered, m_os, m_os, m_os}
+};
+
 void _modinit(void)
 {
       mod_add_cmd(&os_msgtab);
+      mod_add_cmd(&os_msgtab2);
 }
 
 void
 _moddeinit(void)
 {
       mod_del_cmd(&os_msgtab);
+      mod_del_cmd(&os_msgtab2);
 }
 
 static void m_os(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
@@ -84,8 +91,8 @@ static void m_os(struct Client *client_p, struct Client *source_p, int parc, cha
     }
         
     if ((target_p = find_server(SERVICES_NAME)))
-        sendto_one(target_p, ":%s PRIVMSG %s :%s",
-            parv[0], "operserv", buf);
+        sendto_one(target_p, ":%s PRIVMSG %s@%s :%s",
+            parv[0], "operserv", SERVICES_NAME, buf);
     else
         sendto_one(source_p, form_str(ERR_SERVICESDOWN), me.name, 
                parv[0], "operserv");
