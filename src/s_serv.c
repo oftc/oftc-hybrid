@@ -859,7 +859,7 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
 	       ubuf, target_p->username, target_p->host,
 	       target_p->user->server->name, target_p->info);
   
-  if(*target_p->realhost) 
+  if(*target_p->realhost != '\0') 
       sendto_one(client_p, "REALHOST %s %s", target_p->name,  
               target_p->realhost);
 }

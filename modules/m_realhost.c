@@ -76,6 +76,7 @@ static void ms_realhost(struct Client *source_p, struct Client *client_p, int pa
   if ((target_p = find_person(parv[1])) == NULL)
     return;
 
-  strlcpy(target_p->realhost, parv[2], HOSTLEN);
+  if(target_p->realhost[0] == '\0')
+      strlcpy(target_p->realhost, parv[2], HOSTLEN);
 }
 
