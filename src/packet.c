@@ -58,27 +58,31 @@ parse_client_queued(struct Client *client_p)
 
     for(;;)
     {
+      if (IsDead(client_p))
+	return;
+      if (client_p->localClient == NULL)
+	return;
+
       /* rate unknown clients at MAX_FLOOD per loop */
       if(i >= MAX_FLOOD)
         break;
 
-      dolen = linebuf_get(&client_p->localClient->buf_recvq, readBuf,
-                          READBUF_SIZE, LINEBUF_COMPLETE, LINEBUF_PARSED);
+	dolen = linebuf_get(&client_p->localClient->buf_recvq, readBuf,
+			    READBUF_SIZE, LINEBUF_COMPLETE, LINEBUF_PARSED);
 
-      if(dolen <= 0)
-        break;
+	if(dolen <= 0)
+	  break;
                           
       if(!IsDead(client_p))
       {
         client_dopacket(client_p, readBuf, dolen);
         i++;
 
-        /* if theyve dropped out of the unknown state, break and move
+        /* if they've dropped out of the unknown state, break and move
          * to the parsing for their appropriate status.  --fl
          */
         if(!IsUnknown(client_p))
           break;
-
       }
       else if(MyConnect(client_p))
       {
@@ -91,6 +95,11 @@ parse_client_queued(struct Client *client_p)
 
   if (IsServer(client_p) || IsConnecting(client_p) || IsHandshake(client_p))
   {
+    if(IsDead(client_p))
+      return;
+    if(client_p->localClient == NULL)
+      return;
+    
     while ((dolen = linebuf_get(&client_p->localClient->buf_recvq,
                               readBuf, READBUF_SIZE, LINEBUF_COMPLETE,
                               LINEBUF_PARSED)) > 0)
@@ -103,20 +112,29 @@ parse_client_queued(struct Client *client_p)
         linebuf_donebuf(&client_p->localClient->buf_sendq);
         return;
       }
+      if (client_p->localClient == NULL)
+	return; 
     }
   } 
-  else if(IsClient(client_p)) 
+  else if(IsClient(client_p))
   {
 
-    if (ConfigFileEntry.no_oper_flood && IsOper(client_p))
-      checkflood = 0;
+    if (ConfigFileEntry.no_oper_flood && (IsOper(client_p) || IsCanFlood(client_p)))
+      if (ConfigFileEntry.true_no_oper_flood)
+        checkflood = -1;
+      else
+        checkflood = 0;
+
     /*
      * Handle flood protection here - if we exceed our flood limit on
      * messages in this loop, we simply drop out of the loop prematurely.
      *   -- adrian
      */
-    for (;;)
+    for(;;)
     {
+      if (IsDead(client_p))
+	break;
+
       /* This flood protection works as follows:
        *
        * A client is given allow_read lines to send to the server.  Every
@@ -130,7 +148,7 @@ parse_client_queued(struct Client *client_p)
        * as sent_parsed will always hover around the allow_read limit
        * and no 'bursts' will be permitted.
        */
-      if(checkflood)
+      if(checkflood > 0)
       {
         if(lclient_p->sent_parsed >= lclient_p->allow_read)
           break;
@@ -139,9 +157,12 @@ parse_client_queued(struct Client *client_p)
       /* allow opers 4 times the amount of messages as users. why 4?
        * why not. :) --fl_
        */
-      else if(lclient_p->sent_parsed >= (4 * lclient_p->allow_read))
+      else if(lclient_p->sent_parsed >= (4 * lclient_p->allow_read) && checkflood != -1)
         break;
        
+      if(client_p->localClient == NULL)
+	break;
+
       dolen = linebuf_get(&client_p->localClient->buf_recvq, readBuf,
                           READBUF_SIZE, LINEBUF_COMPLETE, LINEBUF_PARSED);
 			 
@@ -252,14 +273,12 @@ read_ctrl_packet(int fd, void *data)
     {
       if((length == -1) && ignoreErrno(errno))
         goto nodata;
-      error_exit_client(server, length);
       return;
     }
-
     reply->command = tmp[0];
   }
 
-  for (replydef = slinkrpltab; replydef->handler; replydef++)
+  for(replydef = slinkrpltab; replydef->handler; replydef++)
   {
     if (replydef->replyid == reply->command)
       break;
@@ -427,49 +446,49 @@ read_packet(int fd, void *data)
   lclient_p->actually_read += lbuf_len;
   
   /* Attempt to parse what we have */
-  parse_client_queued(client_p);
-  
-  /* Check to make sure we're not flooding */
-  if (IsPerson(client_p) &&
-     (linebuf_alloclen(&client_p->localClient->buf_recvq) >
-      ConfigFileEntry.client_flood))
+
+  if (!IsDead(client_p))
   {
+    parse_client_queued(client_p);
+    if (IsDead(client_p))
+      return;
+
+    /* Check to make sure we're not flooding */
+    if (IsPerson(client_p) &&
+	(linebuf_alloclen(&client_p->localClient->buf_recvq) >
+	 ConfigFileEntry.client_flood))
+    {
       if (!(ConfigFileEntry.no_oper_flood && IsOper(client_p)))
       {
-       exit_client(client_p, client_p, client_p, "Excess Flood");
-       return;
+	exit_client(client_p, client_p, client_p, "Excess Flood");
+	return;
       }
-  }
+    }
 
-  /* server fd may have changed */
-  fd_r = client_p->localClient->fd;
+    /* server fd may have changed */
+    fd_r = client_p->localClient->fd;
 #ifndef HAVE_SOCKETPAIR
-  if (HasServlink(client_p))
-  {
-    assert(client_p->localClient->fd_r > -1);
-    fd_r = client_p->localClient->fd_r;
-  }
+    if (HasServlink(client_p))
+    {
+      assert(client_p->localClient->fd_r > -1);
+      fd_r = client_p->localClient->fd_r;
+    }
 #endif
 
   
-  if (!IsDead(client_p))
-  {
     /* If we get here, we need to register for another COMM_SELECT_READ */
-    if (PARSE_AS_SERVER(client_p)) {
+    if (PARSE_AS_SERVER(client_p))
+    {
       comm_setselect(fd_r, FDLIST_SERVER, COMM_SELECT_READ,
-        read_packet, client_p, 0);
-    } else {
+		     read_packet, client_p, 0);
+    }
+    else
+    {
       comm_setselect(fd_r, FDLIST_IDLECLIENT, COMM_SELECT_READ,
-        read_packet, client_p, 0);
+		     read_packet, client_p, 0);
     }
   }
-  /* This is about the only place useful to put it */
-  exit_aborted_clients();
-
 }
-
-
-
 
 /*
  * client_dopacket - copy packet to client buf and parse it

@@ -35,7 +35,7 @@ static  char *  replies[] = {
 /* 012 */       NULL,
 /* 013 */       NULL,
 /* 014 */       NULL,
-/* 015 RPL_MAP */    ":%s 015 %s :%s%s (last ping %d ms)",
+/* 015 RPL_MAP */    ":%s 015 %s :%s",
 /* 016 */       NULL,
 /* 017 RPL_MAPEND */ ":%s 017 %s :End of /MAP",
 /* 018 */       NULL,

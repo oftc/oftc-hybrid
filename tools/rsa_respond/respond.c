@@ -26,10 +26,27 @@
 #include <openssl/md5.h>
 #include <unistd.h>
 
+static int insecure_mode = 0;
+static char *pass_param = NULL;
+
 static int pass_cb(char *buf, int size, int rwflag, void *u)
 {
 	int len;
         char *tmp;
+
+	if (insecure_mode != 0)
+	{
+		if (pass_param == NULL)
+			return 0;
+		len = strlen(pass_param);
+		if (len <= 0)  /* This SHOULDN'T happen */
+			return 0;
+		if (len > size)
+			len = size;
+		memcpy(buf, pass_param, len);
+		return len;
+	}
+
 	tmp = getpass("Enter passphrase for challenge: ");
         len = strlen(tmp);
         if (len <= 0) 
@@ -40,7 +57,6 @@ static int pass_cb(char *buf, int size, int rwflag, void *u)
         return len;
 }
 
-                                                                                        
 static void
 binary_to_hex( unsigned char * bin, char * hex, int length )
 {
@@ -92,8 +108,22 @@ main(int argc, char **argv)
 	/* respond privatefile challenge */
 	if (argc < 3)
 	{
-		puts("Usage: respond privatefile challenge");
+		puts("Usage: respond privatefile challenge [passphrase]");
 		return 0;
+	}
+
+	if (argc == 4)
+	{
+		/* This is TOTALLY insecure and not recommended, but for
+		** interfacing with irc client scripts, it's either this
+		** or don't use a passphrase.
+		**
+		** The likelihood of a passphrase leaking isn't TOO great,
+		** only ps auxww will show it, and even then, only at the
+		** precise moment this is called.
+		*/
+		insecure_mode = 1;
+		pass_param = argv[3];
 	}
 
 	if (!(kfile = fopen(argv[1], "r")))

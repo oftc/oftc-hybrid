@@ -103,10 +103,7 @@ static void mo_forcejoin(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if((hunt_server(client_p, source_p, ":%s FORCEJOIN %s %s", 1, parc, parv)) != HUNTED_ISME)
-    return;
-
-  /* if target_p is not existant, print message
+  /* if target_p is not existent, print message
    * to source_p and bail - scuzzy
    */
   if ((target_p = find_client(parv[1])) == NULL)
@@ -116,8 +113,11 @@ static void mo_forcejoin(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if(!IsClient(target_p))
+  if (!MyConnect(target_p))
+  {
+    sendto_one(target_p, ":%s FORCEJOIN %s %s", parv[0], parv[1], parv[2]);
     return;
+  }
 
   /* select our modes from parv[2] if they exist... (chanop)*/
   if(*parv[2] == '@')
@@ -271,9 +271,6 @@ static void mo_forcepart(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if((hunt_server(client_p, source_p, ":%s FORCEPART %s %s", 1, parc, parv)) != HUNTED_ISME)
-    return;
-
   /* if target_p == NULL then let the oper know */
   if ((target_p = find_client(parv[1])) == NULL)
   {
@@ -282,13 +279,16 @@ static void mo_forcepart(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if(!IsClient(target_p))
+  if (!MyConnect(target_p))
+  {
+    sendto_one(target_p, ":%s FORCEPART %s %s", parv[0], parv[1], parv[2]);
     return;
+  }
 
   if((chptr = hash_find_channel(parv[2])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-               me.name, parv[0], parv[1]);
+               me.name, parv[0], parv[2]);
     return;
   }
 

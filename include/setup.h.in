@@ -113,6 +113,9 @@
 /* Define if you have the EVP_rc5_32_12_16_cfb function.  */
 #undef HAVE_EVP_RC5_32_12_16_CFB
 
+/* Define if you have the dlfunc function.  */
+#undef HAVE_DLFUNC
+
 /* Define if you have the dlopen function.  */
 #undef HAVE_DLOPEN
 

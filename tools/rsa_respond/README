@@ -6,12 +6,16 @@ respond takes the challenge from the server and creates a valid response
 to pass back to the server.
 
 Syntax:
-$ ./respond <private key> <challenge>
+$ ./respond <private key> <challenge> [passphrase]
 
 Notes:
 
 The private key file is protected by a passphrase, entered when the key is
 created.  The passphrase is prompted for whenever respond is called.
+
+If the passphrase is passed on the command line (insecure mode), the
+program will not prompt for a passphrase.  This is primarily for running
+rsa_respond from a script.
 
 Compiling:
 
@@ -25,7 +29,7 @@ Note that you may have to explicitly add -L/usr/local/lib if OpenSSL
 was installed there, instead of one of the system library paths.
 
 System support:
-genkey and respond compile properly, and have been tested on FreeBSD 4.x,
-Linux glibc, and Cygwin 1.2 or higher.
+respond compiles properly, and have been tested on FreeBSD 4.x, Linux glibc,
+Solaris 8, and Cygwin 1.2 or higher.
 
 # $Id$

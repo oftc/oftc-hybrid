@@ -320,7 +320,7 @@ load_core_modules(int warn)
  * side effects -
  */
 int
-load_one_module (char *path)
+load_one_module (char *path, int coremodule)
 {
   char modpath[MAXPATHLEN];
   dlink_node *pathst;
@@ -340,14 +340,17 @@ load_one_module (char *path)
 		 if(S_ISREG(statbuf.st_mode))
 		    {
 		       /* Regular files only please */
-		       return load_a_module(modpath, 1, 0);
+		       if (coremodule)
+		         return load_a_module(modpath, 1, 1);
+		       else
+		         return load_a_module(modpath, 1, 0);
 		    }
 	      }
 	    
 	 }
     }
    
-  sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+  sendto_gnotice_flags(FLAGS_ALL, L_ALL, me.name, &me, NULL,
                        "Cannot locate module %s", path);
   ilog(L_WARN, "Cannot locate module %s", path);
   return -1;
@@ -375,7 +378,7 @@ mo_modload (struct Client *client_p, struct Client *source_p, int parc, char **p
     return;
   }
 
-  load_one_module (parv[1]);
+  load_one_module (parv[1], 0);
 
   MyFree(m_bn);
 }
@@ -414,7 +417,7 @@ mo_modunload (struct Client *client_p, struct Client *source_p, int parc, char *
     return;
   }
 
-  if( unload_one_module (m_bn, 1) == -1 )
+  if(unload_one_module (m_bn, 1) == -1)
   {
     sendto_one (source_p, ":%s NOTICE %s :Module %s is not loaded",
                 me.name, source_p->name, m_bn);
@@ -449,7 +452,7 @@ mo_modreload (struct Client *client_p, struct Client *source_p, int parc, char *
 
   check_core = modlist[modindex]->core;
 
-  if( unload_one_module (m_bn, 1) == -1 )
+  if(unload_one_module (m_bn, 1) == -1)
     {
       sendto_one (source_p, ":%s NOTICE %s :Module %s is not loaded",
                   me.name, source_p->name, m_bn);
@@ -457,9 +460,9 @@ mo_modreload (struct Client *client_p, struct Client *source_p, int parc, char *
       return;
     }
 
-  if((load_one_module(parv[1]) == -1) && check_core)
+  if((load_one_module(parv[1], check_core) == -1) && check_core)
   {
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+    sendto_gnotice_flags(FLAGS_ALL, L_ALL, me.name, &me, NULL,
                          "Error reloading core module: %s: terminating ircd",
 			 parv[1]);
     ilog(L_CRIT, "Error loading core module %s: terminating ircd", parv[1]);

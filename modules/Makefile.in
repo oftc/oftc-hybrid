@@ -117,7 +117,6 @@ SRCS =                          \
   m_who.c \
   m_whois.c \
   m_whowas.c \
-  m_spiffy.c
 
 ALL_SRCS = $(CORE_SRCS) \
            $(SRCS)

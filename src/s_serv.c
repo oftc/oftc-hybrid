@@ -1073,7 +1073,16 @@ int server_estab(struct Client *client_p)
     {
       dlinkDelete(m, &unknown_list);
       dlinkAdd(client_p, m, &serv_list);
-    } else {
+    }
+   else
+   {
+     sendto_gnotice_flags(FLAGS_ALL, L_ADMIN, me.name, &me, NULL,
+        "Tried to register (%s) server but it was already registered!?!",
+                        host);
+     if (!IsDefunct(client_p))
+       exit_client(client_p, client_p, client_p,
+                 "Tried to register server but it was already registered?!?");
+
       sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL, "Tried to register (%s) server but it was already registered!?!", host);
       exit_client(client_p, client_p, client_p, "Tried to register server but it was already registered?!?"); 
     }
@@ -2027,8 +2036,8 @@ serv_connect(struct ConfItem *aconf, struct Client *by)
     client_p = make_client(NULL);
 
     /* Copy in the server, hostname, fd */
-    strlcpy(client_p->name, aconf->name, HOSTLEN + 1);
-    strlcpy(client_p->host, aconf->host, HOSTLEN + 1);
+    strlcpy(client_p->name, aconf->name, sizeof(client_p->name));
+    strlcpy(client_p->host, aconf->host, sizeof(client_p->host));
     inetntop(DEF_FAM, &IN_ADDR(aconf->ipnum), client_p->localClient->sockhost, HOSTIPLEN);
     client_p->localClient->fd = fd;
 
@@ -2183,7 +2192,17 @@ serv_connect_callback(int fd, int status, void *data)
 	sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 			     "Error connecting to %s: %s",
 			     client_p->name, comm_errstr(status));
-        exit_client(client_p, client_p, &me, comm_errstr(status));
+
+	/* If a fd goes bad, call dead_link() the socket is no
+	 * longer valid for reading or writing.
+	 * dea
+
+	 */
+	dead_link(client_p);
+#if 0
+	/* might pass comm_errstr() into dead_link in future -db */
+	exit_client(client_p, client_p, &me, comm_errstr(status));
+#endif
         return;
       }
 
@@ -2197,7 +2216,8 @@ serv_connect_callback(int fd, int status, void *data)
 	             "Lost connect{} block for %s", get_client_name(client_p, HIDE_IP));
         sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 		     "Lost connect{} block for %s", get_client_name(client_p, MASK_IP));
-        exit_client(client_p, client_p, &me, "Lost connect{} block");
+	if (!IsDefunct(client_p))
+	  exit_client(client_p, client_p, &me, "Lost connect{} block");
         return;
       }
     /* Next, send the initial handshake */
@@ -2250,7 +2270,14 @@ serv_connect_callback(int fd, int status, void *data)
 			     client_p->host);
         sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 			     "%s went dead during handshake", client_p->name);
+
+	/* Only dead_link() sets IsDead()
+	 * dead_link() already calls exit_client()
+	 * so this exit_client() is unnecessary -db
+	 */
+#if 0
         exit_client(client_p, client_p, &me, "Went dead during handshake");
+#endif
         return;
     }
 
@@ -2275,8 +2302,8 @@ void cryptlink_init(struct Client *client_p,
   int enc_len;
 
   /* get key */
-  if ( (!ServerInfo.rsa_private_key) ||
-       (!RSA_check_key(ServerInfo.rsa_private_key)) )
+  if ((!ServerInfo.rsa_private_key) ||
+      (!RSA_check_key(ServerInfo.rsa_private_key)) )
   {
     cryptlink_error(client_p, "SERV", "Invalid RSA private key",
                                       "Invalid RSA private key");
@@ -2341,10 +2368,6 @@ void cryptlink_init(struct Client *client_p,
   MyFree(encrypted);
   MyFree(key_to_send);
 
-  /*
-   * If we've been marked dead because a send failed, just exit
-   * here now and save everyone the trouble of us ever existing.
-   */
   if (IsDead(client_p))
   {
     cryptlink_error(client_p, "SERV", "Went dead during handshake",
@@ -2360,8 +2383,9 @@ void cryptlink_init(struct Client *client_p,
   }
 }
 
-void cryptlink_error(struct Client *client_p, char *type,
-                     char *reason, char *client_reason)
+void
+cryptlink_error(struct Client *client_p, char *type,
+		char *reason, char *client_reason)
 {
   sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
                        get_client_name(client_p, SHOW_IP), type, reason);
@@ -2373,7 +2397,7 @@ void cryptlink_error(struct Client *client_p, char *type,
    * If client_reason isn't NULL, then exit the client with the message
    * defined in the call.
    */
-  if (client_reason != NULL)
+  if ((client_reason != NULL) && (!IsDead(client_p)))
   {
     exit_client(client_p, client_p, &me, client_reason);
   }

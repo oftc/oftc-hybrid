@@ -41,7 +41,7 @@
  * starting try_connections()
  * TOO SOON and you can nick collide like crazy. 
  */
-#define STARTUP_CONNECTIONS_TIME 60
+#define STARTUP_CONNECTIONS_TIME 10
 
 struct Client;
 struct ConfItem;

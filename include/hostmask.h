@@ -53,7 +53,9 @@ void clear_out_address_conf(void);
 void init_host_hash(void);
 struct ConfItem* find_address_conf(const char*, const char*,
                                    struct irc_inaddr*, int);
-struct ConfItem* find_dline(struct irc_inaddr *, int);
+struct ConfItem* find_kline_conf(const char*, const char*,
+				 struct irc_inaddr*, int);
+struct ConfItem* find_dline_conf(struct irc_inaddr *, int);
 
 void report_Klines(struct Client*, int temp);
 void report_auth(struct Client*);

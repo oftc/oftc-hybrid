@@ -61,7 +61,6 @@
 
 static const char *last_event_ran = NULL;
 struct ev_entry event_table[MAX_EVENTS];
-static int event_count = 0;
 static time_t event_time_min = -1;
 
 
@@ -80,22 +79,23 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
   int i;
   
   /* find first inactive index, or use next index */
-  for (i = 0; i < event_count; i++)
-    if (!event_table[i].active)
-      break;
+  for (i = 0; i < MAX_EVENTS; i++)
+  {
+    if (event_table[i].active == 0)
+    {
+      event_table[i].func = func;
+      event_table[i].name = name;
+      event_table[i].arg = arg;
+      event_table[i].when = CurrentTime + when;
+      event_table[i].frequency = when; 
+      event_table[i].active = 1;
 
-  if (i >= event_count)
-    event_count = i + 1;
-
-  event_table[i].func = func;
-  event_table[i].name = name;
-  event_table[i].arg = arg;
-  event_table[i].when = CurrentTime + when;
-  event_table[i].frequency = when; 
-  event_table[i].active = 1;
-
-  if ((event_table[i].when < event_time_min) || (event_time_min == -1))
-    event_time_min = event_table[i].when;
+      if ((event_table[i].when < event_time_min) || (event_time_min == -1))
+	event_time_min = event_table[i].when;
+      return;
+    }
+  }
+  /* XXX if reach here, its an error */
 }
 
 /*
@@ -160,10 +160,7 @@ eventRun(void)
 {
   int i;
 
-  if (event_count == 0)
-    return;
-
-  for (i = 0; i < event_count; i++)
+  for (i = 0; i < MAX_EVENTS; i++)
     {
       if (event_table[i].active && (event_table[i].when <= CurrentTime))
         {
@@ -189,11 +186,9 @@ eventNextTime(void)
 {
   int i;
 
-  if (event_count == 0)
-    return (CurrentTime+1);
-  else if (event_time_min == -1)
+  if (event_time_min == -1)
     {
-      for (i = 0; i < event_count; i++)
+      for (i = 0; i < MAX_EVENTS; i++)
         {
           if (event_table[i].active && ((event_table[i].when < event_time_min) || (event_time_min == -1)))
             event_time_min = event_table[i].when;
@@ -213,6 +208,7 @@ void
 eventInit(void)
 {
   last_event_ran = NULL;
+  memset((void *)event_table, 0, sizeof(event_table));
 }
 
 /*
@@ -227,7 +223,7 @@ int
 eventFind(EVH *func, void *arg)
 {
   int i;
-  for (i = 0; i < event_count; i++)
+  for (i = 0; i < MAX_EVENTS; i++)
     {
       if ((event_table[i].func == func) &&
           (event_table[i].arg == arg) &&
@@ -259,7 +255,7 @@ show_events(struct Client *source_p)
      ":%s NOTICE %s :*** Operation            Next Execution",
      me.name, source_p->name);
 
-  for (i = 0; i < event_count; i++)
+  for (i = 0; i < MAX_EVENTS; i++)
     {
       if (event_table[i].active)
         {
@@ -282,7 +278,7 @@ void
 set_back_events(time_t by)
 {
   int i;
-  for (i = 0; i < event_count; i++)
+  for (i = 0; i < MAX_EVENTS; i++)
     if (event_table[i].when > by)
       event_table[i].when -= by;
     else

@@ -257,5 +257,9 @@ comm_select(unsigned long delay)
  }
  return 0;
 }
-
+#else
+/**
+ * Don't let an empty compilation unit slip through.
+ */
+static int dummy;
 #endif

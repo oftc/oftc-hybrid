@@ -46,6 +46,7 @@
 
 static struct ConfItem *find_password_aconf(char *name, struct Client *source_p);
 static int match_oper_password(char *password, struct ConfItem *aconf);
+static void failed_oper_notice(struct Client *source_p, char *name, char *reason);
 int oper_up( struct Client *source_p, struct ConfItem *aconf );
 #ifdef CRYPT_OPER_PASSWORD
 extern        char *crypt();
@@ -97,79 +98,65 @@ m_oper(struct Client *client_p, struct Client *source_p,
   password = parv[2];
 
   if (EmptyString(password))
-    {
-      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-                 me.name, source_p->name, "OPER");
-      return;
-    }
+  {
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+	       me.name, source_p->name, "OPER");
+    return;
+  }
 
   /* end the grace period */
   if(!IsFloodDone(source_p))
     flood_endgrace(source_p);
 
   if((aconf = find_password_aconf(name,source_p)) == NULL)
+  {
+    sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
+    failed_oper_notice(source_p, name, find_conf_by_name(name, CONF_OPERATOR) ?
+                       "host mismatch" : "no oper {} block");
+    log_failed_oper(source_p, name);
+    return;
+  }
+
+  if (match_oper_password(password,aconf))
+  {
+    /*
+     *  20001216:
+     *  detach old iline
+     *  -einride
+     */
+    if ((ptr = source_p->localClient->confs.head) != NULL)
     {
-      sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
-      if (ConfigFileEntry.failed_oper_notice)
-        {
-          sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-                               "Failed OPER attempt - host mismatch by %s (%s@%s)",
-                               source_p->name, source_p->username, 
-			       source_p->host);
-        }
+      oconf = ptr->data;
+      detach_conf(source_p,oconf);
+    }
+
+    if(attach_conf(source_p, aconf) != 0)
+    {
+      sendto_one(source_p,":%s NOTICE %s :Can't attach conf!",
+		 me.name, source_p->name);
+      failed_oper_notice(source_p, name, "can't attach conf!");
+      /* 
+       * 20001216:
+       * Reattach old iline
+       *     -einride
+       */
+      attach_conf(source_p, oconf);
       log_failed_oper(source_p, name);
       return;
     }
 
-  if (match_oper_password(password,aconf))
-    {
-      /*
-        20001216:
-        detach old iline
-        -einride
-      */
-      if ((ptr = source_p->localClient->confs.head) != NULL)
-      {
-        oconf = ptr->data;
-        detach_conf(source_p,oconf);
-      }
-
-      if(attach_conf(source_p, aconf) != 0)
-        {
-          sendto_one(source_p,":%s NOTICE %s :Can't attach conf!",
-                     me.name,source_p->name);
-          sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-                               "Failed OPER attempt by %s (%s@%s) can't attach conf!",
-                               source_p->name, source_p->username,
-			       source_p->host);
-          /* 
-             20001216:
-             Reattach old iline
-             -einride
-          */
-          attach_conf(source_p, oconf);
-	  log_failed_oper(source_p, name);
-          return;
-        }
-
-      oper_up(source_p, aconf);
+    oper_up(source_p, aconf);
       
-      ilog(L_TRACE, "OPER %s by %s!%s@%s",
-	   name, source_p->name, source_p->username, source_p->host);
-      log_oper(source_p, name);
-    }
+    ilog(L_TRACE, "OPER %s by %s!%s@%s",
+	 name, source_p->name, source_p->username, source_p->host);
+    log_oper(source_p, name);
+  }
   else
-    {
-      sendto_one(source_p,form_str(ERR_PASSWDMISMATCH),me.name, parv[0]);
-      if (ConfigFileEntry.failed_oper_notice)
-        {
-          sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-                               "Failed OPER attempt by %s (%s@%s)",
-                               source_p->name, source_p->username,
-			       source_p->host);
-        }
-      log_failed_oper(source_p, name);
-    }
+  {
+    sendto_one(source_p,form_str(ERR_PASSWDMISMATCH),me.name, parv[0]);
+    failed_oper_notice(source_p, name, "password mismatch");
+  }
+  log_failed_oper(source_p, name);
 }
 
 /*
@@ -199,16 +186,13 @@ ms_oper(struct Client *client_p, struct Client *source_p,
 {
   /* if message arrived from server, trust it, and set to oper */
   
-  if (!IsOper(source_p))
-    {
-      if (source_p->status == STAT_CLIENT)
-        source_p->handler = OPER_HANDLER;
-      
-      source_p->flags |= FLAGS_OPER;
-      Count.oper++;
-      sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
-                    ":%s MODE %s :+o", parv[0], parv[0]);
-    }
+  if (!IsOper(source_p) && IsClient(source_p))
+  {
+    SetOper(source_p);
+    Count.oper++;
+    sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
+		  ":%s MODE %s :+o", parv[0], parv[0]);
+  }
 }
 
 /*
@@ -218,21 +202,18 @@ ms_oper(struct Client *client_p, struct Client *source_p,
  * output       -
  */
 
-static struct ConfItem
-*find_password_aconf(char *name, struct Client *source_p)
+static struct ConfItem *
+find_password_aconf(char *name, struct Client *source_p)
 {
   struct ConfItem *aconf;
 
   if ((aconf = find_conf_exact(name, source_p->username, source_p->host,
-                                CONF_OPERATOR)) != NULL) 
-    {
-      return(aconf);
-    }
+			       CONF_OPERATOR)) != NULL)
+    return (aconf);
   else if ((aconf = find_conf_exact(name, source_p->username,
-        source_p->localClient->sockhost,
-        CONF_OPERATOR)) != NULL)
-      return(aconf);
-      
+                                    source_p->localClient->sockhost,
+                                    CONF_OPERATOR)) != NULL)
+    return (aconf);
   return (NULL);
 }
 
@@ -278,4 +259,25 @@ match_oper_password(char *password, struct ConfItem *aconf)
     return (YES);
   else
     return (NO);
+}
+
+
+/*
+ * failed_oper_notice
+ *
+ * inputs       - pointer to client doing /oper ...
+ *              - pointer to nick they tried to oper as
+ *              - pointer to reason they have failed
+ * output       - nothing
+ * side effects - notices all opers of the failed oper attempt if enabled
+ */
+
+static void
+failed_oper_notice(struct Client *source_p, char *name, char *reason)
+{
+    if (ConfigFileEntry.failed_oper_notice)
+      sendto_gnotice_flags(FLAGS_ALL, L_ALL, me.name, &me, NULL,
+              "Failed OPER attempt as %s "
+                           "by %s (%s@%s) - %s", name, source_p->name,
+                           source_p->username, source_p->host, reason);
 }

@@ -186,52 +186,33 @@ static void release_auth_client(struct Client* client)
  * set the client on it's way to a connection completion, regardless
  * of success of failure
  */
-static void auth_dns_callback(void* vptr, adns_answer* reply)
+static void
+auth_dns_callback(void* vptr, adns_answer* reply)
 {
-  
   struct AuthRequest* auth = (struct AuthRequest*) vptr;
-  char *str = auth->client->host;
   ClearDNSPending(auth);
-  *auth->client->host = '\0';
   if(reply && (reply->status == adns_s_ok))
     {
       if(strlen(*reply->rrs.str) <= HOSTLEN)
         {
-          strlcpy(str, *reply->rrs.str, HOSTLEN+1);
+          strlcpy(auth->client->host, *reply->rrs.str, sizeof(auth->client->host));
           sendheader(auth->client, REPORT_FIN_DNS);
-        }
-      else
-        {
-#ifdef IPV6
-          if(*auth->client->localClient->sockhost == ':')
-          {
-            strlcat(str, "0",HOSTLEN+1);
-	  }
-          if(auth->client->localClient->aftype == AF_INET6 && ConfigFileEntry.dot_in_ip6_addr == 1)
-	  {
-            strlcat(str, auth->client->localClient->sockhost,HOSTLEN+1);
-            strlcat(str, ".",HOSTLEN+1);
-          } else
-#endif
-            strlcat(str, auth->client->localClient->sockhost,HOSTLEN+1);
+        } else
           sendheader(auth->client, REPORT_HOST_TOOLONG);
-        }
     }
   else
     {
 #ifdef IPV6
-      if(*auth->client->localClient->sockhost == ':')
+      if(auth->client->localClient->aftype == AF_INET6 && ConfigFileEntry.fallback_to_ip6_int == 1 && auth->ip6_int == 0)
       {
-	strlcat(str, "0",HOSTLEN);
+        struct Client *client = auth->client;
+        auth->ip6_int = 1;
+	MyFree(reply);
+	SetDNSPending(auth);
+        adns_getaddr(&client->localClient->ip, client->localClient->aftype, client->localClient->dns_query, 1);
+        return;
       }
-      if(auth->client->localClient->aftype == AF_INET6 && ConfigFileEntry.dot_in_ip6_addr == 1)
-      {
-        strlcat(str, auth->client->localClient->sockhost,HOSTLEN+1);
-        strlcat(str, ".",HOSTLEN+1);
-        sendheader(auth->client, REPORT_FAIL_DNS);
-      } else 
 #endif
-      strlcat(str, auth->client->localClient->sockhost,HOSTLEN+1); 
       sendheader(auth->client, REPORT_FAIL_DNS);
     }
 
@@ -426,7 +407,7 @@ void start_auth(struct Client* client)
   sendheader(client, REPORT_DO_DNS);
 
   /* No DNS cache now, remember? -- adrian */
-  adns_getaddr(&client->localClient->ip, client->localClient->aftype, client->localClient->dns_query);
+  adns_getaddr(&client->localClient->ip, client->localClient->aftype, client->localClient->dns_query, 0);
   SetDNSPending(auth);
 
   start_auth_query(auth);

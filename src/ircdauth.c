@@ -613,7 +613,7 @@ GreetUser(struct Client *client)
 		 me.name,
 		 client->user->server);
 
-      client->flags |= FLAGS_KILLED;
+      SetKilled(client);
 
       exit_client(NULL, client, &me, "Ghost");
       return;

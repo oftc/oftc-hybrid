@@ -79,14 +79,7 @@ static void mo_rehash(struct Client *client_p, struct Client *source_p,
 
   if (parc > 1)
     {
-      if (irccmp(parv[1],"CHANNELS") == 0)
-        {
-          sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-                       "%s is forcing cleanup of channels",parv[0]);
-	  cleanup_channels(NULL);
-          found = YES;
-        }
-      else if(irccmp(parv[1],"DNS") == 0)
+      if(irccmp(parv[1],"DNS") == 0)
         {
           sendto_one(source_p, form_str(RPL_REHASHING), me.name, parv[0], "DNS");
           sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"%s is rehashing DNS",

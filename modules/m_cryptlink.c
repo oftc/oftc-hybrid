@@ -239,7 +239,7 @@ static void cryptlink_auth(struct Client *client_p, struct Client *source_p,
              client_p->localClient->in_cipher->keylen) != 0)
   {
     cryptlink_error(client_p, "AUTH",
-                    "Unauthorised server connection attempt",
+                    "Unauthorized server connection attempt",
                     "Malformed CRYPTLINK AUTH reply");
     return;
   }
@@ -329,7 +329,7 @@ static void cryptlink_serv(struct Client *client_p, struct Client *source_p,
       if (ConfigFileEntry.warn_no_nline)
       {
         cryptlink_error(client_p, "SERV",
-          "Unauthorised server connection attempt: No entry for server",
+          "Unauthorized server connection attempt: No entry for server",
           NULL);
       }
       exit_client(client_p, client_p, client_p, "Invalid server name");
@@ -337,14 +337,14 @@ static void cryptlink_serv(struct Client *client_p, struct Client *source_p,
       break;
     case -2:
       cryptlink_error(client_p, "SERV",
-        "Unauthorised server connection attempt: CRYPTLINK not "
+        "Unauthorized server connection attempt: CRYPTLINK not "
                                       "enabled on remote server",
         "CRYPTLINK not enabled");
       return;
       break;
     case -3:
       cryptlink_error(client_p, "SERV",
-        "Unauthorised server connection attempt: Invalid host",
+        "Unauthorized server connection attempt: Invalid host",
         "Invalid host");
       return;
       break;

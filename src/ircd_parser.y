@@ -101,6 +101,7 @@ int   class_redirport_var;
 %token  AUTOCONN
 %token  BYTES KBYTES MBYTES GBYTES TBYTES
 %token  CALLER_ID_WAIT
+%token  CAN_FLOOD
 %token  CHANNEL
 %token  CIPHER_PREFERENCE
 %token  CLASS
@@ -129,6 +130,7 @@ int   class_redirport_var;
 %token  EXEMPT
 %token  FAILED_OPER_NOTICE
 %token  FAKENAME
+%token  FALLBACK_IP6_INT
 %token  FLATTEN_LINKS
 %token  FNAME_FOPERLOG
 %token  FNAME_OPERLOG
@@ -192,12 +194,12 @@ int   class_redirport_var;
 %token  OPERATOR
 %token  OPER_LOG
 %token  OPER_ONLY_UMODES
+%token	OPER_PASS_RESV
 %token  OPER_UMODES
 %token  PACE_WAIT
 %token	PACE_WAIT_SIMPLE
 %token  PASSWORD
 %token  PATH
-%token  PERSIST_TIME
 %token  PING_COOKIE
 %token  PING_TIME
 %token  PORT
@@ -269,6 +271,7 @@ int   class_redirport_var;
 %token  T_GOD
 %token  T_NICKSERVREG
 %token  THROTTLE_TIME
+%token  TRUE_NO_OPER_FLOOD
 %token  UNKLINE
 %token  USER
 %token	USE_ANONOPS
@@ -287,8 +290,10 @@ int   class_redirport_var;
 
 %type   <string>   QSTRING
 %type   <number>   NUMBER
-%type   <number>   timespec, timespec_
-%type   <number>   sizespec, sizespec_
+%type   <number>   timespec
+%type	<number>   timespec_
+%type   <number>   sizespec
+%type   <number>   sizespec_
 
 %%
 conf:   
@@ -303,7 +308,7 @@ conf_item:        admin_entry
                 | listen_entry
                 | auth_entry
                 | serverinfo_entry
-		| serverhide_entry;
+		| serverhide_entry
                 | resv_entry
                 | shared_entry
                 | connect_entry
@@ -380,7 +385,7 @@ modules_module:  MODULE '=' QSTRING ';'
     break;
 
   /* XXX - should we unload this module on /rehash, if it isn't listed? */
-  load_one_module (yylval.string);
+  load_one_module (yylval.string, 0);
 
   MyFree(m_bn);
 #endif
@@ -1076,7 +1081,7 @@ auth_item:      auth_user | auth_passwd | auth_class |
                 auth_kline_exempt | auth_have_ident | auth_is_restricted |
                 auth_exceed_limit | auth_no_tilde | auth_gline_exempt |
                 auth_spoof | auth_spoof_notice |
-                auth_redir_serv | auth_redir_port |
+                auth_redir_serv | auth_redir_port | auth_can_flood |
                 error;
 
 auth_user:   USER '=' QSTRING ';'
@@ -1182,6 +1187,16 @@ auth_have_ident:      HAVE_IDENT '=' TYES ';'
                       HAVE_IDENT '=' TNO ';'
   {
     yy_achead->flags &= ~CONF_FLAGS_NEED_IDENTD;
+  };
+
+auth_can_flood:      CAN_FLOOD '=' TYES ';'
+  {
+    yy_achead->flags |= CONF_FLAGS_CAN_FLOOD;
+  }
+                      |
+                      CAN_FLOOD '=' TNO ';'
+  {
+    yy_achead->flags &= ~CONF_FLAGS_CAN_FLOOD;
   };
 
 auth_no_tilde:        NO_TILDE '=' TYES ';' 
@@ -1307,10 +1322,6 @@ services_service:            SERVICE '=' QSTRING ';'
   {
     MyFree(yy_aconf->name);
     DupString(yy_aconf->name, yylval.string);
-    sendto_realops_flags(FLAGS_ALL, L_ALL,
-                       "Reading services block for %s --",
-                       yy_aconf->name);
-
   };
 
 /***************************************************************************
@@ -1906,10 +1917,10 @@ exempt_ip:        IP '=' QSTRING ';'
 
 gecos_entry:     GECOS
   {
-    if(yy_aconf)
+    if(yy_aconf != NULL)
       {
         free_conf(yy_aconf);
-        yy_aconf = (struct ConfItem *)NULL;
+        yy_aconf = NULL;
       }
     yy_aconf=make_conf();
     yy_aconf->status = CONF_XLINE;
@@ -1918,11 +1929,11 @@ gecos_entry:     GECOS
   }
  '{' gecos_items '}' ';'
   {
-    if(yy_aconf->host)
+    if(yy_aconf->name != NULL)
       conf_add_x_conf(yy_aconf);
     else
       free_conf(yy_aconf);
-    yy_aconf = (struct ConfItem *)NULL;
+    yy_aconf = NULL;
   }; 
 
 gecos_items:     gecos_items gecos_item |
@@ -1933,9 +1944,8 @@ gecos_item:      gecos_name | gecos_reason | gecos_action | error;
 
 gecos_name:    NAME '=' QSTRING ';' 
   {
-    MyFree(yy_aconf->host);
-    DupString(yy_aconf->host, yylval.string);
-    (void)collapse(yy_aconf->host);
+    DupString(yy_aconf->name, yylval.string);
+    collapse(yy_aconf->name);
   };
 
 gecos_reason:    REASON '=' QSTRING ';' 
@@ -1983,6 +1993,7 @@ general_item:       general_failed_oper_notice |
                     general_pace_wait | general_stats_i_oper_only |
                     general_pace_wait_simple | general_stats_P_oper_only |
                     general_short_motd | general_no_oper_flood |
+                    general_true_no_oper_flood |
                     general_iauth_server |
                     general_iauth_port |
                     general_glines | general_gline_time |
@@ -2001,6 +2012,7 @@ general_item:       general_failed_oper_notice |
                     general_compression_level | general_client_flood |
                     general_throttle_time | general_havent_read_conf |
                     general_dot_in_ip6_addr | general_ping_cookie |
+                    general_fallback_to_ip6_int | 
                     error;
 
 general_failed_oper_notice:   FAILED_OPER_NOTICE '=' TYES ';'
@@ -2198,6 +2210,16 @@ general_no_oper_flood: NO_OPER_FLOOD '=' TYES ';'
     ConfigFileEntry.no_oper_flood = 0;
   };
 
+general_true_no_oper_flood: TRUE_NO_OPER_FLOOD '=' TYES ';'
+  {
+    ConfigFileEntry.true_no_oper_flood = 1;
+  }
+    |
+    TRUE_NO_OPER_FLOOD '=' TNO ';'
+  {
+    ConfigFileEntry.true_no_oper_flood = 0;
+  };
+
 general_iauth_server: IAUTH_SERVER '=' QSTRING ';'
 {
 #if 0
@@ -2372,6 +2394,19 @@ general_use_help: USE_HELP '=' TYES ';'
 general_throttle_time: THROTTLE_TIME '=' timespec ';'
 {
  ConfigFileEntry.throttle_time = yylval.number;
+} ;
+
+general_fallback_to_ip6_int: FALLBACK_IP6_INT '=' TYES ';'
+{
+#ifdef IPV6
+ ConfigFileEntry.fallback_to_ip6_int = 1;
+#endif
+} |
+  FALLBACK_IP6_INT '=' TNO ';'
+{
+#ifdef IPV6
+ ConfigFileEntry.fallback_to_ip6_int = 0;
+#endif
 } ;
 
 general_oper_umodes: OPER_UMODES
@@ -2584,11 +2619,11 @@ channel_item:       channel_use_except |
 		    channel_knock_delay_channel |
                     channel_max_chans_per_user |
                     channel_quiet_on_ban |
-		    channel_persist_time |
 		    channel_default_split_user_count | 
 		    channel_default_split_server_count |
 		    channel_no_create_on_split | 
 		    channel_no_join_on_split |
+		    channel_oper_pass_resv |
                     error;
 
 channel_use_except:   USE_EXCEPT '=' TYES ';'
@@ -2728,11 +2763,6 @@ channel_max_bans: MAX_BANS '=' NUMBER ';'
       ConfigChannel.max_bans = $3;
    } ;
 
-channel_persist_time: PERSIST_TIME '=' timespec ';'
-  {
-    ConfigChannel.persist_time = $3;
-  } ;
-
 channel_default_split_user_count: DEFAULT_SPLIT_USER_COUNT '=' NUMBER ';'
   {
     ConfigChannel.default_split_user_count = $3;
@@ -2763,6 +2793,15 @@ channel_no_join_on_split: NO_JOIN_ON_SPLIT '=' TYES ';'
     ConfigChannel.no_join_on_split = 0;
   } ;
   
+channel_oper_pass_resv: OPER_PASS_RESV '=' TYES ';'
+  {
+    ConfigChannel.oper_pass_resv = 1;
+  }
+    |
+    OPER_PASS_RESV '=' TNO ';'
+  {
+    ConfigChannel.oper_pass_resv = 0;
+  } ;
 
 /***************************************************************************
  *  section serverhide

@@ -324,7 +324,7 @@ add_to_resv_hash_table(const char *name, struct ResvChannel *resv_p)
 
 
 /*
- * del_from_client_hash_table - remove a client/server from the client
+ * del_from_id_hash_table - remove a client/server from the id
  * hash table
  */
 void
@@ -417,11 +417,14 @@ del_from_channel_hash_table(const char* name, struct Channel* chptr)
   struct Channel* found_chptr;
   struct Channel* prev = NULL;
   unsigned int    hashv;
+
+#ifdef INVARIANTS
   assert(name != NULL);
   assert(chptr != NULL);
-
+#else
   if(name == NULL || chptr == NULL)
     return;
+#endif
     
   hashv = hash_channel_name(name);
   found_chptr = (struct Channel*) channelTable[hashv].list;
@@ -577,7 +580,7 @@ hash_find_masked_server(const char* name)
   /*
    * copy the damn thing and be done with it
    */
-  strlcpy(buf, name, HOSTLEN + 1);
+  strlcpy(buf, name, sizeof(buf));
 
   while ((s = strchr(p, '.')) != 0)
     {
@@ -732,7 +735,7 @@ get_or_create_channel(struct Client *client_p, char *chname, int *isnew)
 
   chptr = BlockHeapAlloc(channel_heap);
   memset(chptr, 0, sizeof(struct Channel));
-  strlcpy(chptr->chname, chname, CHANNELLEN+1);
+  strlcpy(chptr->chname, chname, sizeof(chptr->chname));
 
   if (GlobalChannelList)
     GlobalChannelList->prevch = chptr;

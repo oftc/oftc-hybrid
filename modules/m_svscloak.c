@@ -42,7 +42,7 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
 
 struct Message map_msgtab = {
       "SVSCLOAK", 0, 0, 1, 0, MFLG_SLOW, 0,
-        {m_unregistered, m_not_oper, m_svscloak, m_svscloak}
+        {m_unregistered, m_ignore, m_svscloak, m_ignore}
 };
 
 void _modinit(void)
@@ -56,7 +56,7 @@ _moddeinit(void)
     mod_del_cmd(&map_msgtab);
 }
 
-const char* _version = "Revision 0.3";
+const char* _version = "$Revision$";
 
 
 /* m_svscloak - Cloaks a user - stu
@@ -66,39 +66,43 @@ const char* _version = "Revision 0.3";
 
 void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
-    struct Client *cloak;
-    char *hostname, *target;
-    if (!IsService(source_p))
-        return;
-
-    if(parc < 3)
-    {   
-        sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, parv[0]);
-        return;
-    }
-    target = parv[1];
-    hostname = parv[2];
-
-    if ((cloak = find_person(target)))
-    {   
-        if(MyClient(cloak) && irccmp(cloak->host, hostname) != 0)
-        {   
-            sendto_one(cloak, ":%s NOTICE %s :Activating Cloak: %s",
-                    me.name, cloak->name, hostname);
-        }
-
-        sendto_server(source_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS, 
-                ":%s SVSCLOAK %s :%s", me.name, target, hostname);
-        if(strlen(cloak->realhost) <= 1)
-            strncpy(cloak->realhost, cloak->host, HOSTLEN);
-        strncpy(cloak->host, hostname, HOSTLEN);
-        off_history(cloak);
-    }
-    else
-    {   
-        sendto_one(source_p, form_str(ERR_NOSUCHNICK), me.name, source_p->name, target);
-        return;
-    }
+  struct Client *target_p;
+  char *hostname, *target;
+  if (!IsService(source_p))
     return;
+
+  if(parc < 3 || EmptyString(parv[2]))
+  {   
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, parv[0]);
+    return;
+  }
+  target = parv[1];
+  hostname = parv[2];
+
+  if ((target_p= find_person(target)))
+  {   
+    if(MyClient(target_p) && irccmp(target_p->host, hostname) != 0)
+    {   
+      sendto_one(target_p, ":%s NOTICE %s :Activating Cloak: %s",
+          me.name, target_p->name, hostname);
+      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+          "Activating Cloak: %s -> %s for %s", target_p->host, hostname,
+          target_p->name);
+    }
+
+    else
+      sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS, 
+          ":%s SVSCLOAK %s :%s", parv[0], parv[1], parv[2]);
+    if(strlen(target_p->realhost) <= 1)
+        strncpy(target_p->realhost, target_p->host, HOSTLEN);
+    strncpy(target_p->host, hostname, HOSTLEN);
+    off_history(target_p);
+  }
+  else
+  {   
+    sendto_one(source_p, form_str(ERR_NOSUCHNICK), me.name, source_p->name, target);
+    return;
+  }
+  return;
 }
 

@@ -1,3 +1,54 @@
+-- ircd-hybrid-7rc7 RELNOTES
+o) rationalised the exit_client() code, thus fixing several cores/hangs
+o) fixed anonop handling
+
+-- ircd-hybrid-7rc6 RELNOTES
+o) fixed a nasty ban overflow which causes desyncs
+o) allow '_' in hostnames
+o) fixed linebuf leak
+o) allow op/ban "cookies" (for now at least) i.e. mode * +o-b nick cookie
+o) fixed bug in client exit
+o) fixed invite bug with +pi channels
+o) changed all instances of nick[user@host] to nick [user@host]
+   this disambiguates completely, nick from user part, for tcm and scripts
+o) fixed wrong numeric for KNOCKDISABLED
+o) fixed servlink bug "char" is not always signed
+o) fixed typo that caused leaking of hidden server IPs
+o) fixed potential core in unkline
+o) fixed k/d line parser file parsing, a ',' in k or d line reason
+   will no longer cause the kline to disapear in a rehash or unkline
+
+-- ircd-hybrid-7rc5 RELNOTES
+o) Fixed null hostname bug in ipv6 
+o) Fixed hook code so it won't re-hook
+o) gdb 3.x compile fix
+o) removed persistent channels (for now)
+o) Fixed potential event core
+o) oper_pass_resv added to ircd.conf
+o) true no oper flood
+o) removed RPL_WHOISADMIN
+o) memory leak fix
+o) server hiding fix
+o) bug fix in mode changes
+o) fixed compile time error in m_who.c
+o) removed /rehash channels
+o) fixed user@server.name notices
+o) fixed ping bug
+o) fixed challenge command to not core
+o) ipv6 hostname can fallback to ip6.int
+o) fixed USER bug whch ignored ident response
+
+-- ircd-hybrid-7rc4 RELNOTES
+
+o) Fixed core in gozems m_whois.c patch in contrib
+o) Fixed minor bug in m_who.c
+o) Fixed missing logging for oper, failed oper
+o) Fixed null nickname bug
+o) Fixed persistent channel possible desync
+o) Separated stats g/G for pending vs. placed G lines
+o) Do not send out gline request if server/oper locally has already voted
+o) Sped up kline handling
+
 -- ircd-hybrid-7rc3 RELNOTES
 
 o) Fixed hostile code in m_oper

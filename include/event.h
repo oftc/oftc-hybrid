@@ -42,7 +42,6 @@ struct ev_entry
   const char *name;
   time_t frequency;
   time_t when;
-  struct ev_entry *next;
   int active;
 };
 

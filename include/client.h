@@ -81,7 +81,6 @@ struct User
   char id_key[IDLEN + 1];
   /* When did we detach from them, if they are detached... */
   time_t            last_detach_time;
-  int               svs_stamp; /* services stamp */
 };
 
 struct Server
@@ -181,8 +180,6 @@ struct Client
    * considered a read-only field after the client has registered.
    */
   char              host[HOSTLEN + 1];     /* client's hostname */
-  /* client->cloakhost contains the real hostname of the client when they have
-   * been cloaked. Used in whois output to opers */
   /*
    * client->info for unix clients will normally contain the info from the 
    * gcos field in /etc/passwd but anything can go here.
@@ -402,6 +399,7 @@ struct LocalUser
 #define FLAGS_SERVLINK     0x10000 /* servlink has servlink process */
 #define FLAGS_MARK	   0x20000 /* marked client */
 #define FLAGS_SERVICE      0x40000 /* services server/client */
+#define FLAGS_CANFLOOD     0x80000 /* client has the ability to flood */
 /* umodes, settable flags */
 
 #define FLAGS_SERVNOTICE   0x0001 /* server notices such as kill */
@@ -484,6 +482,9 @@ struct LocalUser
 #define SetAccess(x)            ((x)->flags |= FLAGS_CHKACCESS)
 #define IsClosing(x)		((x)->flags & FLAGS_CLOSING)
 #define SetClosing(x)		((x)->flags |= FLAGS_CLOSING)
+#define ClearClosing(x)		((x)->flags &= ~FLAGS_CLOSING)
+#define IsKilled(x)		((x)->flags & FLAGS_KILLED)
+#define SetKilled(x)		((x)->flags |= FLAGS_KILLED)
 #define ClearAccess(x)          ((x)->flags &= ~FLAGS_CHKACCESS)
 #define IsCryptIn(x)            ((x)->flags &  FLAGS_CRYPTIN)
 #define SetCryptIn(x)           ((x)->flags |= FLAGS_CRYPTIN)
@@ -502,6 +503,11 @@ struct LocalUser
 
 #define IsService(x)            ((x)->flags & FLAGS_SERVICE)
 #define SetService(x)           ((x)->flags |= FLAGS_SERVICE)
+#define SetCanFlood(x)          ((x)->flags |= FLAGS_CANFLOOD)
+#define ClearCanFlood(x)        ((x)->flags &= FLAGS_CANFLOOD)
+#define IsCanFlood(x)           ((x)->flags & FLAGS_CANFLOOD)
+#define IsDefunct(x)            ((x)->flags & (FLAGS_DEADSOCKET|FLAGS_CLOSING))
+
 
 /* oper flags */
 #define MyOper(x)               (MyConnect(x) && IsOper(x))
@@ -626,6 +632,5 @@ extern int set_initial_nick(struct Client *client_p, struct Client *source_p,
 extern int change_local_nick(struct Client *client_p, struct Client *source_p,
                              char *nick);
 extern void dead_link(struct Client *client_p);
-extern void exit_aborted_clients(void);
 #endif /* INCLUDED_client_h */
 

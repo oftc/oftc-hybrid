@@ -160,28 +160,48 @@ static void mo_opme(struct Client *client_p, struct Client *source_p,
 
   if (!on_vchan)
     {
-     sendto_wallops_flags(FLAGS_WALLOP, &me,
-                          "OPME called for [%s] by %s!%s@%s",
-                          parv[1], source_p->name, source_p->username,
-                          source_p->host);
-     sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
-                   ":%s WALLOPS :OPME called for [%s] by %s!%s@%s",
-                   me.name, parv[1], source_p->name, source_p->username,
-                   source_p->host);
+     if (parv[1][0] == '&')
+     {
+       sendto_wallops_flags(FLAGS_LOCOPS, &me,
+                            "OPME called for [%s] by %s!%s@%s",
+                            parv[1], source_p->name, source_p->username,
+                            source_p->host);
+     }
+     else
+     {
+       sendto_wallops_flags(FLAGS_WALLOP, &me,
+                            "OPME called for [%s] by %s!%s@%s",
+                            parv[1], source_p->name, source_p->username,
+                            source_p->host);
+       sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
+                     ":%s WALLOPS :OPME called for [%s] by %s!%s@%s",
+                     me.name, parv[1], source_p->name, source_p->username,
+                     source_p->host);
+     }
      ilog(L_NOTICE, "OPME called for [%s] by %s!%s@%s",
                    parv[1], source_p->name, source_p->username,
                    source_p->host);
     }
   else
     {
-     sendto_wallops_flags(FLAGS_WALLOP, &me,
-                          "OPME called for [%s %s] by %s!%s@%s",
-                          parv[1], parv[2], source_p->name,
-                          source_p->username, source_p->host);
-     sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
-                   ":%s WALLOPS :OPME called for [%s %s] by %s!%s@%s",
-                   me.name, parv[1], parv[2], source_p->name,
-                   source_p->username, source_p->host);
+     if (parv[1][0] == '&')
+     {
+       sendto_wallops_flags(FLAGS_LOCOPS, &me,
+                            "OPME called for [%s %s] by %s!%s@%s",
+                            parv[1], parv[2], source_p->name,
+                            source_p->username, source_p->host);
+     }
+     else
+     {
+       sendto_wallops_flags(FLAGS_WALLOP, &me,
+                            "OPME called for [%s %s] by %s!%s@%s",
+                            parv[1], parv[2], source_p->name,
+                            source_p->username, source_p->host);
+       sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
+                     ":%s WALLOPS :OPME called for [%s %s] by %s!%s@%s",
+                     me.name, parv[1], parv[2], source_p->name,
+                     source_p->username, source_p->host);
+     }
      ilog(L_NOTICE, "OPME called for [%s %s] by %s!%s@%s",
                    parv[1], parv[2], source_p->name, source_p->username,
                    source_p->host);

@@ -43,6 +43,9 @@ m_ojoin.c      - OJOIN - Join a channel through any modes or limits with
                          an optional status (@%+)
                  Syntax: OJOIN [status]<channel>
 
+m_operspy.c    - OPERSPY - Allows operators with access to spy on users
+                 Syntax: OPERSPY <LIST/WHO/MODE/WHOIS/NAMES> <paramter>
+
 m_opme.c       - OPME - Allows an admin to op themselves in an opless channel
                  Syntax: OPME <channel>
 

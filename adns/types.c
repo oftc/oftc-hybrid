@@ -760,6 +760,85 @@ static void icb_ptr(adns_query parent, adns_query child) {
 }
 #ifdef IPV6
 static adns_status pa_ptr6(const parseinfo *pai, int dmstart, int max, void *datap) {
+  static const char *(expectdomain[])= { DNS_IP6_ARPA };
+  
+  char **rrp= datap;
+  adns_status st;
+  adns_rr_addr *ap;
+  findlabel_state fls;
+  char labbuf[4], ipv[34], ip6[72], *pt;
+  int cbyte, i, lablen, labstart, id, x, l;
+  adns_query nqu;
+  qcontext ctx;
+
+  cbyte= dmstart;
+  st= pap_domain(pai, &cbyte, max, rrp,
+		 pai->qu->flags & adns_qf_quoteok_anshost ? pdf_quoteok : 0);
+  if (st) return st;
+  if (cbyte != max) return adns_s_invaliddata;
+
+  memset(labbuf, 0, sizeof(labbuf));
+  memset(ipv,0, sizeof(ipv));
+  ap= &pai->qu->ctx.info.ptr_parent_addr;
+  if (!ap->len) {
+
+    adns__findlabel_start(&fls, pai->ads, -1, pai->qu,
+			  pai->qu->query_dgram, pai->qu->query_dglen,
+			  pai->qu->query_dglen, DNS_HDRSIZE, 0);
+    for(i = 0; i < 32; i++)
+    {
+    st= adns__findlabel_next(&fls,&lablen,&labstart); assert(!st);
+    if (lablen<=0 || lablen > 1) return adns_s_querydomainwrong;
+	 
+      memcpy(labbuf, pai->qu->query_dgram + labstart, lablen);  labbuf[lablen]= 0;
+      strcat(ipv, labbuf); 
+      if (lablen>1 && pai->qu->query_dgram[labstart]=='0')
+	return adns_s_querydomainwrong;
+    }
+    pt = ip6;     
+    for(i = 32, x = 0; i >= 0; i--)
+    {
+	if(x >= 3 && i > 2)
+	{
+		pt += ircsprintf(pt,"%c:", ipv[i-1]);
+		x = 0;
+	} else {
+		pt += ircsprintf(pt,"%c", ipv[i-1]);   	
+		x++;
+	}	
+    }    
+    for (i=0; i<sizeof(expectdomain)/sizeof(*expectdomain); i++) {
+        st= adns__findlabel_next(&fls,&lablen,&labstart); assert(!st);
+        l= strlen(expectdomain[i]);
+        if (lablen != l || memcmp(pai->qu->query_dgram + labstart, expectdomain[i], l))
+	   return adns_s_querydomainwrong;
+    }
+
+    ap->len= sizeof(struct sockaddr_in6);
+    memset(&ap->addr,0,sizeof(ap->addr.inet6));
+    ap->addr.inet6.sin6_family=AF_INET6;
+    inetpton(AF_INET6, ip6, ap->addr.inet6.sin6_addr.s6_addr);
+  }
+
+  st= adns__mkquery_frdgram(pai->ads, &pai->qu->vb, &id,
+			    pai->dgram, pai->dglen, dmstart,
+			    adns_r_addr6, adns_qf_quoteok_query);
+  if (st) return st;
+
+  ctx.ext= 0;
+  ctx.callback= icb_ptr;
+  memset(&ctx.info,0,sizeof(ctx.info));
+  st= adns__internal_submit(pai->ads, &nqu, adns__findtype(adns_r_addr6),
+			    &pai->qu->vb, id,
+			    adns_qf_quoteok_query, pai->now, &ctx);
+  if (st) return st;
+
+  nqu->parent= pai->qu;
+  LIST_LINK_TAIL_PART(pai->qu->children,nqu,siblings.);
+  return adns_s_ok;
+}
+
+static adns_status pa_ptr6_old(const parseinfo *pai, int dmstart, int max, void *datap) {
   static const char *(expectdomain[])= { DNS_IP6_INT };
   
   char **rrp= datap;
@@ -837,6 +916,8 @@ static adns_status pa_ptr6(const parseinfo *pai, int dmstart, int max, void *dat
   LIST_LINK_TAIL_PART(pai->qu->children,nqu,siblings.);
   return adns_s_ok;
 }
+
+
 #endif
 static adns_status pa_ptr(const parseinfo *pai, int dmstart, int max, void *datap) {
   static const char *(expectdomain[])= { DNS_INADDR_ARPA };
@@ -1148,6 +1229,7 @@ DEEP_TYPE(soa,    "SOA","822",    soa,        pa_soa,     0,          cs_soa    
 DEEP_TYPE(rp,     "RP", "822",    strpair,    pa_rp,      0,          cs_rp         ),
 #ifdef IPV6
 DEEP_TYPE(ptr_ip6,"PTR","checked",str,        pa_ptr6,	  0,	      cs_domain	    ),
+DEEP_TYPE(ptr_ip6_old,"PTR","checked",str,        pa_ptr6_old,	  0,	      cs_domain	    ),
 #endif
 };
 

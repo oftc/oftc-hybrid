@@ -44,6 +44,13 @@ static void mo_motd(struct Client*, struct Client*, int, char**);
 
 static void motd_spy(struct Client *);
 
+/*
+ * note regarding mo_motd being used twice:
+ * this is not a kludge.  any rate limiting, shide, or whatever
+ * other access restrictions should be done by the source's server.
+ * for security's sake, still check that the source is an oper
+ * for 'oper only' information in the mo_ function(s).
+ */
 struct Message motd_msgtab = {
   "MOTD", 0, 0, 0, 1, MFLG_SLOW, 0,
   {mr_motd, m_motd, mo_motd, mo_motd}
@@ -84,7 +91,7 @@ static void mr_motd(struct Client *client_p, struct Client *source_p,
 **      parv[1] = servername
 */
 static void m_motd(struct Client *client_p, struct Client *source_p,
-                  int parc, char *parv[])
+                   int parc, char *parv[])
 {
   static time_t last_used = 0;
 
@@ -98,7 +105,7 @@ static void m_motd(struct Client *client_p, struct Client *source_p,
     last_used = CurrentTime;
 
   /* This is safe enough to use during non hidden server mode */
-  if(!ConfigServerHide.disable_remote)
+  if(!ConfigServerHide.disable_remote && !ConfigServerHide.hide_servers)
     {
       if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1,parc,parv)!=HUNTED_ISME)
 	return;
@@ -115,7 +122,7 @@ static void m_motd(struct Client *client_p, struct Client *source_p,
 **      parv[1] = servername
 */
 static void mo_motd(struct Client *client_p, struct Client *source_p,
-                   int parc, char *parv[])
+                    int parc, char *parv[])
 {
   if(!IsClient(source_p))
     return;

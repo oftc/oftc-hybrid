@@ -100,24 +100,20 @@ sendto_ll_serv_butone(struct Client *one, struct Client *sptr, int add,
                   if target server does not "know" about it.
                   As the name implies, it is used for "lazylinks"
 
-sendto_serv_butone()
+sendto_server()
                 - This function sends specified var args message
                   to all connected servers except the client "one"
+		- chptr can be NULL, in which case it goes to server
+		- caps is a set of CAPS to send =to=
+		- nocaps is a set of CAPS to not send =to=
 	
-                  usage - sendto_serv_butone(struct Client *one,
-                                           const char *pattern, ... );  
+              usage - sendto_server(struct Client *one,
+			struct Channel *chptr,
+			unsigned long caps,
+			unsigned long nocaps,
+			unsigned long llflags,
+			const char *pattern, ... );  
 
-sendto_cap_serv_butone()
-                - This function sends specified var args message
-                  to all connected servers except the client "one"
-                  with capability specified. 
-                  NOTE: sendto_serv_butone() could be replaced with 
-                  a generalized version of this function. i.e.
-                  CAP_ALL
-
-                  usage - sendto_cap_serv_butone(int cap,
-                                               struct Client *one,
-                                               const char *pattern, ... );  
 
 sendto_common_channels_local()
                 - This function is used only by m_nick and exit_one_client

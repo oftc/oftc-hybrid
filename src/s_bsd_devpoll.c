@@ -296,5 +296,9 @@ comm_select(unsigned long delay)
     /* XXX Get here, we broke! */
     return 0;
 }
-
+#else
+/**
+ * Don't let an empty compilation unit slip through.
+ */
+static int dummy;
 #endif /* USE_DEVPOLL */

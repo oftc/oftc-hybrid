@@ -46,7 +46,7 @@
 static void ms_spingtime(struct Client*, struct Client*, int, char**);
 
 struct Message mode_msgtab = {
-  "SVSNICK", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "SPINGTIME", 0, 0, 2, 0, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_spingtime, m_ignore}
 };
 #ifndef STATIC_MODULES
@@ -78,17 +78,13 @@ static void ms_spingtime(struct Client *client_p, struct Client *source_p,
 
   struct Client *target_p;
 
-
-  if (parc < 3)
-      return;
-
   if ((target_p = find_server(parv[1])) == NULL)
       return;
 
   target_p->ping_time.tv_sec = 0;
   target_p->ping_time.tv_usec = atol(parv[2]);
   
-  sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
+  sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
                     ":%s SPINGTIME %s %s", parv[0], parv[1],
                   parv[2]);
 }

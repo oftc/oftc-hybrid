@@ -1,6 +1,5 @@
 $Id$
 
-
 - add more stderr debugging (ircd -s)... one for every place we syslog()
 - ircd -s doesn't work through a restart
 - re-implement first param in m_lusers()

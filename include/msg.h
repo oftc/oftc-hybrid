@@ -69,6 +69,8 @@ struct Message
                                          * clients.                           */
 #define   MFLG_IGNORE            0x04   /* silently ignore command from
                                          * unregistered clients */
+#define   MFLG_HIDDEN		 0x08   /* Command is hidden from everyone    *
+					 * but opers			      */
 #define MAXPARA    15 
 
 #endif /* INCLUDED_msg_h */

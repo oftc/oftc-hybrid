@@ -81,8 +81,8 @@ dnl for a zero "$IRC_CFLAGS" (but what should we use for TenDRA??)
 dnl and then do the check for whether -g works... Hrrm. -jmallett
 if test "x$GCC" = "xyes"; then
 #  Use this for development..
-#  IRC_CFLAGS="-O2 -g -ggdb -Wunused -Wall -Wshadow -Wmissing-declarations"
-   IRC_CFLAGS="-O2 -g -ggdb"
+#  IRC_CFLAGS="-O2 -g -Wunused -Wall -Wshadow -Wmissing-declarations"
+   IRC_CFLAGS="-O2 -g "
 else
   if test "x$TenDRA" = "xyes"; then
     dnl CPPFLAGS here is really IRC_CFLAGS but autoconf does silly
@@ -835,6 +835,7 @@ else
 	dnl Without this, include/setup.h will not be set up right.
 	AC_CHECK_LIB(dl, dlsym)
 	AC_CHECK_FUNCS(dlopen)
+	AC_CHECK_FUNCS(dlfunc)
 	AC_CHECK_HEADERS(mach-o/dyld.h dlfcn.h)
 
 	# The GNU linker requires the -export-dynamic option to make

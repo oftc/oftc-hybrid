@@ -385,10 +385,10 @@ static struct InfoStruct info_table[] =
     "Disallow joining channels when split",
   },
   {
-    "persist_time",
-    OUTPUT_DECIMAL,
-    &ConfigChannel.persist_time,
-    "Delay before persistent channels expire",
+    "oper_pass_resv",
+    OUTPUT_BOOLEAN_YN,
+    &ConfigChannel.oper_pass_resv,
+    "Opers can over-ride RESVs",
   },
   {
     "quiet_on_ban",

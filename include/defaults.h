@@ -33,7 +33,7 @@
  * First, set other fd limits based on values from user
  */
 #ifndef HARD_FDLIMIT_
-error HARD_FDLIMIT_ undefined
+#error HARD_FDLIMIT_ undefined
 #endif
 
 #define HARD_FDLIMIT    (HARD_FDLIMIT_ - 10)

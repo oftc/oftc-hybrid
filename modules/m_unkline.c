@@ -48,6 +48,7 @@ static void mo_unkline(struct Client*, struct Client*, int, char**);
 static void mo_undline(struct Client*, struct Client*, int, char**);
 static void mo_ungline(struct Client*, struct Client*, int, char**);
 static void ms_unkline(struct Client*, struct Client*, int, char**);
+static void remove_permkline_match(struct Client *, char *, char *);
 
 struct Message msgtabs[] = {
   {"UNKLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
@@ -77,8 +78,8 @@ _moddeinit(void)
 const char *_version = "$Revision$";
 #endif
 
-static void remove_permkline_match(struct Client *, char *, char *);
-static int flush_write(struct Client *, FBFILE* , char *, char *);
+static int flush_write(struct Client *, FBFILE *in, FBFILE *out,
+		       char *, char *);
 static int remove_tkline_match(char *,char *);
 
 
@@ -92,17 +93,23 @@ static int remove_tkline_match(char *,char *);
 *
 *
 */
-static void mo_unkline (struct Client *client_p,struct Client *source_p,
-                       int parc,char *parv[])
+static void
+mo_unkline (struct Client *client_p,struct Client *source_p,
+	    int parc,char *parv[])
 {
-  char *user, *host;
+  FBFILE *in, *out;
+  int pairme=0;
+  char buf[BUFSIZE], buff[BUFSIZE], temppath[BUFSIZE], *user, *host, *p;
+  const char  *filename;                /* filename to use for unkline */
+  mode_t oldumask;
 
+  ircsprintf(temppath, "%s.tmp", ConfigFileEntry.klinefile);
+  
   if (!IsOperUnkline(source_p))
     {
       sendto_one(source_p,":%s NOTICE %s :You need unkline = yes;",me.name,parv[0]);
       return;
     }
-
   if (parc < 2)
     {
       sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
@@ -248,8 +255,8 @@ static void remove_permkline_match(struct Client *source_p,
   oldumask = umask(0);
   if ((out = fbopen(temppath, "w")) == 0)
     {
-      sendto_one(source_p, ":%s NOTICE %s :Cannot open %s",
-	         me.name, source_p->name, temppath);
+      sendto_one(source_p, ":%s NOTICE %s :Cannot open %s", me.name, 
+              source_p->name, temppath);
       fbclose(in);
       umask(oldumask);
       return;
@@ -267,22 +274,21 @@ static void remove_permkline_match(struct Client *source_p,
 
       if ((*buff == '\0') || (*buff == '#'))
 	{
-	  if(!error_on_write)
-	    flush_write(source_p, out, buf, temppath);
-	  continue;
+	  if(flush_write(source_p, in, out, buf, temppath) < 0)
+	    return;
 	}
       
       if ((found_user = getfield(buff)) == NULL)
 	{
-	  if(!error_on_write)
-	    flush_write(source_p, out, buf, temppath);
+	  if(flush_write(source_p, in, out, buf, temppath) < 0)
+	    return;
 	  continue;
 	}
 
       if ((found_host = getfield(NULL)) == NULL)
 	{
-	  if(!error_on_write)
-	    flush_write(source_p, out, buf, temppath);
+	  if(flush_write(source_p, in, out, buf, temppath) < 0)
+	    return;
 	  continue;
 	}
 
@@ -292,8 +298,8 @@ static void remove_permkline_match(struct Client *source_p,
 	}
       else
 	{
-	  if(!error_on_write)
-	    flush_write(source_p, out, buf, temppath);
+	  if(flush_write(source_p, in, out, buf, temppath) < 0)
+	    return;
 	}
     }
   fbclose(in);
@@ -303,34 +309,21 @@ static void remove_permkline_match(struct Client *source_p,
 /* If there was an error on a write above, then its been reported
  * and I am not going to trash the original kline /conf file
  */
-  if(!error_on_write)
-    {
-      (void)rename(temppath, filename);
-      rehash(0);
-    }
-  else
-    {
-      sendto_one(source_p,
-		 ":%s NOTICE %s :Couldn't write temp kline file, aborted",
-		 me.name,source_p->name);
-      return;
-    }
+
+  (void)rename(temppath, filename);
+  rehash(0);
 
   if(!pairme)
     {
       sendto_one(source_p, ":%s NOTICE %s :No K-Line for %s@%s",
                  me.name, source_p->name,user,host);
-
-      if(!MyClient(source_p))
-        sendto_realops_flags(FLAGS_ALL, L_ALL, 
-			"*** Remote Un-Kline for [%s@%s] is not K-Lined.",
-			user, host);
       return;
     }
 
-  sendto_one(source_p, ":%s NOTICE %s :K-Line for [%s@%s] is removed", 
+  if(MyConnect(source_p))
+    sendto_one(source_p, ":%s NOTICE %s :K-Line for [%s@%s] is removed", 
              me.name, source_p->name, user,host);
-  sendto_realops_flags(FLAGS_ALL, L_OPER, 
+  sendto_realops_flags(FLAGS_ALL, L_ALL,
 		       "%s has removed the K-Line for: [%s@%s]",
 		       get_oper_name(source_p), user, host);
 
@@ -339,18 +332,17 @@ static void remove_permkline_match(struct Client *source_p,
   return; 
 }
 
-    
-  
 /*
  * flush_write()
  *
  * inputs       - pointer to client structure of oper requesting unkline
- *              - out is the file descriptor
+ *		- in is the input file descriptor
+ *              - out is the output file descriptor
  *              - buf is the buffer to write
  *              - ntowrite is the expected number of character to be written
  *              - temppath is the temporary file name to be written
- * output       - YES for error on write
- *              - NO for success
+ * output       - -1 for error on write
+ *              - 0 for ok
  * side effects - if successful, the buf is written to output file
  *                if a write failure happesn, and the file pointed to
  *                by temppath, if its non NULL, is removed.
@@ -361,15 +353,17 @@ static void remove_permkline_match(struct Client *source_p,
  * -Dianora
  */
 
-static int flush_write(struct Client *source_p, FBFILE* out, char *buf,
-		       char *temppath)
+static int
+flush_write(struct Client *source_p, FBFILE *in, FBFILE* out, 
+	    char *buf, char *temppath)
 {
-  int error_on_write = (fbputs(buf, out) < 0) ? YES : NO;
+  int error_on_write = (fbputs(buf, out) < 0) ? (-1) : (0);
 
   if (error_on_write)
     {
-      sendto_one(source_p,":%s NOTICE %s :Unable to write to %s",
+      sendto_one(source_p,":%s NOTICE %s :Unable to write to %s aborting",
         me.name, source_p->name, temppath );
+      fbclose(in);
       fbclose(out);
       if(temppath != (char *)NULL)
         (void)unlink(temppath);
@@ -382,7 +376,6 @@ static int flush_write(struct Client *source_p, FBFILE* out, char *buf,
  * Output: returns YES on success, NO if no tkline removed.
  * Side effects: Any matching tklines are removed.
  */
-
 static int
 remove_tkline_match(char *host, char *user)
 {
@@ -391,29 +384,29 @@ remove_tkline_match(char *host, char *user)
   struct irc_inaddr addr, caddr;
   int nm_t, cnm_t, bits, cbits;
   nm_t = parse_netmask(host, &addr, &bits);
- 
+
   for (tk_n=temporary_klines.head; tk_n; tk_n=tk_n->next)
-  {
-    tk_c = (struct ConfItem*)tk_n->data;
-    cnm_t = parse_netmask(tk_c->host, &caddr, &cbits);
-    if (cnm_t != nm_t || irccmp(user, tk_c->user))
-      continue;
-    if ((nm_t==HM_HOST && !irccmp(tk_c->host, host)) ||
-      (nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
- #ifdef IPV6
-      || (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
- #endif
-      )
     {
-    dlinkDelete(tk_n, &temporary_klines);
-    free_dlink_node(tk_n);
-    delete_one_address_conf(tk_c->host, tk_c);
-    return YES;
+      tk_c = (struct ConfItem*)tk_n->data;
+      cnm_t = parse_netmask(tk_c->host, &caddr, &cbits);
+      if (cnm_t != nm_t || irccmp(user, tk_c->user))
+	continue;
+      if ((nm_t==HM_HOST && !irccmp(tk_c->host, host)) ||
+	  (nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
+#ifdef IPV6
+	  || (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
+#endif
+	  )
+	{
+	  dlinkDelete(tk_n, &temporary_klines);
+	  free_dlink_node(tk_n);
+	  delete_one_address_conf(tk_c->host, tk_c);
+	  return YES;
+	}
     }
-  }
   return NO;
 }
-  
+
 /*
 ** m_undline
 ** added May 28th 2000 by Toby Verrall <toot@melnet.co.uk>
@@ -430,9 +423,8 @@ mo_undline (struct Client *client_p, struct Client *source_p,
   FBFILE* in;
   FBFILE* out;
   char  buf[BUFSIZE], buff[BUFSIZE], temppath[BUFSIZE], *p;
-  const char  *filename, *found_cidr;
-  char *cidr;
-  int pairme = NO, error_on_write = NO;
+  const char  *filename,*cidr, *found_cidr;
+  int pairme = NO;
   mode_t oldumask;
 
   ircsprintf(temppath, "%s.tmp", ConfigFileEntry.dlinefile);
@@ -455,18 +447,6 @@ mo_undline (struct Client *client_p, struct Client *source_p,
     }
 #endif
 
-  if(remove_tkline_match(cidr, NULL))
-  {
-    sendto_one(source_p,
-	       ":%s NOTICE %s :Un-dlined [%s] from temporary D-lines",
-	       me.name, parv[0], cidr);
-    sendto_realops_flags(FLAGS_ALL, L_ALL,
-                         "%s has removed the temporary D-Line for: [%s]",
-			 get_oper_name(source_p), cidr);
-    ilog(L_NOTICE, "%s removed temporary D-Line for [%s]", parv[0], cidr);
-    return;
-  }
-
   filename = get_conf_name(DLINE_TYPE);
 
   if ((in = fbopen(filename, "r")) == 0)
@@ -477,7 +457,7 @@ mo_undline (struct Client *client_p, struct Client *source_p,
     }
 
   oldumask = umask(0);                  /* ircd is normally too paranoid */
-  if ( (out = fbopen(temppath, "w")) == 0)
+  if ((out = fbopen(temppath, "w")) == NULL)
     {
       sendto_one(source_p, ":%s NOTICE %s :Cannot open %s",
 		 me.name,parv[0],temppath);
@@ -496,15 +476,15 @@ mo_undline (struct Client *client_p, struct Client *source_p,
 
       if ((*buff == '\0') || (*buff == '#'))
 	{
-	  if(!error_on_write)
-	    flush_write(source_p, out, buf, temppath);
-	  continue;
+	  if(flush_write(source_p, in, out, buf, temppath) < 0)
+	    return;
+  	   continue;
 	}
 
       if ((found_cidr = getfield(buff)) == NULL)
 	{
-	  if(!error_on_write)
-	    flush_write(source_p, out, buf, temppath);
+	  if(flush_write(source_p, in, out, buf, temppath) < 0)
+	    return;
 	  continue;
 	}
       
@@ -514,29 +494,16 @@ mo_undline (struct Client *client_p, struct Client *source_p,
 	}
       else
 	{
-	  if(!error_on_write)
-	    flush_write(source_p, out, buf, temppath);
-	  continue;
+	  if(flush_write(source_p, in, out, buf, temppath) < 0)
+	    return;
 	}
-
     }
 
   fbclose(in);
   fbclose(out);
 
-  if (!error_on_write)
-    {
-
-      (void)rename(temppath, filename);
-      rehash(0);
-    }
-  else
-    {
-      sendto_one(source_p,
-		 ":%s NOTICE %s :Couldn't write D-line file, aborted",
-		 me.name, parv[0]);
-      return;
-    }
+  (void)rename(temppath, filename);
+  rehash(0);
 
   if (!pairme)
     {
@@ -547,8 +514,8 @@ mo_undline (struct Client *client_p, struct Client *source_p,
 
   sendto_one(source_p, ":%s NOTICE %s :D-Line for [%s] is removed",
 	     me.name, parv[0], cidr);
-  sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL, "%s has removed the D-Line for: [%s]",
-		       get_oper_name(source_p), cidr);
+  sendto_realops_flags(FLAGS_ALL, L_OPER, "%s has removed the D-Line for: "
+          "[%s]", get_oper_name(source_p), cidr);
   ilog(L_NOTICE, "%s removed D-Line for [%s]", get_oper_name(source_p),
        cidr);
 }
@@ -562,8 +529,9 @@ mo_undline (struct Client *client_p, struct Client *source_p,
 **      parv[1] = gline to remove
 */
 
-static void mo_ungline(struct Client *client_p, struct Client *source_p,
-                      int parc,char *parv[])
+static void
+mo_ungline(struct Client *client_p, struct Client *source_p,
+	   int parc,char *parv[])
 {
   char  *user,*host;
 
@@ -580,11 +548,11 @@ static void mo_ungline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-  if ( (host = strchr(parv[1], '@')) || *parv[1] == '*' )
+  if ((host = strchr(parv[1], '@')) || *parv[1] == '*')
     {
       /* Explicit user@host mask given */
 
-      if(host)                  /* Found user@host */
+      if(host != NULL)                  /* Found user@host */
         {
           user = parv[1];       /* here is user part */
           *(host++) = '\0';     /* and now here is host */
@@ -606,9 +574,8 @@ static void mo_ungline(struct Client *client_p, struct Client *source_p,
     {
       sendto_one(source_p, ":%s NOTICE %s :Un-glined [%s@%s]",
                  me.name, parv[0],user, host);
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-			   "%s has removed the G-Line for: [%s@%s]",
-			   get_oper_name(source_p), user, host );
+      sendto_realops_flags(FLAGS_ALL, L_OPER, "%s has removed the G-Line "
+              "for: [%s@%s]", get_oper_name(source_p), user, host );
       ilog(L_NOTICE, "%s removed G-Line for [%s@%s]",
           get_oper_name(source_p), user, host);
       return;

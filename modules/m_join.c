@@ -78,7 +78,6 @@ void check_spambot_warning(struct Client *source_p, const char *name);
  *      parv[1] = channel
  *      parv[2] = channel password (key) (or vkey for vchans)
  *      parv[3] = vkey
- *
  */
 static void
 m_join(struct Client *client_p,
@@ -94,7 +93,6 @@ m_join(struct Client *client_p,
   int   i, flags = 0;
   char  *p = NULL, *p2 = NULL, *p3 = NULL;
   int   successful_join_count = 0; /* Number of channels successfully joined */
-  int   burst_modes = NO;
 #ifdef VCHANS
   struct Channel *vchan_chptr = NULL;
   char *pvc = NULL;
@@ -133,7 +131,6 @@ m_join(struct Client *client_p,
       modebuf[0] = '+';
       modebuf[1] = '\0';
       parabuf[0] = '\0';
-      burst_modes = NO;
 
       if(!check_channel_name(name))
       {
@@ -183,8 +180,9 @@ m_join(struct Client *client_p,
       }
       
       /* see if its resv'd */
-      if(find_channel_resv(name))
-	{
+      if(find_channel_resv(name) &&
+          !(IsOper(source_p) && ConfigChannel.oper_pass_resv))
+	{ 
 	  sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
 		     me.name, source_p->name, name);
           sendto_gnotice_flags(FLAGS_SPY, L_OPER, me.name, &me, NULL,
@@ -244,10 +242,7 @@ m_join(struct Client *client_p,
 	   * -Dianora
 	   */
 	  if (chptr->users == 0)
-	  {
 	    flags = CHFL_CHANOP;
-	    burst_modes = YES;
-	  }
 	  else
 	    flags = 0;
 	}
@@ -301,10 +296,11 @@ m_join(struct Client *client_p,
 
       if(i != 0 && IsGod(source_p) && MyClient(source_p))
       {
-        char tmp[512];
-        snprintf(tmp, 512, "%s is using God mode: JOIN %s",
-            source_p->name, chptr->chname);
-        sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
+        char tmp[IRCD_BUFSIZE];
+        ircsprintf(tmp, "%s is using God mode: JOIN %s", source_p->name,
+            chptr->chname);
+        sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, 
+            tmp);
         oftc_log(tmp);
       } 
 
@@ -324,23 +320,12 @@ m_join(struct Client *client_p,
       if (flags & CHFL_CHANOP)
 	{
 	  chptr->channelts = CurrentTime;
-
-	  /* detected a persistent channel, so
-	   * have to call channel_modes() here.
-	   */
-	  if (burst_modes)
-	  {
-	    channel_modes(chptr, client_p, modebuf, parabuf);
-	  }
-	  else /* Otherwise, its a stock +nt */
-	  {
-	    chptr->mode.mode |= MODE_TOPICLIMIT;
-	    chptr->mode.mode |= MODE_NOPRIVMSGS;
-	    modebuf[0] = '+';
-	    modebuf[1] = 'n';
-	    modebuf[2] = 't';
-	    modebuf[3] = '\0';
-	  }
+	  chptr->mode.mode |= MODE_TOPICLIMIT;
+	  chptr->mode.mode |= MODE_NOPRIVMSGS;
+	  modebuf[0] = '+';
+	  modebuf[1] = 'n';
+	  modebuf[2] = 't';
+	  modebuf[3] = '\0';
 
           /*
            * XXX - this is a rather ugly hack.

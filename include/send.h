@@ -68,6 +68,9 @@ extern  void sendto_common_channels_local(struct Client *, const char *,
 extern  void sendto_channel_local(int type, struct Channel *,
                                   const char *, ...) AFP(3, 4);
 
+extern  void sendto_channel_local_butone(struct Client *, int, struct Channel *,
+                                         const char *, ...) AFP(4,5);
+
 extern void sendto_channel_remote(struct Client *one,
 		   struct Client *from, int type,
                    int caps, int nocaps, struct Channel *chptr,
@@ -86,8 +89,6 @@ extern  void sendto_realops_flags(int, int, const char *, ...) AFP(3, 4);
 
 extern  void sendto_wallops_flags(int, struct Client *, const char *, ...)
            AFP(3, 4);
-extern  void sendto_gnotice_flags(int, int, char*, struct Client *, 
-        struct Client *,const char *, ...);
 
 extern  void ts_warn(const char *, ...) AFP(1, 2);
 

@@ -1,137 +1,173 @@
-/************************************************************************
- *   IRC - Internet Relay Chat, modules/m_map.c
- *   This file is copyright (C) 2002 Stuart Walsh
- *                                    <stu@ipng.org.uk>
+/*
+ *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
+ *  m_map.c: Sends an Undernet compatible map to a user.
  *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
+ *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
  *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ *  USA
+ *
+ *  $Id$
  */
 
 #include "stdinc.h"
-#include "tools.h"
-#include "common.h"
-#include "handlers.h"
 #include "client.h"
-#include "channel.h"
-#include "channel_mode.h"
-#include "vchannel.h"
-#include "hash.h"
-#include "ircd.h"
-#include "numeric.h"
-#include "s_serv.h"
-#include "send.h"
-#include "list.h"
-#include "irc_string.h"
-#include "s_conf.h"
-#include "msg.h"
-#include "parse.h"
 #include "modules.h"
+#include "handlers.h"
+#include "numeric.h"
+#include "send.h"
+#include "s_conf.h"
+#include "s_serv.h"
 
-#define MAX_MAP_DEPTH 10
 
+static void ms_map(struct Client *client_p, struct Client *source_p,
+                    int parc, char *parv[]);
+static void mo_map(struct Client *client_p, struct Client *source_p,
+                    int parc, char *parv[]);
 
-static void m_map(struct Client *client_p, struct Client *source_p, int parc, char *parv[]);
-
-const char* _version = "$Revision 0.4$";
+static void dump_map(struct Client *client_p,struct Client *root, char *pbuf);
 
 struct Message map_msgtab = {
-      "MAP", 0, 0, 0, 0, MFLG_SLOW, 0,
-        {m_unregistered, m_not_oper, m_map, m_map}
+  "MAP", 0, 0, 0, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, ms_map, mo_map}
 };
 
+#ifndef STATIC_MODULES
 void _modinit(void)
 {
-      mod_add_cmd(&map_msgtab);
+  mod_add_cmd(&map_msgtab);
 }
 
-void
-_moddeinit(void)
+void _moddeinit(void)
 {
-      mod_del_cmd(&map_msgtab);
+  mod_del_cmd(&map_msgtab);
 }
 
+const char *_version = "$Revision$";
+#endif
 
+static char buf[BUFSIZE];
 
-static char header[(MAX_MAP_DEPTH*2) + 4 + 1];
-static int header_length;
-
-static void map_send_server(struct Client* source_p, char* sender_prefix, 
-        struct Client* current)
+/*
+** mo_map
+**      parv[0] = sender prefix
+*/
+static void mo_map(struct Client *client_p, struct Client *source_p,
+                    int parc, char *parv[])
 {
-  struct Client* target_p;
-
-  if (!current->serv)
-    return; /* this should never happen, but let's be safe... */
-
-  /* header should be formatted for us already */
-  sendto_one(source_p, form_str(RPL_MAP), me.name, sender_prefix, header, 
-          current->name, (current->ping_time.tv_sec * 1000) + 
-          (current->ping_time.tv_usec / 1000));
-
-  /* Now, iterate over it's children */
-  if (current->serv->servers)
+  struct ConfItem *conf;
+  dump_map(client_p,&me,buf);
+  for (conf = ConfigItemList; conf; conf = conf->next)
+  {
+    if (conf->status != CONF_SERVER)
+      continue;
+    if (strcmp(conf->name, me.name) == 0)
+      continue;
+    if (!find_server(conf->name))
     {
-      /* Is this a child? */
-      if (header_length > 0)
-	{
-	  /* OK, was our parent a tail? */
-	  if (header[header_length - 2] == '`')
-	    /* Yes, remove that from the string, it's no longer needed */
-	    header[header_length - 2] = ' ';
-	  /* Regardless, remove the - from it's current position */
-	  header[header_length - 1] = ' ';
-	}
-      /* Add the marker for "more children" */
-      strcat(header, "|-");
-      header_length += 2;
-      for (target_p = current->serv->servers; target_p->lnext; target_p = target_p->lnext) /* Break one hop early to get tail right */
-	{
-	  /* Some of these calls might eat this, add it back */
-	  header[header_length - 1] = '-';
-	  map_send_server(source_p, sender_prefix, target_p);
-	}
-      /* Convert | to ` in this one, it's my last child */
-      header[header_length - 2] = '`';
-      header[header_length - 1] = '-';
-      map_send_server(source_p, sender_prefix, target_p);
-      /* Remove the trailing "  " from the string now */
-      header[header_length - 2] = '\0';
-      header_length -= 2;
+      char buffer[BUFSIZE];
+      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
+      sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buffer);
     }
+  }
+  sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
 }
 
-static void m_map(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+
+static void ms_map(struct Client *client_p, struct Client *source_p,
+                    int parc, char *parv[])
 {
-  struct ConfItem* conf;
+  struct ConfItem *conf;
 
   if (parc > 1)
-    if (hunt_server(client_p, source_p, ":%s MAP %s", 1, parc, parv) != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s MAP %s", 1, parc, parv) 
+            != HUNTED_ISME)
       return;
-
-  header_length = 0;
-  header[0] = '\0';
-  map_send_server(source_p, parv[0], &me);
+  dump_map(source_p,&me,buf);
   for (conf = ConfigItemList; conf; conf = conf->next)
+  {
+    if (conf->status != CONF_SERVER)
+      continue;
+    if (strcmp(conf->name, me.name) == 0)
+      continue;
+    if (!find_server(conf->name))
     {
-        if (conf->status != CONF_SERVER)
-            continue;
-      if (strcmp(conf->name, me.name) == 0)
-	continue;
-      if (!find_server(conf->name))
-	sendto_one(source_p, form_str(RPL_MAP), me.name, parv[0], "** ", conf->name, -1);
+      char buffer[BUFSIZE];
+      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
+      sendto_one(source_p, form_str(RPL_MAP), me.name, source_p->name, buffer);
     }
-  sendto_one(source_p,form_str(RPL_MAPEND),me.name,parv[0]);
+  }
+  sendto_one(source_p, form_str(RPL_MAPEND), me.name, source_p->name);
+}
 
-  return;
-} 
+/*
+** dump_map
+**   dumps server map, called recursively.
+*/
+static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
+{
+  int cnt = 0, i = 0, len;
+  int users = 0;
+  struct Client *server_p,*user_p;
+        
+  *pbuf= '\0';
+       
+  strncat(pbuf,root_p->name,BUFSIZE - ((size_t) pbuf - (size_t) buf));
+  len = strlen(buf);
+  buf[len] = ' ';
+	
+  /* FIXME: add serv->usercnt */
+  for( user_p = root_p->serv->users; user_p; user_p = user_p->lnext )
+    users++;
+        
+  snprintf(buf+len, BUFSIZE," (Users: %d [%.1f%%] - Last Ping: %lums)", users,
+           100 * (float) users / (float) Count.total,
+           (root_p->ping_time.tv_usec / 1000));
+        
+  sendto_one(client_p, form_str(RPL_MAP),me.name,client_p->name,buf);
+        
+  if ((server_p = root_p->serv->servers))
+  {
+    for (; server_p; server_p = server_p->lnext)
+    {
+      cnt++;
+    }
+    
+    if (cnt)
+    {
+      if (pbuf > buf + 3)
+      {
+        pbuf[-2] = ' ';
+        if (pbuf[-3] == '`')
+          pbuf[-3] = ' ';
+      }
+    }
+  }
+  for (i = 1,server_p = root_p->serv->servers; server_p; server_p=server_p->lnext)
+  {
+    *pbuf = ' ';
+    if (i < cnt)
+      *(pbuf + 1) = '|';
+    else
+      *(pbuf + 1) = '`';
+      
+    *(pbuf + 2) = '-';
+    *(pbuf + 3) = ' ';
+    dump_map(client_p,server_p,pbuf+4);
+ 
+    i++;
+   }
+}
+

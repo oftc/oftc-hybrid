@@ -62,7 +62,7 @@
 struct crypt_state
 {
   EVP_CIPHER_CTX       ctx;
-  EVP_CIPHER           *cipher;
+  const EVP_CIPHER     *cipher;
   unsigned int          keylen;         /* bytes */
   unsigned char        *key;
   unsigned int          ivlen;          /* bytes */
