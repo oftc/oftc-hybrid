@@ -97,6 +97,11 @@ static void handle_opers(int p_or_n, char *command,
                          struct Client *client_p,
                          struct Client *source_p, char *nick, char *text);
 
+
+static int handle_nick_server(int p_or_n, char *command,
+			      struct Client *client_p,
+			      struct Client *source_p, char *nick, char *text);
+
 struct Message privmsg_msgtab = {
   "PRIVMSG", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0L,
   {m_unregistered, m_privmsg, m_privmsg, m_privmsg}
@@ -396,6 +401,12 @@ build_target_list(int p_or_n, char *command, struct Client *client_p,
 		       source_p->name, nick);
 	}
       continue;
+    }
+
+    if (strchr(nick, '@') != NULL)
+    {
+      if(handle_nick_server(p_or_n, command, client_p, source_p, nick, text))
+	continue;
     }
 
     if(IsOper(source_p) && ((*nick == '$') || strchr(nick, '@')))
@@ -703,7 +714,7 @@ flood_attack_client(int p_or_n, struct Client *source_p,
     {
       if (target_p->localClient->flood_noticed == 0)
       {
-        sendto_gnotice_flags(FLAGS_BOTS, L_OPER, me.name, &me, NULL,
+        sendto_realops_flags(FLAGS_BOTS, L_ALL,
                              "Possible Flooder %s [%s@%s] on %s target: %s",
                              source_p->name, source_p->username,
                              source_p->host,
@@ -759,7 +770,7 @@ flood_attack_channel(int p_or_n, struct Client *source_p,
     {
       if (chptr->flood_noticed == 0)
       {
-        sendto_gnotice_flags(FLAGS_BOTS, L_OPER, me.name, &me, NULL,
+        sendto_realops_flags(FLAGS_BOTS, L_ALL,
                              "Possible Flooder %s [%s@%s] on %s target: %s",
                              source_p->name, source_p->username,
                              source_p->host,
@@ -919,6 +930,62 @@ handle_opers(int p_or_n, char *command, struct Client *client_p,
   else if (server && (target_p == NULL))
     sendto_one(source_p, form_str(ERR_NOSUCHNICK), me.name,
                source_p->name, nick);
+}
+
+/*
+ * handle_nick_server
+ *
+ * inputs	- server pointer
+ *		- client pointer
+ *		- nick stuff to grok
+ *		- text to send if grok
+ * output	- 1 if handled here, 0 if not
+ * side effects	- nick@server is handled here
+ */
+static int
+handle_nick_server(int p_or_n, char *command, struct Client *client_p,
+		   struct Client *source_p, char *nick, char *text)
+{
+  struct Client *target_p;
+  struct Client *server_p;
+  char *server;
+  int result;
+
+  result = 0;
+
+  if ((server = strchr(nick, '@')) && (server_p = find_server(server + 1)))
+  {
+    if (strchr(nick, '%') != NULL)
+      return(0);
+
+    if (strncasecmp(nick, "opers", 5) == 0)
+      return(0);
+
+    *server = '\0';
+
+    if ((target_p = find_person(nick)) != NULL)
+    {
+      *server = '@';
+
+      if (server_p == &me)
+      {
+        sendto_one(target_p, ":%s %s %s :%s",
+		   source_p->name, command, nick, text);
+      }
+      else
+      {
+        sendto_anywhere(target_p, source_p, "%s %s :%s", command,
+                        nick, text);
+      }
+      if ((p_or_n != NOTICE) && source_p->user)
+	source_p->user->last = CurrentTime;
+      result = 1;
+    }
+    else
+      sendto_one(source_p, form_str(ERR_NOSUCHNICK),
+		 me.name, source_p->name, nick);
+  }
+  return(result);
 }
 
 /*
