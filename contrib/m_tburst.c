@@ -127,13 +127,13 @@ static void set_topic(struct Client *source_p, struct Channel *chptr,
   set_channel_topic(chptr, topic, topicwho, newtopicts);
 
   sendto_channel_local(ALL_MEMBERS, chptr, ":%s TOPIC %s :%s",
-		       ConfigServerHide.hide_servers ? me.name : source_p->name,
+		       ConfigServerHide.hide_servers ? me.name : me.name,
 		       chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
 
 #ifdef TBURST_PROPAGATE
   sendto_server(source_p, NULL, chptr, CAP_TBURST, NOCAPS, NOFLAGS,
 		":%s TBURST %ld %s %ld %s :%s",
-		source_p->name, chptr->channelts, chptr->chname,
+		me.name, chptr->channelts, chptr->chname,
 		chptr->topic_time, 
                 chptr->topic_info == NULL ? "" : chptr->topic_info,
                 chptr->topic == NULL ? "" : chptr->topic);

@@ -89,7 +89,11 @@ static void mo_jupe(struct Client *client_p, struct Client *source_p,
   char reason[REALLEN+2];
 
   if(!ServerInfo.hub)
-    return;
+    {
+      sendto_one(source_p, ":%s NOTICE %s :Must be used from a hub server",
+                 me.name, parv[0]);
+      return;
+    }
 
   if(!IsOperAdmin(source_p))
     {
@@ -118,7 +122,7 @@ static void mo_jupe(struct Client *client_p, struct Client *source_p,
 
   sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
                 ":%s WALLOPS :JUPE for %s requested by %s!%s@%s: %s",
-                parv[0], parv[1], source_p->name, 
+                me.name, parv[1], source_p->name, 
                 source_p->username, source_p->host, parv[2]);
   ilog(L_NOTICE, "JUPE for %s requested by %s: %s",
                 parv[1], get_oper_name(source_p), parv[2]);
@@ -132,7 +136,7 @@ static void mo_jupe(struct Client *client_p, struct Client *source_p,
                 ":%s SERVER %s 1 :JUPED: %s",
                 me.name, parv[1], parv[2]);
 
-  sendto_gnotice_flags(FLAGS_SPY, L_OPER, me.name, &me, NULL,
+  sendto_realops_flags(FLAGS_ALL, L_ALL,
                        "Link with %s established: (JUPED) link",
 		       parv[1]);
 
