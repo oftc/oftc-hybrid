@@ -1,3 +1,1856 @@
+lusky       2002/12/20 23:40:37 EST	(20021221_0)
+
+  Modified files:
+    include              patchlevel.h 
+  Log:
+  revved patchlevel to rc6
+  
+  Revision  Changes    Path
+  7.40      +1 -1      ircd-hybrid-7/include/patchlevel.h
+
+
+
+db          2002/12/19 00:58:17 EST	(20021219_1)
+
+  Modified files:
+    .                    Hybrid-team 
+  Log:
+  - Jack Low. so there.
+  
+  Revision  Changes    Path
+  7.56      +1 -1      ircd-hybrid-7/Hybrid-team
+
+
+
+db          2002/12/18 22:51:36 EST	(20021219_0)
+
+  Modified files:
+    .                    Hybrid-team RELNOTES 
+    src                  channel_mode.c 
+  Log:
+  - fixed a very nasty buffer overflow in ban handling.
+    ban strings cannot be longer than MODEBUFLEN (200 chars)
+    this fix to channel_mode.c ensures this happens.
+  - updated RELNOTES to note this change
+  - added MetalRock to the team listing, he's done more than a lot of
+    folk at helping us find bugs.
+  
+  Revision  Changes    Path
+  7.55      +1 -0      ircd-hybrid-7/Hybrid-team
+  1.48      +1 -0      ircd-hybrid-7/RELNOTES
+  7.67      +86 -52    ircd-hybrid-7/src/channel_mode.c
+
+
+
+bill        2002/12/18 12:03:46 EST	(20021218_2)
+
+  Modified files:
+    .                    RELNOTES 
+  Log:
+  - finished updating RELNOTES in preparation for rc6
+  
+  Revision  Changes    Path
+  1.47      +1 -0      ircd-hybrid-7/RELNOTES
+
+
+
+db          2002/12/18 00:33:29 EST	(20021218_1)
+
+  Modified files:
+    contrib              m_tburst.c 
+  Log:
+  - committed metalrocks change
+  
+  Revision  Changes    Path
+  1.12      +3 -3      ircd-hybrid-7/contrib/m_tburst.c
+
+
+
+db          2002/12/17 23:44:36 EST	(20021218_0)
+
+  Modified files:
+    src                  client.c 
+  Log:
+  - removed a redundant free_client(), this was placed just before
+    exit_one_client() which caused localClient part to go to NULL.
+    This confused MyConnect() etc. so clients were not being removed
+    from channel lists properly. The free_client() call is being called
+    after exit_client() anyway.
+  - tidied up a bit the formatting in one place...
+  
+  Revision  Changes    Path
+  7.308     +7 -8      ircd-hybrid-7/src/client.c
+
+
+
+androsyn    2002/12/17 07:35:09 EST	(20021217_0)
+
+  Modified files:
+    adns                 parse.c 
+  Log:
+  Allow '_' in hostnames per rfc1033 recommendations
+  
+  Revision  Changes    Path
+  1.6       +1 -1      ircd-hybrid-7/adns/parse.c
+
+
+
+db          2002/12/16 17:43:30 EST	(20021216_5)
+
+  Modified files:
+    src                  packet.c 
+  Log:
+  - I have a sneaking suspicion the file descriptor is still on the
+    poll/select etc. list... this should be dug into further.. In any case
+    its better to be a bit defensive about poking at a client anyway.
+  
+  Revision  Changes    Path
+  7.95      +4 -1      ircd-hybrid-7/src/packet.c
+
+
+
+db          2002/12/16 15:53:01 EST	(20021216_4)
+
+  Modified files:
+    src                  packet.c 
+  Log:
+  - localClient can go NULL after a parse here as well.
+  
+  Revision  Changes    Path
+  7.94      +2 -0      ircd-hybrid-7/src/packet.c
+
+
+
+db          2002/12/16 02:18:50 EST	(20021216_3)
+
+  Modified files:
+    .                    RELNOTES 
+    src                  kdparse.c 
+  Log:
+  - cleaned up getfield() field code. I obviously did it in a hurry last time.
+    this fixes bug with , in a reason field.
+  - updated RELNOTES again
+  
+  Revision  Changes    Path
+  1.46      +4 -1      ircd-hybrid-7/RELNOTES
+  7.9       +35 -23    ircd-hybrid-7/src/kdparse.c
+
+
+
+db          2002/12/16 01:44:46 EST	(20021216_2)
+
+  Modified files:
+    .                    RELNOTES 
+  Log:
+  - started updating RELNOTES in preparation for one more rc
+  
+  Revision  Changes    Path
+  1.45      +11 -0     ircd-hybrid-7/RELNOTES
+
+
+
+db          2002/12/16 01:30:51 EST	(20021216_1)
+
+  Modified files:
+    src                  channel.c 
+  Log:
+  - add some sanity tests to not try to use who->user if user is NULL
+  
+  Revision  Changes    Path
+  7.346     +21 -15    ircd-hybrid-7/src/channel.c
+
+
+
+db          2002/12/16 00:00:40 EST	(20021216_0)
+
+  Modified files:
+    src                  channel.c 
+  Log:
+  - Don't decrement the joined count unless actually succeeded in removing
+    a channel join!
+  
+  Revision  Changes    Path
+  7.345     +2 -3      ircd-hybrid-7/src/channel.c
+
+
+
+db          2002/12/15 18:50:18 EST	(20021215_0)
+
+  Modified files:
+    doc/technical        send.txt 
+    modules              m_invite.c 
+    src                  packet.c 
+  Log:
+  - updated the send docs. a couple of functions disapeared to be replaced
+    with one function in its place. oops.
+  - a client can have a localClient part of NULL when we go try to read from it
+    oops. We can't do that. Notably this happened when a server was unauthed,
+    coring the server.
+  - m_invite was not sending invites properly when +p was on. I admit
+    this code could be finessed, but I wanted to get it working first.
+  
+  Revision  Changes    Path
+  1.17      +11 -15    ircd-hybrid-7/doc/technical/send.txt
+  1.48      +124 -13   ircd-hybrid-7/modules/m_invite.c
+  7.93      +8 -0      ircd-hybrid-7/src/packet.c
+
+
+
+db          2002/12/14 02:37:10 EST	(20021214_1)
+
+  Modified files:
+    src                  send.c 
+  Log:
+  - be careful with IsCapable() when the state of localClient is not known
+    if its NULL, it will panic the server.
+  
+  Revision  Changes    Path
+  7.209     +6 -3      ircd-hybrid-7/src/send.c
+
+
+
+db          2002/12/13 23:08:39 EST	(20021214_0)
+
+  Modified files:
+    src                  channel_mode.c 
+  Log:
+  - allow "op cookies" *ugh*
+    mode * +o-b nick cookie will now work. its an exception for this
+    case only. ugh ugh ugh ugh ugh
+  - cleaned up some of the table code. Mode table of 512 is a tad large
+    but will fix later...
+  
+  Revision  Changes    Path
+  7.66      +19 -2     ircd-hybrid-7/src/channel_mode.c
+
+
+
+bill        2002/12/13 00:38:48 EST	(20021213_1)
+
+  Modified files:
+    src                  client.c s_user.c send.c 
+  Log:
+  - changed all instances of nick[user@host] to nick [user@host] .. this fixes a nasty bug that can be described by this:
+  
+     wheres[the[nick@start.com]
+  
+  Revision  Changes    Path
+  7.307     +3 -3      ircd-hybrid-7/src/client.c
+  7.216     +1 -1      ircd-hybrid-7/src/s_user.c
+  7.208     +3 -3      ircd-hybrid-7/src/send.c
+
+
+
+db          2002/12/12 22:21:14 EST	(20021213_0)
+
+  Modified files:
+    src                  packet.c 
+  Log:
+  - *sigh* a client can be set dead (IsDead()) in a number of places
+    while parsing. In all cases, if exit_client() is called,
+    and the client is local (which it is here) then localClient goes *poof*
+    and its set dead. You can't read data from something that aint there scotty!
+    SHE'S GONNA BLOW CAPTAIN!
+  
+  Revision  Changes    Path
+  7.92      +12 -8     ircd-hybrid-7/src/packet.c
+
+
+
+bill        2002/12/12 15:16:19 EST	(20021212_1)
+
+  Modified files:
+    .                    Hybrid-team 
+  Log:
+  Submitted by:   vx0
+  - updated vx0's email address, per his request
+  
+  Revision  Changes    Path
+  7.54      +1 -1      ircd-hybrid-7/Hybrid-team
+
+
+
+db          2002/12/12 01:33:01 EST	(20021212_0)
+
+  Modified files:
+    src                  client.c packet.c 
+  Log:
+  - client can be SetDead() after parsing a message, if this happens
+    don't try to parse any outstanding buffers for it!
+  
+  Revision  Changes    Path
+  7.306     +1 -1      ircd-hybrid-7/src/client.c
+  7.91      +28 -22    ircd-hybrid-7/src/packet.c
+
+
+
+bill        2002/12/10 16:29:11 EST	(20021210_1)
+
+  Modified files:
+    src                  client.c 
+  Log:
+  - fixed missing )
+  
+  Revision  Changes    Path
+  7.305     +1 -1      ircd-hybrid-7/src/client.c
+
+
+
+androsyn    2002/12/09 22:10:57 EST	(20021210_0)
+
+  Modified files:
+    src                  client.c 
+  Log:
+  This is the correct fix for the linebuf leak.  Basically close_connection()
+  wasn't setting MyConnect() == FALSE as doing so would have caused a core
+  dump further down.  More the close_connection() call towards the end of the
+  function where localClient is no longer needed.  Add a free_local_client()
+  function that actually does the free and sets localClient = NULL
+  
+  Revision  Changes    Path
+  7.304     +29 -40    ircd-hybrid-7/src/client.c
+
+
+
+jmallett    2002/12/03 21:42:21 EST	(20021204_0)
+
+  Modified files:
+    .                    configure 
+    autoconf             configure.in 
+    include              setup.h.in 
+    src                  dynlink.c 
+  Log:
+  Use dlfunc(3) if we have it, fake it otherwise, at least abstracting out the
+  hideousness of data pointer integral casts.
+  
+  Revision  Changes    Path
+  7.149     +1 -0      ircd-hybrid-7/autoconf/configure.in
+  7.152     +76 -0     ircd-hybrid-7/configure
+  7.57      +3 -0      ircd-hybrid-7/include/setup.h.in
+  7.4       +29 -11    ircd-hybrid-7/src/dynlink.c
+
+
+
+androsyn    2002/11/30 08:39:51 EST	(20021130_0)
+
+  Modified files:
+    src                  client.c 
+  Log:
+    Fixed the leaking linebuf issue.  Basically what would happen is that upon
+    exit_one_client() we never called linebuf_donebuf for the clients sendq and
+    recvq..oops.
+  
+  Revision  Changes    Path
+  7.303     +6 -2      ircd-hybrid-7/src/client.c
+
+
+
+db          2002/11/28 12:36:59 EST	(20021128_1)
+
+  Modified files:
+    src                  channel.c 
+  Log:
+  - revert to 7.342 for now, until have time to figure out the "all members
+    in channel names have @" bug.
+  
+  Revision  Changes    Path
+  7.344     +2 -5      ircd-hybrid-7/src/channel.c
+
+
+
+db          2002/11/27 21:18:03 EST	(20021128_0)
+
+  Modified files:
+    src                  balloc.c 
+  Log:
+  - I was in a hurry to get groceries before ok? :-)
+  
+  Revision  Changes    Path
+  7.40      +1 -4      ircd-hybrid-7/src/balloc.c
+
+
+
+db          2002/11/27 17:54:13 EST	(20021127_3)
+
+  Modified files:
+    src                  balloc.c 
+  Log:
+  - As pointed out by TimeMr14C...
+  
+  Revision  Changes    Path
+  7.39      +1 -1      ircd-hybrid-7/src/balloc.c
+
+
+
+db          2002/11/27 10:46:25 EST	(20021127_2)
+
+  Modified files:
+    include              numeric.h 
+  Log:
+  - grrrr KNOCKDISABLED needs to use 715 (thank you Michael)
+  
+  Revision  Changes    Path
+  7.31      +1 -1      ircd-hybrid-7/include/numeric.h
+
+
+
+jmallett    2002/11/26 22:56:25 EST	(20021127_1)
+
+  Modified files:
+    src                  Makefile.in 
+  Log:
+  Take the easy way out for non-GNU compilers, and make people make sure tools.c
+  always compiles with whatever changes they're making - roll-back revision
+  7.113's unexplained delta here, and compile it always.  If we really do care
+  enough to rip it out of the build where it isn't needed, there are other ways
+  to do that, like we do for @SPRINTF@.
+  
+  Revision  Changes    Path
+  7.114     +1 -2      ircd-hybrid-7/src/Makefile.in
+
+
+
+jmallett    2002/11/26 22:46:59 EST	(20021127_0)
+
+  Modified files:
+    src                  s_bsd_devpoll.c s_bsd_kqueue.c 
+                         s_bsd_poll.c s_bsd_select.c s_bsd_sigio.c 
+  Log:
+  Fix compilation (mostly) with TenDRA 4.1.2 on FreeBSD 5.0-CURRENT, by
+  not letting unused s_bsd_*.c become empty compilation units.
+  
+  Revision  Changes    Path
+  7.16      +5 -1      ircd-hybrid-7/src/s_bsd_devpoll.c
+  1.28      +5 -0      ircd-hybrid-7/src/s_bsd_kqueue.c
+  7.55      +5 -1      ircd-hybrid-7/src/s_bsd_poll.c
+  7.27      +5 -0      ircd-hybrid-7/src/s_bsd_select.c
+  7.24      +5 -1      ircd-hybrid-7/src/s_bsd_sigio.c
+
+
+
+db          2002/11/26 15:34:59 EST	(20021126_0)
+
+  Modified files:
+    src                  channel.c 
+  Log:
+  - reverse chanops+voice clients with peons in names listing
+  
+  Revision  Changes    Path
+  7.343     +5 -2      ircd-hybrid-7/src/channel.c
+
+
+
+jmallett    2002/11/24 03:27:16 EST	(20021124_0)
+
+  Modified files:
+    servlink             servlink.h 
+    src                  md5.c 
+  Log:
+  Repeat after me "char isn't signed"...  "on reasonable UNIX systems".
+  Checking for "<derived-char> > -1" is broken, when you mean "<derived-char> !=
+  (char) -1" [~0, 0xff on most machines].
+  
+  That table is all-but begging to be int8_t or similar.
+  
+  Also, match the constness returned by the _cfp functions, since discarding it
+  is evil, and we don't seem to need to.
+  
+  Revision  Changes    Path
+  1.21      +1 -1      ircd-hybrid-7/servlink/servlink.h
+  1.15      +4 -4      ircd-hybrid-7/src/md5.c
+
+
+
+db          2002/11/23 12:12:56 EST	(20021123_0)
+
+  Modified files:
+    include              defaults.h 
+  Log:
+  - should be #error not error as pointed out by michael@phat-net.de
+  
+  Revision  Changes    Path
+  7.6       +1 -1      ircd-hybrid-7/include/defaults.h
+
+
+
+bill        2002/11/20 22:35:09 EST	(20021121_0)
+
+  Modified files:
+    modules              m_connect.c 
+  Log:
+  - fixed typo that caused leaking of hidden server IPs
+  
+  Revision  Changes    Path
+  1.39      +2 -2      ircd-hybrid-7/modules/m_connect.c
+
+
+
+bill        2002/11/20 13:00:05 EST	(20021120_2)
+
+  Modified files:
+    contrib              m_operspy.c 
+  Log:
+  - duplicate previous fix in m_operspy() .. just in case.
+  
+  Revision  Changes    Path
+  1.13      +6 -3      ircd-hybrid-7/contrib/m_operspy.c
+
+
+
+bill        2002/11/20 00:55:13 EST	(20021120_1)
+
+  Modified files:
+    contrib              m_operspy.c 
+  Log:
+  - fix a potential core. this does create a detection vulnerability, but being stable is more important
+  
+  Revision  Changes    Path
+  1.12      +6 -3      ircd-hybrid-7/contrib/m_operspy.c
+
+
+
+db          2002/11/19 19:18:32 EST	(20021120_0)
+
+  Modified files:
+    src                  channel_mode.c 
+  Log:
+  - fixes buffer overflow with +a -a channel mode
+  
+  found and patch submitted by Jack L. xxjack12xx@doramail.com
+  
+  Revision  Changes    Path
+  7.65      +3 -0      ircd-hybrid-7/src/channel_mode.c
+
+
+
+db          2002/11/18 14:54:59 EST	(20021118_0)
+
+  Modified files:
+    modules              m_unkline.c 
+  Log:
+  - oops. forgot some continues'
+  
+  Revision  Changes    Path
+  1.51      +5 -1      ircd-hybrid-7/modules/m_unkline.c
+
+
+
+db          2002/11/13 08:15:07 EST	(20021113_4)
+
+  Modified files:
+    modules              m_unkline.c 
+  Log:
+  - These variables now not needed. (error_on_write)
+  
+  Revision  Changes    Path
+  1.50      +3 -3      ircd-hybrid-7/modules/m_unkline.c
+
+
+
+db          2002/11/13 08:12:03 EST	(20021113_3)
+
+  Modified files:
+    modules              m_kline.c 
+  Log:
+  - I stared at this until my eyeballs nearly fell out. Anyway, fixed typo
+    spotted by michael@phat-net.de
+  
+  Revision  Changes    Path
+  1.111     +2 -2      ircd-hybrid-7/modules/m_kline.c
+
+
+
+db          2002/11/13 00:30:42 EST	(20021113_2)
+
+  Modified files:
+    modules              m_unkline.c 
+  Log:
+  As the result of a nasty core on hemmet I re-examined this code.
+  I'd truly like to know what kind of drugs I was on when I first
+  did this. really. Anyway, this makes more sense to me.
+  
+  Revision  Changes    Path
+  1.49      +41 -62    ircd-hybrid-7/modules/m_unkline.c
+
+
+
+jmallett    2002/11/12 23:33:02 EST	(20021113_1)
+
+  Modified files:
+    .                    README.PLATFORMS 
+  Log:
+  Well, I can't look after some platforms I used to be able to since I moved
+  to Kansas, but I can look after OpenBSD/macppc now!  Hopefully more to come,
+  but not just yet :/
+  
+  (I'm back!)
+  
+  Revision  Changes    Path
+  7.15      +1 -7      ircd-hybrid-7/README.PLATFORMS
+
+
+
+wiz         2002/11/12 20:59:00 EST	(20021113_0)
+
+  Modified files:
+    help/opers           rehash 
+  Log:
+  - Removed CHANNELS from the rehash help
+  
+  Revision  Changes    Path
+  1.3       +0 -1      ircd-hybrid-7/help/opers/rehash
+
+
+
+db          2002/11/12 08:45:43 EST	(20021112_2)
+
+  Modified files:
+    include              modules.h 
+    src                  ircd.c ircd_parser.y modules.c 
+  Log:
+  - UMODE_ALL -> FLAGS_ALL (motd rehash patch)
+  
+  It seems to be that there exist a problem with the dynamic core modules,
+  afaik it  should be  impossible to unload a  core  module, that is
+  true..... MODUNLOAD can't  unload a core module at all, BUT if you
+  MODRELOAD'ing a core module first, you're able to MODUNLOAD a core
+  module afterwards.
+  
+  michael@phat-net.de
+  
+  Revision  Changes    Path
+  7.32      +1 -1      ircd-hybrid-7/include/modules.h
+  7.244     +1 -1      ircd-hybrid-7/src/ircd.c
+  1.262     +1 -1      ircd-hybrid-7/src/ircd_parser.y
+  7.105     +9 -6      ircd-hybrid-7/src/modules.c
+
+
+
+db          2002/11/12 08:12:42 EST	(20021112_1)
+
+  Modified files:
+    modules/core         m_part.c 
+  Log:
+  Just a small bug I came across by chance, if you haven't got it
+  already :-)
+  
+  In modules/core/m_part.c (line 178) there is an extra space in the
+  format string "%s PART %s  :%s".  This was using hybrid 7-rc4.
+  
+  submitted by tfarrell@frogbert.queens.unimelb.edu.au
+  
+  Revision  Changes    Path
+  1.57      +2 -2      ircd-hybrid-7/modules/core/m_part.c
+
+
+
+db          2002/11/12 08:09:51 EST	(20021112_0)
+
+  Modified files:
+    src                  s_user.c 
+  Log:
+  %S -> %s as noted by Michael <michael@phat-net.de>
+  
+  Revision  Changes    Path
+  7.215     +1 -1      ircd-hybrid-7/src/s_user.c
+
+
+
+db          2002/11/11 18:25:17 EST	(20021111_1)
+
+  Modified files:
+    include              ircd.h 
+    src                  ircd.c ircd_signal.c 
+  Log:
+  patch contributed by wcampbel@botbay.net
+  
+  Revision  Changes    Path
+  7.52      +1 -0      ircd-hybrid-7/include/ircd.h
+  7.243     +8 -0      ircd-hybrid-7/src/ircd.c
+  7.13      +13 -0     ircd-hybrid-7/src/ircd_signal.c
+
+
+
+bill        2002/11/11 15:43:19 EST	(20021111_0)
+
+  Modified files:
+    modules              m_motd.c m_stats.c 
+  Log:
+  Submitted by:   Lee H
+  - reverted previous fix.  treating remote requests the same as local oper requests
+    is in fact correct, at the msgtab level.  each mo_() function triggered by server
+    will have to do a sanity check looking for IsOper() before giving out any
+    sensitive data.
+  
+  Revision  Changes    Path
+  1.33      +9 -17     ircd-hybrid-7/modules/m_motd.c
+  1.114     +2 -7      ircd-hybrid-7/modules/m_stats.c
+
+
+
+bill        2002/11/10 14:53:07 EST	(20021110_0)
+
+  Modified files:
+    contrib              m_operspy.c 
+  Log:
+  Submitted by:   metalrock
+  - fixed core in m_operspy.c caused by doing a WHOIS on a linked server
+  
+  Revision  Changes    Path
+  1.11      +2 -2      ircd-hybrid-7/contrib/m_operspy.c
+
+
+
+wiz         2002/11/06 16:18:00 EST	(20021106_0)
+
+  Modified files:
+    modules              m_challenge.c m_oper.c 
+  Log:
+  - Cleaned up failed oper/challenge notices, clarified
+    error messages... yes I am bored, greg.
+  
+  Reviewed by:    xyst, billy-jon
+  
+  Revision  Changes    Path
+  1.40      +27 -13    ircd-hybrid-7/modules/m_challenge.c
+  1.58      +28 -21    ircd-hybrid-7/modules/m_oper.c
+
+
+
+bill        2002/11/05 09:49:51 EST	(20021105_0)
+
+  Modified files:
+    contrib              m_operspy.c 
+  Log:
+  - replaced 'unique case' detection fix with a slightly more robust one
+  
+  Revision  Changes    Path
+  1.10      +12 -4     ircd-hybrid-7/contrib/m_operspy.c
+
+
+
+wiz         2002/11/02 12:09:48 EST	(20021102_0)
+
+  Modified files:
+    modules              m_challenge.c 
+  Log:
+  - Changed misleading failed oper notice from /challenge
+    This error is not always caused by host mismatch.
+  
+  Revision  Changes    Path
+  1.39      +4 -4      ircd-hybrid-7/modules/m_challenge.c
+
+
+
+bill        2002/11/01 09:38:04 EST	(20021101_1)
+
+  Modified files:
+    modules              m_motd.c m_oper.c m_stats.c m_whowas.c 
+  Log:
+  - remote STATS and MOTD requests always treated the source as an oper, fixed.
+  - whowas now gives correct reply when 'null nick' is provided
+  - fixed trivial bug that would skew oper count
+  
+  Revision  Changes    Path
+  1.32      +19 -4     ircd-hybrid-7/modules/m_motd.c
+  1.57      +3 -6      ircd-hybrid-7/modules/m_oper.c
+  1.113     +7 -2      ircd-hybrid-7/modules/m_stats.c
+  1.29      +3 -3      ircd-hybrid-7/modules/m_whowas.c
+
+
+
+db          2002/11/01 08:24:42 EST	(20021101_0)
+
+  Modified files:
+    contrib              m_force.c m_operspy.c 
+  Log:
+  - fixes by adx
+  
+  Revision  Changes    Path
+  1.17      +2 -2      ircd-hybrid-7/contrib/m_force.c
+  1.9       +2 -1      ircd-hybrid-7/contrib/m_operspy.c
+
+
+
+lusky       2002/10/31 00:31:38 EST	(20021031_2)
+
+  Modified files:
+    include              patchlevel.h 
+  Log:
+  - revved patchlevel to 7rc5
+  
+  Revision  Changes    Path
+  7.39      +1 -1      ircd-hybrid-7/include/patchlevel.h
+
+
+
+db          2002/10/31 00:30:36 EST	(20021031_1)
+
+  Modified files:
+    .                    RELNOTES 
+  Log:
+  - updated RELNOTES
+  
+  Revision  Changes    Path
+  1.44      +20 -0     ircd-hybrid-7/RELNOTES
+
+
+
+wiz         2002/10/30 22:12:31 EST	(20021031_0)
+
+  Modified files:
+    include              hook.h 
+    src                  hook.c 
+  Log:
+  - Fixed compile time errors from missing ) and missing proto
+    in hook.c/hook.h (hi bill!)
+  
+  Revision  Changes    Path
+  1.15      +1 -0      ircd-hybrid-7/include/hook.h
+  7.19      +2 -2      ircd-hybrid-7/src/hook.c
+
+
+
+androsyn    2002/10/30 16:53:31 EST	(20021030_8)
+
+  Modified files:
+    src                  s_user.c 
+  Log:
+  Second half of the USER/PING cookie fix
+  
+  Revision  Changes    Path
+  7.214     +9 -10     ircd-hybrid-7/src/s_user.c
+
+
+
+androsyn    2002/10/30 16:44:54 EST	(20021030_7)
+
+  Modified files:
+    src                  s_user.c 
+  Log:
+  Fix the USER/PING cookie bug properly..
+  
+  Revision  Changes    Path
+  7.213     +12 -4     ircd-hybrid-7/src/s_user.c
+
+
+
+db          2002/10/30 16:31:22 EST	(20021030_6)
+
+  Modified files:
+    .                    configure 
+    autoconf             configure.in 
+  Log:
+  - apparently, the -ggdb option blows up gcc 3.0 or something
+    so its not specific to just OSX
+    Pointed out by Alex Strange (I can't find his email atm)
+  
+  Revision  Changes      Path
+  7.148     +2 -2        ircd-hybrid-7/autoconf/configure.in
+  7.151     +7090 -3086  ircd-hybrid-7/configure
+
+
+
+androsyn    2002/10/30 16:23:52 EST	(20021030_5)
+
+  Modified files:
+    src                  s_user.c 
+  Log:
+  Fix dumb bug that caused the USER response to be taken instead of the identd
+  response..
+  
+  Revision  Changes    Path
+  7.212     +3 -12     ircd-hybrid-7/src/s_user.c
+
+
+
+bill        2002/10/30 15:24:21 EST	(20021030_4)
+
+  Modified files:
+    src                  hook.c 
+  Log:
+  Submitted by:   AndroSyn
+  - this one should be DLINK_FOREACH_SAFE
+  
+  Revision  Changes    Path
+  7.18      +3 -5      ircd-hybrid-7/src/hook.c
+
+
+
+bill        2002/10/30 14:59:13 EST	(20021030_3)
+
+  Modified files:
+    src                  hook.c 
+  Log:
+  - style cleanups
+  - implemented DLINK_FOREACH wherever possible
+  
+  Revision  Changes    Path
+  7.17      +25 -23    ircd-hybrid-7/src/hook.c
+
+
+
+wiz         2002/10/30 12:44:58 EST	(20021030_2)
+
+  Modified files:
+    doc                  example.conf example.efnet.conf 
+    include              client.h s_conf.h 
+    modules/core         m_message.c 
+    src                  ircd_lexer.l ircd_parser.y packet.c 
+                         s_conf.c s_user.c 
+  Log:
+  - Added can_flood option in auth {} blocks
+  - Added true_oper_no_flood in general {} block
+  
+  Reviewed by: xyst
+  Approved by: Diane
+  
+  Revision  Changes    Path
+  7.169     +5 -0      ircd-hybrid-7/doc/example.conf
+  7.9       +5 -0      ircd-hybrid-7/doc/example.efnet.conf
+  7.153     +4 -0      ircd-hybrid-7/include/client.h
+  7.188     +3 -0      ircd-hybrid-7/include/s_conf.h
+  1.104     +3 -3      ircd-hybrid-7/modules/core/m_message.c
+  1.146     +2 -0      ircd-hybrid-7/src/ircd_lexer.l
+  1.261     +24 -1     ircd-hybrid-7/src/ircd_parser.y
+  7.90      +8 -4      ircd-hybrid-7/src/packet.c
+  7.332     +1 -0      ircd-hybrid-7/src/s_conf.c
+  7.211     +7 -0      ircd-hybrid-7/src/s_user.c
+
+
+
+bill        2002/10/29 22:33:26 EST	(20021030_1)
+
+  Modified files:
+    contrib              m_operspy.c m_whois.c 
+    include              numeric.h 
+    modules              m_whois.c 
+    src                  messages.tab 
+  Log:
+  - removed RPL_WHOISADMIN, as it is un-needed, and wreaks of vanity.
+    stats p still distinguishes admins, but maybe it shouldn't .. ?
+  
+  Revision  Changes    Path
+  1.8       +1 -6      ircd-hybrid-7/contrib/m_operspy.c
+  1.5       +3 -9      ircd-hybrid-7/contrib/m_whois.c
+  7.30      +0 -2      ircd-hybrid-7/include/numeric.h
+  1.83      +1 -7      ircd-hybrid-7/modules/m_whois.c
+  7.72      +1 -1      ircd-hybrid-7/src/messages.tab
+
+
+
+androsyn    2002/10/29 21:56:20 EST	(20021030_0)
+
+  Modified files:
+    adns                 adns.h internal.h query.c types.c 
+    src                  adns.c s_auth.c s_bsd.c 
+  Log:
+  Fix the NULL ipv6 hostname bug..
+  
+  Revision  Changes    Path
+  1.8       +2 -1      ircd-hybrid-7/adns/adns.h
+  1.11      +2 -1      ircd-hybrid-7/adns/internal.h
+  1.14      +5 -2      ircd-hybrid-7/adns/query.c
+  1.7       +82 -0     ircd-hybrid-7/adns/types.c
+  7.48      +11 -8     ircd-hybrid-7/src/adns.c
+  7.103     +2 -34     ircd-hybrid-7/src/s_auth.c
+  7.173     +13 -2     ircd-hybrid-7/src/s_bsd.c
+
+
+
+wiz         2002/10/29 17:53:10 EST	(20021029_2)
+
+  Modified files:
+    .                    Hybrid-team 
+  Log:
+  Hi everybody, I'm wiz.
+  
+  Revision  Changes    Path
+  7.53      +1 -0      ircd-hybrid-7/Hybrid-team
+
+
+
+db          2002/10/29 15:14:37 EST	(20021029_1)
+
+  Modified files:
+    doc                  challenge.txt 
+  Log:
+  - updated challenge.txt, this never got updated properly
+  
+  Revision  Changes    Path
+  1.10      +333 -333  ircd-hybrid-7/doc/challenge.txt
+
+
+
+bill        2002/10/29 14:38:22 EST	(20021029_0)
+
+  Modified files:
+    src                  channel.c 
+  Log:
+  - oops, completed removal of persistent channels
+  
+  Revision  Changes    Path
+  7.342     +1 -0      ircd-hybrid-7/src/channel.c
+
+
+
+bill        2002/10/28 16:09:26 EST	(20021028_1)
+
+  Modified files:
+    doc                  convertconf-example.conf example.conf 
+                         example.efnet.conf whats-new.txt 
+    include              channel.h channel_mode.h s_conf.h 
+    modules              m_info.c m_join.c 
+    src                  channel.c hash.c ircd.c ircd_lexer.l 
+                         ircd_parser.y s_conf.c 
+  Log:
+  - ripped persistent channels.  this should be re-thoughtout and re-implemented from scratch at a later date.
+  
+  Revision  Changes    Path
+  7.7       +1 -10     ircd-hybrid-7/doc/convertconf-example.conf
+  7.168     +1 -10     ircd-hybrid-7/doc/example.conf
+  7.8       +1 -13     ircd-hybrid-7/doc/example.efnet.conf
+  7.37      +0 -15     ircd-hybrid-7/doc/whats-new.txt
+  7.120     +0 -6      ircd-hybrid-7/include/channel.h
+  7.13      +0 -3      ircd-hybrid-7/include/channel_mode.h
+  7.187     +0 -1      ircd-hybrid-7/include/s_conf.h
+  1.61      +1 -7      ircd-hybrid-7/modules/m_info.c
+  1.93      +7 -23     ircd-hybrid-7/modules/m_join.c
+  7.341     +2 -113    ircd-hybrid-7/src/channel.c
+  7.47      +4 -1      ircd-hybrid-7/src/hash.c
+  7.242     +0 -3      ircd-hybrid-7/src/ircd.c
+  1.145     +0 -1      ircd-hybrid-7/src/ircd_lexer.l
+  1.260     +0 -7      ircd-hybrid-7/src/ircd_parser.y
+  7.331     +0 -3      ircd-hybrid-7/src/s_conf.c
+
+
+
+gregp       2002/10/27 20:08:41 EST	(20021028_0)
+
+  Modified files:
+    modules              m_challenge.c 
+  Log:
+  - fixing m_challenge.so braindeath, reported by wiz
+    - we were trying to log source_p->challenge stuffs directly after we'd
+      freed it a few lines above (oops)
+    - prehaps we should announce it to locops sometimes too!
+  
+  Reveiwed by:     my pet donkey, wiz
+  Submitted by:    wiz, various bovines
+  
+  Revision  Changes    Path
+  1.38      +11 -4     ircd-hybrid-7/modules/m_challenge.c
+
+
+
+bill        2002/10/24 16:54:53 EDT	(20021024_3)
+
+  Modified files:
+    src                  channel.c 
+  Log:
+  - better commented expire_channels() (sheesh, these things are more trouble than they're worth)
+  - added some continue statements, make things a bit more robust
+  
+  Revision  Changes    Path
+  7.340     +8 -0      ircd-hybrid-7/src/channel.c
+
+
+
+bill        2002/10/24 14:16:42 EDT	(20021024_2)
+
+  Modified files:
+    modules/core         m_message.c 
+    src                  channel.c parse.c 
+  Log:
+  - opers can no longer over-ride umode +g
+  - made expire_channels() use DLINK_FOREACH_SAFE
+  - made HELP use MFLG_HIDDEN when listing commands
+  
+  Revision  Changes    Path
+  1.103     +2 -3      ircd-hybrid-7/modules/core/m_message.c
+  7.339     +2 -2      ircd-hybrid-7/src/channel.c
+  7.141     +4 -3      ircd-hybrid-7/src/parse.c
+
+
+
+bill        2002/10/23 23:35:59 EDT	(20021024_1)
+
+  Modified files:
+    contrib              m_operspy.c 
+    include              msg.h 
+    src                  parse.c 
+  Log:
+  - added MFLG_HIDDEN, to hide commands from stats m
+  - updated m_operspy.c to use MFLG_HIDDEN
+  
+  Revision  Changes    Path
+  1.7       +2 -2      ircd-hybrid-7/contrib/m_operspy.c
+  7.42      +2 -0      ircd-hybrid-7/include/msg.h
+  7.140     +6 -5      ircd-hybrid-7/src/parse.c
+
+
+
+bill        2002/10/23 21:16:38 EDT	(20021024_0)
+
+  Modified files:
+    src                  m_error.c 
+  Log:
+  - no longer show all opers every time a user issues the ERROR command.  too much potential for abuse, especially since the ip is not shown, and it can be done pre-registration.
+  
+  Revision  Changes    Path
+  7.26      +1 -27     ircd-hybrid-7/src/m_error.c
+
+
+
+bill        2002/10/23 18:12:17 EDT	(20021023_0)
+
+  Modified files:
+    src                  channel.c list.c 
+  Log:
+  - added additional sanity checking in expire_channels(), which fixes a core
+  - removed extra ; in make_dlink_node()
+  
+  Revision  Changes    Path
+  7.338     +27 -4     ircd-hybrid-7/src/channel.c
+  7.47      +1 -1      ircd-hybrid-7/src/list.c
+
+
+
+androsyn    2002/10/22 14:47:27 EDT	(20021022_0)
+
+  Modified files:
+    src                  ircd_parser.y 
+  Log:
+  Wrap the fallback stuff in #ifdef IPV6
+  
+  Revision  Changes    Path
+  1.259     +4 -0      ircd-hybrid-7/src/ircd_parser.y
+
+
+
+androsyn    2002/10/19 18:36:25 EDT	(20021019_2)
+
+  Modified files:
+    src                  adns.c 
+  Log:
+  Make char *domain IPV6 only
+  
+  Revision  Changes    Path
+  7.47      +2 -0      ircd-hybrid-7/src/adns.c
+
+
+
+androsyn    2002/10/19 18:35:21 EDT	(20021019_1)
+
+  Modified files:
+    src                  s_conf.c 
+  Log:
+  Make fallback to ip6.int support the default
+  
+  Revision  Changes    Path
+  7.330     +5 -2      ircd-hybrid-7/src/s_conf.c
+
+
+
+androsyn    2002/10/19 18:32:53 EDT	(20021019_0)
+
+  Modified files:
+    include              res.h s_auth.h s_conf.h 
+    src                  adns.c ircd_lexer.l ircd_parser.y 
+                         s_auth.c s_conf.c 
+  Log:
+  Added support for ip6.arpa and fallback support for ip6.int.  Also fixed a
+  buglet where the server would spit out a failed host lookup message twice
+  when compiled for IPv6.
+  
+  Revision  Changes    Path
+  7.21      +1 -1      ircd-hybrid-7/include/res.h
+  7.17      +3 -0      ircd-hybrid-7/include/s_auth.h
+  7.186     +3 -0      ircd-hybrid-7/include/s_conf.h
+  7.46      +17 -7     ircd-hybrid-7/src/adns.c
+  1.144     +1 -0      ircd-hybrid-7/src/ircd_lexer.l
+  1.258     +11 -0     ircd-hybrid-7/src/ircd_parser.y
+  7.102     +16 -3     ircd-hybrid-7/src/s_auth.c
+  7.329     +1 -1      ircd-hybrid-7/src/s_conf.c
+
+
+
+bill        2002/10/17 13:06:33 EDT	(20021017_2)
+
+  Modified files:
+    contrib              m_jupe.c 
+  Log:
+  - cosmetic fix.  if we're not a hub, tell user why we fail
+  
+  Revision  Changes    Path
+  1.36      +6 -2      ircd-hybrid-7/contrib/m_jupe.c
+
+
+
+bill        2002/10/16 23:20:34 EDT	(20021017_1)
+
+  Modified files:
+    contrib              m_operspy.c 
+  Log:
+  - kludged small bug that allowed detection of m_operspy.c module
+  
+  Revision  Changes    Path
+  1.6       +10 -7     ircd-hybrid-7/contrib/m_operspy.c
+
+
+
+bill        2002/10/16 22:28:52 EDT	(20021017_0)
+
+  Modified files:
+    modules              m_rehash.c 
+  Log:
+  - updated rehash usage notice
+  
+  Revision  Changes    Path
+  1.42      +2 -2      ircd-hybrid-7/modules/m_rehash.c
+
+
+
+bill        2002/10/16 16:52:39 EDT	(20021016_2)
+
+  Modified files:
+    modules              m_who.c 
+    modules/core         m_message.c 
+    src                  channel.c 
+  Log:
+  - reverted un-needed previous m_who.c commit
+  - notices to user@server were being changed to PRIVMSG.  fixed.
+  - reset idle times following a succesful msg to user@server
+  - redid initilization of expiring_channels to be consistent with
+    lazylinks_channels
+  - redid expire_channels() to walk the linked list forwards, and
+    have channels be added to the list with dlinkAddTail() rather
+    than dlinkAdd().  functionality should be the same, this is
+    just cleaner.
+  
+  Revision  Changes    Path
+  1.102     +19 -3     ircd-hybrid-7/modules/core/m_message.c
+  1.66      +3 -1      ircd-hybrid-7/modules/m_who.c
+  7.337     +16 -16    ircd-hybrid-7/src/channel.c
+
+
+
+db          2002/10/16 00:18:01 EDT	(20021016_1)
+
+  Modified files:
+    modules              m_who.c 
+  Log:
+  - with --enable-efnet ptr was undefined in m_who.c
+  
+  Revision  Changes    Path
+  1.65      +1 -3      ircd-hybrid-7/modules/m_who.c
+
+
+
+db          2002/10/15 22:23:24 EDT	(20021016_0)
+
+  Modified files:
+    src                  ircd_parser.y 
+  Log:
+  Modifications as suggested by
+  Michael <michael@phat-net.de>
+  
+  Revision  Changes    Path
+  1.257     +5 -3      ircd-hybrid-7/src/ircd_parser.y
+
+
+
+bill        2002/10/13 21:26:09 EDT	(20021014_0)
+
+  Modified files:
+    src                  channel.c 
+  Log:
+  - typo in expire_channels() comment, pointed out by metalrock
+  
+  Revision  Changes    Path
+  7.336     +1 -1      ircd-hybrid-7/src/channel.c
+
+
+
+db          2002/10/12 06:39:07 EDT	(20021012_3)
+
+  Modified files:
+    modules              m_cryptlink.c 
+    src                  s_conf.c 
+  Log:
+  - "Unauthorised" vs. "Unauthorized" ircnet spells it the second way,
+    so guess hybrid will too.
+  
+  Revision  Changes    Path
+  1.35      +6 -6      ircd-hybrid-7/modules/m_cryptlink.c
+  7.328     +1 -1      ircd-hybrid-7/src/s_conf.c
+
+
+
+db          2002/10/12 00:33:32 EDT	(20021012_2)
+
+  Modified files:
+    src                  channel_mode.c 
+  Log:
+  - fixed another bug. When more than four modes happened locally in a mode change
+    the code was not placing a new + or - on the next line
+    so ended up with "bare" modes with no + or - in front. fixed.
+  
+  Revision  Changes    Path
+  7.64      +2 -0      ircd-hybrid-7/src/channel_mode.c
+
+
+
+db          2002/10/11 23:38:16 EDT	(20021012_1)
+
+  Modified files:
+    modules              m_ping.c 
+    src                  channel_mode.c 
+  Log:
+  - I hate server hostmasking. I really hate it.
+    In any case, the match() in m_ping.c should have been an irccmp()
+    ping is looking for an exact match on "me.name" not a wild card match.
+  
+  Revision  Changes    Path
+  1.32      +3 -3      ircd-hybrid-7/modules/m_ping.c
+  7.63      +3 -3      ircd-hybrid-7/src/channel_mode.c
+
+
+
+db          2002/10/11 21:33:00 EDT	(20021012_0)
+
+  Modified files:
+    modules              m_rehash.c 
+  Log:
+  - I won't ask why rehash CHANNELS was there
+  
+  Revision  Changes    Path
+  1.41      +2 -9      ircd-hybrid-7/modules/m_rehash.c
+
+
+
+db          2002/10/11 15:57:50 EDT	(20021011_0)
+
+  Modified files:
+    contrib              m_force.c 
+    src                  channel.c ircd.c s_auth.c 
+  Log:
+  - fixed bogus expiry code
+  - fixed typo in s_auth.c
+  
+  Revision  Changes    Path
+  1.16      +4 -4      ircd-hybrid-7/contrib/m_force.c
+  7.335     +46 -111   ircd-hybrid-7/src/channel.c
+  7.241     +0 -2      ircd-hybrid-7/src/ircd.c
+  7.101     +3 -2      ircd-hybrid-7/src/s_auth.c
+
+
+
+bill        2002/10/10 18:17:22 EDT	(20021010_3)
+
+  Modified files:
+    include              channel.h channel_mode.h tools.h 
+    src                  channel.c ircd.c 
+  Log:
+  - redid persistent channels
+  
+  Revision  Changes    Path
+  7.119     +5 -0      ircd-hybrid-7/include/channel.h
+  7.12      +3 -0      ircd-hybrid-7/include/channel_mode.h
+  1.19      +22 -0     ircd-hybrid-7/include/tools.h
+  7.334     +70 -4     ircd-hybrid-7/src/channel.c
+  7.240     +3 -0      ircd-hybrid-7/src/ircd.c
+
+
+
+androsyn    2002/10/10 14:49:33 EDT	(20021010_2)
+
+  Modified files:
+    src                  channel_mode.c client.c hash.c motd.c 
+                         resv.c s_auth.c s_conf.c s_serv.c 
+                         scache.c whowas.c 
+  Log:
+  More strlcpy() cleanups.  Also fixed a buffer overflow.
+  
+  Revision  Changes    Path
+  7.62      +1 -1      ircd-hybrid-7/src/channel_mode.c
+  7.302     +3 -3      ircd-hybrid-7/src/client.c
+  7.46      +2 -2      ircd-hybrid-7/src/hash.c
+  7.26      +2 -2      ircd-hybrid-7/src/motd.c
+  7.17      +2 -2      ircd-hybrid-7/src/resv.c
+  7.100     +5 -6      ircd-hybrid-7/src/s_auth.c
+  7.327     +5 -5      ircd-hybrid-7/src/s_conf.c
+  7.270     +2 -2      ircd-hybrid-7/src/s_serv.c
+  7.17      +1 -1      ircd-hybrid-7/src/scache.c
+  7.20      +1 -1      ircd-hybrid-7/src/whowas.c
+
+
+
+androsyn    2002/10/10 14:30:32 EDT	(20021010_1)
+
+  Modified files:
+    src                  s_user.c 
+  Log:
+  Clean up a number of strlcpy()'s that have magic numbers stuck in them
+  
+  Revision  Changes    Path
+  7.210     +6 -6      ircd-hybrid-7/src/s_user.c
+
+
+
+db          2002/10/10 11:44:06 EDT	(20021010_0)
+
+  Modified files:
+    src                  s_user.c 
+  Log:
+  REALLEN + 1 as spotted by adx
+  
+  Revision  Changes    Path
+  7.209     +1 -1      ircd-hybrid-7/src/s_user.c
+
+
+
+androsyn    2002/10/09 12:59:50 EDT	(20021009_1)
+
+  Modified files:
+    modules/core         m_server.c 
+  Log:
+  Move this allocation down a bit.
+  
+  Revision  Changes    Path
+  1.89      +5 -6      ircd-hybrid-7/modules/core/m_server.c
+
+
+
+db          2002/10/09 11:08:33 EDT	(20021009_0)
+
+  Modified files:
+    contrib              m_force.c 
+    modules/core         m_server.c 
+    src                  channel.c client.c linebuf.c 
+  Log:
+  - as noted by adx. There were a few unnecessary checks for NULL pointer
+    as we already have called outofmemory(), its pointless.
+    adx also spotted an unfreed server struct.
+  
+  Revision  Changes    Path
+  1.15      +11 -11    ircd-hybrid-7/contrib/m_force.c
+  1.88      +3 -1      ircd-hybrid-7/modules/core/m_server.c
+  7.333     +9 -13     ircd-hybrid-7/src/channel.c
+  7.301     +0 -2      ircd-hybrid-7/src/client.c
+  7.93      +0 -3      ircd-hybrid-7/src/linebuf.c
+
+
+
+db          2002/10/08 17:06:56 EDT	(20021008_1)
+
+  Modified files:
+    src                  channel.c 
+  Log:
+  - an oopsies here. if we have a zero persist time, then the channel
+    disapears immediately if no one is left in it.
+  
+  Revision  Changes    Path
+  7.332     +2 -2      ircd-hybrid-7/src/channel.c
+
+
+
+db          2002/10/07 20:23:46 EDT	(20021008_0)
+
+  Modified files:
+    modules              m_motd.c 
+  Log:
+      With hide_servers=yes and disable_remote=no, the servername is removed
+  from the 312 numeric when you /whois nick, but you can just do /motd nick
+  and see the server they are on. This patch fixes that vulnerability...
+  ...
+  wiz
+  --
+  Jason Dambrosio       |
+  Software Engineer     |    "It's a good thing."
+  ITS Solutions, Inc.   |
+  808.372.6823          |         -- Martha Stewart
+  
+  Revision  Changes    Path
+  1.31      +2 -2      ircd-hybrid-7/modules/m_motd.c
+
+
+
+bill        2002/10/07 13:03:13 EDT	(20021007_0)
+
+  Modified files:
+    modules              m_ping.c 
+  Log:
+  - repeat of previous fix
+  
+  Revision  Changes    Path
+  1.31      +2 -2      ircd-hybrid-7/modules/m_ping.c
+
+
+
+bill        2002/10/06 11:02:16 EDT	(20021006_1)
+
+  Modified files:
+    modules              m_ping.c 
+  Log:
+  - fixed logic error in ms_ping()
+  
+  Revision  Changes    Path
+  1.30      +2 -2      ircd-hybrid-7/modules/m_ping.c
+
+
+
+androsyn    2002/10/05 20:14:46 EDT	(20021006_0)
+
+  Modified files:
+    modules              m_who.c 
+  Log:
+  Fix a bug in WHO that would leak a channel the user was in regardless of
+  +s/+p or +i modes.
+  
+  Revision  Changes    Path
+  1.64      +5 -1      ircd-hybrid-7/modules/m_who.c
+
+
+
+db          2002/10/04 00:18:39 EDT	(20021004_0)
+
+  Modified files:
+    src                  hash.c 
+  Log:
+  - fixed comment in header. No coding change
+  
+  Revision  Changes    Path
+  7.45      +1 -1      ircd-hybrid-7/src/hash.c
+
+
+
+bill        2002/10/03 11:33:47 EDT	(20021003_0)
+
+  Modified files:
+    doc                  convertconf-example.conf example.conf 
+                         example.efnet.conf 
+    include              s_conf.h 
+    modules              m_info.c m_join.c 
+    modules/core         m_nick.c 
+    src                  channel.c ircd_lexer.l ircd_parser.y 
+                         s_conf.c 
+  Log:
+  - added channel {} config entry 'oper_pass_resv', allows opers to pass RESVs.  suggested by DrmWEaver
+  
+  Revision  Changes    Path
+  7.6       +3 -0      ircd-hybrid-7/doc/convertconf-example.conf
+  7.167     +3 -0      ircd-hybrid-7/doc/example.conf
+  7.7       +3 -0      ircd-hybrid-7/doc/example.efnet.conf
+  7.185     +1 -0      ircd-hybrid-7/include/s_conf.h
+  1.97      +5 -3      ircd-hybrid-7/modules/core/m_nick.c
+  1.60      +7 -1      ircd-hybrid-7/modules/m_info.c
+  1.92      +3 -2      ircd-hybrid-7/modules/m_join.c
+  7.331     +3 -1      ircd-hybrid-7/src/channel.c
+  1.143     +1 -0      ircd-hybrid-7/src/ircd_lexer.l
+  1.256     +11 -0     ircd-hybrid-7/src/ircd_parser.y
+  7.326     +1 -0      ircd-hybrid-7/src/s_conf.c
+
+
+
+bill        2002/10/02 19:09:40 EDT	(20021002_1)
+
+  Modified files:
+    contrib              m_operspy.c 
+    src                  s_conf.c 
+  Log:
+  - redid operspy who to emmulate actual who
+  - added operspy topic
+  - fixed small oversight in oper_privs_as_string with nick_changes = no;
+  
+  Revision  Changes    Path
+  1.5       +329 -180  ircd-hybrid-7/contrib/m_operspy.c
+  7.325     +2 -0      ircd-hybrid-7/src/s_conf.c
+
+
+
+bill        2002/10/01 22:13:06 EDT	(20021002_0)
+
+  Modified files:
+    contrib              m_jupe.c 
+  Log:
+  - WALLOPS warning broadcast to remove servers used oper as source, changed to server
+  
+  Revision  Changes    Path
+  1.35      +2 -2      ircd-hybrid-7/contrib/m_jupe.c
+
+
+
+bill        2002/09/24 12:33:06 EDT	(20020924_0)
+
+  Modified files:
+    contrib              README 
+  Log:
+  - added m_operspy.c to contrib/ notes
+  
+  Revision  Changes    Path
+  1.24      +3 -0      ircd-hybrid-7/contrib/README
+
+
+
+db          2002/09/20 01:31:56 EDT	(20020920_0)
+
+  Modified files:
+    include              event.h 
+    src                  event.c 
+  Log:
+  - major major bug here. There is the potential of overflowing
+    the event_table[]. Range checking was not being done. <g>
+  
+  Revision  Changes    Path
+  1.13      +0 -1      ircd-hybrid-7/include/event.h
+  7.29      +24 -28    ircd-hybrid-7/src/event.c
+
+
+
+bill        2002/09/19 12:14:34 EDT	(20020919_2)
+
+  Modified files:
+    .                    INSTALL 
+    contrib              m_opme.c 
+    modules              m_connect.c 
+  Log:
+  - added fbsd note to ipv6 install notes
+  - made OPME send LOCOPS rather than WALLOPS for &channels
+  - fixed potential leak of hub IP
+  
+  Revision  Changes    Path
+  7.31      +4 -1      ircd-hybrid-7/INSTALL
+  1.28      +37 -17    ircd-hybrid-7/contrib/m_opme.c
+  1.38      +3 -1      ircd-hybrid-7/modules/m_connect.c
+
+
+
+bill        2002/09/19 00:22:57 EDT	(20020919_1)
+
+  Modified files:
+    modules              m_unkline.c 
+    modules/core         m_message.c 
+  Log:
+  - another speed enhancement noted by lee
+  - change ungline notice to be consistent with undline and unkline
+  
+  Revision  Changes    Path
+  1.101     +15 -5     ircd-hybrid-7/modules/core/m_message.c
+  1.48      +3 -3      ircd-hybrid-7/modules/m_unkline.c
+
+
+
+bill        2002/09/18 23:12:02 EDT	(20020919_0)
+
+  Modified files:
+    include              send.h 
+    modules              m_who.c 
+    modules/core         m_message.c 
+    src                  send.c 
+  Log:
+  - fixed compiletime error when ANONOPS was disabled
+  - fixed @# notices to not echo back to sender
+  - removed redundant if()s in sendto_list_local() and sendto_list_local_butone() (thanks to ratbox for this one)
+  
+  Revision  Changes    Path
+  7.58      +3 -0      ircd-hybrid-7/include/send.h
+  1.100     +4 -4      ircd-hybrid-7/modules/core/m_message.c
+  1.63      +4 -1      ircd-hybrid-7/modules/m_who.c
+  7.207     +99 -2     ircd-hybrid-7/src/send.c
+
+
+
+lusky       2002/09/17 23:23:01 EDT	(20020918_0)
+
+  Modified files:
+    include              patchlevel.h 
+  Log:
+  - rev patchlevel to 7rc4
+  
+  Revision  Changes    Path
+  7.38      +1 -1      ircd-hybrid-7/include/patchlevel.h
+
+
+
+db          2002/09/16 22:13:50 EDT	(20020917_0)
+
+  Modified files:
+    tools/rsa_respond    README respond.c 
+  Log:
+  applied Wendys patch to rsa_respond to allow epic to work properly
+  
+  Revision  Changes    Path
+  1.7       +8 -4      ircd-hybrid-7/tools/rsa_respond/README
+  1.7       +33 -3     ircd-hybrid-7/tools/rsa_respond/respond.c
+
+
+
+db          2002/09/11 18:01:06 EDT	(20020911_2)
+
+  Modified files:
+    modules              m_kline.c m_testline.c 
+  Log:
+  - ok I goofed and forgot about these modules
+  
+  Revision  Changes    Path
+  1.110     +2 -2      ircd-hybrid-7/modules/m_kline.c
+  1.26      +2 -2      ircd-hybrid-7/modules/m_testline.c
+
+
+
+db          2002/09/11 11:27:10 EDT	(20020911_1)
+
+  Modified files:
+    .                    RELNOTES 
+    include              hostmask.h 
+    src                  client.c hostmask.c s_bsd.c s_conf.c 
+  Log:
+  - tiny fix to speed up kline processing slightly. Instead of checking for I lines
+    as well as klines from find_kill(), only check for klines. This adds find_kline_conf()
+    to hostmask.c, I also changed find_dline() to find_dline_conf() for consistency.
+    Noted by Lee Hardy (The goat man)
+  
+  Revision  Changes    Path
+  1.43      +1 -0      ircd-hybrid-7/RELNOTES
+  1.23      +3 -1      ircd-hybrid-7/include/hostmask.h
+  7.300     +5 -5      ircd-hybrid-7/src/client.c
+  7.73      +28 -4     ircd-hybrid-7/src/hostmask.c
+  7.172     +4 -2      ircd-hybrid-7/src/s_bsd.c
+  7.324     +5 -4      ircd-hybrid-7/src/s_conf.c
+
+
+
+db          2002/09/10 22:24:53 EDT	(20020911_0)
+
+  Modified files:
+    src                  channel.c 
+  Log:
+  - fix bug +I+ introduced in invites. I hate !ptr logic.
+  
+  Revision  Changes    Path
+  7.330     +1 -1      ircd-hybrid-7/src/channel.c
+
+
+
+db          2002/09/10 15:58:34 EDT	(20020910_2)
+
+  Modified files:
+    modules              m_oper.c 
+    modules/core         m_nick.c 
+  Log:
+  - This is the better fix for the ~ nick bug. Look at clean_nick_name() in hybrid-6
+    this fix duplicates the behaviour of hybrid-6 clean_nick_name better.
+  
+  Revision  Changes    Path
+  1.96      +5 -11     ircd-hybrid-7/modules/core/m_nick.c
+  1.56      +69 -69    ircd-hybrid-7/modules/m_oper.c
+
+
+
+androsyn    2002/09/10 14:50:30 EDT	(20020910_1)
+
+  Modified files:
+    modules/core         m_nick.c 
+  Log:
+  Fix another NULL nick bug that Lee found
+  
+  Revision  Changes    Path
+  1.95      +9 -1      ircd-hybrid-7/modules/core/m_nick.c
+
+
+
+db          2002/09/09 22:25:52 EDT	(20020910_0)
+
+  Modified files:
+    src                  hostmask.c 
+  Log:
+  - conf->status not conf->flags for CONF_ILLEGAL
+  
+  Revision  Changes    Path
+  7.72      +4 -4      ircd-hybrid-7/src/hostmask.c
+
+
+
+db          2002/09/09 09:43:49 EDT	(20020909_2)
+
+  Modified files:
+    src                  ircd_parser.y s_conf.c s_log.c 
+  Log:
+  - having ircd_parser.y put a string into ->host, then having s_conf immediately
+    moving it from host to name,just seemed too silly for me. (conf_add_x_conf)
+    Also cleaned up some style.
+  
+  Revision  Changes    Path
+  1.255     +6 -7      ircd-hybrid-7/src/ircd_parser.y
+  7.323     +1 -5      ircd-hybrid-7/src/s_conf.c
+  7.45      +14 -15    ircd-hybrid-7/src/s_log.c
+
+
+
+db          2002/09/09 09:32:20 EDT	(20020909_1)
+
+  Modified files:
+    modules              m_oper.c 
+  Log:
+  - fixed typo umodes not umode
+  
+  Revision  Changes    Path
+  1.55      +2 -2      ircd-hybrid-7/modules/m_oper.c
+
+
+
+db          2002/09/08 23:05:28 EDT	(20020909_0)
+
+  Modified files:
+    modules              m_oper.c 
+  Log:
+  - source_p->umode not source_p->flags, not that it seems to matter.
+    tbh, I don't think ms_oper() is ever ever called.
+  
+  Revision  Changes    Path
+  1.54      +2 -2      ircd-hybrid-7/modules/m_oper.c
+
+
+
+bill        2002/09/08 17:09:37 EDT	(20020908_0)
+
+  Modified files:
+    contrib              m_operspy.c 
+  Log:
+  - fixed non-oper-issued to properly respond with Unknown command
+    side note: there should be a way for a msgtab-triggered function to access the command that triggered it
+  
+  Revision  Changes    Path
+  1.4       +14 -7     ircd-hybrid-7/contrib/m_operspy.c
+
+
+
+androsyn    2002/09/07 02:34:15 EDT	(20020907_1)
+
+  Modified files:
+    src                  channel.c 
+  Log:
+  This needs to be TOPICLEN+1, otherwise we'll chop the last byte off.  We
+  already allocate TOPICLEN+1 so..
+  
+  Revision  Changes    Path
+  7.329     +1 -1      ircd-hybrid-7/src/channel.c
+
+
+
+db          2002/09/06 22:18:58 EDT	(20020907_0)
+
+  Modified files:
+    .                    RELNOTES 
+  Log:
+  - updated release notes with bugs fixed since last release
+  
+  Revision  Changes    Path
+  1.42      +10 -0     ircd-hybrid-7/RELNOTES
+
+
+
 db          2002/09/06 15:37:15 EDT	(20020906_0)
 
   Modified files:
@@ -16,6 +1869,38 @@ db          2002/09/06 15:37:15 EDT	(20020906_0)
   1.53      +4 -2      ircd-hybrid-7/modules/m_oper.c
   7.44      +83 -49    ircd-hybrid-7/src/s_log.c
   7.206     +0 -1      ircd-hybrid-7/src/send.c
+
+
+
+db          2002/09/05 11:07:14 EDT	(20020905_5)
+
+  Modified files:
+    modules              m_whois.c 
+  Log:
+  - fixed /whois * bug. minor bug, but technically wrong. when doing a /whois *
+    it missed the fact it was successful, and promptly whinged about there being
+    no user *.
+  
+  Revision  Changes    Path
+  1.82      +169 -169  ircd-hybrid-7/modules/m_whois.c
+
+
+
+db          2002/09/05 10:06:18 EDT	(20020905_4)
+
+  Modified files:
+    src                  Makefile.in channel.c class.c client.c 
+                         s_conf.c send.c 
+  Log:
+  - convert these to use DLINK_FOREACH DLINK_FOREACH_SAFE
+  
+  Revision  Changes    Path
+  7.113     +2 -1      ircd-hybrid-7/src/Makefile.in
+  7.328     +52 -55    ircd-hybrid-7/src/channel.c
+  7.37      +75 -65    ircd-hybrid-7/src/class.c
+  7.299     +306 -312  ircd-hybrid-7/src/client.c
+  7.322     +72 -72    ircd-hybrid-7/src/s_conf.c
+  7.205     +11 -22    ircd-hybrid-7/src/send.c
 
 
 
@@ -609,6 +2494,18 @@ db          2002/08/16 07:07:23 EDT	(20020816_1)
   
   Revision  Changes    Path
   1.51      +12 -16    ircd-hybrid-7/modules/m_oper.c
+
+
+
+lusky       2002/08/15 23:16:15 EDT	(20020816_0)
+
+  Modified files:
+    include              patchlevel.h 
+  Log:
+  - revved patchlevel to 7rc2
+  
+  Revision  Changes    Path
+  7.35      +1 -1      ircd-hybrid-7/include/patchlevel.h
 
 
 

@@ -84,7 +84,10 @@
 
           * 
 
-            --enable-ipv6 - Enable IPv6 support.
+            --enable-ipv6 - Enable IPv6 support.  For FreeBSD, some recent
+            distributions have changed the sysctl net.inet6.ip6.v6only
+            default to 1 instead of 0.  You must change this back to 0 for
+            ipv4 to work properly.
 
           * 
 
