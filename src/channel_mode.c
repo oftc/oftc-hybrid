@@ -1187,16 +1187,16 @@ chm_op(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count++].client = targ_p;
 
     DelMemberFlag(member, CHFL_CHANOP);
-    if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))   
-    {   
-     char tmp[IRCD_BUFSIZE];   
+  }
+  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))   
+  {   
+    char tmp[IRCD_BUFSIZE];   
 
-     ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",   
-         source_p->name, chname, parv[0],   
-         EmptyString(parv[1]) ? "" : parv[1]);   
-     sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);   
-     oftc_log(tmp); 
-    }
+    ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",   
+        source_p->name, chname, parv[0],   
+        EmptyString(parv[1]) ? "" : parv[1]);   
+    sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);   
+    oftc_log(tmp); 
   }
 }
 
