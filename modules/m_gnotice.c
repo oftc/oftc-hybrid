@@ -44,7 +44,6 @@
 
 
 static void ms_gnotice(struct Client *, struct Client *, int, char **);
-static void mo_gnotice(struct Client *, struct Client *, int, char **);
 
 struct Message gnotice_msgtab = {
   "GNOTICE", 0, 0, 3, 0, MFLG_SLOW | MFLG_UNREG, 0L,
