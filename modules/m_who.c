@@ -103,7 +103,7 @@ int build_searchopts(struct Client *, int, char **);
 int chk_who(struct Client *, int);
 
 /* Externally defined stuffs */
-static struct flag_item user_modes[] = 
+static struct flag_item who_user_modes[] = 
 {
   {UMODE_ADMIN, 'a'},
   {UMODE_BOTS,  'b'},
@@ -305,11 +305,11 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 	    s = parv[args];
 	    while(*s)
 	    {
-	      for(i = 1; user_modes[i].mode != 0; i += 2)
+	      for(i = 1; who_user_modes[i].mode != 0; i += 2)
 	      {
-		    if(*s == (char)user_modes[i].letter)
+		    if(*s == (char)who_user_modes[i].letter)
 		    {
-		      wsopts.umodes |= user_modes[i-1].mode;
+		      wsopts.umodes |= who_user_modes[i-1].mode;
 		      break;
 		    }
 	      }
@@ -598,7 +598,7 @@ do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
     status[i] = '\0';
     sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
            chptr->chname, target_p->username, target_p->host,
-           target_p->user->server, target_p->name, status,
+           target_p->user->server->name, target_p->name, status,
            WHO_HOPCOUNT(source_p, target_p), target_p->info);
     shown++;
   }
@@ -694,7 +694,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 		sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
 			   wsopts.show_chan ? first_visible_channel(target_p, source_p)
 			   : "*", target_p->username, target_p->host,
-			   target_p->user->server, target_p->name, status,
+			   target_p->user->server->name, target_p->name, status,
 			   WHO_HOPCOUNT(source_p, target_p),
 			   target_p->info);
 		sendto_one(source_p, form_str(RPL_ENDOFWHO), me.name, source_p->name,
@@ -755,7 +755,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 	  sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
               wsopts.show_chan ? first_visible_channel(target_p, source_p) :
 		      "*", target_p->username, target_p->host,
-		      target_p->user->server, target_p->name, status,
+		      target_p->user->server->name, target_p->name, status,
 		      WHO_HOPCOUNT(source_p, target_p), target_p->info);
       shown++;
     }
