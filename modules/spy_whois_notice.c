@@ -55,8 +55,8 @@ show_notice(struct hook_mfunc_data *data)
    */
   if (IsOper(data->client_p) && (data->client_p != data->source_p))
     {
-      sendto_anywhere(data->client_p, data->source_p->from, 
-            "NOTICE %s :*** Notice -- %s (%s@%s) is doing a whois on you.", 
+      sendto_one(data->client_p, ":%s NOTICE %s :*** Notice -- %s (%s@%s) is "
+            "doing a whois on you.", data->source_p->from->name, 
             data->client_p->name, data->source_p->name, 
             data->source_p->username, data->source_p->host);
     }
