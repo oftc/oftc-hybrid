@@ -685,7 +685,7 @@ flood_attack_client(int p_or_n, struct Client *source_p,
       {
         sendto_realops_flags(UMODE_BOTS, L_ALL,
                              "Possible Flooder %s on %s target: %s",
-                             get_client_name(source_p, HIDE_IP),
+                             get_client_name(source_p, SHOW_IP),
                              source_p->user->server->name, target_p->name);
         target_p->localClient->flood_noticed = 1;
         /* add a bit of penalty */
@@ -740,7 +740,7 @@ flood_attack_channel(int p_or_n, struct Client *source_p,
       {
         sendto_realops_flags(UMODE_BOTS, L_ALL,
                              "Possible Flooder %s on %s target: %s",
-                             get_client_name(source_p, HIDE_IP),
+                             get_client_name(source_p, SHOW_IP),
                              source_p->user->server->name, chptr->chname);
         chptr->flood_noticed = 1;
 

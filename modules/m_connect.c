@@ -327,7 +327,7 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    * Notify all operators about remote connect requests
    */
   sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL, "Remote CONNECT %s %d from %s",
-                       parv[1], port, get_client_name(source_p, MASK_IP));
+                       parv[1], port, get_client_name(source_p, SHOW_IP));
 
   ilog(L_TRACE, "CONNECT From %s : %s %d", 
        source_p->name, parv[1], port);

@@ -99,7 +99,7 @@ mo_die(struct Client *client_p, struct Client *source_p,
     target_p = ptr->data;
 
     sendto_one(target_p, ":%s NOTICE %s :Server Terminating. %s",
-               me.name, target_p->name, get_client_name(source_p, HIDE_IP));
+               me.name, target_p->name, get_client_name(source_p, SHOW_IP));
   }
 
   DLINK_FOREACH(ptr, serv_list.head)
@@ -107,7 +107,7 @@ mo_die(struct Client *client_p, struct Client *source_p,
     target_p = ptr->data;
 
     sendto_one(target_p, ":%s ERROR :Terminated by %s",
-               me.name, get_client_name(source_p, HIDE_IP));
+               me.name, get_client_name(source_p, SHOW_IP));
   }
 
   ilog(L_NOTICE, "Server terminated by %s", get_oper_name(source_p));

@@ -109,7 +109,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     if (found)
     {
       ilog(L_NOTICE, "REHASH %s From %s",
-           parv[1], get_client_name(source_p, HIDE_IP));
+           parv[1], get_client_name(source_p, SHOW_IP));
       return;
     }
     else

@@ -274,7 +274,7 @@ check_pings_list(dlink_list *list)
 	  add_temp_kline(aconf);
 	  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
 		       "Idle time limit exceeded for %s - temp k-lining",
-			       get_client_name(client_p, HIDE_IP));
+			       get_client_name(client_p, SHOW_IP));
 
 	  exit_client(client_p, client_p, &me, aconf->passwd);
 	  continue;
@@ -298,14 +298,11 @@ check_pings_list(dlink_list *list)
 	if (IsServer(client_p) || IsConnecting(client_p) ||
 	    IsHandshake(client_p))
 	  {
-	    sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+	    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
 				 "No response from %s, closing link",
-				 get_client_name(client_p, HIDE_IP));
-	    sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
-				 "No response from %s, closing link",
-				 get_client_name(client_p, MASK_IP));
+				 get_client_name(client_p, SHOW_IP));
 	    ilog(L_NOTICE, "No response from %s, closing link",
-		 get_client_name(client_p, HIDE_IP));
+		 get_client_name(client_p, SHOW_IP));
 	  }
 	ircsprintf(scratch, "Ping timeout: %d seconds",
                    (int)(CurrentTime - client_p->lasttime));
@@ -389,7 +386,7 @@ check_conf_klines(void)
 	continue;
 
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,"DLINE active for %s",
-                           get_client_name(client_p, HIDE_IP));
+                           get_client_name(client_p, SHOW_IP));
 
       if (ConfigFileEntry.kline_with_connection_closed &&
           ConfigFileEntry.kline_with_reason)
@@ -428,7 +425,7 @@ check_conf_klines(void)
 	{
 	  sendto_realops_flags(UMODE_ALL, L_ALL,
 		       "GLINE over-ruled for %s, client is kline_exempt",
-			       get_client_name(client_p, HIDE_IP));
+			       get_client_name(client_p, SHOW_IP));
 	  continue;
 	}
 
@@ -436,12 +433,12 @@ check_conf_klines(void)
 	{
 	  sendto_realops_flags(UMODE_ALL, L_ALL,
 			"GLINE over-ruled for %s, client is gline_exempt",
-			       get_client_name(client_p, HIDE_IP));
+			       get_client_name(client_p, SHOW_IP));
 	  continue;
 	}
        
 	sendto_realops_flags(UMODE_ALL, L_ALL, "GLINE active for %s",
-			     get_client_name(client_p, HIDE_IP));
+			     get_client_name(client_p, SHOW_IP));
 			    
 	if (ConfigFileEntry.kline_with_connection_closed &&
             ConfigFileEntry.kline_with_reason)
@@ -476,12 +473,12 @@ check_conf_klines(void)
 	{
 	  sendto_realops_flags(UMODE_ALL, L_ALL,
 			     "KLINE over-ruled for %s, client is kline_exempt",
-			     get_client_name(client_p, HIDE_IP));
+			     get_client_name(client_p, SHOW_IP));
 	  continue;
 	}
 
 	sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "KLINE active for %s",
-			     get_client_name(client_p, HIDE_IP));
+			     get_client_name(client_p, SHOW_IP));
 
 	if (ConfigFileEntry.kline_with_connection_closed &&
             ConfigFileEntry.kline_with_reason)
@@ -559,7 +556,7 @@ check_xlines(void)
       xconf = (struct MatchItem *)map_to_conf(conf);
 
       sendto_realops_flags(UMODE_ALL, L_ALL,"XLINE active for %s",
-			   get_client_name(client_p, HIDE_IP));
+			   get_client_name(client_p, SHOW_IP));
       
       if (ConfigFileEntry.kline_with_connection_closed &&
 	  ConfigFileEntry.kline_with_reason)
@@ -1073,10 +1070,8 @@ dead_link_on_write(struct Client *client_p, int ierrno)
   SetDead(client_p); /* You are dead my friend */
   if (!IsPerson(client_p) && !IsUnknown(client_p) && !IsClosing(client_p))
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL, "Closing link to %s: %s",
-                         get_client_name(client_p, HIDE_IP), notice);
-    sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL, "Closing link to %s: %s",
-                         get_client_name(client_p, MASK_IP), notice);
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Closing link to %s: %s",
+                         get_client_name(client_p, SHOW_IP), notice);
   }
 }
 
@@ -1106,24 +1101,17 @@ dead_link_on_read(struct Client *client_p, int error)
     if (error == 0)
     {
       /* Admins get the real IP */
-      sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
 			   "Server %s closed the connection",
 			   get_client_name(client_p, SHOW_IP));
-
-      /* Opers get a masked IP */
-      sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
-			   "Server %s closed the connection",
-			   get_client_name(client_p, MASK_IP));
 
       ilog(L_NOTICE, "Server %s closed the connection",
 	   get_client_name(client_p, SHOW_IP));
     }
     else
     {
-      report_error(L_ADMIN, "Lost connection to %s: %d",
+      report_error(L_ALL, "Lost connection to %s: %d",
 		   get_client_name(client_p, SHOW_IP), current_error);
-      report_error(L_OPER, "Lost connection to %s: %d",
-		   get_client_name(client_p, MASK_IP), current_error);
     }
 
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,

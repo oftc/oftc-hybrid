@@ -127,9 +127,9 @@ mo_squit(struct Client *client_p, struct Client *source_p,
   if (MyConnect(target_p))
   {
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Received SQUIT %s from %s (%s)",
-                         target_p->name, get_client_name(source_p, HIDE_IP), comment);
+                         target_p->name, get_client_name(source_p, SHOW_IP), comment);
     ilog(L_NOTICE, "Received SQUIT %s from %s (%s)",
-         target_p->name, get_client_name(source_p, HIDE_IP), comment);
+         target_p->name, get_client_name(source_p, SHOW_IP), comment);
   }
 
   exit_client(client_p, target_p, source_p, comment);

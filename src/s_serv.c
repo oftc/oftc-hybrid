@@ -1044,13 +1044,9 @@ server_estab(struct Client *client_p)
   {
     if (fork_server(client_p) < 0)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                            "Warning: fork failed for server %s -- check servlink_path (%s)",
-                           get_client_name(client_p, HIDE_IP), ConfigFileEntry.servlink_path);
-      sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL, "Warning: fork failed for server "
-                           "%s -- check servlink_path (%s)",
-                           get_client_name(client_p, MASK_IP),
-                           ConfigFileEntry.servlink_path);
+                           get_client_name(client_p, SHOW_IP), ConfigFileEntry.servlink_path);
       return(exit_client(client_p, client_p, client_p, "Fork failed"));
     }
 
@@ -1910,16 +1906,13 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
      */
     if ((client_p = find_server(conf->name)) != NULL)
       { 
-        sendto_gnotice_flags(UMODE_SERV, L_ADMIN, me.name, &me, NULL,
-	      "Server %s already present from %s",
-			     conf->name, get_client_name(client_p, SHOW_IP));
-        sendto_gnotice_flags(UMODE_SERV, L_OPER, me.name, &me, NULL,
+        sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL,
 			     "Server %s already present from %s",
-			     conf->name, get_client_name(client_p, MASK_IP));
+			     conf->name, get_client_name(client_p, SHOW_IP));
         if (by && IsPerson(by) && !MyClient(by))
 	  sendto_one(by, ":%s NOTICE %s :Server %s already present from %s",
 		     me.name, by->name, conf->name,
-		     get_client_name(client_p, MASK_IP));
+		     get_client_name(client_p, SHOW_IP));
         return (0);
       }
     
@@ -1953,16 +1946,13 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
 
     if (!set_non_blocking(client_p->localClient->fd))
     {
-      report_error(L_ADMIN, NONB_ERROR_MSG, get_client_name(client_p, SHOW_IP), errno);
-      report_error(L_OPER, NONB_ERROR_MSG, get_client_name(client_p, MASK_IP), errno);
+      report_error(L_ALL, NONB_ERROR_MSG, get_client_name(client_p, SHOW_IP), errno);
     }
 
     if (!set_sock_buffers(client_p->localClient->fd, READBUF_SIZE))
     {
-      report_error(L_ADMIN, SETBUF_ERROR_MSG,
+      report_error(L_ALL, SETBUF_ERROR_MSG,
 		   get_client_name(client_p, SHOW_IP), errno);
-      report_error(L_OPER, SETBUF_ERROR_MSG,
-		   get_client_name(client_p, MASK_IP), errno);
     }
 
     /*
@@ -2109,10 +2099,8 @@ serv_connect_callback(int fd, int status, void *data)
 			  client_p->name, SERVER_TYPE); 
     if (conf == NULL)
       {
-        sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
 	             "Lost connect{} block for %s", get_client_name(client_p, HIDE_IP));
-        sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
-		     "Lost connect{} block for %s", get_client_name(client_p, MASK_IP));
 
         exit_client(client_p, client_p, &me, "Lost connect{} block");
         return;
@@ -2278,10 +2266,8 @@ void
 cryptlink_error(struct Client *client_p, const char *type,
                 const char *reason, const char *client_reason)
 {
-  sendto_gnotice_flags(UMODE_SERV, L_ADMIN, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
-                       get_client_name(client_p, SHOW_IP), type, reason);
-  sendto_gnotice_flags(UMODE_SERV, L_OPER, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
-                       get_client_name(client_p, MASK_IP), type, reason);
+  sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
+                       get_client_name(client_p, HIDE_IP), type, reason);
   ilog(L_ERROR, "%s: CRYPTLINK %s error - %s",
        get_client_name(client_p, SHOW_IP), type, reason);
 
