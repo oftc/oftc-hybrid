@@ -105,6 +105,10 @@ struct _fde {
         unsigned int nonblocking:1;
         unsigned int ipc:1;
         unsigned int called_connect:1;
+#ifdef HAVE_LIBCRYPTO
+        unsigned int accept_read:1;
+        unsigned int accept_write:1;
+#endif        
     } flags;
     struct {
         /* We don't need the host here ? */
@@ -114,6 +118,10 @@ struct _fde {
         void *data;
         /* We'd also add the retry count here when we get to that -- adrian */
     } connect;
+#ifdef HAVE_LIBCRYPTO
+    SSL *ssl;
+    int accept_failures;
+#endif
 };
 
 
@@ -121,7 +129,7 @@ extern fde_t *fd_table;
 
 void fdlist_init(void);
 
-extern void  fd_open(int, unsigned int, const char *);
+extern void  fd_open(int, unsigned int, const char *, void *);
 extern void  fd_close(int);
 extern void  fd_dump(struct Client *source_p);
 #ifndef __GNUC__

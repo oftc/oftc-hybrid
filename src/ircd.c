@@ -620,7 +620,41 @@ main(int argc, char *argv[])
   init_auth();          /* Initialise the auth code */
   init_resolver();      /* Needs to be setup before the io loop */
 #ifdef HAVE_LIBCRYPTO
-  bio_spare_fd = save_spare_fd("SSL private key validation");
+  SSL_load_error_strings();
+  SSLeay_add_ssl_algorithms();
+  ServerInfo.meth = SSLv23_server_method();
+  ServerInfo.ctx = SSL_CTX_new(ServerInfo.meth);
+  if (!ServerInfo.ctx) {
+      fprintf(stderr, "Could not initialize the SSL context -- %s\n",
+              ERR_error_string(ERR_get_error(), NULL));
+  }
+  else
+  {
+     if (SSL_CTX_use_certificate_file(ServerInfo.ctx, 
+                                      ServerInfo.ssl_certificate_file, 
+                                      SSL_FILETYPE_PEM) <= 0) {
+        ilog(L_DEBUG, "Error using config file entry ssl_certificate");
+     }
+     
+     if (SSL_CTX_use_PrivateKey_file(ServerInfo.ctx, 
+                                     ServerInfo.rsa_private_key_file, 
+                                     SSL_FILETYPE_PEM) <= 0) {
+        ilog(L_DEBUG,
+             "Error using config file entry rsa_private_key -- %s",
+             ERR_error_string(ERR_get_error(), NULL));
+     }
+     
+     if (!SSL_CTX_check_private_key(ServerInfo.ctx)) {
+        ilog(L_DEBUG,
+             "RSA private key doesn't match the SSL certificate public key!");
+     }
+     
+     SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_NO_SSLv2);
+     SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_TLS_ROLLBACK_BUG | SSL_OP_ALL);
+     SSL_CTX_set_verify(ServerInfo.ctx, SSL_VERIFY_NONE, NULL);
+     bio_spare_fd = save_spare_fd("SSL private key validation");
+     ilog(L_DEBUG, "SSL initialized");
+  }
 #endif /* HAVE_LIBCRYPTO */
    
   initialize_server_capabs();   /* Set up default_server_capabs */

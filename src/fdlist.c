@@ -82,7 +82,7 @@ fdlist_init(void)
 
 /* Called to open a given filedescriptor */
 void
-fd_open(int fd, unsigned int type, const char *desc)
+fd_open(int fd, unsigned int type, const char *desc, void *ssl)
 {
   fde_t *F = &fd_table[fd];
   assert(fd >= 0);
@@ -112,6 +112,10 @@ fd_open(int fd, unsigned int type, const char *desc)
   if (desc)
     strlcpy(F->desc, desc, sizeof(F->desc));
   number_fd++;
+
+#ifdef HAVE_LIBCRYPTO
+  F->ssl = (SSL *)ssl;
+#endif
 }
 
 /* Called to close a given filedescriptor */
@@ -139,6 +143,18 @@ fd_close(int fd)
   number_fd--;
   memset(F, '\0', sizeof(fde_t));
   F->timeout = 0;
+  
+#ifdef HAVE_LIBCRYPTO
+  F->flags.accept_read = 0;
+  F->flags.accept_write = 0;
+  F->accept_failures = 0;
+  if (F->ssl) {
+      SSL_shutdown(F->ssl);
+      SSL_free(F->ssl);
+      F->ssl = NULL;
+  }
+#endif
+
   /* Unlike squid, we're actually closing the FD here! -- adrian */
   close(fd);
 }

@@ -85,8 +85,30 @@ enum {
   REPORT_HOST_TOOLONG
 };
 
+#ifdef HAVE_LIBCRYPTO
+static void sendheader(struct Client *c, int r) 
+{
+    int fd = c->localClient->fd;
+    fde_t *F = (fd > -1)? &fd_table[fd] : NULL;
+
+    if (F && F->ssl) {
+        if (F->flags.accept_write)
+            if (SSL_accept(F->ssl) > 0)
+                F->flags.accept_write = 0;
+        if (!F->flags.accept_read)
+        {
+           SSL_write(F->ssl, 
+                     HeaderMessages[r].message, 
+                     HeaderMessages[r].length);
+        }
+    } else {
+       send(fd, HeaderMessages[r].message, HeaderMessages[r].length, 0);
+    }
+}
+#else
 #define sendheader(c, r) \
    send((c)->localClient->fd, HeaderMessages[(r)].message, HeaderMessages[(r)].length, 0)
+#endif
 
 /*
  * Ok, the original was confusing.

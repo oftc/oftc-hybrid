@@ -1247,6 +1247,19 @@ user_welcome(struct Client *source_p)
 	     ircd_version);
 #endif
 
+	     
+#ifdef HAVE_LIBCRYPTO
+  {
+      int fd = source_p->localClient->fd;
+      fde_t *F = (fd > -1)? &fd_table[fd] : NULL;
+      extern char *ssl_get_cipher(SSL *);
+      
+      if (F && F->ssl)
+          sendto_one(source_p, "NOTICE %s :*** Connected securely via %s",
+                     source_p->name, ssl_get_cipher(F->ssl));
+  }
+#endif
+
   sendto_one(source_p, form_str(RPL_CREATED),
              me.name,source_p->name, creation);
   sendto_one(source_p, form_str(RPL_MYINFO),

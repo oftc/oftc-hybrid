@@ -51,7 +51,7 @@ file_open(const char *filename, int mode, int fmode)
         fd = -1;
     }
     else if (fd >= 0)
-        fd_open(fd, FD_FILE, filename);
+        fd_open(fd, FD_FILE, filename, NULL);
     
     return(fd);
 }

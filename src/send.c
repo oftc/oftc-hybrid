@@ -251,6 +251,8 @@ void
 send_queued_write(struct Client *to)
 {
   int retlen;
+  int fd;
+  fde_t *F;
 #ifndef NDEBUG
   struct hook_io_data hdata;
 #endif
@@ -263,8 +265,11 @@ send_queued_write(struct Client *to)
   if (IsDead(to) || IsSendqBlocked(to))
     return;  /* no use calling send() now */
 
+  /* get the file descriptor from the client structure */
+  fd = to->localClient->fd;
+
   /* Next, lets try to write some data */
-  
+
   if (dbuf_length(&to->localClient->buf_sendq))
   {
 #ifndef NDEBUG
@@ -272,9 +277,26 @@ send_queued_write(struct Client *to)
 #endif
     do {
       first = to->localClient->buf_sendq.blocks.head->data;
-      if ((retlen = send(to->localClient->fd, first->data,
-                         first->size, 0)) <= 0)
-        break;
+#ifdef HAVE_LIBCRYPTO
+      
+      F = (fd > -1)? &fd_table[fd] : NULL;
+
+      if (F && F->ssl)
+      {
+         ilog(L_DEBUG, "send_queued_write: calling SSL_write");
+         if ((retlen = sendSSL(F, first->data, first->size)) <= 0)
+            break;
+      }
+      else
+      {
+#endif
+         ilog(L_DEBUG, "send_queued_write: calling normal send");
+         if ((retlen = send(fd, first->data,
+                            first->size, 0)) <= 0)
+            break;
+#ifdef HAVE_LIBCRYPTO
+      }
+#endif
 
 #ifndef NDEBUG
       hdata.data = ((struct dbuf_block *)
@@ -303,7 +325,7 @@ send_queued_write(struct Client *to)
     {
       /* we have a non-fatal error, reschedule a write */
       SetSendqBlocked(to);
-      comm_setselect(to->localClient->fd, FDLIST_IDLECLIENT, COMM_SELECT_WRITE,
+      comm_setselect(fd, FDLIST_IDLECLIENT, COMM_SELECT_WRITE,
                      (PF *)sendq_unblocked, (void *)to, 0);
     }
     else if (retlen <= 0)
@@ -324,6 +346,8 @@ void
 send_queued_slink_write(struct Client *to)
 {
   int retlen;
+  fde_t *F;
+  int ctrlfd;
 
   /*
    ** Once socket is marked dead, we cannot start writing to it,
@@ -332,12 +356,32 @@ send_queued_slink_write(struct Client *to)
   if (IsDead(to) || IsSlinkqBlocked(to))
     return;  /* no use calling send() now */
 
+  /* get the file descriptor from the client structure */
+  ctrlfd = to->localClient->ctrlfd;
+
   /* Next, lets try to write some data */
   if (to->localClient->slinkq != NULL)
   {
-    retlen = send(to->localClient->ctrlfd,
-                   to->localClient->slinkq + to->localClient->slinkq_ofs,
-                   to->localClient->slinkq_len, 0);
+#ifdef HAVE_LIBCRYPTO
+     F = (ctrlfd > -1)? &fd_table[ctrlfd] : NULL;
+
+     if (F && F->ssl)
+     {
+        ilog(L_DEBUG, "send_queued_slink_write: calling SSL_write");
+        retlen = sendSSL(
+           F, to->localClient->slinkq + to->localClient->slinkq_ofs,
+           to->localClient->slinkq_len);
+     }
+     else
+     {
+#endif
+        ilog(L_DEBUG, "send_queued_slink_write: calling normal send");
+        retlen = send(ctrlfd,
+                      to->localClient->slinkq + to->localClient->slinkq_ofs,
+                      to->localClient->slinkq_len, 0);
+#ifdef HAVE_LIBCRYPTO
+     }
+#endif
     if (retlen < 0)
     {
       /* If we have a fatal error */
@@ -372,9 +416,8 @@ send_queued_slink_write(struct Client *to)
     if (to->localClient->slinkq_len)
     {
       SetSlinkqBlocked(to);
-      comm_setselect(to->localClient->ctrlfd, FDLIST_IDLECLIENT,
-                     COMM_SELECT_WRITE, (PF *)slinkq_unblocked,
-                     (void *)to, 0);
+      comm_setselect(ctrlfd, FDLIST_IDLECLIENT, COMM_SELECT_WRITE, 
+                     (PF *)slinkq_unblocked, (void *)to, 0);
     }
   }
 }
@@ -1292,3 +1335,77 @@ kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,
     }
   }
 } 
+
+int sendSSL(fde_t *F, const char* data, const size_t length)
+{
+   extern char *get_ssl_error(int);
+   int retval = -1;
+   int alerted = 0;
+
+   ilog(L_DEBUG, "sendSSL called");
+
+   if (F->flags.accept_write) {
+      int ret;
+      ilog(L_DEBUG, "accept_write true");
+      if ((ret = SSL_accept(F->ssl)) > 0) {
+         if (!alerted)
+            ilog(L_DEBUG, 
+                 "SSL_accept() for %s (socket %d) wanting WRITE succeeded!",
+                 inetntoa((char *)&(F->connect.hostaddr)), F->fd);
+         F->flags.accept_write = 0;
+      } else if (F->accept_failures < 4) {
+         int val = SSL_get_error(F->ssl, ret);  		
+         ilog(L_DEBUG, 
+              "SSL_accept() for %s (socket %d) wanting WRITE error! -- %s",
+              inetntoa((char *)&(F->connect.hostaddr)), F->fd,
+              (val == SSL_ERROR_SSL)?
+              ERR_error_string(ERR_get_error(), NULL) :
+              get_ssl_error(val));
+         ilog(L_DEBUG, "BIO_sock_should_retry(): %d", 
+              BIO_sock_should_retry(ret));
+         if (val == SSL_ERROR_SYSCALL) {
+            int err = ERR_get_error();
+            if (err)
+               ilog(L_DEBUG, "ERR_get_error() -- %s",
+                    ERR_error_string(err, NULL));
+            else
+               ilog(L_DEBUG, "more error info -- %s",
+                    (ret == -1)? strerror(errno) : "got EOF, protocol violation");  
+         }
+         ilog(L_DEBUG, 
+              "SSL_state_string_long(): %s",
+              SSL_state_string_long(F->ssl));
+         F->accept_failures++;
+      }
+      retval = -1;
+      errno = EAGAIN;
+   } 
+   else 
+   {
+      retval = SSL_write(F->ssl, data, length);
+      
+      if (retval <= 0 && !alerted) {
+         int val = SSL_get_error(F->ssl, retval);
+         ilog(L_DEBUG, "SSL_write() for %s (socket %d) ERROR! -- %s",
+              inetntoa((char *)&(F->connect.hostaddr)), F->fd,
+              (val == SSL_ERROR_SSL)?
+              ERR_error_string(ERR_get_error(), NULL) :
+              get_ssl_error(val));
+         if (val == SSL_ERROR_SYSCALL) {
+            int err = ERR_get_error();
+            if (err)
+               ilog(L_DEBUG, "ERR_get_error() -- %s",
+                    ERR_error_string(err, NULL));
+            else
+               ilog(L_DEBUG, "more error info -- %s",
+                    (retval == -1)? strerror(errno) : "got EOF, protocol violation");  
+         } else {
+            errno = EAGAIN;
+         }
+      }
+   }
+
+   ilog(L_DEBUG, "sendSSL returning %d", retval);
+
+   return retval;
+}

@@ -31,8 +31,9 @@
 
 #define CASEMAP "rfc1459"
 
-#define FEATURES "WALLCHOPS"       \
-                 "%s%s%s"          \
+#ifdef HAVE_LIBCRYPTO
+#define FEATURES "SSL WALLCHOPS"\
+                 "%s%s%s" \
                  " MODES=%i"       \
                  " MAXCHANNELS=%i" \
                  " MAXBANS=%i"     \
@@ -40,6 +41,17 @@
                  " NICKLEN=%i"     \
                  " TOPICLEN=%i"    \
                  " KICKLEN=%i"
+#else                
+#define FEATURES "WALLCHOPS"\
+                "%s%s%s" \
+                " MODES=%i" \
+                " MAXCHANNELS=%i" \
+                " MAXBANS=%i" \
+                " MAXTARGETS=%i" \
+                " NICKLEN=%i" \
+                " TOPICLEN=%i" \
+                " KICKLEN=%i"
+#endif
 
 #define FEATURESVALUES ConfigChannel.use_knock ? " KNOCK" : "", \
         ConfigChannel.use_except ? " EXCEPTS" : "", \

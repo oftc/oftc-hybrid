@@ -6824,7 +6824,7 @@ fi
 done
 
 		fi
-		SSL_LIBS="$SSL_LIBS -lcrypto"
+		SSL_LIBS="$SSL_LIBS -lcrypto -lssl"
 		SSL_SRCS_ENABLE='$(SSL_SRCS)'
 	else
 	        echo "$as_me:$LINENO: result: no - OpenSSL support disabled" >&5

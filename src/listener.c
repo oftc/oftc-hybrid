@@ -39,6 +39,7 @@
 #include "send.h"
 #include "memory.h"
 #include "tools.h"
+#include "s_log.h"
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/bio.h>
 #endif
@@ -112,7 +113,8 @@ show_ports(struct Client *source_p)
     listener = ptr->data;
     sendto_one(source_p, form_str(RPL_STATSPLINE),
                me.name, source_p->name,
-               'P', listener->port,
+               listener->is_ssl ? 'S' : 'P',
+               listener->port,
                IsAdmin(source_p) ? listener->name : me.name,
                listener->ref_count,
                (listener->active)?"active":"disabled");
@@ -245,7 +247,7 @@ find_listener(int port, struct irc_ssaddr *addr)
  * the format "255.255.255.255"
  */
 void 
-add_listener(int port, const char* vhost_ip)
+add_listener(int port, const char* vhost_ip, int is_ssl)
 {
   struct Listener *listener;
   struct irc_ssaddr vaddr;
@@ -255,6 +257,9 @@ add_listener(int port, const char* vhost_ip)
   static short int pass = 0; /* if ipv6 and no address specified we need to
 				have two listeners; one for each protocol. */
 #endif
+
+  ilog(L_DEBUG, "add_listener called port %d with is_ssl = %d", 
+       port, is_ssl);
 
   /*
    * if no port in conf line, don't bother
@@ -313,22 +318,26 @@ add_listener(int port, const char* vhost_ip)
   {
     /* add the ipv4 listener if we havent already */
     pass = 1;
-    add_listener(port, "0.0.0.0");
+    add_listener(port, "0.0.0.0", is_ssl);
   }
   pass = 0;
 #endif
 
   if ((listener = find_listener(port, &vaddr)))
   {
-    if (listener->fd > -1)
-      return;
+      ilog(L_DEBUG, "found listener for port %d", port);
+      if (listener->fd > -1)
+          return;
   }
   else
   {
     listener = make_listener(port, &vaddr);
+    listener->is_ssl = is_ssl;
+    ilog(L_DEBUG, "made listener with is_ssl = %d", is_ssl);
     dlinkAdd(listener, &listener->listener_node, &ListenerPollList);
   }
 
+  listener->is_ssl = is_ssl;
   listener->fd = -1;
 
   if (inetport(listener))
@@ -413,7 +422,9 @@ accept_connection(int pfd, void *data)
    * be accepted until some old is closed first.
    */
 
-  fd = comm_accept(listener->fd, &sai);
+  fd = comm_accept(listener->fd, &sai, listener->is_ssl);
+  ilog(L_DEBUG, "comm_accept with listener->is_ssl = %d",
+       listener->is_ssl);
 
   if (fd < 0)
   {

@@ -26,6 +26,7 @@
 #define INCLUDED_send_h
 
 #include "setup.h"       /* HAVE_STDARG_H */
+#include "fdlist.h"
 
 /* For those unfamiliar with GNU format attributes, a is the 1 based
  * argument number of the format string, and b is the 1 based argument
@@ -106,6 +107,8 @@ extern void
 kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,
                            const char *pattern, ...) AFP(3, 4);
 
+extern int
+sendSSL(fde_t* F, const char *data, const size_t length);
 
 #define ALL_MEMBERS  0
 #define NON_CHANOPS  1

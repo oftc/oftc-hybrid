@@ -114,6 +114,11 @@
 extern int errno;
 #endif
 
+#ifdef HAVE_LIBCRYPTO
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#endif
+
 #include "inet_misc.h"
 
 #endif

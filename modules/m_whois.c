@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "fdlist.h"
 #include "tools.h"
 #include "common.h"  
 #include "handlers.h"
@@ -33,6 +34,7 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "s_conf.h"
+#include "s_misc.h"
 #include "s_serv.h"
 #include "send.h"
 #include "list.h"
@@ -424,6 +426,17 @@ whois_person(struct Client *source_p,struct Client *target_p, int glob)
   if (IsOper(target_p))
     sendto_one(source_p, form_str(RPL_WHOISOPERATOR),
                me.name, source_p->name, target_p->name);
+
+#ifdef HAVE_LIBCRYPTO
+  if (MyClient(target_p)) {
+  	int fd = target_p->localClient->fd;
+  	fde_t *F = (fd > -1)? &fd_table[fd] : NULL;
+  	
+  	if (F && F->ssl)
+  		sendto_one(source_p, form_str(RPL_WHOISSSL),
+  			me.name, source_p->name, target_p->name);	
+  }
+#endif
 
   if (MyConnect(target_p)) /* Can't do any of this if not local! db */
   {

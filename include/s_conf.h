@@ -368,8 +368,11 @@ struct server_info
   char        *network_name;
   char        *network_desc;
 #ifdef HAVE_LIBCRYPTO
-  char *      rsa_private_key_file;
-  RSA *       rsa_private_key;
+  char        *rsa_private_key_file;
+  RSA         *rsa_private_key;
+  char        *ssl_certificate_file;
+  SSL_CTX     *ctx;
+  SSL_METHOD  *meth;
 #endif
   char	      *sid;
   int         hub;

@@ -14,6 +14,7 @@ RPL_LUSERME:             :%s 255 %s :%d clients and %d servers are belong to me
 RPL_LOAD2HI:             :%s 263 %s :What you say!?? The server is moving too many zigs..
 RPL_LOCALUSERS:          :%s 265 %s :%d users (max %d) are belong to me
 RPL_GLOBALUSERS:         :%s 266 %s :%d users (max %d) are belong to the network
+RPL_WHOISSSL             :%s 297 %s %s :is moving all Zig, using SSL
 RPL_UNAWAY:              :%s 305 %s :OK, you're not /away anymore. Did you move Zig for great justice?
 RPL_NOWAWAY:             :%s 306 %s :OK, you're /away now. Hurry back!
 RPL_WHOISOPERATOR:       :%s 313 %s %s :is a Zig for Great Justice

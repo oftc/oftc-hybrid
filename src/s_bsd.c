@@ -24,6 +24,7 @@
 
 #include "stdinc.h"
 #include <netinet/tcp.h>
+#include <netinet/in.h>
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "client.h"
@@ -48,6 +49,9 @@
 #include "s_stats.h"
 #include "send.h"
 #include "memory.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 
 #ifndef IN_LOOPBACKNET
@@ -818,7 +822,7 @@ comm_open(int family, int sock_type, int proto, const char *note)
     }
 
   /* Next, update things in our fd tracking */
-  fd_open(fd, FD_SOCKET, note);
+  fd_open(fd, FD_SOCKET, note, NULL);
   return fd;
 }
 
@@ -830,10 +834,14 @@ comm_open(int family, int sock_type, int proto, const char *note)
  * comm_open() does.
  */
 int
-comm_accept(int fd, struct irc_ssaddr *pn)
+comm_accept(int fd, struct irc_ssaddr *pn, int is_ssl)
 {
   int newfd;
   socklen_t addrlen = sizeof(struct irc_ssaddr);
+#ifdef HAVE_LIBCRYPTO
+  SSL *ssl = NULL;
+#endif
+
   if (number_fd >= MASTER_MAX)
     {
       errno = ENFILE;
@@ -857,18 +865,150 @@ comm_accept(int fd, struct irc_ssaddr *pn)
  
   /* Set the socket non-blocking, and other wonderful bits */
   if (!set_non_blocking(newfd))
-    {
+  {
       ilog(L_CRIT, "comm_accept: Couldn't set FD %d non blocking!", newfd);
+      close(newfd);
+      return -1;
+  }
+
+#ifdef HAVE_LIBCRYPTO
+  if (is_ssl && ServerInfo.ctx) 
+  {
+    int retval;
+    extern char *get_ssl_error(int);
+    fde_t *F = &fd_table[newfd];
+
+    char address[HOSTIPLEN]; 
+    
+    irc_getnameinfo((struct sockaddr*)pn, pn->ss_len, address, HOSTIPLEN, 
+            NULL, 0, NI_NUMERICHOST);
+            
+    F->connect.hostaddr = *pn;
+    ilog(L_DEBUG, "SSL comm_accept()");
+      
+    ssl = SSL_new(ServerInfo.ctx);
+    if (!ssl) 
+    {
+      ilog(L_CRIT, "SSL_new() ERROR! -- %s", ERR_error_string(ERR_get_error(), NULL));
       close(newfd);
       return -1;
     }
 
+    retval = SSL_set_fd(ssl, newfd);
+    if (retval == 0)
+    {
+      ilog(L_DEBUG, "Failed to set SSL fd");
+      return -1;
+    }
+      
+    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+            "SSL_accept() for %s (socket %d) in progress...", address, newfd);
+    ilog(L_DEBUG, "SSL_accept() for %s (socket %d) in progress...", address, 
+            newfd);
+      
+    retval = SSL_accept(ssl);
+    ilog(L_DEBUG, "SSL_accept retval = %d", retval);
+    if (retval <= 0) 
+    {
+      retval = SSL_get_error(ssl, retval);
+      switch (retval)
+      {
+      case SSL_ERROR_SYSCALL:
+      case SSL_ERROR_WANT_READ:
+      case SSL_ERROR_WANT_WRITE:
+        sendto_realops_flags(UMODE_DEBUG, L_ALL,
+                "SSL_accept() for %s wants read or write (%s), passing through...",
+                address, get_ssl_error(retval));
+
+        ilog(L_DEBUG, 
+                "SSL_accept() for %s wants read or write (%s), passing through...",
+                address, get_ssl_error(retval));
+               
+        /* let it through, SSL_read()/SSL_write() will finish the handshake...*/
+        if (retval == SSL_ERROR_WANT_READ)
+          F->flags.accept_read = 1;
+        else if (retval == SSL_ERROR_WANT_WRITE)
+          F->flags.accept_write = 1;
+        else
+          F->flags.accept_read = 1;
+        break;
+               
+      default:
+        sendto_realops_flags(UMODE_DEBUG, L_ALL,  "SSL_accept() ERROR! -- %s",
+                (retval == SSL_ERROR_SSL) ? 
+                ERR_error_string(ERR_get_error(), NULL) : get_ssl_error(retval));
+               
+        ilog(L_DEBUG, "SSL_accept() ERROR! -- %s", (retval == SSL_ERROR_SSL) ?
+                ERR_error_string(ERR_get_error(), NULL) :
+                get_ssl_error(retval));
+               
+        SSL_free(ssl);
+        close(newfd);
+        return -1;
+      }
+    } 
+    else 
+    {
+      char *ssl_get_cipher(SSL *);
+         
+      sendto_realops_flags(UMODE_DEBUG, L_ALL, "SSL_accept() for %s succeeded!",
+              address);
+      ilog(L_DEBUG, "SSL_accept() for %s succeeded!", address);
+      sendto_realops_flags(UMODE_DEBUG, L_ALL, "SSL protocol/cipher: %s",
+                              ssl_get_cipher(ssl));
+      ilog(L_DEBUG, "SSL protocol/cipher: %s", ssl_get_cipher(ssl));
+      sendto_realops_flags(UMODE_DEBUG, L_ALL, "SSL_state_string_long(): %s",
+                              SSL_state_string_long(ssl));
+      ilog(L_DEBUG, "SSL_state_string_long(): %s", SSL_state_string_long(ssl));
+    }
+  }
+#endif
+  
   /* Next, tag the FD as an incoming connection */
-  fd_open(newfd, FD_SOCKET, "Incoming connection");
+#ifdef HAVE_LIBCRYPTO
+  if (is_ssl && ServerInfo.ctx)
+    fd_open(newfd, FD_SOCKET, "Incoming SSL connection", ssl);
+  else
+    fd_open(newfd, FD_SOCKET, "Incoming connection", ssl);
+#else
+  fd_open(newfd, FD_SOCKET, "Incoming connection", NULL);
+#endif
 
   /* .. and return */
   return newfd;
 }
+
+
+#ifdef HAVE_LIBCRYPTO
+char *ssl_get_cipher(SSL *ssl)
+{
+    static char buf[400];
+    char bots[10];
+    int bits;
+    SSL_CIPHER *c; 
+    
+    buf[0] = '\0';
+    switch(ssl->session->ssl_version)
+    {
+       case SSL2_VERSION:
+           strcat(buf, "SSLv2"); break;
+       case SSL3_VERSION:
+           strcat(buf, "SSLv3"); break;
+       case TLS1_VERSION:
+           strcat(buf, "TLSv1"); break;
+       default:
+           strcat(buf, "UNKNOWN");
+    }
+    strcat(buf, "-");
+    strcat(buf, SSL_get_cipher(ssl));
+    c = SSL_get_current_cipher(ssl);
+    SSL_CIPHER_get_bits(c, &bits);
+    sprintf(bots, "-%d", bits);
+    strcat(buf, bots);
+    strcat(buf, "bits");
+    return (buf);
+}
+#endif
 
 /* 
  * remove_ipv6_mapping() - Removes IPv4-In-IPv6 mapping from an address

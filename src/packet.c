@@ -405,11 +405,19 @@ read_packet(int fd, void *data)
   struct Client *client_p = data;
   int length = 0;
   int fd_r;
+#ifdef HAVE_LIBCRYPTO
+  fde_t *F;
+#endif
+
 #ifndef NDEBUG
   struct hook_io_data hdata;
 #endif
   if (IsDefunct(client_p))
     return;
+
+#ifdef HAVE_LIBCRYPTO
+  F = (client_p->localClient->fd > -1)? &fd_table[client_p->localClient->fd] : NULL;
+#endif
 
   fd_r = client_p->localClient->fd;
 
@@ -426,6 +434,81 @@ read_packet(int fd, void *data)
    * I personally think it makes the code too hairy to make sane.
    *     -- adrian
    */
+#ifdef HAVE_LIBCRYPTO
+  if (F && F->ssl) {
+      /*extern time_t CurrentTime;*/
+      extern char *get_ssl_error(int);
+      /*static*/ int alerted = 0;
+      
+      if (F->flags.accept_read) {
+          int ret;
+          /*recv(fd_r, readBuf, READBUF_SIZE, 0);*/
+          if ((ret = SSL_accept(F->ssl)) > 0) {
+              if (!alerted)
+              {
+                  sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+                     "SSL_accept() for %s (socket %d) wanting READ succeeded!",
+                     inetntoa((char *)&(F->connect.hostaddr)), F->fd);
+                  
+              }
+              F->flags.accept_read = 0;
+          } else if (F->accept_failures < 4) {
+              int val = SSL_get_error(F->ssl, ret);
+              sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+                 "SSL_accept() for %s (socket %d) wanting READ error! -- %s",
+                 inetntoa((char *)&(F->connect.hostaddr)), F->fd,
+                 (val == SSL_ERROR_SSL)?
+                 ERR_error_string(ERR_get_error(), NULL) :
+                 get_ssl_error(val));
+              sendto_realops_flags(UMODE_DEBUG, L_ALL,
+                                   "BIO_sock_should_retry(): %d", 
+                                   BIO_sock_should_retry(ret));
+              if (val == SSL_ERROR_SYSCALL) {
+                  int err = ERR_get_error();
+                  if (err)
+                      sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+                                           "ERR_get_error() -- %s",
+                                           ERR_error_string(err, NULL));
+                  else
+                      sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+                                           "more error info -- %s",
+                                           (ret == -1)? strerror(errno) : "got EOF, protocol violation");  
+              }
+              sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+                                   "SSL_state_string_long(): %s",
+                                   SSL_state_string_long(F->ssl));
+              F->accept_failures++;
+          }
+          length = -1; errno = EAGAIN;
+      } else {
+          
+          length = SSL_read(F->ssl, readBuf, READBUF_SIZE); 
+          
+          if (length <= 0 && !alerted) {
+              int val = SSL_get_error(F->ssl, length);
+              /*if (CurrentTime % 10 == 0)*/
+              sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+                                   "SSL_read() for %s (socket %d) ERROR! -- %s",
+                                   inetntoa((char *)&(F->connect.hostaddr)), F->fd,
+                                   (val == SSL_ERROR_SSL)?
+                                   ERR_error_string(ERR_get_error(), NULL) :
+                                   get_ssl_error(val));
+              if (val == SSL_ERROR_SYSCALL) {
+                  int err = ERR_get_error();
+                  if (err)
+                      sendto_realops_flags(UMODE_DEBUG, L_ALL, "ERR_get_error() -- %s",
+                                           ERR_error_string(err, NULL));
+                  else
+                      sendto_realops_flags(UMODE_DEBUG, L_ALL, "more error info -- %s",
+                                           (length == -1)? strerror(errno) : "got EOF, protocol violation");  
+              } else {
+                  /*SSL_set_accept_state(F->ssl);*/
+                  errno = EAGAIN;
+              }
+          }}
+      alerted = 1;
+  } else
+#endif
   length = recv(fd_r, readBuf, READBUF_SIZE, 0);
 
   if (length <= 0)

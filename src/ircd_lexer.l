@@ -238,6 +238,7 @@ password	{ return PASSWORD; }
 ping_cookie	{ return PING_COOKIE; }
 ping_time	{ return PING_TIME; }
 port		{ return PORT; }
+sslport         { return SSLPORT; }
 quarantine	{ return RESV; }
 quiet_on_ban    { return QUIET_ON_BAN; }
 reason		{ return REASON; }
@@ -250,6 +251,7 @@ restricted      { return RESTRICTED; }
 resv		{ return RESV; }
 rsa_private_key_file		{ return RSA_PRIVATE_KEY_FILE; }
 rsa_public_key_file		{ return RSA_PUBLIC_KEY_FILE; }
+ssl_certificate_file            { return SSL_CERTIFICATE_FILE; }
 send_password	{ return SEND_PASSWORD; }
 sendq		{ return SENDQ; }
 serverhide	{ return SERVERHIDE; }

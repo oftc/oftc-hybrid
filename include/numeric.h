@@ -189,11 +189,10 @@ extern const char *get_locale(void);
 /*      RPL_CHANINFO_KICK    295           aircd */
 /*	RPL_HELPIGN	     295	Numeric List: Dalnet */
 /*      RPL_CHANINFO_KICKS   296           aircd */
-
 /*      RPL_END_CHANINFO     299           aircd */
 
 /* numeric_replies */
-
+#define RPL_WHOISSSL         297        /* uses SSL */
 #define RPL_AWAY             301
 #define RPL_USERHOST         302
 #define RPL_ISON             303
