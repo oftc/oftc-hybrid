@@ -1,3 +1,15 @@
+stu         2005/01/13 16:35:02 UTC	(20050113_1)
+
+  Added files:
+    modules              m_tburst.c 
+  Log:
+  move tburst into main directory
+  
+  Revision  Changes    Path
+  1.1       +163 -0    oftc-hybrid/modules/m_tburst.c (new)
+
+
+
 stu         2005/01/13 16:25:43 UTC	(20050113_0)
 
   Modified files:
