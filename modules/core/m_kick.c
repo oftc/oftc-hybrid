@@ -136,7 +136,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
         char tmp[IRCD_BUFSIZE];
         ircsprintf(tmp, "%s is using God mode: KICK %s %s %s", 
                 source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
-        sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
+        sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
         oftc_log(tmp);
       } 
       else if (MyConnect(source_p))

@@ -47,7 +47,7 @@ const char* _version = "$Revision$";
 
 struct Message hs_msgtab = {
       "hs", 0, 0, 0, 0, MFLG_SLOW, 0,
-        {m_unregistered, m_hs, m_hs, m_hs}
+        {m_unregistered, m_hs, m_hs, m_hs, m_ignore}
 };
 
 struct Message hs_msgtab2 = {
