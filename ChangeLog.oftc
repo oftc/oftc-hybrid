@@ -1,3 +1,15 @@
+stu         2004/12/20 19:02:23 UTC	(20041220_0)
+
+  Modified files:
+    modules              m_invite.c 
+  Log:
+  Fix the god mode invite not working bug(i think)
+  
+  Revision  Changes    Path
+  1.9       +7 -3      oftc-hybrid/modules/m_invite.c
+
+
+
 stu         2004/09/03 18:03:02 UTC	(20040903_0)
 
   Modified files:
