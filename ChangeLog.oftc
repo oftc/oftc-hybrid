@@ -1,3 +1,15 @@
+stu         2003/09/20 15:02:07 UTC	(20030920_0)
+
+  Modified files:
+    modules              m_who.c 
+  Log:
+  (Hopefully) fix +M and related crashes
+  
+  Revision  Changes    Path
+  1.12      +2 -2      oftc-hybrid/modules/m_who.c
+
+
+
 stu         2003/09/03 19:21:16 UTC	(20030903_0)
 
   Modified files:
