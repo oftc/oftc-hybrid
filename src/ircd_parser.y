@@ -287,8 +287,10 @@ int   class_redirport_var;
 
 %type   <string>   QSTRING
 %type   <number>   NUMBER
-%type   <number>   timespec, timespec_
-%type   <number>   sizespec, sizespec_
+%type   <number>   timespec
+%type   <number>   timespec_
+%type   <number>   sizespec
+%type   <number>   sizespec_
 
 %%
 conf:   
@@ -303,7 +305,7 @@ conf_item:        admin_entry
                 | listen_entry
                 | auth_entry
                 | serverinfo_entry
-		| serverhide_entry;
+		| serverhide_entry
                 | resv_entry
                 | shared_entry
                 | connect_entry
