@@ -155,12 +155,16 @@ m_invite(struct Client *client_p, struct Client *source_p,
 
   if (chptr->mode.mode & MODE_INVITEONLY)
   {
-    if (!chop)
+    if (!chop && !IsGod(source_p))
     {
       sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
                  me.name, parv[0], parv[2]);
       return;
     }
+    if(!chop)
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
+                target_p->name);
   }
   else
     /* Don't save invite even if from an op otherwise... */
