@@ -1,3 +1,16 @@
+stu         2003/08/16 16:06:02 UTC	(20030816_6)
+
+  Modified files:
+    src                  channel_mode.c 
+  Log:
+  fixed god mode noticed for MODE
+  Also disabled sending keys
+  
+  Revision  Changes    Path
+  1.13      +16 -4     oftc-hybrid/src/channel_mode.c
+
+
+
 stu         2003/08/16 15:40:36 UTC	(20030816_5)
 
   Modified files:
