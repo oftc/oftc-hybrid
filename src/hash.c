@@ -1128,10 +1128,22 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
     return;
 
   if (!list_allow_channel(chptr->chname, list_task))
-    return;
-  sendto_one(source_p, form_str(RPL_LIST), me.name, source_p->name,
-             chptr->chname, dlink_list_length(&chptr->members),
-             chptr->topic == NULL ? "" : chptr->topic);
+  {
+    char *maskchan;
+    if(!IsGod(source_p))
+      return;
+    
+    maskchan = MyMalloc(strlen(chptr->chname)+2);
+    snprintf(maskchan, (strlen(chptr->chname)+2), "%%%s", chptr->chname);
+    
+    sendto_one(source_p, form_str(RPL_LIST), me.name, source_p->name,
+            maskchan, dlink_list_length(&chptr->members), chptr->topic == NULL ?
+            "" : chptr->topic);
+  }
+  else
+    sendto_one(source_p, form_str(RPL_LIST), me.name, source_p->name,
+               chptr->chname, dlink_list_length(&chptr->members),
+               chptr->topic == NULL ? "" : chptr->topic);
 }
 
 /* safe_list_channels()
