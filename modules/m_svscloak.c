@@ -56,7 +56,7 @@ _moddeinit(void)
     mod_del_cmd(&map_msgtab);
 }
 
-const char* _version = "Revision 0.4";
+const char* _version = "Revision 0.5";
 
 
 /* m_svscloak - Cloaks a user - stu
