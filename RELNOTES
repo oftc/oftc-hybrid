@@ -1,3 +1,8 @@
+-- oftc-hybrid 1.3.2 RELNOTES
+o) Fixed a lot of God Mode bugs
+o) Merged the reworked parser from upstream
+o) Other minor bugfixes
+
 -- oftc-hybrid-1.3.0 RELNOTES
 o) Added +S usermode for server connect notices
 o) Added channel creation notices
