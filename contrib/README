@@ -8,7 +8,11 @@ modules, or guarantee any of them will actually work.
 Once again. WITH feeling. Not all of these modules have been thoroughly
 tested! Thats why some of them are in contrib not in the main tree yet!
 At least one module in contrib has been known to core servers when used.
-You have been warned.
+You have been warned. 
+
+To repeat, ONE OR MORE OF THESE MAY CRASH YOUR SERVER.  USE AT YOUR
+OWN RISK.
+
 
 Modules
 -------
