@@ -1,3 +1,15 @@
+stu         2004/09/03 18:03:02 UTC	(20040903_0)
+
+  Modified files:
+    modules              m_topic.c 
+  Log:
+  if topic from a server ie services, propogate it
+  
+  Revision  Changes    Path
+  1.8       +7 -1      oftc-hybrid/modules/m_topic.c
+
+
+
 stu         2004/07/26 15:47:58 UTC	(20040726_0)
 
   Modified files:
