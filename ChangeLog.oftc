@@ -1,3 +1,15 @@
+stu         2005/01/03 00:20:45 UTC	(20050103_0)
+
+  Modified files:
+    include              patchlevel.h 
+  Log:
+  bump patchlevel
+  
+  Revision  Changes    Path
+  1.18      +2 -2      oftc-hybrid/include/patchlevel.h
+
+
+
 stu         2005/01/02 23:13:35 UTC	(20050102_0)
 
   Modified files:
