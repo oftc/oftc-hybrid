@@ -1139,6 +1139,7 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
     sendto_one(source_p, form_str(RPL_LIST), me.name, source_p->name,
             maskchan, dlink_list_length(&chptr->members), chptr->topic == NULL ?
             "" : chptr->topic);
+    MyFree(maskchan);
   }
   else
     sendto_one(source_p, form_str(RPL_LIST), me.name, source_p->name,
