@@ -1,3 +1,24 @@
+stu         2005/01/12 20:03:07 UTC	(20050112_2)
+
+  Modified files:
+    .                    RELNOTES 
+    include              channel_mode.h numeric.h 
+    modules/core         m_sjoin.c 
+    src                  channel.c channel_mode.c messages.tab 
+  Log:
+  add channel mode +S - only join if using SSL
+  
+  Revision  Changes    Path
+  1.11      +4 -2      oftc-hybrid/RELNOTES
+  1.6       +4 -1      oftc-hybrid/include/channel_mode.h
+  1.9       +3 -3      oftc-hybrid/include/numeric.h
+  1.7       +7 -2      oftc-hybrid/modules/core/m_sjoin.c
+  1.12      +17 -0     oftc-hybrid/src/channel.c
+  1.19      +3 -2      oftc-hybrid/src/channel_mode.c
+  1.9       +1 -1      oftc-hybrid/src/messages.tab
+
+
+
 stu         2005/01/12 18:01:58 UTC	(20050112_1)
 
   Modified files:
