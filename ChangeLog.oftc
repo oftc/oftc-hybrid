@@ -1,3 +1,15 @@
+stu         2004/03/27 16:43:25 UTC	(20040327_0)
+
+  Modified files:
+    modules              m_whois.c 
+  Log:
+  re-added missing display of secret channels to god mode users
+  
+  Revision  Changes    Path
+  1.9       +6 -3      oftc-hybrid/modules/m_whois.c
+
+
+
 stu         2004/03/15 19:54:48 UTC	(20040315_0)
 
   Modified files:
