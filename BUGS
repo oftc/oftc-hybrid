@@ -33,7 +33,7 @@
 3.  Problem with msgfmt command building custom msgs using gettext
     - Please ensure you are using GNU gettext version 0.10.35.
       Other versions are untested, and some are known to be
-      incompatible.
+      incompatible.  Solaris 8 gettext definately does not work.
 
 4.  Problems with quote set msglocale not working on linux.
     This seems to be a linux problem, /quote set msglocale will sometimes
@@ -52,6 +52,9 @@
 
 6.  IAuthd is broken beyond belief.  It does not work at this time.  If this
     bothers you, fix it for us.
+
+7.  Solaris stock 32bit stdio is limited to 256 fds. This breaks when using
+    cryptlinks.
 
 BUG REPORTS: If you run this code and encounter problems, you must report
  the bug in by E-MAIL to ircd-hybrid@the-project.org.

@@ -2143,6 +2143,26 @@ fi
 
 
 
+
+echo "$as_me:$LINENO: checking for /dev/null" >&5
+echo $ECHO_N "checking for /dev/null... $ECHO_C" >&6
+if test -c /dev/null ; then
+  cat >>confdefs.h <<\_ACEOF
+#define PATH_DEVNULL "/dev/null"
+_ACEOF
+
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+else
+  cat >>confdefs.h <<\_ACEOF
+#define PATH_DEVNULL "devnull.log"
+_ACEOF
+
+  echo "$as_me:$LINENO: result: no - using devnull.log" >&5
+echo "${ECHO_T}no - using devnull.log" >&6
+fi
+
+
 if test "x$CFLAGS" != "x"; then
   IRC_CFLAGS="$IRC_CFLAGS $CPPFLAGS"
 fi
