@@ -534,24 +534,21 @@ inline char *
 first_visible_channel(struct Client *client_p, struct Client *source_p)
 {
   dlink_node *ptr;
-  dlink_node *next_ptr;
         
+  struct Membership *mb;
   struct Channel *chptr = NULL;
 
   DLINK_FOREACH(ptr, client_p->user->channel.head)
   {
-    if(ShowChannel(source_p, (struct Channel*)ptr->data))
+    mb = ptr->data;
+    chptr = mb->chptr;
+    if(ShowChannel(source_p, chptr))
       break;
-  }
-
-  if(ptr != NULL)
-  {
-    chptr = ptr->data;
-    next_ptr = ptr->next;
   }
 
   if(chptr != NULL)
     return chptr->chname;
+  
   return "*";
 }
 #define MAXWHOREPLIES 200
