@@ -7,6 +7,5 @@ ircd.conf file.
   DNS      - Re-read the /etc/resolv.conf file
   MOTD     - Re-reads MOTD file
   OMOTD    - Re-reads Oper MOTD file
-  CHANNELS - Forces a channel cleanup
 
 - Requires Oper Priv: H
