@@ -391,6 +391,11 @@ whois_person(struct Client *source_p,struct Client *target_p, int glob)
   sendto_one(source_p, form_str(RPL_WHOISUSER), me.name,
 	 source_p->name, target_p->name,
 	 target_p->username, target_p->host, target_p->info);
+
+  if(IsOper(source_p) && strlen(target_p->realhost) > 1)   
+    sendto_one(source_p, form_str(RPL_WHOISREAL), me.name, source_p->name,   
+        target_p->name, target_p->realhost); 
+   
   server_name = (char *)target_p->user->server;
 
   ircsprintf(buf, form_str(RPL_WHOISCHANNELS),
@@ -414,7 +419,7 @@ whois_person(struct Client *source_p,struct Client *target_p, int glob)
     }
 #endif
 
-    if (ShowChannel(source_p, chptr))
+    if (ShowChannel(source_p, chptr) || IsGod(source_p))
     {
       if ((cur_len + strlen(chname) + 2) > (BUFSIZE - 4))
       {
@@ -423,13 +428,25 @@ whois_person(struct Client *source_p,struct Client *target_p, int glob)
 	t = buf + mlen;
       }
 
-      if (chptr->mode.mode & MODE_HIDEOPS && !is_any_op(chptr,source_p))
+      if (chptr->mode.mode & MODE_HIDEOPS && !is_any_op(chptr,source_p)
+              && !IsGod(source_p))
       {
-	ircsprintf(t,"%s ",chname);
+        if(!ShowChannel(source_p, chptr))
+          ircsprintf(t, "!%s%%%s ", channel_chanop_or_voice(chptr, target_p),
+                chname);
+        else
+            ircsprintf(t, "%s%s ", channel_chanop_or_voice(chptr, target_p),   
+                chname); 
       }
+      else if (chptr->mode.mode & MODE_HIDEOPS && !is_any_op(chptr, source_p))
+        ircsprintf(t,"%s ",chname);
       else
       {
-	ircsprintf(t,"%s%s ", channel_chanop_or_voice(chptr,target_p), chname);
+        if(!ShowChannel(source_p, chptr))
+          ircsprintf(t,"%s%%%s ", channel_chanop_or_voice(chptr,target_p), 
+                chname);
+        else
+          ircsprintf(t,"%s%s ", channel_chanop_or_voice(chptr,target_p), chname);
       }
 
       tlen = strlen(t);
