@@ -702,6 +702,10 @@ get_or_create_channel(struct Client *client_p, char *chname, int *isnew)
   dlinkAdd(chptr, &chptr->node, &global_channel_list);
   chptr->channelts = CurrentTime; /* doesn't hurt to set it here */
   hash_add_channel(chptr);
+  if(MyClient(client_p))
+          sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+              "Channel %s created by %s!%s@%s", chname, client_p->name,
+              client_p->username, client_p->host);
 
   return(chptr);
 }
