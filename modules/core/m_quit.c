@@ -70,6 +70,9 @@ m_quit(struct Client *client_p, struct Client *source_p,
   char *comment = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
   char reason[TOPICLEN + 1] = "Quit: ";
 
+  if (msg_has_colors(comment))
+    comment = strip_color(comment);
+  
   if (comment[0] && (IsOper(source_p) ||
       (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
       < CurrentTime))
