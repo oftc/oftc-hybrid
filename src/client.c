@@ -1013,6 +1013,7 @@ exit_one_client(struct Client *client_p, struct Client *source_p,
   assert(dlinkFind(&dead_list, source_p) == NULL);
   /* add to dead client dlist */
   lp = make_dlink_node();
+  oftc_log("adding %s to the dead list from exit_one_client", source_p->name);
   SetDead(source_p);
   dlinkAdd(source_p, lp, &dead_list);
 }
@@ -1150,6 +1151,8 @@ void dead_link(struct Client *client_p)
   if(IsClosing(client_p) || IsDead(client_p))
     return;
 
+  oftc_log("dead_link for %s", client_p->name);
+
   if(client_p->flags & FLAGS_SENDQEX)
     notice = "Max SendQ exceeded";
   else
@@ -1164,6 +1167,7 @@ void dead_link(struct Client *client_p)
   assert(dlinkFind(&abort_list, client_p) == NULL);
   m = make_dlink_node();
   dlinkAdd(client_p, m, &abort_list);
+  oftc_log("adding %s to the dead list from dead_link", client_p->name); 
   SetDead(client_p); /* You are dead my friend */
 
   if (!IsPerson(client_p) && !IsUnknown(client_p) && !IsClosing(client_p))
@@ -1198,6 +1202,7 @@ exit_aborted_clients(void)
       else
         notice = "Write error: connection closed";
       
+      oftc_log("exit_aborted_clients for %s", target_p->name);
       exit_client(target_p, target_p, &me, notice);  
       free_dlink_node(ptr);
     }
