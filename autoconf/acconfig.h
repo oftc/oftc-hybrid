@@ -79,3 +79,6 @@
 /* EFNET */
 #undef EFNET
 
+/* PATH_DEVNULL */
+#undef PATH_DEVNULL
+

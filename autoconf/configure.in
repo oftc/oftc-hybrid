@@ -140,6 +140,18 @@ fi
 
 AC_SUBST(MKDEP)
 
+
+dnl check for /dev/null so we can use it to hold evil fd's
+AC_MSG_CHECKING(for /dev/null)
+if test -c /dev/null ; then
+  AC_DEFINE(PATH_DEVNULL,"/dev/null")
+  AC_MSG_RESULT(yes)
+else
+  AC_DEFINE(PATH_DEVNULL,"devnull.log")
+  AC_MSG_RESULT(no - using devnull.log)
+fi
+
+
 dnl jdc -- If CFLAGS is defined, best use it everywhere...
 dnl NOTE: jv says it must be added to the *END*, because things like
 dnl "gcc -O9 -O2" will result in -O2 getting preference.  How stupid.
