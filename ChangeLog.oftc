@@ -1,3 +1,22 @@
+stu         2004/05/19 08:25:22 UTC	(20040519_0)
+
+  Modified files:
+    src                  parse.c ircd.c 
+    include              parse.h 
+  Log:
+  Updated tree parse code to current hybrid stock.  This should fix the cores
+  we've been seeing.
+  
+  Obtained from:  Hybrid
+  MFC After: Some Testing
+  
+  Revision  Changes    Path
+  1.4       +1 -1      oftc-hybrid/include/parse.h
+  1.7       +1 -1      oftc-hybrid/src/ircd.c
+  1.11      +115 -104  oftc-hybrid/src/parse.c
+
+
+
 stu         2004/03/30 15:09:21 UTC	(20040330_0)
 
   Modified files:
