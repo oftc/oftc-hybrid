@@ -116,13 +116,13 @@ static void m_svsmode(struct Client *client_p, struct Client *source_p,
         case 'R':
           if(what == MODE_ADD)
           {
-            target_p->umodes |= FLAGS_NICKSERVREG;
+            target_p->umodes |= UMODE_NICKSERVREG;
             if(MyClient(target_p))
               sendto_one(target_p, ":%s MODE %s :+R", target_p->name, 
                     target_p->name);
           }
           else
-            target_p->umodes &= ~FLAGS_NICKSERVREG;
+            target_p->umodes &= ~UMODE_NICKSERVREG;
         break;
        }
   /* Propogate the SVSMODE to other servers */

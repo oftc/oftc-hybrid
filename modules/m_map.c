@@ -26,11 +26,13 @@
 #include "client.h"
 #include "modules.h"
 #include "handlers.h"
+#include "hash.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "ircd.h"
+#include "sprintf_irc.h"
 
 extern struct Client me;
 extern struct Counter Count;
@@ -71,10 +73,15 @@ static void mo_map(struct Client *client_p, struct Client *source_p,
                     int parc, char *parv[])
 {
   struct ConfItem *conf;
+  struct AccessItem *aconf;
+  dlink_node *ptr;
+  
   dump_map(client_p, &me, buf);
-  for (conf = ConfigItemList; conf; conf = conf->next)
+  DLINK_FOREACH(ptr, server_items.head)
   {
-    if (conf->status != CONF_SERVER)
+    conf = ptr->data;
+    aconf = (struct AccessItem *)map_to_conf(conf);
+    if (aconf->status != CONF_SERVER)
       continue;
     if (strcmp(conf->name, me.name) == 0)
       continue;
@@ -93,15 +100,21 @@ static void ms_map(struct Client *client_p, struct Client *source_p,
                     int parc, char *parv[])
 {
   struct ConfItem *conf;
+  struct AccessItem *aconf;
+  dlink_node *ptr;
 
   if (parc > 1)
     if (hunt_server(client_p, source_p, ":%s MAP %s", 1, parc, parv) 
             != HUNTED_ISME)
       return;
   dump_map(source_p,&me,buf);
-  for (conf = ConfigItemList; conf; conf = conf->next)
+  
+  DLINK_FOREACH(ptr, server_items.head)
   {
-    if (conf->status != CONF_SERVER)
+    conf = ptr->data;
+    aconf = (struct AccessItem *)map_to_conf(conf);
+
+    if (aconf->status != CONF_SERVER)
       continue;
     if (strcmp(conf->name, me.name) == 0)
       continue;
@@ -117,13 +130,14 @@ static void ms_map(struct Client *client_p, struct Client *source_p,
 
 /*
 ** dump_map
-**   dumps server map, called recursively.
+**    dumps server map, called recursively.
 */
 static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
 {
   int cnt = 0, i = 0, len;
   int users = 0;
-  struct Client *server_p,*user_p;
+  struct Client *server_p;
+  dlink_node *ptr;
         
   *pbuf= '\0';
        
@@ -131,8 +145,7 @@ static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
   len = strlen(buf);
   buf[len] = ' ';
 	
-  /* FIXME: add serv->usercnt */
-  for( user_p = root_p->serv->users; user_p; user_p = user_p->lnext )
+  DLINK_FOREACH(ptr, root_p->serv->users.head)
     users++;
         
   snprintf(buf+len, BUFSIZE," (Users: %d [%.1f%%]; Ping: %lums)", users,
@@ -141,25 +154,23 @@ static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
         
   sendto_one(client_p, form_str(RPL_MAP),me.name,client_p->name,buf);
         
-  if ((server_p = root_p->serv->servers))
-  {
-    for (; server_p; server_p = server_p->lnext)
-    {
-      cnt++;
-    }
+  DLINK_FOREACH(ptr, root_p->serv->servers.head)
+    cnt++;
     
-    if (cnt)
+  if (cnt)
+  {
+    if (pbuf > buf + 3)
     {
-      if (pbuf > buf + 3)
-      {
-        pbuf[-2] = ' ';
-        if (pbuf[-3] == '`')
-          pbuf[-3] = ' ';
-      }
+      pbuf[-2] = ' ';
+      if (pbuf[-3] == '`')
+        pbuf[-3] = ' ';
     }
   }
-  for (i = 1,server_p = root_p->serv->servers; server_p; server_p=server_p->lnext)
+  i = 1;
+  
+  DLINK_FOREACH(ptr, root_p->serv->servers.head)
   {
+    server_p = ptr->data;
     *pbuf = ' ';
     if (i < cnt)
       *(pbuf + 1) = '|';
@@ -168,7 +179,7 @@ static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
       
     *(pbuf + 2) = '-';
     *(pbuf + 3) = ' ';
-    dump_map(client_p,server_p,pbuf+4);
+    dump_map(client_p, server_p, pbuf + 4);
  
     i++;
    }

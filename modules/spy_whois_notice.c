@@ -50,8 +50,8 @@ const char *_version = "$Revision$";
 int
 show_notice(struct hook_mfunc_data *data)
 {
-  /* XXX This means ALL opers will get the notice, regardless of FLAGS_SPY.
-   * solution is to propgate FLAGS_SPY
+  /* XXX This means ALL opers will get the notice, regardless of UMODE_SPY.
+   * solution is to propgate UMODE_SPY
    */
   if (IsOper(data->client_p) && (data->client_p != data->source_p))
     {
