@@ -46,7 +46,7 @@ static void m_svsmode(struct Client*, struct Client*, int, char**);
 
 struct Message mode_msgtab = {
   "SVSMODE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_ignore, m_svsmode, m_ignore}
+  {m_unregistered, m_ignore, m_svsmode, m_ignore, m_ignore}
 };
 #ifndef STATIC_MODULES
 

@@ -44,7 +44,7 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
 
 struct Message map_msgtab = {
       "SVSCLOAK", 0, 0, 1, 0, MFLG_SLOW, 0,
-        {m_unregistered, m_ignore, m_svscloak, m_ignore}
+        {m_unregistered, m_ignore, m_svscloak, m_ignore, m_ignore}
 };
 
 void _modinit(void)

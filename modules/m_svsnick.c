@@ -46,7 +46,7 @@ static void m_svsnick(struct Client*, struct Client*, int, char**);
 
 struct Message mode_msgtab = {
   "SVSNICK", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_svsnick, m_svsnick, m_svsnick}
+  {m_unregistered, m_svsnick, m_svsnick, m_svsnick, m_ignore}
 };
 #ifndef STATIC_MODULES
 
