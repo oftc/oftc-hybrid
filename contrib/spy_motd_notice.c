@@ -46,10 +46,10 @@ const char *_version = "$Revision$";
 
 int show_motd(struct hook_spy_data *data)
 {
-  sendto_gnotice_flags(FLAGS_SPY, L_OPER, me.name, &me, NULL,
-                         "MOTD %s requested by %s (%s@%s)",
-			 me.name, data->source_p->name,
-			 data->source_p->username, data->source_p->host);
+  sendto_realops_flags(FLAGS_SPY, L_ALL,
+                         "motd requested by %s (%s@%s) [%s]",
+                         data->source_p->name, data->source_p->username,
+                         data->source_p->host, data->source_p->user->server);
 
   return 0;
 }

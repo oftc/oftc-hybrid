@@ -48,7 +48,7 @@ const char *_version = "$Revision$";
 int
 show_links(struct hook_links_data *data)
 {
-  sendto_gnotice_flags(FLAGS_SPY, L_OPER, me.name, &me, NULL,
+  sendto_realops_flags(FLAGS_SPY, L_ALL,
                          "LINKS '%s' requested by %s (%s@%s) [%s]",
                          data->mask, data->source_p->name, data->source_p->username,
                          data->source_p->host, data->source_p->user->server);
