@@ -41,6 +41,8 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "sprintf_irc.h"
+#include "s_log.h"
 
 
 static void m_join(struct Client *, struct Client *, int, char **);
@@ -245,6 +247,16 @@ m_join(struct Client *client_p, struct Client *source_p,
       successful_join_count++;
       continue;
     }
+
+    if(i != 0 && IsGod(source_p) && MyClient(source_p))
+    {
+      char tmp[IRCD_BUFSIZE];
+      ircsprintf(tmp, "%s is using God mode: JOIN %s", source_p->name,
+          chptr->chname);
+      sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, 
+          tmp);
+      oftc_log(tmp);
+    } 
 
     /* add the user to the channel */
 
