@@ -43,7 +43,7 @@
 
 static void m_os(struct Client *, struct Client *, int, char **);
 
-const char* _version = "$Revision 0.1$";
+const char* _version = "$Revision$";
 
 struct Message os_msgtab = {
       "os", 0, 0, 0, 0, MFLG_SLOW, 0,
