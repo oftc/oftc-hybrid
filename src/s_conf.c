@@ -2263,8 +2263,9 @@ WriteKlineOrDline( KlineType type,
     }
   else
     {
-      sendto_realops_flags(FLAGS_ALL, L_OPER, "%s added K-Line for [%s@%s]"
-              " [%s]", get_oper_name(source_p), user, host, reason);
+      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+              "%s added K-Line for [%s@%s] [%s]", get_oper_name(source_p), 
+              user, host, reason);
       if(MyConnect(source_p))
         sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
             me.name, source_p->name, user, host);
