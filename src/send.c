@@ -1309,7 +1309,8 @@ sendto_wallops_flags(int flags, struct Client *source_p,
 }
 
 
-void sendto_gnotice_flags(int flags, int level, char *origin, 
+void 
+sendto_gnotice_flags(int flags, int level, char *origin, 
         struct Client *source_p, struct Client *client_p, 
         const char *pattern, ...)
 {
