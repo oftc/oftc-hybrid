@@ -456,7 +456,7 @@ read_packet(int fd, void *data)
           
           length = SSL_read(F->ssl, readBuf, READBUF_SIZE); 
           
-          if (length <= 0 && !alerted) {
+          if (length <= 0) {
               int val = SSL_get_error(F->ssl, length);
               /*if (CurrentTime % 10 == 0)*/
               if (val == SSL_ERROR_SYSCALL) {
@@ -466,7 +466,6 @@ read_packet(int fd, void *data)
                   errno = EAGAIN;
               }
           }}
-      alerted = 1;
   } else
 #endif
   length = recv(fd_r, readBuf, READBUF_SIZE, 0);
