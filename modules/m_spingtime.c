@@ -46,7 +46,7 @@
 static void ms_spingtime(struct Client*, struct Client*, int, char**);
 
 struct Message mode_msgtab = {
-  "SVSNICK", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "SPINGTIME", 0, 0, 2, 0, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_spingtime, m_ignore}
 };
 #ifndef STATIC_MODULES
