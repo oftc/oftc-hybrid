@@ -1153,13 +1153,15 @@ dead_link(struct Client *client_p)
   else
     notice = "Write error: connection closed";
 
-  if (!IsPerson(client_p) && !IsUnknown(client_p))
+/*
+ * Removed this notice, as it causes more problems than it's worth - stu
+ * if (!IsPerson(client_p) && !IsUnknown(client_p))
   {
     sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, client_p,
 		         "Closing link to %s: %s",
                          get_client_name(client_p, MASK_IP), notice);
   }
-
+*/
   Debug((DEBUG_ERROR, "Closing link to %s: %s", get_client_name(to, HIDE_IP), 
               notice));
   exit_client(client_p, client_p, &me, "Closing link");
