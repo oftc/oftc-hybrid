@@ -889,11 +889,6 @@ exit_one_client(struct Client *client_p, struct Client *source_p,
   dlink_node *lp;
   dlink_node *next_lp;
 
-  if(IsDead(source_p))
-    return;
-
-  oftc_log("exit_one_client %s. Not dead.", source_p->name);
-
   if (IsServer(source_p))
     {
       if (source_p->servptr && source_p->servptr->serv)
@@ -1013,12 +1008,9 @@ exit_one_client(struct Client *client_p, struct Client *source_p,
   remove_client_from_list(source_p);
 
   /* Check to see if the client isn't already on the dead list */
-  if(dlinkFind(&dead_list, source_p) != NULL)
-      oftc_log("source_p already on dead list %s", source_p->name);
   assert(dlinkFind(&dead_list, source_p) == NULL);
   /* add to dead client dlist */
   lp = make_dlink_node();
-  oftc_log("adding %s to the dead list from exit_one_client", source_p->name);
   SetDead(source_p);
   dlinkAdd(source_p, lp, &dead_list);
 }
@@ -1077,7 +1069,6 @@ static void recurse_remove_clients(struct Client* source_p, const char* comment)
 {
   struct Client *target_p;
 
-  oftc_log("recuse_remove_client: %s, %p", source_p->name, source_p->serv);
   if (IsMe(source_p))
     return;
 
@@ -1119,8 +1110,6 @@ remove_dependents(struct Client* client_p,
   static char myname[HOSTLEN+1];
   dlink_node *ptr;
 
-  oftc_log("remove_dependents for %s", source_p->name);
-  
   DLINK_FOREACH(ptr, serv_list.head)
     {
       to = ptr->data;
@@ -1145,20 +1134,19 @@ remove_dependents(struct Client* client_p,
   recurse_remove_clients(source_p, comment1);
 }
 
+
+
+
 /*
  * dead_link - Adds client to a list of clients that need an exit_client()
  *
  */
-void
-dead_link(struct Client *client_p)
+void dead_link(struct Client *client_p)
 {
   dlink_node *m;
   const char *notice;
-
-  if(IsDefunct(client_p))
+  if(IsClosing(client_p) || IsDead(client_p))
     return;
-
-  oftc_log("dead_link for %s, NOT defunt", client_p->name);
 
   if(client_p->flags & FLAGS_SENDQEX)
     notice = "Max SendQ exceeded";
@@ -1168,17 +1156,11 @@ dead_link(struct Client *client_p)
     	
   Debug((DEBUG_ERROR, "Closing link to %s: %s", get_client_name(to, HIDE_IP), 
               notice));
-
-  if(dlinkFind(&abort_list, client_p) != NULL)
-      oftc_log("client_p on abort list already %s", client_p->name);
   assert(dlinkFind(&abort_list, client_p) == NULL);
   m = make_dlink_node();
   dlinkAdd(client_p, m, &abort_list);
-  oftc_log("adding %s to the abort list from dead_link", client_p->name); 
-  SetClosing(client_p); /* You are closing my friend */
-  oftc_log("set closing for %s", client_p->name);
-
-  if (!IsPerson(client_p) && !IsUnknown(client_p))
+  SetDead(client_p); /* You are dead my friend */
+  if (!IsPerson(client_p) && !IsUnknown(client_p) && !IsClosing(client_p))
   {
     sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 		         "Closing link to %s: %s",
@@ -1210,7 +1192,6 @@ exit_aborted_clients(void)
       else
         notice = "Write error: connection closed";
       
-      oftc_log("exit_aborted_clients for %s", target_p->name);
       exit_client(target_p, target_p, &me, notice);  
       free_dlink_node(ptr);
     }
@@ -1253,9 +1234,15 @@ exit_client(
 {
   char comment1[HOSTLEN + HOSTLEN + 2];
   dlink_node *m;
-  oftc_log("exit_client called for %s", source_p->name);
   if (MyConnect(source_p))
     {
+      /* DO NOT REMOVE. exit_client can be called twice after a failed
+       * read/write.
+       */
+      if(IsClosing(source_p))
+        return 0;
+
+      SetClosing(source_p);
       if (source_p->flags & FLAGS_IPHASH)
         remove_one_ip(&source_p->localClient->ip);
 
@@ -1362,10 +1349,7 @@ exit_client(
       else
 	{
 	  if((source_p->serv) && (source_p->serv->up))
-      {
-        oftc_log("serv is.. %p", source_p->serv);
 	    strcpy(comment1, source_p->serv->up);
-      }
 	  else
 	    strcpy(comment1, "<Unknown>");
 

@@ -310,7 +310,7 @@ void close_connection(struct Client *client_p)
   if (-1 < client_p->localClient->fd)
     {
       /* attempt to flush any pending dbufs. Evil, but .. -- adrian */
-      if (!IsDefunct(client_p))
+      if (!IsDead(client_p))
         send_queued_write(client_p->localClient->fd, client_p);
       fd_close(client_p->localClient->fd);
       client_p->localClient->fd = -1;
