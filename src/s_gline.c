@@ -28,17 +28,14 @@
 #include "channel.h"
 #include "client.h"
 #include "common.h"
-#include "config.h"
 #include "irc_string.h"
 #include "ircd.h"
-#include "m_kline.h"
 #include "hostmask.h"
 #include "numeric.h"
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"
 #include "s_misc.h"
-#include "scache.h"
 #include "send.h"
 #include "msg.h"
 #include "fileio.h"
@@ -49,97 +46,87 @@
 #include "list.h"
 #include "memory.h"
 
-
-dlink_list glines;
+dlink_list pending_glines = { NULL, NULL, 0 };
 
 static void expire_glines(void);
 static void expire_pending_glines(void);
 
-/* add_gline
+
+/* find_gkill()
  *
- * inputs       - pointer to struct ConfItem
- * output       - none
- * Side effects - links in given struct ConfItem into gline link list
+ * inputs       - pointer to a Client struct
+ * output       - struct AccessItem pointer if a gline was found for this client
+ * side effects - NONE
  */
-void
-add_gline(struct ConfItem *aconf)
+struct AccessItem *
+find_gkill(struct Client *client_p, const char *username)
 {
-  dlink_node *gline_node;
-  gline_node = make_dlink_node();
-  dlinkAdd(aconf, gline_node, &glines);
+  assert(client_p != NULL);
+
+  if (client_p == NULL)
+    return(NULL);
+  return((IsExemptKline(client_p)) ? NULL : find_is_glined(client_p->host, username));
 }
 
-/* find_gkill
- *
- * inputs       - struct Client pointer to a Client struct
- * output       - struct ConfItem pointer if a gline was found for this client
- * side effects - none
- */
-struct ConfItem*
-find_gkill(struct Client* client_p, char* username)
-{
-  assert(NULL != client_p);
-  if(client_p == NULL)
-    return NULL;
-  return (IsExemptKline(client_p)) ? 0 : find_is_glined(client_p->host, username);
-}
+/* XXX need CIDR support */
 
-/*
- * find_is_glined
+/* find_is_glined()
+ *
  * inputs       - hostname
  *              - username
- * output       - pointer to struct ConfItem if user@host glined
+ * output       - pointer to struct AccessItem if user@host glined
  * side effects -
  */
-struct ConfItem*
-find_is_glined(const char* host, const char* name)
+struct AccessItem *
+find_is_glined(const char *host, const char *user)
 {
-  dlink_node *gline_node;
-  struct ConfItem *kill_ptr; 
+  dlink_node *ptr;
+  struct AccessItem *kill_ptr; 
 
-  DLINK_FOREACH(gline_node, glines.head)
+  DLINK_FOREACH(ptr, gline_items.head)
   {
-    kill_ptr = gline_node->data;
-    if( (kill_ptr->name && (!name || match(kill_ptr->name,name)))
-	&&
-	(kill_ptr->host && (!host || match(kill_ptr->host,host))))
+    kill_ptr = map_to_conf(ptr->data);
+
+    if ((kill_ptr->user && (!user || match(kill_ptr->user, user))) &&
+        (kill_ptr->host && (!host || match(kill_ptr->host, host))))
     {
       return(kill_ptr);
     }
   }
 
-  return((struct ConfItem *)NULL);
+  return(NULL);
 }
 
-/*
- * remove_gline_match
+/* remove_gline_match()
  *
  * inputs       - user@host
  * output       - 1 if successfully removed, otherwise 0
  * side effects -
  */
 int
-remove_gline_match(const char* user, const char* host)
+remove_gline_match(const char *user, const char *host)
 {
-  dlink_node *gline_node;
-  struct ConfItem *kill_ptr;
+  dlink_node *ptr;
+  struct ConfItem *conf;
+  struct AccessItem *kill_ptr;
 
-  DLINK_FOREACH(gline_node, glines.head)
+  DLINK_FOREACH(ptr, gline_items.head)
   {
-    kill_ptr = gline_node->data;
-    if(!irccmp(kill_ptr->host,host) && !irccmp(kill_ptr->name,user))
+    conf = ptr->data;
+    kill_ptr = (struct AccessItem *)map_to_conf(conf);
+
+    if (irccmp(kill_ptr->host, host) == 0 &&
+        irccmp(kill_ptr->user, user) == 0)
     {
-      free_conf(kill_ptr);
-      dlinkDelete(gline_node, &glines);
-      free_dlink_node(gline_node);
-      return (1);
+      delete_conf_item(conf);
+      return(1);
     }
   }
-  return (0);
+
+  return(0);
 }
 
-/*
- * cleanup_glines
+/* cleanup_glines()
  *
  * inputs	- NONE
  * output	- NONE
@@ -147,14 +134,13 @@ remove_gline_match(const char* user, const char* host)
  *                This is an event started off in ircd.c
  */
 void
-cleanup_glines()
+cleanup_glines(void *unused)
 {
   expire_glines();
   expire_pending_glines();
 }
 
-/*
- * expire_glines
+/* expire_glines()
  * 
  * inputs       - NONE
  * output       - NONE
@@ -163,28 +149,27 @@ cleanup_glines()
  * Go through the gline list, expire any needed.
  */
 static void
-expire_glines()
+expire_glines(void)
 {
-  dlink_node *gline_node;
-  dlink_node *next_node;
-  struct ConfItem *kill_ptr;
+  dlink_node *ptr;
+  dlink_node *next_ptr;
+  struct ConfItem *conf;
+  struct AccessItem *kill_ptr;
 
-  DLINK_FOREACH_SAFE(gline_node, next_node, glines.head)
+  DLINK_FOREACH_SAFE(ptr, next_ptr, gline_items.head)
   {
-    kill_ptr = gline_node->data;
+    conf = ptr->data;
+    kill_ptr = (struct AccessItem *)map_to_conf(conf);
 
-    if(kill_ptr->hold <= CurrentTime)
+    if (kill_ptr->hold <= CurrentTime)
     {
-      free_conf(kill_ptr);
-      dlinkDelete(gline_node, &glines);
-      free_dlink_node(gline_node);
+      delete_conf_item(conf);
     }
   }
 }
 
-/*
- * expire_pending_glines
- * 
+/* expire_pending_glines()
+ *
  * inputs       - NONE
  * output       - NONE
  * side effects -
@@ -193,25 +178,21 @@ expire_glines()
  * enough "votes" in the time period allowed
  */
 static void
-expire_pending_glines()
+expire_pending_glines(void)
 {
-  dlink_node *pending_node;
-  dlink_node *next_node;
+  dlink_node *ptr;
+  dlink_node *next_ptr;
   struct gline_pending *glp_ptr;
 
-  DLINK_FOREACH_SAFE(pending_node, next_node, pending_glines.head)
+  DLINK_FOREACH_SAFE(ptr, next_ptr, pending_glines.head)
   {
-    glp_ptr = pending_node->data;
+    glp_ptr = ptr->data;
 
-    if(((glp_ptr->last_gline_time + GLINE_PENDING_EXPIRE) <= CurrentTime)
-       || find_is_glined(glp_ptr->host, glp_ptr->user))
-      
+    if (((glp_ptr->last_gline_time + GLINE_PENDING_EXPIRE) <= CurrentTime) ||
+        find_is_glined(glp_ptr->host, glp_ptr->user))
     {
-      MyFree(glp_ptr->reason1);
-      MyFree(glp_ptr->reason2);
+      dlinkDelete(&glp_ptr->node, &pending_glines);
       MyFree(glp_ptr);
-      dlinkDelete(pending_node, &pending_glines);
-      free_dlink_node(pending_node);
     }
   }
 }

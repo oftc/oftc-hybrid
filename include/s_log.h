@@ -35,16 +35,21 @@ struct Client;
 #define L_INFO    5
 #define L_DEBUG   6
 
+extern int use_logging;
+
+extern char foperlog[MAXPATHLEN+1];
+extern char fuserlog[MAXPATHLEN+1];
+extern char ffailed_operlog[MAXPATHLEN+1];
+
 extern void init_log(const char* filename);
 extern void reopen_log(const char* filename);
 extern void set_log_level(int level);
 extern int  get_log_level(void);
-extern void ilog(int priority, const char* fmt, ...);
+extern void ilog(int priority, const char *fmt, ...);
 extern const char *get_log_level_as_string(int level);
 
 extern void log_user_exit(struct Client *);
-extern void log_oper(struct Client *, char *name);
-extern void log_failed_oper(struct Client *, char *name);
-extern int oftc_log(char *pattern, ...);
+extern void log_oper(struct Client *, const char *name);
+extern void log_failed_oper(struct Client *, const char *name);
 
 #endif /* INCLUDED_s_log_h */

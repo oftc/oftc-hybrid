@@ -25,24 +25,24 @@
 #include "stdinc.h"
 #include "tools.h"
 #include "irc_string.h"
+#include "sprintf_irc.h"
 #include "client.h"
 #include "list.h"
 #include "memory.h"
-#include "setup.h"
 
 #ifndef INADDRSZ 
 #define INADDRSZ 4
 #endif
 
-#ifdef IPV6
 #ifndef IN6ADDRSZ
 #define IN6ADDRSZ 16
-#endif
 #endif
 
 #ifndef INT16SZ
 #define INT16SZ 2
 #endif
+
+
 /*
  * myctime - This is like standard ctime()-function, but it zaps away
  *   the newline from the end of that string. Also, it takes
@@ -55,17 +55,18 @@
  *
  * Thu Nov 24 18:22:48 1986 
  */
-const char* myctime(time_t value)
+const char *
+myctime(time_t value)
 {
   static char buf[32];
-  char*       p;
+  char *p;
 
   strcpy(buf, ctime(&value));
+
   if ((p = strchr(buf, '\n')) != NULL)
     *p = '\0';
-  return buf;
+  return(buf);
 }
-
 
 /*
  * clean_string - clean up a string possibly containing garbage
@@ -74,7 +75,7 @@ const char* myctime(time_t value)
  * annoying opers, lets clean up what is sent to local opers
  * -Dianora
  */
-char* 
+char *
 clean_string(char* dest, const unsigned char* src, size_t len)
 {
   char* d    = dest; 
@@ -115,31 +116,31 @@ clean_string(char* dest, const unsigned char* src, size_t len)
  *
  * NOTE: jdc: I have a gut feeling there's a faster way to do this.
  */
-char *strip_tabs(char *dest, const unsigned char *src, size_t len)
+char *
+strip_tabs(char *dest, const unsigned char *src, size_t len)
 {
   char *d = dest;
-  /* Sanity check; we don't want anything nasty... */
-  assert(0 != dest);
-  assert(0 != src);
 
-  if(dest == NULL || src == NULL)
-    return NULL;
-    
+  /* Sanity check; we don't want anything nasty... */
+  assert(dest != NULL);
+  assert(src  != NULL);
+
+  if (dest == NULL || src == NULL)
+    return(NULL);
+
   while (*src && (len > 0))
   {
     if (*src == '\t')
-    {
-      *d++ = ' ';   /* Translate the tab into a space */
-    }
+      *d++ = ' ';  /* Translate the tab into a space */
     else
-    {
-      *d++ = *src;  /* Copy src to dst */
-    }
+      *d++ = *src; /* Copy src to dst */
+
     ++src;
     --len;
   }
-  *d = '\0';   /* Null terminate, thanks and goodbye */
-  return dest;
+
+  *d = '\0'; /* Null terminate, thanks and goodbye */
+  return(dest);
 }
 
 /*
@@ -147,7 +148,10 @@ char *strip_tabs(char *dest, const unsigned char *src, size_t len)
  *   argv 9/90
  *
  */
-char* strtoken(char** save, char* str, char* fs)
+#ifndef HAVE_STRTOK_R
+
+char *
+strtoken(char** save, char* str, const char* fs)
 {
   char* pos = *save;  /* keep last position across calls */
   char* tmp;
@@ -174,6 +178,8 @@ char* strtoken(char** save, char* str, char* fs)
   *save = pos;
   return tmp;
 }
+
+#endif /* !HAVE_STRTOK_R */
 
 /* 
  * From: Thomas Helvey <tomh@inxpress.net>
@@ -218,12 +224,12 @@ static const char *IpQuadTab[] =
  *      argv 11/90).
  *  inet_ntoa --  its broken on some Ultrix/Dynix too. -avalon
  */
-
-const char* inetntoa(const char* in)
+const char *
+inetntoa(const char *in)
 {
   static char buf[16];
   char *bufptr = buf;
-  const unsigned char *a = (const unsigned char*)in;
+  const unsigned char *a = (const unsigned char *)in;
   const char *n;
 
   n = IpQuadTab[ *a++ ];
@@ -242,8 +248,32 @@ const char* inetntoa(const char* in)
   while ( *n )
     *bufptr++ = *n++;
   *bufptr = '\0';
-  return buf;
+  return(buf);
 }
+
+#ifndef HAVE_BASENAME
+
+/* basename()
+ *
+ * input	- i.e. "/usr/local/ircd/modules/m_whois.so"
+ * output	- i.e. "m_whois.so"
+ * side effects - this will be overwritten on subsequent calls
+ */
+char *
+basename(char *path)
+{
+  char *s;
+
+  if ((s = strrchr(path, '/')) == NULL)
+    s = path;
+  else
+    s++;
+
+  return (s);
+}
+
+#endif /* !HAVE_BASENAME */
+
 /*
  * Copyright (c) 1996-1999 by Internet Software Consortium.
  *
@@ -268,9 +298,9 @@ const char* inetntoa(const char* in)
  * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
  */
 
-static const char *inet_ntop4 (const u_char *src, char *dst, unsigned int size);
+static const char *inet_ntop4(const unsigned char *src, char *dst, unsigned int size);
 #ifdef IPV6
-static const char *inet_ntop6 (const u_char *src, char *dst, unsigned int size);
+static const char *inet_ntop6(const unsigned char *src, char *dst, unsigned int size);
 #endif
 
 /* const char *
@@ -280,16 +310,17 @@ static const char *inet_ntop6 (const u_char *src, char *dst, unsigned int size);
  *	`dst' (as a const)
  * notes:
  *	(1) uses no statics
- *	(2) takes a u_char* not an in_addr as input
+ *	(2) takes a unsigned char* not an in_addr as input
  * author:
  *	Paul Vixie, 1996.
  */
 static const char *
 inet_ntop4(const unsigned char *src, char *dst, unsigned int size)
 {
-	if(size < 16)
-		return NULL;
-	return strcpy(dst, inetntoa((const char *)src));
+  if (size < 16)
+    return(NULL);
+
+  return(strcpy(dst, inetntoa((const char *)src)));
 }
 
 /* const char *
@@ -311,7 +342,7 @@ inet_ntop6(const unsigned char *src, char *dst, unsigned int size)
 	 */
 	char tmp[sizeof "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255"], *tp;
 	struct { int base, len; } best, cur;
-	u_int words[IN6ADDRSZ / INT16SZ];
+	unsigned int words[IN6ADDRSZ / INT16SZ];
 	int i;
 
 	/*
@@ -380,7 +411,9 @@ inet_ntop6(const unsigned char *src, char *dst, unsigned int size)
 	 * Check for overflow, copy, and we're done.
 	 */
 	
-	if ((tp - tmp) > size) {
+	assert (tp - tmp >= 0);
+	
+	if ((unsigned int)(tp - tmp) > size) {
 		return (NULL);
 	}
 	return strcpy(dst, tmp);
@@ -395,222 +428,25 @@ inet_ntop6(const unsigned char *src, char *dst, unsigned int size)
  * author:
  *	Paul Vixie, 1996.
  */
-const char *inetntop(int af, const void *src, char *dst, unsigned int size)
+const char *
+inetntop(int af, const void *src, char *dst, unsigned int size)
 {
-	switch (af) {
-	case AF_INET:
-		return (inet_ntop4(src, dst, size));
+  switch (af)
+  {
+    case AF_INET:
+      return(inet_ntop4(src, dst, size));
 #ifdef IPV6
-	case AF_INET6:
-		if(IN6_IS_ADDR_V4MAPPED((const struct in6_addr *)src) ||
-			IN6_IS_ADDR_V4COMPAT((const struct in6_addr *)src))
-			return(inet_ntop4((unsigned char *)&((struct in6_addr *)src)->s6_addr[12], dst, size));
-		else 
-			return (inet_ntop6(src, dst, size));
-		
-
+    case AF_INET6:
+      if (IN6_IS_ADDR_V4MAPPED((const struct in6_addr *)src) ||
+          IN6_IS_ADDR_V4COMPAT((const struct in6_addr *)src))
+        return(inet_ntop4((unsigned char *)&((const struct in6_addr *)src)->s6_addr[12], dst, size));
+      else 
+        return(inet_ntop6(src, dst, size));
 #endif
-	default:
-		return (NULL);
-	}
-	/* NOTREACHED */
-}
-
-/*
- * WARNING: Don't even consider trying to compile this on a system where
- * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
- */
-
-/* int
- * inetpton(af, src, dst)
- *	convert from presentation format (which usually means ASCII printable)
- *	to network format (which is usually some kind of binary format).
- * return:
- *	1 if the address was valid for the specified address family
- *	0 if the address wasn't valid (`dst' is untouched in this case)
- *	-1 if some other error occurred (`dst' is untouched in this case, too)
- * author:
- *	Paul Vixie, 1996.
- */
-
-/* int
- * inet_pton4(src, dst)
- *	like inet_aton() but without all the hexadecimal and shorthand.
- * return:
- *	1 if `src' is a valid dotted quad, else 0.
- * notice:
- *	does not touch `dst' unless it's returning 1.
- * author:
- *	Paul Vixie, 1996.
- */
-static int
-inet_pton4(src, dst)
-	const char *src;
-	u_char *dst;
-{
-	int saw_digit, octets, ch;
-	u_char tmp[INADDRSZ], *tp;
-
-	saw_digit = 0;
-	octets = 0;
-	*(tp = tmp) = 0;
-	while ((ch = *src++) != '\0') {
-
-		if (ch >= '0' && ch <= '9') {
-			u_int new = *tp * 10 + (ch - '0');
-
-			if (new > 255)
-				return (0);
-			*tp = new;
-			if (! saw_digit) {
-				if (++octets > 4)
-					return (0);
-				saw_digit = 1;
-			}
-		} else if (ch == '.' && saw_digit) {
-			if (octets == 4)
-				return (0);
-			*++tp = 0;
-			saw_digit = 0;
-		} else
-			return (0);
-	}
-	if (octets < 4)
-		return (0);
-	memcpy(dst, tmp, INADDRSZ);
-	return (1);
-}
-
-#ifdef IPV6
-/* int
- * inet_pton6(src, dst)
- *	convert presentation level address to network order binary form.
- * return:
- *	1 if `src' is a valid [RFC1884 2.2] address, else 0.
- * notice:
- *	(1) does not touch `dst' unless it's returning 1.
- *	(2) :: in a full address is silently ignored.
- * credit:
- *	inspired by Mark Andrews.
- * author:
- *	Paul Vixie, 1996.
- */
-
-static int
-inet_pton6(src, dst)
-	const char *src;
-	u_char *dst;
-{
-	static const char xdigits[] = "0123456789abcdef";
-	u_char tmp[IN6ADDRSZ], *tp, *endp, *colonp;
-	const char *curtok;
-	int ch, saw_xdigit;
-	u_int val;
-
-	tp = memset(tmp, '\0', IN6ADDRSZ);
-	endp = tp + IN6ADDRSZ;
-	colonp = NULL;
-	/* Leading :: requires some special handling. */
-	if (*src == ':')
-		if (*++src != ':')
-			return (0);
-	curtok = src;
-	saw_xdigit = 0;
-	val = 0;
-	while ((ch = tolower (*src++)) != '\0') {
-		const char *pch;
-
-		pch = strchr(xdigits, ch);
-		if (pch != NULL) {
-			val <<= 4;
-			val |= (pch - xdigits);
-			if (val > 0xffff)
-				return (0);
-			saw_xdigit = 1;
-			continue;
-		}
-		if (ch == ':') {
-			curtok = src;
-			if (!saw_xdigit) {
-				if (colonp)
-					return (0);
-				colonp = tp;
-				continue;
-			} else if (*src == '\0') {
-				return (0);
-			}
-			if (tp + INT16SZ > endp)
-				return (0);
-			*tp++ = (u_char) (val >> 8) & 0xff;
-			*tp++ = (u_char) val & 0xff;
-			saw_xdigit = 0;
-			val = 0;
-			continue;
-		}
-		if(*src != '\0' && ch == '.')
-		{
-			if ( ((tp + INADDRSZ) <= endp) && inet_pton4(curtok, tp) > 0) {
-				tp += INADDRSZ;
-				saw_xdigit = 0;
-				break;	/* '\0' was seen by inet_pton4(). */
-			}
-		} else
-			continue;
-		return (0);
-	}
-	if (saw_xdigit) {
-		if (tp + INT16SZ > endp)
-			return (0);
-		*tp++ = (u_char) (val >> 8) & 0xff;
-		*tp++ = (u_char) val & 0xff;
-	}
-	if (colonp != NULL) {
-		/*
-		 * Since some memmove()'s erroneously fail to handle
-		 * overlapping regions, we'll do the shift by hand.
-		 */
-		const int n = tp - colonp;
-		int i;
-
-		if (tp == endp)
-			return (0);
-		for (i = 1; i <= n; i++) {
-			endp[- i] = colonp[n - i];
-			colonp[n - i] = 0;
-		}
-		tp = endp;
-	}
-	if (tp != endp)
-		return (0);
-	memcpy(dst, tmp, IN6ADDRSZ);
-	return (1);
-}
-#endif
-int
-inetpton(af, src, dst)
-	int af;
-	const char *src;
-	void *dst;
-{
-	switch (af) {
-	case AF_INET:
-		return (inet_pton4(src, dst));
-#ifdef IPV6
-	case AF_INET6:
-		/* Somebody might have passed as an IPv4 address this is sick but it works */
-		if(inet_pton4(src, dst))
-		{
-			char tmp[HOSTIPLEN];
-			ircsprintf(tmp, "::ffff:%s", src);
-			return (inet_pton6(tmp, dst));
-		}
-		else
-			return (inet_pton6(src, dst));
-#endif
-	default:
-		return (-1);
-	}
-	/* NOTREACHED */
+    default:
+      return(NULL);
+  }
+  /* NOTREACHED */
 }
 
 /*
@@ -643,58 +479,67 @@ inetpton(af, src, dst)
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
  
-
 #ifndef HAVE_STRLCAT
-size_t strlcat(char *dst, const char *src, size_t siz)
+size_t
+strlcat(char *dst, const char *src, size_t siz)
 {
- 	char *d = dst;
- 	const char *s = src;
- 	size_t n = siz, dlen;
+  char *d = dst;
+  const char *s = src;
+  size_t n = siz, dlen;
 
-	while (*d != '\0' && n-- != 0)
-		d++;
-	dlen = d - dst;
-	n = siz - dlen;
+  while (n-- != 0 && *d != '\0')
+    d++;
 
-	if (n == 0)
-		return(dlen + strlen(s));
-	while (*s != '\0') {
-		if (n != 1) {
-			*d++ = *s;
-			n--;
-        	}
-   		s++;
-	}
-	*d = '\0';
-	return(dlen + (s - src));	/* count does not include NUL */
+  dlen = d - dst;
+  n    = siz - dlen;
+
+  if (n == 0)
+    return(dlen + strlen(s));
+
+  while (*s != '\0')
+  {
+    if (n != 1)
+    {
+      *d++ = *s;
+      n--;
+    }
+
+    s++;
+  }
+
+  *d = '\0';
+  return(dlen + (s - src)); /* count does not include NUL */
 }
 #endif
 
 #ifndef HAVE_STRLCPY
-size_t strlcpy(char *dst, const char *src, size_t siz)
+size_t
+strlcpy(char *dst, const char *src, size_t siz)
 {
-	char *d = dst;
-        const char *s = src;
- 	size_t n = siz;
-        /* Copy as many bytes as will fit */
-        if (n != 0 && --n != 0) {
-		do {
-	                if ((*d++ = *s++) == 0)
-                                break;
-                } while (--n != 0);
-	}
-        /* Not enough room in dst, add NUL and traverse rest of src */
-        if (n == 0) {
-		if (siz != 0)
-   	                *d = '\0';              /* NUL-terminate dst */
-                while (*s++)
-   	                ;
-	}
+  char *d = dst;
+  const char *s = src;
+  size_t n = siz;
 
- 	return(s - src - 1);	/* count does not include NUL */
+  /* Copy as many bytes as will fit */
+  if (n != 0 && --n != 0)
+  {
+    do
+    {
+      if ((*d++ = *s++) == 0)
+        break;
+    } while (--n != 0);
+  }
+
+  /* Not enough room in dst, add NUL and traverse rest of src */
+  if (n == 0)
+  {
+    if (siz != 0)
+      *d = '\0'; /* NUL-terminate dst */
+    while (*s++)
+      ;
+  }
+
+  return(s - src - 1); /* count does not include NUL */
 }
 #endif
-
-

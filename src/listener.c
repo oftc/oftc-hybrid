@@ -23,112 +23,97 @@
  */
 
 #include "stdinc.h"
-#include "config.h"
 #include "listener.h"
 #include "client.h"
 #include "fdlist.h"
 #include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
 #include "ircd_defs.h"
-#include "numeric.h"
 #include "s_bsd.h"
 #include "irc_getnameinfo.h"
 #include "irc_getaddrinfo.h"
+#include "numeric.h"
 #include "s_conf.h"
 #include "s_stats.h"
 #include "send.h"
 #include "memory.h"
-#include "setup.h"
-
+#include "tools.h"
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/bio.h>
 #endif
 
+
 static PF accept_connection;
 
-static struct Listener* ListenerPollList = NULL;
+static dlink_list ListenerPollList = { NULL, NULL, 0 };
+static void close_listener(struct Listener *listener);
 
-static struct Listener* 
+static struct Listener *
 make_listener(int port, struct irc_ssaddr *addr)
 {
-  struct Listener* listener =
-    (struct Listener*) MyMalloc(sizeof(struct Listener));
-  assert(0 != listener);
-  
-  listener->name        = me.name;
-  listener->fd          = -1;
-  listener->port       = port;
+  struct Listener *listener =
+    (struct Listener *)MyMalloc(sizeof(struct Listener));
+  assert(listener != 0);
+
+  listener->name = me.name;
+  listener->port = port;
+  listener->fd   = -1;
   memcpy(&listener->addr, addr, sizeof(struct irc_ssaddr));
 
-  listener->next = NULL;
-  return listener;
+  return(listener);
 }
 
 void
-free_listener(struct Listener* listener)
+free_listener(struct Listener *listener)
 {
-  assert(NULL != listener);
-  if(listener == NULL)
-    return;
-  /*
-   * remove from listener list
-   */
-  if (listener == ListenerPollList)
-    ListenerPollList = listener->next;
-  else
-  {
-    struct Listener* prev = ListenerPollList;
-    for ( ; prev; prev = prev->next)
-    {
-      if (listener == prev->next)
-      {
-        prev->next = listener->next;
-        break;
-      }
-    }
-  }
+  assert(listener != NULL);
 
-  /* free */
+  if (listener == NULL)
+    return;
+
+  dlinkDelete(&listener->listener_node, &ListenerPollList);
   MyFree(listener);
 }
-
-#define PORTNAMELEN 6  /* ":31337" */
 
 /*
  * get_listener_name - return displayable listener name and port
  * returns "host.foo.org:6667" for a given listener
  */
-const char* 
+const char *
 get_listener_name(const struct Listener* listener)
 {
   static char buf[HOSTLEN + HOSTLEN + PORTNAMELEN + 4];
-  assert(NULL != listener);
-  if(listener == NULL)
-    return NULL;
+
+  assert(listener != NULL);
+
+  if (listener == NULL)
+    return(NULL);
+
   ircsprintf(buf, "%s[%s/%u]",
              me.name, listener->name, listener->port);
-  return buf;
+  return(buf);
 }
 
-/*
- * show_ports - send port listing to a client
+/* show_ports()
+ *
  * inputs       - pointer to client to show ports to
  * output       - none
- * side effects - show ports
+ * side effects - send port listing to a client
  */
 void 
-show_ports(struct Client* source_p)
+show_ports(struct Client *source_p)
 {
-  struct Listener* listener = 0;
+  dlink_node *ptr;
+  struct Listener *listener;
 
-  for (listener = ListenerPollList; listener; listener = listener->next)
+  DLINK_FOREACH(ptr, ListenerPollList.head)
   {
+    listener = ptr->data;
     sendto_one(source_p, form_str(RPL_STATSPLINE),
-               me.name,
-               source_p->name,
-               'P',
-               listener->port,
-               IsOperAdmin(source_p) ? listener->name : me.name,
+               me.name, source_p->name,
+               'P', listener->port,
+               IsAdmin(source_p) ? listener->name : me.name,
                listener->ref_count,
                (listener->active)?"active":"disabled");
   }
@@ -148,7 +133,7 @@ show_ports(struct Client* source_p)
 #endif
 
 static int 
-inetport(struct Listener* listener)
+inetport(struct Listener *listener)
 {
   struct irc_ssaddr lsin;
   int fd;
@@ -160,23 +145,23 @@ inetport(struct Listener* listener)
   fd = comm_open(listener->addr.ss.ss_family, SOCK_STREAM, 0, "Listener socket");
   memset(&lsin, 0, sizeof(lsin));
   memcpy(&lsin, &listener->addr, sizeof(struct irc_ssaddr));
-      
-  irc_getnameinfo((struct sockaddr*)&lsin, lsin.ss_len, listener->vhost,
-          HOSTLEN, NULL, 0, NI_NUMERICHOST);
+  
+  irc_getnameinfo((struct sockaddr*)&lsin, lsin.ss_len, listener->vhost, 
+        HOSTLEN, NULL, 0, NI_NUMERICHOST);
   listener->name = listener->vhost;
 
   if (fd == -1)
   {
     report_error(L_ALL, "opening listener socket %s:%s",
                  get_listener_name(listener), errno);
-    return (0);
+    return(0);
   }
   else if ((HARD_FDLIMIT - 10) < fd)
   {
     report_error(L_ALL, "no more connections left for listener %s:%s",
                  get_listener_name(listener), errno);
     fd_close(fd);
-    return (0);
+    return(0);
   }
   /*
    * XXX - we don't want to do all this crap for a listener
@@ -187,7 +172,7 @@ inetport(struct Listener* listener)
     report_error(L_ALL, "setting SO_REUSEADDR for listener %s:%s",
                  get_listener_name(listener), errno);
     fd_close(fd);
-    return (0);
+    return(0);
   }
 
   /*
@@ -196,19 +181,22 @@ inetport(struct Listener* listener)
    */
   lsin.ss_port = htons(listener->port);
 
-  if (bind(fd, (struct sockaddr*) &lsin, lsin.ss_len))
+
+  if (bind(fd, (struct sockaddr*)&lsin,
+        lsin.ss_len))
   {
     report_error(L_ALL, "binding listener socket %s:%s",
                  get_listener_name(listener), errno);
     fd_close(fd);
-    return (0);
+    return(0);
   }
 
-  if (listen(fd, HYBRID_SOMAXCONN)) {
+  if (listen(fd, HYBRID_SOMAXCONN))
+  {
     report_error(L_ALL, "listen failed for %s:%s",
                  get_listener_name(listener), errno);
     fd_close(fd);
-    return 0;
+    return(0);
   }
 
   /*
@@ -222,31 +210,33 @@ inetport(struct Listener* listener)
   /* Listen completion events are READ events .. */
 
   accept_connection(fd, listener);
-  return 1;
+  return(1);
 }
 
-static struct Listener* 
+static struct Listener *
 find_listener(int port, struct irc_ssaddr *addr)
 {
-  struct Listener* listener = NULL;
-  struct Listener* last_closed = NULL;
+  dlink_node *ptr;
+  struct Listener *listener    = NULL;
+  struct Listener *last_closed = NULL;
 
-  for (listener = ListenerPollList; listener; listener = listener->next)
+  DLINK_FOREACH(ptr, ListenerPollList.head)
   {
-    if ((port == listener->port) &&
-      (!memcmp(addr, &listener->addr, sizeof(struct irc_ssaddr))))
+    listener = ptr->data;
 
+    if ((port == listener->port) &&
+        (!memcmp(addr, &listener->addr, sizeof(struct irc_ssaddr))))
     {
       /* Try to return an open listener, otherwise reuse a closed one */
       if (listener->fd == -1)
         last_closed = listener;
       else
-        return listener;
+        return(listener);
     }
   }
-  return last_closed;
-}
 
+  return(last_closed);
+}
 
 /*
  * add_listener- create a new listener
@@ -261,6 +251,10 @@ add_listener(int port, const char* vhost_ip)
   struct irc_ssaddr vaddr;
   struct addrinfo hints, *res;
   char portname[PORTNAMELEN + 1];
+#ifdef IPV6
+  static short int pass = 0; /* if ipv6 and no address specified we need to
+				have two listeners; one for each protocol. */
+#endif
 
   /*
    * if no port in conf line, don't bother
@@ -280,11 +274,15 @@ add_listener(int port, const char* vhost_ip)
 #ifdef IPV6
   if (ServerInfo.can_use_v6)
   {
-    struct sockaddr_in6 *v6 = (struct sockaddr_in6*) &vaddr;
-    memcpy(&vaddr, &in6addr_any, sizeof(in6addr_any));
+    snprintf(portname, PORTNAMELEN, "%d", port);
+    irc_getaddrinfo("::", portname, &hints, &res);
     vaddr.ss.ss_family = AF_INET6;
-    vaddr.ss_len = sizeof(struct sockaddr_in6);
-    v6->sin6_port = htons(port);
+    assert(res != NULL);
+
+    memcpy((struct sockaddr*)&vaddr, res->ai_addr, res->ai_addrlen);
+    vaddr.ss_port = port;
+    vaddr.ss_len = res->ai_addrlen;
+    irc_freeaddrinfo(res);
   }
   else
 #endif
@@ -310,6 +308,15 @@ add_listener(int port, const char* vhost_ip)
     vaddr.ss_len = res->ai_addrlen;
     irc_freeaddrinfo(res);
   }
+#ifdef IPV6
+  else if (pass == 0 && ServerInfo.can_use_v6)
+  {
+    /* add the ipv4 listener if we havent already */
+    pass = 1;
+    add_listener(port, "0.0.0.0");
+  }
+  pass = 0;
+#endif
 
   if ((listener = find_listener(port, &vaddr)))
   {
@@ -319,8 +326,7 @@ add_listener(int port, const char* vhost_ip)
   else
   {
     listener = make_listener(port, &vaddr);
-    listener->next = ListenerPollList;
-    ListenerPollList = listener;
+    dlinkAdd(listener, &listener->listener_node, &ListenerPollList);
   }
 
   listener->fd = -1;
@@ -360,16 +366,17 @@ close_listener(struct Listener *listener)
  * close_listeners - close and free all listeners that are not being used
  */
 void 
-close_listeners()
+close_listeners(void)
 {
-  struct Listener* listener;
-  struct Listener* listener_next = 0;
-  /*
-   * close all 'extra' listening ports we have
+  dlink_node *ptr;
+  dlink_node *next_ptr;
+  struct Listener *listener;
+
+  /* close all 'extra' listening ports we have
    */
-  for (listener = ListenerPollList; listener; listener = listener_next)
+  DLINK_FOREACH_SAFE(ptr, next_ptr, ListenerPollList.head)
   {
-    listener_next = listener->next;
+    listener = ptr->data;
     close_listener(listener);
   }
 }
@@ -386,7 +393,7 @@ accept_connection(int pfd, void *data)
   int fd;
   int pe;
   struct Listener *listener = data;
-      
+
   memset(&sai, 0, sizeof(sai));
   memset(&addr, 0, sizeof(addr));
 
@@ -429,7 +436,7 @@ accept_connection(int pfd, void *data)
        */
       if((last_oper_notice + 20) <= CurrentTime)
 	{
-	  sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"All connections in use. (%s)",
+	  sendto_realops_flags(UMODE_ALL, L_ALL,"All connections in use. (%s)",
 			       get_listener_name(listener));
 	  last_oper_notice = CurrentTime;
 	}

@@ -66,7 +66,7 @@ static struct AuthBlock *auth_restricted = NULL;
 
 static void ConvertConf(FILE* file,FILE *out);
 static void set_flags(struct AuthBlock *, const char *, const char *);
-static void usage();
+static void usage(void);
 static char *getfield(char *);
 static struct AuthBlock *find_matching_conf(struct AuthBlock *);
 static void ReplaceQuotes(char *out, char *in);
@@ -100,10 +100,10 @@ int main(int argc,char *argv[])
   return 0;
 }
 
-void usage()
+static void usage(void)
 {
-    fprintf(stderr, "convertilines conf.old conf.new\n");
-    exit(-1);
+  fprintf(stderr, "convertilines conf.old conf.new\n");
+  exit(-1);
 }
 
 /*
@@ -242,30 +242,29 @@ static void ReplaceQuotes(char* quotedLine,char *inputLine)
   *out = '\0';
 }
 
-/*
- * oldParseOneLine
+/* oldParseOneLine()
+ *
  * Inputs       - pointer to line to parse
  *		- pointer to output to write
  * Output       - 
  * Side Effects - Parse one old style conf line.
  */
-
-static void oldParseOneLine(FILE *out,char* line)
+static void
+oldParseOneLine(FILE *out, char *line)
 {
   char conf_letter;
-  char* tmp;
-  char* host_field=(char *)NULL;
-  char* passwd_field=(char *)NULL;
-  char* user_field=(char *)NULL;
-  char* port_field = NULL;
-  char* classconf_field = NULL;
+  char *tmp;
+  const char *host_field      = NULL;
+  const char *passwd_field    = NULL;
+  const char *user_field      = NULL;
+  const char *port_field      = NULL;
+  const char *classconf_field = NULL;
   int class_field = 0;
 
   tmp = getfield(line);
-
   conf_letter = *tmp;
 
-  for (;;) /* Fake loop, that I can use break here --msa */
+  for (; ;) /* Fake loop, that I can use break here --msa */
   {
       /* host field */
       if ((host_field = getfield(NULL)) == NULL)
@@ -510,7 +509,7 @@ static int match(struct AuthBlock *ptr, struct AuthBlock *acptr)
        (ptr->gline_exempt == acptr->gline_exempt) &&
        (ptr->no_tilde == acptr->no_tilde))
     {
-	char *p1, *p2;
+	const char *p1, *p2;
 	
 	/* check the spoofs match.. */
 	if(ptr->spoof)

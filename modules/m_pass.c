@@ -33,11 +33,11 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mr_pass(struct Client*, struct Client*, int, char**);
+static void mr_pass(struct Client *, struct Client *, int, char **);
 
 struct Message pass_msgtab = {
   "PASS", 0, 0, 2, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_pass, m_registered, m_ignore, m_registered}
+  {mr_pass, m_registered, m_ignore, m_registered, mr_pass}
 };
 
 #ifndef STATIC_MODULES
@@ -55,6 +55,7 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
+
 /*
  * m_pass() - Added Sat, 4 March 1989
  *
@@ -64,32 +65,35 @@ const char *_version = "$Revision$";
  *      parv[1] = password
  *      parv[2] = optional extra version information
  */
-static void mr_pass(struct Client *client_p, struct Client *source_p,
-                   int parc, char *parv[])
+static void
+mr_pass(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
 {
-  const char *password = parv[1];
+  char *password = parv[1];
 
   if (EmptyString(password))
-    {
-      sendto_one(client_p, form_str(ERR_NEEDMOREPARAMS),
-                 me.name, BadPtr(parv[0]) ? "*" : parv[0], "PASS");
-      return;
-    }
+  {
+    sendto_one(client_p, form_str(ERR_NEEDMOREPARAMS),
+               me.name, EmptyString(parv[0]) ? "*" : parv[0], "PASS");
+    return;
+  }
 
-  strlcpy(client_p->localClient->passwd, password, PASSWDLEN);
+  MyFree(client_p->localClient->passwd);
+  if (strlen(password) > PASSWDLEN)
+    password[PASSWDLEN] = '\0';
+  DupString(client_p->localClient->passwd, password);
 
   if (parc > 2)
-    {
-      /* 
-       * It looks to me as if orabidoo wanted to have more
-       * than one set of option strings possible here...
-       * i.e. ":AABBTS" as long as TS was the last two chars
-       * however, as we are now using CAPAB, I think we can
-       * safely assume if there is a ":TS" then its a TS server
-       * -Dianora
-       */
-      if (0 == irccmp(parv[2], "TS") && client_p->tsinfo == 0)
-        client_p->tsinfo = TS_DOESTS;
-    }
+  {
+    /* It looks to me as if orabidoo wanted to have more
+     * than one set of option strings possible here...
+     * i.e. ":AABBTS" as long as TS was the last two chars
+     * however, as we are now using CAPAB, I think we can
+     * safely assume if there is a ":TS" then its a TS server
+     * -Dianora
+     */
+    if (!irccmp(parv[2], "TS") && client_p->tsinfo == 0)
+      client_p->tsinfo = TS_DOESTS;
+  }
 }
 

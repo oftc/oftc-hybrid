@@ -100,7 +100,7 @@ no references to them, call clear_out_address_conf().
 Section 3.4: Finding IP/host confs
 ----------------------------------
 Call find_address_conf() with the hostname, the username, the address,
-and the address family.
+the address family and client-supplied password.
 To find a d-line, call find_dline() with the address and address family.
 
 Section 3.5: Deletiing entries

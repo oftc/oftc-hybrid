@@ -24,12 +24,11 @@
 
 #ifndef INCLUDED_modules_h
 #define INCLUDED_modules_h
-#include "config.h"
+
 #include "setup.h"
 #include "parse.h"
 
-
-#if defined(HAVE_SHL_LOAD)
+#ifdef HAVE_SHL_LOAD
 #include <dl.h>
 #endif
 #if !defined(STATIC_MODULES) && defined(HAVE_DLFCN_H)
@@ -41,24 +40,27 @@
 #include "memory.h"
 
 #ifndef STATIC_MODULES
-struct module {
+struct module
+{
   char *name;
-  char *version;
+  const char *version;
   void *address;
   int core;
+  void (*modremove)(void);
 };
 
 struct module_path
 {
-	char path[MAXPATHLEN];
+  dlink_node node;
+  char* path;
 };
 
-/* add a path */
-void mod_add_path(char *path);
-void mod_clear_paths(void);
+/* set base path */
+extern void mod_set_base (char *path);
 
-/* load a module */
-extern void load_module(char *path);
+/* add a path */
+extern void mod_add_path(const char *path);
+extern void mod_clear_paths(void);
 
 /* load all modules */
 extern void load_all_modules(int warn);
@@ -69,11 +71,10 @@ extern void load_core_modules(int);
 extern void _modinit(void);
 extern void _moddeinit(void);
 
-extern int unload_one_module (char *, int);
-extern int load_one_module (char *, int);
-extern int load_a_module (char *, int, int);
-extern int findmodule_byname (char *);
-extern char* irc_basename(char *);
+extern int unload_one_module(char *, int);
+extern int load_one_module(char *, int);
+extern int load_a_module(char *, int, int);
+extern int findmodule_byname(const char *);
 extern void modules_init(void);
 
 #else /* STATIC_MODULES */
@@ -88,7 +89,6 @@ extern struct Message challenge_msgtab;
 extern struct Message cryptlink_msgtab;
 #endif
 extern struct Message cjoin_msgtab;
-extern struct Message client_msgtab;
 extern struct Message close_msgtab;
 extern struct Message connect_msgtab;
 extern struct Message die_msgtab;
@@ -97,7 +97,7 @@ extern struct Message drop_msgtab;
 extern struct Message eob_msgtab;
 extern struct Message error_msgtab;
 extern struct Message gline_msgtab;
-extern struct Message help_msgtab;
+extern struct Message ungline_msgtab;
 extern struct Message info_msgtab;
 extern struct Message invite_msgtab;
 extern struct Message ison_msgtab;
@@ -105,7 +105,9 @@ extern struct Message join_msgtab;
 extern struct Message kick_msgtab;
 extern struct Message kill_msgtab;
 extern struct Message kline_msgtab;
+extern struct Message unkline_msgtab;
 extern struct Message dline_msgtab;
+extern struct Message undline_msgtab;
 extern struct Message knock_msgtab;
 extern struct Message knockll_msgtab;
 extern struct Message links_msgtab;
@@ -142,8 +144,8 @@ extern struct Message testline_msgtab;
 extern struct Message time_msgtab;
 extern struct Message topic_msgtab;
 extern struct Message trace_msgtab;
-extern struct Message msgtabs[];
 extern struct Message unresv_msgtab;
+extern struct Message unxline_msgtab;
 extern struct Message user_msgtab;
 extern struct Message userhost_msgtab;
 extern struct Message users_msgtab;
@@ -152,8 +154,29 @@ extern struct Message wallops_msgtab;
 extern struct Message who_msgtab;
 extern struct Message whois_msgtab;
 extern struct Message whowas_msgtab;
+extern struct Message xline_msgtab;
 extern struct Message get_msgtab;
 extern struct Message put_msgtab;
+
+#ifdef BUILD_CONTRIB
+extern struct Message test_msgtab;
+extern struct Message classlist_msgtab;
+extern struct Message clearchan_msgtab;
+extern struct Message test_msgtab;
+extern struct Message forcejoin_msgtab;
+extern struct Message forcepart_msgtab;
+extern struct Message help_msgtab;
+extern struct Message uhelp_msgtab;
+extern struct Message jupe_msgtab;
+extern struct Message killhost_msgtab;
+extern struct Message map_msgtab;
+extern struct Message test_msgtab;
+extern struct Message ojoin_msgtab;
+extern struct Message omotd_msgtab;
+extern struct Message operspy_msgtab;
+extern struct Message opme_msgtab;
+#endif
+
 extern void load_all_modules(int check);
 
 #endif /* STATIC_MODULES */

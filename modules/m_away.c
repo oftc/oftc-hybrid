@@ -37,12 +37,15 @@
 #include "packet.h"
 
 
-static void m_away(struct Client*, struct Client*, int, char**);
+static void m_away(struct Client *, struct Client *, int, char **);
+static void mo_away(struct Client *, struct Client *, int, char **);
+static void ms_away(struct Client *, struct Client *, int, char **);
 
 struct Message away_msgtab = {
   "AWAY", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_away, m_away, m_away}
+  {m_unregistered, m_away, ms_away, mo_away, m_ignore}
 };
+
 #ifndef STATIC_MODULES
 void
 _modinit(void)
@@ -57,6 +60,7 @@ _moddeinit(void)
 }
 const char *_version = "$Revision$";
 #endif
+
 /***********************************************************************
  * m_away() - Added 14 Dec 1988 by jto. 
  *            Not currently really working, I don't like this
@@ -69,76 +73,177 @@ const char *_version = "$Revision$";
  ***********************************************************************/
 
 /*
-** m_away
-**      parv[0] = sender prefix
-**      parv[1] = away message
-*/
-static void m_away(struct Client *client_p,
-                  struct Client *source_p,
-                  int parc,
-                  char *parv[])
+ * m_away
+ *  parv[0] = sender prefix
+ *  parv[1] = away message
+ */
+static void
+m_away(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
 {
-  char  *away, *awy2 = parv[1];
+  char *cur_away_msg = source_p->user->away;
+  char *new_away_msg;
 
-  if(MyClient(source_p) && !IsFloodDone(source_p))
+  if (!IsFloodDone(source_p))
     flood_endgrace(source_p);
 
-  if(!IsClient(source_p))
-    return;
-
-  away = source_p->user->away;
-
-  if (parc < 2 || !*awy2)
+  if (parc < 2 || EmptyString(parv[1]))
+  {
+    /* Marking as not away */
+    if (cur_away_msg)
     {
-      /* Marking as not away */
+      /* we now send this only if they were away before --is */
+      sendto_server(client_p, source_p, NULL, CAP_SID, NOCAPS,
+                    NOFLAGS, ":%s AWAY", ID(source_p));
+      sendto_server(client_p, source_p, NULL, NOCAPS, CAP_SID,
+                    NOFLAGS, ":%s AWAY", source_p->name);
 
-      if (away)
-        {
-          /* we now send this only if they were away before --is */
-          sendto_server(client_p, source_p, NULL, CAP_UID, NOCAPS,
-                        NOFLAGS, ":%s AWAY", ID(source_p));
-          sendto_server(client_p, source_p, NULL, NOCAPS, CAP_UID,
-                        NOFLAGS, ":%s AWAY", source_p->name);
-          MyFree(away);
-          source_p->user->away = NULL;
-        }
-      if (MyConnect(source_p))
-        sendto_one(source_p, form_str(RPL_UNAWAY),
-                   me.name, parv[0]);
-      return;
+      MyFree(cur_away_msg);
+      source_p->user->away = NULL;
     }
+
+    sendto_one(source_p, form_str(RPL_UNAWAY),
+               me.name, parv[0]);
+    return;
+  }
 
   /* Marking as away */
-  
-  if (MyConnect(source_p) && !IsOper(source_p) &&
-     (CurrentTime-source_p->user->last_away)<ConfigFileEntry.pace_wait)
-    {
-      sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0]);
-      return;
-    }
+  if ((CurrentTime - source_p->user->last_away) < ConfigFileEntry.pace_wait)
+  {
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
+               me.name, parv[0]);
+    return;
+  }
 
   source_p->user->last_away = CurrentTime;
+  new_away_msg              = parv[1];
 
-  if (strlen(awy2) > (size_t) TOPICLEN)
-    awy2[TOPICLEN] = '\0';
+  if (strlen(new_away_msg) > (size_t)TOPICLEN)
+    new_away_msg[TOPICLEN] = '\0';
 
-  /* we now send this only if they weren't away already --is */
-  if (!away)
+  /* we now send this only if they
+   * weren't away already --is */
+  if (!cur_away_msg)
   {
-    sendto_server(client_p, source_p, NULL, CAP_UID, NOCAPS,
-                  NOFLAGS, ":%s AWAY :%s", ID(source_p), awy2);
-    sendto_server(client_p, source_p, NULL, NOCAPS, CAP_UID,
-                  NOFLAGS, ":%s AWAY :%s", source_p->name, awy2);
+    sendto_server(client_p, source_p, NULL, CAP_SID, NOCAPS,
+                  NOFLAGS, ":%s AWAY :%s", ID(source_p), new_away_msg);
+    sendto_server(client_p, source_p, NULL, NOCAPS, CAP_SID,
+                  NOFLAGS, ":%s AWAY :%s", source_p->name, new_away_msg);
   }
   else
-    MyFree(away);
+    MyFree(cur_away_msg);
 
-  away = (char *)MyMalloc(strlen(awy2)+1);
-  strcpy(away,awy2);
+  cur_away_msg = (char *)MyMalloc(strlen(new_away_msg) + 1);
+  strcpy(cur_away_msg, new_away_msg);
+  source_p->user->away = cur_away_msg;
 
-  source_p->user->away = away;
-
-  if (MyConnect(source_p))
-    sendto_one(source_p, form_str(RPL_NOWAWAY), me.name, parv[0]);
+  sendto_one(source_p, form_str(RPL_NOWAWAY), me.name, parv[0]);
 }
 
+static void
+mo_away(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
+{
+  char *cur_away_msg = source_p->user->away;
+  char *new_away_msg;
+
+  if (!IsFloodDone(source_p))
+    flood_endgrace(source_p);
+
+  if (parc < 2 || EmptyString(parv[1]))
+  {
+    /* Marking as not away */
+    if (cur_away_msg)
+    {
+      /* we now send this only if they were away before --is */
+      sendto_server(client_p, source_p, NULL, CAP_SID, NOCAPS,
+                    NOFLAGS, ":%s AWAY", ID(source_p));
+      sendto_server(client_p, source_p, NULL, NOCAPS, CAP_SID,
+                    NOFLAGS, ":%s AWAY", source_p->name);
+
+      MyFree(cur_away_msg);
+      source_p->user->away = NULL;
+    }
+
+    sendto_one(source_p, form_str(RPL_UNAWAY),
+               me.name, parv[0]);
+    return;
+  }
+
+  source_p->user->last_away = CurrentTime;
+  new_away_msg              = parv[1];
+
+  if (strlen(new_away_msg) > (size_t)TOPICLEN)
+    new_away_msg[TOPICLEN] = '\0';
+
+  /* we now send this only if they
+   * weren't away already --is */
+  if (!cur_away_msg)
+  {
+    sendto_server(client_p, source_p, NULL, CAP_SID, NOCAPS,
+                  NOFLAGS, ":%s AWAY :%s", ID(source_p), new_away_msg);
+    sendto_server(client_p, source_p, NULL, NOCAPS, CAP_SID,
+                  NOFLAGS, ":%s AWAY :%s", source_p->name, new_away_msg);
+  }
+  else
+    MyFree(cur_away_msg);
+
+  cur_away_msg = (char *)MyMalloc(strlen(new_away_msg) + 1);
+  strcpy(cur_away_msg, new_away_msg);
+  source_p->user->away = cur_away_msg;
+
+  sendto_one(source_p, form_str(RPL_NOWAWAY), me.name, parv[0]);
+}
+
+static void
+ms_away(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
+{
+  char *cur_away_msg;
+  char *new_away_msg;
+
+  if (!IsClient(source_p))
+    return;
+
+  cur_away_msg = source_p->user->away;
+
+  if (parc < 2 || EmptyString(parv[1]))
+  {
+    /* Marking as not away */
+    if (cur_away_msg)
+    {
+      /* we now send this only if they were away before --is */
+      sendto_server(client_p, source_p, NULL, CAP_SID, NOCAPS,
+                    NOFLAGS, ":%s AWAY", ID(source_p));
+      sendto_server(client_p, source_p, NULL, NOCAPS, CAP_SID,
+                    NOFLAGS, ":%s AWAY", source_p->name);
+
+      MyFree(cur_away_msg);
+      source_p->user->away = NULL;
+    }
+
+    return;
+  }
+
+  source_p->user->last_away = CurrentTime;
+  new_away_msg              = parv[1];
+
+  if (strlen(new_away_msg) > (size_t)TOPICLEN)
+    new_away_msg[TOPICLEN] = '\0';
+
+  /* we now send this only if they
+   * weren't away already --is */
+  if (!cur_away_msg)
+  {
+    sendto_server(client_p, source_p, NULL, CAP_SID, NOCAPS,
+                  NOFLAGS, ":%s AWAY :%s", ID(source_p), new_away_msg);
+    sendto_server(client_p, source_p, NULL, NOCAPS, CAP_SID,
+                  NOFLAGS, ":%s AWAY :%s", source_p->name, new_away_msg);
+  }
+  else
+    MyFree(cur_away_msg);
+
+  cur_away_msg = (char *)MyMalloc(strlen(new_away_msg) + 1);
+  strcpy(cur_away_msg, new_away_msg);
+  source_p->user->away = cur_away_msg;
+}

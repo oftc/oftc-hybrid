@@ -25,48 +25,49 @@
 #ifndef INCLUDED_supported_h
 #define INCLUDED_supported_h
 
-#include "config.h"
 #include "channel.h"
 #include "ircd_defs.h"
+#include "s_serv.h"
 
-#ifndef USE_ASCII_CASEMAP
 #define CASEMAP "rfc1459"
-#else
-#define CASEMAP "ascii"
-#endif
 
-#define FEATURES "WALLCHOPS"\
-                "%s%s%s%s" \
-                " MODES=%i" \
-                " MAXCHANNELS=%i" \
-                " MAXBANS=%i" \
-                " MAXTARGETS=%i" \
-                " NICKLEN=%i" \
-                " TOPICLEN=%i" \
-                " KICKLEN=%i"
+#define FEATURES "WALLCHOPS"       \
+                 "%s%s%s"          \
+                 " MODES=%i"       \
+                 " MAXCHANNELS=%i" \
+                 " MAXBANS=%i"     \
+                 " MAXTARGETS=%i"  \
+                 " NICKLEN=%i"     \
+                 " TOPICLEN=%i"    \
+                 " KICKLEN=%i"
 
 #define FEATURESVALUES ConfigChannel.use_knock ? " KNOCK" : "", \
-        ConfigChannel.use_vchans ? " VCHANS" : "", \
         ConfigChannel.use_except ? " EXCEPTS" : "", \
         ConfigChannel.use_invex ? " INVEX" : "", \
         MAXMODEPARAMS,ConfigChannel.max_chans_per_user, \
         ConfigChannel.max_bans, \
         ConfigFileEntry.max_targets,NICKLEN-1,TOPICLEN,TOPICLEN
 
-#define FEATURES2 "CHANTYPES=%s" \
-                  " PREFIX=%s" \
-		  " CHANMODES=%s%s%s%s" \
-		  " NETWORK=%s" \
-		  " CASEMAPPING=%s" \
-		  " CALLERID"
+#define FEATURES2 "CHANTYPES=%s"      \
+                  " PREFIX=%s"        \
+		  " CHANMODES=%s%s%s" \
+		  " NETWORK=%s"       \
+		  " CASEMAPPING=%s"   \
+		  " CALLERID%s"
 
-#define FEATURES2VALUES ConfigServerHide.disable_local_channels ? "#" : "#&", \
-                        ConfigChannel.use_halfops ? "(ohv)@%+" : "(ov)@+", \
+#ifdef USE_HALFOPS
+# define PREFIX "(ohv)@%+"
+#else
+# define PREFIX "(ov)@+"
+#endif
+		  
+#define FEATURES2VALUES ConfigChannel.disable_local_channels ? "#" : "#&", \
+                        PREFIX, \
                         ConfigChannel.use_except ? "e" : "", \
                         ConfigChannel.use_invex ? "I" : "", \
                         "b,k,l,imnpst", \
-                        ConfigChannel.use_anonops ? "a" : "", \
-                        ServerInfo.network_name, CASEMAP
+                        ServerInfo.network_name, CASEMAP, \
+			(uplink && IsCapable(uplink, CAP_LL)) ? "" : " SAFELIST"
 
 /*
  * - from mirc's versions.txt

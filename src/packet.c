@@ -38,9 +38,78 @@
 #include "hook.h"
 #include "send.h"
 
-static char               readBuf[READBUF_SIZE];
+static char readBuf[READBUF_SIZE];
 static void client_dopacket(struct Client *client_p, char *buffer, size_t length);
 
+
+/* extract_one_line()
+ *
+ * inputs       - pointer to a dbuf queue
+ *              - pointer to buffer to copy data to
+ * output       - length of <buffer>
+ * side effects - one line is copied and removed from the dbuf
+ */
+static int
+extract_one_line(struct dbuf_queue *qptr, char *buffer)
+{
+  struct dbuf_block *block;
+  int line_bytes = 0, empty_bytes = 0, phase = 0;
+  unsigned int idx;
+
+  char c;
+  dlink_node *ptr;
+
+  /*
+   * Phase 0: "empty" characters before the line
+   * Phase 1: copying the line
+   * Phase 2: "empty" characters after the line
+   *          (delete them as well and free some space in the dbuf)
+   *
+   * Empty characters are CR, LF and space (but, of course, not
+   * in the middle of a line). We try to remove as much of them as we can,
+   * since they simply eat server memory.
+   *
+   * --adx
+   */
+  DLINK_FOREACH(ptr, qptr->blocks.head)
+  {
+    block = ptr->data;
+
+    for (idx = 0; idx < block->size; idx++)
+    {
+      c = block->data[idx];
+      if (IsEol(c) || (c == ' ' && phase != 1))
+      {
+        empty_bytes++;
+        if (phase == 1)
+          phase = 2;
+      }
+      else switch (phase)
+      {
+        case 0: phase = 1;
+        case 1: if (line_bytes++ < IRCD_BUFSIZE - 2)
+                  *buffer++ = c;
+                break;
+        case 2: *buffer = '\0';
+                dbuf_delete(qptr, line_bytes + empty_bytes);
+                return IRCD_MIN(line_bytes, IRCD_BUFSIZE - 2);
+      }
+    }
+  }
+
+  /*
+   * Now, if we haven't reached phase 2, ignore all line bytes
+   * that we have read, since this is a partial line case.
+   */
+  if (phase != 2)
+    line_bytes = 0;
+  else
+    *buffer = '\0';
+
+  /* Remove what is now unnecessary */
+  dbuf_delete(qptr, line_bytes + empty_bytes);
+  return IRCD_MIN(line_bytes, IRCD_BUFSIZE - 2);
+}
 
 /*
  * parse_client_queued - parse client queued messages
@@ -52,73 +121,48 @@ parse_client_queued(struct Client *client_p)
   int checkflood = 1;
   struct LocalUser *lclient_p = client_p->localClient;
 
-  if(IsUnknown(client_p))
+  if (IsUnknown(client_p))
   {
     int i = 0;
 
     for(;;)
     {
-      if (IsClosing(client_p))
-	return;
-      if (client_p->localClient == NULL)
+      if (IsDefunct(client_p))
 	return;
 
       /* rate unknown clients at MAX_FLOOD per loop */
-      if(i >= MAX_FLOOD)
+      if (i >= MAX_FLOOD)
         break;
 
-	dolen = linebuf_get(&client_p->localClient->buf_recvq, readBuf,
-			    READBUF_SIZE, LINEBUF_COMPLETE, LINEBUF_PARSED);
+      dolen = extract_one_line(&lclient_p->buf_recvq, readBuf);
+      if (dolen == 0)
+	break;
 
-	if(dolen <= 0)
-	  break;
-                          
-      if(!IsDefunct(client_p))
-      {
-        client_dopacket(client_p, readBuf, dolen);
-        i++;
+      client_dopacket(client_p, readBuf, dolen);
+      i++;
 
-        /* if they've dropped out of the unknown state, break and move
-         * to the parsing for their appropriate status.  --fl
-         */
-        if(!IsUnknown(client_p))
-          break;
-      }
-      else if(MyConnect(client_p))
-      {
-        linebuf_donebuf(&client_p->localClient->buf_recvq);
-        linebuf_donebuf(&client_p->localClient->buf_sendq);
-        return;
-      }
+      /* if they've dropped out of the unknown state, break and move
+       * to the parsing for their appropriate status.  --fl
+       */
+      if(!IsUnknown(client_p))
+        break;
     }
   }
 
   if (IsServer(client_p) || IsConnecting(client_p) || IsHandshake(client_p))
   {
-    if(IsDefunct(client_p))
-      return;
-    if(client_p->localClient == NULL)
-      return;
-    
-    while ((dolen = linebuf_get(&client_p->localClient->buf_recvq,
-                              readBuf, READBUF_SIZE, LINEBUF_COMPLETE,
-                              LINEBUF_PARSED)) > 0)
+    while (1)
     {
-      if (!IsDefunct(client_p))
-        client_dopacket(client_p, readBuf, dolen);
-      else if(MyConnect(client_p))
-      {
-        linebuf_donebuf(&client_p->localClient->buf_recvq);
-        linebuf_donebuf(&client_p->localClient->buf_sendq);
+      if (IsDefunct(client_p))
         return;
-      }
-      if (client_p->localClient == NULL)
-	return; 
+      if ((dolen = extract_one_line(&lclient_p->buf_recvq,
+                                    readBuf)) == 0)
+        break;
+      client_dopacket(client_p, readBuf, dolen);
     }
-  } 
+  }
   else if(IsClient(client_p))
   {
-
     if (ConfigFileEntry.no_oper_flood && (IsOper(client_p) || IsCanFlood(client_p)))
     {
       if (ConfigFileEntry.true_no_oper_flood)
@@ -132,7 +176,7 @@ parse_client_queued(struct Client *client_p)
      * messages in this loop, we simply drop out of the loop prematurely.
      *   -- adrian
      */
-    for(;;)
+    for (;;)
     {
       if (IsDefunct(client_p))
 	break;
@@ -150,7 +194,7 @@ parse_client_queued(struct Client *client_p)
        * as sent_parsed will always hover around the allow_read limit
        * and no 'bursts' will be permitted.
        */
-      if(checkflood > 0)
+      if (checkflood > 0)
       {
         if(lclient_p->sent_parsed >= lclient_p->allow_read)
           break;
@@ -159,18 +203,14 @@ parse_client_queued(struct Client *client_p)
       /* allow opers 4 times the amount of messages as users. why 4?
        * why not. :) --fl_
        */
-      else if(lclient_p->sent_parsed >= (4 * lclient_p->allow_read) && checkflood != -1)
+      else if (lclient_p->sent_parsed >= (4 * lclient_p->allow_read) &&
+               checkflood != -1)
         break;
-       
-      if(client_p->localClient == NULL)
-	break;
 
-      dolen = linebuf_get(&client_p->localClient->buf_recvq, readBuf,
-                          READBUF_SIZE, LINEBUF_COMPLETE, LINEBUF_PARSED);
-			 
-      if (!dolen)
+      dolen = extract_one_line(&lclient_p->buf_recvq, readBuf);
+      if (dolen == 0)
         break;
-       
+
       client_dopacket(client_p, readBuf, dolen);
       lclient_p->sent_parsed++;
     }
@@ -222,9 +262,6 @@ flood_recalc(int fd, void *data)
   if(lclient_p->sent_parsed < 0)
     lclient_p->sent_parsed = 0;
   
-  if(--lclient_p->actually_read < 0)
-    lclient_p->actually_read = 0;
-
   parse_client_queued(client_p);
   
   /* And now, try flushing .. */
@@ -252,16 +289,12 @@ read_ctrl_packet(int fd, void *data)
 #ifndef NDEBUG
   struct hook_io_data hdata;
 #endif
- 
- 
   assert(lserver != NULL);
     
   reply = &lserver->slinkrpl;
 
-  if(IsDefunct(server))
-  {
+  if (IsDefunct(server))
     return;
-  }
 
   if (!reply->command)
   {
@@ -281,9 +314,9 @@ read_ctrl_packet(int fd, void *data)
     reply->command = tmp[0];
   }
 
-  for(replydef = slinkrpltab; replydef->handler; replydef++)
+  for (replydef = slinkrpltab; replydef->handler; replydef++)
   {
-    if (replydef->replyid == reply->command)
+    if (replydef->replyid == (unsigned int)reply->command)
       break;
   }
 
@@ -362,7 +395,7 @@ nodata:
   comm_setselect(fd, FDLIST_SERVER, COMM_SELECT_READ,
                  read_ctrl_packet, server, 0);
 }
-  
+
 /*
  * read_packet - Read a 'packet' of data from a connection and process it.
  */
@@ -370,18 +403,14 @@ void
 read_packet(int fd, void *data)
 {
   struct Client *client_p = data;
-  struct LocalUser *lclient_p = client_p->localClient;
   int length = 0;
-  int lbuf_len;
-  int fd_r; 
-  int binary = 0;
+  int fd_r;
 #ifndef NDEBUG
   struct hook_io_data hdata;
 #endif
-  if(IsDefunct(client_p))
+  if (IsDefunct(client_p))
     return;
-  
-  assert(lclient_p != NULL);
+
   fd_r = client_p->localClient->fd;
 
 #ifndef HAVE_SOCKETPAIR
@@ -401,12 +430,13 @@ read_packet(int fd, void *data)
 
   if (length <= 0)
   {
-    if((length == -1) && ignoreErrno(errno))
+    if ((length == -1) && ignoreErrno(errno))
     {
       comm_setselect(fd_r, FDLIST_IDLECLIENT, COMM_SELECT_READ,
-      		read_packet, client_p, 0);
+                     read_packet, client_p, 0);
       return;
     }  	
+
     dead_link_on_read(client_p, length);
     return;
   }
@@ -417,34 +447,22 @@ read_packet(int fd, void *data)
   hdata.len = length;
   hook_call_event("iorecv", &hdata);
 #endif
-  
+
   if (client_p->lasttime < CurrentTime)
     client_p->lasttime = CurrentTime;
   if (client_p->lasttime > client_p->since)
     client_p->since = CurrentTime;
   ClearPingSent(client_p);
 
-  /*
-   * Before we even think of parsing what we just read, stick
-   * it on the end of the receive queue and do it when its
-   * turn comes around.
-   */
-  if (IsHandshake(client_p) || IsUnknown(client_p))
-    binary = 1;
-
-  lbuf_len = linebuf_parse(&client_p->localClient->buf_recvq,
-                           readBuf, length, binary);
-
-  lclient_p->actually_read += lbuf_len;
+  dbuf_put(&client_p->localClient->buf_recvq, readBuf, length);
   
   /* Attempt to parse what we have */
-
   parse_client_queued(client_p);
 
   /* Check to make sure we're not flooding */
   if (IsPerson(client_p) &&
-      (linebuf_alloclen(&client_p->localClient->buf_recvq) >
-       ConfigFileEntry.client_flood))
+      (dbuf_length(&client_p->localClient->buf_recvq) >
+       (unsigned int)ConfigFileEntry.client_flood))
   {
     if (!(ConfigFileEntry.no_oper_flood && IsOper(client_p)))
     {
@@ -462,8 +480,6 @@ read_packet(int fd, void *data)
     fd_r = client_p->localClient->fd_r;
   }
 #endif
-
-  
   if (!IsDefunct(client_p))
   {
     /* If we get here, we need to register for another COMM_SELECT_READ */
@@ -492,14 +508,9 @@ read_packet(int fd, void *data)
  *      with client_p of "local" variation, which contains all the
  *      necessary fields (buffer etc..)
  */
-void
+static void
 client_dopacket(struct Client *client_p, char *buffer, size_t length)
 {
-  assert(client_p != NULL);
-  assert(buffer != NULL);
-
-  if(client_p == NULL || buffer == NULL)
-    return;
   /* 
    * Update messages received
    */
@@ -520,12 +531,10 @@ client_dopacket(struct Client *client_p, char *buffer, size_t length)
   me.localClient->receiveB += length;
 
   if (me.localClient->receiveB > 1023)
-    {
-      me.localClient->receiveK += (me.localClient->receiveB >> 10);
-      me.localClient->receiveB &= 0x03ff;
-    }
+  {
+    me.localClient->receiveK += (me.localClient->receiveB >> 10);
+    me.localClient->receiveB &= 0x03ff;
+  }
 
   parse(client_p, buffer, buffer + length);
 }
-
-

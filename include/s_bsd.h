@@ -25,12 +25,8 @@
 #ifndef INCLUDED_s_bsd_h
 #define INCLUDED_s_bsd_h
 
-#include "config.h"       
+#include "setup.h"       
 #include "fdlist.h"
-
-#ifndef HAVE_SOCKLEN_T
-typedef int socklen_t;
-#endif
 
 /* Size of a read buffer */
 #define READBUF_SIZE    16384   /* used by src/packet.c and src/s_serv.c */
@@ -40,7 +36,7 @@ typedef int socklen_t;
 #define	COMM_SELECT_WRITE		2
 
 struct Client;
-struct ConfItem;
+struct AccessItem;
 struct hostent;
 struct DNSReply;
 struct Listener;
@@ -52,12 +48,12 @@ extern const char* const SETBUF_ERROR_MSG;
 extern void  add_connection(struct Listener*, int);
 extern void  close_connection(struct Client*);
 extern void  close_all_connections(void);
-extern int   connect_server(struct ConfItem*, struct Client*, 
+extern int   connect_server(struct AccessItem*, struct Client*, 
                             struct DNSReply*);
-extern void  get_my_name(struct Client *, char *, int);
 extern void  report_error(int, const char*, const char*, int);
 extern int   set_non_blocking(int);
 extern int   set_sock_buffers(int, int);
+extern void  set_no_delay(int);
 
 extern int   get_sockerr(int);
 extern int   ignoreErrno(int ierrno);
@@ -77,7 +73,7 @@ extern void  comm_setselect(int fd, fdlist_t list, unsigned int type,
                  PF *handler, void *client_data, time_t timeout);
 extern void  init_netio(void);
 extern int   read_message (time_t, unsigned char);
-extern int   comm_select(unsigned long);
+extern void  comm_select(unsigned long);
 extern int   disable_sock_options(int);
 extern void  check_can_use_v6(void);
 #ifdef IPV6

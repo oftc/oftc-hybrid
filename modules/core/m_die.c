@@ -38,12 +38,13 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mo_die(struct Client*, struct Client*, int, char**);
+static void mo_die(struct Client *, struct Client *, int, char **);
 
 struct Message die_msgtab = {
   "DIE", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, mo_die}
+  {m_unregistered, m_not_oper, m_ignore, mo_die, m_ignore}
 };
+
 #ifndef STATIC_MODULES
 void
 _modinit(void)
@@ -59,63 +60,60 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
+
 /*
  * mo_die - DIE command handler
  */
-static void mo_die(struct Client *client_p, struct Client *source_p,
-                  int parc, char *parv[])
+static void
+mo_die(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
 {
-  struct Client* target_p;
+  struct Client *target_p;
   dlink_node *ptr;
 
   if (!IsOperDie(source_p))
-    {
-      sendto_one(source_p,":%s NOTICE %s :You need die = yes;", me.name, parv[0]);
-      return;
-    }
+  {
+    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+               me.name, source_p->name);
+    return;
+  }
 
   if (parc < 2)
+  {
+    sendto_one(source_p,":%s NOTICE %s :Need server name /die %s",
+               me.name, source_p->name, me.name);
+    return;
+  }
+  else
+  {
+    if (irccmp(parv[1], me.name))
     {
-      sendto_one(source_p,":%s NOTICE %s :Need server name /die %s",
-                 me.name,source_p->name,me.name);
+      sendto_one(source_p,":%s NOTICE %s :Mismatch on /die %s",
+                 me.name,source_p->name, me.name);
       return;
     }
-  else
-    {
-      if (irccmp(parv[1], me.name))
-        {
-          sendto_one(source_p,":%s NOTICE %s :Mismatch on /die %s",
-                     me.name,source_p->name,me.name);
-          return;
-        }
-    }
+  }
 
-  for(ptr = lclient_list.head; ptr; ptr = ptr->next)
-    {
-      target_p = ptr->data;
+  DLINK_FOREACH(ptr, local_client_list.head)
+  {
+    target_p = ptr->data;
 
-      sendto_one(target_p,
-		 ":%s NOTICE %s :Server Terminating. %s",
-		 me.name, target_p->name,
-		 get_client_name(source_p, HIDE_IP));
-    }
+    sendto_one(target_p, ":%s NOTICE %s :Server Terminating. %s",
+               me.name, target_p->name, get_client_name(source_p, HIDE_IP));
+  }
 
-  for(ptr = serv_list.head; ptr; ptr = ptr->next)
-    {
-      target_p = ptr->data;
+  DLINK_FOREACH(ptr, serv_list.head)
+  {
+    target_p = ptr->data;
 
-      sendto_one(target_p, ":%s ERROR :Terminated by %s",
-		 me.name, get_client_name(source_p, HIDE_IP));
-    }
+    sendto_one(target_p, ":%s ERROR :Terminated by %s",
+               me.name, get_client_name(source_p, HIDE_IP));
+  }
 
-  /*
-   * XXX we called flush_connections() here. Read server_reboot()
-   * for an explanation as to what we should do.
-   *     -- adrian
-   */
   ilog(L_NOTICE, "Server terminated by %s", get_oper_name(source_p));
-  /* 
-   * this is a normal exit, tell the os it's ok 
+  send_queued_all();
+
+  /* this is a normal exit, tell the os it's ok 
    */
   unlink(pidFileName);
   exit(0);

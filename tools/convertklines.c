@@ -61,12 +61,12 @@ int main(int argc,char *argv[])
   ConvertConf(in, outkline, outdline);
 
   fprintf(stderr, "The kline file has been converted and should be renamed to\n");
-  fprintf(stderr, "the config.h options (normally kline.conf and dline.conf) and\n");
+  fprintf(stderr, "the defaults.h options (normally kline.conf and dline.conf) and\n");
   fprintf(stderr, "placed in your etc/ dir\n");
   return 0;
 }
 
-static void usage()
+static void usage(void)
 {
   fprintf(stderr, "klines and dlines now go in separate files:\n");
   fprintf(stderr,"convertklines kline.conf.old kline.conf.new dline.conf.new\n");
@@ -182,25 +182,24 @@ static void ReplaceQuotes(char* quotedLine,char *inputLine)
   *out = '\0';
 }
 
-/*
- * parse()
+/* parse()
+ *
  * Inputs       - pointer to line to parse
  *		- pointer to output to write
  * Output       - 
  * Side Effects - Parse one old style conf line.
  */
-
-static void parse(FILE *outkline, FILE *outdline, char* line)
+static void
+parse(FILE *outkline, FILE *outdline, char *line)
 {
   char conf_letter;
   char *tmp;
-  char *user_field = NULL;
-  char *passwd_field = NULL;
-  char *host_field = NULL;
-  char *operpasswd_field = NULL;
+  const char *user_field       = NULL;
+  const char *passwd_field     = NULL;
+  const char *host_field       = NULL;
+  const char *operpasswd_field = NULL;
 
   tmp = getfield(line);
-
   conf_letter = *tmp;
 
   for (;;) /* Fake loop, that I can use break here --msa */

@@ -24,243 +24,247 @@
 
 #include "stdinc.h"
 #include "tools.h"
-#include "restart.h"
 #include "common.h"
 #include "fdlist.h"
 #include "ircd.h"
 #include "send.h"
-#include "s_debug.h"
-#include "numeric.h"
-#include "s_log.h"
 #include "client.h"   
 #include "memory.h"
+#include "numeric.h"
 #include "resv.h"
 #include "hash.h"
-#include "ircd_defs.h"
 #include "irc_string.h"
+#include "ircd_defs.h"
+#include "s_conf.h"
 
-struct ResvChannel *ResvChannelList;
-struct ResvNick *ResvNickList;
+dlink_list resv_channel_list = { NULL, NULL, 0 };
 
-struct ResvChannel *
-create_channel_resv(char *name, char *reason, int conf)
+
+/* create_channel_resv()
+ *
+ * inputs	- name of channel to create resv for
+ *		- reason for resv
+ *		- flag, 1 for from ircd.conf 0 from elsehwere
+ * output	- pointer to struct ResvChannel
+ * side effects	-
+ */
+struct ConfItem *
+create_channel_resv(char *name, char *reason, int in_conf)
 {
-  struct ResvChannel *resv_p = NULL;
-  int len;
+  struct ConfItem *conf;
+  struct ResvChannel *resv_p;
 
-  if(find_channel_resv(name))
-    return NULL;
+  if (name == NULL || reason == NULL)
+    return(NULL);
 
-  if((len = strlen(reason)) > TOPICLEN)
-  {
+  if (find_channel_resv(name))
+    return(NULL);
+
+  if (strlen(reason) > TOPICLEN)
     reason[TOPICLEN] = '\0';
-    len = TOPICLEN;
-  }
 
-  resv_p = (struct ResvChannel *)MyMalloc(sizeof(struct ResvChannel));
+  conf = make_conf_item(CRESV_TYPE);
+  resv_p = (struct ResvChannel *)map_to_conf(conf);
 
   strlcpy(resv_p->name, name, sizeof(resv_p->name));
   DupString(resv_p->reason, reason);
-  resv_p->conf = conf;
+  resv_p->conf = in_conf;
 
-  if(ResvChannelList != NULL)
-    ResvChannelList->prev = resv_p;
+  dlinkAdd(resv_p, &resv_p->node, &resv_channel_list);
+  hash_add_resv(resv_p);
 
-  resv_p->next = ResvChannelList;
-  resv_p->prev = NULL;
-
-  ResvChannelList = resv_p;
-
-  add_to_resv_hash_table(resv_p->name, resv_p);
-
-  return resv_p;
+  return(conf);
 }
 
-struct ResvNick *
-create_nick_resv(char *name, char *reason, int conf)
+/* create_nick_resv()
+ *
+ * inputs	- name of nick to create resv for
+ *		- reason for resv
+ *		- 1 if from ircd.conf, 0 if from elsewhere
+ * output	- pointer to struct ResvNick
+ * side effects	-
+ */
+struct ConfItem *
+create_nick_resv(char *name, char *reason, int in_conf)
 {
-  struct ResvNick *resv_p = NULL;
-  int len;
+  struct ConfItem *conf;
+  struct MatchItem *resv_p;
 
-  if(find_nick_resv(name))
-    return NULL;
+  if (name == NULL || reason == NULL)
+    return(NULL);
 
-  if((len = strlen(reason)) > TOPICLEN)
-  {
+  if (find_matching_name_conf(NRESV_TYPE, name,
+			      NULL, NULL, 0))
+    return(NULL);
+
+  if (strlen(reason) > TOPICLEN)
     reason[TOPICLEN] = '\0';
-    len = TOPICLEN;
-  }
 
-  resv_p = (struct ResvNick *)MyMalloc(sizeof(struct ResvNick));
+  conf = make_conf_item(NRESV_TYPE);
+  resv_p = (struct MatchItem *)map_to_conf(conf);
 
-  strlcpy(resv_p->name, name, sizeof(resv_p->name));
+  DupString(conf->name, name);
   DupString(resv_p->reason, reason);
-  resv_p->conf = conf;
+  resv_p->action = in_conf;
 
-  if(ResvNickList)
-    ResvNickList->prev = resv_p;
-
-  resv_p->next = ResvNickList;
-  resv_p->prev = NULL;
-
-  ResvNickList = resv_p;
-
-  return resv_p;
+  return(conf);
 }
 
-int 
-clear_conf_resv()
+/* clear_conf_resv()
+ *
+ * inputs	- none
+ * output	- none
+ * side effects	- All resvs are cleared out
+ */
+void
+clear_conf_resv(void)
 {
+  dlink_node *ptr;
+  dlink_node *next_ptr;
   struct ResvChannel *resv_cp;
-  struct ResvChannel *next_cp;
-  struct ResvNick *resv_np;
-  struct ResvNick *next_np;
 
-  for(resv_cp = ResvChannelList; resv_cp; resv_cp = next_cp)
+  DLINK_FOREACH_SAFE(ptr, next_ptr, resv_channel_list.head)
   {
-    next_cp = resv_cp->next;
-
-    if(resv_cp->conf)
-      delete_channel_resv(resv_cp);
+    resv_cp = ptr->data;
+    delete_channel_resv(resv_cp);
   }
-
-  for(resv_np = ResvNickList; resv_np; resv_np = next_np)
-  {
-    next_np = resv_np->next;
-
-    if(resv_np->conf)
-      delete_nick_resv(resv_np);
-  }
-  
-  return 0;
 }
 
-int 
+/* delete_channel_resv()
+ *
+ * inputs	- pointer to channel resv to delete
+ * output	- none
+ * side effects	- given struct ResvChannel * is removed
+ */
+int
 delete_channel_resv(struct ResvChannel *resv_p)
 {
-  if(!(resv_p))
-    return 0;
+  struct ConfItem *conf;
+  assert(resv_p != NULL);
 
-  del_from_resv_hash_table(resv_p->name, resv_p);
+  if (resv_p == NULL)
+    return(0);
 
-  if(resv_p->prev)
-    resv_p->prev->next = resv_p->next;
-  else
-    ResvChannelList = resv_p->next;
+  hash_del_resv(resv_p);
+  dlinkDelete(&resv_p->node, &resv_channel_list);
+  MyFree(resv_p->reason);
+  conf = unmap_conf_item(resv_p);
+  delete_conf_item(conf);
 
-  if(resv_p->next)
-    resv_p->next->prev = resv_p->prev;
-
-  MyFree((char *)resv_p);
-
-  return 1;
-}
-
-int 
-delete_nick_resv(struct ResvNick *resv_p)
-{
-  if(!(resv_p))
-    return 0;
-
-  if(resv_p->prev)
-    resv_p->prev->next = resv_p->next;
-  else
-    ResvNickList = resv_p->next;
-
-  if(resv_p->next)
-    resv_p->next->prev = resv_p->prev;
-
-  MyFree((char *)resv_p);
-
-  return 1;
+  return(1);
 }
 
 int
-find_channel_resv(char *name)
+find_channel_resv(const char *name)
 {
   struct ResvChannel *resv_p;
 
-  resv_p = (struct ResvChannel *)hash_find_resv(name);
+  if ((resv_p = hash_find_resv(name)) != NULL)
+    return(1);
 
-  if (resv_p == NULL)
-    return 0;
-
-  return 1;
+  return(0);
 }
 
-int 
-find_nick_resv(char *name)
-{
-  struct ResvNick *resv_p;
-
-  for(resv_p = ResvNickList; resv_p; resv_p = resv_p->next)
-  {
-    if(match(resv_p->name, name))
-      return 1;
-  }
-  
-  return 0;
-}
-
+#if 0
 struct ResvNick *
-return_nick_resv(char *name)
+return_nick_resv(const char *name)
 {
+  dlink_node *ptr;
   struct ResvNick *resv_p;
 
-  for(resv_p = ResvNickList; resv_p; resv_p = resv_p->next)
+  DLINK_FOREACH(ptr, resv_nick_list.head)
   {
-    if(!(irccmp(resv_p->name, name)))
-      return resv_p;
+    resv_p = ptr->data;
+
+    if (0 == irccmp(resv_p->name, name))
+      return(resv_p);
   }
 
-  return NULL;
+  return(NULL);
 }
+#endif
 
-void 
+void
 report_resv(struct Client *source_p)
 {
+  dlink_node *ptr;
+  struct ConfItem *conf;
   struct ResvChannel *resv_cp;
-  struct ResvNick *resv_np;
+  struct MatchItem *resv_np;
 
-  for(resv_cp = ResvChannelList; resv_cp; resv_cp = resv_cp->next)
+  DLINK_FOREACH(ptr, resv_channel_list.head)
+  {
+    resv_cp = ptr->data;
     sendto_one(source_p, form_str(RPL_STATSQLINE),
                me.name, source_p->name,
 	       resv_cp->conf ? 'Q' : 'q',
 	       resv_cp->name, resv_cp->reason);
+  }
 
-  for(resv_np = ResvNickList; resv_np; resv_np = resv_np->next)
+  DLINK_FOREACH(ptr, nresv_items.head)
+  {
+    conf = ptr->data;
+    resv_np = (struct MatchItem *)map_to_conf(conf);
+
     sendto_one(source_p, form_str(RPL_STATSQLINE),
                me.name, source_p->name,
-	       resv_np->conf ? 'Q' : 'q',
-	       resv_np->name, resv_np->reason);
-}	       
+	       resv_np->action ? 'Q' : 'q',
+	       conf->name, resv_np->reason);
+  }
+}
 
 int
 clean_resv_nick(char *nick)
 {
   char tmpch;
-  int as=0;
-  int q=0;
-  int ch=0;
+  int as = 0;
+  int q  = 0;
+  int ch = 0;
 
-  if(*nick == '-' || IsDigit(*nick))
-    return 0;
-    
-  while((tmpch = *nick++))
+  if (*nick == '-' || IsDigit(*nick))
+    return(0);
+
+  while ((tmpch = *nick++))
   {
-    if(tmpch == '?')
+    if (tmpch == '?')
       q++;
-    else if(tmpch == '*')
+    else if (tmpch == '*')
       as++;
-    else if(IsNickChar(tmpch))
+    else if (IsNickChar(tmpch))
       ch++;
     else
-      return 0;
+      return(0);
   }
 
-  if(!ch && as)
-    return 0;
+  if (!ch && as)
+    return(0);
 
-  return 1;
+  return(1);
 }
-    
+
+/* valid_wild_card_simple()
+ *
+ * inputs	- data to check for sufficient non-wildcard characters
+ * outputs	- 1 if valid, else 0
+ * side effects	- none
+ */
+int
+valid_wild_card_simple(char *data)
+{
+  char *p = data, tmpch;
+  int nonwild = 0;
+
+  while ((tmpch = *p++))
+  {
+    if (!IsMWildChar(tmpch))
+    {
+      if (++nonwild >= ConfigFileEntry.min_nonwildcard_simple)
+        break;
+    }
+  }
+
+  if (nonwild < ConfigFileEntry.min_nonwildcard_simple)
+    return 0;
+  else
+    return 1;
+}

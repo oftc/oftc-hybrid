@@ -29,6 +29,7 @@
 #include <netdb.h>
 #include <assert.h>
 #include <errno.h>
+#include <time.h>
 
 #include "auth.h"
 #include "conf.h"

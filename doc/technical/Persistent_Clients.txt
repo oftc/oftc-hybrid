@@ -102,8 +102,7 @@ To cut down on abuse, a client may not register more than one suspended
 client per user@host.
 
 TBD. What to do if a dronebot net is programmed to /suspend as many
-as possible, in order to eat up memory in a DDoS attempt. One of the
-same criticisms against vchans actually.
+as possible, in order to eat up memory in a DDoS attempt.
 
 $Id$
 

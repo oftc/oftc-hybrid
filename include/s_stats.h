@@ -25,8 +25,6 @@
 #ifndef INCLUDED_s_stats_h
 #define INCLUDED_s_stats_h
 
-#include "config.h"
-
 struct Client;
 
 /*

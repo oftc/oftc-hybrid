@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include "iauth.h"
 #include "log.h"

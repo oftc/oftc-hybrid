@@ -29,53 +29,44 @@
 #include "fdlist.h"
 #include "ircd.h"
 #include "send.h"
-#include "s_debug.h"
 #include "s_log.h"
-#include "client.h"     /* for FLAGS_ALL */
+#include "client.h" /* for UMODE_ALL */
 #include "memory.h"
 
 
-
-/* external var */
-extern char** myargv;
-
-void restart(char *mesg)
+void
+restart(const char *mesg)
 {
-  static int was_here = NO; /* redundant due to restarting flag below */
+  static int was_here = 0; /* redundant due to restarting flag below */
 
   if (was_here)
     abort();
-  was_here = YES;
+  was_here = 1;
 
   ilog(L_NOTICE, "Restarting Server because: %s, memory data limit: %ld",
-         mesg, get_maxrss());
+       mesg, get_maxrss());
 
   server_reboot();
 }
 
-void server_reboot(void)
+void
+server_reboot(void)
 {
   int i;
 
-  sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                        "Restarting server...");
 
-  ilog(L_NOTICE, "Restarting server... (%s)",SPATH);
-  /*
-   * XXX we used to call flush_connections() here. But since this routine
-   * doesn't exist anymore, we won't be flushing. This is ok, since 
-   * when close handlers come into existance, comm_close() will be called
-   * below, and the data flushing will be implicit.
-   *    -- adrian
-   *
-   * bah, for now, the program ain't coming back to here, so forcibly
-   * close everything the "wrong" way for now, and just LEAVE...
-   */
-  for (i = 3; i < MAXCONNECTIONS; ++i)
+  ilog(L_NOTICE, "Restarting server... (%s)", SPATH);
+  send_queued_all();
+
+  for (i = 3; i < HARD_FDLIMIT; ++i)
     close(i);
+
   unlink(pidFileName);
   execv(SPATH, myargv);
-  fprintf(stderr, "ircd: execv() failed: %s\n", strerror(errno));
+  fprintf(stderr, "ircd: execv() failed: %s\n",
+          strerror(errno));
   exit(-1);
 }
 

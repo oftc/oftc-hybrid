@@ -41,7 +41,7 @@ static void mo_time(struct Client*, struct Client*, int, char**);
 
 struct Message time_msgtab = {
   "TIME", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_time, mo_time, mo_time}
+  {m_unregistered, m_time, mo_time, mo_time, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -64,15 +64,16 @@ const char *_version = "$Revision$";
  *      parv[0] = sender prefix
  *      parv[1] = servername
  */
-static void m_time(struct Client *client_p, struct Client *source_p,
-                  int parc, char *parv[])
+static void
+m_time(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
 {
   /* this is not rate limited, so end the grace period */
   if(MyClient(source_p) && !IsFloodDone(source_p))
     flood_endgrace(source_p);
 
   /* This is safe enough to use during non hidden server mode */
-  if(!ConfigServerHide.disable_remote)
+  if(!ConfigFileEntry.disable_remote)
     {
       if (hunt_server(client_p,source_p,":%s TIME :%s",1,parc,parv) != HUNTED_ISME)
         return;
@@ -87,8 +88,9 @@ static void m_time(struct Client *client_p, struct Client *source_p,
  *      parv[0] = sender prefix
  *      parv[1] = servername
  */
-static void mo_time(struct Client *client_p, struct Client *source_p,
-                   int parc, char *parv[])
+static void
+mo_time(struct Client *client_p, struct Client *source_p,
+	int parc, char *parv[])
 {
   if (hunt_server(client_p,source_p,":%s TIME :%s",1,parc,parv) == HUNTED_ISME)
     sendto_one(source_p, form_str(RPL_TIME), me.name,

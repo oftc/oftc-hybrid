@@ -22,9 +22,15 @@
  * $Id$
  *
  */
+
+#ifndef STDINC_H /* prevent multiple #includes */
+#define STDINC_H
  
-     
-#include "config.h" /* Gotta pull in the autoconf stuff */
+#ifndef IN_AUTOCONF
+#include "setup.h"
+#endif
+
+#include "defaults.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -42,30 +48,46 @@
 # endif 
 #endif  
 
-
-#ifdef HAVE_STDDEF_H
-#include <stddef.h>
+#ifdef HAVE_STRTOK_R
+# define strtoken(x, y, z) strtok_r(y, z, x)
 #endif
 
+#include <sys/types.h>
 
+#ifdef HAVE_STDDEF_H
+# include <stddef.h>
+#else /* This is basically what stddef.h provides on most systems */
+# ifndef NULL
+#  define NULL ((void*)0)
+# endif
+# ifndef offsetof
+#  define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+# endif
+#endif
+
+#ifdef HAVE_CRYPT_H
+#include <crypt.h>
+#endif
 
 #include <stdio.h>
 #include <assert.h>
-#include <stdio.h>
 #include <time.h>
 #include <fcntl.h>
-#include <netdb.h>
+
+#ifdef HAVE_LIBGEN_H
+#include <libgen.h>
+#endif
+
 #include <stdarg.h>
 #include <signal.h>
-#ifdef USE_GETTEXT
-#include <libintl.h>
-#endif
 #include <dirent.h>
 #include <ctype.h>
 
-#ifdef VMS
-#define _XOPEN_SOURCE 1
-#endif
+#include <netdb.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include <limits.h>
 
 #ifdef HAVE_UNISTD_H
@@ -73,22 +95,18 @@
 #endif
 
 #include <sys/time.h>
-#include <sys/types.h>
 #include <sys/file.h>
+
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
 
-
-#include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
@@ -96,6 +114,6 @@
 extern int errno;
 #endif
 
-#ifdef VMS
-#include <sys/ioctl.h>
+#include "inet_misc.h"
+
 #endif

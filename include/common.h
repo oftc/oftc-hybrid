@@ -25,11 +25,6 @@
 #ifndef INCLUDED_common_h
 #define INCLUDED_common_h
 
-
-#ifndef NULL
-#define NULL 0
-#endif
-
 #ifdef TRUE
 #undef TRUE
 #endif

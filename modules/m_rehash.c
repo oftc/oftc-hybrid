@@ -25,13 +25,12 @@
 #include "stdinc.h"
 #include "handlers.h"
 #include "client.h"
-#include "channel.h"
 #include "common.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "list.h"
-#include "s_gline.h"
 #include "numeric.h"
+#include "irc_res.h"
 #include "s_conf.h"
 #include "s_log.h"
 #include "send.h"
@@ -39,11 +38,11 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mo_rehash(struct Client*, struct Client*, int, char**);
+static void mo_rehash(struct Client *, struct Client *, int, char **);
 
 struct Message rehash_msgtab = {
   "REHASH", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, mo_rehash}
+  {m_unregistered, m_not_oper, m_ignore, mo_rehash, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -61,71 +60,75 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
+
 /*
  * mo_rehash - REHASH message handler
  *
  */
-static void mo_rehash(struct Client *client_p, struct Client *source_p,
-                     int parc, char *parv[])
+static void
+mo_rehash(struct Client *client_p, struct Client *source_p,
+          int parc, char *parv[])
 {
-  int found = NO;
+  int found = 0;
 
-  if ( !IsOperRehash(source_p) )
-    {
-      sendto_one(source_p,":%s NOTICE %s :You need rehash = yes;", me.name, parv[0]);
-      return;
-    }
+  if (!IsOperRehash(source_p))
+  {
+    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+               me.name, source_p->name);
+    return;
+  }
 
   if (parc > 1)
+  {
+    if (irccmp(parv[1], "DNS") == 0)
     {
-      if(irccmp(parv[1],"DNS") == 0)
-        {
-          sendto_one(source_p, form_str(RPL_REHASHING), me.name, parv[0], "DNS");
-          sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"%s is rehashing DNS",
-                               get_oper_name(source_p));
-          restart_resolver();   /* re-read /etc/resolv.conf AGAIN?
-                                   and close/re-open res socket */
-          found = YES;
-        }
-      else if(irccmp(parv[1],"MOTD") == 0)
-        {
-          sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-		       "%s is forcing re-reading of MOTD file",
-		       get_oper_name(source_p));
-          ReadMessageFile( &ConfigFileEntry.motd );
-          found = YES;
-        }
-      else if(irccmp(parv[1],"OMOTD") == 0)
-        {
-          sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-		       "%s is forcing re-reading of OPER MOTD file",
-		       get_oper_name(source_p));
-          ReadMessageFile( &ConfigFileEntry.opermotd );
-          found = YES;
-        }
-      if(found)
-        {
-          ilog(L_NOTICE, "REHASH %s From %s\n", parv[1], 
-	       get_client_name(source_p, HIDE_IP));
-          return;
-        }
-      else
-        {
-          sendto_one(source_p,":%s NOTICE %s :rehash one of :CHANNELS DNS MOTD OMOTD" ,me.name,source_p->name);
-          return;
-        }
+      sendto_one(source_p, form_str(RPL_REHASHING), me.name, parv[0], "DNS");
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s is rehashing DNS",
+                           get_oper_name(source_p));
+      restart_resolver();   /* re-read /etc/resolv.conf AGAIN?
+                               and close/re-open res socket */
+      found = 1;
     }
-  else
+    else if (irccmp(parv[1], "MOTD") == 0)
     {
-      sendto_one(source_p, form_str(RPL_REHASHING), me.name, parv[0],
-                 ConfigFileEntry.configfile);
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-			   "%s is rehashing server config file",
-			   get_oper_name(source_p));
-      ilog(L_NOTICE, "REHASH From %s[%s]", get_oper_name(source_p),
-           source_p->localClient->sockhost);
-      rehash(0);
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                           "%s is forcing re-reading of MOTD file",
+                           get_oper_name(source_p));
+      read_message_file(&ConfigFileEntry.motd);
+      found = 1;
+    }
+    else if (irccmp(parv[1], "OMOTD") == 0)
+    {
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                           "%s is forcing re-reading of OPER MOTD file",
+                           get_oper_name(source_p));
+      read_message_file(&ConfigFileEntry.opermotd);
+      found = 1;
+    }
+
+    if (found)
+    {
+      ilog(L_NOTICE, "REHASH %s From %s",
+           parv[1], get_client_name(source_p, HIDE_IP));
       return;
     }
+    else
+    {
+      sendto_one(source_p, ":%s NOTICE %s :rehash one of :DNS MOTD OMOTD",
+                 me.name, source_p->name);
+      return;
+    }
+  }
+  else
+  {
+    sendto_one(source_p, form_str(RPL_REHASHING),
+               me.name, source_p->name, ConfigFileEntry.configfile);
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                         "%s is rehashing server config file",
+                         get_oper_name(source_p));
+    ilog(L_NOTICE, "REHASH From %s[%s]",
+         get_oper_name(source_p), source_p->localClient->sockhost);
+    rehash(0);
+  }
 }
 

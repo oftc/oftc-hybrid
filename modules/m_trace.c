@@ -24,12 +24,11 @@
 
 #include "stdinc.h"
 #include "handlers.h"
-#include "class.h"
+#include "tools.h"
 #include "hook.h"
 #include "client.h"
 #include "hash.h"
 #include "common.h"
-#include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
@@ -40,19 +39,38 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-
+#include "s_conf.h"
+#include "irc_getnameinfo.h"
 
 static void m_trace(struct Client *, struct Client *, int, char **);
 static void ms_trace(struct Client*, struct Client*, int, char**);
 static void mo_trace(struct Client*, struct Client*, int, char**);
-static struct Client* next_client_double(struct Client *next, const char* ch);
+
+#ifdef IPV6
+static void mo_trace4(struct Client*, struct Client*, int, char**);
+static void mo_trace6(struct Client*, struct Client*, int, char**);
+#endif
 
 static void trace_spy(struct Client *);
+static void do_actual_trace(int ttype, const char *tname,
+			    struct Client*, struct Client*, int, char**);
 
 struct Message trace_msgtab = {
   "TRACE", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_trace, ms_trace, mo_trace}
+  {m_unregistered, m_trace, ms_trace, mo_trace, m_ignore}
 };
+
+#ifdef IPV6
+struct Message trace_msgtab4 = {
+  "TRACE4", 0, 0, 0, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_trace, m_ignore, mo_trace4, m_ignore}
+};
+
+struct Message trace_msgtab6 = {
+  "TRACE6", 0, 0, 0, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_trace, m_ignore, mo_trace6, m_ignore}
+};
+#endif
 
 #ifndef STATIC_MODULES
 void
@@ -60,6 +78,10 @@ _modinit(void)
 {
   hook_add_event("doing_trace");
   mod_add_cmd(&trace_msgtab);
+#ifdef IPV6
+  mod_add_cmd(&trace_msgtab4);
+  mod_add_cmd(&trace_msgtab6);
+#endif
 }
 
 void
@@ -67,12 +89,16 @@ _moddeinit(void)
 {
   hook_del_event("doing_trace");
   mod_del_cmd(&trace_msgtab);
+#ifdef IPV6
+  mod_del_cmd(&trace_msgtab4);
+  mod_del_cmd(&trace_msgtab6);
+#endif
 }
 const char *_version = "$Revision$";
 #endif
-static int report_this_status(struct Client *source_p, struct Client *target_p,int dow,
-                              int link_u_p, int link_u_s);
 
+static int report_this_status(struct Client *source_p, struct Client *target_p,
+			      int dow, int link_u_p, int link_u_s);
 
 /*
  * m_trace()
@@ -80,16 +106,19 @@ static int report_this_status(struct Client *source_p, struct Client *target_p,i
  *	parv[0] = sender prefix
  *	parv[1] = target client/server to trace
  */
-static void m_trace(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+m_trace(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
 {
-  char *tname;
+  const char *tname;
 
   if (parc > 1)
     tname = parv[1];
   else
     tname = me.name;
-  sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name, parv[0], tname);
+
+  sendto_one(source_p, form_str(RPL_ENDOFTRACE),
+             me.name, source_p->name, tname);
 }
 
 
@@ -100,17 +129,12 @@ static void m_trace(struct Client *client_p, struct Client *source_p,
 */
 static void
 mo_trace(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+         int parc, char *parv[])
 {
-  struct Client       *target_p = NULL;
-  struct Class        *cltmp;
-  char  *tname;
-  int   doall, link_s[MAXCONNECTIONS], link_u[MAXCONNECTIONS];
-  int   cnt = 0, wilds, dow;
   dlink_node *ptr;
-  char *looking_for = parv[0];
+  const char *tname;
 
-  if(!IsClient(source_p))
+  if (!IsClient(source_p))
     return;
     
   if (parc > 2)
@@ -126,22 +150,86 @@ mo_trace(struct Client *client_p, struct Client *source_p,
     {
     case HUNTED_PASS: /* note: gets here only if parv[1] exists */
       {
-        struct Client *ac2ptr;
+        struct Client *ac2ptr = NULL;
         
-        ac2ptr = next_client_double(GlobalClientList, tname);
-        if (ac2ptr)
-          sendto_one(source_p, form_str(RPL_TRACELINK), me.name, looking_for,
-                     ircd_version, debugmode, tname, ac2ptr->from->name);
+        if ((ac2ptr = find_client(tname)) == NULL)
+        {
+          DLINK_FOREACH(ptr, global_client_list.head)
+          {
+            ac2ptr = ptr->data;
+
+            if (match(tname, ac2ptr->name) || match(ac2ptr->name, tname))
+              break;
+            else
+              ac2ptr = NULL;
+          }
+	}
+ 
+	if (ac2ptr != NULL)
+          sendto_one(source_p, form_str(RPL_TRACELINK), me.name, source_p->name,
+                     ircd_version, tname, ac2ptr->from->name);
         else
-          sendto_one(source_p, form_str(RPL_TRACELINK), me.name, looking_for,
-                     ircd_version, debugmode, tname, "ac2ptr_is_NULL!!");
+          sendto_one(source_p, form_str(RPL_TRACELINK), me.name, source_p->name,
+                     ircd_version, tname, "ac2ptr_is_NULL!!");
         return;
       }
     case HUNTED_ISME:
+      do_actual_trace(AF_UNSPEC, tname, client_p, source_p, parc, parv);
       break;
     default:
       return;
     }
+}
+
+#ifdef IPV6
+static void
+mo_trace4(struct Client *client_p, struct Client *source_p,
+	  int parc, char *parv[])
+{
+  const char *tname;
+
+  if (!IsClient(source_p))
+    return;
+
+  if (parc > 1)
+    tname = parv[1];
+  else
+    tname = me.name;
+
+    
+  do_actual_trace(AF_INET, tname, client_p, source_p, parc, parv);
+}
+
+static void
+mo_trace6(struct Client *client_p, struct Client *source_p,
+	  int parc, char *parv[])
+{
+  const char *tname;
+
+  if (!IsClient(source_p))
+    return;
+
+  if (parc > 1)
+    tname = parv[1];
+  else
+    tname = me.name;
+
+  do_actual_trace(AF_INET6, tname, client_p, source_p, parc, parv);
+}
+#endif
+
+static void
+do_actual_trace(int ttype, const char *tname,
+		struct Client *client_p, struct Client *source_p,
+		int parc, char *parv[])
+{
+  struct Client *target_p = NULL;
+  struct ConfItem *conf;
+  struct ClassItem *cltmp;
+  int doall, link_s[HARD_FDLIMIT], link_u[HARD_FDLIMIT];
+  int cnt = 0, wilds, dow;
+  dlink_node *gcptr;	/* global_client_list ptr */
+  dlink_node *ptr;
 
   trace_spy(source_p);
 
@@ -167,15 +255,13 @@ mo_trace(struct Client *client_p, struct Client *source_p,
             target_p->localClient->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
             NI_NUMERICHOST);
 
-
         class_name = get_client_class(target_p);
 
         if (IsOper(target_p))
         {
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, parv[0], class_name, name, 
-                     MyOper(source_p) ? ipaddr :
-		     (IsIPSpoof(target_p) ? "255.255.255.255" : ipaddr),
+                     IsIPSpoof(target_p) ? "255.255.255.255" : ipaddr,
                      CurrentTime - target_p->lasttime,
                      (target_p->user) ? (CurrentTime - target_p->user->last) : 0);
         }
@@ -202,91 +288,94 @@ mo_trace(struct Client *client_p, struct Client *source_p,
    * Count up all the servers and clients in a downlink.
    */
   if (doall)
-   {
-    for (target_p = GlobalClientList; target_p; target_p = target_p->next)
-     {
+  {
+    DLINK_FOREACH(gcptr, global_client_list.head)
+    {
+      target_p = gcptr->data;
+
       if (IsPerson(target_p))
-        {
-          link_u[target_p->from->localClient->fd]++;
-        }
+      {
+	link_u[target_p->from->localClient->fd]++;
+      }
       else if (IsServer(target_p))
-	{
-	  link_s[target_p->from->localClient->fd]++;
-	}
-     }
-   }
+      {
+	link_s[target_p->from->localClient->fd]++;
+      }
+    }
+  }
    
   /* report all direct connections */
-  DLINK_FOREACH(ptr, lclient_list.head)
-    {
-      target_p = ptr->data;
+  DLINK_FOREACH(ptr, local_client_list.head)
+  {
+    target_p = ptr->data;
 
-      if (IsInvisible(target_p) && dow &&
-          !(MyConnect(source_p) && IsOper(source_p)) &&
-          !IsOper(target_p) && (target_p != source_p))
-        continue;
-      if (!doall && wilds && !match(tname, target_p->name))
-        continue;
-      if (!dow && irccmp(tname, target_p->name))
-        continue;
+    if (IsInvisible(target_p) && dow &&
+	!(MyConnect(source_p) && IsOper(source_p)) &&
+	!IsOper(target_p) && (target_p != source_p))
+      continue;
+    if (!doall && wilds && !match(tname, target_p->name))
+      continue;
+    if (!dow && irccmp(tname, target_p->name))
+      continue;
 
-      cnt = report_this_status(source_p,target_p,dow,0,0);
-    }
+#ifdef IPV6
+    if ((ttype == AF_UNSPEC) || 
+	(target_p->localClient->ip.ss.ss_family == ttype))
+      cnt = report_this_status(source_p, target_p, dow, 0, 0);
+#else
+    cnt = report_this_status(source_p, target_p, dow, 0, 0);
+#endif
+  }
 
   DLINK_FOREACH(ptr, serv_list.head)
-    {
-      target_p = ptr->data;
+  {
+    target_p = ptr->data;
 
-      if (!doall && wilds && !match(tname, target_p->name))
-        continue;
-      if (!dow && irccmp(tname, target_p->name))
-        continue;
+    if (!doall && wilds && !match(tname, target_p->name))
+      continue;
+    if (!dow && irccmp(tname, target_p->name))
+      continue;
 
+#ifdef IPV6
+    if ((ttype == AF_UNSPEC) || 
+	(target_p->localClient->ip.ss.ss_family == ttype))
       cnt = report_this_status(source_p, target_p, dow,
-                               link_u[target_p->localClient->fd],
-                               link_s[target_p->localClient->fd]);
-    }
+			       link_u[target_p->localClient->fd],
+			       link_s[target_p->localClient->fd]);
+#else
+    cnt = report_this_status(source_p, target_p, dow,
+			     link_u[target_p->localClient->fd],
+			     link_s[target_p->localClient->fd]);
+#endif
+  }
 
   /* This section is to report the unknowns */
   DLINK_FOREACH(ptr, unknown_list.head)
-    {
-      target_p = ptr->data;
+  {
+    target_p = ptr->data;
 
-      if (!doall && wilds && !match(tname, target_p->name))
-        continue;
-      if (!dow && irccmp(tname, target_p->name))
-        continue;
+    if (!doall && wilds && !match(tname, target_p->name))
+      continue;
+    if (!dow && irccmp(tname, target_p->name))
+      continue;
 
-      cnt = report_this_status(source_p,target_p,dow,0,0);
-    }
+#ifdef IPV6
+    if ((ttype == AF_UNSPEC) || 
+	(target_p->localClient->ip.ss.ss_family == ttype))
+      cnt = report_this_status(source_p, target_p, dow, 0, 0);
+#else
+    cnt = report_this_status(source_p, target_p, dow, 0, 0);
+#endif
+  }
 
-  /*
-   * Add these lines to summarize the above which can get rather long
-   * and messy when done remotely - Avalon
-   */
-  if (!SendWallops(source_p) || !cnt)
-    {
-      /* redundant given we dont allow trace from non-opers anyway.. but its
-       * left here in case that should ever change --fl
-       */
-      if(!cnt)
-	sendto_one(source_p, form_str(RPL_TRACESERVER),
-	           me.name, parv[0], 0, link_s[me.localClient->fd],
-		   link_u[me.localClient->fd], me.name, "*", "*", me.name);
-		   
-      /* let the user have some idea that its at the end of the
-       * trace
-       */
-      sendto_one(source_p, form_str(RPL_ENDOFTRACE),me.name,
-                 parv[0],tname);
-      return;
-    }
-    
-  for (cltmp = ClassList; doall && cltmp; cltmp = cltmp->next)
-    if (Links(cltmp) > 0)
+  DLINK_FOREACH(ptr, class_items.head)
+  {
+    conf = ptr->data;
+    cltmp = (struct ClassItem *)map_to_conf(conf);
+    if (CurrUserCount(cltmp) > 0)
       sendto_one(source_p, form_str(RPL_TRACECLASS), me.name,
-                 parv[0], ClassName(cltmp), Links(cltmp));
-		 
+		 parv[0], conf->name, CurrUserCount(cltmp));
+  }
   sendto_one(source_p, form_str(RPL_ENDOFTRACE),me.name, parv[0],tname);
 }
 
@@ -298,19 +387,16 @@ mo_trace(struct Client *client_p, struct Client *source_p,
 */
 static void
 ms_trace(struct Client *client_p, struct Client *source_p,
-	 int parc, char *parv[])
+         int parc, char *parv[])
 {
   if (hunt_server(client_p, source_p, ":%s TRACE %s :%s", 2, parc, parv))
     return;
 
-  if( IsOper(source_p) )
-    mo_trace(client_p,source_p,parc,parv);
-  return;
+  if (IsOper(source_p))
+    mo_trace(client_p, source_p, parc, parv);
 }
 
-
-/*
- * report_this_status
+/* report_this_status()
  *
  * inputs	- pointer to client to report to
  * 		- pointer to client to report about
@@ -319,7 +405,7 @@ ms_trace(struct Client *client_p, struct Client *source_p,
  */
 static int
 report_this_status(struct Client *source_p, struct Client *target_p,
-		   int dow, int link_u_p, int link_s_p)
+                   int dow, int link_u_p, int link_s_p)
 {
   const char* name;
   const char* class_name;
@@ -327,7 +413,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
   int cnt=0;
 
   /* Should this be sockhost? - stu */
-  irc_getnameinfo((struct sockaddr*)&target_p->localClient->ip,
+  irc_getnameinfo((struct sockaddr*)&target_p->localClient->ip, 
         target_p->localClient->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
         NI_NUMERICHOST);
   name = get_client_name(target_p, HIDE_IP);
@@ -368,39 +454,45 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 	   (MyClient(source_p) || !(dow && IsInvisible(target_p))))
 	  || !dow || IsOper(target_p))
 	{
-#ifndef HIDE_SPOOF_IPS
-          if (IsAdmin(target_p))
+          if (IsAdmin(target_p) && !ConfigFileEntry.hide_spoof_ips)
 	    sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                        me.name, source_p->name, class_name, name,
                        IsOperAdmin(source_p) ? ip : "255.255.255.255",
                        CurrentTime - target_p->lasttime,
                        (target_p->user) ? (CurrentTime - target_p->user->last) : 0);
 		       
-	  else 
-#endif
-          if (IsOper(target_p))
-	    sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
-		       me.name, source_p->name, class_name, name, 
-#ifdef HIDE_SPOOF_IPS
-		       IsIPSpoof(target_p) ? "255.255.255.255" : ip,
-#else
-                       MyOper(source_p) ? ip :
-		       (IsIPSpoof(target_p) ? "255.255.255.255" : ip),
-#endif
-		       CurrentTime - target_p->lasttime,
-		       (target_p->user)?(CurrentTime - target_p->user->last):0);
-		       
+	  else if (IsOper(target_p))
+          {
+	    if (ConfigFileEntry.hide_spoof_ips)
+	      sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
+		         me.name, source_p->name, class_name, name, 
+		         IsIPSpoof(target_p) ? "255.255.255.255" : ip,
+		         CurrentTime - target_p->lasttime,
+		         (target_p->user)?(CurrentTime - target_p->user->last):0);
+	    else
+              sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
+                         me.name, source_p->name, class_name, name,
+                         MyOper(source_p) ? ip :
+                         (IsIPSpoof(target_p) ? "255.255.255.255" : ip),
+                         CurrentTime - target_p->lasttime,
+                         (target_p->user)?(CurrentTime - target_p->user->last):0);
+	  }		       
 	  else
-	    sendto_one(source_p, form_str(RPL_TRACEUSER),
-		       me.name, source_p->name, class_name, name,
-#ifdef HIDE_SPOOF_IPS
-                       IsIPSpoof(target_p) ? "255.255.255.255" : ip,
-#else
-		       MyOper(source_p) ? ip : 
-		       (IsIPSpoof(target_p) ? "255.255.255.255" : ip),
-#endif
-		       CurrentTime - target_p->lasttime,
-		       (target_p->user)?(CurrentTime - target_p->user->last):0);
+          {
+            if (ConfigFileEntry.hide_spoof_ips)
+	      sendto_one(source_p, form_str(RPL_TRACEUSER),
+		         me.name, source_p->name, class_name, name,
+                         IsIPSpoof(target_p) ? "255.255.255.255" : ip,
+		         CurrentTime - target_p->lasttime,
+		         (target_p->user)?(CurrentTime - target_p->user->last):0);
+	    else
+              sendto_one(source_p, form_str(RPL_TRACEUSER),
+                         me.name, source_p->name, class_name, name,
+                         MyOper(source_p) ? ip :
+                         (IsIPSpoof(target_p) ? "255.255.255.255" : ip),
+                         CurrentTime - target_p->lasttime,
+                         (target_p->user)?(CurrentTime - target_p->user->last):0);
+	  }
 	  cnt++;
 	}
       break;
@@ -441,39 +533,3 @@ trace_spy(struct Client *source_p)
 
   hook_call_event("doing_trace", &data);
 }
-
-/* 
- * this slow version needs to be used for hostmasks *sigh
- *
- * next_client_double - find the next matching client. 
- * The search can be continued from the specified client entry. 
- * Normal usage loop is:
- *
- *      for (x = client; x = next_client_double(x,mask); x = x->next)
- *              HandleMatchingClient;
- *            
- */
-static struct Client* 
-next_client_double(struct Client *next, /* First client to check */
-                   const char* ch)      /* search string (may include wilds) */
-{
-  struct Client *tmp = next;
-
-  next = find_client(ch);
-
-  if (next == NULL)
-    next = tmp;
-
-  if (tmp && tmp->prev == next)
-    return NULL;
-  if (next != tmp)
-    return next;
-  for ( ; next; next = next->next)
-    {
-      if (match(ch,next->name) || match(next->name,ch))
-        break;
-    }
-  return next;
-}
-
-

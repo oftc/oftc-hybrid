@@ -41,7 +41,7 @@ static void ms_ping(struct Client*, struct Client*, int, char**);
 
 struct Message ping_msgtab = {
   "PING", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_ping, ms_ping, m_ping}
+  {m_unregistered, m_ping, ms_ping, m_ping, m_ping}
 };
 
 #ifndef STATIC_MODULES
@@ -59,16 +59,16 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
+
 /*
 ** m_ping
 **      parv[0] = sender prefix
 **      parv[1] = origin
 **      parv[2] = destination
 */
-static void m_ping(struct Client *client_p,
-                  struct Client *source_p,
-                  int parc,
-                  char *parv[])
+static void
+m_ping(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
 {
   struct Client *target_p;
   char  *origin, *destination;
@@ -82,7 +82,7 @@ static void m_ping(struct Client *client_p,
   origin = parv[1];
   destination = parv[2]; /* Will get NULL or pointer (parc >= 2!!) */
 
-  if (ConfigServerHide.disable_remote && !IsOper(source_p))
+  if (ConfigFileEntry.disable_remote && !IsOper(source_p))
   {
    sendto_one(source_p,":%s PONG %s :%s", me.name,
               (destination) ? destination : me.name, origin);
@@ -121,17 +121,17 @@ static void m_ping(struct Client *client_p,
                (destination) ? destination : me.name, origin);
 }
 
-static void ms_ping(struct Client *client_p,
-                   struct Client *source_p,
-                   int parc,
-                   char *parv[])
+static void
+ms_ping(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
 {
   struct Client *target_p;
-  char  *origin, *destination;
+  char *origin, *destination;
 
   if (parc < 2 || *parv[1] == '\0')
   {
-    sendto_one(source_p, form_str(ERR_NOORIGIN), me.name, parv[0]);
+    sendto_one(source_p, form_str(ERR_NOORIGIN),
+               me.name, parv[0]);
     return;
   }
 
@@ -153,11 +153,8 @@ static void ms_ping(struct Client *client_p,
   if (!EmptyString(destination) && irccmp(destination, me.name) != 0)
   {
     if ((target_p = find_server(destination)))
-    {
-      gettimeofday(&target_p->ping_send_time, NULL);
       sendto_one(target_p,":%s PING %s :%s", parv[0],
                  origin, destination);
-    }
     else
     {
       sendto_one(source_p, form_str(ERR_NOSUCHSERVER),

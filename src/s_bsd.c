@@ -28,6 +28,7 @@
 #include "s_bsd.h"
 #include "client.h"
 #include "common.h"
+#include "dbuf.h"
 #include "event.h"
 #include "irc_string.h"
 #include "irc_getnameinfo.h"
@@ -170,7 +171,7 @@ report_error(int level, const char* text, const char* who, int error)
 {
   who = (who) ? who : "";
 
-  sendto_gnotice_flags(FLAGS_DEBUG, L_OPER, me.name, &me, NULL, text, who, strerror(error));
+  sendto_gnotice_flags(UMODE_DEBUG, level, me.name, &me, NULL, text, who, strerror(error));
 
   ilog(L_ERROR, text, who, strerror(error));
 }
@@ -222,7 +223,6 @@ defined(IP_OPTIONS) && defined(IPPROTO_IP) && !defined(IPV6)
 int
 set_non_blocking(int fd)
 {
-#ifndef VMS
   int nonb = 0;
   int res;
 
@@ -237,7 +237,6 @@ set_non_blocking(int fd)
 
   fd_table[fd].flags.nonblocking = 1;
   return 1;
-#endif
 }
 
 /*
@@ -263,98 +262,112 @@ set_no_delay(int fd)
 void
 close_connection(struct Client *client_p)
 {
-  struct ConfItem *aconf;
-  assert(NULL != client_p);
-  if(client_p == NULL)
-    return;
-  if (IsServer(client_p))
-    {
-      ServerStats->is_sv++;
-      ServerStats->is_sbs += client_p->localClient->sendB;
-      ServerStats->is_sbr += client_p->localClient->receiveB;
-      ServerStats->is_sks += client_p->localClient->sendK;
-      ServerStats->is_skr += client_p->localClient->receiveK;
-      ServerStats->is_sti += CurrentTime - client_p->firsttime;
-      if (ServerStats->is_sbs > 2047)
-        {
-          ServerStats->is_sks += (ServerStats->is_sbs >> 10);
-          ServerStats->is_sbs &= 0x3ff;
-        }
-      if (ServerStats->is_sbr > 2047)
-        {
-          ServerStats->is_skr += (ServerStats->is_sbr >> 10);
-          ServerStats->is_sbr &= 0x3ff;
-        }
-      /*
-       * If the connection has been up for a long amount of time, schedule
-       * a 'quick' reconnect, else reset the next-connect cycle.
-       */
-      if ((aconf = find_conf_exact(client_p->name, client_p->username,
-                                   client_p->host, CONF_SERVER)))
-        {
-          /*
-           * Reschedule a faster reconnect, if this was a automatically
-           * connected configuration entry. (Note that if we have had
-           * a rehash in between, the status has been changed to
-           * CONF_ILLEGAL). But only do this if it was a "good" link.
-           */
-          aconf->hold = time(NULL);
-          aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
-            HANGONRETRYDELAY : ConfConFreq(aconf);
-          if (nextconnect > aconf->hold)
-            nextconnect = aconf->hold;
-        }
+  struct ConfItem *conf;
+  struct AccessItem *aconf;
+  struct ClassItem *aclass;
 
-    }
-  else if (IsClient(client_p))
+  assert(NULL != client_p);
+
+  if (IsServer(client_p))
+  {
+    ServerStats->is_sv++;
+    ServerStats->is_sbs += client_p->localClient->sendB;
+    ServerStats->is_sbr += client_p->localClient->receiveB;
+    ServerStats->is_sks += client_p->localClient->sendK;
+    ServerStats->is_skr += client_p->localClient->receiveK;
+    ServerStats->is_sti += CurrentTime - client_p->firsttime;
+    if (ServerStats->is_sbs > 2047)
     {
-      ServerStats->is_cl++;
-      ServerStats->is_cbs += client_p->localClient->sendB;
-      ServerStats->is_cbr += client_p->localClient->receiveB;
-      ServerStats->is_cks += client_p->localClient->sendK;
-      ServerStats->is_ckr += client_p->localClient->receiveK;
-      ServerStats->is_cti += CurrentTime - client_p->firsttime;
-      if (ServerStats->is_cbs > 2047)
-        {
-          ServerStats->is_cks += (ServerStats->is_cbs >> 10);
-          ServerStats->is_cbs &= 0x3ff;
-        }
-      if (ServerStats->is_cbr > 2047)
-        {
-          ServerStats->is_ckr += (ServerStats->is_cbr >> 10);
-          ServerStats->is_cbr &= 0x3ff;
-        }
+      ServerStats->is_sks += (ServerStats->is_sbs >> 10);
+      ServerStats->is_sbs &= 0x3ff;
     }
+    if (ServerStats->is_sbr > 2047)
+    {
+      ServerStats->is_skr += (ServerStats->is_sbr >> 10);
+      ServerStats->is_sbr &= 0x3ff;
+    }
+    /* XXX Does this even make any sense at all anymore?
+     * scheduling a 'quick' reconnect could cause a pile of
+     * nick collides under TSora protocol... -db
+     */
+    /*
+     * If the connection has been up for a long amount of time, schedule
+     * a 'quick' reconnect, else reset the next-connect cycle.
+     */
+    if ((conf = find_conf_exact(SERVER_TYPE,
+				  client_p->name, client_p->username,
+				  client_p->host)))
+    {
+      /*
+       * Reschedule a faster reconnect, if this was a automatically
+       * connected configuration entry. (Note that if we have had
+       * a rehash in between, the status has been changed to
+       * CONF_ILLEGAL). But only do this if it was a "good" link.
+       */
+      aconf = (struct AccessItem *)map_to_conf(conf);
+      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+      aconf->hold = time(NULL);
+      aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
+        HANGONRETRYDELAY : ConFreq(aclass);
+      if (nextconnect > aconf->hold)
+        nextconnect = aconf->hold;
+    }
+  }
+  else if (IsClient(client_p))
+  {
+    ServerStats->is_cl++;
+    ServerStats->is_cbs += client_p->localClient->sendB;
+    ServerStats->is_cbr += client_p->localClient->receiveB;
+    ServerStats->is_cks += client_p->localClient->sendK;
+    ServerStats->is_ckr += client_p->localClient->receiveK;
+    ServerStats->is_cti += CurrentTime - client_p->firsttime;
+    if (ServerStats->is_cbs > 2047)
+    {
+      ServerStats->is_cks += (ServerStats->is_cbs >> 10);
+      ServerStats->is_cbs &= 0x3ff;
+    }
+    if (ServerStats->is_cbr > 2047)
+    {
+      ServerStats->is_ckr += (ServerStats->is_cbr >> 10);
+      ServerStats->is_cbr &= 0x3ff;
+    }
+  }
   else
     ServerStats->is_ni++;
   
   if (!IsDead(client_p))
-    {
-      /* attempt to flush any pending dbufs. Evil, but .. -- adrian */
-      send_queued_write(client_p->localClient->fd, client_p);
-      fd_close(client_p->localClient->fd);
-      client_p->localClient->fd = -1;
-    }
+  {
+    /* attempt to flush any pending dbufs. Evil, but .. -- adrian */
+    /* there is still a chance that we might send data to this socket
+     * even if it is marked as blocked (COMM_SELECT_READ handler is called
+     * before COMM_SELECT_WRITE). Let's try, nothing to lose.. -adx
+     */
+    ClearSendqBlocked(client_p);
+    send_queued_write(client_p);
+    fd_close(client_p->localClient->fd);
+    client_p->localClient->fd = -1;
+  }
 
-  if(HasServlink(client_p))
+  if (HasServlink(client_p))
+  {
+    if (client_p->localClient->ctrlfd > -1)
     {
-      if(client_p->localClient->ctrlfd > -1)
-      {
-        fd_close(client_p->localClient->ctrlfd);
+      fd_close(client_p->localClient->ctrlfd);
 #ifndef HAVE_SOCKETPAIR
-        fd_close(client_p->localClient->ctrlfd_r);
-        fd_close(client_p->localClient->fd_r);
-        client_p->localClient->ctrlfd_r = -1;
-        client_p->localClient->fd_r = -1;
+      fd_close(client_p->localClient->ctrlfd_r);
+      fd_close(client_p->localClient->fd_r);
+      client_p->localClient->ctrlfd_r = -1;
+      client_p->localClient->fd_r = -1;
 #endif
-        client_p->localClient->ctrlfd = -1;
-      }
+      client_p->localClient->ctrlfd = -1;
     }
+  }
   
-  linebuf_donebuf(&client_p->localClient->buf_sendq);
-  linebuf_donebuf(&client_p->localClient->buf_recvq);
-  memset(client_p->localClient->passwd, 0, sizeof(client_p->localClient->passwd));
-  det_confs_butmask(client_p, 0);
+  dbuf_clear(&client_p->localClient->buf_sendq);
+  dbuf_clear(&client_p->localClient->buf_recvq);
+  
+  MyFree(client_p->localClient->passwd);
+  detach_all_confs(client_p);
   client_p->from = NULL; /* ...this should catch them! >:) --msa */
 }
 
@@ -799,12 +812,9 @@ comm_open(int family, int sock_type, int proto, const char *note)
   if (!set_non_blocking(fd))
     {
       ilog(L_CRIT, "comm_open: Couldn't set FD %d non blocking: %s", fd, strerror(errno));
-    /* if VMS, we might be opening a file (ircd.conf, resolv.conf).
-       VMS doesn't let us set non-blocking on a file, so it might fail. */
-#ifndef VMS
+      
       close(fd);
       return -1;
-#endif
     }
 
   /* Next, update things in our fd tracking */

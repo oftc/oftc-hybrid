@@ -23,8 +23,6 @@
  */
 
 #include "stdinc.h"
-
-#include "class.h"
 #include "client.h"
 #include "common.h"
 #include "fdlist.h"
@@ -43,7 +41,6 @@
 #include "send.h"
 #include "memory.h"
 #include "s_serv.h"
-#include "config.h"
 
 static PF CompleteIAuthConnection;
 static PF ParseIAuth;
@@ -262,7 +259,8 @@ BeginAuthorization(struct Client *client)
 #else
 		(unsigned int) client->localClient->ip.sins.sin.s_addr,
 #endif
-		client->localClient->passwd);
+		client->localClient->passwd != NULL ?
+                client->localClient->passwd : "");
 
   send(iAuth.socket, buf, len, 0);
 } /* BeginAuthorization() */
@@ -538,12 +536,12 @@ GoodAuth(int parc, char **parv)
        * if ident failed, but the client's I: line specified
        * no tilde character
        */
-      strlcpy(auth->client->username, parv[2], USERLEN + 1);
+      strlcpy(auth->client->username, parv[2], sizeof(auth->client->username));
 
       /*
        * Also use IAuth's hostname in case of SPOOF_FREEFORM
        */
-      strlcpy(auth->client->host, parv[3], HOSTLEN + 1);
+      strlcpy(auth->client->host, parv[3], sizeof(auth->client->host));
 
       /*
        * Register them
@@ -576,7 +574,7 @@ GreetUser(struct Client *client)
 
   client->user->last = CurrentTime;
 
-  sendto_gnotice_flags(FLAGS_CCONN, L_OPER, me.name, &me, NULL,
+  sendto_gnotice_flags(UMODE_CCONN, L_OPER, me.name, &me, NULL,
 		       "Client connecting: %s (%s@%s) [%s] {%s}",
 		       client->name,
 		       client->username,
@@ -594,32 +592,32 @@ GreetUser(struct Client *client)
     {
       Count.max_loc = Count.local;
       if (!(Count.max_loc % 10))
-        sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"New Max Local Clients: %d",
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "New Max Local Clients: %d",
                              Count.max_loc);
     }
 
   SetClient(client);
 
-  client->servptr = find_server(client->user->server);
+  client->servptr = find_server(client->user->server->name);
   if (!client->servptr)
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"Ghost killed: %s on invalid server %s",
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Ghost killed: %s on invalid server %s",
 			   client->name,
-			   client->user->server);
+			   client->user->server->name);
 
       sendto_one(client, ":%s KILL %s: %s (Ghosted, %s doesn't exist)",
 		 me.name,
 		 client->name,
 		 me.name,
-		 client->user->server);
+		 client->user->server->name);
 
       SetKilled(client);
 
       exit_client(NULL, client, &me, "Ghost");
       return;
     }
-  
-  add_client_to_llist(&(client->servptr->serv->users), client);
+
+  dlinkAdd(client, &client->lnode, &client->servptr->serv->users);
 
   /* Increment our total user count here */
   if (++Count.total > Count.max_tot)
@@ -684,7 +682,7 @@ GreetUser(struct Client *client)
 
   }
   else
-    SendMessageFile(client, &ConfigFileEntry.motd);
+    send_message_file(client, &ConfigFileEntry.motd);
 
   send_umode(NULL, client, 0, SEND_UMODES, ubuf);
   if (!*ubuf)
@@ -692,13 +690,12 @@ GreetUser(struct Client *client)
       ubuf[0] = '+';
       ubuf[1] = '\0';
     }
-
+  
   if ((m = dlinkFindDelete(&unknown_list, client)) != NULL)
     free_dlink_node(m);
 
-  dlinkAdd(client, &client->localClient->lclient_node, &lclient_list);
+  dlinkAdd(client, &client->localClient->lclient_node, &local_client_list);
 
-  
 #if 0
   sendto_serv_butone(client,
 		     "NICK %s %d %lu %s %s %s %s :%s",
@@ -708,7 +705,7 @@ GreetUser(struct Client *client)
 		     ubuf,
 		     client->username,
 		     client->host,
-		     client->user->server,
+		     client->user->server->name,
 		     client->info);
 #endif
 
@@ -720,7 +717,7 @@ GreetUser(struct Client *client)
 		(unsigned long) client->tsinfo,
 		ubuf,
 		client->username, client->host,
-		client->user->server, client->info);
+		client->user->server->name, client->info);
   }
   else
   {
@@ -732,7 +729,7 @@ GreetUser(struct Client *client)
                   (unsigned long) client->tsinfo,
                   ubuf,
                   client->username, client->host,
-                  client->user->server, client->info);
+                  client->user->server->name, client->info);
   }
   if (ubuf[1])
   {

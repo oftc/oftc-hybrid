@@ -22,26 +22,17 @@
  *  $Id$
  */
 
-#ifndef INCLUDED_parse_h_h
-#define INCLUDED_parse_h_h
+#ifndef INCLUDED_parse_h
+#define INCLUDED_parse_h
 
 struct Message;
 struct Client;
 
-struct MessageHash
-{
-  char   *cmd;
-  struct Message      *msg;
-  struct MessageHash  *next;
-}; 
+extern void parse(struct Client *, char *, char *);
+extern void clear_hash_parse(void);
+extern void mod_add_cmd(struct Message *);
+extern void mod_del_cmd(struct Message *);
+extern struct Message *find_command(const char *);
+extern void report_messages(struct Client *);
 
-#define MAX_MSG_HASH  387
-
-extern  void    parse (struct Client *, char *, char *);
-extern  void    clear_hash_parse (void);
-extern  void    mod_add_cmd(struct Message *msg);
-extern  void    mod_del_cmd(struct Message *msg);
-extern  void    report_messages(struct Client *);
-extern void list_commands(struct Client *);
-
-#endif /* INCLUDED_parse_h_h */
+#endif /* INCLUDED_parse_h */

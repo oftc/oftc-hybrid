@@ -41,7 +41,8 @@ mem_frob(void *data, int len)
     unsigned char b[4] = { 0xef, 0xbe, 0xad, 0xde };
     int i;
     char *cdata = data;
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         *cdata = b[i % 4];
         cdata++;
     }
@@ -115,12 +116,16 @@ dlinkDelete(dlink_node *m, dlink_list *list)
   */
   if (m->next)
     m->next->prev = m->prev;
-  else
+  else {
+    assert(list->tail == m);
     list->tail = m->prev;
+  }
   if (m->prev)
     m->prev->next = m->next;
-  else
+  else {
+    assert(list->head == m);
     list->head = m->next;
+  }
 
   /* Set this to NULL does matter */
   m->next = m->prev = NULL;
@@ -136,16 +141,17 @@ dlinkDelete(dlink_node *m, dlink_list *list)
  * side effects	- Look for ptr in the linked listed pointed to by link.
  */
 dlink_node *
-dlinkFind(dlink_list *list, void * data )
+dlinkFind(dlink_list *list, void *data)
 {
   dlink_node *ptr;
 
   DLINK_FOREACH(ptr, list->head)
   {
     if (ptr->data == data)
-      return (ptr);
+      return(ptr);
   }
-  return (NULL);
+
+  return(NULL);
 }
 
 void
@@ -186,8 +192,92 @@ dlinkFindDelete(dlink_list *list, void *data)
 {
   dlink_node *m;
 
-  m = dlinkFind(list, data);
-  if (m)
-    dlinkDelete(m, list);
-  return(m);
+  DLINK_FOREACH(m, list->head)
+  {
+    if (m->data == data)
+    {
+      if (m->next)
+        m->next->prev = m->prev;
+      else
+      {
+        assert(list->tail == m);
+        list->tail = m->prev;
+      }
+      if (m->prev)
+        m->prev->next = m->next;
+      else
+      {
+        assert(list->head == m);
+        list->head = m->next;
+      }
+      /* Set this to NULL does matter */
+      m->next = m->prev = NULL;
+      list->length--;
+
+      return(m);
+    }
+  }
+
+  return(NULL);
+}
+
+void
+slink_add(void *data, slink_node *node, slink_list *list)
+{
+    assert(list != NULL && node != NULL);
+
+    if(list->head == NULL)
+    {
+        list->head = node;
+        node->next = NULL;
+    }
+    else
+    {
+        node->next = list->head->next;
+        list->head = node;
+    }
+
+    node->data = data;
+    list->length++;
+}
+
+void
+slink_delete(slink_node *node, slink_list *list)
+{
+    slink_node *ptr;
+
+    assert(node != NULL && list != NULL);
+
+    if(list->head == NULL)
+        return;
+
+    if(list->head->next == NULL)
+        list->head = NULL;
+    else
+    {
+        SLINK_FOREACH(ptr, list->head)
+        {
+            if(ptr->next == node)
+            {
+                ptr->next = node->next;
+                break;
+            }
+        }
+    }
+    list->length--;
+}
+
+slink_node*
+slink_find(slink_list *list, void *data)
+{
+    slink_node *ptr;
+
+    assert(list != NULL && data != NULL);
+
+    SLINK_FOREACH(ptr, list->head)
+    {
+        if(ptr->data == data)
+            return ptr;
+    }
+    return NULL;
 }

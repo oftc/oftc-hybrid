@@ -29,6 +29,7 @@
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
+#include "ircd.h"
 
 #define USER_COL       50 /* display | Users: %d at col 50 */
 
@@ -40,7 +41,7 @@ static void dump_map(struct Client *client_p,struct Client *root, char *pbuf);
 
 struct Message map_msgtab = {
   "MAP", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_map, m_ignore, mo_map}
+  {m_unregistered, m_map, m_ignore, mo_map, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -62,8 +63,9 @@ static char buf[BUFSIZE];
 /* m_map
 **	parv[0] = sender prefix
 */
-static void m_map(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+m_map(struct Client *client_p, struct Client *source_p,
+      int parc, char *parv[])
 {
   if (!ConfigServerHide.flatten_links)
   {
@@ -80,7 +82,8 @@ static void m_map(struct Client *client_p, struct Client *source_p,
 ** mo_map
 **      parv[0] = sender prefix
 */
-static void mo_map(struct Client *client_p, struct Client *source_p,
+static void
+mo_map(struct Client *client_p, struct Client *source_p,
                     int parc, char *parv[])
 {
   dump_map(client_p,&me,buf);
@@ -91,12 +94,14 @@ static void mo_map(struct Client *client_p, struct Client *source_p,
 ** dump_map
 **   dumps server map, called recursively.
 */
-static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
+static void
+dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
 {
   int cnt = 0, i = 0, len;
-  int users = 0;
-  struct Client *server_p,*user_p;
-        
+  int users;
+  dlink_node *ptr;
+  struct Client *server_p;
+
   *pbuf= '\0';
        
   strncat(pbuf,root_p->name,BUFSIZE - ((size_t) pbuf - (size_t) buf));
@@ -112,8 +117,7 @@ static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
   }
 	
   /* FIXME: add serv->usercnt */
-  for( user_p = root_p->serv->users; user_p; user_p = user_p->lnext )
-    users++;
+  users = dlink_list_length(&root_p->serv->users);
         
   snprintf(buf + USER_COL, BUFSIZE - USER_COL,
            " | Users: %5d (%4.1f%%)", users,
@@ -121,13 +125,10 @@ static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
         
   sendto_one(client_p, form_str(RPL_MAP),me.name,client_p->name,buf);
         
-  if ((server_p = root_p->serv->servers))
+  if (root_p->serv->servers.head)
   {
-    for (; server_p; server_p = server_p->lnext)
-    {
-      cnt++;
-    }
-    
+    cnt += dlink_list_length(&root_p->serv->servers);
+
     if (cnt)
     {
       if (pbuf > buf + 3)
@@ -138,8 +139,13 @@ static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
       }
     }
   }
-  for (i = 1,server_p = root_p->serv->servers; server_p; server_p=server_p->lnext)
+
+  i = 1;
+
+  DLINK_FOREACH(ptr, root_p->serv->servers.head)
   {
+    server_p = ptr->data;
+
     *pbuf = ' ';
     if (i < cnt)
       *(pbuf + 1) = '|';

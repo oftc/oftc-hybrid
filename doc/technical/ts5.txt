@@ -97,7 +97,7 @@ TS4, so it was thought better to avoid a clash with an existing version.
 Advantages
 ----------
 
-Its a realistic event that a server will be attacked so it splits off a
+It's a realistic event that a server will be attacked so it splits off a
 network, then used to regain ops in a channel.  TS5 makes this pointless,
 the server will never give ops on a netsplit.  TS5 is network wide, so it
 leaves individual servers free to choose options like NO_JOIN_ON_SPLIT,
@@ -107,7 +107,7 @@ whilst keeping splits useless to users.
 Disadvantages
 -------------
 
-Its virtually impossible for a user to actively regain ops themselves (some
+It's virtually impossible for a user to actively regain ops themselves (some
 regard this as an advantage..) because on a large sized channel, its
 impossible to get people to leave so it can be recreated, therefore if a
 network did not have some form of services, it could possibly end up

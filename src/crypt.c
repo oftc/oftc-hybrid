@@ -16,8 +16,6 @@
 
 #define MD5_SIZE 16
 
-typedef unsigned int u_int32_t;
-
 /* MD5 context. */
 typedef struct MD5Context {
   u_int32_t state[4];   /* state (ABCD) */
@@ -195,10 +193,6 @@ crypt(const char *pw, const char *salt)
  * This code is the same as the code published by RSA Inc.  It has been
  * edited for clarity and style only.
  */
-
-#include <sys/types.h>
-
-#include <string.h>
 
 static void MD5Transform (u_int32_t [4], const unsigned char [64]);
 

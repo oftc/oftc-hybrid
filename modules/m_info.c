@@ -32,6 +32,7 @@
 #include "ircd.h"
 #include "hook.h"
 #include "numeric.h"
+#include "s_log.h"
 #include "s_serv.h"
 #include "s_user.h"
 #include "send.h"
@@ -52,7 +53,7 @@ static void mo_info(struct Client*, struct Client*, int, char**);
 
 struct Message info_msgtab = {
   "INFO", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_info, ms_info, mo_info}
+  {m_unregistered, m_info, ms_info, mo_info, m_ignore}
 };
 #ifndef STATIC_MODULES
 
@@ -77,18 +78,19 @@ const char *_version = "$Revision$";
  */
 struct InfoStruct
 {
-  char *         name;              /* Displayed variable name */
-  unsigned int   output_type;       /* See below #defines */
-  void *         option;            /* Pointer reference to the value */
-  char *         desc;              /* ASCII description of the variable */
+  const char *name;         /* Displayed variable name           */
+  unsigned int output_type; /* See below #defines                */
+  void *option;             /* Pointer reference to the value    */
+  const char *desc;         /* ASCII description of the variable */
 };
+
 /* Types for output_type in InfoStruct */
-#define OUTPUT_STRING      0x0001   /* Output option as %s w/ dereference */
-#define OUTPUT_STRING_PTR  0x0002   /* Output option as %s w/out deference */
-#define OUTPUT_DECIMAL     0x0004   /* Output option as decimal (%d) */
-#define OUTPUT_BOOLEAN     0x0008   /* Output option as "ON" or "OFF" */
-#define OUTPUT_BOOLEAN_YN  0x0010   /* Output option as "YES" or "NO" */
-#define OUTPUT_BOOLEAN2	   0x0020   /* Output option as "YES/NO/MASKED" */
+#define OUTPUT_STRING     0x0001 /* Output option as %s w/ dereference  */
+#define OUTPUT_STRING_PTR 0x0002 /* Output option as %s w/out deference */
+#define OUTPUT_DECIMAL    0x0004 /* Output option as decimal (%d)       */
+#define OUTPUT_BOOLEAN    0x0008 /* Output option as "ON" or "OFF"      */
+#define OUTPUT_BOOLEAN_YN 0x0010 /* Output option as "YES" or "NO"      */
+#define OUTPUT_BOOLEAN2	  0x0020 /* Output option as "YES/NO/MASKED"    */
 
 static struct InfoStruct info_table[] =
 {
@@ -110,12 +112,6 @@ static struct InfoStruct info_table[] =
     OUTPUT_DECIMAL,
     &ConfigFileEntry.caller_id_wait,
     "Minimum delay between notifying UMODE +g users of messages"
-  },
-  {
-    "client_exit",
-    OUTPUT_BOOLEAN,
-    &ConfigFileEntry.client_exit,
-    "Prepend 'Client Exit:' to user QUIT messages"
   },
   {
     "client_flood",
@@ -146,27 +142,6 @@ static struct InfoStruct info_table[] =
     OUTPUT_BOOLEAN,
     &ConfigFileEntry.failed_oper_notice,
     "Inform opers if someone /oper's with the wrong password"
-  },
-  {
-    /* fname_operlog is a char [] */
-    "fname_operlog",
-    OUTPUT_STRING_PTR,
-    &ConfigFileEntry.fname_operlog,
-    "Operator log file"
-  },
-  {
-    /* fname_foperlog is a char [] */
-    "fname_foperlog",
-    OUTPUT_STRING_PTR,
-    &ConfigFileEntry.fname_foperlog,
-    "Failed operator log file"
-  },
-  {
-    /* fname_userlog is a char [] */
-    "fname_userlog",
-    OUTPUT_STRING_PTR,
-    &ConfigFileEntry.fname_userlog,
-    "User log file"
   },
   {
     "glines",
@@ -256,13 +231,13 @@ static struct InfoStruct info_table[] =
     "no_oper_flood",
     OUTPUT_BOOLEAN,
     &ConfigFileEntry.no_oper_flood,
-    "Disable flood control for operators",
+    "Reduce flood control for operators",
   },
   {
-    "non_redundant_klines",
+    "true_no_oper_flood",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.non_redundant_klines,
-    "Check for and disallow redundant K-lines"
+    &ConfigFileEntry.true_no_oper_flood,
+    "Completely disable flood control for operators",
   },
   {
     "pace_wait",
@@ -311,6 +286,12 @@ static struct InfoStruct info_table[] =
     OUTPUT_BOOLEAN_YN,
     &ConfigFileEntry.stats_P_oper_only,
     "STATS P is only shown to operators",
+  },
+  {
+    "crypt_oper_password",
+    OUTPUT_BOOLEAN_YN,
+    &ConfigFileEntry.crypt_oper_password,
+    "crypted oper passwords",
   },
   {
     "throttle_time",
@@ -387,7 +368,7 @@ static struct InfoStruct info_table[] =
   {
     "oper_pass_resv",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.oper_pass_resv,
+    &ConfigFileEntry.oper_pass_resv,
     "Opers can over-ride RESVs",
   },
   {
@@ -397,22 +378,10 @@ static struct InfoStruct info_table[] =
     "Banned users may not send text to a channel"
   },
   {
-    "use_anonops",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_anonops,
-    "Enable chanmode +a (anonymous ops)",
-  },
-  {
     "use_except",
     OUTPUT_BOOLEAN_YN,
     &ConfigChannel.use_except,
     "Enable chanmode +e (ban exceptions)",
-  },
-  {
-    "use_halfops",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_halfops,
-    "Enable chanmode +h (halfops)",
   },
   {
     "use_invex",
@@ -427,16 +396,31 @@ static struct InfoStruct info_table[] =
     "Enable /KNOCK",
   },
   {
-    "use_vchans",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_vchans,
-    "Enabled vchans",
+    "use_logging",
+    OUTPUT_BOOLEAN,
+    &use_logging,
+    "Enable logging"
   },
   {
-    "vchans_oper_only",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.vchans_oper_only,
-    "Restrict use of /CJOIN to opers"
+    /* foperlog is a char [] */
+    "foperlog",
+    OUTPUT_STRING_PTR,
+    &foperlog,
+    "Operator log file"
+  },
+  {
+    /* ffailed_operlog is a char [] */
+    "ffailed_operlog",
+    OUTPUT_STRING_PTR,
+    &ffailed_operlog,
+    "Failed operator log file"
+  },
+  {
+    /* fuserlog is a char [] */
+    "fuserlog",
+    OUTPUT_STRING_PTR,
+    &fuserlog,
+    "User log file"
   },
   {
     "disable_hidden",
@@ -447,13 +431,13 @@ static struct InfoStruct info_table[] =
   {
     "disable_local_channels",
     OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.disable_local_channels,
+    &ConfigChannel.disable_local_channels,
     "Prevent users joining &channels",
   },
   {
     "disable_remote_commands",
     OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.disable_remote,
+    &ConfigFileEntry.disable_remote,
     "Prevent users issuing commands on remote servers",
   },
   {
@@ -490,16 +474,13 @@ static struct InfoStruct info_table[] =
 };
 
 /*
-*/
-
-/*
 ** m_info
 **  parv[0] = sender prefix
 **  parv[1] = servername
 */
-
-static void m_info(struct Client *client_p, struct Client *source_p,
-                  int parc, char *parv[])
+static void
+m_info(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
 {
   static time_t last_used=0L;
 
@@ -514,7 +495,7 @@ static void m_info(struct Client *client_p, struct Client *source_p,
     last_used = CurrentTime;
   }
 
-  if (!ConfigServerHide.disable_remote)
+  if (!ConfigFileEntry.disable_remote)
   {
     if (hunt_server(client_p,source_p,
         ":%s INFO :%s", 1, parc, parv) != HUNTED_ISME)
@@ -537,9 +518,9 @@ static void m_info(struct Client *client_p, struct Client *source_p,
 **  parv[0] = sender prefix
 **  parv[1] = servername
 */
-static void mo_info(struct Client *client_p, struct Client *source_p,
-                   int parc, char *parv[])
-
+static void
+mo_info(struct Client *client_p, struct Client *source_p,
+	int parc, char *parv[])
 {
   if (hunt_server(client_p,source_p,":%s INFO :%s",1,parc,parv) == HUNTED_ISME)
   {
@@ -558,11 +539,11 @@ static void mo_info(struct Client *client_p, struct Client *source_p,
 **  parv[0] = sender prefix
 **  parv[1] = servername
 */
-static void ms_info(struct Client *client_p, struct Client *source_p,
-                   int parc, char *parv[])
-
+static void
+ms_info(struct Client *client_p, struct Client *source_p,
+	int parc, char *parv[])
 {
-  if(!IsClient(source_p))
+  if (!IsClient(source_p))
       return;
   
   if (hunt_server(client_p,source_p,":%s INFO :%s",1,parc,parv) == HUNTED_ISME)
@@ -579,66 +560,59 @@ static void ms_info(struct Client *client_p, struct Client *source_p,
   }
 } /* ms_info() */
 
-
-/*
- * send_info_text
+/* send_info_text()
  *
  * inputs	- client pointer to send info text to
  * output	- none
  * side effects	- info text is sent to client
  */
-static void send_info_text(struct Client *source_p)
+static void
+send_info_text(struct Client *source_p)
 {
-  char **text = infotext;
+  const char **text = infotext;
 
   while (*text)
   {
-    sendto_one(source_p, form_str(RPL_INFO), me.name, source_p->name, *text++);
+    sendto_one(source_p, form_str(RPL_INFO),
+               me.name, source_p->name, *text++);
   }
 
   sendto_one(source_p, form_str(RPL_INFO), me.name, source_p->name, "");
 }
 
-/*
- * send_birthdate_online_time
+/* send_birthdate_online_time()
  *
  * inputs	- client pointer to send to
  * output	- none
  * side effects	- birthdate and online time are sent
  */
-static void send_birthdate_online_time(struct Client *source_p)
+static void
+send_birthdate_online_time(struct Client *source_p)
 {
-  sendto_one(source_p,
-	     ":%s %d %s :Birth Date: %s, compile # %s",
-	     me.name,
-	     RPL_INFO,
-	     source_p->name,
-	     creation,
-	     generation);
+  sendto_one(source_p, ":%s %d %s :Birth Date: %s, compile # %s",
+	     me.name, RPL_INFO, source_p->name,
+	     creation, generation);
 
-  sendto_one(source_p,
-	     ":%s %d %s :On-line since %s",
-	     me.name,
-	     RPL_INFO,
-	     source_p->name,
+  sendto_one(source_p, ":%s %d %s :On-line since %s",
+	     me.name, RPL_INFO, source_p->name,
 	     myctime(me.firsttime));
 }
 
-/*
- * send_conf_options
+/* send_conf_options()
  *
  * inputs	- client pointer to send to
  * output	- none
  * side effects	- send config options to client
  */
-static void send_conf_options(struct Client *source_p)
+static void
+send_conf_options(struct Client *source_p)
 {
   Info *infoptr;
   int i = 0;
 
   /*
    * Now send them a list of all our configuration options
-   * (mostly from config.h)
+   * (mostly from defaults.h and setup.h)
    */
   for (infoptr = MyInformation; infoptr->name; infoptr++)
     {
@@ -774,7 +748,7 @@ static void send_conf_options(struct Client *source_p)
 
 #ifndef EFNET
   /* jdc -- Only send compile information to admins. */
-  if (IsOperAdmin(source_p))
+  if (IsAdmin(source_p))
   {
     sendto_one(source_p,
 	":%s %d %s :Compiled on [%s]",
@@ -794,7 +768,8 @@ static void send_conf_options(struct Client *source_p)
  * output       - none
  * side effects - hook doing_info is called
  */
-static void info_spy(struct Client *source_p)
+static void
+info_spy(struct Client *source_p)
 {
   struct hook_spy_data data;
 

@@ -18,6 +18,12 @@
  *   $Id$
  */
 
+/* Remove this if you do not wish /OJOIN to support multiple channels
+ * at once. Or add an #undef for it in setup.h, since it is subsequently
+ * #included. */
+
+#define OJOIN_MULTIJOIN
+
 #include "stdinc.h"
 #include "tools.h"
 #include "handlers.h"
@@ -25,26 +31,22 @@
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_log.h"
-#include "s_serv.h"
 #include "send.h"
-#include "whowas.h"
 #include "irc_string.h"
 #include "hash.h"
 #include "msg.h"
-#include "parse.h"
 #include "modules.h"
-#include "vchannel.h"
 #include "list.h"
 #include "channel_mode.h"
 
-static void mo_ojoin(struct Client *client_p, struct Client *source_p,
-                         int parc, char *parv[]);
+static void mo_ojoin(struct Client *, struct Client *, int, char **);
 
 struct Message ojoin_msgtab = {
   "OJOIN", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, mo_ojoin}
+  {m_unregistered, m_not_oper, m_ignore, mo_ojoin, m_ignore}
 };
+
+#ifndef STATIC_MODULES
 
 void
 _modinit(void)
@@ -58,146 +60,129 @@ _moddeinit(void)
   mod_del_cmd(&ojoin_msgtab);
 }
 
-char *_version = "$Revision$";
+const char *_version = "$Revision$";
+
+#endif
 
 /*
 ** mo_ojoin
 **      parv[0] = sender prefix
-**      parv[1] = channel
+**      parv[1] = channels separated by commas (#ifdef OJOIN_MULTIJOIN)
 */
-static void mo_ojoin(struct Client *client_p, struct Client *source_p,
-                        int parc, char *parv[])
+static void
+mo_ojoin(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
 {
-  struct Channel *chptr, *root_chptr;
-  int move_me = 0;
-#ifdef VCHANS
-  int on_vchan = 0;
+  struct Channel *chptr;
+  char *name = parv[1], modeletter;
+#ifdef OJOIN_MULTIJOIN
+  char *t;
 #endif
+  short move_me = 1;
+  unsigned int tmp_flags;
 
   /* admins only */
-  if (!IsOperAdmin(source_p))
-    {
-      sendto_one(source_p, ":%s NOTICE %s :You have no A flag", me.name, parv[0]);
-      return;
-    }
-
-  /* XXX - we might not have CBURSTed this channel if we are a lazylink
-   * yet. */
-  if (*parv[1] == '@' || *parv[1] == '%' || *parv[1] == '+')
-    {
-      parv[1]++;
-      move_me = 1;
-    }
-
-  chptr= hash_find_channel(parv[1]);
-  root_chptr = chptr;
-
-#ifdef VCHANS
-  if (chptr && parc > 2 && parv[2][0] == '!')
-    {
-      chptr = find_vchan(chptr, parv[2]);
-      if (root_chptr != chptr)
-        on_vchan++;
-    }
-#endif
-
-  if( chptr == NULL )
-    {
-      sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-		 me.name, parv[0], parv[1]);
-      return;
-    }
-
-  if(IsMember(source_p, chptr))
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Please part %s before using OJOIN",
-                 me.name, source_p->name, parv[1]);
-      return;
-    }
-
-  if (move_me == 1)
-    parv[1]--;
-
-  if (*parv[1] == '@') 
-    {
-       add_user_to_channel(chptr, source_p, CHFL_CHANOP);
-       if (chptr->chname[0] != '&')
-         sendto_server(client_p, source_p, chptr, NOCAPS, NOCAPS, LL_ICLIENT, 
-                 ":%s SJOIN %lu %s + :@%s", me.name, chptr->channelts,
-                 chptr->chname, source_p->name);
-       sendto_channel_local(ALL_MEMBERS, chptr, ":%s!%s@%s JOIN %s",
-                       source_p->name,
-                       source_p->username,
-                       source_p->host,
-                       root_chptr->chname);
-       sendto_channel_local(ALL_MEMBERS, chptr, ":%s MODE %s +o %s",
-                       me.name, chptr->chname, source_p->name);
-
-    }
-#ifdef HALFOPS
-  else if (*parv[1] == '%')
-    {
-       add_user_to_channel(chptr, source_p, CHFL_HALFOP);
-       if (chptr->chname[0] != '&')
-         sendto_server(client_p, source_p, chptr, NOCAPS, NOCAPS, LL_ICLIENT, 
-                 ":%s SJOIN %lu %s + :%%%s", me.name, chptr->channelts,
-                 chptr->chname, source_p->name);
-       sendto_channel_local(ALL_MEMBERS, chptr, ":%s!%s@%s JOIN %s",
-                       source_p->name,
-                       source_p->username,
-                       source_p->host,
-                       root_chptr->chname);
-       sendto_channel_local(ALL_MEMBERS, chptr, ":%s MODE %s +h %s",
-                       me.name, chptr->chname, source_p->name);
-    }
-#endif
-  else if (*parv[1] == '+')
-    {
-       add_user_to_channel(chptr, source_p, CHFL_VOICE);
-       if (chptr->chname[0] != '&')
-         sendto_server(client_p, source_p, chptr, NOCAPS, NOCAPS, LL_ICLIENT, 
-                 ":%s SJOIN %lu %s + :+%s", me.name, chptr->channelts,
-                 chptr->chname, source_p->name);
-       sendto_channel_local(ALL_MEMBERS, chptr, ":%s!%s@%s JOIN %s",
-                       source_p->name,
-                       source_p->username,
-                       source_p->host,
-                       root_chptr->chname);
-       sendto_channel_local(ALL_MEMBERS, chptr, ":%s MODE %s +v %s",
-                       me.name, chptr->chname, source_p->name);
-    }
-  else
-    {
-       add_user_to_channel(chptr, source_p, CHFL_PEON);
-       if (chptr->chname[0] != '&')
-         sendto_server(client_p, source_p, chptr, NOCAPS, NOCAPS, LL_ICLIENT, 
-                       ":%s SJOIN %lu %s + :%s",
-                       me.name, chptr->channelts,
-		       chptr->chname, source_p->name);
-       sendto_channel_local(ALL_MEMBERS, chptr, ":%s!%s@%s JOIN %s",
-                       source_p->name,
-                       source_p->username,
-                       source_p->host,
-                       root_chptr->chname);
-    }
-
-  /* send the topic... */
-  if (chptr->topic != NULL)
+  if (!IsAdmin(source_p))
   {
-    sendto_one(source_p, form_str(RPL_TOPIC), me.name,
-	       source_p->name, chptr->chname, chptr->topic);
-    sendto_one(source_p, form_str(RPL_TOPICWHOTIME), me.name,
-	       source_p->name, chptr->chname, chptr->topic_info,
-	       chptr->topic_time);
+    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+               me.name, source_p->name);
+    return;
   }
 
-  /* XXX - check this isn't too big above... */
-#ifdef VCHANS
-  if (on_vchan)
-    add_vchan_to_client_cache(source_p,root_chptr,chptr);
+#ifdef OJOIN_MULTIJOIN
+  for (name = strtoken (&t, name, ","); name;
+	  name = strtoken (&t, NULL, ","))
+  {
 #endif
+    
+    move_me = 1;
+    
+    switch (*name)
+    {
+      case '@': tmp_flags = CHFL_CHANOP;
+                modeletter = 'o'; name++; break;
+      case '+': tmp_flags = CHFL_VOICE;
+                modeletter = 'v'; name++; break;
+#ifdef USE_HALFOPS
+      case '%': tmp_flags = CHFL_HALFOP;
+                modeletter = 'h'; name++; break;
+#endif
+      case '#':
+      case '&':
+        tmp_flags = 0;
+	modeletter = '\0';
+	break;
+	
+       /* We're not joining a channel, or we don't know the mode,
+	* what ARE we joining? */
+      default:
+        sendto_one (source_p, form_str(ERR_NOSUCHCHANNEL),
+                 me.name, source_p->name, name);
 
-  source_p->localClient->last_join_time = CurrentTime;
-  channel_member_names(source_p, chptr, chptr->chname, 1);
+#ifdef OJOIN_MULTIJOIN
+	continue;
+#else
+	return;
+#endif
+    }
+    
+    /* Error checking here */
+    
+    if ((chptr = hash_find_channel(name)) == NULL)
+    {
+      sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
+                 me.name, source_p->name, name);
+    }
+  
+    else if (IsMember(source_p, chptr))
+    {
+      sendto_one(source_p, ":%s NOTICE %s :Please part %s before using OJOIN",
+                 me.name, source_p->name, name);
+    }
+  
+    else
+    {
+      if (move_me == 1)
+        name--;
+
+      add_user_to_channel(chptr, source_p, tmp_flags);
+  
+      if (chptr->chname[0] == '#')
+      {
+        sendto_server(client_p, source_p, chptr, NOCAPS, NOCAPS, LL_ICLIENT, 
+                     ":%s SJOIN %lu %s + :%c%s", me.name,
+                     (unsigned long)chptr->channelts,
+                     chptr->chname, (modeletter != '\0') ? *name : ' ',
+		     source_p->name);
+      }
+      
+      sendto_channel_local(ALL_MEMBERS, chptr, ":%s!%s@%s JOIN %s",
+                      source_p->name,
+                      source_p->username,
+                      source_p->host,
+                      chptr->chname);
+      
+      if (modeletter != '\0')
+      {
+        sendto_channel_local(ALL_MEMBERS, chptr, ":%s MODE %s +%c %s",
+                        me.name, chptr->chname, modeletter, source_p->name);
+      }
+      
+      /* send the topic... */
+      if (chptr->topic != NULL)
+      {
+        sendto_one(source_p, form_str(RPL_TOPIC),
+                 me.name, source_p->name, chptr->chname,
+                 chptr->topic);
+        sendto_one(source_p, form_str(RPL_TOPICWHOTIME),
+                 me.name, source_p->name, chptr->chname,
+                 chptr->topic_info, chptr->topic_time);
+      }
+
+      source_p->localClient->last_join_time = CurrentTime;
+      channel_member_names(source_p, chptr, 1);
+    }
+#ifdef OJOIN_MULTIJOIN
+  }
+#endif
 }
-

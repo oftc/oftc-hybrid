@@ -25,13 +25,21 @@
 #ifndef INCLUDED_numeric_h
 #define INCLUDED_numeric_h
 
-#include "config.h"
+#define LOCALE_LENGTH 64  /* maximum length of locale name + 1 */
 
-/*
- * form_str - return a format string for a message number
+struct NumericInfo
+{
+  const char *name;     /* common name of the numeric */
+  const char *standard; /* standard numeric text      */
+  char *translated;     /* translated numeric text    */
+};
+
+/* form_str - return a format string for a message number
  * messages are defined below
  */
-extern const char* form_str(int);
+extern const char *form_str(int);
+extern void set_locale(const char *);
+extern const char *get_locale(void);
 
 /*
  * Reserve numerics 000-099 for server-client connections where the client
@@ -54,7 +62,6 @@ extern const char* form_str(int);
 #define RPL_MAP		     15		/* Undernet extension */
 #define RPL_MAPMORE	     16		/* Undernet extension */
 #define RPL_MAPEND	     17		/* Undernet extension */
-#define RPL_YOURID           20
 
 /*	RPL_YOURID	      42	IRCnet extension */
 /*      RPL_ATTEMPTINGJUNC    50           aircd extension */
@@ -116,9 +123,6 @@ extern const char* form_str(int);
 
 /*	RPL_RULES	     232	unreal */
 
-#define RPL_SERVLIST         234
-#define RPL_SERVLISTEND      235
-
 /*      RPL_STATSIAUTH       239           IRCnet extension */
 /*      RPL_STATSVLINE       240           IRCnet extension */
 /*	RPL_STATSXLINE	     240	austnet */
@@ -144,7 +148,6 @@ extern const char* form_str(int);
 #define RPL_ADMINLOC2        258
 #define RPL_ADMINEMAIL       259
 
-#define RPL_TRACELOG         261
 #define RPL_ENDOFTRACE       262
 #define RPL_LOAD2HI          263
 
@@ -159,12 +162,9 @@ extern const char* form_str(int);
 #define RPL_LOCALUSERS       265
 #define RPL_GLOBALUSERS      266
 
-#define RPL_VCHANEXIST       276
-#define RPL_VCHANLIST        277
-#define RPL_VCHANHELP        278
-
 #define RPL_ACCEPTLIST	     281
 #define RPL_ENDOFACCEPT      282
+#define RPL_ISMESSAGING	     283
 
 /*	RPL_GLIST            280        Undernet extension */
 /*	RPL_ENDOFGLIST       281        Undernet extension */
@@ -194,7 +194,6 @@ extern const char* form_str(int);
 
 /* numeric_replies */
 
-#define RPL_NONE             300
 #define RPL_AWAY             301
 #define RPL_USERHOST         302
 #define RPL_ISON             303
@@ -267,11 +266,9 @@ extern const char* form_str(int);
 
 #define RPL_WHOREPLY         352
 #define RPL_ENDOFWHO         315
-#define RPL_WHOHELP          334
 #define RPL_NAMREPLY         353
 #define RPL_ENDOFNAMES       366
 
-#define RPL_KILLDONE         361
 #define RPL_CLOSING          362
 #define RPL_CLOSEEND         363
 #define RPL_LINKS            364
@@ -297,8 +294,6 @@ extern const char* form_str(int);
 #define RPL_YOUREOPER        381
 #define RPL_REHASHING        382
 /*	RPL_YOURSERVICE	     383	   Numeric List: various */
-#define RPL_MYPORTIS         384
-#define RPL_NOTOPERANYMORE   385
 #define RPL_RSACHALLENGE     386
 
 /*	RPL_QLIST	     386	unreal */
@@ -333,7 +328,6 @@ extern const char* form_str(int);
 #define ERR_UNKNOWNCOMMAND   421
 #define ERR_NOMOTD           422
 #define ERR_NOADMININFO      423
-#define ERR_FILEERROR        424
 
 /* 	ERR_TOOMANYAWAY	     429	    Dalnet */
 
@@ -376,11 +370,8 @@ extern const char* form_str(int);
 
 #define ERR_NEEDMOREPARAMS   461
 #define ERR_ALREADYREGISTRED 462
-#define ERR_NOPERMFORHOST    463
 #define ERR_PASSWDMISMATCH   464
 #define ERR_YOUREBANNEDCREEP 465
-#define ERR_YOUWILLBEBANNED  466
-#define ERR_KEYSET           467
 /* 	ERR_ONLYSERVERSCANCHANGE 468	   Dalnet,unreal */
 /*	ERR_LINKSET	     469	unreal */
 /*	ERR_LINKCHANNEL	     470	unreal */
@@ -390,8 +381,7 @@ extern const char* form_str(int);
 #define ERR_INVITEONLYCHAN   473
 #define ERR_BANNEDFROMCHAN   474
 #define ERR_BADCHANNELKEY    475
-#define ERR_BADCHANMASK      476
-#define ERR_MODELESS         477        /* ircu numeric -db */
+/*      ERR_MODELESS         477           ircu numeric -db */
 #define ERR_BANLISTFULL      478        /* I stole the numeric from ircu -db */
 #define ERR_BADCHANNAME      479
 /* 	ERR_LINKFAIL	     479	unreal */
@@ -401,7 +391,6 @@ extern const char* form_str(int);
 #define ERR_CHANOPRIVSNEEDED 482
 #define ERR_CANTKILLSERVER   483
 #define ERR_RESTRICTED       484
-#define ERR_BANNEDNICK       485
 /*	ERR_DESYNC	     484	 Dalnet,PTlink */
 /*	ERR_ATTACKDENY	     484	 unreal */
 /*	ERR_RESTRICTED	     484	   IRCnet extension */
@@ -427,9 +416,6 @@ extern const char* form_str(int);
  * moved to 999
  */
 
-#define ERR_VCHANDISABLED    506
-#define ERR_ALREADYONVCHAN   507
-
 /*      ERR_NOTIFYFULL       512           aircd */
 /*	ERR_TOOMANYWATCH     512           Numeric List: Dalnet */
 /*      ERR_NEEDPONG	     512           Numeric List: Dalnet */
@@ -444,9 +430,9 @@ extern const char* form_str(int);
 /*	ERR_MASKTOOWIDE	     520	Undernet extension -Kev */
 /*	ERR_WHOTRUNC	     520	austnet */
 /*	ERR_LASTERROR        521	Undernet extension -Kev */
-/*	ERR_LISTSYNTAX       521	dalnet */
-#define	ERR_WHOSYNTAX	     522    /*    dalnet*/
-#define	ERR_WHOLIMEXCEED     523	/*dalnet*/
+#define	ERR_LISTSYNTAX       521
+#define	ERR_WHOSYNTAX	       522  /* dalnet */
+#define	ERR_WHOLIMEXCEED     523	/* dalnet */
 
 #define ERR_HELPNOTFOUND     524
 

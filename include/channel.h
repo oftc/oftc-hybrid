@@ -24,13 +24,9 @@
 
 #ifndef INCLUDED_channel_h
 #define INCLUDED_channel_h
-#include "config.h"           /* config settings */
+
 #include "ircd_defs.h"        /* buffer sizes */
-
-/* Efnet wanted this... Maybe we should do this from configure? */
-#define REQUIRE_OANDV
-
-/* #define INTENSIVE_DEBUG */
+#include "tools.h"
 
 struct Client;
 
@@ -38,153 +34,100 @@ struct Client;
 
 struct Mode
 {
-  unsigned int  mode;
-  int   limit;
-  char  key[KEYLEN];
+  unsigned int mode;
+  int limit;
+  char key[KEYLEN];
 };
 
 /* channel structure */
-
 struct Channel
 {
-  struct Channel* nextch;
-  struct Channel* prevch;
-  struct Channel* hnextch;
-  struct Mode     mode;
-  char            *topic;
-  char            *topic_info;
-  time_t          topic_time;
-#ifdef VCHANS
-  char            vchan_id[NICKLEN*2];   /* use this for empty vchans */
-#endif
-  int             users;      /* user count */
-  int             locusers;   /* local user count */
-  unsigned long   lazyLinkChannelExists;
-  time_t          last_knock;           /* don't allow knock to flood */
-#ifdef VCHANS
-  struct Channel  *root_chptr;		/* pointer back to root if vchan */
-  dlink_list	  vchan_list;	        /* vchan sublist */
-#endif
+  dlink_node node;
 
-  dlink_list      chanops;		/* lists of chanops etc. */
-#ifdef REQUIRE_OANDV
-  dlink_list	  chanops_voiced;	/* UGH I'm sorry */
-#endif
-#ifdef HALFOPS
-  dlink_list      halfops;
-#endif
-  dlink_list      voiced;
-  dlink_list      peons;                /* non ops, just members */
-  dlink_list	  deopped;              /* users deopped on sjoin */
+  struct Channel *hnextch;
 
-  dlink_list      locchanops;           /* local versions of the above */
-#ifdef REQUIRE_OANDV
-  dlink_list	  locchanops_voiced;	/* UGH I'm sorry */
-#endif
-#ifdef HALFOPS
-  dlink_list      lochalfops;
-#endif
-  dlink_list      locvoiced;
-  dlink_list      locpeons;             /* ... */
-  
-  dlink_list      invites;
-  dlink_list      banlist;
-  dlink_list      exceptlist;
-  dlink_list      invexlist;
+  struct Mode mode;
+  char *topic;
+  char *topic_info;
+  time_t topic_time;
+  unsigned long lazyLinkChannelExists;
+  time_t last_knock; /* don't allow knock to flood */
 
-  time_t          first_received_message_time; /* channel flood control */
-  int             received_number_of_privmsgs;
-  int             flood_noticed;
+  dlink_list members;
+  dlink_list locmembers;  /* local members are here too */
+  dlink_list invites;
+  dlink_list banlist;
+  dlink_list exceptlist;
+  dlink_list invexlist;
 
-  int             num_mask;              /* number of bans+exceptions+invite exceptions */
-  time_t          channelts;
-  char            chname[CHANNELLEN+1];
+  time_t first_received_message_time; /* channel flood control */
+  int received_number_of_privmsgs;
+  char flood_noticed;
+
+  time_t channelts;
+  char chname[CHANNELLEN + 1];
 };
 
-extern  struct  Channel *GlobalChannelList;
+struct Membership
+{
+  dlink_node channode;    /* link to chptr->members          */
+  dlink_node locchannode; /* link to chptr->locmembers       */
+  dlink_node usernode;    /* link to source_p->user->channel */
+  struct Channel *chptr;
+  struct Client *client_p;
+  unsigned int flags;
+};
+
+extern dlink_list global_channel_list;
 
 extern void init_channels(void);
-#ifdef VCHANS
-extern void clear_channels(void *unused);
-#endif
-extern int     can_send (struct Channel *chptr, struct Client *who);
-extern int     is_banned (struct Channel *chptr, struct Client *who);
+extern int can_send (struct Channel *chptr, struct Client *who);
+extern int can_send_part(struct Membership *, struct Channel *, struct Client *);
+extern int is_banned (struct Channel *chptr, struct Client *who);
+extern int can_join(struct Client *source_p, struct Channel *chptr,
+                    const char *key);
+extern int has_member_flags(struct Membership *ms, unsigned int flags);
+extern void add_user_to_channel(struct Channel *chptr, struct Client *who,
+                                unsigned int flags);
+extern void remove_user_from_channel(struct Membership *);
+extern int check_channel_name(const char *name);
+extern void channel_member_names(struct Client *source_p, struct Channel *chptr,
+                                 int show_eon);
+extern const char *get_member_status(struct Membership *, int);
+extern void add_invite(struct Channel *chptr, struct Client *who);
+extern void del_invite(struct Channel *chptr, struct Client *who);
+extern void send_channel_modes (struct Client *, struct Channel *);
+extern void channel_modes(struct Channel *, struct Client *, char *, char *);
 
-extern int     can_join(struct Client *source_p, struct Channel *chptr,
-                        char *key);
-extern int     is_chan_op (struct Channel *chptr,struct Client *who);
-extern int     is_any_op (struct Channel *chptr,struct Client *who);
-#ifdef HALFOPS
-extern int     is_half_op (struct Channel *chptr,struct Client *who);
-#endif
-extern int     is_voiced (struct Channel *chptr,struct Client *who);
-
-#define find_user_link(list,who) who!=NULL?dlinkFind(list,who):NULL
-#define FIND_AND_DELETE(list,who) who!=NULL?dlinkFindDelete(list,who)
-
-extern void    add_user_to_channel(struct Channel *chptr,
-				   struct Client *who, int flags);
-extern int     remove_user_from_channel(struct Channel *chptr,
-					struct Client *who);
-
-extern int     check_channel_name(const char* name);
-
-extern void    channel_member_names( struct Client *source_p,
-				     struct Channel *chptr,
-				     char *name_of_channel,
-                                     int show_eon);
-extern char    *channel_pub_or_secret(struct Channel *chptr);
-extern char    *channel_chanop_or_voice(struct Channel *, struct Client *);
-
-extern void    add_invite(struct Channel *chptr, struct Client *who);
-extern void    del_invite(struct Channel *chptr, struct Client *who);
-
-extern void    send_channel_modes (struct Client *, struct Channel *);
-extern void    channel_modes(struct Channel *chptr, struct Client *who,
-                             char *, char *);
-
-extern void    check_spambot_warning(struct Client *source_p, const
-                                     char *name);
-
+extern void check_spambot_warning(struct Client *source_p, const char *name);
 extern void check_splitmode(void *);
+extern void free_channel_list(dlink_list *);
 
 /*
 ** Channel Related macros follow
 */
 
-#define HoldChannel(x)          (!(x))
 /* channel visible */
 #define ShowChannel(v,c)        (PubChannel(c) || IsMember((v),(c)))
 
 #define IsMember(who, chan) ((who && who->user && \
-                dlinkFind(&who->user->channel, chan)) ? 1 : 0)
+                 find_channel_link(who, chan)) ? 1 : 0)
+#define AddMemberFlag(x, y) ((x)->flags |=  (y))
+#define DelMemberFlag(x, y) ((x)->flags &= ~(y))
 
 #define IsChannelName(name) ((name) && (*(name) == '#' || *(name) == '&'))
 
 struct Ban          /* also used for exceptions -orabidoo */
 {
+  dlink_node node;
   char *banstr;
   char *who;
   time_t when;
 };
 
-#define CLEANUP_CHANNELS_TIME (30*60)
-#define MAX_VCHAN_TIME (60*60)
-/* Number of chanops, peon, voiced, halfops sublists */
-#ifdef REQUIRE_OANDV
-#define NUMLISTS 5
-#else
-#define NUMLISTS 4
-#endif
-
-#ifdef INTENSIVE_DEBUG
-void do_channel_integrity_check(void);
-#endif
-
-void set_channel_topic(struct Channel *chptr, const char *topic, const char *topic_info, time_t topicts); 
-void free_topic(struct Channel *);
-int allocate_topic(struct Channel *);
-extern char * strip_color(char *);
-extern int msg_has_colors(char*);
-
+extern struct Membership *find_channel_link(struct Client *client_p,
+                                            struct Channel *chptr);
+extern void set_channel_topic(struct Channel *chptr, const char *topic,
+                              const char *topic_info, time_t topicts); 
+extern void free_topic(struct Channel *);
 #endif  /* INCLUDED_channel_h */

@@ -41,55 +41,60 @@
 /*
  * MyMalloc - allocate memory, call outofmemory on failure
  */
-void *MyMalloc(size_t size)
+void *
+MyMalloc(size_t size)
 {
-    void *ret = calloc(1, size);
-    if (ret == NULL)
-	outofmemory();
-    return ret;
+  void *ret = calloc(1, size);
+
+  if (ret == NULL)
+    outofmemory();
+  return(ret);
 }
 
 /*
  * MyRealloc - reallocate memory, call outofmemory on failure
  */
-void *MyRealloc(void *x, size_t y)
+void *
+MyRealloc(void *x, size_t y)
 {
-    void *ret = realloc(x, y);
+  void *ret = realloc(x, y);
 
-    if (ret == NULL)
-	outofmemory();
-    return ret;
+  if (ret == NULL)
+    outofmemory();
+  return(ret);
 }
 
-void MyFree(void *x)
+void
+MyFree(void *x)
 {
-     if(x)
-     	free((x));
+  if (x)
+    free(x);
 }
 
-void _DupString(char **x, const char *y)
+void
+_DupString(char **x, const char *y)
 {
-    (*x) = malloc(strlen(y) + 1);
-    strcpy((*x), y);
+  (*x) = malloc(strlen(y) + 1);
+  strcpy((*x), y);
 }
 
-
-/*
- * outofmemory()
+/* outofmemory()
  *
  * input        - NONE
  * output       - NONE
- * side effects - simply try to report there is a problem. Abort if it was called more than once
+ * side effects - simply try to report there is a problem.
+ *                Abort if it was called more than once
  */
-void outofmemory()
+void
+outofmemory(void)
 {
-    static int was_here = 0;
+  static int was_here = 0;
 
-    if (was_here)
-	abort();
+  if (was_here)
+    abort();
 
-    was_here = 1;
+  was_here = 1;
 
-    ilog(L_CRIT, "Out of memory: restarting server...");
-    restart("Out of Memory");
+  ilog(L_CRIT, "Out of memory: restarting server...");
+  restart("Out of Memory");
 }

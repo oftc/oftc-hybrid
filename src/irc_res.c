@@ -347,7 +347,7 @@ delete_resolver_queries(const void *vptr)
   {
     if ((request = ptr->data) != NULL)
     {
-      if (vptr == request->query.ptr)
+      if (vptr == &request->query)
         rem_request(request);
     }
   }

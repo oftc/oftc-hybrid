@@ -52,6 +52,12 @@ typedef struct FileBuf FBFILE;
  * open a file and return a FBFILE*, see fopen(3)
  */
 extern FBFILE* fbopen(const char* filename, const char* mode);
+
+/*
+ * Positions the file pointer at the beginning of the file
+ */
+extern int fbrewind(FBFILE *fb);
+
 /*
  * associate a file descriptor with a FBFILE*
  * if a FBFILE* is associated here it MUST be closed using fbclose
@@ -91,5 +97,6 @@ extern FBFILE *fbpopen(const char *, const char *);
 
 extern int file_open(const char *filename, int mode, int fmode);
 extern void file_close(int fd);
+extern int save_spare_fd(const char *);
 
 #endif /* INCLUDED_fileio_h */

@@ -1,29 +1,34 @@
 IRCD-Hybrid Platforms Information
 
-Sometimes problems and inconsistencies in the Hybrid code may only occur 
-on a specific platform (architecture and/or operating system and/or 
-compiler).  In these cases you may want to directly contact a person who 
-is interested in maintaining Hybrid on that platform.  Below is a list of 
-people who have jumped up and taken responsibility for Hybrid, including 
+Sometimes problems and inconsistencies in the Hybrid code may only occur
+on a specific platform (architecture and/or operating system and/or
+compiler).  In these cases you may want to directly contact a person who
+is interested in maintaining Hybrid on that platform.  Below is a list of
+people who have jumped up and taken responsibility for Hybrid, including
 making sure it compiles, runs, and doesn't crash.
 
-Platforms marked with a '*' are known to be broken.  In general, README.FIRST
-will include specific notes on broken platforms.
+Platforms marked with a '*' are known to be broken.  In general,
+README.FIRST will include specific notes on broken platforms.
 
 ARCHITECTURE COMPILER         SYSTEM	    MAINTAINER
 ============ ================ ============= ===================================
-MIPS         gcc              IRIX          Juli Mallett <jmallett@FreeBSD.org>
+MIPS         gcc              IRIX          Joshua Kwan <joshk@triplehelix.org>	
 MIPS         MIPSPro          IRIX          Juli Mallett <jmallett@FreeBSD.org>
+MIPS         gcc              NetBSD        Juli Mallett <jmallett@FreeBSD.org>
 PowerPC      gcc              OpenBSD       Juli Mallett <jmallett@FreeBSD.org>
+SPARC        gcc              OpenBSD       Juli Mallett <jmallett@FreeBSD.org>
+x86          gcc              OpenBSD       Joshua Kwan <joshk@triplehelix.org>
 x86          gcc              FreeBSD       Juli Mallett <jmallett@FreeBSD.org>
-x86          TenDRA           FreeBSD       Juli Mallett <jmallett@FreeBSD.org>
+x86          TenDRA*          FreeBSD       Juli Mallett <jmallett@FreeBSD.org>
+x86          gcc              NetBSD        Juli Mallett <jmallett@FreeBSD.org>
 SPARC        Forte C v6,v7    Solaris       Joan Touzet <joant@ieee.org>
 SPARC        gcc              Solaris       Joan Touzet <joant@ieee.org>
-x86          Cygwin gcc       Windows       W. Campbell <wcampbel@botbay.net>
-x86          gcc              Linux         Aaron Sethman <androsyn@ratbox.org>
+x86          Cygwin gcc       Windows       James LaPlant <slowking50@aol.com> 
+x86          gcc              Linux         Joshua Kwan <joshk@triplehelix.org>
 SPARC        gcc              Linux         Aaron Sethman <androsyn@ratbox.org>
-Alpha        DEC C V6.0       OpenVMS 7.2   Edward Brocklesby
+Alpha        DEC C V6.0*      OpenVMS 7.2   Edward Brocklesby
                                                 <ejb@sdf.lonestar.org>
+Alpha        cc               Tru64 5.2b    Joshua Kwan <joshk@triplehelix.org>
 PA-RISC 2.0  cc		      HP-UX B.11    Yusuf Iskenderoglu 
 						<uhc0@stud.uni-karlsruhe.de>
 

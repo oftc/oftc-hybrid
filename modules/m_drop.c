@@ -45,7 +45,7 @@ static void ms_drop(struct Client *,struct Client *,int,char **);
 
 struct Message drop_msgtab = {
   "DROP", 0, 0, 2, 0, MFLG_SLOW | MFLG_UNREG, 0L,
-  {m_unregistered, m_ignore, ms_drop, m_ignore}
+  {m_unregistered, m_ignore, ms_drop, m_ignore, m_ignore}
 };
 #ifndef STATIC_MODULES
 void
@@ -70,10 +70,9 @@ const char *_version = "$Revision$";
 **
 **      "drop" a channel from consideration on a lazy link
 */
-static void ms_drop(struct Client *client_p,
-                   struct Client *source_p,
-                  int parc,
-                  char *parv[])
+static void
+ms_drop(struct Client *client_p, struct Client *source_p,
+	int parc, char *parv[])
 {
   char *name;
   struct Channel *chptr;
@@ -84,7 +83,7 @@ static void ms_drop(struct Client *client_p,
   name = parv[1];
 
 #ifdef DEBUGLL
-  sendto_realops(FLAGS_ALL, "DROP called by %s for %s", client_p->name, name );
+  sendto_realops(UMODE_ALL, "DROP called by %s for %s", client_p->name, name );
 #endif
 
   if((chptr=hash_find_channel(name)) == NULL)

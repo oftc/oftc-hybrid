@@ -758,10 +758,11 @@ static void
 DoDNSAsync()
 
 {
+/* XXX rewrite this for irc_res */
+#if 0
   int bytes = 0;
   int packets = 0;
-
-#if 0
+  
   do
   {
     get_res();

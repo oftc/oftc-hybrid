@@ -35,15 +35,11 @@
 #include "irc_string.h"
 #include "common.h"
 #include "s_conf.h"
-#ifdef VMS
-# include "ircd_parser_tab.h"
-#else
-# include "y.tab.h"
-#endif
+
+#include "y.tab.h"
+
 #include "memory.h"
 #include "hostmask.h"
-#include "setup.h"
-#include "config.h"
 #include "s_log.h"
 
 #undef YY_INPUT
@@ -54,10 +50,10 @@
 #define MAX_INCLUDE_DEPTH 10
 
 
-int lineno=1;
+int lineno = 1;
 char linebuf[IRCD_BUFSIZE];
 char conffilebuf[IRCD_BUFSIZE];
-int include_stack_ptr=0;
+int include_stack_ptr = 0;
 YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
 int lineno_stack[MAX_INCLUDE_DEPTH];
 FBFILE* inc_fbfile_in[MAX_INCLUDE_DEPTH];
@@ -135,15 +131,16 @@ action		{ return ACTION; }
 admin		{ return ADMIN; }
 administrator	{ return ADMIN; }
 aftype		{ return AFTYPE; }
-auth		{ return AUTH; }
+all		{ return T_ALL; }
+auth		{ return IRCD_AUTH; }
 autoconn	{ return AUTOCONN; }
 can_flood	{ return CAN_FLOOD; }
 caller_id_wait	{ return CALLER_ID_WAIT; }
 channel		{ return CHANNEL; }
 cipher_preference { return CIPHER_PREFERENCE; }
 class		{ return CLASS; }
-client_exit     { return CLIENT_EXIT; }
 client_flood	{ return T_CLIENT_FLOOD; }
+cluster		{ return T_CLUSTER; }
 compressed	{ return COMPRESSED; }
 compression_level { return COMPRESSION_LEVEL; }
 connect		{ return CONNECT; }
@@ -156,6 +153,7 @@ default_split_user_count   { return DEFAULT_SPLIT_USER_COUNT; }
 deny		{ return DENY; }
 description	{ return DESCRIPTION; }
 die		{ return DIE; }
+disable_auth    { return DISABLE_AUTH; }
 disable_hidden	{ return DISABLE_HIDDEN; }
 disable_local_channels { return DISABLE_LOCAL_CHANNELS; }
 disable_remote_commands	{ return DISABLE_REMOTE_COMMANDS; }
@@ -167,11 +165,10 @@ encrypted       { return ENCRYPTED; }
 exceed_limit    { return EXCEED_LIMIT; }
 exempt		{ return EXEMPT; }
 fakename	{ return FAKENAME; }
-fallback_to_ip6_int { return FALLBACK_IP6_INT; }
 flatten_links	{ return FLATTEN_LINKS; }
-fname_foperlog  { return FNAME_FOPERLOG; }
-fname_operlog   { return FNAME_OPERLOG; }
-fname_userlog   { return FNAME_USERLOG; }
+ffailed_operlog	{ return FFAILED_OPERLOG; }
+foperlog   	{ return FOPERLOG; }
+fuserlog   	{ return FUSERLOG; }
 gecos		{ return GECOS; }
 general		{ return GENERAL; }
 gline		{ return GLINE; }
@@ -182,11 +179,15 @@ global_kill	{ return GLOBAL_KILL; }
 have_ident	{ return HAVE_IDENT; }
 havent_read_conf { return HAVENT_READ_CONF; }
 hidden		{ return HIDDEN; }
+hidden_admin	{ return HIDDEN_ADMIN; }
+hide_server_ips	{ return HIDE_SERVER_IPS; }
 hide_servers	{ return HIDE_SERVERS; }
+hide_spoof_ips	{ return HIDE_SPOOF_IPS; }
 host		{ return HOST; }
 hub		{ return HUB; }
 hub_mask	{ return HUB_MASK; }
 idletime        { return IDLETIME; }
+ignore_bogus_ts { return IGNORE_BOGUS_TS; }
 ip		{ return IP; }
 ipv4            { return T_IPV4; }
 ipv6            { return T_IPV6; }
@@ -207,18 +208,22 @@ log_level	{ return LOG_LEVEL; }
 logging         { return LOGGING; }
 logpath         { return T_LOGPATH; }
 masked		{ return TMASKED; }
-max_buffer	{ return T_MAX_BUFFER; }
 max_clients     { return T_MAX_CLIENTS; }
+max_ident	{ return MAX_IDENT; }
+max_local	{ return MAX_LOCAL; }
+max_global	{ return MAX_GLOBAL; }
 max_number	{ return MAX_NUMBER; }
 maximum_links   { return MAXIMUM_LINKS; }
 message_locale	{ return MESSAGE_LOCALE; }
 min_nonwildcard { return MIN_NONWILDCARD; }
+min_nonwildcard_simple	{ return MIN_NONWILDCARD_SIMPLE; }
 name		{ return NAME; }
+need_password   { return NEED_PASSWORD; }
 network_desc    { return NETWORK_DESC; }
 network_name    { return NETWORK_NAME; }
 nick		{ return NICK; }
 nick_changes	{ return NICK_CHANGES; }
-no		{ return TNO; }
+no		{ yylval.number = NO; return TBOOL; }
 no_create_on_split { return NO_CREATE_ON_SPLIT; }
 no_join_on_split   { return NO_JOIN_ON_SPLIT; }
 no_oper_flood   { return NO_OPER_FLOOD; }
@@ -233,6 +238,7 @@ password	{ return PASSWORD; }
 ping_cookie	{ return PING_COOKIE; }
 ping_time	{ return PING_TIME; }
 port		{ return PORT; }
+quarantine	{ return RESV; }
 quiet_on_ban    { return QUIET_ON_BAN; }
 reason		{ return REASON; }
 redirport       { return REDIRPORT; }
@@ -248,31 +254,28 @@ send_password	{ return SEND_PASSWORD; }
 sendq		{ return SENDQ; }
 serverhide	{ return SERVERHIDE; }
 serverinfo	{ return SERVERINFO; }
-service         { return SERVICE; }   
-services        { return SERVICES; } 
 servlink_path   { return SERVLINK_PATH; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }
+sid		{ return SID; } YYY service         { return SERVICE; } services { return SERVICES; }
 silent          { return SILENT; }
 spoof		{ return SPOOF; }
 spoof_notice	{ return SPOOF_NOTICE; }
+type		{ return TYPE; }
 true_no_oper_flood { return TRUE_NO_OPER_FLOOD; }
 unkline		{ return UNKLINE; }
-use_anonops	{ return USE_ANONOPS; }
 use_egd 	{ return USE_EGD; }
 use_except	{ return USE_EXCEPT; }
-use_halfops     { return USE_HALFOPS; }
-use_help        { return USE_HELP; }
 use_invex	{ return USE_INVEX; }
 use_knock	{ return USE_KNOCK; }
-use_vchans      { return USE_VCHANS; }
+use_logging	{ return USE_LOGGING; }
 throttle_time { return THROTTLE_TIME; }
 user		{ return USER;} 
-vchans_oper_only { return VCHANS_OPER_ONLY; }
 vhost	{ return VHOST; }
 vhost6	{ return VHOST6; }
 warn		{ return WARN; }
-yes		{ return TYES; }
+xline		{ return XLINE; }
+yes		{ yylval.number = YES; return TBOOL; }
 
 failed_oper_notice      { return FAILED_OPER_NOTICE; }
 max_accept              { return MAX_ACCEPT; }
@@ -287,7 +290,6 @@ links_delay           { return LINKS_DELAY; }
 kline_with_connection_closed { return KLINE_WITH_CONNECTION_CLOSED; }
 kline_with_reason       { return KLINE_WITH_REASON; }
 warn_no_nline           { return WARN_NO_NLINE; }
-non_redundant_klines    { return NON_REDUNDANT_KLINES; }
 
 stats_o_oper_only       { return STATS_O_OPER_ONLY; }
 stats_k_oper_only	{ return STATS_K_OPER_ONLY; }
@@ -303,11 +305,16 @@ glines                  { return GLINES; }
 max_bans                { return MAX_BANS; }
 modules                 { return MODULES; }
 module                  { return MODULE; }
+base_path               { return BASE_PATH; }
 path                    { return PATH; }
 max_targets             { return MAX_TARGETS; }
 
+unxline			{ return T_UNXLINE; }
+unresv			{ return T_UNRESV; }
+
 oper_only_umodes        { return OPER_ONLY_UMODES; }
 oper_umodes             { return OPER_UMODES; }
+crypt_oper_password     { return CRYPT_OPER_PASSWORD; }
 bots                    { return T_BOTS; }
 cconn                   { return T_CCONN; }
 debug                   { return T_DEBUG; }
@@ -415,7 +422,7 @@ void hashcomment(void)
   if (strlen(yytext) < strlen(INCLUDE))
     return;
 
-  if ( !strncasecmp(yytext, INCLUDE, strlen(INCLUDE)) ) 
+  if (!strncasecmp(yytext, INCLUDE, strlen(INCLUDE))) 
       yyerror("You probably meant '.include', skipping");
 }
 
@@ -439,11 +446,7 @@ void cinclude(void)
     FBFILE *tmp_fbfile_in;
     char filenamebuf[IRCD_BUFSIZE];
     
-#ifdef HAVE_SNPRINTF
-    snprintf(filenamebuf, IRCD_BUFSIZE, "%s/%s", ETCPATH, c);
-#else
-    sprintf(filenamebuf, "%s/%s", ETCPATH, c);
-#endif
+    snprintf(filenamebuf, sizeof(filenamebuf), "%s/%s", ETCPATH, c);
     tmp_fbfile_in = fbopen(filenamebuf, "r");
     
     if (tmp_fbfile_in == NULL)
@@ -457,7 +460,7 @@ void cinclude(void)
     strlcpy(conffile_stack[include_stack_ptr], conffilebuf, IRCD_BUFSIZE);
     include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
     conf_fbfile_in = tmp_fbfile_in;
-    sprintf(conffilebuf, "%s", c);
+    snprintf(conffilebuf, sizeof(conffilebuf), "%s", c);
     yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
   }
 }

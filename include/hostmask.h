@@ -27,10 +27,8 @@
 enum
 {
  HM_HOST,
- HM_IPV4
-#ifdef IPV6
- ,HM_IPV6
-#endif
+ HM_IPV4,
+ HM_IPV6
 };
 
 struct HostMaskEntry
@@ -42,27 +40,25 @@ struct HostMaskEntry
   struct HostMaskEntry *next, *nexthash;
 };
 
-int parse_netmask(const char*, struct irc_ssaddr*, int*);
-int match_ipv6(struct irc_ssaddr*, struct irc_ssaddr*, int);
-int match_ipv4(struct irc_ssaddr*, struct irc_ssaddr*, int);
-struct ConfItem* find_conf_by_address(const char*, struct irc_ssaddr*,
-                                      int, int, const char*);
-void add_conf_by_address(const char*, int, const char*, struct ConfItem*);
-void delete_one_address_conf(const char*, struct ConfItem*);
+int parse_netmask(const char *, struct irc_ssaddr *, int *);
+struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
+                                        int, int, const char *, char *);
+void add_conf_by_address(int, struct AccessItem *);
+void delete_one_address_conf(const char *, struct AccessItem *);
+
 void clear_out_address_conf(void);
 void init_host_hash(void);
-struct ConfItem* find_address_conf(const char*, const char*,
-                                   struct irc_ssaddr*, int);
-struct ConfItem* find_kline_conf(const char*, const char*,
-				 struct irc_ssaddr*, int);
-struct ConfItem* find_dline_conf(struct irc_ssaddr *, int);
+struct AccessItem* find_address_conf(const char *, const char *,
+                                   struct irc_ssaddr *, int, char *);
+struct AccessItem* find_kline_conf(const char *, const char *,
+                                 struct irc_ssaddr *, int);
+struct AccessItem* find_dline_conf(struct irc_ssaddr *, int);
 
-void report_Klines(struct Client*, int temp);
-void report_auth(struct Client*);
-#ifdef IPV6
-int match_ipv6(struct irc_ssaddr*, struct irc_ssaddr*, int);
-#endif
-int match_ipv4(struct irc_ssaddr*, struct irc_ssaddr*, int);
+int match_ipv6(struct irc_ssaddr *, struct irc_ssaddr *, int);
+int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int);
+
+void report_Klines(struct Client *, int temp);
+void report_auth(struct Client *);
 
 /* Hashtable stuff... */
 #define ATABLE_SIZE 0x1000
@@ -78,12 +74,12 @@ struct AddressRec
   {
     struct
     {
-      /* Pointer into ConfItem... -A1kmm */
+      /* Pointer into AccessItem... -A1kmm */
       struct irc_ssaddr addr;
       int bits;
     } ipa;
 
-  /* Pointer into ConfItem... -A1kmm */
+  /* Pointer into AccessItem... -A1kmm */
   const char *hostname;
   } Mask;
 
@@ -95,12 +91,14 @@ struct AddressRec
 
   /* Only checked if !(type & 1)... */
   const char *username;
-  struct ConfItem *aconf;
+  struct AccessItem *aconf;
 
   /* The next record in this hash bucket. */
   struct AddressRec *next;
 };
 
+extern char *
+show_iline_prefix(struct Client *sptr, struct AccessItem *aconf, char *name);
 
 #endif /* INCLUDE_hostmask_h */
 

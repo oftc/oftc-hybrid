@@ -31,7 +31,7 @@ numerics:
    ERR_ACCEPTEXIST (457): :irc.server 457 client target :already exists
      - This is sent when a client tries to add a user to the accept list
        that already exists there
-   ERR_ACCEPTNOT (458): :irc.server 458 client target :doesnt exist
+   ERR_ACCEPTNOT (458): :irc.server 458 client target :doesn't exist
      - This is sent when a client tries to remove a user from their accept
        list who is not on the accept list.
 

@@ -22,14 +22,15 @@
  *  $Id$
  */
 #include "stdinc.h"
-#include "config.h"  /* option settings */
 #include "fdlist.h"
 #include "client.h"  /* struct Client */
 #include "event.h"
 #include "ircd.h"    /* GlobalSetOptions */
+#include "irc_string.h"
 #include "s_bsd.h"   /* highest_fd */
 #include "send.h"
 #include "memory.h"
+#include "numeric.h"
 
 fde_t *fd_table = NULL;
 
@@ -44,7 +45,7 @@ fdlist_update_biggest(int fd, int opening)
 { 
   if (fd < highest_fd)
     return;
-  assert(fd < MAXCONNECTIONS);
+  assert(fd < HARD_FDLIMIT);
 
   if (fd > highest_fd)
     {
@@ -66,17 +67,17 @@ fdlist_update_biggest(int fd, int opening)
     highest_fd--;
 }
 
-
-void fdlist_init(void)
+void
+fdlist_init(void)
 {
   static int initialized = 0;
 
   if (!initialized)
-    {
+  {
       /* Since we're doing this once .. */
-      fd_table = MyMalloc((MAXCONNECTIONS + 1) * sizeof(fde_t));
+      fd_table = MyMalloc((HARD_FDLIMIT + 1) * sizeof(fde_t));
       initialized = 1;
-    }
+  }
 }
 
 /* Called to open a given filedescriptor */
@@ -109,10 +110,9 @@ fd_open(int fd, unsigned int type, const char *desc)
   F->comm_index = -1;
   F->list = FDLIST_NONE;
   if (desc)
-    strncpy(F->desc, desc, FD_DESC_SZ);
+    strlcpy(F->desc, desc, sizeof(F->desc));
   number_fd++;
 }
-
 
 /* Called to close a given filedescriptor */
 void
@@ -143,7 +143,6 @@ fd_close(int fd)
   close(fd);
 }
 
-
 /*
  * fd_dump() - dump the list of active filedescriptors
  */
@@ -153,14 +152,14 @@ fd_dump(struct Client *source_p)
   int i;
 
   for (i = 0; i <= highest_fd; i++)
-    {
-      if (!fd_table[i].flags.open)
-	continue;
+  {
+    if (!fd_table[i].flags.open)
+      continue;
 
-      sendto_one(source_p, ":%s NOTICE %s :*** fd %d, desc '%s'", me.name,
-		 source_p->name, i, fd_table[i].desc);
-    }
-  sendto_one(source_p, ":%s NOTICE %s :*** Finished", me.name, source_p->name);
+    sendto_one(source_p, ":%s %d %s :fd %-5d desc '%s'",
+               me.name, RPL_STATSDEBUG, source_p->name,
+               i, fd_table[i].desc);
+  }
 }
 
 /*
@@ -183,6 +182,4 @@ fd_note(int fd, const char *format, ...)
   else
     fd_table[fd].desc[0] = '\0';
 }
-
-
 

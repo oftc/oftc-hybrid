@@ -1,0 +1,36 @@
+                         General Channel Information
+
+   $Id$
+
+   Copyright (c) 2003 by metalrock
+
+     ----------------------------------------------------------------------
+
+   Hybrid supports both global and local channels. Global channels are prefixed
+   with a '#' while local channels are prefixed with a '&'. Channels that begin
+   with a # are visible network-wide and anyone on any server can join the channel.
+   Channels that begin with a & can only be visible in the local server's channel
+   listing and can only be joined if you are on the server in which the local
+   channel was created. However, a remote WHOIS will show a user that is on a
+   local channel, but the remote user cannot join the channel unless they use
+   the server in which the local channel was created. If serverhiding is enabled
+   network-wide and a remote WHOIS is done on a user in a local channel, the
+   local channel they are in cannot be entered unless the person performing the
+   WHOIS is on the same server. Since serverhiding is enabled, it becomes
+   impossible to find which server the local channel was created on.
+
+   If a user is known to be in a local channel, issuing WHOIS servera nick, WHOIS
+   serverb nick, etc. until the local channel is seen in the WHOIS data does not
+   exist. With disable_remote_commands enabled, the WHOIS is still sent (in order
+   to see idle time and the away message) but the server queried will always be
+   the server the user is on. The user can never use remote WHOIS to determine
+   the server a user is on.
+
+   If an abuser knows that a user is on a specific &channel, they could still
+   connect to each server until they find the server showing the user in the
+   local channel in a local WHOIS. The disable_local_channels, although a little
+   extreme, taking away a lot of user privileges, but has been created to handle
+   this risk.
+
+   To read more about serverhiding, please read serverhide.txt.
+

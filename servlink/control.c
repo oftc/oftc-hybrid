@@ -18,14 +18,8 @@
  *   $Id$
  */
 
-#include "setup.h"                                                   
+#include "stdinc.h"
 
-#include <sys/types.h>
-
-#include <assert.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -88,16 +82,16 @@ void cmd_start_zip_out(struct ctrl_command *cmd)
   if (out_state.zip)
     send_error("can't start compression - already started!");
 
-  out_state.zip_state.z_stream.total_in = 0;
-  out_state.zip_state.z_stream.total_out = 0;
-  out_state.zip_state.z_stream.zalloc = (alloc_func)0;
-  out_state.zip_state.z_stream.zfree = (free_func)0;
-  out_state.zip_state.z_stream.data_type = Z_ASCII;
+  out_state.zip_state.stream.total_in = 0;
+  out_state.zip_state.stream.total_out = 0;
+  out_state.zip_state.stream.zalloc = (alloc_func)0;
+  out_state.zip_state.stream.zfree = (free_func)0;
+  out_state.zip_state.stream.data_type = Z_ASCII;
 
   if (out_state.zip_state.level <= 0)
     out_state.zip_state.level = Z_DEFAULT_COMPRESSION;
 
-  if ((ret = deflateInit(&out_state.zip_state.z_stream,
+  if ((ret = deflateInit(&out_state.zip_state.stream,
                          out_state.zip_state.level)) != Z_OK)
     send_error("deflateInit failed: %d", ret);
 
@@ -115,12 +109,12 @@ void cmd_start_zip_in(struct ctrl_command *cmd)
   if (in_state.zip)
     send_error("can't start decompression - already started!");
 
-  in_state.zip_state.z_stream.total_in = 0;
-  in_state.zip_state.z_stream.total_out = 0;
-  in_state.zip_state.z_stream.zalloc = (alloc_func)0;
-  in_state.zip_state.z_stream.zfree = (free_func)0;
-  in_state.zip_state.z_stream.data_type = Z_ASCII;
-  if ((ret = inflateInit(&in_state.zip_state.z_stream)) != Z_OK)
+  in_state.zip_state.stream.total_in = 0;
+  in_state.zip_state.stream.total_out = 0;
+  in_state.zip_state.stream.zalloc = (alloc_func)0;
+  in_state.zip_state.stream.zfree = (free_func)0;
+  in_state.zip_state.stream.data_type = Z_ASCII;
+  if ((ret = inflateInit(&in_state.zip_state.stream)) != Z_OK)
     send_error("inflateInit failed: %d", ret);
   in_state.zip = 1;
 #else
@@ -219,17 +213,6 @@ void cmd_start_crypt_in(struct ctrl_command *cmd)
                        in_state.crypt_state.cipher, NULL, NULL))
     send_error("can't start decryption - DecryptInit (1) failed: %s!",
                ERR_error_string(ERR_get_error(), NULL));
-
-  /*
-   * XXX - ugly hack to work around OpenSSL bug
-   *       if/when OpenSSL fix it, or give proper workaround
-   *       use that, and force minimum OpenSSL version
-   *
-   * Without this hack, BF/256 will fail.
-   */
-  /* cast to avoid warning */
-  *(unsigned int *)( &in_state.crypt_state.ctx.cipher->flags)
-    |= EVP_CIPH_VARIABLE_LENGTH;
 
   if (!EVP_CIPHER_CTX_set_key_length(&in_state.crypt_state.ctx,
                                      in_state.crypt_state.keylen))
@@ -353,17 +336,6 @@ void cmd_start_crypt_out(struct ctrl_command *cmd)
                        out_state.crypt_state.cipher, NULL, NULL))
     send_error("can't start encryption - EncryptInit (1) failed: %s!",
                ERR_error_string(ERR_get_error(), NULL));
-
-  /*
-   * XXX - ugly hack to work around OpenSSL bug
-   *       if/when OpenSSL fix it, or give proper workaround
-   *       use that, and force minimum OpenSSL version
-   *
-   * Without this hack, BF/256 will fail.
-   */
-  /* cast to avoid warning */
-  *(unsigned int *)(&out_state.crypt_state.ctx.cipher->flags)
-    |= EVP_CIPH_VARIABLE_LENGTH;
 
   if (!EVP_CIPHER_CTX_set_key_length(&out_state.crypt_state.ctx,
                                      out_state.crypt_state.keylen))

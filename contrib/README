@@ -5,8 +5,11 @@ by other people, or aren't suitable for including into the
 hybrid tree.  The coding team do not officially support the contrib/ 
 modules, or guarantee any of them will actually work.
 
+There is also a lone ircII script (challenge.irc) that works alongwith
+rsa_respond so you can authenticate within your client.
+
 Once again. WITH feeling. Not all of these modules have been thoroughly
-tested! Thats why some of them are in contrib not in the main tree yet!
+tested! That's why some of them are in contrib not in the main tree yet.
 At least one module in contrib has been known to core servers when used.
 You have been warned. 
 
@@ -19,7 +22,7 @@ Modules
 
 m_clearchan.c  - CLEARCHAN - clears all users out of a channel and joins person
                              issuing command
-                 Syntax: CLEARCHAN <channel> [vchanid]
+                 Syntax: CLEARCHAN <channel>
 
 m_flags.c      - FLAGS - csircd like support of changing usermodes
                  Syntax:  FLAGS :+OWALLOPS -SWALLOPS
@@ -28,6 +31,9 @@ m_force.c      - FORCE - forces a user to either part or join a channel with
                          an optional status (@%+)
                  Syntax: FORCEJOIN <nick> [status]<channel>
                          FORCEPART <nick> <channel>
+
+m_help.c       - HELP - provide help for IRC commands. See bottom of document.
+                 Syntax: HELP :command
 
 m_jupe.c       - JUPE - Server juping command
                  Syntax:  JUPE juped.server.name :Reason
@@ -82,34 +88,10 @@ Note: if you have both spy_stats_notice.c and spy_stats_p_notice.c loaded
 you will get two messages.
 
 
-VMS Files
----------
+Help files
+----------
 
-vms_*.c        - Misc files needed for VMS support.
+Previously part of the default install, these are the help files that 
+display information about every command with /quote HELP :whatever.
 
-
-Patches
--------
-
-The following are the patches contained in contrib.  A short description
-of the patch is contained here, along with any notes.
-
-To apply a patch, first change to the ircd-hybrid-7 root directory, 
-the directory one level above contrib/.  If you have already compiled 
-the ircd, run 'make clean'.  Then for example to patch 
-remote-unkline.diff type:
-    patch -p0 < contrib/remote-unkline.diff
-
-You must then run 'make' and 'make install' again, and restart your ircd.
-The following patches are included:
-
-lmh.diff 	- This patch adds remote unkline support, temp dline support,
-                  better temp klines, /quote xline and global user@host
-		  limits.
-
-		  Please read README.LMH for more information as this patch
-		  requires different methods to be applied and adds multiple
-		  config options.
-
-disable_identd.diff - This patch adds support for disabling identd queries.
-                      See README.disable_identd for more information.
+They are installed if you make install in this directory.

@@ -25,29 +25,38 @@
 #ifndef INCLUDED_s_user_h
 #define INCLUDED_s_user_h
 
-#include "config.h"
+#define IRC_MAXSID 3
+#define IRC_MAXUID 6
+#define TOTALSIDUID (IRC_MAXSID + IRC_MAXUID)
 
+struct User;
 struct Client;
-extern time_t LastUsedWallops;
+struct AccessItem;
 
+extern int MaxClientCount;     /* GLOBAL - highest number of clients     */
+extern int MaxConnectionCount; /* GLOBAL - highest number of connections */
 
-extern int   user_mode(struct Client* , struct Client* , int, char** );
-extern void  send_umode (struct Client* , struct Client* ,
-                         int, int, char* );
-extern void  send_umode_out(struct Client* , struct Client* , int);
-extern int   show_lusers(struct Client* source_p);
-extern int   register_local_user(struct Client* ,struct Client* ,
-				 char* ,char* );
-extern int   register_remote_user(struct Client* ,struct Client* ,
-				  char* ,char* );
-extern int   do_local_user(char* ,struct Client* ,struct Client*,
-			   char* ,char *,char *,char *);
+extern void init_user(void);
+extern void free_user(struct User *, struct Client *);
+extern void count_user_memory(int *, unsigned long *);
+extern void set_user_mode(struct Client *, struct Client *, int, char **);
+extern void send_umode(struct Client *, struct Client *,
+                       unsigned int, unsigned int, char *);
+extern void send_umode_out(struct Client *, struct Client *, unsigned int);
+extern void show_lusers(struct Client *source_p);
+extern void show_isupport(struct Client *);
+extern void oper_up(struct Client *source_p);
 
-extern int   do_remote_user(char* ,struct Client* ,struct Client*,
-			    char* ,char *,char *,char *,char *);
-
-extern int   user_modes_from_c_to_bitmask[];
-extern void  show_isupport(struct Client *);
-
-
+extern int register_local_user(struct Client *, struct Client *,
+                               const char *, const char *);
+extern int register_remote_user(struct Client *, struct Client *,
+                                const char *, const char *,
+                                const char *, const char *);
+extern int do_local_user(const char *, struct Client *, struct Client *,
+                         const char *, const char *, const char *,
+                         const char *);
+extern const unsigned int user_modes_from_c_to_bitmask[];
+extern void uid_init(void);
+extern char *uid_get(void);
 #endif
+

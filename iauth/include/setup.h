@@ -10,7 +10,6 @@
 #define LOGFILE      "iauth.log"
 
 #undef SPOOF_FREEFORM
-#define DEBUGMODE
 
 /* CONNECTTIMEOUT -
  * Number of seconds to wait for a connect(2) call to complete.
@@ -19,5 +18,4 @@
  * query and for a DNS answer to be retrieved.
  */
 #define CONNECTTIMEOUT  30      /* Recommended value: 30 */
-
 #endif /* INCLUDED_setup_h */

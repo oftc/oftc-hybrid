@@ -30,37 +30,23 @@
       of upgrading at runtime, but reducing the chances of accidentally
       coring your server.
 
-3.  Problem with msgfmt command building custom msgs using gettext
-    - Please ensure you are using GNU gettext version 0.10.35.
-      Other versions are untested, and some are known to be
-      incompatible.  Solaris 8 gettext definately does not work.
-
-4.  Problems with quote set msglocale not working on linux.
-    This seems to be a linux problem, /quote set msglocale will sometimes
-    get "undone" when a new client connects.  The server will also sometimes
-    not correctly set the locale from ircd.conf on startup.
-
-    The solution is if a locale is needed, to have the message_locale="x"
-    in ircd.conf, and then rehash to make it take effect.  A rehash after
-    startup will also need to be performed to set the locale.
-
-5.  When updating a message file, in certain unknown situations it will core
-    if the file in use is being accessed.  To prevent this from happening,
-    use '/quote SET MSGLOCALE standard' BEFORE issuing make install.  When
-    the file is installed, you can SET MSGLOCALE back to the language that
-    was just updated.
-
-6.  IAuthd is broken beyond belief.  It does not work at this time.  If this
+3.  IAuthd is broken beyond belief.  It does not work at this time.  If this
     bothers you, fix it for us.
 
-7.  Solaris stock 32bit stdio is limited to 256 fds. This breaks when using
+4.  Solaris stock 32bit stdio is limited to 256 fds. This breaks when using
     cryptlinks.
 
-BUG REPORTS: If you run this code and encounter problems, you must report
- the bug in by E-MAIL to ircd-hybrid@the-project.org.
+5.  Compiling using tinycc is incomplete and unsupported. Mostly the problem
+    is that our name resolver code breaks. Caveat emptor.
+ 
+ BUG REPORTS: If you run this code and encounter problems, you should report
+ the bug on our SourceForge.net bug tracker, which you can find at this URL:
 
- Please include a gdb backtrace and a copy of your config.h and ircd.conf
- with any report  (with passwords and other sensitive information masked).
+ https://sourceforge.net/tracker/?atid=409046&group_id=33573&func=browse
+
+ Please include a gdb backtrace and a copy of your defaults.h (if changed),
+ setup.h, and ircd.conf  with any report (with passwords and other sensitive
+ information masked).
 
 --------------------------------------------------------------------------------
 $Id$

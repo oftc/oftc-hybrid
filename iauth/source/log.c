@@ -19,6 +19,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <stdarg.h>
 #include <errno.h>
@@ -44,8 +45,7 @@ log()
 */
 
 void
-log(int level, char *format, ...)
-
+_log(int level, char *format, ...)
 {
   char buf[BUFSIZE];
   va_list args;

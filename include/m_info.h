@@ -25,14 +25,15 @@
 #ifndef INCLUDED_m_info_h
 #define INCLUDED_m_info_h
 
-#include "config.h"
+#include "setup.h"
+#include "defaults.h"
 
 typedef struct Information
 {
-  char* name;        /* name of item */
-  char* strvalue;    /* value of item if it's a boolean */
-  int   intvalue;    /* value of item if it's an integer */
-  char* desc;        /* short description of item */
+  const char *name;     /* name of item                     */
+  const char *strvalue; /* value of item if it's a boolean  */
+  int intvalue;         /* value of item if it's an integer */
+  const char *desc;     /* short description of item        */
 } Info;
 
 Info MyInformation[] = {
@@ -43,29 +44,11 @@ Info MyInformation[] = {
   { "CLIENT_FLOOD", "OFF", 0, "Client Excess Flood Threshold" },
 #endif /* CLIENT_FLOOD */
 
-#ifdef CMDLINE_CONFIG
-  { "CMDLINE_CONFIG", "ON", 0, "Allow Command Line Specification of Config File" },
-#else
-  { "CMDLINE_CONFIG", "OFF", 0, "Allow Command Line Specification of Config File" },
-#endif /* CMDLINE_CONFIG */
-
 #ifdef CPATH
   { "CPATH", CPATH, 0, "Path to Main Configuration File" },
 #else
   { "CPATH", "NONE", 0, "Path to Main Configuration File" },
 #endif /* CPATH */
-
-#ifdef CRYPT_OPER_PASSWORD
-  { "CRYPT_OPER_PASSWORD", "ON", 0, "Encrypt Operator Passwords" },
-#else
-  { "CRYPT_OPER_PASSWORD", "OFF", 0, "Encrypt Operator Passwords" },
-#endif /* CRYPT_OPER_PASSWORD */
-
-#ifdef DEBUGMODE
-  { "DEBUGMODE", "ON", 0, "Support for debugging mode" },
-#else
-  { "DEBUGMODE", "OFF", 0, "Support for debugging mode" },
-#endif /* DEBUGMODE */
 
 #ifdef DPATH
   { "DPATH", DPATH, 0, "Directory Containing Configuration Files" },
@@ -79,19 +62,7 @@ Info MyInformation[] = {
   { "DLPATH", "NONE", 0, "Path to D-line File" },
 #endif /* DLPATH */
 
-  { "HARD_FDLIMIT_", "", HARD_FDLIMIT_, "Maximum Number of File Descriptors Available" },
-
-#ifdef HPATH
-  { "HPATH", HPATH, 0, "Path to Operator Help Files" },
-#else
-  { "HPATH", "NONE", 0, "Path to Operator Help Files" },
-#endif /* HPATH */
-
-#ifdef UHPATH
-  { "UHPATH", UHPATH, 0, "Path to User Help Files" },
-#else
-  { "UHPATH", "NONE", 0, "Path to User Help Files" },
-#endif /* UH PATH */
+  { "HARD_FDLIMIT", "", HARD_FDLIMIT, "Maximum Number of File Descriptors Available" },
 
 #ifdef SOMAXCONN
   { "HYBRID_SOMAXCONN", "", SOMAXCONN, "Maximum Queue Length of Pending Connections" },
@@ -99,16 +70,12 @@ Info MyInformation[] = {
   { "HYBRID_SOMAXCONN", "", HYBRID_SOMAXCONN, "Maximum Queue Length of Pending Connections" },
 #endif /* SOMAXCONN */
 
-#ifdef IPV6
+/*#ifdef IPV6
   { "IPV6", "ON", 0, "IPv6 Support" },
 #else
   { "IPV6", "OFF", 0, "IPv6 Support" },
 #endif
-
-  { "MAX_CLIENTS", "", MAX_CLIENTS, "Default maximum Clients" },
-
-  { "JOIN_LEAVE_COUNT_EXPIRE_TIME", "", JOIN_LEAVE_COUNT_EXPIRE_TIME, "Anti SpamBot Parameter" },
-
+*/
   { "KILLCHASETIMELIMIT", "", KILLCHASETIMELIMIT, "Nick Change Tracker for KILL" },
 
 #ifdef KPATH
@@ -124,6 +91,8 @@ Info MyInformation[] = {
 #endif /* LPATH */
 
   { "MAX_BUFFER", "", MAX_BUFFER, "Maximum Buffer Connections Allowed" },
+
+  { "MAX_CONNECTIONS", "", MAXCONN, "Maximum Number of Network Connections Allowed" },
 
   { "MAX_JOIN_LEAVE_COUNT", "", MAX_JOIN_LEAVE_COUNT, "Anti SpamBot Parameter" },
 
@@ -146,12 +115,6 @@ Info MyInformation[] = {
 #endif /* OPATH */
 
   { "OPER_SPAM_COUNTDOWN", "", OPER_SPAM_COUNTDOWN, "Anti SpamBot Parameter" },
-
-#ifdef PACE_CONNECT
-  { "PACE_CONNECT", "ON", 0, "Pace connections to the ircd" },
-#else
-  { "PACE_CONNECT", "OFF", 0, "Pace connections to the ircd" },
-#endif
 
 #ifdef HAVE_LIBCRYPTO
   { "HAVE_LIBCRYPTO", "ON", 0, "Enable OpenSSL CHALLENGE Support" },
@@ -182,20 +145,13 @@ Info MyInformation[] = {
   { "TS_MAX_DELTA_DEFAULT", "", TS_MAX_DELTA_DEFAULT, "Maximum Allowed TS Delta from another Server" },
   { "TS_WARN_DELTA_DEFAULT", "", TS_WARN_DELTA_DEFAULT, "Maximum TS Delta before Sending Warning" },
 
-#ifdef USE_GETTEXT
-  { "USE_GETTEXT", "ON", 0, "Use gettext() for message customisation" },
-#else
-  { "USE_GETTEXT", "OFF", 0, "Use gettext() for message customisation" },
-#endif /* USE_GETTEXT */
-
 #ifdef USE_SYSLOG
   { "USE_SYSLOG", "ON", 0, "Log Errors to syslog file" },
 #else
   { "USE_SYSLOG", "OFF", 0, "Log Errors to syslog file" },
 #endif /* USE_SYSLOG */
 
-  /*
-   * since we don't want to include the world here, NULL probably
+  /* since we don't want to include the world here, NULL probably
    * isn't defined by the time we read this, just use plain 0 instead
    * 0 is guaranteed by the language to be assignable to ALL built
    * in types with the correct results.
@@ -203,6 +159,4 @@ Info MyInformation[] = {
   { 0, 0, 0, 0 }
 };
 
-
 #endif /* INCLUDED_m_info_h */
-

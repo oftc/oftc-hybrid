@@ -1,3 +1,23 @@
+-- ircd-hybrid-7.0 RELNOTES
+o) BF/256 encryption replaced by BF168
+o) many intermittant cryptlink bugs fixed
+o) fixed FLAG_NCHANGE perms
+o) fixed splitmode behavior to wait for both splitnum and splituser
+o) fixed parallel make
+o) added ctrace, classlist and omotd to contrib
+
+-- ircd-hybrid-7rc10 RELNOTES
+o) fixed 99% CPU bug
+o) fixed rare core bug in s_bsd.c
+o) fixed compile warning in m_nick.c
+o) casts to fix comm_setselect compile warnings
+o) fixed core that can happen in check_clean_nick()
+o) get_client_name() would only return client->name for remote fixed
+o) fixed typo that caused odd /list hesitation.
+o) fixed limit desync bug
+o) fixed possible core in /stats
+o) cleaned up hostmask code that cored server in /rehash
+
 -- ircd-hybrid-7rc9 RELNOTES
 o) massive revert to rc4 exit_client code
 o) fixed handling of file descriptors 0 through 3
@@ -110,12 +130,7 @@ o) fixes to stop annoying yacc complain about conflicts during compile
 
 --------------------------------------------------------------------------------
 
-This is the current release candidate version of ircd-hybrid-7.
-
-NOTE: This is still BETA code.  Run it at your own risk.  By running this
- code you assume FULL responsibility for any problems it may cause.  We do
- NOT recommend that you run BETA code on production IRC networks such
- as EFnet.
+This is the current release version of ircd-hybrid-7.
 
 BUGS: Major bugs in this release are listed in BUGS
 

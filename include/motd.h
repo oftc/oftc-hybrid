@@ -38,26 +38,25 @@ typedef enum {
 
 struct MessageFileLine
 {
-  char                    line[MESSAGELINELEN + 1];
-  struct MessageFileLine* next;
+  char line[MESSAGELINELEN + 1];
+  struct MessageFileLine *next;
 };
 
 typedef struct MessageFileLine MessageFileLine;
 
 struct MessageFile
 {
-  char             fileName[PATH_MAX + 1];
-  MotdType         motdType;
-  MessageFileLine* contentsOfFile;
-  char             lastChangedDate[MAX_DATE_STRING + 1];
+  char fileName[PATH_MAX + 1];
+  MotdType motdType;
+  MessageFileLine *contentsOfFile;
+  char lastChangedDate[MAX_DATE_STRING + 1];
 };
 
 typedef struct MessageFile MessageFile;
 
 struct Client;
 
-void InitMessageFile(MotdType, char *, struct MessageFile *);
-int SendMessageFile(struct Client *, struct MessageFile *);
-int ReadMessageFile(MessageFile *);
-
+extern void init_message_file(MotdType, const char *, struct MessageFile *);
+extern int send_message_file(struct Client *, struct MessageFile *);
+extern int read_message_file(MessageFile *);
 #endif /* INCLUDED_motd_h */

@@ -22,14 +22,14 @@
  *  $Id$
  */
 #ifndef INCLUDED_rsa_h
-#define INCLUDED_rsa_h 1
+#define INCLUDED_rsa_h
+
+#include "setup.h"
 
 #ifdef HAVE_LIBCRYPTO
 extern void report_crypto_errors(void);
 extern int verify_private_key(void);
 extern int generate_challenge( char ** r_challenge, char ** r_response, RSA * key );
-extern int crypt_data(char **out, char *in, int len, char *key);
-extern int decrypt_data(char **out, char *in, int len, char *key);
 extern int get_randomness( unsigned char * buf, int length );
 #endif
 

@@ -28,7 +28,7 @@
 #include "fdlist.h"
 
 /*
- * this hides in here rather than a config.h because it really shouldn't
+ * this hides in here rather than in defaults.h because it really shouldn't
  * be tweaked unless you *REALLY REALLY* know what you're doing!
  * Remember, messages are only anti-flooded on incoming from the client, not on
  * incoming from a server for a given client, so if you tweak this you risk

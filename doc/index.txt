@@ -1,4 +1,3 @@
-
 # $Id$
 Here is the overview of the documents in the doc/ directory.
 
@@ -7,9 +6,14 @@ LazyLinks.txt		- The lazylinks leaf concept
 Tao-of-IRC.940110       - No comment...
 challenge.txt           - Overview of the challenge/response system for
                           obtaining operator status
+channels.txt		- General channel information.
 dline.conf              - A blank dline.conf file used by make install
 example.conf            - An example ircd.conf file describing most of the
                           user settable options
+example.efnet.conf	- An example ircd.conf with settings suitable for
+			  EFnet.
+example.conf.quick	- Mostly like example.conf, but the comments have
+			  either been omitted or abridged.
 guidelines.txt		- Documentation guidelines
 index.txt		- This file
 ircd.8                  - The new revised manpage, read with the following
@@ -30,7 +34,6 @@ resv.txt		- Outline of the RESV command.
 server-version-info     - Overview of the flags shown in /version
 serverhide.txt          - Information about the server hide options
 simple.conf             - A simple ircd.conf useful for beginning admins
-vchans.txt              - The paper describing virtual channels
 whats-new.txt		- What new features are available
 
 Also in the contrib/ directory you will find:

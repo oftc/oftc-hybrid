@@ -27,7 +27,6 @@
 #include "client.h"
 #include "channel.h"
 #include "channel_mode.h"
-#include "vchannel.h"
 #include "hash.h"
 #include "ircd.h"
 #include "numeric.h"
@@ -40,6 +39,8 @@
 #include "parse.h"
 #include "fileio.h"
 #include "modules.h"
+
+/* $Id$ */
 
 static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char **parv);
 

@@ -44,7 +44,7 @@ static void ms_links(struct Client*, struct Client*, int, char**);
 
 struct Message links_msgtab = {
   "LINKS", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_links, ms_links, mo_links}
+  {m_unregistered, m_links, ms_links, mo_links, m_ignore}
 };
 #ifndef STATIC_MODULES
 
@@ -64,6 +64,7 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
+
 /*
  * m_links - LINKS message handler
  *      parv[0] = sender prefix
@@ -73,18 +74,18 @@ const char *_version = "$Revision$";
  *      parv[1] = server to query 
  *      parv[2] = servername mask
  */
-
-static void m_links(struct Client *client_p, struct Client *source_p,
-                   int parc, char *parv[])
+static void
+m_links(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
 {
   if (!ConfigServerHide.flatten_links)
-    {
-      mo_links(client_p, source_p, parc, parv);
-      return;
-    }
+  {
+    mo_links(client_p, source_p, parc, parv);
+    return;
+  }
 
-  SendMessageFile(source_p, &ConfigFileEntry.linksfile);
-    
+  send_message_file(source_p, &ConfigFileEntry.linksfile);
+
 /*
  * Print our own info so at least it looks like a normal links
  * then print out the file (which may or may not be empty)
@@ -97,28 +98,28 @@ static void m_links(struct Client *client_p, struct Client *source_p,
   sendto_one(source_p, form_str(RPL_ENDOFLINKS), me.name, parv[0], "*");
 }
 
-static void mo_links(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+mo_links(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
 {
-  char*    mask = "";
-  struct Client* target_p;
-  char           clean_mask[2 * HOSTLEN + 4];
-  char*          p;
+  const char *mask = "";
+  struct Client *target_p;
+  char clean_mask[2 * HOSTLEN + 4];
+  const char *p;
   struct hook_links_data hd;
-  
   dlink_node *ptr;
 
   if (parc > 2) 
+  {
+    if (!ConfigFileEntry.disable_remote || IsOper(source_p))
     {
-      if(!ConfigServerHide.disable_remote || IsOper(source_p))
-      {
         if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1, parc, parv)
             != HUNTED_ISME)
         return;
-      }
-
-      mask = parv[2];
     }
+
+    mask = parv[2];
+  }
   else if (parc == 2)
     mask = parv[1];
 
@@ -135,7 +136,7 @@ static void mo_links(struct Client *client_p, struct Client *source_p,
   
   hook_call_event("doing_links", &hd);
   
-  for (ptr = global_serv_list.head; ptr; ptr = ptr->next)
+  DLINK_FOREACH(ptr, global_serv_list.head)
     {
       target_p = ptr->data;
 
@@ -173,14 +174,15 @@ static void mo_links(struct Client *client_p, struct Client *source_p,
  *      parv[1] = server to query 
  *      parv[2] = servername mask
  */
-static void ms_links(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+ms_links(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
 {
   if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1, parc, parv)
       != HUNTED_ISME)
     return;
 
-  if(IsClient(source_p))
+  if (IsClient(source_p))
     m_links(client_p,source_p,parc,parv);
 }
 

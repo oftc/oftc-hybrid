@@ -260,8 +260,8 @@ static  struct  resinfo {
  * From bind 8.3, these aren't in earlier versions of bind
  *
  */
-extern u_short  _getshort(const u_char *);
-extern u_int    _getlong(const u_char *);
+extern unsigned short  _getshort(const unsigned char *);
+extern unsigned int    _getlong(const unsigned char *);
 /*
  * int
  * res_isourserver(ina)
@@ -330,7 +330,7 @@ static void start_resolver(void)
 int init_resolver(void)
 {
 
-#ifdef  LRAND48
+#ifdef  HAVE_LRAND48
   srand48(CurrentTime);
 #endif
   memset(&cainfo,   0, sizeof(cainfo));
@@ -691,7 +691,7 @@ static void query_name(const char* name, int query_class,
   if ((request_len = res_mkquery(QUERY, name, query_class, type, 
                                  NULL, 0, NULL, buf, sizeof(buf))) > 0) {
     HEADER* header = (HEADER*) buf;
-#ifndef LRAND48
+#ifndef HAVE_LRAND48
     int            k = 0;
     struct timeval tv;
 #endif
@@ -701,7 +701,7 @@ static void query_name(const char* name, int query_class,
      * network byte order, the nameserver does not interpret this value
      * and returns it unchanged
      */
-#ifdef LRAND48
+#ifdef HAVE_LRAND48
     do {
       header->id = (header->id + lrand48()) & 0xffff;
     } while (find_id(header->id));
@@ -711,7 +711,7 @@ static void query_name(const char* name, int query_class,
       header->id = (header->id + k + tv.tv_usec) & 0xffff;
       k++;
     } while (find_id(header->id));
-#endif /* LRAND48 */
+#endif /* HAVE_LRAND48 */
     request->id = header->id;
     ++request->sends;
 

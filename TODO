@@ -5,14 +5,14 @@ $Id$
 - re-implement first param in m_lusers()
 - trie' channel name list
 - finish RFC'ing m_message.c
-              
+
 ----
 is-'s TODO list
 
 - umode +R for registered nick
-- TBURST
 - change nick instead of kill on nick collide
 - dynamically extensible parser for modules
+-> this is the ratbox parser -joshk
 - modularize channel, network code etc (not just commands)
     we can use override_function() or similar for this
 - username/passwords (iauth ?)
@@ -60,26 +60,12 @@ db-->>ummm aconf->ipnum is used for IP based klines only, not for DNS
 * Add the IRCnet(?) split logic for nick collisions - on a nick collision,
   change to "%d-%s", random, nick
 
-* Hrm. Since Diane changed the user->channel code to use dlink_lists,
-  she's made some things faster (deopping lists of people in a net.join,
-  finding an op, etc) but some things slower (deleting from the channel,
-  change_channel_membership(), etc.) What needs to happen is that for
-  each channel a user is on, a flag needs to be set tracking which list
-  they're on so we don't have to search the lists when we want to change
-  their status. This could become a slow-CPU sticking point.
-
-db-->> Actually, the old code was just as slow at doing that, since
-    it was a link list of SLink's with a flag denoting whether client
-    on channel was an op or not... With a channel of 100 clients and 
-    thats 100 link SLink's
-
 ------------------------------------------------------------------------------
 Little things to be done given enough time and initiative -Hwy
 
 .  The 3 logging path settings are NOOP in the conf (logpath, oper_log, 
    gline_log)
 .  Fix convertconf more
-.  2 pass conf parser (grab classes before anything that uses them)
 .  Re-add the ability to set usermodes from the conf (oldconf field after the
    O: line class)
 .  <Riedel> walter : have you implemented the motd= thing in the auth block ?
@@ -120,3 +106,25 @@ Little things to be done given enough time and initiative -Hwy
   flood messages on a channel in t seconds.. This log would be available
   to hand to authorities if requested.
 
+-- Josh's list
+
+* Find out the status of the build with IRIX64/MIPSpro.
+* Make modules.c more flexible in anticipation of Win32 modules usability.
+* LAZY LINKS ARE BROKEN!!!
+* TENDRA IS BROKEN! (Not quite our fault)
+* Fix lack of error message for oper initiating /connect that fails because
+it's a leaf.
+
+-- metalrock's list
+
+* Don't show local channels in a remote whois.
+* Write documentation for example.conf changes.
+
+-- adx's list
+
+* umode +G - prevents people who are not on any common channel
+from talking to you unless you /QUOTE ACCEPT them. This could help
+users who are getting spammed by spy+spambot tandem.
+
+* Although hybrid is designed to be used mainly on EFnet, it wouldn't hurt
+if it was a bit more services friendly..

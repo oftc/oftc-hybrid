@@ -40,7 +40,7 @@ static void ms_svinfo(struct Client*, struct Client*, int, char**);
 
 struct Message svinfo_msgtab = {
   "SVINFO", 0, 0, 4, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_ignore, ms_svinfo, m_ignore}
+  {m_unregistered, m_ignore, ms_svinfo, m_ignore, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -89,10 +89,10 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
        * TS_ONLY we can't fall back to the non-TS protocol so
        * we drop the link  -orabidoo
        */
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
             "Link %s dropped, wrong TS protocol version (%s,%s)",
             get_client_name(source_p, SHOW_IP), parv[1], parv[2]);
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
                  "Link %s dropped, wrong TS protocol version (%s,%s)",
                  get_client_name(source_p, MASK_IP), parv[1], parv[2]);
       exit_client(source_p, source_p, source_p, "Incompatible TS version");
@@ -108,12 +108,18 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
 
   if (deltat > ConfigFileEntry.ts_max_delta)
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
           "Link %s dropped, excessive TS delta (my TS=%lu, their TS=%lu, delta=%d)",
           get_client_name(source_p, SHOW_IP),
           (unsigned long) CurrentTime,
           (unsigned long) theirtime,
           (int) deltat);
+      sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
+          "Link %s dropped, excessive TS delta (my TS=%lu, their TS=%lu, delta=%d)",
+           get_client_name(source_p, MASK_IP),
+           (unsigned long) CurrentTime,
+           (unsigned long) theirtime,
+           (int) deltat);
       ilog(L_NOTICE,
           "Link %s dropped, excessive TS delta (my TS=%lu, their TS=%lu, delta=%d)",
           get_client_name(source_p, SHOW_IP),
@@ -126,7 +132,7 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
 
   if (deltat > ConfigFileEntry.ts_warn_delta)
     { 
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                 "Link %s notable TS delta (my TS=%lu, their TS=%lu, delta=%d)",
                 source_p->name,
                 (unsigned long) CurrentTime,

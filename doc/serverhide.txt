@@ -13,9 +13,7 @@
    This document describes the Hybrid 7 implementation of the server hiding
    ideas originated by (and credited to) numerous people.
 
-     * 
-
-       LINKS as a file: This option is always enabled. It will generate a
+     * LINKS as a file: This option is always enabled. It will generate a
        file at a certain interval, defined by the links_delay in ircd.conf,
        that contains the current LINKS data. This data is sent to users
        whenever a LINKS is requested. Opers will always see the current
@@ -27,9 +25,7 @@
        users issuing LINKS commands, and if a server is split, users can
        still see what other servers are normally available.
 
-     * 
-
-       Flattened LINKS: This option forces every server to look as if it is
+     * Flattened LINKS: This option forces every server to look as if it is
        connected to the local server. Users will see a flat LINKS tree.
 
        The benefit to using LINKS flattening is that users cannot get
@@ -48,9 +44,7 @@
 
         
 
-     * 
-
-       Hidden server option: This option will hide the server from a
+     * Hidden server option: This option will hide the server from a
        flattened LINKS list on other servers. Opers will of course see the
        true routing of the network.
 
@@ -63,14 +57,10 @@
        | the (H) means hidden.                                              |
        +--------------------------------------------------------------------+
 
-     * 
-
-       The allow_hidden option is needed to allow servers to use the hidden
+     * The allow_hidden option is needed to allow servers to use the hidden
        server option described above.
 
-     * 
-
-       The hide_servers option forces the server to not be shown when a user
+     * The hide_servers option forces the server to not be shown when a user
        issues WHOIS and other commands which may show what server a user is
        on.
 
@@ -81,9 +71,7 @@
 
        To be effective, this option must be used network wide.
 
-     * 
-
-       The disable_remote_commands option takes care of most of the remaining
+     * The disable_remote_commands option takes care of most of the remaining
        issues. These include, for example, ADMIN some.hub.server, VERSION
        someuser, and similar commands. A server with this option enabled will
        only prevent local users from issuing remote commands. Remote users
@@ -93,16 +81,7 @@
        querying WHOIS nick nick. The ircd will disregard the server parameter
        and always use queried nick.
 
-     * 
-
-       The disable_local_channels option will not allow users to join local
-       &channels. This option is a little extreme, taking away a lot of user
-       privilege. It was created to handle the possible hole in server hide
-       shown below.
-
-     * 
-
-       All server modes appear to originate from the server you are using.
+     * All server modes appear to originate from the server you are using.
        This feature is not tunable; and opers also do not see the real server
        setting the mode.
 
@@ -135,7 +114,7 @@ Using Non-QS Compliant Hubs
    The flattened LINKS option will, as a side effect, display all user QUIT's
    due to network splits in the following format:
 
-   :user QUIT :your.server.name *.split
+   :user QUIT :*.net *.split
 
    This works extremely well as long as all servers on your network are
    compliant with the QS capability, which sends a single SQUIT to the

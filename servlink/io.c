@@ -18,18 +18,7 @@
  *   $Id$
  */
 
-#include "setup.h"
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <assert.h>
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <unistd.h>
+#include "stdinc.h"
 
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/evp.h>
@@ -45,7 +34,8 @@
 
 static int check_error(int, int, int);
 
-static char *fd_name(int fd)
+static const char *
+fd_name(int fd)
 {
   if (fd == CONTROL_R.fd)
     return "control read";
@@ -59,7 +49,7 @@ static char *fd_name(int fd)
     return "network";
 
   /* uh oh... */
-  return "unknown";
+  return("unknown");
 }
 
 #if defined( HAVE_LIBCRYPTO ) || defined( HAVE_LIBZ )
@@ -73,7 +63,8 @@ static unsigned char ctrl_buf[256] = "";
 static unsigned int  ctrl_len = 0;
 static unsigned int  ctrl_ofs = 0;
 
-void io_loop(int nfds)
+void
+io_loop(int nfds)
 {
   fd_set rfds;
   fd_set wfds;
@@ -114,7 +105,8 @@ void io_loop(int nfds)
   }
 }
 
-void send_data_blocking(int fd, unsigned char *data, int datalen)
+void
+send_data_blocking(int fd, unsigned char *data, int datalen)
 {
   int ret;
   fd_set wfds;
@@ -158,7 +150,8 @@ void send_data_blocking(int fd, unsigned char *data, int datalen)
  * used before CMD_INIT to pass contents of SendQ from ircd
  * to servlink.  This data must _not_ be encrypted/compressed.
  */
-void process_sendq(struct ctrl_command *cmd)
+void
+process_sendq(struct ctrl_command *cmd)
 {
   send_data_blocking(REMOTE_W.fd, cmd->data, cmd->datalen);
 }
@@ -170,7 +163,8 @@ void process_sendq(struct ctrl_command *cmd)
  * to servlink.  This data must be decrypted/decopmressed before
  * sending back to the ircd.
  */
-void process_recvq(struct ctrl_command *cmd)
+void
+process_recvq(struct ctrl_command *cmd)
 {
   int ret;
   unsigned char *buf;
@@ -200,26 +194,26 @@ void process_recvq(struct ctrl_command *cmd)
   if (in_state.zip)
   {
     /* decompress data */
-    in_state.zip_state.z_stream.next_in = buf;
-    in_state.zip_state.z_stream.avail_in = blen;
-    in_state.zip_state.z_stream.next_out = tmp2_buf;
-    in_state.zip_state.z_stream.avail_out = BUFLEN;
+    in_state.zip_state.stream.next_in = buf;
+    in_state.zip_state.stream.avail_in = blen;
+    in_state.zip_state.stream.next_out = tmp2_buf;
+    in_state.zip_state.stream.avail_out = BUFLEN;
 
     buf = tmp2_buf;
-    while(in_state.zip_state.z_stream.avail_in)
+    while(in_state.zip_state.stream.avail_in)
     {
-      if ((ret = inflate(&in_state.zip_state.z_stream,
+      if ((ret = inflate(&in_state.zip_state.stream,
                          Z_NO_FLUSH)) != Z_OK)
         send_error("Inflate failed: %d", ret);
 
-      blen = BUFLEN - in_state.zip_state.z_stream.avail_out;
+      blen = BUFLEN - in_state.zip_state.stream.avail_out;
 
-      if (in_state.zip_state.z_stream.avail_in)
+      if (in_state.zip_state.stream.avail_in)
       {
         send_data_blocking(LOCAL_W.fd, buf, blen);
         blen = 0;
-        in_state.zip_state.z_stream.next_out = buf;
-        in_state.zip_state.z_stream.avail_out = BUFLEN;
+        in_state.zip_state.stream.next_out = buf;
+        in_state.zip_state.stream.avail_out = BUFLEN;
       }
     }
 
@@ -245,30 +239,30 @@ void send_zipstats(struct ctrl_command *unused)
   ctrl_buf[i++] = RPL_ZIPSTATS;
   ctrl_buf[i++] = 0;
   ctrl_buf[i++] = 16;
-  ctrl_buf[i++] = ((in_state.zip_state.z_stream.total_out >> 24) & 0xFF);
-  ctrl_buf[i++] = ((in_state.zip_state.z_stream.total_out >> 16) & 0xFF);
-  ctrl_buf[i++] = ((in_state.zip_state.z_stream.total_out >>  8) & 0xFF);
-  ctrl_buf[i++] = ((in_state.zip_state.z_stream.total_out      ) & 0xFF);
+  ctrl_buf[i++] = ((in_state.zip_state.stream.total_out >> 24) & 0xFF);
+  ctrl_buf[i++] = ((in_state.zip_state.stream.total_out >> 16) & 0xFF);
+  ctrl_buf[i++] = ((in_state.zip_state.stream.total_out >>  8) & 0xFF);
+  ctrl_buf[i++] = ((in_state.zip_state.stream.total_out      ) & 0xFF);
 
-  ctrl_buf[i++] = ((in_state.zip_state.z_stream.total_in >> 24) & 0xFF);
-  ctrl_buf[i++] = ((in_state.zip_state.z_stream.total_in >> 16) & 0xFF);
-  ctrl_buf[i++] = ((in_state.zip_state.z_stream.total_in >>  8) & 0xFF);
-  ctrl_buf[i++] = ((in_state.zip_state.z_stream.total_in      ) & 0xFF);
+  ctrl_buf[i++] = ((in_state.zip_state.stream.total_in >> 24) & 0xFF);
+  ctrl_buf[i++] = ((in_state.zip_state.stream.total_in >> 16) & 0xFF);
+  ctrl_buf[i++] = ((in_state.zip_state.stream.total_in >>  8) & 0xFF);
+  ctrl_buf[i++] = ((in_state.zip_state.stream.total_in      ) & 0xFF);
 
-  ctrl_buf[i++] = ((out_state.zip_state.z_stream.total_in >> 24) & 0xFF);
-  ctrl_buf[i++] = ((out_state.zip_state.z_stream.total_in >> 16) & 0xFF);
-  ctrl_buf[i++] = ((out_state.zip_state.z_stream.total_in >>  8) & 0xFF);
-  ctrl_buf[i++] = ((out_state.zip_state.z_stream.total_in      ) & 0xFF);
+  ctrl_buf[i++] = ((out_state.zip_state.stream.total_in >> 24) & 0xFF);
+  ctrl_buf[i++] = ((out_state.zip_state.stream.total_in >> 16) & 0xFF);
+  ctrl_buf[i++] = ((out_state.zip_state.stream.total_in >>  8) & 0xFF);
+  ctrl_buf[i++] = ((out_state.zip_state.stream.total_in      ) & 0xFF);
 
-  ctrl_buf[i++] = ((out_state.zip_state.z_stream.total_out >> 24) & 0xFF);
-  ctrl_buf[i++] = ((out_state.zip_state.z_stream.total_out >> 16) & 0xFF);
-  ctrl_buf[i++] = ((out_state.zip_state.z_stream.total_out >>  8) & 0xFF);
-  ctrl_buf[i++] = ((out_state.zip_state.z_stream.total_out      ) & 0xFF);
+  ctrl_buf[i++] = ((out_state.zip_state.stream.total_out >> 24) & 0xFF);
+  ctrl_buf[i++] = ((out_state.zip_state.stream.total_out >> 16) & 0xFF);
+  ctrl_buf[i++] = ((out_state.zip_state.stream.total_out >>  8) & 0xFF);
+  ctrl_buf[i++] = ((out_state.zip_state.stream.total_out      ) & 0xFF);
 
-  in_state.zip_state.z_stream.total_in = 0;
-  in_state.zip_state.z_stream.total_out = 0;
-  out_state.zip_state.z_stream.total_in = 0;
-  out_state.zip_state.z_stream.total_out = 0;
+  in_state.zip_state.stream.total_in = 0;
+  in_state.zip_state.stream.total_out = 0;
+  out_state.zip_state.stream.total_in = 0;
+  out_state.zip_state.stream.total_out = 0;
   
   ret = check_error(write(CONTROL_W.fd, ctrl_buf, i), IO_WRITE, CONTROL_W.fd);
   if (ret < i)
@@ -291,7 +285,7 @@ void send_zipstats(struct ctrl_command *unused)
  *     flush the control fd sendq, then (blocking) send an
  *     error message over the control fd.
  */
-void send_error(char *message, ...)
+void send_error(const char *message, ...)
 {
   va_list args;
   static int sending_error = 0;
@@ -465,27 +459,29 @@ void read_data(void)
 #ifdef HAVE_LIBZ
     if (out_state.zip)
     {
-      out_state.zip_state.z_stream.next_in = buf;
-      out_state.zip_state.z_stream.avail_in = ret;
+      out_state.zip_state.stream.next_in = buf;
+      out_state.zip_state.stream.avail_in = ret;
 
       buf = out_state.buf;
-#ifdef HAVE_LIB_CRYPTO
+      
+#ifdef HAVE_LIBCRYPTO
       if (out_state.crypt)
         buf = tmp2_buf;
 #endif
-      out_state.zip_state.z_stream.next_out = buf;
-      out_state.zip_state.z_stream.avail_out = BUFLEN;
-      if(!(ret2 = deflate(&out_state.zip_state.z_stream,
+
+      out_state.zip_state.stream.next_out = buf;
+      out_state.zip_state.stream.avail_out = BUFLEN;
+      if(!(ret2 = deflate(&out_state.zip_state.stream,
                           Z_PARTIAL_FLUSH)) == Z_OK)
         send_error("error compressing outgoing data - deflate returned %d",
                    ret2);
 
-      if (!out_state.zip_state.z_stream.avail_out)
+      if (!out_state.zip_state.stream.avail_out)
         send_error("error compressing outgoing data - avail_out == 0");
-      if (out_state.zip_state.z_stream.avail_in)
+      if (out_state.zip_state.stream.avail_in)
         send_error("error compressing outgoing data - avail_in != 0");
 
-      blen = BUFLEN - out_state.zip_state.z_stream.avail_out;
+      blen = BUFLEN - out_state.zip_state.stream.avail_out;
     }
 #endif
 
@@ -589,20 +585,20 @@ void read_net(void)
     if (in_state.zip)
     {
       /* decompress data */
-      in_state.zip_state.z_stream.next_in = buf;
-      in_state.zip_state.z_stream.avail_in = ret;
-      in_state.zip_state.z_stream.next_out = in_state.buf;
-      in_state.zip_state.z_stream.avail_out = BUFLEN;
+      in_state.zip_state.stream.next_in = buf;
+      in_state.zip_state.stream.avail_in = ret;
+      in_state.zip_state.stream.next_out = in_state.buf;
+      in_state.zip_state.stream.avail_out = BUFLEN;
 
-      while (in_state.zip_state.z_stream.avail_in)
+      while (in_state.zip_state.stream.avail_in)
       {
-        if ((ret2 = inflate(&in_state.zip_state.z_stream,
+        if ((ret2 = inflate(&in_state.zip_state.stream,
                             Z_NO_FLUSH)) != Z_OK)
           send_error("inflate failed: %d", ret2);
 
-        blen = BUFLEN - in_state.zip_state.z_stream.avail_out;
+        blen = BUFLEN - in_state.zip_state.stream.avail_out;
 
-        if (in_state.zip_state.z_stream.avail_in)
+        if (in_state.zip_state.stream.avail_in)
         {
           if (blen)
           {
@@ -610,8 +606,8 @@ void read_net(void)
             blen = 0;
           }
 
-          in_state.zip_state.z_stream.next_out = in_state.buf;
-          in_state.zip_state.z_stream.avail_out = BUFLEN;
+          in_state.zip_state.stream.next_out = in_state.buf;
+          in_state.zip_state.stream.avail_out = BUFLEN;
         }
       }
 
@@ -677,7 +673,8 @@ int check_error(int ret, int io, int fd)
   }
   
   /* ret == -1.. */
-  switch (errno) {
+  switch (errno)
+  {
     case EINPROGRESS:
     case EWOULDBLOCK:
 #if EAGAIN != EWOULDBLOCK

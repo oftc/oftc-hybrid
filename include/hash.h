@@ -25,68 +25,35 @@
 #ifndef INCLUDED_hash_h
 #define INCLUDED_hash_h
 
-/* 
- * Client hash table size
- *
- * used in hash.c, s_debug.c
- */
-#define U_MAX 65536
-
-/* 
- * Channel hash table size
- *
- * used in hash.c, s_debug.c
- */
-#define CH_MAX 16384
-
-/*
- * RESV hash table size
- *
- * used in hash.c
- */
-#define R_MAX 1024
-
 struct Client;
 struct Channel;
 struct ResvChannel;
+struct UserHost;
 
-struct HashEntry {
-  int    hits;
-  int    links;
-  void*  list;
-};
+extern struct Channel *get_or_create_channel(struct Client *client_p, char *chname, int *isnew);
 
-struct Client *find_id(const char *name);
-extern int add_to_id_hash_table(char *, struct Client *);
-extern struct HashEntry hash_get_channel_block(int i);
+extern void init_hash(void);
 
-extern struct Channel
-*get_or_create_channel(struct Client *client_p, char *chname, int *isnew);
+extern void hash_add_client(struct Client *);
+extern void hash_del_client(struct Client *);
+extern void hash_add_channel(struct Channel *);
+extern void hash_del_channel(struct Channel *);
+extern void hash_add_resv(struct ResvChannel *);
+extern void hash_del_resv(struct ResvChannel *);
+extern void hash_add_id(struct Client *);
+extern void hash_del_id(struct Client *);
+extern void hash_add_userhost(struct UserHost *);
+extern void hash_del_userhost(struct UserHost *);
 
-extern size_t hash_get_client_table_size(void);
-extern size_t hash_get_channel_table_size(void);
-extern size_t hash_get_resv_table_size(void);
-
-extern void   init_hash(void);
-extern void   add_to_client_hash_table(const char* name, 
-                                       struct Client* client);
-extern void   del_from_client_hash_table(const char* name, 
-                                         struct Client* client);
-extern void   del_from_id_hash_table(const char *name, struct Client *client);
-extern void   del_from_channel_hash_table(const char* name, 
-                                          struct Channel* chan);
-extern struct Channel* hash_find_channel(const char* name);
-extern struct Client* find_client(const char* name);
-extern struct Client* find_server(const char* name);
-extern struct Client* hash_find_server(const char* name);
-
-extern void add_to_resv_hash_table(const char *name,
-                                   struct ResvChannel *resv_p);
-extern void del_from_resv_hash_table(const char *name,
-                                     struct ResvChannel *resv_p);
+extern struct UserHost *hash_find_userhost(const char *host);
+extern struct Client *hash_find_id(const char *name);
+extern struct Client *find_client(const char *name);
+extern struct Client *find_server(const char *name);
+extern struct Client *hash_find_server(const char *name);
+extern struct Channel *hash_find_channel(const char *name);
 extern struct ResvChannel *hash_find_resv(const char *name);
 
+/* XXX ZZZ */
+extern void free_list_task(struct ListTask *, struct Client *);
+extern void safe_list_channels(struct Client *source_p, struct ListTask *, int, int);
 #endif  /* INCLUDED_hash_h */
-
-
-

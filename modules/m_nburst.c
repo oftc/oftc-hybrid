@@ -46,7 +46,7 @@ static void ms_nburst(struct Client*, struct Client*, int, char**);
 
 struct Message nburst_msgtab = {
   "NBURST", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0L,
-  {m_unregistered, m_ignore, ms_nburst, m_ignore}
+  {m_unregistered, m_ignore, ms_nburst, m_ignore, m_ignore}
 };
 #ifndef STATIC_MODULES
 
@@ -76,10 +76,9 @@ const char *_version = "$Revision$";
  * the given LL capable server.
  */
 
-static void ms_nburst(struct Client *client_p,
-                     struct Client *source_p,
-                     int parc,
-                     char *parv[])
+static void
+ms_nburst(struct Client *client_p, struct Client *source_p,
+          int parc, char *parv[])
 {
   char *nick;
   char *nick_new = NULL;
@@ -87,22 +86,21 @@ static void ms_nburst(struct Client *client_p,
   struct Client *target_p;
   char status;
 
-  if( parc < 2 || *parv[1] == '\0' )
+  if (parc < 2 || *parv[1] == '\0')
      return;
 
   nick = parv[1];
 
-  if( parc > 2 )
+  if (parc > 2)
     nick_new = parv[2];
 
-  if( parc > 3 )
+  if (parc > 3)
     nick_old = parv[3];
 
   if (!ServerInfo.hub && IsCapable(client_p, CAP_LL))
     return;
-
 #ifdef DEBUGLL
-  sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL, "NBURST called by %s for %s %s %s",
+  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "NBURST called by %s for %s %s %s",
     client_p->name,
     nick,
     nick_new ? nick_new : "",
@@ -121,6 +119,4 @@ static void ms_nburst(struct Client *client_p,
   if (parc > 2)
     sendto_one(client_p, ":%s LLNICK %c %s %s", me.name, status, nick_new,
                (nick_old ? nick_old : ""));
-
-  return;
 }

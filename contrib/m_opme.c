@@ -21,6 +21,7 @@
 #include "tools.h"
 #include "handlers.h"
 #include "channel.h"
+#include "channel_mode.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
@@ -33,18 +34,17 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "vchannel.h"
 
 
-static void mo_opme(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[]);
+static void mo_opme(struct Client *client_p, struct Client *source_p, int parc, char *parv[]);
 static int chan_is_opless(struct Channel *chptr);
 
 struct Message opme_msgtab = {
   "OPME", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, mo_opme}
+  {m_unregistered, m_not_oper, m_ignore, mo_opme, m_ignore}
 };
 
+#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -57,14 +57,20 @@ _moddeinit(void)
   mod_del_cmd(&opme_msgtab);
 }
 
-char *_version = "$Revision$";
+const char *_version = "$Revision$";
 
-static int chan_is_opless(struct Channel *chptr)
+#endif
+
+static int
+chan_is_opless(struct Channel *chptr)
 {
-  if (chptr->chanops.head)
-	  return 0;
-  else
-	  return 1;
+  dlink_node *ptr;
+
+  DLINK_FOREACH(ptr, chptr->members.head)
+    if (((struct Membership *)ptr->data)->flags & CHFL_CHANOP)
+      return(0);
+
+  return(1);
 }
 
 /*
@@ -72,155 +78,83 @@ static int chan_is_opless(struct Channel *chptr)
 **      parv[0] = sender prefix
 **      parv[1] = channel
 */
-static void mo_opme(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+mo_opme(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
 {
-  struct Channel *chptr, *root_chptr;
-  int on_vchan = 0;
-  dlink_node *ptr;
-  dlink_node *locptr;
-  
+  struct Channel *chptr;
+  struct Membership *member;
+
   /* admins only */
   if (!IsAdmin(source_p))
-    {
-      sendto_one(source_p, ":%s NOTICE %s :You have no A flag", me.name,
-                 parv[0]);
-      return;
-    }
-
-  /* XXX - we might not have CBURSTed this channel if we are a lazylink
-   * yet. */
-  chptr= hash_find_channel(parv[1]);
-  root_chptr = chptr;
-
-#ifdef VCHANS
-  if (chptr && parc > 2 && parv[2][0] == '!')
-    {
-      chptr = find_vchan(chptr, parv[2]);
-      if (root_chptr != chptr)
-		  on_vchan++;
-    }
-#endif
-  
-  if( chptr == NULL )
-    {
-      sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-		 me.name, parv[0], parv[1]);
-      return;
-    }
-
-  if (!chan_is_opless(chptr))
   {
-    sendto_one(source_p, ":%s NOTICE %s :%s Channel is not opless",
-               me.name, parv[0], parv[1]);
+    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+               me.name, source_p->name);
     return;
   }
 
-  if ((ptr = find_user_link(&chptr->peons, source_p)))
-	  dlinkDelete(ptr, &chptr->peons);
-  else if ((ptr = find_user_link(&chptr->voiced, source_p)))
-	  dlinkDelete(ptr, &chptr->voiced);
-#ifdef HALFOPS
-  else if ((ptr = find_user_link(&chptr->halfops, source_p)))
-	  dlinkDelete(ptr, &chptr->halfops);
-#endif
-  else if ((ptr = find_user_link(&chptr->chanops, source_p)))
-	  dlinkDelete(ptr, &chptr->chanops);
-#ifdef REQUIRE_OANDV
-  else if((ptr = find_user_link(&chptr->chanops_voiced, source_p)))
-    dlinkDelete(ptr, &chptr->chanops_voiced);
-#endif
-  else
-    {
-       /* Theyre not even on the channel, bail. */
-       return;      
-    }
-
-  if((locptr = find_user_link(&chptr->locpeons, source_p)))
-    dlinkDelete(locptr, &chptr->locpeons);
-  else if((locptr = find_user_link(&chptr->locvoiced, source_p)))
-    dlinkDelete(locptr, &chptr->locvoiced);
-#ifdef HALFOPS
-  else if((locptr = find_user_link(&chptr->lochalfops, source_p)))
-    dlinkDelete(locptr, &chptr->lochalfops);
-#endif
-  else if((locptr = find_user_link(&chptr->locchanops, source_p)))
-    dlinkDelete(locptr, &chptr->locchanops);
-  
-#ifdef REQUIRE_OANDV
-  else if((locptr = find_user_link(&chptr->locchanops_voiced, source_p)))
-    dlinkDelete(locptr, &chptr->locchanops_voiced);
-#endif
-
-  else
+  /* XXX - we might not have CBURSTed this channel if we are a lazylink
+   * yet. */
+  if ((chptr = hash_find_channel(parv[1])) == NULL)
+  {
+    sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
+               me.name, source_p->name, parv[1]);
     return;
+  }
 
-  dlinkAdd(source_p, ptr, &chptr->chanops);
-  dlinkAdd(source_p, locptr, &chptr->locchanops);
+  if ((member = find_channel_link(source_p, chptr)) == NULL)
+  {
+    sendto_one(source_p, form_str(ERR_NOTONCHANNEL),
+               me.name, source_p->name, parv[1]);
+    return;
+  }
 
-  if (!on_vchan)
-    {
-     if (parv[1][0] == '&')
-     {
-       sendto_wallops_flags(FLAGS_LOCOPS, &me,
-                            "OPME called for [%s] by %s!%s@%s",
-                            parv[1], source_p->name, source_p->username,
-                            source_p->host);
-     }
-     else
-     {
-       sendto_wallops_flags(FLAGS_WALLOP, &me,
-                            "OPME called for [%s] by %s!%s@%s",
-                            parv[1], source_p->name, source_p->username,
-                            source_p->host);
-       sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
-                     ":%s WALLOPS :OPME called for [%s] by %s!%s@%s",
-                     me.name, parv[1], source_p->name, source_p->username,
-                     source_p->host);
-     }
-     ilog(L_NOTICE, "OPME called for [%s] by %s!%s@%s",
-                   parv[1], source_p->name, source_p->username,
-                   source_p->host);
-    }
+  if (chan_is_opless(chptr) == 0)
+  {
+    sendto_one(source_p, ":%s NOTICE %s :%s Channel is not opless",
+               me.name, source_p->name, parv[1]);
+    return;
+  }
+
+  AddMemberFlag(member, CHFL_CHANOP);
+
+  if (parv[1][0] == '&')
+  {
+    sendto_wallops_flags(UMODE_LOCOPS, &me,
+                         "OPME called for [%s] by %s!%s@%s",
+                         parv[1], source_p->name, source_p->username,
+                         source_p->host);
+  }
   else
-    {
-     if (parv[1][0] == '&')
-     {
-       sendto_wallops_flags(FLAGS_LOCOPS, &me,
-                            "OPME called for [%s %s] by %s!%s@%s",
-                            parv[1], parv[2], source_p->name,
-                            source_p->username, source_p->host);
-     }
-     else
-     {
-       sendto_wallops_flags(FLAGS_WALLOP, &me,
-                            "OPME called for [%s %s] by %s!%s@%s",
-                            parv[1], parv[2], source_p->name,
-                            source_p->username, source_p->host);
-       sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
-                     ":%s WALLOPS :OPME called for [%s %s] by %s!%s@%s",
-                     me.name, parv[1], parv[2], source_p->name,
-                     source_p->username, source_p->host);
-     }
-     ilog(L_NOTICE, "OPME called for [%s %s] by %s!%s@%s",
-                   parv[1], parv[2], source_p->name, source_p->username,
-                   source_p->host);
-    }
+  {
+    sendto_wallops_flags(UMODE_WALLOP, &me,
+                         "OPME called for [%s] by %s!%s@%s",
+                         parv[1], source_p->name, source_p->username,
+                         source_p->host);
+    sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
+                  ":%s WALLOPS :OPME called for [%s] by %s!%s@%s",
+                  me.name, parv[1], source_p->name, source_p->username,
+                  source_p->host);
+  }
 
-  sendto_server(NULL, source_p, chptr, CAP_UID, NOCAPS, NOFLAGS,
+  ilog(L_NOTICE, "OPME called for [%s] by %s!%s@%s",
+       parv[1], source_p->name, source_p->username,
+       source_p->host);
+
+  sendto_server(NULL, source_p, chptr, CAP_SID, NOCAPS, NOFLAGS,
                  ":%s PART %s", ID(source_p), parv[1]);
-  sendto_server(NULL, source_p, chptr, NOCAPS, CAP_UID, NOFLAGS,
+  sendto_server(NULL, source_p, chptr, NOCAPS, CAP_SID, NOFLAGS,
                 ":%s PART %s", source_p->name, parv[1]);
-  sendto_server(NULL, source_p, chptr, CAP_UID, NOCAPS, NOFLAGS,
+  sendto_server(NULL, source_p, chptr, CAP_SID, NOCAPS, NOFLAGS,
                 ":%s SJOIN %ld %s + :@%s",
-                me.name, (signed long) chptr->channelts,
+                me.name, (unsigned long)chptr->channelts,
                 parv[1],
                 source_p->name /* XXX ID(source_p) */ );
-  sendto_server(NULL, source_p, chptr, NOCAPS, CAP_UID, NOFLAGS,
+  sendto_server(NULL, source_p, chptr, NOCAPS, CAP_SID, NOFLAGS,
                 ":%s SJOIN %ld %s + :@%s",
-                me.name, (signed long) chptr->channelts,
+                me.name, (unsigned long)chptr->channelts,
                 parv[1], source_p->name);
-  sendto_channel_local(ALL_MEMBERS, chptr,
-                       ":%s MODE %s +o %s",
+
+  sendto_channel_local(ALL_MEMBERS, chptr, ":%s MODE %s +o %s",
                        me.name, parv[1], source_p->name);
 }

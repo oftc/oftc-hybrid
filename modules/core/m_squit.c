@@ -26,6 +26,7 @@
 #include "handlers.h"
 #include "client.h"
 #include "common.h"      /* FALSE bleah */
+#include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
@@ -38,12 +39,12 @@
 #include "modules.h"
 
 
-static void ms_squit(struct Client*, struct Client*, int, char**);
-static void mo_squit(struct Client*, struct Client*, int, char**);
+static void ms_squit(struct Client *, struct Client *, int, char **);
+static void mo_squit(struct Client *, struct Client *, int, char **);
 
 struct Message squit_msgtab = {
   "SQUIT", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_squit, mo_squit}
+  {m_unregistered, m_not_oper, ms_squit, mo_squit, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -58,171 +59,132 @@ _moddeinit(void)
 {
   mod_del_cmd(&squit_msgtab);
 }
+
 const char *_version = "$Revision$";
 #endif
-struct squit_parms 
-{
-  char *server_name;
-  struct Client *target_p;
-};
 
-static struct squit_parms *find_squit(struct Client *client_p,
-                                      struct Client *source_p,
-                                      char *server);
-
-
-/*
- * mo_squit - SQUIT message handler
- *      parv[0] = sender prefix
- *      parv[1] = server name
- *      parv[2] = comment
+/* mo_squit - SQUIT message handler
+ *  parv[0] = sender prefix
+ *  parv[1] = server name
+ *  parv[2] = comment
  */
-static void mo_squit(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+mo_squit(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
 {
-  struct squit_parms *found_squit;
-  char  *comment = (parc > 2 && parv[2]) ? parv[2] : client_p->name;
+  struct Client *target_p = NULL;
+  struct Client *p;
+  dlink_node *ptr;
+  char *comment;
+  const char *server;
+  char def_reason[] = "No reason specified";
 
-  if (!IsOperRemote(source_p))
-    {
-      sendto_one(source_p,":%s NOTICE %s :You need remote = yes;",me.name,parv[0]);
-      return;
-    }
+  if (parc < 2 || EmptyString(parv[1]))
+  {
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+               me.name, source_p->name, "SQUIT");
+    return;
+  }
 
-  if(parc < 2)
-    {
-      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), 
-              me.name, parv[0], "SQUIT");
-      return;
-    }
+  server = parv[1];
 
-  if( (found_squit = find_squit(client_p,source_p,parv[1])) )
+  /* The following allows wild cards in SQUIT. Only
+   * useful when the command is issued by an oper.
+   */
+  DLINK_FOREACH(ptr, global_serv_list.head)
+  {
+    p = ptr->data;
+
+    if (IsServer(p) || IsMe(p))
     {
-      if(MyConnect(found_squit->target_p))
-	    {
-	      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-                "Received SQUIT %s from %s (%s)",
-                found_squit->target_p->name,
-                get_client_name(source_p, HIDE_IP), comment);
-          ilog(L_NOTICE, "Received SQUIT %s from %s (%s)",
-                found_squit->target_p->name, get_client_name(source_p, HIDE_IP),
-                comment);
-	    }
-      exit_client(client_p, found_squit->target_p, source_p, comment);
-      return;
+      if (match(server, p->name))
+      {
+        target_p = p;
+        break;
+      }
     }
-  else
-    {
-      sendto_one(source_p, form_str(ERR_NOSUCHSERVER), me.name, parv[0], parv[1]);
-    }
+  }
+
+  if ((target_p == NULL) || IsMe(target_p))
+  {
+    sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
+               me.name, source_p->name, server);
+    return;
+  }
+
+  if (!MyConnect(target_p) && !IsOperRemote(source_p))
+  {
+    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+               me.name, source_p->name);
+    return;
+  }
+
+  comment = (parc > 2 && parv[2]) ? parv[2] : def_reason;
+
+  if (strlen(comment) > (size_t)TOPICLEN)
+    comment[TOPICLEN] = '\0';
+
+  if (MyConnect(target_p))
+  {
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Received SQUIT %s from %s (%s)",
+                         target_p->name, get_client_name(source_p, HIDE_IP), comment);
+    ilog(L_NOTICE, "Received SQUIT %s from %s (%s)",
+         target_p->name, get_client_name(source_p, HIDE_IP), comment);
+  }
+
+  exit_client(client_p, target_p, source_p, comment);
 }
 
-/*
- * ms_squit - SQUIT message handler
- *      parv[0] = sender prefix
- *      parv[1] = server name
- *      parv[2] = comment
- */
-static void ms_squit(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
-{
-  struct squit_parms *found_squit;
-  char  *comment = (parc > 2 && parv[2]) ? parv[2] : client_p->name;
+/** NOTE: I removed wildcard lookups here, because a wildcarded
+ **       SQUIT should/can never happen in ms_squit. -Michael
+ **/
 
-  if(parc < 2)
+/* ms_squit - SQUIT message handler
+ *  parv[0] = sender prefix
+ *  parv[1] = server name
+ *  parv[2] = comment
+ */
+static void
+ms_squit(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
+{
+  struct Client *target_p = NULL;
+  char *comment;
+  const char *server;
+  char def_reason[] = "No reason specified";
+
+#if 0
+  /* XXX - How can this happen? -Michael */
+  if (parc < 2 || EmptyString(parv[1]))
   {
     exit_client(client_p, client_p, source_p, comment);
     return;
   }
-
-  if((found_squit = find_squit(client_p, source_p, parv[1])))
-  {
-    /*
-    **  Notify all opers, if my local link is remotely squitted
-    */
-    if (MyConnect(found_squit->target_p))
-    {
-      sendto_gnotice_flags(FLAGS_CCONN, L_OPER, me.name, &me, NULL,
-          "Remote SQUIT %s from %s (%s)", found_squit->server_name,
-          source_p->name, comment);
-        
-      ilog(L_TRACE, "SQUIT From %s : %s (%s)", parv[0],
-	   found_squit->server_name, comment);
-
-    }
-    exit_client(client_p, found_squit->target_p, source_p, comment);
+#endif
+  if (parc < 2 || EmptyString(parv[1]))
     return;
+
+  server = parv[1];
+
+  if ((target_p = find_server(server)) == NULL)
+    return;
+
+  if (!IsServer(target_p) || IsMe(target_p))
+    return;
+
+  comment = (parc > 2 && parv[2]) ? parv[2] : def_reason;
+
+  if (strlen(comment) > (size_t)TOPICLEN)
+    comment[TOPICLEN] = '\0';
+
+  if (MyConnect(target_p))
+  {
+    sendto_gnotice_flags(UMODE_CCONN, L_OPER, me.name, &me, NULL, "Remote SQUIT %s from %s (%s)",
+                         target_p->name, source_p->name, comment);
+    ilog(L_TRACE, "SQUIT From %s : %s (%s)", parv[0],
+        target_p->name, comment);
   }
+
+   exit_client(client_p, target_p, source_p, comment);
 }
 
-
-/*
- * find_squit
- * inputs	- local server connection
- *		-
- *		-
- * output	- pointer to struct containing found squit or none if not found
- * side effects	-
- */
-static struct squit_parms *
-find_squit(struct Client *client_p, struct Client *source_p, char *server)
-{
-  static struct squit_parms found_squit;
-  static struct Client *target_p;
-  struct ConfItem *aconf;
-
-  found_squit.target_p = NULL;
-  found_squit.server_name = NULL;
-
-  /*
-  ** To accomodate host masking, a squit for a masked server
-  ** name is expanded if the incoming mask is the same as
-  ** the server name for that link to the name of link.
-  */
-  if ((*server == '*') && IsServer(client_p))
-    {
-      aconf = client_p->serv->sconf;
-      if (aconf)
-        {
-	  if (!irccmp(server, my_name_for_link(me.name, aconf)))
-	    {
-	       found_squit.server_name = client_p->name;
-	       found_squit.target_p = client_p;
-	    }
-	}
-    }
-
-  /*
-  ** The following allows wild cards in SQUIT. Only useful
-  ** when the command is issued by an oper.
-  */
-  for (target_p = GlobalClientList; (target_p = next_client(target_p, server));
-       target_p = target_p->next)
-    {
-      if (IsServer(target_p) || IsMe(target_p))
-	break;
-    }
-
-  found_squit.target_p = target_p;
-  found_squit.server_name = server;
-
-  if (target_p && IsMe(target_p))
-    {
-       if (IsClient(client_p))
-         {
-		 sendto_one(source_p,":%s NOTICE %s :You are trying to squit me.",me.name,client_p->name);
-	         found_squit.target_p = NULL;
-         }
-       else
-         {
-           found_squit.target_p = client_p;
-           found_squit.server_name = client_p->name;
-         }
-       
-    }
-
-  if(found_squit.target_p != NULL)
-    return &found_squit;
-  else
-    return(NULL);
-}

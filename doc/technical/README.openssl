@@ -1,6 +1,6 @@
 Getting OpenSSL to work with hybrid-7
 =====================================
-
+$Id$
 
 PREFACE
 =======
@@ -33,27 +33,18 @@ OBTAINING OPENSSL
   by default as a safety precaution).
 
   The present stable release of OpenSSL, as of the authoring of this
-  document, is 0.9.6a.
+  document, is 0.9.7b (old stable 0.9.6j.)
 
 
 GETTING IT TO WORK
 ==================
-  The "--enable-openssl" argument can be passed to configure to specify
-  that you wish to use OpenSSL.  If this argument is not specified,
-  configure will check for OpenSSL anyways.  Therefore, the following
-  two (2) examples are identical:
-
-    ./configure
-    ./configure --enable-openssl
-
-  OpenSSL support can be explicitly disabled by doing:
-
-    ./configure --disable-openssl
-
-  If needed, hybrid-7 will permit you to specify the base directory
-  where OpenSSL was installed:
+  OpenSSL is enabled by default when running configure. If the script
+  cannot locate a working version of OpenSSL, you may specify one on
+  the command line:
 
     ./configure --enable-openssl=/usr/local/openssl
+
+  To explicitly disable it, use --disable-openssl.
 
   For multiple versions of OpenSSL installed on the same system,
   please read the "MULTIPLE OPENSSL INSTALLATIONS" section within
@@ -180,7 +171,7 @@ CIPHERS
 
     Name           Cipher type        Cipher information
     ----------------------------------------------------
-    BF/256         Blowfish           256-bit
+    BF/168         Blowfish           168-bit
     BF/128         Blowfish           128-bit
     CAST/128       CAST               128-bit
     IDEA/128       IDEA               128-bit

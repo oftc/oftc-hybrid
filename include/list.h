@@ -24,26 +24,17 @@
 
 #ifndef INCLUDED_list_h
 #define INCLUDED_list_h
-#include "memory.h"
 
-struct dlink_node;
+struct _dlink_node;
+struct _slink_node;
 struct Client;
-struct Class;
-struct User;
-struct Channel;
-struct ConfItem;
-struct Ban;
 
-extern void initUser(void);
-extern void count_user_memory(int *count,int *user_memory_used);
-extern void count_links_memory(int *count,int *links_memory_used);
-extern void outofmemory(void);
-extern void free_user (struct User *, struct Client *);
-extern dlink_node *make_dlink_node (void);
-extern void free_dlink_node(dlink_node *lp);
-extern void init_dlink_nodes();
-
-extern struct User     *make_user (struct Client *);
-extern struct Server   *make_server (struct Client *);
-
+extern void count_links_memory(int *count, unsigned long *links_memory_used);
+extern void init_dlink_nodes(void);
+extern void init_slink_nodes(void);
+extern void free_dlink_node(dlink_node *);
+extern void free_slink_node(slink_node *);
+extern dlink_node *make_dlink_node(void);
+extern slink_node *make_slink_node(void);
+extern struct Server *make_server(struct Client *);
 #endif

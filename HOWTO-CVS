@@ -1,0 +1,60 @@
+-*- How to use ircd-hybrid's CVS system.
+-*- By Juli Mallett <jmallett@FreeBSD.org>.
+-*- $Id$
+
+--- Open branches:
+--- HEAD version: 7.1 (CURRENT)
+--- HYBRID_7_0 version: 7.0 (RELEASE, STABLE)
+--- Closed branches:
+--- (none at this time)
+
+I'll be your CVS maven, of sorts.  Here's what you need to know to use things
+efficiently.  First off, some ground rules:
+
+	1) Don't commit to a release branch without explicit approval (and
+	   NEED) unless it has been to the HEAD branch first.
+	2) Don't break the HEAD branch just because you can.  You should do
+	   your best to keep it working and in top shape, but new features
+	   and code refactoring are welcome.
+	3) If you're unsure of a bit of code, get review from at least one
+	   other member of the team.  You really should have tested other
+	   changes adequately, and know their impact.  Don't continually
+	   commit third-rate or work-in-progress code.
+	4) If you are doing code reworking/refactoring don't commit it
+	   while it is incomplete.
+
+OK, so here's the idea, we have a HEAD branch which is the CURRENT branch,
+and we have one or more HYBRID_<major>_<minor> branches open at a time.  That
+is, as mentioned above, open for new features and general work.  There is one
+STABLE branch open, where new features and fixes go after a certain period of
+time in the CURRENT branch.  We also have a RELEASE branch (which may be the
+STABLE branch) where release versions of the ircd will be taken off.  They will
+be tagged at release time with a tag in the format of
+HYBRID_<major>_<minor>_RELEASE.  That tag will not be a branch, and will not
+be open for commits.  Release candidates should be made off the RELEASE branch,
+and bug fixes should go to CURRENT and then STABLE, as per normal procedure, if
+those branches are affected, and then into the RELEASE branch once it has been
+tested.
+
+An aside, worth mentioning in the context of releases, you should generate a
+ChangeLog as part of a release tarball, using a tool such as cvs2cl, but it
+should not be put into the CVS branch, as this can lead to confusion.
+
+To check out a branch:
+	cvs co -r<branch> <module>
+To check out HEAD:
+	cvs co <module>
+
+Any more advanced operations, talk to myself, or our release engineer.
+
+Note that this document and the list of branches at the top of this file
+should be kept up to date on all open branches.
+
+And finally, if you frequently don't follow our procedures, it may be too much
+of a churn on the repository and release cycle for you to remain commit access
+unfiltered.  You may be required to work with a specific mentor on the team or
+send all diffs to the mailing list before every commit for a period of time to
+be determined based on the results of your actions, and efforts to be careful
+when committing in the future.
+
+Happy hacking!

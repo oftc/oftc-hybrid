@@ -17,7 +17,7 @@ fi
 
 generation=`expr $generation + 1`
 
-uname=`uname -a`
+uname=`uname -a | sed -e 's/\"/\\\"/g'`
 
 creation=`date | \
 awk '{if (NF == 6) \
@@ -52,18 +52,18 @@ $spitshell >version.c <<!SUB!THIS!
 #include "patchlevel.h"
 #include "serno.h"
 
-char *generation = "$generation";
-char *creation = "$creation";
-char *platform = "$uname";
-char *ircd_version = PATCHLEVEL;
-char *serno = SERIALNUM;
+const char *generation = "$generation";
+const char *creation = "$creation";
+const char *platform = "$uname";
+const char *ircd_version = PATCHLEVEL;
+const char *serno = SERIALNUM;
 
-char *infotext[] =
+const char *infotext[] =
 {
   "$package --",
   "Based on the original code written by Jarkko Oikarinen",
   "Copyright 1988, 1989, 1990, 1991 University of Oulu, Computing Center",
-  "Copyright (c) 1996-2001 Hybrid Development Team", 
+  "Copyright (c) 1996-2003 Hybrid Development Team", 
   "",
   "This program is free software; you can redistribute it and/or",
   "modify it under the terms of the GNU General Public License as",
@@ -74,11 +74,10 @@ char *infotext[] =
 
 IFS='
 '
-for i in `grep -v '^$Id' ../Hybrid-team |tr -d '"'` ; do
+for i in `grep -v '^$[I]d' ../Hybrid-team |tr -d '"'` ; do
 echo "  \"$i\"," >> version.c
 done
 $spitshell >>version.c <<!SUB!THISTOO!
-  "",
-  0,
+  "", 0
 };
 !SUB!THISTOO!

@@ -22,6 +22,7 @@
  *  $Id$
  */
 #include "stdinc.h"
+#include "tools.h"
 #include "modules.h"
 #include "hook.h"
 #include "client.h"
@@ -46,10 +47,9 @@ const char *_version = "$Revision$";
 
 int show_info(struct hook_spy_data *data)
 {
-  sendto_realops_flags(FLAGS_SPY, L_ALL,
+  sendto_realops_flags(UMODE_SPY, L_ALL,
                          "info requested by %s (%s@%s) [%s]",
                          data->source_p->name, data->source_p->username,
-                         data->source_p->host, data->source_p->user->server);
-
+                         data->source_p->host, data->source_p->user->server->name);
   return 0;
 }

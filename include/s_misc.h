@@ -26,7 +26,7 @@
 #define INCLUDED_s_misc_h
 
 struct Client;
-struct ConfItem;
+struct AccessItem;
 
 extern char*   date(time_t);
 extern const char* smalldate(time_t);

@@ -29,21 +29,24 @@
 #include "irc_string.h"
 #include "numeric.h"
 #include "send.h"
-#include "s_user.h"
 #include "s_conf.h"
+#include "s_user.h"
+#include "s_serv.h"
 #include "hash.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "cluster.h"
 
-static void m_locops(struct Client *,struct Client *,int,char **);
+static void m_locops(struct Client *, struct Client *, int, char **);
+static void ms_locops(struct Client *, struct Client *, int, char **);
 
 struct Message locops_msgtab = {
   "LOCOPS", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_locops}
+  {m_unregistered, m_not_oper, ms_locops, m_locops, m_ignore}
 };
-#ifndef STATIC_MODULES
 
+#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -58,27 +61,50 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
+
 /*
  * m_locops - LOCOPS message handler
  * (write to *all* local opers currently online)
  *      parv[0] = sender prefix
  *      parv[1] = message text
  */
-static void m_locops(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+m_locops(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
 {
-  char *message = NULL;
-
-  message = parv[1];
+  const char *message = parv[1];
 
   if (EmptyString(message))
-    {
-      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-                 me.name, parv[0], "LOCOPS");
-      return;
-    }
+  {
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+               me.name, source_p->name, "LOCOPS");
+    return;
+  }
 
-  sendto_wallops_flags(FLAGS_LOCOPS, source_p, "LOCOPS - %s", message);
+  sendto_wallops_flags(UMODE_LOCOPS, source_p, "LOCOPS - %s",
+                       message);
+
+  if (dlink_list_length(&cluster_items))
+    cluster_locops(source_p, parv[1]);
 }
 
+static void
+ms_locops(struct Client *client_p, struct Client *source_p,
+          int parc, char *parv[])
+{
+  if (parc != 3 || EmptyString(parv[2]))
+    return;
 
+  sendto_server(client_p, NULL, NULL, CAP_CLUSTER, 0, 0, "LOCOPS %s :%s",
+                parv[1], parv[2]);
+
+  if (!match(parv[1], me.name))
+    return;
+
+  if (!IsPerson(source_p))
+    return;
+
+  if (find_matching_name_conf(CLUSTER_TYPE, source_p->user->server->name,
+                              NULL, NULL, CLUSTER_LOCOPS))
+    sendto_wallops_flags(UMODE_LOCOPS, source_p, "SLOCOPS - %s", parv[2]);
+}

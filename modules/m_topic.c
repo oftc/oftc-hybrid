@@ -28,7 +28,6 @@
 #include "channel.h"
 #include "common.h"
 #include "channel_mode.h"
-#include "vchannel.h"
 #include "client.h"
 #include "hash.h"
 #include "irc_string.h"

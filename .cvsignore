@@ -1,7 +1,9 @@
+autom4te.cache
 config.log
 config.cache
 config.status
 Makefile
 lint.out
+.depend-stamp
 rsa_respond.tar.gz
-.depend
+

@@ -23,14 +23,11 @@
  */
 
 #include "stdinc.h"
-
 #include "ircd_getopt.h"
 
-#ifndef VMS
-# define OPTCHAR '-'
-#else
-# define OPTCHAR '/'
-#endif
+#define OPTCHAR '-'
+
+static void usage(const char *name);
 
 void
 parseargs(int *argc, char ***argv, struct lgetopt *opts)
@@ -113,22 +110,22 @@ parseargs(int *argc, char ***argv, struct lgetopt *opts)
     }
 }
 
-void 
-usage(char *name)
+static void 
+usage(const char *name)
 {
-  int i = 0;
+  int i;
   
   fprintf(stderr, "Usage: %s [options]\n", name);
   fprintf(stderr, "Where valid options are:\n");
   
   for (i = 0; myopts[i].opt; i++)
-    {
-      fprintf(stderr, "\t%c%-10s %-20s%s\n", OPTCHAR, myopts[i].opt, 
-	      (myopts[i].argtype == YESNO || myopts[i].argtype == USAGE) ? "" : 
-	      myopts[i].argtype == INTEGER ? "<number>" : "<string>",
-	      myopts[i].desc);
-    }
-  
+  {
+    fprintf(stderr, "\t%c%-10s %-20s%s\n", OPTCHAR, myopts[i].opt, 
+            (myopts[i].argtype == YESNO || myopts[i].argtype == USAGE) ? "" : 
+            myopts[i].argtype == INTEGER ? "<number>" : "<string>",
+            myopts[i].desc);
+  }
+
   exit(EXIT_FAILURE);
 }
 

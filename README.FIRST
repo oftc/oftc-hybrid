@@ -3,15 +3,13 @@ If you don't read this first, we won't help you.
 
 ******************************* IMPORTANT *************************************
 
-  *********** Note for those who dont bother reading docs *****************
+  ************ Note for those who don't bother reading docs ***************
   * - Reading INSTALL is now a must, as the old DPATH is now specified    *
   *   when configure is run.                                              *
   *   You now need to ./configure --prefix="/path/to/install/it"          *
   * - The old config format WILL NOT WORK.  Please see doc/example.conf ! *
   * - The old kline format WILL NOT WORK.  Please use convertklines which *
   *   will be installed with your ircd!					  *
-  * - If you get errors compiling custom.mo, check if you are using the   *
-  *   most recent version of gettext.  Tested with GNU gettext 0.10.35.   *
   *************************************************************************
 
   ALSO, IF YOU ARE UPGRADING YOUR CURRENT SOURCE TREE, AND YOU TRY TO BUILD
@@ -25,7 +23,7 @@ Necessary Requirements:
 - A supported platform (look below)
 
 - A working dynamic load library, unless
-  compiling as static, without module
+  compiling statically, without module
   support.
 
 - A working lex.  Solaris /usr/ccs/bin/lex
@@ -46,7 +44,8 @@ Feature Specific Requirements:
 - For the SSL Challenge controlled OPER feature and encrypted server links,
   a working OpenSSL library
 
-- For dynamic message locale support, a working gettext (intl) library
+- For compressed server links,
+  a working zlib library and includes (zlib.h)
 
 - For encrypted oper and (optional) server passwords, a working DES and/or
   MD5 library
@@ -66,15 +65,14 @@ Feature Specific Requirements:
   files will have to be converted to the Hybrid 7 format.  A convertconf
   utility is provided and installed into bin/.
 
-- If you are wondering why config.h is practically empty, its because many 
+- If you are wondering why config.h no longer exists, it's because most
   things that were once in config.h are now specified in the 'general'
   block of ircd.conf.  Look at example.conf for more information about
-  these options.
+  these options. Many, notably syslog support and EFnet tweaks, are now
+  configure options (see ./configure --help for details.)
 
-- The files, /etc/services, /etc/protocols, and /etc/resolv.conf, MUST be
-  readable by the user running the server in order for ircd to start.
-  Errors from adns causing the ircd to refuse to start up are often related
-  to permission problems on these files.
+- /etc/resolv.conf is at present required to exist for our resolver to start
+  properly.
 
 - There is now a mailing list for general discussion of Hybrid.  To subscribe
   to the Hybrid List, send email to listmanager@the-project.org with
@@ -92,22 +90,26 @@ Feature Specific Requirements:
   Before then you MUST disable shared modules, as we do not have the proper
   flags for cc(1) prior to that point to produce shared modules.
 
-- SUPPORTED PLATFORMS: this code should compile without any warnings
-  on FreeBSD 3.x/4.x, RedHat 6.2, Debian Potato and Solaris 7/8 sparc.  
-  Please let us know if you find otherwise.  
-  It probably does not compile on AIX, IRIX or libc5 Linux.
-
 - TESTED PLATFORMS:  The code has been tested on the following platforms, and
   is known to run properly.
-  FreeBSD 3.x/4.x
-  Linux glibc
+  FreeBSD 3.x/4.x/5.x (gcc only, TenDRA will *not* work)
+  Linux glibc 2.2/2.3
   Solaris 2.6/7/8
-  OpenBSD 2.8
-  NetBSD 1.4
-  Cygwin 1.3+ (static modules, no servlink)
-  OpenVMS/Alpha 7.2 (static modules, no servlink)
-
-- Please read doc/whats-new.txt for information about what is in this release
+  Cygwin 1.3.22 (no shared modules yet)
+  OpenBSD 2.8-3.2
+  HP-UX 11.00-11.22
+  IRIX64 6.5.19 (gcc only; MIPSpro is unconfirmed)
+  NetBSD 1.4-1.6
+  Tru64 UNIX 5.2b (only tested with native cc)
+  
+  It probably does not compile on AIX or libc5 Linux.
+  
+  Previously, OpenVMS was actively supported, but the port has fallen behind,
+  so a diff is available in contrib/ that may or may not work for you. Use at
+  your own risk.
+  
+- Please read RELNOTES and doc/whats-new.txt for information about what is in
+  this release
 
 - Other files recommended for reading: BUGS, INSTALL
 

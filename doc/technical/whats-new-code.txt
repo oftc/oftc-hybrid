@@ -26,11 +26,6 @@ First, please note one thing - a *LOT* has changed in hybrid-7.
   allows periodic events (channel cleanup, server connection retries, etc)
   to be scheduled without needing to add it to the main loop.
 
-* The old dbuf code (send and receive buffering for clients/servers) has been
-  replaced by a new module - linebuf. The linebuf code breaks data into
-  "lines" which allows flood prevention and limiting to be performed before
-  sending the code to the main parser.
-
 * Server to server links are now handled by the 'servlink' program
   (located in the servlink/ directory).  After negotiating a server<->server
   link, (CAPAB/SERVER/PASS or CAPAB/CRYPTSERV/CRYPTAUTH) hybrid-7 will

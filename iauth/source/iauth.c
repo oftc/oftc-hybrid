@@ -18,6 +18,7 @@
  *   $Id$
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -30,7 +31,7 @@
 #include "setup.h"
 #include "sock.h"
 
-static void SetupSignals();
+static void SetupSignals(void);
 
 time_t         CurrentTime;            /* current system timestamp */
 
@@ -40,25 +41,19 @@ SetupSignals()
 */
 
 static void
-SetupSignals()
-
+SetupSignals(void)
 {
   signal(SIGPIPE, SIG_IGN);
 } /* SetupSignals() */
 
 int
-main()
-
+main(void)
 {
-#ifndef DEBUGMODE
   int pid;
-#endif
 
   LoadConfig(ICONF);
 
   InitLog(LOGFILE);
-
-#ifndef DEBUGMODE
 
   pid = fork();
   switch (pid)
@@ -85,8 +80,6 @@ main()
       exit (0);
     }
   } /* switch (pid) */
-
-#endif /* !DEBUGMODE */
 
   log(L_INFO, "IAuth Loaded");
 

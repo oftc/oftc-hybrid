@@ -58,7 +58,4 @@ clean:
 distclean: clean
 	${RM} -f Makefile
 
-
-@INCDEP@
-
 # End of Makefile

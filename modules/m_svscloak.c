@@ -38,6 +38,8 @@
 #include "parse.h"
 #include "modules.h"
 
+/* $Id$ */
+
 void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char *parv[]);
 
 struct Message map_msgtab = {

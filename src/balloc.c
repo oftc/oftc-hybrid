@@ -48,20 +48,10 @@
  * malloc() has it locked up in its heap.  With the mmap() method, we can munmap()
  * the block and return it back to the OS, thus causing our memory consumption to go
  * down after we no longer need it.
- * 
- * Of course it is up to the caller to make sure BlockHeapGarbageCollect() gets
- * called periodically to do this cleanup, otherwise you'll keep the memory in the
- * process.
- *
- *
  */
 
-#include "stdinc.h"
-
 #define WE_ARE_MEMORY_C
-#include "setup.h"
-#ifndef NOBALLOC
-
+#include "stdinc.h"
 #include "ircd_defs.h"          /* DEBUG_BLOCK_ALLOCATOR */
 #include "ircd.h"
 #include "memory.h"
@@ -71,20 +61,22 @@
 #include "s_log.h"
 #include "client.h"
 #include "fdlist.h"
+#include "event.h"
 
 #ifdef HAVE_MMAP /* We've got mmap() that is good */
 #include <sys/mman.h>
 
 /* HP-UX sucks */
 #ifdef MAP_ANONYMOUS
-#ifndef MAP_ANON
-#define MAP_ANON MAP_ANONYMOUS
-#endif
-#endif
+# ifndef MAP_ANON
+#  define MAP_ANON MAP_ANONYMOUS
+# endif
+#endif /* MAP_ANONYMOUS */
 
-
+static BlockHeap *heap_list = NULL;
 
 static int newblock(BlockHeap * bh);
+static void heap_garbage_collection(void *arg);
 
 
 /*
@@ -94,7 +86,8 @@ static int newblock(BlockHeap * bh);
  * Output: None
  * Side Effects: Returns memory for the block back to the OS
  */
-static inline void free_block(void *ptr, size_t size)
+static inline void
+free_block(void *ptr, size_t size)
 {
   munmap(ptr, size);
 }
@@ -121,6 +114,7 @@ initBlockHeap(void)
   if (zero_fd < 0)
     outofmemory();
   fd_open(zero_fd, FD_FILE, "Anonymous mmap()");
+  eventAdd("heap_garbage_collection", &heap_garbage_collection, NULL, 119);
 }
 
 /*
@@ -136,10 +130,10 @@ get_block(size_t size)
 {
   void *ptr;
   ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, zero_fd, 0);
-  if(ptr == MAP_FAILED)
-    {
-      ptr = NULL;
-    }
+  if (ptr == MAP_FAILED)
+  {
+    ptr = NULL;
+  }
   return(ptr);
 }
 #else /* MAP_ANON */ 
@@ -154,7 +148,7 @@ get_block(size_t size)
 void
 initBlockHeap(void)
 {
-  return;
+  eventAdd("heap_garbage_collection", &heap_garbage_collection, NULL, 119);
 }
 
 /*
@@ -171,16 +165,16 @@ get_block(size_t size)
 {
   void *ptr;
   ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
-  if(ptr == MAP_FAILED)
-    {
-      ptr = NULL;
-    }
+  if (ptr == MAP_FAILED)
+  {
+    ptr = NULL;
+  }
   return(ptr);
 }
 
-#endif /* MAP_ANON */
+#endif /* !MAP_ANON */
 
-#else  /* HAVE_MMAP */
+#else  /* !HAVE_MMAP */
 /* Poor bastards don't even have mmap() */
 
 /* 
@@ -219,14 +213,22 @@ free_block(void *ptr, size_t unused)
  */ 
 
 void
-initBlockHeap()
+initBlockHeap(void)
 {
-  return;
-
+  eventAdd("heap_garbage_collection", &heap_garbage_collection, NULL, 119);
 }
 #endif /* HAVE_MMAP */
 
+static int BlockHeapGarbageCollect(BlockHeap *bh);
 
+static void
+heap_garbage_collection(void *arg)
+{
+  BlockHeap *bh;
+
+  for (bh = heap_list; bh != NULL; bh = bh->next)
+    BlockHeapGarbageCollect(bh);
+}
 
 /* ************************************************************************ */
 /* FUNCTION DOCUMENTATION:                                                  */
@@ -273,7 +275,6 @@ newblock(BlockHeap * bh)
         newblk = (void *)offset;
         newblk->block = b;
         data = (void *)((size_t)offset + sizeof(MemBlock));
-        newblk->block = b;
         dlinkAdd(data, &newblk->self, &b->free_list);
         offset = (unsigned char *)((unsigned char *)offset + bh->elemSize + sizeof(MemBlock));
       }
@@ -346,6 +347,8 @@ BlockHeapCreate(size_t elemsize, int elemsperblock)
         outofmemory();          /* die.. out of memory */
       }
 
+    bh->next = heap_list;
+    heap_list = bh;
     return(bh);
 }
 
@@ -473,8 +476,8 @@ BlockHeapFree(BlockHeap * bh, void *ptr)
 /* Returns:                                                                 */
 /*   0 if successful, 1 if bh == NULL                                       */
 /* ************************************************************************ */
-int
-BlockHeapGarbageCollect(BlockHeap * bh)
+static int
+BlockHeapGarbageCollect(BlockHeap *bh)
 {
     Block *walker, *last;
 
@@ -551,10 +554,15 @@ BlockHeapDestroy(BlockHeap * bh)
           free(walker);
       }
 
-    if(walker != NULL)
-      {
-	free(bh);
-      }
+    if (heap_list == bh)
+      heap_list = bh->next;
+    else {
+      BlockHeap *prev;
+
+      for (prev = heap_list; prev->next != bh; prev = prev->next);
+      prev->next = bh->next;
+    }
+
+    free(bh);
     return(0);
 }
-#endif

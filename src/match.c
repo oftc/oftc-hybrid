@@ -38,20 +38,21 @@
  */
 #define MATCH_MAX_CALLS 512  /* ACK! This dies when it's less that this
                                 and we have long lines to parse */
-int match(const char *mask, const char *name)
+int
+match(const char *mask, const char *name)
 {
   const unsigned char* m = (const unsigned char*)  mask;
   const unsigned char* n = (const unsigned char*)  name;
   const unsigned char* ma = (const unsigned char*) mask;
   const unsigned char* na = (const unsigned char*) name;
-  int   wild  = 0;
-  int   calls = 0;
+  int wild  = 0;
+  int calls = 0;
 
   assert(mask != NULL);
   assert(name != NULL);
 
   if (!mask || !name)
-    return 0;
+    return(0);
 
   while (calls++ < MATCH_MAX_CALLS)
   {
@@ -77,7 +78,7 @@ int match(const char *mask, const char *name)
       if (*m == '*' && (m > (const unsigned char*) mask))
         return 1;
       if (!wild)
-        return 0;
+        return(0);
       m = ma;
       n = ++na;
     }
@@ -94,7 +95,7 @@ int match(const char *mask, const char *name)
     if (ToLower(*m) != ToLower(*n) && *m != '?')
     {
       if (!wild)
-        return 0;
+        return(0);
       m = ma;
       n = ++na;
     }
@@ -106,7 +107,8 @@ int match(const char *mask, const char *name)
         n++;
     }
   }
-  return 0;
+
+  return(0);
 }
 
 /* match_esc()
@@ -114,21 +116,22 @@ int match(const char *mask, const char *name)
  * The match() function with support for escaping characters such
  * as '*' and '?'
  */
-int match_esc(const char *mask, const char *name)
+int
+match_esc(const char *mask, const char *name)
 {
   const unsigned char* m = (const unsigned char*)  mask;
   const unsigned char* n = (const unsigned char*)  name;
   const unsigned char* ma = (const unsigned char*) mask;
   const unsigned char* na = (const unsigned char*) name;
-  int   wild  = 0;
-  int   calls = 0;
-  int   quote = 0;
+  int wild  = 0;
+  int calls = 0;
+  int quote = 0;
 
   assert(mask != NULL);
   assert(name != NULL);
 
   if (!mask || !name)
-    return 0;
+    return(0);
 
   while (calls++ < MATCH_MAX_CALLS)
   {
@@ -155,7 +158,7 @@ int match_esc(const char *mask, const char *name)
 	m++;
 	/* This means it is an invalid mask -A1kmm. */
 	if (!*m)
-	  return 0;
+	  return(0);
 	quote = 2;
       }
       wild = 1;
@@ -172,9 +175,9 @@ int match_esc(const char *mask, const char *name)
       for (m--; (m > (const unsigned char*) mask) && (*m == '?'); m--)
         ;
       if (*m == '*' && (m > (const unsigned char*) mask))
-        return 1;
+        return(1);
       if (!wild)
-        return 0;
+        return(0);
       m = ma;
       n = ++na;
     }
@@ -185,7 +188,7 @@ int match_esc(const char *mask, const char *name)
        * collapsed before match is called
        */
       if (quote)
-        return 0;
+        return(0);
       while (*m == '*')
         m++;
       return (*m == 0);
@@ -193,7 +196,7 @@ int match_esc(const char *mask, const char *name)
     if (ToLower(*m) != ToLower(*n) && !(!quote && *m == '?'))
     {
       if (!wild)
-        return 0;
+        return(0);
       m = ma;
       n = ++na;
     }
@@ -205,6 +208,7 @@ int match_esc(const char *mask, const char *name)
         n++;
     }
   }
+
   return(0);
 }
 
@@ -217,9 +221,10 @@ comp_with_mask(void *addr, void *dest, unsigned int mask)
     int m = ((-1) << (8 - (mask % 8)));
     if (mask % 8 == 0 || 
        (((unsigned char *) addr)[n] & m) == (((unsigned char *) dest)[n] & m))  
-      return (1);
+      return(1);
   }
-  return (0);
+
+  return(0);
 }
 
 /* match_cidr()
@@ -242,42 +247,42 @@ match_cidr(const char *s1, const char *s2)
   strlcpy(address, s2, sizeof(address));
   
   ipmask = strrchr(mask, '@');
-  if(ipmask == NULL)
-    return 0;
+  if (ipmask == NULL)
+    return(0);
   
   *ipmask++ = '\0';
   
   ip = strrchr(address, '@');
-  if(ip == NULL)
-    return 0;
+  if (ip == NULL)
+    return(0);
   *ip++ = '\0';
   
   len = strrchr(ipmask, '/');
-  if(len == NULL)
-    return 0;
+  if (len == NULL)
+    return(0);
   
   *len++ = '\0';
   
   cidrlen = atoi(len);
-  if(cidrlen == 0) 
-    return 0;
+  if (cidrlen == 0) 
+    return(0);
 
 #ifdef IPV6  
-  if(strchr(ip, ':') && strchr(ipmask, ':'))
+  if (strchr(ip, ':') && strchr(ipmask, ':'))
     aftype = AF_INET6;
   else 
 #endif
-  if(!strchr(ip, ':') && !strchr(ipmask, ':'))
+  if (!strchr(ip, ':') && !strchr(ipmask, ':'))
     aftype = AF_INET;
   else
-    return 0;
+    return(0);
   
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_UNSPEC;
   hints.ai_flags = AI_NUMERICHOST;
 
   irc_getaddrinfo(ip, NULL, &hints, &res);
-  if(res)
+  if (res)
   {
     memcpy(&ipaddr, res->ai_addr, res->ai_addrlen);
     ipaddr.ss_len = res->ai_addrlen;
@@ -286,7 +291,7 @@ match_cidr(const char *s1, const char *s2)
   }
 
   irc_getaddrinfo(ipmask, NULL, &hints, &res);
-  if(res)
+  if (res)
   {
     memcpy(&maskaddr, res->ai_addr, res->ai_addrlen);
     maskaddr.ss_len = res->ai_addrlen;
@@ -294,10 +299,10 @@ match_cidr(const char *s1, const char *s2)
     irc_freeaddrinfo(res);
   }
   
-  if(comp_with_mask(&ipaddr, &maskaddr, cidrlen) && match(mask, address))
-    return 1;
+  if (comp_with_mask(&ipaddr, &maskaddr, cidrlen) && match(mask, address))
+    return(1);
   else
-    return 0;
+    return(0);
 }
 
 /* collapse()
@@ -312,7 +317,7 @@ collapse(char *pattern)
   int f = 0;
 
   if (p == NULL)
-    return NULL;
+    return(NULL);
  
   while ((c = *p++))
   {
@@ -330,21 +335,22 @@ collapse(char *pattern)
   }
   *po++ = 0;
 
-  return pattern;
+  return(pattern);
 }
 
 /* collapse_esc()
  *
  * The collapse() function with support for escaping characters
  */
-char *collapse_esc(char *pattern)
+char *
+collapse_esc(char *pattern)
 {
  char *p = pattern, *po = pattern;
  char c;
  int f = 0;
 
  if (p == NULL)
-   return NULL;
+   return(NULL);
  
  while ((c = *p++))
  {
@@ -366,7 +372,8 @@ char *collapse_esc(char *pattern)
    }
  }
  *po++ = 0;
- return pattern;
+
+ return(pattern);
 }
 
 /*
@@ -375,7 +382,8 @@ char *collapse_esc(char *pattern)
  *      returns  0, if s1 equal to s2
  *               1, if not
  */
-int irccmp(const char *s1, const char *s2)
+int
+irccmp(const char *s1, const char *s2)
 {
   const unsigned char *str1 = (const unsigned char *)s1;
   const unsigned char *str2 = (const unsigned char *)s2;
@@ -393,7 +401,8 @@ int irccmp(const char *s1, const char *s2)
   return(1);
 }
 
-int ircncmp(const char* s1, const char *s2, size_t n)
+int
+ircncmp(const char* s1, const char *s2, size_t n)
 {
   const unsigned char* str1 = (const unsigned char*) s1;
   const unsigned char* str2 = (const unsigned char*) s2;
@@ -405,9 +414,9 @@ int ircncmp(const char* s1, const char *s2, size_t n)
   {
     str1++; str2++; n--;
     if (n == 0 || (*str1 == '\0' && *str2 == '\0'))
-      return 0;
+      return(0);
   }
-  return (res);
+  return(res);
 }
 
 const unsigned char ToLowerTab[] = { 
@@ -744,5 +753,3 @@ const unsigned int CharAttrs[] = {
 /* 0xFE */   CHAN_C|NONEOS_C,
 /* 0xFF */   CHAN_C|NONEOS_C
 };
-
-

@@ -20,7 +20,7 @@
 
 	To reduce the risk of attacks relating to password sniffing,
 	replay attacks, or connection hijacking, in turn permitting
-	unauthorised access to server privileges.
+	unauthorized access to server privileges.
 
 1.2 - Background of this protocol
 ---------------------------------
@@ -61,7 +61,7 @@
 
 	An example CAPAB could be the following:
 
-		CAPAB :QS EX CHW IE EOB KLN HOPS HUB AOPS ENC ZIP
+		CAPAB :QS EX CHW IE EOB KLN HUB ENC ZIP
 
         Note that ENC is not required to be the last capab.
 
@@ -88,7 +88,7 @@
 
 	For example:
 
-		CRYPTLINK CIPHERS :BF/256 BF/128 3DES/156
+		CRYPTLINK CIPHERS :BF/168 BF/128 3DES/156
 
         The ciphers which are available as of the date this document was
 	written are listed in doc/README.openssl.
@@ -288,19 +288,19 @@
      2.  Server #2 answers on port 6667.
      3.  Server #1 sends:
 
-       	    CAPAB :QS EX CHW IE EOB KLN GLN HOPS AOPS UID ZIP ENC.
-	    CRYPTLINK CIPHERS :BF/256
+       	    CAPAB :QS EX CHW IE EOB KLN GLN UID ZIP ENC.
+	    CRYPTLINK CIPHERS :BF/168
 	    CRYPTLINK SERV irc.server1 <keyphase> :We like IRC! Woo hoo!
 
-     4.  Server #2 checks to see if it supports BF/256.  It does.
+     4.  Server #2 checks to see if it supports BF/168.  It does.
      5.  Server #2 sends:
 
-            CAPAB :QS EX CHW IE EOB KLN GLN HOPS HUB AOPS UID ZIP ENC
-	    CRYPTLINK CIPHERS :BF/256 BF/128 
+            CAPAB :QS EX CHW IE EOB KLN GLN HUB UID ZIP ENC
+	    CRYPTLINK CIPHERS :BF/168 BF/128 
 	    CRYPTLINK SERV irc.server2 <key> :My server is better than yours!
-	    CRYPTLINK AUTH BF/256 <base64-encoded verification key>	    
+	    CRYPTLINK AUTH BF/168 <base64-encoded verification key>	    
 
-     6.  Server #1 checks to see if it supports one of BF/256 or BF/128,
+     6.  Server #1 checks to see if it supports one of BF/168 or BF/128,
          and selects an outgoing cipher (BF/128).
      7.  Server #1 decrypts the key, and validates it.  It's correct.
      8.  Server #1 sends:
@@ -314,7 +314,7 @@
   Server #1 connects to server #2, cipher fails
   =============================================
      1.  Same as Steps 1-3 of the above example.
-     4.  Server #2 checks to see if it supports BF/256.  It does NOT.
+     4.  Server #2 checks to see if it supports BF/168.  It does NOT.
      5.  Server #2 sends:
 
            ERROR :CRYPTLINK - No compatible ciphers enabled.  Aborting Link.

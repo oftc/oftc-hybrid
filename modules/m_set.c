@@ -48,17 +48,17 @@ static void mo_set(struct Client*, struct Client*, int, char**);
 
 struct Message set_msgtab = {
   "SET", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_error, mo_set}
+  {m_unregistered, m_not_oper, m_error, mo_set, m_ignore}
 };
 
 #ifndef STATIC_MODULES
-  void
+void
 _modinit(void)
 {
   mod_add_cmd(&set_msgtab);
 }
 
-  void
+void
 _moddeinit(void)
 {
   mod_del_cmd(&set_msgtab);
@@ -66,20 +66,19 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
+
 /* Structure used for the SET table itself */
 struct SetStruct
 {
-  char  *name;
-  void  (*handler)();
-  int   wants_char; /* 1 if it expects (char *, [int]) */
-  int   wants_int;  /* 1 if it expects ([char *], int) */
-
+  const char *name;
+  void (*handler)();
+  int wants_char; /* 1 if it expects (char *, [int]) */
+  int wants_int;  /* 1 if it expects ([char *], int) */
   /* eg:  0, 1 == only an int arg
    * eg:  1, 1 == char and int args */
 };
 
-
-static void quote_autoconn(struct Client *, char *, int);
+static void quote_autoconn(struct Client *, const char *, int);
 static void quote_autoconnall(struct Client *, int);
 static void quote_floodcount(struct Client *, int);
 static void quote_identtimeout(struct Client *, int);
@@ -121,59 +120,61 @@ static struct SetStruct set_cmd_table[] =
   { "SPLITNUM",		quote_splitnum,		0,	1 },
   { "SPLITUSERS",	quote_splitusers,	0,	1 },
   /* -------------------------------------------------------- */
-  { (char *) 0,		(void (*)()) 0,		0,	0 }
+  { (char *)0,		(void(*)()) 0,		0,	0 }
 };
-
 
 /*
  * list_quote_commands() sends the client all the available commands.
  * Four to a line for now.
  */
-static void list_quote_commands(struct Client *source_p)
+static void
+list_quote_commands(struct Client *source_p)
 {
   int i;
-  int j=0;
-  char *names[4];
+  int j = 0;
+  const char *names[4];
 
   sendto_one(source_p, ":%s NOTICE %s :Available QUOTE SET commands:",
              me.name, source_p->name);
 
   names[0] = names[1] = names[2] = names[3] = "";
 
-  for (i=0; set_cmd_table[i].handler; i++)
+  for (i = 0; set_cmd_table[i].handler; i++)
   {
     names[j++] = set_cmd_table[i].name;
 
-    if(j > 3)
+    if (j > 3)
     {
       sendto_one(source_p, ":%s NOTICE %s :%s %s %s %s",
                  me.name, source_p->name,
                  names[0], names[1], 
-                 names[2],names[3]);
+                 names[2], names[3]);
       j = 0;
       names[0] = names[1] = names[2] = names[3] = "";
     }
 
   }
-  if(j)
+  if (j)
     sendto_one(source_p, ":%s NOTICE %s :%s %s %s %s",
                me.name, source_p->name,
                names[0], names[1], 
-               names[2],names[3]);
+               names[2], names[3]);
 }
 
 /* SET AUTOCONN */
-static void quote_autoconn( struct Client *source_p, char *arg, int newval)
+static void
+quote_autoconn(struct Client *source_p, const char *arg, int newval)
 {
-  set_autoconn(source_p, source_p->name, arg, newval);
+  set_autoconn(source_p, arg, newval);
 }
 
 /* SET AUTOCONNALL */
-static void quote_autoconnall( struct Client *source_p, int newval)
+static void
+quote_autoconnall(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"%s has changed AUTOCONNALL to %i",
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s has changed AUTOCONNALL to %i",
                          source_p->name, newval);
 
     GlobalSetOptions.autoconn = newval;
@@ -185,14 +186,14 @@ static void quote_autoconnall( struct Client *source_p, int newval)
   }
 }
 
-
 /* SET FLOODCOUNT */
-static void quote_floodcount( struct Client *source_p, int newval)
+static void
+quote_floodcount(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
     GlobalSetOptions.floodcount = newval;
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                          "%s has changed FLOODCOUNT to %i", source_p->name,
                          GlobalSetOptions.floodcount);
   }
@@ -204,18 +205,19 @@ static void quote_floodcount( struct Client *source_p, int newval)
 }
 
 /* SET IDENTTIMEOUT */
-static void quote_identtimeout(struct Client *source_p, int newval)
+static void
+quote_identtimeout(struct Client *source_p, int newval)
 {
-  if(!IsOperAdmin(source_p))
+  if (!IsAdmin(source_p))
   {
-    sendto_one(source_p, ":%s NOTICE %s :You have no A flag", 
-	       me.name, source_p->name);
+    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+               me.name, source_p->name);
     return;
   }
 
-  if(newval > 0)
+  if (newval > 0)
   {
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
 		         "%s has changed IDENTTIMEOUT to %d",
 			 get_oper_name(source_p), newval);
     GlobalSetOptions.ident_timeout = newval;
@@ -226,20 +228,21 @@ static void quote_identtimeout(struct Client *source_p, int newval)
 }
 
 /* SET IDLETIME */
-static void quote_idletime( struct Client *source_p, int newval )
+static void
+quote_idletime(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
     if (newval == 0)
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                            "%s has disabled idletime checking",
                            source_p->name);
       GlobalSetOptions.idletime = 0;
     }
     else
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                            "%s has changed IDLETIME to %i",
                            source_p->name, newval);
       GlobalSetOptions.idletime = (newval*60);
@@ -253,7 +256,8 @@ static void quote_idletime( struct Client *source_p, int newval )
 }
 
 /* SET LOG */
-static void quote_log( struct Client *source_p, int newval )
+static void
+quote_log( struct Client *source_p, int newval )
 {
   const char *log_level_as_string;
 
@@ -273,7 +277,7 @@ static void quote_log( struct Client *source_p, int newval )
 
     set_log_level(newval);
     log_level_as_string = get_log_level_as_string(newval);
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"%s has changed LOG level to %i (%s)",
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s has changed LOG level to %i (%s)",
                          source_p->name, newval, log_level_as_string);
   }
   else
@@ -285,7 +289,8 @@ static void quote_log( struct Client *source_p, int newval )
 }
 
 /* SET MAX */
-static void quote_max( struct Client *source_p, int newval )
+static void
+quote_max( struct Client *source_p, int newval )
 {
   if (newval > 0)
   {
@@ -307,7 +312,7 @@ static void quote_max( struct Client *source_p, int newval )
 
     GlobalSetOptions.maxclients = newval;
 
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
 	"%s!%s@%s set new MAXCLIENTS to %d (%d current)",
 	source_p->name, source_p->username, source_p->host,
 	GlobalSetOptions.maxclients, Count.local);
@@ -317,45 +322,36 @@ static void quote_max( struct Client *source_p, int newval )
   else
   {
     sendto_one(source_p, ":%s NOTICE %s :Current Maxclients = %d (%d)",
-	me.name, source_p->name,
-	GlobalSetOptions.maxclients, Count.local);
+               me.name, source_p->name, GlobalSetOptions.maxclients, Count.local);
   }
 }
 
 /* SET MSGLOCALE */
-static void quote_msglocale( struct Client *source_p, char *locale )
+static void
+quote_msglocale( struct Client *source_p, char *locale )
 {
-#ifdef USE_GETTEXT
-  if(locale)
+  if (locale != NULL)
   {
-    char langenv[BUFSIZE];
-    ircsprintf(langenv,"LANGUAGE=%s",locale);
-    putenv(langenv);
-
+    set_locale(locale);
     sendto_one(source_p, ":%s NOTICE %s :Set MSGLOCALE to '%s'",
-	me.name, source_p->name,
-	getenv("LANGUAGE") ? getenv("LANGUAGE") : "<unset>");
+	       me.name, source_p->name, get_locale());
   }
   else
   {
     sendto_one(source_p, ":%s NOTICE %s :MSGLOCALE is currently '%s'",
-	me.name, source_p->name,
-	(getenv("LANGUAGE")) ? getenv("LANGUAGE") : "<unset>");
+	       me.name, source_p->name, get_locale());
   }
-#else
-  sendto_one(source_p, ":%s NOTICE %s :No gettext() support available.",
-	me.name, source_p->name);
-#endif
 }
 
 /* SET SPAMNUM */
-static void quote_spamnum( struct Client *source_p, int newval )
+static void
+quote_spamnum( struct Client *source_p, int newval )
 {
   if (newval > 0)
   {
     if (newval == 0)
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                            "%s has disabled ANTI_SPAMBOT", source_p->name);
       GlobalSetOptions.spam_num = newval;
       return;
@@ -368,7 +364,7 @@ static void quote_spamnum( struct Client *source_p, int newval )
     {
       GlobalSetOptions.spam_num = newval;
     }
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"%s has changed SPAMNUM to %i",
+    sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,"%s has changed SPAMNUM to %i",
 		source_p->name, GlobalSetOptions.spam_num);
   }
   else
@@ -380,7 +376,8 @@ static void quote_spamnum( struct Client *source_p, int newval )
 }
 
 /* SET SPAMTIME */
-static void quote_spamtime( struct Client *source_p, int newval )
+static void
+quote_spamtime( struct Client *source_p, int newval )
 {
   if (newval > 0)
   {
@@ -392,7 +389,7 @@ static void quote_spamtime( struct Client *source_p, int newval )
     {
       GlobalSetOptions.spam_time = newval;
     }
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"%s has changed SPAMTIME to %i",
+    sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,"%s has changed SPAMTIME to %i",
 		source_p->name, GlobalSetOptions.spam_time);
   }
   else
@@ -404,7 +401,7 @@ static void quote_spamtime( struct Client *source_p, int newval )
 }
 
 /* this table is what splitmode may be set to */
-static char *splitmode_values[] =
+static const char *splitmode_values[] =
 {
   "OFF",
   "ON",
@@ -413,7 +410,7 @@ static char *splitmode_values[] =
 };
 
 /* this table is what splitmode may be */
-static char *splitmode_status[] =
+static const char *splitmode_status[] =
 {
   "OFF",
   "AUTO (OFF)",
@@ -423,22 +420,23 @@ static char *splitmode_status[] =
 };
 
 /* SET SPLITMODE */
-static void quote_splitmode(struct Client *source_p, char *charval)
+static void
+quote_splitmode(struct Client *source_p, char *charval)
 {
-  if(charval)
+  if (charval)
   {
     int newval;
 
-    for(newval = 0; splitmode_values[newval]; newval++)
+    for (newval = 0; splitmode_values[newval]; newval++)
     {
-      if(!irccmp(splitmode_values[newval], charval))
+      if (irccmp(splitmode_values[newval], charval) == 0)
         break;
     }
 
     /* OFF */
-    if(newval == 0)
+    if (newval == 0)
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL, 
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                            "%s is disabling splitmode",
                            get_oper_name(source_p));
 
@@ -448,9 +446,9 @@ static void quote_splitmode(struct Client *source_p, char *charval)
       eventDelete(check_splitmode, NULL);
     }
     /* ON */
-    else if(newval == 1)
+    else if (newval == 1)
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                            "%s is enabling and activating splitmode",
 	                   get_oper_name(source_p));
 		 
@@ -461,9 +459,9 @@ static void quote_splitmode(struct Client *source_p, char *charval)
       eventDelete(check_splitmode, NULL);
     }
     /* AUTO */
-    else if(newval == 2)
+    else if (newval == 2)
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                            "%s is enabling automatic splitmode",
 			   get_oper_name(source_p));
 
@@ -482,16 +480,17 @@ static void quote_splitmode(struct Client *source_p, char *charval)
 }
 
 /* SET SPLITNUM */
-static void quote_splitnum(struct Client *source_p, int newval)
+static void
+quote_splitnum(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                          "%s has changed SPLITNUM to %i", 
 			 source_p->name, newval);
     split_servers = newval;
 
-    if(splitchecking)
+    if (splitchecking)
       check_splitmode(NULL);
   }
   else
@@ -500,16 +499,17 @@ static void quote_splitnum(struct Client *source_p, int newval)
 }
 
 /* SET SPLITUSERS */
-static void quote_splitusers(struct Client *source_p, int newval)
+static void
+quote_splitusers(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                          "%s has changed SPLITUSERS to %i", 
 			 source_p->name, newval);
     split_users = newval;
 
-    if(splitchecking)
+    if (splitchecking)
       check_splitmode(NULL);
   }
   else
@@ -521,44 +521,45 @@ static void quote_splitusers(struct Client *source_p, int newval)
  * mo_set - SET command handler
  * set options while running
  */
-static void mo_set(struct Client *client_p, struct Client *source_p,
-                  int parc, char *parv[])
+static void
+mo_set(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
 {
+  int i;
+  int n;
   int newval;
-  int i, n;
-  char *arg=NULL;
-  char *intarg=NULL;
+  const char *arg    = NULL;
+  const char *intarg = NULL;
 
   if (parc > 1)
   {
-    /*
-     * Go through all the commands in set_cmd_table, until one is
+    /* Go through all the commands in set_cmd_table, until one is
      * matched.  I realize strcmp() is more intensive than a numeric
      * lookup, but at least it's better than a big-ass switch/case
      * statement.
      */
-    for (i=0; set_cmd_table[i].handler; i++)
+    for (i = 0; set_cmd_table[i].handler; i++)
     {
-      if (!irccmp(set_cmd_table[i].name, parv[1]))
+      if (irccmp(set_cmd_table[i].name, parv[1]) == 0)
       {
         /*
          * Command found; now execute the code
          */
         n = 2;
 
-        if(set_cmd_table[i].wants_char)
+        if (set_cmd_table[i].wants_char)
         {
           arg = parv[n++];
         }
 
-        if(set_cmd_table[i].wants_int)
+        if (set_cmd_table[i].wants_int)
         {
           intarg = parv[n++];
         }
 
-        if( (n - 1) > parc )
+        if ((n - 1) > parc)
         {
-          if(parc > 2)
+          if (parc > 2)
             sendto_one(source_p,
                        ":%s NOTICE %s :SET %s expects (\"%s%s\") args",
                        me.name, source_p->name, set_cmd_table[i].name,
@@ -567,19 +568,19 @@ static void mo_set(struct Client *client_p, struct Client *source_p,
                       );
         }
 
-        if(parc <= 2)
+        if (parc <= 2)
         {
           arg = NULL;
           intarg = NULL;
         }
 
-        if(set_cmd_table[i].wants_int && (parc > 2))
+        if (set_cmd_table[i].wants_int && (parc > 2))
         {
-          if(intarg)
+          if (intarg)
           {
-            if(!irccmp(intarg, "yes") || !irccmp(intarg, "on"))
+            if (irccmp(intarg, "yes") == 0 || irccmp(intarg, "on") == 0)
               newval = 1;
-            else if (!irccmp(intarg, "no") || !irccmp(intarg, "off"))
+            else if (irccmp(intarg, "no") == 0|| irccmp(intarg, "off") == 0)
               newval = 0;
             else
               newval = atoi(intarg);
@@ -589,7 +590,7 @@ static void mo_set(struct Client *client_p, struct Client *source_p,
             newval = -1;
           }
 
-          if(newval < 0)
+          if (newval < 0)
           {
             sendto_one(source_p,
                        ":%s NOTICE %s :Value less than 0 illegal for %s",
@@ -602,22 +603,22 @@ static void mo_set(struct Client *client_p, struct Client *source_p,
         else
           newval = -1;
 
-        if(set_cmd_table[i].wants_char)
+        if (set_cmd_table[i].wants_char)
         {
-          if(set_cmd_table[i].wants_int)
-            set_cmd_table[i].handler( source_p, arg, newval );
+          if (set_cmd_table[i].wants_int)
+            set_cmd_table[i].handler(source_p, arg, newval);
           else
-            set_cmd_table[i].handler( source_p, arg );
+            set_cmd_table[i].handler(source_p, arg);
           return;
         }
         else
         {
-          if(set_cmd_table[i].wants_int)
-            set_cmd_table[i].handler( source_p, newval );
+          if (set_cmd_table[i].wants_int)
+            set_cmd_table[i].handler(source_p, newval);
           else
             /* Just in case someone actually wants a
              * set function that takes no args.. *shrug* */
-            set_cmd_table[i].handler( source_p );
+            set_cmd_table[i].handler(source_p);
           return;
         }
       }
@@ -627,7 +628,8 @@ static void mo_set(struct Client *client_p, struct Client *source_p,
      * Code here will be executed when a /QUOTE SET command is not
      * found within set_cmd_table.
      */
-    sendto_one(source_p, ":%s NOTICE %s :Variable not found.", me.name, parv[0]);
+    sendto_one(source_p, ":%s NOTICE %s :Variable not found.",
+               me.name, source_p->name);
     return;
   }
 

@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  fileio.h: A header for some built in command handlers.
+ *  handlers.h: A header for some built in command handlers.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -89,11 +89,11 @@ struct Client;
 /* generic handlers */
 extern void ms_error(struct Client *,struct Client *,int,char **);
 extern void m_error(struct Client *,struct Client *,int,char **);
+extern void mo_hash(struct Client *,struct Client *,int,char **); /* XXX */
 extern void m_ignore(struct Client*, struct Client*, int, char**);
 extern void m_not_oper(struct Client*, struct Client*, int, char**);
 extern void m_registered(struct Client*, struct Client*, int, char**);
 extern void m_unregistered(struct Client*, struct Client*, int, char**);
-extern void m_unsupported(struct Client*, struct Client*, int, char**);
 
 #endif /* INCLUDED_handlers_h */
 

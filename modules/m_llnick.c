@@ -44,7 +44,7 @@ static void ms_llnick(struct Client*, struct Client*, int, char**);
 
 struct Message llnick_msgtab = {
   "LLNICK", 0, 0, 3, 0, MFLG_SLOW | MFLG_UNREG, 0L,
-  {m_unregistered, m_ignore, ms_llnick, m_ignore}
+  {m_unregistered, m_ignore, ms_llnick, m_ignore, m_ignore}
 };
 #ifndef STATIC_MODULES
 
@@ -70,10 +70,9 @@ const char *_version = "$Revision$";
  *      parv[3] = old nick
  *
  */
-static void ms_llnick(struct Client *client_p,
-                      struct Client *source_p,
-                      int parc,
-                      char *parv[])
+static void
+ms_llnick(struct Client *client_p, struct Client *source_p,
+	  int parc, char *parv[])
 {
   char *nick;
   char *nick_old = NULL;
@@ -84,7 +83,7 @@ static void ms_llnick(struct Client *client_p,
   
   if(!IsCapable(client_p,CAP_LL) || !IsCapable(client_p, CAP_HUB))
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL,
 			   "*** LLNICK requested from non LL server %s",
 			   client_p->name);
       return;

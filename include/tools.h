@@ -24,53 +24,59 @@
 
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
-
+#include "stdinc.h"
 
 /*
- * double-linked-list stuff
+ * double-linked-list and single-linked-list stuff
  */
 typedef struct _dlink_node dlink_node;
 typedef struct _dlink_list dlink_list;
+typedef struct _slink_node slink_node;
+typedef struct _slink_list slink_list;
 
-struct _dlink_node {
-    void *data;
-    dlink_node *prev;
-    dlink_node *next;
-
+struct _dlink_node
+{
+  void *data;
+  dlink_node *prev;
+  dlink_node *next;
 };
   
-struct _dlink_list {
-    dlink_node *head;
-    dlink_node *tail;
-    unsigned long length;
+struct _dlink_list
+{
+  dlink_node *head;
+  dlink_node *tail;
+  unsigned long length;
 };
 
-void
-dlinkAdd(void *data, dlink_node * m, dlink_list * list);
+struct _slink_node
+{
+  void *data;
+  slink_node *next;
+};
 
-void
-dlinkAddBefore(dlink_node *b, void *data, dlink_node *m, dlink_list *list);
+struct _slink_list
+{
+  slink_node *head;
+  unsigned long length;
+};
 
-void
-dlinkAddTail(void *data, dlink_node *m, dlink_list *list);
-
-void
-dlinkDelete(dlink_node *m, dlink_list *list);
-
-void
-dlinkMoveList(dlink_list *from, dlink_list *to);
-
-dlink_node *
-dlinkFind(dlink_list *m, void *data);
-
-dlink_node *
-dlinkFindDelete(dlink_list *m, void *data);
+extern void dlinkAdd(void *data, dlink_node * m, dlink_list * list);
+extern void dlinkAddBefore(dlink_node *b, void *data, dlink_node *m, dlink_list *list);
+extern void dlinkAddTail(void *data, dlink_node *m, dlink_list *list);
+extern void dlinkDelete(dlink_node *m, dlink_list *list);
+extern void dlinkMoveList(dlink_list *from, dlink_list *to);
+extern dlink_node *dlinkFind(dlink_list *m, void *data);
+extern dlink_node *dlinkFindDelete(dlink_list *m, void *data);
 
 #ifndef NDEBUG
 void mem_frob(void *data, int len);
 #else
 #define mem_frob(x, y) 
 #endif
+
+extern void slink_add(void *data, slink_node *node, slink_list *list);
+extern void slink_delete(slink_node *node, slink_list *list);
+extern slink_node *slink_find(slink_list *list, void *data);
 
 /* These macros are basically swiped from the linux kernel
  * they are simple yet effective
@@ -92,10 +98,13 @@ void mem_frob(void *data, int len);
 #define DLINK_FOREACH_SAFE(pos, n, head) for (pos = (head), n = pos ? pos->next : NULL; pos != NULL; pos = n, n = pos ? pos->next : NULL)
 	        
 #define DLINK_FOREACH_PREV(pos, head) for (pos = (head); pos != NULL; pos = pos->prev)
-              		                  	
+              		       
+#define SLINK_FOREACH(pos, head) for (pos = (head); pos != NULL; pos = pos->next)
+#define SLINK_FOREACH_SAFE(pos, n, head) for (pos = (head), n = pos ? pos->next : NULL; pos != NULL; pos = n, n = pos ? pos->next : NULL)
 
 /* Returns the list length */
 #define dlink_list_length(list) (list)->length
+#define slink_list_length(list) (list)->length
 
 /*
  * The functions below are included for the sake of inlining
@@ -168,12 +177,16 @@ dlinkDelete(dlink_node *m, dlink_list *list)
   */
  if (m->next)
    m->next->prev = m->prev;
- else
+ else {
+   assert(list->tail == m);
    list->tail = m->prev;
+ }
  if (m->prev)
    m->prev->next = m->next;
- else
+ else {
+   assert(list->head == m);
    list->head = m->next;
+ }
  /* Set this to NULL does matter */
  m->next = m->prev = NULL;
   list->length--;
@@ -187,16 +200,17 @@ dlinkDelete(dlink_node *m, dlink_list *list)
  * side effects	- Look for ptr in the linked listed pointed to by link.
  */
 extern inline dlink_node *
-dlinkFind(dlink_list *list, void * data )
+dlinkFind(dlink_list *list, void *data)
 {
   dlink_node *ptr;
 
-  for (ptr = list->head; ptr; ptr = ptr->next)
-    {
-      if (ptr->data == data)
-	return (ptr);
-    }
-  return (NULL);
+  DLINK_FOREACH(ptr, list->head)
+  {
+    if (ptr->data == data)
+      return(ptr);
+  }
+
+  return(NULL);
 }
 
 extern inline void
@@ -205,13 +219,14 @@ dlinkMoveList(dlink_list *from, dlink_list *to)
   /* There are three cases */
   /* case one, nothing in from list */
 
-    if(from->head == NULL)
+    if (from->head == NULL)
       return;
 
   /* case two, nothing in to list */
   /* actually if to->head is NULL and to->tail isn't, thats a bug */
 
-    if(to->head == NULL) {
+    if (to->head == NULL)
+    {
        to->head = from->head;
        to->tail = from->tail;
        from->head = from->tail = NULL;
@@ -237,11 +252,95 @@ extern inline dlink_node *
 dlinkFindDelete(dlink_list *list, void *data)
 {
   dlink_node *m;
- 
-  m = dlinkFind(list, data);
-  if (m)
-    dlinkDelete(m, list);
-  return(m);
+
+  DLINK_FOREACH(m, list->head)
+  {
+    if (m->data == data)
+    {
+      if (m->next)
+        m->next->prev = m->prev;
+      else
+      {
+        assert(list->tail == m);
+        list->tail = m->prev;
+      }
+      if (m->prev)
+        m->prev->next = m->next;
+      else
+      {
+        assert(list->head == m);
+        list->head = m->next;
+      }
+      /* Set this to NULL does matter */
+      m->next = m->prev = NULL;
+      list->length--;
+
+      return(m);
+    }
+  }
+
+  return(NULL);
+}
+
+extern inline void
+slink_add(void *data, slink_node *node, slink_list *list)
+{
+    assert(list != NULL && node != NULL);
+
+    if(list->head == NULL)
+    {
+        list->head = node;
+        node->next = NULL;
+    }
+    else
+    {
+        node->next = list->head->next;
+        list->head = node;
+    }
+
+    node->data = data;
+    list->length++;
+}
+
+extern inline void
+slink_delete(slink_node *node, slink_list *list)
+{
+    slink_node *ptr;
+
+    assert(node != NULL && list != NULL);
+
+    if(list->head == NULL)
+        return;
+
+    if(list->head->next == NULL)
+        list->head = NULL;
+    else
+    {
+        SLINK_FOREACH(ptr, list->head)
+        {
+            if(ptr->next == node)
+            {
+                ptr->next = node->next;
+                break;
+            }
+        }
+    }
+    list->length--;
+}
+
+extern inline slink_node*
+slink_find(slink_list *list, void *data)
+{
+    slink_node *ptr;
+
+    assert(list != NULL && data != NULL);
+
+    SLINK_FOREACH(ptr, list->head)
+    {
+        if(ptr->data == data)
+            return ptr;
+    }
+    return NULL;
 }
 #endif /* __GNUC__ */
 

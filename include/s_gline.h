@@ -25,48 +25,46 @@
 #ifndef INCLUDED_s_gline_h
 #define INCLUDED_s_gline_h
 
-#include "config.h"
 #include "ircd_defs.h"
 
 struct Client;
-struct ConfItem;
+struct AccessItem;
 
-extern struct ConfItem* find_gkill(struct Client* client, char *);
-extern struct ConfItem* find_is_glined(const char* host, const char* name);
-extern int    remove_gline_match(const char *user, const char *host);
-extern void   cleanup_glines();
-extern void   add_gline(struct ConfItem *);
+extern int remove_gline_match(const char *user, const char *host);
+extern struct AccessItem *find_gkill(struct Client *client, const char *);
+extern struct AccessItem *find_is_glined(const char *host, const char *name);
+extern void cleanup_glines(void *unused);
 
-
-typedef struct gline_pending
+struct gline_pending
 {
+  dlink_node node;
+
   char oper_nick1[NICKLEN + 1];
   char oper_user1[USERLEN + 1];
   char oper_host1[HOSTLEN + 1];
-  const char* oper_server1;     /* point to scache */
-  char *reason1;
+  char oper_server1[HOSTLEN + 1];
+  char reason1[REASONLEN + 1];
   time_t time_request1;
 
   char oper_nick2[NICKLEN + 1];
   char oper_user2[USERLEN + 1];
   char oper_host2[HOSTLEN + 1];
-  const char* oper_server2;     /* point to scache */
-  char *reason2;
+  char oper_server2[HOSTLEN + 1];
+  char reason2[REASONLEN + 1];
   time_t time_request2;
-  
+
   time_t last_gline_time;       /* for expiring entry */
-  char user[USERLEN + 1];
-  char host[HOSTLEN + 1];
-}gline_pending_t;
+  char user[USERLEN * 2 + 2];
+  char host[HOSTLEN * 2 + 2];
+};
 
 /* how long a pending G line can be around
  * 10 minutes should be plenty
  */
-
 #define GLINE_PENDING_EXPIRE 600
 #define CLEANUP_GLINES_TIME  300
 
-dlink_list pending_glines;
+extern dlink_list pending_glines;
 extern dlink_list glines;
 
-#endif
+#endif /* INCLUDED_s_gline_h */

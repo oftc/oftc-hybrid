@@ -31,20 +31,17 @@
 #include "numeric.h"
 #include "s_conf.h"
 #include "send.h"
-#include "channel.h"
 #include "irc_string.h"
-#include "s_debug.h"
 #include "msg.h"
 #include "parse.h"
-#include "hash.h"
 #include "modules.h"
 
-static void mr_pong(struct Client*, struct Client*, int, char**);
-static void ms_pong(struct Client*, struct Client*, int, char**);
+static void mr_pong(struct Client *, struct Client *, int, char **);
+static void ms_pong(struct Client *, struct Client *, int, char **);
 
 struct Message pong_msgtab = {
   "PONG", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_pong, m_ignore, ms_pong, m_ignore}
+  {mr_pong, m_ignore, ms_pong, m_ignore, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -62,36 +59,35 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
-static void ms_pong(struct Client *client_p,
-                   struct Client *source_p,
-                   int parc,
-                   char *parv[])
+static void 
+ms_pong(struct Client *client_p, struct Client *source_p, 
+        int parc, char *parv[])
 {
   struct Client *target_p;
   char  *origin, *destination;
   struct timeval tv;
 
   if (parc < 2 || *parv[1] == '\0')
-    {
-      sendto_one(source_p, form_str(ERR_NOORIGIN), me.name, parv[0]);
-      return;
-    }
+  {
+    sendto_one(source_p, form_str(ERR_NOORIGIN), me.name, parv[0]);
+    return;
+  }
 
     
-    gettimeofday(&tv, NULL);
-    source_p->ping_time.tv_sec = tv.tv_sec - source_p->ping_send_time.tv_sec;
-    source_p->ping_time.tv_usec = tv.tv_usec - source_p->ping_send_time.tv_usec;
-    
-    if (MyConnect(source_p)) 
-    {
-      sendto_server(NULL, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
-              ":%s SPINGTIME %s %.1ld", me.name, source_p->name,
-      (source_p->ping_time.tv_sec * 1000000) + source_p->ping_time.tv_usec);
-    }
-        
+  gettimeofday(&tv, NULL);
+  source_p->ping_time.tv_sec = tv.tv_sec - source_p->ping_send_time.tv_sec;
+  source_p->ping_time.tv_usec = tv.tv_usec - source_p->ping_send_time.tv_usec;
+
+  if (MyConnect(source_p)) 
+  {
+    sendto_server(NULL, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
+        ":%s SPINGTIME %s %.1ld", me.name, source_p->name,
+        (source_p->ping_time.tv_sec * 1000000) + source_p->ping_time.tv_usec);
+  }
+
   origin = parv[1];
   destination = parv[2];
-  source_p->flags &= ~FLAGS_PINGSENT;
+  ClearPingSent(source_p);
 
   /* Now attempt to route the PONG, comstud pointed out routable PING
    * is used for SPING.  routable PING should also probably be left in
@@ -100,7 +96,7 @@ static void ms_pong(struct Client *client_p,
    * case can be made to allow them only from servers). -Shadowfax
    */
   if (!EmptyString(destination) && !match(destination, me.name))
-    {
+  {
       if ((target_p = find_client(destination)) ||
           (target_p = find_server(destination)))
         sendto_one(target_p,":%s PONG %s %s",
@@ -111,32 +107,25 @@ static void ms_pong(struct Client *client_p,
                      me.name, parv[0], destination);
           return;
         }
-    }
-
-#ifdef  DEBUGMODE
-  else
-    Debug((DEBUG_NOTICE, "PONG: %s %s", origin,
-           destination ? destination : "*"));
-#endif
-  return;
+  }
 }
 
 static void
 mr_pong(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+        int parc, char *parv[])
 {
   if (parc == 2 && *parv[1] != '\0')
+  {
+    if(ConfigFileEntry.ping_cookie && source_p->user && source_p->name[0])
     {
-      if(ConfigFileEntry.ping_cookie && source_p->user && source_p->name[0])
-      {
-	unsigned long incoming_ping = strtoul(parv[1], (char **)NULL, 10);
+	unsigned long incoming_ping = strtoul(parv[1], NULL, 10);
 	if(incoming_ping)
 	{
 	  if(source_p->localClient->random_ping == incoming_ping)
 	  {
 		char buf[USERLEN+1];
-		strlcpy(buf, source_p->username, USERLEN + 1);
-		source_p->flags2 |= FLAGS2_PING_COOKIE;
+		strlcpy(buf, source_p->username, sizeof(buf));
+		SetPingCookie(source_p);
 		register_local_user(client_p, source_p, source_p->name, buf);
 	  }
 	  else
@@ -151,7 +140,7 @@ mr_pong(struct Client *client_p, struct Client *source_p,
     }
   else
     sendto_one(source_p, form_str(ERR_NOORIGIN), me.name, parv[0]);
-  
-  source_p->flags &= ~FLAGS_PINGSENT;
+
+  ClearPingSent(source_p);
 }
 

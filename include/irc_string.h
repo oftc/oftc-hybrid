@@ -25,6 +25,8 @@
 #ifndef INCLUDED_irc_string_h
 #define INCLUDED_irc_string_h
 
+#include "setup.h"
+
 /*
  * match - compare name with mask, mask may contain * and ? as wildcards
  * match - returns 1 on successful match, 0 otherwise
@@ -47,34 +49,31 @@ extern char* collapse(char *pattern);
 extern char *collapse_esc(char *pattern);
 
 /*
+ * NOTE: The following functions are NOT the same as strcasecmp
+ * and strncasecmp! These functions use the Finnish (RFC1459)
+ * character set. Do not replace!
+ * 
  * irccmp - case insensitive comparison of s1 and s2
  */
 extern int irccmp(const char *s1, const char *s2);
+
 /*
  * ircncmp - counted case insensitive comparison of s1 and s2
  */
 extern int ircncmp(const char *s1, const char *s2, size_t n);
-/*
-** canonize - reduce a string of duplicate list entries to contain
-** only the unique items.
-*/  
-#ifdef NO_DUPE_MULTI_MESSAGES
-extern char* canonize(char *);
-#endif
+
 /*
  * inetntoa - optimized inet_ntoa
  */
 const char* inetntoa(const char* in_addr);
 
-/* 
+/* XXX
  * inetntop() 
- * inetpton()
- * portable interfaces for inet_ntop() and inet_pton()
+ * portable interface for inet_ntop(), kludge; please use inet_ntop if possible
+ * since inet_misc has a more conformant one
  */
 const char *inetntop(int af, const void *src, char *dst, unsigned int size);
-int inetpton(int af, const char *src, void *dst);
-                                
-
+   
 #ifndef HAVE_STRLCPY
 size_t strlcpy(char *dst, const char *src, size_t siz);
 #endif
@@ -89,6 +88,10 @@ int snprintf (char *str,size_t count,const char *fmt,...);
 
 #ifndef HAVE_VSNPRINTF
 int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
+#endif
+
+#ifndef HAVE_BASENAME
+char* basename (char *path);
 #endif
 
 /*
@@ -106,13 +109,9 @@ const char* myctime(time_t);
 
 #define EmptyString(x) (!(x) || (*(x) == '\0'))
 
-char*       strtoken(char** save, char* str, char* fs);
-
-/*
- * deprecate
- */
-#define BadPtr(x) (!(x) || (*(x) == '\0'))
-
+#ifndef HAVE_STRTOK_R
+char*       strtoken(char** save, char* str, const char* fs);
+#endif
 
 /*
  * character macros

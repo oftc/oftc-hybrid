@@ -32,6 +32,7 @@
 #include "list.h"
 #include "s_gline.h"
 #include "numeric.h"
+#include "irc_res.h"
 #include "s_conf.h"
 #include "s_log.h"
 #include "send.h"
@@ -43,8 +44,9 @@ static void mo_dmem(struct Client*, struct Client*, int, char**);
 
 struct Message dmem_msgtab = {
   "DMEM", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, mo_dmem}
+  {m_unregistered, m_not_oper, m_ignore, mo_dmem, m_ignore}
 };
+
 #ifndef STATIC_MODULES
 void
 _modinit(void)

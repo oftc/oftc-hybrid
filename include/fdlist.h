@@ -25,18 +25,9 @@
 #ifndef INCLUDED_fdlist_h
 #define INCLUDED_fdlist_h
 
-#include "config.h"
 #include "ircd_defs.h"
+#include "irc_res.h"
 #define FD_DESC_SZ 128  /* hostlen + comment */
-
-/*
- * priority values used in fdlist code
- */
-#define FDL_SERVER   0x01
-#define FDL_BUSY     0x02
-#define FDL_OPER     0x04
-#define FDL_DEFAULT  0x08 
-#define FDL_ALL      0xFF
 
 /* FD type values */
 enum {

@@ -30,6 +30,7 @@
 #include "s_serv.h"
 #include "send.h"
 #include "irc_string.h"
+#include "sprintf_irc.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
@@ -41,7 +42,7 @@ static void m_userhost(struct Client*, struct Client*, int, char**);
 
 struct Message userhost_msgtab = {
   "USERHOST", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_userhost, m_userhost, m_userhost}
+  {m_unregistered, m_userhost, m_userhost, m_userhost, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -64,10 +65,9 @@ const char *_version = "$Revision$";
  * the need for complicated requests like WHOIS. It returns user/host
  * information only (no spurious AWAY labels or channels).
  */
-static void m_userhost(struct Client *client_p,
-                      struct Client *source_p,
-                      int parc,
-                      char *parv[])
+static void
+m_userhost(struct Client *client_p, struct Client *source_p,
+	   int parc, char *parv[])
 {
   struct Client *target_p;
   char response[NICKLEN*2+USERLEN+HOSTLEN+30];

@@ -53,7 +53,7 @@ static void motd_spy(struct Client *);
  */
 struct Message motd_msgtab = {
   "MOTD", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {mr_motd, m_motd, mo_motd, mo_motd}
+  {mr_motd, m_motd, mo_motd, mo_motd, m_ignore}
 };
 #ifndef STATIC_MODULES
 void
@@ -79,10 +79,10 @@ const char *_version = "$Revision$";
  */
 static void
 mr_motd(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+        int parc, char *parv[])
 {
   /* allow unregistered clients to see the motd, but exit them */
-  SendMessageFile(source_p,&ConfigFileEntry.motd);
+  send_message_file(source_p,&ConfigFileEntry.motd);
   exit_client(client_p, source_p, source_p, "Client Exit after MOTD");
 }
 
@@ -97,25 +97,24 @@ m_motd(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
-    {
-      /* safe enough to give this on a local connect only */
-      sendto_one(source_p,form_str(RPL_LOAD2HI),me.name,source_p->name);
-      return;
-    }
+  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  {
+    /* safe enough to give this on a local connect only */
+    sendto_one(source_p,form_str(RPL_LOAD2HI),me.name,source_p->name);
+    return;
+  }
   else
     last_used = CurrentTime;
 
   /* This is safe enough to use during non hidden server mode */
-  if(!ConfigServerHide.disable_remote && !ConfigServerHide.hide_servers)
-    {
-      if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1,parc,parv)!=HUNTED_ISME)
-	return;
-    }
+  if (!ConfigFileEntry.disable_remote && !ConfigServerHide.hide_servers)
+  {
+    if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1,parc,parv)!=HUNTED_ISME)
+      return;
+  }
 
   motd_spy(source_p);
-  
-  SendMessageFile(source_p,&ConfigFileEntry.motd);
+  send_message_file(source_p,&ConfigFileEntry.motd);
 }
 
 /*
@@ -125,9 +124,9 @@ m_motd(struct Client *client_p, struct Client *source_p,
 */
 static void
 mo_motd(struct Client *client_p, struct Client *source_p,
-	int parc, char *parv[])
+        int parc, char *parv[])
 {
-  if(!IsClient(source_p))
+  if (!IsClient(source_p))
     return;
 
   if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1,parc,parv)!=HUNTED_ISME)
@@ -135,7 +134,7 @@ mo_motd(struct Client *client_p, struct Client *source_p,
 
   motd_spy(source_p);
   
-  SendMessageFile(source_p,&ConfigFileEntry.motd);
+  send_message_file(source_p,&ConfigFileEntry.motd);
 }
 
 /* motd_spy()

@@ -30,18 +30,16 @@
 #include "numeric.h"
 #include "send.h"
 #include "s_user.h"
-#include "s_conf.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "client.h"
 
-static void ms_operwall(struct Client*, struct Client*, int, char**);
-static void mo_operwall(struct Client*, struct Client*, int, char**);
+static void mo_operwall(struct Client *, struct Client *, int, char **);
+static void ms_operwall(struct Client *, struct Client *, int, char **);
 
 struct Message operwall_msgtab = {
   "OPERWALL", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_operwall, mo_operwall}
+  {m_unregistered, m_not_oper, ms_operwall, mo_operwall, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -56,58 +54,51 @@ _moddeinit(void)
 {
   mod_del_cmd(&operwall_msgtab);
 }
- 
+
 const char *_version = "$Revision$";
 #endif
+
 /*
- * mo_operwall(write to *all* opers currently online)
+ * mo_operwall - OPERWALL message handler
+ *  (write to *all* local opers currently online)
  *      parv[0] = sender prefix
  *      parv[1] = message text
  */
-static void mo_operwall(struct Client *client_p, struct Client *source_p,
-                      int parc, char *parv[])
-{ 
-  char* message;
+static void
+mo_operwall(struct Client *client_p, struct Client *source_p,
+            int parc, char *parv[])
+{
+  const char *message = parv[1];
 
-  message = parv[1];
-  
   if (EmptyString(message))
-    {
-      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-                 me.name, parv[0], "OPERWALL");
-      return;
-    }
+  {
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+               me.name, parv[0], "OPERWALL");
+    return;
+  }
 
-  sendto_wallops_flags(FLAGS_OPERWALL, source_p, "OPERWALL - %s", message);
   sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
                 ":%s OPERWALL :%s", parv[0], message);
+  sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }
 
 /*
- * ms_operwall(write to *all* opers currently online)
+ * ms_operwall - OPERWALL message handler
+ *  (write to *all* local opers currently online)
  *      parv[0] = sender prefix
  *      parv[1] = message text
  */
-static void ms_operwall(struct Client *client_p, struct Client *source_p,
-                      int parc, char *parv[])
-{ 
-  char* message;
+static void
+ms_operwall(struct Client *client_p, struct Client *source_p,
+            int parc, char *parv[])
+{
+  const char *message = parv[1];
 
-  message = parv[1];
-  
   if (EmptyString(message))
-    {
-      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-                 me.name, parv[0], "OPERWALL");
-      return;
-    }
-
-  if(IsClient(source_p))
-    sendto_wallops_flags(FLAGS_OPERWALL, source_p, "OPERWALL - %s", message);
-  else
-    sendto_wallops_flags(FLAGS_WALLOP, source_p, "%s", message); 
+    return;
 
   sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
                 ":%s OPERWALL :%s", parv[0], message);
+  sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }
 

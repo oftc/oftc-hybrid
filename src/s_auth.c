@@ -142,11 +142,10 @@ release_auth_client(struct Client *client)
    * us. This is what read_packet() does.
    *     -- adrian
    */
-
   client->localClient->allow_read = MAX_FLOOD;
   comm_setflush(client->localClient->fd, 1000, flood_recalc, client);
   set_no_delay(client->localClient->fd);
-  add_client_to_list(client);
+  dlinkAdd(client, &client->node, &global_client_list);
   read_packet(client->localClient->fd, client);
 }
  
@@ -278,7 +277,7 @@ start_auth_query(struct AuthRequest* auth)
 
   if ((HARD_FDLIMIT - 10) < fd)
   {
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"Can't allocate fd for auth on %s",
+    sendto_realops_flags(UMODE_ALL, L_ALL,"Can't allocate fd for auth on %s",
         get_client_name(auth->client, SHOW_IP));
     fd_close(fd);
     return 0;
@@ -418,7 +417,7 @@ start_auth(struct Client *client)
   SetDNSPending(auth);
   dlinkAdd(auth, &auth->dns_node, &auth_doing_dns_list);
 
-//  if(ConfigFileEntry.disable_auth == 0)
+  if(ConfigFileEntry.disable_auth == 0)
     (void)start_auth_query(auth);
 }
 

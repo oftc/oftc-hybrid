@@ -30,57 +30,59 @@
 #include "balloc.h"
 
 /* Needed to use uintptr_t for some pointer manipulation. */
-#ifdef __VMS
-#include inttypes
-#else /* Not VMS */
+
 #ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
+# include <inttypes.h>
 #else /* No inttypes.h */
-#ifndef HAVE_UINTPTR_T
+# ifndef HAVE_UINTPTR_T
 typedef unsigned long uintptr_t;
-#endif
-#endif
+# endif
 #endif
 
 extern void outofmemory(void);
-
 
 extern void *MyMalloc(size_t size);
 extern void *MyRealloc(void *x, size_t y);
 extern void MyFree(void *x);
 extern void _DupString(char **x, const char *y);
 
-/* forte (and maybe others) dont like double declarations, 
- * so we dont declare the inlines unless GNUC
+/* forte (and maybe others) don't like double declarations, 
+ * so we don't declare the inlines unless GNUC
  */
 #ifdef __GNUC__
-extern inline void * MyMalloc(size_t size)
+extern inline void *
+MyMalloc(size_t size)
 {
   void *ret = calloc(1, size);
-  if(ret == NULL)
+
+  if (ret == NULL)
     outofmemory();
   return(ret);
 }
 
-extern inline void* MyRealloc(void* x, size_t y)
+extern inline void *
+MyRealloc(void *x, size_t y)
 {
   void *ret = realloc(x, y);
-  
-  if(ret == NULL)
+
+  if (ret == NULL)
     outofmemory();
   return(ret);    
 }
 
-extern inline void MyFree(void *x)
+extern inline void
+MyFree(void *x)
 {
-  if(x != NULL)
+  if (x != NULL)
     free(x);
 }
 
-extern inline void _DupString(char **x, const char *y)
+extern inline void
+_DupString(char **x, const char *y)
 {
   (*x) = malloc(strlen(y) + 1);
-  if(x == NULL)
+
+  if (x == NULL)
     outofmemory();
   strcpy((*x), y); 
 }

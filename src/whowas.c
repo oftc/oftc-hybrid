@@ -40,144 +40,163 @@
 
 /* internally defined function */
 static void add_whowas_to_clist(struct Whowas **, struct Whowas *);
-static void del_whowas_from_clist(struct Whowas **,struct Whowas *);
+static void del_whowas_from_clist(struct Whowas **, struct Whowas *);
 static void add_whowas_to_list(struct Whowas **, struct Whowas *);
-static void del_whowas_from_list(struct Whowas **,struct Whowas *);
+static void del_whowas_from_list(struct Whowas **, struct Whowas *);
 
 struct Whowas WHOWAS[NICKNAMEHISTORYLENGTH];
 struct Whowas *WHOWASHASH[WW_MAX];
 
-static int whowas_next = 0;
+static unsigned int whowas_next = 0;
 
-unsigned int hash_whowas_name(const char* name)
+unsigned int
+hash_whowas_name(const char *name)
 {
   unsigned int h = 0;
 
   while (*name)
-    {
-      h = (h << 4) - (h + (unsigned char)ToLower(*name++));
-    }
+  {
+    h = (h << 4) - (h + (unsigned char)ToLower(*name++));
+  }
+
   return(h & (WW_MAX - 1));
 }
 
-void add_history(struct Client* client_p, int online)
+void
+add_history(struct Client *client_p, int online)
 {
-  struct Whowas* who = &WHOWAS[whowas_next];
+  struct Whowas *who = &WHOWAS[whowas_next];
 
-  assert(NULL != client_p);
-  
-  if(client_p == NULL)
+  assert(client_p != NULL);
+
+  if (client_p == NULL)
+    return;
+
+  /* XXX when is this possible? Looks like it could happen
+   * (with a half registered client.)
+   * and what is the correct action here? - Dianora
+   */
+  if (client_p->user->server == NULL)
     return;
 
   if (who->hashv != -1)
-    {
-      if (who->online)
-        del_whowas_from_clist(&(who->online->whowas),who);
-      del_whowas_from_list(&WHOWASHASH[who->hashv], who);
-    }
-  who->hashv = hash_whowas_name(client_p->name);
+  {
+    if (who->online)
+      del_whowas_from_clist(&(who->online->whowas),who);
+    del_whowas_from_list(&WHOWASHASH[who->hashv], who);
+  }
+
+  who->hashv  = hash_whowas_name(client_p->name);
   who->logoff = CurrentTime;
-  /*
-   * NOTE: strcpy ok here, the sizes in the client struct MUST
+
+  /* NOTE: strcpy ok here, the sizes in the client struct MUST
    * match the sizes in the whowas struct
    */
-  strlcpy(who->name, client_p->name, sizeof(client_p->name));
+  strlcpy(who->name, client_p->name, sizeof(who->name));
   strcpy(who->username, client_p->username);
   strcpy(who->hostname, client_p->host);
   strcpy(who->realname, client_p->info);
 
-  who->servername = client_p->user->server;
+  strlcpy(who->servername, client_p->user->server->name, sizeof(who->servername));
 
   if (online)
-    {
-      who->online = client_p;
-      add_whowas_to_clist(&(client_p->whowas), who);
-    }
+  {
+    who->online = client_p;
+    add_whowas_to_clist(&(client_p->whowas), who);
+  }
   else
     who->online = NULL;
+
   add_whowas_to_list(&WHOWASHASH[who->hashv], who);
   whowas_next++;
+
   if (whowas_next == NICKNAMEHISTORYLENGTH)
     whowas_next = 0;
 }
 
-void off_history(struct Client *client_p)
+void
+off_history(struct Client *client_p)
 {
   struct Whowas *temp, *next;
 
-  for(temp=client_p->whowas;temp;temp=next)
-    {
-      next = temp->cnext;
-      temp->online = NULL;
-      del_whowas_from_clist(&(client_p->whowas), temp);
-    }
+  for (temp = client_p->whowas; temp; temp=next)
+  {
+    next = temp->cnext;
+    temp->online = NULL;
+    del_whowas_from_clist(&(client_p->whowas), temp);
+  }
 }
 
-struct Client *get_history(char *nick,time_t timelimit)
+struct Client *
+get_history(const char *nick, time_t timelimit)
 {
   struct Whowas *temp;
-  int blah;
 
   timelimit = CurrentTime - timelimit;
-  blah = hash_whowas_name(nick);
-  temp = WHOWASHASH[blah];
-  for(;temp;temp=temp->next)
-    {
-      if (irccmp(nick, temp->name))
-        continue;
-      if (temp->logoff < timelimit)
-        continue;
-      return temp->online;
-    }
-  return NULL;
+  temp = WHOWASHASH[hash_whowas_name(nick)];
+
+  for (; temp; temp = temp->next)
+  {
+    if (irccmp(nick, temp->name))
+      continue;
+    if (temp->logoff < timelimit)
+      continue;
+    return(temp->online);
+  }
+
+  return(NULL);
 }
 
-void    count_whowas_memory(int *wwu,
-                            u_long *wwum)
+void
+count_whowas_memory(int *wwu, unsigned long *wwum)
 {
   struct Whowas *tmp;
   int i;
-  int     u = 0;
-  u_long  um = 0;
+  int u = 0;
+  unsigned long um = 0;
 
-  /* count the number of used whowas structs in 'u' */
+  /* count the number of used whowas structs in 'u'   */
   /* count up the memory used of whowas structs in um */
-
   for (i = 0, tmp = &WHOWAS[0]; i < NICKNAMEHISTORYLENGTH; i++, tmp++)
+  {
     if (tmp->hashv != -1)
-      {
-        u++;
-        um += sizeof(struct Whowas);
-      }
+    {
+      u++;
+      um += sizeof(struct Whowas);
+    }
+  }
+
   *wwu = u;
   *wwum = um;
-  return;
 }
 
-void    initwhowas()
+void
+init_whowas(void)
 {
   int i;
 
-  for (i=0;i<NICKNAMEHISTORYLENGTH;i++)
-    {
-      memset((void *)&WHOWAS[i], 0, sizeof(struct Whowas));
-      WHOWAS[i].hashv = -1;
-    }
-  for (i=0;i<WW_MAX;i++)
+  for (i = 0; i < NICKNAMEHISTORYLENGTH; i++)
+  {
+    memset(&WHOWAS[i], 0, sizeof(struct Whowas));
+    WHOWAS[i].hashv = -1;
+  }
+
+  for (i = 0; i < WW_MAX; i++)
     WHOWASHASH[i] = NULL;        
 }
 
-
-static void add_whowas_to_clist(struct Whowas **bucket,struct Whowas *whowas)
+static void
+add_whowas_to_clist(struct Whowas **bucket, struct Whowas *whowas)
 {
   whowas->cprev = NULL;
+
   if ((whowas->cnext = *bucket) != NULL)
     whowas->cnext->cprev = whowas;
   *bucket = whowas;
 }
  
-static void    del_whowas_from_clist(struct Whowas **bucket,
-				     struct Whowas *whowas)
+static void
+del_whowas_from_clist(struct Whowas **bucket, struct Whowas *whowas)
 {
   if (whowas->cprev)
     whowas->cprev->cnext = whowas->cnext;
@@ -187,16 +206,18 @@ static void    del_whowas_from_clist(struct Whowas **bucket,
     whowas->cnext->cprev = whowas->cprev;
 }
 
-static void add_whowas_to_list(struct Whowas **bucket, struct Whowas *whowas)
+static void
+add_whowas_to_list(struct Whowas **bucket, struct Whowas *whowas)
 {
   whowas->prev = NULL;
+
   if ((whowas->next = *bucket) != NULL)
     whowas->next->prev = whowas;
   *bucket = whowas;
 }
  
-static void    del_whowas_from_list(struct Whowas **bucket,
-				    struct Whowas *whowas)
+static void
+del_whowas_from_list(struct Whowas **bucket, struct Whowas *whowas)
 {
   if (whowas->prev)
     whowas->prev->next = whowas->next;

@@ -39,13 +39,12 @@
 #include "hash.h"
 #include "modules.h"
 
-
-static void mo_connect(struct Client*, struct Client*, int, char**);
-static void ms_connect(struct Client*, struct Client*, int, char**);
+static void mo_connect(struct Client *, struct Client *, int, char **);
+static void ms_connect(struct Client *, struct Client *, int, char **);
 
 struct Message connect_msgtab = {
   "CONNECT", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_connect, mo_connect}
+  {m_unregistered, m_not_oper, ms_connect, mo_connect, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -63,6 +62,7 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
+
 /*
  * mo_connect - CONNECT command handler
  * 
@@ -74,110 +74,137 @@ const char *_version = "$Revision$";
  *      parv[2] = port number
  *      parv[3] = remote server
  */
-static void mo_connect(struct Client* client_p, struct Client* source_p,
-                      int parc, char* parv[])
+static void
+mo_connect(struct Client* client_p, struct Client* source_p,
+           int parc, char* parv[])
 {
-  int              port;
-  int              tmpport;
-  struct ConfItem* aconf;
-  struct Client*   target_p;
+  int port;
+  int tmpport;
+  struct ConfItem *conf=NULL;
+  struct AccessItem* aconf=NULL;
+  struct Client *target_p;
+  dlink_node *ptr;
+  dlink_node *next_ptr;
+  struct Client *pending_connection;
 
   /* always privileged with handlers */
-
   if (MyConnect(source_p) && !IsOperRemote(source_p) && parc > 3)
-    {
-      sendto_one(source_p,":%s NOTICE %s :You need remote = yes;", me.name, parv[0]);
-      return;
-    }
+  {
+    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+               me.name, source_p->name);
+    return;
+  }
 
   if (hunt_server(client_p, source_p,
                   ":%s CONNECT %s %s :%s", 3, parc, parv) != HUNTED_ISME)
-    {
-      return;
-    }
+  {
+    return;
+  }
 
   if (*parv[1] == '\0')
-    {
-      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-                 me.name, parv[0], "CONNECT");
-      return;
-    }
+  {
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+               me.name, source_p->name, "CONNECT");
+    return;
+  }
 
   if ((target_p = find_server(parv[1])))
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Connect: Server %s already exists from %s.",
-                 me.name, parv[0], parv[1],
-                 target_p->from->name);
-      return;
-    }
+  {
+    sendto_one(source_p,
+	       ":%s NOTICE %s :Connect: Server %s already exists from %s.",
+               me.name, source_p->name, parv[1], target_p->from->name);
+    return;
+  }
 
   /*
    * try to find the name, then host, if both fail notify ops and bail
    */
-  if (!(aconf = find_conf_by_name(parv[1], CONF_SERVER)))
-    {
-      if (!(aconf = find_conf_by_host(parv[1], CONF_SERVER)))
-	{
-	  sendto_one(source_p,
-		     "NOTICE %s :Connect: Host %s not listed in ircd.conf",
-		     parv[0], parv[1]);
-	  return;
-	}
-    }
-  assert(0 != aconf);
-  /*
-   * Get port number from user, if given. If not specified,
+  if ((conf = find_matching_name_conf(SERVER_TYPE,
+				      parv[1], NULL, NULL, 0)) != NULL)
+  {
+    aconf = (struct AccessItem *)map_to_conf(conf);
+  }
+  else if ((conf = find_matching_name_conf(SERVER_TYPE,
+					   NULL, NULL, parv[1], 0)) != NULL)
+  {
+    aconf = (struct AccessItem *)map_to_conf(conf);
+  }
+  
+  if (conf == NULL)
+  {
+    sendto_one(source_p,
+	       ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
+	       me.name, source_p->name, parv[1]);
+    return;
+  }
+    
+  /* Get port number from user, if given. If not specified,
    * use the default form configuration structure. If missing
    * from there, then use the precompiled default.
    */
   tmpport = port = aconf->port;
+
   if (parc > 2 && !EmptyString(parv[2]))
+  {
+    if ((port = atoi(parv[2])) <= 0)
     {
-      if ((port = atoi(parv[2])) <= 0)
-        {
-          sendto_one(source_p, "NOTICE %s :Connect: Illegal port number",
-                     parv[0]);
-          return;
-        }
-    }
-  else if (port <= 0 && (port = PORTNUM) <= 0)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Connect: missing port number",
-                 me.name, parv[0]);
+      sendto_one(source_p, ":%s NOTICE %s :Connect: Illegal port number",
+                 me.name, source_p->name);
       return;
     }
+  }
+  else if (port <= 0 && (port = PORTNUM) <= 0)
+  {
+    sendto_one(source_p, ":%s NOTICE %s :Connect: missing port number",
+               me.name, source_p->name);
+    return;
+  }
+
+  /* XXX ugly hack */
+  DLINK_FOREACH_SAFE(ptr, next_ptr, unknown_list.head)
+  {
+    pending_connection = ptr->data;
+
+    if (pending_connection->name[0] && conf->name != NULL)
+    {
+      if (0 == irccmp(conf->name, pending_connection->name))
+      {
+        sendto_one(source_p,
+	  ":%s NOTICE %s :Connect: a connection to %s is already in progress.",
+                   me.name, source_p->name, conf->name);
+        return;
+      }
+    }
+  }
+
   /*
    * Notify all operators about remote connect requests
    */
-
   ilog(L_TRACE, "CONNECT From %s : %s %s", 
-       parv[0], parv[1], parv[2] ? parv[2] : "");
+       source_p->name, parv[1], parv[2] ? parv[2] : "");
 
   aconf->port = port;
-  /*
-   * at this point we should be calling connect_server with a valid
+
+  /* at this point we should be calling connect_server with a valid
    * C:line and a valid port in the C:line
    */
   if (serv_connect(aconf, source_p))
-    {
-#ifndef HIDE_SERVERS_IPS
-      if (IsOperAdmin(source_p))
-	sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s[%s].%d",
-		   me.name, parv[0], aconf->host, aconf->name, aconf->port);
-      else
-#endif
-	sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s.%d",
-		   me.name, parv[0], aconf->name, aconf->port);
-
-    }
+  {
+    if (!ConfigServerHide.hide_server_ips && IsAdmin(source_p))
+      sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s[%s].%d",
+                 me.name, source_p->name, aconf->host,
+                 conf->name, aconf->port);
+    else
+      sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s.%d",
+                 me.name, source_p->name, conf->name, aconf->port);
+  }
   else
-    {
-      sendto_one(source_p, ":%s NOTICE %s :*** Couldn't connect to %s.%d",
-		 me.name, parv[0], aconf->name,aconf->port);
+  {
+    sendto_one(source_p, ":%s NOTICE %s :*** Couldn't connect to %s.%d",
+               me.name, source_p->name, conf->name, aconf->port);
+  }
 
-    }
-  /*
-   * client is either connecting with all the data it needs or has been
+  /* client is either connecting with all the data it needs or has been
    * destroyed
    */
   aconf->port = tmpport;
@@ -194,99 +221,131 @@ static void mo_connect(struct Client* client_p, struct Client* source_p,
  *      parv[2] = port number
  *      parv[3] = remote server
  */
-static void ms_connect(struct Client* client_p, struct Client* source_p,
-                      int parc, char* parv[])
+static void
+ms_connect(struct Client *client_p, struct Client *source_p,
+           int parc, char *parv[])
 {
-  int              port;
-  int              tmpport;
-  struct ConfItem* aconf;
-  struct Client*   target_p;
+  int port;
+  int tmpport;
+  struct ConfItem *conf=NULL;
+  struct AccessItem *aconf=NULL;
+  struct Client *target_p;
+  dlink_node *ptr;
+  dlink_node *next_ptr;
+  struct Client *pending_connection;
 
   if (hunt_server(client_p, source_p,
                   ":%s CONNECT %s %s :%s", 3, parc, parv) != HUNTED_ISME)
-    {
-      return;
-    }
+  {
+    return;
+  }
 
   if (*parv[1] == '\0')
-    {
-      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-                 me.name, parv[0], "CONNECT");
-      return;
-    }
+  {
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+               me.name, source_p->name, "CONNECT");
+    return;
+  }
 
   if ((target_p = find_server(parv[1])))
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Connect: Server %s %s %s.",
-                 me.name, parv[0], parv[1], "already exists from",
-                 target_p->from->name);
-      return;
-    }
+  {
+    sendto_one(source_p,
+	       ":%s NOTICE %s :Connect: Server %s already exists from %s.",
+               me.name, source_p->name, parv[1], target_p->from->name);
+    return;
+  }
 
   /*
    * try to find the name, then host, if both fail notify ops and bail
    */
-  if (!(aconf = find_conf_by_name(parv[1], CONF_SERVER))) {
-    if (!(aconf = find_conf_by_host(parv[1], CONF_SERVER))) {
-      sendto_one(source_p,
-                 ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
-                 me.name, parv[0], parv[1]);
-      return;
-    }
+  if ((conf = find_matching_name_conf(SERVER_TYPE,
+				      parv[1], NULL, NULL, 0)) != NULL)
+  {
+    aconf = (struct AccessItem *)map_to_conf(conf);
   }
-  assert(0 != aconf);
-  /*
-   * Get port number from user, if given. If not specified,
+  else if ((conf = find_matching_name_conf(SERVER_TYPE,
+					   NULL, NULL, parv[1], 0)) != NULL)
+  {
+    aconf = (struct AccessItem *)map_to_conf(conf);
+  }
+
+  if (aconf == NULL)
+  {
+    sendto_one(source_p,
+	       ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
+	       me.name, source_p->name, parv[1]);
+    return;
+  }
+
+  assert(aconf != NULL);
+
+  /* Get port number from user, if given. If not specified,
    * use the default form configuration structure. If missing
    * from there, then use the precompiled default.
    */
   tmpport = port = aconf->port;
-  if (parc > 2 && !EmptyString(parv[2]))
-    {
-      port = atoi(parv[2]);
 
-      /* if someone sends port 0, and we have a config port.. use it */
-      if(port == 0 && aconf->port)
-        port = aconf->port;
-      else if(port <= 0)
+  if (parc > 2 && !EmptyString(parv[2]))
+  {
+    port = atoi(parv[2]);
+
+    /* if someone sends port 0, and we have a config port.. use it */
+    if (port == 0 && aconf->port)
+      port = aconf->port;
+    else if(port <= 0)
+    {
+      sendto_one(source_p, ":%s NOTICE %s :Connect: Illegal port number",
+                 me.name, source_p->name);
+      return;
+    }
+  }
+  else if (port <= 0 && (port = PORTNUM) <= 0)
+  {
+    sendto_one(source_p, ":%s NOTICE %s :Connect: missing port number",
+               me.name, source_p->name);
+    return;
+  }
+
+  /* XXX ugly hack */
+  DLINK_FOREACH_SAFE(ptr, next_ptr, unknown_list.head)
+  {
+    pending_connection = ptr->data;
+
+    if (pending_connection->name[0] && conf->name != NULL)
+    {
+      if (0 == irccmp(conf->name, pending_connection->name))
       {
-        sendto_one(source_p, ":%s NOTICE %s :Connect: Illegal port number",
-                   me.name, parv[0]);
+        sendto_one(source_p,
+	 ":%s NOTICE %s :Connect: a connection to %s is already in progress.",
+                   me.name, source_p->name, conf->name);
         return;
       }
     }
-  else if (port <= 0 && (port = PORTNUM) <= 0)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Connect: missing port number",
-                 me.name, parv[0]);
-      return;
-    }
+  }
+
   /*
    * Notify all operators about remote connect requests
    */
-  sendto_gnotice_flags(FLAGS_CCONN, L_OPER, me.name, &me, NULL,
-          "Remote CONNECT %s %d from %s", parv[1], port,
-          get_client_name(source_p, MASK_IP));
+  sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL, "Remote CONNECT %s %d from %s",
+                       parv[1], port, get_client_name(source_p, MASK_IP));
 
   ilog(L_TRACE, "CONNECT From %s : %s %d", 
-       parv[0], parv[1], port);
+       source_p->name, parv[1], port);
 
   aconf->port = port;
-  /*
-   * at this point we should be calling connect_server with a valid
+
+  /* at this point we should be calling connect_server with a valid
    * C:line and a valid port in the C:line
    */
   if (serv_connect(aconf, source_p))
     sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s.%d",
-		 me.name, parv[0], aconf->name, aconf->port);
+               me.name, source_p->name, conf->name, aconf->port);
   else
       sendto_one(source_p, ":%s NOTICE %s :*** Couldn't connect to %s.%d",
-                 me.name, parv[0], aconf->name,aconf->port);
-  /*
-   * client is either connecting with all the data it needs or has been
+                 me.name, source_p->name, conf->name, aconf->port);
+  /* client is either connecting with all the data it needs or has been
    * destroyed
    */
   aconf->port = tmpport;
 }
-
 

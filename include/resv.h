@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  restart.h: A header for the restart functions.
+ *  resv.h: A header for the RESV functions.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -25,51 +25,29 @@
 #ifndef INCLUDED_resv_h
 #define INCLUDED_resv_h
 
-/* allows resv *nicknick* etc */
-#define RESVNICKLEN NICKLEN*2
-
 struct ResvChannel
 {
-  struct ResvChannel *next;
-  struct ResvChannel *prev;
+  dlink_node node;
   struct ResvChannel *hnext;
 
   /* +1 for \0 */
-  char	name[CHANNELLEN + 1];
-  char	*reason;
-  int	conf;
+  char name[CHANNELLEN + 1];
+  char *reason;
+  int	conf;		/* 1 if set from ircd.conf, 0 if from elsewhere */
 };
 
-struct ResvNick
-{
-  struct ResvNick *next;
-  struct ResvNick *prev;
+extern dlink_list resv_channel_list;
 
-  char	name[RESVNICKLEN];
-  char	*reason;
-  int	conf;
-};
+extern struct ConfItem *create_channel_resv(char *, char *, int);
+extern struct ConfItem *create_nick_resv(char *, char *, int);
 
-extern struct ResvChannel *ResvChannelList;
-extern struct ResvNick *ResvNickList;
-
-extern struct ResvChannel *create_channel_resv(char *, char *, int);
-extern struct ResvNick *create_nick_resv(char *, char *, int);
-
-extern int delete_channel_resv(struct ResvChannel *);
-extern int delete_nick_resv(struct ResvNick *);
-
-extern int clear_conf_resv();
-
-extern int find_channel_resv(char *);
-extern int find_nick_resv(char *);
-
-extern void report_resv(struct Client *);
-extern struct ResvNick *return_nick_resv(char *);
-
+extern int find_channel_resv(const char *);
 extern int clean_resv_nick(char *);
+extern int delete_channel_resv(struct ResvChannel *);
 
-#endif  /* INCLUDED_hash_h */
+extern void clear_conf_resv(void);
+extern void report_resv(struct Client *);
 
-
-
+extern int valid_wild_card_simple(char *);
+extern dlink_list nresv_items;
+#endif  /* INCLUDED_resv_h */

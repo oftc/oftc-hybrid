@@ -42,7 +42,7 @@ static void ms_lusers(struct Client*, struct Client*, int, char**);
 
 struct Message lusers_msgtab = {
   "LUSERS", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_lusers, ms_lusers, ms_lusers}
+  {m_unregistered, m_lusers, ms_lusers, ms_lusers, m_ignore}
 };
 #ifndef STATIC_MODULES
 
@@ -60,61 +60,57 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
-/*
- * m_lusers - LUSERS message handler
+/* m_lusers - LUSERS message handler
  * parv[0] = sender
  * parv[1] = host/server mask.
  * parv[2] = server to query
  * 
  * 199970918 JRL hacked to ignore parv[1] completely and require parc > 3
  * to cause a force
+ *
+ * 2003 hacked parv[1] back in, by request of efnet admins/opers -Dianora
  */
-static void m_lusers(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+m_lusers(struct Client *client_p, struct Client *source_p,
+	 int parc, char *parv[])
 {
   static time_t last_used = 0;
 
   if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
-    {
-      /* safe enough to give this on a local connect only */
-      if (MyClient(source_p))
-        sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0]);
-      return;
-    }
+  {
+    /* safe enough to give this on a local connect only */
+    if (MyClient(source_p))
+      sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0]);
+    return;
+  }
   else
     last_used = CurrentTime;
 
-  if (parc > 2 && !ConfigServerHide.disable_remote)
-    {   
-       if (hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc, parv) != HUNTED_ISME)
-         return;
-    }
+  if (parc > 2 && !ConfigFileEntry.disable_remote)
+  {   
+    if (hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc, parv) != HUNTED_ISME)
+      return;
+  }
 
   show_lusers(source_p);
 }
 
-/*
- * ms_lusers - LUSERS message handler for servers and opers
+/* ms_lusers - LUSERS message handler for servers and opers
  * parv[0] = sender
  * parv[1] = host/server mask.
  * parv[2] = server to query
- * 
- * 199970918 JRL hacked to ignore parv[1] completely and require parc > 3
- * to cause a force
  */
-static void ms_lusers(struct Client *client_p, struct Client *source_p,
-                     int parc, char *parv[])
+static void
+ms_lusers(struct Client *client_p, struct Client *source_p,
+	  int parc, char *parv[])
 {
   if (parc > 2)
-    {
-      if(hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc, parv)
-       != HUNTED_ISME)
-        {
-          return;
-        }
-    }
+  {
+    if(hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc, parv)
+     != HUNTED_ISME)
+        return;
+  }
 
   if(IsClient(source_p))
     show_lusers(source_p);
 }
-

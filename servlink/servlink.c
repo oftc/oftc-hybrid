@@ -18,16 +18,7 @@
  *   $Id$
  */
 
-#include "setup.h"                                                   
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/socket.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include "stdinc.h"
 
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/evp.h>
@@ -91,13 +82,18 @@ int main(int argc, char *argv[])
 
   for (i = 0; i < 5; i++ )
   {
-    fds[i].fd = atoi(argv[i+1]);
+    fds[i].fd = dup(atoi(argv[i+1]));
     if (fds[i].fd < 0)
       exit(1);
     if (fds[i].fd > max_fd)
       max_fd = fds[i].fd;
   }
-  
+
+  for (i = 0; i < 5; i++ )
+  {
+    close(atoi(argv[i+1]));
+  }
+
   /* set file descriptors to nonblocking mode */
   for (i = 0; i < 5; i++)
   {

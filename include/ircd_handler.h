@@ -35,6 +35,7 @@ typedef enum HandlerType {
   CLIENT_HANDLER,
   SERVER_HANDLER,
   OPER_HANDLER,
+  DUMMY_HANDLER,
   LAST_HANDLER_TYPE
 } HandlerType;
 

@@ -31,7 +31,9 @@
  * Prototypes
  */
 
-void log(int level, char *format, ...);
+/* Quickly fix namespace collision */
+#define log _log
+void _log(int level, char *format, ...);
 void InitLog(char *filename);
 
 #endif /* INCLUDED_log_h */

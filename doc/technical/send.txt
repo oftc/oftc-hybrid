@@ -179,7 +179,7 @@ sendto_match_noncap_servs()
 		  are not capable of it. i.e. MODE #channel +o nick
 		- This allows you to send a MODE #channel +h nick via 
                   sendto_match_cap_servs and MODE #channel +o nick to 
-                  servers which dont support it.
+                  servers which don't support it.
 
 sendto_anywhere()
                 - Allows the sending of a message to any client on the net

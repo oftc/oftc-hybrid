@@ -19,99 +19,66 @@
 #*   $Id$
 #*/
 
-RM=@RM@
-
-# Default CFLAGS
-# CFLAGS = -g -O2 -DNDEBUG
-CFLAGS		= @CFLAGS@
-# Developers CFLAGS
-#CFLAGS= -g -O2 -Wunused -Wall -ggdb -pedantic -Wshadow -Wmissing-declarations
+RM          = @RM@
 
 # Default make flags - you may want to uncomment this on a multicpu machine
-#MFLAGS = -j 4
+#MFLAGS   = -j 4
+DEPEND_DIRS  = modules src servlink
+BUILD_DIRS   = ${DEPEND_DIRS} tools
+INSTALL_DIRS = ${BUILD_DIRS} etc doc include
+CLEAN_DIRS   = ${BUILD_DIRS} contrib
+# Anywhere that we can make install, we obviously can rm -f Makefile
+DISTCLEAN_DIRS = ${INSTALL_DIRS} contrib messages
 
-#
-# For developers
-#CFLAGS= -g -O2 -Wall
+# The make used HAS to set $(MAKE). But then, if we don't do it this
+# way, people lose the option to use a 'make' called something other 
+# than `make.' If it doesn't set $(MAKE), fall back to the old behavior
+# by substing SET_MAKE.
 
-# You may need to define the FD_SETSIZE in order to overrule
-# the system one.
-#CFLAGS= -DNDEBUG -g -O2 -D"FD_SETSIZE=1024"
-SHELL=/bin/sh
-SUBDIRS=modules src tools doc @SUBDIR_MESSAGES@ include servlink help
-CLEANDIRS = ${SUBDIRS} contrib iauth
-# XXX removed `iauth' from the build since it doesn't compile currently
-# SUBDIRS=src tools iauth
-RSA_FILES=rsa_respond/README rsa_respond/respond.c rsa_respond/Makefile
-
-MAKE = make ${MFLAGS} 
+@SET_MAKE@
 
 all:	build
 
-
-autoconf: autoconf/configure.in
-	autoconf autoconf/configure.in >configure
-	autoheader -l autoconf autoconf/configure.in > include/setup.h.in
-	${RM} -f config.cache
-
-build:
-	-@if [ ! -f include/setup.h ] ; then \
-		echo "Hmm...doesn't look like you've run configure..."; \
-		echo "Doing so now."; \
-		sh configure; \
-	fi
-	@for i in $(SUBDIRS); do \
+build: include/setup.h depend
+	@for i in $(BUILD_DIRS); do \
 		echo "build ==> $$i";\
-		cd $$i;\
-		${MAKE} build || exit; cd ..;\
+		cd $$i && ${MAKE} ${MFLAGS} build || exit; cd ..;\
 	done
 
 clean:
 	${RM} -f *~ core rsa_respond.tar rsa_respond.tar.gz
-	@for i in $(CLEANDIRS); do \
+	@for i in $(CLEAN_DIRS); do \
 		echo "clean ==> $$i";\
-		cd $$i;\
-		${MAKE} clean; cd ..;\
+		cd $$i && ${MAKE} ${MFLAGS} clean || exit; cd ..;\
 	done
 	-@if [ -f include/setup.h ] ; then \
-	echo "To really restart installation, make distclean" ; \
+		echo "To really restart installation, ${MAKE} distclean" ; \
 	fi
 
 distclean:
-	${RM} -f Makefile *~ *.rej *.orig core ircd.core
+	${RM} -f Makefile *~ *.rej *.orig *core
 	${RM} -f config.status config.cache config.log
+	${RM} -rf autom4te.cache
 	cd include; ${RM} -f setup.h *~ *.rej *.orig ; cd ..
-	@for i in $(CLEANDIRS); do \
+	@for i in $(DISTCLEAN_DIRS); do \
 		echo "distclean ==> $$i";\
-		cd $$i;\
-		${MAKE} distclean; cd ..;\
+		cd $$i && ${MAKE} ${MFLAGS} distclean || exit; cd ..; \
 	done
 
 depend:
-	@for i in $(SUBDIRS); do \
+	@for i in $(DEPEND_DIRS); do \
 		echo "depend ==> $$i";\
-		cd $$i;\
-		${MAKE} depend; cd ..;\
-	done
-
-lint:
-	@for i in $(SUBDIRS); do \
-		echo "lint ==> $$i";\
-		cd $$i;\
-		${MAKE} lint; cd ..;\
+		cd $$i && ${MAKE} ${MFLAGS} .depend || exit; cd .. ; \
 	done
 
 install: all
-	@for i in $(SUBDIRS); do \
+	@for i in $(INSTALL_DIRS); do \
 		echo "install ==> $$i";\
-		cd $$i;\
-		${MAKE} install; \
-		cd ..; \
+		cd $$i && ${MAKE} ${MFLAGS} install || exit; cd ..; \
 	done
 
-rsa_respond:
-	@cd tools;\
-	echo "Creating rsa_respond.tar.gz";\
-	tar cf ../rsa_respond.tar $(RSA_FILES);\
-	cd ..;\
-	gzip rsa_respond.tar
+include/setup.h:
+	@sh configure
+
+# A la Linux kernel config :)
+dep: depend

@@ -42,7 +42,7 @@
  */
 
 /*
- * How its used:
+ * How it's used:
  *
  * Should be pretty self-explanatory. Events are added to the static
  * array event_table with a frequency time telling eventRun how often
@@ -50,7 +50,6 @@
  */
 
 #include "stdinc.h"
-#include "config.h"
 
 #include "ircd.h"
 #include "event.h"
@@ -58,11 +57,12 @@
 #include "send.h"
 #include "memory.h"
 #include "s_log.h"
+#include "numeric.h"
 
 static const char *last_event_ran = NULL;
 struct ev_entry event_table[MAX_EVENTS];
 static time_t event_time_min = -1;
-
+static int eventFind(EVH *func, void *arg);
 
 /*
  * void eventAdd(const char *name, EVH *func, void *arg, time_t when)
@@ -72,7 +72,6 @@ static time_t event_time_min = -1;
  * Output: None
  * Side Effects: Adds the event to the event list.
  */
-
 void
 eventAdd(const char *name, EVH *func, void *arg, time_t when)
 {
@@ -92,10 +91,12 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
 
       if ((event_table[i].when < event_time_min) || (event_time_min == -1))
 	event_time_min = event_table[i].when;
+
       return;
     }
   }
   /* XXX if reach here, its an error */
+  ilog(L_ERROR, "Event table is full! (%d)", i);
 }
 
 /*
@@ -105,17 +106,14 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
  * Output: None
  * Side Effects: Removes the event from the event list
  */
-
 void
 eventDelete(EVH *func, void *arg)
 {
-  int i;
- 
-  i = eventFind(func, arg);
+  int i = eventFind(func, arg);
 
   if (i == -1)
     return;
-  
+
   event_table[i].name = NULL;
   event_table[i].func = NULL;
   event_table[i].arg = NULL;
@@ -131,19 +129,19 @@ eventDelete(EVH *func, void *arg)
  * Side Effects: Adds the event to the event list within +- 1/3 of the
  *	         specified frequency.
  */
- 
 void
 eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_ish)
 {
   if (delta_ish >= 3.0)
-    {
-      const time_t two_third = (2 * delta_ish) / 3;
-      delta_ish = two_third + ((rand() % 1000) * two_third) / 1000;
+  {
+    const time_t two_third = (2 * delta_ish) / 3;
+    delta_ish = two_third + ((rand() % 1000) * two_third) / 1000;
       /*
        * XXX I hate the above magic, I don't even know if its right.
        * Grr. -- adrian
        */
-    }
+  }
+
   eventAdd(name, func, arg, delta_ish);
 }
 
@@ -154,24 +152,22 @@ eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_ish)
  * Output: None
  * Side Effects: Runs pending events in the event list
  */
-
 void
 eventRun(void)
 {
   int i;
 
   for (i = 0; i < MAX_EVENTS; i++)
+  {
+    if (event_table[i].active && (event_table[i].when <= CurrentTime))
     {
-      if (event_table[i].active && (event_table[i].when <= CurrentTime))
-        {
-          last_event_ran = event_table[i].name;
-          event_table[i].func(event_table[i].arg);
-          event_table[i].when = CurrentTime + event_table[i].frequency;
-          event_time_min = -1;
-        }
+      last_event_ran = event_table[i].name;
+      event_table[i].func(event_table[i].arg);
+      event_table[i].when = CurrentTime + event_table[i].frequency;
+      event_time_min = -1;
     }
+  }
 }
-
 
 /*
  * time_t eventNextTime(void)
@@ -180,21 +176,21 @@ eventRun(void)
  * Output: Specifies the next time eventRun() should be run
  * Side Effects: None
  */
- 
 time_t
 eventNextTime(void)
 {
   int i;
 
   if (event_time_min == -1)
+  {
+    for (i = 0; i < MAX_EVENTS; i++)
     {
-      for (i = 0; i < MAX_EVENTS; i++)
-        {
-          if (event_table[i].active && ((event_table[i].when < event_time_min) || (event_time_min == -1)))
-            event_time_min = event_table[i].when;
-        }
+      if (event_table[i].active && ((event_table[i].when < event_time_min) || (event_time_min == -1)))
+        event_time_min = event_table[i].when;
     }
-  return event_time_min;
+  }
+
+  return(event_time_min);
 }
 
 /*
@@ -208,7 +204,7 @@ void
 eventInit(void)
 {
   last_event_ran = NULL;
-  memset((void *)event_table, 0, sizeof(event_table));
+  memset(event_table, 0, sizeof(event_table));
 }
 
 /*
@@ -218,57 +214,54 @@ eventInit(void)
  * Output: Index to the slow in the event_table
  * Side Effects: None
  */
-
-int
+static int
 eventFind(EVH *func, void *arg)
 {
   int i;
+
   for (i = 0; i < MAX_EVENTS; i++)
-    {
-      if ((event_table[i].func == func) &&
-          (event_table[i].arg == arg) &&
-          event_table[i].active)
-        return i;
-    }
-  return -1;
+  {
+    if ((event_table[i].func == func) &&
+        (event_table[i].arg == arg) &&
+         event_table[i].active)
+      return(i);
+  }
+
+  return(-1);
 }
 
-/* 
+/*
  * void show_events(struct Client *source_p)
  *
  * Input: Client requesting the event
  * Output: List of events
  * Side Effects: None
  */
-
 void
 show_events(struct Client *source_p)
 {
   int i;
 
   if (last_event_ran)
-    sendto_one(source_p, ":%s NOTICE %s :*** Last event to run: %s",
-               me.name, source_p->name,
-               last_event_ran);
+    sendto_one(source_p, ":%s %d %s E :Last event to run: %s",
+               me.name, RPL_STATSDEBUG, source_p->name, last_event_ran);
 
   sendto_one(source_p,
-     ":%s NOTICE %s :*** Operation            Next Execution",
-     me.name, source_p->name);
+     ":%s %d %s E :Operation                    Next Execution",
+     me.name, RPL_STATSDEBUG, source_p->name);
 
   for (i = 0; i < MAX_EVENTS; i++)
+  {
+    if (event_table[i].active)
     {
-      if (event_table[i].active)
-        {
-          sendto_one(source_p,
-                     ":%s NOTICE %s :*** %-20s %-3d seconds",
-                     me.name, source_p->name, event_table[i].name,
-                     (int)(event_table[i].when - CurrentTime));
-        }
+      sendto_one(source_p, ":%s %d %s E :%-28s %-4d seconds",
+                 me.name, RPL_STATSDEBUG, source_p->name,
+                 event_table[i].name, (int)(event_table[i].when - CurrentTime));
     }
-  sendto_one(source_p, ":%s NOTICE %s :*** Finished", me.name, source_p->name);
+  }
 }
 
-/* 
+/*
  * void set_back_events(time_t by)
  * Input: Time to set back events by.
  * Output: None.
@@ -278,11 +271,13 @@ void
 set_back_events(time_t by)
 {
   int i;
+
   for (i = 0; i < MAX_EVENTS; i++)
+  {
     if (event_table[i].when > by)
       event_table[i].when -= by;
     else
       event_table[i].when = 0;
+  }
 }
-
 

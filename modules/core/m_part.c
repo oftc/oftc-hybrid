@@ -27,7 +27,6 @@
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
-#include "vchannel.h"
 #include "client.h"
 #include "common.h"  
 #include "hash.h"
@@ -43,12 +42,11 @@
 #include "s_conf.h"
 #include "packet.h"
 
-static void m_part(struct Client*, struct Client*, int, char**);
-void check_spambot_warning(struct Client *source_p, const char *name);
+static void m_part(struct Client *, struct Client *, int, char **);
 
 struct Message part_msgtab = {
   "PART", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_part, m_part, m_part}
+  { m_unregistered, m_part, m_part, m_part, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -63,12 +61,13 @@ _moddeinit(void)
 {
   mod_del_cmd(&part_msgtab);
 }
+
 const char *_version = "$Revision$";
 #endif
 
 static void part_one_client(struct Client *client_p,
-			    struct Client *source_p,
-			    char *name, char *reason);
+                            struct Client *source_p,
+                            char *name, char *reason);
 
 /*
 ** m_part
@@ -80,37 +79,38 @@ static void
 m_part(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-  char  *p, *name;
-  char reason[TOPICLEN+1];
+  char *p, *name;
+  char reason[TOPICLEN + 1];
+
+  if (IsServer(source_p))
+    return;
 
   if (*parv[1] == '\0')
-    {
-      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-                 me.name, parv[0], "PART");
-      return;
-    }
+  {
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+               me.name, source_p->name, "PART");
+    return;
+  }
 
   reason[0] = '\0';
 
   if (parc > 2)
-    strlcpy(reason, parv[2], TOPICLEN);
+    strlcpy(reason, parv[2], sizeof(reason));
 
-  name = strtoken( &p, parv[1], ",");
+  name = strtoken(&p, parv[1], ",");
 
   /* Finish the flood grace period... */
-  if(MyClient(source_p) && !IsFloodDone(source_p))
+  if (MyClient(source_p) && !IsFloodDone(source_p))
     flood_endgrace(source_p);
 
-  while(name)
+  while (name)
   {
     part_one_client(client_p, source_p, name, reason);
-    name = strtoken(&p, (char *)NULL, ",");
+    name = strtoken(&p, NULL, ",");
   }
-  return;
 }
 
-/*
- * part_one_client
+/* part_one_client()
  *
  * inputs	- pointer to server
  * 		- pointer to source client to remove
@@ -123,82 +123,57 @@ part_one_client(struct Client *client_p, struct Client *source_p,
                 char *name, char *reason)
 {
   struct Channel *chptr;
-  struct Channel *bchan;
+  struct Membership *ms;
 
   if ((chptr = hash_find_channel(name)) == NULL)
-    {
-      sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-		 me.name, source_p->name, name);
-      return;
-    }
+  {
+    sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
+               me.name, source_p->name, name);
+    return;
+  }
 
-#ifdef VCHANS
-  if (IsVchan(chptr) || HasVchans(chptr))
-    {
-      if(HasVchans(chptr))
-        {
-          /* Set chptr to actual channel, bchan to the base channel */
-          bchan = chptr;
-          chptr = map_vchan(bchan,source_p);
-        }
-      else
-        {
-          /* chptr = chptr; */
-          bchan = find_bchan(chptr);
-        }
-    }
-  else
-#endif
-    bchan = chptr; /* not a vchan */
+  if ((ms = find_channel_link(source_p, chptr)) == NULL)
+  {
+    sendto_one(source_p, form_str(ERR_NOTONCHANNEL),
+               me.name, source_p->name, name);
+    return;
+  }
 
-  if (!chptr || !bchan || !IsMember(source_p, chptr))
-    {
-      sendto_one(source_p, form_str(ERR_NOTONCHANNEL),
-                 me.name, source_p->name, name);
-      return;
-    }
   if (MyConnect(source_p) && !IsOper(source_p))
     check_spambot_warning(source_p, NULL);
-  
+
   /*
    *  Remove user from the old channel (if any)
    *  only allow /part reasons in -m chans
    */
-  if(msg_has_colors(reason) && (chptr->mode.mode & MODE_NOCOLOR))
-    reason = strip_color(reason);
-
-  if (reason[0] &&
-      (is_any_op(chptr, source_p) || !MyConnect(source_p) ||
-       ((can_send(chptr, source_p) > 0 && 
-         (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
-         < CurrentTime))))
+  if(msg_has_colors(reason) && (chptr->mode.mode & MODE_NOCOLOR)) 
+    reason = strip_color(reason); 
+  
+  if (reason[0] && (!MyConnect(source_p) ||
+      ((can_send_part(ms, chptr, source_p) > 0 &&
+       (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
+        < CurrentTime))))
   {
-    sendto_server(client_p, NULL, chptr, CAP_UID, NOCAPS, NOFLAGS,
+    sendto_server(client_p, NULL, chptr, CAP_SID, NOCAPS, NOFLAGS,
                   ":%s PART %s :%s", ID(source_p), chptr->chname,
                   reason);
-    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_UID, NOFLAGS,
+    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_SID, NOFLAGS,
                   ":%s PART %s :%s", source_p->name, chptr->chname,
                   reason);
-    sendto_channel_local(ALL_MEMBERS,
-                         chptr, ":%s!%s@%s PART %s :%s",
-                         source_p->name,
-                         source_p->username,
-                         source_p->host,
-                         bchan->chname,
-                         reason);
+    sendto_channel_local(ALL_MEMBERS, chptr, ":%s!%s@%s PART %s :%s",
+                         source_p->name, source_p->username,
+                         source_p->host, chptr->chname, reason);
   }
   else
   {
-    sendto_server(client_p, NULL, chptr, CAP_UID, NOCAPS, NOFLAGS,
+    sendto_server(client_p, NULL, chptr, CAP_SID, NOCAPS, NOFLAGS,
                   ":%s PART %s", ID(source_p), chptr->chname);
-    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_UID, NOFLAGS,
+    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_SID, NOFLAGS,
                   ":%s PART %s", source_p->name, chptr->chname);
-    sendto_channel_local(ALL_MEMBERS,
-                         chptr, ":%s!%s@%s PART %s",
-                         source_p->name,
-                         source_p->username,
-                         source_p->host,
-                         bchan->chname);
+    sendto_channel_local(ALL_MEMBERS, chptr, ":%s!%s@%s PART %s",
+                         source_p->name, source_p->username,
+                         source_p->host, chptr->chname);
   }
-  remove_user_from_channel(chptr, source_p);
+
+  remove_user_from_channel(ms);
 }

@@ -50,27 +50,24 @@
  */
 #define TBURST_PROPAGATE
 
-
-
 static void ms_tburst(struct Client *, struct Client *, int, char **);
-static void set_topic(struct Client *, struct Channel *, 
-		      time_t, char *, char *);
-static void set_tburst_capab();
-static void unset_tburst_capab();
+static void set_topic(struct Client *, struct Channel *, time_t, char *, char *);
+static void set_tburst_capab(void);
+static void unset_tburst_capab(void);
 int send_tburst(struct hook_burst_channel *);
 
 struct Message tburst_msgtab = {
   "TBURST", 0, 0, 6, 0, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_tburst, m_ignore}
+  {m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
   mod_add_cmd(&tburst_msgtab);
   hook_add_hook("burst_channel", (hookfn *)send_tburst);
   set_tburst_capab();
+  add_capability("TBURST", CAP_TBURST, 1);
 }
 
 void
@@ -78,11 +75,12 @@ _moddeinit(void)
 {
   mod_del_cmd(&tburst_msgtab);
   hook_del_hook("burst_channel", (hookfn *)send_tburst);
+  delete_capability("TBURST");
+  /* XXX */
   unset_tburst_capab();
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /* ms_tburst()
  * 
@@ -93,36 +91,37 @@ const char *_version = "$Revision$";
  *      parv[4] = topic setter
  *      parv[5] = topic
  */
-static void ms_tburst(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+ms_tburst(struct Client *client_p, struct Client *source_p,
+          int parc, char *parv[])
 {
   struct Channel *chptr;
   time_t newchannelts;
   time_t newtopicts;
 
   newchannelts = atol(parv[1]);
-  newtopicts = atol(parv[3]);
+  newtopicts   = atol(parv[3]);
 
-  if((chptr = hash_find_channel(parv[2])))
+  if ((chptr = hash_find_channel(parv[2])))
   {
-    if(chptr->channelts < newchannelts)
+    if (chptr->channelts < newchannelts)
       return;
 
-    else if(chptr->channelts == newchannelts)
+    else if (chptr->channelts == newchannelts)
     {
-      if(chptr->topic == NULL || (chptr->topic_time > newtopicts))
+      if (chptr->topic == NULL || (chptr->topic_time > newtopicts))
 	set_topic(source_p, chptr, newtopicts, parv[4], parv[5]);
       else
 	return;
     }
-
     else
       set_topic(source_p, chptr, newtopicts, parv[4], parv[5]);
   }
 }
 
-static void set_topic(struct Client *source_p, struct Channel *chptr, 
-		      time_t newtopicts, char *topicwho, char *topic)
+static void
+set_topic(struct Client *source_p, struct Channel *chptr, 
+          time_t newtopicts, char *topicwho, char *topic)
 {
   set_channel_topic(chptr, topic, topicwho, newtopicts);
 
@@ -133,30 +132,32 @@ static void set_topic(struct Client *source_p, struct Channel *chptr,
 #ifdef TBURST_PROPAGATE
   sendto_server(source_p, NULL, chptr, CAP_TBURST, NOCAPS, NOFLAGS,
 		":%s TBURST %ld %s %ld %s :%s",
-		me.name, chptr->channelts, chptr->chname,
-		chptr->topic_time, 
+		me.name, (unsigned long)chptr->channelts, chptr->chname,
+		(unsigned long)chptr->topic_time, 
                 chptr->topic_info == NULL ? "" : chptr->topic_info,
                 chptr->topic == NULL ? "" : chptr->topic);
 #endif
 }
 
-static void set_tburst_capab()
+static void
+set_tburst_capab(void)
 {
   default_server_capabs |= CAP_TBURST;
 }
 
-static void unset_tburst_capab()
+static void
+unset_tburst_capab(void)
 {
   default_server_capabs &= ~CAP_TBURST;
 }
 
-int send_tburst(struct hook_burst_channel *data)
+int
+send_tburst(struct hook_burst_channel *data)
 {
-  if(data->chptr->topic != NULL && IsCapable(data->client, CAP_TBURST))
+  if (data->chptr->topic != NULL && IsCapable(data->client, CAP_TBURST))
     sendto_one(data->client, ":%s TBURST %ld %s %ld %s :%s",
-               me.name, data->chptr->channelts, data->chptr->chname,
-	       data->chptr->topic_time, data->chptr->topic_info, 
+               me.name, (unsigned long)data->chptr->channelts, data->chptr->chname,
+	       (unsigned long)data->chptr->topic_time, data->chptr->topic_info, 
 	       data->chptr->topic);
-
-  return 0;
+  return(0);
 }

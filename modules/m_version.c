@@ -22,7 +22,7 @@
  *  $Id$
  */
 
-#include <stdinc.h>
+#include "stdinc.h"
 #include "handlers.h"
 #include "client.h"
 #include "ircd.h"
@@ -35,15 +35,14 @@
 #include "parse.h"
 #include "modules.h"
 
-static char* confopts(struct Client *source_p);
-
-static void m_version(struct Client*, struct Client*, int, char**);
-static void ms_version(struct Client*, struct Client*, int, char**);
-static void mo_version(struct Client*, struct Client*, int, char**);
+static char *confopts(struct Client *source_p);
+static void m_version(struct Client *, struct Client *, int, char **);
+static void ms_version(struct Client *, struct Client *, int, char **);
+static void mo_version(struct Client *, struct Client *, int, char **);
 
 struct Message version_msgtab = {
   "VERSION", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_version, ms_version, mo_version}
+  { m_unregistered, m_version, ms_version, mo_version, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -61,38 +60,38 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
+
 /*
  * m_version - VERSION command handler
  *      parv[0] = sender prefix
  *      parv[1] = remote server
  */
-static void m_version(struct Client* client_p, struct Client* source_p,
-                      int parc, char* parv[])
+static void
+m_version(struct Client *client_p, struct Client *source_p,
+          int parc, char *parv[])
 {
-  static time_t last_used=0L;
+  static time_t last_used = 0;
 
-  if((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
-    sendto_one(source_p,form_str(RPL_LOAD2HI),me.name,parv[0]);
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
+               me.name, source_p->name);
     return;
   }
   else
-  {
     last_used = CurrentTime;
-  }
- 
-  if (!ConfigServerHide.disable_remote)
+
+  if (!ConfigFileEntry.disable_remote)
   {
     if (hunt_server(client_p, source_p, ":%s VERSION :%s",
                     1, parc, parv) != HUNTED_ISME)
       return;
   }
-  
-  sendto_one(source_p, form_str(RPL_VERSION), me.name,
-                parv[0], ircd_version, serno, debugmode,
-                me.name, confopts(source_p), serveropts);
-                
+
+  sendto_one(source_p, form_str(RPL_VERSION),
+             me.name, source_p->name, ircd_version, serno,
+             me.name, confopts(source_p), serveropts);
   show_isupport(source_p);
 }
 
@@ -101,20 +100,19 @@ static void m_version(struct Client* client_p, struct Client* source_p,
  *      parv[0] = sender prefix
  *      parv[1] = remote server
  */
-static void mo_version(struct Client* client_p, struct Client* source_p,
-                      int parc, char* parv[])
+static void
+mo_version(struct Client *client_p, struct Client *source_p,
+           int parc, char *parv[])
 {
   
   if (hunt_server(client_p, source_p, ":%s VERSION :%s", 
 		  1, parc, parv) != HUNTED_ISME)
     return;
-    
+
   sendto_one(source_p, form_str(RPL_VERSION), me.name, parv[0], ircd_version, 
-  	     serno, debugmode, me.name, confopts(source_p), serveropts);
-	       
+  	     serno, me.name, confopts(source_p), serveropts);
+
   show_isupport(source_p);
-  
-  return;
 }
 
 /*
@@ -122,81 +120,66 @@ static void mo_version(struct Client* client_p, struct Client* source_p,
  *      parv[0] = sender prefix
  *      parv[1] = remote server
  */
-static void ms_version(struct Client* client_p, struct Client* source_p,
-                      int parc, char* parv[])
+static void
+ms_version(struct Client *client_p, struct Client *source_p,
+           int parc, char *parv[])
 {
   if (hunt_server(client_p, source_p, ":%s VERSION :%s", 
                   1, parc, parv) == HUNTED_ISME)
   {
-    sendto_one(source_p, form_str(RPL_VERSION), me.name,
-               parv[0], ircd_version, serno, debugmode,
+    sendto_one(source_p, form_str(RPL_VERSION),
+               me.name, parv[0], ircd_version, serno,
                me.name, confopts(source_p), serveropts);
     show_isupport(source_p);
   }
-
-  return;
 }
 
 /* confopts()
+ *
  * input  - client pointer
  * output - ircd.conf option string
  * side effects - none
  */
-static char* confopts(struct Client *source_p)
+static char *
+confopts(struct Client *source_p)
 {
   static char result[15];
   char *p;
-  
+
   result[0] = '\0';
   p = result;
 
-#ifdef DEBUGMODE
-  *p++ = 'D';
-#endif
-
-  if(ConfigChannel.use_except)
+  if (ConfigChannel.use_except)
     *p++ = 'e';
-    
   if (ConfigFileEntry.glines)
     *p++ = 'g';
-    *p++ = 'G';
+  *p++ = 'G';
 
   /* might wanna hide this :P */
   if (ServerInfo.hub && 
-      (!ConfigServerHide.disable_remote || IsOper(source_p)) )
-    {
-      *p++ = 'H';
-    }
+      (!ConfigFileEntry.disable_remote || IsOper(source_p)))
+  {
+    *p++ = 'H';
+  }
 
-  if(ConfigChannel.use_invex)
+  if (ConfigChannel.use_invex)
     *p++ = 'I';
-
-  if(ConfigChannel.use_knock)
+  if (ConfigChannel.use_knock)
     *p++ = 'K';
-    
   *p++ = 'M';
 
-#ifdef CRYPT_OPER_PASSWORD
-  *p++ = 'p';
-#endif
-
-#ifdef IGNORE_BOGUS_TS
-  *p++ = 'T';
-#endif
-
+  if (ConfigFileEntry.crypt_oper_password)
+    *p++ = 'p';
+  if (ConfigFileEntry.ignore_bogus_ts)
+    *p++ = 'T';
 #ifdef USE_SYSLOG
   *p++ = 'Y';
 #endif
-
 #ifdef HAVE_LIBZ
   *p++ = 'Z';
 #endif
-
-#ifdef IPV6
   *p++ = '6';
-#endif
-  
   *p = '\0';
 
-  return result;
+  return(result);
 }

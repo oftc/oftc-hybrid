@@ -1,0 +1,1364 @@
+diff -urN ircd-hybrid/clean.com ircd-hybrid-CURRENT/clean.com
+--- ircd-hybrid/clean.com	1969-12-31 16:00:00.000000000 -0800
++++ ircd-hybrid-CURRENT/clean.com	2003-06-21 17:46:53.000000000 -0700
+@@ -0,0 +1,10 @@
++$! $Id$
++$! yes, its a hack. this needs to be merged into make.com.
++$! (well, really, into a top-level descrip.mms.. one day).
++$
++$ WRITE SYS$OUTPUT "Cleaning tree from all compiled objects..."
++$ DELETE [...]*.EXE;*
++$ DELETE [...]*.OLB;*
++$ DELETE [...]*.OBJ;*
++$ WRITE SYS$OUTPUT "All done."
++
+diff -urN ircd-hybrid/contrib/m_help.c ircd-hybrid-CURRENT/contrib/m_help.c
+--- ircd-hybrid/contrib/m_help.c	2003-06-21 17:46:11.000000000 -0700
++++ ircd-hybrid-CURRENT/contrib/m_help.c	2003-06-21 17:46:53.000000000 -0700
+@@ -36,8 +36,13 @@
+ #include "modules.h"
+ #include "irc_string.h"
+ 
++#ifdef __vms
++#define HPATH  ETCPATH "OPERS.TXT" /* oper help file */
++#define UHPATH ETCPATH "USERS.TXT" /* user help file */
++#else
+ #define HPATH  IRCD_PREFIX "/help/opers"
+ #define UHPATH IRCD_PREFIX "/help/users"
++#endif
+ #define HELPLEN 400
+ 
+ static void m_help(struct Client*, struct Client*, int, char**);
+diff -urN ircd-hybrid/include/defaults.h ircd-hybrid-CURRENT/include/defaults.h
+--- ircd-hybrid/include/defaults.h	2003-06-21 17:46:12.000000000 -0700
++++ ircd-hybrid-CURRENT/include/defaults.h	2003-06-21 17:46:53.000000000 -0700
+@@ -28,6 +28,40 @@
+ /* Here are some default paths. Most except DPATH are
+  * configurable at runtime. */
+ 
++#ifdef __vms
++/* *PATH - directory locations and filenames for VMS.
++ *
++ * Non VMS systems see below.
++ *
++ * IRCD_PREFIX = prefix for all directories,
++ * DPATH       = root directory of installation,
++ * BINPATH     = directory for binary files,
++ * ETCPATH     = directory for configuration files,
++ * LOGPATH     = directory for logfiles,
++ * MSGPATH     = directory for language files.
++ */
++
++#define DPATH           "IRCD$BASEDIR:"
++#define BINPATH         "IRCD$BINDIR:"
++#define ETCPATH         "IRCD$CONFDIR:"
++#define LOGPATH         "IRCD$LOGDIR:"
++#define MSGPATH		"IRCD$MSGDIR:"
++
++#define SPATH   BINPATH "IRCD.EXE"              /* server executable */
++#define SLPATH  BINPATH "SERVLINK.EXE"          /* servlink executable */
++#define CPATH   ETCPATH "IRCD.CONF"             /* config file */
++#define KPATH   ETCPATH "KLINE.CONF"            /* kline file */
++#define XPATH   ETCPATH "XLINE.CONF"            /* xline file */
++#define CRESVPATH   ETCPATH "CRESV.CONF"        /* channel resvs file */
++#define NRESVPATH   ETCPATH "NRESV.CONF"        /* channel resvs file */
++#define DLPATH  ETCPATH "DLINE.CONF"            /* dline file */
++#define GPATH   ETCPATH "GLINE.CONF"             /* gline logfile */
++#define MPATH   ETCPATH "IRCD.MOTD"             /* MOTD filename */
++#define LPATH   LOGPATH "IRCD.LOG"              /* logfile */
++#define PPATH   ETCPATH "IRCD.PID"              /* pid file */
++#define OPATH   ETCPATH "OPERS.MOTD"            /* oper MOTD file */
++#define LIPATH  ETCPATH "LINKS.TXT"             /* cached LINKS file */
++#else /* __vms */
+ /* 
+  * Directory paths and filenames for UNIX systems.
+  * IRCD_PREFIX is set using ./configure --prefix, see INSTALL.
+@@ -67,6 +101,7 @@
+ #define PPATH   ETCPATH "/ircd.pid"             /* pid file */
+ #define OPATH   ETCPATH "/opers.motd"           /* oper MOTD file */
+ #define LIPATH  ETCPATH "/links.txt"            /* cached links file */
++#endif /* !__vms */
+ 
+ /* this file is included to supply default
+  * values for things which are now configurable at runtime.
+diff -urN ircd-hybrid/include/memory.h ircd-hybrid-CURRENT/include/memory.h
+--- ircd-hybrid/include/memory.h	2003-06-21 17:46:13.000000000 -0700
++++ ircd-hybrid-CURRENT/include/memory.h	2003-06-21 17:46:53.000000000 -0700
+@@ -30,17 +30,21 @@
+ #include "balloc.h"
+ 
+ /* Needed to use uintptr_t for some pointer manipulation. */
+-
+-#ifdef HAVE_INTTYPES_H
+-# include <inttypes.h>
+-#else /* No inttypes.h */
+-# ifndef HAVE_UINTPTR_T
++#ifdef __vms
++# include inttypes
++#else /* Not VMS */
++# ifdef HAVE_INTTYPES_H
++#  include <inttypes.h>
++# else /* No inttypes.h */
++#  ifndef HAVE_UINTPTR_T
+ typedef unsigned long uintptr_t;
++#  endif
+ # endif
+ #endif
+ 
+ extern void outofmemory(void);
+ 
++
+ extern void *MyMalloc(size_t size);
+ extern void *MyRealloc(void *x, size_t y);
+ extern void MyFree(void *x);
+diff -urN ircd-hybrid/include/setup_vms.h ircd-hybrid-CURRENT/include/setup_vms.h
+--- ircd-hybrid/include/setup_vms.h	1969-12-31 16:00:00.000000000 -0800
++++ ircd-hybrid-CURRENT/include/setup_vms.h	2003-06-21 17:46:53.000000000 -0700
+@@ -0,0 +1,240 @@
++/* $Id$
++ * Static setup.h for VMS
++ */
++
++/* Cygwin requires a different set of headers to compile, so define to 1 if
++   compiling on Cygwin. */
++#undef CYGWIN
++
++/* Define if this ircd will be an EFnet server. */
++#undef EFNET
++
++/* Define to 1 if you have the <crypt.h> header file. */
++#undef HAVE_CRYPT_H
++
++/* Define to 1 if you have the <dlfcn.h> header file. */
++#define HAVE_DLFCN_H
++
++/* Define to 1 if you have the `dlfunc' function. */
++#define HAVE_DLFUNC
++
++/* Define to 1 if you have the `dlopen' function. */
++#define HAVE_DLOPEN
++
++/* Define to 1 if you have the <errno.h> header file. */
++#define HAVE_ERRNO_H
++
++/* Define to 1 if you have the `EVP_bf_cfb' function. */
++#undef HAVE_EVP_BF_CFB
++
++/* Define to 1 if you have the `EVP_cast5_cfb' function. */
++#undef HAVE_EVP_CAST5_CFB
++
++/* Define to 1 if you have the `EVP_des_cfb' function. */
++#undef HAVE_EVP_DES_CFB
++
++/* Define to 1 if you have the `EVP_des_ede3_cfb' function. */
++#undef HAVE_EVP_DES_EDE3_CFB
++
++/* Define to 1 if you have the `EVP_idea_cfb' function. */
++#undef HAVE_EVP_IDEA_CFB
++
++/* Define to 1 if you have the `EVP_rc5_32_12_16_cfb' function. */
++#undef HAVE_EVP_RC5_32_12_16_CFB
++
++/* Define to 1 if you have the <getopt.h> header file. */
++#define HAVE_GETOPT_H
++
++/* Define to 1 if you have the <inttypes.h> header file. */
++#define HAVE_INTTYPES_H
++
++/* Define to 1 if you have the `crypto' library (-lcrypto). */
++#undef HAVE_LIBCRYPTO
++
++/* Define to 1 if you have the `z' library (-lz). */
++#undef HAVE_LIBZ
++
++/* Define to 1 if you have the <mach-o/dyld.h> header file. */
++#undef HAVE_MACH_O_DYLD_H
++
++/* Define to 1 if you have the <memory.h> header file. */
++#define HAVE_MEMORY_H
++
++/* Define to 1 if you have the `mmap' function. */
++#define HAVE_MMAP
++
++/* Define if the nanosleep function is available somewhere. */
++#undef HAVE_NANOSLEEP
++
++/* shl_load() is available */
++#undef HAVE_SHL_LOAD
++
++/* Define to 1 if you have the `snprintf' function. */
++#undef HAVE_SNPRINTF
++
++/* Define to 1 if you have the `socketpair' function. */
++#undef HAVE_SOCKETPAIR
++
++/* Define to 1 if you have the <stddef.h> header file. */
++#define HAVE_STDDEF_H
++
++/* Define to 1 if you have the <stdint.h> header file. */
++#undef HAVE_STDINT_H
++
++/* Define to 1 if you have the <stdlib.h> header file. */
++#define HAVE_STDLIB_H
++
++/* Define to 1 if you have the <strings.h> header file. */
++#define HAVE_STRINGS_H
++
++/* Define to 1 if you have the <string.h> header file. */
++#define HAVE_STRING_H
++
++/* Define to 1 if you have the `strlcat' function. */
++#undef HAVE_STRLCAT
++
++/* Define to 1 if you have the `strlcpy' function. */
++#undef HAVE_STRLCPY
++
++/* Define to 1 if the system has the type `struct addrinfo'. */
++#define HAVE_STRUCT_ADDRINFO
++
++/* Define to 1 if the system has the type `struct sockaddr_storage'. */
++#undef HAVE_STRUCT_SOCKADDR_STORAGE
++
++/* Define to 1 if you have the <sys/param.h> header file. */
++#undef HAVE_SYS_PARAM_H
++
++/* Define to 1 if you have the <sys/resource.h> header file. */
++#define HAVE_SYS_RESOURCE_H
++
++/* Define to 1 if you have the <sys/stat.h> header file. */
++#define HAVE_SYS_STAT_H
++
++/* Define to 1 if you have the <sys/syslog.h> header file. */
++#undef HAVE_SYS_SYSLOG_H
++
++/* Define to 1 if you have the <sys/types.h> header file. */
++#define HAVE_SYS_TYPES_H
++
++/* Define to 1 if the system has the type `uintptr_t'. */
++#define HAVE_UINTPTR_T
++
++/* Define to 1 if you have the <unistd.h> header file. */
++#define HAVE_UNISTD_H
++
++/* Define to 1 if you have the `vsnprintf' function. */
++#undef HAVE_VSNPRINTF
++
++/* Define if IPv6 support is present and available. */
++#undef IPV6
++
++/* Prefix where the ircd is installed. */
++#define IRCD_PREFIX "IRCD$BASEDIR:"
++
++/* Maximum no. of clients that can connect to the ircd. */
++#define MAX_CLIENTS 200
++                    
++/* Define this to disable debugging support. */
++#undef NDEBUG
++
++/* Nickname length */
++#define NICKLEN 9
++
++/* Disable the block allocator. */
++#undef NOBALLOC
++
++/* Define if you have no native inet_aton() function. */
++#undef NO_INET_ATON
++
++/* Define if you have no native inet_ntop() function. */
++#undef NO_INET_NTOP
++
++/* Define if you have no native inet_pton() function. */
++#undef NO_INET_PTON
++
++/* Define to the address where bug reports for this package should be sent. */
++#define PACKAGE_BUGREPORT "<ejb@lythe.org.uk>"
++
++/* Define to the full name of this package. */
++#define PACKAGE_NAME "ircd-hybrid"
++
++/* Define to the full name and version of this package. */
++#define PACKAGE_STRING "ircd-hybrid-7-CURRENT"
++
++/* Define to the one symbol short name of this package. */
++#define PACKAGE_TARNAME "ircd-hybrid"
++
++/* Define to the version of this package. */
++#define PACKAGE_VERSION "7-CURRENT"
++
++/* Path to /dev/null */
++#define PATH_DEVNULL "NL:"
++
++/* RLIMIT value found in sys/resource.h if found */
++#undef RLIMIT_FD_MAX
++
++/* This is the type of IO loop we are using */
++#define SELECT_TYPE "select"
++
++/* Define to 1 if dynamic modules can't be used. */
++#define STATIC_MODULES 1
++
++/* Define to 1 if you have the ANSI C header files. */
++#define STDC_HEADERS 1
++
++/* Define to 1 if string.h may be included along with strings.h */
++#define STRING_WITH_STRINGS 1
++
++/* String containing extra underscores prepended to symbols loaded from
++   modules. */
++#define SYMBOL_PREFIX ""
++
++/* Maximum topic length (<=390) */
++#define TOPICLEN 390
++
++/* Use kqueue() for I/O loop */
++#undef USE_KQUEUE
++
++/* Using sigio futzes around with the ircd - if you want sigio to work, this
++   has to be 1. */
++#undef USE_SIGIO
++
++/* Define to 1 if your processor stores words with the most significant byte
++   first (like Motorola and SPARC, unlike Intel and VAX). */
++#undef WORDS_BIGENDIAN
++
++/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
++   `char[]'. */
++#undef YYTEXT_POINTER
++
++/* Enable GNU extensions on systems that have them.  */
++#ifndef _GNU_SOURCE
++# undef _GNU_SOURCE
++#endif
++
++/* If system does not define in_port_t, define it to what it should be. */
++#undef in_port_t
++
++/* Define as `__inline' if that's what the C compiler calls it, or to nothing
++   if it is not supported. */
++#undef inline
++
++/* If system does not define sa_family_t, define it here. */
++#undef sa_family_t
++
++/* If we don't have a real socklen_t, int is good enough. */
++#define socklen_t int
++
++/* Broken glibc implementations use __ss_family instead of ss_family. Define
++   to __ss_family if true. */
++#undef ss_family
++
++/* If system does not define u_int16_t, define a usable substitute. */
++#undef u_int16_t
++
++/* If system does not define u_int32_t, define to unsigned int here. */
++#undef u_int32_t
++
++#define MAXPATHLEN PATH_MAX
++
+diff -urN ircd-hybrid/include/s_log.h ircd-hybrid-CURRENT/include/s_log.h
+--- ircd-hybrid/include/s_log.h	2003-06-21 17:46:13.000000000 -0700
++++ ircd-hybrid-CURRENT/include/s_log.h	2003-06-21 17:46:53.000000000 -0700
+@@ -52,4 +52,8 @@
+ extern void log_oper(struct Client *, const char *name);
+ extern void log_failed_oper(struct Client *, const char *name);
+ 
++#ifdef __vms
++const char * ircd$format_error(int);
++#endif
++
+ #endif /* INCLUDED_s_log_h */
+diff -urN ircd-hybrid/include/stdinc.h ircd-hybrid-CURRENT/include/stdinc.h
+--- ircd-hybrid/include/stdinc.h	2003-06-21 17:46:13.000000000 -0700
++++ ircd-hybrid-CURRENT/include/stdinc.h	2003-06-21 17:46:53.000000000 -0700
+@@ -75,6 +75,29 @@
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+ 
++#ifdef __vms
++#define _XOPEN_SOURCE 1
++#include <sys/ioctl.h>
++#include <builtins.h>
++#include <timers.h>
++
++#include <descrip.h>
++#include <ssdef.h>
++#include <starlet.h>
++#include <syidef.h>
++#include <lnmdef.h>
++#include <opcdef.h>
++#include <rms.h>
++#include <stsdef.h>
++
++char *crypt(const char *, const char *);
++
++#endif
++
++#ifdef __vax
++#define alloca __ALLOCA
++#endif
++
+ #include <limits.h>
+ 
+ #ifdef HAVE_UNISTD_H
+diff -urN ircd-hybrid/make.com ircd-hybrid-CURRENT/make.com
+--- ircd-hybrid/make.com	1969-12-31 16:00:00.000000000 -0800
++++ ircd-hybrid-CURRENT/make.com	2003-06-21 17:46:53.000000000 -0700
+@@ -0,0 +1,52 @@
++$ WRITE SYS$OUTPUT "Commencing build of ircd-hybrid-7 for VMS..."
++$ WRITE SYS$OUTPUT "Examining source directory..."
++$
++$! $Id$
++$! Don't have to do this any more - we now depend on
++$! bison/flex to build.
++$! FILE_SIZE = "NOSUCHFILE"
++$! FILE_SIZE = F$FILE_ATTRIBUTES("[.INCLUDE]SETUP.H", "KNOWN")
++$! IF FILE_SIZE .EQS. "NOSUCHFILE"
++$!  THEN 
++$!   WRITE SYS$OUTPUT "Copying SETUP.H_VMS to SETUP.H"
++$!   COPY [.INCLUDE]SETUP.H_VMS [.INCLUDE]SETUP.H
++$! ENDIF
++$
++$! vms_crypt.c is now src/crypt.c ..
++$! FILE_SIZE = "NOSUCHFILE"
++$! FILE_SIZE = F$FILE_ATTRIBUTES("[.SRC]VMS_CRYPT.C", "KNOWN")
++$! IF FILE_SIZE .EQS. "NOSUCHFILE"
++$!  THEN 
++$!   WRITE SYS$OUTPUT "Copying VMS parser and crypt files from contrib"
++$!   COPY [.CONTRIB]VMS_CRYPT.C [.SRC]VMS_CRYPT.C
++$!   COPY [.CONTRIB]VMS_LEX_YY.C [.SRC]VMS_LEX_YY.C
++$!   COPY [.CONTRIB]VMS_Y_TAB.C [.SRC]VMS_Y_TAB.C
++$!   COPY [.CONTRIB]VMS_Y_TAB.H [.SRC]VMS_Y_TAB.H
++$! ENDIF
++$
++$ ON ERROR THEN GOTO ERREXIT
++$
++$ WRITE SYS$OUTPUT "Building in modules..."
++$ SET DEF [.MODULES]
++$ MMK
++$ WRITE SYS$OUTPUT "Leaving directory modules..."
++$ SET DEF [-]
++$
++$ WRITE SYS$OUTPUT "Building in src..."
++$ SET DEF [.SRC]
++$ MMK
++$ WRITE SYS$OUTPUT "Leaving directory src..."
++$ SET DEF [-]
++$
++$ WRITE SYS$OUTPUT "Building in tools..."
++$ SET DEF [.TOOLS]
++$ MMK
++$ WRITE SYS$OUTPUT "Leaving directory tools..."
++$ SET DEF [-]
++$
++$ WRITE SYS$OUTPUT "Build of ircd-hybrid-7 for VMS complete!"
++$ EXIT
++
++$ ERREXIT:
++$ WRITE SYS$OUTPUT "Build aborted due to error"
++$ SET DEF [-]
+diff -urN ircd-hybrid/modules/core/descrip.mms ircd-hybrid-CURRENT/modules/core/descrip.mms
+--- ircd-hybrid/modules/core/descrip.mms	1969-12-31 16:00:00.000000000 -0800
++++ ircd-hybrid-CURRENT/modules/core/descrip.mms	2003-06-21 17:46:53.000000000 -0700
+@@ -0,0 +1,18 @@
++# MMS/MMK Makefile for OpenVMS
++# Copyright (c) 2001 Edward Brocklesby
++# $Id$
++
++CC=	CC
++CFLAGS=	/INCLUDE_DIRECTORY=([-.-.INCLUDE])/STANDARD=ISOC94/DEBUG
++LDFLAGS=	
++
++OBJECTS=	M_DIE.OBJ,M_KICK.OBJ,M_KILL.OBJ,M_MESSAGE.OBJ,M_MODE.OBJ,M_NICK.OBJ,-
++		M_PART.OBJ,M_QUIT.OBJ,M_SERVER.OBJ,M_SJOIN.OBJ,M_SQUIT.OBJ
++
++ALL : CORE.OLB($(OBJECTS))
++	COPY CORE.OLB [-]
++
++CLEAN :
++	DELETE *.OLB;*
++	DELETE *.OBJ;*
++
+diff -urN ircd-hybrid/modules/descrip.mms ircd-hybrid-CURRENT/modules/descrip.mms
+--- ircd-hybrid/modules/descrip.mms	1969-12-31 16:00:00.000000000 -0800
++++ ircd-hybrid-CURRENT/modules/descrip.mms	2003-06-21 17:46:53.000000000 -0700
+@@ -0,0 +1,30 @@
++# MMS/MMK Makefile for OpenVMS
++# Copyright (c) 2001 Edward Brocklesby
++# $Id$
++
++CC=	CC
++CFLAGS=	/INCLUDE_DIRECTORY=([-.INCLUDE])/STANDARD=ISOC94/DEBUG
++LDFLAGS=
++
++OBJECTS=	M_ACCEPT,M_ADMIN,M_AWAY,M_CAPAB,M_CBURST,-
++		M_CLOSE,M_CONNECT,M_DMEM,M_DROP,-
++		M_EOB,M_INFO,M_INVITE,M_ISON,M_JOIN,-
++		M_KLINE,M_KNOCK,M_LINKS,M_LIST,M_LLJOIN,M_LLNICK,M_LOCOPS,-
++		M_LUSERS,M_MOTD,M_NAMES,M_NBURST,-
++		M_OPER,M_OPERWALL,M_PASS,M_PING,M_PONG,M_POST,-
++		M_REHASH,M_RESTART,M_SET,M_STATS,-
++		M_SVINFO,M_TESTLINE,M_TIME,M_TOPIC,M_TRACE,M_UNKLINE,M_USER,-
++		M_USERHOST,M_USERS,M_VERSION,M_WALLOPS,M_WHO,M_WHOIS,M_WHOWAS,-
++		M_GLINE,M_RESV
++
++
++ALL : MODULES.OLB($(OBJECTS)) CORE.OLB
++
++CORE.OLB :
++	SET DEF [.CORE]
++	MMK
++	SET DEF [-]
++
++CLEAN : 
++	DELETE *.OLB;*
++	DELETE *.OBJ;*
+diff -urN ircd-hybrid/README.VMS ircd-hybrid-CURRENT/README.VMS
+--- ircd-hybrid/README.VMS	1969-12-31 16:00:00.000000000 -0800
++++ ircd-hybrid-CURRENT/README.VMS	2003-06-21 17:46:53.000000000 -0700
+@@ -0,0 +1,44 @@
++Last tested version: hybrid-7-CURRENT 20030523_3
++
++To compile ircd on VMS, simply execute the make.com script
++from the top-level ircd directory:
++
++  $ SET DEF [.IRCD-HYBRID-7]
++  $ @MAKE
++
++This should build [.SRC]IRCD.EXE (servlink is not yet supported
++for VMS). 
++
++IRCD needs the following logical names defined: IRCD$BASEDIR, IRCD$CONFDIR,
++IRCD$BINDIR, and IRCD$LOGDIR.
++For example:
++
++$ ASSIGN DISK$USER:[EBROCKLESBY.IRCD.BIN] IRCD$BASEDIR:
++$ ASSIGN DISK$USER:[EBROCKLESBY.IRCD.BIN.BIN] IRCD$BINDIR:
++$ ASSIGN DISK$USER:[EBROCKLESBY.IRCD.BIN.ETC] IRCD$CONFDIR:
++$ ASSIGN DISK$USER:[EBROCKLESBY.IRCD.BIN.LOG] IRCD$LOGDIR:
++
++After IRCD.EXE is built, you'll have to install it by hand. Create
++the above directories, and put IRCD.EXE into IRCD$BINDIR:.  The sample
++[.doc]example.conf should be modified as needed and placed in
++IRCD$CONFDIR:IRCD.CONF. 
++
++Known problems on VMS:
++  - Lack of SERVLINK support means that ZIP and SSL aren't yet possible
++    for VMS.
++  - If IRCD.EXE exits immediately after startup, make sure that IRCD$CONFDIR:IRCD.PID
++    doesn't exist.
++
++It should work fine when started with RUN/DETACH.
++
++So far, IRCD has been tested on OpenVMS 7.2/Alpha using DEC C V6.0-001.
++
++If anyone gets ircd working on VMS (or has problems with it), please mail me
++(ejb@sdf.lonestar.org) with any comments you have.
++
++If you have problem compiling from source, or are on a slow system
++(building IRCD on a VAXstation 3000 takes about two hours),
++binary distributions are available on the FTP site.
++(actually, they aren't yet, but at some time in the future they should be)
++
++$Id$
+diff -urN ircd-hybrid/servlink/descrip.mms ircd-hybrid-CURRENT/servlink/descrip.mms
+--- ircd-hybrid/servlink/descrip.mms	1969-12-31 16:00:00.000000000 -0800
++++ ircd-hybrid-CURRENT/servlink/descrip.mms	2003-06-21 17:46:53.000000000 -0700
+@@ -0,0 +1,15 @@
++# MMS/MMK Makefile for OpenVMS
++# Copyright (c) 2001 Edward Brocklesby
++#
++
++CC=	CC
++CFLAGS=	/INCLUDE_DIRECTORY=[-.INCLUDE]/STANDARD=ISOC94
++LDFLAGS=
++
++OBJECTS=	SERVLINK,IO
++
++SERVLINK.EXE : SERVLINK.OLB($(OBJECTS))
++	$(LINK)$(LDFLAGS)/EXECUTABLE=SERVLINK $(OBJECTS)
++
++CLEAN : 
++	DELETE *.OBJ;*
+diff -urN ircd-hybrid/src/descrip.mms ircd-hybrid-CURRENT/src/descrip.mms
+--- ircd-hybrid/src/descrip.mms	1969-12-31 16:00:00.000000000 -0800
++++ ircd-hybrid-CURRENT/src/descrip.mms	2003-06-21 17:46:53.000000000 -0700
+@@ -0,0 +1,45 @@
++# MMS/MMK Makefile for OpenVMS
++# Copyright (c) 2001 Edward Brocklesby
++# $Id$
++
++CC=	CC
++CFLAGS=/INCLUDE_DIRECTORY=([-.INCLUDE])/STANDARD=ISOC94/NOWARN/DEBUG -
++/DEFINE=(FD_SETSIZE=2048)
++LDFLAGS=
++
++DEFAULT : IRCD.EXE
++
++OBJECTS=	BALLOC.OBJ,CHANNEL.OBJ,CHANNEL_MODE.OBJ,CLASS.OBJ,CLIENT.OBJ,-
++		CRYPT.OBJ,DBUF.OBJ,EVENT.OBJ,FDLIST.OBJ,FILEIO.OBJ,-
++		GETOPT.OBJ,HASH.OBJ,HOOK.OBJ,HOSTMASK.OBJ,IRC_GETADDRINFO.OBJ,-
++		IRC_GETNAMEINFO.OBJ,IRC_RES.OBJ,IRC_RESLIB.OBJ,IRC_STRING.OBJ,-
++		IRCD.OBJ,IRCD_SIGNAL.OBJ,CLUSTER.OBJ,CSVLIB.OBJ,LIST.OBJ,-
++		LISTENER.OBJ,M_ERROR.OBJ,MATCH.OBJ,MEMORY.OBJ,EVENT.OBJ,-
++		MODULES.OBJ,MOTD.OBJ,NUMERIC.OBJ,PACKET.OBJ,PARSE.OBJ,-
++		RESTART.OBJ,RESV.OBJ,RSA.OBJ,S_AUTH.OBJ,S_BSD.OBJ,-
++		S_BSD_QIO.OBJ,S_CONF.OBJ,S_DEBUG.OBJ,S_GLINE.OBJ,S_LOG.OBJ,-
++		S_MISC.OBJ,S_SERV.OBJ,S_STATS.OBJ,S_USER.OBJ,-
++		SEND.OBJ,SNPRINTF.OBJ,SPRINTF_IRC.OBJ,TOOLS.OBJ,WHOWAS.OBJ
++
++VERSION.C : VERSION.COM
++	@- @VERSION
++
++VERSION.OBJ : VERSION.C
++
++IRCD_PARSER_TAB.OBJ : IRCD_PARSER_TAB.C
++
++IRCD_PARSER_TAB.C : IRCD_PARSER.Y
++	BISON/DEFINES IRCD_PARSER.Y
++
++LEXYY.OBJ : LEXYY.C
++
++LEXYY.C : IRCD_LEXER.L
++	FLEX IRCD_LEXER.L
++
++IRCD.EXE : $(OBJECTS) IRCD_PARSER_TAB.OBJ LEXYY.OBJ VERSION.OBJ
++	$(LINK)$(LDFLAGS)/EXECUTABLE=IRCD $(OBJECTS), IRCD_PARSER_TAB.OBJ, LEXYY.OBJ, VERSION.OBJ, [-.modules]modules.olb/LIB, [-.modules]core.olb/LIB
++
++CLEAN : 
++	DELETE *.OBJ;*
++	DELETE *.OLB;*
++	DELETE *.EXE;*
+diff -urN ircd-hybrid/src/event.c ircd-hybrid-CURRENT/src/event.c
+--- ircd-hybrid/src/event.c	2003-06-21 17:46:17.000000000 -0700
++++ ircd-hybrid-CURRENT/src/event.c	2003-06-21 17:46:53.000000000 -0700
+@@ -64,6 +64,54 @@
+ static time_t event_time_min = -1;
+ 
+ /*
++ * ircd$schdast() - schedule an ast to be called <msec> msecs in the future.
++ */
++#ifdef __vms
++void
++ircd$schdast(unsigned int msec, int tid, void (*astadr)(__unknown_params))
++{
++	char asctim[15];
++	$DESCRIPTOR(asctim_desc, asctim);
++	double delay_secs;
++	int delay_mins;
++	double delay = msec;
++	int tim[2];
++
++	delay_mins = (delay/1000) / 60;
++	delay_secs = (delay/1000) - (60 * delay_mins);
++
++	sprintf(asctim, "0 :%d:%2.2f", delay_mins, delay_secs);
++	asctim_desc.dsc$w_length = strlen(asctim);
++	sys$bintim(&asctim_desc, tim);
++	sys$setimr(0, tim, astadr, tid, 0);
++}
++
++/*
++ * ircd$runevt() - AST service routine to run an event.
++ */
++void
++ircd$runevt(int evtn)
++{
++	event_table[evtn].func(event_table[evtn].arg);
++
++	/*
++	 * If it's not a repeating event, remove it from
++	 * the event table.
++	 */
++	if (!event_table[evtn].frequency)
++	{
++		event_table[evtn].name = NULL;
++		event_table[evtn].func = NULL;
++		event_table[evtn].arg = NULL;
++		event_table[evtn].active = 0;
++	} else {
++		/* Otherwise, schedule it to run again. */
++		ircd$schdast(event_table[evtn].frequency * 1000, evtn, ircd$runevt);
++	}
++}
++#endif
++
++/*
+  * void eventAdd(const char *name, EVH *func, void *arg, time_t when)
+  *
+  * Input: Name of event, function to call, arguments to pass, and frequency
+@@ -91,6 +139,10 @@
+       if ((event_table[i].when < event_time_min) || (event_time_min == -1))
+ 	event_time_min = event_table[i].when;
+ 
++#ifdef __vms
++      ircd$schdast(when * 1000, i, ircd$runevt);
++#endif
++
+       return;
+     }
+   }
+diff -urN ircd-hybrid/src/getopt.c ircd-hybrid-CURRENT/src/getopt.c
+--- ircd-hybrid/src/getopt.c	2003-06-21 17:46:17.000000000 -0700
++++ ircd-hybrid-CURRENT/src/getopt.c	2003-06-21 17:46:53.000000000 -0700
+@@ -26,7 +26,11 @@
+ 
+ #include "ircd_getopt.h"
+ 
+-#define OPTCHAR '-'
++#ifndef __vms
++# define OPTCHAR '-'
++#else
++# define OPTCHAR '/'
++#endif
+ 
+ void
+ parseargs(int *argc, char ***argv, struct lgetopt *opts)
+diff -urN ircd-hybrid/src/ircd.c ircd-hybrid-CURRENT/src/ircd.c
+--- ircd-hybrid/src/ircd.c	2003-06-21 17:46:17.000000000 -0700
++++ ircd-hybrid-CURRENT/src/ircd.c	2003-06-21 17:46:53.000000000 -0700
+@@ -25,6 +25,10 @@
+ #include "stdinc.h"
+ #include "rlimits.h"
+ #include "s_user.h"
++#ifdef __vms
++# include descrip
++# include starlet
++#endif
+ #include "tools.h"
+ #include "ircd.h"
+ #include "channel.h"
+@@ -159,9 +163,12 @@
+    * offset from 0 (NULL), so the result of sbrk is cast to a size_t and 
+    * returned. We really shouldn't be using it here but...
+    */
+-
++#ifndef __vms
+   void *vptr = sbrk(0);
+   return((unsigned long)vptr);
++#else
++  return(0);
++#endif
+ }
+ 
+ /*
+@@ -194,7 +201,7 @@
+ static void 
+ init_sys(void)
+ {
+-#if defined(RLIMIT_FD_MAX) && defined(HAVE_SYS_RLIMIT_H)
++#if defined(RLIMIT_FD_MAX) && !defined(__vms) && defined(HAVE_SYS_RLIMIT_H)
+   struct rlimit limit;
+ 
+   if (!getrlimit(RLIMIT_FD_MAX, &limit))
+@@ -223,6 +230,7 @@
+ static void
+ make_daemon(void)
+ {
++#ifndef __vms
+   int pid;
+ 
+   if ((pid = fork()) < 0)
+@@ -240,6 +248,13 @@
+ /*fclose(stdin);
+   fclose(stdout);
+   fclose(stderr); */
++#else
++  /* if we get here, assume we've been detached.
++   * better set a process name.
++   */
++  $DESCRIPTOR(myname, "IRCD-HYBRID-7");
++  SYS$SETPRN(&myname);
++#endif
+ }
+ 
+ static int printVersion = 0;
+@@ -522,7 +537,7 @@
+ static void
+ setup_corefile(void)
+ {
+-#ifdef HAVE_SYS_RESOURCE_H
++#if !defined(__vms) && defined(HAVE_SYS_RESOURCE_H)
+   struct rlimit rlim; /* resource limits */
+ 
+   /* Set corefilesize to maximum */
+diff -urN ircd-hybrid/src/ircd_lexer.l ircd-hybrid-CURRENT/src/ircd_lexer.l
+--- ircd-hybrid/src/ircd_lexer.l	2003-06-21 17:46:17.000000000 -0700
++++ ircd-hybrid-CURRENT/src/ircd_lexer.l	2003-06-21 17:46:53.000000000 -0700
+@@ -36,7 +36,11 @@
+ #include "common.h"
+ #include "s_conf.h"
+ 
+-#include "y.tab.h"
++#ifdef __vms
++# include "ircd_parser_tab.h"
++#else
++# include "y.tab.h"
++#endif
+ 
+ #include "memory.h"
+ #include "hostmask.h"
+diff -urN ircd-hybrid/src/s_bsd.c ircd-hybrid-CURRENT/src/s_bsd.c
+--- ircd-hybrid/src/s_bsd.c	2003-06-21 17:46:17.000000000 -0700
++++ ircd-hybrid-CURRENT/src/s_bsd.c	2003-06-21 17:46:53.000000000 -0700
+@@ -224,6 +224,7 @@
+ int
+ set_non_blocking(int fd)
+ {
++#ifndef __vms
+   int nonb = 0;
+   int res;
+ 
+@@ -238,6 +239,17 @@
+ 
+   fd_table[fd].flags.nonblocking = 1;
+   return 1;
++#else
++  int val = 1;
++  int res;
++
++  res = ioctl(fd, FIONBIO, &val);
++  if (res == -1)
++    return 0;
++
++  fd_table[fd].flags.nonblocking = 1;
++  return 1;
++#endif
+ }
+ 
+ /*
+@@ -803,9 +815,12 @@
+   if (!set_non_blocking(fd))
+     {
+       ilog(L_CRIT, "comm_open: Couldn't set FD %d non blocking: %s", fd, strerror(errno));
+-      
++    /* if VMS, we might be opening a file (ircd.conf, resolv.conf).
++       VMS doesn't let us set non-blocking on a file, so it might fail. */
++#ifndef __vms
+       close(fd);
+       return -1;
++#endif
+     }
+ 
+   /* Next, update things in our fd tracking */
+diff -urN ircd-hybrid/src/s_bsd_qio.c ircd-hybrid-CURRENT/src/s_bsd_qio.c
+--- ircd-hybrid/src/s_bsd_qio.c	1969-12-31 16:00:00.000000000 -0800
++++ ircd-hybrid-CURRENT/src/s_bsd_qio.c	2003-06-21 17:46:53.000000000 -0700
+@@ -0,0 +1,217 @@
++/*
++ *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
++ *  s_bsd_qio.c: VMS sys$qio() compatible network routines.
++ *
++ *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
++ *  Copyright (C) 1996-2002 Hybrid Development Team
++ *  Copyright (C) 2001 Adrian Chadd <adrian@creative.net.au>
++ *  Copyright (C) 2002 ircd-ratbox development team
++ *  Copyright (C) 2003 Edward Brocklesby <ejb@lythe.org.uk>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
++ *  USA
++ *
++ *  $Id$
++ */
++
++#include "stdinc.h"
++
++#include "fdlist.h"
++#include "s_bsd.h"
++#include "class.h"
++#include "client.h"
++#include "common.h"
++#include "irc_string.h"
++#include "ircd.h"
++#include "listener.h"
++#include "numeric.h"
++#include "packet.h"
++#include "res.h"
++#include "restart.h"
++#include "s_auth.h"
++#include "s_conf.h"
++#include "s_log.h"
++#include "s_serv.h"
++#include "s_stats.h"
++#include "send.h"
++#include "memory.h"
++
++/* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */
++/* Private functions */
++
++short iosb[4];
++
++static int
++ircd$ast_handler_write(int fd)
++{
++	fde_t *F = &fd_table[fd];
++	if (!F->write_handler)
++		return 0;
++	F->write_handler(fd, F->write_data);
++	return 0;
++}
++
++static int
++ircd$ast_handler_read(int fd)
++{
++	fde_t *F = &fd_table[fd];
++
++	if (!F->read_handler)
++		return 0;
++
++	F->read_handler(fd, F->read_data);
++	return 0;
++}
++
++static void
++ircd$install_ast_write(int fd)
++{
++	long status;
++
++	if (decc$get_sdc(fd) == 0)
++		return;
++
++	status = sys$qiow(0, decc$get_sdc(fd), IO$_SETMODE | IO$M_WRTATTN,
++			  iosb, 0, 0, 0, 0, 0, 0, 0, 0);
++	if (!$VMS_STATUS_SUCCESS(status))
++		sys$exit(status);
++
++	status = sys$qiow(0, decc$get_sdc(fd), IO$_SETMODE | IO$M_WRTATTN,
++			  iosb, 0, 0, ircd$ast_handler_write, fd, 0, 0, 0, 0);
++	if (!$VMS_STATUS_SUCCESS(status))
++		sys$exit(status);
++}
++
++static void
++ircd$remove_ast_write(int fd)
++{
++	if (decc$get_sdc(fd) == 0)
++		return;
++
++	sys$qiow(0, decc$get_sdc(fd), IO$_SETMODE | IO$M_WRTATTN,
++		 iosb, 0, 0, 0, 0, 0, 0, 0, 0);
++}
++
++static void
++ircd$install_ast_read(int fd)
++{
++	long status;
++
++	if (decc$get_sdc(fd) == 0)
++		return;
++
++	status = sys$qiow(0, decc$get_sdc(fd), IO$_SETMODE | IO$M_READATTN,
++			  iosb, 0, 0, 0, 0, 0, 0, 0, 0);
++	if (!$VMS_STATUS_SUCCESS(status))
++		sys$exit(status);
++
++	status = sys$qiow(0, decc$get_sdc(fd), IO$_SETMODE | IO$M_READATTN,
++			  iosb, 0, 0, ircd$ast_handler_read, fd, 0, 0, 0, 0);
++	if (!$VMS_STATUS_SUCCESS(status))
++		sys$exit(status);
++}
++
++static void
++ircd$remove_ast_read(int fd)
++{
++	if (decc$get_sdc(fd) == 0)
++		return;
++
++	sys$qiow(0, decc$get_sdc(fd), IO$_SETMODE | IO$M_READATTN,
++		iosb, 0, 0, 0, 0, 0, 0, 0, 0);
++}
++
++/* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */
++/* Public functions */
++
++
++/*
++ * init_netio
++ *
++ * This is a needed exported function which will be called to initialise
++ * the network loop code.
++ */
++void
++init_netio(void)
++{
++}
++
++/*
++ * comm_setselect
++ *
++ * This is a needed exported function which will be called to register
++ * and deregister interest in a pending IO state for a given FD.
++ */
++void
++comm_setselect(int fd, fdlist_t list, unsigned int type, PF * handler,
++	       void *client_data, time_t timeout)
++{
++	fde_t *F = &fd_table[fd];
++	s_assert(fd >= 0);
++	s_assert(F->flags.open);
++
++	F->list = list;
++
++	if(type & COMM_SELECT_READ)
++	{
++		if (handler)
++			ircd$install_ast_read(fd);
++		else
++			ircd$remove_ast_read(fd);
++
++		F->read_handler = handler;
++		F->read_data = client_data;
++	}
++	if(type & COMM_SELECT_WRITE)
++	{
++		if (handler)
++			ircd$install_ast_write(fd);
++		else
++			ircd$remove_ast_write(fd);
++
++		F->write_handler = handler;
++		F->write_data = client_data;
++	}
++
++	if(timeout)
++		F->timeout = CurrentTime + (timeout / 1000);
++}
++
++/*
++ * Check all connections for new connections and input data that is to be
++ * processed. Also check for connections with data queued and whether we can
++ * write it out.
++ */
++
++/*
++ * comm_select
++ *
++ * Called to do the new-style IO, courtesy of squid (like most of this
++ * new IO code). This routine handles the stuff we've hidden in
++ * comm_setselect and fd_table[] and calls callbacks for IO ready
++ * events.
++ */
++/*
++ * Actually, on VMS this doesn't actually do anything except sleep
++ * for a while.  All the callbacks are called from the fd's AST
++ * handler.
++ */
++
++int
++comm_select(unsigned long delay)
++{
++	sys$hiber();
++	/* NOTREACHED */ return 0;
++}
+diff -urN ircd-hybrid/src/s_debug.c ircd-hybrid-CURRENT/src/s_debug.c
+--- ircd-hybrid/src/s_debug.c	2003-06-21 17:46:17.000000000 -0700
++++ ircd-hybrid-CURRENT/src/s_debug.c	2003-06-21 17:46:53.000000000 -0700
+@@ -84,6 +84,11 @@
+ # endif
+ #endif
+ 
++#ifdef __vms
++  sendto_one(source_p, ":%s NOTICE %s :getrusage not supported on this system",
++             me.name, source_p->name);
++  return;
++#else
+   if (getrusage(RUSAGE_SELF, &rus) == -1)
+   {
+     sendto_one(source_p,":%s NOTICE %s :Getruseage error: %s.",
+@@ -122,6 +127,7 @@
+   sendto_one(source_p, ":%s %d %s R :Signals %d Context Vol. %d Invol %d",
+              me.name, RPL_STATSDEBUG, source_p->name, (int)rus.ru_nsignals,
+              (int)rus.ru_nvcsw, (int)rus.ru_nivcsw);
++#endif /* __vms */
+ }
+ 
+ void
+diff -urN ircd-hybrid/src/s_log.c ircd-hybrid-CURRENT/src/s_log.c
+--- ircd-hybrid/src/s_log.c	2003-06-21 17:46:17.000000000 -0700
++++ ircd-hybrid-CURRENT/src/s_log.c	2003-06-21 17:46:53.000000000 -0700
+@@ -111,6 +111,34 @@
+   return(1);
+ }
+ 
++#ifdef __vms
++void send_opcom(const char *message)
++{
++    struct {
++        struct hdr {                    /* Trust me, this is necessary */
++            unsigned char type;         /*  Read up on SYS$SNDOPR and you'll */
++            unsigned short target_0_15; /*  see why. */
++            unsigned char target_16_23;
++            unsigned long rqst_id;
++        } h;
++        char msg[200];
++    } opc_request;
++    struct dsc$descriptor opc;
++
++    opc_request.h.type = OPC$_RQ_RQST;  /* Send out the string */
++    opc_request.h.target_0_15 = OPC$M_NM_CENTRL;    /* To main operator */
++    opc_request.h.target_16_23 = 0;
++    opc_request.h.rqst_id = 0L;         /* Default it */
++
++    strcpy(opc_request.msg, message);         /* Copy the string */
++
++    opc.dsc$a_pointer = &opc_request;   /* Build a descriptor for the block */
++    opc.dsc$w_length = strlen(message) + sizeof(struct hdr);
++
++    sys$sndopr(&opc, 0);
++}
++#endif
++
+ static void 
+ write_log(const char *message)
+ {
+@@ -149,6 +177,9 @@
+   if (use_logging)
+     write_log(buf);
+ 
++#ifdef __vms
++  send_opcom(buf);
++#endif
+ }
+   
+ void
+@@ -348,3 +379,21 @@
+     }
+   }
+ }
++
++#ifdef __vms
++const char *
++ircd$format_error(int status)
++{
++	static char msg[257];
++	struct dsc$descriptor msgd;
++	int msg_len;
++	char temp[512];
++
++	msg_len = 0;
++	msgd.dsc$w_length = 256;
++	msgd.dsc$a_pointer = msg;
++	sys$getmsg(status, &msg_len, &msgd, 0, &temp);
++	msg[msg_len] = '\0';
++	return msg + 1;
++}
++#endif
+diff -urN ircd-hybrid/src/s_serv.c ircd-hybrid-CURRENT/src/s_serv.c
+--- ircd-hybrid/src/s_serv.c	2003-06-21 17:46:17.000000000 -0700
++++ ircd-hybrid-CURRENT/src/s_serv.c	2003-06-21 17:46:53.000000000 -0700
+@@ -113,7 +113,9 @@
+ 
+ static unsigned long freeMask;
+ static void server_burst(struct Client *client_p);
++#ifndef __vms
+ static int fork_server(struct Client *client_p);
++#endif
+ static void burst_all(struct Client *client_p);
+ static void cjoin_all(struct Client *client_p);
+ 
+@@ -1016,6 +1018,7 @@
+     report_error(L_ALL, SETBUF_ERROR_MSG, get_client_name(client_p, SHOW_IP), errno);
+ 
+   /* Hand the server off to servlink now */
++#ifndef __vms 
+   if (IsCapable(client_p, CAP_ENC) || IsCapable(client_p, CAP_ZIP))
+   {
+     if (fork_server(client_p) < 0)
+@@ -1033,7 +1036,7 @@
+     start_io(client_p);
+     SetServlink(client_p);
+   }
+-  
++#endif
+   sendto_one(client_p, "SVINFO %d %d 0 :%lu",
+              TS_CURRENT, TS_MIN, (unsigned long)CurrentTime);
+ 
+@@ -1291,6 +1294,7 @@
+   send_queued_slink_write(server);
+ }
+ 
++#ifndef __vms
+ /* fork_server()
+  *
+  * inputs       - struct Client *server
+@@ -1330,7 +1334,35 @@
+   slink_fds[1][1][1] = fd_temp[1];
+   slink_fds[1][0][1] = fd_temp[0];
+   slink_fds[1][1][0] = fd_temp[1];
+-  
++#else
++  /* ctrl parent -> child */
++  if (pipe(fd_temp) < 0)
++    goto fork_error;
++
++  slink_fds[0][0][0] = fd_temp[0];
++  slink_fds[0][1][1] = fd_temp[1];
++
++  /* ctrl child -> parent */
++  if (pipe(fd_temp) < 0)
++    goto fork_error;
++
++  slink_fds[0][1][0] = fd_temp[0];
++  slink_fds[0][0][1] = fd_temp[1];
++
++  /* data parent -> child */
++  if (pipe(fd_temp) < 0)
++    goto fork_error;
++
++  slink_fds[1][0][0] = fd_temp[0];
++  slink_fds[1][1][1] = fd_temp[1];
++
++  /* data child -> parent */
++  if (pipe(fd_temp) < 0)
++    goto fork_error;
++
++  slink_fds[1][1][0] = fd_temp[0];
++  slink_fds[1][0][1] = fd_temp[1];
++#endif
+   if ((ret = fork()) < 0)
+   {
+     goto fork_error;
+diff -urN ircd-hybrid/tools/descrip.mms ircd-hybrid-CURRENT/tools/descrip.mms
+--- ircd-hybrid/tools/descrip.mms	1969-12-31 16:00:00.000000000 -0800
++++ ircd-hybrid-CURRENT/tools/descrip.mms	2003-06-21 17:46:53.000000000 -0700
+@@ -0,0 +1,25 @@
++# MMS/MMK Makefile for OpenVMS
++# Copyright (c) 2001 Edward Brocklesby
++# $Id$
++
++CC=	CC
++CFLAGS=	/STANDARD=ISOC94
++LDFLAGS=
++
++ALL : CONVERTCONF,MKPASSWD
++
++CRYPT.C : [-.SRC]CRYPT.C
++	COPY [-.SRC]CRYPT.C []
++
++CRYPT.OBJ : CRYPT.C
++	$(CC)$(CFLAGS) CRYPT.C
++
++MKPASSWD : MKPASSWD.OBJ CRYPT.OBJ 
++	LINK MKPASSWD, CRYPT
++
++CONVERTCONF : CONVERTCONF.OBJ
++	LINK CONVERTCONF
++
++CLEAN : 
++	DELETE *.OBJ;*
++	DELETE *.EXE;*
+--- /dev/null	2002-12-28 17:06:03.000000000 -0800
++++ src/version.com	2003-06-21 17:46:18.000000000 -0700
+@@ -0,0 +1,101 @@
++$!
++$! VERSION.COM
++$! Written By:  Robert Alan Byer
++$!              byer@mail.ourservers.net
++$!
++$!
++$! Tell The User What's Going On.
++$!
++$ WRITE SYS$OUTPUT ""
++$ WRITE SYS$OUTPUT "Extracting SYS$DISK:[]VERSION.C"
++$ WRITE SYS$OUTPUT ""
++$!
++$! Assign A Generation Number.
++$!
++$ GENERATION = 0
++$
++$ OPEN/ERROR=NOOPEN IN SYS$DISK:[]GENERATION.
++$ READ/END_OF_FILE=IGNORE/ERROR=IGNORE IN GENERATION
++$ IGNORE:
++$ CLOSE IN
++$ NOOPEN:
++$ GENERATION = GENERATION + 1
++$ OPEN/WRITE OUT SYS$DISK:[]GENERATION.
++$ WRITE OUT GENERATION
++$ CLOSE OUT
++$ 
++$!
++$! Let's Get Our DECNet Node Name.
++$!
++$ NODE_NAME = F$GETSYI("NODENAME")
++$!
++$! Let's Get Our OpenVMS Version Number.
++$!
++$ VERSION_NUMBER = F$GETSYI("VERSION")
++$!
++$! Let's Get Our Hardware Type.
++$!
++$ HARDWARE_TYPE = F$GETSYI("HW_NAME")
++$!
++$! Extract Just The Date For The Creation Date.
++$!
++$ CREATION_DATE = F$EXTRACT(0,F$LOCATE(" ",F$TIME()),F$TIME())
++$!
++$! Let's Open Our Output File.
++$!
++$ OPEN/WRITE FILE SYS$DISK:[]VERSION.C
++$!
++$! Let's Put Stuff In The File.
++$!
++$ WRITE FILE "/*"
++$ WRITE FILE " *   IRC - Internet Relay Chat, src/version.c"
++$ WRITE FILE " *   Copyright (C) 1990 Chelsea Ashley Dyerman"
++$ WRITE FILE " *"
++$ WRITE FILE " *   This program is free software; you can redistribute it and/or modify"
++$ WRITE FILE " *   it under the terms of the GNU General Public License as published by"
++$ WRITE FILE " *   the Free Software Foundation; either version 1, or (at your option)"
++$ WRITE FILE " *   any later version."
++$ WRITE FILE " *"
++$ WRITE FILE " *   This program is distributed in the hope that it will be useful,"
++$ WRITE FILE " *   but WITHOUT ANY WARRANTY; without even the implied warranty of"
++$ WRITE FILE " *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the"
++$ WRITE FILE " *   GNU General Public License for more details."
++$ WRITE FILE " *"
++$ WRITE FILE " *   You should have received a copy of the GNU General Public License"
++$ WRITE FILE " *   along with this program; if not, write to the Free Software"
++$ WRITE FILE " *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA."
++$ WRITE FILE " */"
++$ WRITE FILE ""
++$ WRITE FILE "/*"
++$ WRITE FILE " * This file is generated by version.com. Any changes made will go away."
++$ WRITE FILE " */"
++$ WRITE FILE ""
++$ WRITE FILE "#include ""patchlevel.h"""
++$ WRITE FILE "#include ""serno.h"""
++$ WRITE FILE ""
++$ WRITE FILE "char *generation = """, GENERATION, """;
++$ WRITE FILE "char *creation = """, CREATION_DATE, """;
++$ WRITE FILE "char *platform = ""OpenVMS ",NODE_NAME," ",VERSION_NUMBER,HARDWARE_TYPE,""";
++$ WRITE FILE "char *ircd_version = PATCHLEVEL;
++$ WRITE FILE "char *serno = SERIALNUM;
++$ WRITE FILE ""
++$ WRITE FILE "char *infotext[] ="
++$ WRITE FILE "{"
++$ WRITE FILE " ""$package --"","
++$ WRITE FILE "  ""Based on the original code written by Jarkko Oikarinen"","
++$ WRITE FILE "  ""Copyright 1988, 1989, 1990, 1991 University of Oulu, Computing Center"","
++$ WRITE FILE "  """","
++$ WRITE FILE "  ""This program is free software; you can redistribute it and/or"","
++$ WRITE FILE "  ""modify it under the terms of the GNU General Public License as"","
++$ WRITE FILE "  ""published by the Free Software Foundation; either version 1, or"","
++$ WRITE FILE "  ""(at your option) any later version."","
++$ WRITE FILE "  """","
++$ WRITE FILE "};"
++$!
++$! Close The Output File.
++$!
++$ CLOSE FILE
++$!
++$! That's All, Time To Exit.
++$!
++$ EXIT

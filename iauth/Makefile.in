@@ -2,7 +2,7 @@
 # $Id$
 
 CC	= @CC@
-CFLAGS	= @IRC_CFLAGS@ -DIRCD_PREFIX=\"@prefix@\"
+CFLAGS	= @IRC_CFLAGS@
 RM	= @RM@
 
 #CFLAGS = -g -Wall
