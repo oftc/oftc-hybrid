@@ -1,3 +1,15 @@
+stu         2003/09/22 00:08:53 UTC	(20030922_0)
+
+  Modified files:
+    modules              m_who.c 
+  Log:
+  yay, we have a m_who that does what it's supposed to, yay!
+  
+  Revision  Changes    Path
+  1.14      +65 -17    oftc-hybrid/modules/m_who.c
+
+
+
 stu         2003/09/20 15:46:53 UTC	(20030920_1)
 
   Modified files:
