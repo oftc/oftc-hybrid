@@ -1,3 +1,29 @@
+stu         2003/10/21 18:04:59 UTC	(20031021_0)
+
+  Modified files:        (Branch: STABLE)
+    include              patchlevel.h 
+  Log:
+  rev patchlevel
+  
+  Revision  Changes    Path
+  1.5.2.2   +1 -1      oftc-hybrid/include/patchlevel.h
+
+
+
+stu         2003/10/23 11:40:56 UTC	(20031023_0)
+
+  Modified files:
+    modules              m_log.c 
+    src                  hash.c 
+  Log:
+  - Added gnotice on channel creation for spying opers
+  
+  Revision  Changes    Path
+  1.5       +2 -1      oftc-hybrid/modules/m_log.c
+  1.5       +4 -0      oftc-hybrid/src/hash.c
+
+
+
 stu         2003/10/19 17:51:27 UTC	(20031019_4)
 
   Modified files:
