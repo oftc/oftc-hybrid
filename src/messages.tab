@@ -542,7 +542,8 @@ static struct NumericInfo replies[] = {
 /* 519 */  {NULL, NULL, NULL},
 /* 520 */  {NULL, NULL, NULL},
 /* 521 */  {"ERR_LISTSYNTAX", ":%s 521 %s :Bad list syntax, type /QUOTE HELP LIST", NULL},
-/* 522 */  {NULL, NULL, NULL},
+/* 522 */  {"ERR_WHOSYNTAX", ":%s 522 %s :/WHO Syntax incorrect, use /who ? "
+    "for help", NULL},
 /* 523 */  {NULL, NULL, NULL},
 /* 524 */  {"ERR_HELPNOTFOUND", ":%s 524 %s %s :Help not found", NULL},
 /* 525 */  {NULL, NULL, NULL},
