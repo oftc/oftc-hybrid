@@ -1,0 +1,11 @@
+/list >x and <x
+/quote ns and friends, assuming no conflicts:
+    OperServ
+    NickServ
+    ChanServ
+    MemoServ
+    StatServ
+    HelpServ
+    SeenServ
+
+Done, and done. :) (Wed Aug 14 04:47:29 BST 2002) - stu

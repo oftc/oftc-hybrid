@@ -1,0 +1,1021 @@
+dnl $Id$
+dnl Process this file with autoconf to produce a configure script.
+dnl AC_INIT(include/class.h) <- what is this ? -TimeMr14C
+
+AC_INIT
+
+AC_CONFIG_AUX_DIR(autoconf)
+AC_CONFIG_HEADER(include/setup.h servlink/setup.h)
+AC_PREFIX_DEFAULT(/usr/local/ircd)
+
+PACKAGE=ircd-hybrid
+VERSION=7.0
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+
+OLD_CFLAGS="$CFLAGS"
+dnl Checks for programs.
+AC_PROG_CC
+dnl Make sure autoconf doesnt interfere with cflags -jmallett
+CFLAGS="$OLD_CFLAGS"
+
+dnl Check for various compilers. -jmallett
+SGS=no
+AC_MSG_CHECKING(if we are using TenDRA or MIPSpro)
+case `$CC -version 2>&1` in
+  *TenDRA*)
+    AC_MSG_RESULT(success! We will be using TenDRA.)
+    TenDRA=yes
+    SGS=yes
+    ;;
+  *MIPSpro*)
+    AC_MSG_RESULT(success! We will be using MIPSpro.)
+    MIPSpro=yes
+    SGS=yes
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    TenDRA=no
+    MIPSpro=no
+    ;;
+esac
+AC_MSG_CHECKING(if we are using Sun WorkShop/Forte)
+case `$CC -V 2>&1` in
+  *Sun*WorkShop*)
+    AC_MSG_RESULT(success! We are using Sun WorkShop/Forte.)
+    SunWorkShop=yes
+    SGS=yes
+    ;;
+  *Forte*Developer*)
+    AC_MSG_RESULT(success! We are using Sun WorkShop/Forte.)
+    SunWorkShop=yes
+    SGS=yes
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    SunWorkShop=no
+    ;;
+esac
+AC_MSG_CHECKING(if we are using Apple GCC)
+case `$CC -v 2>&1 | tail -1` in
+  *Apple*)
+    AC_MSG_RESULT(success! We are using GCC from Apple.)
+    AppleGCC=yes
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    AppleGCC=no
+    ;;
+esac
+
+dnl SVR4 SGS based on what we know about the compiler -jmallett
+AC_MSG_CHECKING(if your compiler supports the SVR4 Software Generation System interfaces)
+if test "$SGS" = "yes"; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+dnl XXX This could be consecutive 'if' statements, and then check
+dnl for a zero "$IRC_CFLAGS" (but what should we use for TenDRA??)
+dnl and then do the check for whether -g works... Hrrm. -jmallett
+if test "x$GCC" = "xyes"; then
+#  Use this for development..
+#  IRC_CFLAGS="-O2 -g -ggdb -Wunused -Wall -Wshadow -Wmissing-declarations"
+   IRC_CFLAGS="-O2 -g -ggdb"
+else
+  if test "x$TenDRA" = "xyes"; then
+    dnl CPPFLAGS here is really IRC_CFLAGS but autoconf does silly
+    dnl things with the wrong variables, so this works. -jmallett
+    IRC_CFLAGS=""
+    CPPFLAGS="$CPPFLAGS -Ylonglong -Yansi -I/usr/include"
+  else
+    if test "x$SunWorkShop" = "xyes"; then
+      IRC_CFLAGS="-fast -g -xinline=dlinkAdd,dlinkAddBefore,dlinkAddTail,dlinkDelete,dlink_list_length,dlink_node,dlinkMoveList,_MyMalloc,_MyRealloc,_MyFree,_DupString"
+    else
+      if test "x$MIPSpro" = "xyes"; then
+        IRC_CFLAGS="-g"
+      else
+        if test "x$ac_cv_prog_cc_g" = "xyes"; then
+          IRC_CFLAGS="-g"
+        else
+          IRC_CFLAGS=""
+        fi
+      fi
+    fi
+  fi
+fi
+
+dnl cc on HPUX 11.00 does not produce any output on cc -V
+dnl Therefore I will use the following hack to discover HPUX 
+dnl -TimeMr14C
+
+case `uname -s` in
+        HP-UX*)
+                AC_MSG_RESULT(HP-UX found - Assuming HPUX C compiler cc)  
+		IRC_CFLAGS="$IRC_CFLAGS +e"
+		HPUX=yes
+		;;
+	OSF*)
+		OSF=yes
+		;;
+	*)
+		;;
+esac
+
+
+AC_MSG_CHECKING(how to generate dependancy info)
+if test "$SunWorkShop" = "yes"; then
+  AC_MSG_RESULT(Sun WorkShop/Forte using $CC -xM)
+  MKDEP="$CC -xM"
+fi
+if test "$HPUX" = "yes"; then
+  AC_MSG_RESULT(HP-UX C Compiler using makedepend)
+  MKDEP="makedepend"
+fi
+if test "x$MKDEP" = "x"; then
+  AC_MSG_RESULT(assuming $CC -MM)
+  MKDEP="$CC -MM"	
+fi
+
+AC_SUBST(MKDEP)
+
+dnl jdc -- If CFLAGS is defined, best use it everywhere...
+dnl NOTE: jv says it must be added to the *END*, because things like
+dnl "gcc -O9 -O2" will result in -O2 getting preference.  How stupid.
+if test "x$CFLAGS" != "x"; then
+  IRC_CFLAGS="$IRC_CFLAGS $CPPFLAGS"
+fi
+
+AC_ISC_POSIX
+AC_PROG_MAKE_SET
+AC_PATH_PROG(RM, rm)
+AC_PATH_PROG(CP, cp)
+AC_PATH_PROG(MV, mv)
+AC_PATH_PROG(LN, ln)
+AC_PATH_PROG(SED, sed)
+AC_PATH_PROG(AR, ar)
+AC_PATH_PROG(LD, ld)
+AC_PROG_YACC
+AC_PROG_INSTALL
+AC_PROG_LEX
+AC_PROG_RANLIB
+AC_C_INLINE
+
+dnl use directory structure of cached as default (hack)
+if test "$libexecdir" = '${exec_prefix}/libexec' &&
+   test "$localstatedir" = '${prefix}/var'; then
+        libexecdir='${bindir}'
+        localstatedir='${prefix}'
+fi
+
+dnl Checks for libraries.
+AC_CHECK_LIB(socket, socket)
+
+dnl jdc -- Checks Solaris for libresolv and nsl; needed on Solaris 2.x
+dnl AC_CHECK_LIB(resolv, main)
+dnl AC_CHECK_LIB(nsl, main)
+
+dnl AC_CHECK_LIB(bottle, beer, , AC_MSG_WARN(I have no more beer))
+
+AC_CHECK_FUNC(crypt,, AC_CHECK_LIB(descrypt, crypt,,AC_CHECK_LIB(crypt, crypt,,)))
+
+dnl check for gettext in base system or /usr/[local/]lib/libintl.a
+AC_SEARCH_LIBS(gettext, intl,,,)
+if test "X$ac_cv_search_gettext" = "Xno"; then
+    save_LIBS="$LIBS"
+    LIBS="$LIBS -L/usr/local/lib"
+    unset ac_cv_search_gettext
+    AC_SEARCH_LIBS(gettext, intl,,,)
+    if test "X$ac_cv_search_gettext" != "Xno"; then
+        gettext_libs="-L/usr/local/lib"
+        gettext_incl="-I/usr/local/include"
+    fi
+    LIBS="$save_LIBS"
+fi
+
+dnl make sure we cache any special flags we used, as autoconf
+dnl will cache the 'found gettext' result, and otherwise we'll never realise
+dnl we need them!
+AC_CACHE_CHECK(ld flags needed for gettext, cf_cv_gettext_libs,
+               [ cf_cv_gettext_libs="$gettext_libs" ])
+AC_CACHE_CHECK(cpp flags needed for gettext, cf_cv_gettext_incl,
+               [ cf_cv_gettext_incl="$gettext_incl" ])
+
+LIBS="$LIBS $cf_cv_gettext_libs"
+CPPFLAGS="$CPPFLAGS $cf_cv_gettext_incl"
+
+AC_CHECK_FUNCS(gettext,, AC_CHECK_LIB(intl, gettext))
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(inttypes.h sys/resource.h sys/param.h unistd.h errno.h string.h strings.h sys/syslog.h stdlib.h stddef.h getopt.h)
+
+dnl See whether we can include both string.h and strings.h.
+AC_DEFUN(GCC_HEADER_STRING,
+[AC_CACHE_CHECK([whether string.h and strings.h may both be included],
+ gcc_cv_header_string,
+[AC_TRY_COMPILE([#include <string.h>
+#include <strings.h>], , gcc_cv_header_string=yes, gcc_cv_header_string=no)])
+if test $gcc_cv_header_string = yes; then
+ AC_DEFINE(STRING_WITH_STRINGS)
+fi
+])
+
+GCC_HEADER_STRING
+
+dnl check for socklen_t
+dnl we can't use ac_check_Type because it doesnt include the required files
+
+AC_DEFUN(CHECK_SOCKLEN_T,
+[
+	AC_MSG_CHECKING(for socklen_t)
+	AC_CACHE_VAL(have_socklen_t,
+	[
+		AC_TRY_COMPILE(
+                        [#include <sys/types.h>
+			#include <sys/socket.h>],
+			[socklen_t xxx = 75;],
+			have_socklen_t=yes,
+			have_socklen_t=no)
+	])
+	AC_MSG_RESULT($have_socklen_t)
+	if test "$have_socklen_t" = yes; then
+		AC_DEFINE(HAVE_SOCKLEN_T)
+	fi
+])
+
+CHECK_SOCKLEN_T
+
+dnl Check for stdarg.h - if we can't find it, halt configure
+AC_CHECK_HEADER(stdarg.h, , AC_MSG_ERROR(** stdarg.h could not be found - ircd-hybrid will not compile without it **))
+
+dnl Checks for the existance of strlcat
+AC_CHECK_FUNCS(strlcat strlcpy)
+
+dnl check for socketpair
+AC_CHECK_FUNCS(socketpair)
+
+dnl check for snprintf
+AC_CHECK_FUNCS(snprintf, [have_snprintf=1])
+dnl check for vsnprintf
+AC_CHECK_FUNCS(vsnprintf, [have_vsnprintf=1])
+dnl Tell src/Makefile.in if we need its snprintf.c
+if test -z "$have_snprintf"; then
+	SNPRINTF_C="snprintf.c"
+fi
+if test -z "$have_vsnprintf"; then
+	SNPRINTF_C="snprintf.c"
+fi
+AC_SUBST(SNPRINTF_C)
+
+dnl check for mmap
+AC_CHECK_FUNCS(mmap)
+
+dnl check for nanosleep
+AC_CHECK_FUNC(nanosleep,,[AC_CHECK_LIB(rt,nanosleep, 
+		LIBS="${LIBS} -lrt",
+		[AC_CHECK_LIB(posix4,nanosleep, LIBS="${LIBS} -lposix4"
+      		)])])
+if test x$ac_cv_func_nanosleep = xno && test x$ac_cv_lib_posix4_nanosleep = xno  && test x$ac_cv_lib_rt_nanosleep = xno 
+then	
+	AC_MSG_RESULT("nanosleep not found..using select for delay")
+else
+	AC_DEFINE(HAVE_NANOSLEEP)
+fi
+
+dnl Look for definitions such as RLIMIT_FDMAX, RLIMIT_NOFILE, and
+dnl RLIMIT_OPEN_MAX.  These are used for getrlimit().
+dnl NOTE: It seems stock autoconf doesn't use the -dM flag for cpp.
+dnl       We need this for the following tests to work.
+cpp_flags_backup="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS -dM"
+AC_MSG_CHECKING(for getrlimit max open files parameter)
+AC_EGREP_HEADER(RLIMIT_FDMAX, sys/resource.h,
+		cf_rlimit_type="RLIMIT_FDMAX")
+AC_EGREP_HEADER(RLIMIT_NOFILE, sys/resource.h,
+		cf_rlimit_type="RLIMIT_NOFILE")
+AC_EGREP_HEADER(RLIMIT_OPEN_MAX, sys/resource.h,
+		cf_rlimit_type="RLIMIT_OPEN_MAX")
+CPPFLAGS="$cpp_flags_backup"
+unset cpp_flags_backup
+if test "x$cf_rlimit_type" != "x"; then
+	AC_DEFINE_UNQUOTED(RLIMIT_FD_MAX, $cf_rlimit_type)
+	AC_MSG_RESULT($cf_rlimit_type)
+fi
+
+dnl OpenSSL support
+AC_MSG_CHECKING(for OpenSSL)
+AC_ARG_ENABLE(openssl,
+[  --enable-openssl[=DIR]       Enable OpenSSL support (DIR optional).
+  --disable-openssl            Disable OpenSSL support. ],
+[ cf_enable_openssl=$enableval ],
+[ cf_enable_openssl="auto" ])
+
+if test "X$cf_enable_openssl" != "Xno" ; then
+  cf_openssl_basedir=""
+  if test "X$cf_enable_openssl" != "Xauto" &&
+     test "X$cf_enable_openssl" != "Xyes" ; then
+     dnl Support for --enable-openssl=/some/place
+     cf_openssl_basedir="${cf_enable_openssl}"
+  else
+    dnl Do the auto-probe here.  Check some common directory paths.
+    for dirs in /usr/local/ssl /usr/pkg /usr/local \
+                /usr/local/openssl ; do
+      if test -f "${dirs}/include/openssl/opensslv.h" ; then
+        cf_openssl_basedir="${dirs}"
+        break
+      fi
+    done
+    unset dirs
+  fi
+  dnl Now check cf_openssl_found to see if we found anything.
+  if test "X$cf_openssl_basedir" != "X" ; then
+    if test -f "${cf_openssl_basedir}/include/openssl/opensslv.h" ; then
+      SSL_INCLUDES="-I${cf_openssl_basedir}/include"
+      SSL_LIBS="-L${cf_openssl_basedir}/lib"
+    else
+      dnl OpenSSL wasn't found in the directory specified.  Naughty
+      dnl administrator...
+      cf_openssl_basedir=""
+    fi
+  else
+    dnl Check for stock FreeBSD 4.x and 5.x systems, since their files
+    dnl are in /usr/include and /usr/lib.  In this case, we don't want to
+    dnl change INCLUDES or LIBS, but still want to enable OpenSSL.
+    dnl We can't do this check above, because some people want two versions
+    dnl of OpenSSL installed (stock FreeBSD 4.x/5.x and /usr/local/ssl)
+    dnl and they want /usr/local/ssl to have preference.
+    if test -f "/usr/include/openssl/opensslv.h" ; then
+      cf_openssl_basedir="/usr"
+    fi
+  fi
+  dnl If we have a basedir defined, then everything is okay.  Otherwise,
+  dnl we have a problem.
+  if test "X$cf_openssl_basedir" != "X" ; then
+    AC_MSG_RESULT($cf_openssl_basedir)
+    cf_enable_openssl="yes"
+  else
+    AC_MSG_RESULT(not found.  Please check your path.)
+    cf_enable_openssl="no"
+  fi
+  unset cf_openssl_basedir
+else
+  dnl If --disable-openssl was specified
+  AC_MSG_RESULT(disabled)
+fi
+
+save_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $SSL_INCLUDES"
+save_LIBS="$LIBS"
+LIBS="$LIBS $SSL_LIBS"
+if test "X$cf_enable_openssl" != "Xno"; then
+    dnl Check OpenSSL version (must be 0.9.6 or above!)
+    AC_MSG_CHECKING(for OpenSSL 0.9.6 or above)
+    AC_TRY_RUN(
+    [
+#include <openssl/opensslv.h>
+#include <stdlib.h>
+int main(void) {
+  if ( (OPENSSL_VERSION_NUMBER & 0x00906000) == 0x00906000)
+  {
+    exit(0);
+  }
+  exit(1);
+}
+    ], cf_openssl_version_ok='yes',
+       cf_openssl_version_ok='no',
+       cf_openssl_version_ok='no')
+
+    if test "X$cf_openssl_version_ok" = "Xyes"; then
+        AC_MSG_RESULT(ok)
+        dnl Do all the HAVE_LIBCRYPTO magic -- and check for ciphers
+        save_CPPFLAGS="$CPPFLAGS"
+        CPPFLAGS="$CPPFLAGS $SSL_LIBS"
+        AC_CHECK_LIB(crypto, RSA_free)
+        if test "X$ac_cv_lib_crypto_RSA_free" = "Xyes"; then
+            cf_openssl_ciphers=''
+            AC_CHECK_FUNCS(EVP_bf_cfb,
+                cf_openssl_ciphers="${cf_openssl_ciphers}BF/256 BF/128 ")
+            AC_CHECK_FUNCS(EVP_cast5_cfb,
+                cf_openssl_ciphers="${cf_openssl_ciphers}CAST/128 ")
+            AC_CHECK_FUNCS(EVP_idea_cfb,
+                cf_openssl_ciphers="${cf_openssl_ciphers}IDEA/128 ")
+            AC_CHECK_FUNCS(EVP_rc5_32_12_16_cfb,
+                cf_openssl_ciphers="${cf_openssl_ciphers}RC5.16/128 RC5.12/128 RC5.8/128 ")
+            AC_CHECK_FUNCS(EVP_des_ede3_cfb,
+                cf_openssl_ciphers="${cf_openssl_ciphers}3DES/168 ")
+            AC_CHECK_FUNCS(EVP_des_cfb,
+                cf_openssl_ciphers="${cf_openssl_ciphers}DES/56 ")
+        fi
+        CPPFLAGS="$save_CPPFLAGS"
+        SSL_LIBS="$SSL_LIBS -lcrypto"
+    else
+        AC_MSG_RESULT(no - OpenSSL support disabled)
+    fi
+fi
+CPPFLAGS="$save_CPPFLAGS"
+LIBS="$save_LIBS"
+
+dnl zlib?
+AC_MSG_CHECKING(if you want to try to use zlib)
+AC_ARG_ENABLE(zlib,
+[  --enable-zlib                Enable zlib compression (used by ziplinks)
+  --disable-zlib               Disable zlib compression (used by ziplinks) ],
+[ cf_enable_zlib=$enableval ],
+[ cf_enable_zlib='yes' ])
+AC_MSG_RESULT($cf_enable_zlib)
+
+case "$cf_enable_zlib" in
+  yes)
+    AC_CHECK_LIB(z, deflate)
+    AC_CHECK_FUNC(zlibVersion, , AC_MSG_WARN(zlib 1.0.2 or higher required for ZIPLINK support))
+    ;;
+  no)
+    ;;
+  *)
+    LIBS="$LIBS -L$cf_enable_zlib"
+    AC_CHECK_LIB(z, deflate)
+    AC_CHECK_FUNC(zlibVersion, , AC_MSG_WARN(zlib 1.0.2 or higher required for ZIPLINK support))
+    ;;
+esac
+
+
+AC_MSG_CHECKING(if you want to do a profile build)
+AC_ARG_ENABLE(profile,
+[  --enable-profile             Enable profiling.
+  --disable-profile            Disable profiling(default). ],
+[
+  case "$enableval" in
+  yes)
+    ac_cv_profile="yes"
+    IRC_CFLAGS="$IRC_CFLAGS -pg -a -static"
+    ;;
+  no)
+    ac_cv_profile="no"
+    ;;
+  esac
+])
+AC_MSG_RESULT($ac_cv_profile)
+
+
+dnl Check if we want to use efence
+AC_MSG_CHECKING(if you want ElectricFence)
+AC_ARG_ENABLE(efence,
+[  --enable-efence              Enable ElectricFence(memory debugger).
+  --disable-efence             Disable ElectricFence(default).],
+[
+  case "$enableval" in
+  yes)
+    ac_cv_efence="yes"
+    ;;
+  no)
+    ac_cv_efence="no"
+    ;;
+  *)
+    LIBS="$LIBS -L$enableval"
+    ac_cv_efence="yes"
+    ;;
+  esac
+])
+AC_MSG_RESULT($ac_cv_efence)
+
+
+dnl Check if we want to enable the block allocator
+AC_MSG_CHECKING(if you want the block allocator)
+AC_ARG_ENABLE(block-alloc,
+[  --enable-block-alloc         Enable the block allocator(default)
+  --disable-block-alloc        Disable the block allocator(Only useful
+                               with ElectricFence).],
+[
+  case "$enableval" in
+  yes)
+    ac_cv_balloc="yes"
+    ;;
+  no)
+dnl If they want this, give it to them, even they don't want efence.
+    ac_cv_balloc="no"
+    AC_DEFINE(NOBALLOC)
+    ;;
+  esac
+])
+AC_MSG_RESULT($ac_cv_balloc)
+
+
+dnl check for netio plugin stuff
+dnl Enable poll()
+AC_ARG_ENABLE(poll,
+[  --enable-poll                Enable poll() support.
+  --disable-poll               Disable poll() support. ],
+[
+  case "$enableval" in
+  yes)
+    echo "Forcing poll() to be enabled"
+    ac_cv_func_poll="yes"
+    ;;
+  no)
+    echo "Forcing poll() to be disabled"
+    ac_cv_func_poll="no"
+    ;;
+  esac
+])
+
+dnl Enable select()
+AC_ARG_ENABLE(select,
+[  --enable-select              Enable select() support.
+  --disable-select             Disable select() support. ],
+[
+  case "$enableval" in
+  yes)
+    echo "Forcing select() to be enabled"
+    ac_cv_func_select="yes"
+    ;;
+  no)
+    echo "Forcing select() to be disabled"
+    ac_cv_func_select="no"
+    ;;
+  esac
+])
+
+dnl Enable kqueue()
+AC_ARG_ENABLE(kqueue,
+[  --enable-kqueue              Enable kqueue() support.
+  --disable-kqueue             Disable kqueue() support. ],
+[
+  case "$enableval" in
+  yes)
+    echo "Forcing kqueue() to be enabled"
+    ac_cv_func_kqueue="yes"
+    ;;
+  no)
+    echo "Forcing kqueue() to be disabled"
+    ac_cv_func_kqueue="no"
+  ;;
+esac
+])
+
+dnl Enable devpoll
+AC_ARG_ENABLE(devpoll,
+[  --enable-devpoll             Enable /dev/poll support.
+  --disable-devpoll            Disable /dev/poll support. ],
+[
+  case "$enableval" in
+  yes)
+    echo "Forcing /dev/poll to be enabled"
+    ac_cv_func_devpoll="yes"
+    ;;
+  no)
+    echo "Forcing /dev/poll to be disabled"
+    ac_cv_func_devpoll="no"
+  ;;
+esac
+])
+
+dnl Enable RT sigio - linux only
+AC_ARG_ENABLE(rtsigio,
+[  --enable-rtsigio             Enable SIGIO with RT Signals(Linux only).
+  --disable-rtsigio            Disable SIGIO with RT Signals(Linux only). ],
+[
+  case "$enableval" in
+  yes)
+    echo "Forcing Linux RT Sigio to be enabled"
+    ac_cv_func_rtsigio="yes"
+    ;;
+  no)
+    ac_cv_func_rtsigio="no"
+  ;;
+esac
+])
+
+dnl Checks for library functions.
+AC_PROG_GCC_TRADITIONAL
+
+
+AC_CHECK_TYPE(u_int32_t, unsigned int)
+
+AC_CHECK_TYPE(uintptr_t)
+
+rm -f conftest conftest.f
+dnl check for poll() call
+AC_CHECK_FUNC(poll, ac_cv_func_poll="yes",)
+
+dnl Magic which checks whether we are forcing a type of comm loop we
+dnl are actually going to (ab)use
+
+dnl Actually do the define magic now
+dnl mostly ripped from squid-commloops, thanks to adrian and benno
+
+dnl Make sure headers required for kqueue exist if we want to use it.
+if test "$ac_cv_func_kqueue" = "yes" ; then
+	AC_CHECK_FUNCS(kevent, [ kqueue_func="yes" ], )
+	if test "X$kqueue_func" = "X" ; then
+		AC_MSG_WARN(** kevent() not found - not building kqueue support **)
+	else
+                SELECT_TYPE="kqueue"
+                AC_DEFINE(USE_KQUEUE)
+	fi
+fi
+if test "$SELECT_TYPE" != "kqueue" ; then
+	if test "$ac_cv_func_devpoll" = "yes" ; then
+                SELECT_TYPE="devpoll"
+                AC_DEFINE(HAVE_DEVPOLL)
+                AC_DEFINE(USE_DEVPOLL)
+	elif test "$ac_cv_func_rtsigio" = "yes" ; then
+		SELECT_TYPE="sigio"
+		AC_DEFINE(USE_SIGIO)
+	elif test "$ac_cv_func_poll" = "yes" ; then
+                SELECT_TYPE="poll"
+                AC_DEFINE(USE_POLL)
+	elif test "$ac_cv_func_select" = "yes" ; then
+                SELECT_TYPE="select"
+                AC_DEFINE(USE_SELECT)
+        else
+                echo "Eep!  Can't find kqueue, devpoll, poll, rtsigio _or_ select!"
+                echo "I'll try select and hope for the best."
+                SELECT_TYPE="select"
+                AC_DEFINE(USE_SELECT)
+	fi
+fi
+echo "Using ${SELECT_TYPE} for select loop."
+AC_DEFINE_UNQUOTED(SELECT_TYPE, "$SELECT_TYPE")
+AC_SUBST(SELECT_SRC)
+
+if test "$ac_cv_func_gettext" = "yes" -o "$ac_cv_lib_intl_gettext" = "yes"; then
+	echo "Building with gettext."
+	MSGFMT="msgfmt -o"
+	SUBDIR_MESSAGES="messages"
+        AC_DEFINE(HAVE_GETTEXT)
+else
+	MSGFMT="echo"
+	SUBDIR_MESSAGES=""
+fi
+
+dnl ipv6?
+AC_ARG_ENABLE(ipv6,
+[  --enable-ipv6                Enable IPV6 support.
+  --disable-ipv6               Disable IPV6 support. ],
+    [ ac_cv_ipv6=$enableval ], [ ac_cv_ipv6='no' ])
+
+if test "$ac_cv_ipv6" = "yes" ; then
+	AC_DEFINE(IPV6)
+	echo "Using IPv6 support"
+fi
+
+
+dnl efnet
+AC_ARG_ENABLE(efnet,
+[  --enable-efnet               For IRCDs running on efnet. ],
+    [ ac_cv_efnet=$enableval ], [ ac_cv_efnet='no' ])
+
+
+if test "$ac_cv_efnet" = "yes"; then
+    AC_DEFINE(EFNET)
+    echo "Building ircd for use with efnet"
+fi
+
+ac_cv_assert="-DNDEBUG"
+
+dnl assert?
+AC_ARG_ENABLE(assert,
+[  --enable-assert              Enable assert().
+  --disable-assert             Disable assert(). ],
+[
+  case "$enableval" in
+  yes)
+    echo "Enabling assert() code."
+    ac_cv_assert=""
+    ;;
+  no)
+    echo "Disabling assert() code."
+    ac_cv_assert="-DNDEBUG"
+    ;;
+  esac
+])
+
+IRC_CFLAGS="$IRC_CFLAGS $ac_cv_assert"
+
+dnl Here are two helper functions to discover the
+dnl implemented way in the OS that shared module support 
+dnl has to use. -TimeMr14C
+
+AC_DEFUN(CHECK_DLOPEN_LD,
+[
+        AC_CHECK_FUNC(shl_load,
+                [
+                        AC_DEFINE(HAVE_SHL_LOAD)
+                        ac_cv_have_shl_load='yes'
+                ],
+                AC_CHECK_LIB(dld, shl_load, AC_DEFINE(HAVE_SHL_LOAD),
+                [
+                ac_cv_have_shl_load='no'
+                echo "shl_load could not be found"
+                ]))
+])
+
+AC_DEFUN(CHECK_DLOPEN_DL,
+[
+        AC_CHECK_FUNC(dlopen,
+                [   
+                        ac_cv_have_dlopen='yes'
+                ],
+                AC_CHECK_LIB(dl, dlopen,
+                [
+                        ac_cv_have_dlopen='yes'
+                ],
+                [   
+                        ac_cv_have_dlopen='no'
+                ]))
+])
+
+dnl small-net
+AC_ARG_ENABLE(small-net,
+[  --enable-small-net           Enable small network support.
+  --disable-small-net          Disable small network support. ],
+[
+  case "$enableval" in
+  yes)
+    echo "Enabling small net code."
+    IRC_CFLAGS="$IRC_CFLAGS -DSMALL_NET=1"
+    ;;
+  no)
+    echo "Disabling small net code."
+    IRC_CFLAGS="$IRC_CFLAGS"
+    ;;
+  esac
+])
+
+ac_cv_nicklen="9"
+ac_cv_maxclients="200"
+ac_cv_topiclen="120"
+
+dnl Nicklen
+AC_ARG_WITH(nicklen,
+[  --with-nicklen=LENGTH        Set the nick length to LENGTH. ],
+
+[
+	echo $withval
+  if test "$withval" = "no"; then
+	ac_cv_nicklen="9"
+  else
+	ac_cv_nicklen="$withval"
+  fi
+])
+AC_MSG_RESULT("Setting NICKLEN to $ac_cv_nicklen")
+AC_DEFINE_UNQUOTED(NICKLEN, (${ac_cv_nicklen}+1))
+
+dnl Max support clients
+AC_ARG_WITH(maxclients,
+[  --with-maxclients=NUMBER     Set the maximum number of clients to NUMBER. ],
+
+[
+  if test "$withval" = "no"; then
+	ac_cv_maxclients="200"
+  else
+	ac_cv_maxclients="$withval"
+  fi
+])
+AC_MSG_RESULT("Setting MAX_CLIENTS to $ac_cv_maxclients")
+AC_DEFINE_UNQUOTED(MAX_CLIENTS, ${ac_cv_maxclients})
+
+dnl Max support clients
+AC_ARG_WITH(topiclen,           
+[  --with-topiclen=NUMBER       Set the max topic length to NUMBER. ],
+
+[
+  if test "$withval" = "no"; then
+	ac_cv_topiclen="120"
+  else
+	ac_cv_topiclen="$withval"
+  fi
+])
+AC_MSG_RESULT("Setting TOPICLEN to $ac_cv_topiclen")
+AC_DEFINE_UNQUOTED(TOPICLEN, ${ac_cv_topiclen})
+
+dnl shared-modules
+AC_ARG_ENABLE(shared-modules,
+[  --enable-shared-modules      Enable shared modules.
+  --disable-shared-modules     Disable shared modules. ],
+
+[
+  if test "$enableval" = "no"; then
+	ac_cv_shared_modules="no"
+  else
+	ac_cv_shared_modules="yes"
+  fi
+])
+
+if test "$ac_cv_profile" = "yes" &&
+   test "$ac_cv_shared_modules" != "no"; then
+	echo "Shared modules and profiling don't work together."
+	echo "Disabling shared modules."
+	ac_cv_shared_modules="no"
+fi
+
+if test "$ac_cv_shared_modules" = "no"; then
+	echo "Not using shared modules.."
+	MODULES_DEFINE=""
+	MOD_TARGET="libmodules.a"
+	MODULES_LIBS="../modules/libmodules.a"
+dnl This is a kludge, but it should work...
+	SEDOBJ="-e s/.so:/.o:/"
+	AC_DEFINE(STATIC_MODULES)
+else
+	echo "Checking for shared module support"
+	MODULES_DEFINE=""
+	MODULES_LIBS=""
+	MOD_TARGET="shared_modules"
+	SEDOBJ="-e s/.o:/.so:/"
+        CHECK_DLOPEN_LD
+        if test "$ac_cv_have_shl_load" = "no"; then
+            AC_CHECK_HEADER([mach-o/dyld.h],, [CHECK_DLOPEN_DL])
+        fi
+        if test "$ac_cv_have_dlopen" = "no"; then
+            AC_MSG_ERROR(shared module support could not be found - try running configure with --disable-shared-modules)
+        fi
+	dnl Without this, include/setup.h will not be set up right.
+	AC_CHECK_LIB(dl, dlsym)
+	AC_CHECK_FUNCS(dlopen)
+	AC_CHECK_HEADERS(mach-o/dyld.h dlfcn.h)
+
+	# The GNU linker requires the -export-dynamic option to make
+	# all symbols visible in the dynamic symbol table.
+	hold_ldflags=$LDFLAGS
+	AC_MSG_CHECKING(for the ld -export-dynamic flag)
+	LDFLAGS="${LDFLAGS} -Wl,-export-dynamic"
+	AC_TRY_LINK(, [int i;], found=yes, found=no)
+	LDFLAGS=$hold_ldflags
+	AC_MSG_RESULT($found)
+	if test $found = yes; then
+		LDFLAGS="${LDFLAGS} -Wl,-export-dynamic"
+	fi
+
+	AC_MSG_CHECKING(for compiler option to produce PIC)
+	dnl The order should be here to check for groups of compilers,
+	dnl then for odd compilers, then if no PICFLAGS were set up,
+	dnl check for GCC and set defaults, or else error. -jmallett
+	if test "$SGS" = "yes"; then
+		AC_MSG_RESULT(SVR4 Software Generation System interfaces: -KPIC -DPIC -G)
+		PICFLAGS="-KPIC -DPIC -G"
+	fi
+	if test "$AppleGCC" = "yes"; then
+		AC_MSG_RESULT(Darwin or Mac OS X - Assuming you want to make Mach-O bundles: -fno-common -bundle -flat_namespace -undefined suppress)
+		PICFLAGS="-fno-common -bundle -flat_namespace -undefined suppress"
+	fi
+	dnl Please note, that on HPUX two different stages of module compilation occurs, since
+	dnl while compiling modules, the compiler does not allow you to give arguments
+	dnl to the linker. (I did not design this) 
+	dnl So we need -c in the first stage of module compilation.
+	dnl In the second stage, we link the modules via ld -b.
+	dnl Additionally, HPUX does not like -export-dynamic, it likes -E instead.
+	dnl -TimeMr14C
+	if test "$HPUX" = "yes"; then
+		AC_MSG_RESULT(HP-UX - Assuming HPUX C compiler cc: +z -r -q -n +ESfic)
+		PICFLAGS="+z -r -q -n +ESfic -c"
+		MOD_TARGET="hpux_shared"
+		LDFLAGS="${LDFLAGS} -Wl,-E"
+	fi
+	if test -z "$PICFLAGS"; then
+		if test "$ac_cv_prog_gcc" = "yes"; then
+			AC_MSG_RESULT(gcc: -fPIC -DPIC -shared)
+			PICFLAGS="-fPIC -DPIC -shared"
+			if test "$OSF" = "yes"; then
+				echo "OSF Discovered: Adding -Wl,-expect_unresolved -Wl,* to compiler flags"
+				PICFLAGS="$PICFLAGS -Wl,-expect_unresolved -Wl,*"
+			fi
+		else
+			AC_MSG_RESULT(no)
+			AC_MSG_ERROR(could not find a way to produce position independent code. Try ./configure  --disable-shared-modules)
+		fi
+	fi
+	AC_SUBST(PICFLAGS)
+
+	nlist_lib=""
+	AC_CHECK_FUNC(nlist,,
+		AC_CHECK_LIB(dl, nlist, nlist_lib="-ldl",
+			AC_CHECK_LIB(elf, nlist, nlist_lib="-lelf",
+			AC_MSG_WARN(** cannot locate nlist() **))
+		)
+	)
+
+        dnl We need to find out whether underscores are appended to symbol
+        dnl names in executable dnl files.  First, though, we need to see
+        dnl where nlist.h is hiding.
+	AC_CHECK_HEADER(libelf/nlist.h, [ nlist_h="libelf/nlist.h" ], )
+	AC_CHECK_HEADER(elf/nlist.h, [ nlist_h="elf/nlist.h" ], )
+	AC_CHECK_HEADER(nlist.h, [ nlist_h="nlist.h" ], )
+	if test x"$nlist_h" = "x"; then
+		AC_MSG_WARN(** cannot locate an nlist.h **)
+		AC_MSG_WARN(** cannot check for extra underscores prepended to symbol names - nlist.h is missing **)
+		AC_MSG_WARN(** assuming no underscores prepend symbol names **)
+		AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "")
+	else
+		AC_MSG_CHECKING(for extra underscores prepended to symbol names)
+		AC_CACHE_VAL(symbol_underscores,
+		[
+cat << EOF > conftest.c
+	#include <$nlist_h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	void _modinit(void);
+	int main(int argc, char *argv[[]])
+        {
+          int i;
+          struct nlist nl[[5]];
+
+          /* fill the names in this way, so it'll work almost everywhere */
+          nl[[0]].n_name = "_modinit";
+          nl[[1]].n_name = "__modinit";
+          nl[[2]].n_name = "___modinit";
+          nl[[3]].n_name = "____modinit";
+          nl[[0]].n_value = nl[[1]].n_value = nl[[2]].n_value = nl[[3]].n_value = nl[[4]].n_name = NULL;
+
+          if(argc < 2)
+          {
+            exit(-1);
+          }
+
+          if ( (nlist(argv[[1]], nl)) == -1)
+          {
+            exit(-1);
+          }
+
+          for(i=0; i<4; i++)
+          {
+            if(nl[[i]].n_value != NULL)
+            {
+              int j;
+              for(j=0; j<i; j++)
+              {
+                printf("_");
+              }
+              exit(i);
+            }
+          }
+        exit(-1);
+        }
+        void _modinit(void) { return; }
+EOF
+		$CC $CPPFLAGS $IRC_CFLAGS -o conftest conftest.c $nlist_lib >/dev/null 2>&1
+		symbol_underscores=`./conftest conftest`
+		AC_MSG_RESULT($symbol_underscores)
+		$RM -f conftest conftest.c
+		])
+		AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "${symbol_underscores}")
+	fi
+fi
+
+
+dnl This needs to be near the end for it to work right...
+if test "$ac_cv_efence" = "yes"; then
+	AC_CHECK_LIB(efence,malloc)
+fi
+
+
+AC_SUBST(MODULES_DEFINE)
+AC_SUBST(MODULES_LIBS)
+AC_SUBST(MOD_TARGET)
+
+AC_SUBST(SSL_INCLUDES)
+AC_SUBST(SSL_LIBS)
+
+AC_SUBST(INCDEP)
+
+AC_SUBST(SUBDIR_MESSAGES)
+
+AC_SUBST(LDFLAGS)
+AC_SUBST(MSGFMT)
+AC_SUBST(IRC_CFLAGS)
+AC_SUBST(SEDOBJ)
+
+AC_OUTPUT(                      \
+ Makefile                       \
+ iauth/Makefile                 \
+ iauth/source/Makefile          \
+ servlink/Makefile              \
+ contrib/Makefile               \
+ src/Makefile                   \
+ adns/Makefile                  \
+ include/Makefile               \
+ messages/Makefile              \
+ messages/translations/Makefile \
+ modules/Makefile               \
+ tools/Makefile                 \
+ doc/Makefile                   \
+ help/Makefile                  \
+)
+
+if test "X${cf_openssl_ciphers}" != "X"; then
+  echo ""
+  echo "Available cryptlinks ciphers:"
+  echo ""
+  echo "${cf_openssl_ciphers}"
+  echo ""
+fi
+
+if test "$ac_cv_efnet" = "yes"; then
+        echo "This server is configured for EFNet usage.  You should NOT use the"
+        echo "example.conf that will be installed.  Use example.efnet.conf instead."
+        echo ""
+fi
+
+AC_MSG_RESULT("Server is configured with NICKLEN=$ac_cv_nicklen and MAX_CLIENTS=$ac_cv_maxclients")

@@ -1,0 +1,6 @@
+UNKLINE <user@host>
+
+Will attempt to unkline the given <user@host>
+Will unkline a temporary kline.
+
+- Requires Oper Priv: U

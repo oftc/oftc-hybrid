@@ -1,0 +1,17 @@
+# $Id$
+#
+This diff adds a config option to the general {} block called disable_auth
+to hybrid 7.  To disable identd requests add something like this to your
+config file:
+
+general {
+	disable_auth = yes;
+}
+
+You should note that this does not effect other identd related settings with
+regard to stripping tildes or the requirement of identd checking in auth {}
+blocks.
+
+Aaron Sethman <androsyn@ratbox.org>
+July 07, 2002
+

@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# This is a script to build a single message file based on the variables
+# in Makefile (yes, this means that configure MUST have been run
+# prior to using this)
+
+if [ ! $1 ]; then
+  echo Please specify a message source
+  exit 1
+fi
+
+if [ ! -f $1 ]; then
+  echo Please specify a valid message source
+  exit 2
+fi
+
+if [ ! -f Makefile]; then
+  echo Please run configure first
+  exit 3
+fi
+
+MSGFMT=`grep '^MSGFMT' Makefile | sed 's/MSGFMT//' | sed 's/ = //' | tr -d '\r' | tr -d '\n'`
+BASENAME=`basename $1 | sed 's/\.po//'`
+
+echo $MSGFMT $BASENAME.mo $1
+$MSGFMT $BADENAME.mo $1

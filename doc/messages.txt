@@ -1,0 +1,99 @@
+                         Message Customization Overview
+
+   $Id$
+
+   Copyright (c) 2001 by ircd-hybrid team
+
+     ----------------------------------------------------------------------
+
+   Hybrid now supports gettext (provided in GNU gettext/libintl) to enable
+   easier customization of messages, allow message files to be changed at
+   runtime, and to provide pre-made translations.
+
+   This document is split into two parts, using message files, and creating
+   your own.
+
+     ----------------------------------------------------------------------
+
+                    Using Provided or Pre-made Message Files
+
+   There are a number of message files provided with Hybrid 7. These can be
+   found in the source tree in messages/ and messages/translations/.
+
+   The ircd will install custom.po and ayb.po upon a make install on systems
+   that configure finds a working gettext on. These will be installed into
+   the prefix directory under messages/. To install the provided
+   translations, you must change to the messages/translations directory in
+   the source tree. In this directory, you can run make install, and ircd
+   will install all of the translated .po's into messages/ in the prefix.
+   There is no way at the present time to install a single .po file.
+
+   These message files can be used in ircd once they are installed. Try the
+   installed message file with /quote SET MSGLOCALE <locale> first. Locale
+   will be 'standard' for the plain messages that are Hybrid's default. 'ayb'
+   and 'custom' are available on any installation that configure finds a
+   working gettext for. If the translations were installed, they can be set
+   by 'ircd-<language>', such as 'ircd-danish' or 'ircd-norwegian'.
+
+   If the desired message file works without any issues, it can be set to be
+   the default message file in the ircd.conf file. Refer to example.conf's
+   documentation on the message_locale setting.
+
+     ----------------------------------------------------------------------
+
+                           Creating Your Own Messages
+
+   This process is a little more complicated. The easiest way to start
+   editing messages is to take a file such as custom.po, make a copy, and
+   change whatever msgstr lines you wish.
+
+     Important: Please do NOT ever change msgid lines, as this will prevent
+     your customization from being used by gettext.
+
+   Once you have your customized message file ready, place it into messages/
+   in the source tree, and open Makefile.in in a text editor. Insert a line
+   in the middle of the SRCS line, for example right after or right before
+   custom.po. Place the name of your customized message file on this line,
+   followed by a \.
+
+   Example:
+
+ SRCS = \
+   custom.po \
+   new.po \
+   ayb.po
+
+   Since these directories are under configure's control, any Makefile
+   changes must be done to Makefile.in. This also requires configure to be
+   rerun with at minimum the prefix option.
+
+   You will now be able to cd into messages/ and run make install.
+
+   There is always a chance of creating a syntax error, but the benefit to
+   using gettext over Hybrid 6's src/messages_cust.tab is that syntax errors
+   will not break the compile of the server, just of the message file.
+
+   Creating a message file from scratch is relatively simple as well. cd into
+   messages/ and run ./create_po <name>.po. This command will generate a
+   blank message file, listing all of the ircd default message ID's, with no
+   replacements. Any message that you wish to keep the same as the ircd
+   defaults, you will leave the msgstr set to "". Any message that you wish
+   to change requires you to write a complete replacement for in msgstr.
+   Again, please do NOT change the msgid. The replacement string must contain
+   the same number of % arguments, and the arguments must be kept in the same
+   order.
+
+   Once your message file is complete, you must put it into Makefile.in as
+   described above. You must then rerun configure as described above. If the
+   default (standard locale) messages ever change in Hybrid, your file can be
+   updated with the make mrupdate command in the messages/ directory. Be sure
+   and have a backup of your old one first, as this sometimes will give
+   unusual entries in the .po files. Before attempting to use the updated
+   message file, you must read through the customized file and be sure that
+   it is correct.
+
+   If you create a translation for a new language, or an update to an
+   existing translation, please do not hesitate in sending the .po file to
+   the Hybrid team. Providing a translation will be a way that nearly anyone
+   who knows multiple languages to contribute to ircd, and get their name in
+   the translation credits.

@@ -1,0 +1,123 @@
+/*
+ *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
+ *  setup.h_vms: ircd compile-time settings, for VMS
+ *
+ *  Copyright (C) 2002 by the past and present ircd coders, and others.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ *  USA
+ *
+ *  $Id$
+ */
+
+/* include/setup.h.in.  Generated automatically from autoconf/configure.in by autoheader.  */
+
+/* Define if you need to in order for stat and other things to work.  */
+#define _POSIX_SOURCE
+
+/* Define to the type of arg1 for select(). */
+#undef SELECT_TYPE_ARG1
+
+/* Define to the type of args 2, 3 and 4 for select(). */
+#undef SELECT_TYPE_ARG234
+
+/* Define to the type of arg5 for select(). */
+#undef SELECT_TYPE_ARG5
+
+/* Define if you have the ANSI C header files.  */
+#define STDC_HEADERS
+
+/* Define with our select type */
+#undef SELECT_TYPE
+
+/* Define if we are going to use /dev/poll for network IO */
+#undef HAVE_DEVPOLL
+
+/* Define if we have socklen_t */
+#undef HAVE_SOCKLEN_T
+
+/* Define if we can include both string.h and strings.h */
+#define STRING_WITH_STRINGS
+
+/* This is a string containing any extra underscores that must be prepended
+ * to symbols loaded from modules.
+ */
+#undef SYMBOL_PREFIX
+
+/* Define if you have the gettext function.  */
+#undef HAVE_GETTEXT
+
+/* Define if you have the <errno.h> header file.  */
+#define HAVE_ERRNO_H
+
+/* Define if you have the <getopt.h> header file.  */
+#undef HAVE_GETOPT_H
+
+/* Define if you have the <stddef.h> header file.  */
+#define HAVE_STDDEF_H
+
+/* Define if you have the <stdlib.h> header file.  */
+#define HAVE_STDLIB_H
+
+/* Define if you have the <string.h> header file.  */
+#define HAVE_STRING_H
+
+/* Define if you have the <strings.h> header file.  */
+#define HAVE_STRINGS_H
+
+/* Define if you have the <sys/param.h> header file.  */
+#undef HAVE_SYS_PARAM_H
+
+/* Define if you have the <sys/syslog.h> header file.  */
+#undef HAVE_SYS_SYSLOG_H
+
+/* Define if you have the <unistd.h> header file.  */
+#define HAVE_UNISTD_H
+
+/* Define if you have the descrypt library (-ldescrypt).  */
+#undef HAVE_LIBDESCRYPT
+
+/* Define if you have the dl library (-ldl).  */
+#undef HAVE_LIBDL
+
+/* Define if you have the nsl library (-lnsl).  */
+#undef HAVE_LIBNSL
+
+/* Define if you have the resolv library (-lresolv).  */
+#undef HAVE_LIBRESOLV
+
+/* Define if you have the socket library (-lsocket).  */
+#undef HAVE_LIBSOCKET
+
+#ifdef VMS
+typedef unsigned long time_t;
+typedef unsigned int u_int;
+typedef unsigned long u_long;
+
+#define MAXPATHLEN PATH_MAX
+
+#define STATIC_MODULES
+#define SELECT_TYPE "select"
+#define USE_SELECT
+
+#define NICKLEN 9
+#define MAX_CLIENTS 1536
+
+#undef FD_SETSIZE
+#define FD_SETSIZE 2048
+
+#define inline
+#endif
+

@@ -1,0 +1,17 @@
+#!/bin/sh
+i=$1
+
+if [ "x$i" = "x" ]; then
+  echo "Usage: $0 <po file to initialize>"
+  exit 1
+elif [ -f $i ]; then
+  echo "Error: $i already exists, use make mrupdate"
+  exit 1
+fi
+
+xgettext -a             -LC -o $i ../src/messages.tab
+xgettext --keyword=_ -j -LC -o $i ../include/*.h
+xgettext --keyword=_ -j -LC -o $i ../src/*.c
+xgettext --keyword=_ -j -LC -o $i ../modules/*.c
+
+echo "Now add $i to Makefile.in, and rerun configure"

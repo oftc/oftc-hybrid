@@ -1,0 +1,13 @@
+JOIN <#channel> [!vchan] [key]
+
+The JOIN command allows you to enter a public chat area known as
+a channel. Network wide channels are proceeded by a '#', while
+a local server channel is proceeded by an '&'.
+
+The second argument, if supplied, joins the specified virtual
+channel <vchan>.
+
+If the channel has a key set, the third argument must be
+given to enter. This allows channels to be password protected.
+
+See also: part, list

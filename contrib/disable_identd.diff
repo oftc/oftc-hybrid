@@ -1,0 +1,87 @@
+Index: include/s_conf.h
+===================================================================
+RCS file: /cvsroot/ircd-hybrid-7/include/s_conf.h,v
+retrieving revision 7.180
+diff -u -r7.180 s_conf.h
+--- include/s_conf.h	24 May 2002 23:34:08 -0000	7.180
++++ include/s_conf.h	8 Jul 2002 00:06:17 -0000
+@@ -231,6 +231,7 @@
+   int           throttle_time;
+   int           use_egd;
+   int		ping_cookie;
++  int		disable_auth;
+ #ifdef HAVE_LIBCRYPTO
+   struct EncCapability *default_cipher_preference;
+ #endif
+Index: src/ircd_lexer.l
+===================================================================
+RCS file: /cvsroot/ircd-hybrid-7/src/ircd_lexer.l,v
+retrieving revision 1.139
+diff -u -r1.139 ircd_lexer.l
+--- src/ircd_lexer.l	25 May 2002 01:55:20 -0000	1.139
++++ src/ircd_lexer.l	8 Jul 2002 00:06:17 -0000
+@@ -115,6 +115,7 @@
+ deny		{ return DENY; }
+ description	{ return DESCRIPTION; }
+ die		{ return DIE; }
++disable_auth    { return DISABLE_AUTH; }
+ disable_hidden	{ return DISABLE_HIDDEN; }
+ disable_local_channels { return DISABLE_LOCAL_CHANNELS; }
+ disable_remote_commands	{ return DISABLE_REMOTE_COMMANDS; }
+Index: src/ircd_parser.y
+===================================================================
+RCS file: /cvsroot/ircd-hybrid-7/src/ircd_parser.y,v
+retrieving revision 1.252
+diff -u -r1.252 ircd_parser.y
+--- src/ircd_parser.y	12 Jun 2002 19:29:36 -0000	1.252
++++ src/ircd_parser.y	8 Jul 2002 00:06:17 -0000
+@@ -117,6 +117,7 @@
+ %token  DENY
+ %token  DESCRIPTION
+ %token  DIE
++%token  DISABLE_AUTH
+ %token  DISABLE_HIDDEN
+ %token  DISABLE_LOCAL_CHANNELS
+ %token  DISABLE_REMOTE_COMMANDS
+@@ -1974,6 +1975,7 @@
+                     general_compression_level | general_client_flood |
+                     general_throttle_time | general_havent_read_conf |
+                     general_dot_in_ip6_addr | general_ping_cookie |
++                    general_disable_auth |
+                     error;
+ 
+ general_failed_oper_notice:   FAILED_OPER_NOTICE '=' TYES ';'
+@@ -2330,6 +2332,15 @@
+     PING_COOKIE '=' TNO ';'
+   {
+     ConfigFileEntry.ping_cookie = 0;
++  } ;
++
++general_disable_auth: DISABLE_AUTH '=' TYES ';'
++  {
++    ConfigFileEntry.disable_auth = 1;
++  } |
++    DISABLE_AUTH '=' TNO ';'
++  {
++    ConfigFileEntry.disable_auth = 0;
+   } ;
+ 
+ general_throttle_time: THROTTLE_TIME '=' timespec ';'
+Index: src/s_auth.c
+===================================================================
+RCS file: /cvsroot/ircd-hybrid-7/src/s_auth.c,v
+retrieving revision 7.97
+diff -u -r7.97 s_auth.c
+--- src/s_auth.c	11 Jun 2002 20:29:06 -0000	7.97
++++ src/s_auth.c	8 Jul 2002 00:06:17 -0000
+@@ -423,7 +423,9 @@
+   adns_getaddr(&client->localClient->ip, client->localClient->aftype, client->localClient->dns_query);
+   SetDNSPending(auth);
+ 
+-  start_auth_query(auth);
++  if(ConfigFileEntry.disable_auth == 0) 
++    start_auth_query(auth);
++
+   link_auth_request(auth, &auth_poll_list);
+ }
+ 

@@ -1,0 +1,47 @@
+Last tested version: hybrid-7beta9 20020205_1
+
+To compile ircd on VMS, simply execute the make.com script
+from the top-level ircd directory:
+
+  $ SET DEF [.IRCD-HYBRID-7]
+  $ @MAKE
+
+This should build [.SRC]IRCD.EXE (servlink is not yet supported
+for VMS). 
+
+You may want to edit [.INCLUDE]CONFIG.H, but there is no longer
+anything very interesting there.
+
+IRCD needs the following logical names defined: IRCD$BASEDIR, IRCD$CONFDIR,
+IRCD$BINDIR, and IRCD$LOGDIR.
+For example:
+
+$ ASSIGN DISK$USER:[EBROCKLESBY.IRCD.BIN] IRCD$BASEDIR:
+$ ASSIGN DISK$USER:[EBROCKLESBY.IRCD.BIN.BIN] IRCD$BINDIR:
+$ ASSIGN DISK$USER:[EBROCKLESBY.IRCD.BIN.ETC] IRCD$CONFDIR:
+$ ASSIGN DISK$USER:[EBROCKLESBY.IRCD.BIN.LOG] IRCD$LOGDIR:
+
+After IRCD.EXE is built, you'll have to install it by hand. Create
+the above directories, and put IRCD.EXE into IRCD$BINDIR:.  The sample
+[.doc]example.conf should be modified as needed and placed in
+IRCD$CONFDIR:IRCD.CONF. 
+
+Known problems on VMS:
+  - Lack of SERVLINK support means that ZIP and SSL aren't yet possible
+    for VMS.
+  - If IRCD.EXE exits immediately after startup, make sure that IRCD$CONFDIR:IRCD.PID
+    doesn't exist.
+
+It should work fine when started with RUN/DETACH.
+
+So far, IRCD has been tested on OpenVMS 7.2/Alpha using DEC C V6.0-001.
+
+If anyone gets ircd working on VMS (or has problems with it), please mail me
+(ejb@sdf.lonestar.org) with any comments you have.
+
+If you have problem compiling from source, or are on a slow system
+(building IRCD on a VAXstation 3000 takes about two hours),
+binary distributions are available on the FTP site.
+(actually, they aren't yet, but at some time in the future they should be)
+
+$Id$

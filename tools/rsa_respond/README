@@ -1,0 +1,31 @@
+                                rsa_respond
+
+respond:
+
+respond takes the challenge from the server and creates a valid response
+to pass back to the server.
+
+Syntax:
+$ ./respond <private key> <challenge>
+
+Notes:
+
+The private key file is protected by a passphrase, entered when the key is
+created.  The passphrase is prompted for whenever respond is called.
+
+Compiling:
+
+Untar the distribution
+Read this document
+Run 'make'
+
+libcrypto from OpenSSL must be available in order to use this program.
+
+Note that you may have to explicitly add -L/usr/local/lib if OpenSSL
+was installed there, instead of one of the system library paths.
+
+System support:
+genkey and respond compile properly, and have been tested on FreeBSD 4.x,
+Linux glibc, and Cygwin 1.2 or higher.
+
+# $Id$

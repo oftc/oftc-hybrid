@@ -1,0 +1,12 @@
+LIST [#channel]
+
+Without any arguments, LIST will give an entire list of all
+channels which are not set as secret (+s). The list will be in
+the form:
+
+  <#channel> <amount of users> :[topic]
+
+If an argument is supplied, LIST will give just the statistics
+for the given channel.
+
+See also: join

@@ -1,0 +1,123 @@
+$Id$
+
+
+- add more stderr debugging (ircd -s)... one for every place we syslog()
+- ircd -s doesn't work through a restart
+- re-implement first param in m_lusers()
+- trie' channel name list
+- finish RFC'ing m_message.c
+              
+----
+is-'s TODO list
+
+- umode +R for registered nick
+- TBURST
+- change nick instead of kill on nick collide
+- dynamically extensible parser for modules
+- modularize channel, network code etc (not just commands)
+    we can use override_function() or similar for this
+- username/passwords (iauth ?)
+- channel modes to allow/prevent talking on channel
+  by hostmasks. 
+
+-----------------------------------------------------------------------------
+madmax's TODO
+
+- Make stats p just notice opers, rather than return a list, when
+  server_hide is on (#13)
+- Client UIDs (ts4 style?) for cookies (later for persistent nicks)
+- Definable server region or 'global' (open I) for /links output (#20)
+-----------------------------------------------------------------------------
+
+Adrian's TODO list
+
+* make the reserved FD limit run-time tunable, esp from comm_open()
+  This involves making fd_table[] a dynamically growing/(don't bother with
+  shrinking) list.. have the max fd list configurable in the conf file..
+
+* Fix the anti-client flood code to not be so anal when people connect -
+  I've counted all lines from a client as being a flood, so if a client
+  connects and issues JOIN's to a whole bunch of channels the flood
+  protection stops everything coming through at once .. (not that I mind.. :)
+
+* PLEASE redo all dlink_list management with the stuff in src/tools.c
+
+* In the server outbound connection code, make the sendto_realops()
+  logging more sane. Ie, if there's an error, also log the errno string.
+
+* look at the old Listener code in s_bsd.c before I chopped it. Notice
+  the anti-flood code in there. Make sure the same load-checking stuff
+  is in listener.c
+
+* get send_message(), replace comm_setselect() with send_queued_write(), see
+  if the optimization works
+
+* remove aconf->ipnum, since we're doing a DNS lookup each time we
+  connect. If people don't like this, they can (should!) be running
+  a name cache locally!
+
+db-->>ummm aconf->ipnum is used for IP based klines only, not for DNS
+
+* Add the IRCnet(?) split logic for nick collisions - on a nick collision,
+  change to "%d-%s", random, nick
+
+* Hrm. Since Diane changed the user->channel code to use dlink_lists,
+  she's made some things faster (deopping lists of people in a net.join,
+  finding an op, etc) but some things slower (deleting from the channel,
+  change_channel_membership(), etc.) What needs to happen is that for
+  each channel a user is on, a flag needs to be set tracking which list
+  they're on so we don't have to search the lists when we want to change
+  their status. This could become a slow-CPU sticking point.
+
+db-->> Actually, the old code was just as slow at doing that, since
+    it was a link list of SLink's with a flag denoting whether client
+    on channel was an op or not... With a channel of 100 clients and 
+    thats 100 link SLink's
+
+------------------------------------------------------------------------------
+Little things to be done given enough time and initiative -Hwy
+
+.  The 3 logging path settings are NOOP in the conf (logpath, oper_log, 
+   gline_log)
+.  Fix convertconf more
+.  2 pass conf parser (grab classes before anything that uses them)
+.  Re-add the ability to set usermodes from the conf (oldconf field after the
+   O: line class)
+.  <Riedel> walter : have you implemented the motd= thing in the auth block ?
+.  Fix topic bursting to LL servers (broke lately for some reason)
+   --> Unknown status
+.  A FAQ
+   --> Dracus is working on this, I will try to put something together too
+.  Major cleanup of example.conf, it's a disgrace
+   --> Still a disgrace
+.  chkconf
+   --> SCARY!!!
+.  More translations!
+
+
+-- Rodder's list
+.  Add scalable database-based authentication.  Probably part of Iauth.
+   Also add support for server-side notify with the list stored in the
+   auth database.  This would make ircd an awesome instant messaging
+   back-end.
+
+
+-- jdc's list
+  *  Re-write m_stats.c to be table-based, similar to m_set.  Also change
+     to support funtion exit code values (int), so that STATS output can
+     be "successful" or "unsuccessful" (eg. "STATS i requested by <nick>
+     [unsuccessful]" vs. "STATS i requested by <nick>").
+     --> Table part I know is done, what about the success status?
+  *  Re-write proper startup procedure for daemon; procedure should be
+     done in stages, similar to boot0/1/2 stages in FreeBSD.
+  *  Write secure cryptlink protocol with help from Sean.
+
+
+-- Diane's list
+
+* add logging to ircd.log of possible channel floods
+
+* add code to log a minute worth of flooding if the ircd gets n possible
+  flood messages on a channel in t seconds.. This log would be available
+  to hand to authorities if requested.
+

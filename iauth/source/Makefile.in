@@ -1,0 +1,64 @@
+#
+# Makefile.in for ircd/iauth
+#
+# $Id$
+#
+CC	= @CC@
+RM	= @RM@
+CFLAGS	= @IRC_CFLAGS@
+MKDEP	= ${CC} -MM
+
+SSL_LIBS     = @SSL_LIBS@
+SSL_INCLUDES = @SSL_INCLUDES@
+
+IRCDLIBS = @LIBS@ $(SSL_LIBS)
+
+INCLUDES = -I../include $(SSL_INCLUDES)
+CPPFLAGS = ${INCLUDES} @CPPFLAGS@
+ 
+#
+# For developers
+# CFLAGS= -g -O2 -Wall
+#
+
+SOURCES =     \
+  auth.c      \
+  class.c     \
+  commands.c  \
+  conf.c      \
+  iauth.c     \
+  log.c       \
+  match.c     \
+  misc.c      \
+  mtree.c     \
+  sock.c
+
+OBJECTS = ${SOURCES:.c=.o}
+
+all: iauth
+
+build: all
+
+iauth: ${OBJECTS}
+	${CC} ${LDFLAGS} -o $@ ${OBJECTS} ${IRCDLIBS}
+
+install: build
+	@echo "Please do a make install from the top level directory"
+
+.c.o:
+	${CC} ${CPPFLAGS} ${CFLAGS} -c $<
+
+.PHONY: depend clean distclean
+depend:
+	${MKDEP} ${CPPFLAGS} ${SOURCES} > .depend
+
+clean:
+	${RM} -f *.o *~ *.core core iauth
+
+distclean: clean
+	${RM} -f Makefile
+
+
+@INCDEP@
+
+# End of Makefile

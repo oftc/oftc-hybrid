@@ -1,0 +1,77 @@
+MSGFMT = @MSGFMT@
+RM=	@RM@
+
+default: all
+
+SRCS = \
+  ircd-swedish.po \
+  ircd-croatian.po \
+  ircd-german.po \
+  ircd-danish.po \
+  ircd-spanish.po \
+  ircd-dutch.po \
+  ircd-norwegian.po
+
+OBJS = ${SRCS:.po=.mo}
+
+prefix          = @prefix@
+exec_prefix     = @exec_prefix@
+exec_suffix     = @exec_suffix@
+bindir          = @bindir@
+libexecdir      = @libexecdir@
+sysconfdir      = @sysconfdir@
+localstatedir   = @localstatedir@
+messagedir       = @prefix@/messages
+
+
+all: ${OBJS}
+build: all
+
+.SUFFIXES:
+.SUFFIXES: .po .mo
+
+.po.mo:
+	${MSGFMT} $@ $<
+
+.PHONY: install depend clean distclean
+
+install-mkdirs:
+	-@if test ! -d $(messagedir); then \
+		echo "mkdir $(messagedir)"; \
+		mkdir $(messagedir); \
+	fi; \
+	for i in ./*.mo; do \
+		LNAME=`echo $$i | sed 's/^\.\///' | sed 's/\.mo$$//'`; \
+		if test ! -d $(messagedir)/$${LNAME}/LC_MESSAGES/; then \
+			echo "mkdir $(messagedir)/$${LNAME}/LC_MESSAGES/"; \
+			mkdir -p $(messagedir)/$${LNAME}/LC_MESSAGES/; \
+		fi; \
+	done
+
+install: build install-mkdirs
+	-@echo    "Installing message files to $(messagedir)..."; \
+	for i in ./*.mo; do \
+		LNAME=`echo $$i | sed 's/^\.\///' | sed 's/\.mo$$//'`; \
+		echo "$${LNAME} "; \
+		cp $$i "$(messagedir)/$${LNAME}/LC_MESSAGES/ircd-hybrid.mo"; \
+	done; \
+	echo
+
+depend:
+
+distclean: clean
+	${RM} -f Makefile
+
+clean:
+	${RM} -f *.mo
+
+mrupdate:
+	@for i in $(SRCS); do \
+                echo "Updating $$i"; \
+                xgettext -a -LC -o $$i.tmp$$$$ ../../src/messages.tab; \
+                xgettext --keyword=_ -j -LC -o $$i.tmp$$$$ ../../include/*.h; \
+                xgettext --keyword=_ -j -LC -o $$i.tmp$$$$ ../../src/*.c; \
+                xgettext --keyword=_ -j -LC -o $$i.tmp$$$$ ../../modules/*.c; \
+                msgmerge -E -i -o $$i $$i $$i.tmp$$$$; \
+                rm $$i.tmp$$$$; \
+        done

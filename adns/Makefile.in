@@ -1,0 +1,81 @@
+#
+# Makefile.in for ircd/src
+#
+# $Id$
+#
+CC		= @CC@
+INSTALL		= @INSTALL@
+INSTALL_BIN	= @INSTALL_PROGRAM@
+INSTALL_DATA	= @INSTALL_DATA@
+INSTALL_SUID	= @INSTALL_PROGRAM@ -o root -m 4755
+RM		= @RM@
+LEX		= @LEX@
+LEXLIB		= @LEXLIB@
+CFLAGS		= @IRC_CFLAGS@ -DIRCD_PREFIX=\"@prefix@\"
+LDFLAGS   	= @LDFLAGS@
+MKDEP		= @MKDEP@ -DIRCD_PREFIX=\"@prefix@\"
+MV		= @MV@
+RM		= @RM@
+YACC		= @YACC@
+AR		= @AR@
+RANLIB		= @RANLIB@
+
+prefix		= @prefix@
+exec_prefix	= @exec_prefix@
+bindir		= @bindir@
+libexecdir	= @libexecdir@
+sysconfdir	= @sysconfdir@
+localstatedir	= @localstatedir@
+# Change this later! -- adrian
+moduledir	= @prefix@/modules
+automoduledir	= @prefix@/modules/autoload
+
+INCLUDES	= -I../include -I.
+CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
+ 
+default:	all
+
+BASE_SRCS = check.c event.c general.c parse.c query.c reply.c setup.c \
+		transmit.c types.c
+
+
+SRCS = ${BASE_SRCS} ${SELECT_SRC}
+
+OBJS = ${SRCS:.c=.o}
+
+all: libadns.a
+
+build: all
+
+libadns.a: ${OBJS}
+		rm -f $@
+		${AR} cqv $@ ${OBJS}
+		${RANLIB} $@
+
+# this is really the default rule for c files
+.c.o:
+	${CC} ${CPPFLAGS} ${CFLAGS} -c $<
+
+.PHONY: depend clean distclean
+
+install: 
+
+depend:
+	@${MKDEP} ${CPPFLAGS} ${BASE_SRCS} ${EXTRA_SRCS} > .depend.tmp
+	@sed -e '/^# DO NOT DELETE THIS LINE/,$$d' <Makefile >Makefile.depend
+	@echo '# DO NOT DELETE THIS LINE!!!' >>Makefile.depend
+	@echo '# make depend needs it.' >>Makefile.depend
+	@cat .depend.tmp >>Makefile.depend
+	@mv Makefile.depend Makefile
+	@rm -f .depend.tmp
+
+clean:
+	${RM} -f *.o *.exe *~ libadns.a
+
+lint:
+
+distclean: clean
+	${RM} -f Makefile version.c.last
+
+# DO NOT DELETE THIS LINE!!!
+# make depend needs it.

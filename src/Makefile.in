@@ -1,0 +1,179 @@
+#
+# Makefile.in for ircd/src
+#
+# $Id$
+#
+CC		= @CC@
+INSTALL		= @INSTALL@
+INSTALL_BIN	= @INSTALL_PROGRAM@
+INSTALL_DATA	= @INSTALL_DATA@
+INSTALL_SUID	= @INSTALL_PROGRAM@ -o root -m 4755
+RM		= @RM@
+LEX		= @LEX@
+LEXLIB		= @LEXLIB@
+CFLAGS		= @IRC_CFLAGS@ -DIRCD_PREFIX=\"@prefix@\"
+LDFLAGS   	= @LDFLAGS@
+MKDEP		= @MKDEP@ -DIRCD_PREFIX=\"@prefix@\"
+MV		= @MV@
+RM		= @RM@
+YACC		= @YACC@
+prefix		= @prefix@
+exec_prefix	= @exec_prefix@
+bindir		= @bindir@
+libexecdir	= @libexecdir@
+sysconfdir	= @sysconfdir@
+localstatedir	= @localstatedir@
+
+DOLLAR = $$
+
+IRCD_EXE	= ircd
+
+PROGS		= $(IRCD_EXE)
+
+SSL_LIBS	= @SSL_LIBS@
+SSL_INCLUDES	= @SSL_INCLUDES@
+
+IRCDLIBS	= @MODULES_LIBS@ -L../adns -ladns @LIBS@ $(SSL_LIBS)
+
+INCLUDES	= -I../include -I../adns $(SSL_INCLUDES)
+CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
+ 
+default:	all
+
+y.tab.o:	y.tab.c ircd_parser.y
+	${CC} ${CPPFLAGS} ${CFLAGS} -I. -c y.tab.c
+
+# Note GNU bison uses <file>.tab.c not y.tab.c
+y.tab.c:	ircd_parser.y
+	${YACC} -d ircd_parser.y
+
+lex.yy.o:	lex.yy.c ircd_lexer.l
+	${CC} ${CPPFLAGS} ${CFLAGS} -I. -c lex.yy.c
+
+lex.yy.c:	ircd_lexer.l
+	${LEX} ircd_lexer.l
+
+BASE_SRCS =                     \
+  adns.c                        \
+  balloc.c			\
+  channel.c                     \
+  channel_mode.c		\
+  vchannel.c                    \
+  class.c                       \
+  client.c                      \
+  dynlink.c			\
+  event.c                       \
+  fdlist.c                      \
+  fileio.c                      \
+  getopt.c                      \
+  hash.c                        \
+  hook.c                        \
+  hostmask.c                    \
+  irc_string.c                  \
+  ircd.c                        \
+  ircd_signal.c                 \
+  kdparse.c			\
+  linebuf.c                     \
+  list.c                        \
+  listener.c                    \
+  m_error.c                     \
+  match.c                       \
+  md5.c                         \
+  memory.c                      \
+  modules.c                     \
+  motd.c                        \
+  numeric.c                     \
+  packet.c                      \
+  parse.c                       \
+  rsa.c                         \
+  restart.c                     \
+  resv.c			\
+  s_auth.c                      \
+  s_bsd.c                       \
+  s_bsd_kqueue.c                \
+  s_bsd_poll.c                  \
+  s_bsd_select.c                \
+  s_bsd_devpoll.c               \
+  s_bsd_sigio.c			\
+  s_conf.c                      \
+  s_debug.c                     \
+  s_gline.c                     \
+  s_log.c                       \
+  s_misc.c                      \
+  s_serv.c                      \
+  s_stats.c                     \
+  s_user.c                      \
+  scache.c                      \
+  send.c                        \
+  sprintf_irc.c                 \
+  @SNPRINTF_C@			\
+  tools.c                       \
+  whowas.c
+#  ircdauth.c
+
+SRCS = ${BASE_SRCS}
+
+OBJS = ${SRCS:.c=.o}
+
+all: ircd
+
+build: all
+
+ircd: $(OBJS) y.tab.o lex.yy.o version.o
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS} lex.yy.o y.tab.o version.o ${IRCDLIBS} ${LEXLIB}
+	mv version.c version.c.last
+
+install-mkdirs:
+	-@if test ! -d $(prefix); then \
+		echo "mkdir $(prefix)"; \
+		mkdir $(prefix); \
+	fi
+	-@if test ! -d $(exec_prefix); then \
+		echo "mkdir $(exec_prefix)"; \
+		mkdir $(exec_prefix); \
+	fi
+	-@if test ! -d $(bindir); then \
+		echo "mkdir $(bindir)"; \
+		mkdir $(bindir); \
+	fi
+	-@if test ! -d $(sysconfdir); then \
+		echo "mkdir $(sysconfdir)"; \
+		mkdir $(sysconfdir); \
+	fi
+	-@if test ! -d $(localstatedir)/logs; then \
+		echo "mkdir $(localstatedir)/logs"; \
+		mkdir $(localstatedir)/logs; \
+	fi
+
+install: install-mkdirs build
+	@for i in $(PROGS); do \
+		if test -f $(bindir)/$$i; then \
+			echo $(MV) $(bindir)/$$i $(bindir)/$$i.old; \
+			$(MV) $(bindir)/$$i $(bindir)/$$i.old; \
+		fi; \
+		echo $(INSTALL_BIN) $$i $(bindir); \
+		$(INSTALL_BIN) $$i $(bindir); \
+	done
+
+version.c: version.c.SH
+	/bin/sh ./version.c.SH
+
+
+# this is really the default rule for c files
+.c.o:
+	${CC} ${CPPFLAGS} ${CFLAGS} -c $<
+
+.PHONY: depend clean distclean
+depend:
+	${MKDEP} ${CPPFLAGS} ${BASE_SRCS} ${EXTRA_SRCS} > .depend
+
+clean:
+	${RM} -f *.o *.exe *~ y.tab.* lex.yy.c ircd.core core ircd 
+
+lint:
+	lint -aacgprxhH $(CPPFLAGS) -DIRCD_PREFIX=\"@prefix@\" $(SRCS) >>../lint.out
+
+distclean: clean
+	${RM} -f Makefile version.c.last
+
+include .depend

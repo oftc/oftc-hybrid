@@ -1,0 +1,22 @@
+# IAuth Makefile (C) Patrick Alken 1999
+# $Id$
+
+CC	= @CC@
+CFLAGS	= @IRC_CFLAGS@ -DIRCD_PREFIX=\"@prefix@\"
+RM	= @RM@
+
+#CFLAGS = -g -Wall
+
+all: source
+	@cd source ; $(MAKE) "CC=$(CC)" "CFLAGS=$(CFLAGS)"
+
+build: all
+
+clean:
+	@cd source ; $(MAKE) clean
+
+distclean:
+	@cd source ; $(MAKE) distclean
+	${RM} -f Makefile
+
+# End of Makefile
