@@ -224,14 +224,14 @@ static struct ConfItem
   struct ConfItem *aconf;
 
   if ((aconf = find_conf_exact(name, source_p->username, source_p->host,
-                                CONF_OPERATOR)) != NULL) 
-    {
-      return(aconf);
-    }
+            CONF_OPERATOR)) != NULL) 
+    return(aconf);
   else if ((aconf = find_conf_exact(name, source_p->username,
-        source_p->localClient->sockhost,
-        CONF_OPERATOR)) != NULL)
-      return(aconf);
+            source_p->localClient->sockhost,CONF_OPERATOR)) != NULL)
+    return(aconf);
+  else if ((aconf = find_conf_exact(name, source_p->username,
+            source_p->realhost, CONF_OPERATOR)) != NULL)
+    return(aconf);
       
   return (NULL);
 }
