@@ -1,3 +1,15 @@
+stu         2003/10/23 16:34:07 UTC	(20031023_2)
+
+  Modified files:
+    src                  send.c 
+  Log:
+  - Fixed duplicated operwall message
+  
+  Revision  Changes    Path
+  1.14      +2 -0      oftc-hybrid/src/send.c
+
+
+
 stu         2003/10/23 16:09:40 UTC	(20031023_1)
 
   Modified files:
