@@ -1,6 +1,8 @@
--- oftc-hybrid 1.3.4 RELNOTES
+-- oftc-hybrid 1.4.0 RELNOTES
 o) Add Client SSL Support
 o) Add user shedding
+o) Add new channel modes +R and +M (cannot join or talk on channels unless
+   regisitered with nickserv
 
 -- oftc-hybrid 1.3.3 RELNOTES
 o) Yet more God Mode bugfixes(yay)

@@ -77,7 +77,7 @@
                         PREFIX, \
                         ConfigChannel.use_except ? "e" : "", \
                         ConfigChannel.use_invex ? "I" : "", \
-                        "b,k,l,imnpstR", \
+                        "b,k,l,imnpstMR", \
                         ServerInfo.network_name, CASEMAP, \
 			(uplink && IsCapable(uplink, CAP_LL)) ? "" : " SAFELIST"
 

@@ -48,6 +48,7 @@ extern void unset_chcap_usage_counts(struct Client *serv_p);
 #define CAN_SEND_NO	0
 #define CAN_SEND_NONOP  1
 #define CAN_SEND_OPV	2
+#define CAN_SEND_ONLY_IF_REG 3
 
 
 /* Channel related flags */
@@ -60,14 +61,15 @@ extern void unset_chcap_usage_counts(struct Client *serv_p);
 #define CHFL_INVEX      0x0040
 
 /* channel modes ONLY */
-#define MODE_PRIVATE    0x0001
-#define MODE_SECRET     0x0002
-#define MODE_MODERATED  0x0004
-#define MODE_TOPICLIMIT 0x0008
-#define MODE_INVITEONLY 0x0010
-#define MODE_NOPRIVMSGS 0x0020
-#define MODE_NOCOLOR    0x0040
-#define MODE_REGONLY    0x0080
+#define MODE_PRIVATE        0x0001
+#define MODE_SECRET         0x0002
+#define MODE_MODERATED      0x0004
+#define MODE_TOPICLIMIT     0x0008
+#define MODE_INVITEONLY     0x0010
+#define MODE_NOPRIVMSGS     0x0020
+#define MODE_NOCOLOR        0x0040
+#define MODE_REGONLY        0x0080
+#define MODE_SPEAKONLYIFREG 0x0100
 
 #define MODE_QUERY  0
 #define MODE_ADD    1
@@ -83,6 +85,7 @@ extern void unset_chcap_usage_counts(struct Client *serv_p);
 			        (MODE_PRIVATE|MODE_INVITEONLY))==\
 		                (MODE_PRIVATE|MODE_INVITEONLY))
 #define RegOnlyChannel(x)       ((x) && ((x)->mode.mode & MODE_REGONLY))
+#define SpeakOnlyIfReg(x)       ((x) && ((x)->mode.mode & MODE_SPEAKONLYIFREG))
 
 struct ChModeChange
 {

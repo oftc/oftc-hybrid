@@ -304,14 +304,15 @@ static const struct mode_letter
   const unsigned int mode;
   const unsigned char letter;
 } flags[] = {
-  { MODE_INVITEONLY, 'i' },
-  { MODE_MODERATED,  'm' },
-  { MODE_NOPRIVMSGS, 'n' },
-  { MODE_PRIVATE,    'p' },
-  { MODE_SECRET,     's' },
-  { MODE_TOPICLIMIT, 't' }, 
-  { MODE_NOCOLOR,    'c' },
-  { MODE_REGONLY,    'R' },
+  { MODE_INVITEONLY,     'i' },
+  { MODE_MODERATED,      'm' },
+  { MODE_NOPRIVMSGS,     'n' },
+  { MODE_PRIVATE,        'p' },
+  { MODE_SECRET,         's' },
+  { MODE_TOPICLIMIT,     't' }, 
+  { MODE_NOCOLOR,        'c' },
+  { MODE_SPEAKONLYIFREG, 'M' },
+  { MODE_REGONLY,        'R' },
   { 0, '\0' }
 };
 
@@ -1617,7 +1618,7 @@ static struct ChannelMode ModeTable[255] =
   {chm_nosuch, NULL},                             /* J */
   {chm_nosuch, NULL},                             /* K */
   {chm_nosuch, NULL},                             /* L */
-  {chm_nosuch, NULL},                             /* M */
+  {chm_simple, (void*)MODE_SPEAKONLYIFREG},       /* M */
   {chm_nosuch, NULL},                             /* N */
   {chm_nosuch, NULL},                             /* O */
   {chm_nosuch, NULL},                             /* P */

@@ -318,6 +318,7 @@ extern const char *get_locale(void);
 #define ERR_WASNOSUCHNICK    406
 #define ERR_TOOMANYTARGETS   407
 #define ERR_NOORIGIN         409
+#define ERR_CANTSENDREGONLY  410
 
 #define ERR_NORECIPIENT      411
 #define ERR_NOTEXTTOSEND     412

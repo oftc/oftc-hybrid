@@ -163,6 +163,9 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
       case 'c':
         mode.mode |= MODE_NOCOLOR;
         break;
+      case 'M':
+        mode.mode |= MODE_SPEAKONLYIFREG;
+        break;
       case 'R':
         mode.mode |= MODE_REGONLY;
         break;
@@ -550,14 +553,15 @@ static const struct mode_letter
   unsigned int mode;
   unsigned char letter;
 } flags[] = { 
-  { MODE_NOCOLOR,    'c' },
-  { MODE_NOPRIVMSGS, 'n' },
-  { MODE_TOPICLIMIT, 't' },
-  { MODE_SECRET,     's' },
-  { MODE_MODERATED,  'm' },
-  { MODE_INVITEONLY, 'i' },
-  { MODE_PRIVATE,    'p' },
-  { MODE_REGONLY,    'R' },
+  { MODE_NOCOLOR,        'c' },
+  { MODE_NOPRIVMSGS,     'n' },
+  { MODE_TOPICLIMIT,     't' },
+  { MODE_SECRET,         's' },
+  { MODE_MODERATED,      'm' },
+  { MODE_INVITEONLY,     'i' },
+  { MODE_PRIVATE,        'p' },
+  { MODE_SPEAKONLYIFREG, 'M' },
+  { MODE_REGONLY,        'R' },
   { 0, '\0' }
 };
 

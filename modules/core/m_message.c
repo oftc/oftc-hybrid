@@ -469,7 +469,8 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
   }
 
   /* chanops and voiced can flood their own channel with impunity */
-  if ((result = can_send(chptr, source_p)))
+  result = can_send(chptr, source_p);
+  if (result > 0 && result != CAN_SEND_ONLY_IF_REG)
   {
     if (result == CAN_SEND_OPV ||
         !flood_attack_channel(p_or_n, source_p, chptr, chptr->chname))
@@ -482,8 +483,13 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
   else
   {
     if (p_or_n != NOTICE)
+    {
       sendto_one(source_p, form_str(ERR_CANNOTSENDTOCHAN),
                  me.name, source_p->name, chptr->chname);
+      if(result == CAN_SEND_ONLY_IF_REG)
+          sendto_one(source_p, form_str(ERR_CANTSENDREGONLY),
+                  me.name, source_p->name, chptr->chname);
+    }
   }
 }
 
