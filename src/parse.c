@@ -40,6 +40,7 @@
 #include "msg.h"
 #include "s_conf.h"
 #include "memory.h"
+#include "s_user.h"
 #include "s_serv.h"
 
 /*
@@ -186,7 +187,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
   unsigned int i = 0;
   int paramcount;
   int mpara = 0;
-  struct Message *mptr;
+  struct Message *mptr = NULL;
 
   if (IsDefunct(client_p))
     return;
@@ -217,15 +218,12 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
     if (*sender && IsServer(client_p))
     {
-      from = find_client(sender);
-
-      if (from == NULL)
-      {
+      /*
+       * XXX it could be useful to know which of these occurs most frequently.
+       * the ID check should always come first, though, since it is so easy.
+       */
+      if ((from = find_person(sender)) == NULL)
         from = find_server(sender);
-
-        if (from == NULL)
-          from = hash_find_id(sender);
-      }
 
       /* Hmm! If the client corresponding to the
        * prefix is not found--what is the correct
@@ -285,9 +283,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
     if ((s = strchr(ch, ' ')) != NULL)
       *s++ = '\0';
 
-    mptr = find_command(ch);
-
-    if ((mptr == NULL) || (mptr->cmd == NULL))
+    if ((mptr = find_command(ch)) == NULL)
     {
       /* Note: Give error message *only* to recognized
        * persons. It's a nightmare situation to have
@@ -310,18 +306,13 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
       return;
     }
 
+    assert(mptr->cmd != NULL);
+
     paramcount = mptr->parameters;
     mpara      = mptr->maxpara;
 
     ii = bufend - ((s) ? s : ch);
     mptr->bytes += ii;
-
-    /*
-     * hidden commands set para[0] to the command (case intact)
-     * used to call their function
-     */
-    if (mptr->flags & MFLG_HIDDEN)
-      para[0] = ch;
   }
 
   if (s != NULL)
@@ -397,15 +388,15 @@ handle_command(struct Message *mptr, struct Client *client_p,
     (*handler)(client_p, from, i, hpara);
 }
 
-/* clear_hash_parse()
+/* clear_tree_parse()
  *
- * inputs       -
+ * inputs       - NONE
  * output       - NONE
  * side effects - MUST MUST be called at startup ONCE before
  *                any other keyword routine is used.
  */
 void
-clear_hash_parse(void)
+clear_tree_parse(void)
 {
   memset(&msg_tree, 0, sizeof(msg_tree));
 }
@@ -418,13 +409,25 @@ clear_hash_parse(void)
  * output	- NONE
  * side effects	- recursively build the Message Tree ;-)
  */
+/*
+ * How this works.
+ *
+ * The code first checks to see if its reached the end of the command
+ * If so, that struct MessageTree has a msg pointer updated and the links
+ * count incremented, since a msg pointer is a reference.
+ * Then the code descends recursively, building the trie.
+ * If a pointer index inside the struct MessageTree is NULL a new
+ * child struct MessageTree has to be allocated.
+ * The links (reference count) is incremented as they are created
+ * in the parent.
+ */
 static void
 add_msg_element(struct MessageTree *mtree_p, 
 		struct Message *msg_p, const char *cmd)
 {
   struct MessageTree *ntree_p;
 
-  if (*(cmd+1) == '\0')
+  if (*cmd == '\0')
   {
     mtree_p->msg = msg_p;
     mtree_p->links++;		/* Have msg pointer, so up ref count */
@@ -442,7 +445,7 @@ add_msg_element(struct MessageTree *mtree_p,
       ntree_p = (struct MessageTree *)MyMalloc(sizeof(struct MessageTree));
       mtree_p->pointers[*cmd & (MAXPTRLEN-1)] = ntree_p;
 
-      mtree_p->links++;		/* Have sub pointer, so up ref count */
+      mtree_p->links++;		/* Have new pointer, so up ref count */
     }
     add_msg_element(ntree_p, msg_p, cmd+1);
   }
@@ -455,26 +458,47 @@ add_msg_element(struct MessageTree *mtree_p,
  * output	- NONE
  * side effects	- recursively deletes a token from the Message Tree ;-)
  */
+/*
+ * How this works.
+ *
+ * Well, first off, the code recursively descends into the trie
+ * until it finds the terminating letter of the command being removed.
+ * Once it has done that, it marks the msg pointer as NULL then
+ * reduces the reference count on that allocated struct MessageTree
+ * since a command counts as a reference.
+ *
+ * Then it pops up the recurse stack. As it comes back up the recurse
+ * The code checks to see if the child now has no pointers or msg
+ * i.e. the links count has gone to zero. If its no longer used, the
+ * child struct MessageTree can be deleted. The parent reference
+ * to this child is then removed and the parents link count goes down.
+ * Thus, we continue to go back up removing all unused MessageTree(s)
+ */
 static void
 del_msg_element(struct MessageTree *mtree_p, const char *cmd)
 {
   struct MessageTree *ntree_p;
 
-  if (*cmd == '\0')
-    return;
+  /* In case this is called for a nonexistent command
+   * check that there is a msg pointer here, else links-- goes -ve
+   * -db
+   */
 
-  if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN-1)]) != NULL)
+  if ((*cmd == '\0') && (mtree_p->msg != NULL))
   {
-    del_msg_element(ntree_p, cmd+1);
-    ntree_p->links--;
-
-    /* this would be bad if it happened */
-    if (ntree_p != &msg_tree)
+    mtree_p->msg = NULL;
+    mtree_p->links--;
+  }
+  else
+  {
+    if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN-1)]) != NULL)
     {
+      del_msg_element(ntree_p, cmd+1);
       if (ntree_p->links == 0)
       {
-	MyFree(ntree_p);
 	mtree_p->pointers[*cmd & (MAXPTRLEN-1)] = NULL;
+	mtree_p->links--;
+	MyFree(ntree_p);
       }
     }
   }
@@ -491,11 +515,13 @@ static struct Message *
 msg_tree_parse(const char *cmd, struct MessageTree *root)
 {
   struct MessageTree *mtree;
-  for (mtree = root->pointers[(*cmd++) & (MAXPTRLEN-1)]; mtree != NULL;
-       mtree = mtree->pointers[(*cmd++) & (MAXPTRLEN-1)])
+  assert(cmd && *cmd);
+  for (mtree = root->pointers[(*cmd) & (MAXPTRLEN-1)]; mtree != NULL;
+       mtree = mtree->pointers[(*++cmd) & (MAXPTRLEN-1)])
   {
-    if ((mtree->msg != NULL) && (*(cmd+1) == '\0'))
-      return(mtree->msg);
+    if (*(cmd + 1) == '\0')
+      return(mtree->msg); /* NULL if parsed invalid/unknown command */
+
   }
 
   return(NULL);
@@ -503,8 +529,7 @@ msg_tree_parse(const char *cmd, struct MessageTree *root)
 
 /* mod_add_cmd()
  *
- * inputs	- command name
- *		- pointer to struct Message
+ * inputs	- pointer to struct Message
  * output	- none
  * side effects - load this one command name
  *		  msg->count msg->bytes is modified in place, in
@@ -518,6 +543,9 @@ mod_add_cmd(struct Message *msg)
   if (msg == NULL)
     return;
 
+  /* someone loaded a module with a bad messagetab */
+  assert(msg->cmd != NULL);
+
   /* command already added? */
   if ((found_msg = msg_tree_parse(msg->cmd, &msg_tree)) != NULL)
     return;
@@ -528,7 +556,7 @@ mod_add_cmd(struct Message *msg)
 
 /* mod_del_cmd()
  *
- * inputs	- command name
+ * inputs	- pointer to struct Message
  * output	- none
  * side effects - unload this one command name
  */
@@ -564,10 +592,8 @@ find_command(const char *cmd)
 void
 report_messages(struct Client *source_p)
 {
-  struct MessageTree *mtree;
+  struct MessageTree *mtree = &msg_tree;
   int i;
-
-  mtree = &msg_tree;
 
   for (i = 0; i < MAXPTRLEN; i++)
   {
@@ -583,11 +609,10 @@ recurse_report_messages(struct Client *source_p, struct MessageTree *mtree)
 
   if (mtree->msg != NULL)
   {
-    if (!((mtree->msg->flags & MFLG_HIDDEN) && !IsAdmin(source_p)))
-      sendto_one(source_p, form_str(RPL_STATSCOMMANDS),
-		 me.name, source_p->name, mtree->msg->cmd,
-		 mtree->msg->count, mtree->msg->bytes,
-		 mtree->msg->rcount);
+    sendto_one(source_p, form_str(RPL_STATSCOMMANDS),
+               me.name, source_p->name, mtree->msg->cmd,
+               mtree->msg->count, mtree->msg->bytes,
+               mtree->msg->rcount);
   }
 
   for (i = 0; i < MAXPTRLEN; i++)
@@ -654,25 +679,21 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
    * confused.  If we got the wrong prefix from a server, send out a
    * kill, else just exit the lame client.
    */
-  if (IsServer(client_p))
-  {
-    /* If the fake prefix is coming from a TS server, discard it
-     * silently -orabidoo
-     *
-     * all servers must be TS these days --is
-     */
-    if (source_p->user != NULL)
-    {
-      sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
-                           "Message for %s[%s@%s!%s] from %s (TS, ignored)",
-                           source_p->name, source_p->username, source_p->host,
-                           source_p->from->name, get_client_name(client_p, SHOW_IP));
-    }
+  /* If the fake prefix is coming from a TS server, discard it
+   * silently -orabidoo
+   *
+   * all servers must be TS these days --is
+   */
+  sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
+                       "Message for %s[%s@%s!%s] from %s (TS, ignored)",
+                       source_p->name, source_p->username, source_p->host,
+                       source_p->from->name, get_client_name(client_p, SHOW_IP));
+ 
 
-    return(0);
- }
 
-  return(exit_client(client_p, client_p, &me, "Fake prefix"));
+
+
+  return(0);
 }
 
 /* remove_unknown()
@@ -684,34 +705,16 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
 static void
 remove_unknown(struct Client *client_p, char *lsender, char *lbuffer)
 {
-  if (!IsRegistered(client_p))
-    return;
-
-  if (IsClient(client_p))
-  {
-    sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
-                         "Weirdness: Unknown client prefix (%s) from %s, Ignoring %s",
-                         lbuffer, get_client_name(client_p, SHOW_IP), lsender);
-    return;
-  }
-
-  /* Not from a server so don't need to worry about it.
-   */
-  if (!IsServer(client_p))
-    return;
-
   /* Do kill if it came from a server because it means there is a ghost
    * user on the other server which needs to be removed. -avalon
    * Tell opers about this. -Taner
    */
-  /* '.something'      is an ID      (KILL)
+  /* '[0-9]something'  is an ID      (KILL/SQUIT depending on its length)
    * 'nodots'          is a nickname (KILL)
    * 'no.dot.at.start' is a server   (SQUIT)
    */
-  if ((lsender[0] == '.') || !strchr(lsender, '.'))
-    sendto_one(client_p, ":%s KILL %s :%s (Unknown Client)",
-               me.name, lsender, me.name);
-  else
+  if ((IsDigit(*lsender) && strlen(lsender) <= IRC_MAXSID) ||
+      strchr(lsender, '.') != NULL)
   {
     sendto_gnotice_flags(UMODE_DEBUG, L_ADMIN, me.name, &me, NULL,
                          "Unknown prefix (%s) from %s, Squitting %s",
@@ -722,6 +725,9 @@ remove_unknown(struct Client *client_p, char *lsender, char *lbuffer)
     sendto_one(client_p, ":%s SQUIT %s :(Unknown prefix (%s) from %s)",
                me.name, lsender, lbuffer, client_p->name);
   }
+  else
+    sendto_one(client_p, ":%s KILL %s :%s (Unknown Client)",
+               me.name, lsender, me.name);
 }
 
 /*
@@ -744,6 +750,8 @@ do_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p;
   struct Channel *chptr;
+  char *t;    /* current position within the buffer */
+  int i, tl;  /* current length of presently being built string in t */
 
   if (parc < 2 || !IsServer(source_p))
     return;
@@ -756,27 +764,22 @@ do_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
    * (Because the buffer is twice as large as the message buffer
    * for the socket, no overflow can occur here... ...on current
    * assumptions--bets are off, if these are changed --msa)
-   * Note: if buffer is non-empty, it will begin with SPACE.
    */
-  if (parc > 1)
+  t = buffer;
+  for (i = 2; i < (parc - 1); i++)
   {
-    char *t = buffer; /* Current position within the buffer */
-    int i;
-    int tl; /* current length of presently being built string in t */
-
-    for (i = 2; i < (parc - 1); i++)
-    {
-      tl = ircsprintf(t, " %s", parv[i]);
-      t += tl;
-    }
-
-    ircsprintf(t," :%s", parv[parc-1]);
+    tl = ircsprintf(t, " %s", parv[i]);
+    t += tl;
   }
+  ircsprintf(t," :%s", parv[parc-1]);
 
-  if ((target_p = find_client(parv[1])) != NULL)
+  if (((target_p = find_person(parv[1])) != NULL) ||
+      ((target_p = find_server(parv[1])) != NULL))
   {
     if (IsMe(target_p)) 
     {
+      int num;
+
       /*
        * We shouldn't get numerics sent to us,
        * any numerics we do get indicate a bug somewhere..
@@ -795,7 +798,13 @@ do_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
        * will do the "right thing" and kill a nick that is colliding.
        * unfortunately, it did not work. --Dianora
        */
-      if (atoi(numeric) != ERR_NOSUCHNICK)
+
+      /* Yes, a good compiler would have optimised this, but
+       * this is probably easier to read. -db
+       */
+      num = atoi(numeric);
+
+      if ((num != ERR_NOSUCHNICK) /*&& (num != ERR_NOTARGET) - TS6 - we dont have this yet*/)
         sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
 			     "*** %s(via %s) sent a %s numeric to me: %s",
 			     source_p->name, client_p->name, numeric, buffer);
@@ -816,9 +825,11 @@ do_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
     /* Fake it for server hiding, if its our client */
     if (ConfigServerHide.hide_servers &&
         MyClient(target_p) && !IsOper(target_p))
-      sendto_one(target_p, ":%s %s %s%s", me.name, numeric, parv[1], buffer);
-    else
-      sendto_one(target_p, ":%s %s %s%s", source_p->name, numeric, parv[1], buffer);
+      sendto_one(target_p, ":%s %s %s%s", me.name, numeric, target_p->name, buffer);
+/*    else if (!MyClient(target_p) && IsCapable(target_p->from, CAP_TS6) && HasID(source_p))
+      sendto_one(target_p, ":%s %s %s%s", source_p->id, numeric, target_p->id, buffer);*/
+    else /* either it is our client, or a client linked throuh a non-ts6 server. must use names! */
+      sendto_one(target_p, ":%s %s %s%s", source_p->name, numeric, target_p->name, buffer);
     return;
   }
   else if ((chptr = hash_find_channel(parv[1])) != NULL)

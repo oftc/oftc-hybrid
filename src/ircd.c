@@ -603,7 +603,7 @@ main(int argc, char *argv[])
   uid_init();
   init_ip_hash_table();      /* client host ip hash table */
   init_host_hash();          /* Host-hashtable. */
-  clear_hash_parse();
+  clear_tree_parse();
   init_client();
   init_user();
   init_channels();
