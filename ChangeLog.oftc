@@ -1,3 +1,15 @@
+dbharris    2003/06/06 03:38:25 UTC	(20030606_0)
+
+  Modified files:
+    modules/core         m_sjoin.c 
+  Log:
+  Fix channel-mode +c syncing on burst/SJOIN
+  
+  Revision  Changes    Path
+  1.2       +6 -2      oftc-hybrid/modules/core/m_sjoin.c
+
+
+
 stu         2003/05/28 18:09:37 GMT	(20030528_5)
 
   Modified files:
