@@ -1,3 +1,22 @@
+stu         2003/11/20 21:24:03 UTC	(20031120_0)
+
+  Modified files:
+    include              client.h 
+    modules              m_svsmode.c 
+    src                  client.c parse.c 
+  Log:
+  - added in MODE -R that got removed in merge
+  - removed unused variables in svsmode.c
+  - added parser fix from upstream
+  
+  Revision  Changes    Path
+  1.13      +2 -0      oftc-hybrid/include/client.h
+  1.12      +2 -3      oftc-hybrid/modules/m_svsmode.c
+  1.26      +9 -0      oftc-hybrid/src/client.c
+  1.10      +21 -14    oftc-hybrid/src/parse.c
+
+
+
 dbharris    2003/11/08 02:51:31 UTC	(20031108_1)
 
   Modified files:
