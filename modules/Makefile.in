@@ -69,6 +69,7 @@ OFTC_SRCS = \
   m_svscloak.c\
   m_svsmode.c\
   m_svsnick.c\
+  m_tburst.c
  
 SRCS =       \
   m_accept.c \
