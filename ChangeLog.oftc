@@ -1,3 +1,19 @@
+stu         2004/03/27 16:51:55 UTC	(20040327_3)
+
+  Modified files:
+    modules              m_cs.c m_hs.c m_ms.c m_ns.c m_os.c 
+  Log:
+  while im here, *s.c arent generating revisions correctly due to missing :
+  
+  Revision  Changes    Path
+  1.4       +1 -1      oftc-hybrid/modules/m_cs.c
+  1.4       +1 -1      oftc-hybrid/modules/m_hs.c
+  1.4       +1 -1      oftc-hybrid/modules/m_ms.c
+  1.4       +1 -1      oftc-hybrid/modules/m_ns.c
+  1.4       +1 -1      oftc-hybrid/modules/m_os.c
+
+
+
 stu         2004/03/27 16:49:30 UTC	(20040327_2)
 
   Modified files:
