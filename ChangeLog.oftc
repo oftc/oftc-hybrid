@@ -1,3 +1,15 @@
+stu         2004/02/23 23:42:16 UTC	(20040223_2)
+
+  Modified files:
+    modules              m_gnotice.c 
+  Log:
+  fix compile warning, unused function prototype removed
+  
+  Revision  Changes    Path
+  1.5       +1 -2      oftc-hybrid/modules/m_gnotice.c
+
+
+
 stu         2004/02/23 22:30:56 UTC	(20040223_1)
 
   Modified files:
