@@ -1,3 +1,40 @@
+stu         2003/10/15 16:04:38 UTC	(20031015_0)
+
+  Modified files:        (Branch: STABLE)
+    include              patchlevel.h serno.h 
+    modules              m_who.c 
+    modules/core         m_message.c m_sjoin.c 
+    src                  adns.c 
+  Log:
+  - Bring STABLE up to date with bug fixes I committed to the wrong branch.
+  - Fix adns bug.
+  - MFC m_who.c
+  - Rev patchlevel
+  
+  Revision  Changes    Path
+  1.5.2.1   +2 -2      oftc-hybrid/include/patchlevel.h
+  1.25.2.1  +2 -1      oftc-hybrid/include/serno.h
+  1.4.2.2   +3 -1      oftc-hybrid/modules/core/m_message.c
+  1.1.4.1   +5 -2      oftc-hybrid/modules/core/m_sjoin.c
+  1.6.2.2   +73 -26    oftc-hybrid/modules/m_who.c
+  1.3.2.1   +3 -1      oftc-hybrid/src/adns.c
+
+
+
+stu         2003/10/19 10:14:17 UTC	(20031019_0)
+
+  Modified files:
+    modules              m_svscloak.c m_svsmode.c m_svsnick.c 
+  Log:
+  svs* missing params
+  
+  Revision  Changes    Path
+  1.12      +2 -2      oftc-hybrid/modules/m_svscloak.c
+  1.10      +2 -2      oftc-hybrid/modules/m_svsmode.c
+  1.9       +2 -2      oftc-hybrid/modules/m_svsnick.c
+
+
+
 dbharris    2003/10/15 00:09:00 UTC	(20031015_0)
 
   Modified files:
