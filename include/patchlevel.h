@@ -23,5 +23,5 @@
  */
 
 #ifndef PATCHLEVEL
-#define PATCHLEVEL  "hybrid-7+oftc1.1.0"
+#define PATCHLEVEL  "hybrid-7rc6+oftc1.1.3"
 #endif
