@@ -42,6 +42,9 @@ struct AuthRequest {
   unsigned int        flags;     /* current state of request */
   int                 fd;        /* file descriptor for auth queries */
   time_t              timeout;   /* time when query expires */
+#ifdef IPV6
+  unsigned int	      ip6_int;
+#endif
 };
 
 /*

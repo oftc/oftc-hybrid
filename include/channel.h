@@ -60,7 +60,6 @@ struct Channel
   int             users;      /* user count */
   int             locusers;   /* local user count */
   unsigned long   lazyLinkChannelExists;
-  time_t          users_last;		/* when last user was in channel */
   time_t          last_knock;           /* don't allow knock to flood */
 #ifdef VCHANS
   struct Channel  *root_chptr;		/* pointer back to root if vchan */

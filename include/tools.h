@@ -231,6 +231,28 @@ dlinkMoveList(dlink_list *from, dlink_list *to)
 
   /* I think I got that right */
 }
+
+extern inline dlink_node *
+dlinkFindDelete(dlink_list *list, void *data)
+{
+  dlink_node *m;
+ 
+  DLINK_FOREACH(m, list->head)
+  {
+    if(m->data != data)
+      continue;
+ 
+    if (m->next != NULL)
+      m->next->prev = m->prev;
+    else
+      list->tail = m->prev;
+
+    m->next = m->prev = NULL;
+    list->length--;
+    return m;
+  }
+  return(NULL);
+}
 #endif /* __GNUC__ */
 
 #endif /* __TOOLS_H__ */

@@ -70,7 +70,7 @@ extern void _modinit(void);
 extern void _moddeinit(void);
 
 extern int unload_one_module (char *, int);
-extern int load_one_module (char *);
+extern int load_one_module (char *, int);
 extern int load_a_module (char *, int, int);
 extern int findmodule_byname (char *);
 extern char* irc_basename(char *);

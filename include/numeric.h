@@ -486,7 +486,7 @@ extern const char* form_str(int);
 #define ERR_TOOMANYKNOCK     712
 #define ERR_CHANOPEN         713
 #define ERR_KNOCKONCHAN      714
-#define ERR_KNOCKDISABLED    714
+#define ERR_KNOCKDISABLED    715
 
 #define ERR_LAST_ERR_MSG     999
 

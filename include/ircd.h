@@ -81,6 +81,7 @@ extern const char*    logFileName;
 extern const char     serveropts[];
 extern int            cold_start;
 extern int            dorehash;
+extern int            doremotd;
 extern struct Client  me;
 extern struct Client* GlobalClientList;
 extern struct Client* local[];

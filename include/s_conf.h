@@ -124,6 +124,7 @@ struct ConfItem
 #define CONF_FLAGS_REDIR                0x00000800
 #define CONF_FLAGS_EXEMPTGLINE          0x00001000
 #define CONF_FLAGS_RESTRICTED           0x00002000
+#define CONF_FLAGS_CAN_FLOOD            0x00100000
 /* server flags */
 #define CONF_FLAGS_ALLOW_AUTO_CONN      0x00004000
 #define CONF_FLAGS_LAZY_LINK            0x00008000
@@ -135,6 +136,7 @@ struct ConfItem
 
 #define IsLimitIp(x)            ((x)->flags & CONF_FLAGS_LIMIT_IP)
 #define IsNoTilde(x)            ((x)->flags & CONF_FLAGS_NO_TILDE)
+#define IsConfCanFlood(x)       ((x)->flags & CONF_FLAGS_CAN_FLOOD)
 #define IsNeedIdentd(x)         ((x)->flags & CONF_FLAGS_NEED_IDENTD)
 #define IsPassIdentd(x)         ((x)->flags & CONF_FLAGS_PASS_IDENTD)
 #define IsNoMatchIp(x)          ((x)->flags & CONF_FLAGS_NOMATCH_IP)
@@ -214,6 +216,7 @@ struct config_file_entry
   int           pace_wait_simple;
   int           short_motd;
   int           no_oper_flood;
+  int           true_no_oper_flood;
   int           glines;
   int           gline_time;
   int           idletime;
@@ -232,6 +235,9 @@ struct config_file_entry
   int           use_egd;
   int		ping_cookie;
   int           use_help;
+#ifdef IPV6  
+  int		fallback_to_ip6_int;
+#endif
 #ifdef HAVE_LIBCRYPTO
   struct EncCapability *default_cipher_preference;
 #endif
@@ -252,7 +258,7 @@ struct config_channel_entry
   int   max_chans_per_user;
   int   no_create_on_split;
   int   no_join_on_split;
-  int	persist_time;
+  int	oper_pass_resv;
   int   quiet_on_ban;
   int   default_split_server_count;
   int   default_split_user_count;
@@ -306,8 +312,6 @@ extern int scount;
 extern struct ConfItem *u_conf;
 /* conf xline link list root */
 extern struct ConfItem *x_conf;
-/* conf services link list root */
-extern struct ConfItem *services_conf;
 
 /* All variables are GLOBAL */
 extern struct ConfItem* ConfigItemList;      /* conf list head */
