@@ -1,3 +1,15 @@
+stu         2005/01/12 20:55:57 UTC	(20050112_3)
+
+  Modified files:
+    src                  ircd_parser.y 
+  Log:
+  fix parser bug making ssl listen on ALL ips even with a vhost
+  
+  Revision  Changes    Path
+  1.14      +2 -1      oftc-hybrid/src/ircd_parser.y
+
+
+
 stu         2005/01/12 20:03:07 UTC	(20050112_2)
 
   Modified files:
