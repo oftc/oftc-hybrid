@@ -1,3 +1,15 @@
+stu         2003/08/16 15:40:36 UTC	(20030816_5)
+
+  Modified files:
+    modules/core         m_server.c 
+  Log:
+  removed annoying "foo introduced server bar" notices
+  
+  Revision  Changes    Path
+  1.6       +1 -8      oftc-hybrid/modules/core/m_server.c
+
+
+
 stu         2003/08/16 15:16:33 UTC	(20030816_4)
 
   Modified files:
