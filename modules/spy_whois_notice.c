@@ -50,8 +50,10 @@ const char *_version = "$Revision$";
 int
 show_notice(struct hook_mfunc_data *data)
 {
-  if (IsOper(data->client_p) && (data->client_p != data->source_p) 
-      && data->client_p->umodes & FLAGS_SPY) 
+  /* XXX This means ALL opers will get the notice, regardless of FLAGS_SPY.
+   * solution is to propgate FLAGS_SPY
+   */
+  if (IsOper(data->client_p) && (data->client_p != data->source_p))
     {
       sendto_anywhere(data->client_p, data->source_p, "NOTICE %s :*** Notice "
             "-- %s (%s@%s) is doing a whois on you.", data->client_p->name,
