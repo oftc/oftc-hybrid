@@ -61,6 +61,15 @@ sighup_handler(int sig)
 }
 
 /*
+ * sigusr1_handler - reread the motd file
+ */
+static void
+sigusr1_handler(int sig)
+{
+  doremotd = 1;
+}
+
+/*
  * sigint_handler - restart the server
  */
 static void 
@@ -121,6 +130,10 @@ setup_signals()
   act.sa_handler = sigterm_handler;
   sigaddset(&act.sa_mask, SIGTERM);
   sigaction(SIGTERM, &act, 0);
+
+  act.sa_handler = sigusr1_handler;
+  sigaddset(&act.sa_mask, SIGUSR1);
+  sigaction(SIGUSR1, &act, 0);
 
 }
 

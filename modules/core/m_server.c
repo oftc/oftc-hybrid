@@ -432,10 +432,6 @@ static void ms_server(struct Client *client_p, struct Client *source_p,
     }
   
 
-  target_p = make_client(client_p);
-  make_server(target_p);
-  target_p->hopcount = hop;
-
   if(strlen(name) > HOSTLEN)
   {
     sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
@@ -446,6 +442,10 @@ static void ms_server(struct Client *client_p, struct Client *source_p,
     return;
   }
 
+  target_p = make_client(client_p);
+  make_server(target_p);
+  target_p->hopcount = hop;
+  
   strlcpy(target_p->name, name, HOSTLEN+1);
   
   set_server_gecos(target_p, info);

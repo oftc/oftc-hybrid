@@ -50,6 +50,27 @@ static char unknown_ver[] = "<unknown>";
  * -TimeMr14C
  */
 
+#if !defined(HAVE_SHL_LOAD) && !defined(HAVE_DLFUNC)
+/*
+ * Fake dlfunc(3) if we don't have it, cause it's happy.
+ */
+typedef void (*__function_p)(void);
+
+__function_p
+dlfunc(void *myHandle, const char *functionName)
+{
+	/* XXX This is not guaranteed to work, but with
+	 * traditional dl*(3), it is the best we can do.
+	 * -jmallett
+	 */
+	void *symbolp;
+
+	symbolp = dlsym(myHandle, functionName);
+
+	return (__function_p)(uintptr_t)symbolp;
+}
+#endif
+
 
 #ifdef HAVE_MACH_O_DYLD_H
 /*
@@ -192,17 +213,14 @@ int unload_one_module (char *name, int warn)
     shl_unload((shl_t) & (modlist[modindex]->address));
 #else
     /*
-    ** XXX - The type system in C does not allow direct conversion between
-    ** data and function pointers, but as it happens, most C compilers will
-    ** safely do this, however it is a theoretical overlow to cast as we 
-    ** must do here.  I have library functions to take care of this, but 
-    ** despite being more "correct" for the C language, this is more 
-    ** practical.  Removing the abuse of the ability to cast ANY pointer
-    ** to and from an integer value here will break some compilers.
+    ** We use FreeBSD's dlfunc(3) interface, or fake it as we
+    ** used to here if it isn't there.  The interface should
+    ** be standardised some day, and so it eventually will be
+    ** providing something guaranteed to do the right thing here.
     **          -jmallett
     */
-    if ((deinitfunc = (void (*)(void))(uintptr_t)dlsym(modlist[modindex]->address, "_moddeinit"))
-        || (deinitfunc = (void (*)(void))(uintptr_t)dlsym(modlist[modindex]->address, "__moddeinit"))) {
+    if ((deinitfunc = (void (*)(void))dlfunc(modlist[modindex]->address, "_moddeinit"))
+        || (deinitfunc = (void (*)(void))dlfunc(modlist[modindex]->address, "__moddeinit"))) {
         deinitfunc();
     }
     dlclose(modlist[modindex]->address);
@@ -291,9 +309,9 @@ load_a_module (char *path, int warn, int core)
         ver = *verp;
 #else
 
-  initfunc = (void (*)(void))(uintptr_t)dlsym (tmpptr, "_modinit");
+  initfunc = (void (*)(void))dlfunc (tmpptr, "_modinit");
   if (initfunc == NULL 
-		  && (initfunc = (void (*)(void))(uintptr_t)dlsym(tmpptr, "__modinit")) == NULL)
+		  && (initfunc = (void (*)(void))dlfunc(tmpptr, "__modinit")) == NULL)
   {
     sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
                           "Module %s has no _modinit() function",

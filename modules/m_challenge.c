@@ -59,6 +59,7 @@ const char *_version = "$Revision$";
 #endif
 #else
 
+static void failed_challenge_notice(struct Client *, char *, char *);
 static void m_challenge(struct Client*, struct Client*, int, char**);
 void binary_to_hex( unsigned char * bin, char * hex, int length );
 
@@ -115,6 +116,7 @@ static void m_challenge( struct Client *client_p, struct Client *source_p,
     {
       sendto_one(source_p, form_str(ERR_PASSWDMISMATCH), me.name,
 		 source_p->name);
+      failed_challenge_notice(source_p, source_p->user->auth_oper, "challenge failed");
       return;
     }
      
@@ -132,10 +134,8 @@ static void m_challenge( struct Client *client_p, struct Client *source_p,
     if(attach_conf(source_p, aconf) != 0)
     {
       sendto_one(source_p,":%s NOTICE %s :Can't attach conf!",
-		 me.name,source_p->name);   
-      sendto_gnotice_flags(FLAGS_ALL, L_ALL, me.name, &me, 
-			   "Failed OPER attempt by %s (%s@%s) can't attach conf!",
-			   source_p->name, source_p->username, source_p->host);
+		 me.name, source_p->name);   
+      failed_challenge_notice(source_p, aconf->name, "can't attach conf!");
       attach_conf(source_p, oconf);
       log_failed_oper(source_p, source_p->user->auth_oper);
       return;
@@ -158,7 +158,7 @@ static void m_challenge( struct Client *client_p, struct Client *source_p,
   MyFree(source_p->user->response);
   MyFree(source_p->user->auth_oper);
   source_p->user->response = NULL;
-  source_p->user->response = NULL;
+  source_p->user->auth_oper = NULL;
 
   if (!(aconf = find_conf_exact(parv[1], source_p->username, source_p->host,
 	             		CONF_OPERATOR)) &&
@@ -167,7 +167,9 @@ static void m_challenge( struct Client *client_p, struct Client *source_p,
                                 CONF_OPERATOR)))
   {
     sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, parv[0]);
-    log_failed_oper(source_p, source_p->user->auth_oper);
+    failed_challenge_notice(source_p, parv[1], find_conf_by_name(parv[1], CONF_OPERATOR)
+                            ? "host mismatch" : "no oper {} block");
+    log_failed_oper(source_p, parv[1]);
     return;
   }
   if (!aconf->rsa_public_key)
@@ -187,6 +189,25 @@ static void m_challenge( struct Client *client_p, struct Client *source_p,
   DupString(source_p->user->auth_oper, aconf->name);
   MyFree(challenge);
   return;
+}
+
+/*
+ * failed_challenge_notice
+ *
+ * inputs       - pointer to client doing /oper ...
+ *              - pointer to nick they tried to oper as
+ *              - pointer to reason they have failed
+ * output       - nothing
+ * side effects - notices all opers of the failed oper attempt if enabled
+ */
+
+static void
+failed_challenge_notice(struct Client *source_p, char *name, char *reason)
+{
+    if (ConfigFileEntry.failed_oper_notice)
+      sendto_realops_flags(FLAGS_ALL, L_ALL, "Failed CHALLENGE attempt as %s "
+                           "by %s (%s@%s) - %s", name, source_p->name,
+                           source_p->username, source_p->host, reason);
 }
 
 #endif /* HAVE_LIBCRYPTO */

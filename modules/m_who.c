@@ -225,11 +225,15 @@ static void m_who(struct Client *client_p,
 
           member = IsMember(source_p, chptr);
           if (isinvis && !member)
+          {
+            chptr = NULL;
             continue;
+          }
           if (member || (!isinvis && PubChannel(chptr)))
             {
               break;
             }
+	  chptr = NULL;
 	}
 
       if (chptr != NULL)
@@ -450,6 +454,9 @@ do_who_list(struct Client *source_p, struct Channel *chptr,
 	    char *halfop_flag, char *voiced_flag,
 	    char *chname, int member)
 {
+#ifndef ANONOPS
+  dlink_node *ptr;
+#endif
   struct Client *target_p;
   int done=0;
   int i=0;

@@ -81,7 +81,8 @@ parse_k_file(FBFILE *file)
  * Side Effects - Parse one new style D line
  */
 
-void parse_d_file(FBFILE *file)
+void
+parse_d_file(FBFILE *file)
 {
   struct ConfItem *aconf;
   char* reason_field=(char *)NULL;
@@ -117,44 +118,55 @@ void parse_d_file(FBFILE *file)
  * output	- next field
  * side effects	- field breakup for ircd.conf file.
  */
-char *getfield(char *newline)
+char *
+getfield(char *newline)
 {
-  static char *line = (char *)NULL;
+  static char *line = NULL;
   char  *end, *field;
         
-  if (newline)
+  if (newline != NULL)
     line = newline;
 
-  if (line == (char *)NULL)
-    return((char *)NULL);
+  if (line == NULL)
+    return(NULL);
 
   field = line;
 
   /* XXX make this skip to first " if present */
   if(*field == '"')
+  {
     field++;
+    end = field;
+  }
   else
-    return((char *)NULL);	/* mal-formed field */
+    return(NULL);		/* mal-formed field */
 
-  if ((end = strchr(line,',')) == NULL)
+  for (;;)
+  {
+    /* At end of string, mark it as end and return */
+    if (*end == '\0')
     {
-      end = line + strlen(line);
-      line = (char *)NULL;
-      /* XXX verify properly terminating " */
-      if(*end == '"')
-	*end = '\0';
-      else
-	return((char *)NULL);
+      line = NULL;
+      return(NULL);
     }
-  else
+    else if (*end == '\\')      /* found escape character ? */
     {
-      line = end + 1;
-      --end;
-      if(*end == '"')
-	*end = '\0';
-      else
-	return((char *)NULL);
+      end++;
     }
-  return(field);
+    else if(*end == '"')	/* found terminating " */
+    {
+      *end++ = '\0';
+      while (IsSpace(*end))	/* skip to start of next " (or '\0') */
+	end++;
+      while (*end == ',')
+	end++;
+      while (IsSpace(*end))
+	end++;
+      line = end;
+      return(field);
+    }
+    end++;
+  }
+  return (NULL);
 }
 

@@ -106,8 +106,9 @@ const char *_version = "$Revision$";
  *       parv[0] = sender prefix
  *       parv[1] = nickname
  */
-static void mr_nick(struct Client *client_p, struct Client *source_p, 
-                    int parc, char *parv[])
+static void
+mr_nick(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
 {
   struct   Client *target_p, *uclient_p;
   char     nick[NICKLEN];
@@ -124,7 +125,7 @@ static void mr_nick(struct Client *client_p, struct Client *source_p,
   /* Terminate the nick at the first ~ */
   if ((s = strchr(parv[1], '~')))
     *s = '\0';
-
+                               
   /* copy the nick and terminate it */
   strlcpy(nick, parv[1], NICKLEN);
 
@@ -137,7 +138,8 @@ static void mr_nick(struct Client *client_p, struct Client *source_p,
   }
 
   /* check if the nick is resv'd */
-  if(find_nick_resv(nick))
+  if(find_nick_resv(nick) &&
+     !(IsOper(source_p) && ConfigChannel.oper_pass_resv))
   {
     sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
                me.name, BadPtr(parv[0]) ? "*" : parv[0], nick);
@@ -203,6 +205,7 @@ static void mr_nick(struct Client *client_p, struct Client *source_p,
   char     nick[NICKLEN];
   struct   Client *target_p;
 
+  /* XXX BadPtr is needed */
   if(parc < 2 || BadPtr(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
@@ -225,7 +228,8 @@ static void mr_nick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if(find_nick_resv(nick))
+  if(find_nick_resv(nick) &&
+     !(IsOper(source_p) && ConfigChannel.oper_pass_resv))
   {
     sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
                me.name, parv[0], nick);
@@ -312,8 +316,9 @@ static void mr_nick(struct Client *client_p, struct Client *source_p,
  *    parv[7] = server
  *    parv[8] = ircname
  */
-static void ms_nick(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+ms_nick(struct Client *client_p, struct Client *source_p,
+	int parc, char *parv[])
 {
   struct Client* target_p;
   char     nick[NICKLEN];
@@ -426,10 +431,6 @@ ms_client(struct Client *client_p, struct Client *source_p,
 
   id = parv[8];
   name = parv[9];
-
-  /* XXX can this happen ? */
-  if (BadPtr(parv[1]))
-    return;
 
   /* XXX can this happen ? */
   if (BadPtr(parv[1]))
@@ -622,8 +623,10 @@ clean_nick_name(char *nick)
   if(nick == NULL)
     return 0;
 
-  /* nicks cant start with a digit or - */
-  if (*nick == '-' || IsDigit(*nick))
+  /* nicks cant start with a digit or - or be 0 length */
+  /* This closer duplicates behaviour of hybrid-6 */
+
+  if (*nick == '-' || IsDigit(*nick) || *nick == '\0')
     return 0;
 
   for(; *nick; nick++)

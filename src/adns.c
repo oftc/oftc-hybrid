@@ -231,19 +231,23 @@ void adns_gethost(const char *name, int aftype, struct DNSQuery *req)
 }
 
 /* void adns_getaddr(struct irc_inaddr *addr, int aftype,
- *                   struct DNSQuery *req);
+ *                   struct DNSQuery *req, int arpa_type);
  * Input: An address, an address family, a DNSQuery structure.
+ *        arpa_type is used for deciding on using ip6.int or ip6.arpa
+ *        0 is ip6.arpa and 1 is ip6.int, of course this applies to ipv6
+ *        connections only and has no effect on ipv4.
  * Output: None
  * Side effects: Sets up a query entry and sends it to the DNS server to
  *               resolve an IP address to a domain name.
  */
 void adns_getaddr(struct irc_inaddr *addr, int aftype,
-                  struct DNSQuery *req)
+                  struct DNSQuery *req, int arpa_type)
 {
   struct irc_sockaddr ipn;
+
   memset(&ipn, 0, sizeof(struct irc_sockaddr));
   assert(dns_state->nservers > 0);
-  
+
 #ifdef IPV6
   if (aftype == AF_INET6)
   {
@@ -251,10 +255,21 @@ void adns_getaddr(struct irc_inaddr *addr, int aftype,
     ipn.sins.sin6.sin6_port = 0;
     memcpy(&ipn.sins.sin6.sin6_addr.s6_addr, &addr->sins.sin6.s6_addr,
            sizeof(struct in6_addr));
-    adns_submit_reverse(dns_state, (struct sockaddr *)&ipn.sins.sin6,
-                       adns_r_ptr_ip6, 
-		       adns_qf_owner|adns_qf_cname_loose|adns_qf_quoteok_anshost, 
-		       req, &req->query);
+           
+    if(!arpa_type)
+    {
+    	adns_submit_reverse(dns_state,(struct sockaddr *)&ipn.sins.sin6, 
+                            adns_r_ptr_ip6,
+    			    adns_qf_owner|adns_qf_cname_loose|adns_qf_quoteok_anshost, 
+    			    req, &req->query);
+    } else
+    {
+    	adns_submit_reverse(dns_state,(struct sockaddr *)&ipn.sins.sin6, 
+                            adns_r_ptr_ip6_old,
+    			    adns_qf_owner|adns_qf_cname_loose|adns_qf_quoteok_anshost, 
+    			    req, &req->query);
+    
+    }
   } 
   else
   {

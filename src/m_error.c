@@ -51,27 +51,7 @@ struct Message error_msgtab = {
 void m_error(struct Client *client_p, struct Client *source_p,
              int parc, char *parv[])
 {
-  char* para;
-
-  para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
-  
-  ilog(L_ERROR, "Received ERROR message from %s: %s",
-	   source_p->name, para);
-
-  if (client_p == source_p)
-    {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-            "ERROR :from %s -- %s",
-	    get_client_name(client_p, MASK_IP), para);
-    }
-  else
-    {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-            "ERROR :from %s via %s -- %s",
-	    source_p->name, get_client_name(client_p, MASK_IP), para);
-    }
-
-  if(MyClient(source_p))
+  if (MyClient(source_p))
     exit_client(client_p, source_p, source_p, "ERROR");
 }
 

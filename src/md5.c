@@ -304,13 +304,13 @@ int unbase64_block(char **output, char *data, int len)
 
     q_in = 0;
 
-    if (base64_values[in[i+3]] > -1)
+    if (base64_values[in[i+3]] != (char)-1)
       q_in |= base64_values[in[i+3]]      ;
-    if (base64_values[in[i+2]] > -1)
+    if (base64_values[in[i+2]] != (char)-1)
       q_in |= base64_values[in[i+2]] <<  6;
-    if (base64_values[in[i+1]] > -1)
+    if (base64_values[in[i+1]] != (char)-1)
       q_in |= base64_values[in[i+1]] << 12;
-    if (base64_values[in[i  ]] > -1)
+    if (base64_values[in[i  ]] != (char)-1)
       q_in |= base64_values[in[i  ]] << 18;
 
     out[count++] = (q_in >> 16) & 0xff;

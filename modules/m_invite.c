@@ -44,10 +44,11 @@
 #include "packet.h"
 
 static void m_invite(struct Client *, struct Client *, int, char **);
+static void ms_invite(struct Client *, struct Client *, int, char **);
 
 struct Message invite_msgtab = {
   "INVITE", 0, 0, 3, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_invite, m_invite, m_invite}
+  {m_unregistered, m_invite, ms_invite, m_invite}
 };
 #ifndef STATIC_MODULES
 
@@ -219,8 +220,8 @@ m_invite(struct Client *client_p,
     if (chop)
       add_invite(vchan, target_p);
     sendto_one(target_p, ":%s!%s@%s INVITE %s :%s", source_p->name,
-               source_p->username, source_p->host, target_p->name,
-               chptr->chname);
+	       source_p->username, source_p->host, target_p->name,
+	       chptr->chname);
   }
 
   /* if the channel is +pi, broadcast everywhere thats CAP_PARA, send to
@@ -228,24 +229,134 @@ m_invite(struct Client *client_p,
    */
   if(ParanoidChannel(vchan))
   {
-    sendto_channel_remote(source_p, client_p,
-  		  	  ONLY_CHANOPS_HALFOPS, CAP_PARA, NOCAPS,
-                          chptr, ":%s INVITE %s :%s", parv[0], 
-                          target_p->name, vchan->chname);
-			  
+    /* XXX Send to servers blindly for now. finesse this later
+     * Old code only sent the invite to servers that happened to
+     * have chanops on channel for invitee being invited to.
+     * This obviously was a tad wrong. -db
+     */
+    sendto_server(source_p->from, source_p, NULL, CAP_PARA, NOCAPS, NOFLAGS,
+		  ":%s INVITE %s :%s",
+		  source_p->name, target_p->name, vchan->chname);
+
     if(!MyConnect(target_p) && (target_p->from != client_p) &&
        !IsCapable(target_p->from, CAP_PARA))
+    {
       sendto_one(target_p->from, ":%s INVITE %s :%s", parv[0],
-                 target_p->name, vchan->chname);
+		 target_p->name, vchan->chname);
+    }
 
+    /* XXX This possibly should be a numeric -db */
     sendto_channel_local(ONLY_CHANOPS_HALFOPS, vchan,
                          ":%s NOTICE %s :%s is inviting %s to %s.",
 			 me.name, chptr->chname, source_p->name,
 			 target_p->name, chptr->chname);
   }
-  else if(!MyConnect(target_p) && (target_p->from != client_p))
+  else
   {
-    sendto_one(target_p->from, ":%s INVITE %s :%s", parv[0],
-               target_p->name, vchan->chname);
+    if(!MyConnect(target_p) && (target_p->from != client_p))
+    {
+      sendto_one(target_p->from, ":%s INVITE %s :%s", parv[0],
+		 target_p->name, vchan->chname);
+    }
+  }
+}
+
+/*
+** ms_invite
+**      parv[0] - sender prefix
+**      parv[1] - user to invite
+**      parv[2] - channel number
+*/
+/*
+ * This little function is used only to notify
+ * chanops on channels about invites when the channel is
+ * in Paranoid mode. As such, its pretty much a duplicate of m_invite -db
+ */
+static void
+ms_invite(struct Client *client_p,
+	  struct Client *source_p, int parc, char *parv[])
+{
+  struct Client *target_p;
+  struct Channel *chptr, *vchan;
+  int chop;                     /* Is channel op */
+#ifdef VCHANS
+  struct Channel *vchan2;
+#endif
+
+  if (*parv[2] == '\0')
+  {
+    return;
+  }
+
+  if ((target_p = find_person(parv[1])) == NULL)
+  {
+    return;
+  }
+
+  if(check_channel_name(parv[2]) == 0)
+  {
+    return;
+  }
+
+  if (!IsChannelName(parv[2]))
+  {
+    return;
+  }
+
+  if ((chptr = hash_find_channel(parv[2])) == NULL)
+  {
+    return;
+  }
+
+  /* By this point, chptr is non NULL */
+
+#ifdef VCHANS
+  if (!(HasVchans(chptr) && (vchan = map_vchan(chptr, source_p))))
+    vchan = chptr;
+  if (IsVchan(chptr))
+    chptr = chptr->root_chptr;
+#else
+  vchan = chptr;
+#endif
+  
+#ifdef VCHANS
+  if ((vchan2 = map_vchan(chptr, target_p)))
+  {
+    return;
+  }
+#endif
+
+  if (IsMember(target_p, vchan))
+  {
+    return;
+  }
+
+  if (MyConnect(target_p))
+  {
+    if (chop)
+      add_invite(vchan, target_p);
+    sendto_one(target_p, ":%s!%s@%s INVITE %s :%s", source_p->name,
+	       source_p->username, source_p->host, target_p->name,
+	       chptr->chname);
+  }
+
+  /* if the channel is +pi, broadcast everywhere thats CAP_PARA, send to
+   * target if target isnt CAP_PARA capable, else just send to target
+   */
+  /*
+   * At this point, unless there is lag and a mode change -p
+   * in between the invite and the receipt of this, the
+   * if(ParanoidChannel(vchan)) test is redundant. -db
+   */
+  if(ParanoidChannel(vchan))
+  {
+    /* XXX This possibly should be a numeric -db */
+    sendto_channel_local(ONLY_CHANOPS_HALFOPS, vchan,
+			 ":%s NOTICE %s :%s is inviting %s to %s.",
+			 me.name, chptr->chname, source_p->name,
+			 target_p->name, chptr->chname);
+    sendto_server(source_p, NULL, NULL, CAP_PARA, NOCAPS, NOFLAGS,
+		  ":%s INVITE %s :%s",
+		  source_p->name, target_p->name, vchan->chname);
   }
 }

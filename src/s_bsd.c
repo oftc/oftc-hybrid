@@ -170,7 +170,8 @@ void report_error(int level, const char* text, const char* who, int error)
  * output       - returns true (1) if successful, false (0) otherwise
  * side effects -
  */
-int set_sock_buffers(int fd, int size)
+int
+set_sock_buffers(int fd, int size)
 {
   if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*) &size, sizeof(size)) ||
       setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char*) &size, sizeof(size)))
@@ -186,7 +187,8 @@ int set_sock_buffers(int fd, int size)
  * side effects - disable_sock_options - if remote has any socket options set,
  *                disable them 
  */
-int disable_sock_options(int fd)
+int
+disable_sock_options(int fd)
 {
 #if defined(IP_OPTIONS) && defined(IPPROTO_IP) && !defined(IPV6)
   if (setsockopt(fd, IPPROTO_IP, IP_OPTIONS, NULL, 0))
@@ -395,10 +397,21 @@ void add_connection(struct Listener* listener, int fd)
 #else
   new_client->localClient->aftype = AF_INET;
 #endif
+  *new_client->host = '\0';
+#ifdef IPV6
+  if(*new_client->localClient->sockhost == ':')
+    strlcat(new_client->host, "0",HOSTLEN+1);
 
-  strcpy(new_client->host, new_client->localClient->sockhost);
+  if(new_client->localClient->aftype == AF_INET6 && ConfigFileEntry.dot_in_ip6_addr == 1)
+  {
+    strlcat(new_client->host, new_client->localClient->sockhost,HOSTLEN+1);
+    strlcat(new_client->host, ".",HOSTLEN+1);
+  } else
+#endif
+    strlcat(new_client->host, new_client->localClient->sockhost,HOSTLEN+1);
+
   new_client->localClient->fd        = fd;
-
+  
   new_client->localClient->listener  = listener;
   ++listener->ref_count;
 

@@ -92,7 +92,7 @@ static void mo_testline(struct Client *client_p, struct Client *source_p,
       {
        if ((t=parse_netmask(given_name, &ip, &host_mask))!= HM_HOST)
        {
-        aconf = find_dline(&ip,
+        aconf = find_dline_conf(&ip,
 #ifdef IPV6
                   (t==HM_IPV6) ? AF_INET6 : AF_INET
 #else

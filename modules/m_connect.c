@@ -160,10 +160,12 @@ static void mo_connect(struct Client* client_p, struct Client* source_p,
    */
   if (serv_connect(aconf, source_p))
     {
+#ifndef HIDE_SERVERS_IPS
       if (IsOperAdmin(source_p))
 	sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s[%s].%d",
 		   me.name, parv[0], aconf->host, aconf->name, aconf->port);
       else
+#endif
 	sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s.%d",
 		   me.name, parv[0], aconf->name, aconf->port);
 

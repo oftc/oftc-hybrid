@@ -183,7 +183,7 @@ make_dlink_node(void)
 {
   dlink_node *lp;
 
-  lp = (dlink_node *)BlockHeapAlloc(dnode_heap);;
+  lp = (dlink_node *)BlockHeapAlloc(dnode_heap);
   ++links_count;
 
   lp->next = NULL;

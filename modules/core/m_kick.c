@@ -130,7 +130,7 @@ static void m_kick(struct Client *client_p,
 
   if(chptr->mode.mode & MODE_NOCOLOR && msg_has_colors(comment))
           comment = strip_color(comment);
-  if ((!IsServer(source_p) && !is_any_op(chptr, source_p)) ) 
+  if (!IsServer(source_p) && !is_any_op(chptr, source_p) ) 
     { 
       /* was a user, not a server, and user isn't seen as a chanop here */
       

@@ -307,7 +307,6 @@ register_local_user(struct Client *client_p, struct Client *source_p,
            source_p->localClient->random_ping = (unsigned long)rand();
            sendto_one(source_p, "PING :%lu", (unsigned long)source_p->localClient->random_ping);
            source_p->flags |= FLAGS_PINGSENT;
-	   strlcpy(source_p->username, username, USERLEN + 1);
   	   return -1;
   	} 
   	if(!(source_p->flags2 & FLAGS2_PING_COOKIE))
@@ -525,7 +524,7 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
 
   user->last = CurrentTime;
 
-  strlcpy(source_p->username, username, USERLEN + 1);
+  strlcpy(source_p->username, username, sizeof(source_p->username));
 
   SetClient(source_p);
 
@@ -825,6 +824,13 @@ report_and_set_user_flags(struct Client *source_p,struct ConfItem *aconf)
          ":%s NOTICE %s :*** You are exempt from idle limits. congrats.",
                  me.name,source_p->name);
     }
+  if (IsConfCanFlood(aconf))
+    {
+      SetCanFlood(source_p);
+      sendto_one(source_p, ":%s NOTICE %s :*** You are exempt from flood "
+                 "protection, aren't you feersome.",
+                 me.name, source_p->name);
+    }
 }
 
 
@@ -860,23 +866,22 @@ do_local_user(char* nick, struct Client* client_p, struct Client* source_p,
    */
   user->server = me.name;
 
-  strlcpy(source_p->info, realname, REALLEN);
+  strlcpy(source_p->info, realname, sizeof(source_p->info));
  
+  if (!IsGotId(source_p)) 
+  {
+     /*
+      * save the username in the client
+      * If you move this you'll break ping cookies..you've been warned 
+      */
+      strlcpy(source_p->username, username, sizeof(source_p->username));
+  }
+
   if (source_p->name[0])
   { 
     /* NICK already received, now I have USER... */
     	return register_local_user(client_p, source_p, source_p->name, username);
   }
-  else
-    {
-      if (!IsGotId(source_p)) 
-        {
-          /*
-           * save the username in the client
-           */
-          strlcpy(source_p->username, username, USERLEN + 1);
-        }
-    }
   return 0;
 }
 
@@ -908,8 +913,8 @@ do_remote_user(char* nick, struct Client* client_p, struct Client* source_p,
    * coming from another server, take the servers word for it
    */
   user->server = find_or_add(server);
-  strlcpy(source_p->host, host, HOSTLEN + 1); 
-  strlcpy(source_p->info, realname, REALLEN);
+  strlcpy(source_p->host, host, sizeof(source_p->host)); 
+  strlcpy(source_p->info, realname, sizeof(source_p->info));
   if (id != NULL)
     strcpy(source_p->user->id, id);
   
@@ -924,7 +929,8 @@ do_remote_user(char* nick, struct Client* client_p, struct Client* source_p,
  * parv[1] - username to change mode for
  * parv[2] - modes to change
  */
-int user_mode(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+int
+user_mode(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
   int   flag;
   int   i;
@@ -933,8 +939,6 @@ int user_mode(struct Client *client_p, struct Client *source_p, int parc, char *
   int   what, setflags;
   int   badflag = NO;		/* Only send one bad flag notice */
   char  buf[BUFSIZE];
-  dlink_node *ptr;
-  struct ConfItem *aconf;
 
   what = MODE_ADD;
 

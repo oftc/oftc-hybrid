@@ -114,6 +114,7 @@ static const char * pidFileName = PPATH;
 
 char**  myargv;
 int     dorehash   = 0;
+int     doremotd   = 0;
 int     debuglevel = -1;        /* Server debug level */
 char*   debugmode  = "";        /*  -"-    -"-   -"-  */
 time_t  nextconnect = 1;        /* time for next try_connections call */
@@ -338,6 +339,13 @@ io_loop(void)
 	  rehash(1);
 	  dorehash = 0;
 	}
+      if (doremotd)
+        {
+          ReadMessageFile( &ConfigFileEntry.motd );
+          sendto_gnotice_flags(FLAGS_ALL, L_ALL, me.name, &me, NULL,
+                               "Got signal SIGUSR1, reloading ircd motd file");
+          doremotd = 0;
+        }
     }
 }
 
@@ -736,8 +744,6 @@ int main(int argc, char *argv[])
   
   ilog(L_NOTICE, "Server Ready");
   
-  eventAddIsh("cleanup_channels", cleanup_channels, NULL, CLEANUP_CHANNELS_TIME);
-
   eventAddIsh("cleanup_glines", cleanup_glines, NULL, CLEANUP_GLINES_TIME);
 
   eventAddIsh("cleanup_tklines", cleanup_tklines, NULL, CLEANUP_TKLINES_TIME);

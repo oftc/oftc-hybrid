@@ -85,6 +85,7 @@ void init_channels(void)
   channel_heap = BlockHeapCreate(sizeof(struct Channel), CHANNEL_HEAP_SIZE);
   ban_heap = BlockHeapCreate(sizeof(struct Ban), BAN_HEAP_SIZE);
   topic_heap = BlockHeapCreate(TOPICLEN+1 + USERHOST_REPLYLEN, TOPIC_HEAP_SIZE);
+
   eventAddIsh("channelheap_garbage_collect", channelheap_garbage_collect,
               NULL, 45);
 }
@@ -243,21 +244,19 @@ remove_user_from_channel(struct Channel *chptr, struct Client *who)
     free_dlink_node(ptr);
   }
 
-  chptr->users_last = CurrentTime;
-
-  for (ptr = who->user->channel.head; ptr; ptr = next_ptr)
+  if (who->user != NULL)
   {
-    next_ptr = ptr->next;
-
-    if (ptr->data == chptr)
+    DLINK_FOREACH_SAFE(ptr, next_ptr, who->user->channel.head)
     {
-      dlinkDelete(ptr, &who->user->channel);
-      free_dlink_node(ptr);
-      break;
+      if (ptr->data == chptr)
+      {
+	dlinkDelete(ptr, &who->user->channel);
+	free_dlink_node(ptr);
+	who->user->joined--;
+	break;
+      }
     }
   }
-
-  who->user->joined--;
 
 #ifdef VCHANS
   if (IsVchan(chptr))
@@ -278,12 +277,11 @@ remove_user_from_channel(struct Channel *chptr, struct Client *who)
  * side effects -
  */
 static void
-send_members(struct Client *client_p,
-             char *lmodebuf,
-             char *lparabuf,
+send_members(struct Client *client_p, char *lmodebuf, char *lparabuf,
              struct Channel *chptr, dlink_list * list, char *op_flag)
 {
   dlink_node *ptr;
+  dlink_node *next_ptr;
   int tlen;                     /* length of t (temp pointer) */
   int mlen;                     /* minimum length */
   int cur_len = 0;              /* current length */
@@ -297,7 +295,7 @@ send_members(struct Client *client_p,
 
   t = buf + mlen;
 
-  for (ptr = list->head; ptr && ptr->data; ptr = ptr->next)
+  DLINK_FOREACH_SAFE(ptr, next_ptr, list->head)
   {
     target_p = ptr->data;
     ircsprintf(t, "%s%s ", op_flag, target_p->name);
@@ -403,7 +401,7 @@ send_mode_list(struct Client *client_p,
   *mp = '\0';
   pp = pbuf;
 
-  for (lp = top->head; lp; lp = lp->next)
+  DLINK_FOREACH(lp, top->head)
   {
     banptr = lp->data;
     tlen = strlen(banptr->banstr);
@@ -457,26 +455,31 @@ check_channel_name(const char *name)
 }
 
 /*
-**  Subtract one user from channel (and free channel
-**  block, if channel became empty).
-*/
+ * sub1_from_channel
+ *
+ * inputs	- pointer to channel to remove client from
+ * output	- did the channel get destroyed
+ * side effects	- remove one user from chptr.  if the
+ *		  channel is now empty, and it is not already
+ *		  scheduled for destruction, schedule it
+ */
 static int
 sub1_from_channel(struct Channel *chptr)
 {
+  dlink_node *c;
+
   if (--chptr->users <= 0)
   {
-    assert(chptr->users >= 0);
+#ifdef INVARIANTS
+    assert(chptr->users == 0);
+#else
     chptr->users = 0;           /* if chptr->users < 0, make sure it sticks at 0
                                  * It should never happen but...
                                  */
-    /* persistent channel */
-    if ((chptr->channelts + ConfigChannel.persist_time) > CurrentTime)
-    {
-      destroy_channel(chptr);
-      return 1;
-    }
+#endif
+    destroy_channel(chptr);
   }
-  return 0;
+  return (0);
 }
 
 /*
@@ -493,97 +496,14 @@ free_channel_list(dlink_list * list)
   dlink_node *next_ptr;
   struct Ban *actualBan;
 
-  for (ptr = list->head; ptr; ptr = next_ptr)
+  DLINK_FOREACH_SAFE(ptr, next_ptr, list->head)
   {
-    next_ptr = ptr->next;
-
     actualBan = ptr->data;
     MyFree(actualBan->banstr);
     MyFree(actualBan->who);
     BlockHeapFree(ban_heap, actualBan);
 
     free_dlink_node(ptr);
-  }
-}
-
-/*
- * cleanup_channels
- *
- * inputs       - not used
- * output       - none
- * side effects - persistent channels... vchans get a long long timeout
- */
-void
-cleanup_channels(void *unused)
-{
-  struct Channel *chptr;
-  struct Channel *next_chptr;
-
-  if (uplink != NULL)
-  {
-    /* XXX The assert disapears when NDEBUG is set */
-    assert(MyConnect(uplink) == 1);
-
-    if (!MyConnect(uplink))
-    {
-      ilog(L_ERROR, "non-local uplink [%s]", uplink->name);
-      uplink = NULL;
-    }
-  }
-
-  for (chptr = GlobalChannelList; chptr; chptr = next_chptr)
-  {
-    next_chptr = chptr->nextch;
-
-#ifdef VCHANS
-    if (IsVchan(chptr))
-    {
-      if (IsVchanTop(chptr))
-      {
-        chptr->users_last = CurrentTime;
-      }
-      else
-      {
-        if ((CurrentTime - chptr->users_last >= MAX_VCHAN_TIME))
-        {
-          if (chptr->users == 0)
-          {
-            if (uplink && IsCapable(uplink, CAP_LL))
-            {
-              sendto_one(uplink, ":%s DROP %s", me.name, chptr->chname);
-            }
-            destroy_channel(chptr);
-          }
-          else
-            chptr->users_last = CurrentTime;
-        }
-      }
-    }
-    else
-#endif
-    {
-      if(chptr->users == 0)
-      {
-        if((chptr->users_last + ConfigChannel.persist_time) < CurrentTime)
-	{
-	  if(uplink && IsCapable(uplink, CAP_LL))
-	    sendto_one(uplink, ":%s DROP %s", me.name, chptr->chname);
-	  destroy_channel(chptr);
-	}
-      }
-      else
-      {
-        if ((CurrentTime - chptr->users_last >= CLEANUP_CHANNELS_TIME))
-        {
-          if (uplink
-                 && IsCapable(uplink, CAP_LL) && (chptr->locusers == 0))
-          {
-            sendto_one(uplink, ":%s DROP %s", me.name, chptr->chname);
-            destroy_channel(chptr);
-          }
-        }
-      }
-    }
   }
 }
 
@@ -623,9 +543,8 @@ destroy_channel(struct Channel *chptr)
    * any reference it has to this channel.
    * Finally, free now unused dlink's
    *
-   * This test allows us to use this code both for LazyLinks and
-   * persistent channels. In the case of a LL the channel need not
-   * be empty, it only has to be empty of local users.
+   * For LazyLinks, note that the channel need not be empty, it only
+   * has to be empty of local users.
    */
 
   delete_members(chptr, &chptr->chanops);
@@ -674,7 +593,7 @@ destroy_channel(struct Channel *chptr)
   del_from_channel_hash_table(chptr->chname, chptr);
   if (ServerInfo.hub == 1)
   {
-    for (m = lazylink_channels.head; m; m = m->next)
+    DLINK_FOREACH(m, lazylink_channels.head)
     {
       if (m->data != chptr)
         continue;
@@ -704,25 +623,28 @@ delete_members(struct Channel *chptr, dlink_list * list)
 
   struct Client *who;
 
-  for (ptr = list->head; ptr; ptr = next_ptr)
+  DLINK_FOREACH_SAFE(ptr, next_ptr, list->head)
   {
     next_ptr = ptr->next;
     who = (struct Client *)ptr->data;
 
-    /* remove reference to chptr from who */
-    for (ptr_ch = who->user->channel.head; ptr_ch; ptr_ch = next_ptr_ch)
+    if (who->user != NULL)
     {
-      next_ptr_ch = ptr_ch->next;
-
-      if (ptr_ch->data == chptr)
+      /* remove reference to chptr from who */
+      for (ptr_ch = who->user->channel.head; ptr_ch; ptr_ch = next_ptr_ch)
       {
-        dlinkDelete(ptr_ch, &who->user->channel);
-        free_dlink_node(ptr_ch);
-        break;
+	next_ptr_ch = ptr_ch->next;
+
+	if (ptr_ch->data == chptr)
+	{
+	  dlinkDelete(ptr_ch, &who->user->channel);
+	  free_dlink_node(ptr_ch);
+	  who->user->joined--;
+	  break;
+	}
       }
     }
 
-    who->user->joined--;
 
 #ifdef VCHANS
     if (IsVchan(chptr))
@@ -816,7 +738,7 @@ channel_member_names(struct Client *source_p,
 	      && !is_chan_op(chptr, who)
 #endif
               && chptr->mode.mode & MODE_HIDEOPS)
-              ircsprintf(t, "+%s ", who->name);
+            ircsprintf(t, "+%s ", who->name);
           else 
             ircsprintf(t, "%s%s ", show_flags[i], who->name);
 
@@ -877,17 +799,13 @@ channel_member_names(struct Client *source_p,
 #endif
 
     set_channel_mode_flags(ptr_flags, chptr, source_p);
-
     is_member = IsMember(source_p, chptr);
-
     ircsprintf(lbuf, form_str(RPL_NAMREPLY),
 	       me.name, source_p->name, channel_pub_or_secret(chptr));
 
     mlen = strlen(lbuf);
-    
     ircsprintf(lbuf + mlen, " %s :", name_of_channel);
     cur_len = mlen = strlen(lbuf);
-
     t = lbuf + cur_len;
 
     for(i = 0; i < NUMLISTS; i++)
@@ -997,7 +915,7 @@ del_invite(struct Channel *chptr, struct Client *who)
 {
   dlink_node *ptr;
 
-  for (ptr = chptr->invites.head; ptr; ptr = ptr->next)
+  DLINK_FOREACH(ptr, chptr->invites.head)
   {
     if (ptr->data == who)
     {
@@ -1007,7 +925,7 @@ del_invite(struct Channel *chptr, struct Client *who)
     }
   }
 
-  for (ptr = who->user->invited.head; ptr; ptr = ptr->next)
+  DLINK_FOREACH(ptr, who->user->invited.head)
   {
     if (ptr->data == chptr)
     {
@@ -1096,7 +1014,7 @@ check_banned(struct Channel *chptr, struct Client *who, char *s, char *s2)
   struct Ban *actualBan = NULL;
   struct Ban *actualExcept = NULL;
 
-  for (ban = chptr->banlist.head; ban; ban = ban->next)
+  DLINK_FOREACH(ban, chptr->banlist.head)
   {
     actualBan = ban->data;
     if (match(actualBan->banstr, s) || 
@@ -1109,7 +1027,7 @@ check_banned(struct Channel *chptr, struct Client *who, char *s, char *s2)
 
   if ((actualBan != NULL) && ConfigChannel.use_except)
   {
-    for (except = chptr->exceptlist.head; except; except = except->next)
+    DLINK_FOREACH(except, chptr->exceptlist.head)
     {
       actualExcept = except->data;
 
@@ -1158,11 +1076,12 @@ can_join(struct Client *source_p, struct Channel *chptr, char *key)
     for (lp = source_p->user->invited.head; lp; lp = lp->next)
       if (lp->data == chptr)
         break;
-    if (!lp)
+
+    if (lp == NULL)
     {
       if (!ConfigChannel.use_invex)
         return (ERR_INVITEONLYCHAN);
-      for (ptr = chptr->invexlist.head; ptr; ptr = ptr->next)
+      DLINK_FOREACH(ptr, chptr->invexlist.head)
       {
         invex = ptr->data;
         if (match(invex->banstr, src_host) || match(invex->banstr, src_iphost) ||
@@ -1194,16 +1113,16 @@ can_join(struct Client *source_p, struct Channel *chptr, char *key)
 int
 is_chan_op(struct Channel *chptr, struct Client *who)
 {
-  if (chptr)
+  if (chptr != NULL)
   {
     if (find_user_link(&chptr->chanops, who) != NULL)
-      return 1;
+      return (1);
 #ifdef REQUIRE_OANDV
     if (find_user_link(&chptr->chanops_voiced, who) != NULL)
-      return 1;
+      return (1);
 #endif
   }
-  return 0;
+  return (0);
 }
 
 /*
@@ -1217,20 +1136,20 @@ is_chan_op(struct Channel *chptr, struct Client *who)
 int
 is_any_op(struct Channel *chptr, struct Client *who)
 {
-  if (chptr)
+  if (chptr != NULL)
   {
     if (find_user_link(&chptr->chanops, who) != NULL)
-      return 1;
+      return (1);
 #ifdef HALFOPS
     if (find_user_link(&chptr->halfops, who) != NULL)
-      return 1;
+      return (1);
 #endif
 #ifdef REQUIRE_OANDV
     if (find_user_link(&chptr->chanops_voiced, who) != NULL)
-      return 1;
+      return (1);
 #endif
   }
-  return 0;
+  return (0);
 }
 
 /*
@@ -1245,13 +1164,13 @@ is_any_op(struct Channel *chptr, struct Client *who)
 int
 is_half_op(struct Channel *chptr, struct Client *who)
 {
-  if (chptr)
+  if (chptr != NULL)
   {
     if ((find_user_link(&chptr->halfops, who)))
       return (1);
   }
 
-  return 0;
+  return (0);
 }
 #endif
 
@@ -1266,16 +1185,16 @@ is_half_op(struct Channel *chptr, struct Client *who)
 int
 is_voiced(struct Channel *chptr, struct Client *who)
 {
-  if (chptr)
+  if (chptr != NULL)
   {
     if (find_user_link(&chptr->voiced, who) != NULL)
-      return 1;
+      return (1);
 #ifdef REQUIRE_OANDV
     if (find_user_link(&chptr->chanops_voiced, who) != NULL)
-      return 1;
+      return (1);
 #endif
   }
-  return 0;
+  return (0);
 }
 
 
@@ -1296,17 +1215,17 @@ can_send(struct Channel *chptr, struct Client *source_p)
   if(IsGod(source_p))
       return -2;
   if(MyClient(source_p) && find_channel_resv(chptr->chname))
-    return CAN_SEND_NO;
+    return (CAN_SEND_NO);
     
-  if (is_any_op(chptr, source_p))
-    return CAN_SEND_OPV;
-  if (is_voiced(chptr, source_p))
-    return CAN_SEND_OPV;
-  if (IsServer(source_p))
-    return CAN_SEND_OPV;
+   if (is_any_op(chptr, source_p))
+     return (CAN_SEND_OPV);
+   if (is_voiced(chptr, source_p))
+     return (CAN_SEND_OPV);
+   if (IsServer(source_p))
+     return (CAN_SEND_OPV);
 
-  if (chptr->mode.mode & MODE_MODERATED)
-    return CAN_SEND_NO;
+   if (chptr->mode.mode & MODE_MODERATED)
+     return (CAN_SEND_NO);
 
   if (ConfigChannel.quiet_on_ban && MyClient(source_p) &&
       (is_banned(chptr, source_p) == CHFL_BAN))
@@ -1317,7 +1236,7 @@ can_send(struct Channel *chptr, struct Client *source_p)
   if (chptr->mode.mode & MODE_NOPRIVMSGS && !IsMember(source_p, chptr))
     return (CAN_SEND_NO);
 
-  return CAN_SEND_NONOP;
+  return (CAN_SEND_NONOP);
 }
 
 /* void check_spambot_warning(struct Client *source_p)
@@ -1390,13 +1309,13 @@ check_spambot_warning(struct Client *source_p, const char *name)
  * side effects - compares usercount and servercount against their split
  *                values and adjusts splitmode accordingly
  */
-void check_splitmode(void *unused)
+void
+check_splitmode(void *unused)
 {
   if(splitchecking && (ConfigChannel.no_join_on_split ||
      ConfigChannel.no_create_on_split))
   {
-    if((Count.server < split_servers) &&
-       (Count.total < split_users))
+    if((Count.server < split_servers) && (Count.total < split_users))
     {
       if(!splitmode)
       {
@@ -1425,29 +1344,27 @@ void check_splitmode(void *unused)
  * side effects - Allocates a new topic
  */
 
-int allocate_topic(struct Channel *chptr)
+int
+allocate_topic(struct Channel *chptr)
 {
   void *ptr;
   if(chptr == NULL)
     return FALSE;
   
   ptr = BlockHeapAlloc(topic_heap);  
-  if(ptr != NULL)
-  {
-    /* Basically we allocate one large block for the topic and
-     * the topic info.  We then split it up into two and shove it
-     * in the chptr 
-     */
-    chptr->topic = ptr;
-    chptr->topic_info = (char *)ptr + TOPICLEN+1;
-    *chptr->topic = '\0';
-    *chptr->topic_info = '\0';
-    return TRUE;
-  }
-  return FALSE;
+  /* Basically we allocate one large block for the topic and
+   * the topic info.  We then split it up into two and shove it
+   * in the chptr 
+   */
+  chptr->topic = ptr;
+  chptr->topic_info = (char *)ptr + TOPICLEN+1;
+  *chptr->topic = '\0';
+  *chptr->topic_info = '\0';
+  return (TRUE);
 }
 
-void free_topic(struct Channel *chptr)
+void
+free_topic(struct Channel *chptr)
 {
   void *ptr;
   
@@ -1467,16 +1384,19 @@ void free_topic(struct Channel *chptr)
 /*
  * set_channel_topic - Sets the channel topic
  */
-void set_channel_topic(struct Channel *chptr, const char *topic, const char *topic_info, time_t topicts)
+void
+set_channel_topic(struct Channel *chptr, const char *topic,
+		  const char *topic_info, time_t topicts)
 {
   if(strlen(topic) > 0)
   {
     if(chptr->topic == NULL)
       allocate_topic(chptr);
-    strlcpy(chptr->topic, topic, TOPICLEN);
+    strlcpy(chptr->topic, topic, TOPICLEN+1);
     strlcpy(chptr->topic_info, topic_info,  USERHOST_REPLYLEN);
     chptr->topic_time = topicts; 
-  } else
+  }
+  else
   {
     if(chptr->topic != NULL)
       free_topic(chptr);

@@ -84,35 +84,37 @@ static void mo_squit(struct Client *client_p, struct Client *source_p,
   char  *comment = (parc > 2 && parv[2]) ? parv[2] : client_p->name;
 
   if (!IsOperRemote(source_p))
-  {
-    sendto_one(source_p,":%s NOTICE %s :You need remote = yes;",me.name,parv[0]);
-    return;
-  }
+    {
+      sendto_one(source_p,":%s NOTICE %s :You need remote = yes;",me.name,parv[0]);
+      return;
+    }
 
   if(parc < 2)
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, parv[0], 
-        "SQUIT");
-    return;
-  }
+    {
+      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), 
+              me.name, parv[0], "SQUIT");
+      return;
+    }
 
   if( (found_squit = find_squit(client_p,source_p,parv[1])) )
-  {
-    if(MyConnect(found_squit->target_p))
-	{
-	  sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-            "Received SQUIT %s from %s (%s)",
-            found_squit->target_p->name,
-            get_client_name(source_p, HIDE_IP), comment);
-      ilog(L_NOTICE, "Received SQUIT %s from %s (%s)",
-            found_squit->target_p->name, get_client_name(source_p, HIDE_IP),
-            comment);
-	}
-    exit_client(client_p, found_squit->target_p, source_p, comment);
-    return;
-  }
+    {
+      if(MyConnect(found_squit->target_p))
+	    {
+	      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+                "Received SQUIT %s from %s (%s)",
+                found_squit->target_p->name,
+                get_client_name(source_p, HIDE_IP), comment);
+          ilog(L_NOTICE, "Received SQUIT %s from %s (%s)",
+                found_squit->target_p->name, get_client_name(source_p, HIDE_IP),
+                comment);
+	    }
+      exit_client(client_p, found_squit->target_p, source_p, comment);
+      return;
+    }
   else
-    sendto_one(source_p, form_str(ERR_NOSUCHSERVER), me.name, parv[0], parv[1]);
+    {
+      sendto_one(source_p, form_str(ERR_NOSUCHSERVER), me.name, parv[0], parv[1]);
+    }
 }
 
 /*
@@ -128,27 +130,27 @@ static void ms_squit(struct Client *client_p, struct Client *source_p,
   char  *comment = (parc > 2 && parv[2]) ? parv[2] : client_p->name;
 
   if(parc < 2)
-  {
-    exit_client(client_p, client_p, source_p, comment);
-    return;
-  }
+    {
+      exit_client(client_p, client_p, source_p, comment);
+      return;
+    }
 
   if( (found_squit = find_squit(client_p, source_p, parv[1])) )
-  {
+    {
       /*
       **  Notify all opers, if my local link is remotely squitted
       */
-    if (MyConnect(found_squit->target_p))
-	{
-	  sendto_gnotice_flags(FLAGS_CCONN, L_OPER, me.name, &me, NULL,
-            "Remote SQUIT %s from %s (%s)",
-            found_squit->server_name,
-            source_p->name, comment);
+      if (MyConnect(found_squit->target_p))
+	  {
+	    sendto_gnotice_flags(FLAGS_CCONN, L_OPER, me.name, &me, NULL,
+              "Remote SQUIT %s from %s (%s)",
+              found_squit->server_name,
+              source_p->name, comment);
 
-	  ilog(L_TRACE, "SQUIT From %s : %s (%s)", parv[0],
-	       found_squit->server_name, comment);
+	    ilog(L_TRACE, "SQUIT From %s : %s (%s)", parv[0],
+	         found_squit->server_name, comment);
 
-	}
+	  }
       exit_client(client_p, found_squit->target_p, source_p, comment);
       return;
     }

@@ -353,5 +353,9 @@ int comm_select(unsigned long delay)
     mask_our_signal(sigio_signal);
     return 0;
 }
-
+#else
+/**
+ * Don't let an empty compilation unit slip through.
+ */
+static int dummy;
 #endif

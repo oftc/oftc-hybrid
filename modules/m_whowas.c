@@ -79,7 +79,7 @@ static void m_whowas(struct Client *client_p,
 {
   static time_t last_used=0L;
 
-  if (parc < 2)
+  if (parc < 2 || parv[1][0] == '\0')
     {
       sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
                  me.name, parv[0]);
@@ -104,7 +104,7 @@ static void mo_whowas(struct Client *client_p,
                      int parc,
                      char *parv[])
 {
-  if (parc < 2)
+  if (parc < 2 || parv[1][0] == '\0')
     {
       sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
                  me.name, parv[0]);

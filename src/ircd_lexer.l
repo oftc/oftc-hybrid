@@ -137,6 +137,7 @@ administrator	{ return ADMIN; }
 aftype		{ return AFTYPE; }
 auth		{ return AUTH; }
 autoconn	{ return AUTOCONN; }
+can_flood	{ return CAN_FLOOD; }
 caller_id_wait	{ return CALLER_ID_WAIT; }
 channel		{ return CHANNEL; }
 cipher_preference { return CIPHER_PREFERENCE; }
@@ -166,6 +167,7 @@ encrypted       { return ENCRYPTED; }
 exceed_limit    { return EXCEED_LIMIT; }
 exempt		{ return EXEMPT; }
 fakename	{ return FAKENAME; }
+fallback_to_ip6_int { return FALLBACK_IP6_INT; }
 flatten_links	{ return FLATTEN_LINKS; }
 fname_foperlog  { return FNAME_FOPERLOG; }
 fname_operlog   { return FNAME_OPERLOG; }
@@ -224,10 +226,10 @@ no_tilde	{ return NO_TILDE; }
 number_per_ip	{ return NUMBER_PER_IP; }
 oper		{ return OPERATOR; }
 oper_log        { return OPER_LOG; }
+oper_pass_resv	{ return OPER_PASS_RESV; }
 operator	{ return OPERATOR; }
 passwd		{ return PASSWORD; }
 password	{ return PASSWORD; }
-persist_time    { return PERSIST_TIME; }
 ping_cookie	{ return PING_COOKIE; }
 ping_time	{ return PING_TIME; }
 port		{ return PORT; }
@@ -246,14 +248,13 @@ send_password	{ return SEND_PASSWORD; }
 sendq		{ return SENDQ; }
 serverhide	{ return SERVERHIDE; }
 serverinfo	{ return SERVERINFO; }
-service         { return SERVICE; }
-services        { return SERVICES; }
 servlink_path   { return SERVLINK_PATH; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }
 silent          { return SILENT; }
 spoof		{ return SPOOF; }
 spoof_notice	{ return SPOOF_NOTICE; }
+true_no_oper_flood { return TRUE_NO_OPER_FLOOD; }
 unkline		{ return UNKLINE; }
 use_anonops	{ return USE_ANONOPS; }
 use_egd 	{ return USE_EGD; }
@@ -322,8 +323,6 @@ wallop                  { return T_WALLOP; }
 callerid                { return T_CALLERID; }
 drone                   { return T_DRONE; }
 locops                  { return T_LOCOPS; }
-god                     { return T_GOD; }
-nickservreg             { return T_NICKSERVREG; }
 
 millennia		{ return MILLENNIA; }
 millennium		{ return MILLENNIA; }
