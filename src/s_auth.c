@@ -207,7 +207,6 @@ auth_dns_callback(void* vptr, struct DNSReply *reply)
   else
       sendheader(auth->client, REPORT_FAIL_DNS);
 
-  MyFree(reply);
   MyFree(auth->client->localClient->dns_query);
   auth->client->localClient->dns_query = NULL;
 
@@ -269,7 +268,7 @@ start_auth_query(struct AuthRequest* auth)
   {
     report_error(L_ALL, "creating auth stream socket %s:%s", 
         get_client_name(auth->client, SHOW_IP), errno);
-    ilog(L_ERROR, "Unable to create auth socket for %s:%m",
+    ilog(L_ERROR, "Unable to create auth socket for %s",
         get_client_name(auth->client, SHOW_IP));
     ++ServerStats->is_abad;
     return 0;
@@ -451,7 +450,10 @@ timeout_auth_queries_event(void *notused)
 	ClearDNSPending(auth);
 	dlinkDelete(&auth->dns_node, &auth_doing_dns_list);
 	if (client_p->localClient->dns_query != NULL)
+    {
 	  delete_resolver_queries(client_p->localClient->dns_query);
+      MyFree(client_p->localClient->dns_query);
+    }
 	auth->client->localClient->dns_query = NULL;
 	sendheader(client_p, REPORT_FAIL_DNS);
       }
@@ -503,7 +505,7 @@ auth_connect_callback(int fd, int error, void *data)
   if (getsockname(auth->client->localClient->fd, (struct sockaddr *)&us,   (socklen_t*)&ulen) ||
       getpeername(auth->client->localClient->fd, (struct sockaddr *)&them, (socklen_t*)&tlen))
   {
-    ilog(L_INFO, "auth get{sock,peer}name error for %s:%m",
+    ilog(L_INFO, "auth get{sock,peer}name error for %s",
         get_client_name(auth->client, SHOW_IP));
     auth_error(auth);
     return;

@@ -86,7 +86,7 @@ extern int init_resolver(void);
 extern void restart_resolver(void);
 extern void add_local_domain(char *hname, size_t size);
 extern void timeout_resolver(void *notused);
-extern void delete_resolver_queries(const void *vptr);
+extern void delete_resolver_queries(const struct DNSQuery *query);
 extern void report_dns_servers(struct Client *source_p);
 extern void gethost_byname_type(const char *name, const struct DNSQuery *query, int type);
 extern void gethost_byname(const char *name, const struct DNSQuery *query);
