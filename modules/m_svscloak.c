@@ -79,23 +79,23 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
   target = parv[1];
   hostname = parv[2];
 
-  if ((cloak = find_person(target)))
+  if ((target_p= find_person(target)))
   {   
-    if(MyClient(cloak) && irccmp(cloak->host, hostname) != 0)
+    if(MyClient(target_p) && irccmp(target_p->host, hostname) != 0)
     {   
-      sendto_one(cloak, ":%s NOTICE %s :Activating Cloak: %s",
-          me.name, cloak->name, hostname);
+      sendto_one(target_p, ":%s NOTICE %s :Activating Cloak: %s",
+          me.name, target_p->name, hostname);
       sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-          "Activating Cloak: %s -> %s for %s", cloak->host, hostname,
-          cloak->name);
+          "Activating Cloak: %s -> %s for %s", target_p->host, hostname,
+          target_p->name);
     }
 
     sendto_server(source_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS, 
         ":%s SVSCLOAK %s :%s", me.name, target, hostname);
-    if(strlen(cloak->realhost) <= 1)
-        strncpy(cloak->realhost, cloak->host, HOSTLEN);
-    strncpy(cloak->host, hostname, HOSTLEN);
-    off_history(cloak);
+    if(strlen(target_p->realhost) <= 1)
+        strncpy(target_p->realhost, target_p->host, HOSTLEN);
+    strncpy(target_p->host, hostname, HOSTLEN);
+    off_history(target_p);
   }
   else
   {   
