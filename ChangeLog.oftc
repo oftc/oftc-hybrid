@@ -1,3 +1,16 @@
+stu         2004/02/23 22:30:56 UTC	(20040223_1)
+
+  Modified files:
+    include              patchlevel.h 
+  Log:
+  actually we better tag this as rc1 in case any nasty bugs creep in at the
+  last minute
+  
+  Revision  Changes    Path
+  1.11      +1 -1      oftc-hybrid/include/patchlevel.h
+
+
+
 stu         2004/02/23 22:30:10 UTC	(20040223_0)
 
   Modified files:
