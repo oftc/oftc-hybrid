@@ -573,9 +573,6 @@ static void update_client_exit_stats(struct Client* client_p)
   if (IsServer(client_p))
   {
     --Count.server;
-    sendto_realops_flags(FLAGS_EXTERNAL, L_ALL, 
-			 "Server %s split from %s",
-			 client_p->name, client_p->servptr->name);
   }
   else if (IsClient(client_p))
   {
