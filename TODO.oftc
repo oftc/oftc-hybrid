@@ -1,13 +1,5 @@
 $Id$
 /list >x and <x
-/quote ns and friends, assuming no conflicts:
-    OperServ
-    NickServ
-    ChanServ
-    MemoServ
-    StatServ
-    HelpServ
-    SeenServ
 
 Merge stuff with hybrid -current for great eliteness
 
