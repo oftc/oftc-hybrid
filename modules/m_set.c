@@ -364,7 +364,7 @@ quote_spamnum( struct Client *source_p, int newval )
     {
       GlobalSetOptions.spam_num = newval;
     }
-    sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,"%s has changed SPAMNUM to %i",
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,"%s has changed SPAMNUM to %i",
 		source_p->name, GlobalSetOptions.spam_num);
   }
   else
@@ -389,7 +389,7 @@ quote_spamtime( struct Client *source_p, int newval )
     {
       GlobalSetOptions.spam_time = newval;
     }
-    sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,"%s has changed SPAMTIME to %i",
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,"%s has changed SPAMTIME to %i",
 		source_p->name, GlobalSetOptions.spam_time);
   }
   else

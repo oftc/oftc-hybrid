@@ -52,7 +52,7 @@ show_stats(struct hook_stats_data *data)
   if((data->statchar == 'L') || (data->statchar == 'l'))
     {
       if(data->name != NULL)
-	sendto_gnotice_flags(UMODE_SPY, L_OPER, me.name, &me, NULL,
+	sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
 			     "STATS %c requested by %s (%s@%s) [%s] on %s",
 			     data->statchar,
 			     data->source_p->name,
@@ -61,7 +61,7 @@ show_stats(struct hook_stats_data *data)
 			     data->source_p->user->server->name,
 			     data->name);
       else
-	sendto_gnotice_flags(UMODE_SPY, L_OPER, me.name, &me, NULL,
+	sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
 			     "STATS %c requested by %s (%s@%s) [%s]",
 			     data->statchar,
 			     data->source_p->name,
@@ -71,7 +71,7 @@ show_stats(struct hook_stats_data *data)
     }
   else
     {
-      sendto_gnotice_flags(UMODE_SPY, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
                            "STATS %c requested by %s (%s@%s) [%s]",
 			   data->statchar, data->source_p->name, data->source_p->username,
 			   data->source_p->host, data->source_p->user->server->name);

@@ -49,7 +49,7 @@ const char *_version = "$Revision$";
 
 int show_trace(struct hook_spy_data *data)
 {
-  sendto_gnotice_flags(UMODE_SPY, L_OPER, me.name, &me, NULL,
+  sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
                          "trace requested by %s (%s@%s) [%s]",
                          data->source_p->name, data->source_p->username,
                          data->source_p->host, data->source_p->user->server->name);
@@ -59,7 +59,7 @@ int show_trace(struct hook_spy_data *data)
 
 int show_ltrace(struct hook_spy_data *data)
 {
-  sendto_gnotice_flags(UMODE_SPY, L_OPER, me.name, &me, NULL,
+  sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
 		       "ltrace requested by %s (%s@%s) [%s]",
 		       data->source_p->name, data->source_p->username,
 		       data->source_p->host, data->source_p->user->server->name);

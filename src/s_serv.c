@@ -1114,7 +1114,7 @@ server_estab(struct Client *client_p)
   client_p->firsttime = CurrentTime;
 
   /* Now show the masked hostname/IP to opers */
-  sendto_gnotice_flags(UMODE_SERV, L_OPER, me.name, &me, NULL,
+  sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL,
                        "Link with %s established: (%s) link",
                        inpath,show_capabilities(client_p));
   ilog(L_NOTICE, "Link with %s established: (%s) link",

@@ -574,7 +574,7 @@ GreetUser(struct Client *client)
 
   client->user->last = CurrentTime;
 
-  sendto_gnotice_flags(UMODE_CCONN, L_OPER, me.name, &me, NULL,
+  sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL,
 		       "Client connecting: %s (%s@%s) [%s] {%s}",
 		       client->name,
 		       client->username,

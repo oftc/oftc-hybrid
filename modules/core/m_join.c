@@ -155,7 +155,7 @@ m_join(struct Client *client_p, struct Client *source_p,
     {
       sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
                  me.name, source_p->name, name);
-      sendto_gnotice_flags(UMODE_SPY, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
                            "User %s (%s@%s) is attempting to join locally "
                            "juped channel %s", source_p->name,
                            source_p->username, source_p->host, name);
@@ -253,7 +253,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: JOIN %s", source_p->name,
           chptr->chname);
-      sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, 
+      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, 
           tmp);
       oftc_log(tmp);
     } 

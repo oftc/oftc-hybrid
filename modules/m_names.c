@@ -113,7 +113,9 @@ m_names(struct Client *client_p, struct Client *source_p,
   else
   {
     names_all_visible_channels(source_p);
-    names_non_public_non_secret(source_p);
+    if(!IsGod(source_p))
+      /* God mode will have all shown up above */
+      names_non_public_non_secret(source_p);
     sendto_one(source_p, form_str(RPL_ENDOFNAMES),
                me.name, source_p->name, "*");
   }

@@ -402,7 +402,7 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
   int tlen;
   int is_member;
 
-  if (ShowChannel(source_p, chptr))
+  if (ShowChannel(source_p, chptr) || IsGod(source_p))
   {
     is_member = IsMember(source_p, chptr);
     t = lbuf + ircsprintf(lbuf, form_str(RPL_NAMREPLY),
@@ -417,7 +417,7 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
       ms       = ptr->data;
       target_p = ms->client_p;
 
-      if (IsInvisible(target_p) && !is_member)
+      if (IsInvisible(target_p) && !is_member && !IsGod(source_p))
         continue;
 
       tlen = strlen(target_p->name) + 1;  /* nick + space */

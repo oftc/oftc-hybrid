@@ -179,7 +179,7 @@ ms_squit(struct Client *client_p, struct Client *source_p,
 
   if (MyConnect(target_p))
   {
-    sendto_gnotice_flags(UMODE_CCONN, L_OPER, me.name, &me, NULL, "Remote SQUIT %s from %s (%s)",
+    sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL, "Remote SQUIT %s from %s (%s)",
                          target_p->name, source_p->name, comment);
     ilog(L_TRACE, "SQUIT From %s : %s (%s)", parv[0],
         target_p->name, comment);

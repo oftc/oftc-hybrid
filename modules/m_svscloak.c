@@ -85,7 +85,7 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
     {   
       sendto_one(target_p, ":%s NOTICE %s :Activating Cloak: %s",
           me.name, target_p->name, hostname);
-      sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
           "Activating Cloak: %s -> %s for %s", target_p->host, hostname,
           target_p->name);
     }
