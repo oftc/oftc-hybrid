@@ -693,6 +693,7 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
     mode_changes[mode_count].id = NULL;
     mode_changes[mode_count].mems = ALL_MEMBERS;
     mode_changes[mode_count++].arg = NULL;
+    gnote = 1;
   }
   else if ((dir == MODE_DEL) && (chptr->mode.mode & mode_type)) 
   {
@@ -712,13 +713,15 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
   if(alev == (CHACCESS_CHANOP + 1) && MyClient(source_p) && gnote)
   {     
     char tmp[IRCD_BUFSIZE];
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
-        source_p->name, chname, parv[0],
-        EmptyString(parv[1]) ? "" : parv[1]);
+    if(c == 'k' || EmptyString(parv[1]))
+      ircsprintf(tmp, "%s is using God mode: MODE %s %s", source_p->name, 
+            chname, parv[0]);
+    else
+      ircsprintf(tmp, "%s is using God mode: MODE %s %s %s", source_p->name,
+            chname, parv[0], parv[1]);
     sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
     oftc_log(tmp);
   } 
-
 }
 
 static void
@@ -1180,6 +1183,15 @@ chm_op(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count++].client = targ_p;
 
     DelMemberFlag(member, CHFL_CHANOP);
+    if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))   
+    {   
+     char tmp[IRCD_BUFSIZE];   
+     ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",   
+         source_p->name, chname, parv[0],   
+         EmptyString(parv[1]) ? "" : parv[1]);   
+     sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);   
+     oftc_log(tmp); 
+    }
   }
 }
 
