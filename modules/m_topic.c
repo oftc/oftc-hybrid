@@ -125,16 +125,17 @@ m_topic(struct Client *client_p, struct Client *source_p,
         return;
       }
       if ((chptr->mode.mode & MODE_TOPICLIMIT) == 0 ||
-          has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP))
+          has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) || IsGod(source_p))
       {
         char topic_info[USERHOST_REPLYLEN]; 
         if(!has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) && 
-                IsGod(source_p) && MyClient(source_p))
+                IsGod(source_p) && MyClient(source_p) &&
+                (chptr->mode.mode & MODE_TOPICLIMIT) != 0)
         {              
           char tmp[IRCD_BUFSIZE];           
           ircsprintf(tmp, "%s is using God mode: TOPIC %s %s", source_p->name, 
                   chptr->chname, parv[2]);              
-          sendto_gnotice_flags(UMODE_SERVNOTICE, L_OPER, me.name, &me, NULL, 
+          sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, 
                   tmp);
           oftc_log(tmp);
         }
