@@ -78,7 +78,7 @@ typedef struct SearchOptions
     char *user;
     char *host;
     char *gcos;
-    char *ip;
+/*    char *ip; not atm */
     struct Channel *channel;
     struct Client *server;
     char umode_plus:1;
@@ -86,7 +86,7 @@ typedef struct SearchOptions
     char user_plus:1;
     char host_plus:1;
     char gcos_plus:1;
-    char ip_plus:1;
+/*    char ip_plus:1;*/
     char chan_plus:1;
     char serv_plus:1;
     char away_plus:1;
@@ -398,7 +398,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
       if(wsopts.show_chan && !(wsopts.check_away || wsopts.gcos ||
 			       wsopts.host || wsopts.check_umode ||
 			       wsopts.server || wsopts.user || wsopts.nick ||
-			       wsopts.ip || wsopts.channel))
+			       /*wsopts.ip ||*/ wsopts.channel))
       {
 	  if(parv[args]==NULL)
 	  {
@@ -458,29 +458,75 @@ chk_who(struct Client *target_p, int showall)
      * isn't true, most (all?) compilers will never try the
      * second...phew :) */
   if(wsopts.user!=NULL)
-    if((wsopts.user_plus && uchkfn(wsopts.user, target_p->username)) ||
-        (!wsopts.user_plus && !uchkfn(wsopts.user, target_p->username)))
+  {
+    if(uchkfn == match)
+    {
+      if((wsopts.user_plus && !uchkfn(wsopts.user, target_p->username)) ||
+              (!wsopts.user_plus && uchkfn(wsopts.user, target_p->username)))
       return 0;
+    }
+    else
+    {
+      if((wsopts.user_plus && uchkfn(wsopts.user, target_p->username)) ||
+              (!wsopts.user_plus && !uchkfn(wsopts.user, target_p->username)))
+          return 0;
+    }
+  }
 
   if(wsopts.nick!=NULL)
-    if((wsopts.nick_plus && nchkfn(wsopts.nick, target_p->name)) ||
-        (!wsopts.nick_plus && !nchkfn(wsopts.nick, target_p->name)))
+  {
+    if(nchkfn == match)
+    {
+      if((wsopts.nick_plus && !nchkfn(wsopts.nick, target_p->name)) ||
+              (!wsopts.nick_plus && nchkfn(wsopts.nick, target_p->name)))
        return 0;
+    }
+    else
+    {
+        if((wsopts.nick_plus && nchkfn(wsopts.nick, target_p->name)) ||
+                (!wsopts.nick_plus && !nchkfn(wsopts.nick, target_p->name)))
+            return 0;
+    }
+  }
     
   if(wsopts.host!=NULL)
-    if((wsopts.host_plus && hchkfn(wsopts.host, target_p->host)) ||
-        (!wsopts.host_plus && !hchkfn(wsopts.host, target_p->host)))
+  {
+    if(hchkfn == match)
+    {
+      if((wsopts.host_plus && !hchkfn(wsopts.host, target_p->host)) ||
+                (!wsopts.host_plus && hchkfn(wsopts.host, target_p->host)))
       return 0;
+    }
+    else
+    {
+      if((wsopts.host_plus && hchkfn(wsopts.host, target_p->host)) ||
+              (!wsopts.host_plus && !hchkfn(wsopts.host, target_p->host)))
+          return 0;
+    }
+  }
     
-  if(wsopts.ip!=NULL)
+/* 
+ * we don't do ips atm 
+ * if(wsopts.ip!=NULL)
     if((wsopts.ip_plus && ichkfn(wsopts.ip, target_p->localClient->sockhost)) ||
         (!wsopts.ip_plus && !ichkfn(wsopts.ip, target_p->localClient->sockhost)))
       return 0;
-    
+ */   
   if(wsopts.gcos!=NULL)
-	if((wsopts.gcos_plus && gchkfn(wsopts.gcos, target_p->info)) ||
-	   (!wsopts.gcos_plus && !gchkfn(wsopts.gcos, target_p->info)))
+  {
+    if(gchkfn == match)
+    {
+      if((wsopts.gcos_plus && !gchkfn(wsopts.gcos, target_p->info)) ||
+              (!wsopts.gcos_plus && gchkfn(wsopts.gcos, target_p->info)))
+          return 0;
+    }
+    else
+    {
+      if((wsopts.gcos_plus && gchkfn(wsopts.gcos, target_p->info)) ||
+              (!wsopts.gcos_plus && !gchkfn(wsopts.gcos, target_p->info)))
 	  return 0;
+    }
+  }
   return 1;
 }
 
@@ -600,12 +646,12 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   else
 	hchkfn=match;
 
-  if(wsopts.ip!=NULL && (strchr(wsopts.ip, '?'))==NULL &&
+/*  if(wsopts.ip!=NULL && (strchr(wsopts.ip, '?'))==NULL &&
         (strchr(wsopts.ip, '*'))==NULL)
 	ichkfn=irccmp;
   else
 	ichkfn=match;
-
+*/
 
   if(wsopts.channel!=NULL)
   {
@@ -670,11 +716,13 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   if(wsopts.search_chan)
   {
     dlink_node *ptr;
+    struct Membership *m;
     struct Channel *chan_p;
 
     DLINK_FOREACH(ptr, source_p->user->channel.head)
 	{
-      chan_p = ptr->data;
+      m = ptr->data;
+      chan_p = m->chptr;
       if(shown >= MAXWHOREPLIES && !IsOper(source_p))
       {
         sendto_one(source_p, form_str(ERR_WHOLIMEXCEED), me.name,
