@@ -128,7 +128,8 @@ static struct flag_item user_modes[] =
 
 extern struct Link *find_channel_link(struct Link *, struct Channel *);
 
-int build_searchopts(struct Client *source_p, int parc, char *parv[])
+int
+build_searchopts(struct Client *source_p, int parc, char *parv[])
 {
   static char *who_help[] =
   {
@@ -427,7 +428,8 @@ int (*uchkfn)(const char *, const char *);
 int (*hchkfn)(const char *, const char *);
 int (*ichkfn)(const char *, const char *);
 
-int chk_who(struct Client *target_p, int showall)
+int
+chk_who(struct Client *target_p, int showall)
 {
   if(!IsClient(target_p))
     return 0;
@@ -480,8 +482,8 @@ int chk_who(struct Client *target_p, int showall)
   return 1;
 }
 
-inline char *first_visible_channel(struct Client *client_p, 
-        struct Client *source_p)
+inline char *
+first_visible_channel(struct Client *client_p, struct Client *source_p)
 {
   struct Link *lp;
   dlink_node *ptr;
@@ -496,20 +498,21 @@ inline char *first_visible_channel(struct Client *client_p,
       break;
   }
 
-  if(ptr)
+  if(ptr != NULL)
   {
-      chptr = ptr->data;
-      next_ptr = ptr->next;
+    chptr = ptr->data;
+    next_ptr = ptr->next;
   }
 
-  if(chptr)
+  if(chptr != NULL)
     return chptr->chname;
   return "*";
 }
 #define MAXWHOREPLIES 200
 #define WHO_HOPCOUNT(s, a) (a->hopcount)
 
-int do_who_channel_list(struct Client *source_p, dlink_list list, int showall)
+int
+do_who_channel_list(struct Client *source_p, dlink_list list, int showall)
 {
   struct Client *target_p;
   dlink_node *ptr;
@@ -525,13 +528,28 @@ int do_who_channel_list(struct Client *source_p, dlink_list list, int showall)
     if(!chk_who(target_p, showall))
       continue;
      
-    status[i++] = (target_p->user->away==NULL ? 'H' : 'G');
+    /* Whomever wrote the original code here is an incompetent
+     * nincompoop the original was donkey doo doo, and you can
+     * quote me on that. sheesh - Dianora
+     */
+    if (target_p->user->away==NULL)
+      status[i++] = 'G';
+    else
+      status[i++] = 'H';
+    if (IsOper(target_p))
+      status[i++] = '*';
+    /* WHAT is this supposed to do? -db */
+#if 0
     status[i] = (IsOper(target_p) ? '*' : ((IsInvisible(target_p) &&
                       IsOper(source_p)) ? '%' : 0));
-    status[((status[i]) ? ++i : i)] = ((target_p->flags&CHFL_CHANOP) ? '@'
-                     : ((target_p->flags&CHFL_VOICE) ? '+' : 0));
+#endif
+
+    if (target_p->flags & CHFL_CHANOP)
+      status[i++] = '@';
+    else if (target_p->flags & CHFL_VOICE)
+      status[i++] = '%';
     
-    status[++i] = 0;
+    status[i] = '\0';
     sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
            wsopts.channel->chname, target_p->username, target_p->host,
            target_p->user->server, target_p->name, status,
@@ -542,7 +560,8 @@ int do_who_channel_list(struct Client *source_p, dlink_list list, int showall)
 }
 
 /* allow lusers only 200 replies from /who */
-static void m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+static void
+m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
   struct Client *target_p;
   dlink_node *cm;
@@ -717,3 +736,4 @@ static void m_who(struct Client *client_p, struct Client *source_p, int parc, ch
               (wsopts.server!=NULL ? wsopts.server->name : "*"))))));
   return;
 }
+
