@@ -1,3 +1,55 @@
+stu         2005/01/02 23:13:35 UTC	(20050102_0)
+
+  Modified files:
+    .                    RELNOTES configure 
+    etc                  example.conf 
+    include              fdlist.h listener.h numeric.h 
+                         patchlevel.h s_bsd.h s_conf.h send.h 
+                         stdinc.h supported.h 
+    messages             ayb.lang 
+    modules              Makefile.in m_whois.c 
+    src                  fdlist.c fileio.c ircd.c ircd_lexer.l 
+                         ircd_parser.y listener.c messages.tab 
+                         packet.c s_auth.c s_bsd.c s_misc.c 
+                         s_serv.c s_user.c send.c tools.c 
+  Log:
+  Add SSL Support
+  Add user shedding module
+  
+  Revision  Changes    Path
+  1.9       +4 -0      oftc-hybrid/RELNOTES
+  1.7       +3 -3      oftc-hybrid/configure
+  1.2       +34 -10    oftc-hybrid/etc/example.conf
+  1.5       +10 -2     oftc-hybrid/include/fdlist.h
+  1.5       +3 -2      oftc-hybrid/include/listener.h
+  1.6       +2 -3      oftc-hybrid/include/numeric.h
+  1.17      +2 -2      oftc-hybrid/include/patchlevel.h
+  1.6       +2 -2      oftc-hybrid/include/s_bsd.h
+  1.9       +6 -3      oftc-hybrid/include/s_conf.h
+  1.6       +4 -1      oftc-hybrid/include/send.h
+  1.4       +6 -1      oftc-hybrid/include/stdinc.h
+  1.4       +15 -3     oftc-hybrid/include/supported.h
+  1.2       +1 -0      oftc-hybrid/messages/ayb.lang
+  1.10      +2 -1      oftc-hybrid/modules/Makefile.in
+  1.10      +14 -1     oftc-hybrid/modules/m_whois.c
+  1.4       +17 -1     oftc-hybrid/src/fdlist.c
+  1.5       +1 -1      oftc-hybrid/src/fileio.c
+  1.8       +35 -1     oftc-hybrid/src/ircd.c
+  1.9       +2 -0      oftc-hybrid/src/ircd_lexer.l
+  1.13      +57 -15    oftc-hybrid/src/ircd_parser.y
+  1.6       +17 -6     oftc-hybrid/src/listener.c
+  1.6       +2 -1      oftc-hybrid/src/messages.tab
+  1.10      +83 -0     oftc-hybrid/src/packet.c
+  1.8       +22 -0     oftc-hybrid/src/s_auth.c
+  1.11      +144 -4    oftc-hybrid/src/s_bsd.c
+  1.5       +31 -0     oftc-hybrid/src/s_misc.c
+  1.19      +6 -6      oftc-hybrid/src/s_serv.c
+  1.16      +13 -0     oftc-hybrid/src/s_user.c
+  1.15      +128 -11   oftc-hybrid/src/send.c
+  1.5       +18 -0     oftc-hybrid/src/tools.c
+
+
+
 stu         2004/12/30 21:11:53 UTC	(20041230_2)
 
   Modified files:
