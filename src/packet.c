@@ -58,7 +58,7 @@ parse_client_queued(struct Client *client_p)
 
     for(;;)
     {
-      if (IsDefunct(client_p))
+      if (IsDead(client_p))
 	return;
       if (client_p->localClient == NULL)
 	return;
@@ -73,7 +73,7 @@ parse_client_queued(struct Client *client_p)
 	if(dolen <= 0)
 	  break;
                           
-      if(!IsDefunct(client_p))
+      if(!IsDead(client_p))
       {
         client_dopacket(client_p, readBuf, dolen);
         i++;
@@ -95,7 +95,7 @@ parse_client_queued(struct Client *client_p)
 
   if (IsServer(client_p) || IsConnecting(client_p) || IsHandshake(client_p))
   {
-    if(IsDefunct(client_p))
+    if(IsDead(client_p))
       return;
     if(client_p->localClient == NULL)
       return;
@@ -104,7 +104,7 @@ parse_client_queued(struct Client *client_p)
                               readBuf, READBUF_SIZE, LINEBUF_COMPLETE,
                               LINEBUF_PARSED)) > 0)
     {
-      if (!IsDefunct(client_p))
+      if (!IsDead(client_p))
         client_dopacket(client_p, readBuf, dolen);
       else if(MyConnect(client_p))
       {
@@ -132,7 +132,7 @@ parse_client_queued(struct Client *client_p)
      */
     for(;;)
     {
-      if (IsDefunct(client_p))
+      if (IsDead(client_p))
 	break;
 
       /* This flood protection works as follows:
@@ -226,7 +226,7 @@ flood_recalc(int fd, void *data)
   parse_client_queued(client_p);
   
   /* And now, try flushing .. */
-  if (!IsDefunct(client_p))
+  if (!IsDead(client_p))
   {
     /* and finally, reset the flood check */
     comm_setflush(fd, 1000, flood_recalc, client_p);
@@ -256,7 +256,7 @@ read_ctrl_packet(int fd, void *data)
     
   reply = &lserver->slinkrpl;
 
-  if(IsDefunct(server))
+  if(IsDead(server))
   {
     return;
   }
@@ -273,10 +273,8 @@ read_ctrl_packet(int fd, void *data)
     {
       if((length == -1) && ignoreErrno(errno))
         goto nodata;
-      error_exit_client(server, length);
       return;
     }
-
     reply->command = tmp[0];
   }
 
@@ -353,7 +351,7 @@ read_ctrl_packet(int fd, void *data)
     MyFree(reply->data);
   reply->command = 0;
 
-  if (IsDefunct(server))
+  if (IsDead(server))
     return;
 
 nodata:
@@ -377,7 +375,7 @@ read_packet(int fd, void *data)
 #ifndef NDEBUG
   struct hook_io_data hdata;
 #endif
-  if(IsDefunct(client_p))
+  if(IsDead(client_p))
     return;
   
   assert(lclient_p != NULL);
@@ -449,10 +447,10 @@ read_packet(int fd, void *data)
   
   /* Attempt to parse what we have */
 
-  if (!IsDefunct(client_p))
+  if (!IsDead(client_p))
   {
     parse_client_queued(client_p);
-    if (IsDefunct(client_p))
+    if (IsDead(client_p))
       return;
 
     /* Check to make sure we're not flooding */
@@ -490,13 +488,7 @@ read_packet(int fd, void *data)
 		     read_packet, client_p, 0);
     }
   }
-  /* This is about the only place useful to put it */
-  exit_aborted_clients();
-
 }
-
-
-
 
 /*
  * client_dopacket - copy packet to client buf and parse it

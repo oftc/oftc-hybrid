@@ -428,7 +428,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   if ((status = check_X_line(client_p,source_p)) < 0)
     return status;
 
-  if (IsDefunct(client_p))
+  if (IsDead(client_p))
     return CLIENT_EXITED;
 
   if (source_p->user->id[0] == '\0') 
@@ -454,7 +454,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 		       get_client_class(source_p), source_p->info);
 
   /* If they have died in send_* don't do anything. */
-  if (IsDefunct(source_p))
+  if (IsDead(source_p))
     return CLIENT_EXITED;
   
   source_p->umodes |= FLAGS_INVISIBLE;

@@ -68,7 +68,6 @@ static BlockHeap *client_heap = NULL;
 static BlockHeap *lclient_heap = NULL;
 
 dlink_list dead_list;
-dlink_list abort_list;
 
 /*
  * client_heap_gc
@@ -872,19 +871,6 @@ free_exited_clients(void *unused)
           continue;
         }
 
-      /* If client being exited is still on the abort_list, remove it now
-       * hopefully, this is rare. -db
-       */
-      if (IsClosing(target_p)) 
-      {
-	    if ((ptr_a = dlinkFind(&abort_list, target_p)) != NULL)
-        {
-          oftc_log("Well it happened.  We had to free %s from the abort list",
-                target_p->name);
-	      dlinkDelete(ptr_a, &abort_list);
-        }
-      }
-
       release_client_state(target_p);
       free_client(target_p);
       dlinkDelete(ptr, &dead_list);
@@ -903,9 +889,6 @@ exit_one_client(struct Client *client_p, struct Client *source_p,
   struct Client* target_p;
   dlink_node *lp;
   dlink_node *next_lp;
-
-  if (IsDead(source_p))
-    return 0;
 
   if (IsServer(source_p))
     {
@@ -1027,9 +1010,8 @@ exit_one_client(struct Client *client_p, struct Client *source_p,
 
   /* Check to see if the client isn't already on the dead list */
   assert(dlinkFind(&dead_list, source_p) == NULL);
-  /* add to dead client dlist */
+  /* add to dead_list */
   lp = make_dlink_node();
-  SetDead(source_p);
   dlinkAdd(source_p, lp, &dead_list);
 }
 
@@ -1163,7 +1145,7 @@ dead_link(struct Client *client_p)
   dlink_node *m;
   const char *notice;
 
-  if(IsDefunct(client_p))
+  if(IsDead(client_p))
     return;
 
   if(client_p->flags & FLAGS_SENDQEX)
@@ -1171,54 +1153,17 @@ dead_link(struct Client *client_p)
   else
     notice = "Write error: connection closed";
 
-    	
-  Debug((DEBUG_ERROR, "Closing link to %s: %s", get_client_name(to, HIDE_IP), 
-              notice));
-  assert(dlinkFind(&abort_list, client_p) == NULL);
-  m = make_dlink_node();
-  dlinkAdd(client_p, m, &abort_list);
-  SetClosing(client_p); /* You are closing my friend */
   if (!IsPerson(client_p) && !IsUnknown(client_p))
   {
     sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 		         "Closing link to %s: %s",
                          get_client_name(client_p, MASK_IP), notice);
   }
+
+  Debug((DEBUG_ERROR, "Closing link to %s: %s", get_client_name(to, HIDE_IP), 
+              notice));
+  exit_client(client_p, client_p, &me, "Closing link");
 }
-
-void
-exit_aborted_clients(void)
-{
-  dlink_node *ptr, *next;
-  struct Client *target_p;
-  char *notice;
-  
-  DLINK_FOREACH_SAFE(ptr, next, abort_list.head)
-  {
-      target_p = ptr->data;
-      if (ptr->data == NULL)
-        {
-          sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-                        "Warning: null client on abort_list!");
-          dlinkDelete(ptr, &abort_list);
-          free_dlink_node(ptr);
-          continue;
-        }
-
-      dlinkDelete(ptr, &abort_list);
-      free_dlink_node(ptr);
-
-      /* small optimisation here -db */
-      ClearClosing(target_p);
-
-      if(target_p->flags & FLAGS_SENDQEX)
-        notice = "Max SendQ exceeded";
-      else
-        notice = "Write error: connection closed";
-      exit_client(target_p, target_p, &me, notice);  
-    }
-}
-
 
 /*
 ** exit_client - This is old "m_bye". Name  changed, because this is not a
@@ -1241,25 +1186,6 @@ exit_aborted_clients(void)
 **        0                if (client_p != source_p)
 */
 
-/*
- * 1. IsDead() protects us from entering exit_client() twice,
- *    preventing us from putting a client on the dead_list twice.
- * 2. IsClosing() protects us from entering dead_link() twice,
- *    preventing us from putting a client on the abort_list twice.
- * 3. IsDefunct() saves us from trying to write to a client that is
- *    already dying. (already on abort_list or already on dead_list)
- *    It also prevents putting a client on the abort list if its
- *    already on the dead_list.
- *
- * If a client is placed on the abort_list but also gets exit_client()
- * called on it, it will already be marked as IsClosing(). Hence,
- * It must be removed from the abort_list at the same time it is removed
- * from the dead_list. However, as an optimisation, as exit_aborted_clients()
- * is run, ClearClosing() is used to clear the IsClosing flag.
- *
- * -db
- */
-
 int
 exit_client(
 	    struct Client* client_p, /* The local client originating the
@@ -1277,8 +1203,10 @@ exit_client(
   char comment1[HOSTLEN + HOSTLEN + 2];
   dlink_node *m;
 
-  if (IsDead(source_p))
-    return CLIENT_EXITED;
+  if (IsClosing(source_p))
+    return;
+
+  SetClosing(source_p);
 
   if (MyConnect(source_p))
     {
@@ -1416,6 +1344,7 @@ exit_client(
   {
      close_connection(source_p);
   }
+  SetDead(source_p); /* You are dead my friend */
 
   /* The client *better* be off all of the lists */
   assert(dlinkFind(&unknown_list, source_p) == NULL);

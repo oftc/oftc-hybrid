@@ -2889,7 +2889,7 @@ do_channel_integrity_check(void)
   struct Channel *ch;
   for (cl=GlobalClientList; cl; cl=cl->next)
   {
-    if (!IsRegisteredUser(cl) || IsDefunct(cl))
+    if (!IsRegisteredUser(cl) || IsDead(cl))
       continue;
     DLINK_FOREACH(ptr, cl->user->channel.head)
     {
