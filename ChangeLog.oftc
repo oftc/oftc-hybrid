@@ -1,3 +1,20 @@
+stu         2003/08/04 11:26:55 UTC	(20030804_0)
+
+  Modified files:
+    modules              m_who.c 
+  Log:
+  Reviewed by: Me
+  Approved by: Me
+  Noticed by: Hawkwind
+  
+  Fixed a nice little bug in m_who where here people where gone and gone people
+  were here.
+  
+  Revision  Changes    Path
+  1.7       +10 -10    oftc-hybrid/modules/m_who.c
+
+
+
 dbharris    2003/06/11 07:38:56 UTC	(20030611_2)
 
   Removed files:
