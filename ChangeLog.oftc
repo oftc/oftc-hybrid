@@ -1,3 +1,30 @@
+stu         2004/05/21 21:59:06 UTC	(20040521_6)
+
+  Modified files:
+    modules              m_set.c m_svscloak.c spy_info_notice.c 
+                         spy_links_notice.c spy_motd_notice.c 
+                         spy_stats_notice.c spy_trace_notice.c 
+    modules/core         m_join.c m_squit.c 
+    src                  channel.c ircdauth.c 
+  Log:
+  Forcing this commit as i missed out from the last one that i changed a
+  bunch of L_OPER to L_ALL
+  
+  Revision  Changes    Path
+  1.4       +1 -1      oftc-hybrid/modules/core/m_join.c
+  1.11      +1 -1      oftc-hybrid/modules/core/m_squit.c
+  1.5       +1 -1      oftc-hybrid/modules/m_set.c
+  1.15      +1 -1      oftc-hybrid/modules/m_svscloak.c
+  1.5       +1 -1      oftc-hybrid/modules/spy_info_notice.c
+  1.6       +1 -1      oftc-hybrid/modules/spy_links_notice.c
+  1.5       +1 -1      oftc-hybrid/modules/spy_motd_notice.c
+  1.6       +1 -1      oftc-hybrid/modules/spy_stats_notice.c
+  1.6       +1 -1      oftc-hybrid/modules/spy_trace_notice.c
+  1.9       +0 -0      oftc-hybrid/src/channel.c
+  1.7       +0 -0      oftc-hybrid/src/ircdauth.c
+
+
+
 stu         2004/05/21 21:51:26 UTC	(20040521_5)
 
   Modified files:
