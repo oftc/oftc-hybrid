@@ -1,3 +1,15 @@
+stu         2003/10/19 11:44:42 UTC	(20031019_1)
+
+  Modified files:
+    src                  ircd_parser.y 
+  Log:
+  Say, lets not let users set god mode, eh?
+  
+  Revision  Changes    Path
+  1.10      +4 -0      oftc-hybrid/src/ircd_parser.y
+
+
+
 stu         2003/10/15 16:04:38 UTC	(20031015_0)
 
   Modified files:        (Branch: STABLE)
