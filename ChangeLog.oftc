@@ -1,3 +1,15 @@
+stu         2003/05/28 18:09:37 GMT	(20030528_5)
+
+  Modified files:
+    modules/core         m_message.c 
+  Log:
+  test
+  
+  Revision  Changes    Path
+  1.7       +2 -2      oftc-hybrid/modules/core/m_message.c
+
+
+
 stu         2003/05/28 18:03:16 GMT	(20030528_4)
 
   Modified files:        (Branch: STABLE)
