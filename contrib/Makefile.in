@@ -53,7 +53,6 @@ SRCS = \
   m_opme.c
 
 SHARED_ONLY_SRCS = \
-  m_tburst.c \
   m_ctrace.c \
   m_ltrace.c \
   m_whois.c     \
