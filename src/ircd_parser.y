@@ -2909,6 +2909,10 @@ umode_item:	T_BOTS
 {
   if (ypass == 2)
     ConfigFileEntry.oper_only_umodes |= UMODE_LOCOPS;
+} | T_GOD
+{
+  if (ypass == 2)
+    ConfigFileEntry.oper_only_umodes |= UMODE_GOD;
 };
 
 general_crypt_oper_password: CRYPT_OPER_PASSWORD '=' TBOOL ';'
