@@ -1,1233 +1,1019 @@
-2002-09-06 07:38  David B. Harris (ElectricElf)  <eelf@sympatico.ca>
+2003-03-09 02:57  stu
 
-	* include/patchlevel.h (1.8): Increment patchlevel.h
+	* README.FIRST: this should not work.
 
-2002-09-05 12:16  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-03-09 02:56  stu
 
-	* contrib/lmh.diff (1.3): Removed lmh.diff as per upstream
+	* BUGS: testing
 
-2002-09-05 12:10  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-03-09 02:01  stu
 
-	* ChangeLog (1.5), contrib/Makefile.in (1.3), contrib/README (1.3),
-	contrib/m_operspy.c (1.1), contrib/m_whois.c (1.2),
-	doc/README.cidr_bans (1.1), include/s_stats.h (1.2),
-	include/serno.h (1.5), modules/.depend (1.5), modules/m_accept.c
-	(1.2), modules/m_close.c (1.2), modules/m_join.c (1.9),
-	modules/m_knock.c (1.4), modules/m_stats.c (1.3), modules/m_trace.c
-	(1.2), modules/m_who.c (1.2), modules/m_whois.c (1.13), src/.depend
-	(1.5), src/channel_mode.c (1.15), src/messages.tab (1.8),
-	src/s_auth.c (1.6), src/s_conf.c (1.10), src/s_gline.c (1.2),
-	src/s_stats.c (1.2), tools/private.key (1.2): merged with latest
+	* src/.depend, src/balloc.c, src/channel.c, src/channel_mode.c,
+	src/client.c, src/fileio.c, src/ircd.c, src/ircd_signal.c,
+	src/ircdauth.c, src/list.c, src/listener.c, src/m_error.c,
+	src/modules.c, src/packet.c, src/parse.c, src/restart.c,
+	src/s_bsd.c, src/s_conf.c, src/s_log.c, src/s_serv.c,
+	src/s_stats.c, src/s_user.c, src/send.c, src/tools.c,
+	src/vchannel.c, tools/encspeed.c, tools/rsa_respond/Makefile,
+	tools/rsa_respond/respond.c: rc9..
+
+2003-03-09 01:57  stu
+
+	* doc/example.conf.quick, include/channel.h, include/client.h,
+	include/config.h, include/config.h.dist, include/ircd.h,
+	include/ircd_defs.h, include/patchlevel.h, include/s_conf.h,
+	include/send.h, include/serno.h, include/setup.h.in,
+	include/setup.h_vms, include/tools.h, modules/.depend,
+	modules/m_close.c, modules/m_gline.c, modules/m_help.c,
+	modules/m_invite.c, modules/m_join.c, modules/m_list.c,
+	modules/m_lljoin.c, modules/m_motd.c, modules/m_post.c,
+	modules/m_stats.c, modules/m_svinfo.c, modules/m_wallops.c,
+	modules/m_whois.c, modules/m_whowas.c, modules/core/m_die.c,
+	modules/core/m_kick.c, modules/core/m_kill.c,
+	modules/core/m_message.c, modules/core/m_nick.c,
+	modules/core/m_part.c, modules/core/m_quit.c,
+	modules/core/m_server.c, modules/core/m_squit.c: rc9..
+
+2003-03-09 01:53  stu
+
+	* contrib/: README, challenge.irc, m_whois.c: [no log message]
+
+2003-03-09 01:52  stu
+
+	* autoconf/: acconfig.h, configure.in: Additions from rc9
+
+2003-03-09 01:50  stu
+
+	* BUGS, ChangeLog, Hybrid-team, RELNOTES, configure: Commiting
+	merge to rc9
+
+2003-02-20 20:59  elf
+
+	* TODO: Test.
+
+2003-02-20 20:07  stu
+
+	* INSTALL: test
+
+2003-02-20 00:12  stu
+
+	* TODO: testy testy
+
+2003-02-18 03:22  cry0gen
+
+	* modules/m_who.c: fixes to m_who from Dianora.  Fixes who not
+	displaying chanops
+
+2003-02-03 02:31  cry0gen
+
+	* src/s_serv.c: Added check for blank realhost before sending. 
+	Resolves ticket 14
+
+2003-01-30 18:52  cry0gen
+
+	* include/serno.h: updated serial number
+
+2003-01-30 18:52  cry0gen
+
+	* src/s_serv.c: - Fixed duplicate gnotice in cryptlink error -
+	Resolves ticket #8
+
+2003-01-28 14:25  cry0gen
+
+	* src/channel_mode.c: - Fix a bug in god mode noties for MODE
+	sending a notice when no mode change   occured
+
+2003-01-27 17:34  cry0gen
+
+	* Hybrid-team: Merged with rc8
+
+2003-01-26 02:16  cry0gen
+
+	* modules/spy_whois_notice.c: Thinking about it.. we can send from
+	me
+
+2003-01-26 02:13  cry0gen
+
+	* modules/spy_whois_notice.c: - should be using sendto_one
+
+2003-01-26 02:10  cry0gen
+
+	* modules/spy_whois_notice.c: send from the users server, not the
+	user
+
+2003-01-26 02:07  cry0gen
+
+	* modules/spy_whois_notice.c: - temporary fix. Need to propogate
+	FLAGS_SPY
+
+2003-01-26 01:45  cry0gen
+
+	* include/serno.h: increment serial
+
+2003-01-26 01:44  cry0gen
+
+	* modules/: m_whois.c, spy_whois_notice.c: - Made spy_whois notice
+	global
+
+2003-01-26 01:30  cry0gen
+
+	* modules/Makefile.in: - Added spy notices to makefile
+
+2003-01-26 01:28  cry0gen
+
+	* contrib/: spy_admin_notice.c, spy_info_notice.c,
+	spy_links_notice.c, spy_motd_notice.c, spy_stats_notice.c,
+	spy_stats_p_notice.c, spy_trace_notice.c, spy_whois_notice.c: -
+	restored rest of spy notice files in contrib/
+
+2003-01-26 01:12  cry0gen
+
+	* modules/: spy_links_notice.c, spy_motd_notice.c,
+	spy_stats_notice.c, spy_stats_p_notice.c, spy_trace_notice.c,
+	spy_whois_notice.c: - Added the rest of the spy notices to modules/
+
+2003-01-26 00:47  cry0gen
+
+	* contrib/spy_info_notice.c, modules/spy_info_notice.c: - Added our
+	spy info message to modules/ - Restored contrib spy info
+
+2003-01-26 00:43  cry0gen
+
+	* contrib/spy_admin_notice.c, modules/spy_admin_notice.c: - Added
+	our gnotice spy admin message to modules/ - Restored contrib spy
+	admin notice
+
+2003-01-26 00:31  cry0gen
+
+	* src/send.c: - Slight formatting change
+
+2003-01-24 23:07  cry0gen
+
+	* modules/: m_invite.c, m_who.c: disabled +i in /who
+
+2003-01-19 20:30  cry0gen
+
+	* include/serno.h: updated serial
+
+2003-01-19 20:29  cry0gen
+
+	* include/client.h, include/s_bsd.h, src/client.c, src/packet.c,
+	src/s_bsd.c, src/s_conf.c, src/s_serv.c, src/send.c: Commiting
+	attempted fix from h7
+
+2003-01-17 14:47  cry0gen
+
+	* modules/m_help.c: leaky leaky leaky fds
+
+2003-01-16 21:29  cry0gen
+
+	* include/serno.h: serial
+
+2003-01-16 21:28  cry0gen
+
+	* modules/: m_cs.c, m_hs.c, m_ms.c, m_ns.c, m_os.c: All services
+	commands now use the new user@server and added the longer versions
+	nickserv etc
+
+2003-01-16 20:47  cry0gen
+
+	* modules/core/m_message.c: - allowed user@server messages as per
 	hybrid cvs
 
-2002-08-30 04:16  David B. Harris (ElectricElf)  <eelf@sympatico.ca>
+2003-01-14 05:31  cry0gen
 
-	* modules/m_join.c (1.8): Added trivial comment change to change
-	Revision of module :)
+	* modules/m_kline.c: removed duplicate already placed message
 
-2002-08-30 04:15  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-14 05:19  cry0gen
 
-	* include/client.h (1.7), src/client.c (1.18): Added -R on nick
-	change
+	* src/s_conf.c: no, not a gnotice.. two realops
 
-2002-08-30 03:00  David B. Harris (ElectricElf)  <eelf@sympatico.ca>
+2003-01-14 05:13  cry0gen
 
-	* include/patchlevel.h (1.7): Update patchlevel to 1.0.9
+	* src/s_conf.c: Tits and peas.	That HAS to be a gnotice
 
-2002-08-30 02:57  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-13 14:27  cry0gen
 
-	* ChangeLog (1.4), adns/query.c (1.2), doc/example.efnet.conf
-	(1.5), include/irc_string.h (1.2), include/serno.h (1.4),
-	include/tools.h (1.3), modules/m_whois.c (1.12),
-	modules/core/m_nick.c (1.9), src/channel.c (1.12),
-	src/channel_mode.c (1.14), src/client.c (1.17), src/match.c (1.2),
-	src/parse.c (1.12), src/s_user.c (1.17), src/tools.c (1.3): Merged
-	with current hybrid tree.  Hurrah for CIDR bans!
+	* modules/m_map.c: Slight change in /map format
 
-2002-08-29 23:49  David B. Harris (ElectricElf)  <eelf@sympatico.ca>
+2003-01-13 04:27  cry0gen
 
-	* ChangeLog.oftc (1.9), include/config.h (1.4),
-	include/patchlevel.h (1.6): Bump patchlevel, set TCP connect
-	timeout lower
+	* include/: patchlevel.h, serno.h: 1.2.0, yay
 
-2002-08-29 01:33  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-13 04:26  cry0gen
 
-	* include/patchlevel.h (1.5): test release 0.0.6
-
-2002-08-29 01:32  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_svsmode.c (1.5): Only send mode for our users..
-
-2002-08-29 01:29  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/parse.c (1.11): Undone last commit.. What crack was i smoking
-	again?
-
-2002-08-28 16:38  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/parse.c (1.10): modified parser to allow services to do stuff
-	a server shouldnt
-
-2002-08-28 14:58  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_topic.c (1.11): whoops, forgot about needing chanops..
-
-2002-08-28 14:56  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_topic.c (1.10): lets see if topics work this time :)
-
-2002-08-28 14:41  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_topic.c (1.9), src/s_user.c (1.16): Modified client
-	introduction to set services flags on any nicks services introduces
-	and allowed services to set channel topics
-
-2002-08-28 12:49  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_svsmode.c (1.4): Made SVSMODE send a MODE to the client
-	on +R
-
-2002-08-28 12:46  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_svsmode.c (1.3): Altered m_svsmode to not take
-	timestamp
-
-2002-08-28 12:46  David B. Harris (ElectricElf)  <eelf@sympatico.ca>
-
-	* ChangeLog.oftc (1.8), contrib/m_jupe.c (1.5):
-	s/FLAGS_WATCH/FLAGS_SPY/g
-
-2002-08-27 02:09  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/: m_cs.c (1.3), m_ms.c (1.3), m_ns.c (1.3), m_os.c (1.3),
-	m_svsmode.c (1.2): removed @services.oftc.net for NS/CS et al. 
-	Also added stamp to svsmode
-
-2002-08-27 01:41  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_unkline.c (1.9): Changed a couple of gnotices to
-	realops notices on a count of it being propgated anyway (repeated
-	messages)
-
-2002-08-27 00:45  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* include/patchlevel.h (1.4): 0.0.5 release
-
-2002-08-27 00:12  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_unkline.c (1.8): return NO in wrong place, oops. :)
-
-2002-08-26 23:49  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_unkline.c (1.7): corrected some missing match tkline
-	acalls
-
-2002-08-26 23:47  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_unkline.c (1.6): merged remove_tkline_match() back from
-	hybrid
-
-2002-08-26 23:04  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_unkline.c (1.5): Remote UNKLINEs. Hurrah! (hacked up
-	version of the one in contrib/lmh.diff)
-
-2002-08-26 00:01  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* configure (1.2): Altered configure script to not use -O2 by
-	default.  Damned broken gcc. :/
-	
-	At some point it might be an idea to make the configure script
-	check the gcc versiona nd use -O2 on "safe" versions
-
-2002-08-23 02:45  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/core/m_nick.c (1.8), src/client.c (1.16): Added NICK fix
-	to m_nick as well, to stop opers breaking the net.. also cleaned up
-	"server has split from foo" messages
-
-2002-08-23 01:20  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/core/m_nick.c (1.7), src/parse.c (1.9): Revert change to
-	parse.c(bogus fix) and fix in m_nick
-
-2002-08-23 00:57  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_gline.c (1.9): Ok, there was a tad more to it than i
-	thought.  Fixed now.  No more gline voting.
-
-2002-08-23 00:28  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_gline.c (1.8): Fixed typos of realops... oops.
-
-2002-08-23 00:08  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/: m_gline.c (1.7), m_kline.c (1.7), core/m_kill.c (1.7):
-	- Removed gline voting - Removed repeated messages in kline and
-	kill
-
-2002-08-22 23:28  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/parse.c (1.8): Applied parser fix for blank : params
-
-2002-08-22 00:32  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/s_conf.c (1.9): Fixed a compile warning not caught in rc3 but
-	fixe din current hybrid cvs
-
-2002-08-22 00:28  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* contrib/m_whois.c (1.1): Added m_whois.c in contrib from rc3
-
-2002-08-21 23:58  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* ChangeLog (1.3), RELNOTES (1.3), TODO (1.2), contrib/Makefile.in
-	(1.2), contrib/README (1.2), include/channel.h (1.3),
-	include/numeric.h (1.6), include/patchlevel.h (1.3),
-	include/serno.h (1.3), include/tools.h (1.2), modules/m_oper.c
-	(1.7), src/channel.c (1.11), src/channel_mode.c (1.13),
-	src/hostmask.c (1.3), src/messages.tab (1.7), src/s_conf.c (1.8),
-	src/tools.c (1.2): Merged with hybrid7rc3
-
-2002-08-21 01:18  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/channel.c (1.10): Reverted allowing god mode people to see
-	full /names.  It breaks some clients and we don't really need it.
-
-2002-08-21 00:59  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_svsnick.c (1.1): added SVSNICK
-
-2002-08-21 00:57  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* include/client.h (1.6), modules/Makefile.in (1.9),
-	modules/core/m_server.c (1.8), src/channel_mode.c (1.12): Added
-	IsServices macro.  Added services recognition in m_server.  Added
-	SERVICES_FLAG
-
-2002-08-21 00:30  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* include/client.h (1.5), modules/Makefile.in (1.8),
-	modules/m_svsmode.c (1.1): Added SVSMODE for server modes.  Added
-	ts field in User struct
-
-2002-08-21 00:30  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/s_user.c (1.15): Reverted +R changes in favour of svsmode
-
-2002-08-20 23:52  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* include/s_conf.h (1.2), src/ircd_lexer.l (1.5), src/ircd_parser.y
-	(1.8), src/s_conf.c (1.7): Added support for services{} config
-	blocks services { service services.oftc.net; };
-
-2002-08-20 23:51  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_log.c (1.3): Removed #define OFTCLOG that shouldnt be
-	there.	OFTCLOG is defined in config.h
-
-2002-08-20 23:27  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/core/m_server.c (1.7): Removed a load of duplicated
+	* modules/m_unkline.c, src/s_conf.c: Fixed duplicate (un)kline
 	messages
 
-2002-08-20 22:50  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-13 04:10  cry0gen
 
-	* modules/.depend (1.4), src/.depend (1.4): re-adding .depend
+	* include/serno.h: blah blah.. automate this
 
-2002-08-20 05:39  David B. Harris (ElectricElf)  <eelf@sympatico.ca>
+2003-01-13 04:09  cry0gen
 
-	* ChangeLog.oftc (1.7): More playing with ChangeLog.oftc :)
+	* modules/Makefile.in: Removed m_spiffy from the makefile
 
-2002-08-20 05:38  David B. Harris (ElectricElf)  <eelf@sympatico.ca>
+2003-01-13 04:09  cry0gen
 
-	* ChangeLog.oftc (1.6): [no log message]
-
-2002-08-20 05:38  David B. Harris (ElectricElf)  <eelf@sympatico.ca>
-
-	* src/s_bsd.c (1.7): Removed duplicate 'Lost connection to %s'
-	message.
-
-2002-08-20 05:37  David B. Harris (ElectricElf)  <eelf@sympatico.ca>
-
-	* src/s_serv.c (1.9): Remove duplicate 'Server %s is already
-	present from %s' messages.
-
-2002-08-20 00:17  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/client.c (1.15): Fixed crashing bug brought on from merging
-	with rc2
-
-2002-08-17 11:08  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/s_user.c (1.14): Made +R services only again.  Have had to
-	trust servers to be able to change umodes due to propgation
-
-2002-08-17 01:58  David B. Harris (ElectricElf)  <eelf@sympatico.ca>
-
-	* modules/m_gline.c (1.6), modules/core/m_kill.c (1.6),
-	modules/core/m_nick.c (1.6), src/client.c (1.14), src/ircdauth.c
-	(1.6), src/parse.c (1.7), src/s_conf.c (1.6): Fix
-	sendto_realops_flags() calls to sendto_gnotice_flags() calls,
-	accidentally reverted in update to hybrid7-rc2.
-
-2002-08-17 01:55  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/s_user.c (1.13): First part of integration with servies nased
-	+R.  Still need to disallow normal users setting themselves +/-R
-
-2002-08-17 01:38  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/parse.c (1.6): Removed duplicate message
-
-2002-08-17 00:46  David B. Harris (ElectricElf)  <eelf@sympatico.ca>
-
-	* ChangeLog.oftc (1.5): ChangeLog update.
-
-2002-08-16 23:31  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* BUGS (1.3): reverting test changes
-
-2002-08-16 23:29  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* BUGS (1.2): testing please digregard
-
-2002-08-16 18:03  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/channel.c (1.9): Corrected a bug in /names, resulting in
-	duplicate entries for users
-
-2002-08-16 11:42  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* include/patchlevel.h (1.2): Modified patchlevel
-
-2002-08-16 11:33  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_oper.c (1.6): Fixed the rather dodgy bug gotten from
-	rc2 re: allowing opers with any pass
-
-2002-08-16 10:08  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* ChangeLog (1.2), ChangeLog.oftc (1.4), RELNOTES (1.2),
-	contrib/lmh.diff (1.2), contrib/m_ltrace.c (1.2), doc/challenge.txt
-	(1.2), doc/example.conf (1.4), doc/example.efnet.conf (1.4),
-	include/channel_mode.h (1.3), include/numeric.h (1.5),
-	include/packet.h (1.2), include/serno.h (1.2), include/supported.h
-	(1.2), modules/m_admin.c (1.2), modules/m_away.c (1.5),
-	modules/m_cjoin.c (1.2), modules/m_cryptlink.c (1.6),
-	modules/m_gline.c (1.5), modules/m_help.c (1.2), modules/m_info.c
-	(1.2), modules/m_invite.c (1.2), modules/m_join.c (1.7),
-	modules/m_kline.c (1.6), modules/m_knock.c (1.3), modules/m_links.c
-	(1.2), modules/m_list.c (1.4), modules/m_lusers.c (1.2),
-	modules/m_motd.c (1.2), modules/m_names.c (1.2), modules/m_oper.c
-	(1.5), modules/m_pong.c (1.3), modules/m_stats.c (1.2),
-	modules/m_time.c (1.2), modules/m_version.c (1.2),
-	modules/m_whois.c (1.11), modules/m_whowas.c (1.2),
-	modules/core/m_kick.c (1.5), modules/core/m_kill.c (1.5),
-	modules/core/m_mode.c (1.2), modules/core/m_nick.c (1.5),
-	modules/core/m_server.c (1.6), src/balloc.c (1.2),
-	src/channel_mode.c (1.11), src/client.c (1.13), src/hash.c (1.5),
-	src/hostmask.c (1.2), src/ircd.c (1.5), src/ircd_lexer.l (1.4),
-	src/ircd_parser.y (1.7), src/ircdauth.c (1.5), src/linebuf.c (1.2),
-	src/messages.tab (1.6), src/modules.c (1.5), src/packet.c (1.2),
-	src/parse.c (1.5), src/s_auth.c (1.5), src/s_bsd.c (1.6),
-	src/s_conf.c (1.5), src/s_serv.c (1.8), src/s_user.c (1.12),
-	src/scache.c (1.2), src/send.c (1.12), tools/convertconf.c (1.2),
-	tools/convertilines.c (1.2): Merged with hybric7-rc2
-
-2002-08-16 04:16  oftc
-
-	* ChangeLog.oftc (1.3), src/s_user.c (1.11): Updated ChangeLog, and
-	add missing ; to the end of src/s_user.c line 1041.
-
-2002-08-16 02:51  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/s_user.c (1.10): Made +R non user settable
-
-2002-08-16 00:16  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_kline.c (1.5): Made klines global for any server,
-	regardless of u line or shared config block
-
-2002-08-15 03:28  oftc
-
-	* doc/: example.conf (1.3), example.efnet.conf (1.3): Backed out
-	change that added nickservreg settings, in preperation for Stu
-	making it server-settable-only.
-
-2002-08-15 03:25  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_knock.c (1.2): Fixed KNOCK to allow through bans and +s
-
-2002-08-15 03:05  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/client.c (1.12): Removed duplicated server notice
-
-2002-08-15 01:44  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/channel.c (1.8): Added support for God mode to NAMES, so all
-	channels and member show to +G users.
-
-2002-08-15 00:28  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/s_serv.c (1.7): Changed functions that use a hardcoded
-	timeout to use the specified #define CONNECTTIMEOUT
-
-2002-08-14 17:01  oftc
-
-	* ChangeLog.oftc (1.2): Changed to spiffy ChangeLog format,
-	generated automatically :)
-
-2002-08-14 17:00  oftc
-
-	* src/messages.tab (1.5): Changed numeric 278(RPL_VCHANHELP) to say
-	/quote join instead of /join, since some clients will need that.
-
-2002-08-14 16:43  oftc
-
-	* modules/: m_whois.c (1.10), core/m_part.c (1.4): Undo last
-	commit. :)
-
-2002-08-14 16:40  oftc
-
-	* modules/: m_whois.c (1.9), core/m_part.c (1.3): Frivilous commit
-	to check changelog generation.
+	* modules/: m_spiffy.c, m_who.c: m_spiffy overhauled and actually
+	works now.  Moved to primary who command.
 	
-	modules/m_whois.c: Changed char in comment modules/core/m_part.c:
-	Changed char in comment
+	m_spiify is now around for archival purposes
 
-2002-08-14 16:21  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-13 01:54  cry0gen
 
-	* src/client.c (1.11): Added colour stripping to QUIT message
+	* modules/m_whois.c: Readded whois realy notice and show all users
 
-2002-08-14 15:51  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-12 22:53  cry0gen
 
-	* include/channel.h (1.2), include/channel_mode.h (1.2),
-	modules/m_topic.c (1.8), modules/core/m_kick.c (1.4),
-	modules/core/m_message.c (1.5), modules/core/m_part.c (1.2),
-	src/channel.c (1.7), src/channel_mode.c (1.10): Added channel mode
-	+c. filters color from PART, KICK, TOPIC, PRIVMSG and NOTICE
+	* modules/: m_spiffy.c, core/m_kick.c: - Fixed mass notice on Kick
+	God mode - begun changes to m_spiffy
 
-2002-08-14 11:18  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-12 21:24  cry0gen
 
-	* include/client.h (1.4): Fixed umode +R propgation.  Now displays
-	on remote servers.
+	* include/serno.h: need to automate this..
 
-2002-08-14 06:30  oftc
+2003-01-12 19:39  cry0gen
 
-	* doc/example.conf (1.2), doc/example.efnet.conf (1.2),
-	include/client.h (1.3), include/numeric.h (1.4), modules/m_whois.c
-	(1.8), src/ircd_lexer.l (1.3), src/ircd_parser.y (1.6),
-	src/messages.tab (1.4), src/s_user.c (1.9): Added numeric 307,
-	WHOIS_NICKSERVREG, and FLAGS_NICKSERVREG (umode +R). Using numeric
-	307 because that's what bahamut uses (hyb6-dancer uses 320, but
-	it's already taken here), and because my IRC client recognises it
-	for what it is :)
+	* src/client.c: removed "split from" messages... again
+
+2003-01-12 19:38  cry0gen
+
+	* modules/m_map.c: Overhauled MAP.  Based on the one from contrib. 
+	Users not allowed to map.  Remote servers are.	Ping times and user
+	counts are displayed
+
+2003-01-12 18:21  cry0gen
+
+	* modules/m_map.c, src/messages.tab: Switched to contrib m_map..
+	feels so much better to be running non dancer-code :)
+
+2003-01-12 17:55  cry0gen
+
+	* modules/m_map.c, src/client.c: fixed map once and for all..
+	hopefully
+
+2003-01-12 17:36  cry0gen
+
+	* modules/core/m_kick.c: added include to m_kick
+
+2003-01-12 05:21  cry0gen
+
+	* modules/m_spingtime.c: SVSNICK -> SPINGTIME.. that has to be the
+	dumbest error ever..
+
+2003-01-12 05:04  cry0gen
+
+	* modules/m_join.c, modules/m_topic.c, modules/m_unkline.c,
+	modules/core/m_kick.c, src/channel_mode.c, src/s_conf.c: - removed
+	duplicate gnotice in m_mode - 513 -> IRCD_BUFSIZE - snprintf ->
+	ircsprintf - gnotice -> realops for kline notice
+
+2003-01-12 04:30  cry0gen
+
+	* modules/m_invite.c: Fixed m_invite for god mode
+
+2003-01-12 03:19  cry0gen
+
+	* modules/m_invite.c, modules/m_join.c, modules/m_topic.c,
+	src/channel_mode.c: using constants instead of #defines is bad,
+	mmkay
+
+2003-01-12 01:25  cry0gen
+
+	* include/s_serv.h: STARTUP_CONNECTIONS_TIME 60 -> 10
 	
-	It's marked as oper_only in the example conffiles, all we need to
-	do is get hybserv2 to set it and we're all set.
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-14 03:47  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-12 00:58  cry0gen
 
-	* TODO.oftc (1.2): :)
-
-2002-08-14 03:29  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/: m_cs.c (1.2), m_hs.c (1.2), m_ms.c (1.2), m_ns.c (1.2),
-	m_os.c (1.2): Fixed new services commands to pass on params
-	regardless of :
-
-2002-08-14 03:07  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* include/numeric.h (1.3), modules/Makefile.in (1.7),
-	modules/m_cs.c (1.1), modules/m_hs.c (1.1), modules/m_map.c (1.5),
-	modules/m_ms.c (1.1), modules/m_ns.c (1.1), modules/m_os.c (1.1),
-	src/messages.tab (1.3): Added CS/NS/OS/MS/HS commands mapped to
-	services
-
-2002-08-14 02:04  oftc
-
-	* modules/Makefile.in (1.6): Added m_spiffy.c to list of sources
-
-2002-08-14 02:00  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_list.c (1.3): Added > and < flags to /list
-
-2002-08-13 17:50  oftc
-
-	* include/numeric.h (1.2), modules/m_spiffy.c (1.2),
-	src/messages.tab (1.2): Added m-spiffy.c numerics, and uncommented
-	the code blocks which allowed their use.
-
-2002-08-13 14:49  oftc
-
-	* TODO.oftc (1.1): Added TODO.oftc
-
-2002-08-13 04:05  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_whois.c (1.7), src/channel_mode.c (1.9): Fixed conflict
-	in m_whois, and fixed +i not logging properly
-
-2002-08-13 03:55  oftc
-
-	* modules/m_whois.c (1.6): More minor tweaks to whois output
-
-2002-08-13 03:52  oftc
-
-	* modules/m_whois.c (1.5): Minor tweaks to output format.
-
-2002-08-13 03:35  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_whois.c (1.4): Added '%' char to channels that you
-	shouldnt be able to see (+s)
-
-2002-08-13 02:44  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/channel_mode.c (1.8): Fixed shouting-when-not-necessary bi
-	gin god mode usage notices
-
-2002-08-13 02:30  oftc
-
-	* ChangeLog.oftc (1.1): Started ChangeLog.oftc
-
-2002-08-13 02:27  oftc
-
-	* modules/m_whois.c (1.3): Display hidden channels for godmode
-	opers, and prepend % to hidden channels/modes
-
-2002-08-13 02:00  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/.depend (1.3), src/.depend (1.3): Removed .depends from
-	cvs tree, they dont belong here
-
-2002-08-13 01:58  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* include/s_user.h (1.2), modules/.depend (1.2), modules/m_spiffy.c
-	(1.1), src/.depend (1.2), src/channel_mode.c (1.7): added SPIF
-	command.. testing new /who command
-
-2002-08-13 01:47  oftc
-
-	* contrib/spy_admin_notice.c (1.5), contrib/spy_info_notice.c
-	(1.5), contrib/spy_motd_notice.c (1.5), modules/m_list.c (1.2):
-	Fixed breakage in contrib/spy_*, with respect to gnotices.
+	* include/serno.h, src/ircd_lexer.l: updated serial
 	
-	Added support for godmode opers to see +s channels in /list
-
-2002-08-12 01:32  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_svinfo.c (1.5), src/s_bsd.c (1.5): Removed message
-	duplication
-
-2002-08-12 01:31  oftc
-
-	* src/client.c (1.10): s/sendto_gnotice_flags/sendto_realops_flags/
-	for server split message.
-
-2002-08-12 01:28  oftc
-
-	* modules/core/m_server.c (1.5):
-	s/sendto_gnotice_flags/sendto_realops_flags/ for server
-	introduction message.
-
-2002-08-12 01:04  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_gnotice.c (1.6): oops, missed a parv in ms_gnotice
-
-2002-08-12 00:59  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* src/: client.c (1.9), m_error.c (1.5), s_serv.c (1.6): Attempt to
-	fix the mass flooding of write error messages killing the network
-
-2002-08-12 00:50  oftc
-
-	* contrib/m_jupe.c (1.4), contrib/spy_admin_notice.c (1.4),
-	contrib/spy_info_notice.c (1.4), contrib/spy_links_notice.c (1.4),
-	contrib/spy_motd_notice.c (1.4), contrib/spy_stats_notice.c (1.4),
-	contrib/spy_stats_p_notice.c (1.4), contrib/spy_trace_notice.c
-	(1.4), modules/m_away.c (1.4), modules/m_cburst.c (1.4),
-	modules/m_challenge.c (1.4), modules/m_cryptlink.c (1.5),
-	modules/m_eob.c (1.4), modules/m_gline.c (1.4), modules/m_join.c
-	(1.6), modules/m_kline.c (1.4), modules/m_lljoin.c (1.4),
-	modules/m_llnick.c (1.4), modules/m_nburst.c (1.4),
-	modules/m_oper.c (1.4), modules/m_post.c (1.4), modules/m_rehash.c
-	(1.4), modules/m_resv.c (1.4), modules/m_set.c (1.4),
-	modules/m_svinfo.c (1.4), modules/m_topic.c (1.7),
-	modules/m_unkline.c (1.4), modules/core/m_kick.c (1.3),
-	modules/core/m_kill.c (1.4), modules/core/m_message.c (1.4),
-	modules/core/m_nick.c (1.4), modules/core/m_server.c (1.4),
-	modules/core/m_sjoin.c (1.4), modules/core/m_squit.c (1.4),
-	src/channel.c (1.6), src/channel_mode.c (1.6), src/client.c (1.8),
-	src/dynlink.c (1.4), src/hash.c (1.4), src/ircd.c (1.4),
-	src/ircd_parser.y (1.5), src/ircdauth.c (1.4), src/list.c (1.4),
-	src/listener.c (1.4), src/m_error.c (1.4), src/modules.c (1.4),
-	src/parse.c (1.4), src/restart.c (1.4), src/s_auth.c (1.4),
-	src/s_bsd.c (1.4), src/s_conf.c (1.4), src/s_serv.c (1.5),
-	src/s_user.c (1.8), src/send.c (1.11): Modifie all
-	sendto_gnotice_flags() calls to use new param (me.name).
-
-2002-08-12 00:00  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* include/send.h (1.6), modules/m_gnotice.c (1.5), src/send.c
-	(1.10): Modified GNOTICE command to take another param: the origin
-	of the message.  This will be sent to local clients to make the
-	message appear as if it came from the remote server.  This will NOT
-	compile.  Waiting for all changes to calls to sendto_gnotice_flags.
-
-2002-08-11 23:27  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* README.FIRST (1.3): removed test
-
-2002-08-11 23:25  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* README.FIRST (1.2): testing
-
-2002-08-11 16:07  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* include/config.h (1.3), modules/m_join.c (1.5), src/channel.c
-	(1.5), src/channel_mode.c (1.5), src/ircd_lexer.l (1.2),
-	src/ircd_parser.y (1.4): Made +G oper-only modified the lexer and
-	parser to recognise 'god' in the config file.  Also fixed logging
-	to log to the right path, as well as fixed channel modes and
-	channel joins report god mode usage correctly.	Consider this the
-	first test release.
-
-2002-08-10 22:51  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_join.c (1.4), src/channel.c (1.4), src/channel_mode.c
-	(1.4): Added more logging to Gd mdeo usage
-
-2002-08-10 19:44  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_cryptlink.c (1.4): Fix typo of sendto_gnotice_flags
-
-2002-08-10 19:43  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/core/m_kick.c (1.2): Added logging for god mode kicking
-
-2002-08-10 16:34  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
-
-	* modules/m_gnotice.c (1.4): *thwaps to Elf* Fixed his little bug
-	in ms_gnotice() :)
-
-2002-08-10 15:28  oftc
-
-	* contrib/m_jupe.c (1.3), contrib/spy_admin_notice.c (1.3),
-	contrib/spy_info_notice.c (1.3), contrib/spy_links_notice.c (1.3),
-	contrib/spy_motd_notice.c (1.3), contrib/spy_stats_notice.c (1.3),
-	contrib/spy_stats_p_notice.c (1.3), contrib/spy_trace_notice.c
-	(1.3), include/send.h (1.5), modules/m_away.c (1.3),
-	modules/m_cburst.c (1.3), modules/m_challenge.c (1.3),
-	modules/m_cryptlink.c (1.3), modules/m_eob.c (1.3),
-	modules/m_gline.c (1.3), modules/m_join.c (1.3), modules/m_kline.c
-	(1.3), modules/m_lljoin.c (1.3), modules/m_llnick.c (1.3),
-	modules/m_nburst.c (1.3), modules/m_oper.c (1.3), modules/m_post.c
-	(1.3), modules/m_rehash.c (1.3), modules/m_resv.c (1.3),
-	modules/m_set.c (1.3), modules/m_svinfo.c (1.3), modules/m_topic.c
-	(1.6), modules/m_unkline.c (1.3), modules/core/m_kill.c (1.3),
-	modules/core/m_message.c (1.3), modules/core/m_nick.c (1.3),
-	modules/core/m_server.c (1.3), modules/core/m_sjoin.c (1.3),
-	modules/core/m_squit.c (1.3), src/channel.c (1.3),
-	src/channel_mode.c (1.3), src/client.c (1.7), src/dynlink.c (1.3),
-	src/hash.c (1.3), src/ircd.c (1.3), src/ircd_parser.y (1.3),
-	src/ircdauth.c (1.3), src/list.c (1.3), src/listener.c (1.3),
-	src/m_error.c (1.3), src/modules.c (1.3), src/parse.c (1.3),
-	src/restart.c (1.3), src/s_auth.c (1.3), src/s_bsd.c (1.3),
-	src/s_conf.c (1.3), src/s_serv.c (1.4), src/s_user.c (1.7),
-	src/send.c (1.9): "Oops". Sorry for the mtime changes. Yeah, I'm
-	basically checking everything in. Shoot me.
+	Re-added our tokens to the lexer after merge
 	
-	(Just added 'int level' to sendto_gnotice_flags, and changed the
-	existing calls to use it.)
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-10 14:29  oftc
+2003-01-12 00:48  cry0gen
 
-	* contrib/m_jupe.c (1.2), contrib/spy_admin_notice.c (1.2),
-	contrib/spy_info_notice.c (1.2), contrib/spy_links_notice.c (1.2),
-	contrib/spy_motd_notice.c (1.2), contrib/spy_stats_notice.c (1.2),
-	contrib/spy_stats_p_notice.c (1.2), contrib/spy_trace_notice.c
-	(1.2), include/client.h (1.2), modules/m_away.c (1.2),
-	modules/m_cburst.c (1.2), modules/m_challenge.c (1.2),
-	modules/m_cryptlink.c (1.2), modules/m_eob.c (1.2),
-	modules/m_gline.c (1.2), modules/m_join.c (1.2), modules/m_kline.c
-	(1.2), modules/m_lljoin.c (1.2), modules/m_llnick.c (1.2),
-	modules/m_nburst.c (1.2), modules/m_oper.c (1.2), modules/m_post.c
-	(1.2), modules/m_rehash.c (1.2), modules/m_resv.c (1.2),
-	modules/m_set.c (1.2), modules/m_svinfo.c (1.2),
-	modules/m_unkline.c (1.2), modules/core/m_kill.c (1.2),
-	modules/core/m_message.c (1.2), modules/core/m_nick.c (1.2),
-	modules/core/m_server.c (1.2), modules/core/m_sjoin.c (1.2),
-	modules/core/m_squit.c (1.2), src/channel.c (1.2),
-	src/channel_mode.c (1.2), src/client.c (1.6), src/dynlink.c (1.2),
-	src/hash.c (1.2), src/ircd.c (1.2), src/ircd_parser.y (1.2),
-	src/ircdauth.c (1.2), src/list.c (1.2), src/listener.c (1.2),
-	src/m_error.c (1.2), src/modules.c (1.2), src/parse.c (1.2),
-	src/restart.c (1.2), src/s_auth.c (1.2), src/s_bsd.c (1.2),
-	src/s_conf.c (1.2), src/s_serv.c (1.3), src/s_user.c (1.6),
-	src/send.c (1.8): Shamelessly replaced almost all (except for one
-	:) calls to sendto_realops_flags() to sendto_gnotice_flags(). Will
-	have to go back later, decide what flags we want to be using, and
-	add L_ALL, L_OPER, L_ADMIN support.  Likewise, many of these will
-	end up sending the oper one message for each server connected to
-	the network; we'll have to switch those back to
-	sendto_realops_flags() as they show up. No biggie.		   
-				- David B. Harris (ElectricElf)
+	* src/client.c: set dead in dead_link as per hybrid and put the
+	gnotice back in
+	
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-10 14:27  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-11 23:19  cry0gen
 
-	* modules/m_topic.c (1.5): Fixed excessive propogation of god mode
-	message
+	* include/serno.h: serial++
+	
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-10 14:10  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-11 22:42  cry0gen
 
-	* include/config.h (1.2), include/s_log.h (1.2), modules/m_topic.c
-	(1.4), src/s_log.c (1.2): Added OFTCLOG in config.h, and added
-	oftc_log command in s_log.c and some testing for it in m_topic.c
+	* src/client.c: Removed the notice from dead_link
+	
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-10 13:33  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-11 04:08  cry0gen
 
-	* src/send.c (1.7): Fixed mass-globalage in sendto_gnotice_flags.
+	* include/serno.h: 
+	
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-10 12:56  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-11 04:08  cry0gen
 
-	* include/send.h (1.4), modules/m_gnotice.c (1.3),
-	modules/m_topic.c (1.3), src/client.c (1.5), src/s_user.c (1.5),
-	src/send.c (1.6): Testing fixes for sendto_gnotice_flags
+	* src/client.c: wrong params in gnotice
+	
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-10 12:33  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-11 03:59  cry0gen
 
-	* modules/m_gnotice.c (1.2), modules/m_log.c (1.2),
-	modules/m_topic.c (1.2), src/client.c (1.4), src/s_user.c (1.4),
-	src/send.c (1.5): Modified sendto_gnotice_flags to propgate the
-	message to all servers, removed ** Global stuff, and removed
-	oftc_log to be put in s_log.c soon
+	* include/serno.h, src/client.c: DO NOT SEND TO A DEAD CLIENT, OK?
+	
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-10 00:28  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-11 03:07  cry0gen
 
-	* src/: client.c (1.3), s_user.c (1.3): Corrected a couple of bugs
-	in the client connecting/exiting messages and added User is now
-	oper global notice
+	* include/serno.h: serial++
+	
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-09 23:49  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-11 03:05  cry0gen
 
-	* src/client.c (1.2): Added global client disconnect message
+	* include/client.h, src/channel_mode.c, src/client.c, src/packet.c,
+	src/parse.c, src/s_bsd.c, src/s_serv.c, src/s_user.c, src/send.c:
+	cleanup of exit_client stuff from hybrid
 
-2002-08-09 19:23  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 06:33  cry0gen
 
-	* include/send.h (1.3), modules/m_map.c (1.4), src/s_user.c (1.2),
-	src/send.c (1.4): Altered formatting in GNOTICE, made MAP oper-only
-	and added global connection notice.
+	* include/serno.h: fix serno
+	
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-09 18:41  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 06:08  cry0gen
 
-	* include/send.h (1.2), modules/Makefile.in (1.5),
-	modules/m_gnotice.c (1.1), src/send.c (1.3): Added GNOTICE command,
-	and sendto_gnotice_flags to go with it.
+	* include/serno.h: serial to 5
+	
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-09 17:41  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 06:06  cry0gen
 
-	* modules/m_wallops.c (1.2), src/send.c (1.2): added ability for
-	users to see WALLOPs again
+	* BUGS: reserting test
+	
+	Submitted by: Reviewed by: Approved by: Obtained from:
 
-2002-08-09 17:24  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 06:05  cry0gen
 
-	* modules/m_operwall.c (1.2): [no log message]
+	* RELNOTES, include/client.h, src/channel.c, src/channel_mode.c,
+	src/client.c, src/ircdauth.c, src/packet.c, src/parse.c,
+	src/s_bsd.c, src/s_serv.c, src/s_user.c, src/send.c: Fixed the
+	major exit_client bug once and for all
 
-2002-08-09 16:25  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 05:32  cry0gen
 
-	* modules/: Makefile.in (1.4), m_log.c (1.1), m_map.c (1.3): Added
-	LOG command in m_log.c, adjusted makefile to suit, and corrected
-	number of params in map yet again, as well as fitting in the new
-	code style (client_p etc)
+	* BUGS: test
 
-2002-08-09 02:28  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 04:17  cry0gen
 
-	* modules/m_svscloak.c (1.2): SVSCLOAK now notices user upon
-	cloaking
+	* include/serno.h: serial..
 
-2002-08-09 02:23  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 04:11  cry0gen
 
-	* modules/: m_realhost.c (1.4), m_whois.c (1.2): more REALHOST
-	fixes, works as it should now. Also eliminated sending user is
-	really.. unless user is actually cloaked
+	* include/Makefile.in, include/balloc.h, include/channel.h,
+	include/channel_mode.h, include/class.h, include/client.h,
+	include/common.h, include/config.h, include/config.h.dist,
+	include/defaults.h, include/event.h, include/fdlist.h,
+	include/fileio.h, include/handlers.h, include/hash.h,
+	include/hook.h, include/hostmask.h, include/irc_string.h,
+	include/ircd.h, include/ircd_defs.h, include/ircd_getopt.h,
+	include/ircd_handler.h, include/ircd_signal.h, include/ircdauth.h,
+	include/linebuf.h, include/list.h, include/listener.h,
+	include/m_info.h, include/m_kline.h, include/md5.h,
+	include/memory.h, include/modules.h, include/motd.h, include/msg.h,
+	include/numeric.h, include/packet.h, include/parse.h,
+	include/patchlevel.h, include/res.h, include/restart.h,
+	include/resv.h, include/rsa.h, include/s_auth.h, include/s_bsd.h,
+	include/s_conf.h, include/s_debug.h, include/s_gline.h,
+	include/s_log.h, include/s_misc.h, include/s_serv.h,
+	include/s_stats.h, include/s_user.h, include/s_zip.h,
+	include/scache.h, include/send.h, include/serno.h,
+	include/setup.h_vms, include/sprintf_irc.h, include/stdinc.h,
+	include/supported.h, include/tools.h, include/vchannel.h,
+	include/whowas.h, src/Makefile.in, src/adns.c, src/balloc.c,
+	src/channel.c, src/channel_mode.c, src/class.c, src/client.c,
+	src/crypt.c, src/descrip.mms, src/dynlink.c, src/event.c,
+	src/fdlist.c, src/fileio.c, src/getopt.c, src/hash.c, src/hook.c,
+	src/hostmask.c, src/irc_string.c, src/ircd.c, src/ircd_lexer.l,
+	src/ircd_parser.y, src/ircd_signal.c, src/ircdauth.c,
+	src/kdparse.c, src/linebuf.c, src/list.c, src/listener.c,
+	src/m_error.c, src/match.c, src/md5.c, src/memory.c,
+	src/messages.tab, src/modules.c, src/motd.c, src/numeric.c,
+	src/packet.c, src/parse.c, src/restart.c, src/resv.c, src/rsa.c,
+	src/s_auth.c, src/s_bsd.c, src/s_bsd_devpoll.c, src/s_bsd_kqueue.c,
+	src/s_bsd_poll.c, src/s_bsd_select.c, src/s_bsd_sigio.c,
+	src/s_conf.c, src/s_debug.c, src/s_gline.c, src/s_log.c,
+	src/s_misc.c, src/s_serv.c, src/s_stats.c, src/s_user.c,
+	src/scache.c, src/send.c, src/snprintf.c, src/sprintf_irc.c,
+	src/tools.c, src/vchannel.c, src/version.c.SH, src/whowas.c:
+	reverting code back to rc6
 
-2002-08-09 01:50  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 02:30  cry0gen
 
-	* modules/m_realhost.c (1.3): Fixed number of params to REALHOST
+	* include/serno.h: serial AGAIN
 
-2002-08-09 01:42  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 02:29  cry0gen
 
-	* modules/Makefile.in (1.3): Updated makefile to build cloaking
-	related modules and m_map
+	* src/client.c: more debug, still not fixed :)
 
-2002-08-09 01:28  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 02:02  cry0gen
 
-	* src/s_serv.c (1.2): Added REALHOST server-only command for
-	setting the realhost of a user on netburst if they're cloaked. 
-	Also fixed the Revision tag on m_map.c and fixed the unresolved
-	symbols in m_pong
+	* include/serno.h: serial..
 
-2002-08-09 01:20  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 02:02  cry0gen
 
-	* modules/: m_map.c (1.2), m_pong.c (1.2), m_realhost.c (1.2):
-	Temporary commit, see next for changelog :)
+	* include/client.h, src/channel.c, src/channel_mode.c,
+	src/client.c, src/packet.c, src/parse.c, src/s_bsd.c, src/s_serv.c,
+	src/s_user.c, src/send.c: alleged fixes for The Bug
 
-2002-08-08 06:24  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 00:59  cry0gen
 
-	* modules/core/: descrip.mms (1.1), m_die.c (1.1), m_kick.c (1.1),
-	m_kill.c (1.1), m_message.c (1.1), m_mode.c (1.1), m_nick.c (1.1),
-	m_part.c (1.1), m_quit.c (1.1), m_server.c (1.1), m_sjoin.c (1.1),
-	m_squit.c (1.1): Adding core modules that somehow got away...
+	* include/serno.h, src/client.c: yet more debug and serial changing
 
-2002-08-08 06:20  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 00:48  cry0gen
 
-	* modules/: Makefile.in (1.2), m_realhost.c (1.1): Added REALHOST
-	command for busrting users real hosts to remote servers
+	* include/serno.h: serial
 
-2002-08-03 23:24  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 00:47  cry0gen
 
-	* .cvsignore (1.1.1.1), .indent.pro (1.1.1.1), BUGS (1.1.1.1),
-	ChangeLog (1.1.1.1), Hybrid-team (1.1.1.1), INSTALL (1.1.1.1),
-	LICENSE (1.1.1.1), Makefile.in (1.1.1.1), README.FIRST (1.1.1.1),
-	README.PLATFORMS (1.1.1.1), README.VMS (1.1.1.1), RELNOTES
-	(1.1.1.1), TODO (1.1.1.1), clean.com (1.1.1.1), configure
-	(1.1.1.1), make.com (1.1.1.1), adns/.cvsignore (1.1.1.1),
-	adns/COPYING (1.1.1.1), adns/GPL-vs-LGPL (1.1.1.1),
-	adns/Makefile.in (1.1.1.1), adns/README (1.1.1.1), adns/README.ircd
-	(1.1.1.1), adns/adns.h (1.1.1.1), adns/check.c (1.1.1.1),
-	adns/descrip.mms (1.1.1.1), adns/dlist.h (1.1.1.1), adns/event.c
-	(1.1.1.1), adns/general.c (1.1.1.1), adns/internal.h (1.1.1.1),
-	adns/parse.c (1.1.1.1), adns/query.c (1.1.1.1), adns/reply.c
-	(1.1.1.1), adns/setup.c (1.1.1.1), adns/transmit.c (1.1.1.1),
-	adns/tvarith.h (1.1.1.1), adns/types.c (1.1.1.1),
-	autoconf/acconfig.h (1.1.1.1), autoconf/configure.in (1.1.1.1),
-	autoconf/install-sh (1.1.1.1), contrib/.cvsignore (1.1.1.1),
-	contrib/Makefile.in (1.1.1.1), contrib/README (1.1.1.1),
-	contrib/README.LMH (1.1.1.1), contrib/README.disable_identd
-	(1.1.1.1), contrib/disable_identd.diff (1.1.1.1),
-	contrib/example_module.c (1.1.1.1), contrib/lmh.diff (1.1.1.1),
-	contrib/m_clearchan.c (1.1.1.1), contrib/m_flags.c (1.1.1.1),
-	contrib/m_force.c (1.1.1.1), contrib/m_jupe.c (1.1.1.1),
-	contrib/m_ltrace.c (1.1.1.1), contrib/m_map.c (1.1.1.1),
-	contrib/m_mkpasswd.c (1.1.1.1), contrib/m_ojoin.c (1.1.1.1),
-	contrib/m_opme.c (1.1.1.1), contrib/m_tburst.c (1.1.1.1),
-	contrib/spy_admin_notice.c (1.1.1.1), contrib/spy_info_notice.c
-	(1.1.1.1), contrib/spy_links_notice.c (1.1.1.1),
-	contrib/spy_motd_notice.c (1.1.1.1), contrib/spy_stats_notice.c
-	(1.1.1.1), contrib/spy_stats_p_notice.c (1.1.1.1),
-	contrib/spy_trace_notice.c (1.1.1.1), contrib/spy_whois_notice.c
-	(1.1.1.1), doc/.cvsignore (1.1.1.1), doc/CIDR.txt (1.1.1.1),
-	doc/LazyLinks.txt (1.1.1.1), doc/Makefile.in (1.1.1.1),
-	doc/Tao-of-IRC.940110 (1.1.1.1), doc/challenge.txt (1.1.1.1),
-	doc/convertconf-example.conf (1.1.1.1), doc/dline.conf (1.1.1.1),
-	doc/example.conf (1.1.1.1), doc/example.efnet.conf (1.1.1.1),
-	doc/guidelines.txt (1.1.1.1), doc/index.txt (1.1.1.1), doc/ircd.8
-	(1.1.1.1), doc/ircd.motd (1.1.1.1), doc/kline.conf (1.1.1.1),
-	doc/kline.txt (1.1.1.1), doc/messages.txt (1.1.1.1), doc/modeg.txt
-	(1.1.1.1), doc/modes.txt (1.1.1.1), doc/operguide.txt (1.1.1.1),
-	doc/opermyth.txt (1.1.1.1), doc/resv.txt (1.1.1.1),
-	doc/server-version-info (1.1.1.1), doc/serverhide.txt (1.1.1.1),
-	doc/simple.conf (1.1.1.1), doc/vchans.txt (1.1.1.1),
-	doc/whats-new.txt (1.1.1.1), doc/old/Authors (1.1.1.1),
-	doc/old/Etiquette (1.1.1.1), doc/old/README (1.1.1.1),
-	doc/old/example.conf.trillian (1.1.1.1), doc/old/example_old.conf
-	(1.1.1.1), doc/old/ircd.8 (1.1.1.1), doc/old/simple.conf (1.1.1.1),
-	doc/old/US-Admin/Networking (1.1.1.1), doc/old/US-Admin/Operators
-	(1.1.1.1), doc/old/US-Admin/README (1.1.1.1),
-	doc/technical/Persistent_Clients.txt (1.1.1.1),
-	doc/technical/README.TSora (1.1.1.1), doc/technical/README.openssl
-	(1.1.1.1), doc/technical/cryptlink.txt (1.1.1.1),
-	doc/technical/debug_api.txt (1.1.1.1), doc/technical/event.txt
-	(1.1.1.1), doc/technical/fd-management.txt (1.1.1.1),
-	doc/technical/file-management.txt (1.1.1.1),
-	doc/technical/hostmask.txt (1.1.1.1), doc/technical/iauth.txt
-	(1.1.1.1), doc/technical/index.txt (1.1.1.1),
-	doc/technical/linebuf.txt (1.1.1.1),
-	doc/technical/message-customisation.txt (1.1.1.1),
-	doc/technical/network.txt (1.1.1.1), doc/technical/rfc1459.txt
-	(1.1.1.1), doc/technical/send.txt (1.1.1.1), doc/technical/ts5.txt
-	(1.1.1.1), doc/technical/whats-new-code.txt (1.1.1.1),
-	help/.cvsignore (1.1.1.1), help/Makefile.in (1.1.1.1),
-	help/opers/accept (1.1.1.1), help/opers/admin (1.1.1.1),
-	help/opers/away (1.1.1.1), help/opers/capab (1.1.1.1),
-	help/opers/cburst (1.1.1.1), help/opers/challenge (1.1.1.1),
-	help/opers/cjoin (1.1.1.1), help/opers/client (1.1.1.1),
-	help/opers/close (1.1.1.1), help/opers/cmode (1.1.1.1),
-	help/opers/connect (1.1.1.1), help/opers/credits (1.1.1.1),
-	help/opers/cryptlink (1.1.1.1), help/opers/die (1.1.1.1),
-	help/opers/dline (1.1.1.1), help/opers/dmem (1.1.1.1),
-	help/opers/drop (1.1.1.1), help/opers/eob (1.1.1.1),
-	help/opers/error (1.1.1.1), help/opers/gline (1.1.1.1),
-	help/opers/help (1.1.1.1), help/opers/index (1.1.1.1),
-	help/opers/info (1.1.1.1), help/opers/invite (1.1.1.1),
-	help/opers/ison (1.1.1.1), help/opers/join (1.1.1.1),
-	help/opers/kick (1.1.1.1), help/opers/kill (1.1.1.1),
-	help/opers/kline (1.1.1.1), help/opers/knock (1.1.1.1),
-	help/opers/knockll (1.1.1.1), help/opers/links (1.1.1.1),
-	help/opers/list (1.1.1.1), help/opers/lljoin (1.1.1.1),
-	help/opers/llnick (1.1.1.1), help/opers/locops (1.1.1.1),
-	help/opers/lusers (1.1.1.1), help/opers/modlist (1.1.1.1),
-	help/opers/modload (1.1.1.1), help/opers/modrestart (1.1.1.1),
-	help/opers/modunload (1.1.1.1), help/opers/motd (1.1.1.1),
-	help/opers/names (1.1.1.1), help/opers/nburst (1.1.1.1),
-	help/opers/nick (1.1.1.1), help/opers/notice (1.1.1.1),
-	help/opers/oper (1.1.1.1), help/opers/operwall (1.1.1.1),
-	help/opers/part (1.1.1.1), help/opers/pass (1.1.1.1),
-	help/opers/ping (1.1.1.1), help/opers/pong (1.1.1.1),
-	help/opers/post (1.1.1.1), help/opers/privmsg (1.1.1.1),
-	help/opers/quit (1.1.1.1), help/opers/rehash (1.1.1.1),
-	help/opers/restart (1.1.1.1), help/opers/resv (1.1.1.1),
-	help/opers/server (1.1.1.1), help/opers/set (1.1.1.1),
-	help/opers/sjoin (1.1.1.1), help/opers/squit (1.1.1.1),
-	help/opers/stats (1.1.1.1), help/opers/svinfo (1.1.1.1),
-	help/opers/testline (1.1.1.1), help/opers/time (1.1.1.1),
-	help/opers/topic (1.1.1.1), help/opers/trace (1.1.1.1),
-	help/opers/uhelp (1.1.1.1), help/opers/umode (1.1.1.1),
-	help/opers/undline (1.1.1.1), help/opers/ungline (1.1.1.1),
-	help/opers/unkline (1.1.1.1), help/opers/unresv (1.1.1.1),
-	help/opers/user (1.1.1.1), help/opers/userhost (1.1.1.1),
-	help/opers/users (1.1.1.1), help/opers/version (1.1.1.1),
-	help/opers/wallops (1.1.1.1), help/opers/who (1.1.1.1),
-	help/opers/whois (1.1.1.1), help/opers/whowas (1.1.1.1),
-	help/users/index (1.1.1.1), help/users/info (1.1.1.1),
-	help/users/notice (1.1.1.1), help/users/privmsg (1.1.1.1),
-	help/users/stats (1.1.1.1), help/users/umode (1.1.1.1),
-	iauth/.cvsignore (1.1.1.1), iauth/Makefile.in (1.1.1.1),
-	iauth/include/auth.h (1.1.1.1), iauth/include/class.h (1.1.1.1),
-	iauth/include/commands.h (1.1.1.1), iauth/include/conf.h (1.1.1.1),
-	iauth/include/iauth.h (1.1.1.1), iauth/include/log.h (1.1.1.1),
-	iauth/include/match.h (1.1.1.1), iauth/include/misc.h (1.1.1.1),
-	iauth/include/mtree.h (1.1.1.1), iauth/include/res.h (1.1.1.1),
-	iauth/include/setup.h (1.1.1.1), iauth/include/sock.h (1.1.1.1),
-	iauth/source/.cvsignore (1.1.1.1), iauth/source/.depend (1.1.1.1),
-	iauth/source/Makefile.in (1.1.1.1), iauth/source/auth.c (1.1.1.1),
-	iauth/source/class.c (1.1.1.1), iauth/source/commands.c (1.1.1.1),
-	iauth/source/conf.c (1.1.1.1), iauth/source/iauth.c (1.1.1.1),
-	iauth/source/log.c (1.1.1.1), iauth/source/match.c (1.1.1.1),
-	iauth/source/misc.c (1.1.1.1), iauth/source/mtree.c (1.1.1.1),
-	iauth/source/res.c (1.1.1.1), iauth/source/sock.c (1.1.1.1),
-	include/.cvsignore (1.1.1.1), include/Makefile.in (1.1.1.1),
-	include/balloc.h (1.1.1.1), include/channel.h (1.1.1.1),
-	include/channel_mode.h (1.1.1.1), include/class.h (1.1.1.1),
-	include/client.h (1.1.1.1), include/common.h (1.1.1.1),
-	include/config.h (1.1.1.1), include/config.h.dist (1.1.1.1),
-	include/defaults.h (1.1.1.1), include/event.h (1.1.1.1),
-	include/fdlist.h (1.1.1.1), include/fileio.h (1.1.1.1),
-	include/handlers.h (1.1.1.1), include/hash.h (1.1.1.1),
-	include/hook.h (1.1.1.1), include/hostmask.h (1.1.1.1),
-	include/irc_string.h (1.1.1.1), include/ircd.h (1.1.1.1),
-	include/ircd_defs.h (1.1.1.1), include/ircd_getopt.h (1.1.1.1),
-	include/ircd_handler.h (1.1.1.1), include/ircd_signal.h (1.1.1.1),
-	include/ircdauth.h (1.1.1.1), include/linebuf.h (1.1.1.1),
-	include/list.h (1.1.1.1), include/listener.h (1.1.1.1),
-	include/m_info.h (1.1.1.1), include/m_kline.h (1.1.1.1),
-	include/md5.h (1.1.1.1), include/memory.h (1.1.1.1),
-	include/modules.h (1.1.1.1), include/motd.h (1.1.1.1),
-	include/msg.h (1.1.1.1), include/numeric.h (1.1.1.1),
-	include/packet.h (1.1.1.1), include/parse.h (1.1.1.1),
-	include/patchlevel.h (1.1.1.1), include/res.h (1.1.1.1),
-	include/restart.h (1.1.1.1), include/resv.h (1.1.1.1),
-	include/rsa.h (1.1.1.1), include/s_auth.h (1.1.1.1),
-	include/s_bsd.h (1.1.1.1), include/s_conf.h (1.1.1.1),
-	include/s_debug.h (1.1.1.1), include/s_gline.h (1.1.1.1),
-	include/s_log.h (1.1.1.1), include/s_misc.h (1.1.1.1),
-	include/s_serv.h (1.1.1.1), include/s_stats.h (1.1.1.1),
-	include/s_user.h (1.1.1.1), include/s_zip.h (1.1.1.1),
-	include/scache.h (1.1.1.1), include/send.h (1.1.1.1),
-	include/serno.h (1.1.1.1), include/setup.h.in (1.1.1.1),
-	include/setup.h_vms (1.1.1.1), include/sprintf_irc.h (1.1.1.1),
-	include/stdinc.h (1.1.1.1), include/supported.h (1.1.1.1),
-	include/tools.h (1.1.1.1), include/vchannel.h (1.1.1.1),
-	include/whowas.h (1.1.1.1), messages/.cvsignore (1.1.1.1),
-	messages/Makefile.in (1.1.1.1), messages/ayb.po (1.1.1.1),
-	messages/build_one (1.1.1.1), messages/create_po (1.1.1.1),
-	messages/custom.po (1.1.1.1), messages/translations/.cvsignore
-	(1.1.1.1), messages/translations/Makefile.in (1.1.1.1),
-	messages/translations/README (1.1.1.1),
-	messages/translations/ircd-croatian.po (1.1.1.1),
-	messages/translations/ircd-danish.po (1.1.1.1),
-	messages/translations/ircd-dutch.po (1.1.1.1),
-	messages/translations/ircd-german.po (1.1.1.1),
-	messages/translations/ircd-norwegian.po (1.1.1.1),
-	messages/translations/ircd-spanish.po (1.1.1.1),
-	messages/translations/ircd-swedish.po (1.1.1.1), modules/.cvsignore
-	(1.1.1.1), modules/.depend (1.1.1.1), modules/Makefile.in
-	(1.1.1.1), modules/descrip.mms (1.1.1.1), modules/m_accept.c
-	(1.1.1.1), modules/m_admin.c (1.1.1.1), modules/m_away.c (1.1.1.1),
-	modules/m_capab.c (1.1.1.1), modules/m_cburst.c (1.1.1.1),
-	modules/m_challenge.c (1.1.1.1), modules/m_cjoin.c (1.1.1.1),
-	modules/m_close.c (1.1.1.1), modules/m_connect.c (1.1.1.1),
-	modules/m_cryptlink.c (1.1.1.1), modules/m_dmem.c (1.1.1.1),
-	modules/m_drop.c (1.1.1.1), modules/m_eob.c (1.1.1.1),
-	modules/m_gline.c (1.1.1.1), modules/m_help.c (1.1.1.1),
-	modules/m_info.c (1.1.1.1), modules/m_invite.c (1.1.1.1),
-	modules/m_ison.c (1.1.1.1), modules/m_join.c (1.1.1.1),
-	modules/m_kline.c (1.1.1.1), modules/m_knock.c (1.1.1.1),
-	modules/m_links.c (1.1.1.1), modules/m_list.c (1.1.1.1),
-	modules/m_lljoin.c (1.1.1.1), modules/m_llnick.c (1.1.1.1),
-	modules/m_locops.c (1.1.1.1), modules/m_lusers.c (1.1.1.1),
-	modules/m_motd.c (1.1.1.1), modules/m_names.c (1.1.1.1),
-	modules/m_nburst.c (1.1.1.1), modules/m_oper.c (1.1.1.1),
-	modules/m_operwall.c (1.1.1.1), modules/m_ping.c (1.1.1.1),
-	modules/m_pong.c (1.1.1.1), modules/m_post.c (1.1.1.1),
-	modules/m_rehash.c (1.1.1.1), modules/m_restart.c (1.1.1.1),
-	modules/m_resv.c (1.1.1.1), modules/m_set.c (1.1.1.1),
-	modules/m_map.c (1.1.1.1), modules/m_pass.c (1.1.1.1),
-	modules/m_stats.c (1.1.1.1), modules/m_svinfo.c (1.1.1.1),
-	modules/m_svscloak.c (1.1.1.1), modules/m_testline.c (1.1.1.1),
-	modules/m_time.c (1.1.1.1), modules/m_topic.c (1.1.1.1),
-	modules/m_trace.c (1.1.1.1), modules/m_unkline.c (1.1.1.1),
-	modules/m_user.c (1.1.1.1), modules/m_userhost.c (1.1.1.1),
-	modules/m_users.c (1.1.1.1), modules/m_version.c (1.1.1.1),
-	modules/m_wallops.c (1.1.1.1), modules/m_who.c (1.1.1.1),
-	modules/m_whois.c (1.1.1.1), modules/m_whowas.c (1.1.1.1),
-	servlink/.cvsignore (1.1.1.1), servlink/Makefile.in (1.1.1.1),
-	servlink/README (1.1.1.1), servlink/TODO (1.1.1.1),
-	servlink/control.c (1.1.1.1), servlink/control.h (1.1.1.1),
-	servlink/descrip.mms (1.1.1.1), servlink/io.c (1.1.1.1),
-	servlink/io.h (1.1.1.1), servlink/servlink.c (1.1.1.1),
-	servlink/servlink.h (1.1.1.1), servlink/setup.h.in (1.1.1.1),
-	src/.cvsignore (1.1.1.1), src/.depend (1.1.1.1), src/Makefile.in
-	(1.1.1.1), src/adns.c (1.1.1.1), src/balloc.c (1.1.1.1),
-	src/channel.c (1.1.1.1), src/channel_mode.c (1.1.1.1), src/class.c
-	(1.1.1.1), src/client.c (1.1.1.1), src/crypt.c (1.1.1.1),
-	src/descrip.mms (1.1.1.1), src/dynlink.c (1.1.1.1), src/event.c
-	(1.1.1.1), src/fdlist.c (1.1.1.1), src/fileio.c (1.1.1.1),
-	src/getopt.c (1.1.1.1), src/hash.c (1.1.1.1), src/hook.c (1.1.1.1),
-	src/hostmask.c (1.1.1.1), src/irc_string.c (1.1.1.1), src/ircd.c
-	(1.1.1.1), src/ircd_lexer.l (1.1.1.1), src/ircd_parser.y (1.1.1.1),
-	src/ircd_signal.c (1.1.1.1), src/ircdauth.c (1.1.1.1),
-	src/kdparse.c (1.1.1.1), src/linebuf.c (1.1.1.1), src/list.c
-	(1.1.1.1), src/listener.c (1.1.1.1), src/m_error.c (1.1.1.1),
-	src/match.c (1.1.1.1), src/md5.c (1.1.1.1), src/memory.c (1.1.1.1),
-	src/messages.tab (1.1.1.1), src/modules.c (1.1.1.1), src/motd.c
-	(1.1.1.1), src/numeric.c (1.1.1.1), src/packet.c (1.1.1.1),
-	src/parse.c (1.1.1.1), src/restart.c (1.1.1.1), src/resv.c
-	(1.1.1.1), src/rsa.c (1.1.1.1), src/s_auth.c (1.1.1.1), src/s_bsd.c
-	(1.1.1.1), src/s_bsd_devpoll.c (1.1.1.1), src/s_bsd_kqueue.c
-	(1.1.1.1), src/s_bsd_poll.c (1.1.1.1), src/s_bsd_select.c
-	(1.1.1.1), src/s_bsd_sigio.c (1.1.1.1), src/s_conf.c (1.1.1.1),
-	src/s_debug.c (1.1.1.1), src/s_gline.c (1.1.1.1), src/s_log.c
-	(1.1.1.1), src/s_misc.c (1.1.1.1), src/s_serv.c (1.1.1.1),
-	src/s_stats.c (1.1.1.1), src/s_user.c (1.1.1.1), src/scache.c
-	(1.1.1.1), src/send.c (1.1.1.1), src/snprintf.c (1.1.1.1),
-	src/sprintf_irc.c (1.1.1.1), src/tools.c (1.1.1.1), src/vchannel.c
-	(1.1.1.1), src/version.c.SH (1.1.1.1), src/version.com (1.1.1.1),
-	src/whowas.c (1.1.1.1), tools/.cvsignore (1.1.1.1),
-	tools/Makefile.in (1.1.1.1), tools/README (1.1.1.1),
-	tools/README.mkpasswd (1.1.1.1), tools/convertconf.c (1.1.1.1),
-	tools/convertilines.c (1.1.1.1), tools/convertklines.c (1.1.1.1),
-	tools/descrip.mms (1.1.1.1), tools/encspeed.c (1.1.1.1),
-	tools/mkkeypair (1.1.1.1), tools/mkpasswd.c (1.1.1.1),
-	tools/private.key (1.1.1.1), tools/untabify (1.1.1.1),
-	tools/viconf.c (1.1.1.1), tools/rsa_respond/.cvsignore (1.1.1.1),
-	tools/rsa_respond/Makefile (1.1.1.1), tools/rsa_respond/README
-	(1.1.1.1), tools/rsa_respond/respond.c (1.1.1.1): Initial
+	* src/client.c: more debug
 
-2002-08-03 23:24  Stuart Walsh (cryogen)  <stu@ipng.org.ku>
+2003-01-09 00:12  cry0gen
 
-	* .cvsignore (1.1), .indent.pro (1.1), BUGS (1.1), ChangeLog (1.1),
-	Hybrid-team (1.1), INSTALL (1.1), LICENSE (1.1), Makefile.in (1.1),
-	README.FIRST (1.1), README.PLATFORMS (1.1), README.VMS (1.1),
-	RELNOTES (1.1), TODO (1.1), clean.com (1.1), configure (1.1),
-	make.com (1.1), adns/.cvsignore (1.1), adns/COPYING (1.1),
-	adns/GPL-vs-LGPL (1.1), adns/Makefile.in (1.1), adns/README (1.1),
-	adns/README.ircd (1.1), adns/adns.h (1.1), adns/check.c (1.1),
-	adns/descrip.mms (1.1), adns/dlist.h (1.1), adns/event.c (1.1),
-	adns/general.c (1.1), adns/internal.h (1.1), adns/parse.c (1.1),
-	adns/query.c (1.1), adns/reply.c (1.1), adns/setup.c (1.1),
-	adns/transmit.c (1.1), adns/tvarith.h (1.1), adns/types.c (1.1),
-	autoconf/acconfig.h (1.1), autoconf/configure.in (1.1),
-	autoconf/install-sh (1.1), contrib/.cvsignore (1.1),
-	contrib/Makefile.in (1.1), contrib/README (1.1), contrib/README.LMH
-	(1.1), contrib/README.disable_identd (1.1),
-	contrib/disable_identd.diff (1.1), contrib/example_module.c (1.1),
-	contrib/lmh.diff (1.1), contrib/m_clearchan.c (1.1),
-	contrib/m_flags.c (1.1), contrib/m_force.c (1.1), contrib/m_jupe.c
-	(1.1), contrib/m_ltrace.c (1.1), contrib/m_map.c (1.1),
-	contrib/m_mkpasswd.c (1.1), contrib/m_ojoin.c (1.1),
-	contrib/m_opme.c (1.1), contrib/m_tburst.c (1.1),
-	contrib/spy_admin_notice.c (1.1), contrib/spy_info_notice.c (1.1),
-	contrib/spy_links_notice.c (1.1), contrib/spy_motd_notice.c (1.1),
-	contrib/spy_stats_notice.c (1.1), contrib/spy_stats_p_notice.c
-	(1.1), contrib/spy_trace_notice.c (1.1), contrib/spy_whois_notice.c
-	(1.1), doc/.cvsignore (1.1), doc/CIDR.txt (1.1), doc/LazyLinks.txt
-	(1.1), doc/Makefile.in (1.1), doc/Tao-of-IRC.940110 (1.1),
-	doc/challenge.txt (1.1), doc/convertconf-example.conf (1.1),
-	doc/dline.conf (1.1), doc/example.conf (1.1),
-	doc/example.efnet.conf (1.1), doc/guidelines.txt (1.1),
-	doc/index.txt (1.1), doc/ircd.8 (1.1), doc/ircd.motd (1.1),
-	doc/kline.conf (1.1), doc/kline.txt (1.1), doc/messages.txt (1.1),
-	doc/modeg.txt (1.1), doc/modes.txt (1.1), doc/operguide.txt (1.1),
-	doc/opermyth.txt (1.1), doc/resv.txt (1.1), doc/server-version-info
-	(1.1), doc/serverhide.txt (1.1), doc/simple.conf (1.1),
-	doc/vchans.txt (1.1), doc/whats-new.txt (1.1), doc/old/Authors
-	(1.1), doc/old/Etiquette (1.1), doc/old/README (1.1),
-	doc/old/example.conf.trillian (1.1), doc/old/example_old.conf
-	(1.1), doc/old/ircd.8 (1.1), doc/old/simple.conf (1.1),
-	doc/old/US-Admin/Networking (1.1), doc/old/US-Admin/Operators
-	(1.1), doc/old/US-Admin/README (1.1),
-	doc/technical/Persistent_Clients.txt (1.1),
-	doc/technical/README.TSora (1.1), doc/technical/README.openssl
-	(1.1), doc/technical/cryptlink.txt (1.1),
-	doc/technical/debug_api.txt (1.1), doc/technical/event.txt (1.1),
-	doc/technical/fd-management.txt (1.1),
-	doc/technical/file-management.txt (1.1), doc/technical/hostmask.txt
-	(1.1), doc/technical/iauth.txt (1.1), doc/technical/index.txt
-	(1.1), doc/technical/linebuf.txt (1.1),
-	doc/technical/message-customisation.txt (1.1),
-	doc/technical/network.txt (1.1), doc/technical/rfc1459.txt (1.1),
-	doc/technical/send.txt (1.1), doc/technical/ts5.txt (1.1),
-	doc/technical/whats-new-code.txt (1.1), help/.cvsignore (1.1),
-	help/Makefile.in (1.1), help/opers/accept (1.1), help/opers/admin
-	(1.1), help/opers/away (1.1), help/opers/capab (1.1),
-	help/opers/cburst (1.1), help/opers/challenge (1.1),
-	help/opers/cjoin (1.1), help/opers/client (1.1), help/opers/close
-	(1.1), help/opers/cmode (1.1), help/opers/connect (1.1),
-	help/opers/credits (1.1), help/opers/cryptlink (1.1),
-	help/opers/die (1.1), help/opers/dline (1.1), help/opers/dmem
-	(1.1), help/opers/drop (1.1), help/opers/eob (1.1),
-	help/opers/error (1.1), help/opers/gline (1.1), help/opers/help
-	(1.1), help/opers/index (1.1), help/opers/info (1.1),
-	help/opers/invite (1.1), help/opers/ison (1.1), help/opers/join
-	(1.1), help/opers/kick (1.1), help/opers/kill (1.1),
-	help/opers/kline (1.1), help/opers/knock (1.1), help/opers/knockll
-	(1.1), help/opers/links (1.1), help/opers/list (1.1),
-	help/opers/lljoin (1.1), help/opers/llnick (1.1), help/opers/locops
-	(1.1), help/opers/lusers (1.1), help/opers/modlist (1.1),
-	help/opers/modload (1.1), help/opers/modrestart (1.1),
-	help/opers/modunload (1.1), help/opers/motd (1.1), help/opers/names
-	(1.1), help/opers/nburst (1.1), help/opers/nick (1.1),
-	help/opers/notice (1.1), help/opers/oper (1.1), help/opers/operwall
-	(1.1), help/opers/part (1.1), help/opers/pass (1.1),
-	help/opers/ping (1.1), help/opers/pong (1.1), help/opers/post
-	(1.1), help/opers/privmsg (1.1), help/opers/quit (1.1),
-	help/opers/rehash (1.1), help/opers/restart (1.1), help/opers/resv
-	(1.1), help/opers/server (1.1), help/opers/set (1.1),
-	help/opers/sjoin (1.1), help/opers/squit (1.1), help/opers/stats
-	(1.1), help/opers/svinfo (1.1), help/opers/testline (1.1),
-	help/opers/time (1.1), help/opers/topic (1.1), help/opers/trace
-	(1.1), help/opers/uhelp (1.1), help/opers/umode (1.1),
-	help/opers/undline (1.1), help/opers/ungline (1.1),
-	help/opers/unkline (1.1), help/opers/unresv (1.1), help/opers/user
-	(1.1), help/opers/userhost (1.1), help/opers/users (1.1),
-	help/opers/version (1.1), help/opers/wallops (1.1), help/opers/who
-	(1.1), help/opers/whois (1.1), help/opers/whowas (1.1),
-	help/users/index (1.1), help/users/info (1.1), help/users/notice
-	(1.1), help/users/privmsg (1.1), help/users/stats (1.1),
-	help/users/umode (1.1), iauth/.cvsignore (1.1), iauth/Makefile.in
-	(1.1), iauth/include/auth.h (1.1), iauth/include/class.h (1.1),
-	iauth/include/commands.h (1.1), iauth/include/conf.h (1.1),
-	iauth/include/iauth.h (1.1), iauth/include/log.h (1.1),
-	iauth/include/match.h (1.1), iauth/include/misc.h (1.1),
-	iauth/include/mtree.h (1.1), iauth/include/res.h (1.1),
-	iauth/include/setup.h (1.1), iauth/include/sock.h (1.1),
-	iauth/source/.cvsignore (1.1), iauth/source/.depend (1.1),
-	iauth/source/Makefile.in (1.1), iauth/source/auth.c (1.1),
-	iauth/source/class.c (1.1), iauth/source/commands.c (1.1),
-	iauth/source/conf.c (1.1), iauth/source/iauth.c (1.1),
-	iauth/source/log.c (1.1), iauth/source/match.c (1.1),
-	iauth/source/misc.c (1.1), iauth/source/mtree.c (1.1),
-	iauth/source/res.c (1.1), iauth/source/sock.c (1.1),
-	include/.cvsignore (1.1), include/Makefile.in (1.1),
-	include/balloc.h (1.1), include/channel.h (1.1),
-	include/channel_mode.h (1.1), include/class.h (1.1),
-	include/client.h (1.1), include/common.h (1.1), include/config.h
-	(1.1), include/config.h.dist (1.1), include/defaults.h (1.1),
-	include/event.h (1.1), include/fdlist.h (1.1), include/fileio.h
-	(1.1), include/handlers.h (1.1), include/hash.h (1.1),
-	include/hook.h (1.1), include/hostmask.h (1.1),
-	include/irc_string.h (1.1), include/ircd.h (1.1),
-	include/ircd_defs.h (1.1), include/ircd_getopt.h (1.1),
-	include/ircd_handler.h (1.1), include/ircd_signal.h (1.1),
-	include/ircdauth.h (1.1), include/linebuf.h (1.1), include/list.h
-	(1.1), include/listener.h (1.1), include/m_info.h (1.1),
-	include/m_kline.h (1.1), include/md5.h (1.1), include/memory.h
-	(1.1), include/modules.h (1.1), include/motd.h (1.1), include/msg.h
-	(1.1), include/numeric.h (1.1), include/packet.h (1.1),
-	include/parse.h (1.1), include/patchlevel.h (1.1), include/res.h
-	(1.1), include/restart.h (1.1), include/resv.h (1.1), include/rsa.h
-	(1.1), include/s_auth.h (1.1), include/s_bsd.h (1.1),
-	include/s_conf.h (1.1), include/s_debug.h (1.1), include/s_gline.h
-	(1.1), include/s_log.h (1.1), include/s_misc.h (1.1),
-	include/s_serv.h (1.1), include/s_stats.h (1.1), include/s_user.h
-	(1.1), include/s_zip.h (1.1), include/scache.h (1.1),
-	include/send.h (1.1), include/serno.h (1.1), include/setup.h.in
-	(1.1), include/setup.h_vms (1.1), include/sprintf_irc.h (1.1),
-	include/stdinc.h (1.1), include/supported.h (1.1), include/tools.h
-	(1.1), include/vchannel.h (1.1), include/whowas.h (1.1),
-	messages/.cvsignore (1.1), messages/Makefile.in (1.1),
-	messages/ayb.po (1.1), messages/build_one (1.1), messages/create_po
-	(1.1), messages/custom.po (1.1), messages/translations/.cvsignore
-	(1.1), messages/translations/Makefile.in (1.1),
-	messages/translations/README (1.1),
-	messages/translations/ircd-croatian.po (1.1),
-	messages/translations/ircd-danish.po (1.1),
-	messages/translations/ircd-dutch.po (1.1),
-	messages/translations/ircd-german.po (1.1),
-	messages/translations/ircd-norwegian.po (1.1),
-	messages/translations/ircd-spanish.po (1.1),
-	messages/translations/ircd-swedish.po (1.1), modules/.cvsignore
-	(1.1), modules/.depend (1.1), modules/Makefile.in (1.1),
-	modules/descrip.mms (1.1), modules/m_accept.c (1.1),
-	modules/m_admin.c (1.1), modules/m_away.c (1.1), modules/m_capab.c
-	(1.1), modules/m_cburst.c (1.1), modules/m_challenge.c (1.1),
-	modules/m_cjoin.c (1.1), modules/m_close.c (1.1),
-	modules/m_connect.c (1.1), modules/m_cryptlink.c (1.1),
-	modules/m_dmem.c (1.1), modules/m_drop.c (1.1), modules/m_eob.c
-	(1.1), modules/m_gline.c (1.1), modules/m_help.c (1.1),
-	modules/m_info.c (1.1), modules/m_invite.c (1.1), modules/m_ison.c
-	(1.1), modules/m_join.c (1.1), modules/m_kline.c (1.1),
-	modules/m_knock.c (1.1), modules/m_links.c (1.1), modules/m_list.c
-	(1.1), modules/m_lljoin.c (1.1), modules/m_llnick.c (1.1),
-	modules/m_locops.c (1.1), modules/m_lusers.c (1.1),
-	modules/m_motd.c (1.1), modules/m_names.c (1.1), modules/m_nburst.c
-	(1.1), modules/m_oper.c (1.1), modules/m_operwall.c (1.1),
-	modules/m_ping.c (1.1), modules/m_pong.c (1.1), modules/m_post.c
-	(1.1), modules/m_rehash.c (1.1), modules/m_restart.c (1.1),
-	modules/m_resv.c (1.1), modules/m_set.c (1.1), modules/m_map.c
-	(1.1), modules/m_pass.c (1.1), modules/m_stats.c (1.1),
-	modules/m_svinfo.c (1.1), modules/m_svscloak.c (1.1),
-	modules/m_testline.c (1.1), modules/m_time.c (1.1),
-	modules/m_topic.c (1.1), modules/m_trace.c (1.1),
-	modules/m_unkline.c (1.1), modules/m_user.c (1.1),
-	modules/m_userhost.c (1.1), modules/m_users.c (1.1),
-	modules/m_version.c (1.1), modules/m_wallops.c (1.1),
-	modules/m_who.c (1.1), modules/m_whois.c (1.1), modules/m_whowas.c
-	(1.1), servlink/.cvsignore (1.1), servlink/Makefile.in (1.1),
-	servlink/README (1.1), servlink/TODO (1.1), servlink/control.c
-	(1.1), servlink/control.h (1.1), servlink/descrip.mms (1.1),
-	servlink/io.c (1.1), servlink/io.h (1.1), servlink/servlink.c
-	(1.1), servlink/servlink.h (1.1), servlink/setup.h.in (1.1),
-	src/.cvsignore (1.1), src/.depend (1.1), src/Makefile.in (1.1),
-	src/adns.c (1.1), src/balloc.c (1.1), src/channel.c (1.1),
-	src/channel_mode.c (1.1), src/class.c (1.1), src/client.c (1.1),
-	src/crypt.c (1.1), src/descrip.mms (1.1), src/dynlink.c (1.1),
-	src/event.c (1.1), src/fdlist.c (1.1), src/fileio.c (1.1),
-	src/getopt.c (1.1), src/hash.c (1.1), src/hook.c (1.1),
-	src/hostmask.c (1.1), src/irc_string.c (1.1), src/ircd.c (1.1),
-	src/ircd_lexer.l (1.1), src/ircd_parser.y (1.1), src/ircd_signal.c
-	(1.1), src/ircdauth.c (1.1), src/kdparse.c (1.1), src/linebuf.c
-	(1.1), src/list.c (1.1), src/listener.c (1.1), src/m_error.c (1.1),
-	src/match.c (1.1), src/md5.c (1.1), src/memory.c (1.1),
-	src/messages.tab (1.1), src/modules.c (1.1), src/motd.c (1.1),
-	src/numeric.c (1.1), src/packet.c (1.1), src/parse.c (1.1),
-	src/restart.c (1.1), src/resv.c (1.1), src/rsa.c (1.1),
-	src/s_auth.c (1.1), src/s_bsd.c (1.1), src/s_bsd_devpoll.c (1.1),
-	src/s_bsd_kqueue.c (1.1), src/s_bsd_poll.c (1.1),
-	src/s_bsd_select.c (1.1), src/s_bsd_sigio.c (1.1), src/s_conf.c
-	(1.1), src/s_debug.c (1.1), src/s_gline.c (1.1), src/s_log.c (1.1),
-	src/s_misc.c (1.1), src/s_serv.c (1.1), src/s_stats.c (1.1),
-	src/s_user.c (1.1), src/scache.c (1.1), src/send.c (1.1),
-	src/snprintf.c (1.1), src/sprintf_irc.c (1.1), src/tools.c (1.1),
-	src/vchannel.c (1.1), src/version.c.SH (1.1), src/version.com
-	(1.1), src/whowas.c (1.1), tools/.cvsignore (1.1),
-	tools/Makefile.in (1.1), tools/README (1.1), tools/README.mkpasswd
-	(1.1), tools/convertconf.c (1.1), tools/convertilines.c (1.1),
-	tools/convertklines.c (1.1), tools/descrip.mms (1.1),
-	tools/encspeed.c (1.1), tools/mkkeypair (1.1), tools/mkpasswd.c
-	(1.1), tools/private.key (1.1), tools/untabify (1.1),
-	tools/viconf.c (1.1), tools/rsa_respond/.cvsignore (1.1),
-	tools/rsa_respond/Makefile (1.1), tools/rsa_respond/README (1.1),
-	tools/rsa_respond/respond.c (1.1): Initial revision
+	* include/serno.h: increment serno
+
+2003-01-09 00:11  cry0gen
+
+	* src/client.c: added debug code to track down a  bug
+
+2003-01-06 02:45  cry0gen
+
+	* include/serno.h: updated serial
+
+2003-01-06 02:30  cry0gen
+
+	* src/client.c: This got backed out, somehow
+
+2002-12-21 14:44  cry0gen
+
+	* src/client.c: Fixed that stupid kill-all-the-net bug that somehow
+	creeped back in
+
+2002-12-21 13:43  cry0gen
+
+	* include/patchlevel.h: seems we have a stable release.  Patchlevel
+	rc6+1.1.3
+
+2002-12-21 13:16  cry0gen
+
+	* src/: client.c, ircd_parser.y, s_conf.c: coule of tidy ups from
+	the merge
+
+2002-12-21 10:44  cry0gen
+
+	* modules/m_challenge.c, modules/m_connect.c,
+	modules/m_cryptlink.c, modules/m_info.c, modules/m_invite.c,
+	modules/m_join.c, modules/m_kline.c, modules/m_motd.c,
+	modules/m_oper.c, modules/m_ping.c, modules/m_rehash.c,
+	modules/m_stats.c, modules/m_testline.c, modules/m_unkline.c,
+	modules/m_who.c, modules/m_whois.c, modules/m_whowas.c,
+	modules/core/m_kick.c, modules/core/m_kill.c,
+	modules/core/m_message.c, modules/core/m_nick.c,
+	modules/core/m_part.c, modules/core/m_server.c,
+	modules/core/m_squit.c, src/adns.c, src/channel.c,
+	src/channel_mode.c, src/class.c, src/client.c, src/dynlink.c,
+	src/hash.c, src/hook.c, src/hostmask.c, src/ircd.c,
+	src/ircd_lexer.l, src/ircd_parser.y, src/ircd_signal.c,
+	src/kdparse.c, src/linebuf.c, src/list.c, src/m_error.c, src/md5.c,
+	src/modules.c, src/motd.c, src/packet.c, src/parse.c, src/resv.c,
+	src/s_auth.c, src/s_bsd.c, src/s_bsd_devpoll.c, src/s_bsd_kqueue.c,
+	src/s_bsd_poll.c, src/s_bsd_select.c, src/s_bsd_sigio.c,
+	src/s_conf.c, src/s_log.c, src/s_serv.c, src/s_user.c,
+	src/scache.c, src/send.c, src/whowas.c: Merged in modules and src. 
+	Not quite done, committing to get a diff to fix a compile error.
+
+2002-12-21 06:34  cry0gen
+
+	* tools/rsa_respond/: README, respond.c: Merged tools with RC6 -
+	added insecure mode to ./respond for CHALLENGE
+
+2002-12-21 06:32  cry0gen
+
+	* servlink/servlink.h: merged servlink to RC6.. a "const" addition
+
+2002-12-21 06:29  cry0gen
+
+	* help/opers/: kline, rehash: minor updates to help(merge with rc6)
+
+2002-12-21 06:26  cry0gen
+
+	* doc/: challenge.txt, convertconf-example.conf, example.conf,
+	example.efnet.conf, whats-new.txt, technical/send.txt: merged doc
+	to rc6.  Some minor updates.. see ChaneLog
+
+2002-12-21 06:22  cry0gen
+
+	* contrib/: README, m_force.c, m_jupe.c, m_operspy.c, m_opme.c,
+	m_tburst.c, m_whois.c: Merged contrib with rc6.  Some interesting
+	additions to operspy.. including /who stuff.
+
+2002-12-21 06:11  cry0gen
+
+	* BUGS, ChangeLog, Hybrid-team, INSTALL, README.PLATFORMS,
+	RELNOTES, TODO, configure, autoconf/configure.in: Merged root
+	folder(and autoconf) with rc6. Nothing special.
+
+2002-12-21 05:47  cry0gen
+
+	* include/: channel.h, client.h, defaults.h, event.h, hook.h,
+	hostmask.h, ircd.h, modules.h, msg.h, numeric.h, res.h, s_auth.h,
+	s_conf.h, s_user.h, send.h, serno.h, setup.h.in, tools.h: Merged
+	include with rc6.  Lots of goodies and cleanups.  Most notable is
+	the ability for opers to flood.
+
+2002-12-21 05:30  cry0gen
+
+	* adns/: adns.h, internal.h, parse.c, query.c, types.c: Merged adns
+	with rc6.  Adds .arpa support for IPv6.
+
+2002-12-10 19:41  cry0gen
+
+	* src/ircd_parser.y: Fixed bison-doesnt-like-buggy-parser bug
+
+2002-09-29 14:03  cry0gen
+
+	* src/event.c: merged possible event overflow bug fix
+
+2002-09-16 15:30  cry0gen
+
+	* modules/m_oper.c: Added abililty to oper through cloak
+
+2002-09-14 16:38  cry0gen
+
+	* contrib/README.LMH: hybrid removed this, so we should too
+
+2002-09-13 05:50  cry0gen
+
+	* modules/m_resv.c: fix params to sendto_realops_flags
+
+2002-09-13 05:45  cry0gen
+
+	* modules/m_resv.c: more resv cleanups
+
+2002-09-13 05:40  cry0gen
+
+	* modules/m_resv.c: missed reason param in resv
+
+2002-09-13 05:30  cry0gen
+
+	* modules/m_resv.c: added global resvs
+
+2002-09-13 05:04  cry0gen
+
+	* modules/: m_pong.c, m_spingtime.c, m_svsnick.c: - Altered
+	sendto_server calls in m_pong and m_spingtime.	- slight cleanup of
+	svsnick
+
+2002-09-13 04:43  cry0gen
+
+	* modules/m_svsnick.c: converted to find_chasing.. just in case,
+	and use MyClient instead of MyConnect
+
+2002-09-13 04:30  elf
+
+	* modules/m_svsmode.c: Altered whitespace to up revision number
+
+2002-09-13 03:45  cry0gen
+
+	* modules/m_svscloak.c: fixed revision tag
+
+2002-09-13 03:40  elf
+
+	* modules/core/m_squit.c: Restore whitespace to up Revision
+
+2002-09-13 03:39  elf
+
+	* modules/core/m_squit.c: Alter whitespace to up Revision
+
+2002-09-13 03:34  elf
+
+	* modules/core/m_squit.c: Up revision
+
+2002-09-13 03:32  cry0gen
+
+	* modules/m_svscloak.c: oops, missed the emptystring sanity check
+
+2002-09-13 03:24  cry0gen
+
+	* modules/: m_svsmode.c, m_svsnick.c: shouldnt need source_p in
+	sendto_server
+
+2002-09-13 03:23  cry0gen
+
+	* modules/m_svsmode.c: clean up style
+
+2002-09-13 03:20  cry0gen
+
+	* modules/m_svsnick.c: Clean up formatting and check we're sending
+	right params
+
+2002-09-13 03:17  cry0gen
+
+	* modules/m_svscloak.c: propgating svscloak wrong.. oops
+
+2002-09-13 03:02  elf
+
+	* modules/m_svscloak.c: Eeep, do it right this time.
+
+2002-09-13 03:01  elf
+
+	* modules/m_svscloak.c: Sorry, had to up m-svscloak.c's revision.
+
+2002-09-13 02:57  cry0gen
+
+	* modules/m_svscloak.c: if you're going to change something.. do it
+	properly
+
+2002-09-12 03:21  cry0gen
+
+	* modules/core/m_squit.c: Cleaned up squit and removed wallops
+
+2002-09-12 03:16  cry0gen
+
+	* modules/: descrip.mms, core/descrip.mms, core/m_die.c,
+	core/m_kick.c, core/m_kill.c, core/m_message.c, core/m_mode.c,
+	core/m_nick.c, core/m_part.c, core/m_quit.c, core/m_server.c,
+	core/m_sjoin.c, core/m_squit.c: Added the core directory, how did
+	that not get added..?
+
+2002-09-12 03:11  cry0gen
+
+	* modules/m_svscloak.c: clean up svscloak
+
+2002-09-12 02:50  cry0gen
+
+	* modules/m_svsmode.c: Fixed behaviour of m_svsmode to be more sane
+
+2002-09-12 02:46  cry0gen
+
+	* modules/: Makefile.in, descrip.mms, m_accept.c, m_admin.c,
+	m_away.c, m_capab.c, m_cburst.c, m_challenge.c, m_cjoin.c,
+	m_close.c, m_connect.c, m_cryptlink.c, m_dmem.c, m_drop.c, m_eob.c,
+	m_gline.c, m_gnotice.c, m_help.c, m_info.c, m_invite.c, m_ison.c,
+	m_join.c, m_kline.c, m_knock.c, m_links.c, m_list.c, m_lljoin.c,
+	m_llnick.c, m_locops.c, m_log.c, m_lusers.c, m_motd.c, m_names.c,
+	m_nburst.c, m_oper.c, m_operwall.c, m_pass.c, m_ping.c, m_pong.c,
+	m_post.c, m_rehash.c, m_restart.c, m_resv.c, m_set.c, m_spiffy.c,
+	m_spingtime.c, m_stats.c, m_svinfo.c, m_svsmode.c, m_svsnick.c,
+	m_testline.c, m_time.c, m_topic.c, m_trace.c, m_unkline.c,
+	m_user.c, m_userhost.c, m_users.c, m_version.c, m_wallops.c,
+	m_who.c, m_whois.c, m_whowas.c: - Fixed the way sendto_server is
+	called in m_pong and corrected m_spingtime
+
+2002-09-12 02:07  cry0gen
+
+	* .cvsignore, .indent.pro, BUGS, ChangeLog, ChangeLog.oftc,
+	Hybrid-team, INSTALL, LICENSE, Makefile.in, README.FIRST,
+	README.PLATFORMS, README.VMS, RELNOTES, TODO, TODO.oftc, clean.com,
+	configure, make.com, adns/.cvsignore, adns/COPYING,
+	adns/GPL-vs-LGPL, adns/Makefile.in, adns/README, adns/README.ircd,
+	adns/adns.h, adns/check.c, adns/descrip.mms, adns/dlist.h,
+	adns/event.c, adns/general.c, adns/internal.h, adns/parse.c,
+	adns/query.c, adns/reply.c, adns/setup.c, adns/transmit.c,
+	adns/tvarith.h, adns/types.c, autoconf/acconfig.h,
+	autoconf/configure.in, autoconf/install-sh, contrib/.cvsignore,
+	contrib/Makefile.in, contrib/README, contrib/README.LMH,
+	contrib/README.disable_identd, contrib/disable_identd.diff,
+	contrib/example_module.c, contrib/m_clearchan.c, contrib/m_flags.c,
+	contrib/m_force.c, contrib/m_jupe.c, contrib/m_ltrace.c,
+	contrib/m_map.c, contrib/m_mkpasswd.c, contrib/m_ojoin.c,
+	contrib/m_operspy.c, contrib/m_opme.c, contrib/m_tburst.c,
+	contrib/m_whois.c, contrib/spy_admin_notice.c,
+	contrib/spy_info_notice.c, contrib/spy_links_notice.c,
+	contrib/spy_motd_notice.c, contrib/spy_stats_notice.c,
+	contrib/spy_stats_p_notice.c, contrib/spy_trace_notice.c,
+	contrib/spy_whois_notice.c, doc/.cvsignore, doc/CIDR.txt,
+	doc/LazyLinks.txt, doc/Makefile.in, doc/README.cidr_bans,
+	doc/Tao-of-IRC.940110, doc/challenge.txt,
+	doc/convertconf-example.conf, doc/dline.conf, doc/example.conf,
+	doc/example.efnet.conf, doc/guidelines.txt, doc/index.txt,
+	doc/ircd.8, doc/ircd.motd, doc/kline.conf, doc/kline.txt,
+	doc/messages.txt, doc/modeg.txt, doc/modes.txt, doc/resv.txt,
+	doc/operguide.txt, doc/opermyth.txt, doc/server-version-info,
+	doc/serverhide.txt, doc/simple.conf, doc/vchans.txt,
+	doc/whats-new.txt, doc/old/Authors, doc/old/Etiquette,
+	doc/old/README, doc/old/example.conf.trillian,
+	doc/old/example_old.conf, doc/old/ircd.8, doc/old/simple.conf,
+	doc/old/US-Admin/Networking, doc/old/US-Admin/Operators,
+	doc/old/US-Admin/README, doc/technical/Persistent_Clients.txt,
+	doc/technical/README.TSora, doc/technical/README.openssl,
+	doc/technical/cryptlink.txt, doc/technical/debug_api.txt,
+	doc/technical/event.txt, doc/technical/fd-management.txt,
+	doc/technical/file-management.txt, doc/technical/hostmask.txt,
+	doc/technical/iauth.txt, doc/technical/index.txt,
+	doc/technical/linebuf.txt, doc/technical/message-customisation.txt,
+	doc/technical/network.txt, doc/technical/rfc1459.txt,
+	doc/technical/send.txt, doc/technical/ts5.txt,
+	doc/technical/whats-new-code.txt, help/.cvsignore,
+	help/Makefile.in, help/opers/accept, help/opers/admin,
+	help/opers/away, help/opers/capab, help/opers/cburst,
+	help/opers/challenge, help/opers/cjoin, help/opers/client,
+	help/opers/close, help/opers/cmode, help/opers/connect,
+	help/opers/credits, help/opers/cryptlink, help/opers/die,
+	help/opers/dline, help/opers/dmem, help/opers/drop, help/opers/eob,
+	help/opers/error, help/opers/gline, help/opers/help,
+	help/opers/index, help/opers/info, help/opers/invite,
+	help/opers/ison, help/opers/join, help/opers/kick, help/opers/kill,
+	help/opers/kline, help/opers/knock, help/opers/knockll,
+	help/opers/links, help/opers/list, help/opers/lljoin,
+	help/opers/llnick, help/opers/locops, help/opers/lusers,
+	help/opers/modlist, help/opers/modload, help/opers/modrestart,
+	help/opers/modunload, help/opers/motd, help/opers/names,
+	help/opers/nburst, help/opers/nick, help/opers/notice,
+	help/opers/oper, help/opers/operwall, help/opers/part,
+	help/opers/pass, help/opers/ping, help/opers/pong, help/opers/post,
+	help/opers/privmsg, help/opers/quit, help/opers/set,
+	help/opers/version, help/opers/wallops, help/opers/rehash,
+	help/opers/restart, help/opers/resv, help/opers/server,
+	help/opers/sjoin, help/opers/squit, help/opers/stats,
+	help/opers/svinfo, help/opers/testline, help/opers/time,
+	help/opers/topic, help/opers/trace, help/opers/uhelp,
+	help/opers/umode, help/opers/undline, help/opers/ungline,
+	help/opers/unkline, help/opers/unresv, help/opers/user,
+	help/opers/userhost, help/opers/users, help/opers/who,
+	help/opers/whois, help/opers/whowas, help/users/index,
+	help/users/info, help/users/notice, help/users/privmsg,
+	help/users/stats, help/users/umode, iauth/.cvsignore,
+	iauth/Makefile.in, iauth/include/auth.h, iauth/include/class.h,
+	iauth/include/commands.h, iauth/include/conf.h,
+	iauth/include/iauth.h, iauth/include/log.h, iauth/include/match.h,
+	iauth/include/misc.h, iauth/include/mtree.h, iauth/include/res.h,
+	iauth/include/setup.h, iauth/include/sock.h,
+	iauth/source/.cvsignore, iauth/source/.depend,
+	iauth/source/Makefile.in, iauth/source/auth.c,
+	iauth/source/class.c, iauth/source/commands.c, iauth/source/conf.c,
+	iauth/source/iauth.c, iauth/source/log.c, iauth/source/match.c,
+	iauth/source/misc.c, iauth/source/mtree.c, iauth/source/res.c,
+	iauth/source/sock.c, include/.cvsignore, include/Makefile.in,
+	include/balloc.h, include/channel.h, include/channel_mode.h,
+	include/class.h, include/client.h, include/common.h,
+	include/config.h, include/config.h.dist, include/defaults.h,
+	include/event.h, include/fdlist.h, include/fileio.h,
+	include/handlers.h, include/hash.h, include/hook.h,
+	include/hostmask.h, include/irc_string.h, include/ircd.h,
+	include/ircd_defs.h, include/ircd_getopt.h, include/ircd_handler.h,
+	include/ircd_signal.h, include/ircdauth.h, include/linebuf.h,
+	include/list.h, include/listener.h, include/m_info.h,
+	include/m_kline.h, include/md5.h, include/memory.h,
+	include/modules.h, include/motd.h, include/msg.h,
+	include/numeric.h, include/packet.h, include/parse.h,
+	include/res.h, include/restart.h, include/resv.h, include/rsa.h,
+	include/s_auth.h, include/s_bsd.h, include/s_conf.h,
+	include/s_debug.h, include/s_gline.h, include/s_log.h,
+	include/s_misc.h, include/s_serv.h, include/s_stats.h,
+	include/s_user.h, include/s_zip.h, include/scache.h,
+	include/send.h, include/serno.h, include/setup.h.in,
+	include/setup.h_vms, include/sprintf_irc.h, include/stdinc.h,
+	include/supported.h, include/tools.h, include/patchlevel.h,
+	include/vchannel.h, include/whowas.h, messages/.cvsignore,
+	messages/Makefile.in, messages/ayb.po, messages/build_one,
+	messages/create_po, messages/custom.po,
+	messages/translations/.cvsignore,
+	messages/translations/Makefile.in, messages/translations/README,
+	messages/translations/ircd-croatian.po,
+	messages/translations/ircd-danish.po,
+	messages/translations/ircd-dutch.po,
+	messages/translations/ircd-german.po,
+	messages/translations/ircd-norwegian.po,
+	messages/translations/ircd-spanish.po,
+	messages/translations/ircd-swedish.po, modules/.cvsignore,
+	modules/m_userhost.c, modules/.depend, modules/Makefile.in,
+	modules/descrip.mms, modules/m_accept.c, modules/m_users.c,
+	modules/m_version.c, modules/m_wallops.c, modules/m_admin.c,
+	modules/m_away.c, modules/m_who.c, modules/m_capab.c,
+	modules/m_cburst.c, modules/m_whois.c, modules/m_challenge.c,
+	modules/m_cjoin.c, modules/m_close.c, modules/m_connect.c,
+	modules/m_cryptlink.c, modules/m_cs.c, modules/m_dmem.c,
+	modules/m_drop.c, modules/m_eob.c, modules/m_gline.c,
+	modules/m_gnotice.c, modules/m_help.c, modules/m_hs.c,
+	modules/m_info.c, modules/m_invite.c, modules/m_ison.c,
+	modules/m_join.c, modules/m_kline.c, modules/m_knock.c,
+	modules/m_links.c, modules/m_list.c, modules/m_lljoin.c,
+	modules/m_llnick.c, modules/m_locops.c, modules/m_log.c,
+	modules/m_lusers.c, modules/m_map.c, modules/m_motd.c,
+	modules/m_ms.c, modules/m_names.c, modules/m_nburst.c,
+	modules/m_ns.c, modules/m_oper.c, modules/m_operwall.c,
+	modules/m_os.c, modules/m_pass.c, modules/m_ping.c,
+	modules/m_pong.c, modules/m_post.c, modules/m_realhost.c,
+	modules/m_rehash.c, modules/m_restart.c, modules/m_resv.c,
+	modules/m_set.c, modules/m_spiffy.c, modules/m_stats.c,
+	modules/m_svinfo.c, modules/m_svscloak.c, modules/m_svsmode.c,
+	modules/m_svsnick.c, modules/m_testline.c, modules/m_time.c,
+	modules/m_topic.c, modules/m_trace.c, modules/m_unkline.c,
+	modules/m_user.c, modules/m_spingtime.c, modules/m_whowas.c,
+	servlink/.cvsignore, servlink/Makefile.in, servlink/README,
+	servlink/TODO, servlink/control.c, servlink/control.h,
+	servlink/descrip.mms, servlink/io.c, servlink/io.h,
+	servlink/servlink.c, servlink/servlink.h, servlink/setup.h.in,
+	src/.cvsignore, src/.depend, src/Makefile.in, src/adns.c,
+	src/balloc.c, src/channel.c, src/channel_mode.c, src/class.c,
+	src/client.c, src/crypt.c, src/descrip.mms, src/dynlink.c,
+	src/event.c, src/fdlist.c, src/fileio.c, src/getopt.c, src/hash.c,
+	src/hook.c, src/hostmask.c, src/irc_string.c, src/ircd.c,
+	src/ircd_lexer.l, src/ircd_parser.y, src/ircd_signal.c,
+	src/ircdauth.c, src/kdparse.c, src/linebuf.c, src/list.c,
+	src/listener.c, src/m_error.c, src/match.c, src/md5.c,
+	src/memory.c, src/messages.tab, src/modules.c, src/motd.c,
+	src/numeric.c, src/packet.c, src/parse.c, src/restart.c,
+	src/resv.c, src/rsa.c, src/s_auth.c, src/s_bsd.c,
+	src/s_bsd_devpoll.c, src/s_bsd_kqueue.c, src/s_bsd_poll.c,
+	src/s_bsd_select.c, src/s_bsd_sigio.c, src/s_conf.c, src/s_debug.c,
+	src/s_gline.c, src/s_log.c, src/s_misc.c, src/s_serv.c,
+	src/s_stats.c, src/s_user.c, src/scache.c, src/send.c,
+	src/snprintf.c, src/sprintf_irc.c, src/tools.c, src/vchannel.c,
+	src/version.c.SH, src/version.com, src/whowas.c, tools/.cvsignore,
+	tools/Makefile.in, tools/README, tools/README.mkpasswd,
+	tools/convertconf.c, tools/convertilines.c, tools/convertklines.c,
+	tools/descrip.mms, tools/encspeed.c, tools/mkkeypair,
+	tools/mkpasswd.c, tools/untabify, tools/viconf.c,
+	tools/rsa_respond/.cvsignore, tools/rsa_respond/Makefile,
+	tools/rsa_respond/README, tools/rsa_respond/respond.c: Initial
+	revision
+
+2002-09-12 02:07  cry0gen
+
+	* .cvsignore, .indent.pro, BUGS, ChangeLog, ChangeLog.oftc,
+	Hybrid-team, INSTALL, LICENSE, Makefile.in, README.FIRST,
+	README.PLATFORMS, README.VMS, RELNOTES, TODO, TODO.oftc, clean.com,
+	configure, make.com, adns/.cvsignore, adns/COPYING,
+	adns/GPL-vs-LGPL, adns/Makefile.in, adns/README, adns/README.ircd,
+	adns/adns.h, adns/check.c, adns/descrip.mms, adns/dlist.h,
+	adns/event.c, adns/general.c, adns/internal.h, adns/parse.c,
+	adns/query.c, adns/reply.c, adns/setup.c, adns/transmit.c,
+	adns/tvarith.h, adns/types.c, autoconf/acconfig.h,
+	autoconf/configure.in, autoconf/install-sh, contrib/.cvsignore,
+	contrib/Makefile.in, contrib/README, contrib/README.LMH,
+	contrib/README.disable_identd, contrib/disable_identd.diff,
+	contrib/example_module.c, contrib/m_clearchan.c, contrib/m_flags.c,
+	contrib/m_force.c, contrib/m_jupe.c, contrib/m_ltrace.c,
+	contrib/m_map.c, contrib/m_mkpasswd.c, contrib/m_ojoin.c,
+	contrib/m_operspy.c, contrib/m_opme.c, contrib/m_tburst.c,
+	contrib/m_whois.c, contrib/spy_admin_notice.c,
+	contrib/spy_info_notice.c, contrib/spy_links_notice.c,
+	contrib/spy_motd_notice.c, contrib/spy_stats_notice.c,
+	contrib/spy_stats_p_notice.c, contrib/spy_trace_notice.c,
+	contrib/spy_whois_notice.c, doc/.cvsignore, doc/CIDR.txt,
+	doc/LazyLinks.txt, doc/Makefile.in, doc/README.cidr_bans,
+	doc/Tao-of-IRC.940110, doc/challenge.txt,
+	doc/convertconf-example.conf, doc/dline.conf, doc/example.conf,
+	doc/example.efnet.conf, doc/guidelines.txt, doc/index.txt,
+	doc/ircd.8, doc/ircd.motd, doc/kline.conf, doc/kline.txt,
+	doc/messages.txt, doc/modeg.txt, doc/modes.txt, doc/resv.txt,
+	doc/operguide.txt, doc/opermyth.txt, doc/server-version-info,
+	doc/serverhide.txt, doc/simple.conf, doc/vchans.txt,
+	doc/whats-new.txt, doc/old/Authors, doc/old/Etiquette,
+	doc/old/README, doc/old/example.conf.trillian,
+	doc/old/example_old.conf, doc/old/ircd.8, doc/old/simple.conf,
+	doc/old/US-Admin/Networking, doc/old/US-Admin/Operators,
+	doc/old/US-Admin/README, doc/technical/Persistent_Clients.txt,
+	doc/technical/README.TSora, doc/technical/README.openssl,
+	doc/technical/cryptlink.txt, doc/technical/debug_api.txt,
+	doc/technical/event.txt, doc/technical/fd-management.txt,
+	doc/technical/file-management.txt, doc/technical/hostmask.txt,
+	doc/technical/iauth.txt, doc/technical/index.txt,
+	doc/technical/linebuf.txt, doc/technical/message-customisation.txt,
+	doc/technical/network.txt, doc/technical/rfc1459.txt,
+	doc/technical/send.txt, doc/technical/ts5.txt,
+	doc/technical/whats-new-code.txt, help/.cvsignore,
+	help/Makefile.in, help/opers/accept, help/opers/admin,
+	help/opers/away, help/opers/capab, help/opers/cburst,
+	help/opers/challenge, help/opers/cjoin, help/opers/client,
+	help/opers/close, help/opers/cmode, help/opers/connect,
+	help/opers/credits, help/opers/cryptlink, help/opers/die,
+	help/opers/dline, help/opers/dmem, help/opers/drop, help/opers/eob,
+	help/opers/error, help/opers/gline, help/opers/help,
+	help/opers/index, help/opers/info, help/opers/invite,
+	help/opers/ison, help/opers/join, help/opers/kick, help/opers/kill,
+	help/opers/kline, help/opers/knock, help/opers/knockll,
+	help/opers/links, help/opers/list, help/opers/lljoin,
+	help/opers/llnick, help/opers/locops, help/opers/lusers,
+	help/opers/modlist, help/opers/modload, help/opers/modrestart,
+	help/opers/modunload, help/opers/motd, help/opers/names,
+	help/opers/nburst, help/opers/nick, help/opers/notice,
+	help/opers/oper, help/opers/operwall, help/opers/part,
+	help/opers/pass, help/opers/ping, help/opers/pong, help/opers/post,
+	help/opers/privmsg, help/opers/quit, help/opers/set,
+	help/opers/version, help/opers/wallops, help/opers/rehash,
+	help/opers/restart, help/opers/resv, help/opers/server,
+	help/opers/sjoin, help/opers/squit, help/opers/stats,
+	help/opers/svinfo, help/opers/testline, help/opers/time,
+	help/opers/topic, help/opers/trace, help/opers/uhelp,
+	help/opers/umode, help/opers/undline, help/opers/ungline,
+	help/opers/unkline, help/opers/unresv, help/opers/user,
+	help/opers/userhost, help/opers/users, help/opers/who,
+	help/opers/whois, help/opers/whowas, help/users/index,
+	help/users/info, help/users/notice, help/users/privmsg,
+	help/users/stats, help/users/umode, iauth/.cvsignore,
+	iauth/Makefile.in, iauth/include/auth.h, iauth/include/class.h,
+	iauth/include/commands.h, iauth/include/conf.h,
+	iauth/include/iauth.h, iauth/include/log.h, iauth/include/match.h,
+	iauth/include/misc.h, iauth/include/mtree.h, iauth/include/res.h,
+	iauth/include/setup.h, iauth/include/sock.h,
+	iauth/source/.cvsignore, iauth/source/.depend,
+	iauth/source/Makefile.in, iauth/source/auth.c,
+	iauth/source/class.c, iauth/source/commands.c, iauth/source/conf.c,
+	iauth/source/iauth.c, iauth/source/log.c, iauth/source/match.c,
+	iauth/source/misc.c, iauth/source/mtree.c, iauth/source/res.c,
+	iauth/source/sock.c, include/.cvsignore, include/Makefile.in,
+	include/balloc.h, include/channel.h, include/channel_mode.h,
+	include/class.h, include/client.h, include/common.h,
+	include/config.h, include/config.h.dist, include/defaults.h,
+	include/event.h, include/fdlist.h, include/fileio.h,
+	include/handlers.h, include/hash.h, include/hook.h,
+	include/hostmask.h, include/irc_string.h, include/ircd.h,
+	include/ircd_defs.h, include/ircd_getopt.h, include/ircd_handler.h,
+	include/ircd_signal.h, include/ircdauth.h, include/linebuf.h,
+	include/list.h, include/listener.h, include/m_info.h,
+	include/m_kline.h, include/md5.h, include/memory.h,
+	include/modules.h, include/motd.h, include/msg.h,
+	include/numeric.h, include/packet.h, include/parse.h,
+	include/res.h, include/restart.h, include/resv.h, include/rsa.h,
+	include/s_auth.h, include/s_bsd.h, include/s_conf.h,
+	include/s_debug.h, include/s_gline.h, include/s_log.h,
+	include/s_misc.h, include/s_serv.h, include/s_stats.h,
+	include/s_user.h, include/s_zip.h, include/scache.h,
+	include/send.h, include/serno.h, include/setup.h.in,
+	include/setup.h_vms, include/sprintf_irc.h, include/stdinc.h,
+	include/supported.h, include/tools.h, include/patchlevel.h,
+	include/vchannel.h, include/whowas.h, messages/.cvsignore,
+	messages/Makefile.in, messages/ayb.po, messages/build_one,
+	messages/create_po, messages/custom.po,
+	messages/translations/.cvsignore,
+	messages/translations/Makefile.in, messages/translations/README,
+	messages/translations/ircd-croatian.po,
+	messages/translations/ircd-danish.po,
+	messages/translations/ircd-dutch.po,
+	messages/translations/ircd-german.po,
+	messages/translations/ircd-norwegian.po,
+	messages/translations/ircd-spanish.po,
+	messages/translations/ircd-swedish.po, modules/.cvsignore,
+	modules/m_userhost.c, modules/.depend, modules/Makefile.in,
+	modules/descrip.mms, modules/m_accept.c, modules/m_users.c,
+	modules/m_version.c, modules/m_wallops.c, modules/m_admin.c,
+	modules/m_away.c, modules/m_who.c, modules/m_capab.c,
+	modules/m_cburst.c, modules/m_whois.c, modules/m_challenge.c,
+	modules/m_cjoin.c, modules/m_close.c, modules/m_connect.c,
+	modules/m_cryptlink.c, modules/m_cs.c, modules/m_dmem.c,
+	modules/m_drop.c, modules/m_eob.c, modules/m_gline.c,
+	modules/m_gnotice.c, modules/m_help.c, modules/m_hs.c,
+	modules/m_info.c, modules/m_invite.c, modules/m_ison.c,
+	modules/m_join.c, modules/m_kline.c, modules/m_knock.c,
+	modules/m_links.c, modules/m_list.c, modules/m_lljoin.c,
+	modules/m_llnick.c, modules/m_locops.c, modules/m_log.c,
+	modules/m_lusers.c, modules/m_map.c, modules/m_motd.c,
+	modules/m_ms.c, modules/m_names.c, modules/m_nburst.c,
+	modules/m_ns.c, modules/m_oper.c, modules/m_operwall.c,
+	modules/m_os.c, modules/m_pass.c, modules/m_ping.c,
+	modules/m_pong.c, modules/m_post.c, modules/m_realhost.c,
+	modules/m_rehash.c, modules/m_restart.c, modules/m_resv.c,
+	modules/m_set.c, modules/m_spiffy.c, modules/m_stats.c,
+	modules/m_svinfo.c, modules/m_svscloak.c, modules/m_svsmode.c,
+	modules/m_svsnick.c, modules/m_testline.c, modules/m_time.c,
+	modules/m_topic.c, modules/m_trace.c, modules/m_unkline.c,
+	modules/m_user.c, modules/m_spingtime.c, modules/m_whowas.c,
+	servlink/.cvsignore, servlink/Makefile.in, servlink/README,
+	servlink/TODO, servlink/control.c, servlink/control.h,
+	servlink/descrip.mms, servlink/io.c, servlink/io.h,
+	servlink/servlink.c, servlink/servlink.h, servlink/setup.h.in,
+	src/.cvsignore, src/.depend, src/Makefile.in, src/adns.c,
+	src/balloc.c, src/channel.c, src/channel_mode.c, src/class.c,
+	src/client.c, src/crypt.c, src/descrip.mms, src/dynlink.c,
+	src/event.c, src/fdlist.c, src/fileio.c, src/getopt.c, src/hash.c,
+	src/hook.c, src/hostmask.c, src/irc_string.c, src/ircd.c,
+	src/ircd_lexer.l, src/ircd_parser.y, src/ircd_signal.c,
+	src/ircdauth.c, src/kdparse.c, src/linebuf.c, src/list.c,
+	src/listener.c, src/m_error.c, src/match.c, src/md5.c,
+	src/memory.c, src/messages.tab, src/modules.c, src/motd.c,
+	src/numeric.c, src/packet.c, src/parse.c, src/restart.c,
+	src/resv.c, src/rsa.c, src/s_auth.c, src/s_bsd.c,
+	src/s_bsd_devpoll.c, src/s_bsd_kqueue.c, src/s_bsd_poll.c,
+	src/s_bsd_select.c, src/s_bsd_sigio.c, src/s_conf.c, src/s_debug.c,
+	src/s_gline.c, src/s_log.c, src/s_misc.c, src/s_serv.c,
+	src/s_stats.c, src/s_user.c, src/scache.c, src/send.c,
+	src/snprintf.c, src/sprintf_irc.c, src/tools.c, src/vchannel.c,
+	src/version.c.SH, src/version.com, src/whowas.c, tools/.cvsignore,
+	tools/Makefile.in, tools/README, tools/README.mkpasswd,
+	tools/convertconf.c, tools/convertilines.c, tools/convertklines.c,
+	tools/descrip.mms, tools/encspeed.c, tools/mkkeypair,
+	tools/mkpasswd.c, tools/untabify, tools/viconf.c,
+	tools/rsa_respond/.cvsignore, tools/rsa_respond/Makefile,
+	tools/rsa_respond/README, tools/rsa_respond/respond.c: Import of
+	new sources, go me for fucking the old one!
 

@@ -66,7 +66,7 @@ _moddeinit(void)
 static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
     FBFILE *logfile = NULL;
-    char buf[1024];
+    char buf[IRCD_BUFSIZE+NICKLEN];
 
     if(parc < 2)
         return;
