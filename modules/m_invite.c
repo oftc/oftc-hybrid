@@ -223,41 +223,29 @@ m_invite(struct Client *client_p,
 	       source_p->username, source_p->host, target_p->name,
 	       chptr->chname);
   }
+  sendto_server(source_p->from, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
+                ":%s INVITE %s :%s",
+                source_p->name, target_p->name, vchan->chname);
 
-  /* if the channel is +pi, broadcast everywhere thats CAP_PARA, send to
-   * target if target isnt CAP_PARA capable, else just send to target
+  /* if the channel is +pi, each server that is capable of CAP_PARA
+   * will send a local message to channel. If there are servers
+   * connected to us that do not understand CAP_PARA, send a NOTICE
+   * to chanops on the channel as per hybrid-6
    */
   if(ParanoidChannel(vchan))
   {
-    /* XXX Send to servers blindly for now. finesse this later
-     * Old code only sent the invite to servers that happened to
-     * have chanops on channel for invitee being invited to.
-     * This obviously was a tad wrong. -db
-     */
-    sendto_server(source_p->from, source_p, NULL, CAP_PARA, NOCAPS, NOFLAGS,
-		  ":%s INVITE %s :%s",
-		  source_p->name, target_p->name, vchan->chname);
-
-    if(!MyConnect(target_p) && (target_p->from != client_p) &&
-       !IsCapable(target_p->from, CAP_PARA))
-    {
-      sendto_one(target_p->from, ":%s INVITE %s :%s", parv[0],
-		 target_p->name, vchan->chname);
-    }
-
     /* XXX This possibly should be a numeric -db */
     sendto_channel_local(ONLY_CHANOPS_HALFOPS, vchan,
                          ":%s NOTICE %s :%s is inviting %s to %s.",
 			 me.name, chptr->chname, source_p->name,
 			 target_p->name, chptr->chname);
-  }
-  else
-  {
-    if(!MyConnect(target_p) && (target_p->from != client_p))
-    {
-      sendto_one(target_p->from, ":%s INVITE %s :%s", parv[0],
-		 target_p->name, vchan->chname);
-    }
+
+    /* Send a notice to servers that don't support CAP_PARA */
+    sendto_channel_remote(source_p, client_p, ONLY_CHANOPS_HALFOPS,
+			  NOCAPS, CAP_PARA, chptr,
+			  ":%s NOTICE %s :%s is inviting %s to %s.",
+			  source_p->name, chptr->chname, source_p->name,
+			  target_p->name, chptr->chname);
   }
 }
 
@@ -278,7 +266,6 @@ ms_invite(struct Client *client_p,
 {
   struct Client *target_p;
   struct Channel *chptr, *vchan;
-  int chop;                     /* Is channel op */
 #ifdef VCHANS
   struct Channel *vchan2;
 #endif
@@ -333,20 +320,21 @@ ms_invite(struct Client *client_p,
 
   if (MyConnect(target_p))
   {
-    if (chop)
+    if (vchan->mode.mode & MODE_INVITEONLY)
       add_invite(vchan, target_p);
     sendto_one(target_p, ":%s!%s@%s INVITE %s :%s", source_p->name,
 	       source_p->username, source_p->host, target_p->name,
 	       chptr->chname);
   }
 
-  /* if the channel is +pi, broadcast everywhere thats CAP_PARA, send to
-   * target if target isnt CAP_PARA capable, else just send to target
-   */
-  /*
-   * At this point, unless there is lag and a mode change -p
-   * in between the invite and the receipt of this, the
-   * if(ParanoidChannel(vchan)) test is redundant. -db
+  sendto_server(source_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
+		":%s INVITE %s :%s",
+		source_p->name, target_p->name, vchan->chname);
+
+  /* if the channel is +pi, each server that is capable of CAP_PARA
+   * will send a local message to channel. If there are servers
+   * connected to us that do not understand CAP_PARA, send a NOTICE
+   * to chanops on the channel as per hybrid-6
    */
   if(ParanoidChannel(vchan))
   {
@@ -355,8 +343,12 @@ ms_invite(struct Client *client_p,
 			 ":%s NOTICE %s :%s is inviting %s to %s.",
 			 me.name, chptr->chname, source_p->name,
 			 target_p->name, chptr->chname);
-    sendto_server(source_p, NULL, NULL, CAP_PARA, NOCAPS, NOFLAGS,
-		  ":%s INVITE %s :%s",
-		  source_p->name, target_p->name, vchan->chname);
+
+    /* Send a notice to servers that don't support CAP_PARA */
+    sendto_channel_remote(source_p, client_p, ONLY_CHANOPS_HALFOPS,
+			  NOCAPS, CAP_PARA, chptr,
+			  ":%s NOTICE %s :%s is inviting %s to %s.",
+			  source_p->name, chptr->chname, source_p->name,
+			  target_p->name, chptr->chname);
   }
 }

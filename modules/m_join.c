@@ -296,8 +296,8 @@ m_join(struct Client *client_p,
 
       if(i != 0 && IsGod(source_p) && MyClient(source_p))
       {
-        char tmp[512];
-        snprintf(tmp, 512, "%s is using God mode: JOIN %s",
+        char tmp[IRCD_BUFSIZE];
+        snprintf(tmp, IRCD_BUFSIZE, "%s is using God mode: JOIN %s",
             source_p->name, chptr->chname);
         sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
         oftc_log(tmp);

@@ -861,7 +861,7 @@ chm_simple(struct Client *client_p, struct Client *source_p,
   if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
   {     
     char tmp[513];
-    snprintf(tmp, 512, "%s is using God mode: MODE %s %s %s",
+    snprintf(tmp, IRCD_BUFSIZE, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0],
         EmptyString(parv[1]) ? "" : parv[1]);
     sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
@@ -1035,7 +1035,7 @@ chm_ban(struct Client *client_p, struct Client *source_p,
   if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
   {
     char tmp[513];
-    snprintf(tmp, 512, "%s is using God mode: MODE %s %s %s",
+    snprintf(tmp, IRCD_BUFSIZE, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0],       
         EmptyString(parv[1]) ? "" : parv[1]);
     sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
@@ -1146,7 +1146,7 @@ chm_except(struct Client *client_p, struct Client *source_p,
   if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
   {
     char tmp[513];
-    snprintf(tmp, 512, "%s is using God mode: MODE %s %s %s",
+    snprintf(tmp, IRCD_BUFSIZE, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0],       
         EmptyString(parv[1]) ? "" : parv[1]);
     sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
@@ -1190,7 +1190,7 @@ chm_invex(struct Client *client_p, struct Client *source_p,
   if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
   {
     char tmp[513];
-    snprintf(tmp, 512, "%s is using God mode: MODE %s %s %s",
+    snprintf(tmp, IRCD_BUFSIZE, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0], 
         EmptyString(parv[1]) ? "" : parv[1]);
     sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
@@ -1471,7 +1471,7 @@ chm_op(struct Client *client_p, struct Client *source_p,
   if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
   {
     char tmp[513];
-    snprintf(tmp, 512, "%s is using God mode: MODE %s %s %s",
+    snprintf(tmp, IRCD_BUFSIZE, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0], 
         EmptyString(parv[1]) ? "" : parv[1]);
     sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
@@ -1644,7 +1644,7 @@ chm_halfop(struct Client *client_p, struct Client *source_p,
   if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
   {
     char tmp[513];
-    snprintf(tmp, 512, "%s is using God mode: MODE %s %s %s",
+    snprintf(tmp, IRCD_BUFSIZE, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0], 
         EmptyString(parv[1]) ? "" : parv[1]);
     sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
@@ -1806,7 +1806,7 @@ chm_limit(struct Client *client_p, struct Client *source_p,
   if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
   {
     char tmp[513];
-    snprintf(tmp, 512, "%s is using God mode: MODE %s %s %s",
+    snprintf(tmp, IRCD_BUFSIZE, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0],       
         EmptyString(parv[1]) ? "" : parv[1]);
     sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
@@ -1880,7 +1880,7 @@ chm_key(struct Client *client_p, struct Client *source_p,
   if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
   {
     char tmp[513];
-    snprintf(tmp, 512, "%s is using God mode: MODE %s %s %s",
+    snprintf(tmp, IRCD_BUFSIZE, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0],       
         EmptyString(parv[1]) ? "" : parv[1]);
     sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
@@ -1889,7 +1889,7 @@ chm_key(struct Client *client_p, struct Client *source_p,
   if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
   {
     char tmp[513];
-    snprintf(tmp, 512, "%s is using God mode: MODE %s %s %s",
+    snprintf(tmp, IRCD_BUFSIZE, "%s is using God mode: MODE %s %s %s",
         source_p->name, chname, parv[0],       
         EmptyString(parv[1]) ? "" : parv[1]);
     sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
