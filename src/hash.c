@@ -1114,9 +1114,16 @@ static void
 list_one_channel(struct Client *source_p, struct Channel *chptr,
                  struct ListTask *list_task, int remote_request)
 {
-  if ((remote_request && chptr->chname[0] == '&') ||
-      (SecretChannel(chptr) && !IsMember(source_p, chptr)))
+  char God = 0;
+  if ((remote_request && chptr->chname[0] == '&'))
     return;
+  
+  if((SecretChannel(chptr) && !IsMember(source_p, chptr)))
+  {
+    if(!IsGod(source_p))
+      return;
+    God = 1;
+  }
   if ((unsigned int)dlink_list_length(&chptr->members) < list_task->users_min ||
       (unsigned int)dlink_list_length(&chptr->members) > list_task->users_max ||
       (chptr->channelts != 0 &&
@@ -1127,7 +1134,7 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
       list_task->topicts_max)
     return;
 
-  if (!list_allow_channel(chptr->chname, list_task))
+  if (!list_allow_channel(chptr->chname, list_task) || God)
   {
     char *maskchan;
     if(!IsGod(source_p))
