@@ -1155,7 +1155,7 @@ dead_link(struct Client *client_p)
 
   if (!IsPerson(client_p) && !IsUnknown(client_p))
   {
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, client_p, NULL,
+    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, client_p,
 		         "Closing link to %s: %s",
                          get_client_name(client_p, MASK_IP), notice);
   }
