@@ -1,3 +1,18 @@
+stu         2005/01/16 19:51:48 UTC	(20050116_0)
+
+  Modified files:
+    src                  packet.c s_bsd.c send.c 
+  Log:
+  remove a few debug notices
+  fix build error with ssl disabled
+  
+  Revision  Changes    Path
+  1.11      +0 -40     oftc-hybrid/src/packet.c
+  1.12      +0 -30     oftc-hybrid/src/s_bsd.c
+  1.16      +6 -0      oftc-hybrid/src/send.c
+
+
+
 stu         2005/01/13 16:35:36 UTC	(20050113_2)
 
   Modified files:
