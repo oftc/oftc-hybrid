@@ -1240,6 +1240,7 @@ exit_client(
 {
   char comment1[HOSTLEN + HOSTLEN + 2];
   dlink_node *m;
+  oftc_log("exit_client called for %s", source_p->name);
   if (MyConnect(source_p))
     {
       /* DO NOT REMOVE. exit_client can be called twice after a failed
