@@ -63,7 +63,6 @@ _moddeinit(void)
   mod_del_cmd(&mode_msgtab);
 }
 
-
 const char *_version = "$Revision$";
 #endif
 /*
