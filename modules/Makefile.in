@@ -49,6 +49,14 @@ CORE_SRCS = \
   core/m_squit.c
 
 SRCS =                          \
+  spy_admin_notice.c\
+  spy_info_notice.c\
+  spy_links_notice.c\
+  spy_motd_notice.c\
+  spy_stats_notice.c\
+  spy_stats_p_notice.c\
+  spy_trace_notice.c\
+  spy_whois_notice.c\
   m_accept.c \
   m_admin.c \
   m_away.c \
