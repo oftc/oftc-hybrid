@@ -1,3 +1,16 @@
+stu         2004/05/21 20:40:05 UTC	(20040521_4)
+
+  Modified files:
+    modules              m_topic.c 
+  Log:
+  Fix god mode TOPIC handling/notices
+  Fixes: 946957,946951
+  
+  Revision  Changes    Path
+  1.7       +5 -4      oftc-hybrid/modules/m_topic.c
+
+
+
 stu         2004/05/21 20:12:11 UTC	(20040521_3)
 
   Modified files:
