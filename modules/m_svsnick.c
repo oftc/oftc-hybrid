@@ -93,7 +93,7 @@ static void m_svsnick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_person(parv[1])) == NULL)
+  if ((target_p = find_chasing(source_p, parv[1], NULL)) == NULL)
   {
     if (MyConnect(source_p))
       sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
@@ -101,7 +101,7 @@ static void m_svsnick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if(MyConnect(target_p))
+  if(MyClient(target_p))
   {
     /* Prevent flood checks */
     target_p->localClient->number_of_nick_changes = 0;
