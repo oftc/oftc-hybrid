@@ -1,3 +1,15 @@
+dbharris    2003/10/15 00:09:00 UTC	(20031015_0)
+
+  Modified files:
+    include              patchlevel.h 
+  Log:
+  Bump test-version to test4, from test3
+  
+  Revision  Changes    Path
+  1.7       +1 -1      oftc-hybrid/include/patchlevel.h
+
+
+
 dbharris    2003/10/14 23:52:48 UTC	(20031014_0)
 
   Modified files:
