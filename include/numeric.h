@@ -380,7 +380,7 @@ extern const char *get_locale(void);
 #define ERR_INVITEONLYCHAN   473
 #define ERR_BANNEDFROMCHAN   474
 #define ERR_BADCHANNELKEY    475
-/*      ERR_MODELESS         477           ircu numeric -db */
+#define ERR_REGONLYCHAN      477
 #define ERR_BANLISTFULL      478        /* I stole the numeric from ircu -db */
 #define ERR_BADCHANNAME      479
 /* 	ERR_LINKFAIL	     479	unreal */

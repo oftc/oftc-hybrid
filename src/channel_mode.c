@@ -311,6 +311,7 @@ static const struct mode_letter
   { MODE_SECRET,     's' },
   { MODE_TOPICLIMIT, 't' }, 
   { MODE_NOCOLOR,    'c' },
+  { MODE_REGONLY,    'R' },
   { 0, '\0' }
 };
 
@@ -1621,7 +1622,7 @@ static struct ChannelMode ModeTable[255] =
   {chm_nosuch, NULL},                             /* O */
   {chm_nosuch, NULL},                             /* P */
   {chm_nosuch, NULL},                             /* Q */
-  {chm_nosuch, NULL},                             /* R */
+  {chm_simple, (void*)MODE_REGONLY},                /* R */
   {chm_nosuch, NULL},                             /* S */
   {chm_nosuch, NULL},                             /* T */
   {chm_nosuch, NULL},                             /* U */

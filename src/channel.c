@@ -700,6 +700,9 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
       chptr->mode.limit)
     return(ERR_CHANNELISFULL);
 
+  if(RegOnlyChannel(chptr) && !IsNickServReg(source_p))
+      return(ERR_REGONLYCHAN);
+
   return(0);
 }
 

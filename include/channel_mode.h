@@ -67,6 +67,7 @@ extern void unset_chcap_usage_counts(struct Client *serv_p);
 #define MODE_INVITEONLY 0x0010
 #define MODE_NOPRIVMSGS 0x0020
 #define MODE_NOCOLOR    0x0040
+#define MODE_REGONLY    0x0080
 
 #define MODE_QUERY  0
 #define MODE_ADD    1
@@ -81,6 +82,7 @@ extern void unset_chcap_usage_counts(struct Client *serv_p);
 #define ParanoidChannel(x)	((x) && ((x)->mode.mode &\
 			        (MODE_PRIVATE|MODE_INVITEONLY))==\
 		                (MODE_PRIVATE|MODE_INVITEONLY))
+#define RegOnlyChannel(x)       ((x) && ((x)->mode.mode & MODE_REGONLY))
 
 struct ChModeChange
 {

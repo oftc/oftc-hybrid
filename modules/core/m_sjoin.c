@@ -163,6 +163,9 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
       case 'c':
         mode.mode |= MODE_NOCOLOR;
         break;
+      case 'R':
+        mode.mode |= MODE_REGONLY;
+        break;
       case 'k':
         strlcpy(mode.key, parv[4 + args], sizeof(mode.key));
         args++;
@@ -554,6 +557,7 @@ static const struct mode_letter
   { MODE_MODERATED,  'm' },
   { MODE_INVITEONLY, 'i' },
   { MODE_PRIVATE,    'p' },
+  { MODE_REGONLY,    'R' },
   { 0, '\0' }
 };
 
