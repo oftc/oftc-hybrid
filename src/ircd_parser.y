@@ -1333,7 +1333,8 @@ sslport_items: sslport_items ',' sslport_item | sslport_item;
 
 sslport_item: NUMBER
 {
-    add_listener($1, listener_address, 1);
+    if (ypass == 2)
+        add_listener($1, listener_address, 1);
 } | NUMBER TWODOTS NUMBER
 {
     if (ypass == 2)
