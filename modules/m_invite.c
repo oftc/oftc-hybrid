@@ -235,13 +235,9 @@ m_invite(struct Client *client_p,
   {
     if (chop)
       add_invite(vchan, target_p);
-    sendto_one(target_p, ":%s!%s@%s INVITE %s :%s", source_p->name,
-	       source_p->username, source_p->host, target_p->name,
-	       chptr->chname);
   }
-  sendto_server(source_p->from, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
-                ":%s INVITE %s :%s",
-                source_p->name, target_p->name, vchan->chname);
+  sendto_anywhere(target_p, source_p,
+		  "INVITE %s :%s", target_p->name, chptr->chname);
 
   /* if the channel is +pi, each server that is capable of CAP_PARA
    * will send a local message to channel. If there are servers
@@ -338,14 +334,9 @@ ms_invite(struct Client *client_p,
   {
     if (vchan->mode.mode & MODE_INVITEONLY)
       add_invite(vchan, target_p);
-    sendto_one(target_p, ":%s!%s@%s INVITE %s :%s", source_p->name,
-	       source_p->username, source_p->host, target_p->name,
-	       chptr->chname);
   }
-
-  sendto_server(source_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
-		":%s INVITE %s :%s",
-		source_p->name, target_p->name, vchan->chname);
+  sendto_anywhere(target_p, source_p,
+		  "INVITE %s :%s", target_p->name, chptr->chname);
 
   /* if the channel is +pi, each server that is capable of CAP_PARA
    * will send a local message to channel. If there are servers

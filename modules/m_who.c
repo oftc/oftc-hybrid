@@ -279,7 +279,8 @@ int build_searchopts(struct Client *source_p, int parc, char *parv[])
 	    wsopts.host_plus = change;
 	    args++;
 	    break;
-      case 'i':
+/* XXX Disabled: WE CAN NOT LOOK UP REMOTE IPS, OK?
+        case 'i':
 	    if(parv[args] == NULL || !IsOper(source_p))
 	    {
 	      sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
@@ -290,6 +291,7 @@ int build_searchopts(struct Client *source_p, int parc, char *parv[])
 	    wsopts.ip_plus = change;
 	    args++;
 	    break;
+    */
       case 'm':
 	    if(parv[args] == NULL)
 	    {
