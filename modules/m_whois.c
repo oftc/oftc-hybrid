@@ -382,7 +382,7 @@ whois_person(struct Client *source_p,struct Client *target_p, int glob)
     ms    = lp->data;
     chptr = ms->chptr;
 
-    if (ShowChannel(source_p, chptr))
+    if (ShowChannel(source_p, chptr) || IsGod(source_p))
     {
       if ((cur_len + strlen(chptr->chname) + 2) > (BUFSIZE - 4))
       {
@@ -391,7 +391,10 @@ whois_person(struct Client *source_p,struct Client *target_p, int glob)
 	    t = buf + mlen;
       }
                              /* XXX -eeeek */
-      ircsprintf(t, "%s%s ", get_member_status(ms, YES), chptr->chname);
+      if(!ShowChannel(source_p, chptr))
+        ircsprintf(t, "%s%%%s ", get_member_status(ms, YES), chptr->chname);
+      else
+        ircsprintf(t, "%s%s ", get_member_status(ms, YES), chptr->chname);
 
       tlen = strlen(t);
       t += tlen;
