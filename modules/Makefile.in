@@ -47,6 +47,26 @@ SSL_SRCS = \
   m_challenge.c \
   m_cryptlink.c
 
+OFTC_SRCS = \
+  spy_admin_notice.c \
+  spy_info_notice.c \
+  spy_links_notice.c \
+  spy_motd_notice.c \
+  spy_stats_notice.c \
+  spy_stats_p_notice.c \
+  spy_trace_notice.c \
+  spy_whois_notice.c \
+  m_gnotice.c \
+  m_hs.c \
+  m_map.c \
+  m_ns.c \
+  m_os.c \
+  m_realhost.c \
+  m_spingtime.c \
+  m_svscloak.c\
+  m_svsmode.c\
+  m_svsnick.c\
+ 
 SRCS =       \
   m_accept.c \
   m_admin.c \
@@ -71,6 +91,7 @@ SRCS =       \
   m_lljoin.c \
   m_llnick.c \
   m_locops.c \
+  m_log.c \
   m_lusers.c \
   m_motd.c \
   m_names.c \
@@ -101,7 +122,7 @@ SRCS =       \
   m_whowas.c \
   m_xline.c
 
-ALL_SRCS = $(CORE_SRCS) $(SRCS) @SSL_SRCS_ENABLE@
+ALL_SRCS = $(CORE_SRCS) $(SRCS) ${OFTC_SRCS} @SSL_SRCS_ENABLE@
 
 SH_OBJS = ${SRCS:.c=.so}
 SH_CORE_OBJS = ${CORE_SRCS:.c=.so}

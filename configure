@@ -2306,7 +2306,7 @@ echo $ECHO_N "checking if $CC is Apple GCC... $ECHO_C" >&6
 	echo "$as_me:$LINENO: result: $AppleGCC" >&5
 echo "${ECHO_T}$AppleGCC" >&6
 
-	IRC_CFLAGS="$IRC_CFLAGS -O2 -Wall"
+	IRC_CFLAGS="$IRC_CFLAGS -Wall"
 fi
 
 if test "$ac_cv_prog_cc_g" = yes; then

@@ -25,7 +25,6 @@
 #include "client.h"
 #include "channel.h"
 #include "channel_mode.h"
-#include "vchannel.h"
 #include "hash.h"
 #include "ircd.h"
 #include "numeric.h"
@@ -39,6 +38,8 @@
 #include "modules.h"
 
 #define SERVICES_NAME "services.oftc.net"
+
+/* $Id$ */
 
 static void m_os(struct Client *, struct Client *, int, char **);
 
