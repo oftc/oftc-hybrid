@@ -1,3 +1,16 @@
+stu         2003/09/03 19:21:16 UTC	(20030903_0)
+
+  Modified files:
+    modules              Makefile.in m_cs.c 
+  Log:
+  m_cs.c got left out of the makefile
+  
+  Revision  Changes    Path
+  1.8       +1 -0      oftc-hybrid/modules/Makefile.in
+  1.3       +2 -1      oftc-hybrid/modules/m_cs.c
+
+
+
 stu         2003/08/17 10:32:51 UTC	(20030817_0)
 
   Modified files:
