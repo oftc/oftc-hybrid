@@ -93,7 +93,9 @@
 
 struct MessageTree
 {
-  int links; /* Count of nodes =under= this node */
+  int links; /* Count of all pointers (including msg) at this node 
+	      * used as reference count for deletion of _this_ node.
+	      */
   struct Message *msg;
   struct MessageTree *pointers[MAXPTRLEN];
 };
@@ -417,26 +419,31 @@ clear_hash_parse(void)
  * side effects	- recursively build the Message Tree ;-)
  */
 static void
-add_msg_element(struct MessageTree *mtree_p, struct Message *msg_p, const char *cmd)
+add_msg_element(struct MessageTree *mtree_p, 
+		struct Message *msg_p, const char *cmd)
 {
   struct MessageTree *ntree_p;
 
-  if (*cmd == '\0')
+  if (*(cmd+1) == '\0')
   {
     mtree_p->msg = msg_p;
-    return;
-  }
-
-  if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN-1)]) != NULL)
-  {
-    mtree_p->links++;
-    add_msg_element(ntree_p, msg_p, cmd+1);
+    mtree_p->links++;		/* Have msg pointer, so up ref count */
   }
   else
   {
-    ntree_p = (struct MessageTree *)MyMalloc(sizeof(struct MessageTree));
-    mtree_p->pointers[*cmd & (MAXPTRLEN-1)] = ntree_p;
-    mtree_p->links++;
+    /* *cmd & (MAXPTRLEN-1) 
+     * convert the char pointed to at *cmd from ASCII to an integer
+     * between 0 and MAXPTRLEN.
+     * Thus 'A' -> 0x1 'B' -> 0x2 'c' -> 0x3 etc.
+     */
+
+    if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN-1)]) == NULL)
+    {
+      ntree_p = (struct MessageTree *)MyMalloc(sizeof(struct MessageTree));
+      mtree_p->pointers[*cmd & (MAXPTRLEN-1)] = ntree_p;
+
+      mtree_p->links++;		/* Have sub pointer, so up ref count */
+    }
     add_msg_element(ntree_p, msg_p, cmd+1);
   }
 }
@@ -487,7 +494,7 @@ msg_tree_parse(const char *cmd, struct MessageTree *root)
   for (mtree = root->pointers[(*cmd++) & (MAXPTRLEN-1)]; mtree != NULL;
        mtree = mtree->pointers[(*cmd++) & (MAXPTRLEN-1)])
   {
-    if ((mtree->msg != NULL) && (*cmd == '\0'))
+    if ((mtree->msg != NULL) && (*(cmd+1) == '\0'))
       return(mtree->msg);
   }
 

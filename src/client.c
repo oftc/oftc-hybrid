@@ -1577,6 +1577,15 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
                                  source_p->name, source_p->username,
                                  source_p->host, nick);
 
+    /* Don't clear +R if changing case */   
+    if(IsNickServReg(source_p) && 
+            strncasecmp(source_p->name, nick, NICKLEN) != 0)      
+    {      
+        ClearNickServReg(source_p);   
+        sendto_one(source_p, ":%s MODE %s :-R", source_p->name,      
+                source_p->name);    
+    }
+    
     if (source_p->user != NULL)
     {
       add_history(source_p, 1);

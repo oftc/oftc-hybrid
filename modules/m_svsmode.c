@@ -75,8 +75,7 @@ static void m_svsmode(struct Client *client_p, struct Client *source_p,
 {
 
   struct Client *target_p;
-  int badflag = NO;
-  int what, svs_stamp;
+  int what;
   char **p, *m;
 
   what = MODE_ADD;
