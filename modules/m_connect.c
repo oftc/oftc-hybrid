@@ -191,16 +191,16 @@ mo_connect(struct Client* client_p, struct Client* source_p,
   if (serv_connect(aconf, source_p))
   {
     if (!ConfigServerHide.hide_server_ips && IsAdmin(source_p))
-      sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s[%s].%d",
+      sendto_one(source_p, ":%s NOTICE %s :Connecting to %s[%s].%d",
                  me.name, source_p->name, aconf->host,
                  conf->name, aconf->port);
     else
-      sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s.%d",
+      sendto_one(source_p, ":%s NOTICE %s :Connecting to %s.%d",
                  me.name, source_p->name, conf->name, aconf->port);
   }
   else
   {
-    sendto_one(source_p, ":%s NOTICE %s :*** Couldn't connect to %s.%d",
+    sendto_one(source_p, ":%s NOTICE %s : Couldn't connect to %s.%d",
                me.name, source_p->name, conf->name, aconf->port);
   }
 
@@ -326,7 +326,7 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   /*
    * Notify all operators about remote connect requests
    */
-  sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL, "Remote CONNECT %s %d from %s",
+  sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL, "Remote CONNECT %s %d from %s",
                        parv[1], port, get_client_name(source_p, MASK_IP));
 
   ilog(L_TRACE, "CONNECT From %s : %s %d", 
@@ -338,10 +338,10 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    * C:line and a valid port in the C:line
    */
   if (serv_connect(aconf, source_p))
-    sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s.%d",
+    sendto_one(source_p, ":%s NOTICE %s :Connecting to %s.%d",
                me.name, source_p->name, conf->name, aconf->port);
   else
-      sendto_one(source_p, ":%s NOTICE %s :*** Couldn't connect to %s.%d",
+      sendto_one(source_p, ":%s NOTICE %s :Couldn't connect to %s.%d",
                  me.name, source_p->name, conf->name, aconf->port);
   /* client is either connecting with all the data it needs or has been
    * destroyed

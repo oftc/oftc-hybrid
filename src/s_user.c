@@ -93,6 +93,7 @@ static const struct flag_item
   { UMODE_OPERWALL,   'z' }, 
   { UMODE_GOD,        'G' }, 
   { UMODE_NICKSERVREG,'R' },
+  { UMODE_SERV,       'S' },
   { 0, '\0' }
 };
 
@@ -122,7 +123,7 @@ const unsigned int user_modes_from_c_to_bitmask[] =
   0,                /* P */
   0,                /* Q */
   UMODE_NICKSERVREG,/* R */
-  0,                /* S */
+  UMODE_SERV,       /* S */
   0,                /* T */
   0,                /* U */
   0,                /* V */

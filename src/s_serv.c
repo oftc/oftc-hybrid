@@ -128,7 +128,7 @@ slink_error(unsigned int rpl, unsigned int len, unsigned char *data,
 
   data[len-1] = '\0';
 
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "SlinkError for %s: %s",
+  sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL, "SlinkError for %s: %s",
                        server_p->name, data);
   /* XXX should this be exit_client? */
   exit_client(server_p, server_p, &me, "servlink error -- terminating link");
@@ -531,10 +531,10 @@ try_connections(void *unused)
        *   -- adrian
        */
       if (ConfigServerHide.hide_server_ips)
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Connection to %s activated.",
+        sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL, "Connection to %s activated.",
                              conf->name);
       else
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Connection to %s[%s] activated.",
+        sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL, "Connection to %s[%s] activated.",
                              conf->name, aconf->host);
 
       serv_connect(aconf, 0);
@@ -1118,7 +1118,7 @@ server_estab(struct Client *client_p)
   client_p->firsttime = CurrentTime;
 
   /* Now show the masked hostname/IP to opers */
-  sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
+  sendto_gnotice_flags(UMODE_SERV, L_OPER, me.name, &me, NULL,
                        "Link with %s established: (%s) link",
                        inpath,show_capabilities(client_p));
   ilog(L_NOTICE, "Link with %s established: (%s) link",
@@ -1910,10 +1910,10 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
      */
     if ((client_p = find_server(conf->name)) != NULL)
       { 
-        sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+        sendto_gnotice_flags(UMODE_SERV, L_ADMIN, me.name, &me, NULL,
 	      "Server %s already present from %s",
 			     conf->name, get_client_name(client_p, SHOW_IP));
-        sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
+        sendto_gnotice_flags(UMODE_SERV, L_OPER, me.name, &me, NULL,
 			     "Server %s already present from %s",
 			     conf->name, get_client_name(client_p, MASK_IP));
         if (by && IsPerson(by) && !MyClient(by))
@@ -2088,11 +2088,11 @@ serv_connect_callback(int fd, int status, void *data)
        * Admins get to see any IP, mere opers don't *sigh*
        */
        if (ConfigServerHide.hide_server_ips)
-         sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+         sendto_gnotice_flags(UMODE_SERV, L_ADMIN, me.name, &me, NULL,
                               "Error connecting to %s: %s",
                               client_p->name, comm_errstr(status));
        else
-         sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+         sendto_gnotice_flags(UMODE_SERV, L_ADMIN, me.name, &me, NULL,
 			      "Error connecting to %s[%s]: %s", client_p->name,
 			      client_p->host, comm_errstr(status));
 
@@ -2163,11 +2163,11 @@ serv_connect_callback(int fd, int status, void *data)
      */
     if (IsDead(client_p)) 
     {
-        sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+        sendto_gnotice_flags(UMODE_SERV, L_ADMIN, me.name, &me, NULL,
 			     "%s[%s] went dead during handshake",
                              client_p->name,
 			     client_p->host);
-        sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
+        sendto_gnotice_flags(UMODE_SERV, L_OPER, me.name, &me, NULL,
 			     "%s went dead during handshake", client_p->name);
 
         return;
@@ -2278,9 +2278,9 @@ void
 cryptlink_error(struct Client *client_p, const char *type,
                 const char *reason, const char *client_reason)
 {
-  sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
+  sendto_gnotice_flags(UMODE_SERV, L_ADMIN, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
                        get_client_name(client_p, SHOW_IP), type, reason);
-  sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
+  sendto_gnotice_flags(UMODE_SERV, L_OPER, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
                        get_client_name(client_p, MASK_IP), type, reason);
   ilog(L_ERROR, "%s: CRYPTLINK %s error - %s",
        get_client_name(client_p, SHOW_IP), type, reason);

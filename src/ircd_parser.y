@@ -311,6 +311,7 @@ unhook_hub_leaf_confs(void)
 %token  T_OPERWALL
 %token  T_REJ
 %token  T_SERVNOTICE
+%token  T_SERVCONN
 %token  T_SKILL
 %token  T_SPY
 %token  T_UNAUTH
@@ -2783,6 +2784,10 @@ umode_oitem:     T_BOTS
 {
   if (ypass == 2)
     ConfigFileEntry.oper_umodes |= UMODE_SERVNOTICE;
+} | T_SERVCONN
+{
+  if (ypass == 2)
+    ConfigFileEntry.oper_umodes |= UMODE_SERV;
 } | T_INVISIBLE
 {
   if (ypass == 2)
@@ -2856,6 +2861,10 @@ umode_item:	T_BOTS
 {
   if (ypass == 2)
     ConfigFileEntry.oper_only_umodes |= UMODE_SERVNOTICE;
+} | T_SERVCONN
+{
+  if (ypass == 2)
+    ConfigFileEntry.oper_only_umodes |= UMODE_SERV;
 } | T_INVISIBLE
 {
   if (ypass == 2)

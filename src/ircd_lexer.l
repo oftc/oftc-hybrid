@@ -327,6 +327,7 @@ spy                     { return T_SPY; }
 external                { return T_EXTERNAL; }
 operwall                { return T_OPERWALL; }
 servnotice              { return T_SERVNOTICE; }
+servconn                { return T_SERVCONN; }
 invisible               { return T_INVISIBLE; }
 wallop                  { return T_WALLOP; }
 callerid                { return T_CALLERID; }

@@ -402,6 +402,7 @@ struct LocalUser
 #define UMODE_ADMIN        0x20000 /* Admin on server */ 
 #define UMODE_GOD          0x40000 /* Operator is God */
 #define UMODE_NICKSERVREG  0x80000 /* User is registered with nickserv and identified */
+#define UMODE_SERV         0x100000 /* Server connection notices */
 #define UMODE_ALL	   UMODE_SERVNOTICE
 
 #define SEND_UMODES  (UMODE_INVISIBLE | UMODE_OPER | UMODE_WALLOP | \
@@ -410,7 +411,8 @@ struct LocalUser
                       UMODE_REJ | UMODE_SKILL | UMODE_FULL | UMODE_SPY | \
                       UMODE_NCHANGE | UMODE_OPERWALL | UMODE_DEBUG | \
                       UMODE_BOTS | UMODE_EXTERNAL | UMODE_LOCOPS | \
-                      UMODE_ADMIN | UMODE_UNAUTH | UMODE_CALLERID | UMODE_GOD | UMODE_NICKSERVREG)
+                      UMODE_ADMIN | UMODE_UNAUTH | UMODE_CALLERID | UMODE_GOD |\
+                      UMODE_NICKSERVREG | UMODE_SERV)
 
 
 /* oper priv flags */
