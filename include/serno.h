@@ -1,2 +1,2 @@
-#define SERIALNUM "20030112_01"
+#define SERIALNUM "20030112_02"
 /* $Id$ */

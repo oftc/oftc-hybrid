@@ -248,6 +248,8 @@ send_password	{ return SEND_PASSWORD; }
 sendq		{ return SENDQ; }
 serverhide	{ return SERVERHIDE; }
 serverinfo	{ return SERVERINFO; }
+service         { return SERVICE; }   
+services        { return SERVICES; } 
 servlink_path   { return SERVLINK_PATH; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }
@@ -323,6 +325,9 @@ wallop                  { return T_WALLOP; }
 callerid                { return T_CALLERID; }
 drone                   { return T_DRONE; }
 locops                  { return T_LOCOPS; }
+god                     { return T_GOD; }   
+nickservreg             { return T_NICKSERVREG; } 
+
 
 millennia		{ return MILLENNIA; }
 millennium		{ return MILLENNIA; }
