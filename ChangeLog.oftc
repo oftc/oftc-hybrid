@@ -1,3 +1,15 @@
+stu         2003/10/23 17:51:44 UTC	(20031023_3)
+
+  Modified files:
+    src                  channel_mode.c 
+  Log:
+  - fixed god mode notices not being displayed to admins
+  
+  Revision  Changes    Path
+  1.15      +14 -7     oftc-hybrid/src/channel_mode.c
+
+
+
 stu         2003/10/23 16:34:07 UTC	(20031023_2)
 
   Modified files:
