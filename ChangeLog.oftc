@@ -1,3 +1,739 @@
+stu         2003/08/14 07:51:22 UTC	(20030814_0)
+
+  Modified files:
+    .                    .cvsignore BUGS Hybrid-team INSTALL 
+                         Makefile.in README.FIRST README.PLATFORMS 
+                         RELNOTES TODO configure 
+    contrib              .cvsignore Makefile.in README 
+                         example_module.c m_clearchan.c m_flags.c 
+                         m_force.c m_jupe.c m_ltrace.c m_map.c 
+                         m_mkpasswd.c m_ojoin.c m_operspy.c 
+                         m_opme.c m_tburst.c m_whois.c 
+                         spy_admin_notice.c spy_info_notice.c 
+                         spy_links_notice.c spy_motd_notice.c 
+                         spy_stats_notice.c spy_stats_p_notice.c 
+                         spy_trace_notice.c spy_whois_notice.c 
+    doc                  Makefile.in index.txt ircd.8 messages.txt 
+                         modeg.txt modes.txt resv.txt 
+                         server-version-info serverhide.txt 
+                         whats-new.txt 
+    doc/technical        Persistent_Clients.txt README.openssl 
+                         cryptlink.txt hostmask.txt index.txt 
+                         send.txt ts5.txt whats-new-code.txt 
+    iauth                Makefile.in 
+    iauth/include        log.h setup.h 
+    iauth/source         .cvsignore Makefile.in auth.c iauth.c 
+                         log.c misc.c res.c sock.c 
+    include              Makefile.in balloc.h channel.h 
+                         channel_mode.h client.h common.h 
+                         defaults.h event.h fdlist.h fileio.h 
+                         handlers.h hash.h hook.h hostmask.h 
+                         irc_string.h ircd.h ircd_defs.h 
+                         ircd_getopt.h ircd_handler.h list.h 
+                         listener.h m_info.h memory.h modules.h 
+                         motd.h msg.h numeric.h packet.h parse.h 
+                         restart.h resv.h rsa.h s_bsd.h s_conf.h 
+                         s_debug.h s_gline.h s_log.h s_misc.h 
+                         s_serv.h s_stats.h s_user.h send.h 
+                         setup.h.in sprintf_irc.h stdinc.h 
+                         supported.h tools.h whowas.h 
+    messages             Makefile.in 
+    modules              .cvsignore Makefile.in m_accept.c 
+                         m_admin.c m_away.c m_capab.c m_cburst.c 
+                         m_challenge.c m_close.c m_connect.c 
+                         m_cryptlink.c m_dmem.c m_drop.c m_eob.c 
+                         m_gline.c m_gnotice.c m_info.c m_invite.c 
+                         m_ison.c m_kline.c m_knock.c m_links.c 
+                         m_list.c m_lljoin.c m_llnick.c m_locops.c 
+                         m_log.c m_lusers.c m_map.c m_motd.c 
+                         m_names.c m_nburst.c m_oper.c 
+                         m_operwall.c m_pass.c m_ping.c m_pong.c 
+                         m_post.c m_rehash.c m_restart.c m_resv.c 
+                         m_set.c m_spingtime.c m_stats.c 
+                         m_svinfo.c m_svscloak.c m_svsmode.c 
+                         m_svsnick.c m_testline.c m_time.c 
+                         m_topic.c m_trace.c m_user.c m_userhost.c 
+                         m_users.c m_version.c m_wallops.c m_who.c 
+                         m_whois.c m_whowas.c spy_admin_notice.c 
+                         spy_info_notice.c spy_links_notice.c 
+                         spy_motd_notice.c spy_stats_notice.c 
+                         spy_stats_p_notice.c spy_trace_notice.c 
+                         spy_whois_notice.c 
+    modules/core         m_die.c m_kick.c m_kill.c m_message.c 
+                         m_mode.c m_nick.c m_part.c m_quit.c 
+                         m_server.c m_sjoin.c m_squit.c 
+    servlink             .cvsignore Makefile.in control.c io.c 
+                         servlink.c 
+    src                  .cvsignore .depend Makefile.in balloc.c 
+                         channel.c channel_mode.c client.c crypt.c 
+                         dynlink.c event.c fdlist.c fileio.c 
+                         getopt.c hash.c hook.c hostmask.c 
+                         irc_res.c irc_string.c ircd.c 
+                         ircd_lexer.l ircd_parser.y ircd_signal.c 
+                         ircdauth.c list.c listener.c m_error.c 
+                         match.c memory.c modules.c motd.c 
+                         numeric.c packet.c parse.c restart.c 
+                         resv.c rsa.c s_auth.c s_bsd.c 
+                         s_bsd_devpoll.c s_bsd_kqueue.c 
+                         s_bsd_poll.c s_bsd_select.c s_bsd_sigio.c 
+                         s_conf.c s_debug.c s_gline.c s_log.c 
+                         s_misc.c s_serv.c s_stats.c s_user.c 
+                         send.c sprintf_irc.c tools.c version.c.SH 
+                         whowas.c 
+    tools                Makefile.in convertconf.c convertilines.c 
+                         convertklines.c encspeed.c mkkeypair 
+                         mkpasswd.c viconf.c 
+    tools/rsa_respond    .cvsignore README respond.c 
+  Added files:
+    .                    HOWTO-CVS configure.ac install-sh 
+    contrib              m_classlist.c m_ctrace.c m_help.c 
+                         m_killhost.c m_omotd.c vms.diff 
+    contrib/help/opers   accept admin away capab cburst challenge 
+                         cjoin client close cmode connect credits 
+                         cryptlink die dline dmem drop eob error 
+                         gline help index info invite ison join 
+                         kick kill kline knock knockll links list 
+                         lljoin llnick locops lusers modlist 
+                         modload modrestart modunload motd names 
+                         nburst nick notice oper operwall part 
+                         pass ping pong post privmsg quit rehash 
+                         restart resv server set sjoin squit stats 
+                         svinfo testline time topic trace uhelp 
+                         umode undline ungline unkline unresv user 
+                         userhost users version wallops who whois 
+                         whowas 
+    contrib/help/users   index info notice privmsg stats umode 
+    doc                  channels.txt 
+    etc                  .cvsignore Makefile.in example.conf 
+                         example.conf.quick example.efnet.conf 
+                         simple.conf 
+    iauth                BROKEN 
+    include              cluster.h control.h dalloca.h dbuf.h 
+                         inet_misc.h io.h rlimits.h servlink.h 
+                         userhost.h 
+    messages             README ayb.lang ircd-croatian.lang 
+                         ircd-danish.lang ircd-dutch.lang 
+                         ircd-french.lang ircd-german.lang 
+                         ircd-norwegian.lang ircd-polish.lang 
+                         ircd-russian.lang ircd-spanish.lang 
+                         ircd-standard.example.lang 
+                         ircd-swedish.lang 
+    modules              m_encap.c m_xline.c 
+    modules/core         m_join.c 
+    src                  cluster.c csvlib.c dbuf.c inet_misc.c 
+    tools/rsa_respond    Makefile.in configure configure.ac 
+  Removed files:
+    .                    README.VMS clean.com make.com 
+    adns                 .cvsignore GPL-vs-LGPL Makefile.in 
+    autoconf             acconfig.h configure.in install-sh 
+    contrib              README.disable_identd disable_identd.diff 
+    doc                  README.cidr_bans convertconf-example.conf 
+                         example.conf example.conf.quick 
+                         example.efnet.conf ircd.motd simple.conf 
+                         vchans.txt 
+    doc/technical        linebuf.txt message-customisation.txt 
+    help                 .cvsignore Makefile.in 
+    help/opers           accept admin away capab cburst challenge 
+                         cjoin client close cmode connect credits 
+                         cryptlink die dline dmem drop eob error 
+                         gline help index info invite ison join 
+                         kick kill kline knock knockll links list 
+                         lljoin llnick locops lusers modlist 
+                         modload modrestart modunload motd names 
+                         nburst nick notice oper operwall part 
+                         pass ping pong post privmsg quit rehash 
+                         restart resv server set sjoin squit stats 
+                         svinfo testline time topic trace uhelp 
+                         umode undline ungline unkline unresv user 
+                         userhost users version wallops who whois 
+                         whowas 
+    help/users           index info notice privmsg stats umode 
+    include              class.h config.h config.h.dist linebuf.h 
+                         m_kline.h md5.h s_zip.h scache.h 
+                         setup.h_vms vchannel.h 
+    messages             ayb.po build_one create_po custom.po 
+    messages/translations .cvsignore Makefile.in README 
+                          ircd-croatian.po ircd-danish.po 
+                          ircd-dutch.po ircd-german.po 
+                          ircd-norwegian.po ircd-spanish.po 
+                          ircd-swedish.po 
+    modules              .depend descrip.mms m_cjoin.c m_help.c 
+                         m_join.c m_spiffy.c m_unkline.c 
+    modules/core         descrip.mms 
+    servlink             control.h descrip.mms io.h servlink.h 
+                         setup.h.in 
+    src                  adns.c class.c descrip.mms kdparse.c 
+                         linebuf.c md5.c scache.c vchannel.c 
+                         version.com 
+    tools                descrip.mms 
+    tools/rsa_respond    Makefile 
+  Log:
+  merge of hybrid-current code.
+  the tree WILL NOT build at this time.  You have been warned.
+  
+  Revision  Changes      Path
+  1.2       +3 -1        oftc-hybrid/.cvsignore
+  1.38      +14 -28      oftc-hybrid/BUGS
+  1.1       +60 -0       oftc-hybrid/HOWTO-CVS (new)
+  1.6       +9 -5        oftc-hybrid/Hybrid-team
+  1.5       +68 -141     oftc-hybrid/INSTALL
+  1.3       +33 -66      oftc-hybrid/Makefile.in
+  1.3       +27 -25      oftc-hybrid/README.FIRST
+  1.3       +18 -13      oftc-hybrid/README.PLATFORMS
+  1.2       +0 -47       oftc-hybrid/README.VMS (dead)
+  1.5       +22 -7       oftc-hybrid/RELNOTES
+  1.6       +24 -16      oftc-hybrid/TODO
+  1.2       +0 -1        oftc-hybrid/adns/.cvsignore (dead)
+  1.2       +0 -122      oftc-hybrid/adns/GPL-vs-LGPL (dead)
+  1.2       +0 -81       oftc-hybrid/adns/Makefile.in (dead)
+  1.3       +0 -84       oftc-hybrid/autoconf/acconfig.h (dead)
+  1.5       +0 -1033     oftc-hybrid/autoconf/configure.in (dead)
+  1.2       +0 -250      oftc-hybrid/autoconf/install-sh (dead)
+  1.2       +0 -10       oftc-hybrid/clean.com (dead)
+  1.5       +4142 -3414  oftc-hybrid/configure
+  1.1       +1200 -0     oftc-hybrid/configure.ac (new)
+  1.2       +1 -0        oftc-hybrid/contrib/.cvsignore
+  1.2       +127 -49     oftc-hybrid/contrib/Makefile.in
+  1.4       +14 -32      oftc-hybrid/contrib/README
+  1.2       +0 -17       oftc-hybrid/contrib/README.disable_identd (dead)
+  1.2       +0 -87       oftc-hybrid/contrib/disable_identd.diff (dead)
+  1.2       +27 -20      oftc-hybrid/contrib/example_module.c
+  1.1       +8 -0        oftc-hybrid/contrib/help/opers/accept (new)
+  1.1       +11 -0       oftc-hybrid/contrib/help/opers/admin (new)
+  1.1       +4 -0        oftc-hybrid/contrib/help/opers/away (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/capab (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/cburst (new)
+  1.1       +10 -0       oftc-hybrid/contrib/help/opers/challenge (new)
+  1.1       +4 -0        oftc-hybrid/contrib/help/opers/cjoin (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/client (new)
+  1.1       +4 -0        oftc-hybrid/contrib/help/opers/close (new)
+  1.1       +88 -0       oftc-hybrid/contrib/help/opers/cmode (new)
+  1.1       +16 -0       oftc-hybrid/contrib/help/opers/connect (new)
+  1.1       +10 -0       oftc-hybrid/contrib/help/opers/credits (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/cryptlink (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/die (new)
+  1.1       +12 -0       oftc-hybrid/contrib/help/opers/dline (new)
+  1.1       +7 -0        oftc-hybrid/contrib/help/opers/dmem (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/drop (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/eob (new)
+  1.1       +8 -0        oftc-hybrid/contrib/help/opers/error (new)
+  1.1       +11 -0       oftc-hybrid/contrib/help/opers/gline (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/help (new)
+  1.1       +23 -0       oftc-hybrid/contrib/help/opers/index (new)
+  1.1       +7 -0        oftc-hybrid/contrib/help/opers/info (new)
+  1.1       +4 -0        oftc-hybrid/contrib/help/opers/invite (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/ison (new)
+  1.1       +14 -0       oftc-hybrid/contrib/help/opers/join (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/kick (new)
+  1.1       +5 -0        oftc-hybrid/contrib/help/opers/kill (new)
+  1.1       +27 -0       oftc-hybrid/contrib/help/opers/kline (new)
+  1.1       +7 -0        oftc-hybrid/contrib/help/opers/knock (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/knockll (new)
+  1.1       +17 -0       oftc-hybrid/contrib/help/opers/links (new)
+  1.1       +24 -0       oftc-hybrid/contrib/help/opers/list (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/lljoin (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/llnick (new)
+  1.1       +4 -0        oftc-hybrid/contrib/help/opers/locops (new)
+  1.1       +7 -0        oftc-hybrid/contrib/help/opers/lusers (new)
+  1.1       +7 -0        oftc-hybrid/contrib/help/opers/modlist (new)
+  1.1       +7 -0        oftc-hybrid/contrib/help/opers/modload (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/modrestart (new)
+  1.1       +7 -0        oftc-hybrid/contrib/help/opers/modunload (new)
+  1.1       +7 -0        oftc-hybrid/contrib/help/opers/motd (new)
+  1.1       +11 -0       oftc-hybrid/contrib/help/opers/names (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/nburst (new)
+  1.1       +7 -0        oftc-hybrid/contrib/help/opers/nick (new)
+  1.1       +36 -0       oftc-hybrid/contrib/help/opers/notice (new)
+  1.1       +8 -0        oftc-hybrid/contrib/help/opers/oper (new)
+  1.1       +4 -0        oftc-hybrid/contrib/help/opers/operwall (new)
+  1.1       +9 -0        oftc-hybrid/contrib/help/opers/part (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/pass (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/ping (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/pong (new)
+  1.1       +5 -0        oftc-hybrid/contrib/help/opers/post (new)
+  1.1       +36 -0       oftc-hybrid/contrib/help/opers/privmsg (new)
+  1.1       +5 -0        oftc-hybrid/contrib/help/opers/quit (new)
+  1.1       +11 -0       oftc-hybrid/contrib/help/opers/rehash (new)
+  1.1       +5 -0        oftc-hybrid/contrib/help/opers/restart (new)
+  1.1       +9 -0        oftc-hybrid/contrib/help/opers/resv (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/server (new)
+  1.1       +35 -0       oftc-hybrid/contrib/help/opers/set (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/sjoin (new)
+  1.1       +4 -0        oftc-hybrid/contrib/help/opers/squit (new)
+  1.1       +38 -0       oftc-hybrid/contrib/help/opers/stats (new)
+  1.1       +1 -0        oftc-hybrid/contrib/help/opers/svinfo (new)
+  1.1       +5 -0        oftc-hybrid/contrib/help/opers/testline (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/time (new)
+  1.1       +10 -0       oftc-hybrid/contrib/help/opers/topic (new)
+  1.1       +11 -0       oftc-hybrid/contrib/help/opers/trace (new)
+  1.1       +5 -0        oftc-hybrid/contrib/help/opers/uhelp (new)
+  1.1       +26 -0       oftc-hybrid/contrib/help/opers/umode (new)
+  1.1       +5 -0        oftc-hybrid/contrib/help/opers/undline (new)
+  1.1       +8 -0        oftc-hybrid/contrib/help/opers/ungline (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/unkline (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/unresv (new)
+  1.1       +7 -0        oftc-hybrid/contrib/help/opers/user (new)
+  1.1       +10 -0       oftc-hybrid/contrib/help/opers/userhost (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/users (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/version (new)
+  1.1       +6 -0        oftc-hybrid/contrib/help/opers/wallops (new)
+  1.1       +36 -0       oftc-hybrid/contrib/help/opers/who (new)
+  1.1       +8 -0        oftc-hybrid/contrib/help/opers/whois (new)
+  1.1       +8 -0        oftc-hybrid/contrib/help/opers/whowas (new)
+  1.1       +13 -0       oftc-hybrid/contrib/help/users/index (new)
+  1.1       +4 -0        oftc-hybrid/contrib/help/users/info (new)
+  1.1       +19 -0       oftc-hybrid/contrib/help/users/notice (new)
+  1.1       +19 -0       oftc-hybrid/contrib/help/users/privmsg (new)
+  1.1       +15 -0       oftc-hybrid/contrib/help/users/stats (new)
+  1.1       +10 -0       oftc-hybrid/contrib/help/users/umode (new)
+  1.1       +110 -0      oftc-hybrid/contrib/m_classlist.c (new)
+  1.2       +130 -241    oftc-hybrid/contrib/m_clearchan.c
+  1.1       +226 -0      oftc-hybrid/contrib/m_ctrace.c (new)
+  1.2       +50 -47      oftc-hybrid/contrib/m_flags.c
+  1.3       +164 -166    oftc-hybrid/contrib/m_force.c
+  1.1       +212 -0      oftc-hybrid/contrib/m_help.c (new)
+  1.3       +72 -81      oftc-hybrid/contrib/m_jupe.c
+  1.1       +220 -0      oftc-hybrid/contrib/m_killhost.c (new)
+  1.2       +109 -108    oftc-hybrid/contrib/m_ltrace.c
+  1.2       +25 -19      oftc-hybrid/contrib/m_map.c
+  1.2       +37 -34      oftc-hybrid/contrib/m_mkpasswd.c
+  1.2       +114 -129    oftc-hybrid/contrib/m_ojoin.c
+  1.1       +72 -0       oftc-hybrid/contrib/m_omotd.c (new)
+  1.3       +235 -319    oftc-hybrid/contrib/m_operspy.c
+  1.3       +71 -137     oftc-hybrid/contrib/m_opme.c
+  1.3       +32 -31      oftc-hybrid/contrib/m_tburst.c
+  1.4       +223 -382    oftc-hybrid/contrib/m_whois.c
+  1.4       +5 -4        oftc-hybrid/contrib/spy_admin_notice.c
+  1.4       +5 -5        oftc-hybrid/contrib/spy_info_notice.c
+  1.3       +5 -4        oftc-hybrid/contrib/spy_links_notice.c
+  1.3       +5 -4        oftc-hybrid/contrib/spy_motd_notice.c
+  1.3       +9 -8        oftc-hybrid/contrib/spy_stats_notice.c
+  1.3       +5 -4        oftc-hybrid/contrib/spy_stats_p_notice.c
+  1.3       +7 -6        oftc-hybrid/contrib/spy_trace_notice.c
+  1.3       +15 -8       oftc-hybrid/contrib/spy_whois_notice.c
+  1.1       +1364 -0     oftc-hybrid/contrib/vms.diff (new)
+  1.2       +8 -80       oftc-hybrid/doc/Makefile.in
+  1.2       +0 -17       oftc-hybrid/doc/README.cidr_bans (dead)
+  1.1       +36 -0       oftc-hybrid/doc/channels.txt (new)
+  1.3       +0 -467      oftc-hybrid/doc/convertconf-example.conf (dead)
+  1.3       +0 -869      oftc-hybrid/doc/example.conf (dead)
+  1.2       +0 -343      oftc-hybrid/doc/example.conf.quick (dead)
+  1.3       +0 -957      oftc-hybrid/doc/example.efnet.conf (dead)
+  1.2       +6 -3        oftc-hybrid/doc/index.txt
+  1.2       +66 -70      oftc-hybrid/doc/ircd.8
+  1.2       +0 -1        oftc-hybrid/doc/ircd.motd (dead)
+  1.2       +27 -69      oftc-hybrid/doc/messages.txt
+  1.2       +2 -2        oftc-hybrid/doc/modeg.txt
+  1.2       +17 -11      oftc-hybrid/doc/modes.txt
+  1.2       +18 -24      oftc-hybrid/doc/resv.txt
+  1.2       +3 -5        oftc-hybrid/doc/server-version-info
+  1.2       +9 -30       oftc-hybrid/doc/serverhide.txt
+  1.2       +0 -113      oftc-hybrid/doc/simple.conf (dead)
+  1.2       +2 -3        oftc-hybrid/doc/technical/Persistent_Clients.txt
+  1.2       +8 -17       oftc-hybrid/doc/technical/README.openssl
+  1.2       +12 -12      oftc-hybrid/doc/technical/cryptlink.txt
+  1.2       +2 -2        oftc-hybrid/doc/technical/hostmask.txt
+  1.2       +1 -2        oftc-hybrid/doc/technical/index.txt
+  1.2       +0 -139      oftc-hybrid/doc/technical/linebuf.txt (dead)
+  1.2       +0 -56       oftc-hybrid/doc/technical/message-customisation.txt (dead)
+  1.3       +2 -2        oftc-hybrid/doc/technical/send.txt
+  1.2       +3 -3        oftc-hybrid/doc/technical/ts5.txt
+  1.2       +1 -6        oftc-hybrid/doc/technical/whats-new-code.txt
+  1.2       +0 -132      oftc-hybrid/doc/vchans.txt (dead)
+  1.3       +80 -267     oftc-hybrid/doc/whats-new.txt
+  1.1       +1 -0        oftc-hybrid/etc/.cvsignore (new)
+  1.1       +55 -0       oftc-hybrid/etc/Makefile.in (new)
+  1.1       +932 -0      oftc-hybrid/etc/example.conf (new)
+  1.1       +375 -0      oftc-hybrid/etc/example.conf.quick (new)
+  1.1       +1009 -0     oftc-hybrid/etc/example.efnet.conf (new)
+  1.1       +120 -0      oftc-hybrid/etc/simple.conf (new)
+  1.2       +0 -1        oftc-hybrid/help/.cvsignore (dead)
+  1.2       +0 -92       oftc-hybrid/help/Makefile.in (dead)
+  1.2       +0 -8        oftc-hybrid/help/opers/accept (dead)
+  1.2       +0 -11       oftc-hybrid/help/opers/admin (dead)
+  1.2       +0 -4        oftc-hybrid/help/opers/away (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/capab (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/cburst (dead)
+  1.2       +0 -10       oftc-hybrid/help/opers/challenge (dead)
+  1.2       +0 -4        oftc-hybrid/help/opers/cjoin (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/client (dead)
+  1.2       +0 -4        oftc-hybrid/help/opers/close (dead)
+  1.2       +0 -88       oftc-hybrid/help/opers/cmode (dead)
+  1.2       +0 -16       oftc-hybrid/help/opers/connect (dead)
+  1.2       +0 -10       oftc-hybrid/help/opers/credits (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/cryptlink (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/die (dead)
+  1.2       +0 -11       oftc-hybrid/help/opers/dline (dead)
+  1.2       +0 -7        oftc-hybrid/help/opers/dmem (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/drop (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/eob (dead)
+  1.2       +0 -8        oftc-hybrid/help/opers/error (dead)
+  1.2       +0 -11       oftc-hybrid/help/opers/gline (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/help (dead)
+  1.2       +0 -23       oftc-hybrid/help/opers/index (dead)
+  1.2       +0 -5        oftc-hybrid/help/opers/info (dead)
+  1.2       +0 -4        oftc-hybrid/help/opers/invite (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/ison (dead)
+  1.2       +0 -13       oftc-hybrid/help/opers/join (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/kick (dead)
+  1.2       +0 -5        oftc-hybrid/help/opers/kill (dead)
+  1.3       +0 -26       oftc-hybrid/help/opers/kline (dead)
+  1.2       +0 -7        oftc-hybrid/help/opers/knock (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/knockll (dead)
+  1.2       +0 -17       oftc-hybrid/help/opers/links (dead)
+  1.2       +0 -12       oftc-hybrid/help/opers/list (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/lljoin (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/llnick (dead)
+  1.2       +0 -4        oftc-hybrid/help/opers/locops (dead)
+  1.2       +0 -7        oftc-hybrid/help/opers/lusers (dead)
+  1.2       +0 -7        oftc-hybrid/help/opers/modlist (dead)
+  1.2       +0 -7        oftc-hybrid/help/opers/modload (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/modrestart (dead)
+  1.2       +0 -7        oftc-hybrid/help/opers/modunload (dead)
+  1.2       +0 -7        oftc-hybrid/help/opers/motd (dead)
+  1.2       +0 -11       oftc-hybrid/help/opers/names (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/nburst (dead)
+  1.2       +0 -7        oftc-hybrid/help/opers/nick (dead)
+  1.2       +0 -36       oftc-hybrid/help/opers/notice (dead)
+  1.2       +0 -8        oftc-hybrid/help/opers/oper (dead)
+  1.2       +0 -4        oftc-hybrid/help/opers/operwall (dead)
+  1.2       +0 -9        oftc-hybrid/help/opers/part (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/pass (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/ping (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/pong (dead)
+  1.2       +0 -5        oftc-hybrid/help/opers/post (dead)
+  1.2       +0 -36       oftc-hybrid/help/opers/privmsg (dead)
+  1.2       +0 -5        oftc-hybrid/help/opers/quit (dead)
+  1.3       +0 -11       oftc-hybrid/help/opers/rehash (dead)
+  1.2       +0 -5        oftc-hybrid/help/opers/restart (dead)
+  1.2       +0 -9        oftc-hybrid/help/opers/resv (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/server (dead)
+  1.2       +0 -33       oftc-hybrid/help/opers/set (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/sjoin (dead)
+  1.2       +0 -4        oftc-hybrid/help/opers/squit (dead)
+  1.2       +0 -38       oftc-hybrid/help/opers/stats (dead)
+  1.2       +0 -1        oftc-hybrid/help/opers/svinfo (dead)
+  1.2       +0 -5        oftc-hybrid/help/opers/testline (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/time (dead)
+  1.2       +0 -10       oftc-hybrid/help/opers/topic (dead)
+  1.2       +0 -11       oftc-hybrid/help/opers/trace (dead)
+  1.2       +0 -5        oftc-hybrid/help/opers/uhelp (dead)
+  1.2       +0 -25       oftc-hybrid/help/opers/umode (dead)
+  1.2       +0 -5        oftc-hybrid/help/opers/undline (dead)
+  1.2       +0 -8        oftc-hybrid/help/opers/ungline (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/unkline (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/unresv (dead)
+  1.2       +0 -7        oftc-hybrid/help/opers/user (dead)
+  1.2       +0 -10       oftc-hybrid/help/opers/userhost (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/users (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/version (dead)
+  1.2       +0 -6        oftc-hybrid/help/opers/wallops (dead)
+  1.2       +0 -36       oftc-hybrid/help/opers/who (dead)
+  1.2       +0 -8        oftc-hybrid/help/opers/whois (dead)
+  1.2       +0 -8        oftc-hybrid/help/opers/whowas (dead)
+  1.2       +0 -13       oftc-hybrid/help/users/index (dead)
+  1.2       +0 -4        oftc-hybrid/help/users/info (dead)
+  1.2       +0 -19       oftc-hybrid/help/users/notice (dead)
+  1.2       +0 -19       oftc-hybrid/help/users/privmsg (dead)
+  1.2       +0 -15       oftc-hybrid/help/users/stats (dead)
+  1.2       +0 -10       oftc-hybrid/help/users/umode (dead)
+  1.1       +3 -0        oftc-hybrid/iauth/BROKEN (new)
+  1.2       +2 -2        oftc-hybrid/iauth/Makefile.in
+  1.2       +4 -2        oftc-hybrid/iauth/include/log.h
+  1.2       +0 -2        oftc-hybrid/iauth/include/setup.h
+  1.2       +1 -0        oftc-hybrid/iauth/source/.cvsignore
+  1.2       +1 -4        oftc-hybrid/iauth/source/Makefile.in
+  1.2       +2 -1        oftc-hybrid/iauth/source/auth.c
+  1.2       +5 -12       oftc-hybrid/iauth/source/iauth.c
+  1.2       +3 -3        oftc-hybrid/iauth/source/log.c
+  1.2       +2 -1        oftc-hybrid/iauth/source/misc.c
+  1.2       +7 -7        oftc-hybrid/iauth/source/res.c
+  1.2       +4 -3        oftc-hybrid/iauth/source/sock.c
+  1.3       +11 -20      oftc-hybrid/include/Makefile.in
+  1.3       +2 -8        oftc-hybrid/include/balloc.h
+  1.5       +69 -126     oftc-hybrid/include/channel.h
+  1.3       +27 -75      oftc-hybrid/include/channel_mode.h
+  1.3       +0 -76       oftc-hybrid/include/class.h (dead)
+  1.10      +208 -280    oftc-hybrid/include/client.h
+  1.1       +60 -0       oftc-hybrid/include/cluster.h (new)
+  1.3       +1 -6        oftc-hybrid/include/common.h
+  1.4       +0 -369      oftc-hybrid/include/config.h (dead)
+  1.4       +0 -360      oftc-hybrid/include/config.h.dist (dead)
+  1.1       +63 -0       oftc-hybrid/include/control.h (new)
+  1.1       +47 -0       oftc-hybrid/include/dalloca.h (new)
+  1.1       +49 -0       oftc-hybrid/include/dbuf.h (new)
+  1.4       +60 -32      oftc-hybrid/include/defaults.h
+  1.4       +2 -4        oftc-hybrid/include/event.h
+  1.4       +1 -10       oftc-hybrid/include/fdlist.h
+  1.3       +8 -1        oftc-hybrid/include/fileio.h
+  1.3       +3 -3        oftc-hybrid/include/handlers.h
+  1.3       +26 -59      oftc-hybrid/include/hash.h
+  1.4       +33 -34      oftc-hybrid/include/hook.h
+  1.5       +24 -26      oftc-hybrid/include/hostmask.h
+  1.1       +161 -0      oftc-hybrid/include/inet_misc.h (new)
+  1.1       +48 -0       oftc-hybrid/include/io.h (new)
+  1.4       +19 -20      oftc-hybrid/include/irc_string.h
+  1.5       +45 -55      oftc-hybrid/include/ircd.h
+  1.5       +6 -19       oftc-hybrid/include/ircd_defs.h
+  1.3       +4 -6        oftc-hybrid/include/ircd_getopt.h
+  1.3       +2 -1        oftc-hybrid/include/ircd_handler.h
+  1.3       +0 -83       oftc-hybrid/include/linebuf.h (dead)
+  1.3       +11 -20      oftc-hybrid/include/list.h
+  1.4       +12 -10      oftc-hybrid/include/listener.h
+  1.3       +13 -59      oftc-hybrid/include/m_info.h
+  1.3       +0 -44       oftc-hybrid/include/m_kline.h (dead)
+  1.3       +0 -48       oftc-hybrid/include/md5.h (dead)
+  1.3       +22 -20      oftc-hybrid/include/memory.h
+  1.4       +43 -20      oftc-hybrid/include/modules.h
+  1.3       +10 -11      oftc-hybrid/include/motd.h
+  1.4       +18 -17      oftc-hybrid/include/msg.h
+  1.4       +18 -32      oftc-hybrid/include/numeric.h
+  1.3       +2 -2        oftc-hybrid/include/packet.h
+  1.3       +10 -19      oftc-hybrid/include/parse.h
+  1.3       +3 -4        oftc-hybrid/include/restart.h
+  1.3       +15 -37      oftc-hybrid/include/resv.h
+  1.1       +31 -0       oftc-hybrid/include/rlimits.h (new)
+  1.3       +4 -4        oftc-hybrid/include/rsa.h
+  1.5       +5 -9        oftc-hybrid/include/s_bsd.h
+  1.6       +288 -228    oftc-hybrid/include/s_conf.h
+  1.3       +4 -22       oftc-hybrid/include/s_debug.h
+  1.3       +19 -21      oftc-hybrid/include/s_gline.h
+  1.3       +10 -5       oftc-hybrid/include/s_log.h
+  1.3       +2 -2        oftc-hybrid/include/s_misc.h
+  1.4       +71 -100     oftc-hybrid/include/s_serv.h
+  1.3       +1 -3        oftc-hybrid/include/s_stats.h
+  1.4       +31 -22      oftc-hybrid/include/s_user.h
+  1.3       +0 -54       oftc-hybrid/include/s_zip.h (dead)
+  1.3       +0 -32       oftc-hybrid/include/scache.h (dead)
+  1.5       +22 -24      oftc-hybrid/include/send.h
+  1.1       +114 -0      oftc-hybrid/include/servlink.h (new)
+  1.4       +254 -134    oftc-hybrid/include/setup.h.in
+  1.4       +0 -126      oftc-hybrid/include/setup.h_vms (dead)
+  1.3       +4 -4        oftc-hybrid/include/sprintf_irc.h
+  1.3       +38 -20      oftc-hybrid/include/stdinc.h
+  1.3       +27 -26      oftc-hybrid/include/supported.h
+  1.5       +146 -47     oftc-hybrid/include/tools.h
+  1.1       +51 -0       oftc-hybrid/include/userhost.h (new)
+  1.3       +0 -95       oftc-hybrid/include/vchannel.h (dead)
+  1.3       +9 -14       oftc-hybrid/include/whowas.h
+  1.1       +270 -0      oftc-hybrid/install-sh (new)
+  1.2       +0 -58       oftc-hybrid/make.com (dead)
+  1.2       +37 -71      oftc-hybrid/messages/Makefile.in
+  1.1       +42 -0       oftc-hybrid/messages/README (new)
+  1.1       +30 -0       oftc-hybrid/messages/ayb.lang (new)
+  1.2       +0 -901      oftc-hybrid/messages/ayb.po (dead)
+  1.2       +0 -26       oftc-hybrid/messages/build_one (dead)
+  1.2       +0 -17       oftc-hybrid/messages/create_po (dead)
+  1.2       +0 -899      oftc-hybrid/messages/custom.po (dead)
+  1.1       +95 -0       oftc-hybrid/messages/ircd-croatian.lang (new)
+  1.1       +93 -0       oftc-hybrid/messages/ircd-danish.lang (new)
+  1.1       +90 -0       oftc-hybrid/messages/ircd-dutch.lang (new)
+  1.1       +116 -0      oftc-hybrid/messages/ircd-french.lang (new)
+  1.1       +95 -0       oftc-hybrid/messages/ircd-german.lang (new)
+  1.1       +91 -0       oftc-hybrid/messages/ircd-norwegian.lang (new)
+  1.1       +99 -0       oftc-hybrid/messages/ircd-polish.lang (new)
+  1.1       +94 -0       oftc-hybrid/messages/ircd-russian.lang (new)
+  1.1       +100 -0      oftc-hybrid/messages/ircd-spanish.lang (new)
+  1.1       +129 -0      oftc-hybrid/messages/ircd-standard.example.lang (new)
+  1.1       +92 -0       oftc-hybrid/messages/ircd-swedish.lang (new)
+  1.2       +0 -2        oftc-hybrid/messages/translations/.cvsignore (dead)
+  1.2       +0 -77       oftc-hybrid/messages/translations/Makefile.in (dead)
+  1.2       +0 -40       oftc-hybrid/messages/translations/README (dead)
+  1.2       +0 -895      oftc-hybrid/messages/translations/ircd-croatian.po (dead)
+  1.2       +0 -897      oftc-hybrid/messages/translations/ircd-danish.po (dead)
+  1.2       +0 -899      oftc-hybrid/messages/translations/ircd-dutch.po (dead)
+  1.2       +0 -909      oftc-hybrid/messages/translations/ircd-german.po (dead)
+  1.2       +0 -901      oftc-hybrid/messages/translations/ircd-norwegian.po (dead)
+  1.2       +0 -897      oftc-hybrid/messages/translations/ircd-spanish.po (dead)
+  1.2       +0 -904      oftc-hybrid/messages/translations/ircd-swedish.po (dead)
+  1.2       +2 -0        oftc-hybrid/modules/.cvsignore
+  1.4       +0 -849      oftc-hybrid/modules/.depend (dead)
+  1.5       +44 -83      oftc-hybrid/modules/Makefile.in
+  1.2       +0 -18       oftc-hybrid/modules/core/descrip.mms (dead)
+  1.3       +44 -46      oftc-hybrid/modules/core/m_die.c
+  1.1       +391 -0      oftc-hybrid/modules/core/m_join.c (new)
+  1.7       +107 -155    oftc-hybrid/modules/core/m_kick.c
+  1.4       +140 -136    oftc-hybrid/modules/core/m_kill.c
+  1.8       +161 -188    oftc-hybrid/modules/core/m_message.c
+  1.2       +66 -118     oftc-hybrid/modules/core/m_mode.c
+  1.4       +262 -255    oftc-hybrid/modules/core/m_nick.c
+  1.4       +56 -81      oftc-hybrid/modules/core/m_part.c
+  1.3       +17 -32      oftc-hybrid/modules/core/m_quit.c
+  1.4       +583 -316    oftc-hybrid/modules/core/m_server.c
+  1.3       +427 -642    oftc-hybrid/modules/core/m_sjoin.c
+  1.8       +109 -147    oftc-hybrid/modules/core/m_squit.c
+  1.4       +0 -30       oftc-hybrid/modules/descrip.mms (dead)
+  1.3       +57 -63      oftc-hybrid/modules/m_accept.c
+  1.3       +49 -45      oftc-hybrid/modules/m_admin.c
+  1.3       +160 -55     oftc-hybrid/modules/m_away.c
+  1.3       +18 -23      oftc-hybrid/modules/m_capab.c
+  1.3       +25 -30      oftc-hybrid/modules/m_cburst.c
+  1.4       +62 -73      oftc-hybrid/modules/m_challenge.c
+  1.3       +0 -226      oftc-hybrid/modules/m_cjoin.c (dead)
+  1.4       +23 -23      oftc-hybrid/modules/m_close.c
+  1.4       +187 -128    oftc-hybrid/modules/m_connect.c
+  1.4       +89 -115     oftc-hybrid/modules/m_cryptlink.c
+  1.4       +4 -2        oftc-hybrid/modules/m_dmem.c
+  1.3       +7 -8        oftc-hybrid/modules/m_drop.c
+  1.1       +135 -0      oftc-hybrid/modules/m_encap.c (new)
+  1.3       +7 -6        oftc-hybrid/modules/m_eob.c
+  1.4       +2 -4        oftc-hybrid/modules/m_gline.c
+  1.3       +2 -2        oftc-hybrid/modules/m_gnotice.c
+  1.5       +0 -218      oftc-hybrid/modules/m_help.c (dead)
+  1.4       +84 -109     oftc-hybrid/modules/m_info.c
+  1.8       +51 -101     oftc-hybrid/modules/m_invite.c
+  1.3       +22 -23      oftc-hybrid/modules/m_ison.c
+  1.7       +0 -505      oftc-hybrid/modules/m_join.c (dead)
+  1.6       +847 -467    oftc-hybrid/modules/m_kline.c
+  1.3       +82 -157     oftc-hybrid/modules/m_knock.c
+  1.3       +30 -28      oftc-hybrid/modules/m_links.c
+  1.4       +139 -236    oftc-hybrid/modules/m_list.c
+  1.4       +56 -169     oftc-hybrid/modules/m_lljoin.c
+  1.3       +7 -8        oftc-hybrid/modules/m_llnick.c
+  1.3       +43 -17      oftc-hybrid/modules/m_locops.c
+  1.4       +3 -2        oftc-hybrid/modules/m_log.c
+  1.3       +29 -33      oftc-hybrid/modules/m_lusers.c
+  1.7       +1 -1        oftc-hybrid/modules/m_map.c
+  1.5       +20 -21      oftc-hybrid/modules/m_motd.c
+  1.3       +105 -159    oftc-hybrid/modules/m_names.c
+  1.3       +10 -14      oftc-hybrid/modules/m_nburst.c
+  1.5       +80 -124     oftc-hybrid/modules/m_oper.c
+  1.3       +29 -38      oftc-hybrid/modules/m_operwall.c
+  1.3       +30 -26      oftc-hybrid/modules/m_pass.c
+  1.4       +14 -17      oftc-hybrid/modules/m_ping.c
+  1.4       +34 -45      oftc-hybrid/modules/m_pong.c
+  1.4       +11 -13      oftc-hybrid/modules/m_post.c
+  1.5       +60 -57      oftc-hybrid/modules/m_rehash.c
+  1.3       +24 -29      oftc-hybrid/modules/m_restart.c
+  1.7       +245 -141    oftc-hybrid/modules/m_resv.c
+  1.3       +116 -114    oftc-hybrid/modules/m_set.c
+  1.5       +0 -717      oftc-hybrid/modules/m_spiffy.c (dead)
+  1.5       +2 -2        oftc-hybrid/modules/m_spingtime.c
+  1.5       +255 -226    oftc-hybrid/modules/m_stats.c
+  1.4       +13 -7       oftc-hybrid/modules/m_svinfo.c
+  1.9       +3 -1        oftc-hybrid/modules/m_svscloak.c
+  1.7       +2 -2        oftc-hybrid/modules/m_svsmode.c
+  1.7       +2 -2        oftc-hybrid/modules/m_svsnick.c
+  1.5       +71 -77      oftc-hybrid/modules/m_testline.c
+  1.3       +10 -8       oftc-hybrid/modules/m_time.c
+  1.5       +2 -3        oftc-hybrid/modules/m_topic.c
+  1.4       +228 -172    oftc-hybrid/modules/m_trace.c
+  1.7       +0 -591      oftc-hybrid/modules/m_unkline.c (dead)
+  1.3       +19 -21      oftc-hybrid/modules/m_user.c
+  1.3       +7 -7        oftc-hybrid/modules/m_userhost.c
+  1.3       +10 -8       oftc-hybrid/modules/m_users.c
+  1.3       +50 -67      oftc-hybrid/modules/m_version.c
+  1.4       +28 -34      oftc-hybrid/modules/m_wallops.c
+  1.9       +1 -2        oftc-hybrid/modules/m_who.c
+  1.7       +165 -222    oftc-hybrid/modules/m_whois.c
+  1.5       +75 -81      oftc-hybrid/modules/m_whowas.c
+  1.1       +456 -0      oftc-hybrid/modules/m_xline.c (new)
+  1.2       +2 -2        oftc-hybrid/modules/spy_admin_notice.c
+  1.2       +2 -2        oftc-hybrid/modules/spy_info_notice.c
+  1.2       +2 -2        oftc-hybrid/modules/spy_links_notice.c
+  1.2       +2 -2        oftc-hybrid/modules/spy_motd_notice.c
+  1.2       +2 -2        oftc-hybrid/modules/spy_stats_notice.c
+  1.2       +2 -2        oftc-hybrid/modules/spy_stats_p_notice.c
+  1.2       +2 -2        oftc-hybrid/modules/spy_trace_notice.c
+  1.7       +2 -2        oftc-hybrid/modules/spy_whois_notice.c
+  1.2       +1 -1        oftc-hybrid/servlink/.cvsignore
+  1.2       +22 -31      oftc-hybrid/servlink/Makefile.in
+  1.2       +14 -42      oftc-hybrid/servlink/control.c
+  1.2       +0 -63       oftc-hybrid/servlink/control.h (dead)
+  1.2       +0 -15       oftc-hybrid/servlink/descrip.mms (dead)
+  1.2       +71 -74      oftc-hybrid/servlink/io.c
+  1.2       +0 -48       oftc-hybrid/servlink/io.h (dead)
+  1.2       +9 -13       oftc-hybrid/servlink/servlink.c
+  1.3       +0 -114      oftc-hybrid/servlink/servlink.h (dead)
+  1.2       +0 -28       oftc-hybrid/servlink/setup.h.in (dead)
+  1.2       +1 -0        oftc-hybrid/src/.cvsignore
+  1.4       +428 -293    oftc-hybrid/src/.depend
+  1.4       +88 -108     oftc-hybrid/src/Makefile.in
+  1.4       +0 -291      oftc-hybrid/src/adns.c (dead)
+  1.4       +48 -40      oftc-hybrid/src/balloc.c
+  1.7       +328 -808    oftc-hybrid/src/channel.c
+  1.11      +198 -1041   oftc-hybrid/src/channel_mode.c
+  1.4       +0 -345      oftc-hybrid/src/class.c (dead)
+  1.23      +534 -570    oftc-hybrid/src/client.c
+  1.1       +166 -0      oftc-hybrid/src/cluster.c (new)
+  1.3       +1 -7        oftc-hybrid/src/crypt.c
+  1.1       +638 -0      oftc-hybrid/src/csvlib.c (new)
+  1.1       +114 -0      oftc-hybrid/src/dbuf.c (new)
+  1.3       +0 -41       oftc-hybrid/src/descrip.mms (dead)
+  1.5       +146 -143    oftc-hybrid/src/dynlink.c
+  1.5       +52 -57      oftc-hybrid/src/event.c
+  1.3       +18 -21      oftc-hybrid/src/fdlist.c
+  1.4       +68 -21      oftc-hybrid/src/fileio.c
+  1.3       +14 -17      oftc-hybrid/src/getopt.c
+  1.4       +962 -572    oftc-hybrid/src/hash.c
+  1.4       +80 -81      oftc-hybrid/src/hook.c
+  1.5       +150 -102    oftc-hybrid/src/hostmask.c
+  1.1       +507 -0      oftc-hybrid/src/inet_misc.c (new)
+  1.2       +1 -1        oftc-hybrid/src/irc_res.c
+  1.3       +138 -293    oftc-hybrid/src/irc_string.c
+  1.6       +284 -341    oftc-hybrid/src/ircd.c
+  1.5       +37 -34      oftc-hybrid/src/ircd_lexer.l
+  1.7       +1931 -1791  oftc-hybrid/src/ircd_parser.y
+  1.5       +7 -3        oftc-hybrid/src/ircd_signal.c
+  1.5       +19 -22      oftc-hybrid/src/ircdauth.c
+  1.4       +0 -172      oftc-hybrid/src/kdparse.c (dead)
+  1.4       +0 -696      oftc-hybrid/src/linebuf.c (dead)
+  1.6       +52 -138     oftc-hybrid/src/list.c
+  1.5       +97 -90      oftc-hybrid/src/listener.c
+  1.5       +28 -34      oftc-hybrid/src/m_error.c
+  1.4       +53 -46      oftc-hybrid/src/match.c
+  1.4       +0 -352      oftc-hybrid/src/md5.c (dead)
+  1.11      +33 -28      oftc-hybrid/src/memory.c
+  1.5       +378 -306    oftc-hybrid/src/modules.c
+  1.5       +102 -99     oftc-hybrid/src/motd.c
+  1.3       +189 -11     oftc-hybrid/src/numeric.c
+  1.9       +118 -109    oftc-hybrid/src/packet.c
+  1.8       +470 -488    oftc-hybrid/src/parse.c
+  1.4       +17 -26      oftc-hybrid/src/restart.c
+  1.5       +155 -151    oftc-hybrid/src/resv.c
+  1.3       +39 -35      oftc-hybrid/src/rsa.c
+  1.5       +3 -4        oftc-hybrid/src/s_auth.c
+  1.10      +90 -80      oftc-hybrid/src/s_bsd.c
+  1.4       +164 -192    oftc-hybrid/src/s_bsd_devpoll.c
+  1.4       +98 -140     oftc-hybrid/src/s_bsd_kqueue.c
+  1.5       +112 -137    oftc-hybrid/src/s_bsd_poll.c
+  1.4       +93 -125     oftc-hybrid/src/s_bsd_select.c
+  1.4       +180 -214    oftc-hybrid/src/s_bsd_sigio.c
+  1.12      +1909 -1481  oftc-hybrid/src/s_conf.c
+  1.5       +204 -232    oftc-hybrid/src/s_debug.c
+  1.3       +66 -85      oftc-hybrid/src/s_gline.c
+  1.5       +92 -119     oftc-hybrid/src/s_log.c
+  1.4       +23 -18      oftc-hybrid/src/s_misc.c
+  1.12      +1104 -1092  oftc-hybrid/src/s_serv.c
+  1.4       +58 -59      oftc-hybrid/src/s_stats.c
+  1.12      +950 -888    oftc-hybrid/src/s_user.c
+  1.4       +0 -135      oftc-hybrid/src/scache.c (dead)
+  1.10      +499 -723    oftc-hybrid/src/send.c
+  1.3       +6 -6        oftc-hybrid/src/sprintf_irc.c
+  1.4       +101 -11     oftc-hybrid/src/tools.c
+  1.4       +0 -591      oftc-hybrid/src/vchannel.c (dead)
+  1.3       +11 -12      oftc-hybrid/src/version.c.SH
+  1.2       +0 -101      oftc-hybrid/src/version.com (dead)
+  1.11      +92 -71      oftc-hybrid/src/whowas.c
+  1.2       +24 -109     oftc-hybrid/tools/Makefile.in
+  1.2       +29 -34      oftc-hybrid/tools/convertconf.c
+  1.2       +17 -18      oftc-hybrid/tools/convertilines.c
+  1.2       +11 -12      oftc-hybrid/tools/convertklines.c
+  1.2       +0 -25       oftc-hybrid/tools/descrip.mms (dead)
+  1.3       +6 -7        oftc-hybrid/tools/encspeed.c
+  1.2       +53 -4       oftc-hybrid/tools/mkkeypair
+  1.2       +322 -50     oftc-hybrid/tools/mkpasswd.c
+  1.2       +1 -1        oftc-hybrid/tools/rsa_respond/.cvsignore
+  1.3       +0 -17       oftc-hybrid/tools/rsa_respond/Makefile (dead)
+  1.1       +18 -0       oftc-hybrid/tools/rsa_respond/Makefile.in (new)
+  1.3       +6 -5        oftc-hybrid/tools/rsa_respond/README
+  1.1       +3110 -0     oftc-hybrid/tools/rsa_respond/configure (new)
+  1.1       +40 -0       oftc-hybrid/tools/rsa_respond/configure.ac (new)
+  1.4       +2 -1        oftc-hybrid/tools/rsa_respond/respond.c
+  1.2       +43 -53      oftc-hybrid/tools/viconf.c
+
+
+
 stu         2003/08/13 20:30:31 UTC	(20030813_2)
 
   oftc-hybrid/contrib/help/users - New directory
