@@ -1,3 +1,22 @@
+stu         2003/08/16 10:45:21 UTC	(20030816_0)
+
+  Modified files:
+    src                  ircd_parser.y s_conf.c send.c 
+  Removed files:
+    src                  .depend 
+  Log:
+  - .depends arent in cvs anymore
+  - fixed wrong pointer in send.c
+  - fixed conf parser
+  
+  Revision  Changes    Path
+  1.5       +0 -428    oftc-hybrid/src/.depend (dead)
+  1.9       +0 -1      oftc-hybrid/src/ircd_parser.y
+  1.14      +4 -0      oftc-hybrid/src/s_conf.c
+  1.12      +1 -1      oftc-hybrid/src/send.c
+
+
+
 stu         2003/08/15 17:28:20 UTC	(20030815_0)
 
   Modified files:
