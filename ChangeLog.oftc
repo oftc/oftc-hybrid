@@ -1,3 +1,15 @@
+stu         2005/01/13 16:25:43 UTC	(20050113_0)
+
+  Modified files:
+    modules              Makefile.in 
+  Log:
+  add tburst to the makefile
+  
+  Revision  Changes    Path
+  1.11      +2 -1      oftc-hybrid/modules/Makefile.in
+
+
+
 stu         2005/01/12 20:55:57 UTC	(20050112_3)
 
   Modified files:
