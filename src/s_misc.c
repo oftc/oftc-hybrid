@@ -29,7 +29,6 @@
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "res.h"
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"

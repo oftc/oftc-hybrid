@@ -42,10 +42,11 @@
 
 #define HOSTLEN         63      /* Length of hostname.  Updated to         */
                                 /* comply with RFC1123                     */
+#define PORTNAMELEN     6       /* 31337 */
 
 #define USERLEN         10
 #define REALLEN         50
-#define KILLLEN         90      
+#define KILLLEN         90
 #define CHANNELLEN      200
 
 /* 23+1 for \0 */
@@ -59,6 +60,9 @@
 #define MAX_DATE_STRING 32      /* maximum string length for a date string */
 
 #define HELPLEN         400
+#define IRCD_MAXNS      2       /* Maximum number of nameservers in 
+                                   /etc/resolv.conf we care about */
+
 
 #define LOWEST_SAFE_FD  4	/* skip stdin, stdout, stderr, and profiler */
 
@@ -69,76 +73,15 @@
 #define CLIENT_PARSE_ERROR -1
 #define CLIENT_OK	1
 
+/* This is to get around the fact that some implementations have ss_len and
+ * others do not
+ */
 
-struct irc_inaddr
+struct irc_ssaddr
 {
-	union {
-		struct in_addr sin;
-#ifdef IPV6
-		struct in6_addr sin6;	
-#endif
-	} sins;
+  struct sockaddr_storage ss;
+  unsigned char ss_len;
+  in_port_t     ss_port;
 };
-
-struct irc_sockaddr
-{
-	union {
-		struct sockaddr_in sin;
-#ifdef IPV6
-		struct sockaddr_in6 sin6;
-#endif			
-	} sins;
-};
-
-
-#ifdef IPV6
-#define copy_s_addr(a, b)  \
-do { \
-((uint32_t *)a)[0] = ((uint32_t *)b)[0]; \
-((uint32_t *)a)[1] = ((uint32_t *)b)[1]; \
-((uint32_t *)a)[2] = ((uint32_t *)b)[2]; \
-((uint32_t *)a)[3] = ((uint32_t *)b)[3]; \
-} while(0)
-
-
-/* irc_sockaddr macros */
-#define PS_ADDR(x) x->sins.sin6.sin6_addr.s6_addr  	/* s6_addr for pointer */
-#define S_ADDR(x) x.sins.sin6.sin6_addr.s6_addr 	/* s6_addr for non pointer */
-#define S_PORT(x) x.sins.sin6.sin6_port			/* s6_port */
-#define S_FAM(x) x.sins.sin6.sin6_family		/* sin6_family */
-#define SOCKADDR(x) x.sins.sin6				/* struct sockaddr_in6 for nonpointer */
-#define PSOCKADDR(x) x->sins.sin6			/* struct sockaddr_in6 for pointer */
-
-
-/* irc_inaddr macros */
-#define IN_ADDR(x) x.sins.sin6.s6_addr
-#define IPV4_MAPPED(x) ((uint32_t *)x.sins.sin6.s6_addr)[3]
-#define PIN_ADDR(x) x->sins.sin6.s6_addr /* For Pointers */
-#define IN_ADDR2(x) x.sins.sin6
-
-#define DEF_FAM AF_INET6
-
-#else
-#define copy_s_addr(a, b) a = b
-
-
-#define PS_ADDR(x)	x->sins.sin.sin_addr.s_addr	/* s_addr for pointer */
-#define S_ADDR(x)	x.sins.sin.sin_addr.s_addr	/* s_addr for nonpointer */
-#define S_PORT(x)	x.sins.sin.sin_port		/* sin_port   */
-#define S_FAM(x)	x.sins.sin.sin_family		/* sin_family */
-#define SOCKADDR(x)	x.sins.sin			/* struct sockaddr_in */
-#define PSOCKADDR(x)	x->sins.sin			/* struct sockaddr_in */
-
-
-#define PIN_ADDR(x) x->sins.sin.s_addr 
-#define IN_ADDR(x) x.sins.sin.s_addr
-
-#ifndef AF_INET6
-#define AF_INET6 10 /* Dummy AF_INET6 declaration */
-#endif 
-#define DEF_FAM AF_INET
-
-#endif
-
 
 #endif /* INCLUDED_ircd_defs_h */

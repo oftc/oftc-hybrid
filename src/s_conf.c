@@ -99,7 +99,7 @@ struct ip_entry
 #ifndef IPV6
   u_int32_t ip;
 #else
-  struct irc_inaddr ip;
+  struct irc_ssaddr ip;
 #endif
   int        count;
   time_t last_attempt;
@@ -109,9 +109,9 @@ struct ip_entry
 static struct ip_entry *ip_hash_table[IP_HASH_SIZE];
 static BlockHeap *ip_entry_heap = NULL;
 static int ip_entries_count = 0;
-static int hash_ip(struct irc_inaddr *);
+static int hash_ip(struct irc_ssaddr *);
 static void garbage_collect_ip_entries(void);
-static struct ip_entry *find_or_add_ip(struct irc_inaddr*);
+static struct ip_entry *find_or_add_ip(struct irc_ssaddr*);
 
 /* general conf items link list root */
 struct ConfItem* ConfigItemList = NULL;
@@ -125,52 +125,43 @@ struct ConfItem        *u_conf = ((struct ConfItem *)NULL);
 /* conf services root */
 struct ConfItem        *services_conf = ((struct ConfItem *)NULL);
 
-/*
- * conf_dns_callback
- * inputs	- pointer to struct ConfItem
- *		- pointer to adns reply
- * output	- none
- * side effects	- called when resolver query finishes
+/* conf_dns_callback()
+ *
+ * inputs   - pointer to struct AccessItem
+ *      - pointer to DNSReply reply
+ * output   - none
+ * side effects - called when resolver query finishes
  * if the query resulted in a successful search, hp will contain
  * a non-null pointer, otherwise hp will be null.
  * if successful save hp in the conf item it was called with
  */
-static void 
-conf_dns_callback(void* vptr, adns_answer *reply)
+static void
+conf_dns_callback(void *vptr, struct DNSReply *reply)
 {
-  struct ConfItem *aconf = (struct ConfItem *) vptr;
+  struct ConfItem *aconf = (struct ConfItem *)vptr;
 
-  if (reply && reply->status == adns_s_ok)
-  {
-#ifdef IPV6
-    copy_s_addr(IN_ADDR(aconf->ipnum),
-                reply->rrs.addr->addr.inet6.sin6_addr.s6_addr);
-#else
-    copy_s_addr(IN_ADDR(aconf->ipnum),
-                reply->rrs.addr->addr.inet.sin_addr.s_addr);
-#endif
-    MyFree(reply);
-  }
+  if (reply != NULL)
+    memcpy(&aconf->ipnum, &reply->addr, sizeof(reply->addr));
 
-  MyFree(aconf->dns_query);
   aconf->dns_query = NULL;
 }
 
-/*
- * conf_dns_lookup - do a nameserver lookup of the conf host
+/* conf_dns_lookup()
+ *
+ * do a nameserver lookup of the conf host
  * if the conf entry is currently doing a ns lookup do nothing, otherwise
  * allocate a dns_query and start ns lookup.
  */
 static void
-conf_dns_lookup(struct ConfItem* aconf)
+conf_dns_lookup(struct ConfItem *aconf)
 {
   if (aconf->dns_query == NULL)
-    {
-      aconf->dns_query = MyMalloc(sizeof(struct DNSQuery));
-      aconf->dns_query->ptr = aconf;
-      aconf->dns_query->callback = conf_dns_callback;
-      adns_gethost(aconf->host, aconf->aftype, aconf->dns_query);
-    }
+  {
+    aconf->dns_query = MyMalloc(sizeof(struct DNSQuery));
+    aconf->dns_query->ptr = aconf;
+    aconf->dns_query->callback = conf_dns_callback;
+    gethost_byname(aconf->host, aconf->dns_query);
+  }
 }
 
 /*
@@ -207,7 +198,9 @@ free_conf(struct ConfItem* aconf)
   assert(!(aconf->status & CONF_CLIENT) ||
          (aconf->host && strcmp(aconf->host, "NOMATCH")) ||
          (aconf->clients == -1));
-  delete_adns_queries(aconf->dns_query);
+  if (aconf->dns_query != NULL)
+    delete_resolver_queries(aconf->dns_query);
+
   MyFree(aconf->host);
   if (aconf->passwd)
     memset(aconf->passwd, 0, strlen(aconf->passwd));
@@ -478,7 +471,9 @@ check_client(struct Client *client_p, struct Client *source_p, char *username)
       ServerStats->is_ref++;
       /* jdc - lists server name & port connections are on */
       /*       a purely cosmetical change */
-      inetntop(source_p->localClient->aftype, &IN_ADDR(source_p->localClient->ip), ipaddr, HOSTIPLEN);
+      irc_getnameinfo((struct sockaddr*)&source_p->localClient->ip,
+            source_p->localClient->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
+            NI_NUMERICHOST);
       sendto_gnotice_flags(FLAGS_UNAUTH, L_ALL, me.name, &me, NULL,
 			   "Unauthorized client connection from %s [%s] on [%s/%u].",
 			   get_client_name(source_p, SHOW_IP),
@@ -665,14 +660,14 @@ init_ip_hash_table()
  */
 
 static struct ip_entry *
-find_or_add_ip(struct irc_inaddr *ip_in)
+find_or_add_ip(struct irc_ssaddr *ip_in)
 {
   struct ip_entry *ptr, *newptr;
   int hash_index=hash_ip(ip_in);
 
   for(ptr = ip_hash_table[hash_index]; ptr; ptr = ptr->next)
   {
-    if(memcmp(&ptr->ip, ip_in, sizeof(struct irc_inaddr)) == 0)
+    if(memcmp(&ptr->ip, ip_in, sizeof(struct irc_ssaddr)) == 0)
     {
       /* Found entry already in hash, return it. */
       return(ptr);
@@ -684,7 +679,7 @@ find_or_add_ip(struct irc_inaddr *ip_in)
 
   newptr = BlockHeapAlloc(ip_entry_heap);
   ip_entries_count++;
-  memcpy(&newptr->ip, ip_in, sizeof(struct irc_inaddr));
+  memcpy(&newptr->ip, ip_in, sizeof(struct irc_ssaddr));
   newptr->count = 0;
   newptr->last_attempt = 0;
 
@@ -709,31 +704,43 @@ find_or_add_ip(struct irc_inaddr *ip_in)
  */
 
 void 
-remove_one_ip(struct irc_inaddr *ip_in)
+remove_one_ip(struct irc_ssaddr *ip_in)
 {
   struct ip_entry *ptr;
   struct ip_entry *last_ptr = NULL;
-  int hash_index = hash_ip(ip_in);
+  int hash_index = hash_ip(ip_in), res;
+  struct sockaddr_in *v4 = (struct sockaddr_in *)ip_in, *ptr_v4;
+#ifdef IPV6
+  struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)ip_in, *ptr_v6;
+#endif
 
   for(ptr = ip_hash_table[hash_index]; ptr; ptr = ptr->next)
   {
-#ifndef IPV6
-    if (ptr->ip != PIN_ADDR(ip_in))
+#ifdef IPV6
+    if (ptr->ip.ss.ss_family != ip_in->ss.ss_family)
       continue;
-#else
-    if (memcmp(&IN_ADDR(ptr->ip), &PIN_ADDR(ip_in),
-	       sizeof(struct irc_inaddr)))
-      continue;
+    if (ip_in->ss.ss_family == AF_INET6)
+    {
+      ptr_v6 = (struct sockaddr_in6 *)&ptr->ip;
+      res = memcmp(&v6->sin6_addr, &ptr_v6->sin6_addr, sizeof(struct in6_addr));
+    }
+    else
 #endif
+    {
+      ptr_v4 = (struct sockaddr_in *)&ptr->ip;
+      res = memcmp(&v4->sin_addr, &ptr_v4->sin_addr, sizeof(struct in_addr));
+    }
+    if (res)
+      continue;
     if (ptr->count > 0)
       ptr->count--;
     if (ptr->count == 0 &&
-	(CurrentTime-ptr->last_attempt) >= ConfigFileEntry.throttle_time)
+    (CurrentTime-ptr->last_attempt) >= ConfigFileEntry.throttle_time)
     {
       if (last_ptr != NULL)
-	last_ptr->next = ptr->next;
+    last_ptr->next = ptr->next;
       else
-	ip_hash_table[hash_index] = ptr->next;
+    ip_hash_table[hash_index] = ptr->next;
 
       BlockHeapFree(ip_entry_heap, ptr);
       ip_entries_count--;
@@ -746,43 +753,40 @@ remove_one_ip(struct irc_inaddr *ip_in)
 /*
  * hash_ip()
  * 
- * input        - pointer to an irc_inaddr
+ * input        - pointer to an irc_ssaddr
  * output       - integer value used as index into hash table
  * side effects - hopefully, none
  */
-
-#ifndef IPV6
 static int  
-hash_ip(struct irc_inaddr *addr)
+hash_ip(struct irc_ssaddr *addr)
 {
-  int hash;
-  u_int32_t ip;
-
-  ip = ntohl(PIN_ADDR(addr));
-  hash = ((ip >> 12) + ip) & (IP_HASH_SIZE-1);
-  return(hash);
-}
-#else /* IPV6 */
-static int
-hash_ip(struct irc_inaddr *addr)
-{
-  int hash;
-  u_int32_t *ip = (u_int32_t *)&PIN_ADDR(addr);
-
-  if(IN6_IS_ADDR_V4MAPPED((struct in6_addr *)ip))
+  if (addr->ss.ss_family == AF_INET)
   {
-     hash = ((ip[3] >> 12) + ip[3]) & (IP_HASH_SIZE-1);
-     return(hash);
-  } 
-    
-  hash = ip[0] ^ ip[3];
-  hash ^= hash >> 16;  
-  hash ^= hash >> 8;   
-  hash = hash & (IP_HASH_SIZE - 1);
-  return(hash);
-}
-#endif /* IPV6 */
+    struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
+    int hash;
+    u_int32_t ip;
 
+    ip   = ntohl(v4->sin_addr.s_addr);
+    hash = ((ip >> 12) + ip) & (IP_HASH_SIZE-1);
+    return(hash);
+  }
+#ifdef IPV6
+  else
+  {
+    int hash;
+    struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)addr;
+    u_int32_t *ip = (u_int32_t *)&v6->sin6_addr.s6_addr;
+
+    hash  = ip[0] ^ ip[3];
+    hash ^= hash >> 16;
+    hash ^= hash >> 8;
+    hash  = hash & (IP_HASH_SIZE - 1);
+    return(hash);
+  }
+#else
+  return(0);
+#endif
+}
 
 /*
  * count_ip_hash
@@ -1614,6 +1618,9 @@ SplitUserHost(struct ConfItem *aconf)
 static void 
 lookup_confhost(struct ConfItem* aconf)
 {
+  struct addrinfo hints, *res;
+  int ret;
+
   if (BadPtr(aconf->host) || BadPtr(aconf->name))
     {
       ilog(L_ERROR, "Host/server name error: (%s) (%s)",
@@ -1627,10 +1634,17 @@ lookup_confhost(struct ConfItem* aconf)
   ** Do name lookup now on hostnames given and store the
   ** ip numbers in conf structure.
   */
-  if (inetpton(DEF_FAM, aconf->host, &IN_ADDR(aconf->ipnum)) <= 0)
-    {
-      conf_dns_lookup(aconf);
-    }
+  hints.ai_family   = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+
+  /* Get us ready for a bind() and don't bother doing dns lookup */
+  hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
+
+  if ((ret = irc_getaddrinfo(aconf->host, NULL, &hints, &res)))
+  {
+    conf_dns_lookup(aconf);
+    return;
+  }
 }
 
 /*
@@ -1642,7 +1656,7 @@ lookup_confhost(struct ConfItem* aconf)
  * side effects	- none
  */
 int 
-conf_connect_allowed(struct irc_inaddr *addr, int aftype)
+conf_connect_allowed(struct irc_ssaddr *addr, int aftype)
 {
   struct ip_entry *ip_found;
   struct ConfItem *aconf = find_dline_conf(addr,aftype);

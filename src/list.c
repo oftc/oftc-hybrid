@@ -32,13 +32,13 @@
 #include "list.h"
 #include "hostmask.h"
 #include "numeric.h"
-#include "res.h"
 #include "restart.h"
 #include "s_log.h"
 #include "send.h"
 #include "memory.h"
 #include "balloc.h"
 
+extern struct Client me;
 
 /* XXX assummed 32 bit ints */
 int links_count=0;

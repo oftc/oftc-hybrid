@@ -25,26 +25,26 @@
 #ifndef INCLUDED_s_auth_h
 #define INCLUDED_s_auth_h
 
-#include "config.h"
-#include "res.h"
-/* 
- * How many auth allocations to allocate in a block. I'm guessing that
+#include "irc_res.h"
+
+/* How many auth allocations to allocate in a block. I'm guessing that
  * a good number here is 64, because these are temporary and don't live
  * as long as clients do.
  *     -- adrian
  */
-#define	AUTH_BLOCK_SIZE		64
+#define	AUTH_BLOCK_SIZE 64
 
 struct Client;
 
-struct AuthRequest {
+struct AuthRequest
+{
+  dlink_node	      dns_node;	 /* auth_doing_dns_list */
+  dlink_node	      ident_node; /* auth_doing_ident_list */
+  int 		      flags;
   struct Client*      client;    /* pointer to client struct for request */
-  unsigned int        flags;     /* current state of request */
   int                 fd;        /* file descriptor for auth queries */
   time_t              timeout;   /* time when query expires */
-#ifdef IPV6
   unsigned int	      ip6_int;
-#endif
 };
 
 /*
@@ -70,7 +70,6 @@ struct AuthRequest {
 #define ClearAuth(x)         ((x)->flags &= ~(AM_AUTH_PENDING | AM_AUTH_CONNECTING))
 #define IsDoingAuth(x)       ((x)->flags &  (AM_AUTH_PENDING | AM_AUTH_CONNECTING))
 /* #define SetGotId(x)       ((x)->flags |= FLAGS_GOTID) */
-
 
 
 extern void start_auth(struct Client *);

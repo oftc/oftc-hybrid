@@ -32,7 +32,6 @@
 #include "list.h"
 #include "s_gline.h"
 #include "numeric.h"
-#include "res.h"
 #include "s_conf.h"
 #include "s_log.h"
 #include "send.h"

@@ -1007,7 +1007,6 @@ AC_OUTPUT(                      \
  servlink/Makefile              \
  contrib/Makefile               \
  src/Makefile                   \
- adns/Makefile                  \
  include/Makefile               \
  messages/Makefile              \
  messages/translations/Makefile \

@@ -37,6 +37,7 @@
 #include "resv.h"
 #include "hash.h"
 #include "ircd_defs.h"
+#include "irc_string.h"
 
 struct ResvChannel *ResvChannelList;
 struct ResvNick *ResvNickList;

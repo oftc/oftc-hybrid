@@ -162,7 +162,11 @@ mo_trace(struct Client *client_p, struct Client *source_p,
       if(target_p && IsPerson(target_p)) 
       {
         name = get_client_name(target_p, HIDE_IP);
-        inetntop(target_p->localClient->aftype, &IN_ADDR(target_p->localClient->ip), ipaddr, HOSTIPLEN);
+        /* should we not use sockhost here? - stu */
+        irc_getnameinfo((struct sockaddr*)&target_p->localClient->ip,
+            target_p->localClient->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
+            NI_NUMERICHOST);
+
 
         class_name = get_client_class(target_p);
 
@@ -322,7 +326,10 @@ report_this_status(struct Client *source_p, struct Client *target_p,
   char  ip[HOSTIPLEN];
   int cnt=0;
 
-  inetntop(target_p->localClient->aftype, &IN_ADDR(target_p->localClient->ip), ip, HOSTIPLEN);
+  /* Should this be sockhost? - stu */
+  irc_getnameinfo((struct sockaddr*)&target_p->localClient->ip,
+        target_p->localClient->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
+        NI_NUMERICHOST);
   name = get_client_name(target_p, HIDE_IP);
   class_name = get_client_class(target_p);
 

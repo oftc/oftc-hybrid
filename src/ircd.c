@@ -53,7 +53,6 @@
 #include "hostmask.h"
 #include "numeric.h"
 #include "parse.h"
-#include "res.h"
 #include "restart.h"
 #include "s_auth.h"
 #include "s_bsd.h"

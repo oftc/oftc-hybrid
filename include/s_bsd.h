@@ -70,7 +70,7 @@ extern void  comm_connect_tcp(int, const char *, u_short,
 extern const char * comm_errstr(int status);
 extern int   comm_open(int family, int sock_type, int proto,
                  const char *note);
-extern int   comm_accept(int fd, struct irc_sockaddr *pn);
+extern int   comm_accept(int fd, struct irc_ssaddr *pn);
 
 /* These must be defined in the network IO loop code of your choice */
 extern void  comm_setselect(int fd, fdlist_t list, unsigned int type,
@@ -79,6 +79,10 @@ extern void  init_netio(void);
 extern int   read_message (time_t, unsigned char);
 extern int   comm_select(unsigned long);
 extern int   disable_sock_options(int);
+extern void  check_can_use_v6(void);
+#ifdef IPV6
+extern void remove_ipv6_mapping(struct irc_ssaddr *addr);
+#endif
 
 #ifdef USE_SIGIO
 void do_sigio(int);

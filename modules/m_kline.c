@@ -568,7 +568,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   char *p;
   struct Client *target_p;
 #endif
-  struct irc_inaddr daddr;
+  struct irc_ssaddr daddr;
   char cidr_form_host[HOSTLEN + 1];
   struct ConfItem *aconf;
   int bits, t;
@@ -961,7 +961,7 @@ static int
 already_placed_kline(struct Client *source_p, char *luser, char *lhost)
 {
  char *reason;
- struct irc_inaddr iphost, *piphost;
+ struct irc_ssaddr iphost, *piphost;
  struct ConfItem *aconf;
  int t;
  if (ConfigFileEntry.non_redundant_klines) 

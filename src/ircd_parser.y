@@ -511,21 +511,52 @@ serverinfo_network_desc: NETWORK_DESC '=' QSTRING ';'
 
 serverinfo_vhost:  VHOST '=' QSTRING ';'
   {
-    if(inetpton(DEF_FAM, yylval.string, &IN_ADDR(ServerInfo.ip)) <= 0)
-    {
-     ilog(L_ERROR, "Invalid netmask for server vhost(%s)", yylval.string);
-    }
-    ServerInfo.specific_ipv4_vhost = 1;
+    struct addrinfo hints, *res;
+
+    memset(&hints, 0, sizeof(hints));
+
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
+
+    if (irc_getaddrinfo(yylval.string, NULL, &hints, &res))
+      ilog(L_ERROR, "Invalid netmask for server vhost(%s)", yylval.string);
+    else
+      ServerInfo.specific_ipv4_vhost = 1;
+
+      assert(res != NULL);
+
+      memcpy(&ServerInfo.ip, res->ai_addr, res->ai_addrlen);
+      ServerInfo.ip.ss.ss_family = res->ai_family;
+      ServerInfo.ip.ss_len = res->ai_addrlen;
+      irc_freeaddrinfo(res);
+
+      ServerInfo.specific_ipv4_vhost = 1;
   };
 
 serverinfo_vhost6:	VHOST6 '=' QSTRING ';'
   {
 #ifdef IPV6
-    if(inetpton(DEF_FAM,yylval.string, &IN_ADDR(ServerInfo.ip6)) <= 0)
-      {
-        ilog(L_ERROR, "Invalid netmask for server vhost(%s)", yylval.string);
-      }
-    ServerInfo.specific_ipv6_vhost = 1;
+    struct addrinfo hints, *res;
+
+    memset(&hints, 0, sizeof(hints));
+
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
+
+    if (irc_getaddrinfo(yylval.string, NULL, &hints, &res))
+      ilog(L_ERROR, "Invalid netmask for server vhost6(%s)", yylval.string);
+     else
+     {
+      assert(res != NULL);
+      memcpy(&ServerInfo.ip6, res->ai_addr, res->ai_addrlen);
+      ServerInfo.ip6.ss.ss_family = res->ai_family;
+      ServerInfo.ip6.ss_len = res->ai_addrlen;
+      irc_freeaddrinfo(res);
+
+      ServerInfo.specific_ipv6_vhost = 1;
+    }
 #endif
   };
    

@@ -39,10 +39,7 @@ struct Listener {
   int              index;              /* index into poll array */
   time_t           last_accept;        /* last time listener accepted */
 /* jdc -- this seems to be incorrect in comparison to src/listener.c */
-/*
-  struct in_addr    addr;
-*/
-  struct irc_inaddr addr;              /* virtual address or INADDR_ANY */
+  struct irc_ssaddr addr;              /* virtual address or INADDR_ANY */
   struct DNSQuery   *dns_query;
   char             vhost[HOSTLEN + 1]; /* virtual name of listener */
 };

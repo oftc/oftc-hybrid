@@ -21,7 +21,7 @@
  */
 #include "stdinc.h"
 #include "irc_string.h"
-#include "config.h"     
+#include "irc_getaddrinfo.h"
 #include "client.h"
 #include "ircd.h"
 
@@ -190,7 +190,8 @@ int match_esc(const char *mask, const char *name)
         m++;
       return (*m == 0);
     }
-    if (ToLower(*m) != ToLower(*n) && !(!quote && *m == '?')) {
+    if (ToLower(*m) != ToLower(*n) && !(!quote && *m == '?'))
+    {
       if (!wild)
         return 0;
       m = ma;
@@ -204,38 +205,41 @@ int match_esc(const char *mask, const char *name)
         n++;
     }
   }
-  return 0;
+  return(0);
 }
 
 static inline int 
-comp_with_mask(void *addr, void *dest, u_int mask)
+comp_with_mask(void *addr, void *dest, unsigned int mask)
 {
   if (memcmp(addr, dest, mask / 8) == 0) 
   {
     int n = mask / 8;
     int m = ((-1) << (8 - (mask % 8)));
     if (mask % 8 == 0 || 
-       (((u_char *) addr)[n] & m) == (((u_char *) dest)[n] & m))  
+       (((unsigned char *) addr)[n] & m) == (((unsigned char *) dest)[n] & m))  
       return (1);
   }
   return (0);
 }
-
 
 /* match_cidr()
  *
  * Input - mask, address
  * Ouput - 1 = Matched 0 = Did not match
  */
-
 int
 match_cidr(const char *s1, const char *s2)
 {
-  struct irc_inaddr ipaddr, maskaddr;
-  char address[NICKLEN + USERLEN + HOSTLEN + 6], mask[NICKLEN + USERLEN + HOSTLEN + 6], *ipmask, *ip, *len;
+  struct irc_ssaddr ipaddr, maskaddr;
+  char address[NICKLEN + USERLEN + HOSTLEN + 6];
+  char mask[NICKLEN + USERLEN + HOSTLEN + 6];
+  char *ipmask, *ip, *len;
   int cidrlen, aftype;
-  strcpy(mask, s1);
-  strcpy(address, s2);
+  struct addrinfo hints, *res;
+  
+  /* Unlikely to ever overflow, but we may as well be consistant - stu */
+  strlcpy(mask, s1, sizeof(mask));
+  strlcpy(address, s2, sizeof(address));
   
   ipmask = strrchr(mask, '@');
   if(ipmask == NULL)
@@ -257,20 +261,40 @@ match_cidr(const char *s1, const char *s2)
   cidrlen = atoi(len);
   if(cidrlen == 0) 
     return 0;
-  
-#ifdef IPV6
+
+#ifdef IPV6  
   if(strchr(ip, ':') && strchr(ipmask, ':'))
     aftype = AF_INET6;
-  else
+  else 
 #endif
   if(!strchr(ip, ':') && !strchr(ipmask, ':'))
     aftype = AF_INET;
   else
     return 0;
   
-  inetpton(aftype, ip, &ipaddr);
-  inetpton(aftype, ipmask, &maskaddr);
-  if(comp_with_mask(&IN_ADDR(ipaddr), &IN_ADDR(maskaddr), cidrlen) && match(mask, address))
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_flags = AI_NUMERICHOST;
+
+  irc_getaddrinfo(ip, NULL, &hints, &res);
+  if(res)
+  {
+    memcpy(&ipaddr, res->ai_addr, res->ai_addrlen);
+    ipaddr.ss_len = res->ai_addrlen;
+    ipaddr.ss.ss_family = res->ai_family;
+    irc_freeaddrinfo(res);
+  }
+
+  irc_getaddrinfo(ipmask, NULL, &hints, &res);
+  if(res)
+  {
+    memcpy(&maskaddr, res->ai_addr, res->ai_addrlen);
+    maskaddr.ss_len = res->ai_addrlen;
+    maskaddr.ss.ss_family = res->ai_family;
+    irc_freeaddrinfo(res);
+  }
+  
+  if(comp_with_mask(&ipaddr, &maskaddr, cidrlen) && match(mask, address))
     return 1;
   else
     return 0;
@@ -349,29 +373,27 @@ char *collapse_esc(char *pattern)
  * irccmp - case insensitive comparison of two 0 terminated strings.
  *
  *      returns  0, if s1 equal to s2
- *              <0, if s1 lexicographically less than s2
- *              >0, if s1 lexicographically greater than s2
+ *               1, if not
  */
 int irccmp(const char *s1, const char *s2)
 {
-  const unsigned char* str1 = (const unsigned char*) s1;
-  const unsigned char* str2 = (const unsigned char*) s2;
-  int   res;
+  const unsigned char *str1 = (const unsigned char *)s1;
+  const unsigned char *str2 = (const unsigned char *)s2;
 
   assert(s1 != NULL);
   assert(s2 != NULL);
   
-  while ((res = ToUpper(*str1) - ToUpper(*str2)) == 0)
+  while (ToUpper(*str1) == ToUpper(*str2))
   {
     if (*str1 == '\0')
-      return 0;
+      return(0);
     str1++;
     str2++;
   }
-  return (res);
+  return(1);
 }
 
-int ircncmp(const char* s1, const char *s2, int n)
+int ircncmp(const char* s1, const char *s2, size_t n)
 {
   const unsigned char* str1 = (const unsigned char*) s1;
   const unsigned char* str2 = (const unsigned char*) s2;
@@ -507,7 +529,7 @@ const unsigned int CharAttrs[] = {
 /* ' */      PRINT_C|CHAN_C|NONEOS_C,
 /* ( */      PRINT_C|CHAN_C|NONEOS_C,
 /* ) */      PRINT_C|CHAN_C|NONEOS_C,
-/* * */      PRINT_C|KWILD_C|CHAN_C|NONEOS_C|SERV_C,
+/* * */      PRINT_C|KWILD_C|MWILD_C|CHAN_C|NONEOS_C|SERV_C,
 /* + */      PRINT_C|CHAN_C|NONEOS_C,
 /* , */      PRINT_C|NONEOS_C,
 /* - */      PRINT_C|NICK_C|CHAN_C|NONEOS_C|USER_C|HOST_C,
@@ -528,7 +550,7 @@ const unsigned int CharAttrs[] = {
 /* < */      PRINT_C|CHAN_C|NONEOS_C,
 /* = */      PRINT_C|CHAN_C|NONEOS_C,
 /* > */      PRINT_C|CHAN_C|NONEOS_C,
-/* ? */      PRINT_C|KWILD_C|CHAN_C|NONEOS_C,
+/* ? */      PRINT_C|KWILD_C|MWILD_C|CHAN_C|NONEOS_C,
 /* @ */      PRINT_C|KWILD_C|CHAN_C|NONEOS_C,
 /* A */      PRINT_C|ALPHA_C|NICK_C|CHAN_C|NONEOS_C|USER_C|HOST_C,
 /* B */      PRINT_C|ALPHA_C|NICK_C|CHAN_C|NONEOS_C|USER_C|HOST_C,

@@ -33,9 +33,9 @@ PROGS		= $(IRCD_EXE)
 SSL_LIBS	= @SSL_LIBS@
 SSL_INCLUDES	= @SSL_INCLUDES@
 
-IRCDLIBS	= @MODULES_LIBS@ -L../adns -ladns @LIBS@ $(SSL_LIBS)
+IRCDLIBS	= @MODULES_LIBS@ @LIBS@ $(SSL_LIBS)
 
-INCLUDES	= -I../include -I../adns $(SSL_INCLUDES)
+INCLUDES	= -I../include $(SSL_INCLUDES)
 CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
  
 default:	all
@@ -54,7 +54,6 @@ lex.yy.c:	ircd_lexer.l
 	${LEX} ircd_lexer.l
 
 BASE_SRCS =                     \
-  adns.c                        \
   balloc.c			\
   channel.c                     \
   channel_mode.c		\
@@ -69,6 +68,10 @@ BASE_SRCS =                     \
   hash.c                        \
   hook.c                        \
   hostmask.c                    \
+  irc_getaddrinfo.c             \
+  irc_getnameinfo.c             \
+  irc_res.c                     \
+  irc_reslib.c                  \
   irc_string.c                  \
   ircd.c                        \
   ircd_signal.c                 \

@@ -35,12 +35,8 @@
 #include "ircd_handler.h"
 #include "linebuf.h"
 #include "channel.h"
-#include "res.h"
-#ifdef IPV6
-#define HOSTIPLEN	53 /* sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255.ipv6") */
-#else
-#define HOSTIPLEN       16      /* Length of dotted quad form of IP        */
-#endif
+#include "irc_res.h"
+#define HOSTIPLEN	    53      /* sizeof("big long ipv6 addr") */
 #define PASSWDLEN       20
 #define CIPHERKEYLEN    64      /* 512bit */
 
@@ -130,6 +126,9 @@ struct Client
 	
   struct Client*    lnext;      /* Used for Server->servers/users */
   struct Client*    lprev;      /* Used for Server->servers/users */
+  dlink_node node;
+  dlink_node lnode;             /* Used for Server->servers/users */
+  
 
   struct User*      user;       /* ...defined, if this is a User */
   struct Server*    serv;       /* ...defined, if this is a server */
@@ -253,7 +252,7 @@ struct LocalUser
   struct Listener*  listener;   /* listener accepted from */
   dlink_list        confs;      /* Configuration record associated */
 
-  struct irc_inaddr ip;
+  struct irc_ssaddr ip;
   unsigned short    port;       /* and the remote port# too :-) */
   int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
   struct DNSQuery   *dns_query;  /* result returned from resolver query */

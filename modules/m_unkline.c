@@ -381,7 +381,7 @@ remove_tkline_match(char *host, char *user)
 {
   struct ConfItem *tk_c;
   dlink_node *tk_n;
-  struct irc_inaddr addr, caddr;
+  struct irc_ssaddr addr, caddr;
   int nm_t, cnm_t, bits, cbits;
   nm_t = parse_netmask(host, &addr, &bits);
 

@@ -443,8 +443,10 @@ register_local_user(struct Client *client_p, struct Client *source_p,
       strcpy(user->id_key, id);
     }
 
-  inetntop(source_p->localClient->aftype, &IN_ADDR(source_p->localClient->ip), 
-  				ipaddr, HOSTIPLEN);
+  irc_getnameinfo((struct sockaddr *)&source_p->localClient->ip,
+        source_p->localClient->ip.ss_len, ipaddr,
+        HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
+    
   sendto_gnotice_flags(FLAGS_CCONN, L_OPER, me.name, &me, NULL,
 		       "Client connecting: %s (%s@%s) [%s] {%s} [%s]",
 		       nick, source_p->username, source_p->host,

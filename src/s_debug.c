@@ -35,7 +35,6 @@
 #include "ircd.h"
 #include "list.h"
 #include "numeric.h"
-#include "res.h"
 #include "s_conf.h"
 #include "s_log.h"
 #include "scache.h"

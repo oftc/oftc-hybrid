@@ -42,27 +42,27 @@ struct HostMaskEntry
   struct HostMaskEntry *next, *nexthash;
 };
 
-int parse_netmask(const char*, struct irc_inaddr*, int*);
-int match_ipv6(struct irc_inaddr*, struct irc_inaddr*, int);
-int match_ipv4(struct irc_inaddr*, struct irc_inaddr*, int);
-struct ConfItem* find_conf_by_address(const char*, struct irc_inaddr*,
+int parse_netmask(const char*, struct irc_ssaddr*, int*);
+int match_ipv6(struct irc_ssaddr*, struct irc_ssaddr*, int);
+int match_ipv4(struct irc_ssaddr*, struct irc_ssaddr*, int);
+struct ConfItem* find_conf_by_address(const char*, struct irc_ssaddr*,
                                       int, int, const char*);
 void add_conf_by_address(const char*, int, const char*, struct ConfItem*);
 void delete_one_address_conf(const char*, struct ConfItem*);
 void clear_out_address_conf(void);
 void init_host_hash(void);
 struct ConfItem* find_address_conf(const char*, const char*,
-                                   struct irc_inaddr*, int);
+                                   struct irc_ssaddr*, int);
 struct ConfItem* find_kline_conf(const char*, const char*,
-				 struct irc_inaddr*, int);
-struct ConfItem* find_dline_conf(struct irc_inaddr *, int);
+				 struct irc_ssaddr*, int);
+struct ConfItem* find_dline_conf(struct irc_ssaddr *, int);
 
 void report_Klines(struct Client*, int temp);
 void report_auth(struct Client*);
 #ifdef IPV6
-int match_ipv6(struct irc_inaddr*, struct irc_inaddr*, int);
+int match_ipv6(struct irc_ssaddr*, struct irc_ssaddr*, int);
 #endif
-int match_ipv4(struct irc_inaddr*, struct irc_inaddr*, int);
+int match_ipv4(struct irc_ssaddr*, struct irc_ssaddr*, int);
 
 /* Hashtable stuff... */
 #define ATABLE_SIZE 0x1000
@@ -79,7 +79,7 @@ struct AddressRec
     struct
     {
       /* Pointer into ConfItem... -A1kmm */
-      struct irc_inaddr addr;
+      struct irc_ssaddr addr;
       int bits;
     } ipa;
 

@@ -42,30 +42,29 @@
 #include "event.h"
 #include "fdlist.h"              /* fdlist_add */
 #include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
 #include "ircdauth.h"
 #include "numeric.h"
 #include "packet.h"
-#include "res.h"
+#include "irc_res.h"
 #include "s_bsd.h"
 #include "s_log.h"
 #include "s_stats.h"
 #include "send.h"
 #include "memory.h"
-#include "config.h"
 
 /*
  * a bit different approach
  * this replaces the original sendheader macros
  */
-static struct {
-  const char* message;
-  size_t      length;
-} HeaderMessages [] = {
+static const struct {
+  const char *message;
+  const size_t length;
+} HeaderMessages[] = {
   /* 123456789012345678901234567890123456789012345678901234567890 */
   { "NOTICE AUTH :*** Looking up your hostname...\r\n",    46 },
   { "NOTICE AUTH :*** Found your hostname\r\n",            38 },
-  { "NOTICE AUTH :*** Found your hostname, cached\r\n",    46 },
   { "NOTICE AUTH :*** Couldn't look up your hostname\r\n", 49 },
   { "NOTICE AUTH :*** Checking Ident\r\n",                 33 },
   { "NOTICE AUTH :*** Got Ident response\r\n",             37 },
@@ -75,87 +74,56 @@ static struct {
   { "NOTICE AUTH :*** Your hostname is too long, ignoring hostname\r\n", 63 }
 };
 
-typedef enum {
+enum {
   REPORT_DO_DNS,
   REPORT_FIN_DNS,
-  REPORT_FIN_DNSC,
   REPORT_FAIL_DNS,
   REPORT_DO_ID,
   REPORT_FIN_ID,
   REPORT_FAIL_ID,
   REPORT_IP_MISMATCH,
   REPORT_HOST_TOOLONG
-} ReportType;
+};
 
 #define sendheader(c, r) \
    send((c)->localClient->fd, HeaderMessages[(r)].message, HeaderMessages[(r)].length, 0)
 
 /*
+ * Ok, the original was confusing.
+ * Now there are two lists, an auth request can be on both at the same time
+ * or only on one or the other.
+ * - Dianora
  */
-dlink_list auth_client_list;
-dlink_list auth_poll_list;
+static dlink_list auth_doing_dns_list   = { NULL, NULL, 0 };
+static dlink_list auth_doing_ident_list = { NULL, NULL, 0 };
 
 static EVH timeout_auth_queries_event;
 
 static PF read_auth_reply;
 static CNCB auth_connect_callback;
 
-/*
- * init_auth()
+/* init_auth()
  *
  * Initialise the auth code
  */
 void
 init_auth(void)
 {
-  memset(&auth_client_list, 0, sizeof(auth_client_list));
-  memset(&auth_poll_list, 0, sizeof(auth_poll_list));
   eventAddIsh("timeout_auth_queries_event", timeout_auth_queries_event, NULL, 1);
 }
 
 /*
  * make_auth_request - allocate a new auth request
  */
-static struct AuthRequest* make_auth_request(struct Client* client)
+static struct AuthRequest *
+make_auth_request(struct Client *client)
 {
-  struct AuthRequest* request = 
+  struct AuthRequest *request = 
     (struct AuthRequest *)MyMalloc(sizeof(struct AuthRequest));
   request->fd      = -1;
   request->client  = client;
   request->timeout = CurrentTime + CONNECTTIMEOUT;
-  return request;
-}
-
-/*
- * free_auth_request - cleanup auth request allocations
- */
-static void free_auth_request(struct AuthRequest* request)
-{
-  MyFree(request);
-}
-
-/*
- * unlink_auth_request - remove auth request from a list
- */
-static void unlink_auth_request(struct AuthRequest* request, dlink_list *list)
-{
-  dlink_node *ptr;
-  if((ptr = dlinkFind(list, request)) != NULL)
-  {
-    dlinkDelete(ptr, list);
-    free_dlink_node(ptr);
-  }
-}
-
-/*
- * link_auth_request - add auth request to a list
- */
-static void link_auth_request(struct AuthRequest* request, dlink_list *list)
-{
-  dlink_node *m;
-
-  m = make_dlink_node();
-  dlinkAdd(request, m, list);
+  return(request);
 }
 
 /*
@@ -163,7 +131,8 @@ static void link_auth_request(struct AuthRequest* request, dlink_list *list)
  * this adds the client into the local client lists so it can be read by
  * the main io processing loop
  */
-static void release_auth_client(struct Client* client)
+static void
+release_auth_client(struct Client *client)
 {
   if (client->localClient->fd > highest_fd)
     highest_fd = client->localClient->fd;
@@ -173,8 +142,10 @@ static void release_auth_client(struct Client* client)
    * us. This is what read_packet() does.
    *     -- adrian
    */
+
   client->localClient->allow_read = MAX_FLOOD;
   comm_setflush(client->localClient->fd, 1000, flood_recalc, client);
+  set_no_delay(client->localClient->fd);
   add_client_to_list(client);
   read_packet(client->localClient->fd, client);
 }
@@ -187,77 +158,89 @@ static void release_auth_client(struct Client* client)
  * of success of failure
  */
 static void
-auth_dns_callback(void* vptr, adns_answer* reply)
+auth_dns_callback(void* vptr, struct DNSReply *reply)
 {
-  struct AuthRequest* auth = (struct AuthRequest*) vptr;
+  struct AuthRequest *auth = (struct AuthRequest *)vptr;
+
+  if (IsDNSPending(auth))
+    dlinkDelete(&auth->dns_node, &auth_doing_dns_list);
   ClearDNSPending(auth);
-  if(reply && (reply->status == adns_s_ok))
-    {
-      if(strlen(*reply->rrs.str) <= HOSTLEN)
-        {
-          strlcpy(auth->client->host, *reply->rrs.str, sizeof(auth->client->host));
-          sendheader(auth->client, REPORT_FIN_DNS);
-        } else
-          sendheader(auth->client, REPORT_HOST_TOOLONG);
-    }
-  else
-    {
+
+  if (reply != NULL)
+  {
+    struct sockaddr_in *v4, *v4dns;
 #ifdef IPV6
-      if(auth->client->localClient->aftype == AF_INET6 && ConfigFileEntry.fallback_to_ip6_int == 1 && auth->ip6_int == 0)
-      {
-        struct Client *client = auth->client;
-        auth->ip6_int = 1;
-	MyFree(reply);
-	SetDNSPending(auth);
-        adns_getaddr(&client->localClient->ip, client->localClient->aftype, client->localClient->dns_query, 1);
-        return;
-      }
+    struct sockaddr_in6 *v6, *v6dns;
 #endif
-      sendheader(auth->client, REPORT_FAIL_DNS);
+    int good = 1;
+
+#ifdef IPV6
+    if(auth->client->localClient->ip.ss.ss_family == AF_INET6)
+    {
+      v6 = (struct sockaddr_in6 *)&auth->client->localClient->ip;
+      v6dns = (struct sockaddr_in6 *)&reply->addr;
+      if(memcmp(&v6->sin6_addr, &v6dns->sin6_addr, sizeof(struct in6_addr)) != 0)
+      {
+        sendheader(auth->client, REPORT_IP_MISMATCH);
+        good = 0;
+      }
     }
+    else
+#endif
+    {
+      v4 = (struct sockaddr_in *)&auth->client->localClient->ip;
+      v4dns = (struct sockaddr_in *)&reply->addr;
+      if(v4->sin_addr.s_addr != v4dns->sin_addr.s_addr)
+      {
+        sendheader(auth->client, REPORT_IP_MISMATCH);
+        good = 0;
+      }
+    }
+    if(good && strlen(reply->h_name) <= HOSTLEN)
+    {
+      strlcpy(auth->client->host, reply->h_name,
+	      sizeof(auth->client->host));
+      sendheader(auth->client, REPORT_FIN_DNS);
+    }
+    else
+      sendheader(auth->client, REPORT_HOST_TOOLONG);
+  }
+  else
+      sendheader(auth->client, REPORT_FAIL_DNS);
 
   MyFree(reply);
   MyFree(auth->client->localClient->dns_query);
-
   auth->client->localClient->dns_query = NULL;
-  if (!IsDoingAuth(auth))
-    {
-      struct Client *client_p = auth->client;
-      unlink_auth_request(auth, &auth_poll_list);
-#ifdef USE_IAUTH
-      ilog(L_ERROR, "Linking to auth client list");
-      link_auth_request(auth, &auth_client_list);
-#else
-      free_auth_request(auth);
-#endif
-      release_auth_client(client_p);
-    }
 
+  if (!IsDoingAuth(auth))
+  {
+    struct Client *client_p = auth->client;
+    MyFree(auth);
+    release_auth_client(client_p);
+  }
 }
 
 /*
  * authsenderr - handle auth send errors
  */
-static void auth_error(struct AuthRequest* auth)
+static void
+auth_error(struct AuthRequest* auth)
 {
   ++ServerStats->is_abad;
 
   fd_close(auth->fd);
   auth->fd = -1;
 
+  if (IsAuthPending(auth))
+    dlinkDelete(&auth->ident_node, &auth_doing_ident_list);
   ClearAuth(auth);
+
   sendheader(auth->client, REPORT_FAIL_ID);
 
   if (!IsDNSPending(auth))
   {
-    unlink_auth_request(auth, &auth_poll_list);
     release_auth_client(auth->client);
-#ifdef USE_IAUTH
-    ilog(L_ERROR, "linking to auth client list 2");
-    link_auth_request(auth, &auth_client_list);
-#else
-    free_auth_request(auth);
-#endif
+    MyFree(auth);
   }
 }
 
@@ -269,37 +252,45 @@ static void auth_error(struct AuthRequest* auth)
  * identifing process fail, it is aborted and the user is given a username
  * of "unknown".
  */
-static int start_auth_query(struct AuthRequest* auth)
+static int
+start_auth_query(struct AuthRequest* auth)
 {
-/*  struct sockaddr_in sock; */
-  struct irc_sockaddr localaddr;
-  socklen_t locallen = sizeof(struct irc_sockaddr);
+  struct irc_ssaddr localaddr;
+  socklen_t locallen = sizeof(struct irc_ssaddr);
   int                fd;
+#ifdef IPV6
+  struct sockaddr_in6 *v6;
+#else
+  struct sockaddr_in *v4;
+#endif
 
-  if ((fd = comm_open(DEF_FAM, SOCK_STREAM, 0, "ident")) == -1)
-    {
-      report_error(L_ALL, "creating auth stream socket %s:%s", 
-		   get_client_name(auth->client, SHOW_IP), errno);
-      ilog(L_ERROR, "Unable to create auth socket for %s:%m",
-	  get_client_name(auth->client, SHOW_IP));
-      ++ServerStats->is_abad;
-      return 0;
-    }
-  if ((MAXCONNECTIONS - 10) < fd)
-    {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"Can't allocate fd for auth on %s",
-			   get_client_name(auth->client, SHOW_IP));
-      fd_close(fd);
-      return 0;
-    }
+  /* open a socket of the same type as the client socket */
+  if ((fd = comm_open(auth->client->localClient->ip.ss.ss_family, SOCK_STREAM,
+          0, "ident")) == -1)
+  {
+    report_error(L_ALL, "creating auth stream socket %s:%s", 
+        get_client_name(auth->client, SHOW_IP), errno);
+    ilog(L_ERROR, "Unable to create auth socket for %s:%m",
+        get_client_name(auth->client, SHOW_IP));
+    ++ServerStats->is_abad;
+    return 0;
+  }
+
+  if ((HARD_FDLIMIT - 10) < fd)
+  {
+    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"Can't allocate fd for auth on %s",
+        get_client_name(auth->client, SHOW_IP));
+    fd_close(fd);
+    return 0;
+  }
 
   sendheader(auth->client, REPORT_DO_ID);
   if (!set_non_blocking(fd))
-    {
-      report_error(L_ALL, NONB_ERROR_MSG, get_client_name(auth->client, SHOW_IP), errno);
-      fd_close(fd);
-      return 0;
-    }
+  {
+    report_error(L_ALL, NONB_ERROR_MSG, get_client_name(auth->client, SHOW_IP), errno);
+    fd_close(fd);
+    return 0;
+  }
 
   /* 
    * get the local address of the client and bind to that to
@@ -309,16 +300,27 @@ static int start_auth_query(struct AuthRequest* auth)
    * and machines with multiple IP addresses are common now
    */
   memset(&localaddr, 0, locallen);
-  getsockname(auth->client->localClient->fd, (struct sockaddr*)&SOCKADDR(localaddr), &locallen);
-  S_PORT(localaddr) = htons(0);
+  getsockname(auth->client->localClient->fd, (struct sockaddr*)&localaddr,
+      &locallen);
+
+#ifdef IPV6
+  remove_ipv6_mapping(&localaddr);
+  v6 = (struct sockaddr_in6 *)&localaddr;
+  v6->sin6_port = htons(0);
+#else
+  localaddr.ss_len = locallen;
+  v4 = (struct sockaddr_in *)&localaddr;
+  v4->sin_port = htons(0);
+#endif
+  localaddr.ss_port = htons(0);
 
   auth->fd = fd;
   SetAuthConnect(auth);
-  
+
   comm_connect_tcp(fd, auth->client->localClient->sockhost, 113, 
-                   (struct sockaddr *)&SOCKADDR(localaddr), locallen, 
-		   auth_connect_callback, auth, DEF_FAM, 
-		   GlobalSetOptions.ident_timeout);
+      (struct sockaddr *)&localaddr, localaddr.ss_len, auth_connect_callback, 
+      auth, auth->client->localClient->ip.ss.ss_family, 
+      GlobalSetOptions.ident_timeout);
   return 1; /* We suceed here for now */
 }
 
@@ -344,7 +346,8 @@ static int start_auth_query(struct AuthRequest* auth)
  *
  * - Dianora
  */
-static char* GetValidIdent(char *buf)
+static char*
+GetValidIdent(char *buf)
 {
   int   remp = 0;
   int   locp = 0;
@@ -392,12 +395,16 @@ static char* GetValidIdent(char *buf)
 /*
  * start_auth - starts auth (identd) and dns queries for a client
  */
-void start_auth(struct Client* client)
+void
+start_auth(struct Client *client)
 {
-  struct AuthRequest* auth = 0;
-  assert(0 != client);
-  if(client == NULL)
+  struct AuthRequest *auth = NULL;
+
+  assert(client != NULL);
+
+  if (client == NULL)
     return;
+
   auth = make_auth_request(client);
 
   client->localClient->dns_query = MyMalloc(sizeof(struct DNSQuery));
@@ -407,11 +414,12 @@ void start_auth(struct Client* client)
   sendheader(client, REPORT_DO_DNS);
 
   /* No DNS cache now, remember? -- adrian */
-  adns_getaddr(&client->localClient->ip, client->localClient->aftype, client->localClient->dns_query, 0);
+  gethost_byaddr(&client->localClient->ip, client->localClient->dns_query);
   SetDNSPending(auth);
+  dlinkAdd(auth, &auth->dns_node, &auth_doing_dns_list);
 
-  start_auth_query(auth);
-  link_auth_request(auth, &auth_poll_list);
+//  if(ConfigFileEntry.disable_auth == 0)
+    (void)start_auth_query(auth);
 }
 
 /*
@@ -425,39 +433,39 @@ timeout_auth_queries_event(void *notused)
   dlink_node *next_ptr;
   struct AuthRequest* auth;
 
-  for (ptr = auth_poll_list.head; ptr; ptr = next_ptr)
+  DLINK_FOREACH_SAFE(ptr, next_ptr, auth_doing_ident_list.head)
+  {
+    auth = ptr->data;
+
+    if (auth->timeout < CurrentTime)
     {
-      next_ptr = ptr->next;
-      auth = ptr->data;
+      if (auth->fd >= 0)
+	fd_close(auth->fd);
 
-      if (auth->timeout < CurrentTime)
-	{
-	  if (auth->fd >= 0)
-	    fd_close(auth->fd);
+      if (IsDoingAuth(auth))
+	sendheader(auth->client, REPORT_FAIL_ID);
 
-	  if (IsDoingAuth(auth))
-	    sendheader(auth->client, REPORT_FAIL_ID);
-	  if (IsDNSPending(auth))
-	    {
-	      delete_adns_queries(auth->client->localClient->dns_query);
-	      auth->client->localClient->dns_query->query = NULL;
-	      sendheader(auth->client, REPORT_FAIL_DNS);
-	    }
-	  ilog(L_INFO, "DNS/AUTH timeout %s",
-	      get_client_name(auth->client, SHOW_IP));
+      if (IsDNSPending(auth))
+      {
+	struct Client *client_p=auth->client;
 
-	  auth->client->since = CurrentTime;
-	  dlinkDelete(ptr, &auth_poll_list);
-	  free_dlink_node(ptr);
-	  release_auth_client(auth->client);
-#ifdef USE_IAUTH
-    ilog(L_ERROR, "linking to auth client list 3");
-	  link_auth_request(auth, &auth_client_list);
-#else
-	  free_auth_request(auth);
-#endif
-	}
+	ClearDNSPending(auth);
+	dlinkDelete(&auth->dns_node, &auth_doing_dns_list);
+	if (client_p->localClient->dns_query != NULL)
+	  delete_resolver_queries(client_p->localClient->dns_query);
+	auth->client->localClient->dns_query = NULL;
+	sendheader(client_p, REPORT_FAIL_DNS);
+      }
+      ilog(L_INFO, "DNS/AUTH timeout %s",
+	   get_client_name(auth->client, SHOW_IP));
+
+      auth->client->since = CurrentTime;
+      if (IsAuthPending(auth))
+	dlinkDelete(&auth->ident_node, &auth_doing_ident_list);
+      release_auth_client(auth->client);
+      MyFree(auth);
     }
+  }
 }
 
 /*
@@ -471,46 +479,65 @@ timeout_auth_queries_event(void *notused)
  * a write buffer far greater than this message to store it in should
  * problems arise. -avalon
  */
-static
-void auth_connect_callback(int fd, int error, void *data)
+static void
+auth_connect_callback(int fd, int error, void *data)
 {
   struct AuthRequest *auth = data;
-  struct sockaddr_in us;
-  struct sockaddr_in them;
+  struct irc_ssaddr us;
+  struct irc_ssaddr them;
   char authbuf[32];
-  socklen_t ulen = sizeof(struct sockaddr_in);
-  socklen_t tlen = sizeof(struct sockaddr_in);
+  socklen_t ulen = sizeof(struct irc_ssaddr);
+  socklen_t tlen = sizeof(struct irc_ssaddr);
+  uint16_t uport, tport;
+#ifdef IPV6
+  struct sockaddr_in6 *v6;
+#else
+  struct sockaddr_in *v4;
+#endif
 
-  /* Check the error */
   if (error != COMM_OK)
-    {
-      /* We had an error during connection :( */
-      auth_error(auth);
-      return;
-    }
+  {
+    auth_error(auth);
+    return;
+  }
 
   if (getsockname(auth->client->localClient->fd, (struct sockaddr *)&us,   (socklen_t*)&ulen) ||
       getpeername(auth->client->localClient->fd, (struct sockaddr *)&them, (socklen_t*)&tlen))
-    {
-      ilog(L_INFO, "auth get{sock,peer}name error for %s:%m",
+  {
+    ilog(L_INFO, "auth get{sock,peer}name error for %s:%m",
         get_client_name(auth->client, SHOW_IP));
-      auth_error(auth);
-      return;
-    }
-  ircsprintf(authbuf, "%u , %u\r\n",
-             (unsigned int) ntohs(them.sin_port),
-             (unsigned int) ntohs(us.sin_port));
+    auth_error(auth);
+    return;
+  }
+
+#ifdef IPV6
+  v6 = (struct sockaddr_in6 *)&us;
+  uport = ntohs(v6->sin6_port);
+  v6 = (struct sockaddr_in6 *)&them;
+  tport = ntohs(v6->sin6_port);
+  remove_ipv6_mapping(&us);
+  remove_ipv6_mapping(&them);
+#else
+  v4 = (struct sockaddr_in *)&us;
+  uport = ntohs(v4->sin_port);
+  v4 = (struct sockaddr_in *)&them;
+  tport = ntohs(v4->sin_port);
+  us.ss_len = ulen;
+  them.ss_len = tlen;
+#endif
+  
+  ircsprintf(authbuf, "%u , %u\r\n", tport, uport); 
 
   if (send(auth->fd, authbuf, strlen(authbuf), 0) == -1)
-    {
-      auth_error(auth);
-      return;
-    }
+  {
+    auth_error(auth);
+    return;
+  }
   ClearAuthConnect(auth);
   SetAuthPending(auth);
+  dlinkAdd(auth, &auth->ident_node, &auth_doing_ident_list);
   read_auth_reply(auth->fd, auth);
 }
-
 
 /*
  * read_auth_reply - read the reply (if any) from the ident server 
@@ -524,8 +551,8 @@ static void
 read_auth_reply(int fd, void *data)
 {
   struct AuthRequest *auth = data;
-  char* s=(char *)NULL;
-  char* t=(char *)NULL;
+  char* s= NULL;
+  char* t= NULL;
   int   len;
   int   count;
   char  buf[AUTH_BUFSIZ + 1]; /* buffer to read auth reply into */
@@ -543,7 +570,7 @@ read_auth_reply(int fd, void *data)
     {
       buf[len] = '\0';
 
-      if( (s = GetValidIdent(buf)) )
+      if ((s = GetValidIdent(buf)))
 	{
 	  t = auth->client->username;
 
@@ -556,7 +583,7 @@ read_auth_reply(int fd, void *data)
 		{
 		  break;
 		}
-	      if ( !IsSpace(*s) && *s != ':' && *s != '[')
+	      if (!IsSpace(*s) && *s != ':' && *s != '[')
 		{
 		  *t++ = *s;
 		  count--;
@@ -568,69 +595,29 @@ read_auth_reply(int fd, void *data)
 
   fd_close(auth->fd);
   auth->fd = -1;
+
+  if (IsAuthPending(auth))
+    dlinkDelete(&auth->ident_node, &auth_doing_ident_list);  
   ClearAuth(auth);
-  
+
   if (s == NULL)
-    {
-      ++ServerStats->is_abad;
-      strcpy(auth->client->username, "unknown");
-    }
+  {
+    ++ServerStats->is_abad;
+    strcpy(auth->client->username, "unknown");
+  }
   else
-    {
-      sendheader(auth->client, REPORT_FIN_ID);
-      ++ServerStats->is_asuc;
-      SetGotId(auth->client);
-    }
+  {
+    sendheader(auth->client, REPORT_FIN_ID);
+    ++ServerStats->is_asuc;
+    SetGotId(auth->client);
+  }
 
   if (!IsDNSPending(auth))
-    {
-      unlink_auth_request(auth, &auth_poll_list);
-      release_auth_client(auth->client);
-#ifdef USE_IAUTH
-    ilog(L_ERROR, "linking to auth client list 4");
-      link_auth_request(auth, &auth_client_list);
-#else
-      free_auth_request(auth);
-#endif
-    }
+  {
+    release_auth_client(auth->client);
+    MyFree(auth);
+  }
 }
-
-/*
- * remove_auth_request()
- * Remove request 'auth' from AuthClientList, and free it.
- * There is no need to release auth->client since it has
- * already been done
- */
-
-void
-remove_auth_request(struct AuthRequest *auth)
-
-{
-  unlink_auth_request(auth, &auth_client_list);
-  free_auth_request(auth);
-} /* remove_auth_request() */
-
-/*
- * FindAuthClient()
- * Find the client matching 'id' in the AuthClientList. The
- * id will match the memory address of the client structure.
- */
-
-struct AuthRequest *
-/* XXX This is just wrong, should be a *void at least */
-FindAuthClient(long id)
-{
-  dlink_node *ptr;
-  struct AuthRequest *auth;
-
-  for (ptr = auth_client_list.head; ptr; ptr = ptr->next)
-    {
-      auth = ptr->data;
-      if( auth->client == (struct Client *)id)
-	return auth;
-    }
-  return (NULL);
-} /* FindAuthClient() */
 
 /*
  * delete_identd_queries()
@@ -641,34 +628,26 @@ delete_identd_queries(struct Client *target_p)
 {
   dlink_node *ptr;
   dlink_node *next_ptr;
-  struct AuthRequest* auth;
-  for (ptr = auth_poll_list.head; ptr; ptr = next_ptr)
+  struct AuthRequest *auth;
+
+  DLINK_FOREACH_SAFE(ptr, next_ptr, auth_doing_ident_list.head)
+  {
+    auth = ptr->data;
+
+    if (auth->client == target_p)
     {
-      auth = ptr->data;
-      next_ptr = ptr->next;
+      if (auth->fd >= 0)
+      {
+        fd_close(auth->fd);
+	auth->fd = -1;
+      }
 
-      if(auth->client == target_p)
-	{
-	  if (auth->fd >= 0)
-	    fd_close(auth->fd);
-	  dlinkDelete(ptr, &auth_poll_list);
-	  free_auth_request(auth);
-	  free_dlink_node(ptr);
-	}
+      if (IsAuthPending(auth))
+	dlinkDelete(&auth->ident_node, &auth_doing_ident_list);
+#ifdef XXX
+      if (!IsDNSPending(auth))
+#endif
+	MyFree(auth);
     }
-
-  for (ptr = auth_client_list.head; ptr; ptr = next_ptr)
-    {
-      auth = ptr->data;
-      next_ptr = ptr->next;
-
-      if(auth->client == target_p)
-	{
-	  if (auth->fd >= 0)
-	    fd_close(auth->fd);
-	  dlinkDelete(ptr, &auth_client_list);
-	  free_auth_request(auth);
-	  free_dlink_node(ptr);
-	}
-    }
+  }
 }

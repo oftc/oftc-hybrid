@@ -27,7 +27,6 @@
 
 #include "config.h"
 #include "ircd_defs.h"
-#include "res.h"
 #define FD_DESC_SZ 128  /* hostlen + comment */
 
 /*
@@ -118,8 +117,8 @@ struct _fde {
     } flags;
     struct {
         /* We don't need the host here ? */
-	struct irc_sockaddr S;
-	struct irc_sockaddr hostaddr;
+	struct irc_ssaddr S;
+	struct irc_ssaddr hostaddr;
         CNCB *callback;
         void *data;
         /* We'd also add the retry count here when we get to that -- adrian */

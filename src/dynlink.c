@@ -39,6 +39,7 @@
 extern struct module **modlist;
 extern int num_mods;
 extern int max_mods;
+extern struct Client me;
 
 static void increase_modlist(void);
 

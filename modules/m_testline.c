@@ -80,7 +80,7 @@ static void mo_testline(struct Client *client_p, struct Client *source_p,
                        int parc, char *parv[])
 {
   struct ConfItem *aconf;
-  struct irc_inaddr ip;
+  struct irc_ssaddr ip;
   int host_mask;
   char *host, *pass, *user, *name, *classname, *given_host, *given_name, *p;
   int port, t;

@@ -38,7 +38,7 @@ CFLAGS		= @CFLAGS@
 # the system one.
 #CFLAGS= -DNDEBUG -g -O2 -D"FD_SETSIZE=1024"
 SHELL=/bin/sh
-SUBDIRS=modules adns src tools doc @SUBDIR_MESSAGES@ include servlink help
+SUBDIRS=modules src tools doc @SUBDIR_MESSAGES@ include servlink help
 CLEANDIRS = ${SUBDIRS} contrib iauth
 # XXX removed `iauth' from the build since it doesn't compile currently
 # SUBDIRS=src tools iauth

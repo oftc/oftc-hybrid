@@ -31,12 +31,14 @@
 #include "send.h"
 #include "irc_string.h"
 
+extern struct Client me;
+
 #ifdef IPV6
-static int try_parse_v6_netmask(const char *, struct irc_inaddr *, int *);
-static unsigned long hash_ipv6(struct irc_inaddr *, int);
+static int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
+static unsigned long hash_ipv6(struct irc_ssaddr *, int);
 #endif
-static int try_parse_v4_netmask(const char *, struct irc_inaddr *, int *);
-static unsigned long hash_ipv4(struct irc_inaddr *, int);
+static int try_parse_v4_netmask(const char *, struct irc_ssaddr *, int *);
+static unsigned long hash_ipv4(struct irc_ssaddr *, int);
 
 #define DigitParse(ch) do { \
                        if (ch >= '0' && ch <= '9') \
@@ -49,7 +51,7 @@ static unsigned long hash_ipv4(struct irc_inaddr *, int);
 
 /* The mask parser/type determination code... */
 
-/* int try_parse_v6_netmask(const char *, struct irc_inaddr *, int *);
+/* int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
  * Input: A possible IPV6 address as a string.
  * Output: An integer describing whether it is an IPV6 or hostmask,
  *         an address(if it is IPV6), a bitlength(if it is IPV6).
@@ -62,7 +64,7 @@ static unsigned long hash_ipv4(struct irc_inaddr *, int);
 */
 #ifdef IPV6
 static int
-try_parse_v6_netmask(const char *text, struct irc_inaddr *addr, int *b)
+try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
 {
   const char *p;
   char c;
@@ -73,6 +75,7 @@ try_parse_v6_netmask(const char *text, struct irc_inaddr *addr, int *b)
   int bits = 128;
   int deficit = 0;
   short dc[8];
+  struct sockaddr_in6 *v6 = (struct sockaddr_in6*)addr;
 
   for (p = text; (c = *p); p++)
     if (IsXDigit(c))
@@ -150,14 +153,14 @@ try_parse_v6_netmask(const char *text, struct irc_inaddr *addr, int *b)
   if (addr)
     for (dp = 0; dp < 8; dp++)
       /* The cast is a kludge to make netbsd work. */
-      ((unsigned short *)&addr->sins.sin6)[dp] = htons(dc[dp]);
+      ((unsigned short *)&v6->sin6_addr)[dp] = htons(dc[dp]);
   if (b != NULL)
     *b = bits;
   return HM_IPV6;
 }
 #endif
 
-/* int try_parse_v4_netmask(const char *, struct irc_inaddr *, int *);
+/* int try_parse_v4_netmask(const char *, struct irc_ssaddr *, int *);
  * Input: A possible IPV4 address as a string.
  * Output: An integer describing whether it is an IPV4 or hostmask,
  *         an address(if it is IPV4), a bitlength(if it is IPV4).
@@ -165,13 +168,14 @@ try_parse_v6_netmask(const char *text, struct irc_inaddr *addr, int *b)
  * Comments: Called from parse_netmask
  */
 static int
-try_parse_v4_netmask(const char *text, struct irc_inaddr *addr, int *b)
+try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
 {
   const char *p;
   const char *digits[4];
   unsigned char addb[4];
   int n = 0, bits = 0;
   char c;
+  struct sockaddr_in *v4 = (struct sockaddr_in*) addr;
 
   digits[n++] = text;
 
@@ -219,14 +223,14 @@ try_parse_v4_netmask(const char *text, struct irc_inaddr *addr, int *b)
   for (n = bits / 8 + (bits % 8 ? 1 : 0); n < 4; n++)
     addb[n] = 0;
   if (addr)
-    addr->sins.sin.s_addr =
-      htonl(addb[0] << 24 | addb[1] << 16 | addb[2] << 8 | addb[3]);
+    v4->sin_addr.s_addr = 
+        htonl(addb[0] << 24 | addb[1] << 16 | addb[2] << 8 | addb[3]);
   if (b != NULL)
     *b = bits;
   return HM_IPV4;
 }
 
-/* int parse_netmask(const char *, struct irc_inaddr *, int *);
+/* int parse_netmask(const char *, struct irc_ssaddr *, int *);
  * Input: A hostmask, or an IPV4/6 address.
  * Output: An integer describing whether it is an IPV4, IPV6 address or a
  *         hostmask, an address(if it is an IP mask),
@@ -234,7 +238,7 @@ try_parse_v4_netmask(const char *text, struct irc_inaddr *addr, int *b)
  * Side effects: None
  */
 int
-parse_netmask(const char *text, struct irc_inaddr *addr, int *b)
+parse_netmask(const char *text, struct irc_ssaddr *addr, int *b)
 {
 #ifdef IPV6
   if (strchr(text, ':'))
@@ -246,39 +250,45 @@ parse_netmask(const char *text, struct irc_inaddr *addr, int *b)
 }
 
 /* The address matching stuff... */
-/* int match_ipv6(struct irc_inaddr *, struct irc_inaddr *, int)
+/* int match_ipv6(struct irc_ssaddr *, struct irc_ssaddr *, int)
  * Input: An IP address, an IP mask, the number of bits in the mask.
  * Output: if match, -1 else 0
  * Side effects: None
  */
 #ifdef IPV6
 int
-match_ipv6(struct irc_inaddr *addr, struct irc_inaddr *mask, int bits)
+match_ipv6(struct irc_ssaddr *addr, struct irc_ssaddr *mask, int bits)
 {
   int i, m, n = bits / 8;
+  struct sockaddr_in6 *v6 = (struct sockaddr_in6*)addr;
+  struct sockaddr_in6 *v6mask = (struct sockaddr_in6*)mask;
 
   for (i = 0; i < n; i++)
-    if (addr->sins.sin6.s6_addr[i] != mask->sins.sin6.s6_addr[i])
+    if (v6->sin6_addr.s6_addr[i] != v6mask->sin6_addr.s6_addr[i])
       return 0;
   if ((m = bits % 8) == 0)
     return -1;
-  if ((addr->sins.sin6.s6_addr[n] & ~((1 << (8 - m)) - 1)) ==
-      mask->sins.sin6.s6_addr[n])
+  if ((v6->sin6_addr.s6_addr[n] & ~((1 << (8 - m)) - 1)) ==
+    v6mask->sin6_addr.s6_addr[n])
+
     return -1;
   return 0;
 }
 #endif
 
-/* int match_ipv4(struct irc_inaddr *, struct irc_inaddr *, int)
+/* int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int)
  * Input: An IP address, an IP mask, the number of bits in the mask.
  * Output: if match, -1 else 0
  * Side Effects: None
  */
 int
-match_ipv4(struct irc_inaddr *addr, struct irc_inaddr *mask, int bits)
+match_ipv4(struct irc_ssaddr *addr, struct irc_ssaddr *mask, int bits)
 {
-  if ((ntohl(addr->sins.sin.s_addr) & ~((1 << (32 - bits)) - 1)) !=
-      ntohl(mask->sins.sin.s_addr))
+  struct sockaddr_in *v4 = (struct sockaddr_in*) addr;
+  struct sockaddr_in *v4mask = (struct sockaddr_in*) mask;
+  
+  if ((ntohl(v4->sin_addr.s_addr) & ~((1 << (32 - bits)) - 1)) !=
+      ntohl(v4mask->sin_addr.s_addr))
     return 0;
   return -1;
 }
@@ -292,38 +302,47 @@ init_host_hash(void)
   memset(&atable, 0, sizeof(atable));
 }
 
-/* unsigned long hash_ipv4(struct irc_inaddr*)
+/* unsigned long hash_ipv4(struct irc_ssaddr*)
  * Input: An IP address.
  * Output: A hash value of the IP address.
  * Side effects: None
  */
 static unsigned long
-hash_ipv4(struct irc_inaddr *addr, int bits)
+hash_ipv4(struct irc_ssaddr *addr, int bits)
 {
-  unsigned long av = ntohl(addr->sins.sin.s_addr) & ~((1 << (32 - bits)) - 1);
-  return (av ^ (av >> 12) ^ (av >> 24)) & (ATABLE_SIZE - 1);
+  if (bits != 0)
+  {
+    struct sockaddr_in *v4 = (struct sockaddr_in*) addr;
+    unsigned long av = ntohl(v4->sin_addr.s_addr) & ~((1 << (32 - bits)) - 1);
+    return (av ^ (av >> 12) ^ (av >> 24)) & (ATABLE_SIZE - 1);
+  }
+  else 
+    return 0;
+
 }
 
-/* unsigned long hash_ipv6(struct irc_inaddr*)
+/* unsigned long hash_ipv6(struct irc_ssaddr*)
  * Input: An IP address.
  * Output: A hash value of the IP address.
  * Side effects: None
  */
 #ifdef IPV6
 static unsigned long
-hash_ipv6(struct irc_inaddr *addr, int bits)
+hash_ipv6(struct irc_ssaddr *addr, int bits)
 {
   unsigned long v = 0, n;
+  struct sockaddr_in6 *v6 = (struct sockaddr_in6*) addr;
+  
   for (n = 0; n < 16; n++)
   {
     if (bits >= 8)
     {
-      v ^= addr->sins.sin6.s6_addr[n];
+      v ^= v6->sin6_addr.s6_addr[n];
       bits -= 8;
     }
     else if (bits)
     {
-      v ^= addr->sins.sin6.s6_addr[n] & ~((1 << (8 - bits)) - 1);
+      v ^= v6->sin6_addr.s6_addr[n] & ~((1 << (8 - bits)) - 1);
       return v & (ATABLE_SIZE - 1);
     }
     else
@@ -370,7 +389,7 @@ get_mask_hash(const char *text)
   return hash_text(text);
 }
 
-/* struct ConfItem* find_conf_by_address(const char*, struct irc_inaddr*,
+/* struct ConfItem* find_conf_by_address(const char*, struct irc_ssaddr*,
  *         int type, int fam, const char *username)
  * Input: The hostname, the address, the type of mask to find, the address
  *        family, the username.
@@ -379,7 +398,7 @@ get_mask_hash(const char *text)
  * Note: Setting bit 0 of the type means that the username is ignored.
  */
 struct ConfItem *
-find_conf_by_address(const char *name, struct irc_inaddr *addr, int type,
+find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
                      int fam, const char *username)
 {
   unsigned long hprecv = 0;
@@ -470,14 +489,14 @@ find_conf_by_address(const char *name, struct irc_inaddr *addr, int type,
 }
 
 /* struct ConfItem* find_address_conf(const char*, const char*,
- * 	                               struct irc_inaddr*, int);
+ * 	                               struct irc_ssaddr*, int);
  * Input: The hostname, username, address, address family.
  * Output: The applicable ConfItem.
  * Side-effects: None
  */
 struct ConfItem *
 find_address_conf(const char *host, const char *user,
-                  struct irc_inaddr *ip, int aftype)
+                  struct irc_ssaddr *ip, int aftype)
 {
   struct ConfItem *iconf, *kconf;
 
@@ -510,7 +529,7 @@ find_address_conf(const char *host, const char *user,
  */
 struct ConfItem *
 find_kline_conf(const char *host, const char *user,
-		struct irc_inaddr *ip, int aftype)
+		struct irc_ssaddr *ip, int aftype)
 {
   struct ConfItem *kconf;
 
@@ -522,14 +541,14 @@ find_kline_conf(const char *host, const char *user,
   return (kconf);
 }
 
-/* struct ConfItem* find_dline_conf(struct irc_inaddr*, int)
+/* struct ConfItem* find_dline_conf(struct irc_ssaddr*, int)
  *
  * Input:	An address, an address family.
  * Output:	The best matching D-line or exempt line.
  * Side effects: None.
  */
 struct ConfItem *
-find_dline_conf(struct irc_inaddr *addr, int aftype)
+find_dline_conf(struct irc_ssaddr *addr, int aftype)
 {
   struct ConfItem *eline;
   eline = find_conf_by_address(NULL, addr, CONF_EXEMPTDLINE | 1, aftype,
@@ -601,7 +620,7 @@ delete_one_address_conf(const char *address, struct ConfItem *aconf)
   int masktype, bits;
   unsigned long hv;
   struct AddressRec *arec, *arecl = NULL;
-  struct irc_inaddr addr;
+  struct irc_ssaddr addr;
   masktype = parse_netmask(address, &addr, &bits);
 #ifdef IPV6
   if (masktype == HM_IPV6)

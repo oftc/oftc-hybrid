@@ -48,7 +48,6 @@
 #include "list.h"
 #include "numeric.h"
 #include "packet.h"
-#include "res.h"
 #include "s_bsd.h"
 #include "s_conf.h"
 #include "s_log.h"
@@ -65,10 +64,6 @@
 extern char *crypt();
 
 #define MIN_CONN_FREQ 300
-
-#ifndef INADDR_NONE
-#define INADDR_NONE ((unsigned int) 0xffffffff)
-#endif
 
 int MaxConnectionCount = 1;
 int MaxClientCount     = 1;
@@ -714,17 +709,33 @@ check_server(const char *name, struct Client* client_p, int cryptlink)
    * it only indicates if the server thinks it's lazylinks are
    * leafs or not.. if you unset it, bad things will happen
    */
-  if(aconf != NULL)
+  if (aconf != NULL)
   {
+    struct sockaddr_in *v4;
 #ifdef IPV6
-	  if (IN6_IS_ADDR_UNSPECIFIED((struct in6_addr *)
-                                      &IN_ADDR(aconf->ipnum)))
-#else
-	  if (IN_ADDR(aconf->ipnum) == INADDR_NONE)
+    struct sockaddr_in6 *v6;
 #endif
-	  copy_s_addr(IN_ADDR(aconf->ipnum), IN_ADDR(client_p->localClient->ip)); 
+    switch (aconf->aftype)
+    {
+#ifdef IPV6
+      case AF_INET6:
+        v6 = (struct sockaddr_in6 *)&aconf->ipnum;
+
+        if (IN6_IS_ADDR_UNSPECIFIED(&v6->sin6_addr))
+          memcpy(&aconf->ipnum, &client_p->localClient->ip, 
+            sizeof(struct irc_ssaddr));
+        break;
+#endif
+      case AF_INET:
+        v4 = (struct sockaddr_in *)&aconf->ipnum;
+
+        if (v4->sin_addr.s_addr == INADDR_NONE)
+          memcpy(&aconf->ipnum, &client_p->localClient->ip, 
+            sizeof(struct irc_ssaddr));
+        break;
+    }
   }
-  return 0;
+  return (0);
 }
 
 /*
@@ -2003,13 +2014,15 @@ serv_connect(struct ConfItem *aconf, struct Client *by)
     struct Client *client_p;
     int fd;
     char buf[HOSTIPLEN];
+    struct sockaddr_in *v4;
     /* Make sure aconf is useful */
     assert(aconf != NULL);
     if(aconf == NULL)
       return 0;
 
     /* log */
-    inetntop(DEF_FAM, &IN_ADDR(aconf->ipnum), buf, HOSTIPLEN);
+    irc_getnameinfo((struct sockaddr*)&aconf->ipnum, aconf->ipnum.ss_len,
+            buf, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
     ilog(L_NOTICE, "Connect to %s[%s] @%s", aconf->user, aconf->host,
          buf);
 
@@ -2030,7 +2043,7 @@ serv_connect(struct ConfItem *aconf, struct Client *by)
       }
     
     /* create a socket for the server connection */ 
-    if ((fd = comm_open(DEF_FAM, SOCK_STREAM, 0, NULL)) < 0)
+    if ((fd = comm_open(aconf->ipnum.ss.ss_family, SOCK_STREAM, 0, NULL)) < 0)
       {
         /* Eek, failure to create the socket */
         report_error(L_ALL, "opening stream socket to %s: %s", aconf->name, errno);
@@ -2046,7 +2059,8 @@ serv_connect(struct ConfItem *aconf, struct Client *by)
     /* Copy in the server, hostname, fd */
     strlcpy(client_p->name, aconf->name, sizeof(client_p->name));
     strlcpy(client_p->host, aconf->host, sizeof(client_p->host));
-    inetntop(DEF_FAM, &IN_ADDR(aconf->ipnum), client_p->localClient->sockhost, HOSTIPLEN);
+    /* We already converted the ip once, so lets use it - stu */
+    strlcpy(client_p->localClient->sockhost, buf, HOSTIPLEN);
     client_p->localClient->fd = fd;
 
     /*
@@ -2116,54 +2130,58 @@ serv_connect(struct ConfItem *aconf, struct Client *by)
     /* XXX assume that a non 0 type means a specific bind address 
      * for this connect.
      */
-    if((aconf->aftype == AF_INET) && aconf->my_ipnum.sins.sin.s_addr)
+
+    switch(aconf->aftype)
+    {
+    case AF_INET:
+      v4 = (struct sockaddr_in*)&aconf->my_ipnum;
+      if(v4->sin_addr.s_addr)
       {
-	struct irc_sockaddr ipn;
-	memset(&ipn, 0, sizeof(struct irc_sockaddr));
-	S_FAM(ipn) = DEF_FAM;
-	S_PORT(ipn) = 0;
-
-	copy_s_addr(S_ADDR(ipn), IN_ADDR(aconf->my_ipnum));
-
-	comm_connect_tcp(client_p->localClient->fd, aconf->host, aconf->port,
-			 (struct sockaddr *)&SOCKADDR(ipn), sizeof(struct irc_sockaddr), 
-			 serv_connect_callback, client_p, aconf->aftype, CONNECTTIMEOUT);
+        struct irc_ssaddr ipn;
+        memset(&ipn, 0, sizeof(struct irc_ssaddr));
+        ipn.ss.ss_family = AF_INET;
+        ipn.ss_port = 0;
+        memcpy(&ipn, &aconf->my_ipnum, sizeof(struct irc_ssaddr));
+        comm_connect_tcp(client_p->localClient->fd, aconf->host, aconf->port,
+             (struct sockaddr *)&ipn, ipn.ss_len,
+             serv_connect_callback, client_p, aconf->aftype, CONNECTTIMEOUT);
       }
-    else if((aconf->aftype == AF_INET) && ServerInfo.specific_ipv4_vhost)
+      else if(ServerInfo.specific_ipv4_vhost)
       {
-	struct irc_sockaddr ipn;
-	memset(&ipn, 0, sizeof(struct irc_sockaddr));
-	S_FAM(ipn) = DEF_FAM;
-	S_PORT(ipn) = 0;
-
-	copy_s_addr(S_ADDR(ipn), IN_ADDR(ServerInfo.ip));
-
-	comm_connect_tcp(client_p->localClient->fd, aconf->host, aconf->port,
-			 (struct sockaddr *)&SOCKADDR(ipn), sizeof(struct irc_sockaddr), 
-			 serv_connect_callback, client_p, aconf->aftype, CONNECTTIMEOUT);
+        struct irc_ssaddr ipn;
+        memset(&ipn, 0, sizeof(struct irc_ssaddr));
+        ipn.ss.ss_family = AF_INET;
+        ipn.ss_port = 0;
+        memcpy(&ipn, &ServerInfo.ip, sizeof(struct irc_ssaddr));
+        comm_connect_tcp(client_p->localClient->fd, aconf->host, aconf->port,
+            (struct sockaddr *)&ipn, ipn.ss_len,
+            serv_connect_callback, client_p, aconf->aftype, CONNECTTIMEOUT);
       }
+      else
+        comm_connect_tcp(client_p->localClient->fd, aconf->host, aconf->port,
+            NULL, 0, serv_connect_callback, client_p, aconf->aftype,
+            CONNECTTIMEOUT);
+      break;
 #ifdef IPV6
-    else if((aconf->aftype == AF_INET6) && ServerInfo.specific_ipv6_vhost)
+    case AF_INET6:
+      if(ServerInfo.specific_ipv6_vhost)
       {
-	struct irc_sockaddr ipn;
-	memset(&ipn, 0, sizeof(struct irc_sockaddr));
-	S_FAM(ipn) = AF_INET6;
-	S_PORT(ipn) = 0;
-	
-	copy_s_addr(S_ADDR(ipn), IN_ADDR(ServerInfo.ip6));
-
-	comm_connect_tcp(client_p->localClient->fd, aconf->host, aconf->port,
-			 (struct sockaddr *)&SOCKADDR(ipn), sizeof(struct irc_sockaddr),
-			 serv_connect_callback, client_p, aconf->aftype, CONNECTTIMEOUT);
+          struct irc_ssaddr ipn;
+          memset(&ipn, 0, sizeof(struct irc_ssaddr));
+          ipn.ss.ss_family = AF_INET6;
+          ipn.ss_port = 0;
+          memcpy(&ipn, &ServerInfo.ip6, sizeof(struct irc_ssaddr));
+          comm_connect_tcp(client_p->localClient->fd, aconf->host, aconf->port,
+                (struct sockaddr *)&ipn, ipn.ss_len,
+                serv_connect_callback, client_p, aconf->aftype, CONNECTTIMEOUT);
       }
+      else
+        comm_connect_tcp(client_p->localClient->fd, aconf->host, aconf->port,
+            NULL, 0, serv_connect_callback, client_p, aconf->aftype,
+            CONNECTTIMEOUT);
 #endif
-    else
-      {
-	comm_connect_tcp(client_p->localClient->fd, aconf->host, aconf->port, NULL, 0, 
-			 serv_connect_callback, client_p, aconf->aftype, CONNECTTIMEOUT);
-      }
-
-    return 1;
+    }
+    return (1);
 }
 
 /*
@@ -2189,7 +2207,9 @@ serv_connect_callback(int fd, int status, void *data)
       return;
       
     /* Next, for backward purposes, record the ip of the server */
-    copy_s_addr(IN_ADDR(client_p->localClient->ip), S_ADDR(fd_table[fd].connect.hostaddr));
+    memcpy(&client_p->localClient->ip, &fd_table[fd].connect.hostaddr,
+      sizeof(struct irc_ssaddr));
+
     /* Check the status */
     if (status != COMM_OK)
       {

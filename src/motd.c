@@ -30,7 +30,6 @@
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "fileio.h"
-#include "res.h"
 #include "s_conf.h"
 #include "class.h"
 #include "send.h"

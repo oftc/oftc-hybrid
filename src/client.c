@@ -1321,7 +1321,12 @@ exit_client(
     if (IsIpHash(source_p))
       remove_one_ip(&source_p->localClient->ip);
     
-    delete_adns_queries(source_p->localClient->dns_query);
+    if (source_p->localClient->dns_query != NULL)
+    {
+      delete_resolver_queries(source_p->localClient->dns_query->ptr);
+      source_p->localClient->dns_query = NULL;
+    }
+ 
     delete_identd_queries(source_p);
     client_flush_input(source_p);
     

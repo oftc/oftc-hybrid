@@ -30,7 +30,10 @@
 #include "send.h"
 #include "s_conf.h"
 #include "s_serv.h"
+#include "ircd.h"
 
+extern struct Client me;
+extern struct Counter Count;
 
 static void ms_map(struct Client *client_p, struct Client *source_p,
                     int parc, char *parv[]);
@@ -68,7 +71,7 @@ static void mo_map(struct Client *client_p, struct Client *source_p,
                     int parc, char *parv[])
 {
   struct ConfItem *conf;
-  dump_map(client_p,&me,buf);
+  dump_map(client_p, &me, buf);
   for (conf = ConfigItemList; conf; conf = conf->next)
   {
     if (conf->status != CONF_SERVER)
