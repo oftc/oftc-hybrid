@@ -1,3 +1,15 @@
+stu         2004/05/22 13:52:12 UTC	(20040522_1)
+
+  Modified files:
+    modules              m_realhost.c 
+  Log:
+  Removed uneeded check.  This should fix the cloaking bug
+  
+  Revision  Changes    Path
+  1.2       +9 -8      oftc-hybrid/modules/m_realhost.c
+
+
+
 stu         2004/05/22 12:59:39 UTC	(20040522_0)
 
   Modified files:
