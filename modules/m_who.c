@@ -512,6 +512,7 @@ int
 do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
 {
   struct Client *target_p;
+  struct Membership *ms;
   dlink_node *ptr;
   int shown;
   int i;
@@ -520,7 +521,8 @@ do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
   shown = 0;
   DLINK_FOREACH(ptr, chptr->members.head)
   {
-    target_p = ptr->data;
+    ms = ptr->data;
+    target_p = ms->client_p;
     i = 0;
     if(!chk_who(target_p, showall))
       continue;
