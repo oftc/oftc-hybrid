@@ -90,7 +90,7 @@ static void ms_resv(struct Client *client_p, struct Client *source_p,
     if(!(resv_p))
       return;                                                  
 
-    sendto_realops_flags(FLAGS_ALL, L_OPER, NULL,
+    sendto_realops_flags(FLAGS_ALL, L_OPER, 
                          "%s has placed a global RESV on channel: %s [%s]",
                          get_oper_name(source_p),
                          resv_p->name, resv_p->reason);
@@ -107,7 +107,7 @@ static void ms_resv(struct Client *client_p, struct Client *source_p,
     if(!(resv_p))
       return;
 
-    sendto_realops_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+    sendto_realops_flags(FLAGS_ALL, L_OPER, 
                          "%s has placed a global RESV on nick: %s [%s]",
              get_oper_name(source_p),
              resv_p->name, resv_p->reason);
@@ -149,7 +149,7 @@ static void mo_resv(struct Client *client_p, struct Client *source_p,
                ":%s NOTICE %s :A global RESV has been placed on channel: %s [%s]",
                me.name, source_p->name, resv_p->name, resv_p->reason);
 	       
-    sendto_realops_flags(FLAGS_ALL, L_OPER, NULL,
+    sendto_realops_flags(FLAGS_ALL, L_OPER, 
                          "%s has placed a global RESV on channel: %s [%s]",
              	         get_oper_name(source_p),
 		         resv_p->name, resv_p->reason);
