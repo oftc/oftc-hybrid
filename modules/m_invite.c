@@ -182,12 +182,28 @@ m_invite(struct Client *client_p,
 
   if (chptr && (vchan->mode.mode & MODE_INVITEONLY))
   {
-    if (!chop)
+    if (!IsGod(source_p))
+    {
+      if (!chop)
+      {
+        if (MyClient(source_p))
+          sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
+                     me.name, parv[0], parv[2]);
+        return;
+      }
+    }
+    else if(!chop)
     {
       if (MyClient(source_p))
-        sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-                   me.name, parv[0], parv[2]);
-      return;
+      {
+        char tmp[IRCD_BUFSIZE];
+
+        ircsprintf(tmp, "%s is using God mode: INVITE:"
+                " %s %s", source_p->name, target_p->name, chptr->chname);
+        sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL,
+                tmp);
+        oftc_log(tmp);
+      }
     }
   }
   else
