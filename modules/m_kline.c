@@ -990,9 +990,14 @@ already_placed_kline(struct Client *source_p, char *luser, char *lhost)
     */
    /* they can?  here was me thinking it was only remote clients :P */
    if(!MyClient(source_p))
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL, 
+   {
+     sendto_realops_flags(FLAGS_ALL, L_OPER, 
+            "*** Remote K-Line [%s@%s] already K-Lined by [%s@%s] - %s",
+            luser, lhost, aconf->user, aconf->host, reason);
+     sendto_realops_flags(FLAGS_ALL, L_ADMIN,
              "*** Remote K-Line [%s@%s] already K-Lined by [%s@%s] - %s",
              luser, lhost, aconf->user, aconf->host, reason);
+   }
    else
     sendto_one(source_p,
              ":%s NOTICE %s :[%s@%s] already K-Lined by [%s@%s] - %s",
