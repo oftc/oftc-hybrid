@@ -1156,16 +1156,16 @@ void dead_link(struct Client *client_p)
     	
   Debug((DEBUG_ERROR, "Closing link to %s: %s", get_client_name(to, HIDE_IP), 
               notice));
-  assert(dlinkFind(&abort_list, client_p) == NULL);
-  m = make_dlink_node();
-  dlinkAdd(client_p, m, &abort_list);
-  SetDead(client_p); /* You are dead my friend */
   if (!IsPerson(client_p) && !IsUnknown(client_p) && !IsClosing(client_p))
   {
     sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 		         "Closing link to %s: %s",
                          get_client_name(client_p, MASK_IP), notice);
   }
+  assert(dlinkFind(&abort_list, client_p) == NULL);
+  m = make_dlink_node();
+  dlinkAdd(client_p, m, &abort_list);
+  SetDead(client_p); /* You are dead my friend */
 }
 
 void
