@@ -1,3 +1,37 @@
+stu         2004/05/21 21:51:26 UTC	(20040521_5)
+
+  Modified files:
+    modules              m_names.c m_set.c m_svscloak.c 
+                         spy_admin_notice.c spy_info_notice.c 
+                         spy_links_notice.c spy_motd_notice.c 
+                         spy_stats_notice.c spy_stats_p_notice.c 
+                         spy_trace_notice.c 
+    modules/core         m_join.c m_squit.c 
+    src                  channel.c ircdauth.c s_serv.c 
+  Log:
+  Fixed /names for godmode opers
+  
+  Closes: 925047
+  
+  Revision  Changes    Path
+  1.3       +3 -3      oftc-hybrid/modules/core/m_join.c
+  1.10      +2 -2      oftc-hybrid/modules/core/m_squit.c
+  1.4       +4 -2      oftc-hybrid/modules/m_names.c
+  1.4       +3 -3      oftc-hybrid/modules/m_set.c
+  1.14      +2 -2      oftc-hybrid/modules/m_svscloak.c
+  1.4       +2 -2      oftc-hybrid/modules/spy_admin_notice.c
+  1.4       +2 -2      oftc-hybrid/modules/spy_info_notice.c
+  1.5       +2 -2      oftc-hybrid/modules/spy_links_notice.c
+  1.4       +2 -2      oftc-hybrid/modules/spy_motd_notice.c
+  1.5       +4 -4      oftc-hybrid/modules/spy_stats_notice.c
+  1.5       +2 -2      oftc-hybrid/modules/spy_stats_p_notice.c
+  1.5       +3 -3      oftc-hybrid/modules/spy_trace_notice.c
+  1.8       +2 -2      oftc-hybrid/src/channel.c
+  1.6       +1 -1      oftc-hybrid/src/ircdauth.c
+  1.17      +1 -1      oftc-hybrid/src/s_serv.c
+
+
+
 stu         2004/05/21 20:40:05 UTC	(20040521_4)
 
   Modified files:
