@@ -1,3 +1,15 @@
+stu         2003/10/08 21:26:03 UTC	(20031008_0)
+
+  Modified files:
+    modules              m_who.c 
+  Log:
+  server field changed type
+  
+  Revision  Changes    Path
+  1.15      +8 -8      oftc-hybrid/modules/m_who.c
+
+
+
 stu         2003/09/22 00:30:11 UTC	(20030922_1)
 
   Modified files:
