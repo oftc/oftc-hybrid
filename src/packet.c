@@ -58,7 +58,7 @@ parse_client_queued(struct Client *client_p)
 
     for(;;)
     {
-      if (IsDead(client_p))
+      if (IsDefunct(client_p))
 	return;
       if (client_p->localClient == NULL)
 	return;
@@ -73,7 +73,7 @@ parse_client_queued(struct Client *client_p)
 	if(dolen <= 0)
 	  break;
                           
-      if(!IsDead(client_p))
+      if(!IsDefunct(client_p))
       {
         client_dopacket(client_p, readBuf, dolen);
         i++;
@@ -95,7 +95,7 @@ parse_client_queued(struct Client *client_p)
 
   if (IsServer(client_p) || IsConnecting(client_p) || IsHandshake(client_p))
   {
-    if(IsDead(client_p))
+    if(IsDefunct(client_p))
       return;
     if(client_p->localClient == NULL)
       return;
@@ -104,7 +104,7 @@ parse_client_queued(struct Client *client_p)
                               readBuf, READBUF_SIZE, LINEBUF_COMPLETE,
                               LINEBUF_PARSED)) > 0)
     {
-      if (!IsDead(client_p))
+      if (!IsDefunct(client_p))
         client_dopacket(client_p, readBuf, dolen);
       else if(MyConnect(client_p))
       {
@@ -132,7 +132,7 @@ parse_client_queued(struct Client *client_p)
      */
     for(;;)
     {
-      if (IsDead(client_p))
+      if (IsDefunct(client_p))
 	break;
 
       /* This flood protection works as follows:
@@ -226,7 +226,7 @@ flood_recalc(int fd, void *data)
   parse_client_queued(client_p);
   
   /* And now, try flushing .. */
-  if (!IsDead(client_p))
+  if (!IsDefunct(client_p))
   {
     /* and finally, reset the flood check */
     comm_setflush(fd, 1000, flood_recalc, client_p);
@@ -256,7 +256,7 @@ read_ctrl_packet(int fd, void *data)
     
   reply = &lserver->slinkrpl;
 
-  if(IsDead(server))
+  if(IsDefunct(server))
   {
     return;
   }
@@ -353,7 +353,7 @@ read_ctrl_packet(int fd, void *data)
     MyFree(reply->data);
   reply->command = 0;
 
-  if (IsDead(server))
+  if (IsDefunct(server))
     return;
 
 nodata:
@@ -377,7 +377,7 @@ read_packet(int fd, void *data)
 #ifndef NDEBUG
   struct hook_io_data hdata;
 #endif
-  if(IsDead(client_p))
+  if(IsDefunct(client_p))
     return;
   
   assert(lclient_p != NULL);
@@ -449,10 +449,10 @@ read_packet(int fd, void *data)
   
   /* Attempt to parse what we have */
 
-  if (!IsDead(client_p))
+  if (!IsDefunct(client_p))
   {
     parse_client_queued(client_p);
-    if (IsDead(client_p))
+    if (IsDefunct(client_p))
       return;
 
     /* Check to make sure we're not flooding */

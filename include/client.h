@@ -503,6 +503,7 @@ struct LocalUser
 #define SetCanFlood(x)          ((x)->flags |= FLAGS_CANFLOOD)
 #define ClearCanFlood(x)        ((x)->flags &= FLAGS_CANFLOOD)
 #define IsCanFlood(x)           ((x)->flags & FLAGS_CANFLOOD)
+#define IsDefunct(x)            ((x)->flags & (FLAGS_DEADSOCKET|FLAGS_CLOSING))
 
 
 /* oper flags */

@@ -889,6 +889,9 @@ exit_one_client(struct Client *client_p, struct Client *source_p,
   dlink_node *lp;
   dlink_node *next_lp;
 
+  if(IsDead(source_p))
+    return;
+
   if (IsServer(source_p))
     {
       if (source_p->servptr && source_p->servptr->serv)
@@ -1137,18 +1140,17 @@ remove_dependents(struct Client* client_p,
   recurse_remove_clients(source_p, comment1);
 }
 
-
-
-
 /*
  * dead_link - Adds client to a list of clients that need an exit_client()
  *
  */
-void dead_link(struct Client *client_p)
+void
+dead_link(struct Client *client_p)
 {
   dlink_node *m;
   const char *notice;
-  if(IsClosing(client_p) || IsDead(client_p))
+
+  if(IsDefunct(client_p))
     return;
 
   oftc_log("dead_link for %s", client_p->name);
@@ -1168,9 +1170,9 @@ void dead_link(struct Client *client_p)
   m = make_dlink_node();
   dlinkAdd(client_p, m, &abort_list);
   oftc_log("adding %s to the dead list from dead_link", client_p->name); 
-  SetDead(client_p); /* You are dead my friend */
+  SetClosing(client_p); /* You are closing my friend */
 
-  if (!IsPerson(client_p) && !IsUnknown(client_p) && !IsClosing(client_p))
+  if (!IsPerson(client_p) && !IsUnknown(client_p))
   {
     sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 		         "Closing link to %s: %s",
@@ -1248,13 +1250,6 @@ exit_client(
   oftc_log("exit_client called for %s", source_p->name);
   if (MyConnect(source_p))
     {
-      /* DO NOT REMOVE. exit_client can be called twice after a failed
-       * read/write.
-       */
-      if(IsClosing(source_p))
-        return 0;
-
-      SetClosing(source_p);
       if (source_p->flags & FLAGS_IPHASH)
         remove_one_ip(&source_p->localClient->ip);
 
