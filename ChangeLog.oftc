@@ -1,3 +1,15 @@
+stu         2003/08/16 15:16:33 UTC	(20030816_4)
+
+  Modified files:
+    modules/core         m_join.c 
+  Log:
+  oopsie, probably the first of many.. missed a god mode usage notice
+  
+  Revision  Changes    Path
+  1.2       +13 -1     oftc-hybrid/modules/core/m_join.c
+
+
+
 stu         2003/08/16 14:47:23 UTC	(20030816_3)
 
   Modified files:
