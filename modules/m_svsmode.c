@@ -47,7 +47,7 @@ static void m_svsmode(struct Client*, struct Client*, int, char**);
 
 struct Message mode_msgtab = {
   "SVSMODE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_svsmode, m_svsmode, m_svsmode}
+  {m_unregistered, m_ignore, m_svsmode, m_ignore}
 };
 #ifndef STATIC_MODULES
 
@@ -119,8 +119,6 @@ static void m_svsmode(struct Client *client_p, struct Client *source_p,
            case 'R':
               if(what == MODE_ADD)
               {
-/*                svs_stamp = atoi(parv[3]);*/
-                target_p->user->svs_stamp = svs_stamp;
                 target_p->umodes |= FLAGS_NICKSERVREG;
                 if(MyClient(target_p))
                     sendto_one(target_p, ":%s MODE %s :+R", target_p->name, 
@@ -134,6 +132,6 @@ static void m_svsmode(struct Client *client_p, struct Client *source_p,
         }
   /* Propogate the SVSMODE to other servers */
   sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
-                 ":%s SVSMODE %s %s %s", source_p->name, target_p->name,
+                 ":%s SVSMODE %s %s :%s", parv[0], parv[1],
                   parv[2], (parc >= 4) ? parv[3] : "");
 }
