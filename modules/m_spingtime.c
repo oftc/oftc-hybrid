@@ -84,7 +84,7 @@ static void ms_spingtime(struct Client *client_p, struct Client *source_p,
   target_p->ping_time.tv_sec = 0;
   target_p->ping_time.tv_usec = atol(parv[2]);
   
-  sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
+  sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
                     ":%s SPINGTIME %s %s", parv[0], parv[1],
                   parv[2]);
 }

@@ -84,7 +84,7 @@ static void ms_pong(struct Client *client_p,
     
     if (MyConnect(source_p)) 
     {
-      sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
+      sendto_server(NULL, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
               ":%s SPINGTIME %s %.1ld", me.name, source_p->name,
       (source_p->ping_time.tv_sec * 1000000) + source_p->ping_time.tv_usec);
     }

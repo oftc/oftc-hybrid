@@ -93,13 +93,8 @@ static void m_svsnick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_chasing(source_p, parv[1], NULL)) == NULL)
-  {
-    if (MyConnect(source_p))
-      sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-            me.name, parv[0], parv[1]);
+  if((target_p = find_chasing(source_p, parv[1], NULL)) == NULL)
     return;
-  }
 
   if(MyClient(target_p))
   {
