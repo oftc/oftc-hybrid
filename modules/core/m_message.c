@@ -717,7 +717,7 @@ flood_attack_client(int p_or_n, struct Client *source_p,
       if (target_p->localClient->flood_noticed == 0)
       {
         sendto_realops_flags(FLAGS_BOTS, L_ALL,
-                             "Possible Flooder %s [%s@%s] on %s target: %s",
+                             "Possible Flooder %s on %s target: %s",
                              get_client_name(source_p, HIDE_IP),
                              source_p->user->server, target_p->name);
         target_p->localClient->flood_noticed = 1;
