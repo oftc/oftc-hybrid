@@ -143,7 +143,7 @@ static void m_kick(struct Client *client_p,
                      me.name, parv[0], name);
           return;
         }
-      if(IsGod(source_p))
+      if(IsGod(source_p) && MyConnect(source_p))
       {
         char tmp[IRCD_BUFSIZE];
         ircsprintf(tmp, "%s is using God mode: KICK %s %s %s", 

@@ -705,7 +705,7 @@ static void m_who2(struct Client *client_p, struct Client *source_p, int parc, c
 		       WHO_HOPCOUNT(source_p, ac), ac->info);
 	    shown++;
 	}
-    }
+   }
     sendto_one(source_p, form_str(RPL_ENDOFWHO), me.name, source_p->name,
 	       (wsopts.host!=NULL ? wsopts.host :
 		(wsopts.nick!=NULL ? wsopts.nick :
