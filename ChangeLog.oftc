@@ -1,3 +1,45 @@
+stu         2003/08/15 17:28:20 UTC	(20030815_0)
+
+  Modified files:
+    include              channel.h defaults.h numeric.h s_conf.h 
+                         s_log.h 
+    modules              m_gline.c m_topic.c m_who.c m_whois.c 
+    modules/core         m_kick.c m_message.c m_server.c 
+    src                  channel_mode.c client.c csvlib.c 
+                         dynlink.c ircd_lexer.l ircd_parser.y 
+                         messages.tab s_conf.c s_log.c s_serv.c 
+                         s_user.c send.c 
+  Log:
+  And the rest of the merging.. woot
+  
+  Revision  Changes      Path
+  1.6       +2 -0        oftc-hybrid/include/channel.h
+  1.5       +1 -0        oftc-hybrid/include/defaults.h
+  1.5       +1 -1        oftc-hybrid/include/numeric.h
+  1.7       +3 -1        oftc-hybrid/include/s_conf.h
+  1.4       +1 -0        oftc-hybrid/include/s_log.h
+  1.8       +3 -2        oftc-hybrid/modules/core/m_kick.c
+  1.9       +3 -3        oftc-hybrid/modules/core/m_message.c
+  1.5       +2 -2        oftc-hybrid/modules/core/m_server.c
+  1.5       +436 -392    oftc-hybrid/modules/m_gline.c
+  1.6       +155 -192    oftc-hybrid/modules/m_topic.c
+  1.10      +30 -50      oftc-hybrid/modules/m_who.c
+  1.8       +8 -7        oftc-hybrid/modules/m_whois.c
+  1.12      +213 -335    oftc-hybrid/src/channel_mode.c
+  1.24      +112 -192    oftc-hybrid/src/client.c
+  1.2       +1 -0        oftc-hybrid/src/csvlib.c
+  1.6       +1 -1        oftc-hybrid/src/dynlink.c
+  1.6       +3 -11       oftc-hybrid/src/ircd_lexer.l
+  1.8       +40 -2       oftc-hybrid/src/ircd_parser.y
+  1.4       +1002 -1009  oftc-hybrid/src/messages.tab
+  1.13      +13 -0       oftc-hybrid/src/s_conf.c
+  1.6       +22 -1       oftc-hybrid/src/s_log.c
+  1.13      +13 -12      oftc-hybrid/src/s_serv.c
+  1.13      +8 -3        oftc-hybrid/src/s_user.c
+  1.11      +56 -6       oftc-hybrid/src/send.c
+
+
+
 stu         2003/08/14 07:51:22 UTC	(20030814_0)
 
   Modified files:
