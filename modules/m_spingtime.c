@@ -78,10 +78,6 @@ static void ms_spingtime(struct Client *client_p, struct Client *source_p,
 
   struct Client *target_p;
 
-
-  if (parc < 3)
-      return;
-
   if ((target_p = find_server(parv[1])) == NULL)
       return;
 
