@@ -1,3 +1,7 @@
+-- oftc-hybrid 1.3.3 RELNOTES
+o) Yet more God Mode bugfixes(yay)
+o) Fix DNS resolver faliing to resolve some IPv6 reverses
+
 -- oftc-hybrid 1.3.2 RELNOTES
 o) Fixed a lot of God Mode bugs
 o) Merged the reworked parser from upstream
