@@ -1,4 +1,4 @@
-/* m_who.c - Because s_user.c was just crazy.
+/*   m_who.c - basically adapted from the bahamut who
  *   Copyright (C) 1990 Jarkko Oikarinen and
  *                      University of Oulu, Computing Center
  *
@@ -19,6 +19,8 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+
+/* $Id$
 
 
 #include "stdinc.h"
@@ -532,17 +534,15 @@ do_who_channel_list(struct Client *source_p, dlink_list list, int showall)
      * nincompoop the original was donkey doo doo, and you can
      * quote me on that. sheesh - Dianora
      */
-    if (target_p->user->away==NULL)
-      status[i++] = 'G';
-    else
+    if (target_p->user->away == NULL)
       status[i++] = 'H';
+    else
+      status[i++] = 'G';
+    
     if (IsOper(target_p))
       status[i++] = '*';
-    /* WHAT is this supposed to do? -db */
-#if 0
-    status[i] = (IsOper(target_p) ? '*' : ((IsInvisible(target_p) &&
-                      IsOper(source_p)) ? '%' : 0));
-#endif
+    else if(IsOper(source_p) && IsInvisible(target_p))
+        status[i++] = '%';
 
     if (target_p->flags & CHFL_CHANOP)
       status[i++] = '@';
