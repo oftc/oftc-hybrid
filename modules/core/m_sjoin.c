@@ -178,6 +178,9 @@ static void ms_sjoin(struct Client *client_p,
       case 't':
         mode.mode |= MODE_TOPICLIMIT;
         break;
+      case 'c':
+	mode.mode |= MODE_NOCOLOR;
+	break;
 #ifdef ANONOPS
       case 'a':
 	if(ConfigChannel.use_anonops)
@@ -733,6 +736,7 @@ struct mode_letter {
 struct mode_letter flags[] = {
   { MODE_NOPRIVMSGS, 'n' },
   { MODE_TOPICLIMIT, 't' },
+  { MODE_NOCOLOR,    'c' },
   { MODE_SECRET,     's' },
   { MODE_MODERATED,  'm' },
   { MODE_INVITEONLY, 'i' },
