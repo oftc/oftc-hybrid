@@ -548,7 +548,7 @@ do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
     
     status[i] = '\0';
     sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
-           wsopts.channel->chname, target_p->username, target_p->host,
+           chptr->chname, target_p->username, target_p->host,
            target_p->user->server, target_p->name, status,
            WHO_HOPCOUNT(source_p, target_p), target_p->info);
     shown++;
