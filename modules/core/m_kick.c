@@ -26,6 +26,7 @@
 #include "tools.h"
 #include "handlers.h"
 #include "channel.h"
+#include "common.h"
 #include "channel_mode.h"
 #include "vchannel.h"
 #include "client.h"
