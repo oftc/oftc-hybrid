@@ -90,8 +90,9 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
           target_p->name);
     }
 
-    sendto_server(source_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS, 
-        ":%s SVSCLOAK %s :%s", me.name, target, hostname);
+    else
+      sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS, 
+          ":%s SVSCLOAK %s :%s", parv[0], parv[1], parv[2]);
     if(strlen(target_p->realhost) <= 1)
         strncpy(target_p->realhost, target_p->host, HOSTLEN);
     strncpy(target_p->host, hostname, HOSTLEN);
