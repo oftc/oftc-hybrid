@@ -1,3 +1,19 @@
+stu         2004/03/30 15:09:21 UTC	(20040330_0)
+
+  Modified files:
+    modules/core         m_quit.c 
+  Log:
+  strip colour from ALL /quit messages.
+  
+  Closes: 920658
+  Submitted by: mikegrb
+  Adapted by: me
+  
+  Revision  Changes    Path
+  1.4       +4 -1      oftc-hybrid/modules/core/m_quit.c
+
+
+
 stu         2004/03/27 17:32:47 UTC	(20040327_4)
 
   Modified files:
