@@ -1,3 +1,33 @@
+stu         2003/08/17 10:32:51 UTC	(20030817_0)
+
+  Modified files:
+    contrib              m_help.c 
+    contrib/help/opers   index motd squit stats ungline unkline 
+                         unresv version 
+    etc                  example.efnet.conf 
+    modules              m_xline.c 
+  Added files:
+    contrib/help/opers   unxline xline 
+  Log:
+  syncing with hybrid
+  
+  Revision  Changes    Path
+  1.2       +3 -3      oftc-hybrid/contrib/help/opers/index
+  1.2       +1 -2      oftc-hybrid/contrib/help/opers/motd
+  1.2       +2 -1      oftc-hybrid/contrib/help/opers/squit
+  1.2       +4 -2      oftc-hybrid/contrib/help/opers/stats
+  1.2       +1 -1      oftc-hybrid/contrib/help/opers/ungline
+  1.2       +7 -0      oftc-hybrid/contrib/help/opers/unkline
+  1.2       +8 -1      oftc-hybrid/contrib/help/opers/unresv
+  1.1       +11 -0     oftc-hybrid/contrib/help/opers/unxline (new)
+  1.2       +1 -2      oftc-hybrid/contrib/help/opers/version
+  1.1       +18 -0     oftc-hybrid/contrib/help/opers/xline (new)
+  1.2       +23 -3     oftc-hybrid/contrib/m_help.c
+  1.2       +3 -9      oftc-hybrid/etc/example.efnet.conf
+  1.2       +12 -16    oftc-hybrid/modules/m_xline.c
+
+
+
 stu         2003/08/16 16:29:07 UTC	(20030816_7)
 
   Modified files:
