@@ -116,6 +116,13 @@ mo_xline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
+  if (parc < 3)
+  {
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+               me.name, source_p->name, "XLINE");
+    return;
+  }
+
   if ((conf = find_matching_name_conf(XLINE_TYPE, parv[1],
 				      NULL, NULL, 0)) != NULL)
   {
@@ -128,7 +135,7 @@ mo_xline(struct Client *client_p, struct Client *source_p,
   }
 
   /* XLINE <gecos> <type> ON <server> :reason */
-  if (parc == 6)
+  if (parc > 5)
   {
     if (irccmp(parv[3], "ON") == 0)
     {
@@ -175,12 +182,6 @@ mo_xline(struct Client *client_p, struct Client *source_p,
   {
     reason = parv[2];
     type = "REJECT";
-  }
-  else
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, source_p->name, "XLINE");
-    return;
   }
 
   if (irccmp(type,"WARN") == 0)
@@ -289,16 +290,15 @@ mo_unxline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (EmptyString(parv[1]))
+  if (parc < 1)
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "UNXLINE");
     return;
   }
 
-
   /* UNXLINE bill ON irc.server.com */
-  if ((parc == 4) && (irccmp(parv[2], "ON") == 0))
+  if ((parc > 3) && (irccmp(parv[2], "ON") == 0))
   {
     sendto_match_servs(source_p, parv[3], CAP_CLUSTER,
                        "UNXLINE %s %s",
@@ -308,16 +308,12 @@ mo_unxline(struct Client *client_p, struct Client *source_p,
       return;
   }
   /* UNXLINE bill */
-  else if (parc == 2)
+  else if (parc >= 2)
   {
     if (dlink_list_length(&cluster_items))
       cluster_unxline(source_p, parv[1]);
     remove_xline(source_p, parv[1], 0);
   }
-  else
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, source_p->name, "UNXLINE");
-
 } /* mo_unxline() */
 
 /* ms_unxline()

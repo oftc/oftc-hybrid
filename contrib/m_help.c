@@ -48,7 +48,7 @@ static void sendhelpfile(struct Client *, char *, char *);
 
 struct Message help_msgtab = {
   "HELP", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_help, m_ignore, mo_help}
+  {m_unregistered, m_help, m_ignore, mo_help, m_ignore}
 };
 
 struct Message uhelp_msgtab = {
@@ -182,6 +182,8 @@ sendhelpfile(struct Client *source_p, char *path, char *topic)
 {
   FBFILE *file;
   char line[HELPLEN];
+  char started = 0;
+  int type;
 
   if ((file = fbopen(path, "r")) == NULL)
   {
@@ -197,13 +199,31 @@ sendhelpfile(struct Client *source_p, char *path, char *topic)
     return;
   }
 
-  sendto_one(source_p, form_str(RPL_HELPSTART),
+  else if (line[0] != '#')
+  {
+    line[strlen(line) - 1] = '\0';	  
+    sendto_one(source_p, form_str(RPL_HELPSTART),
              me.name, source_p->name, topic, line);
+    started = 1;
+  }
 
   while (fbgets(line, sizeof(line), file))
+  {
+    line[strlen(line) - 1] = '\0';
     if(line[0] != '#')
+    {
+      if (!started)
+      {
+        type = RPL_HELPSTART;
+	started = 1;
+      }
+      else
+        type = RPL_HELPTXT;
+      
       sendto_one(source_p, form_str(RPL_HELPTXT),
                  me.name, source_p->name, topic, line);
+    }
+  }
 
   fbclose(file);
   sendto_one(source_p, form_str(RPL_ENDOFHELP),

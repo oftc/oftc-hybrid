@@ -18,6 +18,6 @@ RESTART         RESV            SERVER          SET
 SJOIN           SQUIT           STATS           SVINFO
 TESTLINE        TIME            TOPIC           TRACE
 UHELP           UMODE           UNDLINE         UNGLINE
-UNKLINE         UNRESV          USER            USERHOST
-USERS           VERSION         WALLOPS         WHO
-WHOIS           WHOWAS
+UNKLINE         UNRESV          UNXLINE         USER
+USERHOST        USERS           VERSION         WALLOPS
+WHO             WHOIS           WHOWAS          XLINE
