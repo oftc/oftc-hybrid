@@ -320,7 +320,8 @@ static void remove_permkline_match(struct Client *source_p,
       return;
     }
 
-  sendto_one(source_p, ":%s NOTICE %s :K-Line for [%s@%s] is removed", 
+  if(MyConnect(source_p))
+    sendto_one(source_p, ":%s NOTICE %s :K-Line for [%s@%s] is removed", 
              me.name, source_p->name, user,host);
   sendto_realops_flags(FLAGS_ALL, L_ALL,
 		       "%s has removed the K-Line for: [%s@%s]",

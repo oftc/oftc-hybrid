@@ -2256,16 +2256,18 @@ WriteKlineOrDline( KlineType type,
       sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 			   "%s added D-Line for [%s] [%s]",
 			   get_oper_name(source_p), host, reason);
-      sendto_one(source_p, ":%s NOTICE %s :Added D-Line [%s] to %s",
-		 me.name, source_p->name, host, filename);
+      if(MyConnect(source_p))
+          sendto_one(source_p, ":%s NOTICE %s :Added D-Line [%s] to %s",
+                me.name, source_p->name, host, filename);
 
     }
   else
     {
       sendto_realops_flags(FLAGS_ALL, L_OPER, "%s added K-Line for [%s@%s]"
               " [%s]", get_oper_name(source_p), user, host, reason);
-      sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
-		 me.name, source_p->name, user, host);
+      if(MyConnect(source_p))
+        sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
+            me.name, source_p->name, user, host);
     }
 
   if ( (out = fbopen(filename, "a")) == NULL )
