@@ -46,7 +46,7 @@ static void m_svsnick(struct Client*, struct Client*, int, char**);
 
 struct Message mode_msgtab = {
   "SVSNICK", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_svsnick, m_svsnick, m_svsnick, m_ignore}
+  {m_unregistered, m_ignore, m_svsnick, m_ignore, m_ignore}
 };
 #ifndef STATIC_MODULES
 
@@ -81,9 +81,6 @@ static void m_svsnick(struct Client *client_p, struct Client *source_p,
   /* Return quietly if this
    * is a non service 
    */
-
-  if(!IsService(source_p))
-     return; 
 
   if (parc < 3)
   {

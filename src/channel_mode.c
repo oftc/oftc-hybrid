@@ -1677,10 +1677,6 @@ get_channel_access(struct Client *source_p, struct Membership *member)
   if (!MyClient(source_p))
     return(CHACCESS_CHANOP); 
   
-  /* Services always have access */ 
-  if(IsService(source_p)) 
-    return CHACCESS_CHANOP;
-
   if (member == NULL)
     return(CHACCESS_NOTONCHAN);
 

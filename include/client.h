@@ -402,7 +402,6 @@ struct LocalUser
 #define UMODE_ADMIN        0x20000 /* Admin on server */ 
 #define UMODE_GOD          0x40000 /* Operator is God */
 #define UMODE_NICKSERVREG  0x80000 /* User is registered with nickserv and identified */
-#define UMODE_SERVICE      0x100000 /* User is a service */
 #define UMODE_ALL	   UMODE_SERVNOTICE
 
 #define SEND_UMODES  (UMODE_INVISIBLE | UMODE_OPER | UMODE_WALLOP | \
@@ -471,8 +470,6 @@ struct LocalUser
 				  (x)->handler = CLIENT_HANDLER; }
 
 #define IsPrivileged(x)         (IsOper(x) || IsServer(x))
-#define IsService(x)            ((x)->flags & UMODE_SERVICE)
-#define SetService(x) ((x)->flags |= UMODE_SERVICE)
 
 #define IsGod(x)                ((x)->umodes & UMODE_GOD) 
 #define IsNickServReg(x)        ((x)->umodes & UMODE_NICKSERVREG)

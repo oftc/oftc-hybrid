@@ -644,8 +644,6 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
 
   add_user_host(source_p->username, source_p->host, 1);
   SetUserHost(source_p); 
-  if(IsService(source_p)) 
-      SetService(client_p);
 
   return(introduce_client(client_p, source_p));
 }

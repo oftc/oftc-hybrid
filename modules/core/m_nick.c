@@ -334,10 +334,11 @@ ms_nick(struct Client *client_p, struct Client *source_p,
 #define NICK_SERVER	parv[7]
 #define NICK_GECOS	parv[8]
 
-  if (parc < 2 || EmptyString(NICK_NICK))
+  if (parc < 3 || EmptyString(NICK_NICK))
   {
-    sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
-               me.name, parv[0]);
+    if(!IsServer(source_p))
+      sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
+                 me.name, parv[0]);
     return;
   }
 
@@ -371,13 +372,19 @@ ms_nick(struct Client *client_p, struct Client *source_p,
   }
   else
   {
-    if (check_clean_nick(client_p, source_p, nick, NICK_NICK,
-			source_p->user->server))
-      return;
-    if (!IsServer(source_p))
-      newts = atol(NICK_HOP);	/* Yes, this is right. HOP field is the TS
-				 * field for parc = 3
-				 */
+    if (IsServer(source_p))
+        /* Dont allow nick changes from a server */
+          return;
+    else
+    {
+      if (check_clean_nick(client_p, source_p, nick, NICK_NICK, 
+                  source_p->user->server))
+          return;
+      /*
+       * Yes, This is right. HOP field is the TS field for parv = 3
+       */
+      newts = atol(NICK_HOP);
+    }
   }
 
   /* if the nick doesnt exist, allow it and process like normal */

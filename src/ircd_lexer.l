@@ -258,8 +258,6 @@ servlink_path   { return SERVLINK_PATH; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }
 sid		{ return SID; } 
-service         { return SERVICE; } 
-services { return SERVICES; }
 silent          { return SILENT; }
 spoof		{ return SPOOF; }
 spoof_notice	{ return SPOOF_NOTICE; }

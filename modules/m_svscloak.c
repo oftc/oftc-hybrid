@@ -70,8 +70,6 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
 {
   struct Client *target_p;
   char *hostname, *target;
-  if (!IsService(source_p))
-    return;
 
   if(parc < 3 || EmptyString(parv[2]))
   {   

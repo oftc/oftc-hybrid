@@ -67,7 +67,6 @@ typedef enum {
   GLINE_TYPE,
   CRESV_TYPE,     
   NRESV_TYPE,
-  SERVICES_TYPE,
 } ConfType;
 
 struct ConfItem

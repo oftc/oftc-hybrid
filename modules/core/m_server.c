@@ -242,9 +242,6 @@ mr_server(struct Client *client_p, struct Client *source_p,
                "*** LazyLinks to a leaf from a leaf, that's a no-no.");
     }
   } 
-  /* Set FLAG_SERVICE if it matches a SERVICES block */ 
-  if(find_conf_name(&services_items, name, SERVICES_TYPE)) 
-    SetService(client_p); 
 
   /* if we are connecting (Handshake), we already have the name from the
    * connect{} block in client_p->name
@@ -504,8 +501,6 @@ ms_server(struct Client *client_p, struct Client *source_p,
                IsHidden(target_p) ? "(H) " : "",
                target_p->info);
   }
-  if(find_conf_name(&services_items, name, SERVICES_TYPE))
-      SetService(client_p);
 }
 
 /* ms_sid()

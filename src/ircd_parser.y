@@ -268,8 +268,6 @@ unhook_hub_leaf_confs(void)
 %token  SERVERINFO
 %token  SERVLINK_PATH
 %token  SID 
-%token  SERVICE
-%token  SERVICES
 %token  T_SHARED
 %token  T_CLUSTER
 %token  TYPE
@@ -367,7 +365,6 @@ conf_item:        admin_entry
 		| general_entry
                 | gecos_entry
                 | modules_entry
-                | services_entry
                 | error ';'
                 | error '}'
         ;
@@ -407,40 +404,6 @@ sizespec:	NUMBER sizespec_ { $$ = $1 + $2; }
 		| NUMBER MBYTES sizespec_ { $$ = $1 * 1024 * 1024 + $3; }
 		;
 
-services_entry:           SERVICES
-  {
-    if (ypass == 2)
-    {
-      yy_conf = make_conf_item(SERVICES_TYPE);
-    }
-    else
-    {
-      MyFree(class_name);
-      class_name = NULL;
-    }
-
-  }
-  '{' services_items '}' ';'
-  {
-    if(ypass == 2)
-      yy_conf = NULL;
-  };
-
-services_items:         services_items services_item |
-                        services_item;
-
-services_item:          services_service | error;
-
-services_service:            SERVICE '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(yy_conf->name);
-    DupString(yy_conf->name, yylval.string);
-  }
-};
-
-        
 /***************************************************************************
  *  section modules
  ***************************************************************************/

@@ -85,9 +85,6 @@ static void m_svsmode(struct Client *client_p, struct Client *source_p,
    * is a non service 
    */
 
-  if(!IsService(source_p))
-    return; 
-
   if (parc < 3)
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
