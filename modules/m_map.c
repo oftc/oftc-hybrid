@@ -132,7 +132,7 @@ static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
   for( user_p = root_p->serv->users; user_p; user_p = user_p->lnext )
     users++;
         
-  snprintf(buf+len, BUFSIZE," (Users: %d [%.1f%%] - Last Ping: %lums)", users,
+  snprintf(buf+len, BUFSIZE," (Users: %d [%.1f%%]; Ping: %lums)", users,
            100 * (float) users / (float) Count.total,
            (root_p->ping_time.tv_usec / 1000));
         
