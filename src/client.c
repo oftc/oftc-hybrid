@@ -1008,6 +1008,8 @@ exit_one_client(struct Client *client_p, struct Client *source_p,
   remove_client_from_list(source_p);
 
   /* Check to see if the client isn't already on the dead list */
+  if(dlinkFind(&dead_list, source_p) != NULL)
+      oftc_log("source_p already on dead list %s", source_p->name);
   assert(dlinkFind(&dead_list, source_p) == NULL);
   /* add to dead client dlist */
   lp = make_dlink_node();
@@ -1157,6 +1159,8 @@ void dead_link(struct Client *client_p)
   Debug((DEBUG_ERROR, "Closing link to %s: %s", get_client_name(to, HIDE_IP), 
               notice));
 
+  if(dlinkFind(&abort_list, client_p) != NULL)
+      oftc_log("client_p on abort list already %s", client_p->name);
   assert(dlinkFind(&abort_list, client_p) == NULL);
   m = make_dlink_node();
   dlinkAdd(client_p, m, &abort_list);
