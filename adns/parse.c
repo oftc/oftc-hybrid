@@ -149,7 +149,7 @@ adns_status adns__parse_domain_more(findlabel_state *fls, adns_state ads,
       if (!ctype_alpha(ch) && !ctype_digit(ch)) return adns_s_answerdomaininvalid;
       for (i= labstart+1; i<labstart+lablen; i++) {
 	ch= dgram[i];
-	if (ch != '-' && !ctype_alpha(ch) && !ctype_digit(ch))
+	if (ch != '-' && ch != '_' && !ctype_alpha(ch) && !ctype_digit(ch))
 	  return adns_s_answerdomaininvalid;
       }
       if (!adns__vbuf_append(vb,dgram+labstart,lablen))
