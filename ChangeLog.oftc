@@ -1,3 +1,15 @@
+stu         2003/09/22 00:30:11 UTC	(20030922_1)
+
+  Modified files:
+    src                  messages.tab 
+  Log:
+  ERR_WHOSYNTAX was mysteriously missing
+  
+  Revision  Changes    Path
+  1.5       +2 -1      oftc-hybrid/src/messages.tab
+
+
+
 stu         2003/09/22 00:08:53 UTC	(20030922_0)
 
   Modified files:
