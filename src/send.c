@@ -252,7 +252,9 @@ send_queued_write(struct Client *to)
 {
   int retlen;
   int fd;
+#ifdef HAVE_LIBCRYPTO
   fde_t *F;
+#endif
 #ifndef NDEBUG
   struct hook_io_data hdata;
 #endif
@@ -346,7 +348,9 @@ void
 send_queued_slink_write(struct Client *to)
 {
   int retlen;
+#ifdef HAVE_LIBCRYPTO
   fde_t *F;
+#endif
   int ctrlfd;
 
   /*
@@ -1336,6 +1340,7 @@ kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,
   }
 } 
 
+#ifdef HAVE_LIBCRYPTO
 int sendSSL(fde_t *F, const char* data, const size_t length)
 {
    extern char *get_ssl_error(int);
@@ -1409,3 +1414,4 @@ int sendSSL(fde_t *F, const char* data, const size_t length)
 
    return retval;
 }
+#endif

@@ -901,11 +901,6 @@ comm_accept(int fd, struct irc_ssaddr *pn, int is_ssl)
       return -1;
     }
       
-    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
-            "SSL_accept() for %s (socket %d) in progress...", address, newfd);
-    ilog(L_DEBUG, "SSL_accept() for %s (socket %d) in progress...", address, 
-            newfd);
-      
     retval = SSL_accept(ssl);
     ilog(L_DEBUG, "SSL_accept retval = %d", retval);
     if (retval <= 0) 
@@ -916,14 +911,6 @@ comm_accept(int fd, struct irc_ssaddr *pn, int is_ssl)
       case SSL_ERROR_SYSCALL:
       case SSL_ERROR_WANT_READ:
       case SSL_ERROR_WANT_WRITE:
-        sendto_realops_flags(UMODE_DEBUG, L_ALL,
-                "SSL_accept() for %s wants read or write (%s), passing through...",
-                address, get_ssl_error(retval));
-
-        ilog(L_DEBUG, 
-                "SSL_accept() for %s wants read or write (%s), passing through...",
-                address, get_ssl_error(retval));
-               
         /* let it through, SSL_read()/SSL_write() will finish the handshake...*/
         if (retval == SSL_ERROR_WANT_READ)
           F->flags.accept_read = 1;
@@ -934,13 +921,6 @@ comm_accept(int fd, struct irc_ssaddr *pn, int is_ssl)
         break;
                
       default:
-        sendto_realops_flags(UMODE_DEBUG, L_ALL,  "SSL_accept() ERROR! -- %s",
-                (retval == SSL_ERROR_SSL) ? 
-                ERR_error_string(ERR_get_error(), NULL) : get_ssl_error(retval));
-               
-        ilog(L_DEBUG, "SSL_accept() ERROR! -- %s", (retval == SSL_ERROR_SSL) ?
-                ERR_error_string(ERR_get_error(), NULL) :
-                get_ssl_error(retval));
                
         SSL_free(ssl);
         close(newfd);
@@ -950,16 +930,6 @@ comm_accept(int fd, struct irc_ssaddr *pn, int is_ssl)
     else 
     {
       char *ssl_get_cipher(SSL *);
-         
-      sendto_realops_flags(UMODE_DEBUG, L_ALL, "SSL_accept() for %s succeeded!",
-              address);
-      ilog(L_DEBUG, "SSL_accept() for %s succeeded!", address);
-      sendto_realops_flags(UMODE_DEBUG, L_ALL, "SSL protocol/cipher: %s",
-                              ssl_get_cipher(ssl));
-      ilog(L_DEBUG, "SSL protocol/cipher: %s", ssl_get_cipher(ssl));
-      sendto_realops_flags(UMODE_DEBUG, L_ALL, "SSL_state_string_long(): %s",
-                              SSL_state_string_long(ssl));
-      ilog(L_DEBUG, "SSL_state_string_long(): %s", SSL_state_string_long(ssl));
     }
   }
 #endif
