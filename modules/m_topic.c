@@ -143,9 +143,10 @@ static void m_topic(struct Client *client_p,
           if(!is_any_op(chptr,source_p)&&IsGod(source_p) && MyClient(source_p))
             {
               char tmp[IRCD_BUFSIZE];
-              snprintf(tmp, IRCD_BUFSIZE, "%s is using God mode: TOPIC %s %s",
+              ircsprintf(tmp, "%s is using God mode: TOPIC %s %s",
                       source_p->name, chptr->chname, parv[2]);
-              sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
+              sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, 
+                    NULL, tmp);
               oftc_log(tmp);
             }
             ircsprintf(topic_info, "%s!%s@%s",

@@ -144,10 +144,11 @@ static void m_kick(struct Client *client_p,
         }
       if(IsGod(source_p))
       {
-        char tmp[512];
-        snprintf(tmp, 512, "%s is using God mode: KICK %s %s %s",
+        char tmp[IRCD_BUFSIZE];
+        ircsprintf(tmp, "%s is using God mode: KICK %s %s %s", 
             source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
-        sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, tmp);
+        sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL, 
+            tmp);
         oftc_log(tmp);
       } 
 

@@ -513,8 +513,8 @@ mo_undline (struct Client *client_p, struct Client *source_p,
 
   sendto_one(source_p, ":%s NOTICE %s :D-Line for [%s] is removed",
 	     me.name, parv[0], cidr);
-  sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL, "%s has removed the D-Line for: [%s]",
-		       get_oper_name(source_p), cidr);
+  sendto_realops_flags(FLAGS_ALL, L_OPER, "%s has removed the D-Line for: "
+          "[%s]", get_oper_name(source_p), cidr);
   ilog(L_NOTICE, "%s removed D-Line for [%s]", get_oper_name(source_p),
        cidr);
 }
@@ -573,9 +573,8 @@ mo_ungline(struct Client *client_p, struct Client *source_p,
     {
       sendto_one(source_p, ":%s NOTICE %s :Un-glined [%s@%s]",
                  me.name, parv[0],user, host);
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-			   "%s has removed the G-Line for: [%s@%s]",
-			   get_oper_name(source_p), user, host );
+      sendto_realops_flags(FLAGS_ALL, L_OPER, "%s has removed the G-Line "
+              "for: [%s@%s]", get_oper_name(source_p), user, host );
       ilog(L_NOTICE, "%s removed G-Line for [%s@%s]",
           get_oper_name(source_p), user, host);
       return;

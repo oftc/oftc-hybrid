@@ -2262,9 +2262,8 @@ WriteKlineOrDline( KlineType type,
     }
   else
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-			   "%s added K-Line for [%s@%s] [%s]",
-			   get_oper_name(source_p), user, host, reason);
+      sendto_realops_flags(FLAGS_ALL, L_OPER, "%s added K-Line for [%s@%s]"
+              " [%s]", get_oper_name(source_p), user, host, reason);
       sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
 		 me.name, source_p->name, user, host);
     }
@@ -2300,8 +2299,8 @@ WriteKlineOrDline( KlineType type,
 
   if (fbputs(buffer,out) == -1)
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-			   "*** Problem writing to %s",filename);
+      sendto_realops_flags(FLAGS_ALL, L_OPER, "*** Problem writing to %s",
+              filename);
       fbclose(out);
       return;
     }
