@@ -2763,11 +2763,6 @@ channel_max_bans: MAX_BANS '=' NUMBER ';'
       ConfigChannel.max_bans = $3;
    } ;
 
-channel_persist_time: PERSIST_TIME '=' timespec ';'
-  {
-    ConfigChannel.persist_time = $3;
-  } ;
-
 channel_default_split_user_count: DEFAULT_SPLIT_USER_COUNT '=' NUMBER ';'
   {
     ConfigChannel.default_split_user_count = $3;

@@ -121,6 +121,9 @@ struct ConfItem        *x_conf = ((struct ConfItem *)NULL);
 /* conf uline link list root */
 struct ConfItem        *u_conf = ((struct ConfItem *)NULL);
 
+/* conf services root */
+struct ConfItem        *services_conf = ((struct ConfItem *)NULL);
+
 /*
  * conf_dns_callback
  * inputs	- pointer to struct ConfItem

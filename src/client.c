@@ -510,7 +510,7 @@ check_klines(void)
 	  continue;
 	}
 
-	sendto_notice_flags(FLAGS_ALL, L_ALL, me.name, &me, NULL,
+	sendto_gnotice_flags(FLAGS_ALL, L_ALL, me.name, &me, NULL,
             "KLINE active for %s",
 			     get_client_name(client_p, HIDE_IP));
 	
