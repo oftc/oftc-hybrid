@@ -892,6 +892,8 @@ exit_one_client(struct Client *client_p, struct Client *source_p,
   if(IsDead(source_p))
     return;
 
+  oftc_log("exit_one_client %s. Not dead.", source_p->name);
+
   if (IsServer(source_p))
     {
       if (source_p->servptr && source_p->servptr->serv)
@@ -1075,6 +1077,7 @@ static void recurse_remove_clients(struct Client* source_p, const char* comment)
 {
   struct Client *target_p;
 
+  oftc_log("recuse_remove_client: %s, %p", source_p->name, source_p->serv);
   if (IsMe(source_p))
     return;
 
@@ -1116,6 +1119,8 @@ remove_dependents(struct Client* client_p,
   static char myname[HOSTLEN+1];
   dlink_node *ptr;
 
+  oftc_log("remove_dependents for %s", source_p->name);
+  
   DLINK_FOREACH(ptr, serv_list.head)
     {
       to = ptr->data;
@@ -1153,7 +1158,7 @@ dead_link(struct Client *client_p)
   if(IsDefunct(client_p))
     return;
 
-  oftc_log("dead_link for %s", client_p->name);
+  oftc_log("dead_link for %s, NOT defunt", client_p->name);
 
   if(client_p->flags & FLAGS_SENDQEX)
     notice = "Max SendQ exceeded";
@@ -1169,8 +1174,9 @@ dead_link(struct Client *client_p)
   assert(dlinkFind(&abort_list, client_p) == NULL);
   m = make_dlink_node();
   dlinkAdd(client_p, m, &abort_list);
-  oftc_log("adding %s to the dead list from dead_link", client_p->name); 
+  oftc_log("adding %s to the abort list from dead_link", client_p->name); 
   SetClosing(client_p); /* You are closing my friend */
+  oftc_log("set closing for %s", client_p->name);
 
   if (!IsPerson(client_p) && !IsUnknown(client_p))
   {
@@ -1356,7 +1362,10 @@ exit_client(
       else
 	{
 	  if((source_p->serv) && (source_p->serv->up))
+      {
+        oftc_log("serv is.. %p", source_p->serv);
 	    strcpy(comment1, source_p->serv->up);
+      }
 	  else
 	    strcpy(comment1, "<Unknown>");
 
