@@ -1,3 +1,24 @@
+stu         2003/10/23 16:09:40 UTC	(20031023_1)
+
+  Modified files:
+    include              client.h 
+    modules              m_connect.c 
+    src                  ircd_lexer.l ircd_parser.y s_serv.c 
+                         s_user.c 
+  Log:
+  - Add user mode +S for server connect notices.  Requires servconnect in
+    oper_only_umodes and oper_modes.
+  
+  Revision  Changes    Path
+  1.12      +3 -1      oftc-hybrid/include/client.h
+  1.5       +7 -7      oftc-hybrid/modules/m_connect.c
+  1.8       +1 -0      oftc-hybrid/src/ircd_lexer.l
+  1.12      +9 -0      oftc-hybrid/src/ircd_parser.y
+  1.15      +12 -12    oftc-hybrid/src/s_serv.c
+  1.15      +2 -1      oftc-hybrid/src/s_user.c
+
+
+
 stu         2003/10/21 18:04:59 UTC	(20031021_0)
 
   Modified files:        (Branch: STABLE)
