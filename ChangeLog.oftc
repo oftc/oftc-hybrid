@@ -1,3 +1,27 @@
+dbharris    2003/10/31 16:31:01 UTC	(20031031_0)
+
+  Modified files:
+    modules              m_connect.c m_rehash.c m_svinfo.c 
+    modules/core         m_die.c m_message.c m_server.c m_squit.c 
+    src                  client.c m_error.c parse.c s_serv.c 
+  Log:
+  Change many occurances of MASK_IP to SHOW_IP and/or HIDE_IP, depending on how far along I was. For those gnotices which I did that, I also changed L_ADMIN or L_OPER to L_ALL. Also remove several duplicate gnotices.
+  
+  Revision  Changes    Path
+  1.4       +3 -3      oftc-hybrid/modules/core/m_die.c
+  1.10      +3 -3      oftc-hybrid/modules/core/m_message.c
+  1.9       +34 -85    oftc-hybrid/modules/core/m_server.c
+  1.9       +3 -3      oftc-hybrid/modules/core/m_squit.c
+  1.6       +2 -2      oftc-hybrid/modules/m_connect.c
+  1.6       +2 -2      oftc-hybrid/modules/m_rehash.c
+  1.5       +3 -12     oftc-hybrid/modules/m_svinfo.c
+  1.25      +15 -27    oftc-hybrid/src/client.c
+  1.6       +6 -10     oftc-hybrid/src/m_error.c
+  1.9       +3 -10     oftc-hybrid/src/parse.c
+  1.16      +10 -24    oftc-hybrid/src/s_serv.c
+
+
+
 stu         2003/10/23 19:00:55 UTC	(20031023_4)
 
   Modified files:
