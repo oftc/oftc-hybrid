@@ -134,7 +134,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
   {
       "/WHO [+|-][acghimnsuCM] [args]",
       "Flags are specified like channel modes,",
-      "The flags cghimnsu all have arguments",
+      "The flags cgh"/*i*/"mnsu all have arguments",
       "Flags are set to a positive check by +, a negative check by -",
       "The flags work as follows:",
       "Flag a: user is away",
@@ -144,7 +144,10 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
       "                        wildcards accepted, oper only",
       "Flag h <host>: user has string <host> in their hostname,",
       "               wildcards accepted",
-      "Flag i <ip>: user is from <ip> wildcards accepted,",
+/* 
+ * We dont support this yet 
+ * "Flag i <ip>: user is from <ip> wildcards accepted,", 
+ * */
       "Flag m <usermodes>: user has <usermodes> set on them,",
       "                    only o/A/a for nonopers",
       "Flag n <nick>: user has string <nick> in their nickname,",
@@ -279,7 +282,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 	    wsopts.host_plus = change;
 	    args++;
 	    break;
-/* XXX Disabled: WE CAN NOT LOOK UP REMOTE IPS, OK?
+/* XXX Disabled: WE CAN NOT LOOK UP REMOTE IPS AT THIS TIME
         case 'i':
 	    if(parv[args] == NULL || !IsOper(source_p))
 	    {
