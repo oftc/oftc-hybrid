@@ -504,7 +504,8 @@ ms_server(struct Client *client_p, struct Client *source_p,
                IsHidden(target_p) ? "(H) " : "",
                target_p->info);
   }
-
+  if(find_conf_name(&services_items, name, SERVICES_TYPE))
+      SetService(client_p);
 }
 
 /* ms_sid()
