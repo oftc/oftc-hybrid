@@ -76,8 +76,7 @@ static void map_send_server(struct Client* source_p, char* sender_prefix,
 
   /* header should be formatted for us already */
   sendto_one(source_p, form_str(RPL_MAP), me.name, sender_prefix, header, 
-          current->name, (current->ping_time.tv_sec * 1000) + 
-          (current->ping_time.tv_usec / 1000));
+          current->name, (current->ping_time.tv_usec / 1000));
 
   /* Now, iterate over it's children */
   if (current->serv->servers)

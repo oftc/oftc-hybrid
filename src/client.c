@@ -347,6 +347,7 @@ check_pings_list(dlink_list *list)
 	client_p->flags |= FLAGS_PINGSENT;
 	/* not nice but does the job */
 	client_p->lasttime = CurrentTime - ping;
+    gettimeofday(&client_p->ping_send_time, NULL);
 	sendto_one(client_p, "PING :%s", me.name);
       }
     }
