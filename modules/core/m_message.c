@@ -489,6 +489,8 @@ msg_channel(int p_or_n, char *command,
     if (result == CAN_SEND_OPV ||
         !flood_attack_channel(p_or_n, source_p, vchan, chname))
     {
+      if(vchan->mode.mode & MODE_NOCOLOR && msg_has_colors(text))
+          text = strip_color(text);
       sendto_channel_butone(client_p, source_p, vchan, command, ":%s", text);
     }
   }
