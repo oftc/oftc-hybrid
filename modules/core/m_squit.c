@@ -70,6 +70,7 @@ static struct squit_parms *find_squit(struct Client *client_p,
                                       struct Client *source_p,
                                       char *server);
 
+
 /*
  * mo_squit - SQUIT message handler
  *      parv[0] = sender prefix
