@@ -160,6 +160,9 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
       case 'm':
         mode.mode |= MODE_MODERATED;
         break;
+      case 'c':
+        mode.mode |= MODE_NOCOLOR;
+        break;
       case 'k':
         strlcpy(mode.key, parv[4 + args], sizeof(mode.key));
         args++;
