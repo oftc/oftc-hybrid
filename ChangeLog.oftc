@@ -1,3 +1,15 @@
+stu         2003/10/19 16:48:18 UTC	(20031019_2)
+
+  Modified files:
+    modules/core         m_server.c 
+  Log:
+  D'OH! ms_server needs to SetService too.  This fixes the SVS* issues
+  
+  Revision  Changes    Path
+  1.7       +3 -2      oftc-hybrid/modules/core/m_server.c
+
+
+
 stu         2003/10/19 11:44:42 UTC	(20031019_1)
 
   Modified files:
