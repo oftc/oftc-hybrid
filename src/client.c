@@ -1134,16 +1134,17 @@ remove_dependents(struct Client* client_p,
 }
 
 /*
- * dead_link - Adds client to a list of clients that need an exit_client()
+ * dead_link_on_write - report a write error if not already dead,
+ *			mark it as dead then exit it
  *
  */
 void
-dead_link(struct Client *client_p)
+dead_link_on_write(struct Client *client_p, int ierrno)
 {
   dlink_node *m;
   const char *notice;
 
-  if(IsDead(client_p))
+  if(IsDefunct(client_p))
     return;
 
   SetDead(client_p);
@@ -1162,6 +1163,70 @@ dead_link(struct Client *client_p)
   Debug((DEBUG_ERROR, "Closing link to %s: %s", get_client_name(to, HIDE_IP), 
               notice));
   exit_client(client_p, client_p, &me, "Closing link");
+}
+
+/*
+ * dead_link_on_read -  report a read error if not already dead,
+ *			mark it as dead then exit it
+ *
+ */
+void
+dead_link_on_read(struct Client *client_p, int error)
+{
+  char errmsg[255];
+  int  current_error = get_sockerr(client_p->localClient->fd);
+
+  if(IsDead(client_p))
+    return;
+  SetDead(client_p);
+
+  Debug((DEBUG_ERROR, "READ ERROR: fd = %d %d %d",
+         client_p->localClient->fd, current_error, error));
+
+  if (IsServer(client_p) || IsHandshake(client_p))
+  {
+    int connected = CurrentTime - client_p->firsttime;
+      
+    if (error == 0)
+    {
+      /* Admins get the real IP */
+      sendto_realops_flags(FLAGS_ALL, L_ADMIN,
+			   "Server %s closed the connection",
+			   get_client_name(client_p, SHOW_IP));
+
+      /* Opers get a masked IP */
+      sendto_realops_flags(FLAGS_ALL, L_OPER,
+			   "Server %s closed the connection",
+			   get_client_name(client_p, MASK_IP));
+
+      ilog(L_NOTICE, "Server %s closed the connection",
+	   get_client_name(client_p, SHOW_IP));
+    }
+    else
+    {
+      report_error(L_ADMIN, "Lost connection to %s: %d",
+		   get_client_name(client_p, SHOW_IP), current_error);
+      report_error(L_OPER, "Lost connection to %s: %d",
+		   get_client_name(client_p, MASK_IP), current_error);
+    }
+
+    sendto_realops_flags(FLAGS_ALL, L_ALL,
+			 "%s had been connected for %d day%s, %2d:%02d:%02d",
+			 client_p->name, connected/86400,
+			 (connected/86400 == 1) ? "" : "s",
+			 (connected % 86400) / 3600, (connected % 3600) / 60,
+			 connected % 60);
+  }
+
+  if (error == 0)
+  {
+    strcpy(errmsg, "Remote host closed the connection");
+  }
+  else
+  {
+    ircsprintf(errmsg, "Read error: %s", strerror(current_error));
+  }
+  exit_client(client_p, client_p, &me, errmsg);
 }
 
 /*

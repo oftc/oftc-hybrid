@@ -278,7 +278,8 @@ report_configured_links(struct Client* source_p, int mask)
   char*		     classname;
   int                port;
 
-  for (tmp = ConfigItemList; tmp; tmp = tmp->next) {
+  for (tmp = ConfigItemList; tmp; tmp = tmp->next)
+  {
     if (tmp->status & mask)
       {
         for (p = &report_array[0]; p->conf_type; p++)

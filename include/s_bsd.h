@@ -59,7 +59,6 @@ extern void  report_error(int, const char*, const char*, int);
 extern int   set_non_blocking(int);
 extern int   set_sock_buffers(int, int);
 
-extern void  error_exit_client(struct Client*, int);
 extern int   get_sockerr(int);
 extern int   ignoreErrno(int ierrno);
 

@@ -2198,11 +2198,7 @@ serv_connect_callback(int fd, int status, void *data)
 	 * dea
 
 	 */
-	dead_link(client_p);
-#if 0
-	/* might pass comm_errstr() into dead_link in future -db */
-	exit_client(client_p, client_p, &me, comm_errstr(status));
-#endif
+	dead_link_on_write(client_p);
         return;
       }
 
@@ -2271,13 +2267,6 @@ serv_connect_callback(int fd, int status, void *data)
         sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 			     "%s went dead during handshake", client_p->name);
 
-	/* Only dead_link() sets IsDead()
-	 * dead_link() already calls exit_client()
-	 * so this exit_client() is unnecessary -db
-	 */
-#if 0
-        exit_client(client_p, client_p, &me, "Went dead during handshake");
-#endif
         return;
     }
 

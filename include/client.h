@@ -631,6 +631,7 @@ extern int set_initial_nick(struct Client *client_p, struct Client *source_p,
                             char *nick);
 extern int change_local_nick(struct Client *client_p, struct Client *source_p,
                              char *nick);
-extern void dead_link(struct Client *client_p);
+extern void dead_link_on_send(struct Client *client_p, int error);
+extern void dead_link_on_read(struct Client *client_p, int error);
 #endif /* INCLUDED_client_h */
 

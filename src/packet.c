@@ -296,7 +296,7 @@ read_ctrl_packet(int fd, void *data)
     {
       if((length == -1) && ignoreErrno(errno))
         goto nodata;
-      error_exit_client(server, length);
+      dead_link_on_read(server, length);
       return;
     }
 
@@ -327,7 +327,7 @@ read_ctrl_packet(int fd, void *data)
     {
       if((length == -1) && ignoreErrno(errno))
         goto nodata;
-      error_exit_client(server, length);
+      dead_link_on_read(server, length);
       return;
     }
 
@@ -404,7 +404,7 @@ read_packet(int fd, void *data)
       		read_packet, client_p, 0);
       return;
     }  	
-    error_exit_client(client_p, length);
+    dead_link_on_read(client_p, length);
     return;
   }
 
