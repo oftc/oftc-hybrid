@@ -1,3 +1,109 @@
+stu         2003/08/04 17:18:06 UTC	(20030804_1)
+
+  Modified files:
+    .                    Makefile.in configure 
+    autoconf             configure.in 
+    include              client.h fdlist.h hostmask.h irc_string.h 
+                         ircd_defs.h listener.h s_auth.h s_bsd.h 
+                         s_conf.h 
+    modules              .depend m_dmem.c m_kline.c m_map.c 
+                         m_rehash.c m_testline.c m_trace.c 
+                         m_unkline.c m_who.c 
+    src                  .depend Makefile.in client.c dynlink.c 
+                         hostmask.c ircd.c ircd_parser.y list.c 
+                         listener.c match.c motd.c resv.c s_auth.c 
+                         s_bsd.c s_bsd_poll.c s_conf.c s_debug.c 
+                         s_misc.c s_serv.c s_user.c 
+  Added files:
+    include              irc_getaddrinfo.h irc_getnameinfo.h 
+                         irc_res.h irc_reslib.h 
+    src                  irc_getaddrinfo.c irc_getnameinfo.c 
+                         irc_res.c irc_reslib.c 
+  Removed files:
+    adns                 COPYING README README.ircd adns.h check.c 
+                         descrip.mms dlist.h event.c general.c 
+                         internal.h parse.c query.c reply.c 
+                         setup.c transmit.c tvarith.h types.c 
+    include              res.h 
+  Log:
+  Reviewed by: Me
+  Approved by: Me
+  Obtained from: Hybrid upstream (largly me)
+  - Removed adns(yay!)
+  - Added new resolver from hybrid
+  - Added new ipv6 code from hybrid
+  
+  Revision  Changes      Path
+  1.2       +2 -2        oftc-hybrid/Makefile.in
+  1.2       +0 -340      oftc-hybrid/adns/COPYING (dead)
+  1.2       +0 -167      oftc-hybrid/adns/README (dead)
+  1.2       +0 -11       oftc-hybrid/adns/README.ircd (dead)
+  1.3       +0 -876      oftc-hybrid/adns/adns.h (dead)
+  1.2       +0 -220      oftc-hybrid/adns/check.c (dead)
+  1.2       +0 -22       oftc-hybrid/adns/descrip.mms (dead)
+  1.2       +0 -60       oftc-hybrid/adns/dlist.h (dead)
+  1.2       +0 -723      oftc-hybrid/adns/event.c (dead)
+  1.2       +0 -352      oftc-hybrid/adns/general.c (dead)
+  1.3       +0 -717      oftc-hybrid/adns/internal.h (dead)
+  1.3       +0 -250      oftc-hybrid/adns/parse.c (dead)
+  1.3       +0 -623      oftc-hybrid/adns/query.c (dead)
+  1.2       +0 -373      oftc-hybrid/adns/reply.c (dead)
+  1.2       +0 -697      oftc-hybrid/adns/setup.c (dead)
+  1.2       +0 -273      oftc-hybrid/adns/transmit.c (dead)
+  1.2       +0 -43       oftc-hybrid/adns/tvarith.h (dead)
+  1.3       +0 -1248     oftc-hybrid/adns/types.c (dead)
+  1.4       +1 -2        oftc-hybrid/autoconf/configure.in
+  1.4       +1674 -1056  oftc-hybrid/configure
+  1.9       +7 -8        oftc-hybrid/include/client.h
+  1.3       +3 -4        oftc-hybrid/include/fdlist.h
+  1.4       +11 -11      oftc-hybrid/include/hostmask.h
+  1.1       +71 -0       oftc-hybrid/include/irc_getaddrinfo.h (new)
+  1.1       +37 -0       oftc-hybrid/include/irc_getnameinfo.h (new)
+  1.1       +94 -0       oftc-hybrid/include/irc_res.h (new)
+  1.1       +57 -0       oftc-hybrid/include/irc_reslib.h (new)
+  1.3       +4 -2        oftc-hybrid/include/irc_string.h
+  1.4       +13 -70      oftc-hybrid/include/ircd_defs.h
+  1.3       +2 -5        oftc-hybrid/include/listener.h
+  1.4       +0 -53       oftc-hybrid/include/res.h (dead)
+  1.4       +10 -11      oftc-hybrid/include/s_auth.h
+  1.4       +6 -2        oftc-hybrid/include/s_bsd.h
+  1.5       +10 -9       oftc-hybrid/include/s_conf.h
+  1.3       +512 -376    oftc-hybrid/modules/.depend
+  1.3       +2 -3        oftc-hybrid/modules/m_dmem.c
+  1.5       +4 -4        oftc-hybrid/modules/m_kline.c
+  1.6       +6 -3        oftc-hybrid/modules/m_map.c
+  1.4       +2 -3        oftc-hybrid/modules/m_rehash.c
+  1.4       +3 -3        oftc-hybrid/modules/m_testline.c
+  1.3       +10 -3       oftc-hybrid/modules/m_trace.c
+  1.6       +3 -3        oftc-hybrid/modules/m_unkline.c
+  1.8       +2 -2        oftc-hybrid/modules/m_who.c
+  1.3       +229 -397    oftc-hybrid/src/.depend
+  1.3       +7 -4        oftc-hybrid/src/Makefile.in
+  1.22      +7 -2        oftc-hybrid/src/client.c
+  1.4       +2 -1        oftc-hybrid/src/dynlink.c
+  1.4       +58 -39      oftc-hybrid/src/hostmask.c
+  1.1       +609 -0      oftc-hybrid/src/irc_getaddrinfo.c (new)
+  1.1       +235 -0      oftc-hybrid/src/irc_getnameinfo.c (new)
+  1.1       +928 -0      oftc-hybrid/src/irc_res.c (new)
+  1.1       +1175 -0     oftc-hybrid/src/irc_reslib.c (new)
+  1.5       +1 -2        oftc-hybrid/src/ircd.c
+  1.6       +42 -11      oftc-hybrid/src/ircd_parser.y
+  1.5       +2 -2        oftc-hybrid/src/list.c
+  1.4       +86 -75      oftc-hybrid/src/listener.c
+  1.3       +51 -29      oftc-hybrid/src/match.c
+  1.4       +1 -2        oftc-hybrid/src/motd.c
+  1.4       +2 -1        oftc-hybrid/src/resv.c
+  1.4       +251 -272    oftc-hybrid/src/s_auth.c
+  1.9       +171 -95     oftc-hybrid/src/s_bsd.c
+  1.4       +1 -2        oftc-hybrid/src/s_bsd_poll.c
+  1.11      +98 -84      oftc-hybrid/src/s_conf.c
+  1.4       +0 -1        oftc-hybrid/src/s_debug.c
+  1.3       +1 -2        oftc-hybrid/src/s_misc.c
+  1.11      +77 -57      oftc-hybrid/src/s_serv.c
+  1.11      +4 -2        oftc-hybrid/src/s_user.c
+
+
+
 stu         2003/08/04 11:26:55 UTC	(20030804_0)
 
   Modified files:
