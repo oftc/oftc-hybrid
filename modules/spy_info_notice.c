@@ -46,10 +46,10 @@ const char *_version = "$Revision$";
 
 int show_info(struct hook_spy_data *data)
 {
-  sendto_realops_flags(FLAGS_SPY, L_ALL,
-                         "info requested by %s (%s@%s) [%s]",
-                         data->source_p->name, data->source_p->username,
-                         data->source_p->host, data->source_p->user->server);
+  sendto_gnotice_flags(FLAGS_SPY, L_OPER, me.name, &me, NULL,
+                         "INFO %s requested by %s (%s@%s)",
+			 me.name, data->source_p->name,
+			 data->source_p->username, data->source_p->host);
 
   return 0;
 }
