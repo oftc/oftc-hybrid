@@ -52,7 +52,7 @@ int show_trace(struct hook_spy_data *data)
   sendto_gnotice_flags(UMODE_SPY, L_OPER, me.name, &me, NULL,
                          "trace requested by %s (%s@%s) [%s]",
                          data->source_p->name, data->source_p->username,
-                         data->source_p->host, data->source_p->user->server);
+                         data->source_p->host, data->source_p->user->server->name);
 
   return 0;
 }
@@ -62,6 +62,6 @@ int show_ltrace(struct hook_spy_data *data)
   sendto_gnotice_flags(UMODE_SPY, L_OPER, me.name, &me, NULL,
 		       "ltrace requested by %s (%s@%s) [%s]",
 		       data->source_p->name, data->source_p->username,
-		       data->source_p->host, data->source_p->user->server);
+		       data->source_p->host, data->source_p->user->server->name);
   return 0;
 }

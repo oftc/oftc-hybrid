@@ -51,7 +51,7 @@ show_links(struct hook_links_data *data)
   sendto_gnotice_flags(UMODE_SPY, L_OPER, me.name, &me, NULL,
                          "LINKS '%s' requested by %s (%s@%s) [%s]",
                          data->mask, data->source_p->name, data->source_p->username,
-                         data->source_p->host, data->source_p->user->server);
+                         data->source_p->host, data->source_p->user->server->name);
 
   return 0;
 }
