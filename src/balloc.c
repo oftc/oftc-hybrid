@@ -406,6 +406,7 @@ BlockHeapAlloc(BlockHeap * bh)
       }
     assert(0 == 1);
     outofmemory();
+    return(NULL);
 }
 
 

@@ -45,7 +45,7 @@
 static void m_list(struct Client*, struct Client*, int, char**);
 static void ms_list(struct Client*, struct Client*, int, char**);
 static void mo_list(struct Client*, struct Client*, int, char**);
-static int list_all_channels(struct Client *, int, int);
+static int list_all_channels(struct Client *source_p, int, int);
 static void list_one_channel(struct Client *,struct Channel *);
 
 struct Message list_msgtab = {
@@ -67,7 +67,6 @@ _moddeinit(void)
 }
 const char *_version = "$Revision$";
 #endif
-static int list_all_channels(struct Client *source_p, int, int);
 static int list_named_channel(struct Client *source_p,char *name);
 
 
@@ -258,7 +257,7 @@ static int list_named_channel(struct Client *source_p,char *name)
   if ((p = strchr(name,',')) != NULL)
     *p = '\0';
   if (!*name)
-    return;
+    return 0;
 
   chptr = hash_find_channel(name);
   if (chptr == NULL)

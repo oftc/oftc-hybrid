@@ -692,18 +692,13 @@ GreetUser(struct Client *client)
       ubuf[0] = '+';
       ubuf[1] = '\0';
     }
+
+  if ((m = dlinkFindDelete(&unknown_list, client)) != NULL)
+    free_dlink_node(m);
+
+  dlinkAdd(client, &client->localClient->lclient_node, &lclient_list);
+
   
-#if 0
-  m = make_dlink_node();
-  dlinkAdd(client, m, &lclient_list);
-#endif
-
-  m = dlinkFind(&unknown_list, client);
-  assert(m != NULL);
-
-  dlinkDelete(m, &unknown_list);
-  dlinkAdd(client, m, &lclient_list);
-
 #if 0
   sendto_serv_butone(client,
 		     "NICK %s %d %lu %s %s %s %s :%s",

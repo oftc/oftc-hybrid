@@ -186,7 +186,8 @@ dlinkDelete(dlink_node *m, dlink_list *list)
  * output	- pointer to link or NULL if not found
  * side effects	- Look for ptr in the linked listed pointed to by link.
  */
-extern inline dlink_node *dlinkFind(dlink_list *list, void * data )
+extern inline dlink_node *
+dlinkFind(dlink_list *list, void * data )
 {
   dlink_node *ptr;
 
@@ -237,21 +238,10 @@ dlinkFindDelete(dlink_list *list, void *data)
 {
   dlink_node *m;
  
-  DLINK_FOREACH(m, list->head)
-  {
-    if(m->data != data)
-      continue;
- 
-    if (m->next != NULL)
-      m->next->prev = m->prev;
-    else
-      list->tail = m->prev;
-
-    m->next = m->prev = NULL;
-    list->length--;
-    return m;
-  }
-  return(NULL);
+  m = dlinkFind(list, data);
+  if (m)
+    dlinkDelete(m, list);
+  return(m);
 }
 #endif /* __GNUC__ */
 

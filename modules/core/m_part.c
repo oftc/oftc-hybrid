@@ -70,17 +70,15 @@ static void part_one_client(struct Client *client_p,
 			    struct Client *source_p,
 			    char *name, char *reason);
 
-
 /*
 ** m_part
 **      parv[0] = sender prefix
 **      parv[1] = channel
 **      parv[2] = reason
 */
-static void m_part(struct Client *client_p,
-                  struct Client *source_p,
-                  int parc,
-                  char *parv[])
+static void
+m_part(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
 {
   char  *p, *name;
   char reason[TOPICLEN+1];
@@ -120,10 +118,9 @@ static void m_part(struct Client *client_p,
  * output	- none
  * side effects	- remove ONE client given the channel name 
  */
-static void part_one_client(struct Client *client_p,
-			    struct Client *source_p,
-			    char *name,
-                            char *reason)
+static void
+part_one_client(struct Client *client_p, struct Client *source_p,
+                char *name, char *reason)
 {
   struct Channel *chptr;
   struct Channel *bchan;
@@ -161,46 +158,47 @@ static void part_one_client(struct Client *client_p,
       return;
     }
   if (MyConnect(source_p) && !IsOper(source_p))
-   check_spambot_warning(source_p, NULL);
-
+    check_spambot_warning(source_p, NULL);
+  
   /*
    *  Remove user from the old channel (if any)
    *  only allow /part reasons in -m chans
    */
   if(msg_has_colors(reason) && (chptr->mode.mode & MODE_NOCOLOR))
-        reason = strip_color(reason);
-        
-  if(reason[0] && (is_any_op(chptr, source_p) || !MyConnect(source_p) ||
-     ((can_send(chptr, source_p) > 0 && 
-      (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
-      < CurrentTime))))
-    {
-      sendto_server(client_p, NULL, chptr, CAP_UID, NOCAPS, NOFLAGS,
-                    ":%s PART %s :%s", ID(source_p), chptr->chname,
-                    reason);
-      sendto_server(client_p, NULL, chptr, NOCAPS, CAP_UID, NOFLAGS,
-                    ":%s PART %s :%s", source_p->name, chptr->chname,
-                    reason);
-      sendto_channel_local(ALL_MEMBERS,
-                           chptr, ":%s!%s@%s PART %s :%s",
-                           source_p->name,
-                           source_p->username,
-                           source_p->host,
-                           bchan->chname,
-                           reason);
-    }
+    reason = strip_color(reason);
+
+  if (reason[0] &&
+      (is_any_op(chptr, source_p) || !MyConnect(source_p) ||
+       ((can_send(chptr, source_p) > 0 && 
+         (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
+         < CurrentTime))))
+  {
+    sendto_server(client_p, NULL, chptr, CAP_UID, NOCAPS, NOFLAGS,
+                  ":%s PART %s :%s", ID(source_p), chptr->chname,
+                  reason);
+    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_UID, NOFLAGS,
+                  ":%s PART %s :%s", source_p->name, chptr->chname,
+                  reason);
+    sendto_channel_local(ALL_MEMBERS,
+                         chptr, ":%s!%s@%s PART %s :%s",
+                         source_p->name,
+                         source_p->username,
+                         source_p->host,
+                         bchan->chname,
+                         reason);
+  }
   else
-    {
-      sendto_server(client_p, NULL, chptr, CAP_UID, NOCAPS, NOFLAGS,
-                    ":%s PART %s", ID(source_p), chptr->chname);
-      sendto_server(client_p, NULL, chptr, NOCAPS, CAP_UID, NOFLAGS,
-                    ":%s PART %s", source_p->name, chptr->chname);
-      sendto_channel_local(ALL_MEMBERS,
-                           chptr, ":%s!%s@%s PART %s",
-                           source_p->name,
-                           source_p->username,
-                           source_p->host,
-                           bchan->chname);
-    }
+  {
+    sendto_server(client_p, NULL, chptr, CAP_UID, NOCAPS, NOFLAGS,
+                  ":%s PART %s", ID(source_p), chptr->chname);
+    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_UID, NOFLAGS,
+                  ":%s PART %s", source_p->name, chptr->chname);
+    sendto_channel_local(ALL_MEMBERS,
+                         chptr, ":%s!%s@%s PART %s",
+                         source_p->name,
+                         source_p->username,
+                         source_p->host,
+                         bchan->chname);
+  }
   remove_user_from_channel(chptr, source_p);
 }

@@ -327,7 +327,7 @@ extern struct admin_info  AdminInfo;        /* defined in ircd.c */
 dlink_list temporary_klines;
 dlink_list temporary_ip_klines;
 
-extern void clear_ip_hash_table(void);
+extern void init_ip_hash_table(void);
 extern void iphash_stats(struct Client *,struct Client *,int,char **,FBFILE*);
 extern void count_ip_hash(int *, u_long *);
 
@@ -403,7 +403,6 @@ extern void conf_add_u_conf(struct ConfItem *);
 extern void conf_add_services_conf(struct ConfItem *);
 extern void conf_add_fields(struct ConfItem*, char*, char *, char*, char *,char *);
 extern void conf_add_conf(struct ConfItem *);
-extern void flush_expired_ips(void *);
 
 /* XXX consider moving these into kdparse.h */
 extern void parse_k_file(FBFILE *fb);

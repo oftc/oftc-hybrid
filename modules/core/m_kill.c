@@ -72,8 +72,9 @@ const char *_version = "$Revision$";
 **      parv[1] = kill victim
 **      parv[2] = kill path
 */
-static void mo_kill(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+mo_kill(struct Client *client_p, struct Client *source_p,
+	int parc, char *parv[])
 {
   struct Client*    target_p;
   const char* inpath = client_p->name;
@@ -170,8 +171,9 @@ static void mo_kill(struct Client *client_p, struct Client *source_p,
  *      parv[1] = kill victim
  *      parv[2] = kill path and reason
  */
-static void ms_kill(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+ms_kill(struct Client *client_p, struct Client *source_p,
+	int parc, char *parv[])
 {
   struct Client *target_p;
   char *user;
@@ -281,7 +283,7 @@ static void ms_kill(struct Client *client_p, struct Client *source_p,
   relay_kill(client_p, source_p, target_p, path, reason);
 
   /* FLAGS_KILLED prevents a quit being sent out */ 
-  target_p->flags |= FLAGS_KILLED;
+  SetKilled(target_p);
 
   /* reason comes supplied with its own ()'s */
   if(ConfigServerHide.hide_servers && IsServer(source_p))
@@ -292,10 +294,9 @@ static void ms_kill(struct Client *client_p, struct Client *source_p,
   exit_client(client_p, target_p, source_p, buf);
 }
 
-static void relay_kill(struct Client *one, struct Client *source_p,
-                       struct Client *target_p,
-                       const char *inpath,
-		       const char *reason)
+static void
+relay_kill(struct Client *one, struct Client *source_p,
+	   struct Client *target_p, const char *inpath, const char *reason)
 {
   dlink_node *ptr;
   struct Client *client_p;

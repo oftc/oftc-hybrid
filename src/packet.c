@@ -58,7 +58,7 @@ parse_client_queued(struct Client *client_p)
 
     for(;;)
     {
-      if (IsDead(client_p))
+      if (IsClosing(client_p))
 	return;
       if (client_p->localClient == NULL)
 	return;
@@ -73,7 +73,7 @@ parse_client_queued(struct Client *client_p)
 	if(dolen <= 0)
 	  break;
                           
-      if(!IsDead(client_p))
+      if(!IsDefunct(client_p))
       {
         client_dopacket(client_p, readBuf, dolen);
         i++;
@@ -95,7 +95,7 @@ parse_client_queued(struct Client *client_p)
 
   if (IsServer(client_p) || IsConnecting(client_p) || IsHandshake(client_p))
   {
-    if(IsDead(client_p))
+    if(IsDefunct(client_p))
       return;
     if(client_p->localClient == NULL)
       return;
@@ -104,7 +104,7 @@ parse_client_queued(struct Client *client_p)
                               readBuf, READBUF_SIZE, LINEBUF_COMPLETE,
                               LINEBUF_PARSED)) > 0)
     {
-      if (!IsDead(client_p))
+      if (!IsDefunct(client_p))
         client_dopacket(client_p, readBuf, dolen);
       else if(MyConnect(client_p))
       {
@@ -120,10 +120,12 @@ parse_client_queued(struct Client *client_p)
   {
 
     if (ConfigFileEntry.no_oper_flood && (IsOper(client_p) || IsCanFlood(client_p)))
+    {
       if (ConfigFileEntry.true_no_oper_flood)
         checkflood = -1;
       else
         checkflood = 0;
+    }
 
     /*
      * Handle flood protection here - if we exceed our flood limit on
@@ -132,7 +134,7 @@ parse_client_queued(struct Client *client_p)
      */
     for(;;)
     {
-      if (IsDead(client_p))
+      if (IsDefunct(client_p))
 	break;
 
       /* This flood protection works as follows:
@@ -256,7 +258,7 @@ read_ctrl_packet(int fd, void *data)
     
   reply = &lserver->slinkrpl;
 
-  if(IsDead(server))
+  if(IsDefunct(server))
   {
     return;
   }
@@ -273,6 +275,7 @@ read_ctrl_packet(int fd, void *data)
     {
       if((length == -1) && ignoreErrno(errno))
         goto nodata;
+      dead_link_on_read(server, length);
       return;
     }
     reply->command = tmp[0];
@@ -375,7 +378,7 @@ read_packet(int fd, void *data)
 #ifndef NDEBUG
   struct hook_io_data hdata;
 #endif
-  if(IsDead(client_p))
+  if(IsDefunct(client_p))
     return;
   
   assert(lclient_p != NULL);
@@ -419,7 +422,7 @@ read_packet(int fd, void *data)
     client_p->lasttime = CurrentTime;
   if (client_p->lasttime > client_p->since)
     client_p->since = CurrentTime;
-  client_p->flags &= ~FLAGS_PINGSENT;
+  ClearPingSent(client_p);
 
   /*
    * Before we even think of parsing what we just read, stick
@@ -432,50 +435,37 @@ read_packet(int fd, void *data)
   lbuf_len = linebuf_parse(&client_p->localClient->buf_recvq,
                            readBuf, length, binary);
 
-  if (lbuf_len < 0)
-  {
-    if (IsClient(client_p))
-      sendto_one(client_p, ":%s NOTICE %s :*** - You sent a NULL character in "
-                 "your message. Ignored.",
-                 me.name, client_p->name);
-    else
-      exit_client(client_p, client_p, client_p, "NULL character found in message");
-    return;
-  }
-
   lclient_p->actually_read += lbuf_len;
   
   /* Attempt to parse what we have */
 
-  if (!IsDead(client_p))
+  parse_client_queued(client_p);
+
+  /* Check to make sure we're not flooding */
+  if (IsPerson(client_p) &&
+      (linebuf_alloclen(&client_p->localClient->buf_recvq) >
+       ConfigFileEntry.client_flood))
   {
-    parse_client_queued(client_p);
-    if (IsDead(client_p))
+    if (!(ConfigFileEntry.no_oper_flood && IsOper(client_p)))
+    {
+      exit_client(client_p, client_p, client_p, "Excess Flood");
       return;
-
-    /* Check to make sure we're not flooding */
-    if (IsPerson(client_p) &&
-	(linebuf_alloclen(&client_p->localClient->buf_recvq) >
-	 ConfigFileEntry.client_flood))
-    {
-      if (!(ConfigFileEntry.no_oper_flood && IsOper(client_p)))
-      {
-	exit_client(client_p, client_p, client_p, "Excess Flood");
-	return;
-      }
     }
+  }
 
-    /* server fd may have changed */
-    fd_r = client_p->localClient->fd;
+  /* server fd may have changed */
+  fd_r = client_p->localClient->fd;
 #ifndef HAVE_SOCKETPAIR
-    if (HasServlink(client_p))
-    {
-      assert(client_p->localClient->fd_r > -1);
-      fd_r = client_p->localClient->fd_r;
-    }
+  if (HasServlink(client_p))
+  {
+    assert(client_p->localClient->fd_r > -1);
+    fd_r = client_p->localClient->fd_r;
+  }
 #endif
 
   
+  if (!IsDefunct(client_p))
+  {
     /* If we get here, we need to register for another COMM_SELECT_READ */
     if (PARSE_AS_SERVER(client_p))
     {

@@ -117,6 +117,7 @@ static void mo_die(struct Client *client_p, struct Client *source_p,
   /* 
    * this is a normal exit, tell the os it's ok 
    */
+  unlink(pidFileName);
   exit(0);
   /* NOT REACHED */
 }

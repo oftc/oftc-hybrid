@@ -70,6 +70,20 @@ sigusr1_handler(int sig)
 }
 
 /*
+ * 
+ * inputs	- nothing
+ * output	- nothing
+ * side effects - Reaps zombies periodically
+ * -AndroSyn
+ */
+static void
+sigchld_handler(int sig)
+{
+  int status;
+  waitpid(-1, &status, WNOHANG);
+}
+
+/*
  * sigint_handler - restart the server
  */
 static void 
@@ -135,6 +149,9 @@ setup_signals()
   sigaddset(&act.sa_mask, SIGUSR1);
   sigaction(SIGUSR1, &act, 0);
 
+  act.sa_handler = sigchld_handler;
+  sigaddset(&act.sa_mask, SIGCHLD);
+  sigaction(SIGCHLD, &act, 0);
 }
 
 

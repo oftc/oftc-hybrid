@@ -60,7 +60,7 @@ void server_reboot(void)
   sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
                        "Restarting server...");
 
-  ilog(L_NOTICE, "Restarting server...");
+  ilog(L_NOTICE, "Restarting server... (%s)",SPATH);
   /*
    * XXX we used to call flush_connections() here. But since this routine
    * doesn't exist anymore, we won't be flushing. This is ok, since 
@@ -71,11 +71,11 @@ void server_reboot(void)
    * bah, for now, the program ain't coming back to here, so forcibly
    * close everything the "wrong" way for now, and just LEAVE...
    */
-  for (i = 0; i < MAXCONNECTIONS; ++i)
+  for (i = 3; i < MAXCONNECTIONS; ++i)
     close(i);
+  unlink(pidFileName);
   execv(SPATH, myargv);
-
+  fprintf(stderr, "ircd: execv() failed: %s\n", strerror(errno));
   exit(-1);
 }
-
 

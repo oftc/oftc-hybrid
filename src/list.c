@@ -54,7 +54,8 @@ int user_count=0;
  *
  */
 static BlockHeap *user_heap;
-void initUser(void)
+void
+initUser(void)
 {
   user_heap = BlockHeapCreate(sizeof(struct User), USER_HEAP_SIZE);
   if(!user_heap)
@@ -68,7 +69,8 @@ void initUser(void)
  * side effects - add's an User information block to a client
  *                if it was not previously allocated.
  */
-struct User* make_user(struct Client *client_p)
+struct User*
+make_user(struct Client *client_p)
 {
   struct User        *user;
 
@@ -94,7 +96,8 @@ struct User* make_user(struct Client *client_p)
  * side effects - add's an Server information block to a client
  *                if it was not previously allocated.
  */
-struct Server *make_server(struct Client *client_p)
+struct Server *
+make_server(struct Client *client_p)
 {
   struct Server* serv = client_p->serv;
 
@@ -127,35 +130,36 @@ struct Server *make_server(struct Client *client_p)
  * side effects - Decrease user reference count by one and release block,
  *                if count reaches 0
  */
-void free_user(struct User* user, struct Client* client_p)
+void
+free_user(struct User* user, struct Client* client_p)
 {
   if (--user->refcnt <= 0)
+  {
+    if (user->away)
+      MyFree((char *)user->away);
+    /*
+     * sanity check
+     */
+    if (user->joined || user->refcnt < 0 ||
+	user->invited.head || user->channel.head)
     {
-      if (user->away)
-        MyFree((char *)user->away);
-      /*
-       * sanity check
-       */
-      if (user->joined || user->refcnt < 0 ||
-          user->invited.head || user->channel.head)
-      {
         sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-			     "* %#lx user (%s!%s@%s) %#lx %#lx %#lx %d %d *",
-			     (unsigned long)client_p, client_p ? client_p->name : "<noname>",
-			     client_p->username, client_p->host, (unsigned long)user,
-			     (unsigned long)user->invited.head,
-			     (unsigned long)user->channel.head, user->joined,
-			     user->refcnt);
-        assert(!user->joined);
-        assert(!user->refcnt);
-        assert(!user->invited.head);
-        assert(!user->channel.head);
-      }
-
-      BlockHeapFree(user_heap, user);
-      --user_count;
-      assert(user_count >= 0);
+			   "* %#lx user (%s!%s@%s) %#lx %#lx %#lx %d %d *",
+			   (unsigned long)client_p, client_p ? client_p->name : "<noname>",
+			   client_p->username, client_p->host, (unsigned long)user,
+			   (unsigned long)user->invited.head,
+			   (unsigned long)user->channel.head, user->joined,
+			   user->refcnt);
+      assert(!user->joined);
+      assert(!user->refcnt);
+      assert(!user->invited.head);
+      assert(!user->channel.head);
     }
+
+    BlockHeapFree(user_heap, user);
+    --user_count;
+    assert(user_count >= 0);
+  }
 }
 
 
@@ -198,7 +202,8 @@ make_dlink_node(void)
  * output	- NONE
  * side effects	- free given dlink_node 
  */
-void free_dlink_node(dlink_node *ptr)
+void
+free_dlink_node(dlink_node *ptr)
 {
   BlockHeapFree(dnode_heap, ptr);
   --links_count;
@@ -214,7 +219,8 @@ void free_dlink_node(dlink_node *ptr)
  * output	- NONE
  * side effects	- NONE
  */
-void count_user_memory(int *count,int *user_memory_used)
+void
+count_user_memory(int *count,int *user_memory_used)
 {
   *count = user_count;
   *user_memory_used = user_count * sizeof(struct User);
@@ -228,7 +234,8 @@ void count_user_memory(int *count,int *user_memory_used)
  * output	- NONE
  * side effects	- NONE
  */
-void count_links_memory(int *count,int *links_memory_used)
+void
+count_links_memory(int *count,int *links_memory_used)
 {
   *count = links_count;
   *links_memory_used = links_count * sizeof(dlink_node);

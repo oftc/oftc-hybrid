@@ -132,7 +132,7 @@ static int whowas_do(struct Client *client_p, struct Client *source_p,
     max = atoi(parv[2]);
   if (parc > 3)
     if (hunt_server(client_p,source_p,":%s WHOWAS %s %s :%s", 3,parc,parv))
-      return 0;
+      return(0);
 
   nick = parv[1];
   while (*nick == ',')
@@ -140,7 +140,7 @@ static int whowas_do(struct Client *client_p, struct Client *source_p,
   if((p = strchr(nick,',')) != NULL)
     *p = '\0';
   if (!*nick)
-    return;
+    return(0);
 
   temp = WHOWASHASH[hash_whowas_name(nick)];
   found = 0;

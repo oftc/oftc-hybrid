@@ -94,7 +94,7 @@ static void clear_special_conf(struct ConfItem **);
 
 #define IP_HASH_SIZE 0x1000
 
-typedef struct ip_entry
+struct ip_entry
 {
 #ifndef IPV6
   u_int32_t ip;
@@ -104,13 +104,14 @@ typedef struct ip_entry
   int        count;
   time_t last_attempt;
   struct ip_entry *next;
-} IP_ENTRY;
+};
 
-static IP_ENTRY *ip_hash_table[IP_HASH_SIZE];
-
+static struct ip_entry *ip_hash_table[IP_HASH_SIZE];
+static BlockHeap *ip_entry_heap = NULL;
+static int ip_entries_count = 0;
 static int hash_ip(struct irc_inaddr *);
-
-static IP_ENTRY *find_or_add_ip(struct irc_inaddr*);
+static void garbage_collect_ip_entries(void);
+static struct ip_entry *find_or_add_ip(struct irc_inaddr*);
 
 /* general conf items link list root */
 struct ConfItem* ConfigItemList = NULL;
@@ -217,6 +218,7 @@ free_conf(struct ConfItem* aconf)
   MyFree(aconf->name);
   MyFree(aconf->className);
   MyFree(aconf->user);
+  MyFree(aconf->fakename);
 #ifdef HAVE_LIBCRYPTO
   if (aconf->rsa_public_key)        { RSA_free(aconf->rsa_public_key); }
   if (aconf->rsa_public_key_file)   { MyFree(aconf->rsa_public_key_file); }
@@ -308,7 +310,7 @@ report_configured_links(struct Client* source_p, int mask)
 	      *s++ = 'L';
 	    if (tmp->flags & CONF_FLAGS_COMPRESSED)
 	      *s++ = 'Z';
-	    if (tmp->fakename)
+	    if (tmp->fakename != NULL)
 	      *s++ = 'M';
 	    
 	    if (!buf[0])
@@ -425,20 +427,21 @@ report_specials(struct Client* source_p, int flags, int numeric)
 int 
 check_client(struct Client *client_p, struct Client *source_p, char *username)
 {
-  static char     sockname[HOSTLEN + 1];
-  int             i;
+  int i;
  
   ClearAccess(source_p);
 
+  /* I'm already in big trouble if source_p->localClient is NULL -db */
   if ((i = verify_access(source_p, username)))
-    {
-      ilog(L_INFO, "Access denied: %s[%s]", source_p->name, sockname);
-    }
+  {
+    ilog(L_INFO, "Access denied: %s[%s]", 
+	 source_p->name, source_p->localClient->sockhost);
+  }
 
   switch( i )
     {
     case SOCKET_ERROR:
-      (void)exit_client(client_p, source_p, &me, "Socket Error");
+      exit_client(client_p, source_p, &me, "Socket Error");
       break;
 
     case TOO_MANY:
@@ -489,12 +492,12 @@ check_client(struct Client *client_p, struct Client *source_p, char *username)
 	  source_p->localClient->listener->name,
 	  source_p->localClient->listener->port);
 	  
-      (void)exit_client(client_p, source_p, &me,
-			"You are not authorized to use this server");
+      exit_client(client_p, source_p, &me,
+		  "You are not authorised to use this server");
       break;
     }
     case BANNED_CLIENT:
-      (void)exit_client(client_p,client_p, &me, "*** Banned ");
+      exit_client(client_p,client_p, &me, "*** Banned ");
       ServerStats->is_ref++;
       break;
 
@@ -606,18 +609,18 @@ verify_access(struct Client* client_p, const char* username)
  * output	-
  * side effects	- do actual attach
  */
-static 
-int attach_iline(struct Client *client_p, struct ConfItem *aconf)
+static int
+attach_iline(struct Client *client_p, struct ConfItem *aconf)
 {
-  IP_ENTRY *ip_found;
+  struct ip_entry *ip_found;
   ip_found = find_or_add_ip(&client_p->localClient->ip);
 
   SetIpHash(client_p);
   ip_found->count++;
 
   /* only check it if its non zero */
-  if ( aconf->c_class /* This should never non NULL *grin* */ &&
-       ConfConFreq(aconf) && ip_found->count > ConfConFreq(aconf))
+  if (aconf->c_class /* This should never non NULL *grin* */ &&
+      ConfConFreq(aconf) && ip_found->count > ConfConFreq(aconf))
     {
       if(!IsConfExemptLimits(aconf))
         return(TOO_MANY); /* Already at maximum allowed ip#'s */
@@ -632,45 +635,19 @@ int attach_iline(struct Client *client_p, struct ConfItem *aconf)
   return(attach_conf(client_p, aconf));
 }
 
-/* link list of free IP_ENTRY's */
-
-static IP_ENTRY *free_ip_entries;
-
 /*
- * clear_ip_hash_table()
+ * init_ip_hash_table()
  *
  * input                - NONE
  * output               - NONE
- * side effects         - clear the ip hash table
- *
+ * side effects         - allocate memory for ip_entry(s)
+ *			- clear the ip hash table
  */
 
 void 
-clear_ip_hash_table()
+init_ip_hash_table()
 {
-  void *block_IP_ENTRIES;        /* block of IP_ENTRY's */
-  IP_ENTRY *new_IP_ENTRY;        /* new IP_ENTRY being made */
-  IP_ENTRY *last_IP_ENTRY;        /* last IP_ENTRY in chain */
-  int size;
-  int n_left_to_allocate = MAXCONNECTIONS;
-
-  size = sizeof(IP_ENTRY) + (sizeof(IP_ENTRY) & (sizeof(void*) - 1) );
-
-  block_IP_ENTRIES = (void *)MyMalloc((size * n_left_to_allocate));  
-
-  free_ip_entries = (IP_ENTRY *)block_IP_ENTRIES;
-  last_IP_ENTRY = free_ip_entries;
-
-  /* *shudder* pointer arithmetic */
-  while(--n_left_to_allocate)
-    {
-      block_IP_ENTRIES = (void *)((unsigned long)block_IP_ENTRIES + 
-                        (unsigned long) size);
-      new_IP_ENTRY = (IP_ENTRY *)block_IP_ENTRIES;
-      last_IP_ENTRY->next = new_IP_ENTRY;
-      new_IP_ENTRY->next = (IP_ENTRY *)NULL;
-      last_IP_ENTRY = new_IP_ENTRY;
-    }
+  ip_entry_heap = BlockHeapCreate(sizeof(struct ip_entry), 2*MAXCONNECTIONS);
   memset((void *)ip_hash_table, 0, sizeof(ip_hash_table));
 }
 
@@ -680,52 +657,44 @@ clear_ip_hash_table()
  * inputs       - client_p
  *              - name
  *
- * output       - pointer to an IP_ENTRY element
+ * output       - pointer to a struct ip_entry
  * side effects -
  *
- * If the ip # was not found, a new IP_ENTRY is created, and the ip
+ * If the ip # was not found, a new struct ip_entry is created, and the ip
  * count set to 0.
- * XXX: Broken for IPv6
  */
 
-static IP_ENTRY *
+static struct ip_entry *
 find_or_add_ip(struct irc_inaddr *ip_in)
 {
-  int hash_index;
-  IP_ENTRY *ptr, *newptr;
+  struct ip_entry *ptr, *newptr;
+  int hash_index=hash_ip(ip_in);
 
-  for(ptr = ip_hash_table[hash_index = hash_ip(ip_in)]; ptr;
-      ptr = ptr->next)
+  for(ptr = ip_hash_table[hash_index]; ptr; ptr = ptr->next)
   {
-   if(!memcmp(&ptr->ip, ip_in, sizeof(struct irc_inaddr)))
-   {
-    return(ptr);
-   }
-  }
-  if ((ptr = ip_hash_table[hash_index]) != (IP_ENTRY *)NULL)
+    if(memcmp(&ptr->ip, ip_in, sizeof(struct irc_inaddr)) == 0)
     {
-      if( free_ip_entries == (IP_ENTRY *)NULL)
-	outofmemory();
-
-      newptr = ip_hash_table[hash_index] = free_ip_entries;
-      free_ip_entries = newptr->next;
-
-      memcpy(&newptr->ip, ip_in, sizeof(struct irc_inaddr));
-      newptr->count = 0;
-      newptr->last_attempt = 0;
-      newptr->next = ptr;
-      return(newptr);
+      /* Found entry already in hash, return it. */
+      return(ptr);
     }
+  }
 
-  if (free_ip_entries == (IP_ENTRY *)NULL)
-    outofmemory();
+  if (ip_entries_count >= (2*MAXCONNECTIONS))
+    garbage_collect_ip_entries();
 
-  ptr = ip_hash_table[hash_index] = free_ip_entries;
-  free_ip_entries = ptr->next;
-  memcpy(&ptr->ip, ip_in, sizeof(struct irc_inaddr));
-  ptr->count = 0;
-  ptr->next = (IP_ENTRY *)NULL;
-  return(ptr);
+  newptr = BlockHeapAlloc(ip_entry_heap);
+  ip_entries_count++;
+  memcpy(&newptr->ip, ip_in, sizeof(struct irc_inaddr));
+  newptr->count = 0;
+  newptr->last_attempt = 0;
+
+  if ((ptr = ip_hash_table[hash_index]) != NULL)
+    newptr->next = ptr;
+  else
+    newptr->next = NULL;
+
+  ip_hash_table[hash_index] = newptr;
+  return(newptr);
 }
 
 /* 
@@ -733,39 +702,45 @@ find_or_add_ip(struct irc_inaddr *ip_in)
  *
  * inputs        - unsigned long IP address value
  * output        - NONE
- * side effects  - ip address listed, is looked up in ip hash table
+ * side effects  - The ip address given, is looked up in ip hash table
  *                 and number of ip#'s for that ip decremented.
- *                 if ip # count reaches 0, the IP_ENTRY is returned
- *                 to the free_ip_enties link list.
+ *                 If ip # count reaches 0 and has expired,
+ *		   the struct ip_entry is returned to the ip_entry_heap
  */
 
 void 
 remove_one_ip(struct irc_inaddr *ip_in)
 {
-  IP_ENTRY *ptr, **lptr;
+  struct ip_entry *ptr;
+  struct ip_entry *last_ptr = NULL;
   int hash_index = hash_ip(ip_in);
-  for (lptr = ip_hash_table+hash_index, ptr = *lptr;
-       ptr;
-       lptr=&ptr->next, ptr=*lptr)
+
+  for(ptr = ip_hash_table[hash_index]; ptr; ptr = ptr->next)
   {
 #ifndef IPV6
-   if (ptr->ip != PIN_ADDR(ip_in))
-    continue;
+    if (ptr->ip != PIN_ADDR(ip_in))
+      continue;
 #else
-   if (memcmp(&IN_ADDR(ptr->ip), &PIN_ADDR(ip_in),
-              sizeof(struct irc_inaddr)))
-    continue;
+    if (memcmp(&IN_ADDR(ptr->ip), &PIN_ADDR(ip_in),
+	       sizeof(struct irc_inaddr)))
+      continue;
 #endif
-  if (ptr->count != 0)
-   ptr->count--;
-  if (ptr->count != 0 ||
-      (CurrentTime-ptr->last_attempt)<=ConfigFileEntry.throttle_time)
-   continue;
-  *lptr = ptr->next;
-  ptr->next = free_ip_entries;
-  free_ip_entries = ptr;
-  return;
- }
+    if (ptr->count > 0)
+      ptr->count--;
+    if (ptr->count == 0 &&
+	(CurrentTime-ptr->last_attempt) >= ConfigFileEntry.throttle_time)
+    {
+      if (last_ptr != NULL)
+	last_ptr->next = ptr->next;
+      else
+	ip_hash_table[hash_index] = ptr->next;
+
+      BlockHeapFree(ip_entry_heap, ptr);
+      ip_entries_count--;
+      return;
+    }
+    last_ptr = ptr;
+  }
 }
 
 /*
@@ -824,24 +799,57 @@ hash_ip(struct irc_inaddr *addr)
 void 
 count_ip_hash(int *number_ips_stored,u_long *mem_ips_stored)
 {
-  IP_ENTRY *ip_hash_ptr;
+  struct ip_entry *ptr;
   int i;
 
   *number_ips_stored = 0;
   *mem_ips_stored = 0;
 
   for (i = 0; i < IP_HASH_SIZE ;i++)
+  {
+    for (ptr = ip_hash_table[i]; ptr; ptr = ptr->next)
     {
-      ip_hash_ptr = ip_hash_table[i];
-      while(ip_hash_ptr)
-        {
-          *number_ips_stored = *number_ips_stored + 1;
-          *mem_ips_stored = *mem_ips_stored +
-             sizeof(IP_ENTRY);
-
-          ip_hash_ptr = ip_hash_ptr->next;
-        }
+      *number_ips_stored += 1;
+      *mem_ips_stored += sizeof(struct ip_entry);
     }
+  }
+}
+
+/*
+ * garbage_collect_ip_entries()
+ *
+ * input	- NONE
+ * output	- NONE
+ * side effects	- free up all ip entries with no connections
+ */
+static void
+garbage_collect_ip_entries(void)
+{
+  struct ip_entry *ptr;
+  struct ip_entry *last_ptr;
+  struct ip_entry *next_ptr;
+  int i;
+
+  for(i = 0; i < IP_HASH_SIZE; i++)
+  {
+    last_ptr = NULL;
+    for(ptr = ip_hash_table[i]; ptr; ptr = next_ptr)
+    {
+      next_ptr = ptr->next;
+
+      if (ptr->count == 0)
+      {
+	if (last_ptr != NULL)
+	  last_ptr->next = ptr->next;
+	else
+	  ip_hash_table[i] = ptr->next;
+	BlockHeapFree(ip_entry_heap, ptr);
+	ip_entries_count--;
+      }
+      else
+	last_ptr = ptr;
+    }
+  }
 }
 
 /*
@@ -853,9 +861,9 @@ count_ip_hash(int *number_ips_stored,u_long *mem_ips_stored)
  */
 void 
 iphash_stats(struct Client *client_p, struct Client *source_p,
-		  int parc, char *parv[],FBFILE* out)
+	     int parc, char *parv[],FBFILE* out)
 {
-  IP_ENTRY *ip_hash_ptr;
+  struct ip_entry *ptr;
   int i;
   int collision_count;
   char result_buf[256];
@@ -864,36 +872,32 @@ iphash_stats(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p,":%s NOTICE %s :*** hash stats for iphash",
                me.name,client_p->name);
   else
-    {
-      (void)sprintf(result_buf,"*** hash stats for iphash\n");
-      (void)fbputs(result_buf,out);
-    }
+  {
+    (void)sprintf(result_buf,"*** hash stats for iphash\n");
+    (void)fbputs(result_buf,out);
+  }
 
   for(i = 0; i < IP_HASH_SIZE ;i++)
-    {
-      ip_hash_ptr = ip_hash_table[i];
+  {
+    collision_count = 0;
+    for (ptr = ip_hash_table[i]; ptr; ptr = ptr->next)
+      collision_count++;
 
-      collision_count = 0;
-      while(ip_hash_ptr)
-        {
-          collision_count++;
-          ip_hash_ptr = ip_hash_ptr->next;
-        }
-      if(collision_count)
-        {
-          if(out == NULL)
-            {
-              sendto_one(source_p,":%s NOTICE %s :Entry %d (0x%X) Collisions %d",
-                         me.name,client_p->name,i,i,collision_count);
-            }
-          else
-            {
-              (void)sprintf(result_buf,"Entry %d (0x%X) Collisions %d\n",
-                            i,i,collision_count);
-              (void)fbputs(result_buf,out);
-            }
-        }
+    if(collision_count != 0)
+    {
+      if(out == NULL)
+      {
+	sendto_one(source_p,":%s NOTICE %s :Entry %d (0x%X) Collisions %d",
+		   me.name,client_p->name,i,i,collision_count);
+      }
+      else
+      {
+	(void)sprintf(result_buf,"Entry %d (0x%X) Collisions %d\n",
+		      i,i,collision_count);
+	(void)fbputs(result_buf,out);
+      }
     }
+  }
 }
 
 /*
@@ -931,9 +935,7 @@ detach_conf(struct Client* client_p,struct ConfItem* aconf)
 	}
       }
       if (aconf && !--aconf->clients && IsIllegal(aconf))
-      {
 	free_conf(aconf);
-      }
       dlinkDelete(ptr, &client_p->localClient->confs);
       free_dlink_node(ptr);
       return(0);
@@ -1642,7 +1644,7 @@ lookup_confhost(struct ConfItem* aconf)
 int 
 conf_connect_allowed(struct irc_inaddr *addr, int aftype)
 {
-  IP_ENTRY *ip_found;
+  struct ip_entry *ip_found;
   struct ConfItem *aconf = find_dline_conf(addr,aftype);
  
   /* DLINE exempt also gets you out of static limits/pacing... */
@@ -1655,11 +1657,10 @@ conf_connect_allowed(struct irc_inaddr *addr, int aftype)
   ip_found = find_or_add_ip(addr);
   if ((CurrentTime - ip_found->last_attempt) <
       ConfigFileEntry.throttle_time)
-    {
-      ip_found->last_attempt = CurrentTime;
-      ip_found->count--;
-      return(TOO_FAST);
-    }
+  {
+    ip_found->last_attempt = CurrentTime;
+    return(TOO_FAST);
+  }
   ip_found->last_attempt = CurrentTime;
   return(0);
 }
@@ -2195,8 +2196,8 @@ void clear_out_old_conf(void)
  * side effects - This function removes I/P conf items
  */
 
-static 
-void flush_deleted_I_P(void)
+static void
+flush_deleted_I_P(void)
 {
   struct ConfItem **tmp = &ConfigItemList;
   struct ConfItem *tmp2;
@@ -2252,7 +2253,7 @@ WriteKlineOrDline( KlineType type,
 
   filename = get_conf_name(type);
 
-  if(type == DLINE_TYPE)
+  if (type == DLINE_TYPE)
     {
       sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 			   "%s added D-Line for [%s] [%s]",
@@ -2275,7 +2276,7 @@ WriteKlineOrDline( KlineType type,
             me.name, source_p->name, user, host);
     }
 
-  if ( (out = fbopen(filename, "a")) == NULL )
+  if ((out = fbopen(filename, "a")) == NULL)
     {
       sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
 			   "*** Problem opening %s ", filename);
@@ -2562,35 +2563,4 @@ int
 conf_yy_fatal_error(char *msg)
 {
   return(0);
-}
-
-
-/* void flush_expired_ips(void *unused)
- *
- * inputs	- none.
- * output	- none.
- * side effects	- Deletes all IP address entries which should have expired.
- */
-void
-flush_expired_ips(void *unused)
-{
-  int i;
-  time_t expire_before = CurrentTime - ConfigFileEntry.throttle_time;
-  IP_ENTRY *ie, **iee;
-
-  for (i=0; i<IP_HASH_SIZE; i++)
-    {
-      for (iee=ip_hash_table+i, ie=*iee; ie; ie=*iee)
-	{
-	  if (ie->count == 0 && ie->last_attempt <= expire_before)
-	    {
-	      *iee=ie->next;
-	      ie->next = free_ip_entries;
-	      free_ip_entries = ie;
-	    }
-	  else
-	    iee = &ie->next;
-	}
-      *iee = NULL;
-    }
 }

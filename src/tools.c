@@ -62,7 +62,7 @@ dlinkAdd(void *data, dlink_node * m, dlink_list * list)
  /* Assumption: If list->tail != NULL, list->head != NULL */
  if (list->head != NULL)
    list->head->prev = m;
- else if (list->tail == NULL)
+ else /* if (list->tail == NULL) */
    list->tail = m;
 
  list->head = m;
@@ -97,7 +97,7 @@ dlinkAddTail(void *data, dlink_node *m, dlink_list *list)
   /* Assumption: If list->tail != NULL, list->head != NULL */
   if (list->tail != NULL)
     list->tail->next = m;
-  else if (list->head == NULL)
+  else /* if (list->head == NULL) */
     list->head = m;
  
   list->tail = m;
@@ -186,19 +186,8 @@ dlinkFindDelete(dlink_list *list, void *data)
 {
   dlink_node *m;
 
-  DLINK_FOREACH(m, list->head)
-  {
-    if(m->data != data)
-      continue;
-
-    if (m->next != NULL)
-      m->next->prev = m->prev;
-    else
-      list->tail = m->prev;
-
-    m->next = m->prev = NULL;
-    list->length--;
-    return m;
-  }
-  return(NULL);
+  m = dlinkFind(list, data);
+  if (m)
+    dlinkDelete(m, list);
+  return(m);
 }

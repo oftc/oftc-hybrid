@@ -86,6 +86,10 @@ static const char *logLevelToString[] =
 static int 
 open_log(const char* filename)
 {
+  if (!server_state.foreground)
+  {
+    close(2); /* let the logfile grab fd 2 to catch stderr */
+  }
   logFile = fbopen(filename, "a");
   if (logFile == NULL)
   {

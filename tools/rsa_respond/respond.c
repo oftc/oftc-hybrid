@@ -48,6 +48,11 @@ static int pass_cb(char *buf, int size, int rwflag, void *u)
 	}
 
 	tmp = getpass("Enter passphrase for challenge: ");
+	if (!tmp)
+        {
+		puts("Couldn't read passphrase from stdin!");
+		exit(-1);
+	}
         len = strlen(tmp);
         if (len <= 0) 
 		return 0;
@@ -137,7 +142,7 @@ main(int argc, char **argv)
   
 	if(!rsa)
 	{
-		puts("Unable to read your private key, is the passphrase wrong?\n");
+		puts("Unable to read your private key, is the passphrase wrong?");
 		return 0;
 	}
 

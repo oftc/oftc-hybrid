@@ -121,3 +121,6 @@ typedef unsigned long u_long;
 #define inline
 #endif
 
+/* PATH_DEVNULL */
+#define PATH_DEVNULL "NL:"
+

@@ -127,8 +127,8 @@ tstats(struct Client *source_p)
 
   sendto_one(source_p, ":%s %d %s :connected %u %u",
              me.name, RPL_STATSDEBUG, source_p->name, 
-	     dlink_list_length(&lclient_list), 
-	     dlink_list_length(&serv_list));
+	     (unsigned int)dlink_list_length(&lclient_list), 
+	     (unsigned int)dlink_list_length(&serv_list));
   sendto_one(source_p, ":%s %d %s :bytes sent %d.%uK %d.%uK",
              me.name, RPL_STATSDEBUG, source_p->name,
              (int)sp->is_cks, sp->is_cbs, (int)sp->is_sks, sp->is_sbs);

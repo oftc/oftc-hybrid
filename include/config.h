@@ -303,6 +303,12 @@
 #define ANONOPS
 #define HALFOPS
 
+/*
+ * The maximum number of local clients that are likely to close at once. If
+ * this number is exceeded, it will still work, but it will be slower...
+ */
+#define LOCAL_CLOSE_TABLE_SIZE 16
+
 /* END OF CONFIGURABLE OPTIONS */
 
 /* disable them for efnet */

@@ -375,6 +375,7 @@ mo_modload (struct Client *client_p, struct Client *source_p, int parc, char **p
   {
     sendto_one (source_p, ":%s NOTICE %s :Module %s is already loaded",
                 me.name, source_p->name, m_bn);
+    MyFree(m_bn);
     return;
   }
 

@@ -95,6 +95,9 @@
 /* EFNET */
 #undef EFNET
 
+/* PATH_DEVNULL */
+#undef PATH_DEVNULL
+
 /* Define if you have the EVP_bf_cfb function.  */
 #undef HAVE_EVP_BF_CFB
 

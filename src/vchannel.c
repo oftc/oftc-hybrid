@@ -256,8 +256,7 @@ del_vchan_from_client_cache(struct Client *source_p, struct Channel *vchan)
   if(source_p == NULL)
     return;
 
-  for (vchanmap_node = source_p->vchan_map.head; vchanmap_node;
-       vchanmap_node = vchanmap_node->next)
+  DLINK_FOREACH(vchanmap_node, source_p->vchan_map.head)
     {
       vchan_info = vchanmap_node->data;
       if (vchan_info->vchan == vchan)
@@ -293,8 +292,7 @@ on_sub_vchan(struct Channel *chptr, struct Client *source_p)
     return YES;
 
   /* check to see if this chptr maps to a sub vchan */
-  for (vchanmap_node = source_p->vchan_map.head; vchanmap_node;
-       vchanmap_node = vchanmap_node->next)
+  DLINK_FOREACH(vchanmap_node, source_p->vchan_map.head)
     {
       vchan_info = vchanmap_node->data;
       if (vchan_info->base_chan == chptr)
@@ -328,15 +326,14 @@ map_vchan(struct Channel *chptr, struct Client *source_p)
     return chptr;
 
   /* check to see if this chptr maps to a sub vchan */
-  for (vchanmap_node = source_p->vchan_map.head; vchanmap_node;
-       vchanmap_node = vchanmap_node->next)
+  DLINK_FOREACH(vchanmap_node, source_p->vchan_map.head)
     {
       vchan_info = vchanmap_node->data;
       if (vchan_info->base_chan == chptr)
         return (vchan_info->vchan);
     }
 
-  return NULL;
+  return(NULL);
 }
 
 /*
@@ -423,7 +420,7 @@ vchan_show_ids(struct Client *source_p, struct Channel *chptr)
     }
 
 
-  for (ptr = chptr->vchan_list.head; ptr; ptr = ptr->next)
+  DLINK_FOREACH(ptr, chptr->vchan_list.head)
     {
       chtmp = ptr->data;
 
@@ -543,14 +540,14 @@ find_vchan(struct Channel *chptr, char *key)
         return chptr;
 
       /* then it's vchans */
-      for (ptr = chptr->vchan_list.head; ptr; ptr = ptr->next)
+      DLINK_FOREACH(ptr, chptr->vchan_list.head)
         {
           chtmp = ptr->data;
           if (chtmp->vchan_id && (irccmp(chtmp->vchan_id, key) == 0))
             return chtmp;
         }
     }
-  return NULL;
+  return(NULL);
 }
 
 /*
@@ -572,14 +569,14 @@ vchan_invites(struct Channel *chptr, struct Client *source_p)
    * in the vchan list
    */
 
-  for (lp = source_p->user->invited.head; lp; lp = lp->next)
+  DLINK_FOREACH(lp, source_p->user->invited.head)
     {
       /* check root first */
       if (lp->data == chptr)
         return chptr;
 
       /* then vchan list */
-      for (vptr = chptr->vchan_list.head; vptr; vptr = vptr->next)
+      DLINK_FOREACH(vptr, chptr->vchan_list.head)
         {
           cp = vptr->data;
 
@@ -588,7 +585,7 @@ vchan_invites(struct Channel *chptr, struct Client *source_p)
         }
     }
 
-  return NULL;
+  return(NULL);
 }
 
 #endif

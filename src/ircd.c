@@ -90,13 +90,12 @@ struct  Counter Count;
 struct  ServerState_t server_state;
 
 struct timeval SystemTime;
-int     ServerRunning;          /* GLOBAL - server execution state */
+int    ServerRunning;           /* GLOBAL - server execution state */
 struct Client me;               /* That's me */
 struct LocalUser meLocalUser;	/* That's also part of me */
 
 struct Client* GlobalClientList = 0; /* Pointer to beginning of Client list */
 
-struct JupedChannel *JupedChannelList = 0;
 
 /* unknown/client pointer lists */ 
 dlink_list unknown_list;        /* unknown clients ON this server only */
@@ -110,7 +109,7 @@ int callbacks_called;          /* A measure of server load... */
 
 static unsigned long       initialVMTop = 0;   /* top of virtual memory at init */
 const char * logFileName = LPATH;
-static const char * pidFileName = PPATH;
+const char * pidFileName = PPATH;
 
 char**  myargv;
 int     dorehash   = 0;
@@ -170,7 +169,8 @@ static unsigned long get_vm_top(void)
 /*
  * get_maxrss - get the operating systems notion of the resident set size
  */
-unsigned long get_maxrss(void)
+unsigned long
+get_maxrss(void)
 {
   return get_vm_top() - initialVMTop;
 }
@@ -330,7 +330,9 @@ io_loop(void)
       irc_sleep(st);
 
       comm_select(0);
-  
+      exit_aborted_clients();
+      free_exited_clients();
+
       /*
        * Check to see whether we have to rehash the configuration ..
        */
@@ -496,7 +498,7 @@ static void check_pidfile(const char *filename)
 	}
       fbclose(fb);
     }
-  else
+  else if(errno != ENOENT)
     {
       /* log(L_ERROR, "Error opening pid file %s", filename); */
     }
@@ -522,19 +524,6 @@ static void setup_corefile(void)
       setrlimit(RLIMIT_CORE, &rlim);
     }
 #endif
-}
-
-/*
- * cleanup_zombies
- * inputs	- nothing
- * output	- nothing
- * side effects - Reaps zombies periodically
- * -AndroSyn
- */
-static void cleanup_zombies(void *unused)
-{
-  int status;
-  waitpid(-1, &status, WNOHANG);
 }
 
 int main(int argc, char *argv[])
@@ -575,11 +564,6 @@ int main(int argc, char *argv[])
   memset(&global_serv_list, 0, sizeof(global_serv_list));
   memset(&oper_list, 0, sizeof(oper_list));
   memset(&lazylink_channels, 0, sizeof(lazylink_channels));
-
-  lclient_list.head = lclient_list.tail = NULL;
-  oper_list.head = oper_list.tail = NULL;
-  serv_list.head = serv_list.tail = NULL;
-  global_serv_list.head = global_serv_list.tail = NULL;
 
   GlobalClientList = &me;       /* Pointer to beginning of Client list */
 
@@ -632,6 +616,11 @@ int main(int argc, char *argv[])
   setup_signals();
   /* We need this to initialise the fd array before anything else */
   fdlist_init();
+  if (!server_state.foreground)
+  {
+    close_all_connections(); /* this needs to be before init_netio()! */
+  }
+  init_log(logFileName);
   init_netio();         /* This needs to be setup early ! -- adrian */
   /* Check if there is pidfile and daemon already running */
   check_pidfile(pidFileName);
@@ -639,11 +628,6 @@ int main(int argc, char *argv[])
   eventInit();
   init_sys();
 
-  if (!server_state.foreground)
-  {
-    close_all_connections();
-  }
-  init_log(logFileName);
   initBlockHeap();
   init_dlink_nodes();
   initialize_message_files();
@@ -651,7 +635,7 @@ int main(int argc, char *argv[])
   init_hash();
   id_init();
   clear_scache_hash_table();    /* server cache name table */
-  clear_ip_hash_table();        /* client host ip hash table */
+  init_ip_hash_table();        /* client host ip hash table */
   init_host_hash();             /* Host-hashtable. */
   clear_hash_parse();
   init_client();
@@ -744,6 +728,9 @@ int main(int argc, char *argv[])
   
   ilog(L_NOTICE, "Server Ready");
   
+#ifdef VCHANS
+  eventAddIsh("clear_channels", clear_channels, NULL, 1800);
+#endif
   eventAddIsh("cleanup_glines", cleanup_glines, NULL, CLEANUP_GLINES_TIME);
 
   eventAddIsh("cleanup_tklines", cleanup_tklines, NULL, CLEANUP_TKLINES_TIME);
@@ -756,13 +743,6 @@ int main(int argc, char *argv[])
 
   /* Setup the timeout check. I'll shift it later :)  -- adrian */
   eventAddIsh("comm_checktimeouts", comm_checktimeouts, NULL, 1);
-
-  eventAddIsh("cleanup_zombies", cleanup_zombies, NULL, 30); 
-  
- if (ConfigFileEntry.throttle_time > 0)
-   eventAddIsh("flush_expired_ips", flush_expired_ips, NULL, ConfigFileEntry.throttle_time);
- else
-   eventAddIsh("flush_expired_ips", flush_expired_ips, NULL, 300);
 
   if(ConfigServerHide.links_delay > 0)
     eventAddIsh("write_links_file", write_links_file, NULL, ConfigServerHide.links_delay);

@@ -93,9 +93,9 @@ static void msg_client(int p_or_n, char *command,
                        struct Client *source_p, struct Client *target_p,
                        char *text);
 
-static void handle_opers(int p_or_n, char *command,
-                         struct Client *client_p,
-                         struct Client *source_p, char *nick, char *text);
+static void handle_special(int p_or_n, char *command,
+			   struct Client *client_p,
+			   struct Client *source_p, char *nick, char *text);
 
 
 static int handle_nick_server(int p_or_n, char *command,
@@ -409,9 +409,9 @@ build_target_list(int p_or_n, char *command, struct Client *client_p,
 	continue;
     }
 
-    if(IsOper(source_p) && ((*nick == '$') || strchr(nick, '@')))
+    if(((*nick == '$') || strchr(nick, '@')))
     {
-      handle_opers(p_or_n, command, client_p, source_p, nick, text);
+      handle_special(p_or_n, command, client_p, source_p, nick, text);
     }
     else
     {
@@ -642,9 +642,9 @@ msg_client(int p_or_n, char *command,
                             source_p->name);
 
           sendto_one(target_p,
-                     ":%s NOTICE %s :*** Client %s [%s@%s] is messaging you and you are +g",
+                     ":%s NOTICE %s :*** Client %s is messaging you and you are +g",
                      me.name, target_p->name,
-                     source_p->name, source_p->username, source_p->host);
+                     get_client_name(source_p, HIDE_IP));
 
           target_p->localClient->last_caller_id_time = CurrentTime;
 
@@ -716,8 +716,7 @@ flood_attack_client(int p_or_n, struct Client *source_p,
       {
         sendto_realops_flags(FLAGS_BOTS, L_ALL,
                              "Possible Flooder %s [%s@%s] on %s target: %s",
-                             source_p->name, source_p->username,
-                             source_p->host,
+                             get_client_name(source_p, HIDE_IP),
                              source_p->user->server, target_p->name);
         target_p->localClient->flood_noticed = 1;
         /* add a bit of penalty */
@@ -772,8 +771,7 @@ flood_attack_channel(int p_or_n, struct Client *source_p,
       {
         sendto_realops_flags(FLAGS_BOTS, L_ALL,
                              "Possible Flooder %s [%s@%s] on %s target: %s",
-                             source_p->name, source_p->username,
-                             source_p->host,
+                             get_client_name(source_p, HIDE_IP),
                              source_p->user->server, chptr->chname);
         chptr->flood_noticed = 1;
 
@@ -795,24 +793,30 @@ flood_attack_channel(int p_or_n, struct Client *source_p,
 
 
 /*
- * handle_opers
+ * handle_special
  *
  * inputs	- server pointer
  *		- client pointer
  *		- nick stuff to grok for opers
  *		- text to send if grok
  * output	- none
- * side effects	- all the traditional oper type messages are parsed here.
+ * side effects	- old style username@server is handled here for non opers
+ *		  opers are allowed username%hostname@server
+ *		  all the traditional oper type messages are also parsed here.
  *		  i.e. "/msg #some.host."
  *		  However, syntax has been changed.
  *		  previous syntax "/msg #some.host.mask"
  *		  now becomes     "/msg $#some.host.mask"
  *		  previous syntax of: "/msg $some.server.mask" remains
  *		  This disambiguates the syntax.
+ *
+ * XXX		  N.B. dalnet changed it to nick@server as have other servers.
+ *		  we will stick with tradition for now.
+ *		- Dianora
  */
 static void
-handle_opers(int p_or_n, char *command, struct Client *client_p,
-             struct Client *source_p, char *nick, char *text)
+handle_special(int p_or_n, char *command, struct Client *client_p,
+	       struct Client *source_p, char *nick, char *text)
 {
   struct Client *target_p;
   char *host;
@@ -820,6 +824,92 @@ handle_opers(int p_or_n, char *command, struct Client *client_p,
   char *s;
   int count;
 
+  /*
+   * user[%host]@server addressed?
+   */
+  if ((server = strchr(nick, '@')) != NULL)
+  {
+    count = 0;
+
+    if ((host = strchr(nick, '%')) && !IsOper(source_p))
+    {
+      sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+		 me.name, source_p->name);
+      return;
+    }
+    if ((target_p = find_server(server + 1)) != NULL)
+    {
+      if (!IsMe(target_p))
+      {
+	/*
+	 * Not destined for a user on me :-(
+	 */
+
+	sendto_one(target_p, ":%s %s %s :%s", source_p->name,
+		   command, nick, text);
+	if ((p_or_n != NOTICE) && source_p->user)
+	  source_p->user->last = CurrentTime;
+	return;
+      }
+
+      *server = '\0';
+
+      if (host != NULL)
+	*host++ = '\0';
+
+      /* Check if someones msg'ing opers@our.server */
+      if (strcmp(nick, "opers") == 0)
+      {
+	if (!IsOper(source_p))
+	  sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+		     me.name, source_p->name);
+	else
+	  sendto_realops_flags(FLAGS_ALL, L_ALL, "To opers: From: %s: %s",
+			       source_p->name, text);
+	return;
+      }
+
+      /*
+       * Look for users which match the destination host
+       * (no host == wildcard) and if one and one only is
+       * found connected to me, deliver message!
+       */
+      target_p = find_userhost(nick, host, &count);
+
+      if (target_p != NULL)
+      {
+	if (server != NULL)
+	  *server = '@';
+	if (host != NULL)
+	  *--host = '%';
+
+	if (count == 1)
+	{
+	  sendto_one(target_p, ":%s %s %s :%s",
+		     source_p->name, command, nick, text);
+	  if ((p_or_n != NOTICE) && source_p->user)
+	    source_p->user->last = CurrentTime;
+	}
+	else
+	  sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
+		     me.name, source_p->name, nick);
+      }
+    }
+    else if (server && *(server+1) && (target_p == NULL))
+	sendto_one(source_p, form_str(ERR_NOSUCHSERVER), me.name,
+		   source_p->name, server+1);
+    else if (server && (target_p == NULL))
+	sendto_one(source_p, form_str(ERR_NOSUCHNICK), me.name,
+		   source_p->name, nick);
+    return;
+  }
+
+  if (!IsOper(source_p))
+  {
+    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+	       me.name, source_p->name);
+    return;
+  }
   /*
    * the following two cases allow masks in NOTICEs
    * (for OPERs only)
@@ -865,71 +955,6 @@ handle_opers(int p_or_n, char *command, struct Client *client_p,
     return;
   }
 
-  /*
-   * user[%host]@server addressed?
-   */
-  if ((server = strchr(nick, '@')) && (target_p = find_server(server + 1)))
-  {
-    count = 0;
-
-    /*
-     * Not destined for a user on me :-(
-     */
-
-    if (!IsMe(target_p))
-    {
-      sendto_one(target_p, ":%s %s %s :%s", source_p->name,
-                 command, nick, text);
-      if ((p_or_n != NOTICE) && source_p->user)
-        source_p->user->last = CurrentTime;
-      return;
-    }
-
-    *server = '\0';
-
-    if ((host = strchr(nick, '%')) != NULL)
-      *host++ = '\0';
-
-    /* Check if someones msg'ing opers@our.server */
-    if (strcmp(nick, "opers") == 0)
-    {
-      sendto_realops_flags(FLAGS_ALL, L_ALL, "To opers: From: %s: %s",
-                           source_p->name, text);
-      return;
-    }
-
-    /*
-     * Look for users which match the destination host
-     * (no host == wildcard) and if one and one only is
-     * found connected to me, deliver message!
-     */
-    target_p = find_userhost(nick, host, &count);
-
-    if (target_p != NULL)
-    {
-      if (server != NULL)
-	*server = '@';
-      if (host != NULL)
-	*--host = '%';
-
-      if (count == 1)
-      {
-        sendto_anywhere(target_p, source_p, "%s %s :%s", command,
-			nick, text);
-        if ((p_or_n != NOTICE) && source_p->user)
-          source_p->user->last = CurrentTime;
-      }
-      else
-        sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
-                   me.name, source_p->name, nick);
-    }
-  }
-  else if (server && *(server+1) && (target_p == NULL))
-    sendto_one(source_p, form_str(ERR_NOSUCHSERVER), me.name,
-               source_p->name, server+1);
-  else if (server && (target_p == NULL))
-    sendto_one(source_p, form_str(ERR_NOSUCHNICK), me.name,
-               source_p->name, nick);
 }
 
 /*

@@ -77,21 +77,9 @@ void
 close_all_connections(void)
 {
   int i;
-#ifndef NDEBUG
   int fd;
-#endif
 
-  /* XXX someone tell me why we care about 4 fd's ? */
-  /* XXX btw, fd 3 is used for profiler ! */
-#if 0
-#ifndef VMS
   for (i = 0; i < MAXCONNECTIONS; ++i)
-#else
-  for (i = 3; i < MAXCONNECTIONS; ++i)
-#endif
-#endif
-
-  for (i = 4; i < MAXCONNECTIONS; ++i)
     {
       if (fd_table[i].flags.open)
         fd_close(i);
@@ -99,17 +87,14 @@ close_all_connections(void)
         close(i);
     }
 
-  /* XXX should his hack be done in all cases? */
-#ifndef NDEBUG
-  /* fugly hack to reserve fd == 2 */
-  (void)close(2);
-  fd = open("stderr.log",O_WRONLY|O_CREAT|O_APPEND,0644);
-  if( fd >= 0 )
+  /* Make sure stdio descriptors (0-2) and profiler descriptor (3)
+     always go somewhere harmless.  Use -foreground for profiling
+     or executing from gdb */
+  for (i = 0; i < LOWEST_SAFE_FD; i++)
     {
-      dup2(fd, 2);
-      close(fd);
+      if ((fd = open(PATH_DEVNULL, O_RDWR)) < 0)
+        exit(-1); /* we're hosed if we can't even open /dev/null */
     }
-#endif
 }
 
 /*
@@ -319,7 +304,6 @@ close_connection(struct Client *client_p)
       send_queued_write(client_p->localClient->fd, client_p);
       fd_close(client_p->localClient->fd);
       client_p->localClient->fd = -1;
-      SetDead(client_p);
     }
 
   if(HasServlink(client_p))
@@ -429,6 +413,15 @@ add_connection(struct Listener* listener, int fd)
   start_auth(new_client);
 }
 
+
+
+/*
+ * stolen from squid - its a neat (but overused! :) routine which we
+ * can use to see whether we can ignore this errno or not. It is
+ * generally useful for non-blocking network IO related errnos.
+ *     -- adrian
+ */
+int
 ignoreErrno(int ierrno)
 {
     switch (ierrno) {

@@ -192,6 +192,7 @@ struct Client
 
   dlink_list      vchan_map;
 
+
   /* caller ID allow list */
   /* This has to be here, since a client on an on_allow_list could
    * be a remote client. simpler to keep both here.
@@ -225,6 +226,8 @@ struct LocalUser
   time_t            first_received_message_time;
   int               received_number_of_privmsgs;
   int               flood_noticed;
+
+  dlink_node        lclient_node;
 
   /* Send and receive linebuf queues .. */
   buf_head_t        buf_sendq;
@@ -500,13 +503,13 @@ struct LocalUser
 #define SetMark(x)		((x)->flags |= FLAGS_MARK)
 #define ClearMark(x)		((x)->flags &= ~FLAGS_MARK)
 #define IsMarked(x)		((x)->flags & FLAGS_MARK)
-
+#define SetCanFlood(x)		((x)->flags |= FLAGS_CANFLOOD)
+#define ClearCanFlood(x)	((x)->flags &= FLAGS_CANFLOOD)
+#define IsCanFlood(x)		((x)->flags & FLAGS_CANFLOOD)
+#define IsDefunct(x)            ((x)->flags & (FLAGS_DEADSOCKET|FLAGS_CLOSING| \
+					       FLAGS_KILLED))
 #define IsService(x)            ((x)->flags & FLAGS_SERVICE)
 #define SetService(x)           ((x)->flags |= FLAGS_SERVICE)
-#define SetCanFlood(x)          ((x)->flags |= FLAGS_CANFLOOD)
-#define ClearCanFlood(x)        ((x)->flags &= FLAGS_CANFLOOD)
-#define IsCanFlood(x)           ((x)->flags & FLAGS_CANFLOOD)
-#define IsDefunct(x)            ((x)->flags & (FLAGS_DEADSOCKET|FLAGS_CLOSING))
 
 
 /* oper flags */
@@ -544,9 +547,16 @@ struct LocalUser
 #define ClearNickServReg(x) ((x)->umodes &= ~FLAGS_NICKSERVREG)
 #define IsSetCallerId(x)	((x)->umodes & FLAGS_CALLERID)
 
+#define SetSendQExceeded(x)	((x)->flags |= FLAGS_SENDQEX)
+#define IsSendQExceeded(x)	((x)->flags & FLAGS_SENDQEX)
+
 #define SetIpHash(x)            ((x)->flags |= FLAGS_IPHASH)
 #define ClearIpHash(x)          ((x)->flags &= ~FLAGS_IPHASH)
 #define IsIpHash(x)             ((x)->flags & FLAGS_IPHASH)
+
+#define SetPingSent(x)		((x)->flags |= FLAGS_PINGSENT)
+#define IsPingSent(x)		((x)->flags & FLAGS_PINGSENT)
+#define ClearPingSent(x)	((x)->flags &= ~FLAGS_PINGSENT)
 
 #define SetNeedId(x)            ((x)->flags |= FLAGS_NEEDID)
 #define IsNeedId(x)             (((x)->flags & FLAGS_NEEDID) != 0)
@@ -631,7 +641,10 @@ extern int set_initial_nick(struct Client *client_p, struct Client *source_p,
                             char *nick);
 extern int change_local_nick(struct Client *client_p, struct Client *source_p,
                              char *nick);
-extern void dead_link_on_send(struct Client *client_p, int error);
+extern void dead_link_on_write(struct Client *client_p, int ierrno);
 extern void dead_link_on_read(struct Client *client_p, int error);
+extern void exit_aborted_clients(void);
+extern void free_exited_clients(void);
+
 #endif /* INCLUDED_client_h */
 

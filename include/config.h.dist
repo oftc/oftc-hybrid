@@ -45,6 +45,9 @@
  * in as many environments as possible.  They can probably be increased
  * significantly, if you know what you are doing.
  *
+ * Note that HARD_FDLIMIT_ is modified with the maxclients setting in
+ * configure.  You should only touch this if you know what you are doing!!!
+ *
  * If you are using select for the IO loop, you may also need to increase
  * the value of FD_SETSIZE by editting the Makefile.  However, using
  * --enable-kqueue, --enable-devpoll, or --enable-poll if at all possible,
@@ -54,20 +57,19 @@
  * systems may require kernel patches, configuration tweaks, or ulimit
  * adjustments in order to exceed certain limits (e.g. 1024, 4096 fds).
  */
-#define HARD_FDLIMIT_    384
+#define HARD_FDLIMIT_    MAX_CLIENTS + 60 + 20
 
 /* XXX - MAX_BUFFER is mostly ignored. */
 /*
  * Maximum number of connections to allow.
  *
- * MAX_CLIENTS is the maximum number of clients to allow.
  * MAX_BUFFER  is the number of fds to reserve, e.g. for clients
  *             exempt from limit.
  *
  * 10 file descriptors are reserved for logging, DNS lookups, etc.,
  * so MAX_CLIENTS + MAX_BUFFER + 10 must not exceed HARD_FDLIMIT.
+ * NOTE: MAX_CLIENTS is set with configure now
  */
-#define MAX_CLIENTS     200
 #define MAX_BUFFER      60
 
 #ifdef VMS
@@ -182,10 +184,18 @@
 
 /* HIDE_SPOOF_IPS
  *
- * If this is undefined, admins will be allowed to see a spoofed users IP
- * in /trace etc.  If this is defined, everyone will be shown a masked IP.
+ * If this is undefined, opers will be allowed to see the real IP of spoofed
+ * users in /trace etc.  If this is defined they will be shown a masked IP.
  */
 #undef HIDE_SPOOF_IPS
+
+/* TS5_ONLY
+ *
+ * If this is defined only TS5 servers may link to the network.  See
+ * doc/ts5.txt for more information.  If your network has old servers
+ * (hyb5, hyb6.0, +CSr) or hybserv you should NOT define this.
+ */
+#undef TS5_ONLY
 
 /* USE_LOGFILE - log errors and such to LPATH
  * If you wish to have the server send 'vital' messages about server
@@ -241,8 +251,11 @@
  *       resident and running - it hardly ever gets swapped to disk!  Memory
  *       will be preallocated for the entire whowas array when ircd is started.
  */
+#ifndef SMALL_NET
 #define NICKNAMEHISTORYLENGTH 15000
-
+#else
+#define NICKNAMEHISTORYLENGTH 1500
+#endif
 /* HANGONGOODLINK and HANGONGOODLINK
  * Often net breaks for a short time and it's useful to try to
  * establishing the same connection again faster than CONNECTFREQUENCY
@@ -278,19 +291,6 @@
 */
 #define HYBRID_SOMAXCONN 25
 
-/* DEBUGMODE is used mostly for internal development, it is likely
- * to make your client server very sluggish.
- * You usually shouldn't need this. -Dianora
-*/
-#undef  DEBUGMODE               /* define DEBUGMODE to enable debugging mode.*/
-
-/*
- * this checks for various things that should never happen, but
- * might do due to bugs.  ircd might be slightly more efficient with 
- * these disabled, who knows. keep this enabled during development.
- */
-#define INVARIANTS
-
 /* CODE DISABLE SECTION
  *
  * If you have enabled efnet specific code these will be disabled automatically
@@ -299,6 +299,8 @@
 #define VCHANS
 #define ANONOPS
 #define HALFOPS
+
+/* END OF CONFIGURABLE OPTIONS */
 
 /* disable them for efnet */
 #ifdef EFNET
@@ -311,7 +313,46 @@
 #ifndef HIDE_SPOOF_IPS
 #define HIDE_SPOOF_IPS
 #endif
+#ifndef TS5_ONLY
+#define TS5_ONLY
 #endif
+#endif
+
+/* 
+ * Default pre-allocations for various things...
+ */  
+#ifndef SMALL_NET  /* Normal net */
+#define CHANNEL_HEAP_SIZE	1024
+#define BAN_HEAP_SIZE		1024
+#define CLIENT_HEAP_SIZE	1024
+#define LCLIENT_HEAP_SIZE	512
+#define LINEBUF_HEAP_SIZE	1024
+#define	USER_HEAP_SIZE		1024
+#define	DNODE_HEAP_SIZE		2048
+#define TOPIC_HEAP_SIZE		1024
+#else  /* Small Net */
+#define CHANNEL_HEAP_SIZE	256
+#define BAN_HEAP_SIZE		128
+#define CLIENT_HEAP_SIZE	256
+#define LCLIENT_HEAP_SIZE	128
+#define LINEBUF_HEAP_SIZE	128
+#define	USER_HEAP_SIZE		128
+#define	DNODE_HEAP_SIZE		256
+#define TOPIC_HEAP_SIZE		256
+#endif
+
+/* DEBUGMODE is used mostly for internal development, it is likely
+ * to make your client server very sluggish.
+ * You usually shouldn't need this. -Dianora
+*/
+#undef  DEBUGMODE               /* define DEBUGMODE to enable debugging mode.*/
+
+/*
+ * this checks for various things that should never happen, but
+ * might do due to bugs.  ircd might be slightly more efficient with 
+ * these disabled, who knows. keep this enabled during development.
+ */
+#define INVARIANTS
 
 #define CONFIG_H_LEVEL_7
 

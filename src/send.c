@@ -61,10 +61,8 @@ send_linebuf_remote(struct Client *, struct Client *, buf_head_t *);
 unsigned long current_serial=0L;
 
 static void
-sendto_list_local(dlink_list *list, buf_head_t *linebuf);
-static void
-sendto_list_local_butone(struct Client *one, dlink_list *list,
-                         buf_head_t *linebuf);
+sendto_list_local(struct Client *one, dlink_list *list,
+		  buf_head_t *linebuf);
 
 static void
 sendto_list_remote(struct Client *one,
@@ -174,7 +172,8 @@ _send_linebuf(struct Client *to, buf_head_t *linebuf)
                            linebuf_len(&to->localClient->buf_sendq),
                            get_sendq(to));
     if (IsClient(to))
-      to->flags |= FLAGS_SENDQEX;
+      SetSendQExceeded(to);
+
     dead_link_on_write(to, 0);
     return -1;
   }
@@ -192,7 +191,7 @@ _send_linebuf(struct Client *to, buf_head_t *linebuf)
   to->localClient->sendM += 1;
   me.localClient->sendM += 1;
 
-  send_queued_write(to->localClient->fd, to);	
+  send_queued_write(to->localClient->fd, to);
   return 0;
 } /* send_linebuf() */
 
@@ -221,20 +220,18 @@ send_linebuf_remote(struct Client *to, struct Client *from,
   {
     if (IsServer(from))
     {
-      sendto_gnotice_flags(FLAGS_ALL, L_ALL, me.name, &me, NULL,
-                           "Send message to %s [%s] dropped from %s(Fake Dir)",
-                           to->name, to->from->name, from->name);
+        sendto_gnotice_flags(FLAGS_ALL, L_ALL, me.name, &me, NULL,
+            "Send message to %s [%s] dropped from %s(Fake Dir)", to->name, 
+            to->from->name, from->name);
       return;
     }
 
     sendto_gnotice_flags(FLAGS_ALL, L_ALL, me.name, &me, NULL,
-                         "Ghosted: %s [%s@%s] from %s [%s@%s] (%s)",
-                         to->name, to->username, to->host,
-                         from->name, from->username, from->host,
-                         to->from->name);
+        "Ghosted: %s[%s@%s] from %s[%s@%s] (%s)", to->name, to->username, 
+        to->host, from->name, from->username, from->host, to->from->name);
 
     sendto_server(NULL, to, NULL, NOCAPS, NOCAPS, NOFLAGS,
-                  ":%s KILL %s :%s (%s [%s@%s] Ghosted %s)",
+                  ":%s KILL %s :%s (%s[%s@%s] Ghosted %s)",
                   me.name, to->name, me.name, to->name,
                   to->username, to->host, to->from->name);
 
@@ -261,9 +258,8 @@ send_linebuf_remote(struct Client *to, struct Client *from,
  **      possible, and then if any data is left, a write is rescheduled.
  */
 void
-send_queued_write(int fd, void *data)
+send_queued_write(int fd, struct Client *to)
 {
-  struct Client *to = data;
   int retlen;
 #ifndef NDEBUG
   struct hook_io_data hdata;
@@ -334,7 +330,7 @@ send_queued_write(int fd, void *data)
   /* Finally, if we have any more data, reschedule a write */
   if (linebuf_len(&to->localClient->buf_sendq))
     comm_setselect(fd, FDLIST_IDLECLIENT, COMM_SELECT_WRITE,
-                   send_queued_write, to, 0);
+                   send_queued_slink_write, to, 0);
 } /* send_queued_write() */
 
 /*
@@ -470,7 +466,7 @@ sendto_one_prefix(struct Client *to, struct Client *prefix,
 #ifdef INVARIANTS
   if (IsMe(to))
   {
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL, 
                          "Trying to send to myself!");
     return;
   }
@@ -580,10 +576,13 @@ sendto_list_anywhere(struct Client *one, struct Client *from,
   {
     target_p = ptr->data;
 
+    if (IsDefunct(target_p))
+      continue;
+
     if (target_p->from == one)
       continue;
 
-    if (MyConnect(target_p) && IsRegisteredUser(target_p) && !IsDead(target_p))
+    if (MyConnect(target_p) && IsRegisteredUser(target_p))
     {
       if(target_p->serial != current_serial)
       {
@@ -662,6 +661,9 @@ sendto_server(struct Client *one, struct Client *source_p,
   {
     client_p = ptr->data;
 
+    /* If dead already skip */
+    if (IsDead(client_p))
+      continue;
     /* check against 'one' */
     if (one && (client_p == one->from))
       continue;
@@ -717,7 +719,8 @@ sendto_server(struct Client *one, struct Client *source_p,
  *		  used by m_nick.c and exit_one_client.
  */
 void
-sendto_common_channels_local(struct Client *user, const char *pattern, ...)
+sendto_common_channels_local(struct Client *user, int touser,
+                             const char *pattern, ...)
 {
   va_list args;
   dlink_node *ptr;
@@ -732,26 +735,24 @@ sendto_common_channels_local(struct Client *user, const char *pattern, ...)
 
   ++current_serial;
 
-  if (user->user != NULL)
+  DLINK_FOREACH_SAFE(ptr, ptr_next, user->user->channel.head)
   {
-    DLINK_FOREACH_SAFE(ptr, ptr_next, user->user->channel.head)
-    {
-      chptr = ptr->data;
+    chptr = ptr->data;
 
-      sendto_list_local(&chptr->locchanops, &linebuf);
+    sendto_list_local(user, &chptr->locchanops, &linebuf);
 #ifdef REQUIRE_OANDV
-      sendto_list_local(&chptr->locchanops_voiced, &linebuf);
+    sendto_list_local(user, &chptr->locchanops_voiced, &linebuf);
 #endif
 #ifdef HALFOPS
-      sendto_list_local(&chptr->lochalfops, &linebuf);
+    sendto_list_local(user, &chptr->lochalfops, &linebuf);
 #endif
-      sendto_list_local(&chptr->locvoiced, &linebuf);
-      sendto_list_local(&chptr->locpeons, &linebuf);
-    }
-
-    if (MyConnect(user) && (user->serial != current_serial))
-      send_linebuf(user, &linebuf);
+    sendto_list_local(user, &chptr->locvoiced, &linebuf);
+    sendto_list_local(user, &chptr->locpeons, &linebuf);
   }
+
+  if (touser && MyConnect(user) &&
+      (user->serial != current_serial))
+    send_linebuf(user, &linebuf);
 
   linebuf_donebuf(&linebuf);
 } /* sendto_common_channels() */
@@ -768,9 +769,7 @@ sendto_common_channels_local(struct Client *user, const char *pattern, ...)
  *		  locally connected to this server.
  */
 void
-sendto_channel_local(int type,
-                     struct Channel *chptr,
-                     const char *pattern, ...)
+sendto_channel_local(int type, struct Channel *chptr, const char *pattern, ...)
 {
   va_list args;
   buf_head_t linebuf;
@@ -786,23 +785,23 @@ sendto_channel_local(int type,
   switch(type)
   {
     case NON_CHANOPS:
-      sendto_list_local(&chptr->locvoiced, &linebuf);
-      sendto_list_local(&chptr->locpeons, &linebuf);
+      sendto_list_local(NULL, &chptr->locvoiced, &linebuf);
+      sendto_list_local(NULL, &chptr->locpeons, &linebuf);
       break;
 
     default:
     case ALL_MEMBERS:
-      sendto_list_local(&chptr->locpeons, &linebuf);
+      sendto_list_local(NULL, &chptr->locpeons, &linebuf);
     case ONLY_CHANOPS_HALFOPS_VOICED:
-      sendto_list_local(&chptr->locvoiced, &linebuf);
+      sendto_list_local(NULL, &chptr->locvoiced, &linebuf);
 #ifdef HALFOPS
     case ONLY_CHANOPS_HALFOPS:
-      sendto_list_local(&chptr->lochalfops, &linebuf);
+      sendto_list_local(NULL, &chptr->lochalfops, &linebuf);
 #endif
     case ONLY_CHANOPS:
-      sendto_list_local(&chptr->locchanops, &linebuf);
+      sendto_list_local(NULL, &chptr->locchanops, &linebuf);
 #ifdef REQUIRE_OANDV
-      sendto_list_local(&chptr->locchanops_voiced, &linebuf);
+      sendto_list_local(NULL, &chptr->locchanops_voiced, &linebuf);
 #endif
   }
   linebuf_donebuf(&linebuf);
@@ -822,8 +821,7 @@ sendto_channel_local(int type,
  */
 void       
 sendto_channel_local_butone(struct Client *one, int type,
-                            struct Channel *chptr,
-                            const char *pattern, ...)
+			    struct Channel *chptr, const char *pattern, ...)
 {
   va_list args;
   buf_head_t linebuf;
@@ -839,23 +837,23 @@ sendto_channel_local_butone(struct Client *one, int type,
   switch(type)
   {
     case NON_CHANOPS:
-      sendto_list_local_butone(one, &chptr->locvoiced, &linebuf);
-      sendto_list_local_butone(one, &chptr->locpeons, &linebuf);
+      sendto_list_local(one, &chptr->locvoiced, &linebuf);
+      sendto_list_local(one, &chptr->locpeons, &linebuf);
       break;
                      
     default:
     case ALL_MEMBERS:
-      sendto_list_local_butone(one, &chptr->locpeons, &linebuf);
+      sendto_list_local(one, &chptr->locpeons, &linebuf);
     case ONLY_CHANOPS_HALFOPS_VOICED:
-      sendto_list_local_butone(one, &chptr->locvoiced, &linebuf);
+      sendto_list_local(one, &chptr->locvoiced, &linebuf);
 #ifdef HALFOPS
     case ONLY_CHANOPS_HALFOPS:
-      sendto_list_local_butone(one, &chptr->lochalfops, &linebuf);
+      sendto_list_local(one, &chptr->lochalfops, &linebuf);
 #endif
     case ONLY_CHANOPS:
-      sendto_list_local_butone(one, &chptr->locchanops, &linebuf);
+      sendto_list_local(one, &chptr->locchanops, &linebuf);
 #ifdef REQUIRE_OANDV
-      sendto_list_local_butone(one, &chptr->locchanops_voiced, &linebuf);
+      sendto_list_local(one, &chptr->locchanops_voiced, &linebuf);
 #endif
   }
   linebuf_donebuf(&linebuf);
@@ -866,8 +864,8 @@ sendto_channel_local_butone(struct Client *one, int type,
  *
  * inputs	- Client not to send towards
  *		- Client from whom message is from
- *		- int type, i.e. ALL_MEMBERS, NON_CHANOPS,
- *                ONLY_CHANOPS_VOICED, ONLY_CHANOPS
+ *		- int type, i.e. NON_CHANOPS, ALL_MEMBERS,
+ *                ONLY_CHANOPS_HALFOPS_VOICED, ONLY_CHANOPS
  *              - pointer to channel to send to
  *              - var args pattern
  * output	- NONE
@@ -921,42 +919,6 @@ sendto_channel_remote(struct Client *one,
 /*
  * sendto_list_local
  *
- * inputs	- pointer to all members of this list
- *		- buffer to send
- *		- length of buffer
- * output	- NONE
- * side effects	- all members who are locally on this server on given list
- *		  are sent given message. Right now, its always a channel list
- *		  but there is no reason we could not use another dlink
- *		  list to send a message to a group of people.
- */
-static void
-sendto_list_local(dlink_list *list, buf_head_t *linebuf_ptr)
-{
-  dlink_node *ptr;
-  dlink_node *ptr_next;
-  struct Client *target_p;
-
-  DLINK_FOREACH_SAFE(ptr, ptr_next, list->head)
-  {
-    if ((target_p = ptr->data) == NULL)
-      continue;
-
-    if (!MyConnect(target_p) || IsDead(target_p))
-      continue;
-
-    if (target_p->serial == current_serial)
-      continue;
-
-    target_p->serial = current_serial;
-
-    send_linebuf(target_p, linebuf_ptr);
-  } 
-} /* sendto_list_local() */
-
-/*
- * sendto_list_local_butone
- *
  * inputs       - pointer to client not to send to
  *              - pointer to all members of this list
  *              - buffer to send
@@ -968,8 +930,8 @@ sendto_list_local(dlink_list *list, buf_head_t *linebuf_ptr)
  *                another dlink list to send a message to a group of people.
  */
 static void 
-sendto_list_local_butone(struct Client *one, dlink_list *list,
-                         buf_head_t *linebuf_ptr)
+sendto_list_local(struct Client *one, dlink_list *list,
+		  buf_head_t *linebuf_ptr)
 {
   dlink_node *ptr;
   dlink_node *ptr_next;
@@ -983,7 +945,7 @@ sendto_list_local_butone(struct Client *one, dlink_list *list,
     if (target_p == one)
       continue;
 
-    if (!MyConnect(target_p) || IsDead(target_p))
+    if (!MyConnect(target_p) || IsDefunct(target_p))
       continue;
    
     if (target_p->serial == current_serial)
@@ -993,7 +955,7 @@ sendto_list_local_butone(struct Client *one, dlink_list *list,
 
     send_linebuf(target_p, linebuf_ptr);
   }
-} /* sendto_list_local_butone() */
+} /* sendto_list_local() */
 
 /*
  * sendto_list_remote(struct Client *one,
@@ -1107,6 +1069,9 @@ sendto_match_butone(struct Client *one, struct Client *from,
     if (client_p == one)  /* must skip the origin !! */
       continue;
 
+    if (IsDefunct(client_p))
+      continue;
+
     if (match_it(client_p, mask, what))
       send_linebuf(client_p, &local_linebuf);
   }
@@ -1169,11 +1134,11 @@ sendto_anywhere(struct Client *to, struct Client *from,
   va_list args;
   buf_head_t linebuf;
 
-  linebuf_newbuf(&linebuf);
-  va_start(args, pattern);
-
   if (IsDead(to))
     return;
+
+  linebuf_newbuf(&linebuf);
+  va_start(args, pattern);
 
   if(MyClient(to))
   {
@@ -1244,7 +1209,6 @@ sendto_realops_flags(int flags, int level, const char *pattern, ...)
                      client_p->name, nbuf);
 
       send_linebuf(client_p, &linebuf);
-
       linebuf_donebuf(&linebuf);
     }
   }

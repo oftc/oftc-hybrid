@@ -182,28 +182,12 @@ m_invite(struct Client *client_p,
 
   if (chptr && (vchan->mode.mode & MODE_INVITEONLY))
   {
-    if (!IsGod(source_p))
-    {
-      if (!chop)
-      {
-        if (MyClient(source_p))
-          sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-                     me.name, parv[0], parv[2]);
-        return;
-      }
-    }
-    else if(!chop)
+    if (!chop)
     {
       if (MyClient(source_p))
-      {
-        char tmp[IRCD_BUFSIZE];
-
-        ircsprintf(tmp, "%s is using God mode: INVITE:"
-                " %s %s", source_p->name, target_p->name, chptr->chname);
-        sendto_gnotice_flags(FLAGS_SERVNOTICE, L_OPER, me.name, &me, NULL,
-                tmp);
-        oftc_log(tmp);
-      }
+        sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
+                   me.name, parv[0], parv[2]);
+      return;
     }
   }
   else
@@ -231,21 +215,23 @@ m_invite(struct Client *client_p,
       burst_channel(target_p->from, vchan);
   }
 
-  if (MyConnect(target_p))
-  {
-    if (chop)
+  if (MyConnect(target_p) && chop)
       add_invite(vchan, target_p);
-  }
-  sendto_anywhere(target_p, source_p,
-		  "INVITE %s :%s", target_p->name, chptr->chname);
+
+  sendto_anywhere(target_p, source_p, "INVITE %s :%s",
+		  target_p->name, chptr->chname);
 
   /* if the channel is +pi, each server that is capable of CAP_PARA
    * will send a local message to channel. If there are servers
    * connected to us that do not understand CAP_PARA, send a NOTICE
    * to chanops on the channel as per hybrid-6
    */
-  if(ParanoidChannel(vchan))
+  if (ParanoidChannel(vchan))
   {
+    sendto_server(source_p->from, source_p, NULL, CAP_PARA, NOCAPS, NOFLAGS,
+                  ":%s INVITE %s %s :%s",
+                  me.name, source_p->name, target_p->name, vchan->chname);
+
     /* XXX This possibly should be a numeric -db */
     sendto_channel_local(ONLY_CHANOPS_HALFOPS, vchan,
                          ":%s NOTICE %s :%s is inviting %s to %s.",
@@ -268,49 +254,78 @@ m_invite(struct Client *client_p,
 **      parv[2] - channel number
 */
 /*
- * This little function is used only to notify
- * chanops on channels about invites when the channel is
- * in Paranoid mode. As such, its pretty much a duplicate of m_invite -db
+ *
  */
 static void
 ms_invite(struct Client *client_p,
 	  struct Client *source_p, int parc, char *parv[])
 {
+  struct Client *source_client_p;
   struct Client *target_p;
   struct Channel *chptr, *vchan;
 #ifdef VCHANS
   struct Channel *vchan2;
 #endif
+  int notify_type = 0;
 
-  if (*parv[2] == '\0')
+  /*
+   * If parc is 3, then its an old fashioned :nick INVITE nick2 :#channel
+   * message, which must be relayed through if its not ours.
+   *
+   * If parc > 3, then its a notify the channel message only, which
+   * would only have been sent if the channel was in ParanoidMode to
+   * begin with, so the check here is redundant.
+   */
+
+  if (parc < 4)
   {
-    return;
+    source_client_p = source_p;
+
+    if (*parv[2] == '\0')
+      return;
+
+    if ((target_p = find_person(parv[1])) == NULL)
+      return;
+
+    if(check_channel_name(parv[2]) == 0)
+      return;
+
+    if (!IsChannelName(parv[2]))
+      return;
+
+    if ((chptr = hash_find_channel(parv[2])) == NULL)
+      return;
   }
-
-  if ((target_p = find_person(parv[1])) == NULL)
+  else
   {
-    return;
-  }
+    notify_type = 1;
 
-  if(check_channel_name(parv[2]) == 0)
-  {
-    return;
-  }
+    if (*parv[1] == '\0')
+      return;
 
-  if (!IsChannelName(parv[2]))
-  {
-    return;
-  }
+    if ((source_client_p = find_person(parv[1])) == NULL)
+      return;
 
-  if ((chptr = hash_find_channel(parv[2])) == NULL)
-  {
-    return;
+    if (*parv[2] == '\0')
+      return;
+
+    if ((target_p = find_person(parv[2])) == NULL)
+      return;
+
+    if(check_channel_name(parv[3]) == 0)
+      return;
+
+    if (!IsChannelName(parv[3]))
+      return;
+
+    if ((chptr = hash_find_channel(parv[3])) == NULL)
+      return;
   }
 
   /* By this point, chptr is non NULL */
 
 #ifdef VCHANS
-  if (!(HasVchans(chptr) && (vchan = map_vchan(chptr, source_p))))
+  if (!(HasVchans(chptr) && (vchan = map_vchan(chptr, source_client_p))))
     vchan = chptr;
   if (IsVchan(chptr))
     chptr = chptr->root_chptr;
@@ -320,42 +335,58 @@ ms_invite(struct Client *client_p,
   
 #ifdef VCHANS
   if ((vchan2 = map_vchan(chptr, target_p)))
-  {
     return;
-  }
 #endif
 
   if (IsMember(target_p, vchan))
-  {
     return;
-  }
 
-  if (MyConnect(target_p))
+  if (!notify_type)
   {
-    if (vchan->mode.mode & MODE_INVITEONLY)
-      add_invite(vchan, target_p);
+    if (MyConnect(target_p))
+    {
+      if (vchan->mode.mode & MODE_INVITEONLY)
+	add_invite(vchan, target_p);
+    }
+
+    sendto_anywhere(target_p, source_client_p, "INVITE %s :%s",
+		    target_p->name, chptr->chname);
   }
-  sendto_anywhere(target_p, source_p,
-		  "INVITE %s :%s", target_p->name, chptr->chname);
-
-  /* if the channel is +pi, each server that is capable of CAP_PARA
-   * will send a local message to channel. If there are servers
-   * connected to us that do not understand CAP_PARA, send a NOTICE
-   * to chanops on the channel as per hybrid-6
-   */
-  if(ParanoidChannel(vchan))
+  else
   {
-    /* XXX This possibly should be a numeric -db */
-    sendto_channel_local(ONLY_CHANOPS_HALFOPS, vchan,
-			 ":%s NOTICE %s :%s is inviting %s to %s.",
-			 me.name, chptr->chname, source_p->name,
-			 target_p->name, chptr->chname);
 
-    /* Send a notice to servers that don't support CAP_PARA */
-    sendto_channel_remote(source_p, client_p, ONLY_CHANOPS_HALFOPS,
-			  NOCAPS, CAP_PARA, chptr,
-			  ":%s NOTICE %s :%s is inviting %s to %s.",
-			  source_p->name, chptr->chname, source_p->name,
-			  target_p->name, chptr->chname);
+    /* There are two different kinds of behaviour that both make sense here.
+     * 1) One approach is simply to chop at the first non CAP_PARA hub
+     * 2) if there is a non CAP_PARA hub in between a cluster of CAP_PARA
+     *    servers and another cluster... then one could attempt to "convert"
+     *    them back to CAP_PARA form.
+     */
+
+    /* if the channel is +pi, each server that is capable of CAP_PARA
+     * will send a local message to channel. If the invite came from
+     * a non CAP_PARA server, attempt to "convert" it back to CAP_PARA form
+     * even if this means a duplicate channel message to ops.
+     */
+    if (ParanoidChannel(vchan))
+    {
+      sendto_server(source_p->from, source_p, NULL, CAP_PARA, NOCAPS, NOFLAGS,
+		    ":%s INVITE %s %s :%s",
+		    source_p->name, source_client_p->name,
+		    target_p->name, vchan->chname);
+
+      /* XXX This possibly should be a numeric -db */
+      sendto_channel_local(ONLY_CHANOPS_HALFOPS, vchan,
+			   ":%s NOTICE %s :%s is inviting %s to %s.",
+			   me.name, chptr->chname, source_client_p->name,
+			   target_p->name, chptr->chname);
+
+      /* Send a notice to servers that don't support CAP_PARA */
+      sendto_channel_remote(source_p, client_p, ONLY_CHANOPS_HALFOPS,
+			    NOCAPS, CAP_PARA, chptr,
+			    ":%s NOTICE %s :%s is inviting %s to %s.",
+			    source_client_p->name, chptr->chname,
+			    source_p->name, target_p->name, chptr->chname);
+    }
   }
 }
+

@@ -495,9 +495,11 @@ do_join_0(struct Client *client_p, struct Client *source_p)
   while ((lp = source_p->user->channel.head))
     {
       chptr = lp->data;
+
       sendto_channel_local(ALL_MEMBERS,chptr, ":%s!%s@%s PART %s",
 			   source_p->name, source_p->username,
 			   source_p->host, RootChan(chptr)->chname);
-      remove_user_from_channel(chptr, source_p);
+      if (!IsDefunct(source_p))
+	remove_user_from_channel(chptr, source_p);
     }
 }

@@ -60,6 +60,8 @@
 
 #define HELPLEN         400
 
+#define LOWEST_SAFE_FD  4	/* skip stdin, stdout, stderr, and profiler */
+
 /* 
  * message return values 
  */

@@ -48,15 +48,43 @@ struct Message error_msgtab = {
  *      parv[0] = sender prefix
  *      parv[*] = parameters
  */
-void m_error(struct Client *client_p, struct Client *source_p,
-             int parc, char *parv[])
+void
+m_error(struct Client *client_p, struct Client *source_p, 
+	int parc, char *parv[])
 {
-  if (MyClient(source_p))
+  char* para;
+
+  para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
+  
+  ilog(L_ERROR, "Received ERROR message from %s: %s",
+	   source_p->name, para);
+
+  if (client_p == source_p)
+    {
+      sendto_realops_flags(FLAGS_ALL, L_ADMIN,
+            "ERROR :from %s -- %s",
+	    get_client_name(client_p, HIDE_IP), para);
+      sendto_realops_flags(FLAGS_ALL, L_OPER,
+            "ERROR :from %s -- %s",
+	    get_client_name(client_p, MASK_IP), para);
+    }
+  else
+    {
+      sendto_realops_flags(FLAGS_ALL, L_OPER,
+            "ERROR :from %s via %s -- %s",
+	    source_p->name, get_client_name(client_p, MASK_IP), para);
+      sendto_realops_flags(FLAGS_ALL, L_ADMIN,"ERROR :from %s via %s -- %s",
+			   source_p->name,
+			   get_client_name(client_p, HIDE_IP), para);
+    }
+
+  if(MyClient(source_p))
     exit_client(client_p, source_p, source_p, "ERROR");
 }
 
-void ms_error(struct Client *client_p, struct Client *source_p,
-              int parc, char *parv[])
+void
+ms_error(struct Client *client_p, struct Client *source_p,
+	 int parc, char *parv[])
 {
   char* para;
 

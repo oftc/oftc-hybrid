@@ -478,7 +478,6 @@ set_local_gline(const char *oper_nick,
           
   aconf = make_conf();
   aconf->status = CONF_KILL;
-  DupString(aconf->host, host);
 
   ircsprintf(buffer, "%s (%s)",reason,current_date);
       

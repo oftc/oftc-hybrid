@@ -103,10 +103,10 @@ struct Channel
 
 extern  struct  Channel *GlobalChannelList;
 
-void init_channels(void);
-void cleanup_channels(void *);
-
-
+extern void init_channels(void);
+#ifdef VCHANS
+extern void clear_channels(void *unused);
+#endif
 extern int     can_send (struct Channel *chptr, struct Client *who);
 extern int     is_banned (struct Channel *chptr, struct Client *who);
 

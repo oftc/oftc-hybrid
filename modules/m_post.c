@@ -57,14 +57,18 @@ void
 _modinit(void)
 {
   mod_add_cmd(&post_msgtab);
+  mod_add_cmd(&get_msgtab);
+  mod_add_cmd(&put_msgtab);
 }
 
 void
 _moddeinit(void)
 {
   mod_del_cmd(&post_msgtab);
+  mod_del_cmd(&get_msgtab);
+  mod_del_cmd(&put_msgtab);
 }
-
+ 
 const char *_version = "$Revision$";
 #endif
 /*

@@ -89,11 +89,11 @@ static void mr_server(struct Client *client_p, struct Client *source_p,
   int hop;
 
   if (parc < 4)
-    {
-      sendto_one(client_p,"ERROR :No servername");
-      exit_client(client_p, client_p, client_p, "Wrong number of args");
-      return;
-    }
+  {
+    sendto_one(client_p,"ERROR :No servername");
+    exit_client(client_p, client_p, client_p, "Wrong number of args");
+    return;
+  }
 
   name = parv[1];
   hop = atoi(parv[2]);
@@ -103,12 +103,13 @@ static void mr_server(struct Client *client_p, struct Client *source_p,
    * Reject a direct nonTS server connection if we're TS_ONLY -orabidoo
    */
   if (!DoesTS(client_p))
-    {
-      sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,"Link %s dropped, non-TS server",
-			   get_client_name(client_p, MASK_IP));
-      exit_client(client_p, client_p, client_p, "Non-TS server");
-      return;
-    }
+  {
+    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
+        "Link %s dropped, non-TS server", get_client_name(client_p, MASK_IP));
+    
+    exit_client(client_p, client_p, client_p, "Non-TS server");
+    return;
+  }
 
   if (bogus_host(name))
   {
@@ -303,8 +304,8 @@ static void ms_server(struct Client *client_p, struct Client *source_p,
 	                   "Link %s cancelled, server %s already exists",
 		 	   client_p->name, name);
       
-        exit_client(client_p, client_p, &me, "Server Exists");
-	return;
+      exit_client(client_p, client_p, &me, "Server Exists");
+      return;
     }
   
   /* 
@@ -482,7 +483,7 @@ static void ms_server(struct Client *client_p, struct Client *source_p,
 	  sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL, 
 	        "Lost N-line for %s on %s. Closing",
 		get_client_name(client_p, MASK_IP), name);
-	  exit_client(client_p, client_p, client_p, "Lost N line");
+	  exit_client(client_p, client_p, client_p, "Lost connect{} block");
           return;
 	}
       if (match(my_name_for_link(me.name, aconf), target_p->name))

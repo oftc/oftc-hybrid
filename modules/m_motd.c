@@ -77,7 +77,8 @@ const char *_version = "$Revision$";
  *
  * parv[0] = sender prefix
  */
-static void mr_motd(struct Client *client_p, struct Client *source_p,
+static void
+mr_motd(struct Client *client_p, struct Client *source_p,
                     int parc, char *parv[])
 {
   /* allow unregistered clients to see the motd, but exit them */
@@ -90,8 +91,9 @@ static void mr_motd(struct Client *client_p, struct Client *source_p,
 **      parv[0] = sender prefix
 **      parv[1] = servername
 */
-static void m_motd(struct Client *client_p, struct Client *source_p,
-                   int parc, char *parv[])
+static void
+m_motd(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
 {
   static time_t last_used = 0;
 
@@ -121,8 +123,9 @@ static void m_motd(struct Client *client_p, struct Client *source_p,
 **      parv[0] = sender prefix
 **      parv[1] = servername
 */
-static void mo_motd(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+mo_motd(struct Client *client_p, struct Client *source_p,
+	int parc, char *parv[])
 {
   if(!IsClient(source_p))
     return;
@@ -141,7 +144,8 @@ static void mo_motd(struct Client *client_p, struct Client *source_p,
  * output       - none
  * side effects - hook doing_motd is called
  */
-static void motd_spy(struct Client *source_p)
+static void
+motd_spy(struct Client *source_p)
 {
   struct hook_spy_data data;
 

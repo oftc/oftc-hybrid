@@ -34,7 +34,6 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "client.h"
 
 static void ms_wallops(struct Client*, struct Client*, int, char**);
 static void mo_wallops(struct Client*, struct Client*, int, char**);
@@ -61,6 +60,7 @@ const char *_version = "$Revision$";
 #endif
 /*
  * mo_wallops (write to *all* opers and users currently online)
+ *
  *      parv[0] = sender prefix
  *      parv[1] = message text
  */

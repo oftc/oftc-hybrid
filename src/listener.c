@@ -386,6 +386,14 @@ accept_connection(int pfd, void *data)
 
   fd = comm_accept(listener->fd, &sai);
 
+  if (fd < 0)
+  {
+    /* Re-register a new IO request for the next accept .. */
+    comm_setselect(listener->fd, FDLIST_SERVICE, COMM_SELECT_READ,
+                   accept_connection, listener, 0);
+    return;
+  }
+
   copy_s_addr(IN_ADDR(addr), S_ADDR(sai));
 
 #ifdef IPV6
@@ -399,13 +407,6 @@ accept_connection(int pfd, void *data)
   }
 #endif
 
-  if (fd < 0)
-    {
-      /* Re-register a new IO request for the next accept .. */
-      comm_setselect(listener->fd, FDLIST_SERVICE, COMM_SELECT_READ,
-                     accept_connection, listener, 0);
-      return;
-    }
   /*
    * check for connection limit
    */

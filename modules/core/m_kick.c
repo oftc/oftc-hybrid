@@ -70,10 +70,9 @@ const char *_version = "$Revision$";
 **      parv[2] = client to kick
 **      parv[3] = kick comment
 */
-static void m_kick(struct Client *client_p,
-                  struct Client *source_p,
-                  int parc,
-                  char *parv[])
+static void 
+m_kick(struct Client *client_p, struct Client *source_p,
+                  int parc, char *parv[])
 {
   struct Client *who;
   struct Channel *chptr;
@@ -258,17 +257,17 @@ static void m_kick(struct Client *client_p,
                     ":%s KICK %s %s :%s",
                     parv[0], chptr->chname,
                     who->name, comment);
-      remove_user_from_channel(chptr, who);
+      if (!IsDefunct(who))
+	remove_user_from_channel(chptr, who);
     }
   else
     sendto_one(source_p, form_str(ERR_USERNOTINCHANNEL),
                me.name, parv[0], user, name);
 }
 
-static void ms_kick(struct Client *client_p,
-                   struct Client *source_p,
-                   int parc,
-                   char *parv[])
+static void
+ms_kick(struct Client *client_p, struct Client *source_p,
+                   int parc, char *parv[])
 {
   if (*parv[2] == '\0')
     {

@@ -62,10 +62,9 @@ const char *_version = "$Revision$";
 **      parv[0] = sender prefix
 **      parv[1] = comment
 */
-static void m_quit(struct Client *client_p,
-                  struct Client *source_p,
-                  int parc,
-                  char *parv[])
+static void
+m_quit(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
 {
   char *comment = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
   char reason [TOPICLEN + 1];
@@ -99,10 +98,9 @@ static void m_quit(struct Client *client_p,
 **      parv[0] = sender prefix
 **      parv[1] = comment
 */
-static void ms_quit(struct Client *client_p,
-                   struct Client *source_p,
-                   int parc,
-                   char *parv[])
+static void
+ms_quit(struct Client *client_p, struct Client *source_p,
+	int parc, char *parv[])
 {
   char *comment = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
 

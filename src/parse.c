@@ -134,10 +134,10 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
   
   Debug((DEBUG_DEBUG, "Parsing %s:", pbuffer));
 
-  assert(!IsDead(client_p));
-  assert(client_p->localClient->fd >= 0);
   if(IsDefunct(client_p))
     return;
+
+  assert(client_p->localClient->fd >= 0);
 
   assert((bufend-pbuffer) < 512);
 
@@ -387,6 +387,7 @@ handle_command(struct Message *mptr, struct Client *client_p,
       
       exit_client(client_p, client_p, client_p,
 		  "Not enough arguments to server command.");
+
       return(-1);
     }
 
@@ -678,6 +679,7 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
 	   return 0;
    }
   return exit_client(client_p, client_p, &me, "Fake prefix");
+  return CLIENT_EXITED;
 }
 
 /*

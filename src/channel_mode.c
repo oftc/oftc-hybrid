@@ -1023,8 +1023,11 @@ chm_ban(struct Client *client_p, struct Client *source_p,
 /* XXX this hack allows /mode * +o-b nick ban.cookie
  * I'd like to see this hack go away in the future.
  */
-      if(del_id(chptr, raw_mask, CHFL_BAN))
-       mask = raw_mask;
+    if (del_id(chptr, raw_mask, CHFL_BAN))
+      mask = raw_mask;
+    else
+      del_id(chptr, mask, CHFL_BAN);
+
 #endif
 
     mode_changes[mode_count].letter = c;
@@ -1870,6 +1873,9 @@ chm_key(struct Client *client_p, struct Client *source_p,
     if (!(*chptr->mode.key))
       return;
 
+    if (parc > *parn)
+      (*parn)++;
+    
     *chptr->mode.key = 0;
 
     mode_changes[mode_count].letter = c;

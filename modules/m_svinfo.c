@@ -66,8 +66,9 @@ const char *_version = "$Revision$";
  *      parv[3] = server is standalone or connected to non-TS only
  *      parv[4] = server's idea of UTC time
  */
-static void ms_svinfo(struct Client *client_p, struct Client *source_p,
-                     int parc, char *parv[])
+static void
+ms_svinfo(struct Client *client_p, struct Client *source_p,
+	  int parc, char *parv[])
 {
   time_t deltat;
   time_t theirtime;

@@ -45,7 +45,7 @@ file_open(const char *filename, int mode, int fmode)
     int fd;
     fd = open(filename, mode, fmode);
     if (fd == MASTER_MAX) {
-        fd_close(fd); /* Too many FDs! */
+        close(fd); /* Too many FDs! */
         errno = ENFILE;
         fd = -1;
     } else if (fd >= 0)

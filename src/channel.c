@@ -192,7 +192,7 @@ remove_user_from_channel(struct Channel *chptr, struct Client *who)
 
   /* last user in the channel.. set a vchan_id incase we need it */
 #ifdef VCHANS
-  if (chptr->users == 1)
+  if (chptr->users <= 1)
     ircsprintf(chptr->vchan_id, "!%s", who->name);
 #endif
 
@@ -454,6 +454,41 @@ check_channel_name(const char *name)
   return 1;
 }
 
+#ifdef VCHANS
+/* clear_channels()
+ *  inputs       -
+ *  output       -
+ *  side effects - destroying empty channels
+ */
+void
+clear_channels(void *unused)
+{
+  struct Channel *chptr;
+  struct Channel *next_chptr;
+
+  for (chptr = GlobalChannelList; chptr; chptr = next_chptr)
+  {
+    next_chptr = chptr->nextch;
+
+    if (!HasVchans(chptr))
+    {
+      if (!IsVchanTop(chptr))
+      {
+	if (chptr->users == 0)
+	{
+	  if ((uplink) && IsCapable(uplink, CAP_LL))
+	  {
+	    sendto_one(uplink, ":%s DROP %s", me.name, chptr->chname);
+	  }
+
+	  destroy_channel(chptr);
+	}
+      }
+    }
+  }
+}
+#endif
+
 /*
  * sub1_from_channel
  *
@@ -466,8 +501,6 @@ check_channel_name(const char *name)
 static int
 sub1_from_channel(struct Channel *chptr)
 {
-  dlink_node *c;
-
   if (--chptr->users <= 0)
   {
 #ifdef INVARIANTS
@@ -532,9 +565,8 @@ destroy_channel(struct Channel *chptr)
   {
     root_chptr = chptr->root_chptr;
     /* remove from vchan double link list */
-    m = dlinkFind(&root_chptr->vchan_list, chptr);
-    dlinkDelete(m, &root_chptr->vchan_list);
-    free_dlink_node(m);
+    if ((m = dlinkFindDelete(&root_chptr->vchan_list, chptr)) != NULL)
+      free_dlink_node(m);
   }
 #endif
 

@@ -389,12 +389,8 @@ stats_pending_glines(struct Client *source_p)
 {
   dlink_node *pending_node;
   struct gline_pending *glp_ptr;
-  struct ConfItem *kill_ptr;
   char timebuffer[MAX_DATE_STRING];
   struct tm *tmptr;
-  char *host;
-  char *name;
-  char *reason;
 
   if(!ConfigFileEntry.glines)
   {
@@ -449,8 +445,6 @@ stats_glines(struct Client *source_p)
 {
   dlink_node *gline_node;
   struct ConfItem *kill_ptr;
-  char timebuffer[MAX_DATE_STRING];
-  struct tm *tmptr;
   char *host;
   char *name;
   char *reason;
