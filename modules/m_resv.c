@@ -78,7 +78,7 @@ const char *_version = "$Revision$";
 static void ms_resv(struct Client *client_p, struct Client *source_p,
                     int parc, char *parv[])
 {
-  if(EmptyString(parv[1]))
+  if(EmptyString(parv[2]))
     return;
 
   if(IsChannelName(parv[1]))
@@ -146,11 +146,11 @@ static void mo_resv(struct Client *client_p, struct Client *source_p,
     }
     
     sendto_one(source_p,
-               ":%s NOTICE %s :A local RESV has been placed on channel: %s [%s]",
+               ":%s NOTICE %s :A global RESV has been placed on channel: %s [%s]",
                me.name, source_p->name, resv_p->name, resv_p->reason);
 	       
-    sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-                         "%s has placed a local RESV on channel: %s [%s]",
+    sendto_realops_flags(FLAGS_ALL, L_OPER, NULL,
+                         "%s has placed a global RESV on channel: %s [%s]",
              	         get_oper_name(source_p),
 		         resv_p->name, resv_p->reason);
   }
@@ -177,12 +177,12 @@ static void mo_resv(struct Client *client_p, struct Client *source_p,
     }
 
     sendto_one(source_p,
-               ":%s NOTICE %s :A local RESV has been placed on nick: %s [%s]",
+               ":%s NOTICE %s :A global RESV has been placed on nick: %s [%s]",
 	       me.name, source_p->name,
 	       resv_p->name, resv_p->reason);
 
     sendto_gnotice_flags(FLAGS_ALL, L_OPER, me.name, &me, NULL,
-                         "%s has placed a local RESV on nick: %s [%s]",
+                         "%s has placed a global RESV on nick: %s [%s]",
 			 get_oper_name(source_p),
 			 resv_p->name, resv_p->reason);
   }			 
@@ -190,8 +190,8 @@ static void mo_resv(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, 
               ":%s NOTICE %s :You have specified an invalid resv: [%s]",
 	      me.name, source_p->name, parv[1]);
-    sendto_server(NULL, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
-                         ":%s RESV %s :%s", me.name, parv[1], parv[2]);
+  sendto_server(NULL, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
+        ":%s RESV %s :%s", me.name, parv[1], parv[2]);
 }
 
 /*
