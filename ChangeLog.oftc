@@ -1,3 +1,15 @@
+stu         2004/02/25 00:11:53 UTC	(20040225_0)
+
+  Modified files:
+    modules/core         m_sjoin.c 
+  Log:
+  Fixed +c propogation bug
+  
+  Revision  Changes    Path
+  1.4       +4 -1      oftc-hybrid/modules/core/m_sjoin.c
+
+
+
 stu         2004/02/24 00:05:50 UTC	(20040224_1)
 
   Modified files:
