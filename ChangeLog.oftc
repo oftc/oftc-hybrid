@@ -1,3 +1,15 @@
+stu         2004/12/30 20:52:20 UTC	(20041230_1)
+
+  Modified files:
+    include              patchlevel.h 
+  Log:
+  rev patchlevel
+  
+  Revision  Changes    Path
+  1.16      +2 -2      oftc-hybrid/include/patchlevel.h
+
+
+
 stu         2004/12/30 20:12:37 UTC	(20041230_0)
 
   Modified files:
