@@ -2256,6 +2256,9 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
 		    | (IsConfTopicBurst(aconf) ? find_capability("TB") : 0)
 		    , CAP_ENC_MASK);
 
+  if (me.id[0])
+    sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);
+
   sendto_one(client_p, "CRYPTLINK SERV %s %s :%s%s",
              my_name_for_link(conf), key_to_send,
              ConfigServerHide.hidden ? "(H) " : "", me.info);
