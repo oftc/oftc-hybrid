@@ -1,1 +1,1 @@
-#define SERIALNUM "20051002_5"
+#define SERIALNUM "SVN"
