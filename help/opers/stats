@@ -17,7 +17,8 @@ X E - Shows Events
 X f - Shows File Descriptors
 * g - Shows pending G lines
 * G - Shows G lines
-* h - Shows H/L lines
+X h - Shows ircd callback statistics
+* H - Shows H/L lines
 ^ i - Shows I lines
 ^ K - Shows K lines (or matched klines)
 ^ k - Shows temporary K lines (or matched temp klines)
