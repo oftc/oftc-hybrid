@@ -2332,23 +2332,50 @@ expire_tklines(dlink_list *tklist)
 
 /* oper_privs_as_string()
  *
- * inputs        - pointer to client_p or NULL
+ * inputs        - pointer to client_p
  * output        - pointer to static string showing oper privs
  * side effects  - return as string, the oper privs as derived from port
  */
-
-static const unsigned int oper_flags_table[] = 
-  { 'O', 'R', 'U', 'G', 'N', 'K', 'X', 'D', 'H', 'A' , 0 };
+static const struct oper_privs
+{
+  const unsigned int oprivs;
+  const unsigned int hidden;
+  const unsigned char c;
+} flag_list[] = {
+  { OPER_FLAG_ADMIN,       OPER_FLAG_HIDDEN_ADMIN,  'A' },
+  { OPER_FLAG_REMOTEBAN,   0,                       'B' },
+  { OPER_FLAG_DIE,         0,                       'D' },
+  { OPER_FLAG_GLINE,       0,                       'G' },
+  { OPER_FLAG_REHASH,      0,                       'H' },
+  { OPER_FLAG_K,           0,                       'K' },
+  { OPER_FLAG_OPERWALL,    0,                       'L' },
+  { OPER_FLAG_N,           0,                       'N' },
+  { OPER_FLAG_GLOBAL_KILL, 0,                       'O' },
+  { OPER_FLAG_REMOTE,      0,                       'R' },
+  { OPER_FLAG_OPER_SPY,    0,                       'S' },
+  { OPER_FLAG_UNKLINE,     0,                       'U' },
+  { OPER_FLAG_X,           0,                       'X' },
+  { 0, 0, '\0' }
+};
 
 char *
 oper_privs_as_string(const unsigned int port)
 {
-  static char privs_out[12];
+  static char privs_out[16];
+  char *privs_ptr = privs_out;
+  unsigned int i = 0;
 
-  if (port & OPER_FLAG_HIDDEN_ADMIN)
-    flags_to_ascii(port & ~OPER_FLAG_ADMIN, oper_flags_table, privs_out, 1);
-  else
-    flags_to_ascii(port, oper_flags_table, privs_out, 1);
+  for (; flag_list[i].oprivs; ++i)
+  {
+    if ((port & flag_list[i].oprivs) &&
+        (port & flag_list[i].hidden) == 0)
+      *privs_ptr++ = flag_list[i].c;
+    else
+      *privs_ptr++ = ToLowerTab[flag_list[i].c];
+  }
+
+  *privs_ptr = '\0';
+
   return privs_out;
 }
 
