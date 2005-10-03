@@ -1,7 +1,7 @@
-/* A Bison parser, made from ircd_parser.y, by GNU bison 1.75.  */
+/* A Bison parser, made by GNU Bison 2.0.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,9 +22,6 @@
    Bison output file, you may use that output file without restriction.
    This special exception was added by the Free Software Foundation
    in version 1.24 of Bison.  */
-
-#ifndef BISON_Y_TAB_H
-# define BISON_Y_TAB_H
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -261,29 +258,30 @@
      T_SKILL = 484,
      T_SPY = 485,
      T_SSL = 486,
-     T_UNAUTH = 487,
-     T_UNRESV = 488,
-     T_UNXLINE = 489,
-     T_WALLOP = 490,
-     THROTTLE_TIME = 491,
-     TOPICBURST = 492,
-     TRUE_NO_OPER_FLOOD = 493,
-     TKLINE = 494,
-     TXLINE = 495,
-     TRESV = 496,
-     UNKLINE = 497,
-     USER = 498,
-     USE_EGD = 499,
-     USE_EXCEPT = 500,
-     USE_INVEX = 501,
-     USE_KNOCK = 502,
-     USE_LOGGING = 503,
-     USE_WHOIS_ACTUALLY = 504,
-     VHOST = 505,
-     VHOST6 = 506,
-     XLINE = 507,
-     WARN = 508,
-     WARN_NO_NLINE = 509
+     T_UMODES = 487,
+     T_UNAUTH = 488,
+     T_UNRESV = 489,
+     T_UNXLINE = 490,
+     T_WALLOP = 491,
+     THROTTLE_TIME = 492,
+     TOPICBURST = 493,
+     TRUE_NO_OPER_FLOOD = 494,
+     TKLINE = 495,
+     TXLINE = 496,
+     TRESV = 497,
+     UNKLINE = 498,
+     USER = 499,
+     USE_EGD = 500,
+     USE_EXCEPT = 501,
+     USE_INVEX = 502,
+     USE_KNOCK = 503,
+     USE_LOGGING = 504,
+     USE_WHOIS_ACTUALLY = 505,
+     VHOST = 506,
+     VHOST6 = 507,
+     XLINE = 508,
+     WARN = 509,
+     WARN_NO_NLINE = 510
    };
 #endif
 #define ACCEPT_PASSWORD 258
@@ -515,46 +513,48 @@
 #define T_SKILL 484
 #define T_SPY 485
 #define T_SSL 486
-#define T_UNAUTH 487
-#define T_UNRESV 488
-#define T_UNXLINE 489
-#define T_WALLOP 490
-#define THROTTLE_TIME 491
-#define TOPICBURST 492
-#define TRUE_NO_OPER_FLOOD 493
-#define TKLINE 494
-#define TXLINE 495
-#define TRESV 496
-#define UNKLINE 497
-#define USER 498
-#define USE_EGD 499
-#define USE_EXCEPT 500
-#define USE_INVEX 501
-#define USE_KNOCK 502
-#define USE_LOGGING 503
-#define USE_WHOIS_ACTUALLY 504
-#define VHOST 505
-#define VHOST6 506
-#define XLINE 507
-#define WARN 508
-#define WARN_NO_NLINE 509
+#define T_UMODES 487
+#define T_UNAUTH 488
+#define T_UNRESV 489
+#define T_UNXLINE 490
+#define T_WALLOP 491
+#define THROTTLE_TIME 492
+#define TOPICBURST 493
+#define TRUE_NO_OPER_FLOOD 494
+#define TKLINE 495
+#define TXLINE 496
+#define TRESV 497
+#define UNKLINE 498
+#define USER 499
+#define USE_EGD 500
+#define USE_EXCEPT 501
+#define USE_INVEX 502
+#define USE_KNOCK 503
+#define USE_LOGGING 504
+#define USE_WHOIS_ACTUALLY 505
+#define VHOST 506
+#define VHOST6 507
+#define XLINE 508
+#define WARN 509
+#define WARN_NO_NLINE 510
 
 
 
 
-#ifndef YYSTYPE
+#if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
 #line 134 "ircd_parser.y"
-typedef union {
+typedef union YYSTYPE {
   int number;
   char *string;
-} yystype;
-/* Line 1281 of /usr/local/share/bison/yacc.c.  */
-#line 553 "y.tab.h"
-# define YYSTYPE yystype
+} YYSTYPE;
+/* Line 1318 of yacc.c.  */
+#line 552 "y.tab.h"
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
+# define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
 
 extern YYSTYPE yylval;
 
 
-#endif /* not BISON_Y_TAB_H */
 

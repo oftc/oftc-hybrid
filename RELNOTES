@@ -1,5 +1,6 @@
 -- ircd-hybrid-7.2rc2 RELNOTES
 o) Fixed broken operwall = yes;
+o) Added 'umode' directive to oper{}.  List of modes to get on /OPER.
 
 
 -- ircd-hybrid-7.2rc1 RELNOTES

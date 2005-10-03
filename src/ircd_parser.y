@@ -357,6 +357,7 @@ unhook_hub_leaf_confs(void)
 %token  T_SKILL
 %token  T_SPY
 %token  T_SSL
+%token  T_UMODES
 %token  T_UNAUTH
 %token  T_UNRESV
 %token  T_UNXLINE
@@ -1043,7 +1044,7 @@ oper_entry: OPERATOR
 oper_name_b: | oper_name_t;
 oper_items:     oper_items oper_item | oper_item;
 oper_item:      oper_name | oper_user | oper_password | oper_hidden_admin |
-                oper_hidden_oper |
+                oper_hidden_oper | oper_umodes |
 		oper_class | oper_global_kill | oper_remote |
                 oper_kline | oper_xline | oper_unkline |
 		oper_gline | oper_nick_changes | oper_remoteban |
@@ -1166,6 +1167,68 @@ oper_class: CLASS '=' QSTRING ';'
     MyFree(class_name);
     DupString(class_name, yylval.string);
   }
+};
+
+oper_umodes: T_UMODES
+{
+  yy_aconf->modes = 0;
+} '='  oper_umodes_items ';' ;
+
+oper_umodes_items: oper_umodes_items ',' oper_umodes_item | oper_umodes_item;
+oper_umodes_item:  T_BOTS
+{
+  yy_aconf->modes |= UMODE_BOTS;
+} | T_CCONN
+{
+  yy_aconf->modes |= UMODE_CCONN;
+} | T_DEAF
+{
+  yy_aconf->modes |= UMODE_DEAF;
+} | T_DEBUG
+{
+  yy_aconf->modes |= UMODE_DEBUG;
+} | T_FULL
+{
+  yy_aconf->modes |= UMODE_FULL;
+} | T_SKILL
+{
+  yy_aconf->modes |= UMODE_SKILL;
+} | T_NCHANGE
+{
+  yy_aconf->modes |= UMODE_NCHANGE;
+} | T_REJ
+{
+  yy_aconf->modes |= UMODE_REJ;
+} | T_UNAUTH
+{
+  yy_aconf->modes |= UMODE_UNAUTH;
+} | T_SPY
+{
+  yy_aconf->modes |= UMODE_SPY;
+} | T_EXTERNAL
+{
+  yy_aconf->modes |= UMODE_EXTERNAL;
+} | T_OPERWALL
+{
+  yy_aconf->modes |= UMODE_OPERWALL;
+} | T_SERVNOTICE
+{
+  yy_aconf->modes |= UMODE_SERVNOTICE;
+} | T_INVISIBLE
+{
+  yy_aconf->modes |= UMODE_INVISIBLE;
+} | T_WALLOP
+{
+  yy_aconf->modes |= UMODE_WALLOP;
+} | T_SOFTCALLERID
+{
+  yy_aconf->modes |= UMODE_SOFTCALLERID;
+} | T_CALLERID
+{
+  yy_aconf->modes |= UMODE_CALLERID;
+} | T_LOCOPS
+{
+  yy_aconf->modes |= UMODE_LOCOPS;
 };
 
 oper_global_kill: GLOBAL_KILL '=' TBOOL ';'
