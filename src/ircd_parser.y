@@ -3693,9 +3693,6 @@ gline_action: ACTION
 
       dlinkDelete(&yy_tmp->node, &col_conf_list);
     }
-    yy_conf = make_conf_item(GDENY_TYPE);
-    yy_aconf = (struct AccessItem *)map_to_conf(yy_conf);
-    yy_aconf->flags = 0;
   }
 };
 
