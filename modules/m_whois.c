@@ -106,7 +106,7 @@ m_whois(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (parc > 2)
+  if (parc > 2 && !EmptyString(parv[2]))
   {
     /* seeing as this is going across servers, we should limit it */
     if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
@@ -155,7 +155,7 @@ mo_whois(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (parc > 2)
+  if (parc > 2 && !EmptyString(parv[2]))
   {
     if (hunt_server(client_p, source_p, ":%s WHOIS %s :%s", 1,
                     parc, parv) != HUNTED_ISME)
