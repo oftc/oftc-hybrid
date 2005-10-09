@@ -490,7 +490,7 @@ build_target_list(struct Client *client_p, struct Client *source_p,
       continue;
     }
 
-    if (strlen(chan) > CHANNELLEN)
+    if (strlen(chan) > LOCAL_CHANNELLEN)
     {
       sendto_one(source_p, form_str(ERR_BADCHANNAME),
                  me.name, source_p->name, chan);
