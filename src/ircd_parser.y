@@ -3570,8 +3570,7 @@ gline_entry: GLINES
   if (ypass == 2)
   {
     yy_conf = make_conf_item(GDENY_TYPE);
-    yy_aconf = (struct AccessItem *)map_to_conf(yy_conf);
-    yy_aconf->flags = 0;
+    yy_aconf = map_to_conf(yy_conf);
   }
 } '{' gline_items '}' ';'
 {
@@ -3581,10 +3580,9 @@ gline_entry: GLINES
      * since we re-allocate yy_conf/yy_aconf after the end of action=, at the
      * end we will have one extra, so we should free it.
      */
-    if (yy_conf->name == NULL && gdeny_items.length)
+    if (yy_conf->name == NULL || yy_aconf->user == NULL)
     {
-      dlinkDelete(gdeny_items.tail, &gdeny_items);
-      MyFree(yy_conf);
+      delete_conf_item(yy_conf);
       yy_conf = NULL;
       yy_aconf = NULL;
     }
@@ -3632,7 +3630,7 @@ gline_user: USER '=' QSTRING ';'
 {
   if (ypass == 2)
   {
-    struct CollectItem *yy_tmp;
+    struct CollectItem *yy_tmp = NULL;
 
     if (yy_aconf->user == NULL)
     {
@@ -3640,7 +3638,7 @@ gline_user: USER '=' QSTRING ';'
     }
     else
     {
-      yy_tmp = (struct CollectItem *)MyMalloc(sizeof(struct CollectItem));
+      yy_tmp = MyMalloc(sizeof(struct CollectItem));
       split_nuh(yylval.string, NULL, &yy_tmp->user, &yy_tmp->host);
       dlinkAdd(yy_tmp, &yy_tmp->node, &col_conf_list);
     }
@@ -3664,7 +3662,7 @@ gline_action: ACTION
 {
   if (ypass == 2)
   {
-    struct CollectItem *yy_tmp;
+    struct CollectItem *yy_tmp = NULL;
     dlink_node *ptr, *next_ptr;
 
     DLINK_FOREACH_SAFE(ptr, next_ptr, col_conf_list.head)
@@ -3674,7 +3672,7 @@ gline_action: ACTION
 
       yy_tmp = ptr->data;
       new_conf = make_conf_item(GDENY_TYPE);
-      new_aconf = (struct AccessItem *)map_to_conf(new_conf);
+      new_aconf = map_to_conf(new_conf);
 
       new_aconf->flags = yy_aconf->flags;
 
@@ -3693,6 +3691,16 @@ gline_action: ACTION
 
       dlinkDelete(&yy_tmp->node, &col_conf_list);
     }
+
+    /*
+     * In case someone has fed us with more than one action= after user/name
+     * which would leak memory  -Michael
+     */
+    if (yy_conf->name == NULL || yy_aconf->user == NULL)
+      delete_conf_item(yy_conf);
+
+    yy_conf = make_conf_item(GDENY_TYPE);
+    yy_aconf = map_to_conf(yy_conf);
   }
 };
 
