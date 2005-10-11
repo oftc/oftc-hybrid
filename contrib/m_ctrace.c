@@ -58,7 +58,7 @@ static void *
 va_ctrace(va_list args)
 {
   struct Client *source_p = va_arg(args, struct Client *);
-  va_arg(args, int);
+  int parc = va_arg(args, int);
   char **parv = va_arg(args, char **);
 
   do_ctrace(source_p, parv);
