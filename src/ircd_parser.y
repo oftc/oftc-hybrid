@@ -1390,8 +1390,8 @@ oper_flags: IRCD_FLAGS
 } '='  oper_flags_items ';';
 
 oper_flags_items: oper_flags_items ',' oper_flags_item | oper_flags_item;
-oper_flags_item: NOT oper_flags_item_atom { not_atom = 1; }
-		| oper_flags_item_atom { not_atom = 0; };
+oper_flags_item: NOT { not_atom = 1; } oper_flags_item_atom
+		| { not_atom = 0; } oper_flags_item_atom;
 
 oper_flags_item_atom: GLOBAL_KILL
 {
@@ -1904,8 +1904,8 @@ auth_flags: IRCD_FLAGS
 } '='  auth_flags_items ';';
 
 auth_flags_items: auth_flags_items ',' auth_flags_item | auth_flags_item;
-auth_flags_item: NOT auth_flags_item_atom { not_atom = 1; }
-		| auth_flags_item_atom { not_atom = 0; };
+auth_flags_item: NOT { not_atom = 1; } auth_flags_item_atom
+		| { not_atom = 0; } auth_flags_item_atom;
 
 auth_flags_item_atom: SPOOF_NOTICE
 {
@@ -2618,8 +2618,8 @@ connect_flags: IRCD_FLAGS
 } '='  connect_flags_items ';';
 
 connect_flags_items: connect_flags_items ',' connect_flags_item | connect_flags_item;
-connect_flags_item: NOT connect_flags_item_atom { not_atom = 1; }
-			| connect_flags_item_atom { not_atom = 0; };
+connect_flags_item: NOT  { not_atom = 1; } connect_flags_item_atom
+			|  { not_atom = 0; } connect_flags_item_atom;
 
 connect_flags_item_atom: LAZYLINK
 {

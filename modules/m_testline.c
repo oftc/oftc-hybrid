@@ -88,7 +88,7 @@ static void
 mo_testline(struct Client *client_p, struct Client *source_p,
             int parc, char *parv[])
 {
-  char *given_name, *p;
+  char *given_name;
   const char *given_host = NULL;
   struct ConfItem *conf;
   struct AccessItem *aconf;
@@ -123,15 +123,9 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     }
   }
 
-  if ((p = strchr(given_name, '@')) != NULL)
-  {
-    *p++ = '\0';
-    given_host = p;
-  }
-  else
-    given_host = "*";
+  split_nuh(given_name, NULL, &given_name, &given_host);
 
-  t = parse_netmask(given_name, &ip, &host_mask);
+  t = parse_netmask(given_host, &ip, &host_mask);
 
   if (t != HM_HOST)
   {
