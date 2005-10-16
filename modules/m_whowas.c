@@ -120,7 +120,12 @@ whowas_do(struct Client *client_p, struct Client *source_p,
   char *p = NULL, *nick = NULL;
 
   if (parc > 2)
+  {
     max = atoi(parv[2]);
+
+    if (!MyConnect(source_p) && max > 20)
+      max = 20;
+  }
 
   if (parc > 3)
     if (hunt_server(client_p, source_p, ":%s WHOWAS %s %s :%s", 3,
