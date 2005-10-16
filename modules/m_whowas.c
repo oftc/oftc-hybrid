@@ -47,7 +47,7 @@ static void whowas_do(struct Client *, struct Client *, int, char *[]);
 
 struct Message whowas_msgtab = {
   "WHOWAS", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_whowas, m_error, m_ignore, mo_whowas, m_ignore }
+  { m_unregistered, m_whowas, mo_whowas, m_ignore, mo_whowas, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -117,12 +117,14 @@ whowas_do(struct Client *client_p, struct Client *source_p,
   struct Whowas *temp = NULL;
   int cur = 0;
   int max = -1;
-  char *p, *nick;
+  char *p = NULL, *nick = NULL;
 
   if (parc > 2)
     max = atoi(parv[2]);
+
   if (parc > 3)
-    if (hunt_server(client_p, source_p, ":%s WHOWAS %s %s :%s", 3, parc, parv))
+    if (hunt_server(client_p, source_p, ":%s WHOWAS %s %s :%s", 3,
+                    parc, parv) != HUNTED_ISME)
       return;
 
   nick = parv[1];
