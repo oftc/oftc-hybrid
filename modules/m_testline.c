@@ -204,6 +204,17 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 		 aconf->class_ptr ? aconf->class_ptr->name : "<default>", "");
       ++matches;
     }
+    else if (aconf->status & CONF_KILL)
+    {
+      sendto_one(source_p, form_str(RPL_TESTLINE),
+		 me.name, source_p->name,
+		 IsConfTemporary(aconf) ? 'k' : 'K',
+		 IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
+		 : 0L,
+		 userhost, aconf->passwd ? aconf->passwd : "No reason",
+		 aconf->oper_reason ? aconf->oper_reason : "");
+      ++matches;
+    }
   }
 
   conf = find_matching_name_conf(NRESV_TYPE, given_name, NULL, NULL, 0);
