@@ -2714,7 +2714,7 @@ flush_deleted_I_P(void)
   struct ConfItem *conf;
   struct AccessItem *aconf;
   dlink_list * free_items [] = {
-    &server_items, &oconf_items, &hub_items, &leaf_items, NULL
+    &server_items, &oconf_items, NULL
   };
   dlink_list ** iterator = free_items; /* C is dumb */
 
