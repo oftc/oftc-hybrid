@@ -424,7 +424,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
   if (source_p->id[0] == '\0' && me.id[0])
   {
-    char *id = (char *) execute_callback(uid_get_cb, source_p);
+    char *id = (char *)execute_callback(uid_get_cb, source_p);
     while (hash_find_id(id) != NULL)
       id = uid_get(NULL);
 
@@ -448,8 +448,10 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     return;
 
   if (ConfigFileEntry.invisible_on_connect)
+  {
     source_p->umodes |= UMODE_INVISIBLE;
-  Count.invisi++;
+    Count.invisi++;
+  }
 
   if ((++Count.local) > Count.max_loc)
   {
