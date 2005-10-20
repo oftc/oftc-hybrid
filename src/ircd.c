@@ -529,8 +529,8 @@ init_ssl(void)
 static void
 init_callbacks(void)
 {
-  iorecv_cb = register_callback("iorecv", NULL);
-  iosend_cb = register_callback("iosend", NULL);
+  iorecv_cb = register_callback("iorecv", iorecv_default);
+  iosend_cb = register_callback("iosend", iosend_default);
   iorecvctrl_cb = register_callback("iorecvctrl", NULL);
   iosendctrl_cb = register_callback("iosendctrl", NULL);
 }

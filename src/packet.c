@@ -166,7 +166,7 @@ parse_client_queued(struct Client *client_p)
       client_dopacket(client_p, readBuf, dolen);
     }
   }
-  else if(IsClient(client_p))
+  else if (IsClient(client_p))
   {
     if (ConfigFileEntry.no_oper_flood && (IsOper(client_p) || IsCanFlood(client_p)))
     {
@@ -390,6 +390,20 @@ nodata:
 }
 
 /*
+ * iorecv_default - append a packet to the recvq dbuf
+ */
+void *
+iorecv_default(va_list args)
+{
+  struct Client *client_p = va_arg(args, struct Client *);
+  int length = va_arg(args, int);
+  char *buf = va_arg(args, char *);
+
+  dbuf_put(&client_p->localClient->buf_recvq, buf, length);
+  return NULL;
+}
+
+/*
  * read_packet - Read a 'packet' of data from a connection and process it.
  */
 void
@@ -460,8 +474,6 @@ read_packet(fde_t *fd, void *data)
     if (client_p->lasttime > client_p->since)
       client_p->since = CurrentTime;
     ClearPingSent(client_p);
-
-    dbuf_put(&client_p->localClient->buf_recvq, readBuf, length);
 
     /* Attempt to parse what we have */
     parse_client_queued(client_p);

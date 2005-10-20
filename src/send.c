@@ -91,6 +91,20 @@ send_format(char *lsendbuf, int bufsize, const char *pattern, va_list args)
 }
 
 /*
+ * iosend_default - append a packet to the client's sendq.
+ */
+void *
+iosend_default(va_list args)
+{
+  struct Client *to = va_arg(args, struct Client *);
+  int length = va_arg(args, int);
+  char *buf = va_arg(args, char *);
+
+  dbuf_put(&to->localClient->buf_sendq, buf, length);
+  return NULL;
+}
+
+/*
  ** send_message
  **      Internal utility which appends given buffer to the sockets
  **      sendq.
@@ -121,7 +135,7 @@ send_message(struct Client *to, char *buf, int len)
     return;
   }
 
-  dbuf_put(&to->localClient->buf_sendq, buf, len);
+  execute_callback(iosend_cb, to, len, buf);
 
   /*
    ** Update statistics. The following is slightly incorrect
@@ -298,7 +312,6 @@ send_queued_write(struct Client *to)
         break;
       }
 
-      execute_callback(iosend_cb, to, retlen, first->data);
       dbuf_delete(&to->localClient->buf_sendq, retlen);
 
       /* We have some data written .. update counters */
