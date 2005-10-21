@@ -42,7 +42,7 @@
 #include "modules.h"
 #include "irc_getnameinfo.h"
 
-static void do_ctrace(struct Client *, char **);
+static void do_ctrace(struct Client *, int, char **);
 static void mo_ctrace(struct Client *, struct Client *, int, char *[]);
 
 struct Message ctrace_msgtab = {
@@ -61,7 +61,7 @@ va_ctrace(va_list args)
   int parc = va_arg(args, int);
   char **parv = va_arg(args, char **);
 
-  do_ctrace(source_p, parv);
+  do_ctrace(source_p, parc, parv);
   return NULL;
 }
 
@@ -109,7 +109,7 @@ mo_ctrace(struct Client *client_p, struct Client *source_p,
  * do_ctrace
  */
 static void
-do_ctrace(struct Client *source_p, char **parv)
+do_ctrace(struct Client *source_p, int parc, char **parv)
 {
   struct Client *target_p = NULL;
   char *class_looking_for;
