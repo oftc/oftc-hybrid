@@ -216,7 +216,6 @@ struct LocalUser
   dlink_list        confs;      /* Configuration record associated */
 
   struct irc_ssaddr ip;
-  unsigned short    port;       /* and the remote port# too :-) */
   int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
   struct DNSQuery   *dns_query;  /* result returned from resolver query */
   unsigned long     serverMask; /* Only used for Lazy Links */

@@ -320,13 +320,11 @@ make_request(struct DNSQuery* query)
   struct reslist *request;
 
   request = (struct reslist *)MyMalloc(sizeof(struct reslist));
-  memset(request, 0, sizeof(struct reslist));
 
   request->sentat  = CurrentTime;
   request->retries = 3;
   request->resend  = 1;
   request->timeout = 4;    /* start at 4 and exponential inc. */
-  memset(&request->addr, 0, sizeof(request->addr));
   request->query   = query;
   request->state   = REQ_IDLE;
 
