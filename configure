@@ -3763,7 +3763,8 @@ done
 
 
 
-for ac_header in crypt.h inttypes.h stdint.h sys/resource.h sys/param.h errno.h sys/syslog.h stddef.h libgen.h sys/wait.h wait.h
+
+for ac_header in crypt.h inttypes.h stdint.h sys/resource.h sys/param.h errno.h sys/syslog.h stddef.h libgen.h sys/wait.h wait.h link.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then
@@ -10531,7 +10532,8 @@ echo "$as_me: WARNING: dlsym is not available, shared modules disabled" >&2;}
 fi
 
 
-for ac_func in dlfunc
+
+for ac_func in dlfunc dlinfo
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5

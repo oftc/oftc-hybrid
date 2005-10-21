@@ -34,6 +34,10 @@
 #define RTLD_NOW RTLD_LAZY /* openbsd deficiency */
 #endif
 
+#if defined(HAVE_DLINFO) && defined(HAVE_LINK_H)
+# include <link.h>
+#endif
+
 extern dlink_list mod_list;
 
 static char unknown_ver[] = "<unknown>";
@@ -240,11 +244,15 @@ unload_one_module(char *name, int warn)
 int
 load_a_module(char *path, int warn, int core)
 {
+#ifdef HAVE_DLINFO
+  Link_map *map;
+#endif
 #ifdef HAVE_SHL_LOAD
   shl_t tmpptr;
 #else
   void *tmpptr = NULL;
 #endif
+  void *addr = NULL;
   char *mod_basename;
   void (*initfunc)(void) = NULL;
   void (*mod_deinit)(void) = NULL;
@@ -345,7 +353,15 @@ load_a_module(char *path, int warn, int core)
 #endif
 
   modp            = MyMalloc(sizeof(struct module));
-  modp->address   = tmpptr;
+#ifdef HAVE_DLINFO
+  dlinfo(tmpptr, RTLD_DI_LINKMAP, &map);
+  if (map != NULL)
+    addr = map->l_addr;
+  else
+    addr = tmpptr;
+#endif
+
+  modp->address   = addr;
   modp->version   = ver;
   modp->core      = core;
   modp->modremove = mod_deinit;
@@ -359,9 +375,9 @@ load_a_module(char *path, int warn, int core)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Module %s [version: %s] loaded at %p",
-                         mod_basename, ver, tmpptr);
+                         mod_basename, ver, addr);
     ilog(L_WARN, "Module %s [version: %s] loaded at %p",
-         mod_basename, ver, tmpptr);
+         mod_basename, ver, addr);
   }
 
   return(0);
