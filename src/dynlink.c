@@ -245,7 +245,7 @@ int
 load_a_module(char *path, int warn, int core)
 {
 #ifdef HAVE_DLINFO
-  Link_map *map;
+  struct link_map *map;
 #endif
 #ifdef HAVE_SHL_LOAD
   shl_t tmpptr;
