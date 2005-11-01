@@ -4,6 +4,7 @@ o) Added 'umode' directive to oper{}.  List of modes to get on /OPER.
 o) Fixed a WHOIS bug
 o) Fixed bug where we would increase Count.invisi even
    if invisible_on_connect is turned off
+o) Removed invite_ops_only, controlled by paranoid (+p) now
 
 
 -- ircd-hybrid-7.2rc1 RELNOTES

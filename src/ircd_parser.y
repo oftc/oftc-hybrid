@@ -273,7 +273,6 @@ unhook_hub_leaf_confs(void)
 %token  OPER_PASS_RESV
 %token  OPER_SPY_T
 %token  OPER_UMODES
-%token	INVITE_OPS_ONLY
 %token  JOIN_FLOOD_COUNT
 %token  JOIN_FLOOD_TIME
 %token  PACE_WAIT
@@ -3725,14 +3724,13 @@ channel_items:      channel_items channel_item | channel_item;
 channel_item:       channel_disable_local_channels | channel_use_except |
                     channel_use_invex | channel_use_knock |
                     channel_max_bans | channel_knock_delay |
-		    channel_knock_delay_channel | channel_invite_ops_only |
-                    channel_max_chans_per_user | channel_quiet_on_ban |
-		    channel_default_split_user_count | 
-		    channel_default_split_server_count |
-		    channel_no_create_on_split | channel_restrict_channels |
-		    channel_no_join_on_split | channel_burst_topicwho |
-		    channel_jflood_count | channel_jflood_time |
-		    error;
+                    channel_knock_delay_channel | channel_max_chans_per_user |
+                    channel_quiet_on_ban | channel_default_split_user_count |
+                    channel_default_split_server_count |
+                    channel_no_create_on_split | channel_restrict_channels |
+                    channel_no_join_on_split | channel_burst_topicwho |
+                    channel_jflood_count | channel_jflood_time |
+                    error;
 
 channel_restrict_channels: RESTRICT_CHANNELS '=' TBOOL ';'
 {
@@ -3767,11 +3765,6 @@ channel_knock_delay: KNOCK_DELAY '=' timespec ';'
 channel_knock_delay_channel: KNOCK_DELAY_CHANNEL '=' timespec ';'
 {
   ConfigChannel.knock_delay_channel = $3;
-};
-
-channel_invite_ops_only: INVITE_OPS_ONLY '=' TBOOL ';'
-{
-  ConfigChannel.invite_ops_only = yylval.number;
 };
 
 channel_max_chans_per_user: MAX_CHANS_PER_USER '=' NUMBER ';'

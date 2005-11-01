@@ -1,149 +1,432 @@
-#ifndef YYERRCODE
-#define YYERRCODE 256
-#endif
+/* A Bison parser, made from ircd_parser.y, by GNU bison 1.75.  */
 
-#define ACCEPT_PASSWORD 257
-#define ACTION 258
-#define ADMIN 259
-#define AFTYPE 260
-#define T_ALLOW 261
-#define ANTI_NICK_FLOOD 262
-#define ANTI_SPAM_EXIT_MESSAGE_TIME 263
-#define AUTOCONN 264
-#define T_BLOCK 265
-#define BURST_AWAY 266
-#define BURST_TOPICWHO 267
-#define BYTES 268
-#define KBYTES 269
-#define MBYTES 270
-#define GBYTES 271
-#define TBYTES 272
-#define CALLER_ID_WAIT 273
-#define CAN_FLOOD 274
-#define CAN_IDLE 275
-#define CHANNEL 276
-#define CIDR_BITLEN_IPV4 277
-#define CIDR_BITLEN_IPV6 278
-#define CIPHER_PREFERENCE 279
-#define CLASS 280
-#define COMPRESSED 281
-#define COMPRESSION_LEVEL 282
-#define CONNECT 283
-#define CONNECTFREQ 284
-#define CRYPTLINK 285
-#define DEFAULT_CIPHER_PREFERENCE 286
-#define DEFAULT_FLOODCOUNT 287
-#define DEFAULT_SPLIT_SERVER_COUNT 288
-#define DEFAULT_SPLIT_USER_COUNT 289
-#define DENY 290
-#define DESCRIPTION 291
-#define DIE 292
-#define DISABLE_AUTH 293
-#define DISABLE_HIDDEN 294
-#define DISABLE_LOCAL_CHANNELS 295
-#define DISABLE_REMOTE_COMMANDS 296
-#define DOT_IN_IP6_ADDR 297
-#define DOTS_IN_IDENT 298
-#define DURATION 299
-#define EGDPOOL_PATH 300
-#define EMAIL 301
-#define ENABLE 302
-#define ENCRYPTED 303
-#define EXCEED_LIMIT 304
-#define EXEMPT 305
-#define FAILED_OPER_NOTICE 306
-#define FAKENAME 307
-#define IRCD_FLAGS 308
-#define FLATTEN_LINKS 309
-#define FFAILED_OPERLOG 310
-#define FKILLLOG 311
-#define FKLINELOG 312
-#define FGLINELOG 313
-#define FIOERRLOG 314
-#define FOPERLOG 315
-#define FOPERSPYLOG 316
-#define FUSERLOG 317
-#define GECOS 318
-#define GENERAL 319
-#define GLINE 320
-#define GLINES 321
-#define GLINE_EXEMPT 322
-#define GLINE_LOG 323
-#define GLINE_TIME 324
-#define GLINE_MIN_CIDR 325
-#define GLINE_MIN_CIDR6 326
-#define GLOBAL_KILL 327
-#define IRCD_AUTH 328
-#define NEED_IDENT 329
-#define HAVENT_READ_CONF 330
-#define HIDDEN 331
-#define HIDDEN_ADMIN 332
-#define HIDDEN_NAME 333
-#define HIDDEN_OPER 334
-#define HIDE_SERVER_IPS 335
-#define HIDE_SERVERS 336
-#define HIDE_SPOOF_IPS 337
-#define HOST 338
-#define HUB 339
-#define HUB_MASK 340
-#define IDLETIME 341
-#define IGNORE_BOGUS_TS 342
-#define INVISIBLE_ON_CONNECT 343
-#define IP 344
-#define KILL 345
-#define KILL_CHASE_TIME_LIMIT 346
-#define KLINE 347
-#define KLINE_EXEMPT 348
-#define KLINE_REASON 349
-#define KLINE_WITH_REASON 350
-#define KNOCK_DELAY 351
-#define KNOCK_DELAY_CHANNEL 352
-#define LAZYLINK 353
-#define LEAF_MASK 354
-#define LINKS_DELAY 355
-#define LISTEN 356
-#define T_LOG 357
-#define LOGGING 358
-#define LOG_LEVEL 359
-#define MAX_ACCEPT 360
-#define MAX_BANS 361
-#define MAX_CHANS_PER_USER 362
-#define MAX_GLOBAL 363
-#define MAX_IDENT 364
-#define MAX_LOCAL 365
-#define MAX_NICK_CHANGES 366
-#define MAX_NICK_TIME 367
-#define MAX_NUMBER 368
-#define MAX_TARGETS 369
-#define MESSAGE_LOCALE 370
-#define MIN_NONWILDCARD 371
-#define MIN_NONWILDCARD_SIMPLE 372
-#define MODULE 373
-#define MODULES 374
-#define NAME 375
-#define NEED_PASSWORD 376
-#define NETWORK_DESC 377
-#define NETWORK_NAME 378
-#define NICK 379
-#define NICK_CHANGES 380
-#define NO_CREATE_ON_SPLIT 381
-#define NO_JOIN_ON_SPLIT 382
-#define NO_OPER_FLOOD 383
-#define NO_TILDE 384
-#define NOT 385
-#define NUMBER 386
-#define NUMBER_PER_IDENT 387
-#define NUMBER_PER_CIDR 388
-#define NUMBER_PER_IP 389
-#define NUMBER_PER_IP_GLOBAL 390
-#define OPERATOR 391
-#define OPERS_BYPASS_CALLERID 392
-#define OPER_LOG 393
-#define OPER_ONLY_UMODES 394
-#define OPER_PASS_RESV 395
-#define OPER_SPY_T 396
-#define OPER_UMODES 397
-#define INVITE_OPS_ONLY 398
+/* Skeleton parser for Yacc-like parsing with Bison,
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330,
+   Boston, MA 02111-1307, USA.  */
+
+/* As a special exception, when this file is copied by Bison into a
+   Bison output file, you may use that output file without restriction.
+   This special exception was added by the Free Software Foundation
+   in version 1.24 of Bison.  */
+
+#ifndef BISON_Y_TAB_H
+# define BISON_Y_TAB_H
+
+/* Tokens.  */
+#ifndef YYTOKENTYPE
+# define YYTOKENTYPE
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     ACCEPT_PASSWORD = 258,
+     ACTION = 259,
+     ADMIN = 260,
+     AFTYPE = 261,
+     T_ALLOW = 262,
+     ANTI_NICK_FLOOD = 263,
+     ANTI_SPAM_EXIT_MESSAGE_TIME = 264,
+     AUTOCONN = 265,
+     T_BLOCK = 266,
+     BURST_AWAY = 267,
+     BURST_TOPICWHO = 268,
+     BYTES = 269,
+     KBYTES = 270,
+     MBYTES = 271,
+     GBYTES = 272,
+     TBYTES = 273,
+     CALLER_ID_WAIT = 274,
+     CAN_FLOOD = 275,
+     CAN_IDLE = 276,
+     CHANNEL = 277,
+     CIDR_BITLEN_IPV4 = 278,
+     CIDR_BITLEN_IPV6 = 279,
+     CIPHER_PREFERENCE = 280,
+     CLASS = 281,
+     COMPRESSED = 282,
+     COMPRESSION_LEVEL = 283,
+     CONNECT = 284,
+     CONNECTFREQ = 285,
+     CRYPTLINK = 286,
+     DEFAULT_CIPHER_PREFERENCE = 287,
+     DEFAULT_FLOODCOUNT = 288,
+     DEFAULT_SPLIT_SERVER_COUNT = 289,
+     DEFAULT_SPLIT_USER_COUNT = 290,
+     DENY = 291,
+     DESCRIPTION = 292,
+     DIE = 293,
+     DISABLE_AUTH = 294,
+     DISABLE_HIDDEN = 295,
+     DISABLE_LOCAL_CHANNELS = 296,
+     DISABLE_REMOTE_COMMANDS = 297,
+     DOT_IN_IP6_ADDR = 298,
+     DOTS_IN_IDENT = 299,
+     DURATION = 300,
+     EGDPOOL_PATH = 301,
+     EMAIL = 302,
+     ENABLE = 303,
+     ENCRYPTED = 304,
+     EXCEED_LIMIT = 305,
+     EXEMPT = 306,
+     FAILED_OPER_NOTICE = 307,
+     FAKENAME = 308,
+     IRCD_FLAGS = 309,
+     FLATTEN_LINKS = 310,
+     FFAILED_OPERLOG = 311,
+     FKILLLOG = 312,
+     FKLINELOG = 313,
+     FGLINELOG = 314,
+     FIOERRLOG = 315,
+     FOPERLOG = 316,
+     FOPERSPYLOG = 317,
+     FUSERLOG = 318,
+     GECOS = 319,
+     GENERAL = 320,
+     GLINE = 321,
+     GLINES = 322,
+     GLINE_EXEMPT = 323,
+     GLINE_LOG = 324,
+     GLINE_TIME = 325,
+     GLINE_MIN_CIDR = 326,
+     GLINE_MIN_CIDR6 = 327,
+     GLOBAL_KILL = 328,
+     IRCD_AUTH = 329,
+     NEED_IDENT = 330,
+     HAVENT_READ_CONF = 331,
+     HIDDEN = 332,
+     HIDDEN_ADMIN = 333,
+     HIDDEN_NAME = 334,
+     HIDDEN_OPER = 335,
+     HIDE_SERVER_IPS = 336,
+     HIDE_SERVERS = 337,
+     HIDE_SPOOF_IPS = 338,
+     HOST = 339,
+     HUB = 340,
+     HUB_MASK = 341,
+     IDLETIME = 342,
+     IGNORE_BOGUS_TS = 343,
+     INVISIBLE_ON_CONNECT = 344,
+     IP = 345,
+     KILL = 346,
+     KILL_CHASE_TIME_LIMIT = 347,
+     KLINE = 348,
+     KLINE_EXEMPT = 349,
+     KLINE_REASON = 350,
+     KLINE_WITH_REASON = 351,
+     KNOCK_DELAY = 352,
+     KNOCK_DELAY_CHANNEL = 353,
+     LAZYLINK = 354,
+     LEAF_MASK = 355,
+     LINKS_DELAY = 356,
+     LISTEN = 357,
+     T_LOG = 358,
+     LOGGING = 359,
+     LOG_LEVEL = 360,
+     MAX_ACCEPT = 361,
+     MAX_BANS = 362,
+     MAX_CHANS_PER_USER = 363,
+     MAX_GLOBAL = 364,
+     MAX_IDENT = 365,
+     MAX_LOCAL = 366,
+     MAX_NICK_CHANGES = 367,
+     MAX_NICK_TIME = 368,
+     MAX_NUMBER = 369,
+     MAX_TARGETS = 370,
+     MESSAGE_LOCALE = 371,
+     MIN_NONWILDCARD = 372,
+     MIN_NONWILDCARD_SIMPLE = 373,
+     MODULE = 374,
+     MODULES = 375,
+     NAME = 376,
+     NEED_PASSWORD = 377,
+     NETWORK_DESC = 378,
+     NETWORK_NAME = 379,
+     NICK = 380,
+     NICK_CHANGES = 381,
+     NO_CREATE_ON_SPLIT = 382,
+     NO_JOIN_ON_SPLIT = 383,
+     NO_OPER_FLOOD = 384,
+     NO_TILDE = 385,
+     NOT = 386,
+     NUMBER = 387,
+     NUMBER_PER_IDENT = 388,
+     NUMBER_PER_CIDR = 389,
+     NUMBER_PER_IP = 390,
+     NUMBER_PER_IP_GLOBAL = 391,
+     OPERATOR = 392,
+     OPERS_BYPASS_CALLERID = 393,
+     OPER_LOG = 394,
+     OPER_ONLY_UMODES = 395,
+     OPER_PASS_RESV = 396,
+     OPER_SPY_T = 397,
+     OPER_UMODES = 398,
+     JOIN_FLOOD_COUNT = 399,
+     JOIN_FLOOD_TIME = 400,
+     PACE_WAIT = 401,
+     PACE_WAIT_SIMPLE = 402,
+     PASSWORD = 403,
+     PATH = 404,
+     PING_COOKIE = 405,
+     PING_TIME = 406,
+     PING_WARNING = 407,
+     PORT = 408,
+     QSTRING = 409,
+     QUIET_ON_BAN = 410,
+     REASON = 411,
+     REDIRPORT = 412,
+     REDIRSERV = 413,
+     REGEX_T = 414,
+     REHASH = 415,
+     TREJECT_HOLD_TIME = 416,
+     REMOTE = 417,
+     REMOTEBAN = 418,
+     RESTRICT_CHANNELS = 419,
+     RESTRICTED = 420,
+     RSA_PRIVATE_KEY_FILE = 421,
+     RSA_PUBLIC_KEY_FILE = 422,
+     SSL_CERTIFICATE_FILE = 423,
+     RESV = 424,
+     RESV_EXEMPT = 425,
+     SECONDS = 426,
+     MINUTES = 427,
+     HOURS = 428,
+     DAYS = 429,
+     WEEKS = 430,
+     SENDQ = 431,
+     SEND_PASSWORD = 432,
+     SERVERHIDE = 433,
+     SERVERINFO = 434,
+     SERVLINK_PATH = 435,
+     IRCD_SID = 436,
+     TKLINE_EXPIRE_NOTICES = 437,
+     T_SHARED = 438,
+     T_CLUSTER = 439,
+     TYPE = 440,
+     SHORT_MOTD = 441,
+     SILENT = 442,
+     SPOOF = 443,
+     SPOOF_NOTICE = 444,
+     STATS_I_OPER_ONLY = 445,
+     STATS_K_OPER_ONLY = 446,
+     STATS_O_OPER_ONLY = 447,
+     STATS_P_OPER_ONLY = 448,
+     TBOOL = 449,
+     TMASKED = 450,
+     T_REJECT = 451,
+     TS_MAX_DELTA = 452,
+     TS_WARN_DELTA = 453,
+     TWODOTS = 454,
+     T_ALL = 455,
+     T_BOTS = 456,
+     T_SOFTCALLERID = 457,
+     T_CALLERID = 458,
+     T_CCONN = 459,
+     T_CLIENT_FLOOD = 460,
+     T_DEAF = 461,
+     T_DEBUG = 462,
+     T_DRONE = 463,
+     T_EXTERNAL = 464,
+     T_FULL = 465,
+     T_INVISIBLE = 466,
+     T_IPV4 = 467,
+     T_IPV6 = 468,
+     T_LOCOPS = 469,
+     T_LOGPATH = 470,
+     T_L_CRIT = 471,
+     T_L_DEBUG = 472,
+     T_L_ERROR = 473,
+     T_L_INFO = 474,
+     T_L_NOTICE = 475,
+     T_L_TRACE = 476,
+     T_L_WARN = 477,
+     T_MAX_CLIENTS = 478,
+     T_NCHANGE = 479,
+     T_OPERWALL = 480,
+     T_REJ = 481,
+     T_SERVNOTICE = 482,
+     T_SKILL = 483,
+     T_SPY = 484,
+     T_SSL = 485,
+     T_UMODES = 486,
+     T_UNAUTH = 487,
+     T_UNRESV = 488,
+     T_UNXLINE = 489,
+     T_WALLOP = 490,
+     THROTTLE_TIME = 491,
+     TOPICBURST = 492,
+     TRUE_NO_OPER_FLOOD = 493,
+     TKLINE = 494,
+     TXLINE = 495,
+     TRESV = 496,
+     UNKLINE = 497,
+     USER = 498,
+     USE_EGD = 499,
+     USE_EXCEPT = 500,
+     USE_INVEX = 501,
+     USE_KNOCK = 502,
+     USE_LOGGING = 503,
+     USE_WHOIS_ACTUALLY = 504,
+     VHOST = 505,
+     VHOST6 = 506,
+     XLINE = 507,
+     WARN = 508,
+     WARN_NO_NLINE = 509
+   };
+#endif
+#define ACCEPT_PASSWORD 258
+#define ACTION 259
+#define ADMIN 260
+#define AFTYPE 261
+#define T_ALLOW 262
+#define ANTI_NICK_FLOOD 263
+#define ANTI_SPAM_EXIT_MESSAGE_TIME 264
+#define AUTOCONN 265
+#define T_BLOCK 266
+#define BURST_AWAY 267
+#define BURST_TOPICWHO 268
+#define BYTES 269
+#define KBYTES 270
+#define MBYTES 271
+#define GBYTES 272
+#define TBYTES 273
+#define CALLER_ID_WAIT 274
+#define CAN_FLOOD 275
+#define CAN_IDLE 276
+#define CHANNEL 277
+#define CIDR_BITLEN_IPV4 278
+#define CIDR_BITLEN_IPV6 279
+#define CIPHER_PREFERENCE 280
+#define CLASS 281
+#define COMPRESSED 282
+#define COMPRESSION_LEVEL 283
+#define CONNECT 284
+#define CONNECTFREQ 285
+#define CRYPTLINK 286
+#define DEFAULT_CIPHER_PREFERENCE 287
+#define DEFAULT_FLOODCOUNT 288
+#define DEFAULT_SPLIT_SERVER_COUNT 289
+#define DEFAULT_SPLIT_USER_COUNT 290
+#define DENY 291
+#define DESCRIPTION 292
+#define DIE 293
+#define DISABLE_AUTH 294
+#define DISABLE_HIDDEN 295
+#define DISABLE_LOCAL_CHANNELS 296
+#define DISABLE_REMOTE_COMMANDS 297
+#define DOT_IN_IP6_ADDR 298
+#define DOTS_IN_IDENT 299
+#define DURATION 300
+#define EGDPOOL_PATH 301
+#define EMAIL 302
+#define ENABLE 303
+#define ENCRYPTED 304
+#define EXCEED_LIMIT 305
+#define EXEMPT 306
+#define FAILED_OPER_NOTICE 307
+#define FAKENAME 308
+#define IRCD_FLAGS 309
+#define FLATTEN_LINKS 310
+#define FFAILED_OPERLOG 311
+#define FKILLLOG 312
+#define FKLINELOG 313
+#define FGLINELOG 314
+#define FIOERRLOG 315
+#define FOPERLOG 316
+#define FOPERSPYLOG 317
+#define FUSERLOG 318
+#define GECOS 319
+#define GENERAL 320
+#define GLINE 321
+#define GLINES 322
+#define GLINE_EXEMPT 323
+#define GLINE_LOG 324
+#define GLINE_TIME 325
+#define GLINE_MIN_CIDR 326
+#define GLINE_MIN_CIDR6 327
+#define GLOBAL_KILL 328
+#define IRCD_AUTH 329
+#define NEED_IDENT 330
+#define HAVENT_READ_CONF 331
+#define HIDDEN 332
+#define HIDDEN_ADMIN 333
+#define HIDDEN_NAME 334
+#define HIDDEN_OPER 335
+#define HIDE_SERVER_IPS 336
+#define HIDE_SERVERS 337
+#define HIDE_SPOOF_IPS 338
+#define HOST 339
+#define HUB 340
+#define HUB_MASK 341
+#define IDLETIME 342
+#define IGNORE_BOGUS_TS 343
+#define INVISIBLE_ON_CONNECT 344
+#define IP 345
+#define KILL 346
+#define KILL_CHASE_TIME_LIMIT 347
+#define KLINE 348
+#define KLINE_EXEMPT 349
+#define KLINE_REASON 350
+#define KLINE_WITH_REASON 351
+#define KNOCK_DELAY 352
+#define KNOCK_DELAY_CHANNEL 353
+#define LAZYLINK 354
+#define LEAF_MASK 355
+#define LINKS_DELAY 356
+#define LISTEN 357
+#define T_LOG 358
+#define LOGGING 359
+#define LOG_LEVEL 360
+#define MAX_ACCEPT 361
+#define MAX_BANS 362
+#define MAX_CHANS_PER_USER 363
+#define MAX_GLOBAL 364
+#define MAX_IDENT 365
+#define MAX_LOCAL 366
+#define MAX_NICK_CHANGES 367
+#define MAX_NICK_TIME 368
+#define MAX_NUMBER 369
+#define MAX_TARGETS 370
+#define MESSAGE_LOCALE 371
+#define MIN_NONWILDCARD 372
+#define MIN_NONWILDCARD_SIMPLE 373
+#define MODULE 374
+#define MODULES 375
+#define NAME 376
+#define NEED_PASSWORD 377
+#define NETWORK_DESC 378
+#define NETWORK_NAME 379
+#define NICK 380
+#define NICK_CHANGES 381
+#define NO_CREATE_ON_SPLIT 382
+#define NO_JOIN_ON_SPLIT 383
+#define NO_OPER_FLOOD 384
+#define NO_TILDE 385
+#define NOT 386
+#define NUMBER 387
+#define NUMBER_PER_IDENT 388
+#define NUMBER_PER_CIDR 389
+#define NUMBER_PER_IP 390
+#define NUMBER_PER_IP_GLOBAL 391
+#define OPERATOR 392
+#define OPERS_BYPASS_CALLERID 393
+#define OPER_LOG 394
+#define OPER_ONLY_UMODES 395
+#define OPER_PASS_RESV 396
+#define OPER_SPY_T 397
+#define OPER_UMODES 398
 #define JOIN_FLOOD_COUNT 399
 #define JOIN_FLOOD_TIME 400
 #define PACE_WAIT 401
@@ -255,8 +538,23 @@
 #define XLINE 507
 #define WARN 508
 #define WARN_NO_NLINE 509
+
+
+
+
+#ifndef YYSTYPE
+#line 134 "ircd_parser.y"
 typedef union {
   int number;
   char *string;
-} YYSTYPE;
+} yystype;
+/* Line 1281 of /usr/local/share/bison/yacc.c.  */
+#line 553 "y.tab.h"
+# define YYSTYPE yystype
+#endif
+
 extern YYSTYPE yylval;
+
+
+#endif /* not BISON_Y_TAB_H */
+

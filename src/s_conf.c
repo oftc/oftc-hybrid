@@ -1860,7 +1860,6 @@ set_default_conf(void)
   ConfigChannel.use_knock = YES;
   ConfigChannel.knock_delay = 300;
   ConfigChannel.knock_delay_channel = 60;
-  ConfigChannel.invite_ops_only = YES;
   ConfigChannel.max_chans_per_user = 15;
   ConfigChannel.quiet_on_ban = YES;
   ConfigChannel.max_bans = 25;

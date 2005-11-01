@@ -200,12 +200,6 @@ static const struct InfoStruct info_table[] =
     "Delay between KNOCK attempts to a channel"
   },
   {
-    "invite_ops_only",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.invite_ops_only,
-    "Restrict invite to ops only"
-  },
-  {
     "max_chans_per_user",
     OUTPUT_DECIMAL,
     &ConfigChannel.max_chans_per_user,

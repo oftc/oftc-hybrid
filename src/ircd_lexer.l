@@ -211,7 +211,6 @@ hub		{ return HUB; }
 hub_mask	{ return HUB_MASK; }
 idletime        { return IDLETIME; }
 ignore_bogus_ts { return IGNORE_BOGUS_TS; }
-invite_ops_only { return INVITE_OPS_ONLY; }
 invisible_on_connect { return INVISIBLE_ON_CONNECT; }
 ip		{ return IP; }
 ipv4            { return T_IPV4; }

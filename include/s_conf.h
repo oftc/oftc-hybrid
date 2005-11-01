@@ -389,7 +389,6 @@ struct config_channel_entry
   int use_knock;
   int knock_delay;
   int knock_delay_channel;
-  int invite_ops_only;
   unsigned int max_bans;
   unsigned int max_chans_per_user;
   int no_create_on_split;
