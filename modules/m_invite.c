@@ -129,7 +129,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((chptr->mode.mode & (MODE_INVITEONLY | MODE_PARANOID)))
+  if ((chptr->mode.mode & (MODE_INVITEONLY | MODE_PRIVATE)))
   {
     if (MyConnect(source_p) && !has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP))
     {
