@@ -166,8 +166,8 @@ comm_select(void)
       {
         F->read_handler = NULL;
         hdl(F, F->read_data);
-	if (!F->flags.open)
-	  continue;
+        if (!F->flags.open)
+          continue;
       }
 
     if ((dopoll.dp_fds[i].revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR)))
@@ -175,8 +175,8 @@ comm_select(void)
       {
         F->write_handler = NULL;
         hdl(F, F->write_data);
-	if (!F->flags.open)
-	  continue;
+        if (!F->flags.open)
+          continue;
       }
 
     comm_setselect(F, 0, NULL, NULL, 0);

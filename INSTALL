@@ -201,7 +201,7 @@
 
    1.  Change to the directory containing the core file
 
-   2.  Run gdb on the binary and the core file. With an unmodified Hybrid-7.1
+   2.  Run gdb on the binary and the core file. With an unmodified Hybrid-7.2
        installation, an example command line is below (in the /usr/local/ircd
        directory)
 
