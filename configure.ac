@@ -513,7 +513,7 @@ if test "$cf_enable_openssl" != no; then
 		AC_LANG_PROGRAM(
 	    	[#include <openssl/opensslv.h>
 		#include <stdlib.h>],
-		[[if ( (OPENSSL_VERSION_NUMBER & 0x00906000) == 0x00906000)
+		[[if (OPENSSL_VERSION_NUMBER >= 0x00906000)
 		exit(0); else exit(1);]]),
 	cf_openssl_version_ok=yes,
 	cf_openssl_version_ok=no,

@@ -1,7 +1,7 @@
-/* A Bison parser, made from ircd_parser.y, by GNU bison 1.75.  */
+/* A Bison parser, made by GNU Bison 2.1.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* As a special exception, when this file is copied by Bison into a
    Bison output file, you may use that output file without restriction.
@@ -34,10 +34,16 @@
    USER NAME SPACE" below.  */
 
 /* Identify Bison output.  */
-#define YYBISON	1
+#define YYBISON 1
+
+/* Bison version.  */
+#define YYBISON_VERSION "2.1"
+
+/* Skeleton name.  */
+#define YYSKELETON_NAME "yacc.c"
 
 /* Pure parsers.  */
-#define YYPURE	0
+#define YYPURE 0
 
 /* Using locations.  */
 #define YYLSP_NEEDED 0
@@ -304,6 +310,7 @@
      WARN_NO_NLINE = 509
    };
 #endif
+/* Tokens.  */
 #define ACCEPT_PASSWORD 258
 #define ACTION 259
 #define ADMIN 260
@@ -684,49 +691,71 @@ unhook_hub_leaf_confs(void)
 # define YYERROR_VERBOSE 0
 #endif
 
-#ifndef YYSTYPE
+/* Enabling the token table.  */
+#ifndef YYTOKEN_TABLE
+# define YYTOKEN_TABLE 0
+#endif
+
+#if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
 #line 134 "ircd_parser.y"
-typedef union {
+typedef union YYSTYPE {
   int number;
   char *string;
-} yystype;
-/* Line 193 of /usr/local/share/bison/yacc.c.  */
-#line 695 "y.tab.c"
-# define YYSTYPE yystype
+} YYSTYPE;
+/* Line 196 of yacc.c.  */
+#line 707 "y.tab.c"
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
+# define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
 
-#ifndef YYLTYPE
-typedef struct yyltype
-{
-  int first_line;
-  int first_column;
-  int last_line;
-  int last_column;
-} yyltype;
-# define YYLTYPE yyltype
-# define YYLTYPE_IS_TRIVIAL 1
-#endif
+
 
 /* Copy the second part of user declarations.  */
 
 
-/* Line 213 of /usr/local/share/bison/yacc.c.  */
-#line 716 "y.tab.c"
+/* Line 219 of yacc.c.  */
+#line 719 "y.tab.c"
+
+#if ! defined (YYSIZE_T) && defined (__SIZE_TYPE__)
+# define YYSIZE_T __SIZE_TYPE__
+#endif
+#if ! defined (YYSIZE_T) && defined (size_t)
+# define YYSIZE_T size_t
+#endif
+#if ! defined (YYSIZE_T) && (defined (__STDC__) || defined (__cplusplus))
+# include <stddef.h> /* INFRINGES ON USER NAME SPACE */
+# define YYSIZE_T size_t
+#endif
+#if ! defined (YYSIZE_T)
+# define YYSIZE_T unsigned int
+#endif
+
+#ifndef YY_
+# if YYENABLE_NLS
+#  if ENABLE_NLS
+#   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
+#   define YY_(msgid) dgettext ("bison-runtime", msgid)
+#  endif
+# endif
+# ifndef YY_
+#  define YY_(msgid) msgid
+# endif
+#endif
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
 /* The parser invokes alloca or malloc; define the necessary symbols.  */
 
-# if YYSTACK_USE_ALLOCA
-#  define YYSTACK_ALLOC alloca
-# else
-#  ifndef YYSTACK_USE_ALLOCA
-#   if defined (alloca) || defined (_ALLOCA_H)
-#    define YYSTACK_ALLOC alloca
+# ifdef YYSTACK_USE_ALLOCA
+#  if YYSTACK_USE_ALLOCA
+#   ifdef __GNUC__
+#    define YYSTACK_ALLOC __builtin_alloca
 #   else
-#    ifdef __GNUC__
-#     define YYSTACK_ALLOC __builtin_alloca
+#    define YYSTACK_ALLOC alloca
+#    if defined (__STDC__) || defined (__cplusplus)
+#     include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
+#     define YYINCLUDED_STDLIB_H
 #    endif
 #   endif
 #  endif
@@ -735,50 +764,76 @@ typedef struct yyltype
 # ifdef YYSTACK_ALLOC
    /* Pacify GCC's `empty if-body' warning. */
 #  define YYSTACK_FREE(Ptr) do { /* empty */; } while (0)
-# else
-#  if defined (__STDC__) || defined (__cplusplus)
-#   include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
-#   define YYSIZE_T size_t
+#  ifndef YYSTACK_ALLOC_MAXIMUM
+    /* The OS might guarantee only one guard page at the bottom of the stack,
+       and a page size can be as small as 4096 bytes.  So we cannot safely
+       invoke alloca (N) if N exceeds 4096.  Use a slightly smaller number
+       to allow for a few compiler-allocated temporary stack slots.  */
+#   define YYSTACK_ALLOC_MAXIMUM 4032 /* reasonable circa 2005 */
 #  endif
-#  define YYSTACK_ALLOC malloc
-#  define YYSTACK_FREE free
+# else
+#  define YYSTACK_ALLOC YYMALLOC
+#  define YYSTACK_FREE YYFREE
+#  ifndef YYSTACK_ALLOC_MAXIMUM
+#   define YYSTACK_ALLOC_MAXIMUM ((YYSIZE_T) -1)
+#  endif
+#  ifdef __cplusplus
+extern "C" {
+#  endif
+#  ifndef YYMALLOC
+#   define YYMALLOC malloc
+#   if (! defined (malloc) && ! defined (YYINCLUDED_STDLIB_H) \
+	&& (defined (__STDC__) || defined (__cplusplus)))
+void *malloc (YYSIZE_T); /* INFRINGES ON USER NAME SPACE */
+#   endif
+#  endif
+#  ifndef YYFREE
+#   define YYFREE free
+#   if (! defined (free) && ! defined (YYINCLUDED_STDLIB_H) \
+	&& (defined (__STDC__) || defined (__cplusplus)))
+void free (void *); /* INFRINGES ON USER NAME SPACE */
+#   endif
+#  endif
+#  ifdef __cplusplus
+}
+#  endif
 # endif
 #endif /* ! defined (yyoverflow) || YYERROR_VERBOSE */
 
 
 #if (! defined (yyoverflow) \
      && (! defined (__cplusplus) \
-	 || (YYLTYPE_IS_TRIVIAL && YYSTYPE_IS_TRIVIAL)))
+	 || (defined (YYSTYPE_IS_TRIVIAL) && YYSTYPE_IS_TRIVIAL)))
 
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
-  short yyss;
+  short int yyss;
   YYSTYPE yyvs;
   };
 
 /* The size of the maximum gap between one aligned stack and the next.  */
-# define YYSTACK_GAP_MAX (sizeof (union yyalloc) - 1)
+# define YYSTACK_GAP_MAXIMUM (sizeof (union yyalloc) - 1)
 
 /* The size of an array large to enough to hold all stacks, each with
    N elements.  */
 # define YYSTACK_BYTES(N) \
-     ((N) * (sizeof (short) + sizeof (YYSTYPE))				\
-      + YYSTACK_GAP_MAX)
+     ((N) * (sizeof (short int) + sizeof (YYSTYPE))			\
+      + YYSTACK_GAP_MAXIMUM)
 
 /* Copy COUNT objects from FROM to TO.  The source and destination do
    not overlap.  */
 # ifndef YYCOPY
-#  if 1 < __GNUC__
+#  if defined (__GNUC__) && 1 < __GNUC__
 #   define YYCOPY(To, From, Count) \
       __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
 #  else
 #   define YYCOPY(To, From, Count)		\
       do					\
 	{					\
-	  register YYSIZE_T yyi;		\
+	  YYSIZE_T yyi;				\
 	  for (yyi = 0; yyi < (Count); yyi++)	\
-	    (To)[yyi] = (From)[yyi];	\
+	    (To)[yyi] = (From)[yyi];		\
 	}					\
       while (0)
 #  endif
@@ -795,7 +850,7 @@ union yyalloc
 	YYSIZE_T yynewbytes;						\
 	YYCOPY (&yyptr->Stack, Stack, yysize);				\
 	Stack = &yyptr->Stack;						\
-	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAX;	\
+	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
 	yyptr += yynewbytes / sizeof (*yyptr);				\
       }									\
     while (0)
@@ -805,11 +860,12 @@ union yyalloc
 #if defined (__STDC__) || defined (__cplusplus)
    typedef signed char yysigned_char;
 #else
-   typedef short yysigned_char;
+   typedef short int yysigned_char;
 #endif
 
 /* YYFINAL -- State number of the termination state. */
 #define YYFINAL  2
+/* YYLAST -- Last index in YYTABLE.  */
 #define YYLAST   1382
 
 /* YYNTOKENS -- Number of terminals. */
@@ -825,11 +881,11 @@ union yyalloc
 #define YYUNDEFTOK  2
 #define YYMAXUTOK   509
 
-#define YYTRANSLATE(X) \
-  ((unsigned)(X) <= YYMAXUTOK ? yytranslate[X] : YYUNDEFTOK)
+#define YYTRANSLATE(YYX)						\
+  ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
 
 /* YYTRANSLATE[YYLEX] -- Bison symbol number corresponding to YYLEX.  */
-static const unsigned short yytranslate[] =
+static const unsigned short int yytranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -887,7 +943,7 @@ static const unsigned short yytranslate[] =
 #if YYDEBUG
 /* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
    YYRHS.  */
-static const unsigned short yyprhs[] =
+static const unsigned short int yyprhs[] =
 {
        0,     0,     3,     4,     7,     9,    11,    13,    15,    17,
       19,    21,    23,    25,    27,    29,    31,    33,    35,    37,
@@ -965,7 +1021,7 @@ static const unsigned short yyprhs[] =
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS. */
-static const short yyrhs[] =
+static const short int yyrhs[] =
 {
      261,     0,    -1,    -1,   261,   262,    -1,   286,    -1,   292,
       -1,   307,    -1,   567,    -1,   344,    -1,   363,    -1,   376,
@@ -1195,23 +1251,23 @@ static const short yyrhs[] =
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
-static const unsigned short yyrline[] =
+static const unsigned short int yyrline[] =
 {
        0,   392,   392,   393,   396,   397,   398,   399,   400,   401,
      402,   403,   404,   405,   406,   407,   408,   409,   410,   411,
      412,   413,   414,   415,   416,   417,   421,   421,   422,   426,
      430,   434,   438,   442,   448,   448,   449,   450,   451,   452,
      459,   462,   462,   463,   463,   463,   465,   482,   493,   496,
-     496,   498,   498,   498,   499,   499,   500,   500,   501,   502,
-     502,   503,   503,   506,   540,   600,   614,   632,   641,   655,
-     664,   692,   722,   745,   795,   797,   797,   798,   798,   798,
-     799,   801,   810,   819,   832,   834,   834,   837,   837,   837,
-     838,   839,   839,   840,   840,   841,   841,   842,   842,   843,
+     497,   498,   498,   499,   499,   500,   500,   501,   502,   502,
+     503,   503,   504,   506,   540,   600,   614,   632,   641,   655,
+     664,   692,   722,   745,   795,   797,   797,   798,   798,   799,
+     799,   801,   810,   819,   832,   834,   835,   837,   837,   838,
+     839,   839,   840,   840,   841,   841,   842,   842,   843,   844,
      846,   850,   854,   861,   868,   875,   882,   889,   896,   903,
      910,   914,   918,   922,   926,   930,   934,   940,   950,   949,
-    1043,  1043,  1044,  1044,  1045,  1045,  1045,  1045,  1045,  1046,
-    1046,  1047,  1047,  1047,  1048,  1048,  1048,  1049,  1049,  1049,
-    1050,  1050,  1050,  1050,  1051,  1051,  1052,  1054,  1066,  1078,
+    1043,  1043,  1044,  1044,  1045,  1045,  1045,  1045,  1046,  1046,
+    1047,  1047,  1047,  1048,  1048,  1048,  1049,  1049,  1049,  1050,
+    1050,  1050,  1050,  1051,  1051,  1052,  1052,  1054,  1066,  1078,
     1097,  1109,  1120,  1162,  1172,  1171,  1176,  1176,  1177,  1180,
     1183,  1186,  1189,  1192,  1195,  1198,  1201,  1204,  1207,  1210,
     1213,  1216,  1219,  1222,  1225,  1228,  1233,  1244,  1255,  1266,
@@ -1219,13 +1275,13 @@ static const unsigned short yyrline[] =
     1388,  1387,  1391,  1391,  1392,  1392,  1393,  1393,  1395,  1402,
     1409,  1416,  1423,  1430,  1437,  1444,  1451,  1458,  1465,  1472,
     1479,  1486,  1493,  1500,  1514,  1513,  1555,  1555,  1557,  1557,
-    1558,  1558,  1559,  1559,  1560,  1561,  1562,  1563,  1564,  1565,
-    1566,  1567,  1568,  1569,  1572,  1581,  1590,  1596,  1602,  1608,
+    1558,  1559,  1559,  1560,  1561,  1562,  1563,  1564,  1565,  1566,
+    1567,  1568,  1569,  1570,  1572,  1581,  1590,  1596,  1602,  1608,
     1614,  1620,  1626,  1632,  1638,  1644,  1650,  1656,  1666,  1665,
     1682,  1681,  1685,  1685,  1686,  1690,  1696,  1696,  1697,  1697,
     1697,  1697,  1697,  1699,  1701,  1701,  1703,  1718,  1740,  1749,
-    1762,  1761,  1830,  1830,  1831,  1831,  1831,  1831,  1831,  1832,
-    1832,  1833,  1833,  1833,  1834,  1834,  1835,  1835,  1835,  1836,
+    1762,  1761,  1830,  1830,  1831,  1831,  1831,  1831,  1832,  1832,
+    1833,  1833,  1833,  1834,  1834,  1835,  1835,  1835,  1836,  1836,
     1836,  1838,  1857,  1870,  1881,  1890,  1902,  1901,  1905,  1905,
     1906,  1906,  1907,  1907,  1909,  1917,  1924,  1931,  1938,  1945,
     1952,  1959,  1966,  1973,  1982,  1993,  2004,  2015,  2026,  2037,
@@ -1236,8 +1292,8 @@ static const unsigned short yyrline[] =
     2251,  2250,  2267,  2267,  2268,  2268,  2268,  2270,  2277,  2276,
     2282,  2282,  2283,  2287,  2291,  2295,  2299,  2303,  2307,  2311,
     2315,  2319,  2323,  2333,  2332,  2482,  2482,  2483,  2483,  2484,
-    2484,  2484,  2484,  2485,  2485,  2486,  2486,  2487,  2487,  2487,
-    2488,  2488,  2488,  2489,  2489,  2489,  2490,  2490,  2493,  2505,
+    2484,  2484,  2485,  2485,  2486,  2486,  2487,  2487,  2487,  2488,
+    2488,  2488,  2489,  2489,  2489,  2490,  2490,  2491,  2493,  2505,
     2517,  2526,  2552,  2570,  2588,  2594,  2598,  2606,  2616,  2615,
     2619,  2619,  2620,  2620,  2621,  2621,  2623,  2630,  2641,  2648,
     2655,  2662,  2672,  2713,  2724,  2735,  2750,  2761,  2774,  2787,
@@ -1246,12 +1302,12 @@ static const unsigned short yyrline[] =
     2954,  2954,  2954,  2956,  2965,  2977,  2979,  2979,  2980,  2980,
     2982,  3004,  3003,  3045,  3044,  3048,  3048,  3049,  3055,  3055,
     3056,  3056,  3056,  3056,  3058,  3064,  3073,  3076,  3076,  3077,
-    3077,  3077,  3078,  3078,  3079,  3079,  3080,  3080,  3081,  3081,
-    3082,  3082,  3083,  3083,  3084,  3084,  3085,  3085,  3086,  3086,
-    3087,  3087,  3088,  3088,  3089,  3089,  3090,  3090,  3091,  3091,
-    3092,  3092,  3093,  3093,  3094,  3094,  3095,  3095,  3096,  3096,
-    3097,  3098,  3098,  3099,  3099,  3100,  3100,  3101,  3101,  3102,
-    3102,  3103,  3103,  3104,  3109,  3114,  3119,  3124,  3129,  3134,
+    3077,  3078,  3078,  3079,  3079,  3080,  3080,  3081,  3081,  3082,
+    3082,  3083,  3083,  3084,  3084,  3085,  3085,  3086,  3086,  3087,
+    3087,  3088,  3088,  3089,  3089,  3090,  3090,  3091,  3091,  3092,
+    3092,  3093,  3093,  3094,  3094,  3095,  3095,  3096,  3096,  3097,
+    3098,  3098,  3099,  3099,  3100,  3100,  3101,  3101,  3102,  3102,
+    3103,  3103,  3104,  3105,  3109,  3114,  3119,  3124,  3129,  3134,
     3139,  3144,  3149,  3154,  3159,  3164,  3169,  3174,  3179,  3184,
     3189,  3194,  3200,  3211,  3216,  3225,  3230,  3235,  3240,  3245,
     3248,  3253,  3256,  3261,  3266,  3271,  3276,  3281,  3286,  3291,
@@ -1261,182 +1317,177 @@ static const unsigned short yyrline[] =
     3460,  3463,  3466,  3469,  3472,  3478,  3477,  3482,  3482,  3483,
     3486,  3489,  3492,  3495,  3498,  3501,  3504,  3507,  3510,  3513,
     3516,  3519,  3522,  3525,  3528,  3531,  3534,  3539,  3544,  3549,
-    3554,  3559,  3568,  3567,  3591,  3591,  3592,  3592,  3593,  3594,
-    3595,  3596,  3597,  3600,  3606,  3613,  3612,  3617,  3617,  3618,
+    3554,  3559,  3568,  3567,  3591,  3591,  3592,  3593,  3594,  3595,
+    3596,  3597,  3598,  3600,  3606,  3613,  3612,  3617,  3617,  3618,
     3622,  3628,  3647,  3657,  3656,  3706,  3706,  3707,  3711,  3720,
-    3723,  3723,  3724,  3724,  3724,  3725,  3725,  3726,  3726,  3727,
-    3727,  3728,  3728,  3729,  3730,  3730,  3731,  3731,  3732,  3732,
+    3723,  3723,  3724,  3724,  3725,  3725,  3726,  3726,  3727,  3727,
+    3728,  3728,  3729,  3730,  3730,  3731,  3731,  3732,  3732,  3733,
     3735,  3740,  3745,  3750,  3755,  3760,  3765,  3770,  3775,  3780,
     3785,  3790,  3795,  3800,  3805,  3810,  3815,  3823,  3826,  3826,
-    3827,  3827,  3827,  3828,  3829,  3830,  3830,  3831,  3834,  3840,
+    3827,  3827,  3828,  3829,  3830,  3830,  3831,  3832,  3834,  3840,
     3846,  3855,  3869,  3875,  3881
 };
 #endif
 
-#if YYDEBUG || YYERROR_VERBOSE
-/* YYTNME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
+#if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
+/* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals. */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "ACCEPT_PASSWORD", "ACTION", "ADMIN", 
-  "AFTYPE", "T_ALLOW", "ANTI_NICK_FLOOD", "ANTI_SPAM_EXIT_MESSAGE_TIME", 
-  "AUTOCONN", "T_BLOCK", "BURST_AWAY", "BURST_TOPICWHO", "BYTES", 
-  "KBYTES", "MBYTES", "GBYTES", "TBYTES", "CALLER_ID_WAIT", "CAN_FLOOD", 
-  "CAN_IDLE", "CHANNEL", "CIDR_BITLEN_IPV4", "CIDR_BITLEN_IPV6", 
-  "CIPHER_PREFERENCE", "CLASS", "COMPRESSED", "COMPRESSION_LEVEL", 
-  "CONNECT", "CONNECTFREQ", "CRYPTLINK", "DEFAULT_CIPHER_PREFERENCE", 
-  "DEFAULT_FLOODCOUNT", "DEFAULT_SPLIT_SERVER_COUNT", 
-  "DEFAULT_SPLIT_USER_COUNT", "DENY", "DESCRIPTION", "DIE", 
-  "DISABLE_AUTH", "DISABLE_HIDDEN", "DISABLE_LOCAL_CHANNELS", 
-  "DISABLE_REMOTE_COMMANDS", "DOT_IN_IP6_ADDR", "DOTS_IN_IDENT", 
-  "DURATION", "EGDPOOL_PATH", "EMAIL", "ENABLE", "ENCRYPTED", 
-  "EXCEED_LIMIT", "EXEMPT", "FAILED_OPER_NOTICE", "FAKENAME", 
-  "IRCD_FLAGS", "FLATTEN_LINKS", "FFAILED_OPERLOG", "FKILLLOG", 
-  "FKLINELOG", "FGLINELOG", "FIOERRLOG", "FOPERLOG", "FOPERSPYLOG", 
-  "FUSERLOG", "GECOS", "GENERAL", "GLINE", "GLINES", "GLINE_EXEMPT", 
-  "GLINE_LOG", "GLINE_TIME", "GLINE_MIN_CIDR", "GLINE_MIN_CIDR6", 
-  "GLOBAL_KILL", "IRCD_AUTH", "NEED_IDENT", "HAVENT_READ_CONF", "HIDDEN", 
-  "HIDDEN_ADMIN", "HIDDEN_NAME", "HIDDEN_OPER", "HIDE_SERVER_IPS", 
-  "HIDE_SERVERS", "HIDE_SPOOF_IPS", "HOST", "HUB", "HUB_MASK", "IDLETIME", 
-  "IGNORE_BOGUS_TS", "INVISIBLE_ON_CONNECT", "IP", "KILL", 
-  "KILL_CHASE_TIME_LIMIT", "KLINE", "KLINE_EXEMPT", "KLINE_REASON", 
-  "KLINE_WITH_REASON", "KNOCK_DELAY", "KNOCK_DELAY_CHANNEL", "LAZYLINK", 
-  "LEAF_MASK", "LINKS_DELAY", "LISTEN", "T_LOG", "LOGGING", "LOG_LEVEL", 
-  "MAX_ACCEPT", "MAX_BANS", "MAX_CHANS_PER_USER", "MAX_GLOBAL", 
-  "MAX_IDENT", "MAX_LOCAL", "MAX_NICK_CHANGES", "MAX_NICK_TIME", 
-  "MAX_NUMBER", "MAX_TARGETS", "MESSAGE_LOCALE", "MIN_NONWILDCARD", 
-  "MIN_NONWILDCARD_SIMPLE", "MODULE", "MODULES", "NAME", "NEED_PASSWORD", 
-  "NETWORK_DESC", "NETWORK_NAME", "NICK", "NICK_CHANGES", 
-  "NO_CREATE_ON_SPLIT", "NO_JOIN_ON_SPLIT", "NO_OPER_FLOOD", "NO_TILDE", 
-  "NOT", "NUMBER", "NUMBER_PER_IDENT", "NUMBER_PER_CIDR", "NUMBER_PER_IP", 
-  "NUMBER_PER_IP_GLOBAL", "OPERATOR", "OPERS_BYPASS_CALLERID", "OPER_LOG", 
-  "OPER_ONLY_UMODES", "OPER_PASS_RESV", "OPER_SPY_T", "OPER_UMODES", 
-  "JOIN_FLOOD_COUNT", "JOIN_FLOOD_TIME", "PACE_WAIT", "PACE_WAIT_SIMPLE", 
-  "PASSWORD", "PATH", "PING_COOKIE", "PING_TIME", "PING_WARNING", "PORT", 
-  "QSTRING", "QUIET_ON_BAN", "REASON", "REDIRPORT", "REDIRSERV", 
-  "REGEX_T", "REHASH", "TREJECT_HOLD_TIME", "REMOTE", "REMOTEBAN", 
-  "RESTRICT_CHANNELS", "RESTRICTED", "RSA_PRIVATE_KEY_FILE", 
-  "RSA_PUBLIC_KEY_FILE", "SSL_CERTIFICATE_FILE", "RESV", "RESV_EXEMPT", 
-  "SECONDS", "MINUTES", "HOURS", "DAYS", "WEEKS", "SENDQ", 
-  "SEND_PASSWORD", "SERVERHIDE", "SERVERINFO", "SERVLINK_PATH", 
-  "IRCD_SID", "TKLINE_EXPIRE_NOTICES", "T_SHARED", "T_CLUSTER", "TYPE", 
-  "SHORT_MOTD", "SILENT", "SPOOF", "SPOOF_NOTICE", "STATS_I_OPER_ONLY", 
-  "STATS_K_OPER_ONLY", "STATS_O_OPER_ONLY", "STATS_P_OPER_ONLY", "TBOOL", 
-  "TMASKED", "T_REJECT", "TS_MAX_DELTA", "TS_WARN_DELTA", "TWODOTS", 
-  "T_ALL", "T_BOTS", "T_SOFTCALLERID", "T_CALLERID", "T_CCONN", 
-  "T_CLIENT_FLOOD", "T_DEAF", "T_DEBUG", "T_DRONE", "T_EXTERNAL", 
-  "T_FULL", "T_INVISIBLE", "T_IPV4", "T_IPV6", "T_LOCOPS", "T_LOGPATH", 
-  "T_L_CRIT", "T_L_DEBUG", "T_L_ERROR", "T_L_INFO", "T_L_NOTICE", 
-  "T_L_TRACE", "T_L_WARN", "T_MAX_CLIENTS", "T_NCHANGE", "T_OPERWALL", 
-  "T_REJ", "T_SERVNOTICE", "T_SKILL", "T_SPY", "T_SSL", "T_UMODES", 
-  "T_UNAUTH", "T_UNRESV", "T_UNXLINE", "T_WALLOP", "THROTTLE_TIME", 
-  "TOPICBURST", "TRUE_NO_OPER_FLOOD", "TKLINE", "TXLINE", "TRESV", 
-  "UNKLINE", "USER", "USE_EGD", "USE_EXCEPT", "USE_INVEX", "USE_KNOCK", 
-  "USE_LOGGING", "USE_WHOIS_ACTUALLY", "VHOST", "VHOST6", "XLINE", "WARN", 
-  "WARN_NO_NLINE", "';'", "'}'", "'{'", "'='", "','", "$accept", "conf", 
-  "conf_item", "timespec_", "timespec", "sizespec_", "sizespec", 
-  "modules_entry", "modules_items", "modules_item", "modules_module", 
-  "modules_path", "serverinfo_entry", "serverinfo_items", 
-  "serverinfo_item", "serverinfo_ssl_certificate_file", 
-  "serverinfo_rsa_private_key_file", "serverinfo_name", "serverinfo_sid", 
-  "serverinfo_description", "serverinfo_network_name", 
-  "serverinfo_network_desc", "serverinfo_vhost", "serverinfo_vhost6", 
-  "serverinfo_max_clients", "serverinfo_hub", "admin_entry", 
-  "admin_items", "admin_item", "admin_name", "admin_email", 
-  "admin_description", "logging_entry", "logging_items", "logging_item", 
-  "logging_path", "logging_oper_log", "logging_fuserlog", 
-  "logging_ffailed_operlog", "logging_foperlog", "logging_foperspylog", 
-  "logging_fglinelog", "logging_fklinelog", "logging_ioerrlog", 
-  "logging_killlog", "logging_log_level", "logging_use_logging", 
-  "oper_entry", "@1", "oper_name_b", "oper_items", "oper_item", 
-  "oper_name", "oper_name_t", "oper_user", "oper_password", 
-  "oper_encrypted", "oper_rsa_public_key_file", "oper_class", 
-  "oper_umodes", "@2", "oper_umodes_items", "oper_umodes_item", 
-  "oper_global_kill", "oper_remote", "oper_remoteban", "oper_kline", 
-  "oper_xline", "oper_unkline", "oper_gline", "oper_nick_changes", 
-  "oper_die", "oper_rehash", "oper_admin", "oper_hidden_admin", 
-  "oper_hidden_oper", "oper_operwall", "oper_flags", "@3", 
-  "oper_flags_items", "oper_flags_item", "@4", "@5", 
-  "oper_flags_item_atom", "class_entry", "@6", "class_name_b", 
-  "class_items", "class_item", "class_name", "class_name_t", 
-  "class_ping_time", "class_ping_warning", "class_number_per_ip", 
-  "class_connectfreq", "class_max_number", "class_max_global", 
-  "class_max_local", "class_max_ident", "class_sendq", 
-  "class_cidr_bitlen_ipv4", "class_cidr_bitlen_ipv6", 
-  "class_number_per_cidr", "listen_entry", "@7", "listen_flags", "@8", 
-  "listen_flags_items", "listen_flags_item", "listen_items", 
-  "listen_item", "listen_port", "port_items", "port_item", 
-  "listen_address", "listen_host", "auth_entry", "@9", "auth_items", 
-  "auth_item", "auth_user", "auth_passwd", "auth_spoof_notice", 
-  "auth_class", "auth_encrypted", "auth_flags", "@10", "auth_flags_items", 
-  "auth_flags_item", "@11", "@12", "auth_flags_item_atom", 
-  "auth_kline_exempt", "auth_need_ident", "auth_exceed_limit", 
-  "auth_can_flood", "auth_no_tilde", "auth_gline_exempt", "auth_spoof", 
-  "auth_redir_serv", "auth_redir_port", "auth_need_password", 
-  "resv_entry", "@13", "resv_items", "resv_item", "resv_creason", 
-  "resv_channel", "resv_nick", "shared_entry", "@14", "shared_items", 
-  "shared_item", "shared_name", "shared_user", "shared_type", "@15", 
-  "shared_types", "shared_type_item", "cluster_entry", "@16", 
-  "cluster_items", "cluster_item", "cluster_name", "cluster_type", "@17", 
-  "cluster_types", "cluster_type_item", "connect_entry", "@18", 
-  "connect_name_b", "connect_items", "connect_item", "connect_name", 
-  "connect_name_t", "connect_host", "connect_vhost", 
-  "connect_send_password", "connect_accept_password", "connect_port", 
-  "connect_aftype", "connect_fakename", "connect_flags", "@19", 
-  "connect_flags_items", "connect_flags_item", "@20", "@21", 
-  "connect_flags_item_atom", "connect_rsa_public_key_file", 
-  "connect_encrypted", "connect_cryptlink", "connect_compressed", 
-  "connect_auto", "connect_hub_mask", "connect_leaf_mask", 
-  "connect_class", "connect_cipher_preference", "kill_entry", "@22", 
-  "kill_type", "@23", "kill_type_items", "kill_type_item", "kill_items", 
-  "kill_item", "kill_user", "kill_reason", "deny_entry", "@24", 
-  "deny_items", "deny_item", "deny_ip", "deny_reason", "exempt_entry", 
-  "exempt_items", "exempt_item", "exempt_ip", "gecos_entry", "@25", 
-  "gecos_flags", "@26", "gecos_flags_items", "gecos_flags_item", 
-  "gecos_items", "gecos_item", "gecos_name", "gecos_reason", 
-  "general_entry", "general_items", "general_item", 
-  "general_gline_min_cidr", "general_gline_min_cidr6", 
-  "general_burst_away", "general_use_whois_actually", 
-  "general_reject_hold_time", "general_tkline_expire_notices", 
-  "general_kill_chase_time_limit", "general_hide_spoof_ips", 
-  "general_ignore_bogus_ts", "general_disable_remote_commands", 
-  "general_failed_oper_notice", "general_anti_nick_flood", 
-  "general_max_nick_time", "general_max_nick_changes", 
-  "general_max_accept", "general_anti_spam_exit_message_time", 
-  "general_ts_warn_delta", "general_ts_max_delta", 
-  "general_havent_read_conf", "general_kline_with_reason", 
-  "general_kline_reason", "general_invisible_on_connect", 
-  "general_warn_no_nline", "general_stats_o_oper_only", 
-  "general_stats_P_oper_only", "general_stats_k_oper_only", 
-  "general_stats_i_oper_only", "general_pace_wait", 
-  "general_caller_id_wait", "general_opers_bypass_callerid", 
-  "general_pace_wait_simple", "general_short_motd", 
-  "general_no_oper_flood", "general_true_no_oper_flood", 
-  "general_oper_pass_resv", "general_message_locale", "general_idletime", 
-  "general_dots_in_ident", "general_max_targets", "general_servlink_path", 
-  "general_default_cipher_preference", "general_compression_level", 
-  "general_use_egd", "general_egdpool_path", "general_ping_cookie", 
-  "general_disable_auth", "general_throttle_time", "general_oper_umodes", 
-  "@27", "umode_oitems", "umode_oitem", "general_oper_only_umodes", "@28", 
-  "umode_items", "umode_item", "general_min_nonwildcard", 
-  "general_min_nonwildcard_simple", "general_default_floodcount", 
-  "general_client_flood", "general_dot_in_ip6_addr", "gline_entry", "@29", 
-  "gline_items", "gline_item", "gline_enable", "gline_duration", 
-  "gline_logging", "@30", "gline_logging_types", 
-  "gline_logging_type_item", "gline_user", "gline_server", "gline_action", 
-  "@31", "gdeny_types", "gdeny_type_item", "channel_entry", 
-  "channel_items", "channel_item", "channel_restrict_channels", 
-  "channel_disable_local_channels", "channel_use_except", 
-  "channel_use_invex", "channel_use_knock", "channel_knock_delay", 
-  "channel_knock_delay_channel", "channel_max_chans_per_user", 
-  "channel_quiet_on_ban", "channel_max_bans", 
-  "channel_default_split_user_count", 
-  "channel_default_split_server_count", "channel_no_create_on_split", 
-  "channel_no_join_on_split", "channel_burst_topicwho", 
-  "channel_jflood_count", "channel_jflood_time", "serverhide_entry", 
-  "serverhide_items", "serverhide_item", "serverhide_flatten_links", 
-  "serverhide_hide_servers", "serverhide_hidden_name", 
-  "serverhide_links_delay", "serverhide_hidden", 
+  "$end", "error", "$undefined", "ACCEPT_PASSWORD", "ACTION", "ADMIN",
+  "AFTYPE", "T_ALLOW", "ANTI_NICK_FLOOD", "ANTI_SPAM_EXIT_MESSAGE_TIME",
+  "AUTOCONN", "T_BLOCK", "BURST_AWAY", "BURST_TOPICWHO", "BYTES", "KBYTES",
+  "MBYTES", "GBYTES", "TBYTES", "CALLER_ID_WAIT", "CAN_FLOOD", "CAN_IDLE",
+  "CHANNEL", "CIDR_BITLEN_IPV4", "CIDR_BITLEN_IPV6", "CIPHER_PREFERENCE",
+  "CLASS", "COMPRESSED", "COMPRESSION_LEVEL", "CONNECT", "CONNECTFREQ",
+  "CRYPTLINK", "DEFAULT_CIPHER_PREFERENCE", "DEFAULT_FLOODCOUNT",
+  "DEFAULT_SPLIT_SERVER_COUNT", "DEFAULT_SPLIT_USER_COUNT", "DENY",
+  "DESCRIPTION", "DIE", "DISABLE_AUTH", "DISABLE_HIDDEN",
+  "DISABLE_LOCAL_CHANNELS", "DISABLE_REMOTE_COMMANDS", "DOT_IN_IP6_ADDR",
+  "DOTS_IN_IDENT", "DURATION", "EGDPOOL_PATH", "EMAIL", "ENABLE",
+  "ENCRYPTED", "EXCEED_LIMIT", "EXEMPT", "FAILED_OPER_NOTICE", "FAKENAME",
+  "IRCD_FLAGS", "FLATTEN_LINKS", "FFAILED_OPERLOG", "FKILLLOG",
+  "FKLINELOG", "FGLINELOG", "FIOERRLOG", "FOPERLOG", "FOPERSPYLOG",
+  "FUSERLOG", "GECOS", "GENERAL", "GLINE", "GLINES", "GLINE_EXEMPT",
+  "GLINE_LOG", "GLINE_TIME", "GLINE_MIN_CIDR", "GLINE_MIN_CIDR6",
+  "GLOBAL_KILL", "IRCD_AUTH", "NEED_IDENT", "HAVENT_READ_CONF", "HIDDEN",
+  "HIDDEN_ADMIN", "HIDDEN_NAME", "HIDDEN_OPER", "HIDE_SERVER_IPS",
+  "HIDE_SERVERS", "HIDE_SPOOF_IPS", "HOST", "HUB", "HUB_MASK", "IDLETIME",
+  "IGNORE_BOGUS_TS", "INVISIBLE_ON_CONNECT", "IP", "KILL",
+  "KILL_CHASE_TIME_LIMIT", "KLINE", "KLINE_EXEMPT", "KLINE_REASON",
+  "KLINE_WITH_REASON", "KNOCK_DELAY", "KNOCK_DELAY_CHANNEL", "LAZYLINK",
+  "LEAF_MASK", "LINKS_DELAY", "LISTEN", "T_LOG", "LOGGING", "LOG_LEVEL",
+  "MAX_ACCEPT", "MAX_BANS", "MAX_CHANS_PER_USER", "MAX_GLOBAL",
+  "MAX_IDENT", "MAX_LOCAL", "MAX_NICK_CHANGES", "MAX_NICK_TIME",
+  "MAX_NUMBER", "MAX_TARGETS", "MESSAGE_LOCALE", "MIN_NONWILDCARD",
+  "MIN_NONWILDCARD_SIMPLE", "MODULE", "MODULES", "NAME", "NEED_PASSWORD",
+  "NETWORK_DESC", "NETWORK_NAME", "NICK", "NICK_CHANGES",
+  "NO_CREATE_ON_SPLIT", "NO_JOIN_ON_SPLIT", "NO_OPER_FLOOD", "NO_TILDE",
+  "NOT", "NUMBER", "NUMBER_PER_IDENT", "NUMBER_PER_CIDR", "NUMBER_PER_IP",
+  "NUMBER_PER_IP_GLOBAL", "OPERATOR", "OPERS_BYPASS_CALLERID", "OPER_LOG",
+  "OPER_ONLY_UMODES", "OPER_PASS_RESV", "OPER_SPY_T", "OPER_UMODES",
+  "JOIN_FLOOD_COUNT", "JOIN_FLOOD_TIME", "PACE_WAIT", "PACE_WAIT_SIMPLE",
+  "PASSWORD", "PATH", "PING_COOKIE", "PING_TIME", "PING_WARNING", "PORT",
+  "QSTRING", "QUIET_ON_BAN", "REASON", "REDIRPORT", "REDIRSERV", "REGEX_T",
+  "REHASH", "TREJECT_HOLD_TIME", "REMOTE", "REMOTEBAN",
+  "RESTRICT_CHANNELS", "RESTRICTED", "RSA_PRIVATE_KEY_FILE",
+  "RSA_PUBLIC_KEY_FILE", "SSL_CERTIFICATE_FILE", "RESV", "RESV_EXEMPT",
+  "SECONDS", "MINUTES", "HOURS", "DAYS", "WEEKS", "SENDQ", "SEND_PASSWORD",
+  "SERVERHIDE", "SERVERINFO", "SERVLINK_PATH", "IRCD_SID",
+  "TKLINE_EXPIRE_NOTICES", "T_SHARED", "T_CLUSTER", "TYPE", "SHORT_MOTD",
+  "SILENT", "SPOOF", "SPOOF_NOTICE", "STATS_I_OPER_ONLY",
+  "STATS_K_OPER_ONLY", "STATS_O_OPER_ONLY", "STATS_P_OPER_ONLY", "TBOOL",
+  "TMASKED", "T_REJECT", "TS_MAX_DELTA", "TS_WARN_DELTA", "TWODOTS",
+  "T_ALL", "T_BOTS", "T_SOFTCALLERID", "T_CALLERID", "T_CCONN",
+  "T_CLIENT_FLOOD", "T_DEAF", "T_DEBUG", "T_DRONE", "T_EXTERNAL", "T_FULL",
+  "T_INVISIBLE", "T_IPV4", "T_IPV6", "T_LOCOPS", "T_LOGPATH", "T_L_CRIT",
+  "T_L_DEBUG", "T_L_ERROR", "T_L_INFO", "T_L_NOTICE", "T_L_TRACE",
+  "T_L_WARN", "T_MAX_CLIENTS", "T_NCHANGE", "T_OPERWALL", "T_REJ",
+  "T_SERVNOTICE", "T_SKILL", "T_SPY", "T_SSL", "T_UMODES", "T_UNAUTH",
+  "T_UNRESV", "T_UNXLINE", "T_WALLOP", "THROTTLE_TIME", "TOPICBURST",
+  "TRUE_NO_OPER_FLOOD", "TKLINE", "TXLINE", "TRESV", "UNKLINE", "USER",
+  "USE_EGD", "USE_EXCEPT", "USE_INVEX", "USE_KNOCK", "USE_LOGGING",
+  "USE_WHOIS_ACTUALLY", "VHOST", "VHOST6", "XLINE", "WARN",
+  "WARN_NO_NLINE", "';'", "'}'", "'{'", "'='", "','", "$accept", "conf",
+  "conf_item", "timespec_", "timespec", "sizespec_", "sizespec",
+  "modules_entry", "modules_items", "modules_item", "modules_module",
+  "modules_path", "serverinfo_entry", "serverinfo_items",
+  "serverinfo_item", "serverinfo_ssl_certificate_file",
+  "serverinfo_rsa_private_key_file", "serverinfo_name", "serverinfo_sid",
+  "serverinfo_description", "serverinfo_network_name",
+  "serverinfo_network_desc", "serverinfo_vhost", "serverinfo_vhost6",
+  "serverinfo_max_clients", "serverinfo_hub", "admin_entry", "admin_items",
+  "admin_item", "admin_name", "admin_email", "admin_description",
+  "logging_entry", "logging_items", "logging_item", "logging_path",
+  "logging_oper_log", "logging_fuserlog", "logging_ffailed_operlog",
+  "logging_foperlog", "logging_foperspylog", "logging_fglinelog",
+  "logging_fklinelog", "logging_ioerrlog", "logging_killlog",
+  "logging_log_level", "logging_use_logging", "oper_entry", "@1",
+  "oper_name_b", "oper_items", "oper_item", "oper_name", "oper_name_t",
+  "oper_user", "oper_password", "oper_encrypted",
+  "oper_rsa_public_key_file", "oper_class", "oper_umodes", "@2",
+  "oper_umodes_items", "oper_umodes_item", "oper_global_kill",
+  "oper_remote", "oper_remoteban", "oper_kline", "oper_xline",
+  "oper_unkline", "oper_gline", "oper_nick_changes", "oper_die",
+  "oper_rehash", "oper_admin", "oper_hidden_admin", "oper_hidden_oper",
+  "oper_operwall", "oper_flags", "@3", "oper_flags_items",
+  "oper_flags_item", "@4", "@5", "oper_flags_item_atom", "class_entry",
+  "@6", "class_name_b", "class_items", "class_item", "class_name",
+  "class_name_t", "class_ping_time", "class_ping_warning",
+  "class_number_per_ip", "class_connectfreq", "class_max_number",
+  "class_max_global", "class_max_local", "class_max_ident", "class_sendq",
+  "class_cidr_bitlen_ipv4", "class_cidr_bitlen_ipv6",
+  "class_number_per_cidr", "listen_entry", "@7", "listen_flags", "@8",
+  "listen_flags_items", "listen_flags_item", "listen_items", "listen_item",
+  "listen_port", "port_items", "port_item", "listen_address",
+  "listen_host", "auth_entry", "@9", "auth_items", "auth_item",
+  "auth_user", "auth_passwd", "auth_spoof_notice", "auth_class",
+  "auth_encrypted", "auth_flags", "@10", "auth_flags_items",
+  "auth_flags_item", "@11", "@12", "auth_flags_item_atom",
+  "auth_kline_exempt", "auth_need_ident", "auth_exceed_limit",
+  "auth_can_flood", "auth_no_tilde", "auth_gline_exempt", "auth_spoof",
+  "auth_redir_serv", "auth_redir_port", "auth_need_password", "resv_entry",
+  "@13", "resv_items", "resv_item", "resv_creason", "resv_channel",
+  "resv_nick", "shared_entry", "@14", "shared_items", "shared_item",
+  "shared_name", "shared_user", "shared_type", "@15", "shared_types",
+  "shared_type_item", "cluster_entry", "@16", "cluster_items",
+  "cluster_item", "cluster_name", "cluster_type", "@17", "cluster_types",
+  "cluster_type_item", "connect_entry", "@18", "connect_name_b",
+  "connect_items", "connect_item", "connect_name", "connect_name_t",
+  "connect_host", "connect_vhost", "connect_send_password",
+  "connect_accept_password", "connect_port", "connect_aftype",
+  "connect_fakename", "connect_flags", "@19", "connect_flags_items",
+  "connect_flags_item", "@20", "@21", "connect_flags_item_atom",
+  "connect_rsa_public_key_file", "connect_encrypted", "connect_cryptlink",
+  "connect_compressed", "connect_auto", "connect_hub_mask",
+  "connect_leaf_mask", "connect_class", "connect_cipher_preference",
+  "kill_entry", "@22", "kill_type", "@23", "kill_type_items",
+  "kill_type_item", "kill_items", "kill_item", "kill_user", "kill_reason",
+  "deny_entry", "@24", "deny_items", "deny_item", "deny_ip", "deny_reason",
+  "exempt_entry", "exempt_items", "exempt_item", "exempt_ip",
+  "gecos_entry", "@25", "gecos_flags", "@26", "gecos_flags_items",
+  "gecos_flags_item", "gecos_items", "gecos_item", "gecos_name",
+  "gecos_reason", "general_entry", "general_items", "general_item",
+  "general_gline_min_cidr", "general_gline_min_cidr6",
+  "general_burst_away", "general_use_whois_actually",
+  "general_reject_hold_time", "general_tkline_expire_notices",
+  "general_kill_chase_time_limit", "general_hide_spoof_ips",
+  "general_ignore_bogus_ts", "general_disable_remote_commands",
+  "general_failed_oper_notice", "general_anti_nick_flood",
+  "general_max_nick_time", "general_max_nick_changes",
+  "general_max_accept", "general_anti_spam_exit_message_time",
+  "general_ts_warn_delta", "general_ts_max_delta",
+  "general_havent_read_conf", "general_kline_with_reason",
+  "general_kline_reason", "general_invisible_on_connect",
+  "general_warn_no_nline", "general_stats_o_oper_only",
+  "general_stats_P_oper_only", "general_stats_k_oper_only",
+  "general_stats_i_oper_only", "general_pace_wait",
+  "general_caller_id_wait", "general_opers_bypass_callerid",
+  "general_pace_wait_simple", "general_short_motd",
+  "general_no_oper_flood", "general_true_no_oper_flood",
+  "general_oper_pass_resv", "general_message_locale", "general_idletime",
+  "general_dots_in_ident", "general_max_targets", "general_servlink_path",
+  "general_default_cipher_preference", "general_compression_level",
+  "general_use_egd", "general_egdpool_path", "general_ping_cookie",
+  "general_disable_auth", "general_throttle_time", "general_oper_umodes",
+  "@27", "umode_oitems", "umode_oitem", "general_oper_only_umodes", "@28",
+  "umode_items", "umode_item", "general_min_nonwildcard",
+  "general_min_nonwildcard_simple", "general_default_floodcount",
+  "general_client_flood", "general_dot_in_ip6_addr", "gline_entry", "@29",
+  "gline_items", "gline_item", "gline_enable", "gline_duration",
+  "gline_logging", "@30", "gline_logging_types", "gline_logging_type_item",
+  "gline_user", "gline_server", "gline_action", "@31", "gdeny_types",
+  "gdeny_type_item", "channel_entry", "channel_items", "channel_item",
+  "channel_restrict_channels", "channel_disable_local_channels",
+  "channel_use_except", "channel_use_invex", "channel_use_knock",
+  "channel_knock_delay", "channel_knock_delay_channel",
+  "channel_max_chans_per_user", "channel_quiet_on_ban", "channel_max_bans",
+  "channel_default_split_user_count", "channel_default_split_server_count",
+  "channel_no_create_on_split", "channel_no_join_on_split",
+  "channel_burst_topicwho", "channel_jflood_count", "channel_jflood_time",
+  "serverhide_entry", "serverhide_items", "serverhide_item",
+  "serverhide_flatten_links", "serverhide_hide_servers",
+  "serverhide_hidden_name", "serverhide_links_delay", "serverhide_hidden",
   "serverhide_disable_hidden", "serverhide_hide_server_ips", 0
 };
 #endif
@@ -1444,7 +1495,7 @@ static const char *const yytname[] =
 # ifdef YYPRINT
 /* YYTOKNUM[YYLEX-NUM] -- Internal token number corresponding to
    token YYLEX-NUM.  */
-static const unsigned short yytoknum[] =
+static const unsigned short int yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
@@ -1476,7 +1527,7 @@ static const unsigned short yytoknum[] =
 # endif
 
 /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
-static const unsigned short yyr1[] =
+static const unsigned short int yyr1[] =
 {
        0,   260,   261,   261,   262,   262,   262,   262,   262,   262,
      262,   262,   262,   262,   262,   262,   262,   262,   262,   262,
@@ -1634,7 +1685,7 @@ static const unsigned char yyr2[] =
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
    STATE-NUM when YYTABLE doesn't specify something else to do.  Zero
    means the default is an error.  */
-static const unsigned short yydefact[] =
+static const unsigned short int yydefact[] =
 {
        2,     0,     1,     0,     0,     0,   214,   383,   456,     0,
      471,     0,   642,   270,   441,   248,     0,     0,   118,   324,
@@ -1785,7 +1836,7 @@ static const unsigned short yydefact[] =
 };
 
 /* YYDEFGOTO[NTERM-NUM]. */
-static const short yydefgoto[] =
+static const short int yydefgoto[] =
 {
       -1,     1,    24,   881,   882,  1032,  1033,    25,   271,   272,
      273,   274,    26,   308,   309,   310,   311,   312,   313,   314,
@@ -1826,7 +1877,7 @@ static const short yydefgoto[] =
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
 #define YYPACT_NINF -876
-static const short yypact[] =
+static const short int yypact[] =
 {
     -876,   822,  -876,  -236,  -248,  -246,  -876,  -876,  -876,  -240,
     -876,  -228,  -876,  -876,  -876,  -876,  -223,  -221,  -876,  -876,
@@ -1977,7 +2028,7 @@ static const short yypact[] =
 };
 
 /* YYPGOTO[NTERM-NUM].  */
-static const short yypgoto[] =
+static const short int yypgoto[] =
 {
     -876,  -876,  -876,  -428,  -333,  -875,  -415,  -876,  -876,  1093,
     -876,  -876,  -876,  -876,   980,  -876,  -876,  -876,  -876,  -876,
@@ -2018,9 +2069,9 @@ static const short yypgoto[] =
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
    positive, shift that token.  If negative, reduce the rule which
    number is the opposite.  If zero, do what YYDEFACT says.
-   If YYTABLE_NINF, parse error.  */
+   If YYTABLE_NINF, syntax error.  */
 #define YYTABLE_NINF -1
-static const unsigned short yytable[] =
+static const unsigned short int yytable[] =
 {
      573,   574,   717,   557,  1416,   548,  1417,   580,   120,    47,
     1202,    48,   475,   425,  1208,  1238,   426,    52,   120,    45,
@@ -2163,7 +2214,7 @@ static const unsigned short yytable[] =
        0,     0,   533
 };
 
-static const short yycheck[] =
+static const short int yycheck[] =
 {
      333,   334,   417,     1,    10,     1,    12,   340,     1,   257,
       11,   257,     1,     1,    11,    77,     4,   257,     1,   255,
@@ -2308,7 +2359,7 @@ static const short yycheck[] =
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
    symbol of state STATE-NUM.  */
-static const unsigned short yystos[] =
+static const unsigned short int yystos[] =
 {
        0,   261,     0,     1,     5,    22,    26,    29,    36,    51,
       64,    65,    67,    74,    91,   102,   104,   120,   137,   169,
@@ -2458,30 +2509,15 @@ static const unsigned short yystos[] =
      255,   259,   418,   427,   448,   445,   343,   340,   322
 };
 
-#if ! defined (YYSIZE_T) && defined (__SIZE_TYPE__)
-# define YYSIZE_T __SIZE_TYPE__
-#endif
-#if ! defined (YYSIZE_T) && defined (size_t)
-# define YYSIZE_T size_t
-#endif
-#if ! defined (YYSIZE_T)
-# if defined (__STDC__) || defined (__cplusplus)
-#  include <stddef.h> /* INFRINGES ON USER NAME SPACE */
-#  define YYSIZE_T size_t
-# endif
-#endif
-#if ! defined (YYSIZE_T)
-# define YYSIZE_T unsigned int
-#endif
-
 #define yyerrok		(yyerrstatus = 0)
 #define yyclearin	(yychar = YYEMPTY)
-#define YYEMPTY		-2
+#define YYEMPTY		(-2)
 #define YYEOF		0
 
 #define YYACCEPT	goto yyacceptlab
 #define YYABORT		goto yyabortlab
-#define YYERROR		goto yyerrlab1
+#define YYERROR		goto yyerrorlab
+
 
 /* Like YYERROR except do call yyerror.  This remains here temporarily
    to ease the transition to the new meaning of YYERROR, for GCC.
@@ -2497,34 +2533,71 @@ do								\
     {								\
       yychar = (Token);						\
       yylval = (Value);						\
-      yychar1 = YYTRANSLATE (yychar);				\
+      yytoken = YYTRANSLATE (yychar);				\
       YYPOPSTACK;						\
       goto yybackup;						\
     }								\
   else								\
-    { 								\
-      yyerror ("syntax error: cannot back up");			\
+    {								\
+      yyerror (YY_("syntax error: cannot back up")); \
       YYERROR;							\
     }								\
 while (0)
 
+
 #define YYTERROR	1
 #define YYERRCODE	256
 
-/* YYLLOC_DEFAULT -- Compute the default location (before the actions
-   are run).  */
 
+/* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
+   If N is 0, then set CURRENT to the empty location which ends
+   the previous symbol: RHS[0] (always defined).  */
+
+#define YYRHSLOC(Rhs, K) ((Rhs)[K])
 #ifndef YYLLOC_DEFAULT
-# define YYLLOC_DEFAULT(Current, Rhs, N)           \
-  Current.first_line   = Rhs[1].first_line;      \
-  Current.first_column = Rhs[1].first_column;    \
-  Current.last_line    = Rhs[N].last_line;       \
-  Current.last_column  = Rhs[N].last_column;
+# define YYLLOC_DEFAULT(Current, Rhs, N)				\
+    do									\
+      if (N)								\
+	{								\
+	  (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;	\
+	  (Current).first_column = YYRHSLOC (Rhs, 1).first_column;	\
+	  (Current).last_line    = YYRHSLOC (Rhs, N).last_line;		\
+	  (Current).last_column  = YYRHSLOC (Rhs, N).last_column;	\
+	}								\
+      else								\
+	{								\
+	  (Current).first_line   = (Current).last_line   =		\
+	    YYRHSLOC (Rhs, 0).last_line;				\
+	  (Current).first_column = (Current).last_column =		\
+	    YYRHSLOC (Rhs, 0).last_column;				\
+	}								\
+    while (0)
 #endif
+
+
+/* YY_LOCATION_PRINT -- Print the location on the stream.
+   This macro was not mandated originally: define only if we know
+   we won't break user code: when these are the locations we know.  */
+
+#ifndef YY_LOCATION_PRINT
+# if YYLTYPE_IS_TRIVIAL
+#  define YY_LOCATION_PRINT(File, Loc)			\
+     fprintf (File, "%d.%d-%d.%d",			\
+              (Loc).first_line, (Loc).first_column,	\
+              (Loc).last_line,  (Loc).last_column)
+# else
+#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
+# endif
+#endif
+
 
 /* YYLEX -- calling `yylex' with the right arguments.  */
 
-#define YYLEX	yylex ()
+#ifdef YYLEX_PARAM
+# define YYLEX yylex (YYLEX_PARAM)
+#else
+# define YYLEX yylex ()
+#endif
 
 /* Enable debugging if requested.  */
 #if YYDEBUG
@@ -2539,18 +2612,85 @@ do {						\
   if (yydebug)					\
     YYFPRINTF Args;				\
 } while (0)
-# define YYDSYMPRINT(Args)			\
-do {						\
-  if (yydebug)					\
-    yysymprint Args;				\
+
+# define YY_SYMBOL_PRINT(Title, Type, Value, Location)		\
+do {								\
+  if (yydebug)							\
+    {								\
+      YYFPRINTF (stderr, "%s ", Title);				\
+      yysymprint (stderr,					\
+                  Type, Value);	\
+      YYFPRINTF (stderr, "\n");					\
+    }								\
 } while (0)
+
+/*------------------------------------------------------------------.
+| yy_stack_print -- Print the state stack from its BOTTOM up to its |
+| TOP (included).                                                   |
+`------------------------------------------------------------------*/
+
+#if defined (__STDC__) || defined (__cplusplus)
+static void
+yy_stack_print (short int *bottom, short int *top)
+#else
+static void
+yy_stack_print (bottom, top)
+    short int *bottom;
+    short int *top;
+#endif
+{
+  YYFPRINTF (stderr, "Stack now");
+  for (/* Nothing. */; bottom <= top; ++bottom)
+    YYFPRINTF (stderr, " %d", *bottom);
+  YYFPRINTF (stderr, "\n");
+}
+
+# define YY_STACK_PRINT(Bottom, Top)				\
+do {								\
+  if (yydebug)							\
+    yy_stack_print ((Bottom), (Top));				\
+} while (0)
+
+
+/*------------------------------------------------.
+| Report that the YYRULE is going to be reduced.  |
+`------------------------------------------------*/
+
+#if defined (__STDC__) || defined (__cplusplus)
+static void
+yy_reduce_print (int yyrule)
+#else
+static void
+yy_reduce_print (yyrule)
+    int yyrule;
+#endif
+{
+  int yyi;
+  unsigned long int yylno = yyrline[yyrule];
+  YYFPRINTF (stderr, "Reducing stack by rule %d (line %lu), ",
+             yyrule - 1, yylno);
+  /* Print the symbols being reduced, and their result.  */
+  for (yyi = yyprhs[yyrule]; 0 <= yyrhs[yyi]; yyi++)
+    YYFPRINTF (stderr, "%s ", yytname[yyrhs[yyi]]);
+  YYFPRINTF (stderr, "-> %s\n", yytname[yyr1[yyrule]]);
+}
+
+# define YY_REDUCE_PRINT(Rule)		\
+do {					\
+  if (yydebug)				\
+    yy_reduce_print (Rule);		\
+} while (0)
+
 /* Nonzero means print parse trace.  It is left uninitialized so that
    multiple parsers can coexist.  */
 int yydebug;
 #else /* !YYDEBUG */
 # define YYDPRINTF(Args)
-# define YYDSYMPRINT(Args)
+# define YY_SYMBOL_PRINT(Title, Type, Value, Location)
+# define YY_STACK_PRINT(Bottom, Top)
+# define YY_REDUCE_PRINT(Rule)
 #endif /* !YYDEBUG */
+
 
 /* YYINITDEPTH -- initial size of the parser's stacks.  */
 #ifndef	YYINITDEPTH
@@ -2561,12 +2701,8 @@ int yydebug;
    if the built-in stack extension method is used).
 
    Do not make this value too large; the results are undefined if
-   SIZE_MAX < YYSTACK_BYTES (YYMAXDEPTH)
+   YYSTACK_ALLOC_MAXIMUM < YYSTACK_BYTES (YYMAXDEPTH)
    evaluated with infinite-precision integer arithmetic.  */
-
-#if YYMAXDEPTH == 0
-# undef YYMAXDEPTH
-#endif
 
 #ifndef YYMAXDEPTH
 # define YYMAXDEPTH 10000
@@ -2589,7 +2725,7 @@ yystrlen (yystr)
      const char *yystr;
 #   endif
 {
-  register const char *yys = yystr;
+  const char *yys = yystr;
 
   while (*yys++ != '\0')
     continue;
@@ -2614,8 +2750,8 @@ yystpcpy (yydest, yysrc)
      const char *yysrc;
 #   endif
 {
-  register char *yyd = yydest;
-  register const char *yys = yysrc;
+  char *yyd = yydest;
+  const char *yys = yysrc;
 
   while ((*yyd++ = *yys++) != '\0')
     continue;
@@ -2625,124 +2761,186 @@ yystpcpy (yydest, yysrc)
 #  endif
 # endif
 
-#endif /* !YYERROR_VERBOSE */
+# ifndef yytnamerr
+/* Copy to YYRES the contents of YYSTR after stripping away unnecessary
+   quotes and backslashes, so that it's suitable for yyerror.  The
+   heuristic is that double-quoting is unnecessary unless the string
+   contains an apostrophe, a comma, or backslash (other than
+   backslash-backslash).  YYSTR is taken from yytname.  If YYRES is
+   null, do not copy; instead, return the length of what the result
+   would have been.  */
+static YYSIZE_T
+yytnamerr (char *yyres, const char *yystr)
+{
+  if (*yystr == '"')
+    {
+      size_t yyn = 0;
+      char const *yyp = yystr;
+
+      for (;;)
+	switch (*++yyp)
+	  {
+	  case '\'':
+	  case ',':
+	    goto do_not_strip_quotes;
+
+	  case '\\':
+	    if (*++yyp != '\\')
+	      goto do_not_strip_quotes;
+	    /* Fall through.  */
+	  default:
+	    if (yyres)
+	      yyres[yyn] = *yyp;
+	    yyn++;
+	    break;
+
+	  case '"':
+	    if (yyres)
+	      yyres[yyn] = '\0';
+	    return yyn;
+	  }
+    do_not_strip_quotes: ;
+    }
+
+  if (! yyres)
+    return yystrlen (yystr);
+
+  return yystpcpy (yyres, yystr) - yyres;
+}
+# endif
+
+#endif /* YYERROR_VERBOSE */
 
 
 
 #if YYDEBUG
-/*-----------------------------.
-| Print this symbol on YYOUT.  |
-`-----------------------------*/
+/*--------------------------------.
+| Print this symbol on YYOUTPUT.  |
+`--------------------------------*/
 
-static void
 #if defined (__STDC__) || defined (__cplusplus)
-yysymprint (FILE* yyout, int yytype, YYSTYPE yyvalue)
+static void
+yysymprint (FILE *yyoutput, int yytype, YYSTYPE *yyvaluep)
 #else
-yysymprint (yyout, yytype, yyvalue)
-    FILE* yyout;
+static void
+yysymprint (yyoutput, yytype, yyvaluep)
+    FILE *yyoutput;
     int yytype;
-    YYSTYPE yyvalue;
+    YYSTYPE *yyvaluep;
 #endif
 {
   /* Pacify ``unused variable'' warnings.  */
-  (void) yyvalue;
+  (void) yyvaluep;
 
   if (yytype < YYNTOKENS)
-    {
-      YYFPRINTF (yyout, "token %s (", yytname[yytype]);
-# ifdef YYPRINT
-      YYPRINT (yyout, yytoknum[yytype], yyvalue);
-# endif
-    }
+    YYFPRINTF (yyoutput, "token %s (", yytname[yytype]);
   else
-    YYFPRINTF (yyout, "nterm %s (", yytname[yytype]);
+    YYFPRINTF (yyoutput, "nterm %s (", yytname[yytype]);
 
+
+# ifdef YYPRINT
+  if (yytype < YYNTOKENS)
+    YYPRINT (yyoutput, yytoknum[yytype], *yyvaluep);
+# endif
   switch (yytype)
     {
       default:
         break;
     }
-  YYFPRINTF (yyout, ")");
+  YYFPRINTF (yyoutput, ")");
 }
-#endif /* YYDEBUG. */
 
-
+#endif /* ! YYDEBUG */
 /*-----------------------------------------------.
 | Release the memory associated to this symbol.  |
 `-----------------------------------------------*/
 
-static void
 #if defined (__STDC__) || defined (__cplusplus)
-yydestruct (int yytype, YYSTYPE yyvalue)
+static void
+yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep)
 #else
-yydestruct (yytype, yyvalue)
+static void
+yydestruct (yymsg, yytype, yyvaluep)
+    const char *yymsg;
     int yytype;
-    YYSTYPE yyvalue;
+    YYSTYPE *yyvaluep;
 #endif
 {
   /* Pacify ``unused variable'' warnings.  */
-  (void) yyvalue;
+  (void) yyvaluep;
+
+  if (!yymsg)
+    yymsg = "Deleting";
+  YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
 
   switch (yytype)
     {
+
       default:
         break;
     }
 }
-
 
 
-/* The user can define YYPARSE_PARAM as the name of an argument to be passed
-   into yyparse.  The argument should have type void *.
-   It should actually point to an object.
-   Grammar actions can access the variable by casting it
-   to the proper pointer type.  */
+/* Prevent warnings from -Wmissing-prototypes.  */
 
 #ifdef YYPARSE_PARAM
 # if defined (__STDC__) || defined (__cplusplus)
-#  define YYPARSE_PARAM_ARG void *YYPARSE_PARAM
-#  define YYPARSE_PARAM_DECL
+int yyparse (void *YYPARSE_PARAM);
 # else
-#  define YYPARSE_PARAM_ARG YYPARSE_PARAM
-#  define YYPARSE_PARAM_DECL void *YYPARSE_PARAM;
+int yyparse ();
 # endif
-#else /* !YYPARSE_PARAM */
-# define YYPARSE_PARAM_ARG
-# define YYPARSE_PARAM_DECL
-#endif /* !YYPARSE_PARAM */
-
-/* Prevent warning if -Wstrict-prototypes.  */
-#ifdef __GNUC__
-# ifdef YYPARSE_PARAM
-int yyparse (void *);
-# else
+#else /* ! YYPARSE_PARAM */
+#if defined (__STDC__) || defined (__cplusplus)
 int yyparse (void);
-# endif
+#else
+int yyparse ();
 #endif
+#endif /* ! YYPARSE_PARAM */
 
 
-/* The lookahead symbol.  */
+
+/* The look-ahead symbol.  */
 int yychar;
 
-/* The semantic value of the lookahead symbol.  */
+/* The semantic value of the look-ahead symbol.  */
 YYSTYPE yylval;
 
-/* Number of parse errors so far.  */
+/* Number of syntax errors so far.  */
 int yynerrs;
 
 
+
+/*----------.
+| yyparse.  |
+`----------*/
+
+#ifdef YYPARSE_PARAM
+# if defined (__STDC__) || defined (__cplusplus)
+int yyparse (void *YYPARSE_PARAM)
+# else
+int yyparse (YYPARSE_PARAM)
+  void *YYPARSE_PARAM;
+# endif
+#else /* ! YYPARSE_PARAM */
+#if defined (__STDC__) || defined (__cplusplus)
 int
-yyparse (YYPARSE_PARAM_ARG)
-     YYPARSE_PARAM_DECL
+yyparse (void)
+#else
+int
+yyparse ()
+    ;
+#endif
+#endif
 {
   
-  register int yystate;
-  register int yyn;
+  int yystate;
+  int yyn;
   int yyresult;
   /* Number of tokens to shift before error messages enabled.  */
   int yyerrstatus;
-  /* Lookahead token as an internal (translated) token number.  */
-  int yychar1 = 0;
+  /* Look-ahead token as an internal (translated) token number.  */
+  int yytoken = 0;
 
   /* Three stacks and their tools:
      `yyss': related to states,
@@ -2753,14 +2951,14 @@ yyparse (YYPARSE_PARAM_ARG)
      to reallocate them elsewhere.  */
 
   /* The state stack.  */
-  short	yyssa[YYINITDEPTH];
-  short *yyss = yyssa;
-  register short *yyssp;
+  short int yyssa[YYINITDEPTH];
+  short int *yyss = yyssa;
+  short int *yyssp;
 
   /* The semantic value stack.  */
   YYSTYPE yyvsa[YYINITDEPTH];
   YYSTYPE *yyvs = yyvsa;
-  register YYSTYPE *yyvsp;
+  YYSTYPE *yyvsp;
 
 
 
@@ -2806,7 +3004,7 @@ yyparse (YYPARSE_PARAM_ARG)
  yysetstate:
   *yyssp = yystate;
 
-  if (yyssp >= yyss + yystacksize - 1)
+  if (yyss + yystacksize - 1 <= yyssp)
     {
       /* Get the current used size of the three stacks, in elements.  */
       YYSIZE_T yysize = yyssp - yyss + 1;
@@ -2817,14 +3015,14 @@ yyparse (YYPARSE_PARAM_ARG)
 	   these so that the &'s don't force the real ones into
 	   memory.  */
 	YYSTYPE *yyvs1 = yyvs;
-	short *yyss1 = yyss;
+	short int *yyss1 = yyss;
 
 
 	/* Each stack pointer address is followed by the size of the
 	   data in use in that stack, in bytes.  This used to be a
 	   conditional around just the two extra args, but that might
 	   be undefined if yyoverflow is a macro.  */
-	yyoverflow ("parser stack overflow",
+	yyoverflow (YY_("memory exhausted"),
 		    &yyss1, yysize * sizeof (*yyssp),
 		    &yyvs1, yysize * sizeof (*yyvsp),
 
@@ -2835,21 +3033,21 @@ yyparse (YYPARSE_PARAM_ARG)
       }
 #else /* no yyoverflow */
 # ifndef YYSTACK_RELOCATE
-      goto yyoverflowlab;
+      goto yyexhaustedlab;
 # else
       /* Extend the stack our own way.  */
-      if (yystacksize >= YYMAXDEPTH)
-	goto yyoverflowlab;
+      if (YYMAXDEPTH <= yystacksize)
+	goto yyexhaustedlab;
       yystacksize *= 2;
-      if (yystacksize > YYMAXDEPTH)
+      if (YYMAXDEPTH < yystacksize)
 	yystacksize = YYMAXDEPTH;
 
       {
-	short *yyss1 = yyss;
+	short int *yyss1 = yyss;
 	union yyalloc *yyptr =
 	  (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
 	if (! yyptr)
-	  goto yyoverflowlab;
+	  goto yyexhaustedlab;
 	YYSTACK_RELOCATE (yyss);
 	YYSTACK_RELOCATE (yyvs);
 
@@ -2867,7 +3065,7 @@ yyparse (YYPARSE_PARAM_ARG)
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
 		  (unsigned long int) yystacksize));
 
-      if (yyssp >= yyss + yystacksize - 1)
+      if (yyss + yystacksize - 1 <= yyssp)
 	YYABORT;
     }
 
@@ -2881,50 +3079,39 @@ yyparse (YYPARSE_PARAM_ARG)
 yybackup:
 
 /* Do appropriate processing given the current state.  */
-/* Read a lookahead token if we need one and don't already have one.  */
+/* Read a look-ahead token if we need one and don't already have one.  */
 /* yyresume: */
 
-  /* First try to decide what to do without reference to lookahead token.  */
+  /* First try to decide what to do without reference to look-ahead token.  */
 
   yyn = yypact[yystate];
   if (yyn == YYPACT_NINF)
     goto yydefault;
 
-  /* Not known => get a lookahead token if don't already have one.  */
+  /* Not known => get a look-ahead token if don't already have one.  */
 
-  /* yychar is either YYEMPTY or YYEOF
-     or a valid token in external form.  */
-
+  /* YYCHAR is either YYEMPTY or YYEOF or a valid look-ahead symbol.  */
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token: "));
       yychar = YYLEX;
     }
 
-  /* Convert token to internal form (in yychar1) for indexing tables with.  */
-
-  if (yychar <= 0)		/* This means end of input.  */
+  if (yychar <= YYEOF)
     {
-      yychar1 = 0;
-      yychar = YYEOF;		/* Don't call YYLEX any more.  */
-
+      yychar = yytoken = YYEOF;
       YYDPRINTF ((stderr, "Now at end of input.\n"));
     }
   else
     {
-      yychar1 = YYTRANSLATE (yychar);
-
-      /* We have to keep this `#if YYDEBUG', since we use variables
-	 which are defined only if `YYDEBUG' is set.  */
-      YYDPRINTF ((stderr, "Next token is "));
-      YYDSYMPRINT ((stderr, yychar1, yylval));
-      YYDPRINTF ((stderr, "\n"));
+      yytoken = YYTRANSLATE (yychar);
+      YY_SYMBOL_PRINT ("Next token is", yytoken, &yylval, &yylloc);
     }
 
-  /* If the proper action on seeing token YYCHAR1 is to reduce or to
+  /* If the proper action on seeing token YYTOKEN is to reduce or to
      detect an error, take that action.  */
-  yyn += yychar1;
-  if (yyn < 0 || YYLAST < yyn || yycheck[yyn] != yychar1)
+  yyn += yytoken;
+  if (yyn < 0 || YYLAST < yyn || yycheck[yyn] != yytoken)
     goto yydefault;
   yyn = yytable[yyn];
   if (yyn <= 0)
@@ -2938,9 +3125,8 @@ yybackup:
   if (yyn == YYFINAL)
     YYACCEPT;
 
-  /* Shift the lookahead token.  */
-  YYDPRINTF ((stderr, "Shifting token %d (%s), ",
-	      yychar, yytname[yychar1]));
+  /* Shift the look-ahead token.  */
+  YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
 
   /* Discard the token being shifted unless it is eof.  */
   if (yychar != YYEOF)
@@ -2986,95 +3172,79 @@ yyreduce:
   yyval = yyvsp[1-yylen];
 
 
-
-#if YYDEBUG
-  /* We have to keep this `#if YYDEBUG', since we use variables which
-     are defined only if `YYDEBUG' is set.  */
-  if (yydebug)
-    {
-      int yyi;
-
-      YYFPRINTF (stderr, "Reducing via rule %d (line %d), ",
-		 yyn - 1, yyrline[yyn]);
-
-      /* Print the symbols being reduced, and their result.  */
-      for (yyi = yyprhs[yyn]; yyrhs[yyi] >= 0; yyi++)
-	YYFPRINTF (stderr, "%s ", yytname[yyrhs[yyi]]);
-      YYFPRINTF (stderr, " -> %s\n", yytname[yyr1[yyn]]);
-    }
-#endif
+  YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
         case 26:
 #line 421 "ircd_parser.y"
-    { yyval.number = 0; }
+    { (yyval.number) = 0; }
     break;
 
   case 28:
 #line 423 "ircd_parser.y"
     {
-			yyval.number = yyvsp[-1].number + yyvsp[0].number;
+			(yyval.number) = (yyvsp[-1].number) + (yyvsp[0].number);
 		}
     break;
 
   case 29:
 #line 427 "ircd_parser.y"
     {
-			yyval.number = yyvsp[-2].number + yyvsp[0].number;
+			(yyval.number) = (yyvsp[-2].number) + (yyvsp[0].number);
 		}
     break;
 
   case 30:
 #line 431 "ircd_parser.y"
     {
-			yyval.number = yyvsp[-2].number * 60 + yyvsp[0].number;
+			(yyval.number) = (yyvsp[-2].number) * 60 + (yyvsp[0].number);
 		}
     break;
 
   case 31:
 #line 435 "ircd_parser.y"
     {
-			yyval.number = yyvsp[-2].number * 60 * 60 + yyvsp[0].number;
+			(yyval.number) = (yyvsp[-2].number) * 60 * 60 + (yyvsp[0].number);
 		}
     break;
 
   case 32:
 #line 439 "ircd_parser.y"
     {
-			yyval.number = yyvsp[-2].number * 60 * 60 * 24 + yyvsp[0].number;
+			(yyval.number) = (yyvsp[-2].number) * 60 * 60 * 24 + (yyvsp[0].number);
 		}
     break;
 
   case 33:
 #line 443 "ircd_parser.y"
     {
-			yyval.number = yyvsp[-2].number * 60 * 60 * 24 * 7 + yyvsp[0].number;
+			(yyval.number) = (yyvsp[-2].number) * 60 * 60 * 24 * 7 + (yyvsp[0].number);
 		}
     break;
 
   case 34:
 #line 448 "ircd_parser.y"
-    { yyval.number = 0; }
+    { (yyval.number) = 0; }
     break;
 
   case 36:
 #line 449 "ircd_parser.y"
-    { yyval.number = yyvsp[-1].number + yyvsp[0].number; }
+    { (yyval.number) = (yyvsp[-1].number) + (yyvsp[0].number); }
     break;
 
   case 37:
 #line 450 "ircd_parser.y"
-    { yyval.number = yyvsp[-2].number + yyvsp[0].number; }
+    { (yyval.number) = (yyvsp[-2].number) + (yyvsp[0].number); }
     break;
 
   case 38:
 #line 451 "ircd_parser.y"
-    { yyval.number = yyvsp[-2].number * 1024 + yyvsp[0].number; }
+    { (yyval.number) = (yyvsp[-2].number) * 1024 + (yyvsp[0].number); }
     break;
 
   case 39:
 #line 452 "ircd_parser.y"
-    { yyval.number = yyvsp[-2].number * 1024 * 1024 + yyvsp[0].number; }
+    { (yyval.number) = (yyvsp[-2].number) * 1024 * 1024 + (yyvsp[0].number); }
     break;
 
   case 46:
@@ -3347,20 +3517,20 @@ yyreduce:
   {
     recalc_fdlimit(NULL);
 
-    if (yyvsp[-1].number < MAXCLIENTS_MIN)
+    if ((yyvsp[-1].number) < MAXCLIENTS_MIN)
     {
       char buf[IRCD_BUFSIZE];
       ircsprintf(buf, "MAXCLIENTS too low, setting to %d", MAXCLIENTS_MIN);
       yyerror(buf);
     }
-    else if (yyvsp[-1].number > MAXCLIENTS_MAX)
+    else if ((yyvsp[-1].number) > MAXCLIENTS_MAX)
     {
       char buf[IRCD_BUFSIZE];
       ircsprintf(buf, "MAXCLIENTS too high, setting to %d", MAXCLIENTS_MAX);
       yyerror(buf);
     }
     else
-      ServerInfo.max_clients = yyvsp[-1].number;
+      ServerInfo.max_clients = (yyvsp[-1].number);
   }
 }
     break;
@@ -4407,7 +4577,7 @@ yyreduce:
 #line 1591 "ircd_parser.y"
     {
   if (ypass == 1)
-    PingFreq(yy_class) = yyvsp[-1].number;
+    PingFreq(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4415,7 +4585,7 @@ yyreduce:
 #line 1597 "ircd_parser.y"
     {
   if (ypass == 1)
-    PingWarning(yy_class) = yyvsp[-1].number;
+    PingWarning(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4423,7 +4593,7 @@ yyreduce:
 #line 1603 "ircd_parser.y"
     {
   if (ypass == 1)
-    MaxPerIp(yy_class) = yyvsp[-1].number;
+    MaxPerIp(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4431,7 +4601,7 @@ yyreduce:
 #line 1609 "ircd_parser.y"
     {
   if (ypass == 1)
-    ConFreq(yy_class) = yyvsp[-1].number;
+    ConFreq(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4439,7 +4609,7 @@ yyreduce:
 #line 1615 "ircd_parser.y"
     {
   if (ypass == 1)
-    MaxTotal(yy_class) = yyvsp[-1].number;
+    MaxTotal(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4447,7 +4617,7 @@ yyreduce:
 #line 1621 "ircd_parser.y"
     {
   if (ypass == 1)
-    MaxGlobal(yy_class) = yyvsp[-1].number;
+    MaxGlobal(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4455,7 +4625,7 @@ yyreduce:
 #line 1627 "ircd_parser.y"
     {
   if (ypass == 1)
-    MaxLocal(yy_class) = yyvsp[-1].number;
+    MaxLocal(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4463,7 +4633,7 @@ yyreduce:
 #line 1633 "ircd_parser.y"
     {
   if (ypass == 1)
-    MaxIdent(yy_class) = yyvsp[-1].number;
+    MaxIdent(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4471,7 +4641,7 @@ yyreduce:
 #line 1639 "ircd_parser.y"
     {
   if (ypass == 1)
-    MaxSendq(yy_class) = yyvsp[-1].number;
+    MaxSendq(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4479,7 +4649,7 @@ yyreduce:
 #line 1645 "ircd_parser.y"
     {
   if (ypass == 1)
-    CidrBitlenIPV4(yy_class) = yyvsp[-1].number;
+    CidrBitlenIPV4(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4487,7 +4657,7 @@ yyreduce:
 #line 1651 "ircd_parser.y"
     {
   if (ypass == 1)
-    CidrBitlenIPV6(yy_class) = yyvsp[-1].number;
+    CidrBitlenIPV6(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4495,7 +4665,7 @@ yyreduce:
 #line 1657 "ircd_parser.y"
     {
   if (ypass == 1)
-    NumberPerCidr(yy_class) = yyvsp[-1].number;
+    NumberPerCidr(yy_class) = (yyvsp[-1].number);
 }
     break;
 
@@ -4556,7 +4726,7 @@ yyreduce:
         yyerror("SSL not available - port closed");
 	break;
       }
-    add_listener(yyvsp[0].number, listener_address, listener_flags);
+    add_listener((yyvsp[0].number), listener_address, listener_flags);
     listener_flags = 0;
   }
 }
@@ -4578,7 +4748,7 @@ yyreduce:
 	break;
       }
 
-    for (i = yyvsp[-2].number; i <= yyvsp[0].number; ++i)
+    for (i = (yyvsp[-2].number); i <= (yyvsp[0].number); ++i)
       add_listener(i, listener_address, listener_flags);
 
     listener_flags = 0;
@@ -4998,7 +5168,7 @@ yyreduce:
   if (ypass == 2)
   {
     yy_aconf->flags |= CONF_FLAGS_REDIR;
-    yy_aconf->port = yyvsp[-1].number;
+    yy_aconf->port = (yyvsp[-1].number);
   }
 }
     break;
@@ -5572,9 +5742,9 @@ yyreduce:
     {
   if (ypass == 2)
   {
-    if (yyvsp[-1].string[0] == ':')
+    if ((yyvsp[-1].string)[0] == ':')
       yyerror("Server passwords cannot begin with a colon");
-    else if (strchr(yyvsp[-1].string, ' ') != NULL)
+    else if (strchr((yyvsp[-1].string), ' ') != NULL)
       yyerror("Server passwords cannot contain spaces");
     else {
       if (yy_aconf->spasswd != NULL)
@@ -5592,9 +5762,9 @@ yyreduce:
     {
   if (ypass == 2)
   {
-    if (yyvsp[-1].string[0] == ':')
+    if ((yyvsp[-1].string)[0] == ':')
       yyerror("Server passwords cannot begin with a colon");
-    else if (strchr(yyvsp[-1].string, ' ') != NULL)
+    else if (strchr((yyvsp[-1].string), ' ') != NULL)
       yyerror("Server passwords cannot contain spaces");
     else {
       if (yy_aconf->passwd != NULL)
@@ -5611,7 +5781,7 @@ yyreduce:
 #line 2589 "ircd_parser.y"
     {
   if (ypass == 2)
-    yy_aconf->port = yyvsp[-1].number;
+    yy_aconf->port = (yyvsp[-1].number);
 }
     break;
 
@@ -6161,14 +6331,14 @@ yyreduce:
   case 544:
 #line 3110 "ircd_parser.y"
     {
-  ConfigFileEntry.gline_min_cidr = yyvsp[-1].number;
+  ConfigFileEntry.gline_min_cidr = (yyvsp[-1].number);
 }
     break;
 
   case 545:
 #line 3115 "ircd_parser.y"
     {
-  ConfigFileEntry.gline_min_cidr6 = yyvsp[-1].number;
+  ConfigFileEntry.gline_min_cidr6 = (yyvsp[-1].number);
 }
     break;
 
@@ -6203,7 +6373,7 @@ yyreduce:
   case 550:
 #line 3140 "ircd_parser.y"
     {
-  ConfigFileEntry.kill_chase_time_limit = yyvsp[-1].number;
+  ConfigFileEntry.kill_chase_time_limit = (yyvsp[-1].number);
 }
     break;
 
@@ -6245,35 +6415,35 @@ yyreduce:
   case 556:
 #line 3170 "ircd_parser.y"
     {
-  ConfigFileEntry.max_nick_time = yyvsp[-1].number; 
+  ConfigFileEntry.max_nick_time = (yyvsp[-1].number); 
 }
     break;
 
   case 557:
 #line 3175 "ircd_parser.y"
     {
-  ConfigFileEntry.max_nick_changes = yyvsp[-1].number;
+  ConfigFileEntry.max_nick_changes = (yyvsp[-1].number);
 }
     break;
 
   case 558:
 #line 3180 "ircd_parser.y"
     {
-  ConfigFileEntry.max_accept = yyvsp[-1].number;
+  ConfigFileEntry.max_accept = (yyvsp[-1].number);
 }
     break;
 
   case 559:
 #line 3185 "ircd_parser.y"
     {
-  ConfigFileEntry.anti_spam_exit_message_time = yyvsp[-1].number;
+  ConfigFileEntry.anti_spam_exit_message_time = (yyvsp[-1].number);
 }
     break;
 
   case 560:
 #line 3190 "ircd_parser.y"
     {
-  ConfigFileEntry.ts_warn_delta = yyvsp[-1].number;
+  ConfigFileEntry.ts_warn_delta = (yyvsp[-1].number);
 }
     break;
 
@@ -6281,14 +6451,14 @@ yyreduce:
 #line 3195 "ircd_parser.y"
     {
   if (ypass == 2)
-    ConfigFileEntry.ts_max_delta = yyvsp[-1].number;
+    ConfigFileEntry.ts_max_delta = (yyvsp[-1].number);
 }
     break;
 
   case 562:
 #line 3201 "ircd_parser.y"
     {
-  if ((yyvsp[-1].number > 0) && ypass == 1)
+  if (((yyvsp[-1].number) > 0) && ypass == 1)
   {
     ilog(L_CRIT, "You haven't read your config file properly.");
     ilog(L_CRIT, "There is a line in the example conf that will kill your server if not removed.");
@@ -6375,14 +6545,14 @@ yyreduce:
   case 573:
 #line 3262 "ircd_parser.y"
     {
-  ConfigFileEntry.pace_wait = yyvsp[-1].number;
+  ConfigFileEntry.pace_wait = (yyvsp[-1].number);
 }
     break;
 
   case 574:
 #line 3267 "ircd_parser.y"
     {
-  ConfigFileEntry.caller_id_wait = yyvsp[-1].number;
+  ConfigFileEntry.caller_id_wait = (yyvsp[-1].number);
 }
     break;
 
@@ -6396,7 +6566,7 @@ yyreduce:
   case 576:
 #line 3277 "ircd_parser.y"
     {
-  ConfigFileEntry.pace_wait_simple = yyvsp[-1].number;
+  ConfigFileEntry.pace_wait_simple = (yyvsp[-1].number);
 }
     break;
 
@@ -6444,21 +6614,21 @@ yyreduce:
   case 582:
 #line 3313 "ircd_parser.y"
     {
-  ConfigFileEntry.idletime = yyvsp[-1].number;
+  ConfigFileEntry.idletime = (yyvsp[-1].number);
 }
     break;
 
   case 583:
 #line 3318 "ircd_parser.y"
     {
-  ConfigFileEntry.dots_in_ident = yyvsp[-1].number;
+  ConfigFileEntry.dots_in_ident = (yyvsp[-1].number);
 }
     break;
 
   case 584:
 #line 3323 "ircd_parser.y"
     {
-  ConfigFileEntry.max_targets = yyvsp[-1].number;
+  ConfigFileEntry.max_targets = (yyvsp[-1].number);
 }
     break;
 
@@ -6512,7 +6682,7 @@ yyreduce:
     {
   if (ypass == 2)
   {
-    ConfigFileEntry.compression_level = yyvsp[-1].number;
+    ConfigFileEntry.compression_level = (yyvsp[-1].number);
 #ifndef HAVE_LIBZ
     yyerror("Ignoring compression_level -- no zlib support");
 #else
@@ -6835,28 +7005,28 @@ yyreduce:
   case 637:
 #line 3540 "ircd_parser.y"
     {
-  ConfigFileEntry.min_nonwildcard = yyvsp[-1].number;
+  ConfigFileEntry.min_nonwildcard = (yyvsp[-1].number);
 }
     break;
 
   case 638:
 #line 3545 "ircd_parser.y"
     {
-  ConfigFileEntry.min_nonwildcard_simple = yyvsp[-1].number;
+  ConfigFileEntry.min_nonwildcard_simple = (yyvsp[-1].number);
 }
     break;
 
   case 639:
 #line 3550 "ircd_parser.y"
     {
-  ConfigFileEntry.default_floodcount = yyvsp[-1].number;
+  ConfigFileEntry.default_floodcount = (yyvsp[-1].number);
 }
     break;
 
   case 640:
 #line 3555 "ircd_parser.y"
     {
-  ConfigFileEntry.client_flood = yyvsp[-1].number;
+  ConfigFileEntry.client_flood = (yyvsp[-1].number);
 }
     break;
 
@@ -6909,7 +7079,7 @@ yyreduce:
 #line 3607 "ircd_parser.y"
     {
   if (ypass == 2)
-    ConfigFileEntry.gline_time = yyvsp[-1].number;
+    ConfigFileEntry.gline_time = (yyvsp[-1].number);
 }
     break;
 
@@ -7079,21 +7249,21 @@ yyreduce:
   case 695:
 #line 3761 "ircd_parser.y"
     {
-  ConfigChannel.knock_delay = yyvsp[-1].number;
+  ConfigChannel.knock_delay = (yyvsp[-1].number);
 }
     break;
 
   case 696:
 #line 3766 "ircd_parser.y"
     {
-  ConfigChannel.knock_delay_channel = yyvsp[-1].number;
+  ConfigChannel.knock_delay_channel = (yyvsp[-1].number);
 }
     break;
 
   case 697:
 #line 3771 "ircd_parser.y"
     {
-  ConfigChannel.max_chans_per_user = yyvsp[-1].number;
+  ConfigChannel.max_chans_per_user = (yyvsp[-1].number);
 }
     break;
 
@@ -7107,21 +7277,21 @@ yyreduce:
   case 699:
 #line 3781 "ircd_parser.y"
     {
-  ConfigChannel.max_bans = yyvsp[-1].number;
+  ConfigChannel.max_bans = (yyvsp[-1].number);
 }
     break;
 
   case 700:
 #line 3786 "ircd_parser.y"
     {
-  ConfigChannel.default_split_user_count = yyvsp[-1].number;
+  ConfigChannel.default_split_user_count = (yyvsp[-1].number);
 }
     break;
 
   case 701:
 #line 3791 "ircd_parser.y"
     {
-  ConfigChannel.default_split_server_count = yyvsp[-1].number;
+  ConfigChannel.default_split_server_count = (yyvsp[-1].number);
 }
     break;
 
@@ -7192,13 +7362,13 @@ yyreduce:
     {
   if (ypass == 2)
   {
-    if ((yyvsp[-1].number > 0) && ConfigServerHide.links_disabled == 1)
+    if (((yyvsp[-1].number) > 0) && ConfigServerHide.links_disabled == 1)
     {
-      eventAddIsh("write_links_file", write_links_file, NULL, yyvsp[-1].number);
+      eventAddIsh("write_links_file", write_links_file, NULL, (yyvsp[-1].number));
       ConfigServerHide.links_disabled = 0;
     }
 
-    ConfigServerHide.links_delay = yyvsp[-1].number;
+    ConfigServerHide.links_delay = (yyvsp[-1].number);
   }
 }
     break;
@@ -7228,25 +7398,17 @@ yyreduce:
     break;
 
 
+      default: break;
     }
 
-/* Line 1016 of /usr/local/share/bison/yacc.c.  */
-#line 7235 "y.tab.c"
+/* Line 1126 of yacc.c.  */
+#line 7406 "y.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
 
 
-#if YYDEBUG
-  if (yydebug)
-    {
-      short *yyssp1 = yyss - 1;
-      YYFPRINTF (stderr, "state stack now");
-      while (yyssp1 != yyssp)
-	YYFPRINTF (stderr, " %d", *++yyssp1);
-      YYFPRINTF (stderr, "\n");
-    }
-#endif
+  YY_STACK_PRINT (yyss, yyssp);
 
   *++yyvsp = yyval;
 
@@ -7279,90 +7441,153 @@ yyerrlab:
 
       if (YYPACT_NINF < yyn && yyn < YYLAST)
 	{
-	  YYSIZE_T yysize = 0;
 	  int yytype = YYTRANSLATE (yychar);
-	  char *yymsg;
-	  int yyx, yycount;
+	  YYSIZE_T yysize0 = yytnamerr (0, yytname[yytype]);
+	  YYSIZE_T yysize = yysize0;
+	  YYSIZE_T yysize1;
+	  int yysize_overflow = 0;
+	  char *yymsg = 0;
+#	  define YYERROR_VERBOSE_ARGS_MAXIMUM 5
+	  char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
+	  int yyx;
 
-	  yycount = 0;
+#if 0
+	  /* This is so xgettext sees the translatable formats that are
+	     constructed on the fly.  */
+	  YY_("syntax error, unexpected %s");
+	  YY_("syntax error, unexpected %s, expecting %s");
+	  YY_("syntax error, unexpected %s, expecting %s or %s");
+	  YY_("syntax error, unexpected %s, expecting %s or %s or %s");
+	  YY_("syntax error, unexpected %s, expecting %s or %s or %s or %s");
+#endif
+	  char *yyfmt;
+	  char const *yyf;
+	  static char const yyunexpected[] = "syntax error, unexpected %s";
+	  static char const yyexpecting[] = ", expecting %s";
+	  static char const yyor[] = " or %s";
+	  char yyformat[sizeof yyunexpected
+			+ sizeof yyexpecting - 1
+			+ ((YYERROR_VERBOSE_ARGS_MAXIMUM - 2)
+			   * (sizeof yyor - 1))];
+	  char const *yyprefix = yyexpecting;
+
 	  /* Start YYX at -YYN if negative to avoid negative indexes in
 	     YYCHECK.  */
-	  for (yyx = yyn < 0 ? -yyn : 0;
-	       yyx < (int) (sizeof (yytname) / sizeof (char *)); yyx++)
-	    if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR)
-	      yysize += yystrlen (yytname[yyx]) + 15, yycount++;
-	  yysize += yystrlen ("parse error, unexpected ") + 1;
-	  yysize += yystrlen (yytname[yytype]);
-	  yymsg = (char *) YYSTACK_ALLOC (yysize);
-	  if (yymsg != 0)
-	    {
-	      char *yyp = yystpcpy (yymsg, "parse error, unexpected ");
-	      yyp = yystpcpy (yyp, yytname[yytype]);
+	  int yyxbegin = yyn < 0 ? -yyn : 0;
 
-	      if (yycount < 5)
+	  /* Stay within bounds of both yycheck and yytname.  */
+	  int yychecklim = YYLAST - yyn;
+	  int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
+	  int yycount = 1;
+
+	  yyarg[0] = yytname[yytype];
+	  yyfmt = yystpcpy (yyformat, yyunexpected);
+
+	  for (yyx = yyxbegin; yyx < yyxend; ++yyx)
+	    if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR)
+	      {
+		if (yycount == YYERROR_VERBOSE_ARGS_MAXIMUM)
+		  {
+		    yycount = 1;
+		    yysize = yysize0;
+		    yyformat[sizeof yyunexpected - 1] = '\0';
+		    break;
+		  }
+		yyarg[yycount++] = yytname[yyx];
+		yysize1 = yysize + yytnamerr (0, yytname[yyx]);
+		yysize_overflow |= yysize1 < yysize;
+		yysize = yysize1;
+		yyfmt = yystpcpy (yyfmt, yyprefix);
+		yyprefix = yyor;
+	      }
+
+	  yyf = YY_(yyformat);
+	  yysize1 = yysize + yystrlen (yyf);
+	  yysize_overflow |= yysize1 < yysize;
+	  yysize = yysize1;
+
+	  if (!yysize_overflow && yysize <= YYSTACK_ALLOC_MAXIMUM)
+	    yymsg = (char *) YYSTACK_ALLOC (yysize);
+	  if (yymsg)
+	    {
+	      /* Avoid sprintf, as that infringes on the user's name space.
+		 Don't have undefined behavior even if the translation
+		 produced a string with the wrong number of "%s"s.  */
+	      char *yyp = yymsg;
+	      int yyi = 0;
+	      while ((*yyp = *yyf))
 		{
-		  yycount = 0;
-		  for (yyx = yyn < 0 ? -yyn : 0;
-		       yyx < (int) (sizeof (yytname) / sizeof (char *));
-		       yyx++)
-		    if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR)
-		      {
-			const char *yyq = ! yycount ? ", expecting " : " or ";
-			yyp = yystpcpy (yyp, yyq);
-			yyp = yystpcpy (yyp, yytname[yyx]);
-			yycount++;
-		      }
+		  if (*yyp == '%' && yyf[1] == 's' && yyi < yycount)
+		    {
+		      yyp += yytnamerr (yyp, yyarg[yyi++]);
+		      yyf += 2;
+		    }
+		  else
+		    {
+		      yyp++;
+		      yyf++;
+		    }
 		}
 	      yyerror (yymsg);
 	      YYSTACK_FREE (yymsg);
 	    }
 	  else
-	    yyerror ("parse error; also virtual memory exhausted");
+	    {
+	      yyerror (YY_("syntax error"));
+	      goto yyexhaustedlab;
+	    }
 	}
       else
 #endif /* YYERROR_VERBOSE */
-	yyerror ("parse error");
+	yyerror (YY_("syntax error"));
     }
+
+
+
+  if (yyerrstatus == 3)
+    {
+      /* If just tried and failed to reuse look-ahead token after an
+	 error, discard it.  */
+
+      if (yychar <= YYEOF)
+        {
+	  /* Return failure if at end of input.  */
+	  if (yychar == YYEOF)
+	    YYABORT;
+        }
+      else
+	{
+	  yydestruct ("Error: discarding", yytoken, &yylval);
+	  yychar = YYEMPTY;
+	}
+    }
+
+  /* Else will try to reuse look-ahead token after shifting the error
+     token.  */
   goto yyerrlab1;
 
 
-/*----------------------------------------------------.
-| yyerrlab1 -- error raised explicitly by an action.  |
-`----------------------------------------------------*/
+/*---------------------------------------------------.
+| yyerrorlab -- error raised explicitly by YYERROR.  |
+`---------------------------------------------------*/
+yyerrorlab:
+
+  /* Pacify compilers like GCC when the user code never invokes
+     YYERROR and the label yyerrorlab therefore never appears in user
+     code.  */
+  if (0)
+     goto yyerrorlab;
+
+yyvsp -= yylen;
+  yyssp -= yylen;
+  yystate = *yyssp;
+  goto yyerrlab1;
+
+
+/*-------------------------------------------------------------.
+| yyerrlab1 -- common code for both syntax error and YYERROR.  |
+`-------------------------------------------------------------*/
 yyerrlab1:
-  if (yyerrstatus == 3)
-    {
-      /* If just tried and failed to reuse lookahead token after an
-	 error, discard it.  */
-
-      /* Return failure if at end of input.  */
-      if (yychar == YYEOF)
-        {
-	  /* Pop the error token.  */
-          YYPOPSTACK;
-	  /* Pop the rest of the stack.  */
-	  while (yyssp > yyss)
-	    {
-	      YYDPRINTF ((stderr, "Error: popping "));
-	      YYDSYMPRINT ((stderr,
-			    yystos[*yyssp],
-			    *yyvsp));
-	      YYDPRINTF ((stderr, "\n"));
-	      yydestruct (yystos[*yyssp], *yyvsp);
-	      YYPOPSTACK;
-	    }
-	  YYABORT;
-        }
-
-      YYDPRINTF ((stderr, "Discarding token %d (%s).\n",
-		  yychar, yytname[yychar1]));
-      yydestruct (yychar1, yylval);
-      yychar = YYEMPTY;
-    }
-
-  /* Else will try to reuse lookahead token after shifting the error
-     token.  */
-
   yyerrstatus = 3;	/* Each real token shifted decrements this.  */
 
   for (;;)
@@ -7383,35 +7608,21 @@ yyerrlab1:
       if (yyssp == yyss)
 	YYABORT;
 
-      YYDPRINTF ((stderr, "Error: popping "));
-      YYDSYMPRINT ((stderr,
-		    yystos[*yyssp], *yyvsp));
-      YYDPRINTF ((stderr, "\n"));
 
-      yydestruct (yystos[yystate], *yyvsp);
-      yyvsp--;
-      yystate = *--yyssp;
-
-
-#if YYDEBUG
-      if (yydebug)
-	{
-	  short *yyssp1 = yyss - 1;
-	  YYFPRINTF (stderr, "Error: state stack now");
-	  while (yyssp1 != yyssp)
-	    YYFPRINTF (stderr, " %d", *++yyssp1);
-	  YYFPRINTF (stderr, "\n");
-	}
-#endif
+      yydestruct ("Error: popping", yystos[yystate], yyvsp);
+      YYPOPSTACK;
+      yystate = *yyssp;
+      YY_STACK_PRINT (yyss, yyssp);
     }
 
   if (yyn == YYFINAL)
     YYACCEPT;
 
-  YYDPRINTF ((stderr, "Shifting error token, "));
-
   *++yyvsp = yylval;
 
+
+  /* Shift the error token. */
+  YY_SYMBOL_PRINT ("Shifting", yystos[yyn], yyvsp, yylsp);
 
   yystate = yyn;
   goto yynewstate;
@@ -7432,16 +7643,25 @@ yyabortlab:
   goto yyreturn;
 
 #ifndef yyoverflow
-/*----------------------------------------------.
-| yyoverflowlab -- parser overflow comes here.  |
-`----------------------------------------------*/
-yyoverflowlab:
-  yyerror ("parser stack overflow");
+/*-------------------------------------------------.
+| yyexhaustedlab -- memory exhaustion comes here.  |
+`-------------------------------------------------*/
+yyexhaustedlab:
+  yyerror (YY_("memory exhausted"));
   yyresult = 2;
   /* Fall through.  */
 #endif
 
 yyreturn:
+  if (yychar != YYEOF && yychar != YYEMPTY)
+     yydestruct ("Cleanup: discarding lookahead",
+		 yytoken, &yylval);
+  while (yyssp != yyss)
+    {
+      yydestruct ("Cleanup: popping",
+		  yystos[*yyssp], yyvsp);
+      YYPOPSTACK;
+    }
 #ifndef yyoverflow
   if (yyss != yyssa)
     YYSTACK_FREE (yyss);
@@ -7450,5 +7670,4 @@ yyreturn:
 }
 
 
-#line 392 "ircd_parser.y"
 

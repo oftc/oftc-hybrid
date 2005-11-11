@@ -1,7 +1,7 @@
-/* A Bison parser, made from ircd_parser.y, by GNU bison 1.75.  */
+/* A Bison parser, made by GNU Bison 2.1.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,16 +15,13 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* As a special exception, when this file is copied by Bison into a
    Bison output file, you may use that output file without restriction.
    This special exception was added by the Free Software Foundation
    in version 1.24 of Bison.  */
-
-#ifndef BISON_Y_TAB_H
-# define BISON_Y_TAB_H
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -286,6 +283,7 @@
      WARN_NO_NLINE = 509
    };
 #endif
+/* Tokens.  */
 #define ACCEPT_PASSWORD 258
 #define ACTION 259
 #define ADMIN 260
@@ -542,19 +540,20 @@
 
 
 
-#ifndef YYSTYPE
+#if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
 #line 134 "ircd_parser.y"
-typedef union {
+typedef union YYSTYPE {
   int number;
   char *string;
-} yystype;
-/* Line 1281 of /usr/local/share/bison/yacc.c.  */
-#line 553 "y.tab.h"
-# define YYSTYPE yystype
+} YYSTYPE;
+/* Line 1447 of yacc.c.  */
+#line 551 "y.tab.h"
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
+# define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
 
 extern YYSTYPE yylval;
 
 
-#endif /* not BISON_Y_TAB_H */
 
