@@ -211,7 +211,7 @@ unload_one_module(char *name, int warn)
      * require creation of a totally new modules.c, instead proper usage of
      * defines solve this case. -TimeMr14C
      */
-  shl_unload((shl_t) & (modp->address));
+  shl_unload((shl_t) & (modp->handle));
 #else
   /* We use FreeBSD's dlfunc(3) interface, or fake it as we
    * used to here if it isn't there.  The interface should
@@ -219,7 +219,7 @@ unload_one_module(char *name, int warn)
    * providing something guaranteed to do the right thing here.
    *          -jmallett
    */
-  dlclose(modp->address);
+  dlclose(modp->handle);
 #endif
   assert(dlink_list_length(&mod_list) > 0);
   dlinkDelete(ptr, &mod_list);
