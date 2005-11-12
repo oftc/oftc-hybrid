@@ -45,6 +45,7 @@ struct module
   dlink_node node;
   char *name;
   const char *version;
+  void *handle;
   void *address;
   int core;
   void (*modremove)(void);

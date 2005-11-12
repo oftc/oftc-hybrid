@@ -356,11 +356,12 @@ load_a_module(char *path, int warn, int core)
 #ifdef HAVE_DLINFO
   dlinfo(tmpptr, RTLD_DI_LINKMAP, &map);
   if (map != NULL)
-    addr = map->l_addr;
+    addr = (void *)map->l_addr;
   else
-    addr = tmpptr;
 #endif
+    addr = tmpptr;
 
+  modp->handle    = tmpptr;
   modp->address   = addr;
   modp->version   = ver;
   modp->core      = core;
