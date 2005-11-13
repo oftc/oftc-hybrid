@@ -347,7 +347,7 @@ general {
 	oper_only_umodes = bots, cconn, debug, full, skill, nchange, 
                      rej, spy, external, operwall, locops, unauth;
 
-	oper_umodes = locops, servnotice, operwall, wallop;
+	oper_umodes = bots, locops, servnotice, operwall, wallop;
 
 
 	#servlink_path = "/usr/local/ircd/bin/servlink";
