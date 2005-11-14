@@ -82,8 +82,8 @@ mr_admin(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
   static time_t last_used = 0;
-  
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+
+  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, EmptyString(parv[0]) ? "*" : parv[0]);
@@ -110,7 +110,7 @@ m_admin(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     sendto_one(source_p,form_str(RPL_LOAD2HI),
                me.name, source_p->name);

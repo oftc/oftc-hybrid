@@ -45,8 +45,6 @@
 #include "modules.h"
 #include "hook.h"
 
-static time_t last_used = 0;
-
 static void do_whois(struct Client *, int, char **);
 static int single_whois(struct Client *, struct Client *);
 static void whois_person(struct Client *, struct Client *);
@@ -99,6 +97,8 @@ static void
 m_whois(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
+  static time_t last_used = 0;
+
   if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
@@ -182,6 +182,7 @@ mo_whois(struct Client *client_p, struct Client *source_p,
 static void
 do_whois(struct Client *source_p, int parc, char **parv)
 {
+  static time_t last_used = 0;
   struct Client *target_p;
   char *nick;
   char *p = NULL;
