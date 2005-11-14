@@ -93,13 +93,13 @@ m_userhost(struct Client *client_p, struct Client *source_p,
 	   * lookup (USERHOST) to figure out what the clients' local IP
 	   * is.  Useful for things like NAT, and dynamic dial-up users.
 	   */
-          /*
-           * If a lazyleaf relayed us this request, we don't know
-           * the clients real IP.
-           * So, if you're on a lazyleaf, and you send a userhost
-           * including your nick and the nick of someone not known to
-           * the leaf, you'll get your spoofed IP.  tough.
-           */
+      /*
+       * If a lazyleaf relayed us this request, we don't know
+       * the clients real IP.
+       * So, if you're on a lazyleaf, and you send a userhost
+       * including your nick and the nick of someone not known to
+       * the leaf, you'll get your spoofed IP.  tough.
+       */
 	  if (MyClient(target_p) && (target_p == source_p))
 	  {
             rl = ircsprintf(response, "%s%s=%c%s@%s ",
@@ -109,7 +109,7 @@ m_userhost(struct Client *client_p, struct Client *source_p,
 			    target_p->username,
 			    target_p->sockhost);
 	  }
-          else
+      else
 	  {
             rl = ircsprintf(response, "%s%s=%c%s@%s ",
 			    target_p->name,
@@ -120,32 +120,32 @@ m_userhost(struct Client *client_p, struct Client *source_p,
 	  }
 
 	  if ((rl + cur_len) < (IRCD_BUFSIZE-10))
-          {
-	      ircsprintf(t,"%s",response);
-	      t += rl;
-	      cur_len += rl;
-          }
+      {
+        ircsprintf(t,"%s",response);
+        t += rl;
+        cur_len += rl;
+      }
 	  else
 	    break;
 	}
-      else if ( !ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL) )
+    else if ( !ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL) )
+    {
+      t = buf;
+      for ( n = 0; n < 5; n++ )
+      {
+        if( parv[n+1] )
         {
-          t = buf;
-          for( n = 0; n < 5; n++ )
-          {
-            if( parv[n+1] )
-            {
-              rl = ircsprintf(t, "%s ", parv[n+1]);
-              t += rl;
-            }
-            else
-              break;
-          }
-          /* Relay upstream, and let hub reply */
-          sendto_one(uplink, ":%s USERHOST %s", parv[0], buf );
-          return;
+          rl = ircsprintf(t, "%s ", parv[n+1]);
+          t += rl;
         }
+        else
+          break;
+      }
+      /* Relay upstream, and let hub reply */
+      sendto_one(uplink, ":%s USERHOST %s", parv[0], buf );
+      return;
     }
+  }
 
   sendto_one(source_p, "%s", buf);
 }

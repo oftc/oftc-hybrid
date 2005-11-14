@@ -45,6 +45,8 @@
 #include "modules.h"
 #include "hook.h"
 
+static time_t last_used = 0;
+
 static void do_whois(struct Client *, int, char **);
 static int single_whois(struct Client *, struct Client *);
 static void whois_person(struct Client *, struct Client *);
@@ -97,8 +99,6 @@ static void
 m_whois(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  static time_t last_used = 0;
-
   if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
@@ -203,12 +203,12 @@ do_whois(struct Client *source_p, int parc, char **parv)
     if ((target_p = find_client(nick)) != NULL)
     {
       if (IsServer(source_p->from))
-	client_burst_if_needed(source_p->from, target_p);
+        client_burst_if_needed(source_p->from, target_p);
 
       if (IsClient(target_p))
       {
-	whois_person(source_p, target_p);
-	found = 1;
+        whois_person(source_p, target_p);
+        found = 1;
       }
     }
     else if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
@@ -227,6 +227,18 @@ do_whois(struct Client *source_p, int parc, char **parv)
     /* disallow wild card whois on lazylink leafs for now */
     if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
       return;
+
+    if (!IsOper(source_p))
+    {
+      if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+      {
+        sendto_one(source_p, form_str(RPL_LOAD2HI),
+                   me.name, source_p->name);
+        return;
+      }
+      else
+        last_used = CurrentTime;
+  }
 
     /* Oh-oh wilds is true so have to do it the hard expensive way */
     if (MyClient(source_p))
