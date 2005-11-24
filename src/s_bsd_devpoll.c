@@ -109,8 +109,8 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
     F->write_data = client_data;
   }
 
-  new_events = (F->read_handler ? POLLRDNORM : 0) |
-    (F->write_handler ? POLLWRNORM : 0);
+  new_events = (F->read_handler ? POLLIN : 0) |
+    (F->write_handler ? POLLOUT : 0);
 
   if (timeout != 0)
     F->timeout = CurrentTime + (timeout / 1000);
@@ -161,7 +161,7 @@ comm_select(void)
     if (F == NULL || !F->flags.open)
       continue;
 
-    if ((dopoll.dp_fds[i].revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR)))
+    if ((dopoll.dp_fds[i].revents & POLLIN))
       if ((hdl = F->read_handler) != NULL)
       {
         F->read_handler = NULL;
@@ -170,7 +170,7 @@ comm_select(void)
           continue;
       }
 
-    if ((dopoll.dp_fds[i].revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR)))
+    if ((dopoll.dp_fds[i].revents & POLLOUT))
       if ((hdl = F->write_handler) != NULL) 
       {
         F->write_handler = NULL;
