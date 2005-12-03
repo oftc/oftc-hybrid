@@ -23,23 +23,6 @@
 2.  Solaris stock 32bit stdio is limited to 256 fds. This breaks when using
     cryptlinks.
 
-3.  New bug reported in some 64 bit and powerpc (yellowdog linux) code.
-    This bug is actually in gcc itself, the spec says you don't modify
-    a va_list in libc, but gcc does. The bug manifests itself as
-    immediately coring when anyone types anything on a channel.
-    You will find a quick work around in contrib until this bug in gcc
-    is fixed.
-
-    This is a quick test program
-    libc_vprintf
-    cc -o libc_vprintf libc_vprintf.c
-    ./libc_vprintf
-
-    If the program doesn't core, you are fine.
-
-    The work around is the vprintf_fix.patch in contrib.
-    (Reported by several people, fix and test by David)
- 
  BUG REPORTS: If you run this code and encounter problems, you should report
  the bug on our SourceForge.net bug tracker, which you can find at this URL:
 
