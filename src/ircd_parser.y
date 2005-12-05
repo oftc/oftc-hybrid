@@ -1170,64 +1170,83 @@ oper_class: CLASS '=' QSTRING ';'
 
 oper_umodes: T_UMODES
 {
-  yy_aconf->modes = 0;
+  if (ypass == 2)
+    yy_aconf->modes = 0;
 } '='  oper_umodes_items ';' ;
 
 oper_umodes_items: oper_umodes_items ',' oper_umodes_item | oper_umodes_item;
 oper_umodes_item:  T_BOTS
 {
-  yy_aconf->modes |= UMODE_BOTS;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_BOTS;
 } | T_CCONN
 {
-  yy_aconf->modes |= UMODE_CCONN;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_CCONN;
 } | T_DEAF
 {
-  yy_aconf->modes |= UMODE_DEAF;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_DEAF;
 } | T_DEBUG
 {
-  yy_aconf->modes |= UMODE_DEBUG;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_DEBUG;
 } | T_FULL
 {
-  yy_aconf->modes |= UMODE_FULL;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_FULL;
 } | T_SKILL
 {
-  yy_aconf->modes |= UMODE_SKILL;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_SKILL;
 } | T_NCHANGE
 {
-  yy_aconf->modes |= UMODE_NCHANGE;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_NCHANGE;
 } | T_REJ
 {
-  yy_aconf->modes |= UMODE_REJ;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_REJ;
 } | T_UNAUTH
 {
-  yy_aconf->modes |= UMODE_UNAUTH;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_UNAUTH;
 } | T_SPY
 {
-  yy_aconf->modes |= UMODE_SPY;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_SPY;
 } | T_EXTERNAL
 {
-  yy_aconf->modes |= UMODE_EXTERNAL;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_EXTERNAL;
 } | T_OPERWALL
 {
-  yy_aconf->modes |= UMODE_OPERWALL;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_OPERWALL;
 } | T_SERVNOTICE
 {
-  yy_aconf->modes |= UMODE_SERVNOTICE;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_SERVNOTICE;
 } | T_INVISIBLE
 {
-  yy_aconf->modes |= UMODE_INVISIBLE;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_INVISIBLE;
 } | T_WALLOP
 {
-  yy_aconf->modes |= UMODE_WALLOP;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_WALLOP;
 } | T_SOFTCALLERID
 {
-  yy_aconf->modes |= UMODE_SOFTCALLERID;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_SOFTCALLERID;
 } | T_CALLERID
 {
-  yy_aconf->modes |= UMODE_CALLERID;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_CALLERID;
 } | T_LOCOPS
 {
-  yy_aconf->modes |= UMODE_LOCOPS;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_LOCOPS;
 };
 
 oper_global_kill: GLOBAL_KILL '=' TBOOL ';'
