@@ -325,8 +325,8 @@ mask_addr(struct irc_ssaddr *ip, int bits)
 
     mask = ~((1 << (8 - m)) -1 );
     v6_base_ip->sin6_addr.s6_addr[n] = v6_base_ip->sin6_addr.s6_addr[n] & mask;
-    for (i = n + 1; n < 16; i++)
-      v6_base_ip->sin6_addr.s6_addr[n] = 0;
+    for (i = n + 1; i < 16; i++)
+      v6_base_ip->sin6_addr.s6_addr[i] = 0;
   }
 #endif
 }
