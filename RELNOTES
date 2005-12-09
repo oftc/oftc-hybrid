@@ -1,4 +1,7 @@
--- ircd-hybrid-7.2 RELNOTES
+-- ircd-hybrid-7.2.1beta1 RELNOTES
+
+
+-- ircd-hybrid-7.2.0 RELNOTES
 o) Fixed broken operwall = yes;
 o) Added 'umode' directive to oper{}.  List of modes to get on /OPER.
 o) Fixed a WHOIS bug
@@ -44,6 +47,18 @@ o) IP cloaking module (contrib/ip_cloaking.c)
 o) Native win32 build
 
 --------------------------------------------------------------------------------
+
+This is a beta version of ircd-hybrid-7.2.x.
+
+NOTE: This is still BETA code.  Run it at your own risk.  By running this
+ code you assume FULL responsibility for any problems it may cause.  We do
+ NOT recommend that you run BETA code on production IRC networks such
+ as EFnet.
+
+TESTING: This code is under active development, and a lot changes from beta
+ to beta.  As the user of this code, we request that you help us test things
+ which have changed recently, and which would benefeit from being tested
+ much as possible.
 
 BUGS: Major bugs in this release are listed in BUGS
 
