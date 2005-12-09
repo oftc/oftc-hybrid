@@ -6,7 +6,7 @@
 
 Summary: IRCD-Hybrid - Internet Relay Chat server
 Name: ircd-hybrid
-Version: 7.2beta1
+Version: 7.2.0
 Release: 1
 License: GPL
 Group: System Environment/Daemons

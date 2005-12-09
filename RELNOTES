@@ -6,6 +6,8 @@ o) Fixed bug where we would increase Count.invisi even
    if invisible_on_connect is turned off
 o) Removed invite_ops_only, controlled by paranoid (+p) now
 o) Better DDoS protection
+o) Fixed va_list bug on amd64
+o) Fixed /dev/poll
 
 
 -- ircd-hybrid-7.2rc1 RELNOTES
@@ -43,13 +45,6 @@ o) Native win32 build
 
 --------------------------------------------------------------------------------
 
-This is a beta version of ircd-hybrid-7.2.
-
-NOTE: This is still BETA code.  Run it at your own risk.  By running this
- code you assume FULL responsibility for any problems it may cause.  We do
- NOT recommend that you run BETA code on production IRC networks such
- as EFnet.
-
 BUGS: Major bugs in this release are listed in BUGS
 
 BUG REPORTS: If you run this code and encounter problems, you must report
@@ -66,12 +61,6 @@ DISCUSSION: There is a mailing list for discussion of hybrid issues,
  This is the proper place to discuss new features, bugs, etc.  Posting here
  is much more likely to get something done than ranting on #TZ.
  You can also use Hybrid forums at http://forum.ircd-hybrid.org/
-
-TESTING: This code is under active development, and a lot changes from beta
- to beta.  As the user of this code, we request that you help us test things
- which have changed recently, and which would benefeit from being tested
- much as possible.
-
 
 Questions/comments directed to bugs@ircd-hybrid.org
 
