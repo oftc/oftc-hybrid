@@ -32,6 +32,11 @@
 #define _WIN32
 #endif
 
+/* bison will generate broken syntax unless we define this */
+#ifndef __STDC__
+#define __STDC__ 1
+#endif
+
 /* Size of the ban heap. */
 #define BAN_HEAP_SIZE 128
 
