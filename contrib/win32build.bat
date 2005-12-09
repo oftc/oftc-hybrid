@@ -79,7 +79,7 @@ for %%a in (src\*.obj) do del %%a
 for %%a in (modules\*.obj) do del %%a
 for %%a in (modules\core\*.obj) do del %%a
 for %%a in (lib\pcre\*.obj) do del %%a
-for %%a in (*.obj) do del %%a
+for %%a in (*.obj *.tds) do del %%a
 
 echo.
 echo *** Installing ircd-hybrid into %IRCD_PREFIX% ...
