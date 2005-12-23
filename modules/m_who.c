@@ -320,23 +320,9 @@ static void
 do_who_on_channel(struct Client *source_p, struct Channel *chptr,
                   const char *chname, int member, int server_oper)
 {
-  dlink_node *ptr;
-  dlink_node *ptr_next;
+  dlink_node *ptr = NULL, *ptr_next = NULL;
   struct Client *target_p;
   struct Membership *ms;
-
-  if (!IsOper(source_p))
-  {
-    if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
-    {
-      /* safe enough to give this on a local connect only */
-      sendto_one(source_p, form_str(RPL_LOAD2HI),
-        me.name, source_p->name);
-      return;
-    }
-    else
-      last_used = CurrentTime;
-  }
 
   DLINK_FOREACH_SAFE(ptr, ptr_next, chptr->members.head)
   {
