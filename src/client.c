@@ -148,9 +148,7 @@ free_client(struct Client *client_p)
   assert(client_p != NULL);
   assert(client_p != &me);
   assert(client_p->hnext == client_p);
-  assert(client_p->invited.head == NULL);
   assert(client_p->channel.head == NULL);
-  assert(dlink_list_length(&client_p->invited) == 0);
   assert(dlink_list_length(&client_p->channel) == 0);
 
   MyFree(client_p->away);
@@ -158,6 +156,8 @@ free_client(struct Client *client_p)
 
   if (MyConnect(client_p))
   {
+    assert(client_p->localClient->invited.head == NULL);
+    assert(dlink_list_length(&client_p->localClient->invited) == 0);
     assert(IsClosing(client_p) && IsDead(client_p));
 
     MyFree(client_p->localClient->response);
@@ -758,10 +758,6 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
     DLINK_FOREACH_SAFE(lp, next_lp, source_p->channel.head)
       remove_user_from_channel(lp->data);
 
-    /* Clean up invitefield */
-    DLINK_FOREACH_SAFE(lp, next_lp, source_p->invited.head)
-      del_invite(lp->data, source_p);
-
     /* Clean up allow lists */
     del_all_accepts(source_p);
     add_history(source_p, 0);
@@ -771,6 +767,12 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
     {
       source_p->from->serv->dep_users--;
       assert(source_p->from->serv->dep_users >= 0);
+    }
+    else
+    {
+      /* Clean up invitefield */
+      DLINK_FOREACH_SAFE(lp, next_lp, source_p->localClient->invited.head)
+        del_invite(lp->data, source_p);
     }
   }
 

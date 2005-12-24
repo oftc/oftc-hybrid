@@ -528,15 +528,15 @@ add_invite(struct Channel *chptr, struct Client *who)
   /*
    * delete last link in chain if the list is max length
    */
-  if (dlink_list_length(&who->invited) >=
+  if (dlink_list_length(&who->localClient->invited) >=
       ConfigChannel.max_chans_per_user)
-    del_invite(who->invited.tail->data, who);
+    del_invite(who->localClient->invited.tail->data, who);
 
   /* add client to channel invite list */
   dlinkAdd(who, make_dlink_node(), &chptr->invites);
 
   /* add channel to the end of the client invite list */
-  dlinkAdd(chptr, make_dlink_node(), &who->invited);
+  dlinkAdd(chptr, make_dlink_node(), &who->localClient->invited);
 }
 
 /*! \brief Delete Invite block from channel invite list
@@ -549,7 +549,7 @@ del_invite(struct Channel *chptr, struct Client *who)
 {
   dlink_node *ptr = NULL;
 
-  if ((ptr = dlinkFindDelete(&who->invited, chptr)))
+  if ((ptr = dlinkFindDelete(&who->localClient->invited, chptr)))
     free_dlink_node(ptr);
 
   if ((ptr = dlinkFindDelete(&chptr->invites, who)))
@@ -655,7 +655,7 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
       return ERR_BANNEDFROMCHAN;
 
   if (chptr->mode.mode & MODE_INVITEONLY)
-    if (!dlinkFind(&source_p->invited, chptr))
+    if (!dlinkFind(&source_p->localClient->invited, chptr))
       if (!ConfigChannel.use_invex || !find_bmask(source_p, &chptr->invexlist))
         return ERR_INVITEONLYCHAN;
 

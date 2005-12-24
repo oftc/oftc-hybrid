@@ -171,7 +171,6 @@ struct Client
   dlink_list	on_allow_list;	/* clients that have =me= on their allow list*/
 
   dlink_list     channel;   /* chain of channel pointer blocks */
-  dlink_list     invited;   /* chain of invite pointer blocks */
 
   struct LocalUser *localClient;
 };
@@ -213,11 +212,11 @@ struct LocalUser
   } recv, send;
 
   struct Listener *listener;   /* listener accepted from */
-  dlink_list        confs;      /* Configuration record associated */
-
+  dlink_list        confs;     /* Configuration record associated */
+  dlink_list        invited;   /* chain of invite pointer blocks */
   struct irc_ssaddr ip;
   int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
-  struct DNSQuery   *dns_query;  /* result returned from resolver query */
+  struct DNSQuery   *dns_query; /* result returned from resolver query */
   unsigned long     serverMask; /* Only used for Lazy Links */
   time_t last; /* Last time we got a PRIVMSG */
   time_t            last_nick_change;

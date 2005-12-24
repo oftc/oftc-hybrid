@@ -433,6 +433,7 @@ count_memory(struct Client *source_p)
     {
       ++local_client_count;
       local_client_conf_count += dlink_list_length(&target_p->localClient->confs);
+      users_invited_count += dlink_list_length(&target_p->localClient->invited);
     }
     else
       ++remote_client_count;
@@ -440,7 +441,6 @@ count_memory(struct Client *source_p)
     if (IsClient(target_p))
     {
       ++users_counted;
-      users_invited_count += dlink_list_length(&target_p->invited);
 
       if (target_p->away != NULL)
       {
