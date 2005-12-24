@@ -1,4 +1,8 @@
 -- ircd-hybrid-7.2.1beta1 RELNOTES
+o) Fixed bug where particular clients would always receive
+   "Load is temporarily too heavy" message
+o) Improved memory consumption, i.e. memory consumption has
+   been reduced for remote clients
 
 
 -- ircd-hybrid-7.2.0 RELNOTES
@@ -48,7 +52,7 @@ o) Native win32 build
 
 --------------------------------------------------------------------------------
 
-This is a beta version of ircd-hybrid-7.2.x.
+This is a beta version of ircd-hybrid-7.2.1.
 
 NOTE: This is still BETA code.  Run it at your own risk.  By running this
  code you assume FULL responsibility for any problems it may cause.  We do
