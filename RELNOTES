@@ -3,6 +3,7 @@ o) Fixed bug where particular clients would always receive
    "Load is temporarily too heavy" message
 o) Improved memory consumption, i.e. memory consumption has
    been reduced for remote clients
+o) Fixed possible core in case default_cipher_preference directive isn't set
 
 
 -- ircd-hybrid-7.2.0 RELNOTES
