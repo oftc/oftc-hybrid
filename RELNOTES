@@ -5,7 +5,8 @@ o) Improved memory consumption, i.e. memory consumption has
    been reduced for remote clients
 o) Fixed possible core in case default_cipher_preference directive isn't set
 o) Fixed "CHANSERV INVITE" bug with anope services
-
+o) Updated example configuration files to reflect new topicburst flags
+   directive in connect{} blocks
 
 -- ircd-hybrid-7.2.0 RELNOTES
 o) Fixed broken operwall = yes;
