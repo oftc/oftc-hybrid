@@ -151,6 +151,7 @@ extern struct Message squit_msgtab;
 extern struct Message stats_msgtab;
 extern struct Message svinfo_msgtab;
 extern struct Message tb_msgtab;
+extern struct Message tburst_msgtab;
 extern struct Message testline_msgtab;
 extern struct Message testgecos_msgtab;
 extern struct Message testmask_msgtab;

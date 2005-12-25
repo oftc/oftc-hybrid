@@ -677,7 +677,10 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
   if (!IsConfCryptLink(server_aconf))
     ClearCap(client_p, CAP_ENC);
   if (!IsConfTopicBurst(server_aconf))
+  {
     ClearCap(client_p, CAP_TB);
+    ClearCap(client_p, CAP_TBURST);
+  }
 
   /* Don't unset CAP_HUB here even if the server isn't a hub,
    * it only indicates if the server thinks it's lazylinks are
@@ -1064,11 +1067,10 @@ server_estab(struct Client *client_p)
      * - Dianora
      */
 
-     send_capabilities(client_p, aconf,
-       (IsConfLazyLink(aconf) ? find_capability("LL") : 0)
-       | (IsConfCompressed(aconf) ? find_capability("ZIP") : 0)
-       | (IsConfTopicBurst(aconf) ? find_capability("TB") : 0)
-       , 0);
+    send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+      | (IsConfLazyLink(aconf) ? CAP_LL : 0)
+      | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
+      | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
     /* SERVER is the last command sent before switching to ziplinks.
      * We set TCPNODELAY on the socket to make sure it gets sent out
@@ -1340,6 +1342,7 @@ start_io(struct Client *server)
     memcpy(buf, &block->data[0], block->size);
     buf += block->size;
   }
+
   dbuf_clear(&lserver->buf_recvq);
 
   /* pass the whole sendq to servlink */
@@ -1352,6 +1355,7 @@ start_io(struct Client *server)
     memcpy(buf, &block->data[0], block->size);
     buf += block->size;
   }
+
   dbuf_clear(&lserver->buf_sendq);
 
   /* start io */
@@ -1491,20 +1495,19 @@ server_burst(struct Client *client_p)
 static void
 burst_all(struct Client *client_p)
 {
-  struct Client *target_p;
-  struct Channel *chptr;
-  dlink_node *gptr;
-  dlink_node *ptr;
+  dlink_node *ptr = NULL;
 
-  DLINK_FOREACH(gptr, global_channel_list.head)
+  DLINK_FOREACH(ptr, global_channel_list.head)
   {
-    chptr = gptr->data;
+    struct Channel *chptr = ptr->data;
 
     if (dlink_list_length(&chptr->members) != 0)
     {
       burst_members(client_p, chptr);
       send_channel_modes(client_p, chptr);
-      if (IsCapable(client_p, CAP_TB))
+
+      if (IsCapable(client_p, CAP_TBURST) ||
+          IsCapable(client_p, CAP_TB))
 	send_tb(client_p, chptr);
     }
   }
@@ -1513,7 +1516,7 @@ burst_all(struct Client *client_p)
    */
   DLINK_FOREACH(ptr, global_client_list.head)
   {
-    target_p = ptr->data;
+    struct Client *target_p = ptr->data;
 
     if (!IsBursted(target_p) && target_p->from != client_p)
       sendnick_TS(client_p, target_p);
@@ -1532,29 +1535,42 @@ burst_all(struct Client *client_p)
 /*
  * send_tb
  *
- * inputs	- pointer to Client
- *		- pointer to channel
- * output	- NONE
- * side effects	- Called on a server burst when 
- *                server is CAP_TB capable
+ * inputs       - pointer to Client
+ *              - pointer to channel
+ * output       - NONE
+ * side effects - Called on a server burst when
+ *                server is CAP_TB|CAP_TBURST capable
  */
 static void
 send_tb(struct Client *client_p, struct Channel *chptr)
 {
-  if (chptr->topic != NULL && IsCapable(client_p, CAP_TB))
+  /*
+   * XXX - Logic here isn't right either.  What if the topic got unset?
+   * We would need to send an empty TOPIC to reset the topic from the
+   * other side
+   */
+  if (chptr->topic != NULL)
   {
-    if (ConfigChannel.burst_topicwho)
+    if (IsCapable(client_p, CAP_TBURST))
+      sendto_one(client_p, ":%s TBURST %lu %s %lu %s :%s",
+                 me.name, (unsigned long)chptr->channelts, chptr->chname,
+                 (unsigned long)chptr->topic_time, chptr->topic_info,
+                 chptr->topic);
+    else if (IsCapable(client_p, CAP_TB))
     {
-      sendto_one(client_p, ":%s TB %s %lu %s :%s",
-		 me.name, chptr->chname,
-		 (unsigned long)chptr->topic_time,
-		 chptr->topic_info, chptr->topic);
-    }
-    else
-    {
-      sendto_one(client_p, ":%s TB %s %lu :%s",
-		 me.name, chptr->chname,
-		 (unsigned long)chptr->topic_time, chptr->topic);
+      if (ConfigChannel.burst_topicwho)
+      {
+        sendto_one(client_p, ":%s TB %s %lu %s :%s",
+                   me.name, chptr->chname,
+                   (unsigned long)chptr->topic_time,
+                   chptr->topic_info, chptr->topic);
+      }
+      else
+      {
+        sendto_one(client_p, ":%s TB %s %lu :%s",
+                   me.name, chptr->chname,
+                   (unsigned long)chptr->topic_time, chptr->topic);
+      }
     }
   }
 }
@@ -2139,11 +2155,10 @@ serv_connect_callback(fde_t *fd, int status, void *data)
    * Pass on TB if supported.
    * - Dianora
    */
-  send_capabilities(client_p, aconf,
- 		    (IsConfLazyLink(aconf) ? find_capability("LL") : 0)
-		    | (IsConfCompressed(aconf) ? find_capability("ZIP") : 0)
-		    | (IsConfTopicBurst(aconf) ? find_capability("TB") : 0)
-		    , 0);
+  send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+                    | (IsConfLazyLink(aconf) ? CAP_LL : 0)
+                    | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
+                    | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
              my_name_for_link(conf), 
@@ -2251,11 +2266,10 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
     return;
   }
 
-  send_capabilities(client_p, aconf,
- 		    (IsConfLazyLink(aconf) ? find_capability("LL") : 0)
-		    | (IsConfCompressed(aconf) ? find_capability("ZIP") : 0)
-		    | (IsConfTopicBurst(aconf) ? find_capability("TB") : 0)
-		    , CAP_ENC_MASK);
+  send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+                    | (IsConfLazyLink(aconf) ? CAP_LL : 0)
+                    | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
+                    | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), CAP_ENC_MASK);
 
   if (me.id[0])
     sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);

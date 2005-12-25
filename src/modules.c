@@ -641,6 +641,8 @@ load_all_modules(int warn)
   mod_add_cmd(&svinfo_msgtab);
   mod_add_cmd(&tb_msgtab);
   add_capability("TB", CAP_TB, 1);
+  mod_add_cmd(&tburst_msgtab);
+  add_capability("TBURST", CAP_TBURST, 1);
   mod_add_cmd(&testline_msgtab);
   mod_add_cmd(&testgecos_msgtab);
   mod_add_cmd(&testmask_msgtab);
