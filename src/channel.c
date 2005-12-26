@@ -926,10 +926,11 @@ set_channel_topic(struct Channel *chptr, const char *topic,
   }
   else
   {
+    /*
+     * Do not reset chptr->topic_time here, it's required for
+     * bursting topics properly.
+     */
     if (chptr->topic != NULL)
       free_topic(chptr);
-
-    chptr->topic_time = 0;
   }
 }
-

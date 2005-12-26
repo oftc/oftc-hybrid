@@ -1545,17 +1545,26 @@ static void
 send_tb(struct Client *client_p, struct Channel *chptr)
 {
   /*
-   * XXX - Logic here isn't right either.  What if the topic got unset?
-   * We would need to send an empty TOPIC to reset the topic from the
-   * other side
+   * We may also send an empty topic here, but only if topic_time isn't 0,
+   * i.e. if we had a topic that got unset.  This is required for syncing
+   * topics properly.
+   *
+   * Imagine the following scenario: Our downlink introduces a channel
+   * to us with a TS that is equal to ours, but the channel topic on
+   * their side got unset while the servers were in splitmode, which means
+   * their 'topic' is newer.  They simply wanted to unset it, so we have to
+   * deal with it in a more sophisticated fashion instead of just resetting
+   * it to their old topic they had before.  Read m_tburst.c:ms_tburst
+   * for further information   -Michael
    */
-  if (chptr->topic != NULL)
+  if (chptr->topic_time != 0)
   {
     if (IsCapable(client_p, CAP_TBURST))
       sendto_one(client_p, ":%s TBURST %lu %s %lu %s :%s",
                  me.name, (unsigned long)chptr->channelts, chptr->chname,
-                 (unsigned long)chptr->topic_time, chptr->topic_info,
-                 chptr->topic);
+                 (unsigned long)chptr->topic_time,
+                 chptr->topic_info ? chptr->topic_info : "",
+                 chptr->topic ? chptr->topic : "");
     else if (IsCapable(client_p, CAP_TB))
     {
       if (ConfigChannel.burst_topicwho)
@@ -1563,13 +1572,14 @@ send_tb(struct Client *client_p, struct Channel *chptr)
         sendto_one(client_p, ":%s TB %s %lu %s :%s",
                    me.name, chptr->chname,
                    (unsigned long)chptr->topic_time,
-                   chptr->topic_info, chptr->topic);
+                   chptr->topic_info, chptr->topic ? chptr->topic : "");
       }
       else
       {
         sendto_one(client_p, ":%s TB %s %lu :%s",
                    me.name, chptr->chname,
-                   (unsigned long)chptr->topic_time, chptr->topic);
+                   (unsigned long)chptr->topic_time,
+                   chptr->topic ? chptr->topic : "");
       }
     }
   }
