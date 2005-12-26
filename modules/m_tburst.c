@@ -95,20 +95,60 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
   struct Channel *chptr = NULL;
-  time_t oldchannelts = atol(parv[1]);
-  time_t oldtopicts = atol(parv[3]);
+  int accept_remote = 0;
+  time_t remote_channel_ts = atol(parv[1]);
+  time_t remote_topic_ts = atol(parv[3]);
+
+  /*
+   * Do NOT test parv[5] for an empty string and return if true!
+   * parv[5] CAN be an empty string, i.e. if the other side wants
+   * to unset our topic.  Don't forget: an empty topic is also a
+   * valid topic.
+   */
+
 
   if ((chptr = hash_find_channel(parv[2])) == NULL)
     return;
 
-  /* Only allow topic change if we are the newer TS and server
-   * sending TBURST has older TS and topicTS on older TS is
-   * newer than current topicTS. -metalrock
-   * XXX - Incorrect logic here as discussed on IRC
+  /*
+   * The logic for accepting and rejecting channel topics was
+   * always a bit hairy, so now we got exactly 2 cases where
+   * we would accept a bursted topic
+   *
+   * Case 1:
+   *        The TS of the remote channel is older than ours
+   * Case 2:
+   *        The TS of the remote channel is equal to ours AND
+   *        the TS of the remote topic is newer than ours
    */
-  if ((oldchannelts <= chptr->channelts) &&
-      ((chptr->topic == NULL) || (oldtopicts > chptr->topic_time)))
-    set_topic(source_p, chptr, oldtopicts, parv[4], parv[5]);
+  if (remote_channel_ts < chptr->channelts)
+    accept_remote = 1;
+  else if (remote_channel_ts == chptr->channelts)
+    if (remote_topic_ts > chptr->topic_time)
+      accept_remote = 1;
+
+  if (accept_remote)
+  {
+    int topic_differs = strcmp(chptr->topic ? chptr->topic : "", parv[5]);
+
+    set_channel_topic(chptr, parv[5], parv[4], remote_topic_ts);
+
+    if (topic_differs)
+      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
+                           ConfigServerHide.hide_servers ? me.name : source_p->name,
+                           chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
+  }
+
+  /*
+   * Always propagate what we have received, not only if we accept the topic.
+   * This will keep other servers in sync.
+   */
+  sendto_server(source_p, NULL, chptr, CAP_TBURST, NOCAPS, NOFLAGS,
+                ":%s TBURST %s %s %s %s :%s",
+                source_p->name, parv[1], parv[2], parv[3], parv[4], parv[5]);
+  sendto_server(source_p, NULL, chptr, CAP_TB, CAP_TBURST, NOFLAGS,
+                ":%s TB %s %s %s :%s",
+                source_p->name, parv[1], parv[2], parv[3], parv[4]);
 }
 
 /* ms_tb()
