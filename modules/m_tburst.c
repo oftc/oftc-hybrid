@@ -25,7 +25,7 @@
  *  IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id: m_tb.c 122 2005-10-13 10:57:26Z adx $
+ *  $Id$
  */
 
 #include "stdinc.h"
@@ -42,16 +42,17 @@
 
 static void ms_tb(struct Client *, struct Client *, int, char *[]);
 static void ms_tburst(struct Client *, struct Client *, int, char *[]);
-static void set_topic(struct Client *, struct Channel *, time_t, char *, char *);
+static void set_topic(struct Client *, struct Channel *, time_t,
+                      const char *, const char *);
 
 struct Message tburst_msgtab = {
   "TBURST", 0, 0, 6, 0, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore}
+  { m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore }
 };
 
 struct Message tb_msgtab = {
   "TB", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_tb, m_ignore, m_ignore, m_ignore}
+  { m_ignore, m_ignore, ms_tb, m_ignore, m_ignore, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -159,13 +160,15 @@ ms_tb(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
  * little helper function, could be removed
  */
 static void
-set_topic(struct Client *source_p, struct Channel *chptr, 
-          time_t topicts, char *topicwho, char *topic)
+set_topic(struct Client *source_p, struct Channel *chptr, time_t topicts,
+          const char *topicwho, const char *topic)
 {
+  int new_topic = strcmp(chptr->topic ? chptr->topic : "", topic);
+
   set_channel_topic(chptr, topic, topicwho, topicts);
 
-    /* Only send TOPIC to channel if it's different */
-  if (chptr->topic == NULL || strcmp(chptr->topic, topic))
+  /* Only send TOPIC to channel if it's different */
+  if (new_topic)
     sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
                          ConfigServerHide.hide_servers ? me.name : source_p->name,
                          chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
