@@ -2507,7 +2507,7 @@ connect_item:   connect_name | connect_host | connect_vhost |
 		connect_leaf_mask | connect_class | connect_auto |
 		connect_encrypted | connect_compressed | connect_cryptlink |
 		connect_rsa_public_key_file | connect_cipher_preference |
-                error ';' ;
+                connect_topicburst | error ';' ;
 
 connect_name: NAME '=' QSTRING ';'
 {
@@ -2774,6 +2774,17 @@ connect_auto: AUTOCONN '=' TBOOL ';'
       yy_aconf->flags |= CONF_FLAGS_ALLOW_AUTO_CONN;
     else
       yy_aconf->flags &= ~CONF_FLAGS_ALLOW_AUTO_CONN;
+  }
+};
+
+connect_topicburst: TOPICBURST '=' TBOOL ';'
+{
+  if (ypass == 2)
+  {
+    if (yylval.number)
+      SetConfTopicBurst(yy_aconf)
+    else
+      ClearConfTopicBurst(yy_aconf);
   }
 };
 

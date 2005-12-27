@@ -20,7 +20,9 @@ NO PARAMETERS:
      +s     - 'Secret'.  This will prevent the channel from being shown
               in a /whois, and in the channel list.
 
-     +p     - 'Private'.
+     +p     - 'Paranoia'. Controls whether halfops may invite  users
+              into a channel or whether they may kick other members of a
+              channel.
 
      +m     - 'Moderated'.  This will prevent any user who isn't opped,
               half-opped or voiced (+o/+h/+v) from talking in the channel.
