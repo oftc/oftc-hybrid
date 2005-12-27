@@ -6028,7 +6028,7 @@ yyreduce:
   if (ypass == 2)
   {
     if (yylval.number)
-      SetConfTopicBurst(yy_aconf)
+      SetConfTopicBurst(yy_aconf);
     else
       ClearConfTopicBurst(yy_aconf);
   }
