@@ -172,7 +172,8 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
   }
 
   strcpy(target_p->host, parv[2]);
-  
+  SetIPSpoof(target_p);
+ 
   if (MyClient(source_p))
   {
     sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
