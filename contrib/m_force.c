@@ -93,6 +93,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
   char mode = '\0';
   char sjmode = '\0';
   char *newch = NULL;
+  dlink_node *ptr;
 
   if (!IsAdmin(source_p))
   {
@@ -175,16 +176,18 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
     if (chptr->chname[0] == '#')
     {
       if (sjmode)
-      {
-        sendto_server(target_p, target_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
-                      ":%s SJOIN %lu %s + :%c%s",
-                      me.id, (unsigned long)chptr->channelts,
-                      chptr->chname, sjmode, target_p->id);
-        sendto_server(target_p, target_p, chptr, NOCAPS, CAP_TS6, LL_ICLIENT,
-                      ":%s SJOIN %lu %s + :%c%s",
-                      me.name, (unsigned long)chptr->channelts,
-                      chptr->chname, sjmode, target_p->name);
-      }
+        DLINK_FOREACH (ptr, serv_list.head)
+        {
+          struct Client *serv_p = ptr->data;
+          if (serv_p == target_p->from || IsDead(serv_p))
+            continue;
+
+          sendto_one(serv_p, ":%s SJOIN %lu %s + :%c%s",
+                     ID_or_name(&me, serv_p), (unsigned long)chptr->channelts,
+                     chptr->chname, (sjmode == '%' &&
+                     !IsCapable(serv_p, CAP_HOPS)) ? '@' : sjmode,
+                     ID_or_name(target_p, serv_p));
+        }
       else
       {
         sendto_server(target_p, target_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,

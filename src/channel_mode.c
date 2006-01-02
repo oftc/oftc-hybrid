@@ -97,7 +97,11 @@ static struct ChModeChange mode_changes[IRCD_BUFSIZE];
 static int mode_count;
 static int mode_limit;		/* number of modes set other than simple */
 static int simple_modes_mask;	/* bit mask of simple modes already set */
+#ifdef HALFOPS
+static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_TS6, CAP_HOPS };
+#else
 static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_TS6 };
+#endif
 static struct ChCapCombo chcap_combos[NCHCAP_COMBOS];
 extern BlockHeap *ban_heap;
 
@@ -882,6 +886,7 @@ chm_op(struct Client *client_p, struct Client *source_p,
   char *opnick;
   struct Client *targ_p;
   struct Membership *member;
+  int caps = 0;
 
   if (alev < CHACCESS_CHANOP)
   {
@@ -919,11 +924,33 @@ chm_op(struct Client *client_p, struct Client *source_p,
   if (dir == MODE_ADD &&  has_member_flags(member, CHFL_CHANOP))
     return;
   if (dir == MODE_DEL && !has_member_flags(member, CHFL_CHANOP))
+  {
+#ifdef HALFOPS
+    if (has_member_flags(member, CHFL_HALFOP))
+      chm_hop(client_p, source_p, chptr, parc, parn, parv, errors, alev,
+              dir, c, d, chname);
+#endif
     return;
+  }
+
+#ifdef HALFOPS
+  if (dir == MODE_ADD && has_member_flags(member, CHFL_HALFOP))
+  {
+    /* promoting from % to @ is visible only to CAP_HOPS servers */
+    mode_changes[mode_count].letter = 'h';
+    mode_changes[mode_count].dir = MODE_DEL;
+    mode_changes[mode_count].caps = caps = CAP_HOPS;
+    mode_changes[mode_count].nocaps = 0;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count].id = NULL;
+    mode_changes[mode_count].arg = targ_p->name;
+    mode_changes[mode_count++].client = targ_p;
+  }
+#endif
 
   mode_changes[mode_count].letter = 'o';
   mode_changes[mode_count].dir = dir;
-  mode_changes[mode_count].caps = 0;
+  mode_changes[mode_count].caps = caps;
   mode_changes[mode_count].nocaps = 0;
   mode_changes[mode_count].mems = ALL_MEMBERS;
   mode_changes[mode_count].id = targ_p->id;
@@ -933,7 +960,7 @@ chm_op(struct Client *client_p, struct Client *source_p,
   if (dir == MODE_ADD)
   {
     AddMemberFlag(member, CHFL_CHANOP);
-    DelMemberFlag(member, CHFL_DEOPPED);
+    DelMemberFlag(member, CHFL_DEOPPED | CHFL_HALFOP);
   }
   else
     DelMemberFlag(member, CHFL_CHANOP);
@@ -997,16 +1024,25 @@ chm_hop(struct Client *client_p, struct Client *source_p,
     return;
 
   /* no redundant mode changes */
-  if (dir == MODE_ADD &&  has_member_flags(member, CHFL_HALFOP))
+  if (dir == MODE_ADD &&  has_member_flags(member, CHFL_HALFOP | CHFL_CHANOP))
     return;
   if (dir == MODE_DEL && !has_member_flags(member, CHFL_HALFOP))
     return;
 
   mode_changes[mode_count].letter = 'h';
   mode_changes[mode_count].dir = dir;
-  mode_changes[mode_count].caps = 0;
+  mode_changes[mode_count].caps = CAP_HOPS;
   mode_changes[mode_count].nocaps = 0;
   mode_changes[mode_count].mems = ALL_MEMBERS;
+  mode_changes[mode_count].id = targ_p->id;
+  mode_changes[mode_count].arg = targ_p->name;
+  mode_changes[mode_count++].client = targ_p;
+
+  mode_changes[mode_count].letter = 'o';
+  mode_changes[mode_count].dir = dir;
+  mode_changes[mode_count].caps = 0;
+  mode_changes[mode_count].nocaps = CAP_HOPS;
+  mode_changes[mode_count].mems = ONLY_SERVERS;
   mode_changes[mode_count].id = targ_p->id;
   mode_changes[mode_count].arg = targ_p->name;
   mode_changes[mode_count++].client = targ_p;
