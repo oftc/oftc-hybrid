@@ -96,7 +96,7 @@ free_block(void *ptr, size_t size)
 #ifdef HAVE_MMAP
 #ifndef MAP_ANON /* But we cannot mmap() anonymous pages */
 		 /* So we mmap() /dev/zero, which is just as good */
-static int zero_fd = -1;
+static fde_t dpfd;
 #endif
 #endif
 
@@ -108,11 +108,11 @@ initBlockHeap(void)
 {
 #ifdef HAVE_MMAP
 #ifndef MAP_ANON
-  zero_fd = open("/dev/zero", O_RDWR);
+  int zero_fd = open("/dev/zero", O_RDWR);
 
   if (zero_fd < 0)
     outofmemory();
-  fd_open(zero_fd, 0, "Anonymous mmap()");
+  fd_open(&dpfd, zero_fd, 0, "Anonymous mmap()");
 #endif
   eventAdd("heap_garbage_collection", &heap_garbage_collection, NULL, 119);
 #endif
@@ -129,7 +129,7 @@ get_block(size_t size)
   void *ptr = NULL;
 
 #ifndef MAP_ANON
-  ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, zero_fd, 0);
+  ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, dpfd.fd, 0);
 #else
   ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
 #endif
