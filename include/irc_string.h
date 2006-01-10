@@ -38,12 +38,10 @@ extern char *xstrldup(const char *, size_t);
  *
  * match_esc - compare with support for escaping chars
  * match_chan - like match_esc with first character auto-escaped
- * match_cidr - compares u!h@addr with u!h@addr/cidr
  */
 extern int match(const char *, const char *);
 extern int match_esc(const char *, const char *);
 extern int match_chan(const char *, const char *);
-extern int match_cidr(const char *, const char *);
 
 /*
  * collapse - collapse a string in place, converts multiple adjacent *'s 

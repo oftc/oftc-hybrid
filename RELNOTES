@@ -9,6 +9,7 @@ o) Updated example configuration files to reflect new topicburst flags
    directive in connect{} blocks
 o) Fixed core if using the operator{} 'umodes' directive
 o) Don't allow shared k-lines to be set without a valid reason
+o) Improved channel ban match processing.  This also fixes CIDR bans
 
 
 -- ircd-hybrid-7.2.0 RELNOTES

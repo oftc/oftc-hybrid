@@ -92,6 +92,9 @@ struct Ban
   char *host;
   char *who;
   time_t when;
+  struct irc_ssaddr addr;
+  int bits;
+  char type;
 };
 
 extern dlink_list global_channel_list;

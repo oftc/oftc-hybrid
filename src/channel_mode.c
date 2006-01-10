@@ -29,6 +29,7 @@
 #include "client.h"
 #include "common.h"
 #include "hash.h"
+#include "hostmask.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
@@ -217,6 +218,7 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
   actualBan->username = user;
   actualBan->host = host;
   actualBan->len = len-2; /* -2 for @ and ! */
+  actualBan->type = parse_netmask(host, &actualBan->addr, &actualBan->bits);
 
   if (IsClient(client_p))
   {
