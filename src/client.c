@@ -1233,7 +1233,7 @@ accept_message(struct Client *source, struct Client *target)
   if (IsSoftCallerId(target))
   {
     DLINK_FOREACH(ptr, target->channel.head)
-      if (IsMember(source, ptr->data))
+      if (IsMember(source, ((struct Membership *)ptr->data)->chptr))
         return (1);
   }
 
