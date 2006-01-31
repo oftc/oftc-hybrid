@@ -864,7 +864,7 @@ send_capabilities(struct Client *client_p, struct AccessItem *aconf,
 /* sendnick_TS()
  * 
  * inputs	- client (server) to send nick towards
- * 		- client to send nick for
+ *          - client to send nick for
  * output	- NONE
  * side effects	- NICK message is sent towards given client_p
  */
@@ -889,17 +889,18 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
   if (HasID(target_p) && IsCapable(client_p, CAP_TS6))
     sendto_one(client_p, ":%s UID %s %d %lu %s %s %s %s %s :%s",
                target_p->servptr->id,
-	       target_p->name, target_p->hopcount + 1,
-	       (unsigned long) target_p->tsinfo,
-	       ubuf, target_p->username, target_p->host,
-	   ((MyClient(target_p)&&!IsIPSpoof(target_p))?target_p->sockhost:"0"),
-	   target_p->id, target_p->info);
+               target_p->name, target_p->hopcount + 1,
+               (unsigned long) target_p->tsinfo,
+               ubuf, target_p->username, target_p->host,
+               (MyClient(target_p) && IsIPSpoof(target_p)) ?
+               "0" : target_p->sockhost), target_p->id, target_p->info);
   else
     sendto_one(client_p, "NICK %s %d %lu %s %s %s %s :%s",
 	       target_p->name, target_p->hopcount + 1,
 	       (unsigned long) target_p->tsinfo,
 	       ubuf, target_p->username, target_p->host,
 	       target_p->servptr->name, target_p->info);
+
   if (IsConfAwayBurst((struct AccessItem *)map_to_conf(client_p->serv->sconf)))
     if (!EmptyString(target_p->away))
       sendto_one(client_p, ":%s AWAY :%s", target_p->name,
