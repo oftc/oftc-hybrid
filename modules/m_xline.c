@@ -235,7 +235,7 @@ relay_xline(struct Client *source_p, char *parv[])
                      "XLINE %s %s %s :%s",
                      parv[1], parv[2], parv[3], parv[4]);
 
-  if (match(parv[1], me.name))
+  if (!match(parv[1], me.name))
     return;
 
   if (find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
