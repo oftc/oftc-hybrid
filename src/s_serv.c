@@ -893,7 +893,7 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
                (unsigned long) target_p->tsinfo,
                ubuf, target_p->username, target_p->host,
                (MyClient(target_p) && IsIPSpoof(target_p)) ?
-               "0" : target_p->sockhost), target_p->id, target_p->info);
+               "0" : target_p->sockhost, target_p->id, target_p->info);
   else
     sendto_one(client_p, "NICK %s %d %lu %s %s %s %s :%s",
 	       target_p->name, target_p->hopcount + 1,
