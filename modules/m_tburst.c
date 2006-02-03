@@ -154,7 +154,7 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
   sendto_server(source_p, NULL, chptr, CAP_TBURST, NOCAPS, NOFLAGS,
                 ":%s TBURST %s %s %s %s :%s",
                 source_p->name, parv[1], parv[2], parv[3], setby, topic);
-  if (parc > 6 && *topic != '\0') /* unsetting a topic is not supported by TB */
+  if (parc > 5 && *topic != '\0') /* unsetting a topic is not supported by TB */
     sendto_server(source_p, NULL, chptr, CAP_TB, CAP_TBURST, NOFLAGS,
                   ":%s TB %s %s %s :%s",
                   source_p->name, parv[1], parv[2], setby, topic);
