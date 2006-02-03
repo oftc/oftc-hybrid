@@ -46,7 +46,7 @@ static void set_topic(struct Client *, struct Channel *, time_t,
                       const char *, const char *);
 
 struct Message tburst_msgtab = {
-  "TBURST", 0, 0, 6, 0, MFLG_SLOW, 0,
+  "TBURST", 0, 0, 5, 0, MFLG_SLOW, 0,
   { m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore }
 };
 
@@ -98,6 +98,8 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
   int accept_remote = 0;
   time_t remote_channel_ts = atol(parv[1]);
   time_t remote_topic_ts = atol(parv[3]);
+  const char *topic = "";
+  const char *setby = "";
 
   /*
    * Do NOT test parv[5] for an empty string and return if true!
@@ -109,6 +111,12 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
 
   if ((chptr = hash_find_channel(parv[2])) == NULL)
     return;
+
+  if (parc == 6)
+  {
+    topic = parv[5];
+    setby = parv[4];
+  }
 
   /*
    * The logic for accepting and rejecting channel topics was
@@ -129,9 +137,9 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
 
   if (accept_remote)
   {
-    int topic_differs = strcmp(chptr->topic ? chptr->topic : "", parv[5]);
+    int topic_differs = strcmp(chptr->topic ? chptr->topic : "", topic);
 
-    set_channel_topic(chptr, parv[5], parv[4], remote_topic_ts);
+    set_channel_topic(chptr, topic, setby, remote_topic_ts);
 
     if (topic_differs)
       sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
@@ -145,10 +153,11 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
    */
   sendto_server(source_p, NULL, chptr, CAP_TBURST, NOCAPS, NOFLAGS,
                 ":%s TBURST %s %s %s %s :%s",
-                source_p->name, parv[1], parv[2], parv[3], parv[4], parv[5]);
-  sendto_server(source_p, NULL, chptr, CAP_TB, CAP_TBURST, NOFLAGS,
-                ":%s TB %s %s %s :%s",
-                source_p->name, parv[1], parv[2], parv[3], parv[4]);
+                source_p->name, parv[1], parv[2], parv[3], setby, topic);
+  if (parc > 6 && *topic != '\0') /* unsetting a topic is not supported by TB */
+    sendto_server(source_p, NULL, chptr, CAP_TB, CAP_TBURST, NOFLAGS,
+                  ":%s TB %s %s %s :%s",
+                  source_p->name, parv[1], parv[2], setby, topic);
 }
 
 /* ms_tb()
