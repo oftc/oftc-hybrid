@@ -50,7 +50,7 @@ struct entity
   int flags;
 };
 
-static struct entity targets[512];
+static struct entity targets[IRCD_BUFSIZE];
 static int ntargets, join_0;
 
 static int build_target_list(struct Client *, struct Client *, char *, char *);
@@ -509,8 +509,8 @@ build_target_list(struct Client *client_p, struct Client *source_p,
       continue;
     }
 
-    if ((dlink_list_length(&source_p->channel) >= ConfigChannel.max_chans_per_user) &&
-        (!IsOper(source_p) || (dlink_list_length(&source_p->channel) >=
+    if ((dlink_list_length(&source_p->channel)+ntargets >= ConfigChannel.max_chans_per_user) &&
+        (!IsOper(source_p) || (dlink_list_length(&source_p->channel)+ntargets >=
                                ConfigChannel.max_chans_per_user * 3)))
     {
       if (!error_reported++)
