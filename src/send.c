@@ -112,14 +112,8 @@ iosend_default(va_list args)
 static void
 send_message(struct Client *to, char *buf, int len)
 {
-#ifdef INVARIANTS
-  if (IsMe(to))
-  {
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "Trying to send message to myself!");
-    return;
-  }
-#endif
+  assert(!IsMe(to))
+  assert(to != &me);
 
   if (dbuf_length(&to->localClient->buf_sendq) + len > get_sendq(to))
   {
