@@ -2266,8 +2266,8 @@ expire_tklines(dlink_list *tklist)
 	  }
         }
 
+        dlinkDelete(ptr, tklist);
 	delete_one_address_conf(aconf->host, aconf);
-	dlinkDelete(ptr, tklist);
       }
     }
     else if (conf->type == XLINE_TYPE ||
