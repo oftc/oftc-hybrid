@@ -1699,6 +1699,7 @@ listen_entry: LISTEN
 
 listen_flags: IRCD_FLAGS
 {
+  listener_flags = 0;
 } '='  listen_flags_items ';';
 
 listen_flags_items: listen_flags_items ',' listen_flags_item | listen_flags_item;
@@ -1713,9 +1714,9 @@ listen_flags_item: T_SSL
 };
 
 listen_items:   listen_items listen_item | listen_item;
-listen_item:    listen_port | listen_flags | listen_address | listen_host | error ';' ;
+listen_item:    listen_port | listen_flags | listen_address | listen_host | error ';';
 
-listen_port: PORT '=' port_items ';' ;
+listen_port: PORT '=' port_items { listener_flags = 0; } ';';
 
 port_items: port_items ',' port_item | port_item;
 
@@ -1732,7 +1733,6 @@ port_item: NUMBER
 	break;
       }
     add_listener($1, listener_address, listener_flags);
-    listener_flags = 0;
   }
 } | NUMBER TWODOTS NUMBER
 {
@@ -1751,8 +1751,6 @@ port_item: NUMBER
 
     for (i = $1; i <= $3; ++i)
       add_listener(i, listener_address, listener_flags);
-
-    listener_flags = 0;
   }
 };
 
