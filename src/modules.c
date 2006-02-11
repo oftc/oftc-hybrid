@@ -572,6 +572,7 @@ load_all_modules(int warn)
   mod_add_cmd(&accept_msgtab);
   mod_add_cmd(&admin_msgtab);
   mod_add_cmd(&away_msgtab);
+  mod_add_cmd(&bmask_msgtab);
   mod_add_cmd(&capab_msgtab);
   mod_add_cmd(&cburst_msgtab);
   mod_add_cmd(&close_msgtab);
@@ -647,6 +648,7 @@ load_all_modules(int warn)
   mod_add_cmd(&testgecos_msgtab);
   mod_add_cmd(&testmask_msgtab);
   mod_add_cmd(&time_msgtab);
+  mod_add_cmd(&tmode_msgtab);
   mod_add_cmd(&topic_msgtab);
   mod_add_cmd(&trace_msgtab);
   add_capability("UNKLN", CAP_UNKLN, 1);
