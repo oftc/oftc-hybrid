@@ -295,7 +295,9 @@ send_queued_write(struct Client *to)
 	      errno = EWOULDBLOCK;
             case SSL_ERROR_SYSCALL:
 	      break;
-
+            case SSL_ERROR_SSL:
+              if (errno == EAGAIN)
+                break;
             default:
 	      retlen = errno = 0;  /* either an SSL-specific error or EOF */
 	  }
