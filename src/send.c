@@ -112,7 +112,7 @@ iosend_default(va_list args)
 static void
 send_message(struct Client *to, char *buf, int len)
 {
-  assert(!IsMe(to))
+  assert(!IsMe(to));
   assert(to != &me);
 
   if (dbuf_length(&to->localClient->buf_sendq) + len > get_sendq(to))
