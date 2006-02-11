@@ -86,6 +86,7 @@ extern void modules_init(void);
 extern struct Message accept_msgtab;
 extern struct Message admin_msgtab;
 extern struct Message away_msgtab;
+extern struct Message bmask_msgtab;
 extern struct Message capab_msgtab;
 extern struct Message cburst_msgtab;
 #ifdef HAVE_LIBCRYPTO
@@ -156,6 +157,7 @@ extern struct Message testline_msgtab;
 extern struct Message testgecos_msgtab;
 extern struct Message testmask_msgtab;
 extern struct Message time_msgtab;
+extern struct Message tmode_msgtab;
 extern struct Message topic_msgtab;
 extern struct Message trace_msgtab;
 extern struct Message uid_msgtab;
