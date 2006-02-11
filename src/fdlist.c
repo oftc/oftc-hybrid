@@ -194,9 +194,8 @@ fd_close(fde_t *F)
   close(F->fd);
 #endif
   number_fd--;
-#ifdef INVARIANTS
-  memset(F, '\0', sizeof(fde_t));
-#endif
+
+  memset(F, 0, sizeof(fde_t));
 }
 
 /*
