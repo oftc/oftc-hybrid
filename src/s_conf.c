@@ -363,6 +363,7 @@ make_conf_item(ConfType type)
 void
 delete_conf_item(struct ConfItem *conf)
 {
+  dlink_node *m = NULL;
   struct MatchItem *match_item;
   struct AccessItem *aconf;
   ConfType type = conf->type;
@@ -509,6 +510,11 @@ delete_conf_item(struct ConfItem *conf)
     MyFree(match_item->reason);
     MyFree(match_item->oper_reason);
     dlinkDelete(&conf->node, &nresv_items);
+
+    if (conf->flags & CONF_FLAGS_TEMPORARY)
+      if ((m = dlinkFindDelete(&temporary_resv, conf)) != NULL)
+        free_dlink_node(m);
+
     MyFree(conf);
     break;
 
@@ -526,6 +532,10 @@ delete_conf_item(struct ConfItem *conf)
     break;
 
   case CRESV_TYPE:
+    if (conf->flags & CONF_FLAGS_TEMPORARY)
+      if ((m = dlinkFindDelete(&temporary_resv, conf)) != NULL)
+        free_dlink_node(m);
+
     MyFree(conf);
     break;
 
