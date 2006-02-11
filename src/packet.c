@@ -440,6 +440,9 @@ read_packet(fde_t *fd, void *data)
 	    errno = EWOULDBLOCK;
           case SSL_ERROR_SYSCALL:
 	    break;
+          case SSL_ERROR_SSL:
+            if (errno == EAGAIN)
+              break;
           default:
 	    length = errno = 0;
 	}
