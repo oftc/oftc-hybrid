@@ -258,7 +258,12 @@ close_connection(struct Client *client_p)
 
 #ifdef HAVE_LIBCRYPTO
   if (client_p->localClient->fd.ssl)
-    SSL_shutdown(client_p->localClient->fd.ssl);
+  {
+    SSL_set_shutdown(client_p->localClient->fd.ssl, SSL_RECEIVED_SHUTDOWN);
+
+    if (!SSL_shutdown(client_p->localClient->fd.ssl))
+      SSL_shutdown(client_p->localClient->fd.ssl);
+  }
 #endif
   if (client_p->localClient->fd.flags.open)
     fd_close(&client_p->localClient->fd);
