@@ -717,15 +717,14 @@ find_channel_link(struct Client *client_p, struct Channel *chptr)
 /*!
  * \param chptr    pointer to Channel struct
  * \param source_p pointer to Client struct
+ * \param ms       pointer to Membership struct (can be NULL)
  * \return CAN_SEND_OPV if op or voiced on channel\n
  *         CAN_SEND_NONOP if can send to channel but is not an op\n
  *         CAN_SEND_NO if they cannot send to channel\n
  */
 int
-can_send(struct Channel *chptr, struct Client *source_p)
+can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 {
-  struct Membership *ms = NULL;
-
   if (IsServer(source_p))
     return CAN_SEND_OPV;
 
@@ -734,12 +733,7 @@ can_send(struct Channel *chptr, struct Client *source_p)
       (!hash_find_resv(chptr->chname) == ConfigChannel.restrict_channels))
     return CAN_SEND_NO;
 
-  if ((ms = find_channel_link(source_p, chptr)) == NULL)
-  {
-    if (chptr->mode.mode & MODE_NOPRIVMSGS)
-      return CAN_SEND_NO;
-  }
-  else
+  if (ms != NULL || (ms = find_channel_link(source_p, chptr)))
   {
     if (ms->flags & (CHFL_CHANOP|CHFL_HALFOP|CHFL_VOICE))
       return CAN_SEND_OPV;
@@ -763,29 +757,7 @@ can_send(struct Channel *chptr, struct Client *source_p)
     }
   }
 
-  if (chptr->mode.mode & MODE_MODERATED)
-    return CAN_SEND_NO;
-
-  return CAN_SEND_NONOP;
-}
-
-/*! \brief Checks to see if given client can send a part message
- * \param member     pointer to channel membership
- * \param chptr      pointer to channel struct
- * \param source_p   pointer to struct Client to check
- */
-int
-can_send_part(struct Membership *member, struct Channel *chptr,
-              struct Client *source_p)
-{
-  if (has_member_flags(member, CHFL_CHANOP|CHFL_HALFOP))
-    return CAN_SEND_OPV;
-
-  if (chptr->mode.mode & MODE_MODERATED)
-    return CAN_SEND_NO;
-
-  if (ConfigChannel.quiet_on_ban && MyClient(source_p) &&
-      is_banned(chptr, source_p))
+  if (chptr->mode.mode & (MODE_MODERATED|MODE_NOPRIVMSGS))
     return CAN_SEND_NO;
 
   return CAN_SEND_NONOP;

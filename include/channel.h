@@ -100,8 +100,7 @@ struct Ban
 extern dlink_list global_channel_list;
 
 extern int check_channel_name(const char *);
-extern int can_send(struct Channel *, struct Client *);
-extern int can_send_part(struct Membership *, struct Channel *, struct Client *);
+extern int can_send(struct Channel *, struct Client *, struct Membership *);
 extern int is_banned(struct Channel *, struct Client *);
 extern int can_join(struct Client *, struct Channel *, const char *);
 extern int has_member_flags(struct Membership *, unsigned int);
