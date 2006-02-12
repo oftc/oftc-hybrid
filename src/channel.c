@@ -756,8 +756,10 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
       }
     }
   }
+  else if (chptr->mode.mode & MODE_NOPRIVMSGS)
+    return CAN_SEND_NO;
 
-  if (chptr->mode.mode & (MODE_MODERATED|MODE_NOPRIVMSGS))
+  if (chptr->mode.mode & MODE_MODERATED)
     return CAN_SEND_NO;
 
   return CAN_SEND_NONOP;
