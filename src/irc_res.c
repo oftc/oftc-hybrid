@@ -813,7 +813,7 @@ res_readreply(fde_t *fd, void *data)
 
   if ((header->rcode != NO_ERRORS) || (header->ancount == 0))
   {
-    if (SERVFAIL == header->rcode)
+    if ((SERVFAIL == header->rcode) || (NXDOMAIN == header->rcode))
     {
       /*
        * If a bad error was returned, we stop here and dont send
