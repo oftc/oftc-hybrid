@@ -813,22 +813,12 @@ res_readreply(fde_t *fd, void *data)
 
   if ((header->rcode != NO_ERRORS) || (header->ancount == 0))
   {
-    if ((SERVFAIL == header->rcode) || (NXDOMAIN == header->rcode))
-    {
-      /*
-       * If a bad error was returned, we stop here and dont send
-       * send any more (no retries granted).
-       */
-      (*request->query->callback)(request->query->ptr, NULL);
-      rem_request(request);
-    } 
-    else
+    if (NXDOMAIN == header->rcode)
     {
       /* 
        * If we havent already tried this, and we're looking up AAAA, try A
        * now
        */
-
 #ifdef IPV6
       if (request->state == REQ_AAAA && request->type == T_AAAA)
       {
@@ -840,13 +830,21 @@ res_readreply(fde_t *fd, void *data)
       {
         request->state = REQ_INT;
         request->timeout += 4;
-	request->retries--;
+        request->retries--;
         resend_query(request);
       }
+      else 
 #endif
+      {
+        /*
+         * If a bad error was returned, stop here and don't
+         * send any more (no retries granted).
+         */
+        (*request->query->callback)(request->query->ptr, NULL);
+        rem_request(request);
+      }
+      return;
     }
-
-    return;
   }
   /*
    * If this fails there was an error decoding the received packet, 
