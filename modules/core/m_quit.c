@@ -75,7 +75,7 @@ m_quit(struct Client *client_p, struct Client *source_p,
       < CurrentTime))
     strlcpy(reason+6, comment, sizeof(reason)-6);
   else
-    strlcpy(reason, "Client Quit", sizeof(reason));
+    reason[0] = 0;
 
   exit_client(source_p, source_p, reason);
 }
