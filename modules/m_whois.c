@@ -428,8 +428,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
   {
     int show_ip = 0;
 
-    if ((target_p->sockhost[0] != '\0') && (target_p->sockhost[0] == '0' &&
-					    target_p->sockhost[1] == '\0'))
+    if ((target_p->sockhost[0] != '\0') && irccmp(target_p->sockhost, "0"))
     {
       if ((IsAdmin(source_p) || source_p == target_p))
 	show_ip = 1;
@@ -438,9 +437,9 @@ whois_person(struct Client *source_p, struct Client *target_p)
       else
 	show_ip = 1;
 
-	sendto_one(source_p, form_str(RPL_WHOISACTUALLY),
-		   me.name, source_p->name, target_p->name,
-		   show_ip ? target_p->sockhost : "255.255.255.255");
+      sendto_one(source_p, form_str(RPL_WHOISACTUALLY),
+                 me.name, source_p->name, target_p->name,
+                 show_ip ? target_p->sockhost : "255.255.255.255");
     }
   }
 
