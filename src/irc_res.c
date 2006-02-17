@@ -833,7 +833,7 @@ res_readreply(fde_t *fd, void *data)
         request->retries--;
         resend_query(request);
       }
-      else 
+      else	/* It's NXDOMAIN but not IPV6 */
 #endif
       {
         /*
@@ -843,8 +843,17 @@ res_readreply(fde_t *fd, void *data)
         (*request->query->callback)(request->query->ptr, NULL);
         rem_request(request);
       }
-      return;
     }
+    else	/* Some other error other than NXDOMAIN */
+    {
+      /*
+       * If a bad error was returned, stop here and don't
+       * send any more (no retries granted).
+       */
+      (*request->query->callback)(request->query->ptr, NULL);
+      rem_request(request);
+    }
+    return;
   }
   /*
    * If this fails there was an error decoding the received packet, 
