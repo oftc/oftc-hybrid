@@ -122,7 +122,7 @@ show_ports(struct Client *source_p)
     *p = '\0';
     sendto_one(source_p, form_str(RPL_STATSPLINE),
                me.name, source_p->name, 'P', listener->port,
-               listener->name,
+               IsAdmin(source_p) ? listener->name : me.name,
                listener->ref_count, buf,
                listener->active ? "active" : "disabled");
   }
