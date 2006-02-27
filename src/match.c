@@ -189,7 +189,8 @@ match_esc(const char *mask, const char *name)
 int
 match_chan(const char *mask, const char *name)
 {
-  return *mask ? (*mask == *name && match_esc(mask + 1, name + 1)) : !*name;
+  return *mask ? (match_esc(mask + (*mask == '#'),
+                            name + (*name == '#'))) : 0;
 }
 
 /* collapse()
