@@ -289,15 +289,20 @@ operspy_names(struct Client *client_p, int parc, char *parv[])
   operspy_log(client_p, "NAMES", parv[2]);
 #endif
 
-  /* the way to go with this, rather than temporarily setting -sp,
+  /*
+   * the way to go with this, rather than temporarily setting -sp,
    * is to temporarily add our client to the member list.  then
    * we can also list +i users.  an unfortunate side-effect of this
    * is that your nickname shows up in the list.  for now, there is
    * no easy way around it.
    */ 
-  add_user_to_channel(chptr_names, client_p, CHFL_CHANOP, NO);
-  channel_member_names(client_p, chptr_names, 1);
-  remove_user_from_channel(find_channel_link(client_p, chptr_names));
+  if (IsMember(client_p, chptr))
+    channel_member_names(client_p, chptr_names, 1);
+  else {
+    add_user_to_channel(chptr_names, client_p, CHFL_CHANOP, NO);
+    channel_member_names(client_p, chptr_names, 1);
+    remove_user_from_channel(find_channel_link(client_p, chptr_names));
+  }
 }
 
 static void
