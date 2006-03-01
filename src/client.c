@@ -1055,9 +1055,9 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
   }
   else if (IsClient(source_p) && !IsKilled(source_p))
   {
-    sendto_server(NULL, source_p, NULL, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(from->from, source_p, NULL, CAP_TS6, NOCAPS, NOFLAGS,
                   ":%s QUIT :%s", ID(source_p), comment);
-    sendto_server(NULL, source_p, NULL, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(from->from, source_p, NULL, NOCAPS, CAP_TS6, NOFLAGS,
                   ":%s QUIT :%s", source_p->name, comment);
   }
 
