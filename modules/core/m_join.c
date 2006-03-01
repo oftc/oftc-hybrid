@@ -53,7 +53,7 @@ struct entity
 static struct entity targets[IRCD_BUFSIZE];
 static int ntargets, join_0;
 
-static int build_target_list(struct Client *, struct Client *, char *, char *);
+static int build_target_list(struct Client *, char *, char *);
 static int is_target(struct Channel *);
 
 static void m_join(struct Client *, struct Client *, int, char **);
@@ -104,7 +104,6 @@ m_join(struct Client *client_p, struct Client *source_p,
   char *key = NULL;
   int i, a;
   unsigned int flags = 0;
-  int successful_join_count = 0; /* Number of channels successfully joined */
 
   if (*parv[1] == '\0')
   {
@@ -113,7 +112,9 @@ m_join(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  build_target_list(client_p, source_p, parv[1], ((parc > 2) ? parv[2] : NULL));
+  assert(client_p == source_p);
+
+  build_target_list(source_p, parv[1], parv[2]);
 
   if ((a = (join_0 >= 0) ? join_0 : 0))
     do_join_0(client_p, source_p);
@@ -138,8 +139,6 @@ m_join(struct Client *client_p, struct Client *source_p,
       sendto_one(source_p, form_str(i), me.name, source_p->name, chptr->chname);
       continue;
     }
-
-    ++successful_join_count;
 
     /* add the user to the channel */
     add_user_to_channel(chptr, source_p, flags, YES);
@@ -205,8 +204,7 @@ m_join(struct Client *client_p, struct Client *source_p,
 
     channel_member_names(source_p, chptr, 1);
 
-    if (successful_join_count != 0)
-      source_p->localClient->last_join_time = CurrentTime;
+    source_p->localClient->last_join_time = CurrentTime;
   }
 }
 
@@ -446,18 +444,19 @@ do_join_0(struct Client *client_p, struct Client *source_p)
  *
  */
 static int
-build_target_list(struct Client *client_p, struct Client *source_p,
-                  char *channels, char *keys)
+build_target_list(struct Client *source_p, char *channels, char *keys)
 {
-  int error_reported, flags = 0;
-  char *p, *p2, *chan, *key = keys;
+  int error_reported = 0, flags = 0;
+  char *p = NULL, *p2 = NULL, *chan, *key = keys;
   struct Channel *chptr = NULL;
 
-  ntargets = error_reported = 0;
+  ntargets = 0;
   join_0 = -1;
 
+  key = key ? strtoken(&p2, keys, ",") : NULL;
+
   for (chan = strtoken(&p, channels, ","); chan;
-       key  = (key) ? strtoken(&p2, keys, ",") : NULL,
+       key  = key ? strtoken(&p2, NULL, ",") : NULL,
        chan = strtoken(&p, NULL, ","))
   {
     if (!check_channel_name(chan))
