@@ -126,7 +126,6 @@ m_join(struct Client *client_p, struct Client *source_p,
   struct Channel *chptr = NULL;
   int i = 0;
   unsigned int flags = 0;
-  unsigned int error_reported = 0;
 
   if (*parv[1] == '\0')
   {
@@ -190,10 +189,9 @@ m_join(struct Client *client_p, struct Client *source_p,
         (!IsOper(source_p) || (dlink_list_length(&source_p->channel) >=
                                ConfigChannel.max_chans_per_user * 3)))
     {
-      if (!error_reported++)
-        sendto_one(source_p, form_str(ERR_TOOMANYCHANNELS),
-                   me.name, source_p->name, chan);
-      continue;
+      sendto_one(source_p, form_str(ERR_TOOMANYCHANNELS),
+                 me.name, source_p->name, chan);
+      break;
     }
 
     if ((chptr = hash_find_channel(chan)) != NULL)
