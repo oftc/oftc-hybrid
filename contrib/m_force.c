@@ -102,7 +102,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_client(parv[1])) == NULL)
+  if ((target_p = find_client(parv[1])) == NULL || IsClient(target_p))
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                me.name, source_p->name, parv[1]);
@@ -307,7 +307,7 @@ mo_forcepart(struct Client *client_p, struct Client *source_p,
   }
 
   /* if target_p == NULL then let the oper know */
-  if ((target_p = find_client(parv[1])) == NULL)
+  if ((target_p = find_client(parv[1])) == NULL || !IsClient(target_p))
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                me.name, source_p->name, parv[1]);
