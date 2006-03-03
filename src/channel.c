@@ -496,8 +496,21 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
 
       tlen = strlen(target_p->name) + 1;  /* nick + space */
 
-      if (ms->flags & (CHFL_CHANOP | CHFL_HALFOP | CHFL_VOICE))
-        ++tlen;
+      if (!multi_prefix)
+      {
+        if (ms->flags & (CHFL_CHANOP | CHFL_HALFOP | CHFL_VOICE))
+          ++tlen;
+      }
+      else
+      {
+        if (ms->flags & CHFL_CHANOP)
+          ++tlen;
+        if (ms->flags & CHFL_HALFOP)
+          ++tlen;
+        if (ms->flags & CHFL_VOICE)
+          ++tlen;
+      }
+
       if (t + tlen - lbuf > IRCD_BUFSIZE)
       {
         *(t - 1) = '\0';
