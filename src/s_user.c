@@ -294,6 +294,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   assert(source_p != NULL);
   assert(MyConnect(source_p));
   assert(source_p->username != username);
+  assert(!source_p->localClient->registration);
 
   if (ConfigFileEntry.ping_cookie)
   {
@@ -830,7 +831,7 @@ do_local_user(const char *nick, struct Client *client_p, struct Client *source_p
     return;
   }
 
-  source_p->flags |= FLAGS_GOTUSER;
+  source_p->localClient->registration &= ~REG_NEED_USER;
 
   /*
    * don't take the clients word for it, ever
@@ -847,11 +848,9 @@ do_local_user(const char *nick, struct Client *client_p, struct Client *source_p
     strlcpy(source_p->username, username, sizeof(source_p->username));
   }
 
-  if (source_p->name[0])
-  {
+  if (!source_p->localClient->registration)
     /* NICK already received, now I have USER... */
     register_local_user(client_p, source_p, source_p->name, username);
-  }
 }
 
 /* change_simple_umode()

@@ -181,6 +181,10 @@ struct LocalUser
    * The following fields are allocated only for local clients
    * (directly connected to *this* server with a socket.
    */
+  unsigned int registration;
+  unsigned int cap_client;    /* Client capabilities (from us) */
+  unsigned int cap_active;    /* Active capabilities (to us) */
+
   /* Anti flooding part, all because of lamers... */
   time_t            last_away; /* Away since... */
   time_t            last_join_time;   /* when this client last 
@@ -269,6 +273,11 @@ struct LocalUser
 #define STAT_SERVER             0x10
 #define STAT_CLIENT             0x20
 
+#define REG_NEED_USER 0x1
+#define REG_NEED_NICK 0x2
+#define REG_NEED_CAP  0x4
+#define REG_INIT (REG_NEED_USER|REG_NEED_NICK)
+
 #define HasID(x)		((x)->id[0] != '\0')
 #define ID(x)			(HasID(x) ? (x)->id : (x)->name)
 #define ID_or_name(x,client_p)	((IsCapable(client_p, CAP_TS6) && HasID(x)) ? (x)->id : (x)->name)
@@ -318,6 +327,9 @@ struct LocalUser
 #define TS_DOESTS       0x20000000
 #define DoesTS(x)       ((x)->tsinfo == TS_DOESTS)
 
+
+
+#define CAP_MULTI_PREFIX  0x00000001
 
 /* housekeeping flags */
 #define FLAGS_PINGSENT    0x00000001 /* Unreplied ping sent                      */

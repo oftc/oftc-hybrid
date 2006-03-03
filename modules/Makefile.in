@@ -51,6 +51,7 @@ SRCS =       \
   m_accept.c \
   m_admin.c \
   m_away.c \
+  m_cap.c \
   m_capab.c \
   m_cburst.c \
   m_close.c \
