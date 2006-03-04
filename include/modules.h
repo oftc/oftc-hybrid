@@ -87,6 +87,7 @@ extern struct Message accept_msgtab;
 extern struct Message admin_msgtab;
 extern struct Message away_msgtab;
 extern struct Message bmask_msgtab;
+extern struct Message cap_msgtab;
 extern struct Message capab_msgtab;
 extern struct Message cburst_msgtab;
 #ifdef HAVE_LIBCRYPTO
@@ -179,6 +180,7 @@ extern struct Message help_msgtab;
 extern struct Message uhelp_msgtab;
 
 #ifdef BUILD_CONTRIB
+extern struct Message bs_msgtab;
 extern struct Message botserv_msgtab;
 extern struct Message capture_msgtab;
 extern struct Message chanserv_msgtab;

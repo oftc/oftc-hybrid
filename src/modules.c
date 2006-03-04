@@ -573,6 +573,7 @@ load_all_modules(int warn)
   mod_add_cmd(&admin_msgtab);
   mod_add_cmd(&away_msgtab);
   mod_add_cmd(&bmask_msgtab);
+  mod_add_cmd(&cap_msgtab);
   mod_add_cmd(&capab_msgtab);
   mod_add_cmd(&cburst_msgtab);
   mod_add_cmd(&close_msgtab);
@@ -667,6 +668,7 @@ load_all_modules(int warn)
   mod_add_cmd(&help_msgtab);
   mod_add_cmd(&uhelp_msgtab);
 #ifdef BUILD_CONTRIB
+  mod_add_cmd(&bs_msgtab);
   mod_add_cmd(&botserv_msgtab);
   mod_add_cmd(&capture_msgtab);
   mod_add_cmd(&chanserv_msgtab);
