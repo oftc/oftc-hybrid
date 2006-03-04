@@ -515,12 +515,6 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
   strlcpy(source_p->info, realname, sizeof(source_p->info));
   strlcpy(source_p->username, username, sizeof(source_p->username));
 
-  /* Increment our total user count here */
-  if (++Count.total > Count.max_tot)
-    Count.max_tot = Count.total;
-
-  source_p->from->serv->dep_users++;
-
   /*
    * coming from another server, take the servers word for it
    */
@@ -557,6 +551,12 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
     exit_client(source_p, &me, "USER server wrong direction");
     return;
   }
+
+  /* Increment our total user count here */
+  if (++Count.total > Count.max_tot)
+    Count.max_tot = Count.total;
+
+  ++source_p->from->serv->dep_users;
 
   SetClient(source_p);
   dlinkAdd(source_p, &source_p->lnode, &source_p->servptr->serv->users);
