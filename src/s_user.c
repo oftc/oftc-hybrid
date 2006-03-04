@@ -538,7 +538,6 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
                          source_p->host, source_p->from->name);
     kill_client(client_p, source_p, "%s (Server doesn't exist)", me.name);
 
-    /* XXX */
     SetKilled(source_p);
     exit_client(source_p, &me, "Ghosted Client");
     return;
@@ -608,8 +607,6 @@ introduce_client(struct Client *client_p, struct Client *source_p)
    * -davidt
    * rewritten to cope with SIDs .. eww eww eww --is
    */
-
-  /* XXX THESE NEED A PREFIX!?!?!? */
   if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL) &&
       client_p != uplink)
   {
