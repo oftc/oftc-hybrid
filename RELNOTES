@@ -1,4 +1,10 @@
--- ircd-hybrid-7.2.1beta1 RELNOTES
+-- ircd-hybrid-7.2.1 RELNOTES
+o) Fixed build on SRV4
+o) Fixed problem where ircd would disconnect all SSL connections
+o) Added initial CAP support.  Additional documentation can be found
+   in doc/technical
+o) Speeded up command parsing
+o) Fixed occasional core dump on UN*LINE
 o) Fixed bug where particular clients would always receive
    "Load is temporarily too heavy" message
 o) Improved memory consumption, i.e. memory consumption has
@@ -58,18 +64,6 @@ o) IP cloaking module (contrib/ip_cloaking.c)
 o) Native win32 build
 
 --------------------------------------------------------------------------------
-
-This is a beta version of ircd-hybrid-7.2.1.
-
-NOTE: This is still BETA code.  Run it at your own risk.  By running this
- code you assume FULL responsibility for any problems it may cause.  We do
- NOT recommend that you run BETA code on production IRC networks such
- as EFnet.
-
-TESTING: This code is under active development, and a lot changes from beta
- to beta.  As the user of this code, we request that you help us test things
- which have changed recently, and which would benefeit from being tested
- much as possible.
 
 BUGS: Major bugs in this release are listed in BUGS
 
