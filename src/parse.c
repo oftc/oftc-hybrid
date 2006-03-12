@@ -526,19 +526,14 @@ del_msg_element(struct MessageTree *mtree_p, const char *cmd)
 static struct Message *
 msg_tree_parse(const char *cmd, struct MessageTree *root)
 {
-  struct MessageTree *mtree;
+  struct MessageTree *mtree = root;
   assert(cmd && *cmd);
-  for (mtree = root->pointers[(*cmd) & (MAXPTRLEN-1)]; mtree != NULL;
-       mtree = mtree->pointers[(*++cmd) & (MAXPTRLEN-1)])
-  {
-    if (!IsAlpha(*cmd))
-      return(NULL);
-    if (*(cmd + 1) == '\0')
-      return(mtree->msg); /* NULL if parsed invalid/unknown command */
 
-  }
+  while (IsAlpha(*cmd) && (mtree = mtree->pointers[*cmd & (MAXPTRLEN - 1)]))
+    if (*++cmd == '\0')
+      return mtree->msg;
 
-  return(NULL);
+  return NULL;
 }
 
 /* mod_add_cmd()
