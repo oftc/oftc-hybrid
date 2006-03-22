@@ -92,7 +92,7 @@ static struct capabilities
 static int
 capab_sort(const struct capabilities *cap1, const struct capabilities *cap2)
 {
-  return strcasecmp(cap1->name, cap2->name);
+  return irccmp(cap1->name, cap2->name);
 }
 
 static int
@@ -392,7 +392,7 @@ static struct subcmd
 static int
 subcmd_search(const char *cmd, const struct subcmd *elem)
 {
-  return strcasecmp(cmd, elem->cmd);
+  return irccmp(cmd, elem->cmd);
 }
 
 /** Handle a capability request or response from a client.
