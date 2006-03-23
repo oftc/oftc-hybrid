@@ -137,4 +137,9 @@ extern int errno;
 
 #include "inet_misc.h"
 
+#ifdef _WIN32
+#undef strcasecmp
+#define strcasecmp stricmp
+#endif
+
 #endif
