@@ -143,14 +143,11 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
         DLINK_FOREACH(ptr, serv_list.head)
         {
           struct Client *serv_p = ptr->data;
-          if (IsDead(serv_p))
-            continue;
 
-          sendto_server(client_p, source_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
-                        ":%s SJOIN %lu %s + :%s%s", ID_or_name(&me, serv_p),
-                        (unsigned long)chptr->channelts, chptr->chname,
-                        (*prefix == '%' && !IsCapable(serv_p, CAP_HOPS)) ?
-                        "@" : prefix, ID_or_name(source_p, serv_p));
+          sendto_one(serv_p, ":%s SJOIN %lu %s + :%s%s", ID_or_name(&me, serv_p),
+                     (unsigned long)chptr->channelts, chptr->chname,
+                     (*prefix == '%' && !IsCapable(serv_p, CAP_HOPS)) ?
+                     "@" : prefix, ID_or_name(source_p, serv_p));
         }
 
       sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN %s",
