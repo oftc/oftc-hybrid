@@ -1,3 +1,6 @@
+-- oftc-hybrid 1.4.1 RELNOTES
+o) Fix amd64 issues
+
 -- oftc-hybrid 1.4.0 RELNOTES
 o) Add Client SSL Support
 o) Add user shedding
