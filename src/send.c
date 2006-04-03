@@ -528,7 +528,7 @@ sendto_channel_butone(struct Client *one, struct Client *from,
                       struct Channel *chptr, const char *command,
                       const char *pattern, ...)
 {
-  va_list args;
+  va_list alocal, aremote, auid;
   char local_buf[IRCD_BUFSIZE];
   char remote_buf[IRCD_BUFSIZE];
   char uid_buf[IRCD_BUFSIZE];
@@ -549,14 +549,18 @@ sendto_channel_butone(struct Client *one, struct Client *from,
   uid_len = ircsprintf(uid_buf, ":%s %s %s ",
                        ID(from), command, chptr->chname);
 
-  va_start(args, pattern);
+  va_start(alocal, pattern);
+  va_start(aremote, pattern);
+  va_start(auid, pattern);
   local_len += send_format(&local_buf[local_len], IRCD_BUFSIZE - local_len,
-                           pattern, args);
+                           pattern, alocal);
   remote_len += send_format(&remote_buf[remote_len], IRCD_BUFSIZE - remote_len,
-                            pattern, args);
+                            pattern, aremote);
   uid_len += send_format(&uid_buf[uid_len], IRCD_BUFSIZE - uid_len, pattern,
-                         args);
-  va_end(args);
+                         auid);
+  va_end(auid);
+  va_end(aremote);
+  va_end(alocal);
 
   ++current_serial;
 
@@ -926,7 +930,7 @@ void
 sendto_match_butone(struct Client *one, struct Client *from, char *mask,
                     int what, const char *pattern, ...)
 {
-  va_list args;
+  va_list alocal, aremote;
   struct Client *client_p;
   dlink_node *ptr, *ptr_next;
   char local_buf[IRCD_BUFSIZE], remote_buf[IRCD_BUFSIZE];
@@ -934,12 +938,14 @@ sendto_match_butone(struct Client *one, struct Client *from, char *mask,
                              from->username, from->host);
   int remote_len = ircsprintf(remote_buf, ":%s ", from->name);
 
-  va_start(args, pattern);
+  va_start(alocal, pattern);
+  va_start(aremote, pattern);
   local_len += send_format(&local_buf[local_len], IRCD_BUFSIZE - local_len,
-                           pattern, args);
+                           pattern, alocal);
   remote_len += send_format(&remote_buf[remote_len], IRCD_BUFSIZE - remote_len,
-                            pattern, args);
-  va_end(args);
+                            pattern, aremote);
+  va_end(aremote);
+  va_end(alocal);
 
   /* scan the local clients */
   DLINK_FOREACH(ptr, local_client_list.head)
@@ -1305,14 +1311,16 @@ kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,
   char buf_uid[IRCD_BUFSIZE], buf_nick[IRCD_BUFSIZE];
   int len_uid = 0, len_nick;
 
-  va_start(args, pattern);
   if (HasID(source_p))
   {
+    va_start(args, pattern);
     have_uid = 1;
     len_uid = ircsprintf(buf_uid, ":%s KILL %s :", me.name, ID(source_p));
     len_uid += send_format(&buf_uid[len_uid], IRCD_BUFSIZE - len_uid, pattern,
                            args);
+    va_end(args);
   }
+  va_start(args, pattern);
   len_nick = ircsprintf(buf_nick, ":%s KILL %s :", me.name, source_p->name);
   len_nick += send_format(&buf_nick[len_nick], IRCD_BUFSIZE - len_nick, pattern,
                           args);
