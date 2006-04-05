@@ -1,3 +1,7 @@
+-- ircd-hybrid-7.2.2 RELNOTES
+o) Fixed core on FORCEJOIN
+
+
 -- ircd-hybrid-7.2.1 RELNOTES
 o) Fixed build on SRV4
 o) Fixed problem where ircd would disconnect all SSL connections
