@@ -459,7 +459,7 @@ accept_connection(fde_t *pfd, void *data)
     }
 
     ServerStats->is_ac++;
-    add_connection(listener, fd);
+    add_connection(listener, &addr, fd);
   }
 
   /* Re-register a new IO request for the next accept .. */
