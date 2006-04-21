@@ -175,7 +175,8 @@ mo_gline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  /* call these two functions first so the 'requesting' notice always comes
+  /*
+   * call these two functions first so the 'requesting' notice always comes
    * before the 'has triggered' notice.  -bill
    */
   sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -185,8 +186,6 @@ mo_gline(struct Client *client_p, struct Client *source_p,
   ilog(L_TRACE, "#gline for %s@%s [%s] requested by %s!%s@%s",
        user, host, reason, source_p->name, source_p->username,
        source_p->host);
-
-  set_local_gline(source_p, user, host, reason);
 #else
   set_local_gline(source_p, user, host, reason);
 #endif /* GLINE_VOTING */

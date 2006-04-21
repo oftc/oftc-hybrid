@@ -1,6 +1,7 @@
 -- ircd-hybrid-7.2.2 RELNOTES
 o) Fixed broken FORCEJOIN
 o) Added missing documentation for connect::vhost
+o) Fixed problem with G-Line voting
 
 
 -- ircd-hybrid-7.2.1 RELNOTES
