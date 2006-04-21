@@ -384,12 +384,9 @@ do_sgline(struct Client *client_p, struct Client *source_p,
 
      ilog(L_TRACE, "#gline for %s@%s [%s] requested by %s",
           user, host, reason, get_oper_name(source_p));
-
-     set_local_gline(source_p, user, host, reason);
 #else 
      set_local_gline(source_p, user, host, reason);
 #endif /* GLINE_VOTING */
-     
   }
 }
 
