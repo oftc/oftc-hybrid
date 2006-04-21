@@ -369,11 +369,6 @@ do_sgline(struct Client *client_p, struct Client *source_p,
     }
 
 #ifdef GLINE_VOTING
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "%s requesting G-Line for [%s@%s] [%s]",
-                         get_oper_name(source_p),
-                         user, host, reason);
-
      /* If at least 3 opers agree this user should be G lined then do it */
      if (check_majority_gline(source_p, user, host, reason) ==
          GLINE_ALREADY_VOTED)
@@ -382,6 +377,10 @@ do_sgline(struct Client *client_p, struct Client *source_p,
        return;
      }
 
+     sendto_realops_flags(UMODE_ALL, L_ALL,
+                          "%s requesting G-Line for [%s@%s] [%s]",
+                          get_oper_name(source_p),
+                          user, host, reason);
      ilog(L_TRACE, "#gline for %s@%s [%s] requested by %s",
           user, host, reason, get_oper_name(source_p));
 #else 
