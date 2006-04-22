@@ -21,7 +21,6 @@ $Id$
 Little things to be done given enough time and initiative -Hwy
 
 .  <Riedel> walter : have you implemented the motd= thing in the auth block ?
-.  Fix topic bursting to LL servers (broke lately for some reason)
 .  A FAQ
 .  More translations!
 
@@ -55,7 +54,6 @@ it's a leaf.
 * Database Authentication (IAUTH).
 * VMS, NetBSD, Mac OS X (testing and porting).
 * AMD64, Sparc(64) testing and development.
-* GCC4 testing and development
 * Re-work nickname collision code to change
   nicknames on collide rather than issue a
   server kill.

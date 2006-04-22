@@ -28,9 +28,8 @@
 
  https://sourceforge.net/tracker/?atid=409046&group_id=33573&func=browse
 
- Please include a gdb backtrace and a copy of your defaults.h (if changed),
- setup.h, and ircd.conf with any report (with passwords and other sensitive
- information masked).
+ Please include a gdb backtrace and a copy of your setup.h and ircd.conf with
+ any report (with passwords and other sensitive information masked).
 
  For information how to get a gdb backtrace, see INSTALL (near the end of file).
 

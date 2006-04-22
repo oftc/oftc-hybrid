@@ -52,15 +52,19 @@
        undefined results:
 
           * --enable-kqueue - Use the superior kqueue(2) system call as
-            opposed to the default poll(2). This is currently only available
+            opposed to the default poll(2).  This is currently only available
             on FreeBSD 4.1 or higher.
 
           * --enable-devpoll - Enable the superior /dev/poll support on
-            Solaris. Linux /dev/poll is broken and will not work with this
+            Solaris.  Linux /dev/poll is broken and will not work with this
             option.
 
+          * --enable-epoll - Enables epoll(4) Signal I/O system.  This is
+            currently only available on 2.5.44 Linux kernel versions or
+            later.
+
           * --enable-rtsigio - Enable the superior Linux RealTime Signal I/O
-            system. This is currently only available on 2.4 Linux kernel
+            system.  This is currently only available on 2.4 Linux kernel
             versions or later.
 
 	  * --enable-poll - Use POSIX poll(2).
@@ -70,24 +74,24 @@
           * --enable-clobber - Don't preserve the old binaries on make install
 
 	  Incidentally, the order of listing above is the order of auto-
-	  detection in configure. So if you do have kqueue but wish to
+	  detection in configure.  So if you do have kqueue but wish to
 	  enable select(2) instead (bad idea), you must use --enable-select.
 
           * --enable-openssl - Enable the openssl dependent crypto functions.
             This will allow CHALLENGE to work and encrypted links. On systems
             where the configure script can automatically detect OpenSSL, this
-            option is not necessary. If configure cannot find OpenSSL, you
+            option is not necessary.  If configure cannot find OpenSSL, you
             must specify a path with this option
             (--enable-openssl=/path/to/openssl)
 
        These are optional or have default values that may be overridden:
    
-          * --disable-shared-modules - Disable module support. This option is
+          * --disable-shared-modules - Disable module support.  This option is
             more secure, but reduces a lot of the flexibility in hybrid-7.
             This may need to be used on some systems without a working
             dlopen/dlsym.
 
-          * --enable-assert - Enable use of numerous debugging checks. This
+          * --enable-assert - Enable use of numerous debugging checks.  This
             should not be used on any production servers for maximum speed
 	    so as to prevent cores from things that shouldn't normally happen.
 
@@ -201,7 +205,7 @@
 
    1.  Change to the directory containing the core file
 
-   2.  Run gdb on the binary and the core file. With an unmodified Hybrid-7.2
+   2.  Run gdb on the binary and the core file.  With an unmodified Hybrid-7.2
        installation, an example command line is below (in the /usr/local/ircd
        directory)
 
