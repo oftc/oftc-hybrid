@@ -381,13 +381,11 @@ static void
 accept_connection(fde_t *pfd, void *data)
 {
   static time_t last_oper_notice = 0;
-  struct irc_ssaddr sai;
   struct irc_ssaddr addr;
   int fd;
   int pe;
   struct Listener *listener = data;
 
-  memset(&sai, 0, sizeof(sai));
   memset(&addr, 0, sizeof(addr));
 
   assert(listener != NULL);
@@ -404,16 +402,15 @@ accept_connection(fde_t *pfd, void *data)
    * point, just assume that connections cannot
    * be accepted until some old is closed first.
    */
-  while ((fd = comm_accept(listener, &sai)) != -1)
+  while ((fd = comm_accept(listener, &addr)) != -1)
   {
-    memcpy(&addr, &sai, sizeof(struct irc_ssaddr));
-
     /*
      * check for connection limit
      */
     if (number_fd > hard_fdlimit - 10)
     {
       ++ServerStats->is_ref;
+
       /*
        * slow down the whining to opers bit
        */
@@ -434,11 +431,13 @@ accept_connection(fde_t *pfd, void *data)
       break;    /* jump out and re-register a new io request */
     }
 
-    /* Do an initial check we aren't connecting too fast or with too many
-     * from this IP... */
-    if ((pe = conf_connect_allowed(&addr, sai.ss.ss_family)) != 0)
+    /*
+     * Do an initial check we aren't connecting too fast or with too many
+     * from this IP...
+     */
+    if ((pe = conf_connect_allowed(&addr, addr.ss.ss_family)) != 0)
     {
-      ServerStats->is_ref++;
+      ++ServerStats->is_ref;
       if (!(listener->flags & LISTENER_SSL))
         switch (pe)
         {
@@ -458,7 +457,7 @@ accept_connection(fde_t *pfd, void *data)
       continue;    /* drop the one and keep on clearing the queue */
     }
 
-    ServerStats->is_ac++;
+    ++ServerStats->is_ac;
     add_connection(listener, &addr, fd);
   }
 
