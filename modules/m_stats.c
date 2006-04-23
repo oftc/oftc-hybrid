@@ -1002,7 +1002,7 @@ stats_klines(struct Client *source_p)
     struct AccessItem *aconf;
 
     /* search for a kline */
-    if(MyConnect(source_p))
+    if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host,
                                    &source_p->localClient->ip,
 				   CONF_KILL,
@@ -1012,11 +1012,11 @@ stats_klines(struct Client *source_p)
       aconf = find_conf_by_address(source_p->host, NULL, CONF_KILL,
                                    0, source_p->username, NULL);
 
-    if(aconf == NULL)
+    if (aconf == NULL)
       return;
 
     /* dont report a tkline as a kline */
-    if(aconf->flags & CONF_FLAGS_TEMPORARY)
+    if (aconf->flags & CONF_FLAGS_TEMPORARY)
       return;
       
     sendto_one(source_p, form_str(RPL_STATSKLINE), from,
@@ -1203,8 +1203,8 @@ stats_ziplinks(struct Client *source_p)
                  "compression (%lu bytes data/%lu bytes wire)] recv[%.2f%% "
                  "compression (%lu bytes data/%lu bytes wire)]",
                  from, RPL_STATSDEBUG, to, target_p->name,
-		 zipstats.out_ratio, zipstats.out, zipstats.out_wire,
-		 zipstats.in_ratio,  zipstats.in,  zipstats.in_wire);
+                 zipstats.out_ratio, zipstats.out, zipstats.out_wire,
+                 zipstats.in_ratio,  zipstats.in,  zipstats.in_wire);
       ++sent_data;
     }
   }
@@ -1218,9 +1218,7 @@ stats_servlinks(struct Client *source_p)
 {
   uint64_t sendB = 0, recvB = 0;
   time_t uptime = 0;
-  int j = 0;
-  struct Client *target_p = NULL;
-  dlink_node *ptr;
+  dlink_node *ptr = NULL;
 
   if (ConfigServerHide.flatten_links && !IsOper(source_p))
   {
@@ -1231,9 +1229,8 @@ stats_servlinks(struct Client *source_p)
 
   DLINK_FOREACH(ptr, serv_list.head)
   {
-    target_p = ptr->data;
+    struct Client *target_p = ptr->data;
 
-    ++j;
     sendB += target_p->localClient->send.bytes;
     recvB += target_p->localClient->recv.bytes;
 
@@ -1255,28 +1252,28 @@ stats_servlinks(struct Client *source_p)
   recvB >>= 10;
 
   sendto_one(source_p, ":%s %d %s ? :%u total server(s)",
-             from, RPL_STATSDEBUG, to, j);
+             from, RPL_STATSDEBUG, to, dlink_list_length(&serv_list));
   sendto_one(source_p, ":%s %d %s ? :Sent total : %7.2f %s",
              from, RPL_STATSDEBUG, to,
-	     _GMKv((signed)sendB), _GMKs((signed)sendB));
+             _GMKv(sendB), _GMKs(sendB));
   sendto_one(source_p, ":%s %d %s ? :Recv total : %7.2f %s",
              from, RPL_STATSDEBUG, to,
-	     _GMKv((signed)recvB), _GMKs((signed)recvB));
+             _GMKv(recvB), _GMKs(recvB));
 
   uptime = (CurrentTime - me.since);
 
   sendto_one(source_p, ":%s %d %s ? :Server send: %7.2f %s (%4.1f K/s)",
              from, RPL_STATSDEBUG, to,
-	     _GMKv((signed)(me.localClient->send.bytes>>10)),
-             _GMKs((signed)(me.localClient->send.bytes>>10)),
-	     (float)((float)(((signed)me.localClient->send.bytes) >> 10) /
-	     (float)uptime));
+             _GMKv((me.localClient->send.bytes>>10)),
+             _GMKs((me.localClient->send.bytes>>10)),
+             (float)((float)((me.localClient->send.bytes) >> 10) /
+             (float)uptime));
   sendto_one(source_p, ":%s %d %s ? :Server recv: %7.2f %s (%4.1f K/s)",
              from, RPL_STATSDEBUG, to,
-	     _GMKv((signed)(me.localClient->recv.bytes>>10)),
-	     _GMKs((signed)(me.localClient->recv.bytes>>10)),
-	     (float)((float)(((signed)me.localClient->recv.bytes) >> 10) /
-	     (float)uptime));
+             _GMKv((me.localClient->recv.bytes>>10)),
+             _GMKs((me.localClient->recv.bytes>>10)),
+             (float)((float)((me.localClient->recv.bytes) >> 10) /
+             (float)uptime));
 }
 
 static void
