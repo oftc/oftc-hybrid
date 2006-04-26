@@ -742,10 +742,10 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
   if (IsServer(source_p))
     return CAN_SEND_OPV;
 
-  if (MyClient(source_p) && !IsExemptResv(source_p) &&
-      !(IsOper(source_p) && ConfigFileEntry.oper_pass_resv) &&
-      (!hash_find_resv(chptr->chname) == ConfigChannel.restrict_channels))
-    return CAN_SEND_NO;
+  if (MyClient(source_p) && !IsExemptResv(source_p))
+    if (!(IsOper(source_p) && ConfigFileEntry.oper_pass_resv)
+      if (!hash_find_resv(chptr->chname) == ConfigChannel.restrict_channels))
+        return CAN_SEND_NO;
 
   if (ms != NULL || (ms = find_channel_link(source_p, chptr)))
   {
