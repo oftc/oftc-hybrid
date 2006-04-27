@@ -52,7 +52,7 @@ m_mkpasswd(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if (parc < 1)
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "MKPASSWD");
@@ -94,7 +94,7 @@ static void
 mo_mkpasswd(struct Client *client_p, struct Client *source_p,
             int parc, char *parv[])
 {
-  if (parc < 1)
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "MKPASSWD");
