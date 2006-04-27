@@ -1,5 +1,5 @@
 # $Id$
-MKPASSWD [DES|MD5] <plaintext>
+MKPASSWD <plaintext> [DES|MD5]
 
 The MKPASSWD command is essentially the same as the mkpasswd binary
 distributed with hybrid. It can make an encrypted password for use
