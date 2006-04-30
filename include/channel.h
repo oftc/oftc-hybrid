@@ -55,7 +55,6 @@ struct Channel
   time_t last_knock; /*!< don't allow knock to flood */
 
   dlink_list members;
-  dlink_list locmembers;  /*!< local members are here too */
   dlink_list invites;
   dlink_list banlist;
   dlink_list exceptlist;
@@ -75,7 +74,6 @@ struct Channel
 struct Membership
 {
   dlink_node channode;     /*!< link to chptr->members    */
-  dlink_node locchannode;  /*!< link to chptr->locmembers */
   dlink_node usernode;     /*!< link to source_p->channel */
   struct Channel *chptr;   /*!< Channel pointer */
   struct Client *client_p; /*!< Client pointer */

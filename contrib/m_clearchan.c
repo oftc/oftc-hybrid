@@ -163,9 +163,10 @@ kick_list(struct Client *source_p, struct Channel *chptr)
       continue;
 
     /* can reuse m here */
-    DLINK_FOREACH(m, chptr->locmembers.head)
+    DLINK_FOREACH(m, chptr->members.head)
     {
-      if (((struct Membership *)m->data)->client_p == source_p)
+      if (!MyConnect(source_p) ||
+          ((struct Membership *)m->data)->client_p == source_p)
         continue;
       sendto_one(m->data, ":%s!%s@%s KICK %s %s :CLEARCHAN",
                  source_p->name, source_p->username,

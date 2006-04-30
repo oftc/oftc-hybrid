@@ -64,10 +64,6 @@ static char parabuf[MODEBUFLEN];
 void
 init_channels(void)
 {
-  /*
-   * XXX - These should get moved to somwhere else once we have 
-   * a modular channelmode system
-   */
   add_capability("EX", CAP_EX, 1);
   add_capability("IE", CAP_IE, 1);
   add_capability("CHW", CAP_CHW, 1);
@@ -128,10 +124,6 @@ add_user_to_channel(struct Channel *chptr, struct Client *who,
   ms->flags = flags;
 
   dlinkAdd(ms, &ms->channode, &chptr->members);
-
-  if (MyConnect(who))
-    dlinkAdd(ms, &ms->locchannode, &chptr->locmembers);
-
   dlinkAdd(ms, &ms->usernode, &who->channel);
 }
 
@@ -146,19 +138,12 @@ remove_user_from_channel(struct Membership *member)
   struct Channel *chptr = member->chptr;
 
   dlinkDelete(&member->channode, &chptr->members);
-
-  if (MyConnect(client_p))
-    dlinkDelete(&member->locchannode, &chptr->locmembers);
-
   dlinkDelete(&member->usernode, &client_p->channel);
 
   BlockHeapFree(member_heap, member);
 
   if (dlink_list_length(&chptr->members) == 0)
-  {
-    assert(dlink_list_length(&chptr->locmembers) == 0);
     destroy_channel(chptr);
-  }
 }
 
 /* send_members()

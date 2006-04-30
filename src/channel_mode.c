@@ -880,10 +880,12 @@ clear_ban_cache(struct Channel *chptr)
 {
   dlink_node *ptr = NULL;
 
-  DLINK_FOREACH(ptr, chptr->locmembers.head)
+  DLINK_FOREACH(ptr, chptr->members.head)
   {
     struct Membership *ms = ptr->data;
-    ms->flags &= ~(CHFL_BAN_SILENCED|CHFL_BAN_CHECKED);
+
+    if (MyConnect(ms->client_p))
+      ms->flags &= ~(CHFL_BAN_SILENCED|CHFL_BAN_CHECKED);
   }
 }
 
