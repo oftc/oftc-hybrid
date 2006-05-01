@@ -175,7 +175,7 @@ send_caplist(struct Client *sptr, unsigned int set,
 {
   char capbuf[IRCD_BUFSIZE] = "", pfx[16];
   char cmdbuf[IRCD_BUFSIZE] = "";
-  int i, loc, len, flags, pfx_len, clen;
+  unsigned int i, loc, len, flags, pfx_len, clen;
 
   /* set up the buffer for the final LS message... */
   clen = snprintf(cmdbuf, sizeof(capbuf), ":%s CAP %s %s ", me.name,
@@ -377,7 +377,7 @@ cap_list(struct Client *sptr, const char *caplist)
 
 static struct subcmd
 {
-  char *cmd;
+  const char *cmd;
   int (*proc)(struct Client *sptr, const char *caplist);
 } cmdlist[] = {
   { "ACK",   cap_ack   },
@@ -385,7 +385,7 @@ static struct subcmd
   { "END",   cap_end   },
   { "LIST",  cap_list  },
   { "LS",    cap_ls    },
-  { "NAK",   0         },
+  { "NAK",   NULL      },
   { "REQ",   cap_req   }
 };
 

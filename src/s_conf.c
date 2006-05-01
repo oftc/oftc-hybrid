@@ -586,6 +586,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
   struct ClassItem *classitem = NULL;
   char buf[12];
   char *p = NULL;
+  const char *pfx = NULL;
 
   switch (type)
   {
@@ -642,7 +643,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     break;
 
   case RKLINE_TYPE:
-    p = temp ? "Rk" : "RK";
+    pfx = temp ? "Rk" : "RK";
 
     DLINK_FOREACH(ptr, rkconf_items.head)
     {
@@ -652,7 +653,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
         continue;
 
       sendto_one(source_p, form_str(RPL_STATSKLINE), me.name,
-                 source_p->name, p, aconf->host, aconf->user,
+                 source_p->name, pfx, aconf->host, aconf->user,
                  aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");
     }
     break;

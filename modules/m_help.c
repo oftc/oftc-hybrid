@@ -124,6 +124,7 @@ mo_uhelp(struct Client *client_p, struct Client *source_p,
 static void
 dohelp(struct Client *source_p, const char *hpath, char *topic)
 {
+  char h_index[] = "index";
   char path[PATH_MAX + 1];
   struct stat sb;
   int i;
@@ -131,16 +132,16 @@ dohelp(struct Client *source_p, const char *hpath, char *topic)
   if (topic != NULL)
   {
     if (*topic == '\0')
-      topic = "index";
+      topic = h_index;
     else
     {
       /* convert to lower case */
-      for (i = 0; topic[i] != '\0'; i++)
+      for (i = 0; topic[i] != '\0'; ++i)
         topic[i] = ToLower(topic[i]);
     }
   }
   else
-    topic = "index"; /* list available help topics */
+    topic = h_index;    /* list available help topics */
 
   if (strpbrk(topic, "/\\"))
   {

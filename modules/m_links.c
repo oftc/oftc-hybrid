@@ -89,9 +89,7 @@ do_links(struct Client *source_p, int parc, char **parv)
     char clean_mask[2 * HOSTLEN + 4];
     dlink_node *ptr;
 
-    if (mask == NULL)
-      mask = "";
-    if (*mask)       /* only necessary if there is a mask */
+    if (!EmptyString(mask))    /* only necessary if there is a mask */
       mask = collapse(clean_string(clean_mask, (const unsigned char*) mask, 2 * HOSTLEN));
 
     me_name = ID_or_name(&me, source_p->from);
@@ -101,9 +99,9 @@ do_links(struct Client *source_p, int parc, char **parv)
     {
       target_p = ptr->data;
 
-      if (*mask && !match(mask, target_p->name))
+      if (!EmptyString(mask) && !match(mask, target_p->name))
         continue;
-    
+
       if (target_p->info[0])
       {
         if ((p = strchr(target_p->info, ']')))
