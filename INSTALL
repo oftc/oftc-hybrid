@@ -125,14 +125,6 @@
 	    maximum TOPIC length. Note that this must be consistent across your
 	    entire network. Defaults are 9 and 120, respectively.
 
-	  * --with-maxconn - Sets the maximum number of connections the ircd
-	    can support. Note that this also twiddles the HARD_FDLIMIT.
-	    If HARD_FDLIMIT ends up being larger that FD_SETSIZE when using
-	    select() for your I/O loop, s_bsd_select.c will refuse to compile
-	    (and tell you to use poll instead). Take this error's advice and
-	    use --enable-poll or something a bit more efficient. You'll be
-	    happier at the end of the day for it.
-
 	  * --disable-zlib - Build the ircd without ziplinks support.
 
 	  * --disable-gline-voting - This is good for small networks or where
