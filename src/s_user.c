@@ -423,9 +423,10 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   if (IsDead(client_p))
     return;
 
-  if (source_p->id[0] == '\0' && me.id[0])
+  if (me.id[0])
   {
-    char *id = (char *)execute_callback(uid_get_cb, source_p);
+    const char *id = execute_callback(uid_get_cb, source_p);
+
     while (hash_find_id(id) != NULL)
       id = uid_get(NULL);
 
@@ -1113,13 +1114,13 @@ void
 send_umode_out(struct Client *client_p, struct Client *source_p,
                unsigned int old)
 {
-  char buf[IRCD_BUFSIZE];
+  char buf[IRCD_BUFSIZE] = { '\0' };
   dlink_node *ptr = NULL;
 
   send_umode(NULL, source_p, old, IsOperHiddenAdmin(source_p) ?
              SEND_UMODES & ~UMODE_ADMIN : SEND_UMODES, buf);
 
-  if (*buf)
+  if (buf[0])
   {
     DLINK_FOREACH(ptr, serv_list.head)
     {
@@ -1325,13 +1326,19 @@ oper_up(struct Client *source_p)
   send_message_file(source_p, &ConfigFileEntry.opermotd);
 }
 
-/*
- * Quick and dirty UID code for new proposed SID on EFnet
- *
- */
+static char new_uid[TOTALSIDUID + 1];     /* allow for \0 */
 
-static char new_uid[TOTALSIDUID+1];     /* allow for \0 */
-static void add_one_to_uid(int i);
+int
+valid_sid(const char *sid)
+{
+
+  if (strlen(sid) == IRC_MAXSID)
+    if (IsDigit(*sid))
+      if (IsUpper(*(sid + 1)) && IsUpper(*(sid + 2)))
+        return 1;
+
+  return 0;
+}
 
 /*
  * init_uid()
@@ -1351,10 +1358,9 @@ init_uid(void)
 
   if (ServerInfo.sid != NULL)
   {
-    memcpy(new_uid, ServerInfo.sid, IRCD_MIN(strlen(ServerInfo.sid),
-                                             IRC_MAXSID));
-    memcpy(&me.id, ServerInfo.sid, IRCD_MIN(strlen(ServerInfo.sid),
-                                            IRC_MAXSID));
+    strlcpy(new_uid, ServerInfo.sid, sizeof(new_uid));
+    strlcpy(me.id, ServerInfo.sid, sizeof(me.id));
+
     hash_add_id(&me);
   }
 
@@ -1362,30 +1368,16 @@ init_uid(void)
     if (new_uid[i] == '\0') 
       new_uid[i] = 'A';
 
-  /* XXX if IRC_MAXUID != 6, this will have to be rewritten */
+  /* NOTE: if IRC_MAXUID != 6, this will have to be rewritten */
   /* Yes nenolod, I have known it was off by one ever since I wrote it
    * But *JUST* for you, though, it really doesn't look as *pretty*
    * -Dianora
    */
-  memcpy(new_uid+IRC_MAXSID, "AAAAA@", IRC_MAXUID);
+  memcpy(new_uid + IRC_MAXSID, "AAAAA@", IRC_MAXUID);
 
   entering_umode_cb = register_callback("entering_umode", NULL);
   umode_cb = register_callback("changing_umode", change_simple_umode);
   uid_get_cb = register_callback("uid_get", uid_get);
-}
-
-/*
- * uid_get
- *
- * inputs	- struct Client *
- * output	- new UID is returned to caller
- * side effects	- new_uid is incremented by one.
- */
-static void *
-uid_get(va_list args)
-{
-  add_one_to_uid(TOTALSIDUID-1);    /* index from 0 */
-  return ((void *) new_uid);
 }
 
 /*
@@ -1408,16 +1400,31 @@ add_one_to_uid(int i)
       new_uid[i] = 'A';
       add_one_to_uid(i-1);
     }
-    else new_uid[i] = new_uid[i] + 1;
+    else
+      ++new_uid[i];
   }
   else
   {
-    /* XXX if IRC_MAXUID != 6, this will have to be rewritten */
+    /* NOTE: if IRC_MAXUID != 6, this will have to be rewritten */
     if (new_uid[i] == 'Z')
-      memcpy(new_uid+IRC_MAXSID, "AAAAAA", IRC_MAXUID);
+      memcpy(new_uid + IRC_MAXSID, "AAAAAA", IRC_MAXUID);
     else
-      new_uid[i] = new_uid[i] + 1;
+      ++new_uid[i];
   }
+}
+
+/*
+ * uid_get
+ *
+ * inputs       - struct Client *
+ * output       - new UID is returned to caller
+ * side effects - new_uid is incremented by one.
+ */
+static void *
+uid_get(va_list args)
+{
+  add_one_to_uid(TOTALSIDUID - 1);    /* index from 0 */
+  return new_uid;
 }
 
 /*

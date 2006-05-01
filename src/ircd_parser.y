@@ -616,11 +616,8 @@ serverinfo_sid: IRCD_SID '=' QSTRING ';'
   /* this isn't rehashable */
   if (ypass == 2 && !ServerInfo.sid)
   {
-    if ((strlen(yylval.string) == IRC_MAXSID) && IsDigit(yylval.string[0])
-	&& IsAlNum(yylval.string[1]) && IsAlNum(yylval.string[2]))
-    {
+    if (valid_sid(yylval.string))
       DupString(ServerInfo.sid, yylval.string);
-    }
     else
     {
       ilog(L_ERROR, "Ignoring config file entry SID -- invalid SID. Aborting.");
