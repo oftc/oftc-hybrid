@@ -4,6 +4,7 @@ o) Added missing documentation for connect::vhost
 o) Fixed problem with G-Line voting
 o) Fixed "STATS ?" so it doesn't report negative traffic statistics
 o) Fixed core in m_mkpasswd.c  (contrib)
+o) Reduced memory usage for channel members
 
 
 -- ircd-hybrid-7.2.1 RELNOTES
