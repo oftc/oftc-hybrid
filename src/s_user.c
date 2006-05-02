@@ -1334,7 +1334,7 @@ valid_sid(const char *sid)
 
   if (strlen(sid) == IRC_MAXSID)
     if (IsDigit(*sid))
-      if (IsUpper(*(sid + 1)) && IsUpper(*(sid + 2)))
+      if (IsAlNum(*(sid + 1)) && IsAlNum(*(sid + 2)))
         return 1;
 
   return 0;

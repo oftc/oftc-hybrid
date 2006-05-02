@@ -207,8 +207,8 @@ log_user_exit(struct Client *source_p)
   if (IsClient(source_p))
   {
     ilog(L_INFO, "%s (%3u:%02u:%02u): %s!%s@%s %llu/%llu",
-         myctime(source_p->firsttime), on_for / 3600,
-         (on_for % 3600)/60, on_for % 60,
+         myctime(source_p->firsttime), (unsigned int)(on_for / 3600),
+         (unsigned int)((on_for % 3600)/60), (unsigned int)(on_for % 60),
          source_p->name, source_p->username, source_p->host,
          source_p->localClient->send.bytes>>10,
          source_p->localClient->recv.bytes>>10);
@@ -240,9 +240,9 @@ log_user_exit(struct Client *source_p)
         size_t nbytes = ircsprintf(linebuf,
 		   "%s (%3u:%02u:%02u): %s!%s@%s %llu/%llu\n",
 		   myctime(source_p->firsttime),
-		   on_for / 3600,
-		   (on_for % 3600)/60,
-		   on_for % 60,
+		   (unsigned int)(on_for / 3600),
+		   (unsigned int)((on_for % 3600)/60),
+		   (unsigned int)(on_for % 60),
 		   source_p->name, source_p->username, source_p->host,
 		   source_p->localClient->send.bytes>>10,
 		   source_p->localClient->recv.bytes>>10);
