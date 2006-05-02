@@ -114,10 +114,11 @@ write_log(const char *message)
 
 #ifdef _WIN32
   nbytes = snprintf(buf, sizeof(buf), "[%s] %s\r\n",
+                    smalldate(CurrentTime), message);
 #else
   nbytes = snprintf(buf, sizeof(buf), "[%s] %s\n",
-#endif
                     smalldate(CurrentTime), message);
+#endif
   fbputs(buf, logFile, nbytes);
 }
    
@@ -205,14 +206,12 @@ log_user_exit(struct Client *source_p)
 #ifdef SYSLOG_USERS
   if (IsClient(source_p))
   {
-    ilog(L_INFO, "%s (%3ld:%02ld:%02ld): %s!%s@%s %llu/%llu\n",
-         myctime(source_p->firsttime),
-	  (signed long) on_for / 3600,
-	  (signed long) (on_for % 3600)/60,
-	  (signed long) on_for % 60,
-	  source_p->name, source_p->username, source_p->host,
-	  source_p->localClient->send.bytes>>10,
-	  source_p->localClient->recv.bytes>>10);
+    ilog(L_INFO, "%s (%3u:%02u:%02u): %s!%s@%s %llu/%llu",
+         myctime(source_p->firsttime), on_for / 3600,
+         (on_for % 3600)/60, on_for % 60,
+         source_p->name, source_p->username, source_p->host,
+         source_p->localClient->send.bytes>>10,
+         source_p->localClient->recv.bytes>>10);
     }
 #else
   {
@@ -239,11 +238,11 @@ log_user_exit(struct Client *source_p)
       if (user_log_fb != NULL)
       {
         size_t nbytes = ircsprintf(linebuf,
-		   "%s (%3ld:%02ld:%02ld): %s!%s@%s %llu/%llu\n",
+		   "%s (%3u:%02u:%02u): %s!%s@%s %llu/%llu\n",
 		   myctime(source_p->firsttime),
-		   (signed long) on_for / 3600,
-		   (signed long) (on_for % 3600)/60,
-		   (signed long) on_for % 60,
+		   on_for / 3600,
+		   (on_for % 3600)/60,
+		   on_for % 60,
 		   source_p->name, source_p->username, source_p->host,
 		   source_p->localClient->send.bytes>>10,
 		   source_p->localClient->recv.bytes>>10);
