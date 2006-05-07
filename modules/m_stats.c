@@ -757,6 +757,13 @@ stats_exempt(struct Client *source_p)
   struct AccessItem *aconf;
   int i;
 
+  if (ConfigFileEntry.stats_e_disabled)
+  {
+    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+               from, to);
+    return;
+  }
+
   for (i = 0; i < ATABLE_SIZE; i++)
   {
     for (arec = atable[i]; arec; arec=arec->next)

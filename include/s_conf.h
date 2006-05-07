@@ -339,6 +339,7 @@ struct config_file_entry
   int kline_with_reason;
   int warn_no_nline;
   int invisible_on_connect;
+  int stats_e_disabled;
   int stats_o_oper_only;
   int stats_k_oper_only;
   int stats_i_oper_only;

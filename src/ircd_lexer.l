@@ -332,6 +332,7 @@ kline_reason		{ return KLINE_REASON; }
 kline_with_reason       { return KLINE_WITH_REASON; }
 warn_no_nline           { return WARN_NO_NLINE; }
 
+stats_e_disabled        { return STATS_E_DISABLED; }
 stats_o_oper_only       { return STATS_O_OPER_ONLY; }
 stats_k_oper_only	{ return STATS_K_OPER_ONLY; }
 stats_i_oper_only	{ return STATS_I_OPER_ONLY; }

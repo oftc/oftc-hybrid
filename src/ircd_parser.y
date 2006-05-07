@@ -315,6 +315,7 @@ unhook_hub_leaf_confs(void)
 %token  SILENT
 %token  SPOOF
 %token  SPOOF_NOTICE
+%token  STATS_E_DISABLED
 %token  STATS_I_OPER_ONLY
 %token  STATS_K_OPER_ONLY
 %token  STATS_O_OPER_ONLY
@@ -3126,7 +3127,7 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_disable_auth | general_burst_away |
 		    general_tkline_expire_notices | general_gline_min_cidr |
                     general_gline_min_cidr6 | general_use_whois_actually |
-		    general_reject_hold_time |
+		    general_reject_hold_time | general_stats_e_disabled |
 		    error;
 
 
@@ -3255,6 +3256,11 @@ general_invisible_on_connect: INVISIBLE_ON_CONNECT '=' TBOOL ';'
 general_warn_no_nline: WARN_NO_NLINE '=' TBOOL ';'
 {
   ConfigFileEntry.warn_no_nline = yylval.number;
+};
+
+general_stats_e_disabled: STATS_E_DISABLED '=' TBOOL ';'
+{
+  ConfigFileEntry.stats_e_disabled = yylval.number;
 };
 
 general_stats_o_oper_only: STATS_O_OPER_ONLY '=' TBOOL ';'

@@ -216,71 +216,72 @@
      SILENT = 442,
      SPOOF = 443,
      SPOOF_NOTICE = 444,
-     STATS_I_OPER_ONLY = 445,
-     STATS_K_OPER_ONLY = 446,
-     STATS_O_OPER_ONLY = 447,
-     STATS_P_OPER_ONLY = 448,
-     TBOOL = 449,
-     TMASKED = 450,
-     T_REJECT = 451,
-     TS_MAX_DELTA = 452,
-     TS_WARN_DELTA = 453,
-     TWODOTS = 454,
-     T_ALL = 455,
-     T_BOTS = 456,
-     T_SOFTCALLERID = 457,
-     T_CALLERID = 458,
-     T_CCONN = 459,
-     T_CLIENT_FLOOD = 460,
-     T_DEAF = 461,
-     T_DEBUG = 462,
-     T_DRONE = 463,
-     T_EXTERNAL = 464,
-     T_FULL = 465,
-     T_INVISIBLE = 466,
-     T_IPV4 = 467,
-     T_IPV6 = 468,
-     T_LOCOPS = 469,
-     T_LOGPATH = 470,
-     T_L_CRIT = 471,
-     T_L_DEBUG = 472,
-     T_L_ERROR = 473,
-     T_L_INFO = 474,
-     T_L_NOTICE = 475,
-     T_L_TRACE = 476,
-     T_L_WARN = 477,
-     T_MAX_CLIENTS = 478,
-     T_NCHANGE = 479,
-     T_OPERWALL = 480,
-     T_REJ = 481,
-     T_SERVNOTICE = 482,
-     T_SKILL = 483,
-     T_SPY = 484,
-     T_SSL = 485,
-     T_UMODES = 486,
-     T_UNAUTH = 487,
-     T_UNRESV = 488,
-     T_UNXLINE = 489,
-     T_WALLOP = 490,
-     THROTTLE_TIME = 491,
-     TOPICBURST = 492,
-     TRUE_NO_OPER_FLOOD = 493,
-     TKLINE = 494,
-     TXLINE = 495,
-     TRESV = 496,
-     UNKLINE = 497,
-     USER = 498,
-     USE_EGD = 499,
-     USE_EXCEPT = 500,
-     USE_INVEX = 501,
-     USE_KNOCK = 502,
-     USE_LOGGING = 503,
-     USE_WHOIS_ACTUALLY = 504,
-     VHOST = 505,
-     VHOST6 = 506,
-     XLINE = 507,
-     WARN = 508,
-     WARN_NO_NLINE = 509
+     STATS_E_DISABLED = 445,
+     STATS_I_OPER_ONLY = 446,
+     STATS_K_OPER_ONLY = 447,
+     STATS_O_OPER_ONLY = 448,
+     STATS_P_OPER_ONLY = 449,
+     TBOOL = 450,
+     TMASKED = 451,
+     T_REJECT = 452,
+     TS_MAX_DELTA = 453,
+     TS_WARN_DELTA = 454,
+     TWODOTS = 455,
+     T_ALL = 456,
+     T_BOTS = 457,
+     T_SOFTCALLERID = 458,
+     T_CALLERID = 459,
+     T_CCONN = 460,
+     T_CLIENT_FLOOD = 461,
+     T_DEAF = 462,
+     T_DEBUG = 463,
+     T_DRONE = 464,
+     T_EXTERNAL = 465,
+     T_FULL = 466,
+     T_INVISIBLE = 467,
+     T_IPV4 = 468,
+     T_IPV6 = 469,
+     T_LOCOPS = 470,
+     T_LOGPATH = 471,
+     T_L_CRIT = 472,
+     T_L_DEBUG = 473,
+     T_L_ERROR = 474,
+     T_L_INFO = 475,
+     T_L_NOTICE = 476,
+     T_L_TRACE = 477,
+     T_L_WARN = 478,
+     T_MAX_CLIENTS = 479,
+     T_NCHANGE = 480,
+     T_OPERWALL = 481,
+     T_REJ = 482,
+     T_SERVNOTICE = 483,
+     T_SKILL = 484,
+     T_SPY = 485,
+     T_SSL = 486,
+     T_UMODES = 487,
+     T_UNAUTH = 488,
+     T_UNRESV = 489,
+     T_UNXLINE = 490,
+     T_WALLOP = 491,
+     THROTTLE_TIME = 492,
+     TOPICBURST = 493,
+     TRUE_NO_OPER_FLOOD = 494,
+     TKLINE = 495,
+     TXLINE = 496,
+     TRESV = 497,
+     UNKLINE = 498,
+     USER = 499,
+     USE_EGD = 500,
+     USE_EXCEPT = 501,
+     USE_INVEX = 502,
+     USE_KNOCK = 503,
+     USE_LOGGING = 504,
+     USE_WHOIS_ACTUALLY = 505,
+     VHOST = 506,
+     VHOST6 = 507,
+     XLINE = 508,
+     WARN = 509,
+     WARN_NO_NLINE = 510
    };
 #endif
 /* Tokens.  */
@@ -471,71 +472,72 @@
 #define SILENT 442
 #define SPOOF 443
 #define SPOOF_NOTICE 444
-#define STATS_I_OPER_ONLY 445
-#define STATS_K_OPER_ONLY 446
-#define STATS_O_OPER_ONLY 447
-#define STATS_P_OPER_ONLY 448
-#define TBOOL 449
-#define TMASKED 450
-#define T_REJECT 451
-#define TS_MAX_DELTA 452
-#define TS_WARN_DELTA 453
-#define TWODOTS 454
-#define T_ALL 455
-#define T_BOTS 456
-#define T_SOFTCALLERID 457
-#define T_CALLERID 458
-#define T_CCONN 459
-#define T_CLIENT_FLOOD 460
-#define T_DEAF 461
-#define T_DEBUG 462
-#define T_DRONE 463
-#define T_EXTERNAL 464
-#define T_FULL 465
-#define T_INVISIBLE 466
-#define T_IPV4 467
-#define T_IPV6 468
-#define T_LOCOPS 469
-#define T_LOGPATH 470
-#define T_L_CRIT 471
-#define T_L_DEBUG 472
-#define T_L_ERROR 473
-#define T_L_INFO 474
-#define T_L_NOTICE 475
-#define T_L_TRACE 476
-#define T_L_WARN 477
-#define T_MAX_CLIENTS 478
-#define T_NCHANGE 479
-#define T_OPERWALL 480
-#define T_REJ 481
-#define T_SERVNOTICE 482
-#define T_SKILL 483
-#define T_SPY 484
-#define T_SSL 485
-#define T_UMODES 486
-#define T_UNAUTH 487
-#define T_UNRESV 488
-#define T_UNXLINE 489
-#define T_WALLOP 490
-#define THROTTLE_TIME 491
-#define TOPICBURST 492
-#define TRUE_NO_OPER_FLOOD 493
-#define TKLINE 494
-#define TXLINE 495
-#define TRESV 496
-#define UNKLINE 497
-#define USER 498
-#define USE_EGD 499
-#define USE_EXCEPT 500
-#define USE_INVEX 501
-#define USE_KNOCK 502
-#define USE_LOGGING 503
-#define USE_WHOIS_ACTUALLY 504
-#define VHOST 505
-#define VHOST6 506
-#define XLINE 507
-#define WARN 508
-#define WARN_NO_NLINE 509
+#define STATS_E_DISABLED 445
+#define STATS_I_OPER_ONLY 446
+#define STATS_K_OPER_ONLY 447
+#define STATS_O_OPER_ONLY 448
+#define STATS_P_OPER_ONLY 449
+#define TBOOL 450
+#define TMASKED 451
+#define T_REJECT 452
+#define TS_MAX_DELTA 453
+#define TS_WARN_DELTA 454
+#define TWODOTS 455
+#define T_ALL 456
+#define T_BOTS 457
+#define T_SOFTCALLERID 458
+#define T_CALLERID 459
+#define T_CCONN 460
+#define T_CLIENT_FLOOD 461
+#define T_DEAF 462
+#define T_DEBUG 463
+#define T_DRONE 464
+#define T_EXTERNAL 465
+#define T_FULL 466
+#define T_INVISIBLE 467
+#define T_IPV4 468
+#define T_IPV6 469
+#define T_LOCOPS 470
+#define T_LOGPATH 471
+#define T_L_CRIT 472
+#define T_L_DEBUG 473
+#define T_L_ERROR 474
+#define T_L_INFO 475
+#define T_L_NOTICE 476
+#define T_L_TRACE 477
+#define T_L_WARN 478
+#define T_MAX_CLIENTS 479
+#define T_NCHANGE 480
+#define T_OPERWALL 481
+#define T_REJ 482
+#define T_SERVNOTICE 483
+#define T_SKILL 484
+#define T_SPY 485
+#define T_SSL 486
+#define T_UMODES 487
+#define T_UNAUTH 488
+#define T_UNRESV 489
+#define T_UNXLINE 490
+#define T_WALLOP 491
+#define THROTTLE_TIME 492
+#define TOPICBURST 493
+#define TRUE_NO_OPER_FLOOD 494
+#define TKLINE 495
+#define TXLINE 496
+#define TRESV 497
+#define UNKLINE 498
+#define USER 499
+#define USE_EGD 500
+#define USE_EXCEPT 501
+#define USE_INVEX 502
+#define USE_KNOCK 503
+#define USE_LOGGING 504
+#define USE_WHOIS_ACTUALLY 505
+#define VHOST 506
+#define VHOST6 507
+#define XLINE 508
+#define WARN 509
+#define WARN_NO_NLINE 510
 
 
 
@@ -547,7 +549,7 @@ typedef union YYSTYPE {
   char *string;
 } YYSTYPE;
 /* Line 1447 of yacc.c.  */
-#line 551 "y.tab.h"
+#line 553 "y.tab.h"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
