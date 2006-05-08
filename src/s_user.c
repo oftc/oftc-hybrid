@@ -296,6 +296,8 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   assert(source_p->username != username);
   assert(!source_p->localClient->registration);
 
+  ClearCap(client_p, CAP_TS6);
+
   if (ConfigFileEntry.ping_cookie)
   {
     if (!IsPingSent(source_p) &&

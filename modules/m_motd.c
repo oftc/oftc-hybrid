@@ -37,9 +37,9 @@
 #include "modules.h"
 #include "s_conf.h"
 
-static void mr_motd(struct Client *, struct Client *, int, char **);
-static void m_motd(struct Client*, struct Client*, int, char**);
-static void mo_motd(struct Client*, struct Client*, int, char**);
+static void mr_motd(struct Client *, struct Client *, int, char *[]);
+static void m_motd(struct Client*, struct Client*, int, char *[]);
+static void mo_motd(struct Client*, struct Client*, int, char *[]);
 
 /*
  * note regarding mo_motd being used twice:
@@ -89,6 +89,7 @@ static void
 mr_motd(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
+  ClearCap(client_p, CAP_TS6);
   /* allow unregistered clients to see the motd, but exit them */
   send_message_file(source_p, &ConfigFileEntry.motd);
   exit_client(source_p, source_p, "Client Exit after MOTD");
@@ -108,18 +109,18 @@ m_motd(struct Client *client_p, struct Client *source_p,
   if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
-    sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name);
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
+               me.name, source_p->name);
     return;
   }
-  else
-    last_used = CurrentTime;
+
+  last_used = CurrentTime;
 
   /* This is safe enough to use during non hidden server mode */
   if (!ConfigFileEntry.disable_remote && !ConfigServerHide.hide_servers)
-  {
-    if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1,parc,parv)!=HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1, parc, parv)
+                    != HUNTED_ISME)
       return;
-  }
 
 #ifdef STATIC_MODULES
   send_message_file(source_p, &ConfigFileEntry.motd);
