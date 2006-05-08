@@ -184,7 +184,7 @@ newblock(BlockHeap *bh)
     data = (void *)((size_t)offset + sizeof(MemBlock));
 
     dlinkAdd(data, &newblk->self, &b->free_list);
-    offset = (unsigned char *)((unsigned char *)offset + bh->elemSize + sizeof(MemBlock));
+    offset = (void *)((size_t)offset + bh->elemSize + sizeof(MemBlock));
   }
 
   ++bh->blocksAllocated;
