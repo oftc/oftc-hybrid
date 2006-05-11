@@ -67,7 +67,6 @@ static char umode_buffer[IRCD_BUFSIZE];
 static void user_welcome(struct Client *);
 static void report_and_set_user_flags(struct Client *, const struct AccessItem *);
 static int check_xline(struct Client *);
-static int check_regexp_xline(struct Client *);
 static void introduce_client(struct Client *, struct Client *);
 static void *uid_get(va_list);
 
@@ -418,8 +417,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
   assert(source_p == client_p);
 
-  /* end of valid user name check */
-  if (check_xline(source_p) || check_regexp_xline(source_p))
+  if (check_xline(source_p))
     return;
 
   if (IsDead(client_p))
@@ -1210,50 +1208,11 @@ user_welcome(struct Client *source_p)
 static int
 check_xline(struct Client *source_p)
 {
-  struct ConfItem *conf;
-  struct MatchItem *xconf;
-  const char *reason;
-
-  if ((conf = find_matching_name_conf(XLINE_TYPE, source_p->info,
-                                      NULL, NULL, 0)) != NULL)
-  {
-    xconf = map_to_conf(conf);
-    xconf->count++;
-
-    if (xconf->reason != NULL)
-      reason = xconf->reason;
-    else
-      reason = "No Reason";
-
-    sendto_realops_flags(UMODE_REJ, L_ALL,
-                         "X-line Rejecting [%s] [%s], user %s [%s]",
-                         source_p->info, reason,
-                         get_client_name(source_p, HIDE_IP),
-                         source_p->sockhost);
-
-    ServerStats->is_ref++;      
-    if (REJECT_HOLD_TIME > 0)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Bad user info",
-                 me.name, source_p->name);
-      source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
-      SetCaptured(source_p);
-    }
-    else
-      exit_client(source_p, &me, "Bad user info");
-    return 1;
-  }
-
-  return 0;
-}
-
-static int
-check_regexp_xline(struct Client *source_p)
-{
   struct ConfItem *conf = NULL;
   const char *reason = NULL;
 
-  if ((conf = find_matching_name_conf(RXLINE_TYPE, source_p->info, NULL, NULL, 0)))
+  if ((conf = find_matching_name_conf(XLINE_TYPE, source_p->info, NULL, NULL, 0)) ||
+      (conf = find_matching_name_conf(RXLINE_TYPE, source_p->info, NULL, NULL, 0)))
   {
     struct MatchItem *reg = map_to_conf(conf);
 
@@ -1265,13 +1224,21 @@ check_regexp_xline(struct Client *source_p)
       reason = "No Reason";
 
     sendto_realops_flags(UMODE_REJ, L_ALL,
-                         "X-line (REGEX) Rejecting [%s] [%s], user %s [%s]",
+                         "X-line Rejecting [%s] [%s], user %s [%s]",
                          source_p->info, reason,
                          get_client_name(source_p, HIDE_IP),
                          source_p->sockhost);
 
     ServerStats->is_ref++;
-    exit_client(source_p, &me, "Bad user info");
+    if (REJECT_HOLD_TIME > 0)
+    {
+      sendto_one(source_p, ":%s NOTICE %s :Bad user info",
+                 me.name, source_p->name);
+      source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
+      SetCaptured(source_p);
+    }
+    else
+      exit_client(source_p, &me, "Bad user info");
     return 1;
   }
 
