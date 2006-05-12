@@ -642,7 +642,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     break;
 
   case RKLINE_TYPE:
-    pfx = temp ? "Rk" : "RK";
+    pfx = temp ? "kR" : "KR";
 
     DLINK_FOREACH(ptr, rkconf_items.head)
     {
