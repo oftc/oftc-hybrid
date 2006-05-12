@@ -26,7 +26,7 @@
 #include "common.h"
 #include "ircd_signal.h"
 #include "ircd.h"         /* dorehash */
-#include "restart.h"      /* server_reboot */
+#include "restart.h"      /* server_die */
 #include "s_log.h"
 #include "memory.h"
 #include "s_bsd.h"
@@ -78,10 +78,7 @@ sigchld_handler(int sig)
 static void 
 sigint_handler(int sig)
 {
-  if (server_state.foreground)
-    server_die("SIGINT received", NO);
-  else
-    restart("SIGINT received");
+  server_die("SIGINT received", !server_state.foreground);
 }
 
 /*
@@ -94,11 +91,16 @@ setup_signals(void)
 
   act.sa_flags = 0;
   act.sa_handler = SIG_IGN;
+
   sigemptyset(&act.sa_mask);
   sigaddset(&act.sa_mask, SIGPIPE);
   sigaddset(&act.sa_mask, SIGALRM);
 #ifdef SIGTRAP
   sigaddset(&act.sa_mask, SIGTRAP);
+#endif
+#ifdef SIGXFSZ
+  sigaddset(&act.sa_mask, SIGXFSZ);
+  sigaction(SIGXFSZ, &act, 0);
 #endif
 
 #ifdef SIGWINCH
