@@ -543,7 +543,7 @@
 
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 134 "ircd_parser.y"
+#line 135 "ircd_parser.y"
 typedef union YYSTYPE {
   int number;
   char *string;

@@ -87,9 +87,12 @@ mo_killhost(struct Client *client_p, struct Client *source_p,
   char *host = NULL;
   char *reason = NULL;
   char bufhost[IRCD_BUFSIZE];
-  char buf_nuh[NICKLEN + USERLEN + HOSTLEN + 3];
-  char def_reason[] = "No reason specified";
+  char conf_nick[NICKLEN + 1];
+  char conf_user[USERLEN + 1];
+  char conf_host[HOSTLEN + 1];
+  char def_reason[] = "No reason";
   unsigned int count = 0;
+  struct split_nuh_item nuh;
 
   if (!(IsOperK(source_p) || IsOperGlobalKill(source_p)))
   {
@@ -98,11 +101,19 @@ mo_killhost(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  strlcpy(buf_nuh, parv[1], sizeof(buf_nuh));
-  split_nuh(buf_nuh, &nick, &user, &host);
+  nuh.nuhmask  = parv[1];
+  nuh.nickptr  = conf_nick;
+  nuh.userptr  = conf_user;
+  nuh.hostptr  = conf_host;
+
+  nuh.nicksize = sizeof(conf_nick);
+  nuh.usersize = sizeof(conf_user);
+  nuh.hostsize = sizeof(conf_host);
+
+  split_nuh(&nuh);
 
   if (!valid_wild_card(source_p, YES, 3, nick, user, host))
-    goto cleanup;
+    return;
 
   if (!EmptyString(parv[2]))
   {
@@ -158,10 +169,6 @@ mo_killhost(struct Client *client_p, struct Client *source_p,
 
   sendto_one(source_p,":%s NOTICE %s :%u clients killed",
              me.name, source_p->name, count);
-cleanup:
-  MyFree(nick);
-  MyFree(user);
-  MyFree(host);
 }
 
 static void

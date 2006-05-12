@@ -40,17 +40,17 @@
 #include "hash.h"
 #include "modules.h"
 
-static void mo_testline(struct Client*, struct Client*, int, char**);
-static void mo_testgecos(struct Client*, struct Client*, int, char**);
+static void mo_testline(struct Client *, struct Client *, int, char *[]);
+static void mo_testgecos(struct Client *, struct Client *, int, char *[]);
 
 struct Message testline_msgtab = {
   "TESTLINE", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testline, m_ignore}
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testline, m_ignore }
 };
 
 struct Message testgecos_msgtab = {
   "TESTGECOS", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testgecos, m_ignore}
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testgecos, m_ignore }
 };
  
 #ifndef STATIC_MODULES
@@ -88,9 +88,10 @@ static void
 mo_testline(struct Client *client_p, struct Client *source_p,
             int parc, char *parv[])
 {
-  char *orig_parv1;
-  char *given_name;
-  char *given_host = NULL;
+  char *orig_parv1 = NULL;
+  /* IRCD_BUFSIZE to allow things like *u*s*e*r*n*a*m*e* etc. */
+  char given_name[IRCD_BUFSIZE];
+  char given_host[IRCD_BUFSIZE];
   struct ConfItem *conf;
   struct AccessItem *aconf;
   struct irc_ssaddr ip;
@@ -98,34 +99,40 @@ mo_testline(struct Client *client_p, struct Client *source_p,
   int t;
   int matches = 0;
   char userhost[HOSTLEN + USERLEN + 2];
+  struct split_nuh_item nuh;
 
-  if (parc < 2 || EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, ":%s NOTICE %s :usage: user@host|ip [password]",
                me.name, source_p->name);
     return;
   }
 
-  given_name = parv[1];
-
-  if (IsChanPrefix(*given_name))	/* Might be channel resv */
+  if (IsChanPrefix(*parv[1]))    /* Might be channel resv */
   {
-    struct ResvChannel *chptr;
-    
-    chptr = match_find_resv(given_name);
-    if (chptr != NULL)
+    const struct ResvChannel *chptr = NULL;
+
+    if ((chptr = match_find_resv(parv[1])))
     {
-      sendto_one(source_p,
-		 form_str(RPL_TESTLINE),
-		 me.name, source_p->name,
-		 'Q', 0, chptr->name, 
-		 chptr->reason ? chptr->reason : "No reason", "" );
+      sendto_one(source_p, form_str(RPL_TESTLINE),
+                 me.name, source_p->name, 'Q', 0, chptr->name, 
+                 chptr->reason ? chptr->reason : "No reason", "");
       return;
     }
   }
 
   DupString(orig_parv1,parv[1]);
-  split_nuh(given_name, NULL, &given_name, &given_host);
+
+  nuh.nuhmask  = parv[1];
+  nuh.nickptr  = NULL;
+  nuh.userptr  = given_name;
+  nuh.hostptr  = given_host;
+
+  nuh.nicksize = 0;
+  nuh.usersize = sizeof(given_name);
+  nuh.hostsize = sizeof(given_host);
+
+  split_nuh(&nuh);
 
   t = parse_netmask(given_host, &ip, &host_mask);
 
@@ -133,32 +140,31 @@ mo_testline(struct Client *client_p, struct Client *source_p,
   {
     aconf = find_dline_conf(&ip, 
 #ifdef IPV6 
-			    (t == HM_IPV6) ? AF_INET6 : AF_INET
+                            (t == HM_IPV6) ? AF_INET6 : AF_INET
 #else
-			    AF_INET
+                            AF_INET
 #endif
-			    );
+                            );
     if (aconf != NULL)
     {
       conf = unmap_conf_item(aconf);
 
       if (aconf->status & CONF_EXEMPTDLINE)
       {
-	sendto_one(source_p,
-		   ":%s NOTICE %s :Exempt D-line host [%s] reason [%s]",
-		   me.name, source_p->name, aconf->host, aconf->reason);
-	++matches;
+        sendto_one(source_p,
+                   ":%s NOTICE %s :Exempt D-line host [%s] reason [%s]",
+                   me.name, source_p->name, aconf->host, aconf->reason);
+        ++matches;
       }
       else
       {
-	sendto_one(source_p,
-		   form_str(RPL_TESTLINE),
-		   me.name, source_p->name,
-		   IsConfTemporary(aconf) ? 'd' : 'D',
-		   IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
-		   : 0L,
-		   aconf->host, aconf->reason, aconf->oper_reason);
-	++matches;
+        sendto_one(source_p, form_str(RPL_TESTLINE),
+                   me.name, source_p->name,
+                   IsConfTemporary(aconf) ? 'd' : 'D',
+                   IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
+                   : 0L,
+                   aconf->host, aconf->reason, aconf->oper_reason);
+        ++matches;
       }
     }
   }
@@ -168,13 +174,13 @@ mo_testline(struct Client *client_p, struct Client *source_p,
   {
     snprintf(userhost, sizeof(userhost), "%s@%s", aconf->user, aconf->host);
     sendto_one(source_p, form_str(RPL_TESTLINE),
-	       me.name, source_p->name,
-	       IsConfTemporary(aconf) ? 'k' : 'K',
-	       IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
-	       : 0L,
-	       userhost, 
-	       aconf->passwd ? aconf->passwd : "No reason",
-	       aconf->oper_reason ? aconf->oper_reason : "");
+               me.name, source_p->name,
+               IsConfTemporary(aconf) ? 'k' : 'K',
+               IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
+               : 0L,
+               userhost, 
+               aconf->passwd ? aconf->passwd : "No reason",
+               aconf->oper_reason ? aconf->oper_reason : "");
     ++matches;
   }
 
@@ -199,20 +205,20 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     if (aconf->status & CONF_CLIENT)
     {
       sendto_one(source_p, form_str(RPL_TESTLINE),
-		 me.name, source_p->name,
-		 'I', 0L, userhost,
-		 aconf->class_ptr ? aconf->class_ptr->name : "<default>", "");
+                 me.name, source_p->name,
+                 'I', 0L, userhost,
+                 aconf->class_ptr ? aconf->class_ptr->name : "<default>", "");
       ++matches;
     }
     else if (aconf->status & CONF_KILL)
     {
       sendto_one(source_p, form_str(RPL_TESTLINE),
-		 me.name, source_p->name,
-		 IsConfTemporary(aconf) ? 'k' : 'K',
-		 IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
-		 : 0L,
-		 userhost, aconf->passwd ? aconf->passwd : "No reason",
-		 aconf->oper_reason ? aconf->oper_reason : "");
+                 me.name, source_p->name,
+                 IsConfTemporary(aconf) ? 'k' : 'K',
+                 IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
+                 : 0L,
+                 userhost, aconf->passwd ? aconf->passwd : "No reason",
+                 aconf->oper_reason ? aconf->oper_reason : "");
       ++matches;
     }
   }
@@ -225,20 +231,18 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     mconf = (struct MatchItem *)map_to_conf(conf);
 
     sendto_one(source_p, form_str(RPL_TESTLINE),
-	       me.name, source_p->name,
-	       'Q', 0L,
-	       conf->name, 
-	       mconf->reason ? mconf->reason : "No reason",
-	       mconf->oper_reason ? mconf->oper_reason : "");
+               me.name, source_p->name,
+               'Q', 0L,
+               conf->name, 
+               mconf->reason ? mconf->reason : "No reason",
+               mconf->oper_reason ? mconf->oper_reason : "");
     ++matches;
   }
 
   if (matches == 0)
     sendto_one(source_p, form_str(RPL_NOTESTLINE),
-	       me.name, source_p->name, orig_parv1);
+               me.name, source_p->name, orig_parv1);
 
-  MyFree(given_host);
-  MyFree(given_name);
   MyFree(orig_parv1);
 }
 
@@ -261,27 +265,23 @@ mo_testgecos(struct Client *client_p, struct Client *source_p,
 {
   struct ConfItem *conf = NULL;
   struct MatchItem *xconf = NULL;
-  const char *gecos_name = NULL;
 
-  if (parc < 2 || EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, ":%s NOTICE %s :usage: gecos",
                me.name, source_p->name);
     return;
   }
 
-  gecos_name = parv[1];
-
-  if ((conf = find_matching_name_conf(XLINE_TYPE, gecos_name, NULL, NULL, 0))
-      != NULL)
+  if ((conf = find_matching_name_conf(XLINE_TYPE, parv[1], NULL, NULL, 0)))
   {
-    xconf = (struct MatchItem *)map_to_conf(conf);
+    xconf = map_to_conf(conf);
     sendto_one(source_p, form_str(RPL_TESTLINE),
-	       me.name, source_p->name, 'X', 0L,
-	       conf->name, xconf->reason ? xconf->reason : "X-lined",
-	       xconf->oper_reason ? xconf->oper_reason : "");
+               me.name, source_p->name, 'X', 0L,
+               conf->name, xconf->reason ? xconf->reason : "X-lined",
+               xconf->oper_reason ? xconf->oper_reason : "");
   }
   else
     sendto_one(source_p, form_str(RPL_NOTESTLINE),
-	       me.name, source_p->name, parv[1]);
+               me.name, source_p->name, parv[1]);
 }

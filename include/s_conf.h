@@ -65,6 +65,20 @@ typedef enum
   GDENY_TYPE
 } ConfType;
 
+struct split_nuh_item
+{
+  dlink_node node;
+
+  char *nuhmask;
+  char *nickptr;
+  char *userptr;
+  char *hostptr;
+
+  size_t nicksize;
+  size_t usersize;
+  size_t hostsize;
+};
+
 struct ConfItem
 {
   char *name;		/* Primary key */
@@ -454,7 +468,6 @@ struct logging_entry
   char failed_operlog[PATH_MAX + 1];
 };
 
-extern unsigned int scount;
 extern int ypass;
 extern dlink_list class_items;
 extern dlink_list server_items;
@@ -501,7 +514,7 @@ extern struct AccessItem *find_kill(struct Client *);
 extern struct AccessItem *find_gline(struct Client *);
 extern int conf_connect_allowed(struct irc_ssaddr *, int);
 extern char *oper_privs_as_string(const unsigned int);
-extern void split_nuh(char *mask, char **nick, char **user, char **host);
+extern void split_nuh(struct split_nuh_item *);
 extern struct ConfItem *find_matching_name_conf(ConfType, const char *,
                                                 const char *, const char *, int);
 extern struct ConfItem *find_exact_name_conf(ConfType, const char *,
@@ -519,7 +532,7 @@ extern void add_temp_line(struct ConfItem *);
 extern void cleanup_tklines(void *);
 extern const char *get_conf_name(ConfType);
 extern int rehash(int);
-extern int conf_add_server(struct ConfItem *, unsigned int, const char *);
+extern int conf_add_server(struct ConfItem *, const char *);
 extern void conf_add_class_to_conf(struct ConfItem *, const char *);
 extern void conf_add_d_conf(struct AccessItem *);
 

@@ -87,8 +87,7 @@ extern char linebuf[];
 extern char conffilebuf[IRCD_BUFSIZE];
 extern char yytext[];
 extern int yyparse(); /* defined in y.tab.c */
-unsigned int scount = 0; /* used by yyparse(), etc */
-int ypass  = 1; /* used by yyparse()      */
+int ypass = 1; /* used by yyparse()      */
 
 /* internally defined functions */
 static void lookup_confhost(struct ConfItem *);
@@ -1965,7 +1964,7 @@ set_default_conf(void)
 static void
 read_conf(FBFILE *file)
 {
-  scount = lineno = 0;
+  lineno = 0;
 
   set_default_conf(); /* Set default values prior to conf parsing */
   ypass = 1;
@@ -3061,16 +3060,18 @@ conf_add_class_to_conf(struct ConfItem *conf, const char *class_name)
  * side effects - Add a connect block
  */
 int
-conf_add_server(struct ConfItem *conf, unsigned int lcount, const char *class_name)
+conf_add_server(struct ConfItem *conf, const char *class_name)
 {
   struct AccessItem *aconf;
-  char *orig_host;
+  struct split_nuh_item nuh;
+  char conf_user[USERLEN + 1];
+  char conf_host[HOSTLEN + 1];
 
   aconf = map_to_conf(conf);
 
   conf_add_class_to_conf(conf, class_name);
 
-  if (lcount > MAXCONFLINKS || !aconf->host || !conf->name)
+  if (!aconf->host || !conf->name)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Bad connect block");
     ilog(L_WARN, "Bad connect block");
@@ -3085,9 +3086,24 @@ conf_add_server(struct ConfItem *conf, unsigned int lcount, const char *class_na
     return -1;
   }
 
-  orig_host = aconf->host;
-  split_nuh(orig_host, NULL, &aconf->user, &aconf->host);
-  MyFree(orig_host);
+  nuh.nuhmask  = aconf->host;
+  nuh.nickptr  = NULL;
+  nuh.userptr  = conf_user;
+  nuh.hostptr  = conf_host;
+
+  nuh.nicksize = 0;
+  nuh.usersize = sizeof(conf_user);
+  nuh.hostsize = sizeof(conf_host);
+
+  split_nuh(&nuh);
+
+  MyFree(aconf->host);
+  aconf->host = NULL;
+
+  DupString(aconf->user, conf_user); /* somehow username checking for servers
+                                 got lost in H6/7, will have to be re-added */
+  DupString(aconf->host, conf_host);
+
   lookup_confhost(conf);
 
   return 0;
@@ -3447,7 +3463,7 @@ find_user_host(struct Client *source_p, char *user_host_or_nick,
   {
     /* Explicit user@host mask given */
 
-    if(hostp != NULL)                            /* I'm a little user@host */
+    if (hostp != NULL)                            /* I'm a little user@host */
     {
       *(hostp++) = '\0';                       /* short and squat */
       if (*user_host_or_nick)
@@ -3578,12 +3594,11 @@ match_conf_password(const char *password, const struct AccessItem *aconf)
 */
 void
 cluster_a_line(struct Client *source_p, const char *command,
-	       int capab, int cluster_type, const char *pattern, ...)
+               int capab, int cluster_type, const char *pattern, ...)
 {
   va_list args;
   char buffer[IRCD_BUFSIZE];
-  struct ConfItem *conf;
-  dlink_node *ptr;
+  const dlink_node *ptr = NULL;
 
   va_start(args, pattern);
   vsnprintf(buffer, sizeof(buffer), pattern, args);
@@ -3591,13 +3606,11 @@ cluster_a_line(struct Client *source_p, const char *command,
 
   DLINK_FOREACH(ptr, cluster_items.head)
   {
-    conf = ptr->data;
+    const struct ConfItem *conf = ptr->data;
 
     if (conf->flags & cluster_type)
-    {
       sendto_match_servs(source_p, conf->name, CAP_CLUSTER|capab,
 			 "%s %s %s", command, conf->name, buffer);
-    }
   }
 }
 
@@ -3629,87 +3642,61 @@ cluster_a_line(struct Client *source_p, const char *command,
  * @				*	*	*
  * !				*	*	*
  */
-
 void
-split_nuh(char *mask, char **nick, char **user, char **host)
+split_nuh(struct split_nuh_item *const iptr)
 {
   char *p = NULL, *q = NULL;
 
-  if ((p = strchr(mask, '!')) != NULL)
+  if (iptr->nickptr)
+    strlcpy(iptr->nickptr, "*", iptr->nicksize);
+  if (iptr->userptr)
+    strlcpy(iptr->userptr, "*", iptr->usersize);
+  if (iptr->hostptr)
+    strlcpy(iptr->hostptr, "*", iptr->hostsize);
+
+  if ((p = strchr(iptr->nuhmask, '!')))
   {
     *p = '\0';
-    if (nick != NULL)
-    {
-      if (*mask != '\0')
-	*nick = xstrldup(mask, NICKLEN);
-      else
-	DupString(*nick, "*");
-    }
 
-    if ((q = strchr(++p, '@')) != NULL)
-    {
-      *q = '\0';
+    if (iptr->nickptr && *iptr->nuhmask != '\0')
+      strlcpy(iptr->nickptr, iptr->nuhmask, iptr->nicksize);
+
+    if ((q = strchr(++p, '@'))) {
+      *q++ = '\0';
 
       if (*p != '\0')
-	*user = xstrldup(p, USERLEN+1);
-      else
-	DupString(*user, "*");
+        strlcpy(iptr->userptr, p, iptr->usersize);
 
-      if (*++q != '\0')
-	*host = xstrldup(q, HOSTLEN+1);
-      else
-	DupString(*host, "*");
+      if (*q != '\0')
+        strlcpy(iptr->hostptr, q, iptr->hostsize);
     }
     else
     {
       if (*p != '\0')
-	*user = xstrldup(p, USERLEN+1);
-      else
-	DupString(*user, "*");
-
-      DupString(*host, "*");
+        strlcpy(iptr->userptr, p, iptr->usersize);
     }
   }
-  else  /* No ! found so lets look for a user@host */
+  else
   {
-    if ((p = strchr(mask, '@')) != NULL)        /* if found a @ */
+    /* No ! found so lets look for a user@host */
+    if ((p = strchr(iptr->nuhmask, '@')))
     {
-      if (nick != NULL)
-	DupString(*nick, "*");
-      *p = '\0';
+      /* if found a @ */
+      *p++ = '\0';
 
-      if (*mask != '\0')
-	*user = xstrldup(mask, USERLEN+1);
-      else
-	DupString(*user, "*");
+      if (*iptr->nuhmask != '\0')
+        strlcpy(iptr->userptr, iptr->nuhmask, iptr->usersize);
 
-      if (*++p != '\0')
-	*host = xstrldup(p, HOSTLEN+1);
-      else
-	DupString(*host, "*");
+      if (*p != '\0')
+        strlcpy(iptr->hostptr, p, iptr->hostsize);
     }
-    else                                        /* no @ found */
+    else
     {
-      if (nick != NULL)
-      {
-        if (strpbrk(mask, ".:"))
-        {
-          DupString(*nick, "*");
-          *host = xstrldup(mask, HOSTLEN+1);
-        }
-        else
-        {
-          *nick = xstrldup(mask, NICKLEN);
-          DupString(*host, "*");
-        }
-
-        DupString(*user, "*");
-      }
+      /* no @ found */
+      if (!iptr->nickptr || strpbrk(iptr->nuhmask, ".:"))
+        strlcpy(iptr->hostptr, iptr->nuhmask, iptr->hostsize);
       else
-      {
-        DupString(*user, "*");
-        *host = xstrldup(mask, HOSTLEN+1);
-      }
+        strlcpy(iptr->nickptr, iptr->nuhmask, iptr->nicksize);
     }
   }
 }
@@ -3736,7 +3723,7 @@ flags_to_ascii(unsigned int flags, const unsigned int bit_table[], char *p,
   {
     if (flags & mask)
       *p++ = bit_table[i];
-    else if(lowerit)
+    else if (lowerit)
       *p++ = ToLower(bit_table[i]);
   }
   *p = '\0';

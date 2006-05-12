@@ -44,17 +44,6 @@
 #endif
 
 
-char *
-xstrldup(const char *s, size_t n)
-{
-  size_t len = strlen(s) + 1;
-  char *p = NULL;
-
-  if (len > n)
-    len = n;
-  return strlcpy((p = malloc(len)), s, len), p;
-}
-
 /*
  * myctime - This is like standard ctime()-function, but it zaps away
  *   the newline from the end of that string. Also, it takes

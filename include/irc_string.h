@@ -30,7 +30,6 @@
 
 extern int ircd_pcre_exec(const pcre *, const char *);
 extern pcre *ircd_pcre_compile(const char *, const char **);
-extern char *xstrldup(const char *, size_t);
 
 /*
  * match - compare name with mask, mask may contain * and ? as wildcards
