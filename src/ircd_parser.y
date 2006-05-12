@@ -2920,11 +2920,14 @@ kill_entry: KILL
         if (!(exp_user = ircd_pcre_compile(userbuf, &errptr)) ||
             !(exp_host = ircd_pcre_compile(hostbuf, &errptr)))
         {
-          ilog(L_ERROR, "Failed to add regular expression based K-Line: %s", errptr);
+          ilog(L_ERROR, "Failed to add regular expression based K-Line: %s",
+               errptr);
           break;
         }
 
         yy_conf = make_conf_item(RKLINE_TYPE);
+        yy_aconf = map_to_conf(yy_conf);
+
         yy_aconf->regexuser = exp_user;
         yy_aconf->regexhost = exp_host;
 
@@ -3093,7 +3096,8 @@ gecos_entry: GECOS
 
         if (!(exp_p = ircd_pcre_compile(gecos_name, &errptr)))
         {
-          ilog(L_ERROR, "Failed to add regular expression based X-Line: %s", errptr);
+          ilog(L_ERROR, "Failed to add regular expression based X-Line: %s",
+               errptr);
           break;
         }
 
