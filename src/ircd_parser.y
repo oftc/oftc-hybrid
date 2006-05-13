@@ -28,7 +28,6 @@
 #include <sys/types.h>
 
 #include "stdinc.h"
-#include "dalloca.h"
 #include "ircd.h"
 #include "tools.h"
 #include "list.h"
