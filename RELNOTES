@@ -7,6 +7,8 @@ o) Fixed core in m_mkpasswd.c  (contrib)
 o) Reduced memory usage for channel members
 o) Added general::stats_e_disabled which simply disables "STATS e"
    for other operators and administrators
+o) Ignore signal SIGXFSZ to prevent the daemon from dying on missconfigured
+   file size limits
 
 
 -- ircd-hybrid-7.2.1 RELNOTES
