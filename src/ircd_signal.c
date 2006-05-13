@@ -95,6 +95,7 @@ setup_signals(void)
   sigemptyset(&act.sa_mask);
   sigaddset(&act.sa_mask, SIGPIPE);
   sigaddset(&act.sa_mask, SIGALRM);
+  sigaction(SIGALRM, &act, 0);
 #ifdef SIGTRAP
   sigaddset(&act.sa_mask, SIGTRAP);
 #endif
