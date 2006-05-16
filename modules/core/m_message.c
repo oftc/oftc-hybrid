@@ -427,7 +427,7 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
         return -1;
       else if (p_or_n != NOTICE)
       {
-        if (!IsDigit(*nick))
+        if (!IsDigit(*nick) || MyClient(source_p))
 	  sendto_one(source_p, form_str(ERR_NOSUCHNICK),
 		     ID_or_name(&me, client_p),
 		     ID_or_name(source_p, client_p), nick);
