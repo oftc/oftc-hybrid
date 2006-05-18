@@ -47,6 +47,8 @@
 #include "parse.h"
 #include "modules.h"
 #include "tools.h"
+#include "irc_getnameinfo.h"
+
 
 static void me_kline(struct Client *, struct Client *, int, char **);
 static void mo_kline(struct Client *, struct Client *, int, char **);
@@ -56,10 +58,6 @@ static void me_unkline(struct Client *, struct Client *, int, char **);
 static void mo_unkline(struct Client *, struct Client *, int, char **);
 static void ms_unkline(struct Client *, struct Client *, int, char **);
 static void mo_undline(struct Client *, struct Client *, int, char **);
-
-#ifndef IPV6
-static char *make_cidr(char *dlhost, struct Client *);
-#endif
 
 static int remove_tkline_match(const char *, const char *);
 static int remove_tdline_match(const char *);
@@ -393,16 +391,15 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   char def_reason[] = "No reason";
   char *dlhost, *oper_reason, *reason;
   const char *creason;
-#ifndef IPV6
-  struct Client *target_p;
-#endif
+  const struct Client *target_p = NULL;
   struct irc_ssaddr daddr;
   struct ConfItem *conf=NULL;
   struct AccessItem *aconf=NULL;
   time_t tkline_time=0;
   int bits, t;
-  const char* current_date;
+  const char *current_date = NULL;
   time_t cur_time;
+  char hostip[HOSTIPLEN];
 
   if (!IsOperK(source_p))
   {
@@ -411,60 +408,47 @@ mo_dline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (parse_aline("DLINE", source_p,  parc, parv,
-		  AWILD, &dlhost, NULL, &tkline_time, NULL, &reason) < 0)
+  if (parse_aline("DLINE", source_p,  parc, parv, AWILD, &dlhost,
+                  NULL, &tkline_time, NULL, &reason) < 0)
     return;
 
   if ((t = parse_netmask(dlhost, NULL, &bits)) == HM_HOST)
   {
-#ifdef IPV6 
-   sendto_one(source_p, ":%s NOTICE %s :Sorry, please supply an address.",
-              me.name, parv[0]);
-   return;
-#else
-   if ((target_p = find_chasing(client_p, source_p, dlhost, NULL)) == NULL)
-     return;
+    if ((target_p = find_chasing(client_p, source_p, dlhost, NULL)) == NULL)
+      return;
 
-   t = HM_IPV4;
-   if (IsServer(target_p))
-   {
-     sendto_one(source_p,
-		":%s NOTICE %s :Can't DLINE a server silly",
-		me.name, source_p->name);
-     return;
-   }
-              
-   if (!MyConnect(target_p))
-   {
-     sendto_one(source_p,
-		":%s NOTICE %s :Can't DLINE nick on another server",
-		me.name, source_p->name);
-     return;
-   }
-
-   if (IsExemptKline(target_p))
-   {
-     sendto_one(source_p,
-		":%s NOTICE %s :%s is E-lined",me.name,
-		source_p->name,	target_p->name);
-     return;
-   }
-
-   if ((dlhost = make_cidr(dlhost, target_p)) == NULL)
-     return;
-
-   bits = 0xFFFFFF00UL;
-#endif
+    if (!MyConnect(target_p))
+    {
+      sendto_one(source_p,
+                 ":%s NOTICE %s :Can't DLINE nick on another server",
+                 me.name, source_p->name);
+      return;
     }
+
+    if (IsExemptKline(target_p))
+    {
+      sendto_one(source_p,
+                 ":%s NOTICE %s :%s is E-lined", me.name,
+                 source_p->name, target_p->name);
+      return;
+    }
+
+    irc_getnameinfo((struct sockaddr *)&target_p->localClient->ip,
+                    target_p->localClient->ip.ss_len, hostip,
+                    sizeof(hostip), NULL, 0, NI_NUMERICHOST);
+
+    dlhost = hostip;
+    t = parse_netmask(dlhost, NULL, &bits);
+    assert(t == HM_IPV4 || t == HM_IPV6);
+  }
 
   if (bits < 8)
   {
     sendto_one(source_p,
-	":%s NOTICE %s :For safety, bitmasks less than 8 require conf access.",
-	       me.name, source_p->name);
+               ":%s NOTICE %s :For safety, bitmasks less than 8 require conf access.",
+               me.name, source_p->name);
     return;
   }
-
 
 #ifdef IPV6
   if (t == HM_IPV6)
@@ -523,8 +507,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   }
 
   rehashed_klines = 1;
-} /* mo_dline() */
-
+}
 
 /* already_placed_kline()
  * inputs	- user to complain to, username & host to check for
@@ -575,41 +558,6 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
 
   return(0);
 }
-
-#ifndef IPV6 
-static char *
-make_cidr(char *dlhost, struct Client *target_p)
-{
-  static char cidr_form_host[HOSTLEN + 2];
-  char *p;
-
-  strlcpy(cidr_form_host, inetntoa((const char *)&target_p->localClient->ip),
-          sizeof(cidr_form_host));
-
-  if ((p = strchr(cidr_form_host,'.')) == NULL)
-    return(NULL);
-
-  /* 192. <- p */
-   p++;
-   if ((p = strchr(p,'.')) == NULL)
-     return(NULL);
-
-   /* 192.168. <- p */
-   p++;
-   if ((p = strchr(p,'.')) == NULL)
-     return(NULL);
-
-   /* 192.168.0. <- p */
-   p++;
-   *p++ = '0';
-   *p++ = '/';
-   *p++ = '2';
-   *p++ = '4';
-   *p++ = '\0';
-
-   return(cidr_form_host);
-}
-#endif
 
 /*
 ** mo_unkline
