@@ -555,7 +555,7 @@ if test "$cf_enable_openssl" != no; then
 			AC_CHECK_FUNCS(EVP_des_cfb,
 			cf_openssl_ciphers="${cf_openssl_ciphers}DES/56 ")
 		fi
-		SSL_LIBS="$SSL_LIBS -lcrypto"
+		SSL_LIBS="$SSL_LIBS -lcrypto -lssl"
 		SSL_SRCS_ENABLE='$(SSL_SRCS)'
 	else
 	        AC_MSG_RESULT(no - OpenSSL support disabled)
@@ -699,7 +699,7 @@ AC_HELP_STRING([--enable-profile],[Enable profiling]),
 if test "$profile" = yes; then
 	if test "$ac_cv_c_compiler_gnu" = yes; then
 		IRC_CFLAGS="$IRC_CFLAGS -pg -static"
-		AC_MSG_RESULT="yes, adding -pg -static"
+		AC_MSG_RESULT([yes, adding -pg -static])
 	else
 		AC_MSG_RESULT([no, profile builds only work with gcc])
 	fi
