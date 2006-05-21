@@ -104,6 +104,7 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
   if(irccmp(parv[1], "OFF") == 0)
   {
       eventDelete(user_shedding_main, NULL);
+      eventDelete(user_shedding_shed, NULL);
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
               "User shedding DISABLED by %s", source_p->name);
       return;
