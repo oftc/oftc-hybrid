@@ -1354,12 +1354,12 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
       (conf->type == SERVER_TYPE) ||
       (conf->type == OPER_TYPE))
   {
+    struct ClassItem *aclass;
+
     aconf = (struct AccessItem *)map_to_conf(conf);
 
     if (IsConfIllegal(aconf))
       return(NOT_AUTHORIZED);
-
-    struct ClassItem *aclass;
 
     aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
 
