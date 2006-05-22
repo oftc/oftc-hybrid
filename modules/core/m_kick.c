@@ -78,6 +78,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
   struct Client *who;
   struct Channel *chptr;
   int chasing = 0;
+  int gmode_used = 0;
   char *comment;
   char *name;
   char *p = NULL;
@@ -132,13 +133,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
     {
     /* was a user, not a server, and user isn't seen as a chanop here */
       if (IsGod(source_p) && MyConnect(source_p))
-      {
-        char tmp[IRCD_BUFSIZE];
-        ircsprintf(tmp, "%s is using God mode: KICK %s %s %s", 
-                source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
-        sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-        oftc_log(tmp);
-      } 
+        gmode_used = TRUE;
       else if (MyConnect(source_p))
       {
         /* user on _my_ server, with no chanops.. so go away */
@@ -225,8 +220,15 @@ m_kick(struct Client *client_p, struct Client *source_p,
                   ":%s KICK %s %s :%s", parv[0], chptr->chname,
                   who->name, comment);
     remove_user_from_channel(ms_target);
+    if(gmode_used)
+    {
+      char tmp[IRCD_BUFSIZE];
+      ircsprintf(tmp, "%s is using God mode: KICK %s %s %s",
+          source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
+      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
+      oftc_log(tmp);
+    }
   }
-
   else
     sendto_one(source_p, form_str(ERR_USERNOTINCHANNEL),
             me.name, source_p->name, user, name);
