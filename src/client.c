@@ -1136,9 +1136,9 @@ dead_link_on_read(struct Client *client_p, int error)
     }
     else
     {
-      report_error(L_ADMIN, "Lost connection to %s: %d",
+      report_error(L_ADMIN, "Lost connection to %s: %s",
 		   get_client_name(client_p, SHOW_IP), current_error);
-      report_error(L_OPER, "Lost connection to %s: %d",
+      report_error(L_OPER, "Lost connection to %s: %s",
 		   get_client_name(client_p, MASK_IP), current_error);
     }
 
