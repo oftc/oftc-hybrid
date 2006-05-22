@@ -418,7 +418,7 @@ apply_tkline(struct Client *source_p, struct ConfItem *conf,
   aconf = (struct AccessItem *)map_to_conf(conf);
   aconf->hold = CurrentTime + tkline_time;
   add_temp_kline(aconf);
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+  sendto_realops_flags(UMODE_ALL, L_ALL,
 		       "%s added temporary %d min. K-Line for [%s@%s] [%s]",
 		       get_oper_name(source_p), tkline_time/60,
 		       aconf->user, aconf->host,
