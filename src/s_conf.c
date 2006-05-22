@@ -1359,35 +1359,33 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
     if (IsConfIllegal(aconf))
       return(NOT_AUTHORIZED);
 
-    if (conf->type == CLIENT_TYPE)
+    struct ClassItem *aclass;
+
+    aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+
+    if (MaxTotal(aclass) > 0)
     {
-      struct ClassItem *aclass;
-
-      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
-
-      if (MaxTotal(aclass) > 0)
+      if (CurrUserCount(aclass) >= MaxTotal(aclass))
       {
-	if (CurrUserCount(aclass) >= MaxTotal(aclass))
+        if (!IsConfExemptLimits(aconf))
+          return(I_LINE_FULL); 
+        else
         {
-	  if (!IsConfExemptLimits(aconf))
-	    return(I_LINE_FULL); 
-	  else
-	  {
-	    sendto_one(client_p, ":%s NOTICE %s :*** Your connection class is "
-		       "full, but you have exceed_limit=yes;",
-		       me.name, client_p->name);
-	    SetExemptLimits(client_p);
-	  }
-	}
-	CurrUserCount(aclass)++;
+          sendto_one(client_p, ":%s NOTICE %s :*** Your connection class is "
+              "full, but you have exceed_limit=yes;",
+              me.name, client_p->name);
+          SetExemptLimits(client_p);
+        }
       }
-      else
-	return(NOT_AUTHORIZED);
+      CurrUserCount(aclass)++;
     }
+    else
+      return(NOT_AUTHORIZED);
+
     aconf->clients++;
-  }
+  } 
   else if ((conf->type == HUB_TYPE) || (conf->type == LEAF_TYPE))
-  {
+  {   
     match_item = (struct MatchItem *)map_to_conf(conf);
     match_item->ref_count++;
   }
