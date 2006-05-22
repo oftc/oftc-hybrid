@@ -123,7 +123,7 @@ m_challenge(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    oper_up(source_p);
+    oper_up(source_p, source_p->user->auth_oper);
 
     ilog(L_TRACE, "OPER %s by %s!%s@%s",
 	 source_p->user->auth_oper, source_p->name, source_p->username,

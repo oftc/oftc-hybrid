@@ -122,7 +122,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    oper_up(source_p);
+    oper_up(source_p, name);
       
     ilog(L_TRACE, "OPER %s by %s!%s@%s",
 	 name, source_p->name, source_p->username, source_p->host);
