@@ -1,5 +1,7 @@
 -- oftc-hybrid 1.4.1 RELNOTES
-o) Fix amd64 issues
+o) Fix amd64 issues.
+o) Fixed server max_connections
+o) Other misc fixes.
 
 -- oftc-hybrid 1.4.0 RELNOTES
 o) Add Client SSL Support
