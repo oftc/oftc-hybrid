@@ -833,10 +833,6 @@ check_client(va_list args)
 
   switch (i)
   {
-    case IRCD_SOCKET_ERROR:
-      exit_client(source_p, &me, "Socket Error");
-      break;
-
     case TOO_MANY:
       sendto_realops_flags(UMODE_FULL, L_ALL,
                            "Too many on IP for %s (%s).",
@@ -1326,10 +1322,10 @@ detach_conf(struct Client *client_p, ConfType type)
       case CLIENT_TYPE:
       case OPER_TYPE:
       case SERVER_TYPE:
-        aconf = (struct AccessItem *)map_to_conf(conf);
+        aconf = map_to_conf(conf);
         if ((aclass_conf = ClassPtr(aconf)) != NULL)
         {
-          aclass = (struct ClassItem *)map_to_conf(aclass_conf);
+          aclass = map_to_conf(aclass_conf);
 
           if (conf->type == CLIENT_TYPE)
             remove_from_cidr_check(&client_p->localClient->ip, aclass);
@@ -1346,9 +1342,10 @@ detach_conf(struct Client *client_p, ConfType type)
         if (aconf->clients == 0 && IsConfIllegal(aconf))
           delete_conf_item(conf);
         break;
+
       case LEAF_TYPE:
       case HUB_TYPE:
-        match_item = (struct MatchItem *)map_to_conf(conf);
+        match_item = map_to_conf(conf);
         if (match_item->ref_count == 0 && match_item->illegal)
           delete_conf_item(conf);
         break;
@@ -1377,9 +1374,6 @@ detach_conf(struct Client *client_p, ConfType type)
 int
 attach_conf(struct Client *client_p, struct ConfItem *conf)
 {
-  struct AccessItem *aconf;
-  struct MatchItem *match_item;
-
   if (dlinkFind(&client_p->localClient->confs, conf) != NULL)
     return 1;
 
@@ -1387,28 +1381,26 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
       conf->type == SERVER_TYPE ||
       conf->type == OPER_TYPE)
   {
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    struct AccessItem *aconf = map_to_conf(conf);
 
     if (IsConfIllegal(aconf))
       return NOT_AUTHORIZED;
 
     if (conf->type == CLIENT_TYPE)
     {
-      struct ClassItem *aclass;
-      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+      struct ClassItem *aclass = map_to_conf(aconf->class_ptr);
 
       if (cidr_limit_reached(IsConfExemptLimits(aconf),
                              &client_p->localClient->ip, aclass))
         return TOO_MANY;  /* Already at maximum allowed */
-
-      CurrUserCount(aclass)++;
     }
 
+    CurrUserCount(aclass)++;
     aconf->clients++;
   }
   else if (conf->type == HUB_TYPE || conf->type == LEAF_TYPE)
   {
-    match_item = (struct MatchItem *)map_to_conf(conf);
+    struct MatchItem *match_item = map_to_conf(conf);
     match_item->ref_count++;
   }
 
@@ -1442,7 +1434,7 @@ attach_connect_block(struct Client *client_p, const char *name,
   DLINK_FOREACH(ptr, server_items.head)
   {
     conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = map_to_conf(conf);
 
     if (match(conf->name, name) == 0 || match(aconf->host, host) == 0)
       continue;

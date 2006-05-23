@@ -559,11 +559,10 @@ extern time_t valid_tkline(char *, int);
 extern int match_conf_password(const char *, const struct AccessItem *);
 
 #define NOT_AUTHORIZED    (-1)
-#define IRCD_SOCKET_ERROR (-2)
-#define I_LINE_FULL       (-3)
-#define TOO_MANY          (-4)
-#define BANNED_CLIENT     (-5)
-#define TOO_FAST          (-6)
+#define I_LINE_FULL       (-2)
+#define TOO_MANY          (-3)
+#define BANNED_CLIENT     (-4)
+#define TOO_FAST          (-5)
 
 #define CLEANUP_TKLINES_TIME 60
 
