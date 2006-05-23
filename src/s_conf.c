@@ -722,7 +722,8 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
 		 me.name, source_p->name, 'Y',
 		 conf->name, PingFreq(classitem),
 		 ConFreq(classitem),
-		 MaxTotal(classitem), MaxSendq(classitem));
+		 MaxTotal(classitem), MaxSendq(classitem),
+                 CurrUserCount(classitem));
     }
     break;
 
@@ -1382,18 +1383,15 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
       conf->type == OPER_TYPE)
   {
     struct AccessItem *aconf = map_to_conf(conf);
+    struct ClassItem *aclass = map_to_conf(aconf->class_ptr);
 
     if (IsConfIllegal(aconf))
       return NOT_AUTHORIZED;
 
     if (conf->type == CLIENT_TYPE)
-    {
-      struct ClassItem *aclass = map_to_conf(aconf->class_ptr);
-
       if (cidr_limit_reached(IsConfExemptLimits(aconf),
                              &client_p->localClient->ip, aclass))
-        return TOO_MANY;  /* Already at maximum allowed */
-    }
+        return TOO_MANY;    /* Already at maximum allowed */
 
     CurrUserCount(aclass)++;
     aconf->clients++;
