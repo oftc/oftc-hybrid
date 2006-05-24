@@ -82,14 +82,11 @@ mo_killhost(struct Client *client_p, struct Client *source_p,
   dlink_node *ptr = NULL, *ptr_next = NULL;
   struct Client *target_p = NULL;
   const char *inpath = client_p->name;
-  char *nick = NULL;
-  char *user = NULL;
-  char *host = NULL;
   char *reason = NULL;
   char bufhost[IRCD_BUFSIZE];
-  char conf_nick[NICKLEN + 1];
-  char conf_user[USERLEN + 1];
-  char conf_host[HOSTLEN + 1];
+  char nick[NICKLEN + 1];
+  char user[USERLEN + 1];
+  char host[HOSTLEN + 1];
   char def_reason[] = "No reason";
   unsigned int count = 0;
   struct split_nuh_item nuh;
@@ -102,13 +99,13 @@ mo_killhost(struct Client *client_p, struct Client *source_p,
   }
 
   nuh.nuhmask  = parv[1];
-  nuh.nickptr  = conf_nick;
-  nuh.userptr  = conf_user;
-  nuh.hostptr  = conf_host;
+  nuh.nickptr  = nick;
+  nuh.userptr  = user;
+  nuh.hostptr  = host;
 
-  nuh.nicksize = sizeof(conf_nick);
-  nuh.usersize = sizeof(conf_user);
-  nuh.hostsize = sizeof(conf_host);
+  nuh.nicksize = sizeof(nick);
+  nuh.usersize = sizeof(user);
+  nuh.hostsize = sizeof(host);
 
   split_nuh(&nuh);
 
@@ -133,7 +130,7 @@ mo_killhost(struct Client *client_p, struct Client *source_p,
 
     if (!MyConnect(target_p) && !IsOperGlobalKill(source_p))
       continue;
-      
+
     if (match(nick, target_p->name) &&
         match(user, target_p->username) &&
         match(host, target_p->host))
