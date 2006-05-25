@@ -1023,11 +1023,11 @@ attach_iline(struct Client *client_p, struct ConfItem *conf)
   ip_found->count++;
   SetIpHash(client_p);
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = map_to_conf(conf);
   if (aconf->class_ptr == NULL)
     return NOT_AUTHORIZED;  /* If class is missing, this is best */
 
-  aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+  aclass = map_to_conf(aconf->class_ptr);
 
   count_user_host(client_p->username, client_p->host,
                   &global, &local, &ident);
@@ -1038,7 +1038,7 @@ attach_iline(struct Client *client_p, struct ConfItem *conf)
    */
   if (MaxTotal(aclass) != 0 && CurrUserCount(aclass) >= MaxTotal(aclass))
     a_limit_reached = 1;
-  else if (MaxPerIp(aclass) != 0 && ip_found->count >= MaxPerIp(aclass))
+  else if (MaxPerIp(aclass) != 0 && ip_found->count > MaxPerIp(aclass))
     a_limit_reached = 1;
   else if (MaxLocal(aclass) != 0 && local >= MaxLocal(aclass))
     a_limit_reached = 1;
@@ -1051,7 +1051,7 @@ attach_iline(struct Client *client_p, struct ConfItem *conf)
   if (a_limit_reached)
   {
     if (!IsConfExemptLimits(aconf))
-      return TOO_MANY;  /* Already at maximum allowed */
+      return TOO_MANY;   /* Already at maximum allowed */
 
     sendto_one(client_p,
                ":%s NOTICE %s :*** Your connection class is full, "
