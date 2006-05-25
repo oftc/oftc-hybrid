@@ -738,6 +738,7 @@ chm_ban(struct Client *client_p, struct Client *source_p,
   char *raw_mask;
   dlink_node *ptr;
   struct Ban *banptr;
+  int i;
 
   if (dir == 0 || parc <= *parn)
   {
@@ -825,13 +826,20 @@ chm_ban(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count].id = NULL;
     mode_changes[mode_count++].arg = mask;
   }
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
+
+  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p) && *parn == 2)
   {
     char tmp[IRCD_BUFSIZE];
+    char tmp2[IRCD_BUFSIZE];
 
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
-        source_p->name, chname, parv[0],       
-        EmptyString(parv[1]) ? "" : parv[1]);
+    ircsprintf(tmp, "%s is using God mode: MODE %s %s",
+        source_p->name, chname, parv[0]);
+    for(i = 1; i < parc; i++)
+    {
+      strcpy(tmp2, tmp);
+      ircsprintf(tmp, "%s %s", tmp, parv[i]);
+    }
+
     sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
     oftc_log(tmp);
   }
@@ -1191,13 +1199,19 @@ chm_op(struct Client *client_p, struct Client *source_p,
 
     DelMemberFlag(member, CHFL_CHANOP);
   }
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))   
+  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p) && *parn == 2)   
   {   
-    char tmp[IRCD_BUFSIZE];   
+    char tmp[IRCD_BUFSIZE];
+    char tmp2[IRCD_BUFSIZE];
 
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",   
-        source_p->name, chname, parv[0],   
-        EmptyString(parv[1]) ? "" : parv[1]);   
+    ircsprintf(tmp, "%s is using God mode: MODE %s %s",   
+        source_p->name, chname, parv[0]);
+    for(i = 1; i < parc; i++)
+    {
+      strcpy(tmp2, tmp);
+      ircsprintf(tmp, "%s %s", tmp, parv[i]);
+    }
+    
     sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);   
     oftc_log(tmp); 
   }
@@ -1434,6 +1448,22 @@ chm_voice(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count++].client = targ_p;
 
     DelMemberFlag(member, CHFL_VOICE);
+  }
+  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p) && *parn == 2)
+  {
+    char tmp[IRCD_BUFSIZE];
+    char tmp2[IRCD_BUFSIZE];
+
+    ircsprintf(tmp, "%s is using God mode: MODE %s %s",
+        source_p->name, chname, parv[0]);
+    for(i = 1; i < parc; i++)
+    {
+      strcpy(tmp2, tmp);
+      ircsprintf(tmp, "%s %s", tmp, parv[i]);
+    }
+
+    sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
+    oftc_log(tmp);
   }
 }
 
