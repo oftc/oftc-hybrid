@@ -635,6 +635,36 @@ unset_chcap_usage_counts(struct Client *serv_p)
   assert(0);
 }
 
+/* void god_mode_check(struct Client source_p, char *chname, int alev, 
+ * int parc, char **parv)
+ *   
+ *  Inputs - source_p; The client who originated this mode.
+ *         - chname; The channel this refers to.
+ *         - alev; The access level pre determined
+ *  Output - none
+ *  Side-effects - 
+ *     
+ */
+
+static void
+god_mode_check(struct Client *source_p, char *chname, int alev, int parc, 
+    char **parv)
+{
+  char tmp[IRCD_BUFSIZE];
+  int i;
+  
+  if(alev != CHACCESS_CHANOP + 1 || !MyClient(source_p))
+    return;
+
+  ircsprintf(tmp, "%s is using God mode: MODE %s %s", source_p->name, 
+      chname, parv[0]);
+  for(i = 1; i < parc; i++)
+    ircsprintf(tmp, "%s %s", tmp, parv[i]);
+
+  sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
+  oftc_log(tmp);
+}
+
 /* Mode functions handle mode changes for a particular mode... */
 static void
 chm_nosuch(struct Client *client_p, struct Client *source_p,
@@ -713,19 +743,6 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
     mode_changes[mode_count++].arg = NULL;
     gnote = 1;
   }
-  if(alev == (CHACCESS_CHANOP + 1) && MyClient(source_p) && gnote)
-  {     
-    char tmp[IRCD_BUFSIZE];
-
-    if(c == 'k' || EmptyString(parv[1]))
-      ircsprintf(tmp, "%s is using God mode: MODE %s %s", source_p->name, 
-            chname, parv[0]);
-    else
-      ircsprintf(tmp, "%s is using God mode: MODE %s %s %s", source_p->name,
-            chname, parv[0], parv[1]);
-    sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-    oftc_log(tmp);
-  } 
 }
 
 static void
@@ -738,7 +755,6 @@ chm_ban(struct Client *client_p, struct Client *source_p,
   char *raw_mask;
   dlink_node *ptr;
   struct Ban *banptr;
-  int i;
 
   if (dir == 0 || parc <= *parn)
   {
@@ -825,23 +841,6 @@ chm_ban(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count].mems = ALL_MEMBERS;
     mode_changes[mode_count].id = NULL;
     mode_changes[mode_count++].arg = mask;
-  }
-
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p) && *parn == 2)
-  {
-    char tmp[IRCD_BUFSIZE];
-    char tmp2[IRCD_BUFSIZE];
-
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s",
-        source_p->name, chname, parv[0]);
-    for(i = 1; i < parc; i++)
-    {
-      strcpy(tmp2, tmp);
-      ircsprintf(tmp, "%s %s", tmp, parv[i]);
-    }
-
-    sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-    oftc_log(tmp);
   }
 }
 
@@ -946,17 +945,6 @@ chm_except(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count].id = NULL;
     mode_changes[mode_count++].arg = mask;
   }
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
-  {
-    char tmp[IRCD_BUFSIZE];
-
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
-        source_p->name, chname, parv[0],       
-        EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-    oftc_log(tmp);
-  }
-
 }
 
 static void
@@ -991,17 +979,6 @@ chm_invex(struct Client *client_p, struct Client *source_p,
     *errors |= SM_ERR_NOOPS;
     return;
   }
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
-  {
-    char tmp[IRCD_BUFSIZE];
-
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
-        source_p->name, chname, parv[0], 
-        EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-    oftc_log(tmp);
-  }
-
   if ((dir == MODE_QUERY) || parc <= *parn)
   {
     if ((*errors & SM_ERR_RPL_I) != 0)
@@ -1198,22 +1175,6 @@ chm_op(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count++].client = targ_p;
 
     DelMemberFlag(member, CHFL_CHANOP);
-  }
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p) && *parn == 2)   
-  {   
-    char tmp[IRCD_BUFSIZE];
-    char tmp2[IRCD_BUFSIZE];
-
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s",   
-        source_p->name, chname, parv[0]);
-    for(i = 1; i < parc; i++)
-    {
-      strcpy(tmp2, tmp);
-      ircsprintf(tmp, "%s %s", tmp, parv[i]);
-    }
-    
-    sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);   
-    oftc_log(tmp); 
   }
 }
 
@@ -1449,22 +1410,6 @@ chm_voice(struct Client *client_p, struct Client *source_p,
 
     DelMemberFlag(member, CHFL_VOICE);
   }
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p) && *parn == 2)
-  {
-    char tmp[IRCD_BUFSIZE];
-    char tmp2[IRCD_BUFSIZE];
-
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s",
-        source_p->name, chname, parv[0]);
-    for(i = 1; i < parc; i++)
-    {
-      strcpy(tmp2, tmp);
-      ircsprintf(tmp, "%s %s", tmp, parv[i]);
-    }
-
-    sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-    oftc_log(tmp);
-  }
 }
 
 static void
@@ -1529,16 +1474,6 @@ chm_limit(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count].mems = ALL_MEMBERS;
     mode_changes[mode_count].id = NULL;
     mode_changes[mode_count++].arg = NULL;
-  }
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
-  {
-    char tmp[IRCD_BUFSIZE];
-
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
-        source_p->name, chname, parv[0],       
-        EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-    oftc_log(tmp);
   }
 }
 
@@ -1611,16 +1546,6 @@ chm_key(struct Client *client_p, struct Client *source_p,
     mode_changes[mode_count].mems = ALL_MEMBERS;
     mode_changes[mode_count].id = NULL;
     mode_changes[mode_count++].arg = "*";
-  }
-  if(alev == CHACCESS_CHANOP + 1 && MyClient(source_p))
-  {
-    char tmp[IRCD_BUFSIZE];
-
-    ircsprintf(tmp, "%s is using God mode: MODE %s %s %s",
-        source_p->name, chname, parv[0],       
-        EmptyString(parv[1]) ? "" : parv[1]);
-    sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-    oftc_log(tmp);
   }
 }
 
@@ -2005,6 +1930,7 @@ set_channel_mode(struct Client *client_p, struct Client *source_p, struct Channe
   simple_modes_mask = 0;
 
   alevel = get_channel_access(source_p, member);
+  god_mode_check(source_p, chname, alevel, parc, parv);
 
   for (; (c = *ml) != '\0'; ml++) 
   {
