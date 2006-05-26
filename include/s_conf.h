@@ -48,7 +48,7 @@ struct ip_value
 
 extern FBFILE *conf_fbfile_in;
 extern char conf_line_in[256];
-extern static struct AccessItem* yy_aconf;
+extern struct AccessItem* yy_aconf;
 
 typedef enum {  
   CONF_TYPE, 

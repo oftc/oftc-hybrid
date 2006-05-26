@@ -52,7 +52,7 @@
 
 static char *class_name;
 static struct ConfItem *yy_conf = NULL;
-static struct AccessItem *yy_aconf = NULL;
+struct AccessItem *yy_aconf = NULL;
 static struct MatchItem *yy_match_item = NULL;
 static struct ClassItem *yy_class = NULL;
 
