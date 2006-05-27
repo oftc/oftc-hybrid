@@ -62,7 +62,7 @@ _moddeinit(void)
   mod_del_cmd(&part_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 229 $";
 #endif
 
 static void part_one_client(struct Client *client_p,

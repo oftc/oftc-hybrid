@@ -76,7 +76,7 @@ _moddeinit(void)
   eventDelete(user_shedding_shed, NULL);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 472 $";
 #endif
 
 /* Local function prototypes */

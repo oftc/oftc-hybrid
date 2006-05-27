@@ -62,7 +62,7 @@ _moddeinit(void)
   mod_del_cmd(&sjoin_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 438 $";
 #endif
 
 /* ms_sjoin()

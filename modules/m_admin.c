@@ -61,7 +61,7 @@ _moddeinit(void)
   hook_del_event("doing_admin");
   mod_del_cmd(&admin_msgtab);
 }
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 229 $";
 #endif
 
 /*

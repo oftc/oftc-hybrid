@@ -55,7 +55,7 @@ _moddeinit(void)
   mod_del_cmd(&encap_msgtab);
   delete_capability("ENCAP");
 }
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 229 $";
 #endif
 
 /*

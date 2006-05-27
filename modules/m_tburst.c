@@ -80,7 +80,7 @@ _moddeinit(void)
   unset_tburst_capab();
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 448 $";
 
 /* ms_tburst()
  * 

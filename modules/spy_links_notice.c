@@ -43,7 +43,7 @@ _moddeinit(void)
   hook_del_hook("doing_links", (hookfn *)show_links);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 396 $";
 
 int
 show_links(struct hook_links_data *data)

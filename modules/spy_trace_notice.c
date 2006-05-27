@@ -45,7 +45,7 @@ _moddeinit(void)
   hook_del_hook("doing_ltrace", (hookfn *)show_ltrace);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 396 $";
 
 int show_trace(struct hook_spy_data *data)
 {

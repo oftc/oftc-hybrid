@@ -60,7 +60,7 @@ _moddeinit(void)
   mod_del_cmd(&squit_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 396 $";
 #endif
 
 /* mo_squit - SQUIT message handler

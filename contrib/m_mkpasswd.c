@@ -52,7 +52,7 @@ void _moddeinit(void)
   mod_del_cmd(&mkpasswd_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 229 $";
 #endif
 
 static void

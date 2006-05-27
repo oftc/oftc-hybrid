@@ -43,7 +43,7 @@ _moddeinit(void)
   hook_del_hook("doing_stats_p", (hookfn *)show_stats_p);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 393 $";
 
 int show_stats_p(struct hook_stats_data *data)
 {

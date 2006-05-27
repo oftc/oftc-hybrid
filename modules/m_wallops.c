@@ -56,7 +56,7 @@ _moddeinit(void)
   mod_del_cmd(&wallops_msgtab);
 }
  
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 229 $";
 #endif
 
 /*

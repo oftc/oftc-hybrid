@@ -72,7 +72,7 @@ _moddeinit(void)
   mod_del_cmd(&unresv_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 238 $";
 #endif
 
 /* mo_resv()

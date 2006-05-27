@@ -44,7 +44,7 @@ _moddeinit(void)
 	hook_del_hook("doing_stats", (hookfn *)show_stats);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 229 $";
 
 /* show a stats request */
 int

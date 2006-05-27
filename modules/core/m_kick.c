@@ -62,7 +62,7 @@ _moddeinit(void)
   mod_del_cmd(&kick_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 476 $";
 #endif
 
 /* m_kick()

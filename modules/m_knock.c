@@ -83,7 +83,7 @@ _moddeinit(void)
   delete_capability("KNOCK");
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 229 $";
 #endif
 
 /* m_knock

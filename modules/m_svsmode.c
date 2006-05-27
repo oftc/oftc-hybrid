@@ -62,7 +62,7 @@ _moddeinit(void)
   mod_del_cmd(&mode_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 325 $";
 #endif
 /*
  * m_svsmode - MODE command handler

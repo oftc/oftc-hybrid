@@ -44,7 +44,7 @@ _moddeinit(void)
   hook_del_hook("doing_whois", (hookfn *)show_notice);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 229 $";
 
 /* show_notice
  *

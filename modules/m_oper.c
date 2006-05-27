@@ -70,7 +70,7 @@ _moddeinit(void)
   mod_del_cmd(&oper_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 475 $";
 #endif
 
 /*

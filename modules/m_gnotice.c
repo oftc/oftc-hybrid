@@ -64,7 +64,7 @@ _moddeinit(void)
   mod_del_cmd(&gnotice_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 334 $";
 #endif
 
 static void ms_gnotice(struct Client *client_p, 

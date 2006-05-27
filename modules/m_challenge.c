@@ -61,7 +61,7 @@ _moddeinit(void)
   mod_del_cmd(&challenge_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 475 $";
 #endif
 
 /*

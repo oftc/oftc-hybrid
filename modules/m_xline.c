@@ -82,7 +82,7 @@ _moddeinit(void)
   mod_del_cmd(&unxline_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 259 $";
 #endif
 
 

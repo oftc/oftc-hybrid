@@ -45,7 +45,7 @@
 
 static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char **parv);
 
-const char* _version = "$Revision$";
+const char* _version = "$Revision: 301 $";
 
 struct Message log_msgtab = {
   "LOG", 0, 0, 2, 0, MFLG_SLOW, 0,

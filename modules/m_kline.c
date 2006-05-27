@@ -106,7 +106,7 @@ _moddeinit(void)
   delete_capability("KLN");
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 474 $";
 #endif
 
 /* Local function prototypes */

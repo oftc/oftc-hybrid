@@ -67,7 +67,7 @@ _moddeinit(void)
 {
   mod_del_cmd(&who2_msgtab);
 }
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 369 $";
 #endif
 
 /* Internally defined stuffs */

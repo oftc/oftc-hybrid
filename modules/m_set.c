@@ -64,7 +64,7 @@ _moddeinit(void)
   mod_del_cmd(&set_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 396 $";
 #endif
 
 /* Structure used for the SET table itself */

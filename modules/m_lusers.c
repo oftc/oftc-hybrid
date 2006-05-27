@@ -58,7 +58,7 @@ _moddeinit(void)
   mod_del_cmd(&lusers_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 229 $";
 #endif
 /* m_lusers - LUSERS message handler
  * parv[0] = sender

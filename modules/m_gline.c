@@ -103,7 +103,7 @@ _moddeinit(void)
   delete_capability("GLN");
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 232 $";
 #endif
 
 /* mo_gline()

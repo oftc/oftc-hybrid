@@ -63,7 +63,7 @@ _moddeinit(void)
 }
 
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 241 $";
 #endif
 /*
  * m_spingtime - SPINGTIME

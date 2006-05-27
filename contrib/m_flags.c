@@ -77,7 +77,7 @@ _moddeinit(void)
   mod_del_cmd(&test_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 229 $";
 #endif
 
 /* FLAGS requires it's own mini parser, since the last parameter in it can

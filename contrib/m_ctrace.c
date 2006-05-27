@@ -65,7 +65,7 @@ _moddeinit(void)
   hook_del_event("doing_ctrace");
   mod_del_cmd(&ctrace_msgtab);
 }
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 229 $";
 #endif
 static int report_this_status(struct Client *source_p, struct Client *target_p);
 

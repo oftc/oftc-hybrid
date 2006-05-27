@@ -43,7 +43,7 @@
 
 static void m_cs(struct Client *, struct Client *, int, char **);
 
-const char* _version = "$Revision$";
+const char* _version = "$Revision: 366 $";
 
 struct Message cs_msgtab = {
       "cs", 0, 0, 0, 0, MFLG_SLOW, 0,
