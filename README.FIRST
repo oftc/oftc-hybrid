@@ -7,13 +7,12 @@ If you don't read this first, we won't help you.
   * - Reading INSTALL is now a must, as the old DPATH is now specified    *
   *   when configure is run.                                              *
   *   You now need to ./configure --prefix="/path/to/install/it"          *
-  * - The old config format WILL NOT WORK.  Please see doc/example.conf ! *
-  * - The old kline format WILL NOT WORK.  Please use convertklines which *
-  *   will be installed with your ircd!					  *
+  * - The old config format WILL NOT WORK. Please see etc/example.conf ! *
+  * - The old kline, dline, xline, gline format WILL NOT WORK.
   *************************************************************************
 
   ALSO, IF YOU ARE UPGRADING YOUR CURRENT SOURCE TREE, AND YOU TRY TO BUILD
-  IN IT WITHOUT PERFORMING AT LEAST 'make clean', THINGS _WILL_ BREAK.  IT IS
+  IN IT WITHOUT PERFORMING AT LEAST 'make clean', THINGS _WILL_ BREAK. IT IS
   RECOMMENDED THAT YOU RUN 'make distclean' AND THEN RERUN './configure'!
 
 ******************************* REQUIREMENTS **********************************
@@ -25,19 +24,6 @@ Necessary Requirements:
 - A working dynamic load library, unless
   compiling statically, without module
   support.
-
-- A working lex.  Solaris /usr/ccs/bin/lex
-  appears to be broken, on this system flex
-  should be used.
-
-- A working bison or byacc.  FreeBSD and BSD/OS
-  byacc are broken in some releases, and will
-  dump core when building the ircd_parser.y. The
-  solution to this is to upgrade to the most
-  recent release, or to simply obtain a current
-  copy of byacc (such as building source from
-  FreeBSD CVS/CVSup). This is fixed in FreeBSD
-  4.4-STABLE and later.
 
 Feature Specific Requirements:
 
@@ -52,31 +38,21 @@ Feature Specific Requirements:
 
 *******************************************************************************
 
-- To report bugs in hybrid, send the bug report to ircd-hybrid@the-project.org
-
-- Known bugs are listed in the BUGS file
-
 - See the INSTALL document for info on configuring and compiling
   ircd-hybrid.
 
 - Please read doc/index.txt to get an overview of the current documentation.
 
-- Old Hybrid 5/6 configuration files are no longer supported.  All conf
-  files will have to be converted to the Hybrid 7 format.  A convertconf
-  utility is provided and installed into bin/.
+- A good place for general help, discussions, and suggestions for ircd-hybrid
+  can be found at http://www.forum.ircd-hybrid.org
 
-- If you are wondering why config.h no longer exists, it's because most
-  things that were once in config.h are now specified in the 'general'
-  block of ircd.conf.  Look at example.conf for more information about
-  these options. Many, notably syslog support and EFnet tweaks, are now
-  configure options (see ./configure --help for details.)
+- There is also a mailing list for general discussion of Hybrid.  To subscribe
+  to the Hybrid List, use this link:
+  https://lists.ircd-hybrid.org/mailman/listinfo/hybrid
 
-- /etc/resolv.conf is at present required to exist for our resolver to start
-  properly.
+- To report bugs in hybrid, send the bug report to bugs@ircd-hybrid.org
 
-- There is now a mailing list for general discussion of Hybrid.  To subscribe
-  to the Hybrid List, send email to listmanager@the-project.org with
-  the subject "subscribe hybrid".
+- Known bugs are listed in the BUGS file
 
 - If you run in to a problem you think may be specific to your platform,
   check README.PLATFORMS for some hints.
@@ -92,7 +68,8 @@ Feature Specific Requirements:
 
 - TESTED PLATFORMS:  The code has been tested on the following platforms, and
   is known to run properly.
-  FreeBSD 3.x/4.x/5.x (gcc only, TenDRA will *not* work)
+  FreeBSD 3.x/4.x/5.x (gcc only, TenDRA will work but only with the latest
+  cvs version from ten15.org)
   Linux glibc 2.2/2.3
   Solaris 2.6/7/8
   Cygwin 1.3.22 (no shared modules yet)
@@ -101,15 +78,22 @@ Feature Specific Requirements:
   IRIX64 6.5.19 (gcc only; MIPSpro is unconfirmed)
   NetBSD 1.4-1.6
   Tru64 UNIX 5.2b (only tested with native cc)
-  
+
   It probably does not compile on AIX or libc5 Linux.
-  
-  Previously, OpenVMS was actively supported, but the port has fallen behind,
-  so a diff is available in contrib/ that may or may not work for you. Use at
-  your own risk.
-  
+
+- Old Hybrid 5/6 configuration files are no longer supported.  All conf
+  files will have to be converted to the Hybrid 7 format.
+
+- If you are wondering why config.h no longer exists, it's because most
+  things that were once in config.h are now specified in the 'general'
+  block of ircd.conf.  Look at example.conf for more information about
+  these options. Many, notably syslog support and EFnet tweaks, are now
+  configure options (see ./configure --help for details.)
+
+- /etc/resolv.conf must exist for the resolver to work.
+
 - Please read RELNOTES and doc/whats-new.txt for information about what is in
-  this release
+  this release.
 
 - Other files recommended for reading: BUGS, INSTALL
 
