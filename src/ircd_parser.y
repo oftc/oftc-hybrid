@@ -2017,11 +2017,17 @@ connect_send_password: SEND_PASSWORD '=' QSTRING ';'
 {
   if (ypass == 2)
   {
-    if (yy_aconf->spasswd != NULL)
-      memset(yy_aconf->spasswd, 0, strlen(yy_aconf->spasswd));
+    if ($3[0] == ':')
+      yyerror("Server passwords cannot begin with a colon");
+    else if (strchr($3, ' ') != NULL)
+      yyerror("Server passwords cannot contain spaces");
+    else {
+      if (yy_aconf->spasswd != NULL)
+        memset(yy_aconf->spasswd, 0, strlen(yy_aconf->spasswd));
 
-    MyFree(yy_aconf->spasswd);
-    DupString(yy_aconf->spasswd, yylval.string);
+      MyFree(yy_aconf->spasswd);
+      DupString(yy_aconf->spasswd, yylval.string);
+    }
   }
 };
 
@@ -2029,11 +2035,17 @@ connect_accept_password: ACCEPT_PASSWORD '=' QSTRING ';'
 {
   if (ypass == 2)
   {
-    if (yy_aconf->passwd != NULL)
-      memset(yy_aconf->passwd, 0, strlen(yy_aconf->passwd));
+    if ($3[0] == ':')
+      yyerror("Server passwords cannot begin with a colon");
+    else if (strchr($3, ' ') != NULL)
+      yyerror("Server passwords cannot contain spaces");
+    else {
+      if (yy_aconf->passwd != NULL)
+        memset(yy_aconf->passwd, 0, strlen(yy_aconf->passwd));
 
-    MyFree(yy_aconf->passwd);
-    DupString(yy_aconf->passwd, yylval.string);
+      MyFree(yy_aconf->passwd);
+      DupString(yy_aconf->passwd, yylval.string);
+    }
   }
 };
 
