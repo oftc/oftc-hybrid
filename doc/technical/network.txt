@@ -3,14 +3,11 @@ Adrian Chadd <adrian@creative.net.au>
 
 $Id$
 
-
 This document is an overview of the new and hopefully improved network
 subsystem.
 
 The code is based loosely upon the network core found in the Squid web cache
 server, with some optimizations for ircd-specific IO patterns.
-
-
 
 Filedescriptor IO
 -----------------
@@ -60,9 +57,6 @@ read_callback(int fd, void *data)
     comm_setselect(fd, FDLIST_SERVICE, COMM_SELECT_READ, read_callback, data,
         0);
 }
-
-
-
 
 Socket timeouts
 ---------------

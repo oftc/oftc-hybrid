@@ -1,6 +1,3 @@
-
-send.c re-work
-
 PREFIXES
 ========
 
@@ -77,7 +74,8 @@ sendto_channel_butone()
                   except to the client specified as "one", the prefix
                   is built by this function on the fly as it has to
                   be sent both to local clients on this server and to
-                  remote servers. 
+                  remote servers. +D clients are omitted, as this is used
+                  only for PRIVMSG/NOTICE.
 
                   usage - sendto_channel_butone(struct Client *one,
                                                 struct Client *from,
@@ -132,9 +130,10 @@ sendto_channel_local()
                   to remote servers. This is useful when removing
                   local chanops, or adding a local chanop. MODE/SJOIN
                   sent to remote server allows that server to propagate
-                  mode changes to its clients locally.
+                  mode changes to its clients locally. If nodeaf is YES,
+                  +D clients are omitted (used for delivering WALLCHOPS).
 
-                  usage - sendto_channel_local(type,
+                  usage - sendto_channel_local(type, nodeaf,
                                                struct Channel *chptr,
                                                const char *pattern, ... );
 
@@ -198,14 +197,17 @@ sendto_anywhere()
 sendto_realops_flags()
                 - combines old sendto_realops and sendto_realops_flags
                   sends specified message to opers locally only
-                  depending on flags. FLAGS_ALL is a special case
-                  to send to any oper.
+                  depending on two flags, UMODE i.e. +y +d or UMODE_SERVNOTICE
+                  or special case, UMODE_ALL (see client.h UMODE flags )
+                  to send to any oper. The second flag gives the level
+                  of whom to send the messages to, OPERS, ADMINS only or both.
+                  (See send.h for those flags)
 
-                  usage - sendto_realops_flags(int flags,
+                  usage - sendto_realops_flags(int umode, int level,
                                                const char *pattern, ... );
 
                   e.g.
-                  sendto_realops_flags(FLAGS_ALL,
+                  sendto_realops_flags(UMODE_ALL, L_ALL,
                                  "Don't eat the yellow snow");
 
 sendto_wallops_flags()
@@ -217,7 +219,7 @@ sendto_wallops_flags()
                                     struct Client *, const char *patterm ...);
 
                   e.g.
-                  sendto_wallops_flags(FLAGS_LOCOPS,
+                  sendto_wallops_flags(UMODE_WALLOP,
                                       sptr, "Message");
 
 ts_warn()       - Only used to send warning messages to all opers
@@ -229,52 +231,12 @@ ts_warn()       - Only used to send warning messages to all opers
 
 *** LOCAL HELPER FUNCTIONS (static) ***
 
-sendto_format() - Used to format a varargs buffer into given buffer
+send_format()   - Used to format a varargs buffer into given buffer
                   returns length of buffer built, enforces RFC1459 length
                   limits and appends \r\n as per rfc.
 
-                  usage - sendto_format(char *sendbuf,
-                                        const char *pattern, ... );
-
-send_trim()     - This local function simply trims a char string
-                  to fit inside 512 bytes as per rfc1459, adding
-                  a cr/lf pair as needed. It does not check to make
-                  sure original string has a cr/lf.
-    
-                  usage - int send_trim(char buffer, int len);
-                  returns length as modified or not,
-                  modifies buffer in-place.
-
-sendto_list_local()
-                - This local function sends given message to given dlink_list
-                  with data == a local client. This is used by
-                  sendto_common_channels_local() and by
-                  sendto_channel_local() 
- 
-                  It could easily be extended to sendto "groups" of
-                  otherwise unrelated users, not just channel groups.
-
-                  usage - sendto_list_local(dlink_list *list,
-                                            const char *sendbuf,
-                                            int len);
-
-
-sendto_list_anywhere()
-                - This local function sends a message to all members
-                  as given in a dlink_list, whether they are remote or local
-                  clients. It is used by sendto_channel_butone()
-
-                  It could easily be extended to sendto "groups" of
-                  otherwise unrelated users, not just channel groups.
-
-                  usage: sendto_list_anywhere(struct Client *one,
-                                              struct Client *from,
-                                              dlink_list *list,
-                                              const char *local_sendbuf,
-                                              int local_len,
-                                              const char *remote_sendbuf,
-                                              int remote_len);
-
+                  usage - send_format(char *sendbuf,
+                                      const char *pattern, ... );
 
 send_message()
                 - This local function does the actual send of message
@@ -283,6 +245,17 @@ send_message()
 
                   The message has to be pre-formatted and the length
                   must be pre-calculated. 
+
+send_message_remote()
+                - This local function does the actual send of message to
+                  remote clients
+
+                  usage: send_message_remote(struct Client *to,
+                  struct Client *from, char *msg, int len);
+
+                  The message has to be pre-formatted and the length
+                  must be pre-calculated.
+
 
 -- Diane Bruce 
 

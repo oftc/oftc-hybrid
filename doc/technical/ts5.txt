@@ -12,7 +12,6 @@ and prior, are TS3.
 
 ircd-hybrid-6.2 and later support TS5.
 
-
 Whats TS5?
 ----------
 
@@ -146,6 +145,3 @@ configuration of minimum servers and users, and sometimes a split that is
 above these limits is enough to be abused to regain ops, whereas if the
 limits are too high, clients will never be able to join anything or be opped
 when they create a channel.
-
-
-EOF

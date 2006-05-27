@@ -20,7 +20,8 @@
  */
 
 /* List of ircd includes from ../include/ 
- * These ones are necessary to build THIS module... */
+ * These ones are necessary to build THIS module...
+ */
 
 #include "stdinc.h" /* includes setup.h, for STATIC_MODULES */
 
@@ -29,6 +30,8 @@
 #include "send.h" /* sendto_one, most useful function of all time */
 
 #include "modules.h" /* includes msg.h; use for the msgtab */
+
+#include "handlers.h" /* m_ignore */
 
 /* OTHER USEFUL INCLUDES:
  * 
@@ -54,16 +57,13 @@
  * parc     == the number of parameters
  * parv     == an array of the parameters
  */
-static void mr_test(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[]);
-static void m_test(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[]);
-static void ms_test(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[]);
-static void mo_test(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[]);
+static void mr_test(struct Client *, struct Client *, int, char *[]);
+static void m_test(struct Client *, struct Client *, int, char *[]);
+static void ms_test(struct Client *, struct Client *, int, char *[]);
+static void mo_test(struct Client *, struct Client *, int, char *[]);
 
-/* Show the commands this module can handle in a msgtab
+/*
+ * Show the commands this module can handle in a msgtab
  * and give the msgtab a name, here its test_msgtab
  */
 struct Message test_msgtab = {
@@ -85,13 +85,15 @@ struct Message test_msgtab = {
   "TEST", 0, 0, 1, 0, MFLG_SLOW, 0,
 
  /* Fields are in order:
-  *-> {unregged, regged, remote, oper}
+  *-> {unregged, regged, remote, encap, oper, dummy}
   *
   * where:
   * unregged == function to call for unregistered clients
   * regged == function to call for normal users
   * remote == function to call for servers/remote users
+  * encap == function to call for encap'd server/remote commands
   * oper == function to call for operators
+  * dummy == function called when client is quarantined
   *
   * There are also some pre-coded functions for use:
   * m_unregistered: prevent the client using this if unregistered
@@ -99,7 +101,7 @@ struct Message test_msgtab = {
   * m_ignore:       ignore the command when it comes from certain types
   * m_error:        give an error when the command comes from certain types
   */
-  {mr_test, m_test, ms_test, mo_test}
+  { mr_test, m_test, ms_test, m_ignore, mo_test, m_ignore }
 
  /* It is normal for unregistered functions to be prefixed with mr_
   *   "      "       normal users to be prefixed with m_
@@ -107,7 +109,7 @@ struct Message test_msgtab = {
   *   "      "       operators to be prefixed with mo_
   */
 };
-/* Thats the msgtab finished */
+/* That's the msgtab finished */
 
 #ifndef STATIC_MODULES
 /* Here we tell it what to do when the module is loaded */
@@ -128,7 +130,7 @@ _moddeinit(void)
 
 /* When we last modified the file (shown in /modlist), this is usually:
  */
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -140,12 +142,13 @@ const char *_version = "$Revision: 229 $";
 /* Here we have the functions themselves that we declared above,
  * and the fairly normal C coding
  */
-static void mr_test(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+static void
+mr_test(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
 {
-  if(parc == 1)
+  if (parc == 1)
     sendto_one(source_p, ":%s NOTICE %s :You are unregistered and sent no parameters",
-    	       me.name, source_p->name);
+               me.name, source_p->name);
   else
     sendto_one(source_p, ":%s NOTICE %s :You are unregistered and sent parameter: %s", 
                me.name, source_p->name, parv[1]);
@@ -156,12 +159,13 @@ static void mr_test(struct Client *client_p, struct Client *source_p,
  *      parv[0] = sender prefix
  *      parv[1] = parameter
  */
-static void m_test(struct Client *client_p, struct Client *source_p,
-                   int parc, char *parv[])
+static void
+m_test(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
 {
-  if(parc == 1)
+  if (parc == 1)
     sendto_one(source_p, ":%s NOTICE %s :You are a normal user, and sent no parameters",
-    	       me.name, source_p->name);
+               me.name, source_p->name);
   else
     sendto_one(source_p, ":%s NOTICE %s :You are a normal user, and send parameters: %s",
                me.name, source_p->name, parv[1]);
@@ -172,40 +176,42 @@ static void m_test(struct Client *client_p, struct Client *source_p,
  *      parv[0] = sender prefix
  *      parv[1] = parameter
  */
-static void ms_test(struct Client *client_p, struct Client *source_p,
-                   int parc, char *parv[])
+static void
+ms_test(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
 {
-  if(parc == 1)
+  if (parc == 1)
   {
-    if(IsServer(source_p))
+    if (IsServer(source_p))
       sendto_one(source_p, ":%s NOTICE %s :You are a server, and sent no parameters",
                  me.name, source_p->name);
     else
       sendto_one(source_p, ":%s NOTICE %s :You are a remote client, and sent no parameters",
-      		 me.name, source_p->name);
+                 me.name, source_p->name);
   }
   else
   {
-    if(IsServer(source_p))
+    if (IsServer(source_p))
       sendto_one(source_p, ":%s NOTICE %s :You are a server, and sent parameters: %s",
-		 me.name, source_p->name, parv[1]);
+                 me.name, source_p->name, parv[1]);
     else
       sendto_one(source_p, ":%s NOTICE %s :You are a remote client, and sent parameters: %s",
-		 me.name, source_p->name, parv[1]);
+                 me.name, source_p->name, parv[1]);
   }
-}    
-	  
+}
+
 /*
  * mo_test
  *      parv[0] = sender prefix
  *      parv[1] = parameter
  */
-static void mo_test(struct Client *client_p, struct Client *source_p,
-                   int parc, char *parv[])
-{		 
-  if(parc == 1)
+static void
+mo_test(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
+{
+  if (parc == 1)
     sendto_one(source_p, ":%s NOTICE %s :You are an operator, and sent no parameters",
-	       me.name, source_p->name);
+               me.name, source_p->name);
   else
     sendto_one(source_p, ":%s NOTICE %s :You are an operator, and sent parameters: %s",
                me.name, source_p->name, parv[1]);

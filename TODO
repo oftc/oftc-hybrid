@@ -1,82 +1,28 @@
 $Id$
 
-- add more stderr debugging (ircd -s)... one for every place we syslog()
-- ircd -s doesn't work through a restart
-- re-implement first param in m_lusers()
-- trie' channel name list
-- finish RFC'ing m_message.c
-
-----
-is-'s TODO list
-
-- umode +R for registered nick
-- change nick instead of kill on nick collide
 - dynamically extensible parser for modules
--> this is the ratbox parser -joshk
+
 - modularize channel, network code etc (not just commands)
-    we can use override_function() or similar for this
+  we can use override_function() or similar for this
+  => means prepared, now just make use of them
+
 - username/passwords (iauth ?)
-- channel modes to allow/prevent talking on channel
-  by hostmasks. 
 
------------------------------------------------------------------------------
-madmax's TODO
-
-- Make stats p just notice opers, rather than return a list, when
-  server_hide is on (#13)
-- Client UIDs (ts4 style?) for cookies (later for persistent nicks)
-- Definable server region or 'global' (open I) for /links output (#20)
------------------------------------------------------------------------------
-
-Adrian's TODO list
-
-* make the reserved FD limit run-time tunable, esp from comm_open()
+- make the reserved FD limit run-time tunable, esp from comm_open()
   This involves making fd_table[] a dynamically growing/(don't bother with
   shrinking) list.. have the max fd list configurable in the conf file..
+  => partially done, just turn HARD_FDLIMIT into a variable
 
-* Fix the anti-client flood code to not be so anal when people connect -
-  I've counted all lines from a client as being a flood, so if a client
-  connects and issues JOIN's to a whole bunch of channels the flood
-  protection stops everything coming through at once .. (not that I mind.. :)
-
-* PLEASE redo all dlink_list management with the stuff in src/tools.c
-
-* In the server outbound connection code, make the sendto_realops()
-  logging more sane. Ie, if there's an error, also log the errno string.
-
-* look at the old Listener code in s_bsd.c before I chopped it. Notice
-  the anti-flood code in there. Make sure the same load-checking stuff
-  is in listener.c
-
-* get send_message(), replace comm_setselect() with send_queued_write(), see
-  if the optimization works
-
-* remove aconf->ipnum, since we're doing a DNS lookup each time we
-  connect. If people don't like this, they can (should!) be running
-  a name cache locally!
-
-db-->>ummm aconf->ipnum is used for IP based klines only, not for DNS
-
-* Add the IRCnet(?) split logic for nick collisions - on a nick collision,
+- Add the IRCnet(?) split logic for nick collisions - on a nick collision,
   change to "%d-%s", random, nick
+  => this is rather equal to their /nick 0, ie set nick to user's UID
 
 ------------------------------------------------------------------------------
 Little things to be done given enough time and initiative -Hwy
 
-.  The 3 logging path settings are NOOP in the conf (logpath, oper_log, 
-   gline_log)
-.  Fix convertconf more
-.  Re-add the ability to set usermodes from the conf (oldconf field after the
-   O: line class)
 .  <Riedel> walter : have you implemented the motd= thing in the auth block ?
 .  Fix topic bursting to LL servers (broke lately for some reason)
-   --> Unknown status
 .  A FAQ
-   --> Dracus is working on this, I will try to put something together too
-.  Major cleanup of example.conf, it's a disgrace
-   --> Still a disgrace
-.  chkconf
-   --> SCARY!!!
 .  More translations!
 
 
@@ -85,29 +31,17 @@ Little things to be done given enough time and initiative -Hwy
    Also add support for server-side notify with the list stored in the
    auth database.  This would make ircd an awesome instant messaging
    back-end.
-
-
--- jdc's list
-  *  Re-write m_stats.c to be table-based, similar to m_set.  Also change
-     to support funtion exit code values (int), so that STATS output can
-     be "successful" or "unsuccessful" (eg. "STATS i requested by <nick>
-     [unsuccessful]" vs. "STATS i requested by <nick>").
-     --> Table part I know is done, what about the success status?
-  *  Re-write proper startup procedure for daemon; procedure should be
-     done in stages, similar to boot0/1/2 stages in FreeBSD.
-  *  Write secure cryptlink protocol with help from Sean.
+   => currently possible to do as a module
 
 
 -- Diane's list
-
 * add logging to ircd.log of possible channel floods
-
 * add code to log a minute worth of flooding if the ircd gets n possible
   flood messages on a channel in t seconds.. This log would be available
   to hand to authorities if requested.
 
--- Josh's list
 
+-- Josh's list
 * Find out the status of the build with IRIX64/MIPSpro.
 * Make modules.c more flexible in anticipation of Win32 modules usability.
 * LAZY LINKS ARE BROKEN!!!
@@ -115,16 +49,27 @@ Little things to be done given enough time and initiative -Hwy
 * Fix lack of error message for oper initiating /connect that fails because
 it's a leaf.
 
--- metalrock's list
 
-* Don't show local channels in a remote whois.
-* Write documentation for example.conf changes.
+-- knight's list
+* Add Czechoslovakian support.
+* Database Authentication (IAUTH).
+* VMS, NetBSD, Mac OS X (testing and porting).
+* AMD64, Sparc(64) testing and development.
+* GCC4 testing and development
+* Re-work nickname collision code to change
+  nicknames on collide rather than issue a
+  server kill.
+
 
 -- adx's list
+* modularize parser, channel modes, member flags and more
+* split libio (engines, logging etc) from irc related sources?
+* implement ND/CD split logic
+* implement /nick 0 and uid addressing
+* more I/O backends (ports)
+* make STATIC_MODULES more flexible
+* get rid of conf attaching as much as possible
 
-* umode +G - prevents people who are not on any common channel
-from talking to you unless you /QUOTE ACCEPT them. This could help
-users who are getting spammed by spy+spambot tandem.
 
-* Although hybrid is designed to be used mainly on EFnet, it wouldn't hurt
-if it was a bit more services friendly..
+-- metalrock's list
+* Fix that missing server connection timed out notice.

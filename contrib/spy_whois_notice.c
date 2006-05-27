@@ -22,49 +22,61 @@
  *  $Id$
  */
 #include "stdinc.h"
+#ifndef STATIC_MODULES
 #include "tools.h"
 #include "modules.h"
+#include "hash.h"
 #include "hook.h"
 #include "client.h"
 #include "ircd.h"
 #include "send.h"
 
-int
-show_notice(struct hook_mfunc_data *);
+static struct Callback *whois_cb = NULL;
+static dlink_node *prev_hook;
+
+static void *show_notice(va_list);
 
 void
 _modinit(void)
 {
-  hook_add_hook("doing_whois", (hookfn *)show_notice);
+  if ((whois_cb = find_callback("doing_whois")))
+    prev_hook = install_hook(whois_cb, show_notice);
 }
 
 void
 _moddeinit(void)
 {
-  hook_del_hook("doing_whois", (hookfn *)show_notice);
+  if (whois_cb)
+    uninstall_hook(whois_cb, show_notice);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 
 /* show_notice
  *
- * inputs	- pointer to hook_mfunc
- * output	- 0 in all cases
+ * inputs	- source_p, parc, parv
+ * output	- inherited
  * side effects	- show a whois notice source_p does a /whois on client_p
  */
-int
-show_notice(struct hook_mfunc_data *data)
+void *
+show_notice(va_list args)
 {
-  if (MyConnect(data->client_p) &&
-      IsOper(data->client_p) && (data->client_p != data->source_p) 
-      && data->client_p->umodes & UMODE_SPY) 
+  struct Client *source_p = va_arg(args, struct Client *);
+  int parc = va_arg(args, int);
+  char **parv = va_arg(args, char **);
+  struct Client *target_p;
+
+  target_p = parv[1] ? find_client(parv[1]) : NULL;
+
+  if (target_p != NULL && target_p != source_p)
+    if (MyClient(target_p) && IsOper(target_p) &&
+        (target_p->umodes & UMODE_SPY))
     {
-      sendto_one(data->client_p,
-	 ":%s NOTICE %s :*** Notice -- %s (%s@%s) is doing a whois on you",
-                 me.name, data->client_p->name,
-		 data->source_p->name, data->source_p->username,
-                 data->source_p->host);
+      sendto_one(target_p, ":%s NOTICE %s :*** Notice -- %s (%s@%s) is doing "
+                 "a whois on you", me.name, target_p->name, source_p->name,
+		 source_p->username, source_p->host);
     }
 
-  return 0;
+  return pass_callback(prev_hook, source_p, parc, parv);
 }
+#endif

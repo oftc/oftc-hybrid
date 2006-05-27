@@ -1,13 +1,8 @@
-
-
-
-
-
+$Id$
 
 Network Working Group                                      J. Oikarinen
 Request for Comments: 1459                                      D. Reed
                                                                May 1993
-
 
                       Internet Relay Chat Protocol
 
@@ -52,13 +47,6 @@ Table of Contents
          3.2.2 To a group (channel) ...............................   11
          3.2.3 To a host/server mask ..............................   12
       3.3 One to all ..............................................   12
-
-
-
-Oikarinen & Reed                                                [Page 1]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
          3.3.1 Client to Client ...................................   12
          3.3.2 Clients to Server ..................................   12
@@ -109,13 +97,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
       5.2 Rehash command ..........................................   39
       5.3 Restart command .........................................   39
 
-
-
-Oikarinen & Reed                                                [Page 2]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
       5.4 Summon message ..........................................   40
       5.5 Users message ...........................................   40
       5.6 Operwall command ........................................   41
@@ -159,19 +140,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    11. Security Considerations ....................................   65
    12. Authors' Addresses .........................................   65
 
-
-
-
-
-
-
-
-
-Oikarinen & Reed                                                [Page 3]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
 1.  INTRODUCTION
 
    The IRC (Internet Relay Chat) protocol has been designed over a
@@ -198,7 +166,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    Fig. 1] where each server acts as a central node for the rest of the
    net it sees.
 
-
                            [ Server 15 ]  [ Server 13 ] [ Server 14]
                                  /                \         /
                                 /                  \       /
@@ -220,13 +187,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                                   :
 
                  [ Fig. 1. Format of IRC server network ]
-
-
-
-Oikarinen & Reed                                                [Page 4]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
 1.2 Clients
 
@@ -277,13 +237,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    There are two types of channels allowed by this protocol.  One is a
    distributed channel which is known to all the servers that are
 
-
-
-Oikarinen & Reed                                                [Page 5]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    connected to the network. These channels are marked by the first
    character being a only clients on the server where it exists may join
    it.  These are distinguished by a leading '&' character.  On top of
@@ -331,14 +284,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
         MODE    - Change the channel's mode
         INVITE  - Invite a client to an invite-only channel (mode +i)
         TOPIC   - Change the channel topic in a mode +t channel
-
-
-
-
-Oikarinen & Reed                                                [Page 6]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
    A channel operator is identified by the '@' symbol next to their
    nickname whenever it is associated with a channel (ie replies to the
@@ -389,13 +334,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    message itself.  There must be no gap (whitespace) between the colon
    and the prefix.  The prefix is used by servers to indicate the true
 
-
-
-Oikarinen & Reed                                                [Page 7]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    origin of the message.  If the prefix is missing from the message, it
    is assumed to have originated from the connection from which it was
    received.  Clients should not use prefix when sending a message from
@@ -431,7 +369,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
    The BNF representation for this is:
 
-
 <message>  ::= [':' <prefix> <SPACE> ] <command> <params> <crlf>
 <prefix>   ::= <servername> | <nick> [ '!' <user> ] [ '@' <host> ]
 <command>  ::= <letter> { <letter> } | <number> <number> <number>
@@ -444,13 +381,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                  NUL or CR or LF>
 
 <crlf>     ::= CR LF
-
-
-
-Oikarinen & Reed                                                [Page 8]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
 NOTES:
 
@@ -501,13 +431,6 @@ NOTES:
    <number>     ::= '0' ... '9'
    <special>    ::= '-' | '[' | ']' | '\' | '`' | '^' | '{' | '}'
 
-
-
-Oikarinen & Reed                                                [Page 9]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    <nonwhite>   ::= <any 8bit code except SPACE (0x20), NUL (0x0), CR
                      (0xd), and LF (0xa)>
 
@@ -529,8 +452,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    This section is devoted to describing the actual concepts behind  the
    organization  of  the  IRC  protocol and how the current
    implementations deliver different classes of messages.
-
-
 
                           1--\
                               A        D---4
@@ -554,15 +475,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    shortest path between any two points on the spanning tree.
 
    The following examples all refer to Figure 2 above.
-
-
-
-
-
-Oikarinen & Reed                                               [Page 10]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
 Example 1:
      A message between clients 1 and 2 is only seen by server A, which
@@ -610,15 +522,6 @@ Example 3:
 Example 4:
      Any channel with 1 client in it. Messages to the channel go to the
      server and then nowhere else.
-
-
-
-
-
-Oikarinen & Reed                                               [Page 11]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
 Example 5:
      2 clients in a channel. All messages traverse a path as if they
@@ -669,13 +572,6 @@ Example 6:
    servers, this is only required for any message that affects either a
    user, channel or server.  Since these are the basic items found in
 
-
-
-Oikarinen & Reed                                               [Page 12]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    IRC, nearly all messages originating from a server are broadcast to
    all other connected servers.
 
@@ -724,20 +620,11 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    give some level of security to the actual connections.  The
    recommended order for a client to register is as follows:
 
-
-
-
-Oikarinen & Reed                                               [Page 13]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
            1. Pass message
            2. Nick message
            3. User message
 
 4.1.1 Password message
-
 
       Command: PASS
    Parameters: <password>
@@ -780,13 +667,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    If the server recieves an identical NICK from a client which is
    directly connected, it may issue an ERR_NICKCOLLISION to the local
    client, drop the NICK command, and not generate any kills.
-
-
-
-Oikarinen & Reed                                               [Page 14]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
    Numeric Replies:
 
@@ -834,20 +714,11 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
    Examples:
 
-
    USER guest tolmoon tolsun :Ronnie Reagan
-
-
-
-Oikarinen & Reed                                               [Page 15]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
                                    ; User registering themselves with a
                                    username of "guest" and real name
                                    "Ronnie Reagan".
-
 
    :testnick USER guest tolmoon tolsun :Ronnie Reagan
                                    ; message between servers with the
@@ -892,20 +763,11 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
    Example:
 
-
-
-
-Oikarinen & Reed                                               [Page 16]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
 SERVER test.oulu.fi 1 :[tolsun.oulu.fi] Experimental server
                                 ; New server test.oulu.fi introducing
                                 itself and attempting to register.  The
                                 name in []'s is the hostname for the
                                 host running test.oulu.fi.
-
 
 :tolsun.oulu.fi SERVER csd.bu.edu 5 :BU Central Server
                                 ; Server tolsun.oulu.fi is our uplink
@@ -948,13 +810,6 @@ SERVER test.oulu.fi 1 :[tolsun.oulu.fi] Experimental server
    the nickname.
 
    When netsplits (disconnecting of two servers) occur, the quit message
-
-
-
-Oikarinen & Reed                                               [Page 17]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
    is composed of the names of two servers involved, separated by a
    space.  The first name is that of the server which is still connected
@@ -1004,14 +859,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    server connections) for all other servers which are considered to be
    behind that link.
 
-
-
-
-Oikarinen & Reed                                               [Page 18]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    Similarly, a QUIT message must be sent to the other connected servers
    rest of the network on behalf of all clients behind that link.  In
    addition to this, all channel members of a channel which lost a
@@ -1060,14 +907,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
            1.  the user must be invited if the channel is invite-only;
 
-
-
-
-Oikarinen & Reed                                               [Page 19]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
            2.  the user's nick/username/hostname must not match any
                active bans;
 
@@ -1115,14 +954,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
       Command: PART
    Parameters: <channel>{,<channel>}
-
-
-
-
-Oikarinen & Reed                                               [Page 20]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
    The PART message causes the client sending the message to be removed
    from the list of active users for all given channels listed in the
@@ -1173,13 +1004,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
            m - moderated channel;
            l - set the user limit to channel;
 
-
-
-Oikarinen & Reed                                               [Page 21]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
            b - set a ban mask to keep users out;
            v - give/take the ability to speak on a moderated channel;
            k - set a channel key (password).
@@ -1228,13 +1052,6 @@ MODE #Finnish +im               ; Makes #Finnish channel moderated and
                                 'invite-only'.
 
 MODE #Finnish +o Kilroy         ; Gives 'chanop' privileges to Kilroy on
-
-
-
-Oikarinen & Reed                                               [Page 22]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
                                 channel #Finnish.
 
@@ -1285,13 +1102,6 @@ MODE WiZ -o                     ; WiZ 'deopping' (removing operator
            RPL_NOTOPIC                     RPL_TOPIC
            ERR_CHANOPRIVSNEEDED
 
-
-
-Oikarinen & Reed                                               [Page 23]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    Examples:
 
    :Wiz TOPIC #test :New topic     ;User Wiz setting the topic.
@@ -1340,13 +1150,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    is displayed.  Private  channels  are  listed  (without  their
    topics)  as channel "Prv" unless the client generating the query is
    actually on that channel.  Likewise, secret channels are not listed
-
-
-
-Oikarinen & Reed                                               [Page 24]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
    at  all  unless  the client is a member of the channel in question.
 
@@ -1397,13 +1200,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    The KICK command can be  used  to  forcibly  remove  a  user  from  a
    channel.   It  'kicks  them  out'  of the channel (forced PART).
 
-
-
-Oikarinen & Reed                                               [Page 25]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    Only a channel operator may kick another user out of a  channel.
    Each  server that  receives  a KICK message checks that it is valid
    (ie the sender is actually a  channel  operator)  before  removing
@@ -1451,14 +1247,6 @@ following:
 
       Command: VERSION
    Parameters: [<server>]
-
-
-
-
-Oikarinen & Reed                                               [Page 26]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
    The VERSION message is used  to  query  the  version  of  the  server
    program.  An optional parameter <server> is used to query the version
@@ -1509,13 +1297,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                for that server;
            l - returns a list of the server's connections, showing how
 
-
-
-Oikarinen & Reed                                               [Page 27]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
                long each connection has been established and the traffic
                over that connection in bytes and messages for each
                direction;
@@ -1563,14 +1344,6 @@ STATS m                         ; check the command usage for the server
            RPL_LINKS                       RPL_ENDOFLINKS
 
    Examples:
-
-
-
-
-Oikarinen & Reed                                               [Page 28]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
 LINKS *.au                      ; list all servers which have a name
                                 that matches *.au;
@@ -1621,13 +1394,6 @@ LINKS *.au                      ; list all servers which have a name
 CONNECT tolsun.oulu.fi          ; Attempt to connect a server to
                                 tolsun.oulu.fi
 
-
-
-Oikarinen & Reed                                               [Page 29]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
 :WiZ CONNECT eff.org 6667 csd.bu.edu
                                 ; CONNECT attempt by WiZ to get servers
                                 eff.org and csd.bu.edu connected on port
@@ -1675,14 +1441,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    Examples:
 
 TRACE *.oulu.fi                 ; TRACE to a server matching *.oulu.fi
-
-
-
-
-Oikarinen & Reed                                               [Page 30]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
 :WiZ TRACE AngelDust            ; TRACE issued by WiZ to nick AngelDust
 
@@ -1733,13 +1491,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    :Avalon INFO *.fi               ; INFO request from Avalon for first
                                    server found to match *.fi.
 
-
-
-Oikarinen & Reed                                               [Page 31]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    INFO Angel                      ; request info from the server that
                                    Angel is connected to.
 
@@ -1788,13 +1539,6 @@ PRIVMSG Angel :yes I'm receiving it !receiving it !'u>(768u+1n) .br ;
 
 PRIVMSG jto@tolsun.oulu.fi :Hello !
                                 ; Message to a client on server
-
-
-
-Oikarinen & Reed                                               [Page 32]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
                                 tolsun.oulu.fi with username of "jto".
 
@@ -1845,13 +1589,6 @@ PRIVMSG #*.edu :NSFNet is undergoing work, expect interruptions
    common channel with the requesting client) are listed.  The same
    result can be achieved by using a <name> of "0" or any wildcard which
 
-
-
-Oikarinen & Reed                                               [Page 33]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    will end up matching every entry possible.
 
    The <name> passed to WHO is matched against users' host, server, real
@@ -1901,13 +1638,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
            RPL_WHOISIDLE                   ERR_NOSUCHNICK
            RPL_ENDOFWHOIS
 
-
-
-Oikarinen & Reed                                               [Page 34]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    Examples:
 
    WHOIS wiz                       ; return available user information
@@ -1955,15 +1685,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    Messages in this category do not fit into any of the above categories
    but are nonetheless still a part of and required by the protocol.
 
-
-
-
-
-Oikarinen & Reed                                               [Page 35]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
 4.6.1 Kill message
 
       Command: KILL
@@ -2000,25 +1721,14 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
            ERR_NOPRIVILEGES                ERR_NEEDMOREPARAMS
            ERR_NOSUCHNICK                  ERR_CANTKILLSERVER
 
-
    KILL David (csd.bu.edu <- tolsun.oulu.fi)
                                    ; Nickname collision between csd.bu.edu
                                    and tolson.oulu.fi
-
 
    NOTE:
    It is recommended that only Operators be allowed to kill other users
    with KILL message.  In an ideal world not even operators would need
    to do this and it would be left to servers to deal with.
-
-
-
-
-
-Oikarinen & Reed                                               [Page 36]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
 4.6.2 Ping message
 
@@ -2069,13 +1779,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
    PONG csd.bu.edu tolsun.oulu.fi  ; PONG message from csd.bu.edu to
 
-
-
-Oikarinen & Reed                                               [Page 37]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
                                    tolsun.oulu.fi
 
 4.6.4 Error
@@ -2125,13 +1828,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
       Command: AWAY
    Parameters: [message]
 
-
-
-Oikarinen & Reed                                               [Page 38]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    With the AWAY message, clients can set an automatic reply string for
    any PRIVMSG commands directed at them (not to a channel they are on).
    The automatic reply is sent by the server to client sending the
@@ -2151,7 +1847,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                                    Back in 5".
 
    :WiZ AWAY                       ; unmark WiZ as being away.
-
 
 5.2 Rehash message
 
@@ -2180,13 +1875,6 @@ REHASH                          ; message from client with operator
    restart itself.  This message is optional since it may be viewed as a
    risk to allow arbitrary people to connect to a server as an operator
    and execute this command, causing (at least) a disruption to service.
-
-
-
-Oikarinen & Reed                                               [Page 39]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
    The RESTART command must always be fully processed by the server to
    which the sending client is connected and not be passed onto other
@@ -2231,18 +1919,10 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                                    server named "tolsun.oulu.fi" is
                                    running.
 
-
 5.5 Users
 
       Command: USERS
    Parameters: [<server>]
-
-
-
-Oikarinen & Reed                                               [Page 40]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
    The USERS command returns a list of users logged into the server in a
    similar  format  to  who(1),  rusers(1)  and finger(1).  Some people
@@ -2293,13 +1973,6 @@ USERS eff.org                   ; request a list of users logged in on
                                    CONNECT message it received and acted
                                    upon from Joshua.
 
-
-
-Oikarinen & Reed                                               [Page 41]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
 5.7 Userhost message
 
       Command: USERHOST
@@ -2348,13 +2021,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
    ISON phone trillian WiZ jarlek Avalon Angel Monstah
                                    ; Sample ISON request for 7 nicks.
-
-
-
-Oikarinen & Reed                                               [Page 42]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
 6. REPLIES
 
@@ -2405,13 +2071,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
         407     ERR_TOOMANYTARGETS
                         "<target> :Duplicate recipients. No message \
 
-
-
-Oikarinen & Reed                                               [Page 43]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
                          delivered"
 
                 - Returned to a client which is attempting to send a
@@ -2460,13 +2119,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
         424     ERR_FILEERROR
                 ":File error doing <file op> on <file>"
-
-
-
-Oikarinen & Reed                                               [Page 44]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
                 - Generic error message used to report a failed file
                   operation during the processing of a message.
@@ -2517,13 +2169,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                 - Returned when a client tries to invite a user to a
                   channel they are already on.
 
-
-
-Oikarinen & Reed                                               [Page 45]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
         444     ERR_NOLOGIN
                         "<user> :User not logged in"
 
@@ -2564,7 +2209,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                   change part of the registered details (such as
                   password or user details from second USER message).
 
-
         463     ERR_NOPERMFORHOST
                         ":Your host isn't among the privileged"
 
@@ -2572,13 +2216,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                   a server which does not been setup to allow
                   connections from the host the attempted connection
                   is tried.
-
-
-
-Oikarinen & Reed                                               [Page 46]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
         464     ERR_PASSWDMISMATCH
                         ":Password incorrect"
@@ -2627,14 +2264,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                 - Any attempts to use the KILL command on a server
                   are to be refused and this error returned directly
                   to the client.
-
-
-
-
-Oikarinen & Reed                                               [Page 47]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
         491     ERR_NOOPERHOST
                         ":No O-lines for your host"
@@ -2685,13 +2314,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
         301     RPL_AWAY
                         "<nick> :<away message>"
 
-
-
-Oikarinen & Reed                                               [Page 48]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
         305     RPL_UNAWAY
                         ":You are no longer marked as being away"
         306     RPL_NOWAWAY
@@ -2740,13 +2362,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                 - When replying to a WHOWAS message, a server must use
                   the replies RPL_WHOWASUSER, RPL_WHOISSERVER or
                   ERR_WASNOSUCHNICK for each nickname in the presented
-
-
-
-Oikarinen & Reed                                               [Page 49]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
                   list.  At the end of all reply batches, there must
                   be RPL_ENDOFWHOWAS (even if there was only one reply
@@ -2797,13 +2412,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                 - Reply by the server showing its version details.
                   The <version> is the version of the software being
 
-
-
-Oikarinen & Reed                                               [Page 50]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
                   used (including any patchlevel revisions) and the
                   <debuglevel> is used to indicate if the server is
                   running in "debug mode".
@@ -2852,13 +2460,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
         367     RPL_BANLIST
                         "<channel> <banid>"
         368     RPL_ENDOFBANLIST
-
-
-
-Oikarinen & Reed                                               [Page 51]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
                         "<channel> :End of channel ban list"
 
@@ -2909,13 +2510,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
         391     RPL_TIME
 
-
-
-Oikarinen & Reed                                               [Page 52]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
                         "<server> :<string showing server's local time>"
 
                 - When replying to the TIME message, a server must send
@@ -2965,13 +2559,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                   response to the TRACE message.  How many are
                   returned is dependent on the the TRACE message and
 
-
-
-Oikarinen & Reed                                               [Page 53]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
                   whether it was sent by an operator or not.  There
                   is no predefined order for which occurs first.
                   Replies RPL_TRACEUNKNOWN, RPL_TRACECONNECTING and
@@ -3020,14 +2607,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
         221     RPL_UMODEIS
                         "<user mode string>"
 
-
-
-
-Oikarinen & Reed                                               [Page 54]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
                         - To answer a query about a client's own mode,
                           RPL_UMODEIS is sent back.
 
@@ -3072,17 +2651,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
                           (RPL_ADMINLOC2) and finally the administrative
                           contact for the server (an email address here
                           is required) in RPL_ADMINEMAIL.
-
-
-
-
-
-
-
-Oikarinen & Reed                                               [Page 55]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
 6.3 Reserved numerics.
 
@@ -3133,13 +2701,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    version 2.8. Earlier versions may implement some or all of the
    commands described by this document with NOTICE messages replacing
 
-
-
-Oikarinen & Reed                                               [Page 56]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    many of the numeric replies.  Unfortunately, due to backward
    compatibility requirements, the implementation of some parts of this
    document varies with what is laid out.  On notable difference is:
@@ -3188,13 +2749,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    handles this through the TCP window and internal buffers, the server
    often has large amounts of data to send (especially when a new
    server-server link forms) and the small buffers provided in the
-
-
-
-Oikarinen & Reed                                               [Page 57]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
    kernel are not enough for the outgoing queue.  To alleviate this
    problem, a "send queue" is used as a FIFO queue for data to be sent.
@@ -3245,13 +2799,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
    When the initiating server receives a PASS/SERVER pair, it too then
 
-
-
-Oikarinen & Reed                                               [Page 58]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    checks that the server responding is authenticated properly before
    accepting the connection to be that server.
 
@@ -3296,17 +2843,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    detected the closure.  The server then sends a list of SQUITs (one
    for each server behind that connection) and a list of QUITs (again,
    one for each client behind that connection).
-
-
-
-
-
-
-
-Oikarinen & Reed                                               [Page 59]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
 8.9 Tracking nickname changes
 
@@ -3357,13 +2893,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
    which in essence means that the client may send 1 message every 2
 
-
-
-Oikarinen & Reed                                               [Page 60]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    seconds without being adversely affected.
 
 8.11 Non-blocking lookups
@@ -3412,13 +2941,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
           at which they can be contacted;
 
         * hostnames and passwords for clients which wish to be given
-
-
-
-Oikarinen & Reed                                               [Page 61]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
 
           access to restricted operator commands.
 
@@ -3469,13 +2991,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    should also store the password and other characteristics of that
    link.
 
-
-
-Oikarinen & Reed                                               [Page 62]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
 8.12.4 Administrivia
 
    To provide accurate and valid replies to the ADMIN command (see
@@ -3525,13 +3040,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
    several people to want to use the same nick.  If a nickname is chosen
    by two people using this protocol, either one will not succeed or
 
-
-
-Oikarinen & Reed                                               [Page 63]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
    both will removed by use of KILL (4.6.1).
 
 9.2.2 Channels
@@ -3580,14 +3088,6 @@ RFC 1459              Internet Relay Chat Protocol              May 1993
 
            Newsgroup: alt.irc
 
-
-
-
-Oikarinen & Reed                                               [Page 64]
-
-RFC 1459              Internet Relay Chat Protocol              May 1993
-
-
 Security Considerations
 
    Security issues are discussed in sections 4.1, 4.1.1, 4.1.3, 5.5, and
@@ -3602,42 +3102,9 @@ Security Considerations
 
    Email: jto@tolsun.oulu.fi
 
-
    Darren Reed
    4 Pateman Street
    Watsonia, Victoria 3087
    Australia
 
    Email: avalon@coombs.anu.edu.au
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Oikarinen & Reed                                               [Page 65]
-

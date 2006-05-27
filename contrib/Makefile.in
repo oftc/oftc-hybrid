@@ -17,7 +17,7 @@ MKDEP		= @MKDEP@
 INSTALL		= @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
 
-prefix		= @prefix@
+prefix		= $(DESTDIR)@prefix@
 
 AUTOMODULEDIR	= ${prefix}/modules
 
@@ -26,36 +26,29 @@ SSL_INCLUDES	= @SSL_INCLUDES@
 
 IRCDLIBS	= @LIBS@ $(SSL_LIBS)
 
-INCLUDES	= -I../include $(SSL_INCLUDES)
+INCLUDES	= -I../include -I../lib/pcre $(SSL_INCLUDES)
 CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
 
-uhelpdir	= ${prefix}/help/users
-ohelpdir	= ${prefix}/help/opers
-
-SYMLINKS	= topic accept cjoin cmode admin names links away whowas \
-		  version kick who invite quit join list nick oper part \
-		  time credits motd userhost users whois ison lusers \
-		  user help pass error challenge knock ping pong
-
 SRCS = \
+  ip_cloaking.c \
+  m_capture.c   \
+  m_change.c    \
   m_clearchan.c \
   m_classlist.c \
+  m_ctrace.c \
   m_flags.c     \
-  m_force.c	\
-  m_help.c      \
+  m_force.c     \
   m_jupe.c      \
-  m_map.c       \
-  m_killhost.c	\
+  m_killhost.c  \
+  m_ltrace.c \
   m_mkpasswd.c  \
   m_ojoin.c     \
-  m_omotd.c     \
   m_operspy.c   \
-  m_opme.c
+  m_opme.c      \
+  m_services.c  \
+  m_spoof.c
 
 SHARED_ONLY_SRCS = \
-  m_ctrace.c \
-  m_ltrace.c \
-  m_whois.c     \
   spy_admin_notice.c    \
   spy_info_notice.c     \
   spy_links_notice.c    \
@@ -96,7 +89,7 @@ hpux_shared: $(OBJS) $(SLOBJS)
 ../modules/libmodules.a:
 	cd ../modules && ${MAKE}
 
-install: install_@MOD_TARGET@ all install_help
+install: all install_@MOD_TARGET@ install_help
 
 install_shared_modules: $(OBJS)
 	mkdir -p $(AUTOMODULEDIR)
@@ -112,26 +105,11 @@ install_hpux_shared: $(SLOBJS)
 		$(INSTALL_DATA) $$file $(AUTOMODULEDIR); \
 	done
 
+install_help:
+	cd help && ${MAKE} install || exit; cd ..; 
+
 install_libmodules.a:
 # Ye olde noop.
-
-install_help:
-	@echo Installing help files...
-	mkdir -p $(ohelpdir) $(uhelpdir)
-	@for help in help/opers/*; do \
-	if [ -f $$help ]; then \
-		${INSTALL_DATA} $$help $(ohelpdir); \
-	fi \
-	done
-	@for help in help/users/*; do \
-	if [ -f $$help ]; then \
-		$(INSTALL_DATA) $$help $(uhelpdir); \
-	fi \
-	done
-	@for link in $(SYMLINKS); do \
-		${RM} -f $(uhelpdir)/$$link; \
-		${LN} -s ../opers/$$link $(uhelpdir); \
-	done
 
 .SUFFIXES: .so .sl .o
 
@@ -155,8 +133,10 @@ install_help:
 
 clean:
 	${RM} -f *.so *.o *.sl *~ 
+	cd help && ${MAKE} clean || exit; cd ..;
 
 distclean: clean
 	${RM} -f Makefile .depend
+	cd help && ${MAKE} distclean || exit; cd ..;
 
 .PHONY: depend clean distclean install_hpux_shared install_libmodules.a install_help shared_modules install hpux_shared build

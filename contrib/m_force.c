@@ -1,5 +1,5 @@
 /* contrib/m_force.c
- * Copyright (C) 2002 Hybrid Development Team
+ * Copyright (C) 2002, 2003, 2004, 2005 Hybrid Development Team
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -47,17 +47,17 @@
 #include "channel.h"
 #include "channel_mode.h"
 
-static void mo_forcejoin(struct Client *, struct Client *, int parc, char **);
-static void mo_forcepart(struct Client *, struct Client *, int parc, char **);
+static void mo_forcejoin(struct Client *, struct Client *, int parc, char *[]);
+static void mo_forcepart(struct Client *, struct Client *, int parc, char *[]);
 
 struct Message forcejoin_msgtab = {
   "FORCEJOIN", 0, 0, 3, 0, MFLG_SLOW, 0,
-  { m_ignore, m_not_oper, mo_forcejoin, mo_forcejoin, m_ignore }
+  { m_ignore, m_not_oper, mo_forcejoin, mo_forcejoin, mo_forcejoin, m_ignore }
 };
 
 struct Message forcepart_msgtab = {
   "FORCEPART", 0, 0, 3, 0, MFLG_SLOW, 0,
-  { m_ignore, m_not_oper, mo_forcepart, mo_forcepart, m_ignore }
+  { m_ignore, m_not_oper, mo_forcepart, mo_forcepart, mo_forcepart, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -75,7 +75,7 @@ _moddeinit(void)
   mod_del_cmd(&forcepart_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /* m_forcejoin()
@@ -87,12 +87,12 @@ static void
 mo_forcejoin(struct Client *client_p, struct Client *source_p,
              int parc, char *parv[])
 {
-  struct Client *target_p;
-  struct Channel *chptr;
-  unsigned int type;
-  char mode;
-  char sjmode;
-  char *newch;
+  struct Client *target_p = NULL;
+  struct Channel *chptr = NULL;
+  unsigned int type = 0;
+  char mode = '\0';
+  char sjmode = '\0';
+  char *newch = NULL;
 
   if (!IsAdmin(source_p))
   {
@@ -101,9 +101,6 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  /* if target_p is not existent, print message
-   * to source_p and bail - scuzzy
-   */
   if ((target_p = find_client(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
@@ -113,13 +110,22 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
 
   if (!MyConnect(target_p))
   {
-    sendto_one(target_p, ":%s FORCEJOIN %s %s",
-               source_p->name, parv[1], parv[2]);
+    if (target_p->from != client_p)
+    {
+      if (IsCapable(target_p->from, CAP_ENCAP))
+        sendto_one(target_p, ":%s ENCAP %s FORCEJOIN %s %s",
+                   source_p->name, target_p->from->name,
+                   target_p->name, parv[2]);
+      else
+        sendto_one(target_p, ":%s FORCEJOIN %s %s",
+                   source_p->name, target_p->name, parv[2]);
+    }
+
     return;
   }
 
   /* select our modes from parv[2] if they exist... (chanop)*/
-  switch (parv[2][0])
+  switch (*parv[2])
   {
     case '@':
       type = CHFL_CHANOP;
@@ -127,16 +133,18 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
       sjmode = '@';
       parv[2]++;
       break;
-    case '+':
-      type = CHFL_VOICE;
-      mode = 'v';
-      sjmode = '+';
-      parv[2]++;
-      break;
+#ifdef HALFOPS
     case '%':
       type = CHFL_HALFOP;
       mode = 'h';
       sjmode = '%';
+      parv[2]++;
+      break;
+#endif
+    case '+':
+      type = CHFL_VOICE;
+      mode = 'v';
+      sjmode = '+';
       parv[2]++;
       break;
     default:
@@ -149,27 +157,46 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
   {
     if (IsMember(target_p, chptr))
     {
-      /* debugging is fun... */
       sendto_one(source_p, ":%s NOTICE %s :*** Notice -- %s is already in %s",
                  me.name, source_p->name, target_p->name, chptr->chname);
       return;
     }
 
-    add_user_to_channel(chptr, target_p, type);
+    add_user_to_channel(chptr, target_p, type, NO);
 
-    if (chptr->chname[0] == '#')
-      sendto_server(target_p, target_p, chptr, NOCAPS, NOCAPS, LL_ICLIENT,
-                    ":%s SJOIN %lu %s + :%c%s",
-	            me.name, (unsigned long)chptr->channelts,
-	            chptr->chname, sjmode, target_p->name);
-
-    sendto_channel_local(ALL_MEMBERS, chptr, ":%s!%s@%s JOIN :%s",
+    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
                          target_p->name, target_p->username,
                          target_p->host, chptr->chname);
 
-    if (type)
-      sendto_channel_local(ALL_MEMBERS, chptr, ":%s MODE %s +%c %s",
+    if (sjmode)
+      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +%c %s",
                            me.name, chptr->chname, mode, target_p->name);
+
+    if (chptr->chname[0] == '#')
+    {
+      if (sjmode)
+      {
+        sendto_server(target_p, target_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
+                      ":%s SJOIN %lu %s + :%c%s",
+                      me.id, (unsigned long)chptr->channelts,
+                      chptr->chname, sjmode, target_p->id);
+        sendto_server(target_p, target_p, chptr, NOCAPS, CAP_TS6, LL_ICLIENT,
+                      ":%s SJOIN %lu %s + :%c%s",
+                      me.name, (unsigned long)chptr->channelts,
+                      chptr->chname, sjmode, target_p->name);
+      }
+      else
+      {
+        sendto_server(target_p, target_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
+                      ":%s SJOIN %lu %s + :%s",
+                      me.id, (unsigned long)chptr->channelts,
+                      chptr->chname, target_p->id);
+        sendto_server(target_p, target_p, chptr, NOCAPS, CAP_TS6, LL_ICLIENT,
+                      ":%s SJOIN %lu %s + :%s",
+                      me.name, (unsigned long)chptr->channelts,
+                      chptr->chname, target_p->name);
+      }
+    }
 
     if (chptr->topic != NULL)
     {
@@ -181,6 +208,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
                  chptr->topic_info, chptr->topic_time);
     }
 
+    target_p->localClient->last_join_time = CurrentTime;
     channel_member_names(target_p, chptr, 1);
   }
   else
@@ -195,7 +223,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
     }
 
     /* channel name must begin with & or # */
-    if (!IsChannelName(newch))
+    if (!IsChanPrefix(*newch))
     {
       sendto_one(source_p, form_str(ERR_BADCHANNAME),
                  me.name, source_p->name, newch);
@@ -224,22 +252,28 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
     }
 
     chptr = get_or_create_channel(target_p, newch, NULL);
-    add_user_to_channel(chptr, target_p, CHFL_CHANOP);
+    add_user_to_channel(chptr, target_p, CHFL_CHANOP, NO);
 
     /* send out a join, make target_p join chptr */
     if (chptr->chname[0] == '#')
-      sendto_server(target_p, target_p, chptr, NOCAPS, NOCAPS, LL_ICLIENT,
+    {
+      sendto_server(target_p, target_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
+                    ":%s SJOIN %lu %s +nt :@%s",
+                    me.id, (unsigned long)chptr->channelts,
+                    chptr->chname, ID(target_p));
+      sendto_server(target_p, target_p, chptr, NOCAPS, CAP_TS6, LL_ICLIENT,
                     ":%s SJOIN %lu %s +nt :@%s",
                     me.name, (unsigned long)chptr->channelts,
                     chptr->chname, target_p->name);
+    }
 
-    sendto_channel_local(ALL_MEMBERS, chptr, ":%s!%s@%s JOIN :%s",
+    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
                          target_p->name, target_p->username,
                          target_p->host, chptr->chname);
 
     chptr->mode.mode |= MODE_TOPICLIMIT | MODE_NOPRIVMSGS;
 
-    sendto_channel_local(ALL_MEMBERS, chptr, ":%s MODE %s +nt",
+    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +nt",
                          me.name, chptr->chname);
 
     target_p->localClient->last_join_time = CurrentTime;
@@ -258,9 +292,9 @@ static void
 mo_forcepart(struct Client *client_p, struct Client *source_p,
              int parc, char *parv[])
 {
-  struct Client *target_p;
-  struct Channel *chptr;
-  struct Membership *member;
+  struct Client *target_p = NULL;
+  struct Channel *chptr = NULL;
+  struct Membership *member = NULL;
 
   if (!IsAdmin(source_p))
   {
@@ -279,8 +313,17 @@ mo_forcepart(struct Client *client_p, struct Client *source_p,
 
   if (!MyConnect(target_p))
   {
-    sendto_one(target_p, ":%s FORCEPART %s %s",
-               source_p->name, parv[1], parv[2]);
+    if (target_p->from != client_p)
+    {
+      if (IsCapable(target_p->from, CAP_ENCAP))
+        sendto_one(target_p, ":%s ENCAP %s FORCEPART %s %s",
+                   source_p->name, target_p->from->name,
+                   target_p->name, parv[2]);
+      else
+        sendto_one(target_p, ":%s FORCEPART %s %s",
+                   source_p->name, target_p->name, parv[2]);
+    }
+
     return;
   }
 
@@ -294,19 +337,23 @@ mo_forcepart(struct Client *client_p, struct Client *source_p,
   if ((member = find_channel_link(target_p, chptr)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_USERNOTINCHANNEL),
-               me.name, source_p->name, parv[2], parv[1]);
+               me.name, source_p->name, chptr->chname, target_p->name);
     return;
   }
 
   if (chptr->chname[0] == '#')
-    sendto_server(target_p, target_p, chptr, NOCAPS, NOCAPS, LL_ICLIENT,
+  {
+    sendto_server(target_p, target_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
+                  ":%s PART %s :%s", ID(target_p),
+                  chptr->chname, target_p->name);
+    sendto_server(target_p, target_p, chptr, NOCAPS, CAP_TS6, LL_ICLIENT,
                   ":%s PART %s :%s", target_p->name,
                   chptr->chname, target_p->name);
+  }
 
-  sendto_channel_local(ALL_MEMBERS, chptr, ":%s!%s@%s PART %s :%s",
+  sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s PART %s :%s",
                        target_p->name, target_p->username,
- 	               target_p->host,chptr->chname,
-		       target_p->name);
+                       target_p->host, chptr->chname,
+                       target_p->name);
   remove_user_from_channel(member);
 }
-

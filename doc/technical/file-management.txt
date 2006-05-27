@@ -3,7 +3,6 @@ Adrian Chadd <adrian@creative.net.au>
 
 $Id$
 
-
 File operations
 ---------------
 
@@ -34,4 +33,3 @@ fbclose(FBFILE *fb)
 
 These are the 'buffered disk IO' routines. You can read the code yourself.
 Note that these routines use file_open() and file_close().
-

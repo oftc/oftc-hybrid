@@ -42,14 +42,14 @@
 #include "modules.h"
 
 
-static void mo_classlist(struct Client*, struct Client*, int, char**);
+static void mo_classlist(struct Client *, struct Client *, int, char *[]);
 
 struct Message classlist_msgtab = {
-  "CLASSLIST", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, mo_classlist, m_ignore}
+  "CLASSLIST", 0, 0, 2, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_classlist, m_ignore}
 };
-#ifndef STATIC_MODULES
 
+#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -62,7 +62,7 @@ _moddeinit(void)
   mod_del_cmd(&classlist_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /* mo_classlist()
@@ -72,39 +72,33 @@ const char *_version = "$Revision: 229 $";
  */
 static void
 mo_classlist(struct Client *client_p, struct Client *source_p,
-	     int parc, char *parv[])
+             int parc, char *parv[])
 { 
-  struct ClassItem *aclass;
-  struct ConfItem *conf;
-  char *classname;
-  dlink_node *ptr;
+  const dlink_node *ptr = NULL;
+  int found_class = 0;
 
-  if ((parc < 1) || (*parv[1] == '\0'))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "CLASSLIST");
     return;
   }
 
-  classname = parv[1];
-
   DLINK_FOREACH(ptr, class_items.head)
   {
-    conf = ptr->data;
+    struct ConfItem *conf = ptr->data;
 
-    if (conf == NULL)
-      continue;
-
-    if (match(classname, conf->name))
+    if (match(parv[1], conf->name))
     {
-      aclass = (struct ClassItem *)map_to_conf(conf);
+      const struct ClassItem *aclass = map_to_conf(conf);
       sendto_one(source_p, ":%s NOTICE %s :%s %d",
-		 me.name, source_p->name, conf->name,
-		 CurrUserCount(aclass));
-      return;
+                 me.name, source_p->name, conf->name,
+                 CurrUserCount(aclass));
+      found_class = 1;
     }
   }
 
-  sendto_one(source_p, ":%s NOTICE %s :Class %s not found",
-		 me.name, source_p->name, classname);
+  if (!found_class)
+    sendto_one(source_p, ":%s NOTICE %s :No Class found matching %s",
+               me.name, source_p->name, parv[1]);
 }

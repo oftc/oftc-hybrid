@@ -3,7 +3,6 @@ Adrian Chadd <adrian@creative.net.au>
 
 $Id$
 
-
 One of the things that immediately struck me whilst first looking at the
 code was that the ircd periodically scheduled things in io_loop() but
 it did them manually. This is very wasteful and very tedious.
@@ -81,4 +80,3 @@ Notes:
   best interest to use string constants.
 
 * /stats E for an oper shows pending events. Thanks Diane!
-

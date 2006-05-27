@@ -50,85 +50,79 @@
 #include "modules.h"
 #include "s_user.h"    /* send_umode_out() */
 
+static void m_flags(struct Client *, struct Client *, int, char *[]);
+static void mo_flags(struct Client *, struct Client *, int, char *[]);
 
-static void m_flags(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[]);
-static void mo_flags(struct Client *client_p, struct Client *source_p,
-                     int parc, char *parv[]);
+static char *set_flags_to_string(struct Client *);
+static char *unset_flags_to_string(struct Client *);
 
-static char *set_flags_to_string(struct Client *client_p);
-static char *unset_flags_to_string(struct Client *client_p);
-
-struct Message test_msgtab = {
+struct Message flags_msgtab = {
   "FLAGS", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_flags, m_ignore, mo_flags, m_ignore}
+  {m_unregistered, m_flags, m_ignore, m_ignore, mo_flags, m_ignore}
 };
 
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
-  mod_add_cmd(&test_msgtab);
+  mod_add_cmd(&flags_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-  mod_del_cmd(&test_msgtab);
+  mod_del_cmd(&flags_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /* FLAGS requires it's own mini parser, since the last parameter in it can
-** contain a number of FLAGS.  CS handles FLAGS mode1 mode2 OR
-** FLAGS :mode1 mode2, but not both mixed.
-**
-** The best way to match a flag to a mode is with a simple table
-*/
+ * contain a number of FLAGS.  CS handles FLAGS mode1 mode2 OR
+ * FLAGS :mode1 mode2, but not both mixed.
+ *
+ * The best way to match a flag to a mode is with a simple table
+ */
 
-struct FlagTable
+static struct FlagTable
 {
   const char *name;
   unsigned int mode;
   int oper;
-};
-
-static struct FlagTable flag_table[] =
-{
-  /* name		mode it represents	oper only? */
-  { "OWALLOPS",		UMODE_OPERWALL,		1 },
-  { "SWALLOPS",		UMODE_WALLOP,		0 },
-  { "STATSNOTICES",	UMODE_SPY,		1 },
+} flag_table[] = {
+  /* name              mode it represents oper only? */
+  { "OWALLOPS",         UMODE_OPERWALL,         1 },
+  { "SWALLOPS",         UMODE_WALLOP,           0 },
+  { "STATSNOTICES",     UMODE_SPY,              1 },
     /* We don't have a separate OKILL and SKILL modes */
-  { "OKILLS",		UMODE_SKILL,		0 },
-  { "SKILLS",		UMODE_SKILL,		0 },
-  { "SNOTICES",		UMODE_SERVNOTICE,	0 },
+  { "OKILLS",           UMODE_SKILL,            0 },
+  { "SKILLS",           UMODE_SKILL,            0 },
+  { "SNOTICES",         UMODE_SERVNOTICE,       0 },
     /* We don't have separate client connect and disconnect modes */
-  { "CLICONNECTS",	UMODE_CCONN,		1 },
-  { "CLIDISCONNECTS",	UMODE_CCONN,		1 },
+  { "CLICONNECTS",      UMODE_CCONN,            1 },
+  { "CLIDISCONNECTS",   UMODE_CCONN,            1 },
     /* I'm taking a wild guess here... */
-  { "THROTTLES",	UMODE_REJ,		1 },
+  { "THROTTLES",        UMODE_REJ,              1 },
 #if 0
     /* This one is special...controlled via an oper block option */
-  { "NICKCHANGES",	UMODE_NCHANGE,		1 },
+  { "NICKCHANGES",      UMODE_NCHANGE,          1 },
     /* NICKCHANGES must be checked for separately */
 #endif
     /* I'm assuming this is correct... */
-  { "IPMISMATCHES",	UMODE_UNAUTH,		1 },
-  { "LWALLOPS",		UMODE_LOCOPS,		1 },
+  { "IPMISMATCHES",     UMODE_UNAUTH,           1 },
+  { "LWALLOPS",         UMODE_LOCOPS,           1 },
     /* These aren't separate on Hybrid */
-  { "CONNECTS",		UMODE_EXTERNAL,		1 },
-  { "SQUITS",		UMODE_EXTERNAL,		1 },
+  { "CONNECTS",         UMODE_EXTERNAL,         1 },
+  { "SQUITS",           UMODE_EXTERNAL,         1 },
     /* Now we have our Hybrid specific flags */
-  { "FULL",		UMODE_FULL,		1 },
+  { "FULL",             UMODE_FULL,             1 },
     /* Not in CS, but we might as well put it here */
-  { "INVISIBLE",	UMODE_INVISIBLE,	0 },
-  { "BOTS",		UMODE_BOTS,		1 },
-  { "CALLERID",		UMODE_CALLERID,		0 },
-  { "UNAUTH",		UMODE_UNAUTH,		1 },
-  { "DEBUG",		UMODE_DEBUG,		1 },
-  { NULL,		0,			0 }
+  { "INVISIBLE",        UMODE_INVISIBLE,        0 },
+  { "BOTS",             UMODE_BOTS,             1 },
+  { "CALLERID",         UMODE_CALLERID,         0 },
+  { "UNAUTH",           UMODE_UNAUTH,           1 },
+  { "DEBUG",            UMODE_DEBUG,            1 },
+  { NULL,               0,                      0 }
 };
 
 /* We won't control CALLERID or INVISIBLE in here */
@@ -142,11 +136,11 @@ static struct FlagTable flag_table[] =
                            UMODE_OPERWALL | UMODE_BOTS | UMODE_EXTERNAL |\
                            UMODE_UNAUTH | UMODE_LOCOPS )
 
-/*
-** m_flags
-**      parv[0] = sender prefix
-**      parv[1] = parameter
-*/
+/* m_flags()
+ *
+ *      parv[0] = sender prefix
+ *      parv[1] = parameter
+ */
 static void 
 m_flags(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
@@ -186,13 +180,13 @@ m_flags(struct Client *client_p, struct Client *source_p,
       /* We default to being in BAD mode */
       isgood = 0;
 
-      if (!isalpha(flag[0]))
+      if (!isalpha(*flag))
       {
-        if (flag[0] == '-')
+        if (*flag == '-')
           isadd = 0;
-        else if (flag[0] == '+')
+        else if (*flag == '+')
           isadd = 1;
-        flag++;
+        ++flag;
       }
 
       /* support ALL here */
@@ -217,15 +211,15 @@ m_flags(struct Client *client_p, struct Client *source_p,
           if (isadd)
             source_p->umodes |= flag_table[j].mode;
           else
-            source_p->umodes &= ~ (flag_table[j].mode);
+            source_p->umodes &= ~flag_table[j].mode;
           isgood = 1;
           continue;
         }
       }
       /* This for ended without matching a valid FLAG, here is where
-      ** I want to operate differently than ircd-comstud, and just ignore
-      ** the invalid flag, send a warning and go on.
-      */
+       * I want to operate differently than ircd-comstud, and just ignore
+       * the invalid flag, send a warning and go on.
+       */
       if (!isgood)
         sendto_one(source_p, ":%s NOTICE %s :Invalid FLAGS: %s (IGNORING)",
                    me.name, parv[0], flag);
@@ -233,8 +227,8 @@ m_flags(struct Client *client_p, struct Client *source_p,
   }
 
   /* All done setting the flags, print the notices out to the user
-  ** telling what flags they have and what flags they are missing
-  */
+   * telling what flags they have and what flags they are missing
+   */
   sendto_one(source_p, ":%s NOTICE %s :Current flags:%s",
              me.name, parv[0], set_flags_to_string(source_p));
   sendto_one(source_p, ":%s NOTICE %s :Current missing flags:%s",
@@ -243,15 +237,15 @@ m_flags(struct Client *client_p, struct Client *source_p,
   send_umode_out(client_p, source_p, setflags);
 }
 
-/*
-** mo_flags
-**      parv[0] = sender prefix
-**      parv[1] = parameter
-*/
+/* mo_flags()
+ *
+ *      parv[0] = sender prefix
+ *      parv[1] = parameter
+ */
 static void 
 mo_flags(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
-{		 
+{
   int i,j;
   int isadd;
   int isgood;
@@ -287,13 +281,13 @@ mo_flags(struct Client *client_p, struct Client *source_p,
       /* We default to being in BAD mode */
       isgood = 0;
 
-      if (!isalpha(flag[0]))
+      if (!isalpha(*flag))
       {
-        if (flag[0] == '-')
+        if (*flag == '-')
           isadd = 0;
-        else if (flag[0] == '+')
+        else if (*flag == '+')
           isadd = 1;
-        flag++;
+        ++flag;
       }
 
       /* support ALL here */
@@ -316,7 +310,7 @@ mo_flags(struct Client *client_p, struct Client *source_p,
         if (!IsOperN(source_p))
         {
           sendto_one(source_p,
-                     ":%s NOTICE %s :*** You need oper and N flag for +n",
+                     ":%s NOTICE %s :*** You have no nick_changes flag;",
                      me.name,parv[0]);
           continue;
         }
@@ -341,9 +335,9 @@ mo_flags(struct Client *client_p, struct Client *source_p,
         }
       }
       /* This for ended without matching a valid FLAG, here is where
-      ** I want to operate differently than ircd-comstud, and just ignore
-      ** the invalid flag, send a warning and go on.
-      */
+       * I want to operate differently than ircd-comstud, and just ignore
+       * the invalid flag, send a warning and go on.
+       */
       if (!isgood)
         sendto_one(source_p, ":%s NOTICE %s :Invalid FLAGS: %s (IGNORING)",
                    me.name, parv[0], flag);
@@ -365,7 +359,7 @@ static char *
 set_flags_to_string(struct Client *client_p)
 {
   /* XXX - list all flags that we have set on the client */
-  static char setflags[BUFSIZE + 1];
+  static char setflags[IRCD_BUFSIZE + 1];
   int i;
 
   /* Clear it to begin with, we'll be doing a lot of ircsprintf's */
@@ -388,8 +382,8 @@ set_flags_to_string(struct Client *client_p)
   {
 #endif
     /* You can only be set +NICKCHANGES if you are an oper and
-    ** IsOperN(client_p) is true
-    */
+     * IsOperN(client_p) is true
+     */
     if (client_p->umodes & UMODE_NCHANGE)
     {
       ircsprintf(setflags, "%s %s", setflags, "NICKCHANGES");
@@ -397,7 +391,7 @@ set_flags_to_string(struct Client *client_p)
 #if 0
   }
 #endif
-  return(setflags);
+  return setflags;
 }
 
 static char *
@@ -405,24 +399,23 @@ unset_flags_to_string(struct Client *client_p)
 {
   /* Inverse of above */
   /* XXX - list all flags that we do NOT have set on the client */
-  static char setflags[BUFSIZE + 1];
-  int i,isoper;
+  static char setflags[IRCD_BUFSIZE + 1];
+  int i, isoper;
 
   /* Clear it to begin with, we'll be doing a lot of ircsprintf's */
   setflags[0] = '\0';
 
-  if (IsOper(client_p))
-    isoper = 1;
-  else
-    isoper = 0;
+  isoper = IsOper(client_p) != 0;
 
   for (i = 0; flag_table[i].name; i++)
   {
-    if ( !(client_p->umodes & flag_table[i].mode))
+    if (!(client_p->umodes & flag_table[i].mode))
     {
       if (!isoper && flag_table[i].oper)
         continue;
-      ircsprintf(setflags, "%s %s", setflags, flag_table[i].name);
+
+      ircsprintf(setflags, "%s %s", setflags,
+                 flag_table[i].name);
     }
   }
 
@@ -434,5 +427,5 @@ unset_flags_to_string(struct Client *client_p)
     }
   }
 
-  return(setflags);
+  return setflags;
 }
