@@ -45,7 +45,7 @@ lex.yy.o:	y.tab.c lex.yy.c ircd_lexer.l
 
 SSL_SRCS = rsa.c
 
-SRCS =	\
+SRCS = \
  channel.c \
  channel_mode.c \
  client.c \
@@ -108,7 +108,7 @@ install: install-mkdirs build
 
 # this is really the default rule for c files
 .c.o:
-	${CC} ${CPPFLAGS} ${CFLAGS} -c $<
+	${CC} ${CPPFLAGS} ${CFLAGS} -c -o -o ${<:.c=.o} $<
 
 .depend:
 	${MKDEP} ${CPPFLAGS} ${SRCS} ${STDOUT}
