@@ -24,17 +24,11 @@
 
 #ifndef INCLUDED_motd_h
 #define INCLUDED_motd_h
+
 #include "ircd_defs.h"   
+#include "s_misc.h"
 
-
-/* XXX really, should be mallocing this on the fly but... */
 #define MESSAGELINELEN 256
-
-typedef enum {
-  USER_MOTD,
-  USER_LINKS,
-  OPER_MOTD
-} MotdType;
 
 struct MessageFileLine
 {
@@ -44,11 +38,18 @@ struct MessageFileLine
 
 typedef struct MessageFileLine MessageFileLine;
 
+typedef enum {
+  USER_MOTD,
+  USER_LINKS,
+  OPER_MOTD,
+  ISSUPPORT
+} MotdType;
+  
 struct MessageFile
 {
-  char fileName[PATH_MAX + 1];
   MotdType motdType;
   MessageFileLine *contentsOfFile;
+  char fileName[PATH_MAX + 1];
   char lastChangedDate[MAX_DATE_STRING + 1];
 };
 
@@ -59,4 +60,8 @@ struct Client;
 extern void init_message_file(MotdType, const char *, struct MessageFile *);
 extern int send_message_file(struct Client *, struct MessageFile *);
 extern int read_message_file(MessageFile *);
+extern MessageFile *init_MessageLine(void);
+extern void addto_MessageLine(MessageFile *, const char *);
+extern void destroy_MessageLine(MessageFile *);
+
 #endif /* INCLUDED_motd_h */

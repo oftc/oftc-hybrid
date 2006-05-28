@@ -31,6 +31,7 @@
 #include "client.h"
 #include "numeric.h"
 #include "restart.h"
+#include "s_misc.h"
 
 #define WM_SOCKET  (WM_USER + 0)
 #define WM_DNS     (WM_USER + 1)

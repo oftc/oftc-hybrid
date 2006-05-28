@@ -24,15 +24,12 @@
  */
 
 #include "stdinc.h"
-#include "client.h"
 #include "hook.h"
-#include "ircd.h"
 #include "list.h"
 #include "memory.h"
-#include "numeric.h"
 #include "tools.h"
 #include "irc_string.h"
-#include "send.h"
+#include "s_misc.h"
 
 dlink_list callback_list = {NULL, NULL, 0};
 
@@ -204,45 +201,4 @@ uninstall_hook(struct Callback *cb, CBFUNC *hook)
 
   dlinkDelete(ptr, &cb->chain);
   MyFree(ptr);
-}
-
-/*
- * stats_hooks()
- *
- * Displays registered callbacks and lengths of their hook chains.
- * (This is the handler of /stats h)
- *
- * inputs:
- *   source_p  -  pointer to struct Client
- * output: none
- */
-void
-stats_hooks(struct Client *source_p)
-{
-  dlink_node *ptr;
-  struct Callback *cb;
-  char lastused[32];
-
-  sendto_one(source_p, ":%s %d %s : %-20s %-20s Used     Hooks", me.name,
-             RPL_STATSDEBUG, source_p->name, "Callback", "Last Execution");
-  sendto_one(source_p, ":%s %d %s : ------------------------------------"
-             "--------------------", me.name, RPL_STATSDEBUG, source_p->name);
-
-  DLINK_FOREACH(ptr, callback_list.head)
-  {
-    cb = ptr->data;
-
-    if (cb->last != 0)
-      snprintf(lastused, sizeof(lastused), "%d seconds ago",
-               (int) (CurrentTime - cb->last));
-    else
-      strcpy(lastused, "NEVER");
-
-    sendto_one(source_p, ":%s %d %s : %-20s %-20s %-8u %d", me.name,
-               RPL_STATSDEBUG, source_p->name, cb->name, lastused, cb->called,
-	       dlink_list_length(&cb->chain));
-  }
-
-  sendto_one(source_p, ":%s %d %s : ", me.name, RPL_STATSDEBUG,
-             source_p->name);
 }

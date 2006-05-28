@@ -26,69 +26,28 @@
 #define __HOOK_H_INCLUDED
 
 #include "tools.h"
+#define HOOK_V2
 
+typedef void *CBFUNC(va_list);
 
-typedef struct
+struct Callback
 {
   char *name;
-  dlink_list hooks;
-} hook;
-
-/* we don't define the arguments to hookfn, because
- * they can vary between different hooks
- */
-typedef int (*hookfn)(void *data);
-
-/* this is used when a hook is called by an m_function
- * stand data you'd need in that situation
- */
-struct hook_mfunc_data 
-{
-  struct Client *client_p;
-  struct Client *source_p;
-  int parc;
-  char **parv;
+  dlink_list chain;
+  dlink_node node;
+  unsigned int called;
+  time_t last;
 };
 
-struct hook_stats_data 
-{
-  struct Client *source_p;
-  char statchar;
-  char *name;
-};
+extern dlink_list callback_list;  /* listing/debugging purposes */
 
-struct hook_links_data
-{
-  struct Client *client_p;
-  struct Client *source_p;
-  int parc;
-  char **parv;
-  const char statchar;
-  const char *mask;
-};
+extern struct Callback *register_callback(const char *, CBFUNC *);
+extern void *execute_callback(struct Callback *, ...);
+extern struct Callback *find_callback(const char *);
+extern dlink_node *install_hook(struct Callback *, CBFUNC *);
+extern void uninstall_hook(struct Callback *, CBFUNC *);
+extern void *pass_callback(dlink_node *, ...);
 
-struct hook_spy_data
-{
-  struct Client *source_p;
-};
+#define is_callback_present(c) (!!dlink_list_length(&c->chain))
 
-struct hook_io_data
-{
-  struct Client *connection;
-  char *data;
-  unsigned int len;
-};
-
-struct hook_burst_channel
-{
-  struct Client *client;
-  struct Channel *chptr;
-};
-
-extern int hook_add_event(const char *);
-extern int hook_add_hook(const char *, hookfn *);
-extern int hook_call_event(const char *, void *);
-extern int hook_del_event(const char *);
-extern int hook_del_hook(const char *event, hookfn *fn);
-extern void init_hooks(void);
 #endif

@@ -19,6 +19,7 @@ SRCS = \
   hook.c \
   list.c \
   log.c \
+  misc.c \
   tools.c
 
 OBJS = ${SRCS:.c=.o}

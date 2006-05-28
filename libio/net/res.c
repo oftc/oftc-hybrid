@@ -39,6 +39,7 @@
 #include "irc_res.h"
 #include "irc_reslib.h"
 #include "irc_getnameinfo.h"
+#include "s_misc.h"
 
 #if (CHAR_BIT != 8)
 #error this code needs to be able to address individual octets 

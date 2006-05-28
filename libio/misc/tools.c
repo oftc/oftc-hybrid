@@ -149,10 +149,10 @@ dlinkFind(dlink_list *list, void *data)
   DLINK_FOREACH(ptr, list->head)
   {
     if (ptr->data == data)
-      return(ptr);
+      return ptr;
   }
 
-  return(NULL);
+  return NULL;
 }
 
 void
@@ -215,9 +215,9 @@ dlinkFindDelete(dlink_list *list, void *data)
       m->next = m->prev = NULL;
       list->length--;
 
-      return(m);
+      return m;
     }
   }
 
-  return(NULL);
+  return NULL;
 }

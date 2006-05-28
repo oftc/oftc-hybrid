@@ -77,8 +77,6 @@ extern const char serveropts[];
 extern int dorehash;
 extern int doremotd;
 extern struct Counter Count;
-extern struct timeval SystemTime;
-#define CurrentTime SystemTime.tv_sec
 extern time_t nextconnect;
 extern int default_server_capabs;
 #ifdef HAVE_LIBCRYPTO

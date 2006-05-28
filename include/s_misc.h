@@ -25,22 +25,24 @@
 #ifndef INCLUDED_s_misc_h
 #define INCLUDED_s_misc_h
 
-struct Client;
-struct AccessItem;
+#define MAX_DATE_STRING 32  /* maximum string length for a date string */
 
-extern char*   date(time_t);
-extern const char* smalldate(time_t);
-extern char    *small_file_date(time_t);
+extern struct timeval SystemTime;
+#define CurrentTime SystemTime.tv_sec
+
+extern char *date(time_t);
+extern char *small_file_date(time_t);
+extern const char *smalldate(time_t);
+#ifdef HAVE_LIBCRYPTO
+extern char *ssl_get_cipher(SSL *);
+#endif
 
 #define _1MEG     (1024.0)
 #define _1GIG     (1024.0*1024.0)
 #define _1TER     (1024.0*1024.0*1024.0)
-#define _GMKs(x)  ( (x > _1TER) ? "Terabytes" : ((x > _1GIG) ? "Gigabytes" : \
-                  ((x > _1MEG) ? "Megabytes" : "Kilobytes")))
-#define _GMKv(x)  ( (x > _1TER) ? (float)(x/_1TER) : ((x > _1GIG) ? \
-               (float)(x/_1GIG) : ((x > _1MEG) ? (float)(x/_1MEG) : (float)x)))
-	       
-
+#define _GMKs(x)  (((x) > _1TER) ? "Terabytes" : (((x) > _1GIG) ? "Gigabytes" :\
+                  (((x) > _1MEG) ? "Megabytes" : "Kilobytes")))
+#define _GMKv(x)  (((x) > _1TER) ? (float)((x)/_1TER) : (((x) > _1GIG) ? \
+                   (float)((x)/_1GIG) : (((x) > _1MEG) ? (float)((x)/_1MEG) : \
+		   (float)(x))))
 #endif
-
-

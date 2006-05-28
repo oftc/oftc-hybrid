@@ -50,17 +50,14 @@
  */
 
 #include "stdinc.h"
-
-#include "ircd.h"
 #include "event.h"
-#include "client.h"
-#include "send.h"
 #include "memory.h"
 #include "s_log.h"
-#include "numeric.h"
+#include "s_misc.h"
 
-static const char *last_event_ran = NULL;
-static struct ev_entry event_table[MAX_EVENTS];
+const char *last_event_ran = NULL;
+struct ev_entry event_table[MAX_EVENTS];
+
 static time_t event_time_min = -1;
 static int eventFind(EVH *func, void *arg);
 
@@ -190,7 +187,7 @@ eventNextTime(void)
     }
   }
 
-  return(event_time_min);
+  return event_time_min;
 }
 
 /*
@@ -224,50 +221,10 @@ eventFind(EVH *func, void *arg)
     if ((event_table[i].func == func) &&
         (event_table[i].arg == arg) &&
          event_table[i].active)
-      return(i);
+      return i;
   }
 
-  return(-1);
-}
-
-/*
- * void show_events(struct Client *source_p)
- *
- * Input: Client requesting the event
- * Output: List of events
- * Side Effects: None
- */
-void
-show_events(struct Client *source_p)
-{
-  int i;
-
-  if (last_event_ran)
-  {
-    sendto_one(source_p, ":%s %d %s :Last event to run: %s",
-               me.name, RPL_STATSDEBUG, source_p->name, last_event_ran);
-    sendto_one(source_p, ":%s %d %s : ",
-      me.name, RPL_STATSDEBUG, source_p->name);
-  }
-
-  sendto_one(source_p,
-    ":%s %d %s : Operation                    Next Execution",
-    me.name, RPL_STATSDEBUG, source_p->name);
-  sendto_one(source_p,
-    ":%s %d %s : -------------------------------------------",
-    me.name, RPL_STATSDEBUG, source_p->name);
-
-  for (i = 0; i < MAX_EVENTS; i++)
-    if (event_table[i].active)
-    {
-      sendto_one(source_p, ":%s %d %s : %-28s %-4d seconds",
-                 me.name, RPL_STATSDEBUG, source_p->name,
-                 event_table[i].name,
-		 (int)(event_table[i].when - CurrentTime));
-    }
-
-  sendto_one(source_p, ":%s %d %s : ",
-    me.name, RPL_STATSDEBUG, source_p->name);
+  return -1;
 }
 
 /*

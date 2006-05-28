@@ -126,6 +126,7 @@ static void stats_memory(struct Client *);
 static void stats_servlinks(struct Client *);
 static void stats_ltrace(struct Client *, int, char **);
 static void stats_ziplinks(struct Client *);
+static void stats_hooks(struct Client *);
 
 /* This table contains the possible stats items, in order:
  * /stats name,  function to call, operonly? adminonly? /stats letter
@@ -785,12 +786,6 @@ stats_exempt(struct Client *source_p)
   }
 }
 
-static void
-stats_events(struct Client *source_p)
-{
-  show_events(source_p);
-}
-
 /* stats_pending_glines()
  *
  * input        - client pointer
@@ -1306,6 +1301,70 @@ stats_ltrace(struct Client *source_p, int parc, char *parv[])
   else
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                from, to, "STATS");
+}
+
+static void
+stats_hooks(struct Client *source_p)
+{
+  dlink_node *ptr;
+  struct Callback *cb;
+  char lastused[32];
+
+  sendto_one(source_p, ":%s %d %s : %-20s %-20s Used     Hooks", me.name,
+             RPL_STATSDEBUG, source_p->name, "Callback", "Last Execution");
+  sendto_one(source_p, ":%s %d %s : ------------------------------------"
+             "--------------------", me.name, RPL_STATSDEBUG, source_p->name);
+
+  DLINK_FOREACH(ptr, callback_list.head)
+  {
+    cb = ptr->data;
+
+    if (cb->last != 0)
+      snprintf(lastused, sizeof(lastused), "%d seconds ago",
+               (int) (CurrentTime - cb->last));
+    else
+      strcpy(lastused, "NEVER");
+
+    sendto_one(source_p, ":%s %d %s : %-20s %-20s %-8u %d", me.name,
+               RPL_STATSDEBUG, source_p->name, cb->name, lastused, cb->called,
+               dlink_list_length(&cb->chain));
+  }
+
+  sendto_one(source_p, ":%s %d %s : ", me.name, RPL_STATSDEBUG,
+             source_p->name);
+}
+
+static void
+stats_events(struct Client *source_p)
+{
+  int i;
+
+  if (last_event_ran)
+  {
+    sendto_one(source_p, ":%s %d %s :Last event to run: %s",
+               me.name, RPL_STATSDEBUG, source_p->name, last_event_ran);
+    sendto_one(source_p, ":%s %d %s : ",
+      me.name, RPL_STATSDEBUG, source_p->name);
+  }
+
+  sendto_one(source_p,
+    ":%s %d %s : Operation                    Next Execution",
+    me.name, RPL_STATSDEBUG, source_p->name);
+  sendto_one(source_p,
+    ":%s %d %s : -------------------------------------------",
+    me.name, RPL_STATSDEBUG, source_p->name);
+
+  for (i = 0; i < MAX_EVENTS; i++)
+    if (event_table[i].active)
+    {
+      sendto_one(source_p, ":%s %d %s : %-28s %-4d seconds",
+                 me.name, RPL_STATSDEBUG, source_p->name,
+                 event_table[i].name,
+                 (int)(event_table[i].when - CurrentTime));
+    }
+
+  sendto_one(source_p, ":%s %d %s : ",
+    me.name, RPL_STATSDEBUG, source_p->name);
 }
 
 /*

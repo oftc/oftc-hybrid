@@ -31,6 +31,7 @@
 #include "s_bsd.h"
 #include "send.h"
 #include "memory.h"
+#include "s_misc.h"
 
 /* stats stuff */
 static struct ServerStatistics ircst;
