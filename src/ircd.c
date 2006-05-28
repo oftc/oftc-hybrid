@@ -567,15 +567,12 @@ main(int argc, char *argv[])
 
 #ifndef _WIN32
   if (!server_state.foreground)
-  {
     make_daemon();
-    close_standard_fds(); /* this needs to be before init_comm()! */
-  }
   else
     print_startup(getpid());
 #endif
 
-  libio_init();
+  libio_init(!server_state.foreground);
   outofmemory = ircd_outofmemory;
   fdlimit_hook = install_hook(fdlimit_cb, changing_fdlimit);
 

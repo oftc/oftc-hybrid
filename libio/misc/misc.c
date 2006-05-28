@@ -194,8 +194,13 @@ set_time(void)
 }
 
 void
-libio_init(void)
+libio_init(int daemon)
 {
+#ifndef _WIN32
+  if (daemon)
+    close_standard_fds();
+#endif
+
   /* It ain't random, but it ought to be a little harder to guess */
   srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
 

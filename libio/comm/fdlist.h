@@ -121,7 +121,9 @@ extern void fd_note(fde_t *, const char *format, ...);
 extern void  fd_note(fde_t *, const char *format, ...)
   __attribute__((format (printf, 2, 3)));
 #endif
+#ifdef IN_MISC_C
 extern void close_standard_fds(void);
+#endif
 extern void close_fds(fde_t *);
 extern void recalc_fdlimit(void *);
 
