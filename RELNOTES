@@ -3,6 +3,7 @@ o) Fix amd64 issues.
 o) Fixed server max_connections
 o) Other misc fixes.
 o) Added 'umode' directive to oper{}.  List of modes to get on /OPER.
+ 
 
 -- oftc-hybrid 1.4.0 RELNOTES
 o) Add Client SSL Support
@@ -15,6 +16,22 @@ o) +S - Cannot join channel unless using SSL
 -- oftc-hybrid 1.3.3 RELNOTES
 o) Yet more God Mode bugfixes(yay)
 o) Fix DNS resolver faliing to resolve some IPv6 reverses
+-- ircd-hybrid-7.2rc1 RELNOTES
+o) ircd can now dynamically change all its client/fd limits at runtime
+o) Added epoll as the primary I/O engine under Linux
+o) Local channels will not show up in remote /WHOIS
+o) Added hidden_name which allows customized hidden server names
+o) Added restrict_channels to define a static channel set
+o) Added --disable-gline-voting to disable G-Line votes
+   for small networks or people who don't want it.
+o) Allow accumulating more ip= entries in an exempt{} block
+o) Various improvements and bugfixes
+o) Make win32 build usable
+o) Fixed ban caching bug
+o) Cosmetical fixes to TIME
+o) Get "KLINE nick" to work with clients that have a spoof
+o) Fixed RESV/XLINE bug in conjunction with names that include escaped
+   characters such as \*, \?, \#.
 
 -- oftc-hybrid 1.3.2 RELNOTES
 o) Fixed a lot of God Mode bugs
@@ -160,7 +177,7 @@ o) fixes to stop annoying yacc complain about conflicts during compile
 
 --------------------------------------------------------------------------------
 
-This is the current release version of ircd-hybrid-7.
+This is a releasce candidate of ircd-hybrid-7.2.
 
 BUGS: Major bugs in this release are listed in BUGS
 
