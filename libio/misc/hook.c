@@ -60,13 +60,8 @@ register_callback(const char *name, CBFUNC *func)
   if (name != NULL)
     if ((cb = find_callback(name)) != NULL)
     {
-      /* re-attaching an empty hook chain? */
-      if (!is_callback_present(cb))
-      {
-        dlinkAdd(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
-	return (cb);
-      }
-      return (NULL);
+      dlinkAddTail(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
+      return (cb);
     }
 
   cb = MyMalloc(sizeof(struct Callback));
