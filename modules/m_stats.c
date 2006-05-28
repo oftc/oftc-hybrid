@@ -128,6 +128,7 @@ static void stats_servlinks(struct Client *);
 static void stats_ltrace(struct Client *, int, char **);
 static void stats_ziplinks(struct Client *);
 static void stats_hooks(struct Client *);
+static void fd_dump(struct Client *);
 
 /* This table contains the possible stats items, in order:
  * /stats name,  function to call, operonly? adminonly? /stats letter
@@ -1376,6 +1377,19 @@ stats_dns_servers(struct Client *source_p)
     sendto_one(source_p, form_str(RPL_STATSALINE),
                me.name, source_p->name, ipaddr);
   }
+}
+
+static void
+fd_dump(struct Client *source_p)
+{
+  int i;
+  fde_t *F;
+
+  for (i = 0; i < FD_HASH_SIZE; i++)
+    for (F = fd_hash[i]; F != NULL; F = F->hnext)
+      sendto_one(source_p, ":%s %d %s :fd %-5d desc '%s'",
+                 me.name, RPL_STATSDEBUG, source_p->name,
+                 F->fd, F->desc);
 }
 
 /*

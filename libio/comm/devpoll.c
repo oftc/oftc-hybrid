@@ -36,7 +36,6 @@
 # endif
 #endif
 #include "fdlist.h"
-#include "ircd.h"
 #include "s_bsd.h"
 #include "s_log.h"
 #include "s_misc.h"

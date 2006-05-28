@@ -25,65 +25,42 @@
 #ifndef INCLUDED_s_bsd_h
 #define INCLUDED_s_bsd_h
 
-#include "setup.h"       
 #include "fdlist.h"
-
-/* Size of a read buffer */
-#define READBUF_SIZE    16384   /* used by src/packet.c and src/s_serv.c */
+#include "hook.h"
 
 /* Type of IO */
-#define	COMM_SELECT_READ		1
-#define	COMM_SELECT_WRITE		2
+#define	COMM_SELECT_READ  1
+#define	COMM_SELECT_WRITE 2
 
-struct Client;
-struct AccessItem;
-struct hostent;
-struct DNSReply;
-struct Listener;
+/* How long can comm_select() wait for network events [milliseconds] */
+#define SELECT_DELAY 500
 
-extern int   readcalls;
-extern const char* const NONB_ERROR_MSG; 
-extern const char* const SETBUF_ERROR_MSG;
+/* sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255.ipv6") */
+#define HOSTIPLEN   53
+#define PORTNAMELEN 6  /* ":31337" */
 
-extern void  add_connection(struct Listener*, int);
-extern void  close_connection(struct Client*);
-extern void  close_all_connections(void);
-extern int   connect_server(struct AccessItem*, struct Client*, 
-                            struct DNSReply*);
-extern void  report_error(int, const char*, const char*, int);
-extern int   set_non_blocking(int);
-extern int   set_sock_buffers(int, int);
-extern void  set_no_delay(int);
+extern struct Callback *setup_socket_cb;
 
-extern int   get_sockerr(int);
-extern int   ignoreErrno(int ierrno);
+extern int get_sockerr(int);
+extern int ignoreErrno(int);
 
-extern void  comm_settimeout(int, time_t, PF *, void *);
-extern void  comm_setflush(int, time_t, PF *, void *);
-extern void  comm_checktimeouts(void *);
-extern void  comm_connect_tcp(int, const char *, u_short,
-                 struct sockaddr *, int, CNCB *, void *, int, int);
+extern void comm_settimeout(fde_t *, time_t, PF *, void *);
+extern void comm_setflush(fde_t *, time_t, PF *, void *);
+extern void comm_checktimeouts(void *);
+extern void comm_connect_tcp(fde_t *, const char *, u_short,
+           		     struct sockaddr *, int, CNCB *, void *, int, int);
 extern const char * comm_errstr(int status);
-extern int   comm_open(int family, int sock_type, int proto,
-                 const char *note);
-extern int   comm_accept(int fd, struct irc_ssaddr *pn, int is_ssl);
+extern int comm_open(fde_t *, int, int, int, const char *);
+extern int comm_accept(fde_t *, struct irc_ssaddr *);
 
 /* These must be defined in the network IO loop code of your choice */
-extern void  comm_setselect(int fd, fdlist_t list, unsigned int type,
-                 PF *handler, void *client_data, time_t timeout);
-extern void  init_netio(void);
-extern int   read_message (time_t, unsigned char);
-extern void  comm_select(unsigned long);
-extern int   disable_sock_options(int);
-extern void  check_can_use_v6(void);
+extern void comm_setselect(fde_t *, unsigned int, PF *, void *, time_t);
+extern void init_comm(void);
+extern int read_message (time_t, unsigned char);
+extern void comm_select(void);
+extern int check_can_use_v6(void);
 #ifdef IPV6
-extern void remove_ipv6_mapping(struct irc_ssaddr *addr);
-#endif
-
-#ifdef USE_SIGIO
-void do_sigio(int);
-void setup_sigio_fd(int);
+extern void remove_ipv6_mapping(struct irc_ssaddr *);
 #endif
 
 #endif /* INCLUDED_s_bsd_h */
-

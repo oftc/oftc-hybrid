@@ -36,6 +36,7 @@ extern const char *smalldate(time_t);
 #ifdef HAVE_LIBCRYPTO
 extern char *ssl_get_cipher(SSL *);
 #endif
+extern void set_time(void);
 
 #define _1MEG     (1024.0)
 #define _1GIG     (1024.0*1024.0)

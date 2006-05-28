@@ -26,7 +26,6 @@
 #include "stdinc.h"
 #include <sys/event.h>
 #include "fdlist.h"
-#include "ircd.h"
 #include "memory.h"
 #include "s_bsd.h"
 #include "s_log.h"

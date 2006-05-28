@@ -99,5 +99,4 @@ extern dlink_list lazylink_channels;  /* known about lazylink channels on HUB */
 extern int rehashed_klines;
 extern int rehashed_xlines;
 extern unsigned long get_maxrss(void);
-extern void set_time(void);
 #endif

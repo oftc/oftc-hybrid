@@ -26,7 +26,6 @@
 #include "stdinc.h"
 #include "fdlist.h"
 #include "hook.h"
-#include "ircd.h"
 #include "s_bsd.h"
 #include "s_log.h"
 #include "s_misc.h"

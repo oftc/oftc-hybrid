@@ -27,13 +27,12 @@
 
 #include "fdlist.h"
 #include "setup.h"
-#include "ircd_defs.h"
 #include "ircd_handler.h"
 #include "dbuf.h"
 #include "channel.h"
 #include "irc_res.h"
+#include "s_bsd.h"
 
-#define HOSTIPLEN	53 /* sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255.ipv6") */
 #define PASSWDLEN       20
 #define CIPHERKEYLEN    64 /* 512bit */
 #define IDLEN           12 /* this is the maximum length, not the actual
@@ -562,6 +561,7 @@ extern void del_from_accept(struct Client *, struct Client *);
 extern void del_all_accepts(struct Client *);
 extern void del_all_their_accepts(struct Client *);
 extern void change_local_nick(struct Client *, struct Client *, const char *);
+extern void report_error(int, const char *, const char *, int);
 extern void dead_link_on_write(struct Client *, int);
 extern void dead_link_on_read(struct Client *, int);
 extern void exit_aborted_clients(void);

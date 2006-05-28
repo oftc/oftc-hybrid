@@ -1775,7 +1775,7 @@ rehash(int sig)
   /* don't close listeners until we know we can go ahead with the rehash */
 
   /* Check to see if we magically got(or lost) IPv6 support */
-  check_can_use_v6();
+  ServerInfo.can_use_v6 = check_can_use_v6();
 
   read_conf_files(0);
 

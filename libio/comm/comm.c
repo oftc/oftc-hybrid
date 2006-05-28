@@ -30,29 +30,16 @@
 #endif
 #include "fdlist.h"
 #include "s_bsd.h"
-#include "client.h"
 #include "common.h"
-#include "dbuf.h"
 #include "event.h"
 #include "irc_string.h"
 #include "irc_getnameinfo.h"
 #include "irc_getaddrinfo.h"
-#include "ircd.h"
 #include "list.h"
-#include "listener.h"
-#include "numeric.h"
-#include "packet.h"
 #include "irc_res.h"
 #include "inet_misc.h"
-#include "restart.h"
-#include "s_auth.h"
-#include "s_conf.h"
 #include "s_log.h"
-#include "s_serv.h"
-#include "s_stats.h"
-#include "send.h"
 #include "memory.h"
-#include "s_user.h"
 #include "hook.h"
 #include "s_misc.h"
 
@@ -72,25 +59,25 @@ extern void init_netio(void);
 /* check_can_use_v6()
  *  Check if the system can open AF_INET6 sockets
  */
-void
+int
 check_can_use_v6(void)
 {
 #ifdef IPV6
   int v6;
 
   if ((v6 = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
-    ServerInfo.can_use_v6 = 0;
+    return NO;
   else
   {
-    ServerInfo.can_use_v6 = 1;
 #ifdef _WIN32
     closesocket(v6);
 #else
     close(v6);
 #endif
+    return YES;
   }
 #else
-  ServerInfo.can_use_v6 = 0;
+  return NO;
 #endif
 }
 
@@ -120,35 +107,6 @@ get_sockerr(int fd)
   errno = errtmp;
 #endif
   return errtmp;
-}
-
-/*
- * report_error - report an error from an errno. 
- * Record error to log and also send a copy to all *LOCAL* opers online.
- *
- *        text        is a *format* string for outputing error. It must
- *                contain only two '%s', the first will be replaced
- *                by the sockhost from the client_p, and the latter will
- *                be taken from sys_errlist[errno].
- *
- *        client_p        if not NULL, is the *LOCAL* client associated with
- *                the error.
- *
- * Cannot use perror() within daemon. stderr is closed in
- * ircd and cannot be used. And, worse yet, it might have
- * been reassigned to a normal connection...
- * 
- * Actually stderr is still there IFF ircd was run with -s --Rodder
- */
-
-void
-report_error(int level, const char* text, const char* who, int error) 
-{
-  who = (who) ? who : "";
-
-  sendto_realops_flags(UMODE_DEBUG, level, text, who, strerror(error));
-  log_oper_action(LOG_IOERR_TYPE, NULL, "%s %s %s\n", who, text, strerror(error));
-  ilog(L_ERROR, text, who, strerror(error));
 }
 
 /*
@@ -186,229 +144,6 @@ init_comm(void)
 {
   setup_socket_cb = register_callback("setup_socket", setup_socket);
   init_netio();
-}
-
-/*
- * close_connection
- *        Close the physical connection. This function must make
- *        MyConnect(client_p) == FALSE, and set client_p->from == NULL.
- */
-void
-close_connection(struct Client *client_p)
-{
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-  struct ClassItem *aclass;
-
-  assert(NULL != client_p);
-
-  if (IsServer(client_p))
-  {
-    ServerStats->is_sv++;
-    ServerStats->is_sbs += client_p->localClient->send.bytes;
-    ServerStats->is_sbr += client_p->localClient->recv.bytes;
-    ServerStats->is_sti += CurrentTime - client_p->firsttime;
-
-    /* XXX Does this even make any sense at all anymore?
-     * scheduling a 'quick' reconnect could cause a pile of
-     * nick collides under TSora protocol... -db
-     */
-    /*
-     * If the connection has been up for a long amount of time, schedule
-     * a 'quick' reconnect, else reset the next-connect cycle.
-     */
-    if ((conf = find_conf_exact(SERVER_TYPE,
-				  client_p->name, client_p->username,
-				  client_p->host)))
-    {
-      /*
-       * Reschedule a faster reconnect, if this was a automatically
-       * connected configuration entry. (Note that if we have had
-       * a rehash in between, the status has been changed to
-       * CONF_ILLEGAL). But only do this if it was a "good" link.
-       */
-      aconf = (struct AccessItem *)map_to_conf(conf);
-      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
-      aconf->hold = time(NULL);
-      aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
-        HANGONRETRYDELAY : ConFreq(aclass);
-      if (nextconnect > aconf->hold)
-        nextconnect = aconf->hold;
-    }
-  }
-  else if (IsClient(client_p))
-  {
-    ServerStats->is_cl++;
-    ServerStats->is_cbs += client_p->localClient->send.bytes;
-    ServerStats->is_cbr += client_p->localClient->recv.bytes;
-    ServerStats->is_cti += CurrentTime - client_p->firsttime;
-  }
-  else
-    ServerStats->is_ni++;
-
-  if (!IsDead(client_p))
-  {
-    /* attempt to flush any pending dbufs. Evil, but .. -- adrian */
-    /* there is still a chance that we might send data to this socket
-     * even if it is marked as blocked (COMM_SELECT_READ handler is called
-     * before COMM_SELECT_WRITE). Let's try, nothing to lose.. -adx
-     */
-    ClearSendqBlocked(client_p);
-    send_queued_write(client_p);
-  }
-
-#ifdef HAVE_LIBCRYPTO
-  if (client_p->localClient->fd.ssl)
-    SSL_shutdown(client_p->localClient->fd.ssl);
-#endif
-  if (client_p->localClient->fd.flags.open)
-    fd_close(&client_p->localClient->fd);
-
-  if (HasServlink(client_p))
-  {
-    if (client_p->localClient->ctrlfd.flags.open)
-      fd_close(&client_p->localClient->ctrlfd);
-  }
-
-  dbuf_clear(&client_p->localClient->buf_sendq);
-  dbuf_clear(&client_p->localClient->buf_recvq);
-  
-  MyFree(client_p->localClient->passwd);
-  detach_conf(client_p, CONF_TYPE);
-  client_p->from = NULL; /* ...this should catch them! >:) --msa */
-}
-
-#ifdef HAVE_LIBCRYPTO
-/*
- * ssl_handshake - let OpenSSL initialize the protocol. Register for
- * read/write events if necessary.
- */
-static void
-ssl_handshake(int fd, struct Client *client_p)
-{
-  int ret = SSL_accept(client_p->localClient->fd.ssl);
-
-  if (ret <= 0)
-    switch (SSL_get_error(client_p->localClient->fd.ssl, ret))
-    {
-      case SSL_ERROR_WANT_WRITE:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
-	               (PF *) ssl_handshake, client_p, 0);
-        return;
-
-      case SSL_ERROR_WANT_READ:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
-	               (PF *) ssl_handshake, client_p, 0);
-        return;
-
-      default:
-        exit_client(client_p, client_p, "Error during SSL handshake");
-	return;
-    }
-
-  execute_callback(auth_cb, client_p);
-}
-#endif
-
-/*
- * add_connection - creates a client which has just connected to us on 
- * the given fd. The sockhost field is initialized with the ip# of the host.
- * An unique id is calculated now, in case it is needed for auth.
- * The client is sent to the auth module for verification, and not put in
- * any client list yet.
- */
-void
-add_connection(struct Listener* listener, int fd)
-{
-  struct Client *new_client;
-  socklen_t len = sizeof(struct irc_ssaddr);
-  struct irc_ssaddr irn;
-  assert(NULL != listener);
-
-  /* 
-   * get the client socket name from the socket
-   * the client has already been checked out in accept_connection
-   */
-
-  memset(&irn, 0, sizeof(irn));
-  if (getpeername(fd, (struct sockaddr *)&irn, (socklen_t *)&len))
-  {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
-    report_error(L_ALL, "Failed in adding new connection %s :%s", 
-            get_listener_name(listener), errno);
-    ServerStats->is_ref++;
-#ifdef _WIN32
-    closesocket(fd);
-#else
-    close(fd);
-#endif
-    return;
-  }
-
-#ifdef IPV6
-  remove_ipv6_mapping(&irn);
-#else
-  irn.ss_len = len;
-#endif
-  new_client = make_client(NULL);
-  fd_open(&new_client->localClient->fd, fd, 1,
-          (listener->flags & LISTENER_SSL) ?
-	  "Incoming SSL connection" : "Incoming connection");
-  memset(&new_client->localClient->ip, 0, sizeof(struct irc_ssaddr));
-
-  /* 
-   * copy address to 'sockhost' as a string, copy it to host too
-   * so we have something valid to put into error messages...
-   */
-  new_client->localClient->port = ntohs(irn.ss_port);
-  memcpy(&new_client->localClient->ip, &irn, sizeof(struct irc_ssaddr));
-
-  irc_getnameinfo((struct sockaddr*)&new_client->localClient->ip,
-        new_client->localClient->ip.ss_len,  new_client->sockhost, 
-        HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
-  new_client->localClient->aftype = new_client->localClient->ip.ss.ss_family;
-
-  *new_client->host = '\0';
-#ifdef IPV6
-  if (*new_client->sockhost == ':')
-    strlcat(new_client->host, "0", HOSTLEN+1);
-
-  if (new_client->localClient->aftype == AF_INET6 && 
-      ConfigFileEntry.dot_in_ip6_addr == 1)
-  {
-    strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
-    strlcat(new_client->host, ".", HOSTLEN+1);
-  } else
-#endif
-    strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
-
-  new_client->localClient->listener = listener;
-  ++listener->ref_count;
-
-  connect_id++;
-  new_client->connect_id = connect_id;
-
-#ifdef HAVE_LIBCRYPTO
-  if ((listener->flags & LISTENER_SSL))
-  {
-    if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.ctx)) == NULL)
-    {
-      ilog(L_CRIT, "SSL_new() ERROR! -- %s",
-           ERR_error_string(ERR_get_error(), NULL));
-
-      SetDead(new_client);
-      exit_client(new_client, new_client, "SSL_new failed");
-      return;
-    }
-
-    SSL_set_fd(new_client->localClient->fd.ssl, fd);
-    ssl_handshake(0, new_client);
-  }
-  else
-#endif
-    execute_callback(auth_cb, new_client);
 }
 
 /*
@@ -776,7 +511,7 @@ comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
  * fd_open (this function no longer does it).
  */
 int
-comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
+comm_accept(fde_t *listener, struct irc_ssaddr *pn)
 {
   int newfd;
   socklen_t addrlen = sizeof(struct irc_ssaddr);
@@ -792,7 +527,7 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
    * reserved fd limit, but we can deal with that when comm_open()
    * also does it. XXX -- adrian
    */
-  newfd = accept(lptr->fd.fd, (struct sockaddr *)pn, (socklen_t *)&addrlen);
+  newfd = accept(listener->fd, (struct sockaddr *)pn, (socklen_t *)&addrlen);
   if (newfd < 0)
   {
 #ifdef _WIN32

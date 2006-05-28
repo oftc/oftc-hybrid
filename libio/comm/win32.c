@@ -25,7 +25,6 @@
 #include "stdinc.h"
 #include <iphlpapi.h>
 #include "fdlist.h"
-#include "ircd.h"
 #include "s_bsd.h"
 #include "common.h"
 #include "client.h"

@@ -123,8 +123,4 @@ extern void close_standard_fds(void);
 extern void close_fds(fde_t *);
 extern void recalc_fdlimit(void *);
 
-/* TODO: get rid of this */
-struct Client;
-extern void fd_dump(struct Client *);
-
 #endif /* INCLUDED_fdlist_h */

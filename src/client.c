@@ -53,6 +53,7 @@
 #include "listener.h"
 #include "irc_res.h"
 #include "userhost.h"
+#include "s_stats.h"
 
 dlink_list listing_client_list = { NULL, NULL, 0 };
 /* Pointer to beginning of Client list */
@@ -76,6 +77,7 @@ static dlink_node *eac_next;  /* next aborted client to exit */
 
 static void check_pings_list(dlink_list *);
 static void check_unknowns_list(void);
+static void close_connection(struct Client *);
 static void ban_them(struct Client *client_p, struct ConfItem *conf);
 
 
@@ -1066,6 +1068,124 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
   assert(dlinkFind(&oper_list, source_p) == NULL);
 
   exit_one_client(source_p, comment);
+}
+
+/*
+ * close_connection
+ *        Close the physical connection. This function must make
+ *        MyConnect(client_p) == FALSE, and set client_p->from == NULL.
+ */
+static void
+close_connection(struct Client *client_p)
+{
+  struct ConfItem *conf;
+  struct AccessItem *aconf;
+  struct ClassItem *aclass;
+
+  assert(NULL != client_p);
+
+  if (IsServer(client_p))
+  {
+    ServerStats->is_sv++;
+    ServerStats->is_sbs += client_p->localClient->send.bytes;
+    ServerStats->is_sbr += client_p->localClient->recv.bytes;
+    ServerStats->is_sti += CurrentTime - client_p->firsttime;
+
+    /* XXX Does this even make any sense at all anymore?
+     * scheduling a 'quick' reconnect could cause a pile of
+     * nick collides under TSora protocol... -db
+     */
+    /*
+     * If the connection has been up for a long amount of time, schedule
+     * a 'quick' reconnect, else reset the next-connect cycle.
+     */
+    if ((conf = find_conf_exact(SERVER_TYPE,
+                                  client_p->name, client_p->username,
+                                  client_p->host)))
+    {
+      /*
+       * Reschedule a faster reconnect, if this was a automatically
+       * connected configuration entry. (Note that if we have had
+       * a rehash in between, the status has been changed to
+       * CONF_ILLEGAL). But only do this if it was a "good" link.
+       */
+      aconf = (struct AccessItem *)map_to_conf(conf);
+      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+      aconf->hold = time(NULL);
+      aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
+        HANGONRETRYDELAY : ConFreq(aclass);
+      if (nextconnect > aconf->hold)
+        nextconnect = aconf->hold;
+    }
+  }
+  else if (IsClient(client_p))
+  {
+    ServerStats->is_cl++;
+    ServerStats->is_cbs += client_p->localClient->send.bytes;
+    ServerStats->is_cbr += client_p->localClient->recv.bytes;
+    ServerStats->is_cti += CurrentTime - client_p->firsttime;
+  }
+  else
+    ServerStats->is_ni++;
+
+  if (!IsDead(client_p))
+  {
+    /* attempt to flush any pending dbufs. Evil, but .. -- adrian */
+    /* there is still a chance that we might send data to this socket
+     * even if it is marked as blocked (COMM_SELECT_READ handler is called
+     * before COMM_SELECT_WRITE). Let's try, nothing to lose.. -adx
+     */
+    ClearSendqBlocked(client_p);
+    send_queued_write(client_p);
+  }
+
+#ifdef HAVE_LIBCRYPTO
+  if (client_p->localClient->fd.ssl)
+    SSL_shutdown(client_p->localClient->fd.ssl);
+#endif
+  if (client_p->localClient->fd.flags.open)
+    fd_close(&client_p->localClient->fd);
+
+  if (HasServlink(client_p))
+  {
+    if (client_p->localClient->ctrlfd.flags.open)
+      fd_close(&client_p->localClient->ctrlfd);
+  }
+
+  dbuf_clear(&client_p->localClient->buf_sendq);
+  dbuf_clear(&client_p->localClient->buf_recvq);
+
+  MyFree(client_p->localClient->passwd);
+  detach_conf(client_p, CONF_TYPE);
+  client_p->from = NULL; /* ...this should catch them! >:) --msa */
+}
+
+/*
+ * report_error - report an error from an errno.
+ * Record error to log and also send a copy to all *LOCAL* opers online.
+ *
+ *        text        is a *format* string for outputing error. It must
+ *                contain only two '%s', the first will be replaced
+ *                by the sockhost from the client_p, and the latter will
+ *                be taken from sys_errlist[errno].
+ *
+ *        client_p        if not NULL, is the *LOCAL* client associated with
+ *                the error.
+ *
+ * Cannot use perror() within daemon. stderr is closed in
+ * ircd and cannot be used. And, worse yet, it might have
+ * been reassigned to a normal connection...
+ *
+ * Actually stderr is still there IFF ircd was run with -s --Rodder
+ */
+void
+report_error(int level, const char* text, const char* who, int error)
+{
+  who = (who) ? who : "";
+
+  sendto_realops_flags(UMODE_DEBUG, level, text, who, strerror(error));
+  log_oper_action(LOG_IOERR_TYPE, NULL, "%s %s %s\n", who, text, strerror(error));
+  ilog(L_ERROR, text, who, strerror(error));
 }
 
 /*

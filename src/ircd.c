@@ -109,6 +109,8 @@ int splitchecking;
 int split_users;
 unsigned int split_servers;
 
+static dlink_node *fdlimit_hook;
+
 /* Do klines the same way hybrid-6 did them, i.e. at the
  * top of the next io_loop instead of in the same loop as
  * the klines are being applied.
@@ -210,49 +212,6 @@ struct lgetopt myopts[] = {
   {"help", NULL, USAGE, "Print this text"},
   {NULL, NULL, STRING, NULL},
 };
-
-void
-set_time(void)
-{
-  static char to_send[200];
-  struct timeval newtime;
-#ifdef _WIN32
-  FILETIME ft;
-
-  GetSystemTimeAsFileTime(&ft);
-  if (ft.dwLowDateTime < 0xd53e8000)
-    ft.dwHighDateTime--;
-  ft.dwLowDateTime -= 0xd53e8000;
-  ft.dwHighDateTime -= 0x19db1de;
-
-  newtime.tv_sec  = (*(uint64_t *) &ft) / 10000000;
-  newtime.tv_usec = (*(uint64_t *) &ft) / 10 % 1000000;
-#else
-  newtime.tv_sec  = 0;
-  newtime.tv_usec = 0;
-
-  if (gettimeofday(&newtime, NULL) == -1)
-  {
-    ilog(L_ERROR, "Clock Failure (%s), TS can be corrupted",
-         strerror(errno));
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                         "Clock Failure (%s), TS can be corrupted",
-                         strerror(errno));
-    restart("Clock Failure");
-  }
-#endif
-
-  if (newtime.tv_sec < CurrentTime)
-  {
-    ircsprintf(to_send, "System clock is running backwards - (%lu < %lu)",
-               (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
-    report_error(L_ALL, to_send, me.name, 0);
-    set_back_events(CurrentTime - newtime.tv_sec);
-  }
-
-  SystemTime.tv_sec  = newtime.tv_sec;
-  SystemTime.tv_usec = newtime.tv_usec;
-}
 
 static void
 io_loop(void)
@@ -534,6 +493,31 @@ init_callbacks(void)
   iosendctrl_cb = register_callback("iosendctrl", NULL);
 }
 
+static void *
+changing_fdlimit(va_list args)
+{
+  int old_fdlimit = hard_fdlimit;
+  int fdmax = va_arg(args, int);
+
+  /* allow MAXCLIENTS_MIN clients even at the cost of MAX_BUFFER and
+   * some not really LEAKED_FDS */
+  fdmax = IRCD_MAX(fdmax, LEAKED_FDS + MAX_BUFFER + MAXCLIENTS_MIN);
+
+  pass_callback(fdlimit_hook, fdmax);
+
+  if (ServerInfo.max_clients > MAXCLIENTS_MAX)
+  {
+    if (old_fdlimit != 0)
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+        "HARD_FDLIMIT changed to %d, adjusting MAXCLIENTS to %d",
+        hard_fdlimit, MAXCLIENTS_MAX);
+
+    ServerInfo.max_clients = MAXCLIENTS_MAX;
+  }
+
+  return NULL;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -619,8 +603,9 @@ main(int argc, char *argv[])
   eventInit();
   /* We need this to initialise the fd array before anything else */
   fdlist_init();
+  fdlimit_hook = install_hook(fdlimit_cb, changing_fdlimit);
   init_log(logFileName);
-  check_can_use_v6();
+  ServerInfo.can_use_v6 = check_can_use_v6();
   init_comm();         /* This needs to be setup early ! -- adrian */
   /* Check if there is pidfile and daemon already running */
   check_pidfile(pidFileName);

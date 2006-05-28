@@ -23,17 +23,13 @@
  */
 #include "stdinc.h"
 #include "fdlist.h"
-#include "client.h"  /* struct Client */
 #include "common.h"
 #include "event.h"
-#include "ircd.h"    /* GlobalSetOptions */
 #include "irc_string.h"
 #include "rlimits.h"
 #include "s_bsd.h"   /* comm_setselect */
 #include "s_conf.h"  /* ServerInfo */
-#include "send.h"
 #include "memory.h"
-#include "numeric.h"
 
 fde_t *fd_hash[FD_HASH_SIZE];
 fde_t *fd_next_in_loop = NULL;
@@ -44,20 +40,7 @@ struct Callback *fdlimit_cb = NULL;
 static void *
 changing_fdlimit(va_list args)
 {
-  int old_fdlimit = hard_fdlimit;
-
   hard_fdlimit = va_arg(args, int);
-
-  if (ServerInfo.max_clients > MAXCLIENTS_MAX)
-  {
-    if (old_fdlimit != 0)
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-        "HARD_FDLIMIT changed to %d, adjusting MAXCLIENTS to %d",
-        hard_fdlimit, MAXCLIENTS_MAX);
-
-    ServerInfo.max_clients = MAXCLIENTS_MAX;
-  }
-
   return NULL;
 }
 
@@ -90,10 +73,6 @@ recalc_fdlimit(void *unused)
   }
 
   fdmax = getdtablesize();
-
-  /* allow MAXCLIENTS_MIN clients even at the cost of MAX_BUFFER and
-   * some not really LEAKED_FDS */
-  fdmax = IRCD_MAX(fdmax, LEAKED_FDS + MAX_BUFFER + MAXCLIENTS_MIN);
 
   /* under no condition shall this raise over 65536
    * for example user ip heap is sized 2*hard_fdlimit */
@@ -197,22 +176,6 @@ fd_close(fde_t *F)
 #ifdef INVARIANTS
   memset(F, '\0', sizeof(fde_t));
 #endif
-}
-
-/*
- * fd_dump() - dump the list of active filedescriptors
- */
-void
-fd_dump(struct Client *source_p)
-{
-  int i;
-  fde_t *F;
-
-  for (i = 0; i < FD_HASH_SIZE; i++)
-    for (F = fd_hash[i]; F != NULL; F = F->hnext)
-      sendto_one(source_p, ":%s %d %s :fd %-5d desc '%s'",
-                 me.name, RPL_STATSDEBUG, source_p->name,
-                 F->fd, F->desc);
 }
 
 /*
