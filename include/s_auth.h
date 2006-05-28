@@ -26,6 +26,8 @@
 #define INCLUDED_s_auth_h
 
 #include "irc_res.h"
+#include "fdlist.h"
+#include "hook.h"
 
 /* How many auth allocations to allocate in a block. I'm guessing that
  * a good number here is 64, because these are temporary and don't live
