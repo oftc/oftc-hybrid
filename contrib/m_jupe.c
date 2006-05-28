@@ -23,15 +23,11 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 #include "handlers.h"
 #include "channel.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "whowas.h"
@@ -40,9 +36,6 @@
 #include "parse.h"
 #include "modules.h"
 #include "common.h"
-#include "event.h"
-#include "fdlist.h"
-#include "list.h"
 #include "s_conf.h"
 
 static void mo_jupe(struct Client *, struct Client *, int, char *[]);

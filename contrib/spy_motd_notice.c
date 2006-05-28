@@ -23,9 +23,7 @@
  */
 #include "stdinc.h"
 #ifndef STATIC_MODULES
-#include "tools.h"
 #include "modules.h"
-#include "hook.h"
 #include "client.h"
 #include "ircd.h"
 #include "send.h"

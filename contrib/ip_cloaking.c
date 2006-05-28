@@ -54,8 +54,6 @@
 #include "client.h"
 #include "common.h"
 #include "hash.h"
-#include "hook.h"
-#include "irc_string.h"
 #include "ircd.h"
 #include "ircd_defs.h"
 #include "numeric.h"
@@ -64,9 +62,6 @@
 #include "send.h"
 #include "s_conf.h"
 #include "modules.h"
-#include "memory.h"
-#include "s_log.h"
-#include "sprintf_irc.h"
 
 static unsigned int umode_vhost = 0;
 static int vhost_ipv6_err;

@@ -30,22 +30,15 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
-#include "irc_string.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"     /* FALSE bleah */
 #include "ircd.h"
-#include "sprintf_irc.h"
 #include "numeric.h"
-#include "fdlist.h"
-#include "s_bsd.h"
 #include "s_conf.h"
-#include "s_log.h"
 #include "s_serv.h"
-#include "s_misc.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"

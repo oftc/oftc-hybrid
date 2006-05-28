@@ -43,7 +43,6 @@
  * Examples are strewn all across the ircd code, so just grep a bit to
  * find one!
  *
- * #include "irc_string.h" <-- best to include this if you use *any*
  * string comparison or parsing functions, although they may be available
  * natively for your OS the prototypes in irc_string.h may be required for
  * others. */

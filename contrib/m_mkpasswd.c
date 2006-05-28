@@ -11,7 +11,6 @@
 
 #include "handlers.h"
 #include "ircd.h"
-#include "irc_string.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "s_serv.h"

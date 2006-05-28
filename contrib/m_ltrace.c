@@ -24,23 +24,17 @@
 
 #include "stdinc.h"
 #include "handlers.h"
-#include "tools.h"
-#include "hook.h"
 #include "client.h"
 #include "common.h"
 #include "hash.h"
-#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "fdlist.h"
-#include "s_bsd.h"
 #include "s_serv.h"
 #include "s_conf.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "irc_getnameinfo.h"
 
 static void do_ltrace(struct Client *, int, char **);
 static void m_ltrace(struct Client *, struct Client *, int, char **);

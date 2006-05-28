@@ -51,8 +51,6 @@
 #include "handlers.h"
 #include "client.h"
 #include "hash.h"
-#include "fdlist.h"
-#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_conf.h"
@@ -61,16 +59,13 @@
 #include "whowas.h"
 #include "s_serv.h"
 #include "send.h"
-#include "list.h"
 #include "channel.h"
-#include "s_log.h"
 #include "resv.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "common.h"
 #include "packet.h"
-#include "sprintf_irc.h"
 
 /* Custom Macros */
 #define services_function(a,b,c) static void a(struct Client *client_p,\
