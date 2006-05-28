@@ -40,7 +40,8 @@
 
 #define REALLEN         50
 #define KILLLEN         90
-#define CHANNELLEN      200 
+#define CHANNELLEN      200
+#define LOCAL_CHANNELLEN 50
 #define REASONLEN       120
 #define KICKLEN         160
 #define AWAYLEN         160
