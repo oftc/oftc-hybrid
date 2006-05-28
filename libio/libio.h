@@ -29,6 +29,7 @@
 #include "misc/misc.h"
 #include "misc/hook.h"
 
+#include "net/inet_misc.h"
 #include "comm/fdlist.h"
 #include "comm/fileio.h"
 #include "comm/comm.h"
@@ -38,7 +39,6 @@
 #include "mem/dbuf.h"
 #include "mem/memory.h"
 
-#include "net/inet_misc.h"
 #include "net/irc_getaddrinfo.h"
 #include "net/irc_getnameinfo.h"
 #include "net/res.h"

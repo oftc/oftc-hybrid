@@ -4,9 +4,6 @@
  * $Id$
  */
 
-/* Maximum number of nameservers in /etc/resolv.conf we care about */
-#define IRCD_MAXNS 2
-
 /* Here we define some values lifted from nameser.h */
 #define NS_NOTIFY_OP 4
 #define NS_INT16SZ 2

@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  s_bsd.c: Network functions.
+ *  comm.c: Network functions.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *

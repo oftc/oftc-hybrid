@@ -4,8 +4,8 @@
  * $Id$
  */
 
-
-struct Client;
+/* Maximum number of nameservers in /etc/resolv.conf we care about */
+#define IRCD_MAXNS 2
 
 struct DNSReply
 {

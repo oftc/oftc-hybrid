@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  s_bsd_win32.c: Winsock WSAAsyncSelect() compatible network routines.
+ *  win32.c: Winsock WSAAsyncSelect() compatible network routines.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -24,23 +24,19 @@
 
 #include "stdinc.h"
 #include <iphlpapi.h>
-#include "fdlist.h"
-#include "s_bsd.h"
-#include "common.h"
-#include "client.h"
-#include "numeric.h"
 #include "restart.h"
-#include "s_misc.h"
 
-#define WM_SOCKET  (WM_USER + 0)
-#define WM_DNS     (WM_USER + 1)
-#define WM_REHASH  (WM_USER + 0x100)
-#define WM_REMOTD  (WM_USER + 0x101)
+#define WM_SIGNAL   (WM_USER + 0)
+#define WM_SOCKET   (WM_USER + 1)
+#define WM_DNS      (WM_USER + 2)
+
+void (* handle_wm_signal) (WPARAM, LPARAM) = NULL;
+struct irc_ssaddr irc_nsaddr_list[IRCD_MAXNS];
+int irc_nscount = 0;
 
 static HWND wndhandle;
 static dlink_list dns_queries = {NULL, NULL, 0};
 static dlink_node *setupfd_hook;
-static DWORD (WINAPI * _GetNetworkParams) (PFIXED_INFO, PULONG) = NULL;
 
 extern int main(int, char *[]);
 
@@ -151,12 +147,9 @@ hybrid_wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return 0;
     }
 
-    case WM_REHASH:
-      dorehash = 1;
-      return 0;
-
-    case WM_REMOTD:
-      doremotd = 1;
+    case WM_SIGNAL:
+      if (handle_wm_signal != NULL)
+        handle_wm_signal(wParam, lParam);
       return 0;
 
     case WM_DESTROY:
@@ -191,6 +184,7 @@ init_netio(void)
   WNDCLASS wndclass;
   WSADATA wsa;
   HMODULE lib;
+  DWORD (WINAPI * _GetNetworkParams) (PFIXED_INFO, PULONG) = NULL;
 
   /* Initialize Winsock networking */
   if (WSAStartup(0x101, &wsa) != 0)
@@ -226,10 +220,43 @@ init_netio(void)
    * This way, ircd won't wait infinitely for a network event */
   SetTimer(wndhandle, 0, SELECT_DELAY, NULL);
 
-  if ((lib = LoadLibrary("IPHLPAPI.DLL")) != NULL)
-    _GetNetworkParams = GetProcAddress(lib, "GetNetworkParams");
-
   setupfd_hook = install_hook(setup_socket_cb, setup_winsock_fd);
+
+  /* Fill out the nameserver table */
+  if ((lib = LoadLibrary("IPHLPAPI.DLL")) != NULL)
+    if ((_GetNetworkParams = GetProcAddress(lib, "GetNetworkParams")) != NULL)
+    {
+      FIXED_INFO *FixedInfo;
+      ULONG ulOutBufLen;
+      IP_ADDR_STRING *ip;
+      int idx;
+
+      FixedInfo = MyMalloc(sizeof(FIXED_INFO));
+      ulOutBufLen = sizeof(FIXED_INFO);
+
+      if (_GetNetworkParams(FixedInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW)
+      {
+        MyFree(FixedInfo);
+        FixedInfo = MyMalloc(ulOutBufLen);
+
+        if (_GetNetworkParams(FixedInfo, &ulOutBufLen) != ERROR_SUCCESS)
+          return;
+      }
+
+      for (ip = &FixedInfo->DnsServerList; ip != NULL && irc_nscount < IRCD_MAXNS;
+           ip = ip->Next, irc_nscount++)
+      {
+        struct addrinfo *res;
+
+        if (irc_getaddrinfo(ip->IpAddress.String, NULL, NULL, &res))
+        {
+          memcpy(&irc_nsaddr_list[idx], res->ai_addr, res->ai_addrlen);
+          irc_nsaddr_list[idx].ss_len = res->ai_addrlen;
+        }
+      }
+
+      MyFree(FixedInfo);
+    }
 }
 
 /*
@@ -332,169 +359,4 @@ gethost_byaddr(const struct irc_ssaddr *addr, struct DNSQuery *query)
     query->callback(query->ptr, NULL);
   else
     dlinkAdd(query, &query->node, &dns_queries);
-}
-
-void
-report_dns_servers(struct Client *source_p)
-{
-  FIXED_INFO *FixedInfo;
-  ULONG ulOutBufLen;
-  IP_ADDR_STRING *ip;
-
-  if (_GetNetworkParams == NULL)
-    return;
-
-  FixedInfo = MyMalloc(sizeof(FIXED_INFO));
-  ulOutBufLen = sizeof(FIXED_INFO);
-
-  if (_GetNetworkParams(FixedInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW)
-  {
-    MyFree(FixedInfo);
-    FixedInfo = MyMalloc(ulOutBufLen);
-
-    if (_GetNetworkParams(FixedInfo, &ulOutBufLen) != ERROR_SUCCESS)
-      return;
-  }
-
-  for (ip = &FixedInfo->DnsServerList; ip != NULL; ip = ip->Next)
-    sendto_one(source_p, form_str(RPL_STATSALINE), me.name, source_p->name,
-               ip->IpAddress.String);
-
-  MyFree(FixedInfo);
-}
-
-/* Copyright (C) 2001 Free Software Foundation, Inc.
- *
- * Get name and information about current kernel.
- */
-int
-uname(struct utsname *uts)
-{
-  enum { WinNT, Win95, Win98, WinUnknown };
-  OSVERSIONINFO osver;
-  SYSTEM_INFO sysinfo;
-  DWORD sLength;
-  DWORD os = WinUnknown;
-
-  memset(uts, 0, sizeof(*uts));
-
-  osver.dwOSVersionInfoSize = sizeof (osver);
-  GetVersionEx (&osver);
-  GetSystemInfo (&sysinfo);
-
-  switch (osver.dwPlatformId)
-    {
-    case VER_PLATFORM_WIN32_NT: /* NT, Windows 2000 or Windows XP */
-      if (osver.dwMajorVersion == 4)
-        strcpy (uts->sysname, "Windows NT4x"); /* NT4x */
-      else if (osver.dwMajorVersion <= 3)
-        strcpy (uts->sysname, "Windows NT3x"); /* NT3x */
-      else if (osver.dwMajorVersion == 5 && osver.dwMinorVersion  < 1)
-        strcpy (uts->sysname, "Windows 2000"); /* 2k */
-      else if (osver.dwMajorVersion == 5 && osver.dwMinorVersion == 2)
-        strcpy (uts->sysname, "Windows 2003"); /* 2003 */
-      else if (osver.dwMajorVersion == 5 && osver.dwMinorVersion == 1)
-        strcpy (uts->sysname, "Windows XP");   /* XP */
-      os = WinNT;
-      break;
-
-    case VER_PLATFORM_WIN32_WINDOWS: /* Win95, Win98 or WinME */
-      if ((osver.dwMajorVersion > 4) || 
-          ((osver.dwMajorVersion == 4) && (osver.dwMinorVersion > 0)))
-        {
-	  if (osver.dwMinorVersion >= 90)
-	    strcpy (uts->sysname, "Windows ME"); /* ME */
-	  else
-	    strcpy (uts->sysname, "Windows 98"); /* 98 */
-          os = Win98;
-        }
-      else
-        {
-          strcpy (uts->sysname, "Windows 95"); /* 95 */
-          os = Win95;
-        }
-      break;
-
-    case VER_PLATFORM_WIN32s: /* Windows 3.x */
-      strcpy (uts->sysname, "Windows");
-      break;
-    }
-
-  sprintf (uts->version, "%ld.%02ld", 
-           osver.dwMajorVersion, osver.dwMinorVersion);
-
-  if (osver.szCSDVersion[0] != '\0' &&
-      (strlen (osver.szCSDVersion) + strlen (uts->version) + 1) < 
-      sizeof (uts->version))
-    {
-      strcat (uts->version, " ");
-      strcat (uts->version, osver.szCSDVersion);
-    }
-
-  sprintf (uts->release, "build %ld", osver.dwBuildNumber & 0xFFFF);
-
-  switch (sysinfo.wProcessorArchitecture)
-    {
-    case PROCESSOR_ARCHITECTURE_PPC:
-      strcpy (uts->machine, "ppc");
-      break;
-    case PROCESSOR_ARCHITECTURE_ALPHA:
-      strcpy (uts->machine, "alpha");
-      break;
-    case PROCESSOR_ARCHITECTURE_MIPS:
-      strcpy (uts->machine, "mips");
-      break;
-    case PROCESSOR_ARCHITECTURE_INTEL:
-      /* 
-       * dwProcessorType is only valid in Win95 and Win98 and WinME
-       * wProcessorLevel is only valid in WinNT 
-       */
-      switch (os)
-        {
-        case Win95:
-        case Win98:
-          switch (sysinfo.dwProcessorType)
-            {
-            case PROCESSOR_INTEL_386:
-            case PROCESSOR_INTEL_486:
-            case PROCESSOR_INTEL_PENTIUM:
-              sprintf (uts->machine, "i%ld", sysinfo.dwProcessorType);
-              break;
-            default:
-              strcpy (uts->machine, "i386");
-              break;
-          }
-          break;
-        case WinNT:
-          switch(sysinfo.wProcessorArchitecture)
-            {
-            case PROCESSOR_ARCHITECTURE_INTEL:
-              sprintf (uts->machine, "x86(%d)", sysinfo.wProcessorLevel);
-              break;
-            case PROCESSOR_ARCHITECTURE_IA64:
-              sprintf (uts->machine, "ia64(%d)", sysinfo.wProcessorLevel);
-              break;
-#ifdef PROCESSOR_ARCHITECTURE_AMD64
-            case PROCESSOR_ARCHITECTURE_AMD64:
-              sprintf (uts->machine, "x86_64(%d)", sysinfo.wProcessorLevel);
-              break;
-#endif
-            default:
-              sprintf (uts->machine, "unknown(%d)", sysinfo.wProcessorLevel);
-              break;
-            }
-          break;
-        default:
-          strcpy (uts->machine, "unknown");
-          break;
-      }
-      break;
-    default:
-      strcpy (uts->machine, "unknown");
-      break;
-  }
-  
-  sLength = sizeof (uts->nodename) - 1;
-  GetComputerName (uts->nodename, &sLength);
-  return 0;
 }

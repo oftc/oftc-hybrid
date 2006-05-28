@@ -9,6 +9,7 @@
  *  $Id$
  */
 
+#include "stdinc.h"
 #include "handlers.h"
 #include "ircd.h"
 #include "numeric.h"

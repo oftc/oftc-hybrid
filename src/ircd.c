@@ -576,13 +576,13 @@ main(int argc, char *argv[])
   if (!server_state.foreground)
   {
     make_daemon();
-    close_standard_fds(); /* this needs to be before init_netio()! */
+    close_standard_fds(); /* this needs to be before init_comm()! */
   }
   else
     print_startup(getpid());
+#endif
 
   setup_signals();
-#endif
 
   get_ircd_platform(ircd_platform);
 
@@ -594,6 +594,7 @@ main(int argc, char *argv[])
   init_log(logFileName);
   ServerInfo.can_use_v6 = check_can_use_v6();
   init_comm();         /* This needs to be setup early ! -- adrian */
+
   /* Check if there is pidfile and daemon already running */
   check_pidfile(pidFileName);
 
