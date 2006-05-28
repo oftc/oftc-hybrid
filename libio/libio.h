@@ -23,7 +23,6 @@
  */
 
 #include "misc/event.h"
-#include "misc/tools.h"
 #include "misc/list.h"
 #include "misc/log.h"
 #include "misc/misc.h"

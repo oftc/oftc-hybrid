@@ -27,10 +27,11 @@
 
 extern void (* outofmemory) (void);
 
-extern void *MyMalloc(size_t size);
-extern void *MyRealloc(void *x, size_t y);
-extern void MyFree(void *x);
-extern void _DupString(char **x, const char *y);
+extern void *MyMalloc(size_t);
+extern void *MyRealloc(void *, size_t);
+extern void MyFree(void *);
+extern void _DupString(char **, const char *);
+extern void mem_frob(void *, int);
 
 /* forte (and maybe others) don't like double declarations, 
  * so we don't declare the inlines unless GNUC

@@ -65,3 +65,22 @@ _DupString(char **x, const char *y)
   (*x) = malloc(strlen(y) + 1);
   strcpy((*x), y);
 }
+
+/*
+ * frob some memory. debugging time.
+ * -- adrian
+ */
+void
+mem_frob(void *data, int len)
+{
+  /* correct for Intel only! little endian */
+  unsigned char b[4] = { 0xef, 0xbe, 0xad, 0xde };
+  int i;
+  char *cdata = data;
+
+  for (i = 0; i < len; i++)
+  {
+    *cdata = b[i % 4];
+    cdata++;
+  }
+}

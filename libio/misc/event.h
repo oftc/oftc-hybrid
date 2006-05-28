@@ -51,7 +51,9 @@ extern void eventAdd(const char *, EVH *, void *, time_t);
 extern void eventAddIsh(const char *, EVH *, void *, time_t);
 extern void eventRun(void);
 extern time_t eventNextTime(void);
+#ifdef IN_MISC_C
 extern void eventInit(void);
+#endif
 extern void eventDelete(EVH *, void *);
 extern void set_back_events(time_t);
 

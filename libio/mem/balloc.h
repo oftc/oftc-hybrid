@@ -71,12 +71,14 @@ struct BlockHeap {
 typedef struct BlockHeap BlockHeap;
 
 
-extern int         BlockHeapFree(BlockHeap *, void *);
+extern int        BlockHeapFree(BlockHeap *, void *);
 extern void *     BlockHeapAlloc(BlockHeap *);
 
 extern BlockHeap* BlockHeapCreate(const char *const, size_t, int);
 extern int        BlockHeapDestroy(BlockHeap *);
+#ifdef IN_MISC_C
 extern void	  initBlockHeap(void);
+#endif
 
 extern size_t block_heap_get_used_mem(const BlockHeap *);
 extern size_t block_heap_get_free_mem(const BlockHeap *);

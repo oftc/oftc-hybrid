@@ -22,6 +22,7 @@
  *  $Id$
  */
 
+#define IN_MISC_C
 #include "stdinc.h"
 #include "s_misc.h"
 #include "client.h"
@@ -190,4 +191,24 @@ set_time(void)
 
   SystemTime.tv_sec  = newtime.tv_sec;
   SystemTime.tv_usec = newtime.tv_usec;
+}
+
+void
+libio_init(void)
+{
+  /* It ain't random, but it ought to be a little harder to guess */
+  srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
+
+  set_time();
+  eventInit();
+  fdlist_init();
+  init_comm();
+#ifndef NOBALLOC
+  initBlockHeap();
+#endif
+  init_dlink_nodes();
+  dbuf_init();
+#ifndef _WIN32
+  init_resolver();
+#endif
 }

@@ -55,14 +55,15 @@ extern void comm_setflush(fde_t *, time_t, PF *, void *);
 extern void comm_checktimeouts(void *);
 extern void comm_connect_tcp(fde_t *, const char *, u_short,
            		     struct sockaddr *, int, CNCB *, void *, int, int);
-extern const char * comm_errstr(int status);
+extern const char *comm_errstr(int status);
 extern int comm_open(fde_t *, int, int, int, const char *);
 extern int comm_accept(fde_t *, struct irc_ssaddr *);
 
 /* These must be defined in the network IO loop code of your choice */
 extern void comm_setselect(fde_t *, unsigned int, PF *, void *, time_t);
+#ifdef IN_MISC_C
 extern void init_comm(void);
-extern int read_message (time_t, unsigned char);
+#endif
 extern void comm_select(void);
 extern int check_can_use_v6(void);
 #ifdef IPV6

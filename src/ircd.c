@@ -525,13 +525,6 @@ main(int argc, char *argv[])
   initialVMTop = get_vm_top();
 #endif
 
-  /* save server boot time right away, so getrusage works correctly */
-  set_time();
-
-  outofmemory = ircd_outofmemory;
-
-  /* It ain't random, but it ought to be a little harder to guess */
-  srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
   memset(&me, 0, sizeof(me));
   memset(&meLocalUser, 0, sizeof(meLocalUser));
   me.localClient = &meLocalUser;
@@ -582,29 +575,22 @@ main(int argc, char *argv[])
     print_startup(getpid());
 #endif
 
+  libio_init();
+  outofmemory = ircd_outofmemory;
+  fdlimit_hook = install_hook(fdlimit_cb, changing_fdlimit);
+
   setup_signals();
 
   get_ircd_platform(ircd_platform);
 
-  /* Init the event subsystem */
-  eventInit();
-  /* We need this to initialise the fd array before anything else */
-  fdlist_init();
-  fdlimit_hook = install_hook(fdlimit_cb, changing_fdlimit);
   init_log(logFileName);
   ServerInfo.can_use_v6 = check_can_use_v6();
-  init_comm();         /* This needs to be setup early ! -- adrian */
 
   /* Check if there is pidfile and daemon already running */
   check_pidfile(pidFileName);
 
-#ifndef NOBALLOC
-  initBlockHeap();
-#endif
-  init_dlink_nodes();
   init_callbacks();
   initialize_message_files();
-  dbuf_init();
   init_hash();
   init_ip_hash_table();      /* client host ip hash table */
   init_host_hash();          /* Host-hashtable. */
@@ -618,9 +604,6 @@ main(int argc, char *argv[])
   me.id[0] = '\0';
   init_uid();
   init_auth();          /* Initialise the auth code */
-#ifndef _WIN32
-  init_resolver();      /* Needs to be setup before the io loop */
-#endif
   initialize_server_capabs();   /* Set up default_server_capabs */
   initialize_global_set_options();
   init_channels();

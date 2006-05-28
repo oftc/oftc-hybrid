@@ -27,7 +27,9 @@ struct DNSQuery
 extern struct irc_ssaddr irc_nsaddr_list[];
 extern int irc_nscount;
 
+#ifdef IN_MISC_C
 extern void init_resolver(void);
+#endif
 extern void restart_resolver(void);
 extern void delete_resolver_queries(const struct DNSQuery *);
 extern void gethost_byname_type(const char *, struct DNSQuery *, int);

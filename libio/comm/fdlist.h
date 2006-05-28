@@ -109,7 +109,9 @@ extern fde_t *fd_hash[];
 extern fde_t *fd_next_in_loop;
 extern struct Callback *fdlimit_cb;
 
+#ifdef IN_MISC_C
 extern void fdlist_init(void);
+#endif
 extern fde_t *lookup_fd(int);
 extern void fd_open(fde_t *, int, int, const char *);
 extern void fd_close(fde_t *);
