@@ -2,6 +2,7 @@
 o) Fix amd64 issues.
 o) Fixed server max_connections
 o) Other misc fixes.
+o) Added 'umode' directive to oper{}.  List of modes to get on /OPER.
 
 -- oftc-hybrid 1.4.0 RELNOTES
 o) Add Client SSL Support

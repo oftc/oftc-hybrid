@@ -265,6 +265,7 @@ spoof		{ return SPOOF; }
 spoof_notice	{ return SPOOF_NOTICE; }
 type		{ return TYPE; }
 true_no_oper_flood { return TRUE_NO_OPER_FLOOD; }
+umodes          { return T_UMODES; }
 unkline		{ return UNKLINE; }
 use_egd 	{ return USE_EGD; }
 use_except	{ return USE_EXCEPT; }

@@ -268,36 +268,35 @@ show_lusers(struct Client *source_p)
                Count.invisi, dlink_list_length(&global_serv_list));
   else
     sendto_one(source_p, form_str(RPL_LUSERCLIENT), me.name, source_p->name,
-	      (Count.total-Count.invisi), Count.invisi, 1);
+               (Count.total-Count.invisi), Count.invisi, 1);
 
   if (Count.oper > 0)
     sendto_one(source_p, form_str(RPL_LUSEROP),
-	       me.name, source_p->name, Count.oper);
+               from, to, Count.oper);
 
   if (dlink_list_length(&unknown_list) > 0)
     sendto_one(source_p, form_str(RPL_LUSERUNKNOWN),
-	       me.name, source_p->name, dlink_list_length(&unknown_list));
+               from, to, dlink_list_length(&unknown_list));
 
   if (dlink_list_length(&global_channel_list) > 0)
     sendto_one(source_p, form_str(RPL_LUSERCHANNELS),
-	       me.name, source_p->name,
-	       dlink_list_length(&global_channel_list));
+               from, to, dlink_list_length(&global_channel_list));
 
   if (!ConfigServerHide.hide_servers || IsOper(source_p))
   {
     sendto_one(source_p, form_str(RPL_LUSERME),
-	       me.name, source_p->name,
-	       Count.local, Count.myserver);
+               from, to, Count.local, Count.myserver);
     sendto_one(source_p, form_str(RPL_LOCALUSERS),
-	       me.name, source_p->name,
-	       Count.local, Count.max_loc);
+               from, to, Count.local, Count.max_loc,
+               Count.local, Count.max_loc);
   }
   else
   {
     sendto_one(source_p, form_str(RPL_LUSERME),
-	       me.name, source_p->name, Count.total, 0);
+               from, to, Count.total, 0);
     sendto_one(source_p, form_str(RPL_LOCALUSERS), 
-	       me.name, source_p->name, Count.total, Count.max_tot);
+               from, to, Count.total, Count.max_tot,
+               Count.total, Count.max_tot);
   }
 
   sendto_one(source_p, form_str(RPL_GLOBALUSERS),
@@ -305,7 +304,7 @@ show_lusers(struct Client *source_p)
 
   if (!ConfigServerHide.hide_servers || IsOper(source_p))
     sendto_one(source_p, form_str(RPL_STATSCONN), me.name, source_p->name,
-	       MaxConnectionCount, MaxClientCount, Count.totalrestartcount);
+               MaxConnectionCount, MaxClientCount, Count.totalrestartcount);
 
   if (Count.local > MaxClientCount)
     MaxClientCount = Count.local;
@@ -363,9 +362,8 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 {
   struct AccessItem *aconf;
   char ipaddr[HOSTIPLEN];
-  int status;
-  dlink_node *ptr;
-  dlink_node *m;
+  dlink_node *ptr = NULL;
+  dlink_node *m = NULL;
 
   assert(source_p != NULL);
   assert(MyConnect(source_p));
@@ -581,10 +579,10 @@ register_local_user(struct Client *client_p, struct Client *source_p,
  */
 int
 register_remote_user(struct Client *client_p, struct Client *source_p,
-		     const char *username, const char *host, const char *server,
-		     const char *realname)
+                     const char *username, const char *host, const char *server,
+                     const char *realname)
 {
-  struct Client *target_p;
+  struct Client *target_p = NULL;
 
   assert(source_p != NULL);
   assert(source_p->username != username);
@@ -660,7 +658,7 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
 static int
 introduce_client(struct Client *client_p, struct Client *source_p)
 {
-  dlink_node *server_node;
+  dlink_node *server_node = NULL;
   struct Client *server;
   static char ubuf[12];
 
@@ -761,18 +759,17 @@ valid_hostname(const char *hostname)
 
   if (hostname == NULL)
     return(0);
-
-  if ('.' == *p)
-    return(0);
+  if ('.' == *p || ':' == *p)
+    return 0;
 
   while (*p)
   {
     if (!IsHostChar(*p))
-      return(0);
+      return 0;
     p++;
   }
 
-  return(1);
+  return 1;
 }
 
 /* valid_username()
@@ -805,7 +802,7 @@ valid_username(const char *username)
    * or "-hi-@somehost", "h-----@somehost" would still be accepted.
    */
   if (!IsAlNum(*p))
-    return(0);
+    return 0;
 
   while (*++p)
   {
@@ -814,15 +811,15 @@ valid_username(const char *username)
       dots++;
 
       if (dots > ConfigFileEntry.dots_in_ident)
-        return(0);
+        return 0;
       if (!IsUserChar(p[1]))
-        return(0);
+        return 0;
     }
     else if (!IsUserChar(*p))
-      return(0);
+      return 0;
   }
 
-  return(1);
+  return 1;
 }
 
 /* report_and_set_user_flags()
@@ -959,15 +956,9 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
   int what = MODE_ADD;
   int badflag = 0; /* Only send one bad flag notice */
   char buf[BUFSIZE];
-#if 0
-  /* already covered by m_mode */
-  if (parc < 2)
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, source_p->name, "MODE");
-    return;
-  }
-#endif
+
+  assert(!(parc < 2));
+
   if ((target_p = find_person(parv[1])) == NULL)
   {
     if (MyConnect(source_p))
@@ -976,9 +967,6 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  /* Dont know why these were commented out..
-   * put them back using new sendto() funcs
-   */
   if (IsServer(source_p))
   {
      sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL, "*** Mode for User %s from %s",
@@ -1078,12 +1066,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
               badflag = 1;
             }
             else
-            {
-              if (what == MODE_ADD)
-                source_p->umodes |= flag;
-              else
-                source_p->umodes &= ~flag;  
-            }
+              execute_callback(umode_cb, client_p, source_p, what, flag);
           }
           else
           {
@@ -1120,7 +1103,8 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
   if ((setflags & UMODE_INVISIBLE) && !IsInvisible(source_p))
     --Count.invisi;
 
-  /* compare new flags with old flags and send string which
+  /*
+   * compare new flags with old flags and send string which
    * will cause servers to update correctly.
    */
   send_umode_out(client_p, source_p, setflags);
@@ -1139,7 +1123,8 @@ send_umode(struct Client *client_p, struct Client *source_p,
   unsigned int flag;
   char *m;
 
-  /* build a string in umode_buf to represent the change in the user's
+  /*
+   * build a string in umode_buf to represent the change in the user's
    * mode between the new (source_p->umodes) and 'old'.
    */
   m = umode_buf;
@@ -1260,8 +1245,12 @@ user_welcome(struct Client *source_p)
   }
 #endif
 
+  sendto_one(source_p, form_str(RPL_WELCOME), me.name, source_p->name, 
+             ServerInfo.network_name, source_p->name);
+  sendto_one(source_p, form_str(RPL_YOURHOST), me.name, source_p->name,
+             get_listener_name(source_p->localClient->listener), ircd_version);
   sendto_one(source_p, form_str(RPL_CREATED),
-             me.name,source_p->name, creation);
+             me.name, source_p->name, built_date);
   sendto_one(source_p, form_str(RPL_MYINFO),
              me.name, source_p->name, me.name, ircd_version);
 
@@ -1319,7 +1308,8 @@ check_x_line(struct Client *client_p, struct Client *source_p)
     else
       reason = "No Reason";
 
-    if (match_item->action)
+    ServerStats->is_ref++;      
+    if (REJECT_HOLD_TIME > 0)
     {
       if (match_item->action == 1)
       {
@@ -1359,23 +1349,25 @@ oper_up(struct Client *source_p, const char *name)
 {
   unsigned int old = (source_p->umodes & ALL_UMODES);
   const char *operprivs = "";
-  struct AccessItem *oconf;
+  const struct AccessItem *oconf = NULL;
 
+  assert(source_p->localClient->confs.head);
+  oconf = map_to_conf((source_p->localClient->confs.head)->data);
+
+  ++Count.oper;
   SetOper(source_p);
 
-  if (ConfigFileEntry.oper_umodes)
+  if (oconf->modes)
+    source_p->umodes |= oconf->modes;
+  else if (ConfigFileEntry.oper_umodes)
     source_p->umodes |= ConfigFileEntry.oper_umodes & ALL_UMODES;
   else
     source_p->umodes |= (UMODE_SERVNOTICE|UMODE_OPERWALL|
-			 UMODE_WALLOP|UMODE_LOCOPS) & ALL_UMODES;
-
-  Count.oper++;
+                         UMODE_WALLOP|UMODE_LOCOPS);
 
   assert(dlinkFind(&oper_list, source_p) == NULL);
   dlinkAdd(source_p, make_dlink_node(), &oper_list);
 
-  assert(source_p->localClient->confs.head);
-  oconf = map_to_conf((source_p->localClient->confs.head)->data);
   operprivs = oper_privs_as_string(oconf->port);
 
   SetOFlag(source_p, oconf->port);
@@ -1422,9 +1414,9 @@ uid_init(void)
   if (ServerInfo.sid != NULL)
   {
     memcpy(new_uid, ServerInfo.sid, IRCD_MIN(strlen(ServerInfo.sid),
-					     IRC_MAXSID));
+                                             IRC_MAXSID));
     memcpy(&me.id, ServerInfo.sid, IRCD_MIN(strlen(ServerInfo.sid),
-					     IRC_MAXSID));
+                                            IRC_MAXSID));
   }
 
   for (i = 0; i < IRC_MAXSID; i++)
@@ -1446,7 +1438,7 @@ uid_init(void)
 char *
 uid_get(void)
 {
-  add_one_to_uid(TOTALSIDUID-1);	/* index from 0 */
+  add_one_to_uid(TOTALSIDUID-1);    /* index from 0 */
   return(new_uid);
 }
 
@@ -1462,7 +1454,7 @@ uid_get(void)
 static void
 add_one_to_uid(int i)
 {
-  if (i != IRC_MAXSID)		/* Not reached server SID portion yet? */
+  if (i != IRC_MAXSID)    /* Not reached server SID portion yet? */
   {
     if (new_uid[i] == 'Z')
       new_uid[i] = '0';
@@ -1479,5 +1471,164 @@ add_one_to_uid(int i)
     if (new_uid[i] == 'Z')
       memcpy(new_uid+IRC_MAXSID, "AAAAAA", IRC_MAXUID);
     else new_uid[i] = new_uid[i] + 1;
+  }
+}
+
+/*
+ * init_isupport()
+ *
+ * input	- NONE
+ * output	- NONE
+ * side effects	- Must be called before isupport is enabled
+ */
+void
+init_isupport(void)
+{
+  isupportFile = init_MessageLine();
+
+  add_isupport("CALLERID", NULL, -1);
+  add_isupport("CASEMAPPING", CASEMAP, -1);
+  add_isupport("KICKLEN", NULL, KICKLEN);
+  add_isupport("MODES", NULL, MAXMODEPARAMS);
+  add_isupport("NICKLEN", NULL, NICKLEN-1);
+#ifdef HALFOPS
+  add_isupport("PREFIX", "(ohv)@%+", -1);
+  add_isupport("STATUSMSG", "@%+", -1);
+#else
+  add_isupport("PREFIX", "(ov)@+", -1);
+  add_isupport("STATUSMSG", "@+", -1);
+#endif
+  add_isupport("TOPICLEN", NULL, TOPICLEN);
+}
+
+/*
+ * add_isupport()
+ *
+ * input	- name of supported function
+ *		- options if any
+ *		- number if any
+ * output	- NONE
+ * side effects	- Each supported item must call this when activated
+ */
+void
+add_isupport(const char *name, const char *options, int n)
+{
+  dlink_node *ptr;
+  struct Isupport *support;
+
+  DLINK_FOREACH(ptr, support_list.head)
+  {
+    support = ptr->data;
+    if (irccmp(support->name, name) == 0)
+    {
+      MyFree(support->name);
+      MyFree(support->options);
+      break;
+    }
+  }
+
+  if (ptr == NULL)
+  {
+    support = MyMalloc(sizeof(*support));
+    dlinkAddTail(support, &support->node, &support_list);
+  }
+
+  DupString(support->name, name);
+  if (options != NULL)
+    DupString(support->options, options);
+  support->number = n;
+
+  rebuild_isupport_message_line();
+}
+
+/*
+ * delete_isupport()
+ *
+ * input	- name of supported function
+ * output	- NONE
+ * side effects	- Each supported item must call this when deactivated
+ */
+void
+delete_isupport(const char *name)
+{
+  dlink_node *ptr;
+  struct Isupport *support;
+
+  DLINK_FOREACH(ptr, support_list.head)
+  {
+    support = ptr->data;
+    if (irccmp(support->name, name) == 0)
+    {
+      dlinkDelete(ptr, &support_list);
+      MyFree(support->name);
+      MyFree(support->options);
+      MyFree(support);
+      break;
+    }
+  }
+
+  rebuild_isupport_message_line();
+}
+
+/*
+ * rebuild_isupport_message_line
+ *
+ * input	- NONE
+ * output	- NONE
+ * side effects	- Destroy the isupport MessageFile lines, and rebuild.
+ */
+void
+rebuild_isupport_message_line(void)
+{
+  char isupportbuffer[IRCD_BUFSIZE];
+  char *p = isupportbuffer;
+  dlink_node *ptr = NULL;
+  int n = 0;
+  int tokens = 0;
+  size_t len = 0;
+  size_t reserve = strlen(me.name) + HOSTLEN + strlen(form_str(RPL_ISUPPORT));
+
+  destroy_MessageLine(isupportFile);
+
+  DLINK_FOREACH(ptr, support_list.head)
+  {
+    struct Isupport *support = ptr->data;
+
+    p += (n = ircsprintf(p, "%s", support->name));
+    len += n;
+
+    if (support->options != NULL)
+    {
+      p += (n = ircsprintf(p, "=%s", support->options));
+      len += n;
+    }
+
+    if (support->number > 0)
+    {
+      p += (n = ircsprintf(p, "=%d", support->number));
+      len += n;
+    }
+
+    *p++ = ' ';
+    len++;
+    *p = '\0';
+
+    if (++tokens == (MAXPARA-2) || len >= (sizeof(isupportbuffer)-reserve))
+    { /* arbritrary for now */
+      if (*--p == ' ')
+        *p = '\0';
+
+      addto_MessageLine(isupportFile, isupportbuffer);
+      p = isupportbuffer;
+      len = 0;
+      n = tokens = 0;
+    }
+  }
+
+  if (len != 0)
+  {
+    if (*--p == ' ')
+      *p = '\0';
+    addto_MessageLine(isupportFile, isupportbuffer);
   }
 }

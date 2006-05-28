@@ -50,7 +50,8 @@ extern FBFILE *conf_fbfile_in;
 extern char conf_line_in[256];
 extern struct AccessItem* yy_aconf;
 
-typedef enum {  
+typedef enum
+{  
   CONF_TYPE, 
   CLASS_TYPE,
   OPER_TYPE,
@@ -96,6 +97,7 @@ struct AccessItem
   dlink_node node;
   unsigned int     status;   /* If CONF_ILLEGAL, delete when no clients */
   unsigned int     flags;
+  unsigned int     modes;
   int              clients;  /* Number of *LOCAL* clients using this */
   struct irc_ssaddr my_ipnum; /* ip to bind to for outgoing connect */
   struct irc_ssaddr ipnum;	/* ip to connect to */
