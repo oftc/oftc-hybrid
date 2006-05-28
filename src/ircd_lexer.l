@@ -33,23 +33,11 @@
 #include "stdinc.h"
 #include "common.h"
 #include "s_conf.h"
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
-=======
-=======
->>>>>>> .merge-right.r69
 #include "hostmask.h"
-<<<<<<< .working
->>>>>>> .merge-right.r69
-=======
->>>>>>> .merge-right.r69
 
 #include "y.tab.h"
 
 #include "memory.h"
-=======
->>>>>>> .merge-right.r69
 #include "hostmask.h"
 
 #undef YY_INPUT

@@ -13,18 +13,6 @@
 #include "s_conf.h"
 #include "hostmask.h"
 #include "client.h"
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
-#include "irc_string.h"
-#include "sprintf_irc.h"
-#include "memory.h"
-=======
->>>>>>> .merge-right.r69
-=======
->>>>>>> .merge-right.r69
-=======
->>>>>>> .merge-right.r69
 #include "send.h"
 #include "resv.h"
 

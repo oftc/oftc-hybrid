@@ -42,7 +42,8 @@
 #include "restart.h"
 #include "s_auth.h"
 #include "s_conf.h"
-#include "s_serv.h"      /* try_connections */
+#include "parse_aline.h"
+#include "s_serv.h"
 #include "s_stats.h"
 #include "send.h"
 #include "whowas.h"

@@ -26,19 +26,7 @@ ZIP_LIB		= @ZLIB_LD@
 
 IRCDLIBS        = @LIBS@ $(SSL_LIBS) $(ZIP_LIB)
 
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
-INCLUDES        = -I../include $(SSL_INCLUDES)
-=======
 INCLUDES        = -I. -I../include -I../libio $(SSL_INCLUDES)
->>>>>>> .merge-right.r69
-=======
-INCLUDES        = -I. -I../include -I../libio $(SSL_INCLUDES)
->>>>>>> .merge-right.r69
-=======
-INCLUDES        = -I. -I../include -I../libio $(SSL_INCLUDES)
->>>>>>> .merge-right.r69
 CPPFLAGS        = ${INCLUDES} @CPPFLAGS@
 
 PROGS		= servlink

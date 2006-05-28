@@ -37,19 +37,6 @@
 #include "s_conf.h"
 #include "client.h"
 #include "common.h"
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
-#include "event.h"
-#include "fdlist.h"              /* fdlist_add */
-#include "irc_string.h"
-#include "sprintf_irc.h"
-=======
->>>>>>> .merge-right.r69
-=======
->>>>>>> .merge-right.r69
-=======
->>>>>>> .merge-right.r69
 #include "ircd.h"
 #include "ircdauth.h"
 #include "numeric.h"

@@ -36,8 +36,7 @@
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"
-#include "s_log.h"
-#include "s_misc.h"
+#include "parse_aline.h"
 #include "send.h"
 #include "hash.h"
 #include "handlers.h"
@@ -106,7 +105,7 @@ _moddeinit(void)
   delete_capability("KLN");
 }
 
-const char *_version = "$Revision: 474 $";
+const char *_version = "$Revision$";
 #endif
 
 /* Local function prototypes */

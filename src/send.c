@@ -32,20 +32,7 @@
 #include "numeric.h"
 #include "s_serv.h"
 #include "s_conf.h"
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
-#include "list.h"
-#include "s_log.h"
-#include "memory.h"
-#include "hook.h"
-=======
-=======
->>>>>>> .merge-right.r69
-=======
->>>>>>> .merge-right.r69
 #include "packet.h"
->>>>>>> .merge-right.r69
 
 #define LOG_BUFSIZE 2048
 

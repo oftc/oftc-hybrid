@@ -64,6 +64,7 @@ SRCS = \
  numeric.c \
  packet.c \
  parse.c \
+ parse_aline.c \
  restart.c \
  resv.c	\
  @SSL_SRCS_ENABLE@ \

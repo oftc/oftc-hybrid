@@ -34,8 +34,7 @@
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"
-#include "s_log.h"
-#include "s_misc.h"
+#include "parse_aline.h"
 #include "send.h"
 #include "hash.h"
 #include "handlers.h"
@@ -82,7 +81,7 @@ _moddeinit(void)
   mod_del_cmd(&unxline_msgtab);
 }
 
-const char *_version = "$Revision: 259 $";
+const char *_version = "$Revision$";
 #endif
 
 

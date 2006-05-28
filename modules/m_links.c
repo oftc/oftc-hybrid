@@ -62,8 +62,73 @@ _moddeinit(void)
   mod_del_cmd(&links_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
+
+static void
+do_links(struct Client *source_p, int parc, char **parv)
+{
+  if (IsOper(source_p) || !ConfigServerHide.flatten_links)
+  {
+    char *mask = (parc > 2 ? parv[2] : parv[1]);
+    const char *me_name, *nick, *p;
+    struct Client *target_p;
+    char clean_mask[2 * HOSTLEN + 4];
+    dlink_node *ptr;
+
+    if (mask == NULL)
+      mask = "";
+    if (*mask)       /* only necessary if there is a mask */
+      mask = collapse(clean_string(clean_mask, (const unsigned char*) mask, 2 * HOSTLEN));
+
+    me_name = ID_or_name(&me, source_p->from);
+    nick = ID_or_name(source_p, source_p->from);
+
+    DLINK_FOREACH(ptr, global_serv_list.head)
+    {
+      target_p = ptr->data;
+
+      if (*mask && !match(mask, target_p->name))
+        continue;
+    
+      if (target_p->info[0])
+      {
+        if ((p = strchr(target_p->info, ']')))
+          p += 2; /* skip the nasty [IP] part */
+        else
+          p = target_p->info;
+      } 
+      else
+        p = "(Unknown Location)";
+
+      /* We just send the reply, as if they are here there's either no SHIDE,
+       * or they're an oper..  
+       */
+      sendto_one(source_p, form_str(RPL_LINKS),
+                 me_name, nick,
+		 target_p->name, target_p->servptr->name,
+                 target_p->hopcount, p);
+    }
+  
+    sendto_one(source_p, form_str(RPL_ENDOFLINKS),
+               me_name, nick,
+               EmptyString(mask) ? "*" : mask);
+  }
+  else
+  {
+    /*
+     * Print our own info so at least it looks like a normal links
+     * then print out the file (which may or may not be empty)
+     */
+    sendto_one(source_p, form_str(RPL_LINKS),
+               ID_or_name(&me, source_p->from),
+               ID_or_name(source_p, source_p->from),
+               me.name, me.name, 0, me.info);
+    send_message_file(source_p, &ConfigFileEntry.linksfile);
+    sendto_one(source_p, form_str(RPL_ENDOFLINKS),
+               ID_or_name(&me, source_p->from), "*");
+  }
+}
 
 /*
  * m_links - LINKS message handler

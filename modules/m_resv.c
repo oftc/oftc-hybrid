@@ -35,6 +35,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
+#include "parse_aline.h"
 #include "resv.h"
 #include "hash.h"
 #include "cluster.h"
@@ -72,7 +73,7 @@ _moddeinit(void)
   mod_del_cmd(&unresv_msgtab);
 }
 
-const char *_version = "$Revision: 238 $";
+const char *_version = "$Revision$";
 #endif
 
 /* mo_resv()

@@ -32,17 +32,6 @@
 #include "client.h"
 #include "common.h"
 #include "hash.h"
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
-#include "irc_string.h"
-#include "sprintf_irc.h"
-=======
->>>>>>> .merge-right.r69
-=======
->>>>>>> .merge-right.r69
-=======
->>>>>>> .merge-right.r69
 #include "ircd.h"
 #include "ircd_defs.h"
 #include "numeric.h"

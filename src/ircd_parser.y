@@ -32,19 +32,6 @@
 #include "ircd.h"
 #include "s_conf.h"
 #include "client.h"	/* for UMODE_ALL only */
-<<<<<<< .working
-<<<<<<< .working
-<<<<<<< .working
-#include "irc_string.h"
-#include "irc_getaddrinfo.h"
-#include "ircdauth.h"
-#include "memory.h"
-=======
->>>>>>> .merge-right.r69
-=======
->>>>>>> .merge-right.r69
-=======
->>>>>>> .merge-right.r69
 #include "modules.h"
 #include "s_serv.h" /* for CAP_LL / IsCapable */
 #include "hostmask.h"
@@ -938,14 +925,9 @@ oper_entry: OPERATOR
 }; 
 
 oper_items:     oper_items oper_item | oper_item;
-<<<<<<< .working
-oper_item:      oper_name  | oper_user | oper_password | oper_hidden_admin |
-                oper_class | oper_global_kill | oper_remote |
-=======
 oper_item:      oper_name | oper_user | oper_password | oper_hidden_admin |
                 oper_hidden_oper | oper_umodes |
 		oper_class | oper_global_kill | oper_remote |
->>>>>>> .merge-right.r55
                 oper_kline | oper_xline | oper_unkline |
 		oper_gline | oper_nick_changes |
                 oper_die | oper_rehash | oper_admin |

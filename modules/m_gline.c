@@ -37,7 +37,7 @@
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"
-#include "s_misc.h"
+#include "parse_aline.h"
 #include "send.h"
 #include "msg.h"
 #include "fileio.h"
@@ -103,7 +103,7 @@ _moddeinit(void)
   delete_capability("GLN");
 }
 
-const char *_version = "$Revision: 232 $";
+const char *_version = "$Revision$";
 #endif
 
 /* mo_gline()

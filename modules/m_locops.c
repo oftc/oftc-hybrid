@@ -30,6 +30,7 @@
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
+#include "parse_aline.h"
 #include "s_user.h"
 #include "s_serv.h"
 #include "hash.h"
@@ -59,7 +60,7 @@ _moddeinit(void)
   mod_del_cmd(&locops_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*

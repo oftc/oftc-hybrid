@@ -29,13 +29,7 @@
 #include "send.h"
 #include "numeric.h"
 #include "client.h"
-<<<<<<< .working
-<<<<<<< .working
-=======
-=======
->>>>>>> .merge-right.r69
 #include "s_serv.h"
->>>>>>> .merge-right.r69
 
 /*
 ** init_message_file
