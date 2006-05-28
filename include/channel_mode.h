@@ -113,4 +113,14 @@ struct ChCapCombo
 #define CHACCESS_PEON       0
 #define CHACCESS_HALFOP     1
 #define CHACCESS_CHANOP     2
+extern struct Callback *channel_access_cb;
+
+extern void init_channel_modes(void);
+extern int add_id(struct Client *, struct Channel *, char *, int);
+extern void set_channel_mode(struct Client *, struct Client *, struct Channel *,
+                             struct Membership *, int, char **, char *);
+extern void clear_ban_cache(struct Channel *);
+extern void init_chcap_usage_counts(void);
+extern void set_chcap_usage_counts(struct Client *);
+extern void unset_chcap_usage_counts(struct Client *);
 #endif /* INCLUDED_channel_mode_h */
