@@ -44,10 +44,6 @@ struct Listener;
 struct Client;
 struct LocalUser;
 
-/*
- * Client structures
- */
-
 struct Server
 {
   char by[NICKLEN];       /* who activated this connection     */
@@ -117,17 +113,12 @@ struct Client
 					   * mapped here
 					   */
   char *away;
+
   /*
    * client->name is the unique name for a client nick or host
    */
   char name[HOSTLEN + 1]; 
   char id[IDLEN + 1];       /* client ID, unique ID per client */
-
-  /*
-   * client->llname is used to store the clients requested nick
-   * temporarily for new connections.
-   */
-  char              llname[NICKLEN];
 
   /* 
    * client->username is the username from ident or the USER message, 
@@ -254,6 +245,12 @@ struct LocalUser
 
   char*          response;  /* expected response from client */
   char*          auth_oper; /* Operator to become if they supply the response.*/
+
+  /*
+   * llname is used to store the clients requested nick
+   * temporarily for new connections.
+   */
+  char llname[NICKLEN];
 };
 
 /*
