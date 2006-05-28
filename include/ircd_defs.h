@@ -56,6 +56,8 @@
                                    /etc/resolv.conf we care about */
 
 #define LOWEST_SAFE_FD  4	/* skip stdin, stdout, stderr, and profiler */
+#define PLATFORMLEN     200     /* platform string used in info response */
+
 
 /* 
  * message return values 

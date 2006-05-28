@@ -128,7 +128,9 @@ static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_SID };
 static struct ChCapCombo chcap_combos[NCHCAP_COMBOS];
 
 extern BlockHeap *ban_heap;
+struct Callback *channel_access_cb = NULL;
 
+/* XXX check_string is propably not longer required in add_id and del_id */
 /* check_string()
  *
  * inputs       - string to check
@@ -1635,29 +1637,49 @@ static struct ChannelMode ModeTable[255] =
  *                chanop level access, 0 for peon level access.
  * side effects - NONE
  */
-static int
-get_channel_access(struct Client *source_p, struct Membership *member)
+static void *
+get_channel_access(va_list args)
 {
+  struct Client *source_p = va_arg(args, struct Client *);
+  struct Membership *member = va_arg(args, struct Membership *);
+  int *level = va_arg(args, int *);
+
   /* Let hacked servers in for now... */
   if (!MyClient(source_p))
-    return(CHACCESS_CHANOP); 
-  
+  {
+    *level = CHACCESS_CHANOP;
+    return NULL;
+  }
+
   if (member == NULL)
-    return(CHACCESS_NOTONCHAN);
+  {
+    *level = CHACCESS_NOTONCHAN;
+    return NULL;
+  }
 
   /* just to be sure.. */
   assert(source_p == member->client_p);
 
   if (has_member_flags(member, CHFL_CHANOP))
-    return(CHACCESS_CHANOP);
+    if(IsGod(source_p))
+      *level = CHACCESS_CHANOP+1;
+    else
+      *level = CHACCESS_CHANOP;
+#ifdef HALFOPS
+  else if (has_member_flags(member, CHFL_HALFOP))
+    *level = CHACCESS_HALFOP;
+#endif
+  else
+    *level = CHACCESS_PEON;
 
-  if (has_member_flags(member, CHFL_HALFOP))
-    return(CHACCESS_HALFOP); 
-  
-  if(IsGod(source_p)) 
-      return CHACCESS_CHANOP+1;
+  return NULL;
+}
 
-  return(CHACCESS_PEON);
+void
+init_channel_modes(void)
+{
+  channel_access_cb = register_callback("get_channel_access",
+    get_channel_access);
 }
 
 /* void send_cap_mode_changes(struct Client *client_p,
@@ -1929,7 +1951,7 @@ set_channel_mode(struct Client *client_p, struct Client *source_p, struct Channe
   mode_limit = 0;
   simple_modes_mask = 0;
 
-  alevel = get_channel_access(source_p, member);
+  execute_callback(channel_access_cb, source_p, member, &alevel);
   god_mode_check(source_p, chname, alevel, parc, parv);
 
   for (; (c = *ml) != '\0'; ml++) 
