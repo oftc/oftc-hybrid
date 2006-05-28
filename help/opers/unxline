@@ -1,0 +1,11 @@
+# $Id: unxline 33 2005-10-02 20:50:00Z knight $
+UNXLINE <gecos>
+
+Removes an XLINE 
+
+UNXLINE <gecos> ON irc.server
+will unxline the gecos on irc.server if irc.server accepts
+remote unxlines. If the xline is conf based, the xline
+will not be removed.
+
+- Requires Oper Priv: X
