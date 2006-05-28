@@ -7,7 +7,7 @@
 #ifndef INCLUDED_irc_res_h
 #define INCLUDED_irc_res_h
 
-#include "ircd_defs.h"
+#include "fdlist.h"
 
 struct Client;
 

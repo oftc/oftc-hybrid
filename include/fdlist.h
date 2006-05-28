@@ -24,21 +24,10 @@
 
 #ifndef INCLUDED_fdlist_h
 #define INCLUDED_fdlist_h
+#define FILEIO_V2
 
-#include "ircd_defs.h"
-#include "irc_res.h"
-#define FD_DESC_SZ 128  /* hostlen + comment */
-
-/* FD type values */
-enum {
-    FD_NONE,
-    FD_LOG,
-    FD_FILE,
-    FD_FILECLOSE,
-    FD_SOCKET,
-    FD_PIPE,
-    FD_UNKNOWN
-};
+#define FD_DESC_SZ      128  /* hostlen + comment */
+#define LOWEST_SAFE_FD  4    /* skip stdin, stdout, stderr, and profiler */
 
 enum {
     COMM_OK,
@@ -50,92 +39,92 @@ enum {
     COMM_ERR_MAX
 };
 
-typedef enum fdlist_t {
-    FDLIST_NONE,
-    FDLIST_SERVICE,
-    FDLIST_SERVER,
-    FDLIST_IDLECLIENT,
-    FDLIST_BUSYCLIENT,
-    FDLIST_MAX
-} fdlist_t;
-
-typedef struct _fde fde_t;
+struct _fde;
+struct DNSQuery;
 
 /* Callback for completed IO events */
-typedef void PF(int, void *);
+typedef void PF(struct _fde *, void *);
 
 /* Callback for completed connections */
-typedef void CNCB(int, int, void *);
+typedef void CNCB(struct _fde *, int, void *);
 
-extern int highest_fd;
-extern int number_fd;
-
-struct Client;
-
-struct _fde {
-    /* New-school stuff, again pretty much ripped from squid */
-    /*
-     * Yes, this gives us only one pending read and one pending write per
-     * filedescriptor. Think though: when do you think we'll need more?
-     */
-    int fd;		/* So we can use the fde_t as a callback ptr */
-    int type;
-    fdlist_t list;	/* Which list this FD should sit on */
-    int comm_index;	/* where in the poll list we live */
-    char desc[FD_DESC_SZ];
-    PF *read_handler;
-    void *read_data;
-    PF *write_handler;
-    void *write_data;
-    PF *timeout_handler;
-    void *timeout_data;
-    time_t timeout;
-    PF *flush_handler;
-    void *flush_data;
-    time_t flush_timeout;
-    struct DNSQuery *dns_query;
-    struct {
-        unsigned int open:1;
-        unsigned int close_request:1;
-        unsigned int write_daemon:1;   
-        unsigned int closing:1;
-        unsigned int socket_eof:1;
-        unsigned int nolinger:1;
-        unsigned int nonblocking:1;
-        unsigned int ipc:1;
-        unsigned int called_connect:1;
-#ifdef HAVE_LIBCRYPTO
-        unsigned int accept_read:1;
-        unsigned int accept_write:1;
-#endif        
-    } flags;
-    struct {
-        /* We don't need the host here ? */
-	struct irc_ssaddr S;
-	struct irc_ssaddr hostaddr;
-        CNCB *callback;
-        void *data;
-        /* We'd also add the retry count here when we get to that -- adrian */
-    } connect;
-#ifdef HAVE_LIBCRYPTO
-    SSL *ssl;
-    int accept_failures;
-#endif
+/* This is to get around the fact that some implementations have ss_len and
+ * others do not
+ */
+struct irc_ssaddr
+{
+  struct sockaddr_storage ss;
+  unsigned char ss_len;
+  in_port_t ss_port;
 };
 
+typedef struct _fde {
+  /* New-school stuff, again pretty much ripped from squid */
+  /*
+   * Yes, this gives us only one pending read and one pending write per
+   * filedescriptor. Think though: when do you think we'll need more?
+   */
+  int fd;		/* So we can use the fde_t as a callback ptr */
+  int comm_index;	/* where in the poll list we live */
+  int evcache;          /* current fd events as set up by the underlying I/O */
+  char desc[FD_DESC_SZ];
+  PF *read_handler;
+  void *read_data;
+  PF *write_handler;
+  void *write_data;
+  PF *timeout_handler;
+  void *timeout_data;
+  time_t timeout;
+  PF *flush_handler;
+  void *flush_data;
+  time_t flush_timeout;
+  struct DNSQuery *dns_query;
+  struct {
+    unsigned int open:1;
+    unsigned int is_socket:1;
+#ifdef HAVE_LIBCRYPTO
+    unsigned int pending_read:1;
+#endif
+  } flags;
 
-extern fde_t *fd_table;
+  struct {
+    /* We don't need the host here ? */
+    struct irc_ssaddr S;
+    struct irc_ssaddr hostaddr;
+    CNCB *callback;
+    void *data;
+    /* We'd also add the retry count here when we get to that -- adrian */
+  } connect;
+#ifdef HAVE_LIBCRYPTO
+  SSL *ssl;
+#endif
+  struct _fde *hnext;
+} fde_t;
 
-void fdlist_init(void);
+#define FD_HASH_SIZE CLIENT_HEAP_SIZE
 
-extern void  fd_open(int, unsigned int, const char *, void *);
-extern void  fd_close(int);
-extern void  fd_dump(struct Client *source_p);
+extern int number_fd;
+extern int hard_fdlimit;
+extern fde_t *fd_hash[];
+extern fde_t *fd_next_in_loop;
+extern struct Callback *fdlimit_cb;
+
+extern void fdlist_init(void);
+extern fde_t *lookup_fd(int);
+extern void fd_open(fde_t *, int, int, const char *);
+extern void fd_close(fde_t *);
 #ifndef __GNUC__
-extern void  fd_note(int fd, const char *format, ...);
+extern void fd_note(fde_t *, const char *format, ...);
 #else
-extern void  fd_note(int fd, const char *format, ...)
+extern void  fd_note(fde_t *, const char *format, ...)
   __attribute__((format (printf, 2, 3)));
 #endif
-#endif /* INCLUDED_fdlist_h */
+extern void close_standard_fds(void);
+extern void close_fds(fde_t *);
+extern void recalc_fdlimit(void *);
 
+/* TODO: get rid of this */
+struct Client;
+extern void fd_dump(struct Client *);
+
+#endif /* INCLUDED_fdlist_h */

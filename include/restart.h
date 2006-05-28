@@ -26,5 +26,7 @@
 #define INCLUDED_restart_h
 
 extern void restart(const char *);
-extern void server_reboot(void);
+extern void server_die(const char *, int);
+extern void ircd_outofmemory(void);
+
 #endif

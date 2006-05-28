@@ -289,4 +289,3 @@ set_back_events(time_t by)
       event_table[i].when = 0;
   }
 }
-

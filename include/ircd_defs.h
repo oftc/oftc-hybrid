@@ -35,6 +35,8 @@
 #define INCLUDED_ircd_defs_h
 #include "inet_misc.h"
 
+/* Right out of the RFC */
+#define IRCD_BUFSIZE    512     /* WARNING: *DONT* CHANGE THIS!!!!         */
 #define HOSTLEN         63      /* Length of hostname.  Updated to         */
                                 /* comply with RFC1123                     */
 #define PORTNAMELEN 6  /* ":31337" */
@@ -42,35 +44,43 @@
 #define USERLEN         10
 #define REALLEN         50
 #define KILLLEN         90
-#define CHANNELLEN      200
+#define CHANNELLEN      200 
 #define REASONLEN       120
+#define KICKLEN         160
+#define AWAYLEN         160
 
 /* 23+1 for \0 */
 #define KEYLEN          24
-#define BUFSIZE         512     /* WARNING: *DONT* CHANGE THIS!!!! */
 #define OPERNICKLEN     NICKLEN*2 /* Length of OPERNICKs. */
 
 #define USERHOST_REPLYLEN       (NICKLEN+HOSTLEN+USERLEN+5)
 #define MAX_DATE_STRING 32      /* maximum string length for a date string */
-#define IRCD_MAXNS      2       /* Maximum number of nameservers in 
-                                   /etc/resolv.conf we care about */
 
-#define LOWEST_SAFE_FD  4	/* skip stdin, stdout, stderr, and profiler */
 #define PLATFORMLEN     200     /* platform string used in info response */
 
+#ifdef _WIN32
+#define EAFNOSUPPORT WSAEAFNOSUPPORT
+#define EALREADY     WSAEALREADY
+#define EINPROGRESS  WSAEINPROGRESS
+#define EISCONN      WSAEISCONN
+#define EMSGSIZE     WSAEMSGSIZE
+#define EWOULDBLOCK  WSAEWOULDBLOCK
 
-/* 
- * message return values 
- */
-#define CLIENT_EXITED -2
-
-/* This is to get around the fact that some implementations have ss_len and
- * others do not
- */
-struct irc_ssaddr
+#define _UTSNAME_LENGTH 65
+#define _UTSNAME_NODENAME_LENGTH _UTSNAME_LENGTH
+#define _UTSNAME_DOMAIN_LENGTH _UTSNAME_LENGTH
+struct utsname
 {
-  struct sockaddr_storage ss;
-  unsigned char   ss_len;   
-  in_port_t       ss_port;
+  char sysname[_UTSNAME_LENGTH];
+  char nodename[_UTSNAME_NODENAME_LENGTH];
+  char release[_UTSNAME_LENGTH];
+  char version[_UTSNAME_LENGTH];
+  char machine[_UTSNAME_LENGTH];
+  char domainname[_UTSNAME_DOMAIN_LENGTH];
 };
+int uname (struct utsname *);
+#endif
+
+#define REJECT_HOLD_TIME GlobalSetOptions.rejecttime
+
 #endif /* INCLUDED_ircd_defs_h */

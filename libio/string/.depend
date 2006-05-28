@@ -1,8 +1,30 @@
+match.o: match.c ../../include/stdinc.h ../../include/setup.h \
+  ../../include/defaults.h ../../include/inet_misc.h \
+  ../../include/stdinc.h ../../include/irc_string.h ../../include/pcre.h \
+  ../../include/irc_getaddrinfo.h ../../include/client.h \
+  ../../include/fdlist.h ../../include/ircd_defs.h \
+  ../../include/ircd_handler.h ../../include/dbuf.h ../../include/tools.h \
+  ../../include/channel.h ../../include/irc_res.h ../../include/ircd.h \
+  ../../include/memory.h
 pcre_chartables.o: pcre_chartables.c
-pcre_compile.o: pcre_compile.c pcre_internal.h pcre.h
-pcre_exec.o: pcre_exec.c pcre_internal.h pcre.h
-pcre_globals.o: pcre_globals.c pcre_internal.h pcre.h
-pcre_study.o: pcre_study.c pcre_internal.h pcre.h
-pcre_tables.o: pcre_tables.c pcre_internal.h pcre.h
-pcre_fullinfo.o: pcre_fullinfo.c pcre_internal.h pcre.h
-pcre_try_flipped.o: pcre_try_flipped.c pcre_internal.h pcre.h
+pcre_compile.o: pcre_compile.c pcre_internal.h ../../include/pcre.h
+pcre_exec.o: pcre_exec.c pcre_internal.h ../../include/pcre.h
+pcre_fullinfo.o: pcre_fullinfo.c pcre_internal.h ../../include/pcre.h
+pcre_globals.o: pcre_globals.c pcre_internal.h ../../include/pcre.h
+pcre_study.o: pcre_study.c pcre_internal.h ../../include/pcre.h
+pcre_tables.o: pcre_tables.c pcre_internal.h ../../include/pcre.h
+pcre_try_flipped.o: pcre_try_flipped.c pcre_internal.h \
+  ../../include/pcre.h
+sprintf_irc.o: sprintf_irc.c ../../include/stdinc.h ../../include/setup.h \
+  ../../include/defaults.h ../../include/inet_misc.h \
+  ../../include/stdinc.h ../../include/sprintf_irc.h \
+  ../../include/irc_string.h ../../include/pcre.h
+string.o: string.c ../../include/stdinc.h ../../include/setup.h \
+  ../../include/defaults.h ../../include/inet_misc.h \
+  ../../include/stdinc.h ../../include/tools.h ../../include/pcre.h \
+  ../../include/irc_string.h ../../include/pcre.h \
+  ../../include/sprintf_irc.h ../../include/client.h \
+  ../../include/fdlist.h ../../include/ircd_defs.h \
+  ../../include/ircd_handler.h ../../include/dbuf.h ../../include/tools.h \
+  ../../include/channel.h ../../include/irc_res.h ../../include/list.h \
+  ../../include/memory.h

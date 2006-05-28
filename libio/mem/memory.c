@@ -22,19 +22,9 @@
  *  $Id: memory.c 33 2005-10-02 20:50:00Z knight $
  */
 
-
 #include "stdinc.h"
-#include "ircd_defs.h"
-#include "ircd.h"
-#include "irc_string.h"
-#include "memory.h"
-#include "list.h"
-#include "client.h"
-#include "send.h"
-#include "tools.h"
-#include "s_log.h"
-#include "restart.h"
 
+void (* outofmemory) (void) = abort;
 
 /*
  * MyMalloc - allocate memory, call outofmemory on failure
@@ -46,7 +36,7 @@ MyMalloc(size_t size)
 
   if (ret == NULL)
     outofmemory();
-  return(ret);
+  return ret;
 }
 
 /*
@@ -59,7 +49,7 @@ MyRealloc(void *x, size_t y)
 
   if (ret == NULL)
     outofmemory();
-  return(ret);
+  return ret;
 }
 
 void
@@ -74,25 +64,4 @@ _DupString(char **x, const char *y)
 {
   (*x) = malloc(strlen(y) + 1);
   strcpy((*x), y);
-}
-
-/* outofmemory()
- *
- * input        - NONE
- * output       - NONE
- * side effects - simply try to report there is a problem.
- *                Abort if it was called more than once
- */
-void
-outofmemory(void)
-{
-  static int was_here = 0;
-
-  if (was_here)
-    abort();
-
-  was_here = 1;
-
-  ilog(L_CRIT, "Out of memory: restarting server...");
-  restart("Out of Memory");
 }

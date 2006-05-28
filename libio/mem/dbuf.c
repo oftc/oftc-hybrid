@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "balloc.h"
-#include "common.h"
 #include "dbuf.h"
 #include "list.h"
 #include "tools.h"
@@ -111,4 +110,3 @@ dbuf_delete(struct dbuf_queue *qptr, size_t count)
   qptr->total_size -= count;
   memmove((void *) &first->data, (void *) &first->data[count], first->size);
 }
-

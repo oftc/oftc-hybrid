@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "balloc.h"
 #include "ircd_defs.h"
 #include "tools.h"
 #include "s_conf.h"

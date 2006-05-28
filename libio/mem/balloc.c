@@ -62,18 +62,15 @@
 #endif /* MAP_ANONYMOUS */
 #endif
 
-#include "ircd.h"
+//#include "ircd.h"
 #include "balloc.h"
 #include "irc_string.h"
 #include "tools.h"
-#include "client.h"
-#include "send.h"
-#include "numeric.h"
 #include "fdlist.h"
 #include "event.h"
 
 
-static BlockHeap *heap_list = NULL;
+BlockHeap *heap_list = NULL;
 
 static int BlockHeapGarbageCollect(BlockHeap *);
 static void heap_garbage_collection(void *);
@@ -431,55 +428,52 @@ BlockHeapDestroy(BlockHeap *bh)
  * \param bh Pointer to a BlockHeap
  * \return Number of bytes being used
  */
-static size_t
-block_heap_get_used_mem(const BlockHeap *const bh)
+size_t
+block_heap_get_used_mem(const BlockHeap *bh)
 {
-  return(((bh->blocksAllocated *
-           bh->elemsPerBlock)-bh->freeElems) *
-          (bh->elemSize + sizeof(MemBlock)));
+  return ((bh->blocksAllocated * bh->elemsPerBlock) - bh->freeElems) *
+    (bh->elemSize + sizeof(MemBlock));
 }
 
 /*! \brief Returns the number of bytes being free for further allocations
  * \param bh Pointer to a BlockHeap
  * \return Number of bytes being free for further allocations
  */
-static size_t
-block_heap_get_free_mem(const BlockHeap *const bh)
+size_t
+block_heap_get_free_mem(const BlockHeap *bh)
 {
-  return(bh->freeElems * (bh->elemSize + sizeof(MemBlock)));
+  return bh->freeElems * (bh->elemSize + sizeof(MemBlock));
 }
 
 /*! \brief Returns the total number of bytes of memory belonging to a heap
  * \param bh Pointer to a BlockHeap
  * \return Total number of bytes of memory belonging to a heap
  */
-static size_t
-block_heap_get_size_mem(const BlockHeap *const bh)
+size_t
+block_heap_get_size_mem(const BlockHeap *bh)
 {
-  return(((bh->blocksAllocated *
-           bh->elemsPerBlock)) *
-          (bh->elemSize + sizeof(MemBlock)));
+  return (bh->blocksAllocated * bh->elemsPerBlock) *
+    (bh->elemSize + sizeof(MemBlock));
 }
 
 /*! \brief Returns the number of elements being used.
  * \param bh Pointer to a BlockHeap
  * \return Number of elements being free for further allocations
  */
-static unsigned int
-block_heap_get_used_elm(const BlockHeap *const bh)
+unsigned int
+block_heap_get_used_elm(const BlockHeap *bh)
 {
-  return((bh->blocksAllocated *
-          bh->elemsPerBlock)-bh->freeElems);
+  return (bh->blocksAllocated * bh->elemsPerBlock) - bh->freeElems;
 }
 
 /*! \brief Returns the number of elements being free for further allocations.
  * \param bh Pointer to a BlockHeap
  * \return Number of elements being free for further allocations
  */
-static unsigned int
-block_heap_get_free_elm(const BlockHeap *const bh)
+unsigned int
+block_heap_get_free_elm(const BlockHeap *bh)
 {
-  return(bh->freeElems);
+  return bh->freeElems;
 }
 
 /*! \brief Returns the number of total elements belonging to a heap.
@@ -487,24 +481,8 @@ block_heap_get_free_elm(const BlockHeap *const bh)
  * \param bh Pointer to a BlockHeap
  * \return Number of total elements belonging to a heap
  */
-static unsigned int
-block_heap_get_size_elm(const BlockHeap *const bh)
+unsigned int
+block_heap_get_size_elm(const BlockHeap *bh)
 {
-  return(bh->blocksAllocated * bh->elemsPerBlock);
-}
-
-void
-block_heap_report_stats(struct Client *client_p)
-{
-  const BlockHeap *bh = NULL;
-
-  for (bh = heap_list; bh != NULL; bh = bh->next)
-    sendto_one(client_p, ":%s %d %s z :%s mempool: used %u/%u free %u/%u (size %u/%u)",
-               me.name, RPL_STATSDEBUG, client_p->name, bh->name,
-               block_heap_get_used_elm(bh),
-               block_heap_get_used_mem(bh),
-               block_heap_get_free_elm(bh),
-               block_heap_get_free_mem(bh),
-               block_heap_get_size_elm(bh),
-               block_heap_get_size_mem(bh));
+  return bh->blocksAllocated * bh->elemsPerBlock;
 }

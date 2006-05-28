@@ -55,7 +55,4 @@
 #define IRCD_MAX(a, b)  ((a) > (b) ? (a) : (b))
 #define IRCD_MIN(a, b)  ((a) < (b) ? (a) : (b))
 
-/* Right out of the RFC */
-#define IRCD_BUFSIZE 512
-
 #endif /* INCLUDED_common_h */

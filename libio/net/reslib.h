@@ -4,6 +4,9 @@
  * $Id: irc_reslib.h 33 2005-10-02 20:50:00Z knight $
  */
 
+/* Maximum number of nameservers in /etc/resolv.conf we care about */
+#define IRCD_MAXNS 2
+
 /* Here we define some values lifted from nameser.h */
 #define NS_NOTIFY_OP 4
 #define NS_INT16SZ 2

@@ -24,6 +24,7 @@
  */
 
 #include "stdinc.h"
+#include "client.h"
 #include "hook.h"
 #include "ircd.h"
 #include "list.h"
