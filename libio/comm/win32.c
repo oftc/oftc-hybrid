@@ -30,7 +30,7 @@
 #define WM_SOCKET   (WM_USER + 1)
 #define WM_DNS      (WM_USER + 2)
 
-void (* handle_wm_signal) (WPARAM, LPARAM) = NULL;
+void (* dispatch_wm_signal) (int) = NULL;
 struct irc_ssaddr irc_nsaddr_list[IRCD_MAXNS];
 int irc_nscount = 0;
 
@@ -148,8 +148,8 @@ hybrid_wndproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_SIGNAL:
-      if (handle_wm_signal != NULL)
-        handle_wm_signal(wParam, lParam);
+      if (dispatch_wm_signal != NULL)
+        dispatch_wm_signal(wParam);
       return 0;
 
     case WM_DESTROY:

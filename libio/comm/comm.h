@@ -44,7 +44,7 @@
 
 extern struct Callback *setup_socket_cb;
 #ifdef _WIN32
-extern void (* handle_wm_signal) (WPARAM, LPARAM);
+extern void (* dispatch_wm_signal) (int);
 #endif
 
 extern int get_sockerr(int);

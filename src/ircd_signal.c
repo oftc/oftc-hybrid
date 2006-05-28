@@ -1,77 +1,54 @@
-/************************************************************************
- *   IRC - Internet Relay Chat, src/ircd_signal.c
- *   Copyright (C) 1990 Jarkko Oikarinen and
- *                      University of Oulu, Computing Center
+/*
+ *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
+ *  ircd_signal.c: responsible for ircd's signal handling
  *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 1, or (at your option)
- *   any later version.
+ *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
  *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * $Id$
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ *  USA
+ *
+ *  $Id$
  */
 
 #include "stdinc.h"
+#include "common.h"
 #include "ircd_signal.h"
 #include "ircd.h"         /* dorehash */
 #include "restart.h"      /* server_reboot */
-<<<<<<< .working
-<<<<<<< .working
-/*
- * dummy_handler - don't know if this is really needed but if alarm is still
- * being used we probably will
- */ 
-static void 
-dummy_handler(int sig)
-{
-  /* Empty */
-}
-=======
->>>>>>> .merge-right.r69
-=======
->>>>>>> .merge-right.r69
 
 /*
- * sigterm_handler - exit the server
- */
-static void 
-sigterm_handler(int sig)  
-{
-  /* XXX we had a flush_connections() here - we should close all the
-   * connections and flush data. read server_reboot() for my explanation.
-   *     -- adrian
-   */
-  ilog(L_CRIT, "Server killed By SIGTERM");
-  exit(-1);
-}
-  
-/* 
- * sighup_handler - reread the server configuration
- */
-static void 
-sighup_handler(int sig)
-{
-  dorehash = 1;
-}
-
-/*
- * sigusr1_handler - reread the motd file
+ * signal_handler - general handler for ircd signals
  */
 static void
-sigusr1_handler(int sig)
+signal_handler(int sig)
 {
-  doremotd = 1;
+  switch (sig)
+  {
+    case SIG_DIE:
+      server_die("received signal SIGTERM", NO);
+    case SIG_RESTART:
+      server_die("received signal SIGINT", !server_state.foreground);
+    case SIG_REHASH:
+      dorehash = 1;
+      break;
+    case SIG_REMOTD:
+      doremotd = 1;
+  }
 }
 
+#ifndef _WIN32
 /*
  * 
  * inputs	- nothing
@@ -85,37 +62,17 @@ sigchld_handler(int sig)
   int status;
   waitpid(-1, &status, WNOHANG);
 }
-
-/*
- * sigint_handler - restart the server
- */
-static void 
-sigint_handler(int sig)
-{
-  static int restarting = 0;
-
-  if (server_state.foreground) 
-    {
-      ilog(L_WARN, "Server exiting on SIGINT");
-      exit(0);
-    }
-  else
-    {
-      ilog(L_WARN, "Server Restarting on SIGINT");
-      if (restarting == 0) 
-        {
-          restarting = 1;
-          server_reboot();
-        }
-    }
-}
+#endif
 
 /*
  * setup_signals - initialize signal handlers for server
  */
 void 
-setup_signals()
+setup_signals(void)
 {
+#ifdef _WIN32
+  dispatch_wm_signal = signal_handler;
+#else
   struct sigaction act;
 
   act.sa_flags = 0;
@@ -136,29 +93,22 @@ setup_signals()
   sigaction(SIGTRAP, &act, 0);
 #endif
 
-  act.sa_handler = dummy_handler;
-  sigaction(SIGALRM, &act, 0);
-
-  act.sa_handler = sighup_handler;
+  act.sa_handler = signal_handler;
   sigemptyset(&act.sa_mask);
-  sigaddset(&act.sa_mask, SIGHUP);
-  sigaction(SIGHUP, &act, 0);
+  sigaddset(&act.sa_mask, SIG_REHASH);
+  sigaction(SIG_REHASH, &act, 0);
 
-  act.sa_handler = sigint_handler;
-  sigaddset(&act.sa_mask, SIGINT);
-  sigaction(SIGINT, &act, 0);
+  sigaddset(&act.sa_mask, SIG_RESTART);
+  sigaction(SIG_RESTART, &act, 0);
 
-  act.sa_handler = sigterm_handler;
-  sigaddset(&act.sa_mask, SIGTERM);
-  sigaction(SIGTERM, &act, 0);
+  sigaddset(&act.sa_mask, SIG_DIE);
+  sigaction(SIG_DIE, &act, 0);
 
-  act.sa_handler = sigusr1_handler;
-  sigaddset(&act.sa_mask, SIGUSR1);
-  sigaction(SIGUSR1, &act, 0);
+  sigaddset(&act.sa_mask, SIG_REMOTD);
+  sigaction(SIG_REMOTD, &act, 0);
 
   act.sa_handler = sigchld_handler;
   sigaddset(&act.sa_mask, SIGCHLD);
   sigaction(SIGCHLD, &act, 0);
+#endif
 }
-
-
