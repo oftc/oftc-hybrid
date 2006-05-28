@@ -921,6 +921,8 @@ AC_HELP_STRING([--with-topiclen=NUMBER],[Set the max topic length to NUMBER (def
 
 AC_DEFINE_UNQUOTED(TOPICLEN, ${TOPICLEN}, [Maximum topic length (<=390)])
 AC_DEFINE_UNQUOTED(NICKLEN, (${NICKLEN}+1), [Nickname length])
+AC_DEFINE_UNQUOTED(USERLEN, 10, [Length of username/ident])
+AC_DEFINE_UNQUOTED(HOSTLEN, 63, [Length of hostname.  Updated to comply with RFC1123])
 
 AC_ARG_ENABLE(shared-modules,
 AC_HELP_STRING([--disable-shared-modules],[ Disable shared modules.]),

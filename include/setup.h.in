@@ -18,8 +18,11 @@
 /* Define if this ircd will be an EFnet server. */
 #undef EFNET
 
-/* Max number of buckets in hash tables. */
-#undef HASHSIZE
+/* Define this if you want to enable gline voting. */
+#undef GLINE_VOTING
+
+/* Define if you want halfops support. */
+#undef HALFOPS
 
 /* Define to 1 if you have the `basename' function. */
 #undef HAVE_BASENAME
@@ -147,11 +150,11 @@
 /* Define to 1 if you have the <sys/wait.h> header file. */
 #undef HAVE_SYS_WAIT_H
 
-/* Define to 1 if the system has the type `uintptr_t'. */
-#undef HAVE_UINTPTR_T
-
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `usleep' function. */
+#undef HAVE_USLEEP
 
 /* Define to 1 if you have the `vsnprintf' function. */
 #undef HAVE_VSNPRINTF
@@ -173,9 +176,6 @@
 
 /* Log facility to use for syslog() */
 #undef LOG_FACILITY
-
-/* Maximum number of network connections */
-#undef MAXCONN
 
 /* Define this to disable debugging support. */
 #undef NDEBUG
@@ -225,8 +225,11 @@
 /* Suffix for shared libraries on this platform. */
 #undef SHARED_SUFFIX
 
-/* Size of the slink_node heap. */
-#undef SNODE_HEAP_SIZE
+/* The size of a `int64_t', as computed by sizeof. */
+#undef SIZEOF_INT64_T
+
+/* The size of a `long long', as computed by sizeof. */
+#undef SIZEOF_LONG_LONG
 
 /* Define to 1 if sockaddr_in has a 'sin_len' member. */
 #undef SOCKADDR_IN_HAS_LEN
@@ -239,10 +242,6 @@
 
 /* Define to 1 if string.h may be included along with strings.h */
 #undef STRING_WITH_STRINGS
-
-/* String containing extra underscores prepended to symbols loaded from
-   modules. */
-#undef SYMBOL_PREFIX
 
 /* Send connect notices for other servers to syslog */
 #undef SYSLOG_CONNECT
@@ -265,21 +264,8 @@
 /* Size of the topic heap. */
 #undef TOPIC_HEAP_SIZE
 
-/* If enabled, only TS5 enabled servers may link to your network. */
+/* If enabled, server links to your network must have a minimum of TS5. */
 #undef TS5_ONLY
-
-/* Size of the user heap. */
-#undef USER_HEAP_SIZE
-
-/* Define to 1 if you want to be able to use halfops on your ircd. */
-#undef USE_HALFOPS
-
-/* Use kqueue() for I/O loop */
-#undef USE_KQUEUE
-
-/* Using sigio futzes around with the ircd - if you want sigio to work, this
-   has to be 1. */
-#undef USE_SIGIO
 
 /* Send vital ircd messages to syslog */
 #undef USE_SYSLOG
@@ -287,10 +273,6 @@
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
-
-/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
-   `char[]'. */
-#undef YYTEXT_POINTER
 
 /* Enable GNU extensions on systems that have them.  */
 #ifndef _GNU_SOURCE
@@ -303,9 +285,14 @@
 /* If system does not define in_port_t, define it to what it should be. */
 #undef in_port_t
 
-/* Define as `__inline' if that's what the C compiler calls it, or to nothing
-   if it is not supported. */
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
 #undef inline
+#endif
+
+/* Define to `long long' if <sys/types.h> does not define. */
+#undef int64_t
 
 /* If system does not define sa_family_t, define it here. */
 #undef sa_family_t
@@ -322,3 +309,6 @@
 
 /* If system does not define u_int32_t, define to unsigned long int here. */
 #undef u_int32_t
+
+/* Define to `unsigned long long' if <sys/types.h> does not define. */
+#undef uint64_t

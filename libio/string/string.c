@@ -23,13 +23,9 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "pcre.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
-#include "client.h"
-#include "list.h"
-#include "memory.h"
 
 #ifndef INADDRSZ 
 #define INADDRSZ 4

@@ -9747,6 +9747,16 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+cat >>confdefs.h <<_ACEOF
+#define USERLEN 10
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define HOSTLEN 63
+_ACEOF
+
+
 # Check whether --enable-shared-modules or --disable-shared-modules was given.
 if test "${enable_shared_modules+set}" = set; then
   enableval="$enable_shared_modules"
