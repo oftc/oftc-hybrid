@@ -65,7 +65,6 @@ typedef struct _fde fde_t;
 typedef void PF(int, void *);
 
 /* Callback for completed connections */
-/* int fd, int status, void * */
 typedef void CNCB(int, int, void *);
 
 extern int highest_fd;

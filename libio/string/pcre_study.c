@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: pcre_study.c 33 2005-10-02 20:50:00Z knight $ */
 
 /*************************************************
 *      Perl-Compatible Regular Expressions       *

@@ -37,7 +37,7 @@ case `$CC -version 2>&1` in
 *TenDRA*)
 	AC_MSG_RESULT([yes, TenDRA])
 	IRC_CFLAGS=""
-	CPPFLAGS="$CPPFLAGS -Ylonglong -Yansi -I/usr/include"
+	CPPFLAGS="$CPPFLAGS -Ylonglong -Yansi -Ysystem"
 	SGS=yes
 	TenDRA=yes
 ;;
@@ -55,15 +55,15 @@ esac
 
 AC_MSG_CHECKING([$CC -V for Sun Workshop, Forte, HPUX or Tru64 cc])
 case `$CC -V 2>&1` in
-*Sun*WorkShop* | *Forte*Developer*)
+*Sun*WorkShop* | *Forte*Developer* | *Sun*C*)
 	AC_MSG_RESULT(Sun Workshop/Forte)
-	IRC_CFLAGS="-fast -xinline=dlinkAdd,dlinkAddBefore,dlinkAddTail,dlinkDelete,dlink_list_length,dlink_node,dlinkMoveList,_MyMalloc,_MyRealloc,_MyFree,_DupString"
+	IRC_CFLAGS="-xO3 -xdepend -xinline=dlinkAdd,dlinkAddBefore,dlinkAddTail,dlinkDelete,dlink_list_length,dlink_node,dlinkMoveList,_MyMalloc,_MyRealloc,_MyFree,_DupString"
 	SunWorkShop=yes
 	SGS=yes
 ;;
 *Tru64*)
 	AC_MSG_RESULT(Tru64 cc)
-	IRC_CFLAGS="-O2"
+	IRC_CFLAGS=""
 	CPPFLAGS="-I/usr/local/include"
 	Tru=yes
 ;;
@@ -109,7 +109,7 @@ esac
 if test "$ac_cv_c_compiler_gnu" = yes; then
 	AC_MSG_CHECKING(if $CC is Apple GCC)
 	
-	if expr "`$CC -v 2>&1 | tail -1`" : Apple >/dev/null; then
+	if expr "`$CC -v 2>&1 | tail -1`" : ".*Apple" >/dev/null; then
 		AppleGCC=yes
 	else
 		AppleGCC=no
@@ -202,18 +202,7 @@ AC_PATH_PROG(LN, ln)
 AC_PATH_PROG(SED, sed)
 AC_PATH_PROG(AR, ar)
 AC_PATH_PROG(LD, ld)
-AC_PROG_YACC
-
-dnl AC_PROG_YACC defaults to yacc unconditionally if nothing can be found
-if test "$YACC" = "yacc" -a -z "`which $YACC 2>/dev/null`"; then
-	AC_MSG_ERROR([could not locate a suitable parser generator; install bison, yacc, or byacc])
-fi
-
-AC_PROG_LEX
-
-if test "$LEX" = ":"; then
-	AC_MSG_ERROR([could not locate a suitable lexical generator, install flex or lex.])
-fi
+AC_PATH_PROG(TEST, [test], [test])
 
 dnl use directory structure of cached as default (hack)
 if test "$libexecdir" = '${exec_prefix}/libexec' &&
@@ -225,7 +214,7 @@ fi
 dnl Checks for header files.
 AC_HEADER_STDC
 
-AC_CHECK_HEADERS([crypt.h sys/resource.h sys/param.h errno.h sys/syslog.h stddef.h libgen.h sys/wait.h wait.h])
+AC_CHECK_HEADERS([crypt.h inttypes.h stdint.h sys/resource.h sys/param.h errno.h sys/syslog.h stddef.h libgen.h sys/wait.h wait.h])
 
 dnl Networking Functions
 dnl ====================
@@ -238,7 +227,7 @@ AC_SEARCH_LIBS(inet_pton, resolv nsl, , [inet_misc=1; AC_DEFINE(NO_INET_PTON, 1,
 AC_SEARCH_LIBS(inet_ntop, resolv nsl, , [inet_misc=1; AC_DEFINE(NO_INET_NTOP, 1, [Define if you have no native inet_ntop() function.])])
 
 if test "$inet_misc" = 1; then
-	AC_SUBST(INET_MISC, inet_misc.c)
+	AC_SUBST(INET_MISC, net/inet_misc.c)
 fi
 
 AC_CHECK_TYPES([struct sockaddr_storage], , ,
@@ -327,17 +316,6 @@ fi
 AC_SUBST(CRYPT_C)
 AC_SUBST(CRYPT_LIB)
 
-if test "$ac_cv_header_sys_wait_h" = yes -o "$ac_cv_header_wait_h" = yes; then
-	VICONF=viconf
-	dnl We need one of the above to build viconf. Just a sanity check,
-	dnl we don't want to stop people from building the rest of ircd
-	dnl just because they can't build viconf.
-else
-	VICONF=""
-fi
-
-AC_SUBST(VICONF)
-
 dnl See whether we can include both string.h and strings.h.
 AC_CACHE_CHECK([whether string.h and strings.h may both be included],
 gcc_cv_header_string,
@@ -403,6 +381,19 @@ AC_CHECK_FUNCS([strlcat strlcpy])
 
 fi
 
+AC_CHECK_SIZEOF(int64_t)
+AC_CHECK_SIZEOF(long long)
+
+if test "$ac_cv_sizeof_int64_t" = 8; then
+  AC_CHECK_TYPE(uint64_t)
+  AC_CHECK_TYPE(int64_t)
+elif test "$ac_cv_sizeof_long_long" = 8; then
+  AC_CHECK_TYPE(uint64_t, unsigned long long)
+  AC_CHECK_TYPE(int64_t, long long)
+else
+  AC_MSG_ERROR([Your system doesn't appear to have 64 bit integers.  Aborting.])
+fi
+
 AC_CHECK_TYPE([u_int32_t], [],
 [
 	AC_CHECK_TYPE([uint32_t],
@@ -437,10 +428,8 @@ AC_CHECK_TYPE([sa_family_t], [],
 [[#include <sys/types.h>
 #include <sys/socket.h>]])
 
-AC_CHECK_TYPES([uintptr_t])
-
 dnl check for various functions...
-AC_CHECK_FUNCS([socketpair basename mmap snprintf vsnprintf lrand48 srand48 strtok_r])
+AC_CHECK_FUNCS([socketpair basename mmap snprintf vsnprintf lrand48 srand48 strtok_r usleep])
 
 if test "$ac_cv_func_snprintf" = no -o "$ac_cv_func_vsnprintf" = no; then
 	SNPRINTF_C="snprintf.c"
@@ -468,7 +457,7 @@ if test "$cf_enable_openssl" != "no" ; then
 	else
 	dnl Do the auto-probe here.  Check some common directory paths.
 		for dirs in /usr/local/ssl /usr/pkg /usr/local \
-		/usr/local/openssl ; do
+		/usr/local/openssl /usr/sfw; do
 			if test -f "${dirs}/include/openssl/opensslv.h" ; then
 				cf_openssl_basedir="${dirs}"
 			break
@@ -524,7 +513,7 @@ if test "$cf_enable_openssl" != no; then
 		AC_LANG_PROGRAM(
 	    	[#include <openssl/opensslv.h>
 		#include <stdlib.h>],
-		[[if ( OPENSSL_VERSION_NUMBER > 0x00906000l)
+		[[if ( (OPENSSL_VERSION_NUMBER & 0x00906000) == 0x00906000)
 		exit(0); else exit(1);]]),
 	cf_openssl_version_ok=yes,
 	cf_openssl_version_ok=no,
@@ -555,7 +544,7 @@ if test "$cf_enable_openssl" != no; then
 			AC_CHECK_FUNCS(EVP_des_cfb,
 			cf_openssl_ciphers="${cf_openssl_ciphers}DES/56 ")
 		fi
-		SSL_LIBS="$SSL_LIBS -lcrypto -lssl"
+		SSL_LIBS="$SSL_LIBS -lssl -lcrypto"
 		SSL_SRCS_ENABLE='$(SSL_SRCS)'
 	else
 	        AC_MSG_RESULT(no - OpenSSL support disabled)
@@ -607,11 +596,18 @@ AC_HELP_STRING([--enable-kqueue],[Force kqueue() usage.]),
 
 AC_ARG_ENABLE(devpoll,
 AC_HELP_STRING([--enable-devpoll],[Force usage of /dev/poll.]),
-[SELECT_TYPE_EXPLICIT="devpoll"; echo "Forcing /dev/poll to be enabled"],)
+[SELECT_TYPE_EXPLICIT="devpoll"
+echo "Forcing /dev/poll to be enabled"
+dnl These need to be defined or not defined
+AC_CHECK_HEADERS([sys/devpoll.h devpoll.h])],)
 
 AC_ARG_ENABLE(rtsigio,
 AC_HELP_STRING([--enable-rtsigio],[Enable SIGIO with RT Signals (Linux only)]),
 [SELECT_TYPE_EXPLICIT="sigio"; echo "Forcing Linux RT Sigio to be enabled"],)
+
+AC_ARG_ENABLE(epoll,
+AC_HELP_STRING([--enable-epoll], [Enable Linux epoll support.]),
+[SELECT_TYPE_EXPLICIT="epoll"; echo "Forcing Linux epoll to be enabled"],)
 
 if test ! -z "$SELECT_TYPE_EXPLICIT"; then
 	SELECT_TYPE="$SELECT_TYPE_EXPLICIT"
@@ -620,50 +616,84 @@ else
 AC_CHECK_FUNC([kevent],
 [
 	SELECT_TYPE="kqueue"
-	AC_DEFINE(USE_KQUEUE, 1, [Use kqueue() for I/O loop])
 ],
 [
-	AC_MSG_CHECKING(for /dev/poll)
-	if test -c "/dev/poll"; then
-		AC_MSG_RESULT(yes)
-		AC_CHECK_HEADERS([devpoll.h sys/devpoll.h])
-		SELECT_TYPE="devpoll"
-	else
-		AC_MSG_RESULT(no)
-		AC_MSG_CHECKING(for RT Signal IO)
-
-		dnl check for rtsig readiness notification under Linux
-		dnl (but don't use it unless kernel 2.4 or higher)
-		AC_EGREP_CPP(YUP_HAVE_F_SETSIG,
-		[#define _GNU_SOURCE
-		#include <fcntl.h>
-		#ifdef F_SETSIG
-		 YUP_HAVE_F_SETSIG
-		#endif
-		],
-		[
-			SELECT_TYPE="sigio"
+	AC_CHECK_HEADER(sys/epoll.h, [HAS_EPOLL=1], [HAS_EPOLL=0])
+	if test $HAS_EPOLL -eq 1; then
+		AC_MSG_CHECKING(for epoll support in kernel)
+		AC_TRY_RUN(
+#include <sys/epoll.h>
+#include <sys/syscall.h>
+#if defined(__stub_epoll_create) || defined(__stub___epoll_create) || defined(EPOLL_NEED_BODY)
+#if !defined(__NR_epoll_create)
+#if defined(__ia64__)
+#define __NR_epoll_create 1243
+#elif defined(__x86_64__)
+#define __NR_epoll_create 214
+#elif defined(__sparc64__) || defined(__sparc__)
+#define __NR_epoll_create 193
+#elif defined(__s390__) || defined(__m68k__)
+#define __NR_epoll_create 249
+#elif defined(__ppc64__) || defined(__ppc__)
+#define __NR_epoll_create 236
+#elif defined(__parisc__) || defined(__arm26__) || defined(__arm__)
+#define __NR_epoll_create 224
+#elif defined(__alpha__)
+#define __NR_epoll_create 407
+#elif defined(__sh64__)
+#define __NR_epoll_create 282
+#elif defined(__i386__) || defined(__sh__) || defined(__m32r__) || defined(__h8300__) || defined(__frv__)
+#define __NR_epoll_create 254
+#else
+#error No system call numbers defined for epoll family.
+#endif
+#endif
+_syscall1(int, epoll_create, int, size)
+#endif
+main() { return epoll_create(256) == -1 ? 1 : 0; },
+		[AC_MSG_RESULT(yes)
+		SELECT_TYPE="epoll"],
+		[AC_MSG_RESULT(no)
+		HAS_EPOLL=0],
+		[AC_MSG_RESULT(no)
+		HAS_EPOLL=0])
+	fi
+	if test $HAS_EPOLL -eq 0; then
+		AC_MSG_CHECKING(for /dev/poll)
+		if test -c "/dev/poll"; then
 			AC_MSG_RESULT(yes)
-		],
-		[
+			AC_CHECK_HEADERS([devpoll.h sys/devpoll.h])
+			SELECT_TYPE="devpoll"
+		else
 			AC_MSG_RESULT(no)
-			AC_CHECK_FUNC(poll, [SELECT_TYPE="poll"],
+			AC_MSG_CHECKING(for RT Signal IO)
+
+			dnl check for rtsig readiness notification under Linux
+			dnl (but don't use it unless kernel 2.4 or higher)
+			AC_EGREP_CPP(YUP_HAVE_F_SETSIG,
+			[#define _GNU_SOURCE
+			#include <fcntl.h>
+			#ifdef F_SETSIG
+			 YUP_HAVE_F_SETSIG
+			#endif
+			],
 			[
-				AC_CHECK_FUNC(select, [SELECT_TYPE="select"],
-				[AC_MSG_ERROR([Couldn't find anything to use for IO loop. Is your C environment POSIXly sane?])
+				SELECT_TYPE="sigio"
+				AC_MSG_RESULT(yes)
+			],
+			[
+				AC_MSG_RESULT(no)
+				AC_CHECK_FUNC(poll, [SELECT_TYPE="poll"],
+				[
+					AC_CHECK_FUNC(select, [SELECT_TYPE="select"],
+					[AC_MSG_ERROR([Couldn't find anything to use for IO loop. Is your C environment POSIXly sane?])
+					])
 				])
 			])
-		])
+		fi
 	fi
 ])
 
-fi
-
-dnl Sigio kind of invades the code, so this legacy define has to be 
-dnl resurrected.
-
-if test "$SELECT_TYPE" = sigio; then
-	AC_DEFINE(USE_SIGIO, 1, [Using sigio futzes around with the ircd - if you want sigio to work, this has to be 1.])
 fi
 
 echo "Using $SELECT_TYPE for select loop."
@@ -699,7 +729,7 @@ AC_HELP_STRING([--enable-profile],[Enable profiling]),
 if test "$profile" = yes; then
 	if test "$ac_cv_c_compiler_gnu" = yes; then
 		IRC_CFLAGS="$IRC_CFLAGS -pg -static"
-		AC_MSG_RESULT([yes, adding -pg -static])
+		AC_MSG_RESULT="yes, adding -pg -static"
 	else
 		AC_MSG_RESULT([no, profile builds only work with gcc])
 	fi
@@ -738,7 +768,7 @@ if test "$balloc" = no; then
 	AC_SUBST(BALLOC_C, [])
 	AC_DEFINE(NOBALLOC, 1, [Disable the block allocator.])
 else
-	AC_SUBST(BALLOC_C, balloc.c)
+	AC_SUBST(BALLOC_C, mem/balloc.c)
 fi
 
 AC_MSG_RESULT($balloc)
@@ -750,40 +780,26 @@ AC_HELP_STRING([--enable-warnings],[Enable all sorts of warnings for debugging.]
 dnl Server Tweaks
 dnl =============
 
-AC_ARG_ENABLE(halfops,
-AC_HELP_STRING([--enable-halfops],[Enable the use of halfops (user mode %)]),
-[halfops=$enableval],[halfops=no])
-
-if test "$halfops" = yes; then
-	AC_DEFINE(USE_HALFOPS, 1, [Define to 1 if you want to be able to use halfops on your ircd.])
-fi
-
 AC_ARG_ENABLE(small-net,
 AC_HELP_STRING([--enable-small-net],[Enable small network support.]),
 [small_net=$enableval], [small_net=no])
 
 if test "$small_net" = yes; then
-	AC_DEFINE([HASHSIZE], 4096, [Max number of buckets in hash tables.])
 	AC_DEFINE([NICKNAMEHISTORYLENGTH], 1500, [Size of the WHOWAS array.])
 	AC_DEFINE([CHANNEL_HEAP_SIZE], 256, [Size of the channel heap.])
 	AC_DEFINE([BAN_HEAP_SIZE], 128, [Size of the ban heap.])
 	AC_DEFINE([CLIENT_HEAP_SIZE], 256, [Size of the client heap.])
 	AC_DEFINE([LCLIENT_HEAP_SIZE], 128, [Size of the local client heap.])
-	AC_DEFINE([USER_HEAP_SIZE], 128, [Size of the user heap.])
 	AC_DEFINE([DNODE_HEAP_SIZE], 256, [Size of the dlink_node heap.])
-	AC_DEFINE([SNODE_HEAP_SIZE], 256, [Size of the slink_node heap.])
 	AC_DEFINE([TOPIC_HEAP_SIZE], 256, [Size of the topic heap.])
 	AC_DEFINE([DBUF_HEAP_SIZE], 64, [Size of the dbuf heap.])
 else
-	AC_DEFINE([HASHSIZE], 32768, [Max number of buckets in hash tables.])
 	AC_DEFINE([NICKNAMEHISTORYLENGTH], 15000, [Size of the WHOWAS array.])
 	AC_DEFINE([CHANNEL_HEAP_SIZE], 1024, [Size of the channel heap.])
 	AC_DEFINE([BAN_HEAP_SIZE], 1024, [Size of the ban heap.])
 	AC_DEFINE([CLIENT_HEAP_SIZE], 1024, [Size of the client heap.])
 	AC_DEFINE([LCLIENT_HEAP_SIZE], 512, [Size of the local client heap.])
-	AC_DEFINE([USER_HEAP_SIZE], 1024, [Size of the user heap.])
 	AC_DEFINE([DNODE_HEAP_SIZE], 2048, [Size of the dlink_node heap.])
-	AC_DEFINE([SNODE_HEAP_SIZE], 2048, [Size of the slink_node heap.])
 	AC_DEFINE([TOPIC_HEAP_SIZE], 1024, [Size of the topic heap.])
 	AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
 fi
@@ -794,13 +810,29 @@ AC_HELP_STRING([--enable-efnet],[For IRCDs running on EFnet.]),
 
 if test "$efnet" = yes; then
 	AC_DEFINE(EFNET, 1, [Define if this ircd will be an EFnet server.])
-	AC_DEFINE(TS5_ONLY, 1, [If enabled, only TS5 enabled servers may link to your network.])
-	
+	AC_DEFINE(TS5_ONLY, 1, [If enabled, server links to your network must have a minimum of TS5.])
 	echo "Building ircd for use with EFnet"
 	EXAMPLE_CONF=example.efnet.conf
 else
 	AC_DEFINE(INVARIANTS, 1, [Miscellaneous sanity checks for the ircd. Makes it slightly slower])
 	EXAMPLE_CONF=example.conf
+fi
+
+AC_ARG_ENABLE(gline-voting,
+AC_HELP_STRING([--disable-gline-voting],[Disable G-line voting.]),
+[gline_voting=$enableval], [gline_voting=yes])
+
+if test "$gline_voting" = yes; then
+	AC_DEFINE(GLINE_VOTING, 1, [Define this if you want to enable gline voting.])
+	echo "Building ircd with G-Line voting support"
+fi
+
+AC_ARG_ENABLE(halfops,
+AC_HELP_STRING([--enable-halfops],[Enable halfops support.]),
+[halfops=$enableval], [halfops=no])
+
+if test "$halfops" = yes; then
+	AC_DEFINE(HALFOPS, 1, [Define if you want halfops support.])
 fi
 
 AC_SUBST(EXAMPLE_CONF)
@@ -877,7 +909,7 @@ AC_HELP_STRING([--with-nicklen=LENGTH],[Set the nick length to LENGTH (default 9
 	NICKLEN="$withval", NICKLEN="9")
 
 AC_ARG_WITH(topiclen,           
-AC_HELP_STRING([--with-topiclen=NUMBER],[Set the max topic length to NUMBER (default 120, max 390)]),
+AC_HELP_STRING([--with-topiclen=NUMBER],[Set the max topic length to NUMBER (default 160, max 390)]),
 [
  if test $withval -ge 390; then
 	TOPICLEN=390
@@ -885,25 +917,10 @@ AC_HELP_STRING([--with-topiclen=NUMBER],[Set the max topic length to NUMBER (def
  else
  	TOPICLEN=$withval
  fi
-], [TOPICLEN=120])
-
-AC_ARG_WITH(maxconn,
-AC_HELP_STRING([--with-maxconn=NUMBER],[Maximum number of connections the ircd can handle]),
-        MAXCONN="$withval", MAXCONN=`ulimit -Hn`)
-
-
-if test "$MAXCONN" = unlimited; then
-	MAXCONN=65536
-fi
-
-if test $MAXCONN -gt 65536; then
-	MAXCONN=65536
-	AC_MSG_WARN([Max connections cannot be larger than 65536!])
-fi
+], [TOPICLEN=160])
 
 AC_DEFINE_UNQUOTED(TOPICLEN, ${TOPICLEN}, [Maximum topic length (<=390)])
 AC_DEFINE_UNQUOTED(NICKLEN, (${NICKLEN}+1), [Nickname length])
-AC_DEFINE_UNQUOTED(MAXCONN, ${MAXCONN}, [Maximum number of network connections])
 
 AC_ARG_ENABLE(shared-modules,
 AC_HELP_STRING([--disable-shared-modules],[ Disable shared modules.]),
@@ -1010,7 +1027,7 @@ if test "$shared_modules" = yes; then
 	dnl In the second stage, we link the modules via ld -b.
 	dnl Additionally, HPUX does not like -export-dynamic, it likes -E instead.
 	dnl -TimeMr14C
-	if test "$HPUX" = "yes" -a "$CC" != gcc; then
+	if test "$HPUX" = "yes" -a "$ac_cv_c_compiler_gnu" = no; then
 		AC_MSG_RESULT(HP-UX cc: +z -r -q -n)
 		PICFLAGS="+z -r -q -n -c"
 		AC_MSG_CHECKING([if +ESfic is required on this platform])
@@ -1024,7 +1041,7 @@ if test "$shared_modules" = yes; then
 
 		LDFLAGS="${LDFLAGS} -Wl,-E"
 	fi
-	if test "$Tru" = yes -a "$CC" != gcc; then
+	if test "$Tru" = yes -a "$ac_cv_c_compiler_gnu" = no; then
 		AC_MSG_RESULT([Tru64: -shared -expect_unresolved '*'])
 		PICFLAGS="-shared -expect_unresolved '*' "
 		LDFLAGS="-call_shared"
@@ -1049,66 +1066,6 @@ if test "$shared_modules" = no; then
 	AC_MSG_WARN([shared module support has been disabled!])
 fi
 
-dnl Stage 5 - underscores in front of symbol names.
-if test "$shared_modules" = yes; then
-
-	AC_CHECK_FUNC(nlist,,
-		AC_CHECK_LIB(dl, nlist, nlist_lib="-ldl",
-			AC_CHECK_LIB(elf, nlist, nlist_lib="-lelf",)
-		)
-	)
-
-        dnl We need to find out whether underscores are appended to symbol
-        dnl names in executable files.  First, though, we need to see
-        dnl where nlist.h is hiding.
-	AC_CHECK_HEADER(libelf/nlist.h, [ nlist_h="libelf/nlist.h" ], )
-	AC_CHECK_HEADER(elf/nlist.h, [ nlist_h="elf/nlist.h" ], )
-	AC_CHECK_HEADER(nlist.h, [ nlist_h="nlist.h" ], )
-	if test x"$nlist_h" = "x"; then
-		AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "", [String containing extra underscores prepended to symbols loaded from modules.])
-	else
-		AC_MSG_CHECKING(for extra underscores prepended to symbol names)
-		AC_CACHE_VAL(symbol_underscores,
-		[
-cat << EOF > conftest.c
-#include <$nlist_h>
-#include <stdio.h>
-#include <stdlib.h>
-void _modinit(void);
-int main(int argc, char *argv[[]]) {
-	int i;
-	struct nlist nl[[5]];
-
-	/* fill the names in this way, so it'll work almost everywhere */
-	nl[[0]].n_name = "_modinit";
-	nl[[1]].n_name = "__modinit";
-	nl[[2]].n_name = "___modinit";
-	nl[[3]].n_name = "____modinit";
-	nl[[0]].n_value = nl[[1]].n_value = nl[[2]].n_value = nl[[3]].n_value = nl[[4]].n_name = NULL;
-
-	if(argc < 2 || (nlist(argv[[1]], nl)) == -1) exit(-1);
-	for(i = 0; i < 4; i++) {
-		if(nl[[i]].n_value != NULL)
-		{
-			int j;
-			for(j = 0; j < i; j++)
-				printf("_");
-			exit(i);
-		}
-	}
-	exit(-1);
-}
-void _modinit(void) { return; }
-EOF
-		$CC $CPPFLAGS $IRC_CFLAGS -o conftest conftest.c $nlist_lib >/dev/null 2>&1
-		symbol_underscores=`./conftest conftest`
-		AC_MSG_RESULT($symbol_underscores)
-		$RM -f conftest conftest.c
-		])
-		AC_DEFINE_UNQUOTED(SYMBOL_PREFIX, "${symbol_underscores}", [String containing extra underscores prepended to symbols loaded from modules.])
-	fi
-fi
-
 AC_SUBST(MODULES_LIBS)
 AC_SUBST(MOD_TARGET)
 
@@ -1116,7 +1073,6 @@ AC_SUBST(SSL_SRCS_ENABLE)
 AC_SUBST(SSL_INCLUDES)
 AC_SUBST(SSL_LIBS)
 
-AC_SUBST(LDFLAGS)
 AC_SUBST(PICFLAGS)
 AC_SUBST(IRC_CFLAGS)
 AC_SUBST(SEDOBJ)
@@ -1138,23 +1094,23 @@ fi
 
 AC_CONFIG_FILES(		\
 	Makefile		\
-dnl	iauth/Makefile		\
-dnl	iauth/source/Makefile	\
 	etc/Makefile		\
 	servlink/Makefile	\
 	contrib/Makefile	\
+	contrib/help/Makefile	\
 	src/Makefile		\
-	include/Makefile	\
 	messages/Makefile	\
 	modules/Makefile	\
 	tools/Makefile		\
 	doc/Makefile		\
+	help/Makefile		\
+	libio/Makefile
 )
 
 AC_OUTPUT
 
 dnl Configure options probably changed
-rm -f src/.depend modules/.depend servlink/.depend contrib/.depend
+rm -f src/.depend modules/.depend servlink/.depend contrib/.depend lib/pcre/.depend
 
 dnl Make it look sexay!
 
@@ -1172,7 +1128,7 @@ else
 	tmpresult=no
 fi
 
-echo "OpenSSL (Cryptlinks)..... $tmpresult"
+echo "OpenSSL ................. $tmpresult"
 
 if test "$shared_modules" = yes; then
 	tmpresult=shared
@@ -1191,10 +1147,11 @@ else
 fi
 
 echo "EFnet server ............ $tmpresult"
+echo "Halfops support ......... $halfops"
 echo "Small network ........... $small_net"
+echo "G-Line voting ........... $gline_voting"
 echo
 echo "Configured limits:"
 echo "NICKLEN ................. $NICKLEN"
 echo "TOPICLEN ................ $TOPICLEN"
-echo "MAXCONN ................. $MAXCONN"
 echo

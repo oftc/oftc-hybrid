@@ -23,12 +23,14 @@ RM          = @RM@
 
 # Default make flags - you may want to uncomment this on a multicpu machine
 #MFLAGS   = -j 4
-DEPEND_DIRS  = modules src servlink
+DEPEND_DIRS  = libio modules src servlink
 BUILD_DIRS   = ${DEPEND_DIRS} tools
-INSTALL_DIRS = ${BUILD_DIRS} etc doc include
+INSTALL_DIRS = ${BUILD_DIRS} etc doc help
 CLEAN_DIRS   = ${BUILD_DIRS} contrib
 # Anywhere that we can make install, we obviously can rm -f Makefile
 DISTCLEAN_DIRS = ${INSTALL_DIRS} contrib messages
+
+prefix		= $(DESTDIR)@prefix@
 
 # The make used HAS to set $(MAKE). But then, if we don't do it this
 # way, people lose the option to use a 'make' called something other 
