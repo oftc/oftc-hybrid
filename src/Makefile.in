@@ -32,7 +32,7 @@ PROGS		= ircd
 SSL_LIBS	= @SSL_LIBS@
 SSL_INCLUDES	= @SSL_INCLUDES@
 IRCDLIBS	= @MODULES_LIBS@ @LIBS@ ../libio/libio.a $(SSL_LIBS)
-INCLUDES	= -I../include -I../libio/string $(SSL_INCLUDES)
+INCLUDES	= -I../include $(SSL_INCLUDES)
 CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
  
 default:	all

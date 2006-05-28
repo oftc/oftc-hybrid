@@ -227,7 +227,7 @@ AC_SEARCH_LIBS(inet_pton, resolv nsl, , [inet_misc=1; AC_DEFINE(NO_INET_PTON, 1,
 AC_SEARCH_LIBS(inet_ntop, resolv nsl, , [inet_misc=1; AC_DEFINE(NO_INET_NTOP, 1, [Define if you have no native inet_ntop() function.])])
 
 if test "$inet_misc" = 1; then
-	AC_SUBST(INET_MISC, net/inet_misc.c)
+	AC_SUBST(INET_MISC, inet_misc.c)
 fi
 
 AC_CHECK_TYPES([struct sockaddr_storage], , ,
@@ -768,7 +768,7 @@ if test "$balloc" = no; then
 	AC_SUBST(BALLOC_C, [])
 	AC_DEFINE(NOBALLOC, 1, [Disable the block allocator.])
 else
-	AC_SUBST(BALLOC_C, mem/balloc.c)
+	AC_SUBST(BALLOC_C, balloc.c)
 fi
 
 AC_MSG_RESULT($balloc)
@@ -1104,7 +1104,12 @@ AC_CONFIG_FILES(		\
 	tools/Makefile		\
 	doc/Makefile		\
 	help/Makefile		\
-	libio/Makefile
+	libio/Makefile		\
+	libio/comm/Makefile	\
+	libio/mem/Makefile	\
+	libio/misc/Makefile	\
+	libio/net/Makefile	\
+	libio/string/Makefile
 )
 
 AC_OUTPUT
