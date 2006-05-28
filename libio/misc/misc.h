@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_misc.h 68 2005-10-04 00:44:29Z adx $
+ *  $Id$
  */
 
 #define MAX_DATE_STRING 32  /* maximum string length for a date string */

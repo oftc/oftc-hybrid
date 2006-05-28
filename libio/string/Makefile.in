@@ -1,4 +1,4 @@
-# $Id: Makefile.in 33 2005-10-02 20:50:00Z knight $
+# $Id$
 
 CC		= @CC@
 SED		= @SED@

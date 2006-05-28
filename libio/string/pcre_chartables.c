@@ -1,4 +1,4 @@
-/* $Id: pcre_chartables.c 33 2005-10-02 20:50:00Z knight $ */
+/* $Id$ */
 
 /*************************************************
 *      Perl-Compatible Regular Expressions       *

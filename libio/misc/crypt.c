@@ -9,7 +9,7 @@
  *  this stuff is worth it, you can buy me a beer in return.  Poul-Henning Kamp
  *  ----------------------------------------------------------------------------
  *  
- *  $Id: crypt.c 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #include "stdinc.h"

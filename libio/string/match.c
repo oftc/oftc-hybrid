@@ -16,7 +16,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: match.c 33 2005-10-02 20:50:00Z knight $
+ * $Id$
  *
  */
 

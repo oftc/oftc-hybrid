@@ -1,5 +1,5 @@
 /* inet_misc.c - inet_pton and inet_ntop for those who don't have it.
- * $Id: inet_misc.c 33 2005-10-02 20:50:00Z knight $
+ * $Id$
  *
  * Copyright (c) 1983, 1990, 1993
  *		The Regents of the University of California.  All rights reserved.

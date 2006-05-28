@@ -1,7 +1,7 @@
 /*
  * res.h for referencing functions in libio/net/res.c
  *
- * $Id: irc_res.h 67 2005-10-03 23:50:49Z adx $
+ * $Id$
  */
 
 

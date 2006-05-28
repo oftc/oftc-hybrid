@@ -43,7 +43,7 @@
 
 #include "stdinc.h"
 
-/*  $Id: irc_getnameinfo.c 33 2005-10-02 20:50:00Z knight $ */
+/*  $Id$ */
 
 static const struct afd {
   int a_af;

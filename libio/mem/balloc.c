@@ -27,7 +27,7 @@
 
 /*! \file balloc.c
  * \brief A block allocator
- * \version $Id: balloc.c 33 2005-10-02 20:50:00Z knight $
+ * \version $Id$
  * 
  * About the block allocator
  *

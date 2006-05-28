@@ -31,7 +31,7 @@
 
 #include <stdarg.h>
 
-/*  $Id: irc_getaddrinfo.c 33 2005-10-02 20:50:00Z knight $ */
+/*  $Id$ */
 
 static const char in_addrany[]  = { 0, 0, 0, 0 };
 static const char in_loopback[] = { 127, 0, 0, 1 };
