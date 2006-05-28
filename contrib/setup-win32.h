@@ -188,6 +188,9 @@
 /* Define to 1 if you have the <wait.h> header file. */
 /* #undef HAVE_WAIT_H */
 
+/* Length of hostname. Updated to comply with RFC1123 */
+#define HOSTLEN 63
+
 /* Miscellaneous sanity checks for the ircd. Makes it slightly slower */
 #define INVARIANTS 1
 
@@ -286,6 +289,9 @@
 
 /* If enabled, server links to your network must have a minimum of TS5. */
 /* #undef TS5_ONLY */
+
+/* Length of username/ident */
+#define USERLEN 10
 
 /* Use kqueue() for I/O loop */
 /* #undef USE_KQUEUE */
