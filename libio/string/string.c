@@ -39,7 +39,6 @@
 #define INT16SZ 2
 #endif
 
-
 char *
 xstrldup(const char *s, size_t n)
 {
@@ -555,4 +554,17 @@ ircd_pcre_exec(const pcre *code, const char *subject)
   assert(code && subject);
 
   return pcre_exec(code, NULL, subject, strlen(subject), 0, 0, NULL, 0) < 0;
+}
+
+char *
+stripws(char *txt)
+{
+  char *tmp;
+
+  while (IsSpace(*txt))
+    txt++;
+  for (tmp = txt + strlen(txt) - 1; tmp >= txt && IsSpace(*tmp); tmp--)
+    ;
+  *(tmp + 1) = 0;
+  return txt;
 }

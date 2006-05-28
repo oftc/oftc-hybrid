@@ -99,6 +99,8 @@ char* basename (char *path);
  * -Dianora
  */
 char* clean_string(char* dest, const unsigned char* src, size_t len);
+extern char *stripws(char *);
+
 /*
  * strip_tabs - convert tabs to spaces
  * - jdc
