@@ -29,17 +29,6 @@
 #include "send.h"
 #include "client.h" /* for UMODE_ALL */
 
-void
-restart(const char *mesg)
-{
-  static int was_here = 0; /* redundant due to restarting flag below */
-
-  if (was_here)
-    abort();
-  was_here = 1;
-
-  server_die(mesg, YES);
-}
 
 void
 server_die(const char *mesg, int rboot)
@@ -47,6 +36,10 @@ server_die(const char *mesg, int rboot)
   char buffer[IRCD_BUFSIZE];
   dlink_node *ptr = NULL;
   struct Client *target_p = NULL;
+  static int was_here = 0;
+
+  if (rboot && was_here++)
+    abort();
 
   if (EmptyString(mesg))
     snprintf(buffer, sizeof(buffer), "Server %s",
@@ -89,5 +82,5 @@ server_die(const char *mesg, int rboot)
 void
 ircd_outofmemory(void)
 {
-  restart("Out of memory");
+  server_die("Out of memory", 1);
 }
