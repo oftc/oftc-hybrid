@@ -81,9 +81,8 @@
  */
 
 #include "stdinc.h"
-#include "irc_reslib.h"	
-#include "irc_res.h"	
-#include "ircd_defs.h"
+#include "reslib.h"
+#include "irc_res.h"
 #include "fileio.h"
 #include "irc_string.h"
 #include "irc_getaddrinfo.h"

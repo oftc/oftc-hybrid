@@ -43,7 +43,6 @@
  */
 
 #include "stdinc.h"
-#include "irc_res.h"
 
 #ifdef NO_IN6ADDR_ANY
 /* Stolen from glibc */

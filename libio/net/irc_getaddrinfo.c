@@ -31,7 +31,6 @@
 
 #include <stdarg.h>
 #include "irc_getaddrinfo.h"
-#include "ircd_defs.h"
 
 /*  $Id: irc_getaddrinfo.c 33 2005-10-02 20:50:00Z knight $ */
 

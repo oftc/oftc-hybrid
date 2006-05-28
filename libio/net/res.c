@@ -21,23 +21,18 @@
 
 #include "stdinc.h"
 #include "tools.h"
-#include "client.h"
 #include "list.h"
 #include "common.h"
 #include "event.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
-#include "ircd.h"
-#include "numeric.h"
-#include "restart.h"
 #include "fdlist.h"
 #include "fileio.h" /* for fbopen / fbclose / fbputs */
 #include "s_bsd.h"
 #include "s_log.h"
-#include "send.h"
 #include "memory.h"
 #include "irc_res.h"
-#include "irc_reslib.h"
+#include "reslib.h"
 #include "irc_getnameinfo.h"
 #include "s_misc.h"
 
@@ -913,20 +908,4 @@ make_dnsreply(struct reslist *request)
   cp->h_name = request->name;
   memcpy(&cp->addr, &request->addr, sizeof(cp->addr));
   return(cp);
-}
-
-void
-report_dns_servers(struct Client *source_p)
-{
-  int i;
-  char ipaddr[HOSTIPLEN];
-
-  for (i = 0; i < irc_nscount; i++)
-  {
-    irc_getnameinfo((struct sockaddr *)&(irc_nsaddr_list[i]),
-                    irc_nsaddr_list[i].ss_len, ipaddr, HOSTIPLEN, NULL, 0,
-                    NI_NUMERICHOST);
-    sendto_one(source_p, form_str(RPL_STATSALINE),
-               me.name, source_p->name, ipaddr); 
-  }
 }

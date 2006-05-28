@@ -42,7 +42,6 @@
  */
 
 #include "stdinc.h"
-
 #include "irc_getnameinfo.h"
 #include "irc_string.h"
 

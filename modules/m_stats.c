@@ -52,6 +52,7 @@
 #include "resv.h"  /* report_resv */
 #include "whowas.h"
 #include "list.h"
+#include "irc_getnameinfo.h"
 
 static void do_stats(struct Client *, int, char **);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
@@ -668,12 +669,6 @@ count_memory(struct Client *source_p)
              ":%s %d %s z :TOTAL: %d Available:  Current max RSS: %lu",
              me.name, RPL_STATSDEBUG, source_p->name,
              (int)total_memory, get_maxrss());
-}
-
-static void
-stats_dns_servers(struct Client *source_p)
-{
-  report_dns_servers(source_p);
 }
 
 static void
@@ -1365,6 +1360,22 @@ stats_events(struct Client *source_p)
 
   sendto_one(source_p, ":%s %d %s : ",
     me.name, RPL_STATSDEBUG, source_p->name);
+}
+
+static void
+stats_dns_servers(struct Client *source_p)
+{
+  int i;
+  char ipaddr[HOSTIPLEN];
+
+  for (i = 0; i < irc_nscount; i++)
+  {
+    irc_getnameinfo((struct sockaddr *)&(irc_nsaddr_list[i]),
+                    irc_nsaddr_list[i].ss_len, ipaddr, HOSTIPLEN, NULL, 0,
+                    NI_NUMERICHOST);
+    sendto_one(source_p, form_str(RPL_STATSALINE),
+               me.name, source_p->name, ipaddr);
+  }
 }
 
 /*
