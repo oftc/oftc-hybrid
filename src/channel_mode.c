@@ -23,26 +23,18 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"
 #include "hash.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "s_serv.h"             /* captab */
 #include "s_user.h"
 #include "send.h"
 #include "whowas.h"
 #include "s_conf.h"             /* ConfigFileEntry, ConfigChannel */
-#include "event.h"
-#include "memory.h"
-#include "balloc.h"
-#include "s_log.h"
 
 static int add_id(struct Client *, struct Channel *, char *, int);
 static int del_id(struct Channel *, const char *, int);

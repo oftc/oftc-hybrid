@@ -27,32 +27,31 @@
 #include <openssl/rsa.h>
 #include "rsa.h"
 #endif
-#include "tools.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"
-#include "dbuf.h"
-#include "event.h"
-#include "fdlist.h"
 #include "hash.h"
+<<<<<<< .working
+<<<<<<< .working
+<<<<<<< .working
 #include "irc_string.h"
 #include "sprintf_irc.h"
+=======
+>>>>>>> .merge-right.r69
+=======
+>>>>>>> .merge-right.r69
+=======
+>>>>>>> .merge-right.r69
 #include "ircd.h"
 #include "ircd_defs.h"
-#include "s_bsd.h"
-#include "irc_getnameinfo.h"
-#include "list.h"
 #include "numeric.h"
 #include "packet.h"
-#include "irc_res.h"
 #include "s_conf.h"
 #include "s_serv.h"
-#include "s_log.h"
 #include "s_stats.h"
 #include "s_user.h"
 #include "send.h"
-#include "memory.h"
 #include "channel.h" /* chcap_usage_counts stuff...*/
 #include "hook.h"
 

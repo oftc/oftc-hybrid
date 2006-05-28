@@ -33,26 +33,29 @@
  *     --Bleep  Thomas Helvey <tomh@inxpress.net>
  */
 #include "stdinc.h"
-#include "tools.h"
-#include "list.h"
 #include "s_auth.h"
 #include "s_conf.h"
 #include "client.h"
 #include "common.h"
+<<<<<<< .working
+<<<<<<< .working
+<<<<<<< .working
 #include "event.h"
 #include "fdlist.h"              /* fdlist_add */
 #include "irc_string.h"
 #include "sprintf_irc.h"
+=======
+>>>>>>> .merge-right.r69
+=======
+>>>>>>> .merge-right.r69
+=======
+>>>>>>> .merge-right.r69
 #include "ircd.h"
 #include "ircdauth.h"
 #include "numeric.h"
 #include "packet.h"
-#include "irc_res.h"
-#include "s_bsd.h"
-#include "s_log.h"
 #include "s_stats.h"
 #include "send.h"
-#include "memory.h"
 
 /*
  * a bit different approach

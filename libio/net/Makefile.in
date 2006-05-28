@@ -10,7 +10,7 @@ RM              = @RM@
 
 IRCDLIBS        = @LIBS@ $(SSL_LIBS)
 
-INCLUDES	= -I. -I../../include
+INCLUDES	= -I.. -I../../include
 CPPFLAGS	= ${INCLUDES} -DIN_LIBIO @CPPFLAGS@
 
 SRCS = \

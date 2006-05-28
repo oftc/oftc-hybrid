@@ -1,6 +1,5 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  channel.h: The ircd channel header.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -18,28 +17,29 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
- *
- *  $Id$
+ */
+
+/*! \file channel.h
+ * \brief Responsible for managing channels, members, bans and topics
+ * \version $Id$
  */
 
 #ifndef INCLUDED_channel_h
 #define INCLUDED_channel_h
 
-#include "ircd_defs.h"        /* buffer sizes */
-#include "tools.h"
+#include "ircd_defs.h"        /* KEYLEN, CHANNELLEN */
 
 struct Client;
 
-/* mode structure for channels */
-
+/*! \brief Mode structure for channels */
 struct Mode
 {
-  unsigned int mode;
-  int limit;
-  char key[KEYLEN];
+  unsigned int mode;   /*!< simple modes */
+  unsigned int limit;  /*!< +l userlimit */
+  char key[KEYLEN];    /*!< +k key */
 };
 
-/* channel structure */
+/*! \brief Channel structure */
 struct Channel
 {
   dlink_node node;
@@ -51,84 +51,97 @@ struct Channel
   char *topic_info;
   time_t topic_time;
   unsigned long lazyLinkChannelExists;
-  time_t last_knock; /* don't allow knock to flood */
+  time_t last_knock; /*!< don't allow knock to flood */
 
   dlink_list members;
-  dlink_list locmembers;  /* local members are here too */
+  dlink_list locmembers;  /*!< local members are here too */
   dlink_list invites;
   dlink_list banlist;
   dlink_list exceptlist;
   dlink_list invexlist;
 
-  time_t first_received_message_time; /* channel flood control */
+  time_t first_received_message_time; /*!< channel flood control */
   int received_number_of_privmsgs;
-  char flood_noticed;
+  int flags;
+  float number_joined;
+  time_t last_join_time;
 
   time_t channelts;
   char chname[CHANNELLEN + 1];
 };
 
+/*! \brief Membership structure */
 struct Membership
 {
-  dlink_node channode;    /* link to chptr->members          */
-  dlink_node locchannode; /* link to chptr->locmembers       */
-  dlink_node usernode;    /* link to source_p->user->channel */
-  struct Channel *chptr;
-  struct Client *client_p;
-  unsigned int flags;
+  dlink_node channode;     /*!< link to chptr->members    */
+  dlink_node locchannode;  /*!< link to chptr->locmembers */
+  dlink_node usernode;     /*!< link to source_p->channel */
+  struct Channel *chptr;   /*!< Channel pointer */
+  struct Client *client_p; /*!< Client pointer */
+  unsigned int flags;      /*!< user/channel flags, e.g. CHFL_CHANOP */
 };
 
-extern dlink_list global_channel_list;
-
-extern void init_channels(void);
-extern int can_send (struct Channel *chptr, struct Client *who);
-extern int can_send_part(struct Membership *, struct Channel *, struct Client *);
-extern int is_banned (struct Channel *chptr, struct Client *who);
-extern int can_join(struct Client *source_p, struct Channel *chptr,
-                    const char *key);
-extern int has_member_flags(struct Membership *ms, unsigned int flags);
-extern void add_user_to_channel(struct Channel *chptr, struct Client *who,
-                                unsigned int flags);
-extern void remove_user_from_channel(struct Membership *);
-extern int check_channel_name(const char *name);
-extern void channel_member_names(struct Client *source_p, struct Channel *chptr,
-                                 int show_eon);
-extern const char *get_member_status(struct Membership *, int);
-extern void add_invite(struct Channel *chptr, struct Client *who);
-extern void del_invite(struct Channel *chptr, struct Client *who);
-extern void send_channel_modes (struct Client *, struct Channel *);
-extern void channel_modes(struct Channel *, struct Client *, char *, char *);
-
-extern void check_spambot_warning(struct Client *source_p, const char *name);
-extern void check_splitmode(void *);
-extern void free_channel_list(dlink_list *);
-
-/*
-** Channel Related macros follow
-*/
-
-/* channel visible */
-#define ShowChannel(v,c)        (PubChannel(c) || IsMember((v),(c)))
-
-#define IsMember(who, chan) ((who && who->user && \
-                 find_channel_link(who, chan)) ? 1 : 0)
-#define AddMemberFlag(x, y) ((x)->flags |=  (y))
-#define DelMemberFlag(x, y) ((x)->flags &= ~(y))
-
-#define IsChannelName(name) ((name) && (*(name) == '#' || *(name) == '&'))
-
-struct Ban          /* also used for exceptions -orabidoo */
+/*! \brief Ban structure.  Used for b/e/I n!u\@h masks */
+struct Ban
 {
   dlink_node node;
-  char *banstr;
+  size_t len;
+  char *name;
+  char *username;
+  char *host;
   char *who;
   time_t when;
 };
 
-extern struct Membership *find_channel_link(struct Client *client_p,
-                                            struct Channel *chptr);
-extern void set_channel_topic(struct Channel *chptr, const char *topic,
-                              const char *topic_info, time_t topicts); 
+extern dlink_list global_channel_list;
+
+extern int check_channel_name(const char *);
+extern int can_send(struct Channel *, struct Client *);
+extern int can_send_part(struct Membership *, struct Channel *, struct Client *);
+extern int is_banned(struct Channel *, struct Client *);
+extern int can_join(struct Client *, struct Channel *, const char *);
+extern int has_member_flags(struct Membership *, unsigned int);
+
+extern void remove_ban(struct Ban *, dlink_list *);
+extern void init_channels(void);
+extern void add_user_to_channel(struct Channel *, struct Client *,
+                                unsigned int, int);
+extern void remove_user_from_channel(struct Membership *);
+extern void channel_member_names(struct Client *, struct Channel *, int);
+extern void add_invite(struct Channel *, struct Client *);
+extern void del_invite(struct Channel *, struct Client *);
+extern void send_channel_modes(struct Client *, struct Channel *);
+extern void channel_modes(struct Channel *, struct Client *, char *, char *);
+extern void check_spambot_warning(struct Client *, const char *);
+extern void check_splitmode(void *);
+extern void free_channel_list(dlink_list *);
+extern void free_topic(struct Channel *);
+extern void destroy_channel(struct Channel *);
+extern void set_channel_topic(struct Channel *, const char *, const char *, time_t);
+
+extern const char *get_member_status(const struct Membership *, int);
+
+extern struct Channel *get_or_create_channel(struct Client *, const char *, int *);
+extern struct Membership *find_channel_link(struct Client *, struct Channel *);
+
+/* channel visible */
+#define ShowChannel(v,c)        (PubChannel(c) || IsMember((v),(c)))
+
+#define IsMember(who, chan) ((find_channel_link(who, chan)) ? 1 : 0)
+#define AddMemberFlag(x, y) ((x)->flags |=  (y))
+#define DelMemberFlag(x, y) ((x)->flags &= ~(y))
+
+#define FLOOD_NOTICED		1
+#define JOIN_FLOOD_NOTICED	2
+
+#define SetFloodNoticed(x)   ((x)->flags |= FLOOD_NOTICED)
+#define IsSetFloodNoticed(x) ((x)->flags & FLOOD_NOTICED)
+#define ClearFloodNoticed(x) ((x)->flags &= ~FLOOD_NOTICED)
+
+#define SetJoinFloodNoticed(x)   ((x)->flags |= JOIN_FLOOD_NOTICED)
+#define IsSetJoinFloodNoticed(x) ((x)->flags & JOIN_FLOOD_NOTICED)
+#define ClearJoinFloodNoticed(x) ((x)->flags &= ~JOIN_FLOOD_NOTICED)
+
 extern void free_topic(struct Channel *);
 extern int msg_has_colors(char*);
 extern char *strip_color(char *);

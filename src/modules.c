@@ -23,9 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "modules.h"
-#include "s_log.h"
 #include "ircd.h"
 #include "client.h"
 #include "send.h"
@@ -34,9 +32,6 @@
 #include "numeric.h"
 #include "parse.h"
 #include "ircd_defs.h"
-#include "irc_string.h"
-#include "memory.h"
-#include "list.h"
 
 /* -TimeMr14C:
  * I have moved the dl* function definitions and

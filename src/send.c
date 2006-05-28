@@ -23,25 +23,29 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "send.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
-#include "dbuf.h"
-#include "irc_string.h"
 #include "ircd.h"
 #include "handlers.h"
 #include "numeric.h"
-#include "fdlist.h"
-#include "s_bsd.h"
 #include "s_serv.h"
-#include "sprintf_irc.h"
 #include "s_conf.h"
+<<<<<<< .working
+<<<<<<< .working
+<<<<<<< .working
 #include "list.h"
 #include "s_log.h"
 #include "memory.h"
 #include "hook.h"
+=======
+=======
+>>>>>>> .merge-right.r69
+=======
+>>>>>>> .merge-right.r69
+#include "packet.h"
+>>>>>>> .merge-right.r69
 
 #define LOG_BUFSIZE 2048
 

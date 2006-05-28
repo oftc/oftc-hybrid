@@ -23,19 +23,19 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "motd.h"
 #include "ircd.h"
-#include "fdlist.h"
-#include "s_bsd.h"
-#include "fileio.h"
 #include "s_conf.h"
 #include "send.h"
 #include "numeric.h"
 #include "client.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
-#include "memory.h"
+<<<<<<< .working
+<<<<<<< .working
+=======
+=======
+>>>>>>> .merge-right.r69
+#include "s_serv.h"
+>>>>>>> .merge-right.r69
 
 /*
 ** init_message_file

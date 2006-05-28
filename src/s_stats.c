@@ -25,13 +25,9 @@
 #include "stdinc.h"
 #include "s_stats.h"
 #include "client.h"
-#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_bsd.h"
 #include "send.h"
-#include "memory.h"
-#include "s_misc.h"
 
 /* stats stuff */
 static struct ServerStatistics ircst;

@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  s_misc.h: A header for the miscellaneous functions.
+ *  misc.h: A header for the miscellaneous functions.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -19,11 +19,8 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: s_misc.h 68 2005-10-04 00:44:29Z adx $
  */
-
-#ifndef INCLUDED_s_misc_h
-#define INCLUDED_s_misc_h
 
 #define MAX_DATE_STRING 32  /* maximum string length for a date string */
 
@@ -46,4 +43,3 @@ extern void set_time(void);
 #define _GMKv(x)  (((x) > _1TER) ? (float)((x)/_1TER) : (((x) > _1GIG) ? \
                    (float)((x)/_1GIG) : (((x) > _1MEG) ? (float)((x)/_1MEG) : \
 		   (float)(x))))
-#endif

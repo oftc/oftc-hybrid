@@ -20,21 +20,8 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
-#include "list.h"
 #include "common.h"
-#include "event.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
-#include "fdlist.h"
-#include "fileio.h" /* for fbopen / fbclose / fbputs */
-#include "s_bsd.h"
-#include "s_log.h"
-#include "memory.h"
-#include "irc_res.h"
 #include "reslib.h"
-#include "irc_getnameinfo.h"
-#include "s_misc.h"
 
 #if (CHAR_BIT != 8)
 #error this code needs to be able to address individual octets 

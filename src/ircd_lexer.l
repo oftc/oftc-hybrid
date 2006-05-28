@@ -31,16 +31,26 @@
    doesn't call free! */
 #define WE_ARE_MEMORY_C
 #include "stdinc.h"
-#include "tools.h"
-#include "irc_string.h"
 #include "common.h"
 #include "s_conf.h"
+<<<<<<< .working
+<<<<<<< .working
+<<<<<<< .working
+=======
+=======
+>>>>>>> .merge-right.r69
+#include "hostmask.h"
+<<<<<<< .working
+>>>>>>> .merge-right.r69
+=======
+>>>>>>> .merge-right.r69
 
 #include "y.tab.h"
 
 #include "memory.h"
+=======
+>>>>>>> .merge-right.r69
 #include "hostmask.h"
-#include "s_log.h"
 
 #undef YY_INPUT
 #define YY_FATAL_ERROR(msg) conf_yy_fatal_error(msg)

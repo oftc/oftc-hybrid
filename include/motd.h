@@ -26,7 +26,6 @@
 #define INCLUDED_motd_h
 
 #include "ircd_defs.h"   
-#include "s_misc.h"
 
 #define MESSAGELINELEN 256
 

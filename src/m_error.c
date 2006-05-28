@@ -29,8 +29,6 @@
 #include "ircd.h"
 #include "send.h"
 #include "msg.h"
-#include "memory.h"
-#include "s_log.h"
 
 struct Message error_msgtab = {
  "ERROR", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0,

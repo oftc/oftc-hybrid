@@ -25,24 +25,15 @@
 #include "stdinc.h"
 #include "listener.h"
 #include "client.h"
-#include "fdlist.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd.h"
 #include "ircd_defs.h"
-#include "s_bsd.h"
-#include "irc_getnameinfo.h"
-#include "irc_getaddrinfo.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "s_stats.h"
 #include "send.h"
-#include "memory.h"
-#include "tools.h"
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/bio.h>
 #endif
-#include "s_log.h"
 #include "s_auth.h"
 
 static PF accept_connection;

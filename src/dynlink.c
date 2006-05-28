@@ -23,10 +23,7 @@
  *
  */
 #include "stdinc.h"
-#include "tools.h"
-#include "irc_string.h"
 #include "modules.h"
-#include "s_log.h"
 #include "client.h"
 #include "send.h"
 

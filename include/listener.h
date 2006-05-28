@@ -25,33 +25,34 @@
 #ifndef INCLUDED_listener_h
 #define INCLUDED_listener_h
 
+#define LISTENER_SSL    0x1
+#define LISTENER_HIDDEN 0x2
+
 #include "ircd_defs.h"  
-#include "tools.h"
+
 struct Client;
 
 struct Listener
 {
   dlink_node	   listener_node;      /* list node pointer */
   const char*      name;               /* listener name */
-  int              fd;                 /* file descriptor */
+  fde_t            fd;                 /* file descriptor */
   int              port;               /* listener IP port */
   int              ref_count;          /* number of connection references */
   int              active;             /* current state of listener */
-  int              index;              /* index into poll array */
-  time_t           last_accept;        /* last time listener accepted */
 /* jdc -- this seems to be incorrect in comparison to src/listener.c */
 /*
   struct in_addr    addr;
 */
   struct irc_ssaddr addr;              /* virtual address or INADDR_ANY */
   struct DNSQuery   *dns_query;
-  char             vhost[HOSTLEN + 1]; /* virtual name of listener */
-  int is_ssl;
+  char              vhost[HOSTLEN + 1]; /* virtual name of listener */
+  unsigned int      flags;
 };
 
-extern void add_listener(int port, const char *vaddr_ip, int is_ssl);
+extern void add_listener(int, const char *, unsigned int);
 extern void close_listeners(void);
-extern const char *get_listener_name(const struct Listener *listener);
-extern void show_ports(struct Client *source_p);
+extern const char *get_listener_name(const struct Listener *);
+extern void show_ports(struct Client *);
 extern void free_listener(struct Listener *);
 #endif /* INCLUDED_listener_h */

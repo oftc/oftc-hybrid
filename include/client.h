@@ -25,13 +25,9 @@
 #ifndef INCLUDED_client_h
 #define INCLUDED_client_h
 
-#include "fdlist.h"
 #include "setup.h"
 #include "ircd_handler.h"
-#include "dbuf.h"
 #include "channel.h"
-#include "irc_res.h"
-#include "s_bsd.h"
 
 #define PASSWDLEN       20
 #define CIPHERKEYLEN    64 /* 512bit */

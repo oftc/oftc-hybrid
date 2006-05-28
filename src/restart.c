@@ -23,16 +23,11 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "restart.h"
 #include "common.h"
-#include "fdlist.h"
 #include "ircd.h"
-#include "irc_string.h"
 #include "send.h"
-#include "s_log.h"
 #include "client.h" /* for UMODE_ALL */
-#include "memory.h"
 
 void
 restart(const char *mesg)

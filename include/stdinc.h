@@ -54,6 +54,14 @@
 
 #include <sys/types.h>
 
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#else
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+#endif
+
 #ifdef HAVE_STDDEF_H
 # include <stddef.h>
 #else /* This is basically what stddef.h provides on most systems */
@@ -69,6 +77,11 @@
 #include <crypt.h>
 #endif
 
+#ifdef HAVE_LIBCRYPTO
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#endif
+
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
@@ -80,13 +93,22 @@
 
 #include <stdarg.h>
 #include <signal.h>
-#include <dirent.h>
 #include <ctype.h>
 
+#ifdef _WIN32
+#define PATH_MAX (MAX_PATH - 1)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <winsock.h>
+#else
+#include <dirent.h>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
+#include <sys/file.h>
+#endif
 
 #include <limits.h>
 
@@ -94,15 +116,14 @@
 #include <unistd.h>
 #endif
 
-#include <sys/time.h>
-#include <sys/file.h>
-
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
 
 #include <sys/stat.h>
+#ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
+#endif
 
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -114,11 +135,6 @@
 extern int errno;
 #endif
 
-#ifdef HAVE_LIBCRYPTO
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#endif
-
-#include "inet_misc.h"
+#include "libio.h"
 
 #endif
