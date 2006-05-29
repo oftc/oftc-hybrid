@@ -1059,7 +1059,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
   char buffer[IRCD_BUFSIZE];
   int len;
 
-  if (IsPerson(source_p))
+  if (IsClient(source_p))
     len = ircsprintf(buffer, ":%s!%s@%s WALLOPS :",
                      source_p->name, source_p->username, source_p->host); 
   else

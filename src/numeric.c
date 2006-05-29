@@ -105,19 +105,6 @@ change_reply(const char *locale, int linecnt, int reply, char *new_reply)
     }
   }
 
-  for (; *old; old++)
-  {
-    if (*old == '%')
-    {
-      if (!*++old) break;  /* shouldn't happen */
-      if (*old != '%')
-      {
-        ilog(L_ERROR, "Too few format symbols (%s.lang, %d)", locale, linecnt);
-        return(0);
-      }
-    }
-  }
-
   MyFree(replies[reply].translated);
   DupString(replies[reply].translated, new_reply);
   return(1);
@@ -128,7 +115,7 @@ void
 set_locale(const char *locale)
 {
   int i, res = 1, linecnt = 0;
-  char buffer[BUFSIZE + 1];
+  char buffer[IRCD_BUFSIZE + 1];
   char *ident, *reply;
   FBFILE *f;
 
@@ -152,7 +139,7 @@ set_locale(const char *locale)
    * that it'll work even if some lame admin won't put "/" at the end
    * of MSGPATH.
    */
-  snprintf(buffer, BUFSIZE + 1, "%s/%s.lang", MSGPATH, locale);
+  snprintf(buffer, sizeof(buffer), "%s/%s.lang", MSGPATH, locale);
   if ((f = fbopen(buffer, "r")) == NULL)
   {
     strlcpy(used_locale, "standard", sizeof(used_locale));  /* XXX */
@@ -160,7 +147,7 @@ set_locale(const char *locale)
   }
 
   /* Process the language file */
-  while (fbgets(buffer, BUFSIZE + 1, f))
+  while (fbgets(buffer, sizeof(buffer), f))
   {
     ++linecnt;
     if (buffer[0] == ';')

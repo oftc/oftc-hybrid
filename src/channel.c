@@ -898,20 +898,21 @@ free_topic(struct Channel *chptr)
   chptr->topic_info = NULL;
 }
 
- /*!\brief Sets the channel topic for chptr
- * + * \param chptr      Pointer to struct Channel
- * + * \param topic      The topic string
- * + * \param topic_info n!u\@h formatted string of the topic setter
- * + * \param topicts    timestamp on the topic
+/*! \brief Sets the channel topic for chptr
+ * \param chptr      Pointer to struct Channel
+ * \param topic      The topic string
+ * \param topic_info n!u\@h formatted string of the topic setter
+ * \param topicts    timestamp on the topic
  */
 void
 set_channel_topic(struct Channel *chptr, const char *topic,
-    const char *topic_info, time_t topicts)
+                  const char *topic_info, time_t topicts)
 {
   if (!EmptyString(topic))
   {
     if (chptr->topic == NULL)
       allocate_topic(chptr);
+
     strlcpy(chptr->topic, topic, TOPICLEN+1);
     strlcpy(chptr->topic_info, topic_info, USERHOST_REPLYLEN);
     chptr->topic_time = topicts; 

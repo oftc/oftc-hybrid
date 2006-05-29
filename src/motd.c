@@ -55,84 +55,85 @@ send_message_file(struct Client *source_p, MessageFile *motdToPrint)
 {
   MessageFileLine *linePointer;
   MotdType motdType;
-  const char *nick;
+  const char *from, *to;
 
   if (motdToPrint == NULL)
     return(-1);
 
   motdType = motdToPrint->motdType;
 
+  from = ID_or_name(&me, source_p->from);
+  to = ID_or_name(source_p, source_p->from);
+
   switch (motdType)
   {
     case USER_MOTD:
-      nick = EmptyString(source_p->name) ? "*" : source_p->name;
-      
       if (motdToPrint->contentsOfFile == NULL)
+        sendto_one(source_p, form_str(ERR_NOMOTD), from, to);
+      else
       {
-        sendto_one(source_p, form_str(ERR_NOMOTD),
-                   me.name, nick);
-        return(0);
+	sendto_one(source_p, form_str(RPL_MOTDSTART),
+		   from, to, me.name);
+
+	for (linePointer = motdToPrint->contentsOfFile; linePointer;
+	     linePointer = linePointer->next)
+	{
+	  sendto_one(source_p, form_str(RPL_MOTD),
+		     from, to, linePointer->line);
+	}
+
+	sendto_one(source_p, form_str(RPL_ENDOFMOTD), from, to);
       }
-
-      sendto_one(source_p, form_str(RPL_MOTDSTART),
-                 me.name, nick, me.name);
-
-      for (linePointer = motdToPrint->contentsOfFile; linePointer;
-           linePointer = linePointer->next)
-      {
-        sendto_one(source_p, form_str(RPL_MOTD),
-                   me.name, nick, linePointer->line);
-      }
-
-      sendto_one(source_p, form_str(RPL_ENDOFMOTD), me.name, nick);
-      return(0);
-      /* NOT REACHED */
       break;
 
     case USER_LINKS:
-      if (motdToPrint->contentsOfFile == NULL)
-        return(-1);
-
-      for (linePointer = motdToPrint->contentsOfFile; linePointer;
-           linePointer = linePointer->next)
+      if (motdToPrint->contentsOfFile != NULL)
       {
-        sendto_one(source_p, ":%s 364 %s %s",
-                   me.name, source_p->name, linePointer->line);
+	for (linePointer = motdToPrint->contentsOfFile; linePointer;
+	     linePointer = linePointer->next)
+	{
+	  sendto_one(source_p, ":%s 364 %s %s", /* XXX */
+		     from, to, linePointer->line);
+	}
       }
-
-      return(0);
-      /* NOT REACHED */
       break;
 
     case OPER_MOTD:
-      if (motdToPrint->contentsOfFile == NULL)
+      if (motdToPrint->contentsOfFile != NULL)
       {
-/*      sendto_one(source_p, ":%s NOTICE %s :No OPER MOTD", me.name,
- *                 source_p->name); */
-        return(-1);
-      }
+	sendto_one(source_p, form_str(RPL_OMOTDSTART),
+		   me.name, source_p->name, me.name);
 
-      sendto_one(source_p,":%s NOTICE %s :Start of OPER MOTD",
-                 me.name, source_p->name);
+	sendto_one(source_p, form_str(RPL_OMOTD),
+		   me.name, source_p->name, motdToPrint->lastChangedDate);
+
+	for (linePointer = motdToPrint->contentsOfFile; linePointer;
+	     linePointer = linePointer->next)
+	{
+	  sendto_one(source_p, form_str(RPL_OMOTD),
+		     me.name, source_p->name, linePointer->line);
+	}
+	sendto_one(source_p, form_str(RPL_ENDOFOMOTD),
+		   me.name, source_p->name);
+      }
       break;
 
+  case ISSUPPORT:
+      if (motdToPrint->contentsOfFile != NULL)
+      {
+	for (linePointer = motdToPrint->contentsOfFile; linePointer;
+	     linePointer = linePointer->next)
+	{
+	  sendto_one(source_p, form_str(RPL_ISUPPORT),
+		     me.name, source_p->name, linePointer->line);
+	}
+      }
+    break;
+
     default:
-      return(0);
-      /* NOT REACHED */
+      break;
   }
 
-  sendto_one(source_p, ":%s NOTICE %s :%s", me.name, source_p->name,
-             motdToPrint->lastChangedDate);
-
-  for (linePointer = motdToPrint->contentsOfFile; linePointer;
-       linePointer = linePointer->next)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :%s",
-               me.name, source_p->name, linePointer->line);
-  }
-
-  sendto_one(source_p, ":%s NOTICE %s :End",
-             me.name, source_p->name);
   return(0);
 }
 
@@ -148,7 +149,7 @@ read_message_file(MessageFile *MessageFileptr)
 {
   struct stat sb;
   struct tm *local_tm;
-  
+
   /* used to clear out old MessageFile entries */
   MessageFileLine *mptr = 0;
   MessageFileLine *next_mptr = 0;
@@ -183,10 +184,10 @@ read_message_file(MessageFile *MessageFileptr)
                local_tm->tm_hour,
                local_tm->tm_min);
 
-  if ((file = fbopen(MessageFileptr->fileName, "r")) == 0)
+  if ((file = fbopen(MessageFileptr->fileName, "r")) == NULL)
     return(-1);
 
-  while (fbgets(buffer, MESSAGELINELEN, file))
+  while (fbgets(buffer, sizeof(buffer), file))
   {
     if ((p = strchr(buffer, '\n')) != NULL)
       *p = '\0';
@@ -211,4 +212,86 @@ read_message_file(MessageFile *MessageFileptr)
 
   fbclose(file);
   return(0);
+}
+
+/*
+ * init_MessageLine
+ *
+ * inputs	- NONE
+ * output	- pointer to new MessageFile
+ * side effects	- Use this when an internal Message File is wanted
+ *		  without reading an actual file. The MessageFile 
+ *		  is init'ed, but must have content added to it through
+ *		  addto_MessageLine()
+ */
+
+MessageFile *
+init_MessageLine(void)
+{
+  MessageFile *mf;
+  MessageFileLine *mptr = NULL;
+
+  mf = MyMalloc(sizeof(MessageFile));
+  mf->motdType = ISSUPPORT;	/* XXX maybe pass it alone in args? */
+  mptr = MyMalloc(sizeof(MessageFileLine));
+  mf->contentsOfFile = mptr;
+  return(mf);
+}
+
+/*
+ * addto_MessageLine
+ *
+ * inputs	- Pointer to existing MessageFile
+ *		- New string to add to this MessageFile
+ * output	- NONE
+ * side effects	- Use this when an internal MessageFile is wanted
+ *		  without reading an actual file. Content is added
+ *		  to this MessageFile through this function.
+ */
+
+void
+addto_MessageLine(MessageFile *mf, const char *str)
+{
+  MessageFileLine *mptr = mf->contentsOfFile;
+  MessageFileLine *nmptr = NULL;
+
+  if (mptr == NULL)
+  {
+    mptr = MyMalloc(sizeof(MessageFileLine));
+    strcpy(mptr->line, str);
+    mf->contentsOfFile = mptr;
+  }
+  else
+  {
+    while (mptr->next != NULL)
+      mptr = mptr->next;
+    nmptr = MyMalloc(sizeof(MessageFileLine));
+    strcpy(nmptr->line, str);
+    mptr->next = nmptr;
+  }
+}
+
+/*
+ * destroy_MessageLine(MessageFile *mf)
+ *
+ * inputs	- pointer to the MessageFile to destroy
+ * output	- NONE
+ * side effects	- All the MessageLines attached to the given mf
+ *		  Are freed then one MessageLine is recreated
+ */
+void
+destroy_MessageLine(MessageFile *mf)
+{
+  MessageFileLine *mptr = mf->contentsOfFile;
+  MessageFileLine *nmptr = NULL;
+
+  if (mptr == NULL)
+    return;
+
+  for (mptr = mf->contentsOfFile; mptr != NULL; mptr = nmptr)
+  {
+    nmptr = mptr->next;
+    MyFree(mptr);
+  } 
+  mf->contentsOfFile = NULL;
 }

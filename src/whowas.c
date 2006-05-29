@@ -2,7 +2,7 @@
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
  *  whowas.c: WHOWAS user cache.
  *
- *  Copyright (C) 2002 by the past and present ircd coders, and others.
+ *  Copyright (C) 2005 by the past and present ircd coders, and others.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@
  */
 
 #include "stdinc.h"
-
 #include "whowas.h"
 #include "client.h"
 #include "common.h"
@@ -43,22 +42,9 @@ static void add_whowas_to_list(struct Whowas **, struct Whowas *);
 static void del_whowas_from_list(struct Whowas **, struct Whowas *);
 
 struct Whowas WHOWAS[NICKNAMEHISTORYLENGTH];
-struct Whowas *WHOWASHASH[WW_MAX];
+struct Whowas *WHOWASHASH[HASHSIZE];
 
 static unsigned int whowas_next = 0;
-
-unsigned int
-hash_whowas_name(const char *name)
-{
-  unsigned int h = 0;
-
-  while (*name)
-  {
-    h = (h << 4) - (h + (unsigned char)ToLower(*name++));
-  }
-
-  return(h & (WW_MAX - 1));
-}
 
 void
 add_history(struct Client *client_p, int online)
@@ -74,7 +60,7 @@ add_history(struct Client *client_p, int online)
    * (with a half registered client.)
    * and what is the correct action here? - Dianora
    */
-  if (client_p->user->server == NULL)
+  if (client_p->servptr == NULL)
     return;
 
   if (who->hashv != -1)
@@ -84,7 +70,7 @@ add_history(struct Client *client_p, int online)
     del_whowas_from_list(&WHOWASHASH[who->hashv], who);
   }
 
-  who->hashv  = hash_whowas_name(client_p->name);
+  who->hashv  = strhash(client_p->name);
   who->logoff = CurrentTime;
 
   /* NOTE: strcpy ok here, the sizes in the client struct MUST
@@ -95,7 +81,7 @@ add_history(struct Client *client_p, int online)
   strcpy(who->hostname, client_p->host);
   strcpy(who->realname, client_p->info);
 
-  strlcpy(who->servername, client_p->user->server->name, sizeof(who->servername));
+  strlcpy(who->servername, client_p->servptr->name, sizeof(who->servername));
 
   if (online)
   {
@@ -131,7 +117,7 @@ get_history(const char *nick, time_t timelimit)
   struct Whowas *temp;
 
   timelimit = CurrentTime - timelimit;
-  temp = WHOWASHASH[hash_whowas_name(nick)];
+  temp = WHOWASHASH[strhash(nick)];
 
   for (; temp; temp = temp->next)
   {
@@ -179,7 +165,7 @@ init_whowas(void)
     WHOWAS[i].hashv = -1;
   }
 
-  for (i = 0; i < WW_MAX; i++)
+  for (i = 0; i < HASHSIZE; ++i)
     WHOWASHASH[i] = NULL;        
 }
 

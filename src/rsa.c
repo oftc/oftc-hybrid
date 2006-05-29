@@ -71,14 +71,14 @@ verify_private_key(void)
   if (ServerInfo.rsa_private_key == NULL)
   {
     ilog(L_NOTICE, "rsa_private_key in serverinfo{} is not defined.");
-    return(-1);
+    return -1;
   }
 
   /* If rsa_private_key_file isn't available, error out. */
   if (ServerInfo.rsa_private_key_file == NULL)
   {
     ilog(L_NOTICE, "Internal error: rsa_private_key_file isn't defined.");
-    return(-1);
+    return -1;
   }
 
   if (bio_spare_fd > -1)
@@ -92,9 +92,9 @@ verify_private_key(void)
    */
   if (file == NULL)
   {
-    bio_spare_fd=save_spare_fd("SSL private key validation");
+    bio_spare_fd = save_spare_fd("SSL private key validation");
     ilog(L_NOTICE, "Failed to open private key file - can't validate it");
-    return(-1);
+    return -1;
   }
 
   /*
@@ -114,12 +114,12 @@ verify_private_key(void)
   {
     ilog(L_NOTICE, "PEM_read_bio_RSAPrivateKey() failed; possibly not RSA?");
     report_crypto_errors();
-    return(-1);
+    return -1;
   }
 
   BIO_set_close(file, BIO_CLOSE);
   BIO_free(file);
-  bio_spare_fd=save_spare_fd("SSL private key validation");
+  bio_spare_fd = save_spare_fd("SSL private key validation");
 
   mkey = ServerInfo.rsa_private_key;
 
@@ -131,10 +131,17 @@ verify_private_key(void)
   if (mkey->pad != key->pad)
     ilog(L_CRIT, "Private key corrupted: pad %i != pad %i",
                  mkey->pad, key->pad);
-
+  
   if (mkey->version != key->version)
+  {
+#if (OPENSSL_VERSION_NUMBER & 0x00907000) == 0x00907000
+    ilog(L_CRIT, "Private key corrupted: version %li != version %li",
+                 mkey->version, key->version);
+#else
     ilog(L_CRIT, "Private key corrupted: version %i != version %i",
-                  mkey->version, key->version);
+                 mkey->version, key->version);
+#endif
+  }    
 
   if (BN_cmp(mkey->n, key->n))
     ilog(L_CRIT, "Private key corrupted: n differs");
@@ -154,7 +161,7 @@ verify_private_key(void)
     ilog(L_CRIT, "Private key corrupted: iqmp differs");
 
   RSA_free(key);
-  return(0);
+  return 0;
 }
 
 
@@ -185,9 +192,9 @@ get_randomness(unsigned char *buf, int length)
     }
 
   if (RAND_status())
-    return(RAND_bytes(buf, length));
+    return (RAND_bytes(buf, length));
   else /* XXX - abort? */
-    return(RAND_pseudo_bytes(buf, length));
+    return (RAND_pseudo_bytes(buf, length));
 }
 
 int
@@ -215,7 +222,7 @@ generate_challenge(char **r_challenge, char **r_response, RSA *rsa)
   if (ret < 0)
   {
     report_crypto_errors();
-    return(-1);
+    return -1;
   }
-  return(0);
+  return 0;
 }

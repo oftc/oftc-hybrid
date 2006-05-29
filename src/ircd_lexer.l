@@ -25,20 +25,15 @@
 %option case-insensitive
 %option noyywrap
 %option nounput
+%option never-interactive
 
 %{
-/* XXX - No we aren't but lex calls malloc :(. It is even worse that it
-   doesn't call free! */
-#define WE_ARE_MEMORY_C
 #include "stdinc.h"
 #include "common.h"
 #include "s_conf.h"
 #include "hostmask.h"
 
 #include "y.tab.h"
-
-#include "memory.h"
-#include "hostmask.h"
 
 #undef YY_INPUT
 #define YY_FATAL_ERROR(msg) conf_yy_fatal_error(msg)
@@ -48,38 +43,38 @@
 #define MAX_INCLUDE_DEPTH 10
 
 
-int lineno = 1;
+unsigned int lineno = 1;
 char linebuf[IRCD_BUFSIZE];
 char conffilebuf[IRCD_BUFSIZE];
-int include_stack_ptr = 0;
-YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
-int lineno_stack[MAX_INCLUDE_DEPTH];
-FBFILE* inc_fbfile_in[MAX_INCLUDE_DEPTH];
-char conffile_stack[MAX_INCLUDE_DEPTH][IRCD_BUFSIZE];
-void ccomment(void);
-void hashcomment(void);
-void cinclude(void);
-int ieof(void);
+
+static int include_stack_ptr = 0;
+static YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
+static unsigned int lineno_stack[MAX_INCLUDE_DEPTH];
+static FBFILE *inc_fbfile_in[MAX_INCLUDE_DEPTH];
+static char conffile_stack[MAX_INCLUDE_DEPTH][IRCD_BUFSIZE];
+static void ccomment(void);
+static void cinclude(void);
+static int ieof(void);
 %}
 
-ws        [ \t]*
-digit     [0-9]
-comment   #.*
+WS        [[:blank:]]*
+DIGIT     [[:digit:]]+
+COMMENT   ("//"|"#").*
 qstring   \"[^\"\n]*[\"\n]
-include   \.include{ws}(\<.*\>|\".*\")
+include   \.include{WS}(\<.*\>|\".*\")
 
 %%
 {include}       { cinclude(); }
 "/*"	        { ccomment(); }
 
-\n.*	        { strcpy(linebuf, yytext+1); lineno++; yyless(1); }
+\n.*	        { strcpy(linebuf, yytext+1); ++lineno; yyless(1); }
 
-{ws}            ;
-{comment}       { hashcomment(); }
+{WS}            ;
+{COMMENT}       ;
 
-{digit}+        { yylval.number = atoi(yytext); return NUMBER; }
+{DIGIT}         { yylval.number = atoi(yytext); return NUMBER; }
 
-{qstring}	{ if(yytext[yyleng-2] == '\\')
+{qstring}	{ if (yytext[yyleng-2] == '\\')
 		    {
 		      yyless(yyleng-1); /* return last quote */
 		      yymore();		/* append next string */
@@ -124,17 +119,26 @@ include   \.include{ws}(\<.*\>|\".*\")
 		    }
 		}
 
+~		{ return NOT; }
 accept_password { return ACCEPT_PASSWORD; }
 action		{ return ACTION; }
 admin		{ return ADMIN; }
 administrator	{ return ADMIN; }
 aftype		{ return AFTYPE; }
 all		{ return T_ALL; }
+allow		{ return T_ALLOW; }
 auth		{ return IRCD_AUTH; }
 autoconn	{ return AUTOCONN; }
+block		{ return T_BLOCK; }
+burst_away      { return BURST_AWAY; }
+burst_topicwho  { return BURST_TOPICWHO; }
 can_flood	{ return CAN_FLOOD; }
+can_idle        { return CAN_IDLE; }
 caller_id_wait	{ return CALLER_ID_WAIT; }
+opers_bypass_callerid  { return OPERS_BYPASS_CALLERID; }
 channel		{ return CHANNEL; }
+cidr_bitlen_ipv4	{ return CIDR_BITLEN_IPV4; }
+cidr_bitlen_ipv6	{ return CIDR_BITLEN_IPV6; }
 cipher_preference { return CIPHER_PREFERENCE; }
 class		{ return CLASS; }
 client_flood	{ return T_CLIENT_FLOOD; }
@@ -157,27 +161,44 @@ disable_local_channels { return DISABLE_LOCAL_CHANNELS; }
 disable_remote_commands	{ return DISABLE_REMOTE_COMMANDS; }
 dot_in_ip6_addr { return DOT_IN_IP6_ADDR; }
 dots_in_ident   { return DOTS_IN_IDENT; }
+duration	{ return DURATION; }
 egdpool_path        { return EGDPOOL_PATH; }
 email		{ return EMAIL; }
+enable		{ return ENABLE; }
 encrypted       { return ENCRYPTED; }
 exceed_limit    { return EXCEED_LIMIT; }
 exempt		{ return EXEMPT; }
 fakename	{ return FAKENAME; }
+flags           { return IRCD_FLAGS; }
 flatten_links	{ return FLATTEN_LINKS; }
+fglinelog 	{ return FGLINELOG; }
+fname_glinelog  { return FGLINELOG; }
+fkilllog	{ return FKILLLOG; }
+fioerrlog	{ return FIOERRLOG; }
+fname_ioerrlog	{ return FIOERRLOG; }
+fname_killlog	{ return FKILLLOG; }
+fklinelog	{ return FKLINELOG; }
+fname_klinelog	{ return FKLINELOG; }
 ffailed_operlog	{ return FFAILED_OPERLOG; }
+fname_operlog	{ return FOPERLOG; }
 foperlog   	{ return FOPERLOG; }
+fname_userlog	{ return FUSERLOG; }
 fuserlog   	{ return FUSERLOG; }
 gecos		{ return GECOS; }
 general		{ return GENERAL; }
 gline		{ return GLINE; }
+glines		{ return GLINES; }
 gline_exempt    { return GLINE_EXEMPT; }
-gline_log       { return GLINE_LOG; }
-gline_time      { return GLINE_TIME; }
+gline_min_cidr  { return GLINE_MIN_CIDR; }
+gline_min_cidr6 { return GLINE_MIN_CIDR6; }
 global_kill	{ return GLOBAL_KILL; }
-have_ident	{ return HAVE_IDENT; }
+have_ident	{ return NEED_IDENT; }
+need_ident	{ return NEED_IDENT; }
 havent_read_conf { return HAVENT_READ_CONF; }
 hidden		{ return HIDDEN; }
 hidden_admin	{ return HIDDEN_ADMIN; }
+hidden_name	{ return HIDDEN_NAME; }
+hidden_oper	{ return HIDDEN_OPER; }
 hide_server_ips	{ return HIDE_SERVER_IPS; }
 hide_servers	{ return HIDE_SERVERS; }
 hide_spoof_ips	{ return HIDE_SPOOF_IPS; }
@@ -186,10 +207,15 @@ hub		{ return HUB; }
 hub_mask	{ return HUB_MASK; }
 idletime        { return IDLETIME; }
 ignore_bogus_ts { return IGNORE_BOGUS_TS; }
+invite_ops_only { return INVITE_OPS_ONLY; }
+invisible_on_connect { return INVISIBLE_ON_CONNECT; }
 ip		{ return IP; }
 ipv4            { return T_IPV4; }
 ipv6            { return T_IPV6; }
+join_flood_count { return JOIN_FLOOD_COUNT; }
+join_flood_time  { return JOIN_FLOOD_TIME; }
 kill		{ return KILL; }
+kill_chase_time_limit { return KILL_CHASE_TIME_LIMIT; }
 kline		{ return KLINE; }
 kline_exempt	{ return KLINE_EXEMPT; }
 l_crit		{ return T_L_CRIT; }
@@ -203,6 +229,7 @@ lazylink	{ return LAZYLINK; }
 leaf_mask	{ return LEAF_MASK; }
 listen		{ return LISTEN; }
 log_level	{ return LOG_LEVEL; }
+log		{ return LOGGING; }
 logging         { return LOGGING; }
 logpath         { return T_LOGPATH; }
 masked		{ return TMASKED; }
@@ -211,7 +238,6 @@ max_ident	{ return MAX_IDENT; }
 max_local	{ return MAX_LOCAL; }
 max_global	{ return MAX_GLOBAL; }
 max_number	{ return MAX_NUMBER; }
-maximum_links   { return MAXIMUM_LINKS; }
 message_locale	{ return MESSAGE_LOCALE; }
 min_nonwildcard { return MIN_NONWILDCARD; }
 min_nonwildcard_simple	{ return MIN_NONWILDCARD_SIMPLE; }
@@ -226,6 +252,7 @@ no_create_on_split { return NO_CREATE_ON_SPLIT; }
 no_join_on_split   { return NO_JOIN_ON_SPLIT; }
 no_oper_flood   { return NO_OPER_FLOOD; }
 no_tilde	{ return NO_TILDE; }
+number_per_cidr	{ return NUMBER_PER_CIDR; }
 number_per_ip	{ return NUMBER_PER_IP; }
 oper		{ return OPERATOR; }
 oper_log        { return OPER_LOG; }
@@ -235,21 +262,26 @@ passwd		{ return PASSWORD; }
 password	{ return PASSWORD; }
 ping_cookie	{ return PING_COOKIE; }
 ping_time	{ return PING_TIME; }
+ping_warning	{ return PING_WARNING; }
 port		{ return PORT; }
-sslport         { return SSLPORT; }
 quarantine	{ return RESV; }
 quiet_on_ban    { return QUIET_ON_BAN; }
 reason		{ return REASON; }
 redirport       { return REDIRPORT; }
 redirserv       { return REDIRSERV; }
+regex           { return REGEX_T; }
 rehash		{ return REHASH; }
-reject		{ return TREJECT; }
+reject		{ return T_REJECT; }
+reject_hold_time { return TREJECT_HOLD_TIME; }
 remote		{ return REMOTE; }
-restricted      { return RESTRICTED; }
+remoteban	{ return REMOTEBAN; }
+restrict_channels { return RESTRICT_CHANNELS; }
 resv		{ return RESV; }
+resv_exempt     { return RESV_EXEMPT; }
 rsa_private_key_file		{ return RSA_PRIVATE_KEY_FILE; }
 rsa_public_key_file		{ return RSA_PUBLIC_KEY_FILE; }
-ssl_certificate_file            { return SSL_CERTIFICATE_FILE; }
+ssl 				{ return T_SSL; }
+ssl_certificate_file        { return SSL_CERTIFICATE_FILE; }
 send_password	{ return SEND_PASSWORD; }
 sendq		{ return SENDQ; }
 serverhide	{ return SERVERHIDE; }
@@ -257,10 +289,11 @@ serverinfo	{ return SERVERINFO; }
 servlink_path   { return SERVLINK_PATH; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }
-sid		{ return SID; } 
+sid		{ return IRCD_SID; }
 silent          { return SILENT; }
 spoof		{ return SPOOF; }
 spoof_notice	{ return SPOOF_NOTICE; }
+tkline_expire_notices { return TKLINE_EXPIRE_NOTICES; }
 type		{ return TYPE; }
 true_no_oper_flood { return TRUE_NO_OPER_FLOOD; }
 umodes          { return T_UMODES; }
@@ -270,8 +303,12 @@ use_except	{ return USE_EXCEPT; }
 use_invex	{ return USE_INVEX; }
 use_knock	{ return USE_KNOCK; }
 use_logging	{ return USE_LOGGING; }
+use_whois_actually { return USE_WHOIS_ACTUALLY; }
 throttle_time { return THROTTLE_TIME; }
-user		{ return USER;} 
+user		{ return USER; } 
+tkline		{ return TKLINE; } 
+txline		{ return TXLINE; } 
+tresv		{ return TRESV; } 
 vhost	{ return VHOST; }
 vhost6	{ return VHOST6; }
 warn		{ return WARN; }
@@ -287,8 +324,8 @@ anti_nick_flood         { return ANTI_NICK_FLOOD; }
 anti_spam_exit_message_time { return ANTI_SPAM_EXIT_MESSAGE_TIME; }
 ts_max_delta            { return TS_MAX_DELTA; }
 ts_warn_delta           { return TS_WARN_DELTA; }
-links_delay           { return LINKS_DELAY; }
-kline_with_connection_closed { return KLINE_WITH_CONNECTION_CLOSED; }
+links_delay             { return LINKS_DELAY; }
+kline_reason		{ return KLINE_REASON; }
 kline_with_reason       { return KLINE_WITH_REASON; }
 warn_no_nline           { return WARN_NO_NLINE; }
 
@@ -300,13 +337,9 @@ pace_wait               { return PACE_WAIT; }
 pace_wait_simple	{ return PACE_WAIT_SIMPLE; }
 knock_delay             { return KNOCK_DELAY; }
 knock_delay_channel	{ return KNOCK_DELAY_CHANNEL; }
-iauth_server            { return IAUTH_SERVER; }
-iauth_port		{ return IAUTH_PORT; }
-glines                  { return GLINES; }
 max_bans                { return MAX_BANS; }
 modules                 { return MODULES; }
 module                  { return MODULE; }
-base_path               { return BASE_PATH; }
 path                    { return PATH; }
 max_targets             { return MAX_TARGETS; }
 
@@ -315,9 +348,9 @@ unresv			{ return T_UNRESV; }
 
 oper_only_umodes        { return OPER_ONLY_UMODES; }
 oper_umodes             { return OPER_UMODES; }
-crypt_oper_password     { return CRYPT_OPER_PASSWORD; }
 bots                    { return T_BOTS; }
 cconn                   { return T_CCONN; }
+deaf                    { return T_DEAF; }
 debug                   { return T_DEBUG; }
 full                    { return T_FULL; }
 skill                   { return T_SKILL; }
@@ -328,15 +361,15 @@ spy                     { return T_SPY; }
 external                { return T_EXTERNAL; }
 operwall                { return T_OPERWALL; }
 servnotice              { return T_SERVNOTICE; }
-servconn                { return T_SERVCONN; }
 invisible               { return T_INVISIBLE; }
 wallop                  { return T_WALLOP; }
 callerid                { return T_CALLERID; }
+softcallerid            { return T_SOFTCALLERID; }
 drone                   { return T_DRONE; }
 locops                  { return T_LOCOPS; }
 god                     { return T_GOD; }   
 nickservreg             { return T_NICKSERVREG; } 
-
+topicburst		{ return TOPICBURST; }
 
 weeks			{ return WEEKS; }
 week			{ return WEEKS; }
@@ -379,20 +412,28 @@ tb			{ return TBYTES; }
 %%
 
 /* C-comment ignoring routine -kre*/
-void ccomment(void)
+static void
+ccomment(void)
 {
-  int c;
+  int c = 0;
 
   /* log(L_NOTICE, "got comment"); */
   while (1)
   {
     while ((c = input()) != '*' && c != EOF)
-      if (c == '\n') ++lineno;
+      if (c == '\n')
+        ++lineno;
+
     if (c == '*')
     {
-      while ((c = input()) == '*');
-      if (c == '/') break;
+      while ((c = input()) == '*')
+        /* Nothing */ ;
+      if (c == '/')
+        break;
+      else if (c == '\n')
+        ++lineno;
     }
+
     if (c == EOF)
     {
       YY_FATAL_ERROR("EOF in comment");
@@ -400,59 +441,56 @@ void ccomment(void)
        * the stupid unused function warning
        * gcc generates 
        */
-      if(1 == 0)
-		yy_fatal_error("EOF in comment");
+      if (1 == 0)
+        yy_fatal_error("EOF in comment");
       break;
     }
   }
 }
 
-/* #-comment style, look for #include */
-#define INCLUDE "#include"
-void hashcomment(void) 
-{
-  if (strlen(yytext) < strlen(INCLUDE))
-    return;
-
-  if (!strncasecmp(yytext, INCLUDE, strlen(INCLUDE))) 
-      yyerror("You probably meant '.include', skipping");
-}
-
 /* C-style .includes. This function will properly swap input conf buffers,
  * and lineno -kre */
-void cinclude(void)
+static void
+cinclude(void)
 {
-  char *c;
-  if ((c = strchr(yytext, '<')) == NULL)
-    *strchr(c = strchr(yytext, '"') + 1, '"') = 0;
+  char *p = NULL;
+
+  if ((p = strchr(yytext, '<')) == NULL)
+    *strchr(p = strchr(yytext, '"') + 1, '"') = '\0';
   else
-    *strchr(++c, '>') = 0;
+    *strchr(++p, '>') = '\0';
 
   /* log(L_NOTICE, "got include %s!", c); */
 
   /* do stacking and co. */ 
   if (include_stack_ptr >= MAX_INCLUDE_DEPTH)
-    ilog(L_ERROR, "Includes nested too deep in %s", c);
+    ilog(L_ERROR, "Includes nested too deep in %s", p);
   else
   {
-    FBFILE *tmp_fbfile_in;
+    FBFILE *tmp_fbfile_in = NULL;
     char filenamebuf[IRCD_BUFSIZE];
-    
-    snprintf(filenamebuf, sizeof(filenamebuf), "%s/%s", ETCPATH, c);
+
+    if (*p == '/')  /* if it is an absolute path */
+      snprintf(filenamebuf, sizeof(filenamebuf), "%s", p);
+    else
+      snprintf(filenamebuf, sizeof(filenamebuf), "%s/%s", ETCPATH, p);
+
     tmp_fbfile_in = fbopen(filenamebuf, "r");
     
     if (tmp_fbfile_in == NULL)
     {
-      ilog(L_ERROR, "Cannot include %s", filenamebuf);
+      ilog(L_ERROR, "Unable to read configuration file '%s': %s",
+           filenamebuf, strerror(errno));
       return;
     }
+
     lineno_stack[include_stack_ptr] = lineno;
     lineno = 1;
     inc_fbfile_in[include_stack_ptr] = conf_fbfile_in;
     strlcpy(conffile_stack[include_stack_ptr], conffilebuf, IRCD_BUFSIZE);
     include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
     conf_fbfile_in = tmp_fbfile_in;
-    snprintf(conffilebuf, sizeof(conffilebuf), "%s", c);
+    snprintf(conffilebuf, sizeof(conffilebuf), "%s", p);
     yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
   }
 }
@@ -460,7 +498,8 @@ void cinclude(void)
 /* This is function that will be called on EOF in conf file. It will
  * apropriately close conf if it not main conf and swap input buffers -kre
  * */
-int ieof(void)
+static int
+ieof(void)
 {
   /* log(L_NOTICE, "return from include stack!"); */
   if (include_stack_ptr)
@@ -474,12 +513,14 @@ int ieof(void)
     lineno = 1;
     return 1;
   }
+
   /* switch buffer */
   /* log(L_NOTICE, "deleting include_stack_ptr=%d", include_stack_ptr); */
   yy_delete_buffer(YY_CURRENT_BUFFER);
   lineno = lineno_stack[include_stack_ptr];
   conf_fbfile_in = inc_fbfile_in[include_stack_ptr];
-  strlcpy(conffilebuf, conffile_stack[include_stack_ptr], IRCD_BUFSIZE); 
+  strlcpy(conffilebuf, conffile_stack[include_stack_ptr], sizeof(conffilebuf)); 
   yy_switch_to_buffer(include_stack[include_stack_ptr]);
+
   return 0;
 }

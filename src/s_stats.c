@@ -42,71 +42,48 @@ init_stats(void)
 /* tstats()
  *
  * inputs	- client to report to
- * output	- NONE 
+ * output	- NONE
  * side effects	-
  */
 void
 tstats(struct Client *source_p)
 {
-  struct Client *target_p;
+  const struct Client *target_p = NULL;
   struct ServerStatistics *sp;
-  struct ServerStatistics  tmp;
+  struct ServerStatistics tmp;
   dlink_node *ptr;
 
   sp = &tmp;
   memcpy(sp, ServerStats, sizeof(struct ServerStatistics));
 
-  sp->is_sv = dlink_list_length(&serv_list);
+  /*
+   * must use the += operator. is_sv is not the number of currently
+   * active server connections. Note the incrementation in
+   * s_bsd.c:close_connection.
+   */
+  sp->is_sv += dlink_list_length(&serv_list);
 
   DLINK_FOREACH(ptr, serv_list.head)
   {
     target_p = ptr->data;
 
-    sp->is_sbs += target_p->localClient->sendB;
-    sp->is_sbr += target_p->localClient->receiveB;
-    sp->is_sks += target_p->localClient->sendK;
-    sp->is_skr += target_p->localClient->receiveK;
+    sp->is_sbs += target_p->localClient->send.bytes;
+    sp->is_sbr += target_p->localClient->recv.bytes;
     sp->is_sti += CurrentTime - target_p->firsttime;
-
-    if (sp->is_sbs > 1023)
-    {
-      sp->is_sks += (sp->is_sbs >> 10);
-      sp->is_sbs &= 0x3ff;
-    }
-
-    if (sp->is_sbr > 1023)
-    {
-      sp->is_skr += (sp->is_sbr >> 10);
-      sp->is_sbr &= 0x3ff;
-    }
   }
 
-  sp->is_cl = dlink_list_length(&local_client_list);
+  sp->is_cl += dlink_list_length(&local_client_list);
 
   DLINK_FOREACH(ptr, local_client_list.head)
   {
     target_p = ptr->data;
 
-    sp->is_cbs += target_p->localClient->sendB;
-    sp->is_cbr += target_p->localClient->receiveB;
-    sp->is_cks += target_p->localClient->sendK;
-    sp->is_ckr += target_p->localClient->receiveK;
+    sp->is_cbs += target_p->localClient->send.bytes;
+    sp->is_cbr += target_p->localClient->recv.bytes;
     sp->is_cti += CurrentTime - target_p->firsttime;
-
-    if (sp->is_cbs > 1023)
-    {
-      sp->is_cks += (sp->is_cbs >> 10);
-      sp->is_cbs &= 0x3ff;
-    }
-
-    if (sp->is_cbr > 1023)
-    {
-      sp->is_ckr += (sp->is_cbr >> 10);
-      sp->is_cbr &= 0x3ff;
-    }
   }
 
-  sp->is_ni = dlink_list_length(&unknown_list);
+  sp->is_ni += dlink_list_length(&unknown_list);
 
   sendto_one(source_p, ":%s %d %s T :accepts %u refused %u",
              me.name, RPL_STATSDEBUG, source_p->name, sp->is_ac, sp->is_ref);
@@ -125,15 +102,16 @@ tstats(struct Client *source_p)
 
   sendto_one(source_p, ":%s %d %s T :connected %u %u",
              me.name, RPL_STATSDEBUG, source_p->name, 
-	     (unsigned int)dlink_list_length(&local_client_list), 
-	     (unsigned int)dlink_list_length(&serv_list));
-  sendto_one(source_p, ":%s %d %s T :bytes sent %d.%uK %d.%uK",
+	     (unsigned int)sp->is_cl,
+             (unsigned int)sp->is_sv);
+  sendto_one(source_p, ":%s %d %s T :bytes sent %llu %llu",
              me.name, RPL_STATSDEBUG, source_p->name,
-             (int)sp->is_cks, sp->is_cbs, (int)sp->is_sks, sp->is_sbs);
-  sendto_one(source_p, ":%s %d %s T :bytes recv %d.%uK %d.%uK",
+             sp->is_cbs, sp->is_sbs);
+  sendto_one(source_p, ":%s %d %s T :bytes recv %llu %llu",
              me.name, RPL_STATSDEBUG, source_p->name,
-             (int)sp->is_ckr, sp->is_cbr, (int)sp->is_skr, sp->is_sbr);
-  sendto_one(source_p, ":%s %d %s T :time connected %d %d",
-             me.name, RPL_STATSDEBUG, source_p->name, (int)sp->is_cti,
-	     (int)sp->is_sti);
+             sp->is_cbr, sp->is_sbr);
+  sendto_one(source_p, ":%s %d %s T :time connected %u %u",
+             me.name, RPL_STATSDEBUG, source_p->name,
+             (unsigned int)sp->is_cti,
+	     (unsigned int)sp->is_sti);
 }

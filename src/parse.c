@@ -188,7 +188,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
   if (IsDefunct(client_p))
     return;
 
-  assert(client_p->localClient->fd >= 0);
+  assert(client_p->localClient->fd.flags.open);
   assert((bufend - pbuffer) < 512);
 
   for (ch = pbuffer; *ch == ' '; ch++) /* skip spaces */
@@ -218,9 +218,21 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
        * XXX it could be useful to know which of these occurs most frequently.
        * the ID check should always come first, though, since it is so easy.
        */
-      if ((from = find_person(sender)) == NULL)
+      if ((from = find_person(client_p, sender)) == NULL)
+      {
         from = find_server(sender);
 
+	if (from == NULL && IsCapable(client_p, CAP_TS6) &&
+	  client_p->name[0] == '*' && IsDigit(*sender) && strlen(sender) == 3)
+	{
+          /* Dirty hack to allow messages from masked SIDs (i.e. the ones
+           * hidden by fakename="..."). It shouldn't break anything, since
+           * unknown SIDs don't happen during normal ircd work --adx
+           */
+	  from = client_p;
+	}
+      }
+      
       /* Hmm! If the client corresponding to the
        * prefix is not found--what is the correct
        * action??? Now, I will ignore the message
@@ -293,7 +305,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
        */
       if (pbuffer[0] != '\0')
       {
-        if (IsPerson(from))
+        if (IsClient(from))
           sendto_one(from, form_str(ERR_UNKNOWNCOMMAND),
                      me.name, from->name, ch);
       }
@@ -371,12 +383,12 @@ handle_command(struct Message *mptr, struct Client *client_p,
     else
     {
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                           "Dropping server %s due to (invalid) command '%s'"
+                           "Dropping server %s due to (invalid) command '%s' "
                            "with only %d arguments (expecting %d).",
                            client_p->name, mptr->cmd, i, mptr->parameters);
       ilog(L_CRIT, "Insufficient parameters (%d) for command '%s' from %s.",
            i, mptr->cmd, client_p->name);
-      exit_client(client_p, client_p, client_p,
+      exit_client(client_p, client_p,
                   "Not enough arguments to server command.");
     }
   }
@@ -515,6 +527,8 @@ msg_tree_parse(const char *cmd, struct MessageTree *root)
   for (mtree = root->pointers[(*cmd) & (MAXPTRLEN-1)]; mtree != NULL;
        mtree = mtree->pointers[(*++cmd) & (MAXPTRLEN-1)])
   {
+    if (!IsAlpha(*cmd))
+      return(NULL);
     if (*(cmd + 1) == '\0')
       return(mtree->msg); /* NULL if parsed invalid/unknown command */
 
@@ -652,22 +666,13 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
     sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL, "Message for %s[%s] from %s",
                          source_p->name, source_p->from->name,
                          get_client_name(client_p, SHOW_IP));
-
-    if (IsServer(client_p))
-    {
-      sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
-                           "Not dropping server %s (%s) for Fake Direction",
-                           client_p->name, source_p->name);
-      return(-1);
-    }
-
-    if (IsClient(client_p))
-      sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
-                           "Would have dropped client %s (%s@%s) [%s from %s]",
-                           client_p->name, client_p->username, client_p->host,
-                           client_p->user->server->name, client_p->from->name);
+    sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL, "Message for %s[%s] from %s",
+                         source_p->name, source_p->from->name,
+                         get_client_name(client_p, SHOW_IP));
+    sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
+                         "Not dropping server %s (%s) for Fake Direction",
+                         client_p->name, source_p->name);
     return(-1);
-
     /* return exit_client(client_p, client_p, &me, "Fake Direction");*/
   }
 
@@ -680,14 +685,10 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
    *
    * all servers must be TS these days --is
    */
-  sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
+  sendto_gnotice_flags(UMODE_DEBUG, L_ADMIN, me.name, &me, NULL,
                        "Message for %s[%s@%s!%s] from %s (TS, ignored)",
                        source_p->name, source_p->username, source_p->host,
                        source_p->from->name, get_client_name(client_p, SHOW_IP));
- 
-
-
-
 
   return(0);
 }
@@ -767,9 +768,10 @@ do_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
     tl = ircsprintf(t, " %s", parv[i]);
     t += tl;
   }
+
   ircsprintf(t," :%s", parv[parc-1]);
 
-  if (((target_p = find_person(parv[1])) != NULL) ||
+  if (((target_p = find_person(client_p, parv[1])) != NULL) ||
       ((target_p = find_server(parv[1])) != NULL))
   {
     if (IsMe(target_p)) 
@@ -800,8 +802,8 @@ do_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
        */
       num = atoi(numeric);
 
-      if ((num != ERR_NOSUCHNICK) /*&& (num != ERR_NOTARGET) - TS6 - we dont have this yet*/)
-        sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+      if ((num != ERR_NOSUCHNICK))
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
 			     "*** %s(via %s) sent a %s numeric to me: %s",
 			     source_p->name, client_p->name, numeric, buffer);
       return;
@@ -822,14 +824,14 @@ do_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
     if (ConfigServerHide.hide_servers &&
         MyClient(target_p) && !IsOper(target_p))
       sendto_one(target_p, ":%s %s %s%s", me.name, numeric, target_p->name, buffer);
-/*    else if (!MyClient(target_p) && IsCapable(target_p->from, CAP_TS6) && HasID(source_p))
-      sendto_one(target_p, ":%s %s %s%s", source_p->id, numeric, target_p->id, buffer);*/
+    else if (!MyClient(target_p) && IsCapable(target_p->from, CAP_TS6) && HasID(source_p))
+      sendto_one(target_p, ":%s %s %s%s", source_p->id, numeric, target_p->id, buffer);
     else /* either it is our client, or a client linked throuh a non-ts6 server. must use names! */
       sendto_one(target_p, ":%s %s %s%s", source_p->name, numeric, target_p->name, buffer);
     return;
   }
   else if ((chptr = hash_find_channel(parv[1])) != NULL)
-    sendto_channel_local(ALL_MEMBERS, chptr,
+    sendto_channel_local(ALL_MEMBERS, NO, chptr,
 			 ":%s %s %s %s",
 			 source_p->name,
 			 numeric, chptr->chname, buffer);

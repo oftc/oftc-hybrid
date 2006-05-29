@@ -274,7 +274,6 @@ unhook_hub_leaf_confs(void)
 %token  PING_TIME
 %token  PING_WARNING
 %token  PORT
-%token  SSLPORT
 %token  QSTRING
 %token  QUIET_ON_BAN
 %token  REASON
@@ -348,10 +347,11 @@ unhook_hub_leaf_confs(void)
 %token  T_SERVCONN
 %token  T_SKILL
 %token  T_SPY
+%token  T_SSL
 %token  T_UMODES
 %token  T_UNAUTH
 %token  T_UNRESV
-%token  T_UNXLINE 
+%token  T_UNXLINE
 %token  T_WALLOP
 %token  T_GOD
 %token  T_NICKSERVREG

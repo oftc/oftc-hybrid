@@ -32,7 +32,7 @@
 
 struct Message error_msgtab = {
  "ERROR", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  { m_error, m_ignore, ms_error, m_ignore, m_ignore }
+  { m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore }
 };
 
 /*
@@ -66,7 +66,7 @@ m_error(struct Client *client_p, struct Client *source_p,
   }
 
   if (MyClient(source_p))
-    exit_client(client_p, source_p, source_p, "ERROR");
+    exit_client(source_p, source_p, "ERROR");
 }
 
 void
