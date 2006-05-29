@@ -13,8 +13,8 @@
 - What is resv, and why was it coded?
 
   Resv is a method of 'juping' or 'reserving' nicks and channels, to prevent
-  local clients using them.  It is commonly used to block channels which
-  are home to abusers, and which attract DoS.  It can also be used to stop
+  local clients using them. It is commonly used to block channels which
+  are home to abusers, and which attract DoS. It can also be used to stop
   people pretending to be services, on a network that doesn't support them.
 
   It was coded to replace the method in hybrid-6 of blocking channels and
@@ -25,26 +25,26 @@
 
 - How can I create a resv?
 
-  There are two types of resv.  'permanent' and 'temporary'.  Temporary
+  There are two types of resv. 'permanent' and 'temporary'. Temporary
   resv's will be erased when a server restarts (they will stay through a
-  rehash).  Permanent resv's will stay through a restart.
+  rehash). Permanent resv's will stay through a restart.
 
   You may add permanent resv's into ircd.conf, but they are deprecated.
   They should have the reason for the resv, followed by the nicks and
-  channels being resv'd.  The following would block the channel
+  channels being resv'd. The following would block the channel
   #services, the nick 'services' and any nick ending in 'serv' (ie: chanserv)
 
   resv {
-  	reason="There are no services on this network";
-	channel="#services";
-	nick="services";
-	nick="*serv";
+  	reason = "There are no services on this network";
+	channel = "#services";
+	nick = "services";
+	nick = "*serv";
   };
 
   All resv's created by RESV are stored in cresv.conf or nresv.conf depending
   on the nature of the RESV.
 
-    Syntax:  /quote resv <#channel|nick> :<reason>
+    Syntax: /quote resv <#channel|nick> :<reason>
 
   So to resv #warez:
     /quote resv #warez :No warez on this network.
@@ -65,7 +65,7 @@
 
   If the resv was made using /RESV, then use the unresv command:
     
-    Syntax:  /quote unresv <#channel|nick>
+    Syntax: /quote unresv <#channel|nick>
 
 - Can I make a resv on all servers?
 
@@ -113,6 +113,3 @@
   to search through all the channels.
 
   Besides.. it's legal for a channel to be called #*warez* anyway ;)
-
---
-EOF

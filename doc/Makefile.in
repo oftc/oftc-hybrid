@@ -3,7 +3,7 @@ INSTALL		= @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
 RM		= @RM@
 prefix		= $(DESTDIR)@prefix@
-mandir          = @mandir@
+mandir          = $(DESTDIR)@mandir@
 
 all:
 

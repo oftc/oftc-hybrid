@@ -1,5 +1,5 @@
                            ------------------------
-			   What's new in Hybrid 7.1
+			   What's new in Hybrid 7.2
 			   ------------------------
 
 ===================
@@ -17,6 +17,8 @@ supported platforms
   Yusuf for testing.
 - Other than those, the platforms we 'support' in README.FIRST are all still
   actively supported.
+- Basic support for building ircd-hybrid through Microsoft Visual C has been
+  added as well. Please review the files in contrib/ and the README.
 
 ===================
 configure and build
@@ -42,41 +44,39 @@ configure and build
 internationalization
 ====================
 
-- We have ditched our buggy gettext support and we now use our own .lang files
-  to provide translated numeric messages. See doc/messages.txt for the full
-  scoop. It is now very easy to write your own (and for that see README in
-  messages/.)
+- We now use our own .lang files to provide translated numeric messages. See
+  doc/messages.txt for information on how to use it and how to write your own.
 
 ==================
 networking support
 ==================
 
-- Our IPv6 support has been fleshed out and now can coexist peacefully with
-  IPv4. It is enabled by default if available and does not rely on the system
-  having a working IPv6 interface.
-- Cryptlinks now use Nagle's TCP_NODELAY algorithm to save overhead and are
-  hence more stable. (Previously only used with ziplinks)
-
-==============
-shared modules
-==============
-
-- Previously it was not possible to change a loaded module in a running ircd
-  and then proceed to unload it. Attempting to do so would crash the ircd.
-  Greg Prosser has since provided a fix which has been merged into this release.
+- IPv6 support is now automatically enabled/disabled depending on whether your
+  kernel supports it or not and can co-exist peacefully with IPv4.
+- Cryptlinks now use Nagle's TCP_NODELAY algorithm to save overhead and is
+  hence, more stable. (Previously only used with ziplinks).
+- Client SSL has now been added for users who wish to connect to ircd-hybrid
+  with their SSL enabled client. Please review etc/example.conf for instructions
+  on how to configure ircd-hybrid to listen for client SSL connections.
 
 =============
 ircd features
 =============
 
-- X-line (gecos ban) support has been added as module m_xline.c. X-lines are
-  stored in their own configuration files, and using ircd.conf to hardcode
-  X-lines is now deprecated.
-- RESVs are now written into a configuration file. Using ircd.conf for these
-  is now deprecated.
-- Bill Jonus has written clustering support for IRC networks that wish to share
+- X-Line (gecos ban) support has been added. X-Lines are stored xline.conf
+  just like K-Lines and D-Lines are stored in kline.conf and dline.conf,
+  respectively.
+- RX-Lines have been added for people who wish to use Regular Expressions to
+  issue gecos bans (RXLINE command).
+- RK-Lines have been added for people who wish to use Regular Expressions to
+  issue K-Lines (RKLINE command).
+- Nick and channel RESVs are now stored in nresv.conf and cresv.conf, respectively.
+- Bill Bierman has written clustering support for IRC networks that wish to share
   a common list of resvs, klines, xlines, and locops.
-
-[ NOT FINISHED ]
+- New ACL G-lines can now be 'rejected' from being placed on the local server as
+  well as 'blocked' from being propagated through the local server onto another
+  server. Failures can also be logged for rejected and/or blocked glines.
+- Testmask feature allows you to count number of local and remote clients for
+  a given hostmask.
 
 $Id$

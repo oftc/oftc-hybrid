@@ -1,9 +1,7 @@
+$Id$
 		          Lazy Links
 			  ==========
-
 	(Ideas by Dianora and orabidoo; initial spec by orabidoo)
-
-
 
 Basic idea: leaf servers don't really need to know everything about
 	    every single user and channel out there;  connecting a
@@ -27,32 +25,32 @@ looks like this:
 		  v
 		 ALL
 
-where LLL and ALL are Lazy Link Leaves, Hub is a Hub, and OH is anOther
+where LLL and ALL are Lazy Link Leaves, Hub is a Hub, and OH is another
 hub.
 
 
 1) Channels
 
 Hubs, as usual, have full information about all channels, with their
-membership, chanop status, TS, etc.  This information is authoritative,
+membership, chanop status, TS, etc. This information is authoritative,
 which means that they can use it to make decisions such as "should this
-user be given ops at this point".  This is just the way things are now
-already.  And, as usual, traditional leaves have all this information
+user be given ops at this point". This is just the way things are now
+already. And, as usual, traditional leaves have all this information
 too, and keep having it.
 
 Lazy Leaves, OTOH, depend on their uplinks for much of their
-information.  They have partial information, meaning that they don't
-have the full channel list.  However, when they have something about a
+information. They have partial information, meaning that they don't
+have the full channel list. However, when they have something about a
 channel, they do have *everything* about it, and their information is
 authoritative, so they can decide locally on chanop matters.
 
 For this, hubs need to know which channels each of its Lazy Leaves has.
 This is necessarily a double-ended map; it can't be just a single flag
-on each channel.  For efficiency, it could be implemented on the hub by
+on each channel. For efficiency, it could be implemented on the hub by
 adding a 32-bit int to the server-link structure, and assigning a
 bitmask (one of 1, 2, 4, ... up to 0x80000000) to each of its Lazy Leaf
 links.  That would support up to 32 Lazy Leaves per hub, and make it
-really easy and cheap to keep this information.  (The only slight
+really easy and cheap to keep this information. (The only slight
 downside being that, when a Lazy Leaf link breaks, you need to clear a
 bit on every single channel.)
 
@@ -62,8 +60,8 @@ bit on every single channel.)
 When a client on a LLL sends a "JOIN #channel", LLL does as usual: if it
 has the channel locally, it just joins the user, sends an SJOIN to HUB,
 and all is well; if it doesn't have the channel, it creates it, sends a
-SJOIN to HUB with the current time as the TS.  LLL tells the user that it
-has joined the channel, but it doesn't tell it that it has ops yet.  So
+SJOIN to HUB with the current time as the TS. LLL tells the user that it
+has joined the channel, but it doesn't tell it that it has ops yet. So
 LLL sends
 
 [LLL -> HUB]     :LLL SJOIN LLL_TS #channel :@LLLuser
@@ -97,12 +95,12 @@ normally goes into m_join:
 	so it knows that that LLL knows about that channel now.
 
 When LLL gets a SJOIN from its hub that includes in the userlist one of
-LLL's local users, it interprets that that validates a join.  If LLLuser
+LLL's local users, it interprets that that validates a join. If LLLuser
 has ops in that list, then LLL sends:
 
     [LLL --> LLLuser]  :HUB MODE #channel +o LLLuser
 
-If not, it just skips that nick from the list.  In either case, it
+If not, it just skips that nick from the list. In either case, it
 processes the rest of the SJOIN information (modes, other nicks) by the
 usual SJOIN rules.
 
@@ -113,8 +111,8 @@ The beauty of this is that, with the rules above, channel bursts get
 avoided, without the need to do anything more.
 
 When LLL and HUB connect to each other, LLL sends a channel burst as
-usual; HUB doesn't.  By the rules above, HUB will reply to each first
-LLL's SJOIN for a channel with a SJOIN back with its own info.  So at the
+usual; HUB doesn't. By the rules above, HUB will reply to each first
+LLL's SJOIN for a channel with a SJOIN back with its own info. So at the
 end of the burst, LLL has been put up to date with all the channels it
 needs to know about.
 
@@ -134,7 +132,7 @@ Upon receiving a "DROP" command from a Lazy Leaf, the Hub just clears
 the Lazy Leaf's bit on that channel.
 
 Alternatively, a Lazy Leaf could decide to cache channels even without
-having any clients on them.  All it has to do is not send the "DROP"
+having any clients on them. All it has to do is not send the "DROP"
 command to its hub.
 
 For MODE commands coming from the rest of the net and related to
@@ -157,8 +155,8 @@ Nicks are simpler, because they are atomic, there is no list associated
 with them.
 
 Again, the hub needs to know, for each nick, which of its Lazy Leaves
-know of it.  This can be done with the same 32-bit bitmask as with
-servers.  For each user, the associated bit is 1, unless a NICK command
+know of it. This can be done with the same 32-bit bitmask as with
+servers. For each user, the associated bit is 1, unless a NICK command
 has been sent or received for that user, on the given Lazy Leaf link.
 
 Once again too, the connect burst gets reduced to just the smaller side:
@@ -175,12 +173,12 @@ For simplicity, we could kill multiple-destination WHOIS, if that's not
 already done, and all kinds of WHOIS *pattern*.
 
 When LLLuser does "WHOIS somenick", if the nick is known to LLL, it
-replies normally.  If it isn't, then LLL routes it to HUB:
+replies normally. If it isn't, then LLL routes it to HUB:
 
 [LLL --> HUB]   :LLLuser WHOIS Somenick
 
 HUB replies with the usual numeric, and also with a burst-style NICK
-introduction, so that from that point on LLL knows about Somenick.  HUB
+introduction, so that from that point on LLL knows about Somenick. HUB
 also sets LLL's bit for Somenick.
 
 [HUB --> LLL]   :HUB (numerics) WHOIS info
@@ -191,21 +189,21 @@ also sets LLL's bit for Somenick.
 
 These all take lists of users; for a NOTIFY or USERHOST on LLL from one
 of its users, the server checks if *all* of the nicks involved are
-known.  If at least one isn't, then the request must be passed as such
-to HUB.  HUB then replies to the client, and also sends a NICK
+known. If at least one isn't, then the request must be passed as such
+to HUB. HUB then replies to the client, and also sends a NICK
 introduction for each client that LLL didn't previously have.
 
 Note: this kind of sucks, because most NOTIFY lines will tend to include
 a nick or two that isn't on IRC at the moment, which means they will be
-relayed.  With almost every client out there having NOTIFY, this might
-well nullify the whole advantage of nick laziness.  Or maybe not.
+relayed. With almost every client out there having NOTIFY, this might
+well nullify the whole advantage of nick laziness. Or maybe not.
 Someone needs to do some math on it, or some testing, or both.
 
 
 2.3) PRIVMSG and NOTICE
 
 When LLLuser sends "PRIVMSG somenick :message", this must be sent to
-HUB, even if somenick isn't known locally.  HUB will figure it out,
+HUB, even if somenick isn't known locally. HUB will figure it out,
 and possibly send a numeric back.
 
 Same for NOTICE.
@@ -232,13 +230,12 @@ and let it deal with it.
 
 There is one particularly treacherous potential desync: a Lazy Leaf is
 convinced that it has authoritative information about a channel, but its
-hub is convinced that the leaf doesn't.  The hub doesn't keep sending
+hub is convinced that the leaf doesn't. The hub doesn't keep sending
 new information, so the leaf's info grows stale, but it keeps acting on
 it, which eventually leads to wrong decisions.
 
 It is important that the protocol ensures that such desyncs are
-impossible.  There should also be periodic cleanup, whereby a Lazy Leaf
+impossible. There should also be periodic cleanup, whereby a Lazy Leaf
 scans its own channel-user list, and deletes its own information about
 any channel on which it doesn't have any local users (and complains to
 its opers about it, because that should never happen).
-

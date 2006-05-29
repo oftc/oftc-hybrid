@@ -2,12 +2,11 @@
 
    $Id$
 
-   Copyright (c) 2001, 2003 by ircd-hybrid team
+   Copyright (c) 2005 by ircd-hybrid team
 
      ----------------------------------------------------------------------
 
-   Hybrid has obsoleted its buggy gettext support for i18n'd IRC status
-   messages. It now supports its own .lang format.
+   Hybrid now supports its own .lang format for i18n'd IRC status messages.
 
    This document is split into two parts, using message files, and creating
    your own.
@@ -41,10 +40,10 @@
    and change whichever status lines you wish.
 
    Once you have your customized message file ready, just copy it into the
-   same place as the rest of the messages, typically /usr/local/ircd/messages.
+   same place as the rest of the messages, typically $PREFIX/messages.
 
    If you think your .lang file deserves to be in the official distribution,
-   submit it to us at hybrid@the-project.org. It must be complete and as error-
+   submit it to us at bugs@ircd-hybrid.org. It must be complete and as error-
    free as you can make it since it is subject to public consumption. Providing
    a translation will be a way that nearly anyone who knows multiple languages
    to contribute to ircd, and get their name in the translation credits.

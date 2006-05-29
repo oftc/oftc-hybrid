@@ -89,26 +89,6 @@
 
      ----------------------------------------------------------------------
 
-                             Questions and Answers
-
-&channels and remote WHOIS
-
-   I brought this up a short while ago; and there are some holes in server
-   hide at the present time with local channels. The issue I raised, if a
-   user is known to be in a local channel, issuing WHOIS servera nick, WHOIS
-   serverb nick, etc. until the local channel is seen in the WHOIS data does
-   not exist. With disable_remote_commands enabled, the WHOIS is still sent
-   (in order to see idle time and the away message) but the server queried
-   will always be the server the user is on. The user can never use remote
-   WHOIS to determine the server a user is on.
-
-   If an abuser knows that a user is on a specific &channel, they could still
-   connect to each server until they find the server showing the user in the
-   local channel in a local WHOIS. The disable_local_channels option has been
-   created to handle this risk.
-
-     ----------------------------------------------------------------------
-
 Using Non-QS Compliant Hubs
 
    The flattened LINKS option will, as a side effect, display all user QUIT's
@@ -138,9 +118,3 @@ Using Non-QS Compliant Hubs
    currently running daemons that support QS. Hybrid 5 and 2.8.21+CSr servers
    do not support QS, and will leak server names (and therefore routing
    information) on splits.
-
-     ----------------------------------------------------------------------
-
-                                     Index
-
-   XXX - Fill me in with other questions and possible issues
