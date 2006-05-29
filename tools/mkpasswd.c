@@ -9,9 +9,6 @@
 ** /dev/random for salt generation added by 
 ** Aaron Sethman <androsyn@ratbox.org>
 **
-** VMS support by Edward Brocklesby, crypt.c implementation
-** phk@login.dknet.dk
-**
 ** $Id$
 */
 #include <stdio.h>
@@ -21,16 +18,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#ifdef __vms
-# include descrip
-# include psldef
-# include iodef
-# include ssdef
-# include starlet
-# include uaidef
-# include stsdef
-#endif
-
 #define FLAG_MD5     0x00000001
 #define FLAG_DES     0x00000002
 #define FLAG_SALT    0x00000004
@@ -39,13 +26,7 @@
 #define FLAG_BLOWFISH 0x00000020
 #define FLAG_ROUNDS  0x00000040
 #define FLAG_EXT     0x00000080
-#define FLAG_PURDY   0x00000100
-#define FLAG_USER    0x00000200
-#define FLAG_RAW     0x00000400
-
-#ifdef __vms
-static char *getpass();
-#endif
+#define FLAG_RAW     0x00000100
 
 extern char *crypt();
 
@@ -62,17 +43,16 @@ static char *generate_poor_salt(char *, int);
 static void full_usage(void);
 static void brief_usage(void);
 
-static char saltChars[] =
+static const char saltChars[] =
        "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
        /* 0 .. 63, ascii - 64 */
 
 int main(int argc, char *argv[])
 {
-  char *plaintext = NULL;
+  const char *plaintext = NULL;
   int c;
   char *saltpara = NULL;
   char *salt;
-  char *username = NULL;
   int flag = 0;
   int length = 0; /* Not Set */
   int rounds = 0; /* Not set, since extended DES needs 25 and blowfish needs
@@ -81,7 +61,7 @@ int main(int argc, char *argv[])
                   ** parameter.
                   */
 
-  while( (c=getopt(argc, argv, "mdbevu:r:h?l:s:p:R:")) != -1)
+  while ((c = getopt(argc, argv, "mdber:h?l:s:p:R:")) != -1)
   {
     switch(c)
     {
@@ -89,27 +69,15 @@ int main(int argc, char *argv[])
         flag |= FLAG_MD5;
         break;
       case 'd':
-#ifdef __vms
-        printf("DES is not supported on VMS.  Sorry\n");
-#else
         flag |= FLAG_DES;
-#endif
         break;
       case 'b':
-#ifdef __vms
-	printf("BlowFish is not supported on VMS.  Sorry\n");
-#else
         flag |= FLAG_BLOWFISH;
         rounds = 4;
-#endif
         break;
       case 'e':
-#ifdef __vms
-        printf("Extended DES is not supported on VMS.  Sorry\n");
-#else
         flag |= FLAG_EXT;
         rounds = 25;
-#endif
         break;
       case 'l':
         flag |= FLAG_LENGTH;
@@ -126,17 +94,6 @@ int main(int argc, char *argv[])
       case 'p':
         flag |= FLAG_PASS;
         plaintext = optarg;
-        break;
-      case 'v':
-#ifndef VMS
-        printf("Purdy algorithm is only supported on VMS. Sorry\n");
-#else
-        flag |= FLAG_PURDY;
-#endif
-        break;
-      case 'u':
-        flag |= FLAG_USER;
-        username = optarg;
         break;
       case 'R':
         flag |= FLAG_RAW;
@@ -155,12 +112,6 @@ int main(int argc, char *argv[])
         break;
     }
   }
-
-#ifdef __vms
-        /* default to md5 */
-        if (!(flag & FLAG_MD5) && !(flag & FLAG_PURDY))
-                flag |= FLAG_MD5;
-#endif
 
   if (flag & FLAG_MD5)
   {
@@ -234,30 +185,7 @@ int main(int argc, char *argv[])
     plaintext = getpass("plaintext: ");
   }
 
-  if ((flag & FLAG_PURDY) && !username)
-        username = getpass("username: ");
-
-#ifdef __vms
-  if (flag & FLAG_PURDY)
-  {
-        $DESCRIPTOR(plain_desc, plaintext);
-        $DESCRIPTOR(user_desc, username);
-        unsigned long r;
-        long hash[2];
-
-        r = sys$hash_password(&plain_desc, UAI$C_PURDY_S, 0, &user_desc,
-                                &hash);
-        if (!$VMS_STATUS_SUCCESS(r))
-        {
-                exit(r);
-        }
-        printf("%x%x\n", hash[1], hash[0]);
-  }
-  else
-#endif
-  {
-      printf("%s\n", crypt(plaintext, salt));
-  }
+  printf("%s\n", crypt(plaintext, salt));
   return 0;
 }
 
@@ -416,24 +344,16 @@ static void full_usage(void)
   printf("         [-R rawsalt]\n");
   printf("-m Generate an MD5 password\n");
   printf("-d Generate a DES password\n");
-#ifndef __vms
   printf("-b Generate a BlowFish password\n");
   printf("-e Generate an Extended DES password\n");
-#endif
   printf("-l Specify a length for a random MD5 or BlowFish salt\n");
-#ifndef __vms
   printf("-r Specify a number of rounds for a BlowFish or Extended DES password\n");
   printf("   BlowFish:  default 4, no more than 6 recommended\n");
   printf("   Extended DES:  default 25\n");
-#endif
   printf("-s Specify a salt, 2 alphanumeric characters for DES, up to 16 for MD5,\n");
   printf("   up to 22 for BlowFish, and 4 for Extended DES\n");
   printf("-R Specify a raw salt passed directly to crypt()\n");
   printf("-p Specify a plaintext password to use\n");
-#ifdef __vms
-  printf("-u Specify the username for Purdy hash\n");
-  printf("-v Generate a VMS Purdy password\n");
-#endif
   printf("Example: mkpasswd -m -s 3dr -p test\n");
   exit(0);
 }
@@ -442,63 +362,11 @@ static void brief_usage(void)
 {
   printf("mkpasswd - password hash generator\n");
   printf("Standard DES:  mkpasswd [-d] [-s salt] [-p plaintext]\n");
-#ifndef __vms
   printf("Extended DES:  mkpasswd -e [-r rounds] [-s salt] [-p plaintext]\n");
-#endif
   printf("         MD5:  mkpasswd -m [-l saltlength] [-s salt] [-p plaintext]\n");
-#ifndef __vms
   printf("    BlowFish:  mkpasswd -b [-r rounds] [-l saltlength] [-s salt]\n");
-#endif
   printf("                           [-p plaintext]\n");
   printf("         Raw:  mkpasswd -R <rawsalt> [-p plaintext]\n");
-#ifdef __vms
-  printf("       Purdy:  mkpasswd -v [-u username] [-p plaintext]\n");
-#endif
   printf("Use -h for full usage\n");
   exit(0);
 }
-
-/* getpass replacement for VMS */
-#ifdef __vms
-
-static char *
-getpass(char *prompt)
-{
-  static char password[2][64];
-  static int i = 0;
-  int result;
-  int chan;
-  int promptlen;
-  unsigned short r;
-
-  $DESCRIPTOR(devnam, "SYS$INPUT");
-
-  struct {
-     short result;
-     short count;
-     int   info;
-  } iosb;
-
-  promptlen = strlen(prompt);
-
-  r = sys$assign(&devnam, &chan, PSL$C_USER, 0, 0);
-  if (!$VMS_STATUS_SUCCESS(r))
-        exit(r);
-
-  r = sys$qiow(0, chan, IO$_READPROMPT | IO$M_PURGE | IO$M_NOECHO, &iosb, 0, 0,
-                    password[i], 255, 0, 0, prompt, promptlen);
-  if ($VMS_STATUS_SUCCESS(r))
-        r = iosb.result;
-  if (!$VMS_STATUS_SUCCESS(r))
-        exit(r);
-
-  password[i][iosb.count] = '\0';
-  r = sys$dassgn(chan);
-  printf("\n");
-
-  if (!$VMS_STATUS_SUCCESS(r))
-        exit(r);
-
-  return password[i++];
-}
-#endif
