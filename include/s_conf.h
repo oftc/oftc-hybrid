@@ -250,7 +250,6 @@ struct AccessItem
   unsigned int     status;   /* If CONF_ILLEGAL, delete when no clients */
   unsigned int     flags;
   unsigned int     modes;
-  int              clients;  /* Number of *LOCAL* clients using this */
   struct irc_ssaddr my_ipnum; /* ip to bind to for outgoing connect */
   struct irc_ssaddr ipnum;	/* ip to connect to */
   char *           host;     /* host part of user@host */

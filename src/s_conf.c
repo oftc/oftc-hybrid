@@ -75,7 +75,6 @@ static void set_default_conf(void);
 static void validate_conf(void);
 static void read_conf(FBFILE *);
 static void clear_out_old_conf(void);
-static void flush_deleted_I_P(void);
 static void garbage_collect_ip_entries(void);
 static int hash_ip(struct irc_ssaddr *);
 static int verify_access(struct Client *, const char *, struct AccessItem **);
@@ -251,7 +250,7 @@ make_conf_item(ConfType type)
   conf->type = type;
   list = conf_item_table[type].list;
   status = conf_item_table[type].status;
-  /* XXX  conf is in the same place in each subtype */
+  /* XXX  conf_ptr is in the same place in each subtype */
   aconf = &conf->conf.AccessItem;
   aconf->conf_ptr = conf;
   /* XXX */
@@ -801,7 +800,6 @@ verify_access(struct Client *client_p, const char *username, struct AccessItem *
       {
         assert(aptr);
         *aptr = aconf;
-	aconf->clients++;
 	attach_class(client_p, aclass);
 	return(0);
       }
@@ -1129,13 +1127,16 @@ detach_conf(struct Client *client_p, ConfType type)
   struct MatchItem *match_item;
 
   aclass = client_p->localClient->class;
-  remove_from_cidr_check(&client_p->localClient->ip, aclass);
+  if (aclass != NULL)
+  {
+    remove_from_cidr_check(&client_p->localClient->ip, aclass);
 
-  if (CurrUserCount(aclass) > 0)
-    aclass->curr_user_count--;
-  if (MaxTotal(aclass) < 0 && CurrUserCount(aclass) <= 0)
-    delete_conf_item(aclass->conf_ptr);
-   
+    if (CurrUserCount(aclass) > 0)
+      aclass->curr_user_count--;
+    if (MaxTotal(aclass) < 0 && CurrUserCount(aclass) <= 0)
+      delete_conf_item(aclass->conf_ptr);
+  }
+
   /* More to do if this client is a server, else return */
   if (client_p->serv == NULL)
     return 0;
@@ -1143,10 +1144,6 @@ detach_conf(struct Client *client_p, ConfType type)
   conf = client_p->serv->sconf;
   aconf = &conf->conf.AccessItem;
 
-  if (aconf->clients > 0)
-    --aconf->clients;
-  if (aconf->clients == 0 && IsConfIllegal(aconf))
-    delete_conf_item(conf);
   client_p->serv->sconf = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->serv->leafs_hubs.head)
@@ -1485,8 +1482,6 @@ rehash(int sig)
   load_conf_modules();
 #endif
 
-  flush_deleted_I_P();
-
   rehashed_klines = 1;
 
   if (ConfigLoggingEntry.use_logging)
@@ -1703,16 +1698,14 @@ lookup_confhost(struct ConfItem *conf)
 
   aconf = &conf->conf.AccessItem;
 
-  if (EmptyString(aconf->host) ||
-      EmptyString(aconf->user))
+  if (EmptyString(aconf->host) || EmptyString(aconf->user))
   {
     ilog(L_ERROR, "Host/server name error: (%s) (%s)",
          aconf->host, conf->name);
     return;
   }
 
-  if (strchr(aconf->host, '*') ||
-      strchr(aconf->host, '?'))
+  if (strchr(aconf->host, '*') || strchr(aconf->host, '?'))
     return;
 
   /* Do name lookup now on hostnames given and store the
@@ -1964,7 +1957,6 @@ clear_out_old_conf(void)
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
   struct ConfItem *conf;
-  struct AccessItem *aconf;
   struct ClassItem *cltmp;
   struct MatchItem *match_item;
   dlink_list *free_items [] = {
@@ -1975,7 +1967,7 @@ clear_out_old_conf(void)
 
   dlink_list ** iterator = free_items; /* C is dumb */
 
-  /* We only need to free anything allocated by yyparse() here.
+  /* Only need to free anything allocated by yyparse() here.
    * Resetting structs, etc, is taken care of by set_default_conf().
    */
   
@@ -1984,70 +1976,22 @@ clear_out_old_conf(void)
     DLINK_FOREACH_SAFE(ptr, next_ptr, (*iterator)->head)
     {
       conf = ptr->data;
-      /* XXX This is less than pretty */
-      if (conf->type == SERVER_TYPE)
+      if ((conf->type == LEAF_TYPE) || (conf->type == HUB_TYPE))
       {
-	aconf = &conf->conf.AccessItem;
-	if (aconf->clients != 0)
-        {
-	  SetConfIllegal(aconf);
-	  dlinkDelete(&conf->node, &server_items);
-	}
-	else
-	{
+	match_item = &conf->conf.MatchItem;
+	if ((match_item->ref_count <= 0))
 	  delete_conf_item(conf);
-	}
-      }
-      else if (conf->type == OPER_TYPE)
-      {
-	aconf = &conf->conf.AccessItem;
-	if (aconf->clients != 0)
-        {
-	  SetConfIllegal(aconf);
-	  dlinkDelete(&conf->node, &oconf_items);
-	}
-	else
 	{
-	  delete_conf_item(conf);
+	  match_item->illegal = 1;
+	  dlinkDelete(&conf->node, *iterator);
 	}
-      }
-      else if (conf->type == CLIENT_TYPE)
-      {
-	aconf = &conf->conf.AccessItem;
-	if (aconf->clients != 0)
-        {
-	  SetConfIllegal(aconf);
-	}
-	else
-	{
-	  delete_conf_item(conf);
-	}
-      }
-      else if (conf->type == XLINE_TYPE  ||
-               conf->type == RXLINE_TYPE ||
-               conf->type == RKLINE_TYPE)
-      {
-        /* temporary (r)xlines are also on
-         * the (r)xconf items list */
-        if (conf->flags & CONF_FLAGS_TEMPORARY)
-          continue;
-
-        delete_conf_item(conf);
       }
       else
       {
-	if ((conf->type == LEAF_TYPE) || (conf->type == HUB_TYPE))
-	{
-	  match_item = &conf->conf.MatchItem;
-	  if ((match_item->ref_count <= 0))
-	    delete_conf_item(conf);
-	  else
-	  {
-	    match_item->illegal = 1;
-	    dlinkDelete(&conf->node, *iterator);
-	  }
-	}
-	else
+	/* temporary (r)xlines are also on
+	 * the (r)xconf items list 
+	 */
+	if ((conf->flags & CONF_FLAGS_TEMPORARY) == 0)
 	  delete_conf_item(conf);
       }
     }
@@ -2118,45 +2062,6 @@ clear_out_old_conf(void)
 #endif /* HAVE_LIBCRYPTO */
   delete_isupport("INVEX");
   delete_isupport("EXCEPTS");
-}
-
-/* flush_deleted_I_P()
- *
- * inputs       - none
- * output       - none
- * side effects - This function removes I/P conf items
- */
-static void
-flush_deleted_I_P(void)
-{
-  dlink_node *ptr;
-  dlink_node *next_ptr;
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-  dlink_list * free_items [] = {
-    &server_items, &oconf_items, &hub_items, &leaf_items, NULL
-  };
-  dlink_list ** iterator = free_items; /* C is dumb */
-
-  /* flush out deleted I and P lines
-   * although still in use.
-   */
-  for (; *iterator != NULL; iterator++)
-  {
-    DLINK_FOREACH_SAFE(ptr, next_ptr, (*iterator)->head)
-    {
-      conf = ptr->data;
-      aconf = &conf->conf.AccessItem;
-
-      if (IsConfIllegal(aconf))
-      {
-	dlinkDelete(ptr, *iterator);
-
-	if (aconf->clients == 0)
-	  delete_conf_item(conf);
-      }
-    }
-  }
 }
 
 /* get_conf_name()

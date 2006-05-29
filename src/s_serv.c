@@ -651,7 +651,7 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
   if (server_conf == NULL)
     return(error);
 
-  /* XXX */
+  make_server(client_p);
   attach_server_conf(client_p, server_conf);
 
   /* Now find all leaf or hub config items for this server */
@@ -1162,7 +1162,7 @@ server_estab(struct Client *client_p)
   dlinkAdd(client_p, make_dlink_node(), &global_serv_list);
   hash_add_client(client_p);
 
-  /* doesnt duplicate client_p->serv if allocated this struct already */
+  /* doesnt duplicate client_p->serv if this struct is allocated already */
   make_server(client_p);
 
   /* fixing eob timings.. -gnp */
