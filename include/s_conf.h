@@ -40,7 +40,6 @@ struct hostent;
 extern FBFILE *conf_fbfile_in;
 extern struct Callback *client_check_cb;
 
-
 struct CidrItem
 {
   struct irc_ssaddr mask;
@@ -319,70 +318,6 @@ struct conf_item_table_type
   void (*freer)(struct ConfItem *, dlink_list *);
 };
 
-#if 0
-/* general conf items link list root, other than k lines etc. */
-dlink_list server_items  = { NULL, NULL, 0 };
-dlink_list cluster_items = { NULL, NULL, 0 };
-dlink_list hub_items     = { NULL, NULL, 0 };
-dlink_list leaf_items    = { NULL, NULL, 0 };
-dlink_list oconf_items   = { NULL, NULL, 0 };
-dlink_list uconf_items   = { NULL, NULL, 0 };
-dlink_list xconf_items   = { NULL, NULL, 0 };
-dlink_list rxconf_items  = { NULL, NULL, 0 };
-dlink_list rkconf_items  = { NULL, NULL, 0 };
-dlink_list nresv_items   = { NULL, NULL, 0 };
-dlink_list class_items   = { NULL, NULL, 0 };
-dlink_list gdeny_items	 = { NULL, NULL, 0 };
-
-struct conf_item_table_type conf_item_table[] = 
-  {
-    /* CONF_TYPE */
-    { 0, 0 , 0},
-    /* CLASS_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct ClassItem), 0, &class_items },
-    /* OPER_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_OPERATOR,
-      &oconf_items },
-    /* CLIENT_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_CLIENT, NULL },
-    /* SERVER_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_SERVER, 
-      &server_items },
-    /* HUB_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0, &hub_items },
-    /* LEAF_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0, &leaf_items },
-    /* KLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_KLINE, NULL },
-    /* DLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_DLINE, NULL },
-    /* EXEMPTDLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_EXEMPTDLINE,
-      NULL },
-    /* CLUSTER_TYPE */
-    { sizeof(struct ConfItem) , 0, &cluster_items },
-    /* RKLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_KLINE,
-      &rkconf_items },
-    /* RXLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct MatchItem), CONF_KLINE, 
-      &rxconf_items },
-    /* XLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), 0, &xconf_items },
-    /* ULINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), 0, &uconf_items },
-    /* GLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_GLINE, NULL },
-    /* CRESV_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0, NULL },
-    /* NRESV_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0, &nresv_items },
-    /* GDENY_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), 0, &gdeny_items },
-    { 0, 0, 0}
-  };
-#endif
-
 struct config_file_entry
 {
   const char *dpath;          /* DPATH if set from command line */
@@ -563,7 +498,6 @@ extern void init_ip_hash_table(void);
 extern void count_ip_hash(int *, unsigned long *);
 extern void remove_one_ip(struct irc_ssaddr *);
 extern struct ConfItem *make_conf_item(ConfType type);
-extern void free_access_item(struct AccessItem *);
 extern void read_conf_files(int);
 extern int attach_connect_block(struct Client *, const char *, const char *);
 extern int attach_server_conf(struct Client *, struct ConfItem *);

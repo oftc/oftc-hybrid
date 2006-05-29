@@ -662,7 +662,7 @@ delete_one_address_conf(const char *address, struct AccessItem *aconf)
         atable[hv] = arec->next;
       aconf->status |= CONF_ILLEGAL;
       if (aconf->clients == 0)
-        free_access_item(aconf);
+        delete_conf_item(aconf->conf);
       MyFree(arec);
       return;
     }
@@ -714,7 +714,7 @@ clear_out_address_conf(void)
 
         arec->aconf->status |= CONF_ILLEGAL;
         if (arec->aconf->clients == 0)
-          free_access_item(arec->aconf);
+          delete_conf_item(arec->aconf->conf);
         MyFree(arec);
       }
     }

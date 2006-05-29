@@ -377,23 +377,6 @@ free_match_items(struct ConfItem *conf, dlink_list *list)
     dlinkDelete(&conf->node, list);
 }
 
-/* free_access_item()
- *
- * inputs       - pointer to conf to free
- * output       - none
- * side effects	- crucial password fields are zeroed, conf is freed
- */
-void
-free_access_item(struct AccessItem *aconf)
-{
-  struct ConfItem *conf;
-
-  if (aconf == NULL)
-    return;
-  conf = aconf->conf;
-  delete_conf_item(conf);
-}
-
 static const unsigned int shared_bit_table[] =
   { 'K', 'k', 'U', 'X', 'x', 'Y', 'Q', 'q', 'R', 'L', 0};
 
@@ -2480,7 +2463,7 @@ conf_add_d_conf(struct AccessItem *aconf)
   if (parse_netmask(aconf->host, NULL, NULL) == HM_HOST)
   {
     ilog(L_WARN, "Invalid Dline %s ignored", aconf->host);
-    free_access_item(aconf);
+    delete_conf_item(aconf->conf);
   }
   else
   {
