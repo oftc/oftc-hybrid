@@ -34,13 +34,6 @@
 # endif
 #endif
 
-#include "s_log.h"
-#include "fileio.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
-#include "s_misc.h"
-#include "event.h"	/* Needed for EVH etc. */
-#include "memory.h"
 
 /* some older syslogs would overflow at 2024 */
 #define LOG_BUFSIZE 2000
@@ -50,7 +43,7 @@ static int logLevel = INIT_LOG_LEVEL;
 
 #ifndef SYSLOG_USERS
 static EVH user_log_resync;
-FBFILE *user_log_fb = NULL;
+void *user_log_fb = NULL;
 #endif
 
 #ifdef USE_SYSLOG

@@ -24,12 +24,6 @@
  */
 
 #include "stdinc.h"
-#include "hook.h"
-#include "list.h"
-#include "memory.h"
-#include "tools.h"
-#include "irc_string.h"
-#include "s_misc.h"
 
 dlink_list callback_list = {NULL, NULL, 0};
 

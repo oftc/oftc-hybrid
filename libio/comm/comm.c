@@ -28,20 +28,7 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #endif
-#include "fdlist.h"
-#include "s_bsd.h"
 #include "common.h"
-#include "event.h"
-#include "irc_string.h"
-#include "irc_getnameinfo.h"
-#include "irc_getaddrinfo.h"
-#include "list.h"
-#include "irc_res.h"
-#include "inet_misc.h"
-#include "s_log.h"
-#include "memory.h"
-#include "hook.h"
-#include "s_misc.h"
 
 static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
   "Error during DNS lookup", "connect timeout", "Error during connect()",

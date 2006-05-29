@@ -23,13 +23,8 @@
  */
 
 #include "stdinc.h"
-#include "fileio.h"
-#include "irc_string.h"
-#include "memory.h"
-#include "s_log.h"
 
 /* The following are to get the fd manipulation routines. eww. */
-#include "fdlist.h"
 
 
 /*

@@ -23,8 +23,6 @@
  */
 
 #include "stdinc.h"
-#include "sprintf_irc.h"
-#include "irc_string.h"
 
 
 static const char atoi_tab[4000] = {

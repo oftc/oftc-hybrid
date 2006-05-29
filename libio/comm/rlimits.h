@@ -10,6 +10,7 @@
 #ifndef INCLUDED_rlimits_h
 #define INCLUDED_rlimits_h
 
+#ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 
 /* This nest of #ifdefs is because not all 'cpp's support #elif */
@@ -27,5 +28,7 @@
 #  endif
 # endif
 #endif
+
+#endif /* HAVE_SYS_RESOURCE_H */
 
 #endif /* INCLUDED_rlimits_h */

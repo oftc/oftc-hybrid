@@ -22,14 +22,8 @@
  *  $Id$
  */
 #include "stdinc.h"
-#include "fdlist.h"
 #include "common.h"
-#include "event.h"
-#include "irc_string.h"
 #include "rlimits.h"
-#include "s_bsd.h"   /* comm_setselect */
-#include "s_conf.h"  /* ServerInfo */
-#include "memory.h"
 
 fde_t *fd_hash[FD_HASH_SIZE];
 fde_t *fd_next_in_loop = NULL;

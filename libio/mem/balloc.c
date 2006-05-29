@@ -62,14 +62,6 @@
 #endif /* MAP_ANONYMOUS */
 #endif
 
-//#include "ircd.h"
-#include "balloc.h"
-#include "irc_string.h"
-#include "tools.h"
-#include "fdlist.h"
-#include "event.h"
-
-
 BlockHeap *heap_list = NULL;
 
 static int BlockHeapGarbageCollect(BlockHeap *);

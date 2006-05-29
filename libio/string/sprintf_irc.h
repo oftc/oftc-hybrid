@@ -22,12 +22,8 @@
  *  $Id$
  */
 
-#ifndef SPRINTF_IRC
-#define SPRINTF_IRC
-
-
 /*=============================================================================
- * Proto types
+ * Prototypes
  */
 
 LIBIO_EXTERN int vsprintf_irc(char *str, const char *format, va_list);
@@ -48,5 +44,3 @@ LIBIO_EXTERN int ircsprintf(char*, const char*, ...)
 #else
 LIBIO_EXTERN int ircsprintf(char *str, const char *format, ...);
 #endif
-
-#endif /* SPRINTF_IRC */

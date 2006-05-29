@@ -30,11 +30,6 @@
 
 #include "stdinc.h"
 #include <sys/poll.h>
-#include "fdlist.h"
-#include "hook.h"
-#include "s_bsd.h"
-#include "s_log.h"
-#include "s_misc.h"
 
 #define SIGIO_SIGNAL SIGRTMIN
 

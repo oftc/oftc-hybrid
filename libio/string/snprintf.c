@@ -68,7 +68,6 @@
 #if !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF)
 
 
-#include "irc_string.h"
 
 /* varargs declarations: */
 

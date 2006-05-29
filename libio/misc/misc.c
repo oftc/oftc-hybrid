@@ -24,23 +24,8 @@
 
 #define IN_MISC_C
 #include "stdinc.h"
-#include "s_misc.h"
-#include "client.h"
-#include "common.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
-#include "ircd.h"
-#include "numeric.h"
-#include "irc_res.h"
-#include "fdlist.h"
-#include "s_bsd.h"
-#include "s_conf.h"
-#include "s_serv.h"
-#include "send.h"
-#include "memory.h"
-#include "s_log.h"
-#include "event.h"
 
+struct timeval SystemTime;
 
 static const char *months[] =
 {
@@ -58,36 +43,42 @@ static const char *weekdays[] =
 char *
 date(time_t lclock) 
 {
-  static        char        buf[80], plus;
-  struct        tm *lt, *gm;
-  struct        tm        gmbuf;
-  int        minswest;
+  static char buf[80], plus;
+  struct tm *lt, *gm;
+  struct tm gmbuf;
+  int minswest;
 
   if (!lclock) 
     lclock = CurrentTime;
   gm = gmtime(&lclock);
-  memcpy((void *)&gmbuf, (void *)gm, sizeof(gmbuf));
+  memcpy(&gmbuf, gm, sizeof(gmbuf));
   gm = &gmbuf;
   lt = localtime(&lclock);
 
-  if (lt->tm_yday == gm->tm_yday)
-    minswest = (gm->tm_hour - lt->tm_hour) * 60 +
-      (gm->tm_min - lt->tm_min);
-  else if (lt->tm_yday > gm->tm_yday)
-    minswest = (gm->tm_hour - (lt->tm_hour + 24)) * 60;
-  else
-    minswest = ((gm->tm_hour + 24) - lt->tm_hour) * 60;
+  /*
+   * There is unfortunately no clean portable way to extract time zone
+   * offset information, so do ugly things.
+   */
+  minswest = (gm->tm_hour - lt->tm_hour) * 60 + (gm->tm_min - lt->tm_min);
+
+  if (lt->tm_yday != gm->tm_yday)
+  {
+    if ((lt->tm_yday > gm->tm_yday && lt->tm_year == gm->tm_year) ||
+        (lt->tm_yday < gm->tm_yday && lt->tm_year != gm->tm_year))
+      minswest -= 24 * 60;
+    else
+      minswest += 24 * 60;
+  }
 
   plus = (minswest > 0) ? '-' : '+';
   if (minswest < 0)
     minswest = -minswest;
 
   ircsprintf(buf, "%s %s %d %d -- %02u:%02u:%02u %c%02u:%02u",
-          weekdays[lt->tm_wday], months[lt->tm_mon],lt->tm_mday,
-          lt->tm_year + 1900, lt->tm_hour, lt->tm_min, lt->tm_sec,
-          plus, minswest/60, minswest%60);
-
-  return(buf);
+             weekdays[lt->tm_wday], months[lt->tm_mon],lt->tm_mday,
+             lt->tm_year + 1900, lt->tm_hour, lt->tm_min, lt->tm_sec,
+             plus, minswest/60, minswest%60);
+  return buf;
 }
 
 const char *
@@ -99,8 +90,9 @@ smalldate(time_t lclock)
 
   if (!lclock)
     lclock = CurrentTime;
+
   gm = gmtime(&lclock);
-  memcpy((void *)&gmbuf, (void *)gm, sizeof(gmbuf));
+  memcpy(&gmbuf, gm, sizeof(gmbuf));
   gm = &gmbuf; 
   lt = localtime(&lclock);
   
@@ -108,7 +100,7 @@ smalldate(time_t lclock)
              lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
              lt->tm_hour, lt->tm_min);
 
-  return(buf);
+  return buf;
 }
 
 /* small_file_date()
@@ -123,41 +115,45 @@ small_file_date(time_t lclock)
 
   if (!lclock)
     time(&lclock);
+
   tmptr = localtime(&lclock);
   strftime(timebuffer, MAX_DATE_STRING, "%Y%m%d", tmptr);
 
-  return(timebuffer);
+  return timebuffer;
 }
 
-#define PLUGPARAMS 16
-
-
 #ifdef HAVE_LIBCRYPTO
-static struct {
-    int err;
-    char *str;
-} errtab[] = {
-    {SSL_ERROR_NONE, "SSL_ERROR_NONE"},
-    {SSL_ERROR_ZERO_RETURN, "SSL_ERROR_ZERO_RETURN"},
-    {SSL_ERROR_WANT_READ, "SSL_ERROR_WANT_READ"},
-    {SSL_ERROR_WANT_WRITE, "SSL_ERROR_WANT_WRITE"},
-    {SSL_ERROR_WANT_CONNECT, "SSL_ERROR_WANT_CONNECT"},
-    /*{SSL_ERROR_WANT_ACCEPT, "SSL_ERROR_WANT_ACCEPT"},*/
-    {SSL_ERROR_WANT_X509_LOOKUP, "SSL_ERROR_WANT_X509_LOOKUP"},
-    {SSL_ERROR_SYSCALL, "SSL_ERROR_SYSCALL"},
-    {SSL_ERROR_SSL, "SSL_ERROR_SSL"},
-    {-1, NULL}
-};
-
-char *get_ssl_error(int sslerr) 
+char *
+ssl_get_cipher(SSL *ssl)
 {
-    int i;
-    
-    for (i=0; errtab[i].err != -1; i++)
-        if (errtab[i].err == sslerr)
-            return errtab[i].str;
-    
-    return "<NULL>";
+  static char buffer[128];
+  const char *name = NULL;
+  int bits;
+
+  switch (ssl->session->ssl_version)
+  {
+    case SSL2_VERSION:
+      name = "SSLv2";
+      break;
+
+    case SSL3_VERSION:
+      name = "SSLv3";
+      break;
+
+    case TLS1_VERSION:
+      name = "TLSv1";
+      break;
+
+    default:
+      name = "UNKNOWN";
+  }
+
+  SSL_CIPHER_get_bits(SSL_get_current_cipher(ssl), &bits);
+
+  snprintf(buffer, sizeof(buffer), "%s %s-%d",
+           name, SSL_get_cipher(ssl), bits);
+  
+  return buffer;
 }
 #endif
 

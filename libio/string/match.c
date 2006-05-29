@@ -21,9 +21,6 @@
  */
 
 #include "stdinc.h"
-#include "irc_string.h"
-#include "irc_getaddrinfo.h"
-#include "fdlist.h"
 
 /* Fix "statement not reached" warnings on Sun WorkShop C */
 #ifdef __SUNPRO_C

@@ -38,9 +38,6 @@ POSSIBILITY OF SUCH DAMAGE.
 -----------------------------------------------------------------------------
 */
 
-#ifndef _PCRE_H
-#define _PCRE_H
-
 /* The file pcre.h is build by "configure". Do not edit it; instead
 make changes to pcre.in. */
 
@@ -217,5 +214,3 @@ PCRE_DATA_SCOPE pcre_extra *pcre_study(const pcre *, int, const char **);
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif
-
-#endif /* End of pcre.h */

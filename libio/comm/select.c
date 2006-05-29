@@ -24,11 +24,6 @@
  */
 
 #include "stdinc.h"
-#include "fdlist.h"
-#include "hook.h"
-#include "s_bsd.h"
-#include "s_log.h"
-#include "s_misc.h"
 
 /*
  * Note that this is only a single list - multiple lists is kinda pointless

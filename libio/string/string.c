@@ -23,9 +23,6 @@
  */
 
 #include "stdinc.h"
-#include "pcre.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 
 #ifndef INADDRSZ 
 #define INADDRSZ 4

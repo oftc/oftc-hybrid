@@ -23,10 +23,6 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
-#include "list.h"
-#include "memory.h"
-#include "balloc.h"
 
 static BlockHeap *dnode_heap;
 

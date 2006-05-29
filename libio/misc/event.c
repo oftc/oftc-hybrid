@@ -50,10 +50,6 @@
  */
 
 #include "stdinc.h"
-#include "event.h"
-#include "memory.h"
-#include "s_log.h"
-#include "s_misc.h"
 
 const char *last_event_ran = NULL;
 struct ev_entry event_table[MAX_EVENTS];

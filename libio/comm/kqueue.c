@@ -25,11 +25,6 @@
 
 #include "stdinc.h"
 #include <sys/event.h>
-#include "fdlist.h"
-#include "memory.h"
-#include "s_bsd.h"
-#include "s_log.h"
-#include "s_misc.h"
 
 #define KE_LENGTH 128
 
