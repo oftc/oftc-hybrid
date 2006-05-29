@@ -38,6 +38,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "parse_aline.h"
 
 static void mo_capture(struct Client *, struct Client *, int, char *[]);
 static void mo_uncapture(struct Client *, struct Client *, int, char *[]);
