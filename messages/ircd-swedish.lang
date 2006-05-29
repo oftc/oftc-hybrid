@@ -1,9 +1,10 @@
 ; ircd-hybrid-7 swedish message file
-; Copyright (C) 2000
+; Copyright (C) 2000-2005
 ; David Taylor <davidt@yadt.co.uk>, 2000.
+; Rickard Åberg <shelter@chatjunkies.org>, 2005.
 ; $Id$
 
-RPL_WELCOME:             :%s 001 %s :Välkommen till %s Internet Relay Chat Network %s
+RPL_WELCOME:		 :%s 001 %s :Välkommen till %s Internet Relay Chat Network %s
 RPL_YOURHOST:            :%s 002 %s :Din värd är %s, som kör version %s
 RPL_CREATED:             :%s 003 %s :Denna server skapades %s
 RPL_ISUPPORT:            :%s 005 %s %s :stödjs av denna server
@@ -27,7 +28,6 @@ RPL_LOCALUSERS:          :%s 265 %s :Antal lokala användare: %d  Max: %d
 RPL_GLOBALUSERS:         :%s 266 %s :Antal globala användare: %d  Max: %d
 RPL_UNAWAY:              :%s 305 %s :Du är inte längre markerad som borta
 RPL_NOWAWAY:             :%s 306 %s :Du har blivit markerad som borta
-RPL_WHOISOPERATOR:       :%s 313 %s %s :är en IRC Operatör
 RPL_ENDOFWHO:            :%s 315 %s %s :Slut på /WHO lista.
 RPL_WHOISIDLE:           :%s 317 %s %s %d %d :sekunder overksam, login tid
 RPL_ENDOFWHOIS:          :%s 318 %s %s :Slut på /WHOIS lista.
@@ -81,7 +81,7 @@ ERR_INVITEONLYCHAN:      :%s 473 %s %s :Kan ej öppna kanal (+i)
 ERR_BANNEDFROMCHAN:      :%s 474 %s %s :Kan ej öppna kanal (+b)
 ERR_BADCHANNELKEY:       :%s 475 %s %s :Kan ej öppna kanal (+k)
 ERR_BANLISTFULL:         :%s 478 %s %s %s :Kanalens ban lista är full
-ERR_BADCHANNAME:         :%s 479 %s %s :Felaktigt kanal namn
+ERR_BADCHANNAME:         :%s 479 %s %s :Felaktigt kanalnamn
 ERR_NOPRIVILEGES:        :%s 481 %s :Tillträde förbjuden - Du är inte en IRC operatör
 ERR_CHANOPRIVSNEEDED:    :%s 482 %s %s :Du är inte en operatör
 ERR_CANTKILLSERVER:      :%s 483 %s :Man kan inte /KILL en server!
@@ -90,3 +90,22 @@ ERR_UMODEUNKNOWNFLAG:    :%s 501 %s :Okänd MODE flagga
 ERR_USERSDONTMATCH:      :%s 502 %s :Kan inte ändra mode for andra användare
 ERR_GHOSTEDCLIENT:       :%s 503 %s :Meddelandet kunde inte levereras till %s
 ERR_USERNOTONSERV:       :%s 504 %s %s :Användaren är inte på denna server
+ERR_WRONGPONG:		 :%s 513 %s :För att ansluta, skriv /QUOTE PONG %lu
+ERR_LISTSYNTAX:		 :%s 521 %s :Felaktig listning.
+ERR_HELPNOTFOUND:        :%s 524 %s %s :Hjälp ej funnen.
+RPL_ENDOFMODLIST:        :%s 703 %s :Slut på /MODLIST.
+RPL_ENDOFHELP:           :%s 706 %s %s :Slut på /HELP.
+RPL_KNOCK:               :%s 710 %s %s %s!%s@%s :har frågat efter inbjudan.
+RPL_KNOCKDLVR:           :%s 711 %s %s :Din KNOCK har blivit skickad.
+ERR_TOOMANYKNOCK:        :%s 712 %s %s :För många KNOCKs (%s).
+ERR_CHANOPEN:            :%s 713 %s %s :Kanalen är öppen.
+ERR_KNOCKONCHAN:         :%s 714 %s %s :Du är redan i den kanalen.
+ERR_KNOCKDISABLED:       :%s 715 %s :KNOCKs är avaktiverat.
+ERR_TARGUMODEG:          :%s 716 %s :%s är i +g läge (server-side ignorering.)
+RPL_TARGNOTIFY:          :%s 717 %s :%s har blivit informerad om att du skickat ett meddelande.
+RPL_UMODEGMSG:           :%s 718 %s %s :skriver till dig, och du har umode +g aktiverat.
+RPL_OMOTDSTART:          :%s 720 %s :Start på OPER MOTD.
+RPL_ENDOFOMOTD:          :%s 722 %s :Slut på OPER MOTD.
+ERR_NOPRIVS:             :%s 723 %s %s :Otillräckliga oper privilegier.
+RPL_TESTMASK:            :%s 724 %s %s@%s %d %d :Lokal/fjärr klient matchar.
+RPL_NOTESTLINE:          :%s 726 %s %s :Ingen match/träff.

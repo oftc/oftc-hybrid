@@ -1,5 +1,5 @@
 ; ircd-hybrid-7 custom message file
-; Copyright (C) 2003, Piotr Ni¿yñski <adx@crashnet.pl>
+; Copyright (C) 2003-2005, Piotr Ni¿yñski <adx@irc7.pl>
 ; Coding: ISO-8859-2 * CP-1250
 ; $Id$
 
@@ -9,6 +9,7 @@ RPL_CREATED:            :%s 003 %s :Ten serwer zosta³ utworzony %s
 RPL_ISUPPORT:           :%s 005 %s %s :sa obs³ugiwane przez ten serwer
 RPL_REDIR:              :%s 010 %s %s %d :Proszê u¿ywaæ tego serwera/portu
 RPL_MAPEND:             :%s 017 %s :Koniec /MAP
+RPL_YOURID:		:%s 042 %s %s :Twój unikalny ID
 RPL_ENDOFSTATS:         :%s 219 %s %c :Koniec raportu /STATS
 RPL_STATSUPTIME:        :%s 242 %s :Serwer dzia³a %d dni, %d:%02d:%02d
 RPL_STATSCONN:          :%s 250 %s :Najwy¿sza liczba po³aczeñ: %d (%d klientów) (%d od startu serwera)
@@ -19,13 +20,14 @@ RPL_LUSERCHANNELS:      :%s 254 %s %d :- liczba utworzonych kana³ów
 RPL_LUSERME:            :%s 255 %s :Mam %d po³aczonych klientów, serwerów: %d
 RPL_ADMINME:            :%s 256 %s :Informacje administracyjne o %s
 RPL_LOAD2HI:            :%s 263 %s :Obcia¿enie serwera jest chwilowo zbyt du¿e. Proszê zaczekaæ chwilê i spróbowaæ ponownie.
-RPL_LOCALUSERS:         :%s 265 %s :Liczba lokalnych  u¿ytkowników: %d  Rekord: %d
+RPL_LOCALUSERS:         :%s 265 %s :Liczba lokalnych u¿ytkowników: %d  Rekord: %d
 RPL_GLOBALUSERS:        :%s 266 %s :Liczba globalnych u¿ytkowników: %d  Rekord: %d
+RPL_WHOISSSL:           :%s 275 %s %s :u¿ywa SSL (bezpiecznego po³aczenia)
 RPL_ENDOFACCEPT:        :%s 282 %s :Koniec listy /ACCEPT.
-RPL_ISMESSAGING:        :%s 283 %s :Klient %s wysy³a do Ciebie wiadomosc, ale masz w³aczone +g
 RPL_UNAWAY:             :%s 305 %s :Zdjêto flagê nieobecnosci
 RPL_NOWAWAY:            :%s 306 %s :Ustawiono flagê nieobecnosci
-RPL_WHOISOPERATOR:      :%s 313 %s %s :jest IRC Operatorem
+RPL_WHOISADMIN:         :%s 313 %s %s :jest administratorem serwera
+RPL_WHOISOPERATOR:      :%s 313 %s %s :jest operatorem IRC
 RPL_ENDOFWHO:           :%s 315 %s %s :Koniec listy /WHO.
 RPL_WHOISIDLE:          :%s 317 %s %s %d %d :sekund bezczynnosci, czas zalogowania
 RPL_ENDOFWHOIS:         :%s 318 %s %s :Koniec listy /WHOIS.
@@ -42,6 +44,7 @@ RPL_ENDOFWHOWAS:        :%s 369 %s %s :Koniec /WHOWAS
 RPL_INFOSTART:          :%s 373 %s :Informacje o serwerze
 RPL_ENDOFINFO:          :%s 374 %s :Koniec listy /INFO.
 RPL_ENDOFMOTD:          :%s 376 %s :Koniec komendy /MOTD.
+RPL_HOSTHIDDEN:		:%s 396 %s %s :zastêpuje teraz Twój host
 ERR_NOSUCHNICK:         :%s 401 %s %s :Nie ma takiego nicka/kana³u
 ERR_NOSUCHSERVER:       :%s 402 %s %s :Nie ma takiego serwera
 ERR_NOSUCHCHANNEL:      :%s 403 %s %s :Nie ma takiego kana³u
@@ -62,6 +65,7 @@ ERR_ERRONEUSNICKNAME:   :%s 432 %s %s :Nieprawid³owy nick
 ERR_NICKNAMEINUSE:      :%s 433 %s %s :Nick jest zajêty.
 ERR_UNAVAILRESOURCE:    :%s 437 %s %s :Nick/kana³ jest tymczasowo niedostêpny
 ERR_NICKTOOFAST:        :%s 438 %s %s %s :Zbyt szybka zmiana nicka. Proszê odczekaæ %d sekund.
+ERR_SERVICESDOWN:       :%s 440 %s :Serwisy sa obecnie niedostêpne
 ERR_USERNOTINCHANNEL:   :%s 441 %s %s %s :Nie ma takiego u¿ytkownika na tym kanale
 ERR_NOTONCHANNEL:       :%s 442 %s %s :Nie jestes na tym kanale
 ERR_USERONCHANNEL:      :%s 443 %s %s %s :jest ju¿ na kanale

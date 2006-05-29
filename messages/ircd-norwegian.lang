@@ -27,7 +27,6 @@ RPL_LOCALUSERS:          :%s 265 %s :Lokale brukere nå: %d  Maks: %d
 RPL_GLOBALUSERS:         :%s 266 %s :Globale brukere nå: %d  Maks: %d
 RPL_UNAWAY:              :%s 305 %s :Du er ikke lenger markert som vekke (away)
 RPL_NOWAWAY:             :%s 306 %s :Du har blitt markert som vekke (away)
-RPL_WHOISOPERATOR:       :%s 313 %s %s :er en IRC Operatør
 RPL_WHOISIDLE:           :%s 317 %s %s %d %d :sekunder uaktiv, påloggings tid
 RPL_ENDOFWHOIS:          :%s 318 %s %s :Slutten av /WHOIS listen.
 RPL_LISTSTART:           :%s 321 %s Kanal :Bruker  Navn

@@ -9,14 +9,14 @@ At the present time, the following languages are supported:
 
 swedish - maintained by trbz - Chris C <chris@mircscripter.com>
 croatian - maintained by Martin - Vid Strpic <strpic@bofhlet.net>
-french - maintained by Joshua Kwan <joshk@triplehelix.org>
+french - maintained by joshk - Joshua Kwan <joshk@triplehelix.org>
 german - maintained by dmalloc - Darian Lanx <bio@gmx.net>
 norwegian - maintained by inglish - Stephen Olsen <inglish@sol.no>
-macedonian - in progress
-slovakian - in progress
 danish - maintained by Xride - Soren Straarup Andersen <xride@eit.ihk-edu.dk>
 spanish - maintained by ermak - anonymous <ermak@cyberdude.com>
 dutch - maintained by Riedel - Dennis Vink <vink@vuurwerk.nl>
+polish - maintained by adx - Piotr Nizynski <adx@irc7.pl>
+russian - maintained by Ilya - Ilya Shtift <ishtift@tagil.svrw.ru>
 
 All of the files are installed into the prefix directory, under messages.
 Each is installed into a different directory, prefixed by ircd-.
@@ -36,7 +36,7 @@ will try, but cannot guarantee that the translations are up to date with the
 rest of the source tree, and with the "customized" messages.
 
 Contributions are welcome, at present time please send contributed translations
-to ircd-hybrid@the-project.org, hybrid@the-project.org, or directly to one
-of the people who work with the translations, currently wcampbel@botbay.net.
+to bugs@ircd-hybrid.org, hybrid@ircd-hybrid.org, or directly to one of the people
+who work with the translations.
 
 $Id$

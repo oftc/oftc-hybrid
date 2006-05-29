@@ -1,7 +1,7 @@
 ; ircd-hybrid-7 custom message file for danish use
 ; Copyright (C) YEAR Free Software Foundation, Inc.
 ; Xride 
-; Soren Straarup Andersen <xride@eit.ihk-edu.dk>, 2001.
+; Soren Straarup <xride@x12.dk>, 2001.
 ; $Id$
 
 RPL_WELCOME:             :%s 001 %s :Velkommen til %s Internet Rel‘ Netv‘rket %s
@@ -24,10 +24,10 @@ RPL_LUSERME:             :%s 255 %s :Jeg har %d brugere og %d serverer
 RPL_ADMINME:             :%s 256 %s :Adminstrativ info om %s
 RPL_ENDOFTRACE:          :%s 262 %s %s :Slutningen p† TRACE
 RPL_LOAD2HI:             :%s 263 %s :Server forbruget er midlertidigt for stort. Vent venligst lidt og pr›v s† igen.
-RPL_LOCALUSERS:          :%s 265 %s :Nuv†rende lokale brugere: %d Max: %d
+RPL_LOCALUSERS:          :%s 265 %s :Nuv†rende lokale brugere: %d  Max: %d
+RPL_GLOBALUSERS:         :%s 266 %s :Nuv†rende globale brugere: %d  Max: %d
 RPL_UNAWAY:              :%s 305 %s :Du er ikke l‘ngere markeret som v‘rende v‘k
 RPL_NOWAWAY:             :%s 306 %s :Du er markeret som v‘rende v‘k
-RPL_WHOISOPERATOR:       :%s 313 %s %s :er en IRC Operator
 RPL_ENDOFWHO:            :%s 315 %s %s :Slutningen p† /WHO listen.
 RPL_WHOISIDLE:           :%s 317 %s %s %d %d :sekunders stilhed, ankomst tidspunkt
 RPL_ENDOFWHOIS:          :%s 318 %s %s :Slutningen p† /WHOIS listen.

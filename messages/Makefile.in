@@ -4,18 +4,20 @@ RM            = @RM@
 MV            = @MV@
 INSTALL       = @INSTALL@
 INSTALL_DATA  = @INSTALL_DATA@
-prefix        = @prefix@
-messagedir    = @prefix@/messages
+prefix        = $(DESTDIR)@prefix@
+messagedir    = $(prefix)/messages
 
 CLOBBER=@CLOBBER@
 
 LANGFILES     = ayb.lang            \
+                custom.lang         \
                 ircd-croatian.lang  \
                 ircd-danish.lang    \
                 ircd-dutch.lang     \
 		ircd-french.lang    \
                 ircd-german.lang    \
                 ircd-norwegian.lang \
+                ircd-polish.lang    \
                 ircd-russian.lang   \
                 ircd-spanish.lang   \
                 ircd-swedish.lang
@@ -27,7 +29,7 @@ install:
 	-@echo    "Installing language files to $(messagedir)...";          \
 
 	@for i in $(LANGFILES); do                                          \
-		if test -f $(messagedir)/$$i -a -z "$(CLOBBER)"; then         \
+		if test -f $(messagedir)/$$i -a -z "$(CLOBBER)"; then       \
 			echo $(MV) $(messagedir)/$$i $(messagedir)/$$i.old; \
 			$(MV) $(messagedir)/$$i $(messagedir)/$$i.old;      \
 		fi;                                                         \

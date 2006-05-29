@@ -6,7 +6,6 @@
 RPL_WELCOME:             :%s 001 %s :Bienvenido al %s Internet Relay Chat Network %s
 RPL_YOURHOST:            :%s 002 %s :Estas en el servidor %s, corriendo la version %s
 RPL_CREATED:             :%s 003 %s :Este servidor fue creado el %s
-RPL_MYINFO:              :%s 004 %s %s %s oiwszcerkfydnxbaug biklmnopstveIha bkloveIh
 RPL_ISUPPORT:            :%s 005 %s %s :estan disponibles en servidor
 RPL_REDIR:               :%s 010 %s %s %d :Porfavor usa este puerto del servidor/envez
 RPL_TRACELINK:           :%s 200 %s Link %s %s %s
@@ -32,7 +31,6 @@ RPL_LOCALUSERS:          :%s 265 %s :Usuarios locales actuales: %d  Max: %d
 RPL_GLOBALUSERS:         :%s 266 %s :Usuarios globales actuales: %d  Max: %d
 RPL_UNAWAY:              :%s 305 %s :Ahora ya no estas marcado como Ausente (away)
 RPL_NOWAWAY:             :%s 306 %s :Ahora estas marcado como Ausente (away)
-RPL_WHOISOPERATOR:       :%s 313 %s %s :es un Operador de IRC
 RPL_ENDOFWHO:            :%s 315 %s %s :Fin de la lista de /WHO
 RPL_WHOISIDLE:           :%s 317 %s %s %d %d :seconds idle, tiempo de entrada
 RPL_ENDOFWHOIS:          :%s 318 %s %s :Fin de la lista de /WHOIS
