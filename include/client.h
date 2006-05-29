@@ -202,7 +202,6 @@ struct LocalUser
   struct Listener *listener;    /* listener accepted from */
   struct ClassItem *class;	/* Client's class */
   struct irc_ssaddr ip;
-  unsigned short    port;       /* and the remote port# too :-) */
   int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
   struct DNSQuery   *dns_query;  /* result returned from resolver query */
   unsigned long     serverMask; /* Only used for Lazy Links */
