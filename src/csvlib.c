@@ -15,11 +15,19 @@
 #include "client.h"
 #include "send.h"
 #include "resv.h"
+#include "s_serv.h"
 
-static void parse_csv_line(char *line, ...);
-static int write_csv_line(FBFILE *out, const char *format, ...);
-static int flush_write(struct Client *source_p, FBFILE *in, FBFILE* out, 
-                       const char *buf, const char *temppath);
+/* Fix "statement not reached" warnings on Sun WorkShop C */
+#ifdef __SUNPRO_C
+#   pragma error_messages(off, E_STATEMENT_NOT_REACHED)
+#endif
+
+
+static void parse_csv_line(char *, ...);
+static int write_csv_line(FBFILE *, const char *, ...);
+static int flush_write(struct Client *, FBFILE *, FBFILE *, 
+                       const char *, const char *);
+static char *getfield(char *);
 
 /* parse_csv_file()
  *
@@ -39,8 +47,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
   char  *reason_field=NULL;
   char  *oper_reason=NULL;
   char  *host_field=NULL;
-  char  *port=NULL;
-  char  line[BUFSIZE];
+  char  line[IRCD_BUFSIZE];
   char  *p;
 
   while (fbgets(line, sizeof(line), file) != NULL)
@@ -48,7 +55,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
     if ((p = strchr(line, '\n')) != NULL)
       *p = '\0';
 
-    if ((*line == '\0') || (*line == '#'))
+    if ((line[0] == '\0') || (line[0] == '#'))
       continue;
 
     switch(conf_type)
@@ -56,7 +63,8 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
     case KLINE_TYPE:
       parse_csv_line(line, &user_field, &host_field, &reason_field, NULL);
       conf = make_conf_item(KLINE_TYPE);
-      aconf = (struct AccessItem *)map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
+
       if (host_field != NULL)
 	DupString(aconf->host, host_field);
       if (reason_field != NULL)
@@ -67,10 +75,45 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
 	add_conf_by_address(CONF_KILL, aconf);
       break;
 
+    case RKLINE_TYPE:
+    {
+      const char *errptr = NULL;
+      pcre *exp_user = NULL, *exp_host = NULL;
+
+      parse_csv_line(line, &user_field, &host_field, &reason_field, NULL);
+
+      if (host_field == NULL || user_field == NULL)
+        break;
+
+      if (!(exp_user = ircd_pcre_compile(user_field, &errptr)) ||
+          !(exp_host = ircd_pcre_compile(host_field, &errptr)))
+      {
+        sendto_realops_flags(UMODE_ALL, L_ALL,
+                  "Failed to add regular expression based K-Line: %s", errptr);
+        break;
+      }
+
+      conf = make_conf_item(RKLINE_TYPE);
+      aconf = &conf->conf.AccessItem;
+
+      aconf->regexuser = exp_user;
+      aconf->regexhost = exp_host;
+
+      DupString(aconf->user, user_field);
+      DupString(aconf->host, host_field);
+
+      if (reason_field != NULL)
+        DupString(aconf->reason, reason_field);
+      else
+        DupString(aconf->reason, "No reason");
+
+    }
+      break;
+
     case DLINE_TYPE:
       parse_csv_line(line, &host_field, &reason_field, NULL);
       conf = make_conf_item(DLINE_TYPE);
-      aconf = (struct AccessItem *)map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
       if (host_field != NULL)
 	DupString(aconf->host, host_field);
       if (reason_field != NULL)
@@ -79,16 +122,42 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
       break;
 
     case XLINE_TYPE:
-      parse_csv_line(line, &name_field, &reason_field, &oper_reason, &port,
-		     NULL);
+      parse_csv_line(line, &name_field, &reason_field, &oper_reason, NULL);
       conf = make_conf_item(XLINE_TYPE);
-      match_item = (struct MatchItem *)map_to_conf(conf);
+      match_item = &conf->conf.MatchItem;
       if (name_field != NULL)
 	DupString(conf->name, name_field);
       if (reason_field != NULL)
 	DupString(match_item->reason, reason_field);
-      if (port != NULL)
-	match_item->action = atoi(port);
+      break;
+
+    case RXLINE_TYPE:
+    {
+      const char *errptr = NULL;
+      pcre *exp_p = NULL;
+
+      parse_csv_line(line, &name_field, &reason_field, &oper_reason, NULL);
+
+      if (name_field == NULL)
+        break;
+
+      if (!(exp_p = ircd_pcre_compile(name_field, &errptr)))
+      {
+        sendto_realops_flags(UMODE_ALL, L_ALL,
+                             "Failed to add regular expression based X-Line: %s", errptr);
+        break;
+      }
+
+      conf = make_conf_item(RXLINE_TYPE);
+      conf->regexpname = exp_p;
+      match_item = &conf->conf.MatchItem;
+      DupString(conf->name, name_field);
+
+      if (reason_field != NULL)
+        DupString(match_item->reason, reason_field);
+      else
+        DupString(match_item->reason, "No reason");
+    }
       break;
 
     case CRESV_TYPE:
@@ -102,6 +171,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
       break;
 
     case GLINE_TYPE:
+    case GDENY_TYPE:
     case CONF_TYPE:
     case OPER_TYPE:
     case CLIENT_TYPE:
@@ -130,22 +200,14 @@ parse_csv_line(char *line, ...)
 {
   va_list args;
   char **dest;
-  char *field;
+  char *field = NULL;
 
   va_start(args, line);
-  dest = va_arg(args, char **);
-  if ((dest == NULL) || ((field = getfield(line)) == NULL))
-  {
-    va_end(args);
-    return;
-  }
 
-  *dest = field;
-    
-  for(;;)
+  for (; ;)
   {
     dest = va_arg(args, char **);
-    if ((dest == NULL) || ((field = getfield(NULL)) == NULL))
+    if ((dest == NULL) || ((field = getfield(field ? NULL : line)) == NULL))
     {
       va_end(args);
       return;
@@ -153,7 +215,6 @@ parse_csv_line(char *line, ...)
     *dest = field;
   }
 }
-
 
 /* write_conf_line()
  *
@@ -174,7 +235,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
 		const char *current_date, time_t cur_time)
 {
   FBFILE *out;
-  const char *filename;
+  const char *filename, *from, *to;
   struct AccessItem *aconf;
   struct MatchItem *xconf;
   struct ResvChannel *cresv_p=NULL;
@@ -183,6 +244,17 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
 
   type = conf->type;
   filename = get_conf_name(type);
+
+  if (!MyConnect(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
+  {
+    from = me.id;
+    to = source_p->id;
+  }
+  else
+  {
+    from = me.name;
+    to = source_p->name;
+  }
 
   if ((out = fbopen(filename, "a")) == NULL)
   {
@@ -194,73 +266,101 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
   switch(type)
   {
   case KLINE_TYPE:
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->conf.AccessItem;
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s added K-Line for [%s@%s] [%s]",
                          get_oper_name(source_p),
 			 aconf->user, aconf->host, aconf->reason);
     sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
-               me.name, source_p->name, aconf->user, aconf->host);
+               from, to, aconf->user, aconf->host);
     ilog(L_TRACE, "%s added K-Line for [%s@%s] [%s]",
          source_p->name, aconf->user, aconf->host, aconf->reason);
-    write_csv_line(out, "%s%s%s%s%s%s%ld",
+    log_oper_action(LOG_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
+		    aconf->user, aconf->host, aconf->reason);
+    write_csv_line(out, "%s%s%s%s%s%s%d",
 		   aconf->user, aconf->host,
 		   aconf->reason, aconf->oper_reason, current_date,
-		   get_oper_name(source_p), (long)cur_time);
+		   get_oper_name(source_p), cur_time);
+    break;
+
+  case RKLINE_TYPE:
+    aconf = &conf->conf.AccessItem;
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "%s added RK-Line for [%s@%s] [%s]",
+                         get_oper_name(source_p),
+                         aconf->user, aconf->host, aconf->reason);
+    sendto_one(source_p, ":%s NOTICE %s :Added RK-Line [%s@%s]",
+               from, to, aconf->user, aconf->host);
+    ilog(L_TRACE, "%s added K-Line for [%s@%s] [%s]",
+         source_p->name, aconf->user, aconf->host, aconf->reason);
+    log_oper_action(LOG_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",
+		    aconf->user, aconf->host, aconf->reason);
+    write_csv_line(out, "%s%s%s%s%s%s%d",
+                   aconf->user, aconf->host,
+                   aconf->reason, aconf->oper_reason, current_date,
+                   get_oper_name(source_p), cur_time);
     break;
 
   case DLINE_TYPE:
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->conf.AccessItem;
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s added D-Line for [%s] [%s]",
                          get_oper_name(source_p), aconf->host, aconf->reason);
     sendto_one(source_p, ":%s NOTICE %s :Added D-Line [%s] to %s",
-               me.name, source_p->name, aconf->host, filename);
+               from, to, aconf->host, filename);
     ilog(L_TRACE, "%s added D-Line for [%s] [%s]",
          get_oper_name(source_p), aconf->host, aconf->reason);
-    write_csv_line(out, "%s%s%s%s%s%ld",
+    log_oper_action(LOG_DLINE_TYPE, source_p, "[%s] [%s]\n",
+		    aconf->host, aconf->reason);
+    write_csv_line(out, "%s%s%s%s%s%d",
 		   aconf->host, aconf->reason, aconf->oper_reason, 
 		   current_date,
-		   get_oper_name(source_p), (long)cur_time);
+		   get_oper_name(source_p), cur_time);
     break;
 
   case XLINE_TYPE:
-    xconf = (struct MatchItem *)map_to_conf(conf);
+    xconf = &conf->conf.MatchItem;
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s added X-Line for [%s] [%s]",
-                         get_oper_name(source_p), conf->name, xconf->reason);
-    sendto_one(source_p, ":%s NOTICE %s :Added X-Line [%s] to %s",
-               me.name, source_p->name, conf->name, filename);
+                         get_oper_name(source_p), conf->name,
+			 xconf->reason);
+    sendto_one(source_p,
+	       ":%s NOTICE %s :Added X-Line [%s] [%d] [%s] to %s",
+               from, to, conf->name, 
+	       xconf->action, xconf->reason, filename);
     ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
          get_oper_name(source_p), conf->name, xconf->reason);
-    write_csv_line(out, "%s%s%s%d%s%s%ld",
+    write_csv_line(out, "%s%s%s%s%s%d",
 		   conf->name, xconf->reason, xconf->oper_reason,
-		   xconf->action,
-		   current_date, get_oper_name(source_p), (long)cur_time);
+		   current_date, get_oper_name(source_p), cur_time);
     break;
 
-  case GLINE_TYPE:
-    aconf = (struct AccessItem *)map_to_conf(conf);
+  case RXLINE_TYPE:
+    xconf = &conf->conf.MatchItem;
     sendto_realops_flags(UMODE_ALL, L_ALL,
-			 "%s has triggered gline for [%s@%s] [%s]",
-			 get_oper_name(source_p),
-			 aconf->user, aconf->host, aconf->reason);
-    ilog(L_TRACE, "%s added G-Line for [%s@%s] [%s]",
-         get_oper_name(source_p), aconf->user, aconf->host, aconf->reason);
-    write_csv_line(out, "%s%s%s%d%s%s%ld",
-		   aconf->user, aconf->host, aconf->reason, "", current_date,
-		   get_oper_name(source_p), (long)aconf->hold);
+                         "%s added RX-Line for [%s] [%s]",
+                         get_oper_name(source_p), conf->name,
+                         xconf->reason);
+    sendto_one(source_p,
+               ":%s NOTICE %s :Added RX-Line [%s] [%s] to %s",
+               from, to, conf->name,
+               xconf->reason, filename);
+    ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
+         get_oper_name(source_p), conf->name, xconf->reason);
+    write_csv_line(out, "%s%s%s%s%s%d",
+                   conf->name, xconf->reason, xconf->oper_reason,
+                   current_date, get_oper_name(source_p), cur_time);
     break;
 
   case CRESV_TYPE:
-    cresv_p = (struct ResvChannel *)map_to_conf(conf);
+    cresv_p = &conf->conf.ResvChannel;
 
     write_csv_line(out, "%s%s",
 		   cresv_p->name, cresv_p->reason);
     break;
 
   case NRESV_TYPE:
-    nresv_p = (struct MatchItem *)map_to_conf(conf);
+    nresv_p = &conf->conf.MatchItem;
 
     write_csv_line(out, "%s%s",
 		   conf->name, nresv_p->reason);
@@ -286,7 +386,7 @@ static int
 write_csv_line(FBFILE *out, const char *format, ...)
 {
   char c;
-  int bytes=0;
+  size_t bytes = 0;
   va_list args;
   char tmp[1024];
   char *str = tmp;
@@ -308,7 +408,7 @@ write_csv_line(FBFILE *out, const char *format, ...)
 	if (p1 == NULL)
 	  p1 = null_string;
 	*str++ = '\"';
-	bytes += 2;
+	++bytes;
 	while (*p1 != '\0')
 	{
 	  *str++ = *p1++;
@@ -346,14 +446,17 @@ write_csv_line(FBFILE *out, const char *format, ...)
 	}
 	*p++ = (v % 10) + '0';
 
+        *str++ = '\"';
+        ++bytes;
 	while (p != t)
 	{
 	  *str++ = *--p;
 	  ++bytes;
 	}
 
+        *str++ = '\"';
 	*str++ = ',';
-	bytes++;
+	bytes += 2;
 	continue;
       }
       if (c != '%')
@@ -374,7 +477,7 @@ write_csv_line(FBFILE *out, const char *format, ...)
     ++bytes;
   }
 
-  if(*(str-1) == ',')
+  if (*(str-1) == ',')
   {
     *(str-1) = '\n';
     *str = '\0';
@@ -382,13 +485,15 @@ write_csv_line(FBFILE *out, const char *format, ...)
   else
   {
     *str++ = '\n';
+    ++bytes;
     *str = '\0';
   }
 
   va_end(args);
   str = tmp;
-  fbputs(str, out);
-  return bytes;
+  fbputs(str, out, bytes);
+
+  return(bytes);
 }
 
 /*
@@ -398,11 +503,11 @@ write_csv_line(FBFILE *out, const char *format, ...)
  * output	- next field
  * side effects	- field breakup for ircd.conf file.
  */
-char *
+static char *
 getfield(char *newline)
 {
   static char *line = NULL;
-  char  *end, *field;
+  char *end, *field;
         
   if (newline != NULL)
     line = newline;
@@ -412,19 +517,16 @@ getfield(char *newline)
 
   field = line;
 
-  while (IsSpace(*field))	/* skip to start */
-    field++;
+  while (*field != '"')	/* skip everything that's not a starting quote */
+    ++field;
 
-  /* skip over any beginning " */
-  if(*field == '"') {
-    field++;
-  }
-  end = field;
+  /* skip over the beginning " */
+  end = ++field;
   
   for (;;)
   {
     /* At end of string, mark it as end and return */
-    if (*end == '\0')
+    if ((*end == '\0') || (*end == '\n'))
     {
       line = NULL;
       return(NULL);
@@ -433,32 +535,16 @@ getfield(char *newline)
     {
       end++;
     }
-    else if(*end == '"')	/* found terminating " */
+    else if (*end == '"')	/* found terminating " */
     {
       *end++ = '\0';
-      while (IsSpace(*end))	/* skip to start of next " (or '\0') */
-	end++;
-      while (*end == ',')
-	end++;
-      while (IsSpace(*end))
-	end++;
       line = end;
       return(field);
     }
-    else if(*end == ',')	/* found terminating , */
-    {
-      *end++ = '\0';
-      while (IsSpace(*end))	/* skip to start of next " (or '\0') */
-	end++;
-      while (*end == ',')
-	end++;
-      while (IsSpace(*end))
-	end++;
-      line = end;
-      return(field);
-    }
+
     end++;
   }
+
   return (NULL);
 }
 
@@ -476,51 +562,54 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
   const char *filename;
   FBFILE *in, *out;
   int pairme=0;
-  char buf[BUFSIZE], buff[BUFSIZE], temppath[BUFSIZE], *p;
+  char buf[IRCD_BUFSIZE], buff[IRCD_BUFSIZE], temppath[IRCD_BUFSIZE];
   char *found1;
   char *found2;
-  mode_t oldumask;
+  int oldumask;
+  int (*cmpfunc)(const char *, const char *) = irccmp;
+
+  if (type == RXLINE_TYPE || type == RKLINE_TYPE)
+    cmpfunc = strcmp;
 
   filename = get_conf_name(type);
 
   if ((in = fbopen(filename, "r")) == NULL)
   {
     sendto_one(source_p, ":%s NOTICE %s :Cannot open %s", me.name,
-	       source_p->name, filename);
-    return(-1);
+               source_p->name, filename);
+    return -1;
   }
 
   ircsprintf(temppath, "%s.tmp", filename);
   oldumask = umask(0);
+
   if ((out = fbopen(temppath, "w")) == NULL)
   {
     sendto_one(source_p, ":%s NOTICE %s :Cannot open %s", me.name,
 	       source_p->name, temppath);
     fbclose(in);
     umask(oldumask);
-    return(-1);
+    return -1;
   }
+
   umask(oldumask);
   oldumask = umask(0);
 
   while (fbgets(buf, sizeof(buf), in) != NULL) 
   {
-    if ((p = strchr(buff,'\n')) != NULL)
-      *p = '\0';
-
-    if ((*buff == '\0') || (*buff == '#'))
+    if ((*buf == '\0') || (*buf == '#'))
     {
-      if(flush_write(source_p, in, out, buf, temppath) < 0)
-	return(-1);
+      if (flush_write(source_p, in, out, buf, temppath) < 0)
+	return -1;
     }
     
     /* Keep copy of original line, getfield trashes line as it goes */
     strlcpy(buff, buf, sizeof(buff));
-    
+
     if ((found1 = getfield(buff)) == NULL)
     {
-      if(flush_write(source_p, in, out, buf, temppath) < 0)
-	return(-1);
+      if (flush_write(source_p, in, out, buf, temppath) < 0)
+	return -1;
       continue;
     }
 
@@ -528,12 +617,12 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
     {
       if ((found2 = getfield(NULL)) == NULL)
       {
-	if(flush_write(source_p, in, out, buf, temppath) < 0)
-	  return(-1);
+	if (flush_write(source_p, in, out, buf, temppath) < 0)
+	  return -1;
 	continue;
       }
-      
-      if ((irccmp(pat1, found1) == 0) && (irccmp(pat2, found2) == 0))
+
+      if (!cmpfunc(pat1, found1) && !cmpfunc(pat2, found2))
       {
 	pairme = 1;
 	continue;
@@ -541,13 +630,13 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
       else
       {
 	if(flush_write(source_p, in, out, buf, temppath) < 0)
-	  return(-1);
+	  return -1;
 	continue;
       }
     }
     else
     {
-      if (irccmp(pat1, found1) == 0)
+      if (!cmpfunc(pat1, found1))
       {
 	pairme = 1;
 	continue;
@@ -555,7 +644,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
       else
       {
 	if(flush_write(source_p, in, out, buf, temppath) < 0)
-	  return(-1);
+	  return -1;
 	continue;
       }
     }
@@ -573,14 +662,14 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
   {
     if(temppath != NULL)
       (void)unlink(temppath);
-    return(0);
+    return 0;
   }
   else
   {
     (void)rename(temppath, filename);
 
     /* XXX
-     * This is a very ineffient way of removing a kline/xline etc.
+     * This is a very inefficient way of removing a kline/xline etc.
      * This next function call forces a complete re-read of all conf
      * files, instead of a re-read of the kline/dline etc. files modified
      * But, consider how often an /quote unkline etc. is done compared
@@ -590,7 +679,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
      */
 
     rehash(0);
-    return(1);
+    return 1;
   }
 }
 
@@ -618,16 +707,17 @@ static int
 flush_write(struct Client *source_p, FBFILE *in, FBFILE* out, 
             const char *buf, const char *temppath)
 {
-  int error_on_write = (fbputs(buf, out) < 0) ? (-1) : (0);
+  int error_on_write = (fbputs(buf, out, strlen(buf)) < 0) ? (-1) : (0);
 
   if (error_on_write)
   {
     sendto_one(source_p,":%s NOTICE %s :Unable to write to %s aborting",
-	       me.name, source_p->name, temppath );
+	       me.name, source_p->name, temppath);
     if(temppath != NULL)
       (void)unlink(temppath);
     fbclose(in);
     fbclose(out);
   }
-  return(error_on_write);
+
+  return (error_on_write);
 }

@@ -31,6 +31,7 @@
 #include "ircd_defs.h"
 #include "motd.h"               /* MessageFile */
 #include "client.h"
+#include "resv.h"
 
 struct Client;
 struct DNSReply;
@@ -231,6 +232,7 @@ typedef enum
  */
 struct MatchItem
 {
+  void *conf;		/* pointer back to conf */
   char *user;		/* Used for ULINE only */
   char *host;		/* Used for ULINE only */
   char *reason;
@@ -244,6 +246,7 @@ struct MatchItem
 
 struct AccessItem
 {
+  void *conf;		/* pointer back to conf */
   dlink_node node;
   unsigned int     status;   /* If CONF_ILLEGAL, delete when no clients */
   unsigned int     flags;
@@ -274,6 +277,7 @@ struct AccessItem
 
 struct ClassItem
 {
+  void *conf;		/* pointer back to conf */
   long max_sendq;
   int con_freq;
   int ping_freq;
@@ -298,14 +302,13 @@ struct ConfItem
   dlink_node node;	/* link into known ConfItems of this type */
   unsigned int flags;
   ConfType type;
-#if 0
-  union conf
+  union
   {
-    struct MatchItem;
-    struct AccessItem;
-    struct ClassItem;
-  }
-#endif
+    struct MatchItem MatchItem;
+    struct AccessItem AccessItem;
+    struct ClassItem ClassItem;
+    struct ResvChannel ResvChannel;
+  }conf;
 };
 
 struct conf_item_table_type
@@ -595,8 +598,6 @@ extern void parse_csv_file(FBFILE *, ConfType);
 
 extern char *get_oper_name(const struct Client *);
 
-extern void *map_to_conf(struct ConfItem *);
-extern struct ConfItem *unmap_conf_item(void *);
 extern int yylex(void);
 
 extern int match_conf_password(const char *, const struct AccessItem *);

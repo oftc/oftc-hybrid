@@ -793,7 +793,7 @@ report_auth(struct Client *client_p)
         if (!MyOper(client_p) && IsConfDoSpoofIp(aconf))
           continue;
 
-	conf = unmap_conf_item(aconf);
+	conf = aconf->conf;
         get_printable_conf(conf, &host, &reason, &user, &port, &classname);
 
         /* We are doing a partial list, based on what matches the u@h of the

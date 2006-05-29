@@ -23,16 +23,12 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
-#include "irc_string.h"
 #include "ircd.h"
 #include "hostmask.h"
 #include "numeric.h"
-#include "fdlist.h"
-#include "s_bsd.h"
 #include "s_conf.h"
 #include "parse_aline.h"
 #include "send.h"
@@ -42,29 +38,31 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "cluster.h"
 #include "resv.h"
 
-static void mo_xline(struct Client *, struct Client *, int, char **);
-static void ms_xline(struct Client *, struct Client *, int, char **);
+static void mo_xline(struct Client *, struct Client *, int, char *[]);
+static void ms_xline(struct Client *, struct Client *, int, char *[]);
+static void me_xline(struct Client *, struct Client *, int, char *[]);
 
-static void mo_unxline(struct Client *, struct Client *, int, char **);
-static void ms_unxline(struct Client *, struct Client *, int, char **);
+static void mo_unxline(struct Client *, struct Client *, int, char *[]);
+static void ms_unxline(struct Client *, struct Client *, int, char *[]);
 
 static int valid_xline(struct Client *, char *, char *, int);
-static void write_xline(struct Client *, char *, char *, int);
-static void remove_xline(struct Client *, char *, int);
+static void write_xline(struct Client *, char *, char *, time_t);
+static void remove_xline(struct Client *, char *);
+static int remove_txline_match(const char *);
+
+static void relay_xline(struct Client *, char *[]);
 
 struct Message xline_msgtab = {
   "XLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_xline, mo_xline, m_ignore}
+  { m_unregistered, m_not_oper, ms_xline, me_xline, mo_xline, m_ignore }
 };
 
 struct Message unxline_msgtab = {
   "UNXLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_unxline, mo_unxline, m_ignore}
+  { m_unregistered, m_not_oper, ms_unxline, m_ignore, mo_unxline, m_ignore }
 };
-
 
 #ifndef STATIC_MODULES
 void
@@ -99,173 +97,156 @@ static void
 mo_xline(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  struct ConfItem *conf;
-  struct MatchItem *match_item;
-  char *reason, *pattern, *target_server;
-  const char *type;
-  int type_i = 1;
-  char def_reason[] = "No Reason";
-
-  type = reason = pattern = target_server = NULL;
+  char *reason = NULL;
+  char *gecos = NULL;
+  struct ConfItem *conf = NULL;
+  struct MatchItem *match_item = NULL;
+  char *target_server = NULL;
+  time_t tkline_time = 0;
 
   if (!IsOperX(source_p))
   {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
+    sendto_one(source_p, form_str(ERR_NOPRIVS),
+               me.name, source_p->name, "xline");
     return;
   }
 
-  if (parc < 3)
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, source_p->name, "XLINE");
+  /*
+   * XLINE <gecos> <time> ON <mask> :<reason>
+   * XLINE <gecos> ON <mask> :<reason>
+   */
+  if (parse_aline("XLINE", source_p, parc, parv, AWILD, &gecos, NULL,
+                  &tkline_time, &target_server, &reason) < 0)
     return;
-  }
-
-  if ((conf = find_matching_name_conf(XLINE_TYPE, parv[1],
-				      NULL, NULL, 0)) != NULL)
-  {
-    match_item = (struct MatchItem *)map_to_conf(conf);
-
-    sendto_one(source_p, ":%s NOTICE %s :[%s] already X-Lined by [%s] - %s",
-               me.name, source_p->name, parv[1],
-	       conf->name, match_item->reason);
-    return;
-  }
-
-  /* XLINE <gecos> <type> ON <server> :reason */
-  if (parc > 5)
-  {
-    if (irccmp(parv[3], "ON") == 0)
-    {
-      target_server = parv[4];
-      reason = parv[5];
-      type = parv[2];
-    }
-    else
-    {
-      /* perhaps we should show usage here?  also,
-       * this may be a bit nitpicky, but we are being
-       * painfully inconsistent by sending 'XLINE'
-       * rather than duplicating the case with which
-       * the command was issued.
-       */
-      sendto_one(source_p, form_str(ERR_NORECIPIENT),
-                 me.name, source_p->name, "XLINE");
-      return;
-    }
-  }
-  /* XLINE <gecos> <type> ON <server> */
-  else if (parc == 5)
-  {
-    if (irccmp(parv[3], "ON") == 0)
-    {
-      target_server = parv[4];
-      type = parv[2];
-    }
-    else
-    {
-      sendto_one(source_p, form_str(ERR_NORECIPIENT),
-                 me.name, source_p->name, "XLINE");
-      return;
-    }
-  }
-  /* XLINE <gecos> <type> :<reason> */
-  else if (parc == 4)
-  {
-    reason = parv[3];
-    type = parv[2];
-  }
-  /* XLINE <gecos> :<reason> */
-  else if (parc == 3)
-  {
-    reason = parv[2];
-    type = "REJECT";
-  }
-
-  if (irccmp(type,"WARN") == 0)
-    type_i = 0;
-  else if (irccmp(type,"REJECT") == 0)
-    type_i = 1;
-  else if (irccmp(type,"SILENT") == 0)
-    type_i = 2;
-  else
-    type_i = atoi(type);
 
   if (target_server != NULL)
   {
-    sendto_match_servs(source_p, target_server, CAP_CLUSTER,
-                       "XLINE %s %s %d :%s",
-                       target_server, parv[1], type_i, reason);
+    /* if a given expire time is given, ENCAP it */
+    if (tkline_time != 0)
+      sendto_match_servs(source_p, target_server, CAP_ENCAP,
+			 "ENCAP %s XLINE %d %s 0 :%s",
+			 target_server, (int)tkline_time, gecos, reason);
+    else
+      sendto_match_servs(source_p, target_server, CAP_CLUSTER,
+			 "XLINE %s %s %d :%s",
+			 target_server, gecos, (int)tkline_time, reason);
+
+    /* Allow ON to apply local xline as well if it matches */
     if (!match(target_server, me.name))
       return;
   }
-  else if (dlink_list_length(&cluster_items))
-    cluster_xline(source_p, parv[1], type_i, reason);
+  else 
+  {
+    if (tkline_time != 0)
+      cluster_a_line(source_p, "ENCAP", CAP_ENCAP, SHARED_XLINE,
+		     "XLINE %d %s 0 :%s", (int)tkline_time, gecos, reason);
+    else
+      cluster_a_line(source_p, "XLINE", CAP_KLN, SHARED_XLINE,
+		     "%s 0 :%s", gecos, reason);
+  }
 
-  if (EmptyString(reason))
-    reason = def_reason;
+  if (!valid_xline(source_p, gecos, reason, 0))
+    return;
 
-  write_xline(source_p, parv[1], reason, type_i);
-} /* mo_xline() */
+  if ((conf = find_matching_name_conf(XLINE_TYPE, gecos,
+                                      NULL, NULL, 0)) != NULL)
+  {
+    match_item = &conf->conf.MatchItem;
+
+    sendto_one(source_p, ":%s NOTICE %s :[%s] already X-Lined by [%s] - %s",
+               me.name, source_p->name, gecos,
+               conf->name, match_item->reason);
+    return;
+  }
+
+  write_xline(source_p, gecos, reason, tkline_time);
+}
 
 /* ms_xline()
  *
- * inputs	- oper, target server, xline, type, reason
+ * inputs	- oper, target server, xline, {type}, reason
+ *		  deprecate {type} reserve for temp xlines later? XXX
+ *
  * outputs	- none
- * side effects	- propogates xline, applies it if we are a target
+ * side effects	- propagates xline, applies it if we are a target
  */
 static void
 ms_xline(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  struct ConfItem *conf;
-  struct MatchItem *match_item;
-
   if (parc != 5 || EmptyString(parv[4]))
     return;
 
-  if (!IsPerson(source_p))
+  if (!IsClient(source_p))
     return;
+
+  if (!valid_xline(source_p, parv[2], parv[4], 0))
+    return;
+
+  relay_xline(source_p, parv);
+}
+
+/* me_xline()
+ *
+ * inputs	- server
+ *		- client (oper)
+ *		- parc number of arguments
+ *		- parv list of arguments
+ * via parv[]
+ * parv[1] = target
+ * parv[2] = server
+ * parv[3] = xline
+ * parv[4] = time
+ * parv[5] = reason
+ *
+ * outputs	- none
+ * side effects	- 
+ */
+static void
+me_xline(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
+{
+  if (!IsClient(source_p) || parc != 5)
+    return;
+
+  relay_xline(source_p, parv);
+}
+
+static void
+relay_xline(struct Client *source_p, char *parv[])
+{
+  struct ConfItem *conf;
+  struct MatchItem *match_item;
+  int t_sec;
+
+  t_sec = atoi(parv[3]);
+  /* XXX kludge! */
+  if (t_sec < 3)
+    t_sec = 0;
 
   sendto_match_servs(source_p, parv[1], CAP_CLUSTER,
                      "XLINE %s %s %s :%s",
                      parv[1], parv[2], parv[3], parv[4]);
 
-  if (!match(parv[1], me.name))
+  if (match(parv[1], me.name))
     return;
 
-  if (find_matching_name_conf(CLUSTER_TYPE, source_p->user->server->name,
-                              NULL, NULL, CLUSTER_XLINE))
+  if (find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
+                              source_p->username, source_p->host,
+                              SHARED_XLINE))
   {
-    if (!valid_xline(source_p, parv[2], parv[4], 0))
-      return;
-
-    if ((find_matching_name_conf(XLINE_TYPE, parv[1],
-				NULL, NULL, 0)) != NULL)
-      return;
-
-    write_xline(source_p, parv[2], parv[4], atoi(parv[3]));
-  }
-  else if (find_matching_name_conf(ULINE_TYPE,
-		       source_p->user->server->name,
-                       source_p->username, source_p->host,
-                       SHARED_XLINE))
-  {
-    if (!valid_xline(source_p, parv[2], parv[4], 1))
-      return;
-
     if ((conf = find_matching_name_conf(XLINE_TYPE, parv[2],
 					NULL, NULL, 0)) != NULL)
     {
-      match_item = (struct MatchItem *)map_to_conf(conf);
+      match_item = &conf->conf.MatchItem;
       sendto_one(source_p, ":%s NOTICE %s :[%s] already X-Lined by [%s] - %s",
-                 me.name, source_p->name, parv[1],
-                 conf->name, match_item->reason);
+                 ID_or_name(&me, source_p->from),
+                 ID_or_name(source_p, source_p->from),
+                 parv[2], conf->name, match_item->reason);
       return;
     }
 
-    write_xline(source_p, parv[2], parv[4], atoi(parv[3]));
+    write_xline(source_p, parv[2], parv[4], t_sec);
   }
 }
 
@@ -282,44 +263,42 @@ static void
 mo_unxline(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
+  char *gecos = NULL;
+  char *target_server = NULL;
+
   if (!IsOperX(source_p))
   {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
-    return;
-  }
-
-  if (parc < 1)
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, source_p->name, "UNXLINE");
+    sendto_one(source_p, form_str(ERR_NOPRIVS),
+               me.name, source_p->name, "unxline");
     return;
   }
 
   /* UNXLINE bill ON irc.server.com */
-  if ((parc > 3) && (irccmp(parv[2], "ON") == 0))
-  {
-    sendto_match_servs(source_p, parv[3], CAP_CLUSTER,
-                       "UNXLINE %s %s",
-                       parv[3], parv[1]);
+  if (parse_aline("UNXLINE", source_p, parc, parv, 0, &gecos,
+                  NULL, NULL, &target_server, NULL) < 0)
+    return;
 
-    if (match(parv[3], me.name) == 0)
+  if (target_server != NULL)
+  {
+    sendto_match_servs(source_p, target_server, CAP_CLUSTER,
+                       "UNXLINE %s %s", target_server, gecos);
+
+    /* Allow ON to apply local unxline as well if it matches */
+    if (!match(target_server, me.name))
       return;
   }
-  /* UNXLINE bill */
-  else if (parc >= 2)
-  {
-    if (dlink_list_length(&cluster_items))
-      cluster_unxline(source_p, parv[1]);
-    remove_xline(source_p, parv[1], 0);
-  }
-} /* mo_unxline() */
+  else
+    cluster_a_line(source_p, "UNXLINE", CAP_CLUSTER, SHARED_UNXLINE,
+		   "%s", gecos);
+
+  remove_xline(source_p, gecos);
+}
 
 /* ms_unxline()
  *
  * inputs	- oper, target server, gecos
  * outputs	- none
- * side effects	- propogates unxline, applies it if we are a target
+ * side effects	- propagates unxline, applies it if we are a target
  */
 static void
 ms_unxline(struct Client *client_p, struct Client *source_p,
@@ -328,41 +307,19 @@ ms_unxline(struct Client *client_p, struct Client *source_p,
   if (parc != 3)
     return;
 
-  if (EmptyString(parv[2]))
+  if (!IsClient(source_p) || EmptyString(parv[2]))
     return;
 
   sendto_match_servs(source_p, parv[1], CAP_CLUSTER,
-                     "UNXLINE %s %s",
-                     parv[1], parv[2]);
+                     "UNXLINE %s %s", parv[1], parv[2]);
 
   if (!match(parv[1], me.name))
     return;
 
-  if (!IsPerson(source_p))
-    return;
-
-  if (find_matching_name_conf(CLUSTER_TYPE, source_p->user->server->name,
-                              NULL, NULL, CLUSTER_UNXLINE))
-    remove_xline(source_p, parv[2], 1);
-  else if (find_matching_name_conf(ULINE_TYPE,
-		       source_p->user->server->name,
-                       source_p->username, source_p->host,
-                       SHARED_UNXLINE))
-  {
-    if (remove_conf_line(XLINE_TYPE, source_p, parv[2], NULL) > 0)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :X-Line for [%s] is removed",
-                 me.name, parv[0], parv[2]);
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-                           "%s has removed the X-Line for: [%s]",
-                           get_oper_name(source_p), parv[2]);
-      ilog(L_NOTICE, "%s removed X-Line for [%s]", get_oper_name(source_p),
-           parv[2]);
-    }
-    else
-      sendto_one(source_p, ":%s NOTICE %s :No X-Line for %s",
-                 me.name, source_p->name, parv[2]);
-  }
+  if (find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
+                              source_p->username, source_p->host,
+                              SHARED_UNXLINE))
+    remove_xline(source_p, parv[2]);
 }
 
 /* valid_xline()
@@ -379,15 +336,14 @@ valid_xline(struct Client *source_p, char *gecos, char *reason, int warn)
     if (warn)
       sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                  me.name, source_p->name, "XLINE");
-    return(0);
+    return 0;
   }
 
-  if (strchr(reason, ':') != NULL)
+  if (strchr(gecos, '"'))
   {
-    if (warn)
-      sendto_one(source_p, ":%s NOTICE %s :Invalid character ':' in comment",
-                 me.name, source_p->name);
-    return(0);
+    sendto_one(source_p, ":%s NOTICE %s :Invalid character '\"'",
+               me.name, source_p->name);
+    return 0;
   }
 
   if (!valid_wild_card_simple(gecos))
@@ -396,20 +352,21 @@ valid_xline(struct Client *source_p, char *gecos, char *reason, int warn)
       sendto_one(source_p, ":%s NOTICE %s :Please include at least %d non-wildcard characters with the xline",
                  me.name, source_p->name, ConfigFileEntry.min_nonwildcard_simple);
 
-    return(0);
+    return 0;
   }
 
-  return(1);
+  return 1;
 }
 
 /* write_xline()
  *
  * inputs	- client taking credit for xline, gecos, reason, xline type
  * outputs	- none
- * side effects	- when succesful, adds an xline to the conf
+ * side effects	- when successful, adds an xline to the conf
  */
 static void
-write_xline(struct Client *source_p, char *gecos, char *reason, int type)
+write_xline(struct Client *source_p, char *gecos, char *reason,
+	    time_t tkline_time)
 {
   struct ConfItem *conf;
   struct MatchItem *match_item;
@@ -417,35 +374,92 @@ write_xline(struct Client *source_p, char *gecos, char *reason, int type)
   time_t cur_time;
 
   conf = make_conf_item(XLINE_TYPE);
-  match_item = (struct MatchItem *)map_to_conf(conf);
-  match_item->action = type;
+  match_item = &conf->conf.MatchItem;
 
   collapse(gecos);
   DupString(conf->name, gecos);
   DupString(match_item->reason, reason);
   DupString(match_item->oper_reason, "");	/* XXX */
-  set_time();
   cur_time = CurrentTime;
   current_date = smalldate(cur_time);
-  write_conf_line(source_p, conf, current_date, cur_time);
-  rehashed_xlines = 1;
+
+  if (tkline_time != 0)
+  {
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+			 "%s added temporary %d min. X-Line for [%s] [%s]",
+			 get_oper_name(source_p), (int)tkline_time/60,
+			 conf->name, match_item->reason);
+    sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. X-Line [%s]",
+	       MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
+	       source_p->name, (int)tkline_time/60, conf->name);
+    ilog(L_TRACE, "%s added temporary %d min. X-Line for [%s] [%s]",
+	 source_p->name, (int)tkline_time/60,
+	 conf->name, match_item->reason);
+    match_item->hold = CurrentTime + tkline_time;
+    add_temp_line(conf);
+  }
+  else
+    write_conf_line(source_p, conf, current_date, cur_time);
+  rehashed_klines = 1;
 }
 
 static void
-remove_xline(struct Client *source_p, char *gecos, int cluster)
+remove_xline(struct Client *source_p, char *gecos)
 {
+  /* XXX use common temporary un function later */
+  if (remove_txline_match(gecos))
+  {
+    sendto_one(source_p,
+               ":%s NOTICE %s :Un-xlined [%s] from temporary X-Lines",
+               me.name, source_p->name, gecos);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "%s has removed the temporary X-Line for: [%s]",
+                         get_oper_name(source_p), gecos);
+    ilog(L_NOTICE, "%s removed temporary X-Line for [%s]",
+         source_p->name, gecos);
+    return;
+  }
+
   if (remove_conf_line(XLINE_TYPE, source_p, gecos, NULL) > 0)
   {
-    if (!cluster)
-      sendto_one(source_p, ":%s NOTICE %s :X-Line for [%s] is removed",
-                 me.name, source_p->name, gecos);
+    sendto_one(source_p, ":%s NOTICE %s :X-Line for [%s] is removed",
+               me.name, source_p->name, gecos);
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the X-Line for: [%s]",
                          get_oper_name(source_p), gecos);
     ilog(L_NOTICE, "%s removed X-Line for [%s]",
          get_oper_name(source_p), gecos);
   }
-  else if (!cluster)
+  else
     sendto_one(source_p, ":%s NOTICE %s :No X-Line for %s",
                me.name, source_p->name, gecos);
+}
+
+/* static int remove_tkline_match(const char *host, const char *user)
+ *
+ * Inputs:	gecos
+ * Output:	returns YES on success, NO if no tkline removed.
+ * Side effects: Any matching tklines are removed.
+ */
+static int
+remove_txline_match(const char *gecos)
+{
+  dlink_node *ptr = NULL, *next_ptr = NULL;
+  struct ConfItem *conf = NULL;
+
+  DLINK_FOREACH_SAFE(ptr, next_ptr, temporary_xlines.head)
+  {
+    conf = ptr->data;
+
+    if (irccmp(gecos, conf->name) == 0)
+    {
+      dlinkDelete(ptr, &temporary_xlines);
+      free_dlink_node(ptr);
+      delete_conf_item(conf);
+
+      return 1;
+    }
+  }
+
+  return 0;
 }

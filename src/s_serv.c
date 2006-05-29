@@ -496,7 +496,7 @@ try_connections(void *unused)
   DLINK_FOREACH(ptr, server_items.head)
   {
     conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->conf.AccessItem;
 
     /* Also when already connecting! (update holdtimes) --SRB 
      */
@@ -504,7 +504,7 @@ try_connections(void *unused)
         !(IsConfAllowAutoConn(aconf)))
       continue;
 
-    cltmp = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+    cltmp = &((struct ConfItem *)aconf->class_ptr)->conf.ClassItem;
 
     /* Skip this entry if the use of it is still on hold until
      * future. Otherwise handle this entry (and set it on hold
@@ -602,7 +602,7 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
   DLINK_FOREACH(ptr, server_items.head)
   {
     conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->conf.AccessItem;
 
     if (!match(name, conf->name))
       continue;
@@ -673,7 +673,7 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
     attach_leaf_hub(client_p, conf);
   }
 
-  server_aconf = (struct AccessItem *)map_to_conf(server_conf);
+  server_aconf = &server_conf->conf.AccessItem;
 
   if (!IsConfLazyLink(server_aconf))
     ClearCap(client_p, CAP_LL);
@@ -1030,7 +1030,7 @@ server_estab(struct Client *client_p)
   }
 
   /* XXX */
-  aconf = map_to_conf(conf);
+  aconf = &conf->conf.AccessItem;
   MyFree(client_p->localClient->passwd);
   client_p->localClient->passwd = NULL;
 
@@ -1205,7 +1205,7 @@ server_estab(struct Client *client_p)
       continue;
 
     if ((conf = target_p->serv->sconf) &&
-	match(my_name_for_link(map_to_conf(conf)), client_p->name)) /*XXX*/
+	match(my_name_for_link(&conf->conf.AccessItem), client_p->name))
       continue;
 
     if (IsCapable(target_p, CAP_TS6) && HasID(client_p))
@@ -1248,7 +1248,7 @@ server_estab(struct Client *client_p)
     if (target_p->from == client_p)
       continue;
 
-    if (match(my_name_for_link(map_to_conf(conf)), target_p->name)) /* XXX */
+    if (match(my_name_for_link(&conf->conf.AccessItem), target_p->name))
       continue;
 
     if (IsCapable(client_p, CAP_TS6))
@@ -1797,7 +1797,7 @@ set_autoconn(struct Client *source_p, const char *name, int newval)
     conf = find_exact_name_conf(SERVER_TYPE, name, NULL, NULL);
     if (conf != NULL)
     {
-      aconf = (struct AccessItem *)map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
       if (newval)
 	SetConfAllowAutoConn(aconf);
       else
@@ -1891,8 +1891,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   if(aconf == NULL)
     return (0);
 
-  /* XXX should be passing struct ConfItem in the first place */
-  conf = unmap_conf_item(aconf);
+  conf = aconf->conf;
 
   /* log */
   irc_getnameinfo((struct sockaddr*)&aconf->ipnum, aconf->ipnum.ss_len,
@@ -2132,7 +2131,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
     exit_client(client_p, &me, "Lost connect{} block");
     return;
   }
-  aconf = map_to_conf(conf);
+  aconf = &conf->conf.AccessItem;
 
   /* Next, send the initial handshake */
   SetHandshake(client_p);
@@ -2141,7 +2140,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   /* Handle all CRYPTLINK links in cryptlink_init */
   if (IsConfCryptLink(aconf))
   {
-    cryptlink_init(client_p, map_to_conf(conf), fd); /* XXX */
+    cryptlink_init(client_p, &conf->conf.AccessItem, fd);
     return;
   }
 #endif

@@ -26,12 +26,8 @@
 #include "handlers.h"
 #include "client.h"
 #include "ircd.h"
-#include "irc_string.h"
 #include "numeric.h"
-#include "fdlist.h"
-#include "s_bsd.h"
 #include "s_conf.h"
-#include "s_log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "msg.h"
@@ -44,7 +40,7 @@ static void ms_connect(struct Client *, struct Client *, int, char **);
 
 struct Message connect_msgtab = {
   "CONNECT", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_connect, mo_connect, m_ignore}
+  {m_unregistered, m_not_oper, ms_connect, m_ignore, mo_connect, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -60,7 +56,7 @@ _moddeinit(void)
   mod_del_cmd(&connect_msgtab);
 }
 
-const char *_version = "$Revision: 316 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -80,26 +76,21 @@ mo_connect(struct Client* client_p, struct Client* source_p,
 {
   int port;
   int tmpport;
-  struct ConfItem *conf=NULL;
-  struct AccessItem* aconf=NULL;
+  struct ConfItem *conf = NULL;
+  struct AccessItem *aconf = NULL;
   struct Client *target_p;
-  dlink_node *ptr;
-  dlink_node *next_ptr;
-  struct Client *pending_connection;
 
   /* always privileged with handlers */
   if (MyConnect(source_p) && !IsOperRemote(source_p) && parc > 3)
   {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
+    sendto_one(source_p, form_str(ERR_NOPRIVS),
+               me.name, source_p->name, "connect");
     return;
   }
 
   if (hunt_server(client_p, source_p,
                   ":%s CONNECT %s %s :%s", 3, parc, parv) != HUNTED_ISME)
-  {
     return;
-  }
 
   if (*parv[1] == '\0')
   {
@@ -121,14 +112,10 @@ mo_connect(struct Client* client_p, struct Client* source_p,
    */
   if ((conf = find_matching_name_conf(SERVER_TYPE,
 				      parv[1], NULL, NULL, 0)) != NULL)
-  {
-    aconf = (struct AccessItem *)map_to_conf(conf);
-  }
+    aconf = &conf->conf.AccessItem;
   else if ((conf = find_matching_name_conf(SERVER_TYPE,
 					   NULL, NULL, parv[1], 0)) != NULL)
-  {
-    aconf = (struct AccessItem *)map_to_conf(conf);
-  }
+    aconf = &conf->conf.AccessItem;
   
   if (conf == NULL)
   {
@@ -160,21 +147,11 @@ mo_connect(struct Client* client_p, struct Client* source_p,
     return;
   }
 
-  /* XXX ugly hack */
-  DLINK_FOREACH_SAFE(ptr, next_ptr, unknown_list.head)
+  if (find_servconn_in_progress(conf->name))
   {
-    pending_connection = ptr->data;
-
-    if (pending_connection->name[0] && conf->name != NULL)
-    {
-      if (0 == irccmp(conf->name, pending_connection->name))
-      {
-        sendto_one(source_p,
-	  ":%s NOTICE %s :Connect: a connection to %s is already in progress.",
-                   me.name, source_p->name, conf->name);
-        return;
-      }
-    }
+    sendto_one(source_p, ":%s NOTICE %s :Connect: a connection to %s "
+               "is already in progress.", me.name, source_p->name, conf->name);
+    return;
   }
 
   /*
@@ -191,16 +168,16 @@ mo_connect(struct Client* client_p, struct Client* source_p,
   if (serv_connect(aconf, source_p))
   {
     if (!ConfigServerHide.hide_server_ips && IsAdmin(source_p))
-      sendto_one(source_p, ":%s NOTICE %s :Connecting to %s[%s].%d",
+      sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s[%s].%d",
                  me.name, source_p->name, aconf->host,
                  conf->name, aconf->port);
     else
-      sendto_one(source_p, ":%s NOTICE %s :Connecting to %s.%d",
+      sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s.%d",
                  me.name, source_p->name, conf->name, aconf->port);
   }
   else
   {
-    sendto_one(source_p, ":%s NOTICE %s : Couldn't connect to %s.%d",
+    sendto_one(source_p, ":%s NOTICE %s :*** Couldn't connect to %s.%d",
                me.name, source_p->name, conf->name, aconf->port);
   }
 
@@ -227,18 +204,13 @@ ms_connect(struct Client *client_p, struct Client *source_p,
 {
   int port;
   int tmpport;
-  struct ConfItem *conf=NULL;
-  struct AccessItem *aconf=NULL;
+  struct ConfItem *conf = NULL;
+  struct AccessItem *aconf = NULL;
   struct Client *target_p;
-  dlink_node *ptr;
-  dlink_node *next_ptr;
-  struct Client *pending_connection;
 
   if (hunt_server(client_p, source_p,
                   ":%s CONNECT %s %s :%s", 3, parc, parv) != HUNTED_ISME)
-  {
     return;
-  }
 
   if (*parv[1] == '\0')
   {
@@ -260,14 +232,10 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    */
   if ((conf = find_matching_name_conf(SERVER_TYPE,
 				      parv[1], NULL, NULL, 0)) != NULL)
-  {
-    aconf = (struct AccessItem *)map_to_conf(conf);
-  }
+    aconf = &conf->conf.AccessItem;
   else if ((conf = find_matching_name_conf(SERVER_TYPE,
 					   NULL, NULL, parv[1], 0)) != NULL)
-  {
-    aconf = (struct AccessItem *)map_to_conf(conf);
-  }
+    aconf = &conf->conf.AccessItem;
 
   if (aconf == NULL)
   {
@@ -292,7 +260,7 @@ ms_connect(struct Client *client_p, struct Client *source_p,
     /* if someone sends port 0, and we have a config port.. use it */
     if (port == 0 && aconf->port)
       port = aconf->port;
-    else if(port <= 0)
+    else if (port <= 0)
     {
       sendto_one(source_p, ":%s NOTICE %s :Connect: Illegal port number",
                  me.name, source_p->name);
@@ -306,24 +274,14 @@ ms_connect(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  /* XXX ugly hack */
-  DLINK_FOREACH_SAFE(ptr, next_ptr, unknown_list.head)
+  if (find_servconn_in_progress(conf->name))
   {
-    pending_connection = ptr->data;
-
-    if (pending_connection->name[0] && conf->name != NULL)
-    {
-      if (0 == irccmp(conf->name, pending_connection->name))
-      {
-        sendto_one(source_p,
-	 ":%s NOTICE %s :Connect: a connection to %s is already in progress.",
-                   me.name, source_p->name, conf->name);
-        return;
-      }
-    }
+    sendto_one(source_p, ":%s NOTICE %s :Connect: a connection to %s "
+        "is already in progress.", me.name, source_p->name, conf->name)
+    return;
   }
-
-  /*
+  
+/*
    * Notify all operators about remote connect requests
    */
   sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL, "Remote CONNECT %s %d from %s",
@@ -338,11 +296,11 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    * C:line and a valid port in the C:line
    */
   if (serv_connect(aconf, source_p))
-    sendto_one(source_p, ":%s NOTICE %s :Connecting to %s.%d",
+    sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s.%d",
                me.name, source_p->name, conf->name, aconf->port);
   else
-      sendto_one(source_p, ":%s NOTICE %s :Couldn't connect to %s.%d",
-                 me.name, source_p->name, conf->name, aconf->port);
+    sendto_one(source_p, ":%s NOTICE %s :*** Couldn't connect to %s.%d",
+               me.name, source_p->name, conf->name, aconf->port);
   /* client is either connecting with all the data it needs or has been
    * destroyed
    */

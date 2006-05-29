@@ -87,62 +87,63 @@ static void free_aconf_items(struct ConfItem *, dlink_list *);
 static void free_match_items(struct ConfItem *, dlink_list *);
 static void delete_link(struct ConfItem *, dlink_list *);
 
+#define CONFSIZE (offsetof(struct ConfItem, conf))
 struct conf_item_table_type conf_item_table[] = 
   {
     /* CONF_TYPE */
     { 0, 0 , 0, 0},
     /* CLASS_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct ClassItem), 0,
+    { CONFSIZE + sizeof(struct ClassItem), 0,
       &class_items, delete_link},
     /* OPER_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_OPERATOR,
+    { CONFSIZE + sizeof(struct AccessItem), CONF_OPERATOR,
       &oconf_items, free_aconf_items },
     /* CLIENT_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_CLIENT,
+    { CONFSIZE + sizeof(struct AccessItem), CONF_CLIENT,
       NULL, free_aconf_items },
     /* SERVER_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_SERVER, 
+    { CONFSIZE + sizeof(struct AccessItem), CONF_SERVER, 
       &server_items, free_aconf_items },
     /* HUB_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0,
+    { CONFSIZE + sizeof(struct MatchItem), 0,
       &hub_items, free_match_items },
     /* LEAF_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0,
+    { CONFSIZE + sizeof(struct MatchItem), 0,
       &leaf_items, free_match_items },
     /* KLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_KLINE,
+    { CONFSIZE + sizeof(struct AccessItem), CONF_KLINE,
       NULL, free_aconf_items },
     /* DLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_DLINE,
+    { CONFSIZE + sizeof(struct AccessItem), CONF_DLINE,
       NULL, free_aconf_items },
     /* EXEMPTDLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_EXEMPTDLINE,
+    { CONFSIZE + sizeof(struct AccessItem), CONF_EXEMPTDLINE,
       NULL, free_aconf_items },
     /* CLUSTER_TYPE */
-    { sizeof(struct ConfItem) , 0,
+    { CONFSIZE , 0,
       &cluster_items, delete_link },
     /* RKLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_KLINE,
+    { CONFSIZE + sizeof(struct AccessItem), CONF_KLINE,
       &rkconf_items, free_aconf_items },
     /* RXLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct MatchItem), CONF_KLINE, 
+    { CONFSIZE + sizeof(struct MatchItem), CONF_KLINE, 
       &rxconf_items, free_match_items },
     /* XLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), 0,
+    { CONFSIZE + sizeof(struct AccessItem), 0,
       &xconf_items, free_match_items },
     /* ULINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), 0,
+    { CONFSIZE + sizeof(struct AccessItem), 0,
       &uconf_items, free_match_items },
     /* GLINE_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_GLINE,
+    { CONFSIZE + sizeof(struct AccessItem), CONF_GLINE,
       NULL, free_aconf_items },
     /* CRESV_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0, NULL },
+    { CONFSIZE + sizeof(struct MatchItem), 0, NULL },
     /* NRESV_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0,
+    { CONFSIZE + sizeof(struct MatchItem), 0,
       &nresv_items, free_match_items },
     /* GDENY_TYPE */
-    { sizeof(struct ConfItem) + sizeof(struct AccessItem), 0,
+    { CONFSIZE + sizeof(struct AccessItem), 0,
       &gdeny_items, free_aconf_items },
     { 0, 0, 0}
   };
@@ -179,26 +180,6 @@ static struct ip_entry *ip_hash_table[IP_HASH_SIZE];
 static BlockHeap *ip_entry_heap = NULL;
 static int ip_entries_count = 0;
 
-
-inline void *
-map_to_conf(struct ConfItem *aconf)
-{
-  void *conf;
-  conf = (void *)((unsigned long)aconf +
-		  (unsigned long)sizeof(struct ConfItem));
-  return(conf);
-}
-
-inline struct ConfItem *
-unmap_conf_item(void *aconf)
-{
-  struct ConfItem *conf;
-
-  conf = (struct ConfItem *)((unsigned long)aconf -
-			     (unsigned long)sizeof(struct ConfItem));
-  return(conf);
-}
-
 /* conf_dns_callback()
  *
  * inputs	- pointer to struct AccessItem
@@ -224,7 +205,7 @@ conf_dns_callback(void *vptr, struct DNSReply *reply)
   {
     ilog(L_NOTICE, "Host not found: %s, ignoring connect{} block",
          aconf->host);
-    conf = unmap_conf_item(aconf);
+    conf = aconf->conf;
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Ignoring connect{} block for %s - host not found",
 			 conf->name);
@@ -270,9 +251,12 @@ make_conf_item(ConfType type)
   conf->type = type;
   list = conf_item_table[type].list;
   status = conf_item_table[type].status;
+  /* XXX  conf is in the same place in each subtype */
+  aconf = &conf->conf.AccessItem;
+  aconf->conf = conf;
+  /* XXX */
   if (status != 0)
   {
-    aconf = map_to_conf(conf);
     aconf->status = status;
     aconf->aftype = AF_INET;
   }
@@ -322,7 +306,7 @@ free_aconf_items(struct ConfItem *conf, dlink_list *list)
 {
   struct AccessItem *aconf;
 
-  aconf = map_to_conf(conf);
+  aconf = &conf->conf.AccessItem;
 
   if (aconf->dns_query != NULL)
   {
@@ -384,7 +368,7 @@ free_match_items(struct ConfItem *conf, dlink_list *list)
 {
   struct MatchItem *match_item;
 
-  match_item = map_to_conf(conf);
+  match_item = &conf->conf.MatchItem;
   MyFree(match_item->user);
   MyFree(match_item->host);
   MyFree(match_item->reason);
@@ -406,7 +390,7 @@ free_access_item(struct AccessItem *aconf)
 
   if (aconf == NULL)
     return;
-  conf = unmap_conf_item(aconf);
+  conf = aconf->conf;
   delete_conf_item(conf);
 }
 
@@ -437,7 +421,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     DLINK_FOREACH(ptr, gdeny_items.head)
     {
       conf = ptr->data;
-      aconf = map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
 
       p = buf;
 
@@ -463,7 +447,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     DLINK_FOREACH(ptr, xconf_items.head)
     {
       conf = ptr->data;
-      matchitem = map_to_conf(conf);
+      matchitem = &conf->conf.MatchItem;
 
       sendto_one(source_p, form_str(RPL_STATSXLINE),
 		 me.name, source_p->name, 
@@ -476,7 +460,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     DLINK_FOREACH(ptr, rxconf_items.head)
     {
       conf = ptr->data;
-      matchitem = map_to_conf(conf);
+      matchitem = &conf->conf.MatchItem;
 
       sendto_one(source_p, form_str(RPL_STATSXLINE),
                  me.name, source_p->name,
@@ -490,7 +474,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
 
     DLINK_FOREACH(ptr, rkconf_items.head)
     {
-      aconf = map_to_conf((conf = ptr->data));
+      aconf = &((struct ConfItem *)(conf = ptr->data))->conf.AccessItem;
 
       if (temp && !(conf->flags & CONF_FLAGS_TEMPORARY))
         continue;
@@ -505,7 +489,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     DLINK_FOREACH(ptr, uconf_items.head)
     {
       conf = ptr->data;
-      matchitem = map_to_conf(conf);
+      matchitem = &conf->conf.MatchItem;
 
       p = buf;
 
@@ -541,7 +525,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     DLINK_FOREACH(ptr, oconf_items.head)
     {
       conf = ptr->data;
-      aconf = map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
 
       /* Don't allow non opers to see oper privs */
       if (IsOper(source_p))
@@ -561,7 +545,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     DLINK_FOREACH(ptr, class_items.head)
     {
       conf = ptr->data;
-      classitem = map_to_conf(conf);
+      classitem = &conf->conf.ClassItem;
       sendto_one(source_p, form_str(RPL_STATSYLINE),
 		 me.name, source_p->name, 'Y',
 		 conf->name, PingFreq(classitem),
@@ -580,7 +564,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
       p = buf;
 
       conf = ptr->data;
-      aconf = map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
 
       buf[0] = '\0';
 
@@ -621,7 +605,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     DLINK_FOREACH(ptr, hub_items.head)
     {
       conf = ptr->data;
-      matchitem = map_to_conf(conf);
+      matchitem = &conf->conf.MatchItem;
       sendto_one(source_p, form_str(RPL_STATSHLINE), me.name,
 		 source_p->name, 'H', matchitem->host, conf->name, 0, "*");
     }
@@ -631,7 +615,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     DLINK_FOREACH(ptr, leaf_items.head)
     {
       conf = ptr->data;
-      matchitem = map_to_conf(conf);
+      matchitem = &conf->conf.MatchItem;
       sendto_one(source_p, form_str(RPL_STATSLLINE), me.name,
 		 source_p->name, 'L', matchitem->host, conf->name, 0, "*");
     }
@@ -804,7 +788,7 @@ verify_access(struct Client *client_p, const char *username, struct AccessItem *
   {
     if (IsConfClient(aconf) && !rkconf)
     {
-      conf = unmap_conf_item(aconf);
+      conf = aconf->conf;
 
       if (IsConfRedir(aconf))
       {
@@ -828,7 +812,7 @@ verify_access(struct Client *client_p, const char *username, struct AccessItem *
         SetIPSpoof(client_p);
       }
 
-      aclass = map_to_conf(aconf->class_ptr);
+      aclass = &((struct ConfItem *)(aconf->class_ptr))->conf.ClassItem;
 
       if (check_class_limits(client_p, IsConfExemptLimits(aconf), aclass))
       {
@@ -1167,14 +1151,14 @@ detach_conf(struct Client *client_p, ConfType type)
   if (CurrUserCount(aclass) > 0)
     aclass->curr_user_count--;
   if (MaxTotal(aclass) < 0 && CurrUserCount(aclass) <= 0)
-    delete_conf_item(unmap_conf_item(aclass)); /* XXX delete_class() */
+    delete_conf_item(aclass->conf);
    
   /* More to do if this client is a server, else return */
   if (client_p->serv == NULL)
     return 0;
 
   conf = client_p->serv->sconf;
-  aconf = map_to_conf(conf);
+  aconf = &conf->conf.AccessItem;
 
   if (aconf->clients > 0)
     --aconf->clients;
@@ -1185,7 +1169,7 @@ detach_conf(struct Client *client_p, ConfType type)
   DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->serv->leafs_hubs.head)
   {
     conf = ptr->data;
-    match_item = map_to_conf(conf);
+    match_item = &conf->conf.MatchItem;
 
     dlinkDelete(ptr, &client_p->serv->leafs_hubs);
     free_dlink_node(ptr);
@@ -1212,7 +1196,7 @@ attach_leaf_hub(struct Client *client_p, struct ConfItem *conf)
   if (dlinkFind(&client_p->serv->leafs_hubs, conf) != NULL)
     return 1;
 
-  match_item = map_to_conf(conf);
+  match_item = &conf->conf.MatchItem;
   match_item->ref_count++;
   dlinkAdd(conf, make_dlink_node(), &client_p->serv->leafs_hubs);
 
@@ -1293,7 +1277,7 @@ attach_connect_block(struct Client *client_p, const char *name,
   DLINK_FOREACH(ptr, server_items.head)
   {
     conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->conf.AccessItem;
 
     if (match(conf->name, name) == 0 || match(aconf->host, host) == 0)
       continue;
@@ -1345,7 +1329,7 @@ find_matching_name_conf(ConfType type, const char *name, const char *user,
     {
       conf = ptr->data;
 
-      match_item = map_to_conf(conf);
+      match_item = &conf->conf.MatchItem;
       if (EmptyString(conf->name))
 	continue;
       if ((name != NULL) && match_esc(conf->name, name))
@@ -1366,7 +1350,7 @@ find_matching_name_conf(ConfType type, const char *name, const char *user,
     DLINK_FOREACH(ptr, list_p->head)
     {
       conf = ptr->data;
-      aconf = map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
 
       if ((name != NULL) && match_esc(name, conf->name))
         return conf;
@@ -1412,7 +1396,7 @@ find_exact_name_conf(ConfType type, const char *name,
     DLINK_FOREACH(ptr, list_p->head)
     {
       conf = ptr->data;
-      match_item = (struct MatchItem *)map_to_conf(conf);
+      match_item = &conf->conf.MatchItem;
       if (EmptyString(conf->name))
 	continue;
     
@@ -1432,7 +1416,7 @@ find_exact_name_conf(ConfType type, const char *name,
     DLINK_FOREACH(ptr, list_p->head)
     {
       conf = ptr->data;
-      aconf = (struct AccessItem *)map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
       if (EmptyString(conf->name))
 	continue;
     
@@ -1454,7 +1438,7 @@ find_exact_name_conf(ConfType type, const char *name,
       conf = ptr->data;
       if (EmptyString(conf->name))
 	continue;
-      aconf = (struct AccessItem *)map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
     
       if (name == NULL)
       {
@@ -1734,7 +1718,7 @@ lookup_confhost(struct ConfItem *conf)
   struct AccessItem *aconf;
   struct addrinfo hints, *res;
 
-  aconf = map_to_conf(conf);
+  aconf = &conf->conf.AccessItem;
 
   if (EmptyString(aconf->host) ||
       EmptyString(aconf->user))
@@ -2020,7 +2004,7 @@ clear_out_old_conf(void)
       /* XXX This is less than pretty */
       if (conf->type == SERVER_TYPE)
       {
-	aconf = (struct AccessItem *)map_to_conf(conf);
+	aconf = &conf->conf.AccessItem;
 	if (aconf->clients != 0)
         {
 	  SetConfIllegal(aconf);
@@ -2033,7 +2017,7 @@ clear_out_old_conf(void)
       }
       else if (conf->type == OPER_TYPE)
       {
-	aconf = (struct AccessItem *)map_to_conf(conf);
+	aconf = &conf->conf.AccessItem;
 	if (aconf->clients != 0)
         {
 	  SetConfIllegal(aconf);
@@ -2046,7 +2030,7 @@ clear_out_old_conf(void)
       }
       else if (conf->type == CLIENT_TYPE)
       {
-	aconf = (struct AccessItem *)map_to_conf(conf);
+	aconf = &conf->conf.AccessItem;
 	if (aconf->clients != 0)
         {
 	  SetConfIllegal(aconf);
@@ -2071,7 +2055,7 @@ clear_out_old_conf(void)
       {
 	if ((conf->type == LEAF_TYPE) || (conf->type == HUB_TYPE))
 	{
-	  match_item = (struct MatchItem *)map_to_conf(conf);
+	  match_item = &conf->conf.MatchItem;
 	  if ((match_item->ref_count <= 0))
 	    delete_conf_item(conf);
 	  else
@@ -2092,7 +2076,7 @@ clear_out_old_conf(void)
   DLINK_FOREACH(ptr, class_items.head)
   {
     conf = ptr->data;
-    cltmp = (struct ClassItem *)map_to_conf(conf);
+    cltmp = &conf->conf.ClassItem;
     if (ptr != class_items.tail)  /* never mark the "default" class */
       MaxTotal(cltmp) = -1;
   }
@@ -2179,7 +2163,7 @@ flush_deleted_I_P(void)
     DLINK_FOREACH_SAFE(ptr, next_ptr, (*iterator)->head)
     {
       conf = ptr->data;
-      aconf = (struct AccessItem *)map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
 
       if (IsConfIllegal(aconf))
       {
@@ -2252,7 +2236,7 @@ get_client_className(struct Client *target_p)
 
   if (target_p->localClient->class != NULL)
   {
-    struct ConfItem *conf = unmap_conf_item(target_p->localClient->class);
+    struct ConfItem *conf = target_p->localClient->class->conf;
     return conf->name;
   }
 
@@ -2325,7 +2309,7 @@ check_class(void)
   DLINK_FOREACH_SAFE(ptr, next_ptr, class_items.head)
   {
     conf = ptr->data;
-    aclass = (struct ClassItem *)map_to_conf(conf);
+    aclass = &conf->conf.ClassItem;
 
     if (MaxTotal(aclass) < 0)
     {
@@ -2350,7 +2334,7 @@ init_class(void)
   struct ClassItem *aclass;
 
   class_default = make_conf_item(CLASS_TYPE);
-  aclass = (struct ClassItem *)map_to_conf(class_default);
+  aclass = &class_default->conf.ClassItem;
   DupString(class_default->name, "default");
   ConFreq(aclass)  = DEFAULT_CONNECTFREQUENCY;
   PingFreq(aclass) = DEFAULT_PINGFREQUENCY;
@@ -2393,7 +2377,7 @@ conf_add_class_to_conf(struct ConfItem *conf, const char *class_name)
   struct AccessItem *aconf;
   struct ClassItem *aclass;
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = &conf->conf.AccessItem;
 
   if (class_name == NULL) 
   {
@@ -2426,7 +2410,7 @@ conf_add_class_to_conf(struct ConfItem *conf, const char *class_name)
   }
   else
   {
-    aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+    aclass = &conf->conf.ClassItem;
     if (MaxTotal(aclass) < 0)
     {
       aconf->class_ptr = class_default;
@@ -2449,7 +2433,7 @@ conf_add_server(struct ConfItem *conf, unsigned int lcount, const char *class_na
   struct AccessItem *aconf;
   char *orig_host;
 
-  aconf = map_to_conf(conf);
+  aconf = &conf->conf.AccessItem;
 
   conf_add_class_to_conf(conf, class_name);
 

@@ -27,6 +27,7 @@
 
 struct ResvChannel
 {
+  void *conf_ptr;	/* pointer back to conf */
   dlink_node node;
   struct ResvChannel *hnext;
 

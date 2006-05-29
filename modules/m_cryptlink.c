@@ -227,7 +227,7 @@ cryptlink_auth(struct Client *client_p, struct Client *source_p,
                     "Lost connect block");
     return;
   }
-  aconf = map_to_conf(conf);
+  aconf = &conf->conf.AccessItem;
 
   if (!(client_p->localClient->out_cipher ||
       (client_p->localClient->out_cipher = check_cipher(client_p, aconf))))
@@ -385,7 +385,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
                     "Lost connect block" );
     return;
   }
-  aconf = map_to_conf(conf);
+  aconf = &conf->conf.AccessItem;
 
   /*
    * if we are connecting (Handshake), we already have the name from the

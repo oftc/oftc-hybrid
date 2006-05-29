@@ -252,7 +252,7 @@ check_pings_list(dlink_list *list)
         struct AccessItem *aconf;
 
         conf = make_conf_item(KLINE_TYPE);
-        aconf = (struct AccessItem *)map_to_conf(conf);
+        aconf = &conf->conf.AccessItem;
 
         DupString(aconf->host, client_p->host);
         DupString(aconf->reason, "idle exceeder");
@@ -395,7 +395,7 @@ check_conf_klines(void)
       if (aconf->status & CONF_EXEMPTDLINE)
 	continue;
 
-      conf = unmap_conf_item(aconf);
+      conf = aconf->conf;
       ban_them(client_p, conf);
       continue; /* and go examine next fd/client_p */
     }
@@ -411,7 +411,7 @@ check_conf_klines(void)
         continue;
       }
 
-      conf = unmap_conf_item(aconf);
+      conf = aconf->conf;
       ban_them(client_p, conf);
       /* and go examine next fd/client_p */    
       continue;
@@ -429,7 +429,7 @@ check_conf_klines(void)
         continue;
       }
 
-      conf = unmap_conf_item(aconf);
+      conf = aconf->conf;
       ban_them(client_p, conf);
       continue; 
     }
@@ -487,20 +487,20 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
     case RKLINE_TYPE:
     case KLINE_TYPE:
       type_string = kline_string;
-      aconf = map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
       break;
     case DLINE_TYPE:
       type_string = dline_string;
-      aconf = map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
       break;
     case GLINE_TYPE:
       type_string = gline_string;
-      aconf = map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
       break;
     case RXLINE_TYPE:
     case XLINE_TYPE:
       type_string = xline_string;
-      xconf = map_to_conf(conf);
+      xconf = &conf->conf.MatchItem;
       ++xconf->count;
       break;
     default:
@@ -881,7 +881,7 @@ remove_dependents(struct Client *source_p, struct Client *from,
 
     if ((conf = to->serv->sconf) != NULL)
     {
-      aconf = map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
       strlcpy(myname, my_name_for_link(aconf), sizeof(myname));
     }
     else
@@ -1101,8 +1101,8 @@ close_connection(struct Client *client_p)
        * a rehash in between, the status has been changed to
        * CONF_ILLEGAL). But only do this if it was a "good" link.
        */
-      aconf = (struct AccessItem *)map_to_conf(conf);
-      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+      aconf = &conf->conf.AccessItem;
+      aclass = &((struct ConfItem *)aconf->class_ptr)->conf.ClassItem;
       aconf->hold = time(NULL);
       aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
         HANGONRETRYDELAY : ConFreq(aclass);

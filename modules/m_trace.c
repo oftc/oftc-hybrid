@@ -299,7 +299,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
   DLINK_FOREACH(ptr, class_items.head)
   {
     conf = ptr->data;
-    cltmp = (struct ClassItem *)map_to_conf(conf);
+    cltmp = &conf->conf.ClassItem;
     if (CurrUserCount(cltmp) > 0)
       sendto_one(source_p, form_str(RPL_TRACECLASS),
 		 from, to, conf->name, CurrUserCount(cltmp));

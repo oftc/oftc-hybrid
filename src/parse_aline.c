@@ -523,7 +523,7 @@ add_temp_line(struct ConfItem *conf)
 
   if (conf->type == DLINE_TYPE)
   {
-    aconf = map_to_conf(conf);
+    aconf = &conf->conf.AccessItem;
     SetConfTemporary(aconf);
     dlinkAdd(conf, &conf->node, &temporary_dlines);
     MyFree(aconf->user);
@@ -532,14 +532,14 @@ add_temp_line(struct ConfItem *conf)
   }
   else if (conf->type == KLINE_TYPE)
   {
-    aconf = map_to_conf(conf);
+    aconf = &conf->conf.AccessItem;
     SetConfTemporary(aconf);
     dlinkAdd(conf, &conf->node, &temporary_klines);
     add_conf_by_address(CONF_KILL, aconf);
   }
   else if (conf->type == GLINE_TYPE)
   {
-    aconf = map_to_conf(conf);
+    aconf = &conf->conf.AccessItem;
     SetConfTemporary(aconf);
     dlinkAdd(conf, &conf->node, &temporary_glines);
     add_conf_by_address(CONF_GLINE, aconf);
@@ -609,7 +609,7 @@ expire_tklines(dlink_list *tklist)
         conf->type == KLINE_TYPE ||
         conf->type == DLINE_TYPE)
     {
-      aconf = (struct AccessItem *)map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
       if (aconf->hold <= CurrentTime)
       {
         /* XXX - Do we want GLINE expiry notices?? */
@@ -638,7 +638,7 @@ expire_tklines(dlink_list *tklist)
     else if (conf->type == XLINE_TYPE ||
 	     conf->type == RXLINE_TYPE)
     {
-      xconf = (struct MatchItem *)map_to_conf(conf);
+      xconf = &conf->conf.MatchItem;
       if (xconf->hold <= CurrentTime)
       {
         if (ConfigFileEntry.tkline_expire_notices)
@@ -652,7 +652,7 @@ expire_tklines(dlink_list *tklist)
     }
     else if (conf->type == RKLINE_TYPE)
     {
-      aconf = map_to_conf(conf);
+      aconf = &conf->conf.AccessItem;
       if (aconf->hold <= CurrentTime)
       {
         if (ConfigFileEntry.tkline_expire_notices)
@@ -667,7 +667,7 @@ expire_tklines(dlink_list *tklist)
     }
     else if (conf->type == NRESV_TYPE)
     {
-      nconf = (struct MatchItem *)map_to_conf(conf);
+      nconf = &conf->conf.MatchItem;
       if (nconf->hold <= CurrentTime)
       {
         if (ConfigFileEntry.tkline_expire_notices)
@@ -680,7 +680,7 @@ expire_tklines(dlink_list *tklist)
     }
     else if (conf->type == CRESV_TYPE)
     {
-      cconf = (struct ResvChannel *)map_to_conf(conf);
+      cconf = &conf->conf.ResvChannel;
       if (cconf->hold <= CurrentTime)
       {
         if (ConfigFileEntry.tkline_expire_notices)
@@ -709,7 +709,7 @@ find_regexp_kline(const char *uhi[])
 
   DLINK_FOREACH(ptr, rkconf_items.head)
   {
-    struct AccessItem *aptr = map_to_conf(ptr->data);
+    struct AccessItem *aptr = &((struct ConfItem *)ptr->data)->conf.AccessItem;
 
     assert(aptr->regexuser);
     assert(aptr->regexhost);

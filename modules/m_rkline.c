@@ -175,7 +175,7 @@ mo_rkline(struct Client *client_p, struct Client *source_p,
   cur_time = CurrentTime;
   current_date = smalldate(cur_time);
   conf = make_conf_item(RKLINE_TYPE);
-  aconf = map_to_conf(conf);
+  aconf = &conf->conf.AccessItem;
 
   DupString(aconf->host, host);
   DupString(aconf->user, user);
@@ -253,7 +253,7 @@ me_rkline(struct Client *client_p, struct Client *source_p,
     }
 
     conf = make_conf_item(RKLINE_TYPE);
-    aconf = map_to_conf(conf);
+    aconf = &conf->conf.AccessItem;
     DupString(aconf->host, khost);
     DupString(aconf->user, kuser);
 
@@ -324,7 +324,7 @@ static void
 apply_trkline(struct Client *source_p, struct ConfItem *conf,
              int tkline_time)
 {
-  struct AccessItem *aconf = map_to_conf(conf);
+  struct AccessItem *aconf = &conf->conf.AccessItem;
 
   aconf->hold = CurrentTime + tkline_time;
   add_temp_line(conf);
@@ -354,7 +354,7 @@ already_placed_rkline(struct Client *source_p, const char *user, const char *hos
 
   DLINK_FOREACH(ptr, rkconf_items.head)
   {
-    struct AccessItem *aptr = map_to_conf(ptr->data);
+    struct AccessItem *aptr = &((struct ConfItem *)(ptr->data))->conf.AccessItem;
 
     if (!strcmp(user, aptr->user) &&
         !strcmp(aptr->host, host))
@@ -532,7 +532,7 @@ remove_trkline_match(const char *const host,
   DLINK_FOREACH(ptr, temporary_rklines.head)
   {
     struct ConfItem *conf = ptr->data;
-    struct AccessItem *aptr = map_to_conf(ptr->data);
+    struct AccessItem *aptr = &conf->conf.AccessItem;
 
     if (!strcmp(user, aptr->user) &&
         !strcmp(aptr->host, host))

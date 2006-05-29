@@ -93,7 +93,7 @@ already_placed_rxline(struct Client *source_p, const char *gecos)
   DLINK_FOREACH(ptr, rxconf_items.head)
   {
     struct ConfItem *aptr = ptr->data;
-    const struct MatchItem *match_item = map_to_conf(aptr);
+    const struct MatchItem *match_item = &aptr->conf.MatchItem;
 
     if (!strcmp(gecos, aptr->name))
     {
@@ -328,7 +328,7 @@ write_rxline(struct Client *source_p, const char *gecos, char *reason,
   conf = make_conf_item(RXLINE_TYPE);
   conf->regexpname = exp_gecos;
 
-  match_item = map_to_conf(conf);
+  match_item = &conf->conf.MatchItem;
 
   DupString(conf->name, gecos);
   DupString(match_item->reason, reason);

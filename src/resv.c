@@ -51,16 +51,16 @@ create_channel_resv(char *name, char *reason, int in_conf)
   struct ResvChannel *resv_p;
 
   if (name == NULL || reason == NULL)
-    return(NULL);
+    return NULL;
 
-  if (find_channel_resv(name))
-    return(NULL);
+  if (hash_find_resv(name))
+    return NULL;
 
-  if (strlen(reason) > TOPICLEN)
-    reason[TOPICLEN] = '\0';
+  if (strlen(reason) > REASONLEN)
+    reason[REASONLEN] = '\0';
 
   conf = make_conf_item(CRESV_TYPE);
-  resv_p = (struct ResvChannel *)map_to_conf(conf);
+  resv_p = &conf->conf.ResvChannel;
 
   strlcpy(resv_p->name, name, sizeof(resv_p->name));
   DupString(resv_p->reason, reason);
@@ -69,7 +69,7 @@ create_channel_resv(char *name, char *reason, int in_conf)
   dlinkAdd(resv_p, &resv_p->node, &resv_channel_list);
   hash_add_resv(resv_p);
 
-  return(conf);
+  return conf;
 }
 
 /* create_nick_resv()
@@ -87,23 +87,22 @@ create_nick_resv(char *name, char *reason, int in_conf)
   struct MatchItem *resv_p;
 
   if (name == NULL || reason == NULL)
-    return(NULL);
+    return NULL;
 
-  if (find_matching_name_conf(NRESV_TYPE, name,
-			      NULL, NULL, 0))
-    return(NULL);
+  if (find_matching_name_conf(NRESV_TYPE, name, NULL, NULL, 0))
+    return NULL;
 
-  if (strlen(reason) > TOPICLEN)
-    reason[TOPICLEN] = '\0';
+  if (strlen(reason) > REASONLEN)
+    reason[REASONLEN] = '\0';
 
   conf = make_conf_item(NRESV_TYPE);
-  resv_p = (struct MatchItem *)map_to_conf(conf);
+  resv_p = &conf->conf.MatchItem;
 
   DupString(conf->name, name);
   DupString(resv_p->reason, reason);
   resv_p->action = in_conf;
 
-  return(conf);
+  return conf;
 }
 
 /* clear_conf_resv()
@@ -138,48 +137,47 @@ delete_channel_resv(struct ResvChannel *resv_p)
   struct ConfItem *conf;
   assert(resv_p != NULL);
 
-  if (resv_p == NULL)
-    return(0);
-
   hash_del_resv(resv_p);
   dlinkDelete(&resv_p->node, &resv_channel_list);
   MyFree(resv_p->reason);
-  conf = unmap_conf_item(resv_p);
+  conf = resv_p->conf;
   delete_conf_item(conf);
 
-  return(1);
+  return 1;
 }
 
-int
-find_channel_resv(const char *name)
+/* match_find_resv()
+ *
+ * inputs       - pointer to name
+ * output       - pointer to a struct ResvChannel
+ * side effects - Finds a reserved channel whose name matches 'name',
+ *                if can't find one returns NULL.
+ */
+struct ResvChannel *
+match_find_resv(const char *name)
 {
-  struct ResvChannel *resv_p;
+  dlink_node *ptr = NULL;
 
-  if ((resv_p = hash_find_resv(name)) != NULL)
-    return(1);
+  if (EmptyString(name))
+    return NULL;
 
-  return(0);
-}
-
-#if 0
-struct ResvNick *
-return_nick_resv(const char *name)
-{
-  dlink_node *ptr;
-  struct ResvNick *resv_p;
-
-  DLINK_FOREACH(ptr, resv_nick_list.head)
+  DLINK_FOREACH(ptr, resv_channel_list.head)
   {
-    resv_p = ptr->data;
+    struct ResvChannel *chptr = ptr->data;
 
-    if (0 == irccmp(resv_p->name, name))
-      return(resv_p);
+    if (match_chan(name, chptr->name))
+      return chptr;
   }
 
-  return(NULL);
+  return NULL;
 }
-#endif
 
+/* report_resv()
+ *
+ * inputs	- pointer to client pointer to report to.
+ * output	- NONE
+ * side effects	- report all resvs to client.
+ */
 void
 report_resv(struct Client *source_p)
 {
@@ -200,42 +198,13 @@ report_resv(struct Client *source_p)
   DLINK_FOREACH(ptr, nresv_items.head)
   {
     conf = ptr->data;
-    resv_np = (struct MatchItem *)map_to_conf(conf);
+    resv_np = &conf->conf.MatchItem;
 
     sendto_one(source_p, form_str(RPL_STATSQLINE),
                me.name, source_p->name,
 	       resv_np->action ? 'Q' : 'q',
 	       conf->name, resv_np->reason);
   }
-}
-
-int
-clean_resv_nick(char *nick)
-{
-  char tmpch;
-  int as = 0;
-  int q  = 0;
-  int ch = 0;
-
-  if (*nick == '-' || IsDigit(*nick))
-    return(0);
-
-  while ((tmpch = *nick++))
-  {
-    if (tmpch == '?')
-      q++;
-    else if (tmpch == '*')
-      as++;
-    else if (IsNickChar(tmpch))
-      ch++;
-    else
-      return(0);
-  }
-
-  if (!ch && as)
-    return(0);
-
-  return(1);
 }
 
 /* valid_wild_card_simple()
@@ -245,22 +214,19 @@ clean_resv_nick(char *nick)
  * side effects	- none
  */
 int
-valid_wild_card_simple(char *data)
+valid_wild_card_simple(const char *data)
 {
-  char *p = data, tmpch;
+  const unsigned char *p = (const unsigned char *)data;
   int nonwild = 0;
 
-  while ((tmpch = *p++))
+  while (*p != '\0')
   {
-    if (!IsMWildChar(tmpch))
-    {
-      if (++nonwild >= ConfigFileEntry.min_nonwildcard_simple)
-        break;
-    }
+    if ((*p == '\\' && *++p) || (*p && !IsMWildChar(*p)))
+      if (++nonwild == ConfigFileEntry.min_nonwildcard_simple)
+        return 1;
+    if (*p != '\0')
+      ++p;
   }
 
-  if (nonwild < ConfigFileEntry.min_nonwildcard_simple)
-    return 0;
-  else
-    return 1;
+  return 0;
 }

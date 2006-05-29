@@ -137,7 +137,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 			    );
     if (aconf != NULL)
     {
-      conf = unmap_conf_item(aconf);
+      conf = aconf->conf;
 
       if (aconf->status & CONF_EXEMPTDLINE)
       {
@@ -189,7 +189,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                  
   if (aconf != NULL)
   {
-    conf = unmap_conf_item(aconf);
+    conf = aconf->conf;
 
     snprintf(userhost, sizeof(userhost), "%s@%s", aconf->user, aconf->host);
 
@@ -208,7 +208,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
   if (conf != NULL)
   {
     struct MatchItem *mconf;
-    mconf = (struct MatchItem *)map_to_conf(conf);
+    mconf = &conf->conf.MatchItem;
 
     sendto_one(source_p, form_str(RPL_TESTLINE),
 	       me.name, source_p->name,
@@ -257,7 +257,7 @@ mo_testgecos(struct Client *client_p, struct Client *source_p,
   if ((conf = find_matching_name_conf(XLINE_TYPE, gecos_name, NULL, NULL, 0))
       != NULL)
   {
-    xconf = (struct MatchItem *)map_to_conf(conf);
+    xconf = &conf->conf.MatchItem;
     sendto_one(source_p, form_str(RPL_TESTLINE),
 	       me.name, source_p->name, 'X', 0L,
 	       conf->name, xconf->reason ? xconf->reason : "X-lined",

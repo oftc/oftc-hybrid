@@ -945,7 +945,7 @@ oper_entry: OPERATOR
   if (ypass == 2)
   {
     yy_conf = make_conf_item(OPER_TYPE);
-    yy_aconf = map_to_conf(yy_conf);
+    yy_aconf = &yy_conf->conf.AccessItem;
     SetConfEncrypted(yy_aconf); /* Yes, the default is encrypted */
   }
   else
@@ -974,7 +974,7 @@ oper_entry: OPERATOR
       yy_tmp = ptr->data;
 
       new_conf = make_conf_item(OPER_TYPE);
-      new_aconf = (struct AccessItem *)map_to_conf(new_conf);
+      new_aconf = &new_conf->conf.AccessItem;
 
       new_aconf->flags = yy_aconf->flags;
 
@@ -1512,7 +1512,7 @@ class_entry: CLASS
   if (ypass == 1)
   {
     yy_conf = make_conf_item(CLASS_TYPE);
-    yy_class = (struct ClassItem *)map_to_conf(yy_conf);
+    yy_class = &yy_conf->conf.ClassItem;
   }
 } class_name_b '{' class_items '}' ';'
 {
@@ -1531,7 +1531,7 @@ class_entry: CLASS
 
       if (cconf != NULL)		/* The class existed already */
       {
-        class = (struct ClassItem *) map_to_conf(cconf);
+        class = &cconf->conf.ClassItem;
         rebuild_cidr_class(class, yy_class);
         *class = *yy_class;
         delete_conf_item(yy_conf);
@@ -1760,7 +1760,7 @@ auth_entry: IRCD_AUTH
   if (ypass == 2)
   {
     yy_conf = make_conf_item(CLIENT_TYPE);
-    yy_aconf = map_to_conf(yy_conf);
+    yy_aconf = &yy_conf->conf.AccessItem;
   }
   else
   {
@@ -1789,7 +1789,7 @@ auth_entry: IRCD_AUTH
       struct ConfItem *new_conf;
 
       new_conf = make_conf_item(CLIENT_TYPE);
-      new_aconf = map_to_conf(new_conf);
+      new_aconf = &new_conf->conf.AccessItem;
 
       yy_tmp = ptr->data;
 
@@ -2157,7 +2157,7 @@ shared_entry: T_SHARED
   if (ypass == 2)
   {
     yy_conf = make_conf_item(ULINE_TYPE);
-    yy_match_item = map_to_conf(yy_conf);
+    yy_match_item = &yy_conf->conf.MatchItem;
     yy_match_item->action = SHARED_ALL;
   }
 } '{' shared_items '}' ';'
@@ -2331,7 +2331,7 @@ connect_entry: CONNECT
   if (ypass == 2)
   {
     yy_conf = make_conf_item(SERVER_TYPE);
-    yy_aconf = (struct AccessItem *)map_to_conf(yy_conf);
+    yy_aconf = &yy_conf->conf.AccessItem;
     yy_aconf->passwd = NULL;
     /* defaults */
     yy_aconf->port = PORTNUM;
@@ -2428,7 +2428,7 @@ connect_entry: CONNECT
 	if ((yy_conf != NULL) && (yy_conf->name != NULL))
 	{
 	  new_hub_conf = make_conf_item(HUB_TYPE);
-	  match_item = (struct MatchItem *)map_to_conf(new_hub_conf);
+	  match_item = &new_hub_conf->conf.MatchItem;
 	  DupString(new_hub_conf->name, yy_conf->name);
 	  if (yy_hconf->user != NULL)
 	    DupString(match_item->user, yy_hconf->user);
@@ -2455,7 +2455,7 @@ connect_entry: CONNECT
 	if ((yy_conf != NULL) && (yy_conf->name != NULL))
 	{
 	  new_leaf_conf = make_conf_item(LEAF_TYPE);
-	  match_item = (struct MatchItem *)map_to_conf(new_leaf_conf);
+	  match_item = &new_leaf_conf->conf.MatchItem;
 	  DupString(new_leaf_conf->name, yy_conf->name);
 	  if (yy_lconf->user != NULL)
 	    DupString(match_item->user, yy_lconf->user);
@@ -2866,7 +2866,7 @@ kill_entry: KILL
       else
       {
         yy_conf = make_conf_item(KLINE_TYPE);
-        yy_aconf = map_to_conf(yy_conf);
+        yy_aconf = &yy_conf->conf.AccessItem;
 
         DupString(yy_aconf->user, userbuf);
         DupString(yy_aconf->host, hostbuf);
@@ -2930,7 +2930,7 @@ deny_entry: DENY
   if (ypass == 2)
   {
     yy_conf = make_conf_item(DLINE_TYPE);
-    yy_aconf = map_to_conf(yy_conf);
+    yy_aconf = &yy_conf->conf.AccessItem;
     /* default reason */
     DupString(yy_aconf->reason, "No reason");
   }
@@ -2983,7 +2983,7 @@ exempt_ip: IP '=' QSTRING ';'
     if (yylval.string[0] && parse_netmask(yylval.string, NULL, NULL) != HM_HOST)
     {
       yy_conf = make_conf_item(EXEMPTDLINE_TYPE);
-      yy_aconf = map_to_conf(yy_conf);
+      yy_aconf = &yy_conf->conf.AccessItem;
       DupString(yy_aconf->host, yylval.string);
 
       add_conf_by_address(CONF_EXEMPTDLINE, yy_aconf);
@@ -3027,7 +3027,7 @@ gecos_entry: GECOS
       else
         yy_conf = make_conf_item(XLINE_TYPE);
 
-      yy_match_item = map_to_conf(yy_conf);
+      yy_match_item = &yy_conf->conf.MatchItem;
       DupString(yy_conf->name, gecos_name);
 
       if (reasonbuf[0])
@@ -3572,7 +3572,7 @@ gline_entry: GLINES
   if (ypass == 2)
   {
     yy_conf = make_conf_item(GDENY_TYPE);
-    yy_aconf = map_to_conf(yy_conf);
+    yy_aconf = &yy_conf->conf.AccessItem;
   }
 } '{' gline_items '}' ';'
 {
@@ -3672,7 +3672,7 @@ gline_action: ACTION
 
       yy_tmp = ptr->data;
       new_conf = make_conf_item(GDENY_TYPE);
-      new_aconf = map_to_conf(new_conf);
+      new_aconf = &new_conf->conf.AccessItem;
 
       new_aconf->flags = yy_aconf->flags;
 
@@ -3700,7 +3700,7 @@ gline_action: ACTION
       delete_conf_item(yy_conf);
 
     yy_conf = make_conf_item(GDENY_TYPE);
-    yy_aconf = map_to_conf(yy_conf);
+    yy_aconf = &yy_conf->conf.AccessItem;
   }
 };
 

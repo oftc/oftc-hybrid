@@ -136,13 +136,13 @@ m_challenge(struct Client *client_p, struct Client *source_p,
 				   parv[1], source_p->username, source_p->host
 				   )) != NULL)
   {
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->conf.AccessItem;
   }
   else if ((conf = find_exact_name_conf(OPER_TYPE,
 					parv[1], source_p->username,
 					source_p->sockhost)) != NULL)
   {
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->conf.AccessItem;
   }
 
   if(aconf == NULL)
