@@ -1,5 +1,5 @@
 /* doc/example.conf.quick - ircd-hybrid-7 Example configuration file
- * Copyright (C) 2000-2002 Hybrid Development Team
+ * Copyright (C) 2000-2005 Hybrid Development Team
  *
  * Written by ejb, wcampbel, db, leeh and others
  *
@@ -7,9 +7,6 @@
  */
 
 /* IMPORTANT NOTES:
- *
- * class {} blocks MUST be specified before anything that uses them.  That
- * means they must be defined before auth {} and before connect {}.
  *
  * auth {} blocks MUST be specified in order of precedence.  The first one
  * that matches a user will be used.  So place spoofs first, then specials,
@@ -41,6 +38,7 @@
  
 serverinfo {
 	name = "hades.arpa";
+	sid = "_CHANGE_ME_";
 	description = "hybrid-7 test server";
 	network_name = "MyNet";
 	network_desc = "This is My Network";
@@ -49,6 +47,7 @@ serverinfo {
 	#vhost6 = "3ffe:80e8:546::2";
 	max_clients = 512;
 	#rsa_private_key_file = "/usr/local/ircd/etc/rsa.key";
+	#ssl_certificate_file = "/usr/local/ircd/etc/cert.pem";
 };
 
 /* admin {}: contains admin information about the server. (OLD A:) */
@@ -95,6 +94,7 @@ class {
 class {
 	name = "server";
 	ping_time = 5 minutes;
+	ping_warning = 15 seconds;
 	connectfreq = 5 minutes;
 	max_number = 1;
 	sendq=2 megabytes;
@@ -103,8 +103,13 @@ class {
 /* listen {}: contain information about the ports ircd listens on (OLD P:) */
 listen {
 	port = 6665 .. 6669;
+
+	flags = ssl;
+	port = 6697;
+
 	host = "1.2.3.4";
 	port = 7000, 7001;
+
 	host = "3ffe:1234:a:b:c::d";
         port = 7002;
 };
@@ -114,13 +119,9 @@ auth {
 	user = "*@172.16.0.0/12";
 	user = "*test@123D:B567:*";
 	password = "letmein";
-        need_password = yes;
+	flags = need_password, spoof_notice, exceed_limit, kline_exempt,
+		gline_exempt, no_tilde;
 	spoof = "I.still.hate.packets";
-	spoof_notice = yes;
-	exceed_limit = yes;
-	kline_exempt = yes;
-	gline_exempt = yes;
-	no_tilde = yes;
 	class = "opers";
 };
 
@@ -134,8 +135,7 @@ auth {
 auth {
 	user = "*@*";
 	class = "users";
-	#restricted = yes;
-	have_ident = yes;
+	flags = need_ident;
 };
 
 /* operator {}: defines ircd operators. (OLD O:)
@@ -147,19 +147,11 @@ operator {
 	user = "*god@*";
 	user = "*@127.0.0.1";
 	password = "etcnjl8juSU1E";
+	encrypted = yes;
 	#rsa_public_key_file = "/usr/local/ircd/etc/oper.pub";
 	class = "opers";
-	global_kill = yes;
-	remote = yes;
-	kline = yes;
-	unkline = yes;
-	gline = yes;
-	xline = yes;
-	die = yes;
-	rehash = yes;
-	nick_changes = yes;
-	admin = yes;
-	hidden_admin = no;
+	flags = global_kill, remote, kline, unkline, gline,
+		xline, die, rehash, nick_changes, admin;
 };
 
 /* connect {}: controls servers we connect to (OLD C:, N:, H:, L:) */
@@ -173,9 +165,7 @@ connect {
 	hub_mask = "*";
 	#leaf_mask = "*.uk";
 	class = "server";
-	autoconn = yes;
-	#compressed = yes;
-	#lazylink = yes;
+	flags = autoconn;
 	#fakename = "*.arpa";
 };
 
@@ -184,7 +174,7 @@ connect {
 	host = "some.host.somewhere";
 	port = 6667;
 
-	cryptlink = yes;
+	flags = cryptlink;
 	rsa_public_key_file = "etc/remote.server.keyfile";
 	#cipher_preference = "BF/168";
 };
@@ -207,9 +197,9 @@ cluster {
         /* name: the server to share with, this can take wildcards */
         /* NOTE: only local actions will be clustered, meaning if
          *       the server receives a shared kline/unkline/etc, it
-         *       will not be propogated to clustered servers.
+         *       will not be propagated to clustered servers.
          */
-        name = "*.arpa";  
+        name = "*.arpa";
         
         /* type: list of what to share, options are as follows:
          *      kline   - share klines
@@ -264,35 +254,36 @@ resv {
 gecos {
 	name = "*sex*";
 	reason = "Possible spambot";
-	action = warn;
 };
 
 gecos {
 	name = "sub7server";
 	reason = "Trojan drone";
-	action = reject;
 };
 
 gecos {
 	name = "*http*";
 	reason = "Spambot";
-	action = silent;
 };
 
 channel {
+	restrict_channels = no;
 	disable_local_channels = no;
 	use_invex = yes;
 	use_except = yes;
 	use_knock = yes;
 	knock_delay = 5 minutes;
 	knock_delay_channel = 1 minute;
+	invite_ops_only = yes;
 	max_chans_per_user = 15;
 	quiet_on_ban = yes;
 	max_bans = 25;
 	default_split_user_count = 0;
 	default_split_server_count = 0;
-	no_create_on_split = no;
+	no_create_on_split = yes;
 	no_join_on_split = no;
+	join_flood_count = 16;
+	join_flood_time = 8 seconds;
 };
 
 serverhide {
@@ -301,10 +292,12 @@ serverhide {
 	hidden = no;
 	disable_hidden = no;
 	hide_servers = no;
+	hidden_name = "*.hidden.com";
 	hide_server_ips = no;
 };
 
 general {
+	kill_chase_time_limit = 90;
         hide_spoof_ips = yes;
         ignore_bogus_ts = no;
 
@@ -328,7 +321,9 @@ general {
 
 	kline_with_reason = yes;
 	kline_with_connection_closed = no;
+	reject_hold_time = 0;
 
+	invisible_on_connect = yes;
 	warn_no_nline = yes;
 	stats_o_oper_only=yes;
 	stats_P_oper_only=no;
@@ -342,10 +337,7 @@ general {
 	no_oper_flood = yes;
 	true_no_oper_flood = yes;
 	oper_pass_resv = yes;
-	glines = yes;
-	gline_time = 1 day;
 	idletime = 0;
-	maximum_links = 1;
 	/* REMOVE ME.  The following line checks you've been reading. */
 	havent_read_conf = 1;
 
@@ -357,7 +349,6 @@ general {
 
 	oper_umodes = locops, servnotice, operwall, wallop;
 
-        crypt_oper_password = yes;
 
 	#servlink_path = "/usr/local/ircd/bin/servlink";
 	#default_cipher_preference = "BF/168";
@@ -367,8 +358,21 @@ general {
 	throttle_time = 10;
 };
 
+glines {
+        enable = yes;
+        duration = 1 day;
+	logging = reject;
+
+        user = "god@I.still.hate.packets";
+        name = "hades.arpa";      
+        action = reject, block;
+
+        user = "god@*"; 
+        name = "*";
+        action = block;
+};
+
 modules {
-	base_path = "/usr/local/ircd/modules";
 	path = "/usr/local/ircd/modules";
 	path = "/usr/local/ircd/modules/autoload";
 	#module = "some_module.so";
