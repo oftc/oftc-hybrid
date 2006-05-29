@@ -31,13 +31,7 @@
 #define RTLD_NOW RTLD_LAZY /* openbsd deficiency */
 #endif
 
-extern struct module **modlist;
-extern int num_mods;
-extern int max_mods;
-
-static void increase_modlist(void);
-
-#define MODS_INCREMENT 10
+extern dlink_list mod_list;
 
 static char unknown_ver[] = "<unknown>";
 
@@ -98,14 +92,16 @@ static const char *myErrorTable[] =
   NULL
 };
 
-void undefinedErrorHandler(const char *symbolName)
+void
+undefinedErrorHandler(const char *symbolName)
 {
   sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Undefined symbol: %s", symbolName);
   ilog(L_WARN, "Undefined symbol: %s", symbolName);
   return;
 }
 
-NSModule multipleErrorHandler(NSSymbol s, NSModule old, NSModule new)
+NSModule
+multipleErrorHandler(NSSymbol s, NSModule old, NSModule new)
 {
   /* XXX
   ** This results in substantial leaking of memory... Should free one
@@ -119,21 +115,24 @@ NSModule multipleErrorHandler(NSSymbol s, NSModule old, NSModule new)
   return(new);
 }
 
-void linkEditErrorHandler(NSLinkEditErrors errorClass, int errnum,
-                          const char *fileName, const char *errorString)
+void
+linkEditErrorHandler(NSLinkEditErrors errorClass, int errnum,
+		     const char *fileName, const char *errorString)
 {
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Link editor error: %s for %s",
+  sendto_realops_flags(UMODE_ALL, L_ALL, "Link editor error: %s for %s",
                        errorString, fileName);
   ilog(L_WARN, "Link editor error: %s for %s", errorString, fileName);
   return;
 }
 
-char *dlerror(void)
+char *
+dlerror(void)
 {
   return(myDlError == NSObjectFileImageSuccess ? NULL : myErrorTable[myDlError % 7]);
 }
 
-void *dlopen(char *filename, int unused)
+void *
+dlopen(char *filename, int unused)
 {
   NSObjectFileImage myImage;
   NSModule myModule;
@@ -161,13 +160,15 @@ void *dlopen(char *filename, int unused)
   return((void *)myModule);
 }
 
-int dlclose(void *myModule)
+int
+dlclose(void *myModule)
 {
   NSUnLinkModule(myModule, FALSE);
   return(0);
 }
 
-void *dlsym(void *myModule, char *mySymbolName)
+void *
+dlsym(void *myModule, char *mySymbolName)
 {
   NSSymbol mySymbol;
 
@@ -184,21 +185,26 @@ void *dlsym(void *myModule, char *mySymbolName)
  * output	- 0 if successful, -1 if error
  * side effects	- module is unloaded
  */
-int unload_one_module(char *name, int warn)
+int
+unload_one_module(char *name, int warn)
 {
-  int modindex;
+  dlink_node *ptr = NULL;
+  struct module *modp = NULL;
 
-  if ((modindex = findmodule_byname(name)) == -1) 
-    return(-1);
+  if ((ptr = findmodule_byname(name)) == NULL) 
+    return -1;
 
-  if (modlist[modindex]->modremove) (*(modlist[modindex]->modremove))();
+  modp = ptr->data;
+
+  if (modp->modremove)
+    (*modp->modremove)();
 
 #ifdef HAVE_SHL_LOAD
     /* shl_* and friends have a slightly different format than dl*. But it does not
      * require creation of a totally new modules.c, instead proper usage of
      * defines solve this case. -TimeMr14C
      */
-  shl_unload((shl_t) & (modlist[modindex]->address));
+  shl_unload((shl_t) & (modp->address));
 #else
   /* We use FreeBSD's dlfunc(3) interface, or fake it as we
    * used to here if it isn't there.  The interface should
@@ -206,14 +212,12 @@ int unload_one_module(char *name, int warn)
    * providing something guaranteed to do the right thing here.
    *          -jmallett
    */
-  dlclose(modlist[modindex]->address);
+  dlclose(modp->address);
 #endif
-  MyFree(modlist[modindex]->name);
-  memcpy(&modlist[modindex], &modlist[modindex+1],
-         sizeof(struct module) * ((num_mods-1) - modindex));
-
-  if (num_mods != 0)
-    num_mods--;
+  assert(dlink_list_length(&mod_list) > 0);
+  dlinkDelete(ptr, &mod_list);
+  MyFree(modp->name);
+  MyFree(modp);
 
   if (warn == 1)
   {
@@ -221,7 +225,7 @@ int unload_one_module(char *name, int warn)
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s unloaded", name);
   }
 
-  return(0);
+  return 0;
 }
 
 /* load_a_module()
@@ -230,9 +234,16 @@ int unload_one_module(char *name, int warn)
  * output	- -1 if error 0 if success
  * side effects - loads a module if successful
  */
+#ifdef HAVE_DLOPEN
+#include <link.h>
+#endif
 int
 load_a_module(char *path, int warn, int core)
 {
+  /* XXX probably should have a HAVE_DLINFO */
+#ifdef HAVE_DLOPEN
+  Link_map *map;
+#endif
 #ifdef HAVE_SHL_LOAD
   shl_t tmpptr;
 #else
@@ -243,8 +254,12 @@ load_a_module(char *path, int warn, int core)
   void (*mod_deinit)(void) = NULL;
   char **verp;
   char *ver;
+  struct module *modp;
 
   mod_basename = basename(path);
+
+  if (findmodule_byname(mod_basename) != NULL)
+    return(1);
 
 #ifdef HAVE_SHL_LOAD
   tmpptr = shl_load(path, BIND_IMMEDIATE, NULL);
@@ -261,7 +276,7 @@ load_a_module(char *path, int warn, int core)
 #endif
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Error loading module %s: %s",
                          mod_basename, err);
-    ilog (L_WARN, "Error loading module %s: %s", mod_basename, err);
+    ilog(L_WARN, "Error loading module %s: %s", mod_basename, err);
     
     return(-1);
   }
@@ -271,7 +286,7 @@ load_a_module(char *path, int warn, int core)
   {
     if (shl_findsym(&tmpptr, "__modinit", TYPE_UNDEFINED, (void *)&initfunc) == -1)
     {
-      ilog (L_WARN, "Module %s has no _modinit() function", mod_basename);
+      ilog(L_WARN, "Module %s has no _modinit() function", mod_basename);
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s has no _modinit() function",
                            mod_basename);
       shl_unload(tmpptr);
@@ -283,7 +298,7 @@ load_a_module(char *path, int warn, int core)
   {
     if (shl_findsym(&tmpptr, "__moddeinit", TYPE_UNDEFINED, (void *)&mod_deinit) == -1)
     {
-      ilog (L_WARN, "Module %s has no _moddeinit() function", mod_basename);
+      ilog(L_WARN, "Module %s has no _moddeinit() function", mod_basename);
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s has no _moddeinit() function",
                            mod_basename);
       /* this is a soft error.  we're allowed not to have one, i guess.
@@ -302,14 +317,15 @@ load_a_module(char *path, int warn, int core)
   else
     ver = *verp;
 #else
-  initfunc = (void(*)(void))dlfunc(tmpptr, "_modinit");
-
-  if (initfunc == NULL && (initfunc = (void(*)(void))dlfunc(tmpptr, "__modinit")) == NULL)
+  if ((initfunc = (void(*)(void))dlfunc(tmpptr, "_modinit")) == NULL &&
+      /* Only for compatibility, because some systems have underscore
+       * prepended symbol names */
+      (initfunc = (void(*)(void))dlfunc(tmpptr, "__modinit")) == NULL)
   {
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s has no _modinit() function",
                          mod_basename);
-    ilog (L_WARN, "Module %s has no _modinit() function", mod_basename);
-    (void)dlclose (tmpptr);
+    ilog(L_WARN, "Module %s has no _modinit() function", mod_basename);
+    dlclose(tmpptr);
     return(-1);
   }
 
@@ -319,7 +335,7 @@ load_a_module(char *path, int warn, int core)
   {
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s has no _moddeinit() function",
                          mod_basename);
-    ilog (L_WARN, "Module %s has no _moddeinit() function", mod_basename);
+    ilog(L_WARN, "Module %s has no _moddeinit() function", mod_basename);
     /* blah blah soft error, see above. */
     mod_deinit = NULL;
   }
@@ -332,50 +348,34 @@ load_a_module(char *path, int warn, int core)
     ver = *verp;
 #endif
 
-  increase_modlist();
+  
+  modp            = MyMalloc(sizeof(struct module));
+#ifdef HAVE_DLOPEN
+  dlinfo(tmpptr, RTLD_DI_LINKMAP, &map);
+  if (map != NULL)
+    modp->address = map->l_addr;
+  else
+    modp->address   = tmpptr;	/* Best that can be done if map is NULL */
+#else
+  modp->address   = tmpptr;
+#endif
+  modp->version   = ver;
+  modp->core      = core;
+  modp->modremove = mod_deinit;
 
-  modlist[num_mods] = MyMalloc(sizeof(struct module));
-  modlist[num_mods]->address = tmpptr;
-  modlist[num_mods]->version = ver;
-  modlist[num_mods]->core    = core;
-  modlist[num_mods]->modremove = mod_deinit;
-  DupString(modlist[num_mods]->name, mod_basename);
-  num_mods++;
+  DupString(modp->name, mod_basename);
+  dlinkAdd(modp, &modp->node, &mod_list);
 
   initfunc();
 
   if (warn == 1)
   {
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                         "Module %s [version: %s] loaded at 0x%lx",
-                         mod_basename, ver, (unsigned long)tmpptr);
-    ilog(L_WARN, "Module %s [version: %s] loaded at 0x%x",
+                         "Module %s [version: %s] loaded at %p",
+                         mod_basename, ver, tmpptr);
+    ilog(L_WARN, "Module %s [version: %s] loaded at %p",
          mod_basename, ver, tmpptr);
   }
 
   return(0);
 }
-
-/* increase_modlist()
- *
- * inputs	- NONE
- * output	- NONE
- * side effects	- expand the size of modlist if necessary
- */
-static void increase_modlist(void)
-{
-  struct module **new_modlist = NULL;
-
-  if ((num_mods + 1) < max_mods)
-    return;
-
-  new_modlist = (struct module **)MyMalloc(sizeof(struct module) *
-                                           (max_mods + MODS_INCREMENT));
-  memcpy((void *)new_modlist,
-         (void *)modlist, sizeof(struct module) * num_mods);
-
-  MyFree(modlist);
-  modlist = new_modlist;
-  max_mods += MODS_INCREMENT;
-}
-
