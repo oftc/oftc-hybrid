@@ -596,7 +596,7 @@ operspy_log(struct Client *source_p, const char *command, const char *target)
 #ifdef OPERSPY_LOGFILE
   if (IsOper(source_p) && MyClient(source_p))
   {
-    DLINK_FOREACH(cnode, source_p->localClient->confs.head)
+    DLINK_FOREACH(cnode, local_client_list.head)
     {
       conf = cnode->data;
 
