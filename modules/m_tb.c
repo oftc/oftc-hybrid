@@ -42,7 +42,13 @@
 #include "s_conf.h"
 
 static void ms_tb(struct Client *, struct Client *, int, char *[]);
+static void ms_tburst(struct Client *, struct Client *, int, char *[]);
 static void set_topic(struct Client *, struct Channel *, time_t, char *, char *);
+
+struct Message tburst_msgtab = {
+  "TBURST", 0, 0, 6, 0, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore}
+};
 
 struct Message tb_msgtab = {
   "TB", 0, 0, 0, 0, MFLG_SLOW, 0,
@@ -56,6 +62,9 @@ _modinit(void)
 {
   mod_add_cmd(&tb_msgtab);
   add_capability("TB", CAP_TB, 1);
+
+  mod_add_cmd(&tburst_msgtab);
+  add_capability("TBURST", CAP_TBURST, 1);
 }
 
 void
@@ -63,11 +72,44 @@ _moddeinit(void)
 {
   mod_del_cmd(&tb_msgtab);
   delete_capability("TB");
+
+  mod_del_cmd(&tburst_msgtab);
+  delete_capability("TBURST");
 }
 
 const char *_version = "$Revision$";
 
 #endif /* !STATIC_MODULES */
+
+/* ms_tburst()
+ *
+ *      parv[0] = sender prefix
+ *      parv[1] = channel timestamp
+ *      parv[2] = channel
+ *      parv[3] = topic timestamp
+ *      parv[4] = topic setter
+ *      parv[5] = topic
+ */
+static void
+ms_tburst(struct Client *client_p, struct Client *source_p,
+          int parc, char *parv[])
+{
+  struct Channel *chptr = NULL;
+  time_t oldchannelts = atol(parv[1]);
+  time_t oldtopicts = atol(parv[3]);
+
+  if ((chptr = hash_find_channel(parv[2])) == NULL)
+    return;
+
+  /* Only allow topic change if we are the newer TS and server
+   * sending TBURST has older TS and topicTS on older TS is
+   * newer than current topicTS. -metalrock
+   * XXX - Incorrect logic here as discussed on IRC
+   */
+  if ((oldchannelts <= chptr->channelts) &&
+      ((chptr->topic == NULL) || (oldtopicts > chptr->topic_time)))
+    set_topic(source_p, chptr, oldtopicts, parv[4], parv[5]);
+}
 
 /* ms_tb()
  * 
@@ -76,10 +118,6 @@ const char *_version = "$Revision$";
  *      parv[2] = topic timestamp
  *      parv[3] = topic setter OR topic itself if parc == 4
  *      parv[4] = topic itself if parc == 5
- *
- * Rewritten from original m_tburst 
- * set_topic() is from original m_tburst.c rewritten to use TB not TBURST
- * - Dianora July 28 2005
  */
 #define tb_channel      parv[1]
 #define tb_topicts_str  parv[2]
@@ -106,13 +144,7 @@ ms_tb(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
     tb_topic = parv[3];
   }
 
-  if (chptr->topic != NULL)
-  {
-    if (strcmp(chptr->topic, tb_topic) != 0)
-      set_topic(source_p, chptr, tb_topicts, tb_whoset, tb_topic);
-  }
-  else
-    set_topic(source_p, chptr, tb_topicts, tb_whoset, tb_topic);
+  set_topic(source_p, chptr, tb_topicts, tb_whoset, tb_topic);
 }
 
 /*
@@ -133,14 +165,22 @@ set_topic(struct Client *source_p, struct Channel *chptr,
 {
   set_channel_topic(chptr, topic, topicwho, topicts);
 
-  sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
-		       ConfigServerHide.hide_servers ? me.name : source_p->name,
-		       chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
+    /* Only send TOPIC to channel if it's different */
+  if (chptr->topic == NULL || strcmp(chptr->topic, topic))
+    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
+                         ConfigServerHide.hide_servers ? me.name : source_p->name,
+                         chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
 
-  sendto_server(source_p, NULL, chptr, CAP_TB, NOCAPS, NOFLAGS,
-		":%s TB %s %lu %s :%s",
-		me.name, chptr->chname,
-		(unsigned long)chptr->topic_time, 
+  sendto_server(source_p, NULL, chptr, CAP_TBURST, NOCAPS, NOFLAGS,
+                ":%s TBURST %lu %s %lu %s :%s",
+                me.name, (unsigned long)chptr->channelts, chptr->chname,
+                (unsigned long)chptr->topic_time,
+                chptr->topic_info == NULL ? "" : chptr->topic_info,
+                chptr->topic == NULL ? "" : chptr->topic);
+  sendto_server(source_p, NULL, chptr, CAP_TB, CAP_TBURST, NOFLAGS,
+                ":%s TB %s %lu %s :%s",
+                me.name, chptr->chname,
+                (unsigned long)chptr->topic_time, 
                 chptr->topic_info == NULL ? "" : chptr->topic_info,
                 chptr->topic == NULL ? "" : chptr->topic);
 }

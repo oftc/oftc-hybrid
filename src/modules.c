@@ -666,6 +666,8 @@ load_all_modules(int warn)
   mod_add_cmd(&squit_msgtab);
   mod_add_cmd(&stats_msgtab);
   mod_add_cmd(&svinfo_msgtab);
+  mod_add_cmd(&tburst_msgtab);
+  add_capability("TBURST", CAP_TBURST, 1);
   mod_add_cmd(&testline_msgtab);
   mod_add_cmd(&time_msgtab);
   mod_add_cmd(&topic_msgtab);

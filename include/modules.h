@@ -139,6 +139,7 @@ extern struct Message sjoin_msgtab;
 extern struct Message squit_msgtab;
 extern struct Message stats_msgtab;
 extern struct Message svinfo_msgtab;
+extern struct Message tburst_msgtab;
 extern struct Message testline_msgtab;
 extern struct Message time_msgtab;
 extern struct Message topic_msgtab;

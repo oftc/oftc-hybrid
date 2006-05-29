@@ -69,6 +69,7 @@ struct Capability
 #define CAP_UNKLN	0x00040000 /* Can do UNKLINE message		  */
 #define CAP_CLUSTER	0x00080000 /* supports server clustering	  */
 #define CAP_ENCAP	0x00100000 /* supports ENCAP message		  */
+#define CAP_TBURST      0x00080000 /* supports TBURST (Topic burst)       */
 
 #ifdef HAVE_LIBZ
 #define CAP_ZIP_SUPPORTED CAP_ZIP

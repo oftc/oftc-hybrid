@@ -54,7 +54,7 @@ static void server_burst(struct Client *);
 static int fork_server(struct Client *);
 static void burst_all(struct Client *);
 static void cjoin_all(struct Client *);
-static void send_tb(struct Client *client_p, struct Channel *chptr);
+static void send_tb(struct Client *, const struct Channel *);
 
 static CNCB serv_connect_callback;
 
@@ -663,7 +663,10 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
   if (!IsConfCryptLink(server_aconf))
     ClearCap(client_p, CAP_ENC);
   if (!IsConfTopicBurst(server_aconf))
+  {
     ClearCap(client_p, CAP_TB);
+    ClearCap(client_p, CAP_TBURST);
+  }
 
   /* Don't unset CAP_HUB here even if the server isn't a hub,
    * it only indicates if the server thinks it's lazylinks are
@@ -828,7 +831,7 @@ send_capabilities(struct Client *client_p, struct AccessItem *aconf,
     else
       epref = ConfigFileEntry.default_cipher_preference;
 
-    if ((epref->cap & enc_can_send))
+    if (epref->cap & enc_can_send)
     {
       /* Leave the space -- it is removed later. */
       tl = ircsprintf(t, "%s ", epref->name);
@@ -1055,7 +1058,7 @@ server_estab(struct Client *client_p)
      send_capabilities(client_p, aconf,
        (IsConfLazyLink(aconf) ? find_capability("LL") : 0)
        | (IsConfCompressed(aconf) ? find_capability("ZIP") : 0)
-       | (IsConfTopicBurst(aconf) ? find_capability("TB") : 0)
+       | (IsConfTopicBurst(aconf) ? find_capability("TBURST")|find_capability("TB") : 0)
        , 0);
 
     /* SERVER is the last command sent before switching to ziplinks.
@@ -1248,7 +1251,7 @@ server_estab(struct Client *client_p)
                  IsHidden(target_p) ? "(H) " : "", target_p->info);
   }
 
-  if ((ServerInfo.hub == 0) && MyConnect(client_p))
+  if (!ServerInfo.hub && MyConnect(client_p))
     uplink = client_p;
 
   server_burst(client_p);
@@ -1479,20 +1482,19 @@ server_burst(struct Client *client_p)
 static void
 burst_all(struct Client *client_p)
 {
-  struct Client *target_p;
-  struct Channel *chptr;
-  dlink_node *gptr;
-  dlink_node *ptr;
+  dlink_node *ptr = NULL;
 
-  DLINK_FOREACH(gptr, global_channel_list.head)
+  DLINK_FOREACH(ptr, global_channel_list.head)
   {
-    chptr = gptr->data;
+    struct Channel *chptr = ptr->data;
 
     if (dlink_list_length(&chptr->members) != 0)
     {
       burst_members(client_p, chptr);
       send_channel_modes(client_p, chptr);
-      if (IsCapable(client_p, CAP_TB))
+
+      if (IsCapable(client_p, CAP_TBURST) ||
+          IsCapable(client_p, CAP_TB))
 	send_tb(client_p, chptr);
     }
   }
@@ -1501,7 +1503,7 @@ burst_all(struct Client *client_p)
    */
   DLINK_FOREACH(ptr, global_client_list.head)
   {
-    target_p = ptr->data;
+    struct Client *target_p = ptr->data;
 
     if (!IsBursted(target_p) && target_p->from != client_p)
       sendnick_TS(client_p, target_p);
@@ -1524,25 +1526,38 @@ burst_all(struct Client *client_p)
  *		- pointer to channel
  * output	- NONE
  * side effects	- Called on a server burst when 
- *                server is CAP_TB capable
+ *                server is CAP_TB|CAP_TBURST capable
  */
 static void
-send_tb(struct Client *client_p, struct Channel *chptr)
+send_tb(struct Client *client_p, const struct Channel *chptr)
 {
-  if (chptr->topic != NULL && IsCapable(client_p, CAP_TB))
+  /*
+   * XXX - Logic here isn't right either.  What if the topic got unset?
+   * We would need to send an empty TOPIC to reset the topic from the
+   * other side
+   */
+  if (chptr->topic != NULL)
   {
-    if (ConfigChannel.burst_topicwho)
+    if (IsCapable(client_p, CAP_TBURST))
+      sendto_one(client_p, ":%s TBURST %lu %s %lu %s :%s",
+                 me.name, (unsigned long)chptr->channelts, chptr->chname,
+                 (unsigned long)chptr->topic_time, chptr->topic_info,
+                 chptr->topic);
+    else if (IsCapable(client_p, CAP_TB))
     {
-      sendto_one(client_p, ":%s TB %s %lu %s :%s",
-		 me.name, chptr->chname,
-		 (unsigned long)chptr->topic_time,
-		 chptr->topic_info, chptr->topic);
-    }
-    else
-    {
-      sendto_one(client_p, ":%s TB %s %lu :%s",
-		 me.name, chptr->chname,
-		 (unsigned long)chptr->topic_time, chptr->topic);
+      if (ConfigChannel.burst_topicwho)
+      {
+        sendto_one(client_p, ":%s TB %s %lu %s :%s",
+                   me.name, chptr->chname,
+                   (unsigned long)chptr->topic_time,
+                   chptr->topic_info, chptr->topic);
+      }
+      else
+      {
+        sendto_one(client_p, ":%s TB %s %lu :%s",
+                   me.name, chptr->chname,
+                   (unsigned long)chptr->topic_time, chptr->topic);
+      }
     }
   }
 }
@@ -2129,7 +2144,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   send_capabilities(client_p, aconf,
  		    (IsConfLazyLink(aconf) ? find_capability("LL") : 0)
 		    | (IsConfCompressed(aconf) ? find_capability("ZIP") : 0)
-		    | (IsConfTopicBurst(aconf) ? find_capability("TB") : 0)
+		    | (IsConfTopicBurst(aconf) ? find_capability("TBURST")|find_capability("TB") : 0)
 		    , 0);
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
@@ -2241,10 +2256,10 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
   send_capabilities(client_p, aconf,
  		    (IsConfLazyLink(aconf) ? find_capability("LL") : 0)
 		    | (IsConfCompressed(aconf) ? find_capability("ZIP") : 0)
-		    | (IsConfTopicBurst(aconf) ? find_capability("TB") : 0)
+		    | (IsConfTopicBurst(aconf) ? find_capability("TBURST")|find_capability("TB") : 0)
 		    , CAP_ENC_MASK);
 
-  if (me.id[0])
+  if (me.id[0] != '\0')
     sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);
 
   sendto_one(client_p, "CRYPTLINK SERV %s %s :%s%s",
