@@ -113,7 +113,7 @@ static const char digitvalue[256] = {
 };
 
 static int parse_resvconf(void);
-static void add_nameserver(char *arg);
+static void add_nameserver(const char *);
 
 static const char digits[] = "0123456789";
 static int labellen(const unsigned char *lp);
@@ -161,16 +161,16 @@ parse_resvconf(void)
    * for cygwin support etc. this hardcodes it to unix for now -db
    */
   if ((file = fbopen("/etc/resolv.conf", "r")) == NULL)
-    return(-1);
+    return -1;
 
-  while (fbgets(input, MAXLINE, file) != NULL)
+  while (fbgets(input, sizeof(input), file) != NULL)
   {
     /* blow away any newline */
     if ((p = strpbrk(input, "\r\n")) != NULL)
       *p = '\0';
 
     /* Ignore comment lines immediately */
-    if (*input == '#')
+    if (input[0] == '#' || input[0] == ';')
       continue;
 
     p = input;
@@ -198,13 +198,13 @@ parse_resvconf(void)
       *p = '\0';  /* take the first word */
 
     if (irccmp(opt, "domain") == 0)
-      strlcpy(irc_domain, arg, HOSTLEN);
+      strlcpy(irc_domain, arg, sizeof(irc_domain));
     else if (irccmp(opt, "nameserver") == 0)
       add_nameserver(arg);
   }
 
   fbclose(file);
-  return(0);
+  return 0;
 }
 
 /* add_nameserver()
@@ -215,12 +215,16 @@ parse_resvconf(void)
  * side effects - entry in irc_nsaddr_list is filled in as needed
  */
 static void
-add_nameserver(char *arg)
+add_nameserver(const char *arg)
 {
   struct addrinfo hints, *res;
+
   /* Done max number of nameservers? */
-  if ((irc_nscount) >= IRCD_MAXNS)
+  if (irc_nscount >= IRCD_MAXNS)
+  {
+    ilog (L_NOTICE, "Too many nameservers, ignoring %s", arg);
     return;
+  }
 
   memset(&hints, 0, sizeof(hints));
   hints.ai_family   = PF_UNSPEC;

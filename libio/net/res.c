@@ -141,7 +141,7 @@ res_ourserver(const struct irc_ssaddr *inp)
                     sizeof(struct in6_addr)) == 0) || 
                 (memcmp(&v6->sin6_addr.s6_addr, &in6addr_any, 
                         sizeof(struct in6_addr)) == 0))
-              return(1);
+              return 1;
         break;
 #endif
       case AF_INET:
@@ -149,14 +149,14 @@ res_ourserver(const struct irc_ssaddr *inp)
           if (v4->sin_port == v4in->sin_port)
             if ((v4->sin_addr.s_addr == INADDR_ANY) || 
                 (v4->sin_addr.s_addr == v4in->sin_addr.s_addr))
-              return(1);
+              return 1;
         break;
       default:
         break;
     }
   }
 
-  return(0);
+  return 0;
 }
 
 /*
@@ -199,7 +199,7 @@ timeout_query_list(time_t now)
     }
   }
 
-  return((next_time > now) ? next_time : (now + AR_TTL));
+  return (next_time > now) ? next_time : (now + AR_TTL);
 }
 
 /*
@@ -298,23 +298,20 @@ rem_request(struct reslist *request)
  * make_request - Create a DNS request record for the server.
  */
 static struct reslist *
-make_request(struct DNSQuery* query)
+make_request(struct DNSQuery *query)
 {
-  struct reslist *request;
-
-  request = (struct reslist *)MyMalloc(sizeof(struct reslist));
-  memset(request, 0, sizeof(struct reslist));
+  struct reslist *request = MyMalloc(sizeof(struct reslist));
 
   request->sentat  = CurrentTime;
   request->retries = 3;
   request->resend  = 1;
   request->timeout = 4;    /* start at 4 and exponential inc. */
-  memset(&request->addr, 0, sizeof(request->addr));
   request->query   = query;
   request->state   = REQ_IDLE;
 
   dlinkAdd(request, &request->node, &request_list);
-  return(request);
+
+  return request;
 }
 
 /*

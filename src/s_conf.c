@@ -1743,7 +1743,7 @@ lookup_confhost(struct ConfItem *conf)
 int
 conf_connect_allowed(struct irc_ssaddr *addr, int aftype)
 {
-  struct ip_entry *ip_found;
+  struct ip_entry *ip_found = NULL;
   struct AccessItem *aconf = find_dline_conf(addr, aftype);
 
   /* DLINE exempt also gets you out of static limits/pacing... */
@@ -1754,12 +1754,15 @@ conf_connect_allowed(struct irc_ssaddr *addr, int aftype)
     return BANNED_CLIENT;
 
   ip_found = find_or_add_ip(addr);
-  ip_found->last_attempt = CurrentTime;
 
   if ((CurrentTime - ip_found->last_attempt) <
       ConfigFileEntry.throttle_time)
+  {
+    ip_found->last_attempt = CurrentTime;
     return TOO_FAST;
+  }
 
+  ip_found->last_attempt = CurrentTime;
   return 0;
 }
 
