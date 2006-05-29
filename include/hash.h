@@ -29,6 +29,7 @@ struct Client;
 struct Channel;
 struct ResvChannel;
 struct UserHost;
+struct ListTask;
 
 extern struct Channel *get_or_create_channel(struct Client *client_p, char *chname, int *isnew);
 
