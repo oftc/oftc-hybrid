@@ -43,6 +43,7 @@ struct Channel;
 struct Client;
 struct dlink_list;
 
+extern void *iosend_default(va_list);
 extern struct Callback *iosend_cb;
 extern struct Callback *iosendctrl_cb;
 

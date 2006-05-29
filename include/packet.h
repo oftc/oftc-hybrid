@@ -25,7 +25,6 @@
 #ifndef INCLUDED_packet_h
 #define INCLUDED_packet_h
 
-
 /*
  * this hides in here rather than in defaults.h because it really shouldn't
  * be tweaked unless you *REALLY REALLY* know what you're doing!
@@ -45,11 +44,15 @@
 #define MAX_FLOOD 5
 #define MAX_FLOOD_BURST MAX_FLOOD * 8
 
-extern PF  read_ctrl_packet;
-extern PF  read_packet;
-extern PF  flood_recalc;
-extern void flood_endgrace(struct Client *);
+struct Callback;
+
+void *iorecv_default(va_list);
+extern struct Callback *iorecv_cb;
+extern struct Callback *iorecvctrl_cb;
+
+PF read_ctrl_packet;
+PF read_packet;
+PF flood_recalc;
+void flood_endgrace(struct Client *);
 
 #endif /* INCLUDED_packet_h */
-
-

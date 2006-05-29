@@ -36,11 +36,13 @@
 
 #define LOG_BUFSIZE 2048
 
+struct Callback *iosend_cb = NULL;
+struct Callback *iosendctrl_cb = NULL;
+
 static void send_message(struct Client *, char *, int);
 static void send_message_remote(struct Client *, struct Client *, char *, int);
 
-/* global for now *sigh* */
-unsigned long current_serial = 0L;
+static unsigned long current_serial = 0L;
 
 /* send_format()
  *
@@ -72,27 +74,23 @@ send_format(char *lsendbuf, int bufsize, const char *pattern, va_list args)
   if (len > bufsize - 2)
     len = bufsize - 2;  /* required by some versions of vsnprintf */
 
-  /*
-   * We have to get a \r\n\0 onto sendbuf[] somehow to satisfy
-   * the rfc. We must assume sendbuf[] is defined to be 513
-   * bytes - a maximum of 510 characters, the CR-LF pair, and
-   * a trailing \0, as stated in the rfc. Now, if len is greater
-   * than the third-to-last slot in the buffer, an overflow will
-   * occur if we try to add three more bytes, if it has not
-   * already occured. In that case, simply set the last three
-   * bytes of the buffer to \r\n\0. Otherwise, we're ok. My goal
-   * is to get some sort of vsnprintf() function operational
-   * for this routine, so we never again have a possibility
-   * of an overflow.
-   * -wnder
-   * Exactly, vsnprintf() does the job and we don't need to check
-   * whether len > 510. We also don't need to terminate the buffer
-   * with a '\0', since the dbuf code is raw-oriented. --adx
-   */
-
   lsendbuf[len++] = '\r';
   lsendbuf[len++] = '\n';
   return (len);
+}
+
+/*
+ * iosend_default - append a packet to the client's sendq.
+ */
+void *
+iosend_default(va_list args)
+{
+  struct Client *to = va_arg(args, struct Client *);
+  int length = va_arg(args, int);
+  char *buf = va_arg(args, char *);
+
+  dbuf_put(&to->localClient->buf_sendq, buf, length);
+  return NULL;
 }
 
 /*
@@ -116,9 +114,9 @@ send_message(struct Client *to, char *buf, int len)
   {
     if (IsServer(to))
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                           "Max SendQ limit exceeded for %s: %u > %lu",
+                           "Max SendQ limit exceeded for %s: %lu > %lu",
                            get_client_name(to, HIDE_IP),
-                           dbuf_length(&to->localClient->buf_sendq) + len,
+                           (unsigned long)(dbuf_length(&to->localClient->buf_sendq) + len),
                            get_sendq(to));
     if (IsClient(to))
       SetSendQExceeded(to);
@@ -126,18 +124,18 @@ send_message(struct Client *to, char *buf, int len)
     return;
   }
 
-  dbuf_put(&to->localClient->buf_sendq, buf, len);
+  execute_callback(iosend_cb, to, len, buf);
 
   /*
    ** Update statistics. The following is slightly incorrect
    ** because it counts messages even if queued, but bytes
    ** only really sent. Queued bytes get updated in SendQueued.
    */
-  to->localClient->sendM += 1;
-  me.localClient->sendM += 1;
+  ++to->localClient->send.messages;
+  ++me.localClient->send.messages;
 
   if (dbuf_length(&to->localClient->buf_sendq) >
-      (IsServer(to) ? 1024 : 4096))
+      (IsServer(to) ? (unsigned int) 1024 : (unsigned int) 4096))
     send_queued_write(to);
 }
 
@@ -174,7 +172,7 @@ send_message_remote(struct Client *to, struct Client *from,
   /* Optimize by checking if (from && to) before everything */
   /* we set to->from up there.. */
 
-  if (!MyClient(from) && IsPerson(to) && (to == from->from))
+  if (!MyClient(from) && IsClient(to) && (to == from->from))
   {
     if (IsServer(from))
     {
@@ -190,19 +188,23 @@ send_message_remote(struct Client *to, struct Client *from,
                          from->name, from->username, from->host,
                          to->from->name);
 
-    sendto_server(NULL, to, NULL, NOCAPS, NOCAPS, NOFLAGS,
+    sendto_server(NULL, to, NULL, CAP_TS6, NOCAPS, NOFLAGS,
+                  ":%s KILL %s :%s (%s[%s@%s] Ghosted %s)",
+                  me.id, to->name, me.name, to->name,
+                  to->username, to->host, to->from->name);
+    sendto_server(NULL, to, NULL, NOCAPS, CAP_TS6, NOFLAGS,
                   ":%s KILL %s :%s (%s[%s@%s] Ghosted %s)",
                   me.name, to->name, me.name, to->name,
                   to->username, to->host, to->from->name);
 
     SetKilled(to);
 
-    if (IsPerson(from))
+    if (IsClient(from))
       sendto_one(from, form_str(ERR_GHOSTEDCLIENT),
                  me.name, from->name, to->name, to->username,
                  to->host, to->from);
 
-    exit_client(NULL, to, &me, "Ghosted client");
+    exit_client(to, &me, "Ghosted client");
 
     return;
   } 
@@ -214,11 +216,19 @@ send_message_remote(struct Client *to, struct Client *from,
  ** sendq_unblocked
  **      Called when a socket is ready for writing.
  */
-static void
-sendq_unblocked(int fd, struct Client *client_p)
+void
+sendq_unblocked(fde_t *fd, struct Client *client_p)
 {
   ClearSendqBlocked(client_p);
   /* let send_queued_write be executed by send_queued_all */
+
+#ifdef HAVE_LIBCRYPTO
+  if (fd->flags.pending_read)
+  {
+    fd->flags.pending_read = 0;
+    read_packet(fd, client_p);
+  }
+#endif
 }
 
 /*
@@ -226,7 +236,7 @@ sendq_unblocked(int fd, struct Client *client_p)
  **      Called when a server control socket is ready for writing.
  */
 static void
-slinkq_unblocked(int fd, struct Client *client_p)
+slinkq_unblocked(fde_t *fd, struct Client *client_p)
 {
   ClearSlinkqBlocked(client_p);
   send_queued_slink_write(client_p);
@@ -242,15 +252,8 @@ void
 send_queued_write(struct Client *to)
 {
   int retlen;
-  int fd;
-#ifdef HAVE_LIBCRYPTO
-  fde_t *F;
-#endif
-#ifndef NDEBUG
-  struct hook_io_data hdata;
-#endif
   struct dbuf_block *first;
-  
+
   /*
    ** Once socket is marked dead, we cannot start writing to it,
    ** even if the error is removed...
@@ -258,67 +261,58 @@ send_queued_write(struct Client *to)
   if (IsDead(to) || IsSendqBlocked(to))
     return;  /* no use calling send() now */
 
-  /* get the file descriptor from the client structure */
-  fd = to->localClient->fd;
-
   /* Next, lets try to write some data */
 
   if (dbuf_length(&to->localClient->buf_sendq))
   {
-#ifndef NDEBUG
-    hdata.connection = to;
-#endif
     do {
       first = to->localClient->buf_sendq.blocks.head->data;
-#ifdef HAVE_LIBCRYPTO
-      
-      F = (fd > -1)? &fd_table[fd] : NULL;
 
-      if (F && F->ssl)
+#ifdef HAVE_LIBCRYPTO
+      if (to->localClient->fd.ssl)
       {
-         ilog(L_DEBUG, "send_queued_write: calling SSL_write");
-         if ((retlen = sendSSL(F, first->data, first->size)) <= 0)
-            break;
+        retlen = SSL_write(to->localClient->fd.ssl, first->data, first->size);
+
+        /* translate openssl error codes, sigh */
+	if (retlen < 0)
+	  switch (SSL_get_error(to->localClient->fd.ssl, retlen))
+	  {
+            case SSL_ERROR_WANT_READ:
+	      return;  /* retry later, don't register for write events */
+
+	    case SSL_ERROR_WANT_WRITE:
+	      errno = EWOULDBLOCK;
+            case SSL_ERROR_SYSCALL:
+	      break;
+
+            default:
+	      retlen = errno = 0;  /* either an SSL-specific error or EOF */
+	  }
       }
       else
-      {
 #endif
-         ilog(L_DEBUG, "send_queued_write: calling normal send");
-         if ((retlen = send(fd, first->data,
-                            first->size, 0)) <= 0)
-            break;
-#ifdef HAVE_LIBCRYPTO
-      }
-#endif
+        retlen = send(to->localClient->fd.fd, first->data, first->size, 0);
 
-#ifndef NDEBUG
-      hdata.data = ((struct dbuf_block *)
-                    to->localClient->buf_sendq.blocks.head->data)->data;
-      hdata.len = retlen;
-      hook_call_event("iosend", &hdata);
+      if (retlen <= 0)
+      {
+#ifdef _WIN32
+        errno = WSAGetLastError();
 #endif
+        break;
+      }
+
       dbuf_delete(&to->localClient->buf_sendq, retlen);
 
       /* We have some data written .. update counters */
-      to->localClient->sendB += retlen;
-      me.localClient->sendB += retlen;
-      if (to->localClient->sendB > 1023)
-      { 
-        to->localClient->sendK += (to->localClient->sendB >> 10);
-        to->localClient->sendB &= 0x03ff;        /* 2^10 = 1024, 3ff = 1023 */
-      }
-      else if (me.localClient->sendB > 1023)
-      { 
-        me.localClient->sendK += (me.localClient->sendB >> 10);
-        me.localClient->sendB &= 0x03ff;
-      }
+      to->localClient->send.bytes += retlen;
+      me.localClient->send.bytes += retlen;
     } while (dbuf_length(&to->localClient->buf_sendq));
 
     if ((retlen < 0) && (ignoreErrno(errno)))
     {
       /* we have a non-fatal error, reschedule a write */
       SetSendqBlocked(to);
-      comm_setselect(fd, FDLIST_IDLECLIENT, COMM_SELECT_WRITE,
+      comm_setselect(&to->localClient->fd, COMM_SELECT_WRITE,
                      (PF *)sendq_unblocked, (void *)to, 0);
     }
     else if (retlen <= 0)
@@ -339,10 +333,6 @@ void
 send_queued_slink_write(struct Client *to)
 {
   int retlen;
-#ifdef HAVE_LIBCRYPTO
-  fde_t *F;
-#endif
-  int ctrlfd;
 
   /*
    ** Once socket is marked dead, we cannot start writing to it,
@@ -351,32 +341,12 @@ send_queued_slink_write(struct Client *to)
   if (IsDead(to) || IsSlinkqBlocked(to))
     return;  /* no use calling send() now */
 
-  /* get the file descriptor from the client structure */
-  ctrlfd = to->localClient->ctrlfd;
-
   /* Next, lets try to write some data */
   if (to->localClient->slinkq != NULL)
   {
-#ifdef HAVE_LIBCRYPTO
-     F = (ctrlfd > -1)? &fd_table[ctrlfd] : NULL;
-
-     if (F && F->ssl)
-     {
-        ilog(L_DEBUG, "send_queued_slink_write: calling SSL_write");
-        retlen = sendSSL(
-           F, to->localClient->slinkq + to->localClient->slinkq_ofs,
-           to->localClient->slinkq_len);
-     }
-     else
-     {
-#endif
-        ilog(L_DEBUG, "send_queued_slink_write: calling normal send");
-        retlen = send(ctrlfd,
-                      to->localClient->slinkq + to->localClient->slinkq_ofs,
-                      to->localClient->slinkq_len, 0);
-#ifdef HAVE_LIBCRYPTO
-     }
-#endif
+    retlen = send(to->localClient->ctrlfd.fd,
+                   to->localClient->slinkq + to->localClient->slinkq_ofs,
+                   to->localClient->slinkq_len, 0);
     if (retlen < 0)
     {
       /* If we have a fatal error */
@@ -394,6 +364,8 @@ send_queued_slink_write(struct Client *to)
     }
     else
     {
+      execute_callback(iosendctrl_cb, to, retlen,
+        to->localClient->slinkq + to->localClient->slinkq_ofs);
       to->localClient->slinkq_len -= retlen;
 
       assert(to->localClient->slinkq_len >= 0);
@@ -411,7 +383,7 @@ send_queued_slink_write(struct Client *to)
     if (to->localClient->slinkq_len)
     {
       SetSlinkqBlocked(to);
-      comm_setselect(ctrlfd, FDLIST_IDLECLIENT, COMM_SELECT_WRITE, 
+      comm_setselect(&to->localClient->ctrlfd, COMM_SELECT_WRITE,
                      (PF *)slinkq_unblocked, (void *)to, 0);
     }
   }
@@ -474,37 +446,6 @@ sendto_one(struct Client *to, const char *pattern, ...)
   send_message(to, buffer, len);
 }
 
-/* sendto_one_prefix()
- *
- * inputs	- pointer to destination client
- *		- pointer to client to form prefix from
- *		- var args message
- * output	- NONE
- * side effects	- send message to single client
- */
-void
-sendto_one_prefix(struct Client *to, struct Client *prefix,
-                  const char *pattern, ...)
-{
-  va_list args;
-  char buffer[IRCD_BUFSIZE];
-  int len;
-
-  if (to->from != NULL)
-    to = to->from;
-  if (IsDead(to))
-    return; /* This socket has already been marked as dead */
-
-  len = ircsprintf(buffer, ":%s ", (IsServer(to) && IsCapable(to, CAP_SID)) ?
-                                   ID(prefix) : prefix->name);
-
-  va_start(args, pattern);
-  len += send_format(&buffer[len], IRCD_BUFSIZE - len, pattern, args);
-  va_end(args);
-
-  send_message(to, buffer, len);
-}
-
 /* sendto_channel_butone()
  *
  * inputs	- pointer to client(server) to NOT send message to
@@ -513,13 +454,15 @@ sendto_one_prefix(struct Client *to, struct Client *prefix,
  *		- vargs message
  * output	- NONE
  * side effects	- message as given is sent to given channel members.
+ *
+ * WARNING - +D clients are ignored
  */
 void
 sendto_channel_butone(struct Client *one, struct Client *from,
                       struct Channel *chptr, const char *command,
                       const char *pattern, ...)
 {
-  va_list alocal, aremote, auid;
+  va_list args;
   char local_buf[IRCD_BUFSIZE];
   char remote_buf[IRCD_BUFSIZE];
   char uid_buf[IRCD_BUFSIZE];
@@ -540,18 +483,14 @@ sendto_channel_butone(struct Client *one, struct Client *from,
   uid_len = ircsprintf(uid_buf, ":%s %s %s ",
                        ID(from), command, chptr->chname);
 
-  va_start(alocal, pattern);
-  va_start(aremote, pattern);
-  va_start(auid, pattern);
+  va_start(args, pattern);
   local_len += send_format(&local_buf[local_len], IRCD_BUFSIZE - local_len,
-                           pattern, alocal);
+                           pattern, args);
   remote_len += send_format(&remote_buf[remote_len], IRCD_BUFSIZE - remote_len,
-                            pattern, aremote);
+                            pattern, args);
   uid_len += send_format(&uid_buf[uid_len], IRCD_BUFSIZE - uid_len, pattern,
-                         auid);
-  va_end(auid);
-  va_end(aremote);
-  va_end(alocal);
+                         args);
+  va_end(args);
 
   ++current_serial;
 
@@ -560,10 +499,10 @@ sendto_channel_butone(struct Client *one, struct Client *from,
     target_p = ((struct Membership *)ptr->data)->client_p;
     assert(target_p != NULL);
 
-    if (IsDefunct(target_p) || target_p->from == one)
+    if (IsDefunct(target_p) || IsDeaf(target_p) || target_p->from == one)
       continue;
 
-    if (MyConnect(target_p) && IsRegisteredUser(target_p))
+    if (MyClient(target_p))
     {
       if (target_p->serial != current_serial)
       {
@@ -578,7 +517,7 @@ sendto_channel_butone(struct Client *one, struct Client *from,
        */
       if (target_p->from->serial != current_serial)
       {
-        if (IsCapable(target_p->from, CAP_SID))
+        if (IsCapable(target_p->from, CAP_TS6))
           send_message_remote(target_p->from, from, uid_buf, uid_len);
         else
           send_message_remote(target_p->from, from, remote_buf, remote_len);
@@ -715,7 +654,7 @@ sendto_common_channels_local(struct Client *user, int touser,
 
   ++current_serial;
 
-  DLINK_FOREACH(cptr, user->user->channel.head)
+  DLINK_FOREACH(cptr, user->channel.head)
   {
     chptr = ((struct Membership *) cptr->data)->chptr;
     assert(chptr != NULL);
@@ -743,6 +682,7 @@ sendto_common_channels_local(struct Client *user, int touser,
 /* sendto_channel_local()
  *
  * inputs	- member status mask, e.g. CHFL_CHANOP | CHFL_VOICE
+ *              - whether to ignore +D clients (YES/NO)
  *              - pointer to channel to send to
  *              - var args pattern
  * output	- NONE
@@ -750,7 +690,8 @@ sendto_common_channels_local(struct Client *user, int touser,
  *		  locally connected to this server.
  */
 void
-sendto_channel_local(int type, struct Channel *chptr, const char *pattern, ...)
+sendto_channel_local(int type, int nodeaf, struct Channel *chptr,
+                     const char *pattern, ...)
 {
   va_list args;
   char buffer[IRCD_BUFSIZE];
@@ -763,9 +704,6 @@ sendto_channel_local(int type, struct Channel *chptr, const char *pattern, ...)
   len = send_format(buffer, IRCD_BUFSIZE, pattern, args);
   va_end(args);
 
-  /* Serial number checking isn't strictly necessary, but won't hurt */
-  ++current_serial;
-
   DLINK_FOREACH(ptr, chptr->locmembers.head)
   {
     ms = ptr->data;
@@ -774,10 +712,8 @@ sendto_channel_local(int type, struct Channel *chptr, const char *pattern, ...)
     if (type != 0 && (ms->flags & type) == 0)
       continue;
 
-    if (IsDefunct(target_p) || target_p->serial == current_serial)
+    if (IsDefunct(target_p) || (nodeaf && IsDeaf(target_p)))
       continue;
-
-    target_p->serial = current_serial;
 
     send_message(target_p, buffer, len);
   }
@@ -792,6 +728,8 @@ sendto_channel_local(int type, struct Channel *chptr, const char *pattern, ...)
  * output       - NONE
  * side effects - Send a message to all members of a channel that are
  *                locally connected to this server except one.
+ *
+ * WARNING - +D clients are omitted
  */
 void       
 sendto_channel_local_butone(struct Client *one, int type,
@@ -808,9 +746,6 @@ sendto_channel_local_butone(struct Client *one, int type,
   len = send_format(buffer, IRCD_BUFSIZE, pattern, args);
   va_end(args);
 
-  /* Serial number checking isn't strictly necessary, but won't hurt */
-  ++current_serial;
-
   DLINK_FOREACH(ptr, chptr->locmembers.head)       
   {   
     ms = ptr->data;
@@ -819,12 +754,8 @@ sendto_channel_local_butone(struct Client *one, int type,
     if (type != 0 && (ms->flags & type) == 0)
       continue;
 
-    if (target_p == one || IsDefunct(target_p) ||
-        target_p->serial == current_serial)
+    if (target_p == one || IsDefunct(target_p) || IsDeaf(target_p))
       continue;
-
-    target_p->serial = current_serial;
-
     send_message(target_p, buffer, len);
   }
 }
@@ -852,13 +783,9 @@ sendto_channel_remote(struct Client *one, struct Client *from, int type, int cap
   struct Client *target_p;
   struct Membership *ms;
 
-
   va_start(args, pattern);
   len = send_format(buffer, IRCD_BUFSIZE, pattern, args);
   va_end(args);
-
-  /* Serial number checking isn't strictly necessary, but won't hurt */
-  ++current_serial;
 
   DLINK_FOREACH(ptr, chptr->members.head)
   {
@@ -874,11 +801,8 @@ sendto_channel_remote(struct Client *one, struct Client *from, int type, int cap
 
     if (target_p == one->from ||
         ((target_p->from->localClient->caps & caps) != caps) ||
-        ((target_p->from->localClient->caps & nocaps) != 0) ||
-        target_p->from->serial == current_serial)
+        ((target_p->from->localClient->caps & nocaps) != 0))
       continue;
-
-    target_p->serial = current_serial;
 
     send_message(target_p, buffer, len);
   } 
@@ -907,7 +831,7 @@ match_it(const struct Client *one, const char *mask, int what)
   if (what == MATCH_HOST)
     return(match(mask, one->host));
 
-  return(match(mask, one->user->server->name));
+  return(match(mask, one->servptr->name));
 }
 
 /* sendto_match_butone()
@@ -921,7 +845,7 @@ void
 sendto_match_butone(struct Client *one, struct Client *from, char *mask,
                     int what, const char *pattern, ...)
 {
-  va_list alocal, aremote;
+  va_list args;
   struct Client *client_p;
   dlink_node *ptr, *ptr_next;
   char local_buf[IRCD_BUFSIZE], remote_buf[IRCD_BUFSIZE];
@@ -929,14 +853,12 @@ sendto_match_butone(struct Client *one, struct Client *from, char *mask,
                              from->username, from->host);
   int remote_len = ircsprintf(remote_buf, ":%s ", from->name);
 
-  va_start(alocal, pattern);
-  va_start(aremote, pattern);
+  va_start(args, pattern);
   local_len += send_format(&local_buf[local_len], IRCD_BUFSIZE - local_len,
-                           pattern, alocal);
+                           pattern, args);
   remote_len += send_format(&remote_buf[remote_len], IRCD_BUFSIZE - remote_len,
-                            pattern, aremote);
-  va_end(aremote);
-  va_end(alocal);
+                            pattern, args);
+  va_end(args);
 
   /* scan the local clients */
   DLINK_FOREACH(ptr, local_client_list.head)
@@ -998,11 +920,11 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap,
   va_list args;
   struct Client *target_p;
   dlink_node *ptr;
-  char buffer[BUFSIZE];
+  char buffer[IRCD_BUFSIZE];
   int found = 0;
 
   va_start(args, pattern);
-  send_format(&buffer[0], IRCD_BUFSIZE, pattern, args);
+  vsnprintf(buffer, sizeof(buffer), pattern, args);
   va_end(args);
 
   current_serial++;
@@ -1030,13 +952,9 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap,
       if (!IsCapable(target_p->from, cap))
         continue;
 
-      sendto_anywhere(target_p, source_p, buffer);
+      sendto_anywhere(target_p, source_p, "%s", buffer);
     }
   }
-
-  if (!found && IsClient(source_p) && !match(mask, me.name))
-    sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
-               me.name, source_p->name, mask);
 }
 
 /* sendto_anywhere()
@@ -1063,13 +981,17 @@ sendto_anywhere(struct Client *to, struct Client *from,
   if (MyClient(to))
   {
     if (IsServer(from))
-      len = ircsprintf(buffer, ":%s ", from->name);
+    {
+      if (IsCapable(to, CAP_TS6) && HasID(from))
+        len = ircsprintf(buffer, ":%s ", from->id);
+      else
+        len = ircsprintf(buffer, ":%s ", from->name);
+    }
     else
       len = ircsprintf(buffer, ":%s!%s@%s ",
                        from->name, from->username, from->host);
   }
-  else len = ircsprintf(buffer, ":%s ",
-                        IsCapable(send_to, CAP_SID) ? ID(from) : from->name);
+  else len = ircsprintf(buffer, ":%s ", ID_or_name(from, send_to));
 
   va_start(args, pattern);
   len += send_format(&buffer[len], IRCD_BUFSIZE - len, pattern, args);
@@ -1271,8 +1193,8 @@ kill_client(struct Client *client_p, struct Client *diedie,
   if (IsDead(client_p))
     return;
 
-  len = ircsprintf(buffer, ":%s KILL %s :", me.name,
-                   IsCapable(client_p, CAP_SID) ? ID(diedie) : diedie->name);
+  len = ircsprintf(buffer, ":%s KILL %s :", ID_or_name(&me, client_p->from),
+                   ID_or_name(diedie, client_p));
 
   va_start(args, pattern);
   len += send_format(&buffer[len], IRCD_BUFSIZE - len, pattern, args);
@@ -1302,16 +1224,14 @@ kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,
   char buf_uid[IRCD_BUFSIZE], buf_nick[IRCD_BUFSIZE];
   int len_uid = 0, len_nick;
 
-  if (HasID(source_p))
+  va_start(args, pattern);
+  if (HasID(source_p) && (me.id[0] != '\0'))
   {
-    va_start(args, pattern);
     have_uid = 1;
-    len_uid = ircsprintf(buf_uid, ":%s KILL %s :", me.name, ID(source_p));
+    len_uid = ircsprintf(buf_uid, ":%s KILL %s :", me.id, ID(source_p));
     len_uid += send_format(&buf_uid[len_uid], IRCD_BUFSIZE - len_uid, pattern,
                            args);
-    va_end(args);
   }
-  va_start(args, pattern);
   len_nick = ircsprintf(buf_nick, ":%s KILL %s :", me.name, source_p->name);
   len_nick += send_format(&buf_nick[len_nick], IRCD_BUFSIZE - len_nick, pattern,
                           args);
@@ -1331,86 +1251,10 @@ kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,
         !ServerInfo.hub ||
         (source_p->lazyLinkClientExists & client_p->localClient->serverMask))
     {
-      if (have_uid && IsCapable(client_p, CAP_SID))
+      if (have_uid && IsCapable(client_p, CAP_TS6))
         send_message(client_p, buf_uid, len_uid);
       else
         send_message(client_p, buf_nick, len_nick);
     }
   }
 } 
-
-#ifdef HAVE_LIBCRYPTO
-int sendSSL(fde_t *F, const char* data, const size_t length)
-{
-   extern char *get_ssl_error(int);
-   int retval = -1;
-   int alerted = 0;
-
-   ilog(L_DEBUG, "sendSSL called");
-
-   if (F->flags.accept_write) {
-      int ret;
-      ilog(L_DEBUG, "accept_write true");
-      if ((ret = SSL_accept(F->ssl)) > 0) {
-         if (!alerted)
-            ilog(L_DEBUG, 
-                 "SSL_accept() for %s (socket %d) wanting WRITE succeeded!",
-                 inetntoa((char *)&(F->connect.hostaddr)), F->fd);
-         F->flags.accept_write = 0;
-      } else if (F->accept_failures < 4) {
-         int val = SSL_get_error(F->ssl, ret);  		
-         ilog(L_DEBUG, 
-              "SSL_accept() for %s (socket %d) wanting WRITE error! -- %s",
-              inetntoa((char *)&(F->connect.hostaddr)), F->fd,
-              (val == SSL_ERROR_SSL)?
-              ERR_error_string(ERR_get_error(), NULL) :
-              get_ssl_error(val));
-         ilog(L_DEBUG, "BIO_sock_should_retry(): %d", 
-              BIO_sock_should_retry(ret));
-         if (val == SSL_ERROR_SYSCALL) {
-            int err = ERR_get_error();
-            if (err)
-               ilog(L_DEBUG, "ERR_get_error() -- %s",
-                    ERR_error_string(err, NULL));
-            else
-               ilog(L_DEBUG, "more error info -- %s",
-                    (ret == -1)? strerror(errno) : "got EOF, protocol violation");  
-         }
-         ilog(L_DEBUG, 
-              "SSL_state_string_long(): %s",
-              SSL_state_string_long(F->ssl));
-         F->accept_failures++;
-      }
-      retval = -1;
-      errno = EAGAIN;
-   } 
-   else 
-   {
-      retval = SSL_write(F->ssl, data, length);
-      
-      if (retval <= 0 && !alerted) {
-         int val = SSL_get_error(F->ssl, retval);
-         ilog(L_DEBUG, "SSL_write() for %s (socket %d) ERROR! -- %s",
-              inetntoa((char *)&(F->connect.hostaddr)), F->fd,
-              (val == SSL_ERROR_SSL)?
-              ERR_error_string(ERR_get_error(), NULL) :
-              get_ssl_error(val));
-         if (val == SSL_ERROR_SYSCALL) {
-            int err = ERR_get_error();
-            if (err)
-               ilog(L_DEBUG, "ERR_get_error() -- %s",
-                    ERR_error_string(err, NULL));
-            else
-               ilog(L_DEBUG, "more error info -- %s",
-                    (retval == -1)? strerror(errno) : "got EOF, protocol violation");  
-         } else {
-            errno = EAGAIN;
-         }
-      }
-   }
-
-   ilog(L_DEBUG, "sendSSL returning %d", retval);
-
-   return retval;
-}
-#endif

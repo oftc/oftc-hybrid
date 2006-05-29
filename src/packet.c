@@ -31,9 +31,13 @@
 #include "packet.h"
 #include "send.h"
 
-static char readBuf[READBUF_SIZE];
-static void client_dopacket(struct Client *client_p, char *buffer, size_t length);
+#define READBUF_SIZE 16384
 
+struct Callback *iorecv_cb = NULL;
+struct Callback *iorecvctrl_cb = NULL;
+
+static char readBuf[READBUF_SIZE];
+static void client_dopacket(struct Client *, char *, size_t);
 
 /* extract_one_line()
  *
@@ -154,7 +158,7 @@ parse_client_queued(struct Client *client_p)
       client_dopacket(client_p, readBuf, dolen);
     }
   }
-  else if(IsClient(client_p))
+  else if (IsClient(client_p))
   {
     if (ConfigFileEntry.no_oper_flood && (IsOper(client_p) || IsCanFlood(client_p)))
     {
@@ -227,7 +231,7 @@ flood_endgrace(struct Client *client_p)
    */
   client_p->localClient->sent_parsed = 0;
 }
-	    
+
 /*
  * flood_recalc
  *
@@ -235,24 +239,20 @@ flood_endgrace(struct Client *client_p)
  * once a second on any given client. We then attempt to flush some data.
  */
 void
-flood_recalc(int fd, void *data)
+flood_recalc(fde_t *fd, void *data)
 {
   struct Client *client_p = data;
   struct LocalUser *lclient_p = client_p->localClient;
  
-  /* This can happen in the event that the client detached. */
-  if (!lclient_p)
-    return;
-
   /* allow a bursting client their allocation per second, allow
    * a client whos flooding an extra 2 per second
    */
-  if(IsFloodDone(client_p))
+  if (IsFloodDone(client_p))
     lclient_p->sent_parsed -= 2;
   else
     lclient_p->sent_parsed = 0;
   
-  if(lclient_p->sent_parsed < 0)
+  if (lclient_p->sent_parsed < 0)
     lclient_p->sent_parsed = 0;
   
   parse_client_queued(client_p);
@@ -270,7 +270,7 @@ flood_recalc(int fd, void *data)
  *                    link and process it.
  */
 void
-read_ctrl_packet(int fd, void *data)
+read_ctrl_packet(fde_t *fd, void *data)
 {
   struct Client *server = data;
   struct LocalUser *lserver = server->localClient;
@@ -279,9 +279,7 @@ read_ctrl_packet(int fd, void *data)
   unsigned char tmp[2];
   unsigned char *len = tmp;
   struct SlinkRplDef *replydef;
-#ifndef NDEBUG
-  struct hook_io_data hdata;
-#endif
+
   assert(lserver != NULL);
     
   reply = &lserver->slinkrpl;
@@ -295,11 +293,11 @@ read_ctrl_packet(int fd, void *data)
     reply->readdata = 0;
     reply->data = NULL;
 
-    length = recv(fd, tmp, 1, 0);
+    length = recv(fd->fd, tmp, 1, 0);
 
     if (length <= 0)
     {
-      if((length == -1) && ignoreErrno(errno))
+      if ((length == -1) && ignoreErrno(errno))
         goto nodata;
       dead_link_on_read(server, length);
       return;
@@ -320,10 +318,10 @@ read_ctrl_packet(int fd, void *data)
   if ((replydef->flags & SLINKRPL_FLAG_DATA) && (reply->gotdatalen < 2))
   {
     /* we need a datalen u16 which we don't have yet... */
-    length = recv(fd, len, (2 - reply->gotdatalen), 0);
+    length = recv(fd->fd, len, (2 - reply->gotdatalen), 0);
     if (length <= 0)
     {
-      if((length == -1) && ignoreErrno(errno))
+      if ((length == -1) && ignoreErrno(errno))
         goto nodata;
       dead_link_on_read(server, length);
       return;
@@ -350,11 +348,11 @@ read_ctrl_packet(int fd, void *data)
 
   if (reply->readdata < reply->datalen) /* try to get any remaining data */
   {
-    length = recv(fd, (reply->data + reply->readdata),
+    length = recv(fd->fd, (reply->data + reply->readdata),
                   (reply->datalen - reply->readdata), 0);
     if (length <= 0)
     {
-      if((length == -1) && ignoreErrno(errno))
+      if ((length == -1) && ignoreErrno(errno))
         goto nodata;
       dead_link_on_read(server, length);
       return;
@@ -365,13 +363,8 @@ read_ctrl_packet(int fd, void *data)
       return; /* wait for more data */
   }
 
-#ifndef NDEBUG
-  hdata.connection = server;
-  hdata.len = reply->command;
-  hdata.data = NULL;
-  hook_call_event("iorecvctrl", &hdata);
-#endif
-  
+  execute_callback(iorecvctrl_cb, server, reply->command);
+
   /* we now have the command and any data, pass it off to the handler */
   (*replydef->handler)(reply->command, reply->datalen, reply->data, server);
 
@@ -385,150 +378,122 @@ read_ctrl_packet(int fd, void *data)
 
 nodata:
   /* If we get here, we need to register for another COMM_SELECT_READ */
-  comm_setselect(fd, FDLIST_SERVER, COMM_SELECT_READ,
-                 read_ctrl_packet, server, 0);
+  comm_setselect(fd, COMM_SELECT_READ, read_ctrl_packet, server, 0);
+}
+
+/*
+ * iorecv_default - append a packet to the recvq dbuf
+ */
+void *
+iorecv_default(va_list args)
+{
+  struct Client *client_p = va_arg(args, struct Client *);
+  int length = va_arg(args, int);
+  char *buf = va_arg(args, char *);
+
+  dbuf_put(&client_p->localClient->buf_recvq, buf, length);
+  return NULL;
 }
 
 /*
  * read_packet - Read a 'packet' of data from a connection and process it.
  */
 void
-read_packet(int fd, void *data)
+read_packet(fde_t *fd, void *data)
 {
   struct Client *client_p = data;
   int length = 0;
-  int fd_r;
-#ifdef HAVE_LIBCRYPTO
-  fde_t *F;
-#endif
 
-#ifndef NDEBUG
-  struct hook_io_data hdata;
-#endif
   if (IsDefunct(client_p))
     return;
-
-#ifdef HAVE_LIBCRYPTO
-  F = (client_p->localClient->fd > -1)? &fd_table[client_p->localClient->fd] : NULL;
-#endif
-
-  fd_r = client_p->localClient->fd;
-
-#ifndef HAVE_SOCKETPAIR
-  if (HasServlink(client_p))
-  {
-    assert(client_p->localClient->fd_r > -1);
-    fd_r = client_p->localClient->fd_r;
-  }
-#endif
 
   /*
    * Read some data. We *used to* do anti-flood protection here, but
    * I personally think it makes the code too hairy to make sane.
    *     -- adrian
    */
+  do {
 #ifdef HAVE_LIBCRYPTO
-  if (F && F->ssl) {
-      /*extern time_t CurrentTime;*/
-      extern char *get_ssl_error(int);
-      
-      if (F->flags.accept_read) {
-          int ret;
-          /*recv(fd_r, readBuf, READBUF_SIZE, 0);*/
-          if ((ret = SSL_accept(F->ssl)) > 0) {
-              F->flags.accept_read = 0;
-          } else if (F->accept_failures < 4) {
-              int val = SSL_get_error(F->ssl, ret);
-              if (val == SSL_ERROR_SYSCALL) {
-                  int err = ERR_get_error();
-              }
-              F->accept_failures++;
-          }
-          length = -1; errno = EAGAIN;
-      } else {
-          
-          length = SSL_read(F->ssl, readBuf, READBUF_SIZE); 
-          
-          if (length <= 0) {
-              int val = SSL_get_error(F->ssl, length);
-              /*if (CurrentTime % 10 == 0)*/
-              if (val == SSL_ERROR_SYSCALL) {
-                  int err = ERR_get_error();
-              } else {
-                  /*SSL_set_accept_state(F->ssl);*/
-                  errno = EAGAIN;
-              }
-          }}
-  } else
-#endif
-  length = recv(fd_r, readBuf, READBUF_SIZE, 0);
-
-  if (length <= 0)
-  {
-    if ((length == -1) && ignoreErrno(errno))
+    if (fd->ssl)
     {
-      comm_setselect(fd_r, FDLIST_IDLECLIENT, COMM_SELECT_READ,
-                     read_packet, client_p, 0);
-      return;
-    }  	
+      length = SSL_read(fd->ssl, readBuf, READBUF_SIZE);
 
-    dead_link_on_read(client_p, length);
-    return;
-  }
-
-#ifndef NDEBUG
-  hdata.connection = client_p;
-  hdata.data = readBuf;
-  hdata.len = length;
-  hook_call_event("iorecv", &hdata);
-#endif
-
-  if (client_p->lasttime < CurrentTime)
-    client_p->lasttime = CurrentTime;
-  if (client_p->lasttime > client_p->since)
-    client_p->since = CurrentTime;
-  ClearPingSent(client_p);
-
-  dbuf_put(&client_p->localClient->buf_recvq, readBuf, length);
-  
-  /* Attempt to parse what we have */
-  parse_client_queued(client_p);
-
-  /* Check to make sure we're not flooding */
-  if (IsPerson(client_p) &&
-      (dbuf_length(&client_p->localClient->buf_recvq) >
-       (unsigned int)ConfigFileEntry.client_flood))
-  {
-    if (!(ConfigFileEntry.no_oper_flood && IsOper(client_p)))
-    {
-      exit_client(client_p, client_p, client_p, "Excess Flood");
-      return;
-    }
-  }
-
-  /* server fd may have changed */
-  fd_r = client_p->localClient->fd;
-#ifndef HAVE_SOCKETPAIR
-  if (HasServlink(client_p))
-  {
-    assert(client_p->localClient->fd_r > -1);
-    fd_r = client_p->localClient->fd_r;
-  }
-#endif
-  if (!IsDefunct(client_p))
-  {
-    /* If we get here, we need to register for another COMM_SELECT_READ */
-    if (PARSE_AS_SERVER(client_p))
-    {
-      comm_setselect(fd_r, FDLIST_SERVER, COMM_SELECT_READ,
-		     read_packet, client_p, 0);
+      /* translate openssl error codes, sigh */
+      if (length < 0)
+        switch (SSL_get_error(fd->ssl, length))
+	{
+          case SSL_ERROR_WANT_WRITE:
+            fd->flags.pending_read = 1;
+	    SetSendqBlocked(client_p);
+	    comm_setselect(fd, COMM_SELECT_WRITE, (PF *) sendq_unblocked,
+	                   client_p, 0);
+	    return;
+	  case SSL_ERROR_WANT_READ:
+	    errno = EWOULDBLOCK;
+          case SSL_ERROR_SYSCALL:
+	    break;
+          default:
+	    length = errno = 0;
+	}
     }
     else
+#endif
     {
-      comm_setselect(fd_r, FDLIST_IDLECLIENT, COMM_SELECT_READ,
-		     read_packet, client_p, 0);
+      length = recv(fd->fd, readBuf, READBUF_SIZE, 0);
+#ifdef _WIN32
+      if (length < 0)
+        errno = WSAGetLastError();
+#endif
+    }
+
+    if (length <= 0)
+    {
+      /*
+       * If true, then we can recover from this error.  Just jump out of
+       * the loop and re-register a new io-request.
+       */
+      if (length < 0 && ignoreErrno(errno))
+        break;
+
+      dead_link_on_read(client_p, length);
+      return;
+    }
+
+    execute_callback(iorecv_cb, client_p, length, readBuf);
+
+    if (client_p->lasttime < CurrentTime)
+      client_p->lasttime = CurrentTime;
+    if (client_p->lasttime > client_p->since)
+      client_p->since = CurrentTime;
+    ClearPingSent(client_p);
+
+    /* Attempt to parse what we have */
+    parse_client_queued(client_p);
+
+    if (IsDefunct(client_p))
+      return;
+
+    /* Check to make sure we're not flooding */
+    /* TBD - ConfigFileEntry.client_flood should be a size_t */
+    if (!(IsServer(client_p) || IsHandshake(client_p) || IsConnecting(client_p))
+        && (dbuf_length(&client_p->localClient->buf_recvq) >
+            (unsigned int)ConfigFileEntry.client_flood))
+    {
+      if (!(ConfigFileEntry.no_oper_flood && IsOper(client_p)))
+      {
+        exit_client(client_p, client_p, "Excess Flood");
+        return;
+      }
     }
   }
+#ifdef HAVE_LIBCRYPTO
+  while (length == sizeof(readBuf) || fd->ssl);
+#else
+  while (length == sizeof(readBuf));
+#endif
+
+  /* If we get here, we need to register for another COMM_SELECT_READ */
+  comm_setselect(fd, COMM_SELECT_READ, read_packet, client_p, 0);
 }
 
 /*
@@ -549,27 +514,14 @@ client_dopacket(struct Client *client_p, char *buffer, size_t length)
   /* 
    * Update messages received
    */
-  ++me.localClient->receiveM;
-  ++client_p->localClient->receiveM;
+  ++me.localClient->recv.messages;
+  ++client_p->localClient->recv.messages;
 
   /* 
    * Update bytes received
    */
-  client_p->localClient->receiveB += length;
-
-  if (client_p->localClient->receiveB > 1023)
-  {
-    client_p->localClient->receiveK += (client_p->localClient->receiveB >> 10);
-    client_p->localClient->receiveB &= 0x03ff; /* 2^10 = 1024, 3ff = 1023 */
-  }
-
-  me.localClient->receiveB += length;
-
-  if (me.localClient->receiveB > 1023)
-  {
-    me.localClient->receiveK += (me.localClient->receiveB >> 10);
-    me.localClient->receiveB &= 0x03ff;
-  }
+  client_p->localClient->recv.bytes += length;
+  me.localClient->recv.bytes += length;
 
   parse(client_p, buffer, buffer + length);
 }
