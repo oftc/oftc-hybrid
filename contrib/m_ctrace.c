@@ -37,7 +37,7 @@
 #include "modules.h"
 #include "parse_aline.h"
 
-static void do_ctrace(struct Client *, char **);
+static void do_ctrace(struct Client *, int, char **);
 static void mo_ctrace(struct Client *, struct Client *, int, char *[]);
 
 struct Message ctrace_msgtab = {
@@ -56,7 +56,7 @@ va_ctrace(va_list args)
   int parc = va_arg(args, int);
   char **parv = va_arg(args, char **);
 
-  do_ctrace(source_p, parv);
+  do_ctrace(source_p, parc, parv);
   return NULL;
 }
 
@@ -104,12 +104,12 @@ mo_ctrace(struct Client *client_p, struct Client *source_p,
  * do_ctrace
  */
 static void
-do_ctrace(struct Client *source_p, char **parv)
+do_ctrace(struct Client *source_p, int parc, char **parv)
 {
   struct Client *target_p = NULL;
-  char *class_looking_for;
-  const char *class_name;
-  dlink_node *ptr;
+  char *class_looking_for = NULL;
+  const char *class_name = NULL;
+  dlink_node *ptr = NULL;
 
   class_looking_for = parv[1];
 
@@ -199,7 +199,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
         }
       break;
     case STAT_SERVER:
-      if(!IsAdmin(source_p))
+      if (!IsAdmin(source_p))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),

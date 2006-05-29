@@ -135,6 +135,10 @@
 extern int errno;
 #endif
 
+#if defined(HAVE_DLINFO) && defined(HAVE_LINK_H)
+# include <link.h>
+#endif
+
 #include "irc_libio.h"
 
 #endif

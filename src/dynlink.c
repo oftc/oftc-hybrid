@@ -234,14 +234,10 @@ unload_one_module(char *name, int warn)
  * output	- -1 if error 0 if success
  * side effects - loads a module if successful
  */
-#ifdef HAVE_DLOPEN
-#include <link.h>
-#endif
 int
 load_a_module(char *path, int warn, int core)
 {
-  /* XXX probably should have a HAVE_DLINFO */
-#ifdef HAVE_DLOPEN
+#ifdef HAVE_DLINFO
   Link_map *map;
 #endif
 #ifdef HAVE_SHL_LOAD
@@ -249,6 +245,7 @@ load_a_module(char *path, int warn, int core)
 #else
   void *tmpptr = NULL;
 #endif
+  void *addr = NULL;
   char *mod_basename;
   void (*initfunc)(void) = NULL;
   void (*mod_deinit)(void) = NULL;
@@ -350,15 +347,15 @@ load_a_module(char *path, int warn, int core)
 
   
   modp            = MyMalloc(sizeof(struct module));
-#ifdef HAVE_DLOPEN
+#ifdef HAVE_DLINFO
   dlinfo(tmpptr, RTLD_DI_LINKMAP, &map);
   if (map != NULL)
-    modp->address = map->l_addr;
+    addr = map->l_addr;
   else
-    modp->address   = tmpptr;	/* Best that can be done if map is NULL */
-#else
-  modp->address   = tmpptr;
+    addr = tmpptr;
 #endif
+
+  modp->address   = addr;
   modp->version   = ver;
   modp->core      = core;
   modp->modremove = mod_deinit;
@@ -372,9 +369,9 @@ load_a_module(char *path, int warn, int core)
   {
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                          "Module %s [version: %s] loaded at %p",
-                         mod_basename, ver, tmpptr);
+                         mod_basename, ver, addr);
     ilog(L_WARN, "Module %s [version: %s] loaded at %p",
-         mod_basename, ver, tmpptr);
+         mod_basename, ver, addr);
   }
 
   return(0);

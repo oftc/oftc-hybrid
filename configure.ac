@@ -214,7 +214,7 @@ fi
 dnl Checks for header files.
 AC_HEADER_STDC
 
-AC_CHECK_HEADERS([crypt.h inttypes.h stdint.h sys/resource.h sys/param.h errno.h sys/syslog.h stddef.h libgen.h sys/wait.h wait.h])
+AC_CHECK_HEADERS([crypt.h inttypes.h stdint.h sys/resource.h sys/param.h errno.h sys/syslog.h stddef.h libgen.h sys/wait.h wait.h link.h])
 
 dnl Networking Functions
 dnl ====================
@@ -978,7 +978,7 @@ if test "$shared_modules" = yes; then
 	      AC_MSG_WARN([dlsym is not available, shared modules disabled])
 	      shared_modules=no
 	    ])
-	    AC_CHECK_FUNCS(dlfunc)
+	    AC_CHECK_FUNCS(dlfunc dlinfo)
 	  ],
 	  [
 	    shared_modules=no
