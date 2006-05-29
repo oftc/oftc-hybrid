@@ -109,7 +109,7 @@ install: install-mkdirs build
 
 # this is really the default rule for c files
 .c.o:
-	${CC} ${CPPFLAGS} ${CFLAGS} -c -o -o ${<:.c=.o} $<
+	${CC} ${CPPFLAGS} ${CFLAGS} -c -o ${<:.c=.o} $<
 
 .depend:
 	${MKDEP} ${CPPFLAGS} ${SRCS} ${STDOUT}
