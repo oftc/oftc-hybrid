@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  libio.h: libio interface specification.
+ *  irc_libio.h: libio interface specification.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -21,6 +21,16 @@
  *
  *  $Id$
  */
+
+#ifndef _WIN32
+#define LIBIO_EXTERN extern
+#else
+#ifdef IN_LIBIO
+#define LIBIO_EXTERN extern __declspec(dllexport)
+#else
+#define LIBIO_EXTERN extern __declspec(dllimport)
+#endif
+#endif
 
 #include "misc/event.h"
 #include "misc/list.h"

@@ -22,21 +22,22 @@
  *  $Id$
  */
 
-#ifndef INCLUDED_irc_string_h
-#define INCLUDED_irc_string_h
-
-#include "setup.h"
+LIBIO_EXTERN int ircd_pcre_exec(const pcre *, const char *);
+LIBIO_EXTERN pcre *ircd_pcre_compile(const char *, const char **);
+LIBIO_EXTERN char *xstrldup(const char *, size_t);
 
 /*
  * match - compare name with mask, mask may contain * and ? as wildcards
  * match - returns 1 on successful match, 0 otherwise
  *
  * match_esc - compare with support for escaping chars
+ * match_chan - like match_esc with first character auto-escaped
  * match_cidr - compares u!h@addr with u!h@addr/cidr
  */
-extern int match(const char *mask, const char *name);
-extern int match_esc(const char *mask, const char *name);
-extern int match_cidr(const char *mask, const char *name);
+LIBIO_EXTERN int match(const char *, const char *);
+LIBIO_EXTERN int match_esc(const char *, const char *);
+LIBIO_EXTERN int match_chan(const char *, const char *);
+LIBIO_EXTERN int match_cidr(const char *, const char *);
 
 /*
  * collapse - collapse a string in place, converts multiple adjacent *'s 
@@ -45,8 +46,8 @@ extern int match_cidr(const char *mask, const char *name);
  *
  * collapse_esc() - collapse with support for escaping chars
  */
-extern char* collapse(char *pattern);
-extern char *collapse_esc(char *pattern);
+LIBIO_EXTERN char *collapse(char *);
+LIBIO_EXTERN char *collapse_esc(char *);
 
 /*
  * NOTE: The following functions are NOT the same as strcasecmp
@@ -55,76 +56,77 @@ extern char *collapse_esc(char *pattern);
  * 
  * irccmp - case insensitive comparison of s1 and s2
  */
-extern int irccmp(const char *s1, const char *s2);
+LIBIO_EXTERN int irccmp(const char *, const char *);
 
 /*
  * ircncmp - counted case insensitive comparison of s1 and s2
  */
-extern int ircncmp(const char *s1, const char *s2, size_t n);
+LIBIO_EXTERN int ircncmp(const char *, const char *, size_t);
 
 /*
  * inetntoa - optimized inet_ntoa
  */
-const char* inetntoa(const char* in_addr);
+LIBIO_EXTERN const char *inetntoa(const char *);
 
 /* XXX
  * inetntop() 
  * portable interface for inet_ntop(), kludge; please use inet_ntop if possible
  * since inet_misc has a more conformant one
  */
-const char *inetntop(int af, const void *src, char *dst, unsigned int size);
+LIBIO_EXTERN const char *inetntop(int, const void *, char *, unsigned int);
    
 #ifndef HAVE_STRLCPY
-size_t strlcpy(char *dst, const char *src, size_t siz);
+LIBIO_EXTERN size_t strlcpy(char *, const char *, size_t);
 #endif
 
 #ifndef HAVE_STRLCAT
-size_t strlcat(char *dst, const char *src, size_t siz);
+LIBIO_EXTERN size_t strlcat(char *, const char *, size_t);
 #endif
 
 #ifndef HAVE_SNPRINTF
-int snprintf (char *str,size_t count,const char *fmt,...);
+LIBIO_EXTERN int snprintf(char *, size_t, const char *,...);
 #endif
 
 #ifndef HAVE_VSNPRINTF
-int vsnprintf (char *str, size_t count, const char *fmt, va_list args);
+LIBIO_EXTERN int vsnprintf(char *, size_t, const char *, va_list);
 #endif
 
 #ifndef HAVE_BASENAME
-char* basename (char *path);
+LIBIO_EXTERN char *basename(char *);
 #endif
 
 /*
  * clean_string - cleanup control and high ascii characters
  * -Dianora
  */
-char* clean_string(char* dest, const unsigned char* src, size_t len);
-extern char *stripws(char *);
+LIBIO_EXTERN char *clean_string(char *, const unsigned char *, size_t);
+
+LIBIO_EXTERN char *stripws(char *);
 
 /*
  * strip_tabs - convert tabs to spaces
  * - jdc
  */
-char *strip_tabs(char *dest, const unsigned char *src, size_t len);
+LIBIO_EXTERN void strip_tabs(char *, const char *, size_t);
 
-const char* myctime(time_t);
+const char *myctime(time_t);
 
 #define EmptyString(x) (!(x) || (*(x) == '\0'))
 
 #ifndef HAVE_STRTOK_R
-char*       strtoken(char** save, char* str, const char* fs);
+LIBIO_EXTERN char *strtoken(char **, char *, const char *);
 #endif
 
 /*
  * character macros
  */
-extern const unsigned char ToLowerTab[];
+LIBIO_EXTERN const unsigned char ToLowerTab[];
 #define ToLower(c) (ToLowerTab[(unsigned char)(c)])
 
-extern const unsigned char ToUpperTab[];
+LIBIO_EXTERN const unsigned char ToUpperTab[];
 #define ToUpper(c) (ToUpperTab[(unsigned char)(c)])
 
-extern const unsigned int CharAttrs[];
+LIBIO_EXTERN const unsigned int CharAttrs[];
 
 #define PRINT_C   0x001
 #define CNTRL_C   0x002
@@ -148,7 +150,7 @@ extern const unsigned int CharAttrs[];
 #define IsChanPrefix(c) (CharAttrs[(unsigned char)(c)] & CHANPFX_C)
 #define IsChanChar(c)   (CharAttrs[(unsigned char)(c)] & CHAN_C)
 #define IsKWildChar(c)  (CharAttrs[(unsigned char)(c)] & KWILD_C)
-#define IsMWildChar(c)	(CharAttrs[(unsigned char)(c)] & MWILD_C)
+#define IsMWildChar(c)  (CharAttrs[(unsigned char)(c)] & MWILD_C)
 #define IsNickChar(c)   (CharAttrs[(unsigned char)(c)] & NICK_C)
 #define IsServChar(c)   (CharAttrs[(unsigned char)(c)] & (NICK_C | SERV_C))
 #define IsCntrl(c)      (CharAttrs[(unsigned char)(c)] & CNTRL_C)
@@ -168,5 +170,3 @@ extern const unsigned int CharAttrs[];
 
 #define IsNonEOS(c) (CharAttrs[(unsigned char)(c)] & NONEOS_C)
 #define IsEol(c) (CharAttrs[(unsigned char)(c)] & EOL_C)
-
-#endif /* INCLUDED_irc_string_h */

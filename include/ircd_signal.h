@@ -31,10 +31,10 @@
 #define SIG_REHASH  SIGHUP
 #define SIG_REMOTD  SIGUSR1
 #else
-#define SIG_DIE     1
-#define SIG_RESTART 2
-#define SIG_REHASH  3
-#define SIG_REMOTD  4
+#define SIG_DIE     0
+#define SIG_RESTART 1
+#define SIG_REHASH  2
+#define SIG_REMOTD  3
 #endif
 
 extern void setup_signals(void);

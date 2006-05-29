@@ -117,7 +117,7 @@
 /* #undef HAVE_SHL_LOAD */
 
 /* Define to 1 if you have the `snprintf' function. */
-/* #undef HAVE_SNPRINTF */
+#define HAVE_SNPRINTF 1
 
 /* Define to 1 if you have the `socketpair' function. */
 /* #undef HAVE_SOCKETPAIR */
@@ -183,7 +183,7 @@
 /* #undef HAVE_UNISTD_H */
 
 /* Define to 1 if you have the `vsnprintf' function. */
-/* #undef HAVE_VSNPRINTF */
+#define HAVE_VSNPRINTF 1
 
 /* Define to 1 if you have the <wait.h> header file. */
 /* #undef HAVE_WAIT_H */

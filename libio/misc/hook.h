@@ -39,14 +39,14 @@ struct Callback
   time_t last;
 };
 
-extern dlink_list callback_list;  /* listing/debugging purposes */
+LIBIO_EXTERN dlink_list callback_list;  /* listing/debugging purposes */
 
-extern struct Callback *register_callback(const char *, CBFUNC *);
-extern void *execute_callback(struct Callback *, ...);
-extern struct Callback *find_callback(const char *);
-extern dlink_node *install_hook(struct Callback *, CBFUNC *);
-extern void uninstall_hook(struct Callback *, CBFUNC *);
-extern void *pass_callback(dlink_node *, ...);
+LIBIO_EXTERN struct Callback *register_callback(const char *, CBFUNC *);
+LIBIO_EXTERN void *execute_callback(struct Callback *, ...);
+LIBIO_EXTERN struct Callback *find_callback(const char *);
+LIBIO_EXTERN dlink_node *install_hook(struct Callback *, CBFUNC *);
+LIBIO_EXTERN void uninstall_hook(struct Callback *, CBFUNC *);
+LIBIO_EXTERN void *pass_callback(dlink_node *, ...);
 
 #define is_callback_present(c) (!!dlink_list_length(&c->chain))
 

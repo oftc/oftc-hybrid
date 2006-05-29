@@ -29,9 +29,9 @@
  *  $Id$
  */
 
-extern int irc_getaddrinfo(const char *hostname, const char *servname,
+LIBIO_EXTERN int irc_getaddrinfo(const char *hostname, const char *servname,
                            const struct addrinfo *hints, struct addrinfo **res);
-extern void irc_freeaddrinfo(struct addrinfo *ai);
+LIBIO_EXTERN void irc_freeaddrinfo(struct addrinfo *ai);
 
 #define SUCCESS 0
 #define ANY 0

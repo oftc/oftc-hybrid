@@ -22,81 +22,51 @@
  *  $Id$
  */
 
-#ifndef INCLUDED_fileio_h
-#define INCLUDED_fileio_h
-
 #define FB_EOF  0x01
 #define FB_FAIL 0x02
-
-struct FileBuf {
-  int   fd;           /* file descriptor */
-  char* endp;         /* one past the end */
-  char* ptr;          /* current read pos */
-  char* pbptr;        /* pointer to push back char */
-  int   flags;        /* file state */
-  char  buf[BUFSIZ];  /* buffer */
-  char  pbuf[BUFSIZ+1]; /* push back buffer */
-};
-
-/* XXX This shouldn't be here */
-struct Client;
 
 /*
  * FileBuf is a mirror of the ANSI FILE struct, but it works for any
  * file descriptor. FileBufs are allocated when a file is opened with
  * fbopen, and they are freed when the file is closed using fbclose.
  */
-typedef struct FileBuf FBFILE;
+typedef struct FileBuf {
+  fde_t F;            /* file descriptor */
+  char  *endp;        /* one past the end */
+  char  *ptr;         /* current read pos */
+  char  *pbptr;       /* pointer to push back char */
+  int   flags;        /* file state */
+  char  buf[BUFSIZ];  /* buffer */
+  char  pbuf[BUFSIZ+1]; /* push back buffer */
+} FBFILE;
 
-/*
- * open a file and return a FBFILE*, see fopen(3)
- */
-extern FBFILE* fbopen(const char* filename, const char* mode);
+/* open a file and return a FBFILE*, see fopen(3) */
+LIBIO_EXTERN FBFILE *fbopen(const char *, const char *);
 
-/*
- * Positions the file pointer at the beginning of the file
- */
-extern int fbrewind(FBFILE *fb);
+/* Positions the file pointer at the beginning of the file */
+LIBIO_EXTERN int fbrewind(FBFILE *);
 
-/*
- * associate a file descriptor with a FBFILE*
- * if a FBFILE* is associated here it MUST be closed using fbclose
- * see fdopen(3)
- */
-extern FBFILE* fdbopen(int fd, const char* mode);
-/*
- * close a file opened with fbopen, see fclose(3)
- */
-extern void    fbclose(FBFILE* fb);
+/* close a file opened with fbopen, see fclose(3) */
+LIBIO_EXTERN void fbclose(FBFILE *);
+
 /* 
  * return the next character from the file, EOF on end of file
  * see fgetc(3)
  */
-extern int     fbgetc(FBFILE* fb);
+LIBIO_EXTERN int fbgetc(FBFILE *);
+
 /*
  * return next string in a file up to and including the newline character
  * see fgets(3)
  */
-extern char*   fbgets(char* buf, size_t len, FBFILE* fb);
-/*
- * ungets c to fb see ungetc(3)
- */
-extern void    fbungetc(char c, FBFILE* fb);
-/*
- * write a null terminated string to a file, see fputs(3)
- */
-extern int     fbputs(const char* str, FBFILE* fb);
-/*
- * return the status of the file associated with fb, see fstat(3)
- */
-extern int     fbstat(struct stat* sb, FBFILE* fb);
-/*
- * popen a file.
- */
-extern FBFILE *fbpopen(const char *, const char *);
+LIBIO_EXTERN char *fbgets(char *, size_t, FBFILE *);
 
-extern int file_open(const char *filename, int mode, int fmode);
-extern void file_close(int fd);
-extern int save_spare_fd(const char *);
+/* ungets c to fb see ungetc(3) */
+LIBIO_EXTERN void fbungetc(char, FBFILE *);
 
-#endif /* INCLUDED_fileio_h */
+/* write a null terminated string to a file, see fputs(3) */
+LIBIO_EXTERN int fbputs(const char *, FBFILE *, size_t);
+
+LIBIO_EXTERN int file_open(fde_t *, const char *, int, int);
+LIBIO_EXTERN void file_close(fde_t *);
+LIBIO_EXTERN int save_spare_fd(const char *);

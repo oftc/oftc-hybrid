@@ -142,17 +142,17 @@ struct addrinfo {
 #endif /* HAVE_STRUCT_ADDRINFO */
 
 #ifdef NO_IN6ADDR_ANY
-extern const struct in6_addr in6addr_any;
+LIBIO_EXTERN const struct in6_addr in6addr_any;
 #endif
 
 #ifdef NO_INET_NTOP
-const char * inet_ntop(int af, const void *src, char *dst, size_t size);
+LIBIO_EXTERN const char * inet_ntop(int af, const void *src, char *dst, size_t size);
 #endif /* NO_INET_NTOP */
 
 #ifdef NO_INET_PTON
-int inet_pton(int af, const char *src, void *dst);
+LIBIO_EXTERN int inet_pton(int af, const char *src, void *dst);
 #endif /* NO_INET_PTON */
 
 #ifdef NO_INET_ATON
-int inet_aton(const char *cp, struct in_addr * addr);
+LIBIO_EXTERN int inet_aton(const char *cp, struct in_addr * addr);
 #endif /* NO_INET_ATON */

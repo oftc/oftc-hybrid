@@ -24,17 +24,17 @@
 
 #define MAX_DATE_STRING 32  /* maximum string length for a date string */
 
-extern struct timeval SystemTime;
+LIBIO_EXTERN struct timeval SystemTime;
 #define CurrentTime SystemTime.tv_sec
 
-extern char *date(time_t);
-extern char *small_file_date(time_t);
-extern const char *smalldate(time_t);
+LIBIO_EXTERN char *date(time_t);
+LIBIO_EXTERN char *small_file_date(time_t);
+LIBIO_EXTERN const char *smalldate(time_t);
 #ifdef HAVE_LIBCRYPTO
-extern char *ssl_get_cipher(SSL *);
+LIBIO_EXTERN char *ssl_get_cipher(SSL *);
 #endif
-extern void set_time(void);
-extern void libio_init(int);
+LIBIO_EXTERN void set_time(void);
+LIBIO_EXTERN void libio_init(int);
 
 #define _1MEG     (1024.0)
 #define _1GIG     (1024.0*1024.0)

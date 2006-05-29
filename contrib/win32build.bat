@@ -61,7 +61,10 @@ for %%a in (modules\m_challenge.c modules\m_cryptlink.c contrib\libc_vprintf.c c
 
 if %1'==msvc' goto msvc
 set COMPILER=BCC
-bcc32 -tW -6 -O -w- -eircd.exe -I"include" -I"libio" libio\comm\comm.c libio\comm\fdlist.c libio\comm\fileio.c libio\comm\win32.c libio\mem\*.c libio\misc\*.c libio\net\*.c libio\string\*.c src\*.c modules\*.c modules\core\*.c contrib\*.c
+bcc32 -tWD -6 -O -w- -elibio.dll -DIN_LIBIO -I"include" -I"libio" libio\comm\comm.c libio\comm\fdlist.c libio\comm\fileio.c libio\comm\win32.c libio\mem\*.c libio\misc\*.c libio\net\*.c libio\string\*.c
+if errorlevel 1 goto error
+if not exist libio.dll goto error
+bcc32 -tW -6 -O -w- -eircd.exe -I"include" -I"libio" src\*.c modules\*.c modules\core\*.c contrib\*.c
 if errorlevel 1 goto error
 if not exist ircd.exe goto error
 for %%a in (rehash remotd kill) do bcc32 -tW -6 -O -w- -e%%a.exe -I"include" tools\win32\%%a.c
@@ -69,7 +72,10 @@ goto built
 
 :msvc
 set COMPILER=MSVC
-cl /nologo /O2 /w /Feircd.exe /I"include" /I"libio" libio\comm\comm.c libio\comm\fdlist.c libio\comm\fileio.c libio\comm\win32.c libio\mem\*.c libio\misc\*.c libio\net\*.c libio\string\*.c src\*.c modules\*.c modules\core\*.c contrib\*.c user32.lib wsock32.lib /link /subsystem:windows
+cl /nologo /O2 /w /Felibio.dll /I"include" /I"libio" /DIN_LIBIO libio\comm\comm.c libio\comm\fdlist.c libio\comm\fileio.c libio\comm\win32.c libio\mem\*.c libio\misc\*.c libio\net\*.c libio\string\*.c user32.lib wsock32.lib /link /dll /subsystem:windows
+if errorlevel 1 goto error
+if not exist libio.dll goto error
+cl /nologo /O2 /w /Feircd.exe /I"include" /I"libio" src\*.c modules\*.c modules\core\*.c contrib\*.c user32.lib wsock32.lib /link /subsystem:windows
 if errorlevel 1 goto error
 if not exist ircd.exe goto error
 for %%a in (rehash remotd kill) do cl /nologo /O2 /w /Fe%%a.exe /I"include" tools\win32\%%a.c user32.lib /link /subsystem:windows
@@ -88,6 +94,7 @@ echo *** Installing ircd-hybrid into %IRCD_PREFIX% ...
 echo.
 if not exist %IRCD_PREFIX% md %IRCD_PREFIX%
 for %%a in (bin etc help help\opers help\users logs messages) do if not exist %IRCD_PREFIX%\%%a md %IRCD_PREFIX%\%%a
+copy libio.dll %IRCD_PREFIX%\bin >nul
 copy ircd.exe %IRCD_PREFIX%\bin >nul
 copy rehash.exe %IRCD_PREFIX%\bin >nul
 copy remotd.exe %IRCD_PREFIX%\bin >nul
@@ -102,7 +109,7 @@ echo Remember to create the 'ircd.conf' file before actually starting the IRCD.
 goto end
 
 :error
-for %%a in (ircd.exe rehash.exe remotd.exe kill.exe) do if exist %%a del %%a
+for %%a in (libio.dll ircd.exe rehash.exe remotd.exe kill.exe) do if exist %%a del %%a
 for %%a in (src\*.obj) do del %%a
 for %%a in (modules\*.obj) do del %%a
 for %%a in (modules\core\*.obj) do del %%a

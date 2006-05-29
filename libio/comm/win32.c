@@ -38,26 +38,6 @@ static HWND wndhandle;
 static dlink_list dns_queries = {NULL, NULL, 0};
 static dlink_node *setupfd_hook;
 
-extern int main(int, char *[]);
-
-/*
- * Initial entry point for Win32 GUI applications, called by the C runtime.
- *
- * It should be only a wrapper for main(), since when compiled as a console
- * application, main() is called instead.
- */
-int WINAPI
-WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-        LPSTR lpCmdLine, int nCmdShow)
-{
-  /* Do we really need these pidfile, logfile etc arguments?
-   * And we are not on a console, so -help or -foreground is meaningless. */
-
-  char *argv[2] = {"ircd", NULL};
-
-  return main(1, argv);
-}
-
 /*
  * Handler for Win32 messages.
  */
@@ -305,7 +285,11 @@ comm_select(void)
   MSG msg;
 
   if (!GetMessage(&msg, NULL, 0, 0))
-    server_die("WM_QUIT received", NO);
+  {
+    if (dispatch_wm_signal != NULL)
+      dispatch_wm_signal(0);
+    exit(0);
+  }
 
   set_time();
 

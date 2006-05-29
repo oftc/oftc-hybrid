@@ -25,15 +25,7 @@
  * \todo Get rid of all typedefs in this file
  */
 
-#ifndef INCLUDED_balloc_h
-#define INCLUDED_balloc_h
-
-#include "setup.h"
-
 #ifndef NOBALLOC
-#include "tools.h"
-#include "memory.h"
-
 
 /*! \brief Block contains status information for
  *         an allocated block in our heap.
@@ -71,21 +63,21 @@ struct BlockHeap {
 typedef struct BlockHeap BlockHeap;
 
 
-extern int        BlockHeapFree(BlockHeap *, void *);
-extern void *     BlockHeapAlloc(BlockHeap *);
+LIBIO_EXTERN int        BlockHeapFree(BlockHeap *, void *);
+LIBIO_EXTERN void *     BlockHeapAlloc(BlockHeap *);
 
-extern BlockHeap* BlockHeapCreate(const char *const, size_t, int);
-extern int        BlockHeapDestroy(BlockHeap *);
+LIBIO_EXTERN BlockHeap* BlockHeapCreate(const char *const, size_t, int);
+LIBIO_EXTERN int        BlockHeapDestroy(BlockHeap *);
 #ifdef IN_MISC_C
 extern void	  initBlockHeap(void);
 #endif
 
-extern size_t block_heap_get_used_mem(const BlockHeap *);
-extern size_t block_heap_get_free_mem(const BlockHeap *);
-extern size_t block_heap_get_size_mem(const BlockHeap *);
-extern unsigned int block_heap_get_used_elm(const BlockHeap *);
-extern unsigned int block_heap_get_free_elm(const BlockHeap *);
-extern unsigned int block_heap_get_size_elm(const BlockHeap *);
+LIBIO_EXTERN size_t block_heap_get_used_mem(const BlockHeap *);
+LIBIO_EXTERN size_t block_heap_get_free_mem(const BlockHeap *);
+LIBIO_EXTERN size_t block_heap_get_size_mem(const BlockHeap *);
+LIBIO_EXTERN unsigned int block_heap_get_used_elm(const BlockHeap *);
+LIBIO_EXTERN unsigned int block_heap_get_free_elm(const BlockHeap *);
+LIBIO_EXTERN unsigned int block_heap_get_size_elm(const BlockHeap *);
 
 #else /* NOBALLOC */
 
@@ -97,6 +89,4 @@ typedef struct BlockHeap BlockHeap;
 
 #endif /* NOBALLOC */
 
-extern BlockHeap *heap_list;
-
-#endif /* INCLUDED_balloc_h */
+LIBIO_EXTERN BlockHeap *heap_list;

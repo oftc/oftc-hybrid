@@ -506,6 +506,26 @@ changing_fdlimit(va_list args)
   return NULL;
 }
 
+#ifdef _WIN32
+/*
+ * Initial entry point for Win32 GUI applications, called by the C runtime.
+ *
+ * It should be only a wrapper for main(), since when compiled as a console
+ * application, main() is called instead.
+ */
+int WINAPI
+WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+        LPSTR lpCmdLine, int nCmdShow)
+{
+  /* Do we really need these pidfile, logfile etc arguments?
+   * And we are not on a console, so -help or -foreground is meaningless. */
+
+  char *argv[2] = {"ircd", NULL};
+
+  return main(1, argv);
+}
+#endif
+
 int
 main(int argc, char *argv[])
 {

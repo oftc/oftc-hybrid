@@ -31,8 +31,8 @@ typedef struct _dlink_list dlink_list;
 #ifdef IN_MISC_C
 extern void init_dlink_nodes(void);
 #endif
-extern void free_dlink_node(dlink_node *);
-extern dlink_node *make_dlink_node(void);
+LIBIO_EXTERN void free_dlink_node(dlink_node *);
+LIBIO_EXTERN dlink_node *make_dlink_node(void);
 
 struct _dlink_node
 {
@@ -48,13 +48,13 @@ struct _dlink_list
   unsigned long length;
 };
 
-extern void dlinkAdd(void *data, dlink_node * m, dlink_list * list);
-extern void dlinkAddBefore(dlink_node *b, void *data, dlink_node *m, dlink_list *list);
-extern void dlinkAddTail(void *data, dlink_node *m, dlink_list *list);
-extern void dlinkDelete(dlink_node *m, dlink_list *list);
-extern void dlinkMoveList(dlink_list *from, dlink_list *to);
-extern dlink_node *dlinkFind(dlink_list *m, void *data);
-extern dlink_node *dlinkFindDelete(dlink_list *m, void *data);
+LIBIO_EXTERN void dlinkAdd(void *data, dlink_node * m, dlink_list * list);
+LIBIO_EXTERN void dlinkAddBefore(dlink_node *b, void *data, dlink_node *m, dlink_list *list);
+LIBIO_EXTERN void dlinkAddTail(void *data, dlink_node *m, dlink_list *list);
+LIBIO_EXTERN void dlinkDelete(dlink_node *m, dlink_list *list);
+LIBIO_EXTERN void dlinkMoveList(dlink_list *from, dlink_list *to);
+LIBIO_EXTERN dlink_node *dlinkFind(dlink_list *m, void *data);
+LIBIO_EXTERN dlink_node *dlinkFindDelete(dlink_list *m, void *data);
 
 /* These macros are basically swiped from the linux kernel
  * they are simple yet effective
@@ -94,7 +94,7 @@ extern dlink_node *dlinkFindDelete(dlink_list *m, void *data);
  * which is mine.
  *   -- adrian
  */
-extern inline void
+LIBIO_EXTERN inline void
 dlinkAdd(void *data, dlink_node * m, dlink_list * list)
 {
   m->data = data;
@@ -109,7 +109,7 @@ dlinkAdd(void *data, dlink_node * m, dlink_list * list)
   list->length++;
 }
 
-extern inline void
+LIBIO_EXTERN inline void
 dlinkAddBefore(dlink_node *b, void *data, dlink_node *m, dlink_list *list)
 {
   /* Shortcut - if its the first one, call dlinkAdd only */
@@ -125,7 +125,7 @@ dlinkAddBefore(dlink_node *b, void *data, dlink_node *m, dlink_list *list)
   }
 }
 
-extern inline void
+LIBIO_EXTERN inline void
 dlinkAddTail(void *data, dlink_node *m, dlink_list *list)
 {
  m->data = data;
@@ -143,7 +143,7 @@ dlinkAddTail(void *data, dlink_node *m, dlink_list *list)
 /* Execution profiles show that this function is called the most
  * often of all non-spontaneous functions. So it had better be
  * efficient. */
-extern inline void
+LIBIO_EXTERN inline void
 dlinkDelete(dlink_node *m, dlink_list *list)
 {
  /* Assumption: If m->next == NULL, then list->tail == m
@@ -173,7 +173,7 @@ dlinkDelete(dlink_node *m, dlink_list *list)
  * output	- pointer to link or NULL if not found
  * side effects	- Look for ptr in the linked listed pointed to by link.
  */
-extern inline dlink_node *
+LIBIO_EXTERN inline dlink_node *
 dlinkFind(dlink_list *list, void *data)
 {
   dlink_node *ptr;
@@ -185,7 +185,7 @@ dlinkFind(dlink_list *list, void *data)
   return NULL;
 }
 
-extern inline void
+LIBIO_EXTERN inline void
 dlinkMoveList(dlink_list *from, dlink_list *to)
 {
   /* There are three cases */
@@ -220,7 +220,7 @@ dlinkMoveList(dlink_list *from, dlink_list *to)
   /* I think I got that right */
 }
 
-extern inline dlink_node *
+LIBIO_EXTERN inline dlink_node *
 dlinkFindDelete(dlink_list *list, void *data)
 {
   dlink_node *m;

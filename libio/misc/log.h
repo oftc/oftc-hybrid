@@ -31,20 +31,20 @@
 #define L_DEBUG  6
 
 #ifndef SYSLOG_USERS
-extern void *user_log_fb;
+LIBIO_EXTERN void *user_log_fb;
 #endif
 
-extern void init_log(const char *);
-extern void reopen_log(const char *);
-extern void set_log_level(const int);
-extern int get_log_level(void);
+LIBIO_EXTERN void init_log(const char *);
+LIBIO_EXTERN void reopen_log(const char *);
+LIBIO_EXTERN void set_log_level(const int);
+LIBIO_EXTERN int get_log_level(void);
 #ifdef __GNUC__
-extern void ilog(const int, const char *, ...)
+LIBIO_EXTERN void ilog(const int, const char *, ...)
   __attribute__((format(printf, 2, 3)));
 #else
-extern void ilog(const int, const char *, ...);
+LIBIO_EXTERN void ilog(const int, const char *, ...);
 #endif
-extern const char *get_log_level_as_string(int);
+LIBIO_EXTERN const char *get_log_level_as_string(int);
 
 enum {
   LOG_OPER_TYPE,

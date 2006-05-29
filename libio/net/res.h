@@ -24,15 +24,15 @@ struct DNSQuery
   void (*callback)(void* vptr, struct DNSReply *reply); /* callback to call */
 };
 
-extern struct irc_ssaddr irc_nsaddr_list[];
-extern int irc_nscount;
+LIBIO_EXTERN struct irc_ssaddr irc_nsaddr_list[];
+LIBIO_EXTERN int irc_nscount;
 
 #ifdef IN_MISC_C
 extern void init_resolver(void);
 #endif
-extern void restart_resolver(void);
-extern void delete_resolver_queries(const struct DNSQuery *);
-extern void gethost_byname_type(const char *, struct DNSQuery *, int);
-extern void gethost_byname(const char *, struct DNSQuery *);
-extern void gethost_byaddr(const struct irc_ssaddr *, struct DNSQuery *);
-extern void add_local_domain(char *, size_t);
+LIBIO_EXTERN void restart_resolver(void);
+LIBIO_EXTERN void delete_resolver_queries(const struct DNSQuery *);
+LIBIO_EXTERN void gethost_byname_type(const char *, struct DNSQuery *, int);
+LIBIO_EXTERN void gethost_byname(const char *, struct DNSQuery *);
+LIBIO_EXTERN void gethost_byaddr(const struct irc_ssaddr *, struct DNSQuery *);
+LIBIO_EXTERN void add_local_domain(char *, size_t);
