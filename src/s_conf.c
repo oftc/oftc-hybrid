@@ -2066,6 +2066,7 @@ get_oper_name(const struct Client *client_p)
   if (MyConnect(client_p))
   {
     aconf = map_to_conf(client_p->localClient->iline);
+    conf = unmap_conf_item(aconf);
 
     ircsprintf(buffer, "%s!%s@%s{%s}", client_p->name,
 	       client_p->username, client_p->host,
