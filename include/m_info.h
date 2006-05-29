@@ -38,12 +38,6 @@ typedef struct Information
 
 Info MyInformation[] = {
 
-#ifdef CLIENT_FLOOD
-  { "CLIENT_FLOOD", "", CLIENT_FLOOD, "Client Excess Flood Threshold" },
-#else
-  { "CLIENT_FLOOD", "OFF", 0, "Client Excess Flood Threshold" },
-#endif /* CLIENT_FLOOD */
-
 #ifdef CPATH
   { "CPATH", CPATH, 0, "Path to Main Configuration File" },
 #else
@@ -62,8 +56,6 @@ Info MyInformation[] = {
   { "DLPATH", "NONE", 0, "Path to D-line File" },
 #endif /* DLPATH */
 
-  { "HARD_FDLIMIT", "", HARD_FDLIMIT, "Maximum Number of File Descriptors Available" },
-
 #ifdef SOMAXCONN
   { "HYBRID_SOMAXCONN", "", SOMAXCONN, "Maximum Queue Length of Pending Connections" },
 #else
@@ -76,8 +68,6 @@ Info MyInformation[] = {
   { "IPV6", "OFF", 0, "IPv6 Support" },
 #endif
 */
-  { "KILLCHASETIMELIMIT", "", KILLCHASETIMELIMIT, "Nick Change Tracker for KILL" },
-
 #ifdef KPATH
   { "KPATH", KPATH, 0, "Path to K-line File" },
 #else
@@ -92,11 +82,7 @@ Info MyInformation[] = {
 
   { "MAX_BUFFER", "", MAX_BUFFER, "Maximum Buffer Connections Allowed" },
 
-  { "MAX_CONNECTIONS", "", MAXCONN, "Maximum Number of Network Connections Allowed" },
-
   { "MAX_JOIN_LEAVE_COUNT", "", MAX_JOIN_LEAVE_COUNT, "Anti SpamBot Parameter" },
-
-  { "MAXIMUM_LINKS_DEFAULT", "", MAXIMUM_LINKS_DEFAULT, "Default Maximum Links for Class 0" },
 
   { "MIN_JOIN_LEAVE_TIME", "", MIN_JOIN_LEAVE_TIME, "Anti SpamBot Parameter" },
 

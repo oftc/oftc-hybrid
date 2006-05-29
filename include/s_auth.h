@@ -41,7 +41,7 @@ struct AuthRequest
   dlink_node	      ident_node; /* auth_doing_ident_list */
   int 		      flags;
   struct Client*      client;    /* pointer to client struct for request */
-  int                 fd;        /* file descriptor for auth queries */
+  fde_t               fd;        /* file descriptor for auth queries */
   time_t              timeout;   /* time when query expires */
   unsigned int	      ip6_int;
 };
@@ -50,42 +50,29 @@ struct AuthRequest
  * flag values for AuthRequest
  * NAMESPACE: AM_xxx - Authentication Module
  */
-#define AM_AUTH_CONNECTING   (1 << 0)
-#define AM_AUTH_PENDING      (1 << 1)
-#define AM_DNS_PENDING       (1 << 2)
+#define AM_DOING_AUTH        1
+#define AM_DNS_PENDING       2
+#define CRIT_REGION	     4
 
 #define SetDNSPending(x)     ((x)->flags |= AM_DNS_PENDING)
 #define ClearDNSPending(x)   ((x)->flags &= ~AM_DNS_PENDING)
 #define IsDNSPending(x)      ((x)->flags &  AM_DNS_PENDING)
 
-#define SetAuthConnect(x)    ((x)->flags |= AM_AUTH_CONNECTING)
-#define ClearAuthConnect(x)  ((x)->flags &= ~AM_AUTH_CONNECTING)
-#define IsAuthConnect(x)     ((x)->flags &  AM_AUTH_CONNECTING)
+#define SetDoingAuth(x)      ((x)->flags |= AM_DOING_AUTH)
+#define ClearAuth(x)         ((x)->flags &= ~AM_DOING_AUTH)
+#define IsDoingAuth(x)       ((x)->flags &  AM_DOING_AUTH)
 
-#define SetAuthPending(x)    ((x)->flags |= AM_AUTH_PENDING)
-#define ClearAuthPending(x)  ((x)->flags &= AM_AUTH_PENDING)
-#define IsAuthPending(x)     ((x)->flags &  AM_AUTH_PENDING)
+#define IsCrit(x)	     ((x)->flags & CRIT_REGION)
+#define SetCrit(x)	     ((x)->flags |= CRIT_REGION)
+#define ClearCrit(x)	     ((x)->flags &= ~CRIT_REGION)
 
-#define ClearAuth(x)         ((x)->flags &= ~(AM_AUTH_PENDING | AM_AUTH_CONNECTING))
-#define IsDoingAuth(x)       ((x)->flags &  (AM_AUTH_PENDING | AM_AUTH_CONNECTING))
-/* #define SetGotId(x)       ((x)->flags |= FLAGS_GOTID) */
+extern struct Callback *auth_cb;
 
-
-extern void start_auth(struct Client *);
-extern void send_auth_query(struct AuthRequest* req);
-extern void remove_auth_request(struct AuthRequest *req);
-extern struct AuthRequest *FindAuthClient(long id);
+extern void send_auth_query(struct AuthRequest *);
+extern void remove_auth_request(struct AuthRequest *);
+extern struct AuthRequest *FindAuthClient(long);
 extern void init_auth(void);
-extern void delete_identd_queries(struct Client *);
+extern void delete_auth(struct Client *);
+extern void release_auth_client(struct Client *);
 
 #endif /* INCLUDED_s_auth_h */
-
-
-
-
-
-
-
-
-
-

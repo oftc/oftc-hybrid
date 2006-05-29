@@ -33,22 +33,10 @@
 /* Maximum mode changes allowed per client, per server is different */
 #define MAXMODEPARAMS 4
 
-extern void set_channel_mode(struct Client *, struct Client *, struct Channel *,
-                             struct Membership *, int, char **, char *);
-
-extern void init_chcap_usage_counts(void);
-extern void set_chcap_usage_counts(struct Client *serv_p);
-extern void unset_chcap_usage_counts(struct Client *serv_p);
-
-/*
-** Channel Related macros follow
-*/
-
 /* can_send results */
 #define CAN_SEND_NO	0
 #define CAN_SEND_NONOP  1
 #define CAN_SEND_OPV	2
-#define CAN_SEND_ONLY_IF_REG 3
 
 
 /* Channel related flags */
@@ -77,14 +65,11 @@ extern void unset_chcap_usage_counts(struct Client *serv_p);
 #define MODE_DEL   -1
 
 /* name invisible */
-#define SecretChannel(x)        ((x) && ((x)->mode.mode & MODE_SECRET))
-/* channel not shown but names are */
-#define HiddenChannel(x)        ((x) && ((x)->mode.mode & MODE_PRIVATE))
-#define PubChannel(x)           ((!x) || ((x)->mode.mode &\
-                                 (MODE_PRIVATE | MODE_SECRET)) == 0)
-#define ParanoidChannel(x)	((x) && ((x)->mode.mode &\
-			        (MODE_PRIVATE|MODE_INVITEONLY))==\
-		                (MODE_PRIVATE|MODE_INVITEONLY))
+#define SecretChannel(x)        (((x)->mode.mode & MODE_SECRET))
+#define PubChannel(x)           (!SecretChannel(x))
+/* knock is forbidden, halfops can't kick/deop other halfops.
+ * +pi means paranoid and will generate notices on each invite */
+#define PrivateChannel(x)       (((x)->mode.mode & MODE_PRIVATE))
 #define RegOnlyChannel(x)       ((x) && ((x)->mode.mode & MODE_REGONLY))
 #define SpeakOnlyIfReg(x)       ((x) && ((x)->mode.mode & MODE_SPEAKONLYIFREG))
 #define SSLonlyChannel(x)       ((x) && (x)->mode.mode & MODE_SSLONLY)
@@ -93,8 +78,8 @@ extern void unset_chcap_usage_counts(struct Client *serv_p);
 struct ChModeChange
 {
   char letter;
-  char *arg;
-  char *id;
+  const char *arg;
+  const char *id;
   int dir;
   int caps;
   int nocaps;
@@ -109,10 +94,6 @@ struct ChCapCombo
   int cap_no;
 };
 
-#define CHACCESS_NOTONCHAN  -1
-#define CHACCESS_PEON       0
-#define CHACCESS_HALFOP     1
-#define CHACCESS_CHANOP     2
 extern struct Callback *channel_access_cb;
 
 extern void init_channel_modes(void);

@@ -29,35 +29,40 @@
 #define IRC_MAXUID 6
 #define TOTALSIDUID (IRC_MAXSID + IRC_MAXUID)
 
-struct User;
 struct Client;
 struct AccessItem;
 struct ConfItem;
 
 extern int MaxClientCount;     /* GLOBAL - highest number of clients     */
 extern int MaxConnectionCount; /* GLOBAL - highest number of connections */
+extern struct Callback *entering_umode_cb;
+extern struct Callback *umode_cb;
+extern struct Callback *uid_get_cb;
+extern unsigned int user_modes[];
 
-extern void init_user(void);
-extern void free_user(struct User *, struct Client *);
-extern void count_user_memory(int *, unsigned long *);
+extern void assemble_umode_buffer(void);
 extern void set_user_mode(struct Client *, struct Client *, int, char **);
 extern void send_umode(struct Client *, struct Client *,
                        unsigned int, unsigned int, char *);
 extern void send_umode_out(struct Client *, struct Client *, unsigned int);
-extern void show_lusers(struct Client *source_p);
+extern void show_lusers(struct Client *);
 extern void show_isupport(struct Client *);
 extern void oper_up(struct Client *, struct ConfItem *, const char *);
 
-extern int register_local_user(struct Client *, struct Client *,
-                               const char *, const char *);
-extern int register_remote_user(struct Client *, struct Client *,
-                                const char *, const char *,
+extern void register_local_user(struct Client *, struct Client *,
                                 const char *, const char *);
-extern int do_local_user(const char *, struct Client *, struct Client *,
-                         const char *, const char *, const char *,
-                         const char *);
-extern const unsigned int user_modes_from_c_to_bitmask[];
-extern void uid_init(void);
-extern char *uid_get(void);
-#endif
+extern void register_remote_user(struct Client *, struct Client *,
+                                 const char *, const char *,
+                                 const char *, const char *);
+extern void do_local_user(const char *, struct Client *, struct Client *,
+                          const char *, const char *, const char *,
+                          const char *);
+extern void init_uid(void);
+extern int valid_hostname(const char *);
+extern int valid_username(const char *);
+extern void add_isupport(const char *, const char *, int);
+extern void delete_isupport(const char *);
+extern void init_isupport(void);
+extern void rebuild_isupport_message_line(void);
 
+#endif

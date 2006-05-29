@@ -31,55 +31,7 @@
 
 #define CASEMAP "rfc1459"
 
-#ifdef HAVE_LIBCRYPTO
-#define FEATURES "SSL WALLCHOPS"\
-                 "%s%s%s" \
-                 " MODES=%i"       \
-                 " MAXCHANNELS=%i" \
-                 " MAXBANS=%i"     \
-                 " MAXTARGETS=%i"  \
-                 " NICKLEN=%i"     \
-                 " TOPICLEN=%i"    \
-                 " KICKLEN=%i"
-#else                
-#define FEATURES "WALLCHOPS"\
-                "%s%s%s" \
-                " MODES=%i" \
-                " MAXCHANNELS=%i" \
-                " MAXBANS=%i" \
-                " MAXTARGETS=%i" \
-                " NICKLEN=%i" \
-                " TOPICLEN=%i" \
-                " KICKLEN=%i"
-#endif
-
-#define FEATURESVALUES ConfigChannel.use_knock ? " KNOCK" : "", \
-        ConfigChannel.use_except ? " EXCEPTS" : "", \
-        ConfigChannel.use_invex ? " INVEX" : "", \
-        MAXMODEPARAMS,ConfigChannel.max_chans_per_user, \
-        ConfigChannel.max_bans, \
-        ConfigFileEntry.max_targets,NICKLEN-1,TOPICLEN,TOPICLEN
-
-#define FEATURES2 "CHANTYPES=%s"      \
-                  " PREFIX=%s"        \
-		  " CHANMODES=%s%s%s" \
-		  " NETWORK=%s"       \
-		  " CASEMAPPING=%s"   \
-		  " CALLERID%s"
-
-#ifdef USE_HALFOPS
-# define PREFIX "(ohv)@%+"
-#else
-# define PREFIX "(ov)@+"
-#endif
-		  
-#define FEATURES2VALUES ConfigChannel.disable_local_channels ? "#" : "#&", \
-                        PREFIX, \
-                        ConfigChannel.use_except ? "e" : "", \
-                        ConfigChannel.use_invex ? "I" : "", \
-                        "b,k,l,imnpstMR", \
-                        ServerInfo.network_name, CASEMAP, \
-			(uplink && IsCapable(uplink, CAP_LL)) ? "" : " SAFELIST"
+/* ConfigChannel.use_knock ? " KNOCK" */
 
 /*
  * - from mirc's versions.txt

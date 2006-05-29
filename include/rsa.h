@@ -29,8 +29,8 @@
 #ifdef HAVE_LIBCRYPTO
 extern void report_crypto_errors(void);
 extern int verify_private_key(void);
-extern int generate_challenge( char ** r_challenge, char ** r_response, RSA * key );
-extern int get_randomness( unsigned char * buf, int length );
+extern int generate_challenge(char **, char **, RSA *);
+extern int get_randomness(unsigned char *, int);
 #endif
 
 #endif /* INCLUDED_rsa_h */

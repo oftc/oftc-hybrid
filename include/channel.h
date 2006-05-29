@@ -142,7 +142,4 @@ extern struct Membership *find_channel_link(struct Client *, struct Channel *);
 #define IsSetJoinFloodNoticed(x) ((x)->flags & JOIN_FLOOD_NOTICED)
 #define ClearJoinFloodNoticed(x) ((x)->flags &= ~JOIN_FLOOD_NOTICED)
 
-extern void free_topic(struct Channel *);
-extern int msg_has_colors(char*);
-extern char *strip_color(char *);
 #endif  /* INCLUDED_channel_h */

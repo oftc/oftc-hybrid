@@ -25,6 +25,7 @@
 #ifndef INCLUDED_ircd_h
 #define INCLUDED_ircd_h
 
+#include "ircd_defs.h"
 #include "setup.h"
 
 struct Client;
@@ -32,16 +33,20 @@ struct dlink_list;
 
 struct SetOptions
 {
-  int maxclients;    /* max clients allowed               */
   int autoconn;      /* autoconn enabled for all servers? */
   int idletime;
   int floodcount;    /* Number of messages in 1 second    */
+  /* XXX for join flood catching - Dianora */
+  int joinfloodtime;
+  int joinfloodcount;
+  /* XXX */
+  int rejecttime;
   int ident_timeout; /* timeout for identd lookups        */
   int spam_num;
   int spam_time;
 };
 
-struct Counter 
+struct Counter
 {
   int myserver; /* my servers          */
   int oper;     /* Opers               */
@@ -53,7 +58,8 @@ struct Counter
   unsigned long totalrestartcount; /* Total client count ever */
 };
 
-extern struct SetOptions GlobalSetOptions;  /* defined in ircd.c */
+extern struct SetOptions GlobalSetOptions; /* defined in ircd.c */
+extern unsigned long connect_id;	/* unique connect ID */
 
 struct ServerState_t
 {
@@ -63,15 +69,13 @@ struct ServerState_t
 extern struct ServerState_t server_state;
 
 extern char **myargv;
-extern const char *creation;
-extern const char *generation;
-extern const char *platform;
+extern char ircd_platform[PLATFORMLEN];
+extern char *get_ircd_platform(char *);
 extern const char *infotext[];
 extern const char *serno;
 extern const char *ircd_version;
 extern const char *logFileName;
 extern const char *pidFileName;
-extern const char serveropts[];
 extern int dorehash;
 extern int doremotd;
 extern struct Counter Count;
@@ -84,17 +88,15 @@ extern int bio_spare_fd;
 extern int splitmode;
 extern int splitchecking;
 extern int split_users;
-extern int split_servers;
+extern unsigned int split_servers;
 
-extern dlink_list dead_list;
-extern dlink_list abort_list;
-extern dlink_list unknown_list;       /* unknown clients ON this server only */
-extern dlink_list local_client_list;  /* local clients only ON this server */
-extern dlink_list serv_list;          /* local servers to this server ONLY */
-extern dlink_list global_serv_list;   /* global servers on the network */
+extern dlink_list unknown_list;       /* unknown clients ON this server only        */
+extern dlink_list local_client_list;  /* local clients only ON this server          */
+extern dlink_list serv_list;          /* local servers to this server ONLY          */
+extern dlink_list global_serv_list;   /* global servers on the network              */
 extern dlink_list oper_list;          /* our opers, duplicated in local_client_list */
-extern dlink_list lazylink_channels;  /* known about lazylink channels on HUB */
+extern dlink_list lazylink_channels;  /* known about lazylink channels on HUB       */
 extern int rehashed_klines;
-extern int rehashed_xlines;
 extern unsigned long get_maxrss(void);
+
 #endif

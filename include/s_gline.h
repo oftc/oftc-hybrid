@@ -27,13 +27,10 @@
 
 #include "ircd_defs.h"
 
-struct Client;
 struct AccessItem;
 
-extern int remove_gline_match(const char *user, const char *host);
-extern struct AccessItem *find_gkill(struct Client *client, const char *);
-extern struct AccessItem *find_is_glined(const char *host, const char *name);
-extern void cleanup_glines(void *unused);
+extern void cleanup_glines(void *);
+extern struct AccessItem *find_is_glined(const char *, const char *);
 
 struct gline_pending
 {
@@ -58,13 +55,12 @@ struct gline_pending
   char host[HOSTLEN * 2 + 2];
 };
 
-/* how long a pending G line can be around
+/*
+ * how long a pending G line can be around
  * 10 minutes should be plenty
  */
 #define GLINE_PENDING_EXPIRE 600
 #define CLEANUP_GLINES_TIME  300
 
 extern dlink_list pending_glines;
-extern dlink_list glines;
-
 #endif /* INCLUDED_s_gline_h */

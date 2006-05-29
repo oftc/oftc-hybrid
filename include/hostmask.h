@@ -2,7 +2,7 @@
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
  *  hostmask.h: A header for the hostmask code.
  *
- *  Copyright (C) 2002 by the past and present ircd coders, and others.
+ *  Copyright (C) 2005 by the past and present ircd coders, and others.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,11 +24,12 @@
 
 #ifndef INCLUDE_hostmask_h
 #define INCLUDE_hostmask_h 1
+
 enum
 {
- HM_HOST,
- HM_IPV4,
- HM_IPV6
+  HM_HOST,
+  HM_IPV4,
+  HM_IPV6
 };
 
 struct HostMaskEntry
@@ -40,25 +41,28 @@ struct HostMaskEntry
   struct HostMaskEntry *next, *nexthash;
 };
 
-int parse_netmask(const char *, struct irc_ssaddr *, int *);
-struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
-                                        int, int, const char *, char *);
-void add_conf_by_address(int, struct AccessItem *);
-void delete_one_address_conf(const char *, struct AccessItem *);
+extern int match_ipv6(struct irc_ssaddr *, struct irc_ssaddr *, int);
+extern int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int);
+extern void mask_addr(struct irc_ssaddr *, int);
+extern int parse_netmask(const char *, struct irc_ssaddr *, int *);
 
-void clear_out_address_conf(void);
-void init_host_hash(void);
-struct AccessItem* find_address_conf(const char *, const char *,
-                                   struct irc_ssaddr *, int, char *);
-struct AccessItem* find_kline_conf(const char *, const char *,
-                                 struct irc_ssaddr *, int);
-struct AccessItem* find_dline_conf(struct irc_ssaddr *, int);
+extern void add_conf_by_address(int, struct AccessItem *);
+extern void delete_one_address_conf(const char *, struct AccessItem *);
+extern void clear_out_address_conf(void);
+extern void init_host_hash(void);
+extern void report_Klines(struct Client *, int);
+extern void report_auth(struct Client *);
 
-int match_ipv6(struct irc_ssaddr *, struct irc_ssaddr *, int);
-int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int);
-
-void report_Klines(struct Client *, int temp);
-void report_auth(struct Client *);
+extern char *show_iline_prefix(struct Client *, struct AccessItem *, const char *);
+extern struct AccessItem *find_address_conf(const char *, const char *,
+                                            struct irc_ssaddr *, int, char *);
+extern struct AccessItem *find_kline_conf(const char *, const char *,
+                                          struct irc_ssaddr *, int);
+extern struct AccessItem *find_gline_conf(const char *, const char *,
+                                          struct irc_ssaddr *, int);
+extern struct AccessItem *find_dline_conf(struct irc_ssaddr *, int);
+extern struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
+                                               int, int, const char *, const char *);
 
 /* Hashtable stuff... */
 #define ATABLE_SIZE 0x1000
@@ -79,8 +83,8 @@ struct AddressRec
       int bits;
     } ipa;
 
-  /* Pointer into AccessItem... -A1kmm */
-  const char *hostname;
+    /* Pointer into AccessItem... -A1kmm */
+    const char *hostname;
   } Mask;
 
   /* type: CONF_CLIENT, CONF_DLINE, CONF_KILL etc... -A1kmm */
@@ -96,9 +100,4 @@ struct AddressRec
   /* The next record in this hash bucket. */
   struct AddressRec *next;
 };
-
-extern char *
-show_iline_prefix(struct Client *sptr, struct AccessItem *aconf, char *name);
-
 #endif /* INCLUDE_hostmask_h */
-

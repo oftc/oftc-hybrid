@@ -21,6 +21,7 @@
  *
  *  $Id$
  */
+
 #ifndef INCLUDED_whowas_h
 #define INCLUDED_whowas_h
 
@@ -28,29 +29,15 @@
 #include "client.h"
 #include "setup.h"
 
-/*
- * Whowas hash table size
- *
- */
-#define WW_MAX 65536
-
-struct User;
-struct Client;
-
-/*
-  lets speed this up...
-  also removed away information. *tough*
-  - Dianora
- */
 struct Whowas
 {
   int hashv;
+  time_t logoff;
   char name[NICKLEN];
   char username[USERLEN + 1]; 
   char hostname[HOSTLEN + 1];
   char realname[REALLEN + 1];
   char servername[HOSTLEN + 1];
-  time_t logoff;
   struct Client *online; /* Pointer to new nickname for chasing or NULL */
   struct Whowas *next;  /* for hash table... */
   struct Whowas *prev;  /* for hash table... */
@@ -67,10 +54,9 @@ extern void init_whowas(void);
 ** add_history
 **      Add the currently defined name of the client to history.
 **      usually called before changing to a new name (nick).
-**      Client must be a fully registered user (specifically,
-**      the user structure must have been allocated).
+**      Client must be a fully registered user.
 */
-extern void add_history (struct Client *, int);
+extern void add_history(struct Client *, int);
 
 /*
 ** off_history
@@ -96,5 +82,4 @@ extern void count_whowas_memory(int *, unsigned long *);
 
 /* XXX m_whowas.c in modules needs these */
 extern struct Whowas *WHOWASHASH[];
-extern unsigned int hash_whowas_name(const char* name);
 #endif /* INCLUDED_whowas_h */

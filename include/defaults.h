@@ -37,20 +37,24 @@
  *       BE INSTALLED TO.  IF YOU CHANGE THESE, DO NOT USE MAKE INSTALL,
  *       BUT COPY THE FILES MANUALLY TO WHERE YOU WANT THEM.
  *
- * IRCD_PREFIX = prefix for all directories,
- * DPATH       = root directory of installation,
- * BINPATH     = directory for binary files,
- * ETCPATH     = directory for configuration files,
- * LOGPATH     = directory for logfiles,
- * MSGPATH     = directory for language files.
+ * IRCD_PREFIX = prefix for all directories
+ * DPATH       = root directory of installation
+ * BINPATH     = directory for binary files
+ * MSGPATH     = directory for language files
+ * ETCPATH     = directory for configuration files
+ * LOGPATH     = directory for logfiles
+ * MODPATH     = directory for modules
+ * AUTOMODPATH = directory for autoloaded modules
  */
 
 /* dirs */
-#define DPATH   IRCD_PREFIX                                                     
-#define BINPATH IRCD_PREFIX "/bin/"
-#define MSGPATH IRCD_PREFIX "/messages/"
-#define ETCPATH IRCD_PREFIX "/etc"
-#define LOGPATH IRCD_PREFIX "/logs"
+#define DPATH       IRCD_PREFIX                                                     
+#define BINPATH     IRCD_PREFIX "/bin/"
+#define MSGPATH     IRCD_PREFIX "/messages/"
+#define ETCPATH     IRCD_PREFIX "/etc"
+#define LOGPATH     IRCD_PREFIX "/logs"
+#define MODPATH     IRCD_PREFIX "/modules/"
+#define AUTOMODPATH IRCD_PREFIX "/modules/autoload/"
 #define OFTCLOG LOGPATH "/oftc.log" 
 
 /* files */
@@ -63,6 +67,8 @@
 #define DLPATH  ETCPATH "/dline.conf"           /* dline file */
 #define GPATH   ETCPATH "/gline.conf"           /* gline conffile */
 #define XPATH   ETCPATH "/xline.conf"           /* xline file */
+#define RXPATH  ETCPATH "/rxline.conf"
+#define RKPATH  ETCPATH "/rkline.conf"
 #define MPATH   ETCPATH "/ircd.motd"            /* MOTD file */
 #define LPATH   LOGPATH "/ircd.log"             /* ircd logfile */
 #define PPATH   ETCPATH "/ircd.pid"             /* pid file */
@@ -78,11 +84,15 @@
 #define MAX_TDKLINE_TIME	(24*60*10)
 #define HANGONGOODLINK 3600     /* Recommended value: 30-60 minutes */
 
-/* 10 FDs reserved for logging and name resolution */
-#define HARD_FDLIMIT    MAXCONN + MAX_BUFFER + 10
+/* tests show that about 7 fds are not registered by fdlist.c, these
+ * include std* descriptors + some others (by OpenSSL etc.). Note this is
+ * intentionally too high, we don't want to eat fds up to the last one */
+#define LEAKED_FDS       10
+/* how many (privileged) clients can exceed max_clients */
+#define MAX_BUFFER       60
 
-#define KILLCHASETIMELIMIT 90   /* Recommended value: 90 */
-#define MASTER_MAX      (HARD_FDLIMIT - MAX_BUFFER)
+#define MAXCLIENTS_MAX   (hard_fdlimit - LEAKED_FDS - MAX_BUFFER)
+#define MAXCLIENTS_MIN   32
 
 /* class {} default values */
 #define DEFAULT_SENDQ 9000000           /* default max SendQ */
@@ -100,9 +110,7 @@
 #define NETWORK_DESC_DEFAULT "Eris Free Network" /* default for network_desc */
 
 /* General defaults */
-#define MAXIMUM_LINKS_DEFAULT 1         /* default for maximum_links */
-#define MAX_BUFFER 60
-
+#define MAXIMUM_LINKS_DEFAULT 0         /* default for maximum_links */
 
 #define CLIENT_FLOOD_DEFAULT 2560       /* default for client_flood */
 #define CLIENT_FLOOD_MAX     8000

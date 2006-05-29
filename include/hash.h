@@ -25,16 +25,26 @@
 #ifndef INCLUDED_hash_h
 #define INCLUDED_hash_h
 
+#define FNV1_32_INIT 0x811c9dc5
+#define FNV1_32_BITS 16
+#define FNV1_32_SIZE (1 << FNV1_32_BITS)  /* 2^16 = 65536 */
+#define HASHSIZE FNV1_32_SIZE
+
 struct Client;
 struct Channel;
 struct ResvChannel;
 struct UserHost;
 struct ListTask;
 
-extern struct Channel *get_or_create_channel(struct Client *client_p, char *chname, int *isnew);
+enum {
+  HASH_TYPE_ID,
+  HASH_TYPE_CLIENT,
+  HASH_TYPE_CHANNEL,
+  HASH_TYPE_USERHOST,
+  HASH_TYPE_RESERVED
+};
 
 extern void init_hash(void);
-
 extern void hash_add_client(struct Client *);
 extern void hash_del_client(struct Client *);
 extern void hash_add_channel(struct Channel *);
@@ -46,15 +56,16 @@ extern void hash_del_id(struct Client *);
 extern void hash_add_userhost(struct UserHost *);
 extern void hash_del_userhost(struct UserHost *);
 
-extern struct UserHost *hash_find_userhost(const char *host);
-extern struct Client *hash_find_id(const char *name);
-extern struct Client *find_client(const char *name);
-extern struct Client *find_server(const char *name);
-extern struct Client *hash_find_server(const char *name);
-extern struct Channel *hash_find_channel(const char *name);
-extern struct ResvChannel *hash_find_resv(const char *name);
+extern struct UserHost *hash_find_userhost(const char *);
+extern struct Client *hash_find_id(const char *);
+extern struct Client *find_client(const char *);
+extern struct Client *find_server(const char *);
+extern struct Channel *hash_find_channel(const char *);
+extern void *hash_get_bucket(int, unsigned int);
+extern struct ResvChannel *hash_find_resv(const char *);
 
-/* XXX ZZZ */
 extern void free_list_task(struct ListTask *, struct Client *);
-extern void safe_list_channels(struct Client *source_p, struct ListTask *, int, int);
+extern void safe_list_channels(struct Client *, struct ListTask *, int, int);
+
+extern unsigned int strhash(const char *);
 #endif  /* INCLUDED_hash_h */

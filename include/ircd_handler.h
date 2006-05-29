@@ -34,6 +34,7 @@ typedef enum HandlerType {
   UNREGISTERED_HANDLER,
   CLIENT_HANDLER,
   SERVER_HANDLER,
+  ENCAP_HANDLER,
   OPER_HANDLER,
   DUMMY_HANDLER,
   LAST_HANDLER_TYPE
@@ -51,4 +52,3 @@ typedef void (*MessageHandler)(struct Client*, struct Client*, int, char*[]);
 
 
 #endif /* INCLUDED_ircd_handler_h */
-

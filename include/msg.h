@@ -27,8 +27,6 @@
 
 #include "ircd_handler.h"
 
-struct Client;
-
 /* 
  * Message table structure 
  */
@@ -54,7 +52,7 @@ struct Message
    * parv = parameter variable array
    */
   /* handlers:
-   * UNREGISTERED, CLIENT, SERVER, OPER, LAST
+   * UNREGISTERED, CLIENT, SERVER, ENCAP, OPER, DUMMY, LAST
    */
   MessageHandler handlers[LAST_HANDLER_TYPE];
 };
@@ -67,9 +65,6 @@ struct Message
 					 */
 #define   MFLG_UNREG            0x002   /* Command available to unregistered
                                          * clients.                          
-					 */
-#define   MFLG_HIDDEN		0x004   /* Command is hidden from everyone
-					 * but opers			      
 					 */
  
 #define MAXPARA    15

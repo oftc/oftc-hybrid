@@ -63,7 +63,7 @@ extern const char *get_locale(void);
 #define RPL_MAPMORE	     16		/* Undernet extension */
 #define RPL_MAPEND	     17		/* Undernet extension */
 
-/*	RPL_YOURID	      42	IRCnet extension */
+#define RPL_YOURID	     42		/* IRCnet extension */
 /*      RPL_ATTEMPTINGJUNC    50           aircd extension */
 /*      RPL_ATTEMPTINGREROUTE 51           aircd extension */
 
@@ -78,6 +78,7 @@ extern const char *get_locale(void);
 #define RPL_TRACEOPERATOR    204
 #define RPL_TRACEUSER        205
 #define RPL_TRACESERVER      206
+#define RPL_TRACECAPTURED    207
 #define RPL_TRACENEWTYPE     208
 #define RPL_TRACECLASS       209
 
@@ -162,9 +163,10 @@ extern const char *get_locale(void);
 #define RPL_LOCALUSERS       265
 #define RPL_GLOBALUSERS      266
 
+#define RPL_WHOISSSL         275
+
 #define RPL_ACCEPTLIST	     281
 #define RPL_ENDOFACCEPT      282
-#define RPL_ISMESSAGING	     283
 
 /*	RPL_GLIST            280        Undernet extension */
 /*	RPL_ENDOFGLIST       281        Undernet extension */
@@ -189,10 +191,10 @@ extern const char *get_locale(void);
 /*      RPL_CHANINFO_KICK    295           aircd */
 /*	RPL_HELPIGN	     295	Numeric List: Dalnet */
 /*      RPL_CHANINFO_KICKS   296           aircd */
+
 /*      RPL_END_CHANINFO     299           aircd */
 
 /* numeric_replies */
-#define RPL_WHOISSSL         297        /* uses SSL */
 #define RPL_AWAY             301
 #define RPL_USERHOST         302
 #define RPL_ISON             303
@@ -203,7 +205,7 @@ extern const char *get_locale(void);
 /*	RPL_WHOISREGNICK     307 	Numeric List: Dalnet */
 /*	RPL_SUSERHOST	     307	austnet */
 /*      RPL_NOTIFYACTION     308         aircd */
-/*	RPL_WHOISADMIN	     308	Numeric List: Dalnet */
+#define RPL_WHOISADMIN	     308	/* Numeric List: Dalnet */
 /*	RPL_RULESSTART	     308	unreal */
 /*      RPL_NICKTRACE        309         aircd */
 /*	RPL_WHOISSADMIN	     309	Numeric List: Dalnet */
@@ -246,7 +248,7 @@ extern const char *get_locale(void);
 #define RPL_NOTOPIC          331
 #define RPL_TOPIC            332
 #define RPL_TOPICWHOTIME     333
-#define RPL_WHOHELP          334
+/*	RPL_COMMANDSYNTAX    334	   Dalnet */
 /*	RPL_LISTSYNTAX	     334	   unreal */
 /*      RPL_CHANPASSOK       338           IRCnet extension (?)*/
 #define	RPL_WHOISACTUALLY    338	/* dalnet */
@@ -305,6 +307,7 @@ extern const char *get_locale(void);
 #define RPL_USERS            393
 #define RPL_ENDOFUSERS       394
 #define RPL_NOUSERS          395
+#define RPL_HOSTHIDDEN       396
 
 /*
  * Errors are in the range from 400-599 currently and are grouped by what
@@ -343,16 +346,12 @@ extern const char *get_locale(void);
 #define ERR_NICKCOLLISION    436
 #define ERR_UNAVAILRESOURCE  437
 #define ERR_NICKTOOFAST	     438	/* We did it first Undernet! ;) db */
-#define ERR_SERVICESDOWN     440    /* "Borrowed" from Bahamut */
 
-/*	ERR_SERVICESDOWN     440	Dalnet,unreal */
+#define ERR_SERVICESDOWN     440
 
 #define ERR_USERNOTINCHANNEL 441
 #define ERR_NOTONCHANNEL     442
 #define ERR_USERONCHANNEL    443
-#define ERR_NOLOGIN          444
-#define ERR_SUMMONDISABLED   445
-#define ERR_USERSDISABLED    446
 
 #define ERR_NOTREGISTERED    451
 
@@ -403,13 +402,14 @@ extern const char *get_locale(void);
 /*      ERR_TSLESSCHAN       488           IRCnet extension (?) */
 /*	ERR_VOICENEEDED      489           Undernet extension */
 #define ERR_NOOPERHOST       491
-#define ERR_DENIEDFROMCHAN   494
 /*      ERR_NOSERVICEHOST    492 	   IRCnet extension */
 
 #define ERR_UMODEUNKNOWNFLAG 501
 #define ERR_USERSDONTMATCH   502
+
 #define ERR_GHOSTEDCLIENT    503
 /*	ERR_VWORLDWARN	     503	   austnet */
+
 #define ERR_USERNOTONSERV    504
 
 /* #define ERR_LAST_ERR_MSG 505 
@@ -431,8 +431,8 @@ extern const char *get_locale(void);
 /*	ERR_WHOTRUNC	     520	austnet */
 /*	ERR_LASTERROR        521	Undernet extension -Kev */
 #define	ERR_LISTSYNTAX       521
-#define	ERR_WHOSYNTAX	       522  /* dalnet */
-#define	ERR_WHOLIMEXCEED     523	/* dalnet */
+/*	ERR_WHOSYNTAX	     522        dalnet */
+/*	ERR_WHOLIMEXCEED     523	dalnet */
 
 #define ERR_HELPNOTFOUND     524
 
@@ -473,6 +473,22 @@ extern const char *get_locale(void);
 #define ERR_CHANOPEN         713
 #define ERR_KNOCKONCHAN      714
 #define ERR_KNOCKDISABLED    715
+
+#define ERR_TARGUMODEG       716
+#define RPL_TARGNOTIFY       717
+#define RPL_UMODEGMSG        718
+
+#define RPL_OMOTDSTART	     720
+#define RPL_OMOTD	     721
+#define RPL_ENDOFOMOTD	     722
+
+#define ERR_NOPRIVS	     723
+
+#define RPL_TESTMASK	     724
+#define RPL_TESTLINE	     725
+#define RPL_NOTESTLINE	     726
+#define RPL_ISCAPTURED	     727
+#define RPL_ISUNCAPTURED     728
 
 #define ERR_LAST_ERR_MSG     999
 
