@@ -55,7 +55,7 @@ fd_name(int fd)
 #if defined( HAVE_LIBCRYPTO ) || defined( HAVE_LIBZ )
 static unsigned char tmp_buf[BUFLEN];
 #endif
-#if defined( HAVE_LIBZ ) && defined( HAVE_LIBZ )
+#ifdef HAVE_LIBZ
 static unsigned char tmp2_buf[BUFLEN];
 #endif
 
@@ -168,9 +168,9 @@ process_recvq(struct ctrl_command *cmd)
 {
   int ret;
   unsigned char *buf;
-  int   blen;
+  unsigned int blen;
   unsigned char *data = cmd->data;
-  unsigned int   datalen = cmd->datalen;
+  unsigned int datalen = cmd->datalen;
 
   buf = data;
   blen = datalen;
@@ -200,11 +200,11 @@ process_recvq(struct ctrl_command *cmd)
     in_state.zip_state.stream.avail_out = BUFLEN;
 
     buf = tmp2_buf;
-    while(in_state.zip_state.stream.avail_in)
+    while (in_state.zip_state.stream.avail_in)
     {
       if ((ret = inflate(&in_state.zip_state.stream,
                          Z_NO_FLUSH)) != Z_OK)
-        send_error("Inflate failed: %d", ret);
+        send_error("Inflate failed: %d (%s)", ret, zError(ret));
 
       blen = BUFLEN - in_state.zip_state.stream.avail_out;
 
@@ -225,7 +225,8 @@ process_recvq(struct ctrl_command *cmd)
   send_data_blocking(LOCAL_W.fd, buf, blen);
 }
 
-void send_zipstats(struct ctrl_command *unused)
+void
+send_zipstats(struct ctrl_command *unused)
 {
 #ifdef HAVE_LIBZ
   int i = 0;
@@ -285,11 +286,13 @@ void send_zipstats(struct ctrl_command *unused)
  *     flush the control fd sendq, then (blocking) send an
  *     error message over the control fd.
  */
-void send_error(const char *message, ...)
+void
+send_error(const char *message, ...)
 {
   va_list args;
   static int sending_error = 0;
-  struct linger linger_opt = { 1, 30 }; /* wait 30 seconds */                     int len;
+  struct linger linger_opt = { 1, 30 }; /* wait 30 seconds */
+  int len;
 
   if (sending_error)
     exit(1); /* we did _try_ */
@@ -329,7 +332,8 @@ void send_error(const char *message, ...)
 /* read_ctrl
  *      called when a command is waiting on the control pipe
  */
-void read_ctrl(void)
+void
+read_ctrl(void)
 {
   int ret;
   unsigned char tmp[2];
@@ -414,7 +418,8 @@ void read_ctrl(void)
   cmd.command = 0;
 }
 
-void write_ctrl(void)
+void
+write_ctrl(void)
 {
   int ret;
 
@@ -439,7 +444,8 @@ void write_ctrl(void)
     ctrl_ofs += ret;
 }
 
-void read_data(void)
+void
+read_data(void)
 {
   int ret, ret2;
   unsigned char *buf = out_state.buf;
@@ -473,8 +479,8 @@ void read_data(void)
       out_state.zip_state.stream.avail_out = BUFLEN;
       if(!(ret2 = deflate(&out_state.zip_state.stream,
                           Z_PARTIAL_FLUSH)) == Z_OK)
-        send_error("error compressing outgoing data - deflate returned %d",
-                   ret2);
+        send_error("error compressing outgoing data - deflate returned %d (%s)",
+                   ret2, zError(ret2));
 
       if (!out_state.zip_state.stream.avail_out)
         send_error("error compressing outgoing data - avail_out == 0");
@@ -519,7 +525,8 @@ void read_data(void)
 
 }
 
-void write_net(void)
+void
+write_net(void)
 {
   int ret;
 
@@ -545,7 +552,8 @@ void write_net(void)
     out_state.ofs += ret;
 }
 
-void read_net(void)
+void
+read_net(void)
 {
   int ret;
   int ret2;
@@ -594,7 +602,7 @@ void read_net(void)
       {
         if ((ret2 = inflate(&in_state.zip_state.stream,
                             Z_NO_FLUSH)) != Z_OK)
-          send_error("inflate failed: %d", ret2);
+          send_error("inflate failed: %d (%s)", ret2, zError(ret2));
 
         blen = BUFLEN - in_state.zip_state.stream.avail_out;
 
@@ -636,7 +644,8 @@ void read_net(void)
   }
 }
 
-void write_data(void)
+void
+write_data(void)
 {
   int ret;
 
@@ -662,7 +671,8 @@ void write_data(void)
     in_state.ofs += ret;
 }
 
-int check_error(int ret, int io, int fd)
+int
+check_error(int ret, int io, int fd)
 {
   if (ret > 0) /* no error */
     return ret;

@@ -15,8 +15,8 @@ MV              = @MV@
 RM              = @RM@
 SED		= @SED@
 prefix          = @prefix@
-exec_prefix     = @exec_prefix@
-bindir          = @bindir@
+exec_prefix     = $(DESTDIR)@exec_prefix@
+bindir          = $(DESTDIR)@bindir@
 
 CLOBBER=@CLOBBER@
 
@@ -67,7 +67,7 @@ install: build
 	@${MV} Makefile.depend Makefile
 
 clean:
-	${RM} -f *.o *~ *core servlink
+	${RM} -f $(OBJECTS) servlink
 
 distclean: clean
 	${RM} -f Makefile .depend

@@ -61,7 +61,8 @@ struct command_def command_table[] =
     {                        0,                        0,                 0 }
   };
 
-void cmd_set_zip_out_level(struct ctrl_command *cmd)
+void
+cmd_set_zip_out_level(struct ctrl_command *cmd)
 {
 #ifdef HAVE_LIBZ
   out_state.zip_state.level = *cmd->data;
@@ -74,7 +75,8 @@ void cmd_set_zip_out_level(struct ctrl_command *cmd)
 #endif
 }
 
-void cmd_start_zip_out(struct ctrl_command *cmd)
+void
+cmd_start_zip_out(struct ctrl_command *cmd)
 {
 #ifdef HAVE_LIBZ
   int ret;
@@ -93,7 +95,7 @@ void cmd_start_zip_out(struct ctrl_command *cmd)
 
   if ((ret = deflateInit(&out_state.zip_state.stream,
                          out_state.zip_state.level)) != Z_OK)
-    send_error("deflateInit failed: %d", ret);
+    send_error("deflateInit failed: %d (%s)", ret, zError(ret));
 
   out_state.zip = 1;
 #else
@@ -101,7 +103,8 @@ void cmd_start_zip_out(struct ctrl_command *cmd)
 #endif
 }
 
-void cmd_start_zip_in(struct ctrl_command *cmd)
+void
+cmd_start_zip_in(struct ctrl_command *cmd)
 {
 #ifdef HAVE_LIBZ
   int ret;
@@ -115,14 +118,15 @@ void cmd_start_zip_in(struct ctrl_command *cmd)
   in_state.zip_state.stream.zfree = (free_func)0;
   in_state.zip_state.stream.data_type = Z_ASCII;
   if ((ret = inflateInit(&in_state.zip_state.stream)) != Z_OK)
-    send_error("inflateInit failed: %d", ret);
+    send_error("inflateInit failed: %d (%s)", ret, zError(ret));
   in_state.zip = 1;
 #else
   send_error("can't start decompression - no libz support!");
 #endif
 }
 
-void cmd_set_crypt_in_cipher(struct ctrl_command *cmd)
+void
+cmd_set_crypt_in_cipher(struct ctrl_command *cmd)
 {
 #ifdef HAVE_LIBCRYPTO
   unsigned int cipher = *cmd->data;
@@ -181,7 +185,8 @@ void cmd_set_crypt_in_cipher(struct ctrl_command *cmd)
 #endif
 }
 
-void cmd_set_crypt_in_key(struct ctrl_command *cmd)
+void
+cmd_set_crypt_in_key(struct ctrl_command *cmd)
 {
 #ifdef HAVE_LIBCRYPTO
   if (in_state.crypt_state.key)
@@ -196,7 +201,8 @@ void cmd_set_crypt_in_key(struct ctrl_command *cmd)
 #endif
 }
 
-void cmd_start_crypt_in(struct ctrl_command *cmd)
+void
+cmd_start_crypt_in(struct ctrl_command *cmd)
 {
 #ifdef HAVE_LIBCRYPTO                                                           
   if (in_state.crypt)
@@ -246,7 +252,8 @@ void cmd_start_crypt_in(struct ctrl_command *cmd)
 #endif
 }
 
-void cmd_set_crypt_out_cipher(struct ctrl_command *cmd)
+void
+cmd_set_crypt_out_cipher(struct ctrl_command *cmd)
 {
 #ifdef HAVE_LIBCRYPTO
   unsigned int cipher = *cmd->data;
@@ -304,7 +311,8 @@ void cmd_set_crypt_out_cipher(struct ctrl_command *cmd)
 #endif
 }
 
-void cmd_set_crypt_out_key(struct ctrl_command *cmd)
+void
+cmd_set_crypt_out_key(struct ctrl_command *cmd)
 {
 #ifdef HAVE_LIBCRYPTO
   if (out_state.crypt_state.key)
@@ -319,7 +327,8 @@ void cmd_set_crypt_out_key(struct ctrl_command *cmd)
 #endif
 }
 
-void cmd_start_crypt_out(struct ctrl_command *cmd)
+void
+cmd_start_crypt_out(struct ctrl_command *cmd)
 {
 #ifdef HAVE_LIBCRYPTO
   if (out_state.crypt)
@@ -368,7 +377,8 @@ void cmd_start_crypt_out(struct ctrl_command *cmd)
 #endif
 }
 
-void cmd_init(struct ctrl_command *cmd)
+void
+cmd_init(struct ctrl_command *cmd)
 {
   if (in_state.active || out_state.active)
     send_error("CMD_INIT sent twice!");
