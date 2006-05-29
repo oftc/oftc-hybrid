@@ -23,7 +23,6 @@
  */
 
 #include "stdinc.h"
-#include "s_user.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -34,6 +33,7 @@
 #include "motd.h"
 #include "numeric.h"
 #include "s_conf.h"
+#include "s_user.h"
 #include "s_serv.h"
 #include "s_stats.h"
 #include "send.h"
@@ -275,7 +275,6 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 {
   const struct AccessItem *aconf = NULL;
   char ipaddr[HOSTIPLEN];
-  dlink_node *ptr = NULL;
   dlink_node *m = NULL;
 
   assert(source_p != NULL);
@@ -313,8 +312,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
             sizeof(source_p->host));
   }
 
-  ptr   = source_p->localClient->confs.head;
-  aconf = map_to_conf(ptr->data);
+  aconf = map_to_conf(source_p->localClient->iline);
 
   if (!IsGotId(source_p))
   {
@@ -1270,23 +1268,31 @@ check_regexp_xline(struct Client *source_p)
 /* oper_up()
  *
  * inputs	- pointer to given client to oper, oper thats being opered
+ * 		- pointer to oper conf found
  * output	- NONE
  * side effects	- Blindly opers up given source_p, using aconf info
  *                all checks on passwords have already been done.
  *                This could also be used by rsa oper routines. 
  */
 void
-oper_up(struct Client *source_p, const char *name)
+oper_up(struct Client *source_p, struct ConfItem *conf, const char *name)
 {
   unsigned int old = source_p->umodes;
   const char *operprivs = "";
   const struct AccessItem *oconf = NULL;
+  struct AccessItem *aconf = NULL;
 
-  assert(source_p->localClient->confs.head);
-  oconf = map_to_conf((source_p->localClient->confs.head)->data);
+  assert(source_p->localClient->iline);
+  aconf = map_to_conf(source_p->localClient->iline);
+  oconf = map_to_conf(conf);
 
   ++Count.oper;
   SetOper(source_p);
+
+  /* XXX Is this necessary? -db */
+  aconf->port = oconf->port;
+  aconf->modes = oconf->modes;
+  /* XXX */
 
   if (oconf->modes)
     source_p->umodes |= oconf->modes;
@@ -1318,7 +1324,7 @@ oper_up(struct Client *source_p, const char *name)
 }
 
 /*
- * Quick and dirty UID code for new proposed SID on EFnet
+ * UID code for TS6 SID code on EFnet
  *
  */
 

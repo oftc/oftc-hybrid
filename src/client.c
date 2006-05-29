@@ -33,6 +33,7 @@
 #include "packet.h"
 #include "s_auth.h"
 #include "s_conf.h"
+#include "parse_aline.h"
 #include "s_serv.h"
 #include "send.h"
 #include "whowas.h"
@@ -1086,9 +1087,9 @@ close_connection(struct Client *client_p)
      * If the connection has been up for a long amount of time, schedule
      * a 'quick' reconnect, else reset the next-connect cycle.
      */
-    if ((conf = find_conf_exact(SERVER_TYPE,
-                                  client_p->name, client_p->username,
-                                  client_p->host)))
+    if ((conf = find_exact_name_conf(SERVER_TYPE,
+				     client_p->name, client_p->username,
+				     client_p->host)))
     {
       /*
        * Reschedule a faster reconnect, if this was a automatically

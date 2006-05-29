@@ -23,38 +23,27 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "handlers.h"
 #include "client.h"
 #include "common.h"
-#include "fdlist.h"
-#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "fdlist.h"
-#include "s_bsd.h"
 #include "s_conf.h"
-#include "s_log.h"
 #include "s_user.h"
 #include "send.h"
-#include "list.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
 
-static struct ConfItem *find_password_conf(const char *name,
-					      struct Client *source_p);
-static int match_oper_password(const char *password, struct AccessItem *aconf);
-static void failed_oper_notice(struct Client *source_p, const char *name,
-			       const char *reason);
-static void m_oper(struct Client*, struct Client*, int, char**);
-static void mo_oper(struct Client*, struct Client*, int, char**);
-
+static struct ConfItem *find_password_conf(const char *, struct Client *);
+static void failed_oper_notice(struct Client *, const char *, const char *);
+static void m_oper(struct Client *, struct Client *, int, char *[]);
+static void mo_oper(struct Client *, struct Client *, int, char *[]);
 
 struct Message oper_msgtab = {
   "OPER", 0, 0, 3, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_oper, m_ignore, mo_oper, m_ignore} 
+  { m_unregistered, m_oper, m_ignore, m_ignore, mo_oper, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -70,7 +59,7 @@ _moddeinit(void)
   mod_del_cmd(&oper_msgtab);
 }
 
-const char *_version = "$Revision: 475 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -99,41 +88,32 @@ m_oper(struct Client *client_p, struct Client *source_p,
   if (!IsFloodDone(source_p))
     flood_endgrace(source_p);
 
-  if ((conf = find_password_conf(name,source_p)) == NULL)
+  if ((conf = find_password_conf(name, source_p)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
     conf = find_exact_name_conf(OPER_TYPE, name, NULL, NULL);
     failed_oper_notice(source_p, name, (conf != NULL) ?
                        "host mismatch" : "no oper {} block");
-    log_failed_oper(source_p, name);
+    log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", name);
     return;
   }
 
   aconf = (struct AccessItem *)map_to_conf(conf);
 
-  if (match_oper_password(password, aconf))
+  if (match_conf_password(password, aconf))
   {
-    if (attach_conf(source_p, conf) != 0)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Can't attach conf!",
-                 me.name, source_p->name);
-      failed_oper_notice(source_p, name, "can't attach conf!");
-      log_failed_oper(source_p, name);
-      return;
-    }
+    oper_up(source_p, conf, name);
 
-    oper_up(source_p, name);
-      
     ilog(L_TRACE, "OPER %s by %s!%s@%s",
-	 name, source_p->name, source_p->username, source_p->host);
-    log_oper(source_p, name);
+         name, source_p->name, source_p->username, source_p->host);
+    log_oper_action(LOG_OPER_TYPE, source_p, "%s\n", name);
   }
   else
   {
     sendto_one(source_p, form_str(ERR_PASSWDMISMATCH), me.name, parv[0]);
     failed_oper_notice(source_p, name, "password mismatch");
+    log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", name);
   }
-  log_failed_oper(source_p, name);
 }
 
 /*
@@ -146,7 +126,7 @@ static void
 mo_oper(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, parv[0]);
+  sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
   send_message_file(source_p, &ConfigFileEntry.opermotd);
 }
 
@@ -160,7 +140,7 @@ mo_oper(struct Client *client_p, struct Client *source_p,
 static struct ConfItem *
 find_password_conf(const char *name, struct Client *source_p)
 {
-  struct ConfItem *conf;
+  struct ConfItem *conf = NULL;
 
   if ((conf = find_exact_name_conf(OPER_TYPE,
 				   name, source_p->username, source_p->host
@@ -168,56 +148,15 @@ find_password_conf(const char *name, struct Client *source_p)
   {
     return(conf);
   }
-  else
+
   if ((conf = find_exact_name_conf(OPER_TYPE,
 				   name, source_p->username,
-				   source_p->localClient->sockhost)) != NULL)
+				   source_p->sockhost)) != NULL)
   {
     return(conf);
   }
 
   return(NULL);
-}
-
-/* match_oper_password()
- *
- * inputs       - pointer to given password
- *              - pointer to Conf 
- * output       - YES or NO if match
- * side effects - none
- */
-static int
-match_oper_password(const char *password, struct AccessItem *aconf)
-{
-  const char *encr = NULL;
-
-  if (!IsConfOperator(aconf))
-    return(NO);
-
-  if (ConfigFileEntry.crypt_oper_password)
-  {
-    /* use first two chars of the password they send in as salt */
-    /* If the password in the conf is MD5, and ircd is linked   
-     * to scrypt on FreeBSD, or the standard crypt library on
-     * glibc Linux, then this code will work fine on generating
-     * the proper encrypted hash for comparison.
-     */
-    /* passwd may be NULL pointer. Head it off at the pass... */
-    if (aconf->passwd == NULL)
-      return(NO);
-
-    if (password && *aconf->passwd)
-      encr = crypt(password, aconf->passwd);
-    else
-      encr = "";
-  }
-  else
-    encr = password;
-
-  if (strcmp(encr, aconf->passwd) == 0)
-    return(YES);
-  else
-    return(NO);
 }
 
 /* failed_oper_notice()

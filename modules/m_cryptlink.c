@@ -95,7 +95,7 @@ _moddeinit(void)
   mod_del_cmd(&cryptlink_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 
@@ -224,8 +224,7 @@ cryptlink_auth(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  conf = find_conf_name(&client_p->localClient->confs,
-                         client_p->name, SERVER_TYPE);
+  conf = client_p->localClient->iline;
 
   if (conf == NULL)
   {
@@ -384,8 +383,8 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
       }
   }
 
-  conf = find_conf_name(&client_p->localClient->confs,
-			name, SERVER_TYPE);
+  conf = client_p->localClient->iline;
+
   if (conf == NULL)
   {
     cryptlink_error(client_p, "AUTH",

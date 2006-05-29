@@ -52,6 +52,7 @@ struct Server
   dlink_list users;       /* Users on this server              */
   int dep_servers;        /* Total number of dependent servers on all levels */
   int dep_users;          /* Total number of dependent users on all levels */
+  dlink_list leafs_hubs;  /* leafs and hubs masks for server */
 };
 
 struct SlinkRpl
@@ -198,9 +199,8 @@ struct LocalUser
     uint64_t bytes;             /* Statistics: total bytes sent/received */
   } recv, send;
 
-  struct Listener *listener;   /* listener accepted from */
-  dlink_list        confs;      /* Configuration record associated */
-
+  struct Listener *listener;    /* listener accepted from */
+  struct ConfItem *iline;	/* Client's assigned iline */
   struct irc_ssaddr ip;
   unsigned short    port;       /* and the remote port# too :-) */
   int 		    aftype;	/* Makes life easier for DNS res in IPV6 */

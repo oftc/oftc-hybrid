@@ -45,7 +45,7 @@ extern void send_umode(struct Client *, struct Client *,
 extern void send_umode_out(struct Client *, struct Client *, unsigned int);
 extern void show_lusers(struct Client *source_p);
 extern void show_isupport(struct Client *);
-extern void oper_up(struct Client *source_p, const char *);
+extern void oper_up(struct Client *, struct ConfItem *, const char *);
 
 extern int register_local_user(struct Client *, struct Client *,
                                const char *, const char *);

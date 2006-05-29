@@ -50,6 +50,8 @@ extern time_t valid_tkline(char *, int);
 extern int parse_aline(const char *, struct Client *, int, char **,
 		       int, char **, char **, time_t *, char **, char **);
 extern int valid_comment(struct Client *, char *, int);
+extern struct AccessItem *find_kill(struct Client *);
+extern struct AccessItem *find_gline(struct Client *);
 extern struct AccessItem *find_regexp_kline(const char *[]);
 
 extern void cleanup_tklines(void *);
