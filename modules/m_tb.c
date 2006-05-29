@@ -85,13 +85,12 @@ const char *_version = "$Revision$";
 #define tb_topicts_str  parv[2]
 
 static void
-ms_tb(struct Client *client_p, struct Client *source_p,
-          int parc, char *parv[])
+ms_tb(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
   struct Channel *chptr;
   time_t tb_topicts = atol(tb_topicts_str);
-  char *tb_whoset=NULL;
-  char *tb_topic=NULL;
+  char *tb_whoset = NULL;
+  char *tb_topic = NULL;
 
   if ((chptr = hash_find_channel(tb_channel)) == NULL)
     return;
@@ -109,16 +108,11 @@ ms_tb(struct Client *client_p, struct Client *source_p,
 
   if (chptr->topic != NULL)
   {
-    if (tb_topicts < chptr->topic_time)
-    {
-      /* If the topics are the same (due to lag) ignore it */
-      if (strcmp(chptr->topic, tb_topic) == 0)
-        return;
-    }
-    else
-      return;
+    if (strcmp(chptr->topic, tb_topic) != 0)
+      set_topic(source_p, chptr, tb_topicts, tb_whoset, tb_topic);
   }
-  set_topic(source_p, chptr, tb_topicts, tb_whoset, tb_topic);
+  else
+    set_topic(source_p, chptr, tb_topicts, tb_whoset, tb_topic);
 }
 
 /*
