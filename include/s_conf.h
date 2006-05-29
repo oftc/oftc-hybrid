@@ -313,6 +313,7 @@ struct conf_item_table_type
   size_t size;
   int status;
   dlink_list *list;
+  void (*freer)(struct ConfItem *, dlink_list *);
 };
 
 #if 0
