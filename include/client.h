@@ -200,7 +200,7 @@ struct LocalUser
   } recv, send;
 
   struct Listener *listener;    /* listener accepted from */
-  struct AccessItem *iline;	/* AccessItem client was accepted on */
+  struct ConfItem  *client_or_oper_conf;   /* Pointer to client or oper conf */
   struct ClassItem *class;	/* Client's class */
   struct irc_ssaddr ip;
   unsigned short    port;       /* and the remote port# too :-) */

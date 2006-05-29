@@ -174,7 +174,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
         NI_NUMERICHOST);
 
   name = get_client_name(target_p, HIDE_IP);
-  class_name = get_client_class(target_p);
+  class_name = get_client_className(target_p);
 
   set_time();
 

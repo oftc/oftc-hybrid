@@ -61,6 +61,54 @@ dlink_list nresv_items   = { NULL, NULL, 0 };
 dlink_list class_items   = { NULL, NULL, 0 };
 dlink_list gdeny_items	 = { NULL, NULL, 0 };
 
+struct conf_item_table_type conf_item_table[] = 
+  {
+    /* CONF_TYPE */
+    { 0, 0 , 0},
+    /* CLASS_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct ClassItem), 0, &class_items },
+    /* OPER_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_OPERATOR,
+      &oconf_items },
+    /* CLIENT_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_CLIENT, NULL },
+    /* SERVER_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_SERVER, 
+      &server_items },
+    /* HUB_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0, &hub_items },
+    /* LEAF_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0, &leaf_items },
+    /* KLINE_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_KLINE, NULL },
+    /* DLINE_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_DLINE, NULL },
+    /* EXEMPTDLINE_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_EXEMPTDLINE,
+      NULL },
+    /* CLUSTER_TYPE */
+    { sizeof(struct ConfItem) , 0, &cluster_items },
+    /* RKLINE_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_KLINE,
+      &rkconf_items },
+    /* RXLINE_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct MatchItem), CONF_KLINE, 
+      &rxconf_items },
+    /* XLINE_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct AccessItem), 0, &xconf_items },
+    /* ULINE_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct AccessItem), 0, &uconf_items },
+    /* GLINE_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct AccessItem), CONF_GLINE, NULL },
+    /* CRESV_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0, NULL },
+    /* NRESV_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct MatchItem), 0, &nresv_items },
+    /* GDENY_TYPE */
+    { sizeof(struct ConfItem) + sizeof(struct AccessItem), 0, &gdeny_items },
+    { 0, 0, 0}
+  };
+
 
 extern unsigned int lineno;
 extern char linebuf[];
@@ -84,7 +132,6 @@ static struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
 static void parse_conf_file(int, int);
 static dlink_list *map_to_list(ConfType);
 static int check_class_limits(struct Client *, int ,struct ClassItem *);
-static int attach_iline(struct Client *client_p, struct AccessItem *aconf);
 static int attach_class(struct Client *client_p, struct ClassItem *aclass);
 
 /*
@@ -198,145 +245,27 @@ conf_dns_lookup(struct AccessItem *aconf)
 struct ConfItem *
 make_conf_item(ConfType type)
 {
+  size_t size;
   struct ConfItem *conf = NULL;
   struct AccessItem *aconf = NULL;
-  struct ClassItem *aclass = NULL;
-  int status = 0;
+  dlink_list *list;
+  int status;
 
-  switch (type)
-  {
-  case DLINE_TYPE:
-  case EXEMPTDLINE_TYPE:
-  case GLINE_TYPE:
-  case KLINE_TYPE:
-  case CLIENT_TYPE:
-  case OPER_TYPE:
-  case SERVER_TYPE:
-    conf = MyMalloc(sizeof(struct ConfItem) +
-                    sizeof(struct AccessItem));
-    aconf = map_to_conf(conf);
-    aconf->aftype = AF_INET;
-
-    /* Yes, sigh. switch on type again */
-    switch (type)
-    {
-    case EXEMPTDLINE_TYPE:
-      status = CONF_EXEMPTDLINE;
-      break;
-
-    case DLINE_TYPE:
-      status = CONF_DLINE;
-      break;
-
-    case KLINE_TYPE:
-      status = CONF_KLINE;
-      break;
-
-    case GLINE_TYPE:
-      status = CONF_GLINE;
-      break;
-
-    case CLIENT_TYPE:
-      status = CONF_CLIENT;
-      break;
-
-    case OPER_TYPE:
-      status = CONF_OPERATOR;
-      dlinkAdd(conf, &conf->node, &oconf_items);
-      break;
-
-    case SERVER_TYPE:
-      status = CONF_SERVER;
-      dlinkAdd(conf, &conf->node, &server_items);
-      break;
-
-    default:
-      break;
-    }
-    aconf->status = status;
-    break;
-
-  case LEAF_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct MatchItem));
-    dlinkAdd(conf, &conf->node, &leaf_items);
-    break;
-
-  case HUB_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct MatchItem));
-    dlinkAdd(conf, &conf->node, &hub_items);
-    break;
-
-  case ULINE_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct MatchItem));
-    dlinkAdd(conf, &conf->node, &uconf_items);
-    break;
-
-  case GDENY_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct AccessItem));
-    dlinkAdd(conf, &conf->node, &gdeny_items);
-    break;
-
-  case XLINE_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct MatchItem));
-    dlinkAdd(conf, &conf->node, &xconf_items);
-    break;
-
-  case RXLINE_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct MatchItem));
-    dlinkAdd(conf, &conf->node, &rxconf_items);
-    break;
-
-  case RKLINE_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct AccessItem));
-    aconf = map_to_conf(conf);
-    aconf->status = CONF_KLINE;
-    dlinkAdd(conf, &conf->node, &rkconf_items);
-    break;
-
-  case CLUSTER_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem));
-    dlinkAdd(conf, &conf->node, &cluster_items);
-    break;
-
-  case CRESV_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct ResvChannel));
-    break;
-
-  case NRESV_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct MatchItem));
-    dlinkAdd(conf, &conf->node, &nresv_items);
-    break;
-
-  case CLASS_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct ClassItem));
-    dlinkAdd(conf, &conf->node, &class_items);
-    aclass = (struct ClassItem *)map_to_conf(conf);
-    ConFreq(aclass)  = DEFAULT_CONNECTFREQUENCY;
-    PingFreq(aclass) = DEFAULT_PINGFREQUENCY;
-    MaxTotal(aclass) = MAXIMUM_LINKS_DEFAULT;
-    MaxSendq(aclass) = DEFAULT_SENDQ;
-    CurrUserCount(aclass) = 0;
-    break;
-
-  default:
-    conf = NULL;
-    break;
-  }
-
-  /* XXX Yes, this will core if default is hit. I want it to for now - db */
+  size = conf_item_table[type].size;
+  conf = MyMalloc(size);
   conf->type = type;
+  list = conf_item_table[type].list;
+  status = conf_item_table[type].status;
+  if (status != 0)
+  {
+    aconf = map_to_conf(conf);
+    aconf->status = status;
+    aconf->aftype = AF_INET;
+  }
+  if (list != NULL)
+    dlinkAdd(conf, &conf->node, list);
 
-  return(conf);
+  return conf;
 }
 
 void
@@ -960,7 +889,8 @@ verify_access(struct Client *client_p, const char *username)
 
       if (check_class_limits(client_p, IsConfExemptLimits(aconf), aclass))
       {
-	attach_iline(client_p, aconf);
+	aconf->clients++;
+	client_p->localClient->client_or_oper_conf = conf;
 	attach_class(client_p, aclass);
 	return(0);
       }
@@ -1347,32 +1277,6 @@ attach_leaf_hub(struct Client *client_p, struct ConfItem *conf)
 }
 
 /* 
- * attach_iline
- *
- * inputs	- pointer to client to attach AccessItem to
- * 		- pointer to aconf
- * output	- 0 if successful, -1 if unsuccesful
- * side effects	- 
- */
-static int
-attach_iline(struct Client *client_p, struct AccessItem *aconf)
-{
-  /* attach_iline() XXX */
-  if (client_p->localClient->iline == NULL)
-  {
-    aconf->clients++;
-    client_p->localClient->iline = aconf;
-    return 0;
-  }
-  else 
-  {
-    ilog(L_ERROR, "%s: attach_iline already attached",
-	 get_client_name(client_p, SHOW_IP));
-    return -1;
-  }
-}
-
-/* 
  * attach_class
  *
  * inputs	- pointer to client to attach ClassItem to
@@ -1461,11 +1365,6 @@ attach_connect_block(struct Client *client_p, const char *name,
 
     client_p->serv->sconf = conf;
     aconf->clients++;
-    /* XXX */
-#if 0
-    aclass = map_to_conf(aconf->class_ptr);
-    attach_class(client_p, aclass);
-#endif
     return 1;
   }
 
@@ -2107,24 +2006,21 @@ char *
 get_oper_name(const struct Client *client_p)
 {
   struct ConfItem *conf;
-  struct AccessItem *aconf;
 
   /* +5 for !,@,{,} and null */
   static char buffer[NICKLEN+USERLEN+HOSTLEN+HOSTLEN+5];
 
   if (MyConnect(client_p))
   {
-    aconf = client_p->localClient->iline;
-    conf = unmap_conf_item(aconf);
+    conf = client_p->localClient->client_or_oper_conf;
 
     ircsprintf(buffer, "%s!%s@%s{%s}", client_p->name,
 	       client_p->username, client_p->host,
-	       conf->name);
-    return buffer;
+	       (conf!=NULL)?conf->name:client_p->name);
   }
-
-  ircsprintf(buffer, "%s!%s@%s{%s}", client_p->name,
-	     client_p->username, client_p->host, client_p->servptr->name);
+  else
+    ircsprintf(buffer, "%s!%s@%s{%s}", client_p->name,
+	       client_p->username, client_p->host, client_p->servptr->name);
   return buffer;
 }
 
@@ -2492,23 +2388,22 @@ get_conf_name(ConfType type)
 }
 
 
-/* get_client_class()
+/* get_client_className()
  *
  * inputs	- pointer to client struct
  * output	- pointer to name of class
  * side effects - NONE
  */
 const char *
-get_client_class(struct Client *target_p)
+get_client_className(struct Client *target_p)
 {
-  struct AccessItem *aconf;
+  struct ConfItem *conf;
 
   if (target_p != NULL && !IsMe(target_p) &&
-      target_p->localClient->iline != NULL)
+      target_p->localClient->class != NULL)
   {
-    aconf = target_p->localClient->iline;
-    if (aconf->class_ptr != NULL)
-      return aconf->class_ptr->name;
+    conf = unmap_conf_item(target_p->localClient->class);
+    return conf->name;
   }
 
   return "default";
@@ -2611,6 +2506,7 @@ init_class(void)
   PingFreq(aclass) = DEFAULT_PINGFREQUENCY;
   MaxTotal(aclass) = MAXIMUM_LINKS_DEFAULT;
   MaxSendq(aclass) = DEFAULT_SENDQ;
+  CurrUserCount(aclass) = 0;
 
   client_check_cb = register_callback("check_client", check_client);
 }

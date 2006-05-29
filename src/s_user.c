@@ -273,6 +273,7 @@ void
 register_local_user(struct Client *client_p, struct Client *source_p, 
                     const char *nick, const char *username)
 {
+  struct ConfItem *conf = NULL;
   const struct AccessItem *aconf = NULL;
   char ipaddr[HOSTIPLEN];
   dlink_node *m = NULL;
@@ -312,7 +313,8 @@ register_local_user(struct Client *client_p, struct Client *source_p,
             sizeof(source_p->host));
   }
 
-  aconf = source_p->localClient->iline;
+  conf = source_p->localClient->client_or_oper_conf;
+  aconf = map_to_conf(conf);
 
   if (!IsGotId(source_p))
   {
@@ -425,7 +427,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
                        "Client connecting: %s (%s@%s) [%s] {%s} [%s]",
                        nick, source_p->username, source_p->host,
                        ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
-                       "255.255.255.255" : ipaddr, get_client_class(source_p),
+                       "255.255.255.255" : ipaddr, get_client_className(source_p),
                        source_p->info);
 
   /* If they have died in send_* don't do anything. */
@@ -1270,32 +1272,23 @@ check_regexp_xline(struct Client *source_p)
  * inputs	- pointer to given client to oper, oper thats being opered
  * 		- pointer to oper conf found
  * output	- NONE
- * side effects	- Blindly opers up given source_p, using aconf info
+ * side effects	- Blindly opers up given source_p, using conf info
  *                all checks on passwords have already been done.
- *                This could also be used by rsa oper routines. 
+ *                This is also used by rsa oper routines. 
  */
 void
 oper_up(struct Client *source_p, struct ConfItem *conf, const char *name)
 {
   unsigned int old = source_p->umodes;
   const char *operprivs = "";
-  const struct AccessItem *oconf = NULL;
-  struct AccessItem *aconf = NULL;
+  struct AccessItem *aconf;
 
-  assert(source_p->localClient->iline);
-  aconf = source_p->localClient->iline;
-  oconf = map_to_conf(conf);
-
+  aconf = map_to_conf(conf);
   ++Count.oper;
   SetOper(source_p);
 
-  /* XXX Is this necessary? -db */
-  aconf->port = oconf->port;
-  aconf->modes = oconf->modes;
-  /* XXX */
-
-  if (oconf->modes)
-    source_p->umodes |= oconf->modes;
+  if (aconf->modes)
+    source_p->umodes |= aconf->modes;
   else if (ConfigFileEntry.oper_umodes)
     source_p->umodes |= ConfigFileEntry.oper_umodes;
   else
@@ -1305,9 +1298,10 @@ oper_up(struct Client *source_p, struct ConfItem *conf, const char *name)
   assert(dlinkFind(&oper_list, source_p) == NULL);
   dlinkAdd(source_p, make_dlink_node(), &oper_list);
 
-  operprivs = oper_privs_as_string(oconf->port);
+  operprivs = oper_privs_as_string(aconf->port);
+  source_p->localClient->client_or_oper_conf = conf;
 
-  SetOFlag(source_p, oconf->port);
+  SetOFlag(source_p, aconf->port);
 
   if (IsOperAdmin(source_p) || IsOperHiddenAdmin(source_p))
     source_p->umodes |= UMODE_ADMIN;
@@ -1338,7 +1332,8 @@ static void add_one_to_uid(int i);
  * output	- NONE
  * side effects	- new_uid is filled in with server id portion (sid)
  *		  (first 3 bytes) or defaulted to 'A'.
- *	          Rest is filled in with 'A'
+ *	          Rest is filled in with 'A' except for the last byte 
+ *		  which is filled in with '@' 
  */
 void
 init_uid(void)
