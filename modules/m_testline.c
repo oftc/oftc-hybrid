@@ -137,7 +137,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 			    );
     if (aconf != NULL)
     {
-      conf = aconf->conf;
+      conf = aconf->conf_ptr;
 
       if (aconf->status & CONF_EXEMPTDLINE)
       {
@@ -189,7 +189,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                  
   if (aconf != NULL)
   {
-    conf = aconf->conf;
+    conf = aconf->conf_ptr;
 
     snprintf(userhost, sizeof(userhost), "%s@%s", aconf->user, aconf->host);
 

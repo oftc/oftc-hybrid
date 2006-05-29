@@ -134,14 +134,12 @@ clear_conf_resv(void)
 int
 delete_channel_resv(struct ResvChannel *resv_p)
 {
-  struct ConfItem *conf;
   assert(resv_p != NULL);
 
   hash_del_resv(resv_p);
   dlinkDelete(&resv_p->node, &resv_channel_list);
   MyFree(resv_p->reason);
-  conf = resv_p->conf;
-  delete_conf_item(conf);
+  delete_conf_item(resv_p->conf_ptr);
 
   return 1;
 }

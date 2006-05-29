@@ -1891,7 +1891,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   if(aconf == NULL)
     return (0);
 
-  conf = aconf->conf;
+  conf = aconf->conf_ptr;
 
   /* log */
   irc_getnameinfo((struct sockaddr*)&aconf->ipnum, aconf->ipnum.ss_len,

@@ -395,7 +395,7 @@ check_conf_klines(void)
       if (aconf->status & CONF_EXEMPTDLINE)
 	continue;
 
-      conf = aconf->conf;
+      conf = aconf->conf_ptr;
       ban_them(client_p, conf);
       continue; /* and go examine next fd/client_p */
     }
@@ -411,7 +411,7 @@ check_conf_klines(void)
         continue;
       }
 
-      conf = aconf->conf;
+      conf = aconf->conf_ptr;
       ban_them(client_p, conf);
       /* and go examine next fd/client_p */    
       continue;
@@ -429,7 +429,7 @@ check_conf_klines(void)
         continue;
       }
 
-      conf = aconf->conf;
+      conf = aconf->conf_ptr;
       ban_them(client_p, conf);
       continue; 
     }

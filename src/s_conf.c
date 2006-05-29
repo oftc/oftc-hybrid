@@ -205,7 +205,7 @@ conf_dns_callback(void *vptr, struct DNSReply *reply)
   {
     ilog(L_NOTICE, "Host not found: %s, ignoring connect{} block",
          aconf->host);
-    conf = aconf->conf;
+    conf = aconf->conf_ptr;
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Ignoring connect{} block for %s - host not found",
 			 conf->name);
@@ -253,7 +253,7 @@ make_conf_item(ConfType type)
   status = conf_item_table[type].status;
   /* XXX  conf is in the same place in each subtype */
   aconf = &conf->conf.AccessItem;
-  aconf->conf = conf;
+  aconf->conf_ptr = conf;
   /* XXX */
   if (status != 0)
   {
@@ -771,7 +771,7 @@ verify_access(struct Client *client_p, const char *username, struct AccessItem *
   {
     if (IsConfClient(aconf) && !rkconf)
     {
-      conf = aconf->conf;
+      conf = aconf->conf_ptr;
 
       if (IsConfRedir(aconf))
       {
@@ -1134,7 +1134,7 @@ detach_conf(struct Client *client_p, ConfType type)
   if (CurrUserCount(aclass) > 0)
     aclass->curr_user_count--;
   if (MaxTotal(aclass) < 0 && CurrUserCount(aclass) <= 0)
-    delete_conf_item(aclass->conf);
+    delete_conf_item(aclass->conf_ptr);
    
   /* More to do if this client is a server, else return */
   if (client_p->serv == NULL)
@@ -2219,7 +2219,7 @@ get_client_className(struct Client *target_p)
 
   if (target_p->localClient->class != NULL)
   {
-    struct ConfItem *conf = target_p->localClient->class->conf;
+    struct ConfItem *conf = target_p->localClient->class->conf_ptr;
     return conf->name;
   }
 
@@ -2463,7 +2463,7 @@ conf_add_d_conf(struct AccessItem *aconf)
   if (parse_netmask(aconf->host, NULL, NULL) == HM_HOST)
   {
     ilog(L_WARN, "Invalid Dline %s ignored", aconf->host);
-    delete_conf_item(aconf->conf);
+    delete_conf_item(aconf->conf_ptr);
   }
   else
   {

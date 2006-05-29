@@ -706,7 +706,7 @@ stats_deny(struct Client *source_p)
         if (aconf->flags & CONF_FLAGS_TEMPORARY)
           continue;
 
-	conf = aconf->conf;
+	conf = aconf->conf_ptr;
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'D', aconf->host, aconf->reason,
@@ -742,7 +742,7 @@ stats_tdeny(struct Client *source_p)
         if (!(aconf->flags & CONF_FLAGS_TEMPORARY))
           continue;
 
-        conf = aconf->conf;
+        conf = aconf->conf_ptr;
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'd', aconf->host, aconf->reason,
@@ -774,7 +774,7 @@ stats_exempt(struct Client *source_p)
       {
         aconf = arec->aconf;
 
-        conf = aconf->conf;
+        conf = aconf->conf_ptr;
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'e', aconf->host, 
@@ -935,7 +935,7 @@ stats_auth(struct Client *source_p)
     if (aconf == NULL)
       return;
 
-    conf = aconf->conf;
+    conf = aconf->conf_ptr;
 
     sendto_one(source_p, form_str(RPL_STATSILINE), from,
                to, 'I',
@@ -979,7 +979,7 @@ stats_tklines(struct Client *source_p)
     if (!(aconf->flags & CONF_FLAGS_TEMPORARY))
       return;
 
-    conf = aconf->conf;
+    conf = aconf->conf_ptr;
 
     sendto_one(source_p, form_str(RPL_STATSKLINE), from,
                to, "k", aconf->host, aconf->user, aconf->reason, "");

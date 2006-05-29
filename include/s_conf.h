@@ -231,21 +231,21 @@ typedef enum
  */
 struct MatchItem
 {
-  void *conf;		/* pointer back to conf */
-  char *user;		/* Used for ULINE only */
-  char *host;		/* Used for ULINE only */
+  void *conf_ptr;       /* pointer back to conf */
+  char *user;           /* Used for ULINE only */
+  char *host;           /* Used for ULINE only */
   char *reason;
   char *oper_reason;
-  int action;		/* used for uline */
-  int count;		/* How many times this matchitem has been matched */
-  int ref_count;	/* How many times is this matchitem in use */
-  int illegal;		/* Should it be deleted when possible? */
+  int action;           /* used for uline */
+  int count;            /* How many times this matchitem has been matched */
+  int ref_count;        /* How many times is this matchitem in use */
+  int illegal;          /* Should it be deleted when possible? */
   time_t           hold;     /* Hold action until this time (calendar time) */
 };
 
 struct AccessItem
 {
-  void *conf;		/* pointer back to conf */
+  void *conf_ptr;            /* pointer back to conf */
   dlink_node node;
   unsigned int     status;   /* If CONF_ILLEGAL, delete when no clients */
   unsigned int     flags;
@@ -276,7 +276,7 @@ struct AccessItem
 
 struct ClassItem
 {
-  void *conf;		/* pointer back to conf */
+  void *conf_ptr;          /* pointer back to conf */
   long max_sendq;
   int con_freq;
   int ping_freq;
