@@ -2,6 +2,8 @@
 o) Fix amd64 issues.
 o) Fixed server max_connections
 o) Other misc fixes.
+-- ircd-hybrid-7.2rc2 RELNOTES
+o) Fixed broken operwall = yes;
 o) Added 'umode' directive to oper{}.  List of modes to get on /OPER.
  
 
@@ -45,171 +47,54 @@ o) fixed a lot of the god mode notice bugs
 o) fixed new /who
 o) updated to new upstream code including resolver rewrite
 
--- ircd-hybrid-7.0 RELNOTES
-o) BF/256 encryption replaced by BF168
-o) many intermittant cryptlink bugs fixed
-o) fixed FLAG_NCHANGE perms
-o) fixed splitmode behavior to wait for both splitnum and splituser
-o) fixed parallel make
-o) added ctrace, classlist and omotd to contrib
-
--- ircd-hybrid-7rc10 RELNOTES
-o) fixed 99% CPU bug
-o) fixed rare core bug in s_bsd.c
-o) fixed compile warning in m_nick.c
-o) casts to fix comm_setselect compile warnings
-o) fixed core that can happen in check_clean_nick()
-o) get_client_name() would only return client->name for remote fixed
-o) fixed typo that caused odd /list hesitation.
-o) fixed limit desync bug
-o) fixed possible core in /stats
-o) cleaned up hostmask code that cored server in /rehash
-
--- ircd-hybrid-7rc9 RELNOTES
-o) massive revert to rc4 exit_client code
-o) fixed handling of file descriptors 0 through 3
-o) fixed a desync bug with chm_key when removing keys
-o) reverted get_client_name() format to %s[%s@%s]
-o) changed possible flooder notices to use get_client_name()
-o) fixed potential core in ip throttling code
-
--- ircd-hybrid-7rc8 RELNOTES
-o) fixed ziplinks hang/error on initial connection
-o) fixed contrib/m_whois core and bogus idle for non-local in modules/m_whois
-o) fixed ziplinks dropping with NULL character error
-o) fixed restart not working if the new process starts too quickly
-o) major fixes to invite notifications for +p channels
-
--- ircd-hybrid-7rc7 RELNOTES
-o) rationalised the exit_client() code, thus fixing several cores/hangs
-o) fixed anonop handling
-o) fixed throttling code
-o) squit uplink in non HUB server cases 
-o) fixed m_invite code invite and compatibility mode in +p
-o) fixed ip limit code (related to throttling)
-o) allow non opers to privmsg username@server. "opers" is reserved.
-o) fakename in aconf could leak memory fixed.
-o) missing ':' in messages.tab numeric 513 ERR_WRONGPONG fixed.
-o) removed bogus #ifdef ANONOPS in m_who.c
-o) fixed bogus log message in check_client()
-o) fixed fd leak in m_help.c
-o) fix to vchans
-
--- ircd-hybrid-7rc6 RELNOTES
-o) fixed a nasty ban overflow which causes desyncs
-o) allow '_' in hostnames
-o) fixed linebuf leak
-o) allow op/ban "cookies" (for now at least) i.e. mode * +o-b nick cookie
-o) fixed bug in client exit
-o) fixed invite bug with +pi channels
-o) changed all instances of nick[user@host] to nick [user@host]
-   this disambiguates completely, nick from user part, for tcm and scripts
-o) fixed wrong numeric for KNOCKDISABLED
-o) fixed servlink bug "char" is not always signed
-o) fixed typo that caused leaking of hidden server IPs
-o) fixed potential core in unkline
-o) fixed k/d line parser file parsing, a ',' in k or d line reason
-   will no longer cause the kline to disapear in a rehash or unkline
-
--- ircd-hybrid-7rc5 RELNOTES
-o) Fixed null hostname bug in ipv6 
-o) Fixed hook code so it won't re-hook
-o) gdb 3.x compile fix
-o) removed persistent channels (for now)
-o) Fixed potential event core
-o) oper_pass_resv added to ircd.conf
-o) true no oper flood
-o) removed RPL_WHOISADMIN
-o) memory leak fix
-o) server hiding fix
-o) bug fix in mode changes
-o) fixed compile time error in m_who.c
-o) removed /rehash channels
-o) fixed user@server.name notices
-o) fixed ping bug
-o) fixed challenge command to not core
-o) ipv6 hostname can fallback to ip6.int
-o) fixed USER bug whch ignored ident response
-
--- ircd-hybrid-7rc4 RELNOTES
-
-o) Fixed core in gozems m_whois.c patch in contrib
-o) Fixed minor bug in m_who.c
-o) Fixed missing logging for oper, failed oper
-o) Fixed null nickname bug
-o) Fixed persistent channel possible desync
-o) Separated stats g/G for pending vs. placed G lines
-o) Do not send out gline request if server/oper locally has already voted
-o) Sped up kline handling
-
--- ircd-hybrid-7rc3 RELNOTES
-
-o) Fixed hostile code in m_oper
-o) added gozems m_whois.c to contrib
-o) fixed possible buffer overflow in bans
-o) reworked hash_ip
-o) fixed ipv6 K-lines
-
-
--- ircd-hybrid-7rc2 RELNOTES
-
-o) RPL_ISUPPORT will now report the correct status of +eIha
-o) convertilines wasnt adding a ';' to the end of auth blocks
-o) convertconf fixes
-o) local admins were able to see IPs in stats C when HIDE_SERVERS_IPS,
-   spoofed ips were also being shown in contrib/ltrace, both fixed.
-o) servers sending an invalid number of arguments to a command will now
-   have their link terminated.
-o) fixed the path in kill messages for bitchx
-o) the user/server splitcode was inverted
-o) fixes for CIDR ipv6 auth {};
-o) when a user deopers if they have no matching auth {} they will just be
-   left where they are now, not removed from the server.
-o) floodcode fixes to cope with bitchx, raised some defaults.
-o) bugfix so users cannot set bans such as !@ which couldnt be removed
-   on hyb6, or klines/glines such as @foo
-o) fixes to help work against desync behaviour with +eI
-o) glines will now be triggered with the reason of the first request
-o) desync fixes to allow +b-b of a non-existant ban and -b+b of an existing
-   ban.  all ban modes will be allowed if they originate remotely.
-o) incorrect uses of strlcpy() fixed and reviewed
-o) fixes to stop annoying yacc complain about conflicts during compile
+-- ircd-hybrid-7.2beta1 RELNOTES
+o) Usermode +G, like +g, but allow messaging from people on common channels
+o) Usermode +D - "deaf", don't receive channel messages
+o) RXLINE and RKLINE - commands for setting regexp K/X lines
+o) Join flood is now detected and reported to +b opers
+o) Re-added REJECT_HOLD - lock clients for a while before throwing away
+o) ping_warning, a class{} option to notify opers before "Ping timeout"
+o) New hooking system, modularised: usermodes, iauth, message filtering etc.
+o) Network I/O speedups
+o) Various cleanups and bugfixes
+o) Support for client SSL
+o) Support for services (contrib/m_services.c)
+o) IP cloaking module (contrib/ip_cloaking.c)
+o) Native win32 build
 
 --------------------------------------------------------------------------------
 
 This is a releasce candidate of ircd-hybrid-7.2.
 
+NOTE: This is still BETA code.  Run it at your own risk.  By running this
+ code you assume FULL responsibility for any problems it may cause.  We do
+ NOT recommend that you run BETA code on production IRC networks such
+ as EFnet.
+
 BUGS: Major bugs in this release are listed in BUGS
 
 BUG REPORTS: If you run this code and encounter problems, you must report
  the bug in one of the following ways:
-  a) By EMAIL to ircd-hybrid@the-project.org.  
- Please include a gdb backtrace and a copy of your config.h and ircd.conf 
- with any report  (with passwords and other sensitive information masked).
+  a) By EMAIL to bugs@ircd-hybrid.org.
+  b) On http://forum.ircd-hybrid.org/
+ Please include a gdb backtrace and a copy of your setup.h, defaults.h, and
+ ircd.conf with any report  (with passwords and other sensitive
+ information masked).
 
 DISCUSSION: There is a mailing list for discussion of hybrid issues,
- including betas.  To subscribe, send an email to listmanager@the-project.org
- with a single line in the body containing "subscribe hybrid". This is the
- proper place to discuss new features, bugs, etc.  Posting here is much more
- likely to get something done than ranting on #TZ.
+ including betas.  To subscribe, use this link:
+    https://lists.ircd-hybrid.org/mailman/listinfo/hybrid
+ This is the proper place to discuss new features, bugs, etc.  Posting here
+ is much more likely to get something done than ranting on #TZ.
+ You can also use Hybrid forums at http://forum.ircd-hybrid.org/
 
 TESTING: This code is under active development, and a lot changes from beta
  to beta.  As the user of this code, we request that you help us test things
  which have changed recently, and which would benefeit from being tested
- much as possible.  The following are some things that have changed, and what
- you can do to help us test them.
-     o) Exiting Clients
-        - The way clients are exited and cleaned from memory has been largely
-          redone since the last release.  Unusual situations involving clients
-          exiting will help expose any remaining problems.
-     o) Mac OS X Modules
-        - Support for Darwin and Mac OS X style modules, through the
-          NSModule(3) interface has been added, and is designed to work as
-          loadable modules do on most UNIX systems.  Feeding it bad or
-          duplicate modules to find bugs would be appriciated.
+ much as possible.
 
-				
-Questions/comments directed to ircd-hybrid@the-project.org
+
+Questions/comments directed to bugs@ircd-hybrid.org
 
 Please read doc/whats-new.txt for information about what is in this release
 
