@@ -431,10 +431,12 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     return;
 
   if (ConfigFileEntry.invisible_on_connect)
+  {
     source_p->umodes |= UMODE_INVISIBLE;
-  ++Count.invisi;
+    ++Count.invisi;
+  }
 
-  if ((++Count.local) > Count.max_loc)
+  if (++Count.local > Count.max_loc)
   {
     Count.max_loc = Count.local;
 
