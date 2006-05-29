@@ -40,15 +40,9 @@
 #include "rsa.h"
 #include "msg.h"
 #include "parse.h"
-#include "irc_string.h"  /* strncpy_irc */
-#include "tools.h"
-#include "memory.h"
 #include "common.h"      /* TRUE bleah */
-#include "event.h"
 #include "hash.h"        /* add_to_client_hash_table */
-#include "list.h"        /* make_server */
 #include "s_conf.h"      /* struct AccessItem */
-#include "s_log.h"       /* log level defines */
 #include "s_serv.h"      /* server_estab, check_server, my_name_for_link */
 #include "s_stats.h"     /* ServerStats */
 #include "motd.h"
@@ -64,7 +58,7 @@ static void cryptlink_auth(struct Client *, struct Client *, int, char **);
 
 struct Message cryptlink_msgtab = {
   "CRYPTLINK", 0, 0, 4, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_cryptlink, m_ignore, m_error, m_ignore, m_ignore}
+  {mr_cryptlink, m_ignore, m_error, m_ignore, m_ignore, m_ignore}
 };
 
 struct CryptLinkStruct
@@ -147,8 +141,8 @@ cryptlink_auth(struct Client *client_p, struct Client *source_p,
   struct AccessItem *aconf;
   int   enc_len;
   int   len;
-  char *enc;
-  char *key;
+  unsigned char *enc;
+  unsigned char *key;
 
   if (parc < 4)
   {
@@ -224,17 +218,16 @@ cryptlink_auth(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  conf = client_p->localClient->iline;
+  conf = client_p->serv->sconf;
 
   if (conf == NULL)
   {
     cryptlink_error(client_p, "AUTH",
-                    "Lost C-line for server",
-                    "Lost C-line");
+                    "Lost connect block for server",
+                    "Lost connect block");
     return;
   }
-
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = map_to_conf(conf);
 
   if (!(client_p->localClient->out_cipher ||
       (client_p->localClient->out_cipher = check_cipher(client_p, aconf))))
@@ -269,7 +262,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
   char *name;
   struct Client *target_p;
   char *key = client_p->localClient->out_key;
-  char *b64_key;
+  unsigned char *b64_key;
   struct ConfItem *conf;
   struct AccessItem *aconf;
   char *encrypted;
@@ -300,7 +293,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
 
   if (bogus_host(name))
   {
-    exit_client(client_p, client_p, client_p, "Bogus server name");
+    exit_client(client_p, client_p, "Bogus server name");
     return;
   }
 
@@ -315,7 +308,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
           "Unauthorized server connection attempt: No entry for server",
           NULL);
       }
-      exit_client(client_p, client_p, client_p, "Invalid server name");
+      exit_client(client_p, client_p, "Invalid server name");
       return;
       break;
     case -2:
@@ -383,15 +376,16 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
       }
   }
 
-  conf = client_p->localClient->iline;
+  conf = client_p->serv->sconf;
 
   if (conf == NULL)
   {
     cryptlink_error(client_p, "AUTH",
-                    "Lost C-line for server",
-                    "Lost C-line" );
+                    "Lost connect block for server",
+                    "Lost connect block" );
     return;
   }
+  aconf = map_to_conf(conf);
 
   /*
    * if we are connecting (Handshake), we already have the name from the
@@ -417,8 +411,6 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
 
   strlcpy(client_p->info, p, sizeof(client_p->info));
   client_p->hopcount = 0;
-
-  aconf = (struct AccessItem *)map_to_conf(conf);
 
   if (!(client_p->localClient->out_cipher ||
       (client_p->localClient->out_cipher = check_cipher(client_p, aconf))))
@@ -452,7 +444,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
 
   if (!IsWaitAuth(client_p))
   {
-    cryptlink_init(client_p, conf, -1);
+    cryptlink_init(client_p, aconf, NULL);
   }
 
   sendto_one(client_p, "CRYPTLINK AUTH %s %s",
@@ -479,7 +471,8 @@ static char *
 parse_cryptserv_args(struct Client *client_p, char *parv[],
                      int parc, char *info, char *key)
 {
-  char *name, *tmp, *out;
+  char *name;
+  unsigned char *tmp, *out;
   int len;
   int decoded_len;
 
@@ -489,7 +482,7 @@ parse_cryptserv_args(struct Client *client_p, char *parv[],
 
   /* parv[2] contains encrypted auth data */
   if (!(decoded_len = unbase64_block(&tmp, parv[3],
-                                      strlen(parv[3]))))
+                                     strlen(parv[3]))))
   {
     cryptlink_error(client_p, "SERV",
                     "Couldn't base64 decode data",
@@ -551,17 +544,20 @@ parse_cryptserv_args(struct Client *client_p, char *parv[],
 static int
 bogus_host(char *host)
 {
-  unsigned int dots = 0;
-  char *s;
+  unsigned int length = 0;
+  unsigned int dots   = 0;
+  char *s = host;
 
-  for (s = host; *s; s++)
+  for (; *s; s++)
   {
     if (!IsServChar(*s))
       return(1);
+
+    ++length;
 
     if ('.' == *s)
       ++dots;
   }
 
-  return(!dots || strlen(host) > HOSTLEN);
+  return(!dots || length > HOSTLEN);
 }

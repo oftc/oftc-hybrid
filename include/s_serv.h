@@ -36,7 +36,7 @@ struct ConfItem;
  * starting try_connections()
  * TOO SOON and you can nick collide like crazy. 
  */
-#define STARTUP_CONNECTIONS_TIME 10
+#define STARTUP_CONNECTIONS_TIME 60
 
 struct Client;
 struct AccessItem;
@@ -59,16 +59,16 @@ struct Capability
 #define CAP_EOB		0x00000040 /* Can do EOB message                  */
 #define CAP_KLN		0x00000080 /* Can do KLINE message                */
 #define CAP_GLN		0x00000100 /* Can do GLINE message                */
-#define CAP_HUB		0x00000400 /* This server is a HUB                */
-#define CAP_SID		0x00001000 /* Can do SIDs                         */
-#define CAP_ZIP		0x00002000 /* Can do ZIPlinks                     */
-#define CAP_ENC		0x00004000 /* Can do ENCrypted links              */
-#define CAP_KNOCK	0x00008000 /* supports KNOCK                      */
-#define CAP_TBURST	0x00010000 /* supports TBURST                     */
-#define CAP_PARA	0x00020000 /* supports invite broadcasting for +p */
-#define CAP_UNKLN	0x00040000 /* Can do UNKLINE message		  */
-#define CAP_CLUSTER	0x00080000 /* supports server clustering	  */
-#define CAP_ENCAP	0x00100000 /* supports ENCAP message		  */
+#define CAP_HUB		0x00000200 /* This server is a HUB                */
+#define CAP_TS6		0x00000400 /* Can do TS6                          */
+#define CAP_ZIP		0x00000800 /* Can do ZIPlinks                     */
+#define CAP_ENC		0x00001000 /* Can do ENCrypted links              */
+#define CAP_KNOCK	0x00002000 /* supports KNOCK                      */
+#define CAP_TB	        0x00004000 /* supports TB                         */
+#define CAP_UNKLN	0x00008000 /* Can do UNKLINE message		  */
+#define CAP_CLUSTER	0x00010000 /* supports server clustering	  */
+#define CAP_ENCAP	0x00020000 /* supports ENCAP message		  */
+#define CAP_HOPS	0x00040000 /* supports HALFOPS			  */
 #define CAP_TBURST      0x00080000 /* supports TBURST (Topic burst)       */
 
 #ifdef HAVE_LIBZ
@@ -199,12 +199,6 @@ struct EncCapability
 #define SLINKCMD_INIT                        12
 #define SLINKCMD_ZIPSTATS                    13
 
-#ifndef HAVE_SOCKETPAIR
-#define LAST_SLINK_FD   7
-#else
-#define LAST_SLINK_FD   5
-#endif
-
 #define SLINKRPL_FLAG_DATA      0x0001  /* reply has data following */
 #define SLINKRPL_ERROR          1
 #define SLINKRPL_ZIPSTATS       2
@@ -233,6 +227,8 @@ extern struct Capability captab[];
 extern struct EncCapability CipherTable[];
 #endif
 
+extern struct Client *uplink; /* NON NULL if leaf and is this servers uplink */
+
 /*
  * return values for hunt_server() 
  */
@@ -240,41 +236,39 @@ extern struct EncCapability CipherTable[];
 #define HUNTED_ISME     0       /* if this server should execute the command */
 #define HUNTED_PASS     1       /* if message passed onwards successfully */
 
-extern int check_server(const char *name, struct Client *server, int cryptlink);
-extern int hunt_server(struct Client *client_p, struct Client *source_p,
-                       const char *command, int server, int parc, char **parv);
-extern const char *my_name_for_link(struct ConfItem* conf);
-extern void add_capability(const char *capab_name, int cap_flag, int defaults_flag);
-extern int delete_capability(const char *capab_name);
-extern int find_capability(const char *capab);
-extern void send_capabilities(struct Client *, struct AccessItem *conf, int, int);
+extern int check_server(const char *, struct Client *, int);
+extern int hunt_server(struct Client *, struct Client *,
+                       const char *, int, int, char **);
+extern const char *my_name_for_link(struct AccessItem *);
+extern void add_capability(const char *, int, int);
+extern int delete_capability(const char *);
+extern int find_capability(const char *);
+extern void send_capabilities(struct Client *, struct AccessItem *, int, int);
 extern void write_links_file(void *);
-extern int server_estab(struct Client *client_p);
+extern void server_estab(struct Client *);
 extern void set_autoconn(struct Client *, const char *, int);
-extern const char *show_capabilities(struct Client* client);
-extern void try_connections(void *unused);
-extern void collect_zipstats(void *unused);
+extern const char *show_capabilities(struct Client *);
+extern void try_connections(void *);
+extern void collect_zipstats(void *);
 extern void initServerMask(void);
-extern void burst_channel(struct Client *client_p, struct Channel *chptr);
+extern void burst_channel(struct Client *client_p, struct Channel *);
 extern void sendnick_TS(struct Client *, struct Client *);
 extern int serv_connect(struct AccessItem *, struct Client *);
+extern struct Client *find_servconn_in_progress(const char *);
 extern unsigned long nextFreeMask(void);
-extern void cryptlink_init(struct Client *client_p, struct ConfItem *conf,
-			   int fd);
+extern void cryptlink_init(struct Client *, struct AccessItem *, fde_t *);
 extern void cryptlink_regen_key(void *);
-extern void cryptlink_error(struct Client *client_p, const char *type,
-                            const char *reason, const char *client_reason);
+extern void cryptlink_error(struct Client *, const char *,
+                            const char *, const char *);
+extern void remove_lazylink_flags(unsigned long);
+extern void client_burst_if_needed(struct Client *, struct Client *);
+extern struct EncCapability *check_cipher(struct Client *, struct AccessItem *);
+extern void add_lazylinkclient(struct Client *, struct Client *);
 
-extern struct Client *uplink; /* NON NULL if leaf and is this servers uplink */
-
-extern void remove_lazylink_flags(unsigned long mask);
-extern void client_burst_if_needed(struct Client *client_p, struct Client *target_p);
-extern struct EncCapability *check_cipher(struct Client *client_p,
-                                   struct AccessItem *aconf);
-extern void add_lazylinkclient(struct Client *client_p, struct Client *source_p);
+extern struct Server *make_server(struct Client *);
 
 /* XXX don't belong in the now gone md5, but do these belong in s_serv.c ? */
-extern int base64_block(char **output, char *data, int len);
-extern int unbase64_block(char **output, char *data, int len);
+extern int base64_block(unsigned char **, char *, int);
+extern int unbase64_block(unsigned char **, char *, int);
 #endif /* INCLUDED_s_serv_h */
 

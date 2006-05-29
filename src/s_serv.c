@@ -47,7 +47,6 @@
 
 struct Client *uplink  = NULL;
 
-
 static dlink_list cap_list = { NULL, NULL, 0 };
 static unsigned long freeMask;
 static void server_burst(struct Client *);
@@ -117,6 +116,16 @@ slink_error(unsigned int rpl, unsigned int len, unsigned char *data,
   exit_client(server_p, &me, "servlink error -- terminating link");
 }
 
+/*
+ * slink_zipstats
+ *
+ * inputs	- rpl reply
+ *		  len length of reply
+ * 		  data pointer to data
+ *		  pointer to server
+ * output	- none
+ * side effects - ziplink stats are calculated
+ */
 void
 slink_zipstats(unsigned int rpl, unsigned int len, unsigned char *data,
                struct Client *server_p)
@@ -198,7 +207,7 @@ collect_zipstats(void *unused)
     if (IsCapable(target_p, CAP_ZIP))
     {
       /* only bother if we haven't already got something queued... */
-      if (!target_p->localClient->slinkq)
+      if (target_p->localClient->slinkq == NULL)
       {
         target_p->localClient->slinkq     = MyMalloc(1); /* sigh.. */
         target_p->localClient->slinkq[0]  = SLINKCMD_ZIPSTATS;
@@ -237,11 +246,8 @@ check_cipher(struct Client *client_p, struct AccessItem *aconf)
  * according to given config entry --Jto
  */
 const char *
-my_name_for_link(struct ConfItem *conf)
+my_name_for_link(struct AccessItem *aconf)
 {
-  struct AccessItem *aconf;
-
-  aconf = (struct AccessItem *)map_to_conf(conf);
   if (aconf->fakename != NULL)
     return(aconf->fakename);
   else
@@ -560,6 +566,20 @@ try_connections(void *unused)
   }
 }
 
+/*
+ * check_server
+ *
+ * inputs	- name
+ *		- pointer to client struct
+ *		- int flag for cryptlink
+ * output	- return -'ve value for error
+ * side effects	- 
+ *
+ * Called from mr_server when a client claiming to be a server
+ * connects. check_server() verifies this client is or isn't a server and
+ * returns an error if it isn't a server, it otherwise attaches the appropriate
+ * server connect block to this client.
+ */
 int
 check_server(const char *name, struct Client *client_p, int cryptlink)
 {
@@ -631,14 +651,15 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
   if (server_conf == NULL)
     return(error);
 
-  attach_iline(client_p, server_conf);
+  /* XXX */
+  attach_server_conf(client_p, server_conf);
 
   /* Now find all leaf or hub config items for this server */
   DLINK_FOREACH(ptr, hub_items.head)
   {
     conf = ptr->data;
 
-    if (!match(name, conf->name))
+    if (match(name, conf->name) == 0)
       continue;
     attach_leaf_hub(client_p, conf);
   }
@@ -647,7 +668,7 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
   {
     conf = ptr->data;
 
-    if (!match(name, conf->name))
+    if (match(name, conf->name) == 0)
       continue;
     attach_leaf_hub(client_p, conf);
   }
@@ -889,7 +910,7 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
       sendto_one(client_p, "REALHOST %s %s", target_p->name,  
               target_p->realhost);
 	       target_p->servptr->name, target_p->info);
-  if (IsConfAwayBurst((struct AccessItem *)map_to_conf(client_p->serv->sconf)))
+  if (IsConfAwayBurst(client_p->serv->sconf))
     if (!EmptyString(target_p->away))
       sendto_one(client_p, ":%s AWAY :%s", target_p->name,
                  target_p->away);
@@ -999,7 +1020,7 @@ server_estab(struct Client *client_p)
   inpath = get_client_name(client_p, MASK_IP); /* "refresh" inpath with host */
   host   = client_p->name;
 
-  if ((conf = client_p->localClient->iline) == NULL)
+  if ((conf = client_p->serv->sconf) == NULL)
   {
     /* This shouldn't happen, better tell the ops... -A1kmm */
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Warning: Lost connect{} block "
@@ -1008,6 +1029,8 @@ server_estab(struct Client *client_p)
     return;
   }
 
+  /* XXX */
+  aconf = map_to_conf(conf);
   MyFree(client_p->localClient->passwd);
   client_p->localClient->passwd = NULL;
 
@@ -1027,8 +1050,6 @@ server_estab(struct Client *client_p)
       return;
     }
   }
-
-  aconf = (struct AccessItem *)map_to_conf(conf);
 
   if (IsUnknown(client_p) && !IsConfCryptLink(aconf))
   {
@@ -1072,7 +1093,7 @@ server_estab(struct Client *client_p)
      * Nagle is already disabled at this point --adx
      */
     sendto_one(client_p, "SERVER %s 1 :%s%s",
-               my_name_for_link(conf), 
+               my_name_for_link(aconf), /* XXX */
                ConfigServerHide.hidden ? "(H) " : "",
                (me.info[0]) ? (me.info) : "IRCers United");
     send_queued_write(client_p);
@@ -1107,9 +1128,6 @@ server_estab(struct Client *client_p)
   if (IsCapable(client_p, CAP_TS6))
     hash_add_id(client_p);
 
-  /* XXX Does this ever happen? I don't think so -db */
-  detach_conf(client_p, OPER_TYPE);
-
   /* *WARNING*
   **    In the following code in place of plain server's
   **    name we send what is returned by get_client_name
@@ -1131,7 +1149,6 @@ server_estab(struct Client *client_p)
   /* Update the capability combination usage counts. -A1kmm */
   set_chcap_usage_counts(client_p);
 
-  /* Some day, all these lists will be consolidated *sigh* */
   dlinkAdd(client_p, &client_p->lnode, &me.serv->servers);
 
   m = dlinkFind(&unknown_list, client_p);
@@ -1162,7 +1179,8 @@ server_estab(struct Client *client_p)
   ilog(L_NOTICE, "Link with %s established: (%s) link",
        inpath_ip, show_capabilities(client_p));
 
-  client_p->serv->sconf = conf;
+  /* XXX */
+  attach_server_conf(client_p, conf);
 
   if (HasServlink(client_p))
   {
@@ -1187,7 +1205,7 @@ server_estab(struct Client *client_p)
       continue;
 
     if ((conf = target_p->serv->sconf) &&
-         match(my_name_for_link(conf), client_p->name))
+	match(my_name_for_link(map_to_conf(conf)), client_p->name)) /*XXX*/
       continue;
 
     if (IsCapable(target_p, CAP_TS6) && HasID(client_p))
@@ -1230,7 +1248,7 @@ server_estab(struct Client *client_p)
     if (target_p->from == client_p)
       continue;
 
-    if (match(my_name_for_link(conf), target_p->name))
+    if (match(my_name_for_link(map_to_conf(conf)), target_p->name)) /* XXX */
       continue;
 
     if (IsCapable(client_p, CAP_TS6))
@@ -1936,10 +1954,15 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   /* Attach config entries to client here rather than in
    * serv_connect_callback(). This to avoid null pointer references.
    */
+
+  /* make_server() has to be called here to have something to attach to */
+
+  make_server(client_p);
+
   if (!attach_connect_block(client_p, conf->name, aconf->host))
   {
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-		         "Host %s is not enabled for connecting:no C/N-line",
+		         "Host %s is not enabled for connecting:no connect-block",
 			 conf->name);
     if (by && IsClient(by) && !MyClient(by))  
       sendto_one(by, ":%s NOTICE %s :Connect to host %s failed.",
@@ -1949,13 +1972,12 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
     return (0);
   }
 
-  /* at this point we have a connection in progress and C/N lines
+  /* at this point we have a connection in progress and a connect block
    * attached to the client, the socket info should be saved in the
    * client and it should either be resolved or have a valid address.
    *
    * The socket has been connected or connect is in progress.
    */
-  make_server(client_p);
 
   if (by && IsClient(by))
     strlcpy(client_p->serv->by, by->name, sizeof(client_p->serv->by));
@@ -2061,7 +2083,7 @@ static void
 serv_connect_callback(fde_t *fd, int status, void *data)
 {
   struct Client *client_p = data;
-  struct ConfItem *conf=NULL;
+  struct ConfItem *conf;
   struct AccessItem *aconf=NULL;
 
   /* First, make sure its a real client! */
@@ -2098,8 +2120,8 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   }
 
   /* COMM_OK, so continue the connection procedure */
-  /* Get the C/N lines */
-  conf = client_p->localClient->iline;
+  /* Get the connect block */
+  conf = client_p->serv->sconf;
   if (conf == NULL)
   {
     sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
@@ -2110,8 +2132,8 @@ serv_connect_callback(fde_t *fd, int status, void *data)
     exit_client(client_p, &me, "Lost connect{} block");
     return;
   }
+  aconf = map_to_conf(conf);
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
   /* Next, send the initial handshake */
   SetHandshake(client_p);
 
@@ -2119,7 +2141,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   /* Handle all CRYPTLINK links in cryptlink_init */
   if (IsConfCryptLink(aconf))
   {
-    cryptlink_init(client_p, conf, fd);
+    cryptlink_init(client_p, map_to_conf(conf), fd); /* XXX */
     return;
   }
 #endif
@@ -2148,7 +2170,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 		    , 0);
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
-             my_name_for_link(conf), 
+             my_name_for_link(aconf),  /* XXX */
 	     ConfigServerHide.hidden ? "(H) " : "", 
 	     me.info);
 
@@ -2194,9 +2216,8 @@ find_servconn_in_progress(const char *name)
  * sends a CRYPTLINK SERV command.
  */
 void
-cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
+cryptlink_init(struct Client *client_p, struct AccessItem *aconf, fde_t *fd)
 {
-  struct AccessItem *aconf;
   char *encrypted;
   unsigned char *key_to_send;
   char randkey[CIPHERKEYLEN];
@@ -2210,8 +2231,6 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
                                       "Invalid RSA private key");
     return;
   }
-
-  aconf = (struct AccessItem *)map_to_conf(conf);
 
   if (aconf->rsa_public_key == NULL)
   {
@@ -2263,7 +2282,7 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
     sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);
 
   sendto_one(client_p, "CRYPTLINK SERV %s %s :%s%s",
-             my_name_for_link(conf), key_to_send,
+             my_name_for_link(aconf), key_to_send, /* XXX */
              ConfigServerHide.hidden ? "(H) " : "", me.info);
 
   SetHandshake(client_p);

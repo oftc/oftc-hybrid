@@ -83,6 +83,9 @@ static int verify_access(struct Client *, const char *);
 static struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
 static void parse_conf_file(int, int);
 static dlink_list *map_to_list(ConfType);
+static int check_class_limits(struct Client *, int ,struct ClassItem *);
+static int attach_iline(struct Client *client_p, struct AccessItem *aconf);
+static int attach_class(struct Client *client_p, struct ClassItem *aclass);
 
 /*
  * bit_len
@@ -515,6 +518,7 @@ delete_conf_item(struct ConfItem *conf)
   }
 }
 
+
 /* free_access_item()
  *
  * inputs	- pointer to conf to free
@@ -898,6 +902,7 @@ verify_access(struct Client *client_p, const char *username)
 {
   struct AccessItem *aconf = NULL, *rkconf = NULL;
   struct ConfItem *conf = NULL;
+  struct ClassItem *aclass = NULL;
   char non_ident[USERLEN + 1] = { '~', '\0' };
   const char *uhi[3];
 
@@ -944,8 +949,6 @@ verify_access(struct Client *client_p, const char *username)
       /* Thanks for spoof idea amm */
       if (IsConfDoSpoofIp(aconf))
       {
-	conf = unmap_conf_item(aconf);
-
         if (!ConfigFileEntry.hide_spoof_ips && IsConfSpoofNotice(aconf))
           sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL, "%s spoofing: %s as %s",
                                client_p->name, client_p->host, conf->name);
@@ -953,7 +956,16 @@ verify_access(struct Client *client_p, const char *username)
         SetIPSpoof(client_p);
       }
 
-      return(attach_iline(client_p, conf));
+      aclass = map_to_conf(aconf->class_ptr);
+
+      if (check_class_limits(client_p, IsConfExemptLimits(aconf), aclass))
+      {
+	attach_iline(client_p, aconf);
+	attach_class(client_p, aclass);
+	return(0);
+      }
+      else
+	return(TOO_MANY);
     }
     else if (rkconf || IsConfKill(aconf) || (ConfigFileEntry.glines && IsConfGline(aconf)))
     {
@@ -972,82 +984,60 @@ verify_access(struct Client *client_p, const char *username)
   return(NOT_AUTHORIZED);
 }
 
-/* attach_iline()
+/* check_class_limits()
  *
  * inputs	- client pointer
- *		- conf pointer
- * output	- 0 if successful with attach
- * side effects	- do actual attach
+ *		- int exempt or not to limits
+ *		- class pointer
+ * output	- 0 if limits ok, non 0 if limits not ok
+ * side effects	- NONE
  */
-int
-attach_iline(struct Client *client_p, struct ConfItem *conf)
+static int
+check_class_limits(struct Client *client_p, int exempt,
+		   struct ClassItem *aclass)
 {
-  struct AccessItem *aconf;
-  struct ClassItem *aclass;
   struct ip_entry *ip_found;
   int a_limit_reached = 0;
   int local = 0, global = 0, ident = 0;
-  
-  aconf = (struct AccessItem *)map_to_conf(conf);
-  if (aconf->class_ptr == NULL)
-    return NOT_AUTHORIZED;  /* If class is missing, this is best */
 
-  if (conf->type == CLIENT_TYPE)
+  ip_found = find_or_add_ip(&client_p->localClient->ip);
+  ip_found->count++;
+  SetIpHash(client_p);
+
+  count_user_host(client_p->username, client_p->host,
+		  &global, &local, &ident);
+
+  /* XXX blah. go down checking the various silly limits
+   * setting a_limit_reached if any limit is reached.
+   * - Dianora
+   */
+  if (MaxTotal(aclass) != 0 && CurrUserCount(aclass) >= MaxTotal(aclass))
+    a_limit_reached = 1;
+  else if (MaxPerIp(aclass) != 0 && ip_found->count >= MaxPerIp(aclass))
+    a_limit_reached = 1;
+  else if (MaxLocal(aclass) != 0 && local >= MaxLocal(aclass))
+    a_limit_reached = 1;
+  else if (MaxGlobal(aclass) != 0 && global >= MaxGlobal(aclass))
+    a_limit_reached = 1;
+  else if (MaxIdent(aclass) != 0 && ident >= MaxIdent(aclass) &&
+	   client_p->username[0] != '~')
+    a_limit_reached = 1;
+
+
+  if (a_limit_reached)
   {
-    ip_found = find_or_add_ip(&client_p->localClient->ip);
-    ip_found->count++;
-    SetIpHash(client_p);
+    if (!exempt)
+      return 0;  /* Already at maximum allowed */
 
-    aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
-
-    count_user_host(client_p->username, client_p->host,
-		    &global, &local, &ident);
-
-    /* XXX blah. go down checking the various silly limits
-     * setting a_limit_reached if any limit is reached.
-     * - Dianora
-     */
-    if (MaxTotal(aclass) != 0 && CurrUserCount(aclass) >= MaxTotal(aclass))
-      a_limit_reached = 1;
-    else if (MaxPerIp(aclass) != 0 && ip_found->count >= MaxPerIp(aclass))
-      a_limit_reached = 1;
-    else if (MaxLocal(aclass) != 0 && local >= MaxLocal(aclass))
-      a_limit_reached = 1;
-    else if (MaxGlobal(aclass) != 0 && global >= MaxGlobal(aclass))
-      a_limit_reached = 1;
-    else if (MaxIdent(aclass) != 0 && ident >= MaxIdent(aclass) &&
-	     client_p->username[0] != '~')
-      a_limit_reached = 1;
-
-    if (a_limit_reached)
-    {
-      if (!IsConfExemptLimits(aconf))
-	return TOO_MANY;  /* Already at maximum allowed */
-
-      sendto_one(client_p,
-		 ":%s NOTICE %s :*** Your connection class is full, "
-		 "but you have exceed_limit = yes;", me.name, client_p->name);
-    }
+    sendto_one(client_p,
+	       ":%s NOTICE %s :*** Your connection class is full, "
+	       "but you have exceed_limit = yes;", me.name, client_p->name);
   }
 
-  if (client_p->localClient->iline == NULL)
-  {
-    if (conf->type == CLIENT_TYPE)
-    {
-      struct ClassItem *aclass;
-      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+  if (cidr_limit_reached(exempt, &client_p->localClient->ip, aclass))
+    return 0;  /* Already at maximum allowed */
 
-      if (cidr_limit_reached(IsConfExemptLimits(aconf),
-                             &client_p->localClient->ip, aclass))
-        return TOO_MANY;  /* Already at maximum allowed */
-
-      CurrUserCount(aclass)++;
-    }
-    client_p->localClient->iline = conf;
-    aconf->clients++;
-  }
-
-  return 0;
+  return 1;
 }
 
 /* init_ip_hash_table()
@@ -1295,65 +1285,42 @@ detach_conf(struct Client *client_p, ConfType type)
   struct ConfItem *conf;
   struct ClassItem *aclass;
   struct AccessItem *aconf;
-  struct ConfItem *aclass_conf;
   struct MatchItem *match_item;
 
-  if (type == CLIENT_TYPE)
-  {
-    conf = client_p->localClient->iline;
-    aconf = (struct AccessItem *)map_to_conf(conf);
-    if ((aclass_conf = ClassPtr(aconf)) != NULL)
-    {
-      aclass = (struct ClassItem *)map_to_conf(aclass_conf);
+  aclass = client_p->localClient->class;
+  remove_from_cidr_check(&client_p->localClient->ip, aclass);
 
-      remove_from_cidr_check(&client_p->localClient->ip, aclass);
-
-      if (CurrUserCount(aclass) > 0)
-	aclass->curr_user_count--;
-      if (MaxTotal(aclass) < 0 && CurrUserCount(aclass) <= 0)
-	delete_conf_item(aclass_conf);
-    }
-
-    /* Please, no ioccc entries - Dianora */
-    if (aconf->clients > 0)
-      --aconf->clients;
-    if (aconf->clients == 0 && IsConfIllegal(aconf))
-      delete_conf_item(conf);
-  }
-
-  /* XXX */
+  if (CurrUserCount(aclass) > 0)
+    aclass->curr_user_count--;
+  if (MaxTotal(aclass) < 0 && CurrUserCount(aclass) <= 0)
+    delete_conf_item(unmap_conf_item(aclass)); /* XXX delete_class() */
+   
+  /* More to do if this client is a server, else return */
   if (client_p->serv == NULL)
-  {
     return 0;
-  }
+
+  conf = client_p->serv->sconf;
+  aconf = map_to_conf(conf);
+
+  if (aconf->clients > 0)
+    --aconf->clients;
+  if (aconf->clients == 0 && IsConfIllegal(aconf))
+    delete_conf_item(conf);
+  client_p->serv->sconf = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->serv->leafs_hubs.head)
   {
     conf = ptr->data;
+    match_item = map_to_conf(conf);
 
-    if (type == CONF_TYPE || conf->type == type)
-    {
-      dlinkDelete(ptr, &client_p->serv->leafs_hubs);
-      free_dlink_node(ptr);
+    dlinkDelete(ptr, &client_p->serv->leafs_hubs);
+    free_dlink_node(ptr);
 
-      switch (conf->type)
-      {
-      case LEAF_TYPE:
-      case HUB_TYPE:
-        match_item = (struct MatchItem *)map_to_conf(conf);
-        if (match_item->ref_count == 0 && match_item->illegal)
-          delete_conf_item(conf);
-        break;
-      default:
-        break;
-      }
-
-      if (type != CONF_TYPE)
-        return 0;
-    }
+    if (match_item->ref_count == 0 && match_item->illegal)
+      delete_conf_item(conf);
   }
 
-  return -1;
+  return 0;
 }
 
 /* attach_leaf_hub()
@@ -1363,27 +1330,103 @@ detach_conf(struct Client *client_p, ConfType type)
  * output	- 0 if sucessfully added, 1 if unsuccessful.
  * side effects - Associate a specific configuration entry to a *local*
  *                server
+ * XXX - This function does very little
  */
 int
 attach_leaf_hub(struct Client *client_p, struct ConfItem *conf)
 {
   struct MatchItem *match_item;
-
-  /* XXX */
-  if (client_p->serv == NULL)
-  {
-    abort();
-  }
-
   if (dlinkFind(&client_p->serv->leafs_hubs, conf) != NULL)
     return 1;
 
-  match_item = (struct MatchItem *)map_to_conf(conf);
+  match_item = map_to_conf(conf);
   match_item->ref_count++;
-
   dlinkAdd(conf, make_dlink_node(), &client_p->serv->leafs_hubs);
 
   return 0;
+}
+
+/* 
+ * attach_iline
+ *
+ * inputs	- pointer to client to attach AccessItem to
+ * 		- pointer to aconf
+ * output	- 0 if successful, -1 if unsuccesful
+ * side effects	- 
+ */
+static int
+attach_iline(struct Client *client_p, struct AccessItem *aconf)
+{
+  /* attach_iline() XXX */
+  if (client_p->localClient->iline == NULL)
+  {
+    aconf->clients++;
+    client_p->localClient->iline = aconf;
+    return 0;
+  }
+  else 
+  {
+    ilog(L_ERROR, "%s: attach_iline already attached",
+	 get_client_name(client_p, SHOW_IP));
+    return -1;
+  }
+}
+
+/* 
+ * attach_class
+ *
+ * inputs	- pointer to client to attach ClassItem to
+ * 		- pointer to aclass
+ * output	- 0 if successful, -1 if unsuccesful
+ * side effects	- 
+ */
+static int
+attach_class(struct Client *client_p, struct ClassItem *aclass)
+{
+  if (client_p->localClient->class == NULL)
+  {
+    CurrUserCount(aclass)++;
+    client_p->localClient->class = aclass;
+    return 0;
+  }
+  else
+  {
+    ilog(L_ERROR, "%s: attach_class already attached",
+	 get_client_name(client_p, SHOW_IP));
+    return -1;
+  }
+}
+
+/* 
+ * attach_server_conf
+ *
+ * inputs	- pointer to client to attach ConfItem to
+ * 		- pointer to ConfItem
+ * output	- 0 if successful, -1 if unsuccesful
+ * side effects	- 
+ */
+int
+attach_server_conf(struct Client *client_p, struct ConfItem *conf)
+{
+#if 0
+  struct AccessItem *aconf;
+#endif
+
+  if (client_p->serv->sconf == NULL)
+  {
+#if 0
+    aconf = map_to_conf(conf);
+    aconf->clients++;
+#endif
+    client_p->serv->sconf = conf;
+    return 0;
+  }
+  else 
+  {
+    ilog(L_ERROR, "%s: attach_server_conf already attached",
+	 get_client_name(client_p, SHOW_IP));
+    return -1;
+  }
 }
 
 /* attach_connect_block()
@@ -1416,8 +1459,14 @@ attach_connect_block(struct Client *client_p, const char *name,
     if (match(conf->name, name) == 0 || match(aconf->host, host) == 0)
       continue;
 
-    attach_iline(client_p, conf);
-    return -1;
+    client_p->serv->sconf = conf;
+    aconf->clients++;
+    /* XXX */
+#if 0
+    aclass = map_to_conf(aconf->class_ptr);
+    attach_class(client_p, aclass);
+#endif
+    return 1;
   }
 
   return 0;
@@ -1697,7 +1746,7 @@ rehash(int sig)
 #ifndef _WIN32
   restart_resolver();
 #endif
-  /* don't close listeners until we know we can go ahead with the rehash */
+  /* Don't close listeners until known I can go ahead with the rehash */
 
   /* Check to see if we magically got(or lost) IPv6 support */
   ServerInfo.can_use_v6 = check_can_use_v6();
@@ -2065,7 +2114,7 @@ get_oper_name(const struct Client *client_p)
 
   if (MyConnect(client_p))
   {
-    aconf = map_to_conf(client_p->localClient->iline);
+    aconf = client_p->localClient->iline;
     conf = unmap_conf_item(aconf);
 
     ircsprintf(buffer, "%s!%s@%s{%s}", client_p->name,
@@ -2442,34 +2491,6 @@ get_conf_name(ConfType type)
   }
 }
 
-#define BAD_PING (-1)
-
-/* get_conf_ping()
- *
- * inputs       - pointer to struct AccessItem
- *              - pointer to a variable that receives ping warning time
- * output       - ping frequency
- * side effects - NONE
- */
-static int
-get_conf_ping(struct ConfItem *conf, int *pingwarn)
-{
-  struct ClassItem *aclass;
-  struct AccessItem *aconf;
-
-  if (conf != NULL)
-  {
-    aconf = (struct AccessItem *)map_to_conf(conf);
-    if (aconf->class_ptr != NULL)
-    {
-      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
-      *pingwarn = PingWarning(aclass);
-      return PingFreq(aclass);
-    }
-  }
-
-  return BAD_PING;
-}
 
 /* get_client_class()
  *
@@ -2480,14 +2501,12 @@ get_conf_ping(struct ConfItem *conf, int *pingwarn)
 const char *
 get_client_class(struct Client *target_p)
 {
-  struct ConfItem *conf;
   struct AccessItem *aconf;
 
   if (target_p != NULL && !IsMe(target_p) &&
       target_p->localClient->iline != NULL)
   {
-    conf = target_p->localClient->iline;
-    aconf = (struct AccessItem *) map_to_conf(conf);
+    aconf = target_p->localClient->iline;
     if (aconf->class_ptr != NULL)
       return aconf->class_ptr->name;
   }
@@ -2495,6 +2514,7 @@ get_client_class(struct Client *target_p)
   return "default";
 }
 
+#define BAD_PING (-1)
 /* get_client_ping()
  *
  * inputs	- pointer to client struct
@@ -2505,15 +2525,21 @@ get_client_class(struct Client *target_p)
 int
 get_client_ping(struct Client *target_p, int *pingwarn)
 {
+  struct ClassItem *aclass;
   int ping;
-  struct ConfItem *conf;
 
-  if (target_p->localClient->iline != NULL)
+  if (target_p->localClient->class != NULL)
   {
-    conf = target_p->localClient->iline;
-    ping = get_conf_ping(conf, pingwarn);
+    aclass = target_p->localClient->class;
+    ping = PingFreq(aclass);
+    *pingwarn = PingWarning(aclass);
     if (ping > 0)
       return ping;
+  }
+  else
+  {
+    *pingwarn = 0;
+    return BAD_PING;
   }
 
   *pingwarn = 0;
@@ -2599,18 +2625,12 @@ unsigned long
 get_sendq(struct Client *client_p)
 {
   unsigned long sendq = DEFAULT_SENDQ;
-  struct AccessItem *aconf;
-  struct ConfItem *class_conf;
   struct ClassItem *aclass;
 
-  if (client_p && !IsMe(client_p) && (client_p->localClient->iline))
+  if (client_p && !IsMe(client_p) && (client_p->localClient->class))
   {
-    aconf = (struct AccessItem *)map_to_conf(client_p->localClient->iline);
-    if ((class_conf = aconf->class_ptr) != NULL)
-    {
-      aclass = (struct ClassItem *)map_to_conf(class_conf);
-      sendq = MaxSendq(aclass);
-    }
+    aclass = client_p->localClient->class;
+    sendq = MaxSendq(aclass);
   }
   return sendq;
 }
@@ -2956,7 +2976,7 @@ flags_to_ascii(unsigned int flags, const unsigned int bit_table[], char *p,
 /*
  * cidr_limit_reached
  *
- * inputs	- int flag allowing over_rule of limits
+ * inputs	- int flag allowing exemption of limits
  *		- pointer to the ip to be added
  *		- pointer to the class
  * output	- non zero if limit reached
@@ -2964,7 +2984,7 @@ flags_to_ascii(unsigned int flags, const unsigned int bit_table[], char *p,
  * side effects	-
  */
 static int
-cidr_limit_reached(int over_rule,
+cidr_limit_reached(int exempt,
 		   struct irc_ssaddr *ip, struct ClassItem *aclass)
 {
   dlink_node *ptr = NULL;
@@ -2983,7 +3003,7 @@ cidr_limit_reached(int over_rule,
       cidr = ptr->data;
       if (match_ipv4(ip, &cidr->mask, CidrBitlenIPV4(aclass)))
       {
-        if (!over_rule && (cidr->number_on_this_cidr >= NumberPerCidr(aclass)))
+        if (!exempt && (cidr->number_on_this_cidr >= NumberPerCidr(aclass)))
           return -1;
         cidr->number_on_this_cidr++;
         return 0;
@@ -3003,7 +3023,7 @@ cidr_limit_reached(int over_rule,
       cidr = ptr->data;
       if (match_ipv6(ip, &cidr->mask, CidrBitlenIPV6(aclass)))
       {
-        if (!over_rule && (cidr->number_on_this_cidr >= NumberPerCidr(aclass)))
+        if (!exempt && (cidr->number_on_this_cidr >= NumberPerCidr(aclass)))
           return -1;
         cidr->number_on_this_cidr++;
         return 0;
@@ -3079,13 +3099,11 @@ remove_from_cidr_check(struct irc_ssaddr *ip, struct ClassItem *aclass)
 }
 
 static void
-rebuild_cidr_list(int aftype, struct ConfItem *oldcl, struct ClassItem *newcl,
+rebuild_cidr_list(int aftype, struct ClassItem *oldcl, struct ClassItem *newcl,
                   dlink_list *old_list, dlink_list *new_list, int changed)
 {
   dlink_node *ptr;
   struct Client *client_p;
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
 
   if (!changed)
   {
@@ -3100,12 +3118,10 @@ rebuild_cidr_list(int aftype, struct ConfItem *oldcl, struct ClassItem *newcl,
     client_p = ptr->data;
     if (client_p->localClient->aftype != aftype)
       continue;
-    if (client_p->localClient->iline == NULL)
+    if (client_p->localClient->class == NULL)
       continue;
 
-    conf = client_p->localClient->iline;
-    aconf = map_to_conf(conf);
-    if (aconf->class_ptr == oldcl)
+    if (client_p->localClient->class == oldcl)
       cidr_limit_reached(1, &client_p->localClient->ip, newcl);
   }
 }
@@ -3119,20 +3135,18 @@ rebuild_cidr_list(int aftype, struct ConfItem *oldcl, struct ClassItem *newcl,
  * side effects	- rebuilds the class link list of cidr blocks
  */
 void
-rebuild_cidr_class(struct ConfItem *conf, struct ClassItem *new_class)
+rebuild_cidr_class(struct ClassItem *old_class, struct ClassItem *new_class)
 {
-  struct ClassItem *old_class = map_to_conf(conf);
-
   if (NumberPerCidr(old_class) > 0 && NumberPerCidr(new_class) > 0)
   {
     if (CidrBitlenIPV4(old_class) > 0 && CidrBitlenIPV4(new_class) > 0)
-      rebuild_cidr_list(AF_INET, conf, new_class,
+      rebuild_cidr_list(AF_INET, old_class, new_class,
                         &old_class->list_ipv4, &new_class->list_ipv4,
                         CidrBitlenIPV4(old_class) != CidrBitlenIPV4(new_class));
 
 #ifdef IPV6
     if (CidrBitlenIPV6(old_class) > 0 && CidrBitlenIPV6(new_class) > 0)
-      rebuild_cidr_list(AF_INET6, conf, new_class,
+      rebuild_cidr_list(AF_INET6, old_class, new_class,
                         &old_class->list_ipv6, &new_class->list_ipv6,
                         CidrBitlenIPV6(old_class) != CidrBitlenIPV6(new_class));
 #endif
@@ -3176,3 +3190,5 @@ destroy_cidr_class(struct ClassItem *aclass)
   destroy_cidr_list(&aclass->list_ipv4);
   destroy_cidr_list(&aclass->list_ipv6);
 }
+
+

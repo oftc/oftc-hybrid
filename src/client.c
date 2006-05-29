@@ -871,6 +871,7 @@ remove_dependents(struct Client *source_p, struct Client *from,
 {
   struct Client *to;
   struct ConfItem *conf;
+  struct AccessItem *aconf;
   static char myname[HOSTLEN+1];
   dlink_node *ptr;
 
@@ -879,7 +880,10 @@ remove_dependents(struct Client *source_p, struct Client *from,
     to = ptr->data;
 
     if ((conf = to->serv->sconf) != NULL)
-      strlcpy(myname, my_name_for_link(conf), sizeof(myname));
+    {
+      aconf = map_to_conf(conf);
+      strlcpy(myname, my_name_for_link(aconf), sizeof(myname));
+    }
     else
       strlcpy(myname, me.name, sizeof(myname));
     recurse_send_quits(source_p, source_p, from, to,

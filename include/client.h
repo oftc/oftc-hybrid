@@ -200,7 +200,8 @@ struct LocalUser
   } recv, send;
 
   struct Listener *listener;    /* listener accepted from */
-  struct ConfItem *iline;	/* Client's assigned iline */
+  struct AccessItem *iline;	/* AccessItem client was accepted on */
+  struct ClassItem *class;	/* Client's class */
   struct irc_ssaddr ip;
   unsigned short    port;       /* and the remote port# too :-) */
   int 		    aftype;	/* Makes life easier for DNS res in IPV6 */

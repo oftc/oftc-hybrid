@@ -1531,8 +1531,8 @@ class_entry: CLASS
 
       if (cconf != NULL)		/* The class existed already */
       {
-        rebuild_cidr_class(cconf, yy_class);
         class = (struct ClassItem *) map_to_conf(cconf);
+        rebuild_cidr_class(class, yy_class);
         *class = *yy_class;
         delete_conf_item(yy_conf);
 

@@ -28,6 +28,7 @@
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
+#include "s_conf.h"
 #include "s_user.h"
 #include "send.h"
 #include "s_conf.h"
@@ -56,7 +57,7 @@ _moddeinit(void)
   mod_del_cmd(&user_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*

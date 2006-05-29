@@ -25,6 +25,7 @@
 #include "stdinc.h"
 #include "ircd.h"
 #include "handlers.h"
+#include "s_conf.h"
 #include "s_user.h"
 #include "client.h"
 #include "hash.h"       /* for find_client() */
@@ -57,7 +58,7 @@ _moddeinit(void)
   mod_del_cmd(&pong_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 static void 
 ms_pong(struct Client *client_p, struct Client *source_p, 

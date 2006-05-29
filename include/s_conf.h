@@ -480,8 +480,8 @@ extern void remove_one_ip(struct irc_ssaddr *);
 extern struct ConfItem *make_conf_item(ConfType type);
 extern void free_access_item(struct AccessItem *);
 extern void read_conf_files(int);
-extern int attach_iline(struct Client *, struct ConfItem *);
 extern int attach_connect_block(struct Client *, const char *, const char *);
+extern int attach_server_conf(struct Client *, struct ConfItem *);
 extern int attach_leaf_hub(struct Client *, struct ConfItem *);
 extern int detach_conf(struct Client *, ConfType);
 
@@ -526,6 +526,6 @@ extern int match_conf_password(const char *, const struct AccessItem *);
 #define BANNED_CLIENT     (-5)
 #define TOO_FAST          (-6)
 
-extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
+extern void rebuild_cidr_class(struct ClassItem *, struct ClassItem *);
 
 #endif /* INCLUDED_s_conf_h */
