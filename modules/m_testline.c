@@ -87,6 +87,7 @@ static void
 mo_testline(struct Client *client_p, struct Client *source_p,
             int parc, char *parv[])
 {
+  char *orig_parv1;
   char *given_name;
   char *given_host = NULL;
   struct ConfItem *conf;
@@ -122,6 +123,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     }
   }
 
+  DupString(orig_parv1,parv[1]);
   split_nuh(given_name, NULL, &given_name, &given_host);
 
   t = parse_netmask(given_host, &ip, &host_mask);
@@ -221,7 +223,10 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 
   if (matches == 0)
     sendto_one(source_p, form_str(RPL_NOTESTLINE),
-	       me.name, source_p->name, parv[1]);
+	       me.name, source_p->name, orig_parv1);
+  MyFree(given_host);
+  MyFree(given_name);
+  MyFree(orig_parv1);
 }
 
 /* mo_testgecos()
