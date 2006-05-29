@@ -126,7 +126,8 @@ do_links(struct Client *source_p, int parc, char **parv)
                me.name, me.name, 0, me.info);
     send_message_file(source_p, &ConfigFileEntry.linksfile);
     sendto_one(source_p, form_str(RPL_ENDOFLINKS),
-               ID_or_name(&me, source_p->from), "*");
+               ID_or_name(&me, source_p->from),
+               ID_or_name(source_p, source_p->from), "*");
   }
 }
 
