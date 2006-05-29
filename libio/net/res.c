@@ -791,7 +791,14 @@ res_readreply(fde_t *fd, void *data)
   if ((header->rcode != NO_ERRORS) || (header->ancount == 0))
   {
     if (SERVFAIL == header->rcode)
-      resend_query(request);
+    {
+      /*
+       * If a bad error was returned, we stop here and dont send
+       * send any more (no retries granted).
+       */
+      (*request->query->callback)(request->query->ptr, NULL);
+      rem_request(request);
+    } 
     else
     {
       /* 
@@ -813,16 +820,7 @@ res_readreply(fde_t *fd, void *data)
 	request->retries--;
         resend_query(request);
       }
-      else
 #endif
-      {
-        /*
-         * If a bad error was returned, we stop here and dont send
-         * send any more (no retries granted).
-         */
-        (*request->query->callback)(request->query->ptr, NULL);
-	rem_request(request);
-      } 
     }
 
     return;
