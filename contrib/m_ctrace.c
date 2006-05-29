@@ -119,7 +119,7 @@ do_ctrace(struct Client *source_p, char **parv)
   {
     target_p = ptr->data;
 
-    class_name = get_client_class(target_p);
+    class_name = ((struct ConfItem *)target_p->localClient->class->conf_ptr)->name;
     if ((class_name != NULL) && match(class_looking_for, class_name))
       report_this_status(source_p, target_p);
   }
@@ -149,7 +149,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
         target_p->localClient->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
         NI_NUMERICHOST);
   name = get_client_name(target_p, HIDE_IP);
-  class_name = get_client_class(target_p);
+  class_name  = ((struct ConfItem *)target_p->localClient->class->conf_ptr)->name;
 
   switch(target_p->status)
   {

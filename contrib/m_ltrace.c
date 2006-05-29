@@ -162,7 +162,7 @@ do_ltrace(struct Client *source_p, int parc, char **parv)
       irc_getnameinfo((struct sockaddr*)&target_p->localClient->ip,
                   target_p->localClient->ip.ss_len, ipaddr,
                   HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
-      class_name = get_client_class(target_p);
+      class_name = ((struct ConfItem *)target_p->localClient->class->conf_ptr)->name;
 
       if (IsOper(target_p))
       {
@@ -269,7 +269,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
               HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
 
   name = get_client_name(target_p, HIDE_IP);
-  class_name = get_client_class(target_p);
+  class_name = ((struct ConfItem *)target_p->localClient->class->conf_ptr)->name;
 
   switch (target_p->status)
   {
@@ -321,7 +321,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 
     case STAT_SERVER:
       if(!IsAdmin(source_p))
-        name = get_client_name(target_p, MASK_IP);
+	class_name = ((struct ConfItem *)target_p->localClient->class->conf_ptr)->name;
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),
                  me.name, source_p->name, class_name, link_s_p,

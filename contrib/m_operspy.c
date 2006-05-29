@@ -582,11 +582,9 @@ do_who_on_channel(struct Client *source_p, struct Channel *chptr,
 static void
 operspy_log(struct Client *source_p, const char *command, const char *target)
 {
-  struct ConfItem *conf = NULL;
 #ifdef OPERSPY_LOGFILE
   size_t nbytes = 0;
   FBFILE *operspy_fb;
-  dlink_node *cnode;
   const char *opername = source_p->name;
   char linebuf[IRCD_BUFSIZE], logfile[IRCD_BUFSIZE];
 #endif
@@ -595,10 +593,7 @@ operspy_log(struct Client *source_p, const char *command, const char *target)
 
 #ifdef OPERSPY_LOGFILE
   if (IsOper(source_p) && MyClient(source_p))
-  {
-    opername = (struct ConfItem *)unmap_conf_item(
-                (source_p->localClient->iline))->name;
-  }
+    opername = source_p->localClient->auth_oper;
   else if (!MyClient(source_p))
     opername = "remote";
 

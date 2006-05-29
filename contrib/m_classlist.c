@@ -87,7 +87,7 @@ mo_classlist(struct Client *client_p, struct Client *source_p,
 
     if (match(parv[1], conf->name))
     {
-      const struct ClassItem *aclass = map_to_conf(conf);
+      const struct ClassItem *aclass = &conf->conf.ClassItem;
       sendto_one(source_p, ":%s NOTICE %s :%s %d",
                  me.name, source_p->name, conf->name,
                  CurrUserCount(aclass));
