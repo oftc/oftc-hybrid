@@ -35,6 +35,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "parse_aline.h"
 
 static void do_ctrace(struct Client *, char **);
 static void mo_ctrace(struct Client *, struct Client *, int, char *[]);

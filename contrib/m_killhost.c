@@ -38,6 +38,7 @@
 #include "parse.h"
 #include "channel_mode.h"    /* needed only for split_nuh() */
 #include "modules.h"
+#include "parse_aline.h"
 
 static void mo_killhost(struct Client *, struct Client *, int, char *[]);
 static void kh_relay_kill(struct Client *, struct Client *, struct Client *,
