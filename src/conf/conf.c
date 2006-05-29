@@ -24,8 +24,8 @@
  */
 
 #include "stdinc.h"
+#include "conf/conf.h"
 #include "client.h"
-#include "conf.h"
 #include "send.h"
 
 struct Callback *reset_conf = NULL;

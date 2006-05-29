@@ -474,7 +474,7 @@ char *yytext;
 #line 31 "lexer.l"
 
 #include "stdinc.h"
-#include "conf.h"
+#include "conf/conf.h"
 #include "y.tab.h"
 
 struct ConfParserContext conf_curctx;

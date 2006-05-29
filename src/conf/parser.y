@@ -26,7 +26,7 @@
 %{
 
 #include "stdinc.h"
-#include "conf.h"
+#include "conf/conf.h"
 
 #define YY_NO_UNPUT
 
