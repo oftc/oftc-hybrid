@@ -721,14 +721,12 @@ check_client(va_list args)
 {
   struct Client *source_p = va_arg(args, struct Client *);
   const char *username = va_arg(args, const char *);
+  struct AccessItem **aptr = va_arg(args, struct AccessItem **);
   int i;
  
-  /* I'm already in big trouble if source_p->localClient is NULL -db */
-  if ((i = verify_access(source_p, username)))
-  {
+  if ((i = verify_access(source_p, username, aptr)))
     ilog(L_INFO, "Access denied: %s[%s]", 
          source_p->name, source_p->sockhost);
-  }
 
   switch (i)
   {
@@ -827,7 +825,7 @@ check_client(va_list args)
  * side effect	- find the first (best) I line to attach.
  */
 static int
-verify_access(struct Client *client_p, const char *username)
+verify_access(struct Client *client_p, const char *username, struct AccessItem **aptr)
 {
   struct AccessItem *aconf = NULL, *rkconf = NULL;
   struct ConfItem *conf = NULL;
@@ -889,8 +887,9 @@ verify_access(struct Client *client_p, const char *username)
 
       if (check_class_limits(client_p, IsConfExemptLimits(aconf), aclass))
       {
+        assert(aptr);
+        *aptr = aconf;
 	aconf->clients++;
-	client_p->localClient->client_or_oper_conf = conf;
 	attach_class(client_p, aclass);
 	return(0);
       }
@@ -1933,19 +1932,14 @@ conf_connect_allowed(struct irc_ssaddr *addr, int aftype)
     return BANNED_CLIENT;
 
   ip_found = find_or_add_ip(addr);
+  ip_found->last_attempt = CurrentTime;
 
   if ((CurrentTime - ip_found->last_attempt) <
       ConfigFileEntry.throttle_time)
-  {
-    ip_found->last_attempt = CurrentTime;
     return TOO_FAST;
-  }
 
-  ip_found->last_attempt = CurrentTime;
   return 0;
 }
-
-
 
 /* oper_privs_as_string()
  *
@@ -2005,22 +1999,17 @@ oper_privs_as_string(const unsigned int port)
 char *
 get_oper_name(const struct Client *client_p)
 {
-  struct ConfItem *conf;
-
   /* +5 for !,@,{,} and null */
   static char buffer[NICKLEN+USERLEN+HOSTLEN+HOSTLEN+5];
 
-  if (MyConnect(client_p))
-  {
-    conf = client_p->localClient->client_or_oper_conf;
-
+  if (MyConnect(client_p) && IsOper(source_p))
     ircsprintf(buffer, "%s!%s@%s{%s}", client_p->name,
 	       client_p->username, client_p->host,
-	       (conf!=NULL)?conf->name:client_p->name);
-  }
+	       client_p->localClient->auth_oper);
   else
     ircsprintf(buffer, "%s!%s@%s{%s}", client_p->name,
-	       client_p->username, client_p->host, client_p->servptr->name);
+	       client_p->username, client_p->host,
+               client_p->servptr->name);
   return buffer;
 }
 
@@ -2150,7 +2139,7 @@ clear_out_old_conf(void)
   struct ClassItem *cltmp;
   struct MatchItem *match_item;
   dlink_list *free_items [] = {
-    &server_items,   &oconf_items,    &hub_items, &leaf_items,
+    &server_items,   &oconf_items,    &hub_items,   &leaf_items,
      &uconf_items,   &xconf_items, &rxconf_items, &rkconf_items,
      &nresv_items, &cluster_items,  &gdeny_items, NULL
   };
@@ -2397,12 +2386,11 @@ get_conf_name(ConfType type)
 const char *
 get_client_className(struct Client *target_p)
 {
-  struct ConfItem *conf;
+  assert(target_p && !IsMe(target_p))
 
-  if (target_p != NULL && !IsMe(target_p) &&
-      target_p->localClient->class != NULL)
+  if (target_p->localClient->class != NULL)
   {
-    conf = unmap_conf_item(target_p->localClient->class);
+    struct ConfItem *conf = unmap_conf_item(target_p->localClient->class);
     return conf->name;
   }
 

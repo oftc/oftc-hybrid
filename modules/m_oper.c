@@ -72,8 +72,8 @@ static void
 m_oper(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-  struct ConfItem *conf;
-  struct AccessItem *aconf=NULL;
+  struct ConfItem *conf = NULL;
+  struct AccessItem *aconf = NULL;
   const char *name = parv[1];
   const char *password = parv[2];
 
@@ -91,6 +91,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
   if ((conf = find_password_conf(name, source_p)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
+    /* XXX - eh? what's that find_exact_name_conf() call for? why is it here? */
     conf = find_exact_name_conf(OPER_TYPE, name, NULL, NULL);
     failed_oper_notice(source_p, name, (conf != NULL) ?
                        "host mismatch" : "no oper {} block");
@@ -98,7 +99,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = map_to_conf(conf);
 
   if (match_conf_password(password, aconf))
   {

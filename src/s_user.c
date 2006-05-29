@@ -273,8 +273,7 @@ void
 register_local_user(struct Client *client_p, struct Client *source_p, 
                     const char *nick, const char *username)
 {
-  struct ConfItem *conf = NULL;
-  const struct AccessItem *aconf = NULL;
+  struct AccessItem *aconf = NULL;
   char ipaddr[HOSTIPLEN];
   dlink_node *m = NULL;
 
@@ -302,7 +301,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   /* Straight up the maximum rate of flooding... */
   source_p->localClient->allow_read = MAX_FLOOD_BURST;
 
-  if (!execute_callback(client_check_cb, source_p, username))
+  if (!execute_callback(client_check_cb, source_p, username, &aconf))
     return;
 
   if (valid_hostname(source_p->host) == 0)
@@ -312,9 +311,6 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     strlcpy(source_p->host, source_p->sockhost,
             sizeof(source_p->host));
   }
-
-  conf = source_p->localClient->client_or_oper_conf;
-  aconf = map_to_conf(conf);
 
   if (!IsGotId(source_p))
   {
@@ -436,7 +432,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
   if (ConfigFileEntry.invisible_on_connect)
     source_p->umodes |= UMODE_INVISIBLE;
-  Count.invisi++;
+  ++Count.invisi;
 
   if ((++Count.local) > Count.max_loc)
   {
@@ -965,7 +961,6 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
             {
               dlink_node *dm;
 
-              detach_conf(source_p, OPER_TYPE);
               ClearOperFlags(source_p);
 
               if ((dm = dlinkFindDelete(&oper_list, source_p)) != NULL)
@@ -1299,15 +1294,14 @@ oper_up(struct Client *source_p, struct ConfItem *conf, const char *name)
   dlinkAdd(source_p, make_dlink_node(), &oper_list);
 
   operprivs = oper_privs_as_string(aconf->port);
-  source_p->localClient->client_or_oper_conf = conf;
-
   SetOFlag(source_p, aconf->port);
 
   if (IsOperAdmin(source_p) || IsOperHiddenAdmin(source_p))
     source_p->umodes |= UMODE_ADMIN;
   if (!IsOperN(source_p))
     source_p->umodes &= ~UMODE_NCHANGE;
-
+  MyFree(source_p->localClient->auth_oper);
+  DupString(source_p->localClient->auth_oper, conf->name);
   sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s (%s@%s) is now an operator(%s)",
                        source_p->name, source_p->username, source_p->host, name);
   send_umode_out(source_p, source_p, old);
