@@ -274,7 +274,7 @@ make_conf_item(ConfType type)
   case GDENY_TYPE:
     conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
                                        sizeof(struct AccessItem));
-    dlinkAddTail(conf, &conf->node, &gdeny_items);
+    dlinkAdd(conf, &conf->node, &gdeny_items);
     break;
 
   case XLINE_TYPE:
