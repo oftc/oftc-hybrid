@@ -27,7 +27,6 @@
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_misc.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
@@ -41,7 +40,7 @@ static void mo_time(struct Client*, struct Client*, int, char**);
 
 struct Message time_msgtab = {
   "TIME", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_time, mo_time, mo_time, m_ignore}
+  {m_unregistered, m_time, mo_time, m_ignore, mo_time, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -57,7 +56,7 @@ _moddeinit(void)
   mod_del_cmd(&time_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 /*
  * m_time

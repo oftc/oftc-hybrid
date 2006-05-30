@@ -23,12 +23,9 @@
  */
 
 #include "stdinc.h"
-#include "balloc.h"
-#include "tools.h"	 /* dlink_node/dlink_list */
 #include "handlers.h"    /* m_pass prototype */
 #include "client.h"      /* Client */
 #include "common.h"      /* TRUE/FALSE */
-#include "irc_string.h"  
 #include "ircd.h"        /* me */
 #include "listener.h"    /* show_ports */
 #include "s_gline.h"
@@ -37,22 +34,14 @@
 #include "hostmask.h"
 #include "numeric.h"     /* ERR_xxx */
 #include "send.h"        /* sendto_one */
-#include "fdlist.h"      /* PF and friends */
-#include "s_bsd.h"       /* highest_fd */
 #include "s_conf.h"      /* AccessItem, report_configured_links */
-#include "s_misc.h"      /* serv_info */
 #include "s_serv.h"      /* hunt_server */
 #include "s_stats.h"     /* tstats */
 #include "s_user.h"      /* show_opers */
-#include "event.h"	 /* events */
-#include "dbuf.h"
 #include "parse.h"
 #include "modules.h"
-#include "hook.h"
 #include "resv.h"  /* report_resv */
 #include "whowas.h"
-#include "list.h"
-#include "irc_getnameinfo.h"
 
 static void do_stats(struct Client *, int, char **);
 static void m_stats(struct Client *, struct Client *, int, char *[]);

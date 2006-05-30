@@ -23,13 +23,10 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "fdlist.h"
-#include "s_bsd.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
@@ -39,7 +36,7 @@ static void mo_close(struct Client *, struct Client *, int, char **);
 
 struct Message close_msgtab = {
   "CLOSE", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, mo_close, m_ignore}
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_close, m_ignore}
 };
 #ifndef STATIC_MODULES
 void
@@ -54,7 +51,7 @@ _moddeinit(void)
   mod_del_cmd(&close_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -85,7 +82,7 @@ mo_close(struct Client *client_p, struct Client *source_p,
     /* exit here is safe, because it is guaranteed not to be source_p
      * because it is unregistered and source_p is an oper.
      */
-    exit_client(target_p, target_p, target_p, "Oper Closing");
+    exit_client(target_p, target_p, "Oper Closing");
     closed++;
   }
 

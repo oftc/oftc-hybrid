@@ -26,19 +26,16 @@
 #include "handlers.h"
 #include "client.h"
 #include "common.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "restart.h"
-#include "s_log.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
-static void mo_restart(struct Client *, struct Client *, int, char **);
+static void mo_restart(struct Client *, struct Client *, int, char *[]);
 
 struct Message restart_msgtab = {
   "RESTART", 0, 0, 0, 0, MFLG_SLOW, 0,
@@ -73,8 +70,8 @@ mo_restart(struct Client *client_p, struct Client *source_p,
 
   if (!IsOperDie(source_p))
   {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
+    sendto_one(source_p, form_str(ERR_NOPRIVS),
+               me.name, source_p->name, "restart");
     return;
   }
 

@@ -29,20 +29,17 @@
 #include "numeric.h"
 #include "s_serv.h"
 #include "send.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
 
-static char buf[BUFSIZE];
 
-static void m_userhost(struct Client*, struct Client*, int, char**);
+static void m_userhost(struct Client *, struct Client *, int, char *[]);
 
 struct Message userhost_msgtab = {
   "USERHOST", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_userhost, m_userhost, m_userhost, m_ignore}
+  {m_unregistered, m_userhost, m_userhost, m_ignore, m_userhost, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -58,8 +55,9 @@ _moddeinit(void)
   mod_del_cmd(&userhost_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
+
 /*
  * m_userhost added by Darren Reed 13/8/91 to aid clients and reduce
  * the need for complicated requests like WHOIS. It returns user/host
@@ -67,9 +65,10 @@ const char *_version = "$Revision: 229 $";
  */
 static void
 m_userhost(struct Client *client_p, struct Client *source_p,
-	   int parc, char *parv[])
+           int parc, char *parv[])
 {
   struct Client *target_p;
+  char buf[IRCD_BUFSIZE];
   char response[NICKLEN*2+USERLEN+HOSTLEN+30];
   char *t;
   int i, n;               /* loop counter */
@@ -79,13 +78,13 @@ m_userhost(struct Client *client_p, struct Client *source_p,
   cur_len = ircsprintf(buf,form_str(RPL_USERHOST),me.name, parv[0], "");
   t = buf + cur_len;
 
-  for ( i = 0; i < 5; i++)
-    {
-      if (parv[i+1] == NULL)
-        break;
+  for (i = 0; i < 5; i++)
+  {
+    if (parv[i+1] == NULL)
+      break;
 
-      if ((target_p = find_person(parv[i+1])) != NULL)
-	{
+    if ((target_p = find_person(client_p, parv[i+1])) != NULL)
+    {
 	  /*
 	   * Show real IP for USERHOST on yourself.
 	   * This is needed for things like mIRC, which do a server-based
@@ -104,26 +103,26 @@ m_userhost(struct Client *client_p, struct Client *source_p,
             rl = ircsprintf(response, "%s%s=%c%s@%s ",
 			    target_p->name,
 			    IsOper(target_p) ? "*" : "",
-			    (target_p->user->away) ? '-' : '+',
+			    (target_p->away) ? '-' : '+',
 			    target_p->username,
-			    target_p->localClient->sockhost);
+			    target_p->sockhost);
 	  }
           else
 	  {
             rl = ircsprintf(response, "%s%s=%c%s@%s ",
 			    target_p->name,
 			    IsOper(target_p) ? "*" : "",
-			    (target_p->user->away) ? '-' : '+',
+			    (target_p->away) ? '-' : '+',
 			    target_p->username,
 			    target_p->host);
 	  }
 
-	  if((rl + cur_len) < (BUFSIZE-10))
-	    {
+	  if ((rl + cur_len) < (IRCD_BUFSIZE-10))
+          {
 	      ircsprintf(t,"%s",response);
 	      t += rl;
 	      cur_len += rl;
-	    }
+          }
 	  else
 	    break;
 	}

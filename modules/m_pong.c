@@ -32,7 +32,6 @@
 #include "numeric.h"
 #include "s_conf.h"
 #include "send.h"
-#include "irc_string.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
@@ -42,7 +41,7 @@ static void ms_pong(struct Client *, struct Client *, int, char **);
 
 struct Message pong_msgtab = {
   "PONG", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_pong, m_ignore, ms_pong, m_ignore, m_ignore}
+  {mr_pong, m_ignore, ms_pong, m_ignore, m_ignore, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -96,7 +95,8 @@ ms_pong(struct Client *client_p, struct Client *source_p,
    * That being the case, we will route, but only for registered clients (a
    * case can be made to allow them only from servers). -Shadowfax
    */
-  if (!EmptyString(destination) && !match(destination, me.name))
+  if (!EmptyString(destination) && !match(destination, me.name) &&
+      irccmp(destination, me.id))
   {
       if ((target_p = find_client(destination)) ||
           (target_p = find_server(destination)))
@@ -117,7 +117,7 @@ mr_pong(struct Client *client_p, struct Client *source_p,
 {
   if (parc == 2 && *parv[1] != '\0')
   {
-    if(ConfigFileEntry.ping_cookie && source_p->user && source_p->name[0])
+    if(ConfigFileEntry.ping_cookie && (source_p->flags&FLAGS_GOTUSER) && source_p->name[0])
     {
 	unsigned long incoming_ping = strtoul(parv[1], NULL, 10);
 	if(incoming_ping)

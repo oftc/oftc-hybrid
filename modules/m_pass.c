@@ -25,19 +25,20 @@
 #include "stdinc.h"
 #include "handlers.h"  /* m_pass prototype */
 #include "client.h"      /* client struct */
-#include "irc_string.h" 
 #include "send.h"        /* sendto_one */
 #include "numeric.h"     /* ERR_xxx */
 #include "ircd.h"        /* me */
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "s_serv.h"
+#include "hash.h"
 
 static void mr_pass(struct Client *, struct Client *, int, char **);
 
 struct Message pass_msgtab = {
   "PASS", 0, 0, 2, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_pass, m_registered, m_ignore, m_registered, mr_pass}
+  {mr_pass, m_registered, m_ignore, m_ignore, m_registered, mr_pass}
 };
 
 #ifndef STATIC_MODULES
@@ -53,7 +54,7 @@ _moddeinit(void)
   mod_del_cmd(&pass_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -94,6 +95,16 @@ mr_pass(struct Client *client_p, struct Client *source_p,
      */
     if (!irccmp(parv[2], "TS") && client_p->tsinfo == 0)
       client_p->tsinfo = TS_DOESTS;
+  }
+
+  /* only do this stuff if we are doing ts6 */
+  if (parc > 4 && me.id[0])
+  {
+    if (atoi(parv[3]) >= 6)
+    {
+      strlcpy(client_p->id, parv[4], sizeof(client_p->id));
+      SetCapable(client_p, CAP_TS6);
+    }
   }
 }
 

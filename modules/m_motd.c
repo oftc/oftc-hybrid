@@ -24,25 +24,20 @@
 
 #include "stdinc.h"
 #include "client.h"
-#include "tools.h"
 #include "motd.h"
 #include "ircd.h"
 #include "send.h"
 #include "numeric.h"
 #include "handlers.h"
-#include "hook.h"
 #include "msg.h"
 #include "s_serv.h"     /* hunt_server */
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
 
-
 static void mr_motd(struct Client *, struct Client *, int, char **);
 static void m_motd(struct Client*, struct Client*, int, char**);
 static void mo_motd(struct Client*, struct Client*, int, char**);
-
-static void motd_spy(struct Client *);
 
 /*
  * note regarding mo_motd being used twice:
@@ -53,24 +48,35 @@ static void motd_spy(struct Client *);
  */
 struct Message motd_msgtab = {
   "MOTD", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {mr_motd, m_motd, mo_motd, mo_motd, m_ignore}
+  {mr_motd, m_motd, mo_motd, m_ignore, mo_motd, m_ignore}
 };
+
 #ifndef STATIC_MODULES
+const char *_version = "$Revision$";
+static struct Callback *motd_cb;
+
+static void *
+do_motd(va_list args)
+{
+  struct Client *source_p = va_arg(args, struct Client *);
+
+  send_message_file(source_p, &ConfigFileEntry.motd);
+  return NULL;
+}
+
 void
 _modinit(void)
 {
-  hook_add_event("doing_motd");
+  motd_cb = register_callback("doing_motd", do_motd);
   mod_add_cmd(&motd_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-  hook_del_event("doing_motd");
   mod_del_cmd(&motd_msgtab);
+  uninstall_hook(motd_cb, do_motd);
 }
-
-const char *_version = "$Revision: 229 $";
 #endif
 
 /* mr_motd()
@@ -82,8 +88,8 @@ mr_motd(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   /* allow unregistered clients to see the motd, but exit them */
-  send_message_file(source_p,&ConfigFileEntry.motd);
-  exit_client(client_p, source_p, source_p, "Client Exit after MOTD");
+  send_message_file(source_p, &ConfigFileEntry.motd);
+  exit_client(source_p, source_p, "Client Exit after MOTD");
 }
 
 /*
@@ -100,7 +106,7 @@ m_motd(struct Client *client_p, struct Client *source_p,
   if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
-    sendto_one(source_p,form_str(RPL_LOAD2HI),me.name,source_p->name);
+    sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name);
     return;
   }
   else
@@ -113,8 +119,11 @@ m_motd(struct Client *client_p, struct Client *source_p,
       return;
   }
 
-  motd_spy(source_p);
-  send_message_file(source_p,&ConfigFileEntry.motd);
+#ifdef STATIC_MODULES
+  send_message_file(source_p, &ConfigFileEntry.motd);
+#else
+  execute_callback(motd_cb, source_p, parc, parv);
+#endif
 }
 
 /*
@@ -129,27 +138,12 @@ mo_motd(struct Client *client_p, struct Client *source_p,
   if (!IsClient(source_p))
     return;
 
-  if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1,parc,parv)!=HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s MOTD :%s",1,parc,parv)!=HUNTED_ISME)
     return;
 
-  motd_spy(source_p);
-  
-  send_message_file(source_p,&ConfigFileEntry.motd);
+#ifdef STATIC_MODULES
+  send_message_file(source_p, &ConfigFileEntry.motd);
+#else
+  execute_callback(motd_cb, source_p, parc, parv);
+#endif
 }
-
-/* motd_spy()
- *
- * input        - pointer to client
- * output       - none
- * side effects - hook doing_motd is called
- */
-static void
-motd_spy(struct Client *source_p)
-{
-  struct hook_spy_data data;
-
-  data.source_p = source_p;
-
-  hook_call_event("doing_motd", &data);
-}
-

@@ -25,7 +25,6 @@
 #include "stdinc.h"
 #include "handlers.h"
 #include "client.h"
-#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_conf.h"
@@ -41,7 +40,7 @@ static void mr_user(struct Client*, struct Client*, int, char**);
 
 struct Message user_msgtab = {
   "USER", 0, 0, 5, 0, MFLG_SLOW, 0L,
-  {mr_user, m_registered, m_ignore, m_registered, m_ignore}
+  {mr_user, m_registered, m_ignore, m_ignore, m_registered, m_ignore}
 };
 
 #ifndef STATIC_MODULES

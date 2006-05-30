@@ -23,32 +23,28 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h" /* IRCD_BUFSIZE */
 #include "hash.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
 #include "s_serv.h"
-#include "s_log.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
+#include "common.h"
 
 static void m_topic(struct Client *, struct Client *, int, char **);
 static void ms_topic(struct Client *, struct Client *, int, char **);
 
 struct Message topic_msgtab = {
   "TOPIC", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_topic, ms_topic, m_topic, m_ignore}
+  {m_unregistered, m_topic, ms_topic, m_ignore, m_topic, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -64,7 +60,7 @@ _moddeinit(void)
   mod_del_cmd(&topic_msgtab);
 }
 
-const char *_version = "$Revision: 410 $";
+const char *_version = "$Revision$";
 #endif
 
 /* m_topic()
@@ -79,6 +75,18 @@ m_topic(struct Client *client_p, struct Client *source_p,
   struct Channel *chptr = NULL;
   char *p;
   struct Membership *ms;
+  const char *from, *to;
+
+  if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
+  {
+    from = me.id;
+    to = source_p->id;
+  }
+  else
+  {
+    from = me.name;
+    to = source_p->name;
+  }
 
   if ((p = strchr(parv[1], ',')) != NULL)
     *p = '\0';
@@ -86,14 +94,14 @@ m_topic(struct Client *client_p, struct Client *source_p,
   if (parv[1][0] == '\0')
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, source_p->name, "TOPIC");
+               from, to, "TOPIC");
     return;
   }
 
   if (MyClient(source_p) && !IsFloodDone(source_p))
     flood_endgrace(source_p);
 
-  if (IsChannelName(parv[1]))
+  if (IsChanPrefix(*parv[1]))
   {
     if ((chptr = hash_find_channel(parv[1])) == NULL)
     {
@@ -103,14 +111,14 @@ m_topic(struct Client *client_p, struct Client *source_p,
       if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
       {
         sendto_one(uplink, ":%s TOPIC %s %s",
-                   source_p->name, parv[1],
+                   ID_or_name(source_p, uplink), chptr->chname,
                    ((parc > 2) ? parv[2] : ""));
         return;
       }
       else
       {
         sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-                   me.name, source_p->name, parv[1]);
+                   from, to, parv[1]);
         return;
       }
     }
@@ -157,7 +165,7 @@ m_topic(struct Client *client_p, struct Client *source_p,
       }
       else
         sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-                   me.name, source_p->name, parv[1]);
+                   from, to, chptr->chname);
     }
     else /* only asking for topic */
     {
@@ -165,11 +173,11 @@ m_topic(struct Client *client_p, struct Client *source_p,
       {
         if (chptr->topic == NULL)
           sendto_one(source_p, form_str(RPL_NOTOPIC),
-                     me.name, source_p->name, parv[1]);
+                     from, to, chptr->chname);
         else
         {
           sendto_one(source_p, form_str(RPL_TOPIC),
-                     me.name, source_p->name,
+                     from, to,
                      chptr->chname, chptr->topic);
 
           /* client on LL needing the topic - if we have serverhide, say
@@ -180,13 +188,13 @@ m_topic(struct Client *client_p, struct Client *source_p,
               && IsCapable(client_p, CAP_LL) && ServerInfo.hub)
           {
             sendto_one(source_p, form_str(RPL_TOPICWHOTIME),
-  	               me.name, source_p->name, chptr->chname,
+  	               from, to, chptr->chname,
                        client_p->name, chptr->topic_time);
           }
           else
           {
             sendto_one(source_p, form_str(RPL_TOPICWHOTIME),
-                       me.name, source_p->name, chptr->chname,
+                       from, to, chptr->chname,
                        chptr->topic_info,
                        chptr->topic_time);
           }
@@ -195,7 +203,7 @@ m_topic(struct Client *client_p, struct Client *source_p,
       else
       {
         sendto_one(source_p, form_str(ERR_NOTONCHANNEL),
-                   me.name, source_p->name, parv[1]);
+                   from, to, chptr->chname);
         return;
       }
     }
@@ -203,7 +211,7 @@ m_topic(struct Client *client_p, struct Client *source_p,
   else
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-               me.name, source_p->name, parv[1]);
+               from, to, parv[1]);
   }
 }
 
@@ -228,40 +236,31 @@ ms_topic(struct Client *client_p, struct Client *source_p,
     m_topic(client_p, source_p, parc, parv);
     return;
   }
-  else
-  {
-      sendto_server(client_p, NULL, chptr, NOCAPS, NOCAPS, NOFLAGS,
-              ":%s TOPIC %s %s %s :%s",
-              parv[0], parv[1], parv[2], parv[3], parv[4]);
-  }
 
   if (parc < 5)
     return;
 
-  if (parv[1] && IsChannelName(parv[1]))
+  if (parv[1] && IsChanPrefix(*parv[1]))
   {
     if ((chptr = hash_find_channel(parv[1])) == NULL)
       return;
-    
-    if(chptr->mode.mode & MODE_NOCOLOR && msg_has_colors(parv[4])) 
-        parv[4] = strip_color(parv[4]);
+
     set_channel_topic(chptr, parv[4], parv[2], atoi(parv[3]));
 
     if (ConfigServerHide.hide_servers)
     {
-      sendto_channel_local(ALL_MEMBERS,
+      sendto_channel_local(ALL_MEMBERS, NO,
                            chptr, ":%s TOPIC %s :%s",
-                           me.name,
-                           parv[1],
+                           me.name, chptr->chname,
                            chptr->topic == NULL ? "" : chptr->topic);
 
     }
     else
     {
-      sendto_channel_local(ALL_MEMBERS,
+      sendto_channel_local(ALL_MEMBERS, NO,
                            chptr, ":%s TOPIC %s :%s",
                            source_p->name,
-                           parv[1], chptr->topic == NULL ? "" : chptr->topic);
+                           chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
     }
   }
 }

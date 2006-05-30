@@ -23,14 +23,11 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "hash.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
@@ -39,30 +36,29 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_serv.h"
-
+#include "s_user.h"
+#include "common.h"
 
 static void m_knock(struct Client*, struct Client*, int, char**);
 static void ms_knock(struct Client *, struct Client *, int, char**);
+static void me_knock(struct Client *, struct Client *, int, char**);
 
 static void parse_knock_local(struct Client *, struct Client *,
                               int, char **, char *);
 static void parse_knock_remote(struct Client *, struct Client *,
-                               int, char **);
+                                      int, char **, int);
 
 static void send_knock(struct Client *, struct Client *,
-                       struct Channel *, char *, char *, int);
-
-static int is_banned_knock(struct Channel *, struct Client *, char *);
-static int check_banned_knock(struct Channel *, struct Client *,
-                              char *, char *);
+                       struct Channel *, char *, char *, int, int);
 
 struct Message knock_msgtab = {
   "KNOCK", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_knock, ms_knock, m_knock, m_ignore}
+  {m_unregistered, m_knock, ms_knock, me_knock, m_knock, m_ignore}
 };
+
 struct Message knockll_msgtab = {
   "KNOCKLL", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_ignore, m_knock, m_ignore, m_ignore}
+  {m_unregistered, m_ignore, m_knock, m_ignore, m_ignore, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -73,6 +69,7 @@ _modinit(void)
   mod_add_cmd(&knock_msgtab);
   mod_add_cmd(&knockll_msgtab);
   add_capability("KNOCK", CAP_KNOCK, 1);
+  add_isupport("KNOCK", NULL, -1);
 }
 
 void
@@ -81,9 +78,10 @@ _moddeinit(void)
   mod_del_cmd(&knock_msgtab);
   mod_del_cmd(&knockll_msgtab);
   delete_capability("KNOCK");
+  delete_isupport("KNOCK");
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /* m_knock
@@ -153,7 +151,21 @@ ms_knock(struct Client *client_p, struct Client *source_p,
 	 int parc, char *parv[])
 {
   if (IsClient(source_p))
-    parse_knock_remote(client_p, source_p, parc, parv);
+    parse_knock_remote(client_p, source_p, parc, parv, 1);
+}
+
+/* 
+ * me_knock()
+ *	parv[0] = sender prefix
+ *	parv[1] = channel
+ */
+ 
+static void
+me_knock(struct Client *client_p, struct Client *source_p,
+	 int parc, char *parv[])
+{
+  if (IsClient(source_p))
+    parse_knock_remote(client_p, source_p, parc, parv, 0);
 }
 
 /* parse_knock_local()
@@ -162,7 +174,7 @@ ms_knock(struct Client *client_p, struct Client *source_p,
  *              - pointer to source struct source_p
  *              - number of args
  *              - pointer to array of args
- *		- clients sockhost (if remote)
+ *		- clients sockhost
  * output       -
  * side effects - sets name to name of base channel
  *                or sends failure message to source_p
@@ -190,7 +202,7 @@ parse_knock_local(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!IsChannelName(name))
+  if (!IsChanPrefix(*name))
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                me.name, source_p->name, name);
@@ -202,9 +214,9 @@ parse_knock_local(struct Client *client_p, struct Client *source_p,
     if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
     {
       sendto_one(uplink, ":%s KNOCKLL %s %s %s",
-                 source_p->name, parv[1],
+                 ID_or_name(source_p, uplink), parv[1],
 		 IsIPSpoof(source_p) ? "255.255.255.255" :
-		 source_p->localClient->sockhost,
+		 source_p->sockhost,
 		 (parc > 2) ? parv[2] : "");
     }
     else
@@ -234,9 +246,7 @@ parse_knock_local(struct Client *client_p, struct Client *source_p,
   }
 
   /* don't allow a knock if the user is banned, or the channel is secret */
-  if ((chptr->mode.mode & MODE_PRIVATE) ||
-      (sockhost && is_banned_knock(chptr, source_p, sockhost)) ||
-      (!sockhost && is_banned(chptr, source_p)))
+  if ((chptr->mode.mode & MODE_PRIVATE) || is_banned(chptr, source_p))
   {
     sendto_one(source_p, form_str(ERR_CANNOTSENDTOCHAN),
                me.name, source_p->name, name);
@@ -267,7 +277,7 @@ parse_knock_local(struct Client *client_p, struct Client *source_p,
 
   /* pass on the knock */
   send_knock(client_p, source_p, chptr, name, key,
-             MyClient(source_p) ? 0 : 1);
+             MyClient(source_p) ? 0 : 1, 1);
 }
 
 /* parse_knock_remote()
@@ -282,7 +292,7 @@ parse_knock_local(struct Client *client_p, struct Client *source_p,
  */
 static void
 parse_knock_remote(struct Client *client_p, struct Client *source_p,
-		   int parc, char *parv[])
+		   int parc, char *parv[], int prop)
 {
   struct Channel *chptr;
   char *p, *name, *key;
@@ -293,7 +303,7 @@ parse_knock_remote(struct Client *client_p, struct Client *source_p,
   if ((p = strchr(name, ',')) != NULL)
     *p = '\0';
 
-  if (!IsChannelName(name) || (chptr = hash_find_channel(name)) == NULL)
+  if (!IsChanPrefix(*name) || (chptr = hash_find_channel(name)) == NULL)
     return;
 
   if (IsMember(source_p, chptr))
@@ -305,7 +315,7 @@ parse_knock_remote(struct Client *client_p, struct Client *source_p,
     return;
 
   if (chptr)
-    send_knock(client_p, source_p, chptr, name, key, 0);
+    send_knock(client_p, source_p, chptr, name, key, 0, prop);
 }
 
 /* send_knock()
@@ -319,7 +329,8 @@ parse_knock_remote(struct Client *client_p, struct Client *source_p,
  */
 static void
 send_knock(struct Client *client_p, struct Client *source_p,
-	   struct Channel *chptr, char *name, char *key, int llclient)
+	   struct Channel *chptr, char *name, char *key, int llclient,
+	   int prop)
 {
   chptr->last_knock = CurrentTime;
 
@@ -334,84 +345,24 @@ send_knock(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(RPL_KNOCKDLVR),
                me.name, source_p->name, name);
 
-  if (source_p->user != NULL)
+  if (IsClient(source_p))
   {
-      if (ConfigChannel.use_knock)
-        sendto_channel_local(CHFL_CHANOP|CHFL_HALFOP,
-  			     chptr, form_str(RPL_KNOCK),
+    if (ConfigChannel.use_knock)
+      sendto_channel_local(CHFL_CHANOP, NO,
+		     chptr, form_str(RPL_KNOCK),
 			     me.name, name, name,
 			     source_p->name, source_p->username,
 			     source_p->host);
 
-      sendto_server(client_p, source_p, chptr, CAP_KNOCK, NOCAPS, LL_ICLIENT,
+    if (prop)
+    {
+      sendto_server(client_p, source_p, chptr, CAP_KNOCK|CAP_TS6, NOCAPS, LL_ICLIENT,
+                    ":%s KNOCK %s %s",
+                    ID(source_p), name, key != NULL ? key : "");
+      sendto_server(client_p, source_p, chptr, CAP_KNOCK, CAP_TS6, LL_ICLIENT,
                     ":%s KNOCK %s %s",
 		    source_p->name, name, key != NULL ? key : "");
-  }
-}
-
-/* is_banned_knock()
- * 
- * input	- pointer to channel
- *		- pointer to client
- *		- clients sockhost
- * output	- 
- * side effects - return check_banned_knock()
- */
-static int
-is_banned_knock(struct Channel *chptr, struct Client *who, char *sockhost)
-{
-  char src_host[NICKLEN + USERLEN + HOSTLEN + 6];
-  char src_iphost[NICKLEN + USERLEN + HOSTLEN + 6];
-
-  if (!IsPerson(who))
-    return(0);
-
-  ircsprintf(src_host, "%s!%s@%s", who->name, who->username, who->host);
-  ircsprintf(src_iphost, "%s!%s@%s", who->name, who->username, sockhost);
-
-  return(check_banned_knock(chptr, who, src_host, src_iphost));
-}
-
-/** XXX - need CIDR support **/
-
-/* check_banned_knock()
- *
- * input	- pointer to channel
- * 		- pointer to client
- *		- preformed nick!user@host
- *		- preformed nick!user@ip
- * output	- 
- * side effects - return CHFL_EXCEPTION, CHFL_BAN or 0
- */
-static int
-check_banned_knock(struct Channel *chptr, struct Client *who,
-                   char *s, char *s2)
-{
-  dlink_node *ban;
-  dlink_node *except;
-  struct Ban *actualBan = NULL;
-  struct Ban *actualExcept = NULL;
-
-  DLINK_FOREACH(ban, chptr->banlist.head)
-  {
-    actualBan = ban->data;
-
-    if (match(actualBan->banstr, s) || match(actualBan->banstr, s2))
-      break;
-    else
-      actualBan = NULL;
-  }
-
-  if ((actualBan != NULL) && ConfigChannel.use_except)
-  {
-    DLINK_FOREACH(except, chptr->exceptlist.head)
-    {
-      actualExcept = except->data;
-
-      if (match(actualExcept->banstr, s) || match(actualExcept->banstr, s2))
-        return(CHFL_EXCEPTION);
     }
   }
-
-  return ((actualBan ? CHFL_BAN : 0));
 }
+

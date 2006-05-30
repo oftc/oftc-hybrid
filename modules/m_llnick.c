@@ -23,14 +23,11 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "client.h"
 #include "hash.h"
 #include "common.h"
 #include "hash.h"
-#include "irc_string.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "s_serv.h"
 #include "send.h"
@@ -44,7 +41,7 @@ static void ms_llnick(struct Client*, struct Client*, int, char**);
 
 struct Message llnick_msgtab = {
   "LLNICK", 0, 0, 3, 0, MFLG_SLOW | MFLG_UNREG, 0L,
-  {m_unregistered, m_ignore, ms_llnick, m_ignore, m_ignore}
+  {m_unregistered, m_ignore, ms_llnick, m_ignore, m_ignore, m_ignore}
 };
 #ifndef STATIC_MODULES
 
@@ -105,7 +102,7 @@ ms_llnick(struct Client *client_p, struct Client *source_p,
   {
     nick_old++; /* skip '!' */
     /* New user -- find them */
-    for( ptr = unknown_list.head; ptr; ptr = ptr->next )
+    DLINK_FOREACH(ptr, unknown_list.head)
     {
       if (!strcmp(nick_old, ((struct Client *)ptr->data)->localClient->llname))
       {

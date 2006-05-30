@@ -38,17 +38,17 @@ static void mr_dumb_proxy(struct Client*, struct Client*, int, char**);
 
 struct Message post_msgtab = {
   "POST", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore}
+  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
 };
 
 struct Message get_msgtab = {
   "GET", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore}
+  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
 };
 
 struct Message put_msgtab = {
   "PUT", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore}
+  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
 };
 
 
@@ -69,7 +69,7 @@ _moddeinit(void)
   mod_del_cmd(&put_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -81,8 +81,8 @@ static void
 mr_dumb_proxy(struct Client *client_p, struct Client *source_p,
               int parc, char *parv[])
 {
-  sendto_gnotice_flags(UMODE_REJ, L_ALL, me.name, &me, NULL,
+  sendto_realops_flags(UMODE_REJ, L_ALL,
                        "HTTP Proxy disconnected: [%s@%s]",
                        client_p->username, client_p->host);
-  exit_client(client_p, source_p, source_p, "Client Exit");
+  exit_client(source_p, source_p, "Client Exit");
 }

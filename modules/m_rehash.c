@@ -26,13 +26,9 @@
 #include "handlers.h"
 #include "client.h"
 #include "common.h"
-#include "irc_string.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
-#include "irc_res.h"
 #include "s_conf.h"
-#include "s_log.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
@@ -42,7 +38,7 @@ static void mo_rehash(struct Client *, struct Client *, int, char **);
 
 struct Message rehash_msgtab = {
   "REHASH", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, mo_rehash, m_ignore}
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_rehash, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -58,7 +54,7 @@ _moddeinit(void)
   mod_del_cmd(&rehash_msgtab);
 }
 
-const char *_version = "$Revision: 316 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -73,13 +69,14 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
 
   if (!IsOperRehash(source_p))
   {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
+    sendto_one(source_p, form_str(ERR_NOPRIVS),
+               me.name, source_p->name, "rehash");
     return;
   }
 
   if (parc > 1)
   {
+#ifndef _WIN32
     if (irccmp(parv[1], "DNS") == 0)
     {
       sendto_one(source_p, form_str(RPL_REHASHING), me.name, parv[0], "DNS");
@@ -89,7 +86,18 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
                                and close/re-open res socket */
       found = 1;
     }
-    else if (irccmp(parv[1], "MOTD") == 0)
+    else if (irccmp(parv[1], "FDLIMIT") == 0)
+    {
+      sendto_one(source_p, form_str(RPL_REHASHING), me.name,
+                 parv[0], "FDLIMIT");
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s is updating FDLIMIT",
+                           get_oper_name(source_p));
+      recalc_fdlimit(NULL);
+      found = 1;
+    }
+    else
+#endif
+    if (irccmp(parv[1], "MOTD") == 0)
     {
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                            "%s is forcing re-reading of MOTD file",
@@ -114,8 +122,13 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     }
     else
     {
-      sendto_one(source_p, ":%s NOTICE %s :rehash one of :DNS MOTD OMOTD",
+#ifdef _WIN32
+      sendto_one(source_p, ":%s NOTICE %s :rehash one of :MOTD OMOTD",
                  me.name, source_p->name);
+#else
+      sendto_one(source_p, ":%s NOTICE %s :rehash one of :DNS FDLIMIT "
+                 "MOTD OMOTD", me.name, source_p->name);
+#endif
       return;
     }
   }
@@ -127,7 +140,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
                          "%s is rehashing server config file",
                          get_oper_name(source_p));
     ilog(L_NOTICE, "REHASH From %s[%s]",
-         get_oper_name(source_p), source_p->localClient->sockhost);
+         get_oper_name(source_p), source_p->sockhost);
     rehash(0);
   }
 }

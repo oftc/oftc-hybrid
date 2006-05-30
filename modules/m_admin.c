@@ -32,36 +32,42 @@
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
-#include "hook.h"
 #include "modules.h"
-#include "irc_string.h"
 
 static void m_admin(struct Client *, struct Client *, int, char **);
 static void mr_admin(struct Client *, struct Client *, int, char **);
 static void ms_admin(struct Client *, struct Client *, int, char **);
-static void do_admin(struct Client *source_p);
-static void admin_spy(struct Client *);
+static void do_admin(struct Client *);
 
 struct Message admin_msgtab = {
   "ADMIN", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0, 
-  {mr_admin, m_admin, ms_admin, ms_admin, m_ignore}
+  {mr_admin, m_admin, ms_admin, m_ignore, ms_admin, m_ignore}
 };
 
 #ifndef STATIC_MODULES
+static struct Callback *admin_cb;
+const char *_version = "$Revision$";
+
+static void *
+va_admin(va_list args)
+{
+  do_admin(va_arg(args, struct Client *));
+  return NULL;
+}
+
 void
 _modinit(void)
 {
-  hook_add_event("doing_admin");
+  admin_cb = register_callback("doing_admin", va_admin);
   mod_add_cmd(&admin_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-  hook_del_event("doing_admin");
   mod_del_cmd(&admin_msgtab);
+  uninstall_hook(admin_cb, va_admin);
 }
-const char *_version = "$Revision: 229 $";
 #endif
 
 /*
@@ -74,17 +80,21 @@ mr_admin(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
   static time_t last_used = 0;
- 
+  
   if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
   {
-    sendto_one(source_p,form_str(RPL_LOAD2HI),
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, EmptyString(parv[0]) ? "*" : parv[0]);
     return;
   }
   else
     last_used = CurrentTime;
 
-  do_admin(source_p);
+#ifdef STATIC_MODULES
+  do_admin(client_p);
+#else
+  execute_callback(admin_cb, source_p, parc, parv);
+#endif
 }
 
 /*
@@ -113,7 +123,11 @@ m_admin(struct Client *client_p, struct Client *source_p,
       return;
   }
 
-  do_admin(source_p);
+#ifdef STATIC_MODULES
+  do_admin(client_p);
+#else
+  execute_callback(admin_cb, source_p, parc, parv);
+#endif
 }
 
 /*
@@ -129,7 +143,11 @@ ms_admin(struct Client *client_p, struct Client *source_p,
     return;
 
   if (IsClient(source_p))
+#ifdef STATIC_MODULES
     do_admin(source_p);
+#else
+    execute_callback(admin_cb, source_p, parc, parv);
+#endif
 }
 
 /* do_admin()
@@ -141,38 +159,21 @@ ms_admin(struct Client *client_p, struct Client *source_p,
 static void
 do_admin(struct Client *source_p)
 {
+  const char *me_name;
   const char *nick;
 
-  if (IsPerson(source_p))
-    admin_spy(source_p);
-
-  nick = EmptyString(source_p->name) ? "*" : source_p->name;
+  me_name = ID_or_name(&me, source_p->from);
+  nick = ID_or_name(source_p, source_p->from);
 
   sendto_one(source_p, form_str(RPL_ADMINME),
-	     me.name, nick, me.name);
+	     me_name, nick, me.name);
   if (AdminInfo.name != NULL)
     sendto_one(source_p, form_str(RPL_ADMINLOC1),
-	       me.name, nick, AdminInfo.name);
+	       me_name, nick, AdminInfo.name);
   if (AdminInfo.description != NULL)
     sendto_one(source_p, form_str(RPL_ADMINLOC2),
-	       me.name, nick, AdminInfo.description);
+	       me_name, nick, AdminInfo.description);
   if (AdminInfo.email != NULL)
     sendto_one(source_p, form_str(RPL_ADMINEMAIL),
-	       me.name, nick, AdminInfo.email);
-}
-
-/* admin_spy()
- *
- * input	- pointer to client
- * output	- none
- * side effects - event doing_admin is called
- */
-static void
-admin_spy(struct Client *source_p)
-{
-  struct hook_spy_data data;
-
-  data.source_p = source_p;
-
-  hook_call_event("doing_admin", &data);
+	       me_name, nick, AdminInfo.email);
 }

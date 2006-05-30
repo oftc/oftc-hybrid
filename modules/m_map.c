@@ -26,27 +26,18 @@
 #include "client.h"
 #include "modules.h"
 #include "handlers.h"
-#include "hash.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
-#include "s_serv.h"
 #include "ircd.h"
-#include "sprintf_irc.h"
 
-extern struct Client me;
-extern struct Counter Count;
-
-static void ms_map(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[]);
-static void mo_map(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[]);
-
-static void dump_map(struct Client *client_p,struct Client *root, char *pbuf);
+static void m_map(struct Client *, struct Client *, int, char *[]);
+static void mo_map(struct Client *, struct Client *, int, char *[]);
+static void dump_map(struct Client *, struct Client *, int, char *);
 
 struct Message map_msgtab = {
   "MAP", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_map, mo_map}
+  {m_unregistered, m_map, m_ignore, m_ignore, mo_map, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -60,117 +51,109 @@ void _moddeinit(void)
   mod_del_cmd(&map_msgtab);
 }
 
-const char *_version = "$Revision: 244 $";
+const char *_version = "$Revision$";
 #endif
 
-static char buf[BUFSIZE];
+static char buf[IRCD_BUFSIZE];
 
-/*
-** mo_map
-**      parv[0] = sender prefix
-*/
-static void mo_map(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+/* m_map()
+ *	parv[0] = sender prefix
+ */
+static void
+m_map(struct Client *client_p, struct Client *source_p,
+      int parc, char *parv[])
 {
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-  dlink_node *ptr;
-  
-  dump_map(client_p, &me, buf);
-  DLINK_FOREACH(ptr, server_items.head)
+  if (!ConfigServerHide.flatten_links)
   {
-    conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
-    if (aconf->status != CONF_SERVER)
-      continue;
-    if (strcmp(conf->name, me.name) == 0)
-      continue;
-    if (!find_server(conf->name))
-    {
-      char buffer[BUFSIZE];
-      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
-      sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buffer);
-    }
+    dump_map(client_p, &me, 0, buf);
+    sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
+    return;
   }
+
+  m_not_oper(client_p, source_p, parc, parv);
+}
+
+/* mo_map()
+ *      parv[0] = sender prefix
+ */
+static void
+mo_map(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
+{
+  dump_map(client_p, &me, 0, buf);
   sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
 }
 
-
-static void ms_map(struct Client *client_p, struct Client *source_p,
-                    int parc, char *parv[])
+/* dump_map()
+ *   dumps server map, called recursively.
+ */
+static void
+dump_map(struct Client *client_p, struct Client *root_p, int start_len,
+	 char *pbuf)
 {
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
+  int cnt = 0, i = 0, l = 0, len = start_len;
+  int users, dashes;
   dlink_node *ptr;
-
-  if (parc > 1)
-    if (hunt_server(client_p, source_p, ":%s MAP %s", 1, parc, parv) 
-            != HUNTED_ISME)
-      return;
-  dump_map(source_p,&me,buf);
-  
-  DLINK_FOREACH(ptr, server_items.head)
-  {
-    conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
-
-    if (aconf->status != CONF_SERVER)
-      continue;
-    if (strcmp(conf->name, me.name) == 0)
-      continue;
-    if (!find_server(conf->name))
-    {
-      char buffer[BUFSIZE];
-      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
-      sendto_one(source_p, form_str(RPL_MAP), me.name, source_p->name, buffer);
-    }
-  }
-  sendto_one(source_p, form_str(RPL_MAPEND), me.name, source_p->name);
-}
-
-/*
-** dump_map
-**    dumps server map, called recursively.
-*/
-static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
-{
-  int cnt = 0, i = 0, len;
-  int users = 0;
   struct Client *server_p;
-  dlink_node *ptr;
-        
+  char *pb;
+
   *pbuf= '\0';
-       
-  strncat(pbuf,root_p->name,BUFSIZE - ((size_t) pbuf - (size_t) buf));
-  len = strlen(buf);
-  buf[len] = ' ';
-	
-  DLINK_FOREACH(ptr, root_p->serv->users.head)
-    users++;
-        
-  snprintf(buf+len, BUFSIZE," (Users: %d [%.1f%%]; Ping: %lums)", users,
-           100 * (float) users / (float) Count.total,
-           (root_p->ping_time.tv_usec / 1000));
-        
-  sendto_one(client_p, form_str(RPL_MAP),me.name,client_p->name,buf);
-        
-  DLINK_FOREACH(ptr, root_p->serv->servers.head)
-    cnt++;
-    
-  if (cnt)
+  pb = pbuf;
+
+  l = ircsprintf(pb, "%s", root_p->name);
+  pb += l;
+  len += l;
+
+  /* IsOper isn't called *that* often. */
+  if (IsOper(client_p))
   {
-    if (pbuf > buf + 3)
+    if (root_p->id[0] != '\0')
     {
-      pbuf[-2] = ' ';
-      if (pbuf[-3] == '`')
-        pbuf[-3] = ' ';
+      l = ircsprintf(pb, "[%s]", root_p->id);
+      pb += l;
+      len += l;
     }
   }
+
+  *pb++ = ' ';
+  len++;
+  dashes = 50 - len;
+  for(i = 0; i < dashes; i++)
+  {
+    *pb++ = '-';
+  }
+  *pb++ = ' ';
+  *pb++ = '|';
+
+  users = dlink_list_length(&root_p->serv->users);
+
+  sprintf(pb, " Users: %5d (%1.1f%%)", users,
+	  100 * (float)users / (float)Count.total);
+
+  sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buf);
+        
+  if (root_p->serv->servers.head)
+  {
+    cnt += dlink_list_length(&root_p->serv->servers);
+
+    if (cnt)
+    {
+      if (pbuf > buf + 3)
+      {
+        pbuf[-2] = ' ';
+
+        if (pbuf[-3] == '`')
+          pbuf[-3] = ' ';
+      }
+    }
+  }
+
   i = 1;
-  
+
   DLINK_FOREACH(ptr, root_p->serv->servers.head)
   {
     server_p = ptr->data;
+
     *pbuf = ' ';
     if (i < cnt)
       *(pbuf + 1) = '|';
@@ -179,9 +162,8 @@ static void dump_map(struct Client *client_p,struct Client *root_p, char *pbuf)
       
     *(pbuf + 2) = '-';
     *(pbuf + 3) = ' ';
-    dump_map(client_p, server_p, pbuf + 4);
+    dump_map(client_p, server_p, start_len+4, pbuf+4);
  
-    i++;
-   }
+    ++i;
+  }
 }
-

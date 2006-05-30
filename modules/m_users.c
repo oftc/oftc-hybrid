@@ -34,12 +34,12 @@
 #include "parse.h"
 #include "modules.h"
 
-static void m_users(struct Client*, struct Client*, int, char**);
-static void mo_users(struct Client*, struct Client*, int, char**);
+static void m_users(struct Client *, struct Client *, int, char *[]);
+static void mo_users(struct Client *, struct Client *, int, char *[]);
 
 struct Message users_msgtab = {
   "USERS", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_users, mo_users, mo_users, m_ignore}
+  { m_unregistered, m_users, mo_users, m_ignore, mo_users, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -55,7 +55,7 @@ _moddeinit(void)
   mod_del_cmd(&users_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -65,20 +65,21 @@ const char *_version = "$Revision: 229 $";
  */
 static void
 m_users(struct Client *client_p, struct Client *source_p,
-	int parc, char *parv[])
+        int parc, char *parv[])
 {
-  if(!ConfigFileEntry.disable_remote)
-  {
-    if(hunt_server(client_p,source_p,":%s USERS :%s",1,parc,parv) != HUNTED_ISME)
+  if (!ConfigFileEntry.disable_remote)
+    if (hunt_server(client_p, source_p, ":%s USERS :%s", 1,
+                    parc, parv) != HUNTED_ISME)
       return;
-  }
-    
-  sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, parv[0],
-             ConfigServerHide.hide_servers ? Count.total : Count.local, 
+
+  sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, source_p->name,
+             ConfigServerHide.hide_servers ? Count.total : Count.local,
+             ConfigServerHide.hide_servers ? Count.total : Count.local,
+             ConfigServerHide.hide_servers ? Count.max_tot : Count.max_loc,
 	     ConfigServerHide.hide_servers ? Count.max_tot : Count.max_loc);
 
-  sendto_one(source_p, form_str(RPL_GLOBALUSERS), me.name, parv[0],
-                 Count.total, Count.max_tot);
+  sendto_one(source_p, form_str(RPL_GLOBALUSERS), me.name, source_p->name,
+             Count.total, Count.max_tot, Count.total, Count.max_tot);
 }
 
 /*
@@ -88,19 +89,19 @@ m_users(struct Client *client_p, struct Client *source_p,
  */
 static void
 mo_users(struct Client *client_p, struct Client *source_p,
-	 int parc, char *parv[])
+         int parc, char *parv[])
 {
-  if (hunt_server(client_p,source_p,":%s USERS :%s",1,parc,parv) == HUNTED_ISME)
-    {
-      if(!IsOper(source_p) && ConfigServerHide.hide_servers)
-        sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, parv[0],
-                   Count.total, Count.max_tot);
-      else
-        sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, parv[0],
-	           Count.local, Count.max_loc);
+  if (hunt_server(client_p, source_p, ":%s USERS :%s", 1,
+      parc, parv) != HUNTED_ISME)
+    return;
 
-      sendto_one(source_p, form_str(RPL_GLOBALUSERS), me.name, parv[0],
-                 Count.total, Count.max_tot);
-    }
+  if (!IsOper(source_p) && ConfigServerHide.hide_servers)
+    sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, source_p->name,
+               Count.total, Count.max_tot, Count.total, Count.max_tot);
+  else
+    sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, source_p->name,
+               Count.local, Count.max_loc, Count.local, Count.max_loc);
+
+  sendto_one(source_p, form_str(RPL_GLOBALUSERS), me.name, source_p->name,
+             Count.total, Count.max_tot, Count.total, Count.max_tot);
 }
-

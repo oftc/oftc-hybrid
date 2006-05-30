@@ -26,7 +26,6 @@
 #include "handlers.h"
 #include "client.h"
 #include "ircd.h"
-#include "irc_string.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_user.h"
@@ -34,13 +33,14 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "s_serv.h"
 
 static void ms_wallops(struct Client *, struct Client *, int, char **);
 static void mo_wallops(struct Client *, struct Client *, int, char **);
 
 struct Message wallops_msgtab = {
   "WALLOPS", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_wallops, mo_wallops, m_ignore}
+  {m_unregistered, m_not_oper, ms_wallops, m_ignore, mo_wallops, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -56,11 +56,11 @@ _moddeinit(void)
   mod_del_cmd(&wallops_msgtab);
 }
  
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
- * mo_wallops (write to *all* users currently online)
+ * mo_wallops (write to *all* opers currently online)
  *      parv[0] = sender prefix
  *      parv[1] = message text
  */
@@ -77,13 +77,15 @@ mo_wallops(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message);
-  sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
+  sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
+  sendto_server(NULL, source_p, NULL, CAP_TS6, NOCAPS, LL_ICLIENT,
+                ":%s WALLOPS :%s", ID(source_p), message);
+  sendto_server(NULL, source_p, NULL, NOCAPS, CAP_TS6, LL_ICLIENT,
                 ":%s WALLOPS :%s", source_p->name, message);
 }
 
 /*
- * ms_wallops (write to *all* users currently online)
+ * ms_wallops (write to *all* opers currently online)
  *      parv[0] = sender prefix
  *      parv[1] = message text
  */
@@ -101,7 +103,9 @@ ms_wallops(struct Client *client_p, struct Client *source_p,
   else
     sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message); 
 
-  sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
+  sendto_server(client_p, source_p, NULL, CAP_TS6, NOCAPS, LL_ICLIENT,
+                ":%s WALLOPS :%s", ID(source_p), message);
+  sendto_server(client_p, source_p, NULL, NOCAPS, CAP_TS6, LL_ICLIENT,
                 ":%s WALLOPS :%s", source_p->name, message);
 }
 

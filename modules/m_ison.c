@@ -25,8 +25,6 @@
 #include "stdinc.h"
 #include "handlers.h"
 #include "client.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
@@ -36,15 +34,13 @@
 #include "s_conf.h" /* ConfigFileEntry */
 #include "s_serv.h" /* uplink/IsCapable */
 
-static void do_ison(struct Client *up, struct Client *source_p,
-                   int parc, char *parv[]);
-
-static void m_ison(struct Client*, struct Client*, int, char**);
-static void ms_ison(struct Client*, struct Client*, int, char**);
+static void do_ison(struct Client *, struct Client *, struct Client *, int, char *[]);
+static void m_ison(struct Client *, struct Client *, int, char *[]);
+static void ms_ison(struct Client *, struct Client *, int, char *[]);
 
 struct Message ison_msgtab = {
   "ISON", 0, 0, 1, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_ison, ms_ison, m_ison, m_ignore}
+  {m_unregistered, m_ison, ms_ison, m_ignore, m_ison, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -59,7 +55,7 @@ _moddeinit(void)
 {
   mod_del_cmd(&ison_msgtab);
 }
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 
@@ -82,7 +78,7 @@ m_ison(struct Client *client_p, struct Client *source_p,
   if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
     up = uplink;
 
-  do_ison(up, source_p, parc, parv);
+  do_ison(client_p, up, source_p, parc, parv);
 }
 
 /*
@@ -98,19 +94,19 @@ ms_ison(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   if (ServerInfo.hub && IsCapable(client_p, CAP_LL))
-    do_ison(NULL, source_p, parc, parv);
+    do_ison(client_p, NULL, source_p, parc, parv);
 }
 
 static void
-do_ison(struct Client *up, struct Client *source_p,
+do_ison(struct Client *client_p, struct Client *up, struct Client *source_p,
         int parc, char *parv[])
 {
-  struct Client *target_p;
+  struct Client *target_p = NULL;
   char *nick;
   char *p;
   char *current_insert_point, *current_insert_point2;
-  char buf[BUFSIZE];
-  char buf2[BUFSIZE];
+  char buf[IRCD_BUFSIZE];
+  char buf2[IRCD_BUFSIZE];
   int len;
   int i;
   int done = 0;
@@ -119,8 +115,7 @@ do_ison(struct Client *up, struct Client *source_p,
   current_insert_point2 = buf2;
   *buf2 = '\0';
 
-  ircsprintf(buf, form_str(RPL_ISON), me.name, parv[0]);
-  len = strlen(buf);
+  len = ircsprintf(buf, form_str(RPL_ISON), me.name, parv[0]);
   current_insert_point = buf + len;
 
   /* rfc1459 is ambigious about how to handle ISON
@@ -131,13 +126,13 @@ do_ison(struct Client *up, struct Client *source_p,
     for (nick = strtoken(&p, parv[i], " "); nick;
          nick = strtoken(&p, NULL, " "))
     {
-      if ((target_p = find_person(nick)))
+      if ((target_p = find_person(client_p, nick)))
       {
         len = strlen(target_p->name);
+
         if ((current_insert_point + (len + 5)) < (buf + sizeof(buf)))
         {
-          memcpy((void *)current_insert_point,
-                 (void *)target_p->name, len);
+          memcpy(current_insert_point, target_p->name, len);
           current_insert_point += len;
           *current_insert_point++ = ' ';
         }
@@ -147,17 +142,19 @@ do_ison(struct Client *up, struct Client *source_p,
           break;
         }
       }
+
       if (up)
       {
         /* Build up a single list, for use if we relay.. */
         len = strlen(nick);
-        if((current_insert_point2 + len + 5) < (buf2 + sizeof(buf2)))
+
+        if ((current_insert_point2 + len + 5) < (buf2 + sizeof(buf2)))
         {
-          memcpy((void *)current_insert_point2,
-                 (void *)nick, len);
+          memcpy(current_insert_point2, nick, len);
           current_insert_point2 += len;
           *current_insert_point2++ = ' ';
         }
+
         if (target_p == NULL)
         {
           /*
@@ -169,11 +166,12 @@ do_ison(struct Client *up, struct Client *source_p,
           relay_to_hub = 1;
 
           /* Also cache info about nick */
-          sendto_one(up, ":%s NBURST %s", me.name, nick);
+          sendto_one(up, ":%s NBURST %s", ID_or_name(&me, up), nick);
         }
       }
     }
-    if(done)
+
+    if (done)
       break;
   }
 
@@ -185,7 +183,7 @@ do_ison(struct Client *up, struct Client *source_p,
   *current_insert_point2 = '\0'; 
   
   if (relay_to_hub)
-    sendto_one(up, ":%s ISON :%s", source_p->name, buf2);
+    sendto_one(up, ":%s ISON :%s", ID_or_name(source_p, up), buf2);
   else
     sendto_one(source_p, "%s", buf);
 }

@@ -25,27 +25,25 @@
 #include "stdinc.h"
 #include "handlers.h"
 #include "client.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 #include "hash.h"       /* for find_client() */
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
+#include "s_user.h"
 #include "modules.h"
 
-static void m_accept(struct Client *, struct Client *, int, char **);
+static void m_accept(struct Client *, struct Client *, int, char *[]);
 static void build_nicklist(struct Client *, char *, char *, char *);
 static void add_accept(struct Client *, struct Client *);
 static void list_accepts(struct Client *);
 
 struct Message accept_msgtab = {
-  "ACCEPT", 0, 0, 2, 0, MFLG_SLOW, 0, 
-  {m_unregistered, m_accept, m_ignore, m_accept, m_ignore}
+  "ACCEPT", 0, 0, 0, 0, MFLG_SLOW, 0, 
+  {m_unregistered, m_accept, m_ignore, m_ignore, m_accept, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -61,7 +59,7 @@ _moddeinit(void)
   mod_del_cmd(&accept_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -75,12 +73,12 @@ m_accept(struct Client *client_p, struct Client *source_p,
 {
   char *nick;
   char *p = NULL;
-  static char addbuf[BUFSIZE];
-  static char delbuf[BUFSIZE];
-  struct Client *target_p;
+  char addbuf[IRCD_BUFSIZE] = { '\0' };
+  char delbuf[IRCD_BUFSIZE] = { '\0' };
+  struct Client *target_p = NULL;
   int accept_num;
   
-  if (*parv[1] == '*')
+  if ((parc < 2) || (*parv[1] == '*'))
   {
     list_accepts(source_p);
     return;
@@ -93,7 +91,7 @@ m_accept(struct Client *client_p, struct Client *source_p,
        nick = strtoken(&p, NULL, ","))
   {
     /* shouldnt happen, but lets be paranoid */
-    if (((target_p = find_client(nick)) == NULL) || !IsPerson(target_p))
+    if (((target_p = find_client(nick)) == NULL) || !IsClient(target_p))
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                  me.name, source_p->name, nick);
@@ -119,7 +117,7 @@ m_accept(struct Client *client_p, struct Client *source_p,
        nick = strtoken(&p, NULL, ","), accept_num++)
   {
     /* shouldnt happen, but lets be paranoid */
-    if (((target_p = find_client(nick)) == NULL) || !IsPerson(target_p)) 
+    if (((target_p = find_client(nick)) == NULL) || !IsClient(target_p)) 
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                  me.name, source_p->name, nick);
@@ -160,51 +158,30 @@ static void
 build_nicklist(struct Client *source_p, char *addbuf,
                char *delbuf, char *nicks)
 {
-  char *name;
-  char *p;
-  int lenadd;
-  int lendel;
-  int del;
-  struct Client *target_p;
-
-  *addbuf = *delbuf = '\0';
-  del = lenadd = lendel = 0;
+  char *name = NULL;
+  char *p = NULL;
+  char *buf_p = NULL;
+  struct Client *target_p = NULL;
 
   /* build list of clients to add into addbuf, clients to remove in delbuf */
   for (name = strtoken(&p, nicks, ","); name; 
-       name = strtoken(&p, NULL, ","), del = 0)
+       name = strtoken(&p, NULL, ","))
   {
     if (*name == '-')
-    {
-      del = 1;
-      name++;
-    }
+      buf_p = delbuf, ++name;
+    else
+      buf_p = addbuf;
 
-    if (((target_p = find_client(name)) == NULL) || !IsPerson(target_p))
+    if (((target_p = find_client(name)) == NULL) || !IsClient(target_p))
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                  me.name, source_p->name, name);
       continue;
     }
 
-    /* we're deleting a client */
-    if (del)
-    {
-      if (*delbuf)
-        strcat(delbuf, ",");
-
-      strncat(delbuf, name, BUFSIZE - lendel - 1);
-      lendel += strlen(name) + 1;
-    }
-    /* adding a client */
-    else
-    {
-      if (*addbuf)
-        strcat(addbuf, ",");
-
-      strncat(addbuf, name, BUFSIZE - lenadd - 1);
-      lenadd += strlen(name) + 1;
-    }
+    if (*buf_p)
+      strlcat(buf_p, ",", IRCD_BUFSIZE);
+    strlcat(buf_p, name, IRCD_BUFSIZE);
   }
 }
 
@@ -220,6 +197,7 @@ add_accept(struct Client *source_p, struct Client *target_p)
 {
   dlinkAdd(target_p, make_dlink_node(), &source_p->allow_list);
   dlinkAdd(source_p, make_dlink_node(), &target_p->on_allow_list);
+  list_accepts(source_p);
 }
 
 /* list_accepts()
@@ -231,44 +209,35 @@ add_accept(struct Client *source_p, struct Client *target_p)
 static void
 list_accepts(struct Client *source_p)
 {
-  dlink_node *ptr;
-  struct Client *target_p;
-  char nicks[BUFSIZE];
-  int len   = 0;
-  int len2  = 0;
-  int count = 0;
+  int len = 0;
+  char nicks[IRCD_BUFSIZE] = { '\0' };
+  char *t = nicks;
+  const dlink_node *ptr = NULL;
 
-  *nicks = '\0';
-  len2   = strlen(source_p->name) + 10;
+  len = strlen(me.name) + strlen(source_p->name) + 12;
 
   DLINK_FOREACH(ptr, source_p->allow_list.head)
   {
-    target_p = ptr->data;
+    const struct Client *target_p = ptr->data;
 
-    if (target_p)
+    if ((t - nicks) + strlen(target_p->name) + len > IRCD_BUFSIZE)
     {
-
-      if ((len + strlen(target_p->name) + len2 > BUFSIZE) || count > 14)
-      {
-        sendto_one(source_p, form_str(RPL_ACCEPTLIST),
-                   me.name, source_p->name, nicks);
-		   
-	len = count = 0;
-	*nicks = '\0';
-      }
-
-      ircsprintf(nicks+len, "%s ", target_p->name);
-
-      count++;
-      len += strlen(target_p->name) + 1;
+      *(t - 1) = '\0';
+      sendto_one(source_p, form_str(RPL_ACCEPTLIST),
+                 me.name, source_p->name, nicks);
+      t = nicks;
     }
+
+    t += ircsprintf(t, "%s ", target_p->name);
   }
 
-  if (*nicks)
+  if (nicks[0] != '\0')
+  {
+    *(t - 1) = '\0';
     sendto_one(source_p, form_str(RPL_ACCEPTLIST),
                me.name, source_p->name, nicks);
+  }
 
   sendto_one(source_p, form_str(RPL_ENDOFACCEPT),
              me.name, source_p->name);
-
 }

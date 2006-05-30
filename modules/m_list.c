@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  m_links.c: Shows what servers are currently connected.
+ *  m_list.c: List channel given or all channels.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -23,22 +23,20 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "hash.h"
-#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "list.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "s_user.h"
 
 static void m_list(struct Client *, struct Client *, int, char **);
 static void ms_list(struct Client *, struct Client *, int, char **);
@@ -46,24 +44,40 @@ static void mo_list(struct Client *, struct Client *, int, char **);
 
 struct Message list_msgtab = {
   "LIST", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_list, ms_list, mo_list, m_ignore}
+  {m_unregistered, m_list, ms_list, m_ignore, mo_list, m_ignore}
 };
-#ifndef STATIC_MODULES
 
+#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
   mod_add_cmd(&list_msgtab);
+  add_isupport("ELIST", "CMNTU", -1);
+  add_isupport("SAFELIST", NULL, -1);
 }
 
 void
 _moddeinit(void)
 {
   mod_del_cmd(&list_msgtab);
+  delete_isupport("ELIST");
+  delete_isupport("SAFELIST");
 }
-const char *_version = "$Revision: 229 $";
+
+const char *_version = "$Revision$";
 #endif
 
+static int
+has_wildcards(const char *s)
+{
+  char c;
+
+  while ((c = *s++))
+    if (IsMWildChar(c))
+      return 1;
+
+  return 0;
+}
 
 static void
 do_list(struct Client *source_p, int parc, char *parv[])
@@ -152,12 +166,13 @@ do_list(struct Client *source_p, int parc, char *parv[])
 		   opt++;
 		 }
 		 else list = &lt->show_mask;
-		 if (strpbrk(opt, "?*") != NULL)
+
+		 if (has_wildcards(opt + !!IsChanPrefix(*opt)))
 		 {
 		   if (list == &lt->show_mask)
 		     no_masked_channels = 0;
 		 }
-		 else if (!IsChannelName(opt))
+		 else if (!IsChanPrefix(*opt))
 		   errors = 1;
 		 if (!errors)
 		 {
@@ -169,12 +184,19 @@ do_list(struct Client *source_p, int parc, char *parv[])
     if (errors)
     {
       free_list_task(lt, source_p);
-      sendto_one(source_p, form_str(ERR_LISTSYNTAX), me.name, source_p->name);
+      sendto_one(source_p, form_str(ERR_LISTSYNTAX),
+                 MyConnect(source_p) ? me.name : ID(&me),
+                 MyConnect(source_p) ? source_p->name : ID(source_p));
       return;
     }
   }
 
-  sendto_one(source_p, form_str(RPL_LISTSTART), me.name, source_p->name);
+
+  if (MyConnect(source_p))
+    dlinkAdd(source_p, make_dlink_node(), &listing_client_list);
+  sendto_one(source_p, form_str(RPL_LISTSTART),
+             MyConnect(source_p) ? me.name : ID(&me),
+             MyConnect(source_p) ? source_p->name : ID(source_p));
   safe_list_channels(source_p, lt, no_masked_channels &&
                      lt->show_mask.head != NULL, !MyConnect(source_p));
 }
@@ -188,32 +210,31 @@ static void
 m_list(struct Client *client_p, struct Client *source_p, 
        int parc, char *parv[])
 {
-  static time_t last_used=0L;
+  static time_t last_used = 0;
 
   /* If not a LazyLink connection, see if its still paced */
   /* If we're forwarding this to uplinks.. it should be paced due to the
    * traffic involved in /list.. -- fl_ */
-  if(((last_used + ConfigFileEntry.pace_wait) > CurrentTime))
-    {
-      sendto_one(source_p,form_str(RPL_LOAD2HI),me.name,parv[0]);
-      return;
-    }
+  if (((last_used + ConfigFileEntry.pace_wait) > CurrentTime))
+  {
+    sendto_one(source_p,form_str(RPL_LOAD2HI),me.name,parv[0]);
+    return;
+  }
   else
     last_used = CurrentTime;
 
   /* If its a LazyLinks connection, let uplink handle the list */
-  if(uplink && IsCapable(uplink, CAP_LL))
-    {
-      if(parc < 2)
-	sendto_one( uplink, ":%s LIST", source_p->name );
-      else
-	sendto_one( uplink, ":%s LIST %s", source_p->name, parv[1] );
-      return;
-    }
+  if (uplink && IsCapable(uplink, CAP_LL))
+  {
+    if (parc < 2)
+      sendto_one(uplink, ":%s LIST", source_p->name);
+    else
+      sendto_one(uplink, ":%s LIST %s", source_p->name, parv[1]);
+    return;
+  }
 
   do_list(source_p, parc, parv);
 }
-
 
 /*
 ** mo_list
@@ -222,20 +243,20 @@ m_list(struct Client *client_p, struct Client *source_p,
 */
 static void
 mo_list(struct Client *client_p, struct Client *source_p,
-	int parc, char *parv[])
+        int parc, char *parv[])
 {
   /* If its a LazyLinks connection, let uplink handle the list
    * even for opers!
    */
 
-  if(uplink && IsCapable(uplink, CAP_LL))
-    {
-      if(parc < 2)
-	sendto_one(uplink, ":%s LIST", source_p->name);
-      else
-	sendto_one(uplink, ":%s LIST %s", source_p->name, parv[1]);
-      return;
-    }
+  if (uplink && IsCapable(uplink, CAP_LL))
+  {
+    if (parc < 2)
+      sendto_one(uplink, ":%s LIST", source_p->name);
+    else
+      sendto_one(uplink, ":%s LIST %s", source_p->name, parv[1]);
+    return;
+  }
 
   do_list(source_p, parc, parv);
 }
@@ -247,15 +268,14 @@ mo_list(struct Client *client_p, struct Client *source_p,
 */
 static void
 ms_list(struct Client *client_p, struct Client *source_p,
-	int parc, char *parv[])
+        int parc, char *parv[])
 {
   /* Only allow remote list if LazyLink request */
+  if (ServerInfo.hub)
+  {
+    if (!IsCapable(client_p->from, CAP_LL) && !MyConnect(source_p))
+      return;
 
-  if(ServerInfo.hub)
-    {
-      if(!IsCapable(client_p->from, CAP_LL) && !MyConnect(source_p))
-	return;
-
-      do_list(source_p, parc, parv);
-    }
+    do_list(source_p, parc, parv);
+  }
 }

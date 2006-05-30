@@ -35,14 +35,29 @@
 #include "parse.h"
 #include "modules.h"
 
-static char *confopts(struct Client *source_p);
-static void m_version(struct Client *, struct Client *, int, char **);
-static void ms_version(struct Client *, struct Client *, int, char **);
-static void mo_version(struct Client *, struct Client *, int, char **);
+static char *confopts(struct Client *);
+static void m_version(struct Client *, struct Client *, int, char *[]);
+static void ms_version(struct Client *, struct Client *, int, char *[]);
+static void mo_version(struct Client *, struct Client *, int, char *[]);
+
+/* Option string. */
+static const char serveropts[] = {
+  ' ',
+  'T',
+  'S',
+#ifdef TS_CURRENT
+  '0' + TS_CURRENT,
+#endif
+/* ONLY do TS */
+/* ALWAYS do TS_WARNINGS */
+  'o',
+  'w',
+  '\0'
+};
 
 struct Message version_msgtab = {
   "VERSION", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_version, ms_version, mo_version, m_ignore }
+  { m_unregistered, m_version, ms_version, m_ignore, mo_version, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -58,7 +73,7 @@ _moddeinit(void)
   mod_del_cmd(&version_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -128,7 +143,9 @@ ms_version(struct Client *client_p, struct Client *source_p,
                   1, parc, parv) == HUNTED_ISME)
   {
     sendto_one(source_p, form_str(RPL_VERSION),
-               me.name, parv[0], ircd_version, serno,
+               ID_or_name(&me, client_p),
+               ID_or_name(source_p, client_p),
+               ircd_version, serno,
                me.name, confopts(source_p), serveropts);
     show_isupport(source_p);
   }
@@ -143,17 +160,14 @@ ms_version(struct Client *client_p, struct Client *source_p,
 static char *
 confopts(struct Client *source_p)
 {
-  static char result[15];
-  char *p;
-
-  result[0] = '\0';
-  p = result;
+  static char result[12];
+  char *p = result;
 
   if (ConfigChannel.use_except)
     *p++ = 'e';
   if (ConfigFileEntry.glines)
-    *p++ = 'g';
-  *p++ = 'G';
+    *p++ = 'G';
+  *p++ = 'g';
 
   /* might wanna hide this :P */
   if (ServerInfo.hub && 
@@ -168,8 +182,6 @@ confopts(struct Client *source_p)
     *p++ = 'K';
   *p++ = 'M';
 
-  if (ConfigFileEntry.crypt_oper_password)
-    *p++ = 'p';
   if (ConfigFileEntry.ignore_bogus_ts)
     *p++ = 'T';
 #ifdef USE_SYSLOG
@@ -179,7 +191,8 @@ confopts(struct Client *source_p)
   *p++ = 'Z';
 #endif
   *p++ = '6';
+
   *p = '\0';
 
-  return(result);
+  return result;
 }

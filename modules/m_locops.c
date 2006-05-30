@@ -26,7 +26,6 @@
 #include "handlers.h"
 #include "client.h"
 #include "ircd.h"
-#include "irc_string.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
@@ -37,14 +36,13 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "cluster.h"
 
-static void m_locops(struct Client *, struct Client *, int, char **);
-static void ms_locops(struct Client *, struct Client *, int, char **);
+static void m_locops(struct Client *, struct Client *, int, char *[]);
+static void ms_locops(struct Client *, struct Client *, int, char *[]);
 
 struct Message locops_msgtab = {
   "LOCOPS", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_locops, m_locops, m_ignore}
+  { m_unregistered, m_not_oper, ms_locops, m_ignore, m_locops, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -85,8 +83,7 @@ m_locops(struct Client *client_p, struct Client *source_p,
   sendto_wallops_flags(UMODE_LOCOPS, source_p, "LOCOPS - %s",
                        message);
 
-  if (dlink_list_length(&cluster_items))
-    cluster_locops(source_p, parv[1]);
+  cluster_a_line(source_p, "LOCOPS", 0, SHARED_LOCOPS, message);
 }
 
 static void
@@ -99,13 +96,10 @@ ms_locops(struct Client *client_p, struct Client *source_p,
   sendto_server(client_p, NULL, NULL, CAP_CLUSTER, 0, 0, "LOCOPS %s :%s",
                 parv[1], parv[2]);
 
-  if (!match(parv[1], me.name))
+  if (!IsClient(source_p) || !match(parv[1], me.name))
     return;
 
-  if (!IsPerson(source_p))
-    return;
-
-  if (find_matching_name_conf(CLUSTER_TYPE, source_p->user->server->name,
-                              NULL, NULL, CLUSTER_LOCOPS))
+  if (find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
+                              "*", "*", SHARED_LOCOPS))
     sendto_wallops_flags(UMODE_LOCOPS, source_p, "SLOCOPS - %s", parv[2]);
 }

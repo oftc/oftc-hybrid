@@ -39,7 +39,7 @@ static void ms_eob(struct Client*, struct Client*, int, char**);
 
 struct Message eob_msgtab = {
   "EOB", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0, 
-  {m_unregistered, m_ignore, ms_eob, m_ignore, m_ignore}
+  {m_unregistered, m_ignore, ms_eob, m_ignore, m_ignore, m_ignore}
 };
 #ifndef STATIC_MODULES
 void
@@ -54,7 +54,7 @@ _moddeinit(void)
   mod_del_cmd(&eob_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 /*
  * ms_eob - EOB command handler
@@ -68,7 +68,6 @@ ms_eob(struct Client *client_p, struct Client *source_p,
    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                         "End of burst from %s (%d seconds)",
                         source_p->name, 
-			(signed int)(CurrentTime - source_p->firsttime));
-
+			(unsigned int)(CurrentTime - source_p->firsttime));
    SetEob(client_p);
 }

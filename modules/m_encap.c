@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  m_encap.c: encapsulated command propogation and parsing
+ *  m_encap.c: encapsulated command propagation and parsing
  *
  *  Copyright (C) 2003 by the past and present ircd coders, and others.
  *
@@ -27,18 +27,15 @@
 #include "client.h"
 #include "msg.h"
 #include "parse.h"
-#include "sprintf_irc.h"
 #include "s_serv.h"
 #include "send.h"
 #include "modules.h"
-#include "irc_string.h"
 
-static void ms_encap(struct Client *client_p, struct Client *source_p,
-                     int parc, char *parv[]);
+static void ms_encap(struct Client *, struct Client *, int, char *[]);
 
 struct Message encap_msgtab = {
   "ENCAP", 0, 0, 3, 0, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_encap, m_ignore, m_ignore}
+  {m_ignore, m_ignore, ms_encap, m_ignore, m_ignore, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -55,7 +52,7 @@ _moddeinit(void)
   mod_del_cmd(&encap_msgtab);
   delete_capability("ENCAP");
 }
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -63,13 +60,13 @@ const char *_version = "$Revision: 229 $";
  *
  * inputs	- destination server, subcommand, parameters
  * output	- none
- * side effects	- propogates subcommand to locally connected servers
+ * side effects	- propagates subcommand to locally connected servers
  */
 static void
 ms_encap(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  char buffer[BUFSIZE], *ptr = buffer;
+  char buffer[IRCD_BUFSIZE], *ptr = buffer;
   unsigned int cur_len = 0, len, i;
   int paramcount, mpara = 0;
   struct Message *mptr = NULL;
@@ -109,8 +106,7 @@ ms_encap(struct Client *client_p, struct Client *source_p,
   if (!match(parv[1], me.name))
     return;
 
-  mptr = find_command(parv[2]);
-  if ((mptr == NULL) || (mptr->cmd == NULL))
+  if ((mptr = find_command(parv[2])) == NULL)
     return;
 
   paramcount = mptr->parameters;
@@ -124,11 +120,11 @@ ms_encap(struct Client *client_p, struct Client *source_p,
    * than being derived from the prefix, as it should have been from the beginning.
    */
   ptr = parv[0];
-  parv+=2;
-  parc-=2;
+  parv += 2;
+  parc -= 2;
   parv[0] = ptr;
 
-  if ((handler = mptr->handlers[2]) == NULL)
+  if ((handler = mptr->handlers[ENCAP_HANDLER]) == NULL)
     return;
 
   (*handler)(client_p, source_p, parc, parv);

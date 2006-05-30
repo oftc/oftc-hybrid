@@ -23,15 +23,12 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "hash.h"
 #include "common.h"
-#include "irc_string.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "s_serv.h"
 #include "s_conf.h"
@@ -46,7 +43,7 @@ static void ms_lljoin(struct Client *,struct Client *,int,char **);
 
 struct Message lljoin_msgtab = {
   "LLJOIN", 0, 0, 3, 0, MFLG_SLOW | MFLG_UNREG, 0L,
-  {m_unregistered, m_ignore, ms_lljoin, m_ignore, m_ignore}
+  {m_unregistered, m_ignore, ms_lljoin, m_ignore, m_ignore, m_ignore}
 };
 #ifndef STATIC_MODULES
 
@@ -62,7 +59,7 @@ _moddeinit(void)
   mod_del_cmd(&lljoin_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 /*
  * m_lljoin
@@ -110,19 +107,17 @@ ms_lljoin(struct Client *client_p, struct Client *source_p,
   if(nick == NULL)
     return;
 
-  if(parc >3)
-  {
+  if (parc >3)
     key = parv[3];
-  }
 
   flags = 0;
 
-  target_p = find_client(nick);
+  target_p = find_person(client_p, nick);
 
-  if( !target_p || !target_p->user )
+  if (!target_p)
     return;
 
-  if( !MyClient(target_p) )
+  if (!MyClient(target_p))
     return;
 
   chptr = get_or_create_channel(target_p, chname, NULL);
@@ -159,8 +154,8 @@ ms_lljoin(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((dlink_list_length(&target_p->user->channel) >= ConfigChannel.max_chans_per_user) &&
-      (!IsOper(target_p) || (dlink_list_length(&target_p->user->channel) >=
+  if ((dlink_list_length(&target_p->channel) >= ConfigChannel.max_chans_per_user) &&
+      (!IsOper(target_p) || (dlink_list_length(&target_p->channel) >=
                              ConfigChannel.max_chans_per_user*3)))
   {
       sendto_one(target_p, form_str(ERR_TOOMANYCHANNELS),
@@ -187,9 +182,9 @@ ms_lljoin(struct Client *client_p, struct Client *source_p,
 	     chptr->chname,
 	     nick);
 
-  add_user_to_channel(chptr, target_p, flags);
+  add_user_to_channel(chptr, target_p, flags, YES);
 
-  sendto_channel_local(ALL_MEMBERS, chptr,
+  sendto_channel_local(ALL_MEMBERS, NO, chptr,
 		       ":%s!%s@%s JOIN :%s",
 		       target_p->name,
 		       target_p->username,
@@ -201,7 +196,7 @@ ms_lljoin(struct Client *client_p, struct Client *source_p,
     chptr->mode.mode |= MODE_TOPICLIMIT;
     chptr->mode.mode |= MODE_NOPRIVMSGS;
       
-    sendto_channel_local(ALL_MEMBERS,chptr,
+    sendto_channel_local(ALL_MEMBERS, NO, chptr,
                          ":%s MODE %s +nt",
                          me.name, chptr->chname);
     sendto_one(uplink, 

@@ -23,17 +23,13 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"   /* bleah */
 #include "hash.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_serv.h"
@@ -43,15 +39,15 @@
 #include "modules.h"
 
 
-static void names_all_visible_channels(struct Client *source_p);
-static void names_non_public_non_secret(struct Client *source_p);
+static void names_all_visible_channels(struct Client *);
+static void names_non_public_non_secret(struct Client *);
 
-static void m_names(struct Client *, struct Client *, int, char **);
-static void ms_names(struct Client *, struct Client *, int, char **);
+static void m_names(struct Client *, struct Client *, int, char *[]);
+static void ms_names(struct Client *, struct Client *, int, char *[]);
 
 struct Message names_msgtab = {
   "NAMES", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_names, ms_names, m_names, m_ignore}
+  {m_unregistered, m_names, ms_names, m_ignore, m_names, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -67,7 +63,7 @@ _moddeinit(void)
   mod_del_cmd(&names_msgtab);
 }
 
-const char *_version = "$Revision: 393 $";
+const char *_version = "$Revision$";
 #endif
 
 /************************************************************************
@@ -94,7 +90,8 @@ m_names(struct Client *client_p, struct Client *source_p,
 
     if ((s = strchr(para, ',')) != NULL)
       *s = '\0';
-    if (!*para)
+
+    if (*para == '\0')
       return;
 
     if (!check_channel_name(para))
@@ -154,22 +151,17 @@ names_all_visible_channels(struct Client *source_p)
 static void
 names_non_public_non_secret(struct Client *source_p)
 {
-  int mlen;
-  int tlen;
-  int cur_len;
+  int mlen, tlen, cur_len;
   int reply_to_send = NO;
-  int dont_show = NO;
-  dlink_node *gc2ptr;
-  dlink_node    *lp;
+  int shown_already;
+  dlink_node *gc2ptr, *lp;
   struct Client *c2ptr;
-  struct Channel *ch3ptr=NULL;
-  char buf[BUFSIZE];
+  struct Channel *ch3ptr = NULL;
+  char buf[IRCD_BUFSIZE];
   char *t;
 
-  ircsprintf(buf,form_str(RPL_NAMREPLY),
-             me.name, source_p->name, "*", "*");
-
-  mlen = strlen(buf);
+  mlen = ircsprintf(buf,form_str(RPL_NAMREPLY),
+                    me.name, source_p->name, "*", "*");
   cur_len = mlen;
   t = buf + mlen;
 
@@ -178,56 +170,54 @@ names_non_public_non_secret(struct Client *source_p)
   {
     c2ptr = gc2ptr->data;
 
-    if (!IsPerson(c2ptr) || IsInvisible(c2ptr))
+    if (!IsClient(c2ptr) || IsInvisible(c2ptr))
       continue;
 
-    /* dont show a client if they are on a secret channel or
-     * they are on a channel source_p is on since they have already
-     * been shown earlier. -avalon
-     */
-    DLINK_FOREACH(lp, c2ptr->user->channel.head)
+    shown_already = NO;
+
+    /* We already know the user is not +i. If they are on no common
+     * channels with source_p, they have not been shown yet. */
+    DLINK_FOREACH(lp, c2ptr->channel.head)
     {
       ch3ptr = ((struct Membership *) lp->data)->chptr;
 
-      if ((!PubChannel(ch3ptr) || IsMember(source_p, ch3ptr)) ||
-          (SecretChannel(ch3ptr)))
+      if (IsMember(source_p, ch3ptr))
       {
-        dont_show = YES;
+        shown_already = YES;
         break;
       }
     }
 
-    if (dont_show)  /* on any secret channels or shown already? */
+    if (shown_already)
       continue;
 
-    if (lp == NULL) /* Nothing to do. yay */
-      continue;
-
-    if ((cur_len + NICKLEN + 2) > (BUFSIZE - 3))
+    tlen = strlen(c2ptr->name);
+    if (cur_len + tlen + 1 > IRCD_BUFSIZE - 2)
     {
       sendto_one(source_p, "%s", buf);
       cur_len = mlen;
       t = buf + mlen;
     }
 
-    ircsprintf(t, "%s%s ", get_member_status(find_channel_link(c2ptr, ch3ptr),
-                                             NO), c2ptr->name);
-
-    tlen = strlen(t);
-    cur_len += tlen;
+    strcpy(t, c2ptr->name);
     t += tlen;
+
+    *t++ = ' ';
+    *t = 0;
+
+    cur_len += tlen + 1;
 
     reply_to_send = YES;
   }
 
   if (reply_to_send)
-    sendto_one(source_p, "%s", buf );
+    sendto_one(source_p, "%s", buf);
 }
 
 static void
 ms_names(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
-{ 
+{
   /* If its running as a hub, and linked with lazy links
    * then allow leaf to use normal client m_names()
    * other wise, ignore it.

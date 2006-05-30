@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  m_away.c: Negotiates capabilities with a remote server.
+ *  m_capab.c: Negotiates capabilities with a remote server.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -25,7 +25,6 @@
 #include "stdinc.h"
 #include "handlers.h"
 #include "client.h"
-#include "irc_string.h"
 #include "s_serv.h"
 #include "s_conf.h"
 #include "msg.h"
@@ -36,7 +35,7 @@ static void mr_capab(struct Client *, struct Client *, int, char **);
 
 struct Message capab_msgtab = {
   "CAPAB", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_capab, m_ignore, m_ignore, m_ignore, m_ignore}
+  {mr_capab, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -52,7 +51,7 @@ _moddeinit(void)
   mod_del_cmd(&capab_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -78,13 +77,13 @@ mr_capab(struct Client *client_p, struct Client *source_p,
   if (client_p->localClient == NULL)
     return;
 
-  if (client_p->localClient->caps)
+  if (client_p->localClient->caps && !(IsCapable(client_p, CAP_TS6)))
   {
-    exit_client(client_p, client_p, client_p, "CAPAB received twice");
+    exit_client(client_p, client_p, "CAPAB received twice");
     return;
   }
   else
-    client_p->localClient->caps |= CAP_CAP;
+    SetCapable(client_p, CAP_CAP);
 
   for (i = 1; i < parc; i++)
   {
@@ -116,15 +115,15 @@ mr_capab(struct Client *client_p, struct Client *source_p,
         else
         {
           /* cipher is still zero; we didn't find a matching entry. */
-          exit_client(client_p, client_p, client_p,
-                      "Cipher selected is not available here.");
+          exit_client(client_p, client_p,
+	              "Cipher selected is not available here.");
           return;
         }
       }
       else /* normal capab */
 #endif
         if ((cap = find_capability(s)) != 0)
-	  client_p->localClient->caps |= cap;
+          SetCapable(client_p, cap);
     }
   }
 }

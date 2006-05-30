@@ -24,23 +24,17 @@
 
 #include "stdinc.h"
 #include "handlers.h"
-#include "tools.h"
-#include "hook.h"
 #include "client.h"
 #include "hash.h"
 #include "common.h"
-#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "fdlist.h"
-#include "s_bsd.h"
 #include "s_serv.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
-#include "irc_getnameinfo.h"
 
 #define FORM_STR_RPL_ETRACE	":%s 709 %s %s %s %s %s %s :%s"
 

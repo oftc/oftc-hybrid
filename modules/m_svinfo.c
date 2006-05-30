@@ -25,12 +25,10 @@
 #include "handlers.h"
 #include "client.h"
 #include "common.h"     /* TRUE bleah */
-#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
-#include "s_log.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
@@ -40,7 +38,7 @@ static void ms_svinfo(struct Client*, struct Client*, int, char**);
 
 struct Message svinfo_msgtab = {
   "SVINFO", 0, 0, 4, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_ignore, ms_svinfo, m_ignore, m_ignore}
+  {m_unregistered, m_ignore, ms_svinfo, m_ignore, m_ignore, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -56,7 +54,7 @@ _moddeinit(void)
   mod_del_cmd(&svinfo_msgtab);
 }
 
-const char *_version = "$Revision: 316 $";
+const char *_version = "$Revision$";
 #endif
 /*
  * ms_svinfo - SVINFO message handler
@@ -75,7 +73,7 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
 
   if (MyConnect(source_p) && IsUnknown(source_p))
   {
-    exit_client(source_p, source_p, source_p, "Need SERVER before SVINFO");
+    exit_client(source_p, source_p, "Need SERVER before SVINFO");
     return;
   }
 

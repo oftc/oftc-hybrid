@@ -23,14 +23,11 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
 #include "hash.h"
-#include "irc_string.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "s_serv.h"
 #include "s_user.h"
@@ -46,7 +43,7 @@ static void ms_nburst(struct Client*, struct Client*, int, char**);
 
 struct Message nburst_msgtab = {
   "NBURST", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0L,
-  {m_unregistered, m_ignore, ms_nburst, m_ignore, m_ignore}
+  {m_unregistered, m_ignore, ms_nburst, m_ignore, m_ignore, m_ignore}
 };
 #ifndef STATIC_MODULES
 
@@ -62,7 +59,7 @@ _moddeinit(void)
   mod_del_cmd(&nburst_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 /*
 ** m_nburst
