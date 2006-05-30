@@ -75,6 +75,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
   struct Client *who;
   struct Channel *chptr;
   int chasing = 0;
+  int gmode_used = 0;
   char *comment;
   char *name;
   char *p = NULL;
