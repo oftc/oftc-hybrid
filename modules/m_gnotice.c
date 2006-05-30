@@ -37,7 +37,6 @@
 
 #include "channel.h"
 #include "channel_mode.h"
-#include "irc_string.h"
 #include "hash.h"
 #include "msg.h"
 #include "packet.h"

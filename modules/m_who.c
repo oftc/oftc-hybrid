@@ -24,7 +24,6 @@
 
 
 #include "stdinc.h"
-#include "tools.h"
 #include "common.h"
 #include "handlers.h"
 #include "client.h"
@@ -35,8 +34,6 @@
 #include "numeric.h"
 #include "s_serv.h"
 #include "send.h"
-#include "list.h"
-#include "irc_string.h"
 #include "s_conf.h"
 #include "msg.h"
 #include "parse.h"
@@ -67,7 +64,7 @@ _moddeinit(void)
 {
   mod_del_cmd(&who2_msgtab);
 }
-const char *_version = "$Revision: 369 $";
+const char *_version = "$Revision$";
 #endif
 
 /* Internally defined stuffs */
