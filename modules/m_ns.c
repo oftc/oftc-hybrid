@@ -68,10 +68,10 @@ _moddeinit(void)
 static void m_ns(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
     struct Client    *target_p;
-    char buf[BUFSIZE];
+    char buf[IRCD_BUFSIZE];
     int i;
 
-    memset(buf, 0, BUFSIZE);
+    memset(buf, 0, sizeof(buf));
 
     if (parc < 2 || *parv[1] == '\0')
     {
@@ -81,11 +81,11 @@ static void m_ns(struct Client *client_p, struct Client *source_p, int parc, cha
     }
 
     /* Ensure full message gets passed on */
-    strlcpy(buf, parv[1], BUFSIZE);
+    strlcpy(buf, parv[1], sizeof(buf));
     for(i = 2; i < parc; i++)
     {
-        strlcat(buf, " ", BUFSIZE);
-        strlcat(buf, parv[i], BUFSIZE);
+        strlcat(buf, " ", sizeof(buf));
+        strlcat(buf, parv[i], sizeof(buf));
     }
         
     if ((target_p = find_server(SERVICES_NAME)))

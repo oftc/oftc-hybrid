@@ -440,8 +440,8 @@ chk_who(struct Client *target_p, int showall)
         (!wsopts.umode_plus && ((target_p->umodes&wsopts.umodes)==wsopts.umodes)))
       return 0;
   if(wsopts.check_away)
-    if((wsopts.away_plus && target_p->user->away==NULL) ||
-        (!wsopts.away_plus && target_p->user->away!=NULL))
+    if((wsopts.away_plus && target_p->away==NULL) ||
+        (!wsopts.away_plus && target_p->away!=NULL))
       return 0;
     /* while this is wasteful now, in the future
      * when clients contain pointers to their servers
@@ -535,7 +535,7 @@ first_visible_channel(struct Client *client_p, struct Client *source_p)
   struct Membership *mb;
   struct Channel *chptr = NULL;
 
-  DLINK_FOREACH(ptr, client_p->user->channel.head)
+  DLINK_FOREACH(ptr, client_p->channel.head)
   {
     mb = ptr->data;
     chptr = mb->chptr;
@@ -574,7 +574,7 @@ do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
      * nincompoop the original was donkey doo doo, and you can
      * quote me on that. sheesh - Dianora
      */
-    if (target_p->user->away == NULL)
+    if (target_p->away == NULL)
       status[i++] = 'H';
     else
       status[i++] = 'G';
@@ -592,7 +592,7 @@ do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
     status[i] = '\0';
     sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
            chptr->chname, target_p->username, target_p->host,
-           target_p->user->server->name, target_p->name, status,
+           target_p->servptr->name, target_p->name, status,
            WHO_HOPCOUNT(source_p, target_p), target_p->info);
     shown++;
   }
@@ -670,7 +670,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
      * wildcards, just do a find_person, bewm! */
   else if(nchkfn == irccmp)
   {
-	target_p = find_person(wsopts.nick);
+	target_p = find_person(client_p, wsopts.nick);
 	if(target_p != NULL)
 	{
       if(!chk_who(target_p,1))
@@ -681,14 +681,14 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 	  }
 	  else
 	  {
-		status[0]=(target_p->user->away==NULL ? 'H' : 'G');
+		status[0]=(target_p->away==NULL ? 'H' : 'G');
 		status[1]=(IsOper(target_p) ? '*' : (IsInvisible(target_p) &&
 						 IsOper(source_p) ? '%' : 0));
 		status[2]=0;
 		sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
 			   wsopts.show_chan ? first_visible_channel(target_p, source_p)
 			   : "*", target_p->username, target_p->host,
-			   target_p->user->server->name, target_p->name, status,
+			   target_p->servptr->name, target_p->name, status,
 			   WHO_HOPCOUNT(source_p, target_p),
 			   target_p->info);
 		sendto_one(source_p, form_str(RPL_ENDOFWHO), me.name, source_p->name,
@@ -713,7 +713,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
     struct Membership *m;
     struct Channel *chan_p;
 
-    DLINK_FOREACH(ptr, source_p->user->channel.head)
+    DLINK_FOREACH(ptr, source_p->channel.head)
 	{
       m = ptr->data;
       chan_p = m->chptr;
@@ -742,14 +742,14 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 			   source_p->name, MAXWHOREPLIES);
 		break; /* break out of loop so we can send end of who */
       }
-	  status[0]=(target_p->user->away==NULL ? 'H' : 'G');
+	  status[0]=(target_p->away==NULL ? 'H' : 'G');
 	  status[1]=(IsOper(target_p) ? '*' : (IsInvisible(target_p) && 
                   IsOper(source_p) ? '%' : 0));
 	  status[2]=0;
 	  sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
               wsopts.show_chan ? first_visible_channel(target_p, source_p) :
 		      "*", target_p->username, target_p->host,
-		      target_p->user->server->name, target_p->name, status,
+		      target_p->servptr->name, target_p->name, status,
 		      WHO_HOPCOUNT(source_p, target_p), target_p->info);
       shown++;
     }

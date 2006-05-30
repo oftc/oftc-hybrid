@@ -90,7 +90,7 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
             "Link %s dropped, wrong TS protocol version (%s,%s)",
             get_client_name(source_p, SHOW_IP), parv[1], parv[2]);
-      exit_client(source_p, source_p, source_p, "Incompatible TS version");
+      exit_client(source_p, source_p, "Incompatible TS version");
       return;
     }
 
@@ -115,7 +115,7 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
           (unsigned long) CurrentTime,
           (unsigned long) theirtime,
           (int) deltat);
-      exit_client(source_p, source_p, source_p, "Excessive TS delta");
+      exit_client(source_p, source_p, "Excessive TS delta");
       return;
     }
 

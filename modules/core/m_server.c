@@ -326,7 +326,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
 			   "Link %s cancelled: Server/nick collision on %s",
 		/* inpath */ get_client_name(client_p, SHOW_IP), name);
-    exit_client(client_p, "Nick as Server");
+    exit_client(client_p, client_p, "Nick as Server");
     return;
   }
 

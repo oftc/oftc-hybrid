@@ -69,7 +69,7 @@ static void ms_realhost(struct Client *source_p, struct Client *client_p, int pa
 {
   struct Client *target_p;
   
-  if ((target_p = find_person(parv[1])) == NULL)
+  if ((target_p = find_person(client_p, parv[1])) == NULL)
     return;
 
   if(target_p->realhost[0] == '\0')

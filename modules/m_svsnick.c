@@ -87,7 +87,7 @@ static void m_svsnick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if((target_p = find_chasing(source_p, parv[1], NULL)) == NULL)
+  if((target_p = find_chasing(client_p, source_p, parv[1], NULL)) == NULL)
     return;
 
   if(MyClient(target_p))

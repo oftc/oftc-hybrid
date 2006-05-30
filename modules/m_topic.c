@@ -155,7 +155,7 @@ m_topic(struct Client *client_p, struct Client *source_p,
                       ":%s TOPIC %s :%s",
                       parv[0], chptr->chname,
                       chptr->topic == NULL ? "" : chptr->topic);
-        sendto_channel_local(ALL_MEMBERS,
+        sendto_channel_local(ALL_MEMBERS, NO,
                              chptr, ":%s!%s@%s TOPIC %s :%s",
                              source_p->name,
                              source_p->username,

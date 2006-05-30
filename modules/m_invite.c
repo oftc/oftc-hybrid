@@ -76,6 +76,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
   struct Client *target_p = NULL;
   struct Channel *chptr = NULL;
   struct Membership *ms = NULL;
+  int chop;
 
   if (IsServer(source_p))
     return;
@@ -157,10 +158,10 @@ m_invite(struct Client *client_p, struct Client *source_p,
   sendto_one(source_p, form_str(RPL_INVITING),
              me.name, parv[0], target_p->name, parv[2]);
 
-  if (target_p->user->away)
+  if (target_p->away)
     sendto_one(source_p, form_str(RPL_AWAY),
                me.name, parv[0], target_p->name,
-               target_p->user->away);
+               target_p->away);
 
   if (!MyConnect(target_p) && ServerInfo.hub &&
       IsCapable(target_p->from, CAP_LL))

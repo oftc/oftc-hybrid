@@ -130,7 +130,7 @@ void user_shedding_shed(void *unused)
 
       if(MyClient(client_p) && !IsOper(client_p))
       {
-          exit_client(client_p, client_p, &me, "Server closed connection");
+          exit_client(client_p, &me, "Server closed connection");
           break;
       }
   }

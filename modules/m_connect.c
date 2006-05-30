@@ -277,7 +277,7 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   if (find_servconn_in_progress(conf->name))
   {
     sendto_one(source_p, ":%s NOTICE %s :Connect: a connection to %s "
-        "is already in progress.", me.name, source_p->name, conf->name)
+        "is already in progress.", me.name, source_p->name, conf->name);
     return;
   }
   

@@ -76,7 +76,7 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
   target = parv[1];
   hostname = parv[2];
 
-  if ((target_p= find_person(target)))
+  if ((target_p = find_person(client_p, target)))
   {   
     if(MyClient(target_p) && irccmp(target_p->host, hostname) != 0)
     {   

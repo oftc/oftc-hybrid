@@ -65,7 +65,6 @@ ms_pong(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p;
   char  *origin, *destination;
-  struct timeval tv;
 
   if (parc < 2 || *parv[1] == '\0')
   {
@@ -73,21 +72,8 @@ ms_pong(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-    
-  gettimeofday(&tv, NULL);
-  source_p->ping_time.tv_sec = tv.tv_sec - source_p->ping_send_time.tv_sec;
-  source_p->ping_time.tv_usec = tv.tv_usec - source_p->ping_send_time.tv_usec;
-
-  if (MyConnect(source_p)) 
-  {
-    sendto_server(NULL, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
-        ":%s SPINGTIME %s %.1ld", me.name, source_p->name,
-        (source_p->ping_time.tv_sec * 1000000) + source_p->ping_time.tv_usec);
-  }
-
   origin = parv[1];
   destination = parv[2];
-  ClearPingSent(source_p);
 
   /* Now attempt to route the PONG, comstud pointed out routable PING
    * is used for SPING.  routable PING should also probably be left in

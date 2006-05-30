@@ -72,7 +72,7 @@ static void mo_log(struct Client *client_p, struct Client *source_p, int parc, c
     {
         ircsprintf(buf, "%s %s %s\n",
                 myctime(time(NULL)), source_p->name, parv[1]);
-        fbputs(buf, logfile);
+        fbputs(buf, logfile, sizeof(buf));
         fbclose(logfile);
     }
     return;

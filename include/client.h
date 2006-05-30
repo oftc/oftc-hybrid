@@ -159,6 +159,7 @@ struct Client
 
   dlink_list     channel;   /* chain of channel pointer blocks */
   dlink_list     invited;   /* chain of invite pointer blocks */
+  char              realhost[HOSTLEN + 1];
 
   struct LocalUser *localClient;
 };

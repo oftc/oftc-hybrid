@@ -65,7 +65,6 @@ OFTC_SRCS = \
   m_os.c \
   m_realhost.c \
   m_shedding.c \
-  m_spingtime.c \
   m_svscloak.c\
   m_svsmode.c\
   m_svsnick.c\

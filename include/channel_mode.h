@@ -61,9 +61,18 @@
 #define MODE_SPEAKONLYIFREG 0x0100
 #define MODE_SSLONLY        0x0200
 
+#define CHFL_BAN_CHECKED  0x0400
+#define CHFL_BAN_SILENCED 0x0800
+ 
+
 #define MODE_QUERY  0
 #define MODE_ADD    1
 #define MODE_DEL   -1
+
+#define CHACCESS_NOTONCHAN  -1
+#define CHACCESS_PEON       0
+#define CHACCESS_HALFOP     1
+#define CHACCESS_CHANOP     2
 
 /* name invisible */
 #define SecretChannel(x)        (((x)->mode.mode & MODE_SECRET))

@@ -89,7 +89,7 @@ static void m_svsmode(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_person(parv[1])) == NULL)
+  if ((target_p = find_person(client_p, parv[1])) == NULL)
   {
     if (MyConnect(source_p))
       sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL), me.name, parv[0], 
