@@ -26,7 +26,7 @@ prefix          = $(DESTDIR)@prefix@
 moduledir       = ${prefix}/modules
 automoduledir   = ${moduledir}/autoload
 
-INCLUDES	= -I../include $(SSL_INCLUDES)
+INCLUDES	= -I../include -I../libio $(SSL_INCLUDES)
 CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
 
 CORE_SRCS = \

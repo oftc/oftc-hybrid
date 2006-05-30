@@ -28,28 +28,25 @@
 #include "hash.h"       /* for find_client() */
 #include "ircd.h"
 #include "numeric.h"
-#include "s_log.h"
 #include "s_serv.h"
 #include "s_conf.h"
 #include "send.h"
 #include "whowas.h"
-#include "irc_string.h"
-#include "sprintf_irc.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
 
-static char buf[BUFSIZE];
+static char buf[IRCD_BUFSIZE];
 
-static void ms_kill(struct Client *, struct Client *, int, char **);
-static void mo_kill(struct Client *, struct Client *, int, char **);
+static void ms_kill(struct Client *, struct Client *, int, char *[]);
+static void mo_kill(struct Client *, struct Client *, int, char *[]);
 static void relay_kill(struct Client *, struct Client *, struct Client *,
                        const char *, const char *);
 
 struct Message kill_msgtab = {
   "KILL", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_kill, mo_kill, m_ignore}
+  {m_unregistered, m_not_oper, ms_kill, m_ignore, mo_kill, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -65,7 +62,7 @@ _moddeinit(void)
   mod_del_cmd(&kill_msgtab);
 }
 
-const char *_version = "$Revision: 229 $";
+const char *_version = "$Revision$";
 #endif
 
 /* mo_kill()
@@ -81,7 +78,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
   const char *inpath = client_p->name;
   char *user;
   char *reason;
-  char def_reason[] = "No reason specified";
+  char def_reason[] = "No reason";
 
   user   = parv[1];
   reason = parv[2]; /* Either defined or NULL (parc >= 2!!) */
@@ -93,7 +90,10 @@ mo_kill(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!IsOperK(source_p))
+  if (IsDigit(*user))	/* opers shouldn't be trying uids anyway ;-) */
+    return;
+
+  if (!IsOperK(source_p) && !IsOperGlobalKill(source_p))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -114,7 +114,9 @@ mo_kill(struct Client *client_p, struct Client *source_p,
      * rewrite the KILL for this new nickname--this keeps
      * servers in synch when nick change and kill collide
      */
-    if ((target_p = get_history(user, (time_t)KILLCHASETIMELIMIT)) == NULL)
+    if ((target_p = get_history(user, 
+				(time_t)ConfigFileEntry.kill_chase_time_limit))
+				== NULL)
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                  me.name, source_p->name, user);
@@ -152,6 +154,8 @@ mo_kill(struct Client *client_p, struct Client *source_p,
 
   ilog(L_INFO, "KILL From %s For %s Path %s (%s)",
        source_p->name, target_p->name, me.name, reason);
+  log_oper_action(LOG_KILL_TYPE, source_p, "%s %s\n",
+		  me.name, reason);
 
   /*
   ** And pass on the message to other servers. Note, that if KILL
@@ -171,7 +175,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
   }
 
   ircsprintf(buf, "Killed (%s (%s))", source_p->name, reason);
-  exit_client(client_p, target_p, source_p, buf);
+  exit_client(target_p, source_p, buf);
 }
 
 /* ms_kill()
@@ -187,9 +191,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
   char *user;
   char *reason;
   const char *path;
-  char def_reason[] = "No reason specified";
-
-  *buf = '\0';
+  char def_reason[] = "No reason";
 
   if (*parv[1] == '\0')
   {
@@ -212,31 +214,31 @@ ms_kill(struct Client *client_p, struct Client *source_p,
     reason = strchr(parv[2], ' ');
 
     if (reason != NULL)
-    {
-      *reason = '\0';
-      reason++;
-    }
+      *reason++ = '\0';
     else
       reason = def_reason;
 
     path = parv[2];
   }
 
-  if ((target_p = find_client(user)) == NULL)
+  if ((target_p = find_person(client_p, user)) == NULL)
   {
       /* If the user has recently changed nick, but only if its 
        * not an uid, automatically rewrite the KILL for this new nickname.
        * --this keeps servers in synch when nick change and kill collide
        */
-      if (*user == '.' ||
-	  (target_p = get_history(user, (time_t)KILLCHASETIMELIMIT)) == NULL)
-        {
-          sendto_one(source_p, form_str(ERR_NOSUCHNICK),
-                     me.name, source_p->name, user);
-          return;
-        }
-      sendto_one(source_p,":%s NOTICE %s :KILL changed from %s to %s",
-                 me.name, source_p->name, user, target_p->name);
+    if(IsDigit(*user))	/* Somehow an uid was not found in the hash ! */
+      return;
+    if((target_p = get_history(user,
+		       (time_t)ConfigFileEntry.kill_chase_time_limit))
+       == NULL)
+    {
+      sendto_one(source_p, form_str(ERR_NOSUCHNICK),
+		 me.name, source_p->name, user);
+      return;
+    }
+    sendto_one(source_p,":%s NOTICE %s :KILL changed from %s to %s",
+	       me.name, source_p->name, user, target_p->name);
   }
 
   if (IsServer(target_p) || IsMe(target_p))
@@ -273,7 +275,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Received KILL message for %s. From %s Path: %s!%s!%s!%s %s",
-                         target_p->name, source_p->name, source_p->user->server->name, 
+                         target_p->name, source_p->name, source_p->servptr->name, 
                          source_p->host, source_p->username, source_p->name, reason);
   }
   else
@@ -295,7 +297,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
   else
     ircsprintf(buf, "Killed (%s %s)", source_p->name, reason);
 
-  exit_client(client_p, target_p, source_p, buf);
+  exit_client(target_p, source_p, buf);
 }
 
 static void
@@ -305,7 +307,7 @@ relay_kill(struct Client *one, struct Client *source_p,
   dlink_node *ptr;
   struct Client *client_p;
   int introduce_killed_client;
-  char *user; 
+  const char *from, *to;
 
   /* LazyLinks:
    * Check if each lazylink knows about target_p.
@@ -347,30 +349,27 @@ relay_kill(struct Client *one, struct Client *source_p,
     }
     /* force introduction of killed client but check that
      * its not on the server we're bursting too.. */
-    else if (strcmp(target_p->user->server->name, client_p->name))
+    else if (strcmp(target_p->servptr->name, client_p->name))
       client_burst_if_needed(client_p, target_p);
 
     /* introduce source of kill */
     client_burst_if_needed(client_p, source_p);
 
-    /* check the server supports SID */
-    if (IsCapable(client_p, CAP_SID))
-      user = ID(target_p);
-    else
-      user = target_p->name;
+    /* use UID if possible */
+    from = ID_or_name(source_p, client_p);
+    to = ID_or_name(target_p, client_p);
 
     if (MyClient(source_p))
     {
         sendto_one(client_p, ":%s KILL %s :%s!%s!%s!%s (%s)",
-                   source_p->name, user,
+                   from, to,
                    me.name, source_p->host, source_p->username,
                    source_p->name, reason);
     }
     else
     {
         sendto_one(client_p, ":%s KILL %s :%s %s",
-                   source_p->name, user,
-                   inpath, reason);
+                   from, to, inpath, reason);
     }
   }
 }

@@ -23,13 +23,11 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
+#include "common.h"
 #include "client.h"
-#include "common.h" /* XXX IRCD_BUFSIZE */
-#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
@@ -38,15 +36,14 @@
 #include "parse.h"
 #include "hash.h"
 #include "packet.h"
-#include "sprintf_irc.h"
-#include "s_log.h" /* oftc_log */
+#include "s_serv.h"
 
 
-static void m_kick(struct Client *, struct Client *, int, char **);
+static void m_kick(struct Client *, struct Client *, int, char *[]);
 
 struct Message kick_msgtab = {
   "KICK", 0, 0, 3, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_kick, m_kick, m_kick, m_ignore}
+  {m_unregistered, m_kick, m_kick, m_ignore, m_kick, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -62,7 +59,7 @@ _moddeinit(void)
   mod_del_cmd(&kick_msgtab);
 }
 
-const char *_version = "$Revision: 476 $";
+const char *_version = "$Revision$";
 #endif
 
 /* m_kick()
@@ -73,23 +70,34 @@ const char *_version = "$Revision: 476 $";
  */
 static void 
 m_kick(struct Client *client_p, struct Client *source_p,
-        int parc, char *parv[])
+       int parc, char *parv[])
 {
   struct Client *who;
   struct Channel *chptr;
   int chasing = 0;
-  int gmode_used = 0;
   char *comment;
   char *name;
   char *p = NULL;
   char *user;
+  const char *from, *to;
   struct Membership *ms = NULL;
   struct Membership *ms_target;
+
+  if (!MyConnect(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
+  {
+    from = me.id;
+    to = source_p->id;
+  }
+  else
+  {
+    from = me.name;
+    to = source_p->name;
+  }
 
   if (*parv[2] == '\0')
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-            me.name, parv[0], "KICK");
+               from, to, "KICK");
     return;
   }
 
@@ -97,21 +105,22 @@ m_kick(struct Client *client_p, struct Client *source_p,
     flood_endgrace(source_p);
 
   comment = (EmptyString(parv[3])) ? parv[2] : parv[3];
-  if (strlen(comment) > (size_t) TOPICLEN)
-    comment[TOPICLEN] = '\0';
+  if (strlen(comment) > (size_t)KICKLEN)
+    comment[KICKLEN] = '\0';
 
   name = parv[1];
   while (*name == ',')
     name++;
+
   if ((p = strchr(name,',')) != NULL)
     *p = '\0';
-  if (!*name)
+  if (*name == '\0')
     return;
 
   if ((chptr = hash_find_channel(name)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-              me.name, source_p->name, name);
+               from, to, name);
     return;
   }
 
@@ -173,52 +182,57 @@ m_kick(struct Client *client_p, struct Client *source_p,
   }
 
   user = parv[2];
-  
+
   while (*user == ',')
     user++;
- 
-  if ((p = strchr(user,',')) != NULL)
+
+  if ((p = strchr(user, ',')) != NULL)
     *p = '\0';
-  
-  if (!*user)
+
+  if (*user == '\0')
     return;
 
-  if ((who = find_chasing(source_p, user, &chasing)) == NULL)
+  if ((who = find_chasing(client_p, source_p, user, &chasing)) == NULL)
     return;
 
   if ((ms_target = find_channel_link(who, chptr)) != NULL)
   {
-      /* half ops cannot kick other halfops on private channels */
-#ifdef USE_HALFOPS
-    if (has_member_flags(ms, CHFL_HALFOP))
+#ifdef HALFOPS
+    /* half ops cannot kick other halfops on private channels */
+    if (has_member_flags(ms, CHFL_HALFOP) && !has_member_flags(ms, CHFL_CHANOP))
     {
-        if (((chptr->mode.mode & MODE_PRIVATE) && 
-                has_member_flags(ms_target, CHFL_CHANOP|CHFL_HALFOP)) || 
-                has_member_flags(ms_target, CHFL_CHANOP))
+      if (((chptr->mode.mode & MODE_PRIVATE) && has_member_flags(ms_target,
+        CHFL_CHANOP|CHFL_HALFOP)) || has_member_flags(ms_target, CHFL_CHANOP))
       {
         sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-                           me.name, source_p->name, name);
+                   me.name, source_p->name, name);
         return;
       }
     }
 #endif
-   /* jdc
-    * - In the case of a server kicking a user (i.e. CLEARCHAN),
-    *   the kick should show up as coming from the server which did
-    *   the kick.
-    * - Personally, flame and I believe that server kicks shouldn't
-    *   be sent anyways.  Just waiting for some oper to abuse it...
-    */
+
+    /* jdc
+     * - In the case of a server kicking a user (i.e. CLEARCHAN),
+     *   the kick should show up as coming from the server which did
+     *   the kick.
+     * - Personally, flame and I believe that server kicks shouldn't
+     *   be sent anyways.  Just waiting for some oper to abuse it...
+     */
     if (IsServer(source_p))
-      sendto_channel_local(ALL_MEMBERS, chptr, ":%s KICK %s %s :%s",
+      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s KICK %s %s :%s",
                            source_p->name, name, who->name, comment);
     else
-      sendto_channel_local(ALL_MEMBERS, chptr, ":%s!%s@%s KICK %s %s :%s",
+      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s KICK %s %s :%s",
                            source_p->name, source_p->username,
                            source_p->host, name, who->name, comment);
-    sendto_server(client_p, NULL, chptr, NOCAPS, NOCAPS, NOFLAGS,
-                  ":%s KICK %s %s :%s", parv[0], chptr->chname,
+
+    sendto_server(client_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+                  ":%s KICK %s %s :%s",
+                  ID(source_p), chptr->chname, ID(who), comment);
+    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+                  ":%s KICK %s %s :%s", source_p->name, chptr->chname,
                   who->name, comment);
+
     remove_user_from_channel(ms_target);
     if(gmode_used)
     {
@@ -231,5 +245,5 @@ m_kick(struct Client *client_p, struct Client *source_p,
   }
   else
     sendto_one(source_p, form_str(ERR_USERNOTINCHANNEL),
-            me.name, source_p->name, user, name);
+               from, to, user, name);
 }

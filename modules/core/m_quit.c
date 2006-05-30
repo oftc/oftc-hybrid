@@ -26,7 +26,6 @@
 #include "handlers.h"
 #include "client.h"
 #include "ircd.h"
-#include "irc_string.h"
 #include "s_serv.h"
 #include "send.h"
 #include "msg.h"
@@ -34,12 +33,12 @@
 #include "modules.h"
 #include "s_conf.h"
 
-static void m_quit(struct Client *, struct Client *, int, char **);
-static void ms_quit(struct Client *, struct Client *, int, char **);
+static void m_quit(struct Client *, struct Client *, int, char *[]);
+static void ms_quit(struct Client *, struct Client *, int, char *[]);
 
 struct Message quit_msgtab = {
   "QUIT", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {m_quit, m_quit, ms_quit, m_quit, m_ignore}
+  {m_quit, m_quit, ms_quit, m_ignore, m_quit, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -55,7 +54,7 @@ _moddeinit(void)
   mod_del_cmd(&quit_msgtab);
 }
 
-const char *_version = "$Revision: 372 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -68,7 +67,7 @@ m_quit(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
   char *comment = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
-  char reason[TOPICLEN + 1] = "Quit: ";
+  char reason[KICKLEN + 1] = "Quit: ";
 
   if (msg_has_colors(comment))
     comment = strip_color(comment);
@@ -76,11 +75,11 @@ m_quit(struct Client *client_p, struct Client *source_p,
   if (comment[0] && (IsOper(source_p) ||
       (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
       < CurrentTime))
-  {
     strlcpy(reason+6, comment, sizeof(reason)-6);
-  }
+  else
+    strlcpy(reason, "Client Quit", sizeof(reason));
 
-  exit_client(client_p, source_p, source_p, reason);
+  exit_client(source_p, source_p, reason);
 }
 
 /*
@@ -94,8 +93,8 @@ ms_quit(struct Client *client_p, struct Client *source_p,
 {
   char *comment = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
 
-  if (strlen(comment) > (size_t)TOPICLEN)
-    comment[TOPICLEN] = '\0';
+  if (strlen(comment) > (size_t)KICKLEN)
+    comment[KICKLEN] = '\0';
 
-  exit_client(client_p, source_p, source_p, comment);
+  exit_client(source_p, source_p, comment);
 }

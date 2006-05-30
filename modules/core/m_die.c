@@ -23,26 +23,24 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
 #include "handlers.h"
 #include "client.h"
+#include "common.h"
 #include "ircd.h"
-#include "irc_string.h"
 #include "numeric.h"
-#include "fdlist.h"
-#include "s_bsd.h"
-#include "s_log.h"
 #include "s_conf.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "restart.h"
 
-static void mo_die(struct Client *, struct Client *, int, char **);
+
+static void mo_die(struct Client *, struct Client *, int, char *[]);
 
 struct Message die_msgtab = {
   "DIE", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, mo_die, m_ignore}
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_die, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -58,7 +56,7 @@ _moddeinit(void)
   mod_del_cmd(&die_msgtab);
 }
 
-const char *_version = "$Revision: 316 $";
+const char *_version = "$Revision$";
 #endif
 
 /*
@@ -68,55 +66,30 @@ static void
 mo_die(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-  struct Client *target_p;
-  dlink_node *ptr;
+  char buf[IRCD_BUFSIZE];
 
   if (!IsOperDie(source_p))
   {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
+    sendto_one(source_p, form_str(ERR_NOPRIVS),
+               me.name, source_p->name, "die");
     return;
   }
 
-  if (parc < 2)
+  if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p,":%s NOTICE %s :Need server name /die %s",
                me.name, source_p->name, me.name);
     return;
   }
-  else
+
+  if (irccmp(parv[1], me.name))
   {
-    if (irccmp(parv[1], me.name))
-    {
-      sendto_one(source_p,":%s NOTICE %s :Mismatch on /die %s",
-                 me.name,source_p->name, me.name);
-      return;
-    }
+    sendto_one(source_p,":%s NOTICE %s :Mismatch on /die %s",
+               me.name,source_p->name, me.name);
+    return;
   }
 
-  DLINK_FOREACH(ptr, local_client_list.head)
-  {
-    target_p = ptr->data;
-
-    sendto_one(target_p, ":%s NOTICE %s :Server Terminating. %s",
-               me.name, target_p->name, get_client_name(source_p, SHOW_IP));
-  }
-
-  DLINK_FOREACH(ptr, serv_list.head)
-  {
-    target_p = ptr->data;
-
-    sendto_one(target_p, ":%s ERROR :Terminated by %s",
-               me.name, get_client_name(source_p, SHOW_IP));
-  }
-
-  ilog(L_NOTICE, "Server terminated by %s", get_oper_name(source_p));
-  send_queued_all();
-
-  /* this is a normal exit, tell the os it's ok 
-   */
-  unlink(pidFileName);
-  exit(0);
-  /* NOT REACHED */
+  ircsprintf(buf, "received DIE command from %s",
+             get_oper_name(source_p));
+  server_die(buf, NO);
 }
-
