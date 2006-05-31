@@ -1537,6 +1537,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
     sendto_server(client_p, source_p, NULL, NOCAPS, CAP_TS6, NOFLAGS,
                   ":%s NICK %s :%lu",
                   source_p->name, nick, (unsigned long)source_p->tsinfo);
+    }
   }
   else
   {
