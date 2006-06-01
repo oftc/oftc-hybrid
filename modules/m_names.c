@@ -90,20 +90,13 @@ m_names(struct Client *client_p, struct Client *source_p,
   if (!EmptyString(para))
   {
     while (*para == ',')
-      para++;
+      ++para;
 
     if ((s = strchr(para, ',')) != NULL)
       *s = '\0';
 
     if (*para == '\0')
       return;
-
-    if (!check_channel_name(para))
-    { 
-      sendto_one(source_p, form_str(ERR_BADCHANNAME),
-                 me.name, source_p->name, para);
-      return;
-    }
 
     if ((chptr = hash_find_channel(para)) != NULL)
       channel_member_names(source_p, chptr, 1);

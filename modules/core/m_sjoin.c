@@ -95,12 +95,12 @@ static void
 ms_sjoin(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  struct Channel *chptr;
-  struct Client  *target_p;
+  struct Channel *chptr = NULL;
+  struct Client  *target_p = NULL;
   time_t         newts;
   time_t         oldts;
   time_t         tstosend;
-  static         struct Mode mode, *oldmode;
+  struct Mode mode, *oldmode;
   int            args = 0;
   char           keep_our_modes = YES;
   char           keep_new_modes = YES;
@@ -111,7 +111,7 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
   char           *np, *up;
   int            len_nick = 0;
   int            len_uid = 0;
-  int            isnew;
+  int            isnew = 0;
   int            buflen = 0;
   int	         slen;
   unsigned       int fl;
@@ -132,8 +132,13 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
   if (*parv[2] != '#')
     return;
 
-  if (!check_channel_name(parv[2]))
+  if (!check_channel_name(parv[2], 0))
+  {
+    sendto_realops_flags(UMODE_DEBUG, L_ALL,
+                         "*** Too long or invalid channel name from %s: %s",
+                         client_p->name, parv[2]);
     return;
+  }
 
   modebuf[0] = '\0';
   mbuf = modebuf;
@@ -143,11 +148,10 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
   mode.mode = 0;
   mode.limit = 0;
   mode.key[0] = '\0';
-  s = parv[3];
 
-  while (*s)
+  for (s = parv[3]; *s; ++s)
   {
-    switch (*(s++))
+    switch (*s)
     {
       case 't':
         mode.mode |= MODE_TOPICLIMIT;
@@ -170,24 +174,28 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
       case 'k':
         strlcpy(mode.key, parv[4 + args], sizeof(mode.key));
         args++;
-        if (parc < 5+args)
+
+        if (parc < 5 + args)
           return;
         break;
       case 'l':
         mode.limit = atoi(parv[4 + args]);
         args++;
-        if (parc < 5+args)
+
+        if (parc < 5 + args)
           return;
         break;
     }
   }
 
+  if ((chptr = hash_find_channel(parv[2])) == NULL)
+  {
+    isnew = 1;
+    chptr = make_channel(parv[2]);
+  }
+
   parabuf[0] = '\0';
-
-  if ((chptr = get_or_create_channel(source_p, parv[2], &isnew)) == NULL)
-    return; /* channel name too long? */
-
-  oldts   = chptr->channelts;
+  oldts = chptr->channelts;
   oldmode = &chptr->mode;
 
   if (ConfigFileEntry.ignore_bogus_ts)

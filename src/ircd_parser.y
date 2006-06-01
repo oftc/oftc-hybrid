@@ -169,6 +169,7 @@ unhook_hub_leaf_confs(void)
 %token  DESCRIPTION
 %token  DIE
 %token  DISABLE_AUTH
+%token  DISABLE_FAKE_CHANNELS
 %token  DISABLE_HIDDEN
 %token  DISABLE_LOCAL_CHANNELS
 %token  DISABLE_REMOTE_COMMANDS
@@ -3826,7 +3827,12 @@ channel_item:       channel_disable_local_channels | channel_use_except |
                     channel_no_create_on_split | channel_restrict_channels |
                     channel_no_join_on_split | channel_burst_topicwho |
                     channel_jflood_count | channel_jflood_time |
-                    error;
+                    channel_disable_fake_channels | error;
+
+channel_disable_fake_channels: DISABLE_FAKE_CHANNELS '=' TBOOL ';'
+{
+  ConfigChannel.disable_fake_channels = yylval.number;
+};
 
 channel_restrict_channels: RESTRICT_CHANNELS '=' TBOOL ';'
 {

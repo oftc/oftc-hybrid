@@ -129,23 +129,25 @@ extern const unsigned char ToUpperTab[];
 
 extern const unsigned int CharAttrs[];
 
-#define PRINT_C   0x001
-#define CNTRL_C   0x002
-#define ALPHA_C   0x004
-#define PUNCT_C   0x008
-#define DIGIT_C   0x010
-#define SPACE_C   0x020
-#define NICK_C    0x040
-#define CHAN_C    0x080
-#define KWILD_C   0x100
-#define CHANPFX_C 0x200
-#define USER_C    0x400
-#define HOST_C    0x800
-#define NONEOS_C 0x1000
-#define SERV_C   0x2000
-#define EOL_C    0x4000
-#define MWILD_C  0x8000
+#define PRINT_C   0x00001
+#define CNTRL_C   0x00002
+#define ALPHA_C   0x00004
+#define PUNCT_C   0x00008
+#define DIGIT_C   0x00010
+#define SPACE_C   0x00020
+#define NICK_C    0x00040
+#define CHAN_C    0x00080
+#define KWILD_C   0x00100
+#define CHANPFX_C 0x00200
+#define USER_C    0x00400
+#define HOST_C    0x00800
+#define NONEOS_C  0x01000
+#define SERV_C    0x02000
+#define EOL_C     0x04000
+#define MWILD_C   0x08000
+#define FCHAN_C   0x10000
 
+#define IsFchanChar(c)   (CharAttrs[(unsigned char)(c)] & FCHAN_C)
 #define IsHostChar(c)   (CharAttrs[(unsigned char)(c)] & HOST_C)
 #define IsUserChar(c)   (CharAttrs[(unsigned char)(c)] & USER_C)
 #define IsChanPrefix(c) (CharAttrs[(unsigned char)(c)] & CHANPFX_C)

@@ -1,4 +1,5 @@
 -- ircd-hybrid-7.2.2 RELNOTES
+o) Added channel::disable_fake_channels config directive
 o) Fixed broken FORCEJOIN  (contrib)
 o) Added missing documentation for connect::vhost
 o) Fixed problem with G-Line voting

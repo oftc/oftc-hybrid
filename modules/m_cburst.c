@@ -107,7 +107,15 @@ ms_cburst(struct Client *client_p, struct Client *source_p,
   {
     if ((!nick) || (nick && *nick != '!'))
     {
-      chptr = get_or_create_channel(source_p, name, NULL);
+      if (!check_channel_name(name, 0))
+      {
+        sendto_realops_flags(UMODE_DEBUG, L_ALL,
+                             "*** Too long or invalid channel name from %s: %s",
+                             client_p->name, name);
+        return;
+      }
+
+      chptr = make_channel(name);
       chptr->channelts = (time_t)(-1); /* highest possible TS so its always
 					* over-ruled
                                         */

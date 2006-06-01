@@ -160,6 +160,7 @@ deny		{ return DENY; }
 description	{ return DESCRIPTION; }
 die		{ return DIE; }
 disable_auth    { return DISABLE_AUTH; }
+disable_fake_channels { return DISABLE_FAKE_CHANNELS; }
 disable_hidden	{ return DISABLE_HIDDEN; }
 disable_local_channels { return DISABLE_LOCAL_CHANNELS; }
 disable_remote_commands	{ return DISABLE_REMOTE_COMMANDS; }

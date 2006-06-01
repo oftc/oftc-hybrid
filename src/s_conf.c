@@ -1853,6 +1853,7 @@ set_default_conf(void)
   ConfigLoggingEntry.ioerrlog[0] = '\0';
   ConfigLoggingEntry.failed_operlog[0] = '\0';
 
+  ConfigChannel.disable_fake_channels = NO;
   ConfigChannel.restrict_channels = NO;
   ConfigChannel.disable_local_channels = NO;
   ConfigChannel.use_invex = YES;

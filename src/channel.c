@@ -308,19 +308,34 @@ send_channel_modes(struct Client *client_p, struct Channel *chptr)
 
 /*! \brief check channel name for invalid characters
  * \param name pointer to channel name string
- * \return TRUE (1) if name ok, FALSE (0) otherwise
+ * \param local indicates whether it's a local or remote creation
+ * \return 0 if invalid, 1 otherwise
  */
 int
-check_channel_name(const char *name)
+check_channel_name(const char *name, int local)
 {
-  const unsigned char *p = (const unsigned char *)name;
+  const char *p = name;
+  int max_length = local ? LOCAL_CHANNELLEN : CHANNELLEN;
   assert(name != NULL);
 
-  for (; *p; ++p)
-    if (!IsChanChar(*p))
-      return 0;
+  if (!IsChanPrefix(*p))
+    return 0;
 
-  return 1;
+  if (!local)
+  {
+    while (*++p)
+      if (!IsChanChar(*p))
+        return 0;
+  }
+  else
+  {
+    while (*++p)
+      if (!IsChanChar(*p) ||
+          (IsFchanChar(*p) && ConfigChannel.disable_fake_channels))
+        return 0;
+  }
+
+  return p - name <= max_length;
 }
 
 void
@@ -355,43 +370,21 @@ free_channel_list(dlink_list *list)
 
 /*! \brief Get Channel block for chname (and allocate a new channel
  *         block, if it didn't exist before)
- * \param client_p client pointer
- * \param chname   channel name
- * \param isnew    pointer to int flag whether channel was newly created or not
- * \return channel block or NULL if illegal name
+ * \param chname channel name
+ * \return channel block
  */
 struct Channel *
-get_or_create_channel(struct Client *client_p, const char *chname, int *isnew)
+make_channel(const char *chname)
 {
   struct Channel *chptr = NULL;
-  int len;
 
-  if (EmptyString(chname))
-    return NULL;
-
-  if ((len = strlen(chname)) > CHANNELLEN)
-  {
-    if (IsServer(client_p))
-      sendto_realops_flags(UMODE_DEBUG, L_ALL,
-                           "*** Long channel name from %s (%d > %d): %s",
-                           client_p->name, len, CHANNELLEN, chname);
-    return NULL;
-  }
-
-  if ((chptr = hash_find_channel(chname)) != NULL)
-  {
-    if (isnew != NULL)
-      *isnew = 0;
-
-    return chptr;
-  }
-
-  if (isnew != NULL)
-    *isnew = 1;
+  assert(!EmptyString(chname));
 
   chptr = BlockHeapAlloc(channel_heap);
+
   /* doesn't hurt to set it here */
-  chptr->channelts = chptr->last_join_time = CurrentTime;
+  chptr->channelts = CurrentTime;
+  chptr->last_join_time = CurrentTime;
 
   strlcpy(chptr->chname, chname, sizeof(chptr->chname));
   dlinkAdd(chptr, &chptr->node, &global_channel_list);
@@ -655,10 +648,11 @@ find_bmask(const struct Client *who, const dlink_list *const list)
 int
 is_banned(struct Channel *chptr, struct Client *who)
 {
-  assert(IsClient(who));
+  if (find_bmask(who, &chptr->banlist))
+    if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
+      return 1;
 
-  return find_bmask(who, &chptr->banlist) && (!ConfigChannel.use_except ||
-         !find_bmask(who, &chptr->exceptlist));
+  return 0;
 }
 
 /*!
@@ -671,16 +665,15 @@ is_banned(struct Channel *chptr, struct Client *who)
 int
 can_join(struct Client *source_p, struct Channel *chptr, const char *key)
 {
-  if (find_bmask(source_p, &chptr->banlist))
-    if (!ConfigChannel.use_except || !find_bmask(source_p, &chptr->exceptlist))
-      return ERR_BANNEDFROMCHAN;
+  if (is_banned(chptr, source_p))
+    return ERR_BANNEDFROMCHAN;
 
   if (chptr->mode.mode & MODE_INVITEONLY)
     if (!dlinkFind(&source_p->localClient->invited, chptr))
       if (!ConfigChannel.use_invex || !find_bmask(source_p, &chptr->invexlist))
         return ERR_INVITEONLYCHAN;
 
-  if (chptr->mode.key[0] && (EmptyString(key) || irccmp(chptr->mode.key, key)))
+  if (chptr->mode.key[0] && (!key || irccmp(chptr->mode.key, key)))
     return ERR_BADCHANNELKEY;
 
   if (chptr->mode.limit && dlink_list_length(&chptr->members) >=

@@ -127,7 +127,7 @@ m_join(struct Client *client_p, struct Client *source_p,
   int i = 0;
   unsigned int flags = 0;
 
-  if (*parv[1] == '\0')
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "JOIN");
@@ -152,7 +152,7 @@ m_join(struct Client *client_p, struct Client *source_p,
     if (key && *key == '\0')
       key = NULL;
 
-    if (!IsChanPrefix(*chan) || !check_channel_name(chan))
+    if (!check_channel_name(chan, 1))
     {
       sendto_one(source_p, form_str(ERR_BADCHANNAME),
                  me.name, source_p->name, chan);
@@ -162,13 +162,6 @@ m_join(struct Client *client_p, struct Client *source_p,
     if (ConfigChannel.disable_local_channels && (*chan == '&'))
     {
       sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-                 me.name, source_p->name, chan);
-      continue;
-    }
-
-    if (strlen(chan) > LOCAL_CHANNELLEN)
-    {
-      sendto_one(source_p, form_str(ERR_BADCHANNAME),
                  me.name, source_p->name, chan);
       continue;
     }
@@ -227,13 +220,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       }
 
       flags = CHFL_CHANOP;
-
-      if ((chptr = get_or_create_channel(source_p, chan, NULL)) == NULL)
-      {
-        sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
-                   me.name, source_p->name, chan);
-        continue;
-      }
+      chptr = make_channel(chan);
     }
 
     if (!IsOper(source_p))
@@ -267,7 +254,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       sendto_server(client_p, source_p, chptr, NOCAPS, CAP_TS6, LL_ICLIENT,
                     ":%s SJOIN %lu %s +nt :@%s",
                     me.name, (unsigned long)chptr->channelts,
-                    chptr->chname, parv[0]);
+                    chptr->chname, source_p->name);
       /*
        * notify all other users on the new channel
        */
@@ -328,40 +315,41 @@ static void
 ms_join(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  struct Channel *chptr;
-  time_t         newts;
-  time_t         oldts;
-  static         struct Mode mode, *oldmode;
-  int            args = 0;
-  int            keep_our_modes = 1;
-  int            keep_new_modes = 1;
-  int            isnew;
-  char           *s;
-  const char *servername;
+  time_t newts = 0;
+  time_t oldts = 0;
+  int args = 0;
+  int keep_our_modes = 1;
+  int keep_new_modes = 1;
+  int isnew = 0;
+  const char *s = NULL;
+  const char *servername = NULL;
+  struct Channel *chptr = NULL;
+  struct Mode mode, *oldmode;
 
-  if ((parv[1][0] == '0') && (parv[1][1] == '\0') && parc == 2)
+  if (parc == 2 && !irccmp(parv[1], "0"))
   {
     do_join_0(client_p, source_p);
     return;
   }
 
-  if (parc < 4)
+  if (parc < 4 || *parv[2] == '&')
     return;
 
-  if (*parv[2] == '&')
+  if (!check_channel_name(parv[2], 0))
+  {
+    sendto_realops_flags(UMODE_DEBUG, L_ALL,
+                         "*** Too long or invalid channel name from %s: %s",
+                         client_p->name, parv[2]);
     return;
-
-  if (!check_channel_name(parv[2]))
-    return;
+  }
 
   mbuf = modebuf;
   mode.mode = mode.limit = 0;
   mode.key[0] = '\0';
 
-  s = parv[3];
-  while (*s)
+  for (s = parv[3]; *s; ++s)
   {
-    switch (*(s++))
+    switch (*s)
     {
       case 't':
         mode.mode |= MODE_TOPICLIMIT;
@@ -382,14 +370,14 @@ ms_join(struct Client *client_p, struct Client *source_p,
         mode.mode |= MODE_PRIVATE;
         break;
       case 'k':
-        if (parc < 5+args)
+        if (parc < 5 + args)
           return;
 
         strlcpy(mode.key, parv[4 + args], sizeof(mode.key));
         args++;
         break;
       case 'l':
-        if (parc < 5+args)
+        if (parc < 5 + args)
           return;
 
         mode.limit = atoi(parv[4 + args]);
@@ -398,10 +386,14 @@ ms_join(struct Client *client_p, struct Client *source_p,
     }
   }
 
-  if ((chptr = get_or_create_channel(source_p, parv[2], &isnew)) == NULL)
-    return; /* channel name too long? */
 
-  newts = atol(parv[1]);
+  if ((chptr = hash_find_channel(parv[2])) == NULL)
+  {
+    isnew = 1;
+    chptr = make_channel(parv[2]);
+  }
+
+  newts   = atol(parv[1]);
   oldts   = chptr->channelts;
   oldmode = &chptr->mode;
 
