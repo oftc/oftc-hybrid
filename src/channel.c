@@ -321,17 +321,16 @@ check_channel_name(const char *name, int local)
   if (!IsChanPrefix(*p))
     return 0;
 
-  if (!local)
+  if (!local || !ConfigChannel.disable_fake_channels)
   {
     while (*++p)
-      if (!IsChanChar(*p))
+      if (!IsVisibleChanChar(*p))
         return 0;
   }
   else
   {
     while (*++p)
-      if (!IsChanChar(*p) ||
-          (IsFchanChar(*p) && ConfigChannel.disable_fake_channels))
+      if (!IsChanChar(*p))
         return 0;
   }
 

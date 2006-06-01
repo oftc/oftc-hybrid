@@ -145,9 +145,9 @@ extern const unsigned int CharAttrs[];
 #define SERV_C    0x02000
 #define EOL_C     0x04000
 #define MWILD_C   0x08000
-#define FCHAN_C   0x10000
+#define VCHAN_C   0x10000
 
-#define IsFchanChar(c)   (CharAttrs[(unsigned char)(c)] & FCHAN_C)
+#define IsVisibleChanChar(c)   (CharAttrs[(unsigned char)(c)] & VCHAN_C)
 #define IsHostChar(c)   (CharAttrs[(unsigned char)(c)] & HOST_C)
 #define IsUserChar(c)   (CharAttrs[(unsigned char)(c)] & USER_C)
 #define IsChanPrefix(c) (CharAttrs[(unsigned char)(c)] & CHANPFX_C)
