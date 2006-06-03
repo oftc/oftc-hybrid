@@ -64,6 +64,14 @@ const char* _version = "$Revision: 396 $";
 /* m_svscloak - Cloaks a user - stu
  * parv[1] - Nick to cloak
  * parv[2] - Hostname to cloak to
+ *
+ * We receive the Message that a client will be cloaked
+ * 1) check message for correctness
+ * 2) If the client is ours, notify of cloaking
+ * 3) pass the message down to other servers
+ * 4) modify the local clients structure
+ * 5) remove the whowas entry with the real hostname
+ * -mc
  */
 
 void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
@@ -90,9 +98,11 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
           target_p->name);
     }
 
-    else
-      sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS, 
+    /* Send to all Servers but the one WE got the SVSCLOAK from */
+    sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS, 
           ":%s SVSCLOAK %s :%s", parv[0], parv[1], parv[2]);
+
+    /* locally modify the clients structure */
     if(strlen(target_p->realhost) <= 1)
         strncpy(target_p->realhost, target_p->host, HOSTLEN);
     strncpy(target_p->host, hostname, HOSTLEN);
