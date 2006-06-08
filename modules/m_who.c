@@ -38,6 +38,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "irc_string.h"
 
 static void m_who(struct Client*, struct Client*, int, char**);
   

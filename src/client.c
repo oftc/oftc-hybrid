@@ -1045,11 +1045,11 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
     if (source_p->servptr == &me)
     {
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                           "%s was connected for %d seconds.  %llu/%llu sendK/recvK.",
+                           "%s was connected for %d seconds.  %lu/%lu sendK/recvK.",
                            source_p->name, (int)(CurrentTime - source_p->firsttime),
                            source_p->localClient->send.bytes >> 10,
                            source_p->localClient->recv.bytes >> 10);
-      ilog(L_NOTICE, "%s was connected for %d seconds.  %llu/%llu sendK/recvK.",
+      ilog(L_NOTICE, "%s was connected for %d seconds.  %lu/%lu sendK/recvK.",
            source_p->name, (int)(CurrentTime - source_p->firsttime), 
            source_p->localClient->send.bytes >> 10,
            source_p->localClient->recv.bytes >> 10);

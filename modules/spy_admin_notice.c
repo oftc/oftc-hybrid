@@ -24,7 +24,9 @@
 
 #include "stdinc.h"
 #ifndef STATIC_MODULES
+#include "tools.h"
 #include "modules.h"
+#include "hook.h"
 #include "client.h"
 #include "ircd.h"
 #include "send.h"
@@ -48,7 +50,7 @@ _moddeinit(void)
     uninstall_hook(admin_cb, show_admin);
 }
 
-const char *_version = "$Revision: 76 $";
+const char *_version = "$Revision: 33 $";
 
 static void *
 show_admin(va_list args)

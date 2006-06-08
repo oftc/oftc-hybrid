@@ -23,7 +23,9 @@
  */
 #include "stdinc.h"
 #ifndef STATIC_MODULES
+#include "tools.h"
 #include "modules.h"
+#include "hook.h"
 #include "client.h"
 #include "ircd.h"
 #include "send.h"
@@ -47,7 +49,7 @@ _moddeinit(void)
     uninstall_hook(motd_cb, show_motd);
 }
 
-const char *_version = "$Revision: 76 $";
+const char *_version = "$Revision: 33 $";
 
 static void *
 show_motd(va_list args)
@@ -57,7 +59,7 @@ show_motd(va_list args)
   char **parv = va_arg(args, char **);
 
   if (IsClient(source_p))
-    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_SPY, L_ALL,
                          "motd requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);

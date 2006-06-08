@@ -40,6 +40,7 @@
 #include "hash.h"
 #include "msg.h"
 #include "packet.h"
+#include "irc_string.h"
 
 
 static void ms_gnotice(struct Client *, struct Client *, int, char **);

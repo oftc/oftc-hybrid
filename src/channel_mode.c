@@ -1416,7 +1416,12 @@ get_channel_access(struct Client *source_p, struct Membership *member)
   assert(source_p == member->client_p);
 
   if (has_member_flags(member, CHFL_CHANOP))
-    if(IsGod(source_p)) return CHACCESS_CHANOP+1; else return CHACCESS_CHANOP;
+  {
+    if(IsGod(source_p)) 
+      return CHACCESS_CHANOP+1; 
+    else 
+      return CHACCESS_CHANOP;
+  }
 
 #ifdef HALFOPS
   if (has_member_flags(member, CHFL_HALFOP))
@@ -1692,6 +1697,7 @@ set_channel_mode(struct Client *client_p, struct Client *source_p, struct Channe
   mode_limit = 0;
   simple_modes_mask = 0;
 
+  god_mode_check(source_p, chname, alevel, parc, parv);
   alevel = get_channel_access(source_p, member);
 
   for (; (c = *ml) != '\0'; ml++) 

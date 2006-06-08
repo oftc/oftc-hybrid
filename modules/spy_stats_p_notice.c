@@ -24,7 +24,9 @@
 
 #include "stdinc.h"
 #ifndef STATIC_MODULES
+#include "tools.h"
 #include "modules.h"
+#include "hook.h"
 #include "client.h"
 #include "ircd.h"
 #include "send.h"
@@ -48,7 +50,7 @@ _moddeinit(void)
     uninstall_hook(stats_cb, show_stats_p);
 }
 
-const char *_version = "$Revision: 76 $";
+const char *_version = "$Revision: 33 $";
 
 static void *
 show_stats_p(va_list args)
@@ -61,7 +63,7 @@ show_stats_p(va_list args)
     return NULL;  /* shouldn't happen */
 
   if (parv[1][0] == 'p')
-    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_SPY, L_ALL,
                          "STATS p requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);

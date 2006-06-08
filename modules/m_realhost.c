@@ -43,6 +43,7 @@
 #include "modules.h"
 #include "common.h"
 #include "packet.h"
+#include "irc_string.h"
 
 
 static void ms_realhost(struct Client *, struct Client *, int, char**);

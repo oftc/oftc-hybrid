@@ -38,6 +38,8 @@
 #include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
+#include "event.h"
+#include "irc_string.h"
 
 static void mo_shedding(struct Client *, struct Client *, int, char **);
 void user_shedding_main(void *rate);

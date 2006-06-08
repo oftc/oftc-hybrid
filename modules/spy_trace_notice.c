@@ -24,7 +24,9 @@
 
 #include "stdinc.h"
 #ifndef STATIC_MODULES
+#include "tools.h"
 #include "modules.h"
+#include "hook.h"
 #include "client.h"
 #include "ircd.h"
 #include "send.h"
@@ -66,9 +68,12 @@ _moddeinit(void)
 
   if (ctrace_cb)
     uninstall_hook(ctrace_cb, show_ctrace);
+
+  if (etrace_cb)
+    uninstall_hook(etrace_cb, show_etrace);
 }
 
-const char *_version = "$Revision: 76 $";
+const char *_version = "$Revision: 448 $";
 
 static void *
 show_trace(va_list args)
@@ -78,7 +83,7 @@ show_trace(va_list args)
   char **parv = va_arg(args, char **);
 
   if (IsClient(source_p))
-    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_SPY, L_ALL,
                          "trace requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);
@@ -94,7 +99,7 @@ show_ltrace(va_list args)
   char **parv = va_arg(args, char **);
 
   if (IsClient(source_p))
-    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_SPY, L_ALL,
                          "ltrace requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);
@@ -110,7 +115,7 @@ show_ctrace(va_list args)
   char **parv = va_arg(args, char **);
 
   if (IsClient(source_p))
-    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_SPY, L_ALL,
                          "ctrace requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);
@@ -126,7 +131,7 @@ show_etrace(va_list args)
   char **parv = va_arg(args, char **);
 
   if (IsClient(source_p))
-    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_SPY, L_ALL,
                          "etrace requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);

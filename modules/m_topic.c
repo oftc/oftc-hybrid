@@ -41,6 +41,7 @@
 #include "modules.h"
 #include "packet.h"
 #include "common.h"
+#include "s_log.h"
 
 static void m_topic(struct Client *, struct Client *, int, char **);
 static void ms_topic(struct Client *, struct Client *, int, char **);

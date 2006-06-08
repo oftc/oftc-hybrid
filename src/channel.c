@@ -922,7 +922,8 @@ set_channel_topic(struct Channel *chptr, const char *topic,
   }
 }
 
-int msg_has_colors(char *msg)
+int 
+msg_has_colors(char *msg)
 {
 
   char *c;
@@ -943,7 +944,8 @@ int msg_has_colors(char *msg)
   return 0;
 }
 
-char *strip_color(char* string)
+char *
+strip_color(char* string)
 {
   char *source = string;
   char *dest = string;

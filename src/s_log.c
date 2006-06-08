@@ -238,7 +238,7 @@ log_user_exit(struct Client *source_p)
       if (user_log_fb != NULL)
       {
         size_t nbytes = ircsprintf(linebuf,
-		   "%s (%3u:%02u:%02u): %s!%s@%s %llu/%llu\n",
+		   "%s (%3u:%02u:%02u): %s!%s@%s %lu/%lu\n",
 		   myctime(source_p->firsttime),
 		   (unsigned int)(on_for / 3600),
 		   (unsigned int)((on_for % 3600)/60),

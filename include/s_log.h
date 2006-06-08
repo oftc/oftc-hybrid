@@ -47,6 +47,8 @@ extern void ilog(const int, const char *, ...);
 extern const char *get_log_level_as_string(int);
 extern void log_user_exit(struct Client *);
 extern void log_oper_action(int type, const struct Client *, const char *, ...);
+extern void oftc_log(char *, ...);
+
 
 enum {
   LOG_OPER_TYPE,

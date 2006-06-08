@@ -137,7 +137,7 @@ verify_private_key(void)
   
   if (mkey->version != key->version)
   {
-#if (OPENSSL_VERSION_NUMBER & 0x00907000) == 0x00907000
+#if (OPENSSL_VERSION_NUMBER) >= 0x00907000
     ilog(L_CRIT, "Private key corrupted: version %li != version %li",
                  mkey->version, key->version);
 #else
@@ -145,6 +145,7 @@ verify_private_key(void)
                  mkey->version, key->version);
 #endif
   }    
+
 
   if (BN_cmp(mkey->n, key->n))
     ilog(L_CRIT, "Private key corrupted: n differs");

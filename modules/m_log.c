@@ -35,6 +35,8 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "sprintf_irc.h"
+#include "irc_string.h"
 
 /* $Id$ */
 
@@ -68,7 +70,7 @@ static void mo_log(struct Client *client_p, struct Client *source_p, int parc, c
     if(parc < 2)
         return;
 
-    if (IsPerson(source_p) && (logfile = fbopen(OFTCLOG, "a+")) != NULL)
+    if (IsClient(source_p) && (logfile = fbopen(OFTCLOG, "a+")) != NULL)
     {
         ircsprintf(buf, "%s %s %s\n",
                 myctime(time(NULL)), source_p->name, parv[1]);

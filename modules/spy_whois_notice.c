@@ -23,8 +23,10 @@
  */
 #include "stdinc.h"
 #ifndef STATIC_MODULES
+#include "tools.h"
 #include "modules.h"
 #include "hash.h"
+#include "hook.h"
 #include "client.h"
 #include "ircd.h"
 #include "send.h"
@@ -48,7 +50,7 @@ _moddeinit(void)
     uninstall_hook(whois_cb, show_notice);
 }
 
-const char *_version = "$Revision: 76 $";
+const char *_version = "$Revision: 33 $";
 
 /* show_notice
  *

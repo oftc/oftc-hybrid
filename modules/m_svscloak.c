@@ -33,6 +33,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "irc_string.h"
 #include "whowas.h" /* off_history */
 
 /* $Id$ */
