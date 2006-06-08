@@ -117,7 +117,7 @@ make_auth_request(struct Client *client)
   request->client  = client;
   request->timeout = CurrentTime + CONNECTTIMEOUT;
 
-  return (request);
+  return request;
 }
 
 /*
@@ -135,6 +135,7 @@ release_auth_client(struct Client *client)
    */
   client->localClient->allow_read = MAX_FLOOD;
   comm_setflush(&client->localClient->fd, 1000, flood_recalc, client);
+
   if ((client->node.prev != NULL) || (client->node.next != NULL))
   {
     sendto_realops_flags(UMODE_ALL, L_OPER,
@@ -146,6 +147,10 @@ release_auth_client(struct Client *client)
   }
   else
     dlinkAdd(client, &client->node, &global_client_list);
+
+  client_p->since  = client_p->lasttime = client_p->firsttime = CurrentTime;
+  client_p->flags |= FLAGS_FINISHED_AUTH;
+
   read_packet(&client->localClient->fd, client);
 }
  

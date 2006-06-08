@@ -317,9 +317,9 @@ check_pings_list(dlink_list *list)
 	    ilog(L_NOTICE, "No response from %s, closing link",
 		 get_client_name(client_p, HIDE_IP));
 	  }
+
           ircsprintf(scratch, "Ping timeout: %d seconds",
                      (int)(CurrentTime - client_p->lasttime));
-
           exit_client(client_p, &me, scratch);
         }
         else if (!IsPingWarning(client_p) && pingwarn > 0 &&
@@ -363,15 +363,16 @@ check_unknowns_list(void)
     if (client_p->localClient->reject_delay > 0)
     {
       if (client_p->localClient->reject_delay <= CurrentTime)
-	exit_client(client_p, &me, "Rejected");
+        exit_client(client_p, &me, "Rejected");
       continue;
     }
 
-    /* Check UNKNOWN connections - if they have been in this state
+    /*
+     * Check UNKNOWN connections - if they have been in this state
      * for > 30s, close them.
      */
-    if (client_p->firsttime ? ((CurrentTime - client_p->firsttime) > 30) : 0)
-      exit_client(client_p, &me, "Connection timed out");
+    if (IsAuthFinished(client_p) && (CurrentTime - client_p->firsttime) > 30)
+      exit_client(client_p, &me, "Registration timed out");
   }
 }
 
