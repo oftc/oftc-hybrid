@@ -52,6 +52,10 @@ server_die(const char *mesg, int rboot)
   char buffer[IRCD_BUFSIZE];
   dlink_node *ptr = NULL;
   struct Client *target_p = NULL;
+  static int was_here = 0;
+
+  if (rboot && was_here++)
+    abort();
 
   if (EmptyString(mesg))
     snprintf(buffer, sizeof(buffer), "Server %s",

@@ -350,7 +350,7 @@ quote_msglocale( struct Client *source_p, char *locale )
 static void
 quote_spamnum( struct Client *source_p, int newval )
 {
-  if (newval > 0)
+  if (newval >= 0)
   {
     if (newval == 0)
     {

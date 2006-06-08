@@ -42,16 +42,17 @@
 
 static void ms_tb(struct Client *, struct Client *, int, char *[]);
 static void ms_tburst(struct Client *, struct Client *, int, char *[]);
-static void set_topic(struct Client *, struct Channel *, time_t, char *, char *);
+static void set_topic(struct Client *, struct Channel *, time_t,
+                      const char *, const char *);
 
 struct Message tburst_msgtab = {
-  "TBURST", 0, 0, 6, 0, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore}
+  "TBURST", 0, 0, 5, 0, MFLG_SLOW, 0,
+  { m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore }
 };
 
 struct Message tb_msgtab = {
-  "TB", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_tb, m_ignore, m_ignore, m_ignore}
+  "TB", 0, 0, 4, 0, MFLG_SLOW, 0,
+  { m_ignore, m_ignore, ms_tb, m_ignore, m_ignore, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -94,20 +95,69 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
   struct Channel *chptr = NULL;
-  time_t oldchannelts = atol(parv[1]);
-  time_t oldtopicts = atol(parv[3]);
+  int accept_remote = 0;
+  time_t remote_channel_ts = atol(parv[1]);
+  time_t remote_topic_ts = atol(parv[3]);
+  const char *topic = "";
+  const char *setby = "";
+
+  /*
+   * Do NOT test parv[5] for an empty string and return if true!
+   * parv[5] CAN be an empty string, i.e. if the other side wants
+   * to unset our topic.  Don't forget: an empty topic is also a
+   * valid topic.
+   */
+
 
   if ((chptr = hash_find_channel(parv[2])) == NULL)
     return;
 
-  /* Only allow topic change if we are the newer TS and server
-   * sending TBURST has older TS and topicTS on older TS is
-   * newer than current topicTS. -metalrock
-   * XXX - Incorrect logic here as discussed on IRC
+  if (parc == 6)
+  {
+    topic = parv[5];
+    setby = parv[4];
+  }
+
+  /*
+   * The logic for accepting and rejecting channel topics was
+   * always a bit hairy, so now we got exactly 2 cases where
+   * we would accept a bursted topic
+   *
+   * Case 1:
+   *        The TS of the remote channel is older than ours
+   * Case 2:
+   *        The TS of the remote channel is equal to ours AND
+   *        the TS of the remote topic is newer than ours
    */
-  if ((oldchannelts <= chptr->channelts) &&
-      ((chptr->topic == NULL) || (oldtopicts > chptr->topic_time)))
-    set_topic(source_p, chptr, oldtopicts, parv[4], parv[5]);
+  if (remote_channel_ts < chptr->channelts)
+    accept_remote = 1;
+  else if (remote_channel_ts == chptr->channelts)
+    if (remote_topic_ts > chptr->topic_time)
+      accept_remote = 1;
+
+  if (accept_remote)
+  {
+    int topic_differs = strcmp(chptr->topic ? chptr->topic : "", topic);
+
+    set_channel_topic(chptr, topic, setby, remote_topic_ts);
+
+    if (topic_differs)
+      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
+                           ConfigServerHide.hide_servers ? me.name : source_p->name,
+                           chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
+  }
+
+  /*
+   * Always propagate what we have received, not only if we accept the topic.
+   * This will keep other servers in sync.
+   */
+  sendto_server(source_p, NULL, chptr, CAP_TBURST, NOCAPS, NOFLAGS,
+                ":%s TBURST %s %s %s %s :%s",
+                source_p->name, parv[1], parv[2], parv[3], setby, topic);
+  if (parc > 5 && *topic != '\0') /* unsetting a topic is not supported by TB */
+    sendto_server(source_p, NULL, chptr, CAP_TB, CAP_TBURST, NOFLAGS,
+                  ":%s TB %s %s %s :%s",
+                  source_p->name, parv[1], parv[2], setby, topic);
 }
 
 /* ms_tb()
@@ -159,13 +209,15 @@ ms_tb(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
  * little helper function, could be removed
  */
 static void
-set_topic(struct Client *source_p, struct Channel *chptr, 
-          time_t topicts, char *topicwho, char *topic)
+set_topic(struct Client *source_p, struct Channel *chptr, time_t topicts,
+          const char *topicwho, const char *topic)
 {
+  int new_topic = strcmp(chptr->topic ? chptr->topic : "", topic);
+
   set_channel_topic(chptr, topic, topicwho, topicts);
 
-    /* Only send TOPIC to channel if it's different */
-  if (chptr->topic == NULL || strcmp(chptr->topic, topic))
+  /* Only send TOPIC to channel if it's different */
+  if (new_topic)
     sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
                          ConfigServerHide.hide_servers ? me.name : source_p->name,
                          chptr->chname, chptr->topic == NULL ? "" : chptr->topic);

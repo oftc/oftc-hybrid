@@ -76,6 +76,7 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
   char *name = parv[1];
   char *t = NULL;
   unsigned int flags = 0;
+  dlink_node *ptr;
 
   /* admins only */
   if (!IsAdmin(source_p))
@@ -139,16 +140,15 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
       add_user_to_channel(chptr, source_p, flags, NO);
 
       if (chptr->chname[0] == '#')
-      {
-        sendto_server(client_p, source_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
-                      ":%s SJOIN %lu %s + :%s%s",
-                      me.id, (unsigned long)chptr->channelts, chptr->chname,
-                      prefix, source_p->id);
-        sendto_server(client_p, source_p, chptr, NOCAPS, CAP_TS6, LL_ICLIENT, 
-                      ":%s SJOIN %lu %s + :%s%s",
-                      me.name, (unsigned long)chptr->channelts, chptr->chname,
-                      prefix, source_p->name);
-      }
+        DLINK_FOREACH(ptr, serv_list.head)
+        {
+          struct Client *serv_p = ptr->data;
+
+          sendto_one(serv_p, ":%s SJOIN %lu %s + :%s%s", ID_or_name(&me, serv_p),
+                     (unsigned long)chptr->channelts, chptr->chname,
+                     (*prefix == '%' && !IsCapable(serv_p, CAP_HOPS)) ?
+                     "@" : prefix, ID_or_name(source_p, serv_p));
+        }
 
       sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN %s",
                            source_p->name, source_p->username,

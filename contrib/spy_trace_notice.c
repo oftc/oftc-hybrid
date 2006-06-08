@@ -68,6 +68,9 @@ _moddeinit(void)
 
   if (ctrace_cb)
     uninstall_hook(ctrace_cb, show_ctrace);
+
+  if (etrace_cb)
+    uninstall_hook(etrace_cb, show_etrace);
 }
 
 const char *_version = "$Revision$";

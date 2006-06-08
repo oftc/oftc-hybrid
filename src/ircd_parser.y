@@ -28,7 +28,6 @@
 #include <sys/types.h>
 
 #include "stdinc.h"
-#include "dalloca.h"
 #include "ircd.h"
 #include "tools.h"
 #include "list.h"
@@ -79,7 +78,8 @@ static char *resv_reason = NULL;
 static char *listener_address = NULL;
 static int not_atom = 0;
 
-struct CollectItem {
+struct CollectItem
+{
   dlink_node node;
   char *name;
   char *user;
@@ -169,6 +169,7 @@ unhook_hub_leaf_confs(void)
 %token  DESCRIPTION
 %token  DIE
 %token  DISABLE_AUTH
+%token  DISABLE_FAKE_CHANNELS
 %token  DISABLE_HIDDEN
 %token  DISABLE_LOCAL_CHANNELS
 %token  DISABLE_REMOTE_COMMANDS
@@ -273,7 +274,6 @@ unhook_hub_leaf_confs(void)
 %token  OPER_PASS_RESV
 %token  OPER_SPY_T
 %token  OPER_UMODES
-%token	INVITE_OPS_ONLY
 %token  JOIN_FLOOD_COUNT
 %token  JOIN_FLOOD_TIME
 %token  PACE_WAIT
@@ -316,6 +316,7 @@ unhook_hub_leaf_confs(void)
 %token  SILENT
 %token  SPOOF
 %token  SPOOF_NOTICE
+%token  STATS_E_DISABLED
 %token  STATS_I_OPER_ONLY
 %token  STATS_K_OPER_ONLY
 %token  STATS_O_OPER_ONLY
@@ -620,11 +621,8 @@ serverinfo_sid: IRCD_SID '=' QSTRING ';'
   /* this isn't rehashable */
   if (ypass == 2 && !ServerInfo.sid)
   {
-    if ((strlen(yylval.string) == IRC_MAXSID) && IsDigit(yylval.string[0])
-	&& IsAlNum(yylval.string[1]) && IsAlNum(yylval.string[2]))
-    {
+    if (valid_sid(yylval.string))
       DupString(ServerInfo.sid, yylval.string);
-    }
     else
     {
       ilog(L_ERROR, "Ignoring config file entry SID -- invalid SID. Aborting.");
@@ -1083,16 +1081,31 @@ oper_user: USER '=' QSTRING ';'
 {
   if (ypass == 2)
   {
-    struct CollectItem *yy_tmp;
+    struct split_nuh_item nuh;
+
+    nuh.nuhmask  = yylval.string;
+    nuh.nickptr  = NULL;
+    nuh.userptr  = userbuf;
+    nuh.hostptr  = hostbuf;
+
+    nuh.nicksize = 0;
+    nuh.usersize = sizeof(userbuf);
+    nuh.hostsize = sizeof(hostbuf);
+
+    split_nuh(&nuh);
 
     if (yy_aconf->user == NULL)
     {
-      split_nuh(yylval.string, NULL, &yy_aconf->user, &yy_aconf->host);
+      DupString(yy_aconf->user, userbuf);
+      DupString(yy_aconf->host, hostbuf);
     }
     else
     {
-      yy_tmp = (struct CollectItem *)MyMalloc(sizeof(struct CollectItem));
-      split_nuh(yylval.string, NULL, &yy_tmp->user, &yy_tmp->host);
+      struct CollectItem *yy_tmp = MyMalloc(sizeof(struct CollectItem));
+
+      DupString(yy_tmp->user, userbuf);
+      DupString(yy_tmp->host, hostbuf);
+
       dlinkAdd(yy_tmp, &yy_tmp->node, &col_conf_list);
     }
   }
@@ -1174,64 +1187,83 @@ oper_class: CLASS '=' QSTRING ';'
 
 oper_umodes: T_UMODES
 {
-  yy_aconf->modes = 0;
+  if (ypass == 2)
+    yy_aconf->modes = 0;
 } '='  oper_umodes_items ';' ;
 
 oper_umodes_items: oper_umodes_items ',' oper_umodes_item | oper_umodes_item;
 oper_umodes_item:  T_BOTS
 {
-  yy_aconf->modes |= UMODE_BOTS;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_BOTS;
 } | T_CCONN
 {
-  yy_aconf->modes |= UMODE_CCONN;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_CCONN;
 } | T_DEAF
 {
-  yy_aconf->modes |= UMODE_DEAF;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_DEAF;
 } | T_DEBUG
 {
-  yy_aconf->modes |= UMODE_DEBUG;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_DEBUG;
 } | T_FULL
 {
-  yy_aconf->modes |= UMODE_FULL;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_FULL;
 } | T_SKILL
 {
-  yy_aconf->modes |= UMODE_SKILL;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_SKILL;
 } | T_NCHANGE
 {
-  yy_aconf->modes |= UMODE_NCHANGE;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_NCHANGE;
 } | T_REJ
 {
-  yy_aconf->modes |= UMODE_REJ;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_REJ;
 } | T_UNAUTH
 {
-  yy_aconf->modes |= UMODE_UNAUTH;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_UNAUTH;
 } | T_SPY
 {
-  yy_aconf->modes |= UMODE_SPY;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_SPY;
 } | T_EXTERNAL
 {
-  yy_aconf->modes |= UMODE_EXTERNAL;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_EXTERNAL;
 } | T_OPERWALL
 {
-  yy_aconf->modes |= UMODE_OPERWALL;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_OPERWALL;
 } | T_SERVNOTICE
 {
-  yy_aconf->modes |= UMODE_SERVNOTICE;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_SERVNOTICE;
 } | T_INVISIBLE
 {
-  yy_aconf->modes |= UMODE_INVISIBLE;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_INVISIBLE;
 } | T_WALLOP
 {
-  yy_aconf->modes |= UMODE_WALLOP;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_WALLOP;
 } | T_SOFTCALLERID
 {
-  yy_aconf->modes |= UMODE_SOFTCALLERID;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_SOFTCALLERID;
 } | T_CALLERID
 {
-  yy_aconf->modes |= UMODE_CALLERID;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_CALLERID;
 } | T_LOCOPS
 {
-  yy_aconf->modes |= UMODE_LOCOPS;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_LOCOPS;
 } | T_GOD
 {
   yy_aconf->modes |+ UMODE_GOD;
@@ -1687,6 +1719,7 @@ listen_entry: LISTEN
 
 listen_flags: IRCD_FLAGS
 {
+  listener_flags = 0;
 } '='  listen_flags_items ';';
 
 listen_flags_items: listen_flags_items ',' listen_flags_item | listen_flags_item;
@@ -1701,9 +1734,9 @@ listen_flags_item: T_SSL
 };
 
 listen_items:   listen_items listen_item | listen_item;
-listen_item:    listen_port | listen_flags | listen_address | listen_host | error ';' ;
+listen_item:    listen_port | listen_flags | listen_address | listen_host | error ';';
 
-listen_port: PORT '=' port_items ';' ;
+listen_port: PORT '=' port_items { listener_flags = 0; } ';';
 
 port_items: port_items ',' port_item | port_item;
 
@@ -1720,7 +1753,6 @@ port_item: NUMBER
 	break;
       }
     add_listener($1, listener_address, listener_flags);
-    listener_flags = 0;
   }
 } | NUMBER TWODOTS NUMBER
 {
@@ -1739,8 +1771,6 @@ port_item: NUMBER
 
     for (i = $1; i <= $3; ++i)
       add_listener(i, listener_address, listener_flags);
-
-    listener_flags = 0;
   }
 };
 
@@ -1846,14 +1876,32 @@ auth_user: USER '=' QSTRING ';'
 {
   if (ypass == 2)
   {
-    struct CollectItem *yy_tmp;
+    struct CollectItem *yy_tmp = NULL;
+    struct split_nuh_item nuh;
+
+    nuh.nuhmask  = yylval.string;
+    nuh.nickptr  = NULL;
+    nuh.userptr  = userbuf;
+    nuh.hostptr  = hostbuf;
+
+    nuh.nicksize = 0;
+    nuh.usersize = sizeof(userbuf);
+    nuh.hostsize = sizeof(hostbuf);
+
+    split_nuh(&nuh);
 
     if (yy_aconf->user == NULL)
-      split_nuh(yylval.string, NULL, &yy_aconf->user, &yy_aconf->host);
+    {
+      DupString(yy_aconf->user, userbuf);
+      DupString(yy_aconf->host, hostbuf);
+    }
     else
     {
       yy_tmp = MyMalloc(sizeof(struct CollectItem));
-      split_nuh(yylval.string, NULL, &yy_tmp->user, &yy_tmp->host);
+
+      DupString(yy_tmp->user, userbuf);
+      DupString(yy_tmp->host, hostbuf);
+
       dlinkAdd(yy_tmp, &yy_tmp->node, &col_conf_list);
     }
   }
@@ -2194,7 +2242,21 @@ shared_user: USER '=' QSTRING ';'
 {
   if (ypass == 2)
   {
-    split_nuh(yylval.string, NULL, &yy_match_item->user, &yy_match_item->host);
+    struct split_nuh_item nuh;
+
+    nuh.nuhmask  = yylval.string;
+    nuh.nickptr  = NULL;
+    nuh.userptr  = userbuf;
+    nuh.hostptr  = hostbuf;
+
+    nuh.nicksize = 0;
+    nuh.usersize = sizeof(userbuf);
+    nuh.hostsize = sizeof(hostbuf);
+
+    split_nuh(&nuh);
+
+    DupString(yy_match_item->user, userbuf);
+    DupString(yy_match_item->host, hostbuf);
   }
 };
 
@@ -2371,11 +2433,7 @@ connect_entry: CONNECT
 	  yy_aconf->passwd && yy_aconf->spasswd)
 #endif /* !HAVE_LIBCRYPTO */
 	{
-	  if (conf_add_server(yy_conf, scount, class_name) >= 0)
-	  {
-	    ++scount;
-	  }
-	  else
+	  if (conf_add_server(yy_conf, class_name) == -1)
 	  {
 	    delete_conf_item(yy_conf);
 	    yy_conf = NULL;
@@ -2495,7 +2553,7 @@ connect_item:   connect_name | connect_host | connect_vhost |
 		connect_leaf_mask | connect_class | connect_auto |
 		connect_encrypted | connect_compressed | connect_cryptlink |
 		connect_rsa_public_key_file | connect_cipher_preference |
-                error ';' ;
+                connect_topicburst | error ';' ;
 
 connect_name: NAME '=' QSTRING ';'
 {
@@ -2765,6 +2823,17 @@ connect_auto: AUTOCONN '=' TBOOL ';'
   }
 };
 
+connect_topicburst: TOPICBURST '=' TBOOL ';'
+{
+  if (ypass == 2)
+  {
+    if (yylval.number)
+      SetConfTopicBurst(yy_aconf);
+    else
+      ClearConfTopicBurst(yy_aconf);
+  }
+};
+
 connect_hub_mask: HUB_MASK '=' QSTRING ';' 
 {
   if (ypass == 2)
@@ -2857,11 +2926,14 @@ kill_entry: KILL
         if (!(exp_user = ircd_pcre_compile(userbuf, &errptr)) ||
             !(exp_host = ircd_pcre_compile(hostbuf, &errptr)))
         {
-          ilog(L_ERROR, "Failed to add regular expression based K-Line: %s", errptr);
+          ilog(L_ERROR, "Failed to add regular expression based K-Line: %s",
+               errptr);
           break;
         }
 
         yy_conf = make_conf_item(RKLINE_TYPE);
+        yy_aconf = map_to_conf(yy_conf);
+
         yy_aconf->regexuser = exp_user;
         yy_aconf->regexhost = exp_host;
 
@@ -2914,15 +2986,18 @@ kill_user: USER '=' QSTRING ';'
 {
   if (ypass == 2)
   {
-    char *user = NULL, *host = NULL;
+    struct split_nuh_item nuh;
 
-    split_nuh(yylval.string, NULL, &user, &host);
+    nuh.nuhmask  = yylval.string;
+    nuh.nickptr  = NULL;
+    nuh.userptr  = userbuf;
+    nuh.hostptr  = hostbuf;
 
-    strlcpy(userbuf, user, sizeof(userbuf));
-    strlcpy(hostbuf, host, sizeof(hostbuf));
+    nuh.nicksize = 0;
+    nuh.usersize = sizeof(userbuf);
+    nuh.hostsize = sizeof(hostbuf);
 
-    MyFree(user);
-    MyFree(host);
+    split_nuh(&nuh);
   }
 };
 
@@ -3027,7 +3102,8 @@ gecos_entry: GECOS
 
         if (!(exp_p = ircd_pcre_compile(gecos_name, &errptr)))
         {
-          ilog(L_ERROR, "Failed to add regular expression based X-Line: %s", errptr);
+          ilog(L_ERROR, "Failed to add regular expression based X-Line: %s",
+               errptr);
           break;
         }
 
@@ -3108,7 +3184,7 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_disable_auth | general_burst_away |
 		    general_tkline_expire_notices | general_gline_min_cidr |
                     general_gline_min_cidr6 | general_use_whois_actually |
-		    general_reject_hold_time |
+		    general_reject_hold_time | general_stats_e_disabled |
 		    error;
 
 
@@ -3237,6 +3313,11 @@ general_invisible_on_connect: INVISIBLE_ON_CONNECT '=' TBOOL ';'
 general_warn_no_nline: WARN_NO_NLINE '=' TBOOL ';'
 {
   ConfigFileEntry.warn_no_nline = yylval.number;
+};
+
+general_stats_e_disabled: STATS_E_DISABLED '=' TBOOL ';'
+{
+  ConfigFileEntry.stats_e_disabled = yylval.number;
 };
 
 general_stats_o_oper_only: STATS_O_OPER_ONLY '=' TBOOL ';'
@@ -3642,16 +3723,31 @@ gline_user: USER '=' QSTRING ';'
 {
   if (ypass == 2)
   {
-    struct CollectItem *yy_tmp = NULL;
+    struct split_nuh_item nuh;
+
+    nuh.nuhmask  = yylval.string;
+    nuh.nickptr  = NULL;
+    nuh.userptr  = userbuf;
+    nuh.hostptr  = hostbuf;
+
+    nuh.nicksize = 0;
+    nuh.usersize = sizeof(userbuf);
+    nuh.hostsize = sizeof(hostbuf);
+
+    split_nuh(&nuh);
 
     if (yy_aconf->user == NULL)
     {
-      split_nuh(yylval.string, NULL, &yy_aconf->user, &yy_aconf->host);
+      DupString(yy_aconf->user, userbuf);
+      DupString(yy_aconf->host, hostbuf);
     }
     else
     {
-      yy_tmp = MyMalloc(sizeof(struct CollectItem));
-      split_nuh(yylval.string, NULL, &yy_tmp->user, &yy_tmp->host);
+      struct CollectItem *yy_tmp = MyMalloc(sizeof(struct CollectItem));
+
+      DupString(yy_tmp->user, userbuf);
+      DupString(yy_tmp->host, hostbuf);
+
       dlinkAdd(yy_tmp, &yy_tmp->node, &col_conf_list);
     }
   }
@@ -3737,14 +3833,18 @@ channel_items:      channel_items channel_item | channel_item;
 channel_item:       channel_disable_local_channels | channel_use_except |
                     channel_use_invex | channel_use_knock |
                     channel_max_bans | channel_knock_delay |
-		    channel_knock_delay_channel | channel_invite_ops_only |
-                    channel_max_chans_per_user | channel_quiet_on_ban |
-		    channel_default_split_user_count | 
-		    channel_default_split_server_count |
-		    channel_no_create_on_split | channel_restrict_channels |
-		    channel_no_join_on_split | channel_burst_topicwho |
-		    channel_jflood_count | channel_jflood_time |
-		    error;
+                    channel_knock_delay_channel | channel_max_chans_per_user |
+                    channel_quiet_on_ban | channel_default_split_user_count |
+                    channel_default_split_server_count |
+                    channel_no_create_on_split | channel_restrict_channels |
+                    channel_no_join_on_split | channel_burst_topicwho |
+                    channel_jflood_count | channel_jflood_time |
+                    channel_disable_fake_channels | error;
+
+channel_disable_fake_channels: DISABLE_FAKE_CHANNELS '=' TBOOL ';'
+{
+  ConfigChannel.disable_fake_channels = yylval.number;
+};
 
 channel_restrict_channels: RESTRICT_CHANNELS '=' TBOOL ';'
 {
@@ -3779,11 +3879,6 @@ channel_knock_delay: KNOCK_DELAY '=' timespec ';'
 channel_knock_delay_channel: KNOCK_DELAY_CHANNEL '=' timespec ';'
 {
   ConfigChannel.knock_delay_channel = $3;
-};
-
-channel_invite_ops_only: INVITE_OPS_ONLY '=' TBOOL ';'
-{
-  ConfigChannel.invite_ops_only = yylval.number;
 };
 
 channel_max_chans_per_user: MAX_CHANS_PER_USER '=' NUMBER ';'

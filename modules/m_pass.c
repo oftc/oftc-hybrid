@@ -33,13 +33,13 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_serv.h"
-#include "hash.h"
+#include "s_user.h"
 
-static void mr_pass(struct Client *, struct Client *, int, char **);
+static void mr_pass(struct Client *, struct Client *, int, char *[]);
 
 struct Message pass_msgtab = {
   "PASS", 0, 0, 2, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_pass, m_registered, m_ignore, m_ignore, m_registered, mr_pass}
+  { mr_pass, m_registered, m_ignore, m_ignore, m_registered, mr_pass }
 };
 
 #ifndef STATIC_MODULES
@@ -101,11 +101,10 @@ mr_pass(struct Client *client_p, struct Client *source_p,
   /* only do this stuff if we are doing ts6 */
   if (parc > 4 && me.id[0])
   {
-    if (atoi(parv[3]) >= 6)
+    if (atoi(parv[3]) >= 6 && valid_sid(parv[4]))
     {
       strlcpy(client_p->id, parv[4], sizeof(client_p->id));
       SetCapable(client_p, CAP_TS6);
     }
   }
 }
-

@@ -180,6 +180,11 @@ struct Message os_msgtab = {
   {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
 };
 
+struct Message bs_msgtab = {
+  "BS", 0, 0, 1, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
+};
+
 #ifndef STATIC_MODULES
 void
 _modinit(void)
@@ -196,6 +201,7 @@ _modinit(void)
   mod_add_cmd(&operserv_msgtab);
   mod_add_cmd(&seenserv_msgtab);
   mod_add_cmd(&statserv_msgtab);
+  mod_add_cmd(&bs_msgtab);
   mod_add_cmd(&ns_msgtab);
   mod_add_cmd(&cs_msgtab);
   mod_add_cmd(&ms_msgtab);
@@ -217,6 +223,7 @@ _moddeinit(void)
   mod_del_cmd(&operserv_msgtab);
   mod_del_cmd(&seenserv_msgtab);
   mod_del_cmd(&statserv_msgtab);
+  mod_del_cmd(&bs_msgtab);
   mod_del_cmd(&ns_msgtab);
   mod_del_cmd(&cs_msgtab);
   mod_del_cmd(&ms_msgtab);

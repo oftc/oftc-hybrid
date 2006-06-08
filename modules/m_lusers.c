@@ -76,7 +76,7 @@ m_lusers(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
     if (MyClient(source_p))
@@ -111,6 +111,6 @@ ms_lusers(struct Client *client_p, struct Client *source_p,
         return;
   }
 
-  if(IsClient(source_p))
+  if (IsClient(source_p))
     show_lusers(source_p);
 }

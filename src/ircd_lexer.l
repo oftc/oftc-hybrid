@@ -160,6 +160,7 @@ deny		{ return DENY; }
 description	{ return DESCRIPTION; }
 die		{ return DIE; }
 disable_auth    { return DISABLE_AUTH; }
+disable_fake_channels { return DISABLE_FAKE_CHANNELS; }
 disable_hidden	{ return DISABLE_HIDDEN; }
 disable_local_channels { return DISABLE_LOCAL_CHANNELS; }
 disable_remote_commands	{ return DISABLE_REMOTE_COMMANDS; }
@@ -211,7 +212,6 @@ hub		{ return HUB; }
 hub_mask	{ return HUB_MASK; }
 idletime        { return IDLETIME; }
 ignore_bogus_ts { return IGNORE_BOGUS_TS; }
-invite_ops_only { return INVITE_OPS_ONLY; }
 invisible_on_connect { return INVISIBLE_ON_CONNECT; }
 ip		{ return IP; }
 ipv4            { return T_IPV4; }
@@ -333,6 +333,7 @@ kline_reason		{ return KLINE_REASON; }
 kline_with_reason       { return KLINE_WITH_REASON; }
 warn_no_nline           { return WARN_NO_NLINE; }
 
+stats_e_disabled        { return STATS_E_DISABLED; }
 stats_o_oper_only       { return STATS_O_OPER_ONLY; }
 stats_k_oper_only	{ return STATS_K_OPER_ONLY; }
 stats_i_oper_only	{ return STATS_I_OPER_ONLY; }

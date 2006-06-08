@@ -151,32 +151,30 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
 static void
 kick_list(struct Client *source_p, struct Channel *chptr)
 {
-  dlink_node *m = NULL, *next_m = NULL;
+  dlink_node *ptr = NULL, *ptr_next = NULL;
+  struct Membership *ms = NULL;
 
-  add_user_to_channel(chptr, source_p, CHFL_CHANOP, NO);
-
-  DLINK_FOREACH_SAFE(m, next_m, chptr->members.head)
+  DLINK_FOREACH(ptr, chptr->members.head)
   {
-    struct Membership *ms = m->data;
+    ms = ptr->data;
 
-    if (ms->client_p == source_p)
-      continue;
-
-    /* can reuse m here */
-    DLINK_FOREACH(m, chptr->locmembers.head)
-    {
-      if (((struct Membership *)m->data)->client_p == source_p)
-        continue;
-      sendto_one(m->data, ":%s!%s@%s KICK %s %s :CLEARCHAN",
-                 source_p->name, source_p->username,
-                 source_p->host,
-                 chptr->chname, ms->client_p->name);
-    }
-
+    sendto_channel_local(ALL_MEMBERS, NO, chptr,
+                         ":%s!%s@%s KICK %s %s CLEARCHAN",
+                         source_p->name, source_p->username,
+                         source_p->host, chptr->chname, ms->client_p->name);
     sendto_server(NULL, source_p, chptr, NOCAPS, NOCAPS, LL_ICLIENT,
                   ":%s KICK %s %s :CLEARCHAN", source_p->name,
                   chptr->chname, ms->client_p->name);
-    remove_user_from_channel(ms);
+  }
+
+  add_user_to_channel(chptr, source_p, CHFL_CHANOP, NO);
+
+  DLINK_FOREACH_SAFE(ptr, ptr_next, chptr->members.head)
+  {
+    ms = ptr->data;
+
+    if (ms->client_p != source_p)
+      remove_user_from_channel(ms);
   }
 
   /*

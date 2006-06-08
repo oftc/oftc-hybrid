@@ -42,12 +42,7 @@ struct Listener
   int              port;               /* listener IP port */
   int              ref_count;          /* number of connection references */
   int              active;             /* current state of listener */
-/* jdc -- this seems to be incorrect in comparison to src/listener.c */
-/*
-  struct in_addr    addr;
-*/
   struct irc_ssaddr addr;              /* virtual address or INADDR_ANY */
-  struct DNSQuery   *dns_query;
   char              vhost[HOSTLEN + 1]; /* virtual name of listener */
   unsigned int      flags;
 };

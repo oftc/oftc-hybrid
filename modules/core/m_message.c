@@ -427,7 +427,7 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
         return -1;
       else if (p_or_n != NOTICE)
       {
-        if (!IsDigit(*nick))
+        if (!IsDigit(*nick) || MyClient(source_p))
 	  sendto_one(source_p, form_str(ERR_NOSUCHNICK),
 		     ID_or_name(&me, client_p),
 		     ID_or_name(source_p, client_p), nick);
@@ -490,14 +490,14 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
 #endif
 
   /* chanops and voiced can flood their own channel with impunity */
-  result = can_send(chptr, source_p);
+  result = can_send(chptr, source_p, NULL);
   if (result > 0 && result != CAN_SEND_ONLY_IF_REG)
   {
     if (result == CAN_SEND_OPV ||
         !flood_attack_channel(p_or_n, source_p, chptr, chptr->chname))
     {
       if(chptr->mode.mode & MODE_NOCOLOR && msg_has_colors(text))
-          text = strip_color(text);
+        text = strip_color(text);
       sendto_channel_butone(client_p, source_p, chptr, command, ":%s", text);
     }
   }
@@ -510,8 +510,8 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
                  ID_or_name(source_p, client_p), chptr->chname);
       if(result == CAN_SEND_ONLY_IF_REG)
         sendto_one(source_p, form_str(ERR_CANTSENDREGONLY),
-          ID_or_name(&me, client_p),
-          ID_or_name(source_p, client_p), chptr->chname);
+            ID_or_name(&me, client_p),
+            ID_or_name(source_p, client_p), chptr->chname);
     }
   }
 }

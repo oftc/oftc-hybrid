@@ -29,6 +29,7 @@
 #include "client.h"
 #include "common.h"
 #include "hash.h"
+#include "hostmask.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
@@ -43,6 +44,7 @@
 #include "memory.h"
 #include "balloc.h"
 #include "s_log.h"
+#include "msg.h"
 
 /* some small utility functions */
 static char *check_string(char *);
@@ -90,6 +92,7 @@ static void send_mode_changes(struct Client *, struct Client *,
 #define NCHCAPS         (sizeof(channel_capabs)/sizeof(int))
 #define NCHCAP_COMBOS   (1 << NCHCAPS)
 
+static char nuh_mask[MAXPARA][IRCD_BUFSIZE];
 /* some buffers for rebuilding channel/nick lists with ,'s */
 static char modebuf[IRCD_BUFSIZE];
 static char parabuf[MODEBUFLEN];
@@ -97,7 +100,11 @@ static struct ChModeChange mode_changes[IRCD_BUFSIZE];
 static int mode_count;
 static int mode_limit;		/* number of modes set other than simple */
 static int simple_modes_mask;	/* bit mask of simple modes already set */
+#ifdef HALFOPS
+static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_TS6, CAP_HOPS };
+#else
 static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_TS6 };
+#endif
 static struct ChCapCombo chcap_combos[NCHCAP_COMBOS];
 extern BlockHeap *ban_heap;
 
@@ -119,7 +126,7 @@ check_string(char *s)
   static char star[] = "*";
 
   if (EmptyString(s))
-    return (star);
+    return star;
 
   for (; *s; ++s)
   {
@@ -130,7 +137,7 @@ check_string(char *s)
     }
   }
 
-  return (str);
+  return str;
 }
 
 /*
@@ -143,12 +150,15 @@ check_string(char *s)
 int
 add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
 {
-  dlink_list *list;
-  dlink_node *ban;
+  dlink_list *list = NULL;
+  dlink_node *ban = NULL;
   size_t len = 0;
-  struct Ban *actualBan;
+  struct Ban *ban_p = NULL;
   unsigned int num_mask;
-  char *name = NULL, *user = NULL, *host = NULL;
+  char name[NICKLEN];
+  char user[USERLEN + 1];
+  char host[HOSTLEN + 1];
+  struct split_nuh_item nuh;
 
   /* dont let local clients overflow the b/e/I lists */
   if (MyClient(client_p))
@@ -167,10 +177,19 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
     collapse(banid);
   }
 
-  split_nuh(check_string(banid), &name, &user, &host);
+  nuh.nuhmask  = check_string(banid);
+  nuh.nickptr  = name;
+  nuh.userptr  = user;
+  nuh.hostptr  = host;
+
+  nuh.nicksize = sizeof(name);
+  nuh.usersize = sizeof(user);
+  nuh.hostsize = sizeof(host);
+
+  split_nuh(&nuh);
 
   /*
-   * Assemble a n!u@h and print it back to banid for sending
+   * Re-assemble a new n!u@h and print it back to banid for sending
    * the mode to the channel.
    */
   len = ircsprintf(banid, "%s!%s@%s", name, user, host);
@@ -195,38 +214,37 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
 
   DLINK_FOREACH(ban, list->head)
   {
-    actualBan = ban->data;
-    if (!irccmp(actualBan->name, name) &&
-	!irccmp(actualBan->username, user) &&
-	!irccmp(actualBan->host, host))
+    ban_p = ban->data;
+    if (!irccmp(ban_p->name, name) &&
+        !irccmp(ban_p->username, user) &&
+        !irccmp(ban_p->host, host))
     {
-      MyFree(name);
-      MyFree(user);
-      MyFree(host);
       return 0;
     }
   }
 
-  actualBan = BlockHeapAlloc(ban_heap);
-  actualBan->when = CurrentTime;
-  actualBan->name = name;
-  actualBan->username = user;
-  actualBan->host = host;
-  actualBan->len = len-2; /* -2 for @ and ! */
+  ban_p = BlockHeapAlloc(ban_heap);
+
+  DupString(ban_p->name, name);
+  DupString(ban_p->username, user);
+  DupString(ban_p->host, host);
+
+  ban_p->when = CurrentTime;
+  ban_p->len = len - 2; /* -2 for @ and ! */
+  ban_p->type = parse_netmask(host, &ban_p->addr, &ban_p->bits);
 
   if (IsClient(client_p))
   {
-    actualBan->who =
-      MyMalloc(strlen(client_p->name) +
-               strlen(client_p->username) +
-               strlen(client_p->host) + 3);
-    ircsprintf(actualBan->who, "%s!%s@%s",
-               client_p->name, client_p->username, client_p->host);
+    ban_p->who = MyMalloc(strlen(client_p->name) +
+                          strlen(client_p->username) +
+                          strlen(client_p->host) + 3);
+    ircsprintf(ban_p->who, "%s!%s@%s", client_p->name,
+               client_p->username, client_p->host);
   }
   else
-    DupString(actualBan->who, client_p->name);
+    DupString(ban_p->who, client_p->name);
 
-  dlinkAdd(actualBan, &actualBan->node, list);
+  dlinkAdd(ban_p, &ban_p->node, list);
 
   return 1;
 }
@@ -244,15 +262,27 @@ del_id(struct Channel *chptr, char *banid, int type)
   dlink_list *list;
   dlink_node *ban;
   struct Ban *banptr;
-  char *name = NULL, *user = NULL, *host = NULL;
+  char name[NICKLEN];
+  char user[USERLEN + 1];
+  char host[HOSTLEN + 1];
+  struct split_nuh_item nuh;
 
   if (banid == NULL)
     return 0;
 
-  split_nuh(check_string(banid), &name, &user, &host);
+  nuh.nuhmask  = check_string(banid);
+  nuh.nickptr  = name;
+  nuh.userptr  = user;
+  nuh.hostptr  = host;
+
+  nuh.nicksize = sizeof(name);
+  nuh.usersize = sizeof(user);
+  nuh.hostsize = sizeof(host);
+
+  split_nuh(&nuh);
 
   /*
-   * Assemble a n!u@h and print it back to banid for sending
+   * Re-assemble a new n!u@h and print it back to banid for sending
    * the mode to the channel.
    */
   ircsprintf(banid, "%s!%s@%s", name, user, host);
@@ -273,10 +303,7 @@ del_id(struct Channel *chptr, char *banid, int type)
     default:
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                            "del_id() called with unknown ban type %d!", type);
-      MyFree(name);
-      MyFree(user);
-      MyFree(host);
-      return(0);
+      return 0;
   }
 
   DLINK_FOREACH(ban, list->head)
@@ -284,20 +311,14 @@ del_id(struct Channel *chptr, char *banid, int type)
     banptr = ban->data;
 
     if (!irccmp(name, banptr->name) &&
-	!irccmp(user, banptr->username) &&
-	!irccmp(host, banptr->host))
+        !irccmp(user, banptr->username) &&
+        !irccmp(host, banptr->host))
     {
       remove_ban(banptr, list);
-      MyFree(name);
-      MyFree(user);
-      MyFree(host);
       return 1;
     }
   }
 
-  MyFree(name);
-  MyFree(user);
-  MyFree(host);
   return 0;
 }
 
@@ -669,8 +690,10 @@ chm_ban(struct Client *client_p, struct Client *source_p,
   if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
     return;
 
-  mask = parv[(*parn)++];
-  
+  mask = nuh_mask[*parn];
+  memcpy(mask, parv[*parn], sizeof(nuh_mask[*parn]));
+  ++*parn;
+
   if (IsServer(client_p))
     if (strchr(mask, ' '))
       return;
@@ -764,7 +787,9 @@ chm_except(struct Client *client_p, struct Client *source_p,
   if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
     return;
 
-  mask = parv[(*parn)++];
+  mask = nuh_mask[*parn];
+  memcpy(mask, parv[*parn], sizeof(nuh_mask[*parn]));
+  ++*parn;
 
   if (IsServer(client_p))
     if (strchr(mask, ' '))
@@ -856,7 +881,9 @@ chm_invex(struct Client *client_p, struct Client *source_p,
   if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
     return;
 
-  mask = parv[(*parn)++];
+  mask = nuh_mask[*parn];
+  memcpy(mask, parv[*parn], sizeof(nuh_mask[*parn]));
+  ++*parn;
 
   if (IsServer(client_p))
     if (strchr(mask, ' '))
@@ -900,10 +927,12 @@ clear_ban_cache(struct Channel *chptr)
 {
   dlink_node *ptr = NULL;
 
-  DLINK_FOREACH(ptr, chptr->locmembers.head)
+  DLINK_FOREACH(ptr, chptr->members.head)
   {
     struct Membership *ms = ptr->data;
-    ms->flags &= ~(CHFL_BAN_SILENCED|CHFL_BAN_CHECKED);
+
+    if (MyConnect(ms->client_p))
+      ms->flags &= ~(CHFL_BAN_SILENCED|CHFL_BAN_CHECKED);
   }
 }
 
@@ -916,6 +945,7 @@ chm_op(struct Client *client_p, struct Client *source_p,
   char *opnick;
   struct Client *targ_p;
   struct Membership *member;
+  int caps = 0;
 
   if (alev < CHACCESS_CHANOP)
   {
@@ -953,11 +983,33 @@ chm_op(struct Client *client_p, struct Client *source_p,
   if (dir == MODE_ADD &&  has_member_flags(member, CHFL_CHANOP))
     return;
   if (dir == MODE_DEL && !has_member_flags(member, CHFL_CHANOP))
+  {
+#ifdef HALFOPS
+    if (has_member_flags(member, CHFL_HALFOP))
+      chm_hop(client_p, source_p, chptr, parc, parn, parv, errors, alev,
+              dir, c, d, chname);
+#endif
     return;
+  }
+
+#ifdef HALFOPS
+  if (dir == MODE_ADD && has_member_flags(member, CHFL_HALFOP))
+  {
+    /* promoting from % to @ is visible only to CAP_HOPS servers */
+    mode_changes[mode_count].letter = 'h';
+    mode_changes[mode_count].dir = MODE_DEL;
+    mode_changes[mode_count].caps = caps = CAP_HOPS;
+    mode_changes[mode_count].nocaps = 0;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count].id = NULL;
+    mode_changes[mode_count].arg = targ_p->name;
+    mode_changes[mode_count++].client = targ_p;
+  }
+#endif
 
   mode_changes[mode_count].letter = 'o';
   mode_changes[mode_count].dir = dir;
-  mode_changes[mode_count].caps = 0;
+  mode_changes[mode_count].caps = caps;
   mode_changes[mode_count].nocaps = 0;
   mode_changes[mode_count].mems = ALL_MEMBERS;
   mode_changes[mode_count].id = targ_p->id;
@@ -967,7 +1019,7 @@ chm_op(struct Client *client_p, struct Client *source_p,
   if (dir == MODE_ADD)
   {
     AddMemberFlag(member, CHFL_CHANOP);
-    DelMemberFlag(member, CHFL_DEOPPED);
+    DelMemberFlag(member, CHFL_DEOPPED | CHFL_HALFOP);
   }
   else
     DelMemberFlag(member, CHFL_CHANOP);
@@ -1031,16 +1083,25 @@ chm_hop(struct Client *client_p, struct Client *source_p,
     return;
 
   /* no redundant mode changes */
-  if (dir == MODE_ADD &&  has_member_flags(member, CHFL_HALFOP))
+  if (dir == MODE_ADD &&  has_member_flags(member, CHFL_HALFOP | CHFL_CHANOP))
     return;
   if (dir == MODE_DEL && !has_member_flags(member, CHFL_HALFOP))
     return;
 
   mode_changes[mode_count].letter = 'h';
   mode_changes[mode_count].dir = dir;
-  mode_changes[mode_count].caps = 0;
+  mode_changes[mode_count].caps = CAP_HOPS;
   mode_changes[mode_count].nocaps = 0;
   mode_changes[mode_count].mems = ALL_MEMBERS;
+  mode_changes[mode_count].id = targ_p->id;
+  mode_changes[mode_count].arg = targ_p->name;
+  mode_changes[mode_count++].client = targ_p;
+
+  mode_changes[mode_count].letter = 'o';
+  mode_changes[mode_count].dir = dir;
+  mode_changes[mode_count].caps = 0;
+  mode_changes[mode_count].nocaps = CAP_HOPS;
+  mode_changes[mode_count].mems = ONLY_SERVERS;
   mode_changes[mode_count].id = targ_p->id;
   mode_changes[mode_count].arg = targ_p->name;
   mode_changes[mode_count++].client = targ_p;

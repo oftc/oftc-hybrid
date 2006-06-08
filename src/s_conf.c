@@ -87,8 +87,7 @@ extern char linebuf[];
 extern char conffilebuf[IRCD_BUFSIZE];
 extern char yytext[];
 extern int yyparse(); /* defined in y.tab.c */
-unsigned int scount = 0; /* used by yyparse(), etc */
-int ypass  = 1; /* used by yyparse()      */
+int ypass = 1; /* used by yyparse()      */
 
 /* internally defined functions */
 static void lookup_confhost(struct ConfItem *);
@@ -363,6 +362,7 @@ make_conf_item(ConfType type)
 void
 delete_conf_item(struct ConfItem *conf)
 {
+  dlink_node *m = NULL;
   struct MatchItem *match_item;
   struct AccessItem *aconf;
   ConfType type = conf->type;
@@ -509,6 +509,11 @@ delete_conf_item(struct ConfItem *conf)
     MyFree(match_item->reason);
     MyFree(match_item->oper_reason);
     dlinkDelete(&conf->node, &nresv_items);
+
+    if (conf->flags & CONF_FLAGS_TEMPORARY)
+      if ((m = dlinkFindDelete(&temporary_resv, conf)) != NULL)
+        free_dlink_node(m);
+
     MyFree(conf);
     break;
 
@@ -526,6 +531,10 @@ delete_conf_item(struct ConfItem *conf)
     break;
 
   case CRESV_TYPE:
+    if (conf->flags & CONF_FLAGS_TEMPORARY)
+      if ((m = dlinkFindDelete(&temporary_resv, conf)) != NULL)
+        free_dlink_node(m);
+
     MyFree(conf);
     break;
 
@@ -576,6 +585,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
   struct ClassItem *classitem = NULL;
   char buf[12];
   char *p = NULL;
+  const char *pfx = NULL;
 
   switch (type)
   {
@@ -632,7 +642,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     break;
 
   case RKLINE_TYPE:
-    p = temp ? "Rk" : "RK";
+    pfx = temp ? "kR" : "KR";
 
     DLINK_FOREACH(ptr, rkconf_items.head)
     {
@@ -642,7 +652,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
         continue;
 
       sendto_one(source_p, form_str(RPL_STATSKLINE), me.name,
-                 source_p->name, p, aconf->host, aconf->user,
+                 source_p->name, pfx, aconf->host, aconf->user,
                  aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");
     }
     break;
@@ -712,7 +722,8 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
 		 me.name, source_p->name, 'Y',
 		 conf->name, PingFreq(classitem),
 		 ConFreq(classitem),
-		 MaxTotal(classitem), MaxSendq(classitem));
+		 MaxTotal(classitem), MaxSendq(classitem),
+                 CurrUserCount(classitem));
     }
     break;
 
@@ -823,10 +834,6 @@ check_client(va_list args)
 
   switch (i)
   {
-    case IRCD_SOCKET_ERROR:
-      exit_client(source_p, &me, "Socket Error");
-      break;
-
     case TOO_MANY:
       sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
                            "Too many on IP for %s (%s).",
@@ -1016,11 +1023,11 @@ attach_iline(struct Client *client_p, struct ConfItem *conf)
   ip_found->count++;
   SetIpHash(client_p);
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = map_to_conf(conf);
   if (aconf->class_ptr == NULL)
     return NOT_AUTHORIZED;  /* If class is missing, this is best */
 
-  aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+  aclass = map_to_conf(aconf->class_ptr);
 
   count_user_host(client_p->username, client_p->host,
                   &global, &local, &ident);
@@ -1031,7 +1038,7 @@ attach_iline(struct Client *client_p, struct ConfItem *conf)
    */
   if (MaxTotal(aclass) != 0 && CurrUserCount(aclass) >= MaxTotal(aclass))
     a_limit_reached = 1;
-  else if (MaxPerIp(aclass) != 0 && ip_found->count >= MaxPerIp(aclass))
+  else if (MaxPerIp(aclass) != 0 && ip_found->count > MaxPerIp(aclass))
     a_limit_reached = 1;
   else if (MaxLocal(aclass) != 0 && local >= MaxLocal(aclass))
     a_limit_reached = 1;
@@ -1044,7 +1051,7 @@ attach_iline(struct Client *client_p, struct ConfItem *conf)
   if (a_limit_reached)
   {
     if (!IsConfExemptLimits(aconf))
-      return TOO_MANY;  /* Already at maximum allowed */
+      return TOO_MANY;   /* Already at maximum allowed */
 
     sendto_one(client_p,
                ":%s NOTICE %s :*** Your connection class is full, "
@@ -1316,10 +1323,10 @@ detach_conf(struct Client *client_p, ConfType type)
       case CLIENT_TYPE:
       case OPER_TYPE:
       case SERVER_TYPE:
-        aconf = (struct AccessItem *)map_to_conf(conf);
+        aconf = map_to_conf(conf);
         if ((aclass_conf = ClassPtr(aconf)) != NULL)
         {
-          aclass = (struct ClassItem *)map_to_conf(aclass_conf);
+          aclass = map_to_conf(aclass_conf);
 
           if (conf->type == CLIENT_TYPE)
             remove_from_cidr_check(&client_p->localClient->ip, aclass);
@@ -1336,9 +1343,10 @@ detach_conf(struct Client *client_p, ConfType type)
         if (aconf->clients == 0 && IsConfIllegal(aconf))
           delete_conf_item(conf);
         break;
+
       case LEAF_TYPE:
       case HUB_TYPE:
-        match_item = (struct MatchItem *)map_to_conf(conf);
+        match_item = map_to_conf(conf);
         if (match_item->ref_count == 0 && match_item->illegal)
           delete_conf_item(conf);
         break;
@@ -1367,9 +1375,6 @@ detach_conf(struct Client *client_p, ConfType type)
 int
 attach_conf(struct Client *client_p, struct ConfItem *conf)
 {
-  struct AccessItem *aconf;
-  struct MatchItem *match_item;
-
   if (dlinkFind(&client_p->localClient->confs, conf) != NULL)
     return 1;
 
@@ -1377,28 +1382,23 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
       conf->type == SERVER_TYPE ||
       conf->type == OPER_TYPE)
   {
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    struct AccessItem *aconf = map_to_conf(conf);
+    struct ClassItem *aclass = map_to_conf(aconf->class_ptr);
 
     if (IsConfIllegal(aconf))
       return NOT_AUTHORIZED;
 
     if (conf->type == CLIENT_TYPE)
-    {
-      struct ClassItem *aclass;
-      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
-
       if (cidr_limit_reached(IsConfExemptLimits(aconf),
                              &client_p->localClient->ip, aclass))
-        return TOO_MANY;  /* Already at maximum allowed */
+        return TOO_MANY;    /* Already at maximum allowed */
 
-      CurrUserCount(aclass)++;
-    }
-
+    CurrUserCount(aclass)++;
     aconf->clients++;
   }
   else if (conf->type == HUB_TYPE || conf->type == LEAF_TYPE)
   {
-    match_item = (struct MatchItem *)map_to_conf(conf);
+    struct MatchItem *match_item = map_to_conf(conf);
     match_item->ref_count++;
   }
 
@@ -1432,7 +1432,7 @@ attach_connect_block(struct Client *client_p, const char *name,
   DLINK_FOREACH(ptr, server_items.head)
   {
     conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = map_to_conf(conf);
 
     if (match(conf->name, name) == 0 || match(aconf->host, host) == 0)
       continue;
@@ -1853,6 +1853,7 @@ set_default_conf(void)
   ConfigLoggingEntry.ioerrlog[0] = '\0';
   ConfigLoggingEntry.failed_operlog[0] = '\0';
 
+  ConfigChannel.disable_fake_channels = NO;
   ConfigChannel.restrict_channels = NO;
   ConfigChannel.disable_local_channels = NO;
   ConfigChannel.use_invex = YES;
@@ -1860,7 +1861,6 @@ set_default_conf(void)
   ConfigChannel.use_knock = YES;
   ConfigChannel.knock_delay = 300;
   ConfigChannel.knock_delay_channel = 60;
-  ConfigChannel.invite_ops_only = YES;
   ConfigChannel.max_chans_per_user = 15;
   ConfigChannel.quiet_on_ban = YES;
   ConfigChannel.max_bans = 25;
@@ -1924,7 +1924,7 @@ set_default_conf(void)
   ConfigFileEntry.max_targets = MAX_TARGETS_DEFAULT;
   ConfigFileEntry.client_flood = CLIENT_FLOOD_DEFAULT;
   ConfigFileEntry.oper_only_umodes = UMODE_DEBUG;  /* XXX */
-  ConfigFileEntry.oper_umodes = UMODE_LOCOPS | UMODE_SERVNOTICE |
+  ConfigFileEntry.oper_umodes = UMODE_BOTS | UMODE_LOCOPS | UMODE_SERVNOTICE |
     UMODE_OPERWALL | UMODE_WALLOP;        /* XXX */
   DupString(ConfigFileEntry.servlink_path, SLPATH);
 #ifdef HAVE_LIBCRYPTO
@@ -1955,7 +1955,7 @@ set_default_conf(void)
 static void
 read_conf(FBFILE *file)
 {
-  scount = lineno = 0;
+  lineno = 0;
 
   set_default_conf(); /* Set default values prior to conf parsing */
   ypass = 1;
@@ -2267,8 +2267,8 @@ expire_tklines(dlink_list *tklist)
 	  }
         }
 
+        dlinkDelete(ptr, tklist);
 	delete_one_address_conf(aconf->host, aconf);
-	dlinkDelete(ptr, tklist);
       }
     }
     else if (conf->type == XLINE_TYPE ||
@@ -3051,16 +3051,18 @@ conf_add_class_to_conf(struct ConfItem *conf, const char *class_name)
  * side effects - Add a connect block
  */
 int
-conf_add_server(struct ConfItem *conf, unsigned int lcount, const char *class_name)
+conf_add_server(struct ConfItem *conf, const char *class_name)
 {
   struct AccessItem *aconf;
-  char *orig_host;
+  struct split_nuh_item nuh;
+  char conf_user[USERLEN + 1];
+  char conf_host[HOSTLEN + 1];
 
   aconf = map_to_conf(conf);
 
   conf_add_class_to_conf(conf, class_name);
 
-  if (lcount > MAXCONFLINKS || !aconf->host || !conf->name)
+  if (!aconf->host || !conf->name)
   {
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Bad connect block");
     ilog(L_WARN, "Bad connect block");
@@ -3075,9 +3077,24 @@ conf_add_server(struct ConfItem *conf, unsigned int lcount, const char *class_na
     return -1;
   }
 
-  orig_host = aconf->host;
-  split_nuh(orig_host, NULL, &aconf->user, &aconf->host);
-  MyFree(orig_host);
+  nuh.nuhmask  = aconf->host;
+  nuh.nickptr  = NULL;
+  nuh.userptr  = conf_user;
+  nuh.hostptr  = conf_host;
+
+  nuh.nicksize = 0;
+  nuh.usersize = sizeof(conf_user);
+  nuh.hostsize = sizeof(conf_host);
+
+  split_nuh(&nuh);
+
+  MyFree(aconf->host);
+  aconf->host = NULL;
+
+  DupString(aconf->user, conf_user); /* somehow username checking for servers
+                                 got lost in H6/7, will have to be re-added */
+  DupString(aconf->host, conf_host);
+
   lookup_confhost(conf);
 
   return 0;
@@ -3437,7 +3454,7 @@ find_user_host(struct Client *source_p, char *user_host_or_nick,
   {
     /* Explicit user@host mask given */
 
-    if(hostp != NULL)                            /* I'm a little user@host */
+    if (hostp != NULL)                            /* I'm a little user@host */
     {
       *(hostp++) = '\0';                       /* short and squat */
       if (*user_host_or_nick)
@@ -3568,12 +3585,11 @@ match_conf_password(const char *password, const struct AccessItem *aconf)
 */
 void
 cluster_a_line(struct Client *source_p, const char *command,
-	       int capab, int cluster_type, const char *pattern, ...)
+               int capab, int cluster_type, const char *pattern, ...)
 {
   va_list args;
   char buffer[IRCD_BUFSIZE];
-  struct ConfItem *conf;
-  dlink_node *ptr;
+  const dlink_node *ptr = NULL;
 
   va_start(args, pattern);
   vsnprintf(buffer, sizeof(buffer), pattern, args);
@@ -3581,13 +3597,11 @@ cluster_a_line(struct Client *source_p, const char *command,
 
   DLINK_FOREACH(ptr, cluster_items.head)
   {
-    conf = ptr->data;
+    const struct ConfItem *conf = ptr->data;
 
     if (conf->flags & cluster_type)
-    {
       sendto_match_servs(source_p, conf->name, CAP_CLUSTER|capab,
 			 "%s %s %s", command, conf->name, buffer);
-    }
   }
 }
 
@@ -3619,87 +3633,61 @@ cluster_a_line(struct Client *source_p, const char *command,
  * @				*	*	*
  * !				*	*	*
  */
-
 void
-split_nuh(char *mask, char **nick, char **user, char **host)
+split_nuh(struct split_nuh_item *const iptr)
 {
   char *p = NULL, *q = NULL;
 
-  if ((p = strchr(mask, '!')) != NULL)
+  if (iptr->nickptr)
+    strlcpy(iptr->nickptr, "*", iptr->nicksize);
+  if (iptr->userptr)
+    strlcpy(iptr->userptr, "*", iptr->usersize);
+  if (iptr->hostptr)
+    strlcpy(iptr->hostptr, "*", iptr->hostsize);
+
+  if ((p = strchr(iptr->nuhmask, '!')))
   {
     *p = '\0';
-    if (nick != NULL)
-    {
-      if (*mask != '\0')
-	*nick = xstrldup(mask, NICKLEN);
-      else
-	DupString(*nick, "*");
-    }
 
-    if ((q = strchr(++p, '@')) != NULL)
-    {
-      *q = '\0';
+    if (iptr->nickptr && *iptr->nuhmask != '\0')
+      strlcpy(iptr->nickptr, iptr->nuhmask, iptr->nicksize);
+
+    if ((q = strchr(++p, '@'))) {
+      *q++ = '\0';
 
       if (*p != '\0')
-	*user = xstrldup(p, USERLEN+1);
-      else
-	DupString(*user, "*");
+        strlcpy(iptr->userptr, p, iptr->usersize);
 
-      if (*++q != '\0')
-	*host = xstrldup(q, HOSTLEN+1);
-      else
-	DupString(*host, "*");
+      if (*q != '\0')
+        strlcpy(iptr->hostptr, q, iptr->hostsize);
     }
     else
     {
       if (*p != '\0')
-	*user = xstrldup(p, USERLEN+1);
-      else
-	DupString(*user, "*");
-
-      DupString(*host, "*");
+        strlcpy(iptr->userptr, p, iptr->usersize);
     }
   }
-  else  /* No ! found so lets look for a user@host */
+  else
   {
-    if ((p = strchr(mask, '@')) != NULL)        /* if found a @ */
+    /* No ! found so lets look for a user@host */
+    if ((p = strchr(iptr->nuhmask, '@')))
     {
-      if (nick != NULL)
-	DupString(*nick, "*");
-      *p = '\0';
+      /* if found a @ */
+      *p++ = '\0';
 
-      if (*mask != '\0')
-	*user = xstrldup(mask, USERLEN+1);
-      else
-	DupString(*user, "*");
+      if (*iptr->nuhmask != '\0')
+        strlcpy(iptr->userptr, iptr->nuhmask, iptr->usersize);
 
-      if (*++p != '\0')
-	*host = xstrldup(p, HOSTLEN+1);
-      else
-	DupString(*host, "*");
+      if (*p != '\0')
+        strlcpy(iptr->hostptr, p, iptr->hostsize);
     }
-    else                                        /* no @ found */
+    else
     {
-      if (nick != NULL)
-      {
-        if (strpbrk(mask, ".:"))
-        {
-          DupString(*nick, "*");
-          *host = xstrldup(mask, HOSTLEN+1);
-        }
-        else
-        {
-          *nick = xstrldup(mask, NICKLEN);
-          DupString(*host, "*");
-        }
-
-        DupString(*user, "*");
-      }
+      /* no @ found */
+      if (!iptr->nickptr || strpbrk(iptr->nuhmask, ".:"))
+        strlcpy(iptr->hostptr, iptr->nuhmask, iptr->hostsize);
       else
-      {
-        DupString(*user, "*");
-        *host = xstrldup(mask, HOSTLEN+1);
-      }
+        strlcpy(iptr->nickptr, iptr->nuhmask, iptr->nicksize);
     }
   }
 }
@@ -3726,7 +3714,7 @@ flags_to_ascii(unsigned int flags, const unsigned int bit_table[], char *p,
   {
     if (flags & mask)
       *p++ = bit_table[i];
-    else if(lowerit)
+    else if (lowerit)
       *p++ = ToLower(bit_table[i]);
   }
   *p = '\0';

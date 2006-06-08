@@ -17,7 +17,7 @@ In this implementation, it is extended to be routable among servers which
 understand the "KLN" capability. This allows us to continue to "talk"
 to non remote kline capable servers without breaking anything.
 
-K-Lines have also recieved a new feature of supporting regular expressions
+K-Lines have also received a new feature of supporting regular expressions
 to allow for more flexible bans.
 
 Usage

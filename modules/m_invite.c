@@ -108,69 +108,74 @@ m_invite(struct Client *client_p, struct Client *source_p,
   /* done .. there should be no problem because MyConnect(source_p) should
    * always be true if parse() and such is working correctly --is
    */
-
-  if (!MyConnect(target_p) && (parv[2][0] == '&'))
+  if (!MyConnect(target_p) && (*parv[2] == '&'))
   {
     if (ConfigServerHide.hide_servers == 0)
       sendto_one(source_p, form_str(ERR_USERNOTONSERV),
-                 me.name, parv[0], parv[1]);
+                 me.name, source_p->name, target_p->name);
     return;
   }
 
   if ((chptr = hash_find_channel(parv[2])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-               me.name, parv[0], parv[2]);
+               me.name, source_p->name, parv[2]);
     return;
   }
 
-  /* By this point, chptr is non NULL */
-  if ((ms = find_channel_link(source_p, chptr)) == NULL)
+  if (MyConnect(source_p) && (ms = find_channel_link(source_p, chptr)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOTONCHANNEL),
-               me.name, parv[0], parv[2]);
+               me.name, source_p->name, chptr->chname);
     return;
   }
 
   chop = has_member_flags(ms, CHFL_CHANOP);
 
-  if (IsMember(target_p, chptr))
+  if ((chptr->mode.mode & (MODE_INVITEONLY | MODE_PRIVATE)))
   {
-    sendto_one(source_p, form_str(ERR_USERONCHANNEL),
-               me.name, parv[0], parv[1], parv[2]);
-    return;
-  }
-
-  if (chptr->mode.mode & MODE_INVITEONLY)
-  {
-    if (!chop && !IsGod(source_p))
+    if (MyConnect(source_p) && !chop && !IsGod(source_p))
     {
       sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-                 me.name, parv[0], parv[2]);
+          me.name, parv[0], parv[2]);
       return;
     }
     if(!chop)
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
-                target_p->name);
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+          "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
+          target_p->name);
   }
   else
-    /* Don't save invite even if from an op otherwise... */
+      /* Don't save invite even if from an op otherwise... */
     chop = 0;
 
-  sendto_one(source_p, form_str(RPL_INVITING),
-             me.name, parv[0], target_p->name, parv[2]);
 
-  if (target_p->away)
-    sendto_one(source_p, form_str(RPL_AWAY),
-               me.name, parv[0], target_p->name,
-               target_p->away);
+  if (IsMember(target_p, chptr))
+  {
+    sendto_one(source_p, form_str(ERR_USERONCHANNEL),
+               me.name, source_p->name, target_p->name, chptr->chname);
+    return;
+  }
+
+  if (MyConnect(source_p))
+  {
+    sendto_one(source_p, form_str(RPL_INVITING), me.name,
+               source_p->name, target_p->name, chptr->chname);
+
+    if (target_p->away)
+      sendto_one(source_p, form_str(RPL_AWAY),
+                 me.name, source_p->name, target_p->name,
+                 target_p->away);
+  }
+  else if (parc > 3 && IsDigit(*parv[3]))
+    if (atoi(parv[3]) > chptr->channelts)
+      return;
 
   if (!MyConnect(target_p) && ServerInfo.hub &&
       IsCapable(target_p->from, CAP_LL))
   {
     /* target_p is connected to a LL leaf, connected to us */
-    if (IsPerson(source_p))
+    if (IsClient(source_p))
       client_burst_if_needed(target_p->from, source_p);
 
     if ((chptr->lazyLinkChannelExists &

@@ -5,7 +5,7 @@ o) Other misc fixes.
 -- ircd-hybrid-7.2rc2 RELNOTES
 o) Fixed broken operwall = yes;
 o) Added 'umode' directive to oper{}.  List of modes to get on /OPER.
- 
+
 
 -- oftc-hybrid 1.4.0 RELNOTES
 o) Add Client SSL Support
@@ -15,11 +15,55 @@ o) +R - Cannot join channel unless regisitered with NickServ
 o) +M - Cannot talk on channel unless registered with NickServ
 o) +S - Cannot join channel unless using SSL
 
--- oftc-hybrid 1.3.3 RELNOTES
-o) Yet more God Mode bugfixes(yay)
-o) Fix DNS resolver faliing to resolve some IPv6 reverses
+-- ircd-hybrid-7.2.2 RELNOTES
+o) Added channel::disable_fake_channels config directive
+o) Fixed broken FORCEJOIN  (contrib)
+o) Added missing documentation for connect::vhost
+o) Fixed problem with G-Line voting
+o) Fixed "STATS ?" so it doesn't report negative traffic statistics
+o) Fixed core in m_mkpasswd.c  (contrib)
+o) Reduced memory usage for channel members
+o) Added general::stats_e_disabled which simply disables "STATS e"
+   for other operators and administrators
+o) Ignore signal SIGXFSZ to prevent the daemon from dying on missconfigured
+   file size limits
+
+
+-- ircd-hybrid-7.2.1 RELNOTES
+o) Fixed build on SRV4
+o) Fixed problem where ircd would disconnect all SSL connections
+o) Added initial CAP support.  Additional documentation can be found
+   in doc/technical
+o) Speeded up command parsing
+o) Fixed occasional core dump on UN*LINE
+o) Fixed bug where particular clients would always receive
+   "Load is temporarily too heavy" message
+o) Improved memory consumption, i.e. memory consumption has
+   been reduced for remote clients
+o) Fixed possible core in case default_cipher_preference directive isn't set
+o) Fixed "CHANSERV INVITE" bug with anope services
+o) Updated example configuration files to reflect new topicburst flags
+   directive in connect{} blocks
+o) Fixed core if using the operator::umodes directive
+o) Don't allow shared k-lines to be set without a valid reason
+o) Improved channel ban match processing.  This also fixes CIDR bans
+
+
+-- ircd-hybrid-7.2.0 RELNOTES
+o) Fixed broken operwall = yes;
+o) Added 'umode' directive to oper{}.  List of modes to get on /OPER.
+   This behaves exactly like H6's sixth O line field
+o) Fixed a WHOIS bug
+o) Fixed bug where we would increase Count.invisi even
+   if general::invisible_on_connect is turned off
+o) Removed invite_ops_only, controlled by paranoid (+p) now
+o) Better DDoS protection
+o) Fixed va_list bug on amd64
+o) Fixed /dev/poll
+
+
 -- ircd-hybrid-7.2rc1 RELNOTES
-o) ircd can now dynamically change all its client/fd limits at runtime
+o) ircd can dynamically change all its client/fd limits at runtime
 o) Added epoll as the primary I/O engine under Linux
 o) Local channels will not show up in remote /WHOIS
 o) Added hidden_name which allows customized hidden server names
@@ -35,49 +79,34 @@ o) Get "KLINE nick" to work with clients that have a spoof
 o) Fixed RESV/XLINE bug in conjunction with names that include escaped
    characters such as \*, \?, \#.
 
--- oftc-hybrid 1.3.2 RELNOTES
-o) Fixed a lot of God Mode bugs
-o) Merged the reworked parser from upstream
-o) Other minor bugfixes
-
--- oftc-hybrid-1.3.0 RELNOTES
-o) Added +S usermode for server connect notices
-o) Added channel creation notices
-o) fixed a lot of the god mode notice bugs
-o) fixed new /who
-o) updated to new upstream code including resolver rewrite
-
 -- ircd-hybrid-7.2beta1 RELNOTES
 o) Usermode +G, like +g, but allow messaging from people on common channels
 o) Usermode +D - "deaf", don't receive channel messages
-o) RXLINE and RKLINE - commands for setting regexp K/X lines
+o) RXLINE and RKLINE - commands for setting perl compatible regular expression
+   based K and X lines
 o) Join flood is now detected and reported to +b opers
 o) Re-added REJECT_HOLD - lock clients for a while before throwing away
 o) ping_warning, a class{} option to notify opers before "Ping timeout"
-o) New hooking system, modularised: usermodes, iauth, message filtering etc.
+o) New hooking system, modularized: usermodes, iauth, message filtering etc.
 o) Network I/O speedups
 o) Various cleanups and bugfixes
 o) Support for client SSL
 o) Support for services (contrib/m_services.c)
 o) IP cloaking module (contrib/ip_cloaking.c)
 o) Native win32 build
+o) The password set in auth::password can now be encrypted
+o) Introduced new listen::flags directive.  Currently available flags are
+   'ssl' and 'hidden'.  Please read example.conf for further details
 
 --------------------------------------------------------------------------------
-
-This is a releasce candidate of ircd-hybrid-7.2.
-
-NOTE: This is still BETA code.  Run it at your own risk.  By running this
- code you assume FULL responsibility for any problems it may cause.  We do
- NOT recommend that you run BETA code on production IRC networks such
- as EFnet.
 
 BUGS: Major bugs in this release are listed in BUGS
 
 BUG REPORTS: If you run this code and encounter problems, you must report
  the bug in one of the following ways:
-  a) By EMAIL to bugs@ircd-hybrid.org.
+  a) By EMAIL to bugs@ircd-hybrid.org
   b) On http://forum.ircd-hybrid.org/
- Please include a gdb backtrace and a copy of your setup.h, defaults.h, and
+ Please include a gdb backtrace and a copy of your setup.h and
  ircd.conf with any report  (with passwords and other sensitive
  information masked).
 
@@ -87,12 +116,6 @@ DISCUSSION: There is a mailing list for discussion of hybrid issues,
  This is the proper place to discuss new features, bugs, etc.  Posting here
  is much more likely to get something done than ranting on #TZ.
  You can also use Hybrid forums at http://forum.ircd-hybrid.org/
-
-TESTING: This code is under active development, and a lot changes from beta
- to beta.  As the user of this code, we request that you help us test things
- which have changed recently, and which would benefeit from being tested
- much as possible.
-
 
 Questions/comments directed to bugs@ircd-hybrid.org
 

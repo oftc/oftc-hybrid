@@ -117,7 +117,7 @@ make_auth_request(struct Client *client)
   request->client  = client;
   request->timeout = CurrentTime + CONNECTTIMEOUT;
 
-  return (request);
+  return request;
 }
 
 /*
@@ -135,6 +135,7 @@ release_auth_client(struct Client *client)
    */
   client->localClient->allow_read = MAX_FLOOD;
   comm_setflush(&client->localClient->fd, 1000, flood_recalc, client);
+
   if ((client->node.prev != NULL) || (client->node.next != NULL))
   {
     sendto_realops_flags(UMODE_ALL, L_OPER,
@@ -146,6 +147,10 @@ release_auth_client(struct Client *client)
   }
   else
     dlinkAdd(client, &client->node, &global_client_list);
+
+  client->since  = client->lasttime = client->firsttime = CurrentTime;
+  client->flags |= FLAGS_FINISHED_AUTH;
+
   read_packet(&client->localClient->fd, client);
 }
  
@@ -544,7 +549,22 @@ read_auth_reply(fde_t *fd, void *data)
   int count;
   char buf[AUTH_BUFSIZ + 1]; /* buffer to read auth reply into */
 
+  /* Why?
+   * Well, recv() on many POSIX systems is a per-packet operation,
+   * and we do not necessarily want this, because on lowspec machines,
+   * the ident response may come back fragmented, thus resulting in an
+   * invalid ident response, even if the ident response was really OK.
+   *
+   * So PLEASE do not change this code to recv without being aware of the
+   * consequences.
+   *
+   *    --nenolod
+   */
+#ifndef _WIN32
+  len = read(fd->fd, buf, AUTH_BUFSIZ);
+#else
   len = recv(fd->fd, buf, AUTH_BUFSIZ, 0);
+#endif
   
   if (len < 0)
   {

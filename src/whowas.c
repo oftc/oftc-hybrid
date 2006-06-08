@@ -53,17 +53,7 @@ add_history(struct Client *client_p, int online)
 {
   struct Whowas *who = &WHOWAS[whowas_next];
 
-  assert(client_p != NULL);
-
-  if (client_p == NULL)
-    return;
-
-  /* XXX when is this possible? Looks like it could happen
-   * (with a half registered client.)
-   * and what is the correct action here? - Dianora
-   */
-  if (client_p->servptr == NULL)
-    return;
+  assert(client_p && client_p->servptr);
 
   if (who->hashv != -1)
   {
@@ -72,7 +62,7 @@ add_history(struct Client *client_p, int online)
     del_whowas_from_list(&WHOWASHASH[who->hashv], who);
   }
 
-  who->hashv  = strhash(client_p->name);
+  who->hashv = strhash(client_p->name);
   who->logoff = CurrentTime;
 
   /* NOTE: strcpy ok here, the sizes in the client struct MUST

@@ -67,7 +67,6 @@ static char umode_buffer[IRCD_BUFSIZE];
 static void user_welcome(struct Client *);
 static void report_and_set_user_flags(struct Client *, const struct AccessItem *);
 static int check_xline(struct Client *);
-static int check_regexp_xline(struct Client *);
 static void introduce_client(struct Client *, struct Client *);
 static void *uid_get(va_list);
 
@@ -294,6 +293,9 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   assert(source_p != NULL);
   assert(MyConnect(source_p));
   assert(source_p->username != username);
+  assert(!source_p->localClient->registration);
+
+  ClearCap(client_p, CAP_TS6);
 
   if (ConfigFileEntry.ping_cookie)
   {
@@ -415,16 +417,16 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
   assert(source_p == client_p);
 
-  /* end of valid user name check */
-  if (check_xline(source_p) || check_regexp_xline(source_p))
+  if (check_xline(source_p))
     return;
 
   if (IsDead(client_p))
     return;
 
-  if (source_p->id[0] == '\0' && me.id[0])
+  if (me.id[0])
   {
-    char *id = (char *)execute_callback(uid_get_cb, source_p);
+    const char *id = execute_callback(uid_get_cb, source_p);
+
     while (hash_find_id(id) != NULL)
       id = uid_get(NULL);
 
@@ -440,7 +442,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
                        "Client connecting: %s (%s@%s) [%s] {%s} [%s]",
                        nick, source_p->username, source_p->host,
                        ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
-                       "255.255.255.255" : ipaddr, get_client_className(source_p),
+                       "255.255.255.255" : ipaddr, get_client_class(source_p),
                        source_p->info);
 
   /* If they have died in send_* don't do anything. */
@@ -514,12 +516,6 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
   strlcpy(source_p->info, realname, sizeof(source_p->info));
   strlcpy(source_p->username, username, sizeof(source_p->username));
 
-  /* Increment our total user count here */
-  if (++Count.total > Count.max_tot)
-    Count.max_tot = Count.total;
-
-  source_p->from->serv->dep_users++;
-
   /*
    * coming from another server, take the servers word for it
    */
@@ -537,7 +533,6 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
                          source_p->host, source_p->from->name);
     kill_client(client_p, source_p, "%s (Server doesn't exist)", me.name);
 
-    /* XXX */
     SetKilled(source_p);
     exit_client(source_p, &me, "Ghosted Client");
     return;
@@ -557,6 +552,12 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
     exit_client(source_p, &me, "USER server wrong direction");
     return;
   }
+
+  /* Increment our total user count here */
+  if (++Count.total > Count.max_tot)
+    Count.max_tot = Count.total;
+
+  ++source_p->from->serv->dep_users;
 
   SetClient(source_p);
   dlinkAdd(source_p, &source_p->lnode, &source_p->servptr->serv->users);
@@ -607,8 +608,6 @@ introduce_client(struct Client *client_p, struct Client *source_p)
    * -davidt
    * rewritten to cope with SIDs .. eww eww eww --is
    */
-
-  /* XXX THESE NEED A PREFIX!?!?!? */
   if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL) &&
       client_p != uplink)
   {
@@ -617,20 +616,18 @@ introduce_client(struct Client *client_p, struct Client *source_p)
       sendto_one(uplink, ":%s UID %s %d %lu %s %s %s %s %s :%s",
                  source_p->servptr->id,
                  source_p->name, source_p->hopcount+1,
-		 (unsigned long)source_p->tsinfo,
+                 (unsigned long)source_p->tsinfo,
                  ubuf, source_p->username, source_p->host,
-		 ((MyClient(source_p) && !IsIPSpoof(source_p)) ?
-		 source_p->sockhost : "0"),
-                 source_p->id, source_p->info);
+                 (MyClient(source_p) && IsIPSpoof(source_p)) ?
+                 "0" : source_p->sockhost, source_p->id, source_p->info);
     }
     else
     {
       sendto_one(uplink, "NICK %s %d %lu %s %s %s %s :%s",
                  source_p->name, source_p->hopcount+1,
-		 (unsigned long)source_p->tsinfo,
+                 (unsigned long)source_p->tsinfo,
                  ubuf, source_p->username, source_p->host,
-		 source_p->servptr->name,
-                 source_p->info);
+                 source_p->servptr->name, source_p->info);
     }
   }
   else
@@ -646,17 +643,16 @@ introduce_client(struct Client *client_p, struct Client *source_p)
         sendto_one(server, ":%s UID %s %d %lu %s %s %s %s %s :%s",
                    source_p->servptr->id,
                    source_p->name, source_p->hopcount+1,
-		   (unsigned long)source_p->tsinfo,
+                   (unsigned long)source_p->tsinfo,
                    ubuf, source_p->username, source_p->host,
-		   ((MyClient(source_p)&&!IsIPSpoof(source_p))?source_p->sockhost:"0"),
-                   source_p->id, source_p->info);
+                   (MyClient(source_p) && IsIPSpoof(source_p)) ?
+                   "0" : source_p->sockhost, source_p->id, source_p->info);
       else
         sendto_one(server, "NICK %s %d %lu %s %s %s %s :%s",
                    source_p->name, source_p->hopcount+1,
-		   (unsigned long)source_p->tsinfo,
+                   (unsigned long)source_p->tsinfo,
                    ubuf, source_p->username, source_p->host,
-		   source_p->servptr->name,
-                   source_p->info);
+                   source_p->servptr->name, source_p->info);
     }
   }
 }
@@ -833,7 +829,7 @@ do_local_user(const char *nick, struct Client *client_p, struct Client *source_p
     return;
   }
 
-  source_p->flags |= FLAGS_GOTUSER;
+  source_p->localClient->registration &= ~REG_NEED_USER;
 
   /*
    * don't take the clients word for it, ever
@@ -850,11 +846,9 @@ do_local_user(const char *nick, struct Client *client_p, struct Client *source_p
     strlcpy(source_p->username, username, sizeof(source_p->username));
   }
 
-  if (source_p->name[0])
-  {
+  if (!source_p->localClient->registration)
     /* NICK already received, now I have USER... */
     register_local_user(client_p, source_p, source_p->name, username);
-  }
 }
 
 /* change_simple_umode()
@@ -865,11 +859,12 @@ do_local_user(const char *nick, struct Client *client_p, struct Client *source_p
 static void *
 change_simple_umode(va_list args)
 {
+  struct Client *client_p;
   struct Client *source_p;
   int what;
   unsigned int flag;
 
-  va_arg(args, struct Client *);
+  client_p = va_arg(args, struct Client *);
   source_p = va_arg(args, struct Client *);
   what = va_arg(args, int);
   flag = va_arg(args, unsigned int);
@@ -1106,8 +1101,9 @@ send_umode(struct Client *client_p, struct Client *source_p,
   *m = '\0';
 
   if (*umode_buf && client_p)
-    sendto_one(client_p, ":%s MODE %s :%s",
-               source_p->name, source_p->name, umode_buf);
+    sendto_one(client_p, ":%s!%s@%s MODE %s :%s",
+               source_p->name, source_p->username,
+               source_p->host, source_p->name, umode_buf);
 }
 
 /* send_umode_out()
@@ -1120,13 +1116,13 @@ void
 send_umode_out(struct Client *client_p, struct Client *source_p,
                unsigned int old)
 {
-  char buf[IRCD_BUFSIZE];
+  char buf[IRCD_BUFSIZE] = { '\0' };
   dlink_node *ptr = NULL;
 
   send_umode(NULL, source_p, old, IsOperHiddenAdmin(source_p) ?
              SEND_UMODES & ~UMODE_ADMIN : SEND_UMODES, buf);
 
-  if (*buf)
+  if (buf[0])
   {
     DLINK_FOREACH(ptr, serv_list.head)
     {
@@ -1214,50 +1210,11 @@ user_welcome(struct Client *source_p)
 static int
 check_xline(struct Client *source_p)
 {
-  struct ConfItem *conf;
-  struct MatchItem *xconf;
-  const char *reason;
-
-  if ((conf = find_matching_name_conf(XLINE_TYPE, source_p->info,
-                                      NULL, NULL, 0)) != NULL)
-  {
-    xconf = map_to_conf(conf);
-    xconf->count++;
-
-    if (xconf->reason != NULL)
-      reason = xconf->reason;
-    else
-      reason = "No Reason";
-
-    sendto_gnotice_flags(UMODE_REJ, L_ALL, me.name, &me, NULL,
-                         "X-line Rejecting [%s] [%s], user %s [%s]",
-                         source_p->info, reason,
-                         get_client_name(source_p, HIDE_IP),
-                         source_p->sockhost);
-
-    ServerStats->is_ref++;      
-    if (REJECT_HOLD_TIME > 0)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Bad user info",
-                 me.name, source_p->name);
-      source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
-      SetCaptured(source_p);
-    }
-    else
-      exit_client(source_p, &me, "Bad user info");
-    return 1;
-  }
-
-  return 0;
-}
-
-static int
-check_regexp_xline(struct Client *source_p)
-{
   struct ConfItem *conf = NULL;
   const char *reason = NULL;
 
-  if ((conf = find_matching_name_conf(RXLINE_TYPE, source_p->info, NULL, NULL, 0)))
+  if ((conf = find_matching_name_conf(XLINE_TYPE, source_p->info, NULL, NULL, 0)) ||
+      (conf = find_matching_name_conf(RXLINE_TYPE, source_p->info, NULL, NULL, 0)))
   {
     struct MatchItem *reg = map_to_conf(conf);
 
@@ -1269,13 +1226,21 @@ check_regexp_xline(struct Client *source_p)
       reason = "No Reason";
 
     sendto_gnotice_flags(UMODE_REJ, L_ALL, me.name, &me, NULL,
-                         "X-line (REGEX) Rejecting [%s] [%s], user %s [%s]",
+                         "X-line Rejecting [%s] [%s], user %s [%s]",
                          source_p->info, reason,
                          get_client_name(source_p, HIDE_IP),
                          source_p->sockhost);
 
     ServerStats->is_ref++;
-    exit_client(source_p, &me, "Bad user info");
+    if (REJECT_HOLD_TIME > 0)
+    {
+      sendto_one(source_p, ":%s NOTICE %s :Bad user info",
+                 me.name, source_p->name);
+      source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
+      SetCaptured(source_p);
+    }
+    else
+      exit_client(source_p, &me, "Bad user info");
     return 1;
   }
 
@@ -1314,15 +1279,13 @@ oper_up(struct Client *source_p, const char *name)
   assert(dlinkFind(&oper_list, source_p) == NULL);
   dlinkAdd(source_p, make_dlink_node(), &oper_list);
 
-  operprivs = oper_privs_as_string(aconf->port);
-  SetOFlag(source_p, aconf->port);
+  operprivs = oper_privs_as_string(oconf->port);
+  SetOFlag(source_p, oconf->port);
 
   if (IsOperAdmin(source_p) || IsOperHiddenAdmin(source_p))
     source_p->umodes |= UMODE_ADMIN;
   if (!IsOperN(source_p))
     source_p->umodes &= ~UMODE_NCHANGE;
-  MyFree(source_p->localClient->auth_oper);
-  DupString(source_p->localClient->auth_oper, conf->name);
   sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s (%s@%s) is now an operator(%s)",
                        source_p->name, source_p->username, source_p->host, name);
   send_umode_out(source_p, source_p, old);
@@ -1332,13 +1295,19 @@ oper_up(struct Client *source_p, const char *name)
   send_message_file(source_p, &ConfigFileEntry.opermotd);
 }
 
-/*
- * Quick and dirty UID code for new proposed SID on EFnet
- *
- */
+static char new_uid[TOTALSIDUID + 1];     /* allow for \0 */
 
-static char new_uid[TOTALSIDUID+1];     /* allow for \0 */
-static void add_one_to_uid(int i);
+int
+valid_sid(const char *sid)
+{
+
+  if (strlen(sid) == IRC_MAXSID)
+    if (IsDigit(*sid))
+      if (IsAlNum(*(sid + 1)) && IsAlNum(*(sid + 2)))
+        return 1;
+
+  return 0;
+}
 
 /*
  * init_uid()
@@ -1358,10 +1327,9 @@ init_uid(void)
 
   if (ServerInfo.sid != NULL)
   {
-    memcpy(new_uid, ServerInfo.sid, IRCD_MIN(strlen(ServerInfo.sid),
-                                             IRC_MAXSID));
-    memcpy(&me.id, ServerInfo.sid, IRCD_MIN(strlen(ServerInfo.sid),
-                                            IRC_MAXSID));
+    strlcpy(new_uid, ServerInfo.sid, sizeof(new_uid));
+    strlcpy(me.id, ServerInfo.sid, sizeof(me.id));
+
     hash_add_id(&me);
   }
 
@@ -1369,30 +1337,16 @@ init_uid(void)
     if (new_uid[i] == '\0') 
       new_uid[i] = 'A';
 
-  /* XXX if IRC_MAXUID != 6, this will have to be rewritten */
+  /* NOTE: if IRC_MAXUID != 6, this will have to be rewritten */
   /* Yes nenolod, I have known it was off by one ever since I wrote it
    * But *JUST* for you, though, it really doesn't look as *pretty*
    * -Dianora
    */
-  memcpy(new_uid+IRC_MAXSID, "AAAAA@", IRC_MAXUID);
+  memcpy(new_uid + IRC_MAXSID, "AAAAA@", IRC_MAXUID);
 
   entering_umode_cb = register_callback("entering_umode", NULL);
   umode_cb = register_callback("changing_umode", change_simple_umode);
   uid_get_cb = register_callback("uid_get", uid_get);
-}
-
-/*
- * uid_get
- *
- * inputs	- struct Client *
- * output	- new UID is returned to caller
- * side effects	- new_uid is incremented by one.
- */
-static void *
-uid_get(va_list args)
-{
-  add_one_to_uid(TOTALSIDUID-1);    /* index from 0 */
-  return ((void *) new_uid);
 }
 
 /*
@@ -1415,16 +1369,31 @@ add_one_to_uid(int i)
       new_uid[i] = 'A';
       add_one_to_uid(i-1);
     }
-    else new_uid[i] = new_uid[i] + 1;
+    else
+      ++new_uid[i];
   }
   else
   {
-    /* XXX if IRC_MAXUID != 6, this will have to be rewritten */
+    /* NOTE: if IRC_MAXUID != 6, this will have to be rewritten */
     if (new_uid[i] == 'Z')
-      memcpy(new_uid+IRC_MAXSID, "AAAAAA", IRC_MAXUID);
+      memcpy(new_uid + IRC_MAXSID, "AAAAAA", IRC_MAXUID);
     else
-      new_uid[i] = new_uid[i] + 1;
+      ++new_uid[i];
   }
+}
+
+/*
+ * uid_get
+ *
+ * inputs       - struct Client *
+ * output       - new UID is returned to caller
+ * side effects - new_uid is incremented by one.
+ */
+static void *
+uid_get(va_list args)
+{
+  add_one_to_uid(TOTALSIDUID - 1);    /* index from 0 */
+  return new_uid;
 }
 
 /*

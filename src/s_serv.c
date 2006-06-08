@@ -227,21 +227,22 @@ collect_zipstats(void *unused)
 struct EncCapability *
 check_cipher(struct Client *client_p, struct AccessItem *aconf)
 {
-  struct EncCapability *epref;
+  struct EncCapability *epref = NULL;
 
   /* Use connect{} specific info if available */
   if (aconf->cipher_preference)
     epref = aconf->cipher_preference;
-  else
+  else if (ConfigFileEntry.default_cipher_preference)
     epref = ConfigFileEntry.default_cipher_preference;
 
-  /* If the server supports the capability in hand, return the matching
+  /*
+   * If the server supports the capability in hand, return the matching
    * conf struct.  Otherwise, return NULL (an error).
    */
-  if (IsCapableEnc(client_p, epref->cap))
-    return(epref);
+  if (epref && IsCapableEnc(client_p, epref->cap))
+    return epref;
 
-  return(NULL);
+  return NULL;
 }
 #endif /* HAVE_LIBCRYPTO */
 
@@ -676,7 +677,10 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
   if (!IsConfCryptLink(server_aconf))
     ClearCap(client_p, CAP_ENC);
   if (!IsConfTopicBurst(server_aconf))
+  {
     ClearCap(client_p, CAP_TB);
+    ClearCap(client_p, CAP_TBURST);
+  }
 
   /* Don't unset CAP_HUB here even if the server isn't a hub,
    * it only indicates if the server thinks it's lazylinks are
@@ -811,7 +815,7 @@ send_capabilities(struct Client *client_p, struct AccessItem *aconf,
   int tl;
   dlink_node *ptr;
 #ifdef HAVE_LIBCRYPTO
-  struct EncCapability *epref;
+  const struct EncCapability *epref = NULL;
   char *capend;
   int sent_cipher = 0;
 #endif
@@ -838,10 +842,10 @@ send_capabilities(struct Client *client_p, struct AccessItem *aconf,
     /* use connect{} specific info if available */
     if (aconf->cipher_preference)
       epref = aconf->cipher_preference;
-    else
+    else if (ConfigFileEntry.default_cipher_preference)
       epref = ConfigFileEntry.default_cipher_preference;
 
-    if ((epref->cap & enc_can_send))
+    if (epref && (epref->cap & enc_can_send))
     {
       /* Leave the space -- it is removed later. */
       tl = ircsprintf(t, "%s ", epref->name);
@@ -853,14 +857,14 @@ send_capabilities(struct Client *client_p, struct AccessItem *aconf,
       t = capend; /* truncate string before ENC:, below */
   }
 #endif
-  *(t-1) = '\0';
+  *(t - 1) = '\0';
   sendto_one(client_p, "CAPAB :%s", msgbuf);
 }
 
 /* sendnick_TS()
  * 
  * inputs	- client (server) to send nick towards
- * 		- client to send nick for
+ *          - client to send nick for
  * output	- NONE
  * side effects	- NICK message is sent towards given client_p
  */
@@ -885,20 +889,22 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
   if (HasID(target_p) && IsCapable(client_p, CAP_TS6))
     sendto_one(client_p, ":%s UID %s %d %lu %s %s %s %s %s :%s",
                target_p->servptr->id,
-	       target_p->name, target_p->hopcount + 1,
-	       (unsigned long) target_p->tsinfo,
-	       ubuf, target_p->username, target_p->host,
-	   ((MyClient(target_p)&&!IsIPSpoof(target_p))?target_p->sockhost:"0"),
-	   target_p->id, target_p->info);
+               target_p->name, target_p->hopcount + 1,
+               (unsigned long) target_p->tsinfo,
+               ubuf, target_p->username, target_p->host,
+               (MyClient(target_p) && IsIPSpoof(target_p)) ?
+               "0" : target_p->sockhost, target_p->id, target_p->info);
   else
     sendto_one(client_p, "NICK %s %d %lu %s %s %s %s :%s",
 	       target_p->name, target_p->hopcount + 1,
 	       (unsigned long) target_p->tsinfo,
 	       ubuf, target_p->username, target_p->host,
-  if(*target_p->realhost != '\0') 
-      sendto_one(client_p, "REALHOST %s %s", target_p->name,  
-              target_p->realhost);
 	       target_p->servptr->name, target_p->info);
+
+  if(*target_p->localClient->realhost != '\0') 
+      sendto_one(client_p, "REALHOST %s %s", target_p->name,  
+              target_p->localClient->realhost);
+
   if (IsConfAwayBurst((struct AccessItem *)map_to_conf(client_p->serv->sconf)))
     if (!EmptyString(target_p->away))
       sendto_one(client_p, ":%s AWAY :%s", target_p->name,
@@ -1066,11 +1072,10 @@ server_estab(struct Client *client_p)
      * - Dianora
      */
 
-     send_capabilities(client_p, aconf,
-       (IsConfLazyLink(aconf) ? find_capability("LL") : 0)
-       | (IsConfCompressed(aconf) ? find_capability("ZIP") : 0)
-       | (IsConfTopicBurst(aconf) ? find_capability("TB") : 0)
-       , 0);
+    send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+      | (IsConfLazyLink(aconf) ? CAP_LL : 0)
+      | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
+      | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
     /* SERVER is the last command sent before switching to ziplinks.
      * We set TCPNODELAY on the socket to make sure it gets sent out
@@ -1338,6 +1343,7 @@ start_io(struct Client *server)
     memcpy(buf, &block->data[0], block->size);
     buf += block->size;
   }
+
   dbuf_clear(&lserver->buf_recvq);
 
   /* pass the whole sendq to servlink */
@@ -1350,6 +1356,7 @@ start_io(struct Client *server)
     memcpy(buf, &block->data[0], block->size);
     buf += block->size;
   }
+
   dbuf_clear(&lserver->buf_sendq);
 
   /* start io */
@@ -1489,20 +1496,19 @@ server_burst(struct Client *client_p)
 static void
 burst_all(struct Client *client_p)
 {
-  struct Client *target_p;
-  struct Channel *chptr;
-  dlink_node *gptr;
-  dlink_node *ptr;
+  dlink_node *ptr = NULL;
 
-  DLINK_FOREACH(gptr, global_channel_list.head)
+  DLINK_FOREACH(ptr, global_channel_list.head)
   {
-    chptr = gptr->data;
+    struct Channel *chptr = ptr->data;
 
     if (dlink_list_length(&chptr->members) != 0)
     {
       burst_members(client_p, chptr);
       send_channel_modes(client_p, chptr);
-      if (IsCapable(client_p, CAP_TB))
+
+      if (IsCapable(client_p, CAP_TBURST) ||
+          IsCapable(client_p, CAP_TB))
 	send_tb(client_p, chptr);
     }
   }
@@ -1511,7 +1517,7 @@ burst_all(struct Client *client_p)
    */
   DLINK_FOREACH(ptr, global_client_list.head)
   {
-    target_p = ptr->data;
+    struct Client *target_p = ptr->data;
 
     if (!IsBursted(target_p) && target_p->from != client_p)
       sendnick_TS(client_p, target_p);
@@ -1530,29 +1536,52 @@ burst_all(struct Client *client_p)
 /*
  * send_tb
  *
- * inputs	- pointer to Client
- *		- pointer to channel
- * output	- NONE
- * side effects	- Called on a server burst when 
- *                server is CAP_TB capable
+ * inputs       - pointer to Client
+ *              - pointer to channel
+ * output       - NONE
+ * side effects - Called on a server burst when
+ *                server is CAP_TB|CAP_TBURST capable
  */
 static void
 send_tb(struct Client *client_p, struct Channel *chptr)
 {
-  if (chptr->topic != NULL && IsCapable(client_p, CAP_TB))
+  /*
+   * We may also send an empty topic here, but only if topic_time isn't 0,
+   * i.e. if we had a topic that got unset.  This is required for syncing
+   * topics properly.
+   *
+   * Imagine the following scenario: Our downlink introduces a channel
+   * to us with a TS that is equal to ours, but the channel topic on
+   * their side got unset while the servers were in splitmode, which means
+   * their 'topic' is newer.  They simply wanted to unset it, so we have to
+   * deal with it in a more sophisticated fashion instead of just resetting
+   * it to their old topic they had before.  Read m_tburst.c:ms_tburst
+   * for further information   -Michael
+   */
+  if (chptr->topic_time != 0)
   {
-    if (ConfigChannel.burst_topicwho)
+    if (IsCapable(client_p, CAP_TBURST))
+      sendto_one(client_p, ":%s TBURST %lu %s %lu %s :%s",
+                 me.name, (unsigned long)chptr->channelts, chptr->chname,
+                 (unsigned long)chptr->topic_time,
+                 chptr->topic_info ? chptr->topic_info : "",
+                 chptr->topic ? chptr->topic : "");
+    else if (IsCapable(client_p, CAP_TB))
     {
-      sendto_one(client_p, ":%s TB %s %lu %s :%s",
-		 me.name, chptr->chname,
-		 (unsigned long)chptr->topic_time,
-		 chptr->topic_info, chptr->topic);
-    }
-    else
-    {
-      sendto_one(client_p, ":%s TB %s %lu :%s",
-		 me.name, chptr->chname,
-		 (unsigned long)chptr->topic_time, chptr->topic);
+      if (ConfigChannel.burst_topicwho)
+      {
+        sendto_one(client_p, ":%s TB %s %lu %s :%s",
+                   me.name, chptr->chname,
+                   (unsigned long)chptr->topic_time,
+                   chptr->topic_info, chptr->topic ? chptr->topic : "");
+      }
+      else
+      {
+        sendto_one(client_p, ":%s TB %s %lu :%s",
+                   me.name, chptr->chname,
+                   (unsigned long)chptr->topic_time,
+                   chptr->topic ? chptr->topic : "");
+      }
     }
   }
 }
@@ -2135,11 +2164,10 @@ serv_connect_callback(fde_t *fd, int status, void *data)
    * Pass on TB if supported.
    * - Dianora
    */
-  send_capabilities(client_p, aconf,
- 		    (IsConfLazyLink(aconf) ? find_capability("LL") : 0)
-		    | (IsConfCompressed(aconf) ? find_capability("ZIP") : 0)
-		    | (IsConfTopicBurst(aconf) ? find_capability("TB") : 0)
-		    , 0);
+  send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+                    | (IsConfLazyLink(aconf) ? CAP_LL : 0)
+                    | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
+                    | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
              my_name_for_link(conf), 
@@ -2247,11 +2275,10 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
     return;
   }
 
-  send_capabilities(client_p, aconf,
- 		    (IsConfLazyLink(aconf) ? find_capability("LL") : 0)
-		    | (IsConfCompressed(aconf) ? find_capability("ZIP") : 0)
-		    | (IsConfTopicBurst(aconf) ? find_capability("TB") : 0)
-		    , CAP_ENC_MASK);
+  send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+                    | (IsConfLazyLink(aconf) ? CAP_LL : 0)
+                    | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
+                    | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), CAP_ENC_MASK);
 
   if (me.id[0])
     sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);

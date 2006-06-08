@@ -65,6 +65,20 @@ typedef enum
   GDENY_TYPE
 } ConfType;
 
+struct split_nuh_item
+{
+  dlink_node node;
+
+  char *nuhmask;
+  char *nickptr;
+  char *userptr;
+  char *hostptr;
+
+  size_t nicksize;
+  size_t usersize;
+  size_t hostsize;
+};
+
 struct ConfItem
 {
   char *name;		/* Primary key */
@@ -340,6 +354,7 @@ struct config_file_entry
   int kline_with_reason;
   int warn_no_nline;
   int invisible_on_connect;
+  int stats_e_disabled;
   int stats_o_oper_only;
   int stats_k_oper_only;
   int stats_i_oper_only;
@@ -383,6 +398,7 @@ struct config_file_entry
 
 struct config_channel_entry
 {
+  int disable_fake_channels;
   int restrict_channels;
   int disable_local_channels;
   int use_except;
@@ -390,7 +406,6 @@ struct config_channel_entry
   int use_knock;
   int knock_delay;
   int knock_delay_channel;
-  int invite_ops_only;
   unsigned int max_bans;
   unsigned int max_chans_per_user;
   int no_create_on_split;
@@ -455,7 +470,6 @@ struct logging_entry
   char failed_operlog[PATH_MAX + 1];
 };
 
-extern unsigned int scount;
 extern int ypass;
 extern dlink_list class_items;
 extern dlink_list server_items;
@@ -502,7 +516,7 @@ extern struct AccessItem *find_kill(struct Client *);
 extern struct AccessItem *find_gline(struct Client *);
 extern int conf_connect_allowed(struct irc_ssaddr *, int);
 extern char *oper_privs_as_string(const unsigned int);
-extern void split_nuh(char *mask, char **nick, char **user, char **host);
+extern void split_nuh(struct split_nuh_item *);
 extern struct ConfItem *find_matching_name_conf(ConfType, const char *,
                                                 const char *, const char *, int);
 extern struct ConfItem *find_exact_name_conf(ConfType, const char *,
@@ -520,7 +534,7 @@ extern void add_temp_line(struct ConfItem *);
 extern void cleanup_tklines(void *);
 extern const char *get_conf_name(ConfType);
 extern int rehash(int);
-extern int conf_add_server(struct ConfItem *, unsigned int, const char *);
+extern int conf_add_server(struct ConfItem *, const char *);
 extern void conf_add_class_to_conf(struct ConfItem *, const char *);
 extern void conf_add_d_conf(struct AccessItem *);
 
@@ -547,11 +561,10 @@ extern time_t valid_tkline(char *, int);
 extern int match_conf_password(const char *, const struct AccessItem *);
 
 #define NOT_AUTHORIZED    (-1)
-#define IRCD_SOCKET_ERROR (-2)
-#define I_LINE_FULL       (-3)
-#define TOO_MANY          (-4)
-#define BANNED_CLIENT     (-5)
-#define TOO_FAST          (-6)
+#define I_LINE_FULL       (-2)
+#define TOO_MANY          (-3)
+#define BANNED_CLIENT     (-4)
+#define TOO_FAST          (-5)
 
 #define CLEANUP_TKLINES_TIME 60
 

@@ -36,9 +36,9 @@
 #include "modules.h"
 #include "irc_string.h"
 
-static void m_admin(struct Client *, struct Client *, int, char **);
-static void mr_admin(struct Client *, struct Client *, int, char **);
-static void ms_admin(struct Client *, struct Client *, int, char **);
+static void m_admin(struct Client *, struct Client *, int, char *[]);
+static void mr_admin(struct Client *, struct Client *, int, char *[]);
+static void ms_admin(struct Client *, struct Client *, int, char *[]);
 static void do_admin(struct Client *);
 
 struct Message admin_msgtab = {
@@ -82,15 +82,17 @@ mr_admin(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
   static time_t last_used = 0;
-  
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+
+  ClearCap(client_p, CAP_TS6);
+
+  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, EmptyString(parv[0]) ? "*" : parv[0]);
     return;
   }
-  else
-    last_used = CurrentTime;
+
+  last_used = CurrentTime;
 
 #ifdef STATIC_MODULES
   do_admin(client_p);
@@ -110,20 +112,19 @@ m_admin(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     sendto_one(source_p,form_str(RPL_LOAD2HI),
                me.name, source_p->name);
     return;
   }
-  else
-    last_used = CurrentTime;
+
+  last_used = CurrentTime;
 
   if (!ConfigFileEntry.disable_remote)
-  {
-    if (hunt_server(client_p, source_p, ":%s ADMIN :%s", 1, parc, parv) != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s ADMIN :%s", 1,
+                    parc, parv) != HUNTED_ISME)
       return;
-  }
 
 #ifdef STATIC_MODULES
   do_admin(client_p);
@@ -141,7 +142,8 @@ static void
 ms_admin(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  if (hunt_server(client_p, source_p, ":%s ADMIN :%s", 1, parc, parv) != HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s ADMIN :%s", 1, parc, parv)
+                  != HUNTED_ISME)
     return;
 
   if (IsClient(source_p))

@@ -22,6 +22,7 @@
 #define IQUERY 1
 #define NO_ERRORS 0
 #define SERVFAIL 2
+#define NXDOMAIN 3
 #define T_A 1
 #define T_AAAA 28
 #define T_PTR 12

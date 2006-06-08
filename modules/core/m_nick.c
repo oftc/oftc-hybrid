@@ -721,8 +721,8 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
 
       register_remote_user(client_p, source_p, parv[5], parv[6],
                            parv[7], ngecos);
+      return;
     }
-    
   }
   else if (source_p->name[0])
   {

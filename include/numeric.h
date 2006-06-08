@@ -321,13 +321,15 @@ extern const char *get_locale(void);
 #define ERR_WASNOSUCHNICK    406
 #define ERR_TOOMANYTARGETS   407
 #define ERR_NOORIGIN         409
-#define ERR_CANTSENDREGONLY  410
+#define ERR_INVALIDCAPCMD    410
+
 
 #define ERR_NORECIPIENT      411
 #define ERR_NOTEXTTOSEND     412
 #define ERR_NOTOPLEVEL       413
 #define ERR_WILDTOPLEVEL     414
 /*	ERR_BADMASK          415           IRCnet extension */
+#define ERR_CANTSENDREGONLY  415
 #define ERR_UNKNOWNCOMMAND   421
 #define ERR_NOMOTD           422
 #define ERR_NOADMININFO      423

@@ -65,8 +65,23 @@ static void
 m_map(struct Client *client_p, struct Client *source_p,
       int parc, char *parv[])
 {
+  static time_t last_used = 0;
+
   if (!ConfigServerHide.flatten_links)
   {
+    if (!IsOper(source_p))
+    {
+      if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+      {
+        /* safe enough to give this on a local connect only */
+        sendto_one(source_p, form_str(RPL_LOAD2HI),
+          me.name, source_p->name);
+        return;
+      }
+      else
+        last_used = CurrentTime;
+    }
+
     dump_map(client_p, &me, 0, buf);
     sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
     return;

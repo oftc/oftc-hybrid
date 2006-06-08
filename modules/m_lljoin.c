@@ -123,7 +123,15 @@ ms_lljoin(struct Client *client_p, struct Client *source_p,
   if (!MyClient(target_p))
     return;
 
-  chptr = get_or_create_channel(target_p, chname, NULL);
+  if (!check_channel_name(chname, 0))
+  {
+    sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
+                         "*** Too long or invalid channel name from %s: %s",
+                         target_p->name, chname);
+    return;
+  }
+
+  chptr = make_channel(chname);
   flags = CHFL_CHANOP;
    
   if(!chptr)

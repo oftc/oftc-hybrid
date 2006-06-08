@@ -111,7 +111,7 @@ m_mode(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!check_channel_name(parv[1]))
+  if (!check_channel_name(parv[1], !!MyConnect(source_p)))
   { 
     sendto_one(source_p, form_str(ERR_BADCHANNAME),
                me.name, source_p->name, parv[1]);

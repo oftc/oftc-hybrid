@@ -122,6 +122,7 @@ make_client(struct Client *from)
     client_p->since = client_p->lasttime = client_p->firsttime = CurrentTime;
 
     client_p->localClient = BlockHeapAlloc(lclient_heap);
+    client_p->localClient->registration = REG_INIT;
     /* as good a place as any... */
     dlinkAdd(client_p, make_dlink_node(), &unknown_list);
   }
@@ -148,9 +149,7 @@ free_client(struct Client *client_p)
   assert(client_p != NULL);
   assert(client_p != &me);
   assert(client_p->hnext == client_p);
-  assert(client_p->invited.head == NULL);
   assert(client_p->channel.head == NULL);
-  assert(dlink_list_length(&client_p->invited) == 0);
   assert(dlink_list_length(&client_p->channel) == 0);
 
   MyFree(client_p->away);
@@ -158,6 +157,8 @@ free_client(struct Client *client_p)
 
   if (MyConnect(client_p))
   {
+    assert(client_p->localClient->invited.head == NULL);
+    assert(dlink_list_length(&client_p->localClient->invited) == 0);
     assert(IsClosing(client_p) && IsDead(client_p));
 
     MyFree(client_p->localClient->response);
@@ -316,9 +317,9 @@ check_pings_list(dlink_list *list)
 	    ilog(L_NOTICE, "No response from %s, closing link",
 		 get_client_name(client_p, HIDE_IP));
 	  }
+
           ircsprintf(scratch, "Ping timeout: %d seconds",
                      (int)(CurrentTime - client_p->lasttime));
-
           exit_client(client_p, &me, scratch);
         }
         else if (!IsPingWarning(client_p) && pingwarn > 0 &&
@@ -362,15 +363,16 @@ check_unknowns_list(void)
     if (client_p->localClient->reject_delay > 0)
     {
       if (client_p->localClient->reject_delay <= CurrentTime)
-	exit_client(client_p, &me, "Rejected");
+        exit_client(client_p, &me, "Rejected");
       continue;
     }
 
-    /* Check UNKNOWN connections - if they have been in this state
+    /*
+     * Check UNKNOWN connections - if they have been in this state
      * for > 30s, close them.
      */
-    if (client_p->firsttime ? ((CurrentTime - client_p->firsttime) > 30) : 0)
-      exit_client(client_p, &me, "Connection timed out");
+    if (IsAuthFinished(client_p) && (CurrentTime - client_p->firsttime) > 30)
+      exit_client(client_p, &me, "Registration timed out");
   }
 }
 
@@ -758,10 +760,6 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
     DLINK_FOREACH_SAFE(lp, next_lp, source_p->channel.head)
       remove_user_from_channel(lp->data);
 
-    /* Clean up invitefield */
-    DLINK_FOREACH_SAFE(lp, next_lp, source_p->invited.head)
-      del_invite(lp->data, source_p);
-
     /* Clean up allow lists */
     del_all_accepts(source_p);
     add_history(source_p, 0);
@@ -771,6 +769,12 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
     {
       source_p->from->serv->dep_users--;
       assert(source_p->from->serv->dep_users >= 0);
+    }
+    else
+    {
+      /* Clean up invitefield */
+      DLINK_FOREACH_SAFE(lp, next_lp, source_p->localClient->invited.head)
+        del_invite(lp->data, source_p);
     }
   }
 
@@ -1053,9 +1057,9 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
   }
   else if (IsClient(source_p) && !IsKilled(source_p))
   {
-    sendto_server(NULL, source_p, NULL, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(from->from, source_p, NULL, CAP_TS6, NOCAPS, NOFLAGS,
                   ":%s QUIT :%s", ID(source_p), comment);
-    sendto_server(NULL, source_p, NULL, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(from->from, source_p, NULL, NOCAPS, CAP_TS6, NOFLAGS,
                   ":%s QUIT :%s", source_p->name, comment);
   }
 
@@ -1133,9 +1137,9 @@ dead_link_on_read(struct Client *client_p, int error)
     }
     else
     {
-      report_error(L_ADMIN, "Lost connection to %s: %d",
+      report_error(L_ADMIN, "Lost connection to %s: %s",
 		   get_client_name(client_p, SHOW_IP), current_error);
-      report_error(L_OPER, "Lost connection to %s: %d",
+      report_error(L_OPER, "Lost connection to %s: %s",
 		   get_client_name(client_p, MASK_IP), current_error);
     }
 
@@ -1231,7 +1235,7 @@ accept_message(struct Client *source, struct Client *target)
   if (IsSoftCallerId(target))
   {
     DLINK_FOREACH(ptr, target->channel.head)
-      if (IsMember(source, ptr->data))
+      if (IsMember(source, ((struct Membership *)ptr->data)->chptr))
         return (1);
   }
 
@@ -1335,6 +1339,7 @@ set_initial_nick(struct Client *client_p, struct Client *source_p,
   
   /* This had to be copied here to avoid problems.. */
   source_p->tsinfo = CurrentTime;
+  source_p->localClient->registration &= ~REG_NEED_NICK;
 
   if (source_p->name[0])
     hash_del_client(source_p);
@@ -1348,7 +1353,7 @@ set_initial_nick(struct Client *client_p, struct Client *source_p,
   /* They have the nick they want now.. */
   client_p->llname[0] = '\0';
 
-  if (source_p->flags & FLAGS_GOTUSER)
+  if (!source_p->localClient->registration)
   {
     strlcpy(buf, source_p->username, sizeof(buf));
 

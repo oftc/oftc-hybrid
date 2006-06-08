@@ -274,16 +274,16 @@ channel {
 	use_knock = yes;
 	knock_delay = 5 minutes;
 	knock_delay_channel = 1 minute;
-	invite_ops_only = yes;
+    burst_topicwho = yes;
 	max_chans_per_user = 15;
 	quiet_on_ban = yes;
 	max_bans = 25;
+	join_flood_count = 16;
+	join_flood_time = 8 seconds;
 	default_split_user_count = 0;
 	default_split_server_count = 0;
 	no_create_on_split = yes;
 	no_join_on_split = no;
-	join_flood_count = 16;
-	join_flood_time = 8 seconds;
 };
 
 serverhide {
@@ -347,7 +347,7 @@ general {
 	oper_only_umodes = bots, cconn, debug, full, skill, nchange, 
                      rej, spy, external, operwall, locops, unauth;
 
-	oper_umodes = locops, servnotice, operwall, wallop;
+	oper_umodes = bots, locops, servnotice, operwall, wallop;
 
 
 	#servlink_path = "/usr/local/ircd/bin/servlink";

@@ -182,6 +182,7 @@ mo_whois(struct Client *client_p, struct Client *source_p,
 static void
 do_whois(struct Client *source_p, int parc, char **parv)
 {
+  static time_t last_used = 0;
   struct Client *target_p;
   char *nick;
   char *p = NULL;
@@ -203,12 +204,12 @@ do_whois(struct Client *source_p, int parc, char **parv)
     if ((target_p = find_client(nick)) != NULL)
     {
       if (IsServer(source_p->from))
-	client_burst_if_needed(source_p->from, target_p);
+        client_burst_if_needed(source_p->from, target_p);
 
       if (IsClient(target_p))
       {
-	whois_person(source_p, target_p);
-	found = 1;
+        whois_person(source_p, target_p);
+        found = 1;
       }
     }
     else if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
@@ -227,6 +228,18 @@ do_whois(struct Client *source_p, int parc, char **parv)
     /* disallow wild card whois on lazylink leafs for now */
     if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
       return;
+
+    if (!IsOper(source_p))
+    {
+      if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+      {
+        sendto_one(source_p, form_str(RPL_LOAD2HI),
+                   me.name, source_p->name);
+        return;
+      }
+      else
+        last_used = CurrentTime;
+  }
 
     /* Oh-oh wilds is true so have to do it the hard expensive way */
     if (MyClient(source_p))
@@ -411,18 +424,23 @@ whois_person(struct Client *source_p, struct Client *target_p)
     sendto_one(source_p, form_str(RPL_ISCAPTURED),
                me.name, source_p->name, target_p->name);
 
-  if (ConfigFileEntry.use_whois_actually && (target_p->sockhost[0] != '\0') &&
-      !(ConfigFileEntry.hide_spoof_ips && IsIPSpoof(target_p)) &&
-      !(target_p->sockhost[0] == '0' && target_p->sockhost[1] == '\0'))
+  if (ConfigFileEntry.use_whois_actually)
   {
-    if (IsAdmin(source_p) || source_p == target_p)
-      sendto_one(source_p, form_str(RPL_WHOISACTUALLY),
-                 me.name, source_p->name, target_p->name, target_p->sockhost);
-    else
+    int show_ip = 0;
+
+    if ((target_p->sockhost[0] != '\0') && irccmp(target_p->sockhost, "0"))
+    {
+      if ((IsAdmin(source_p) || source_p == target_p))
+	show_ip = 1;
+      else if (IsIPSpoof(target_p))
+	show_ip = (IsOper(source_p) && !ConfigFileEntry.hide_spoof_ips);
+      else
+	show_ip = 1;
+
       sendto_one(source_p, form_str(RPL_WHOISACTUALLY),
                  me.name, source_p->name, target_p->name,
-                 IsIPSpoof(target_p) || IsOper(target_p) ?
-		 "255.255.255.255" : target_p->sockhost);
+                 show_ip ? target_p->sockhost : "255.255.255.255");
+    }
   }
 
   if (MyConnect(target_p)) /* Can't do any of this if not local! db */

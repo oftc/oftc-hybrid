@@ -55,7 +55,6 @@ struct Channel
   time_t last_knock; /*!< don't allow knock to flood */
 
   dlink_list members;
-  dlink_list locmembers;  /*!< local members are here too */
   dlink_list invites;
   dlink_list banlist;
   dlink_list exceptlist;
@@ -75,7 +74,6 @@ struct Channel
 struct Membership
 {
   dlink_node channode;     /*!< link to chptr->members    */
-  dlink_node locchannode;  /*!< link to chptr->locmembers */
   dlink_node usernode;     /*!< link to source_p->channel */
   struct Channel *chptr;   /*!< Channel pointer */
   struct Client *client_p; /*!< Client pointer */
@@ -92,13 +90,15 @@ struct Ban
   char *host;
   char *who;
   time_t when;
+  struct irc_ssaddr addr;
+  int bits;
+  char type;
 };
 
 extern dlink_list global_channel_list;
 
-extern int check_channel_name(const char *);
-extern int can_send(struct Channel *, struct Client *);
-extern int can_send_part(struct Membership *, struct Channel *, struct Client *);
+extern int check_channel_name(const char *, int);
+extern int can_send(struct Channel *, struct Client *, struct Membership *);
 extern int is_banned(struct Channel *, struct Client *);
 extern int can_join(struct Client *, struct Channel *, const char *);
 extern int has_member_flags(struct Membership *, unsigned int);
@@ -122,7 +122,7 @@ extern void set_channel_topic(struct Channel *, const char *, const char *, time
 
 extern const char *get_member_status(const struct Membership *, int);
 
-extern struct Channel *get_or_create_channel(struct Client *, const char *, int *);
+extern struct Channel *make_channel(const char *);
 extern struct Membership *find_channel_link(struct Client *, struct Channel *);
 
 /* channel visible */
