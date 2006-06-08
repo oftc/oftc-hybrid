@@ -27,6 +27,7 @@
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
+#include "s_misc.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"

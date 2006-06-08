@@ -40,9 +40,15 @@
 #include "rsa.h"
 #include "msg.h"
 #include "parse.h"
+#include "irc_string.h"  /* strncpy_irc */
+#include "tools.h"
+#include "memory.h"
 #include "common.h"      /* TRUE bleah */
+#include "event.h"
 #include "hash.h"        /* add_to_client_hash_table */
+#include "list.h"        /* make_server */
 #include "s_conf.h"      /* struct AccessItem */
+#include "s_log.h"       /* log level defines */
 #include "s_serv.h"      /* server_estab, check_server, my_name_for_link */
 #include "s_stats.h"     /* ServerStats */
 #include "motd.h"
@@ -218,16 +224,18 @@ cryptlink_auth(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  conf = client_p->serv->sconf;
+  conf = find_conf_name(&client_p->localClient->confs,
+                         client_p->name, SERVER_TYPE);
 
   if (conf == NULL)
   {
     cryptlink_error(client_p, "AUTH",
-                    "Lost connect block for server",
-                    "Lost connect block");
+                    "Lost C-line for server",
+                    "Lost C-line");
     return;
   }
-  aconf = &conf->conf.AccessItem;
+
+  aconf = (struct AccessItem *)map_to_conf(conf);
 
   if (!(client_p->localClient->out_cipher ||
       (client_p->localClient->out_cipher = check_cipher(client_p, aconf))))
@@ -376,16 +384,15 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
       }
   }
 
-  conf = client_p->serv->sconf;
-
+  conf = find_conf_name(&client_p->localClient->confs,
+			name, SERVER_TYPE);
   if (conf == NULL)
   {
     cryptlink_error(client_p, "AUTH",
-                    "Lost connect block for server",
-                    "Lost connect block" );
+                    "Lost C-line for server",
+                    "Lost C-line" );
     return;
   }
-  aconf = &conf->conf.AccessItem;
 
   /*
    * if we are connecting (Handshake), we already have the name from the
@@ -411,6 +418,8 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
 
   strlcpy(client_p->info, p, sizeof(client_p->info));
   client_p->hopcount = 0;
+
+  aconf = (struct AccessItem *)map_to_conf(conf);
 
   if (!(client_p->localClient->out_cipher ||
       (client_p->localClient->out_cipher = check_cipher(client_p, aconf))))
@@ -444,7 +453,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
 
   if (!IsWaitAuth(client_p))
   {
-    cryptlink_init(client_p, aconf, NULL);
+    cryptlink_init(client_p, conf, NULL);
   }
 
   sendto_one(client_p, "CRYPTLINK AUTH %s %s",

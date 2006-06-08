@@ -25,6 +25,8 @@
 #ifndef INCLUDED_packet_h
 #define INCLUDED_packet_h
 
+#include "fdlist.h"
+
 /*
  * this hides in here rather than in defaults.h because it really shouldn't
  * be tweaked unless you *REALLY REALLY* know what you're doing!

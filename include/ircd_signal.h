@@ -25,18 +25,7 @@
 #ifndef INCLUDED_ircd_signal_h
 #define INCLUDED_ircd_signal_h
 
-#ifndef _WIN32
-#define SIG_DIE     SIGTERM
-#define SIG_RESTART SIGINT
-#define SIG_REHASH  SIGHUP
-#define SIG_REMOTD  SIGUSR1
-#else
-#define SIG_DIE     0
-#define SIG_RESTART 1
-#define SIG_REHASH  2
-#define SIG_REMOTD  3
-#endif
-
 extern void setup_signals(void);
 
 #endif /* INCLUDED_ircd_signal_h */
+

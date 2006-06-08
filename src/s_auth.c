@@ -33,15 +33,26 @@
  *     --Bleep  Thomas Helvey <tomh@inxpress.net>
  */
 #include "stdinc.h"
+#include "tools.h"
+#include "list.h"
 #include "s_auth.h"
 #include "s_conf.h"
 #include "client.h"
 #include "common.h"
+#include "event.h"
+#include "fdlist.h"              /* fdlist_add */
+#include "hook.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "packet.h"
+#include "irc_res.h"
+#include "s_bsd.h"
+#include "s_log.h"
 #include "s_stats.h"
 #include "send.h"
+#include "memory.h"
 
 static const char *HeaderMessages[] = {
   ":%s NOTICE AUTH :*** Looking up your hostname...",

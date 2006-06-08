@@ -26,6 +26,7 @@
 #include "handlers.h"
 #include "client.h"
 #include "common.h"
+#include "irc_string.h"
 #include "ircd_defs.h"
 #include "ircd.h"
 #include "restart.h"
@@ -139,7 +140,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 			    );
     if (aconf != NULL)
     {
-      conf = aconf->conf_ptr;
+      conf = unmap_conf_item(aconf);
 
       if (aconf->status & CONF_EXEMPTDLINE)
       {
@@ -191,7 +192,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                  
   if (aconf != NULL)
   {
-    conf = aconf->conf_ptr;
+    conf = unmap_conf_item(aconf);
 
     snprintf(userhost, sizeof(userhost), "%s@%s", aconf->user, aconf->host);
 
@@ -221,7 +222,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
   if (conf != NULL)
   {
     struct MatchItem *mconf;
-    mconf = &conf->conf.MatchItem;
+    mconf = (struct MatchItem *)map_to_conf(conf);
 
     sendto_one(source_p, form_str(RPL_TESTLINE),
 	       me.name, source_p->name,
@@ -235,6 +236,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
   if (matches == 0)
     sendto_one(source_p, form_str(RPL_NOTESTLINE),
 	       me.name, source_p->name, orig_parv1);
+
   MyFree(given_host);
   MyFree(given_name);
   MyFree(orig_parv1);
@@ -273,7 +275,7 @@ mo_testgecos(struct Client *client_p, struct Client *source_p,
   if ((conf = find_matching_name_conf(XLINE_TYPE, gecos_name, NULL, NULL, 0))
       != NULL)
   {
-    xconf = &conf->conf.MatchItem;
+    xconf = (struct MatchItem *)map_to_conf(conf);
     sendto_one(source_p, form_str(RPL_TESTLINE),
 	       me.name, source_p->name, 'X', 0L,
 	       conf->name, xconf->reason ? xconf->reason : "X-lined",

@@ -23,14 +23,20 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
 #include "hostmask.h"
 #include "numeric.h"
+#include "fdlist.h"
+#include "s_bsd.h"
 #include "s_conf.h"
-#include "parse_aline.h"
+#include "s_log.h"
+#include "s_misc.h"
 #include "send.h"
 #include "hash.h"
 #include "handlers.h"
@@ -39,6 +45,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "resv.h"
+#include "list.h"
 
 static void mo_xline(struct Client *, struct Client *, int, char *[]);
 static void ms_xline(struct Client *, struct Client *, int, char *[]);
@@ -151,7 +158,7 @@ mo_xline(struct Client *client_p, struct Client *source_p,
   if ((conf = find_matching_name_conf(XLINE_TYPE, gecos,
                                       NULL, NULL, 0)) != NULL)
   {
-    match_item = &conf->conf.MatchItem;
+    match_item = map_to_conf(conf);
 
     sendto_one(source_p, ":%s NOTICE %s :[%s] already X-Lined by [%s] - %s",
                me.name, source_p->name, gecos,
@@ -238,7 +245,7 @@ relay_xline(struct Client *source_p, char *parv[])
     if ((conf = find_matching_name_conf(XLINE_TYPE, parv[2],
 					NULL, NULL, 0)) != NULL)
     {
-      match_item = &conf->conf.MatchItem;
+      match_item = map_to_conf(conf);
       sendto_one(source_p, ":%s NOTICE %s :[%s] already X-Lined by [%s] - %s",
                  ID_or_name(&me, source_p->from),
                  ID_or_name(source_p, source_p->from),
@@ -374,7 +381,7 @@ write_xline(struct Client *source_p, char *gecos, char *reason,
   time_t cur_time;
 
   conf = make_conf_item(XLINE_TYPE);
-  match_item = &conf->conf.MatchItem;
+  match_item = map_to_conf(conf);
 
   collapse(gecos);
   DupString(conf->name, gecos);

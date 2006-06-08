@@ -23,12 +23,19 @@
  *
  */
 #include "stdinc.h"
+#include "tools.h"
+#include "irc_string.h"
 #include "modules.h"
+#include "s_log.h"
 #include "client.h"
 #include "send.h"
 
 #ifndef RTLD_NOW
 #define RTLD_NOW RTLD_LAZY /* openbsd deficiency */
+#endif
+
+#if defined(HAVE_DLINFO) && defined(HAVE_LINK_H)
+# include <link.h>
 #endif
 
 extern dlink_list mod_list;
@@ -345,7 +352,6 @@ load_a_module(char *path, int warn, int core)
     ver = *verp;
 #endif
 
-  
   modp            = MyMalloc(sizeof(struct module));
 #ifdef HAVE_DLINFO
   dlinfo(tmpptr, RTLD_DI_LINKMAP, &map);

@@ -23,12 +23,28 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "restart.h"
 #include "common.h"
+#include "fdlist.h"
 #include "ircd.h"
+#include "irc_string.h"
 #include "send.h"
+#include "s_log.h"
 #include "client.h" /* for UMODE_ALL */
+#include "memory.h"
 
+void
+restart(const char *mesg)
+{
+  static int was_here = 0; /* redundant due to restarting flag below */
+
+  if (was_here)
+    abort();
+  was_here = 1;
+
+  server_die(mesg, YES);
+}
 
 void
 server_die(const char *mesg, int rboot)
@@ -36,10 +52,6 @@ server_die(const char *mesg, int rboot)
   char buffer[IRCD_BUFSIZE];
   dlink_node *ptr = NULL;
   struct Client *target_p = NULL;
-  static int was_here = 0;
-
-  if (rboot && was_here++)
-    abort();
 
   if (EmptyString(mesg))
     snprintf(buffer, sizeof(buffer), "Server %s",
@@ -77,10 +89,4 @@ server_die(const char *mesg, int rboot)
   }
   else
     exit(0);
-}
-
-void
-ircd_outofmemory(void)
-{
-  server_die("Out of memory", 1);
 }

@@ -25,8 +25,11 @@
 #include "stdinc.h"
 #include "handlers.h"
 #include "client.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "hash.h"       /* for find_client() */
 #include "ircd.h"
+#include "list.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "s_serv.h"

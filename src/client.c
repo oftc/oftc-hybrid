@@ -23,25 +23,36 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "client.h"
 #include "channel_mode.h"
 #include "common.h"
+#include "event.h"
+#include "fdlist.h"
 #include "hash.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
+#include "list.h"
 #include "s_gline.h"
 #include "numeric.h"
 #include "packet.h"
 #include "s_auth.h"
+#include "s_bsd.h"
 #include "s_conf.h"
-#include "parse_aline.h"
+#include "s_log.h"
+#include "s_misc.h"
 #include "s_serv.h"
 #include "send.h"
 #include "whowas.h"
 #include "s_user.h"
+#include "dbuf.h"
+#include "memory.h"
 #include "hostmask.h"
+#include "balloc.h"
 #include "listener.h"
+#include "irc_res.h"
 #include "userhost.h"
-#include "s_stats.h"
 
 dlink_list listing_client_list = { NULL, NULL, 0 };
 /* Pointer to beginning of Client list */
@@ -65,7 +76,6 @@ static dlink_node *eac_next;  /* next aborted client to exit */
 
 static void check_pings_list(dlink_list *);
 static void check_unknowns_list(void);
-static void close_connection(struct Client *);
 static void ban_them(struct Client *client_p, struct ConfItem *conf);
 
 
@@ -252,7 +262,7 @@ check_pings_list(dlink_list *list)
         struct AccessItem *aconf;
 
         conf = make_conf_item(KLINE_TYPE);
-        aconf = &conf->conf.AccessItem;
+        aconf = (struct AccessItem *)map_to_conf(conf);
 
         DupString(aconf->host, client_p->host);
         DupString(aconf->reason, "idle exceeder");
@@ -395,7 +405,7 @@ check_conf_klines(void)
       if (aconf->status & CONF_EXEMPTDLINE)
 	continue;
 
-      conf = aconf->conf_ptr;
+      conf = unmap_conf_item(aconf);
       ban_them(client_p, conf);
       continue; /* and go examine next fd/client_p */
     }
@@ -407,11 +417,11 @@ check_conf_klines(void)
       {
         sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                              "GLINE over-ruled for %s, client is %sline_exempt",
-                             get_client_name(client_p, SHOW_IP), IsExemptKline(client_p) ? "k" : "g");
+                             get_client_name(client_p, HIDE_IP), IsExemptKline(client_p) ? "k" : "g");
         continue;
       }
 
-      conf = aconf->conf_ptr;
+      conf = unmap_conf_item(aconf);
       ban_them(client_p, conf);
       /* and go examine next fd/client_p */    
       continue;
@@ -425,11 +435,11 @@ check_conf_klines(void)
       {
         sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                              "KLINE over-ruled for %s, client is kline_exempt",
-                             get_client_name(client_p, SHOW_IP));
+                             get_client_name(client_p, HIDE_IP));
         continue;
       }
 
-      conf = aconf->conf_ptr;
+      conf = unmap_conf_item(aconf);
       ban_them(client_p, conf);
       continue; 
     }
@@ -487,20 +497,20 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
     case RKLINE_TYPE:
     case KLINE_TYPE:
       type_string = kline_string;
-      aconf = &conf->conf.AccessItem;
+      aconf = map_to_conf(conf);
       break;
     case DLINE_TYPE:
       type_string = dline_string;
-      aconf = &conf->conf.AccessItem;
+      aconf = map_to_conf(conf);
       break;
     case GLINE_TYPE:
       type_string = gline_string;
-      aconf = &conf->conf.AccessItem;
+      aconf = map_to_conf(conf);
       break;
     case RXLINE_TYPE:
     case XLINE_TYPE:
       type_string = xline_string;
-      xconf = &conf->conf.MatchItem;
+      xconf = map_to_conf(conf);
       ++xconf->count;
       break;
     default:
@@ -871,7 +881,6 @@ remove_dependents(struct Client *source_p, struct Client *from,
 {
   struct Client *to;
   struct ConfItem *conf;
-  struct AccessItem *aconf;
   static char myname[HOSTLEN+1];
   dlink_node *ptr;
 
@@ -880,10 +889,7 @@ remove_dependents(struct Client *source_p, struct Client *from,
     to = ptr->data;
 
     if ((conf = to->serv->sconf) != NULL)
-    {
-      aconf = &conf->conf.AccessItem;
-      strlcpy(myname, my_name_for_link(aconf), sizeof(myname));
-    }
+      strlcpy(myname, my_name_for_link(conf), sizeof(myname));
     else
       strlcpy(myname, me.name, sizeof(myname));
     recurse_send_quits(source_p, source_p, from, to,
@@ -1060,124 +1066,6 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
   assert(dlinkFind(&oper_list, source_p) == NULL);
 
   exit_one_client(source_p, comment);
-}
-
-/*
- * close_connection
- *        Close the physical connection. This function must make
- *        MyConnect(client_p) == FALSE, and set client_p->from == NULL.
- */
-static void
-close_connection(struct Client *client_p)
-{
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-  struct ClassItem *aclass;
-
-  assert(NULL != client_p);
-
-  if (IsServer(client_p))
-  {
-    ServerStats->is_sv++;
-    ServerStats->is_sbs += client_p->localClient->send.bytes;
-    ServerStats->is_sbr += client_p->localClient->recv.bytes;
-    ServerStats->is_sti += CurrentTime - client_p->firsttime;
-
-    /* XXX Does this even make any sense at all anymore?
-     * scheduling a 'quick' reconnect could cause a pile of
-     * nick collides under TSora protocol... -db
-     */
-    /*
-     * If the connection has been up for a long amount of time, schedule
-     * a 'quick' reconnect, else reset the next-connect cycle.
-     */
-    if ((conf = find_exact_name_conf(SERVER_TYPE,
-				     client_p->name, client_p->username,
-				     client_p->host)))
-    {
-      /*
-       * Reschedule a faster reconnect, if this was a automatically
-       * connected configuration entry. (Note that if we have had
-       * a rehash in between, the status has been changed to
-       * CONF_ILLEGAL). But only do this if it was a "good" link.
-       */
-      aconf = &conf->conf.AccessItem;
-      aclass = &((struct ConfItem *)aconf->class_ptr)->conf.ClassItem;
-      aconf->hold = time(NULL);
-      aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
-        HANGONRETRYDELAY : ConFreq(aclass);
-      if (nextconnect > aconf->hold)
-        nextconnect = aconf->hold;
-    }
-  }
-  else if (IsClient(client_p))
-  {
-    ServerStats->is_cl++;
-    ServerStats->is_cbs += client_p->localClient->send.bytes;
-    ServerStats->is_cbr += client_p->localClient->recv.bytes;
-    ServerStats->is_cti += CurrentTime - client_p->firsttime;
-  }
-  else
-    ServerStats->is_ni++;
-
-  if (!IsDead(client_p))
-  {
-    /* attempt to flush any pending dbufs. Evil, but .. -- adrian */
-    /* there is still a chance that we might send data to this socket
-     * even if it is marked as blocked (COMM_SELECT_READ handler is called
-     * before COMM_SELECT_WRITE). Let's try, nothing to lose.. -adx
-     */
-    ClearSendqBlocked(client_p);
-    send_queued_write(client_p);
-  }
-
-#ifdef HAVE_LIBCRYPTO
-  if (client_p->localClient->fd.ssl)
-    SSL_shutdown(client_p->localClient->fd.ssl);
-#endif
-  if (client_p->localClient->fd.flags.open)
-    fd_close(&client_p->localClient->fd);
-
-  if (HasServlink(client_p))
-  {
-    if (client_p->localClient->ctrlfd.flags.open)
-      fd_close(&client_p->localClient->ctrlfd);
-  }
-
-  dbuf_clear(&client_p->localClient->buf_sendq);
-  dbuf_clear(&client_p->localClient->buf_recvq);
-
-  MyFree(client_p->localClient->passwd);
-  detach_conf(client_p, CONF_TYPE);
-  client_p->from = NULL; /* ...this should catch them! >:) --msa */
-}
-
-/*
- * report_error - report an error from an errno.
- * Record error to log and also send a copy to all *LOCAL* opers online.
- *
- *        text        is a *format* string for outputing error. It must
- *                contain only two '%s', the first will be replaced
- *                by the sockhost from the client_p, and the latter will
- *                be taken from sys_errlist[errno].
- *
- *        client_p        if not NULL, is the *LOCAL* client associated with
- *                the error.
- *
- * Cannot use perror() within daemon. stderr is closed in
- * ircd and cannot be used. And, worse yet, it might have
- * been reassigned to a normal connection...
- *
- * Actually stderr is still there IFF ircd was run with -s --Rodder
- */
-void
-report_error(int level, const char* text, const char* who, int error)
-{
-  who = (who) ? who : "";
-
-  sendto_realops_flags(UMODE_DEBUG, level, text, who, strerror(error));
-  log_oper_action(LOG_IOERR_TYPE, NULL, "%s %s %s\n", who, text, strerror(error));
-  ilog(L_ERROR, text, who, strerror(error));
 }
 
 /*
@@ -1458,7 +1346,7 @@ set_initial_nick(struct Client *client_p, struct Client *source_p,
   fd_note(&client_p->localClient->fd, "Nick: %s", nick);
   
   /* They have the nick they want now.. */
-  client_p->localClient->llname[0] = '\0';
+  client_p->llname[0] = '\0';
 
   if (source_p->flags & FLAGS_GOTUSER)
   {
@@ -1516,13 +1404,6 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
                                  source_p->name, source_p->username,
                                  source_p->host, nick);
 
-    /* Don't clear +R if changing case */   
-    if(IsNickServReg(source_p) && 
-            strncasecmp(source_p->name, nick, NICKLEN) != 0)      
-    {      
-        ClearNickServReg(source_p);   
-        sendto_one(source_p, ":%s MODE %s :-R", source_p->name,      
-                source_p->name);    
     add_history(source_p, 1);
 	  
 	 /* Only hubs care about lazy link nicks not being sent on yet
@@ -1537,7 +1418,6 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
     sendto_server(client_p, source_p, NULL, NOCAPS, CAP_TS6, NOFLAGS,
                   ":%s NICK %s :%lu",
                   source_p->name, nick, (unsigned long)source_p->tsinfo);
-    }
   }
   else
   {
@@ -1561,173 +1441,4 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
 
   /* fd_desc is long enough */
   fd_note(&client_p->localClient->fd, "Nick: %s", nick);
-}
-
-/* log_user_exit()
- *
- * inputs       - pointer to connecting client
- * output       - NONE
- * side effects - Current exiting client is logged to
- *                either SYSLOG or to file.
- */
-void
-log_user_exit(struct Client *source_p)
-{
-  time_t on_for = CurrentTime - source_p->firsttime;
-#ifdef SYSLOG_USERS
-  if (IsClient(source_p))
-  {
-    ilog(L_INFO, "%s (%3ld:%02ld:%02ld): %s!%s@%s %llu/%llu\n",
-         myctime(source_p->firsttime),
-          (signed long) on_for / 3600,
-          (signed long) (on_for % 3600)/60,
-          (signed long) on_for % 60,
-          source_p->name, source_p->username, source_p->host,
-          source_p->localClient->send.bytes>>10,
-          source_p->localClient->recv.bytes>>10);
-    }
-#else
-  {
-    char linebuf[BUFSIZ];
-
-    /*
-     * This conditional makes the logfile active only after
-     * it's been created - thus logging can be turned off by
-     * removing the file.
-     * -Taner
-     */
-    if (IsClient(source_p))
-    {
-      if (user_log_fb == NULL)
-      {
-        if ((ConfigLoggingEntry.userlog[0] != '\0') &&
-           (user_log_fb = fbopen(ConfigLoggingEntry.userlog, "r")) != NULL)
-        {
-          fbclose(user_log_fb);
-          user_log_fb = fbopen(ConfigLoggingEntry.userlog, "a");
-        }
-      }
-
-      if (user_log_fb != NULL)
-      {
-        size_t nbytes = ircsprintf(linebuf,
-                   "%s (%3ld:%02ld:%02ld): %s!%s@%s %llu/%llu\n",
-                   myctime(source_p->firsttime),
-                   (signed long) on_for / 3600,
-                   (signed long) (on_for % 3600)/60,
-                   (signed long) on_for % 60,
-                   source_p->name, source_p->username, source_p->host,
-                   source_p->localClient->send.bytes>>10,
-                   source_p->localClient->recv.bytes>>10);
-        fbputs(linebuf, user_log_fb, nbytes);
-      }
-    }
-  }
-#endif
-}
-
-
-/* log_oper_action()
- *
- * inputs       - type of oper log entry
- *              - pointer to oper
- *              - const char *pattern == format string
- *              - var args for format string
- * output       - none
- * side effects - corresponding log is written to, if its present.
- *
- * rewritten sept 5 2005 - Dianora
- */
-void
-log_oper_action(int log_type, const struct Client *source_p,
-                const char *pattern, ...)
-{
-  va_list args;
-  char linebuf[IRCD_BUFSIZE];
-  FBFILE *log_fb;
-  char *logfile;
-  const char *log_message;
-  size_t nbytes;
-  size_t n_preamble;
-  char *p;
-
-  switch(log_type)
-  {
-  case LOG_OPER_TYPE:
-    logfile = ConfigLoggingEntry.operlog;
-    log_message = "OPER";
-    break;
-  case LOG_FAILED_OPER_TYPE:
-    logfile = ConfigLoggingEntry.failed_operlog;
-    log_message = "FAILED OPER";
-    break;
-  case LOG_KLINE_TYPE:
-    logfile = ConfigLoggingEntry.klinelog;
-    log_message = "KLINE";
-    break;
-  case LOG_RKLINE_TYPE:
-    logfile = ConfigLoggingEntry.klinelog;
-    log_message = "RKLINE";
-    break;
-  case LOG_DLINE_TYPE:
-    logfile = ConfigLoggingEntry.klinelog;
-    log_message = "DLINE";
-    break;
-  case LOG_TEMP_DLINE_TYPE:
-    logfile = ConfigLoggingEntry.klinelog;
-    log_message = "TEMP DLINE";
-    break;
-  case LOG_TEMP_KLINE_TYPE:
-    logfile = ConfigLoggingEntry.klinelog;
-    log_message = "TEMP KLINE";
-    break;
-  case LOG_GLINE_TYPE:
-    logfile = ConfigLoggingEntry.glinelog;
-    log_message = "GLINE";
-    break;
-  case LOG_KILL_TYPE:
-    logfile = ConfigLoggingEntry.killlog;
-    log_message = "KILL";
-    break;
-  case LOG_IOERR_TYPE:
-    logfile = ConfigLoggingEntry.ioerrlog;
-    log_message = "IO ERR";
-    break;
-  default:
-    return;
-  }
-
-  if (*logfile == '\0')
-    return;
-
-  p = linebuf;
-  if (source_p != NULL)
-  {
-    n_preamble = ircsprintf(linebuf, "%s %s by (%s!%s@%s) :",
-                            myctime(CurrentTime), log_message,
-                            source_p->name, source_p->username, source_p->host);
-
-  }
-  else
-  {
-    n_preamble = ircsprintf(linebuf, "%s %s :",
-                            myctime(CurrentTime), log_message);
-  }
-
-  p += n_preamble;
-
-  if ((log_fb = fbopen(logfile, "r")) != NULL)
-  {
-    fbclose(log_fb);
-    log_fb = fbopen(logfile, "a");
-    if (log_fb == NULL)
-      return;
-    va_start(args, pattern);
-    /* XXX add check for IRCD_BUFSIZE-(n_preamble+1) < 0 ? -db */
-    nbytes = vsnprintf(p, IRCD_BUFSIZE-(n_preamble+1), pattern, args);
-    nbytes += n_preamble;
-    va_end(args);
-    fbputs(linebuf, log_fb, nbytes);
-    fbclose(log_fb);
-  }
 }

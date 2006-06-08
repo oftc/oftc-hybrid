@@ -9829,16 +9829,6 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-cat >>confdefs.h <<_ACEOF
-#define USERLEN 10
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define HOSTLEN 63
-_ACEOF
-
-
 # Check whether --enable-shared-modules or --disable-shared-modules was given.
 if test "${enable_shared_modules+set}" = set; then
   enableval="$enable_shared_modules"
@@ -10825,7 +10815,7 @@ _ACEOF
 
 fi
 
-                                                                                                                                                                          ac_config_files="$ac_config_files Makefile etc/Makefile servlink/Makefile contrib/Makefile contrib/help/Makefile src/Makefile messages/Makefile modules/Makefile tools/Makefile doc/Makefile help/Makefile libio/Makefile libio/comm/Makefile libio/mem/Makefile libio/misc/Makefile libio/net/Makefile libio/string/Makefile"
+                                                                                                                                  ac_config_files="$ac_config_files Makefile etc/Makefile servlink/Makefile contrib/Makefile contrib/help/Makefile src/Makefile messages/Makefile modules/Makefile tools/Makefile doc/Makefile help/Makefile lib/Makefile lib/pcre/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -11364,12 +11354,8 @@ do
   "tools/Makefile" ) CONFIG_FILES="$CONFIG_FILES tools/Makefile" ;;
   "doc/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
   "help/Makefile" ) CONFIG_FILES="$CONFIG_FILES help/Makefile" ;;
-  "libio/Makefile" ) CONFIG_FILES="$CONFIG_FILES libio/Makefile" ;;
-  "libio/comm/Makefile" ) CONFIG_FILES="$CONFIG_FILES libio/comm/Makefile" ;;
-  "libio/mem/Makefile" ) CONFIG_FILES="$CONFIG_FILES libio/mem/Makefile" ;;
-  "libio/misc/Makefile" ) CONFIG_FILES="$CONFIG_FILES libio/misc/Makefile" ;;
-  "libio/net/Makefile" ) CONFIG_FILES="$CONFIG_FILES libio/net/Makefile" ;;
-  "libio/string/Makefile" ) CONFIG_FILES="$CONFIG_FILES libio/string/Makefile" ;;
+  "lib/Makefile" ) CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
+  "lib/pcre/Makefile" ) CONFIG_FILES="$CONFIG_FILES lib/pcre/Makefile" ;;
   "include/setup.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/setup.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}

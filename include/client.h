@@ -25,10 +25,15 @@
 #ifndef INCLUDED_client_h
 #define INCLUDED_client_h
 
+#include "fdlist.h"
 #include "setup.h"
+#include "ircd_defs.h"
 #include "ircd_handler.h"
+#include "dbuf.h"
 #include "channel.h"
+#include "irc_res.h"
 
+#define HOSTIPLEN	53 /* sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255.ipv6") */
 #define PASSWDLEN       20
 #define CIPHERKEYLEN    64 /* 512bit */
 #define IDLEN           12 /* this is the maximum length, not the actual
@@ -44,6 +49,10 @@ struct Listener;
 struct Client;
 struct LocalUser;
 
+/*
+ * Client structures
+ */
+
 struct Server
 {
   char by[NICKLEN];       /* who activated this connection     */
@@ -52,7 +61,6 @@ struct Server
   dlink_list users;       /* Users on this server              */
   int dep_servers;        /* Total number of dependent servers on all levels */
   int dep_users;          /* Total number of dependent users on all levels */
-  dlink_list leafs_hubs;  /* leafs and hubs masks for server */
 };
 
 struct SlinkRpl
@@ -114,12 +122,17 @@ struct Client
 					   * mapped here
 					   */
   char *away;
-
   /*
    * client->name is the unique name for a client nick or host
    */
   char name[HOSTLEN + 1]; 
   char id[IDLEN + 1];       /* client ID, unique ID per client */
+
+  /*
+   * client->llname is used to store the clients requested nick
+   * temporarily for new connections.
+   */
+  char              llname[NICKLEN];
 
   /* 
    * client->username is the username from ident or the USER message, 
@@ -200,8 +213,9 @@ struct LocalUser
     uint64_t bytes;             /* Statistics: total bytes sent/received */
   } recv, send;
 
-  struct Listener *listener;    /* listener accepted from */
-  struct ClassItem *class;	/* Client's class */
+  struct Listener *listener;   /* listener accepted from */
+  dlink_list        confs;      /* Configuration record associated */
+
   struct irc_ssaddr ip;
   int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
   struct DNSQuery   *dns_query;  /* result returned from resolver query */
@@ -245,12 +259,6 @@ struct LocalUser
 
   char*          response;  /* expected response from client */
   char*          auth_oper; /* Operator to become if they supply the response.*/
-
-  /*
-   * llname is used to store the clients requested nick
-   * temporarily for new connections.
-   */
-  char llname[NICKLEN];
 };
 
 /*
@@ -554,7 +562,6 @@ extern void del_from_accept(struct Client *, struct Client *);
 extern void del_all_accepts(struct Client *);
 extern void del_all_their_accepts(struct Client *);
 extern void change_local_nick(struct Client *, struct Client *, const char *);
-extern void report_error(int, const char *, const char *, int);
 extern void dead_link_on_write(struct Client *, int);
 extern void dead_link_on_read(struct Client *, int);
 extern void exit_aborted_clients(void);
@@ -563,7 +570,5 @@ extern struct Client *make_client(struct Client *);
 extern struct Client *find_chasing(struct Client *, struct Client *, const char *, int *);
 extern struct Client *find_person(const struct Client *const, const char *);
 extern const char *get_client_name(struct Client *, int);
-extern void log_user_exit(struct Client *);
-extern void log_oper_action(int type, const struct Client *, const char *, ...);
 
 #endif /* INCLUDED_client_h */

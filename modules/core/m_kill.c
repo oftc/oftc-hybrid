@@ -28,10 +28,13 @@
 #include "hash.h"       /* for find_client() */
 #include "ircd.h"
 #include "numeric.h"
+#include "s_log.h"
 #include "s_serv.h"
 #include "s_conf.h"
 #include "send.h"
 #include "whowas.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"

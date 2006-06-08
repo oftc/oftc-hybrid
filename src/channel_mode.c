@@ -23,18 +23,26 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"
 #include "hash.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
+#include "list.h"
 #include "numeric.h"
 #include "s_serv.h"             /* captab */
 #include "s_user.h"
 #include "send.h"
 #include "whowas.h"
 #include "s_conf.h"             /* ConfigFileEntry, ConfigChannel */
+#include "event.h"
+#include "memory.h"
+#include "balloc.h"
+#include "s_log.h"
 
 /* some small utility functions */
 static char *check_string(char *);
@@ -92,7 +100,7 @@ static int simple_modes_mask;	/* bit mask of simple modes already set */
 static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_TS6 };
 static struct ChCapCombo chcap_combos[NCHCAP_COMBOS];
 extern BlockHeap *ban_heap;
-struct Callback *channel_access_cb = NULL;
+
 
 /* XXX check_string is propably not longer required in add_id and del_id */
 /* check_string()
@@ -561,13 +569,9 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
            char c, void *d, const char *chname)
 {
   long mode_type;
-  short gnote = 0;
 
   mode_type = (long)d;
 
-  /* dont allow halfops to set +-p, as this controls whether they can set
-   * +-h or not.. all other simple modes are ok   
-   */ 
   if ((alev < CHACCESS_HALFOP) ||
       ((mode_type == MODE_PRIVATE) && (alev < CHACCESS_CHANOP)))
   {
@@ -604,7 +608,6 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
     mode_changes[mode_count].id = NULL;
     mode_changes[mode_count].mems = ALL_MEMBERS;
     mode_changes[mode_count++].arg = NULL;
-    gnote = 1;
   }
   else if ((dir == MODE_DEL)) /* && (chptr->mode.mode & mode_type)) */
   {
@@ -619,7 +622,6 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
     mode_changes[mode_count].mems = ALL_MEMBERS;
     mode_changes[mode_count].id = NULL;
     mode_changes[mode_count++].arg = NULL;
-    gnote = 1;
   }
 }
 
@@ -1339,49 +1341,28 @@ static struct ChannelMode ModeTable[255] =
  *                chanop level access, 0 for peon level access.
  * side effects - NONE
  */
-static void *
-get_channel_access(va_list args)
+static int
+get_channel_access(struct Client *source_p, struct Membership *member)
 {
-  struct Client *source_p = va_arg(args, struct Client *);
-  struct Membership *member = va_arg(args, struct Membership *);
-  int *level = va_arg(args, int *);
-
   /* Let hacked servers in for now... */
   if (!MyClient(source_p))
-  {
-    *level = CHACCESS_CHANOP;
-    return NULL;
-  }
+    return CHACCESS_CHANOP;
 
   if (member == NULL)
-  {
-    *level = CHACCESS_NOTONCHAN;
-    return NULL;
-  }
+    return CHACCESS_NOTONCHAN;
 
   /* just to be sure.. */
   assert(source_p == member->client_p);
 
   if (has_member_flags(member, CHFL_CHANOP))
-    if(IsGod(source_p))
-      *level = CHACCESS_CHANOP+1;
-    else
-      *level = CHACCESS_CHANOP;
+    if(IsGod(source_p)) return CHACCESS_CHANOP+1; else return CHACCESS_CHANOP;
+
 #ifdef HALFOPS
-  else if (has_member_flags(member, CHFL_HALFOP))
-    *level = CHACCESS_HALFOP;
+  if (has_member_flags(member, CHFL_HALFOP))
+    return CHACCESS_HALFOP;
 #endif
-  else
-    *level = CHACCESS_PEON;
 
-  return NULL;
-}
-
-void
-init_channel_modes(void)
-{
-  channel_access_cb = register_callback("get_channel_access",
-    get_channel_access);
+  return CHACCESS_PEON;
 }
 
 /* void send_cap_mode_changes(struct Client *client_p,
@@ -1650,8 +1631,7 @@ set_channel_mode(struct Client *client_p, struct Client *source_p, struct Channe
   mode_limit = 0;
   simple_modes_mask = 0;
 
-  execute_callback(channel_access_cb, source_p, member, &alevel);
-  god_mode_check(source_p, chname, alevel, parc, parv);
+  alevel = get_channel_access(source_p, member);
 
   for (; (c = *ml) != '\0'; ml++) 
   {

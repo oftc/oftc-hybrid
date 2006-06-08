@@ -37,6 +37,7 @@
 
 #include "ircd_handler.h"
 #include "msg.h"
+#include "memory.h"
 
 #ifndef STATIC_MODULES
 struct module

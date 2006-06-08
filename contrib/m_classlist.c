@@ -23,13 +23,16 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"   /* bleah */
 #include "hash.h"
+#include "irc_string.h"
 #include "ircd.h"
+#include "list.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_serv.h"
@@ -87,7 +90,7 @@ mo_classlist(struct Client *client_p, struct Client *source_p,
 
     if (match(parv[1], conf->name))
     {
-      const struct ClassItem *aclass = &conf->conf.ClassItem;
+      const struct ClassItem *aclass = map_to_conf(conf);
       sendto_one(source_p, ":%s NOTICE %s :%s %d",
                  me.name, source_p->name, conf->name,
                  CurrUserCount(aclass));

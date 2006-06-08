@@ -31,8 +31,10 @@
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
+#include "s_log.h"
 #include "parse.h"
 #include "modules.h"
+#include "irc_string.h"
 
 #define HPATH  IRCD_PREFIX "/help/opers"
 #define UHPATH IRCD_PREFIX "/help/users"

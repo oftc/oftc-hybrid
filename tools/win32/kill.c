@@ -2,9 +2,6 @@
 
 #include <windows.h>
 #include "setup.h"
-#include "ircd_signal.h"
-
-#define WM_SIGNAL   (WM_USER + 0)
 
 int WINAPI
 WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -18,5 +15,5 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     return 1;
   }
 
-  PostMessage(wndhandle, WM_SIGNAL, SIG_DIE, 0);
+  PostMessage(wndhandle, WM_CLOSE, 0, 0);
 }

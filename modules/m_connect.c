@@ -26,8 +26,12 @@
 #include "handlers.h"
 #include "client.h"
 #include "ircd.h"
+#include "irc_string.h"
 #include "numeric.h"
+#include "fdlist.h"
+#include "s_bsd.h"
 #include "s_conf.h"
+#include "s_log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "msg.h"
@@ -112,10 +116,10 @@ mo_connect(struct Client* client_p, struct Client* source_p,
    */
   if ((conf = find_matching_name_conf(SERVER_TYPE,
 				      parv[1], NULL, NULL, 0)) != NULL)
-    aconf = &conf->conf.AccessItem;
+    aconf = (struct AccessItem *)map_to_conf(conf);
   else if ((conf = find_matching_name_conf(SERVER_TYPE,
 					   NULL, NULL, parv[1], 0)) != NULL)
-    aconf = &conf->conf.AccessItem;
+    aconf = (struct AccessItem *)map_to_conf(conf);
   
   if (conf == NULL)
   {
@@ -232,10 +236,10 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    */
   if ((conf = find_matching_name_conf(SERVER_TYPE,
 				      parv[1], NULL, NULL, 0)) != NULL)
-    aconf = &conf->conf.AccessItem;
+    aconf = (struct AccessItem *)map_to_conf(conf);
   else if ((conf = find_matching_name_conf(SERVER_TYPE,
 					   NULL, NULL, parv[1], 0)) != NULL)
-    aconf = &conf->conf.AccessItem;
+    aconf = (struct AccessItem *)map_to_conf(conf);
 
   if (aconf == NULL)
   {

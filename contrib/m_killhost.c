@@ -30,15 +30,17 @@
 #include "hash.h"
 #include "ircd.h"
 #include "numeric.h"
+#include "s_log.h"
 #include "s_serv.h"
 #include "s_conf.h"
 #include "send.h"
 #include "whowas.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "msg.h"
 #include "parse.h"
 #include "channel_mode.h"    /* needed only for split_nuh() */
 #include "modules.h"
-#include "parse_aline.h"
 
 static void mo_killhost(struct Client *, struct Client *, int, char *[]);
 static void kh_relay_kill(struct Client *, struct Client *, struct Client *,

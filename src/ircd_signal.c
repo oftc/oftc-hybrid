@@ -27,28 +27,37 @@
 #include "ircd_signal.h"
 #include "ircd.h"         /* dorehash */
 #include "restart.h"      /* server_reboot */
+#include "s_log.h"
+#include "memory.h"
+#include "s_bsd.h"
 
 /*
- * signal_handler - general handler for ircd signals
+ * sigterm_handler - exit the server
  */
-static void
-signal_handler(int sig)
+static void 
+sigterm_handler(int sig)  
 {
-  switch (sig)
-  {
-    case SIG_DIE:
-      server_die("received signal SIGTERM", NO);
-    case SIG_RESTART:
-      server_die("received signal SIGINT", !server_state.foreground);
-    case SIG_REHASH:
-      dorehash = 1;
-      break;
-    case SIG_REMOTD:
-      doremotd = 1;
-  }
+  server_die("received signal SIGTERM", NO);
 }
 
-#ifndef _WIN32
+/* 
+ * sighup_handler - reread the server configuration
+ */
+static void 
+sighup_handler(int sig)
+{
+  dorehash = 1;
+}
+
+/*
+ * sigusr1_handler - reread the motd file
+ */
+static void
+sigusr1_handler(int sig)
+{
+  doremotd = 1;
+}
+
 /*
  * 
  * inputs	- nothing
@@ -62,7 +71,18 @@ sigchld_handler(int sig)
   int status;
   waitpid(-1, &status, WNOHANG);
 }
-#endif
+
+/*
+ * sigint_handler - restart the server
+ */
+static void 
+sigint_handler(int sig)
+{
+  if (server_state.foreground)
+    server_die("SIGINT received", NO);
+  else
+    restart("SIGINT received");
+}
 
 /*
  * setup_signals - initialize signal handlers for server
@@ -70,9 +90,6 @@ sigchld_handler(int sig)
 void 
 setup_signals(void)
 {
-#ifdef _WIN32
-  dispatch_wm_signal = signal_handler;
-#else
   struct sigaction act;
 
   act.sa_flags = 0;
@@ -93,22 +110,24 @@ setup_signals(void)
   sigaction(SIGTRAP, &act, 0);
 #endif
 
-  act.sa_handler = signal_handler;
+  act.sa_handler = sighup_handler;
   sigemptyset(&act.sa_mask);
-  sigaddset(&act.sa_mask, SIG_REHASH);
-  sigaction(SIG_REHASH, &act, 0);
+  sigaddset(&act.sa_mask, SIGHUP);
+  sigaction(SIGHUP, &act, 0);
 
-  sigaddset(&act.sa_mask, SIG_RESTART);
-  sigaction(SIG_RESTART, &act, 0);
+  act.sa_handler = sigint_handler;
+  sigaddset(&act.sa_mask, SIGINT);
+  sigaction(SIGINT, &act, 0);
 
-  sigaddset(&act.sa_mask, SIG_DIE);
-  sigaction(SIG_DIE, &act, 0);
+  act.sa_handler = sigterm_handler;
+  sigaddset(&act.sa_mask, SIGTERM);
+  sigaction(SIGTERM, &act, 0);
 
-  sigaddset(&act.sa_mask, SIG_REMOTD);
-  sigaction(SIG_REMOTD, &act, 0);
+  act.sa_handler = sigusr1_handler;
+  sigaddset(&act.sa_mask, SIGUSR1);
+  sigaction(SIGUSR1, &act, 0);
 
   act.sa_handler = sigchld_handler;
   sigaddset(&act.sa_mask, SIGCHLD);
   sigaction(SIGCHLD, &act, 0);
-#endif
 }

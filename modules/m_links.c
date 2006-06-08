@@ -25,6 +25,7 @@
 #include "stdinc.h"
 #include "handlers.h"
 #include "client.h"
+#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_serv.h"
@@ -34,6 +35,7 @@
 #include "motd.h"
 #include "parse.h"
 #include "modules.h"
+#include "hook.h"
 
 static void do_links(struct Client *, int, char **);
 static void m_links(struct Client*, struct Client*, int, char**);
@@ -125,8 +127,7 @@ do_links(struct Client *source_p, int parc, char **parv)
                me_name, nick,
                EmptyString(mask) ? "*" : mask);
   }
-  else
-  {
+  else {
     /*
      * Print our own info so at least it looks like a normal links
      * then print out the file (which may or may not be empty)

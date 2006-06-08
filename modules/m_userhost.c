@@ -29,6 +29,8 @@
 #include "numeric.h"
 #include "s_serv.h"
 #include "send.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"

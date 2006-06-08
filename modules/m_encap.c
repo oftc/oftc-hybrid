@@ -27,9 +27,11 @@
 #include "client.h"
 #include "msg.h"
 #include "parse.h"
+#include "sprintf_irc.h"
 #include "s_serv.h"
 #include "send.h"
 #include "modules.h"
+#include "irc_string.h"
 
 static void ms_encap(struct Client *, struct Client *, int, char *[]);
 

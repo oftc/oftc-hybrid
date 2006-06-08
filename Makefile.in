@@ -23,7 +23,7 @@ RM          = @RM@
 
 # Default make flags - you may want to uncomment this on a multicpu machine
 #MFLAGS   = -j 4
-DEPEND_DIRS  = libio modules src servlink
+DEPEND_DIRS  = lib modules src servlink
 BUILD_DIRS   = ${DEPEND_DIRS} tools
 INSTALL_DIRS = ${BUILD_DIRS} etc doc help
 CLEAN_DIRS   = ${BUILD_DIRS} contrib

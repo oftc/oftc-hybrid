@@ -24,18 +24,23 @@
 
 #include "stdinc.h"
 #include "handlers.h"
+#include "tools.h"
+#include "hook.h"
 #include "client.h"
 #include "hash.h"
 #include "common.h"
+#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
+#include "fdlist.h"
+#include "s_bsd.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "parse_aline.h"
+#include "irc_getnameinfo.h"
 
 static void do_ctrace(struct Client *, int, char **);
 static void mo_ctrace(struct Client *, struct Client *, int, char *[]);
@@ -107,9 +112,9 @@ static void
 do_ctrace(struct Client *source_p, int parc, char **parv)
 {
   struct Client *target_p = NULL;
-  char *class_looking_for = NULL;
-  const char *class_name = NULL;
-  dlink_node *ptr = NULL;
+  char *class_looking_for;
+  const char *class_name;
+  dlink_node *ptr;
 
   class_looking_for = parv[1];
 
@@ -119,7 +124,7 @@ do_ctrace(struct Client *source_p, int parc, char **parv)
   {
     target_p = ptr->data;
 
-    class_name = ((struct ConfItem *)target_p->localClient->class->conf_ptr)->name;
+    class_name = get_client_class(target_p);
     if ((class_name != NULL) && match(class_looking_for, class_name))
       report_this_status(source_p, target_p);
   }
@@ -149,7 +154,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
         target_p->localClient->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
         NI_NUMERICHOST);
   name = get_client_name(target_p, HIDE_IP);
-  class_name  = ((struct ConfItem *)target_p->localClient->class->conf_ptr)->name;
+  class_name = get_client_class(target_p);
 
   switch(target_p->status)
   {
@@ -199,7 +204,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
         }
       break;
     case STAT_SERVER:
-      if (!IsAdmin(source_p))
+      if(!IsAdmin(source_p))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),

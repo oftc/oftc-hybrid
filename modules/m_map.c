@@ -30,6 +30,8 @@
 #include "send.h"
 #include "s_conf.h"
 #include "ircd.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 
 static void m_map(struct Client *, struct Client *, int, char *[]);
 static void mo_map(struct Client *, struct Client *, int, char *[]);

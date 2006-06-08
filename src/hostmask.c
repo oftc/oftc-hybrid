@@ -23,11 +23,14 @@
  */
 
 #include "stdinc.h"
+#include "memory.h"
 #include "ircd_defs.h"
+#include "tools.h"
 #include "s_conf.h"
 #include "hostmask.h"
 #include "numeric.h"
 #include "send.h"
+#include "irc_string.h"
 
 #ifdef IPV6
 static int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
@@ -720,7 +723,9 @@ delete_one_address_conf(const char *address, struct AccessItem *aconf)
         arecl->next = arec->next;
       else
         atable[hv] = arec->next;
-      delete_conf_item(aconf->conf_ptr);
+      aconf->status |= CONF_ILLEGAL;
+      if (aconf->clients == 0)
+        free_access_item(aconf);
       MyFree(arec);
       return;
     }
@@ -770,7 +775,9 @@ clear_out_address_conf(void)
           last_arec->next = next_arec;
         }
 
-	delete_conf_item(arec->aconf->conf_ptr);
+        arec->aconf->status |= CONF_ILLEGAL;
+        if (arec->aconf->clients == 0)
+          free_access_item(arec->aconf);
         MyFree(arec);
       }
     }
@@ -847,7 +854,7 @@ report_auth(struct Client *client_p)
         if (!MyOper(client_p) && IsConfDoSpoofIp(aconf))
           continue;
 
-	conf = aconf->conf_ptr;
+	conf = unmap_conf_item(aconf);
 
         /* We are doing a partial list, based on what matches the u@h of the
          * sender, so prepare the strings for comparing --fl_

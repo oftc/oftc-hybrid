@@ -23,10 +23,13 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
+#include "fdlist.h"
+#include "s_bsd.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"

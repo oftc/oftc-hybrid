@@ -2,9 +2,9 @@
 
 #include <windows.h>
 #include "setup.h"
-#include "ircd_signal.h"
 
-#define WM_SIGNAL   (WM_USER + 0)
+#define WM_REHASH  (WM_USER + 0x100)
+#define WM_REMOTD  (WM_USER + 0x101)
 
 int WINAPI
 WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -18,5 +18,5 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     return 1;
   }
 
-  PostMessage(wndhandle, WM_SIGNAL, SIG_REHASH, 0);
+  PostMessage(wndhandle, WM_REHASH, 0, 0);
 }

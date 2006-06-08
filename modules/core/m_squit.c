@@ -27,9 +27,11 @@
 #include "client.h"
 #include "common.h"      /* FALSE bleah */
 #include "hash.h"
+#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_conf.h"
+#include "s_log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "msg.h"

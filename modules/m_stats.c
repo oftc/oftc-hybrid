@@ -23,9 +23,11 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"	 /* dlink_node/dlink_list */
 #include "handlers.h"    /* m_pass prototype */
 #include "client.h"      /* Client */
 #include "common.h"      /* TRUE/FALSE */
+#include "irc_string.h"  
 #include "ircd.h"        /* me */
 #include "listener.h"    /* show_ports */
 #include "s_gline.h"
@@ -34,14 +36,21 @@
 #include "hostmask.h"
 #include "numeric.h"     /* ERR_xxx */
 #include "send.h"        /* sendto_one */
+#include "fdlist.h"      /* PF and friends */
+#include "s_bsd.h"       /* highest_fd */
 #include "s_conf.h"      /* AccessItem, report_configured_links */
+#include "s_misc.h"      /* serv_info */
 #include "s_serv.h"      /* hunt_server */
 #include "s_stats.h"     /* tstats */
 #include "s_user.h"      /* show_opers */
+#include "event.h"	 /* events */
+#include "dbuf.h"
 #include "parse.h"
 #include "modules.h"
+#include "hook.h"
 #include "resv.h"  /* report_resv */
 #include "whowas.h"
+#include "list.h"
 
 static void do_stats(struct Client *, int, char **);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
@@ -116,8 +125,6 @@ static void stats_memory(struct Client *);
 static void stats_servlinks(struct Client *);
 static void stats_ltrace(struct Client *, int, char **);
 static void stats_ziplinks(struct Client *);
-static void stats_hooks(struct Client *);
-static void fd_dump(struct Client *);
 
 /* This table contains the possible stats items, in order:
  * /stats name,  function to call, operonly? adminonly? /stats letter
@@ -369,7 +376,6 @@ send_usage(struct Client *source_p)
 static void
 count_memory(struct Client *source_p)
 {
-  BlockHeap *bh;
   const dlink_node *gptr = NULL;
   const dlink_node *dlink = NULL;
 
@@ -426,9 +432,7 @@ count_memory(struct Client *source_p)
     if (MyConnect(target_p))
     {
       ++local_client_count;
-#if 0 /* XXX */
       local_client_conf_count += dlink_list_length(&target_p->localClient->confs);
-#endif
     }
     else
       ++remote_client_count;
@@ -647,20 +651,18 @@ count_memory(struct Client *source_p)
              me.name, RPL_STATSDEBUG, source_p->name, remote_client_count,
              remote_client_memory_used);
 
-  for (bh = heap_list; bh != NULL; bh = bh->next)
-    sendto_one(source_p, ":%s %d %s z :%s mempool: used %u/%u free %u/%u (size %u/%u)",
-               me.name, RPL_STATSDEBUG, source_p->name, bh->name,
-               block_heap_get_used_elm(bh),
-               block_heap_get_used_mem(bh),
-               block_heap_get_free_elm(bh),
-               block_heap_get_free_mem(bh),
-               block_heap_get_size_elm(bh),
-               block_heap_get_size_mem(bh));
+  block_heap_report_stats(source_p);
 
   sendto_one(source_p,
              ":%s %d %s z :TOTAL: %d Available:  Current max RSS: %lu",
              me.name, RPL_STATSDEBUG, source_p->name,
              (int)total_memory, get_maxrss());
+}
+
+static void
+stats_dns_servers(struct Client *source_p)
+{
+  report_dns_servers(source_p);
 }
 
 static void
@@ -695,7 +697,7 @@ stats_deny(struct Client *source_p)
         if (aconf->flags & CONF_FLAGS_TEMPORARY)
           continue;
 
-	conf = aconf->conf_ptr;
+	conf = unmap_conf_item(aconf);
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'D', aconf->host, aconf->reason,
@@ -731,7 +733,7 @@ stats_tdeny(struct Client *source_p)
         if (!(aconf->flags & CONF_FLAGS_TEMPORARY))
           continue;
 
-        conf = aconf->conf_ptr;
+        conf = unmap_conf_item(aconf);
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'd', aconf->host, aconf->reason,
@@ -763,7 +765,7 @@ stats_exempt(struct Client *source_p)
       {
         aconf = arec->aconf;
 
-        conf = aconf->conf_ptr;
+        conf = unmap_conf_item(aconf);
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'e', aconf->host, 
@@ -771,6 +773,12 @@ stats_exempt(struct Client *source_p)
       }
     }
   }
+}
+
+static void
+stats_events(struct Client *source_p)
+{
+  show_events(source_p);
 }
 
 /* stats_pending_glines()
@@ -924,7 +932,7 @@ stats_auth(struct Client *source_p)
     if (aconf == NULL)
       return;
 
-    conf = aconf->conf_ptr;
+    conf = unmap_conf_item(aconf);
 
     sendto_one(source_p, form_str(RPL_STATSILINE), from,
                to, 'I',
@@ -968,7 +976,7 @@ stats_tklines(struct Client *source_p)
     if (!(aconf->flags & CONF_FLAGS_TEMPORARY))
       return;
 
-    conf = aconf->conf_ptr;
+    conf = unmap_conf_item(aconf);
 
     sendto_one(source_p, form_str(RPL_STATSKLINE), from,
                to, "k", aconf->host, aconf->user, aconf->reason, "");
@@ -1288,99 +1296,6 @@ stats_ltrace(struct Client *source_p, int parc, char *parv[])
   else
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                from, to, "STATS");
-}
-
-static void
-stats_hooks(struct Client *source_p)
-{
-  dlink_node *ptr;
-  struct Callback *cb;
-  char lastused[32];
-
-  sendto_one(source_p, ":%s %d %s : %-20s %-20s Used     Hooks", me.name,
-             RPL_STATSDEBUG, source_p->name, "Callback", "Last Execution");
-  sendto_one(source_p, ":%s %d %s : ------------------------------------"
-             "--------------------", me.name, RPL_STATSDEBUG, source_p->name);
-
-  DLINK_FOREACH(ptr, callback_list.head)
-  {
-    cb = ptr->data;
-
-    if (cb->last != 0)
-      snprintf(lastused, sizeof(lastused), "%d seconds ago",
-               (int) (CurrentTime - cb->last));
-    else
-      strcpy(lastused, "NEVER");
-
-    sendto_one(source_p, ":%s %d %s : %-20s %-20s %-8u %d", me.name,
-               RPL_STATSDEBUG, source_p->name, cb->name, lastused, cb->called,
-               dlink_list_length(&cb->chain));
-  }
-
-  sendto_one(source_p, ":%s %d %s : ", me.name, RPL_STATSDEBUG,
-             source_p->name);
-}
-
-static void
-stats_events(struct Client *source_p)
-{
-  int i;
-
-  if (last_event_ran)
-  {
-    sendto_one(source_p, ":%s %d %s :Last event to run: %s",
-               me.name, RPL_STATSDEBUG, source_p->name, last_event_ran);
-    sendto_one(source_p, ":%s %d %s : ",
-      me.name, RPL_STATSDEBUG, source_p->name);
-  }
-
-  sendto_one(source_p,
-    ":%s %d %s : Operation                    Next Execution",
-    me.name, RPL_STATSDEBUG, source_p->name);
-  sendto_one(source_p,
-    ":%s %d %s : -------------------------------------------",
-    me.name, RPL_STATSDEBUG, source_p->name);
-
-  for (i = 0; i < MAX_EVENTS; i++)
-    if (event_table[i].active)
-    {
-      sendto_one(source_p, ":%s %d %s : %-28s %-4d seconds",
-                 me.name, RPL_STATSDEBUG, source_p->name,
-                 event_table[i].name,
-                 (int)(event_table[i].when - CurrentTime));
-    }
-
-  sendto_one(source_p, ":%s %d %s : ",
-    me.name, RPL_STATSDEBUG, source_p->name);
-}
-
-static void
-stats_dns_servers(struct Client *source_p)
-{
-  int i;
-  char ipaddr[HOSTIPLEN];
-
-  for (i = 0; i < irc_nscount; i++)
-  {
-    irc_getnameinfo((struct sockaddr *)&(irc_nsaddr_list[i]),
-                    irc_nsaddr_list[i].ss_len, ipaddr, HOSTIPLEN, NULL, 0,
-                    NI_NUMERICHOST);
-    sendto_one(source_p, form_str(RPL_STATSALINE),
-               me.name, source_p->name, ipaddr);
-  }
-}
-
-static void
-fd_dump(struct Client *source_p)
-{
-  int i;
-  fde_t *F;
-
-  for (i = 0; i < FD_HASH_SIZE; i++)
-    for (F = fd_hash[i]; F != NULL; F = F->hnext)
-      sendto_one(source_p, ":%s %d %s :fd %-5d desc '%s'",
-                 me.name, RPL_STATSDEBUG, source_p->name,
-                 F->fd, F->desc);
 }
 
 /*

@@ -25,13 +25,13 @@
 #include "stdinc.h"
 #include "ircd.h"
 #include "handlers.h"
-#include "s_conf.h"
 #include "s_user.h"
 #include "client.h"
 #include "hash.h"       /* for find_client() */
 #include "numeric.h"
 #include "s_conf.h"
 #include "send.h"
+#include "irc_string.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
@@ -59,16 +59,18 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
-static void 
-ms_pong(struct Client *client_p, struct Client *source_p, 
+
+static void
+ms_pong(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   struct Client *target_p;
-  char  *origin, *destination;
+  const char *origin, *destination;
 
   if (parc < 2 || *parv[1] == '\0')
   {
-    sendto_one(source_p, form_str(ERR_NOORIGIN), me.name, parv[0]);
+    sendto_one(source_p, form_str(ERR_NOORIGIN),
+               me.name, parv[0]);
     return;
   }
 
@@ -127,7 +129,5 @@ mr_pong(struct Client *client_p, struct Client *source_p,
     }
   else
     sendto_one(source_p, form_str(ERR_NOORIGIN), me.name, parv[0]);
-
-  ClearPingSent(source_p);
 }
 

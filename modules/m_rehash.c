@@ -26,9 +26,13 @@
 #include "handlers.h"
 #include "client.h"
 #include "common.h"
+#include "irc_string.h"
 #include "ircd.h"
+#include "list.h"
 #include "numeric.h"
+#include "irc_res.h"
 #include "s_conf.h"
+#include "s_log.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
@@ -117,7 +121,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     if (found)
     {
       ilog(L_NOTICE, "REHASH %s From %s",
-           parv[1], get_client_name(source_p, SHOW_IP));
+           parv[1], get_client_name(source_p, HIDE_IP));
       return;
     }
     else

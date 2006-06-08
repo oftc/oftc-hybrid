@@ -23,13 +23,17 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "common.h"
+#include "fdlist.h"
 #include "ircd.h"
 #include "send.h"
 #include "client.h"   
+#include "memory.h"
 #include "numeric.h"
 #include "resv.h"
 #include "hash.h"
+#include "irc_string.h"
 #include "ircd_defs.h"
 #include "s_conf.h"
 
@@ -60,7 +64,7 @@ create_channel_resv(char *name, char *reason, int in_conf)
     reason[REASONLEN] = '\0';
 
   conf = make_conf_item(CRESV_TYPE);
-  resv_p = &conf->conf.ResvChannel;
+  resv_p = map_to_conf(conf);
 
   strlcpy(resv_p->name, name, sizeof(resv_p->name));
   DupString(resv_p->reason, reason);
@@ -96,7 +100,7 @@ create_nick_resv(char *name, char *reason, int in_conf)
     reason[REASONLEN] = '\0';
 
   conf = make_conf_item(NRESV_TYPE);
-  resv_p = &conf->conf.MatchItem;
+  resv_p = map_to_conf(conf);
 
   DupString(conf->name, name);
   DupString(resv_p->reason, reason);
@@ -134,12 +138,14 @@ clear_conf_resv(void)
 int
 delete_channel_resv(struct ResvChannel *resv_p)
 {
+  struct ConfItem *conf;
   assert(resv_p != NULL);
 
   hash_del_resv(resv_p);
   dlinkDelete(&resv_p->node, &resv_channel_list);
   MyFree(resv_p->reason);
-  delete_conf_item(resv_p->conf_ptr);
+  conf = unmap_conf_item(resv_p);
+  delete_conf_item(conf);
 
   return 1;
 }
@@ -196,7 +202,7 @@ report_resv(struct Client *source_p)
   DLINK_FOREACH(ptr, nresv_items.head)
   {
     conf = ptr->data;
-    resv_np = &conf->conf.MatchItem;
+    resv_np = map_to_conf(conf);
 
     sendto_one(source_p, form_str(RPL_STATSQLINE),
                me.name, source_p->name,

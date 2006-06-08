@@ -28,10 +28,12 @@
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/rsa.h>
 #endif
+#include "fileio.h"             /* FBFILE */
 #include "ircd_defs.h"
 #include "motd.h"               /* MessageFile */
 #include "client.h"
-#include "resv.h"
+#include "hook.h"
+#include "pcre.h"
 
 struct Client;
 struct DNSReply;
@@ -39,6 +41,103 @@ struct hostent;
 
 extern FBFILE *conf_fbfile_in;
 extern struct Callback *client_check_cb;
+
+typedef enum
+{  
+  CONF_TYPE, 
+  CLASS_TYPE,
+  OPER_TYPE,
+  CLIENT_TYPE,
+  SERVER_TYPE,
+  HUB_TYPE,
+  LEAF_TYPE,
+  KLINE_TYPE,
+  DLINE_TYPE,
+  EXEMPTDLINE_TYPE,
+  CLUSTER_TYPE,
+  RKLINE_TYPE,
+  RXLINE_TYPE,
+  XLINE_TYPE,    
+  ULINE_TYPE,
+  GLINE_TYPE,
+  CRESV_TYPE,     
+  NRESV_TYPE,
+  GDENY_TYPE
+} ConfType;
+
+struct ConfItem
+{
+  char *name;		/* Primary key */
+  pcre *regexpname;
+  dlink_node node;	/* link into known ConfItems of this type */
+  unsigned int flags;
+  ConfType type;
+};
+
+/*
+ * MatchItem - used for XLINE and ULINE types
+ */
+struct MatchItem
+{
+  char *user;		/* Used for ULINE only */
+  char *host;		/* Used for ULINE only */
+  char *reason;
+  char *oper_reason;
+  int action;		/* used for uline */
+  int count;		/* How many times this matchitem has been matched */
+  int ref_count;	/* How many times is this matchitem in use */
+  int illegal;		/* Should it be deleted when possible? */
+  time_t           hold;     /* Hold action until this time (calendar time) */
+};
+
+struct AccessItem
+{
+  dlink_node node;
+  unsigned int     status;   /* If CONF_ILLEGAL, delete when no clients */
+  unsigned int     flags;
+  unsigned int     modes;
+  int              clients;  /* Number of *LOCAL* clients using this */
+  struct irc_ssaddr my_ipnum; /* ip to bind to for outgoing connect */
+  struct irc_ssaddr ipnum;	/* ip to connect to */
+  char *           host;     /* host part of user@host */
+  char *           passwd;
+  char *           spasswd;  /* Password to send. */
+  char *	   reason;
+  char *	   oper_reason;
+  char *           user;     /* user part of user@host */
+  int              port;
+  char *           fakename;   /* Mask name */
+  time_t           hold;     /* Hold action until this time (calendar time) */
+  struct ConfItem *class_ptr;  /* Class of connection */
+  struct DNSQuery* dns_query;
+  int              aftype;
+#ifdef HAVE_LIBCRYPTO
+  char *           rsa_public_key_file;
+  RSA *            rsa_public_key;
+  struct EncCapability *cipher_preference;
+#endif
+  pcre *regexuser;
+  pcre *regexhost;
+};
+
+struct ClassItem
+{
+  long max_sendq;
+  int con_freq;
+  int ping_freq;
+  int ping_warning;
+  int max_total;
+  int max_local;
+  int max_global;
+  int max_ident;
+  int max_perip;
+  int curr_user_count;
+  int cidr_bitlen_ipv4;
+  int cidr_bitlen_ipv6;
+  int number_per_cidr;
+  dlink_list list_ipv4;         /* base of per cidr ipv4 client link list */
+  dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
+};
 
 struct CidrItem
 {
@@ -202,121 +301,6 @@ struct CidrItem
 #define GDENY_BLOCK		0x1
 #define GDENY_REJECT		0x2
 
-typedef enum
-{  
-  CONF_TYPE, 
-  CLASS_TYPE,
-  OPER_TYPE,
-  CLIENT_TYPE,
-  SERVER_TYPE,
-  HUB_TYPE,
-  LEAF_TYPE,
-  KLINE_TYPE,
-  DLINE_TYPE,
-  EXEMPTDLINE_TYPE,
-  CLUSTER_TYPE,
-  RKLINE_TYPE,
-  RXLINE_TYPE,
-  XLINE_TYPE,    
-  ULINE_TYPE,
-  GLINE_TYPE,
-  CRESV_TYPE,     
-  NRESV_TYPE,
-  GDENY_TYPE
-} ConfType;
-
-
-/*
- * MatchItem - used for XLINE and ULINE types
- */
-struct MatchItem
-{
-  void *conf_ptr;       /* pointer back to conf */
-  char *user;           /* Used for ULINE only */
-  char *host;           /* Used for ULINE only */
-  char *reason;
-  char *oper_reason;
-  int action;           /* used for uline */
-  int count;            /* How many times this matchitem has been matched */
-  int ref_count;        /* How many times is this matchitem in use */
-  int illegal;          /* Should it be deleted when possible? */
-  time_t           hold;     /* Hold action until this time (calendar time) */
-};
-
-struct AccessItem
-{
-  void *conf_ptr;            /* pointer back to conf */
-  dlink_node node;
-  unsigned int     status;   /* If CONF_ILLEGAL, delete when no clients */
-  unsigned int     flags;
-  unsigned int     modes;
-  struct irc_ssaddr my_ipnum; /* ip to bind to for outgoing connect */
-  struct irc_ssaddr ipnum;	/* ip to connect to */
-  char *           host;     /* host part of user@host */
-  char *           passwd;
-  char *           spasswd;  /* Password to send. */
-  char *	   reason;
-  char *	   oper_reason;
-  char *           user;     /* user part of user@host */
-  int              port;
-  char *           fakename;   /* Mask name */
-  time_t           hold;     /* Hold action until this time (calendar time) */
-  struct ConfItem *class_ptr;  /* Class of connection */
-  struct DNSQuery* dns_query;
-  int              aftype;
-#ifdef HAVE_LIBCRYPTO
-  char *           rsa_public_key_file;
-  RSA *            rsa_public_key;
-  struct EncCapability *cipher_preference;
-#endif
-  pcre *regexuser;
-  pcre *regexhost;
-};
-
-struct ClassItem
-{
-  void *conf_ptr;          /* pointer back to conf */
-  long max_sendq;
-  int con_freq;
-  int ping_freq;
-  int ping_warning;
-  int max_total;
-  int max_local;
-  int max_global;
-  int max_ident;
-  int max_perip;
-  int curr_user_count;
-  int cidr_bitlen_ipv4;
-  int cidr_bitlen_ipv6;
-  int number_per_cidr;
-  dlink_list list_ipv4;         /* base of per cidr ipv4 client link list */
-  dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
-};
-
-struct ConfItem
-{
-  char *name;		/* Primary key */
-  pcre *regexpname;
-  dlink_node node;	/* link into known ConfItems of this type */
-  unsigned int flags;
-  ConfType type;
-  union
-  {
-    struct MatchItem MatchItem;
-    struct AccessItem AccessItem;
-    struct ClassItem ClassItem;
-    struct ResvChannel ResvChannel;
-  }conf;
-};
-
-struct conf_item_table_type
-{
-  size_t size;
-  int status;
-  dlink_list *list;
-  void (*freer)(struct ConfItem *, dlink_list *);
-};
-
 struct config_file_entry
 {
   const char *dpath;          /* DPATH if set from command line */
@@ -477,18 +461,26 @@ extern dlink_list class_items;
 extern dlink_list server_items;
 extern dlink_list cluster_items;
 extern dlink_list hub_items;
+extern dlink_list rxconf_items;
+extern dlink_list rkconf_items;
 extern dlink_list leaf_items;
+extern dlink_list temporary_klines;
+extern dlink_list temporary_dlines;
+extern dlink_list temporary_glines;
+extern dlink_list temporary_xlines;
+extern dlink_list temporary_rxlines;
+extern dlink_list temporary_rklines;
 extern struct logging_entry ConfigLoggingEntry;
 extern struct config_file_entry ConfigFileEntry;/* defined in ircd.c*/
 extern struct config_channel_entry ConfigChannel;/* defined in channel.c*/
 extern struct config_server_hide ConfigServerHide; /* defined in s_conf.c */
 extern struct server_info ServerInfo;       /* defined in ircd.c */
 extern struct admin_info AdminInfo;        /* defined in ircd.c */
-
+extern int valid_wild_card(struct Client *, int, int, ...);
 /* End GLOBAL section */
 
 extern unsigned long get_sendq(struct Client *);
-extern const char *get_client_className(struct Client *);
+extern const char *get_client_class(struct Client *);
 extern int get_client_ping(struct Client *, int *);
 extern void check_class(void);
 extern void init_class(void);
@@ -497,12 +489,17 @@ extern void init_ip_hash_table(void);
 extern void count_ip_hash(int *, unsigned long *);
 extern void remove_one_ip(struct irc_ssaddr *);
 extern struct ConfItem *make_conf_item(ConfType type);
+extern void free_access_item(struct AccessItem *);
 extern void read_conf_files(int);
+extern int attach_conf(struct Client *, struct ConfItem *);
 extern int attach_connect_block(struct Client *, const char *, const char *);
-extern int attach_server_conf(struct Client *, struct ConfItem *);
-extern int attach_leaf_hub(struct Client *, struct ConfItem *);
+
 extern int detach_conf(struct Client *, ConfType);
 
+extern struct ConfItem *find_conf_name(dlink_list *, const char *, ConfType);
+extern struct ConfItem *find_conf_exact(ConfType, const char *, const char *, const char *);
+extern struct AccessItem *find_kill(struct Client *);
+extern struct AccessItem *find_gline(struct Client *);
 extern int conf_connect_allowed(struct irc_ssaddr *, int);
 extern char *oper_privs_as_string(const unsigned int);
 extern void split_nuh(char *mask, char **nick, char **user, char **host);
@@ -519,7 +516,8 @@ extern void write_conf_line(struct Client *, struct ConfItem *,
                             const char *, time_t);
 extern int remove_conf_line(ConfType, struct Client *, const char *,
                             const char *);
-
+extern void add_temp_line(struct ConfItem *);
+extern void cleanup_tklines(void *);
 extern const char *get_conf_name(ConfType);
 extern int rehash(int);
 extern int conf_add_server(struct ConfItem *, unsigned int, const char *);
@@ -531,8 +529,21 @@ extern void parse_csv_file(FBFILE *, ConfType);
 
 extern char *get_oper_name(const struct Client *);
 
+extern void *map_to_conf(struct ConfItem *);
+extern struct ConfItem *unmap_conf_item(void *);
+/* XXX should the parse_aline stuff go into another file ?? */
+#define AWILD 0x1		/* check wild cards */
+#define NOUSERLOOKUP 0x2 /* Don't lookup the user@host on /rkline nick */
+extern int parse_aline(const char *, struct Client *, int, char **,
+		       int, char **, char **, time_t *, char **, char **);
+extern int valid_comment(struct Client *, char *, int);
+
+/* XXX */
 extern int yylex(void);
 
+#define TK_SECONDS 0
+#define TK_MINUTES 1
+extern time_t valid_tkline(char *, int);
 extern int match_conf_password(const char *, const struct AccessItem *);
 
 #define NOT_AUTHORIZED    (-1)
@@ -542,6 +553,10 @@ extern int match_conf_password(const char *, const struct AccessItem *);
 #define BANNED_CLIENT     (-5)
 #define TOO_FAST          (-6)
 
-extern void rebuild_cidr_class(struct ClassItem *, struct ClassItem *);
+#define CLEANUP_TKLINES_TIME 60
+
+extern void cluster_a_line(struct Client *,
+			   const char *, int, int, const char *,...);
+extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
 
 #endif /* INCLUDED_s_conf_h */

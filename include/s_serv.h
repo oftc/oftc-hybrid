@@ -69,7 +69,6 @@ struct Capability
 #define CAP_CLUSTER	0x00010000 /* supports server clustering	  */
 #define CAP_ENCAP	0x00020000 /* supports ENCAP message		  */
 #define CAP_HOPS	0x00040000 /* supports HALFOPS			  */
-#define CAP_TBURST      0x00080000 /* supports TBURST (Topic burst)       */
 
 #ifdef HAVE_LIBZ
 #define CAP_ZIP_SUPPORTED CAP_ZIP
@@ -239,7 +238,7 @@ extern struct Client *uplink; /* NON NULL if leaf and is this servers uplink */
 extern int check_server(const char *, struct Client *, int);
 extern int hunt_server(struct Client *, struct Client *,
                        const char *, int, int, char **);
-extern const char *my_name_for_link(struct AccessItem *);
+extern const char *my_name_for_link(struct ConfItem *);
 extern void add_capability(const char *, int, int);
 extern int delete_capability(const char *);
 extern int find_capability(const char *);
@@ -256,7 +255,7 @@ extern void sendnick_TS(struct Client *, struct Client *);
 extern int serv_connect(struct AccessItem *, struct Client *);
 extern struct Client *find_servconn_in_progress(const char *);
 extern unsigned long nextFreeMask(void);
-extern void cryptlink_init(struct Client *, struct AccessItem *, fde_t *);
+extern void cryptlink_init(struct Client *, struct ConfItem *, fde_t *);
 extern void cryptlink_regen_key(void *);
 extern void cryptlink_error(struct Client *, const char *,
                             const char *, const char *);

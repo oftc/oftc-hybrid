@@ -34,7 +34,6 @@ struct Client;
 struct Channel;
 struct ResvChannel;
 struct UserHost;
-struct ListTask;
 
 enum {
   HASH_TYPE_ID,

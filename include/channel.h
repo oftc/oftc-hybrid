@@ -28,6 +28,7 @@
 #define INCLUDED_channel_h
 
 #include "ircd_defs.h"        /* KEYLEN, CHANNELLEN */
+#include "tools.h"
 
 struct Client;
 

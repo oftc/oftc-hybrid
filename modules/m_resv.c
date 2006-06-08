@@ -27,6 +27,7 @@
 #include "client.h"
 #include "channel.h"
 #include "ircd.h"
+#include "irc_string.h"
 #include "numeric.h"
 #include "s_serv.h"
 #include "send.h"
@@ -34,7 +35,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
-#include "parse_aline.h"
+#include "s_log.h"
 #include "resv.h"
 #include "hash.h"
 
@@ -264,7 +265,7 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
       return;
     }
 
-    resv_p = &conf->conf.ResvChannel;
+    resv_p = map_to_conf(conf);
 
     if (tkline_time != 0)
     {
@@ -325,7 +326,7 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
       return;
     }
 
-    resv_p = &conf->conf.MatchItem;
+    resv_p = map_to_conf(conf);
 
     if (tkline_time != 0)
     {
@@ -411,7 +412,7 @@ remove_resv(struct Client *source_p, const char *name)
       return;
     }
 
-    resv_p = &conf->conf.MatchItem;
+    resv_p = map_to_conf(conf);
 
     if (resv_p->action)
     {

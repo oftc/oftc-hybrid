@@ -24,17 +24,23 @@
 
 #include "stdinc.h"
 #include "handlers.h"
+#include "tools.h"
+#include "hook.h"
 #include "client.h"
 #include "hash.h"
 #include "common.h"
+#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
+#include "fdlist.h"
+#include "s_bsd.h"
 #include "s_serv.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
+#include "irc_getnameinfo.h"
 
 static void m_trace(struct Client *, struct Client *, int, char **);
 static void ms_trace(struct Client*, struct Client*, int, char**);
@@ -228,7 +234,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
 		      target_p->localClient->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
 		      NI_NUMERICHOST);
 
-      class_name = get_client_className(target_p);
+      class_name = get_client_class(target_p);
 
       if (IsOper(target_p))
       {
@@ -299,7 +305,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
   DLINK_FOREACH(ptr, class_items.head)
   {
     conf = ptr->data;
-    cltmp = &conf->conf.ClassItem;
+    cltmp = (struct ClassItem *)map_to_conf(conf);
     if (CurrUserCount(cltmp) > 0)
       sendto_one(source_p, form_str(RPL_TRACECLASS),
 		 from, to, conf->name, CurrUserCount(cltmp));
@@ -358,7 +364,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
         target_p->localClient->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
         NI_NUMERICHOST);
   name = get_client_name(target_p, HIDE_IP);
-  class_name = get_client_className(target_p);
+  class_name = get_client_class(target_p);
 
   set_time();
 

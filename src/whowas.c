@@ -27,6 +27,7 @@
 #include "client.h"
 #include "common.h"
 #include "hash.h"
+#include "irc_string.h"
 #include "ircd.h"
 #include "ircd_defs.h"
 #include "numeric.h"
@@ -34,6 +35,7 @@
 #include "s_user.h"
 #include "send.h"
 #include "s_conf.h"
+#include "memory.h"
 
 /* internally defined function */
 static void add_whowas_to_clist(struct Whowas **, struct Whowas *);

@@ -30,15 +30,22 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
+#include "irc_string.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"     /* FALSE bleah */
 #include "ircd.h"
+#include "sprintf_irc.h"
 #include "numeric.h"
+#include "fdlist.h"
+#include "s_bsd.h"
 #include "s_conf.h"
+#include "s_log.h"
 #include "s_serv.h"
+#include "s_misc.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
@@ -582,9 +589,11 @@ do_who_on_channel(struct Client *source_p, struct Channel *chptr,
 static void
 operspy_log(struct Client *source_p, const char *command, const char *target)
 {
+  struct ConfItem *conf = NULL;
 #ifdef OPERSPY_LOGFILE
   size_t nbytes = 0;
   FBFILE *operspy_fb;
+  dlink_node *cnode;
   const char *opername = source_p->name;
   char linebuf[IRCD_BUFSIZE], logfile[IRCD_BUFSIZE];
 #endif
@@ -593,7 +602,15 @@ operspy_log(struct Client *source_p, const char *command, const char *target)
 
 #ifdef OPERSPY_LOGFILE
   if (IsOper(source_p) && MyClient(source_p))
-    opername = source_p->localClient->auth_oper;
+  {
+    DLINK_FOREACH(cnode, source_p->localClient->confs.head)
+    {
+      conf = cnode->data;
+
+      if (conf->type == OPER_TYPE)
+        opername = conf->name;
+    }
+  }
   else if (!MyClient(source_p))
     opername = "remote";
 

@@ -26,7 +26,7 @@ prefix          = $(DESTDIR)@prefix@
 moduledir       = ${prefix}/modules
 automoduledir   = ${moduledir}/autoload
 
-INCLUDES	= -I../include -I../libio $(SSL_INCLUDES)
+INCLUDES	= -I../include -I../lib/pcre $(SSL_INCLUDES)
 CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
 
 CORE_SRCS = \
@@ -117,7 +117,7 @@ SRCS =       \
   m_set.c \
   m_stats.c \
   m_svinfo.c \
-  m_tburst.c \
+  m_tb.c \
   m_testmask.c \
   m_testline.c \
   m_time.c \

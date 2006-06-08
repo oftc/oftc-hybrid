@@ -28,8 +28,12 @@
 #include "client.h"
 #include "common.h"     /* FALSE bleah */
 #include "ircd.h"
+#include "irc_string.h"
 #include "numeric.h"
+#include "fdlist.h"
+#include "s_bsd.h"
 #include "s_conf.h"
+#include "s_log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "msg.h"
@@ -83,7 +87,7 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !IsOperAdmin(source_p))
+  if (MyConnect(source_p) && !IsOperAdmin(source_p))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, parv[0], "CHGIDENT");
@@ -137,7 +141,7 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !IsOperAdmin(source_p))
+  if (MyConnect(source_p) && !IsOperAdmin(source_p))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, parv[0], "CHGHOST");
@@ -172,7 +176,7 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
   if (MyClient(source_p))
   {
     sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
-                  ":%s ENCAP * CHGHOST %s :%s",
+                  ":%s ENCAP * CHGHOST %s %s",
                   parv[0], target_p->name, parv[2]);
     sendto_one(source_p, ":%s NOTICE %s :%s changed to %s@%s",
                me.name, parv[0], target_p->name, target_p->username,
@@ -190,7 +194,7 @@ mo_chgname(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !IsOperAdmin(source_p))
+  if (MyConnect(source_p) && !IsOperAdmin(source_p))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, parv[0], "CHGNAME");

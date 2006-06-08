@@ -34,6 +34,8 @@
 #include "rsa.h"
 #include "msg.h"
 #include "parse.h"
+#include "irc_string.h"
+#include "s_log.h"
 #include "s_user.h"
 
 static void failed_challenge_notice(struct Client *, const char *,
@@ -112,7 +114,17 @@ m_challenge(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    oper_up(source_p, conf, source_p->localClient->auth_oper);
+    if (attach_conf(source_p, conf) != 0)
+    {
+      sendto_one(source_p,":%s NOTICE %s :Can't attach conf!",
+		 me.name, source_p->name);   
+      failed_challenge_notice(source_p, conf->name, "can't attach conf!");
+      log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", 
+		      source_p->localClient->auth_oper);
+      return;
+    }
+
+    oper_up(source_p, source_p->localClient->auth_oper);
 
     ilog(L_TRACE, "OPER %s by %s!%s@%s",
 	 source_p->localClient->auth_oper, source_p->name, source_p->username,
@@ -132,17 +144,17 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   source_p->localClient->response  = NULL;
   source_p->localClient->auth_oper = NULL;
 
-  if ((conf = find_exact_name_conf(OPER_TYPE,
-				   parv[1], source_p->username, source_p->host
-				   )) != NULL)
+  if ((conf = find_conf_exact(OPER_TYPE,
+			      parv[1], source_p->username, source_p->host
+			      )) != NULL)
   {
-    aconf = &conf->conf.AccessItem;
+    aconf = (struct AccessItem *)map_to_conf(conf);
   }
-  else if ((conf = find_exact_name_conf(OPER_TYPE,
-					parv[1], source_p->username,
-					source_p->sockhost)) != NULL)
+  else if ((conf = find_conf_exact(OPER_TYPE,
+				   parv[1], source_p->username,
+				   source_p->sockhost)) != NULL)
   {
-    aconf = &conf->conf.AccessItem;
+    aconf = (struct AccessItem *)map_to_conf(conf);
   }
 
   if(aconf == NULL)

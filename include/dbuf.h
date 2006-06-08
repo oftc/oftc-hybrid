@@ -1,9 +1,8 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  conf.h: Includes all configuration headers.
+ *  dbuf.h: A header for the dynamic buffers functions.
  *
- *  Copyright (C) 2003 by Piotr Nizynski, Advanced IRC Services Project
- *  Copyright (C) 2005 by the Hybrid Development Team.
+ *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,12 +19,31 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: conf.h 69 2005-10-04 16:09:51Z adx $
+ *  $Id: dbuf.h 33 2005-10-02 20:50:00Z knight $
  */
 
-#ifndef INCLUDED_CONF_H
-#define INCLUDED_CONF_H
+#ifndef __DBUF_H_INCLUDED
+#define __DBUF_H_INCLUDED
+#include "tools.h"
 
-#include "conf/manager.h"
+#define DBUF_BLOCK_SIZE 1024  /* this is also our MTU used for sending */
 
+#define dbuf_length(x) ((x)->total_size)
+#define dbuf_clear(x) dbuf_delete(x, dbuf_length(x))
+
+struct dbuf_block
+{
+  size_t size;
+  char data[DBUF_BLOCK_SIZE];
+};
+
+struct dbuf_queue
+{
+  dlink_list blocks;
+  size_t total_size;
+};
+
+extern void dbuf_init(void);
+extern void dbuf_put(struct dbuf_queue *, char *, size_t);
+extern void dbuf_delete(struct dbuf_queue *, size_t);
 #endif

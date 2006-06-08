@@ -25,6 +25,7 @@
 #ifndef INCLUDED_send_h
 #define INCLUDED_send_h
 
+#include "fdlist.h"
 
 /* For those unfamiliar with GNU format attributes, a is the 1 based
  * argument number of the format string, and b is the 1 based argument

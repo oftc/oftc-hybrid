@@ -23,11 +23,14 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "client.h"
 #include "hash.h"
 #include "common.h"
 #include "hash.h"
+#include "irc_string.h"
 #include "ircd.h"
+#include "list.h"
 #include "numeric.h"
 #include "s_serv.h"
 #include "send.h"
@@ -104,14 +107,13 @@ ms_llnick(struct Client *client_p, struct Client *source_p,
     /* New user -- find them */
     DLINK_FOREACH(ptr, unknown_list.head)
     {
-      if (!strcmp(nick_old, ((struct Client *)ptr->data)->localClient->llname))
+      if( !strcmp(nick_old, ((struct Client *)ptr->data)->llname) )
       {
         target_p = ptr->data;
-        target_p->localClient->llname[0] = '\0'; /* unset their temp-nick */
+        *target_p->llname = '\0'; /* unset their temp-nick */
         break;
       }
     }
-
     if (!target_p) /* Can't find them -- maybe they got a different nick */
       return;
   }

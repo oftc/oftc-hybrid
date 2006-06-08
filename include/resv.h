@@ -27,7 +27,6 @@
 
 struct ResvChannel
 {
-  void *conf_ptr;	/* pointer back to conf */
   dlink_node node;
   struct ResvChannel *hnext;
   time_t hold;          /* Hold action until this time (calendar time) */

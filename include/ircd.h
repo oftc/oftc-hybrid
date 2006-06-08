@@ -27,6 +27,8 @@
 
 #include "ircd_defs.h"
 #include "setup.h"
+#include "tools.h"
+#include "memory.h"
 
 struct Client;
 struct dlink_list;
@@ -79,6 +81,8 @@ extern const char *pidFileName;
 extern int dorehash;
 extern int doremotd;
 extern struct Counter Count;
+extern struct timeval SystemTime;
+#define CurrentTime SystemTime.tv_sec
 extern time_t nextconnect;
 extern int default_server_capabs;
 #ifdef HAVE_LIBCRYPTO
@@ -98,5 +102,6 @@ extern dlink_list oper_list;          /* our opers, duplicated in local_client_l
 extern dlink_list lazylink_channels;  /* known about lazylink channels on HUB       */
 extern int rehashed_klines;
 extern unsigned long get_maxrss(void);
+extern void set_time(void);
 
 #endif

@@ -23,25 +23,38 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
+#include "s_user.h"
+#include "s_misc.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"
+#include "fdlist.h"
 #include "hash.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
+#include "s_bsd.h"
+#include "irc_getnameinfo.h"
 #include "ircd.h"
+#include "list.h"
 #include "listener.h"
 #include "motd.h"
 #include "numeric.h"
 #include "s_conf.h"
-#include "s_user.h"
+#include "s_log.h"
 #include "s_serv.h"
 #include "s_stats.h"
 #include "send.h"
 #include "supported.h"
 #include "whowas.h"
+#include "memory.h"
 #include "packet.h"
 #include "userhost.h"
+#include "hook.h"
+#include "s_misc.h"
 #include "msg.h"
+#include "pcre.h"
 
 int MaxClientCount     = 1;
 int MaxConnectionCount = 1;
@@ -273,8 +286,9 @@ void
 register_local_user(struct Client *client_p, struct Client *source_p, 
                     const char *nick, const char *username)
 {
-  struct AccessItem *aconf = NULL;
+  const struct AccessItem *aconf = NULL;
   char ipaddr[HOSTIPLEN];
+  dlink_node *ptr = NULL;
   dlink_node *m = NULL;
 
   assert(source_p != NULL);
@@ -301,7 +315,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   /* Straight up the maximum rate of flooding... */
   source_p->localClient->allow_read = MAX_FLOOD_BURST;
 
-  if (!execute_callback(client_check_cb, source_p, username, &aconf))
+  if (!execute_callback(client_check_cb, source_p, username))
     return;
 
   if (valid_hostname(source_p->host) == 0)
@@ -311,6 +325,9 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     strlcpy(source_p->host, source_p->sockhost,
             sizeof(source_p->host));
   }
+
+  ptr   = source_p->localClient->confs.head;
+  aconf = map_to_conf(ptr->data);
 
   if (!IsGotId(source_p))
   {
@@ -407,7 +424,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
   if (source_p->id[0] == '\0' && me.id[0])
   {
-    char *id = (char *) execute_callback(uid_get_cb, source_p);
+    char *id = (char *)execute_callback(uid_get_cb, source_p);
     while (hash_find_id(id) != NULL)
       id = uid_get(NULL);
 
@@ -433,10 +450,10 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   if (ConfigFileEntry.invisible_on_connect)
   {
     source_p->umodes |= UMODE_INVISIBLE;
-    ++Count.invisi;
+    Count.invisi++;
   }
 
-  if (++Count.local > Count.max_loc)
+  if ((++Count.local) > Count.max_loc)
   {
     Count.max_loc = Count.local;
 
@@ -963,6 +980,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
             {
               dlink_node *dm;
 
+              detach_conf(source_p, OPER_TYPE);
               ClearOperFlags(source_p);
 
               if ((dm = dlinkFindDelete(&oper_list, source_p)) != NULL)
@@ -1203,7 +1221,7 @@ check_xline(struct Client *source_p)
   if ((conf = find_matching_name_conf(XLINE_TYPE, source_p->info,
                                       NULL, NULL, 0)) != NULL)
   {
-    xconf = &conf->conf.MatchItem;
+    xconf = map_to_conf(conf);
     xconf->count++;
 
     if (xconf->reason != NULL)
@@ -1241,7 +1259,7 @@ check_regexp_xline(struct Client *source_p)
 
   if ((conf = find_matching_name_conf(RXLINE_TYPE, source_p->info, NULL, NULL, 0)))
   {
-    struct MatchItem *reg = &conf->conf.MatchItem;
+    struct MatchItem *reg = map_to_conf(conf);
 
     ++reg->count;
 
@@ -1266,26 +1284,27 @@ check_regexp_xline(struct Client *source_p)
 
 /* oper_up()
  *
- * inputs	- pointer to given client to oper, oper thats being opered
- * 		- pointer to oper conf found
+ * inputs	- pointer to given client to oper
  * output	- NONE
- * side effects	- Blindly opers up given source_p, using conf info
+ * side effects	- Blindly opers up given source_p, using aconf info
  *                all checks on passwords have already been done.
- *                This is also used by rsa oper routines. 
+ *                This could also be used by rsa oper routines. 
  */
 void
-oper_up(struct Client *source_p, struct ConfItem *conf, const char *name)
+oper_up(struct Client *source_p, const char *name)
 {
   unsigned int old = source_p->umodes;
   const char *operprivs = "";
-  struct AccessItem *aconf;
+  const struct AccessItem *oconf = NULL;
 
-  aconf = &conf->conf.AccessItem;
+  assert(source_p->localClient->confs.head);
+  oconf = map_to_conf((source_p->localClient->confs.head)->data);
+
   ++Count.oper;
   SetOper(source_p);
 
-  if (aconf->modes)
-    source_p->umodes |= aconf->modes;
+  if (oconf->modes)
+    source_p->umodes |= oconf->modes;
   else if (ConfigFileEntry.oper_umodes)
     source_p->umodes |= ConfigFileEntry.oper_umodes;
   else
@@ -1314,7 +1333,7 @@ oper_up(struct Client *source_p, struct ConfItem *conf, const char *name)
 }
 
 /*
- * UID code for TS6 SID code on EFnet
+ * Quick and dirty UID code for new proposed SID on EFnet
  *
  */
 
@@ -1328,8 +1347,7 @@ static void add_one_to_uid(int i);
  * output	- NONE
  * side effects	- new_uid is filled in with server id portion (sid)
  *		  (first 3 bytes) or defaulted to 'A'.
- *	          Rest is filled in with 'A' except for the last byte 
- *		  which is filled in with '@' 
+ *	          Rest is filled in with 'A'
  */
 void
 init_uid(void)

@@ -12,8 +12,13 @@ that any of them will work to their intended capacity.
 It is to be noted WITH feeling, that not all of these modules, patches
 or add-ons have been thoroughly tested, only that they've been tested
 enough to see if they compile or work. This is one of the main driving
-reasons why many of these are not in the main ircd-hybrid tree.
-Heed this warning!
+reasons why many of these are not in the main ircd-hybrid tree. At least
+one or two of the modules in contrib have been known to core servers when
+used. Heed this warning!
+
+To reiterate, ONE OR MORE OF THESE MAY AND PROBABLY WILL CORE YOUR SERVER.
+USE AT YOUR OWN RISK. Reading this dicticates that you agree to the stated
+fact.
 
 Modules ::
 -----------------------------------------------

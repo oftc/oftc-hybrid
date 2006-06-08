@@ -25,17 +25,24 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"
 #include "hash.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
+#include "list.h"
 #include "numeric.h"
 #include "s_serv.h"             /* captab */
 #include "s_user.h"
 #include "send.h"
 #include "s_conf.h"             /* ConfigFileEntry, ConfigChannel */
+#include "event.h"
+#include "memory.h"
+#include "balloc.h"
 
 struct config_channel_entry ConfigChannel;
 dlink_list global_channel_list = { NULL, NULL, 0 };

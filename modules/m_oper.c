@@ -23,14 +23,19 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "handlers.h"
 #include "client.h"
 #include "common.h"
+#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
+#include "s_bsd.h"
 #include "s_conf.h"
+#include "s_log.h"
 #include "s_user.h"
 #include "send.h"
+#include "list.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
@@ -72,8 +77,8 @@ static void
 m_oper(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-  struct ConfItem *conf = NULL;
-  struct AccessItem *aconf = NULL;
+  struct ConfItem *conf;
+  struct AccessItem *aconf=NULL;
   const char *name = parv[1];
   const char *password = parv[2];
 
@@ -91,7 +96,6 @@ m_oper(struct Client *client_p, struct Client *source_p,
   if ((conf = find_password_conf(name, source_p)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
-    /* XXX - eh? what's that find_exact_name_conf() call for? why is it here? */
     conf = find_exact_name_conf(OPER_TYPE, name, NULL, NULL);
     failed_oper_notice(source_p, name, (conf != NULL) ?
                        "host mismatch" : "no oper {} block");
@@ -99,11 +103,20 @@ m_oper(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  aconf = &conf->conf.AccessItem;
+  aconf = (struct AccessItem *)map_to_conf(conf);
 
   if (match_conf_password(password, aconf))
   {
-    oper_up(source_p, conf, name);
+    if (attach_conf(source_p, conf) != 0)
+    {
+      sendto_one(source_p, ":%s NOTICE %s :Can't attach conf!",
+                 me.name, source_p->name);
+      failed_oper_notice(source_p, name, "can't attach conf!");
+      log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", name);
+      return;
+    }
+
+    oper_up(source_p, name);
 
     ilog(L_TRACE, "OPER %s by %s!%s@%s",
          name, source_p->name, source_p->username, source_p->host);

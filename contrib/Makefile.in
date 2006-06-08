@@ -26,7 +26,7 @@ SSL_INCLUDES	= @SSL_INCLUDES@
 
 IRCDLIBS	= @LIBS@ $(SSL_LIBS)
 
-INCLUDES	= -I../include -I../libio $(SSL_INCLUDES)
+INCLUDES	= -I../include -I../lib/pcre $(SSL_INCLUDES)
 CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
 
 SRCS = \

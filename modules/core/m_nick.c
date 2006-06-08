@@ -26,6 +26,8 @@
 #include "handlers.h"
 #include "client.h"
 #include "hash.h"
+#include "fdlist.h"
+#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_conf.h"
@@ -34,7 +36,9 @@
 #include "whowas.h"
 #include "s_serv.h"
 #include "send.h"
+#include "list.h"
 #include "channel.h"
+#include "s_log.h"
 #include "resv.h"
 #include "msg.h"
 #include "parse.h"
@@ -147,7 +151,7 @@ mr_nick(struct Client *client_p, struct Client *source_p,
       {
         uclient_p = ptr->data;
 
-	if (!strcmp(nick, uclient_p->localClient->llname))
+	if (!strcmp(nick, uclient_p->llname))
 	{
 	
 	  /* We're already waiting for a reply about this nick
@@ -159,7 +163,7 @@ mr_nick(struct Client *client_p, struct Client *source_p,
       }
 
       /* Set their llname so we can find them later */
-      strcpy(source_p->localClient->llname, nick);
+      strcpy(source_p->llname, nick);
 
       /* Ask the hub about their requested name */
       sendto_one(uplink, ":%s NBURST %s %s !%s", me.name, nick,

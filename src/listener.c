@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  listener.c: Listens on a port, initialization of local clients.
+ *  listener.c: Listens on a port.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -25,22 +25,29 @@
 #include "stdinc.h"
 #include "listener.h"
 #include "client.h"
+#include "fdlist.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
 #include "ircd_defs.h"
+#include "s_bsd.h"
+#include "irc_getnameinfo.h"
+#include "irc_getaddrinfo.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "s_stats.h"
 #include "send.h"
+#include "memory.h"
+#include "tools.h"
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/bio.h>
 #endif
-#include "s_auth.h"
+
 
 static PF accept_connection;
 
 static dlink_list ListenerPollList = { NULL, NULL, 0 };
-static void close_listener(struct Listener *);
-static void add_connection(struct Listener *, int);
+static void close_listener(struct Listener *listener);
 
 static struct Listener *
 make_listener(int port, struct irc_ssaddr *addr)
@@ -397,7 +404,7 @@ accept_connection(fde_t *pfd, void *data)
    * point, just assume that connections cannot
    * be accepted until some old is closed first.
    */
-  while ((fd = comm_accept(pfd, &sai)) != -1)
+  while ((fd = comm_accept(listener, &sai)) != -1)
   {
     memcpy(&addr, &sai, sizeof(struct irc_ssaddr));
 
@@ -458,136 +465,4 @@ accept_connection(fde_t *pfd, void *data)
   /* Re-register a new IO request for the next accept .. */
   comm_setselect(&listener->fd, COMM_SELECT_READ, accept_connection,
                  listener, 0);
-}
-
-#ifdef HAVE_LIBCRYPTO
-/*
- * ssl_handshake - let OpenSSL initialize the protocol. Register for
- * read/write events if necessary.
- */
-static void
-ssl_handshake(int fd, struct Client *client_p)
-{
-  int ret = SSL_accept(client_p->localClient->fd.ssl);
-
-  if (ret <= 0)
-    switch (SSL_get_error(client_p->localClient->fd.ssl, ret))
-    {
-      case SSL_ERROR_WANT_WRITE:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
-                       (PF *) ssl_handshake, client_p, 0);
-        return;
-
-      case SSL_ERROR_WANT_READ:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
-                       (PF *) ssl_handshake, client_p, 0);
-        return;
-
-      default:
-        exit_client(client_p, client_p, "Error during SSL handshake");
-        return;
-    }
-
-  execute_callback(auth_cb, client_p);
-}
-#endif
-
-/*
- * add_connection - creates a client which has just connected to us on
- * the given fd. The sockhost field is initialized with the ip# of the host.
- * An unique id is calculated now, in case it is needed for auth.
- * The client is sent to the auth module for verification, and not put in
- * any client list yet.
- */
-static void
-add_connection(struct Listener* listener, int fd)
-{
-  struct Client *new_client;
-  socklen_t len = sizeof(struct irc_ssaddr);
-  struct irc_ssaddr irn;
-  assert(NULL != listener);
-
-  /*
-   * get the client socket name from the socket
-   * the client has already been checked out in accept_connection
-   */
-
-  memset(&irn, 0, sizeof(irn));
-  if (getpeername(fd, (struct sockaddr *)&irn, (socklen_t *)&len))
-  {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
-    report_error(L_ALL, "Failed in adding new connection %s :%s",
-            get_listener_name(listener), errno);
-    ServerStats->is_ref++;
-#ifdef _WIN32
-    closesocket(fd);
-#else
-    close(fd);
-#endif
-    return;
-  }
-
-#ifdef IPV6
-  remove_ipv6_mapping(&irn);
-#else
-  irn.ss_len = len;
-#endif
-  new_client = make_client(NULL);
-  fd_open(&new_client->localClient->fd, fd, 1,
-          (listener->flags & LISTENER_SSL) ?
-          "Incoming SSL connection" : "Incoming connection");
-  memset(&new_client->localClient->ip, 0, sizeof(struct irc_ssaddr));
-
-  /*
-   * copy address to 'sockhost' as a string, copy it to host too
-   * so we have something valid to put into error messages...
-   */
-  memcpy(&new_client->localClient->ip, &irn, sizeof(struct irc_ssaddr));
-
-  irc_getnameinfo((struct sockaddr*)&new_client->localClient->ip,
-        new_client->localClient->ip.ss_len,  new_client->sockhost,
-        HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
-  new_client->localClient->aftype = new_client->localClient->ip.ss.ss_family;
-
-  *new_client->host = '\0';
-#ifdef IPV6
-  if (*new_client->sockhost == ':')
-    strlcat(new_client->host, "0", HOSTLEN+1);
-
-  if (new_client->localClient->aftype == AF_INET6 &&
-      ConfigFileEntry.dot_in_ip6_addr == 1)
-  {
-    strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
-    strlcat(new_client->host, ".", HOSTLEN+1);
-  } else
-#endif
-    strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
-
-  new_client->localClient->listener = listener;
-  ++listener->ref_count;
-
-  connect_id++;
-  new_client->connect_id = connect_id;
-
-#ifdef HAVE_LIBCRYPTO
-  if ((listener->flags & LISTENER_SSL))
-  {
-    if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.ctx)) == NULL)
-    {
-      ilog(L_CRIT, "SSL_new() ERROR! -- %s",
-           ERR_error_string(ERR_get_error(), NULL));
-
-      SetDead(new_client);
-      exit_client(new_client, new_client, "SSL_new failed");
-      return;
-    }
-
-    SSL_set_fd(new_client->localClient->fd.ssl, fd);
-    ssl_handshake(0, new_client);
-  }
-  else
-#endif
-    execute_callback(auth_cb, new_client);
 }

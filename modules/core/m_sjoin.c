@@ -23,12 +23,16 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "hash.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
+#include "list.h"
 #include "numeric.h"
 #include "send.h"
 #include "common.h"

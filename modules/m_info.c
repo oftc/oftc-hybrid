@@ -23,12 +23,16 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "m_info.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
+#include "irc_string.h"
 #include "ircd.h"
+#include "hook.h"
 #include "numeric.h"
+#include "s_log.h"
 #include "s_serv.h"
 #include "s_user.h"
 #include "send.h"

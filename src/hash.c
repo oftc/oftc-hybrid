@@ -23,20 +23,26 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "s_conf.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"
 #include "handlers.h"
+#include "list.h"
 #include "modules.h"
 #include "hash.h"
 #include "resv.h"
 #include "userhost.h"
+#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
+#include "memory.h"
+#include "dbuf.h"
 #include "s_user.h"
+
 
 static BlockHeap *userhost_heap = NULL;
 static BlockHeap *namehost_heap = NULL;

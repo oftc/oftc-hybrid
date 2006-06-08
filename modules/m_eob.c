@@ -56,6 +56,7 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
+
 /*
  * ms_eob - EOB command handler
  *      parv[0] = sender prefix   

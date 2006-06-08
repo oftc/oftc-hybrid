@@ -28,6 +28,7 @@
 #include "client.h"
 #include "common.h"
 #include "hash.h"
+#include "irc_string.h"
 #include "ircd.h"
 #include "ircd_defs.h"
 #include "numeric.h"
@@ -139,7 +140,9 @@ whowas_do(struct Client *client_p, struct Client *source_p,
   if (*nick == '\0')
     return;
 
-  for (temp = WHOWASHASH[strhash(nick)]; temp; temp = temp->next)
+  temp  = WHOWASHASH[strhash(nick)];
+
+  for (; temp; temp = temp->next)
   {
     if (irccmp(nick, temp->name) == 0)
     {
@@ -156,7 +159,7 @@ whowas_do(struct Client *client_p, struct Client *source_p,
         sendto_one(source_p, form_str(RPL_WHOISSERVER),
                    me.name, source_p->name, temp->name,
                    temp->servername, myctime(temp->logoff));
-      ++cur;
+      cur++;
     }
 
     if (max > 0 && cur >= max)

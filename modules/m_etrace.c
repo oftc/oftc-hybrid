@@ -24,17 +24,23 @@
 
 #include "stdinc.h"
 #include "handlers.h"
+#include "tools.h"
+#include "hook.h"
 #include "client.h"
 #include "hash.h"
 #include "common.h"
+#include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
+#include "fdlist.h"
+#include "s_bsd.h"
 #include "s_serv.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
+#include "irc_getnameinfo.h"
 
 #define FORM_STR_RPL_ETRACE	":%s 709 %s %s %s %s %s %s :%s"
 
@@ -168,7 +174,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
         NI_NUMERICHOST);
 
   name = get_client_name(target_p, HIDE_IP);
-  class_name = get_client_className(target_p);
+  class_name = get_client_class(target_p);
 
   set_time();
 

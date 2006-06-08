@@ -36,6 +36,7 @@
 #include "modules.h"
 #include "channel.h"
 #include "channel_mode.h"
+#include "irc_string.h"
 #include "hash.h"
 #include "packet.h"
 
@@ -849,33 +850,33 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
     {
       if (!IsMe(target_p))
       {
-        /*
-         * Not destined for a user on me :-(
-         */
-        sendto_one(target_p, ":%s %s %s :%s",
-            ID_or_name(source_p, target_p->from),
-            command, nick, text);
-        if ((p_or_n != NOTICE) && MyClient(source_p))
-          source_p->localClient->last = CurrentTime;
-        return;
+	/*
+	 * Not destined for a user on me :-(
+	 */
+	sendto_one(target_p, ":%s %s %s :%s",
+                   ID_or_name(source_p, target_p->from),
+		   command, nick, text);
+	if ((p_or_n != NOTICE) && MyClient(source_p))
+	  source_p->localClient->last = CurrentTime;
+	return;
       }
 
       *server = '\0';
 
       if (host != NULL)
-        *host++ = '\0';
+	*host++ = '\0';
 
       /* Check if someones msg'ing opers@our.server */
       if (strcmp(nick, "opers") == 0)
       {
-        if (!IsOper(source_p))
-          sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-              ID_or_name(&me, client_p),
-              ID_or_name(source_p, client_p));
-        else
-          sendto_realops_flags(UMODE_ALL, L_ALL, "To opers: From: %s: %s",
-              source_p->name, text);
-        return;
+	if (!IsOper(source_p))
+	  sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+                     ID_or_name(&me, client_p),
+                     ID_or_name(source_p, client_p));
+	else
+	  sendto_realops_flags(UMODE_ALL, L_ALL, "To opers: From: %s: %s",
+			       source_p->name, text);
+	return;
       }
 
       /*
@@ -887,42 +888,42 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
 
       if (target_p != NULL)
       {
-        if (server != NULL)
-          *server = '@';
-        if (host != NULL)
-          *--host = '%';
+	if (server != NULL)
+	  *server = '@';
+	if (host != NULL)
+	  *--host = '%';
 
-        if (count == 1)
-        {
-          sendto_one(target_p, ":%s!%s@%s %s %s :%s",
-              source_p->name, source_p->username, source_p->host,
-              command, nick, text);
-          if ((p_or_n != NOTICE) && MyClient(source_p))
-            source_p->localClient->last = CurrentTime;
-        }
-        else
-          sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
-              ID_or_name(&me, client_p),
-              ID_or_name(source_p, client_p), nick,
-              ConfigFileEntry.max_targets);
+	if (count == 1)
+	{
+	  sendto_one(target_p, ":%s!%s@%s %s %s :%s",
+		     source_p->name, source_p->username, source_p->host,
+                     command, nick, text);
+	  if ((p_or_n != NOTICE) && MyClient(source_p))
+	    source_p->localClient->last = CurrentTime;
+	}
+	else
+	  sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
+                     ID_or_name(&me, client_p),
+                     ID_or_name(source_p, client_p), nick,
+		     ConfigFileEntry.max_targets);
       }
     }
     else if (server && *(server+1) && (target_p == NULL))
-      sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
-          ID_or_name(&me, client_p),
-          ID_or_name(source_p, client_p), server+1);
+	sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
+                   ID_or_name(&me, client_p),
+                   ID_or_name(source_p, client_p), server+1);
     else if (server && (target_p == NULL))
-      sendto_one(source_p, form_str(ERR_NOSUCHNICK),
-          ID_or_name(&me, client_p),
-          ID_or_name(source_p, client_p), nick);
+	sendto_one(source_p, form_str(ERR_NOSUCHNICK),
+                   ID_or_name(&me, client_p),
+                   ID_or_name(source_p, client_p), nick);
     return;
   }
 
   if (!IsOper(source_p))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-        ID_or_name(&me, client_p),
-        ID_or_name(source_p, client_p));
+               ID_or_name(&me, client_p),
+               ID_or_name(source_p, client_p));
     return;
   }
 
@@ -939,15 +940,15 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
     else if(MyOper(source_p))
     {
       sendto_one(source_p, 
-          ":%s NOTICE %s :The command %s %s is no longer supported, please use $%s",
-          me.name, source_p->name, command, nick, nick);
+                 ":%s NOTICE %s :The command %s %s is no longer supported, please use $%s",
+		 me.name, source_p->name, command, nick, nick);
       return;
     }
 
     if ((s = strrchr(nick, '.')) == NULL)
     {
       sendto_one(source_p, form_str(ERR_NOTOPLEVEL),
-          me.name, source_p->name, nick);
+                 me.name, source_p->name, nick);
       return;
     }
 
@@ -958,13 +959,13 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
     if (*s == '*' || *s == '?')
     {
       sendto_one(source_p, form_str(ERR_WILDTOPLEVEL),
-          ID_or_name(&me, client_p),
-          ID_or_name(source_p, client_p), nick);
+                 ID_or_name(&me, client_p),
+                 ID_or_name(source_p, client_p), nick);
       return;
     }
-
+    
     sendto_match_butone(IsServer(client_p) ? client_p : NULL, source_p,
-        nick + 1, (*nick == '#') ? MATCH_HOST : MATCH_SERVER,
+                        nick + 1, (*nick == '#') ? MATCH_HOST : MATCH_SERVER,
                         "%s $%s :%s", command, nick, text);
 
     if ((p_or_n != NOTICE) && MyClient(source_p))
@@ -973,7 +974,6 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
     return;
   }
 }
-
 
 /*
  * find_userhost - find a user@host (server or user).

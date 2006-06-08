@@ -23,22 +23,30 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "handlers.h"
 #include "s_gline.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
 #include "hostmask.h"
 #include "numeric.h"
+#include "fdlist.h"
+#include "s_bsd.h"
 #include "s_conf.h"
-#include "parse_aline.h"
+#include "s_misc.h"
 #include "send.h"
 #include "msg.h"
+#include "fileio.h"
 #include "s_serv.h"
 #include "hash.h"
 #include "parse.h"
 #include "modules.h"
+#include "list.h"
+#include "s_log.h"
 
 #define GLINE_NOT_PLACED     0
 #ifdef GLINE_VOTING
@@ -290,7 +298,7 @@ do_sgline(struct Client *client_p, struct Client *source_p,
   DLINK_FOREACH(ptr, gdeny_items.head)
   {
     conf = ptr->data;
-    aconf = &conf->conf.AccessItem;
+    aconf = (struct AccessItem *)map_to_conf(conf);
 
     if (match(conf->name, source_p->servptr->name) &&
         match(aconf->user, source_p->username) &&
@@ -410,7 +418,7 @@ set_local_gline(const struct Client *source_p, const char *user,
 
   current_date = smalldate(cur_time);
   conf = make_conf_item(GLINE_TYPE);
-  aconf = &conf->conf.AccessItem;
+  aconf = (struct AccessItem *)map_to_conf(conf);
 
   ircsprintf(buffer, "%s (%s)", reason, current_date);
   DupString(aconf->reason, buffer);
@@ -572,7 +580,7 @@ remove_gline_match(const char *user, const char *host)
 
   DLINK_FOREACH(ptr, temporary_glines.head)
   {
-    aconf = &((struct ConfItem *)(ptr->data))->conf.AccessItem;
+    aconf = map_to_conf(ptr->data);
     cnm_t = parse_netmask(aconf->host, &caddr, &cbits);
 
     if (cnm_t != nm_t || irccmp(user, aconf->user))

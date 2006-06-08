@@ -32,8 +32,11 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 
+#include "memory.h"
 #include "rsa.h"
+#include "tools.h"
 #include "s_conf.h"
+#include "s_log.h"
 #include "client.h" /* CIPHERKEYLEN .. eww */
 #include "ircd.h" /* bio_spare_fd */
 

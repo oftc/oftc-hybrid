@@ -23,11 +23,14 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
 #include "hash.h"
+#include "irc_string.h"
 #include "ircd.h"
+#include "list.h"
 #include "numeric.h"
 #include "s_serv.h"       /* captab */
 #include "s_user.h"

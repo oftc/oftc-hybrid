@@ -23,13 +23,17 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"   /* bleah */
 #include "hash.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
+#include "list.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_serv.h"

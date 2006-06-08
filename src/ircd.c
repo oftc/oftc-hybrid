@@ -24,13 +24,19 @@
 
 #include "stdinc.h"
 #include "s_user.h"
+#include "tools.h"
 #include "ircd.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"
+#include "event.h"
+#include "fdlist.h"
 #include "hash.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd_signal.h"
+#include "list.h"
 #include "s_gline.h"
 #include "motd.h"
 #include "ircd_handler.h"
@@ -39,16 +45,22 @@
 #include "numeric.h"
 #include "packet.h"
 #include "parse.h"
+#include "irc_res.h"
 #include "restart.h"
 #include "s_auth.h"
+#include "s_bsd.h"
 #include "s_conf.h"
-#include "parse_aline.h"
-#include "s_serv.h"
+#include "s_log.h"
+#include "s_misc.h"
+#include "s_serv.h"      /* try_connections */
 #include "s_stats.h"
 #include "send.h"
 #include "whowas.h"
 #include "modules.h"
+#include "memory.h"
+#include "hook.h"
 #include "ircd_getopt.h"
+#include "balloc.h"
 #include "motd.h"
 #include "supported.h"
 
@@ -68,6 +80,7 @@ struct admin_info AdminInfo = { NULL, NULL, NULL };
 struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0 };
 struct ServerState_t server_state = { 0 };
 struct logging_entry ConfigLoggingEntry = { 1, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} }; 
+struct timeval SystemTime;
 struct Client me;             /* That's me */
 struct LocalUser meLocalUser; /* That's also part of me */
 unsigned long connect_id = 0; /* unique connect ID */
@@ -96,8 +109,6 @@ int splitmode;
 int splitchecking;
 int split_users;
 unsigned int split_servers;
-
-static dlink_node *fdlimit_hook;
 
 /* Do klines the same way hybrid-6 did them, i.e. at the
  * top of the next io_loop instead of in the same loop as
@@ -201,6 +212,49 @@ struct lgetopt myopts[] = {
   {NULL, NULL, STRING, NULL},
 };
 
+void
+set_time(void)
+{
+  static char to_send[200];
+  struct timeval newtime;
+#ifdef _WIN32
+  FILETIME ft;
+
+  GetSystemTimeAsFileTime(&ft);
+  if (ft.dwLowDateTime < 0xd53e8000)
+    ft.dwHighDateTime--;
+  ft.dwLowDateTime -= 0xd53e8000;
+  ft.dwHighDateTime -= 0x19db1de;
+
+  newtime.tv_sec  = (*(uint64_t *) &ft) / 10000000;
+  newtime.tv_usec = (*(uint64_t *) &ft) / 10 % 1000000;
+#else
+  newtime.tv_sec  = 0;
+  newtime.tv_usec = 0;
+
+  if (gettimeofday(&newtime, NULL) == -1)
+  {
+    ilog(L_ERROR, "Clock Failure (%s), TS can be corrupted",
+         strerror(errno));
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Clock Failure (%s), TS can be corrupted",
+                         strerror(errno));
+    restart("Clock Failure");
+  }
+#endif
+
+  if (newtime.tv_sec < CurrentTime)
+  {
+    ircsprintf(to_send, "System clock is running backwards - (%lu < %lu)",
+               (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
+    report_error(L_ALL, to_send, me.name, 0);
+    set_back_events(CurrentTime - newtime.tv_sec);
+  }
+
+  SystemTime.tv_sec  = newtime.tv_sec;
+  SystemTime.tv_usec = newtime.tv_usec;
+}
+
 static void
 io_loop(void)
 {
@@ -251,7 +305,7 @@ io_loop(void)
     if (doremotd)
     {
       read_message_file(&ConfigFileEntry.motd);
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL,
                            "Got signal SIGUSR1, reloading ircd motd file");
       doremotd = 0;
     }
@@ -481,51 +535,6 @@ init_callbacks(void)
   iosendctrl_cb = register_callback("iosendctrl", NULL);
 }
 
-static void *
-changing_fdlimit(va_list args)
-{
-  int old_fdlimit = hard_fdlimit;
-  int fdmax = va_arg(args, int);
-
-  /* allow MAXCLIENTS_MIN clients even at the cost of MAX_BUFFER and
-   * some not really LEAKED_FDS */
-  fdmax = IRCD_MAX(fdmax, LEAKED_FDS + MAX_BUFFER + MAXCLIENTS_MIN);
-
-  pass_callback(fdlimit_hook, fdmax);
-
-  if (ServerInfo.max_clients > MAXCLIENTS_MAX)
-  {
-    if (old_fdlimit != 0)
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-        "HARD_FDLIMIT changed to %d, adjusting MAXCLIENTS to %d",
-        hard_fdlimit, MAXCLIENTS_MAX);
-
-    ServerInfo.max_clients = MAXCLIENTS_MAX;
-  }
-
-  return NULL;
-}
-
-#ifdef _WIN32
-/*
- * Initial entry point for Win32 GUI applications, called by the C runtime.
- *
- * It should be only a wrapper for main(), since when compiled as a console
- * application, main() is called instead.
- */
-int WINAPI
-WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-        LPSTR lpCmdLine, int nCmdShow)
-{
-  /* Do we really need these pidfile, logfile etc arguments?
-   * And we are not on a console, so -help or -foreground is meaningless. */
-
-  char *argv[2] = {"ircd", NULL};
-
-  return main(1, argv);
-}
-#endif
-
 int
 main(int argc, char *argv[])
 {
@@ -536,7 +545,7 @@ main(int argc, char *argv[])
   if (geteuid() == 0)
   {
     fprintf(stderr, "Don't run ircd as root!!!\n");
-    return 1;
+    return(-1);
   }
 
   /* Setup corefile size immediately after boot -kre */
@@ -546,6 +555,11 @@ main(int argc, char *argv[])
   initialVMTop = get_vm_top();
 #endif
 
+  /* save server boot time right away, so getrusage works correctly */
+  set_time();
+
+    /* It ain't random, but it ought to be a little harder to guess */
+  srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
   memset(&me, 0, sizeof(me));
   memset(&meLocalUser, 0, sizeof(meLocalUser));
   me.localClient = &meLocalUser;
@@ -588,27 +602,35 @@ main(int argc, char *argv[])
 
 #ifndef _WIN32
   if (!server_state.foreground)
+  {
     make_daemon();
+    close_standard_fds(); /* this needs to be before init_netio()! */
+  }
   else
     print_startup(getpid());
-#endif
-
-  libio_init(!server_state.foreground);
-  outofmemory = ircd_outofmemory;
-  fdlimit_hook = install_hook(fdlimit_cb, changing_fdlimit);
 
   setup_signals();
+#endif
 
   get_ircd_platform(ircd_platform);
 
+  /* Init the event subsystem */
+  eventInit();
+  /* We need this to initialise the fd array before anything else */
+  fdlist_init();
   init_log(logFileName);
-  ServerInfo.can_use_v6 = check_can_use_v6();
-
+  check_can_use_v6();
+  init_comm();         /* This needs to be setup early ! -- adrian */
   /* Check if there is pidfile and daemon already running */
   check_pidfile(pidFileName);
 
+#ifndef NOBALLOC
+  initBlockHeap();
+#endif
+  init_dlink_nodes();
   init_callbacks();
   initialize_message_files();
+  dbuf_init();
   init_hash();
   init_ip_hash_table();      /* client host ip hash table */
   init_host_hash();          /* Host-hashtable. */
@@ -622,10 +644,12 @@ main(int argc, char *argv[])
   me.id[0] = '\0';
   init_uid();
   init_auth();          /* Initialise the auth code */
+#ifndef _WIN32
+  init_resolver();      /* Needs to be setup before the io loop */
+#endif
   initialize_server_capabs();   /* Set up default_server_capabs */
   initialize_global_set_options();
   init_channels();
-  init_channel_modes();
 
   if (ServerInfo.name == NULL)
   {

@@ -23,14 +23,21 @@
  */
 
 #include "stdinc.h"
+#include "tools.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
+#include "pcre.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
 #include "hostmask.h"
 #include "numeric.h"
+#include "fdlist.h"
+#include "s_bsd.h"
 #include "s_conf.h"
-#include "parse_aline.h"
+#include "s_log.h"
+#include "s_misc.h"
 #include "send.h"
 #include "hash.h"
 #include "handlers.h"
@@ -39,6 +46,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "resv.h"
+#include "list.h"
 
 static void mo_rxline(struct Client *, struct Client *, int, char *[]);
 static void ms_rxline(struct Client *, struct Client *, int, char *[]);
@@ -86,7 +94,7 @@ already_placed_rxline(struct Client *source_p, const char *gecos)
   DLINK_FOREACH(ptr, rxconf_items.head)
   {
     struct ConfItem *aptr = ptr->data;
-    const struct MatchItem *match_item = &aptr->conf.MatchItem;
+    const struct MatchItem *match_item = map_to_conf(aptr);
 
     if (!strcmp(gecos, aptr->name))
     {
@@ -321,7 +329,7 @@ write_rxline(struct Client *source_p, const char *gecos, char *reason,
   conf = make_conf_item(RXLINE_TYPE);
   conf->regexpname = exp_gecos;
 
-  match_item = &conf->conf.MatchItem;
+  match_item = map_to_conf(conf);
 
   DupString(conf->name, gecos);
   DupString(match_item->reason, reason);

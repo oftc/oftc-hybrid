@@ -24,11 +24,13 @@
 
 #include "stdinc.h"
 #include "client.h"
+#include "tools.h"
 #include "motd.h"
 #include "ircd.h"
 #include "send.h"
 #include "numeric.h"
 #include "handlers.h"
+#include "hook.h"
 #include "msg.h"
 #include "s_serv.h"     /* hunt_server */
 #include "parse.h"
