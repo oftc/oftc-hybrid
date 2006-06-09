@@ -119,8 +119,8 @@ ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Zuviele KNOCK's (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :Raum ist offen.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :Du bist bereits in diesem Raum.
 ERR_KNOCKDISABLED:	 :%s 715 %s :KNOCK's sind abgeschalten.
-ERR_TARGUMODEG:		 :%s 716 %s :%s ist im +g Modus (Serverseitiges ignoren).
-RPL_TARGNOTIFY:		 :%s 717 %s :%s wurde über Deine Nachricht informiert.
+RPL_TARGUMODEG:		 :%s 716 %s %s :ist im +g Modus (Serverseitiges ignoren)
+RPL_TARGNOTIFY:		 :%s 717 %s %s :wurde über Deine Nachricht informiert.
 RPL_UMODEGMSG:		 :%s 718 %s %s :will Dir eine Nachricht schreiben, Du hast aber Benutzer-Modus +g gesetzt.
 RPL_OMOTDSTART:		 :%s 720 %s :Start der OPER MOTD.
 RPL_ENDOFOMOTD:		 :%s 722 %s :Ende der OPER MOTD.
