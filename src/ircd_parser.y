@@ -1266,7 +1266,8 @@ oper_umodes_item:  T_BOTS
     yy_aconf->modes |= UMODE_LOCOPS;
 } | T_GOD
 {
-  yy_aconf->modes |+ UMODE_GOD;
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_GOD;
 };
 
 oper_global_kill: GLOBAL_KILL '=' TBOOL ';'
