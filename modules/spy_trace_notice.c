@@ -83,7 +83,7 @@ show_trace(va_list args)
   char **parv = va_arg(args, char **);
 
   if (IsClient(source_p))
-    sendto_realops_flags(UMODE_SPY, L_ALL,
+    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
                          "trace requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);
@@ -99,7 +99,7 @@ show_ltrace(va_list args)
   char **parv = va_arg(args, char **);
 
   if (IsClient(source_p))
-    sendto_realops_flags(UMODE_SPY, L_ALL,
+    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
                          "ltrace requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);
@@ -115,7 +115,7 @@ show_ctrace(va_list args)
   char **parv = va_arg(args, char **);
 
   if (IsClient(source_p))
-    sendto_realops_flags(UMODE_SPY, L_ALL,
+    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
                          "ctrace requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);
@@ -131,7 +131,7 @@ show_etrace(va_list args)
   char **parv = va_arg(args, char **);
 
   if (IsClient(source_p))
-    sendto_realops_flags(UMODE_SPY, L_ALL,
+    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
                          "etrace requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);

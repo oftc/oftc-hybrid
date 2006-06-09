@@ -101,8 +101,8 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
           ":%s SVSCLOAK %s :%s", parv[0], parv[1], parv[2]);
 
     /* locally modify the clients structure */
-    if(strlen(target_p->localClient->realhost) <= 1)
-        strncpy(target_p->localClient->realhost, target_p->host, HOSTLEN);
+    if(strlen(target_p->realhost) <= 1)
+        strncpy(target_p->realhost, target_p->host, HOSTLEN);
     strncpy(target_p->host, hostname, HOSTLEN);
     off_history(target_p);
   }

@@ -163,6 +163,7 @@ struct Client
    */
   char              sockhost[HOSTIPLEN + 1]; /* This is the host name from the 
                                                 socket ip address as string */
+  char              realhost[HOSTLEN];
   /* caller ID allow list */
   /* This has to be here, since a client on an on_allow_list could
    * be a remote client. simpler to keep both here.
@@ -218,7 +219,6 @@ struct LocalUser
   struct Listener *listener;   /* listener accepted from */
   dlink_list        confs;     /* Configuration record associated */
   dlink_list        invited;   /* chain of invite pointer blocks */
-  char              realhost[HOSTLEN];
   struct irc_ssaddr ip;
   int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
   struct DNSQuery   *dns_query; /* result returned from resolver query */
