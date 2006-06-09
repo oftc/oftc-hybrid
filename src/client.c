@@ -1409,7 +1409,6 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
                                  source_p->name, source_p->username,
                                  source_p->host, nick);
 
-    }
     add_history(source_p, 1);
 	  
 	 /* Only hubs care about lazy link nicks not being sent on yet
