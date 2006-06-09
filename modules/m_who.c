@@ -44,7 +44,7 @@ static void m_who(struct Client*, struct Client*, int, char**);
   
 struct Message who2_msgtab = {
   "WHO", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_who, m_who, m_who}
+  {m_unregistered, m_who, m_who, m_ignore, m_who, m_ignore}
 };
 
 struct flag_item
