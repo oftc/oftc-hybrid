@@ -415,6 +415,10 @@ whois_person(struct Client *source_p, struct Client *target_p)
                me.name, source_p->name, target_p->name,
                target_p->away);
 
+  if (IsSetCallerId(target_p) && !IsSoftCallerId(target_p))
+    sendto_one(source_p, form_str(RPL_TARGUMODEG),
+               me.name, source_p->name, target_p->name);
+
   if (IsOper(target_p))
     sendto_one(source_p, form_str((IsAdmin(target_p) &&
                !IsOperHiddenAdmin(target_p)) ? RPL_WHOISADMIN :

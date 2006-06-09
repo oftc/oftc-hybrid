@@ -124,17 +124,17 @@ ERR_LISTSYNTAX:		 :%s 521 %s :Bad list syntax
 ERR_HELPNOTFOUND:	 :%s 524 %s %s :Help not found
 RPL_ENDOFMODLIST:	 :%s 703 %s :End of /MODLIST.
 RPL_ENDOFHELP:		 :%s 706 %s %s :End of /HELP.
-RPL_KNOCK:		 :%s 710 %s %s %s!%s@%s :has asked for an invite.
+RPL_KNOCK:           :%s 710 %s %s %s!%s@%s :has asked for an invite.
 RPL_KNOCKDLVR:		 :%s 711 %s %s :Your KNOCK has been delivered.
 ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Too many KNOCKs (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :Channel is open.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :You are already on that channel.
 ERR_KNOCKDISABLED:	 :%s 715 %s :KNOCKs are disabled.
-ERR_TARGUMODEG:		 :%s 716 %s :%s is in +g mode (server side ignore.)
-RPL_TARGNOTIFY:		 :%s 717 %s :%s has been informed that you messaged them.
+RPL_TARGUMODEG:		 :%s 716 %s %s :is in +g mode (server side ignore)
+RPL_TARGNOTIFY:		 :%s 717 %s %s :has been informed that you messaged them.
 RPL_UMODEGMSG:		 :%s 718 %s %s :is messaging you, and you are umode +g.
 RPL_OMOTDSTART:		 :%s 720 %s :Start of OPER MOTD.
-RPL_OMOTD:		 :%s 721 %s :%s
+RPL_OMOTD:           :%s 721 %s :%s
 RPL_ENDOFOMOTD:		 :%s 722 %s :End of OPER MOTD.
 ERR_NOPRIVS:		 :%s 723 %s %s :Insufficient oper privs.
 RPL_TESTMASK:		 :%s 724 %s %s@%s %d %d :Local/remote clients match.
