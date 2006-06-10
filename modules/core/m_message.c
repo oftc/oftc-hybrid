@@ -630,7 +630,7 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
       {
         /* check for accept, flag recipient incoming message */
         if (p_or_n != NOTICE)
-	  sendto_one(source_p, form_str(ERR_TARGUMODEG),
+	  sendto_one(source_p, form_str(RPL_TARGUMODEG),
 		     ID_or_name(&me, source_p->from),
 		     ID_or_name(source_p, source_p->from), target_p->name);
 
