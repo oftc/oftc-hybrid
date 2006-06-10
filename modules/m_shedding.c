@@ -50,7 +50,8 @@ struct Message shedding_msgtab = {
    {m_unregistered, m_not_oper, m_ignore, mo_shedding, m_ignore}
 };
 
-static int rate = 0;
+static int rate = 60;
+static int operstoo = 0;
 
 #ifndef STATIC_MODULES
 void
@@ -85,7 +86,9 @@ char buffer[IRCD_BUFSIZE];
  * side effects - user shedding is enabled or disabled
  * 
  * SHEDDING OFF - disable shedding
+ * SHEDDING :reason
  * SHEDDING approx_seconds_per_userdrop :reason
+ * SHEDDING approx_seconds_per_userdrop opers_too?[0|1] :reason
  * 
  */
 static void
@@ -104,10 +107,15 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
         me.name, source_p->name, "SHEDDING");
 
-  rate = atoi(parv[1]);
+  if (parc > 1) 
+    rate = atoi(parv[1]);
+    
+  if (parc > 2)
+    operstoo = atoi(parv[2]);
+    
   sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, 
-          "User shedding ENABLED by %s (%s). Shedding interval: %d seconds", 
-          source_p->name, parv[2], rate);
+          "User shedding ENABLED by %s (%s). Shedding interval: %d seconds (Opers too: %s)", 
+          source_p->name, parv[parc], rate, operstoo == 1 ? "Yes" : "No");
   /* Set a minimum because we need to do a bit of variance */
   rate -= (rate/5);
 
@@ -130,7 +138,7 @@ void user_shedding_shed(void *unused)
   {
       client_p = ptr->data;
 
-      if(MyClient(client_p) && !IsOper(client_p))
+      if(MyClient(client_p) && ((!IsOper(client_p)) || (operstoo == 0) ))
       {
           exit_client(client_p, &me, "Server closed connection");
           break;
