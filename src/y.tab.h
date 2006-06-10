@@ -1,9 +1,7 @@
-/* A Bison parser, made by GNU Bison 2.2.  */
+/* A Bison parser, made by GNU Bison 2.1.  */
 
-/* Skeleton interface for Bison's Yacc-like parsers in C
-
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-   Free Software Foundation, Inc.
+/* Skeleton parser for Yacc-like parsing with Bison,
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,18 +18,10 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.  */
 
-/* As a special exception, you may create a larger work that contains
-   part or all of the Bison parser skeleton and distribute that work
-   under terms of your choice, so long as that work isn't itself a
-   parser generator using the skeleton or a modified version thereof
-   as a parser skeleton.  Alternatively, if you modify or redistribute
-   the parser skeleton itself, you may (at your option) remove this
-   special exception, which will cause the skeleton and the resulting
-   Bison output files to be licensed under the GNU General Public
-   License without this special exception.
-
-   This special exception was added by the Free Software Foundation in
-   version 2.2 of Bison.  */
+/* As a special exception, when this file is copied by Bison into a
+   Bison output file, you may use that output file without restriction.
+   This special exception was added by the Free Software Foundation
+   in version 1.24 of Bison.  */
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -266,33 +256,36 @@
      T_OPERWALL = 482,
      T_REJ = 483,
      T_SERVNOTICE = 484,
-     T_SKILL = 485,
-     T_SPY = 486,
-     T_SSL = 487,
-     T_UMODES = 488,
-     T_UNAUTH = 489,
-     T_UNRESV = 490,
-     T_UNXLINE = 491,
-     T_WALLOP = 492,
-     THROTTLE_TIME = 493,
-     TOPICBURST = 494,
-     TRUE_NO_OPER_FLOOD = 495,
-     TKLINE = 496,
-     TXLINE = 497,
-     TRESV = 498,
-     UNKLINE = 499,
-     USER = 500,
-     USE_EGD = 501,
-     USE_EXCEPT = 502,
-     USE_INVEX = 503,
-     USE_KNOCK = 504,
-     USE_LOGGING = 505,
-     USE_WHOIS_ACTUALLY = 506,
-     VHOST = 507,
-     VHOST6 = 508,
-     XLINE = 509,
-     WARN = 510,
-     WARN_NO_NLINE = 511
+     T_SERVCONN = 485,
+     T_SKILL = 486,
+     T_SPY = 487,
+     T_SSL = 488,
+     T_UMODES = 489,
+     T_UNAUTH = 490,
+     T_UNRESV = 491,
+     T_UNXLINE = 492,
+     T_WALLOP = 493,
+     T_GOD = 494,
+     T_NICKSERVREG = 495,
+     THROTTLE_TIME = 496,
+     TOPICBURST = 497,
+     TRUE_NO_OPER_FLOOD = 498,
+     TKLINE = 499,
+     TXLINE = 500,
+     TRESV = 501,
+     UNKLINE = 502,
+     USER = 503,
+     USE_EGD = 504,
+     USE_EXCEPT = 505,
+     USE_INVEX = 506,
+     USE_KNOCK = 507,
+     USE_LOGGING = 508,
+     USE_WHOIS_ACTUALLY = 509,
+     VHOST = 510,
+     VHOST6 = 511,
+     XLINE = 512,
+     WARN = 513,
+     WARN_NO_NLINE = 514
    };
 #endif
 /* Tokens.  */
@@ -523,51 +516,54 @@
 #define T_OPERWALL 482
 #define T_REJ 483
 #define T_SERVNOTICE 484
-#define T_SKILL 485
-#define T_SPY 486
-#define T_SSL 487
-#define T_UMODES 488
-#define T_UNAUTH 489
-#define T_UNRESV 490
-#define T_UNXLINE 491
-#define T_WALLOP 492
-#define THROTTLE_TIME 493
-#define TOPICBURST 494
-#define TRUE_NO_OPER_FLOOD 495
-#define TKLINE 496
-#define TXLINE 497
-#define TRESV 498
-#define UNKLINE 499
-#define USER 500
-#define USE_EGD 501
-#define USE_EXCEPT 502
-#define USE_INVEX 503
-#define USE_KNOCK 504
-#define USE_LOGGING 505
-#define USE_WHOIS_ACTUALLY 506
-#define VHOST 507
-#define VHOST6 508
-#define XLINE 509
-#define WARN 510
-#define WARN_NO_NLINE 511
+#define T_SERVCONN 485
+#define T_SKILL 486
+#define T_SPY 487
+#define T_SSL 488
+#define T_UMODES 489
+#define T_UNAUTH 490
+#define T_UNRESV 491
+#define T_UNXLINE 492
+#define T_WALLOP 493
+#define T_GOD 494
+#define T_NICKSERVREG 495
+#define THROTTLE_TIME 496
+#define TOPICBURST 497
+#define TRUE_NO_OPER_FLOOD 498
+#define TKLINE 499
+#define TXLINE 500
+#define TRESV 501
+#define UNKLINE 502
+#define USER 503
+#define USE_EGD 504
+#define USE_EXCEPT 505
+#define USE_INVEX 506
+#define USE_KNOCK 507
+#define USE_LOGGING 508
+#define USE_WHOIS_ACTUALLY 509
+#define VHOST 510
+#define VHOST6 511
+#define XLINE 512
+#define WARN 513
+#define WARN_NO_NLINE 514
 
 
 
 
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE
+#if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
 #line 134 "ircd_parser.y"
-{
+typedef union YYSTYPE {
   int number;
   char *string;
-}
-/* Line 1528 of yacc.c.  */
-#line 566 "y.tab.h"
-	YYSTYPE;
+} YYSTYPE;
+/* Line 1447 of yacc.c.  */
+#line 561 "y.tab.h"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
 
 extern YYSTYPE yylval;
+
+
 
