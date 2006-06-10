@@ -9,6 +9,7 @@ CC		= @CC@
 INSTALL		= @INSTALL@
 INSTALL_BIN	= @INSTALL_PROGRAM@
 INSTALL_DATA	= @INSTALL_DATA@
+LEX   = @LEX@
 CFLAGS		= @IRC_CFLAGS@
 LDFLAGS   	= @LDFLAGS@
 MKDEP		= @MKDEP@
@@ -16,6 +17,7 @@ STDOUT		= @STDOUT@
 MV		= @MV@
 RM		= @RM@
 SED		= @SED@
+YACC    = @YACC@
 
 prefix		= @prefix@
 exec_prefix	= $(DESTDIR)@exec_prefix@
@@ -43,8 +45,15 @@ default:	all
 y.tab.o:	y.tab.c ircd_parser.y
 	${CC} ${CPPFLAGS} ${CFLAGS} -I. -c y.tab.c
 
+# Note GNU bison uses <file>.tab.c not y.tab.c
+y.tab.c:  ircd_parser.y
+	${YACC} -d ircd_parser.y
+
 lex.yy.o:	y.tab.c lex.yy.c ircd_lexer.l
 	${CC} ${CPPFLAGS} ${CFLAGS} -I. -c lex.yy.c
+
+lex.yy.c: ircd_lexer.l
+	${LEX} ircd_lexer.l
 
 SSL_SRCS = rsa.c
 
@@ -100,8 +109,7 @@ BASE_SRCS =	\
  sprintf_irc.c \
  tools.c \
  version.c \
- whowas.c \
- y.tab.c
+ whowas.c 
 
 SRCS = ${BASE_SRCS} $(NETIO_SRC)
 OBJS = ${SRCS:.c=.o}
@@ -110,8 +118,8 @@ all: .depend ircd
 
 build: all
 
-ircd: @MODULES_LIBS@ ../lib/libpcre.a $(OBJS)
-	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS} ${IRCDLIBS}
+ircd: @MODULES_LIBS@ ../lib/libpcre.a y.tab.o lex.yy.o $(OBJS)
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ y.tab.o lex.yy.o ${OBJS} ${IRCDLIBS}
 
 ../modules/libmodules.a:
 	cd ../modules && ${MAKE} ${MFLAGS}

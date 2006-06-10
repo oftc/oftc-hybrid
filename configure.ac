@@ -203,6 +203,18 @@ AC_PATH_PROG(SED, sed)
 AC_PATH_PROG(AR, ar)
 AC_PATH_PROG(LD, ld)
 AC_PATH_PROG(TEST, [test], [test])
+AC_PROG_YACC
+
+dnl AC_PROG_YACC defaults to yacc unconditionally if nothing can be found
+if test "$YACC" = "yacc" -a -z "`which $YACC 2>/dev/null`"; then
+  AC_MSG_ERROR([could not locate a suitable parser generator; install bison, yacc, or byacc])
+fi
+
+AC_PROG_LEX
+if test "$LEX" = ":"; then
+  AC_MSG_ERROR([could not locate a suitable lexical generator, install flex or lex.])
+fi
+
 
 dnl use directory structure of cached as default (hack)
 if test "$libexecdir" = '${exec_prefix}/libexec' &&
