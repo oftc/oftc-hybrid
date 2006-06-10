@@ -148,8 +148,8 @@ release_auth_client(struct Client *client)
   else
     dlinkAdd(client, &client->node, &global_client_list);
 
-  client_p->since  = client_p->lasttime = client_p->firsttime = CurrentTime;
-  client_p->flags |= FLAGS_FINISHED_AUTH;
+  client->since  = client->lasttime = client->firsttime = CurrentTime;
+  client->flags |= FLAGS_FINISHED_AUTH;
 
   read_packet(&client->localClient->fd, client);
 }
