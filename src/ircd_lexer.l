@@ -365,6 +365,7 @@ unauth                  { return T_UNAUTH; }
 spy                     { return T_SPY; }
 external                { return T_EXTERNAL; }
 operwall                { return T_OPERWALL; }
+servconn                { return T_SERVCONN; }
 servnotice              { return T_SERVNOTICE; }
 invisible               { return T_INVISIBLE; }
 wallop                  { return T_WALLOP; }
@@ -372,6 +373,8 @@ callerid                { return T_CALLERID; }
 softcallerid            { return T_SOFTCALLERID; }
 drone                   { return T_DRONE; }
 locops                  { return T_LOCOPS; }
+god                     { return T_GOD; }
+nickservreg             { return T_NICKSERVREG; }
 topicburst		{ return TOPICBURST; }
 
 weeks			{ return WEEKS; }
