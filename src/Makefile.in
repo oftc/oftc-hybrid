@@ -81,7 +81,6 @@ BASE_SRCS =	\
  irc_string.c \
  ircd.c \
  ircd_signal.c \
- lex.yy.c \
  list.c \
  listener.c \
  m_error.c \
