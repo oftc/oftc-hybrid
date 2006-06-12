@@ -750,10 +750,6 @@ ms_sid(struct Client *client_p, struct Client *source_p,
                  IsHidden(target_p) ? "(H) " : "",
                  target_p->info);
   }
-
-  sendto_realops_flags(UMODE_EXTERNAL, L_ALL, 
-		       "Server %s being introduced by %s",
-                       target_p->name, source_p->name);
 }
 
 /* set_server_gecos()
