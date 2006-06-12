@@ -57,6 +57,7 @@ const char *_version = "$Revision$";
 #endif
 
 static char buf[IRCD_BUFSIZE];
+static int line_counter;
 
 /* mo_map()
  *      parv[0] = sender prefix
@@ -69,6 +70,7 @@ mo_map(struct Client *client_p, struct Client *source_p,
   struct AccessItem *aconf;
   dlink_node *ptr;
 
+  line_counter = 0;
   dump_map(client_p, &me, 0, buf);
   DLINK_FOREACH(ptr, server_items.head)
   {
@@ -122,20 +124,22 @@ dump_map(struct Client *client_p, struct Client *root_p, int start_len,
 
   *pb++ = ' ';
   len++;
-  dashes = 50 - len;
+  dashes = 46 - len;
   for(i = 0; i < dashes; i++)
   {
-    *pb++ = '-';
+    *pb++ = ((line_counter - 1) % 3 == 0) ? '-' : ' ';
   }
-  *pb++ = ' ';
-  *pb++ = '|';
 
   users = dlink_list_length(&root_p->serv->users);
 
-  sprintf(pb, " Users: %5d (%1.1f%%)", users,
+  sprintf(pb, "%5d [%4.1f%%]", users,
 	  100 * (float)users / (float)Count.total);
+  if ((line_counter - 1) % 3 == 0) {
+      while(*(pb+1) == ' ') *pb++ = '-';
+  }
 
   sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buf);
+  line_counter++;
         
   if (root_p->serv->servers.head)
   {
