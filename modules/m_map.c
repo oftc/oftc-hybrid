@@ -103,6 +103,7 @@ dump_map(struct Client *client_p, struct Client *root_p, int start_len,
   dlink_node *ptr;
   struct Client *server_p;
   char *pb;
+  int print_dashes;
 
   *pbuf= '\0';
   pb = pbuf;
@@ -110,6 +111,9 @@ dump_map(struct Client *client_p, struct Client *root_p, int start_len,
   l = ircsprintf(pb, "%s", root_p->name);
   pb += l;
   len += l;
+
+  print_dashes = ((line_counter - 1) % 3 == 0);
+  line_counter++;
 
   /* IsOper isn't called *that* often. */
   if (IsOper(client_p))
@@ -127,19 +131,17 @@ dump_map(struct Client *client_p, struct Client *root_p, int start_len,
   dashes = 46 - len;
   for(i = 0; i < dashes; i++)
   {
-    *pb++ = ((line_counter - 1) % 3 == 0) ? '-' : ' ';
+    *pb++ = print_dashes ? '-' : ' ';
   }
 
   users = dlink_list_length(&root_p->serv->users);
 
   sprintf(pb, "%5d [%4.1f%%]", users,
 	  100 * (float)users / (float)Count.total);
-  if ((line_counter - 1) % 3 == 0) {
+  if (print_dashes)  /* make the leading spaces of the usercount dashes too, if required */
       while(*(pb+1) == ' ') *pb++ = '-';
-  }
 
   sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buf);
-  line_counter++;
         
   if (root_p->serv->servers.head)
   {
