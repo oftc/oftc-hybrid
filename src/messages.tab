@@ -358,7 +358,7 @@ static struct NumericInfo replies[] = {
 /* 331 */  {"RPL_NOTOPIC", ":%s 331 %s %s :No topic is set.", NULL},
 /* 332 */  {"RPL_TOPIC", ":%s 332 %s %s :%s", NULL},
 /* 333 */  {"RPL_TOPICWHOTIME", ":%s 333 %s %s %s %lu", NULL},
-/* 334 */  {NULL, NULL, NULL},
+/* 334 */  {"RPL_WHOHELP", ":%s 334 %s :%s", NULL},
 /* 335 */  {NULL, NULL, NULL},
 /* 336 */  {NULL, NULL, NULL},
 /* 337 */  {NULL, NULL, NULL},
