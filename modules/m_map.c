@@ -26,6 +26,7 @@
 #include "client.h"
 #include "modules.h"
 #include "handlers.h"
+#include "hash.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
@@ -33,13 +34,12 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 
-static void m_map(struct Client *, struct Client *, int, char *[]);
 static void mo_map(struct Client *, struct Client *, int, char *[]);
 static void dump_map(struct Client *, struct Client *, int, char *);
 
 struct Message map_msgtab = {
   "MAP", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_map, m_ignore, m_ignore, mo_map, m_ignore}
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_map, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -58,38 +58,6 @@ const char *_version = "$Revision$";
 
 static char buf[IRCD_BUFSIZE];
 
-/* m_map()
- *	parv[0] = sender prefix
- */
-static void
-m_map(struct Client *client_p, struct Client *source_p,
-      int parc, char *parv[])
-{
-  static time_t last_used = 0;
-
-  if (!ConfigServerHide.flatten_links)
-  {
-    if (!IsOper(source_p))
-    {
-      if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
-      {
-        /* safe enough to give this on a local connect only */
-        sendto_one(source_p, form_str(RPL_LOAD2HI),
-          me.name, source_p->name);
-        return;
-      }
-      else
-        last_used = CurrentTime;
-    }
-
-    dump_map(client_p, &me, 0, buf);
-    sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
-    return;
-  }
-
-  m_not_oper(client_p, source_p, parc, parv);
-}
-
 /* mo_map()
  *      parv[0] = sender prefix
  */
@@ -97,7 +65,27 @@ static void
 mo_map(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
+  struct ConfItem *conf;
+  struct AccessItem *aconf;
+  dlink_node *ptr;
+
   dump_map(client_p, &me, 0, buf);
+  DLINK_FOREACH(ptr, server_items.head)
+  {
+    conf = ptr->data;
+    aconf = (struct AccessItem *)map_to_conf(conf);
+    if (aconf->status != CONF_SERVER)
+      continue;
+    if (strcmp(conf->name, me.name) == 0)
+      continue;
+    if (!find_server(conf->name))
+    {
+      char buffer[IRCD_BUFSIZE];
+      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
+      sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buffer);
+    }
+  }
+
   sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
 }
 
