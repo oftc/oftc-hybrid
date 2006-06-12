@@ -23,7 +23,7 @@ o) Added general::stats_e_disabled which simply disables "STATS e"
    for other operators and administrators
 o) Ignore signal SIGXFSZ to prevent the daemon from dying on missconfigured
    file size limits
-
+o) Slight optimizations to the block allocator
 
 -- ircd-hybrid-7.2.1 RELNOTES
 o) Fixed build on SRV4
