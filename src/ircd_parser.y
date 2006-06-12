@@ -3629,6 +3629,9 @@ umode_item:	T_BOTS
 } | T_LOCOPS
 {
   ConfigFileEntry.oper_only_umodes |= UMODE_LOCOPS;
+} | T_GOD
+{
+  ConfigFileEntry.oper_only_umodes |= UMODE_GOD;
 };
 
 general_min_nonwildcard: MIN_NONWILDCARD '=' NUMBER ';'

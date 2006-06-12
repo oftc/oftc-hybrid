@@ -1,1 +1,1 @@
-#define SERIALNUM "SVN"
+#define SERIALNUM "SVN-$Revision"
