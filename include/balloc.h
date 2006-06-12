@@ -46,7 +46,6 @@ struct Block {
   struct Block*	next;		/*!< Next in our chain of blocks */
   void*		elems;		/*!< Points to allocated memory */
   dlink_list	free_list;	/*!< Chain of free memory blocks */
-  dlink_list	used_list;	/*!< Chain of used memory blocks */
 };
 
 typedef struct Block Block;

@@ -285,7 +285,6 @@ BlockHeapAlloc(BlockHeap *bh)
       new_node = walker->free_list.head;
 
       dlinkDelete(new_node, &walker->free_list);
-      dlinkAdd(new_node->data, new_node, &walker->used_list);
       assert(new_node->data != NULL);
 
       memset(new_node->data, 0, bh->elemSize);
@@ -318,15 +317,11 @@ BlockHeapFree(BlockHeap *bh, void *ptr)
   if (memblock->block == NULL)
     outofmemory();
 
-  /* Is this block really on the used list? */
-  assert(dlinkFind(&memblock->block->used_list, ptr) != NULL); 
-
   block = memblock->block;
   ++bh->freeElems;
   ++block->freeElems;
   mem_frob(ptr, bh->elemSize);
 
-  dlinkDelete(&memblock->self, &block->used_list);
   dlinkAdd(ptr, &memblock->self, &block->free_list);
   return 0;
 }
@@ -345,8 +340,7 @@ BlockHeapGarbageCollect(BlockHeap *bh)
 {
   Block *walker = NULL, *last = NULL;
 
-  if (bh == NULL)
-    return 1;
+  assert(bh != NULL);
 
   if (bh->freeElems < bh->elemsPerBlock || bh->blocksAllocated == 1)
   {
