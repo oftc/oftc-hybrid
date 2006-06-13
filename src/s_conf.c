@@ -1326,23 +1326,22 @@ detach_conf(struct Client *client_p, ConfType type)
       case SERVER_TYPE:
         aconf = map_to_conf(conf);
 
-        /* Please, no ioccc entries - Dianora */
-        if (aconf->clients > 0)
-          --aconf->clients;
-        if (aconf->clients == 0 && IsConfIllegal(aconf))
-          delete_conf_item(conf);
+        assert(aconf->clients > 0);
 
         if ((aclass_conf = ClassPtr(aconf)) != NULL)
         {
           aclass = map_to_conf(aclass_conf);
 
+          assert(aclass->curr_user_count > 0);
+
           if (conf->type == CLIENT_TYPE)
             remove_from_cidr_check(&client_p->localClient->ip, aclass);
-          if (aclass->curr_user_count > 0)
-            --aclass->curr_user_count;
-          if (aclass->active == 0 && aclass->curr_user_count <= 0)
+          if (--aclass->curr_user_count == 0 && aclass->active == 0)
             delete_conf_item(aclass_conf);
         }
+
+        if (--aconf->clients == 0 && IsConfIllegal(aconf))
+          delete_conf_item(conf);
 
         break;
 
