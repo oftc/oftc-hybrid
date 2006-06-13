@@ -337,15 +337,17 @@ make_conf_item(ConfType type)
     break;
 
   case CLASS_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct ClassItem));
+    conf = MyMalloc(sizeof(struct ConfItem) +
+                           sizeof(struct ClassItem));
     dlinkAdd(conf, &conf->node, &class_items);
-    aclass = (struct ClassItem *)map_to_conf(conf);
-    ConFreq(aclass)  = DEFAULT_CONNECTFREQUENCY;
+
+    aclass = map_to_conf(conf);
+    aclass->active = 1;
+    ConFreq(aclass) = DEFAULT_CONNECTFREQUENCY;
     PingFreq(aclass) = DEFAULT_PINGFREQUENCY;
     MaxTotal(aclass) = MAXIMUM_LINKS_DEFAULT;
     MaxSendq(aclass) = DEFAULT_SENDQ;
-    CurrUserCount(aclass) = 0;
+
     break;
 
   default:
@@ -356,7 +358,7 @@ make_conf_item(ConfType type)
   /* XXX Yes, this will core if default is hit. I want it to for now - db */
   conf->type = type;
 
-  return(conf);
+  return conf;
 }
 
 void
@@ -723,7 +725,8 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
 		 conf->name, PingFreq(classitem),
 		 ConFreq(classitem),
 		 MaxTotal(classitem), MaxSendq(classitem),
-                 CurrUserCount(classitem));
+                 CurrUserCount(classitem),
+                 classitem->active ? "active" : "disabled");
     }
     break;
 
@@ -758,8 +761,8 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
 
       *p = '\0';
 
-      /* Allow admins to see actual ips
-       * unless hide_server_ips is enabled
+      /*
+       * Allow admins to see actual ips unless hide_server_ips is enabled
        */
       if (!ConfigServerHide.hide_server_ips && IsAdmin(source_p))
 	sendto_one(source_p, form_str(RPL_STATSCLINE),
@@ -827,10 +830,8 @@ check_client(va_list args)
  
   /* I'm already in big trouble if source_p->localClient is NULL -db */
   if ((i = verify_access(source_p, username)))
-  {
     ilog(L_INFO, "Access denied: %s[%s]", 
          source_p->name, source_p->sockhost);
-  }
 
   switch (i)
   {
@@ -882,7 +883,7 @@ check_client(va_list args)
        * capture reject code here or rely on the connecting too fast code.
        * - Dianora
        */
-      if(REJECT_HOLD_TIME > 0)
+      if (REJECT_HOLD_TIME > 0)
       {
 	sendto_one(source_p, ":%s NOTICE %s :You are not authorized to use this server",
 		   me.name, source_p->name);
@@ -1324,24 +1325,25 @@ detach_conf(struct Client *client_p, ConfType type)
       case OPER_TYPE:
       case SERVER_TYPE:
         aconf = map_to_conf(conf);
-        if ((aclass_conf = ClassPtr(aconf)) != NULL)
-        {
-          aclass = map_to_conf(aclass_conf);
-
-          if (conf->type == CLIENT_TYPE)
-            remove_from_cidr_check(&client_p->localClient->ip, aclass);
-
-          if (CurrUserCount(aclass) > 0)
-            aclass->curr_user_count--;
-          if (MaxTotal(aclass) < 0 && CurrUserCount(aclass) <= 0)
-            delete_conf_item(aclass_conf);
-        }
 
         /* Please, no ioccc entries - Dianora */
         if (aconf->clients > 0)
           --aconf->clients;
         if (aconf->clients == 0 && IsConfIllegal(aconf))
           delete_conf_item(conf);
+
+        if ((aclass_conf = ClassPtr(aconf)) != NULL)
+        {
+          aclass = map_to_conf(aclass_conf);
+
+          if (conf->type == CLIENT_TYPE)
+            remove_from_cidr_check(&client_p->localClient->ip, aclass);
+          if (aclass->curr_user_count > 0)
+            --aclass->curr_user_count;
+          if (aclass->active == 0 && aclass->curr_user_count <= 0)
+            delete_conf_item(aclass_conf);
+        }
+
         break;
 
       case LEAF_TYPE:
@@ -2567,7 +2569,8 @@ clear_out_old_conf(void)
       /* XXX This is less than pretty */
       if (conf->type == SERVER_TYPE)
       {
-	aconf = (struct AccessItem *)map_to_conf(conf);
+	aconf = map_to_conf(conf);
+
 	if (aconf->clients != 0)
         {
 	  SetConfIllegal(aconf);
@@ -2580,7 +2583,8 @@ clear_out_old_conf(void)
       }
       else if (conf->type == OPER_TYPE)
       {
-	aconf = (struct AccessItem *)map_to_conf(conf);
+	aconf = map_to_conf(conf);
+
 	if (aconf->clients != 0)
         {
 	  SetConfIllegal(aconf);
@@ -2593,7 +2597,8 @@ clear_out_old_conf(void)
       }
       else if (conf->type == CLIENT_TYPE)
       {
-	aconf = (struct AccessItem *)map_to_conf(conf);
+	aconf = map_to_conf(conf);
+
 	if (aconf->clients != 0)
         {
 	  SetConfIllegal(aconf);
@@ -2618,8 +2623,8 @@ clear_out_old_conf(void)
       {
 	if ((conf->type == LEAF_TYPE) || (conf->type == HUB_TYPE))
 	{
-	  match_item = (struct MatchItem *)map_to_conf(conf);
-	  if ((match_item->ref_count <= 0))
+	  match_item = map_to_conf(conf);
+	  if (match_item->ref_count <= 0)
 	    delete_conf_item(conf);
 	  else
 	  {
@@ -2633,15 +2638,16 @@ clear_out_old_conf(void)
     }
   }
 
-  /* don't delete the class table, rather mark all entries
+  /*
+   * don't delete the class table, rather mark all entries
    * for deletion. The table is cleaned up by check_class. - avalon
    */
   DLINK_FOREACH(ptr, class_items.head)
   {
-    conf = ptr->data;
-    cltmp = (struct ClassItem *)map_to_conf(conf);
+    cltmp = map_to_conf(ptr->data);
+
     if (ptr != class_items.tail)  /* never mark the "default" class */
-      MaxTotal(cltmp) = -1;
+      cltmp->active = 0;
   }
 
   clear_out_address_conf();
@@ -2891,7 +2897,7 @@ find_class(const char *classname)
   struct ConfItem *conf;
 
   if ((conf = find_exact_name_conf(CLASS_TYPE, classname, NULL, NULL)) != NULL)
-    return(conf);
+    return conf;
 
   return class_default;
 }
@@ -2905,23 +2911,18 @@ find_class(const char *classname)
 void
 check_class(void)
 {
-  dlink_node *ptr;
-  dlink_node *next_ptr;
-  struct ConfItem *conf;
-  struct ClassItem *aclass;
+  dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, class_items.head)
   {
-    conf = ptr->data;
-    aclass = (struct ClassItem *)map_to_conf(conf);
+    struct ClassItem *aclass = map_to_conf(ptr->data);
 
-    if (MaxTotal(aclass) < 0)
+    if (!aclass->active)
     {
       destroy_cidr_class(aclass);
-      if (CurrUserCount(aclass) > 0)
-        dlinkDelete(&conf->node, &class_items);
-      else
-        delete_conf_item(conf);
+
+      if (!CurrUserCount(aclass))
+        delete_conf_item(ptr->data);
     }
   }
 }
@@ -2938,7 +2939,9 @@ init_class(void)
   struct ClassItem *aclass;
 
   class_default = make_conf_item(CLASS_TYPE);
-  aclass = (struct ClassItem *)map_to_conf(class_default);
+
+  aclass = map_to_conf(class_default);
+  aclass->active = 1;
   DupString(class_default->name, "default");
   ConFreq(aclass)  = DEFAULT_CONNECTFREQUENCY;
   PingFreq(aclass) = DEFAULT_PINGFREQUENCY;
@@ -2997,14 +3000,13 @@ get_sendq(struct Client *client_p)
 void
 conf_add_class_to_conf(struct ConfItem *conf, const char *class_name)
 {
-  struct AccessItem *aconf;
-  struct ClassItem *aclass;
-
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  struct AccessItem *aconf = map_to_conf(conf);
+  struct ClassItem *class = NULL;
 
   if (class_name == NULL) 
   {
     aconf->class_ptr = class_default;
+
     if (conf->type == CLIENT_TYPE)
       sendto_realops_flags(UMODE_ALL, L_ALL,
 			   "Warning *** Defaulting to default class for %s@%s",
@@ -3015,11 +3017,12 @@ conf_add_class_to_conf(struct ConfItem *conf, const char *class_name)
 			   conf->name);
   }
   else
-  {
     aconf->class_ptr = find_class(class_name);
-  }
 
-  if (aconf->class_ptr == NULL)
+  if (aconf->class_ptr)
+    class = map_to_conf(aconf->class_ptr);
+
+  if (aconf->class_ptr == NULL || !class->active)
   {
     if (conf->type == CLIENT_TYPE)
       sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -3031,17 +3034,7 @@ conf_add_class_to_conf(struct ConfItem *conf, const char *class_name)
 			   conf->name);
     aconf->class_ptr = class_default;
   }
-  else
-  {
-    aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
-    if (MaxTotal(aclass) < 0)
-    {
-      aconf->class_ptr = class_default;
-    }
-  }
 }
-
-#define MAXCONFLINKS 150
 
 /* conf_add_server()
  *
@@ -3921,15 +3914,12 @@ rebuild_cidr_class(struct ConfItem *conf, struct ClassItem *new_class)
 static void
 destroy_cidr_list(dlink_list *list)
 {
-  dlink_node *ptr = NULL;
-  dlink_node *next_ptr = NULL;
-  struct CidrItem *cidr;
+  dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, list->head)
   {
-    cidr = ptr->data;
     dlinkDelete(ptr, list);
-    MyFree(cidr);
+    MyFree(ptr->data);
   }
 }
 

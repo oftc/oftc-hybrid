@@ -1548,28 +1548,34 @@ class_entry: CLASS
   if (ypass == 1)
   {
     yy_conf = make_conf_item(CLASS_TYPE);
-    yy_class = (struct ClassItem *)map_to_conf(yy_conf);
+    yy_class = map_to_conf(yy_conf);
   }
 } class_name_b '{' class_items '}' ';'
 {
   if (ypass == 1)
   {
-    struct ConfItem *cconf;
+    struct ConfItem *cconf = NULL;
     struct ClassItem *class = NULL;
 
     if (yy_class_name == NULL)
-    {
       delete_conf_item(yy_conf);
-    }
     else
     {
       cconf = find_exact_name_conf(CLASS_TYPE, yy_class_name, NULL, NULL);
 
       if (cconf != NULL)		/* The class existed already */
       {
+        int user_count = 0;
+
         rebuild_cidr_class(cconf, yy_class);
-        class = (struct ClassItem *) map_to_conf(cconf);
-        *class = *yy_class;
+
+        class = map_to_conf(cconf);
+
+        user_count = class->curr_user_count;
+        memcpy(class, yy_class, sizeof(*class));
+        class->curr_user_count = user_count;
+        class->active = 1;
+
         delete_conf_item(yy_conf);
 
         MyFree(cconf->name);            /* Allows case change of class name */
@@ -1579,8 +1585,10 @@ class_entry: CLASS
       {
         MyFree(yy_conf->name);          /* just in case it was allocated */
         yy_conf->name = yy_class_name;
+        yy_class->active = 1;
       }
     }
+
     yy_class_name = NULL;
   }
 };

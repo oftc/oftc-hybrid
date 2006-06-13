@@ -151,6 +151,7 @@ struct ClassItem
   int number_per_cidr;
   dlink_list list_ipv4;         /* base of per cidr ipv4 client link list */
   dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
+  int active;
 };
 
 struct CidrItem
