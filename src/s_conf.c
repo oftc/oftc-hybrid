@@ -2916,12 +2916,10 @@ check_class(void)
   {
     struct ClassItem *aclass = map_to_conf(ptr->data);
 
-    if (!aclass->active)
+    if (!aclass->active && !CurrUserCount(aclass))
     {
       destroy_cidr_class(aclass);
-
-      if (!CurrUserCount(aclass))
-        delete_conf_item(ptr->data);
+      delete_conf_item(ptr->data);
     }
   }
 }
