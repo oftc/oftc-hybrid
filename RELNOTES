@@ -11,6 +11,9 @@ o) Added general::stats_e_disabled which simply disables "STATS e"
 o) Ignore signal SIGXFSZ to prevent the daemon from dying on missconfigured
    file size limits
 o) Slight optimizations to the block allocator
+o) Fixed harmless bug that could result in incorrect bytes sent statistics
+   in "STATS t"
+
 
 -- ircd-hybrid-7.2.1 RELNOTES
 o) Fixed build on SRV4

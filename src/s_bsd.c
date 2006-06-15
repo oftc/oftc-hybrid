@@ -201,6 +201,17 @@ close_connection(struct Client *client_p)
 
   assert(NULL != client_p);
 
+  if (!IsDead(client_p))
+  {
+    /* attempt to flush any pending dbufs. Evil, but .. -- adrian */
+    /* there is still a chance that we might send data to this socket
+     * even if it is marked as blocked (COMM_SELECT_READ handler is called
+     * before COMM_SELECT_WRITE). Let's try, nothing to lose.. -adx
+     */
+    ClearSendqBlocked(client_p);
+    send_queued_write(client_p);
+  }
+
   if (IsServer(client_p))
   {
     ServerStats->is_sv++;
@@ -244,17 +255,6 @@ close_connection(struct Client *client_p)
   }
   else
     ServerStats->is_ni++;
-
-  if (!IsDead(client_p))
-  {
-    /* attempt to flush any pending dbufs. Evil, but .. -- adrian */
-    /* there is still a chance that we might send data to this socket
-     * even if it is marked as blocked (COMM_SELECT_READ handler is called
-     * before COMM_SELECT_WRITE). Let's try, nothing to lose.. -adx
-     */
-    ClearSendqBlocked(client_p);
-    send_queued_write(client_p);
-  }
 
 #ifdef HAVE_LIBCRYPTO
   if (client_p->localClient->fd.ssl)
