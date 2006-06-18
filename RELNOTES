@@ -26,6 +26,7 @@ o) Ignore signal SIGXFSZ to prevent the daemon from dying on missconfigured
 o) Slight optimizations to the block allocator
 o) Fixed harmless bug that could result in incorrect bytes sent statistics
    in "STATS t"
+o) "STATS y|Y" now shows whether a class is active or disabled
 
 
 -- ircd-hybrid-7.2.1 RELNOTES
