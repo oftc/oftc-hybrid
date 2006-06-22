@@ -528,6 +528,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
     auth_error(auth);
     return;
   }
+
   read_auth_reply(&auth->fd, auth);
 }
 
@@ -649,8 +650,11 @@ delete_auth(struct Client *target_p)
       if (auth->client == target_p)
       {
         delete_resolver_queries(target_p->localClient->dns_query);
+        MyFree(target_p->localClient->dns_query);
+        target_p->localClient->dns_query = NULL;
 
         dlinkDelete(&auth->dns_node, &auth_doing_dns_list);
+
         if (!IsDoingAuth(auth))
         {
           MyFree(auth);
