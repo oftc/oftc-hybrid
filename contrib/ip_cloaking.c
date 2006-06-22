@@ -301,6 +301,9 @@ make_virthost (char *curr, char *host, char *new)
   parc  = str2arr(parv, s, ".");
   parc2 = str2arr(parv2, s2, ".");
 
+  if (!parc2)
+    return;
+
   hash[0] = ((crc32 (parv[3], strlen (parv[3])) + KEY) ^ KEY2) ^ KEY3;
   hash[1] = ((KEY2 ^ crc32 (parv[2], strlen (parv[2]))) + KEY3) ^ KEY;
   hash[2] = ((crc32 (parv[1], strlen (parv[1])) + KEY3) ^ KEY) ^ KEY2;
