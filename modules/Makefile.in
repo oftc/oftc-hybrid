@@ -56,18 +56,13 @@ OFTC_SRCS = \
   spy_stats_p_notice.c \
   spy_trace_notice.c \
   spy_whois_notice.c \
-  m_cs.c        \
   m_gnotice.c \
-  m_hs.c \
   m_map.c \
-  m_ms.c \
-  m_ns.c \
-  m_os.c \
   m_realhost.c \
+	m_services.c\
   m_shedding.c \
   m_svscloak.c\
   m_svsmode.c\
-  m_svsnick.c\
   m_tburst.c
  
 SRCS =       \
