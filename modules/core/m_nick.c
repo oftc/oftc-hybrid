@@ -728,13 +728,16 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
   {
     /* client changing their nick */
     if (irccmp(parv[0], nick))
+    {
+      del_all_accepts(source_p);
       source_p->tsinfo = newts ? newts : CurrentTime;
+    }
 
     sendto_common_channels_local(source_p, 1, ":%s!%s@%s NICK :%s",
                                  source_p->name,source_p->username,
                                  source_p->host, nick);
 
-    add_history(source_p,1);
+    add_history(source_p, 1);
     sendto_server(client_p, source_p, NULL, CAP_TS6, NOCAPS, NOFLAGS,
                   ":%s NICK %s :%lu",
                   ID(source_p), nick, (unsigned long)source_p->tsinfo);
