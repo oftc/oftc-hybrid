@@ -1268,6 +1268,10 @@ oper_umodes_item:  T_BOTS
 {
   if (ypass == 2)
     yy_aconf->modes |= UMODE_GOD;
+} | T_SERVCONN
+{
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_SERV;
 };
 
 oper_global_kill: GLOBAL_KILL '=' TBOOL ';'
@@ -3572,6 +3576,9 @@ umode_oitem:     T_BOTS
 } | T_GOD
 {
   ConfigFileEntry.oper_umodes |= UMODE_GOD;
+} | T_SERVCONN
+{
+  ConfigFileEntry.oper_umodes |= UMODE_SERV;
 };
 
 general_oper_only_umodes: OPER_ONLY_UMODES 

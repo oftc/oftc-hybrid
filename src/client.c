@@ -1392,7 +1392,14 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
      (IsOper(source_p) && ConfigFileEntry.no_oper_flood))
   {
     if (irccmp(source_p->name, nick))
+    {
+      /*
+       * Make sure everyone that has this client on its accept list
+       * loses that reference.
+       */
+      del_all_their_accepts(source_p);
       source_p->tsinfo = CurrentTime;
+    }
 
     /* XXX - the format of this notice should eventually be changed
      * to either %s[%s@%s], or even better would be get_client_name() -bill
@@ -1402,15 +1409,15 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
     sendto_common_channels_local(source_p, 1, ":%s!%s@%s NICK :%s",
                                  source_p->name, source_p->username,
                                  source_p->host, nick);
-
     add_history(source_p, 1);
-	  
-	 /* Only hubs care about lazy link nicks not being sent on yet
-	   * lazylink leafs/leafs always send their nicks up to hub,
-	   * hence must always propagate nick changes.
-	   * hubs might not propagate a nick change, if the leaf
-	   * does not know about that client yet.
-	   */
+
+    /*
+     * Only hubs care about lazy link nicks not being sent on yet
+     * lazylink leafs/leafs always send their nicks up to hub,
+     * hence must always propagate nick changes.
+     * hubs might not propagate a nick change, if the leaf
+     * does not know about that client yet.
+     */
     sendto_server(client_p, source_p, NULL, CAP_TS6, NOCAPS, NOFLAGS,
                   ":%s NICK %s :%lu",
                   ID(source_p), nick, (unsigned long)source_p->tsinfo);
@@ -1432,11 +1439,6 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
 
   strcpy(source_p->name, nick);
   hash_add_client(source_p);
-
-  /* Make sure everyone that has this client on its accept list
-   * loses that reference. 
-   */
-  del_all_their_accepts(source_p);
 
   /* fd_desc is long enough */
   fd_note(&client_p->localClient->fd, "Nick: %s", nick);
