@@ -430,16 +430,16 @@ whois_person(struct Client *source_p, struct Client *target_p)
 
   if (ConfigFileEntry.use_whois_actually)
   {
-    int show_ip = 0;
+    int show_ip;
 
     if ((target_p->sockhost[0] != '\0') && irccmp(target_p->sockhost, "0"))
     {
       if ((IsAdmin(source_p) || source_p == target_p))
-	show_ip = 1;
+        show_ip = 1;
       else if (IsIPSpoof(target_p))
-	show_ip = (IsOper(source_p) && !ConfigFileEntry.hide_spoof_ips);
+        show_ip = (IsOper(source_p) && !ConfigFileEntry.hide_spoof_ips);
       else
-	show_ip = 1;
+        show_ip = 0;
 
       sendto_one(source_p, form_str(RPL_WHOISACTUALLY),
                  me.name, source_p->name, target_p->name,
