@@ -166,39 +166,46 @@ parse_resvconf(void)
    * for cygwin support etc. this hardcodes it to unix for now -db
    */
   if ((file = fbopen("/etc/resolv.conf", "r")) == NULL)
-    return(-1);
+    return -1;
 
-  while (fbgets(input, MAXLINE, file) != NULL)
+  while (fbgets(input, sizeof(input), file) != NULL)
   {
     /* blow away any newline */
     if ((p = strpbrk(input, "\r\n")) != NULL)
       *p = '\0';
 
-    /* Ignore comment lines immediately */
-    if (*input == '#')
-      continue;
-
     p = input;
+
     /* skip until something thats not a space is seen */
     while (IsSpace(*p))
-      p++;
+      ++p;
+
     /* if at this point, have a '\0' then continue */
     if (*p == '\0')
       continue;
 
+    /* Ignore comment lines immediately */
+    if (*p == ';' || *p == '#')
+      continue;
+
     /* skip until a space is found */
-    opt = input;
-    while (!IsSpace(*p))
-      if (*p++ == '\0')
-        continue;  /* no arguments?.. ignore this line */
+    opt = p;
+    while (!IsSpace(*p) && *p)
+      ++p;
+
+    if (*p == '\0')
+      continue;  /* no arguments?.. ignore this line */
+
     /* blow away the space character */
     *p++ = '\0';
 
     /* skip these spaces that are before the argument */
     while (IsSpace(*p))
-      p++;
+      ++p;
+
     /* Now arg should be right where p is pointing */
     arg = p;
+
     if ((p = strpbrk(arg, " \t")) != NULL)
       *p = '\0';  /* take the first word */
 
@@ -209,7 +216,7 @@ parse_resvconf(void)
   }
 
   fbclose(file);
-  return(0);
+  return 0;
 }
 
 /* add_nameserver()
