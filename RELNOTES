@@ -17,6 +17,7 @@ o) "STATS y|Y" now shows whether a class is active or disabled
 o) Added ircd-brazilian_pt.lang language file
 o) Misc. ACCEPT fixes. E.g. don't remove an accept record if a client is
    changing between equivalent nicknames like 'nick' and 'NiCk'.
+o) Minor resolv.conf parser fixes.  Added missing support for ';' comments
 
 
 -- ircd-hybrid-7.2.1 RELNOTES
