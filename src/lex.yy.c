@@ -4147,7 +4147,7 @@ cinclude(void)
     strlcpy(conffile_stack[include_stack_ptr], conffilebuf, IRCD_BUFSIZE);
     include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
     conf_fbfile_in = tmp_fbfile_in;
-    snprintf(conffilebuf, sizeof(conffilebuf), "%s", p);
+    snprintf(conffilebuf, sizeof(conffilebuf), "%s", filenamebuf);
     yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
   }
 }
