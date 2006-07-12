@@ -63,8 +63,8 @@ register_callback(const char *name, CBFUNC *func)
     if ((cb = find_callback(name)) != NULL)
     {
       if (func != NULL)
-        dlinkAdd(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
-      return (NULL);
+        dlinkAddTail(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
+      return (cb);
     }
 
   cb = MyMalloc(sizeof(struct Callback));
