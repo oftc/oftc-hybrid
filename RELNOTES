@@ -18,6 +18,7 @@ o) Added ircd-brazilian_pt.lang language file
 o) Misc. ACCEPT fixes. E.g. don't remove an accept record if a client is
    changing between equivalent nicknames like 'nick' and 'NiCk'.
 o) Minor resolv.conf parser fixes.  Added missing support for ';' comments
+o) Fixed core on MODRESTART
 
 
 -- ircd-hybrid-7.2.1 RELNOTES
