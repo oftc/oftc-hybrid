@@ -5,6 +5,7 @@ RM = @RM@
 # Default make flags - you may want to uncomment this on a multicpu machine
 #MFLAGS   = -j 4
 BUILD_DIRS = pcre
+datarootdir	= $(DESTDIR)@datarootdir@
 
 # The make used HAS to set $(MAKE). But then, if we don't do it this
 # way, people lose the option to use a 'make' called something other 

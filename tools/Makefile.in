@@ -10,8 +10,7 @@ LDFLAGS   	= @LDFLAGS@
 MV		= @MV@
 RM		= @RM@
 LN              = @LN@
-
-CLOBBER=@CLOBBER@
+CLOBBER		= @CLOBBER@
 
 SSL_LIBS	= @SSL_LIBS@
 SSL_INCLUDES	= @SSL_INCLUDES@
@@ -22,6 +21,7 @@ INCLUDES	= -I../include $(SSL_INCLUDES)
 prefix		= $(DESTDIR)@prefix@
 exec_prefix	= $(DESTDIR)@exec_prefix@
 bindir		= $(DESTDIR)@bindir@
+datarootdir	= $(DESTDIR)@datarootdir@
 
 PROGS		= mkpasswd @ENCSPEED@
 

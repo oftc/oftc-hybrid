@@ -7,6 +7,7 @@ RM=		@RM@
 
 prefix=		@prefix@
 exec_prefix=	@execprefix@
+datarootdir	= $(DESTDIR)@datarootdir@
 uhelpdir=	${prefix}/help/users
 ohelpdir=	${prefix}/help/opers
 

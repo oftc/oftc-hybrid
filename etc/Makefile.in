@@ -12,6 +12,7 @@ CLOBBER=@CLOBBER@
 prefix		= $(DESTDIR)@prefix@
 sysconfdir	= $(DESTDIR)@sysconfdir@
 exec_prefix	= $(DESTDIR)@exec_prefix@
+datarootdir	= $(DESTDIR)@datarootdir@
 
 DISTFILES	= @EXAMPLE_CONF@
 

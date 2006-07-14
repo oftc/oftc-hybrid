@@ -17,13 +17,12 @@ SED		= @SED@
 prefix          = @prefix@
 exec_prefix     = $(DESTDIR)@exec_prefix@
 bindir          = $(DESTDIR)@bindir@
+datarootdir	= $(DESTDIR)@datarootdir@
 
-CLOBBER=@CLOBBER@
-
+CLOBBER		= @CLOBBER@
 SSL_LIBS	= @SSL_LIBS@
 SSL_INCLUDES	= @SSL_INCLUDES@
 ZIP_LIB		= @ZLIB_LD@
-
 IRCDLIBS        = @LIBS@ $(SSL_LIBS) $(ZIP_LIB)
 
 INCLUDES        = -I. -I../include $(SSL_INCLUDES)

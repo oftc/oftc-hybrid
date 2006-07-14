@@ -22,6 +22,7 @@ SSL_INCLUDES	= @SSL_INCLUDES@
 IRCDLIBS        = @LIBS@ $(SSL_LIBS)
 
 prefix          = $(DESTDIR)@prefix@
+datarootdir	= $(DESTDIR)@datarootdir@
 # Change this later! -- adrian
 moduledir       = ${prefix}/modules
 automoduledir   = ${moduledir}/autoload

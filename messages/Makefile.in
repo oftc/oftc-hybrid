@@ -1,13 +1,14 @@
 # $Id$
 #
-RM            = @RM@
-MV            = @MV@
-INSTALL       = @INSTALL@
-INSTALL_DATA  = @INSTALL_DATA@
-prefix        = $(DESTDIR)@prefix@
-messagedir    = $(prefix)/messages
+RM		= @RM@
+MV		= @MV@
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+prefix		= $(DESTDIR)@prefix@
+messagedir	= $(prefix)/messages
+datarootdir	= $(DESTDIR)@datarootdir@
 
-CLOBBER=@CLOBBER@
+CLOBBER		= @CLOBBER@
 
 LANGFILES     = ayb.lang            \
                 custom.lang         \
