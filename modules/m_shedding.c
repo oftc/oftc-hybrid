@@ -104,6 +104,11 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
       return;
   }
 
+  // we better re-initialize defaults, else sheddings made in serial
+  // will re-use the settings of the previous one
+  rate = 60;
+  operstoo = 0;
+
   if(parc < 2) {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
         me.name, source_p->name, "SHEDDING");
