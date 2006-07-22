@@ -103,9 +103,12 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
               "User shedding DISABLED by %s", source_p->name);
       return;
   }
-  if(parc < 2)
+
+  if(parc < 2) {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
         me.name, source_p->name, "SHEDDING");
+    return;
+  }
 
   if (parc > 1) 
     rate = atoi(parv[1]);
@@ -115,7 +118,7 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
     
   sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, 
           "User shedding ENABLED by %s (%s). Shedding interval: %d seconds (Opers too: %s)", 
-          source_p->name, parv[parc], rate, operstoo == 1 ? "Yes" : "No");
+          source_p->name, parv[parc], rate, operstoo == 0 ? "No" : "Yes");
   /* Set a minimum because we need to do a bit of variance */
   rate -= (rate/5);
 
