@@ -129,6 +129,10 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
   /* Set a minimum because we need to do a bit of variance */
   rate -= (rate/5);
 
+  /* Lets not start more than one main thread in case someone tweaks the
+   * paramters
+   */
+  eventDelete(user_shedding_main, NULL);
   eventAdd("user shedding main event", user_shedding_main, NULL, rate);
 }
 
