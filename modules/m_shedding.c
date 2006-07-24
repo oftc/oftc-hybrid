@@ -148,11 +148,12 @@ void user_shedding_shed(void *unused)
   {
       client_p = ptr->data;
 
-      if(MyClient(client_p) && (!IsOper(client_p) || operstoo ))
-      {
-          exit_client(client_p, &me, "Server closed connection");
-          break;
-      }
+      if (!MyClient(client_p)) /* It could be servers */
+          continue;
+      if (IsOper(client_p) && !operstoo)
+          continue;
+      exit_client(client_p, &me, "Server closed connection");
+      break;
   }
   eventDelete(user_shedding_shed, NULL);
 }
