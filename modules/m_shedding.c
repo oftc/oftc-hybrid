@@ -47,7 +47,7 @@ void user_shedding_shed(void *unused);
 
 struct Message shedding_msgtab = {
   "shedding", 0, 0, 2, 0, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, m_ignore, mo_shedding, m_ignore}
+   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_shedding, m_ignore}
 };
 
 static int rate = 60;
