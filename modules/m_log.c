@@ -46,7 +46,7 @@ const char* _version = "$Revision: 301 $";
 
 struct Message log_msgtab = {
   "LOG", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_log, mo_log}
+  {m_unregistered, m_not_oper, mo_log, m_ignore, mo_log, m_ignore}
   };
       
 
