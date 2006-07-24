@@ -121,11 +121,11 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
     rate = atoi(parv[1]);
     
   if (parc > 3)
-    operstoo = atoi(parv[2]);
+    operstoo = !!atoi(parv[2]);
     
   sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, 
           "User shedding ENABLED by %s (%s). Shedding interval: %d seconds (Opers too: %s)", 
-          source_p->name, parv[parc-1], rate, operstoo == 0 ? "No" : "Yes");
+          source_p->name, parv[parc-1], rate, operstoo ? "Yes" : "No");
   /* Set a minimum because we need to do a bit of variance */
   rate -= (rate/5);
 
@@ -148,7 +148,7 @@ void user_shedding_shed(void *unused)
   {
       client_p = ptr->data;
 
-      if(MyClient(client_p) && ((!IsOper(client_p)) || (operstoo == 0) ))
+      if(MyClient(client_p) && (!IsOper(client_p) || operstoo ))
       {
           exit_client(client_p, &me, "Server closed connection");
           break;
