@@ -104,26 +104,28 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
       return;
   }
 
-  // we better re-initialize defaults, else sheddings made in serial
-  // will re-use the settings of the previous one
+  /* we better re-initialize defaults, else sheddings made in serial
+   * will re-use the settings of the previous one
+   */
   rate = 60;
   operstoo = 0;
 
-  if(parc < 2) {
+  if(parc < 2) 
+  {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
         me.name, source_p->name, "SHEDDING");
     return;
   }
 
-  if (parc > 1) 
+  if (parc > 2) 
     rate = atoi(parv[1]);
     
-  if (parc > 2)
+  if (parc > 3)
     operstoo = atoi(parv[2]);
     
   sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, 
           "User shedding ENABLED by %s (%s). Shedding interval: %d seconds (Opers too: %s)", 
-          source_p->name, parv[parc], rate, operstoo == 0 ? "No" : "Yes");
+          source_p->name, parv[parc-1], rate, operstoo == 0 ? "No" : "Yes");
   /* Set a minimum because we need to do a bit of variance */
   rate -= (rate/5);
 
