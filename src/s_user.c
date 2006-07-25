@@ -95,7 +95,7 @@ unsigned int user_modes[256] =
   0,                  /* @ */
   0,                  /* A */
   0,                  /* B */
-  UMODE_SERV,         /* C */
+  0,                  /* C */
   UMODE_DEAF,         /* D */
   0,                  /* E */
   0,                  /* F */

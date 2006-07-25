@@ -393,7 +393,6 @@ struct LocalUser
 #define UMODE_ADMIN        0x80000 /* Admin on server */ 
 #define UMODE_GOD          0x100000 /* Operator is God */
 #define UMODE_NICKSERVREG  0x200000 /* User is registered with nickserv and identified */
-#define UMODE_SERV         0x400000 /* Server connection notices */
 #define UMODE_ALL	   UMODE_SERVNOTICE
 
 #define SEND_UMODES  (UMODE_INVISIBLE | UMODE_OPER | UMODE_WALLOP | \

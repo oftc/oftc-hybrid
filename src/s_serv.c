@@ -124,7 +124,7 @@ slink_error(unsigned int rpl, unsigned int len, unsigned char *data,
 
   data[len-1] = '\0';
 
-  sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL, "SlinkError for %s: %s",
+  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "SlinkError for %s: %s",
                        server_p->name, data);
   /* XXX should this be exit_client? */
   exit_client(server_p, &me, "servlink error -- terminating link");
@@ -561,10 +561,10 @@ try_connections(void *unused)
        *   -- adrian
        */
       if (ConfigServerHide.hide_server_ips)
-        sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL, "Connection to %s activated.",
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Connection to %s activated.",
                              conf->name);
       else
-        sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL, "Connection to %s[%s] activated.",
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Connection to %s[%s] activated.",
                              conf->name, aconf->host);
 
       serv_connect(aconf, NULL);
@@ -2305,7 +2305,7 @@ void
 cryptlink_error(struct Client *client_p, const char *type,
                 const char *reason, const char *client_reason)
 {
-  sendto_gnotice_flags(UMODE_SERV, L_ALL, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
+  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
                        get_client_name(client_p, SHOW_IP), type, reason);
 
 

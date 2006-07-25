@@ -355,7 +355,6 @@ unhook_hub_leaf_confs(void)
 %token  T_OPERWALL
 %token  T_REJ
 %token  T_SERVNOTICE
-%token  T_SERVCONN
 %token  T_SKILL
 %token  T_SPY
 %token  T_SSL
@@ -1268,10 +1267,6 @@ oper_umodes_item:  T_BOTS
 {
   if (ypass == 2)
     yy_aconf->modes |= UMODE_GOD;
-} | T_SERVCONN
-{
-  if (ypass == 2)
-    yy_aconf->modes |= UMODE_SERV;
 };
 
 oper_global_kill: GLOBAL_KILL '=' TBOOL ';'
@@ -3576,9 +3571,6 @@ umode_oitem:     T_BOTS
 } | T_GOD
 {
   ConfigFileEntry.oper_umodes |= UMODE_GOD;
-} | T_SERVCONN
-{
-  ConfigFileEntry.oper_umodes |= UMODE_SERV;
 };
 
 general_oper_only_umodes: OPER_ONLY_UMODES 
@@ -3626,9 +3618,6 @@ umode_item:	T_BOTS
 } | T_SERVNOTICE
 {
   ConfigFileEntry.oper_only_umodes |= UMODE_SERVNOTICE;
-} | T_SERVCONN
-{
-  ConfigFileEntry.oper_only_umodes |= UMODE_SERV;
 } | T_INVISIBLE
 {
   ConfigFileEntry.oper_only_umodes |= UMODE_INVISIBLE;

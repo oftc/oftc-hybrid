@@ -365,7 +365,6 @@ unauth                  { return T_UNAUTH; }
 spy                     { return T_SPY; }
 external                { return T_EXTERNAL; }
 operwall                { return T_OPERWALL; }
-servconn                { return T_SERVCONN; }
 servnotice              { return T_SERVNOTICE; }
 invisible               { return T_INVISIBLE; }
 wallop                  { return T_WALLOP; }
