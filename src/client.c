@@ -669,12 +669,13 @@ get_client_name(struct Client *client, int showip)
   switch (showip)
   {
     case SHOW_IP:
-      if (MyConnect(client))
-      {
+      if (*client->sockhost != '\0')
         ircsprintf(nbuf, "%s[%s@%s]", client->name, client->username,
                    client->sockhost);
-        break;
-      }
+      else
+        ircsprintf(nbuf, "%s[%s@%s]", client->name, client->username,
+                   client->host);
+      break;
     case MASK_IP:
       ircsprintf(nbuf, "%s[%s@255.255.255.255]", client->name,
                  client->username);
