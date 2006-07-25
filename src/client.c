@@ -1044,7 +1044,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
                            source_p->name, (int)(CurrentTime - source_p->firsttime),
                            source_p->localClient->send.bytes >> 10,
                            source_p->localClient->recv.bytes >> 10);
-      ilog(L_NOTICE, "%s was connected for %d seconds.  %lu/%lu sendK/recvK.",
+      ilog(L_NOTICE, "%s was connected for %d seconds.  %llu/%llu sendK/recvK.",
            source_p->name, (int)(CurrentTime - source_p->firsttime), 
            source_p->localClient->send.bytes >> 10,
            source_p->localClient->recv.bytes >> 10);
