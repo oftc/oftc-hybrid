@@ -1,16 +1,17 @@
 # Makefile to install help files
 # $Id: Makefile.in 33 2005-10-02 20:50:00Z knight $
 
-INSTALL=	@INSTALL@
-INSTALL_DATA=	@INSTALL_DATA@
-RM=		@RM@
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+RM		= @RM@
 
-prefix=		@prefix@
-exec_prefix=	@execprefix@
-uhelpdir=	${prefix}/help/users
-ohelpdir=	${prefix}/help/opers
+prefix		= @prefix@
+exec_prefix	= @execprefix@
+datarootdir	= $(DESTDIR)@datarootdir@
+uhelpdir	= ${prefix}/help/users
+ohelpdir	= ${prefix}/help/opers
 
-SYMLINKS=	topic accept cmode admin names links away whowas \
+SYMLINKS	= topic accept cmode admin names links away whowas \
 		version kick who invite quit join list nick oper part \
 		time motd userhost users whois ison lusers user help \
 		challenge map pass error knock ping pong

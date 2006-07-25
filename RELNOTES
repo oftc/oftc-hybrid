@@ -1,3 +1,10 @@
+-- oftc-hybrid 1.5.0 RELNOTES
+o) UMode +G moved to +S to make way for hybrid +G
+o) UMode +S removed
+o) Shedding accepted new paramters
+o) The various services shortcuts and SVSNICK are now from hybrid contrib
+o) Code merged with hybrid 7.2.2 release
+
 -- oftc-hybrid 1.4.1 RELNOTES
 o) Fix amd64 issues.
 o) Fixed server max_connections
@@ -30,6 +37,7 @@ o) "STATS y|Y" now shows whether a class is active or disabled
 o) Added ircd-brazilian_pt.lang language file
 o) Misc. ACCEPT fixes. E.g. don't remove an accept record if a client is
    changing between equivalent nicknames like 'nick' and 'NiCk'.
+o) Fixed core on MODRESTART
 
 
 -- ircd-hybrid-7.2.1 RELNOTES

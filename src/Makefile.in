@@ -24,6 +24,7 @@ exec_prefix	= $(DESTDIR)@exec_prefix@
 bindir		= $(DESTDIR)@bindir@
 sysconfdir	= $(DESTDIR)@sysconfdir@
 localstatedir	= $(DESTDIR)@localstatedir@
+datarootdir	= $(DESTDIR)@datarootdir@
 
 # must not have whitespace here
 CLOBBER=@CLOBBER@

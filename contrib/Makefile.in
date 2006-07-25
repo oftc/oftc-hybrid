@@ -18,6 +18,7 @@ INSTALL		= @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
 
 prefix		= $(DESTDIR)@prefix@
+datarootdir	= $(DESTDIR)@datarootdir@
 
 AUTOMODULEDIR	= ${prefix}/modules
 

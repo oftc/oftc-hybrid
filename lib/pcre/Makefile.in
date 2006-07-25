@@ -15,6 +15,7 @@ IRCDLIBS        = @LIBS@ $(SSL_LIBS)
 
 INCLUDES	= -I.
 CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
+datarootdir	= $(DESTDIR)@datarootdir@
 
 PCRE_SRCS = \
   pcre_chartables.c  \

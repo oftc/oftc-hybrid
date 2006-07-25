@@ -9638,8 +9638,8 @@ fi;
 if test "$profile" = yes; then
 	if test "$ac_cv_c_compiler_gnu" = yes; then
 		IRC_CFLAGS="$IRC_CFLAGS -pg -static"
-		echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6="yes, adding -pg -static"
+		echo "$as_me:$LINENO: result: yes, adding -pg -static" >&5
+echo "${ECHO_T}yes, adding -pg -static" >&6
 	else
 		echo "$as_me:$LINENO: result: no, profile builds only work with gcc" >&5
 echo "${ECHO_T}no, profile builds only work with gcc" >&6

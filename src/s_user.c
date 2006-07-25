@@ -1410,6 +1410,7 @@ init_isupport(void)
 
   add_isupport("CALLERID", NULL, -1);
   add_isupport("CASEMAPPING", CASEMAP, -1);
+  add_isupport("DEAF", "D", -1);
   add_isupport("KICKLEN", NULL, KICKLEN);
   add_isupport("MODES", NULL, MAXMODEPARAMS);
   add_isupport("NICKLEN", NULL, NICKLEN-1);

@@ -31,6 +31,7 @@ CLEAN_DIRS   = ${BUILD_DIRS} contrib
 DISTCLEAN_DIRS = ${INSTALL_DIRS} contrib messages
 
 prefix		= $(DESTDIR)@prefix@
+datarootdir	= $(DESTDIR)@datarootdir@
 
 # The make used HAS to set $(MAKE). But then, if we don't do it this
 # way, people lose the option to use a 'make' called something other 
