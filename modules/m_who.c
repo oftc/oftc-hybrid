@@ -76,7 +76,7 @@ typedef struct SearchOptions
     char *user;
     char *host;
     char *gcos;
-/*    char *ip; not atm */
+    char *ip; 
     struct Channel *channel;
     struct Client *server;
     char umode_plus:1;
@@ -84,7 +84,7 @@ typedef struct SearchOptions
     char user_plus:1;
     char host_plus:1;
     char gcos_plus:1;
-/*    char ip_plus:1;*/
+    char ip_plus:1;
     char chan_plus:1;
     char serv_plus:1;
     char away_plus:1;
@@ -142,10 +142,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
       "                        wildcards accepted, oper only",
       "Flag h <host>: user has string <host> in their hostname,",
       "               wildcards accepted",
-/* 
- * We dont support this yet 
- * "Flag i <ip>: user is from <ip> wildcards accepted,", 
- * */
+      "Flag i <ip>: user is from <ip> wildcards accepted,", 
       "Flag m <usermodes>: user has <usermodes> set on them,",
       "                    only o/A/a for nonopers",
       "Flag n <nick>: user has string <nick> in their nickname,",
@@ -280,8 +277,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 	    wsopts.host_plus = change;
 	    args++;
 	    break;
-/* XXX Disabled: WE CAN NOT LOOK UP REMOTE IPS AT THIS TIME
-        case 'i':
+      case 'i':
 	    if(parv[args] == NULL || !IsOper(source_p))
 	    {
 	      sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
@@ -292,7 +288,6 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 	    wsopts.ip_plus = change;
 	    args++;
 	    break;
-    */
       case 'm':
 	    if(parv[args] == NULL)
 	    {
@@ -396,7 +391,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
       if(wsopts.show_chan && !(wsopts.check_away || wsopts.gcos ||
 			       wsopts.host || wsopts.check_umode ||
 			       wsopts.server || wsopts.user || wsopts.nick ||
-			       /*wsopts.ip ||*/ wsopts.channel))
+			       wsopts.ip || wsopts.channel))
       {
 	  if(parv[args]==NULL)
 	  {
@@ -503,13 +498,10 @@ chk_who(struct Client *target_p, int showall)
     }
   }
     
-/* 
- * we don't do ips atm 
- * if(wsopts.ip!=NULL)
-    if((wsopts.ip_plus && ichkfn(wsopts.ip, target_p->localClient->sockhost)) ||
-        (!wsopts.ip_plus && !ichkfn(wsopts.ip, target_p->localClient->sockhost)))
+  if(wsopts.ip!=NULL && target_p->sockhost[0] != '\0')
+    if((wsopts.ip_plus && ichkfn(wsopts.ip, target_p->sockhost)) ||
+        (!wsopts.ip_plus && !ichkfn(wsopts.ip, target_p->sockhost)))
       return 0;
- */   
   if(wsopts.gcos!=NULL)
   {
     if(gchkfn == match)
@@ -641,12 +633,11 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   else
 	hchkfn=match;
 
-/*  if(wsopts.ip!=NULL && (strchr(wsopts.ip, '?'))==NULL &&
+  if(wsopts.ip!=NULL && (strchr(wsopts.ip, '?'))==NULL &&
         (strchr(wsopts.ip, '*'))==NULL)
 	ichkfn=irccmp;
   else
 	ichkfn=match;
-*/
 
   if(wsopts.channel!=NULL)
   {
