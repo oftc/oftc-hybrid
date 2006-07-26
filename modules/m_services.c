@@ -43,7 +43,7 @@
 /* Change this to the name of your services server
  * otherwise the services aliases will not work!
  */
-#define SERVICES_NAME "services.yournet.net"
+#define SERVICES_NAME "services.oftc.net"
 
 /* END OF MODULE CONFIGURATION */
 
