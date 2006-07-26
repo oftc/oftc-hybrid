@@ -140,7 +140,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
           me.name, parv[0], parv[2]);
       return;
     }
-    if(!chop)
+    if(MyConnect(source_p) && !chop)
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
           "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
           target_p->name);
