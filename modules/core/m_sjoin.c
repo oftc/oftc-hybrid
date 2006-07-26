@@ -204,6 +204,11 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
   {
     isnew = 1;
     chptr = make_channel(parv[2]);
+    if(MyClient(source_p))
+      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+          "Channel %s created by %s!%s@%s", chname, source_p->name,
+          source_p->username, source_p->host);
+
   }
 
   parabuf[0] = '\0';

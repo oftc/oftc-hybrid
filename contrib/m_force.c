@@ -242,6 +242,11 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
     }
 
     chptr = make_channel(newch);
+    if(MyClient(target_p))
+      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+          "Channel %s created by %s!%s@%s", chname, target_p->name,
+          target_p->username, target_p->host);
+
     add_user_to_channel(chptr, target_p, CHFL_CHANOP, NO);
 
     /* send out a join, make target_p join chptr */
