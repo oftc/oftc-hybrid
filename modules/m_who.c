@@ -132,7 +132,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
   {
       "/WHO [+|-][acghimnsuCM] [args]",
       "Flags are specified like channel modes,",
-      "The flags cgh"/*i*/"mnsu all have arguments",
+      "The flags cghmnsu all have arguments",
       "Flags are set to a positive check by +, a negative check by -",
       "The flags work as follows:",
       "Flag a: user is away",
