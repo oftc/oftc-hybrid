@@ -322,18 +322,24 @@ check_pings_list(dlink_list *list)
                      (int)(CurrentTime - client_p->lasttime));
           exit_client(client_p, &me, scratch);
         }
-        else if (!IsPingWarning(client_p) && pingwarn > 0 &&
+        /* else if (!IsPingWarning(client_p) && pingwarn > 0 && */
+           /* We want to hear about missing ping replies every 5 (or whatever
+            * it is) seconds, not just once and then be uncertain about the
+            * link until it splits. */
+        else if (pingwarn > 0 &&
 	         (IsServer(client_p) || IsHandshake(client_p)) &&
 	         CurrentTime - client_p->lasttime >= ping + pingwarn)
         {
+          char timestamp[200];
+          strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&CurrentTime));
           /*
            * If the server hasn't replied in pingwarn seconds after sending
            * the PING, notify the opers so that they are aware of the problem.
            */
 	  SetPingWarning(client_p);
           sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-	                       "Warning, no response from %s in %d seconds",
-	                       get_client_name(client_p, SHOW_IP), pingwarn);
+	                       "Warning, no response from %s in %d seconds (at %s)",
+	                       get_client_name(client_p, SHOW_IP), (CurrentTime - client_p->lasttime - ping), timestamp);
 	
 
 

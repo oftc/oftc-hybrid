@@ -472,6 +472,15 @@ read_packet(fde_t *fd, void *data)
 
     execute_callback(iorecv_cb, client_p, length, readBuf);
 
+    if (IsServer(client_p) && IsPingSent(client_p) && IsPingWarning(client_p))
+    {
+        char timestamp[200];
+        strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&CurrentTime));
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+            "Finally received packets from %s again after %d seconds (at %s)",
+            get_client_name(client_p, SHOW_IP), CurrentTime - client_p->lasttime, timestamp);
+    }
+
     if (client_p->lasttime < CurrentTime)
       client_p->lasttime = CurrentTime;
     if (client_p->lasttime > client_p->since)
