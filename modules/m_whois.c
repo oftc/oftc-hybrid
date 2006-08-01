@@ -387,7 +387,12 @@ whois_person(struct Client *source_p, struct Client *target_p)
         t = buf + mlen;
       }
 
-      tlen = ircsprintf(t, "%s%s ", get_member_status(ms, YES), chptr->chname);
+	  /* We should tell opers when we display hidden channels */
+      if(!ShowChannel(source_p, chptr))
+        tlen = ircsprintf(t, "%s%%%s ", get_member_status(ms, YES), chptr->chname);
+      else
+        tlen = ircsprintf(t, "%s%s ", get_member_status(ms, YES), chptr->chname);
+
       t += tlen;
       cur_len += tlen;
       reply_to_send = YES;
