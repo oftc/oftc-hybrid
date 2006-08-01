@@ -224,7 +224,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       chptr = make_channel(chan);
       if(MyClient(source_p))
         sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
-            "Channel %s created by %s!%s@%s", chname, source_p->name,
+            "Channel %s created by %s!%s@%s", chan, source_p->name,
             source_p->username, source_p->host);
     }
 
@@ -408,7 +408,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
     chptr = make_channel(parv[2]);
     if(MyClient(source_p))
       sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
-          "Channel %s created by %s!%s@%s", chname, source_p->name,
+          "Channel %s created by %s!%s@%s", parv[2], source_p->name,
           source_p->username, source_p->host);
   }
 

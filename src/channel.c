@@ -679,6 +679,21 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
       chptr->mode.limit)
     return ERR_CHANNELISFULL;
 
+  if(RegOnlyChannel(chptr) && !IsNickServReg(source_p))
+    return(ERR_REGONLYCHAN);
+
+  if (SSLonlyChannel(chptr))
+  {
+#ifdef HAVE_LIBCRYPTO
+    if (MyClient(source_p)) {
+      if (source_p->localClient->fd.ssl)
+        return (ERR_SSLONLYCHAN);
+    }
+#else
+    return (ERR_SSLONLYCHAN);  /* deny everyone on a non SSL-enabled server */
+#endif
+  }
+
   return 0;
 }
 
