@@ -433,6 +433,10 @@ whois_person(struct Client *source_p, struct Client *target_p)
     sendto_one(source_p, form_str(RPL_ISCAPTURED),
                me.name, source_p->name, target_p->name);
 
+  if(IsOper(source_p) && target_p->realhost[0] != '\0')
+    sendto_one(source_p, form_str(RPL_WHOISREAL), me.name, source_p->name,
+        target_p->name, target_p->realhost);
+
   if (ConfigFileEntry.use_whois_actually)
   {
     int show_ip = 0;
