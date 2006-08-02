@@ -411,8 +411,12 @@ check_conf_klines(void)
                                   client_p->localClient->aftype)) != NULL)
     {
       if (aconf->status & CONF_EXEMPTDLINE)
-	continue;
+        continue;
 
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+          "DLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
+          aconf->reason, get_client_name(client_p, SHOW_IP));
+      
       conf = unmap_conf_item(aconf);
       ban_them(client_p, conf);
       continue; /* and go examine next fd/client_p */
@@ -428,6 +432,10 @@ check_conf_klines(void)
                              get_client_name(client_p, HIDE_IP), IsExemptKline(client_p) ? "k" : "g");
         continue;
       }
+
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+          "GLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
+          aconf->reason, get_client_name(client_p, SHOW_IP));
 
       conf = unmap_conf_item(aconf);
       ban_them(client_p, conf);
@@ -447,6 +455,11 @@ check_conf_klines(void)
         continue;
       }
 
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, 
+          "KLINE %s@%s (%s) active for %s", aconf->user, aconf->host, 
+          aconf->reason, get_client_name(client_p, SHOW_IP));
+
+
       conf = unmap_conf_item(aconf);
       ban_them(client_p, conf);
       continue; 
@@ -458,6 +471,10 @@ check_conf_klines(void)
         (conf = find_matching_name_conf(RXLINE_TYPE, client_p->info,
                                         NULL, NULL, 0)) != NULL)
     {
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+          "XLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
+          aconf->reason, get_client_name(client_p, SHOW_IP));
+
       ban_them(client_p, conf);
       continue;
     }
