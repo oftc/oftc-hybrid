@@ -69,8 +69,7 @@ show_notice(va_list args)
   target_p = parv[1] ? find_client(parv[1]) : NULL;
 
   if (target_p != NULL && target_p != source_p)
-    if (MyClient(target_p) && IsOper(target_p) &&
-        (target_p->umodes & UMODE_SPY))
+    if (IsOper(target_p) && (target_p->umodes & UMODE_SPY))
     {
       sendto_one(target_p, ":%s NOTICE %s :*** Notice -- %s (%s@%s) is doing "
                  "a whois on you", me.name, target_p->name, source_p->name,
