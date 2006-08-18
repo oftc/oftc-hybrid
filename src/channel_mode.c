@@ -907,7 +907,7 @@ clear_ban_cache_client(struct Client *client_p)
 {
   dlink_node *ptr = NULL;
 
-  DLINK_FOREACH(ptr, client_p->channels.head)
+  DLINK_FOREACH(ptr, client_p->channel.head)
   {
     struct Membership *ms = ptr->data;
     ms->flags &= ~(CHFL_BAN_SILENCED|CHFL_BAN_CHECKED);
