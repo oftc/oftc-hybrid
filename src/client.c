@@ -1405,6 +1405,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
        */
       del_all_their_accepts(source_p);
       source_p->tsinfo = CurrentTime;
+      clear_ban_cache_client(source_p);
     }
 
     /* XXX - the format of this notice should eventually be changed
