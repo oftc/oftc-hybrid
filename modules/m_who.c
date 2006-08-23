@@ -92,7 +92,8 @@ typedef struct SearchOptions
     char check_umode:1;
     char show_chan:1;
     char search_chan:1;
-    char spare:3; /* spare space for more stuff(?) */
+    char show_ip:1;
+    char spare:2; /* spare space for more stuff(?) */
 } SOpts;
 
 
@@ -130,7 +131,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 {
   static char *who_help[] =
   {
-      "/WHO [+|-][acghimnsuCM] [args]",
+      "/WHO [+|-][acghimnsuCMI] [args]",
       "Flags are specified like channel modes,",
       "The flags cghmnsu all have arguments",
       "Flags are set to a positive check by +, a negative check by -",
@@ -154,6 +155,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
       "Behavior flags:",
       "Flag C: show first visible channel user is in",
       "Flag M: check for user in channels I am a member of",
+      "Flag I: show IP addresses instead of hostnames",
       NULL
   };
   char *flags, change=1, *s;
@@ -234,6 +236,9 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 	    break;
       case 'C':
 	    wsopts.show_chan = change;
+	    break;
+      case 'I':
+	    wsopts.show_ip = change;
 	    break;
       case 'M':
 	    wsopts.search_chan = change;
@@ -740,7 +745,12 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 	  status[2]=0;
 	  sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
               wsopts.show_chan ? first_visible_channel(target_p, source_p) :
-		      "*", target_p->username, target_p->host,
+		      "*", target_p->username,
+		      wsopts.show_ip
+			? ( (target_p->realhost[0] != '\0' && !IsOper(source_p)) || target_p->sockhost[0] == '\0'
+			    ? "255.255.255.255"
+			    : target_p->sockhost)
+			: target_p->host,
 		      target_p->servptr->name, target_p->name, status,
 		      WHO_HOPCOUNT(source_p, target_p), target_p->info);
       shown++;
