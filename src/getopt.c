@@ -68,8 +68,6 @@ parseargs(int *argc, char ***argv, struct lgetopt *opts)
 		{
 		case YESNO:
 		  *((int *)opts[i].argloc) = 1;
-            (*argc)--;
-            (*argv)++;
 		  break;
 		case INTEGER:
 		  if (*argc < 2)
