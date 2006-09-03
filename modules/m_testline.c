@@ -88,10 +88,10 @@ static void
 mo_testline(struct Client *client_p, struct Client *source_p,
             int parc, char *parv[])
 {
-  char *orig_parv1 = NULL;
   /* IRCD_BUFSIZE to allow things like *u*s*e*r*n*a*m*e* etc. */
   char given_name[IRCD_BUFSIZE];
   char given_host[IRCD_BUFSIZE];
+  char parv1_copy[IRCD_BUFSIZE];
   struct ConfItem *conf;
   struct AccessItem *aconf;
   struct irc_ssaddr ip;
@@ -121,7 +121,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     }
   }
 
-  DupString(orig_parv1,parv[1]);
+  strlcpy(parv1_copy, parv[1], sizeof(parv1_copy));
 
   nuh.nuhmask  = parv[1];
   nuh.nickptr  = NULL;
@@ -147,43 +147,20 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                             );
     if (aconf != NULL)
     {
-      conf = unmap_conf_item(aconf);
-
+      ++matches;
       if (aconf->status & CONF_EXEMPTDLINE)
-      {
         sendto_one(source_p,
                    ":%s NOTICE %s :Exempt D-line host [%s] reason [%s]",
                    me.name, source_p->name, aconf->host, aconf->reason);
-        ++matches;
-      }
       else
-      {
         sendto_one(source_p, form_str(RPL_TESTLINE),
                    me.name, source_p->name,
                    IsConfTemporary(aconf) ? 'd' : 'D',
                    IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
                    : 0L,
                    aconf->host, aconf->reason, aconf->oper_reason);
-        ++matches;
-      }
     }
   }
-
-  aconf = find_kline_conf(given_host, given_name, &ip, t);
-  if ((aconf != NULL) && (aconf->status & CONF_KILL))
-  {
-    snprintf(userhost, sizeof(userhost), "%s@%s", aconf->user, aconf->host);
-    sendto_one(source_p, form_str(RPL_TESTLINE),
-               me.name, source_p->name,
-               IsConfTemporary(aconf) ? 'k' : 'K',
-               IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
-               : 0L,
-               userhost, 
-               aconf->passwd ? aconf->passwd : "No reason",
-               aconf->oper_reason ? aconf->oper_reason : "");
-    ++matches;
-  }
-
 
   if (t != HM_HOST)
     aconf = find_address_conf(given_host, given_name, &ip, 
@@ -198,15 +175,12 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                  
   if (aconf != NULL)
   {
-    conf = unmap_conf_item(aconf);
-
     snprintf(userhost, sizeof(userhost), "%s@%s", aconf->user, aconf->host);
 
     if (aconf->status & CONF_CLIENT)
     {
       sendto_one(source_p, form_str(RPL_TESTLINE),
-                 me.name, source_p->name,
-                 'I', 0L, userhost,
+                 me.name, source_p->name, 'I', 0L, userhost,
                  aconf->class_ptr ? aconf->class_ptr->name : "<default>", "");
       ++matches;
     }
@@ -217,7 +191,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                  IsConfTemporary(aconf) ? 'k' : 'K',
                  IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
                  : 0L,
-                 userhost, aconf->passwd ? aconf->passwd : "No reason",
+                 userhost, aconf->reason? aconf->reason : "No reason",
                  aconf->oper_reason ? aconf->oper_reason : "");
       ++matches;
     }
@@ -227,12 +201,10 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 
   if (conf != NULL)
   {
-    struct MatchItem *mconf;
-    mconf = (struct MatchItem *)map_to_conf(conf);
+    const struct MatchItem *mconf = map_to_conf(conf);
 
     sendto_one(source_p, form_str(RPL_TESTLINE),
-               me.name, source_p->name,
-               'Q', 0L,
+               me.name, source_p->name, 'Q', 0L,
                conf->name, 
                mconf->reason ? mconf->reason : "No reason",
                mconf->oper_reason ? mconf->oper_reason : "");
@@ -241,9 +213,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 
   if (matches == 0)
     sendto_one(source_p, form_str(RPL_NOTESTLINE),
-               me.name, source_p->name, orig_parv1);
-
-  MyFree(orig_parv1);
+               me.name, source_p->name, parv1_copy);
 }
 
 /* mo_testgecos()
@@ -261,10 +231,9 @@ mo_testline(struct Client *client_p, struct Client *source_p,
  */
 static void
 mo_testgecos(struct Client *client_p, struct Client *source_p,
-            int parc, char *parv[])
+             int parc, char *parv[])
 {
   struct ConfItem *conf = NULL;
-  struct MatchItem *xconf = NULL;
 
   if (EmptyString(parv[1]))
   {
@@ -275,7 +244,7 @@ mo_testgecos(struct Client *client_p, struct Client *source_p,
 
   if ((conf = find_matching_name_conf(XLINE_TYPE, parv[1], NULL, NULL, 0)))
   {
-    xconf = map_to_conf(conf);
+    const struct MatchItem *xconf = map_to_conf(conf);
     sendto_one(source_p, form_str(RPL_TESTLINE),
                me.name, source_p->name, 'X', 0L,
                conf->name, xconf->reason ? xconf->reason : "X-lined",

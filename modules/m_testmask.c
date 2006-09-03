@@ -85,38 +85,45 @@ static void
 mo_testmask(struct Client *client_p, struct Client *source_p,
             int parc, char *parv[])
 {
-  char *given_host;
-  char *given_user = parv[1];
-  int local_count = 0, remote_count = 0;
-  dlink_node *ptr, *next_ptr;
-  struct Client *target_p;
+  struct split_nuh_item nuh;
+  char given_nick[IRCD_BUFSIZE];
+  char given_user[IRCD_BUFSIZE];
+  char given_host[IRCD_BUFSIZE];
+  unsigned int count[2] = { 0, 0 };
+  const dlink_node *ptr = NULL;
 
-  if (parc < 2 || ((given_host = strchr(given_user, '@')) == NULL))
+  if (EmptyString(parv[1]))
   {
-    sendto_one(source_p, ":%s NOTICE %s :usage: user@host",
-               me.name, source_p->name);
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+               me.name, source_p->name, "TESTMASK");
     return;
   }
 
-  *given_host++ = '\0';
+  nuh.nuhmask  = parv[1];
+  nuh.nickptr  = given_nick;
+  nuh.userptr  = given_user;
+  nuh.hostptr  = given_host;
 
-  DLINK_FOREACH_SAFE(ptr, next_ptr, global_client_list.head)
+  nuh.nicksize = sizeof(given_nick);
+  nuh.usersize = sizeof(given_user);
+  nuh.hostsize = sizeof(given_host);
+
+  split_nuh(&nuh);
+
+  DLINK_FOREACH(ptr, global_client_list.head)
   {
-    target_p = ptr->data;
+    const struct Client *target_p = ptr->data;
 
-    if (IsDead(target_p) || !IsClient(target_p))
+    if (!IsClient(target_p) || !match(target_p->name, given_nick))
       continue;
 
-    if (match(given_user, target_p->username) &&
-	match(given_host, target_p->host))
-    {
-      if (MyConnect(target_p))
-	local_count++;
-      else
-	remote_count++;
-    }
+    if (match(given_user, target_p->username))
+      if (match(given_host, target_p->host) || match(given_host, target_p->sockhost))
+        ++count[!MyConnect(target_p)];
   }
 
-  sendto_one(source_p, form_str(RPL_TESTMASK), me.name, source_p->name,
-	     given_user, given_host, local_count, remote_count);
+  sendto_one(source_p, form_str(RPL_TESTMASK), me.name,
+             source_p->name,
+             given_nick, given_user,
+             given_host, count[0], count[1]);
 }
