@@ -114,7 +114,7 @@ mo_testmask(struct Client *client_p, struct Client *source_p,
   {
     const struct Client *target_p = ptr->data;
 
-    if (!IsClient(target_p) || !match(target_p->name, given_nick))
+    if (!IsClient(target_p) || !match(given_nick, target_p->name))
       continue;
 
     if (match(given_user, target_p->username))
