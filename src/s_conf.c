@@ -1473,7 +1473,7 @@ find_conf_exact(ConfType type, const char *name, const char *user,
 
     if (conf->name == NULL)
       continue;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = map_to_conf(conf);
     if (aconf->host == NULL)
       continue;
     if (irccmp(conf->name, name) != 0)
@@ -1484,22 +1484,19 @@ find_conf_exact(ConfType type, const char *name, const char *user,
     ** socket host) matches *either* host or name field
     ** of the configuration.
     */
-    if (!match(aconf->host, host) || !match(aconf->user,user)
-	|| irccmp(conf->name, name) )
+    if (!match(aconf->host, host) || !match(aconf->user, user))
       continue;
     if (type == OPER_TYPE)
     {
-      struct ClassItem *aclass;
+      struct ClassItem *aclass = map_to_conf(aconf->class_ptr);
 
-      aclass = (struct ClassItem *)aconf->class_ptr;
-      if (aconf->clients < MaxTotal(aclass))
-	return conf;
-      else
+      if (aconf->clients >= MaxTotal(aclass))
 	continue;
     }
-    else
-      return conf;
+
+    return conf;
   }
+
   return NULL;
 }
 
