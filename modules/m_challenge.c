@@ -74,11 +74,9 @@ static void
 m_challenge(struct Client *client_p, struct Client *source_p,
             int parc, char *parv[])
 {
-  char *challenge;
-  struct ConfItem *conf=NULL;
-  struct AccessItem *aconf=NULL;
-
-  assert(source_p->localClient);
+  char *challenge = NULL;
+  struct ConfItem *conf = NULL;
+  struct AccessItem *aconf = NULL;
 
   /* if theyre an oper, reprint oper motd and ignore */
   if (IsOper(source_p))
@@ -91,7 +89,7 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   if (*parv[1] == '+')
   {
     /* Ignore it if we aren't expecting this... -A1kmm */
-    if (!source_p->localClient->response)
+    if (source_p->localClient->response == NULL)
       return;
 
     if (irccmp(source_p->localClient->response, ++parv[1]))
@@ -102,11 +100,15 @@ m_challenge(struct Client *client_p, struct Client *source_p,
 			      "challenge failed");
       return;
     }
-     
-    if ((conf = find_exact_name_conf(OPER_TYPE,
-				     source_p->localClient->auth_oper,
-				     source_p->username, source_p->host
-				   )) == NULL)
+    
+    conf = find_exact_name_conf(OPER_TYPE,
+                                source_p->localClient->auth_oper,
+                                source_p->username, source_p->host);
+    if (conf == NULL)
+      conf = find_exact_name_conf(OPER_TYPE,
+                                  source_p->localClient->auth_oper,
+                                  source_p->username, source_p->sockhost);
+    if (conf == NULL)
     {
       sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, parv[0]);
       log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n",
@@ -147,17 +149,13 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   if ((conf = find_conf_exact(OPER_TYPE,
 			      parv[1], source_p->username, source_p->host
 			      )) != NULL)
-  {
-    aconf = (struct AccessItem *)map_to_conf(conf);
-  }
+    aconf = map_to_conf(conf);
   else if ((conf = find_conf_exact(OPER_TYPE,
 				   parv[1], source_p->username,
 				   source_p->sockhost)) != NULL)
-  {
-    aconf = (struct AccessItem *)map_to_conf(conf);
-  }
+    aconf = map_to_conf(conf);
 
-  if(aconf == NULL)
+  if (aconf == NULL)
   {
     sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, parv[0]);
     conf = find_exact_name_conf(OPER_TYPE, parv[1], NULL, NULL);
