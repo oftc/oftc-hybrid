@@ -471,6 +471,7 @@ check_conf_klines(void)
         (conf = find_matching_name_conf(RXLINE_TYPE, client_p->info,
                                         NULL, NULL, 0)) != NULL)
     {
+      aconf = map_to_conf(conf);
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
           "XLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
           aconf->reason, get_client_name(client_p, SHOW_IP));
