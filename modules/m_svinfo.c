@@ -72,6 +72,8 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
 {
   time_t deltat;
   time_t theirtime;
+  char timestamp[IRCD_BUFSIZE/2];
+  char theirtimestamp[IRCD_BUFSIZE/2];
 
   if (MyConnect(source_p) && IsUnknown(source_p))
   {
@@ -103,19 +105,27 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
   theirtime = atol(parv[4]);
   deltat = abs(theirtime - CurrentTime);
 
+  strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&CurrentTime));
+  strftime(theirtimestamp, sizeof(theirtimestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&theirtime));
+
   if (deltat > ConfigFileEntry.ts_max_delta)
     {
+
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-          "Link %s dropped, excessive TS delta (my TS=%lu, their TS=%lu, delta=%d)",
+          "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
           get_client_name(source_p, SHOW_IP),
           (unsigned long) CurrentTime,
+          timestamp,
           (unsigned long) theirtime,
+          theirtimestamp,
           (int) deltat);
       ilog(L_NOTICE,
-          "Link %s dropped, excessive TS delta (my TS=%lu, their TS=%lu, delta=%d)",
+          "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
           get_client_name(source_p, SHOW_IP),
           (unsigned long) CurrentTime,
+          timestamp,
           (unsigned long) theirtime,
+          theirtimestamp,
           (int) deltat);
       exit_client(source_p, source_p, "Excessive TS delta");
       return;
@@ -124,10 +134,12 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
   if (deltat > ConfigFileEntry.ts_warn_delta)
     { 
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                "Link %s notable TS delta (my TS=%lu, their TS=%lu, delta=%d)",
+                "Link %s notable TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
                 source_p->name,
                 (unsigned long) CurrentTime,
+                timestamp,
                 (unsigned long) theirtime,
+                theirtimestamp,
                 (int) deltat);
     }
 }

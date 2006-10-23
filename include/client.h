@@ -396,7 +396,7 @@ struct LocalUser
 #define UMODE_ALL	   UMODE_SERVNOTICE
 
 #define SEND_UMODES  (UMODE_INVISIBLE | UMODE_OPER | UMODE_WALLOP | \
-                      UMODE_ADMIN | UMODE_GOD | UMODE_NICKSERVREG)
+                      UMODE_ADMIN | UMODE_GOD | UMODE_NICKSERVREG | UMODE_SPY)
 
 
 /* oper priv flags */
