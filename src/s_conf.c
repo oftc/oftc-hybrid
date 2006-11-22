@@ -2481,8 +2481,9 @@ read_conf_files(int cold)
   ircsprintf(chanlimit, "%s:%d", ConfigChannel.disable_local_channels ? "#" : "#&",
 	     ConfigChannel.max_chans_per_user);
   add_isupport("CHANLIMIT", chanlimit, -1);
-  ircsprintf(chanmodes, "%s%s%s", ConfigChannel.use_except ? "e" : "",
-	     ConfigChannel.use_invex ? "I" : "", "b,k,l,imnpstMRS");
+  ircsprintf(chanmodes, "%s%s%s%s", ConfigChannel.use_except ? "e" : "",
+	     ConfigChannel.use_invex ? "I" : "", ConfigChannel.use_quiet ? "q" : "",
+       "b,k,l,imnpstMRS");
   add_isupport("CHANNELLEN", NULL, LOCAL_CHANNELLEN);
   if (ConfigChannel.use_except)
     add_isupport("EXCEPTS", "e", -1);
