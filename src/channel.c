@@ -753,6 +753,9 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
   if (IsServer(source_p))
     return CAN_SEND_OPV;
 
+  if (IsGod(source_p))
+    return CAN_SEND_OPV;
+
   if (MyClient(source_p) && !IsExemptResv(source_p))
     if (!(IsOper(source_p) && ConfigFileEntry.oper_pass_resv))
       if (!hash_find_resv(chptr->chname) == ConfigChannel.restrict_channels)
@@ -762,7 +765,7 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
   {
     if (ms->flags & (CHFL_CHANOP|CHFL_HALFOP|CHFL_VOICE))
       return CAN_SEND_OPV;
-    
+
     if (ConfigChannel.use_quiet && MyClient(source_p))
     {
       if (is_quiet(chptr, source_p))
@@ -793,9 +796,9 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
   if (chptr->mode.mode & MODE_MODERATED)
     return CAN_SEND_NO;
 
-  if (chptr->mode.mode & MODE_SPEAKONLYIFREG && !IsRegistered(source_p))
-    return CAN_SEND_NO;
-
+  if(SpeakOnlyIfReg(chptr) && !IsNickServReg(source_p))
+    return CAN_SEND_ONLY_IF_REG;
+ 
   return CAN_SEND_NONOP;
 }
 

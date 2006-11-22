@@ -491,7 +491,7 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
 
   /* chanops and voiced can flood their own channel with impunity */
   result = can_send(chptr, source_p, NULL);
-  if (result > 0 && result != CAN_SEND_ONLY_IF_REG)
+  if (result > 0)
   {
     if (result == CAN_SEND_OPV ||
         !flood_attack_channel(p_or_n, source_p, chptr, chptr->chname))
