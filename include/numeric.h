@@ -258,6 +258,8 @@ extern const char *get_locale(void);
 #define RPL_INVITING         341
 /*	RPL_SUMMONING        342	   removed from RFC1459 */
 
+#define RPL_QUIETLIST        344
+#define RPL_ENDOFQUIETLIST   345
 #define RPL_INVITELIST       346
 #define RPL_ENDOFINVITELIST  347	/* IRCnet, Undernet extension */
 #define RPL_EXCEPTLIST       348

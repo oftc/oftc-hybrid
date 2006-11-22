@@ -175,6 +175,12 @@ static const struct InfoStruct info_table[] =
     &ConfigChannel.use_invex,
     "Enable chanmode +I (invite exceptions)"
   },
+ {
+   "use_quiet",
+   OUTPUT_BOOLEAN_YN,
+   &ConfigChannel.use_quiet,
+   "Enable chanmode +q (Quiet users)"
+ },
   {
     "use_except",
     OUTPUT_BOOLEAN_YN,

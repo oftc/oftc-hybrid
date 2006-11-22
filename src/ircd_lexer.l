@@ -305,6 +305,7 @@ unkline		{ return UNKLINE; }
 use_egd 	{ return USE_EGD; }
 use_except	{ return USE_EXCEPT; }
 use_invex	{ return USE_INVEX; }
+use_quiet { return USE_QUIET; }
 use_knock	{ return USE_KNOCK; }
 use_logging	{ return USE_LOGGING; }
 use_whois_actually { return USE_WHOIS_ACTUALLY; }

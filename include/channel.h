@@ -59,6 +59,7 @@ struct Channel
   dlink_list banlist;
   dlink_list exceptlist;
   dlink_list invexlist;
+  dlink_list quietlist;
 
   time_t first_received_message_time; /*!< channel flood control */
   int received_number_of_privmsgs;

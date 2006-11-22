@@ -67,6 +67,7 @@ init_channels(void)
   add_capability("EX", CAP_EX, 1);
   add_capability("IE", CAP_IE, 1);
   add_capability("CHW", CAP_CHW, 1);
+  add_capability("QUIET", CAP_QUIET, 1);
 
   channel_heap = BlockHeapCreate("channel", sizeof(struct Channel), CHANNEL_HEAP_SIZE);
   ban_heap = BlockHeapCreate("ban", sizeof(struct Ban), BAN_HEAP_SIZE);
@@ -304,6 +305,8 @@ send_channel_modes(struct Client *client_p, struct Channel *chptr)
     send_mode_list(client_p, chptr, &chptr->exceptlist, 'e');
   if (IsCapable(client_p, CAP_IE))
     send_mode_list(client_p, chptr, &chptr->invexlist, 'I');
+  if (IsCapable(client_p, CAP_QUIET))
+    send_mode_list(client_p, chptr, &chptr->quietlist, 'q');
 }
 
 /*! \brief check channel name for invalid characters
@@ -642,6 +645,22 @@ find_bmask(const struct Client *who, const dlink_list *const list)
 /*!
  * \param chptr pointer to channel block
  * \param who   pointer to client to check access fo
+ * \return 0 if not quiet, 1 otherwise
+ */
+int
+is_quiet(const struct Channel *chptr, const struct Client *who)
+{
+  assert(IsClient(who));
+
+  if (find_bmask(who, &chptr->quietlist))
+    if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
+      return 1;
+
+  return 0;
+}
+/*!
+ * \param chptr pointer to channel block
+ * \param who   pointer to client to check access fo
  * \return 0 if not banned, 1 otherwise
  */
 int
@@ -743,6 +762,12 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
   {
     if (ms->flags & (CHFL_CHANOP|CHFL_HALFOP|CHFL_VOICE))
       return CAN_SEND_OPV;
+    
+    if (ConfigChannel.use_quiet && MyClient(source_p))
+    {
+      if (is_quiet(chptr, source_p))
+        return CAN_SEND_NO;
+    }
 
     /* cache can send if quiet_on_ban and banned */
     if (ConfigChannel.quiet_on_ban && MyClient(source_p))
@@ -766,6 +791,9 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
     return CAN_SEND_NO;
 
   if (chptr->mode.mode & MODE_MODERATED)
+    return CAN_SEND_NO;
+
+  if (chptr->mode.mode & MODE_SPEAKONLYIFREG & !IsRegistered(source_p))
     return CAN_SEND_NO;
 
   return CAN_SEND_NONOP;

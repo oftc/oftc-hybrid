@@ -621,6 +621,11 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
     if (dlink_list_length(&chptr->invexlist) > 0)
       remove_ban_list(chptr, client_p, &chptr->invexlist,
                       'I', CAP_IE);
+
+    if (dlink_list_length(&chptr->quietlist) > 0)
+      remove_ban_list(chptr, client_p, &chptr->quietlist,
+                      'q', CAP_QUIET);
+
     clear_ban_cache(chptr);
   }               
 }

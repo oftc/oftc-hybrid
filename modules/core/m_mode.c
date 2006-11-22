@@ -281,6 +281,11 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[
       needcap = CAP_IE;
       break;
 
+    case 'q':
+      mode_type = CHFL_QUIET;
+      needcap = CAP_QUIET;
+      break;
+
     /* maybe we should just blindly propagate this? */
     default:
       return; 

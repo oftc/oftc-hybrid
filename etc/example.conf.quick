@@ -270,6 +270,7 @@ channel {
 	restrict_channels = no;
 	disable_local_channels = no;
 	use_invex = yes;
+  use_quiet = yes;
 	use_except = yes;
 	use_knock = yes;
 	knock_delay = 5 minutes;

@@ -404,6 +404,7 @@ struct config_channel_entry
   int disable_local_channels;
   int use_except;
   int use_invex;
+  int use_quiet;
   int use_knock;
   int knock_delay;
   int knock_delay_channel;

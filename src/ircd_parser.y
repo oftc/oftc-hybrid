@@ -376,6 +376,7 @@ unhook_hub_leaf_confs(void)
 %token  USE_EGD
 %token  USE_EXCEPT
 %token  USE_INVEX
+%token  USE_QUIET
 %token  USE_KNOCK
 %token  USE_LOGGING
 %token  USE_WHOIS_ACTUALLY
@@ -3839,7 +3840,7 @@ channel_entry: CHANNEL
 
 channel_items:      channel_items channel_item | channel_item;
 channel_item:       channel_disable_local_channels | channel_use_except |
-                    channel_use_invex | channel_use_knock |
+                    channel_use_invex | channel_use_quiet | channel_use_knock |
                     channel_max_bans | channel_knock_delay |
                     channel_knock_delay_channel | channel_max_chans_per_user |
                     channel_quiet_on_ban | channel_default_split_user_count |
@@ -3872,6 +3873,11 @@ channel_use_except: USE_EXCEPT '=' TBOOL ';'
 channel_use_invex: USE_INVEX '=' TBOOL ';'
 {
   ConfigChannel.use_invex = yylval.number;
+};
+
+channel_use_quiet: USE_QUIET '=' TBOOL ';'
+{
+  ConfigChannel.use_quiet = yylval.number;
 };
 
 channel_use_knock: USE_KNOCK '=' TBOOL ';'

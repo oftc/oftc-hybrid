@@ -101,9 +101,9 @@ static int mode_count;
 static int mode_limit;		/* number of modes set other than simple */
 static int simple_modes_mask;	/* bit mask of simple modes already set */
 #ifdef HALFOPS
-static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_TS6, CAP_HOPS };
+static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_QUIET, CAP_TS6, CAP_HOPS };
 #else
-static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_TS6 };
+static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_QUIET, CAP_TS6 };
 #endif
 static struct ChCapCombo chcap_combos[NCHCAP_COMBOS];
 extern BlockHeap *ban_heap;
@@ -207,6 +207,9 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
     case CHFL_INVEX:
       list = &chptr->invexlist;
       break;
+    case CHFL_QUIET:
+      list = &chptr->quietlist;
+      break;
     default:
       assert(0);
       return 0;
@@ -299,6 +302,9 @@ del_id(struct Channel *chptr, char *banid, int type)
       break;
     case CHFL_INVEX:
       list = &chptr->invexlist;
+      break;
+    case CHFL_QUIET:
+      list = &chptr->quietlist;
       break;
     default:
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
@@ -442,6 +448,7 @@ fix_key_old(char *arg)
 #define SM_ERR_RPL_E        0x00000010
 #define SM_ERR_NOTONCHANNEL 0x00000020 /* Not on channel    */
 #define SM_ERR_RPL_I        0x00000040
+#define SM_ERR_RPL_Q        0x00000080 
 
 /* Now lets do some stuff to keep track of what combinations of
  * servers exist...
@@ -917,6 +924,100 @@ chm_invex(struct Client *client_p, struct Client *source_p,
   mode_changes[mode_count++].arg = mask;
 }
 
+static void
+chm_quiet(struct Client *client_p, struct Client *source_p,
+          struct Channel *chptr, int parc, int *parn,
+          char **parv, int *errors, int alev, int dir, char c, void *d,
+          const char *chname)
+{
+  char *mask = NULL;
+
+  /* if we have +q disabled, allow local clients to do anything but
+   * set the mode.  This prevents the abuse of +q when just a few
+   * servers support it 
+   */
+  if (!ConfigChannel.use_quiet && MyClient(source_p) && 
+      (dir == MODE_ADD) && (parc > *parn))
+  {
+    if (*errors & SM_ERR_RPL_Q)
+      return;
+    
+    *errors |= SM_ERR_RPL_Q;
+    return;
+  }
+
+  if (alev < CHACCESS_HALFOP)
+  {
+    if (!(*errors & SM_ERR_NOOPS))
+      sendto_one(source_p, form_str(alev == CHACCESS_NOTONCHAN ?
+                                    ERR_NOTONCHANNEL : ERR_CHANOPRIVSNEEDED),
+                 me.name, source_p->name, chname);
+    *errors |= SM_ERR_NOOPS;
+    return;
+  }
+
+  if (dir == MODE_QUERY || parc <= *parn)
+  {
+    dlink_node *ptr = NULL;
+
+    if (*errors & SM_ERR_RPL_Q)
+      return;
+
+    *errors |= SM_ERR_RPL_Q;
+
+    DLINK_FOREACH(ptr, chptr->quietlist.head)
+    {
+      const struct Ban *banptr = ptr->data;
+      sendto_one(client_p, form_str(RPL_QUIETLIST), me.name,
+                 client_p->name, chname,
+		 banptr->name, banptr->username, banptr->host,
+                 banptr->who, banptr->when);
+    }
+
+    sendto_one(source_p, form_str(RPL_ENDOFQUIETLIST), me.name,
+               source_p->name, chname);
+    return;
+  }
+
+  if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
+    return;
+
+  mask = nuh_mask[*parn];
+  memcpy(mask, parv[*parn], sizeof(nuh_mask[*parn]));
+  ++*parn;
+
+  if (IsServer(client_p))
+    if (strchr(mask, ' '))
+      return;
+
+  switch (dir)
+  {
+    case MODE_ADD:
+      if (!add_id(source_p, chptr, mask, CHFL_QUIET))
+        return;
+      break;
+    case MODE_DEL:
+      if (!del_id(chptr, mask, CHFL_QUIET))
+        return;
+      break;
+    default:
+      assert(0);
+  }
+
+  mode_changes[mode_count].letter = c;
+  mode_changes[mode_count].dir = dir;
+  mode_changes[mode_count].caps = CAP_QUIET;
+  mode_changes[mode_count].nocaps = 0;
+
+  if (ConfigChannel.use_quiet)
+    mode_changes[mode_count].mems = ONLY_CHANOPS;
+  else
+    mode_changes[mode_count].mems = ONLY_SERVERS;
+
+  mode_changes[mode_count].id = NULL;
+  mode_changes[mode_count++].arg = mask;
+}
+
 /*
  * inputs	- pointer to channel
  * output	- none
@@ -1381,7 +1482,7 @@ static struct ChannelMode ModeTable[255] =
   {chm_simple, (void *) MODE_NOPRIVMSGS},         /* n */
   {chm_op, NULL},                                 /* o */
   {chm_simple, (void *) MODE_PRIVATE},            /* p */
-  {chm_nosuch, NULL},                             /* q */
+  {chm_quiet, NULL},                              /* q */
   {chm_nosuch, NULL},                             /* r */
   {chm_simple, (void *) MODE_SECRET},             /* s */
   {chm_simple, (void *) MODE_TOPICLIMIT},         /* t */
