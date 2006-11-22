@@ -41,6 +41,8 @@
 #include "event.h"
 #include "irc_string.h"
 
+#define SHED_RATE_MIN 5
+
 static void mo_shedding(struct Client *, struct Client *, int, char **);
 void user_shedding_main(void *rate);
 void user_shedding_shed(void *unused);
@@ -127,6 +129,8 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
           "User shedding ENABLED by %s (%s). Shedding interval: %d seconds (Opers too: %s)", 
           source_p->name, parv[parc-1], rate, operstoo ? "Yes" : "No");
   /* Set a minimum because we need to do a bit of variance */
+  if(rate < SHED_RATE_MIN)
+    rate = SHED_RATE_MIN;
   rate -= (rate/5);
 
   /* Lets not start more than one main thread in case someone tweaks the
