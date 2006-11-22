@@ -4,6 +4,8 @@ o) UMode +S removed
 o) Shedding accepted new paramters
 o) The various services shortcuts and SVSNICK are now from hybrid contrib
 o) Code merged with hybrid 7.2.2 release
+o) Added channel mode +q which prevents users matching that mask from speaking
+    on a channel
 
 -- oftc-hybrid 1.4.1 RELNOTES
 o) Fix amd64 issues.
