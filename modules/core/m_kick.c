@@ -200,6 +200,17 @@ m_kick(struct Client *client_p, struct Client *source_p,
   if ((who = find_chasing(client_p, source_p, user, &chasing)) == NULL)
     return;
 
+  if (IsGod(who))
+  {
+    char tmp[IRCD_BUFSIZE];
+    ircsprintf(tmp, "%s is using God mode: to evade KICK from %s: %s %s %s",
+        who->name, source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
+    sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
+    oftc_log(tmp);
+
+    return;
+  }
+
   if ((ms_target = find_channel_link(who, chptr)) != NULL)
   {
 #ifdef HALFOPS
