@@ -64,7 +64,8 @@ OFTC_SRCS = \
   m_shedding.c \
   m_svscloak.c\
   m_svsmode.c\
-  m_tburst.c
+  m_tburst.c\
+	soft_reboot.c\
  
 SRCS =       \
   m_accept.c \
