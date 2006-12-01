@@ -936,25 +936,6 @@ chm_quiet(struct Client *client_p, struct Client *source_p,
    * set the mode.  This prevents the abuse of +q when just a few
    * servers support it 
    */
-  if (!ConfigChannel.use_quiet && MyClient(source_p) && 
-      (dir == MODE_ADD) && (parc > *parn))
-  {
-    if (*errors & SM_ERR_RPL_Q)
-      return;
-    
-    *errors |= SM_ERR_RPL_Q;
-    return;
-  }
-
-  if (alev < CHACCESS_HALFOP)
-  {
-    if (!(*errors & SM_ERR_NOOPS))
-      sendto_one(source_p, form_str(alev == CHACCESS_NOTONCHAN ?
-                                    ERR_NOTONCHANNEL : ERR_CHANOPRIVSNEEDED),
-                 me.name, source_p->name, chname);
-    *errors |= SM_ERR_NOOPS;
-    return;
-  }
 
   if (dir == MODE_QUERY || parc <= *parn)
   {
@@ -978,8 +959,27 @@ chm_quiet(struct Client *client_p, struct Client *source_p,
                source_p->name, chname);
     return;
   }
+ if (!ConfigChannel.use_quiet && MyClient(source_p) && 
+      (dir == MODE_ADD) && (parc > *parn))
+  {
+    if (*errors & SM_ERR_RPL_Q)
+      return;
+    
+    *errors |= SM_ERR_RPL_Q;
+    return;
+  }
 
-  if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
+  if (alev < CHACCESS_HALFOP)
+  {
+    if (!(*errors & SM_ERR_NOOPS))
+      sendto_one(source_p, form_str(alev == CHACCESS_NOTONCHAN ?
+                                    ERR_NOTONCHANNEL : ERR_CHANOPRIVSNEEDED),
+                 me.name, source_p->name, chname);
+    *errors |= SM_ERR_NOOPS;
+    return;
+  }
+
+ if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
     return;
 
   mask = nuh_mask[*parn];
