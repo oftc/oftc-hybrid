@@ -1,3 +1,7 @@
+-- ircd-hybrid-7.2.3 RELNOTES
+o) Added ircd-italian.lang language file
+
+
 -- ircd-hybrid-7.2.2 RELNOTES
 o) Added channel::disable_fake_channels config directive
 o) Fixed broken FORCEJOIN  (contrib)

@@ -18,6 +18,7 @@ LANGFILES     = ayb.lang               \
                 ircd-dutch.lang        \
 		ircd-french.lang       \
                 ircd-german.lang       \
+                ircd-italian.lang      \
                 ircd-norwegian.lang    \
                 ircd-polish.lang       \
                 ircd-russian.lang      \
