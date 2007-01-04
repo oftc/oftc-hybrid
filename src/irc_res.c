@@ -239,6 +239,12 @@ start_resolver(void)
 
   if (!ResolverFileDescriptor.flags.open)
   {
+    if(irc_nscount <= 0)
+    {
+      ilog(L_ERROR, "Could not open resolver socket, no nameservers!");
+      return;
+    }
+
     if (comm_open(&ResolverFileDescriptor, irc_nsaddr_list[0].ss.ss_family,
                   SOCK_DGRAM, 0, "Resolver socket") == -1)
       return;
