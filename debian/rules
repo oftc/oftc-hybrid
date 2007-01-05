@@ -1,0 +1,80 @@
+#!/usr/bin/make -f
+#export DH_VERBOSE=1
+
+include /usr/share/quilt/quilt.make
+D=$(CURDIR)/debian/oftc-hybrid
+
+configure: configure-stamp
+configure-stamp: $(QUILT_STAMPFN)
+	dh_testdir
+	./configure --prefix=/usr --bindir=/usr/sbin --mandir=/usr/share/man \
+		--with-nicklen=30 --with-topiclen=390
+	cd tools/rsa_respond && ./configure
+	touch $@
+
+build: build-indep build-arch
+
+build-indep:
+
+build-arch: build-stamp
+build-stamp: configure-stamp
+	$(MAKE)
+	$(MAKE) -C tools/rsa_respond
+	touch $@
+
+install: build-stamp
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	$(MAKE) install DESTDIR=$D
+	$(MAKE) -C messages install DESTDIR=$D
+	mv $D/usr/sbin/encspeed $D/usr/sbin/mkpasswd $D/usr/sbin/servlink $D/usr/lib/oftc-hybrid
+	cp tools/rsa_respond/respond $D/usr/lib/oftc-hybrid
+	rm -rf $D/usr/etc
+	cp debian/ircd.conf $D/etc/oftc-hybrid/ircd.conf
+	echo "Welcome to this oftc-hybrid server" > $D/etc/oftc-hybrid/ircd.motd
+	dh_installexamples -a etc/*conf*
+	mv $D/usr/logs $D/var/log/oftc-hybrid
+	mv $D/usr/modules $D/usr/lib/oftc-hybrid
+	chmod -x $D/usr/lib/oftc-hybrid/modules/*.so
+	dh_link -a
+	mv $D/usr/help $D/usr/messages $D/usr/share/oftc-hybrid
+	# docs
+	mkdir -p $D-doc/usr/share/doc/oftc-hybrid/technical
+	install -m644 doc/*.txt doc/server-version-info $D-doc/usr/share/doc/oftc-hybrid
+	install -m644 doc/technical/* $D-doc/usr/share/doc/oftc-hybrid/technical
+	ln -s oftc-hybrid $D-doc/usr/share/doc/oftc-hybrid-doc
+
+binary: binary-indep binary-arch
+
+binary-indep: install
+	# copyright and changelog are shipped in oftc-hybrid
+	dh_compress -i
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
+binary-arch: install
+	dh_installchangelogs -a
+	dh_installdocs -a BUGS Hybrid-team RELNOTES TODO
+	dh_strip -a
+	dh_installinit -a
+	dh_installlogrotate -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_shlibdeps -a
+	dh_installdeb -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
+
+clean: unpatch
+	dh_testdir
+	-$(MAKE) distclean
+	-$(MAKE) -C tools/rsa_respond distclean
+	dh_clean
+	rm -f src/y.tab.? src/lex.yy.c src/tags configure-stamp build-stamp
+
+.PHONY: build build-indep build-arch clean binary binary-indep binary-arch install configure patch unpatch

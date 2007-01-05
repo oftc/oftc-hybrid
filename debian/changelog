@@ -1,0 +1,90 @@
+oftc-hybrid (1.5.0.dfsg-1) unstable; urgency=low
+
+  * New maintainer, reupload after removal (#347874).
+  * Repackaged from scratch.
+  * Rebuilt tarball to remove non-free RFC documents.
+  * Add openssl linking exception by permission of Stuart Walsh (cryogen),
+    member of the Hybrid team owning most of the GPL'ed code.
+
+ -- Christoph Berg <myon@debian.org>  Fri,  5 Jan 2007 13:56:15 +0100
+
+oftc-hybrid (1.1.1-4) unstable; urgency=low
+
+  * conflicts with ircd-hybrid and dancer-ircd
+    (Closes: #197415, #197415)
+
+ -- Martin Wuertele <maxx@debian.org>  Sun, 22 Jun 2003 18:23:08 +0200
+
+oftc-hybrid (1.1.1-3) unstable; urgency=low
+
+  * changed all base64_values to signed char
+    (Closes: #176268)
+
+ -- Martin Wuertele <maxx@debian.org>  Sun, 16 Mar 2003 20:17:22 +0100
+
+oftc-hybrid (1.1.1-2) unstable; urgency=low
+
+  * fixed init.d since ircd no longer seems to work with -pidfile
+
+ -- Martin Wuertele <maxx@debian.org>  Fri, 15 Nov 2002 00:24:34 +0100
+
+oftc-hybrid (1.1.1-1) unstable; urgency=low
+
+  * fixed a type in src/ircd_parser.y causing build failures on non i386
+    arches
+  * fixed (build-)depends (byacc exits with "f - maximum table size 
+    exceeded")
+
+ -- Martin Wuertele <maxx@debian.org>  Tue, 12 Nov 2002 22:05:09 +0100
+
+oftc-hybrid (1.1.1-0) unstable; urgency=low
+
+  * new upstream release
+
+ -- Martin Wuertele <maxx@debian.org>  Tue, 12 Nov 2002 21:57:48 +0100
+
+oftc-hybrid (1.1.0-6) unstable; urgency=low
+
+  * corrected section for oftc-hybrid-doc
+
+ -- Martin Wuertele <maxx@debian.org>  Sat,  9 Nov 2002 15:29:12 +0100
+
+oftc-hybrid (1.1.0-5) unstable; urgency=low
+
+  * More descriptive message in /etc/init.d/oftc-hybrid explaining why
+    the ircd won't start unless the configuration has been adopted.
+    (Closes: #168405)
+  * Corrected user when calling /etc/init.d/oftc-hybrid start to user irc 
+    avoiding adduser/deluser handling in package
+    (Closes: #168408)
+    
+ -- Martin Wuertele <maxx@debian.org>  Sat,  9 Nov 2002 14:47:34 +0100
+
+oftc-hybrid (1.1.0-4) unstable; urgency=low
+
+  * added provides ircd
+
+ -- Martin Wuertele <maxx@debian.org>  Wed,  6 Nov 2002 22:25:19 +0100
+
+oftc-hybrid (1.1.0-3) unstable; urgency=low
+
+  * removed OpenSSL support (legal issue)
+
+ -- Martin Wuertele <maxx@debian.org>  Tue,  5 Nov 2002 00:11:43 +0100
+
+oftc-hybrid (1.1.0-2) unstable; urgency=low
+
+  * replaced orignial hard links with symlinks
+  * changed package name to fit upstream name since there is no common Debian
+    ircd naming scheme
+  * manual install due to broken make install
+
+ -- Martin Wuertele <maxx@debian.org>  Mon, 28 Oct 2002 13:37:19 +0100
+
+oftc-hybrid (1.1.0-1) unstable; urgency=low
+
+  * Initial Release.
+    (Closes: #161775)
+
+ -- Martin Wuertele <maxx@debian.org>  Thu,  3 Oct 2002 21:54:25 +0200
+

@@ -1,0 +1,26 @@
+Source: oftc-hybrid
+Section: net
+Priority: extra
+Maintainer: Christoph Berg <myon@debian.org>
+Build-Depends: debhelper (>> 4), quilt (>= 0.40-1), bison, flex, zlib1g-dev, libssl-dev
+Standards-Version: 3.7.2
+
+Package: oftc-hybrid
+Architecture: any
+Depends: ${shlibs:Depends}, adduser
+Provides: ircd
+Suggests: oftc-hybrid-doc
+Conflicts: ircd-hybrid, dancer-ircd
+Description: Hybrid 7 IRC daemon - OFTC branch
+ This is the IRC server designed for use on OFTC (irc.oftc.net), based on the
+ Hybrid 7 ircd.
+
+Package: oftc-hybrid-doc
+Section: doc
+Architecture: all
+Depends: oftc-hybrid
+Description: Documentation for oftc-hybrid
+ This is the IRC server designed for use on OFTC (irc.oftc.net), based on the
+ Hybrid 7 ircd.
+ .
+ This package contains the documentation.

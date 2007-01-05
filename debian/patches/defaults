@@ -1,0 +1,70 @@
+Index: debian-oftc-hybrid/include/defaults.h
+===================================================================
+--- debian-oftc-hybrid.orig/include/defaults.h	2007-01-03 21:46:05.225980024 +0100
++++ debian-oftc-hybrid/include/defaults.h	2007-01-04 02:24:34.820735504 +0100
+@@ -49,31 +49,33 @@
+ 
+ /* dirs */
+ #define DPATH       IRCD_PREFIX                                                     
+-#define BINPATH     IRCD_PREFIX "/bin/"
+-#define MSGPATH     IRCD_PREFIX "/messages/"
+-#define ETCPATH     IRCD_PREFIX "/etc"
+-#define LOGPATH     IRCD_PREFIX "/logs"
+-#define MODPATH     IRCD_PREFIX "/modules/"
+-#define AUTOMODPATH IRCD_PREFIX "/modules/autoload/"
++#define BINPATH     IRCD_PREFIX "/sbin"
++#define MSGPATH     IRCD_PREFIX "/share/oftc-hybrid/messages/"
++#define ETCPATH     "/etc/oftc-hybrid"
++#define LOGPATH     "/var/log/oftc-hybrid"
++#define LIBPATH     IRCD_PREFIX "/lib/oftc-hybrid"
++#define MODPATH     LIBPATH "/modules/"
++#define AUTOMODPATH LIBPATH "/modules/autoload/"
+ #define OFTCLOG LOGPATH "/oftc.log" 
++#define VARPATH     "/var/lib/oftc-hybrid"
+ 
+ /* files */
+ #define SPATH   BINPATH "/ircd"                 /* ircd executable */
+-#define SLPATH  BINPATH "/servlink"             /* servlink executable */
++#define SLPATH  LIBPATH "/servlink"             /* servlink executable */
+ #define CPATH   ETCPATH "/ircd.conf"            /* ircd.conf file */
+-#define KPATH   ETCPATH "/kline.conf"           /* kline file */
+-#define CRESVPATH   ETCPATH "/cresv.conf"       /* channel resvs file */
+-#define NRESVPATH   ETCPATH "/nresv.conf"       /* nick resvs file */
+-#define DLPATH  ETCPATH "/dline.conf"           /* dline file */
+-#define GPATH   ETCPATH "/gline.conf"           /* gline conffile */
+-#define XPATH   ETCPATH "/xline.conf"           /* xline file */
+-#define RXPATH  ETCPATH "/rxline.conf"
+-#define RKPATH  ETCPATH "/rkline.conf"
++#define KPATH   VARPATH "/kline.conf"           /* kline file */
++#define CRESVPATH   VARPATH "/cresv.conf"       /* channel resvs file */
++#define NRESVPATH   VARPATH "/nresv.conf"       /* nick resvs file */
++#define DLPATH  VARPATH "/dline.conf"           /* dline file */
++#define GPATH   VARPATH "/gline.conf"           /* gline conffile */
++#define XPATH   VARPATH "/xline.conf"           /* xline file */
++#define RXPATH  VARPATH "/rxline.conf"
++#define RKPATH  VARPATH "/rkline.conf"
+ #define MPATH   ETCPATH "/ircd.motd"            /* MOTD file */
+ #define LPATH   LOGPATH "/ircd.log"             /* ircd logfile */
+-#define PPATH   ETCPATH "/ircd.pid"             /* pid file */
++#define PPATH   "/var/run/ircd.pid"             /* pid file */
+ #define OPATH   ETCPATH "/opers.motd"           /* oper MOTD file */
+-#define LIPATH  ETCPATH "/links.txt"            /* cached links file */
++#define LIPATH  VARPATH "/links.txt"            /* cached links file */
+ 
+ /* this file is included to supply default
+  * values for things which are now configurable at runtime.
+Index: debian-oftc-hybrid/modules/m_help.c
+===================================================================
+--- debian-oftc-hybrid.orig/modules/m_help.c	2007-01-03 21:46:05.365958744 +0100
++++ debian-oftc-hybrid/modules/m_help.c	2007-01-03 21:57:10.320870232 +0100
+@@ -36,8 +36,8 @@
+ #include "modules.h"
+ #include "irc_string.h"
+ 
+-#define HPATH  IRCD_PREFIX "/help/opers"
+-#define UHPATH IRCD_PREFIX "/help/users"
++#define HPATH  "/usr/share/oftc-hybrid/help/opers"
++#define UHPATH "/usr/share/oftc-hybrid/help/users"
+ #define HELPLEN 400
+ 
+ static void m_help(struct Client *, struct Client *, int, char *[]);

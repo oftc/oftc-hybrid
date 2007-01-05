@@ -1,0 +1,28 @@
+oftc-hybrid for Debian
+----------------------
+
+Compile time settings:
+
+Installing into: /usr
+Ziplinks ................ yes
+OpenSSL ................. yes - BF/168 BF/128 CAST/128 3DES/168 DES/56 
+Modules ................. shared
+IPv6 support ............ yes
+Net I/O implementation .. epoll
+EFnet server ............ no (use example.conf)
+Halfops support ......... no
+Small network ........... no
+G-Line voting ........... yes
+
+Configured limits:
+NICKLEN ................. 30
+TOPICLEN ................ 390
+
+The ircd.conf file shipped is a minimal working server listening on 127.0.0.1
+only. To use the operator block, use mkpasswd (/usr/lib/oftc-hybrid/mkpasswd,
+or from the whois package) to create a valid password string. More interesting
+config samples can be found in /usr/share/doc/oftc-hybrid/examples/.
+
+Documentation is provided in the oftc-hybrid-doc package.
+
+ -- Christoph Berg <myon@debian.org>  Wed,  3 Jan 2007 20:34:21 +0100

@@ -1,0 +1,13 @@
+/var/log/oftc-hybrid/*.log {
+	weekly
+	missingok
+	rotate 4
+	notifempty
+	compress
+	delaycompress
+	create 644 irc irc
+	sharedscripts
+	postrotate
+		/etc/init.d/oftc-hybrid reload > /dev/null
+	endscript
+}

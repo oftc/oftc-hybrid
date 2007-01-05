@@ -1,0 +1,143 @@
+Index: oftc-hybrid-1.5.0/contrib/Makefile.in
+===================================================================
+--- oftc-hybrid-1.5.0.orig/contrib/Makefile.in	2006-12-29 17:18:35.152787424 +0100
++++ oftc-hybrid-1.5.0/contrib/Makefile.in	2006-12-29 17:18:48.678731168 +0100
+@@ -17,7 +17,7 @@ MKDEP		= @MKDEP@
+ INSTALL		= @INSTALL@
+ INSTALL_DATA	= @INSTALL_DATA@
+ 
+-prefix		= $(DESTDIR)@prefix@
++prefix		= @prefix@
+ datarootdir	= $(DESTDIR)@datarootdir@
+ 
+ AUTOMODULEDIR	= ${prefix}/modules
+Index: oftc-hybrid-1.5.0/doc/Makefile.in
+===================================================================
+--- oftc-hybrid-1.5.0.orig/doc/Makefile.in	2006-12-29 17:16:19.151462768 +0100
++++ oftc-hybrid-1.5.0/doc/Makefile.in	2006-12-29 17:16:27.508192352 +0100
+@@ -2,7 +2,7 @@
+ INSTALL		= @INSTALL@
+ INSTALL_DATA	= @INSTALL_DATA@
+ RM		= @RM@
+-prefix		= $(DESTDIR)@prefix@
++prefix		= @prefix@
+ datarootdir	= $(DESTDIR)@datarootdir@
+ mandir          = $(DESTDIR)@mandir@
+ 
+Index: oftc-hybrid-1.5.0/etc/Makefile.in
+===================================================================
+--- oftc-hybrid-1.5.0.orig/etc/Makefile.in	2006-12-29 17:10:58.862154144 +0100
++++ oftc-hybrid-1.5.0/etc/Makefile.in	2006-12-29 17:26:35.337788208 +0100
+@@ -9,9 +9,9 @@ TEST		= @TEST@
+ # no whitespace here, test will mess up
+ CLOBBER=@CLOBBER@
+ 
+-prefix		= $(DESTDIR)@prefix@
++prefix		= @prefix@
+ sysconfdir	= $(DESTDIR)@sysconfdir@
+-exec_prefix	= $(DESTDIR)@exec_prefix@
++exec_prefix	= @exec_prefix@
+ datarootdir	= $(DESTDIR)@datarootdir@
+ 
+ DISTFILES	= @EXAMPLE_CONF@
+Index: oftc-hybrid-1.5.0/help/Makefile.in
+===================================================================
+--- oftc-hybrid-1.5.0.orig/help/Makefile.in	2006-12-29 16:28:58.846254792 +0100
++++ oftc-hybrid-1.5.0/help/Makefile.in	2006-12-29 20:23:24.088013032 +0100
+@@ -22,27 +22,27 @@ depend:
+ 
+ install: 
+ 	@echo installing help files...
+-	-@if test ! -d $(prefix)/help; then \
+-		echo "mkdir $(prefix)/help"; \
+-		mkdir $(prefix)/help; \
+-		echo "mkdir $(prefix)/help/users"; \
+-		mkdir $(prefix)/help/users; \
+-		echo "mkdir $(prefix)/help/opers"; \
+-		mkdir $(prefix)/help/opers; \
++	-@if test ! -d $(DESTDIR)$(prefix)/help; then \
++		echo "mkdir $(DESTDIR)$(prefix)/help"; \
++		mkdir $(DESTDIR)$(prefix)/help; \
++		echo "mkdir $(DESTDIR)$(uhelpdir)"; \
++		mkdir $(DESTDIR)$(uhelpdir); \
++		echo "mkdir $(DESTDIR)$(ohelpdir)"; \
++		mkdir $(DESTDIR)$(ohelpdir); \
+ 	fi
+ 	@for help in opers/*; do \
+ 	if [ -f $$help ]; then \
+-		${INSTALL_DATA} $$help $(ohelpdir); \
++		${INSTALL_DATA} $$help $(DESTDIR)$(ohelpdir); \
+ 	fi \
+ 	done
+ 	@for help in users/*; do \
+ 	if [ -f $$help ]; then \
+-		$(INSTALL_DATA) $$help $(uhelpdir); \
++		$(INSTALL_DATA) $$help $(DESTDIR)$(uhelpdir); \
+ 	fi \
+ 	done
+ 	@for link in $(SYMLINKS); do \
+-		rm -f $(uhelpdir)/$$link; \
+-		ln -s $(ohelpdir)/$$link $(uhelpdir); \
++		rm -f $(DESTDIR)$(uhelpdir)/$$link; \
++		ln -s $(ohelpdir)/$$link $(DESTDIR)$(uhelpdir); \
+ 	done
+ 
+ distclean:
+Index: oftc-hybrid-1.5.0/modules/Makefile.in
+===================================================================
+--- oftc-hybrid-1.5.0.orig/modules/Makefile.in	2006-12-29 17:18:06.596128696 +0100
++++ oftc-hybrid-1.5.0/modules/Makefile.in	2006-12-29 17:20:30.145305904 +0100
+@@ -21,10 +21,10 @@ SSL_LIBS	= @SSL_LIBS@
+ SSL_INCLUDES	= @SSL_INCLUDES@
+ IRCDLIBS        = @LIBS@ $(SSL_LIBS)
+ 
+-prefix          = $(DESTDIR)@prefix@
++prefix          = @prefix@
+ datarootdir	= $(DESTDIR)@datarootdir@
+ # Change this later! -- adrian
+-moduledir       = ${prefix}/modules
++moduledir       = $(DESTDIR)${prefix}/modules
+ automoduledir   = ${moduledir}/autoload
+ 
+ INCLUDES	= -I../include -I../lib/pcre $(SSL_INCLUDES)
+Index: oftc-hybrid-1.5.0/servlink/Makefile.in
+===================================================================
+--- oftc-hybrid-1.5.0.orig/servlink/Makefile.in	2006-12-29 17:22:56.868000664 +0100
++++ oftc-hybrid-1.5.0/servlink/Makefile.in	2006-12-29 17:23:13.416484912 +0100
+@@ -15,7 +15,7 @@ MV              = @MV@
+ RM              = @RM@
+ SED		= @SED@
+ prefix          = @prefix@
+-exec_prefix     = $(DESTDIR)@exec_prefix@
++exec_prefix     = @exec_prefix@
+ bindir          = $(DESTDIR)@bindir@
+ datarootdir	= $(DESTDIR)@datarootdir@
+ 
+Index: oftc-hybrid-1.5.0/src/Makefile.in
+===================================================================
+--- oftc-hybrid-1.5.0.orig/src/Makefile.in	2006-12-29 17:24:00.361348208 +0100
++++ oftc-hybrid-1.5.0/src/Makefile.in	2006-12-29 17:24:07.260299408 +0100
+@@ -20,7 +20,7 @@ SED		= @SED@
+ YACC    = @YACC@
+ 
+ prefix		= @prefix@
+-exec_prefix	= $(DESTDIR)@exec_prefix@
++exec_prefix	= @exec_prefix@
+ bindir		= $(DESTDIR)@bindir@
+ sysconfdir	= $(DESTDIR)@sysconfdir@
+ localstatedir	= $(DESTDIR)@localstatedir@
+Index: oftc-hybrid-1.5.0/tools/Makefile.in
+===================================================================
+--- oftc-hybrid-1.5.0.orig/tools/Makefile.in	2006-12-29 17:14:17.694926968 +0100
++++ oftc-hybrid-1.5.0/tools/Makefile.in	2006-12-29 17:26:47.907877264 +0100
+@@ -18,8 +18,8 @@ CRYPT_LIB	= @CRYPT_LIB@
+ 
+ INCLUDES	= -I../include $(SSL_INCLUDES)
+ 
+-prefix		= $(DESTDIR)@prefix@
+-exec_prefix	= $(DESTDIR)@exec_prefix@
++prefix		= @prefix@
++exec_prefix	= @exec_prefix@
+ bindir		= $(DESTDIR)@bindir@
+ datarootdir	= $(DESTDIR)@datarootdir@
+ 

@@ -1,0 +1,6 @@
+etc/oftc-hybrid
+usr/share/doc/oftc-hybrid/examples
+usr/share/oftc-hybrid
+usr/lib/oftc-hybrid
+var/lib/oftc-hybrid
+var/log

@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+
+case $1 in
+    configure)
+	getent passwd irc > /dev/null 2>&1 ||
+		 adduser --system --home /var/run/ircd --no-create-home --gid irc irc
+	chown irc:irc /var/lib/oftc-hybrid /var/log/oftc-hybrid
+	( cd /var/lib/oftc-hybrid
+	umask 077
+	for f in kline.conf rkline.conf dline.conf xline.conf rxline.conf nresv.conf cresv.conf ; do
+		[ -e $f ] || touch $f
+		chown irc:irc $f
+		chmod 600 $f
+	done
+	)
+	;;
+esac
+
+#DEBHELPER#
+
+exit 0
