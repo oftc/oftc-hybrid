@@ -87,6 +87,7 @@
 #include "fileio.h"
 #include "irc_string.h"
 #include "irc_getaddrinfo.h"
+#include "s_log.h"
 
 #define NS_TYPE_ELT             0x40 /* EDNS0 extended label type */
 #define DNS_LABELTYPE_BITSTRING 0x41
