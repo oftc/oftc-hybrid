@@ -428,7 +428,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     const char *id = execute_callback(uid_get_cb, source_p);
 
     while (hash_find_id(id) != NULL)
-      id = uid_get((va_list)NULL);
+      id = execute_callback(uid_get_cb, source_p);
 
     strlcpy(source_p->id, id, sizeof(source_p->id));
     hash_add_id(source_p);
