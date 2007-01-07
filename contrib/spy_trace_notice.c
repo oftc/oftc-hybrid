@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: spy_trace_notice.c 606 2006-06-08 22:35:55Z stu $
  */
 
 #include "stdinc.h"
@@ -73,7 +73,7 @@ _moddeinit(void)
     uninstall_hook(etrace_cb, show_etrace);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 606 $";
 
 static void *
 show_trace(va_list args)

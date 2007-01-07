@@ -29,7 +29,7 @@
  *  IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id$
+ *  $Id: m_testmask.c 605 2006-06-08 21:26:01Z stu $
  */
 
 #include "stdinc.h"
@@ -68,7 +68,7 @@ _moddeinit(void)
   mod_del_cmd(&testmask_msgtab);
 }
  
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 605 $";
 #endif
 
 /* mo_testmask()

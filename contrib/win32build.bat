@@ -121,4 +121,4 @@ echo It should contain two lines like -IC:\BCC\INCLUDE and -LC:\BCC\LIB.
 echo.
 pause
 :end2
-rem $Id$
+rem $Id: win32build.bat 606 2006-06-08 22:35:55Z stu $

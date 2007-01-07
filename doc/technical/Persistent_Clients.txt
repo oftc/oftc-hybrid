@@ -102,4 +102,4 @@ client per user@host.
 TBD. What to do if a dronebot net is programmed to /suspend as many
 as possible, in order to eat up memory in a DDoS attempt.
 
-$Id$
+$Id: Persistent_Clients.txt 497 2006-05-27 23:32:21Z stu $

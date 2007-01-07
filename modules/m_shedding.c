@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: m_shedding.c 728 2006-11-22 21:06:17Z stu $
  */
 
 #include "stdinc.h"

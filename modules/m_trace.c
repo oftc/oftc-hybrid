@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: m_trace.c 605 2006-06-08 21:26:01Z stu $
  */
 
 #include "stdinc.h"
@@ -53,7 +53,7 @@ struct Message trace_msgtab = {
 };
 
 #ifndef STATIC_MODULES
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 605 $";
 static struct Callback *trace_cb;
 
 static void *

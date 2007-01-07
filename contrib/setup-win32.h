@@ -1,5 +1,5 @@
 /* include/setup.h suitable for Windows compilers */
-/* $Id$ */
+/* $Id: setup-win32.h 606 2006-06-08 22:35:55Z stu $ */
 
 
 /*** BEGIN OF STANDARD CONFIGURATION SETTINGS ***/

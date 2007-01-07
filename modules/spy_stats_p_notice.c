@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: spy_stats_p_notice.c 612 2006-06-09 00:11:27Z stu $
  */
 
 #include "stdinc.h"

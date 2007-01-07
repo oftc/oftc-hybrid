@@ -336,4 +336,4 @@
          administrators/IRCops on the server of the key mismatch.
     14.  Server #1 closes the socket.
 
-$Id$
+$Id: cryptlink.txt 497 2006-05-27 23:32:21Z stu $

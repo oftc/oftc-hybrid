@@ -1,5 +1,5 @@
 ; A compilation of original h5/h6/bsdnet numerics
-; $Id$
+; $Id: custom.lang 497 2006-05-27 23:32:21Z stu $
 
 RPL_CREATED:           :%s 003 %s :This server rose from the ashes %s
 RPL_STATSUPTIME:       :%s 242 %s :Dianora hasn't messed with the server code now in %d days, %d:%02d:%02d

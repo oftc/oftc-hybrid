@@ -259,4 +259,4 @@ send_message_remote()
 
 -- Diane Bruce 
 
-$Id$
+$Id: send.txt 497 2006-05-27 23:32:21Z stu $

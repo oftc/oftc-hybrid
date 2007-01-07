@@ -2,7 +2,7 @@
  * 
  * Copyright (C) 2005 Hybrid Development Team
  *
- * $Id$
+ * $Id: kline.txt 606 2006-06-08 22:35:55Z stu $
  */
 
 

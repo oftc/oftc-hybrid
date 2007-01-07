@@ -16,7 +16,7 @@
 #*   along with this program; if not, write to the Free Software
 #*   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #*
-#*   $Id$
+#*   $Id: Makefile.in 666 2006-07-25 14:34:40Z stu $
 #*/
 
 RM          = @RM@

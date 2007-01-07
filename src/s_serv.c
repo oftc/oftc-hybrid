@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: s_serv.c 662 2006-07-25 09:05:57Z stu $
  */
 
 #include "stdinc.h"

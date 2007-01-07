@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: m_map.c 641 2006-06-12 14:04:17Z weasel $
  */
 
 #include "stdinc.h"
@@ -53,7 +53,7 @@ void _moddeinit(void)
   mod_del_cmd(&map_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 641 $";
 #endif
 
 static char buf[IRCD_BUFSIZE];

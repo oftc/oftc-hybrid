@@ -1,4 +1,4 @@
-$Id$
+$Id: index.txt 497 2006-05-27 23:32:21Z stu $
 -----------------------------------------------
 
 Technical Documentation for ircd-hybrid-7

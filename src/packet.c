@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: packet.c 683 2006-07-31 15:13:52Z weasel $
  */
 #include "stdinc.h"
 #include "tools.h"

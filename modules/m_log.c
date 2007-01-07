@@ -38,7 +38,7 @@
 #include "sprintf_irc.h"
 #include "irc_string.h"
 
-/* $Id$ */
+/* $Id: m_log.c 656 2006-07-24 13:14:29Z stu $ */
 
 static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char **parv);
 

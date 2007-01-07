@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: restart.h 605 2006-06-08 21:26:01Z stu $
  */
 
 #ifndef INCLUDED_restart_h

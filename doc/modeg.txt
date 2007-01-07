@@ -141,4 +141,4 @@ We hope that these goals are obtained.
 
 --
 W. Campbell
-$Id$
+$Id: modeg.txt 585 2006-05-29 16:38:17Z stu $

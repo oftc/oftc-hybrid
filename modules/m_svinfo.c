@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: m_svinfo.c 713 2006-10-23 11:34:54Z stu $
  */
 #include "stdinc.h"
 #include "handlers.h"
@@ -56,7 +56,7 @@ _moddeinit(void)
   mod_del_cmd(&svinfo_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 713 $";
 #endif
 /*
  * ms_svinfo - SVINFO message handler

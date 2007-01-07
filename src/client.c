@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: client.c 709 2006-10-22 14:52:01Z weasel $
  */
 
 #include "stdinc.h"

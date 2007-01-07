@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: m_links.c 606 2006-06-08 22:35:55Z stu $
  */
 
 #include "stdinc.h"
@@ -48,7 +48,7 @@ struct Message links_msgtab = {
 };
 
 #ifndef STATIC_MODULES
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 606 $";
 static struct Callback *links_cb;
 
 static void *

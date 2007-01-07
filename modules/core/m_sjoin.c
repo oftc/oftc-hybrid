@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: m_sjoin.c 718 2006-11-22 16:48:12Z stu $
  */
 
 #include "stdinc.h"
@@ -62,7 +62,7 @@ _moddeinit(void)
   mod_del_cmd(&sjoin_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 718 $";
 #endif
 
 static char modebuf[MODEBUFLEN];

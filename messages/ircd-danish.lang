@@ -2,7 +2,7 @@
 ; Copyright (C) YEAR Free Software Foundation, Inc.
 ; Xride 
 ; Soren Straarup <xride@x12.dk>, 2001.
-; $Id$
+; $Id: ircd-danish.lang 590 2006-05-29 18:57:26Z stu $
 
 RPL_WELCOME:             :%s 001 %s :Velkommen til %s Internet Rel‘ Netv‘rket %s
 RPL_YOURHOST:            :%s 002 %s :Din v‘rt er %s, k›rer version %s

@@ -1,7 +1,7 @@
 ; SOME DESCRIPTIVE TITLE.
 ; Copyright (C) YEAR Free Software Foundation, Inc.
 ; FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-; $Id$
+; $Id: ircd-norwegian.lang 590 2006-05-29 18:57:26Z stu $
 
 RPL_WELCOME:             :%s 001 %s :Velkommen til %s Internet Relay Nettverket %s
 RPL_YOURHOST:            :%s 002 %s :Verten din er %s, som bruker versjon %s

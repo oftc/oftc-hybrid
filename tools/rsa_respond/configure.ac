@@ -1,10 +1,10 @@
-# $Id$
+# $Id: configure.ac 497 2006-05-27 23:32:21Z stu $
 # This file is by Joshua Kwan, and the source is in the public domain.
 
 AC_INIT
 AC_CONFIG_FILES(Makefile)
 
-AC_COPYRIGHT([$Id$])
+AC_COPYRIGHT([$Id: configure.ac 497 2006-05-27 23:32:21Z stu $])
 
 AC_PROG_CC
 

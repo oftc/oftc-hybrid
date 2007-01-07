@@ -18,7 +18,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: version.c 647 2006-06-18 09:27:45Z stu $
  */
 
 #include "patchlevel.h"

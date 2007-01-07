@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: m_gnotice.c 656 2006-07-24 13:14:29Z stu $
  */
 
 #include "stdinc.h"

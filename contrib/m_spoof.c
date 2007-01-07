@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: m_spoof.c 605 2006-06-08 21:26:01Z stu $
  */
 
 /* MODULE CONFIGURATION FOLLOWS -- please read!! */
@@ -128,7 +128,7 @@ _moddeinit(void)
   mod_del_cmd(&spoof_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 605 $";
 #endif
 
 #ifdef SPOOF_FILE

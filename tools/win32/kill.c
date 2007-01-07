@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: kill.c 605 2006-06-08 21:26:01Z stu $ */
 
 #include <windows.h>
 #include "setup.h"

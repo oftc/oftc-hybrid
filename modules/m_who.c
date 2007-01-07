@@ -20,7 +20,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* $Id$*/
+/* $Id: m_who.c 706 2006-08-23 16:00:48Z stu $*/
 
 
 #include "stdinc.h"
@@ -65,7 +65,7 @@ _moddeinit(void)
 {
   mod_del_cmd(&who2_msgtab);
 }
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 706 $";
 #endif
 
 /* Internally defined stuffs */

@@ -1,4 +1,4 @@
-# $Id$
+# $Id: Makefile.in 666 2006-07-25 14:34:40Z stu $
 
 CC		= @CC@
 INSTALL		= @INSTALL@

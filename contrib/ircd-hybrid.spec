@@ -1,4 +1,4 @@
-# $Id$
+# $Id: ircd-hybrid.spec 606 2006-06-08 22:35:55Z stu $
 
 %{!?ircd_uid:%define ircd_uid 79}
 %{!?ircd_gid:%define ircd_gid 79}

@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id$
+# $Id: mkkeypair 497 2006-05-27 23:32:21Z stu $
 #
 # mkkeypair - short shell script to generate a OpenSSL RSA key suitable 
 # for use with cryptlinks.

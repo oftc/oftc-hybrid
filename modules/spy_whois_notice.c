@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: spy_whois_notice.c 700 2006-08-05 17:52:35Z stu $
  */
 #include "stdinc.h"
 #ifndef STATIC_MODULES

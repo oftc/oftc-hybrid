@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: client.h 713 2006-10-23 11:34:54Z stu $
  */
 
 #ifndef INCLUDED_client_h

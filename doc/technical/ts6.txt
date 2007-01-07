@@ -1,4 +1,4 @@
-$Id$
+$Id: ts6.txt 497 2006-05-27 23:32:21Z stu $
 
 TS6 Proposal (v7)
 Written by Lee H <lee@leeh.co.uk>

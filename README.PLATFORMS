@@ -24,4 +24,4 @@ x86          TenDRA           FreeBSD       Stuart Walsh <stu@ipng.org.uk>
 x86          MS Visual C++    Windows       Piotr Nizynski <adx@irc7.pl>
 x86          Borland C++ 5.5  Windows       Piotr Nizynski <adx@irc7.pl>
 
-$Id$
+$Id: README.PLATFORMS 582 2006-05-29 15:58:29Z stu $

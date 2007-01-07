@@ -15,7 +15,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *   $Id$
+ *   $Id: io.c 591 2006-05-29 18:58:52Z stu $
  */
 
 #include "stdinc.h"

@@ -6,7 +6,7 @@
  *
  *  You can use this code in any way as long as these names remain.
  *
- *  $Id$
+ *  $Id: m_mkpasswd.c 606 2006-06-08 22:35:55Z stu $
  */
 
 #include "handlers.h"
@@ -43,7 +43,7 @@ _moddeinit(void)
   mod_del_cmd(&mkpasswd_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 606 $";
 #endif
 
 static void

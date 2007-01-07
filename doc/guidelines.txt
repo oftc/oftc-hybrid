@@ -33,4 +33,4 @@ pushed back and pile up.
 
 8.  Don't forget to include a CVS Id.
 
-# $Id$
+# $Id: guidelines.txt 585 2006-05-29 16:38:17Z stu $

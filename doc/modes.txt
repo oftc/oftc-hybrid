@@ -61,4 +61,4 @@ Currently these are bkloveIh.
 Note that most of the channel modes can be disabled in the conf file for
 networks that do not wish to support them.
 
-# $Id$
+# $Id: modes.txt 585 2006-05-29 16:38:17Z stu $

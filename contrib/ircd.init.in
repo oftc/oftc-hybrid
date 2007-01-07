@@ -3,7 +3,7 @@
 # ircd          This shell script takes care of starting and stopping
 #               ircd-hybrid.
 #
-# $Id$
+# $Id: ircd.init.in 497 2006-05-27 23:32:21Z stu $
 #
 # chkconfig: 2345 92 11
 # description: ircd-hybrid is an Internet Relay Chat server

@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2001 Hybrid Development Team
  *
- * $Id$
+ * $Id: resv.txt 585 2006-05-29 16:38:17Z stu $
  */
 
 				RESV

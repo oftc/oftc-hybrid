@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: m_whois.c 693 2006-08-02 15:15:36Z stu $
  */
 
 #include "stdinc.h"
@@ -59,7 +59,7 @@ struct Message whois_msgtab = {
 };
 
 #ifndef STATIC_MODULES
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 693 $";
 static struct Callback *whois_cb;
 
 static void *

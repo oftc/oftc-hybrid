@@ -36,7 +36,7 @@
 #include "irc_string.h"
 #include "whowas.h" /* off_history */
 
-/* $Id$ */
+/* $Id: m_svscloak.c 612 2006-06-09 00:11:27Z stu $ */
 
 void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char *parv[]);
 

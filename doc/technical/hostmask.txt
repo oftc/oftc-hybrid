@@ -1,7 +1,7 @@
 The Hostmask and Netmask System
 Copyright(c) 2001 by Andrew Miller(A1kmm)<a1kmm@mware.virtualave.net>
 
-$Id$
+$Id: hostmask.txt 497 2006-05-27 23:32:21Z stu $
 ------------------------------------------------------------------------
 
 Contents ::

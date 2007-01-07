@@ -1,7 +1,7 @@
 Overview of the network subsystem
 Adrian Chadd <adrian@creative.net.au>
 
-$Id$
+$Id: network.txt 497 2006-05-27 23:32:21Z stu $
 
 This document is an overview of the new and hopefully improved network
 subsystem.

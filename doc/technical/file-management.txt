@@ -1,7 +1,7 @@
 Overview of the file management subsystem
 Adrian Chadd <adrian@creative.net.au>
 
-$Id$
+$Id: file-management.txt 497 2006-05-27 23:32:21Z stu $
 
 File operations
 ---------------

@@ -6,7 +6,7 @@
  *  Use it anywhere you like, if you like it buy us a beer.
  *  If it's broken, don't bother us with the lawyers.
  *
- *  $Id$
+ *  $Id: csvlib.c 606 2006-06-08 22:35:55Z stu $
  */
 
 #include "stdinc.h"

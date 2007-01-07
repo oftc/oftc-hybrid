@@ -1,7 +1,7 @@
 
 Whats changed in the codebase
 
-# $Id$
+# $Id: whats-new-code.txt 497 2006-05-27 23:32:21Z stu $
 
 First, please note one thing - a *LOT* has changed in hybrid-7.
 

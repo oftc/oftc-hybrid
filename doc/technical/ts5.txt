@@ -1,7 +1,7 @@
   Overview of the TS5 system
   Lee H <lee@leeh.co.uk>
 
-$Id$
+$Id: ts5.txt 497 2006-05-27 23:32:21Z stu $
 
 For the purposes of this document, ircd versions:
   hybrid6.0

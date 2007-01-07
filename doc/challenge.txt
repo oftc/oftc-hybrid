@@ -1,6 +1,6 @@
                        Oper Challenge and Response System
 
-   $Id$
+   $Id: challenge.txt 585 2006-05-29 16:38:17Z stu $
 
    Copyright (c) 2001-2005 by ircd-hybrid team
 

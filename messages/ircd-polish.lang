@@ -1,7 +1,7 @@
 ; ircd-hybrid-7 custom message file
 ; Copyright (C) 2003-2005, Piotr Ni¿yñski <adx@irc7.pl>
 ; Coding: ISO-8859-2 * CP-1250
-; $Id$
+; $Id: ircd-polish.lang 620 2006-06-09 21:05:10Z stu $
 
 RPL_WELCOME:            :%s 001 %s :Witaj w sieci IRC %s, %s
 RPL_YOURHOST:           :%s 002 %s :Twój host to %s, obecna wersja %s

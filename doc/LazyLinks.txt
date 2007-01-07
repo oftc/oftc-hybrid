@@ -1,4 +1,4 @@
-$Id$
+$Id: LazyLinks.txt 585 2006-05-29 16:38:17Z stu $
 		          Lazy Links
 			  ==========
 	(Ideas by Dianora and orabidoo; initial spec by orabidoo)

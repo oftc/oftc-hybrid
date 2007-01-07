@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: spy_info_notice.c 605 2006-06-08 21:26:01Z stu $
  */
 
 #include "stdinc.h"
@@ -50,7 +50,7 @@ _moddeinit(void)
     uninstall_hook(info_cb, show_info);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 605 $";
 
 static void *
 show_info(va_list args)
