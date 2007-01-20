@@ -29,7 +29,6 @@ install: build-stamp
 	$(MAKE) install DESTDIR=$D
 	$(MAKE) -C messages install DESTDIR=$D
 	mv $D/usr/sbin/encspeed $D/usr/sbin/mkpasswd $D/usr/sbin/servlink $D/usr/lib/oftc-hybrid
-	cp tools/rsa_respond/respond $D/usr/lib/oftc-hybrid
 	rm -rf $D/usr/etc
 	cp debian/ircd.conf $D/etc/oftc-hybrid/ircd.conf
 	echo "Welcome to this oftc-hybrid server" > $D/etc/oftc-hybrid/ircd.motd
@@ -44,6 +43,13 @@ install: build-stamp
 	install -m644 doc/*.txt doc/server-version-info $D-doc/usr/share/doc/oftc-hybrid
 	install -m644 doc/technical/* $D-doc/usr/share/doc/oftc-hybrid/technical
 	ln -s oftc-hybrid $D-doc/usr/share/doc/oftc-hybrid-doc
+	# respond
+	install -d $D-respond/usr/bin \
+		$D-respond/usr/share/man/man1 \
+		$D-respond/usr/share/doc/oftc-hybrid-respond
+	install tools/rsa_respond/respond $D-respond/usr/bin
+	install -m644 tools/rsa_respond/respond.1 $D-respond/usr/share/man/man1
+	install -m644 doc/challenge.txt $D-respond/usr/share/doc/oftc-hybrid-respond
 
 binary: binary-indep binary-arch
 

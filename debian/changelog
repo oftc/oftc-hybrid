@@ -1,3 +1,9 @@
+oftc-hybrid (1.5.0.dfsg-3) unstable; urgency=low
+
+  * Move respond to separate binary oftc-hybrid-respond.
+
+ -- Christoph Berg <myon@debian.org>  Sat, 20 Jan 2007 16:56:30 +0100
+
 oftc-hybrid (1.5.0.dfsg-2) unstable; urgency=low
 
   * src/s_user.c: fix FTBFS on alpha (patch by cryogen).

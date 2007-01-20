@@ -9,7 +9,7 @@ Package: oftc-hybrid
 Architecture: any
 Depends: ${shlibs:Depends}, adduser
 Provides: ircd
-Suggests: oftc-hybrid-doc
+Suggests: oftc-hybrid-doc, oftc-hybrid-respond
 Conflicts: ircd-hybrid, dancer-ircd
 Description: Hybrid 7 IRC daemon - OFTC branch
  This is the IRC server designed for use on OFTC (irc.oftc.net), based on the
@@ -24,3 +24,11 @@ Description: Documentation for oftc-hybrid
  Hybrid 7 ircd.
  .
  This package contains the documentation.
+
+Package: oftc-hybrid-respond
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: respond binary for oftc-hybrid challenge oper authentication
+ The oftc-hybrid IRC server offers challenge-response IRC operator
+ authentication using RSA keys. This package provides the client-side
+ "respond" binary.

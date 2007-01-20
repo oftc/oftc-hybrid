@@ -1,0 +1,30 @@
+Index: debian-oftc-hybrid/tools/rsa_respond/respond.1
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ debian-oftc-hybrid/tools/rsa_respond/respond.1	2007-01-20 16:50:15.959192032 +0100
+@@ -0,0 +1,25 @@
++.TH RESPOND 1
++.SH NAME
++respond \- respond binary for oftc-hybrid challenge oper authentication
++.SH SYNOPSIS
++.B respond
++.I privatekey
++.I challenge
++[
++.I passphrase
++]
++.SH DESCRIPTION
++The oftc-hybrid IRC server offers challenge-response IRC operator
++authentication using RSA keys.
++.B respond
++takes the challenge from the server and creates a valid response to pass back
++to the server.
++.SH "SEE ALSO"
++ircd(8), openssl(1).
++.SH NOTES
++The private key file is protected by a passphrase, entered when the key is
++created.  The passphrase is prompted for whenever respond is called.
++
++If the passphrase is passed on the command line (insecure mode), the
++program will not prompt for a passphrase.  This is primarily for running
++rsa_respond from a script.
