@@ -2,6 +2,7 @@
 o) Allow non chanops to view +q lists
 o) Fix a bug in /names output
 o) DNS server failure is now reported a little better
+o) /stats p is now global and will show all opers on the network
 
 -- oftc-hybrid 1.5.0 RELNOTES
 o) UMode +G moved to +S to make way for hybrid +G
