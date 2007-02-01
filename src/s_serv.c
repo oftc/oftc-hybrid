@@ -1493,7 +1493,7 @@ server_burst(struct Client *client_p)
  * output	- NONE
  * side effects - complete burst of channels/nicks is sent to client_p
  */
-static void
+void
 burst_all(struct Client *client_p)
 {
   dlink_node *ptr = NULL;

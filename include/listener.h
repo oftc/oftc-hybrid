@@ -52,4 +52,5 @@ extern void close_listeners(void);
 extern const char *get_listener_name(const struct Listener *);
 extern void show_ports(struct Client *);
 extern void free_listener(struct Listener *);
+struct Listener *find_listener(int port, struct irc_ssaddr *addr);
 #endif /* INCLUDED_listener_h */

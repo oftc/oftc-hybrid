@@ -271,5 +271,6 @@ extern struct Server *make_server(struct Client *);
 /* XXX don't belong in the now gone md5, but do these belong in s_serv.c ? */
 extern int base64_block(unsigned char **, char *, int);
 extern int unbase64_block(unsigned char **, char *, int);
+extern void burst_all(struct Client *client_p);
 #endif /* INCLUDED_s_serv_h */
 

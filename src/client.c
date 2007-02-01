@@ -67,7 +67,7 @@ dlink_list oper_list = {NULL, NULL, 0};
 static EVH check_pings;
 
 static BlockHeap *client_heap  = NULL;
-static BlockHeap *lclient_heap = NULL;
+BlockHeap *lclient_heap = NULL;
 
 static dlink_list dead_list  = { NULL, NULL, 0};
 static dlink_list abort_list = { NULL, NULL, 0};

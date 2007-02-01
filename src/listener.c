@@ -214,7 +214,7 @@ inetport(struct Listener *listener)
   return 1;
 }
 
-static struct Listener *
+struct Listener *
 find_listener(int port, struct irc_ssaddr *addr)
 {
   dlink_node *ptr;
