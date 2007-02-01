@@ -1,3 +1,8 @@
+-- oftc-hybrid 1.5.1 RELNOTES
+o) Allow non chanops to view +q lists
+o) Fix a bug in /names output
+o) DNS server failure is now reported a little better
+
 -- oftc-hybrid 1.5.0 RELNOTES
 o) UMode +G moved to +S to make way for hybrid +G
 o) UMode +S removed
