@@ -144,7 +144,7 @@ static const struct StatsStruct
   { 'd',	stats_tdeny,		1,	0,	},
   { 'D',	stats_deny,		1,	0,	},
   { 'e', 	stats_exempt,		1,	0,	},
-  { 'E',	stats_events,		1,	1,	},
+  { 'E',	stats_events,		1,	0,	},
   { 'f',	fd_dump,		1,	1,	},
   { 'F',	fd_dump,		1,	1,	},
   { 'g',	stats_pending_glines,	1,	0,	},
@@ -1094,7 +1094,11 @@ stats_operedup(struct Client *source_p)
             target_p->name, target_p->username, target_p->host,
             (int)(CurrentTime - target_p->localClient->last));
     }
-    else
+    /* The logic here is that we only show remote admins so we can hide
+     * remote
+     * opers.  Local opers can be hidden with config flags
+     */
+    else if(IsAdmin(source_p))
     {
       sendto_one(source_p, ":%s %d %s p :[%c] %s (%s@%s) Server: %s",
           from, RPL_STATSDEBUG, to,
