@@ -65,7 +65,6 @@ static dlink_list cap_list = { NULL, NULL, 0 };
 static unsigned long freeMask;
 static void server_burst(struct Client *);
 static int fork_server(struct Client *);
-static void burst_all(struct Client *);
 static void cjoin_all(struct Client *);
 static void send_tb(struct Client *client_p, struct Channel *chptr);
 

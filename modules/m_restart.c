@@ -151,53 +151,6 @@ send_tb(struct Client *client_p, struct Channel *chptr)
   }
 }
 
-
-/* burst_all()
- *
- * inputs	- pointer to server to send burst to 
- * output	- NONE
- * side effects - complete burst of channels/nicks is sent to client_p
- */
-static void
-burst_all(struct Client *client_p)
-{
-  dlink_node *ptr = NULL;
-
-  DLINK_FOREACH(ptr, global_channel_list.head)
-  {
-    struct Channel *chptr = ptr->data;
-
-    if (dlink_list_length(&chptr->members) != 0)
-    {
-      burst_members(client_p, chptr);
-      send_channel_modes(client_p, chptr);
-
-      if (IsCapable(client_p, CAP_TBURST) ||
-          IsCapable(client_p, CAP_TB))
-	send_tb(client_p, chptr);
-    }
-  }
-
-  /* also send out those that are not on any channel
-   */
-  DLINK_FOREACH(ptr, global_client_list.head)
-  {
-    struct Client *target_p = ptr->data;
-
-    if (!IsBursted(target_p) && target_p->from != client_p)
-      sendnick_TS(client_p, target_p);
-    
-    ClearBursted(target_p);
-  }
-
-  /* We send the time we started the burst, and let the remote host determine an EOB time,
-  ** as otherwise we end up sending a EOB of 0   Sending here means it gets sent last -- fl
-  */
-  /* Its simpler to just send EOB and use the time its been connected.. --fl_ */
-  if (IsCapable(client_p, CAP_EOB))
-    sendto_one(client_p, ":%s EOB", ID_or_name(&me, client_p));
-}
-
 /*
  * serverize()
  *
