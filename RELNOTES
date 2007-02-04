@@ -1,3 +1,7 @@
+-- oftc-hybrid 1.5.2 RELNOTES
+o) Bugfix release to make stats E non admin-only and stats p not show remote
+    non-admins
+
 -- oftc-hybrid 1.5.1 RELNOTES
 o) Allow non chanops to view +q lists
 o) Fix a bug in /names output
