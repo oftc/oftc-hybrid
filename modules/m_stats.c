@@ -1097,7 +1097,7 @@ stats_operedup(struct Client *source_p)
     /* The logic here is that we only show remote admins so we can hide remote
      * opers.  Local opers can be hidden with config flags 
      */
-    else if(IsAdmin(source_p))
+    else if(IsAdmin(target_p))
     {
       sendto_one(source_p, ":%s %d %s p :[%c] %s (%s@%s) Server: %s",
           from, RPL_STATSDEBUG, to,

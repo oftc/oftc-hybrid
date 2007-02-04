@@ -109,6 +109,7 @@ struct Client
   time_t            firsttime;  /* time client was created */
   time_t            since;      /* last time we parsed something */
   time_t            tsinfo;     /* TS on the nick, SVINFO on server */
+  time_t            umodestime; /* Time client set umode +S */
   unsigned long	    connect_id; /* unique connection ID */
   unsigned int      umodes;     /* opers, normal users subset */
   unsigned int      flags;      /* client flags */
