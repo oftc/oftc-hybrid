@@ -82,13 +82,11 @@ kq_update_events(int fd, int filter, int what)
 
   EV_SET(kep, (uintptr_t) fd, (short) filter, what, 0, 0, NULL);
 
-  if (kqoff == KE_LENGTH)
+  if (++kqoff == KE_LENGTH)
   {
     kevent(kqfd.fd, kq_fdlist, kqoff, NULL, 0, &zero_timespec);
     kqoff = 0;
   }
-  else
-    kqoff++;
 }
 
 /*
