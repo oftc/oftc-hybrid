@@ -1,3 +1,8 @@
+-- oftc-hybrid 1.5.3 RELNOTES
+o) Actually fix the /names output bug instead of making it worse
+o) UMode +S now times out after a configurable timeout
+o) Fix a critical bug in the kqueue io handler
+
 -- oftc-hybrid 1.5.2 RELNOTES
 o) Bugfix release to make stats E non admin-only and stats p not show remote
     non-admins
