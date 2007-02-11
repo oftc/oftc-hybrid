@@ -460,6 +460,7 @@ struct LocalUser
 #define IsPrivileged(x)         (IsOper(x) || IsServer(x))
 
 #define IsGod(x)                ((x)->umodes & UMODE_GOD) 
+#define ClearGod(x)             ((x)->umodes &= UMODE_GOD)
 #define SetNickServReg(x)       ((x)->umodes |= UMODE_NICKSERVREG)
 #define ClearNickServReg(x)     ((x)->umodes &= ~UMODE_NICKSERVREG)
 #define IsNickServReg(x)        ((x)->umodes & UMODE_NICKSERVREG)

@@ -395,6 +395,7 @@ struct config_file_entry
 #ifdef HAVE_LIBCRYPTO
   struct EncCapability *default_cipher_preference;
 #endif
+  int godmode_timeout; 
 };
 
 struct config_channel_entry

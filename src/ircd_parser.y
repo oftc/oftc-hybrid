@@ -204,6 +204,7 @@ unhook_hub_leaf_confs(void)
 %token  GLINE_MIN_CIDR
 %token  GLINE_MIN_CIDR6
 %token  GLOBAL_KILL
+%token  GODMODE_TIMEOUT
 %token  IRCD_AUTH
 %token  NEED_IDENT
 %token  HAVENT_READ_CONF
@@ -3193,7 +3194,8 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_disable_auth | general_burst_away |
 		    general_tkline_expire_notices | general_gline_min_cidr |
                     general_gline_min_cidr6 | general_use_whois_actually |
-		    general_reject_hold_time | general_stats_e_disabled |
+		    general_reject_hold_time | general_stats_e_disabled | 
+        general_godmode_timeout |
 		    error;
 
 
@@ -3327,6 +3329,11 @@ general_warn_no_nline: WARN_NO_NLINE '=' TBOOL ';'
 general_stats_e_disabled: STATS_E_DISABLED '=' TBOOL ';'
 {
   ConfigFileEntry.stats_e_disabled = yylval.number;
+};
+
+general_godmode_timeout: GODMODE_TIMEOUT '=' timespec ';'
+{
+  ConfigFileEntry.godmode_timeout = $3;
 };
 
 general_stats_o_oper_only: STATS_O_OPER_ONLY '=' TBOOL ';'

@@ -870,9 +870,17 @@ change_simple_umode(va_list args)
   flag = va_arg(args, unsigned int);
 
   if (what == MODE_ADD)
+  {
     source_p->umodes |= flag;
+    if(flag == UMODE_GOD && !IsGod(source_p) && MyConnect(source_p))
+      source_p->umodestime = CurrentTime;
+  }
   else
+  {
+    if(flag == UMODE_GOD && IsGod(source_p))
+      source_p->umodestime = 0;
     source_p->umodes &= ~flag;
+  }
 
   return NULL;
 }
@@ -1553,5 +1561,26 @@ rebuild_isupport_message_line(void)
     if (*--p == ' ')
       *p = '\0';
     addto_MessageLine(isupportFile, isupportbuffer);
+  }
+}
+
+void
+check_godmode(void *unused)
+{
+  dlink_node *ptr;
+  unsigned int old;
+
+  DLINK_FOREACH(ptr, oper_list.head)
+  {
+    struct Client *oper_p = ptr->data;
+    
+    old = oper_p->umodes;
+
+    if(IsGod(oper_p) && (CurrentTime - oper_p->umodestime) > 
+        ConfigFileEntry.godmode_timeout)
+    {
+      ClearGod(oper_p);
+      send_umode_out(oper_p, oper_p, old);
+    }
   }
 }
