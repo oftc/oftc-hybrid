@@ -491,7 +491,7 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
           ++tlen;
       }
 
-      if (t + tlen - lbuf > IRCD_BUFSIZE + 2)
+      if (t + tlen - lbuf > IRCD_BUFSIZE - 2)
       {
         *(t - 1) = '\0';
         sendto_one(source_p, "%s", lbuf);
