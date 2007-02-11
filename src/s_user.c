@@ -871,9 +871,9 @@ change_simple_umode(va_list args)
 
   if (what == MODE_ADD)
   {
-    source_p->umodes |= flag;
     if(flag == UMODE_GOD && !IsGod(source_p) && MyConnect(source_p))
       source_p->umodestime = CurrentTime;
+    source_p->umodes |= flag;
   }
   else
   {
