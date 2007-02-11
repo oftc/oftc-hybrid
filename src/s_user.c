@@ -1570,6 +1570,9 @@ check_godmode(void *unused)
   dlink_node *ptr;
   unsigned int old;
 
+  if(ConfigFileEntry.godmode_timeout <= 0)
+    return;
+
   DLINK_FOREACH(ptr, oper_list.head)
   {
     struct Client *oper_p = ptr->data;

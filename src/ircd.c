@@ -726,8 +726,7 @@ main(int argc, char *argv[])
   if (splitmode)
     eventAddIsh("check_splitmode", check_splitmode, NULL, 60);
 
-  if(ConfigFileEntry.godmode_timeout > 0)
-    eventAddIsh("check_godmode", check_godmode, NULL, 60);
+  eventAddIsh("check_godmode", check_godmode, NULL, 60);
 
   io_loop();
   return(0);
