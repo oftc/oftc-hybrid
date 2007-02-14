@@ -419,6 +419,7 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
   char *p;
   char tmpch;
   int nonwild = 0;
+  int anywild = 0;
   va_list args;
 
   /*
@@ -452,8 +453,14 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
         if (++nonwild >= ConfigFileEntry.min_nonwildcard)
           return 1;
       }
+      else
+        anywild = 1;
     }
   }
+
+  /* There are no wild characters in the ban, allow it */
+  if(!anywild)
+    return 1;
 
   if (warn)
     sendto_one(source_p, ":%s NOTICE %s :Please include at least %d non-wildcard characters with the mask",

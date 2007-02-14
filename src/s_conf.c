@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_conf.c 731 2006-11-22 21:38:34Z stu $
+ *  $Id: s_conf.c 759 2007-01-21 10:31:04Z stu $
  */
 
 #include "stdinc.h"
@@ -3222,6 +3222,7 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
   char *p;
   char tmpch;
   int nonwild = 0;
+  int anywild = 0;
   va_list args;
 
   /*
@@ -3254,9 +3255,15 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
          */
         if (++nonwild >= ConfigFileEntry.min_nonwildcard)
           return 1;
+        else
+          anywild = 1;
       }
     }
   }
+
+  /* There are no wild characters in the ban, allow it */
+  if(!anywild)
+    return 1;
 
   if (warn)
     sendto_one(source_p, ":%s NOTICE %s :Please include at least %d non-wildcard characters with the mask",

@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: m_stats.c 606 2006-06-08 22:35:55Z stu $
+ *  $Id: m_stats.c 770 2007-02-04 22:17:25Z stu $
  */
 
 #include "stdinc.h"
@@ -63,7 +63,7 @@ struct Message stats_msgtab = {
 };
 
 #ifndef STATIC_MODULES
-const char *_version = "$Revision: 606 $";
+const char *_version = "$Revision: 770 $";
 static struct Callback *stats_cb;
 
 static void *
@@ -144,7 +144,7 @@ static const struct StatsStruct
   { 'd',	stats_tdeny,		1,	0,	},
   { 'D',	stats_deny,		1,	0,	},
   { 'e', 	stats_exempt,		1,	0,	},
-  { 'E',	stats_events,		1,	1,	},
+  { 'E',	stats_events,		1,	0,	},
   { 'f',	fd_dump,		1,	1,	},
   { 'F',	fd_dump,		1,	1,	},
   { 'g',	stats_pending_glines,	1,	0,	},
@@ -1063,33 +1063,53 @@ static void
 stats_operedup(struct Client *source_p)
 {
   dlink_node *ptr;
+  int oper_count = 0;
 
-  DLINK_FOREACH(ptr, oper_list.head)
+  DLINK_FOREACH(ptr, global_client_list.head)
   {
     const struct Client *target_p = ptr->data;
 
     if (IsOperHidden(target_p) && !IsOper(source_p))
       continue;
 
-    if (MyClient(source_p) && IsOper(source_p))
-      sendto_one(source_p, ":%s %d %s p :[%c][%s] %s (%s@%s) Idle: %d",
-                 from, RPL_STATSDEBUG, to,
-                 IsAdmin(target_p) ?
-		 (IsOperHiddenAdmin(target_p) ? 'O' : 'A') : 'O',
-		 oper_privs_as_string(target_p->localClient->operflags),
-		 target_p->name, target_p->username, target_p->host,
-		 (int)(CurrentTime - target_p->localClient->last));
-    else
-      sendto_one(source_p, ":%s %d %s p :[%c] %s (%s@%s) Idle: %d",
-                 from, RPL_STATSDEBUG, to,
-                 IsAdmin(target_p) ?
-		 (IsOperHiddenAdmin(target_p) ? 'O' : 'A') : 'O',
-		 target_p->name, target_p->username, target_p->host,
-		 (int)(CurrentTime - target_p->localClient->last));
+    if(!IsOper(target_p))
+      continue;
+
+    oper_count++;
+    if(MyClient(target_p))
+    {
+      if (MyClient(source_p) && IsOper(source_p))
+        sendto_one(source_p, ":%s %d %s p :[%c][%s] %s (%s@%s) Idle: %d",
+            from, RPL_STATSDEBUG, to,
+            IsAdmin(target_p) ?
+            (IsOperHiddenAdmin(target_p) ? 'O' : 'A') : 'O',
+            oper_privs_as_string(target_p->localClient->operflags),
+            target_p->name, target_p->username, target_p->host,
+            (int)(CurrentTime - target_p->localClient->last));
+      else
+        sendto_one(source_p, ":%s %d %s p :[%c] %s (%s@%s) Idle: %d",
+            from, RPL_STATSDEBUG, to,
+            IsAdmin(target_p) ?
+            (IsOperHiddenAdmin(target_p) ? 'O' : 'A') : 'O',
+            target_p->name, target_p->username, target_p->host,
+            (int)(CurrentTime - target_p->localClient->last));
+    }
+    /* The logic here is that we only show remote admins so we can hide remote
+     * opers.  Local opers can be hidden with config flags 
+     */
+    else if(IsAdmin(target_p))
+    {
+      sendto_one(source_p, ":%s %d %s p :[%c] %s (%s@%s) Server: %s",
+          from, RPL_STATSDEBUG, to,
+          IsAdmin(target_p) ?
+          (IsOperHiddenAdmin(target_p) ? 'O' : 'A') : 'O',
+          target_p->name, target_p->username, target_p->host,
+          target_p->servptr->name);
+    }
   }
 
   sendto_one(source_p, ":%s %d %s p :%lu OPER(s)",
-             from, RPL_STATSDEBUG, to, dlink_list_length(&oper_list));
+             from, RPL_STATSDEBUG, to, oper_count);
 }
 
 static void

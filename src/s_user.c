@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_user.c 666 2006-07-25 14:34:40Z stu $
+ *  $Id: s_user.c 786 2007-02-11 21:59:56Z stu $
  */
 
 #include "stdinc.h"
@@ -428,7 +428,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     const char *id = execute_callback(uid_get_cb, source_p);
 
     while (hash_find_id(id) != NULL)
-      id = uid_get(NULL);
+      id = execute_callback(uid_get_cb, source_p);
 
     strlcpy(source_p->id, id, sizeof(source_p->id));
     hash_add_id(source_p);
@@ -870,9 +870,17 @@ change_simple_umode(va_list args)
   flag = va_arg(args, unsigned int);
 
   if (what == MODE_ADD)
+  {
+    if(flag == UMODE_GOD && !IsGod(source_p) && MyConnect(source_p))
+      source_p->umodestime = CurrentTime;
     source_p->umodes |= flag;
+  }
   else
+  {
+    if(flag == UMODE_GOD && IsGod(source_p))
+      source_p->umodestime = 0;
     source_p->umodes &= ~flag;
+  }
 
   return NULL;
 }
@@ -1553,5 +1561,29 @@ rebuild_isupport_message_line(void)
     if (*--p == ' ')
       *p = '\0';
     addto_MessageLine(isupportFile, isupportbuffer);
+  }
+}
+
+void
+check_godmode(void *unused)
+{
+  dlink_node *ptr;
+  unsigned int old;
+
+  if(ConfigFileEntry.godmode_timeout <= 0)
+    return;
+
+  DLINK_FOREACH(ptr, oper_list.head)
+  {
+    struct Client *oper_p = ptr->data;
+    
+    old = oper_p->umodes;
+
+    if(IsGod(oper_p) && (CurrentTime - oper_p->umodestime) > 
+        ConfigFileEntry.godmode_timeout)
+    {
+      ClearGod(oper_p);
+      send_umode_out(oper_p, oper_p, old);
+    }
   }
 }

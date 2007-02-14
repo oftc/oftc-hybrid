@@ -1,3 +1,18 @@
+-- oftc-hybrid 1.5.3 RELNOTES
+o) Actually fix the /names output bug instead of making it worse
+o) UMode +S now times out after a configurable timeout
+o) Fix a critical bug in the kqueue io handler
+
+-- oftc-hybrid 1.5.2 RELNOTES
+o) Bugfix release to make stats E non admin-only and stats p not show remote
+    non-admins
+
+-- oftc-hybrid 1.5.1 RELNOTES
+o) Allow non chanops to view +q lists
+o) Fix a bug in /names output
+o) DNS server failure is now reported a little better
+o) /stats p is now global and will show all opers on the network
+
 -- oftc-hybrid 1.5.0 RELNOTES
 o) UMode +G moved to +S to make way for hybrid +G
 o) UMode +S removed
@@ -137,4 +152,4 @@ Please read doc/whats-new.txt for information about what is in this release
 Other files recommended for reading: BUGS, README.FIRST, INSTALL
 
 --------------------------------------------------------------------------------
-$Id: RELNOTES 719 2006-11-22 16:52:12Z stu $
+$Id: RELNOTES 784 2007-02-11 19:35:01Z stu $

@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_user.h 606 2006-06-08 22:35:55Z stu $
+ *  $Id: s_user.h 781 2007-02-11 17:26:36Z stu $
  */
 
 #ifndef INCLUDED_s_user_h
@@ -64,5 +64,6 @@ extern void add_isupport(const char *, const char *, int);
 extern void delete_isupport(const char *);
 extern void init_isupport(void);
 extern void rebuild_isupport_message_line(void);
+extern void check_godmode(void *);
 
 #endif

@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: listener.c 606 2006-06-08 22:35:55Z stu $
+ *  $Id: listener.c 764 2007-02-01 16:32:56Z stu $
  */
 
 #include "stdinc.h"
@@ -214,7 +214,7 @@ inetport(struct Listener *listener)
   return 1;
 }
 
-static struct Listener *
+struct Listener *
 find_listener(int port, struct irc_ssaddr *addr)
 {
   dlink_node *ptr;

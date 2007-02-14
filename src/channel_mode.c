@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: channel_mode.c 718 2006-11-22 16:48:12Z stu $
+ *  $Id: channel_mode.c 747 2006-12-01 23:46:58Z stu $
  */
 
 #include "stdinc.h"
@@ -936,25 +936,6 @@ chm_quiet(struct Client *client_p, struct Client *source_p,
    * set the mode.  This prevents the abuse of +q when just a few
    * servers support it 
    */
-  if (!ConfigChannel.use_quiet && MyClient(source_p) && 
-      (dir == MODE_ADD) && (parc > *parn))
-  {
-    if (*errors & SM_ERR_RPL_Q)
-      return;
-    
-    *errors |= SM_ERR_RPL_Q;
-    return;
-  }
-
-  if (alev < CHACCESS_HALFOP)
-  {
-    if (!(*errors & SM_ERR_NOOPS))
-      sendto_one(source_p, form_str(alev == CHACCESS_NOTONCHAN ?
-                                    ERR_NOTONCHANNEL : ERR_CHANOPRIVSNEEDED),
-                 me.name, source_p->name, chname);
-    *errors |= SM_ERR_NOOPS;
-    return;
-  }
 
   if (dir == MODE_QUERY || parc <= *parn)
   {
@@ -978,8 +959,27 @@ chm_quiet(struct Client *client_p, struct Client *source_p,
                source_p->name, chname);
     return;
   }
+ if (!ConfigChannel.use_quiet && MyClient(source_p) && 
+      (dir == MODE_ADD) && (parc > *parn))
+  {
+    if (*errors & SM_ERR_RPL_Q)
+      return;
+    
+    *errors |= SM_ERR_RPL_Q;
+    return;
+  }
 
-  if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
+  if (alev < CHACCESS_HALFOP)
+  {
+    if (!(*errors & SM_ERR_NOOPS))
+      sendto_one(source_p, form_str(alev == CHACCESS_NOTONCHAN ?
+                                    ERR_NOTONCHANNEL : ERR_CHANOPRIVSNEEDED),
+                 me.name, source_p->name, chname);
+    *errors |= SM_ERR_NOOPS;
+    return;
+  }
+
+ if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
     return;
 
   mask = nuh_mask[*parn];

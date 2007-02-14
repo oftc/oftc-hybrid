@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_serv.c 662 2006-07-25 09:05:57Z stu $
+ *  $Id: s_serv.c 765 2007-02-04 21:14:31Z stu $
  */
 
 #include "stdinc.h"
@@ -65,7 +65,6 @@ static dlink_list cap_list = { NULL, NULL, 0 };
 static unsigned long freeMask;
 static void server_burst(struct Client *);
 static int fork_server(struct Client *);
-static void burst_all(struct Client *);
 static void cjoin_all(struct Client *);
 static void send_tb(struct Client *client_p, struct Channel *chptr);
 
@@ -1493,7 +1492,7 @@ server_burst(struct Client *client_p)
  * output	- NONE
  * side effects - complete burst of channels/nicks is sent to client_p
  */
-static void
+void
 burst_all(struct Client *client_p)
 {
   dlink_node *ptr = NULL;

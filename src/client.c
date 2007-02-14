@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: client.c 709 2006-10-22 14:52:01Z weasel $
+ *  $Id: client.c 764 2007-02-01 16:32:56Z stu $
  */
 
 #include "stdinc.h"
@@ -67,7 +67,7 @@ dlink_list oper_list = {NULL, NULL, 0};
 static EVH check_pings;
 
 static BlockHeap *client_heap  = NULL;
-static BlockHeap *lclient_heap = NULL;
+BlockHeap *lclient_heap = NULL;
 
 static dlink_list dead_list  = { NULL, NULL, 0};
 static dlink_list abort_list = { NULL, NULL, 0};

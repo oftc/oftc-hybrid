@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_conf.h 718 2006-11-22 16:48:12Z stu $
+ *  $Id: s_conf.h 781 2007-02-11 17:26:36Z stu $
  */
 
 #ifndef INCLUDED_s_conf_h
@@ -395,6 +395,7 @@ struct config_file_entry
 #ifdef HAVE_LIBCRYPTO
   struct EncCapability *default_cipher_preference;
 #endif
+  int godmode_timeout; 
 };
 
 struct config_channel_entry

@@ -1,7 +1,7 @@
 #
 # Makefile.in for ircd/modules
 #
-# $Id: Makefile.in 666 2006-07-25 14:34:40Z stu $
+# $Id: Makefile.in 753 2007-01-06 20:25:50Z stu $
 #
 CC		= @CC@
 AR		= @AR@
@@ -64,7 +64,7 @@ OFTC_SRCS = \
   m_shedding.c \
   m_svscloak.c\
   m_svsmode.c\
-  m_tburst.c
+  m_tburst.c\
  
 SRCS =       \
   m_accept.c \

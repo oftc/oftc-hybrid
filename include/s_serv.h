@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_serv.h 718 2006-11-22 16:48:12Z stu $
+ *  $Id: s_serv.h 764 2007-02-01 16:32:56Z stu $
  */
 
 #ifndef INCLUDED_serv_h
@@ -271,5 +271,6 @@ extern struct Server *make_server(struct Client *);
 /* XXX don't belong in the now gone md5, but do these belong in s_serv.c ? */
 extern int base64_block(unsigned char **, char *, int);
 extern int unbase64_block(unsigned char **, char *, int);
+extern void burst_all(struct Client *client_p);
 #endif /* INCLUDED_s_serv_h */
 

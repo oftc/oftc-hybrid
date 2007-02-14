@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: ircd.h 605 2006-06-08 21:26:01Z stu $
+ *  $Id: ircd.h 764 2007-02-01 16:32:56Z stu $
  */
 
 #ifndef INCLUDED_ircd_h
@@ -103,5 +103,6 @@ extern dlink_list lazylink_channels;  /* known about lazylink channels on HUB   
 extern int rehashed_klines;
 extern unsigned long get_maxrss(void);
 extern void set_time(void);
+extern BlockHeap *lclient_heap;
 
 #endif

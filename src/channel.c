@@ -21,7 +21,7 @@
 
 /*! \file channel.c
  * \brief Responsible for managing channels, members, bans and topics
- * \version $Id: channel.c 722 2006-11-22 18:29:54Z stu $
+ * \version $Id: channel.c 780 2007-02-11 00:05:54Z stu $
  */
 
 #include "stdinc.h"
@@ -491,7 +491,7 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
           ++tlen;
       }
 
-      if (t + tlen - lbuf > IRCD_BUFSIZE)
+      if (t + tlen - lbuf > IRCD_BUFSIZE - 2)
       {
         *(t - 1) = '\0';
         sendto_one(source_p, "%s", lbuf);

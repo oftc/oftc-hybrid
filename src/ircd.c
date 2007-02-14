@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: ircd.c 605 2006-06-08 21:26:01Z stu $
+ *  $Id: ircd.c 786 2007-02-11 21:59:56Z stu $
  */
 
 #include "stdinc.h"
@@ -725,6 +725,8 @@ main(int argc, char *argv[])
 
   if (splitmode)
     eventAddIsh("check_splitmode", check_splitmode, NULL, 60);
+
+  eventAddIsh("check_godmode", check_godmode, NULL, 60);
 
   io_loop();
   return(0);

@@ -1,3 +1,9 @@
+oftc-hybrid (1.5.3.dfsg-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Christoph Berg <myon@debian.org>  Wed, 14 Feb 2007 20:52:29 +0100
+
 oftc-hybrid (1.5.0.dfsg-3) unstable; urgency=low
 
   * Move respond to separate binary oftc-hybrid-respond.

@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: client.h 713 2006-10-23 11:34:54Z stu $
+ *  $Id: client.h 782 2007-02-11 17:50:09Z stu $
  */
 
 #ifndef INCLUDED_client_h
@@ -109,6 +109,7 @@ struct Client
   time_t            firsttime;  /* time client was created */
   time_t            since;      /* last time we parsed something */
   time_t            tsinfo;     /* TS on the nick, SVINFO on server */
+  time_t            umodestime; /* Time client set umode +S */
   unsigned long	    connect_id; /* unique connection ID */
   unsigned int      umodes;     /* opers, normal users subset */
   unsigned int      flags;      /* client flags */
@@ -459,6 +460,7 @@ struct LocalUser
 #define IsPrivileged(x)         (IsOper(x) || IsServer(x))
 
 #define IsGod(x)                ((x)->umodes & UMODE_GOD) 
+#define ClearGod(x)             ((x)->umodes &= ~UMODE_GOD)
 #define SetNickServReg(x)       ((x)->umodes |= UMODE_NICKSERVREG)
 #define ClearNickServReg(x)     ((x)->umodes &= ~UMODE_NICKSERVREG)
 #define IsNickServReg(x)        ((x)->umodes & UMODE_NICKSERVREG)

@@ -391,8 +391,8 @@ oftc_log(char *pattern, ...)
   if((logfile = fbopen(OFTCLOG, "a+")) == NULL)
     return;
 
-  nbytes = vsprintf(buf, pattern, vl);
-  nbytes += snprintf(buf2, LOG_BUFSIZE, "%s %s\n", myctime(time(NULL)), buf);
+  vsprintf(buf, pattern, vl);
+  nbytes = snprintf(buf2, LOG_BUFSIZE, "%s %s\n", myctime(time(NULL)), buf);
   fbputs(buf2, logfile, nbytes);
 
   fbclose(logfile);
