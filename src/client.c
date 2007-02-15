@@ -407,7 +407,7 @@ check_conf_klines(void)
       continue;
 
     /* if there is a returned struct ConfItem then kill it */
-    if ((aconf = find_dline_conf(&client_p->localClient->ip,
+    if ((aconf = find_dline_conf(&client_p->ip,
                                   client_p->localClient->aftype)) != NULL)
     {
       if (aconf->status & CONF_EXEMPTDLINE)
@@ -486,7 +486,7 @@ check_conf_klines(void)
   {
     client_p = ptr->data;
 
-    if ((aconf = find_dline_conf(&client_p->localClient->ip,
+    if ((aconf = find_dline_conf(&client_p->ip,
                                   client_p->localClient->aftype)))
     {
       if (aconf->status & CONF_EXEMPTDLINE)
@@ -956,7 +956,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
     SetClosing(source_p);
 
     if (IsIpHash(source_p))
-      remove_one_ip(&source_p->localClient->ip);
+      remove_one_ip(&source_p->ip);
 
     delete_auth(source_p);
 

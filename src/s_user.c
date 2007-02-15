@@ -32,6 +32,7 @@
 #include "common.h"
 #include "fdlist.h"
 #include "hash.h"
+#include "hostmask.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "s_bsd.h"
@@ -434,8 +435,8 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     hash_add_id(source_p);
   }
 
-  irc_getnameinfo((struct sockaddr *)&source_p->localClient->ip,
-                  source_p->localClient->ip.ss_len, ipaddr,
+  irc_getnameinfo((struct sockaddr *)&source_p->ip,
+                  source_p->ip.ss_len, ipaddr,
                   HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
 
   sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL,
@@ -508,6 +509,9 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
                      const char *realname)
 {
   struct Client *target_p = NULL;
+  struct ip_entry *ip_found;
+  const struct AccessItem *aconf = NULL;
+  struct ClassItem *aclass;
 
   assert(source_p != NULL);
   assert(source_p->username != username);
@@ -563,6 +567,18 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
   dlinkAdd(source_p, &source_p->lnode, &source_p->servptr->serv->users);
   add_user_host(source_p->username, source_p->host, 1);
   SetUserHost(source_p);
+
+  ip_found = find_or_add_ip(&client_p->ip);
+  ip_found->count++;
+  SetIpHash(source_p);
+
+  aconf = find_address_conf(client_p->host, client_p->username, &client_p->id,
+      client_p->ip.ss.ss_family, NULL);
+  aclass = map_to_conf(aconf->class_ptr);
+
+  if(cidr_limit_reached(0, &client_p->ip, aclass))
+    ilog(L_DEBUG, "Server %s introduced client %s which exceeds our cidr limit",
+        server, client_p->name);
 
   introduce_client(client_p, source_p);
 }

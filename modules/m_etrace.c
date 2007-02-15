@@ -169,8 +169,8 @@ report_this_status(struct Client *source_p, struct Client *target_p)
   char ip[HOSTIPLEN];
 
   /* Should this be sockhost? - stu */
-  irc_getnameinfo((struct sockaddr*)&target_p->localClient->ip, 
-        target_p->localClient->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
+  irc_getnameinfo((struct sockaddr*)&target_p->ip, 
+        target_p->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
         NI_NUMERICHOST);
 
   name = get_client_name(target_p, HIDE_IP);

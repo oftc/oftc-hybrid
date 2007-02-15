@@ -161,6 +161,14 @@ struct CidrItem
   dlink_node node;
 };
 
+struct ip_entry
+{
+  struct irc_ssaddr ip;
+  int count;
+  time_t last_attempt;
+  struct ip_entry *next;
+};
+
 #define ConFreq(x)	((x)->con_freq)
 #define PingFreq(x)	((x)->ping_freq)
 #define PingWarning(x)  ((x)->ping_warning)
@@ -574,5 +582,7 @@ extern int match_conf_password(const char *, const struct AccessItem *);
 extern void cluster_a_line(struct Client *,
 			   const char *, int, int, const char *,...);
 extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
+extern struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
+extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
 
 #endif /* INCLUDED_s_conf_h */

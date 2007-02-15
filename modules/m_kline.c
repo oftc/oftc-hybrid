@@ -433,8 +433,8 @@ mo_dline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    irc_getnameinfo((struct sockaddr *)&target_p->localClient->ip,
-                    target_p->localClient->ip.ss_len, hostip,
+    irc_getnameinfo((struct sockaddr *)&target_p->ip,
+                    target_p->ip.ss_len, hostip,
                     sizeof(hostip), NULL, 0, NI_NUMERICHOST);
 
     dlhost = hostip;

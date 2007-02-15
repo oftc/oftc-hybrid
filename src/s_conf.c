@@ -35,6 +35,7 @@
 #include "event.h"
 #include "hash.h"
 #include "hook.h"
+#include "hostmask.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "s_bsd.h"
@@ -101,7 +102,6 @@ static void garbage_collect_ip_entries(void);
 static int hash_ip(struct irc_ssaddr *);
 static int verify_access(struct Client *, const char *);
 static int attach_iline(struct Client *, struct ConfItem *);
-static struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
 static void parse_conf_file(int, int);
 static dlink_list *map_to_list(ConfType);
 static struct AccessItem *find_regexp_kline(const char *[]);
@@ -110,7 +110,6 @@ static int find_user_host(struct Client *, char *, char *, char *, unsigned int)
 /*
  * bit_len
  */
-static int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
 static void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
 static void destroy_cidr_class(struct ClassItem *);
 
@@ -126,14 +125,6 @@ static struct ConfItem *class_default;
  * not ascii strings.
  */
 #define IP_HASH_SIZE 0x1000
-
-struct ip_entry
-{
-  struct irc_ssaddr ip;
-  int count;
-  time_t last_attempt;
-  struct ip_entry *next;
-};
 
 static struct ip_entry *ip_hash_table[IP_HASH_SIZE];
 static BlockHeap *ip_entry_heap = NULL;
@@ -864,8 +855,8 @@ check_client(va_list args)
       ServerStats->is_ref++;
       /* jdc - lists server name & port connections are on */
       /*       a purely cosmetical change */
-      irc_getnameinfo((struct sockaddr*)&source_p->localClient->ip,
-            source_p->localClient->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
+      irc_getnameinfo((struct sockaddr*)&source_p->ip,
+            source_p->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
             NI_NUMERICHOST);
       sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL,
 			   "Unauthorized client connection from %s [%s] on [%s/%u].",
@@ -936,7 +927,7 @@ verify_access(struct Client *client_p, const char *username)
   if (IsGotId(client_p))
   {
     aconf = find_address_conf(client_p->host, client_p->username,
-			     &client_p->localClient->ip,
+			     &client_p->ip,
 			     client_p->localClient->aftype,
                              client_p->localClient->passwd);
   }
@@ -944,7 +935,7 @@ verify_access(struct Client *client_p, const char *username)
   {
     strlcpy(non_ident+1, username, sizeof(non_ident)-1);
     aconf = find_address_conf(client_p->host,non_ident,
-			     &client_p->localClient->ip,
+			     &client_p->ip,
 			     client_p->localClient->aftype,
 	                     client_p->localClient->passwd);
   }
@@ -1020,7 +1011,7 @@ attach_iline(struct Client *client_p, struct ConfItem *conf)
   int a_limit_reached = 0;
   int local = 0, global = 0, ident = 0;
 
-  ip_found = find_or_add_ip(&client_p->localClient->ip);
+  ip_found = find_or_add_ip(&client_p->ip);
   ip_found->count++;
   SetIpHash(client_p);
 
@@ -1086,7 +1077,7 @@ init_ip_hash_table(void)
  * If the ip # was not found, a new struct ip_entry is created, and the ip
  * count set to 0.
  */
-static struct ip_entry *
+struct ip_entry *
 find_or_add_ip(struct irc_ssaddr *ip_in)
 {
   struct ip_entry *ptr, *newptr;
@@ -1335,7 +1326,7 @@ detach_conf(struct Client *client_p, ConfType type)
           assert(aclass->curr_user_count > 0);
 
           if (conf->type == CLIENT_TYPE)
-            remove_from_cidr_check(&client_p->localClient->ip, aclass);
+            remove_from_cidr_check(&client_p->ip, aclass);
           if (--aclass->curr_user_count == 0 && aclass->active == 0)
             delete_conf_item(aclass_conf);
         }
@@ -1391,7 +1382,7 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
 
     if (conf->type == CLIENT_TYPE)
       if (cidr_limit_reached(IsConfExemptLimits(aconf),
-                             &client_p->localClient->ip, aclass))
+                             &client_p->ip, aclass))
         return TOO_MANY;    /* Already at maximum allowed */
 
     CurrUserCount(aclass)++;
@@ -2118,7 +2109,7 @@ find_kill(struct Client *client_p)
   assert(client_p != NULL);
 
   aconf = find_kline_conf(client_p->host, client_p->username,
-			  &client_p->localClient->ip,
+			  &client_p->ip,
 			  client_p->localClient->aftype);
   if (aconf == NULL)
     aconf = find_regexp_kline(uhi);
@@ -2137,7 +2128,7 @@ find_gline(struct Client *client_p)
   assert(client_p != NULL);
 
   aconf = find_gline_conf(client_p->host, client_p->username,
-                          &client_p->localClient->ip,
+                          &client_p->ip,
                           client_p->localClient->aftype);
 
   if (aconf && (aconf->status & CONF_GLINE))
@@ -3728,7 +3719,7 @@ flags_to_ascii(unsigned int flags, const unsigned int bit_table[], char *p,
  *		  0 if limit not reached
  * side effects	-
  */
-static int
+int
 cidr_limit_reached(int over_rule,
 		   struct irc_ssaddr *ip, struct ClassItem *aclass)
 {
@@ -3873,7 +3864,7 @@ rebuild_cidr_list(int aftype, struct ConfItem *oldcl, struct ClassItem *newcl,
     {
       aconf = map_to_conf(conf);
       if (aconf->class_ptr == oldcl)
-        cidr_limit_reached(1, &client_p->localClient->ip, newcl);
+        cidr_limit_reached(1, &client_p->ip, newcl);
     }
   }
 }

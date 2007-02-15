@@ -698,14 +698,14 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
         v6 = (struct sockaddr_in6 *)&aconf->ipnum;
 
         if (IN6_IS_ADDR_UNSPECIFIED(&v6->sin6_addr))
-          memcpy(&aconf->ipnum, &client_p->localClient->ip, sizeof(struct irc_ssaddr));
+          memcpy(&aconf->ipnum, &client_p->ip, sizeof(struct irc_ssaddr));
         break;
 #endif
       case AF_INET:
         v4 = (struct sockaddr_in *)&aconf->ipnum;
 
         if (v4->sin_addr.s_addr == INADDR_NONE)
-          memcpy(&aconf->ipnum, &client_p->localClient->ip, sizeof(struct irc_ssaddr)); 
+          memcpy(&aconf->ipnum, &client_p->ip, sizeof(struct irc_ssaddr)); 
         break;
     }
   }
@@ -2092,7 +2092,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   assert(&client_p->localClient->fd == fd);
 
   /* Next, for backward purposes, record the ip of the server */
-  memcpy(&client_p->localClient->ip, &fd->connect.hostaddr,
+  memcpy(&client_p->ip, &fd->connect.hostaddr,
          sizeof(struct irc_ssaddr));
   /* Check the status */
   if (status != COMM_OK)
