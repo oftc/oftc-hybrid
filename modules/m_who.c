@@ -32,6 +32,7 @@
 #include "hash.h"
 #include "ircd.h"
 #include "numeric.h"
+#include "hostmask.h"
 #include "s_serv.h"
 #include "send.h"
 #include "s_conf.h"
@@ -505,6 +506,28 @@ chk_who(struct Client *target_p, int showall)
     
   if(wsopts.ip != NULL && target_p->sockhost[0] != '\0')
   {
+    if(strchr(wsopts.ip, '/'))
+    {
+      int type;
+      struct irc_ssaddr addr;
+      int bits;
+      
+      type = parse_netmask(wsopts.ip, &addr, &bits);
+
+      switch(type)
+      {
+        case HM_IPV4:
+          if(target_p->ip.ss.ss_family == AF_INET)
+            if(match_ipv4(&target_p->ip, &addr, bits))
+              return 1;
+          return 0;
+        case HM_IPV6:
+          if(target_p->ip.ss.ss_family == AF_INET6)
+            if(match_ipv6(&target_p->ip, &addr, bits))
+              return 1;
+          return 0;
+      }
+    }
     if((wsopts.ip_plus && ichkfn(wsopts.ip, target_p->sockhost)) ||
         (!wsopts.ip_plus && !ichkfn(wsopts.ip, target_p->sockhost)))
       return ichkfn == match;
