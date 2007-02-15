@@ -176,6 +176,7 @@ struct Client
 
   struct LocalUser *localClient;
   struct irc_ssaddr ip;
+  int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
 };
 
 struct LocalUser
@@ -221,7 +222,6 @@ struct LocalUser
   struct Listener *listener;   /* listener accepted from */
   dlink_list        confs;     /* Configuration record associated */
   dlink_list        invited;   /* chain of invite pointer blocks */
-  int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
   struct DNSQuery   *dns_query; /* result returned from resolver query */
   unsigned long     serverMask; /* Only used for Lazy Links */
   time_t last; /* Last time we got a PRIVMSG */

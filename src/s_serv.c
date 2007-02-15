@@ -1988,7 +1988,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   SetConnecting(client_p);
   dlinkAdd(client_p, &client_p->node, &global_client_list);
   /* from def_fam */
-  client_p->localClient->aftype = aconf->aftype;
+  client_p->aftype = aconf->aftype;
 
   /* Now, initiate the connection */
   /* XXX assume that a non 0 type means a specific bind address 

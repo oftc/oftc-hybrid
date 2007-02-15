@@ -408,7 +408,7 @@ check_conf_klines(void)
 
     /* if there is a returned struct ConfItem then kill it */
     if ((aconf = find_dline_conf(&client_p->ip,
-                                  client_p->localClient->aftype)) != NULL)
+                                  client_p->aftype)) != NULL)
     {
       if (aconf->status & CONF_EXEMPTDLINE)
         continue;
@@ -487,7 +487,7 @@ check_conf_klines(void)
     client_p = ptr->data;
 
     if ((aconf = find_dline_conf(&client_p->ip,
-                                  client_p->localClient->aftype)))
+                                  client_p->aftype)))
     {
       if (aconf->status & CONF_EXEMPTDLINE)
         continue;
