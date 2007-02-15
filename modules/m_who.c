@@ -503,10 +503,17 @@ chk_who(struct Client *target_p, int showall)
     }
   }
     
-  if(wsopts.ip!=NULL && target_p->sockhost[0] != '\0')
+  if(wsopts.ip != NULL && target_p->sockhost[0] != '\0')
+  {
     if((wsopts.ip_plus && ichkfn(wsopts.ip, target_p->sockhost)) ||
         (!wsopts.ip_plus && !ichkfn(wsopts.ip, target_p->sockhost)))
-      return 0;
+      return ichkfn == match;
+    else
+      return !(ichkfn == match);
+  }
+  else if(wsopts.ip != NULL)
+    return 0;
+
   if(wsopts.gcos!=NULL)
   {
     if(gchkfn == match)
