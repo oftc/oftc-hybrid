@@ -45,6 +45,7 @@
 #include "s_log.h"
 #include "common.h"
 #include "handlers.h"
+#include "sprintf_irc.h"
 
 static void mo_restart(struct Client *, struct Client *, int, char *[]);
 
@@ -69,88 +70,6 @@ struct SocketInfo
   time_t last;
 };
 
-/* burst_members()
- *
- * inputs	- pointer to server to send members to
- * 		- dlink_list pointer to membership list to send
- * output	- NONE
- * side effects	-
- */
-static void
-burst_members(struct Client *client_p, struct Channel *chptr)
-{
-  struct Client *target_p;
-  struct Membership *ms;
-  dlink_node *ptr;
-
-  DLINK_FOREACH(ptr, chptr->members.head)
-  {
-    ms       = ptr->data;
-    target_p = ms->client_p;
-
-    if (!IsBursted(target_p))
-    {
-      SetBursted(target_p);
-
-      if (target_p->from != client_p)
-        sendnick_TS(client_p, target_p);
-    }
-  }
-}
-
-/*
- * send_tb
- *
- * inputs       - pointer to Client
- *              - pointer to channel
- * output       - NONE
- * side effects - Called on a server burst when
- *                server is CAP_TB|CAP_TBURST capable
- */
-static void
-send_tb(struct Client *client_p, struct Channel *chptr)
-{
-  /*
-   * We may also send an empty topic here, but only if topic_time isn't 0,
-   * i.e. if we had a topic that got unset.  This is required for syncing
-   * topics properly.
-   *
-   * Imagine the following scenario: Our downlink introduces a channel
-   * to us with a TS that is equal to ours, but the channel topic on
-   * their side got unset while the servers were in splitmode, which means
-   * their 'topic' is newer.  They simply wanted to unset it, so we have to
-   * deal with it in a more sophisticated fashion instead of just resetting
-   * it to their old topic they had before.  Read m_tburst.c:ms_tburst
-   * for further information   -Michael
-   */
-  if (chptr->topic_time != 0)
-  {
-    if (IsCapable(client_p, CAP_TBURST))
-      sendto_one(client_p, ":%s TBURST %lu %s %lu %s :%s",
-                 me.name, (unsigned long)chptr->channelts, chptr->chname,
-                 (unsigned long)chptr->topic_time,
-                 chptr->topic_info ? chptr->topic_info : "",
-                 chptr->topic ? chptr->topic : "");
-    else if (IsCapable(client_p, CAP_TB))
-    {
-      if (ConfigChannel.burst_topicwho)
-      {
-        sendto_one(client_p, ":%s TB %s %lu %s :%s",
-                   me.name, chptr->chname,
-                   (unsigned long)chptr->topic_time,
-                   chptr->topic_info, chptr->topic ? chptr->topic : "");
-      }
-      else
-      {
-        sendto_one(client_p, ":%s TB %s %lu :%s",
-                   me.name, chptr->chname,
-                   (unsigned long)chptr->topic_time,
-                   chptr->topic ? chptr->topic : "");
-      }
-    }
-  }
-}
-
 /*
  * serverize()
  *
@@ -163,8 +82,6 @@ static void
 serverize(struct Client *client_p)
 {
   struct ConfItem *sconf = make_conf_item(SERVER_TYPE);
-
-  char *hub_mask;
 
   DupString(sconf->name, client_p->name);
 

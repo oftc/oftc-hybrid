@@ -573,7 +573,7 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
     ServerInfo.rsa_private_key = (RSA *)PEM_read_bio_RSAPrivateKey(file, NULL,
       0, NULL);
 
-    BIO_set_close(file, BIO_CLOSE);
+    (void)BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
 
     if (ServerInfo.rsa_private_key == NULL)
@@ -1013,7 +1013,7 @@ oper_entry: OPERATOR
         file = BIO_new_file(yy_aconf->rsa_public_key_file, "r");
         new_aconf->rsa_public_key = (RSA *)PEM_read_bio_RSA_PUBKEY(file, 
 							   NULL, 0, NULL);
-        BIO_set_close(file, BIO_CLOSE);
+        (void)BIO_set_close(file, BIO_CLOSE);
         BIO_free(file);
       }
 #endif
@@ -1171,7 +1171,7 @@ oper_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
       break;
     }
 
-    BIO_set_close(file, BIO_CLOSE);
+    (void)BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
   }
 #endif /* HAVE_LIBCRYPTO */
@@ -2779,7 +2779,7 @@ connect_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
       break;
     }
       
-    BIO_set_close(file, BIO_CLOSE);
+    (void)BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
   }
 #endif /* HAVE_LIBCRYPTO */

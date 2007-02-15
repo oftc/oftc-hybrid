@@ -572,8 +572,8 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
   ip_found->count++;
   SetIpHash(source_p);
 
-  aconf = find_address_conf(client_p->host, client_p->username, &client_p->id,
-      client_p->ip.ss.ss_family, NULL);
+  aconf = find_address_conf(client_p->host, client_p->username, &client_p->ip,
+      client_p->aftype, NULL);
   aclass = map_to_conf(aconf->class_ptr);
 
   if(cidr_limit_reached(0, &client_p->ip, aclass))

@@ -120,7 +120,7 @@ verify_private_key(void)
     return -1;
   }
 
-  BIO_set_close(file, BIO_CLOSE);
+  (void)BIO_set_close(file, BIO_CLOSE);
   BIO_free(file);
   bio_spare_fd = save_spare_fd("SSL private key validation");
 

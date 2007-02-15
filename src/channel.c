@@ -605,9 +605,10 @@ get_member_status(const struct Membership *ms, int combine)
  *
  */
 static int
-find_bmask(const struct Client *who, const dlink_list *const list)
+find_bmask(const struct Client *w, const dlink_list *const list)
 {
   const dlink_node *ptr = NULL;
+  struct Client *who = (struct Client *)w;
 
   DLINK_FOREACH(ptr, list->head)
   {
