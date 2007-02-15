@@ -1,0 +1,5 @@
+# $Id: testmask 33 2005-10-02 20:50:00Z knight $
+TESTMASK <user@host>
+
+Will test the given user@host mask, reporting how many local and
+global clients match the given mask.

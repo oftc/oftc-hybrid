@@ -1,0 +1,454 @@
+/*
+ *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
+ *  m_restart.c: Exits and re-runs ircd.
+ *
+ *  Copyright (C) 2002 by the past and present ircd coders, and others.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ *  USA
+ *
+ *  $Id$
+ */
+
+#include "stdinc.h"
+#include "channel.h"
+#include "channel_mode.h"
+#include "client.h"
+#include "hash.h"
+#include "ircd.h"
+#include "ircd_defs.h"
+#include "listener.h"
+#include "numeric.h"
+#include "packet.h"
+#include "parse.h"
+#include "msg.h"
+#include "restart.h"
+#include "s_serv.h"
+#include "s_user.h"
+#include "s_conf.h"
+#include "send.h"
+#include "userhost.h"
+#include "list.h"
+#include "irc_string.h"
+#include "s_log.h"
+#include "common.h"
+#include "handlers.h"
+
+static void mo_restart(struct Client *, struct Client *, int, char *[]);
+
+#ifdef HAVE_LIBCRYPTO
+#define CanForward(x)   (!IsDefunct(x) && !(x)->localClient->fd.ssl)
+#else
+#define CanForward(x)   (!IsDefunct(x))
+#endif
+
+struct SocketInfo
+{
+  int fd;
+  int ctrlfd;
+  int namelen;
+  int pwdlen;
+  int caplen;
+  int recvqlen;
+  int sendqlen;
+  int slinkqofs;
+  int slinkqlen;
+  time_t first;
+  time_t last;
+};
+
+/* burst_members()
+ *
+ * inputs	- pointer to server to send members to
+ * 		- dlink_list pointer to membership list to send
+ * output	- NONE
+ * side effects	-
+ */
+static void
+burst_members(struct Client *client_p, struct Channel *chptr)
+{
+  struct Client *target_p;
+  struct Membership *ms;
+  dlink_node *ptr;
+
+  DLINK_FOREACH(ptr, chptr->members.head)
+  {
+    ms       = ptr->data;
+    target_p = ms->client_p;
+
+    if (!IsBursted(target_p))
+    {
+      SetBursted(target_p);
+
+      if (target_p->from != client_p)
+        sendnick_TS(client_p, target_p);
+    }
+  }
+}
+
+/*
+ * send_tb
+ *
+ * inputs       - pointer to Client
+ *              - pointer to channel
+ * output       - NONE
+ * side effects - Called on a server burst when
+ *                server is CAP_TB|CAP_TBURST capable
+ */
+static void
+send_tb(struct Client *client_p, struct Channel *chptr)
+{
+  /*
+   * We may also send an empty topic here, but only if topic_time isn't 0,
+   * i.e. if we had a topic that got unset.  This is required for syncing
+   * topics properly.
+   *
+   * Imagine the following scenario: Our downlink introduces a channel
+   * to us with a TS that is equal to ours, but the channel topic on
+   * their side got unset while the servers were in splitmode, which means
+   * their 'topic' is newer.  They simply wanted to unset it, so we have to
+   * deal with it in a more sophisticated fashion instead of just resetting
+   * it to their old topic they had before.  Read m_tburst.c:ms_tburst
+   * for further information   -Michael
+   */
+  if (chptr->topic_time != 0)
+  {
+    if (IsCapable(client_p, CAP_TBURST))
+      sendto_one(client_p, ":%s TBURST %lu %s %lu %s :%s",
+                 me.name, (unsigned long)chptr->channelts, chptr->chname,
+                 (unsigned long)chptr->topic_time,
+                 chptr->topic_info ? chptr->topic_info : "",
+                 chptr->topic ? chptr->topic : "");
+    else if (IsCapable(client_p, CAP_TB))
+    {
+      if (ConfigChannel.burst_topicwho)
+      {
+        sendto_one(client_p, ":%s TB %s %lu %s :%s",
+                   me.name, chptr->chname,
+                   (unsigned long)chptr->topic_time,
+                   chptr->topic_info, chptr->topic ? chptr->topic : "");
+      }
+      else
+      {
+        sendto_one(client_p, ":%s TB %s %lu :%s",
+                   me.name, chptr->chname,
+                   (unsigned long)chptr->topic_time,
+                   chptr->topic ? chptr->topic : "");
+      }
+    }
+  }
+}
+
+/*
+ * serverize()
+ *
+ * Turns a dummy client into a server.
+ *
+ * inputs: client pointer
+ * output: none
+ */
+static void
+serverize(struct Client *client_p)
+{
+  struct ConfItem *sconf = make_conf_item(SERVER_TYPE);
+
+  char *hub_mask;
+
+  DupString(sconf->name, client_p->name);
+
+/*  DupString(hub_mask, "*");
+  dlinkAdd(hub_mask, make_dlink_node(), &sconf->hub_list);*/
+  
+  conf_add_class_to_conf(sconf, NULL);
+  attach_conf(client_p, sconf);
+  client_p->serv->sconf = find_conf_name(&client_p->localClient->confs, 
+      client_p->name, SERVER_TYPE);
+
+  SetServer(client_p);
+}
+
+/*
+ * make_dummy()
+ *
+ * Prepares a dummy server-alike local client.
+ *
+ * inputs: file descriptor to use
+ * output: client pointer
+ */
+static struct Client *
+make_dummy(int transfd)
+{
+  dlink_node *m;
+  struct Client *client_p = make_client(NULL);
+
+  fd_open(&client_p->localClient->fd, transfd, 1, "Softboot");
+  client_p->localClient->caps = -1;
+
+  strcpy(client_p->name, ".");
+  strcpy(client_p->id, "...");
+  hash_add_client(client_p);
+  hash_add_id(client_p);
+  dlinkAdd(client_p, &client_p->node, &global_client_list);
+
+  m = dlinkFind(&unknown_list, client_p);
+  dlinkDelete(m, &unknown_list);
+  dlinkAdd(client_p, m, &serv_list);
+  dlinkAdd(client_p, make_dlink_node(), &global_serv_list);
+
+  make_server(client_p);
+  serverize(client_p);
+
+  return client_p;
+}
+
+/*
+ * write_dbuf()
+ *
+ * Writes the contents of a dbuf to the given socket.
+ *
+ * inputs:
+ *   transfd  -  where to write to
+ *   dbuf     -  dbuf pointer
+ * output: none
+ */
+static void
+write_dbuf(int transfd, struct dbuf_queue *dbuf)
+{
+  while (dbuf_length(dbuf) > 0)
+  {
+    struct dbuf_block *first = dbuf->blocks.head->data;
+
+    write(transfd, first->data, first->size);
+    dbuf_delete(dbuf, first->size);
+  }
+}
+
+/*
+ * introduce_socket()
+ *
+ * Encodes and writes socket information about the given client.
+ *
+ * inputs:
+ *   transfd   -  where to write to
+ *   client_p  -  local client to inform about
+ * output: none
+ */
+static void
+introduce_socket(int transfd, struct Client *client_p)
+{
+  struct SocketInfo si;
+  const char *capabs = "";
+
+  if (!CanForward(client_p) || client_p->localClient->fd.fd == transfd)
+    return;
+
+  if (IsServer(client_p))
+    capabs = show_capabilities(client_p);
+
+  si.fd = client_p->localClient->fd.fd;
+  si.ctrlfd = client_p->localClient->ctrlfd.flags.open ?
+    client_p->localClient->ctrlfd.fd : -1;
+  si.namelen = strlen(client_p->name);
+  si.pwdlen = EmptyString(client_p->localClient->passwd) ? 0 :
+    strlen(client_p->localClient->passwd);
+  si.caplen = strlen(capabs);
+  si.recvqlen = dbuf_length(&client_p->localClient->buf_recvq);
+  si.sendqlen = dbuf_length(&client_p->localClient->buf_sendq);
+  si.slinkqofs = client_p->localClient->slinkq_ofs;
+  si.slinkqlen = client_p->localClient->slinkq_len;
+  si.first = client_p->firsttime;
+  si.last = client_p->localClient->last;
+
+  write(transfd, &si, sizeof(si));
+  write(transfd, client_p->name, si.namelen);
+  if (si.pwdlen > 0)
+    write(transfd, client_p->localClient->passwd, si.pwdlen);
+  if (si.caplen > 0)
+    write(transfd, capabs, si.caplen);
+
+  write_dbuf(transfd, &client_p->localClient->buf_recvq);
+  write_dbuf(transfd, &client_p->localClient->buf_sendq);
+  if (si.slinkqlen > 0)
+    write(transfd, client_p->localClient->slinkq, si.slinkqlen);
+}
+
+/*
+ * do_shutdown()
+ *
+ * Implements the /RESTART part of the soft reboot code.
+ *
+ * inputs:
+ *   msg    -  shutdown message
+ *   rboot  -  1 if it's a restart, 0 if plain exit
+ * output: none
+ */
+static void 
+do_shutdown(const char *msg, int rboot)
+{
+  struct Client *client_p;
+  dlink_node *ptr;
+  int transfd[2];
+  char buf[24];
+
+  if (!rboot || socketpair(AF_UNIX, SOCK_STREAM, 0, transfd) < 0)
+  {
+    server_die(buf, YES);
+    return;
+  }
+
+  if (EmptyString(msg))
+  {
+    ilog(L_CRIT, "Server Soft-Rebooting");
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Server Soft-Rebooting");
+  }
+  else
+  {
+    ilog(L_CRIT, "Server Soft-Rebooting: %s", msg);
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Server Soft-Rebooting: %s", msg);
+  }
+
+  //
+  // Prevent all sockets which belong to registered users/servers from
+  // being closed on exec().
+  //
+  fcntl(transfd[0], F_SETFD, 0);
+
+  DLINK_FOREACH(ptr, local_client_list.head)
+  {
+    client_p = ptr->data;
+    if (CanForward(client_p))
+    {
+      fcntl(client_p->localClient->fd.fd, F_SETFD, 0);
+      if (client_p->localClient->list_task != NULL)
+        sendto_one(client_p, form_str(RPL_LISTEND), me.name, client_p->name);
+    }
+  }
+
+  DLINK_FOREACH(ptr, serv_list.head)
+  {
+    client_p = ptr->data;
+    if (CanForward(client_p))
+      fcntl(client_p->localClient->fd.fd, F_SETFD, 0);
+  }
+
+  close_listeners();
+  unlink(pidFileName);
+
+  //
+  // Start the new ircd.
+  //
+  switch (fork())
+  {
+    case -1:
+      ilog(L_CRIT, "Unable to fork(): %s", strerror(errno));
+      exit(1);
+
+    case 0:
+    {
+      int i;
+      char **argv;
+
+      close(transfd[1]);
+      snprintf(buf, sizeof(buf), "softboot_%d", transfd[0]);
+
+      for (i = 0; myargv[i] != NULL; i++);
+      argv = MyMalloc((i + 2) * sizeof(char *));
+
+      for (i = 0; myargv[i] != NULL; i++)
+        argv[i] = myargv[i];
+      argv[i++] = buf;
+      argv[i] = NULL;
+
+      printf("execing: %s %s %s\n", SPATH, argv[0], argv[1]);
+      execv(SPATH, argv);
+      ilog(L_CRIT, "Unable to exec(): %s", strerror(errno));
+      printf("hi\n");
+      exit(1);
+    }
+  }
+
+  //
+  // Pass our data.
+  //
+  burst_all(make_dummy(transfd[1]));
+  send_queued_all();
+
+  snprintf(buf, sizeof(buf), "\001%ld\r\n", me.since);
+  write(transfd[1], buf, strlen(buf));
+
+  DLINK_FOREACH(ptr, local_client_list.head)
+    introduce_socket(transfd[1], ptr->data);
+
+  DLINK_FOREACH(ptr, serv_list.head)
+    introduce_socket(transfd[1], ptr->data);
+
+  exit(0);
+}
+struct Message restart_msgtab = {
+  "RESTART", 0, 0, 0, 0, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_restart, m_ignore }
+};
+
+#ifndef STATIC_MODULES
+void
+_modinit(void)
+{
+  mod_add_cmd(&restart_msgtab);
+}
+
+void
+_moddeinit(void)
+{
+  mod_del_cmd(&restart_msgtab);
+}
+
+const char *_version = "$Revision$";
+#endif
+
+/*
+ * mo_restart
+ *
+ */
+static void
+mo_restart(struct Client *client_p, struct Client *source_p,
+           int parc, char *parv[])
+{
+  char buf[IRCD_BUFSIZE]; 
+
+  if (!IsOperDie(source_p))
+  {
+    sendto_one(source_p, form_str(ERR_NOPRIVS),
+               me.name, source_p->name, "restart");
+    return;
+  }
+
+  if (EmptyString(parv[1]))
+  {
+    sendto_one(source_p, ":%s NOTICE %s :Need server name /restart %s",
+               me.name, source_p->name, me.name);
+    return;
+  }
+
+  if (irccmp(parv[1], me.name))
+  {
+    sendto_one(source_p, ":%s NOTICE %s :Mismatch on /restart %s",
+               me.name, source_p->name, me.name);
+    return;
+  }
+
+  ircsprintf(buf, "received RESTART command from %s",
+             get_oper_name(source_p));
+  do_shutdown(buf, YES);
+}
