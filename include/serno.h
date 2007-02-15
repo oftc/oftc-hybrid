@@ -1,1 +1,1 @@
-#define SERIALNUM "STABLE"
+#define SERIALNUM "BETA"
