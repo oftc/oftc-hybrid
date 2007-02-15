@@ -1,6 +1,0 @@
-# $Id: undline 33 2005-10-02 20:50:00Z knight $
-UNDLINE <ip>
-
-Will attempt to undline the given <ip>
-
-- Requires Oper Priv: U
