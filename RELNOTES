@@ -1,3 +1,8 @@
+-- oftc-hybrid 1.5.4 RELNOTES
+o) Fix the +i WHO option, and add CIDR to it
+o) Make cidr classes global so max_per_cidr is global
+o) max_per_ip is now global too
+
 -- oftc-hybrid 1.5.3 RELNOTES
 o) Actually fix the /names output bug instead of making it worse
 o) UMode +S now times out after a configurable timeout
