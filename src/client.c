@@ -1081,6 +1081,16 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
     sendto_server(from->from, source_p, NULL, NOCAPS, CAP_TS6, NOFLAGS,
                   ":%s QUIT :%s", source_p->name, comment);
   }
+  else if(IsClient(source_p))
+  {
+    struct AccessItem *aconf;
+    struct ClassItem *aclass;
+
+    aconf = find_address_conf(source_p->host, source_p->username, &source_p->ip,
+        source_p->aftype, NULL);
+    aclass = map_to_conf(aconf->class_ptr);
+    remove_from_cidr_check(&source_p->ip, aclass);
+  }
 
   /* The client *better* be off all of the lists */
   assert(dlinkFind(&unknown_list, source_p) == NULL);

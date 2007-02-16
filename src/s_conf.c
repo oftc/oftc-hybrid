@@ -131,7 +131,6 @@ static int find_user_host(struct Client *, char *, char *, char *, unsigned int)
 /*
  * bit_len
  */
-static void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
 static void destroy_cidr_class(struct ClassItem *);
 
 static void flags_to_ascii(unsigned int, const unsigned int[], char *, int);
@@ -3821,7 +3820,7 @@ cidr_limit_reached(int over_rule,
  * output	- NONE
  * side effects	-
  */
-static void
+void
 remove_from_cidr_check(struct irc_ssaddr *ip, struct ClassItem *aclass)
 {
   dlink_node *ptr = NULL;
