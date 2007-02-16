@@ -668,7 +668,7 @@ count_memory(struct Client *source_p)
                me.name, RPL_STATSDEBUG, source_p->name,
                (int)rlim.rlim_cur, (int)rlim.rlim_max);
   } else {
-    ilog(L_NOTICE, "Unable to fork(): %s", strerror(errno));
+    ilog(L_NOTICE, "Unable to getrlimit(): %s", strerror(errno));
     sendto_one(source_p,
                ":%s %d %s z :rlimit_nofile: getrlimit() failed.  See log.",
                me.name, RPL_STATSDEBUG, source_p->name);
