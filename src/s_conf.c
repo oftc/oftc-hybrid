@@ -58,6 +58,27 @@
 #include "s_user.h"
 #include "channel_mode.h"
 
+enum FullCause
+{
+  MAX_TOTAL = 1,
+  MAX_LOCAL,
+  MAX_GLOBAL,
+  MAX_IP,
+  MAX_CIDR,
+  MAX_IDENT
+};
+
+char *full_reasons[] =
+{
+  "",
+  "Too many connections (max_total)",
+  "Too many local user@host connections (max_local)",
+  "Too many global user@host connections (max_global)",
+  "Too many connections from IP (number_per_ip)",
+  "Too many connections from CIDR block (number_per_cidr)",
+  "Too many connections from ident (max_ident)"
+};
+
 struct Callback *client_check_cb = NULL;
 struct config_server_hide ConfigServerHide;
 
@@ -125,6 +146,7 @@ static struct ConfItem *class_default;
  * not ascii strings.
  */
 #define IP_HASH_SIZE 0x1000
+#define CLIENT_REJECT_MESSAGE "No more connections permitted from your host"
 
 static struct ip_entry *ip_hash_table[IP_HASH_SIZE];
 static BlockHeap *ip_entry_heap = NULL;
@@ -826,15 +848,27 @@ check_client(va_list args)
 
   switch (i)
   {
+    case MAX_TOTAL:
+    case MAX_LOCAL:
+    case MAX_GLOBAL:
+    case MAX_IP:
+    case MAX_CIDR:
+    case MAX_IDENT:
+      sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
+          full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost);
+      ilog(L_INFO, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost);
+      ServerStats->is_ref++;
+      exit_client(source_p, &me, CLIENT_REJECT_MESSAGE);
+      break;
     case TOO_MANY:
       sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
-                           "Too many on IP for %s (%s).",
+                           "Too many on IP for %s (%s). (generic too_many)",
 			   get_client_name(source_p, SHOW_IP),
 			   source_p->sockhost);
       ilog(L_INFO,"Too many connections on IP from %s.",
 	   get_client_name(source_p, SHOW_IP));
       ServerStats->is_ref++;
-      exit_client(source_p, &me, "No more connections allowed on that IP");
+      exit_client(source_p, &me, CLIENT_REJECT_MESSAGE);
       break;
 
     case I_LINE_FULL:
@@ -1029,21 +1063,21 @@ attach_iline(struct Client *client_p, struct ConfItem *conf)
    * - Dianora
    */
   if (MaxTotal(aclass) != 0 && CurrUserCount(aclass) >= MaxTotal(aclass))
-    a_limit_reached = 1;
+    a_limit_reached = MAX_TOTAL;
   else if (MaxPerIp(aclass) != 0 && ip_found->count > MaxPerIp(aclass))
-    a_limit_reached = 1;
+    a_limit_reached = MAX_IP;
   else if (MaxLocal(aclass) != 0 && local >= MaxLocal(aclass))
-    a_limit_reached = 1;
+    a_limit_reached = MAX_LOCAL;
   else if (MaxGlobal(aclass) != 0 && global >= MaxGlobal(aclass))
-    a_limit_reached = 1;
+    a_limit_reached = MAX_GLOBAL;
   else if (MaxIdent(aclass) != 0 && ident >= MaxIdent(aclass) &&
            client_p->username[0] != '~')
-    a_limit_reached = 1;
+    a_limit_reached = MAX_IDENT;
 
   if (a_limit_reached)
   {
     if (!IsConfExemptLimits(aconf))
-      return TOO_MANY;   /* Already at maximum allowed */
+      return a_limit_reached;   /* Already at maximum allowed */
 
     sendto_one(client_p,
                ":%s NOTICE %s :*** Your connection class is full, "
@@ -1383,7 +1417,7 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
     if (conf->type == CLIENT_TYPE)
       if (cidr_limit_reached(IsConfExemptLimits(aconf),
                              &client_p->ip, aclass))
-        return TOO_MANY;    /* Already at maximum allowed */
+        return MAX_CIDR;    /* Already at maximum allowed */
 
     CurrUserCount(aclass)++;
     aconf->clients++;
