@@ -944,6 +944,9 @@ void
 exit_client(struct Client *source_p, struct Client *from, const char *comment)
 {
   dlink_node *m;
+  
+  if (IsIpHash(source_p))
+    remove_one_ip(&source_p->ip);
 
   if (MyConnect(source_p))
   {
@@ -954,9 +957,6 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
       return;
 
     SetClosing(source_p);
-
-    if (IsIpHash(source_p))
-      remove_one_ip(&source_p->ip);
 
     delete_auth(source_p);
 
