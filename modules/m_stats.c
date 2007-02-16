@@ -51,6 +51,8 @@
 #include "resv.h"  /* report_resv */
 #include "whowas.h"
 #include "list.h"
+#include "rlimits.h"     /* getrlimit() */
+#include "s_log.h"       /* ilog */
 
 static void do_stats(struct Client *, int, char **);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
@@ -423,6 +425,8 @@ count_memory(struct Client *source_p)
   unsigned long total_memory = 0;
   unsigned int topic_count = 0;
 
+  struct rlimit rlim;
+
   count_whowas_memory(&wwu, &wwm);
 
   DLINK_FOREACH(gptr, global_client_list.head)
@@ -657,6 +661,19 @@ count_memory(struct Client *source_p)
              ":%s %d %s z :TOTAL: %d Available:  Current max RSS: %lu",
              me.name, RPL_STATSDEBUG, source_p->name,
              (int)total_memory, get_maxrss());
+
+  if (getrlimit(RLIMIT_FD_MAX, &rlim) == 0) {
+    sendto_one(source_p,
+               ":%s %d %s z :rlimit_nofile: soft: %d; hard: %d",
+               me.name, RPL_STATSDEBUG, source_p->name,
+               (int)rlim.rlim_cur, (int)rlim.rlim_max);
+  } else {
+    ilog(L_NOTICE, "Unable to fork(): %s", strerror(errno));
+    sendto_one(source_p,
+               ":%s %d %s z :rlimit_nofile: getrlimit() failed.  See log.",
+               me.name, RPL_STATSDEBUG, source_p->name);
+  }
+
 }
 
 static void
