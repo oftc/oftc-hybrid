@@ -839,12 +839,15 @@ check_client(va_list args)
 {
   struct Client *source_p = va_arg(args, struct Client *);
   const char *username = va_arg(args, const char *);
-  int i;
+  int i, bad = 0;
  
   /* I'm already in big trouble if source_p->localClient is NULL -db */
   if ((i = verify_access(source_p, username)))
     ilog(L_INFO, "Access denied: %s[%s]", 
          source_p->name, source_p->sockhost);
+
+  if(i < 0)
+    bad = TRUE;
 
   switch (i)
   {
@@ -859,6 +862,7 @@ check_client(va_list args)
       ilog(L_INFO, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost);
       ServerStats->is_ref++;
       exit_client(source_p, &me, CLIENT_REJECT_MESSAGE);
+      bad = TRUE;
       break;
     case TOO_MANY:
       sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
@@ -940,7 +944,7 @@ check_client(va_list args)
      break;
   }
 
-  return (i < 0 ? NULL : source_p);
+  return (bad ? NULL : source_p);
 }
 
 /* verify_access()
