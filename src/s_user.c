@@ -568,17 +568,17 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
   add_user_host(source_p->username, source_p->host, 1);
   SetUserHost(source_p);
 
-  ip_found = find_or_add_ip(&client_p->ip);
+  ip_found = find_or_add_ip(&source_p->ip);
   ip_found->count++;
   SetIpHash(source_p);
 
-  aconf = find_address_conf(client_p->host, client_p->username, &client_p->ip,
-      client_p->aftype, NULL);
+  aconf = find_address_conf(source_p->host, source_p->username, &source_p->ip,
+      source_p->aftype, NULL);
   aclass = map_to_conf(aconf->class_ptr);
 
-  if(cidr_limit_reached(0, &client_p->ip, aclass))
+  if(cidr_limit_reached(0, &source_p->ip, aclass))
     ilog(L_DEBUG, "Server %s introduced client %s which exceeds our cidr limit",
-        server, client_p->name);
+        server, source_p->name);
 
   introduce_client(client_p, source_p);
 }
