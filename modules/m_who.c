@@ -306,11 +306,11 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
         s = parv[args];
         while(*s)
         {
-          for(i = 1; who_user_modes[i].mode != 0; i += 2)
+          for(i = 0; who_user_modes[i].mode != 0; i++)
           {
             if(*s == (char)who_user_modes[i].letter)
             {
-              wsopts.umodes |= who_user_modes[i-1].mode;
+              wsopts.umodes |= who_user_modes[i].mode;
               break;
             }
           }
