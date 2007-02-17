@@ -71,12 +71,12 @@ enum FullCause
 char *full_reasons[] =
 {
   "",
-  "Too many connections (max_total)",
-  "Too many local user@host connections (max_local)",
-  "Too many global user@host connections (max_global)",
-  "Too many connections from IP (number_per_ip)",
-  "Too many connections from CIDR block (number_per_cidr)",
-  "Too many connections from ident (max_ident)"
+  "Too many connections (max_total) %s [%s]",
+  "Too many local user@host connections (max_local) %s [%s]",
+  "Too many global user@host connections (max_global) %s [%s]",
+  "Too many connections from IP (number_per_ip) %s [%s]",
+  "Too many connections from CIDR block (number_per_cidr) %s [%s]",
+  "Too many connections from ident (max_ident) %s [%s]"
 };
 
 struct Callback *client_check_cb = NULL;
