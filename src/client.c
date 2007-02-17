@@ -747,6 +747,8 @@ static void
 exit_one_client(struct Client *source_p, const char *quitmsg)
 {
   dlink_node *lp = NULL, *next_lp = NULL;
+  struct AccessItem *aconf;
+  struct ClassItem *aclass;
 
   assert(!IsMe(source_p));
 
@@ -795,6 +797,11 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
       DLINK_FOREACH_SAFE(lp, next_lp, source_p->localClient->invited.head)
         del_invite(lp->data, source_p);
     }
+
+    aconf = find_address_conf(source_p->host, source_p->username, &source_p->ip,
+        source_p->aftype, NULL);
+    aclass = map_to_conf(aconf->class_ptr);
+    remove_from_cidr_check(&source_p->ip, aclass);
   }
 
   /* Remove source_p from the client lists */
@@ -805,6 +812,9 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
 
   if (IsUserHostIp(source_p))
     delete_user_host(source_p->username, source_p->host, !MyConnect(source_p));
+
+  if (IsIpHash(source_p))
+    remove_one_ip(&source_p->ip);
 
   /* remove from global client list
    * NOTE: source_p->node.next cannot be NULL if the client is added
@@ -945,9 +955,6 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
 {
   dlink_node *m;
   
-  if (IsIpHash(source_p))
-    remove_one_ip(&source_p->ip);
-
   if (MyConnect(source_p))
   {
     /* DO NOT REMOVE. exit_client can be called twice after a failed
@@ -1080,16 +1087,6 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
                   ":%s QUIT :%s", ID(source_p), comment);
     sendto_server(from->from, source_p, NULL, NOCAPS, CAP_TS6, NOFLAGS,
                   ":%s QUIT :%s", source_p->name, comment);
-  }
-  else if(IsClient(source_p))
-  {
-    struct AccessItem *aconf;
-    struct ClassItem *aclass;
-
-    aconf = find_address_conf(source_p->host, source_p->username, &source_p->ip,
-        source_p->aftype, NULL);
-    aclass = map_to_conf(aconf->class_ptr);
-    remove_from_cidr_check(&source_p->ip, aclass);
   }
 
   /* The client *better* be off all of the lists */
