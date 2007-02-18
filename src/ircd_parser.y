@@ -295,6 +295,7 @@ unhook_hub_leaf_confs(void)
 %token  TREJECT_HOLD_TIME
 %token  REMOTE
 %token  REMOTEBAN
+%token  REJECT_MESSAGE
 %token  RESTRICT_CHANNELS
 %token  RESTRICTED
 %token  RSA_PRIVATE_KEY_FILE
@@ -1588,10 +1589,14 @@ class_entry: CLASS
 
         MyFree(cconf->name);            /* Allows case change of class name */
         cconf->name = yy_class_name;
+        if(class->reject_message == NULL)
+          DupString(class->reject_message, DEFAULT_CLASS_REJECT_MESSAGE);
       }
       else	/* Brand new class */
       {
         MyFree(yy_conf->name);          /* just in case it was allocated */
+        if(yy_class->reject_message == NULL)
+          DupString(yy_class->reject_message, DEFAULT_CLASS_REJECT_MESSAGE);
         yy_conf->name = yy_class_name;
         yy_class->active = 1;
       }
@@ -1606,16 +1611,17 @@ class_name_b: | class_name_t;
 class_items:    class_items class_item | class_item;
 class_item:     class_name |
 		class_cidr_bitlen_ipv4 | class_cidr_bitlen_ipv6 |
-                class_ping_time |
+    class_ping_time |
 		class_ping_warning |
 		class_number_per_cidr |
-                class_number_per_ip |
-                class_connectfreq |
-                class_max_number |
-		class_max_global |
-		class_max_local |
-		class_max_ident |
-                class_sendq |
+    class_number_per_ip |
+    class_connectfreq |
+    class_max_number |
+    class_max_global |
+    class_max_local |
+    class_max_ident |
+    class_sendq |
+    class_reject_message |
 		error ';' ;
 
 class_name: NAME '=' QSTRING ';' 
@@ -1706,6 +1712,15 @@ class_number_per_cidr: NUMBER_PER_CIDR '=' NUMBER ';'
 {
   if (ypass == 1)
     NumberPerCidr(yy_class) = $3;
+};
+
+class_reject_message: REJECT_MESSAGE '=' QSTRING ';'
+{
+  if (ypass == 1)
+  {
+    MyFree(yy_class->reject_message);
+    DupString(yy_class->reject_message, yylval.string);
+  }
 };
 
 /***************************************************************************

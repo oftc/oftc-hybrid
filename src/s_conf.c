@@ -121,8 +121,8 @@ static void flush_deleted_I_P(void);
 static void expire_tklines(dlink_list *);
 static void garbage_collect_ip_entries(void);
 static int hash_ip(struct irc_ssaddr *);
-static int verify_access(struct Client *, const char *);
-static int attach_iline(struct Client *, struct ConfItem *);
+static int verify_access(struct Client *, const char *, char **);
+static int attach_iline(struct Client *, struct ConfItem *, char **);
 static void parse_conf_file(int, int);
 static dlink_list *map_to_list(ConfType);
 static struct AccessItem *find_regexp_kline(const char *[]);
@@ -145,7 +145,6 @@ static struct ConfItem *class_default;
  * not ascii strings.
  */
 #define IP_HASH_SIZE 0x1000
-#define CLIENT_REJECT_MESSAGE "No more connections permitted from your host"
 
 static struct ip_entry *ip_hash_table[IP_HASH_SIZE];
 static BlockHeap *ip_entry_heap = NULL;
@@ -839,9 +838,10 @@ check_client(va_list args)
   struct Client *source_p = va_arg(args, struct Client *);
   const char *username = va_arg(args, const char *);
   int i, bad = 0;
+  char *reject_reason;
  
   /* I'm already in big trouble if source_p->localClient is NULL -db */
-  if ((i = verify_access(source_p, username)))
+  if ((i = verify_access(source_p, username, &reject_reason)))
     ilog(L_INFO, "Access denied: %s[%s]", 
          source_p->name, source_p->sockhost);
 
@@ -860,7 +860,7 @@ check_client(va_list args)
           full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost);
       ilog(L_INFO, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost);
       ServerStats->is_ref++;
-      exit_client(source_p, &me, CLIENT_REJECT_MESSAGE);
+      exit_client(source_p, &me, reject_reason);
       bad = TRUE;
       break;
     case TOO_MANY:
@@ -871,7 +871,7 @@ check_client(va_list args)
       ilog(L_INFO,"Too many connections on IP from %s.",
 	   get_client_name(source_p, SHOW_IP));
       ServerStats->is_ref++;
-      exit_client(source_p, &me, CLIENT_REJECT_MESSAGE);
+      exit_client(source_p, &me, reject_reason);
       break;
 
     case I_LINE_FULL:
@@ -950,11 +950,12 @@ check_client(va_list args)
  *
  * inputs	- pointer to client to verify
  *		- pointer to proposed username
+ *		- pointer to reason string 
  * output	- 0 if success -'ve if not
  * side effect	- find the first (best) I line to attach.
  */
 static int
-verify_access(struct Client *client_p, const char *username)
+verify_access(struct Client *client_p, const char *username, char **reason)
 {
   struct AccessItem *aconf = NULL, *rkconf = NULL;
   struct ConfItem *conf = NULL;
@@ -964,17 +965,13 @@ verify_access(struct Client *client_p, const char *username)
   if (IsGotId(client_p))
   {
     aconf = find_address_conf(client_p->host, client_p->username,
-			     &client_p->ip,
-			     client_p->aftype,
-                             client_p->localClient->passwd);
+			     &client_p->ip, client_p->aftype, client_p->localClient->passwd);
   }
   else
   {
     strlcpy(non_ident+1, username, sizeof(non_ident)-1);
-    aconf = find_address_conf(client_p->host,non_ident,
-			     &client_p->ip,
-			     client_p->aftype,
-	                     client_p->localClient->passwd);
+    aconf = find_address_conf(client_p->host,non_ident,	&client_p->ip, 
+        client_p->aftype, client_p->localClient->passwd);
   }
 
   uhi[0] = IsGotId(client_p) ? client_p->username : non_ident;
@@ -1013,7 +1010,7 @@ verify_access(struct Client *client_p, const char *username)
         SetIPSpoof(client_p);
       }
 
-      return(attach_iline(client_p, conf));
+      return(attach_iline(client_p, conf, reason));
     }
     else if (rkconf || IsConfKill(aconf) || (ConfigFileEntry.glines && IsConfGline(aconf)))
     {
@@ -1036,11 +1033,12 @@ verify_access(struct Client *client_p, const char *username)
  *
  * inputs	- client pointer
  *		- conf pointer
+ *		- reason for reject pointer 
  * output	-
  * side effects	- do actual attach
  */
 static int
-attach_iline(struct Client *client_p, struct ConfItem *conf)
+attach_iline(struct Client *client_p, struct ConfItem *conf, char **reason)
 {
   struct AccessItem *aconf;
   struct ClassItem *aclass;
@@ -1076,11 +1074,16 @@ attach_iline(struct Client *client_p, struct ConfItem *conf)
   else if (MaxIdent(aclass) != 0 && ident >= MaxIdent(aclass) &&
            client_p->username[0] != '~')
     a_limit_reached = MAX_IDENT;
+  else if (cidr_limit_reached(IsConfExemptLimits(aconf), &client_p->ip, aclass))
+    a_limit_reached = MAX_CIDR;    /* Already at maximum allowed */
 
   if (a_limit_reached)
   {
     if (!IsConfExemptLimits(aconf))
+    {
+      *reason = aclass->reject_message;
       return a_limit_reached;   /* Already at maximum allowed */
+    }
 
     sendto_one(client_p,
                ":%s NOTICE %s :*** Your connection class is full, "
@@ -1441,11 +1444,6 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
 
     if (IsConfIllegal(aconf))
       return NOT_AUTHORIZED;
-
-    if (conf->type == CLIENT_TYPE)
-      if (cidr_limit_reached(IsConfExemptLimits(aconf),
-                             &client_p->ip, aclass))
-        return MAX_CIDR;    /* Already at maximum allowed */
 
     CurrUserCount(aclass)++;
     aconf->clients++;

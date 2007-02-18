@@ -278,6 +278,7 @@ regex           { return REGEX_T; }
 rehash		{ return REHASH; }
 reject		{ return T_REJECT; }
 reject_hold_time { return TREJECT_HOLD_TIME; }
+reject_message { return REJECT_MESSAGE; }
 remote		{ return REMOTE; }
 remoteban	{ return REMOTEBAN; }
 restrict_channels { return RESTRICT_CHANNELS; }

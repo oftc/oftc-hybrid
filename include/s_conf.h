@@ -152,6 +152,7 @@ struct ClassItem
   dlink_list list_ipv4;         /* base of per cidr ipv4 client link list */
   dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
   int active;
+  char *reject_message;
 };
 
 struct CidrItem
@@ -323,6 +324,8 @@ struct ip_entry
 /* gline acl entry actions */
 #define GDENY_BLOCK		0x1
 #define GDENY_REJECT		0x2
+
+#define DEFAULT_CLASS_REJECT_MESSAGE "No more connections permitted from your host"
 
 struct config_file_entry
 {
