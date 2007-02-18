@@ -671,6 +671,34 @@ count_user_host(const char *user, const char *host, int *global_p,
   }
 }
 
+/* dump_userhosttable()
+ * inputs        - pointer to print info to
+ * output        - none
+ * side effects  - NONE
+ */
+void
+dump_userhosttable(struct Client *source_p)
+{
+  int i;
+  struct UserHost *userhost;
+  dlink_node *ptr;
+  struct NameHost *nameh;
+
+  for (i = 0; i < HASHSIZE; ++i)
+  {
+    DLINK_FOREACH(userhost, userhostTable[i]) {
+      DLINK_FOREACH(ptr, userhost->list.head) {
+        nameh = ptr->data;
+	sendto_one(source_p,
+		   ":%s %d %s n :userhost_table: %s@%s %d %d %d",
+		   me.name, RPL_STATSDEBUG, source_p->name,
+		   nameh->name, userhost->host, nameh->icount, nameh->gcount, nameh->lcount);
+      }
+    }
+  } 
+} 
+
+
 /* add_user_host()
  *
  * inputs	- user name

@@ -512,6 +512,7 @@ extern void init_class(void);
 extern struct ConfItem *find_class(const char *);
 extern void init_ip_hash_table(void);
 extern void count_ip_hash(int *, unsigned long *);
+extern void dump_ip_hash_table(struct Client *);
 extern void remove_one_ip(struct irc_ssaddr *);
 extern struct ConfItem *make_conf_item(ConfType type);
 extern void free_access_item(struct AccessItem *);

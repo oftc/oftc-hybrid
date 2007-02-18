@@ -53,6 +53,7 @@
 #include "list.h"
 #include "rlimits.h"     /* getrlimit() */
 #include "s_log.h"       /* ilog */
+#include "hash.h"
 
 static void do_stats(struct Client *, int, char **);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
@@ -124,6 +125,7 @@ static void stats_servers(struct Client *);
 static void stats_gecos(struct Client *);
 static void stats_class(struct Client *);
 static void stats_memory(struct Client *);
+static void stats_numbers(struct Client *);
 static void stats_servlinks(struct Client *);
 static void stats_ltrace(struct Client *, int, char **);
 static void stats_ziplinks(struct Client *);
@@ -161,6 +163,7 @@ static const struct StatsStruct
   { 'L',	stats_ltrace,		1,	0,	},
   { 'm',	stats_messages,		0,	0,	},
   { 'M',	stats_messages,		0,	0,	},
+  { 'n',	stats_numbers,		0,	0,	},
   { 'o',	stats_oper,		0,	0,	},
   { 'O',	stats_oper,		0,	0,	},
   { 'p',	stats_operedup,		0,	0,	},
@@ -674,6 +677,13 @@ count_memory(struct Client *source_p)
                me.name, RPL_STATSDEBUG, source_p->name);
   }
 
+}
+
+static void
+dump_counters(struct Client *source_p)
+{
+  dump_userhosttable(source_p);
+  dump_ip_hash_table(source_p);
 }
 
 static void
@@ -1221,6 +1231,12 @@ static void
 stats_memory(struct Client *source_p)
 {
   count_memory(source_p);
+}
+
+static void
+stats_numbers(struct Client *source_p)
+{
+  dump_counters(source_p);
 }
 
 static void

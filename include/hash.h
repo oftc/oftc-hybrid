@@ -54,6 +54,7 @@ extern void hash_add_id(struct Client *);
 extern void hash_del_id(struct Client *);
 extern void hash_add_userhost(struct UserHost *);
 extern void hash_del_userhost(struct UserHost *);
+extern void dump_userhosttable(struct Client *);
 
 extern struct UserHost *hash_find_userhost(const char *);
 extern struct Client *hash_find_id(const char *);
