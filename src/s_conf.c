@@ -1291,33 +1291,19 @@ void
 dump_ip_hash_table(struct Client *source_p)
 {
   struct ip_entry *ptr;
-  char numaddr[512];
+  char numaddr[HOSTIPLEN];
   int i;
 
   for (i = 0; i < IP_HASH_SIZE; i++)
   {
-    DLINK_FOREACH(ptr, ip_hash_table[i])
+    for(ptr = ip_hash_table[i]; ptr != NULL; ptr = ptr->next)
     {
-#ifdef IPV6
-      if (ptr->ip.ss.ss_family == AF_INET6)
-      {
-	struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)(&ptr->ip);
+      irc_getnameinfo((struct sockaddr*)&ptr->ip, ptr->ip.ss_len,
+          numaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
 
-	if (inet_ntop(ptr->ip.ss.ss_family, v6->sin6_addr.s6_addr, numaddr, sizeof(numaddr)) == NULL)
-	  continue;
-      }
-      else
-#endif
-      {
-	struct sockaddr_in *v4 = (struct sockaddr_in *)(&ptr->ip);
-
-	if (inet_ntop(ptr->ip.ss.ss_family, &v4->sin_addr.s_addr, numaddr, sizeof(numaddr)) == NULL)
-	  continue;
-      }
       sendto_one(source_p,
-		 ":%s %d %s n :ip_hash_table: %s %d",
-		 me.name, RPL_STATSDEBUG, source_p->name,
-		 numaddr, ptr->count);
+          ":%s %d %s n :ip_hash_table: %s %d",
+          me.name, RPL_STATSDEBUG, source_p->name, numaddr, ptr->count);
     }
   }
 }

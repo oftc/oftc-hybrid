@@ -54,6 +54,7 @@
 #include "rlimits.h"     /* getrlimit() */
 #include "s_log.h"       /* ilog */
 #include "hash.h"
+#include "irc_getnameinfo.h"
 
 static void do_stats(struct Client *, int, char **);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
@@ -682,8 +683,41 @@ count_memory(struct Client *source_p)
 static void
 dump_counters(struct Client *source_p)
 {
+  struct ClassItem *classitem;
+  struct ConfItem *conf;
+  struct CidrItem *cidr;
+  dlink_node *ptr, *ptr2;
+  char ipaddr[HOSTIPLEN];
+
   dump_userhosttable(source_p);
   dump_ip_hash_table(source_p);
+  DLINK_FOREACH(ptr, class_items.head)
+  {
+    conf = ptr->data;
+    classitem = map_to_conf(conf);
+    DLINK_FOREACH(ptr2, classitem->list_ipv4.head)
+    {
+      cidr = ptr2->data;
+
+      irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
+          ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
+
+      sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name, 
+          RPL_STATSDEBUG, source_p->name, conf->name, ipaddr, 
+          CidrBitlenIPV4(classitem), cidr->number_on_this_cidr);
+    }
+    DLINK_FOREACH(ptr2, classitem->list_ipv6.head)
+    {
+      cidr = ptr2->data;
+
+      irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
+          ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
+
+      sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name, 
+          RPL_STATSDEBUG, source_p->name, conf->name, ipaddr, 
+          CidrBitlenIPV6(classitem), cidr->number_on_this_cidr);
+    }
+  }
 }
 
 static void
