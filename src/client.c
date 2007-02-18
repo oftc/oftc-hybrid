@@ -788,6 +788,11 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
 
     if (!MyConnect(source_p))
     {
+      aconf = find_address_conf(source_p->host, source_p->username, &source_p->ip,
+          source_p->aftype, NULL);
+      aclass = map_to_conf(aconf->class_ptr);
+      remove_from_cidr_check(&source_p->ip, aclass);
+
       source_p->from->serv->dep_users--;
       assert(source_p->from->serv->dep_users >= 0);
     }
@@ -798,11 +803,7 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
         del_invite(lp->data, source_p);
     }
 
-    aconf = find_address_conf(source_p->host, source_p->username, &source_p->ip,
-        source_p->aftype, NULL);
-    aclass = map_to_conf(aconf->class_ptr);
-    remove_from_cidr_check(&source_p->ip, aclass);
-  }
+ }
 
   /* Remove source_p from the client lists */
   if (HasID(source_p))
