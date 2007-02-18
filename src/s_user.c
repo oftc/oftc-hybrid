@@ -576,9 +576,7 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
       source_p->aftype, NULL);
   aclass = map_to_conf(aconf->class_ptr);
 
-  if(cidr_limit_reached(0, &source_p->ip, aclass))
-    ilog(L_DEBUG, "Server %s introduced client %s which exceeds our cidr limit",
-        server, source_p->name);
+  cidr_limit_reached(1, &source_p->ip, aclass);
 
   introduce_client(client_p, source_p);
 }
