@@ -1301,9 +1301,8 @@ dump_ip_hash_table(struct Client *source_p)
       irc_getnameinfo((struct sockaddr*)&ptr->ip, ptr->ip.ss_len,
           numaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
 
-      sendto_one(source_p,
-          ":%s %d %s n :ip_hash_table: %s %d",
-          me.name, RPL_STATSDEBUG, source_p->name, numaddr, ptr->count);
+      sendto_one(source_p, ":%s %d %s n :ip_hash_table: %s %d", me.name, 
+          RPL_STATSCCOUNT, source_p->name, numaddr, ptr->count);
     }
   }
 }

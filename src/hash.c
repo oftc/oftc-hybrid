@@ -686,13 +686,15 @@ dump_userhosttable(struct Client *source_p)
 
   for (i = 0; i < HASHSIZE; ++i)
   {
-    DLINK_FOREACH(userhost, userhostTable[i]) {
-      DLINK_FOREACH(ptr, userhost->list.head) {
+    for(userhost = userhostTable[i]; userhost != NULL; userhost = userhost->next)
+    {
+      DLINK_FOREACH(ptr, userhost->list.head) 
+      {
         nameh = ptr->data;
-	sendto_one(source_p,
-		   ":%s %d %s n :userhost_table: %s@%s %d %d %d",
-		   me.name, RPL_STATSDEBUG, source_p->name,
-		   nameh->name, userhost->host, nameh->icount, nameh->gcount, nameh->lcount);
+        sendto_one(source_p,
+            ":%s %d %s n :userhost_table: %s@%s %d %d %d", me.name, 
+            RPL_STATSCCOUNT, source_p->name, nameh->name, userhost->host, 
+            nameh->icount, nameh->gcount, nameh->lcount);
       }
     }
   } 

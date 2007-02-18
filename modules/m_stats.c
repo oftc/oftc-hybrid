@@ -703,7 +703,7 @@ dump_counters(struct Client *source_p)
           ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
 
       sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name, 
-          RPL_STATSDEBUG, source_p->name, conf->name, ipaddr, 
+          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr, 
           CidrBitlenIPV4(classitem), cidr->number_on_this_cidr);
     }
     DLINK_FOREACH(ptr2, classitem->list_ipv6.head)
@@ -714,7 +714,7 @@ dump_counters(struct Client *source_p)
           ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
 
       sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name, 
-          RPL_STATSDEBUG, source_p->name, conf->name, ipaddr, 
+          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr, 
           CidrBitlenIPV6(classitem), cidr->number_on_this_cidr);
     }
   }
