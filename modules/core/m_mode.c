@@ -122,38 +122,12 @@ m_mode(struct Client *client_p, struct Client *source_p,
 
   if (chptr == NULL)
   {
-      /* if chptr isn't found locally, it =could= exist
-       * on the uplink. So ask.
-       */
-      
-      /* LazyLinks */
-      /* only send a mode upstream if a local client sent this request
-       * -davidt
-       */
-      if (MyClient(source_p) && !ServerInfo.hub && uplink &&
-	   IsCapable(uplink, CAP_LL))
-	{
-#if 0
-	  /* cache the channel if it exists on uplink */
-	  /* Lets not for now -db */
-
-	  sendto_one(uplink, ":%s CBURST %s",
-                     me.name, chptr->chname);
-#endif
-	  sendto_one(uplink, ":%s MODE %s %s",
-                     ID_or_name(source_p, uplink),
-		     chptr->chname, (parv[2] ? parv[2] : ""));
-	  return;
-	}
-      else
-	{
-	  sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-		     ID_or_name(&me, source_p->from),
-		     ID_or_name(source_p, source_p->from),
-		     parv[1]);
-	  return;
-	}
-    }
+    sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
+	       ID_or_name(&me, source_p->from),
+	       ID_or_name(source_p, source_p->from),
+	       parv[1]);
+    return;
+  }
 
   /* Now known the channel exists */
   if (parc < 3)
