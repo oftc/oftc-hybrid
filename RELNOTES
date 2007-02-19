@@ -2,6 +2,10 @@
 o) Fix the +i WHO option, and add CIDR to it
 o) Make cidr classes global so max_per_cidr is global
 o) max_per_ip is now global too
+o) Added a reject_message to the class{} block to allow configurable messages
+o) Added stats n which dumps user counts in all areas(host, ip, cidr)
+o) Added --with-services-name configure option
+o) Reduced startup connect timer
 
 -- oftc-hybrid 1.5.3 RELNOTES
 o) Actually fix the /names output bug instead of making it worse
