@@ -788,9 +788,11 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
 
     if (!MyConnect(source_p))
     {
-      aconf = find_address_conf(source_p->host, source_p->username, &source_p->ip,
-          source_p->aftype, NULL);
+      aconf = find_conf_by_address(source_p->host, &source_p->ip, 
+          CONF_CLIENT, source_p->aftype, source_p->username, NULL);
+
       aclass = map_to_conf(aconf->class_ptr);
+      assert(aclass != NULL);
       remove_from_cidr_check(&source_p->ip, aclass);
 
       source_p->from->serv->dep_users--;
