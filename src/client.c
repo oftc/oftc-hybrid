@@ -999,6 +999,10 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
                            source_p->name, source_p->username, source_p->host, comment,
                            ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                            "255.255.255.255" : source_p->sockhost);
+      sendto_realops_flags(UMODE_CCONN_FULL, L_ALL, "CLIEXIT: %s %s %s %s %s",
+                           source_p->name, source_p->username, source_p->host, comment,
+                           ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                           "255.255.255.255" : source_p->sockhost);
     }
 
     /* As soon as a client is known to be a server of some sort

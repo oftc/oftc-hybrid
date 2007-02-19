@@ -358,6 +358,7 @@ oper_only_umodes        { return OPER_ONLY_UMODES; }
 oper_umodes             { return OPER_UMODES; }
 bots                    { return T_BOTS; }
 cconn                   { return T_CCONN; }
+cconn_full              { return T_CCONN_FULL; }
 deaf                    { return T_DEAF; }
 debug                   { return T_DEBUG; }
 full                    { return T_FULL; }

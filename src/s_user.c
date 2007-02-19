@@ -96,7 +96,7 @@ unsigned int user_modes[256] =
   0,                  /* @ */
   0,                  /* A */
   0,                  /* B */
-  0,                  /* C */
+  UMODE_CCONN_FULL,   /* C */
   UMODE_DEAF,         /* D */
   0,                  /* E */
   0,                  /* F */
@@ -445,6 +445,19 @@ register_local_user(struct Client *client_p, struct Client *source_p,
                        ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                        "255.255.255.255" : ipaddr, get_client_class(source_p),
                        source_p->info);
+
+  sendto_realops_flags(UMODE_CCONN_FULL, L_ALL,
+                       "CLICONN %s %s %s %s %s %s %s 0 %s",
+                       nick, source_p->username, source_p->host,
+                       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                       "255.255.255.255" : ipaddr,
+		       get_client_class(source_p),
+		       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                           "<hidden>" : source_p->client_host,
+		       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                           "<hidden>" : source_p->client_server,
+                       source_p->info);
+
 
   /* If they have died in send_* don't do anything. */
   if (IsDead(source_p))
@@ -852,6 +865,10 @@ do_local_user(const char *nick, struct Client *client_p, struct Client *source_p
 
   strlcpy(source_p->info, realname, sizeof(source_p->info));
 
+  /* stash for later */
+  strlcpy(source_p->client_host, host, sizeof(source_p->client_host));
+  strlcpy(source_p->client_server, server, sizeof(source_p->client_server));
+
   if (!IsGotId(source_p)) 
   {
     /* save the username in the client
@@ -1073,6 +1090,13 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
 /* send_umode()
  * send the MODE string for user (user) to connection client_p
  * -avalon
+ *
+ * inputs	- client_p
+ *		- source_p
+ *		- int old
+ *		- sendmask mask of modes to send
+ * 		- suplied umode_buf
+ * output	- NONE
  */
 void
 send_umode(struct Client *client_p, struct Client *source_p,

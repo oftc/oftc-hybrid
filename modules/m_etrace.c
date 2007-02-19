@@ -42,7 +42,8 @@
 #include "s_conf.h"
 #include "irc_getnameinfo.h"
 
-#define FORM_STR_RPL_ETRACE	":%s 709 %s %s %s %s %s %s :%s"
+#define FORM_STR_RPL_ETRACE	 ":%s 709 %s %s %s %s %s %s :%s"
+#define FORM_STR_RPL_ETRACE_FULL ":%s 708 %s %s %s %s %s %s %s %s :%s"
 
 static void do_etrace(struct Client *, int, char **);
 static void mo_etrace(struct Client *, struct Client *, int, char *[]);
@@ -82,7 +83,7 @@ _moddeinit(void)
 }
 #endif
 
-static void report_this_status(struct Client *, struct Client *);
+static void report_this_status(struct Client *, struct Client *, int);
 
 /*
  * do_etrace()
@@ -94,11 +95,23 @@ do_etrace(struct Client *source_p, int parc, char **parv)
   struct Client *target_p = NULL;
   int wilds = 0;
   int do_all = 0;
+  int full_etrace = 0;
   dlink_node *ptr;
 
-  if (parc > 0)
+  if (parc > 1)
+  {
+    if (irccmp(parv[1], "-full") == 0)
+    {
+      parv++;
+      parc--;
+      full_etrace = 1;
+    }
+  }
+
+  if (parc > 1)
   {
     tname = parv[1];
+
     if (tname != NULL)
       wilds = strchr(tname, '*') || strchr(tname, '?');
     else
@@ -115,7 +128,7 @@ do_etrace(struct Client *source_p, int parc, char **parv)
     target_p = find_client(tname);
 
     if (target_p && MyClient(target_p))
-      report_this_status(source_p, target_p);
+      report_this_status(source_p, target_p, full_etrace);
       
     sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name, 
 	       source_p->name, tname);
@@ -129,10 +142,10 @@ do_etrace(struct Client *source_p, int parc, char **parv)
     if (wilds)
     {
       if (match(tname, target_p->name) || match(target_p->name, tname))
-	report_this_status(source_p, target_p);
+	report_this_status(source_p, target_p, full_etrace);
     }
     else
-      report_this_status(source_p, target_p);
+      report_this_status(source_p, target_p, full_etrace);
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name,
@@ -158,11 +171,13 @@ mo_etrace(struct Client *client_p, struct Client *source_p,
  *
  * inputs	- pointer to client to report to
  * 		- pointer to client to report about
+ *		- flag full etrace or not
  * output	- NONE
  * side effects - NONE
  */
 static void
-report_this_status(struct Client *source_p, struct Client *target_p)
+report_this_status(struct Client *source_p, struct Client *target_p,
+		   int full_etrace)
 {
   const char *name;
   const char *class_name;
@@ -180,20 +195,55 @@ report_this_status(struct Client *source_p, struct Client *target_p)
 
   if (target_p->status == STAT_CLIENT)
   {
-    if (ConfigFileEntry.hide_spoof_ips)
-      sendto_one(source_p, FORM_STR_RPL_ETRACE,
-		 me.name, source_p->name,
-		 IsOper(target_p) ? "Oper" : "User",
-		 class_name,
-		 target_p->name, target_p->username,
-		 IsIPSpoof(target_p) ? "255.255.255.255" : ip,
-		 target_p->info);
+    if (full_etrace)
+    {
+      if (ConfigFileEntry.hide_spoof_ips)
+	sendto_one(source_p, FORM_STR_RPL_ETRACE_FULL,
+		   me.name,
+		   source_p->name,
+		   IsOper(target_p) ? "Oper" : "User",
+		   class_name,
+		   target_p->name,
+		   target_p->username,
+		   IsIPSpoof(target_p) ? "255.255.255.255" : ip,
+		   IsIPSpoof(target_p) ? "<hidden>" : target_p->client_host,
+		   IsIPSpoof(target_p) ? "<hidden>" : target_p->client_server,
+		   target_p->info);
+      else
+        sendto_one(source_p, FORM_STR_RPL_ETRACE_FULL,
+		   me.name,
+		   source_p->name, 
+		   IsOper(target_p) ? "Oper" : "User", 
+		   class_name,
+		   target_p->name,
+		   target_p->username,
+		   ip,
+		   target_p->client_host,
+		   target_p->client_server,
+		   target_p->info);
+    }
     else
-      sendto_one(source_p, FORM_STR_RPL_ETRACE,
-		 me.name, source_p->name, 
-		 IsOper(target_p) ? "Oper" : "User", 
-		 class_name,
-		 target_p->name, target_p->username, ip,
-		 target_p->info);
+    {
+      if (ConfigFileEntry.hide_spoof_ips)
+	sendto_one(source_p, FORM_STR_RPL_ETRACE,
+		   me.name,
+		   source_p->name,
+		   IsOper(target_p) ? "Oper" : "User",
+		   class_name,
+		   target_p->name,
+		   target_p->username,
+		   IsIPSpoof(target_p) ? "255.255.255.255" : ip,
+		   target_p->info);
+      else
+	sendto_one(source_p, FORM_STR_RPL_ETRACE,
+		   me.name,
+		   source_p->name, 
+		   IsOper(target_p) ? "Oper" : "User", 
+		   class_name,
+		   target_p->name,
+		   target_p->username,
+		   ip,
+		   target_p->info);
+    }
   }
 }
