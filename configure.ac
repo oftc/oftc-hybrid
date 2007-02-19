@@ -931,8 +931,13 @@ AC_HELP_STRING([--with-topiclen=NUMBER],[Set the max topic length to NUMBER (def
  fi
 ], [TOPICLEN=160])
 
+AC_ARG_WITH(services-name,
+AC_HELP_STRING([--with-services-name=SERVICES_NAME],[Set the name of your services server]),
+  [SERVICES_NAME="$withval"],[SERVICES_NAME="services.oftc.net"])
+
 AC_DEFINE_UNQUOTED(TOPICLEN, ${TOPICLEN}, [Maximum topic length (<=390)])
 AC_DEFINE_UNQUOTED(NICKLEN, (${NICKLEN}+1), [Nickname length])
+AC_DEFINE_UNQUOTED(SERVICES_NAME, ["${SERVICES_NAME}"], [Services server name])
 
 AC_ARG_ENABLE(shared-modules,
 AC_HELP_STRING([--disable-shared-modules],[ Disable shared modules.]),
