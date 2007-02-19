@@ -332,6 +332,7 @@ unhook_hub_leaf_confs(void)
 %token  T_SOFTCALLERID
 %token  T_CALLERID
 %token  T_CCONN
+%token  T_CCONN_FULL
 %token  T_CLIENT_FLOOD
 %token  T_DEAF
 %token  T_DEBUG
@@ -1197,6 +1198,10 @@ oper_umodes_item:  T_BOTS
 {
   if (ypass == 2)
     yy_aconf->modes |= UMODE_CCONN;
+} | T_CCONN_FULL
+{
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_CCONN_FULL;
 } | T_DEAF
 {
   if (ypass == 2)
@@ -3514,6 +3519,9 @@ umode_oitem:     T_BOTS
 } | T_CCONN
 {
   ConfigFileEntry.oper_umodes |= UMODE_CCONN;
+} | T_CCONN_FULL
+{
+  ConfigFileEntry.oper_umodes |= UMODE_CCONN_FULL;
 } | T_DEAF
 {
   ConfigFileEntry.oper_umodes |= UMODE_DEAF;
