@@ -35,6 +35,7 @@
 #include "modules.h"
 #include "irc_string.h"
 #include "whowas.h" /* off_history */
+#include "userhost.h"
 
 /* $Id$ */
 
