@@ -1301,11 +1301,13 @@ dump_ip_hash_table(struct Client *source_p)
   {
     for(ptr = ip_hash_table[i]; ptr != NULL; ptr = ptr->next)
     {
-      irc_getnameinfo((struct sockaddr*)&ptr->ip, ptr->ip.ss_len,
-          numaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
+      int ret = irc_getnameinfo((struct sockaddr*)&ptr->ip, ptr->ip.ss_len,
+                  numaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
 
       sendto_one(source_p, ":%s %d %s n :ip_hash_table: %s %d", me.name, 
-          RPL_STATSCCOUNT, source_p->name, numaddr, ptr->count);
+          RPL_STATSCCOUNT, source_p->name,
+	  (ret == 0) ? numaddr : "unknown",
+	  ptr->count);
     }
   }
 }
