@@ -688,6 +688,7 @@ dump_counters(struct Client *source_p)
   struct CidrItem *cidr;
   dlink_node *ptr, *ptr2;
   char ipaddr[HOSTIPLEN];
+  int ret;
 
   dump_userhosttable(source_p);
   dump_ip_hash_table(source_p);
@@ -699,22 +700,26 @@ dump_counters(struct Client *source_p)
     {
       cidr = ptr2->data;
 
-      irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
+      ret = irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
           ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
+      if (ret != 0)
+        continue;
 
-      sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name, 
-          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr, 
+      sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name,
+          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr,
           CidrBitlenIPV4(classitem), cidr->number_on_this_cidr);
     }
     DLINK_FOREACH(ptr2, classitem->list_ipv6.head)
     {
       cidr = ptr2->data;
 
-      irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
+      ret = irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
           ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
+      if (ret != 0)
+        continue;
 
-      sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name, 
-          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr, 
+      sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name,
+          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr,
           CidrBitlenIPV6(classitem), cidr->number_on_this_cidr);
     }
   }
