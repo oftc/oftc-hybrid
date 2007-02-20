@@ -41,19 +41,19 @@
 void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char *parv[]);
 
 struct Message map_msgtab = {
-      "SVSCLOAK", 0, 0, 1, 0, MFLG_SLOW, 0,
-        {m_unregistered, m_ignore, m_svscloak, m_ignore, m_ignore}
+  "SVSCLOAK", 0, 0, 1, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_ignore, m_svscloak, m_ignore, m_ignore}
 };
 
 void _modinit(void)
 {
-      mod_add_cmd(&map_msgtab);
+  mod_add_cmd(&map_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-    mod_del_cmd(&map_msgtab);
+  mod_del_cmd(&map_msgtab);
 }
 
 const char* _version = "$Revision: 396 $";
@@ -101,8 +101,13 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
           ":%s SVSCLOAK %s :%s", parv[0], parv[1], parv[2]);
 
     /* locally modify the clients structure */
-    if(strlen(target_p->realhost) <= 1)
+    if(target_p->realhost[0] == '\0')
         strncpy(target_p->realhost, target_p->host, HOSTLEN);
+    if(IsUserHostIp(target_p))
+    {
+      delete_user_host(target_p->username, target_p->host, !MyConnect(target_p));
+      add_user_host(target_p->username, hostname, !MyConnect(target_p));
+    }
     strncpy(target_p->host, hostname, HOSTLEN);
     off_history(target_p);
   }
