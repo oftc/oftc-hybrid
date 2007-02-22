@@ -318,7 +318,7 @@ m_join(struct Client *client_p, struct Client *source_p,
  * inputs	- parv[0] = uid
  *		  parv[1] = ts
  *		  parv[2] = channel name
- *		  parv[3] = modes
+ *		  parv[3] = modes (Deprecated)
  * output	- none
  * side effects	- handles remote JOIN's sent by servers. In TSora
  *		  remote clients are joined using SJOIN, hence a 
@@ -336,7 +336,6 @@ ms_join(struct Client *client_p, struct Client *source_p,
   int keep_our_modes = 1;
   int keep_new_modes = 1;
   int isnew = 0;
-  const char *s = NULL;
   const char *servername = NULL;
   struct Channel *chptr = NULL;
   struct Mode mode, *oldmode;
@@ -361,46 +360,6 @@ ms_join(struct Client *client_p, struct Client *source_p,
   mbuf = modebuf;
   mode.mode = mode.limit = 0;
   mode.key[0] = '\0';
-
-  for (s = parv[3]; *s; ++s)
-  {
-    switch (*s)
-    {
-      case 't':
-        mode.mode |= MODE_TOPICLIMIT;
-        break;
-      case 'n':
-        mode.mode |= MODE_NOPRIVMSGS;
-        break;
-      case 's':
-        mode.mode |= MODE_SECRET;
-        break;
-      case 'm':
-        mode.mode |= MODE_MODERATED;
-        break;
-      case 'i':
-        mode.mode |= MODE_INVITEONLY;
-        break;
-      case 'p':
-        mode.mode |= MODE_PRIVATE;
-        break;
-      case 'k':
-        if (parc < 5 + args)
-          return;
-
-        strlcpy(mode.key, parv[4 + args], sizeof(mode.key));
-        args++;
-        break;
-      case 'l':
-        if (parc < 5 + args)
-          return;
-
-        mode.limit = atoi(parv[4 + args]);
-        args++;
-        break;
-    }
-  }
-
 
   if ((chptr = hash_find_channel(parv[2])) == NULL)
   {
