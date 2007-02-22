@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_conf.h 781 2007-02-11 17:26:36Z stu $
+ *  $Id: s_conf.h 828 2007-02-18 20:13:17Z stu $
  */
 
 #ifndef INCLUDED_s_conf_h
@@ -152,6 +152,7 @@ struct ClassItem
   dlink_list list_ipv4;         /* base of per cidr ipv4 client link list */
   dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
   int active;
+  char *reject_message;
 };
 
 struct CidrItem
@@ -159,6 +160,14 @@ struct CidrItem
   struct irc_ssaddr mask;
   int number_on_this_cidr;
   dlink_node node;
+};
+
+struct ip_entry
+{
+  struct irc_ssaddr ip;
+  int count;
+  time_t last_attempt;
+  struct ip_entry *next;
 };
 
 #define ConFreq(x)	((x)->con_freq)
@@ -315,6 +324,8 @@ struct CidrItem
 /* gline acl entry actions */
 #define GDENY_BLOCK		0x1
 #define GDENY_REJECT		0x2
+
+#define DEFAULT_CLASS_REJECT_MESSAGE "No more connections permitted from your host"
 
 struct config_file_entry
 {
@@ -504,6 +515,7 @@ extern void init_class(void);
 extern struct ConfItem *find_class(const char *);
 extern void init_ip_hash_table(void);
 extern void count_ip_hash(int *, unsigned long *);
+extern void dump_ip_hash_table(struct Client *);
 extern void remove_one_ip(struct irc_ssaddr *);
 extern struct ConfItem *make_conf_item(ConfType type);
 extern void free_access_item(struct AccessItem *);
@@ -574,5 +586,8 @@ extern int match_conf_password(const char *, const struct AccessItem *);
 extern void cluster_a_line(struct Client *,
 			   const char *, int, int, const char *,...);
 extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
+extern struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
+extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
+extern void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
 
 #endif /* INCLUDED_s_conf_h */

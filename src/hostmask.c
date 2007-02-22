@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: hostmask.c 666 2006-07-25 14:34:40Z stu $
+ *  $Id: hostmask.c 803 2007-02-16 09:31:25Z stu $
  */
 
 #include "stdinc.h"
@@ -197,8 +197,11 @@ try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
     else if (c == '/')
     {
       char *after;
+      errno = 0;
       bits = strtoul(p + 1, &after, 10);
-      if (!bits || *after)
+      if (*after)
+        return HM_HOST;
+      if(bits == 0 && errno != 0)
         return HM_HOST;
       if (bits > n * 8)
         return HM_HOST;

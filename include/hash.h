@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: hash.h 605 2006-06-08 21:26:01Z stu $
+ *  $Id: hash.h 822 2007-02-18 01:54:55Z weasel $
  */
 
 #ifndef INCLUDED_hash_h
@@ -54,6 +54,7 @@ extern void hash_add_id(struct Client *);
 extern void hash_del_id(struct Client *);
 extern void hash_add_userhost(struct UserHost *);
 extern void hash_del_userhost(struct UserHost *);
+extern void dump_userhosttable(struct Client *);
 
 extern struct UserHost *hash_find_userhost(const char *);
 extern struct Client *hash_find_id(const char *);

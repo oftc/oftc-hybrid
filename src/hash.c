@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: hash.c 605 2006-06-08 21:26:01Z stu $
+ *  $Id: hash.c 825 2007-02-18 11:07:55Z stu $
  */
 
 #include "stdinc.h"
@@ -670,6 +670,36 @@ count_user_host(const char *user, const char *host, int *global_p,
     }
   }
 }
+
+/* dump_userhosttable()
+ * inputs        - pointer to print info to
+ * output        - none
+ * side effects  - NONE
+ */
+void
+dump_userhosttable(struct Client *source_p)
+{
+  int i;
+  struct UserHost *userhost;
+  dlink_node *ptr;
+  struct NameHost *nameh;
+
+  for (i = 0; i < HASHSIZE; ++i)
+  {
+    for(userhost = userhostTable[i]; userhost != NULL; userhost = userhost->next)
+    {
+      DLINK_FOREACH(ptr, userhost->list.head) 
+      {
+        nameh = ptr->data;
+        sendto_one(source_p,
+            ":%s %d %s n :userhost_table: %s@%s %d %d %d", me.name, 
+            RPL_STATSCCOUNT, source_p->name, nameh->name, userhost->host, 
+            nameh->icount, nameh->gcount, nameh->lcount);
+      }
+    }
+  } 
+} 
+
 
 /* add_user_host()
  *

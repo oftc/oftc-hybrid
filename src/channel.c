@@ -21,7 +21,7 @@
 
 /*! \file channel.c
  * \brief Responsible for managing channels, members, bans and topics
- * \version $Id: channel.c 780 2007-02-11 00:05:54Z stu $
+ * \version $Id: channel.c 801 2007-02-15 22:45:29Z stu $
  */
 
 #include "stdinc.h"
@@ -605,9 +605,10 @@ get_member_status(const struct Membership *ms, int combine)
  *
  */
 static int
-find_bmask(const struct Client *who, const dlink_list *const list)
+find_bmask(const struct Client *w, const dlink_list *const list)
 {
   const dlink_node *ptr = NULL;
+  struct Client *who = (struct Client *)w;
 
   DLINK_FOREACH(ptr, list->head)
   {
@@ -622,14 +623,14 @@ find_bmask(const struct Client *who, const dlink_list *const list)
             return 1;
           break;
         case HM_IPV4:
-          if (who->localClient->aftype == AF_INET)
-            if (match_ipv4(&who->localClient->ip, &bp->addr, bp->bits))
+          if (who->aftype == AF_INET)
+            if (match_ipv4(&who->ip, &bp->addr, bp->bits))
               return 1;
           break;
 #ifdef IPV6
         case HM_IPV6:
-          if (who->localClient->aftype == AF_INET6)
-            if (match_ipv6(&who->localClient->ip, &bp->addr, bp->bits))
+          if (who->aftype == AF_INET6)
+            if (match_ipv6(&who->ip, &bp->addr, bp->bits))
               return 1;
           break;
 #endif

@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: ircd_parser.y 781 2007-02-11 17:26:36Z stu $
+ *  $Id: ircd_parser.y 836 2007-02-19 21:47:40Z stu $
  */
 
 %{
@@ -295,6 +295,7 @@ unhook_hub_leaf_confs(void)
 %token  TREJECT_HOLD_TIME
 %token  REMOTE
 %token  REMOTEBAN
+%token  REJECT_MESSAGE
 %token  RESTRICT_CHANNELS
 %token  RESTRICTED
 %token  RSA_PRIVATE_KEY_FILE
@@ -333,6 +334,7 @@ unhook_hub_leaf_confs(void)
 %token  T_SOFTCALLERID
 %token  T_CALLERID
 %token  T_CCONN
+%token  T_CCONN_FULL
 %token  T_CLIENT_FLOOD
 %token  T_DEAF
 %token  T_DEBUG
@@ -573,7 +575,7 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
     ServerInfo.rsa_private_key = (RSA *)PEM_read_bio_RSAPrivateKey(file, NULL,
       0, NULL);
 
-    BIO_set_close(file, BIO_CLOSE);
+    (void)BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
 
     if (ServerInfo.rsa_private_key == NULL)
@@ -1013,7 +1015,7 @@ oper_entry: OPERATOR
         file = BIO_new_file(yy_aconf->rsa_public_key_file, "r");
         new_aconf->rsa_public_key = (RSA *)PEM_read_bio_RSA_PUBKEY(file, 
 							   NULL, 0, NULL);
-        BIO_set_close(file, BIO_CLOSE);
+        (void)BIO_set_close(file, BIO_CLOSE);
         BIO_free(file);
       }
 #endif
@@ -1171,7 +1173,7 @@ oper_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
       break;
     }
 
-    BIO_set_close(file, BIO_CLOSE);
+    (void)BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
   }
 #endif /* HAVE_LIBCRYPTO */
@@ -1201,6 +1203,10 @@ oper_umodes_item:  T_BOTS
 {
   if (ypass == 2)
     yy_aconf->modes |= UMODE_CCONN;
+} | T_CCONN_FULL
+{
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_CCONN_FULL;
 } | T_DEAF
 {
   if (ypass == 2)
@@ -1588,10 +1594,14 @@ class_entry: CLASS
 
         MyFree(cconf->name);            /* Allows case change of class name */
         cconf->name = yy_class_name;
+        if(class->reject_message == NULL)
+          DupString(class->reject_message, DEFAULT_CLASS_REJECT_MESSAGE);
       }
       else	/* Brand new class */
       {
         MyFree(yy_conf->name);          /* just in case it was allocated */
+        if(yy_class->reject_message == NULL)
+          DupString(yy_class->reject_message, DEFAULT_CLASS_REJECT_MESSAGE);
         yy_conf->name = yy_class_name;
         yy_class->active = 1;
       }
@@ -1606,16 +1616,17 @@ class_name_b: | class_name_t;
 class_items:    class_items class_item | class_item;
 class_item:     class_name |
 		class_cidr_bitlen_ipv4 | class_cidr_bitlen_ipv6 |
-                class_ping_time |
+    class_ping_time |
 		class_ping_warning |
 		class_number_per_cidr |
-                class_number_per_ip |
-                class_connectfreq |
-                class_max_number |
-		class_max_global |
-		class_max_local |
-		class_max_ident |
-                class_sendq |
+    class_number_per_ip |
+    class_connectfreq |
+    class_max_number |
+    class_max_global |
+    class_max_local |
+    class_max_ident |
+    class_sendq |
+    class_reject_message |
 		error ';' ;
 
 class_name: NAME '=' QSTRING ';' 
@@ -1706,6 +1717,15 @@ class_number_per_cidr: NUMBER_PER_CIDR '=' NUMBER ';'
 {
   if (ypass == 1)
     NumberPerCidr(yy_class) = $3;
+};
+
+class_reject_message: REJECT_MESSAGE '=' QSTRING ';'
+{
+  if (ypass == 1)
+  {
+    MyFree(yy_class->reject_message);
+    DupString(yy_class->reject_message, yylval.string);
+  }
 };
 
 /***************************************************************************
@@ -2779,7 +2799,7 @@ connect_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
       break;
     }
       
-    BIO_set_close(file, BIO_CLOSE);
+    (void)BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
   }
 #endif /* HAVE_LIBCRYPTO */
@@ -3528,6 +3548,9 @@ umode_oitem:     T_BOTS
 } | T_CCONN
 {
   ConfigFileEntry.oper_umodes |= UMODE_CCONN;
+} | T_CCONN_FULL
+{
+  ConfigFileEntry.oper_umodes |= UMODE_CCONN_FULL;
 } | T_DEAF
 {
   ConfigFileEntry.oper_umodes |= UMODE_DEAF;

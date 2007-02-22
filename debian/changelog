@@ -1,3 +1,9 @@
+oftc-hybrid (1.5.5.dfsg-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Christoph Berg <myon@debian.org>  Thu, 22 Feb 2007 11:19:54 +0100
+
 oftc-hybrid (1.5.3.dfsg-1) unstable; urgency=low
 
   * New upstream version.

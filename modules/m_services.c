@@ -38,15 +38,6 @@
  *     IRC    : (*) bane, idolNET, irc.idolnet.org, #twilight_zone
  */
 
-/* MODULE CONFIGURATION FOLLOWS -- please read!! */
-
-/* Change this to the name of your services server
- * otherwise the services aliases will not work!
- */
-#define SERVICES_NAME "services.oftc.net"
-
-/* END OF MODULE CONFIGURATION */
-
 #include "stdinc.h"
 #include "handlers.h"
 #include "client.h"

@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_serv.c 765 2007-02-04 21:14:31Z stu $
+ *  $Id: s_serv.c 796 2007-02-15 22:29:39Z stu $
  */
 
 #include "stdinc.h"
@@ -698,14 +698,14 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
         v6 = (struct sockaddr_in6 *)&aconf->ipnum;
 
         if (IN6_IS_ADDR_UNSPECIFIED(&v6->sin6_addr))
-          memcpy(&aconf->ipnum, &client_p->localClient->ip, sizeof(struct irc_ssaddr));
+          memcpy(&aconf->ipnum, &client_p->ip, sizeof(struct irc_ssaddr));
         break;
 #endif
       case AF_INET:
         v4 = (struct sockaddr_in *)&aconf->ipnum;
 
         if (v4->sin_addr.s_addr == INADDR_NONE)
-          memcpy(&aconf->ipnum, &client_p->localClient->ip, sizeof(struct irc_ssaddr)); 
+          memcpy(&aconf->ipnum, &client_p->ip, sizeof(struct irc_ssaddr)); 
         break;
     }
   }
@@ -1988,7 +1988,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   SetConnecting(client_p);
   dlinkAdd(client_p, &client_p->node, &global_client_list);
   /* from def_fam */
-  client_p->localClient->aftype = aconf->aftype;
+  client_p->aftype = aconf->aftype;
 
   /* Now, initiate the connection */
   /* XXX assume that a non 0 type means a specific bind address 
@@ -2092,7 +2092,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   assert(&client_p->localClient->fd == fd);
 
   /* Next, for backward purposes, record the ip of the server */
-  memcpy(&client_p->localClient->ip, &fd->connect.hostaddr,
+  memcpy(&client_p->ip, &fd->connect.hostaddr,
          sizeof(struct irc_ssaddr));
   /* Check the status */
   if (status != COMM_OK)

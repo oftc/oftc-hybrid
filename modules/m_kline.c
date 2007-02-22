@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: m_kline.c 606 2006-06-08 22:35:55Z stu $
+ *  $Id: m_kline.c 790 2007-02-15 20:43:11Z stu $
  */
 
 #include "stdinc.h"
@@ -105,7 +105,7 @@ _moddeinit(void)
   delete_capability("KLN");
 }
 
-const char *_version = "$Revision: 606 $";
+const char *_version = "$Revision: 790 $";
 #endif
 
 /* Local function prototypes */
@@ -433,8 +433,8 @@ mo_dline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    irc_getnameinfo((struct sockaddr *)&target_p->localClient->ip,
-                    target_p->localClient->ip.ss_len, hostip,
+    irc_getnameinfo((struct sockaddr *)&target_p->ip,
+                    target_p->ip.ss_len, hostip,
                     sizeof(hostip), NULL, 0, NI_NUMERICHOST);
 
     dlhost = hostip;

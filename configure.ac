@@ -1,4 +1,4 @@
-dnl $Id: configure.ac 666 2006-07-25 14:34:40Z stu $
+dnl $Id: configure.ac 831 2007-02-19 14:40:09Z stu $
 dnl Process this file with autoconf to produce a configure script.
 
 dnl TODO: clean up all the OpenSSL and shared module checking stuff;
@@ -8,7 +8,7 @@ dnl said functions need to be just about as complex as they already are.
 AC_PREREQ(2.57)
 
 dnl Sneaky way to get an Id tag into the configure script
-AC_COPYRIGHT([$Id: configure.ac 666 2006-07-25 14:34:40Z stu $])
+AC_COPYRIGHT([$Id: configure.ac 831 2007-02-19 14:40:09Z stu $])
 
 AC_INIT([ircd-hybrid],[7.2.2])
 
@@ -931,8 +931,13 @@ AC_HELP_STRING([--with-topiclen=NUMBER],[Set the max topic length to NUMBER (def
  fi
 ], [TOPICLEN=160])
 
+AC_ARG_WITH(services-name,
+AC_HELP_STRING([--with-services-name=SERVICES_NAME],[Set the name of your services server]),
+  [SERVICES_NAME="$withval"],[SERVICES_NAME="services.oftc.net"])
+
 AC_DEFINE_UNQUOTED(TOPICLEN, ${TOPICLEN}, [Maximum topic length (<=390)])
 AC_DEFINE_UNQUOTED(NICKLEN, (${NICKLEN}+1), [Nickname length])
+AC_DEFINE_UNQUOTED(SERVICES_NAME, ["${SERVICES_NAME}"], [Services server name])
 
 AC_ARG_ENABLE(shared-modules,
 AC_HELP_STRING([--disable-shared-modules],[ Disable shared modules.]),

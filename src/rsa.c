@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: rsa.c 609 2006-06-08 23:47:15Z stu $
+ *  $Id: rsa.c 801 2007-02-15 22:45:29Z stu $
  */
 
 #include "stdinc.h"
@@ -120,7 +120,7 @@ verify_private_key(void)
     return -1;
   }
 
-  BIO_set_close(file, BIO_CLOSE);
+  (void)BIO_set_close(file, BIO_CLOSE);
   BIO_free(file);
   bio_spare_fd = save_spare_fd("SSL private key validation");
 

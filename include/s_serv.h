@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_serv.h 764 2007-02-01 16:32:56Z stu $
+ *  $Id: s_serv.h 827 2007-02-18 18:47:37Z stu $
  */
 
 #ifndef INCLUDED_serv_h
@@ -36,7 +36,7 @@ struct ConfItem;
  * starting try_connections()
  * TOO SOON and you can nick collide like crazy. 
  */
-#define STARTUP_CONNECTIONS_TIME 60
+#define STARTUP_CONNECTIONS_TIME 20
 
 struct Client;
 struct AccessItem;

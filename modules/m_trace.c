@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: m_trace.c 605 2006-06-08 21:26:01Z stu $
+ *  $Id: m_trace.c 790 2007-02-15 20:43:11Z stu $
  */
 
 #include "stdinc.h"
@@ -53,7 +53,7 @@ struct Message trace_msgtab = {
 };
 
 #ifndef STATIC_MODULES
-const char *_version = "$Revision: 605 $";
+const char *_version = "$Revision: 790 $";
 static struct Callback *trace_cb;
 
 static void *
@@ -230,8 +230,8 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
     {
       name = get_client_name(target_p, HIDE_IP);
       /* should we not use sockhost here? - stu */
-      irc_getnameinfo((struct sockaddr*)&target_p->localClient->ip,
-		      target_p->localClient->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
+      irc_getnameinfo((struct sockaddr*)&target_p->ip,
+		      target_p->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
 		      NI_NUMERICHOST);
 
       class_name = get_client_class(target_p);
@@ -360,8 +360,8 @@ report_this_status(struct Client *source_p, struct Client *target_p,
   }
 
   /* Should this be sockhost? - stu */
-  irc_getnameinfo((struct sockaddr*)&target_p->localClient->ip, 
-        target_p->localClient->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
+  irc_getnameinfo((struct sockaddr*)&target_p->ip, 
+        target_p->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
         NI_NUMERICHOST);
   name = get_client_name(target_p, HIDE_IP);
   class_name = get_client_class(target_p);

@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: m_stats.c 770 2007-02-04 22:17:25Z stu $
+ *  $Id: m_stats.c 845 2007-02-20 20:43:32Z weasel $
  */
 
 #include "stdinc.h"
@@ -51,6 +51,10 @@
 #include "resv.h"  /* report_resv */
 #include "whowas.h"
 #include "list.h"
+#include "rlimits.h"     /* getrlimit() */
+#include "s_log.h"       /* ilog */
+#include "hash.h"
+#include "irc_getnameinfo.h"
 
 static void do_stats(struct Client *, int, char **);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
@@ -63,7 +67,7 @@ struct Message stats_msgtab = {
 };
 
 #ifndef STATIC_MODULES
-const char *_version = "$Revision: 770 $";
+const char *_version = "$Revision: 845 $";
 static struct Callback *stats_cb;
 
 static void *
@@ -122,6 +126,7 @@ static void stats_servers(struct Client *);
 static void stats_gecos(struct Client *);
 static void stats_class(struct Client *);
 static void stats_memory(struct Client *);
+static void stats_numbers(struct Client *);
 static void stats_servlinks(struct Client *);
 static void stats_ltrace(struct Client *, int, char **);
 static void stats_ziplinks(struct Client *);
@@ -159,6 +164,7 @@ static const struct StatsStruct
   { 'L',	stats_ltrace,		1,	0,	},
   { 'm',	stats_messages,		0,	0,	},
   { 'M',	stats_messages,		0,	0,	},
+  { 'n',	stats_numbers,		0,	0,	},
   { 'o',	stats_oper,		0,	0,	},
   { 'O',	stats_oper,		0,	0,	},
   { 'p',	stats_operedup,		0,	0,	},
@@ -423,6 +429,8 @@ count_memory(struct Client *source_p)
   unsigned long total_memory = 0;
   unsigned int topic_count = 0;
 
+  struct rlimit rlim;
+
   count_whowas_memory(&wwu, &wwm);
 
   DLINK_FOREACH(gptr, global_client_list.head)
@@ -657,6 +665,64 @@ count_memory(struct Client *source_p)
              ":%s %d %s z :TOTAL: %d Available:  Current max RSS: %lu",
              me.name, RPL_STATSDEBUG, source_p->name,
              (int)total_memory, get_maxrss());
+
+  if (getrlimit(RLIMIT_FD_MAX, &rlim) == 0) {
+    sendto_one(source_p,
+               ":%s %d %s z :rlimit_nofile: soft: %d; hard: %d",
+               me.name, RPL_STATSDEBUG, source_p->name,
+               (int)rlim.rlim_cur, (int)rlim.rlim_max);
+  } else {
+    ilog(L_NOTICE, "Unable to getrlimit(): %s", strerror(errno));
+    sendto_one(source_p,
+               ":%s %d %s z :rlimit_nofile: getrlimit() failed.  See log.",
+               me.name, RPL_STATSDEBUG, source_p->name);
+  }
+
+}
+
+static void
+dump_counters(struct Client *source_p)
+{
+  struct ClassItem *classitem;
+  struct ConfItem *conf;
+  struct CidrItem *cidr;
+  dlink_node *ptr, *ptr2;
+  char ipaddr[HOSTIPLEN];
+  int ret;
+
+  dump_userhosttable(source_p);
+  dump_ip_hash_table(source_p);
+  DLINK_FOREACH(ptr, class_items.head)
+  {
+    conf = ptr->data;
+    classitem = map_to_conf(conf);
+    DLINK_FOREACH(ptr2, classitem->list_ipv4.head)
+    {
+      cidr = ptr2->data;
+
+      ret = irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
+          ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
+      if (ret != 0)
+        continue;
+
+      sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name,
+          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr,
+          CidrBitlenIPV4(classitem), cidr->number_on_this_cidr);
+    }
+    DLINK_FOREACH(ptr2, classitem->list_ipv6.head)
+    {
+      cidr = ptr2->data;
+
+      ret = irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
+          ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
+      if (ret != 0)
+        continue;
+
+      sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name,
+          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr,
+          CidrBitlenIPV6(classitem), cidr->number_on_this_cidr);
+    }
+  }
 }
 
 static void
@@ -927,9 +993,9 @@ stats_auth(struct Client *source_p)
 
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host,
-                                   &source_p->localClient->ip,
+                                   &source_p->ip,
 				   CONF_CLIENT,
-				   source_p->localClient->aftype,
+				   source_p->aftype,
 				   source_p->username,
                                    source_p->localClient->passwd);
     else
@@ -968,9 +1034,9 @@ stats_tklines(struct Client *source_p)
 
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host,
-                                   &source_p->localClient->ip,
+                                   &source_p->ip,
 				   CONF_KILL,
-				   source_p->localClient->aftype,
+				   source_p->aftype,
 				   source_p->username, NULL);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_KILL,
@@ -1011,9 +1077,9 @@ stats_klines(struct Client *source_p)
     /* search for a kline */
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host,
-                                   &source_p->localClient->ip,
+                                   &source_p->ip,
 				   CONF_KILL,
-				   source_p->localClient->aftype,
+				   source_p->aftype,
 				   source_p->username, NULL);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_KILL,
@@ -1204,6 +1270,12 @@ static void
 stats_memory(struct Client *source_p)
 {
   count_memory(source_p);
+}
+
+static void
+stats_numbers(struct Client *source_p)
+{
+  dump_counters(source_p);
 }
 
 static void

@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_user.c 786 2007-02-11 21:59:56Z stu $
+ *  $Id: s_user.c 836 2007-02-19 21:47:40Z stu $
  */
 
 #include "stdinc.h"
@@ -32,6 +32,7 @@
 #include "common.h"
 #include "fdlist.h"
 #include "hash.h"
+#include "hostmask.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "s_bsd.h"
@@ -95,7 +96,7 @@ unsigned int user_modes[256] =
   0,                  /* @ */
   0,                  /* A */
   0,                  /* B */
-  0,                  /* C */
+  UMODE_CCONN_FULL,   /* C */
   UMODE_DEAF,         /* D */
   0,                  /* E */
   0,                  /* F */
@@ -434,8 +435,8 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     hash_add_id(source_p);
   }
 
-  irc_getnameinfo((struct sockaddr *)&source_p->localClient->ip,
-                  source_p->localClient->ip.ss_len, ipaddr,
+  irc_getnameinfo((struct sockaddr *)&source_p->ip,
+                  source_p->ip.ss_len, ipaddr,
                   HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
 
   sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL,
@@ -444,6 +445,19 @@ register_local_user(struct Client *client_p, struct Client *source_p,
                        ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                        "255.255.255.255" : ipaddr, get_client_class(source_p),
                        source_p->info);
+
+  sendto_realops_flags(UMODE_CCONN_FULL, L_ALL,
+                       "CLICONN %s %s %s %s %s %s %s 0 %s",
+                       nick, source_p->username, source_p->host,
+                       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                       "255.255.255.255" : ipaddr,
+		       get_client_class(source_p),
+		       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                           "<hidden>" : source_p->client_host,
+		       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                           "<hidden>" : source_p->client_server,
+                       source_p->info);
+
 
   /* If they have died in send_* don't do anything. */
   if (IsDead(source_p))
@@ -508,6 +522,9 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
                      const char *realname)
 {
   struct Client *target_p = NULL;
+  struct ip_entry *ip_found;
+  const struct AccessItem *aconf = NULL;
+  struct ClassItem *aclass;
 
   assert(source_p != NULL);
   assert(source_p->username != username);
@@ -563,6 +580,16 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
   dlinkAdd(source_p, &source_p->lnode, &source_p->servptr->serv->users);
   add_user_host(source_p->username, source_p->host, 1);
   SetUserHost(source_p);
+
+  ip_found = find_or_add_ip(&source_p->ip);
+  ip_found->count++;
+  SetIpHash(source_p);
+
+  aconf = find_conf_by_address(source_p->host, &source_p->ip,
+       CONF_CLIENT, source_p->aftype, source_p->username, NULL);
+  aclass = map_to_conf(aconf->class_ptr);
+
+  cidr_limit_reached(1, &source_p->ip, aclass);
 
   introduce_client(client_p, source_p);
 }
@@ -838,6 +865,10 @@ do_local_user(const char *nick, struct Client *client_p, struct Client *source_p
 
   strlcpy(source_p->info, realname, sizeof(source_p->info));
 
+  /* stash for later */
+  strlcpy(source_p->client_host, host, sizeof(source_p->client_host));
+  strlcpy(source_p->client_server, server, sizeof(source_p->client_server));
+
   if (!IsGotId(source_p)) 
   {
     /* save the username in the client
@@ -1059,6 +1090,13 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
 /* send_umode()
  * send the MODE string for user (user) to connection client_p
  * -avalon
+ *
+ * inputs	- client_p
+ *		- source_p
+ *		- int old
+ *		- sendmask mask of modes to send
+ * 		- suplied umode_buf
+ * output	- NONE
  */
 void
 send_umode(struct Client *client_p, struct Client *source_p,

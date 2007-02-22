@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: client.c 764 2007-02-01 16:32:56Z stu $
+ *  $Id: client.c 836 2007-02-19 21:47:40Z stu $
  */
 
 #include "stdinc.h"
@@ -407,8 +407,8 @@ check_conf_klines(void)
       continue;
 
     /* if there is a returned struct ConfItem then kill it */
-    if ((aconf = find_dline_conf(&client_p->localClient->ip,
-                                  client_p->localClient->aftype)) != NULL)
+    if ((aconf = find_dline_conf(&client_p->ip,
+                                  client_p->aftype)) != NULL)
     {
       if (aconf->status & CONF_EXEMPTDLINE)
         continue;
@@ -486,8 +486,8 @@ check_conf_klines(void)
   {
     client_p = ptr->data;
 
-    if ((aconf = find_dline_conf(&client_p->localClient->ip,
-                                  client_p->localClient->aftype)))
+    if ((aconf = find_dline_conf(&client_p->ip,
+                                  client_p->aftype)))
     {
       if (aconf->status & CONF_EXEMPTDLINE)
         continue;
@@ -747,6 +747,8 @@ static void
 exit_one_client(struct Client *source_p, const char *quitmsg)
 {
   dlink_node *lp = NULL, *next_lp = NULL;
+  struct AccessItem *aconf;
+  struct ClassItem *aclass;
 
   assert(!IsMe(source_p));
 
@@ -786,6 +788,13 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
 
     if (!MyConnect(source_p))
     {
+      aconf = find_conf_by_address(source_p->host, &source_p->ip, 
+          CONF_CLIENT, source_p->aftype, source_p->username, NULL);
+
+      aclass = map_to_conf(aconf->class_ptr);
+      assert(aclass != NULL);
+      remove_from_cidr_check(&source_p->ip, aclass);
+
       source_p->from->serv->dep_users--;
       assert(source_p->from->serv->dep_users >= 0);
     }
@@ -795,7 +804,8 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
       DLINK_FOREACH_SAFE(lp, next_lp, source_p->localClient->invited.head)
         del_invite(lp->data, source_p);
     }
-  }
+
+ }
 
   /* Remove source_p from the client lists */
   if (HasID(source_p))
@@ -805,6 +815,9 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
 
   if (IsUserHostIp(source_p))
     delete_user_host(source_p->username, source_p->host, !MyConnect(source_p));
+
+  if (IsIpHash(source_p))
+    remove_one_ip(&source_p->ip);
 
   /* remove from global client list
    * NOTE: source_p->node.next cannot be NULL if the client is added
@@ -944,7 +957,7 @@ void
 exit_client(struct Client *source_p, struct Client *from, const char *comment)
 {
   dlink_node *m;
-
+  
   if (MyConnect(source_p))
   {
     /* DO NOT REMOVE. exit_client can be called twice after a failed
@@ -954,9 +967,6 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
       return;
 
     SetClosing(source_p);
-
-    if (IsIpHash(source_p))
-      remove_one_ip(&source_p->localClient->ip);
 
     delete_auth(source_p);
 
@@ -986,6 +996,10 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
         free_list_task(source_p->localClient->list_task, source_p);
 
       sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL, "Client exiting: %s (%s@%s) [%s] [%s]",
+                           source_p->name, source_p->username, source_p->host, comment,
+                           ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                           "255.255.255.255" : source_p->sockhost);
+      sendto_realops_flags(UMODE_CCONN_FULL, L_ALL, "CLIEXIT: %s %s %s %s %s",
                            source_p->name, source_p->username, source_p->host, comment,
                            ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                            "255.255.255.255" : source_p->sockhost);

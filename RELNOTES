@@ -1,3 +1,15 @@
+-- oftc-hybrid 1.5.5 RELNOTES
+o) Bugfix release
+
+-- oftc-hybrid 1.5.4 RELNOTES
+o) Fix the +i WHO option, and add CIDR to it
+o) Make cidr classes global so max_per_cidr is global
+o) max_per_ip is now global too
+o) Added a reject_message to the class{} block to allow configurable messages
+o) Added stats n which dumps user counts in all areas(host, ip, cidr)
+o) Added --with-services-name configure option
+o) Reduced startup connect timer
+
 -- oftc-hybrid 1.5.3 RELNOTES
 o) Actually fix the /names output bug instead of making it worse
 o) UMode +S now times out after a configurable timeout
@@ -152,4 +164,4 @@ Please read doc/whats-new.txt for information about what is in this release
 Other files recommended for reading: BUGS, README.FIRST, INSTALL
 
 --------------------------------------------------------------------------------
-$Id: RELNOTES 784 2007-02-11 19:35:01Z stu $
+$Id: RELNOTES 843 2007-02-20 20:16:19Z stu $

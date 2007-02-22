@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: numeric.h 718 2006-11-22 16:48:12Z stu $
+ *  $Id: numeric.h 825 2007-02-18 11:07:55Z stu $
  */
 
 #ifndef INCLUDED_numeric_h
@@ -121,6 +121,7 @@ extern const char *get_locale(void);
 #define RPL_STATSFLINE       224
 #define RPL_STATSDLINE       225
 #define RPL_STATSALINE	     226
+#define RPL_STATSCCOUNT      228
 
 /*	RPL_RULES	     232	unreal */
 

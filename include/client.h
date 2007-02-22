@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: client.h 782 2007-02-11 17:50:09Z stu $
+ *  $Id: client.h 836 2007-02-19 21:47:40Z stu $
  */
 
 #ifndef INCLUDED_client_h
@@ -157,6 +157,8 @@ struct Client
    * gcos field in /etc/passwd but anything can go here.
    */
   char              info[REALLEN + 1]; /* Free form additional client info */
+  char              client_host[HOSTLEN + 1];
+  char              client_server[HOSTLEN + 1];
 
   /* client->sockhost contains the ip address gotten from the socket as a
    * string, this field should be considered read-only once the connection
@@ -175,6 +177,8 @@ struct Client
   dlink_list     channel;   /* chain of channel pointer blocks */
 
   struct LocalUser *localClient;
+  struct irc_ssaddr ip;
+  int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
 };
 
 struct LocalUser
@@ -220,8 +224,6 @@ struct LocalUser
   struct Listener *listener;   /* listener accepted from */
   dlink_list        confs;     /* Configuration record associated */
   dlink_list        invited;   /* chain of invite pointer blocks */
-  struct irc_ssaddr ip;
-  int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
   struct DNSQuery   *dns_query; /* result returned from resolver query */
   unsigned long     serverMask; /* Only used for Lazy Links */
   time_t last; /* Last time we got a PRIVMSG */
@@ -369,31 +371,31 @@ struct LocalUser
 
 
 /* umodes, settable flags */
-#define UMODE_SERVNOTICE   0x00001 /* server notices such as kill */
-#define UMODE_CCONN        0x00002 /* Client Connections */
-#define UMODE_REJ          0x00004 /* Bot Rejections */
-#define UMODE_SKILL        0x00008 /* Server Killed */
-#define UMODE_FULL         0x00010 /* Full messages */
-#define UMODE_SPY          0x00020 /* see STATS / LINKS */
-#define UMODE_DEBUG        0x00040 /* 'debugging' info */
-#define UMODE_NCHANGE      0x00080 /* Nick change notice */
-#define UMODE_WALLOP       0x00100 /* send wallops to them */
-#define UMODE_OPERWALL     0x00200 /* Operwalls */
-#define UMODE_INVISIBLE    0x00400 /* makes user invisible */
-#define UMODE_BOTS         0x00800 /* shows bots */
-#define UMODE_EXTERNAL     0x01000 /* show servers introduced and splitting */
-#define UMODE_CALLERID     0x02000 /* block unless caller id's */
-#define UMODE_SOFTCALLERID 0x04000 /* block unless on common channel */
-#define UMODE_UNAUTH       0x08000 /* show unauth connects here */
-#define UMODE_LOCOPS       0x10000 /* show locops */
-#define UMODE_DEAF         0x20000 /* don't receive channel messages */
-
+#define UMODE_SERVNOTICE   0x00000001 /* server notices such as kill */
+#define UMODE_CCONN        0x00000002 /* Client Connections */
+#define UMODE_REJ          0x00000004 /* Bot Rejections */
+#define UMODE_SKILL        0x00000008 /* Server Killed */
+#define UMODE_FULL         0x00000010 /* Full messages */
+#define UMODE_SPY          0x00000020 /* see STATS / LINKS */
+#define UMODE_DEBUG        0x00000040 /* 'debugging' info */
+#define UMODE_NCHANGE      0x00000080 /* Nick change notice */
+#define UMODE_WALLOP       0x00000100 /* send wallops to them */
+#define UMODE_OPERWALL     0x00000200 /* Operwalls */
+#define UMODE_INVISIBLE    0x00000400 /* makes user invisible */
+#define UMODE_BOTS         0x00000800 /* shows bots */
+#define UMODE_EXTERNAL     0x00001000 /* show servers introduced and splitting */
+#define UMODE_CALLERID     0x00002000 /* block unless caller id's */
+#define UMODE_SOFTCALLERID 0x00004000 /* block unless on common channel */
+#define UMODE_UNAUTH       0x00008000 /* show unauth connects here */
+#define UMODE_LOCOPS       0x00010000 /* show locops */
+#define UMODE_DEAF         0x00020000 /* don't receive channel messages */
+#define UMODE_CCONN_FULL   0x00040000 /* add unused fields to connection monitoring */
 
 /* user information flags, only settable by remote mode or local oper */
-#define UMODE_OPER         0x40000 /* Operator */
-#define UMODE_ADMIN        0x80000 /* Admin on server */ 
-#define UMODE_GOD          0x100000 /* Operator is God */
-#define UMODE_NICKSERVREG  0x200000 /* User is registered with nickserv and identified */
+#define UMODE_OPER         0x40000000 /* Operator */
+#define UMODE_ADMIN        0x80000000 /* Admin on server */ 
+#define UMODE_GOD          0x10000000 /* Operator is God */
+#define UMODE_NICKSERVREG  0x20000000 /* User is registered with nickserv and identified */
 #define UMODE_ALL	   UMODE_SERVNOTICE
 
 #define SEND_UMODES  (UMODE_INVISIBLE | UMODE_OPER | UMODE_WALLOP | \

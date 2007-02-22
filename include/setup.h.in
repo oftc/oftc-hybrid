@@ -228,6 +228,9 @@
 /* This is the type of IO loop we are using */
 #undef SELECT_TYPE
 
+/* Services server name */
+#undef SERVICES_NAME
+
 /* Suffix for shared libraries on this platform. */
 #undef SHARED_SUFFIX
 
@@ -279,6 +282,10 @@
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
+
+/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
+   `char[]'. */
+#undef YYTEXT_POINTER
 
 /* Enable GNU extensions on systems that have them.  */
 #ifndef _GNU_SOURCE
