@@ -2320,9 +2320,7 @@ expire_tklines(dlink_list *tklist)
         if (ConfigFileEntry.tkline_expire_notices)
 	  sendto_realops_flags(UMODE_ALL, L_ALL,
                                "Temporary RESV for [%s] expired", cconf->name);
-	dlinkDelete(ptr, tklist);
-        free_dlink_node(ptr);
-	delete_conf_item(conf);
+	delete_channel_resv(cconf);
       }
     }
   }

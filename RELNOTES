@@ -1,6 +1,8 @@
 -- ircd-hybrid-7.2.3 RELNOTES
 o) Added ircd-italian.lang language file
-
+o) Added -full to etrace
+o) Added +C for opers
+o) Fixed core in temp channel resv
 
 -- ircd-hybrid-7.2.2 RELNOTES
 o) Added channel::disable_fake_channels config directive
