@@ -465,6 +465,7 @@ struct LocalUser
                                  (UMODE_CALLERID|UMODE_SOFTCALLERID))
 #define IsSoftCallerId(x)       ((x)->umodes & UMODE_SOFTCALLERID)
 #define IsDeaf(x)               ((x)->umodes & UMODE_DEAF)
+#define IsFull(x)		((x)->umodes & UMODE_CCONN_FULL)
 
 #define SetSendQExceeded(x)	((x)->flags |= FLAGS_SENDQEX)
 #define IsSendQExceeded(x)	((x)->flags &  FLAGS_SENDQEX)

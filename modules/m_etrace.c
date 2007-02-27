@@ -42,8 +42,8 @@
 #include "s_conf.h"
 #include "irc_getnameinfo.h"
 
-#define FORM_STR_RPL_ETRACE	 ":%s 709 %s %s %s %s %s %s :%s"
-#define FORM_STR_RPL_ETRACE_FULL ":%s 708 %s %s %s %s %s %s %s %s :%s"
+#define FORM_STR_RPL_ETRACE	 ":%s 709 %s %s %s %s %s %s %s :%s"
+#define FORM_STR_RPL_ETRACE_FULL ":%s 708 %s %s %s %s %s %s %s %s %s :%s"
 
 static void do_etrace(struct Client *, int, char **);
 static void mo_etrace(struct Client *, struct Client *, int, char *[]);
@@ -122,6 +122,9 @@ do_etrace(struct Client *source_p, int parc, char **parv)
     do_all = 1;
     tname = "*";
   }
+
+  if (IsFull(source_p))
+    full_etrace = 1;
 
   if (!wilds && !do_all)
   {
@@ -205,6 +208,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 		   class_name,
 		   target_p->name,
 		   target_p->username,
+		   target_p->host,
 		   IsIPSpoof(target_p) ? "255.255.255.255" : ip,
 		   IsIPSpoof(target_p) ? "<hidden>" : target_p->client_host,
 		   IsIPSpoof(target_p) ? "<hidden>" : target_p->client_server,
@@ -217,6 +221,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 		   class_name,
 		   target_p->name,
 		   target_p->username,
+		   target_p->host,
 		   ip,
 		   target_p->client_host,
 		   target_p->client_server,
@@ -232,6 +237,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 		   class_name,
 		   target_p->name,
 		   target_p->username,
+		   target_p->host,
 		   IsIPSpoof(target_p) ? "255.255.255.255" : ip,
 		   target_p->info);
       else
@@ -242,6 +248,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 		   class_name,
 		   target_p->name,
 		   target_p->username,
+		   target_p->host,
 		   ip,
 		   target_p->info);
     }
