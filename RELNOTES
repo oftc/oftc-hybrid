@@ -3,6 +3,13 @@ o) Added ircd-italian.lang language file
 o) Added -full to etrace
 o) Added +C for opers
 o) Fixed core in temp channel resv
+o) Fixed CHALLENGE to work with user=IP
+o) Misc fixes to TESTMASK and TESTLINE
+o) Added support for nick masks to TESTMASK
+o) Fixed /modlist to show up whether or not a module is resident
+o) Fixed command line arguments handling to allow more than one switch
+o) Fixed numeric delivery for mixed TS5 target on the other side of a TS6 server.
+
 
 -- ircd-hybrid-7.2.2 RELNOTES
 o) Added channel::disable_fake_channels config directive
