@@ -1,0 +1,4 @@
+2007-03-05 Timothy J Fontaine <tjfontaine@oftc.net>
+
+	* include/channel_mode.h: fix cmode +S SSLonlyChannel macro was missing a
+	set of parenthesises
