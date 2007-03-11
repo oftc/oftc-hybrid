@@ -71,12 +71,12 @@ enum FullCause
 char *full_reasons[] =
 {
   "",
-  "Too many connections (max_total) %s [%s]",
-  "Too many local user@host connections (max_local) %s [%s]",
-  "Too many global user@host connections (max_global) %s [%s]",
-  "Too many connections from IP (number_per_ip) %s [%s]",
-  "Too many connections from CIDR block (number_per_cidr) %s [%s]",
-  "Too many connections from ident (max_ident) %s [%s]"
+  "Too many connections (max_total) %s [%s] {%s}",
+  "Too many local user@host connections (max_local) %s [%s] {%s}",
+  "Too many global user@host connections (max_global) %s [%s] {%s}",
+  "Too many connections from IP (number_per_ip) %s [%s] {%s}",
+  "Too many connections from CIDR block (number_per_cidr) %s [%s] {%s}",
+  "Too many connections from ident (max_ident) %s [%s] {%s}"
 };
 
 struct Callback *client_check_cb = NULL;
@@ -121,7 +121,7 @@ static void flush_deleted_I_P(void);
 static void expire_tklines(dlink_list *);
 static void garbage_collect_ip_entries(void);
 static int hash_ip(struct irc_ssaddr *);
-static int verify_access(struct Client *, const char *, char **);
+static int verify_access(struct Client *, const char *, struct ConfItem *, char **);
 static int attach_iline(struct Client *, struct ConfItem *, char **);
 static void parse_conf_file(int, int);
 static dlink_list *map_to_list(ConfType);
@@ -839,9 +839,10 @@ check_client(va_list args)
   const char *username = va_arg(args, const char *);
   int i, bad = 0;
   char *reject_reason;
+  struct ConfItem conf;
  
   /* I'm already in big trouble if source_p->localClient is NULL -db */
-  if ((i = verify_access(source_p, username, &reject_reason)))
+  if ((i = verify_access(source_p, username, &conf, &reject_reason)))
     ilog(L_INFO, "Access denied: %s[%s]", 
          source_p->name, source_p->sockhost);
 
@@ -857,8 +858,8 @@ check_client(va_list args)
     case MAX_CIDR:
     case MAX_IDENT:
       sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
-          full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost);
-      ilog(L_INFO, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost);
+          full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
+      ilog(L_INFO, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
       ServerStats->is_ref++;
       exit_client(source_p, &me, reject_reason);
       bad = TRUE;
@@ -955,7 +956,8 @@ check_client(va_list args)
  * side effect	- find the first (best) I line to attach.
  */
 static int
-verify_access(struct Client *client_p, const char *username, char **reason)
+verify_access(struct Client *client_p, const char *username, 
+        struct ConfItem *retconf, char **reason)
 {
   struct AccessItem *aconf = NULL, *rkconf = NULL;
   struct ConfItem *conf = NULL;
@@ -985,6 +987,7 @@ verify_access(struct Client *client_p, const char *username, char **reason)
     if (IsConfClient(aconf) && !rkconf)
     {
       conf = unmap_conf_item(aconf);
+      memcpy(retconf, conf, sizeof(struct ConfItem));
 
       if (IsConfRedir(aconf))
       {
