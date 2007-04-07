@@ -156,7 +156,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
         return;
       }
 
-      if (chptr->channelts == 0)
+      if (chptr->channelts == 0 && !IsGod(source_p))
       {
         /* If its a TS 0 channel, do it the old way */
         sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
