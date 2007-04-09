@@ -903,7 +903,13 @@ change_simple_umode(va_list args)
   if (what == MODE_ADD)
   {
     if(flag == UMODE_GOD && !IsGod(source_p) && MyConnect(source_p))
+    {
+      char tmp[IRCD_BUFSIZE];
+      ircsprintf(tmp, "%s is setting God mode", source_p->name);
+      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
+      oftc_log(tmp);
       source_p->umodestime = CurrentTime;
+    }
     source_p->umodes |= flag;
   }
   else
