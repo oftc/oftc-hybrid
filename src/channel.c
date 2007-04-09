@@ -705,10 +705,8 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
   if (SSLonlyChannel(chptr))
   {
 #ifdef HAVE_LIBCRYPTO
-    if (MyClient(source_p)) {
-      if (source_p->localClient->fd.ssl)
+    if (MyClient(source_p) && !(source_p->localClient->fd.ssl))
         return (ERR_SSLONLYCHAN);
-    }
 #else
     return (ERR_SSLONLYCHAN);  /* deny everyone on a non SSL-enabled server */
 #endif
