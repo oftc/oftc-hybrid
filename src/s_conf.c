@@ -2306,41 +2306,43 @@ expire_tklines(dlink_list *tklist)
       if (aconf->hold <= CurrentTime)
       {
         /* XXX - Do we want GLINE expiry notices?? */
-	/* Alert opers that a TKline expired - Hwy */
+        /* Alert opers that a TKline expired - Hwy */
         if (ConfigFileEntry.tkline_expire_notices)
         {
-	  if (aconf->status & CONF_KILL)
-	  {
-	    sendto_realops_flags(UMODE_ALL, L_ALL,
-				 "Temporary K-line for [%s@%s] expired",
-				 (aconf->user) ? aconf->user : "*",
-				 (aconf->host) ? aconf->host : "*");
-	  }
-	  else if (conf->type == DLINE_TYPE)
-	  {
-	    sendto_realops_flags(UMODE_ALL, L_ALL,
-				 "Temporary D-line for [%s] expired",
-				 (aconf->host) ? aconf->host : "*");
-	  }
+          if (aconf->status & CONF_KILL)
+          {
+            sendto_realops_flags(UMODE_ALL, L_ALL,
+                "Temporary K-line for [%s@%s] expired",
+                (aconf->user) ? aconf->user : "*",
+                (aconf->host) ? aconf->host : "*");
+          }
+          else if (conf->type == DLINE_TYPE)
+          {
+            sendto_realops_flags(UMODE_ALL, L_ALL,
+                "Temporary D-line for [%s] expired",
+                (aconf->host) ? aconf->host : "*");
+          }
         }
 
         dlinkDelete(ptr, tklist);
-	delete_one_address_conf(aconf->host, aconf);
+        remove_conf_line(conf->type, &me, aconf->user, aconf->host);
+        delete_one_address_conf(aconf->host, aconf);
       }
     }
     else if (conf->type == XLINE_TYPE ||
-	     conf->type == RXLINE_TYPE)
+        conf->type == RXLINE_TYPE)
     {
       xconf = (struct MatchItem *)map_to_conf(conf);
       if (xconf->hold <= CurrentTime)
       {
         if (ConfigFileEntry.tkline_expire_notices)
-	  sendto_realops_flags(UMODE_ALL, L_ALL,
-                               "Temporary X-line for [%s] %sexpired", conf->name,
-                               conf->type == RXLINE_TYPE ? "(REGEX) " : "");
-	dlinkDelete(ptr, tklist);
+          sendto_realops_flags(UMODE_ALL, L_ALL,
+              "Temporary X-line for [%s] %sexpired", conf->name,
+              conf->type == RXLINE_TYPE ? "(REGEX) " : "");
+        dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
-	delete_conf_item(conf);
+        remove_conf_line(conf->type, &me, aconf->user, aconf->host);
+        delete_conf_item(conf);
       }
     }
     else if (conf->type == RKLINE_TYPE)
@@ -2349,12 +2351,13 @@ expire_tklines(dlink_list *tklist)
       if (aconf->hold <= CurrentTime)
       {
         if (ConfigFileEntry.tkline_expire_notices)
-           sendto_realops_flags(UMODE_ALL, L_ALL,
-                                "Temporary K-line for [%s@%s] (REGEX) expired",
-                                (aconf->user) ? aconf->user : "*",
-                                (aconf->host) ? aconf->host : "*");
+          sendto_realops_flags(UMODE_ALL, L_ALL,
+              "Temporary K-line for [%s@%s] (REGEX) expired",
+              (aconf->user) ? aconf->user : "*",
+              (aconf->host) ? aconf->host : "*");
         dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
+        remove_conf_line(conf->type, &me, aconf->user, aconf->host);
         delete_conf_item(conf);
       }
     }
@@ -2364,11 +2367,12 @@ expire_tklines(dlink_list *tklist)
       if (nconf->hold <= CurrentTime)
       {
         if (ConfigFileEntry.tkline_expire_notices)
-	  sendto_realops_flags(UMODE_ALL, L_ALL,
-                               "Temporary RESV for [%s] expired", conf->name);
-	dlinkDelete(ptr, tklist);
+          sendto_realops_flags(UMODE_ALL, L_ALL,
+              "Temporary RESV for [%s] expired", conf->name);
+        dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
-	delete_conf_item(conf);
+        remove_conf_line(conf->type, &me, aconf->user, aconf->host);
+        delete_conf_item(conf);
       }
     }
     else if (conf->type == CRESV_TYPE)
@@ -2377,11 +2381,12 @@ expire_tklines(dlink_list *tklist)
       if (cconf->hold <= CurrentTime)
       {
         if (ConfigFileEntry.tkline_expire_notices)
-	  sendto_realops_flags(UMODE_ALL, L_ALL,
-                               "Temporary RESV for [%s] expired", cconf->name);
-	dlinkDelete(ptr, tklist);
+          sendto_realops_flags(UMODE_ALL, L_ALL,
+              "Temporary RESV for [%s] expired", cconf->name);
+        dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
-	delete_conf_item(conf);
+        remove_conf_line(conf->type, &me, aconf->user, aconf->host);
+        delete_conf_item(conf);
       }
     }
   }
@@ -2479,6 +2484,40 @@ get_oper_name(const struct Client *client_p)
   return buffer;
 }
 
+static void
+clear_temp_list(dlink_list *list)
+{
+  dlink_node *ptr, *next_ptr;
+  struct ConfItem *conf;
+  struct AccessItem *aconf;
+
+  DLINK_FOREACH_SAFE(ptr, next_ptr, list->head)
+  {
+    conf = ptr->data;
+    switch(conf->type)
+    {
+      case GLINE_TYPE:
+      case KLINE_TYPE:
+      case DLINE_TYPE:
+        aconf = (struct AccessItem *)map_to_conf(conf);
+
+        dlinkDelete(ptr, list);
+        delete_one_address_conf(aconf->host, aconf);
+        break;
+      case XLINE_TYPE:
+      case RXLINE_TYPE:
+      case RKLINE_TYPE:
+      case NRESV_TYPE:
+      case CRESV_TYPE:
+        dlinkDelete(ptr, list);
+        free_dlink_node(ptr);
+        break;
+      default:
+        break;
+    }
+ }
+}
+
 /* read_conf_files()
  *
  * inputs       - cold start YES or NO
@@ -2520,7 +2559,16 @@ read_conf_files(int cold)
   }
 
   if (!cold)
+  {
     clear_out_old_conf();
+    clear_temp_list(&temporary_glines);
+    clear_temp_list(&temporary_klines);
+    clear_temp_list(&temporary_dlines);
+    clear_temp_list(&temporary_xlines);
+    clear_temp_list(&temporary_rxlines);
+    clear_temp_list(&temporary_rklines);
+    clear_temp_list(&temporary_resv);
+  }
 
   read_conf(conf_fbfile_in);
   fbclose(conf_fbfile_in);
@@ -2607,8 +2655,8 @@ clear_out_old_conf(void)
   struct MatchItem *match_item;
   dlink_list *free_items [] = {
     &server_items,   &oconf_items,    &hub_items, &leaf_items,
-     &uconf_items,   &xconf_items, &rxconf_items, &rkconf_items,
-     &nresv_items, &cluster_items,  &gdeny_items, NULL
+    &uconf_items,   &xconf_items, &rxconf_items, &rkconf_items,
+    &nresv_items, &cluster_items,  &gdeny_items, NULL
   };
 
   dlink_list ** iterator = free_items; /* C is dumb */
@@ -2616,7 +2664,7 @@ clear_out_old_conf(void)
   /* We only need to free anything allocated by yyparse() here.
    * Resetting structs, etc, is taken care of by set_default_conf().
    */
-  
+
   for (; *iterator != NULL; iterator++)
   {
     DLINK_FOREACH_SAFE(ptr, next_ptr, (*iterator)->head)
@@ -2625,71 +2673,66 @@ clear_out_old_conf(void)
       /* XXX This is less than pretty */
       if (conf->type == SERVER_TYPE)
       {
-	aconf = map_to_conf(conf);
+        aconf = map_to_conf(conf);
 
-	if (aconf->clients != 0)
+        if (aconf->clients != 0)
         {
-	  SetConfIllegal(aconf);
-	  dlinkDelete(&conf->node, &server_items);
-	}
-	else
-	{
-	  delete_conf_item(conf);
-	}
+          SetConfIllegal(aconf);
+          dlinkDelete(&conf->node, &server_items);
+        }
+        else
+        {
+          delete_conf_item(conf);
+        }
       }
       else if (conf->type == OPER_TYPE)
       {
-	aconf = map_to_conf(conf);
+        aconf = map_to_conf(conf);
 
-	if (aconf->clients != 0)
+        if (aconf->clients != 0)
         {
-	  SetConfIllegal(aconf);
-	  dlinkDelete(&conf->node, &oconf_items);
-	}
-	else
-	{
-	  delete_conf_item(conf);
-	}
+          SetConfIllegal(aconf);
+          dlinkDelete(&conf->node, &oconf_items);
+        }
+        else
+        {
+          delete_conf_item(conf);
+        }
       }
       else if (conf->type == CLIENT_TYPE)
       {
-	aconf = map_to_conf(conf);
+        aconf = map_to_conf(conf);
 
-	if (aconf->clients != 0)
+        if (aconf->clients != 0)
         {
-	  SetConfIllegal(aconf);
-	}
-	else
-	{
-	  delete_conf_item(conf);
-	}
+          SetConfIllegal(aconf);
+        }
+        else
+        {
+          delete_conf_item(conf);
+        }
       }
       else if (conf->type == XLINE_TYPE  ||
-               conf->type == RXLINE_TYPE ||
-               conf->type == RKLINE_TYPE)
+          conf->type == RXLINE_TYPE ||
+          conf->type == RKLINE_TYPE)
       {
-        /* temporary (r)xlines are also on
-         * the (r)xconf items list */
-        if (conf->flags & CONF_FLAGS_TEMPORARY)
-          continue;
-
         delete_conf_item(conf);
       }
       else
       {
-	if ((conf->type == LEAF_TYPE) || (conf->type == HUB_TYPE))
-	{
-	  match_item = map_to_conf(conf);
-	  if (match_item->ref_count <= 0)
-	    delete_conf_item(conf);
-	  else
-	  {
-	    match_item->illegal = 1;
-	    dlinkDelete(&conf->node, *iterator);
-	  }
-	}
-	else
-	  delete_conf_item(conf);
+        if ((conf->type == LEAF_TYPE) || (conf->type == HUB_TYPE))
+        {
+          match_item = map_to_conf(conf);
+          if (match_item->ref_count <= 0)
+            delete_conf_item(conf);
+          else
+          {
+            match_item->illegal = 1;
+            dlinkDelete(&conf->node, *iterator);
+          }
+        }
+        else
+          delete_conf_item(conf);
       }
     }
   }

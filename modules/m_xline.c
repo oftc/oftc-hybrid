@@ -406,7 +406,7 @@ write_xline(struct Client *source_p, char *gecos, char *reason,
     add_temp_line(conf);
   }
   else
-    write_conf_line(source_p, conf, current_date, cur_time);
+    write_conf_line(source_p, conf, current_date, cur_time, 0);
   rehashed_klines = 1;
 }
 

@@ -542,7 +542,7 @@ extern void yyerror(const char *);
 extern int conf_yy_fatal_error(const char *);
 extern int conf_fbgets(char *, unsigned int, FBFILE *);
 extern void write_conf_line(struct Client *, struct ConfItem *,
-                            const char *, time_t);
+                            const char *, time_t, time_t);
 extern int remove_conf_line(ConfType, struct Client *, const char *,
                             const char *);
 extern void add_temp_line(struct ConfItem *);

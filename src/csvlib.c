@@ -48,11 +48,15 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
   struct ConfItem *conf;
   struct AccessItem *aconf;
   struct MatchItem *match_item;
+  struct MatchItem *nresv;
+  struct ResvChannel *cresv;
   char  *name_field=NULL;
   char  *user_field=NULL;
   char  *reason_field=NULL;
   char  *oper_reason=NULL;
   char  *host_field=NULL;
+  char  *duration_field=NULL;
+  char  *temp=NULL;
   char  line[IRCD_BUFSIZE];
   char  *p;
 
@@ -66,128 +70,176 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
 
     switch(conf_type)
     {
-    case KLINE_TYPE:
-      parse_csv_line(line, &user_field, &host_field, &reason_field, NULL);
-      conf = make_conf_item(KLINE_TYPE);
-      aconf = map_to_conf(conf);
+      case KLINE_TYPE:
+        parse_csv_line(line, &user_field, &host_field, &reason_field, &temp,
+            &temp, &temp, &temp, &duration_field, NULL);
+        conf = make_conf_item(KLINE_TYPE);
+        aconf = map_to_conf(conf);
 
-      if (host_field != NULL)
-	DupString(aconf->host, host_field);
-      if (reason_field != NULL)
-	DupString(aconf->reason, reason_field);
-      if (user_field != NULL)
-	DupString(aconf->user, user_field);
-      if (aconf->host != NULL)
-	add_conf_by_address(CONF_KILL, aconf);
-      break;
-
-    case RKLINE_TYPE:
-    {
-      const char *errptr = NULL;
-      pcre *exp_user = NULL, *exp_host = NULL;
-
-      parse_csv_line(line, &user_field, &host_field, &reason_field, NULL);
-
-      if (host_field == NULL || user_field == NULL)
+        if (host_field != NULL)
+          DupString(aconf->host, host_field);
+        if (reason_field != NULL)
+          DupString(aconf->reason, reason_field);
+        if (user_field != NULL)
+          DupString(aconf->user, user_field);
+        if (duration_field != NULL)
+          aconf->hold = atoi(duration_field);
+        if (aconf->host != NULL)
+        {
+          if(duration_field == NULL)
+            add_conf_by_address(CONF_KILL, aconf);
+          else
+            add_temp_line(conf);
+        }
         break;
 
-      if (!(exp_user = ircd_pcre_compile(user_field, &errptr)) ||
-          !(exp_host = ircd_pcre_compile(host_field, &errptr)))
-      {
-        sendto_realops_flags(UMODE_ALL, L_ALL,
-                  "Failed to add regular expression based K-Line: %s", errptr);
-        break;
-      }
+      case RKLINE_TYPE:
+        {
+          const char *errptr = NULL;
+          pcre *exp_user = NULL, *exp_host = NULL;
 
-      aconf = map_to_conf(make_conf_item(RKLINE_TYPE));
+          parse_csv_line(line, &user_field, &host_field, &reason_field, &temp,
+              &temp, &temp, &temp, &duration_field, NULL);
 
-      aconf->regexuser = exp_user;
-      aconf->regexhost = exp_host;
+          if (host_field == NULL || user_field == NULL)
+            break;
 
-      DupString(aconf->user, user_field);
-      DupString(aconf->host, host_field);
+          if (!(exp_user = ircd_pcre_compile(user_field, &errptr)) ||
+              !(exp_host = ircd_pcre_compile(host_field, &errptr)))
+          {
+            sendto_realops_flags(UMODE_ALL, L_ALL,
+                "Failed to add regular expression based K-Line: %s", errptr);
+            break;
+          }
 
-      if (reason_field != NULL)
-        DupString(aconf->reason, reason_field);
-      else
-        DupString(aconf->reason, "No reason");
+          aconf = map_to_conf(make_conf_item(RKLINE_TYPE));
 
-    }
-      break;
+          aconf->regexuser = exp_user;
+          aconf->regexhost = exp_host;
 
-    case DLINE_TYPE:
-      parse_csv_line(line, &host_field, &reason_field, NULL);
-      conf = make_conf_item(DLINE_TYPE);
-      aconf = (struct AccessItem *)map_to_conf(conf);
-      if (host_field != NULL)
-	DupString(aconf->host, host_field);
-      if (reason_field != NULL)
-	DupString(aconf->reason, reason_field);
-      conf_add_d_conf(aconf);
-      break;
+          DupString(aconf->user, user_field);
+          DupString(aconf->host, host_field);
 
-    case XLINE_TYPE:
-      parse_csv_line(line, &name_field, &reason_field, &oper_reason, NULL);
-      conf = make_conf_item(XLINE_TYPE);
-      match_item = (struct MatchItem *)map_to_conf(conf);
-      if (name_field != NULL)
-	DupString(conf->name, name_field);
-      if (reason_field != NULL)
-	DupString(match_item->reason, reason_field);
-      break;
+          if (reason_field != NULL)
+            DupString(aconf->reason, reason_field);
+          else
+            DupString(aconf->reason, "No reason");
 
-    case RXLINE_TYPE:
-    {
-      const char *errptr = NULL;
-      pcre *exp_p = NULL;
-
-      parse_csv_line(line, &name_field, &reason_field, &oper_reason, NULL);
-
-      if (name_field == NULL)
+          if(duration_field != NULL)
+          {
+            aconf->hold = atoi(duration_field);
+            add_temp_line(conf);
+          }
+        }
         break;
 
-      if (!(exp_p = ircd_pcre_compile(name_field, &errptr)))
-      {
-        sendto_realops_flags(UMODE_ALL, L_ALL,
-                             "Failed to add regular expression based X-Line: %s", errptr);
+      case DLINE_TYPE:
+        parse_csv_line(line, &host_field, &reason_field, &temp, &temp, &temp, 
+            &temp, &duration_field, NULL);
+        conf = make_conf_item(DLINE_TYPE);
+        aconf = (struct AccessItem *)map_to_conf(conf);
+        if (host_field != NULL)
+          DupString(aconf->host, host_field);
+        if (reason_field != NULL)
+          DupString(aconf->reason, reason_field);
+        if(duration_field != NULL)
+        {
+          aconf->hold = atoi(duration_field);
+          add_temp_line(conf);
+        }
+        conf_add_d_conf(aconf);
         break;
-      }
 
-      conf = make_conf_item(RXLINE_TYPE);
-      conf->regexpname = exp_p;
-      match_item = map_to_conf(conf);
-      DupString(conf->name, name_field);
+      case XLINE_TYPE:
+        parse_csv_line(line, &name_field, &reason_field, &oper_reason, &temp,
+            &temp, &temp, &temp, &duration_field, NULL);
+        conf = make_conf_item(XLINE_TYPE);
+        match_item = (struct MatchItem *)map_to_conf(conf);
+        if (name_field != NULL)
+          DupString(conf->name, name_field);
+        if (reason_field != NULL)
+          DupString(match_item->reason, reason_field);
 
-      if (reason_field != NULL)
-        DupString(match_item->reason, reason_field);
-      else
-        DupString(match_item->reason, "No reason");
-    }
-      break;
+        if(duration_field != NULL)
+        {
+          match_item->hold = atoi(duration_field);
+          add_temp_line(conf);
+        }
+        break;
 
-    case CRESV_TYPE:
-      parse_csv_line(line, &name_field, &reason_field, NULL);
-      (void)create_channel_resv(name_field, reason_field, 0);
-      break;
+      case RXLINE_TYPE:
+        {
+          const char *errptr = NULL;
+          pcre *exp_p = NULL;
 
-    case NRESV_TYPE:
-      parse_csv_line(line, &name_field, &reason_field, NULL);
-      (void)create_nick_resv(name_field, reason_field, 0);
-      break;
+          parse_csv_line(line, &name_field, &reason_field, &oper_reason, &temp,
+              &temp, &temp, &temp, &duration_field, NULL);
 
-    case GLINE_TYPE:
-    case GDENY_TYPE:
-    case CONF_TYPE:
-    case OPER_TYPE:
-    case CLIENT_TYPE:
-    case SERVER_TYPE:
-    case CLUSTER_TYPE:
-    case HUB_TYPE:
-    case LEAF_TYPE:
-    case ULINE_TYPE:
-    case EXEMPTDLINE_TYPE:
-    case CLASS_TYPE:
-      break;
+          if (name_field == NULL)
+            break;
+
+          if (!(exp_p = ircd_pcre_compile(name_field, &errptr)))
+          {
+            sendto_realops_flags(UMODE_ALL, L_ALL,
+                "Failed to add regular expression based X-Line: %s", errptr);
+            break;
+          }
+
+          conf = make_conf_item(RXLINE_TYPE);
+          conf->regexpname = exp_p;
+          match_item = map_to_conf(conf);
+          DupString(conf->name, name_field);
+
+          if (reason_field != NULL)
+            DupString(match_item->reason, reason_field);
+          else
+            DupString(match_item->reason, "No reason");
+
+          if(duration_field != NULL)
+          {
+            match_item->hold = atoi(duration_field);
+            add_temp_line(conf);
+          }
+        }
+        break;
+
+      case CRESV_TYPE:
+        parse_csv_line(line, &name_field, &reason_field, &temp, &temp, &temp,
+            &temp, &duration_field, NULL);
+        conf = create_channel_resv(name_field, reason_field, 0);
+        if(duration_field != NULL)
+        {
+          cresv = map_to_conf(conf);
+          cresv->hold = atoi(duration_field);
+          add_temp_line(conf);
+        }
+        break;
+
+      case NRESV_TYPE:
+        parse_csv_line(line, &name_field, &reason_field, &temp, &temp, &temp,
+            &temp, &duration_field, NULL);
+        conf = create_nick_resv(name_field, reason_field, 0);
+        if(duration_field != NULL)
+        {
+          nresv = map_to_conf(conf);
+          nresv->hold = atoi(duration_field);
+          add_temp_line(conf);
+        }
+        break;
+
+      case GLINE_TYPE:
+      case GDENY_TYPE:
+      case CONF_TYPE:
+      case OPER_TYPE:
+      case CLIENT_TYPE:
+      case SERVER_TYPE:
+      case CLUSTER_TYPE:
+      case HUB_TYPE:
+      case LEAF_TYPE:
+      case ULINE_TYPE:
+      case EXEMPTDLINE_TYPE:
+      case CLASS_TYPE:
+        break;
     }
   }
 }
@@ -237,7 +289,7 @@ parse_csv_line(char *line, ...)
  */
 void 
 write_conf_line(struct Client *source_p, struct ConfItem *conf,
-		const char *current_date, time_t cur_time)
+		const char *current_date, time_t cur_time, time_t duration)
 {
   FBFILE *out;
   const char *filename, *from, *to;
@@ -272,103 +324,198 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
   {
   case KLINE_TYPE:
     aconf = (struct AccessItem *)map_to_conf(conf);
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "%s added K-Line for [%s@%s] [%s]",
-                         get_oper_name(source_p),
-			 aconf->user, aconf->host, aconf->reason);
-    sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
-               from, to, aconf->user, aconf->host);
-    ilog(L_TRACE, "%s added K-Line for [%s@%s] [%s]",
-         source_p->name, aconf->user, aconf->host, aconf->reason);
-    log_oper_action(LOG_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-		    aconf->user, aconf->host, aconf->reason);
-    write_csv_line(out, "%s%s%s%s%s%s%d",
-		   aconf->user, aconf->host,
-		   aconf->reason, aconf->oper_reason, current_date,
-		   get_oper_name(source_p), cur_time);
+    if(duration == 0)
+    {
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+          "%s added K-Line for [%s@%s] [%s]",
+          get_oper_name(source_p), aconf->user, aconf->host, aconf->reason);
+      sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
+          from, to, aconf->user, aconf->host);
+      ilog(L_TRACE, "%s added K-Line for [%s@%s] [%s]",
+          source_p->name, aconf->user, aconf->host, aconf->reason);
+      log_oper_action(LOG_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
+          aconf->user, aconf->host, aconf->reason);
+      write_csv_line(out, "%s%s%s%s%s%s%d",
+          aconf->user, aconf->host, aconf->reason, aconf->oper_reason, 
+          current_date, get_oper_name(source_p), cur_time);
+    }
+    else
+    {
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+          "%s added temporary %d min. K-Line for [%s@%s] [%s]",
+          get_oper_name(source_p), duration/60, aconf->user, aconf->host, 
+          aconf->reason);
+      sendto_one(source_p,
+          ":%s NOTICE %s :Added temporary %d min. K-Line [%s@%s]", from, to, 
+          duration/60, aconf->user, aconf->host);
+      ilog(L_TRACE, "%s added temporary %ld min. K-Line for [%s@%s] [%s]",
+          source_p->name, duration/60, aconf->user, aconf->host, aconf->reason);
+      log_oper_action(LOG_TEMP_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
+          aconf->user, aconf->host, aconf->reason);
+      write_csv_line(out, "%s%s%s%s%s%s%d%d", aconf->user, aconf->host,
+          aconf->reason, aconf->oper_reason, current_date,
+          get_oper_name(source_p), cur_time, aconf->hold);
+    }
     break;
 
   case RKLINE_TYPE:
     aconf = map_to_conf(conf);
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "%s added RK-Line for [%s@%s] [%s]",
-                         get_oper_name(source_p),
-                         aconf->user, aconf->host, aconf->reason);
-    sendto_one(source_p, ":%s NOTICE %s :Added RK-Line [%s@%s]",
-               from, to, aconf->user, aconf->host);
-    ilog(L_TRACE, "%s added K-Line for [%s@%s] [%s]",
-         source_p->name, aconf->user, aconf->host, aconf->reason);
-    log_oper_action(LOG_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-		    aconf->user, aconf->host, aconf->reason);
-    write_csv_line(out, "%s%s%s%s%s%s%d",
-                   aconf->user, aconf->host,
-                   aconf->reason, aconf->oper_reason, current_date,
-                   get_oper_name(source_p), cur_time);
+    if(duration == 0)
+    {
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+          "%s added RK-Line for [%s@%s] [%s]",
+          get_oper_name(source_p),
+          aconf->user, aconf->host, aconf->reason);
+      sendto_one(source_p, ":%s NOTICE %s :Added RK-Line [%s@%s]",
+          from, to, aconf->user, aconf->host);
+      ilog(L_TRACE, "%s added K-Line for [%s@%s] [%s]",
+          source_p->name, aconf->user, aconf->host, aconf->reason);
+      log_oper_action(LOG_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",
+          aconf->user, aconf->host, aconf->reason);
+      write_csv_line(out, "%s%s%s%s%s%s%d",
+          aconf->user, aconf->host,
+          aconf->reason, aconf->oper_reason, current_date,
+          get_oper_name(source_p), cur_time);
+    }
+    else
+    {
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+          "%s added temporary %d min. RK-Line for [%s@%s] [%s]",
+          get_oper_name(source_p), duration/60, aconf->user, aconf->host,
+          aconf->reason);
+      sendto_one(source_p, 
+          ":%s NOTICE %s :Added temporary %d min. RK-Line [%s@%s]", from, to, 
+          duration/60, aconf->user, aconf->host);
+      ilog(L_TRACE, "%s added temporary %ld min. RK-Line for [%s@%s] [%s]",
+          source_p->name, duration/60,
+          aconf->user, aconf->host, aconf->reason);
+      log_oper_action(LOG_TEMP_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",
+          aconf->user, aconf->host, aconf->reason);
+      write_csv_line(out, "%s%s%s%s%s%s%d%d",
+          aconf->user, aconf->host,
+          aconf->reason, aconf->oper_reason, current_date,
+          get_oper_name(source_p), cur_time, aconf->hold);
+    }
     break;
 
   case DLINE_TYPE:
     aconf = (struct AccessItem *)map_to_conf(conf);
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "%s added D-Line for [%s] [%s]",
-                         get_oper_name(source_p), aconf->host, aconf->reason);
-    sendto_one(source_p, ":%s NOTICE %s :Added D-Line [%s] to %s",
-               from, to, aconf->host, filename);
-    ilog(L_TRACE, "%s added D-Line for [%s] [%s]",
-         get_oper_name(source_p), aconf->host, aconf->reason);
-    log_oper_action(LOG_DLINE_TYPE, source_p, "[%s] [%s]\n",
-		    aconf->host, aconf->reason);
-    write_csv_line(out, "%s%s%s%s%s%d",
-		   aconf->host, aconf->reason, aconf->oper_reason, 
-		   current_date,
-		   get_oper_name(source_p), cur_time);
+    if(duration == 0)
+    {
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+          "%s added D-Line for [%s] [%s]",
+          get_oper_name(source_p), aconf->host, aconf->reason);
+      sendto_one(source_p, ":%s NOTICE %s :Added D-Line [%s] to %s",
+          from, to, aconf->host, filename);
+      ilog(L_TRACE, "%s added D-Line for [%s] [%s]",
+          get_oper_name(source_p), aconf->host, aconf->reason);
+      log_oper_action(LOG_DLINE_TYPE, source_p, "[%s] [%s]\n",
+          aconf->host, aconf->reason);
+      write_csv_line(out, "%s%s%s%s%s%d",
+          aconf->host, aconf->reason, aconf->oper_reason, 
+          current_date,
+          get_oper_name(source_p), cur_time);
+    }
+    else
+    {
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+          "%s added temporary %d min. D-Line for [%s] [%s]",
+          get_oper_name(source_p), duration/60, aconf->host, aconf->reason);
+
+      sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. D-Line [%s]",
+          from, to, duration/60, aconf->host);
+      ilog(L_TRACE, "%s added temporary %d min. D-Line for [%s] [%s]",
+          source_p->name, (int)duration/60, aconf->host, aconf->reason);
+      log_oper_action(LOG_TEMP_DLINE_TYPE, source_p, "[%s@%s] [%s]\n",
+          aconf->user, aconf->host, aconf->reason);
+      write_csv_line(out, "%s%s%s%s%s%d%d",
+          aconf->host, aconf->reason, aconf->oper_reason, 
+          current_date, get_oper_name(source_p), cur_time, aconf->hold);
+    }
     break;
 
   case XLINE_TYPE:
     xconf = (struct MatchItem *)map_to_conf(conf);
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "%s added X-Line for [%s] [%s]",
-                         get_oper_name(source_p), conf->name,
-			 xconf->reason);
-    sendto_one(source_p,
-	       ":%s NOTICE %s :Added X-Line [%s] [%d] [%s] to %s",
-               from, to, conf->name, 
-	       xconf->action, xconf->reason, filename);
-    ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
-         get_oper_name(source_p), conf->name, xconf->reason);
-    write_csv_line(out, "%s%s%s%s%s%d",
-		   conf->name, xconf->reason, xconf->oper_reason,
-		   current_date, get_oper_name(source_p), cur_time);
+    if(duration)
+    {
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+          "%s added X-Line for [%s] [%s]",
+          get_oper_name(source_p), conf->name,
+          xconf->reason);
+      sendto_one(source_p,
+          ":%s NOTICE %s :Added X-Line [%s] [%d] [%s] to %s",
+          from, to, conf->name, 
+          xconf->action, xconf->reason, filename);
+      ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
+          get_oper_name(source_p), conf->name, xconf->reason);
+      write_csv_line(out, "%s%s%s%s%s%d",
+          conf->name, xconf->reason, xconf->oper_reason,
+          current_date, get_oper_name(source_p), cur_time);
+    }
+    else
+    {
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+          "%s added temporary %d min. X-Line for [%s] [%s]",
+          get_oper_name(source_p), (int)duration/60,
+          conf->name, xconf->reason);
+      sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. X-Line [%s]",
+          MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
+          source_p->name, (int)duration/60, conf->name);
+      ilog(L_TRACE, "%s added temporary %d min. X-Line for [%s] [%s]",
+          source_p->name, (int)duration/60,
+          conf->name, xconf->reason);
+      write_csv_line(out, "%s%s%s%s%s%d%d",
+          conf->name, xconf->reason, xconf->oper_reason,
+          current_date, get_oper_name(source_p), cur_time, xconf->hold);
+ 
+    }
     break;
 
   case RXLINE_TYPE:
     xconf = (struct MatchItem *)map_to_conf(conf);
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "%s added RX-Line for [%s] [%s]",
-                         get_oper_name(source_p), conf->name,
-                         xconf->reason);
-    sendto_one(source_p,
-               ":%s NOTICE %s :Added RX-Line [%s] [%s] to %s",
-               from, to, conf->name,
-               xconf->reason, filename);
-    ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
-         get_oper_name(source_p), conf->name, xconf->reason);
-    write_csv_line(out, "%s%s%s%s%s%d",
-                   conf->name, xconf->reason, xconf->oper_reason,
-                   current_date, get_oper_name(source_p), cur_time);
+    if(duration == 0)
+    {
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+          "%s added RX-Line for [%s] [%s]",
+          get_oper_name(source_p), conf->name,
+          xconf->reason);
+      sendto_one(source_p,
+          ":%s NOTICE %s :Added RX-Line [%s] [%s] to %s",
+          from, to, conf->name,
+          xconf->reason, filename);
+      ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
+          get_oper_name(source_p), conf->name, xconf->reason);
+      write_csv_line(out, "%s%s%s%s%s%d",
+          conf->name, xconf->reason, xconf->oper_reason,
+          current_date, get_oper_name(source_p), cur_time);
+    }
+    else
+    {
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+          "%s added temporary %d min. RX-Line for [%s] [%s]",
+          get_oper_name(source_p), (int)duration/60, conf->name, xconf->reason);
+      sendto_one(source_p, 
+          ":%s NOTICE %s :Added temporary %d min. RX-Line [%s]",
+          from, to, (int)duration/60, conf->name);
+      ilog(L_TRACE, "%s added temporary %d min. RX-Line for [%s] [%s]",
+          source_p->name, (int)duration/60,
+          conf->name, xconf->reason);
+      write_csv_line(out, "%s%s%s%s%s%d%d",
+          conf->name, xconf->reason, xconf->oper_reason,
+          current_date, get_oper_name(source_p), cur_time, xconf->hold);
+    }
     break;
 
   case CRESV_TYPE:
     cresv_p = (struct ResvChannel *)map_to_conf(conf);
 
-    write_csv_line(out, "%s%s",
-		   cresv_p->name, cresv_p->reason);
+    write_csv_line(out, "%s%s", cresv_p->name, cresv_p->reason);
     break;
 
   case NRESV_TYPE:
     nresv_p = (struct MatchItem *)map_to_conf(conf);
 
-    write_csv_line(out, "%s%s",
-		   conf->name, nresv_p->reason);
+    write_csv_line(out, "%s%s", conf->name, nresv_p->reason);
     break;
 
   default:

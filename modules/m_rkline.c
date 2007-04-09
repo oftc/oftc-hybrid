@@ -58,8 +58,10 @@ static void mo_unrkline(struct Client *, struct Client *, int, char *[]);
 static void ms_unrkline(struct Client *, struct Client *, int, char *[]);
 /* Local function prototypes */
 static int already_placed_rkline(struct Client *, const char *, const char *);
-static void apply_rkline(struct Client *, struct ConfItem *, const char *, time_t);
-static void apply_trkline(struct Client *, struct ConfItem *, int);
+static void apply_rkline(struct Client *, struct ConfItem *, const char *, 
+    time_t);
+static void apply_trkline(struct Client *, struct ConfItem *, const char *, 
+    time_t, time_t);
 
 static char buffer[IRCD_BUFSIZE];
 static int remove_trkline_match(const char *, const char *);
@@ -192,7 +194,7 @@ mo_rkline(struct Client *client_p, struct Client *source_p,
 
     if (oper_reason != NULL)
       DupString(aconf->oper_reason, oper_reason);
-    apply_trkline(source_p, conf, tkline_time);
+    apply_trkline(source_p, conf, current_date, cur_time, tkline_time);
   }
   else
   {
@@ -269,7 +271,7 @@ me_rkline(struct Client *client_p, struct Client *source_p,
 
       if (oper_reason != NULL)
         DupString(aconf->oper_reason, oper_reason);
-      apply_trkline(source_p, conf, tkline_time);
+      apply_trkline(source_p, conf, current_date, cur_time, tkline_time);
     }
     else
     {
@@ -310,7 +312,7 @@ static void
 apply_rkline(struct Client *source_p, struct ConfItem *conf,
              const char *current_date, time_t cur_time)
 {
-  write_conf_line(source_p, conf, current_date, cur_time);
+  write_conf_line(source_p, conf, current_date, cur_time, 0);
   /* Now, activate kline against current online clients */
   rehashed_klines = 1;
 }
@@ -323,23 +325,13 @@ apply_rkline(struct Client *source_p, struct ConfItem *conf,
  */
 static void
 apply_trkline(struct Client *source_p, struct ConfItem *conf,
-             int tkline_time)
+             const char *current_date, time_t cur_time, time_t tkline_time)
 {
   struct AccessItem *aconf = map_to_conf(conf);
 
   aconf->hold = CurrentTime + tkline_time;
   add_temp_line(conf);
-  sendto_realops_flags(UMODE_ALL, L_ALL,
-		       "%s added temporary %d min. RK-Line for [%s@%s] [%s]",
-		       get_oper_name(source_p), tkline_time/60,
-		       aconf->user, aconf->host,
-		       aconf->reason);
-  sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. RK-Line [%s@%s]",
-             MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
-             source_p->name, tkline_time/60, aconf->user, aconf->host);
-  ilog(L_TRACE, "%s added temporary %d min. RK-Line for [%s@%s] [%s]",
-       source_p->name, tkline_time/60,
-       aconf->user, aconf->host, aconf->reason);
+  write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
   rehashed_klines = 1;
 }
 

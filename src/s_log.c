@@ -324,6 +324,9 @@ log_oper_action(int log_type, const struct Client *source_p,
   case LOG_TEMP_KLINE_TYPE:
     logfile = ConfigLoggingEntry.klinelog;
     log_message = "TEMP KLINE";
+  case LOG_TEMP_RKLINE_TYPE:
+    logfile = ConfigLoggingEntry.klinelog;
+    log_message = "TEMP RKLINE";
     break;
   case LOG_GLINE_TYPE:
     logfile = ConfigLoggingEntry.glinelog;
