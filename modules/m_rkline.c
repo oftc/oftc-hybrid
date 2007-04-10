@@ -419,6 +419,7 @@ mo_unrkline(struct Client *client_p,struct Client *source_p,
                          get_oper_name(source_p), user, host);
     ilog(L_NOTICE, "%s removed temporary RK-Line for [%s@%s]",
          source_p->name, user, host);
+    remove_conf_line(RKLINE_TYPE, source_p, user, host);
     return;
   }
 
@@ -476,6 +477,7 @@ me_unrkline(struct Client *client_p, struct Client *source_p,
                            get_oper_name(source_p), user, host);
       ilog(L_NOTICE, "%s removed temporary RK-Line for [%s@%s]",
            source_p->name, user, host);
+      remove_conf_line(RKLINE_TYPE, source_p, user, host);
       return;
     }
 

@@ -657,6 +657,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
                            get_oper_name(source_p), kuser, khost);
       ilog(L_NOTICE, "%s removed temporary K-Line for [%s@%s]",
            source_p->name, kuser, khost);
+      remove_conf_line(KLINE_TYPE, source_p, kuser, khost);
       return;
     }
 
@@ -713,16 +714,16 @@ remove_tkline_match(const char *host, const char *user)
     if (cnm_t != nm_t || irccmp(user, tk_c->user))
       continue;
     if ((nm_t==HM_HOST && !irccmp(tk_c->host, host)) ||
-	(nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
+        (nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
 #ifdef IPV6
-	|| (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
+        || (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
 #endif
-	)
-      {
-	dlinkDelete(tk_n, &temporary_klines);
-	delete_one_address_conf(tk_c->host, tk_c);
-	return(YES);
-      }
+       )
+    {
+      dlinkDelete(tk_n, &temporary_klines);
+      delete_one_address_conf(tk_c->host, tk_c);
+      return(YES);
+    }
   }
 
   return(NO);
@@ -799,6 +800,7 @@ mo_undline(struct Client *client_p, struct Client *source_p,
                          "%s has removed the temporary D-Line for: [%s]",
                          get_oper_name(source_p), cidr);
     ilog(L_NOTICE, "%s removed temporary D-Line for [%s]", source_p->name, cidr);
+    remove_conf_line(DLINE_TYPE, source_p, cidr, NULL);
     return;
   }
 
