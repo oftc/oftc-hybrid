@@ -62,6 +62,8 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
 
   while (fbgets(line, sizeof(line), file) != NULL)
   {
+    duration_field = NULL;
+
     if ((p = strchr(line, '\n')) != NULL)
       *p = '\0';
 
