@@ -2294,6 +2294,7 @@ expire_tklines(dlink_list *tklist)
   struct MatchItem *nconf;
   struct AccessItem *aconf;
   struct ResvChannel *cconf;
+  int expired = FALSE;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, tklist->head)
   {
@@ -2327,6 +2328,8 @@ expire_tklines(dlink_list *tklist)
         dlinkDelete(ptr, tklist);
         remove_conf_line(conf->type, &me, aconf->user, aconf->host);
         delete_one_address_conf(aconf->host, aconf);
+        expired = TRUE;
+        break;
       }
     }
     else if (conf->type == XLINE_TYPE ||
@@ -2343,6 +2346,8 @@ expire_tklines(dlink_list *tklist)
         free_dlink_node(ptr);
         remove_conf_line(conf->type, &me, aconf->user, aconf->host);
         delete_conf_item(conf);
+        expired = TRUE;
+        break;
       }
     }
     else if (conf->type == RKLINE_TYPE)
@@ -2359,6 +2364,8 @@ expire_tklines(dlink_list *tklist)
         free_dlink_node(ptr);
         remove_conf_line(conf->type, &me, aconf->user, aconf->host);
         delete_conf_item(conf);
+        expired = TRUE;
+        break;
       }
     }
     else if (conf->type == NRESV_TYPE)
@@ -2373,6 +2380,8 @@ expire_tklines(dlink_list *tklist)
         free_dlink_node(ptr);
         remove_conf_line(conf->type, &me, aconf->user, aconf->host);
         delete_conf_item(conf);
+        expired = TRUE;
+        break;
       }
     }
     else if (conf->type == CRESV_TYPE)
@@ -2387,9 +2396,13 @@ expire_tklines(dlink_list *tklist)
         free_dlink_node(ptr);
         remove_conf_line(conf->type, &me, aconf->user, aconf->host);
         delete_conf_item(conf);
+        expired = TRUE;
+        break;
       }
     }
   }
+  if(expired)
+    expire_tklines(&temporary_klines);
 }
 
 /* oper_privs_as_string()
