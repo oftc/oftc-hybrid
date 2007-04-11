@@ -59,8 +59,6 @@ static void ms_unrkline(struct Client *, struct Client *, int, char *[]);
 /* Local function prototypes */
 static int already_placed_rkline(struct Client *, const char *, const char *);
 static void apply_rkline(struct Client *, struct ConfItem *, const char *, 
-    time_t);
-static void apply_trkline(struct Client *, struct ConfItem *, const char *, 
     time_t, time_t);
 
 static char buffer[IRCD_BUFSIZE];
@@ -186,25 +184,12 @@ mo_rkline(struct Client *client_p, struct Client *source_p,
   aconf->regexuser = exp_user;
   aconf->regexhost = exp_host;
 
-  if (tkline_time != 0)
-  {
-    ircsprintf(buffer, "Temporary RK-line %d min. - %s (%s)",
-               (int)(tkline_time/60), reason, current_date);
-    DupString(aconf->reason, buffer);
+  ircsprintf(buffer, "%s (%s)", reason, current_date);
+  DupString(aconf->reason, buffer);
 
-    if (oper_reason != NULL)
-      DupString(aconf->oper_reason, oper_reason);
-    apply_trkline(source_p, conf, current_date, cur_time, tkline_time);
-  }
-  else
-  {
-    ircsprintf(buffer, "%s (%s)", reason, current_date);
-    DupString(aconf->reason, buffer);
-
-    if (oper_reason != NULL)
-      DupString(aconf->oper_reason, oper_reason);
-    apply_rkline(source_p, conf, current_date, cur_time);
-  }
+  if (oper_reason != NULL)
+    DupString(aconf->oper_reason, oper_reason);
+  apply_rkline(source_p, conf, current_date, cur_time, tkline_time);
 }
 
 /* me_rkline - handle remote rkline. no propagation */
@@ -263,25 +248,12 @@ me_rkline(struct Client *client_p, struct Client *source_p,
     aconf->regexuser = exp_user;
     aconf->regexhost = exp_host;
 
-    if (tkline_time)
-    {
-      ircsprintf(buffer, "Temporary RK-line %d min. - %s (%s)",
-                 (int)(tkline_time/60), kreason, current_date);
-      DupString(aconf->reason, buffer);
+    ircsprintf(buffer, "%s (%s)", kreason, current_date);
+    DupString(aconf->reason, buffer);
 
-      if (oper_reason != NULL)
-        DupString(aconf->oper_reason, oper_reason);
-      apply_trkline(source_p, conf, current_date, cur_time, tkline_time);
-    }
-    else
-    {
-      ircsprintf(buffer, "%s (%s)", kreason, current_date);
-      DupString(aconf->reason, buffer);
-
-      if (oper_reason != NULL)
-        DupString(aconf->oper_reason, oper_reason);
-      apply_rkline(source_p, conf, current_date, cur_time);
-    }
+    if (oper_reason != NULL)
+      DupString(aconf->oper_reason, oper_reason);
+    apply_rkline(source_p, conf, current_date, cur_time, tkline_time);
   }
 }
 
@@ -310,27 +282,15 @@ ms_rkline(struct Client *client_p, struct Client *source_p,
  */
 static void 
 apply_rkline(struct Client *source_p, struct ConfItem *conf,
-             const char *current_date, time_t cur_time)
-{
-  write_conf_line(source_p, conf, current_date, cur_time, 0);
-  /* Now, activate kline against current online clients */
-  rehashed_klines = 1;
-}
-
-/* apply_trkline()
- *
- * inputs	-
- * output	- NONE
- * side effects	- tkline as given is placed
- */
-static void
-apply_trkline(struct Client *source_p, struct ConfItem *conf,
              const char *current_date, time_t cur_time, time_t tkline_time)
 {
   struct AccessItem *aconf = map_to_conf(conf);
 
-  aconf->hold = CurrentTime + tkline_time;
-  add_temp_line(conf);
+  if(tkline_time != 0)
+  {
+    aconf->hold = CurrentTime + tkline_time;
+    add_temp_line(conf);
+  }
   write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
   rehashed_klines = 1;
 }
