@@ -2402,7 +2402,7 @@ expire_tklines(dlink_list *tklist)
     }
   }
   if(expired)
-    expire_tklines(&temporary_klines);
+    expire_tklines(tklist);
 }
 
 /* oper_privs_as_string()
