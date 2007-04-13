@@ -897,6 +897,7 @@ report_Klines(struct Client *client_p, int tkline)
   struct AccessItem *aconf = NULL;
   int i;
   const char *p = NULL;
+  char buf[IRCD_BUFSIZE+1] = {'\0'};
 
   if (tkline)
     p = "k";
@@ -913,14 +914,20 @@ report_Klines(struct Client *client_p, int tkline)
             (!tkline && ((aconf = arec->aconf)->flags & CONF_FLAGS_TEMPORARY)))
           continue;
 
-	if (IsOper(client_p))
-	  sendto_one(client_p, form_str(RPL_STATSKLINE), me.name,
-                     client_p->name, p, aconf->host, aconf->user,
-		     aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");
-	else
+        if (IsOper(client_p))
+        {
+          ircsprintf(buf, "%s (%s)", 
+              aconf->oper_reason ? aconf->oper_reason : "", 
+              smalldate(aconf->hold));
+
           sendto_one(client_p, form_str(RPL_STATSKLINE), me.name,
-                     client_p->name, p, aconf->host, aconf->user,
-		     aconf->reason, "");
+              client_p->name, p, aconf->host, aconf->user,
+              aconf->reason, buf);
+        }
+        else
+          sendto_one(client_p, form_str(RPL_STATSKLINE), me.name,
+              client_p->name, p, aconf->host, aconf->user,
+              aconf->reason, "");
       }
     }
   }
