@@ -916,7 +916,7 @@ report_Klines(struct Client *client_p, int tkline)
 
         if (IsOper(client_p))
         {
-          ircsprintf(buf, "%s (%s)", 
+          ircsprintf(buf, "%s Expires (%s)", 
               aconf->oper_reason ? aconf->oper_reason : "", 
               smalldate(aconf->hold));
 

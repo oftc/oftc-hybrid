@@ -1,1 +1,1 @@
-#define SERIALNUM "RC"
+#define SERIALNUM "STABLE"
