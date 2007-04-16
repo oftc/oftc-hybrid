@@ -31,6 +31,8 @@
 #include "numeric.h"
 #include "send.h"
 #include "irc_string.h"
+#include "sprintf_irc.h"
+#include "s_misc.h"
 
 #ifdef IPV6
 static int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
