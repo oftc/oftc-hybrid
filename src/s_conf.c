@@ -986,8 +986,17 @@ verify_access(struct Client *client_p, const char *username,
   {
     if (IsConfClient(aconf) && !rkconf)
     {
+      struct ClassItem *aclass;
+      struct ConfItem *tempconf;
+
       conf = unmap_conf_item(aconf);
-      memcpy(retconf, conf, sizeof(struct ConfItem));
+      if(aconf->class_ptr != NULL)
+      {
+        aclass = map_to_conf(aconf->class_ptr);
+        tempconf = unmap_conf_item(aclass);
+        
+        memcpy(retconf, tempconf, sizeof(struct ConfItem));
+      }
 
       if (IsConfRedir(aconf))
       {
@@ -999,12 +1008,12 @@ verify_access(struct Client *client_p, const char *username,
       }
 
       if (IsConfDoIdentd(aconf))
-	SetNeedId(client_p);
+        SetNeedId(client_p);
 
       /* Thanks for spoof idea amm */
       if (IsConfDoSpoofIp(aconf))
       {
-	conf = unmap_conf_item(aconf);
+        conf = unmap_conf_item(aconf);
 
         if (!ConfigFileEntry.hide_spoof_ips && IsConfSpoofNotice(aconf))
           sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL, "%s spoofing: %s as %s",

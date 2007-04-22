@@ -1,3 +1,6 @@
+-- oftc-hybrid 1.5.7 RELNOTES
+o) Bugfix release to fix the class name display in the reject notice.
+
 -- oftc-hybrid 1.5.6 RELNOTES
 o) Make temporary lines get written into the conf files so they are permenant
 but duration based
