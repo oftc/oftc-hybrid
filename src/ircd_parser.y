@@ -218,6 +218,7 @@ unhook_hub_leaf_confs(void)
 %token  HOST
 %token  HUB
 %token  HUB_MASK
+%token  CLIENTCERT_HASH 
 %token  IDLETIME
 %token  IGNORE_BOGUS_TS
 %token  INVISIBLE_ON_CONNECT
@@ -992,13 +993,13 @@ oper_entry: OPERATOR
       if (yy_conf->name != NULL)
         DupString(new_conf->name, yy_conf->name);
       if (yy_tmp->user != NULL)
-	DupString(new_aconf->user, yy_tmp->user);
+        DupString(new_aconf->user, yy_tmp->user);
       else
-	DupString(new_aconf->user, "*");
+        DupString(new_aconf->user, "*");
       if (yy_tmp->host != NULL)
-	DupString(new_aconf->host, yy_tmp->host);
+        DupString(new_aconf->host, yy_tmp->host);
       else
-	DupString(new_aconf->host, "*");
+        DupString(new_aconf->host, "*");
       conf_add_class_to_conf(new_conf, class_name);
       if (yy_aconf->passwd != NULL)
         DupString(new_aconf->passwd, yy_aconf->passwd);
@@ -1010,14 +1011,17 @@ oper_entry: OPERATOR
         BIO *file;
 
         DupString(new_aconf->rsa_public_key_file,
-		  yy_aconf->rsa_public_key_file);
+            yy_aconf->rsa_public_key_file);
 
         file = BIO_new_file(yy_aconf->rsa_public_key_file, "r");
         new_aconf->rsa_public_key = (RSA *)PEM_read_bio_RSA_PUBKEY(file, 
-							   NULL, 0, NULL);
+            NULL, 0, NULL);
         (void)BIO_set_close(file, BIO_CLOSE);
         BIO_free(file);
       }
+
+      if (yy_aconf->certfp != NULL)
+        DupString(new_aconf->certfp, yy_aconf->certfp);
 #endif
 
 #ifdef HAVE_LIBCRYPTO
@@ -1053,7 +1057,7 @@ oper_item:      oper_name | oper_user | oper_password | oper_hidden_admin |
                 oper_kline | oper_xline | oper_unkline |
 		oper_gline | oper_nick_changes | oper_remoteban |
                 oper_die | oper_rehash | oper_admin | oper_operwall |
-		oper_encrypted | oper_rsa_public_key_file |
+		oper_encrypted | oper_rsa_public_key_file | oper_client_certificate_hash|
                 oper_flags | error ';' ;
 
 oper_name: NAME '=' QSTRING ';'
@@ -1111,6 +1115,20 @@ oper_user: USER '=' QSTRING ';'
 
       dlinkAdd(yy_tmp, &yy_tmp->node, &col_conf_list);
     }
+  }
+};
+
+oper_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
+{
+  if (ypass == 2)
+  {
+    char tmp[SHA_DIGEST_LENGTH];
+    
+    if(yy_aconf->certfp != NULL)
+      MyFree(yy_aconf->certfp);
+
+    base16_decode(tmp, SHA_DIGEST_LENGTH, yylval.string, SHA_DIGEST_LENGTH*2);
+    DupString(yy_aconf->certfp, tmp);
   }
 };
 

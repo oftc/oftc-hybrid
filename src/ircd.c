@@ -489,6 +489,14 @@ setup_corefile(void)
 #endif
 }
 
+#ifdef HAVE_LIBCRYPTO
+static int
+always_accept_verify_cb(int preverify_ok, X509_STORE_CTX *x509_ctx)
+{
+  return 1;
+}
+#endif
+
 /* init_ssl()
  *
  * inputs       - nothing
@@ -514,7 +522,7 @@ init_ssl(void)
 
   SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_NO_SSLv2);
   SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
-  SSL_CTX_set_verify(ServerInfo.ctx, SSL_VERIFY_NONE, NULL);
+  SSL_CTX_set_verify(ServerInfo.ctx, SSL_VERIFY_PEER, always_accept_verify_cb);
 
   bio_spare_fd = save_spare_fd("SSL private key validation");
 #endif /* HAVE_LIBCRYPTO */

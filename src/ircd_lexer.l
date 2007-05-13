@@ -177,6 +177,7 @@ fakename	{ return FAKENAME; }
 flags           { return IRCD_FLAGS; }
 flatten_links	{ return FLATTEN_LINKS; }
 fglinelog 	{ return FGLINELOG; }
+client_certificate_hash { return CLIENTCERT_HASH; }
 fname_glinelog  { return FGLINELOG; }
 fkilllog	{ return FKILLLOG; }
 fioerrlog	{ return FIOERRLOG; }

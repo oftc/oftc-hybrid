@@ -1213,9 +1213,21 @@ user_welcome(struct Client *source_p)
 
 #ifdef HAVE_LIBCRYPTO
   if (source_p->localClient->fd.ssl != NULL)
+  {
     sendto_one(source_p, ":%s NOTICE %s :*** Connected securely via %s",
                me.name, source_p->name,
                ssl_get_cipher(source_p->localClient->fd.ssl));
+    if(!EmptyString(source_p->certfp))
+    {
+      char buf[SHA_DIGEST_LENGTH*2+1]; 
+
+      base16_encode(buf, SHA_DIGEST_LENGTH*2+1, source_p->certfp,
+          SHA_DIGEST_LENGTH);
+      sendto_one(source_p, 
+          ":%s NOTICE %s: *** Your client certificate fingerprint is: %s",
+          me.name, source_p->name, buf);
+    }
+  }
 #endif
 
   sendto_one(source_p, form_str(RPL_WELCOME), me.name, source_p->name, 

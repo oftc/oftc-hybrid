@@ -291,6 +291,23 @@ static void
 ssl_handshake(int fd, struct Client *client_p)
 {
   int ret = SSL_accept(client_p->localClient->fd.ssl);
+  X509 *cert;
+
+  if ((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
+  {
+    int res = SSL_get_verify_result(client_p->localClient->fd.ssl);
+    if (res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
+        res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE)
+    {
+      /* The client sent a certificate which verified OK */
+      memcpy(client_p->certfp, cert->sha1_hash, sizeof(client_p->certfp));
+    }
+    else
+    {
+      ilog(L_WARN, "Client %s!%s@%s gave bad SSL client certificate: %d",
+          client_p->name, client_p->username, client_p->host, res);
+    }
+  }
 
   if (ret <= 0)
     switch (SSL_get_error(client_p->localClient->fd.ssl, ret))

@@ -171,14 +171,15 @@ struct Client
   /* This has to be here, since a client on an on_allow_list could
    * be a remote client. simpler to keep both here.
    */
-  dlink_list	allow_list;	/* clients I'll allow to talk to me */
-  dlink_list	on_allow_list;	/* clients that have =me= on their allow list*/
+  dlink_list	      allow_list;	/* clients I'll allow to talk to me */
+  dlink_list	      on_allow_list;	/* clients that have =me= on their allow list*/
 
-  dlink_list     channel;   /* chain of channel pointer blocks */
+  dlink_list        channel;   /* chain of channel pointer blocks */
 
   struct LocalUser *localClient;
   struct irc_ssaddr ip;
-  int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
+  int 		          aftype;	/* Makes life easier for DNS res in IPV6 */
+  char              certfp[SHA_DIGEST_LENGTH];
 };
 
 struct LocalUser

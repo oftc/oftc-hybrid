@@ -129,6 +129,7 @@ struct AccessItem
   char *           rsa_public_key_file;
   RSA *            rsa_public_key;
   struct EncCapability *cipher_preference;
+  char *certfp;
 #endif
   pcre *regexuser;
   pcre *regexhost;
