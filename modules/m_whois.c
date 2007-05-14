@@ -460,8 +460,20 @@ whois_person(struct Client *source_p, struct Client *target_p)
   {
 #ifdef HAVE_LIBCRYPTO
     if (target_p->localClient->fd.ssl)
+    {
       sendto_one(source_p, form_str(RPL_WHOISSSL),
                  me.name, source_p->name, target_p->name);
+      if((target_p == source_p || IsOper(source_p)) && 
+          !EmptyString(target_p->certfp))
+      {
+        char buf[SHA_DIGEST_LENGTH*2+1];
+
+        base16_encode(buf, SHA_DIGEST_LENGTH*2, target_p->certfp, 
+            SHA_DIGEST_LENGTH);
+        sendto_one(source_p, form_str(RPL_WHOISCERTFP),
+                me.name, source_p->name, target_p->name, buf);
+      }
+    }
 #endif
     sendto_one(source_p, form_str(RPL_WHOISIDLE),
                me.name, source_p->name, target_p->name,

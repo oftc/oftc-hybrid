@@ -165,6 +165,7 @@ extern const char *get_locale(void);
 #define RPL_GLOBALUSERS      266
 
 #define RPL_WHOISSSL         275
+#define RPL_WHOISCERTFP      276
 
 #define RPL_ACCEPTLIST	     281
 #define RPL_ENDOFACCEPT      282
