@@ -57,6 +57,7 @@ OFTC_SRCS = \
   spy_stats_p_notice.c \
   spy_trace_notice.c \
   spy_whois_notice.c \
+	m_certfp.c \
   m_gnotice.c \
   m_map.c \
   m_realhost.c \

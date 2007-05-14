@@ -50,6 +50,7 @@
 #include "s_conf.h"
 #include "s_serv.h"
 #include "s_log.h"
+#include "s_misc.h"
 #include "s_stats.h"
 #include "s_user.h"
 #include "send.h"
@@ -900,9 +901,18 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
 	       ubuf, target_p->username, target_p->host,
 	       target_p->servptr->name, target_p->info);
 
-  if(*target_p->realhost != '\0') 
-      sendto_one(client_p, "REALHOST %s %s", target_p->name,  
-              target_p->realhost);
+  if(!EmptyString(target_p->realhost)) 
+    sendto_one(client_p, "REALHOST %s %s", target_p->name, target_p->realhost);
+
+#ifdef HAVE_LIBCRYPTO
+  if(!EmptyString(target_p->certfp))
+  {
+    char buf[SHA_DIGEST_LENGTH*2+1];
+
+    base16_encode(buf, SHA_DIGEST_LENGTH*2, target_p->certfp, SHA_DIGEST_LENGTH);
+    sendto_one(client_p, "CERTFP %s %s", target_p->name, buf);
+  }
+#endif
 
   if (IsConfAwayBurst((struct AccessItem *)map_to_conf(client_p->serv->sconf)))
     if (!EmptyString(target_p->away))

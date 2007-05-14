@@ -656,6 +656,14 @@ introduce_client(struct Client *client_p, struct Client *source_p)
                  ubuf, source_p->username, source_p->host,
                  source_p->servptr->name, source_p->info);
     }
+
+    if(!EmptyString(source_p->certfp))
+    {
+      char buf[SHA_DIGEST_LENGTH*2+1];
+
+      base16_encode(buf, SHA_DIGEST_LENGTH*2, source_p->certfp, SHA_DIGEST_LENGTH);
+      sendto_one(uplink, "CERTFP %s %s", source_p->name, buf);
+    }
   }
   else
   {
@@ -680,6 +688,13 @@ introduce_client(struct Client *client_p, struct Client *source_p)
                    (unsigned long)source_p->tsinfo,
                    ubuf, source_p->username, source_p->host,
                    source_p->servptr->name, source_p->info);
+      if(!EmptyString(source_p->certfp))
+      {
+        char buf[SHA_DIGEST_LENGTH*2+1];
+
+        base16_encode(buf, SHA_DIGEST_LENGTH*2, source_p->certfp, SHA_DIGEST_LENGTH);
+        sendto_one(server, "CERTFP %s %s", source_p->name, buf);
+      }
     }
   }
 }
