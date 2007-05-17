@@ -3400,7 +3400,7 @@ parse_aline(const char *cmd, struct Client *source_p,
 
   if (reason != NULL)
   {
-    if (parc != 0)
+    if (parc != 0 && !EmptyString(*parv))
     {
       *reason = *parv;
       if (!valid_comment(source_p, *reason, YES))

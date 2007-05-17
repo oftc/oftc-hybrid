@@ -1,3 +1,7 @@
+-- ircd-hybrid-7.2.4 RELNOTES
+o) Fixed occasional core when placing RESVs on channel names
+
+
 -- ircd-hybrid-7.2.3 RELNOTES
 o) Added ircd-italian.lang language file
 o) Added -full to etrace
