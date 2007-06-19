@@ -1,3 +1,16 @@
+-- oftc-hybrid 1.5.7 RELNOTES
+o) Bugfix release to fix the class name display in the reject notice.
+
+-- oftc-hybrid 1.5.6 RELNOTES
+o) Make temporary lines get written into the conf files so they are permenant
+but duration based
+o) Various things to support this such as displaying expiration time in oper
+reason in stats k
+o) Fixed a bug in god mode when a channel TS was 0.
+o) Fix chmode +S so that it actually works instead of doing the opposite.
+o) Added class information to the reject notices.
+o) Update smalldate() to give us a better datetime format
+
 -- oftc-hybrid 1.5.5 RELNOTES
 o) Bugfix release
 

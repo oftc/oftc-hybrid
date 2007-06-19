@@ -3616,6 +3616,9 @@ umode_item:	T_BOTS
 } | T_CCONN
 {
   ConfigFileEntry.oper_only_umodes |= UMODE_CCONN;
+} | T_CCONN_FULL
+{
+  ConfigFileEntry.oper_only_umodes |= UMODE_CCONN_FULL;
 } | T_DEAF
 {
   ConfigFileEntry.oper_only_umodes |= UMODE_DEAF;

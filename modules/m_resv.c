@@ -270,34 +270,36 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
     if (tkline_time != 0)
     {
       sendto_one(source_p,
-		 ":%s NOTICE %s :A %d minute %s RESV has been placed on channel: %s",
-                 me.name, source_p->name,
-		 tkline_time/60,
-                 (MyClient(source_p) ? "local" : "remote"), name);
+          ":%s NOTICE %s :A %d minute %s RESV has been placed on channel: %s",
+          me.name, source_p->name,
+          tkline_time/60,
+          (MyClient(source_p) ? "local" : "remote"), name);
       sendto_realops_flags(UMODE_ALL, L_ALL,
-			   "%s has placed a %d minute %s RESV on channel: %s [%s]",
-			   get_oper_name(source_p),
-			   tkline_time/60,
-			   (MyClient(source_p) ? "local" : "remote"),
-			   resv_p->name, resv_p->reason);
+          "%s has placed a %d minute %s RESV on channel: %s [%s]",
+          get_oper_name(source_p),
+          tkline_time/60,
+          (MyClient(source_p) ? "local" : "remote"),
+          resv_p->name, resv_p->reason);
       ilog(L_TRACE, "%s added temporary %d min. RESV for [%s] [%s]",
-	   source_p->name, (int)tkline_time/60,
-	   conf->name, resv_p->reason);
+          source_p->name, (int)tkline_time/60,
+          conf->name, resv_p->reason);
       resv_p->hold = CurrentTime + tkline_time;
       add_temp_line(conf);
+      write_conf_line(source_p, conf, NULL /* not used */, 0 /* not used */, 
+          tkline_time);
     }
     else
     {
       sendto_one(source_p,
-		 ":%s NOTICE %s :A %s RESV has been placed on channel %s",
-                 me.name, source_p->name,
-                 (MyClient(source_p) ? "local" : "remote"), name);
+          ":%s NOTICE %s :A %s RESV has been placed on channel %s",
+          me.name, source_p->name,
+          (MyClient(source_p) ? "local" : "remote"), name);
       sendto_realops_flags(UMODE_ALL, L_ALL,
-			   "%s has placed a %s RESV on channel %s : [%s]",
-			   get_oper_name(source_p),
-			   (MyClient(source_p) ? "local" : "remote"),
-			   resv_p->name, resv_p->reason);
-      write_conf_line(source_p, conf, NULL /* not used */, 0 /* not used */);
+          "%s has placed a %s RESV on channel %s : [%s]",
+          get_oper_name(source_p),
+          (MyClient(source_p) ? "local" : "remote"),
+          resv_p->name, resv_p->reason);
+      write_conf_line(source_p, conf, NULL /* not used */, 0 /* not used */, 0);
     }
   }
   else
@@ -331,36 +333,38 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
     if (tkline_time != 0)
     {
       sendto_one(source_p,
-		 ":%s NOTICE %s :A %d minute %s RESV has been placed on nick %s : [%s]",
-                 me.name, source_p->name,
-		 tkline_time/60,
-                 (MyClient(source_p) ? "local" : "remote"),
-                 conf->name, resv_p->reason);
+          ":%s NOTICE %s :A %d minute %s RESV has been placed on nick %s : [%s]",
+          me.name, source_p->name,
+          tkline_time/60,
+          (MyClient(source_p) ? "local" : "remote"),
+          conf->name, resv_p->reason);
       sendto_realops_flags(UMODE_ALL, L_ALL,
-			   "%s has placed a %d minute %s RESV on nick %s : [%s]",
-			   get_oper_name(source_p),
-			   tkline_time/60,
-			   (MyClient(source_p) ? "local" : "remote"),
-			   conf->name, resv_p->reason);
+          "%s has placed a %d minute %s RESV on nick %s : [%s]",
+          get_oper_name(source_p),
+          tkline_time/60,
+          (MyClient(source_p) ? "local" : "remote"),
+          conf->name, resv_p->reason);
       ilog(L_TRACE, "%s added temporary %d min. RESV for [%s] [%s]",
-	   source_p->name, (int)tkline_time/60,
-	   conf->name, resv_p->reason);
+          source_p->name, (int)tkline_time/60,
+          conf->name, resv_p->reason);
       resv_p->hold = CurrentTime + tkline_time;
       add_temp_line(conf);
+      write_conf_line(source_p, conf, NULL /* not used */, 0 /* not used */,
+          tkline_time);
     }
     else
     {
       sendto_one(source_p,
-		 ":%s NOTICE %s :A %s RESV has been placed on nick %s : [%s]",
-                 me.name, source_p->name,
-                 (MyClient(source_p) ? "local" : "remote"),
-                 conf->name, resv_p->reason);
+          ":%s NOTICE %s :A %s RESV has been placed on nick %s : [%s]",
+          me.name, source_p->name,
+          (MyClient(source_p) ? "local" : "remote"),
+          conf->name, resv_p->reason);
       sendto_realops_flags(UMODE_ALL, L_ALL,
-			   "%s has placed a %s RESV on nick %s : [%s]",
-			   get_oper_name(source_p),
-			   (MyClient(source_p) ? "local" : "remote"),
-			   conf->name, resv_p->reason);
-      write_conf_line(source_p, conf, NULL /* not used */, 0 /* not used */);
+          "%s has placed a %s RESV on nick %s : [%s]",
+          get_oper_name(source_p),
+          (MyClient(source_p) ? "local" : "remote"),
+          conf->name, resv_p->reason);
+      write_conf_line(source_p, conf, NULL /* not used */, 0 /* not used */, 0);
     }
   }
 }

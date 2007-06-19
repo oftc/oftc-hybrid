@@ -109,9 +109,10 @@ const char *_version = "$Revision: 790 $";
 #endif
 
 /* Local function prototypes */
-static int already_placed_kline(struct Client *, const char *, const char *, int);
-static void apply_kline(struct Client *, struct ConfItem *, const char *, time_t);
-static void apply_tkline(struct Client *, struct ConfItem *, int);
+static int already_placed_kline(struct Client *, const char *, const char *,
+    int);
+static void apply_kline(struct Client *, struct ConfItem *, const char *, 
+    time_t, time_t);
 
 static char buffer[IRCD_BUFSIZE];
 
@@ -191,26 +192,13 @@ mo_kline(struct Client *client_p, struct Client *source_p,
 
   DupString(aconf->host, host);
   DupString(aconf->user, user);
+  ircsprintf(buffer, "%s (%s)", reason, current_date);
+  DupString(aconf->reason, buffer);
+    
+  if (oper_reason != NULL)
+    DupString(aconf->oper_reason, oper_reason);
 
-  if (tkline_time != 0)
-  {
-    ircsprintf(buffer, "Temporary K-line %d min. - %s (%s)",
-               (int)(tkline_time/60), reason, current_date);
-    DupString(aconf->reason, buffer);
-
-    if (oper_reason != NULL)
-      DupString(aconf->oper_reason, oper_reason);
-    apply_tkline(source_p, conf, tkline_time);
-  }
-  else
-  {
-    ircsprintf(buffer, "%s (%s)", reason, current_date);
-    DupString(aconf->reason, buffer);
-
-    if (oper_reason != NULL)
-      DupString(aconf->oper_reason, oper_reason);
-    apply_kline(source_p, conf, current_date, cur_time);
-  }
+  apply_kline(source_p, conf, current_date, cur_time, tkline_time);
 }
 
 /* me_kline - handle remote kline. no propagation */
@@ -255,25 +243,13 @@ me_kline(struct Client *client_p, struct Client *source_p,
     DupString(aconf->host, khost);
     DupString(aconf->user, kuser);
 
-    if (tkline_time != 0)
-    {
-      ircsprintf(buffer, "Temporary K-line %d min. - %s (%s)",
-                 (int)(tkline_time/60), kreason, current_date);
-      DupString(aconf->reason, buffer);
+    ircsprintf(buffer, "%s (%s)", kreason, current_date);
+    DupString(aconf->reason, buffer);
+      
+    if (oper_reason != NULL)
+      DupString(aconf->oper_reason, oper_reason);
 
-      if (oper_reason != NULL)
-        DupString(aconf->oper_reason, oper_reason);
-      apply_tkline(source_p, conf, tkline_time);
-    }
-    else
-    {
-      ircsprintf(buffer, "%s (%s)", kreason, current_date);
-      DupString(aconf->reason, buffer);
-
-      if (oper_reason != NULL)
-        DupString(aconf->oper_reason, oper_reason);
-      apply_kline(source_p, conf, current_date, cur_time);
-    }
+    apply_kline(source_p, conf, current_date, cur_time, tkline_time);
   }
 }
 
@@ -302,75 +278,20 @@ ms_kline(struct Client *client_p, struct Client *source_p,
  */
 static void 
 apply_kline(struct Client *source_p, struct ConfItem *conf,
-	    const char *current_date, time_t cur_time)
-{
-  struct AccessItem *aconf = map_to_conf(conf);
-
-  add_conf_by_address(CONF_KILL, aconf);
-  write_conf_line(source_p, conf, current_date, cur_time);
-  /* Now, activate kline against current online clients */
-  rehashed_klines = 1;
-}
-
-/* apply_tkline()
- *
- * inputs	-
- * output	- NONE
- * side effects	- tkline as given is placed
- */
-static void
-apply_tkline(struct Client *source_p, struct ConfItem *conf,
-             int tkline_time)
+	    const char *current_date, time_t cur_time, time_t tkline_time)
 {
   struct AccessItem *aconf;
 
   aconf = (struct AccessItem *)map_to_conf(conf);
-  aconf->hold = CurrentTime + tkline_time;
-  add_temp_line(conf);
-  sendto_realops_flags(UMODE_ALL, L_ALL,
-		       "%s added temporary %d min. K-Line for [%s@%s] [%s]",
-		       get_oper_name(source_p), tkline_time/60,
-		       aconf->user, aconf->host,
-		       aconf->reason);
-  sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. K-Line [%s@%s]",
-	     MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
-	     source_p->name, tkline_time/60, aconf->user, aconf->host);
-  ilog(L_TRACE, "%s added temporary %d min. K-Line for [%s@%s] [%s]",
-       source_p->name, tkline_time/60,
-       aconf->user, aconf->host, aconf->reason);
-  log_oper_action(LOG_TEMP_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-		  aconf->user, aconf->host, aconf->reason);
-  rehashed_klines = 1;
-}
+  if(tkline_time > 0)
+  {
+    aconf->hold = CurrentTime + tkline_time;
+    add_temp_line(conf);
+  }
+  else
+    add_conf_by_address(CONF_KILL, aconf);
 
-/* apply_tdline()
- *
- * inputs	-
- * output	- NONE
- * side effects	- tkline as given is placed
- */
-static void
-apply_tdline(struct Client *source_p, struct ConfItem *conf,
-	     const char *current_date, int tkline_time)
-{
-  struct AccessItem *aconf;
-
-  aconf = map_to_conf(conf);
-  aconf->hold = CurrentTime + tkline_time;
-
-  add_temp_line(conf);
-  sendto_realops_flags(UMODE_ALL, L_ALL,
-		       "%s added temporary %d min. D-Line for [%s] [%s]",
-		       get_oper_name(source_p), tkline_time/60,
-		       aconf->host, aconf->reason);
-
-  sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. D-Line [%s]",
-	     MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
-             source_p->name, tkline_time/60, aconf->host);
-  ilog(L_TRACE, "%s added temporary %d min. D-Line for [%s] [%s]",
-       source_p->name, tkline_time/60, aconf->host, aconf->reason);
-  log_oper_action(LOG_TEMP_DLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-		  aconf->user, aconf->host, aconf->reason);
+  write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
   rehashed_klines = 1;
 }
 
@@ -489,22 +410,17 @@ mo_dline(struct Client *client_p, struct Client *source_p,
 
   if (tkline_time != 0)
   {
-    ircsprintf(buffer, "Temporary D-line %d min. - %s (%s)",
-	       (int)(tkline_time/60), reason, current_date);
-    DupString(aconf->reason, buffer);
-    if (oper_reason != NULL)
-      DupString(aconf->oper_reason, oper_reason);
-    apply_tdline(source_p, conf, current_date, tkline_time);
+    aconf->hold = CurrentTime + tkline_time;
+    add_temp_line(conf);
   }
   else
-  {
-    ircsprintf(buffer, "%s (%s)", reason, current_date);
-    DupString(aconf->reason, buffer);
-    if (oper_reason != NULL)
-      DupString(aconf->oper_reason, oper_reason);
     add_conf_by_address(CONF_DLINE, aconf);
-    write_conf_line(source_p, conf, current_date, cur_time);
-  }
+
+  ircsprintf(buffer, "%s (%s)", reason, current_date);
+  DupString(aconf->reason, buffer);
+  if (oper_reason != NULL)
+    DupString(aconf->oper_reason, oper_reason);
+  write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
 
   rehashed_klines = 1;
 }
@@ -618,6 +534,7 @@ mo_unkline(struct Client *client_p,struct Client *source_p,
                          get_oper_name(source_p), user, host);
     ilog(L_NOTICE, "%s removed temporary K-Line for [%s@%s]",
          source_p->name, user, host);
+    remove_conf_line(KLINE_TYPE, source_p, user, host);
     return;
   }
 
@@ -676,6 +593,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
                            get_oper_name(source_p), kuser, khost);
       ilog(L_NOTICE, "%s removed temporary K-Line for [%s@%s]",
            source_p->name, kuser, khost);
+      remove_conf_line(KLINE_TYPE, source_p, kuser, khost);
       return;
     }
 
@@ -732,16 +650,16 @@ remove_tkline_match(const char *host, const char *user)
     if (cnm_t != nm_t || irccmp(user, tk_c->user))
       continue;
     if ((nm_t==HM_HOST && !irccmp(tk_c->host, host)) ||
-	(nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
+        (nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
 #ifdef IPV6
-	|| (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
+        || (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
 #endif
-	)
-      {
-	dlinkDelete(tk_n, &temporary_klines);
-	delete_one_address_conf(tk_c->host, tk_c);
-	return(YES);
-      }
+       )
+    {
+      dlinkDelete(tk_n, &temporary_klines);
+      delete_one_address_conf(tk_c->host, tk_c);
+      return(YES);
+    }
   }
 
   return(NO);
@@ -818,6 +736,7 @@ mo_undline(struct Client *client_p, struct Client *source_p,
                          "%s has removed the temporary D-Line for: [%s]",
                          get_oper_name(source_p), cidr);
     ilog(L_NOTICE, "%s removed temporary D-Line for [%s]", source_p->name, cidr);
+    remove_conf_line(DLINE_TYPE, source_p, cidr, NULL);
     return;
   }
 

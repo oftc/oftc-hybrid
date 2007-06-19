@@ -340,21 +340,10 @@ write_rxline(struct Client *source_p, const char *gecos, char *reason,
 
   if (tkline_time)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "%s added temporary %d min. RX-Line for [%s] [%s]",
-                         get_oper_name(source_p), (int)tkline_time/60,
-                         conf->name, match_item->reason);
-    sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. RX-Line [%s]",
-               MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
-               source_p->name, (int)tkline_time/60, conf->name);
-    ilog(L_TRACE, "%s added temporary %d min. RX-Line for [%s] [%s]",
-         source_p->name, (int)tkline_time/60,
-         conf->name, match_item->reason);
     match_item->hold = CurrentTime + tkline_time;
     add_temp_line(conf);
   }
-  else
-    write_conf_line(source_p, conf, current_date, cur_time);
+  write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
   rehashed_klines = 1;
 }
 
