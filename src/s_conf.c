@@ -2182,9 +2182,16 @@ find_kill(struct Client *client_p)
 
   assert(client_p != NULL);
 
-  aconf = find_kline_conf(client_p->host, client_p->username,
-			  &client_p->ip,
-			  client_p->aftype);
+  if(*client_p->realhost)
+  {
+    aconf = find_kline_conf(client_p->realhost, client_p->username,
+        &client_p->ip, client_p->aftype);
+  }
+  if(aconf == NULL)
+  {
+    aconf = find_kline_conf(client_p->host, client_p->username,
+			  &client_p->ip, client_p->aftype);
+  }
   if (aconf == NULL)
     aconf = find_regexp_kline(uhi);
 
