@@ -145,9 +145,9 @@ parse_aline(const char *cmd, struct Client *source_p,
 
       if (target_server == NULL)
       {
-	sendto_one(source_p, ":%s NOTICE %s :ON server not supported by %s",
-		   me.name, source_p->name, cmd);
-	return -1;
+        sendto_one(source_p, ":%s NOTICE %s :ON server not supported by %s",
+            me.name, source_p->name, cmd);
+        return -1;
       }
 
       if (!IsOperRemoteBan(source_p))
@@ -159,9 +159,9 @@ parse_aline(const char *cmd, struct Client *source_p,
 
       if (parc == 0 || EmptyString(*parv))
       {
-	sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-		   me.name, source_p->name, cmd);
-	return -1;
+        sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+            me.name, source_p->name, cmd);
+        return -1;
       }
 
       *target_server = *parv;
@@ -174,7 +174,7 @@ parse_aline(const char *cmd, struct Client *source_p,
        * caller probably NULL'd it first, but no harm to do it again -db
        */
       if (target_server != NULL)
-	*target_server = NULL;
+        *target_server = NULL;
     }
   }
 
@@ -200,7 +200,7 @@ parse_aline(const char *cmd, struct Client *source_p,
     {
       *reason = *parv;
       if (!valid_comment(source_p, *reason, YES))
-	return -1;
+        return -1;
     }
     else
       *reason = def_reason;

@@ -1458,8 +1458,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
         strncasecmp(source_p->name, nick, NICKLEN) != 0)
     {
       ClearNickServReg(source_p);
-      sendto_one(source_p, ":%s MODE %s :-R", source_p->name,
-          source_p->name);
+      sendto_one(source_p, ":%s MODE %s :-R", nick, nick);
     }
 
     /*
