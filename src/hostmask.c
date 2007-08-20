@@ -918,13 +918,14 @@ report_Klines(struct Client *client_p, int tkline)
 
         if (IsOper(client_p))
         {
-          ircsprintf(buf, "%s Expires (%s)", 
-              aconf->oper_reason ? aconf->oper_reason : "", 
-              smalldate(aconf->hold));
+          if(aconf->hold != 0)
+            ircsprintf(buf, "%s Expires (%s)", 
+                aconf->oper_reason ? aconf->oper_reason : "", 
+                smalldate(aconf->hold));
 
           sendto_one(client_p, form_str(RPL_STATSKLINE), me.name,
               client_p->name, p, aconf->host, aconf->user,
-              aconf->reason, buf);
+              aconf->reason, *buf == '\0' ? "" : buf);
         }
         else
           sendto_one(client_p, form_str(RPL_STATSKLINE), me.name,
