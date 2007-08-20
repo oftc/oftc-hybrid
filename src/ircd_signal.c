@@ -69,7 +69,8 @@ static void
 sigchld_handler(int sig)
 {
   int status;
-  waitpid(-1, &status, WNOHANG);
+  while(waitpid(-1, &status, WNOHANG) > 0)
+    ;
 }
 
 /*
