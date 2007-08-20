@@ -297,7 +297,8 @@ ssl_handshake(int fd, struct Client *client_p)
   {
     int res = SSL_get_verify_result(client_p->localClient->fd.ssl);
     if (res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
-        res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE)
+        res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
+        res == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
     {
       /* The client sent a certificate which verified OK */
       memcpy(client_p->certfp, cert->sha1_hash, sizeof(client_p->certfp));
