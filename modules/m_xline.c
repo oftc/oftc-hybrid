@@ -131,8 +131,8 @@ mo_xline(struct Client *client_p, struct Client *source_p,
     /* if a given expire time is given, ENCAP it */
     if (tkline_time != 0)
       sendto_match_servs(source_p, target_server, CAP_ENCAP,
-			 "ENCAP %s XLINE %d %s 0 :%s",
-			 target_server, (int)tkline_time, gecos, reason);
+			 "ENCAP %s XLINE %s %s %d :%s",
+			 target_server, target_server, gecos, (int)tkline_time, reason);
     else
       sendto_match_servs(source_p, target_server, CAP_CLUSTER,
 			 "XLINE %s %s %d :%s",
@@ -146,7 +146,7 @@ mo_xline(struct Client *client_p, struct Client *source_p,
   {
     if (tkline_time != 0)
       cluster_a_line(source_p, "ENCAP", CAP_ENCAP, SHARED_XLINE,
-		     "XLINE %d %s 0 :%s", (int)tkline_time, gecos, reason);
+		     "XLINE %s %d :%s", gecos, (int)tkline_time, reason);
     else
       cluster_a_line(source_p, "XLINE", CAP_KLN, SHARED_XLINE,
 		     "%s 0 :%s", gecos, reason);

@@ -438,7 +438,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
 
   case XLINE_TYPE:
     xconf = (struct MatchItem *)map_to_conf(conf);
-    if(duration)
+    if(duration == 0)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
           "%s added X-Line for [%s] [%s]",
