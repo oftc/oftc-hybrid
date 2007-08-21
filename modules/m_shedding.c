@@ -152,7 +152,7 @@ void user_shedding_shed(void *unused)
   dlink_node *ptr, *next_ptr;
   struct Client *client_p;
   
-  DLINK_FOREACH_SAFE(ptr, next_ptr, local_client_list.head)
+  DLINK_FOREACH_SAFE(ptr, next_ptr, local_client_list.tail)
   {
       client_p = ptr->data;
 
