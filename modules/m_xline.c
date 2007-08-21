@@ -59,7 +59,7 @@ static void write_xline(struct Client *, char *, char *, time_t);
 static void remove_xline(struct Client *, char *);
 static int remove_txline_match(const char *);
 
-static void relay_xline(struct Client *, char *[]);
+static void relay_xline(struct Client *, char *[], int);
 
 struct Message xline_msgtab = {
   "XLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
@@ -190,7 +190,7 @@ ms_xline(struct Client *client_p, struct Client *source_p,
   if (!valid_xline(source_p, parv[2], parv[4], 0))
     return;
 
-  relay_xline(source_p, parv);
+  relay_xline(source_p, parv, NO);
 }
 
 /* me_xline()
@@ -216,11 +216,11 @@ me_xline(struct Client *client_p, struct Client *source_p,
   if (!IsClient(source_p) || parc != 5)
     return;
 
-  relay_xline(source_p, parv);
+  relay_xline(source_p, parv, YES);
 }
 
 static void
-relay_xline(struct Client *source_p, char *parv[])
+relay_xline(struct Client *source_p, char *parv[], int encap)
 {
   struct ConfItem *conf;
   struct MatchItem *match_item;
@@ -231,9 +231,10 @@ relay_xline(struct Client *source_p, char *parv[])
   if (t_sec < 3)
     t_sec = 0;
 
-  sendto_match_servs(source_p, parv[1], CAP_CLUSTER,
-                     "XLINE %s %s %s :%s",
-                     parv[1], parv[2], parv[3], parv[4]);
+  if(!encap)
+    sendto_match_servs(source_p, parv[1], CAP_CLUSTER,
+        "XLINE %s %s %s :%s",
+        parv[1], parv[2], parv[3], parv[4]);
 
   if (!match(parv[1], me.name))
     return;
