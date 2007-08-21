@@ -48,6 +48,7 @@
 #include "resv.h"
 #include "numeric.h"
 #include "s_user.h"
+#include "s_misc.h"
 
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/rsa.h>
