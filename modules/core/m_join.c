@@ -332,7 +332,6 @@ ms_join(struct Client *client_p, struct Client *source_p,
 {
   time_t newts = 0;
   time_t oldts = 0;
-  int args = 0;
   int keep_our_modes = 1;
   int keep_new_modes = 1;
   int isnew = 0;
