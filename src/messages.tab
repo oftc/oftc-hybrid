@@ -300,7 +300,7 @@ static struct NumericInfo replies[] = {
 /* 273 */  {NULL, NULL, NULL},
 /* 274 */  {NULL, NULL, NULL},
 /* 275 */  {"RPL_WHOISSSL", ":%s 275 %s %s :is connected via SSL (secure link)", NULL},
-/* 276 */  {"RPL_WHOISCERTFP", ":%s 276 %s %s :has client certificate %s", NULL},
+/* 276 */  {"RPL_WHOISCERTFP", ":%s 276 %s %s :has client certificate fingerprint %s", NULL},
 /* 277 */  {NULL, NULL, NULL},
 /* 278 */  {NULL, NULL, NULL},
 /* 279 */  {NULL, NULL, NULL},
