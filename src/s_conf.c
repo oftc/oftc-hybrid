@@ -2353,7 +2353,7 @@ expire_tklines(dlink_list *tklist)
               conf->type == RXLINE_TYPE ? "(REGEX) " : "");
         dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
-        remove_conf_line(conf->type, &me, aconf->user, aconf->host);
+        remove_conf_line(conf->type, &me, conf->name, NULL);
         delete_conf_item(conf);
         expired = TRUE;
         break;
@@ -2387,7 +2387,7 @@ expire_tklines(dlink_list *tklist)
               "Temporary RESV for [%s] expired", conf->name);
         dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
-        remove_conf_line(conf->type, &me, aconf->user, aconf->host);
+        remove_conf_line(conf->type, &me, conf->name, NULL);
         delete_conf_item(conf);
         expired = TRUE;
         break;
@@ -2403,7 +2403,7 @@ expire_tklines(dlink_list *tklist)
               "Temporary RESV for [%s] expired", cconf->name);
         dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
-        remove_conf_line(conf->type, &me, aconf->user, aconf->host);
+        remove_conf_line(conf->type, &me, conf->name, NULL);
         delete_conf_item(conf);
         expired = TRUE;
         break;
