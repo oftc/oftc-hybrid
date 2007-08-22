@@ -1550,17 +1550,17 @@ find_conf_exact(ConfType type, const char *name, const char *user,
     ** of the configuration.
     */
     if (!match(aconf->host, host) || !match(aconf->user,user)
-	|| irccmp(conf->name, name) )
+        || irccmp(conf->name, name) )
       continue;
     if (type == OPER_TYPE)
     {
       struct ClassItem *aclass;
 
-      aclass = (struct ClassItem *)aconf->class_ptr;
+      aclass = map_to_conf(aconf->class_ptr);
       if (aconf->clients < MaxTotal(aclass))
-	return conf;
+        return conf;
       else
-	continue;
+        continue;
     }
     else
       return conf;
