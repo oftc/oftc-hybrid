@@ -458,7 +458,7 @@ static struct NumericInfo replies[] = {
 /* 431 */  {"ERR_NONICKNAMEGIVEN", ":%s 431 %s :No nickname given", NULL},
 /* 432 */  {"ERR_ERRONEUSNICKNAME", ":%s 432 %s %s :Erroneous Nickname", NULL},
 /* 433 */  {"ERR_NICKNAMEINUSE", ":%s 433 %s %s :Nickname is already in use.", NULL},
-/* 434 */  {NULL, NULL, NULL},
+/* 434 */  {"ERR_BANONCHAN", ":%s 434 %s %s :You may not change nickname while banned or moderated on a channel (+b/+q/+m)", NULL},
 /* 435 */  {NULL, NULL, NULL},
 /* 436 */  {"ERR_NICKCOLLISION", ":%s 436 %s %s :Nickname collision KILL", NULL},
 /* 437 */  {"ERR_UNAVAILRESOURCE", ":%s 437 %s %s :Nick/channel is temporarily unavailable", NULL},
