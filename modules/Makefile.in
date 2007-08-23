@@ -42,21 +42,21 @@ CORE_SRCS = \
   core/m_quit.c \
   core/m_server.c \
   core/m_sjoin.c \
-  core/m_squit.c
+  core/m_squit.c \
+  core/spy_admin_notice.c \
+  core/spy_info_notice.c \
+  core/spy_links_notice.c \
+  core/spy_motd_notice.c \
+  core/spy_stats_notice.c \
+  core/spy_stats_p_notice.c \
+  core/spy_trace_notice.c \
+  core/spy_whois_notice.c 
 
 SSL_SRCS = \
   m_challenge.c \
   m_cryptlink.c
 
 OFTC_SRCS = \
-  spy_admin_notice.c \
-  spy_info_notice.c \
-  spy_links_notice.c \
-  spy_motd_notice.c \
-  spy_stats_notice.c \
-  spy_stats_p_notice.c \
-  spy_trace_notice.c \
-  spy_whois_notice.c \
 	m_certfp.c \
   m_gnotice.c \
   m_map.c \
