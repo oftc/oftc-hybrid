@@ -46,6 +46,7 @@
 #include "common.h"
 #include "packet.h"
 #include "irc_getaddrinfo.h"
+#include "channel_mode.h"
 
 static void m_nick(struct Client *, struct Client *, int, char **);
 static void mr_nick(struct Client *, struct Client *, int, char **);
@@ -231,6 +232,24 @@ m_nick(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
                me.name, parv[0], nick);
     return;
+  }
+
+  if(!IsOper(source_p))
+  {
+    struct Channel *chptr;
+    dlink_node *cptr;
+
+    DLINK_FOREACH(cptr, source_p->channel.head)
+    {
+      chptr = ((struct Membership *) cptr->data)->chptr;
+
+      if(can_send(chptr, source_p, cptr->data) == CAN_SEND_NO)
+      {
+        sendto_one(source_p, form_str(ERR_NONICKWHILEBAN), me.name, parv[0],
+            chptr->chname);
+        return;
+      }
+    }
   }
 
   if ((target_p = find_client(nick)))

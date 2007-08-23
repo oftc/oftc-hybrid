@@ -347,7 +347,8 @@ extern const char *get_locale(void);
 /*      ERR_SERVICENAMEINUSE 434 ? */
 /*	ERR_NORULES	     434   unreal */
 /*      ERR_SERVICECONFUSED  435 ? */
-/*	ERR_BANONCHAN	     435   dalnet */
+#define ERR_NONICKWHILEBAN   434 
+/*      ERR_NICKONBAN        435 dalnet */
 
 #define ERR_NICKCOLLISION    436
 #define ERR_UNAVAILRESOURCE  437
