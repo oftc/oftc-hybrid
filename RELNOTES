@@ -1,3 +1,15 @@
+-- oftc-hybrid 1.6.0 RELNOTES
+o) Add ability to accept ssl client certifiates and store their fingerprints
+	 against the client.
+o) Add usermode +P for services clients only.  Not settable by users.
+o) Add channel mode +z - op moderation. Ops will see any messages sent to
+   moderated channels.
+o) K-Lines are now enforced on realhost if applicable.
+o) User shedding now starts from the back of the client list instead of the
+   front so that users who just joined arent the first choice for shedding.
+o) Remote and timed xlines fixes.
+o) Various bug fixes.
+
 -- oftc-hybrid 1.5.7 RELNOTES
 o) Bugfix release to fix the class name display in the reject notice.
 
