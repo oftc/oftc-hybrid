@@ -130,14 +130,15 @@ m_topic(struct Client *client_p, struct Client *source_p,
     /* setting topic */
     if (parc > 2)
     {
-      if ((ms = find_channel_link(source_p, chptr)) == NULL)
+      if ((ms = find_channel_link(source_p, chptr)) == NULL && !IsService(source_p))
       {
         sendto_one(source_p, form_str(ERR_NOTONCHANNEL), me.name,
                    source_p->name, parv[1]);
         return;
       }
       if ((chptr->mode.mode & MODE_TOPICLIMIT) == 0 ||
-          has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) || IsGod(source_p))
+          has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) || IsGod(source_p) ||
+          IsService(source_p))
       {
         char topic_info[USERHOST_REPLYLEN]; 
         if(!has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) && 
