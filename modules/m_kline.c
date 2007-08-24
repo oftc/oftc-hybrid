@@ -133,6 +133,7 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   char *oper_reason;
   char *user = NULL;
   char *host = NULL;
+  char *p;
   const char *current_date;
   char *target_server = NULL;
   struct ConfItem *conf;
@@ -150,6 +151,21 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   if (parse_aline("KLINE", source_p, parc, parv,
 		  AWILD, &user, &host, &tkline_time, &target_server, &reason) < 0)
     return;
+    
+  if ((p = strchr(host, '/')) != NULL)
+  {
+    int bitlen = strtol(++p, NULL, 10);
+    int min_bitlen = strchr(host, ':') ? ConfigFileEntry.gline_min_cidr6 :
+      ConfigFileEntry.gline_min_cidr;
+
+    if (bitlen < min_bitlen)
+    {
+      sendto_one(source_p, ":%s NOTICE %s :Cannot set K-Lines with CIDR length "
+          "< %d", me.name, source_p->name, min_bitlen);
+      return;
+    }
+  }
+
 
   if (target_server != NULL)
   {
