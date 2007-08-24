@@ -214,6 +214,9 @@ m_kick(struct Client *client_p, struct Client *source_p,
       return;
     }
 
+    if(IsService(who))
+      return;
+
     /* half ops cannot kick other halfops on private channels */
     if (has_member_flags(ms, CHFL_HALFOP) && !has_member_flags(ms, CHFL_CHANOP))
     {
