@@ -340,6 +340,7 @@ static const struct mode_letter
   { MODE_SECRET,         's' },
   { MODE_TOPICLIMIT,     't' }, 
   { MODE_NOCOLOR,        'c' },
+  { MODE_OPMODERATED,    'z' },
   { MODE_SPEAKONLYIFREG, 'M' },
   { MODE_REGONLY,        'R' },
   { MODE_SSLONLY,        'S' },
@@ -1491,7 +1492,7 @@ static struct ChannelMode ModeTable[255] =
   {chm_nosuch, NULL},                             /* w */
   {chm_nosuch, NULL},                             /* x */
   {chm_nosuch, NULL},                             /* y */
-  {chm_nosuch, NULL},                             /* z */
+  {chm_simple, (void *) MODE_OPMODERATED},        /* z */
 };
 /* *INDENT-ON* */
 
