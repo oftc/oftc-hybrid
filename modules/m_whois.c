@@ -364,50 +364,53 @@ whois_person(struct Client *source_p, struct Client *target_p)
              me.name, source_p->name, target_p->name,
              target_p->username, target_p->host, target_p->info);
 
-  cur_len = mlen = ircsprintf(buf, form_str(RPL_WHOISCHANNELS),
-             me.name, source_p->name, target_p->name, "");
-  t = buf + mlen;
-
-  DLINK_FOREACH(lp, target_p->channel.head)
+  if(!IsService(target_p))
   {
-    ms = lp->data;
-    chptr = ms->chptr;
+    cur_len = mlen = ircsprintf(buf, form_str(RPL_WHOISCHANNELS),
+        me.name, source_p->name, target_p->name, "");
+    t = buf + mlen;
 
-    if (ShowChannel(source_p, chptr) || IsGod(source_p))
+    DLINK_FOREACH(lp, target_p->channel.head)
     {
-      /* Don't show local channels if user is doing a remote whois */
-      if (!MyConnect(source_p) && (chptr->chname[0] == '&'))
-        continue;
+      ms = lp->data;
+      chptr = ms->chptr;
 
-      if ((cur_len + 3 + strlen(chptr->chname) + 1) > (IRCD_BUFSIZE - 2))
+      if (ShowChannel(source_p, chptr) || IsGod(source_p))
       {
-        *(t - 1) = '\0';
-        sendto_one(source_p, "%s", buf);
-        cur_len = mlen;
-        t = buf + mlen;
+        /* Don't show local channels if user is doing a remote whois */
+        if (!MyConnect(source_p) && (chptr->chname[0] == '&'))
+          continue;
+
+        if ((cur_len + 3 + strlen(chptr->chname) + 1) > (IRCD_BUFSIZE - 2))
+        {
+          *(t - 1) = '\0';
+          sendto_one(source_p, "%s", buf);
+          cur_len = mlen;
+          t = buf + mlen;
+        }
+
+        /* We should tell opers when we display hidden channels */
+        if(!ShowChannel(source_p, chptr))
+          tlen = ircsprintf(t, "%s%%%s ", get_member_status(ms, YES), chptr->chname);
+        else
+          tlen = ircsprintf(t, "%s%s ", get_member_status(ms, YES), chptr->chname);
+
+        t += tlen;
+        cur_len += tlen;
+        reply_to_send = YES;
       }
-
-	  /* We should tell opers when we display hidden channels */
-      if(!ShowChannel(source_p, chptr))
-        tlen = ircsprintf(t, "%s%%%s ", get_member_status(ms, YES), chptr->chname);
-      else
-        tlen = ircsprintf(t, "%s%s ", get_member_status(ms, YES), chptr->chname);
-
-      t += tlen;
-      cur_len += tlen;
-      reply_to_send = YES;
     }
-  }
 
-  if (reply_to_send)
-  {
-    *(t - 1) = '\0';
-    sendto_one(source_p, "%s", buf);
+    if (reply_to_send)
+    {
+      *(t - 1) = '\0';
+      sendto_one(source_p, "%s", buf);
+    }
   }
 
   if (IsOper(source_p) || !ConfigServerHide.hide_servers || target_p == source_p)
     sendto_one(source_p, form_str(RPL_WHOISSERVER),
-               me.name, source_p->name, target_p->name,
+        me.name, source_p->name, target_p->name,
                server_p->name, server_p->info);
   else
     sendto_one(source_p, form_str(RPL_WHOISSERVER),
@@ -428,7 +431,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
     sendto_one(source_p, form_str(RPL_TARGUMODEG),
                me.name, source_p->name, target_p->name);
 
-  if (IsOper(target_p))
+  if (IsOper(target_p) && !IsService(target_p))
     sendto_one(source_p, form_str((IsAdmin(target_p) &&
                !IsOperHiddenAdmin(target_p)) ? RPL_WHOISADMIN :
                RPL_WHOISOPERATOR), me.name, source_p->name, target_p->name);
@@ -440,6 +443,10 @@ whois_person(struct Client *source_p, struct Client *target_p)
   if(IsOper(source_p) && target_p->realhost[0] != '\0')
     sendto_one(source_p, form_str(RPL_WHOISREAL), me.name, source_p->name,
         target_p->name, target_p->realhost);
+
+  if(IsService(target_p))
+    sendto_one(source_p, form_str(RPL_WHOISSERVICE), me.name, source_p->name,
+        target_p->name);
 
   if (ConfigFileEntry.use_whois_actually)
   {

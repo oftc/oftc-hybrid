@@ -397,10 +397,12 @@ struct LocalUser
 #define UMODE_ADMIN        0x80000000 /* Admin on server */ 
 #define UMODE_GOD          0x10000000 /* Operator is God */
 #define UMODE_NICKSERVREG  0x20000000 /* User is registered with nickserv and identified */
+#define UMODE_SERVICE      0x40000000 /* User is actually a services psuedo client */
 #define UMODE_ALL	   UMODE_SERVNOTICE
 
 #define SEND_UMODES  (UMODE_INVISIBLE | UMODE_OPER | UMODE_WALLOP | \
-                      UMODE_ADMIN | UMODE_GOD | UMODE_NICKSERVREG | UMODE_SPY)
+                      UMODE_ADMIN | UMODE_GOD | UMODE_NICKSERVREG | UMODE_SPY | \
+                      UMODE_SERVICE)
 
 
 /* oper priv flags */
@@ -467,6 +469,10 @@ struct LocalUser
 #define SetNickServReg(x)       ((x)->umodes |= UMODE_NICKSERVREG)
 #define ClearNickServReg(x)     ((x)->umodes &= ~UMODE_NICKSERVREG)
 #define IsNickServReg(x)        ((x)->umodes & UMODE_NICKSERVREG)
+
+#define IsService(x)            ((x)->umodes & UMODE_SERVICE)
+#define SetService(x)           ((x)->umodes |= UMODE_SERVICE)
+#define ClearService(x)         ((x)->umodes &= ~UMODE_SERVICE)
           
 /* umode flags */
 #define IsInvisible(x)          ((x)->umodes & UMODE_INVISIBLE)

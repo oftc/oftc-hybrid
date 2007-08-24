@@ -219,6 +219,7 @@ extern const char *get_locale(void);
 
 #define RPL_WHOISNICKSERVREG 307
 #define RPL_WHOISADMIN       308
+#define RPL_WHOISSERVICE     309
 
 #define RPL_WHOISREAL        320
 #define RPL_WHOISUSER        311

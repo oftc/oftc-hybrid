@@ -1141,6 +1141,9 @@ stats_operedup(struct Client *source_p)
     if(!IsOper(target_p))
       continue;
 
+    if(IsService(target_p))
+      continue;
+
     oper_count++;
     if(MyClient(target_p))
     {

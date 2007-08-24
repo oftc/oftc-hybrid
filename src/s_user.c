@@ -109,7 +109,7 @@ unsigned int user_modes[256] =
   0,                  /* M */
   0,                  /* N */
   0,                  /* O */
-  0,                  /* P */
+  UMODE_SERVICE,      /* P */
   0,                  /* Q */
   UMODE_NICKSERVREG,  /* R */
   UMODE_GOD,          /* S */
@@ -1052,6 +1052,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
         case '\n':
         case '\r':
         case 'R': /* Users not allowed to change +R */
+        case 'P': /* Or +P */
         case '\t':
           break;
 

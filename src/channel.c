@@ -684,6 +684,10 @@ is_banned(struct Channel *chptr, struct Client *who)
 int
 can_join(struct Client *source_p, struct Channel *chptr, const char *key)
 {
+
+  if(IsService(source_p))
+    return 0;
+
   if (is_banned(chptr, source_p))
     return ERR_BANNEDFROMCHAN;
 
@@ -749,10 +753,7 @@ find_channel_link(struct Client *client_p, struct Channel *chptr)
 int
 can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 {
-  if (IsServer(source_p))
-    return CAN_SEND_OPV;
-
-  if (IsGod(source_p))
+  if (IsServer(source_p) || IsGod(source_p) || IsService(source_p))
     return CAN_SEND_OPV;
 
   if (MyClient(source_p) && !IsExemptResv(source_p))

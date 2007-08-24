@@ -731,9 +731,9 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
       {
         flag = user_modes[(unsigned char)*m];
         if (!(source_p->umodes & UMODE_INVISIBLE) && (flag & UMODE_INVISIBLE))
-	  Count.invisi++;
+          Count.invisi++;
         if (!(source_p->umodes & UMODE_OPER) && (flag & UMODE_OPER))
-	  Count.oper++;
+          Count.oper++;
 
         source_p->umodes |= flag & SEND_UMODES;
         m++;
