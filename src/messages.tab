@@ -743,7 +743,7 @@ static struct NumericInfo replies[] = {
 /* 715 */  {"ERR_KNOCKDISABLED", ":%s 715 %s :KNOCKs are disabled.", NULL},
 /* 716 */  {"RPL_TARGUMODEG", ":%s 716 %s %s :is in +g mode (server side ignore)", NULL},
 /* 717 */  {"RPL_TARGNOTIFY", ":%s 717 %s %s :has been informed that you messaged them.", NULL},
-/* 718 */  {"RPL_UMODEGMSG", ":%s 718 %s %s :is messaging you, and you are umode +g.", NULL},
+/* 718 */  {"RPL_UMODEGMSG", ":%s 718 %s %s :is messaging you, and you are umode +g or +G.", NULL},
 /* 719 */  {NULL, NULL, NULL},
 /* 720 */  {"RPL_OMOTDSTART", ":%s 720 %s :Start of OPER MOTD.", NULL},
 /* 721 */  {"RPL_OMOTD", ":%s 721 %s :%s", NULL},
