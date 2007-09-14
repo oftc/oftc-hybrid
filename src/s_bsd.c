@@ -550,7 +550,10 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     fd->dns_query = MyMalloc(sizeof(struct DNSQuery));
     fd->dns_query->ptr = fd;
     fd->dns_query->callback = comm_connect_dns_callback;
-    gethost_byname(host, fd->dns_query);
+    if (aftype == AF_INET6)
+      gethost_byname_type(host, fd->dns_query, T_AAAA);
+    else
+      gethost_byname_type(host, fd->dns_query, T_A);
   }
   else
   {
