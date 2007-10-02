@@ -55,14 +55,16 @@ extern void report_auth(struct Client *);
 
 extern char *show_iline_prefix(struct Client *, struct AccessItem *, const char *);
 extern struct AccessItem *find_address_conf(const char *, const char *,
-                                            struct irc_ssaddr *, int, char *);
-extern struct AccessItem *find_kline_conf(const char *, const char *,
+                                            struct irc_ssaddr *, int, char *,
+                                            char *);
+extern struct AccessItem *find_kline_conf(const char *, const char *, const char *,
                                           struct irc_ssaddr *, int);
 extern struct AccessItem *find_gline_conf(const char *, const char *,
                                           struct irc_ssaddr *, int);
 extern struct AccessItem *find_dline_conf(struct irc_ssaddr *, int);
 extern struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
-                                               int, int, const char *, const char *);
+                                               int, int, const char *, const char *,
+                                               const char *);
 
 /* Hashtable stuff... */
 #define ATABLE_SIZE 0x1000

@@ -967,13 +967,14 @@ verify_access(struct Client *client_p, const char *username,
   if (IsGotId(client_p))
   {
     aconf = find_address_conf(client_p->host, client_p->username,
-           &client_p->ip, client_p->aftype, client_p->localClient->passwd);
+           &client_p->ip, client_p->aftype, client_p->localClient->passwd,
+           client_p->certfp);
   }
   else
   {
     strlcpy(non_ident+1, username, sizeof(non_ident)-1);
     aconf = find_address_conf(client_p->host,non_ident, &client_p->ip, 
-        client_p->aftype, client_p->localClient->passwd);
+        client_p->aftype, client_p->localClient->passwd, client_p->certfp);
   }
 
   uhi[0] = IsGotId(client_p) ? client_p->username : non_ident;
@@ -1778,9 +1779,9 @@ find_exact_name_conf(ConfType type, const char *name,
         {
           if ((user == NULL && (host == NULL)))
             return conf;
-          if(certfp != NULL)
+          if(certfp != NULL && aconf->certfp != NULL)
           {
-            if(strncmp(aconf->certfp, certfp, SHA_DIGEST_LENGTH) == 0)
+            if(memcmp(aconf->certfp, certfp, SHA_DIGEST_LENGTH) == 0)
               return conf;
           }
           if (EmptyString(aconf->user) || EmptyString(aconf->host))
@@ -2190,12 +2191,12 @@ find_kill(struct Client *client_p)
   if(*client_p->realhost)
   {
     aconf = find_kline_conf(client_p->realhost, client_p->username,
-        &client_p->ip, client_p->aftype);
+        client_p->certfp, &client_p->ip, client_p->aftype);
   }
   if(aconf == NULL)
   {
     aconf = find_kline_conf(client_p->host, client_p->username,
-        &client_p->ip, client_p->aftype);
+        client_p->certfp, &client_p->ip, client_p->aftype);
   }
   if (aconf == NULL)
     aconf = find_regexp_kline(uhi);

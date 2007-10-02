@@ -81,7 +81,7 @@ const char *_version = "$Revision$";
  * output       - NONE
  * side effects - command to test I/K lines on server
  *   
- * i.e. /quote testline user@host,ip [password]
+ * i.e. /quote testline user@host,ip [password] [certfp]
  *
  */
 static void
@@ -169,7 +169,8 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     }
   }
 
-  aconf = find_kline_conf(given_host, given_name, &ip, t);
+  aconf = find_kline_conf(given_host, given_name, 
+      parv[3] == NULL ? parv[2] : parv[3], &ip, t);
   if ((aconf != NULL) && (aconf->status & CONF_KILL))
   {
     snprintf(userhost, sizeof(userhost), "%s@%s", aconf->user, aconf->host);
@@ -192,9 +193,10 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 #else
                               AF_INET,
 #endif
-                              parv[2]);
+                              parv[2], parv[3] == NULL ? parv[2] : parv[3]);
   else
-    aconf = find_address_conf(given_host, given_name, NULL, 0, parv[2]);
+    aconf = find_address_conf(given_host, given_name, NULL, 0, parv[2], 
+        parv[3] == NULL ? parv[2] : parv[3]);
                  
   if (aconf != NULL)
   {

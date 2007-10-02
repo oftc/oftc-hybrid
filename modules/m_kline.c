@@ -475,7 +475,7 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
     piphost = NULL;
   }
 
-  if ((aconf = find_conf_by_address(lhost, piphost, CONF_KILL, t, luser, NULL)))
+  if ((aconf = find_conf_by_address(lhost, piphost, CONF_KILL, t, luser, NULL, NULL)))
   {
     if (warn)
     {
