@@ -494,12 +494,13 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
               match_ipv4(addr, &arec->Mask.ipa.addr,
                          arec->Mask.ipa.bits) &&
               (type & CONF_RESERVED || match(arec->username, username)) &&
-	      (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
-	       match_conf_password(password, arec->aconf)))
+              (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
+               match_conf_password(password, arec->aconf)))
           {
             hprecv = arec->precedence;
             hprec = arec->aconf;
           }
+        }
       }
     }
   }
@@ -511,35 +512,70 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
     while (1)
     {
       for (arec = atable[hash_text(p)]; arec != NULL; arec = arec->next)
-        if ((arec->type == (type & ~CONF_RESERVED)) &&
-            arec->precedence > hprecv &&
-            (arec->masktype == HM_HOST) &&
-            match(arec->Mask.hostname, name) &&
-            (type & CONF_RESERVED || match(arec->username, username)) &&
+      {
+        if (!(arec->type == (type & ~CONF_RESERVED)))
+          continue;
+
+        if(arec->precedence <= hprecv)
+          continue;
+        
+        if(arec->masktype == HM_HOST)
+        {
+          if(arec->aconf->certfp != NULL)
+          {
+            if(memcmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH) != 0)
+              continue;
+          }
+          else
+            if(!match(arec->Mask.hostname, name))
+              continue;
+        }
+        else
+          continue;
+
+        if((type & CONF_RESERVED || match(arec->username, username)) &&
             (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
              match_conf_password(password, arec->aconf)))
         {
           hprecv = arec->precedence;
           hprec = arec->aconf;
         }
+      }
       p = strchr(p, '.');
       if (p == NULL)
         break;
       p++;
     }
     for (arec = atable[0]; arec; arec = arec->next)
-      if (arec->type == (type & ~CONF_RESERVED) &&
-          arec->precedence > hprecv &&
-          ((arec->masktype == HM_HOST && match(arec->Mask.hostname, name)) ||
-          (arec->aconf->certfp != NULL &&
-          memcmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH) == 0)) &&
-          (type & CONF_RESERVED || match(arec->username, username)) &&
+    {
+      if (!(arec->type == (type & ~CONF_RESERVED)))
+        continue;
+
+      if(arec->precedence <= hprecv)
+        continue;
+
+      if(arec->masktype == HM_HOST)
+      {
+        if(arec->aconf->certfp != NULL)
+        {
+          if(memcmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH) != 0)
+            continue;
+        }
+        else
+          if(!match(arec->Mask.hostname, name))
+            continue;
+      }
+      else
+        continue;
+
+      if((type & CONF_RESERVED || match(arec->username, username)) &&
           (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
            match_conf_password(password, arec->aconf)))
       {
         hprecv = arec->precedence;
         hprec = arec->aconf;
       }
+    }
   }
 
   return hprec;
@@ -683,7 +719,10 @@ add_conf_by_address(int type, struct AccessItem *aconf)
   else
   {
     arec->Mask.hostname = address;
-    arec->next = atable[(hv = get_mask_hash(address))];
+    if(aconf->certfp != NULL)
+      arec->next = atable[(hv = get_mask_hash("*"))];
+    else
+      arec->next = atable[(hv = get_mask_hash(address))];
     atable[hv] = arec;
   }
   arec->username = username;
