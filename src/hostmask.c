@@ -500,7 +500,6 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
             hprecv = arec->precedence;
             hprec = arec->aconf;
           }
-        }
       }
     }
   }
