@@ -105,7 +105,7 @@ m_challenge(struct Client *client_p, struct Client *source_p,
      
     if ((conf = find_exact_name_conf(OPER_TYPE,
 				     source_p->localClient->auth_oper,
-				     source_p->username, source_p->host
+				     source_p->username, source_p->host, source_p->certfp
 				   )) == NULL)
     {
       sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, parv[0]);
@@ -160,7 +160,7 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   if(aconf == NULL)
   {
     sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, parv[0]);
-    conf = find_exact_name_conf(OPER_TYPE, parv[1], NULL, NULL);
+    conf = find_exact_name_conf(OPER_TYPE, parv[1], NULL, NULL, NULL);
     failed_challenge_notice(source_p, parv[1], (conf != NULL)
                             ? "host mismatch" : "no oper {} block");
     log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", parv[1]);

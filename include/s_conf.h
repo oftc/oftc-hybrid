@@ -536,7 +536,7 @@ extern void split_nuh(struct split_nuh_item *);
 extern struct ConfItem *find_matching_name_conf(ConfType, const char *,
                                                 const char *, const char *, int);
 extern struct ConfItem *find_exact_name_conf(ConfType, const char *,
-                                             const char *, const char *);
+                                             const char *, const char *, const char *);
 extern void delete_conf_item(struct ConfItem *);
 extern void report_confitem_types(struct Client *, ConfType, int);
 extern void yyerror(const char *);

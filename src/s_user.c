@@ -586,7 +586,7 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
   SetIpHash(source_p);
 
   aconf = find_conf_by_address(source_p->host, &source_p->ip,
-       CONF_CLIENT, source_p->aftype, source_p->username, NULL);
+       CONF_CLIENT, source_p->aftype, source_p->username, NULL, source_p->certfp);
   aclass = map_to_conf(aconf->class_ptr);
 
   cidr_limit_reached(1, &source_p->ip, aclass);
@@ -661,7 +661,7 @@ introduce_client(struct Client *client_p, struct Client *source_p)
     {
       char buf[SHA_DIGEST_LENGTH*2+1];
 
-      base16_encode(buf, SHA_DIGEST_LENGTH*2, source_p->certfp, SHA_DIGEST_LENGTH);
+      base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
       sendto_one(uplink, "CERTFP %s %s", source_p->name, buf);
     }
   }
@@ -692,7 +692,7 @@ introduce_client(struct Client *client_p, struct Client *source_p)
       {
         char buf[SHA_DIGEST_LENGTH*2+1];
 
-        base16_encode(buf, SHA_DIGEST_LENGTH*2, source_p->certfp, SHA_DIGEST_LENGTH);
+        base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
         sendto_one(server, "CERTFP %s %s", source_p->name, buf);
       }
     }

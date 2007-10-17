@@ -909,7 +909,7 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
   {
     char buf[SHA_DIGEST_LENGTH*2+1];
 
-    base16_encode(buf, SHA_DIGEST_LENGTH*2, target_p->certfp, SHA_DIGEST_LENGTH);
+    base16_encode(buf, sizeof(buf), target_p->certfp, sizeof(target_p->certfp));
     sendto_one(client_p, "CERTFP %s %s", target_p->name, buf);
   }
 #endif
@@ -1809,14 +1809,14 @@ set_autoconn(struct Client *source_p, const char *name, int newval)
 
   if (name != NULL)
   {
-    conf = find_exact_name_conf(SERVER_TYPE, name, NULL, NULL);
+    conf = find_exact_name_conf(SERVER_TYPE, name, NULL, NULL, NULL);
     if (conf != NULL)
     {
       aconf = (struct AccessItem *)map_to_conf(conf);
       if (newval)
-	SetConfAllowAutoConn(aconf);
+        SetConfAllowAutoConn(aconf);
       else
-	ClearConfAllowAutoConn(aconf);
+        ClearConfAllowAutoConn(aconf);
 
       sendto_realops_flags(UMODE_ALL, L_ALL,
 			   "%s has changed AUTOCONN for %s to %i",

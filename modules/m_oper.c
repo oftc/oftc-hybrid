@@ -96,7 +96,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
   if ((conf = find_password_conf(name, source_p)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
-    conf = find_exact_name_conf(OPER_TYPE, name, NULL, NULL);
+    conf = find_exact_name_conf(OPER_TYPE, name, NULL, NULL, NULL);
     failed_oper_notice(source_p, name, (conf != NULL) ?
                        "host mismatch" : "no oper {} block");
     log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", name);
@@ -105,9 +105,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
 
   aconf = (struct AccessItem *)map_to_conf(conf);
 
-  if (match_conf_password(password, aconf) || 
-      ((aconf->certfp != NULL) && 
-       memcmp(aconf->certfp, source_p->certfp, SHA_DIGEST_LENGTH) == 0))
+  if (match_conf_password(password, aconf))
   {
     if (attach_conf(source_p, conf) != 0)
     {
@@ -159,15 +157,15 @@ find_password_conf(const char *name, struct Client *source_p)
   struct ConfItem *conf = NULL;
 
   if ((conf = find_exact_name_conf(OPER_TYPE,
-				   name, source_p->username, source_p->host
-				   )) != NULL)
+          name, source_p->username, source_p->host, source_p->certfp)) 
+      != NULL)
   {
     return(conf);
   }
 
   if ((conf = find_exact_name_conf(OPER_TYPE,
-				   name, source_p->username,
-				   source_p->sockhost)) != NULL)
+          name, source_p->username, source_p->sockhost, source_p->certfp)) 
+      != NULL)
   {
     return(conf);
   }

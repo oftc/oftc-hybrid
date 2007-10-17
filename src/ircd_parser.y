@@ -1022,7 +1022,10 @@ oper_entry: OPERATOR
       }
 
       if (yy_aconf->certfp != NULL)
-        DupString(new_aconf->certfp, yy_aconf->certfp);
+      {
+        new_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
+        memcpy(new_aconf->certfp, yy_aconf->certfp, SHA_DIGEST_LENGTH);
+      }
 #endif
 
 #ifdef HAVE_LIBCRYPTO
@@ -1128,8 +1131,13 @@ oper_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
     if(yy_aconf->certfp != NULL)
       MyFree(yy_aconf->certfp);
 
-    base16_decode(tmp, SHA_DIGEST_LENGTH, yylval.string, SHA_DIGEST_LENGTH*2);
-    DupString(yy_aconf->certfp, tmp);
+    if(base16_decode(tmp, SHA_DIGEST_LENGTH, yylval.string, strlen(yylval.string)) != 0)
+    {
+      yyerror("Invalid client certificate fingerprint provided. Ignoring");
+      break;
+    }
+    yy_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
+    memcpy(yy_aconf->certfp, tmp, SHA_DIGEST_LENGTH);
   }
 };
 
@@ -1594,7 +1602,7 @@ class_entry: CLASS
       delete_conf_item(yy_conf);
     else
     {
-      cconf = find_exact_name_conf(CLASS_TYPE, yy_class_name, NULL, NULL);
+      cconf = find_exact_name_conf(CLASS_TYPE, yy_class_name, NULL, NULL, NULL);
 
       if (cconf != NULL)		/* The class existed already */
       {
@@ -1900,6 +1908,12 @@ auth_entry: IRCD_AUTH
       DupString(new_aconf->host, yy_tmp->host);
       collapse(new_aconf->host);
 
+      if (yy_aconf->certfp != NULL)
+      {
+        new_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
+        memcpy(new_aconf->certfp, yy_aconf->certfp, SHA_DIGEST_LENGTH);
+      }
+
       conf_add_class_to_conf(new_conf, class_name);
       add_conf_by_address(CONF_CLIENT, new_aconf);
       dlinkDelete(&yy_tmp->node, &col_conf_list);
@@ -1919,7 +1933,7 @@ auth_item:      auth_user | auth_passwd | auth_class | auth_flags |
                 auth_exceed_limit | auth_no_tilde | auth_gline_exempt |
 		auth_spoof | auth_spoof_notice |
                 auth_redir_serv | auth_redir_port | auth_can_flood |
-                auth_need_password | auth_encrypted | error ';' ;
+                auth_need_password | auth_encrypted | auth_client_certificate_hash | error ';' ;
 
 auth_user: USER '=' QSTRING ';'
 {
@@ -1970,6 +1984,26 @@ auth_passwd: PASSWORD '=' QSTRING ';'
     DupString(yy_aconf->passwd, yylval.string);
   }
 };
+
+auth_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
+{
+  if (ypass == 2)
+  {
+    char tmp[SHA_DIGEST_LENGTH];
+
+    if(yy_aconf->certfp != NULL)
+      MyFree(yy_aconf->certfp);
+
+    if(base16_decode(tmp, SHA_DIGEST_LENGTH, yylval.string, strlen(yylval.string)) != 0)
+    {
+      yyerror("Invalid client certificate fingerprint provided. Ignoring");
+      break;
+    }
+    yy_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
+    memcpy(yy_aconf->certfp, tmp, SHA_DIGEST_LENGTH);
+  }
+};
+
 
 auth_spoof_notice: SPOOF_NOTICE '=' TBOOL ';'
 {
@@ -3108,7 +3142,7 @@ deny_reason: REASON '=' QSTRING ';'
 exempt_entry: EXEMPT '{' exempt_items '}' ';';
 
 exempt_items:     exempt_items exempt_item | exempt_item;
-exempt_item:      exempt_ip | error;
+exempt_item:      exempt_ip | exempt_client_certificate_hash | error;
 
 exempt_ip: IP '=' QSTRING ';'
 {
@@ -3127,6 +3161,35 @@ exempt_ip: IP '=' QSTRING ';'
     }
   }
 };
+
+exempt_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
+{
+  if (ypass == 2)
+  {
+    char tmp[SHA_DIGEST_LENGTH];
+
+    yy_conf = make_conf_item(EXEMPTDLINE_TYPE);
+    yy_aconf = map_to_conf(yy_conf);
+  
+    if(base16_decode(tmp, SHA_DIGEST_LENGTH, yylval.string, strlen(yylval.string)) != 0)
+    {
+      yyerror("Invalid client certificate fingerprint provided. Ignoring");
+      break;
+    }
+ 
+    yy_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
+    yy_aconf->host = MyMalloc(SHA_DIGEST_LENGTH);
+    memcpy(yy_aconf->certfp, tmp, SHA_DIGEST_LENGTH);
+    memcpy(yy_aconf->host, tmp, SHA_DIGEST_LENGTH);
+ 
+    add_conf_by_address(CONF_EXEMPTDLINE, yy_aconf);
+
+    yy_conf = NULL;
+    yy_aconf = NULL;
+
+ }
+};
+
 
 /***************************************************************************
  *  section gecos
