@@ -17,7 +17,7 @@ MKDEP		= @MKDEP@
 INSTALL		= @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
 
-prefix		= $(DESTDIR)@prefix@
+prefix		= @prefix@
 datarootdir	= $(DESTDIR)@datarootdir@
 
 AUTOMODULEDIR	= ${prefix}/modules

@@ -2,8 +2,8 @@
 INSTALL		= @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
 RM		= @RM@
-prefix		= $(DESTDIR)@prefix@
-datarootdir	= $(DESTDIR)@datarootdir@
+prefix		= @prefix@
+datarootdir	= @datarootdir@
 mandir          = $(DESTDIR)@mandir@
 
 all:

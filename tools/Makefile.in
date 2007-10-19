@@ -18,8 +18,8 @@ CRYPT_LIB	= @CRYPT_LIB@
 
 INCLUDES	= -I../include $(SSL_INCLUDES)
 
-prefix		= $(DESTDIR)@prefix@
-exec_prefix	= $(DESTDIR)@exec_prefix@
+prefix		= @prefix@
+exec_prefix	= @exec_prefix@
 bindir		= $(DESTDIR)@bindir@
 datarootdir	= $(DESTDIR)@datarootdir@
 

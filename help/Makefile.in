@@ -22,27 +22,27 @@ depend:
 
 install: 
 	@echo installing help files...
-	-@if test ! -d $(prefix)/help; then \
-		echo "mkdir $(prefix)/help"; \
-		mkdir $(prefix)/help; \
-		echo "mkdir $(prefix)/help/users"; \
-		mkdir $(prefix)/help/users; \
-		echo "mkdir $(prefix)/help/opers"; \
-		mkdir $(prefix)/help/opers; \
+	-@if test ! -d $(DESTDIR)$(prefix)/help; then \
+		echo "mkdir $(DESTDIR)$(prefix)/help"; \
+		mkdir $(DESTDIR)$(prefix)/help; \
+		echo "mkdir $(DESTDIR)$(uhelpdir)"; \
+		mkdir $(DESTDIR)$(uhelpdir); \
+		echo "mkdir $(DESTDIR)$(ohelpdir)"; \
+		mkdir $(DESTDIR)$(ohelpdir); \
 	fi
 	@for help in opers/*; do \
 	if [ -f $$help ]; then \
-		${INSTALL_DATA} $$help $(ohelpdir); \
+		${INSTALL_DATA} $$help $(DESTDIR)$(ohelpdir); \
 	fi \
 	done
 	@for help in users/*; do \
 	if [ -f $$help ]; then \
-		$(INSTALL_DATA) $$help $(uhelpdir); \
+		$(INSTALL_DATA) $$help $(DESTDIR)$(uhelpdir); \
 	fi \
 	done
 	@for link in $(SYMLINKS); do \
-		rm -f $(uhelpdir)/$$link; \
-		ln -s $(ohelpdir)/$$link $(uhelpdir); \
+		rm -f $(DESTDIR)$(uhelpdir)/$$link; \
+		ln -s $(ohelpdir)/$$link $(DESTDIR)$(uhelpdir); \
 	done
 
 distclean:
