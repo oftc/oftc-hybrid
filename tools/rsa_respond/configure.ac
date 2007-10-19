@@ -7,6 +7,7 @@ AC_CONFIG_FILES(Makefile)
 AC_COPYRIGHT([$Id$])
 
 AC_PROG_CC
+AC_PROG_INSTALL
 
 AC_CHECK_LIB(crypto, RSA_private_decrypt, [LIBS="-lcrypto"],
 [
