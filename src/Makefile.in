@@ -20,7 +20,7 @@ SED		= @SED@
 YACC    = @YACC@
 
 prefix		= @prefix@
-exec_prefix	= $(DESTDIR)@exec_prefix@
+exec_prefix	= @exec_prefix@
 bindir		= $(DESTDIR)@bindir@
 sysconfdir	= $(DESTDIR)@sysconfdir@
 localstatedir	= $(DESTDIR)@localstatedir@

@@ -9,9 +9,9 @@ TEST		= @TEST@
 # no whitespace here, test will mess up
 CLOBBER=@CLOBBER@
 
-prefix		= $(DESTDIR)@prefix@
+prefix		= @prefix@
 sysconfdir	= $(DESTDIR)@sysconfdir@
-exec_prefix	= $(DESTDIR)@exec_prefix@
+exec_prefix	= @exec_prefix@
 datarootdir	= $(DESTDIR)@datarootdir@
 
 DISTFILES	= @EXAMPLE_CONF@
