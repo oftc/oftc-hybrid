@@ -1,5 +1,0 @@
-# $Id: ltrace 497 2006-05-27 23:32:21Z stu $
-LTRACE [nickname/server mask]
-
-This command is similar to TRACE, but it doesn't display plain users
-or definitions of connection classes.
