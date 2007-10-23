@@ -105,7 +105,7 @@ do_ison(struct Client *client_p, struct Client *up, struct Client *source_p,
 {
   struct Client *target_p = NULL;
   char *nick;
-  char *p;
+  char *p = NULL;
   char *current_insert_point, *current_insert_point2;
   char buf[IRCD_BUFSIZE];
   char buf2[IRCD_BUFSIZE];

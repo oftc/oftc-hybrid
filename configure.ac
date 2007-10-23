@@ -5,12 +5,12 @@ dnl TODO: clean up all the OpenSSL and shared module checking stuff;
 dnl the most major changes have already been made and it looks like
 dnl said functions need to be just about as complex as they already are.
 
-AC_PREREQ(2.57)
+AC_PREREQ(2.61)
 
 dnl Sneaky way to get an Id tag into the configure script
 AC_COPYRIGHT([$Id$])
 
-AC_INIT([ircd-hybrid],[7.2.2])
+AC_INIT([ircd-hybrid],[7.2.4])
 
 AC_CONFIG_HEADER(include/setup.h)
 
@@ -775,7 +775,7 @@ AC_MSG_RESULT($balloc)
 
 AC_ARG_ENABLE(warnings,
 AC_HELP_STRING([--enable-warnings],[Enable all sorts of warnings for debugging.]),
-[IRC_CFLAGS="$IRC_CFLAGS -Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -W -Wno-unused"],[])
+[IRC_CFLAGS="$IRC_CFLAGS -Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -W -Wextra"],[])
 
 dnl Server Tweaks
 dnl =============

@@ -141,7 +141,7 @@ static void
 m_part(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-  char *p, *name;
+  char *p = NULL, *name = NULL;
   char reason[KICKLEN + 1];
 
   if (IsServer(source_p))
