@@ -107,6 +107,7 @@ o) +S - Cannot join channel unless using SSL
 
 -- ircd-hybrid-7.2.4 RELNOTES
 o) Fixed occasional core when placing RESVs on channel names
+o) Fixed topic desyncs during netbursts
 
 -- ircd-hybrid-7.2.3 RELNOTES
 o) Added ircd-italian.lang language file
