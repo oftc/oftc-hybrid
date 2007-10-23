@@ -106,7 +106,8 @@ capab_search(const char *key, const struct capabilities *cap)
     else    /* OK, let's move on... */
       rb++;
 
-  /* If the character they differ on happens to be a space, and it happens
+  /*
+   * If the character they differ on happens to be a space, and it happens
    * to be the same length as the capability name, then we've found a
    * match; otherwise, return the difference of the two.
    */
@@ -118,7 +119,7 @@ find_cap(const char **caplist_p, int *neg_p)
 {
   static int inited = 0;
   const char *caplist = *caplist_p;
-  struct capabilities *cap = 0;
+  struct capabilities *cap = NULL;
 
   *neg_p = 0;    /* clear negative flag... */
 
@@ -134,13 +135,15 @@ find_cap(const char **caplist_p, int *neg_p)
     ++caplist;
 
   /* We are now at the beginning of an element of the list; is it negative? */
-  if (*caplist == '-') {
+  if (*caplist == '-')
+  {
     ++caplist;    /* yes; step past the flag... */
     *neg_p = 1;    /* remember that it is negative... */
   }
 
   /* OK, now see if we can look up the capability... */
-  if (*caplist) {
+  if (*caplist)
+  {
     if (!(cap = bsearch(caplist, capab_list, CAPAB_LIST_LEN,
                         sizeof(struct capabilities),
                         (bqcmp)capab_search)))
@@ -244,11 +247,11 @@ static int
 cap_req(struct Client *sptr, const char *caplist)
 {
   const char *cl = caplist;
-  struct capabilities *cap;
+  struct capabilities *cap = NULL;
   unsigned int set = 0, rem = 0;
   unsigned int cs = sptr->localClient->cap_client; /* capability set */
   unsigned int as = sptr->localClient->cap_active; /* active set */
-  int neg;
+  int neg = 0;
 
   if (IsUnknown(sptr)) /* registration hasn't completed; suspend it... */
     sptr->localClient->registration |= REG_NEED_CAP;
@@ -297,7 +300,7 @@ cap_ack(struct Client *sptr, const char *caplist)
 {
   const char *cl = caplist;
   struct capabilities *cap = NULL;
-  int neg;
+  int neg = 0;
 
   /*
    * Coming from the client, this generally indicates that the client
@@ -324,7 +327,7 @@ cap_ack(struct Client *sptr, const char *caplist)
 static int
 cap_clear(struct Client *sptr, const char *caplist)
 {
-  struct capabilities *cap;
+  struct capabilities *cap = NULL;
   unsigned int ii;
   unsigned int cleared = 0;
 
@@ -404,10 +407,10 @@ subcmd_search(const char *cmd, const struct subcmd *elem)
 static void
 m_cap(struct Client *cptr, struct Client *sptr, int parc, char *parv[])
 {
-  char *subcmd, *caplist = 0;
+  char *subcmd = NULL, *caplist = NULL;
   struct subcmd *cmd = NULL;
 
-  if (parc < 2)    /* a subcommand is required */
+  if (parc < 2 || EmptyString(parv[1]))    /* a subcommand is required */
     return;
 
   subcmd = parv[1];
