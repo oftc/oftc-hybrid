@@ -266,7 +266,7 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
                   struct Client *source_p, char *nicks_channels, char *text)
 {
   int type;
-  char *p, *nick, *target_list, ncbuf[IRCD_BUFSIZE];
+  char *p = NULL, *nick, *target_list, ncbuf[IRCD_BUFSIZE];
   struct Channel *chptr = NULL;
   struct Client *target_p = NULL;
 
