@@ -1,6 +1,7 @@
 -- ircd-hybrid-7.2.4 RELNOTES
 o) Fixed occasional core when placing RESVs on channel names
 o) Fixed topic desyncs during netbursts
+o) Implemented WATCH command
 
 
 -- ircd-hybrid-7.2.3 RELNOTES

@@ -63,6 +63,7 @@
 #include "balloc.h"
 #include "motd.h"
 #include "supported.h"
+#include "watch.h"
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
  * number of files allowed to be open by this process.
@@ -638,6 +639,7 @@ main(int argc, char *argv[])
   init_client();
   init_class();
   init_whowas();
+  watch_init();
   init_stats();
   read_conf_files(1);   /* cold start init conf files */
   initServerMask();

@@ -99,6 +99,8 @@
 #define DEFAULT_PINGFREQUENCY    120    /* Default ping frequency */
 #define DEFAULT_CONNECTFREQUENCY 600    /* Default connect frequency */
 
+#define WATCHSIZE_MIN 1
+#define WATCHSIZE_DEFAULT 32
 #define TS_MAX_DELTA_MIN      10        /* min value for ts_max_delta */
 #define TS_MAX_DELTA_DEFAULT  600       /* default for ts_max_delta */
 #define TS_WARN_DELTA_MIN     10        /* min value for ts_warn_delta */

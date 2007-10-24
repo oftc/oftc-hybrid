@@ -1876,6 +1876,8 @@ set_default_conf(void)
   DupString(ConfigServerHide.hidden_name, NETWORK_NAME_DEFAULT);
   ConfigServerHide.hide_server_ips = NO;
 
+  
+  ConfigFileEntry.max_watch = WATCHSIZE_DEFAULT;
   ConfigFileEntry.gline_min_cidr = 16;
   ConfigFileEntry.gline_min_cidr6 = 48;
   ConfigFileEntry.invisible_on_connect = YES;
@@ -1989,6 +1991,8 @@ validate_conf(void)
   if ((ConfigFileEntry.client_flood < CLIENT_FLOOD_MIN) ||
       (ConfigFileEntry.client_flood > CLIENT_FLOOD_MAX))
     ConfigFileEntry.client_flood = CLIENT_FLOOD_MAX;
+
+  ConfigFileEntry.max_watch = IRCD_MAX(ConfigFileEntry.max_watch, WATCHSIZE_MIN);
 }
 
 /* lookup_confhost()

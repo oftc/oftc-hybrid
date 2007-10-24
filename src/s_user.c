@@ -55,6 +55,7 @@
 #include "s_misc.h"
 #include "msg.h"
 #include "pcre.h"
+#include "watch.h"
 
 int MaxClientCount     = 1;
 int MaxConnectionCount = 1;
@@ -599,6 +600,8 @@ introduce_client(struct Client *client_p, struct Client *source_p)
     send_umode(source_p, source_p, 0, SEND_UMODES, ubuf);
   else
     send_umode(NULL, source_p, 0, SEND_UMODES, ubuf);
+
+  watch_check_hash(source_p, RPL_LOGON);
 
   if (*ubuf == '\0')
   {
