@@ -171,6 +171,7 @@ extern struct Message userhost_msgtab;
 extern struct Message users_msgtab;
 extern struct Message version_msgtab;
 extern struct Message wallops_msgtab;
+extern struct Message watch_msgtab;
 extern struct Message who_msgtab;
 extern struct Message whois_msgtab;
 extern struct Message whowas_msgtab;

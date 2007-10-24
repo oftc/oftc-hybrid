@@ -424,10 +424,8 @@ extern const char *get_locale(void);
  * moved to 999
  */
 
-/*      ERR_NOTIFYFULL       512           aircd */
-/*	ERR_TOOMANYWATCH     512           Numeric List: Dalnet */
-/*      ERR_NEEDPONG	     512           Numeric List: Dalnet */
 
+#define ERR_TOOMANYWATCH     512
 #define ERR_WRONGPONG	     513
 /*	ERR_TOOMANYDCC	     514	dalnet */
 /*	ERR_NOINVITE	     518	unreal */
@@ -444,16 +442,16 @@ extern const char *get_locale(void);
 
 #define ERR_HELPNOTFOUND     524
 
-/*	RPL_LOGON	     600	dalnet,unreal
-	RPL_LOGOFF           601	dalnet,unreal
-	RPL_WATCHOFF         602	dalnet,unreal
-	RPL_WATCHSTAT        603	dalnet,unreal
-	RPL_NOWON            604	dalnet,unreal
-	RPL_NOWOFF           605	dalnet,unreal
-	RPL_WATCHLIST        606	dalnet,unreal
-	RPL_ENDOFWATCHLIST   607	dalnet,unreal
+#define RPL_LOGON            600
+#define RPL_LOGOFF           601
+#define RPL_WATCHOFF         602
+#define RPL_WATCHSTAT        603
+#define RPL_NOWON            604
+#define RPL_NOWOFF           605
+#define RPL_WATCHLIST        606
+#define RPL_ENDOFWATCHLIST   607
 
-	RPL_MAPMORE          610	unreal
+/*	RPL_MAPMORE          610	unreal
 
 	RPL_MAPMORE          615	PTlink
 	

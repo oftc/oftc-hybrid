@@ -47,6 +47,8 @@
 #include "packet.h"
 #include "irc_getaddrinfo.h"
 #include "channel_mode.h"
+#include "watch.h"
+>>>>>>> 72f4b39... Backported WATCH
 
 static void m_nick(struct Client *, struct Client *, int, char **);
 static void mr_nick(struct Client *, struct Client *, int, char **);
@@ -695,6 +697,8 @@ static void
 nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
                  char *parv[], time_t newts, char *nick, char *ngecos)
 {
+  int samenick = 0;
+
   if (IsServer(source_p))
   {
     /* A server introducing a new client, change source */
@@ -746,10 +750,14 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
   }
   else if (source_p->name[0])
   {
+
+    samenick = !irccmp(parv[0], nick);
+
     /* client changing their nick */
-    if (irccmp(parv[0], nick))
+    if (!samenick)
     {
       del_all_accepts(source_p);
+      watch_check_hash(source_p, RPL_LOGOFF);
       source_p->tsinfo = newts ? newts : CurrentTime;
     }
 
@@ -772,6 +780,9 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
 
   strcpy(source_p->name, nick);
   hash_add_client(source_p);
+
+  if (!samenick)
+    watch_check_hash(source_p, RPL_LOGON);
 }
 
 /*
