@@ -397,13 +397,13 @@ hash_find_id(const char *name)
 
   if ((client_p = idTable[hashv]) != NULL)
   {
-    if (irccmp(name, client_p->id))
+    if (strcmp(name, client_p->id))
     {
       struct Client *prev;
 
       while (prev = client_p, (client_p = client_p->idhnext) != NULL)
       {
-        if (!irccmp(name, client_p->id))
+        if (!strcmp(name, client_p->id))
         {
           prev->idhnext = client_p->idhnext;
           client_p->idhnext = idTable[hashv];
@@ -978,7 +978,7 @@ safe_list_channels(struct Client *source_p, struct ListTask *list_task,
       if (exceeding_sendq(source_p->from))
       {
         list_task->hash_index = i;
-        return; /* still more to do */
+        return;    /* still more to do */
       }
 
       for (chptr = channelTable[i]; chptr; chptr = chptr->hnextch)
