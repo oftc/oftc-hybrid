@@ -1302,6 +1302,11 @@ oper_up(struct Client *source_p)
     source_p->umodes |= (UMODE_SERVNOTICE|UMODE_OPERWALL|
                          UMODE_WALLOP|UMODE_LOCOPS);
 
+  if (!(old & UMODE_INVISIBLE) && IsInvisible(source_p))
+    ++Count.invisi;
+  if ((old & UMODE_INVISIBLE) && !IsInvisible(source_p))
+    --Count.invisi;
+
   assert(dlinkFind(&oper_list, source_p) == NULL);
   dlinkAdd(source_p, make_dlink_node(), &oper_list);
 
