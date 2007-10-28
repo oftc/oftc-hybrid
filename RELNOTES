@@ -4,6 +4,8 @@ o) Fixed topic desynchronization which sometimes may
    happen during netbursts
 o) WATCH support implemented. Known from other daemons, such
    as Dreamforge and Bahamut.
+o) Fixed bug which would cause invalid invisible counts on oper-up in case
+   operator::umodes and/or general::oper_umodes contains 'invisible'
 
 
 -- ircd-hybrid-7.2.3 RELNOTES
@@ -121,7 +123,7 @@ BUG REPORTS: If you run this code and encounter problems, you must report
   a) By EMAIL to bugs@ircd-hybrid.org
   b) On http://forum.ircd-hybrid.org/
  Please include a gdb backtrace and a copy of your setup.h and
- ircd.conf with any report  (with passwords and other sensitive
+ ircd.conf with any report (with passwords and other sensitive
  information masked).
 
 DISCUSSION: There is a mailing list for discussion of hybrid issues,
