@@ -1423,11 +1423,13 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
 {
   int samenick = 0;
 
+  assert(source_p->name[0] && !EmptyString(nick));
+
   /*
-  ** Client just changing his/her nick. If he/she is
-  ** on a channel, send note of change to all clients
-  ** on that channel. Propagate notice to other servers.
-  */
+   * Client just changing his/her nick. If he/she is
+   * on a channel, send note of change to all clients
+   * on that channel. Propagate notice to other servers.
+   */
   if ((source_p->localClient->last_nick_change +
        ConfigFileEntry.max_nick_time) < CurrentTime)
     source_p->localClient->number_of_nick_changes = 0;
@@ -1450,6 +1452,8 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
        */
       del_all_their_accepts(source_p);
       source_p->tsinfo = CurrentTime;
+      clear_ban_cache_client(source_p);
+      watch_check_hash(source_p, RPL_LOGOFF);
     }
 
     /* XXX - the format of this notice should eventually be changed
@@ -1482,31 +1486,19 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
     sendto_server(client_p, source_p, NULL, NOCAPS, CAP_TS6, NOFLAGS,
                   ":%s NICK %s :%lu",
                   source_p->name, nick, (unsigned long)source_p->tsinfo);
+
+    hash_del_client(source_p);
+    strcpy(source_p->name, nick);
+    hash_add_client(source_p);
+
+    if (!samenick)
+      watch_check_hash(source_p, RPL_LOGON);
+
+    /* fd_desc is long enough */
+    fd_note(&client_p->localClient->fd, "Nick: %s", nick);
   }
   else
-  {
     sendto_one(source_p, form_str(ERR_NICKTOOFAST),
                me.name, source_p->name, source_p->name,
                nick, ConfigFileEntry.max_nick_time);
-    return;
-  }
-
-  /* Finally, add to hash */
-  if (source_p->name[0])
-    hash_del_client(source_p);
-
-  if (!samenick)
-  {
-    clear_ban_cache_client(source_p);
-    watch_check_hash(source_p, RPL_LOGOFF);
-  }
-
-  strcpy(source_p->name, nick);
-  hash_add_client(source_p);
-
-  if (!samenick)
-    watch_check_hash(source_p, RPL_LOGON);
-
-  /* fd_desc is long enough */
-  fd_note(&client_p->localClient->fd, "Nick: %s", nick);
 }
