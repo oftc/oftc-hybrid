@@ -609,67 +609,27 @@ introduce_client(struct Client *client_p, struct Client *source_p)
     ubuf[1] = '\0';
   }
 
-  /* arghhh one could try not introducing new nicks to ll leafs
-   * but then you have to introduce them "on the fly" in SJOIN
-   * not fun.
-   * Its not going to cost much more bandwidth to simply let new
-   * nicks just ride on through.
-   */
-
-  /* We now introduce nicks "on the fly" in SJOIN anyway --
-   * you _need_ to if you aren't going to burst everyone initially.
-   *
-   * Only send to non CAP_LL servers, unless we're a lazylink leaf,
-   * in that case just send it to the uplink.
-   * -davidt
-   * rewritten to cope with SIDs .. eww eww eww --is
-   */
-  if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL) &&
-      client_p != uplink)
+  DLINK_FOREACH(server_node, serv_list.head)
   {
-    if (IsCapable(uplink, CAP_TS6) && HasID(source_p))
-    {
-      sendto_one(uplink, ":%s UID %s %d %lu %s %s %s %s %s :%s",
+    struct Client *server = server_node->data;
+
+    if (server == client_p)
+        continue;
+
+    if (IsCapable(server, CAP_TS6) && HasID(source_p))
+      sendto_one(server, ":%s UID %s %d %lu %s %s %s %s %s :%s",
                  source_p->servptr->id,
                  source_p->name, source_p->hopcount+1,
                  (unsigned long)source_p->tsinfo,
                  ubuf, source_p->username, source_p->host,
                  (MyClient(source_p) && IsIPSpoof(source_p)) ?
                  "0" : source_p->sockhost, source_p->id, source_p->info);
-    }
     else
-    {
-      sendto_one(uplink, "NICK %s %d %lu %s %s %s %s :%s",
+      sendto_one(server, "NICK %s %d %lu %s %s %s %s :%s",
                  source_p->name, source_p->hopcount+1,
                  (unsigned long)source_p->tsinfo,
                  ubuf, source_p->username, source_p->host,
                  source_p->servptr->name, source_p->info);
-    }
-  }
-  else
-  {
-    DLINK_FOREACH(server_node, serv_list.head)
-    {
-      struct Client *server = server_node->data;
-
-      if (IsCapable(server, CAP_LL) || server == client_p)
-        continue;
-
-      if (IsCapable(server, CAP_TS6) && HasID(source_p))
-        sendto_one(server, ":%s UID %s %d %lu %s %s %s %s %s :%s",
-                   source_p->servptr->id,
-                   source_p->name, source_p->hopcount+1,
-                   (unsigned long)source_p->tsinfo,
-                   ubuf, source_p->username, source_p->host,
-                   (MyClient(source_p) && IsIPSpoof(source_p)) ?
-                   "0" : source_p->sockhost, source_p->id, source_p->info);
-      else
-        sendto_one(server, "NICK %s %d %lu %s %s %s %s :%s",
-                   source_p->name, source_p->hopcount+1,
-                   (unsigned long)source_p->tsinfo,
-                   ubuf, source_p->username, source_p->host,
-                   source_p->servptr->name, source_p->info);
-    }
   }
 }
 
@@ -1155,14 +1115,9 @@ send_umode_out(struct Client *client_p, struct Client *source_p,
       struct Client *target_p = ptr->data;
 
       if ((target_p != client_p) && (target_p != source_p))
-      {
-        if ((!(ServerInfo.hub && IsCapable(target_p, CAP_LL))) ||
-            (target_p->localClient->serverMask &
-             source_p->lazyLinkClientExists))
-          sendto_one(target_p, ":%s MODE %s :%s",
-                     ID_or_name(source_p, target_p),
-                     ID_or_name(source_p, target_p), buf);
-      }
+        sendto_one(target_p, ":%s MODE %s :%s",
+                   ID_or_name(source_p, target_p),
+                   ID_or_name(source_p, target_p), buf);
     }
   }
 

@@ -173,10 +173,10 @@ ms_squit(struct Client *client_p, struct Client *source_p,
   {
     sendto_wallops_flags(UMODE_WALLOP, &me, "Remote SQUIT %s from %s (%s)",
                          target_p->name, source_p->name, comment);
-    sendto_server(NULL, NULL, NULL, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(NULL, NULL, CAP_TS6, NOCAPS,
                   ":%s WALLOPS :Remote SQUIT %s from %s (%s)",
                   me.id, target_p->name, source_p->name, comment);
-    sendto_server(NULL, NULL, NULL, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(NULL, NULL, NOCAPS, CAP_TS6,
                   ":%s WALLOPS :Remote SQUIT %s from %s (%s)",
                   me.name, target_p->name, source_p->name, comment);
     ilog(L_TRACE, "SQUIT From %s : %s (%s)", parv[0],
@@ -186,4 +186,3 @@ ms_squit(struct Client *client_p, struct Client *source_p,
 
    exit_client(target_p, source_p, comment);
 }
-

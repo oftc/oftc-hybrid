@@ -998,13 +998,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
       }
 
       if (IsServer(source_p))
-      {
         Count.myserver--;
-        if (ServerInfo.hub)
-          remove_lazylink_flags(source_p->localClient->serverMask);
-        else
-          uplink = NULL;
-      }
     }
 
     log_user_exit(source_p);
@@ -1069,9 +1063,9 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
   }
   else if (IsClient(source_p) && !IsKilled(source_p))
   {
-    sendto_server(from->from, source_p, NULL, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(from->from, NULL, CAP_TS6, NOCAPS,
                   ":%s QUIT :%s", ID(source_p), comment);
-    sendto_server(from->from, source_p, NULL, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(from->from, NULL, NOCAPS, CAP_TS6,
                   ":%s QUIT :%s", source_p->name, comment);
   }
 
@@ -1362,9 +1356,6 @@ set_initial_nick(struct Client *client_p, struct Client *source_p,
   /* fd_desc is long enough */
   fd_note(&client_p->localClient->fd, "Nick: %s", nick);
   
-  /* They have the nick they want now.. */
-  client_p->llname[0] = '\0';
-
   if (!source_p->localClient->registration)
   {
     strlcpy(buf, source_p->username, sizeof(buf));
@@ -1437,17 +1428,10 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
                                  source_p->host, nick);
     add_history(source_p, 1);
 
-    /*
-     * Only hubs care about lazy link nicks not being sent on yet
-     * lazylink leafs/leafs always send their nicks up to hub,
-     * hence must always propagate nick changes.
-     * hubs might not propagate a nick change, if the leaf
-     * does not know about that client yet.
-     */
-    sendto_server(client_p, source_p, NULL, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(client_p, NULL, CAP_TS6, NOCAPS,
                   ":%s NICK %s :%lu",
                   ID(source_p), nick, (unsigned long)source_p->tsinfo);
-    sendto_server(client_p, source_p, NULL, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(client_p, NULL, NOCAPS, CAP_TS6,
                   ":%s NICK %s :%lu",
                   source_p->name, nick, (unsigned long)source_p->tsinfo);
 

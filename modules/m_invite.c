@@ -83,7 +83,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
   if (IsServer(source_p))
     return;
 
-  if (*parv[2] == '\0')
+  if (EmptyString(parv[2]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "INVITE");
@@ -159,18 +159,6 @@ m_invite(struct Client *client_p, struct Client *source_p,
   else if (parc > 3 && IsDigit(*parv[3]))
     if (atoi(parv[3]) > chptr->channelts)
       return;
-
-  if (!MyConnect(target_p) && ServerInfo.hub &&
-      IsCapable(target_p->from, CAP_LL))
-  {
-    /* target_p is connected to a LL leaf, connected to us */
-    if (IsClient(source_p))
-      client_burst_if_needed(target_p->from, source_p);
-
-    if ((chptr->lazyLinkChannelExists &
-         target_p->from->localClient->serverMask) == 0)
-      burst_channel(target_p->from, chptr);
-  }
 
   if (MyConnect(target_p))
   {

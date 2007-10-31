@@ -47,7 +47,6 @@
 
 struct config_channel_entry ConfigChannel;
 dlink_list global_channel_list = { NULL, NULL, 0 };
-dlink_list lazylink_channels = { NULL, NULL, 0 };
 BlockHeap *ban_heap;    /*! \todo ban_heap shouldn't be a global var */
 
 static BlockHeap *topic_heap = NULL;
@@ -414,10 +413,6 @@ destroy_channel(struct Channel *chptr)
 
   dlinkDelete(&chptr->node, &global_channel_list);
   hash_del_channel(chptr);
-
-  if (ServerInfo.hub)
-    if ((ptr = dlinkFindDelete(&lazylink_channels, chptr)))
-      free_dlink_node(ptr);
 
   BlockHeapFree(channel_heap, chptr);
 }

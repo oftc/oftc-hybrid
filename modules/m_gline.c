@@ -191,21 +191,21 @@ mo_gline(struct Client *client_p, struct Client *source_p,
 #endif /* GLINE_VOTING */
   
   /* 4 param version for hyb-7 servers */
-  sendto_server(NULL, source_p, NULL, CAP_GLN|CAP_TS6, NOCAPS,
-		LL_ICLIENT, ":%s GLINE %s %s :%s",
+  sendto_server(NULL, NULL, CAP_GLN|CAP_TS6, NOCAPS,
+		":%s GLINE %s %s :%s",
 		ID(source_p), user, host, reason);
-  sendto_server(NULL, source_p, NULL, CAP_GLN, CAP_TS6,
-		LL_ICLIENT, ":%s GLINE %s %s :%s",
+  sendto_server(NULL, NULL, CAP_GLN, CAP_TS6,
+		":%s GLINE %s %s :%s",
 		source_p->name, user, host, reason);
 
   /* 8 param for hyb-6 */
-  sendto_server(NULL, NULL, NULL, CAP_TS6, CAP_GLN, NOFLAGS,
+  sendto_server(NULL, NULL, CAP_TS6, CAP_GLN,
 		":%s GLINE %s %s %s %s %s %s :%s",
 		ID(&me),
                 ID(source_p), source_p->username,
 		source_p->host, source_p->servptr->name, user, host,
 		reason);
-  sendto_server(NULL, NULL, NULL, NOCAPS, CAP_GLN|CAP_TS6, NOFLAGS,
+  sendto_server(NULL, NULL, NOCAPS, CAP_GLN|CAP_TS6,
 		":%s GLINE %s %s %s %s %s %s :%s",
 		me.name, source_p->name, source_p->username,
 		source_p->host, source_p->servptr->name, user, host,
@@ -310,11 +310,11 @@ do_sgline(struct Client *client_p, struct Client *source_p,
 
   if (prop && !(var_offset & GDENY_BLOCK))
   {
-    sendto_server(client_p, source_p->servptr, NULL, CAP_GLN, NOCAPS, LL_ICLIENT,
+    sendto_server(client_p, NULL, CAP_GLN, NOCAPS,
                   ":%s GLINE %s %s :%s",
                   source_p->name, user, host, reason);
     /* hyb-6 version to the rest */
-    sendto_server(client_p, NULL, NULL, NOCAPS, CAP_GLN, NOFLAGS,
+    sendto_server(client_p, NULL, NOCAPS, CAP_GLN,
                   ":%s GLINE %s %s %s %s %s %s :%s",
                   source_p->servptr->name,
                   source_p->name, source_p->username, source_p->host,

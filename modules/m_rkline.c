@@ -133,17 +133,17 @@ mo_rkline(struct Client *client_p, struct Client *source_p,
   {
     if (HasID(source_p))
     {
-      sendto_server(NULL, source_p, NULL, CAP_KLN|CAP_TS6, NOCAPS, LL_ICLIENT,
+      sendto_server(NULL, NULL, CAP_KLN|CAP_TS6, NOCAPS,
                     ":%s RKLINE %s %lu %s %s :%s",
                     source_p->id, target_server, (unsigned long)tkline_time,
                     user, host, reason);
-      sendto_server(NULL, source_p, NULL, CAP_KLN, CAP_TS6, LL_ICLIENT,
+      sendto_server(NULL, NULL, CAP_KLN, CAP_TS6,
                     ":%s RKLINE %s %lu %s %s :%s",
                     source_p->name, target_server, (unsigned long)tkline_time,
                     user, host, reason);
     }
     else
-      sendto_server(NULL, source_p, NULL, CAP_KLN, NOCAPS, LL_ICLIENT,
+      sendto_server(NULL, NULL, CAP_KLN, NOCAPS,
                     ":%s RKLINE %s %lu %s %s :%s",
                     source_p->name, target_server, (unsigned long)tkline_time,
                     user, host, reason);

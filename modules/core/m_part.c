@@ -76,7 +76,7 @@ const char *_version = "$Revision$";
  */
 static void
 part_one_client(struct Client *client_p, struct Client *source_p,
-                char *name, char *reason)
+                const char *name, const char *reason)
 {
   struct Channel *chptr = NULL;
   struct Membership *ms = NULL;
@@ -107,10 +107,10 @@ part_one_client(struct Client *client_p, struct Client *source_p,
        (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
         < CurrentTime))))
   {
-    sendto_server(client_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
                   ":%s PART %s :%s", ID(source_p), chptr->chname,
                   reason);
-    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
                   ":%s PART %s :%s", source_p->name, chptr->chname,
                   reason);
     sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s PART %s :%s",
@@ -119,9 +119,9 @@ part_one_client(struct Client *client_p, struct Client *source_p,
   }
   else
   {
-    sendto_server(client_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
                   ":%s PART %s", ID(source_p), chptr->chname);
-    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
                   ":%s PART %s", source_p->name, chptr->chname);
     sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s PART %s",
                          source_p->name, source_p->username,
@@ -142,32 +142,26 @@ m_part(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
   char *p = NULL, *name = NULL;
-  char reason[KICKLEN + 1];
+  char reason[KICKLEN + 1] = { '\0' };
 
   if (IsServer(source_p))
     return;
 
-  if (*parv[1] == '\0')
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "PART");
     return;
   }
 
-  reason[0] = '\0';
-
   if (parc > 2)
     strlcpy(reason, parv[2], sizeof(reason));
-
-  name = strtoken(&p, parv[1], ",");
 
   /* Finish the flood grace period... */
   if (MyClient(source_p) && !IsFloodDone(source_p))
     flood_endgrace(source_p);
 
-  while (name)
-  {
+  for (name = strtoken(&p, parv[1], ","); name;
+       name = strtoken(&p,    NULL, ","))
     part_one_client(client_p, source_p, name, reason);
-    name = strtoken(&p, NULL, ",");
-  }
 }

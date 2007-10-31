@@ -127,7 +127,7 @@ mo_jupe(struct Client *client_p, struct Client *source_p,
                        "JUPE for %s requested by %s: %s",
                        parv[1], get_oper_name(source_p), parv[2]);
 
-  sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
+  sendto_server(NULL, NULL, NOCAPS, NOCAPS,
                 ":%s WALLOPS :JUPE for %s requested by %s!%s@%s: %s",
                 me.name, parv[1], source_p->name, 
                 source_p->username, source_p->host, parv[2]);
@@ -137,7 +137,7 @@ mo_jupe(struct Client *client_p, struct Client *source_p,
   if ((target_p = find_server(parv[1])) != NULL)
     exit_client(target_p, &me, parv[2]);
 
-  sendto_server(NULL, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
+  sendto_server(NULL, NULL, NOCAPS, NOCAPS,
                 ":%s SERVER %s 1 :JUPED: %s",
                 me.name, parv[1], parv[2]);
 

@@ -73,7 +73,7 @@ m_userhost(struct Client *client_p, struct Client *source_p,
   char buf[IRCD_BUFSIZE];
   char response[NICKLEN*2+USERLEN+HOSTLEN+30];
   char *t;
-  int i, n;               /* loop counter */
+  int i;               /* loop counter */
   int cur_len;
   int rl;
 
@@ -82,68 +82,44 @@ m_userhost(struct Client *client_p, struct Client *source_p,
 
   for (i = 0; i < 5; i++)
   {
-    if (parv[i+1] == NULL)
+    if (parv[i + 1] == NULL)
       break;
 
     if ((target_p = find_person(client_p, parv[i+1])) != NULL)
     {
-	  /*
-	   * Show real IP for USERHOST on yourself.
-	   * This is needed for things like mIRC, which do a server-based
-	   * lookup (USERHOST) to figure out what the clients' local IP
-	   * is.  Useful for things like NAT, and dynamic dial-up users.
-	   */
       /*
-       * If a lazyleaf relayed us this request, we don't know
-       * the clients real IP.
-       * So, if you're on a lazyleaf, and you send a userhost
-       * including your nick and the nick of someone not known to
-       * the leaf, you'll get your spoofed IP.  tough.
+       * Show real IP for USERHOST on yourself.
+       * This is needed for things like mIRC, which do a server-based
+       * lookup (USERHOST) to figure out what the clients' local IP
+       * is.  Useful for things like NAT, and dynamic dial-up users.
        */
-	  if (MyClient(target_p) && (target_p == source_p))
-	  {
-            rl = ircsprintf(response, "%s%s=%c%s@%s ",
-			    target_p->name,
-			    IsOper(target_p) ? "*" : "",
-			    (target_p->away) ? '-' : '+',
-			    target_p->username,
-			    target_p->sockhost);
-	  }
-      else
-	  {
-            rl = ircsprintf(response, "%s%s=%c%s@%s ",
-			    target_p->name,
-			    IsOper(target_p) ? "*" : "",
-			    (target_p->away) ? '-' : '+',
-			    target_p->username,
-			    target_p->host);
-	  }
-
-	  if ((rl + cur_len) < (IRCD_BUFSIZE-10))
+      if (MyClient(target_p) && (target_p == source_p))
       {
-        ircsprintf(t,"%s",response);
+        rl = ircsprintf(response, "%s%s=%c%s@%s ",
+                        target_p->name,
+                        IsOper(target_p) ? "*" : "",
+                        (target_p->away) ? '-' : '+',
+                        target_p->username,
+                        target_p->sockhost);
+      }
+      else
+      {
+        rl = ircsprintf(response, "%s%s=%c%s@%s ",
+                        target_p->name,
+                        IsOper(target_p) ? "*" : "",
+                        (target_p->away) ? '-' : '+',
+                        target_p->username,
+                        target_p->host);
+      }
+
+      if ((rl + cur_len) < (IRCD_BUFSIZE - 10))
+      {
+        ircsprintf(t, "%s", response);
         t += rl;
         cur_len += rl;
       }
-	  else
-	    break;
-	}
-    else if ( !ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL) )
-    {
-      t = buf;
-      for ( n = 0; n < 5; n++ )
-      {
-        if( parv[n+1] )
-        {
-          rl = ircsprintf(t, "%s ", parv[n+1]);
-          t += rl;
-        }
-        else
-          break;
-      }
-      /* Relay upstream, and let hub reply */
-      sendto_one(uplink, ":%s USERHOST %s", parv[0], buf );
-      return;
+      else
+        break;
     }
   }
 

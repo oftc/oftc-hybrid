@@ -54,11 +54,9 @@ SRCS =       \
   m_away.c \
   m_cap.c \
   m_capab.c \
-  m_cburst.c \
   m_close.c \
   @SSL_SRCS_ENABLE@ \
   m_connect.c \
-  m_drop.c \
   m_encap.c \
   m_eob.c \
   m_etrace.c \
@@ -72,14 +70,11 @@ SRCS =       \
   m_knock.c \
   m_links.c \
   m_list.c \
-  m_lljoin.c \
-  m_llnick.c \
   m_locops.c \
   m_lusers.c \
   m_map.c \
   m_motd.c \
   m_names.c \
-  m_nburst.c \
   m_omotd.c \
   m_oper.c \
   m_operwall.c \

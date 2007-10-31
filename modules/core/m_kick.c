@@ -96,7 +96,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
     to = source_p->name;
   }
 
-  if (*parv[2] == '\0')
+  if (EmptyString(parv[2]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                from, to, "KICK");
@@ -225,10 +225,10 @@ m_kick(struct Client *client_p, struct Client *source_p,
                            source_p->name, source_p->username,
                            source_p->host, name, who->name, comment);
 
-    sendto_server(client_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
                   ":%s KICK %s %s :%s",
                   ID(source_p), chptr->chname, ID(who), comment);
-    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
                   ":%s KICK %s %s :%s", source_p->name, chptr->chname,
                   who->name, comment);
 

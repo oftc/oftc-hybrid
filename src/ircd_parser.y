@@ -41,7 +41,7 @@
 #include "sprintf_irc.h"
 #include "memory.h"
 #include "modules.h"
-#include "s_serv.h" /* for CAP_LL / IsCapable */
+#include "s_serv.h"
 #include "hostmask.h"
 #include "send.h"
 #include "listener.h"
@@ -229,7 +229,6 @@ unhook_hub_leaf_confs(void)
 %token  KLINE_WITH_REASON
 %token  KNOCK_DELAY
 %token  KNOCK_DELAY_CHANNEL
-%token  LAZYLINK
 %token  LEAF_MASK
 %token  LINKS_DELAY
 %token  LISTEN
@@ -749,43 +748,15 @@ serverinfo_hub: HUB '=' TBOOL ';'
   {
     if (yylval.number)
     {
-      /* Don't become a hub if we have a lazylink active. */
-      if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
-      {
-        sendto_realops_flags(UMODE_ALL, L_ALL,
-                             "Ignoring config file line hub=yes; "
-                             "due to active LazyLink (%s)", uplink->name);
-      }
-      else
-      {
-        ServerInfo.hub = 1;
-        uplink = NULL;
-        delete_capability("HUB");
-        add_capability("HUB", CAP_HUB, 1);
-      }
+      ServerInfo.hub = 1;
+      delete_capability("HUB");
+      add_capability("HUB", CAP_HUB, 1);
     }
     else if (ServerInfo.hub)
     {
-      dlink_node *ptr = NULL;
 
       ServerInfo.hub = 0;
       delete_capability("HUB");
-
-      /* Don't become a leaf if we have a lazylink active. */
-      DLINK_FOREACH(ptr, serv_list.head)
-      {
-        const struct Client *acptr = ptr->data;
-        if (MyConnect(acptr) && IsCapable(acptr, CAP_LL))
-        {
-          sendto_realops_flags(UMODE_ALL, L_ALL,
-                               "Ignoring config file line hub=no; "
-                               "due to active LazyLink (%s)",
-                               acptr->name);
-          add_capability("HUB", CAP_HUB, 1);
-          ServerInfo.hub = 1;
-          break;
-        }
-      }
     }
   }
 };
@@ -2693,14 +2664,7 @@ connect_flags_items: connect_flags_items ',' connect_flags_item | connect_flags_
 connect_flags_item: NOT  { not_atom = 1; } connect_flags_item_atom
 			|  { not_atom = 0; } connect_flags_item_atom;
 
-connect_flags_item_atom: LAZYLINK
-{
-  if (ypass == 2)
-  {
-    if (not_atom)ClearConfLazyLink(yy_aconf);
-    else SetConfLazyLink(yy_aconf);
-  }
-} | COMPRESSED
+connect_flags_item_atom: COMPRESSED
 {
   if (ypass == 2)
 #ifndef HAVE_LIBZ

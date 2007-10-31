@@ -229,7 +229,6 @@ l_info		{ return T_L_INFO; }
 l_notice 	{ return T_L_NOTICE; }
 l_trace		{ return T_L_TRACE; }
 l_warn		{ return T_L_WARN; }
-lazylink	{ return LAZYLINK; }
 leaf_mask	{ return LEAF_MASK; }
 listen		{ return LISTEN; }
 log_level	{ return LOG_LEVEL; }

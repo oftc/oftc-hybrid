@@ -35,8 +35,6 @@
 #include "parse.h"
 #include "modules.h"
 
-/* XXX LazyLinks ? */
-
 static void m_lusers(struct Client*, struct Client*, int, char**);
 static void ms_lusers(struct Client*, struct Client*, int, char**);
 
@@ -44,8 +42,8 @@ struct Message lusers_msgtab = {
   "LUSERS", 0, 0, 0, 0, MFLG_SLOW, 0,
   {m_unregistered, m_lusers, ms_lusers, m_ignore, ms_lusers, m_ignore}
 };
-#ifndef STATIC_MODULES
 
+#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -60,6 +58,7 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 #endif
+
 /* m_lusers - LUSERS message handler
  * parv[0] = sender
  * parv[1] = host/server mask.

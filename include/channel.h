@@ -51,7 +51,6 @@ struct Channel
   char *topic;
   char *topic_info;
   time_t topic_time;
-  unsigned long lazyLinkChannelExists;
   time_t last_knock; /*!< don't allow knock to flood */
 
   dlink_list members;

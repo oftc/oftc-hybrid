@@ -79,9 +79,9 @@ mo_wallops(struct Client *client_p, struct Client *source_p,
   }
 
   sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
-  sendto_server(NULL, source_p, NULL, CAP_TS6, NOCAPS, LL_ICLIENT,
+  sendto_server(NULL, NULL, CAP_TS6, NOCAPS,
                 ":%s WALLOPS :%s", ID(source_p), message);
-  sendto_server(NULL, source_p, NULL, NOCAPS, CAP_TS6, LL_ICLIENT,
+  sendto_server(NULL, NULL, NOCAPS, CAP_TS6,
                 ":%s WALLOPS :%s", source_p->name, message);
 }
 
@@ -92,7 +92,7 @@ mo_wallops(struct Client *client_p, struct Client *source_p,
  */
 static void
 ms_wallops(struct Client *client_p, struct Client *source_p,
-	   int parc, char *parv[])
+           int parc, char *parv[])
 { 
   const char *message = parv[1];
 
@@ -104,9 +104,9 @@ ms_wallops(struct Client *client_p, struct Client *source_p,
   else
     sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message); 
 
-  sendto_server(client_p, source_p, NULL, CAP_TS6, NOCAPS, LL_ICLIENT,
+  sendto_server(client_p, NULL, CAP_TS6, NOCAPS,
                 ":%s WALLOPS :%s", ID(source_p), message);
-  sendto_server(client_p, source_p, NULL, NOCAPS, CAP_TS6, LL_ICLIENT,
+  sendto_server(client_p, NULL, NOCAPS, CAP_TS6,
                 ":%s WALLOPS :%s", source_p->name, message);
 }
 

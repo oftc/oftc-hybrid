@@ -290,7 +290,7 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    */
   sendto_wallops_flags(UMODE_WALLOP, &me, "Remote CONNECT %s %d from %s",
                        parv[1], port, source_p->name);
-  sendto_server(NULL, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
+  sendto_server(NULL, NULL, NOCAPS, NOCAPS,
                 ":%s WALLOPS :Remote CONNECT %s %d from %s",
                 me.name, parv[1], port, source_p->name);
 
@@ -299,7 +299,8 @@ ms_connect(struct Client *client_p, struct Client *source_p,
 
   aconf->port = port;
 
-  /* at this point we should be calling connect_server with a valid
+  /*
+   * At this point we should be calling connect_server with a valid
    * C:line and a valid port in the C:line
    */
   if (serv_connect(aconf, source_p))
@@ -308,7 +309,8 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   else
     sendto_one(source_p, ":%s NOTICE %s :*** Couldn't connect to %s.%d",
                me.name, source_p->name, conf->name, aconf->port);
-  /* client is either connecting with all the data it needs or has been
+  /*
+   * Client is either connecting with all the data it needs or has been
    * destroyed
    */
   aconf->port = tmpport;
