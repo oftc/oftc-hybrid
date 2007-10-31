@@ -129,8 +129,10 @@ m_knock(struct Client *client_p, struct Client *source_p,
 
   if (MyClient(source_p))
   {
-    /* don't allow a knock if the user is banned, or the channel is secret */
-    if ((chptr->mode.mode & MODE_PRIVATE) || is_banned(chptr, source_p))
+    /*
+     * Don't allow a knock if the user is banned, or the channel is private
+     */
+    if (PrivateChannel(chptr) || is_banned(chptr, source_p))
     {
       sendto_one(source_p, form_str(ERR_CANNOTSENDTOCHAN),
                  me.name, source_p->name, chptr->chname);
@@ -174,7 +176,7 @@ m_knock(struct Client *client_p, struct Client *source_p,
                          source_p->host);
 
   sendto_server(client_p, chptr, CAP_KNOCK|CAP_TS6, NOCAPS,
-                ":%s KNOCK %s %s", ID(source_p), chptr->chname);
+                ":%s KNOCK %s", ID(source_p), chptr->chname);
   sendto_server(client_p, chptr, CAP_KNOCK, CAP_TS6,
-                ":%s KNOCK %s %s", source_p->name, chptr->chname);
+                ":%s KNOCK %s", source_p->name, chptr->chname);
 }
