@@ -756,19 +756,18 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
       buf[0] = '\0';
 
       if (IsConfAllowAutoConn(aconf))
-  *p++ = 'A';
+        *p++ = 'A';
       if (IsConfCryptLink(aconf))
-  *p++ = 'C';
-      if (IsConfLazyLink(aconf))
-  *p++ = 'L';
+        *p++ = 'C';
+      *p++ = 'C';
       if (aconf->fakename)
-  *p++ = 'M';
+        *p++ = 'M';
       if (IsConfTopicBurst(aconf))
         *p++ = 'T';
       if (IsConfCompressed(aconf))
         *p++ = 'Z';
       if (buf[0] == '\0')
-  *p++ = '*';
+        *p++ = '*';
 
       *p = '\0';
 

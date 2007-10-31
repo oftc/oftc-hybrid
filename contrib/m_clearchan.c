@@ -88,8 +88,6 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  /* XXX - we might not have CBURSTed this channel if we are a lazylink
-   * yet. */
   if ((chptr = hash_find_channel(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
@@ -106,25 +104,26 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
 
   sendto_wallops_flags(UMODE_WALLOP, &me, "CLEARCHAN called for [%s] by %s!%s@%s",
                        chptr->chname, source_p->name, source_p->username, source_p->host);
-  sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
+  sendto_server(NULL, NULL, NOCAPS, NOCAPS,
                 ":%s WALLOPS :CLEARCHAN called for [%s] by %s!%s@%s",
                 me.name, chptr->chname, source_p->name, source_p->username,
                 source_p->host);
   ilog(L_NOTICE, "CLEARCHAN called for [%s] by %s!%s@%s",
        chptr->chname, source_p->name, source_p->username, source_p->host);
 
-  /* Kill all the modes we have about the channel..
+  /*
+   * Kill all the modes we have about the channel..
    * making everyone a peon
    */  
   remove_our_modes(chptr);
 
   /* SJOIN the user to give them ops, and lock the channel */
-  sendto_server(client_p, source_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
+  sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
                 ":%s JOIN %lu %s +ntsi",
                 source_p->id, (unsigned long)(chptr->channelts - 1),
                 chptr->chname);
-  sendto_server(client_p, source_p, chptr, NOCAPS, CAP_TS6,
-                LL_ICLIENT, ":%s SJOIN %lu %s +ntsi :@%s",
+  sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
+                ":%s SJOIN %lu %s +ntsi :@%s",
                 me.name, (unsigned long)(chptr->channelts - 1),
                 chptr->chname, source_p->name);
   sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN %s",
@@ -134,8 +133,10 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
                        me.name, chptr->chname, source_p->name);
 
 
-  /* Take the TS down by 1, so we don't see the channel taken over
-   * again. */
+  /*
+   * Take the TS down by 1, so we don't see the channel taken over
+   * again.
+   */
   if (chptr->channelts)
     --chptr->channelts;
 
@@ -162,7 +163,7 @@ kick_list(struct Client *source_p, struct Channel *chptr)
                          ":%s!%s@%s KICK %s %s CLEARCHAN",
                          source_p->name, source_p->username,
                          source_p->host, chptr->chname, ms->client_p->name);
-    sendto_server(NULL, source_p, chptr, NOCAPS, NOCAPS, LL_ICLIENT,
+    sendto_server(NULL, chptr, NOCAPS, NOCAPS,
                   ":%s KICK %s %s :CLEARCHAN", source_p->name,
                   chptr->chname, ms->client_p->name);
   }

@@ -202,36 +202,6 @@ mr_server(struct Client *client_p, struct Client *source_p,
     if (target_p != client_p)
       exit_client(target_p, &me, "Overridden");
 
-  if (ServerInfo.hub && IsCapable(client_p, CAP_LL))
-  {
-    if (IsCapable(client_p, CAP_HUB))
-    {
-      ClearCap(client_p, CAP_LL);
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-               "*** LazyLinks to a hub from a hub, that's a no-no.");
-    }
-    else
-    {
-      client_p->localClient->serverMask = nextFreeMask();
-
-      if (!client_p->localClient->serverMask)
-      {
-        sendto_realops_flags(UMODE_ALL, L_ALL,  "serverMask is full!");
-        /* try and negotiate a non LL connect */
-        ClearCap(client_p, CAP_LL);
-      }
-    }
-  }
-  else if (IsCapable(client_p, CAP_LL))
-  {
-    if (!IsCapable(client_p, CAP_HUB))
-    {
-      ClearCap(client_p, CAP_LL);
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-               "*** LazyLinks to a leaf from a leaf, that's a no-no.");
-    }
-  } 
-
   /* if we are connecting (Handshake), we already have the name from the
    * connect{} block in client_p->name
    */
@@ -406,8 +376,8 @@ ms_server(struct Client *client_p, struct Client *source_p,
    * .edu's
    */
 
-  /* Ok, check client_p can hub the new server, and make sure it's not a LL */
-  if (!hlined || (IsCapable(client_p, CAP_LL) && !IsCapable(client_p, CAP_HUB)))
+  /* Ok, check client_p can hub the new server */
+  if (!hlined)
   {
     /* OOOPs nope can't HUB */
     sendto_realops_flags(UMODE_ALL, L_ALL,  "Non-Hub link %s introduced %s.",
@@ -651,7 +621,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
    */
 
   /* Ok, check client_p can hub the new server, and make sure it's not a LL */
-  if (!hlined || (IsCapable(client_p, CAP_LL) && !IsCapable(client_p, CAP_HUB)))
+  if (!hlined)
   {
     /* OOOPs nope can't HUB */
     sendto_realops_flags(UMODE_ALL, L_ALL,  "Non-Hub link %s introduced %s.",

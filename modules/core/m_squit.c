@@ -171,7 +171,7 @@ ms_squit(struct Client *client_p, struct Client *source_p,
 
   if (MyConnect(target_p))
   {
-    sendto_realops_flags(UMODE_CCONN, L_ALL,  "Remote SQUIT %s from %s (%s)",
+    sendto_realops_flags(UMODE_CCONN, L_ALL, "Remote SQUIT %s from %s (%s)",
                          target_p->name, source_p->name, comment);
     ilog(L_TRACE, "SQUIT From %s : %s (%s)", parv[0],
          target_p->name, comment);
@@ -180,4 +180,3 @@ ms_squit(struct Client *client_p, struct Client *source_p,
 
    exit_client(target_p, source_p, comment);
 }
-

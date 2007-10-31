@@ -381,10 +381,11 @@ static void
 initialize_server_capabs(void)
 {
   add_capability("QS", CAP_QS, 1);
-  add_capability("LL", CAP_LL, 1);
   add_capability("EOB", CAP_EOB, 1);
+
   if (ServerInfo.sid != NULL)	/* only enable TS6 if we have an SID */
     add_capability("TS6", CAP_TS6, 0);
+
   add_capability("ZIP", CAP_ZIP, 0);
   add_capability("CLUSTER", CAP_CLUSTER, 1);
 #ifdef HALFOPS
@@ -650,7 +651,6 @@ main(int argc, char *argv[])
   watch_init();
   init_stats();
   read_conf_files(1);   /* cold start init conf files */
-  initServerMask();
   me.id[0] = '\0';
   init_uid();
   init_auth();          /* Initialise the auth code */
@@ -666,6 +666,7 @@ main(int argc, char *argv[])
     ilog(L_CRIT, "No server name specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
+
   strlcpy(me.name, ServerInfo.name, sizeof(me.name));
 
   /* serverinfo{} description must exist.  If not, error out.*/
@@ -675,6 +676,7 @@ main(int argc, char *argv[])
       "ERROR: No server description specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
+
   strlcpy(me.info, ServerInfo.description, sizeof(me.info));
 
   me.from    = &me;
@@ -739,5 +741,5 @@ main(int argc, char *argv[])
   eventAddIsh("check_godmode", check_godmode, NULL, 60);
 
   io_loop();
-  return(0);
+  return 0;
 }

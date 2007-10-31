@@ -4,7 +4,6 @@ $Id$
 Documentation for ircd-hybrid
 
 CIDR.txt		- Description of CIDR in IPv4
-LazyLinks.txt		- The lazylinks leaf concept
 challenge.txt           - Overview of the challenge/response system for
                           obtaining operator status
 guidelines.txt		- Documentation guidelines

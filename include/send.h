@@ -67,10 +67,10 @@ extern void sendto_channel_local_butone(struct Client *, int, struct Channel *,
 extern void sendto_channel_remote(struct Client *, struct Client *, int,
                                   int, int, struct Channel *,
                                   const char *, ...) AFP(7, 8);
-extern void sendto_server(struct Client *, struct Client *,
+extern void sendto_server(struct Client *,
                           struct Channel *, unsigned long,
-                          unsigned long, unsigned long,
-                          const char *, ...) AFP(7, 8);
+                          unsigned long,
+                          const char *, ...) AFP(5, 6);
 extern void sendto_match_butone(struct Client *, struct Client *, 
                                 char *, int, const char *, ...) AFP(5, 6);
 extern void sendto_match_servs(struct Client *, const char *, int,
@@ -101,9 +101,6 @@ extern void kill_client_ll_serv_butone(struct Client *, struct Client *,
 
 #define NOCAPS          0               /* no caps */
 #define NOFLAGS         0               /* no flags */
-
-#define LL_ICLIENT      0x00000001      /* introduce unknown clients */
-#define LL_ICHAN        0x00000002      /* introduce unknown chans */
 
 /* used when sending to #mask or $mask */
 #define MATCH_SERVER  1

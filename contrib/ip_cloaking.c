@@ -245,13 +245,11 @@ static unsigned long
 crc32 (const unsigned char *s, unsigned int len)
 {
   unsigned int i;
-  unsigned long crc32val;
+  unsigned long crc32val = 0;
 
-  crc32val = 0;
   for (i = 0; i < len; i++)
-  {
     crc32val = crc32_tab[(crc32val ^ s[i]) & 0xff] ^ (crc32val >> 8);
-  }
+
   return crc32val;
 }
 
@@ -394,12 +392,12 @@ set_vhost(struct Client *client_p, struct Client *source_p,
   make_virthost(target_p->host, target_p->sockhost, target_p->host);
 
   if (IsClient(target_p))
-    sendto_server(client_p, source_p, NULL, CAP_ENCAP, NOCAPS, LL_ICLIENT,
+    sendto_server(client_p, NULL, CAP_ENCAP, NOCAPS,
                   ":%s ENCAP * CHGHOST %s %s",
                   me.name, target_p->name, target_p->host);
 
-    sendto_one(target_p, form_str(RPL_HOSTHIDDEN),
-               me.name, target_p->name, target_p->host);
+  sendto_one(target_p, form_str(RPL_HOSTHIDDEN),
+             me.name, target_p->name, target_p->host);
 }
 
 static void *

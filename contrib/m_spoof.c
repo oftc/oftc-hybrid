@@ -232,7 +232,7 @@ mo_spoof(struct Client *client_p, struct Client *source_p,
   password = (parc > 4 && parv[4][0]) ? parv[4] : NULL;
 
 #ifdef PROPAGATE_SPOOF
-  sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
+  sendto_server(client_p, NULL, NOCAPS, NOCAPS,
                 ":%s SPOOF %s@%s %s %s :%s",
                 source_p->name, user, host, spoof, flags, password ? password : "");
 #endif
@@ -384,8 +384,8 @@ mo_delspoof(struct Client *client_p, struct Client *source_p,
   }
 
 #ifdef PROPAGATE_SPOOF
-  sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
-    ":%s DELSPOOF %s@%s", source_p->name, user, host);
+  sendto_server(client_p, NULL, NOCAPS, NOCAPS,
+                ":%s DELSPOOF %s@%s", source_p->name, user, host);
 #endif
 
 #ifdef SPOOF_FILE
