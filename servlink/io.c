@@ -168,7 +168,7 @@ process_recvq(struct ctrl_command *cmd)
 {
   int ret;
   unsigned char *buf;
-  unsigned int blen;
+  int blen;
   unsigned char *data = cmd->data;
   unsigned int datalen = cmd->datalen;
 
