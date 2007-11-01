@@ -35,7 +35,6 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "s_bsd.h"
-#include "irc_getnameinfo.h"
 #include "ircd.h"
 #include "list.h"
 #include "listener.h"
@@ -287,7 +286,6 @@ register_local_user(struct Client *client_p, struct Client *source_p,
                     const char *nick, const char *username)
 {
   const struct AccessItem *aconf = NULL;
-  char ipaddr[HOSTIPLEN];
   dlink_node *ptr = NULL;
   dlink_node *m = NULL;
 
@@ -435,22 +433,19 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     hash_add_id(source_p);
   }
 
-  irc_getnameinfo((struct sockaddr *)&source_p->localClient->ip,
-                  source_p->localClient->ip.ss_len, ipaddr,
-                  HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
-
   sendto_realops_flags(UMODE_CCONN, L_ALL,
                        "Client connecting: %s (%s@%s) [%s] {%s} [%s]",
                        nick, source_p->username, source_p->host,
                        ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
-                       "255.255.255.255" : ipaddr, get_client_class(source_p),
+                       "255.255.255.255" : source_p->sockhost,
+                       get_client_class(source_p),
                        source_p->info);
 
   sendto_realops_flags(UMODE_CCONN_FULL, L_ALL,
                        "CLICONN %s %s %s %s %s %s %s 0 %s",
                        nick, source_p->username, source_p->host,
                        ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
-                       "255.255.255.255" : ipaddr,
+                       "255.255.255.255" : source_p->sockhost,
 		       get_client_class(source_p),
 		       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                            "<hidden>" : source_p->client_host,
