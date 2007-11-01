@@ -697,23 +697,11 @@ get_client_name(struct Client *client, int showip)
 void
 free_exited_clients(void)
 {
-  dlink_node *ptr, *next;
-  struct Client *target_p;
+  dlink_node *ptr = NULL, *next = NULL;
   
   DLINK_FOREACH_SAFE(ptr, next, dead_list.head)
   {
-    target_p = ptr->data;
-
-    if (ptr->data == NULL)
-    {
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-                           "Warning: null client on dead_list!");
-      dlinkDelete(ptr, &dead_list);
-      free_dlink_node(ptr);
-      continue;
-    }
-
-    free_client(target_p);
+    free_client(ptr->data);
     dlinkDelete(ptr, &dead_list);
     free_dlink_node(ptr);
   }
@@ -761,8 +749,6 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
     DLINK_FOREACH_SAFE(lp, next_lp, source_p->channel.head)
       remove_user_from_channel(lp->data);
 
-    /* Clean up allow lists */
-    del_all_accepts(source_p);
     add_history(source_p, 0);
     off_history(source_p);
 
@@ -778,6 +764,8 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
       /* Clean up invitefield */
       DLINK_FOREACH_SAFE(lp, next_lp, source_p->localClient->invited.head)
         del_invite(lp->data, source_p);
+
+      del_all_accepts(source_p);
     }
   }
 
@@ -1038,7 +1026,8 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
     assert(source_p->serv != NULL && source_p->servptr != NULL);
 
     if (ConfigServerHide.hide_servers)
-      /* set netsplit message to "*.net *.split" to still show 
+      /*
+       * Set netsplit message to "*.net *.split" to still show 
        * that its a split, but hide the servers splitting
        */
       strcpy(splitstr, "*.net *.split");
@@ -1202,128 +1191,84 @@ exit_aborted_clients(void)
 
 /*
  * accept processing, this adds a form of "caller ID" to ircd
- * 
+ *
  * If a client puts themselves into "caller ID only" mode,
- * only clients that match a client pointer they have put on 
+ * only clients that match a client pointer they have put on
  * the accept list will be allowed to message them.
  *
- * [ source.on_allow_list ] -> [ target1 ] -> [ target2 ]
- *
- * [target.allow_list] -> [ source1 ] -> [source2 ]
- *
- * i.e. a target will have a link list of source pointers it will allow
- * each source client then has a back pointer pointing back
- * to the client that has it on its accept list.
- * This allows for exit_one_client to remove these now bogus entries
- * from any client having an accept on them. 
+ * Diane Bruce, "Dianora" db@db.net
  */
+
+void
+del_accept(struct split_nuh_item *accept_p, struct Client *client_p)
+{
+  dlinkDelete(&accept_p->node, &client_p->localClient->acceptlist);
+
+  MyFree(accept_p->nickptr);
+  MyFree(accept_p->userptr);
+  MyFree(accept_p->hostptr);
+  MyFree(accept_p);
+}
+
+struct split_nuh_item *
+find_accept(const char *nick, const char *user,
+            const char *host, struct Client *client_p, int do_match)
+{
+  dlink_node *ptr = NULL;
+  /* XXX We wouldn't need that if match() would return 0 on match */
+  int (*cmpfunc)(const char *, const char *) = do_match ? match : irccmp;
+
+  DLINK_FOREACH(ptr, client_p->localClient->acceptlist.head)
+  {
+    struct split_nuh_item *accept_p = ptr->data;
+
+    if (cmpfunc(accept_p->nickptr, nick) == do_match &&
+        cmpfunc(accept_p->userptr, user) == do_match &&
+        cmpfunc(accept_p->hostptr, host) == do_match)
+      return accept_p;
+  }
+
+  return NULL;
+}
 
 /* accept_message()
  *
- * inputs	- pointer to source client
- * 		- pointer to target client
- * output	- 1 if accept this message 0 if not
+ * inputs       - pointer to source client
+ *              - pointer to target client
+ * output       - 1 if accept this message 0 if not
  * side effects - See if source is on target's allow list
  */
 int
-accept_message(struct Client *source, struct Client *target)
+accept_message(struct Client *source,
+               struct Client *target)
 {
-  dlink_node *ptr;
+  dlink_node *ptr = NULL;
 
-  DLINK_FOREACH(ptr, target->allow_list.head)
-  {
-    struct Client *target_p = ptr->data;
-
-    if (source == target_p)
-      return (1);
-  }
+  if (source == target || find_accept(source->name, source->username,
+                                      source->host, target, 1))
+    return 1;
 
   if (IsSoftCallerId(target))
-  {
     DLINK_FOREACH(ptr, target->channel.head)
       if (IsMember(source, ((struct Membership *)ptr->data)->chptr))
-        return (1);
-  }
+        return 1;
 
-  return (0);
-}
-
-/* del_from_accept()
- *
- * inputs	- pointer to source client
- * 		- pointer to target client
- * output	- NONE
- * side effects - Delete's source pointer to targets allow list
- *
- * Walk through the target's accept list, remove if source is found,
- * Then walk through the source's on_accept_list remove target if found.
- */
-void
-del_from_accept(struct Client *source, struct Client *target)
-{
-  dlink_node *ptr;
-  dlink_node *ptr2;
-  dlink_node *next_ptr;
-  dlink_node *next_ptr2;
-  struct Client *target_p;
-
-  DLINK_FOREACH_SAFE(ptr, next_ptr, target->allow_list.head)
-  {
-    target_p = ptr->data;
-
-    if (source == target_p)
-    {
-      dlinkDelete(ptr, &target->allow_list);
-      free_dlink_node(ptr);
-
-      DLINK_FOREACH_SAFE(ptr2, next_ptr2, source->on_allow_list.head)
-      {
-        target_p = ptr2->data;
-
-        if (target == target_p)
-        {
-          dlinkDelete(ptr2, &source->on_allow_list);
-          free_dlink_node(ptr2);
-        }
-      }
-    }
-  }
+  return 0;
 }
 
 /* del_all_accepts()
  *
- * inputs	- pointer to exiting client
- * output	- NONE
- * side effects - Walk through given clients allow_list and on_allow_list
- *                remove all references to this client
+ * inputs       - pointer to exiting client
+ * output       - NONE
+ * side effects - Walk through given clients acceptlist and remove all entries
  */
 void
 del_all_accepts(struct Client *client_p)
 {
-  dlink_node *ptr, *next_ptr;
+  dlink_node *ptr = NULL, *next_ptr = NULL;
 
-  DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->allow_list.head)
-    del_from_accept(ptr->data, client_p);
-
-  DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->on_allow_list.head)
-    del_from_accept(client_p, ptr->data);
-}
-
-/* del_all_their_accepts()
- *
- * inputs	- pointer to exiting client
- * output	- NONE
- * side effects - Walk through given clients on_allow_list
- *                remove all references to this client,
- *		  allow this client to keep their own allow_list
- */
-void
-del_all_their_accepts(struct Client *client_p)
-{
-  dlink_node *ptr, *next_ptr;
-
-  DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->on_allow_list.head)
-    del_from_accept(client_p, ptr->data);
+  DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->localClient->acceptlist.head)
+    del_accept(ptr->data, client_p);
 }
 
 /* set_initial_nick()
@@ -1408,11 +1353,6 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
 
     if (!samenick)
     {
-      /*
-       * Make sure everyone that has this client on its accept list
-       * loses that reference.
-       */
-      del_all_their_accepts(source_p);
       source_p->tsinfo = CurrentTime;
       clear_ban_cache_client(source_p);
       watch_check_hash(source_p, RPL_LOGOFF);

@@ -208,6 +208,7 @@ struct LocalUser
   } recv, send;
 
   struct Listener *listener;   /* listener accepted from */
+  dlink_list        acceptlist; /* clients I'll allow to talk to me */
   dlink_list        watches;   /* chain of Watch pointer blocks */
   dlink_list        confs;     /* Configuration record associated */
   dlink_list        invited;   /* chain of invite pointer blocks */
@@ -550,13 +551,14 @@ extern dlink_list listing_client_list;
 extern dlink_list global_client_list;
 
 extern int accept_message(struct Client *, struct Client *);
+extern struct split_nuh_item *find_accept(const char *, const char *,
+                                          const char *, struct Client *, int);
+extern void del_accept(struct split_nuh_item *, struct Client *);
+extern void del_all_accepts(struct Client *);
 extern void set_initial_nick(struct Client *, struct Client *, const char *);
 extern void exit_client(struct Client *, struct Client *, const char *);
 extern void check_conf_klines(void);
 extern void init_client(void);
-extern void del_from_accept(struct Client *, struct Client *);
-extern void del_all_accepts(struct Client *);
-extern void del_all_their_accepts(struct Client *);
 extern void change_local_nick(struct Client *, struct Client *, const char *);
 extern void dead_link_on_write(struct Client *, int);
 extern void dead_link_on_read(struct Client *, int);
