@@ -242,7 +242,7 @@ static unsigned long crc32_tab[] = {
 };
 
 static unsigned long
-crc32 (const unsigned char *s, unsigned int len)
+crc32(const char *s, unsigned int len)
 {
   unsigned int i;
   unsigned long crc32val = 0;
@@ -286,9 +286,9 @@ str2arr (char **pparv, char *string, char *delim)
  * new = encrypted hostname/ip
  */
 static void
-make_virthost (char *curr, char *host, char *new)
+make_virthost(char *curr, char *host, char *new)
 {
-  static char mask[HOSTLEN + 1];
+  char mask[HOSTLEN + 1];
   char *parv[HOSTLEN + 1], *parv2[HOSTLEN + 1], s[HOSTLEN + 1], s2[HOSTLEN + 1];
   int parc = 0, parc2 = 0, len = 0;
   unsigned long hash[8];
