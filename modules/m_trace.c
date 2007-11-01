@@ -42,14 +42,14 @@
 #include "s_conf.h"
 #include "irc_getnameinfo.h"
 
-static void m_trace(struct Client *, struct Client *, int, char **);
-static void ms_trace(struct Client*, struct Client*, int, char**);
-static void mo_trace(struct Client*, struct Client*, int, char**);
-static void do_actual_trace(struct Client *, int, char **);
+static void m_trace(struct Client *, struct Client *, int, char *[]);
+static void ms_trace(struct Client *, struct Client *, int, char *[]);
+static void mo_trace(struct Client *, struct Client *, int, char *[]);
+static void do_actual_trace(struct Client *, int, char *[]);
 
 struct Message trace_msgtab = {
   "TRACE", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_trace, ms_trace, m_ignore, mo_trace, m_ignore}
+  { m_unregistered, m_trace, ms_trace, m_ignore, mo_trace, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -82,8 +82,20 @@ _moddeinit(void)
 }
 #endif
 
-static int report_this_status(struct Client *source_p, struct Client *target_p,
-			      int dow, int link_u_p, int link_u_s);
+static void report_this_status(struct Client *, struct Client *, int);
+
+static void
+trace_get_dependent(int *const server,
+                    int *const client, const struct Client *target_p)
+{
+  const dlink_node *ptr = NULL;
+
+  (*server)++;
+  (*client) += dlink_list_length(&target_p->serv->client_list);
+
+  DLINK_FOREACH(ptr, target_p->serv->server_list.head)
+    trace_get_dependent(server, client, ptr->data);
+}
 
 /*
  * m_trace()
@@ -179,7 +191,7 @@ mo_trace(struct Client *client_p, struct Client *source_p,
 }
 
 static void
-do_actual_trace(struct Client *source_p, int parc, char **parv)
+do_actual_trace(struct Client *source_p, int parc, char *parv[])
 {
   struct Client *target_p = NULL;
   struct ConfItem *conf;
@@ -273,7 +285,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
-    report_this_status(source_p, target_p, dow, 0, 0);
+    report_this_status(source_p, target_p, dow);
   }
 
   DLINK_FOREACH(ptr, serv_list.head)
@@ -285,8 +297,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
-    report_this_status(source_p, target_p, dow,
-      target_p->serv->dep_users, target_p->serv->dep_servers);
+    report_this_status(source_p, target_p, dow);
   }
 
   /* This section is to report the unknowns */
@@ -299,21 +310,21 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
-    report_this_status(source_p, target_p, dow, 0, 0);
+    report_this_status(source_p, target_p, dow);
   }
 
   DLINK_FOREACH(ptr, class_items.head)
   {
     conf = ptr->data;
-    cltmp = (struct ClassItem *)map_to_conf(conf);
+    cltmp = map_to_conf(conf);
+
     if (CurrUserCount(cltmp) > 0)
       sendto_one(source_p, form_str(RPL_TRACECLASS),
-		 from, to, conf->name, CurrUserCount(cltmp));
+                 from, to, conf->name, CurrUserCount(cltmp));
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFTRACE), from, to, tname);
 }
-
 
 /*
 ** ms_trace
@@ -338,15 +349,13 @@ ms_trace(struct Client *client_p, struct Client *source_p,
  * output	- counter of number of hits
  * side effects - NONE
  */
-static int
-report_this_status(struct Client *source_p, struct Client *target_p,
-                   int dow, int link_u_p, int link_s_p)
+static void
+report_this_status(struct Client *source_p, struct Client *target_p, int dow)
 {
   const char *name;
   const char *class_name;
   const char *from, *to;
   char ip[HOSTIPLEN];
-  int cnt = 0;
 
   if (!MyConnect(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
   {
@@ -368,21 +377,17 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 
   set_time();
 
-  switch(target_p->status)
+  switch (target_p->status)
   {
     case STAT_CONNECTING:
       sendto_one(source_p, form_str(RPL_TRACECONNECTING),
                  from, to, class_name, 
 		 IsOperAdmin(source_p) ? name : target_p->name);
-		   
-      cnt++;
       break;
     case STAT_HANDSHAKE:
       sendto_one(source_p, form_str(RPL_TRACEHANDSHAKE),
                  from, to, class_name, 
                  IsOperAdmin(source_p) ? name : target_p->name);
-		   
-      cnt++;
       break;
     case STAT_ME:
       break;
@@ -391,7 +396,6 @@ report_this_status(struct Client *source_p, struct Client *target_p,
       sendto_one(source_p, form_str(RPL_TRACEUNKNOWN),
 		 from, to, class_name, name, ip,
 		 target_p->firsttime ? CurrentTime - target_p->firsttime : -1);
-      cnt++;
       break;
     case STAT_CLIENT:
       /* Only opers see users if there is a wildcard
@@ -446,27 +450,29 @@ report_this_status(struct Client *source_p, struct Client *target_p,
                          CurrentTime - target_p->lasttime,
                          CurrentTime - target_p->localClient->last);
 	  }
-	  cnt++;
 	}
       break;
     case STAT_SERVER:
-      if(!IsOperAdmin(source_p))
+    {
+      int clients = 0;
+      int servers = 0;
+
+      trace_get_dependent(&servers, &clients, target_p);
+
+      if (!IsOperAdmin(source_p))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),
-		 from, to, class_name, link_s_p,
-		 link_u_p, name, *(target_p->serv->by) ?
+		 from, to, class_name, servers,
+		 clients, name, *(target_p->serv->by) ?
 		 target_p->serv->by : "*", "*",
 		 me.name, CurrentTime - target_p->lasttime);
-      cnt++;
       break;
+    }
       
     default: /* ...we actually shouldn't come here... --msa */
       sendto_one(source_p, form_str(RPL_TRACENEWTYPE),
-		 from, to, name);
-      cnt++;
+                 from, to, name);
       break;
   }
-
-  return cnt;
 }

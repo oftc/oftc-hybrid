@@ -49,18 +49,13 @@ struct Listener;
 struct Client;
 struct LocalUser;
 
-/*
- * Client structures
- */
 
 struct Server
 {
   char by[NICKLEN];       /* who activated this connection     */
   struct ConfItem *sconf; /* ConfItem connect{} pointer for this server */
-  dlink_list servers;     /* Servers on this server            */
-  dlink_list users;       /* Users on this server              */
-  int dep_servers;        /* Total number of dependent servers on all levels */
-  int dep_users;          /* Total number of dependent users on all levels */
+  dlink_list server_list; /* Servers on this server            */
+  dlink_list client_list; /* Clients on this server            */
 };
 
 struct SlinkRpl
