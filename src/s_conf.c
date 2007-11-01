@@ -39,7 +39,6 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "s_bsd.h"
-#include "irc_getnameinfo.h"
 #include "irc_getaddrinfo.h"
 #include "ircd.h"
 #include "list.h"
@@ -887,20 +886,14 @@ check_client(va_list args)
       break;
 
     case NOT_AUTHORIZED:
-    {
-      static char ipaddr[HOSTIPLEN];
       ServerStats->is_ref++;
       /* jdc - lists server name & port connections are on */
       /*       a purely cosmetical change */
-      irc_getnameinfo((struct sockaddr*)&source_p->ip,
-            source_p->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
-            NI_NUMERICHOST);
-      sendto_realops_flags(UMODE_UNAUTH, L_ALL, 
-         "Unauthorized client connection from %s [%s] on [%s/%u].",
-         get_client_name(source_p, SHOW_IP),
-         ipaddr,
-         source_p->localClient->listener->name,
-         source_p->localClient->listener->port);
+			   "Unauthorized client connection from %s [%s] on [%s/%u].",
+			   get_client_name(source_p, SHOW_IP),
+			   source_p->sockhost,
+			   source_p->localClient->listener->name,
+			   source_p->localClient->listener->port);
       ilog(L_INFO,
     "Unauthorized client connection from %s on [%s/%u].",
     get_client_name(source_p, SHOW_IP),
@@ -921,8 +914,7 @@ check_client(va_list args)
       else
   exit_client(source_p, &me, "You are not authorized to use this server");
       break;
-    }
- 
+
    case BANNED_CLIENT:
      /*
       * Don't exit them immediately, play with them a bit.

@@ -40,7 +40,6 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
-#include "irc_getnameinfo.h"
 
 static void m_trace(struct Client *, struct Client *, int, char *[]);
 static void ms_trace(struct Client *, struct Client *, int, char *[]);
@@ -234,25 +233,19 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
   {
     const char *name;
     const char *class_name;
-    char ipaddr[HOSTIPLEN];
 
     target_p = find_client(tname);
       
     if (target_p && IsClient(target_p)) 
     {
       name = get_client_name(target_p, HIDE_IP);
-      /* should we not use sockhost here? - stu */
-      irc_getnameinfo((struct sockaddr*)&target_p->ip,
-		      target_p->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
-		      NI_NUMERICHOST);
-
       class_name = get_client_class(target_p);
 
       if (IsOper(target_p))
       {
         sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                    from, to, class_name, name, 
-                   IsIPSpoof(target_p) ? "255.255.255.255" : ipaddr,
+                   IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
                    CurrentTime - target_p->lasttime,
                    CurrentTime - target_p->localClient->last);
       }
@@ -260,7 +253,7 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
       {
         sendto_one(source_p,form_str(RPL_TRACEUSER),
                    from, to, class_name, name, 
-		   IsIPSpoof(target_p) ? "255.255.255.255" : ipaddr,
+		   IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
                    CurrentTime - target_p->lasttime,
                    CurrentTime - target_p->localClient->last);
       }
@@ -355,7 +348,6 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
   const char *name;
   const char *class_name;
   const char *from, *to;
-  char ip[HOSTIPLEN];
 
   if (!MyConnect(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
   {
@@ -368,10 +360,6 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
     to = source_p->name;
   }
 
-  /* Should this be sockhost? - stu */
-  irc_getnameinfo((struct sockaddr*)&target_p->ip, 
-        target_p->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
-        NI_NUMERICHOST);
   name = get_client_name(target_p, HIDE_IP);
   class_name = get_client_class(target_p);
 
@@ -394,11 +382,12 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
     case STAT_UNKNOWN:
       /* added time -Taner */
       sendto_one(source_p, form_str(RPL_TRACEUNKNOWN),
-		 from, to, class_name, name, ip,
+		 from, to, class_name, name, target_p->sockhost,
 		 target_p->firsttime ? CurrentTime - target_p->firsttime : -1);
       break;
     case STAT_CLIENT:
-      /* Only opers see users if there is a wildcard
+      /*
+       * Only opers see users if there is a wildcard
        * but anyone can see all the opers.
        */
       if ((IsOper(source_p) &&
@@ -408,7 +397,7 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
           if (IsAdmin(target_p) && !ConfigFileEntry.hide_spoof_ips)
 	    sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                        from, to, class_name, name,
-                       IsOperAdmin(source_p) ? ip : "255.255.255.255",
+                       IsOperAdmin(source_p) ? target_p->sockhost : "255.255.255.255",
                        CurrentTime - target_p->lasttime,
                        CurrentTime - target_p->localClient->last);
 		       
@@ -417,14 +406,14 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
 	    if (ConfigFileEntry.hide_spoof_ips)
 	      sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
 		         from, to, class_name, name, 
-		         IsIPSpoof(target_p) ? "255.255.255.255" : ip,
+		         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
 		         CurrentTime - target_p->lasttime,
 		         CurrentTime - target_p->localClient->last);
 	    else
               sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                          from, to, class_name, name,
-                         MyOper(source_p) ? ip :
-                         (IsIPSpoof(target_p) ? "255.255.255.255" : ip),
+                         MyOper(source_p) ? target_p->sockhost :
+                         (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                          CurrentTime - target_p->lasttime,
                          CurrentTime - target_p->localClient->last);
 	  }		       
@@ -439,14 +428,14 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
             if (ConfigFileEntry.hide_spoof_ips)
 	      sendto_one(source_p, format_str,
 		         from, to, class_name, name,
-                         IsIPSpoof(target_p) ? "255.255.255.255" : ip,
+                         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
 		         CurrentTime - target_p->lasttime,
 		         CurrentTime - target_p->localClient->last);
 	    else
               sendto_one(source_p, format_str,
                          from, to, class_name, name,
-                         MyOper(source_p) ? ip :
-                         (IsIPSpoof(target_p) ? "255.255.255.255" : ip),
+                         MyOper(source_p) ? target_p->sockhost :
+                         (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                          CurrentTime - target_p->lasttime,
                          CurrentTime - target_p->localClient->last);
 	  }
