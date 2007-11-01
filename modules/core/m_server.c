@@ -479,9 +479,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
     assert(0==2);
   }
   else
-    dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->servers);
-
-  client_p->serv->dep_servers++;
+    dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->server_list);
 
   /* Old sendto_serv_but_one() call removed because we now
    * need to send different names to different servers
@@ -738,11 +736,9 @@ ms_sid(struct Client *client_p, struct Client *source_p,
     assert(0==4);
   }
   else
-    dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->servers);
+    dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->server_list);
 
   hash_add_id(target_p);
-
-  client_p->serv->dep_servers++;
 
   DLINK_FOREACH_SAFE(ptr, ptr_next, serv_list.head)
   {
