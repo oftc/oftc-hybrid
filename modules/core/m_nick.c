@@ -31,7 +31,6 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "s_conf.h"
-#include "s_stats.h"
 #include "s_user.h"
 #include "whowas.h"
 #include "s_serv.h"
@@ -48,7 +47,6 @@
 #include "irc_getaddrinfo.h"
 #include "channel_mode.h"
 #include "watch.h"
->>>>>>> 72f4b39... Backported WATCH
 
 static void m_nick(struct Client *, struct Client *, int, char **);
 static void mr_nick(struct Client *, struct Client *, int, char **);
@@ -432,7 +430,7 @@ ms_uid(struct Client *client_p, struct Client *source_p,
     kill_client_ll_serv_butone(NULL, target_p, "%s (ID collision)",
 		               me.name);
 
-    ServerStats->is_kill++;
+    ++ServerStats.is_kill;
 	    
     SetKilled(target_p);
     exit_client(target_p, &me, "ID Collision");
@@ -472,8 +470,8 @@ check_clean_nick(struct Client *client_p, struct Client *source_p,
    */
   if (!clean_nick_name(nick, 0) || strcmp(nick, newnick))
   {
-    ServerStats->is_kill++;
-    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+    ++ServerStats.is_kill;
+    sendto_realops_flags(UMODE_DEBUG, L_ALL,
                          "Bad Nick: %s From: %s(via %s)",
                          nick, server_p->name, client_p->name);
 
@@ -511,8 +509,8 @@ check_clean_user(struct Client *client_p, char *nick,
 {
   if (strlen(user) > USERLEN)
   {
-    ServerStats->is_kill++;
-    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+    ++ServerStats.is_kill;
+    sendto_realops_flags(UMODE_DEBUG, L_ALL,
                          "Long Username: %s Nickname: %s From: %s(via %s)",
 			 user, nick, server_p->name, client_p->name);
 
@@ -545,8 +543,8 @@ check_clean_host(struct Client *client_p, char *nick,
 {
   if (strlen(host) > HOSTLEN)
   {
-    ServerStats->is_kill++;
-    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+    ++ServerStats.is_kill;
+    sendto_realops_flags(UMODE_DEBUG, L_ALL,
                          "Long Hostname: %s Nickname: %s From: %s(via %s)",
 			 host, nick, server_p->name, client_p->name);
 
@@ -666,22 +664,19 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
 
     if (parc > 8)
     {
-      unsigned int flag;
       char *m;
 
       /* parse usermodes */
-      m = &parv[4][1];
-
-      while (*m)
+      for (m = &parv[4][1]; *m; ++m)
       {
-        flag = user_modes[(unsigned char)*m];
-        if (!(source_p->umodes & UMODE_INVISIBLE) && (flag & UMODE_INVISIBLE))
-          Count.invisi++;
-        if (!(source_p->umodes & UMODE_OPER) && (flag & UMODE_OPER))
-          Count.oper++;
+        unsigned int flag = user_modes[(unsigned char)*m];
+
+        if (flag & UMODE_INVISIBLE)
+          ++Count.invisi;
+        if (flag & UMODE_OPER)
+          ++Count.oper;
 
         source_p->umodes |= flag & SEND_UMODES;
-        m++;
       }
 
       register_remote_user(client_p, source_p, parv[5], parv[6],
@@ -732,8 +727,7 @@ static void
 client_from_server(struct Client *client_p, struct Client *source_p, int parc,
                    char *parv[], time_t newts, char *nick, char *ugecos)
 {
-  char *m;
-  unsigned int flag;
+  char *m = NULL;
   const char *servername = source_p->name;
   struct addrinfo hints, *res;
 
@@ -765,17 +759,16 @@ client_from_server(struct Client *client_p, struct Client *source_p, int parc,
   hash_add_id(source_p);
 
   /* parse usermodes */
-  m = &parv[4][1];
-  while (*m)
+  for (m = &parv[4][1]; *m; ++m)
   {
-    flag = user_modes[(unsigned char)*m];
+    unsigned int flag = user_modes[(unsigned char)*m];
+
     if (flag & UMODE_INVISIBLE)
-      Count.invisi++;
+      ++Count.invisi;
     if (flag & UMODE_OPER)
-      Count.oper++;
+      ++Count.oper;
 
     source_p->umodes |= flag & SEND_UMODES;
-    m++;
   }
 
   register_remote_user(client_p, source_p, parv[5], parv[6],
@@ -808,7 +801,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
       kill_client_ll_serv_butone(NULL, target_p,
                                  "%s (Nick collision (new))",
 				 me.name);
-      ServerStats->is_kill++;
+      ++ServerStats.is_kill;
       sendto_one(target_p, form_str(ERR_NICKCOLLISION),
                  me.name, target_p->name, target_p->name);
 
@@ -847,7 +840,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
 			  target_p->name, target_p->from->name,
 			  client_p->name);
 
-        ServerStats->is_kill++;
+        ++ServerStats.is_kill;
 	sendto_one(target_p, form_str(ERR_NICKCOLLISION),
 	           me.name, target_p->name, target_p->name);
 
@@ -879,7 +872,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
 		 source_p->name, target_p->name, target_p->from->name,
 		 client_p->name);
     
-      ServerStats->is_kill++;
+      ++ServerStats.is_kill;
       sendto_one(target_p, form_str(ERR_NICKCOLLISION),
                  me.name, target_p->name, target_p->name);
 
@@ -888,7 +881,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
                                   "%s (Nick change collision)",
 				  me.name);
 
-      ServerStats->is_kill++;
+      ++ServerStats.is_kill;
 
       kill_client_ll_serv_butone(NULL, target_p,
                                  "%s (Nick change collision)",
@@ -919,7 +912,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
 	       source_p->name, target_p->name, target_p->from->name,
 	       client_p->name);
 
-        ServerStats->is_kill++;
+        ++ServerStats.is_kill;
 
 	/* this won't go back to the incoming link, so LL doesnt matter */
         kill_client_ll_serv_butone(client_p, source_p,
@@ -951,7 +944,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
                                  "%s (Nick collision)",
 				 me.name);
 
-       ServerStats->is_kill++;
+       ++ServerStats.is_kill;
        sendto_one(target_p, form_str(ERR_NICKCOLLISION),
                   me.name, target_p->name, target_p->name);
 

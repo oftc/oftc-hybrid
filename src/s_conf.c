@@ -28,7 +28,6 @@
 #include "s_conf.h"
 #include "s_serv.h"
 #include "resv.h"
-#include "s_stats.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
@@ -868,8 +867,6 @@ check_client(va_list args)
          get_client_name(source_p, SHOW_IP),
          source_p->sockhost);
       ilog(L_INFO,"Too many connections on IP from %s.",
-     get_client_name(source_p, SHOW_IP));
-      ServerStats->is_ref++;
       exit_client(source_p, &me, reject_reason);
       break;
 
@@ -879,14 +876,14 @@ check_client(va_list args)
          get_client_name(source_p, SHOW_IP),
          source_p->sockhost);
       ilog(L_INFO,"Too many connections from %s.",
-     get_client_name(source_p, SHOW_IP));
-       ServerStats->is_ref++;
+	   get_client_name(source_p, SHOW_IP));
+      ++ServerStats.is_ref;
       exit_client(source_p, &me, 
     "No more connections allowed in your connection class");
       break;
 
     case NOT_AUTHORIZED:
-      ServerStats->is_ref++;
+      ++ServerStats.is_ref;
       /* jdc - lists server name & port connections are on */
       /*       a purely cosmetical change */
 			   "Unauthorized client connection from %s [%s] on [%s/%u].",
@@ -927,7 +924,7 @@ check_client(va_list args)
      }
      else
        exit_client(source_p, &me, "Banned");
-     ServerStats->is_ref++;
+     ++ServerStats.is_ref;
      break;
 
    case 0:

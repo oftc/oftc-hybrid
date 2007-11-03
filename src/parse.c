@@ -34,7 +34,6 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "s_log.h"
-#include "s_stats.h"
 #include "send.h"
 #include "ircd_handler.h"
 #include "msg.h"
@@ -243,7 +242,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
        */
       if (from == NULL)
       {
-        ServerStats->is_unpf++;
+        ++ServerStats.is_unpf;
         remove_unknown(client_p, sender, pbuffer);
         return;
       }
@@ -252,7 +251,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
       if (from->from != client_p)
       {
-        ServerStats->is_wrdi++;
+        ++ServerStats.is_wrdi;
         cancel_clients(client_p, from, pbuffer);
         return;
       }
@@ -264,7 +263,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
   if (*ch == '\0')
   {
-    ServerStats->is_empt++;
+    ++ServerStats.is_empt;
     return;
   }
 
@@ -281,7 +280,8 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
   {
     mptr = NULL;
     numeric = ch;
-    ServerStats->is_num++;
+    paramcount = MAXPARA;
+    ++ServerStats.is_num;
     s = ch + 3;  /* I know this is ' ' from above if            */
     *s++ = '\0'; /* blow away the ' ', and point s to next part */
   }
@@ -311,7 +311,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
                      me.name, from->name, ch);
       }
 
-      ServerStats->is_unco++;
+      ++ServerStats.is_unco;
       return;
     }
 
@@ -453,6 +453,7 @@ add_msg_element(struct MessageTree *mtree_p,
 
       mtree_p->links++;		/* Have new pointer, so up ref count */
     }
+
     add_msg_element(ntree_p, msg_p, cmd+1);
   }
 }
@@ -500,6 +501,7 @@ del_msg_element(struct MessageTree *mtree_p, const char *cmd)
     if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN-1)]) != NULL)
     {
       del_msg_element(ntree_p, cmd+1);
+
       if (ntree_p->links == 0)
       {
 	mtree_p->pointers[*cmd & (MAXPTRLEN-1)] = NULL;
@@ -583,7 +585,7 @@ mod_del_cmd(struct Message *msg)
 struct Message *
 find_command(const char *cmd)
 {
-  return(msg_tree_parse(cmd, &msg_tree));
+  return msg_tree_parse(cmd, &msg_tree);
 }
 
 /* report_messages()
@@ -599,10 +601,8 @@ report_messages(struct Client *source_p)
   int i;
 
   for (i = 0; i < MAXPTRLEN; i++)
-  {
     if (mtree->pointers[i] != NULL)
       recurse_report_messages(source_p, mtree->pointers[i]);
-  }
 }
 
 static void
@@ -611,18 +611,14 @@ recurse_report_messages(struct Client *source_p, struct MessageTree *mtree)
   int i;
 
   if (mtree->msg != NULL)
-  {
     sendto_one(source_p, form_str(RPL_STATSCOMMANDS),
                me.name, source_p->name, mtree->msg->cmd,
                mtree->msg->count, mtree->msg->bytes,
                mtree->msg->rcount);
-  }
 
   for (i = 0; i < MAXPTRLEN; i++)
-  {
     if (mtree->pointers[i] != NULL)
       recurse_report_messages(source_p, mtree->pointers[i]);
-  }
 }
 
 /* cancel_clients()
@@ -665,7 +661,7 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
     sendto_realops_flags(UMODE_DEBUG, L_ALL, 
                          "Not dropping server %s (%s) for Fake Direction",
                          client_p->name, source_p->name);
-    return(-1);
+    return -1;
     /* return exit_client(client_p, client_p, &me, "Fake Direction");*/
   }
 
@@ -683,7 +679,7 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
                        source_p->name, source_p->username, source_p->host,
                        source_p->from->name, get_client_name(client_p, SHOW_IP));
 
-  return(0);
+  return 0;
 }
 
 /* remove_unknown()

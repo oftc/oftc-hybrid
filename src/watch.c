@@ -42,7 +42,6 @@
 #include "s_conf.h"
 #include "s_log.h"
 #include "s_serv.h"
-#include "s_stats.h"
 #include "send.h"
 #include "supported.h"
 #include "whowas.h"

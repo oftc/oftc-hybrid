@@ -36,7 +36,6 @@
 #include "s_conf.h"      /* struct AccessItem */
 #include "s_log.h"       /* log level defines */
 #include "s_serv.h"      /* server_estab, check_server, my_name_for_link */
-#include "s_stats.h"     /* ServerStats */
 #include "send.h"        /* sendto_one */
 #include "motd.h"
 #include "msg.h"
