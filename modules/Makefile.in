@@ -20,12 +20,13 @@ LD		= @LD@
 SSL_LIBS	= @SSL_LIBS@
 SSL_INCLUDES	= @SSL_INCLUDES@
 IRCDLIBS        = @LIBS@ $(SSL_LIBS)
+MODULEDIR	= @MODULEDIR@
+AUTOMODULEDIR	= @AUTOMODULEDIR@
 
 prefix          = $(DESTDIR)@prefix@
 datarootdir	= $(DESTDIR)@datarootdir@
-# Change this later! -- adrian
-moduledir       = ${prefix}/modules
-automoduledir   = ${moduledir}/autoload
+moduledir       = $(MODULEDIR)
+automoduledir   = $(AUTOMODULEDIR)
 
 INCLUDES	= -I../include -I../lib/pcre $(SSL_INCLUDES)
 CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
@@ -130,7 +131,6 @@ libmodules.a: $(S_OBJS)
 	$(AR) csrv $@ $(S_OBJS) 
 
 install-mkdirs:
-	mkdir -p $(prefix)
 
 	-@if test -d $(moduledir)-old; then \
 		echo "${RM} -rf $(moduledir)-old"; \

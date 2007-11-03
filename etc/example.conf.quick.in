@@ -373,7 +373,7 @@ glines {
 };
 
 modules {
-	path = "/usr/local/ircd/modules";
-	path = "/usr/local/ircd/modules/autoload";
+	path = "@datadir@/modules";
+	path = "@datadir@/modules/autoload";
 	#module = "some_module.so";
 };

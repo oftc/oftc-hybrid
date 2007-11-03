@@ -5,8 +5,8 @@ MV		= @MV@
 INSTALL		= @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
 prefix		= $(DESTDIR)@prefix@
-messagedir	= $(prefix)/messages
-datarootdir	= $(DESTDIR)@datarootdir@
+datadir		= $(DESTDIR)@datadir@
+messagedir	= $(datadir)/messages
 
 CLOBBER		= @CLOBBER@
 

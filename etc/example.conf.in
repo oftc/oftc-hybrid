@@ -1276,8 +1276,8 @@ modules {
 	 * module path: other paths to search for modules specified below
 	 * and in /modload.
 	 */
-	path = "/usr/local/ircd/modules";
-	path = "/usr/local/ircd/modules/autoload";
+	path = "@datadir@/modules";
+	path = "@datadir@/autoload";
 
 	/* module: the name of a module to load on startup/rehash */
 	#module = "some_module.so";

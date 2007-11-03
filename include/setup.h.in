@@ -177,6 +177,15 @@
 /* Prefix where the ircd is installed. */
 #undef IRCD_PREFIX
 
+/* Prefix where datadir is */
+#undef IRCD_DATADIR
+
+/* Prefix where shardedstatedir is (/var/run/ircd-hybrid/ i.e.  logs */
+#undef IRCD_LOCALSTATEDIR
+
+/* Prefix where sysconfdir is (i.e. ircd.conf /usr/local/etc/ircd-hybrid */
+#undef IRCD_SYSCONFDIR
+
 /* Size of the local client heap. */
 #undef LCLIENT_HEAP_SIZE
 

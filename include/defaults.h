@@ -50,11 +50,28 @@
 /* dirs */
 #define DPATH       IRCD_PREFIX                                                     
 #define BINPATH     IRCD_PREFIX "/bin/"
-#define MSGPATH     IRCD_PREFIX "/messages/"
-#define ETCPATH     IRCD_PREFIX "/etc"
-#define LOGPATH     IRCD_PREFIX "/logs"
-#define MODPATH     IRCD_PREFIX "/modules/"
-#define AUTOMODPATH IRCD_PREFIX "/modules/autoload/"
+#ifdef	IRCD_DATADIR
+	#define	MSGPATH		IRCD_DATADIR "/messages"
+	#define MODPATH		IRCD_DATADIR "/modules/"
+	#define HPATH		IRCD_DATADIR "/help/opers"
+	#define UHPATH		IRCD_DATADIR "/help/users"
+#else
+	#define MSGPATH		IRCD_PREFIX "/messages/"
+	#define MODPATH		IRCD_PREFIX "/modules/"
+	#define HPATH		IRCD_PREFIX "/help/opers"
+	#define UHPATH		IRCD_PREFIX "/help/users"
+#endif
+#define AUTOMODPATH		MODPATH "/autoload/"
+#ifdef	IRCD_SYSCONFDIR
+	#define ETCPATH     IRCD_SYSCONFDIR
+#else
+	#define ETCPATH     IRCD_PREFIX "/etc"
+#endif
+#ifdef	IRCD_LOCALSTATEDIR
+	#define	LOGPATH		IRCD_LOCALSTATEDIR "/logs"
+#else
+	#define LOGPATH		IRCD_PREFIX "/logs"
+#endif
 
 /* files */
 #define SPATH   BINPATH "/ircd"                 /* ircd executable */

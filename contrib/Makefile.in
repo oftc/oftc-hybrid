@@ -18,9 +18,8 @@ INSTALL		= @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
 
 prefix		= $(DESTDIR)@prefix@
-datarootdir	= $(DESTDIR)@datarootdir@
 
-AUTOMODULEDIR	= ${prefix}/modules
+AUTOMODULEDIR	= @AUTOMODULEDIR@
 
 SSL_LIBS	= @SSL_LIBS@
 SSL_INCLUDES	= @SSL_INCLUDES@

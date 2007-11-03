@@ -7,9 +7,10 @@ RM		= @RM@
 
 prefix		= @prefix@
 exec_prefix	= @execprefix@
-datarootdir	= $(DESTDIR)@datarootdir@
-uhelpdir	= ${prefix}/help/users
-ohelpdir	= ${prefix}/help/opers
+datadir		= ${DESTDIR}@datadir@
+helpdir		= ${datadir}/help
+uhelpdir	= ${helpdir}/users
+ohelpdir	= ${helpdir}/opers
 
 SYMLINKS	= topic accept cmode admin names links away whowas \
 		version kick who invite quit join list nick oper part \
@@ -22,14 +23,9 @@ depend:
 
 install: 
 	@echo installing help files...
-	-@if test ! -d $(prefix)/help; then \
-		echo "mkdir $(prefix)/help"; \
-		mkdir $(prefix)/help; \
-		echo "mkdir $(prefix)/help/users"; \
-		mkdir $(prefix)/help/users; \
-		echo "mkdir $(prefix)/help/opers"; \
-		mkdir $(prefix)/help/opers; \
-	fi
+	@echo helpdir=${helpdir}
+	mkdir -p $(ohelpdir)
+	mkdir -p $(uhelpdir)
 	@for help in opers/*; do \
 	if [ -f $$help ]; then \
 		${INSTALL_DATA} $$help $(ohelpdir); \

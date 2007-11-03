@@ -1089,12 +1089,29 @@ dnl a custom prefix with a trailing slash
 
 	prefix=`echo $prefix | sed 's/\/$//'`
 	AC_DEFINE_UNQUOTED(IRCD_PREFIX, "$prefix", [Prefix where the ircd is installed.])
-	
+
+fi
+
+if test "$datadir" != "NONE"; then 
+	AC_DEFINE_UNQUOTED(IRCD_DATADIR, "$datadir", [Prefix where the help files and modules go.])
+	AC_SUBST(MODULEDIR, "${datadir}/modules")
+	AC_SUBST(AUTOMODULEDIR, "${datadir}/modules/autoload")
+else
+	AC_SUBST(MODULEDIR, "${prefix}/modules")
+	AC_SUBST(AUTOMODULEDIR, "${prefix}/modules/autoload")
+fi
+
+	AC_DEFINE_UNQUOTED(IRCD_LOCALSTATEDIR, "$localstatedir", [Prefix where logs and pidfile go.])
+
+if test "$sysconfdir" != "NONE"; then
+	AC_DEFINE_UNQUOTED(IRCD_SYSCONFDIR, "$sysconfdir", [Prefix where etc files go i.e. ircd.conf.])
 fi
 
 AC_CONFIG_FILES(		\
 	Makefile		\
 	etc/Makefile		\
+	etc/example.conf	\
+	etc/example.conf.quick	\
 	servlink/Makefile	\
 	contrib/Makefile	\
 	contrib/help/Makefile	\
