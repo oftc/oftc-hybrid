@@ -41,8 +41,8 @@
 #include "modules.h"
 #include "s_user.h"
 
-static void m_list(struct Client *, struct Client *, int, char **);
-static void mo_list(struct Client *, struct Client *, int, char **);
+static void m_list(struct Client *, struct Client *, int, char *[]);
+static void mo_list(struct Client *, struct Client *, int, char *[]);
 
 struct Message list_msgtab = {
   "LIST", 0, 0, 0, 0, MFLG_SLOW, 0,
@@ -184,8 +184,7 @@ do_list(struct Client *source_p, int parc, char *parv[])
     {
       free_list_task(lt, source_p);
       sendto_one(source_p, form_str(ERR_LISTSYNTAX),
-                 MyConnect(source_p) ? me.name : ID(&me),
-                 MyConnect(source_p) ? source_p->name : ID(source_p));
+                 me.name, source_p->name);
       return;
     }
   }
@@ -194,10 +193,9 @@ do_list(struct Client *source_p, int parc, char *parv[])
   dlinkAdd(source_p, make_dlink_node(), &listing_client_list);
 
   sendto_one(source_p, form_str(RPL_LISTSTART),
-             MyConnect(source_p) ? me.name : ID(&me),
-             MyConnect(source_p) ? source_p->name : ID(source_p));
+             me.name, source_p->name);
   safe_list_channels(source_p, lt, no_masked_channels &&
-                     lt->show_mask.head != NULL, !MyConnect(source_p));
+                     lt->show_mask.head != NULL);
 }
 
 /*

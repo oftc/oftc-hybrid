@@ -416,7 +416,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
     {
       set_channel_topic(chptr, NULL, NULL, 0);
       chptr->topic_time = 0;
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :",
                            (IsHidden(source_p) ||
                            ConfigServerHide.hide_servers) ?
                            me.name : source_p->name, chptr->chname);
@@ -435,7 +435,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
 
     /* This _SHOULD_ be to ALL_MEMBERS
      * It contains only +imnpstlk, etc */
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s %s %s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s %s %s",
                          servername, chptr->chname, modebuf, parabuf);
   }
 

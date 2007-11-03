@@ -53,7 +53,6 @@
 #include "s_log.h"
 #include "s_misc.h"
 #include "s_serv.h"      /* try_connections */
-#include "s_stats.h"
 #include "send.h"
 #include "whowas.h"
 #include "modules.h"
@@ -81,6 +80,7 @@ struct admin_info AdminInfo = { NULL, NULL, NULL };
 struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0 };
 struct ServerState_t server_state = { 0 };
 struct logging_entry ConfigLoggingEntry = { 1, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} }; 
+struct ServerStatistics ServerStats;
 struct timeval SystemTime;
 struct Client me;             /* That's me */
 struct LocalUser meLocalUser; /* That's also part of me */
@@ -282,7 +282,7 @@ io_loop(void)
       {
         struct Client *client_p = ptr->data;
         assert(client_p->localClient->list_task);
-        safe_list_channels(client_p, client_p->localClient->list_task, 0, 0);
+        safe_list_channels(client_p, client_p->localClient->list_task, 0);
       }
     }
 
@@ -569,6 +569,7 @@ main(int argc, char *argv[])
 						   of Client list */
 
   memset(&ServerInfo, 0, sizeof(ServerInfo));
+  memset(&ServerStats, 0, sizeof(ServerStats));
 
   /* Initialise the channel capability usage counts... */
   init_chcap_usage_counts();
@@ -641,7 +642,6 @@ main(int argc, char *argv[])
   init_class();
   init_whowas();
   watch_init();
-  init_stats();
   read_conf_files(1);   /* cold start init conf files */
   me.id[0] = '\0';
   init_uid();

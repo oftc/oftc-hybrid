@@ -94,7 +94,6 @@ BASE_SRCS =	\
  s_log.c \
  s_misc.c \
  s_serv.c \
- s_stats.c \
  s_user.c \
  send.c \
  @SNPRINTF_C@ \

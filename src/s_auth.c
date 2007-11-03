@@ -50,7 +50,6 @@
 #include "irc_res.h"
 #include "s_bsd.h"
 #include "s_log.h"
-#include "s_stats.h"
 #include "send.h"
 #include "memory.h"
 
@@ -228,7 +227,7 @@ auth_dns_callback(void *vptr, struct DNSReply *reply)
 static void
 auth_error(struct AuthRequest *auth)
 {
-  ++ServerStats->is_abad;
+  ++ServerStats.is_abad;
 
   fd_close(&auth->fd);
 
@@ -271,7 +270,7 @@ start_auth_query(struct AuthRequest *auth)
         get_client_name(auth->client, SHOW_IP), errno);
     ilog(L_ERROR, "Unable to create auth socket for %s",
         get_client_name(auth->client, SHOW_IP));
-    ++ServerStats->is_abad;
+    ++ServerStats.is_abad;
     return 0;
   }
 
@@ -434,7 +433,7 @@ timeout_auth_queries_event(void *notused)
     {
       fd_close(&auth->fd);
 
-      ++ServerStats->is_abad;
+      ++ServerStats.is_abad;
       sendheader(auth->client, REPORT_FAIL_ID);
 
       if (IsDNSPending(auth))
@@ -613,12 +612,12 @@ read_auth_reply(fde_t *fd, void *data)
   if (s == NULL)
   {
     sendheader(auth->client, REPORT_FAIL_ID);
-    ++ServerStats->is_abad;
+    ++ServerStats.is_abad;
   }
   else
   {
     sendheader(auth->client, REPORT_FIN_ID);
-    ++ServerStats->is_asuc;
+    ++ServerStats.is_asuc;
     SetGotId(auth->client);
   }
 

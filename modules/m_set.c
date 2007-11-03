@@ -49,7 +49,7 @@ static void mo_set(struct Client *, struct Client *, int, char *[]);
 
 struct Message set_msgtab = {
   "SET", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_error, m_ignore, mo_set, m_ignore}
+  {m_unregistered, m_not_oper, m_error, m_ignore, mo_set, m_ignore} 
 };
 
 #ifndef STATIC_MODULES
@@ -138,12 +138,10 @@ list_quote_commands(struct Client *source_p)
 {
   int i;
   int j = 0;
-  const char *names[4];
+  const char *names[4] = { "", "", "", "" };
 
   sendto_one(source_p, ":%s NOTICE %s :Available QUOTE SET commands:",
              me.name, source_p->name);
-
-  names[0] = names[1] = names[2] = names[3] = "";
 
   for (i = 0; set_cmd_table[i].handler; i++)
   {
@@ -160,6 +158,7 @@ list_quote_commands(struct Client *source_p)
     }
 
   }
+
   if (j)
     sendto_one(source_p, ":%s NOTICE %s :%s %s %s %s",
                me.name, source_p->name,
@@ -171,7 +170,38 @@ list_quote_commands(struct Client *source_p)
 static void
 quote_autoconn(struct Client *source_p, const char *arg, int newval)
 {
-  set_autoconn(source_p, arg, newval);
+  struct AccessItem *aconf;
+
+  if (arg != NULL)
+  {
+    struct ConfItem *conf = find_exact_name_conf(SERVER_TYPE, arg, NULL, NULL);
+
+    if (conf != NULL)
+    {
+      aconf = map_to_conf(conf);
+      if (newval)
+        SetConfAllowAutoConn(aconf);
+      else
+        ClearConfAllowAutoConn(aconf);
+
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+                           "%s has changed AUTOCONN for %s to %i",
+                           source_p->name, arg, newval);
+      sendto_one(source_p,
+                 ":%s NOTICE %s :AUTOCONN for %s is now set to %i",
+                 me.name, source_p->name, arg, newval);
+    }
+    else
+    {
+      sendto_one(source_p, ":%s NOTICE %s :Can't find %s",
+                 me.name, source_p->name, arg);
+    }
+  }
+  else
+  {
+    sendto_one(source_p, ":%s NOTICE %s :Please specify a server name!",
+               me.name, source_p->name);
+  }
 }
 
 /* SET AUTOCONNALL */
@@ -259,7 +289,7 @@ quote_idletime(struct Client *source_p, int newval)
 
 /* SET LOG */
 static void
-quote_log( struct Client *source_p, int newval )
+quote_log(struct Client *source_p, int newval)
 {
   const char *log_level_as_string;
 
@@ -292,7 +322,7 @@ quote_log( struct Client *source_p, int newval )
 
 /* SET MAX */
 static void
-quote_max (struct Client *source_p, int newval)
+quote_max(struct Client *source_p, int newval)
 {
   if (newval > 0)
   {
@@ -328,7 +358,7 @@ quote_max (struct Client *source_p, int newval)
 
 /* SET MSGLOCALE */
 static void
-quote_msglocale( struct Client *source_p, char *locale )
+quote_msglocale(struct Client *source_p, char *locale)
 {
   if (locale != NULL)
   {
@@ -344,7 +374,7 @@ quote_msglocale( struct Client *source_p, char *locale )
 
 /* SET SPAMNUM */
 static void
-quote_spamnum( struct Client *source_p, int newval )
+quote_spamnum(struct Client *source_p, int newval)
 {
   if (newval >= 0)
   {
@@ -363,13 +393,13 @@ quote_spamnum( struct Client *source_p, int newval )
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :SPAMNUM is currently %i",
-		me.name,
-		source_p->name, GlobalSetOptions.spam_num);
+               me.name,
+               source_p->name, GlobalSetOptions.spam_num);
 }
 
 /* SET SPAMTIME */
 static void
-quote_spamtime( struct Client *source_p, int newval )
+quote_spamtime(struct Client *source_p, int newval)
 {
   if (newval > 0)
   {
@@ -410,11 +440,9 @@ quote_splitmode(struct Client *source_p, char *charval)
   {
     int newval;
 
-    for (newval = 0; splitmode_values[newval]; newval++)
-    {
+    for (newval = 0; splitmode_values[newval]; ++newval)
       if (irccmp(splitmode_values[newval], charval) == 0)
         break;
-    }
 
     /* OFF */
     if (newval == 0)

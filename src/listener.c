@@ -35,7 +35,6 @@
 #include "irc_getaddrinfo.h"
 #include "numeric.h"
 #include "s_conf.h"
-#include "s_stats.h"
 #include "send.h"
 #include "memory.h"
 #include "tools.h"
@@ -409,7 +408,7 @@ accept_connection(fde_t *pfd, void *data)
      */
     if (number_fd > hard_fdlimit - 10)
     {
-      ++ServerStats->is_ref;
+      ++ServerStats.is_ref;
 
       /*
        * slow down the whining to opers bit
@@ -437,7 +436,8 @@ accept_connection(fde_t *pfd, void *data)
      */
     if ((pe = conf_connect_allowed(&addr, addr.ss.ss_family)) != 0)
     {
-      ++ServerStats->is_ref;
+      ++ServerStats.is_ref;
+
       if (!(listener->flags & LISTENER_SSL))
         switch (pe)
         {
@@ -457,7 +457,7 @@ accept_connection(fde_t *pfd, void *data)
       continue;    /* drop the one and keep on clearing the queue */
     }
 
-    ++ServerStats->is_ac;
+    ++ServerStats.is_ac;
     add_connection(listener, &addr, fd);
   }
 

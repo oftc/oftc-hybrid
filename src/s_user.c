@@ -43,7 +43,6 @@
 #include "s_conf.h"
 #include "s_log.h"
 #include "s_serv.h"
-#include "s_stats.h"
 #include "send.h"
 #include "supported.h"
 #include "whowas.h"
@@ -337,7 +336,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
     if (IsNeedIdentd(aconf))
     {
-      ServerStats->is_ref++;
+      ++ServerStats.is_ref;
       sendto_one(source_p, ":%s NOTICE %s :*** Notice -- You need to install "
                  "identd to use this server", me.name, source_p->name);
       exit_client(source_p, &me, "Install identd");
@@ -366,7 +365,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
     if (!match_conf_password(pass, aconf))
     {
-      ServerStats->is_ref++;
+      ++ServerStats.is_ref;
       sendto_one(source_p, form_str(ERR_PASSWDMISMATCH),
                  me.name, source_p->name);
       exit_client(source_p, &me, "Bad Password");
@@ -396,7 +395,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     sendto_realops_flags(UMODE_FULL, L_ALL,
                          "Too many clients, rejecting %s[%s].",
                          nick, source_p->host);
-    ServerStats->is_ref++;
+    ++ServerStats.is_ref;
     exit_client(source_p, &me, "Sorry, server is full - try later");
     return;
   }
@@ -408,7 +407,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
     sendto_realops_flags(UMODE_REJ, L_ALL, "Invalid username: %s (%s@%s)",
                          nick, source_p->username, source_p->host);
-    ServerStats->is_ref++;
+    ++ServerStats.is_ref;
     ircsprintf(tmpstr2, "Invalid username [%s]", source_p->username);
     exit_client(source_p, &me, tmpstr2);
     return;
@@ -1205,7 +1204,7 @@ check_xline(struct Client *source_p)
                          get_client_name(source_p, HIDE_IP),
                          source_p->sockhost);
 
-    ServerStats->is_ref++;
+    ++ServerStats.is_ref;
     if (REJECT_HOLD_TIME > 0)
     {
       sendto_one(source_p, ":%s NOTICE %s :Bad user info",
