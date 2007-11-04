@@ -174,16 +174,16 @@
 /* Define if IPv6 support is present and available. */
 #undef IPV6
 
+/* Prefix where the help files and modules go. */
+#undef IRCD_DATADIR
+
+/* Prefix where logs and pidfile go. */
+#undef IRCD_LOCALSTATEDIR
+
 /* Prefix where the ircd is installed. */
 #undef IRCD_PREFIX
 
-/* Prefix where datadir is */
-#undef IRCD_DATADIR
-
-/* Prefix where shardedstatedir is (/var/run/ircd-hybrid/ i.e.  logs */
-#undef IRCD_LOCALSTATEDIR
-
-/* Prefix where sysconfdir is (i.e. ircd.conf /usr/local/etc/ircd-hybrid */
+/* Prefix where etc files go i.e. ircd.conf. */
 #undef IRCD_SYSCONFDIR
 
 /* Size of the local client heap. */
