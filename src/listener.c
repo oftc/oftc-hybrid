@@ -84,12 +84,9 @@ get_listener_name(const struct Listener *listener)
 
   assert(listener != NULL);
 
-  if (listener == NULL)
-    return(NULL);
-
   ircsprintf(buf, "%s[%s/%u]",
              me.name, listener->name, listener->port);
-  return(buf);
+  return buf;
 }
 
 /* show_ports()
@@ -101,7 +98,7 @@ get_listener_name(const struct Listener *listener)
 void 
 show_ports(struct Client *source_p)
 {
-  char buf[4];
+  char buf[6];
   char *p = NULL;
   dlink_node *ptr;
 
@@ -116,6 +113,8 @@ show_ports(struct Client *source_p)
       *p++ = 'H';
     }
 
+    if (listener->flags & LISTENER_SERVER)
+      *p++ = 'S';
     if (listener->flags & LISTENER_SSL)
       *p++ = 's';
     *p = '\0';
@@ -176,7 +175,7 @@ inetport(struct Listener *listener)
     report_error(L_ALL, "setting SO_REUSEADDR for listener %s:%s",
                  get_listener_name(listener), errno);
     fd_close(&listener->fd);
-    return(0);
+    return 0;
   }
 
   /*
@@ -193,7 +192,7 @@ inetport(struct Listener *listener)
     report_error(L_ALL, "binding listener socket %s:%s",
                  get_listener_name(listener), errno);
     fd_close(&listener->fd);
-    return(0);
+    return 0;
   }
 
   if (listen(listener->fd.fd, HYBRID_SOMAXCONN))
@@ -204,7 +203,7 @@ inetport(struct Listener *listener)
     report_error(L_ALL, "listen failed for %s:%s",
                  get_listener_name(listener), errno);
     fd_close(&listener->fd);
-    return(0);
+    return 0;
   }
 
   /* Listen completion events are READ events .. */

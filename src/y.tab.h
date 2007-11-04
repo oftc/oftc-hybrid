@@ -266,34 +266,35 @@
      T_NCHANGE = 482,
      T_OPERWALL = 483,
      T_REJ = 484,
-     T_SERVNOTICE = 485,
-     T_SKILL = 486,
-     T_SPY = 487,
-     T_SSL = 488,
-     T_UMODES = 489,
-     T_UNAUTH = 490,
-     T_UNRESV = 491,
-     T_UNXLINE = 492,
-     T_WALLOP = 493,
-     THROTTLE_TIME = 494,
-     TOPICBURST = 495,
-     TRUE_NO_OPER_FLOOD = 496,
-     TKLINE = 497,
-     TXLINE = 498,
-     TRESV = 499,
-     UNKLINE = 500,
-     USER = 501,
-     USE_EGD = 502,
-     USE_EXCEPT = 503,
-     USE_INVEX = 504,
-     USE_KNOCK = 505,
-     USE_LOGGING = 506,
-     USE_WHOIS_ACTUALLY = 507,
-     VHOST = 508,
-     VHOST6 = 509,
-     XLINE = 510,
-     WARN = 511,
-     WARN_NO_NLINE = 512
+     T_SERVER = 485,
+     T_SERVNOTICE = 486,
+     T_SKILL = 487,
+     T_SPY = 488,
+     T_SSL = 489,
+     T_UMODES = 490,
+     T_UNAUTH = 491,
+     T_UNRESV = 492,
+     T_UNXLINE = 493,
+     T_WALLOP = 494,
+     THROTTLE_TIME = 495,
+     TOPICBURST = 496,
+     TRUE_NO_OPER_FLOOD = 497,
+     TKLINE = 498,
+     TXLINE = 499,
+     TRESV = 500,
+     UNKLINE = 501,
+     USER = 502,
+     USE_EGD = 503,
+     USE_EXCEPT = 504,
+     USE_INVEX = 505,
+     USE_KNOCK = 506,
+     USE_LOGGING = 507,
+     USE_WHOIS_ACTUALLY = 508,
+     VHOST = 509,
+     VHOST6 = 510,
+     XLINE = 511,
+     WARN = 512,
+     WARN_NO_NLINE = 513
    };
 #endif
 /* Tokens.  */
@@ -524,34 +525,35 @@
 #define T_NCHANGE 482
 #define T_OPERWALL 483
 #define T_REJ 484
-#define T_SERVNOTICE 485
-#define T_SKILL 486
-#define T_SPY 487
-#define T_SSL 488
-#define T_UMODES 489
-#define T_UNAUTH 490
-#define T_UNRESV 491
-#define T_UNXLINE 492
-#define T_WALLOP 493
-#define THROTTLE_TIME 494
-#define TOPICBURST 495
-#define TRUE_NO_OPER_FLOOD 496
-#define TKLINE 497
-#define TXLINE 498
-#define TRESV 499
-#define UNKLINE 500
-#define USER 501
-#define USE_EGD 502
-#define USE_EXCEPT 503
-#define USE_INVEX 504
-#define USE_KNOCK 505
-#define USE_LOGGING 506
-#define USE_WHOIS_ACTUALLY 507
-#define VHOST 508
-#define VHOST6 509
-#define XLINE 510
-#define WARN 511
-#define WARN_NO_NLINE 512
+#define T_SERVER 485
+#define T_SERVNOTICE 486
+#define T_SKILL 487
+#define T_SPY 488
+#define T_SSL 489
+#define T_UMODES 490
+#define T_UNAUTH 491
+#define T_UNRESV 492
+#define T_UNXLINE 493
+#define T_WALLOP 494
+#define THROTTLE_TIME 495
+#define TOPICBURST 496
+#define TRUE_NO_OPER_FLOOD 497
+#define TKLINE 498
+#define TXLINE 499
+#define TRESV 500
+#define UNKLINE 501
+#define USER 502
+#define USE_EGD 503
+#define USE_EXCEPT 504
+#define USE_INVEX 505
+#define USE_KNOCK 506
+#define USE_LOGGING 507
+#define USE_WHOIS_ACTUALLY 508
+#define VHOST 509
+#define VHOST6 510
+#define XLINE 511
+#define WARN 512
+#define WARN_NO_NLINE 513
 
 
 
@@ -564,7 +566,7 @@ typedef union YYSTYPE
   char *string;
 }
 /* Line 1529 of yacc.c.  */
-#line 568 "y.tab.h"
+#line 570 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

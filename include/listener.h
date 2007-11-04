@@ -27,6 +27,7 @@
 
 #define LISTENER_SSL    0x1
 #define LISTENER_HIDDEN 0x2
+#define LISTENER_SERVER 0x4
 
 #include "ircd_defs.h"  
 #include "tools.h"

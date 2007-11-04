@@ -9,6 +9,8 @@ o) Fixed bug which would cause invalid invisible counts on oper-up in case
 o) Removed broken LazyLinks
 o) Minor code optimizations and cleanups
 o) ACCEPT now supports nick!user@host masks
+o) Added new 'server' option to listener::flags. Listener with that flag
+   set may only have server connections.
 
 
 -- ircd-hybrid-7.2.3 RELNOTES

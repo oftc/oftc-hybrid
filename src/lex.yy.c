@@ -367,8 +367,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 289
-#define YY_END_OF_BUFFER 290
+#define YY_NUM_RULES 290
+#define YY_END_OF_BUFFER 291
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -378,25 +378,25 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[1860] =
     {   0,
-        4,    4,  290,  288,    4,    3,  288,    5,  288,  288,
-        6,  288,  288,  288,  288,  288,  288,  288,  288,  288,
-      288,  288,  288,  288,  288,  288,  288,  288,  288,  288,
-      288,  288,  288,  288,  288,  288,    8,    4,    3,    0,
-        7,    5,  287,    0,    2,    5,    6,    0,    0,    0,
+        4,    4,  291,  289,    4,    3,  289,    5,  289,  289,
+        6,  289,  289,  289,  289,  289,  289,  289,  289,  289,
+      289,  289,  289,  289,  289,  289,  289,  289,  289,  289,
+      289,  289,  289,  289,  289,  289,    8,    4,    3,    0,
+        7,    5,  288,    0,    2,    5,    6,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,  281,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,   98,    0,  271,    0,    0,    0,
+        0,    0,    0,  282,    0,    0,    0,    0,    0,    0,
+        0,    0,    0,    0,   98,    0,  272,    0,    0,    0,
 
-        0,    0,    0,    0,    0,  276,    0,    0,    0,    0,
+        0,    0,    0,    0,    0,  277,    0,    0,    0,    0,
         0,    0,    0,  136,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-      286,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+      287,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,   14,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,  258,    0,    0,    0,    0,    0,   43,    0,    0,
+        0,  259,    0,    0,    0,    0,    0,   43,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
 
@@ -405,66 +405,66 @@ static yyconst flex_int16_t yy_accept[1860] =
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,  117,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,    0,    0,  242,
-        0,    0,    0,    0,    0,    0,    0,    0,  178,    0,
-        0,    0,    0,  244,  169,    0,    0,    0,    0,    0,
+        0,    0,    0,    0,    0,    0,    0,    0,    0,  243,
+        0,    0,    0,    0,    0,    0,    0,    0,  179,    0,
+        0,    0,    0,  245,  169,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,  202,    0,    0,
+        0,    0,    0,    0,    0,    0,    0,  203,    0,    0,
 
-        0,    0,    0,    0,    0,   16,    0,    0,  234,    0,
-      266,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,  257,  237,    0,    0,   41,    0,    0,
+        0,    0,    0,    0,    0,   16,    0,    0,  235,    0,
+      267,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+        0,    0,    0,  258,  238,    0,    0,   41,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,  239,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,   92,  260,    0,    0,    0,    0,   99,
+        0,    0,  240,    0,    0,    0,    0,    0,    0,    0,
+        0,    0,    0,   92,  261,    0,    0,    0,    0,   99,
       100,    0,    0,  103,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,  130,
 
         0,    0,    0,  134,    0,    0,    0,    0,    0,  143,
-        0,    0,  228,    0,  152,    0,    0,    0,    0,    0,
+        0,    0,  229,    0,  152,    0,    0,    0,    0,    0,
         0,    0,    0,    0,  165,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,  183,    0,    0,
-        0,    0,    0,    0,  194,    0,    0,  200,  256,    0,
+        0,    0,    0,    0,    0,    0,    0,  184,    0,    0,
+        0,    0,    0,    0,  195,    0,    0,  201,  257,    0,
         0,    0,    0,   11,    0,   15,    0,    0,   18,    0,
-      265,    0,    0,    0,  235,    0,    0,    0,   29,    0,
-        0,    0,    0,    0,  238,    0,    0,    0,    0,    0,
-      252,    0,    0,   53,    0,    0,    0,    0,    0,    0,
+      266,    0,    0,    0,  236,    0,    0,    0,   29,    0,
+        0,    0,    0,    0,  239,    0,    0,    0,    0,    0,
+      253,    0,    0,   53,    0,    0,    0,    0,    0,    0,
 
         0,    0,    0,    0,    0,    0,   59,    0,    0,    0,
-        0,  280,   74,    0,    0,   76,    0,    0,    0,    0,
-        0,  259,    0,    0,    0,    0,    0,  270,    0,    0,
+        0,  281,   74,    0,    0,   76,    0,    0,    0,    0,
+        0,  260,    0,    0,    0,    0,    0,  271,    0,    0,
       105,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,  275,    0,    0,    0,
+        0,    0,    0,    0,    0,    0,  276,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,  158,    0,    0,    0,    0,    0,    0,    0,
-        0,  172,    0,    0,    0,    0,    0,    0,  240,    0,
+        0,  172,    0,    0,    0,    0,    0,    0,  241,    0,
 
-      180,    0,    0,  285,    0,    0,    0,    0,  197,    0,
+      181,    0,    0,  286,    0,    0,    0,    0,  198,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,  198,    0,    0,  255,  201,    0,    0,
+        0,    0,    0,  199,    0,    0,  256,  202,    0,    0,
        10,    0,   13,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,   54,    0,    0,   57,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,  279,    0,    0,    0,   77,    0,    0,    0,
-       85,    0,    0,    0,    0,    0,    0,  269,    0,    0,
+        0,    0,  280,    0,    0,    0,   77,    0,    0,    0,
+       85,    0,    0,    0,    0,    0,    0,  270,    0,    0,
         0,    0,  107,    0,    0,  110,    0,    0,  113,    0,
 
-        0,  115,  253,    0,    0,    0,  120,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,    0,  274,    0,
-        0,    0,  262,  227,    0,    0,    0,    0,    0,    0,
+        0,  115,  254,    0,    0,    0,  120,    0,    0,    0,
+        0,    0,    0,    0,    0,    0,    0,    0,  275,    0,
+        0,    0,  263,  228,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,  147,    0,    0,    0,    0,    0,    0,  155,
-        0,    0,  159,  160,  162,    0,    0,    0,    0,  264,
-        0,    0,    0,    0,  176,    0,  179,    0,    0,    0,
-        0,  284,    0,    0,  195,    0,    0,    0,    0,  196,
-      185,  243,    0,  231,    0,    0,    0,    0,    0,    0,
-        0,  199,  249,    0,    0,    0,    0,    0,    0,    0,
+        0,    0,  159,  160,  162,    0,    0,    0,    0,  265,
+        0,  173,    0,    0,  177,    0,  180,    0,    0,    0,
+        0,  285,    0,    0,  196,    0,    0,    0,    0,  197,
+      186,  244,    0,  232,    0,    0,    0,    0,    0,    0,
+        0,  200,  250,    0,    0,    0,    0,    0,    0,    0,
 
         0,    0,    0,    0,    0,    0,    0,   25,    0,    0,
         0,   31,    0,   34,    0,    0,    0,    0,    0,    0,
@@ -474,92 +474,92 @@ static yyconst flex_int16_t yy_accept[1860] =
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,  108,  109,    0,  112,    0,    0,    0,  118,  119,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,  261,  226,  241,    0,    0,    0,
+        0,    0,    0,    0,  262,  227,  242,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
 
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,    0,  263,    0,
+        0,    0,    0,    0,    0,    0,    0,    0,  264,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-      186,  230,  187,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,   17,    0,    0,    0,  250,    0,
+      187,  231,  188,    0,    0,    0,    0,    0,    0,    0,
+        0,    0,    0,    0,   17,    0,    0,    0,  251,    0,
        22,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,   51,    0,    0,    0,  245,    0,   58,
+        0,    0,    0,   51,    0,    0,    0,  246,    0,   58,
         0,    0,    0,   63,    0,    0,    0,    0,    0,    0,
-        0,    0,   71,   73,  278,    0,    0,    0,    0,    0,
+        0,    0,   71,   73,  279,    0,    0,    0,    0,    0,
 
         0,    0,    0,    0,    0,   94,   95,    0,    0,    0,
-        0,  268,    0,    0,    0,    0,  111,    0,    0,    0,
-        0,  225,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,  273,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,  140,    0,  144,    0,    0,    0,  146,    0,  246,
+        0,  269,    0,    0,    0,    0,  111,    0,    0,    0,
+        0,  226,    0,    0,    0,    0,    0,    0,    0,    0,
+        0,  274,    0,    0,    0,    0,    0,    0,    0,    0,
+        0,  140,    0,  144,    0,    0,    0,  146,    0,  247,
         0,  148,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,    0,    0,  283,
+        0,    0,    0,    0,    0,    0,    0,    0,    0,  284,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
 
         0,    0,   21,    0,    0,    0,    0,    0,    0,    0,
        36,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,   55,    0,    0,    0,   61,   64,   67,
-        0,    0,    0,    0,    0,    0,    0,  277,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,    0,    0,  248,
-        0,    0,  267,    0,    0,    0,    0,  114,    0,  116,
+        0,    0,    0,    0,    0,    0,    0,  278,    0,    0,
+        0,    0,    0,    0,    0,    0,    0,    0,    0,  249,
+        0,    0,  268,    0,    0,    0,    0,  114,    0,  116,
         0,    0,    0,    0,  122,  123,    0,    0,    0,  126,
-      272,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,  221,    0,  150,    0,
+      273,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+        0,    0,    0,    0,    0,    0,  222,    0,  150,    0,
         0,    0,  156,  157,    0,  163,    0,    0,    0,    0,
 
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,  282,    0,    0,    0,    0,    0,
-        0,    0,  189,  190,    0,    0,    0,    0,    1,    0,
-        1,    0,    0,    0,    0,   19,    0,    0,  236,    0,
+        0,    0,    0,    0,  283,    0,    0,    0,    0,    0,
+        0,    0,  190,  191,    0,    0,    0,    0,    1,    0,
+        1,    0,    0,    0,    0,   19,    0,    0,  237,    0,
         0,    0,   32,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
        82,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,  204,    0,    0,  124,
+        0,    0,    0,    0,    0,    0,  205,    0,    0,  124,
         0,    0,  125,    0,    0,    0,   83,    0,    0,    0,
 
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,  153,    0,    0,    0,    0,    0,    0,    0,
-      173,  174,    0,  247,  177,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,  254,    0,    0,    0,  188,
+      174,  175,    0,  248,  178,    0,    0,    0,    0,    0,
+        0,    0,    0,    0,    0,  255,    0,    0,    0,  189,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,   35,    0,    0,    0,   42,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,   81,    0,
         0,   87,   88,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,  223,  212,    0,  121,    0,    0,  229,    0,
+        0,    0,  224,  213,    0,  121,    0,    0,  230,    0,
 
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,  233,    0,    0,  149,    0,    0,    0,    0,  166,
+        0,  234,    0,    0,  149,    0,    0,    0,    0,  166,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,  191,    0,    0,
+        0,    0,    0,    0,    0,    0,    0,  192,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,   30,    0,
         0,    0,    0,   44,    0,    0,    0,    0,    0,    0,
        52,   56,    0,    0,    0,    0,    0,    0,    0,    0,
         0,   78,    0,    0,   86,    0,   90,    0,    0,    0,
-        0,    0,    0,  106,  213,    0,    0,    0,    0,    0,
+        0,    0,    0,  106,  214,    0,    0,    0,    0,    0,
         0,    0,    0,  132,  133,  135,    0,    0,    0,    0,
 
         0,    0,    0,    0,    0,  151,  154,    0,    0,    0,
-        0,    0,    0,  251,  181,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,  210,    0,    0,    0,    0,   12,
+        0,    0,    0,  252,  182,    0,    0,    0,    0,    0,
+        0,    0,    0,    0,  211,    0,    0,    0,    0,   12,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
         0,    0,    0,    0,    0,   50,    0,    0,   60,    0,
         0,   66,    0,   70,   72,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,    0,  207,    0,
+        0,    0,    0,    0,    0,    0,    0,    0,  208,    0,
         0,  131,    0,    0,  139,    0,  142,    0,    0,    0,
-        0,    0,    0,    0,    0,  171,  175,    0,    0,    0,
-        0,    0,    0,  193,    0,    0,  211,    0,  215,    0,
+        0,    0,    0,    0,    0,  171,  176,    0,    0,    0,
+        0,    0,    0,  194,    0,    0,  212,    0,  216,    0,
 
         0,    0,   20,   23,    0,    0,    0,    0,    0,    0,
         0,   46,    0,    0,    0,    0,    0,   62,   65,   68,
        79,    0,    0,   91,    0,    0,    0,    0,    0,    0,
         0,    0,    0,  127,    0,    0,    0,    0,    0,  145,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    9,  208,    0,    0,    0,
+        0,    0,    0,    0,    0,    9,  209,    0,    0,    0,
         0,    0,    0,    0,    0,    0,    0,    0,   49,    0,
        69,   80,    0,   89,   96,    0,    0,  102,    0,    0,
         0,    0,    0,  128,    0,    0,  141,    0,    0,    0,
@@ -567,21 +567,21 @@ static yyconst flex_int16_t yy_accept[1860] =
 
         0,    0,    0,    0,   26,   27,    0,    0,    0,    0,
         0,    0,    0,    0,    0,    0,   84,    0,  101,    0,
-        0,    0,    0,  205,    0,    0,  138,  232,    0,  222,
-      161,    0,    0,    0,    0,  216,    0,    0,    0,    0,
+        0,    0,    0,  206,    0,    0,  138,  233,    0,  223,
+      161,    0,    0,    0,    0,  217,    0,    0,    0,    0,
         0,    0,    0,    0,   28,   33,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,  214,    0,    0,    0,
-        0,    0,  164,    0,    0,    0,  219,  218,  217,  220,
+        0,    0,    0,    0,    0,    0,  215,    0,    0,    0,
+        0,    0,  164,    0,    0,    0,  220,  219,  218,  221,
         0,    0,    0,    0,    0,   38,    0,    0,    0,    0,
-        0,  203,    0,    0,    0,  206,    0,  137,    0,    0,
-        0,    0,    0,  184,  192,    0,    0,    0,    0,    0,
+        0,  204,    0,    0,    0,  207,    0,  137,    0,    0,
+        0,    0,    0,  185,  193,    0,    0,    0,    0,    0,
 
-        0,    0,    0,    0,  224,    0,    0,    0,  168,    0,
+        0,    0,    0,    0,  225,    0,    0,    0,  168,    0,
         0,    0,    0,    0,    0,    0,    0,    0,   97,    0,
         0,    0,  167,  170,    0,    0,    0,    0,    0,   45,
-        0,    0,  104,    0,   24,  182,    0,    0,    0,    0,
+        0,    0,  104,    0,   24,  183,    0,    0,    0,    0,
        47,    0,  129,    0,    0,    0,    0,   48,    0,    0,
-        0,   40,    0,   37,    0,    0,   39,  209,    0
+        0,   40,    0,   37,    0,    0,   39,  210,    0
     } ;
 
 static yyconst flex_int32_t yy_ec[256] =
@@ -2690,417 +2690,417 @@ YY_RULE_SETUP
 case 173:
 YY_RULE_SETUP
 #line 291 "ircd_lexer.l"
-{ return SERVERHIDE; }
+{ return T_SERVER; }
 	YY_BREAK
 case 174:
 YY_RULE_SETUP
 #line 292 "ircd_lexer.l"
-{ return SERVERINFO; }
+{ return SERVERHIDE; }
 	YY_BREAK
 case 175:
 YY_RULE_SETUP
 #line 293 "ircd_lexer.l"
-{ return SERVLINK_PATH; }
+{ return SERVERINFO; }
 	YY_BREAK
 case 176:
 YY_RULE_SETUP
 #line 294 "ircd_lexer.l"
-{ return T_SHARED; }
+{ return SERVLINK_PATH; }
 	YY_BREAK
 case 177:
 YY_RULE_SETUP
 #line 295 "ircd_lexer.l"
-{ return SHORT_MOTD; }
+{ return T_SHARED; }
 	YY_BREAK
 case 178:
 YY_RULE_SETUP
 #line 296 "ircd_lexer.l"
-{ return IRCD_SID; }
+{ return SHORT_MOTD; }
 	YY_BREAK
 case 179:
 YY_RULE_SETUP
 #line 297 "ircd_lexer.l"
-{ return SILENT; }
+{ return IRCD_SID; }
 	YY_BREAK
 case 180:
 YY_RULE_SETUP
 #line 298 "ircd_lexer.l"
-{ return SPOOF; }
+{ return SILENT; }
 	YY_BREAK
 case 181:
 YY_RULE_SETUP
 #line 299 "ircd_lexer.l"
-{ return SPOOF_NOTICE; }
+{ return SPOOF; }
 	YY_BREAK
 case 182:
 YY_RULE_SETUP
 #line 300 "ircd_lexer.l"
-{ return TKLINE_EXPIRE_NOTICES; }
+{ return SPOOF_NOTICE; }
 	YY_BREAK
 case 183:
 YY_RULE_SETUP
 #line 301 "ircd_lexer.l"
-{ return TYPE; }
+{ return TKLINE_EXPIRE_NOTICES; }
 	YY_BREAK
 case 184:
 YY_RULE_SETUP
 #line 302 "ircd_lexer.l"
-{ return TRUE_NO_OPER_FLOOD; }
+{ return TYPE; }
 	YY_BREAK
 case 185:
 YY_RULE_SETUP
 #line 303 "ircd_lexer.l"
-{ return T_UMODES; }
+{ return TRUE_NO_OPER_FLOOD; }
 	YY_BREAK
 case 186:
 YY_RULE_SETUP
 #line 304 "ircd_lexer.l"
-{ return UNKLINE; }
+{ return T_UMODES; }
 	YY_BREAK
 case 187:
 YY_RULE_SETUP
 #line 305 "ircd_lexer.l"
-{ return USE_EGD; }
+{ return UNKLINE; }
 	YY_BREAK
 case 188:
 YY_RULE_SETUP
 #line 306 "ircd_lexer.l"
-{ return USE_EXCEPT; }
+{ return USE_EGD; }
 	YY_BREAK
 case 189:
 YY_RULE_SETUP
 #line 307 "ircd_lexer.l"
-{ return USE_INVEX; }
+{ return USE_EXCEPT; }
 	YY_BREAK
 case 190:
 YY_RULE_SETUP
 #line 308 "ircd_lexer.l"
-{ return USE_KNOCK; }
+{ return USE_INVEX; }
 	YY_BREAK
 case 191:
 YY_RULE_SETUP
 #line 309 "ircd_lexer.l"
-{ return USE_LOGGING; }
+{ return USE_KNOCK; }
 	YY_BREAK
 case 192:
 YY_RULE_SETUP
 #line 310 "ircd_lexer.l"
-{ return USE_WHOIS_ACTUALLY; }
+{ return USE_LOGGING; }
 	YY_BREAK
 case 193:
 YY_RULE_SETUP
 #line 311 "ircd_lexer.l"
-{ return THROTTLE_TIME; }
+{ return USE_WHOIS_ACTUALLY; }
 	YY_BREAK
 case 194:
 YY_RULE_SETUP
 #line 312 "ircd_lexer.l"
-{ return USER; } 
+{ return THROTTLE_TIME; }
 	YY_BREAK
 case 195:
 YY_RULE_SETUP
 #line 313 "ircd_lexer.l"
-{ return TKLINE; } 
+{ return USER; } 
 	YY_BREAK
 case 196:
 YY_RULE_SETUP
 #line 314 "ircd_lexer.l"
-{ return TXLINE; } 
+{ return TKLINE; } 
 	YY_BREAK
 case 197:
 YY_RULE_SETUP
 #line 315 "ircd_lexer.l"
-{ return TRESV; } 
+{ return TXLINE; } 
 	YY_BREAK
 case 198:
 YY_RULE_SETUP
 #line 316 "ircd_lexer.l"
-{ return VHOST; }
+{ return TRESV; } 
 	YY_BREAK
 case 199:
 YY_RULE_SETUP
 #line 317 "ircd_lexer.l"
-{ return VHOST6; }
+{ return VHOST; }
 	YY_BREAK
 case 200:
 YY_RULE_SETUP
 #line 318 "ircd_lexer.l"
-{ return WARN; }
+{ return VHOST6; }
 	YY_BREAK
 case 201:
 YY_RULE_SETUP
 #line 319 "ircd_lexer.l"
-{ return XLINE; }
+{ return WARN; }
 	YY_BREAK
 case 202:
 YY_RULE_SETUP
 #line 320 "ircd_lexer.l"
-{ yylval.number = YES; return TBOOL; }
+{ return XLINE; }
 	YY_BREAK
 case 203:
 YY_RULE_SETUP
-#line 322 "ircd_lexer.l"
-{ return FAILED_OPER_NOTICE; }
+#line 321 "ircd_lexer.l"
+{ yylval.number = YES; return TBOOL; }
 	YY_BREAK
 case 204:
 YY_RULE_SETUP
 #line 323 "ircd_lexer.l"
-{ return MAX_ACCEPT; }
+{ return FAILED_OPER_NOTICE; }
 	YY_BREAK
 case 205:
 YY_RULE_SETUP
 #line 324 "ircd_lexer.l"
-{ return MAX_NICK_CHANGES; }
+{ return MAX_ACCEPT; }
 	YY_BREAK
 case 206:
 YY_RULE_SETUP
 #line 325 "ircd_lexer.l"
-{ return MAX_CHANS_PER_USER; }
+{ return MAX_NICK_CHANGES; }
 	YY_BREAK
 case 207:
 YY_RULE_SETUP
 #line 326 "ircd_lexer.l"
-{ return MAX_NICK_TIME; }
+{ return MAX_CHANS_PER_USER; }
 	YY_BREAK
 case 208:
 YY_RULE_SETUP
 #line 327 "ircd_lexer.l"
-{ return ANTI_NICK_FLOOD; }
+{ return MAX_NICK_TIME; }
 	YY_BREAK
 case 209:
 YY_RULE_SETUP
 #line 328 "ircd_lexer.l"
-{ return ANTI_SPAM_EXIT_MESSAGE_TIME; }
+{ return ANTI_NICK_FLOOD; }
 	YY_BREAK
 case 210:
 YY_RULE_SETUP
 #line 329 "ircd_lexer.l"
-{ return TS_MAX_DELTA; }
+{ return ANTI_SPAM_EXIT_MESSAGE_TIME; }
 	YY_BREAK
 case 211:
 YY_RULE_SETUP
 #line 330 "ircd_lexer.l"
-{ return TS_WARN_DELTA; }
+{ return TS_MAX_DELTA; }
 	YY_BREAK
 case 212:
 YY_RULE_SETUP
 #line 331 "ircd_lexer.l"
-{ return LINKS_DELAY; }
+{ return TS_WARN_DELTA; }
 	YY_BREAK
 case 213:
 YY_RULE_SETUP
 #line 332 "ircd_lexer.l"
-{ return KLINE_REASON; }
+{ return LINKS_DELAY; }
 	YY_BREAK
 case 214:
 YY_RULE_SETUP
 #line 333 "ircd_lexer.l"
-{ return KLINE_WITH_REASON; }
+{ return KLINE_REASON; }
 	YY_BREAK
 case 215:
 YY_RULE_SETUP
 #line 334 "ircd_lexer.l"
-{ return WARN_NO_NLINE; }
+{ return KLINE_WITH_REASON; }
 	YY_BREAK
 case 216:
 YY_RULE_SETUP
-#line 336 "ircd_lexer.l"
-{ return STATS_E_DISABLED; }
+#line 335 "ircd_lexer.l"
+{ return WARN_NO_NLINE; }
 	YY_BREAK
 case 217:
 YY_RULE_SETUP
 #line 337 "ircd_lexer.l"
-{ return STATS_O_OPER_ONLY; }
+{ return STATS_E_DISABLED; }
 	YY_BREAK
 case 218:
 YY_RULE_SETUP
 #line 338 "ircd_lexer.l"
-{ return STATS_K_OPER_ONLY; }
+{ return STATS_O_OPER_ONLY; }
 	YY_BREAK
 case 219:
 YY_RULE_SETUP
 #line 339 "ircd_lexer.l"
-{ return STATS_I_OPER_ONLY; }
+{ return STATS_K_OPER_ONLY; }
 	YY_BREAK
 case 220:
 YY_RULE_SETUP
 #line 340 "ircd_lexer.l"
-{ return STATS_P_OPER_ONLY; }
+{ return STATS_I_OPER_ONLY; }
 	YY_BREAK
 case 221:
 YY_RULE_SETUP
 #line 341 "ircd_lexer.l"
-{ return PACE_WAIT; }
+{ return STATS_P_OPER_ONLY; }
 	YY_BREAK
 case 222:
 YY_RULE_SETUP
 #line 342 "ircd_lexer.l"
-{ return PACE_WAIT_SIMPLE; }
+{ return PACE_WAIT; }
 	YY_BREAK
 case 223:
 YY_RULE_SETUP
 #line 343 "ircd_lexer.l"
-{ return KNOCK_DELAY; }
+{ return PACE_WAIT_SIMPLE; }
 	YY_BREAK
 case 224:
 YY_RULE_SETUP
 #line 344 "ircd_lexer.l"
-{ return KNOCK_DELAY_CHANNEL; }
+{ return KNOCK_DELAY; }
 	YY_BREAK
 case 225:
 YY_RULE_SETUP
 #line 345 "ircd_lexer.l"
-{ return MAX_BANS; }
+{ return KNOCK_DELAY_CHANNEL; }
 	YY_BREAK
 case 226:
 YY_RULE_SETUP
 #line 346 "ircd_lexer.l"
-{ return MODULES; }
+{ return MAX_BANS; }
 	YY_BREAK
 case 227:
 YY_RULE_SETUP
 #line 347 "ircd_lexer.l"
-{ return MODULE; }
+{ return MODULES; }
 	YY_BREAK
 case 228:
 YY_RULE_SETUP
 #line 348 "ircd_lexer.l"
-{ return PATH; }
+{ return MODULE; }
 	YY_BREAK
 case 229:
 YY_RULE_SETUP
 #line 349 "ircd_lexer.l"
-{ return MAX_TARGETS; }
+{ return PATH; }
 	YY_BREAK
 case 230:
 YY_RULE_SETUP
-#line 351 "ircd_lexer.l"
-{ return T_UNXLINE; }
+#line 350 "ircd_lexer.l"
+{ return MAX_TARGETS; }
 	YY_BREAK
 case 231:
 YY_RULE_SETUP
 #line 352 "ircd_lexer.l"
-{ return T_UNRESV; }
+{ return T_UNXLINE; }
 	YY_BREAK
 case 232:
 YY_RULE_SETUP
-#line 354 "ircd_lexer.l"
-{ return OPER_ONLY_UMODES; }
+#line 353 "ircd_lexer.l"
+{ return T_UNRESV; }
 	YY_BREAK
 case 233:
 YY_RULE_SETUP
 #line 355 "ircd_lexer.l"
-{ return OPER_UMODES; }
+{ return OPER_ONLY_UMODES; }
 	YY_BREAK
 case 234:
 YY_RULE_SETUP
 #line 356 "ircd_lexer.l"
-{ return T_BOTS; }
+{ return OPER_UMODES; }
 	YY_BREAK
 case 235:
 YY_RULE_SETUP
 #line 357 "ircd_lexer.l"
-{ return T_CCONN; }
+{ return T_BOTS; }
 	YY_BREAK
 case 236:
 YY_RULE_SETUP
 #line 358 "ircd_lexer.l"
-{ return T_CCONN_FULL; }
+{ return T_CCONN; }
 	YY_BREAK
 case 237:
 YY_RULE_SETUP
 #line 359 "ircd_lexer.l"
-{ return T_DEAF; }
+{ return T_CCONN_FULL; }
 	YY_BREAK
 case 238:
 YY_RULE_SETUP
 #line 360 "ircd_lexer.l"
-{ return T_DEBUG; }
+{ return T_DEAF; }
 	YY_BREAK
 case 239:
 YY_RULE_SETUP
 #line 361 "ircd_lexer.l"
-{ return T_FULL; }
+{ return T_DEBUG; }
 	YY_BREAK
 case 240:
 YY_RULE_SETUP
 #line 362 "ircd_lexer.l"
-{ return T_SKILL; }
+{ return T_FULL; }
 	YY_BREAK
 case 241:
 YY_RULE_SETUP
 #line 363 "ircd_lexer.l"
-{ return T_NCHANGE; }
+{ return T_SKILL; }
 	YY_BREAK
 case 242:
 YY_RULE_SETUP
 #line 364 "ircd_lexer.l"
-{ return T_REJ; }
+{ return T_NCHANGE; }
 	YY_BREAK
 case 243:
 YY_RULE_SETUP
 #line 365 "ircd_lexer.l"
-{ return T_UNAUTH; }
+{ return T_REJ; }
 	YY_BREAK
 case 244:
 YY_RULE_SETUP
 #line 366 "ircd_lexer.l"
-{ return T_SPY; }
+{ return T_UNAUTH; }
 	YY_BREAK
 case 245:
 YY_RULE_SETUP
 #line 367 "ircd_lexer.l"
-{ return T_EXTERNAL; }
+{ return T_SPY; }
 	YY_BREAK
 case 246:
 YY_RULE_SETUP
 #line 368 "ircd_lexer.l"
-{ return T_OPERWALL; }
+{ return T_EXTERNAL; }
 	YY_BREAK
 case 247:
 YY_RULE_SETUP
 #line 369 "ircd_lexer.l"
-{ return T_SERVNOTICE; }
+{ return T_OPERWALL; }
 	YY_BREAK
 case 248:
 YY_RULE_SETUP
 #line 370 "ircd_lexer.l"
-{ return T_INVISIBLE; }
+{ return T_SERVNOTICE; }
 	YY_BREAK
 case 249:
 YY_RULE_SETUP
 #line 371 "ircd_lexer.l"
-{ return T_WALLOP; }
+{ return T_INVISIBLE; }
 	YY_BREAK
 case 250:
 YY_RULE_SETUP
 #line 372 "ircd_lexer.l"
-{ return T_CALLERID; }
+{ return T_WALLOP; }
 	YY_BREAK
 case 251:
 YY_RULE_SETUP
 #line 373 "ircd_lexer.l"
-{ return T_SOFTCALLERID; }
+{ return T_CALLERID; }
 	YY_BREAK
 case 252:
 YY_RULE_SETUP
 #line 374 "ircd_lexer.l"
-{ return T_DRONE; }
+{ return T_SOFTCALLERID; }
 	YY_BREAK
 case 253:
 YY_RULE_SETUP
 #line 375 "ircd_lexer.l"
-{ return T_LOCOPS; }
+{ return T_DRONE; }
 	YY_BREAK
 case 254:
 YY_RULE_SETUP
 #line 376 "ircd_lexer.l"
-{ return TOPICBURST; }
+{ return T_LOCOPS; }
 	YY_BREAK
 case 255:
 YY_RULE_SETUP
-#line 378 "ircd_lexer.l"
-{ return WEEKS; }
+#line 377 "ircd_lexer.l"
+{ return TOPICBURST; }
 	YY_BREAK
 case 256:
 YY_RULE_SETUP
@@ -3110,7 +3110,7 @@ YY_RULE_SETUP
 case 257:
 YY_RULE_SETUP
 #line 380 "ircd_lexer.l"
-{ return DAYS; }
+{ return WEEKS; }
 	YY_BREAK
 case 258:
 YY_RULE_SETUP
@@ -3120,7 +3120,7 @@ YY_RULE_SETUP
 case 259:
 YY_RULE_SETUP
 #line 382 "ircd_lexer.l"
-{ return HOURS; }
+{ return DAYS; }
 	YY_BREAK
 case 260:
 YY_RULE_SETUP
@@ -3130,7 +3130,7 @@ YY_RULE_SETUP
 case 261:
 YY_RULE_SETUP
 #line 384 "ircd_lexer.l"
-{ return MINUTES; }
+{ return HOURS; }
 	YY_BREAK
 case 262:
 YY_RULE_SETUP
@@ -3140,7 +3140,7 @@ YY_RULE_SETUP
 case 263:
 YY_RULE_SETUP
 #line 386 "ircd_lexer.l"
-{ return SECONDS; }
+{ return MINUTES; }
 	YY_BREAK
 case 264:
 YY_RULE_SETUP
@@ -3149,8 +3149,8 @@ YY_RULE_SETUP
 	YY_BREAK
 case 265:
 YY_RULE_SETUP
-#line 389 "ircd_lexer.l"
-{ return BYTES; }
+#line 388 "ircd_lexer.l"
+{ return SECONDS; }
 	YY_BREAK
 case 266:
 YY_RULE_SETUP
@@ -3160,7 +3160,7 @@ YY_RULE_SETUP
 case 267:
 YY_RULE_SETUP
 #line 391 "ircd_lexer.l"
-{ return KBYTES; }
+{ return BYTES; }
 	YY_BREAK
 case 268:
 YY_RULE_SETUP
@@ -3185,7 +3185,7 @@ YY_RULE_SETUP
 case 272:
 YY_RULE_SETUP
 #line 396 "ircd_lexer.l"
-{ return MBYTES; }
+{ return KBYTES; }
 	YY_BREAK
 case 273:
 YY_RULE_SETUP
@@ -3210,7 +3210,7 @@ YY_RULE_SETUP
 case 277:
 YY_RULE_SETUP
 #line 401 "ircd_lexer.l"
-{ return GBYTES; }
+{ return MBYTES; }
 	YY_BREAK
 case 278:
 YY_RULE_SETUP
@@ -3235,7 +3235,7 @@ YY_RULE_SETUP
 case 282:
 YY_RULE_SETUP
 #line 406 "ircd_lexer.l"
-{ return TBYTES; }
+{ return GBYTES; }
 	YY_BREAK
 case 283:
 YY_RULE_SETUP
@@ -3260,23 +3260,28 @@ YY_RULE_SETUP
 case 287:
 YY_RULE_SETUP
 #line 411 "ircd_lexer.l"
-{ return TWODOTS; }
+{ return TBYTES; }
 	YY_BREAK
 case 288:
 YY_RULE_SETUP
-#line 413 "ircd_lexer.l"
-{ return yytext[0]; }
-	YY_BREAK
-case YY_STATE_EOF(INITIAL):
-#line 414 "ircd_lexer.l"
-{ if (ieof()) yyterminate(); }
+#line 412 "ircd_lexer.l"
+{ return TWODOTS; }
 	YY_BREAK
 case 289:
 YY_RULE_SETUP
-#line 416 "ircd_lexer.l"
+#line 414 "ircd_lexer.l"
+{ return yytext[0]; }
+	YY_BREAK
+case YY_STATE_EOF(INITIAL):
+#line 415 "ircd_lexer.l"
+{ if (ieof()) yyterminate(); }
+	YY_BREAK
+case 290:
+YY_RULE_SETUP
+#line 417 "ircd_lexer.l"
 ECHO;
 	YY_BREAK
-#line 3280 "lex.yy.c"
+#line 3285 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -4220,7 +4225,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 416 "ircd_lexer.l"
+#line 417 "ircd_lexer.l"
 
 
 

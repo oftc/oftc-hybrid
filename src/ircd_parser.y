@@ -355,6 +355,7 @@ unhook_hub_leaf_confs(void)
 %token  T_NCHANGE
 %token  T_OPERWALL
 %token  T_REJ
+%token  T_SERVER
 %token  T_SERVNOTICE
 %token  T_SKILL
 %token  T_SPY
@@ -1710,7 +1711,13 @@ listen_flags_item: T_SSL
 {
   if (ypass == 2)
     listener_flags |= LISTENER_HIDDEN;
+} | T_SERVER
+{
+  if (ypass == 2)
+    listener_flags |= LISTENER_SERVER;
 };
+
+
 
 listen_items:   listen_items listen_item | listen_item;
 listen_item:    listen_port | listen_flags | listen_address | listen_host | error ';';
