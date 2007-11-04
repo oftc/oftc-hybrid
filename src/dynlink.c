@@ -38,6 +38,8 @@
 # include <link.h>
 #endif
 
+#if USE_SHARED_MODULES
+
 extern dlink_list mod_list;
 
 static char unknown_ver[] = "<unknown>";
@@ -383,3 +385,4 @@ load_a_module(char *path, int warn, int core)
 
   return(0);
 }
+#endif

@@ -24,6 +24,7 @@
  */
 
 #include "stdinc.h"
+#if USE_IOPOLL_MECHANISM == __IOPOLL_MECHANISM_POLL
 #include <sys/poll.h>
 #include "fdlist.h"
 #include "hook.h"
@@ -219,3 +220,4 @@ comm_select(void)
     comm_setselect(F, 0, NULL, NULL, 0);
   }
 }
+#endif

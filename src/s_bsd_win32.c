@@ -22,6 +22,8 @@
  *  $Id$
  */
 
+#ifdef WIN32
+
 #include "stdinc.h"
 #include <iphlpapi.h>
 #include "fdlist.h"
@@ -498,3 +500,4 @@ uname(struct utsname *uts)
   GetComputerName (uts->nodename, &sLength);
   return 0;
 }
+#endif

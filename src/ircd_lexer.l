@@ -37,7 +37,7 @@
 #include "hostmask.h"
 #include "s_log.h"
 
-#include "y.tab.h"
+#include "ircd_parser.h"
 
 #undef YY_INPUT
 #define YY_FATAL_ERROR(msg) conf_yy_fatal_error(msg)

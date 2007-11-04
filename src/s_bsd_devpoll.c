@@ -24,6 +24,7 @@
  */
 
 #include "stdinc.h"
+#if USE_IOPOLL_MECHANISM == __IOPOLL_MECHANISM_DEVPOLL
 #include <sys/ioctl.h>
 /* HPUX uses devpoll.h and not sys/devpoll.h */
 #ifdef HAVE_DEVPOLL_H
@@ -182,3 +183,4 @@ comm_select(void)
     comm_setselect(F, 0, NULL, NULL, 0);
   }
 }
+#endif

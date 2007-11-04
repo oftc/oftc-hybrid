@@ -29,6 +29,7 @@
 #endif
 
 #include "stdinc.h"
+#if USE_IOPOLL_MECHANISM == __IOPOLL_MECHANISM_RTSIGIO
 #include <sys/poll.h>
 #include "fdlist.h"
 #include "hook.h"
@@ -313,3 +314,4 @@ comm_select(void)
 
   mask_our_signal(SIGIO_SIGNAL);
 }
+#endif
