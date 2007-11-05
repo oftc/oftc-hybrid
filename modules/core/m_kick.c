@@ -202,7 +202,6 @@ m_kick(struct Client *client_p, struct Client *source_p,
 
   if ((ms_target = find_channel_link(who, chptr)) != NULL)
   {
-#ifdef HALFOPS
     if (IsGod(who))
     {
       char tmp[IRCD_BUFSIZE];
@@ -217,6 +216,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
     if(IsService(who))
       return;
 
+#ifdef HALFOPS
     /* half ops cannot kick other halfops on private channels */
     if (has_member_flags(ms, CHFL_HALFOP) && !has_member_flags(ms, CHFL_CHANOP))
     {
