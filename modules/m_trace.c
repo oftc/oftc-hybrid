@@ -185,7 +185,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
   struct ConfItem *conf;
   struct ClassItem *cltmp;
   int doall = 0;
-  int cnt = 0, wilds, dow;
+  int wilds, dow;
   dlink_node *ptr;
   const char *from, *to, *tname;
 
@@ -273,7 +273,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
-    cnt = report_this_status(source_p, target_p, dow, 0, 0);
+    report_this_status(source_p, target_p, dow, 0, 0);
   }
 
   DLINK_FOREACH(ptr, serv_list.head)
@@ -285,7 +285,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
-    cnt = report_this_status(source_p, target_p, dow,
+    report_this_status(source_p, target_p, dow,
       target_p->serv->dep_users, target_p->serv->dep_servers);
   }
 
@@ -299,7 +299,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
-    cnt = report_this_status(source_p, target_p, dow, 0, 0);
+    report_this_status(source_p, target_p, dow, 0, 0);
   }
 
   DLINK_FOREACH(ptr, class_items.head)

@@ -905,12 +905,11 @@ do_local_user(const char *nick, struct Client *client_p, struct Client *source_p
 static void *
 change_simple_umode(va_list args)
 {
-  struct Client *client_p;
   struct Client *source_p;
   int what;
   unsigned int flag;
 
-  client_p = va_arg(args, struct Client *);
+  va_arg(args, struct Client *);
   source_p = va_arg(args, struct Client *);
   what = va_arg(args, int);
   flag = va_arg(args, unsigned int);

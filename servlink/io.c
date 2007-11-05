@@ -166,15 +166,13 @@ process_sendq(struct ctrl_command *cmd)
 void
 process_recvq(struct ctrl_command *cmd)
 {
-  int ret;
   unsigned char *buf;
-  int blen;
+  unsigned int blen;
   unsigned char *data = cmd->data;
   unsigned int datalen = cmd->datalen;
 
   buf = data;
   blen = datalen;
-  ret = -1;
   if (datalen > READLEN)
     send_error("Error processing INJECT_RECVQ - buffer too long (%d > %d)",
                datalen, READLEN);
@@ -183,7 +181,7 @@ process_recvq(struct ctrl_command *cmd)
   if (in_state.crypt)
   {
     assert(EVP_DecryptUpdate(&in_state.crypt_state.ctx,
-                             tmp_buf, &blen,
+                             tmp_buf, (int *)&blen,
                              data, datalen));
     assert(blen == datalen);
     buf = tmp_buf;
@@ -193,6 +191,9 @@ process_recvq(struct ctrl_command *cmd)
 #ifdef HAVE_LIBZ
   if (in_state.zip)
   {
+    int ret;
+    
+    ret = -1;
     /* decompress data */
     in_state.zip_state.stream.next_in = buf;
     in_state.zip_state.stream.avail_in = blen;
@@ -447,10 +448,9 @@ write_ctrl(void)
 void
 read_data(void)
 {
-  int ret, ret2;
+  int ret;
   unsigned char *buf = out_state.buf;
   int  blen;
-  ret2 = -1;
   assert(!out_state.len);
   
 #if defined(HAVE_LIBZ) || defined(HAVE_LIBCRYPTO)
@@ -465,6 +465,8 @@ read_data(void)
 #ifdef HAVE_LIBZ
     if (out_state.zip)
     {
+      int ret2 = -1;
+
       out_state.zip_state.stream.next_in = buf;
       out_state.zip_state.stream.avail_in = ret;
 
@@ -556,10 +558,8 @@ void
 read_net(void)
 {
   int ret;
-  int ret2;
   unsigned char *buf = in_state.buf;
   int  blen;
-  ret2 = -1;
   assert(!in_state.len);
 
 #if defined(HAVE_LIBCRYPTO) || defined(HAVE_LIBZ)
@@ -592,6 +592,7 @@ read_net(void)
 #ifdef HAVE_LIBZ
     if (in_state.zip)
     {
+      int ret2 = -1;
       /* decompress data */
       in_state.zip_state.stream.next_in = buf;
       in_state.zip_state.stream.avail_in = ret;

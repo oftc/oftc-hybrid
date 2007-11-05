@@ -30,17 +30,17 @@
 #include "numeric.h"
 #include "s_user.h"
 #include "send.h"
-#include "s_conf.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "listener.h"
 
 
-static void mr_user(struct Client*, struct Client*, int, char**);
+static void mr_user(struct Client *, struct Client *, int, char *[]);
 
 struct Message user_msgtab = {
   "USER", 0, 0, 5, 0, MFLG_SLOW, 0L,
-  {mr_user, m_registered, m_ignore, m_ignore, m_registered, m_ignore}
+  { mr_user, m_registered, m_ignore, m_ignore, m_registered, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -73,13 +73,19 @@ mr_user(struct Client *client_p, struct Client *source_p,
 {
   char *p;
 
-  if ((p = strchr(parv[1],'@')) != NULL)
+  if (source_p->localClient->listener->flags & LISTENER_SERVER)
+  {
+    exit_client(source_p, &me, "Use a different port");
+    return;
+  }
+
+  if ((p = strchr(parv[1], '@')) != NULL)
     *p = '\0'; 
 
-  if (*parv[4] == '\0')
+  if (EmptyString(parv[4]))
   {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, EmptyString(parv[0]) ? "*" : parv[0], "USER");
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name,
+               source_p->name[0] ? source_p->name : "*", "USER");
     return;
   }
 

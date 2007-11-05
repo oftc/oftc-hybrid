@@ -906,8 +906,7 @@ introduce_lazy_link_clients(struct Client *client_p,
       continue;
 
     /* Ignore servers we won't tell anyway */
-    if (!chptr->lazyLinkChannelExists &
-	(lclient_p->localClient->serverMask))
+    if (!(chptr->lazyLinkChannelExists & (lclient_p->localClient->serverMask)))
       continue;
 
     /* Ignore servers that already know target_p */

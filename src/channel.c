@@ -159,7 +159,7 @@ send_members(struct Client *client_p, struct Channel *chptr,
 {
   struct Membership *ms;
   dlink_node *ptr;
-  int tlen;              /* length of text to append */
+  unsigned int tlen;              /* length of text to append */
   char *t, *start;       /* temp char pointer */
 
   start = t = buf + ircsprintf(buf, ":%s SJOIN %lu %s %s %s:",
@@ -186,7 +186,7 @@ send_members(struct Client *client_p, struct Channel *chptr,
     /* space will be converted into CR, but we also need space for LF..
      * That's why we use '- 1' here
      * -adx */
-    if (t + tlen - buf > sizeof(buf) - 1)
+    if ((unsigned long)(t + tlen - buf) > sizeof(buf) - 1)
     {
       *(t - 1) = '\0';  /* kill the space and terminate the string */
       sendto_one(client_p, "%s", buf);

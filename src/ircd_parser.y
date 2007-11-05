@@ -26,6 +26,7 @@
 
 #define YY_NO_UNPUT
 #include <sys/types.h>
+#include <libgen.h>
 
 #include "stdinc.h"
 #include "ircd.h"
@@ -359,6 +360,7 @@ unhook_hub_leaf_confs(void)
 %token  T_NCHANGE
 %token  T_OPERWALL
 %token  T_REJ
+%token  T_SERVER
 %token  T_SERVNOTICE
 %token  T_SKILL
 %token  T_SPY
@@ -477,10 +479,6 @@ modules_module: MODULE '=' QSTRING ';'
 #ifndef STATIC_MODULES /* NOOP in the static case */
   if (ypass == 2)
   {
-    char *m_bn;
-
-    m_bn = basename(yylval.string);
-
     /* I suppose we should just ignore it if it is already loaded(since
      * otherwise we would flood the opers on rehash) -A1kmm.
      */
@@ -652,7 +650,7 @@ serverinfo_network_name: NETWORK_NAME '=' QSTRING ';'
     char *p;
 
     if ((p = strchr(yylval.string, ' ')) != NULL)
-      p = '\0';
+      *p = '\0';
 
     MyFree(ServerInfo.network_name);
     DupString(ServerInfo.network_name, yylval.string);
@@ -1788,7 +1786,13 @@ listen_flags_item: T_SSL
 {
   if (ypass == 2)
     listener_flags |= LISTENER_HIDDEN;
+} | T_SERVER
+{
+  if (ypass == 2)
+    listener_flags |= LISTENER_SERVER;
 };
+
+
 
 listen_items:   listen_items listen_item | listen_item;
 listen_item:    listen_port | listen_flags | listen_address | listen_host | error ';';

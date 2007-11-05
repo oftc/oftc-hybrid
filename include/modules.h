@@ -81,6 +81,8 @@ extern int load_a_module(char *, int, int);
 extern dlink_node *findmodule_byname(const char *);
 extern void modules_init(void);
 
+extern void dynlink_init();
+
 #else /* STATIC_MODULES */
 
 extern struct Message accept_msgtab;

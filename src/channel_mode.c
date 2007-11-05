@@ -627,7 +627,7 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
    * 
    * -Dianora 
    */ 
-  if ((dir == MODE_ADD)) /* && !(chptr->mode.mode & mode_type)) */
+  if (dir == MODE_ADD) /* && !(chptr->mode.mode & mode_type)) */
   {
     chptr->mode.mode |= mode_type;
 
@@ -639,7 +639,7 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
     mode_changes[mode_count].mems = ALL_MEMBERS;
     mode_changes[mode_count++].arg = NULL;
   }
-  else if ((dir == MODE_DEL)) /* && (chptr->mode.mode & mode_type)) */
+  else if (dir == MODE_DEL) /* && (chptr->mode.mode & mode_type)) */
   {
     /* setting - */
 

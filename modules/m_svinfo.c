@@ -103,7 +103,7 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
    */
   set_time(); 
   theirtime = atol(parv[4]);
-  deltat = abs(theirtime - CurrentTime);
+  deltat = labs(theirtime - CurrentTime);
 
   strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&CurrentTime));
   strftime(theirtimestamp, sizeof(theirtimestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&theirtime));

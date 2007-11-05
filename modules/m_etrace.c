@@ -179,7 +179,6 @@ static void
 report_this_status(struct Client *source_p, struct Client *target_p,
 		   int full_etrace)
 {
-  const char *name;
   const char *class_name;
   char ip[HOSTIPLEN];
 
@@ -188,7 +187,6 @@ report_this_status(struct Client *source_p, struct Client *target_p,
         target_p->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
         NI_NUMERICHOST);
 
-  name = get_client_name(target_p, HIDE_IP);
   class_name = get_client_class(target_p);
 
   set_time();

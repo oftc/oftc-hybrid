@@ -24,6 +24,7 @@
  */
 
 #include "stdinc.h"
+#if USE_IOPOLL_MECHANISM == __IOPOLL_MECHANISM_KQUEUE
 #include <sys/event.h>
 #include "fdlist.h"
 #include "ircd.h"
@@ -204,3 +205,4 @@ comm_select(void)
     comm_setselect(F, 0, NULL, NULL, 0);
   }
 }
+#endif
