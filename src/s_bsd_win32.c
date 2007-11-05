@@ -19,8 +19,10 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_bsd_win32.c 33 2005-10-02 20:50:00Z knight $
+ *  $Id: s_bsd_win32.c 908 2007-11-04 23:21:51Z stu $
  */
+
+#ifdef WIN32
 
 #include "stdinc.h"
 #include <iphlpapi.h>
@@ -502,3 +504,4 @@ uname(struct utsname *uts)
   GetComputerName (uts->nodename, &sLength);
   return 0;
 }
+#endif

@@ -30,14 +30,14 @@
 
 /* 
  * Directory paths and filenames for UNIX systems.
- * IRCD_PREFIX is set using ./configure --prefix, see INSTALL.
+ * PREFIX is set using ./configure --prefix, see INSTALL.
  * The other defaults should be fine.
  *
  * NOTE: CHANGING THESE WILL NOT ALTER THE DIRECTORY THAT FILES WILL
  *       BE INSTALLED TO.  IF YOU CHANGE THESE, DO NOT USE MAKE INSTALL,
  *       BUT COPY THE FILES MANUALLY TO WHERE YOU WANT THEM.
  *
- * IRCD_PREFIX = prefix for all directories
+ * PREFIX = prefix for all directories
  * DPATH       = root directory of installation
  * BINPATH     = directory for binary files
  * MSGPATH     = directory for language files
@@ -48,14 +48,16 @@
  */
 
 /* dirs */
-#define DPATH       IRCD_PREFIX                                                     
-#define BINPATH     IRCD_PREFIX "/bin/"
-#define MSGPATH     IRCD_PREFIX "/messages/"
-#define ETCPATH     IRCD_PREFIX "/etc"
-#define LOGPATH     IRCD_PREFIX "/logs"
-#define MODPATH     IRCD_PREFIX "/modules/"
-#define AUTOMODPATH IRCD_PREFIX "/modules/autoload/"
-#define OFTCLOG LOGPATH "/oftc.log" 
+#define DPATH       PREFIX
+#define BINPATH     PREFIX "/bin/"
+#define MSGPATH     DATADIR "/" PACKAGE "/messages"
+#define MODPATH     LIBDIR "/" PACKAGE "/modules/"
+#define HPATH       DATADIR "/" PACKAGE "/help/opers"
+#define UHPATH      DATADIR "/" PACKAGE "/help/users"
+#define AUTOMODPATH MODPATH "/autoload/"
+#define ETCPATH     SYSCONFDIR
+#define LOGPATH     LOCALSTATEDIR "/log"
+
 
 /* files */
 #define SPATH   BINPATH "/ircd"                 /* ircd executable */
@@ -71,7 +73,8 @@
 #define RKPATH  ETCPATH "/rkline.conf"
 #define MPATH   ETCPATH "/ircd.motd"            /* MOTD file */
 #define LPATH   LOGPATH "/ircd.log"             /* ircd logfile */
-#define PPATH   ETCPATH "/ircd.pid"             /* pid file */
+#define OFTCLOG LOGPATH "/oftc.log" 
+#define PPATH   LOCALSTATEDIR "/ircd.pid"             /* pid file */
 #define OPATH   ETCPATH "/opers.motd"           /* oper MOTD file */
 #define LIPATH  ETCPATH "/links.txt"            /* cached links file */
 

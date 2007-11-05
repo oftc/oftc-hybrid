@@ -38,6 +38,8 @@
 #include "memory.h"
 #include "list.h"
 
+#define SHARED_SUFFIX "so"
+
 /* -TimeMr14C:
  * I have moved the dl* function definitions and
  * the two functions (load_a_module / unload_a_module) to the

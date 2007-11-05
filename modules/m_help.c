@@ -36,8 +36,6 @@
 #include "modules.h"
 #include "irc_string.h"
 
-#define HPATH  IRCD_PREFIX "/help/opers"
-#define UHPATH IRCD_PREFIX "/help/users"
 #define HELPLEN 400
 
 static void m_help(struct Client *, struct Client *, int, char *[]);
