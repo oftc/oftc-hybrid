@@ -20,10 +20,11 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_bsd_poll.c 33 2005-10-02 20:50:00Z knight $
+ *  $Id: s_bsd_poll.c 908 2007-11-04 23:21:51Z stu $
  */
 
 #include "stdinc.h"
+#if USE_IOPOLL_MECHANISM == __IOPOLL_MECHANISM_POLL
 #include <sys/poll.h>
 #include "fdlist.h"
 #include "hook.h"
@@ -219,3 +220,4 @@ comm_select(void)
     comm_setselect(F, 0, NULL, NULL, 0);
   }
 }
+#endif

@@ -37,11 +37,8 @@
 
 /* Right out of the RFC */
 #define IRCD_BUFSIZE    512     /* WARNING: *DONT* CHANGE THIS!!!!         */
-#define HOSTLEN         63      /* Length of hostname.  Updated to         */
-                                /* comply with RFC1123                     */
 #define PORTNAMELEN 6  /* ":31337" */
 
-#define USERLEN         10
 #define REALLEN         50
 #define KILLLEN         90
 #define LOCAL_CHANNELLEN 50
@@ -84,6 +81,10 @@ struct utsname
   char domainname[_UTSNAME_DOMAIN_LENGTH];
 };
 int uname (struct utsname *);
+
+#define PATH_DEVNULL "dev.null"
+#else
+#define PATH_DEVNULL "/dev/null"
 #endif
 
 /* This is to get around the fact that some implementations have ss_len and
