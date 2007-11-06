@@ -55,6 +55,7 @@
 #include "s_log.h"       /* ilog */
 #include "hash.h"
 #include "irc_getnameinfo.h"
+#include "watch.h"
 
 static void do_stats(struct Client *, int, char **);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
@@ -396,7 +397,6 @@ count_memory(struct Client *source_p)
 
   int wwu = 0;                  /* whowas users */
   int class_count = 0;          /* classes */
-  int users_invited_count = 0;  /* users invited */
   int aways_counted = 0;
   int number_ips_stored;        /* number of ip addresses hashed */
 
@@ -428,8 +428,10 @@ count_memory(struct Client *source_p)
 
   unsigned long total_memory = 0;
   unsigned int topic_count = 0;
-
   struct rlimit rlim;
+  unsigned int wlh = 0;   /* watchlist headers     */
+  unsigned int wle = 0;   /* watchlist entries     */
+  size_t wlhm = 0; /* watchlist memory used */
 
   count_whowas_memory(&wwu, &wwm);
 
@@ -441,7 +443,7 @@ count_memory(struct Client *source_p)
     {
       ++local_client_count;
       local_client_conf_count += dlink_list_length(&target_p->localClient->confs);
-      users_invited_count += dlink_list_length(&target_p->localClient->invited);
+      wle += dlink_list_length(&target_p->localClient->watches);
     }
     else
       ++remote_client_count;
@@ -545,16 +547,21 @@ count_memory(struct Client *source_p)
   /* count up all classes */
   class_count = dlink_list_length(&class_items);
 
-  sendto_one(source_p, ":%s %d %s z :Clients %u(%lu) Invites %u(%lu)",
+  watch_count_memory(&wlh, &wlhm);
+
+  sendto_one(source_p, ":%s %d %s z :WATCH headers %u(%u) entries %d(%d)",
+             me.name, RPL_STATSDEBUG, source_p->name, wlh, wlhm, wle,
+             wle * sizeof(dlink_node));
+
+  sendto_one(source_p, ":%s %d %s z :Clients %u(%u)",
              me.name, RPL_STATSDEBUG, source_p->name, users_counted,
-             (unsigned long)(users_counted * sizeof(struct Client)),
-             users_invited_count, (unsigned long)(users_invited_count * sizeof(dlink_node)));
+             (users_counted * sizeof(struct Client)));
 
   sendto_one(source_p, ":%s %d %s z :User aways %u(%d)",
              me.name, RPL_STATSDEBUG, source_p->name,
              aways_counted, (int)away_memory);
 
-  sendto_one(source_p, ":%s %d %s z :Attached confs %u(%lu)",
+  sendto_one(source_p, ":%s %d %s z :Attached confs %u(%u)",
              me.name, RPL_STATSDEBUG, source_p->name,
              local_client_conf_count,
              (unsigned long)(local_client_conf_count * sizeof(dlink_node)));
@@ -595,15 +602,15 @@ count_memory(struct Client *source_p)
              me.name, RPL_STATSDEBUG, source_p->name,
              channel_invex, channel_invex_memory);
 
-  sendto_one(source_p, ":%s %d %s z :Channel members %u(%lu) invite %u(%lu)",
+  sendto_one(source_p, ":%s %d %s z :Channel members %u(%lu) invites %u(%lu)",
              me.name, RPL_STATSDEBUG, source_p->name, channel_users,
              (unsigned long)(channel_users * sizeof(struct Membership)),
              channel_invites, (unsigned long)channel_invites *
-             sizeof(dlink_node));
+             sizeof(dlink_node) * 2);
 
   total_channel_memory = channel_memory + channel_ban_memory +
                          channel_users * sizeof(struct Membership) +
-                         channel_invites * sizeof(dlink_node);
+                         (channel_invites * sizeof(dlink_node)*2);
 
   sendto_one(source_p, ":%s %d %s z :Safelist %u(%u)",
              me.name, RPL_STATSDEBUG, source_p->name,
@@ -935,7 +942,7 @@ stats_glines(struct Client *source_p)
 
   for (; i < ATABLE_SIZE; ++i)
   {
-    for (arec = atable[i]; arec; arec=arec->next)
+    for (arec = atable[i]; arec; arec = arec->next)
     {
       if (arec->type == CONF_GLINE)
       {
