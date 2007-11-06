@@ -352,6 +352,7 @@ struct config_file_entry
   MessageFile linksfile;
 
   unsigned char compression_level;
+  int max_watch;
   int gline_min_cidr;
   int gline_min_cidr6;
   int dot_in_ip6_addr;

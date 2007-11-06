@@ -687,6 +687,7 @@ load_all_modules(int warn)
   mod_add_cmd(&users_msgtab);
   mod_add_cmd(&version_msgtab);
   mod_add_cmd(&wallops_msgtab);
+  mod_add_cmd(&watch_msgtab);
   mod_add_cmd(&who_msgtab);
   mod_add_cmd(&whois_msgtab);
   mod_add_cmd(&whowas_msgtab);

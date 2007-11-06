@@ -53,6 +53,7 @@
 #include "listener.h"
 #include "irc_res.h"
 #include "userhost.h"
+#include "watch.h"
 
 dlink_list listing_client_list = { NULL, NULL, 0 };
 /* Pointer to beginning of Client list */
@@ -786,6 +787,8 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
     add_history(source_p, 0);
     off_history(source_p);
 
+    watch_check_hash(source_p, RPL_LOGOFF);
+
     if (!MyConnect(source_p))
     {
       aconf = find_conf_by_address(source_p->host, &source_p->ip, 
@@ -995,6 +998,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
       if (source_p->localClient->list_task != NULL)
         free_list_task(source_p->localClient->list_task, source_p);
 
+      watch_del_watch_list(source_p);
       sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL, "Client exiting: %s (%s@%s) [%s] [%s]",
                            source_p->name, source_p->username, source_p->host, comment,
                            ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
@@ -1417,6 +1421,8 @@ set_initial_nick(struct Client *client_p, struct Client *source_p,
 void
 change_local_nick(struct Client *client_p, struct Client *source_p, const char *nick)
 {
+  int samenick = 0;
+
   /*
   ** Client just changing his/her nick. If he/she is
   ** on a channel, send note of change to all clients
@@ -1434,7 +1440,9 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
      !ConfigFileEntry.anti_nick_flood || 
      (IsOper(source_p) && ConfigFileEntry.no_oper_flood))
   {
-    if (irccmp(source_p->name, nick))
+    samenick = !irccmp(source_p->name, nick);
+
+    if (!samenick)
     {
       /*
        * Make sure everyone that has this client on its accept list
@@ -1442,6 +1450,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
        */
       del_all_their_accepts(source_p);
       source_p->tsinfo = CurrentTime;
+      clear_ban_cache_client(source_p);
     }
 
     /* XXX - the format of this notice should eventually be changed
@@ -1487,8 +1496,17 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
   if (source_p->name[0])
     hash_del_client(source_p);
 
+  if (!samenick)
+  {
+    clear_ban_cache_client(source_p);
+    watch_check_hash(source_p, RPL_LOGOFF);
+  }
+
   strcpy(source_p->name, nick);
   hash_add_client(source_p);
+
+  if (!samenick)
+    watch_check_hash(source_p, RPL_LOGON);
 
   /* fd_desc is long enough */
   fd_note(&client_p->localClient->fd, "Nick: %s", nick);

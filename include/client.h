@@ -223,6 +223,7 @@ struct LocalUser
   } recv, send;
 
   struct Listener *listener;   /* listener accepted from */
+  dlink_list        watches;   /* chain of Watch pointer blocks */
   dlink_list        confs;     /* Configuration record associated */
   dlink_list        invited;   /* chain of invite pointer blocks */
   struct DNSQuery   *dns_query; /* result returned from resolver query */

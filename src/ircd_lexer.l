@@ -244,6 +244,7 @@ max_ident	{ return MAX_IDENT; }
 max_local	{ return MAX_LOCAL; }
 max_global	{ return MAX_GLOBAL; }
 max_number	{ return MAX_NUMBER; }
+max_watch       { return MAX_WATCH; }
 message_locale	{ return MESSAGE_LOCALE; }
 min_nonwildcard { return MIN_NONWILDCARD; }
 min_nonwildcard_simple	{ return MIN_NONWILDCARD_SIMPLE; }
