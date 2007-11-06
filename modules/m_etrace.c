@@ -40,7 +40,6 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
-#include "irc_getnameinfo.h"
 
 #define FORM_STR_RPL_ETRACE	 ":%s 709 %s %s %s %s %s %s :%s"
 #define FORM_STR_RPL_ETRACE_FULL ":%s 708 %s %s %s %s %s %s %s %s :%s"
@@ -131,7 +130,7 @@ do_etrace(struct Client *source_p, int parc, char **parv)
       report_this_status(source_p, target_p, full_etrace);
       
     sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name, 
-	       source_p->name, tname);
+               source_p->name, tname);
     return;
   }
 
@@ -142,14 +141,14 @@ do_etrace(struct Client *source_p, int parc, char **parv)
     if (wilds)
     {
       if (match(tname, target_p->name) || match(target_p->name, tname))
-	report_this_status(source_p, target_p, full_etrace);
+        report_this_status(source_p, target_p, full_etrace);
     }
     else
       report_this_status(source_p, target_p, full_etrace);
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name,
-	     source_p->name, tname);
+             source_p->name, tname);
 }
 
 /* mo_etrace()
@@ -181,12 +180,6 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 {
   const char *name;
   const char *class_name;
-  char ip[HOSTIPLEN];
-
-  /* Should this be sockhost? - stu */
-  irc_getnameinfo((struct sockaddr*)&target_p->ip, 
-        target_p->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
-        NI_NUMERICHOST);
 
   name = get_client_name(target_p, HIDE_IP);
   class_name = get_client_class(target_p);
@@ -205,7 +198,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 		   class_name,
 		   target_p->name,
 		   target_p->username,
-		   IsIPSpoof(target_p) ? "255.255.255.255" : ip,
+		   IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
 		   IsIPSpoof(target_p) ? "<hidden>" : target_p->client_host,
 		   IsIPSpoof(target_p) ? "<hidden>" : target_p->client_server,
 		   target_p->info);
@@ -217,7 +210,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 		   class_name,
 		   target_p->name,
 		   target_p->username,
-		   ip,
+		   target_p->sockhost,
 		   target_p->client_host,
 		   target_p->client_server,
 		   target_p->info);
@@ -232,7 +225,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 		   class_name,
 		   target_p->name,
 		   target_p->username,
-		   IsIPSpoof(target_p) ? "255.255.255.255" : ip,
+		   IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
 		   target_p->info);
       else
 	sendto_one(source_p, FORM_STR_RPL_ETRACE,
@@ -242,7 +235,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 		   class_name,
 		   target_p->name,
 		   target_p->username,
-		   ip,
+		   target_p->sockhost,
 		   target_p->info);
     }
   }
