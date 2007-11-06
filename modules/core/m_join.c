@@ -28,7 +28,6 @@
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"   /* bleah */
 #include "hash.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
@@ -44,9 +43,9 @@
 #include "s_log.h"
 
 
-static void m_join(struct Client *, struct Client *, int, char **);
-static void ms_join(struct Client *, struct Client *, int, char **);
-static void do_join_0(struct Client *client_p, struct Client *source_p);
+static void m_join(struct Client *, struct Client *, int, char *[]);
+static void ms_join(struct Client *, struct Client *, int, char *[]);
+static void do_join_0(struct Client *, struct Client *);
 
 static void set_final_mode(struct Mode *, struct Mode *);
 static void remove_our_modes(struct Channel *, struct Client *);
@@ -59,7 +58,7 @@ static char *mbuf;
 
 struct Message join_msgtab = {
   "JOIN", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_join, ms_join, m_ignore, m_join, m_ignore}
+  { m_unregistered, m_join, ms_join, m_ignore, m_join, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -202,6 +201,16 @@ m_join(struct Client *client_p, struct Client *source_p,
       }
 
       /*
+       * can_join checks for +i key, bans.
+       */
+      if ((i = can_join(source_p, chptr, key)))
+      {
+        sendto_one(source_p, form_str(i), me.name,
+                   source_p->name, chptr->chname);
+        continue;
+      }
+
+      /*
        * This should never be the case unless there is some sort of
        * persistant channels.
        */
@@ -230,16 +239,6 @@ m_join(struct Client *client_p, struct Client *source_p,
 
     if (!IsOper(source_p))
       check_spambot_warning(source_p, chptr->chname);
-
-    /*
-     * can_join checks for +i key, bans.
-     */
-    if (((i = can_join(source_p, chptr, key)) && !IsGod(source_p)))
-    {
-      sendto_one(source_p, form_str(i), me.name,
-                 source_p->name, chptr->chname);
-      continue;
-    }
 
     if(i != 0 && IsGod(source_p) && MyClient(source_p))
     {
@@ -273,10 +272,10 @@ m_join(struct Client *client_p, struct Client *source_p,
       /*
        * notify all other users on the new channel
        */
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s JOIN :%s",
                            source_p->name, source_p->username,
                            source_p->host, chptr->chname);
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +nt",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +nt",
                            me.name, chptr->chname);
     }
     else
@@ -290,7 +289,7 @@ m_join(struct Client *client_p, struct Client *source_p,
                     me.name, (unsigned long)chptr->channelts,
                     chptr->chname, source_p->name);
 
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s JOIN :%s",
                            source_p->name, source_p->username,
                            source_p->host, chptr->chname);
     }
@@ -390,7 +389,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
   {
     if (!newts && !isnew && oldts)
     {
-      sendto_channel_local(ALL_MEMBERS, NO, chptr,
+      sendto_channel_local(ALL_MEMBERS, 0, chptr,
                            ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to 0",
                            me.name, chptr->chname, chptr->chname, (unsigned long)oldts);
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
@@ -407,11 +406,11 @@ ms_join(struct Client *client_p, struct Client *source_p,
     ;
   else if (newts < oldts)
   {
-    keep_our_modes = NO;
+    keep_our_modes = 0;
     chptr->channelts = newts;
   }
   else
-    keep_new_modes = NO;
+    keep_new_modes = 0;
 
   if (!keep_new_modes)
     mode = *oldmode;
@@ -442,7 +441,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
                            me.name : source_p->name, chptr->chname);
     }
 
-    sendto_channel_local(ALL_MEMBERS, NO, chptr,
+    sendto_channel_local(ALL_MEMBERS, 0, chptr,
                          ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to %lu",
                           me.name, chptr->chname, chptr->chname,
                          (unsigned long)oldts, (unsigned long)newts);
@@ -461,8 +460,8 @@ ms_join(struct Client *client_p, struct Client *source_p,
 
   if (!IsMember(source_p, chptr))
   {
-    add_user_to_channel(chptr, source_p, 0, YES);
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
+    add_user_to_channel(chptr, source_p, 0, 1);
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s JOIN :%s",
                          source_p->name, source_p->username,
                          source_p->host, chptr->chname);
   }
@@ -502,7 +501,7 @@ do_join_0(struct Client *client_p, struct Client *source_p)
                   ":%s PART %s", ID(source_p), chptr->chname);
     sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
                   ":%s PART %s", source_p->name, chptr->chname);
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s PART %s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s PART %s",
                          source_p->name, source_p->username,
                          source_p->host, chptr->chname);
 
@@ -683,7 +682,7 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
       }
 
       *mbuf = '\0';
-      sendto_channel_local(ALL_MEMBERS, NO, chptr,
+      sendto_channel_local(ALL_MEMBERS, 0, chptr,
                            ":%s MODE %s %s%s",
                            (IsHidden(source_p) ||
                            ConfigServerHide.hide_servers) ?
@@ -707,7 +706,7 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
       strlcat(sendbuf, " ", sizeof(sendbuf));
       strlcat(sendbuf, lpara[lcount], sizeof(sendbuf));
     }
-    sendto_channel_local(ALL_MEMBERS, NO, chptr,
+    sendto_channel_local(ALL_MEMBERS, 0, chptr,
                          ":%s MODE %s %s%s",
                          (IsHidden(source_p) || ConfigServerHide.hide_servers) ?
                          me.name : source_p->name,
