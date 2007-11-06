@@ -685,4 +685,3 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
           (wsopts.server!=NULL ? wsopts.server->name : "*"))))));
   return;
 }
-

@@ -203,32 +203,15 @@ do_whois(struct Client *source_p, int parc, char **parv)
   {
     if ((target_p = find_client(nick)) != NULL)
     {
-      if (IsServer(source_p->from))
-        client_burst_if_needed(source_p->from, target_p);
-
       if (IsClient(target_p))
       {
         whois_person(source_p, target_p);
         found = 1;
       }
     }
-    else if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
-    {
-      if (parc > 2)
-        sendto_one(uplink,":%s WHOIS %s :%s",
-                   source_p->name, nick, nick);
-      else
-        sendto_one(uplink,":%s WHOIS %s",
-                   source_p->name, nick);
-      return;
-    }
   }
   else /* wilds is true */
   {
-    /* disallow wild card whois on lazylink leafs for now */
-    if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
-      return;
-
     if (!IsOper(source_p))
     {
       if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
@@ -299,7 +282,7 @@ global_whois(struct Client *source_p, const char *nick)
     found |= single_whois(source_p, target_p);
   }
 
-  return (found);
+  return found;
 }
 
 /* single_whois()

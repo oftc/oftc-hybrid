@@ -192,11 +192,11 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
       }
       else
       {
-        sendto_server(target_p, target_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
+        sendto_server(target_p, chptr, CAP_TS6, NOCAPS,
                       ":%s SJOIN %lu %s + :%s",
                       me.id, (unsigned long)chptr->channelts,
                       chptr->chname, target_p->id);
-        sendto_server(target_p, target_p, chptr, NOCAPS, CAP_TS6, LL_ICLIENT,
+        sendto_server(target_p, chptr, NOCAPS, CAP_TS6,
                       ":%s SJOIN %lu %s + :%s",
                       me.name, (unsigned long)chptr->channelts,
                       chptr->chname, target_p->name);
@@ -252,11 +252,11 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
     /* send out a join, make target_p join chptr */
     if (chptr->chname[0] == '#')
     {
-      sendto_server(target_p, target_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
+      sendto_server(target_p, chptr, CAP_TS6, NOCAPS,
                     ":%s SJOIN %lu %s +nt :@%s",
                     me.id, (unsigned long)chptr->channelts,
                     chptr->chname, ID(target_p));
-      sendto_server(target_p, target_p, chptr, NOCAPS, CAP_TS6, LL_ICLIENT,
+      sendto_server(target_p, chptr, NOCAPS, CAP_TS6,
                     ":%s SJOIN %lu %s +nt :@%s",
                     me.name, (unsigned long)chptr->channelts,
                     chptr->chname, target_p->name);
@@ -338,10 +338,10 @@ mo_forcepart(struct Client *client_p, struct Client *source_p,
 
   if (chptr->chname[0] == '#')
   {
-    sendto_server(target_p, target_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
+    sendto_server(target_p, chptr, CAP_TS6, NOCAPS,
                   ":%s PART %s :%s", ID(target_p),
                   chptr->chname, target_p->name);
-    sendto_server(target_p, target_p, chptr, NOCAPS, CAP_TS6, LL_ICLIENT,
+    sendto_server(target_p, chptr, NOCAPS, CAP_TS6,
                   ":%s PART %s :%s", target_p->name,
                   chptr->chname, target_p->name);
   }

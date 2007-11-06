@@ -759,8 +759,6 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
   *p++ = 'A';
       if (IsConfCryptLink(aconf))
   *p++ = 'C';
-      if (IsConfLazyLink(aconf))
-  *p++ = 'L';
       if (aconf->fakename)
   *p++ = 'M';
       if (IsConfTopicBurst(aconf))

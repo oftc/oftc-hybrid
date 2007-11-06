@@ -80,6 +80,8 @@ o) WATCH support implemented. Known from other daemons, such
    as Dreamforge and Bahamut.
 o) Fixed bug which would cause invalid invisible counts on oper-up in case
    operator::umodes and/or general::oper_umodes contains 'invisible'
+o) Removed broken LazyLinks
+o) Minor code optimizations and cleanups
 
 -- ircd-hybrid-7.2.3 RELNOTES
 o) Added ircd-italian.lang language file

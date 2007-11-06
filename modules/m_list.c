@@ -42,12 +42,11 @@
 #include "s_user.h"
 
 static void m_list(struct Client *, struct Client *, int, char **);
-static void ms_list(struct Client *, struct Client *, int, char **);
 static void mo_list(struct Client *, struct Client *, int, char **);
 
 struct Message list_msgtab = {
   "LIST", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_list, ms_list, m_ignore, mo_list, m_ignore}
+  {m_unregistered, m_list, m_ignore, m_ignore, mo_list, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -88,22 +87,19 @@ do_list(struct Client *source_p, int parc, char *parv[])
   struct ListTask *lt;
   int no_masked_channels;
 
-  if (MyConnect(source_p))
+  if (source_p->localClient->list_task != NULL)
   {
-    if (source_p->localClient->list_task != NULL)
-    {
-      free_list_task(source_p->localClient->list_task, source_p);
-      sendto_one(source_p, form_str(RPL_LISTEND), me.name, source_p->name);
-      return;
-    }
+    free_list_task(source_p->localClient->list_task, source_p);
+    sendto_one(source_p, form_str(RPL_LISTEND), me.name, source_p->name);
+    return;
   }
 
-  lt = (struct ListTask *) MyMalloc(sizeof(struct ListTask));
+  lt = MyMalloc(sizeof(struct ListTask));
   lt->users_max = UINT_MAX;
   lt->created_max = UINT_MAX;
   lt->topicts_max = UINT_MAX;
-  if (MyConnect(source_p))
-    source_p->localClient->list_task = lt;
+  source_p->localClient->list_task = lt;
+
   no_masked_channels = 1;
 
   if (parc > 1)
@@ -195,8 +191,8 @@ do_list(struct Client *source_p, int parc, char *parv[])
   }
 
 
-  if (MyConnect(source_p))
-    dlinkAdd(source_p, make_dlink_node(), &listing_client_list);
+  dlinkAdd(source_p, make_dlink_node(), &listing_client_list);
+
   sendto_one(source_p, form_str(RPL_LISTSTART),
              MyConnect(source_p) ? me.name : ID(&me),
              MyConnect(source_p) ? source_p->name : ID(source_p));
@@ -215,26 +211,13 @@ m_list(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  /* If not a LazyLink connection, see if its still paced */
-  /* If we're forwarding this to uplinks.. it should be paced due to the
-   * traffic involved in /list.. -- fl_ */
   if (((last_used + ConfigFileEntry.pace_wait) > CurrentTime))
   {
     sendto_one(source_p,form_str(RPL_LOAD2HI),me.name,parv[0]);
     return;
   }
-  else
-    last_used = CurrentTime;
 
-  /* If its a LazyLinks connection, let uplink handle the list */
-  if (uplink && IsCapable(uplink, CAP_LL))
-  {
-    if (parc < 2)
-      sendto_one(uplink, ":%s LIST", source_p->name);
-    else
-      sendto_one(uplink, ":%s LIST %s", source_p->name, parv[1]);
-    return;
-  }
+  last_used = CurrentTime;
 
   do_list(source_p, parc, parv);
 }
@@ -248,37 +231,5 @@ static void
 mo_list(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  /* If its a LazyLinks connection, let uplink handle the list
-   * even for opers!
-   */
-
-  if (uplink && IsCapable(uplink, CAP_LL))
-  {
-    if (parc < 2)
-      sendto_one(uplink, ":%s LIST", source_p->name);
-    else
-      sendto_one(uplink, ":%s LIST %s", source_p->name, parv[1]);
-    return;
-  }
-
   do_list(source_p, parc, parv);
-}
-
-/*
-** ms_list
-**      parv[0] = sender prefix
-**      parv[1] = channel
-*/
-static void
-ms_list(struct Client *client_p, struct Client *source_p,
-        int parc, char *parv[])
-{
-  /* Only allow remote list if LazyLink request */
-  if (ServerInfo.hub)
-  {
-    if (!IsCapable(client_p->from, CAP_LL) && !MyConnect(source_p))
-      return;
-
-    do_list(source_p, parc, parv);
-  }
 }

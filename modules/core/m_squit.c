@@ -180,4 +180,3 @@ ms_squit(struct Client *client_p, struct Client *source_p,
 
    exit_client(target_p, source_p, comment);
 }
-

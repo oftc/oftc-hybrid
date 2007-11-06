@@ -214,13 +214,7 @@ m_message(int p_or_n, const char *command, struct Client *client_p,
 
   if (build_target_list(p_or_n, command, client_p, source_p, parv[1],
                         parv[2]) < 0)
-  {
-    /* Sigh.  We need to relay this command to the hub */
-    if (!ServerInfo.hub && (uplink != NULL))
-      sendto_one(uplink, ":%s %s %s :%s",
-		 source_p->name, command, parv[1], parv[2]);
     return;
-  }
 
   for (i = 0; i < ntargets; i++)
   {
@@ -266,18 +260,11 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
                   struct Client *source_p, char *nicks_channels, char *text)
 {
   int type;
-  char *p, *nick, *target_list, ncbuf[IRCD_BUFSIZE];
+  char *p = NULL, *nick, *target_list;
   struct Channel *chptr = NULL;
   struct Client *target_p = NULL;
 
-  /* Sigh, we can't mutilate parv[1] incase we need it to send to a hub */
-  if (!ServerInfo.hub && (uplink != NULL) && IsCapable(uplink, CAP_LL))
-  {
-    strlcpy(ncbuf, nicks_channels, sizeof(ncbuf));
-    target_list = ncbuf;
-  }
-  else
-    target_list = nicks_channels; /* skip strcpy for non-lazyleafs */
+  target_list = nicks_channels;
 
   ntargets = 0;
 
@@ -314,9 +301,7 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
       }
       else
       {
-        if (!ServerInfo.hub && (uplink != NULL) && IsCapable(uplink, CAP_LL))
-          return -1;
-        else if (p_or_n != NOTICE)
+        if (p_or_n != NOTICE)
           sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                      ID_or_name(&me, client_p),
                      ID_or_name(source_p, client_p), nick);
@@ -407,9 +392,7 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
       }
       else
       {
-        if (!ServerInfo.hub && (uplink != NULL) && IsCapable(uplink, CAP_LL))
-          return -1;
-        else if (p_or_n != NOTICE)
+        if (p_or_n != NOTICE)
           sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                      ID_or_name(&me, client_p),
                      ID_or_name(source_p, client_p), nick);
@@ -423,9 +406,7 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
     }
     else
     {
-      if (!ServerInfo.hub && (uplink != NULL) && IsCapable(uplink, CAP_LL))
-        return -1;
-      else if (p_or_n != NOTICE)
+      if (p_or_n != NOTICE)
       {
         if (!IsDigit(*nick) || MyClient(source_p))
 	  sendto_one(source_p, form_str(ERR_NOSUCHNICK),

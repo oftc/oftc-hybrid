@@ -118,22 +118,12 @@ struct Client
   unsigned short    status;     /* Client type */
   unsigned char     handler;    /* Handler index */
   unsigned long     serial;	/* used to enforce 1 send per nick */
-  unsigned long     lazyLinkClientExists; /* This client exists on the
-					   * bit mapped lazylink servers 
-					   * mapped here
-					   */
   char *away;
   /*
    * client->name is the unique name for a client nick or host
    */
   char name[HOSTLEN + 1]; 
   char id[IDLEN + 1];       /* client ID, unique ID per client */
-
-  /*
-   * client->llname is used to store the clients requested nick
-   * temporarily for new connections.
-   */
-  char              llname[NICKLEN];
 
   /* 
    * client->username is the username from ident or the USER message, 
@@ -227,7 +217,6 @@ struct LocalUser
   dlink_list        confs;     /* Configuration record associated */
   dlink_list        invited;   /* chain of invite pointer blocks */
   struct DNSQuery   *dns_query; /* result returned from resolver query */
-  unsigned long     serverMask; /* Only used for Lazy Links */
   time_t last; /* Last time we got a PRIVMSG */
   time_t            last_nick_change;
   int               number_of_nick_changes;

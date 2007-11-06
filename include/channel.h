@@ -51,7 +51,6 @@ struct Channel
   char *topic;
   char *topic_info;
   time_t topic_time;
-  unsigned long lazyLinkChannelExists;
   time_t last_knock; /*!< don't allow knock to flood */
 
   dlink_list members;
@@ -126,7 +125,7 @@ extern const char *get_member_status(const struct Membership *, int);
 extern struct Channel *make_channel(const char *);
 extern struct Membership *find_channel_link(struct Client *, struct Channel *);
 
-extern int msg_has_colors(char *);
+extern int msg_has_colors(const char *);
 extern char *strip_color(char *);
 
 /* channel visible */
