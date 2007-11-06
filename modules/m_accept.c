@@ -40,13 +40,11 @@
 #include "modules.h"
 
 static void m_accept(struct Client *, struct Client *, int, char *[]);
-static void build_nicklist(struct Client *, char *, char *, char *);
-static void add_accept(struct Client *, struct Client *);
 static void list_accepts(struct Client *);
 
 struct Message accept_msgtab = {
   "ACCEPT", 0, 0, 0, 0, MFLG_SLOW, 0, 
-  {m_unregistered, m_accept, m_ignore, m_ignore, m_accept, m_ignore}
+  { m_unregistered, m_accept, m_ignore, m_ignore, m_accept, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -65,142 +63,117 @@ _moddeinit(void)
 const char *_version = "$Revision$";
 #endif
 
-/*
- * m_accept - ACCEPT command handler
- *      parv[0] = sender prefix
- *      parv[1] = servername
+
+/* add_accept()
+ *
+ * input        - pointer to preallocated nick
+ *              - pointer to preallocated username
+ *              - pointer to preallocated host
+ *              - pointer to client to add to acceptlist
+ * output       - none
+ * side effects - target is added to clients list
+ */
+static void
+add_accept(const struct split_nuh_item *nuh, struct Client *source_p)
+{
+  struct split_nuh_item *accept_p = MyMalloc(sizeof(*accept_p));
+
+  DupString(accept_p->nickptr, nuh->nickptr);
+  DupString(accept_p->userptr, nuh->userptr);
+  DupString(accept_p->hostptr, nuh->hostptr);
+
+  dlinkAdd(accept_p, &accept_p->node, &source_p->localClient->acceptlist);
+
+  list_accepts(source_p);
+}
+
+/*! \brief ACCEPT command handler
+ *
+ * \param client_p Pointer to allocated Client struct with physical connection
+ *                 to this server, i.e. with an open socket connected.
+ * \param source_p Pointer to allocated Client struct from which the message
+ *                 originally comes from.  This can be a local or remote client.
+ * \param parc     Integer holding the number of supplied arguments.
+ * \param parv     Argument vector where parv[0] .. parv[parc-1] are non-NULL
+ *                 pointers.
+ * \note Valid arguments for this command are:
+ *      - parv[0] = sender prefix
+ *      - parv[1] = list of masks to be accepted or removed (optional)
  */
 static void
 m_accept(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  char *nick;
+  char *mask = NULL;
   char *p = NULL;
-  char addbuf[IRCD_BUFSIZE] = { '\0' };
-  char delbuf[IRCD_BUFSIZE] = { '\0' };
-  struct Client *target_p = NULL;
-  int accept_num;
-  
-  if ((parc < 2) || (*parv[1] == '*'))
+  char nick[NICKLEN + 1];
+  char user[USERLEN + 1];
+  char host[HOSTLEN + 1];
+  struct split_nuh_item nuh;
+  struct split_nuh_item *accept_p = NULL;
+
+  if (EmptyString(parv[1]) || !irccmp(parv[1], "*"))
   {
     list_accepts(source_p);
     return;
   }
 
-  build_nicklist(source_p, addbuf, delbuf, parv[1]);
-
-  /* parse the delete list */
-  for (nick = strtoken(&p, delbuf, ","); nick != NULL;
-       nick = strtoken(&p, NULL, ","))
+  for (mask = strtoken(&p, parv[1], ","); mask != NULL;
+       mask = strtoken(&p,    NULL, ","))
   {
-    /* shouldnt happen, but lets be paranoid */
-    if (((target_p = find_client(nick)) == NULL) || !IsClient(target_p))
+    if (*mask == '-' && *++mask != '\0')
     {
-      sendto_one(source_p, form_str(ERR_NOSUCHNICK),
-                 me.name, source_p->name, nick);
-      continue;
-    }
+      nuh.nuhmask  = mask;
+      nuh.nickptr  = nick;
+      nuh.userptr  = user;
+      nuh.hostptr  = host;
 
-    /* user isnt on clients accept list */
-    if (!accept_message(target_p, source_p))
+      nuh.nicksize = sizeof(nick);
+      nuh.usersize = sizeof(user);
+      nuh.hostsize = sizeof(host);
+
+      split_nuh(&nuh);
+
+      if ((accept_p = find_accept(nick, user, host, source_p, 0)) == NULL)
+      {
+        sendto_one(source_p, form_str(ERR_ACCEPTNOT),
+                   me.name, source_p->name, nick, user, host);
+        continue;
+      }
+
+      del_accept(accept_p, source_p);
+    }
+    else if (*mask != '\0')
     {
-      sendto_one(source_p, form_str(ERR_ACCEPTNOT),
-                 me.name, source_p->name, target_p->name);
-      continue;
-    }
+      if (dlink_list_length(&source_p->localClient->acceptlist) >=
+          ConfigFileEntry.max_accept)
+      {
+        sendto_one(source_p, form_str(ERR_ACCEPTFULL),
+                   me.name, source_p->name);
+        return;
+      }
 
-    del_from_accept(target_p, source_p);
+      nuh.nuhmask  = mask;
+      nuh.nickptr  = nick;
+      nuh.userptr  = user;
+      nuh.hostptr  = host;
+
+      nuh.nicksize = sizeof(nick);
+      nuh.usersize = sizeof(user);
+      nuh.hostsize = sizeof(host);
+
+      split_nuh(&nuh);
+
+      if ((accept_p = find_accept(nick, user, host, source_p, 0)) != NULL)
+      {
+        sendto_one(source_p, form_str(ERR_ACCEPTEXIST),
+                   me.name, source_p->name, nick, user, host);
+        continue;
+      }
+
+      add_accept(&nuh, source_p);
+    }
   }
-
-  /* get the number of accepts they have */ 
-  accept_num = dlink_list_length(&source_p->allow_list);
-
-  /* parse the add list */
-  for (nick = strtoken(&p, addbuf, ","); nick;
-       nick = strtoken(&p, NULL, ","), accept_num++)
-  {
-    /* shouldnt happen, but lets be paranoid */
-    if (((target_p = find_client(nick)) == NULL) || !IsClient(target_p)) 
-    {
-      sendto_one(source_p, form_str(ERR_NOSUCHNICK),
-                 me.name, source_p->name, nick);
-      continue;
-    }
-
-    /* user is already on clients accept list */
-    if (accept_message(target_p, source_p))
-    {
-      sendto_one(source_p, form_str(ERR_ACCEPTEXIST),
-                 me.name, source_p->name, target_p->name);
-      continue;
-    }
-
-    if (accept_num >= ConfigFileEntry.max_accept)
-    {
-      sendto_one(source_p, form_str(ERR_ACCEPTFULL),
-                 me.name, source_p->name);
-      return;
-    }
-      
-    /* why is this here? */
-    /* del_from accept(target_p, source_p); */
-    add_accept(source_p, target_p);
-  }
-}
-
-/* build_nicklist()
- *
- * input	- pointer to client
- *		- pointer to addbuffer
- *		- pointer to remove buffer
- *		- pointer to list of nicks
- * output	- 
- * side effects - addbuf/delbuf are modified to give valid nicks
- */
-static void
-build_nicklist(struct Client *source_p, char *addbuf,
-               char *delbuf, char *nicks)
-{
-  char *name = NULL;
-  char *p = NULL;
-  char *buf_p = NULL;
-  struct Client *target_p = NULL;
-
-  /* build list of clients to add into addbuf, clients to remove in delbuf */
-  for (name = strtoken(&p, nicks, ","); name; 
-       name = strtoken(&p, NULL, ","))
-  {
-    if (*name == '-')
-      buf_p = delbuf, ++name;
-    else
-      buf_p = addbuf;
-
-    if (((target_p = find_client(name)) == NULL) || !IsClient(target_p))
-    {
-      sendto_one(source_p, form_str(ERR_NOSUCHNICK),
-                 me.name, source_p->name, name);
-      continue;
-    }
-
-    if (*buf_p)
-      strlcat(buf_p, ",", IRCD_BUFSIZE);
-    strlcat(buf_p, name, IRCD_BUFSIZE);
-  }
-}
-
-/* add_accept()
- *
- * input	- pointer to clients accept list to add to
- * 		- pointer to client to add
- * output	- none
- * side effects - target is added to clients list
- */
-static void
-add_accept(struct Client *source_p, struct Client *target_p)
-{
-  dlinkAdd(target_p, make_dlink_node(), &source_p->allow_list);
-  dlinkAdd(source_p, make_dlink_node(), &target_p->on_allow_list);
-  list_accepts(source_p);
 }
 
 /* list_accepts()
@@ -219,11 +192,14 @@ list_accepts(struct Client *source_p)
 
   len = strlen(me.name) + strlen(source_p->name) + 12;
 
-  DLINK_FOREACH(ptr, source_p->allow_list.head)
+  DLINK_FOREACH(ptr, source_p->localClient->acceptlist.head)
   {
-    const struct Client *target_p = ptr->data;
+    const struct split_nuh_item *accept_p = ptr->data;
+    size_t masklen = strlen(accept_p->nickptr) +
+                     strlen(accept_p->userptr) +
+                     strlen(accept_p->hostptr) + 2 /* !@ */ ;
 
-    if ((t - nicks) + strlen(target_p->name) + len > IRCD_BUFSIZE)
+    if ((t - nicks) + masklen + len  > IRCD_BUFSIZE)
     {
       *(t - 1) = '\0';
       sendto_one(source_p, form_str(RPL_ACCEPTLIST),
@@ -231,7 +207,9 @@ list_accepts(struct Client *source_p)
       t = nicks;
     }
 
-    t += ircsprintf(t, "%s ", target_p->name);
+    t += ircsprintf(t, "%s!%s@%s ",
+                    accept_p->nickptr,
+                    accept_p->userptr, accept_p->hostptr);
   }
 
   if (nicks[0] != '\0')

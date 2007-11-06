@@ -696,7 +696,6 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
     /* client changing their nick */
     if (!samenick)
     {
-      del_all_accepts(source_p);
       watch_check_hash(source_p, RPL_LOGOFF);
       source_p->tsinfo = newts ? newts : CurrentTime;
     }
