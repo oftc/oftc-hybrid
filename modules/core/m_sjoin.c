@@ -274,6 +274,17 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
   if (!keep_our_modes)
   {
     remove_our_modes(chptr, source_p);
+
+    if (chptr->topic)
+    {
+      set_channel_topic(chptr, NULL, NULL, 0);
+      chptr->topic_time = 0;
+      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :",
+                           (IsHidden(source_p) ||
+                           ConfigServerHide.hide_servers) ?
+                           me.name : source_p->name, chptr->chname);
+    }
+
     sendto_channel_local(ALL_MEMBERS, NO, chptr,
    		         ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to %lu",
 	 		 me.name, chptr->chname, chptr->chname,
