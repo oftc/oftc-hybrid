@@ -65,7 +65,7 @@ extern void *hash_get_bucket(int, unsigned int);
 extern struct ResvChannel *hash_find_resv(const char *);
 
 extern void free_list_task(struct ListTask *, struct Client *);
-extern void safe_list_channels(struct Client *, struct ListTask *, int, int);
+extern void safe_list_channels(struct Client *, struct ListTask *, int);
 
 extern unsigned int strhash(const char *);
 #endif  /* INCLUDED_hash_h */

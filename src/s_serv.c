@@ -51,7 +51,6 @@
 #include "s_serv.h"
 #include "s_log.h"
 #include "s_misc.h"
-#include "s_stats.h"
 #include "s_user.h"
 #include "send.h"
 #include "memory.h"
@@ -754,7 +753,7 @@ delete_capability(const char *capab_name)
     }
   }
 
-  return(0);
+  return 0;
 }
 
 /*
@@ -767,20 +766,17 @@ delete_capability(const char *capab_name)
 int
 find_capability(const char *capab)
 {
-  dlink_node *ptr;
-  struct Capability *cap;
+  const dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, cap_list.head)
   {
-    cap = ptr->data;
+    const struct Capability *cap = ptr->data;
 
-    if (cap->cap != 0)
-    {
-      if (irccmp(cap->name, capab) == 0)
-	return(cap->cap);
-    }
+    if (cap->cap && !irccmp(cap->name, capab))
+      return cap->cap;
   }
-  return(0);
+
+  return 0;
 }
 
 /* send_capabilities()
@@ -1008,7 +1004,7 @@ server_estab(struct Client *client_p)
   {
     if (client_p != serv_list.head->data || serv_list.head->next)
     {
-      ServerStats->is_ref++;
+      ++ServerStats.is_ref;
       sendto_one(client_p, "ERROR :I'm a leaf not a hub");
       exit_client(client_p, &me, "I'm a leaf");
       return;
@@ -1560,49 +1556,6 @@ burst_members(struct Client *client_p, struct Channel *chptr)
       if (target_p->from != client_p)
         sendnick_TS(client_p, target_p);
     }
-  }
-}
-
-/* set_autoconn()
- *
- * inputs       - struct Client pointer to oper requesting change
- * output       - none
- * side effects - set autoconnect mode
- */
-void
-set_autoconn(struct Client *source_p, const char *name, int newval)
-{
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-
-  if (name != NULL)
-  {
-    conf = find_exact_name_conf(SERVER_TYPE, name, NULL, NULL, NULL);
-    if (conf != NULL)
-    {
-      aconf = (struct AccessItem *)map_to_conf(conf);
-      if (newval)
-        SetConfAllowAutoConn(aconf);
-      else
-        ClearConfAllowAutoConn(aconf);
-
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-			   "%s has changed AUTOCONN for %s to %i",
-			   source_p->name, name, newval);
-      sendto_one(source_p,
-		 ":%s NOTICE %s :AUTOCONN for %s is now set to %i",
-		 me.name, source_p->name, name, newval);
-    }
-    else
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Can't find %s",
-		 me.name, source_p->name, name);
-    }
-  }
-  else
-  {
-    sendto_one(source_p, ":%s NOTICE %s :Please specify a server name!",
-               me.name, source_p->name);
   }
 }
 
