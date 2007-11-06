@@ -482,7 +482,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   SetClient(source_p);
 
   source_p->servptr = &me;
-  dlinkAdd(source_p, &source_p->lnode, &source_p->servptr->serv->users);
+  dlinkAdd(source_p, &source_p->lnode, &source_p->servptr->serv->client_list);
 
   /* Increment our total user count here */
   if (++Count.total > Count.max_tot)
@@ -575,10 +575,8 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
   if (++Count.total > Count.max_tot)
     Count.max_tot = Count.total;
 
-  ++source_p->from->serv->dep_users;
-
   SetClient(source_p);
-  dlinkAdd(source_p, &source_p->lnode, &source_p->servptr->serv->users);
+  dlinkAdd(source_p, &source_p->lnode, &source_p->servptr->serv->client_list);
   add_user_host(source_p->username, source_p->host, 1);
   SetUserHost(source_p);
 

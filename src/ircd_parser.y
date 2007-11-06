@@ -3272,7 +3272,6 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
 		    general_reject_hold_time | general_stats_e_disabled | 
         general_godmode_timeout |
 		    general_max_watch |
-		    general_max_watch |
 		    error;
 
 

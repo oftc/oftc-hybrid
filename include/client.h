@@ -49,18 +49,13 @@ struct Listener;
 struct Client;
 struct LocalUser;
 
-/*
- * Client structures
- */
 
 struct Server
 {
   char by[NICKLEN];       /* who activated this connection     */
   struct ConfItem *sconf; /* ConfItem connect{} pointer for this server */
-  dlink_list servers;     /* Servers on this server            */
-  dlink_list users;       /* Users on this server              */
-  int dep_servers;        /* Total number of dependent servers on all levels */
-  int dep_users;          /* Total number of dependent users on all levels */
+  dlink_list server_list; /* Servers on this server            */
+  dlink_list client_list; /* Clients on this server            */
 };
 
 struct SlinkRpl
@@ -157,13 +152,6 @@ struct Client
   char              sockhost[HOSTIPLEN + 1]; /* This is the host name from the 
                                                 socket ip address as string */
   char              realhost[HOSTLEN];
-  /* caller ID allow list */
-  /* This has to be here, since a client on an on_allow_list could
-   * be a remote client. simpler to keep both here.
-   */
-  dlink_list	      allow_list;	/* clients I'll allow to talk to me */
-  dlink_list	      on_allow_list;	/* clients that have =me= on their allow list*/
-
   dlink_list        channel;   /* chain of channel pointer blocks */
 
   struct LocalUser *localClient;

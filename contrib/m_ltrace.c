@@ -81,8 +81,20 @@ _moddeinit(void)
 }
 #endif
 
-static int report_this_status(struct Client *source_p, struct Client *target_p,int dow,
-                              int link_u_p, int link_u_s);
+static void report_this_status(struct Client *, struct Client *, int);
+
+static void
+trace_get_dependent(int *const server,
+                    int *const client, const struct Client *target_p)
+{
+  const dlink_node *ptr = NULL;
+
+  (*server)++;
+  (*client) += dlink_list_length(&target_p->serv->client_list);
+
+  DLINK_FOREACH(ptr, target_p->serv->server_list.head)
+    trace_get_dependent(server, client, ptr->data);
+}
 
 /*
  * m_ltrace()
@@ -206,7 +218,7 @@ do_ltrace(struct Client *source_p, int parc, char **parv)
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
-    report_this_status(source_p, target_p, dow, 0, 0);
+    report_this_status(source_p, target_p, dow);
   }
 
   /* report all servers */
@@ -219,8 +231,7 @@ do_ltrace(struct Client *source_p, int parc, char **parv)
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
-    report_this_status(source_p, target_p, dow, target_p->serv->dep_users,
-                       target_p->serv->dep_servers);
+    report_this_status(source_p, target_p, dow);
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name, parv[0], tname);
@@ -261,9 +272,9 @@ mo_ltrace(struct Client *client_p, struct Client *source_p,
  * output	- counter of number of hits
  * side effects - NONE
  */
-static int
+static void
 report_this_status(struct Client *source_p, struct Client *target_p,
-                   int dow, int link_u_p, int link_s_p)
+                   int dow)
 {
   const char *name = NULL;
   const char *class_name = NULL;
@@ -326,15 +337,22 @@ report_this_status(struct Client *source_p, struct Client *target_p,
       break;
 
     case STAT_SERVER:
-      if(!IsAdmin(source_p))
+    {
+      int clients = 0;
+      int servers = 0;
+
+      trace_get_dependent(&servers, &clients, target_p);
+
+      if (!IsAdmin(source_p))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),
-                 me.name, source_p->name, class_name, link_s_p,
-                 link_u_p, name, *(target_p->serv->by) ?
+                 me.name, source_p->name, class_name, servers,
+                 clients, name, *(target_p->serv->by) ?
                  target_p->serv->by : "*", "*",
                  me.name, CurrentTime - target_p->lasttime);
       break;
+    }
 
     case STAT_ME:
     case STAT_UNKNOWN:
@@ -345,6 +363,4 @@ report_this_status(struct Client *source_p, struct Client *target_p,
                  source_p->name, name);
       break;
   }
-
-  return 0;
 }
