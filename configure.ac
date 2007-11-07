@@ -76,6 +76,8 @@ AC_CHECK_HEADERS_ONCE(crypt.h        \
                       wait.h         \
                       link.h)
 
+AH_TEMPLATE([HAVE_LIBCRYPTO], [If we support ssl])
+
 dnl Openssl checks
 AC_ARG_ENABLE(openssl,
 [  --enable-openssl[=DIR]       Enable OpenSSL support (DIR optional).
