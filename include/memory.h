@@ -26,7 +26,7 @@
 #define _I_MEMORY_H
 
 #include "ircd_defs.h"
-#include "setup.h"
+#include "config.h"
 #include "balloc.h"
 
 /* Needed to use uintptr_t for some pointer manipulation. */

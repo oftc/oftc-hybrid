@@ -26,7 +26,7 @@
 #define INCLUDED_client_h
 
 #include "fdlist.h"
-#include "setup.h"
+#include "config.h"
 #include "ircd_defs.h"
 #include "ircd_handler.h"
 #include "dbuf.h"

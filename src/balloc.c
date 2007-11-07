@@ -52,8 +52,6 @@
 
 
 #include "stdinc.h"
-
-#if USE_BLOCK_ALLOC
 #ifdef HAVE_MMAP /* We've got mmap() that is good */
 #include <sys/mman.h>
 
@@ -505,5 +503,3 @@ block_heap_report_stats(struct Client *client_p)
                block_heap_get_size_elm(bh),
                block_heap_get_size_mem(bh));
 }
-
-#endif

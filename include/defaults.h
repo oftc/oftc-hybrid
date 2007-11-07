@@ -49,6 +49,7 @@
 
 /* dirs */
 #define DPATH       PREFIX                                                     
+#define SBINPATH    PREFIX "/sbin/"
 #define BINPATH     PREFIX "/bin/"
 #define	MSGPATH		  DATADIR "/" PACKAGE "/messages"
 #define MODPATH		  LIBDIR "/" PACKAGE "/modules/"
@@ -59,7 +60,7 @@
 #define	LOGPATH		  LOCALSTATEDIR "/log"
 
 /* files */
-#define SPATH   BINPATH "/ircd"                 /* ircd executable */
+#define SPATH   SBINPATH "/ircd"                /* ircd executable */
 #define SLPATH  BINPATH "/servlink"             /* servlink executable */
 #define CPATH   ETCPATH "/ircd.conf"            /* ircd.conf file */
 #define KPATH   ETCPATH "/kline.conf"           /* kline file */

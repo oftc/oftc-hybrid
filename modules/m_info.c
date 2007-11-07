@@ -729,7 +729,7 @@ send_conf_options(struct Client *source_p)
   const struct InfoStruct *iptr = NULL;
 
   /* Now send them a list of all our configuration options
-   * (mostly from defaults.h and setup.h)
+   * (mostly from defaults.h and config.h)
    */
   if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
   {

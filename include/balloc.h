@@ -28,9 +28,7 @@
 #ifndef INCLUDED_balloc_h
 #define INCLUDED_balloc_h
 
-#include "setup.h"
-
-#ifndef NOBALLOC
+#include "config.h"
 #include "client.h"
 #include "tools.h"
 #include "memory.h"
@@ -79,12 +77,4 @@ extern BlockHeap* BlockHeapCreate(const char *const, size_t, int);
 extern int        BlockHeapDestroy(BlockHeap *);
 extern void	  initBlockHeap(void);
 extern void block_heap_report_stats(struct Client *);
-#else /* NOBALLOC */
-
-typedef struct BlockHeap BlockHeap;
-/* This is really kludgy, passing ints as pointers is always bad. */
-#define BlockHeapCreate(blah, es, epb) ((BlockHeap*)(es))
-#define BlockHeapAlloc(x) MyMalloc((int)x)
-#define BlockHeapFree(x,y) MyFree(y)
-#endif /* NOBALLOC */
 #endif /* INCLUDED_balloc_h */

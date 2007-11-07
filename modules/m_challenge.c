@@ -23,6 +23,8 @@
  */
 
 #include "stdinc.h"
+#ifdef HAVE_LIBCRYPTO
+
 #include "handlers.h"
 #include "client.h"
 #include "ircd.h"
@@ -199,3 +201,4 @@ failed_challenge_notice(struct Client *source_p, const char *name,
                          "by %s (%s@%s) - %s", name, source_p->name,
                          source_p->username, source_p->host, reason);
 }
+#endif

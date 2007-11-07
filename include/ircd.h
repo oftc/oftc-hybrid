@@ -26,7 +26,7 @@
 #define INCLUDED_ircd_h
 
 #include "ircd_defs.h"
-#include "setup.h"
+#include "config.h"
 #include "tools.h"
 #include "memory.h"
 

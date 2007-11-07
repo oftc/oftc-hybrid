@@ -1,2 +1,2 @@
-MAINTAINERCLEANFILES=Makefile.in
-SUBDIRS=opers users
+AUTOMAKE_OPTIONS = foreign
+SUBDIRS = opers users

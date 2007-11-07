@@ -16,12 +16,6 @@ AC_DEFUN([AX_CHECK_LIB_CRYPT],[
 	AC_SEARCH_LIBS(crypt, [crypt descrypt],,)
   AM_CONDITIONAL([HAVE_CRYPT],[test "$ac_cv_search_crypt" = "none required"])
 ])dnl }}}
-dnl {{{ ax_check_lib_openssl
-AC_DEFUN([AX_CHECK_LIB_OPENSSL],[
-  AC_CHECK_HEADER([openssl/sha.h],,[AC_MSG_ERROR([openssl header files not found])])
-  AC_CHECK_LIB([ssl],[SHA_Init],,[AC_MSG_ERROR([openssl library not found])])
-  AC_CHECK_LIB([crypto],[EVP_MD_CTX_init],,[AC_MSG_ERROR([openssl library not found])])
-])dnl }}}
 dnl {{{ ax_arg_enable_ioloop_mechanism (FIXME)
 AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
   dnl {{{ allow the user to specify desired mechanism
@@ -148,31 +142,6 @@ main () { return 1; } /* F_SETSIG not defined */
   AC_DEFINE_UNQUOTED([USE_IOPOLL_MECHANISM],[$use_iopoll_mechanism],[use this iopoll mechanism])
   dnl }}}
 ])dnl }}}
-dnl {{{ ax_arg_disable_block_alloc
-AC_DEFUN([AX_ARG_DISABLE_BLOCK_ALLOC],[
-  AC_ARG_ENABLE([block-alloc],[AC_HELP_STRING([--disable-block-alloc],[Disable block alloc.])],[block_alloc="$enableval"],[block_alloc="yes"])
-  if test "$block_alloc" = "no" ; then
-    use_block_alloc=0
-  else
-    use_block_alloc=1
-  fi
-  AC_DEFINE_UNQUOTED([USE_BLOCK_ALLOC],[$use_block_alloc],[use block alloc])
-])dnl }}}
-dnl {{{ ax_arg_disable_shared_modules (FIXME)
-AC_DEFUN([AX_ARG_DISABLE_SHARED_MODULES],[
-  AC_ARG_ENABLE([shared-modules],[AC_HELP_STRING([--disable-shared-modules],[Disable shared modules.])],[shared_modules="$enableval"],[shared_modules="yes"])
-  AC_CHECK_HEADERS([dlfcn.h link.h])
-  AC_CHECK_FUNCS([dlopen dlinfo])
-  if test "$shared_modules" = "yes" ; then
-    use_shared_modules="yes"
-    AC_CHECK_LIB([dl],[dlopen],,[AC_MSG_ERROR([dl library not found])])
-    AC_DEFINE([USE_SHARED_MODULES],[1],[Define to 1 if you want to use shared modules.])
-  else
-    use_shared_modules="no"
-    AC_MSG_WARN([shared module support has been disabled per supplied configure option])
-  fi
-  AM_CONDITIONAL([USE_SHARED_MODULES],[test "$shared_modules" = "yes"])
-])dnl }}}
 dnl {{{ ax_arg_with_topiclen
 AC_DEFUN([AX_ARG_WITH_TOPICLEN],[
   AC_ARG_WITH([topiclen],[AC_HELP_STRING([--with-topiclen=<value>],[Set topic length (default 160).])],[topiclen="$withval"],[topiclen="160"])
@@ -283,13 +252,6 @@ AC_DEFUN([AX_ARG_ENABLE_WARNINGS],[
   AC_ARG_ENABLE([warnings],[AC_HELP_STRING([--enable-warnings],[Enable compiler warnings.])],[warnings="$enableval"],[warnings="no"])
   if test "$warnings" = "yes" ; then
     CFLAGS="-Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wno-unused"
-  fi
-])dnl }}}
-dnl {{{ ax_arg_enable_efence
-AC_DEFUN([AX_ARG_ENABLE_EFENCE],[
-  AC_ARG_ENABLE([efence],[AC_HELP_STRING([--enable-efence],[Enable compilation with ElectricFence.])],[efence="$enableval"],[efence="no"])
-  if test "$efence" = "yes" ; then
-    AC_SEARCH_LIBS([malloc],[efence],,[AC_MSG_ERROR([efence library not found])])
   fi
 ])dnl }}}
 dnl {{{ ax_arg_enable_syslog

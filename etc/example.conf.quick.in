@@ -373,7 +373,7 @@ glines {
 };
 
 modules {
-	path = "@datadir@/modules";
-	path = "@datadir@/modules/autoload";
+	path = "@LIBDIR@/modules";
+	path = "@LIBDIR@/modules/autoload";
 	#module = "some_module.so";
 };

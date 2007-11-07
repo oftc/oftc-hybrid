@@ -8,7 +8,7 @@
 #define INCLUDED_irc_res_h
 
 #include "listener.h"
-#include "setup.h"
+#include "config.h"
 
 /* Here we define some values lifted from nameser.h */
 #define NS_NOTIFY_OP 4

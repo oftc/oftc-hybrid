@@ -1,2 +1,2 @@
-MAINTAINERCLEANFILES=Makefile.in
-SUBDIRS=pcre
+AUTOMAKE_OPTIONS = foreign
+SUBDIRS = pcre

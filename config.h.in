@@ -1,0 +1,293 @@
+/* include/setup.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Size of the ban heap. */
+#undef BAN_HEAP_SIZE
+
+/* Size of the channel heap. */
+#undef CHANNEL_HEAP_SIZE
+
+/* Size of the client heap. */
+#undef CLIENT_HEAP_SIZE
+
+/* Set to datadir. */
+#undef DATADIR
+
+/* Size of the dbuf heap. */
+#undef DBUF_HEAP_SIZE
+
+/* Define to 1 to enable debugging. */
+#undef DEBUG
+
+/* Size of the dlink_node heap. */
+#undef DNODE_HEAP_SIZE
+
+/* Define to 1 if this server will be an EFnet server. */
+#undef EFNET
+
+/* Size of the floodserv fmsg heap. */
+#undef FMSG_HEAP_SIZE
+
+/* Define to 1 if you want halfops support. */
+#undef HALFOPS
+
+/* Define to 1 if you have the <crypt.h> header file. */
+#undef HAVE_CRYPT_H
+
+/* Define to 1 if you have the <devpoll.h> header file. */
+#undef HAVE_DEVPOLL_H
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <errno.h> header file. */
+#undef HAVE_ERRNO_H
+
+/* Define to 1 if you have the `EVP_bf_cfb' function. */
+#undef HAVE_EVP_BF_CFB
+
+/* Define to 1 if you have the `EVP_cast5_cfb' function. */
+#undef HAVE_EVP_CAST5_CFB
+
+/* Define to 1 if you have the `EVP_des_cfb' function. */
+#undef HAVE_EVP_DES_CFB
+
+/* Define to 1 if you have the `EVP_des_ede3_cfb' function. */
+#undef HAVE_EVP_DES_EDE3_CFB
+
+/* Define to 1 if you have the `EVP_idea_cfb' function. */
+#undef HAVE_EVP_IDEA_CFB
+
+/* Define to 1 if you have the `EVP_rc5_32_12_16_cfb' function. */
+#undef HAVE_EVP_RC5_32_12_16_CFB
+
+/* Define to 1 if you have the `inet_aton' function. */
+#undef HAVE_INET_ATON
+
+/* Define to 1 if you have the `inet_ntop' function. */
+#undef HAVE_INET_NTOP
+
+/* Define to 1 if you have the `inet_pton' function. */
+#undef HAVE_INET_PTON
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `crypto' library (-lcrypto). */
+#undef HAVE_LIBCRYPTO
+
+/* Define to 1 if you have the <libgen.h> header file. */
+#undef HAVE_LIBGEN_H
+
+/* Define to 1 if you have the <link.h> header file. */
+#undef HAVE_LINK_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `snprintf' function. */
+#undef HAVE_SNPRINTF
+
+/* Define to 1 if you have the <stddef.h> header file. */
+#undef HAVE_STDDEF_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if the system has the type `struct addrinfo'. */
+#undef HAVE_STRUCT_ADDRINFO
+
+/* Define to 1 if the system has the type `struct sockaddr_in'. */
+#undef HAVE_STRUCT_SOCKADDR_IN
+
+/* Define to 1 if the system has the type `struct sockaddr_in6'. */
+#undef HAVE_STRUCT_SOCKADDR_IN6
+
+/* Define to 1 if `sin_len' is member of `struct sockaddr_in'. */
+#undef HAVE_STRUCT_SOCKADDR_IN_SIN_LEN
+
+/* Define to 1 if the system has the type `struct sockaddr_storage'. */
+#undef HAVE_STRUCT_SOCKADDR_STORAGE
+
+/* Define to 1 if you have the <syslog.h> header file. */
+#undef HAVE_SYSLOG_H
+
+/* Define to 1 if you have the <sys/devpoll.h> header file. */
+#undef HAVE_SYS_DEVPOLL_H
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/syslog.h> header file. */
+#undef HAVE_SYS_SYSLOG_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/wait.h> header file. */
+#undef HAVE_SYS_WAIT_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <wait.h> header file. */
+#undef HAVE_WAIT_H
+
+/* Length of nicknames. */
+#undef HOSTLEN
+
+/* Miscellaneous sanity checks for the IRCd. Makes it slightly slower */
+#undef INVARIANTS
+
+/* Define to 1 if you have IPv6 support. */
+#undef IPV6
+
+/* Size of the ircd heap. */
+#undef IRCD_HEAP_SIZE
+
+/* Size of the local client heap. */
+#undef LCLIENT_HEAP_SIZE
+
+/* Set to libdir. */
+#undef LIBDIR
+
+/* Set to localstatedir. */
+#undef LOCALSTATEDIR
+
+/* Set to syslog facility to use. */
+#undef LOG_FACILITY
+
+/* Size of the floodserv mqueue heap. */
+#undef MQUEUE_HEAP_SIZE
+
+/* Define to 1 to disable debugging. */
+#undef NDEBUG
+
+/* Length of nicknames. */
+#undef NICKLEN
+
+/* Size of the nickname history list. */
+#undef NICKNAMEHISTORYLENGTH
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Set to prefix. */
+#undef PREFIX
+
+/* The size of `int64_t', as computed by sizeof. */
+#undef SIZEOF_INT64_T
+
+/* The size of `long long', as computed by sizeof. */
+#undef SIZEOF_LONG_LONG
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Set to sysconfdir. */
+#undef SYSCONFDIR
+
+/* Send oper log stuff to syslog. */
+#undef SYSLOG_OPER
+
+/* Send user log stuff to syslog. */
+#undef SYSLOG_USERS
+
+/* Length of topics. */
+#undef TOPICLEN
+
+/* Size of the topic heap. */
+#undef TOPIC_HEAP_SIZE
+
+/* If Defined to 1 server links to your network must have a minimum of TS5. */
+#undef TS5_ONLY
+
+/* Length of nicknames. */
+#undef USERLEN
+
+/* use this iopoll mechanism */
+#undef USE_IOPOLL_MECHANISM
+
+/* Define to 1 if you want to use syslog. */
+#undef USE_SYSLOG
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
+
+/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
+   `char[]'. */
+#undef YYTEXT_POINTER
+
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# undef _GNU_SOURCE
+#endif
+
+/* devpoll mechanism */
+#undef __IOPOLL_MECHANISM_DEVPOLL
+
+/* epoll mechanism */
+#undef __IOPOLL_MECHANISM_EPOLL
+
+/* kqueue mechanism */
+#undef __IOPOLL_MECHANISM_KQUEUE
+
+/* no iopoll mechanism */
+#undef __IOPOLL_MECHANISM_NONE
+
+/* poll mechanism */
+#undef __IOPOLL_MECHANISM_POLL
+
+/* rtsigio mechanism */
+#undef __IOPOLL_MECHANISM_RTSIGIO
+
+/* select mechanism */
+#undef __IOPOLL_MECHANISM_SELECT
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif
+
+/* Define to `long long' if <sys/types.h> does not define. */
+#undef int64_t
+
+/* Define to `unsigned long long' if <sys/types.h> does not define. */
+#undef uint64_t

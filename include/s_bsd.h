@@ -25,7 +25,7 @@
 #ifndef INCLUDED_s_bsd_h
 #define INCLUDED_s_bsd_h
 
-#include "setup.h"       
+#include "config.h"       
 #include "fdlist.h"
 #include "hook.h"
 

@@ -26,9 +26,7 @@
 #ifndef STDINC_H /* prevent multiple #includes */
 #define STDINC_H
  
-#ifndef IN_AUTOCONF
-#include "setup.h"
-#endif
+#include "config.h"
 
 #include "defaults.h"
 

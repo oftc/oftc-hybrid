@@ -30,6 +30,8 @@
  */
 
 #include "stdinc.h"
+#ifdef HAVE_LIBCRYPTO
+
 #include "handlers.h"
 #include "client.h"      /* client struct */
 #include "ircd.h"        /* me */
@@ -536,3 +538,5 @@ bogus_host(char *host)
 
   return(!dots || length > HOSTLEN);
 }
+
+#endif
