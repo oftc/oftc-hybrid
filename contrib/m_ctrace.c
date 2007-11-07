@@ -140,7 +140,7 @@ do_ctrace(struct Client *source_p, int parc, char *parv[])
  * output	- counter of number of hits
  * side effects - NONE
  */
-static int
+static void
 report_this_status(struct Client *source_p, struct Client *target_p)
 {
   const char *name = NULL;
