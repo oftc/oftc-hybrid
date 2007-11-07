@@ -37,6 +37,9 @@
 
 /* Right out of the RFC */
 #define IRCD_BUFSIZE    512     /* WARNING: *DONT* CHANGE THIS!!!!         */
+#define HOSTLEN          63     /* Length of hostname. Updated to comply
+                                   with RFC 1123 */
+#define USERLEN          10
 #define PORTNAMELEN 6  /* ":31337" */
 
 #define REALLEN         50

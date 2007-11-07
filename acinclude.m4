@@ -180,16 +180,6 @@ AC_DEFUN([AX_ARG_WITH_NICKLEN],[
   AC_ARG_WITH([nicklen],[AC_HELP_STRING([--with-nicklen=<value>],[Set nickname length (default 9).])],[nicklen="$withval"],[nicklen="9"])
   AC_DEFINE_UNQUOTED([NICKLEN],[($nicklen+1)],[Length of nicknames.]) 
 ])dnl }}}
-dnl {{{ ax_arg_with_userlen
-AC_DEFUN([AX_ARG_WITH_USERLEN],[
-  AC_ARG_WITH([userlen],[AC_HELP_STRING([--with-userlen=<value>],[Set username length (default 9).])],[userlen="$withval"],[userlen="9"])
-  AC_DEFINE_UNQUOTED([USERLEN],[($userlen+1)],[Length of nicknames.]) 
-])dnl }}}
-dnl {{{ ax_arg_with_hostlen
-AC_DEFUN([AX_ARG_WITH_HOSTLEN],[
-  AC_ARG_WITH([hostlen],[AC_HELP_STRING([--with-hostlen=<value>],[Set username length (default 62).])],[hostlen="$withval"],[hostlen="62"])
-  AC_DEFINE_UNQUOTED([HOSTLEN],[($hostlen+1)],[Length of nicknames.]) 
-])dnl }}}
 dnl {{{ ax_arg_with_lclient_heap_size
 AC_DEFUN([AX_ARG_WITH_LCLIENT_HEAP_SIZE],[
   AC_ARG_WITH([lclient-heap-size],[AC_HELP_STRING([--lclient-heap-size=<value>],[Set local client heap size (default 256).])],[lclient_heap_size="$withval"],[lclient_heap_size="256"])
