@@ -127,7 +127,7 @@ BUG REPORTS: If you run this code and encounter problems, you must report
  the bug in one of the following ways:
   a) By EMAIL to bugs@ircd-hybrid.org
   b) On http://forum.ircd-hybrid.org/
- Please include a gdb backtrace and a copy of your setup.h and
+ Please include a gdb backtrace and a copy of your config.h and
  ircd.conf with any report (with passwords and other sensitive
  information masked).
 
@@ -139,8 +139,6 @@ DISCUSSION: There is a mailing list for discussion of hybrid issues,
  You can also use Hybrid forums at http://forum.ircd-hybrid.org/
 
 Questions/comments directed to bugs@ircd-hybrid.org
-
-Please read doc/whats-new.txt for information about what is in this release
 
 Other files recommended for reading: BUGS, README.FIRST, INSTALL
 

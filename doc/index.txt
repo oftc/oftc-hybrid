@@ -21,4 +21,3 @@ modes.txt               - A list of all user and channel modes
 resv.txt		- Outline of the RESV command.
 server-version-info     - Overview of the flags shown in /version
 serverhide.txt          - Information about the server hide options
-whats-new.txt		- What new features are available

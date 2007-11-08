@@ -4,8 +4,6 @@ $Id$
 Technical Documentation for ircd-hybrid-7
 
 
-Persistent_Clients.txt    - A global UID and Persistent client (with cookies)
-                            proposal
 README.openssl            - Information for users who have problems with
                             Hybrid, OpenSSL, and their operating system
 cryptlink.txt             - Outline of CRYPTLINK protocol
@@ -21,4 +19,3 @@ send.txt                  - Document on all of the send_to functions
 ts3.txt                   - TSora Version 3 Protocol
 ts5.txt                   - TSora Version 5 Protocol
 ts6.txt                   - TSora Version 6 Protocol
-whats-new-code.txt        - Whats changed in the code
