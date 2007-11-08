@@ -2,7 +2,7 @@
 
    $Id$
 
-   Copyright (c) 1997-2006 IRCD-Hybrid Development Team
+   Copyright (c) 1997-2007 IRCD-Hybrid Development Team
 
      ----------------------------------------------------------------------
 
@@ -33,14 +33,14 @@
    Config script. You must run ./configure before you can (sanely) build
    ircd-hybrid.
    
-   1.  Read the RELNOTES file to find out about the exciting new features in
+   1.  Read the NEWS file to find out about the exciting new features in
        this version. Other good reads are doc/whats-new.txt, BUGS,
        etc/example.conf, and README.FIRST.
 
        An example.conf for EFnet is in etc/ with the values "approved" as of
        October 12th, 2003 called example.efnet.conf.
 
-   2.  Run the configure script. It will create include/setup.h and the
+   2.  Run the configure script. It will create config.h and the
        Makefiles to match your system. In hybrid-7, the paths are now handled
        with the --prefix option to configure.
        /usr/local/ircd is the default if no prefix is specified.
@@ -71,8 +71,6 @@
 
 	  * --enable-select - Use POSIX select(2).
 
-          * --enable-clobber - Don't preserve the old binaries on make install
-
 	  Incidentally, the order of listing above is the order of auto-
 	  detection in configure.  So if you do have kqueue but wish to
 	  enable select(2) instead (bad idea), you must use --enable-select.
@@ -94,13 +92,6 @@
           * --enable-assert - Enable use of numerous debugging checks.  This
             should not be used on any production servers for maximum speed
 	    so as to prevent cores from things that shouldn't normally happen.
-
-	  * --enable-efence - Enable ElectricFence which is a memory debugger.
-
-	  * --enable-profile - Enable profiling support in ircd-hybrid.
-
-	  * --disable-block-alloc - Disable block allocations (only works with
-            ElectricFence).
 
 	  * --enable-halfops - Enable halfops (%, mode +h) usage. Halfops
 	    are similar to plain ops, but can't kick/deop plain ops. Halfops
@@ -197,7 +188,7 @@
 
    1.  Change to the directory containing the core file
 
-   2.  Run gdb on the binary and the core file.  With an unmodified Hybrid-7.2
+   2.  Run gdb on the binary and the core file. With an unmodified Hybrid-7.2
        installation, an example command line is below (in the /usr/local/ircd
        directory)
 
