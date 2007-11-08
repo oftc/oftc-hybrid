@@ -188,6 +188,7 @@ dist_messages_DATA = ayb.lang               \
                      ircd-italian.lang      \
                      ircd-norwegian.lang    \
                      ircd-polish.lang       \
+                     ircd-romanian.lang     \
                      ircd-russian.lang      \
                      ircd-spanish.lang      \
                      ircd-swedish.lang
