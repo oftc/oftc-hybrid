@@ -34,8 +34,8 @@
    ircd-hybrid.
    
    1.  Read the NEWS file to find out about the exciting new features in
-       this version. Other good reads are doc/whats-new.txt, BUGS,
-       etc/example.conf, and README.FIRST.
+       this version. Other good reads are BUGS, etc/example.conf, and
+       README.FIRST.
 
        An example.conf for EFnet is in etc/ with the values "approved" as of
        October 12th, 2003 called example.efnet.conf.
