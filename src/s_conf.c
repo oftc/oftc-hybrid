@@ -856,7 +856,7 @@ check_client(va_list args)
       sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
           full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
       ilog(L_INFO, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
-      ServerStats->is_ref++;
+      ServerStats.is_ref++;
       exit_client(source_p, &me, reject_reason);
       bad = TRUE;
       break;

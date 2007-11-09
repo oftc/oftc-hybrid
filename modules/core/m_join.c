@@ -250,7 +250,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       oftc_log(tmp);
     }
 
-    add_user_to_channel(chptr, source_p, flags, YES);
+    add_user_to_channel(chptr, source_p, flags, 1);
 
     /*
      *  Set timestamp if appropriate, and propagate
