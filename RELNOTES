@@ -1,3 +1,7 @@
+-- oftc-hybrid 1.6.1 RELNOTES
+o) Fix bug causing KICK evasions when +S to not work.
+o) Fix bug causing +T users to be able to be kicked.
+
 -- oftc-hybrid 1.6.0 RELNOTES
 o) Add ability to accept ssl client certifiates and store their fingerprints
 	 against the client.
