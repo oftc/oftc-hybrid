@@ -21,7 +21,7 @@
 
    ***** EFNET NOTE *****
    You should run ./configure with the option '--enable-efnet' to tweak
-   some options to be EFNet based.  You must also use the example.efnet.conf
+   some options to be EFNet based. You must also use the example.efnet.conf
    instead of example.conf.
    **********************
 
@@ -52,77 +52,73 @@
        undefined results:
 
           * --enable-kqueue - Use the superior kqueue(2) system call as
-            opposed to the default poll(2).  This is currently only available
+            opposed to the default poll(2). This is currently only available
             on FreeBSD 4.1 or higher.
 
           * --enable-devpoll - Enable the superior /dev/poll support on
-            Solaris.  Linux /dev/poll is broken and will not work with this
+            Solaris. Linux /dev/poll is broken and will not work with this
             option.
 
-          * --enable-epoll - Enables epoll(4) Signal I/O system.  This is
+          * --enable-epoll - Enables epoll(4) Signal I/O system. This is
             currently only available on 2.5.44 Linux kernel versions or
             later.
 
           * --enable-rtsigio - Enable the superior Linux RealTime Signal I/O
-            system.  This is currently only available on 2.4 Linux kernel
+            system. This is currently only available on 2.4 Linux kernel
             versions or later.
 
-	  * --enable-poll - Use POSIX poll(2).
+          * --enable-poll - Use POSIX poll(2).
 
-	  * --enable-select - Use POSIX select(2).
+          * --enable-select - Use POSIX select(2).
 
-	  Incidentally, the order of listing above is the order of auto-
-	  detection in configure.  So if you do have kqueue but wish to
-	  enable select(2) instead (bad idea), you must use --enable-select.
+          Incidentally, the order of listing above is the order of auto-
+          detection in configure. So if you do have kqueue but wish to
+          enable select(2) instead (bad idea), you must use --enable-select.
 
           * --enable-openssl - Enable the openssl dependent crypto functions.
             This will allow CHALLENGE to work and encrypted links. On systems
             where the configure script can automatically detect OpenSSL, this
-            option is not necessary.  If configure cannot find OpenSSL, you
+            option is not necessary. If configure cannot find OpenSSL, you
             must specify a path with this option
             (--enable-openssl=/path/to/openssl)
 
+
        These are optional or have default values that may be overridden:
    
-          * --disable-shared-modules - Disable module support.  This option is
-            more secure, but reduces a lot of the flexibility in hybrid-7.
-            This may need to be used on some systems without a working
-            dlopen/dlsym.
-
-          * --enable-assert - Enable use of numerous debugging checks.  This
+          * --enable-assert - Enable use of numerous debugging checks. This
             should not be used on any production servers for maximum speed
-	    so as to prevent cores from things that shouldn't normally happen.
+            so as to prevent cores from things that shouldn't normally happen.
 
-	  * --enable-halfops - Enable halfops (%, mode +h) usage. Halfops
-	    are similar to plain ops, but can't kick/deop plain ops. Halfops
-	    may or may not kick/deop other halfops depending on if (+p) is
-	    set. Halfops may not set (+/-p).
+          * --enable-halfops - Enable halfops (%, mode +h) usage. Halfops
+            are similar to plain ops, but can't kick/deop plain ops. Halfops
+            may or may not kick/deop other halfops depending on if (+p) is
+            set. Halfops may not set (+/-p).
 
           * --enable-small-net - Tunes the server for smaller networks by
             reducing the startup memory footprint. This should really only be
             used for *small* networks, as this tends to be a performance hit
             on larger networks.
 
-	  * --enable-syslog=kill/squit/connect/users/oper, separated by
-	    spaces, in quotes - Enables syslog logging, with events you specify
-	    (none is okay too, and logs the most essential messages only.)
+          * --enable-syslog=kill/squit/connect/users/oper, separated by
+            spaces, in quotes - Enables syslog logging, with events you specify
+            (none is okay too, and logs the most essential messages only.)
 
-	  * --enable-syslog-facility=FACILITY - Check with your sysadmin to see
-	    what this should be; by default it is LOG_LOCAL4. If you get it wrong
-	    initially, no problem; just edit the value in include/setup.h.
+          * --enable-syslog-facility=FACILITY - Check with your sysadmin to see
+            what this should be; by default it is LOG_LOCAL4. If you get it wrong
+            initially, no problem; just edit the value in include/setup.h.
 
           * --with-nicklen,
-	    --with-topiclen - Respectively, sets the maximum NICK length and
-	    maximum TOPIC length. Note that this must be consistent across your
-	    entire network. Defaults are 9 and 120, respectively.
+            --with-topiclen - Respectively, sets the maximum NICK length and
+            maximum TOPIC length. Note that this must be consistent across your
+            entire network. Defaults are 9 and 120, respectively.
 
-	  * --disable-zlib - Build the ircd without ziplinks support.
+          * --disable-zlib - Build the ircd without ziplinks support.
 
-	  * --disable-gline-voting - This is good for small networks or where
-	    G-Line voting is not necessary. Please understand that by disabling
-	    this, it will allow any operator with G-Line permissions to G-Line
-	    someone without requiring the approval of 2 other operators. However,
-	    it is useful if you use proxy scanners or services that do G-Lines. 
+          * --disable-gline-voting - This is good for small networks or where
+            G-Line voting is not necessary. Please understand that by disabling
+            this, it will allow any operator with G-Line permissions to G-Line
+            someone without requiring the approval of 2 other operators. However,
+            it is useful if you use proxy scanners or services that do G-Lines. 
 
    3.  Run 'make'; this should build the ircd.
 

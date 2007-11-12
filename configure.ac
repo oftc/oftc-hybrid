@@ -89,7 +89,7 @@ else
 fi
 
 
-AC_SEARCH_LIBS(crypt, [crypt descrypt], ,)
+AC_SEARCH_LIBS(crypt, [crypt descrypt],,)
 AM_CONDITIONAL([HAVE_CRYPT], [test "$ac_cv_search_crypt" = "none required"])
 
 
@@ -179,22 +179,38 @@ AM_CONDITIONAL(ENABLE_SSL, [test "$cf_enable_openssl" = yes])
 AC_ARG_ENABLE(assert, AC_HELP_STRING([--enable-assert], [Enable assert() statements]),
   [assert=$enableval], [assert=no])
 if test "$assert" = no; then
-  AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.]))
+  AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.])
 fi
 
+
+AC_ARG_ENABLE(small-net,
+AC_HELP_STRING([--enable-small-net],[Enable small network support.]),
+[small_net=$enableval], [small_net=no])
+
+if test "$small_net" = yes; then
+  AC_DEFINE([NICKNAMEHISTORYLENGTH], 1500, [Size of the WHOWAS array.])
+  AC_DEFINE([CHANNEL_HEAP_SIZE], 256, [Size of the channel heap.])
+  AC_DEFINE([BAN_HEAP_SIZE], 128, [Size of the ban heap.])
+  AC_DEFINE([CLIENT_HEAP_SIZE], 256, [Size of the client heap.])
+  AC_DEFINE([LCLIENT_HEAP_SIZE], 128, [Size of the local client heap.])
+  AC_DEFINE([DNODE_HEAP_SIZE], 256, [Size of the dlink_node heap.])
+  AC_DEFINE([TOPIC_HEAP_SIZE], 256, [Size of the topic heap.])
+  AC_DEFINE([DBUF_HEAP_SIZE], 64, [Size of the dbuf heap.])
+else
+  AC_DEFINE([NICKNAMEHISTORYLENGTH], 15000, [Size of the WHOWAS array.])
+  AC_DEFINE([CHANNEL_HEAP_SIZE], 1024, [Size of the channel heap.])
+  AC_DEFINE([BAN_HEAP_SIZE], 1024, [Size of the ban heap.])
+  AC_DEFINE([CLIENT_HEAP_SIZE], 1024, [Size of the client heap.])
+  AC_DEFINE([LCLIENT_HEAP_SIZE], 512, [Size of the local client heap.])
+  AC_DEFINE([DNODE_HEAP_SIZE], 1024, [Size of the dlink_node heap.])
+  AC_DEFINE([TOPIC_HEAP_SIZE], 1024, [Size of the topic heap.])
+  AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
+fi
 
 # Argument processing.
 AX_ARG_ENABLE_IOLOOP_MECHANISM
 AX_ARG_WITH_NICKLEN
 AX_ARG_WITH_TOPICLEN
-AX_ARG_WITH_LCLIENT_HEAP_SIZE
-AX_ARG_WITH_CLIENT_HEAP_SIZE
-AX_ARG_WITH_CHANNEL_HEAP_SIZE
-AX_ARG_WITH_DBUF_HEAP_SIZE
-AX_ARG_WITH_DNODE_HEAP_SIZE
-AX_ARG_WITH_BAN_HEAP_SIZE
-AX_ARG_WITH_TOPIC_HEAP_SIZE
-AX_ARG_WITH_NICKNAME_HISTORY_LENGTH
 AX_ARG_WITH_SYSLOG
 AX_ARG_ENABLE_EFNET
 AX_ARG_ENABLE_HALFOPS

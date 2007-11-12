@@ -1505,6 +1505,7 @@ Optional Features:
   --enable-openssl=DIR       Enable OpenSSL support (DIR optional).
   --disable-openssl            Disable OpenSSL support.
   --enable-assert         Enable assert() statements
+  --enable-small-net      Enable small network support.
   --enable-kqueue         Force kqueue usage.
   --enable-epoll          Force epoll usage.
   --enable-devpoll        Force devpoll usage.
@@ -1529,21 +1530,6 @@ Optional Packages:
   --with-zlib-path=DIR    Path to libz.so for ziplinks support.
   --with-nicklen=<value>  Set nickname length (default 9).
   --with-topiclen=<value> Set topic length (default 160).
-  --lclient-heap-size=<value>
-                          Set local client heap size (default 256).
-  --client-heap-size=<value>
-                          Set client heap size (default 256).
-  --channel-heap-size=<value>
-                          Set channel heap size (default 256).
-  --dbuf-heap-size=<value>
-                          Set dbuf heap size (default 64).
-  --dnode-heap-size=<value>
-                          Set dnode heap size (default 256).
-  --ban-heap-size=<value> Set ban heap size (default 128).
-  --topic-heap-size=<value>
-                          Set topic heap size (default 256).
-  --nickname-history-length=<value>
-                          Set length of nickname history list (default 1500).
   --with-syslog-facility=LOG
                           Define the syslog facility to use (default:
                           LOG_LOCAL4)
@@ -4769,7 +4755,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4772 "configure"' > conftest.$ac_ext
+  echo '#line 4758 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7506,11 +7492,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7509: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7495: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7513: \$? = $ac_status" >&5
+   echo "$as_me:7499: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7796,11 +7782,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7799: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7785: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7803: \$? = $ac_status" >&5
+   echo "$as_me:7789: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7900,11 +7886,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7903: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7889: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7907: \$? = $ac_status" >&5
+   echo "$as_me:7893: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -10249,7 +10235,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 10252 "configure"
+#line 10238 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -10349,7 +10335,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 10352 "configure"
+#line 10338 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12769,11 +12755,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12772: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12758: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12776: \$? = $ac_status" >&5
+   echo "$as_me:12762: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12873,11 +12859,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12876: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12862: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12880: \$? = $ac_status" >&5
+   echo "$as_me:12866: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14435,11 +14421,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14438: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14424: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14442: \$? = $ac_status" >&5
+   echo "$as_me:14428: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14539,11 +14525,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14542: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14528: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14546: \$? = $ac_status" >&5
+   echo "$as_me:14532: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16726,11 +16712,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16729: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16715: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16733: \$? = $ac_status" >&5
+   echo "$as_me:16719: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -17016,11 +17002,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17019: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17005: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:17023: \$? = $ac_status" >&5
+   echo "$as_me:17009: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -17120,11 +17106,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17123: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17109: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17127: \$? = $ac_status" >&5
+   echo "$as_me:17113: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -22515,9 +22501,101 @@ if test "$assert" = no; then
 cat >>confdefs.h <<\_ACEOF
 #define NDEBUG 1
 _ACEOF
-)
+
 fi
 
+
+# Check whether --enable-small-net was given.
+if test "${enable_small_net+set}" = set; then
+  enableval=$enable_small_net; small_net=$enableval
+else
+  small_net=no
+fi
+
+
+if test "$small_net" = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define NICKNAMEHISTORYLENGTH 1500
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define CHANNEL_HEAP_SIZE 256
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define BAN_HEAP_SIZE 128
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define CLIENT_HEAP_SIZE 256
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define LCLIENT_HEAP_SIZE 128
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define DNODE_HEAP_SIZE 256
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define TOPIC_HEAP_SIZE 256
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define DBUF_HEAP_SIZE 64
+_ACEOF
+
+else
+
+cat >>confdefs.h <<\_ACEOF
+#define NICKNAMEHISTORYLENGTH 15000
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define CHANNEL_HEAP_SIZE 1024
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define BAN_HEAP_SIZE 1024
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define CLIENT_HEAP_SIZE 1024
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define LCLIENT_HEAP_SIZE 512
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define DNODE_HEAP_SIZE 1024
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define TOPIC_HEAP_SIZE 1024
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define DBUF_HEAP_SIZE 512
+_ACEOF
+
+fi
 
 # Argument processing.
 
@@ -23114,126 +23192,6 @@ fi
 
 cat >>confdefs.h <<_ACEOF
 #define TOPICLEN ($topiclen+1)
-_ACEOF
-
-
-
-
-# Check whether --with-lclient-heap-size was given.
-if test "${with_lclient_heap_size+set}" = set; then
-  withval=$with_lclient_heap_size; lclient_heap_size="$withval"
-else
-  lclient_heap_size="256"
-fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define LCLIENT_HEAP_SIZE $lclient_heap_size
-_ACEOF
-
-
-
-
-# Check whether --with-client-heap-size was given.
-if test "${with_client_heap_size+set}" = set; then
-  withval=$with_client_heap_size; client_heap_size="$withval"
-else
-  client_heap_size="256"
-fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define CLIENT_HEAP_SIZE $client_heap_size
-_ACEOF
-
-
-
-
-# Check whether --with-channel-heap-size was given.
-if test "${with_channel_heap_size+set}" = set; then
-  withval=$with_channel_heap_size; channel_heap_size="$withval"
-else
-  channel_heap_size="256"
-fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define CHANNEL_HEAP_SIZE $channel_heap_size
-_ACEOF
-
-
-
-
-# Check whether --with-dbuf-heap-size was given.
-if test "${with_dbuf_heap_size+set}" = set; then
-  withval=$with_dbuf_heap_size; dbuf_heap_size="$withval"
-else
-  dbuf_heap_size="64"
-fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define DBUF_HEAP_SIZE $dbuf_heap_size
-_ACEOF
-
-
-
-
-# Check whether --with-dnode-heap-size was given.
-if test "${with_dnode_heap_size+set}" = set; then
-  withval=$with_dnode_heap_size; dnode_heap_size="$withval"
-else
-  dnode_heap_size="256"
-fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define DNODE_HEAP_SIZE $dnode_heap_size
-_ACEOF
-
-
-
-
-# Check whether --with-ban-heap-size was given.
-if test "${with_ban_heap_size+set}" = set; then
-  withval=$with_ban_heap_size; ban_heap_size="$withval"
-else
-  ban_heap_size="128"
-fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define BAN_HEAP_SIZE $ban_heap_size
-_ACEOF
-
-
-
-
-# Check whether --with-topic-heap-size was given.
-if test "${with_topic_heap_size+set}" = set; then
-  withval=$with_topic_heap_size; topic_heap_size="$withval"
-else
-  topic_heap_size="256"
-fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define TOPIC_HEAP_SIZE $topic_heap_size
-_ACEOF
-
-
-
-
-# Check whether --with-nickname-history-length was given.
-if test "${with_nickname_history_length+set}" = set; then
-  withval=$with_nickname_history_length; nickname_history_length="$withval"
-else
-  nickname_history_length="1500"
-fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define NICKNAMEHISTORYLENGTH $nickname_history_length
 _ACEOF
 
 

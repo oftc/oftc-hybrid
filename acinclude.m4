@@ -147,46 +147,6 @@ AC_DEFUN([AX_ARG_WITH_NICKLEN],[
   AC_ARG_WITH([nicklen],[AC_HELP_STRING([--with-nicklen=<value>],[Set nickname length (default 9).])],[nicklen="$withval"],[nicklen="9"])
   AC_DEFINE_UNQUOTED([NICKLEN],[($nicklen+1)],[Length of nicknames.]) 
 ])dnl }}}
-dnl {{{ ax_arg_with_lclient_heap_size
-AC_DEFUN([AX_ARG_WITH_LCLIENT_HEAP_SIZE],[
-  AC_ARG_WITH([lclient-heap-size],[AC_HELP_STRING([--lclient-heap-size=<value>],[Set local client heap size (default 256).])],[lclient_heap_size="$withval"],[lclient_heap_size="256"])
-  AC_DEFINE_UNQUOTED([LCLIENT_HEAP_SIZE],[$lclient_heap_size],[Size of the local client heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_nickname_history_length
-AC_DEFUN([AX_ARG_WITH_NICKNAME_HISTORY_LENGTH],[
-  AC_ARG_WITH([nickname-history-length],[AC_HELP_STRING([--nickname-history-length=<value>],[Set length of nickname history list (default 1500).])],[nickname_history_length="$withval"],[nickname_history_length="1500"])
-  AC_DEFINE_UNQUOTED([NICKNAMEHISTORYLENGTH],[$nickname_history_length],[Size of the nickname history list.])
-])dnl }}}
-dnl {{{ ax_arg_with_client_heap_size
-AC_DEFUN([AX_ARG_WITH_CLIENT_HEAP_SIZE],[
-  AC_ARG_WITH([client-heap-size],[AC_HELP_STRING([--client-heap-size=<value>],[Set client heap size (default 256).])],[client_heap_size="$withval"],[client_heap_size="256"])
-  AC_DEFINE_UNQUOTED([CLIENT_HEAP_SIZE],[$client_heap_size],[Size of the client heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_channel_heap_size
-AC_DEFUN([AX_ARG_WITH_CHANNEL_HEAP_SIZE],[
-  AC_ARG_WITH([channel-heap-size],[AC_HELP_STRING([--channel-heap-size=<value>],[Set channel heap size (default 256).])],[channel_heap_size="$withval"],[channel_heap_size="256"])
-  AC_DEFINE_UNQUOTED([CHANNEL_HEAP_SIZE],[$channel_heap_size],[Size of the channel heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_dbuf_heap_size
-AC_DEFUN([AX_ARG_WITH_DBUF_HEAP_SIZE],[
-  AC_ARG_WITH([dbuf-heap-size],[AC_HELP_STRING([--dbuf-heap-size=<value>],[Set dbuf heap size (default 64).])],[dbuf_heap_size="$withval"],[dbuf_heap_size="64"])
-  AC_DEFINE_UNQUOTED([DBUF_HEAP_SIZE],[$dbuf_heap_size],[Size of the dbuf heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_dnode_heap_size
-AC_DEFUN([AX_ARG_WITH_DNODE_HEAP_SIZE],[
-  AC_ARG_WITH([dnode-heap-size],[AC_HELP_STRING([--dnode-heap-size=<value>],[Set dnode heap size (default 256).])],[dnode_heap_size="$withval"],[dnode_heap_size="256"])
-  AC_DEFINE_UNQUOTED([DNODE_HEAP_SIZE],[$dnode_heap_size],[Size of the dlink_node heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_ban_heap_size
-AC_DEFUN([AX_ARG_WITH_BAN_HEAP_SIZE],[
-  AC_ARG_WITH([ban-heap-size],[AC_HELP_STRING([--ban-heap-size=<value>],[Set ban heap size (default 128).])],[ban_heap_size="$withval"],[ban_heap_size="128"])
-  AC_DEFINE_UNQUOTED([BAN_HEAP_SIZE],[$ban_heap_size],[Size of the ban heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_topic_heap_size
-AC_DEFUN([AX_ARG_WITH_TOPIC_HEAP_SIZE],[
-  AC_ARG_WITH([topic-heap-size],[AC_HELP_STRING([--topic-heap-size=<value>],[Set topic heap size (default 256).])],[topic_heap_size="$withval"],[topic_heap_size="256"])
-  AC_DEFINE_UNQUOTED([TOPIC_HEAP_SIZE],[$topic_heap_size],[Size of the topic heap.])
-])dnl }}}
 dnl {{{ ax_arg_enable_efnet
 AC_DEFUN([AX_ARG_ENABLE_EFNET],[
   AC_ARG_ENABLE([efnet],[AC_HELP_STRING([--enable-efnet],[For IRCDs running on EFnet.])],[efnet="$enableval"],[efnet="no"])

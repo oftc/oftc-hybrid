@@ -153,7 +153,7 @@
 /* Length of nicknames. */
 #undef NICKLEN
 
-/* Size of the nickname history list. */
+/* Size of the WHOWAS array. */
 #undef NICKNAMEHISTORYLENGTH
 
 /* Name of package */
