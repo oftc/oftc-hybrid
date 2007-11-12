@@ -119,7 +119,8 @@ AC_CONFIG_FILES(               \
 			 help/users/Makefile     \
 			 include/Makefile        \
        lib/Makefile            \
-       lib/pcre/Makefile
+       lib/pcre/Makefile      \
+       tools/Makefile
 )
 
 AC_OUTPUT
