@@ -173,25 +173,26 @@ AC_DEFINE_DIR([DATADIR],[datadir],[Set to datadir.])
 AC_DEFINE_DIR([LOCALSTATEDIR],[localstatedir],[Set to localstatedir.])
 AC_CONFIG_SUBDIRS(libltdl)
 
-AC_CONFIG_FILES(               \
-       Makefile                \
-       etc/Makefile            \
-       etc/example.conf        \
-       etc/example.conf.quick  \
-       etc/example.efnet.conf  \
-       servlink/Makefile       \
-       contrib/Makefile        \
-       contrib/help/Makefile   \
-       src/Makefile            \
-       messages/Makefile       \
-       modules/Makefile        \
-			 modules/core/Makefile	 \
-       doc/Makefile            \
-       help/Makefile           \
-			 help/opers/Makefile		 \
-			 help/users/Makefile     \
-       lib/Makefile            \
-       lib/pcre/Makefile
+AC_CONFIG_FILES(              \
+       Makefile               \
+       etc/Makefile           \
+       etc/example.conf       \
+       etc/example.conf.quick \
+       etc/example.efnet.conf \
+       servlink/Makefile      \
+       contrib/Makefile       \
+       contrib/help/Makefile  \
+       src/Makefile           \
+       messages/Makefile      \
+       modules/Makefile       \
+			 modules/core/Makefile	\
+       doc/Makefile           \
+       help/Makefile          \
+			 help/opers/Makefile		\
+			 help/users/Makefile    \
+       lib/Makefile           \
+       lib/pcre/Makefile      \
+       tools/Makefile
 )
 
 AC_OUTPUT
