@@ -33,4 +33,4 @@ System support:
 respond compiles properly, and have been tested on FreeBSD 4.x, Linux glibc,
 Solaris 8, and Cygwin 1.2 or higher.
 
-# $Id$
+# $Id: README 33 2005-10-02 20:50:00Z knight $
