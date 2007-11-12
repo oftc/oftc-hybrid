@@ -84,10 +84,6 @@ struct utsname
   char domainname[_UTSNAME_DOMAIN_LENGTH];
 };
 int uname (struct utsname *);
-
-#define PATH_DEVNULL "dev.null"
-#else
-#define PATH_DEVNULL "/dev/null"
 #endif
 
 /* This is to get around the fact that some implementations have ss_len and

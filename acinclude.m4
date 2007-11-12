@@ -15,11 +15,6 @@ dnl {{{ ax_check_lib_ipv6
 AC_DEFUN([AX_CHECK_LIB_IPV6],[
   AC_CHECK_TYPES([struct sockaddr_in6],,[AC_DEFINE([IPV6],[1],[Define to 1 if you have IPv6 support.])],,[#include <netdb.h>])
 ])dnl }}}
-dnl {{{ ax_check_crypt
-AC_DEFUN([AX_CHECK_LIB_CRYPT],[
-	AC_SEARCH_LIBS(crypt, [crypt descrypt],,)
-  AM_CONDITIONAL([HAVE_CRYPT],[test "$ac_cv_search_crypt" = "none required"])
-])dnl }}}
 dnl {{{ ax_arg_enable_ioloop_mechanism (FIXME)
 AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
   dnl {{{ allow the user to specify desired mechanism
@@ -220,27 +215,6 @@ AC_DEFUN([AX_ARG_WITH_TOPIC_HEAP_SIZE],[
   AC_ARG_WITH([topic-heap-size],[AC_HELP_STRING([--topic-heap-size=<value>],[Set topic heap size (default 256).])],[topic_heap_size="$withval"],[topic_heap_size="256"])
   AC_DEFINE_UNQUOTED([TOPIC_HEAP_SIZE],[$topic_heap_size],[Size of the topic heap.])
 ])dnl }}}
-dnl {{{ ax_arg_with_ircd_heap_size
-AC_DEFUN([AX_ARG_WITH_IRCD_HEAP_SIZE],[
-  AC_ARG_WITH([ircd-heap-size],[AC_HELP_STRING([--ircd-heap-size=<value>],[Set ircd heap size (default 8).])],[ircd_heap_size="$withval"],[ircd_heap_size="8"])
-  AC_DEFINE_UNQUOTED([IRCD_HEAP_SIZE],[$ircd_heap_size],[Size of the ircd heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_mqueue_heap_size
-AC_DEFUN([AX_ARG_WITH_MQUEUE_HEAP_SIZE],[
-  AC_ARG_WITH([mqueue-heap-size],[AC_HELP_STRING([--mqueue-size=<value>],[Set mqueue heap size (default 256).])],[mqueue_heap_size="$withval"],[mqueue_heap_size="256"])
-  AC_DEFINE_UNQUOTED([MQUEUE_HEAP_SIZE],[$mqueue_heap_size],[Size of the floodserv mqueue heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_fmsg_heap_size
-AC_DEFUN([AX_ARG_WITH_FMSG_HEAP_SIZE],[
-  AC_ARG_WITH([fmsg-heap-size],[AC_HELP_STRING([--fmsg-size=<value>],[Set fmsg heap size (default 256).])],[fmsg_heap_size="$withval"],[fmsg_heap_size="256"])
-  AC_DEFINE_UNQUOTED([FMSG_HEAP_SIZE],[$fmsg_heap_size],[Size of the floodserv fmsg heap.])
-])dnl }}}
-dnl {{{ ax_Arg_with_services_name
-AC_DEFUN([AX_ARG_WITH_SERVICS_NAME],[
-	AC_ARG_WITH([services-name],[AC_HELP_STRING([--with-services-name=SERVICES_NAME],[Set the name of your services server])],[services_name="$withval"],[services_name="services.oftc.net"])
-	AC_DEFINE_UNQUOTED(SERVICES_NAME,"$services_name",[Name of the services
-	server.])
-]) dnl }}}
 dnl {{{ ax_arg_enable_efnet
 AC_DEFUN([AX_ARG_ENABLE_EFNET],[
   AC_ARG_ENABLE([efnet],[AC_HELP_STRING([--enable-efnet],[For IRCDs running on EFnet.])],[efnet="$enableval"],[efnet="no"])

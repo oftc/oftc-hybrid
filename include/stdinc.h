@@ -32,21 +32,8 @@
 
 #include "defaults.h"
 
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-#ifdef STRING_WITH_STRINGS
-# include <string.h>
-# include <strings.h>
-#else
-# ifdef HAVE_STRING_H
-#  include <string.h>
-# else
-#  ifdef HAVE_STRINGS_H
-#   include <strings.h>
-#  endif
-# endif 
-#endif  
+#include <string.h>
 
 #ifdef HAVE_STRTOK_R
 # define strtoken(x, y, z) strtok_r(y, z, x)

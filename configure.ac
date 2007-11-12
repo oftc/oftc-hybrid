@@ -9,12 +9,14 @@ AM_MAINTAINER_MODE
 
 AC_USE_SYSTEM_EXTENSIONS
 
+
 #ltdl stuff
 LT_CONFIG_LTDL_DIR([libltdl])
 LT_INIT([dlopen])
 LTDL_INIT([convenience])
 AC_LIBTOOL_DLOPEN
 AM_ENABLE_SHARED
+
 
 # Checks for programs.
 AC_PROG_INSTALL
@@ -32,6 +34,7 @@ AC_PROG_EGREP
 AC_PATH_PROG([TAIL],[tail])
 AM_PROG_CC_C_O
 
+
 # Checks for libraries.
 AX_CHECK_OPENSSL([AC_CHECK_LIB(crypto, RSA_free)
         AS_IF([test "$ac_cv_lib_crypto_RSA_free" = "yes"],
@@ -44,10 +47,7 @@ AX_CHECK_OPENSSL([AC_CHECK_LIB(crypto, RSA_free)
   cf_enable_openssl="no"])
 AX_CHECK_LIB_IPV4
 AX_CHECK_LIB_IPV6
-AX_CHECK_LIB_CRYPT
 
-# Checks for header files.
-AC_CHECK_HEADERS([sys/resource.h]) # ick
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -58,17 +58,67 @@ AC_C_BIGENDIAN
 AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for library functions.
-AC_CHECK_FUNC([snprintf],[AC_DEFINE([HAVE_SNPRINTF],[1],[Define to 1 if you have the snprintf() function.])])
-AC_CHECK_FUNC([vsnprintf],[AC_DEFINE([HAVE_VSNPRINTF],[1],[Define to 1 if you have the vsnprintf() function.])])
-AC_CHECK_FUNC([lrand48],[AC_DEFINE([HAVE_LRAND48],[1],[Define to 1 if you have the lrand48() function.])])
-AC_CHECK_FUNC([srand48],[AC_DEFINE([HAVE_LRAND48],[1],[Define to 1 if you have the srand48() function.])])
-AC_CHECK_FUNC([mmap],[AC_DEFINE([HAVE_MMAP],[1],[Define to 1 if you have the mmap() function.])])
-AC_CHECK_FUNC([strtok_r],[AC_DEFINE([HAVE_STRTOK_R],[1],[Define to 1 if you have the strtok_r() function.])])
-AC_CHECK_FUNC([usleep],[AC_DEFINE([HAVE_USLEEP],[1],[Define to 1 if you have the usleep() function.])])
-AC_CHECK_FUNC([strlcat],[AC_DEFINE([HAVE_STRLCAT],[1],[Define to 1 if you have the strlcat() function.])])
-AC_CHECK_FUNC([strlcpy],[AC_DEFINE([HAVE_STRLCPY],[1],[Define to 1 if you have the strlcpy() function.])])
-AC_CHECK_FUNC([basename],[AC_DEFINE([HAVE_BASENAME],[1],[Define to 1 if you have the basename() function.])])
-AC_CHECK_FUNC([socketpair],[AC_DEFINE([HAVE_SOCKETPAIR],[1],[Define to 1 if you have the socketpair() function.])])
+AC_CHECK_FUNCS_ONCE(snprintf,  \
+                    vsnprintf, \
+                    lrand48,   \
+                    srand48,   \
+                    mmap,      \
+                    strtok_r,  \
+                    usleep,    \
+                    strlcat,   \
+                    strlcpy,   \
+                    basename)
+
+# Checks for header files.
+AC_CHECK_HEADERS_ONCE(crypt.h        \
+                      inttypes.h     \
+                      stdint.h       \
+                      sys/resource.h \
+                      sys/param.h    \
+                      errno.h        \
+                      sys/syslog.h   \
+                      stddef.h       \
+                      libgen.h       \
+                      sys/wait.h     \
+                      wait.h         \
+                      link.h)
+
+
+dnl check for /dev/null so we can use it to hold evil fd's
+AC_MSG_CHECKING([for /dev/null])
+if test -c /dev/null ; then
+  AC_DEFINE(PATH_DEVNULL, "/dev/null", [Path to /dev/null])
+  AC_MSG_RESULT(yes)
+else
+  AC_DEFINE(PATH_DEVNULL, "devnull.log", [Path to /dev/null])
+  AC_MSG_RESULT(no - using devnull.log)
+fi
+
+
+AC_SEARCH_LIBS(crypt, [crypt descrypt], ,)
+AM_CONDITIONAL([HAVE_CRYPT], [test "$ac_cv_search_crypt" = "none required"])
+
+
+AC_ARG_WITH(zlib-path,
+AC_HELP_STRING([--with-zlib-path=DIR], [Path to libz.so for ziplinks support.]),
+[LDFLAGS="-L$withval $LDFLAGS"],)
+
+AC_ARG_ENABLE(zlib, AC_HELP_STRING([--disable-zlib],[Disable ziplinks support]),
+[zlib=$enableval],[zlib=yes])
+
+if test "$zlib" = yes; then
+  AC_CHECK_HEADER(zlib.h, [AC_CHECK_LIB(z, zlibVersion,
+    [
+      LIBS="-lz $LIBS"
+      AC_DEFINE(HAVE_LIBZ, 1, [Define to 1 if zlib (-lz) is available.])
+    ], zlib=no)
+  ], zlib=no)
+fi
+
+
+AH_TEMPLATE([HAVE_LIBCRYPTO], [If we support ssl])
+
+AM_CONDITIONAL(ENABLE_SSL, [test x"$cf_enable_openssl" = xyes])
 
 # Argument processing.
 AX_ARG_ENABLE_IOLOOP_MECHANISM
