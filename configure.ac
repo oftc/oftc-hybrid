@@ -110,8 +110,6 @@ if test "$zlib" = yes; then
 fi
 
 
-AH_TEMPLATE([HAVE_LIBCRYPTO], [If we support ssl])
-
 dnl Openssl checks
 AC_ARG_ENABLE(openssl,
 [  --enable-openssl[=DIR]       Enable OpenSSL support (DIR optional).
@@ -165,7 +163,7 @@ if test "$cf_enable_openssl" != "no"; then
     LIBS="-lcrypto -lssl $LIBS"
     AC_MSG_RESULT($cf_openssl_basedir)
     cf_enable_openssl="yes"
-    AC_DEFINE(HAVE_LIBCRYPTO)
+    AC_DEFINE(HAVE_LIBCRYPTO, 1, [If we support ssl])
   else
     AC_MSG_RESULT(not found.  Please check your path.)
     cf_enable_openssl="no"
@@ -175,7 +173,14 @@ else
   dnl If --disable-openssl was specified
   AC_MSG_RESULT(disabled)
 fi
-AM_CONDITIONAL(ENABLE_SSL, [test x"$cf_enable_openssl" = xyes])
+AM_CONDITIONAL(ENABLE_SSL, [test "$cf_enable_openssl" = yes])
+
+
+AC_ARG_ENABLE(assert, AC_HELP_STRING([--enable-assert], [Enable assert() statements]),
+  [assert=$enableval], [assert=no])
+if test "$assert" = no; then
+  AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.]))
+fi
 
 
 # Argument processing.
@@ -189,9 +194,6 @@ AX_ARG_WITH_DBUF_HEAP_SIZE
 AX_ARG_WITH_DNODE_HEAP_SIZE
 AX_ARG_WITH_BAN_HEAP_SIZE
 AX_ARG_WITH_TOPIC_HEAP_SIZE
-AX_ARG_WITH_IRCD_HEAP_SIZE
-AX_ARG_WITH_MQUEUE_HEAP_SIZE
-AX_ARG_WITH_FMSG_HEAP_SIZE
 AX_ARG_WITH_NICKNAME_HISTORY_LENGTH
 AX_ARG_WITH_SYSLOG
 AX_ARG_ENABLE_EFNET
