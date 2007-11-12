@@ -193,7 +193,7 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = libltdl doc etc help lib messages modules servlink src
+SUBDIRS = tools libltdl doc etc help lib messages modules servlink src
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

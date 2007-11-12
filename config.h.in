@@ -24,9 +24,6 @@
 /* Define to 1 if this server will be an EFnet server. */
 #undef EFNET
 
-/* Size of the floodserv fmsg heap. */
-#undef FMSG_HEAP_SIZE
-
 /* Define to 1 if you want halfops support. */
 #undef HALFOPS
 
@@ -59,6 +56,9 @@
 
 /* Define to 1 if you have the <libgen.h> header file. */
 #undef HAVE_LIBGEN_H
+
+/* Define to 1 if zlib (-lz) is available. */
+#undef HAVE_LIBZ
 
 /* Define to 1 if you have the <link.h> header file. */
 #undef HAVE_LINK_H
@@ -135,9 +135,6 @@
 /* Define to 1 if you have IPv6 support. */
 #undef IPV6
 
-/* Size of the ircd heap. */
-#undef IRCD_HEAP_SIZE
-
 /* Size of the local client heap. */
 #undef LCLIENT_HEAP_SIZE
 
@@ -149,9 +146,6 @@
 
 /* Set to syslog facility to use. */
 #undef LOG_FACILITY
-
-/* Size of the floodserv mqueue heap. */
-#undef MQUEUE_HEAP_SIZE
 
 /* Define to 1 to disable debugging. */
 #undef NDEBUG
@@ -179,6 +173,9 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* Path to /dev/null */
+#undef PATH_DEVNULL
 
 /* Set to prefix. */
 #undef PREFIX

@@ -2,11 +2,12 @@
 # vim: set fdm=marker ts=2 sw=2 et:
 
 AC_PREREQ(2.59)
-AC_INIT([ircd-hybrid],[7.2.4])
+AC_INIT([ircd-hybrid], [7.2.4])
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src/ircd.c)
+
 
 #ltdl stuff
 AC_LIBLTDL_CONVENIENCE
@@ -16,6 +17,7 @@ AC_LIBTOOL_DLOPEN
 AM_DISABLE_STATIC
 AM_ENABLE_SHARED
 
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_YACC
@@ -24,13 +26,11 @@ AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 LIBTOOL="$LIBTOOL --silent"
 
+
 # Checks for libraries.
 AX_CHECK_LIB_IPV4
 AX_CHECK_LIB_IPV6
-AX_CHECK_LIB_CRYPT
 
-# Checks for header files.
-AC_CHECK_HEADERS([sys/resource.h]) # ick
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -63,6 +63,7 @@ AC_CHECK_FUNCS_ONCE(snprintf,  \
                     strlcpy,   \
                     basename)
 
+# Checks for header files.
 AC_CHECK_HEADERS_ONCE(crypt.h        \
                       inttypes.h     \
                       stdint.h       \
@@ -75,6 +76,39 @@ AC_CHECK_HEADERS_ONCE(crypt.h        \
                       sys/wait.h     \
                       wait.h         \
                       link.h)
+
+
+dnl check for /dev/null so we can use it to hold evil fd's
+AC_MSG_CHECKING([for /dev/null])
+if test -c /dev/null ; then
+  AC_DEFINE(PATH_DEVNULL, "/dev/null", [Path to /dev/null])
+  AC_MSG_RESULT(yes)
+else
+  AC_DEFINE(PATH_DEVNULL, "devnull.log", [Path to /dev/null])
+  AC_MSG_RESULT(no - using devnull.log)
+fi
+
+
+AC_SEARCH_LIBS(crypt, [crypt descrypt], ,)
+AM_CONDITIONAL([HAVE_CRYPT], [test "$ac_cv_search_crypt" = "none required"])
+
+
+AC_ARG_WITH(zlib-path,
+AC_HELP_STRING([--with-zlib-path=DIR], [Path to libz.so for ziplinks support.]),
+[LDFLAGS="-L$withval $LDFLAGS"],)
+
+AC_ARG_ENABLE(zlib, AC_HELP_STRING([--disable-zlib],[Disable ziplinks support]),
+[zlib=$enableval],[zlib=yes])
+
+if test "$zlib" = yes; then
+  AC_CHECK_HEADER(zlib.h, [AC_CHECK_LIB(z, zlibVersion,
+    [
+      LIBS="-lz $LIBS"
+      AC_DEFINE(HAVE_LIBZ, 1, [Define to 1 if zlib (-lz) is available.])
+    ], zlib=no)
+  ], zlib=no)
+fi
+
 
 AH_TEMPLATE([HAVE_LIBCRYPTO], [If we support ssl])
 
