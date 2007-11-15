@@ -279,7 +279,10 @@ mo_svsnick(struct Client *client_p, struct Client *source_p,
   }
 
   if (MyConnect(target_p))
+  {
+    target_p->localClient->number_of_nick_changes = 0;
     change_local_nick(&me, target_p, newnick);
+  }
   else
     sendto_one(target_p, ":%s ENCAP %s SVSNICK %s %s",
                me.name, target_p->servptr->name, ID(target_p), newnick);
