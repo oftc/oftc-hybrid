@@ -78,7 +78,7 @@ mo_wallops(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  sendto_wallops_flags(UMODE_OPERWALL, source_p, "%s", message);
+  sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message);
   sendto_server(NULL, source_p, NULL, CAP_TS6, NOCAPS, LL_ICLIENT,
                 ":%s WALLOPS :%s", ID(source_p), message);
   sendto_server(NULL, source_p, NULL, NOCAPS, CAP_TS6, LL_ICLIENT,
