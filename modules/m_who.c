@@ -100,7 +100,7 @@ typedef struct SearchOptions
 
 SOpts wsopts;
 int build_searchopts(struct Client *, int, char **);
-int chk_who(struct Client *, int);
+int chk_who(struct Client *, struct Client *, int);
 
 /* Externally defined stuffs */
 static struct flag_item who_user_modes[] = 
@@ -421,11 +421,11 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 }
 
 int
-chk_who(struct Client *target_p, int showall)
+chk_who(struct Client *source_p, struct Client *target_p, int showall)
 {
   if(!IsClient(target_p))
     return 0;
-  if(IsInvisible(target_p) && !showall)
+  if(source_p != target_p && IsInvisible(target_p) && !showall)
     return 0;
   if(wsopts.check_umode)
   {
@@ -551,7 +551,7 @@ do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
     ms = ptr->data;
     target_p = ms->client_p;
     i = 0;
-    if(!chk_who(target_p, showall))
+    if(!chk_who(source_p, target_p, showall))
       continue;
 
     /* Whomever wrote the original code here is an incompetent
@@ -650,7 +650,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
     DLINK_FOREACH(ptr, global_client_list.head)
     {
       target_p = ptr->data;
-      if(!chk_who(target_p, showall))
+      if(!chk_who(source_p, target_p, showall))
         continue;
       /* wow, they passed it all, give them the reply...
        * IF they haven't reached the max, or they're an oper */
