@@ -1,3 +1,9 @@
+-- oftc-hybrid 1.6.2 RELNOTES
+o) Fix SVSNICK to not fail for flood reasons, also prevent opers from using it.
+o) Fix a bug in shedding causing it to fail randomly.
+o) Fix a long standing bug in wallops preventing local non oper users from
+seeing them.
+
 -- oftc-hybrid 1.6.1 RELNOTES
 o) Fix bug causing KICK evasions when +S to not work.
 o) Fix bug causing +T users to be able to be kicked.
