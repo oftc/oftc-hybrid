@@ -68,7 +68,7 @@
         char *parv[]) \
 { deliver_services_msg(b, c, client_p, source_p, parc, parv); }
 
-static void mo_svsnick(struct Client *, struct Client *, int, char *[]);
+static void m_svsnick(struct Client *, struct Client *, int, char *[]);
 
 static void m_botserv(struct Client *, struct Client *, int, char *[]);
 static void m_chanserv(struct Client *, struct Client *, int, char *[]);
@@ -90,7 +90,7 @@ static void deliver_services_msg(const char *, const char *, struct Client *,
 /* SVS commands */
 struct Message svsnick_msgtab = {
   "SVSNICK", 0, 0, 3, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_svsnick, mo_svsnick, mo_svsnick, m_ignore}
+  {m_unregistered, m_ignore, m_svsnick, m_svsnick, m_ignore, m_ignore}
 };
 
 /* Services */
@@ -224,32 +224,21 @@ const char *_version = "$Revision: 606 $";
 #endif
 
 /*
- * mo_svsnick()
+ * m_svsnick()
  *
  * parv[0] = sender prefix
  * parv[1] = user to force
  * parv[2] = nick to force them to
  */
 static void
-mo_svsnick(struct Client *client_p, struct Client *source_p,
+m_svsnick(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
   char newnick[NICKLEN];
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !IsOperAdmin(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVS),
-               me.name, parv[0], "SVSNICK");
-    return;
-  }
-
   if (parc < 3 || *parv[2] == '\0')
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, parv[0], "SVSNICK");
     return;
-  }
 
   if ((target_p = find_person(client_p, parv[1])) == NULL)
   {
