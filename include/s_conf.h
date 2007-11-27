@@ -262,6 +262,7 @@ struct ip_entry
 #define CONF_FLAGS_BURST_AWAY           0x00400000
 #define CONF_FLAGS_EXEMPTRESV           0x00800000
 #define CONF_FLAGS_TOPICBURST           0x01000000
+#define CONF_FLAGS_SSLLINK              0x02000000
 
 /* Macros for struct AccessItem */
 #define IsLimitIp(x)            ((x)->flags & CONF_FLAGS_LIMIT_IP)
@@ -288,9 +289,9 @@ struct ip_entry
 #define IsConfCryptLink(x)      ((x)->flags & CONF_FLAGS_CRYPTLINK)
 #define SetConfCryptLink(x)     ((x)->flags |= CONF_FLAGS_CRYPTLINK)
 #define ClearConfCryptLink(x)   ((x)->flags &= ~CONF_FLAGS_CRYPTLINK)
-#define IsConfLazyLink(x)       ((x)->flags & CONF_FLAGS_LAZY_LINK)
-#define SetConfLazyLink(x)      ((x)->flags = CONF_FLAGS_LAZY_LINK)
-#define ClearConfLazyLink(x)	((x)->flags &= ~CONF_FLAGS_LAZY_LINK)
+#define IsConfSSLLink(x)        ((x)->flags & CONF_FLAGS_SSLLINK)
+#define SetConfSSLLink(x)       ((x)->flags |= CONF_FLAGS_SSLLINK)
+#define ClearConfSSLLink(x)     ((x)->flags &= ~CONF_FLAGS_SSLLINK)
 #define IsConfAllowAutoConn(x)  ((x)->flags & CONF_FLAGS_ALLOW_AUTO_CONN)
 #define SetConfAllowAutoConn(x)	((x)->flags |= CONF_FLAGS_ALLOW_AUTO_CONN)
 #define ClearConfAllowAutoConn(x) ((x)->flags &= ~CONF_FLAGS_ALLOW_AUTO_CONN)
