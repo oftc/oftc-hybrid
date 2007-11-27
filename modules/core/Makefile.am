@@ -19,3 +19,7 @@ m_quit_la_SOURCES=m_quit.c
 m_server_la_SOURCES=m_server.c
 m_sjoin_la_SOURCES=m_sjoin.c
 m_squit_la_SOURCES=m_squit.c
+
+install-exec-local:
+	rm -f $(DESTDIR)/$(pkglibdir)/*.la $(DESTDIR)/$(pkblibdir)/*.a
+

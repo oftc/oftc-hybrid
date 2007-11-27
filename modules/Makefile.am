@@ -77,5 +77,5 @@ m_whowas_la_SOURCES=m_whowas.c
 m_xline_la_SOURCES=m_xline.c
 #soft_reboot_la_SOURCES=soft_reboot.c
 
-install-exec-local:
-	rm -f $(DESTDIR)/$(pkglibdir)/*.la $(DESTDIR)/$(pkblibdir)/*.a
+#install-exec-local:
+#	rm -f $(DESTDIR)/$(pkglibdir)/*.la $(DESTDIR)/$(pkblibdir)/*.a
