@@ -736,8 +736,6 @@ static void
 exit_one_client(struct Client *source_p, const char *quitmsg)
 {
   dlink_node *lp = NULL, *next_lp = NULL;
-  struct AccessItem *aconf;
-  struct ClassItem *aclass;
 
   assert(!IsMe(source_p));
 
