@@ -312,6 +312,7 @@ unhook_hub_leaf_confs(void)
 %token  SERVERHIDE
 %token  SERVERINFO
 %token  SERVLINK_PATH
+%token  SSLLINK
 %token  IRCD_SID
 %token	TKLINE_EXPIRE_NOTICES
 %token  T_SHARED
@@ -2490,7 +2491,7 @@ connect_entry: CONNECT
 #ifdef HAVE_LIBCRYPTO
     if (yy_aconf->host &&
 	((yy_aconf->passwd && yy_aconf->spasswd) ||
-	 (yy_aconf->rsa_public_key && IsConfCryptLink(yy_aconf))))
+	 (yy_aconf->rsa_public_key && (IsConfCryptLink(yy_aconf) || IsConfSSLLink(yy_aconf)))))
 #else /* !HAVE_LIBCRYPTO */
       if (yy_aconf->host && !IsConfCryptLink(yy_aconf) && 
 	  yy_aconf->passwd && yy_aconf->spasswd)
@@ -2513,10 +2514,11 @@ connect_entry: CONNECT
 	  if (yy_conf->name != NULL)
 	  {
 #ifndef HAVE_LIBCRYPTO
-	    if (IsConfCryptLink(yy_aconf))
+	    if (IsConfCryptLink(yy_aconf) || IsConfSSLLink(yy_aconf))
 	      yyerror("Ignoring connect block -- no OpenSSL support");
 #else
-	    if (IsConfCryptLink(yy_aconf) && !yy_aconf->rsa_public_key)
+	    if ((IsConfCryptLink(yy_aconf) || IsConfSSLLink(yy_aconf)) && 
+          !yy_aconf->rsa_public_key)
 	      yyerror("Ignoring connect block -- missing key");
 #endif
 	    if (yy_aconf->host == NULL)
@@ -2615,7 +2617,7 @@ connect_item:   connect_name | connect_host | connect_vhost |
  		connect_fakename | connect_flags | connect_hub_mask | 
 		connect_leaf_mask | connect_class | connect_auto |
 		connect_encrypted | connect_compressed | connect_cryptlink |
-		connect_rsa_public_key_file | connect_cipher_preference |
+		connect_ssllink | connect_rsa_public_key_file | connect_cipher_preference |
                 connect_topicburst | error ';' ;
 
 connect_name: NAME '=' QSTRING ';'
@@ -2766,6 +2768,15 @@ connect_flags_item_atom: COMPRESSED
     if (not_atom)ClearConfCryptLink(yy_aconf);
     else SetConfCryptLink(yy_aconf);
   }
+} | SSLLINK
+{
+  if (ypass == 2)
+  {
+    if(not_atom)
+      ClearConfSSLLink(yy_aconf);
+    else
+      SetConfSSLLink(yy_aconf);
+  }
 } | AUTOCONN
 {
   if (ypass == 2)
@@ -2850,6 +2861,17 @@ connect_cryptlink: CRYPTLINK '=' TBOOL ';'
       yy_aconf->flags |= CONF_FLAGS_CRYPTLINK;
     else
       yy_aconf->flags &= ~CONF_FLAGS_CRYPTLINK;
+  }
+};
+
+connect_ssllink: SSLLINK '='  TBOOL ';'
+{
+  if(ypass == 2)
+  {
+    if(yylval.number)
+      yy_aconf->flags |= CONF_FLAGS_SSLLINK;
+    else
+      yy_aconf->flags &= ~CONF_FLAGS_SSLLINK;
   }
 };
 
