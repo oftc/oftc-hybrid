@@ -30,9 +30,12 @@ extern char *small_file_date(time_t);
 extern const char *smalldate(time_t);
 #ifdef HAVE_LIBCRYPTO
 extern char *ssl_get_cipher(SSL *);
+X509 *
+create_certificate(RSA *, RSA *, const char *, const char *, unsigned int);
 #endif
 void base16_encode(char *, size_t, const char *, size_t);
 int base16_decode(char *, size_t, const char *, size_t);
+int get_rsa_fingerprint(RSA *, char *);
 
 #define _1MEG     (1024.0)
 #define _1GIG     (1024.0*1024.0)

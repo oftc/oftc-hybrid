@@ -529,7 +529,7 @@ try_connections(void *unused)
     {
       confrq = ConFreq(cltmp);
       if (confrq < MIN_CONN_FREQ )
-	confrq = MIN_CONN_FREQ;
+        confrq = MIN_CONN_FREQ;
     }
 
     aconf->hold = CurrentTime + confrq;
@@ -610,21 +610,58 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
     {
       error = -2;
 #ifdef HAVE_LIBCRYPTO
-      if (cryptlink && IsConfCryptLink(aconf))
+      if ((cryptlink && IsConfCryptLink(aconf)) || IsConfSSLLink(aconf))
       {
         if (aconf->rsa_public_key)
+        {
           server_conf = conf;
+          if(IsConfSSLLink(aconf))
+          {
+            X509 *cert;
+            int ret;
+
+            if((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) == NULL)
+              return -2;
+
+            ret = SSL_get_verify_result(client_p->localClient->fd.ssl);
+            if (ret == X509_V_OK || ret == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
+                ret == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
+                ret == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
+            {
+              EVP_PKEY *cert_key;
+              RSA *cert_rsa;
+              char our_fp[FINGERPRINT_LEN+1];
+              char their_fp[FINGERPRINT_LEN+1];
+
+              cert_key = X509_get_pubkey(cert);
+              cert_rsa = EVP_PKEY_get1_RSA(cert_key);
+
+              if(get_rsa_fingerprint(aconf->rsa_public_key, our_fp) != 0)
+                return -2;
+              if(get_rsa_fingerprint(cert_rsa, their_fp) != 0)
+                return -2;
+
+              ilog(L_DEBUG, "Comparing '%s' and '%s'", our_fp, their_fp);
+
+              if(strcmp(our_fp, their_fp) != 0)
+                return -2;
+            }
+            else
+              return -2;
+
+          }
+        }
       }
-      else if (!(cryptlink || IsConfCryptLink(aconf)))
+      else if (!(cryptlink || IsConfCryptLink(aconf)) && !IsConfSSLLink(aconf))
 #endif /* HAVE_LIBCRYPTO */
       {
         /* A NULL password is as good as a bad one */
         if (EmptyString(client_p->localClient->passwd))
           return(-2);
 
-	/* code in s_conf.c should not have allowed this to be NULL */
-	if (aconf->passwd == NULL)
-	  return(-2);
+        /* code in s_conf.c should not have allowed this to be NULL */
+        if (aconf->passwd == NULL)
+          return(-2);
 
         if (IsConfEncrypted(aconf))
         {
@@ -676,6 +713,8 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
     ClearCap(client_p, CAP_ZIP);
   if (!IsConfCryptLink(server_aconf))
     ClearCap(client_p, CAP_ENC);
+  if(!IsConfSSLLink(server_aconf))
+    ClearCap(client_p, CAP_SSL);
   if (!IsConfTopicBurst(server_aconf))
   {
     ClearCap(client_p, CAP_TB);
@@ -2015,7 +2054,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
         ipn.ss.ss_family = AF_INET;
         ipn.ss_port = 0;
         memcpy(&ipn, &aconf->my_ipnum, sizeof(struct irc_ssaddr));
-	comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
+        comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
 			 (struct sockaddr *)&ipn, ipn.ss_len, 
 			 serv_connect_callback, client_p, aconf->aftype,
 			 CONNECTTIMEOUT);
@@ -2030,7 +2069,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
         comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
                          (struct sockaddr *)&ipn, ipn.ss_len,
                          serv_connect_callback, client_p, aconf->aftype,
-			 CONNECTTIMEOUT);
+                         CONNECTTIMEOUT);
       }
       else
         comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port, 
@@ -2040,42 +2079,42 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
 #ifdef IPV6
     case AF_INET6:
       {
-	struct irc_ssaddr ipn;
-	struct sockaddr_in6 *v6;
-	struct sockaddr_in6 *v6conf;
+        struct irc_ssaddr ipn;
+        struct sockaddr_in6 *v6;
+        struct sockaddr_in6 *v6conf;
 
-	memset(&ipn, 0, sizeof(struct irc_ssaddr));
-	v6conf = (struct sockaddr_in6 *)&aconf->my_ipnum;
-	v6 = (struct sockaddr_in6 *)&ipn;
+        memset(&ipn, 0, sizeof(struct irc_ssaddr));
+        v6conf = (struct sockaddr_in6 *)&aconf->my_ipnum;
+        v6 = (struct sockaddr_in6 *)&ipn;
 
-	if (memcmp(&v6conf->sin6_addr, &v6->sin6_addr,
-		   sizeof(struct in6_addr)) != 0)
-	{
-	  memcpy(&ipn, &aconf->my_ipnum, sizeof(struct irc_ssaddr));
-	  ipn.ss.ss_family = AF_INET6;
-	  ipn.ss_port = 0;
-	  comm_connect_tcp(&client_p->localClient->fd,
-			   aconf->host, aconf->port,
-			   (struct sockaddr *)&ipn, ipn.ss_len, 
-			   serv_connect_callback, client_p,
-			   aconf->aftype, CONNECTTIMEOUT);
-	}
-	else if (ServerInfo.specific_ipv6_vhost)
+        if (memcmp(&v6conf->sin6_addr, &v6->sin6_addr,
+              sizeof(struct in6_addr)) != 0)
         {
-	  memcpy(&ipn, &ServerInfo.ip6, sizeof(struct irc_ssaddr));
-	  ipn.ss.ss_family = AF_INET6;
-	  ipn.ss_port = 0;
-	  comm_connect_tcp(&client_p->localClient->fd,
-			   aconf->host, aconf->port,
-			   (struct sockaddr *)&ipn, ipn.ss_len,
-			   serv_connect_callback, client_p,
-			   aconf->aftype, CONNECTTIMEOUT);
-	}
-	else
-	  comm_connect_tcp(&client_p->localClient->fd,
-			   aconf->host, aconf->port, 
-			   NULL, 0, serv_connect_callback, client_p,
-			   aconf->aftype, CONNECTTIMEOUT);
+          memcpy(&ipn, &aconf->my_ipnum, sizeof(struct irc_ssaddr));
+          ipn.ss.ss_family = AF_INET6;
+          ipn.ss_port = 0;
+          comm_connect_tcp(&client_p->localClient->fd,
+              aconf->host, aconf->port,
+              (struct sockaddr *)&ipn, ipn.ss_len, 
+              serv_connect_callback, client_p,
+              aconf->aftype, CONNECTTIMEOUT);
+        }
+        else if (ServerInfo.specific_ipv6_vhost)
+        {
+          memcpy(&ipn, &ServerInfo.ip6, sizeof(struct irc_ssaddr));
+          ipn.ss.ss_family = AF_INET6;
+          ipn.ss_port = 0;
+          comm_connect_tcp(&client_p->localClient->fd,
+              aconf->host, aconf->port,
+              (struct sockaddr *)&ipn, ipn.ss_len,
+              serv_connect_callback, client_p,
+              aconf->aftype, CONNECTTIMEOUT);
+        }
+        else
+          comm_connect_tcp(&client_p->localClient->fd,
+              aconf->host, aconf->port, 
+              NULL, 0, serv_connect_callback, client_p,
+              aconf->aftype, CONNECTTIMEOUT);
       }
 #endif
   }
@@ -2119,10 +2158,6 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 	      		    "Error connecting to %s[%s]: %s", client_p->name,
 			    client_p->host, comm_errstr(status));
 
-   
-	
-
-
      /* If a fd goes bad, call dead_link() the socket is no
       * longer valid for reading or writing.
       */
@@ -2154,6 +2189,12 @@ serv_connect_callback(fde_t *fd, int status, void *data)
     cryptlink_init(client_p, conf, fd);
     return;
   }
+
+  if(IsConfSSLLink(aconf))
+  {
+    ssllink_init(client_p, conf, fd);
+    return;
+  }
 #endif
 
   /* jdc -- Check and send spasswd, not passwd. */
@@ -2178,7 +2219,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
                     | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
                     | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
-  sendto_one(client_p, "SERVER %s 1 :%s%s",
+ sendto_one(client_p, "SERVER %s 1 :%s%s",
              my_name_for_link(conf), 
 	     ConfigServerHide.hidden ? "(H) " : "", 
 	     me.info);
@@ -2221,6 +2262,96 @@ find_servconn_in_progress(const char *name)
 }
 
 #ifdef HAVE_LIBCRYPTO
+
+static void
+ssl_server_handshake(int fd, struct Client *client_p)
+{
+  int ret;
+  int err;
+  
+  ret = SSL_connect(client_p->localClient->fd.ssl);
+
+  if (ret <= 0)
+  {
+    switch ((err = SSL_get_error(client_p->localClient->fd.ssl, ret)))
+    {
+      case SSL_ERROR_WANT_WRITE:
+        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
+            (PF *) ssl_server_handshake, client_p, 0);
+        return;
+
+      case SSL_ERROR_WANT_READ:
+        comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
+            (PF *) ssl_server_handshake, client_p, 0);
+        return;
+
+      default:
+        exit_client(client_p, client_p, "Error during SSL handshake");
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, 
+            "%s: SSLLINK error - %s (%d)", get_client_name(client_p, SHOW_IP),
+            ERR_error_string(err, NULL), err);
+        return;
+    }
+  }
+  comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ, read_packet, client_p, 0); 
+}
+
+void
+ssllink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
+{
+  struct AccessItem *aconf;
+  X509 *cert;
+  RSA *pubkey;
+  int ret;
+
+  if ((fd->ssl = SSL_new(ServerInfo.ctx)) == NULL)
+  {
+    ilog(L_CRIT, "SSL_new() ERROR! -- %s",
+        ERR_error_string(ERR_get_error(), NULL));
+
+    SetDead(client_p);
+    exit_client(client_p, client_p, "SSL_new failed");
+    return;
+  }
+
+  aconf = (struct AccessItem *)map_to_conf(conf);
+
+  pubkey = RSAPublicKey_dup(ServerInfo.rsa_private_key);
+  cert = create_certificate(pubkey, ServerInfo.rsa_private_key, 
+      me.name, me.name, 2*60*60);
+
+  ret = SSL_use_certificate(fd->ssl, cert);
+//  ret = SSL_CTX_verify(ServerInfo.ctx);
+
+  SSL_set_fd(fd->ssl, fd->fd);
+
+  ssl_server_handshake(0, client_p);
+
+  if (me.id[0])
+    sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);
+
+  send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+      | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
+      | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), CAP_ENC_MASK);
+
+
+  sendto_one(client_p, "SERVER %s 1 :%s%s",
+      my_name_for_link(conf), 
+      ConfigServerHide.hidden ? "(H) " : "", 
+      me.info);
+
+  /* If we've been marked dead because a send failed, just exit
+   * here now and save everyone the trouble of us ever existing.
+   */
+  if (IsDead(client_p)) 
+  {
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+        "%s[%s] went dead during handshake",
+        client_p->name,
+        client_p->host);
+      return;
+  }
+}
 /*
  * sends a CRYPTLINK SERV command.
  */
