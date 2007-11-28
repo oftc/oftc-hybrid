@@ -38,6 +38,8 @@
 #include "send.h"
 #include "memory.h"
 
+#define SHA_DIGEST_LEN 20
+#define HEX_DIGEST_LEN 40
 
 static const char *months[] =
 {
@@ -169,7 +171,7 @@ ssl_get_cipher(SSL *ssl)
 }
 #endif
 
-/*  Base16 en/decoding is:
+/*  The following functions are: 
  *  Copyright (c) 2001-2004, Roger Dingledine
  *  Copyright (c) 2004-2007, Roger Dingledine, Nick Mathewson
  *
@@ -278,3 +280,174 @@ base16_decode(char *dest, size_t destlen, const char *src, size_t srclen)
   return 0;
 }
 
+/** used by tortls.c: get an equivalent EVP_PKEY* for a crypto_pk_env_t.  Iff
+ * private is set, include the private-key portion of the key. */
+EVP_PKEY *
+_crypto_pk_env_get_evp_pkey(RSA *ekey, int private)
+{
+  RSA *key = NULL;
+  EVP_PKEY *pkey = NULL;
+  assert(ekey);
+  if (private) {
+    if (!(key = RSAPrivateKey_dup(ekey)))
+      goto error;
+  } else {
+    if (!(key = RSAPublicKey_dup(ekey)))
+      goto error;
+  }
+  if (!(pkey = EVP_PKEY_new()))
+    goto error;
+  if (!(EVP_PKEY_assign_RSA(pkey, key)))
+    goto error;
+  return pkey;
+ error:
+  if (pkey)
+    EVP_PKEY_free(pkey);
+  if (key)
+    RSA_free(key);
+  return NULL;
+}
+
+X509 *
+create_certificate(RSA *rsa, RSA *rsa_sign, const char *cname,
+    const char *cname_sign, unsigned int cert_lifetime)
+{
+  time_t start_time, end_time;
+  EVP_PKEY *sign_pkey = NULL, *pkey=NULL;
+  X509 *x509 = NULL;
+  X509_NAME *name = NULL, *name_issuer=NULL;
+  int nid;
+
+  start_time = time(NULL);
+
+  assert(rsa);
+  assert(cname);
+  assert(rsa_sign);
+  assert(cname_sign);
+  if (!(sign_pkey = _crypto_pk_env_get_evp_pkey(rsa_sign,1)))
+    goto error;
+  if (!(pkey = _crypto_pk_env_get_evp_pkey(rsa,0)))
+    goto error;
+  if (!(x509 = X509_new()))
+    goto error;
+  if (!(X509_set_version(x509, 2)))
+    goto error;
+  if (!(ASN1_INTEGER_set(X509_get_serialNumber(x509), (long)start_time)))
+    goto error;
+
+  if (!(name = X509_NAME_new()))
+    goto error;
+  if ((nid = OBJ_txt2nid("organizationName")) == NID_undef)
+    goto error;
+  if (!(X509_NAME_add_entry_by_NID(name, nid, MBSTRING_ASC,
+                                   (unsigned char*)"ircd", -1, -1, 0)))
+    goto error;
+  if ((nid = OBJ_txt2nid("commonName")) == NID_undef) goto error;
+  if (!(X509_NAME_add_entry_by_NID(name, nid, MBSTRING_ASC,
+                                   (unsigned char*)cname, -1, -1, 0)))
+    goto error;
+  if (!(X509_set_subject_name(x509, name)))
+    goto error;
+
+  if (!(name_issuer = X509_NAME_new()))
+    goto error;
+  if ((nid = OBJ_txt2nid("organizationName")) == NID_undef)
+    goto error;
+  if (!(X509_NAME_add_entry_by_NID(name_issuer, nid, MBSTRING_ASC,
+                                   (unsigned char*)"ircd", -1, -1, 0)))
+    goto error;
+  if ((nid = OBJ_txt2nid("commonName")) == NID_undef) goto error;
+  if (!(X509_NAME_add_entry_by_NID(name_issuer, nid, MBSTRING_ASC,
+                              (unsigned char*)cname_sign, -1, -1, 0)))
+    goto error;
+  if (!(X509_set_issuer_name(x509, name_issuer)))
+    goto error;
+
+  if (!X509_time_adj(X509_get_notBefore(x509),0,&start_time))
+    goto error;
+  end_time = start_time + cert_lifetime;
+  if (!X509_time_adj(X509_get_notAfter(x509),0,&end_time))
+    goto error;
+  if (!X509_set_pubkey(x509, pkey))
+    goto error;
+  if (!X509_sign(x509, sign_pkey, EVP_sha1()))
+    goto error;
+
+  goto done;
+ error:
+  if (x509) {
+    X509_free(x509);
+    x509 = NULL;
+  }
+ done:
+  if (sign_pkey)
+    EVP_PKEY_free(sign_pkey);
+  if (pkey)
+    EVP_PKEY_free(pkey);
+  if (name)
+    X509_NAME_free(name);
+  if (name_issuer)
+    X509_NAME_free(name_issuer);
+  return x509;
+}
+
+/** Compute the SHA1 digest of <b>len</b> bytes in data stored in
+ * <b>m</b>.  Write the DIGEST_LEN byte result into <b>digest</b>.
+ * Return 0 on success, -1 on failure.
+ */
+static int
+crypto_digest(char *digest, const char *m, size_t len)
+{
+  assert(m);
+  assert(digest);
+  return (SHA1((const unsigned char*)m,len,(unsigned char*)digest) == NULL);
+}
+
+
+/* Not quite the tor code, but close.. digest must have DIGEST_LEN len at
+ * least
+ */
+static int
+rsa_key_to_digest(RSA *rsa, char *digest)
+{
+  unsigned char *buf, *bufp;
+  int len;
+
+  len = i2d_RSAPublicKey(rsa, NULL);
+  if (len < 0)
+    return -1;
+  buf = bufp = MyMalloc(len+1);
+  len = i2d_RSAPublicKey(rsa, &bufp);
+  if (len < 0) 
+  {
+    MyFree(buf);
+    return -1;
+  }
+  if (crypto_digest(digest, (char*)buf, len) < 0) 
+  {
+    MyFree(buf);
+    return -1;
+  }
+  MyFree(buf);
+  return 0;
+}
+
+/** Given a private or public key <b>pk</b>, put a fingerprint of the
+ * public key into <b>fp_out</b> (must have at least FINGERPRINT_LEN+1 bytes of
+ * space).  Return 0 on success, -1 on failure.
+ *
+ * Fingerprints are computed as the SHA1 digest of the ASN.1 encoding
+ * of the public key, converted to hexadecimal, in upper case.
+ */
+int
+get_rsa_fingerprint(RSA *rsa, char *fp_out)
+{
+  char digest[SHA_DIGEST_LEN];
+  char hexdigest[HEX_DIGEST_LEN+1];
+  if (rsa_key_to_digest(rsa, digest)) 
+    return -1;
+
+  base16_encode(hexdigest,sizeof(hexdigest),digest,SHA_DIGEST_LEN);
+  strncpy(fp_out, hexdigest, HEX_DIGEST_LEN+1);
+  return 0;
+}

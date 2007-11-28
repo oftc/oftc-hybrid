@@ -60,6 +60,8 @@
 
 #define PLATFORMLEN     200     /* platform string used in info response */
 
+#define FINGERPRINT_LEN 49
+
 #ifdef _WIN32
 #define EAFNOSUPPORT WSAEAFNOSUPPORT
 #define EALREADY     WSAEALREADY
