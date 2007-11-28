@@ -2302,9 +2302,6 @@ ssllink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
   struct AccessItem *aconf;
   X509 *cert;
   RSA *pubkey;
-  int ret;
-
-  if ((fd->ssl = SSL_new(ServerInfo.ctx)) == NULL)
   {
     ilog(L_CRIT, "SSL_new() ERROR! -- %s",
         ERR_error_string(ERR_get_error(), NULL));
@@ -2320,11 +2317,8 @@ ssllink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
   cert = create_certificate(pubkey, ServerInfo.rsa_private_key, 
       me.name, me.name, 2*60*60);
 
-  ret = SSL_use_certificate(fd->ssl, cert);
-//  ret = SSL_CTX_verify(ServerInfo.ctx);
-
+  SSL_use_certificate(fd->ssl, cert);
   SSL_set_fd(fd->ssl, fd->fd);
-
   ssl_server_handshake(0, client_p);
 
   if (me.id[0])
