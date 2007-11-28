@@ -2316,6 +2316,7 @@ ssllink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
   pubkey = RSAPublicKey_dup(ServerInfo.rsa_private_key);
   cert = create_certificate(pubkey, ServerInfo.rsa_private_key, 
       me.name, me.name, 2*60*60);
+  RSA_free(pubkey);
 
   SSL_use_certificate(fd->ssl, cert);
   SSL_set_fd(fd->ssl, fd->fd);
