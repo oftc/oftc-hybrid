@@ -391,6 +391,9 @@ initialize_server_capabs(void)
 #ifdef HALFOPS
   add_capability("HOPS", CAP_HOPS, 1);
 #endif
+#ifdef HAVE_LIBCRYPTO
+  add_capability("SSL", CAP_SSL, 1);
+#endif
 }
 
 /* write_pidfile()
@@ -512,7 +515,7 @@ init_ssl(void)
   SSL_load_error_strings();
   SSLeay_add_ssl_algorithms();
 
-  ServerInfo.ctx = SSL_CTX_new(SSLv23_server_method());
+  ServerInfo.ctx = SSL_CTX_new(SSLv23_method());
   if (!ServerInfo.ctx)
   {
     const char *s;

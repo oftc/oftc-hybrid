@@ -63,13 +63,14 @@ struct Capability
 #define CAP_ZIP		0x00000400 /* Can do ZIPlinks                     */
 #define CAP_ENC		0x00000800 /* Can do ENCrypted links              */
 #define CAP_KNOCK	0x00001000 /* supports KNOCK                      */
-#define CAP_TB	        0x00002000 /* supports TB                         */
+#define CAP_TB	  0x00002000 /* supports TB                         */
 #define CAP_UNKLN	0x00004000 /* Can do UNKLINE message		  */
 #define CAP_CLUSTER	0x00008000 /* supports server clustering	  */
 #define CAP_ENCAP	0x00010000 /* supports ENCAP message		  */
 #define CAP_HOPS	0x00020000 /* supports HALFOPS			  */
-#define CAP_TBURST      0x00040000 /* supports TBURST                     */
+#define CAP_TBURST 0x00040000 /* supports TBURST                     */
 #define CAP_QUIET 0x00100000 /* supports quiet cmode +q */
+#define CAP_SSL   0x00200000 /* Supports SSL Server links */
 
 #ifdef HAVE_LIBZ
 #define CAP_ZIP_SUPPORTED CAP_ZIP
@@ -255,6 +256,7 @@ extern void cryptlink_init(struct Client *, struct ConfItem *, fde_t *);
 extern void cryptlink_regen_key(void *);
 extern void cryptlink_error(struct Client *, const char *,
                             const char *, const char *);
+extern void ssllink_init(struct Client *, struct ConfItem *, fde_t *);
 extern struct EncCapability *check_cipher(struct Client *, struct AccessItem *);
 extern struct Server *make_server(struct Client *);
 

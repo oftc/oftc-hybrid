@@ -324,7 +324,7 @@ ssl_handshake(int fd, struct Client *client_p)
 
       default:
         exit_client(client_p, client_p, "Error during SSL handshake");
-	return;
+        return;
     }
 
   execute_callback(auth_cb, client_p);
