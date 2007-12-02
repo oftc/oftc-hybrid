@@ -98,6 +98,6 @@ static void m_svsnick(struct Client *client_p, struct Client *source_p,
     change_local_nick(target_p->servptr, target_p, parv[2]);
   } 
   else
-    sendto_server(client_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
+    sendto_server(client_p, NULL, NOCAPS, NOCAPS, 
         ":%s SVSNICK %s %s", parv[0], parv[1], parv[2]);
 }

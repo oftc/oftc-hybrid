@@ -1098,7 +1098,7 @@ sendto_gnotice_flags(int flags, int level, char *origin,
       sendto_one(target_p, ":%s NOTICE %s :%s", origin, target_p->name, nbuf);
     }
   }
-  sendto_server(client_p, NOCAPS, NOCAPS, NOFLAGS,
+  sendto_server(client_p, NULL, NOCAPS, NOCAPS,
     ":%s GNOTICE %s %d :%s", me.name, origin, flags, nbuf);
 }
 

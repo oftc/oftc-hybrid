@@ -101,7 +101,6 @@ extern  void sendto_gnotice_flags(int, int, char *, struct Client *, struct Clie
 #define L_ADMIN	2
 
 #define NOCAPS          0               /* no caps */
-#define NOFLAGS         0               /* no flags */
 
 /* used when sending to #mask or $mask */
 #define MATCH_SERVER  1
