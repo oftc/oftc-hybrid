@@ -2416,7 +2416,7 @@ expire_tklines(dlink_list *tklist)
               "Temporary RESV for [%s] expired", cconf->name);
         dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
-        remove_conf_line(conf->type, &me, conf->name, NULL);
+        remove_conf_line(conf->type, &me, cconf->name, NULL);
         delete_conf_item(conf);
         expired = TRUE;
         break;
