@@ -206,8 +206,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
         break;
 
       case CRESV_TYPE:
-        parse_csv_line(line, &name_field, &reason_field, &temp, &temp, &temp,
-            &temp, &duration_field, NULL);
+        parse_csv_line(line, &name_field, &reason_field, &duration_field, NULL);
         conf = create_channel_resv(name_field, reason_field, 0);
         if(duration_field != NULL)
         {
@@ -218,8 +217,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
         break;
 
       case NRESV_TYPE:
-        parse_csv_line(line, &name_field, &reason_field, &temp, &temp, &temp,
-            &temp, &duration_field, NULL);
+        parse_csv_line(line, &name_field, &reason_field, &duration_field, NULL);
         conf = create_nick_resv(name_field, reason_field, 0);
         if(duration_field != NULL)
         {
@@ -510,14 +508,18 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
 
   case CRESV_TYPE:
     cresv_p = (struct ResvChannel *)map_to_conf(conf);
-
-    write_csv_line(out, "%s%s", cresv_p->name, cresv_p->reason);
+    if(duration == 0)
+      write_csv_line(out, "%s%s", cresv_p->name, cresv_p->reason);
+    else
+      write_csv_line(out, "%s%s%d", cresv_p->name, cresv_p->reason, cresv_p->hold);
     break;
 
   case NRESV_TYPE:
     nresv_p = (struct MatchItem *)map_to_conf(conf);
-
-    write_csv_line(out, "%s%s", conf->name, nresv_p->reason);
+    if(duration == 0)
+      write_csv_line(out, "%s%s", conf->name, nresv_p->reason);
+    else
+      write_csv_line(out, "%s%s%d", conf->name, nresv_p->reason, nresv_p->hold);
     break;
 
   default:
