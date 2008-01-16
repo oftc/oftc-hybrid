@@ -729,6 +729,9 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
   int oldumask;
   int (*cmpfunc)(const char *, const char *) = irccmp;
 
+  if(pat1 == NULL)
+    return -1;
+
   if (type == RXLINE_TYPE || type == RKLINE_TYPE)
     cmpfunc = strcmp;
 
@@ -761,7 +764,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
     if ((*buf == '\0') || (*buf == '#'))
     {
       if (flush_write(source_p, in, out, buf, temppath) < 0)
-	return -1;
+        return -1;
     }
     
     /* Keep copy of original line, getfield trashes line as it goes */
@@ -770,7 +773,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
     if ((found1 = getfield(buff)) == NULL)
     {
       if (flush_write(source_p, in, out, buf, temppath) < 0)
-	return -1;
+        return -1;
       continue;
     }
 
@@ -778,35 +781,35 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
     {
       if ((found2 = getfield(NULL)) == NULL)
       {
-	if (flush_write(source_p, in, out, buf, temppath) < 0)
-	  return -1;
-	continue;
+        if (flush_write(source_p, in, out, buf, temppath) < 0)
+          return -1;
+        continue;
       }
 
       if (!cmpfunc(pat1, found1) && !cmpfunc(pat2, found2))
       {
-	pairme = 1;
-	continue;
+        pairme = 1;
+        continue;
       }
       else
       {
-	if(flush_write(source_p, in, out, buf, temppath) < 0)
-	  return -1;
-	continue;
+        if(flush_write(source_p, in, out, buf, temppath) < 0)
+          return -1;
+        continue;
       }
     }
     else
     {
       if (!cmpfunc(pat1, found1))
       {
-	pairme = 1;
-	continue;
+        pairme = 1;
+        continue;
       }
       else
       {
-	if(flush_write(source_p, in, out, buf, temppath) < 0)
-	  return -1;
-	continue;
+        if(flush_write(source_p, in, out, buf, temppath) < 0)
+          return -1;
+        continue;
       }
     }
   }
