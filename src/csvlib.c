@@ -73,8 +73,8 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
     switch(conf_type)
     {
       case KLINE_TYPE:
-        parse_csv_line(line, &user_field, &host_field, &reason_field, &temp,
-            &temp, &temp, &temp, &duration_field, NULL);
+        parse_csv_line(line, &user_field, &host_field, &reason_field,
+            &oper_reason, &temp, &temp, &temp, &duration_field, NULL);
         conf = make_conf_item(KLINE_TYPE);
         aconf = map_to_conf(conf);
 
@@ -82,6 +82,8 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
           DupString(aconf->host, host_field);
         if (reason_field != NULL)
           DupString(aconf->reason, reason_field);
+        if (oper_reason != NULL)
+          DupString(aconf->oper_reason, oper_reason);
         if (user_field != NULL)
           DupString(aconf->user, user_field);
         if (duration_field != NULL)
@@ -100,8 +102,8 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
           const char *errptr = NULL;
           pcre *exp_user = NULL, *exp_host = NULL;
 
-          parse_csv_line(line, &user_field, &host_field, &reason_field, &temp,
-              &temp, &temp, &temp, &duration_field, NULL);
+          parse_csv_line(line, &user_field, &host_field, &reason_field,
+              &oper_reason, &temp, &temp, &temp, &duration_field, NULL);
 
           if (host_field == NULL || user_field == NULL)
             break;
@@ -126,6 +128,9 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
             DupString(aconf->reason, reason_field);
           else
             DupString(aconf->reason, "No reason");
+
+          if (oper_reason != NULL)
+            DupString(aconf->oper_reason, oper_reason);
 
           if(duration_field != NULL)
           {

@@ -964,6 +964,9 @@ report_Klines(struct Client *client_p, int tkline)
             ircsprintf(buf, "%s Expires (%s)", 
                 aconf->oper_reason ? aconf->oper_reason : "", 
                 smalldate(aconf->hold));
+          else
+            ircsprintf(buf, "%s",
+                aconf->oper_reason ? aconf->oper_reason : "");
 
           sendto_one(client_p, form_str(RPL_STATSKLINE), me.name,
               client_p->name, p, aconf->host, aconf->user,
