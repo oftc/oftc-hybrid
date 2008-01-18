@@ -2401,7 +2401,6 @@ expire_tklines(dlink_list *tklist)
         dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
         remove_conf_line(conf->type, &me, conf->name, NULL);
-        delete_conf_item(conf);
         expired = TRUE;
         break;
       }
@@ -2417,7 +2416,6 @@ expire_tklines(dlink_list *tklist)
         dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
         remove_conf_line(conf->type, &me, cconf->name, NULL);
-        delete_conf_item(conf);
         expired = TRUE;
         break;
       }
