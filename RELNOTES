@@ -1,5 +1,5 @@
 -- oftc-hybrid 1.6.2 RELNOTES
-o) Fix a core in temporary channel RESVs 
+o) Fix a core in temporary RESVs 
 
 -- oftc-hybrid 1.6.2 RELNOTES
 o) Fix SVSNICK to not fail for flood reasons, also prevent opers from using it.
