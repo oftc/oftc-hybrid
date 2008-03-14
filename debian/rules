@@ -3,6 +3,7 @@
 
 include /usr/share/quilt/quilt.make
 D=$(CURDIR)/debian/oftc-hybrid
+V=$(shell perl -lne 'print $$1 if /hybrid.*oftc(.+)"/' include/patchlevel.h)
 
 configure: configure-stamp
 configure-stamp: $(QUILT_STAMPFN)
@@ -82,5 +83,11 @@ clean: unpatch
 	-$(MAKE) -C tools/rsa_respond distclean
 	dh_clean
 	rm -f src/y.tab.? src/lex.yy.c src/tags configure-stamp build-stamp
+
+make-orig-tgz:
+	rm -vf doc/technical/rfc*.txt \
+		doc/technical/draft-mitchell-irc-capabilities-01.txt
+	test ! -f ../oftc-hybrid_$V.dfsg.orig.tar.gz
+	tar cz --exclude=debian --exclude=.svn -f ../oftc-hybrid_$V.dfsg.orig.tar.gz .
 
 .PHONY: build build-indep build-arch clean binary binary-indep binary-arch install configure patch unpatch
