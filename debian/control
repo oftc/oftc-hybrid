@@ -4,8 +4,8 @@ Priority: extra
 Maintainer: Christoph Berg <myon@debian.org>
 Build-Depends: debhelper (>> 4), quilt (>> 0.40), bison, flex, zlib1g-dev, libssl-dev
 Standards-Version: 3.7.3
-Vcs-Browser: http://svn.oftc.net/svn/oftc-hybrid/branches/debian-oftc-hybrid/debian/
-Vcs-Svn: https://svn.oftc.net/svn/oftc-hybrid/branches/debian-oftc-hybrid/debian/
+Vcs-Browser: http://svn.oftc.net/svn/oftc-hybrid/branches/debian-oftc-hybrid/
+Vcs-Svn: https://svn.oftc.net/svn/oftc-hybrid/branches/debian-oftc-hybrid/
 Homepage: http://www.oftc.net/oftc/CodingProjects
 
 Package: oftc-hybrid
