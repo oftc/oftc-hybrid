@@ -964,8 +964,11 @@ chm_op(struct Client *client_p, struct Client *source_p,
   {
 #ifdef HALFOPS
     if (has_member_flags(member, CHFL_HALFOP))
+    {
+      --*parn;
       chm_hop(client_p, source_p, chptr, parc, parn, parv, errors, alev,
               dir, c, d, chname);
+    }
 #endif
     return;
   }
