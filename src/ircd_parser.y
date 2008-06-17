@@ -527,8 +527,8 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
       break;
     }
 
-    if (SSL_CTX_use_certificate_file(ServerInfo.ctx,
-      yylval.string, SSL_FILETYPE_PEM) <= 0)
+    if (SSL_CTX_use_certificate_chain_file(ServerInfo.ctx,
+      yylval.string) <= 0)
     {
       yyerror(ERR_lib_error_string(ERR_get_error()));
       break;
