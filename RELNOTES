@@ -1,4 +1,8 @@
--- oftc-hybrid 1.6.2 RELNOTES
+-- oftc-hybrid 1.6.4 RELNOTES
+o) Support sending certificate chains in SSL handshakes
+o) Fix a bug in the client notice that tells you your certificate fingerprint on connect
+
+-- oftc-hybrid 1.6.3 RELNOTES
 o) Fix a core in temporary RESVs 
 
 -- oftc-hybrid 1.6.2 RELNOTES
