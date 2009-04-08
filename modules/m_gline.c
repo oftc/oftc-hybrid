@@ -73,7 +73,6 @@ static void do_sgline(struct Client *, struct Client *, int, char **, int);
 static void me_gline(struct Client *, struct Client *, int, char **);
 static void ms_gline(struct Client *, struct Client *, int, char **);
 static void mo_gline(struct Client *, struct Client *, int, char **);
-static void mo_ungline(struct Client *, struct Client *, int, char **);
 
 /*
  * gline enforces 3 parameters to force operator to give a reason
@@ -85,17 +84,12 @@ struct Message gline_msgtab = {
   {m_unregistered, m_not_oper, ms_gline, me_gline, mo_gline, m_ignore}
 };
 
-struct Message ungline_msgtab = {
-  "UNGLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_error, m_ignore, mo_ungline, m_ignore}
-};
 		
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
     mod_add_cmd(&gline_msgtab);
-    mod_add_cmd(&ungline_msgtab);
     add_capability("GLN", CAP_GLN, 1);
 }
 
@@ -103,7 +97,6 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&gline_msgtab);
-  mod_del_cmd(&ungline_msgtab);
   delete_capability("GLN");
 }
 
@@ -597,51 +590,3 @@ remove_gline_match(const char *user, const char *host)
   return(0);
 }
 
-/*
-** m_ungline
-** added May 29th 2000 by Toby Verrall <toot@melnet.co.uk>
-** added to hybrid-7 7/11/2000 --is
-**
-**      parv[0] = sender nick
-**      parv[1] = gline to remove
-*/
-static void
-mo_ungline(struct Client *client_p, struct Client *source_p,
-           int parc, char *parv[])
-{
-  char *user, *host;
-
-  if (!ConfigFileEntry.glines)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :UNGLINE disabled",
-               me.name, source_p->name);
-    return;
-  }
-
-  if (!IsOperUnkline(source_p) || !IsOperGline(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVS),
-               me.name, source_p->name, "gline");
-    return;
-  }
-
-  if (parse_aline("UNGLINE", source_p, parc, parv,
-		  0, &user, &host, NULL, NULL, NULL) < 0)
-    return;
-
-  if (remove_gline_match(user, host))
-  {
-    sendto_one(source_p, ":%s NOTICE %s :G-Line for [%s@%s] is removed",
-               me.name, source_p->name, user, host);
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "%s has removed the G-Line for: [%s@%s]",
-                         get_oper_name(source_p), user, host);
-    ilog(L_NOTICE, "%s removed G-Line for [%s@%s]",
-         get_oper_name(source_p), user, host);
-  }
-  else
-  {
-    sendto_one(source_p, ":%s NOTICE %s :No G-Line for %s@%s",
-               me.name, source_p->name, user, host);
-  }
-}
