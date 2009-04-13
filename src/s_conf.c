@@ -3278,7 +3278,7 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
  *                if target_server is NULL and an "ON" is found error
  *                is reported.
  *                if reason pointer is NULL ignore pointer,
- *                this allows usee of parse_a_line in unkline etc.
+ *                this allows use of parse_a_line in unkline etc.
  *
  * - Dianora
  */
