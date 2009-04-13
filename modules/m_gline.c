@@ -793,7 +793,7 @@ mo_ungline(struct Client *client_p, struct Client *source_p,
   }
 #endif /* GLINE_VOTING */
   
-  ircsprintf(encap_ungline, "UNGLINE %s %s %s",
+  ircsprintf(encap_ungline, "UNGLINE %s %s :%s",
 	      user, host, reason);
   /* 4 param version for hyb-7 servers */
   sendto_match_servs(NULL, NULL CAP_ENCAP, 0,
