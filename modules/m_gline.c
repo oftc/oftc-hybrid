@@ -77,9 +77,8 @@ static void mo_gline(struct Client *, struct Client *, int, char **);
 
 static void do_sungline(struct Client *, struct Client *, int, char **, int);
 
-static void me_ungline(struct Client *, struct Client *, int, char **);
-static void ms_ungline(struct Client *, struct Client *, int, char **);
-static void mo_ungline(struct Client *, struct Client *, int, char **);
+static void me_gungline(struct Client *, struct Client *, int, char **);
+static void mo_gungline(struct Client *, struct Client *, int, char **);
 
 /*
  * gline enforces 3 parameters to force operator to give a reason
@@ -92,8 +91,8 @@ struct Message gline_msgtab = {
 };
 
 struct Message ungline_msgtab = {
-  "UNGLINE", 0, 0, 3, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_ungline, me_ungline, mo_ungline, m_ignore}
+  "GUNGLINE", 0, 0, 3, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, me_gungline, mo_gungline, m_ignore}
 };
 
 		
@@ -631,8 +630,8 @@ remove_gline_match(const char *user, const char *host)
   return(0);
 }
 
-/* ms_ungline()
- * me_ungline()
+/* 
+ * me_gungline()
  * do_sungline()
  *
  * inputs       - The usual for a m_ function
@@ -645,14 +644,7 @@ remove_gline_match(const char *user, const char *host)
  */
 
 static void
-ms_ungline(struct Client *client_p, struct Client *source_p,
-         int parc, char *parv[])
-{
-  do_sungline(client_p, source_p, parc, parv, 1);
-}
-
-static void
-me_ungline(struct Client *client_p, struct Client *source_p,
+me_gungline(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
   do_sungline(client_p, source_p, parc, parv, 0);
@@ -717,7 +709,7 @@ do_sungline(struct Client *client_p, struct Client *source_p,
   }
 }
 
-/* mo_ungline()
+/* mo_gungline()
  *
  * inputs       - The usual for a m_ function
  * output       -
@@ -732,7 +724,7 @@ do_sungline(struct Client *client_p, struct Client *source_p,
  */
 
 static void
-mo_ungline(struct Client *client_p, struct Client *source_p,
+mo_gungline(struct Client *client_p, struct Client *source_p,
 	   int parc, char *parv[])
 {
   char *user = NULL;
@@ -793,10 +785,14 @@ mo_ungline(struct Client *client_p, struct Client *source_p,
   }
 #endif /* GLINE_VOTING */
   
-  ircsprintf(encap_ungline, "UNGLINE %s %s :%s",
+  ircsprintf(encap_ungline, "GUNGLINE %s %s :%s",
 	      user, host, reason);
   /* 4 param version for hyb-7 servers */
-  sendto_match_servs(NULL, NULL CAP_ENCAP, 0,
+/*
+sendto_match_servs(struct Client *source_p, const char *mask, int cap,
+                   const char *pattern, ...)
+*/
+  sendto_match_servs(NULL, NULL, CAP_ENCAP, 
 		     "ENCAP %s", encap_ungline);
 
 }
