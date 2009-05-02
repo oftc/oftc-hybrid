@@ -27,6 +27,17 @@ if test x$LIBTOOLIZE = x; then
   fi
 fi
 
+## freebsd has aclocal and aclocal-1.10
+if test x$ACLOCAL = x; then
+  if test \! x`which aclocal-1.10` = x; then
+    ACLOCAL=aclocal-1.10
+    AUTOMAKE=automake-1.10
+  elif test \! x`which aclocal` = x; then
+    ACLOCAL=aclocal
+    AUTOMAKE=automake
+  fi
+fi
+
 ## suse has aclocal and aclocal-1.9
 if test x$ACLOCAL = x; then
   if test \! x`which aclocal-1.9` = x; then
@@ -46,6 +57,14 @@ if test x$AUTOMAKE = x; then
   fi
 fi
 
+## freebsd has autoconf-2.62 and autoconf-2.62
+if test x$AUTOCONF = x; then
+  if test \! x`which autoconf-2.62` = x; then
+    AUTOCONF=autoconf-2.62
+  elif test \! x`which autoconf` = x; then
+    AUTOCONF=autoconf
+  fi
+fi
 
 ## macosx has autoconf-2.59 and autoconf-2.60
 if test x$AUTOCONF = x; then

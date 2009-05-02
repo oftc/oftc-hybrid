@@ -1,7 +1,7 @@
 # Inspired by work Copyright (C) 2006 Luca Filipozzi
 # vim: set fdm=marker ts=2 sw=2 et:
 
-AC_PREREQ(2.59)
+AC_PREREQ(2.62)
 AC_INIT([ircd-hybrid], [7.2.4])
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -73,10 +73,11 @@ AC_CHECK_HEADERS_ONCE(crypt.h        \
                       sys/syslog.h   \
                       stddef.h       \
                       libgen.h       \
+                      types.h        \
+                      socket.h       \
                       sys/wait.h     \
                       wait.h         \
                       link.h)
-
 
 dnl check for /dev/null so we can use it to hold evil fd's
 AC_MSG_CHECKING([for /dev/null])
@@ -206,6 +207,7 @@ else
   AC_DEFINE([TOPIC_HEAP_SIZE], 1024, [Size of the topic heap.])
   AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
 fi
+AC_DEFINE([HAVE_BASENAME], 1, [Define to 1 if you have the basename() function.])
 
 # Argument processing.
 AX_ARG_ENABLE_IOLOOP_MECHANISM
