@@ -534,8 +534,7 @@ sendto_channel_butone(struct Client *one, struct Client *from,
 /* sendto_server()
  * 
  * inputs       - pointer to client to NOT send to
- *              - pointer to source client required by LL (if any)
- *              - pointer to channel required by LL (if any)
+ *              - pointer to channel
  *              - caps or'd together which must ALL be present
  *              - caps or'd together which must ALL NOT be present
  *              - printf style format string
