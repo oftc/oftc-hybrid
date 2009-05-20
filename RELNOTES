@@ -1,4 +1,7 @@
--- oftc-hybrid 1.6.6 RELNOTE
+-- oftc-hybrid 1.6.7 RELNOTES
+o) Fix a bug causing temp dlines to crash ircd when they expire
+
+-- oftc-hybrid 1.6.6 RELNOTES
 o) A bit like below but done properly so that SSL still works
 
 -- oftc-hybrid 1.6.5 RELNOTES
