@@ -335,6 +335,7 @@ ssl_handshake(int fd, struct Client *client_p)
     }
   }
 
+  comm_settimeout(&client_p->localClient->fd, 0, NULL, NULL);
   execute_callback(auth_cb, client_p);
 }
 #endif
