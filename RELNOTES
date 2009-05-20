@@ -1,3 +1,7 @@
+-- oftc-hybrid 1.6.5 RELNOTES
+o) Fix a bug causing users connecting on the SSL port to never be disconnected
+if they didn't do anything
+
 -- oftc-hybrid 1.6.4 RELNOTES
 o) Support sending certificate chains in SSL handshakes
 o) Fix a bug in the client notice that tells you your certificate fingerprint on connect
