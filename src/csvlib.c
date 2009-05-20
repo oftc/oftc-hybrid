@@ -154,7 +154,8 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
           aconf->hold = atoi(duration_field);
           add_temp_line(conf);
         }
-        conf_add_d_conf(aconf);
+        else
+          conf_add_d_conf(aconf);
         break;
 
       case XLINE_TYPE:
