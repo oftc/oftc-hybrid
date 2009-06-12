@@ -568,9 +568,9 @@ do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
     else if(IsOper(source_p) && IsInvisible(target_p))
       status[i++] = '%';
 
-    if (target_p->flags & CHFL_CHANOP)
+    if (ms->flags & CHFL_CHANOP)
       status[i++] = '@';
-    else if (target_p->flags & CHFL_VOICE)
+    else if (ms->flags & CHFL_VOICE)
       status[i++] = '%';
 
     status[i] = '\0';
