@@ -571,7 +571,7 @@ do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
     if (ms->flags & CHFL_CHANOP)
       status[i++] = '@';
     else if (ms->flags & CHFL_VOICE)
-      status[i++] = '%';
+      status[i++] = '+';
 
     status[i] = '\0';
     sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
