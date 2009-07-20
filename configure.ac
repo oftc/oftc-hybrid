@@ -17,7 +17,6 @@ LTDL_INIT([convenience])
 AC_LIBTOOL_DLOPEN
 AM_ENABLE_SHARED
 
-
 # Checks for programs.
 AC_PROG_INSTALL
 AC_GNU_SOURCE
@@ -26,6 +25,7 @@ AC_PROG_CC_C99
     [AC_MSG_ERROR([no C99 compiler found. Aborting.])])
 AC_PROG_RANLIB
 AC_PROG_LIBTOOL
+
 LIBTOOL="$LIBTOOL --silent"
 AM_PROG_LEX
 AC_PROG_YACC
