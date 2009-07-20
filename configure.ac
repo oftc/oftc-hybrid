@@ -1,7 +1,7 @@
 # Inspired by work Copyright (C) 2006 Luca Filipozzi
 # vim: set fdm=marker ts=2 sw=2 et:
 
-AC_PREREQ(2.62)
+AC_PREREQ(2.63)
 AC_INIT([ircd-hybrid], [7.2.4])
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -52,15 +52,15 @@ fi
 
 
 # Checks for library functions.
-AC_CHECK_FUNCS_ONCE(snprintf,  \
-                    vsnprintf, \
-                    lrand48,   \
-                    srand48,   \
-                    mmap,      \
-                    strtok_r,  \
-                    usleep,    \
-                    strlcat,   \
-                    strlcpy,   \
+AC_CHECK_FUNCS_ONCE(snprintf  \
+                    vsnprintf \
+                    lrand48   \
+                    srand48   \
+                    mmap      \
+                    strtok_r  \
+                    usleep    \
+                    strlcat   \
+                    strlcpy   \
                     basename)
 
 # Checks for header files.
@@ -207,7 +207,7 @@ else
   AC_DEFINE([TOPIC_HEAP_SIZE], 1024, [Size of the topic heap.])
   AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
 fi
-AC_DEFINE([HAVE_BASENAME], 1, [Define to 1 if you have the basename() function.])
+
 
 # Argument processing.
 AX_ARG_ENABLE_IOLOOP_MECHANISM
