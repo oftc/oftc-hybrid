@@ -1,7 +1,7 @@
 # Inspired by work Copyright (C) 2006 Luca Filipozzi
 # vim: set fdm=marker ts=2 sw=2 et:
 
-AC_PREREQ(2.59)
+AC_PREREQ(2.63)
 AC_INIT([oftc-hybrid],[1.7.0-alpha1])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([include/setup.h])
@@ -58,15 +58,15 @@ AC_C_BIGENDIAN
 AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for library functions.
-AC_CHECK_FUNCS_ONCE(snprintf,  \
-                    vsnprintf, \
-                    lrand48,   \
-                    srand48,   \
-                    mmap,      \
-                    strtok_r,  \
-                    usleep,    \
-                    strlcat,   \
-                    strlcpy,   \
+AC_CHECK_FUNCS_ONCE(snprintf  \
+                    vsnprintf \
+                    lrand48   \
+                    srand48   \
+                    mmap      \
+                    strtok_r  \
+                    usleep    \
+                    strlcat   \
+                    strlcpy   \
                     basename)
 
 # Checks for header files.
