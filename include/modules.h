@@ -68,6 +68,7 @@ extern void _moddeinit(void);
 
 extern void dynlink_init(void);
 extern int unload_one_module(char *, int);
+extern int modules_valid_suffix(const char *);
 extern int load_one_module(char *, int);
 extern int load_a_module(char *, int, int);
 extern dlink_node *findmodule_byname(const char *);
