@@ -9,21 +9,16 @@ AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src/ircd.c)
 
 
-#ltdl stuff
-AC_LIBLTDL_CONVENIENCE
-AC_SUBST(INCLTDL)
-AC_SUBST(LIBLTDL)
-AC_LIBTOOL_DLOPEN
-AM_DISABLE_STATIC
-AM_ENABLE_SHARED
-
-
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_YACC
 AM_PROG_LEX
 AC_PROG_INSTALL
-AC_PROG_LIBTOOL
+
+
+#ltdl stuff
+LT_INIT([dlopen])
+LTDL_INIT
 LIBTOOL="$LIBTOOL --silent"
 
 
@@ -225,7 +220,6 @@ AC_DEFINE_DIR([SYSCONFDIR],[sysconfdir],[Set to sysconfdir.])
 AC_DEFINE_DIR([LIBDIR],[libdir],[Set to libdir.])
 AC_DEFINE_DIR([DATADIR],[datadir],[Set to datadir.])
 AC_DEFINE_DIR([LOCALSTATEDIR],[localstatedir],[Set to localstatedir.])
-AC_CONFIG_SUBDIRS(libltdl)
 
 AC_CONFIG_FILES(              \
        Makefile               \
