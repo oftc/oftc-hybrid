@@ -55,8 +55,8 @@ am__ircd_SOURCES_DIST = balloc.c channel.c channel_mode.c client.c \
 	csvlib.c dbuf.c dynlink.c event.c fdlist.c fileio.c getopt.c \
 	hash.c hook.c hostmask.c irc_getaddrinfo.c irc_getnameinfo.c \
 	irc_res.c irc_reslib.c irc_string.c ircd.c ircd_signal.c \
-	list.c listener.c m_error.c match.c memory.c modules.c motd.c \
-	numeric.c packet.c parse.c s_conf.c s_bsd_epoll.c s_bsd_poll.c \
+	list.c listener.c match.c memory.c modules.c motd.c numeric.c \
+	packet.c parse.c s_conf.c s_bsd_epoll.c s_bsd_poll.c \
 	s_bsd_sigio.c s_bsd_devpoll.c s_bsd_kqueue.c s_bsd_select.c \
 	s_bsd_win32.c restart.c resv.c s_auth.c s_bsd.c s_gline.c \
 	s_log.c s_misc.c s_serv.c s_user.c send.c sprintf_irc.c \
@@ -72,10 +72,10 @@ am_ircd_OBJECTS = balloc.$(OBJEXT) channel.$(OBJEXT) \
 	irc_getaddrinfo.$(OBJEXT) irc_getnameinfo.$(OBJEXT) \
 	irc_res.$(OBJEXT) irc_reslib.$(OBJEXT) irc_string.$(OBJEXT) \
 	ircd.$(OBJEXT) ircd_signal.$(OBJEXT) list.$(OBJEXT) \
-	listener.$(OBJEXT) m_error.$(OBJEXT) match.$(OBJEXT) \
-	memory.$(OBJEXT) modules.$(OBJEXT) motd.$(OBJEXT) \
-	numeric.$(OBJEXT) packet.$(OBJEXT) parse.$(OBJEXT) \
-	s_conf.$(OBJEXT) s_bsd_epoll.$(OBJEXT) s_bsd_poll.$(OBJEXT) \
+	listener.$(OBJEXT) match.$(OBJEXT) memory.$(OBJEXT) \
+	modules.$(OBJEXT) motd.$(OBJEXT) numeric.$(OBJEXT) \
+	packet.$(OBJEXT) parse.$(OBJEXT) s_conf.$(OBJEXT) \
+	s_bsd_epoll.$(OBJEXT) s_bsd_poll.$(OBJEXT) \
 	s_bsd_sigio.$(OBJEXT) s_bsd_devpoll.$(OBJEXT) \
 	s_bsd_kqueue.$(OBJEXT) s_bsd_select.$(OBJEXT) \
 	s_bsd_win32.$(OBJEXT) restart.$(OBJEXT) resv.$(OBJEXT) \
@@ -265,8 +265,8 @@ ircd_SOURCES = balloc.c channel.c channel_mode.c client.c csvlib.c \
 	dbuf.c dynlink.c event.c fdlist.c fileio.c getopt.c hash.c \
 	hook.c hostmask.c irc_getaddrinfo.c irc_getnameinfo.c \
 	irc_res.c irc_reslib.c irc_string.c ircd.c ircd_signal.c \
-	list.c listener.c m_error.c match.c memory.c modules.c motd.c \
-	numeric.c packet.c parse.c s_conf.c s_bsd_epoll.c s_bsd_poll.c \
+	list.c listener.c match.c memory.c modules.c motd.c numeric.c \
+	packet.c parse.c s_conf.c s_bsd_epoll.c s_bsd_poll.c \
 	s_bsd_sigio.c s_bsd_devpoll.c s_bsd_kqueue.c s_bsd_select.c \
 	s_bsd_win32.c restart.c resv.c s_auth.c s_bsd.c s_gline.c \
 	s_log.c s_misc.c s_serv.c s_user.c send.c sprintf_irc.c \
@@ -390,7 +390,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ircd_signal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/listener.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_error.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/match.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/memory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modules.Po@am__quote@

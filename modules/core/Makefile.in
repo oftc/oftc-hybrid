@@ -74,6 +74,12 @@ m_die_la_OBJECTS = $(am_m_die_la_OBJECTS)
 m_die_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(m_die_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
+m_error_la_LIBADD =
+am_m_error_la_OBJECTS = m_error.lo
+m_error_la_OBJECTS = $(am_m_error_la_OBJECTS)
+m_error_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(m_error_la_LDFLAGS) $(LDFLAGS) -o $@
 m_join_la_LIBADD =
 am_m_join_la_OBJECTS = m_join.lo
 m_join_la_OBJECTS = $(am_m_join_la_OBJECTS)
@@ -153,14 +159,14 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(m_die_la_SOURCES) $(m_join_la_SOURCES) \
-	$(m_kick_la_SOURCES) $(m_kill_la_SOURCES) \
+SOURCES = $(m_die_la_SOURCES) $(m_error_la_SOURCES) \
+	$(m_join_la_SOURCES) $(m_kick_la_SOURCES) $(m_kill_la_SOURCES) \
 	$(m_message_la_SOURCES) $(m_mode_la_SOURCES) \
 	$(m_nick_la_SOURCES) $(m_part_la_SOURCES) $(m_quit_la_SOURCES) \
 	$(m_server_la_SOURCES) $(m_sjoin_la_SOURCES) \
 	$(m_squit_la_SOURCES)
-DIST_SOURCES = $(m_die_la_SOURCES) $(m_join_la_SOURCES) \
-	$(m_kick_la_SOURCES) $(m_kill_la_SOURCES) \
+DIST_SOURCES = $(m_die_la_SOURCES) $(m_error_la_SOURCES) \
+	$(m_join_la_SOURCES) $(m_kick_la_SOURCES) $(m_kill_la_SOURCES) \
 	$(m_message_la_SOURCES) $(m_mode_la_SOURCES) \
 	$(m_nick_la_SOURCES) $(m_part_la_SOURCES) $(m_quit_la_SOURCES) \
 	$(m_server_la_SOURCES) $(m_sjoin_la_SOURCES) \
@@ -311,6 +317,7 @@ MODULE_FLAGS = -module -avoid-version
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
 modulesdir = $(pkglibdir)/modules
 m_die_la_LDFLAGS = $(MODULE_FLAGS)
+m_error_la_LDFLAGS = $(MODULE_FLAGS)
 m_join_la_LDFLAGS = $(MODULE_FLAGS)
 m_kick_la_LDFLAGS = $(MODULE_FLAGS)
 m_kill_la_LDFLAGS = $(MODULE_FLAGS)
@@ -323,6 +330,7 @@ m_server_la_LDFLAGS = $(MODULE_FLAGS)
 m_sjoin_la_LDFLAGS = $(MODULE_FLAGS)
 m_squit_la_LDFLAGS = $(MODULE_FLAGS)
 m_die_la_SOURCES = m_die.c
+m_error_la_SOURCES = m_error.c
 m_join_la_SOURCES = m_join.c
 m_kick_la_SOURCES = m_kick.c
 m_kill_la_SOURCES = m_kill.c
@@ -334,18 +342,19 @@ m_quit_la_SOURCES = m_quit.c
 m_server_la_SOURCES = m_server.c
 m_sjoin_la_SOURCES = m_sjoin.c
 m_squit_la_SOURCES = m_squit.c
-modules_LTLIBRARIES = m_die.la    \
-                     m_join.la    \
-                     m_kick.la    \
-                     m_kill.la    \
-                     m_message.la \
-                     m_mode.la    \
-                     m_nick.la    \
-                     m_part.la    \
-                     m_quit.la    \
-                     m_server.la  \
-                     m_sjoin.la   \
-                     m_squit.la
+modules_LTLIBRARIES = m_die.la     \
+                      m_error.la   \
+                      m_join.la    \
+                      m_kick.la    \
+                      m_kill.la    \
+                      m_message.la \
+                      m_mode.la    \
+                      m_nick.la    \
+                      m_part.la    \
+                      m_quit.la    \
+                      m_server.la  \
+                      m_sjoin.la   \
+                      m_squit.la
 
 all: all-am
 
@@ -414,6 +423,8 @@ clean-modulesLTLIBRARIES:
 	done
 m_die.la: $(m_die_la_OBJECTS) $(m_die_la_DEPENDENCIES) 
 	$(m_die_la_LINK) -rpath $(modulesdir) $(m_die_la_OBJECTS) $(m_die_la_LIBADD) $(LIBS)
+m_error.la: $(m_error_la_OBJECTS) $(m_error_la_DEPENDENCIES) 
+	$(m_error_la_LINK) -rpath $(modulesdir) $(m_error_la_OBJECTS) $(m_error_la_LIBADD) $(LIBS)
 m_join.la: $(m_join_la_OBJECTS) $(m_join_la_DEPENDENCIES) 
 	$(m_join_la_LINK) -rpath $(modulesdir) $(m_join_la_OBJECTS) $(m_join_la_LIBADD) $(LIBS)
 m_kick.la: $(m_kick_la_OBJECTS) $(m_kick_la_DEPENDENCIES) 
@@ -444,6 +455,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_die.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_error.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_join.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_kick.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_kill.Plo@am__quote@

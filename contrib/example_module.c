@@ -99,7 +99,7 @@ struct Message test_msgtab = {
   * m_unregistered: prevent the client using this if unregistered
   * m_not_oper:     tell the client it requires being an operator
   * m_ignore:       ignore the command when it comes from certain types
-  * m_error:        give an error when the command comes from certain types
+  * rfc1459_command_send_error: give an error when the command comes from certain types
   */
   { mr_test, m_test, ms_test, m_ignore, mo_test, m_ignore }
 

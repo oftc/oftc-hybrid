@@ -69,7 +69,7 @@ struct Message kline_msgtab = {
 
 struct Message dline_msgtab = {
   "DLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, m_error, m_ignore, mo_dline, m_ignore}
+   {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_dline, m_ignore}
 };
 
 struct Message unkline_msgtab = {
@@ -79,7 +79,7 @@ struct Message unkline_msgtab = {
 
 struct Message undline_msgtab = {
   "UNDLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, m_error, m_ignore, mo_undline, m_ignore}
+   {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_undline, m_ignore}
 };
 
 #ifndef STATIC_MODULES

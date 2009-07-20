@@ -32,7 +32,6 @@ ircd_SOURCES = balloc.c          \
                ircd_signal.c     \
                list.c            \
                listener.c        \
-               m_error.c         \
                match.c           \
                memory.c          \
                modules.c         \

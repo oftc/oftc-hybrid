@@ -49,7 +49,7 @@ static void mo_set(struct Client *, struct Client *, int, char *[]);
 
 struct Message set_msgtab = {
   "SET", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_error, m_ignore, mo_set, m_ignore} 
+  {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_set, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -126,7 +126,7 @@ static struct SetStruct set_cmd_table[] =
   { "JFLOODCOUNT",	quote_jfloodcount,	0,	1 },
   { "REJECTTIME",	quote_rejecttime,	0,	1 },
   /* -------------------------------------------------------- */
-  { NULL,		NULL,		0,	0 }
+  { NULL,               NULL,                   0,      0 }
 };
 
 /*

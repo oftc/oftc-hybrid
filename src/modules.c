@@ -38,22 +38,13 @@
 #include "memory.h"
 #include "list.h"
 
-/* -TimeMr14C:
- * I have moved the dl* function definitions and
- * the two functions (load_a_module / unload_a_module) to the
- * file dynlink.c 
- * And also made the necessary changes to those functions
- * to comply with shl_load and friends.
- * In this file, to keep consistency with the makefile, 
- * I added the ability to load *.sl files, too.
- * 27/02/2002
- */
 
 dlink_list mod_list = { NULL, NULL, 0 };
 
 static const char *core_module_table[] =
 {
   "m_die.la",
+  "m_error.la",
   "m_join.la",
   "m_kick.la",
   "m_kill.la",
@@ -122,7 +113,6 @@ modules_init(void)
   mod_add_cmd(&modreload_msgtab);
   mod_add_cmd(&modlist_msgtab);
   mod_add_cmd(&modrestart_msgtab);
-  mod_add_cmd(&error_msgtab);
 }
 
 /* mod_find_path()
