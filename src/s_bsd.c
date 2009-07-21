@@ -65,7 +65,6 @@ static PF comm_connect_timeout;
 static void comm_connect_dns_callback(void *vptr, struct DNSReply *reply);
 static PF comm_connect_tryconnect;
 
-extern void init_netio(void);
 
 /* check_can_use_v6()
  *  Check if the system can open AF_INET6 sockets

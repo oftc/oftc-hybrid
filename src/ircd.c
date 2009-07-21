@@ -123,6 +123,7 @@ unsigned int split_servers;
 int rehashed_klines = 0;
 
 
+#ifndef _WIN32
 /*
  * print_startup - print startup information
  */
