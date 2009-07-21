@@ -80,7 +80,7 @@ static struct CryptLinkStruct cryptlink_cmd_table[] =
   { "AUTH",	cryptlink_auth,	},
   { "SERV",	cryptlink_serv,	},
   /* End of table */
-  { (char *)0,	(void (*)())0,	}
+  { NULL,	NULL,	}
 };
 
 #ifndef STATIC_MODULES

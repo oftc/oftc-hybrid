@@ -682,23 +682,24 @@ flood_attack_client(int p_or_n, struct Client *source_p,
         CurrentTime - target_p->localClient->first_received_message_time;
       target_p->localClient->received_number_of_privmsgs -= delta;
       target_p->localClient->first_received_message_time = CurrentTime;
+
       if (target_p->localClient->received_number_of_privmsgs <= 0)
       {
         target_p->localClient->received_number_of_privmsgs = 0;
-        target_p->localClient->flood_noticed = 0;
+        ClearMsgFloodNoticed(target_p);
       }
     }
 
     if ((target_p->localClient->received_number_of_privmsgs >=
-         GlobalSetOptions.floodcount) || target_p->localClient->flood_noticed)
+         GlobalSetOptions.floodcount) || IsMsgFloodNoticed(target_p))
     {
-      if (target_p->localClient->flood_noticed == 0)
+      if (!IsMsgFloodNoticed(target_p))
       {
         sendto_realops_flags(UMODE_BOTS, L_ALL,
                              "Possible Flooder %s on %s target: %s",
                              get_client_name(source_p, HIDE_IP),
                              source_p->servptr->name, target_p->name);
-        target_p->localClient->flood_noticed = 1;
+        SetMsgFloodNoticed(target_p);
         /* add a bit of penalty */
         target_p->localClient->received_number_of_privmsgs += 2;
       }

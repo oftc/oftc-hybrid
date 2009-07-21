@@ -180,7 +180,7 @@ static const struct StatsStruct
   { 'z',	stats_memory,		1,	0,	},
   { 'Z',	stats_ziplinks,		1,	0,	},
   { '?',	stats_servlinks,	0,	0,	},
-  { '\0',       (void(*)())0,           0,	0,	}
+  { '\0',       NULL,		        0,	0,	}
 };
 
 const char *from, *to;
@@ -379,52 +379,52 @@ count_memory(struct Client *source_p)
   const dlink_node *gptr = NULL;
   const dlink_node *dlink = NULL;
 
-  int local_client_conf_count = 0;      /* local client conf links */
-  int users_counted = 0;                /* user structs */
+  unsigned int local_client_conf_count = 0;      /* local client conf links */
+  unsigned int users_counted = 0;                /* user structs */
 
-  int channel_users = 0; /* XXX */
-  int channel_invites = 0;
-  int channel_bans = 0;
-  int channel_except = 0;
-  int channel_invex = 0;
+  unsigned int channel_users = 0; /* XXX */
+  unsigned int channel_invites = 0;
+  unsigned int channel_bans = 0;
+  unsigned int channel_except = 0;
+  unsigned int channel_invex = 0;
 
-  int wwu = 0;                  /* whowas users */
-  int class_count = 0;          /* classes */
-  int aways_counted = 0;
-  int number_ips_stored;        /* number of ip addresses hashed */
+  unsigned int wwu = 0;                  /* whowas users */
+  unsigned int class_count = 0;          /* classes */
+  unsigned int aways_counted = 0;
+  unsigned int number_ips_stored;        /* number of ip addresses hashed */
 
-  unsigned long channel_memory = 0;
-  size_t channel_ban_memory = 0;
-  size_t channel_except_memory = 0;
-  size_t channel_invex_memory = 0;
+  uint64_t channel_memory = 0;
+  uint64_t channel_ban_memory = 0;
+  uint64_t channel_except_memory = 0;
+  uint64_t channel_invex_memory = 0;
 
   unsigned int safelist_count = 0;
-  size_t safelist_memory = 0;
+  uint64_t safelist_memory = 0;
 
-  unsigned long away_memory = 0;       /* memory used by aways           */
-  unsigned long wwm = 0;               /* whowas array memory used       */
-  unsigned long conf_memory = 0;       /* memory used by conf lines      */
-  unsigned long mem_ips_stored;        /* memory used by ip address hash */
+  uint64_t away_memory = 0;       /* memory used by aways           */
+  uint64_t wwm = 0;               /* whowas array memory used       */
+  uint64_t conf_memory = 0;       /* memory used by conf lines      */
+  uint64_t mem_ips_stored;        /* memory used by ip address hash */
 
-  unsigned long client_hash_table_size = 0;
-  unsigned long channel_hash_table_size = 0;
-  unsigned long resv_hash_table_size = 0;
-  unsigned long id_hash_table_size = 0;
-  unsigned long total_channel_memory = 0;
-  unsigned long totww = 0;
+  uint64_t client_hash_table_size = 0;
+  uint64_t channel_hash_table_size = 0;
+  uint64_t resv_hash_table_size = 0;
+  uint64_t id_hash_table_size = 0;
+  uint64_t total_channel_memory = 0;
+  uint64_t totww = 0;
 
   unsigned int local_client_count  = 0;
   unsigned int remote_client_count = 0;
 
-  unsigned int local_client_memory_used  = 0;
-  unsigned int remote_client_memory_used = 0;
+  uint64_t local_client_memory_used  = 0;
+  uint64_t remote_client_memory_used = 0;
 
-  unsigned long total_memory = 0;
+  uint64_t total_memory = 0;
   unsigned int topic_count = 0;
 
   unsigned int wlh = 0;   /* watchlist headers     */
   unsigned int wle = 0;   /* watchlist entries     */
-  size_t wlhm = 0; /* watchlist memory used */
+  uint64_t wlhm = 0; /* watchlist memory used */
 
   count_whowas_memory(&wwu, &wwm);
 
@@ -458,8 +458,8 @@ count_memory(struct Client *source_p)
                    sizeof(struct Channel);
   DLINK_FOREACH(gptr, global_channel_list.head)
   {
-    struct Ban *actualBan;
-    struct Channel *chptr = gptr->data;
+    const struct Ban *actualBan;
+    const struct Channel *chptr = gptr->data;
 
     channel_users   += dlink_list_length(&chptr->members);
     channel_invites += dlink_list_length(&chptr->invites);
@@ -515,7 +515,7 @@ count_memory(struct Client *source_p)
     safelist_memory = safelist_count * sizeof(struct ListTask);
     DLINK_FOREACH(gptr, listing_client_list.head)
     {
-      struct Client *acptr = gptr->data;
+      const struct Client *acptr = gptr->data;
 
       DLINK_FOREACH(dlink, acptr->localClient->list_task->show_mask.head)
         safelist_memory += strlen(dlink->data);
@@ -550,14 +550,14 @@ count_memory(struct Client *source_p)
              me.name, RPL_STATSDEBUG, source_p->name, users_counted,
              (users_counted * sizeof(struct Client)));
 
-  sendto_one(source_p, ":%s %d %s z :User aways %u(%d)",
+  sendto_one(source_p, ":%s %d %s z :User aways %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
-             aways_counted, (int)away_memory);
+             aways_counted, away_memory);
 
-  sendto_one(source_p, ":%s %d %s z :Attached confs %u(%u)",
+  sendto_one(source_p, ":%s %d %s z :Attached confs %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              local_client_conf_count,
-             (unsigned long)(local_client_conf_count * sizeof(dlink_node)));
+             (unsigned long long)(local_client_conf_count * sizeof(dlink_node)));
 
   /* XXX  ConfigItemList fix */
 #if 0
@@ -573,49 +573,49 @@ count_memory(struct Client *source_p)
              dlink_list_length(&nresv_items),
              dlink_list_length(&nresv_items) * sizeof(struct MatchItem));
 
-  sendto_one(source_p, ":%s %d %s z :Classes %u(%lu)",
+  sendto_one(source_p, ":%s %d %s z :Classes %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
-             class_count, (unsigned long)(class_count * sizeof(struct ClassItem)));
+             class_count, (unsigned long long)(class_count * sizeof(struct ClassItem)));
 
-  sendto_one(source_p, ":%s %d %s z :Channels %lu(%lu) Topics %u(%d)",
+  sendto_one(source_p, ":%s %d %s z :Channels %lu(%llu) Topics %u(%d)",
              me.name, RPL_STATSDEBUG, source_p->name,
              dlink_list_length(&global_channel_list),
              channel_memory, topic_count, topic_count *
              (TOPICLEN + 1 + USERHOST_REPLYLEN));
 
-  sendto_one(source_p, ":%s %d %s z :Bans %u(%u)",
+  sendto_one(source_p, ":%s %d %s z :Bans %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              channel_bans, channel_ban_memory);
 
-  sendto_one(source_p, ":%s %d %s z :Exceptions %u(%u)",
+  sendto_one(source_p, ":%s %d %s z :Exceptions %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              channel_except, channel_except_memory);
 
-  sendto_one(source_p, ":%s %d %s z :Invex %u(%u)",
+  sendto_one(source_p, ":%s %d %s z :Invex %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              channel_invex, channel_invex_memory);
 
-  sendto_one(source_p, ":%s %d %s z :Channel members %u(%lu) invites %u(%lu)",
+  sendto_one(source_p, ":%s %d %s z :Channel members %u(%llu) invites %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name, channel_users,
-             (unsigned long)(channel_users * sizeof(struct Membership)),
-             channel_invites, (unsigned long)channel_invites *
+             (unsigned long long)(channel_users * sizeof(struct Membership)),
+             channel_invites, (unsigned long long)channel_invites *
              sizeof(dlink_node) * 2);
 
   total_channel_memory = channel_memory + channel_ban_memory +
                          channel_users * sizeof(struct Membership) +
                          (channel_invites * sizeof(dlink_node)*2);
 
-  sendto_one(source_p, ":%s %d %s z :Safelist %u(%u)",
+  sendto_one(source_p, ":%s %d %s z :Safelist %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              safelist_count, safelist_memory);
 
-  sendto_one(source_p, ":%s %d %s z :Whowas users %u(%lu)",
+  sendto_one(source_p, ":%s %d %s z :Whowas users %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
-             wwu, (unsigned long)(wwu * sizeof(struct Client)));
+             wwu, (unsigned long long)(wwu * sizeof(struct Client)));
 
-  sendto_one(source_p, ":%s %d %s z :Whowas array %u(%d)",
+  sendto_one(source_p, ":%s %d %s z :Whowas array %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
-             NICKNAMEHISTORYLENGTH, (int)wwm);
+             NICKNAMEHISTORYLENGTH, wwm);
 
   totww = wwu * sizeof(struct Client) + wwm;
 /****
@@ -632,9 +632,9 @@ count_memory(struct Client *source_p)
              resv_hash_table_size, U_MAX, id_hash_table_size);
 ****/
   count_ip_hash(&number_ips_stored,&mem_ips_stored);
-  sendto_one(source_p, ":%s %d %s z :iphash %u(%d)",
+  sendto_one(source_p, ":%s %d %s z :iphash %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
-             number_ips_stored, (int)mem_ips_stored);
+             number_ips_stored, mem_ips_stored);
 
   total_memory = totww + total_channel_memory + conf_memory + class_count *
                  sizeof(struct ClassItem);
@@ -643,28 +643,28 @@ count_memory(struct Client *source_p)
   total_memory += resv_hash_table_size;
   total_memory += id_hash_table_size;
 
-  sendto_one(source_p, ":%s %d %s z :Total: whowas %d channel %d conf %d",
-             me.name, RPL_STATSDEBUG, source_p->name, (int)totww,
-            (int)total_channel_memory, (int)conf_memory);
+  sendto_one(source_p, ":%s %d %s z :Total: whowas %llu channel %llu conf %llu",
+             me.name, RPL_STATSDEBUG, source_p->name, totww,
+             total_channel_memory, conf_memory);
 
   local_client_memory_used = local_client_count*(sizeof(struct Client) + sizeof(struct LocalUser));
   total_memory += local_client_memory_used;
-  sendto_one(source_p, ":%s %d %s z :Local client Memory in use: %d(%d)",
+  sendto_one(source_p, ":%s %d %s z :Local client Memory in use: %d(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name, local_client_count,
              local_client_memory_used);
 
   remote_client_memory_used = remote_client_count * sizeof(struct Client);
   total_memory += remote_client_memory_used;
-  sendto_one(source_p, ":%s %d %s z :Remote client Memory in use: %d(%d)",
+  sendto_one(source_p, ":%s %d %s z :Remote client Memory in use: %d(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name, remote_client_count,
              remote_client_memory_used);
 
   block_heap_report_stats(source_p);
 
   sendto_one(source_p,
-             ":%s %d %s z :TOTAL: %d Available:  Current max RSS: %lu",
+             ":%s %d %s z :TOTAL: %llu",
              me.name, RPL_STATSDEBUG, source_p->name,
-             (int)total_memory, get_maxrss());
+             total_memory);
 }
 
 static void
@@ -1262,13 +1262,12 @@ stats_memory(struct Client *source_p)
 static void
 stats_ziplinks(struct Client *source_p)
 {
-  dlink_node *ptr;
-  struct Client *target_p;
+  dlink_node *ptr = NULL;
   unsigned int sent_data = 0;
 
   DLINK_FOREACH(ptr, serv_list.head)
   {
-    target_p = ptr->data;
+    const struct Client *target_p = ptr->data;
 
     if (IsCapable(target_p, CAP_ZIP))
     {
@@ -1277,11 +1276,12 @@ stats_ziplinks(struct Client *source_p)
        * -jmallett, 04/27/2002
        */
       struct ZipStats zipstats;
-      memcpy(&zipstats, &target_p->localClient->zipstats, sizeof (struct ZipStats));
+
+      memcpy(&zipstats, &target_p->localClient->zipstats, sizeof(zipstats));
 
       sendto_one(source_p, ":%s %d %s Z :ZipLinks stats for %s send[%.2f%% "
-                 "compression (%lu bytes data/%lu bytes wire)] recv[%.2f%% "
-                 "compression (%lu bytes data/%lu bytes wire)]",
+                 "compression (%llu bytes data/%llu bytes wire)] recv[%.2f%% "
+                 "compression (%llu bytes data/%llu bytes wire)]",
                  from, RPL_STATSDEBUG, to, target_p->name,
                  zipstats.out_ratio, zipstats.out, zipstats.out_wire,
                  zipstats.in_ratio,  zipstats.in,  zipstats.in_wire);

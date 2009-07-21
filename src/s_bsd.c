@@ -357,7 +357,6 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 #endif
     strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
 
-  new_client->connect_id = ++connect_id;
   new_client->localClient->listener = listener;
   ++listener->ref_count;
 

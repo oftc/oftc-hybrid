@@ -53,7 +53,7 @@ struct Callback *iosendctrl_cb = NULL;
 static void send_message(struct Client *, char *, int);
 static void send_message_remote(struct Client *, struct Client *, char *, int);
 
-static unsigned long current_serial = 0L;
+static unsigned int current_serial = 0;
 
 /* send_format()
  *
@@ -898,7 +898,7 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap,
   vsnprintf(buffer, sizeof(buffer), pattern, args);
   va_end(args);
 
-  current_serial++;
+  ++current_serial;
 
   DLINK_FOREACH(ptr, global_serv_list.head)
   {

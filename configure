@@ -17811,7 +17811,7 @@ else
 fi
 
   if test "$warnings" = "yes" ; then
-    CFLAGS="-Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wno-unused"
+    CFLAGS="-Wall -Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wno-unused"
   fi
 
 
