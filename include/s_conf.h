@@ -136,7 +136,7 @@ struct AccessItem
 
 struct ClassItem
 {
-  unsigned max_sendq;
+  unsigned int max_sendq;
   int con_freq;
   int ping_freq;
   int ping_warning;
@@ -336,16 +336,16 @@ struct config_file_entry
   MessageFile linksfile;
 
   unsigned char compression_level;
-  int max_watch;
   int gline_min_cidr;
   int gline_min_cidr6;
   int dot_in_ip6_addr;
   int dots_in_ident;
   int failed_oper_notice;
   int anti_spam_exit_message_time;
-  int max_accept;
+  unsigned int max_accept;
+  unsigned int max_watch;
   int max_nick_time;
-  int max_nick_changes;
+  unsigned int max_nick_changes;
   int ts_max_delta;
   int ts_warn_delta;
   int anti_nick_flood;
