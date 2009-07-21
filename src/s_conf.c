@@ -1268,7 +1268,7 @@ hash_ip(struct irc_ssaddr *addr)
  * used in the hash.
  */
 void
-count_ip_hash(int *number_ips_stored, unsigned long *mem_ips_stored)
+count_ip_hash(unsigned int *number_ips_stored, uint64_t *mem_ips_stored)
 {
   struct ip_entry *ptr;
   int i;
@@ -3079,10 +3079,10 @@ init_class(void)
  * output       - sendq for this client as found from its class
  * side effects - NONE
  */
-unsigned long
+unsigned int
 get_sendq(struct Client *client_p)
 {
-  unsigned long sendq = DEFAULT_SENDQ;
+  unsigned int sendq = DEFAULT_SENDQ;
   dlink_node *ptr;
   struct ConfItem *conf;
   struct ConfItem *class_conf;

@@ -137,7 +137,7 @@ struct AccessItem
 
 struct ClassItem
 {
-  long max_sendq;
+  unsigned max_sendq;
   int con_freq;
   int ping_freq;
   int ping_warning;
@@ -506,15 +506,15 @@ extern struct admin_info AdminInfo;        /* defined in ircd.c */
 extern int valid_wild_card(struct Client *, int, int, ...);
 /* End GLOBAL section */
 
-extern unsigned long get_sendq(struct Client *);
+extern unsigned int get_sendq(struct Client *);
 extern const char *get_client_class(struct Client *);
 extern int get_client_ping(struct Client *, int *);
 extern void check_class(void);
 extern void init_class(void);
 extern struct ConfItem *find_class(const char *);
 extern void init_ip_hash_table(void);
-extern void count_ip_hash(int *, unsigned long *);
 extern void dump_ip_hash_table(struct Client *);
+extern void count_ip_hash(unsigned int *, uint64_t *);
 extern void remove_one_ip(struct irc_ssaddr *);
 extern struct ConfItem *make_conf_item(ConfType type);
 extern void free_access_item(struct AccessItem *);
@@ -566,8 +566,6 @@ extern int parse_aline(const char *, struct Client *, int, char **,
 		       int, char **, char **, time_t *, char **, char **);
 extern int valid_comment(struct Client *, char *, int);
 
-/* XXX */
-extern int yylex(void);
 
 #define TK_SECONDS 0
 #define TK_MINUTES 1
@@ -588,5 +586,8 @@ extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
 extern struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
 extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
 extern void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
+
+/* XXX **/
+extern int yylex(void);
 
 #endif /* INCLUDED_s_conf_h */

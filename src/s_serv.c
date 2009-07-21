@@ -127,7 +127,7 @@ slink_zipstats(unsigned int rpl, unsigned int len, unsigned char *data,
                struct Client *server_p)
 {
   struct ZipStats zipstats;
-  unsigned long in = 0, in_wire = 0, out = 0, out_wire = 0;
+  uint64_t in = 0, in_wire = 0, out = 0, out_wire = 0;
   int i = 0;
 
   assert(rpl == SLINKRPL_ZIPSTATS);
@@ -187,18 +187,17 @@ slink_zipstats(unsigned int rpl, unsigned int len, unsigned char *data,
   else
     zipstats.out_ratio = 0;
 
-  memcpy(&server_p->localClient->zipstats, &zipstats, sizeof (struct ZipStats));
+  memcpy(&server_p->localClient->zipstats, &zipstats, sizeof(struct ZipStats));
 }
 
 void
 collect_zipstats(void *unused)
 {
-  dlink_node *ptr;
-  struct Client *target_p;
+  dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, serv_list.head)
   {
-    target_p = ptr->data;
+    struct Client *target_p = ptr->data;
 
     if (IsCapable(target_p, CAP_ZIP))
     {

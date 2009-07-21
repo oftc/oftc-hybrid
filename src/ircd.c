@@ -84,7 +84,6 @@ struct ServerStatistics ServerStats;
 struct timeval SystemTime;
 struct Client me;             /* That's me */
 struct LocalUser meLocalUser; /* That's also part of me */
-unsigned long connect_id = 0; /* unique connect ID */
 
 static unsigned long initialVMTop = 0;   /* top of virtual memory at init */
 const char *logFileName = LPATH;
@@ -123,27 +122,6 @@ unsigned int split_servers;
 
 int rehashed_klines = 0;
 
-/*
- * get_vm_top - get the operating systems notion of the resident set size
- */
-#ifndef _WIN32
-static unsigned long
-get_vm_top(void)
-{
-  /*
-   * NOTE: sbrk is not part of the ANSI C library or the POSIX.1 standard
-   * however it seems that everyone defines it. Calling sbrk with a 0
-   * argument will return a pointer to the top of the process virtual
-   * memory without changing the process size, so this call should be
-   * reasonably safe (sbrk returns the new value for the top of memory).
-   * This code relies on the notion that the address returned will be an 
-   * offset from 0 (NULL), so the result of sbrk is cast to a size_t and 
-   * returned. We really shouldn't be using it here but...
-   */
-
-  void *vptr = sbrk(0);
-  return((unsigned long)vptr);
-}
 
 /*
  * print_startup - print startup information
@@ -176,19 +154,6 @@ make_daemon(void)
   setsid();
 }
 #endif
-
-/*
- * get_maxrss - get the operating systems notion of the resident set size
- */
-unsigned long
-get_maxrss(void)
-{
-#ifdef _WIN32
-  return (0);   /* FIXME */
-#else
-  return (get_vm_top() - initialVMTop);
-#endif
-}
 
 static int printVersion = 0;
 
@@ -560,9 +525,6 @@ main(int argc, char *argv[])
 
   /* Setup corefile size immediately after boot -kre */
   setup_corefile();
-
-  /* set initialVMTop before we allocate any memory */
-  initialVMTop = get_vm_top();
 #endif
 
   /* save server boot time right away, so getrusage works correctly */

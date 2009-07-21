@@ -44,7 +44,8 @@ struct Message
 			     * to be used only on the average of once per 2
 			     * seconds -SRB
 			     */
-  unsigned long bytes;  /* bytes received for this message */
+  uint64_t bytes;  /* bytes received for this message */
+
   /*
    * client_p = Connected client ptr
    * source_p = Source client ptr

@@ -83,7 +83,7 @@ watch_init(void)
 /*! \brief Counts up memory used by watch list headers
  */
 void
-watch_count_memory(unsigned int *const count, size_t *const memory)
+watch_count_memory(unsigned int *const count, uint64_t *const memory)
 {
   unsigned int idx;
 
