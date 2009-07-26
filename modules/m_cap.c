@@ -64,7 +64,7 @@ _moddeinit(void)
   mod_del_cmd(&cap_msgtab);
 }
 
-const char *_version = "$Revision: 33 $";
+const char *_version = "$Revision$";
 #endif
 
 #define CAPFL_HIDDEN    0x0001  /**< Do not advertize this capability */

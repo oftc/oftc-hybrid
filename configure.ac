@@ -1,6 +1,8 @@
 # Inspired by work Copyright (C) 2006 Luca Filipozzi
 # vim: set fdm=marker ts=2 sw=2 et:
 
+AC_REVISION([$Id$])
+
 AC_PREREQ(2.63)
 AC_INIT([ircd-hybrid], [7.2.4])
 AM_INIT_AUTOMAKE
