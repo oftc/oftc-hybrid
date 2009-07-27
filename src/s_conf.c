@@ -1822,8 +1822,9 @@ set_default_conf(void)
   ServerInfo.specific_ipv6_vhost = 0;
 
   ServerInfo.max_clients = MAXCLIENTS_MAX;
-  /* Don't reset hub, as that will break lazylinks */
-  /* ServerInfo.hub = NO; */
+
+  ServerInfo.hub = 0;
+  delete_capability("HUB");
   ServerInfo.dns_host.sin_addr.s_addr = 0;
   ServerInfo.dns_host.sin_port = 0;
   AdminInfo.name = NULL;
