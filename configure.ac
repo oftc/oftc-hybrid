@@ -5,7 +5,7 @@ AC_REVISION([$Id$])
 
 AC_PREREQ(2.63)
 AC_INIT([ircd-hybrid], [7.2.4])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(1.11)
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src/ircd.c)
@@ -92,10 +92,10 @@ AM_CONDITIONAL([HAVE_CRYPT], [test "$ac_cv_search_crypt" = "none required"])
 
 
 AC_ARG_WITH(zlib-path,
-AC_HELP_STRING([--with-zlib-path=DIR], [Path to libz.so for ziplinks support.]),
+AS_HELP_STRING([--with-zlib-path=DIR], [Path to libz.so for ziplinks support.]),
 [LDFLAGS="-L$withval $LDFLAGS"],)
 
-AC_ARG_ENABLE(zlib, AC_HELP_STRING([--disable-zlib],[Disable ziplinks support]),
+AC_ARG_ENABLE(zlib, AS_HELP_STRING([--disable-zlib],[Disable ziplinks support]),
 [zlib=$enableval],[zlib=yes])
 
 if test "$zlib" = yes; then
@@ -174,15 +174,16 @@ fi
 AM_CONDITIONAL(ENABLE_SSL, [test "$cf_enable_openssl" = yes])
 
 
-AC_ARG_ENABLE(assert, AC_HELP_STRING([--enable-assert], [Enable assert() statements]),
+AC_ARG_ENABLE(assert, AS_HELP_STRING([--enable-assert], 
+                                     [Enable assert() statements]),
   [assert=$enableval], [assert=no])
 if test "$assert" = no; then
   AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.])
 fi
 
 
-AC_ARG_ENABLE(small-net,
-AC_HELP_STRING([--enable-small-net],[Enable small network support.]),
+AC_ARG_ENABLE(small-net, AS_HELP_STRING([--enable-small-net],
+                                        [Enable small network support.]),
 [small_net=$enableval], [small_net=no])
 
 if test "$small_net" = yes; then
