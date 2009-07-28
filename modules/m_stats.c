@@ -806,10 +806,10 @@ static void
 stats_pending_glines(struct Client *source_p)
 {
 #ifdef GLINE_VOTING
-  dlink_node *pending_node;
-  struct gline_pending *glp_ptr;
-  char timebuffer[MAX_DATE_STRING];
-  struct tm *tmptr;
+  const dlink_node *dn_ptr = NULL;
+  const struct gp_ptr *glp_ptr = NULL;
+  char timebuffer[MAX_DATE_STRING] = { '\0' };
+  struct tm *tmptr = NULL;
 
   if (!ConfigFileEntry.glines)
   {
@@ -818,37 +818,71 @@ stats_pending_glines(struct Client *source_p)
     return;
   }
 
-  if (dlink_list_length(&pending_glines) > 0)
+  if (dlink_list_length(&pending_glines[GLINE_PENDING_ADD_TYPE]) > 0)
     sendto_one(source_p, ":%s NOTICE %s :Pending G-lines",
                from, to);
 
-  DLINK_FOREACH(pending_node, pending_glines.head)
+  DLINK_FOREACH(dn_ptr, pending_glines[GLINE_PENDING_ADD_TYPE].head)
   {
-    glp_ptr = pending_node->data;
-    tmptr   = localtime(&glp_ptr->time_request1);
+    glp_ptr = dn_ptr->data;
+    tmptr   = localtime(&glp_ptr->vote_1.time_request);
     strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
 
     sendto_one(source_p,
                ":%s NOTICE %s :1) %s!%s@%s on %s requested gline at %s for %s@%s [%s]",
-               from, to, glp_ptr->oper_nick1,
-               glp_ptr->oper_user1, glp_ptr->oper_host1,
-               glp_ptr->oper_server1, timebuffer,
-               glp_ptr->user, glp_ptr->host, glp_ptr->reason1);
+               from, to, glp_ptr->vote_1.oper_nick,
+               glp_ptr->vote_1.oper_user, glp_ptr->vote_1.oper_host,
+               glp_ptr->vote_1.oper_server, timebuffer,
+               glp_ptr->user, glp_ptr->host, glp_ptr->vote_1.reason);
 
     if (glp_ptr->oper_nick2[0] != '\0')
     {
-      tmptr = localtime(&glp_ptr->time_request2);
+      tmptr = localtime(&glp_ptr->vote_2.time_request);
       strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
       sendto_one(source_p,
       ":%s NOTICE %s :2) %s!%s@%s on %s requested gline at %s for %s@%s [%s]",
-                 from, to, glp_ptr->oper_nick2,
-                 glp_ptr->oper_user2, glp_ptr->oper_host2,
-                 glp_ptr->oper_server2, timebuffer,
-                 glp_ptr->user, glp_ptr->host, glp_ptr->reason2);
+               from, to, glp_ptr->vote_2.oper_nick,
+               glp_ptr->vote_2.oper_user, glp_ptr->vote_2.oper_host,
+               glp_ptr->vote_2.oper_server, timebuffer,
+               glp_ptr->user, glp_ptr->host, glp_ptr->vote_2.reason);
     }
   }
 
   sendto_one(source_p, ":%s NOTICE %s :End of Pending G-lines",
+             from, to);
+
+  if (dlink_list_length(&pending_glines[GLINE_PENDING_DEL_TYPE]) > 0)
+    sendto_one(source_p, ":%s NOTICE %s :Pending UNG-lines",
+               from, to);
+
+  DLINK_FOREACH(dn_ptr, pending_glines[GLINE_PENDING_DEL_TYPE].head)
+  {
+    glp_ptr = dn_ptr->data;
+    tmptr   = localtime(&glp_ptr->vote_1.time_request);
+    strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
+
+    sendto_one(source_p,
+               ":%s NOTICE %s :1) %s!%s@%s on %s requested ungline at %s for %s@%s [%s]",
+               from, to, glp_ptr->vote_1.oper_nick,
+               glp_ptr->vote_1.oper_user, glp_ptr->vote_1.oper_host,
+               glp_ptr->vote_1.oper_server, timebuffer,
+               glp_ptr->user, glp_ptr->host, glp_ptr->vote_1.reason);
+
+    if (glp_ptr->oper_nick2[0] != '\0')
+    {
+      tmptr = localtime(&glp_ptr->vote_2.time_request);
+      strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
+      sendto_one(source_p,
+      ":%s NOTICE %s :2) %s!%s@%s on %s requested ungline at %s for %s@%s [%s]",
+               from, to, glp_ptr->vote_2.oper_nick,
+               glp_ptr->vote_2.oper_user, glp_ptr->vote_2.oper_host,
+               glp_ptr->vote_2.oper_server, timebuffer,
+               glp_ptr->user, glp_ptr->host, glp_ptr->vote_2.reason);
+
+    }
+  }
+
+  sendto_one(source_p, ":%s NOTICE %s :End of Pending UNG-lines",
              from, to);
 #else
   sendto_one(source_p, ":%s NOTICE %s :This server does not support G-Line voting",

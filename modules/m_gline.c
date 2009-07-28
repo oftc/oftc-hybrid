@@ -69,16 +69,16 @@ static void add_new_majority(const struct Client *,
 			     const char *, const char *, const char *);
 #endif /* GLINE_VOTING */
 
-static void do_sgline(struct Client *, struct Client *, int, char **, int);
+static void do_sgline(struct Client *, struct Client *, int, char *[], int);
 
-static void me_gline(struct Client *, struct Client *, int, char **);
-static void ms_gline(struct Client *, struct Client *, int, char **);
-static void mo_gline(struct Client *, struct Client *, int, char **);
+static void me_gline(struct Client *, struct Client *, int, char *[]);
+static void ms_gline(struct Client *, struct Client *, int, char *[]);
+static void mo_gline(struct Client *, struct Client *, int, char *[]);
 
-static void do_sungline(struct Client *, struct Client *, int, char **, int);
+static void do_sungline(struct Client *, struct Client *, int, char *[], int);
 
-static void me_gungline(struct Client *, struct Client *, int, char **);
-static void mo_gungline(struct Client *, struct Client *, int, char **);
+static void me_gungline(struct Client *, struct Client *, int, char *[]);
+static void mo_gungline(struct Client *, struct Client *, int, char *[]);
 
 /*
  * gline enforces 3 parameters to force operator to give a reason
@@ -95,7 +95,7 @@ struct Message ungline_msgtab = {
   {m_unregistered, m_not_oper, m_ignore, me_gungline, mo_gungline, m_ignore}
 };
 
-		
+
 #ifndef STATIC_MODULES
 void
 _modinit(void)
@@ -153,8 +153,8 @@ mo_gline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (parse_aline("GLINE", source_p, parc, parv,
-		  AWILD, &user, &host, NULL, NULL, &reason) < 0)
+  if (parse_aline("GLINE", source_p, parc, parv, AWILD,
+                  &user, &host, NULL, NULL, &reason) < 0)
     return;
 
   if ((p = strchr(host, '/')) != NULL)
@@ -172,7 +172,7 @@ mo_gline(struct Client *client_p, struct Client *source_p,
   
 #ifdef GLINE_VOTING
   /* If at least 3 opers agree this user should be G lined then do it */
-  if (check_majority(0, source_p, user, host, reason) ==
+  if (check_majority(source_p, user, host, reason, GLINE_PENDING_ADD_TYPE) ==
       GLINE_ALREADY_VOTED)
   {
     sendto_one(source_p,
@@ -294,10 +294,9 @@ do_sgline(struct Client *client_p, struct Client *source_p,
 
   assert(source_p->servptr != NULL);
 
-  user = parv[++var_offset];
-  host = parv[++var_offset];
-  reason = parv[++var_offset];
-
+  user       = parv[++var_offset];
+  host       = parv[++var_offset];
+  reason     = parv[++var_offset];
   var_offset = 0;
 
   DLINK_FOREACH(ptr, gdeny_items.head)
@@ -346,6 +345,7 @@ do_sgline(struct Client *client_p, struct Client *source_p,
       ilog(L_TRACE, "Rejected G-Line %s requested on [%s@%s] [%s]",
            get_oper_name(source_p), user, host, reason);
     }
+
     return;
   }
 
@@ -357,6 +357,7 @@ do_sgline(struct Client *client_p, struct Client *source_p,
     if (IsClient(source_p))
     {
       const char *p = NULL;
+
       if ((p = strchr(host, '/')))
       {
         int bitlen = strtol(++p, NULL, 10);
@@ -376,7 +377,7 @@ do_sgline(struct Client *client_p, struct Client *source_p,
 
 #ifdef GLINE_VOTING
      /* If at least 3 opers agree this user should be G lined then do it */
-     if (check_majority(0, source_p, user, host, reason) ==
+     if (check_majority(0, source_p, user, host, reason, GLINE_PENDING_ADD_TYPE) ==
          GLINE_ALREADY_VOTED)
      {
        sendto_realops_flags(UMODE_ALL, L_ALL, "oper or server has already voted");
@@ -411,17 +412,12 @@ set_local_gline(const struct Client *source_p, const char *user,
   char buffer[IRCD_BUFSIZE];
   struct ConfItem *conf;
   struct AccessItem *aconf;
-  const char *current_date;
-  time_t cur_time;
 
-  set_time();
-  cur_time = CurrentTime;
 
-  current_date = smalldate(cur_time);
   conf = make_conf_item(GLINE_TYPE);
   aconf = map_to_conf(conf);
 
-  ircsprintf(buffer, "%s (%s)", reason, current_date);
+  ircsprintf(buffer, "%s (%s)", reason, smalldate(CurrentTime));
   DupString(aconf->reason, buffer);
   DupString(aconf->user, user);
   DupString(aconf->host, host);
@@ -436,7 +432,7 @@ set_local_gline(const struct Client *source_p, const char *user,
   ilog(L_TRACE, "%s added G-Line for [%s@%s] [%s]",
        get_oper_name(source_p), aconf->user, aconf->host, aconf->reason);
   log_oper_action(LOG_GLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-		  aconf->user, aconf->host, aconf->reason);
+                  aconf->user, aconf->host, aconf->reason);
   /* Now, activate gline against current online clients */
   rehashed_klines = 1;
 }
@@ -465,7 +461,7 @@ add_new_majority(const struct Client *source_p, const char *user,
 
   strlcpy(pending->vote_1.oper_nick, source_p->name, sizeof(pending->vote_1.oper_nick));
   strlcpy(pending->vote_1.oper_user, source_p->username, sizeof(pending->vote_1.oper_user));
-  strlcpy(pending->vote_1.oper_host, source_p->host, sizeof(pending->vote_1-oper_host));
+  strlcpy(pending->vote_1.oper_host, source_p->host, sizeof(pending->vote_1.oper_host));
   strlcpy(pending->vote_1.oper_server, source_p->servptr->name, sizeof(pending->vote_1.oper_server));
 
   strlcpy(pending->user, user, sizeof(pending->user));
@@ -520,7 +516,7 @@ check_majority(const struct Client *source_p, const char *user,
 
     if (gp_ptr->vote_2.oper_user[0] != '\0')
     {
-	/* if two other opers on two different servers have voted yes */
+      /* if two other opers on two different servers have voted yes */
       if (!irccmp(gp_ptr->vote_2.oper_user, source_p->username) ||
           !irccmp(gp_ptr->vote_2.oper_host, source_p->host)     ||
           !irccmp(gp_ptr->vote_2.oper_server, source_p->servptr->name))
@@ -534,7 +530,7 @@ check_majority(const struct Client *source_p, const char *user,
                                "%s has removed the G-Line for: [%s@%s]",
                                get_oper_name(source_p), user, host);
           ilog(L_NOTICE, "%s removed G-Line for [%s@%s]",
-              get_oper_name(source_p), user, host);
+               get_oper_name(source_p), user, host);
         }
       }
       else
@@ -620,26 +616,19 @@ static void
 me_gungline(struct Client *client_p, struct Client *source_p,
             int parc, char *parv[])
 {
-  if (!ConfigFileEntry.glines)
-    return;
-
-  do_sungline(client_p, source_p, parc, parv, 0);
+  if (ConfigFileEntry.glines)
+    do_sungline(client_p, source_p, parc, parv, 0);
 }
 
 static void
 do_sungline(struct Client *client_p, struct Client *source_p,
             int parc, char *parv[], int prop)
 {
-  const char *reason = NULL;      /* reason for "victims" demise       */
-  char *user = NULL;
-  char *host = NULL;              /* user and host of GLINE "victim"   */
-  unsigned int var_offset = 0;
+  const char *user   = parv[1];
+  const char *host   = parv[2]; /* user and host of GLINE "victim"   */
+  const char *reason = parv[3];
 
   assert(source_p->servptr != NULL);
-
-  user   = parv[++var_offset];
-  host   = parv[++var_offset];
-  reason = parv[++var_offset];
 
 #ifdef GLINE_VOTING
   sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -650,7 +639,7 @@ do_sungline(struct Client *client_p, struct Client *source_p,
        user, host, reason, get_oper_name(source_p));
 
   /* If at least 3 opers agree this user should be un G lined then do it */
-  if (check_majority(1, source_p, user, host, reason) ==
+  if (check_majority(source_p, user, host, reason, GLINE_PENDING_DEL_TYPE) ==
       GLINE_ALREADY_VOTED)
     sendto_realops_flags(UMODE_ALL, L_ALL, "oper or server has already voted");
 #else 
@@ -718,7 +707,7 @@ mo_gungline(struct Client *client_p, struct Client *source_p,
        source_p->host);
 
   /* If at least 3 opers agree this user should be un G lined then do it */
-  if (check_majority(1, source_p, user, host, reason) ==
+  if (check_majority(, source_p, user, host, reason, GLINE_PENDING_DEL_TYPE) ==
       GLINE_ALREADY_VOTED)
     sendto_one(source_p,
                ":%s NOTICE %s :This server or oper has already voted",
