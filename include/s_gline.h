@@ -27,6 +27,9 @@
 
 #include "ircd_defs.h"
 
+#define GLINE_PENDING_DEL_TYPE 0
+#define GLINE_PENDING_ADD_TYPE 1
+
 struct AccessItem;
 
 extern void cleanup_glines(void *);
@@ -36,24 +39,20 @@ struct gline_pending
 {
   dlink_node node;
 
-  char oper_nick1[NICKLEN + 1];
-  char oper_user1[USERLEN + 1];
-  char oper_host1[HOSTLEN + 1];
-  char oper_server1[HOSTLEN + 1];
-  char reason1[REASONLEN + 1];
-  time_t time_request1;
-
-  char oper_nick2[NICKLEN + 1];
-  char oper_user2[USERLEN + 1];
-  char oper_host2[HOSTLEN + 1];
-  char oper_server2[HOSTLEN + 1];
-  char reason2[REASONLEN + 1];
-  time_t time_request2;
+  struct {
+    char oper_nick[NICKLEN + 1];
+    char oper_user[USERLEN + 1];
+    char oper_host[HOSTLEN + 1];
+    char oper_server[HOSTLEN + 1];
+    char reason[REASONLEN + 1];
+    time_t time_request;
+  } vote_1, vote_2;
 
   time_t last_gline_time;       /* for expiring entry */
   char user[USERLEN * 2 + 2];
   char host[HOSTLEN * 2 + 2];
 };
+
 
 /*
  * how long a pending G line can be around
@@ -62,5 +61,5 @@ struct gline_pending
 #define GLINE_PENDING_EXPIRE 600
 #define CLEANUP_GLINES_TIME  300
 
-extern dlink_list pending_glines;
+extern dlink_list pending_glines[];
 #endif /* INCLUDED_s_gline_h */
