@@ -1,5 +1,5 @@
 /* doc/example.conf - ircd-hybrid-7 Example configuration file
- * Copyright (C) 2000-2006 Hybrid Development Team
+ * Copyright (C) 2000-2009 Hybrid Development Team
  *
  * Written by ejb, wcampbel, db, leeh and others
  * Other example configurations can be found in the source dir under
@@ -76,13 +76,13 @@ serverinfo {
 
 	/*
 	 * vhost: the IP to bind to when we connect outward to ipv4 servers.
-	 * This should be an ipv4 IP only, or "* for INADDR_ANY.
+	 * This should be an ipv4 IP only, or "*" for INADDR_ANY.
 	 */
 	#vhost = "192.169.0.1";
 
 	/*
 	 * vhost6: the IP to bind to when we connect outward to ipv6 servers.
-	 * This should be an ipv6 IP only, or "* for INADDR_ANY.
+	 * This should be an ipv6 IP only, or "*" for INADDR_ANY.
 	 */
 	#vhost6 = "3ffe:80e8:546::2";
 
@@ -845,10 +845,10 @@ channel {
 	 */
 	default_split_server_count = 0;
 
-	/* split no create: disallow users creating channels on split. */
+	/* no_create_on_split: disallow users creating channels on split. */
 	no_create_on_split = yes;
 
-	/* split: no join: disallow users joining channels at all on a split */
+	/* no_join_on_split: disallow users joining channels at all on a split. */
 	no_join_on_split = no;
 };
 
@@ -1178,7 +1178,7 @@ general {
 	 *
 	 * +b - bots         - See bot and drone flooding notices
 	 * +c - cconn        - Client connection/quit notices
-	 * +C - cconn        - Client connection/quit notices full
+	 * +C - cconn_full   - Client connection/quit notices full
 	 * +D - deaf         - Don't receive channel messages
 	 * +d - debug        - See debugging notices
 	 * +f - full         - See I: line full notices
@@ -1302,5 +1302,5 @@ modules {
 	path = "@LIBDIR@/modules/autoload";
 
 	/* module: the name of a module to load on startup/rehash */
-	#module = "some_module.so";
+	#module = "some_module.la";
 };
