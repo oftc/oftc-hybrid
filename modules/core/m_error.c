@@ -25,11 +25,9 @@
 #include "stdinc.h"
 #include "handlers.h"
 #include "client.h"
-#include "common.h"   /* FALSE */
 #include "ircd.h"
 #include "send.h"
 #include "msg.h"
-#include "memory.h"
 #include "modules.h"
 #include "s_log.h"
 
@@ -41,6 +39,20 @@ struct Message error_msgtab = {
  "ERROR", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0,
   { m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore }
 };
+
+void
+_modinit(void)
+{
+  mod_add_cmd(&error_msgtab);
+}
+
+void
+_moddeinit(void)
+{
+  mod_del_cmd(&error_msgtab);
+}
+
+const char *_version = "$Revision$";
 
 /*
  * Note: At least at protocol level ERROR has only one parameter.
