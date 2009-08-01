@@ -52,9 +52,9 @@ libpcre_a_AR = $(AR) $(ARFLAGS)
 libpcre_a_LIBADD =
 am_libpcre_a_OBJECTS = pcre_chartables.$(OBJEXT) \
 	pcre_compile.$(OBJEXT) pcre_exec.$(OBJEXT) \
-	pcre_globals.$(OBJEXT) pcre_study.$(OBJEXT) \
-	pcre_tables.$(OBJEXT) pcre_fullinfo.$(OBJEXT) \
-	pcre_try_flipped.$(OBJEXT)
+	pcre_globals.$(OBJEXT) pcre_newline.$(OBJEXT) \
+	pcre_study.$(OBJEXT) pcre_tables.$(OBJEXT) \
+	pcre_fullinfo.$(OBJEXT) pcre_try_flipped.$(OBJEXT)
 libpcre_a_OBJECTS = $(am_libpcre_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -214,12 +214,14 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
 noinst_LIBRARIES = libpcre.a
-libpcre_a_SOURCES = pcre_chartables.c          \
-                    pcre_compile.c             \
-                    pcre_exec.c pcre_globals.c \
-                    pcre_study.c               \
-                    pcre_tables.c              \
-                    pcre_fullinfo.c            \
+libpcre_a_SOURCES = pcre_chartables.c   \
+                    pcre_compile.c      \
+                    pcre_exec.c         \
+                    pcre_globals.c      \
+                    pcre_newline.c      \
+                    pcre_study.c        \
+                    pcre_tables.c       \
+                    pcre_fullinfo.c     \
                     pcre_try_flipped.c
 
 all: all-am
@@ -275,6 +277,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcre_exec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcre_fullinfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcre_globals.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcre_newline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcre_study.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcre_tables.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcre_try_flipped.Po@am__quote@
