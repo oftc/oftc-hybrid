@@ -123,7 +123,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
                void *client_data, time_t timeout)
 {
   int new_events, op;
-  struct epoll_event ep_event;
+  struct epoll_event ep_event = { 0, { 0 } };
 
   if ((type & COMM_SELECT_READ))
   {
