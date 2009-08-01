@@ -1,5 +1,3 @@
-/* $Id: pcre_try_flipped.c 33 2005-10-02 20:50:00Z knight $ */
-
 /*************************************************
 *      Perl-Compatible Regular Expressions       *
 *************************************************/
@@ -8,7 +6,7 @@
 and semantics are as close as possible to those of the Perl 5 language.
 
                        Written by Philip Hazel
-           Copyright (c) 1997-2005 University of Cambridge
+           Copyright (c) 1997-2008 University of Cambridge
 
 -----------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without
@@ -64,8 +62,8 @@ Arguments:
 Returns:       the flipped value
 */
 
-static long int
-byteflip(long int value, int n)
+static unsigned long int
+byteflip(unsigned long int value, int n)
 {
 if (n == 2) return ((value & 0x00ff) << 8) | ((value & 0xff00) >> 8);
 return ((value & 0x000000ff) << 24) |
@@ -96,7 +94,7 @@ Returns:           the new block if is is indeed a byte-flipped regex
                    NULL if it is not
 */
 
-EXPORT real_pcre *
+real_pcre *
 _pcre_try_flipped(const real_pcre *re, real_pcre *internal_re,
   const pcre_study_data *study, pcre_study_data *internal_study)
 {
@@ -106,6 +104,7 @@ if (byteflip(re->magic_number, sizeof(re->magic_number)) != MAGIC_NUMBER)
 *internal_re = *re;           /* To copy other fields */
 internal_re->size = byteflip(re->size, sizeof(re->size));
 internal_re->options = byteflip(re->options, sizeof(re->options));
+internal_re->flags = (pcre_uint16)byteflip(re->flags, sizeof(re->flags));
 internal_re->top_bracket =
   (pcre_uint16)byteflip(re->top_bracket, sizeof(re->top_bracket));
 internal_re->top_backref =

@@ -1,8 +1,5 @@
-/* $Id: README 33 2005-10-02 20:50:00Z knight $ */
-
-
-PCRE (Perl Compatible Regular Expression) library version 6.3 (latest as
-of Sep 2, 2005) from http://www.pcre.org hacked up for use in ircd-hybrid.
+PCRE (Perl Compatible Regular Expression) library version 7.9 (latest as
+of Aug 1, 2009) from http://www.pcre.org hacked up for use in ircd-hybrid.
 
 Original licensing information and copyright notices can be found in the
 LICENCE and AUTHORS files.
