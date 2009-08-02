@@ -104,7 +104,7 @@ do_list(struct Client *source_p, int parc, char *parv[])
 
   if (parc > 1)
   {
-    char *opt, *save;
+    char *opt, *save = NULL;
     dlink_list *list;
     int i, errors = 0;
 
