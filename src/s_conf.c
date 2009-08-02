@@ -107,7 +107,8 @@ extern char linebuf[];
 extern char conffilebuf[IRCD_BUFSIZE];
 extern char yytext[];
 extern int yyparse(); /* defined in y.tab.c */
-int ypass = 1; /* used by yyparse()      */
+
+struct conf_parser_context conf_parser_ctx = { 0, 0, NULL };
 
 /* internally defined functions */
 static void lookup_confhost(struct ConfItem *);
@@ -132,8 +133,6 @@ static int find_user_host(struct Client *, char *, char *, char *, unsigned int)
 static void destroy_cidr_class(struct ClassItem *);
 
 static void flags_to_ascii(unsigned int, const unsigned int[], char *, int);
-
-FBFILE *conf_fbfile_in = NULL;
 
 /* address of default class conf */
 static struct ConfItem *class_default;
@@ -2021,12 +2020,12 @@ read_conf(FBFILE *file)
   lineno = 0;
 
   set_default_conf(); /* Set default values prior to conf parsing */
-  ypass = 1;
-  yyparse();        /* pick up the classes first */
+  conf_parser_ctx.pass = 1;
+  yyparse();	      /* pick up the classes first */
 
   fbrewind(file);
 
-  ypass = 2;
+  conf_parser_ctx.pass = 2;
   yyparse();          /* Load the values from the conf */
   validate_conf();    /* Check to make sure some values are still okay. */
                       /* Some global values are also loaded here. */
@@ -2557,6 +2556,7 @@ read_conf_files(int cold)
   char chanmodes[32];
   char chanlimit[32];
 
+  conf_parser_ctx.boot = cold;
   filename = get_conf_name(CONF_TYPE);
 
   /* We need to know the initial filename for the yyerror() to report
@@ -2567,7 +2567,7 @@ read_conf_files(int cold)
   */
   strlcpy(conffilebuf, filename, sizeof(conffilebuf));
 
-  if ((conf_fbfile_in = fbopen(filename, "r")) == NULL)
+  if ((conf_parser_ctx.conf_file = fbopen(filename, "r")) == NULL)
   {
     if (cold)
     {
@@ -2596,8 +2596,8 @@ read_conf_files(int cold)
     clear_temp_list(&temporary_resv);
   }
 
-  read_conf(conf_fbfile_in);
-  fbclose(conf_fbfile_in);
+  read_conf(conf_parser_ctx.conf_file);
+  fbclose(conf_parser_ctx.conf_file);
 
   add_isupport("NETWORK", ServerInfo.network_name, -1);
   ircsprintf(chanmodes, "b%s%s:%d", ConfigChannel.use_except ? "e" : "",
@@ -3258,7 +3258,7 @@ yyerror(const char *msg)
 {
   char newlinebuf[IRCD_BUFSIZE];
 
-  if (ypass != 1)
+  if (conf_parser_ctx.pass != 1)
     return;
 
   strip_tabs(newlinebuf, linebuf, sizeof(newlinebuf));
