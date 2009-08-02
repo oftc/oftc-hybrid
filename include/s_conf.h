@@ -35,12 +35,24 @@
 #include "hook.h"
 #include "pcre.h"
 
+
+#define CONF_SERVER_INFO_TLS_VERSION_SSLV3 0x1
+#define CONF_SERVER_INFO_TLS_VERSION_TLSV1 0x2
+
 struct Client;
 struct DNSReply;
 struct hostent;
 
-extern FBFILE *conf_fbfile_in;
 extern struct Callback *client_check_cb;
+
+struct conf_parser_context
+{
+  unsigned int boot;
+  unsigned int pass;
+  FBFILE *conf_file;
+};
+
+extern struct conf_parser_context conf_parser_ctx;
 
 typedef enum
 {  
@@ -435,7 +447,9 @@ struct server_info
 #ifdef HAVE_LIBCRYPTO
   char *rsa_private_key_file;
   RSA *rsa_private_key;
-  SSL_CTX *ctx;
+  SSL_CTX *server_ctx;
+  SSL_CTX *client_ctx;
+  unsigned int tls_version;
 #endif
   char *sid;
   int hub;

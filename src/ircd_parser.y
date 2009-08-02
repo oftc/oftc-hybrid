@@ -300,6 +300,9 @@ unhook_hub_leaf_confs(void)
 %token  RSA_PRIVATE_KEY_FILE
 %token  RSA_PUBLIC_KEY_FILE
 %token  SSL_CERTIFICATE_FILE
+%token  T_SSL_CONNECTION_METHOD
+%token  T_SSLV3
+%token  T_TLSV1
 %token  RESV
 %token  RESV_EXEMPT
 %token  SECONDS MINUTES HOURS DAYS WEEKS
@@ -470,7 +473,7 @@ modules_item:   modules_module | modules_path | error ';' ;
 modules_module: MODULE '=' QSTRING ';'
 {
 #ifndef STATIC_MODULES /* NOOP in the static case */
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     char *m_bn;
 
@@ -487,31 +490,55 @@ modules_module: MODULE '=' QSTRING ';'
 modules_path: PATH '=' QSTRING ';'
 {
 #ifndef STATIC_MODULES
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     mod_add_path(yylval.string);
 #endif
 };
 
-/***************************************************************************
- *  section serverinfo
- ***************************************************************************/
-serverinfo_entry: SERVERINFO
-  '{' serverinfo_items '}' ';';
 
-serverinfo_items:       serverinfo_items serverinfo_item |
-                        serverinfo_item ;
+serverinfo_entry: SERVERINFO '{' serverinfo_items '}' ';';
+
+serverinfo_items:       serverinfo_items serverinfo_item | serverinfo_item ;
 serverinfo_item:        serverinfo_name | serverinfo_vhost |
                         serverinfo_hub | serverinfo_description |
                         serverinfo_network_name | serverinfo_network_desc |
                         serverinfo_max_clients | 
                         serverinfo_rsa_private_key_file | serverinfo_vhost6 |
                         serverinfo_sid | serverinfo_ssl_certificate_file |
+                        serverinfo_ssl_connection_method |
 			error ';' ;
+
+
+serverinfo_ssl_connection_method: T_SSL_CONNECTION_METHOD
+{
+  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
+    ServerInfo.tls_version = 0;
+} '=' method_types ';'
+{
+  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
+  {
+    if (!(ServerInfo.tls_version & CONF_SERVER_INFO_TLS_VERSION_SSLV3))
+      SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv3);
+    if (!(ServerInfo.tls_version & CONF_SERVER_INFO_TLS_VERSION_TLSV1))
+      SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_TLSv1);
+  }
+};
+
+method_types: method_types ',' method_type_item | method_type_item;
+method_type_item: T_SSLV3
+{
+  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
+    ServerInfo.tls_version |= CONF_SERVER_INFO_TLS_VERSION_SSLV3;
+} | T_TLSV1
+{
+  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
+    ServerInfo.tls_version |= CONF_SERVER_INFO_TLS_VERSION_TLSV1;
+};
 
 serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
 {
 #ifdef HAVE_LIBCRYPTO
-  if (ypass == 2 && ServerInfo.ctx) 
+  if (conf_parser_ctx.pass == 2 && ServerInfo.server_ctx) 
   {
     if (!ServerInfo.rsa_private_key_file)
     {
@@ -519,23 +546,23 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
       break;
     }
 
-    if (SSL_CTX_use_certificate_file(ServerInfo.ctx,
-      yylval.string, SSL_FILETYPE_PEM) <= 0)
+    if (SSL_CTX_use_certificate_file(ServerInfo.server_ctx, yylval.string,
+                                     SSL_FILETYPE_PEM) <= 0)
     {
       yyerror(ERR_lib_error_string(ERR_get_error()));
       break;
     }
 
-    if (SSL_CTX_use_PrivateKey_file(ServerInfo.ctx,
-      ServerInfo.rsa_private_key_file, SSL_FILETYPE_PEM) <= 0)
+    if (SSL_CTX_use_PrivateKey_file(ServerInfo.server_ctx, ServerInfo.rsa_private_key_file,
+                                    SSL_FILETYPE_PEM) <= 0)
     {
       yyerror(ERR_lib_error_string(ERR_get_error()));
       break;
     }
 
-    if (!SSL_CTX_check_private_key(ServerInfo.ctx))
+    if (!SSL_CTX_check_private_key(ServerInfo.server_ctx))
     {
-      yyerror("RSA private key does not match the SSL certificate public key!");
+      yyerror(ERR_lib_error_string(ERR_get_error()));
       break;
     }
   }
@@ -545,7 +572,7 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
 serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
 {
 #ifdef HAVE_LIBCRYPTO
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
   {
     BIO *file;
 
@@ -605,7 +632,7 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
 serverinfo_name: NAME '=' QSTRING ';' 
 {
   /* this isn't rehashable */
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (ServerInfo.name == NULL)
     {
@@ -619,7 +646,7 @@ serverinfo_name: NAME '=' QSTRING ';'
 serverinfo_sid: IRCD_SID '=' QSTRING ';' 
 {
   /* this isn't rehashable */
-  if (ypass == 2 && !ServerInfo.sid)
+  if (conf_parser_ctx.pass == 2 && !ServerInfo.sid)
   {
     if (valid_sid(yylval.string))
       DupString(ServerInfo.sid, yylval.string);
@@ -633,7 +660,7 @@ serverinfo_sid: IRCD_SID '=' QSTRING ';'
 
 serverinfo_description: DESCRIPTION '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(ServerInfo.description);
     DupString(ServerInfo.description,yylval.string);
@@ -642,7 +669,7 @@ serverinfo_description: DESCRIPTION '=' QSTRING ';'
 
 serverinfo_network_name: NETWORK_NAME '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     char *p;
 
@@ -656,7 +683,7 @@ serverinfo_network_name: NETWORK_NAME '=' QSTRING ';'
 
 serverinfo_network_desc: NETWORK_DESC '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(ServerInfo.network_desc);
     DupString(ServerInfo.network_desc, yylval.string);
@@ -665,7 +692,7 @@ serverinfo_network_desc: NETWORK_DESC '=' QSTRING ';'
 
 serverinfo_vhost: VHOST '=' QSTRING ';'
 {
-  if (ypass == 2 && *yylval.string != '*')
+  if (conf_parser_ctx.pass == 2 && *yylval.string != '*')
   {
     struct addrinfo hints, *res;
 
@@ -694,7 +721,7 @@ serverinfo_vhost: VHOST '=' QSTRING ';'
 serverinfo_vhost6: VHOST6 '=' QSTRING ';'
 {
 #ifdef IPV6
-  if (ypass == 2 && *yylval.string != '*')
+  if (conf_parser_ctx.pass == 2 && *yylval.string != '*')
   {
     struct addrinfo hints, *res;
 
@@ -723,7 +750,7 @@ serverinfo_vhost6: VHOST6 '=' QSTRING ';'
 
 serverinfo_max_clients: T_MAX_CLIENTS '=' NUMBER ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     recalc_fdlimit(NULL);
 
@@ -746,7 +773,7 @@ serverinfo_max_clients: T_MAX_CLIENTS '=' NUMBER ';'
 
 serverinfo_hub: HUB '=' TBOOL ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
     {
@@ -774,7 +801,7 @@ admin_item:  admin_name | admin_description |
 
 admin_name: NAME '=' QSTRING ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(AdminInfo.name);
     DupString(AdminInfo.name, yylval.string);
@@ -783,7 +810,7 @@ admin_name: NAME '=' QSTRING ';'
 
 admin_email: EMAIL '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(AdminInfo.email);
     DupString(AdminInfo.email, yylval.string);
@@ -792,7 +819,7 @@ admin_email: EMAIL '=' QSTRING ';'
 
 admin_description: DESCRIPTION '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(AdminInfo.description);
     DupString(AdminInfo.description, yylval.string);
@@ -827,93 +854,93 @@ logging_oper_log:	OPER_LOG '=' QSTRING ';'
 
 logging_fuserlog: FUSERLOG '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     strlcpy(ConfigLoggingEntry.userlog, yylval.string,
             sizeof(ConfigLoggingEntry.userlog));
 };
 
 logging_ffailed_operlog: FFAILED_OPERLOG '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     strlcpy(ConfigLoggingEntry.failed_operlog, yylval.string,
             sizeof(ConfigLoggingEntry.failed_operlog));
 };
 
 logging_foperlog: FOPERLOG '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     strlcpy(ConfigLoggingEntry.operlog, yylval.string,
             sizeof(ConfigLoggingEntry.operlog));
 };
 
 logging_foperspylog: FOPERSPYLOG '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     strlcpy(ConfigLoggingEntry.operspylog, yylval.string,
             sizeof(ConfigLoggingEntry.operspylog));
 };
 
 logging_fglinelog: FGLINELOG '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     strlcpy(ConfigLoggingEntry.glinelog, yylval.string,
             sizeof(ConfigLoggingEntry.glinelog));
 };
 
 logging_fklinelog: FKLINELOG '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     strlcpy(ConfigLoggingEntry.klinelog, yylval.string,
             sizeof(ConfigLoggingEntry.klinelog));
 };
 
 logging_ioerrlog: FIOERRLOG '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     strlcpy(ConfigLoggingEntry.ioerrlog, yylval.string,
             sizeof(ConfigLoggingEntry.ioerrlog));
 };
 
 logging_killlog: FKILLLOG '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     strlcpy(ConfigLoggingEntry.killlog, yylval.string,
             sizeof(ConfigLoggingEntry.killlog));
 };
 
 logging_log_level: LOG_LEVEL '=' T_L_CRIT ';'
 { 
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     set_log_level(L_CRIT);
 } | LOG_LEVEL '=' T_L_ERROR ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     set_log_level(L_ERROR);
 } | LOG_LEVEL '=' T_L_WARN ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     set_log_level(L_WARN);
 } | LOG_LEVEL '=' T_L_NOTICE ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     set_log_level(L_NOTICE);
 } | LOG_LEVEL '=' T_L_TRACE ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     set_log_level(L_TRACE);
 } | LOG_LEVEL '=' T_L_INFO ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     set_log_level(L_INFO);
 } | LOG_LEVEL '=' T_L_DEBUG ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     set_log_level(L_DEBUG);
 };
 
 logging_use_logging: USE_LOGGING '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigLoggingEntry.use_logging = yylval.number;
 };
 
@@ -922,7 +949,7 @@ logging_use_logging: USE_LOGGING '=' TBOOL ';'
  ***************************************************************************/
 oper_entry: OPERATOR 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     yy_conf = make_conf_item(OPER_TYPE);
     yy_aconf = map_to_conf(yy_conf);
@@ -935,7 +962,7 @@ oper_entry: OPERATOR
   }
 } oper_name_b '{' oper_items '}' ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct CollectItem *yy_tmp;
     dlink_node *ptr;
@@ -1027,7 +1054,7 @@ oper_item:      oper_name | oper_user | oper_password | oper_hidden_admin |
 
 oper_name: NAME '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (strlen(yylval.string) > OPERNICKLEN)
       yylval.string[OPERNICKLEN] = '\0';
@@ -1039,7 +1066,7 @@ oper_name: NAME '=' QSTRING ';'
 
 oper_name_t: QSTRING
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (strlen(yylval.string) > OPERNICKLEN)
       yylval.string[OPERNICKLEN] = '\0';
@@ -1051,7 +1078,7 @@ oper_name_t: QSTRING
 
 oper_user: USER '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct split_nuh_item nuh;
 
@@ -1085,7 +1112,7 @@ oper_user: USER '=' QSTRING ';'
 
 oper_password: PASSWORD '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yy_aconf->passwd != NULL)
       memset(yy_aconf->passwd, 0, strlen(yy_aconf->passwd));
@@ -1097,7 +1124,7 @@ oper_password: PASSWORD '=' QSTRING ';'
 
 oper_encrypted: ENCRYPTED '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       SetConfEncrypted(yy_aconf);
@@ -1109,7 +1136,7 @@ oper_encrypted: ENCRYPTED '=' TBOOL ';'
 oper_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
 {
 #ifdef HAVE_LIBCRYPTO
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     BIO *file;
 
@@ -1150,7 +1177,7 @@ oper_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
 
 oper_class: CLASS '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(class_name);
     DupString(class_name, yylval.string);
@@ -1159,92 +1186,92 @@ oper_class: CLASS '=' QSTRING ';'
 
 oper_umodes: T_UMODES
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes = 0;
 } '='  oper_umodes_items ';' ;
 
 oper_umodes_items: oper_umodes_items ',' oper_umodes_item | oper_umodes_item;
 oper_umodes_item:  T_BOTS
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_BOTS;
 } | T_CCONN
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_CCONN;
 } | T_CCONN_FULL
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_CCONN_FULL;
 } | T_DEAF
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_DEAF;
 } | T_DEBUG
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_DEBUG;
 } | T_FULL
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_FULL;
 } | T_SKILL
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_SKILL;
 } | T_NCHANGE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_NCHANGE;
 } | T_REJ
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_REJ;
 } | T_UNAUTH
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_UNAUTH;
 } | T_SPY
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_SPY;
 } | T_EXTERNAL
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_EXTERNAL;
 } | T_OPERWALL
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_OPERWALL;
 } | T_SERVNOTICE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_SERVNOTICE;
 } | T_INVISIBLE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_INVISIBLE;
 } | T_WALLOP
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_WALLOP;
 } | T_SOFTCALLERID
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_SOFTCALLERID;
 } | T_CALLERID
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_CALLERID;
 } | T_LOCOPS
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_LOCOPS;
 };
 
 oper_global_kill: GLOBAL_KILL '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_GLOBAL_KILL;
@@ -1255,7 +1282,7 @@ oper_global_kill: GLOBAL_KILL '=' TBOOL ';'
 
 oper_remote: REMOTE '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_REMOTE;
@@ -1266,7 +1293,7 @@ oper_remote: REMOTE '=' TBOOL ';'
 
 oper_remoteban: REMOTEBAN '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_REMOTEBAN;
@@ -1277,7 +1304,7 @@ oper_remoteban: REMOTEBAN '=' TBOOL ';'
 
 oper_kline: KLINE '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_K;
@@ -1288,7 +1315,7 @@ oper_kline: KLINE '=' TBOOL ';'
 
 oper_xline: XLINE '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_X;
@@ -1299,7 +1326,7 @@ oper_xline: XLINE '=' TBOOL ';'
 
 oper_unkline: UNKLINE '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_UNKLINE;
@@ -1310,7 +1337,7 @@ oper_unkline: UNKLINE '=' TBOOL ';'
 
 oper_gline: GLINE '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_GLINE;
@@ -1321,7 +1348,7 @@ oper_gline: GLINE '=' TBOOL ';'
 
 oper_nick_changes: NICK_CHANGES '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_N;
@@ -1332,7 +1359,7 @@ oper_nick_changes: NICK_CHANGES '=' TBOOL ';'
 
 oper_die: DIE '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_DIE;
@@ -1343,7 +1370,7 @@ oper_die: DIE '=' TBOOL ';'
 
 oper_rehash: REHASH '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_REHASH;
@@ -1354,7 +1381,7 @@ oper_rehash: REHASH '=' TBOOL ';'
 
 oper_admin: ADMIN '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_ADMIN;
@@ -1365,7 +1392,7 @@ oper_admin: ADMIN '=' TBOOL ';'
 
 oper_hidden_admin: HIDDEN_ADMIN '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_HIDDEN_ADMIN;
@@ -1376,7 +1403,7 @@ oper_hidden_admin: HIDDEN_ADMIN '=' TBOOL ';'
 
 oper_hidden_oper: HIDDEN_OPER '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_HIDDEN_OPER;
@@ -1387,7 +1414,7 @@ oper_hidden_oper: HIDDEN_OPER '=' TBOOL ';'
 
 oper_operwall: T_OPERWALL '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->port |= OPER_FLAG_OPERWALL;
@@ -1406,112 +1433,112 @@ oper_flags_item: NOT { not_atom = 1; } oper_flags_item_atom
 
 oper_flags_item_atom: GLOBAL_KILL
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom)yy_aconf->port &= ~OPER_FLAG_GLOBAL_KILL;
     else yy_aconf->port |= OPER_FLAG_GLOBAL_KILL;
   }
 } | REMOTE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_REMOTE;
     else yy_aconf->port |= OPER_FLAG_REMOTE;
   }
 } | KLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_K;
     else yy_aconf->port |= OPER_FLAG_K;
   }
 } | UNKLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_UNKLINE;
     else yy_aconf->port |= OPER_FLAG_UNKLINE;
   } 
 } | XLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_X;
     else yy_aconf->port |= OPER_FLAG_X;
   }
 } | GLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_GLINE;
     else yy_aconf->port |= OPER_FLAG_GLINE;
   }
 } | DIE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_DIE;
     else yy_aconf->port |= OPER_FLAG_DIE;
   }
 } | REHASH
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_REHASH;
     else yy_aconf->port |= OPER_FLAG_REHASH;
   }
 } | ADMIN
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_ADMIN;
     else yy_aconf->port |= OPER_FLAG_ADMIN;
   }
 } | HIDDEN_ADMIN
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_HIDDEN_ADMIN;
     else yy_aconf->port |= OPER_FLAG_HIDDEN_ADMIN;
   }
 } | NICK_CHANGES
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_N;
     else yy_aconf->port |= OPER_FLAG_N;
   }
 } | T_OPERWALL
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_OPERWALL;
     else yy_aconf->port |= OPER_FLAG_OPERWALL;
   }
 } | OPER_SPY_T
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_OPER_SPY;
     else yy_aconf->port |= OPER_FLAG_OPER_SPY;
   }
 } | HIDDEN_OPER
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_HIDDEN_OPER;
     else yy_aconf->port |= OPER_FLAG_HIDDEN_OPER;
   }
 } | REMOTEBAN
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_REMOTEBAN;
     else yy_aconf->port |= OPER_FLAG_REMOTEBAN;
   }
 } | ENCRYPTED
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) ClearConfEncrypted(yy_aconf);
     else SetConfEncrypted(yy_aconf);
@@ -1524,14 +1551,14 @@ oper_flags_item_atom: GLOBAL_KILL
  ***************************************************************************/
 class_entry: CLASS
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
   {
     yy_conf = make_conf_item(CLASS_TYPE);
     yy_class = map_to_conf(yy_conf);
   }
 } class_name_b '{' class_items '}' ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
   {
     struct ConfItem *cconf = NULL;
     struct ClassItem *class = NULL;
@@ -1591,7 +1618,7 @@ class_item:     class_name |
 
 class_name: NAME '=' QSTRING ';' 
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
   {
     MyFree(yy_class_name);
     DupString(yy_class_name, yylval.string);
@@ -1600,7 +1627,7 @@ class_name: NAME '=' QSTRING ';'
 
 class_name_t: QSTRING
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
   {
     MyFree(yy_class_name);
     DupString(yy_class_name, yylval.string);
@@ -1609,73 +1636,73 @@ class_name_t: QSTRING
 
 class_ping_time: PING_TIME '=' timespec ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     PingFreq(yy_class) = $3;
 };
 
 class_ping_warning: PING_WARNING '=' timespec ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     PingWarning(yy_class) = $3;
 };
 
 class_number_per_ip: NUMBER_PER_IP '=' NUMBER ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     MaxPerIp(yy_class) = $3;
 };
 
 class_connectfreq: CONNECTFREQ '=' timespec ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     ConFreq(yy_class) = $3;
 };
 
 class_max_number: MAX_NUMBER '=' NUMBER ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     MaxTotal(yy_class) = $3;
 };
 
 class_max_global: MAX_GLOBAL '=' NUMBER ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     MaxGlobal(yy_class) = $3;
 };
 
 class_max_local: MAX_LOCAL '=' NUMBER ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     MaxLocal(yy_class) = $3;
 };
 
 class_max_ident: MAX_IDENT '=' NUMBER ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     MaxIdent(yy_class) = $3;
 };
 
 class_sendq: SENDQ '=' sizespec ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     MaxSendq(yy_class) = $3;
 };
 
 class_cidr_bitlen_ipv4: CIDR_BITLEN_IPV4 '=' NUMBER ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     CidrBitlenIPV4(yy_class) = $3;
 };
 
 class_cidr_bitlen_ipv6: CIDR_BITLEN_IPV6 '=' NUMBER ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     CidrBitlenIPV6(yy_class) = $3;
 };
 
 class_number_per_cidr: NUMBER_PER_CIDR '=' NUMBER ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
     NumberPerCidr(yy_class) = $3;
 };
 
@@ -1684,14 +1711,14 @@ class_number_per_cidr: NUMBER_PER_CIDR '=' NUMBER ';'
  ***************************************************************************/
 listen_entry: LISTEN
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     listener_address = NULL;
     listener_flags = 0;
   }
 } '{' listen_items '}' ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(listener_address);
     listener_address = NULL;
@@ -1706,15 +1733,15 @@ listen_flags: IRCD_FLAGS
 listen_flags_items: listen_flags_items ',' listen_flags_item | listen_flags_item;
 listen_flags_item: T_SSL
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     listener_flags |= LISTENER_SSL;
 } | HIDDEN
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     listener_flags |= LISTENER_HIDDEN;
 } | T_SERVER
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     listener_flags |= LISTENER_SERVER;
 };
 
@@ -1729,11 +1756,11 @@ port_items: port_items ',' port_item | port_item;
 
 port_item: NUMBER
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if ((listener_flags & LISTENER_SSL))
 #ifdef HAVE_LIBCRYPTO
-      if (!ServerInfo.ctx)
+      if (!ServerInfo.server_ctx)
 #endif
       {
         yyerror("SSL not available - port closed");
@@ -1743,13 +1770,13 @@ port_item: NUMBER
   }
 } | NUMBER TWODOTS NUMBER
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     int i;
 
     if ((listener_flags & LISTENER_SSL))
 #ifdef HAVE_LIBCRYPTO
-      if (!ServerInfo.ctx)
+      if (!ServerInfo.server_ctx)
 #endif
       {
         yyerror("SSL not available - port closed");
@@ -1763,7 +1790,7 @@ port_item: NUMBER
 
 listen_address: IP '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(listener_address);
     DupString(listener_address, yylval.string);
@@ -1772,7 +1799,7 @@ listen_address: IP '=' QSTRING ';'
 
 listen_host: HOST '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(listener_address);
     DupString(listener_address, yylval.string);
@@ -1784,7 +1811,7 @@ listen_host: HOST '=' QSTRING ';'
  ***************************************************************************/
 auth_entry: IRCD_AUTH
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     yy_conf = make_conf_item(CLIENT_TYPE);
     yy_aconf = map_to_conf(yy_conf);
@@ -1796,7 +1823,7 @@ auth_entry: IRCD_AUTH
   }
 } '{' auth_items '}' ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct CollectItem *yy_tmp = NULL;
     dlink_node *ptr = NULL, *next_ptr = NULL;
@@ -1861,7 +1888,7 @@ auth_item:      auth_user | auth_passwd | auth_class | auth_flags |
 
 auth_user: USER '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct CollectItem *yy_tmp = NULL;
     struct split_nuh_item nuh;
@@ -1898,7 +1925,7 @@ auth_user: USER '=' QSTRING ';'
 
 auth_passwd: PASSWORD '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     /* be paranoid */
     if (yy_aconf->passwd != NULL)
@@ -1911,7 +1938,7 @@ auth_passwd: PASSWORD '=' QSTRING ';'
 
 auth_spoof_notice: SPOOF_NOTICE '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->flags |= CONF_FLAGS_SPOOF_NOTICE;
@@ -1922,7 +1949,7 @@ auth_spoof_notice: SPOOF_NOTICE '=' TBOOL ';'
 
 auth_class: CLASS '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(class_name);
     DupString(class_name, yylval.string);
@@ -1931,7 +1958,7 @@ auth_class: CLASS '=' QSTRING ';'
 
 auth_encrypted: ENCRYPTED '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       SetConfEncrypted(yy_aconf);
@@ -1950,7 +1977,7 @@ auth_flags_item: NOT { not_atom = 1; } auth_flags_item_atom
 
 auth_flags_item_atom: SPOOF_NOTICE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_SPOOF_NOTICE;
     else yy_aconf->flags |= CONF_FLAGS_SPOOF_NOTICE;
@@ -1958,63 +1985,63 @@ auth_flags_item_atom: SPOOF_NOTICE
 
 } | EXCEED_LIMIT
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_NOLIMIT;
     else yy_aconf->flags |= CONF_FLAGS_NOLIMIT;
   }
 } | KLINE_EXEMPT
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_EXEMPTKLINE;
     else yy_aconf->flags |= CONF_FLAGS_EXEMPTKLINE;
   } 
 } | NEED_IDENT
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_NEED_IDENTD;
     else yy_aconf->flags |= CONF_FLAGS_NEED_IDENTD;
   }
 } | CAN_FLOOD
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_CAN_FLOOD;
     else yy_aconf->flags |= CONF_FLAGS_CAN_FLOOD;
   }
 } | CAN_IDLE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_IDLE_LINED;
     else yy_aconf->flags |= CONF_FLAGS_IDLE_LINED;
   }
 } | NO_TILDE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_NO_TILDE;
     else yy_aconf->flags |= CONF_FLAGS_NO_TILDE;
   } 
 } | GLINE_EXEMPT
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_EXEMPTGLINE;
     else yy_aconf->flags |= CONF_FLAGS_EXEMPTGLINE;
   } 
 } | RESV_EXEMPT
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_EXEMPTRESV;
     else yy_aconf->flags |= CONF_FLAGS_EXEMPTRESV;
   }
 } | NEED_PASSWORD
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_NEED_PASSWORD;
     else yy_aconf->flags |= CONF_FLAGS_NEED_PASSWORD;
@@ -2023,7 +2050,7 @@ auth_flags_item_atom: SPOOF_NOTICE
 
 auth_kline_exempt: KLINE_EXEMPT '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->flags |= CONF_FLAGS_EXEMPTKLINE;
@@ -2034,7 +2061,7 @@ auth_kline_exempt: KLINE_EXEMPT '=' TBOOL ';'
 
 auth_need_ident: NEED_IDENT '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->flags |= CONF_FLAGS_NEED_IDENTD;
@@ -2045,7 +2072,7 @@ auth_need_ident: NEED_IDENT '=' TBOOL ';'
 
 auth_exceed_limit: EXCEED_LIMIT '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->flags |= CONF_FLAGS_NOLIMIT;
@@ -2056,7 +2083,7 @@ auth_exceed_limit: EXCEED_LIMIT '=' TBOOL ';'
 
 auth_can_flood: CAN_FLOOD '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->flags |= CONF_FLAGS_CAN_FLOOD;
@@ -2067,7 +2094,7 @@ auth_can_flood: CAN_FLOOD '=' TBOOL ';'
 
 auth_no_tilde: NO_TILDE '=' TBOOL ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->flags |= CONF_FLAGS_NO_TILDE;
@@ -2078,7 +2105,7 @@ auth_no_tilde: NO_TILDE '=' TBOOL ';'
 
 auth_gline_exempt: GLINE_EXEMPT '=' TBOOL ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->flags |= CONF_FLAGS_EXEMPTGLINE;
@@ -2090,7 +2117,7 @@ auth_gline_exempt: GLINE_EXEMPT '=' TBOOL ';'
 /* XXX - need check for illegal hostnames here */
 auth_spoof: SPOOF '=' QSTRING ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(yy_conf->name);
 
@@ -2109,7 +2136,7 @@ auth_spoof: SPOOF '=' QSTRING ';'
 
 auth_redir_serv: REDIRSERV '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     yy_aconf->flags |= CONF_FLAGS_REDIR;
     MyFree(yy_conf->name);
@@ -2119,7 +2146,7 @@ auth_redir_serv: REDIRSERV '=' QSTRING ';'
 
 auth_redir_port: REDIRPORT '=' NUMBER ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     yy_aconf->flags |= CONF_FLAGS_REDIR;
     yy_aconf->port = $3;
@@ -2128,7 +2155,7 @@ auth_redir_port: REDIRPORT '=' NUMBER ';'
 
 auth_need_password: NEED_PASSWORD '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->flags |= CONF_FLAGS_NEED_PASSWORD;
@@ -2143,14 +2170,14 @@ auth_need_password: NEED_PASSWORD '=' TBOOL ';'
  ***************************************************************************/
 resv_entry: RESV
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(resv_reason);
     resv_reason = NULL;
   }
 } '{' resv_items '}' ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(resv_reason);
     resv_reason = NULL;
@@ -2162,7 +2189,7 @@ resv_item:	resv_creason | resv_channel | resv_nick | error ';' ;
 
 resv_creason: REASON '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(resv_reason);
     DupString(resv_reason, yylval.string);
@@ -2171,7 +2198,7 @@ resv_creason: REASON '=' QSTRING ';'
 
 resv_channel: CHANNEL '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (IsChanPrefix(*yylval.string))
     {
@@ -2186,7 +2213,7 @@ resv_channel: CHANNEL '=' QSTRING ';'
 
 resv_nick: NICK '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     char def_reason[] = "No reason";
 
@@ -2199,7 +2226,7 @@ resv_nick: NICK '=' QSTRING ';'
  ***************************************************************************/
 shared_entry: T_SHARED
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     yy_conf = make_conf_item(ULINE_TYPE);
     yy_match_item = map_to_conf(yy_conf);
@@ -2207,7 +2234,7 @@ shared_entry: T_SHARED
   }
 } '{' shared_items '}' ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     yy_conf = NULL;
   }
@@ -2218,7 +2245,7 @@ shared_item:  shared_name | shared_user | shared_type | error ';' ;
 
 shared_name: NAME '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(yy_conf->name);
     DupString(yy_conf->name, yylval.string);
@@ -2227,7 +2254,7 @@ shared_name: NAME '=' QSTRING ';'
 
 shared_user: USER '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct split_nuh_item nuh;
 
@@ -2249,54 +2276,54 @@ shared_user: USER '=' QSTRING ';'
 
 shared_type: TYPE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action = 0;
 } '=' shared_types ';' ;
 
 shared_types: shared_types ',' shared_type_item | shared_type_item;
 shared_type_item: KLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_KLINE;
 } | TKLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_TKLINE;
 } | UNKLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_UNKLINE;
 } | XLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_XLINE;
 } | TXLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_TXLINE;
 } | T_UNXLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_UNXLINE;
 } | RESV
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_RESV;
 } | TRESV
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_TRESV;
 } | T_UNRESV
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_UNRESV;
 } | T_LOCOPS
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_LOCOPS;
 } | T_ALL
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_match_item->action = SHARED_ALL;
 };
 
@@ -2305,14 +2332,14 @@ shared_type_item: KLINE
  ***************************************************************************/
 cluster_entry: T_CLUSTER
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     yy_conf = make_conf_item(CLUSTER_TYPE);
     yy_conf->flags = SHARED_ALL;
   }
 } '{' cluster_items '}' ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yy_conf->name == NULL)
       DupString(yy_conf->name, "*");
@@ -2325,60 +2352,60 @@ cluster_item:	cluster_name | cluster_type | error ';' ;
 
 cluster_name: NAME '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     DupString(yy_conf->name, yylval.string);
 };
 
 cluster_type: TYPE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags = 0;
 } '=' cluster_types ';' ;
 
 cluster_types:	cluster_types ',' cluster_type_item | cluster_type_item;
 cluster_type_item: KLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_KLINE;
 } | TKLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_TKLINE;
 } | UNKLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_UNKLINE;
 } | XLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_XLINE;
 } | TXLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_TXLINE;
 } | T_UNXLINE
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_UNXLINE;
 } | RESV
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_RESV;
 } | TRESV
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_TRESV;
 } | T_UNRESV
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_UNRESV;
 } | T_LOCOPS
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_LOCOPS;
 } | T_ALL
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_conf->flags = SHARED_ALL;
 };
 
@@ -2387,7 +2414,7 @@ cluster_type_item: KLINE
  ***************************************************************************/
 connect_entry: CONNECT   
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     yy_conf = make_conf_item(SERVER_TYPE);
     yy_aconf = (struct AccessItem *)map_to_conf(yy_conf);
@@ -2405,7 +2432,7 @@ connect_entry: CONNECT
   }
 } connect_name_b '{' connect_items '}' ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct CollectItem *yy_hconf=NULL;
     struct CollectItem *yy_lconf=NULL;
@@ -2544,7 +2571,7 @@ connect_item:   connect_name | connect_host | connect_vhost |
 
 connect_name: NAME '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yy_conf->name != NULL)
       yyerror("Multiple connect name entry");
@@ -2556,7 +2583,7 @@ connect_name: NAME '=' QSTRING ';'
 
 connect_name_t: QSTRING
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yy_conf->name != NULL)
       yyerror("Multiple connect name entry");
@@ -2568,7 +2595,7 @@ connect_name_t: QSTRING
 
 connect_host: HOST '=' QSTRING ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(yy_aconf->host);
     DupString(yy_aconf->host, yylval.string);
@@ -2577,7 +2604,7 @@ connect_host: HOST '=' QSTRING ';'
 
 connect_vhost: VHOST '=' QSTRING ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct addrinfo hints, *res;
 
@@ -2603,7 +2630,7 @@ connect_vhost: VHOST '=' QSTRING ';'
  
 connect_send_password: SEND_PASSWORD '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if ($3[0] == ':')
       yyerror("Server passwords cannot begin with a colon");
@@ -2621,7 +2648,7 @@ connect_send_password: SEND_PASSWORD '=' QSTRING ';'
 
 connect_accept_password: ACCEPT_PASSWORD '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if ($3[0] == ':')
       yyerror("Server passwords cannot begin with a colon");
@@ -2639,25 +2666,25 @@ connect_accept_password: ACCEPT_PASSWORD '=' QSTRING ';'
 
 connect_port: PORT '=' NUMBER ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->port = $3;
 };
 
 connect_aftype: AFTYPE '=' T_IPV4 ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->aftype = AF_INET;
 } | AFTYPE '=' T_IPV6 ';'
 {
 #ifdef IPV6
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->aftype = AF_INET6;
 #endif
 };
 
 connect_fakename: FAKENAME '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(yy_aconf->fakename);
     DupString(yy_aconf->fakename, yylval.string);
@@ -2674,7 +2701,7 @@ connect_flags_item: NOT  { not_atom = 1; } connect_flags_item_atom
 
 connect_flags_item_atom: COMPRESSED
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
 #ifndef HAVE_LIBZ
     yyerror("Ignoring flags = compressed; -- no zlib support");
 #else
@@ -2685,28 +2712,28 @@ connect_flags_item_atom: COMPRESSED
 #endif
 } | CRYPTLINK
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom)ClearConfCryptLink(yy_aconf);
     else SetConfCryptLink(yy_aconf);
   }
 } | AUTOCONN
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom)ClearConfAllowAutoConn(yy_aconf);
     else SetConfAllowAutoConn(yy_aconf);
   }
 } | BURST_AWAY
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom)ClearConfAwayBurst(yy_aconf);
     else SetConfAwayBurst(yy_aconf);
   }
 } | TOPICBURST
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (not_atom)ClearConfTopicBurst(yy_aconf);
     else SetConfTopicBurst(yy_aconf);
@@ -2717,7 +2744,7 @@ connect_flags_item_atom: COMPRESSED
 connect_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
 {
 #ifdef HAVE_LIBCRYPTO
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     BIO *file;
 
@@ -2757,7 +2784,7 @@ connect_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
 
 connect_encrypted: ENCRYPTED '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->flags |= CONF_FLAGS_ENCRYPTED;
@@ -2768,7 +2795,7 @@ connect_encrypted: ENCRYPTED '=' TBOOL ';'
 
 connect_cryptlink: CRYPTLINK '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->flags |= CONF_FLAGS_CRYPTLINK;
@@ -2779,7 +2806,7 @@ connect_cryptlink: CRYPTLINK '=' TBOOL ';'
 
 connect_compressed: COMPRESSED '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
 #ifndef HAVE_LIBZ
@@ -2794,7 +2821,7 @@ connect_compressed: COMPRESSED '=' TBOOL ';'
 
 connect_auto: AUTOCONN '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       yy_aconf->flags |= CONF_FLAGS_ALLOW_AUTO_CONN;
@@ -2805,7 +2832,7 @@ connect_auto: AUTOCONN '=' TBOOL ';'
 
 connect_topicburst: TOPICBURST '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.number)
       SetConfTopicBurst(yy_aconf);
@@ -2816,7 +2843,7 @@ connect_topicburst: TOPICBURST '=' TBOOL ';'
 
 connect_hub_mask: HUB_MASK '=' QSTRING ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct CollectItem *yy_tmp;
 
@@ -2829,7 +2856,7 @@ connect_hub_mask: HUB_MASK '=' QSTRING ';'
 
 connect_leaf_mask: LEAF_MASK '=' QSTRING ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct CollectItem *yy_tmp;
 
@@ -2842,7 +2869,7 @@ connect_leaf_mask: LEAF_MASK '=' QSTRING ';'
 
 connect_class: CLASS '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(class_name);
     DupString(class_name, yylval.string);
@@ -2852,7 +2879,7 @@ connect_class: CLASS '=' QSTRING ';'
 connect_cipher_preference: CIPHER_PREFERENCE '=' QSTRING ';'
 {
 #ifdef HAVE_LIBCRYPTO
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct EncCapability *ecap;
     const char *cipher_name;
@@ -2876,7 +2903,7 @@ connect_cipher_preference: CIPHER_PREFERENCE '=' QSTRING ';'
       yyerror("Invalid cipher");
   }
 #else
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yyerror("Ignoring cipher_preference -- no OpenSSL support");
 #endif
 };
@@ -2886,14 +2913,14 @@ connect_cipher_preference: CIPHER_PREFERENCE '=' QSTRING ';'
  ***************************************************************************/
 kill_entry: KILL
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     userbuf[0] = hostbuf[0] = reasonbuf[0] = '\0';
     regex_ban = 0;
   }
 } '{' kill_items '}' ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (userbuf[0] && hostbuf[0])
     {
@@ -2955,7 +2982,7 @@ kill_type: TYPE
 kill_type_items: kill_type_items ',' kill_type_item | kill_type_item;
 kill_type_item: REGEX_T
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     regex_ban = 1;
 };
 
@@ -2964,7 +2991,7 @@ kill_item:      kill_user | kill_reason | kill_type | error;
 
 kill_user: USER '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct split_nuh_item nuh;
 
@@ -2983,7 +3010,7 @@ kill_user: USER '=' QSTRING ';'
 
 kill_reason: REASON '=' QSTRING ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     strlcpy(reasonbuf, yylval.string, sizeof(reasonbuf));
 };
 
@@ -2992,7 +3019,7 @@ kill_reason: REASON '=' QSTRING ';'
  ***************************************************************************/
 deny_entry: DENY 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     yy_conf = make_conf_item(DLINE_TYPE);
     yy_aconf = map_to_conf(yy_conf);
@@ -3001,7 +3028,7 @@ deny_entry: DENY
   }
 } '{' deny_items '}' ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yy_aconf->host && parse_netmask(yy_aconf->host, NULL, NULL) != HM_HOST)
       add_conf_by_address(CONF_DLINE, yy_aconf);
@@ -3017,7 +3044,7 @@ deny_item:      deny_ip | deny_reason | error;
 
 deny_ip: IP '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(yy_aconf->host);
     DupString(yy_aconf->host, yylval.string);
@@ -3026,7 +3053,7 @@ deny_ip: IP '=' QSTRING ';'
 
 deny_reason: REASON '=' QSTRING ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(yy_aconf->reason);
     DupString(yy_aconf->reason, yylval.string);
@@ -3043,7 +3070,7 @@ exempt_item:      exempt_ip | error;
 
 exempt_ip: IP '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (yylval.string[0] && parse_netmask(yylval.string, NULL, NULL) != HM_HOST)
     {
@@ -3064,14 +3091,14 @@ exempt_ip: IP '=' QSTRING ';'
  ***************************************************************************/
 gecos_entry: GECOS
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     regex_ban = 0;
     reasonbuf[0] = gecos_name[0] = '\0';
   }
 } '{' gecos_items '}' ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (gecos_name[0])
     {
@@ -3111,7 +3138,7 @@ gecos_flags: TYPE
 gecos_flags_items: gecos_flags_items ',' gecos_flags_item | gecos_flags_item;
 gecos_flags_item: REGEX_T
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     regex_ban = 1;
 };
 
@@ -3120,13 +3147,13 @@ gecos_item:  gecos_name | gecos_reason | gecos_flags | error;
 
 gecos_name: NAME '=' QSTRING ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     strlcpy(gecos_name, yylval.string, sizeof(gecos_name));
 };
 
 gecos_reason: REASON '=' QSTRING ';' 
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     strlcpy(reasonbuf, yylval.string, sizeof(reasonbuf));
 };
 
@@ -3261,13 +3288,13 @@ general_ts_warn_delta: TS_WARN_DELTA '=' timespec ';'
 
 general_ts_max_delta: TS_MAX_DELTA '=' timespec ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigFileEntry.ts_max_delta = $3;
 };
 
 general_havent_read_conf: HAVENT_READ_CONF '=' NUMBER ';'
 {
-  if (($3 > 0) && ypass == 1)
+  if (($3 > 0) && conf_parser_ctx.pass == 1)
   {
     ilog(L_CRIT, "You haven't read your config file properly.");
     ilog(L_CRIT, "There is a line in the example conf that will kill your server if not removed.");
@@ -3283,7 +3310,7 @@ general_kline_with_reason: KLINE_WITH_REASON '=' TBOOL ';'
 
 general_kline_reason: KLINE_REASON '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(ConfigFileEntry.kline_reason);
     DupString(ConfigFileEntry.kline_reason, yylval.string);
@@ -3373,7 +3400,7 @@ general_oper_pass_resv: OPER_PASS_RESV '=' TBOOL ';'
 
 general_message_locale: MESSAGE_LOCALE '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (strlen(yylval.string) > LOCALE_LENGTH-2)
       yylval.string[LOCALE_LENGTH-1] = '\0';
@@ -3399,7 +3426,7 @@ general_max_targets: MAX_TARGETS '=' NUMBER ';'
 
 general_servlink_path: SERVLINK_PATH '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(ConfigFileEntry.servlink_path);
     DupString(ConfigFileEntry.servlink_path, yylval.string);
@@ -3409,7 +3436,7 @@ general_servlink_path: SERVLINK_PATH '=' QSTRING ';'
 general_default_cipher_preference: DEFAULT_CIPHER_PREFERENCE '=' QSTRING ';'
 {
 #ifdef HAVE_LIBCRYPTO
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct EncCapability *ecap;
     const char *cipher_name;
@@ -3433,14 +3460,14 @@ general_default_cipher_preference: DEFAULT_CIPHER_PREFERENCE '=' QSTRING ';'
       yyerror("Invalid cipher");
   }
 #else
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yyerror("Ignoring default_cipher_preference -- no OpenSSL support");
 #endif
 };
 
 general_compression_level: COMPRESSION_LEVEL '=' NUMBER ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     ConfigFileEntry.compression_level = $3;
 #ifndef HAVE_LIBZ
@@ -3463,7 +3490,7 @@ general_use_egd: USE_EGD '=' TBOOL ';'
 
 general_egdpool_path: EGDPOOL_PATH '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(ConfigFileEntry.egdpool_path);
     DupString(ConfigFileEntry.egdpool_path, yylval.string);
@@ -3645,14 +3672,14 @@ general_dot_in_ip6_addr: DOT_IN_IP6_ADDR '=' TBOOL ';'
  ***************************************************************************/
 gline_entry: GLINES
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     yy_conf = make_conf_item(GDENY_TYPE);
     yy_aconf = map_to_conf(yy_conf);
   }
 } '{' gline_items '}' ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     /*
      * since we re-allocate yy_conf/yy_aconf after the end of action=, at the
@@ -3678,35 +3705,35 @@ gline_item:         gline_enable |
 
 gline_enable: ENABLE '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigFileEntry.glines = yylval.number;
 };
 
 gline_duration: DURATION '=' timespec ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigFileEntry.gline_time = $3;
 };
 
 gline_logging: LOGGING
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigFileEntry.gline_logging = 0;
 } '=' gline_logging_types ';';
 gline_logging_types:	 gline_logging_types ',' gline_logging_type_item | gline_logging_type_item;
 gline_logging_type_item: T_REJECT
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigFileEntry.gline_logging |= GDENY_REJECT;
 } | T_BLOCK
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigFileEntry.gline_logging |= GDENY_BLOCK;
 };
 
 gline_user: USER '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct split_nuh_item nuh;
 
@@ -3740,7 +3767,7 @@ gline_user: USER '=' QSTRING ';'
 
 gline_server: NAME '=' QSTRING ';'
 {
-  if (ypass == 2)  
+  if (conf_parser_ctx.pass == 2)  
   {
     MyFree(yy_conf->name);
     DupString(yy_conf->name, yylval.string);
@@ -3749,11 +3776,11 @@ gline_server: NAME '=' QSTRING ';'
 
 gline_action: ACTION
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->flags = 0;
 } '=' gdeny_types ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     struct CollectItem *yy_tmp = NULL;
     dlink_node *ptr, *next_ptr;
@@ -3800,11 +3827,11 @@ gline_action: ACTION
 gdeny_types: gdeny_types ',' gdeny_type_item | gdeny_type_item;
 gdeny_type_item: T_REJECT
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->flags |= GDENY_REJECT;
 } | T_BLOCK
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->flags |= GDENY_BLOCK;
 };
 
@@ -3932,19 +3959,19 @@ serverhide_item:    serverhide_flatten_links | serverhide_hide_servers |
 
 serverhide_flatten_links: FLATTEN_LINKS '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigServerHide.flatten_links = yylval.number;
 };
 
 serverhide_hide_servers: HIDE_SERVERS '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigServerHide.hide_servers = yylval.number;
 };
 
 serverhide_hidden_name: HIDDEN_NAME '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     MyFree(ConfigServerHide.hidden_name);
     DupString(ConfigServerHide.hidden_name, yylval.string);
@@ -3953,7 +3980,7 @@ serverhide_hidden_name: HIDDEN_NAME '=' QSTRING ';'
 
 serverhide_links_delay: LINKS_DELAY '=' timespec ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     if (($3 > 0) && ConfigServerHide.links_disabled == 1)
     {
@@ -3967,18 +3994,18 @@ serverhide_links_delay: LINKS_DELAY '=' timespec ';'
 
 serverhide_hidden: HIDDEN '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigServerHide.hidden = yylval.number;
 };
 
 serverhide_disable_hidden: DISABLE_HIDDEN '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigServerHide.disable_hidden = yylval.number;
 };
 
 serverhide_hide_server_ips: HIDE_SERVER_IPS '=' TBOOL ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     ConfigServerHide.hide_server_ips = yylval.number;
 };

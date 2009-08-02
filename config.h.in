@@ -196,7 +196,7 @@
 /* Define to 1 if the system has the type `struct sockaddr_in6'. */
 #undef HAVE_STRUCT_SOCKADDR_IN6
 
-/* Define to 1 if `sin_len' is member of `struct sockaddr_in'. */
+/* Define to 1 if `struct sockaddr_in' is a member of `sin_len'. */
 #undef HAVE_STRUCT_SOCKADDR_IN_SIN_LEN
 
 /* Define to 1 if the system has the type `struct sockaddr_storage'. */
@@ -311,6 +311,9 @@
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION

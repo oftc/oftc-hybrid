@@ -109,7 +109,7 @@ get_sockerr(int fd)
   int err = 0;
   socklen_t len = sizeof(err);
 
-  if (-1 < fd && !getsockopt(fd, SOL_SOCKET, SO_ERROR, (char*) &err, (socklen_t *)&len))
+  if (-1 < fd && !getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len))
   {
     if (err)
       errtmp = err;
@@ -159,11 +159,11 @@ setup_socket(va_list args)
   int fd = va_arg(args, int);
   int opt = 1;
 
-  setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *) &opt, sizeof(opt));
+  setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt));
 
 #ifdef IPTOS_LOWDELAY
   opt = IPTOS_LOWDELAY;
-  setsockopt(fd, IPPROTO_IP, IP_TOS, (char *) &opt, sizeof(opt));
+  setsockopt(fd, IPPROTO_IP, IP_TOS, &opt, sizeof(opt));
 #endif
 
 #ifndef _WIN32
@@ -362,7 +362,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 #ifdef HAVE_LIBCRYPTO
   if (listener->flags & LISTENER_SSL)
   {
-    if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.ctx)) == NULL)
+    if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.server_ctx)) == NULL)
     {
       ilog(L_CRIT, "SSL_new() ERROR! -- %s",
            ERR_error_string(ERR_get_error(), NULL));

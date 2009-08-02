@@ -136,34 +136,15 @@ small_file_date(time_t lclock)
 
 #ifdef HAVE_LIBCRYPTO
 char *
-ssl_get_cipher(SSL *ssl)
+ssl_get_cipher(const SSL *ssl)
 {
-  static char buffer[128];
-  const char *name = NULL;
-  int bits;
-
-  switch (ssl->session->ssl_version)
-  {
-    case SSL2_VERSION:
-      name = "SSLv2";
-      break;
-
-    case SSL3_VERSION:
-      name = "SSLv3";
-      break;
-
-    case TLS1_VERSION:
-      name = "TLSv1";
-      break;
-
-    default:
-      name = "UNKNOWN";
-  }
+  static char buffer[IRCD_BUFSIZE / 4];
+  int bits = 0;
 
   SSL_CIPHER_get_bits(SSL_get_current_cipher(ssl), &bits);
 
-  snprintf(buffer, sizeof(buffer), "%s %s-%d",
-           name, SSL_get_cipher(ssl), bits);
+  snprintf(buffer, sizeof(buffer), "%s %s-%d", SSL_get_version(ssl),
+           SSL_get_cipher(ssl), bits);
   
   return buffer;
 }

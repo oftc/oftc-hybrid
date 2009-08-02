@@ -29,7 +29,7 @@ extern char *date(time_t);
 extern char *small_file_date(time_t);
 extern const char *smalldate(time_t);
 #ifdef HAVE_LIBCRYPTO
-extern char *ssl_get_cipher(SSL *);
+extern char *ssl_get_cipher(const SSL *);
 #endif
 
 #define _1MEG     (1024.0)
