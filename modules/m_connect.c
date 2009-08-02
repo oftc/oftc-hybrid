@@ -39,12 +39,12 @@
 #include "hash.h"
 #include "modules.h"
 
-static void mo_connect(struct Client *, struct Client *, int, char **);
-static void ms_connect(struct Client *, struct Client *, int, char **);
+static void mo_connect(struct Client *, struct Client *, int, char *[]);
+static void ms_connect(struct Client *, struct Client *, int, char *[]);
 
 struct Message connect_msgtab = {
   "CONNECT", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_connect, m_ignore, mo_connect, m_ignore}
+  { m_unregistered, m_not_oper, ms_connect, m_ignore, mo_connect, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -75,32 +75,34 @@ const char *_version = "$Revision$";
  *      parv[3] = remote server
  */
 static void
-mo_connect(struct Client* client_p, struct Client* source_p,
-           int parc, char* parv[])
+mo_connect(struct Client *client_p, struct Client *source_p,
+           int parc, char *parv[])
 {
   int port;
   int tmpport;
   struct ConfItem *conf = NULL;
   struct AccessItem *aconf = NULL;
-  struct Client *target_p;
+  const struct Client *target_p = NULL;
 
-  /* always privileged with handlers */
-  if (MyConnect(source_p) && !IsOperRemote(source_p) && parc > 3)
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVS),
-               me.name, source_p->name, "connect");
-    return;
-  }
-
-  if (hunt_server(client_p, source_p,
-                  ":%s CONNECT %s %s :%s", 3, parc, parv) != HUNTED_ISME)
-    return;
-
-  if (*parv[1] == '\0')
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "CONNECT");
     return;
+  }
+
+  if (parc > 3)
+  {
+    if (!IsOperRemote(source_p))
+    {
+      sendto_one(source_p, form_str(ERR_NOPRIVS),
+                 me.name, source_p->name, "connect");
+      return;
+    }
+
+    if (hunt_server(client_p, source_p, ":%s CONNECT %s %s :%s", 3,
+                    parc, parv) != HUNTED_ISME)
+      return;
   }
 
   if ((target_p = find_server(parv[1])))
@@ -121,14 +123,14 @@ mo_connect(struct Client* client_p, struct Client* source_p,
 					   NULL, NULL, parv[1], 0)) != NULL)
     aconf = (struct AccessItem *)map_to_conf(conf);
   
-  if (conf == NULL)
+  if (conf == NULL || aconf == NULL)
   {
     sendto_one(source_p,
 	       ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
 	       me.name, source_p->name, parv[1]);
     return;
   }
-    
+
   /* Get port number from user, if given. If not specified,
    * use the default form configuration structure. If missing
    * from there, then use the precompiled default.
@@ -210,7 +212,7 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   int tmpport;
   struct ConfItem *conf = NULL;
   struct AccessItem *aconf = NULL;
-  struct Client *target_p;
+  const struct Client *target_p = NULL;
 
   if (hunt_server(client_p, source_p,
                   ":%s CONNECT %s %s :%s", 3, parc, parv) != HUNTED_ISME)
@@ -236,20 +238,18 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    */
   if ((conf = find_matching_name_conf(SERVER_TYPE,
 				      parv[1], NULL, NULL, 0)) != NULL)
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = map_to_conf(conf);
   else if ((conf = find_matching_name_conf(SERVER_TYPE,
 					   NULL, NULL, parv[1], 0)) != NULL)
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = map_to_conf(conf);
 
-  if (aconf == NULL)
+  if (conf == NULL || aconf == NULL)
   {
     sendto_one(source_p,
 	       ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
 	       me.name, source_p->name, parv[1]);
     return;
   }
-
-  assert(aconf != NULL);
 
   /* Get port number from user, if given. If not specified,
    * use the default form configuration structure. If missing
