@@ -26,13 +26,11 @@
 #include "stdinc.h"
 #include "handlers.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_conf.h"
-#include "restart.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
@@ -44,7 +42,7 @@ static void m_watch(struct Client *, struct Client *, int, char *[]);
 
 struct Message watch_msgtab = {
   "WATCH", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_watch, m_watch, m_ignore, m_watch, m_ignore }
+  { m_unregistered, m_watch, m_ignore, m_ignore, m_watch, m_ignore }
 };
 
 #ifndef STATIC_MODULES
