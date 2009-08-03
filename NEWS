@@ -1,4 +1,10 @@
 -- ircd-hybrid-7.3 RELNOTES
+o) implemented GUNGLINE (global ungline)
+o) updated PCRE lib to latest 7.9 release
+o) completely rewrote build system. we're now using automake and libtool
+o) added support for sha256/sha512 encrypted passwords to mkpasswd
+o) added ssl_server_protocol configuration option to servinfo{}.
+   valid flags are 'sslv3' and 'tlsv1'
 o) Fixed occasional core when placing RESVs on channel names
 o) Fixed topic desynchronization which sometimes may
    happen during netbursts
