@@ -105,11 +105,11 @@ o) +R - Cannot join channel unless regisitered with NickServ
 o) +M - Cannot talk on channel unless registered with NickServ
 o) +S - Cannot join channel unless using SSL
 
--- ircd-hybrid-7.2.4 RELNOTES
+-- ircd-hybrid-7.3 RELNOTES
 o) Fixed occasional core when placing RESVs on channel names
 o) Fixed topic desynchronization which sometimes may
    happen during netbursts
-o) WATCH support implemented. Known from other daemons, such
+o) WATCH support implemented. Known from other irc-daemons, such
    as Dreamforge and Bahamut.
 o) Fixed bug which would cause invalid invisible counts on oper-up in case
    operator::umodes and/or general::oper_umodes contains 'invisible'
@@ -228,9 +228,7 @@ o) Introduced new listen::flags directive.  Currently available flags are
 BUGS: Major bugs in this release are listed in BUGS
 
 BUG REPORTS: If you run this code and encounter problems, you must report
- the bug in one of the following ways:
-  a) By EMAIL to bugs@ircd-hybrid.org
-  b) On http://forum.ircd-hybrid.org/
+ the bug by EMAIL to bugs@ircd-hybrid.org
  Please include a gdb backtrace and a copy of your config.h and
  ircd.conf with any report (with passwords and other sensitive
  information masked).
@@ -240,7 +238,6 @@ DISCUSSION: There is a mailing list for discussion of hybrid issues,
     https://lists.ircd-hybrid.org/mailman/listinfo/hybrid
  This is the proper place to discuss new features, bugs, etc.  Posting here
  is much more likely to get something done than ranting on #TZ.
- You can also use Hybrid forums at http://forum.ircd-hybrid.org/
 
 Questions/comments directed to bugs@ircd-hybrid.org
 

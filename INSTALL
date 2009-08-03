@@ -2,7 +2,7 @@
 
    $Id$
 
-   Copyright (c) 1997-2007 IRCD-Hybrid Development Team
+   Copyright (c) 1997-2009 IRCD-Hybrid Development Team
 
      ----------------------------------------------------------------------
 
@@ -168,10 +168,6 @@
      on you, PLEASE contact bugs@ircd-hybrid.org ASAP with a backtrace of
      the core. The Hybrid team can't fix bugs if no one tells us about them!
 
-   - http://forum.ircd-hybrid.org/
-     We decided to create a phpBB-like forum about ircd-hybrid, where you
-     can get help from coders and admins, post your suggestions, modules etc.
-
    - https://lists.ircd-hybrid.org/mailman/listinfo/hybrid
      Here you can subscribe to a mailing list for general discussion of Hybrid.
 
@@ -184,7 +180,7 @@
 
    1.  Change to the directory containing the core file
 
-   2.  Run gdb on the binary and the core file. With an unmodified Hybrid-7.2
+   2.  Run gdb on the binary and the core file. With an unmodified ircd-hybrid
        installation, an example command line is below (in the /usr/local/ircd
        directory)
 
