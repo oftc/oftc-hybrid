@@ -35,8 +35,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 sbin_PROGRAMS = ircd$(EXEEXT)
-@HAVE_CRYPT_TRUE@am__append_1 = crypt.c
-@ENABLE_SSL_TRUE@am__append_2 = rsa.c
+@ENABLE_SSL_TRUE@am__append_1 = rsa.c
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in ircd_lexer.c \
 	ircd_parser.c ircd_parser.h
@@ -61,9 +60,8 @@ am__ircd_SOURCES_DIST = balloc.c channel.c channel_mode.c client.c \
 	s_bsd_win32.c restart.c resv.c s_auth.c s_bsd.c s_gline.c \
 	s_log.c s_misc.c s_serv.c s_user.c send.c sprintf_irc.c \
 	tools.c version.c watch.c whowas.c ircd_parser.y ircd_lexer.l \
-	crypt.c rsa.c
-@HAVE_CRYPT_TRUE@am__objects_1 = crypt.$(OBJEXT)
-@ENABLE_SSL_TRUE@am__objects_2 = rsa.$(OBJEXT)
+	rsa.c
+@ENABLE_SSL_TRUE@am__objects_1 = rsa.$(OBJEXT)
 am_ircd_OBJECTS = balloc.$(OBJEXT) channel.$(OBJEXT) \
 	channel_mode.$(OBJEXT) client.$(OBJEXT) csvlib.$(OBJEXT) \
 	dbuf.$(OBJEXT) dynlink.$(OBJEXT) event.$(OBJEXT) \
@@ -84,7 +82,7 @@ am_ircd_OBJECTS = balloc.$(OBJEXT) channel.$(OBJEXT) \
 	s_user.$(OBJEXT) send.$(OBJEXT) sprintf_irc.$(OBJEXT) \
 	tools.$(OBJEXT) version.$(OBJEXT) watch.$(OBJEXT) \
 	whowas.$(OBJEXT) ircd_parser.$(OBJEXT) ircd_lexer.$(OBJEXT) \
-	$(am__objects_1) $(am__objects_2)
+	$(am__objects_1)
 ircd_OBJECTS = $(am_ircd_OBJECTS)
 am__DEPENDENCIES_1 =
 ircd_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -272,7 +270,7 @@ ircd_SOURCES = balloc.c channel.c channel_mode.c client.c csvlib.c \
 	s_bsd_win32.c restart.c resv.c s_auth.c s_bsd.c s_gline.c \
 	s_log.c s_misc.c s_serv.c s_user.c send.c sprintf_irc.c \
 	tools.c version.c watch.c whowas.c ircd_parser.y ircd_lexer.l \
-	$(am__append_1) $(am__append_2)
+	$(am__append_1)
 all: all-am
 
 .SUFFIXES:
@@ -369,7 +367,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/channel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/channel_mode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crypt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/csvlib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dbuf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dynlink.Po@am__quote@

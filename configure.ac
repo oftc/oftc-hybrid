@@ -19,7 +19,7 @@ AC_PROG_INSTALL
 
 
 #ltdl stuff
-LT_INIT([dlopen])
+LT_INIT([dlopen disable-static])
 LTDL_INIT
 LIBTOOL="$LIBTOOL --silent"
 
@@ -87,8 +87,7 @@ else
 fi
 
 
-AC_SEARCH_LIBS(crypt, [crypt descrypt],,)
-AM_CONDITIONAL([HAVE_CRYPT], [test "$ac_cv_search_crypt" = "none required"])
+AC_SEARCH_LIBS(crypt, crypt)
 
 
 AC_ARG_WITH(zlib-path,

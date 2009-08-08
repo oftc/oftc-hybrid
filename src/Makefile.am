@@ -5,7 +5,7 @@ sbin_PROGRAMS = ircd
 AM_YFLAGS = -d
 
 AM_CPPFLAGS = $(INCLTDL) -I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
-ircd_LDFLAGS =-export-dynamic
+ircd_LDFLAGS = -export-dynamic
 ircd_LDADD = $(LIBLTDL) $(top_srcdir)/lib/pcre/libpcre.a
 ircd_DEPENDENCIES = $(LIBLTDL) $(top_srcdir)/lib/pcre/libpcre.a
 
@@ -64,9 +64,6 @@ ircd_SOURCES = balloc.c          \
                whowas.c          \
                ircd_parser.y     \
                ircd_lexer.l
-if HAVE_CRYPT
-ircd_SOURCES += crypt.c
-endif
 if ENABLE_SSL
 ircd_SOURCES += rsa.c
 endif
