@@ -57,8 +57,7 @@ AC_CHECK_FUNCS_ONCE(snprintf  \
                     strtok_r  \
                     usleep    \
                     strlcat   \
-                    strlcpy   \
-                    basename)
+                    strlcpy)
 
 # Checks for header files.
 AC_CHECK_HEADERS_ONCE(crypt.h        \

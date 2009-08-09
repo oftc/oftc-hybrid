@@ -67,10 +67,10 @@ extern void _modinit(void);
 extern void _moddeinit(void);
 
 extern void dynlink_init(void);
-extern int unload_one_module(char *, int);
+extern int unload_one_module(const char *, int);
 extern int modules_valid_suffix(const char *);
-extern int load_one_module(char *, int);
-extern int load_a_module(char *, int, int);
+extern int load_one_module(const char *, int);
+extern int load_a_module(const char *, int, int);
 extern dlink_node *findmodule_byname(const char *);
 extern void modules_init(void);
 #endif /* INCLUDED_modules_h */

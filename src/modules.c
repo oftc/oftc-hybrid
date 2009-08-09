@@ -318,7 +318,7 @@ load_core_modules(int warn)
  * side effects - module is loaded if found.
  */
 int
-load_one_module(char *path, int coremodule)
+load_one_module(const char *path, int coremodule)
 {
   dlink_node *ptr = NULL;
   char modpath[PATH_MAX + 1];
@@ -358,7 +358,7 @@ static void
 mo_modload(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
-  char *m_bn;
+  const char *m_bn = NULL;
 
   if (!IsAdmin(source_p))
   {
@@ -367,7 +367,7 @@ mo_modload(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  m_bn = basename(parv[1]);
+  m_bn = libio_basename(parv[1]);
 
   if (findmodule_byname(m_bn) != NULL)
   {
@@ -384,7 +384,7 @@ static void
 mo_modunload(struct Client *client_p, struct Client *source_p,
              int parc, char *parv[])
 {
-  char *m_bn;
+  const char *m_bn = NULL;
   dlink_node *ptr;
   struct module *modp;
 
@@ -395,7 +395,7 @@ mo_modunload(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  m_bn = basename(parv[1]);
+  m_bn = libio_basename(parv[1]);
 
   if ((ptr = findmodule_byname(m_bn)) == NULL)
   {
@@ -428,7 +428,7 @@ static void
 mo_modreload(struct Client *client_p, struct Client *source_p,
              int parc, char *parv[])
 {
-  char *m_bn;
+  const char *m_bn = NULL;
   dlink_node *ptr;
   struct module *modp;
   int check_core;
@@ -440,7 +440,7 @@ mo_modreload(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  m_bn = basename(parv[1]);
+  m_bn = libio_basename(parv[1]);
 
   if ((ptr = findmodule_byname(m_bn)) == NULL)
   {

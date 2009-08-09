@@ -54,9 +54,6 @@
 /* Define to 1 if you have the `argz_stringify' function. */
 #undef HAVE_ARGZ_STRINGIFY
 
-/* Define to 1 if you have the `basename' function. */
-#undef HAVE_BASENAME
-
 /* Define to 1 if you have the `closedir' function. */
 #undef HAVE_CLOSEDIR
 

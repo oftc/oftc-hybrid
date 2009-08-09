@@ -474,16 +474,7 @@ modules_module: MODULE '=' QSTRING ';'
 {
 #ifndef STATIC_MODULES /* NOOP in the static case */
   if (conf_parser_ctx.pass == 2)
-  {
-    char *m_bn;
-
-    m_bn = basename(yylval.string);
-
-    /* I suppose we should just ignore it if it is already loaded(since
-     * otherwise we would flood the opers on rehash) -A1kmm.
-     */
-    add_conf_module(yylval.string);
-  }
+    add_conf_module(libio_basename(yylval.string));
 #endif
 };
 

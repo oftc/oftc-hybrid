@@ -94,9 +94,7 @@ extern int snprintf(char *, size_t, const char *,...);
 extern int vsnprintf(char *, size_t, const char *, va_list);
 #endif
 
-#ifndef HAVE_BASENAME
-extern char *basename(char *);
-#endif
+extern const char *libio_basename(const char *);
 
 /*
  * clean_string - cleanup control and high ascii characters

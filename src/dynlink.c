@@ -65,7 +65,7 @@ modules_valid_suffix(const char *name)
  * side effects	- module is unloaded
  */
 int
-unload_one_module(char *name, int warn)
+unload_one_module(const char *name, int warn)
 {
   dlink_node *ptr = NULL;
   struct module *modp = NULL;
@@ -101,17 +101,17 @@ unload_one_module(char *name, int warn)
  * side effects - loads a module if successful
  */
 int
-load_a_module(char *path, int warn, int core)
+load_a_module(const char *path, int warn, int core)
 {
   lt_dlhandle tmpptr = NULL;
-  char *mod_basename;
+  const char *mod_basename = NULL;
   char **verp;
   char *ver;
   struct module *modp;
   void (*mod_init)(void) = NULL;
   void (*mod_deinit)(void) = NULL;
 
-  mod_basename = basename(path);
+  mod_basename = libio_basename(path);
 
   if (findmodule_byname(mod_basename) != NULL)
     return 1;
