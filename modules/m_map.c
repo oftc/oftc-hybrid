@@ -37,7 +37,7 @@
 
 static char buf[IRCD_BUFSIZE];
 static void mo_map(struct Client *, struct Client *, int, char *[]);
-static void dump_map(struct Client *, struct Client *, int, char *);
+static void dump_map(struct Client *, const struct Client *, int, char *);
 
 struct Message map_msgtab = {
   "MAP", 0, 0, 0, 0, MFLG_SLOW, 0,
@@ -98,12 +98,12 @@ mo_map(struct Client *client_p, struct Client *source_p,
  *   dumps server map, called recursively.
  */
 static void
-dump_map(struct Client *client_p, struct Client *root_p, int start_len,
-         char *pbuf)
+dump_map(struct Client *client_p, const struct Client *root_p,
+         int start_len, char *pbuf)
 {
   int cnt = 0, i = 0, l = 0, len = start_len;
   int users, dashes;
-  dlink_node *ptr;
+  const dlink_node *ptr = NULL;
   char *pb;
   int print_dashes;
 
@@ -162,7 +162,7 @@ dump_map(struct Client *client_p, struct Client *root_p, int start_len,
 
   DLINK_FOREACH(ptr, root_p->serv->server_list.head)
   {
-    struct Client *server_p = ptr->data;
+    const struct Client *server_p = ptr->data;
 
     *pbuf = ' ';
 
