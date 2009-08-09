@@ -517,7 +517,6 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
   assert(source_p->username != username);
 
   strlcpy(source_p->host, host, sizeof(source_p->host)); 
-  strlcpy(source_p->info, realname, sizeof(source_p->info));
   strlcpy(source_p->username, username, sizeof(source_p->username));
 
   /*
