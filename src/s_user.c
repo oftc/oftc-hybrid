@@ -381,6 +381,9 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   /* report if user has &^>= etc. and set flags as needed in source_p */
   report_and_set_user_flags(source_p, aconf);
 
+  if (IsDead(client_p))
+    return;
+
   /* Limit clients -
    * We want to be able to have servers and F-line clients
    * connect, so save room for "buffer" connections.
@@ -418,9 +421,6 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   if (check_xline(source_p))
     return;
 
-  if (IsDead(client_p))
-    return;
-
   if (me.id[0])
   {
     const char *id = execute_callback(uid_get_cb, source_p);
@@ -453,14 +453,10 @@ register_local_user(struct Client *client_p, struct Client *source_p,
                        source_p->info);
 
 
-  /* If they have died in send_* don't do anything. */
-  if (IsDead(source_p))
-    return;
-
   if (ConfigFileEntry.invisible_on_connect)
   {
     source_p->umodes |= UMODE_INVISIBLE;
-    Count.invisi++;
+    ++Count.invisi;
   }
 
   if ((++Count.local) > Count.max_loc)

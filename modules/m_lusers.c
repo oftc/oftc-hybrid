@@ -35,8 +35,8 @@
 #include "parse.h"
 #include "modules.h"
 
-static void m_lusers(struct Client*, struct Client*, int, char**);
-static void ms_lusers(struct Client*, struct Client*, int, char**);
+static void m_lusers(struct Client *, struct Client *, int, char *[]);
+static void ms_lusers(struct Client *, struct Client *, int, char *[]);
 
 struct Message lusers_msgtab = {
   "LUSERS", 0, 0, 0, 0, MFLG_SLOW, 0,
@@ -71,25 +71,23 @@ const char *_version = "$Revision$";
  */
 static void
 m_lusers(struct Client *client_p, struct Client *source_p,
-	 int parc, char *parv[])
+         int parc, char *parv[])
 {
   static time_t last_used = 0;
 
   if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
-    if (MyClient(source_p))
-      sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0]);
+    sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0]);
     return;
   }
-  else
-    last_used = CurrentTime;
+
+  last_used = CurrentTime;
 
   if (parc > 2 && !ConfigFileEntry.disable_remote)
-  {   
-    if (hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc, parv) != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2,
+                    parc, parv) != HUNTED_ISME)
       return;
-  }
 
   show_lusers(source_p);
 }
@@ -101,14 +99,12 @@ m_lusers(struct Client *client_p, struct Client *source_p,
  */
 static void
 ms_lusers(struct Client *client_p, struct Client *source_p,
-	  int parc, char *parv[])
+          int parc, char *parv[])
 {
   if (parc > 2)
-  {
-    if(hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc, parv)
-     != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2,
+                    parc, parv) != HUNTED_ISME)
         return;
-  }
 
   if (IsClient(source_p))
     show_lusers(source_p);
