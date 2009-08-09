@@ -37,7 +37,7 @@
 static char buf[IRCD_BUFSIZE];
 static void m_map(struct Client *, struct Client *, int, char *[]);
 static void mo_map(struct Client *, struct Client *, int, char *[]);
-static void dump_map(struct Client *, struct Client *, int, char *);
+static void dump_map(struct Client *, const struct Client *, int, char *);
 
 struct Message map_msgtab = {
   "MAP", 0, 0, 0, 0, MFLG_SLOW, 0,
@@ -70,27 +70,24 @@ m_map(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if (!ConfigServerHide.flatten_links)
+  if (ConfigServerHide.flatten_links)
   {
-    if (!IsOper(source_p))
-    {
-      if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
-      {
-        /* safe enough to give this on a local connect only */
-        sendto_one(source_p, form_str(RPL_LOAD2HI),
-                   me.name, source_p->name);
-        return;
-      }
-
-      last_used = CurrentTime;
-    }
-
-    dump_map(client_p, &me, 0, buf);
-    sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
+    m_not_oper(client_p, source_p, parc, parv);
     return;
   }
 
-  m_not_oper(client_p, source_p, parc, parv);
+  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  {
+    /* safe enough to give this on a local connect only */
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
+               me.name, source_p->name);
+    return;
+  }
+
+  last_used = CurrentTime;
+
+  dump_map(source_p, &me, 0, buf);
+  sendto_one(source_p, form_str(RPL_MAPEND), me.name, source_p->name);
 }
 
 /* mo_map()
@@ -100,20 +97,20 @@ static void
 mo_map(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-  dump_map(client_p, &me, 0, buf);
-  sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
+  dump_map(source_p, &me, 0, buf);
+  sendto_one(source_p, form_str(RPL_MAPEND), me.name, source_p->name);
 }
 
 /* dump_map()
  *   dumps server map, called recursively.
  */
 static void
-dump_map(struct Client *client_p, struct Client *root_p, int start_len,
-         char *pbuf)
+dump_map(struct Client *client_p, const struct Client *root_p,
+         int start_len, char *pbuf)
 {
   int cnt = 0, i = 0, l = 0, len = start_len;
   int users, dashes;
-  dlink_node *ptr;
+  const dlink_node *ptr = NULL;
   char *pb;
 
   *pbuf= '\0';
@@ -167,7 +164,7 @@ dump_map(struct Client *client_p, struct Client *root_p, int start_len,
 
   DLINK_FOREACH(ptr, root_p->serv->server_list.head)
   {
-    struct Client *server_p = ptr->data;
+    const struct Client *server_p = ptr->data;
 
     *pbuf = ' ';
 
