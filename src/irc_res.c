@@ -30,6 +30,7 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "restart.h"
+#include "rng_mt.h"
 #include "fdlist.h"
 #include "fileio.h" /* for fbopen / fbclose / fbputs */
 #include "s_bsd.h"
@@ -136,7 +137,7 @@ res_ourserver(const struct irc_ssaddr *inp)
   struct sockaddr_in *v4in = (struct sockaddr_in *)inp; 
   int ns;
 
-  for (ns = 0;  ns < irc_nscount;  ns++)
+  for (ns = 0; ns < irc_nscount; ns++)
   {
     const struct irc_ssaddr *srv = &irc_nsaddr_list[ns];
 #ifdef IPV6
@@ -256,9 +257,6 @@ start_resolver(void)
 void
 init_resolver(void)
 {
-#ifdef HAVE_SRAND48
-  srand48(CurrentTime);
-#endif
   memset(&ResolverFileDescriptor, 0, sizeof(fde_t));
   start_resolver();
 }
@@ -548,29 +546,17 @@ query_name(const char *name, int query_class, int type,
       (unsigned char *)buf, sizeof(buf))) > 0)
   {
     HEADER *header = (HEADER *)buf;
-#ifndef HAVE_LRAND48
-    int k = 0;
-    struct timeval tv;
-#endif
+
     /*
      * generate an unique id
      * NOTE: we don't have to worry about converting this to and from
      * network byte order, the nameserver does not interpret this value
      * and returns it unchanged
      */
-#ifdef HAVE_LRAND48
     do
-    {
-      header->id = (header->id + lrand48()) & 0xffff;
-    } while (find_id(header->id));
-#else
-    gettimeofday(&tv, NULL);
-    do
-    {
-      header->id = (header->id + k + tv.tv_usec) & 0xffff;
-      k++;
-    } while (find_id(header->id));
-#endif /* HAVE_LRAND48 */
+      header->id = (header->id + genrand_int32()) & 0xffff;
+    while (find_id(header->id));
+
     request->id = header->id;
     ++request->sends;
 
@@ -584,7 +570,7 @@ resend_query(struct reslist *request)
   if (request->resend == 0)
     return;
 
-  switch(request->type)
+  switch (request->type)
   {
     case T_PTR:
       do_query_number(NULL, &request->addr, request);

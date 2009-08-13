@@ -124,9 +124,6 @@
 /* Define to 1 if you have the <link.h> header file. */
 #undef HAVE_LINK_H
 
-/* Define to 1 if you have the `lrand48' function. */
-#undef HAVE_LRAND48
-
 /* Define this if a modern libltdl is already installed */
 #undef HAVE_LTDL
 
@@ -156,9 +153,6 @@
 
 /* Define to 1 if you have the <socket.h> header file. */
 #undef HAVE_SOCKET_H
-
-/* Define to 1 if you have the `srand48' function. */
-#undef HAVE_SRAND48
 
 /* Define to 1 if you have the <stddef.h> header file. */
 #undef HAVE_STDDEF_H

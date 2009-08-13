@@ -171,6 +171,7 @@ struct LocalUser
   unsigned int cap_active;    /* Active capabilities (to us) */
 
   unsigned int operflags;     /* oper priv flags */
+  unsigned int random_ping;
 
 
   /* Anti flooding part, all because of lamers... */
@@ -242,7 +243,6 @@ struct LocalUser
   int allow_read;	/* how many we're allowed to read in this second */
   int sent_parsed;      /* how many messages we've parsed in this second */
   time_t last_knock;    /* time of last knock */
-  unsigned long random_ping;
 
   char*          response;  /* expected response from client */
   char*          auth_oper; /* Operator to become if they supply the response.*/

@@ -51,8 +51,6 @@ fi
 # Checks for library functions.
 AC_CHECK_FUNCS_ONCE(snprintf  \
                     vsnprintf \
-                    lrand48   \
-                    srand48   \
                     mmap      \
                     strtok_r  \
                     usleep    \

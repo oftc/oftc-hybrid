@@ -47,6 +47,7 @@
 #include "parse.h"
 #include "irc_res.h"
 #include "restart.h"
+#include "rng_mt.h"
 #include "s_auth.h"
 #include "s_bsd.h"
 #include "s_conf.h"
@@ -85,7 +86,6 @@ struct timeval SystemTime;
 struct Client me;             /* That's me */
 struct LocalUser meLocalUser; /* That's also part of me */
 
-static unsigned long initialVMTop = 0;   /* top of virtual memory at init */
 const char *logFileName = LPATH;
 const char *pidFileName = PPATH;
 
@@ -512,7 +512,7 @@ main(int argc, char *argv[])
   if (geteuid() == 0)
   {
     fprintf(stderr, "Don't run ircd as root!!!\n");
-    return(-1);
+    return -1;
   }
 
   /* Setup corefile size immediately after boot -kre */
@@ -522,8 +522,9 @@ main(int argc, char *argv[])
   /* save server boot time right away, so getrusage works correctly */
   set_time();
 
-    /* It ain't random, but it ought to be a little harder to guess */
-  srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
+  /* It ain't random, but it ought to be a little harder to guess */
+  init_genrand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
+
   memset(&me, 0, sizeof(me));
   memset(&meLocalUser, 0, sizeof(meLocalUser));
   me.localClient = &meLocalUser;

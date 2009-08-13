@@ -36,6 +36,7 @@ ircd_SOURCES = balloc.c          \
                memory.c          \
                modules.c         \
                motd.c            \
+               rng_mt.c          \
                numeric.c         \
                packet.c          \
                parse.c           \

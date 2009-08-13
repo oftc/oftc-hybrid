@@ -48,6 +48,7 @@
 #include "whowas.h"
 #include "memory.h"
 #include "packet.h"
+#include "rng_mt.h"
 #include "userhost.h"
 #include "hook.h"
 #include "s_misc.h"
@@ -300,8 +301,8 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     if (!IsPingSent(source_p) &&
        source_p->localClient->random_ping == 0)
     {
-      source_p->localClient->random_ping = (unsigned long)rand();
-      sendto_one(source_p, "PING :%lu",
+      source_p->localClient->random_ping = genrand_int32();
+      sendto_one(source_p, "PING :%u",
                  source_p->localClient->random_ping);
       SetPingSent(source_p);
       return;

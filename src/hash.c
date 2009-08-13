@@ -34,6 +34,7 @@
 #include "modules.h"
 #include "hash.h"
 #include "resv.h"
+#include "rng_mt.h"
 #include "userhost.h"
 #include "irc_string.h"
 #include "ircd.h"
@@ -48,7 +49,7 @@ static BlockHeap *userhost_heap = NULL;
 static BlockHeap *namehost_heap = NULL;
 static struct UserHost *find_or_add_userhost(const char *);
 
-static unsigned int ircd_random_key = 0;
+static unsigned int hashf_xor_key = 0;
 
 /* The actual hash tables, They MUST be of the same HASHSIZE, variable
  * size tables could be supported but the rehash routine should also
@@ -81,7 +82,7 @@ init_hash(void)
   userhost_heap = BlockHeapCreate("userhost", sizeof(struct UserHost), CLIENT_HEAP_SIZE);
   namehost_heap = BlockHeapCreate("namehost", sizeof(struct NameHost), CLIENT_HEAP_SIZE);
 
-  ircd_random_key = rand() % 256;  /* better than nothing --adx */
+  hashf_xor_key = genrand_int32() % 256;  /* better than nothing --adx */
 
   /* Clear the hash tables first */
   for (i = 0; i < HASHSIZE; ++i)
@@ -113,10 +114,10 @@ strhash(const char *name)
   {
     hval += (hval << 1) + (hval <<  4) + (hval << 7) +
             (hval << 8) + (hval << 24);
-    hval ^= (ToLower(*p) ^ ircd_random_key);
+    hval ^= (ToLower(*p) ^ hashf_xor_key);
   }
 
-  return (hval >> FNV1_32_BITS) ^ (hval & ((1 << FNV1_32_BITS) -1));
+  return (hval >> FNV1_32_BITS) ^ (hval & ((1 << FNV1_32_BITS) - 1));
 }
 
 /************************** Externally visible functions ********************/

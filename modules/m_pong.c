@@ -109,7 +109,7 @@ mr_pong(struct Client *client_p, struct Client *source_p,
   {
     if (ConfigFileEntry.ping_cookie && !source_p->localClient->registration)
     {
-      unsigned long incoming_ping = strtoul(parv[1], NULL, 10);
+      unsigned int incoming_ping = strtoul(parv[1], NULL, 10);
 
       if (incoming_ping)
       {
