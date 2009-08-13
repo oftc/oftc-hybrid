@@ -301,7 +301,10 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     if (!IsPingSent(source_p) &&
        source_p->localClient->random_ping == 0)
     {
-      source_p->localClient->random_ping = genrand_int32();
+      do
+        source_p->localClient->random_ping = genrand_int32();
+      while (!source_p->localClient->random_ping);
+
       sendto_one(source_p, "PING :%u",
                  source_p->localClient->random_ping);
       SetPingSent(source_p);
