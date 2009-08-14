@@ -454,13 +454,11 @@ do_query_name(struct DNSQuery *query, const char *name,
     request->type = type;
     strcpy(request->name, host_name);
 #ifdef IPV6
-    if (type == T_A)
-      request->state = REQ_A;
-    else
+    if (type != T_A)
       request->state = REQ_AAAA;
-#else
-    request->state = REQ_A;
+    else
 #endif
+    request->state = REQ_A;
   }
 
   request->type = type;
@@ -771,6 +769,7 @@ res_readreply(fde_t *fd, void *data)
    * interest where it'll instantly be ready for read :-) -- adrian
    */
   comm_setselect(fd, COMM_SELECT_READ, res_readreply, NULL, 0);
+
   /* Better to cast the sizeof instead of rc */
   if (rc <= (int)(sizeof(HEADER)))
     return;
@@ -799,13 +798,22 @@ res_readreply(fde_t *fd, void *data)
 
   if ((header->rcode != NO_ERRORS) || (header->ancount == 0))
   {
-    if (NXDOMAIN == header->rcode)
+    if (header->rcode == SERVFAIL || header->rcode == NXDOMAIN)
+    {
+      /*
+       * If a bad error was returned, stop here and don't
+       * send any more (no retries granted).
+       */
+      (*request->query->callback)(request->query->ptr, NULL);
+      rem_request(request);
+    }
+#ifdef IPV6
+    else
     {
       /* 
        * If we havent already tried this, and we're looking up AAAA, try A
        * now
        */
-#ifdef IPV6
       if (request->state == REQ_AAAA && request->type == T_AAAA)
       {
         request->timeout += 4;
@@ -819,28 +827,12 @@ res_readreply(fde_t *fd, void *data)
         request->retries--;
         resend_query(request);
       }
-      else	/* It's NXDOMAIN but not IPV6 */
+    }
 #endif
-      {
-        /*
-         * If a bad error was returned, stop here and don't
-         * send any more (no retries granted).
-         */
-        (*request->query->callback)(request->query->ptr, NULL);
-        rem_request(request);
-      }
-    }
-    else	/* Some other error other than NXDOMAIN */
-    {
-      /*
-       * If a bad error was returned, stop here and don't
-       * send any more (no retries granted).
-       */
-      (*request->query->callback)(request->query->ptr, NULL);
-      rem_request(request);
-    }
+
     return;
   }
+
   /*
    * If this fails there was an error decoding the received packet, 
    * try it again and hope it works the next time.
