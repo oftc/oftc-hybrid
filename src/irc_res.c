@@ -91,7 +91,7 @@ struct reslist
 };
 
 static fde_t ResolverFileDescriptor;
-static dlink_list request_list    = { NULL, NULL, 0 };
+static dlink_list request_list = { NULL, NULL, 0 };
 
 static void rem_request(struct reslist *request);
 static struct reslist *make_request(struct DNSQuery *query);
@@ -451,13 +451,13 @@ do_query_name(struct DNSQuery *query, const char *name,
 {
   char host_name[HOSTLEN + 1];
 
-  strlcpy(host_name, name, HOSTLEN);
-  add_local_domain(host_name, HOSTLEN);
+  strlcpy(host_name, name, HOSTLEN + 1);
+  add_local_domain(host_name, HOSTLEN + 1);
 
   if (request == NULL)
   {
     request       = make_request(query);
-    request->name = (char *)MyMalloc(strlen(host_name) + 1);
+    request->name = MyMalloc(strlen(host_name) + 1);
     request->type = type;
     strcpy(request->name, host_name);
 #ifdef IPV6
@@ -523,7 +523,7 @@ do_query_number(struct DNSQuery *query, const struct irc_ssaddr *addr,
     request       = make_request(query);
     request->type = T_PTR;
     memcpy(&request->addr, addr, sizeof(struct irc_ssaddr));
-    request->name = (char *)MyMalloc(HOSTLEN + 1);
+    request->name = MyMalloc(HOSTLEN + 1);
   }
 
   query_name(ipbuf, C_IN, T_PTR, request);
@@ -713,7 +713,7 @@ proc_answer(struct reslist *request, HEADER* header, char* buf, char* eob)
         else if (n == 0)
           return(0); /* no more answers left */
 
-        strlcpy(request->name, hostbuf, HOSTLEN);
+        strlcpy(request->name, hostbuf, HOSTLEN + 1);
 
         return(1);
         break;
