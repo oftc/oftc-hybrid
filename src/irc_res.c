@@ -70,8 +70,7 @@ typedef enum
 #ifdef IPV6
   REQ_AAAA,  /* Looking up an AAAA */
 #endif
-  REQ_CNAME, /* We got a CNAME in response, we better get a real answer next */
-  REQ_INT    /* ip6.arpa failed, falling back to ip6.int */
+  REQ_CNAME  /* We got a CNAME in response, we better get a real answer next */
 } request_state;
 
 struct reslist 
@@ -474,9 +473,7 @@ do_query_number(struct DNSQuery *query, const struct irc_ssaddr *addr,
 {
   char ipbuf[128];
   const unsigned char *cp;
-#ifdef IPV6
-  const char *intarpa;
-#endif
+
   if (addr->ss.ss_family == AF_INET)
   {
     struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
@@ -492,13 +489,8 @@ do_query_number(struct DNSQuery *query, const struct irc_ssaddr *addr,
     struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)addr;
     cp = (const unsigned char *)&v6->sin6_addr.s6_addr;
 
-    if (request != NULL && request->state == REQ_INT)
-      intarpa = "int";
-    else
-      intarpa = "arpa";
-
-    (void)sprintf(ipbuf, "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x."
-                  "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.ip6.%s.",
+    sprintf(ipbuf, "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x."
+                   "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.ip6.arpa.",
                   (unsigned int)(cp[15]&0xf), (unsigned int)(cp[15]>>4),
                   (unsigned int)(cp[14]&0xf), (unsigned int)(cp[14]>>4),
                   (unsigned int)(cp[13]&0xf), (unsigned int)(cp[13]>>4),
@@ -514,7 +506,7 @@ do_query_number(struct DNSQuery *query, const struct irc_ssaddr *addr,
                   (unsigned int)(cp[3]&0xf), (unsigned int)(cp[3]>>4),
                   (unsigned int)(cp[2]&0xf), (unsigned int)(cp[2]>>4),
                   (unsigned int)(cp[1]&0xf), (unsigned int)(cp[1]>>4),
-                  (unsigned int)(cp[0]&0xf), (unsigned int)(cp[0]>>4), intarpa);
+                  (unsigned int)(cp[0]&0xf), (unsigned int)(cp[0]>>4));
   }
 #endif
   if (request == NULL)
@@ -817,14 +809,6 @@ res_readreply(fde_t *fd, void *data)
       if (request->state == REQ_AAAA && request->type == T_AAAA)
       {
         request->timeout += 4;
-        resend_query(request);
-      }
-      else if (request->type == T_PTR && request->state != REQ_INT &&
-               request->addr.ss.ss_family == AF_INET6)
-      {
-        request->state = REQ_INT;
-        request->timeout += 4;
-        request->retries--;
         resend_query(request);
       }
     }
