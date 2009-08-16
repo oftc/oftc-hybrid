@@ -727,7 +727,7 @@ mo_gungline(struct Client *client_p, struct Client *source_p,
 #endif /* GLINE_VOTING */
   sendto_server(client_p, NULL, CAP_ENCAP|CAP_TS6, NOCAPS,
                 ":%s ENCAP * GUNGLINE %s %s :%s",
-                ID(source_p), host, reason);
+                ID(source_p), user, host, reason);
   sendto_server(client_p, NULL, CAP_ENCAP, CAP_TS6,
                 ":%s ENCAP * GUNGLINE %s %s :%s",
                 source_p->name, user, host, reason);
