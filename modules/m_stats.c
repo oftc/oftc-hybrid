@@ -805,9 +805,8 @@ stats_events(struct Client *source_p)
 static void
 stats_pending_glines(struct Client *source_p)
 {
-#ifdef GLINE_VOTING
   const dlink_node *dn_ptr = NULL;
-  const struct gp_ptr *glp_ptr = NULL;
+  const struct gline_pending *glp_ptr = NULL;
   char timebuffer[MAX_DATE_STRING] = { '\0' };
   struct tm *tmptr = NULL;
 
@@ -835,7 +834,7 @@ stats_pending_glines(struct Client *source_p)
                glp_ptr->vote_1.oper_server, timebuffer,
                glp_ptr->user, glp_ptr->host, glp_ptr->vote_1.reason);
 
-    if (glp_ptr->oper_nick2[0] != '\0')
+    if (glp_ptr->vote_2.oper_nick[0] != '\0')
     {
       tmptr = localtime(&glp_ptr->vote_2.time_request);
       strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
@@ -868,7 +867,7 @@ stats_pending_glines(struct Client *source_p)
                glp_ptr->vote_1.oper_server, timebuffer,
                glp_ptr->user, glp_ptr->host, glp_ptr->vote_1.reason);
 
-    if (glp_ptr->oper_nick2[0] != '\0')
+    if (glp_ptr->vote_2.oper_nick[0] != '\0')
     {
       tmptr = localtime(&glp_ptr->vote_2.time_request);
       strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
@@ -884,10 +883,6 @@ stats_pending_glines(struct Client *source_p)
 
   sendto_one(source_p, ":%s NOTICE %s :End of Pending UNG-lines",
              from, to);
-#else
-  sendto_one(source_p, ":%s NOTICE %s :This server does not support G-Line voting",
-             from, to);
-#endif /* GLINE VOTING */
 }
 
 /* stats_glines()
