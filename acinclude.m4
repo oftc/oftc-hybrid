@@ -209,7 +209,7 @@ dnl {{{ ax_arg_enable_warnings
 AC_DEFUN([AX_ARG_ENABLE_WARNINGS],[
   AC_ARG_ENABLE([warnings],[AC_HELP_STRING([--enable-warnings],[Enable compiler warnings.])],[warnings="$enableval"],[warnings="no"])
   if test "$warnings" = "yes" ; then
-    CFLAGS="-Wall -Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wno-unused"
+    CFLAGS="-Wall -Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wno-unused -Wundef"
   fi
 ])dnl }}}
 dnl {{{ ax_arg_enable_efence
