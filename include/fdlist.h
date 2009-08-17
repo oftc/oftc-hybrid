@@ -70,7 +70,7 @@ typedef struct _fde {
   PF *flush_handler;
   void *flush_data;
   time_t flush_timeout;
-  struct DNSQuery *dns_query;
+
   struct {
     unsigned int open:1;
     unsigned int is_socket:1;

@@ -33,22 +33,7 @@
 #define RRFIXEDSZ 10
 #define HFIXEDSZ 12
 
-struct DNSReply
-{
-  char *h_name;
-  struct irc_ssaddr addr;
-};
 
-struct DNSQuery
-{
-#ifdef _WIN32
-  dlink_node node;
-  HANDLE handle;
-  char reply[MAXGETHOSTSTRUCT];
-#endif
-  void *ptr; /* pointer used by callback to identify request */
-  void (*callback)(void* vptr, struct DNSReply *reply); /* callback to call */
-};
 
 typedef struct
 {
@@ -87,13 +72,15 @@ typedef struct
 	unsigned	arcount :16;	/* number of resource entries */
 } HEADER;
 
+typedef void (*dns_callback_fnc)(void *, const struct irc_ssaddr *, const char *);
+
 extern void init_resolver(void);
 extern void restart_resolver(void);
-extern void delete_resolver_queries(const struct DNSQuery *);
+extern void delete_resolver_queries(const void *);
 extern void report_dns_servers(struct Client *);
-extern void gethost_byname_type(const char *, struct DNSQuery *, int);
-extern void gethost_byname(const char *, struct DNSQuery *);
-extern void gethost_byaddr(const struct irc_ssaddr *, struct DNSQuery *);
+extern void gethost_byname_type(dns_callback_fnc , void *, const char *, int);
+extern void gethost_byname(dns_callback_fnc, void *, const char *);
+extern void gethost_byaddr(dns_callback_fnc, void *, const struct irc_ssaddr *);
 extern void add_local_domain(char *, size_t);
 
 #endif

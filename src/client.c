@@ -916,7 +916,11 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
     if (IsIpHash(source_p))
       remove_one_ip(&source_p->localClient->ip);
 
-    delete_auth(source_p);
+    if (source_p->localClient->auth)
+    {
+      delete_auth(source_p->localClient->auth);
+      source_p->localClient->auth = NULL;
+    }
 
     /* This source_p could have status of one of STAT_UNKNOWN, STAT_CONNECTING
      * STAT_HANDSHAKE or STAT_UNKNOWN

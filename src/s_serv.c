@@ -1595,10 +1595,19 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
        buf);
 
   /* Still processing a DNS lookup? -> exit */
-  if (aconf->dns_query != NULL)
+  if (aconf->dns_pending)
   {
-    sendto_realops_flags(UMODE_ALL, L_OPER,
-                         "Error connecting to %s: Error during DNS lookup", conf->name);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Error connecting to %s: DNS lookup for connect{} in progress.",
+                         conf->name);
+    return (0);
+  }
+
+  if (aconf->dns_failed)
+  {
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Error connecting to %s: DNS lookup for connect{} failed.",
+                         conf->name);
     return (0);
   }
 

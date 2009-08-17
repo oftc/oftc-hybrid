@@ -88,17 +88,18 @@ struct reslist
   time_t timeout;
   struct irc_ssaddr addr;
   char *name;
-  struct DNSQuery *query;  /* query callback for this request */
+  dns_callback_fnc callback;
+  void *callback_ctx;
 };
 
 static fde_t ResolverFileDescriptor;
 static dlink_list request_list = { NULL, NULL, 0 };
 
 static void rem_request(struct reslist *request);
-static struct reslist *make_request(struct DNSQuery *query);
-static void do_query_name(struct DNSQuery *query,
-                          const char* name, struct reslist *request, int);
-static void do_query_number(struct DNSQuery *query,
+static struct reslist *make_request(dns_callback_fnc callback, void *);
+static void do_query_name(dns_callback_fnc callback, void *,
+                          const char *, struct reslist *, int);
+static void do_query_number(dns_callback_fnc callback, void *ctx,
                             const struct irc_ssaddr *,
                             struct reslist *request);
 static void query_name(const char *name, int query_class, int query_type, 
@@ -129,20 +130,20 @@ static int
 res_ourserver(const struct irc_ssaddr *inp) 
 {
 #ifdef IPV6
-  struct sockaddr_in6 *v6;
-  struct sockaddr_in6 *v6in = (struct sockaddr_in6 *)inp;
+  const struct sockaddr_in6 *v6;
+  const struct sockaddr_in6 *v6in = (const struct sockaddr_in6 *)inp;
 #endif
-  struct sockaddr_in *v4;
-  struct sockaddr_in *v4in = (struct sockaddr_in *)inp; 
+  const struct sockaddr_in *v4;
+  const struct sockaddr_in *v4in = (const struct sockaddr_in *)inp; 
   int ns;
 
   for (ns = 0; ns < irc_nscount; ns++)
   {
     const struct irc_ssaddr *srv = &irc_nsaddr_list[ns];
 #ifdef IPV6
-    v6 = (struct sockaddr_in6 *)srv;
+    v6 = (const struct sockaddr_in6 *)srv;
 #endif
-    v4 = (struct sockaddr_in *)srv;
+    v4 = (const struct sockaddr_in *)srv;
 
     /* could probably just memcmp(srv, inp, srv.ss_len) here
      * but we'll air on the side of caution - stu
@@ -198,7 +199,7 @@ timeout_query_list(time_t now)
     {
       if (--request->retries <= 0)
       {
-        (*request->query->callback)(request->query->ptr, NULL);
+        (*request->callback)(request->callback_ctx, NULL, NULL);
         rem_request(request);
         continue;
       }
@@ -312,18 +313,19 @@ rem_request(struct reslist *request)
  * make_request - Create a DNS request record for the server.
  */
 static struct reslist *
-make_request(struct DNSQuery* query)
+make_request(dns_callback_fnc callback, void *ctx)
 {
   struct reslist *request;
 
   request = (struct reslist *)MyMalloc(sizeof(struct reslist));
 
-  request->sentat  = CurrentTime;
-  request->retries = 3;
-  request->resend  = 1;
-  request->timeout = 4;    /* start at 4 and exponential inc. */
-  request->query   = query;
-  request->state   = REQ_IDLE;
+  request->sentat       = CurrentTime;
+  request->retries      = 3;
+  request->resend       = 1;
+  request->timeout      = 4;    /* start at 4 and exponential inc. */
+  request->state        = REQ_IDLE;
+  request->callback     = callback;
+  request->callback_ctx = ctx;
 
   dlinkAdd(request, &request->node, &request_list);
   return(request);
@@ -334,7 +336,7 @@ make_request(struct DNSQuery* query)
  * for which there no longer exist clients or conf lines.
  */
 void
-delete_resolver_queries(const struct DNSQuery *query)
+delete_resolver_queries(const void *vptr)
 {
   dlink_node *ptr;
   dlink_node *next_ptr;
@@ -344,7 +346,7 @@ delete_resolver_queries(const struct DNSQuery *query)
   {
     if ((request = ptr->data) != NULL)
     {
-      if (query == request->query)
+      if (request->callback_ctx == vptr)
         rem_request(request);
     }
   }
@@ -406,22 +408,22 @@ find_id(int id)
  *
  */
 void
-gethost_byname_type(const char *name, struct DNSQuery *query, int type)
+gethost_byname_type(dns_callback_fnc callback, void *ctx, const char *name, int type)
 {
   assert(name != 0);
-  do_query_name(query, name, NULL, type);
+  do_query_name(callback, ctx, name, NULL, type);
 }
 
 /*
  * gethost_byname - wrapper for _type - send T_AAAA first if IPV6 supported
  */
 void
-gethost_byname(const char *name, struct DNSQuery *query)
+gethost_byname(dns_callback_fnc callback, void *ctx, const char *name)
 {
 #ifdef IPV6
-  gethost_byname_type(name, query, T_AAAA);
+  gethost_byname_type(callback, ctx, name, T_AAAA);
 #else
-  gethost_byname_type(name, query, T_A);
+  gethost_byname_type(callback, ctx, name, T_A);
 #endif
 }
 
@@ -429,16 +431,16 @@ gethost_byname(const char *name, struct DNSQuery *query)
  * gethost_byaddr - get host name from address
  */
 void
-gethost_byaddr(const struct irc_ssaddr *addr, struct DNSQuery *query)
+gethost_byaddr(dns_callback_fnc callback, void *ctx, const struct irc_ssaddr *addr)
 {
-  do_query_number(query, addr, NULL);
+  do_query_number(callback, ctx, addr, NULL);
 }
 
 /*
  * do_query_name - nameserver lookup name
  */
 static void
-do_query_name(struct DNSQuery *query, const char *name,
+do_query_name(dns_callback_fnc callback, void *ctx, const char *name,
               struct reslist *request, int type)
 {
   char host_name[HOSTLEN + 1];
@@ -448,7 +450,7 @@ do_query_name(struct DNSQuery *query, const char *name,
 
   if (request == NULL)
   {
-    request       = make_request(query);
+    request       = make_request(callback, ctx);
     request->name = MyMalloc(strlen(host_name) + 1);
     request->type = type;
     strcpy(request->name, host_name);
@@ -468,7 +470,8 @@ do_query_name(struct DNSQuery *query, const char *name,
  * do_query_number - Use this to do reverse IP# lookups.
  */
 static void
-do_query_number(struct DNSQuery *query, const struct irc_ssaddr *addr,
+do_query_number(dns_callback_fnc callback, void *ctx,
+                const struct irc_ssaddr *addr,
                 struct reslist *request)
 {
   char ipbuf[128];
@@ -476,7 +479,7 @@ do_query_number(struct DNSQuery *query, const struct irc_ssaddr *addr,
 
   if (addr->ss.ss_family == AF_INET)
   {
-    struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
+    const struct sockaddr_in *v4 = (const struct sockaddr_in *)addr;
     cp = (const unsigned char*)&v4->sin_addr.s_addr;
 
     ircsprintf(ipbuf, "%u.%u.%u.%u.in-addr.arpa.",
@@ -486,7 +489,7 @@ do_query_number(struct DNSQuery *query, const struct irc_ssaddr *addr,
 #ifdef IPV6
   else if (addr->ss.ss_family == AF_INET6)
   {
-    struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)addr;
+    const struct sockaddr_in6 *v6 = (const struct sockaddr_in6 *)addr;
     cp = (const unsigned char *)&v6->sin6_addr.s6_addr;
 
     sprintf(ipbuf, "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x."
@@ -511,7 +514,7 @@ do_query_number(struct DNSQuery *query, const struct irc_ssaddr *addr,
 #endif
   if (request == NULL)
   {
-    request       = make_request(query);
+    request       = make_request(callback, ctx);
     request->type = T_PTR;
     memcpy(&request->addr, addr, sizeof(struct irc_ssaddr));
     request->name = MyMalloc(HOSTLEN + 1);
@@ -563,16 +566,16 @@ resend_query(struct reslist *request)
   switch (request->type)
   {
     case T_PTR:
-      do_query_number(NULL, &request->addr, request);
+      do_query_number(NULL, NULL, &request->addr, request);
       break;
     case T_A:
-      do_query_name(NULL, request->name, request, request->type);
+      do_query_name(NULL, NULL, request->name, request, request->type);
       break;
 #ifdef IPV6
     case T_AAAA:
       /* didnt work, try A */
       if (request->state == REQ_AAAA)
-        do_query_name(NULL, request->name, request, T_A);
+        do_query_name(NULL, NULL, request->name, request, T_A);
 #endif
     default:
       break;
@@ -749,7 +752,6 @@ res_readreply(fde_t *fd, void *data)
 	  ;
   HEADER *header;
   struct reslist *request = NULL;
-  struct DNSReply *reply  = NULL;
   int rc;
   int answer_count;
   socklen_t len = sizeof(struct irc_ssaddr);
@@ -796,7 +798,7 @@ res_readreply(fde_t *fd, void *data)
        * If a bad error was returned, stop here and don't
        * send any more (no retries granted).
        */
-      (*request->query->callback)(request->query->ptr, NULL);
+      (*request->callback)(request->callback_ctx, NULL, NULL);
       rem_request(request);
     }
 #ifdef IPV6
@@ -833,7 +835,7 @@ res_readreply(fde_t *fd, void *data)
          * got a PTR response with no name, something bogus is happening
          * don't bother trying again, the client address doesn't resolve
          */
-        (*request->query->callback)(request->query->ptr, reply);
+        (*request->callback)(request->callback_ctx, NULL, NULL);
         rem_request(request);
         return;
       }
@@ -845,10 +847,10 @@ res_readreply(fde_t *fd, void *data)
        */
 #ifdef IPV6
       if (request->addr.ss.ss_family == AF_INET6)
-        gethost_byname_type(request->name, request->query, T_AAAA);
+        gethost_byname_type(request->callback, request->callback_ctx, request->name, T_AAAA);
       else
 #endif
-      gethost_byname_type(request->name, request->query, T_A);
+      gethost_byname_type(request->callback, request->callback_ctx, request->name, T_A);
       rem_request(request);
     }
     else
@@ -856,9 +858,7 @@ res_readreply(fde_t *fd, void *data)
       /*
        * got a name and address response, client resolved
        */
-      reply = make_dnsreply(request);
-      (*request->query->callback)(request->query->ptr, reply);
-      MyFree(reply);
+      (*request->callback)(request->callback_ctx, &request->addr, request->name);
       rem_request(request);
     }
   }
@@ -874,30 +874,17 @@ res_readreply(fde_t *fd, void *data)
   }
 }
 
-static struct DNSReply *
-make_dnsreply(struct reslist *request)
-{
-  struct DNSReply *cp;
-  assert(request != 0);
-
-  cp = (struct DNSReply *)MyMalloc(sizeof(struct DNSReply));
-
-  cp->h_name = request->name;
-  memcpy(&cp->addr, &request->addr, sizeof(cp->addr));
-  return(cp);
-}
-
 void
 report_dns_servers(struct Client *source_p)
 {
   int i;
-  char ipaddr[HOSTIPLEN];
+  char ipaddr[HOSTIPLEN + 1];
 
   for (i = 0; i < irc_nscount; i++)
   {
     irc_getnameinfo((struct sockaddr *)&(irc_nsaddr_list[i]),
-                    irc_nsaddr_list[i].ss_len, ipaddr, HOSTIPLEN, NULL, 0,
-                    NI_NUMERICHOST);
+                    irc_nsaddr_list[i].ss_len, ipaddr,
+                    sizeof(ipaddr), NULL, 0, NI_NUMERICHOST);
     sendto_one(source_p, form_str(RPL_STATSALINE),
                me.name, source_p->name, ipaddr); 
   }
