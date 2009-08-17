@@ -62,7 +62,7 @@ struct Callback *setup_socket_cb = NULL;
 
 static void comm_connect_callback(fde_t *fd, int status);
 static PF comm_connect_timeout;
-static void comm_connect_dns_callback(void *vptr, struct DNSReply *reply);
+static void comm_connect_dns_callback(void *, const struct irc_ssaddr *, const char *);
 static PF comm_connect_tryconnect;
 
 
@@ -535,7 +535,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
                  void *data, int aftype, int timeout)
 {
   struct addrinfo hints, *res;
-  char portname[PORTNAMELEN+1];
+  char portname[PORTNAMELEN + 1];
 
   assert(callback);
   fd->connect.callback = callback;
@@ -567,18 +567,15 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
-  snprintf(portname, PORTNAMELEN, "%d", port);
+  snprintf(portname, sizeof(portname), "%d", port);
 
   if (irc_getaddrinfo(host, portname, &hints, &res))
   {
     /* Send the DNS request, for the next level */
-    fd->dns_query = MyMalloc(sizeof(struct DNSQuery));
-    fd->dns_query->ptr = fd;
-    fd->dns_query->callback = comm_connect_dns_callback;
     if (aftype == AF_INET6)
-      gethost_byname_type(host, fd->dns_query, T_AAAA);
+      gethost_byname_type(comm_connect_dns_callback, fd, host, T_AAAA);
     else
-      gethost_byname_type(host, fd->dns_query, T_A);
+      gethost_byname_type(comm_connect_dns_callback, fd, host, T_A);
   }
   else
   {
@@ -636,14 +633,12 @@ comm_connect_timeout(fde_t *fd, void *notused)
  * otherwise we initiate the connect()
  */
 static void
-comm_connect_dns_callback(void *vptr, struct DNSReply *reply)
+comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 {
   fde_t *F = vptr;
 
-  if (reply == NULL)
+  if (name == NULL)
   {
-    MyFree(F->dns_query);
-    F->dns_query = NULL;
     comm_connect_callback(F, COMM_ERR_DNS);
     return;
   }
@@ -657,15 +652,13 @@ comm_connect_dns_callback(void *vptr, struct DNSReply *reply)
    * the DNS record around, and the DNS cache is gone anyway.. 
    *     -- adrian
    */
-  memcpy(&F->connect.hostaddr, &reply->addr, reply->addr.ss_len);
+  memcpy(&F->connect.hostaddr, addr, addr->ss_len);
   /* The cast is hacky, but safe - port offset is same on v4 and v6 */
   ((struct sockaddr_in *) &F->connect.hostaddr)->sin_port =
     F->connect.hostaddr.ss_port;
-  F->connect.hostaddr.ss_len = reply->addr.ss_len;
+  F->connect.hostaddr.ss_len = addr->ss_len;
 
   /* Now, call the tryconnect() routine to try a connect() */
-  MyFree(F->dns_query);
-  F->dns_query = NULL;
   comm_connect_tryconnect(F, NULL);
 }
 

@@ -178,25 +178,17 @@ unmap_conf_item(void *aconf)
  * if successful save hp in the conf item it was called with
  */
 static void
-conf_dns_callback(void *vptr, struct DNSReply *reply)
+conf_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 {
   struct AccessItem *aconf = (struct AccessItem *)vptr;
   struct ConfItem *conf;
 
-  MyFree(aconf->dns_query);
-  aconf->dns_query = NULL;
+  aconf->dns_pending = 0;
 
-  if (reply != NULL)
-    memcpy(&aconf->ipnum, &reply->addr, sizeof(reply->addr));
-  else {
-    ilog(L_NOTICE, "Host not found: %s, ignoring connect{} block",
-         aconf->host);
-    conf = unmap_conf_item(aconf);
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "Ignoring connect{} block for %s - host not found",
-       conf->name);
-    delete_conf_item(conf);
-  }
+  if (addr != NULL)
+    memcpy(&aconf->ipnum, addr, sizeof(aconf->ipnum));
+  else
+    aconf->dns_failed = 1;
 }
 
 /* conf_dns_lookup()
@@ -208,12 +200,10 @@ conf_dns_callback(void *vptr, struct DNSReply *reply)
 static void
 conf_dns_lookup(struct AccessItem *aconf)
 {
-  if (aconf->dns_query == NULL)
+  if (!aconf->dns_pending)
   {
-    aconf->dns_query = MyMalloc(sizeof(struct DNSQuery));
-    aconf->dns_query->ptr = aconf;
-    aconf->dns_query->callback = conf_dns_callback;
-    gethost_byname(aconf->host, aconf->dns_query);
+    aconf->dns_pending = 1;
+    gethost_byname(conf_dns_callback, aconf, aconf->host);
   }
 }
 
@@ -391,11 +381,8 @@ delete_conf_item(struct ConfItem *conf)
   case SERVER_TYPE:
     aconf = map_to_conf(conf);
 
-    if (aconf->dns_query != NULL)
-    {
-      delete_resolver_queries(aconf->dns_query);
-      MyFree(aconf->dns_query);
-    }
+    if (aconf->dns_pending)
+      delete_resolver_queries(aconf);
     if (aconf->passwd != NULL)
       memset(aconf->passwd, 0, strlen(aconf->passwd));
     if (aconf->spasswd != NULL)

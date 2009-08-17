@@ -119,6 +119,8 @@ struct MatchItem
 struct AccessItem
 {
   dlink_node node;
+  unsigned int     dns_failed;
+  unsigned int     dns_pending;
   unsigned int     status;   /* If CONF_ILLEGAL, delete when no clients */
   unsigned int     flags;
   unsigned int     modes;
@@ -135,7 +137,6 @@ struct AccessItem
   char *           fakename;   /* Mask name */
   time_t           hold;     /* Hold action until this time (calendar time) */
   struct ConfItem *class_ptr;  /* Class of connection */
-  struct DNSQuery* dns_query;
   int              aftype;
 #ifdef HAVE_LIBCRYPTO
   char *           rsa_public_key_file;

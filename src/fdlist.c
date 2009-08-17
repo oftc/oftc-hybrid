@@ -162,11 +162,7 @@ fd_close(fde_t *F)
   if (F->flags.is_socket)
     comm_setselect(F, COMM_SELECT_WRITE | COMM_SELECT_READ, NULL, NULL, 0);
 
-  if (F->dns_query != NULL)
-  {
-    delete_resolver_queries(F->dns_query);
-    MyFree(F->dns_query);
-  }
+  delete_resolver_queries(F);
 
 #ifdef HAVE_LIBCRYPTO
   if (F->ssl)

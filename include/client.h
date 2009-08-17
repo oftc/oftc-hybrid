@@ -207,12 +207,14 @@ struct LocalUser
     uint64_t bytes;             /* Statistics: total bytes sent/received */
   } recv, send;
 
+  struct AuthRequest *auth;
   struct Listener *listener;   /* listener accepted from */
   dlink_list        acceptlist; /* clients I'll allow to talk to me */
   dlink_list        watches;   /* chain of Watch pointer blocks */
   dlink_list        confs;     /* Configuration record associated */
   dlink_list        invited;   /* chain of invite pointer blocks */
-  struct DNSQuery   *dns_query; /* result returned from resolver query */
+  struct irc_ssaddr ip;
+  int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
   time_t last; /* Last time we got a PRIVMSG */
 
   char              *passwd;
