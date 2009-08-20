@@ -125,19 +125,19 @@ static const char digits[] = "0123456789";
 static int labellen(const unsigned char *lp);
 static int special(int ch);
 static int printable(int ch);
-static int irc_decode_bitstring(const char **cpp, char *dn, const char *eom);
+static int irc_decode_bitstring(const unsigned char **cpp, char *dn, const char *eom);
 static int irc_ns_name_compress(const char *src, unsigned char *dst, size_t dstsiz,
     const unsigned char **dnptrs, const unsigned char **lastdnptr);
 static int irc_dn_find(const unsigned char *, const unsigned char *, const unsigned char * const *,
                        const unsigned char * const *);
 static int irc_encode_bitsring(const char **, const char *, unsigned char **, unsigned char **, 
-                               const char *);
+                               const unsigned char *);
 static int irc_ns_name_uncompress(const unsigned char *, const unsigned char *,
                                   const unsigned char *, char *, size_t);
 static int irc_ns_name_unpack(const unsigned char *, const unsigned char *,
                               const unsigned char *, unsigned char *,
                               size_t);
-static int irc_ns_name_ntop(const char *, char *, size_t);
+static int irc_ns_name_ntop(const unsigned char *, char *, size_t);
 static int irc_ns_name_skip(const unsigned char **, const unsigned char *);
 static int mklower(int ch);
   
@@ -267,7 +267,7 @@ irc_dn_expand(const unsigned char *msg, const unsigned char *eom,
   if (n > 0 && dst[0] == '.')
     dst[0] = '\0';
   return(n);
-}
+} /*2*/
 
 /*
  * irc_ns_name_uncompress(msg, eom, src, dst, dstsiz)
@@ -286,10 +286,11 @@ irc_ns_name_uncompress(const unsigned char *msg, const unsigned char *eom,
 
   if ((n = irc_ns_name_unpack(msg, eom, src, tmp, sizeof tmp)) == -1)
     return(-1);
-  if (irc_ns_name_ntop((char*)tmp, dst, dstsiz) == -1)
+  if (irc_ns_name_ntop(tmp, dst, dstsiz) == -1)
     return(-1);
   return(n);
-}
+} /*2*/
+
 /*
  * irc_ns_name_unpack(msg, eom, src, dst, dstsiz)
  *	Unpack a domain name from a message, source may be compressed.
@@ -369,7 +370,7 @@ irc_ns_name_unpack(const unsigned char *msg, const unsigned char *eom,
 	if (len < 0)
 		len = srcp - src;
 	return (len);
-}
+} /*2*/
 
 /*
  * irc_ns_name_ntop(src, dst, dstsiz)
@@ -381,9 +382,9 @@ irc_ns_name_unpack(const unsigned char *msg, const unsigned char *eom,
  *	All other domains are returned in non absolute form
  */
 static int
-irc_ns_name_ntop(const char *src, char *dst, size_t dstsiz)
+irc_ns_name_ntop(const unsigned char *src, char *dst, size_t dstsiz)
 {
-	const char *cp;
+	const unsigned char *cp;
 	char *dn, *eom;
 	unsigned char c;
 	unsigned int n;
@@ -406,7 +407,7 @@ irc_ns_name_ntop(const char *src, char *dst, size_t dstsiz)
 			}
 			*dn++ = '.';
 		}
-		if ((l = labellen((unsigned char*)(cp - 1))) < 0) {
+		if ((l = labellen((cp - 1))) < 0) {
 			errno = EMSGSIZE; /* XXX */
 			return(-1);
 		}
@@ -470,21 +471,7 @@ irc_ns_name_ntop(const char *src, char *dst, size_t dstsiz)
 	}
 	*dn++ = '\0';
 	return (dn - dst);
-}
-
-/*
- * Pack domain name 'exp_dn' in presentation form into 'comp_dn'.
- * Return the size of the compressed name or -1.
- * 'length' is the size of the array pointed to by 'comp_dn'.
- */
-static int
-irc_dn_comp(const char *src, unsigned char *dst, int dstsiz,
-            unsigned char **dnptrs, unsigned char **lastdnptr)
-{
-  return(irc_ns_name_compress(src, dst, (size_t)dstsiz,
-                              (const unsigned char **)dnptrs,
-                              (const unsigned char **)lastdnptr));
-}
+} /*2*/
 
 /*
  * Skip over a compressed domain name. Return the size or -1.
@@ -496,7 +483,7 @@ irc_dn_skipname(const unsigned char *ptr, const unsigned char *eom) {
   if (irc_ns_name_skip(&ptr, eom) == -1)
     return(-1);
   return(ptr - saveptr);
-}
+} /*2*/
 
 /*
  * ns_name_skip(ptrptr, eom)
@@ -549,7 +536,7 @@ irc_ns_name_skip(const unsigned char **ptrptr, const unsigned char *eom)
 
   *ptrptr = cp;
   return(0);
-}
+} /*2*/
 
 unsigned int
 irc_ns_get16(const unsigned char *src)
@@ -608,7 +595,7 @@ special(int ch)
     default:
       return(0);
   }
-}
+} /*2*/
 
 static int
 labellen(const unsigned char *lp)
@@ -635,7 +622,7 @@ labellen(const unsigned char *lp)
   }
 
   return(l);
-}
+} /*2*/
 
 
 /*
@@ -649,12 +636,12 @@ static int
 printable(int ch)
 {
   return(ch > 0x20 && ch < 0x7f);
-}
+} /*2*/
 
 static int
-irc_decode_bitstring(const char **cpp, char *dn, const char *eom)
+irc_decode_bitstring(const unsigned char **cpp, char *dn, const char *eom)
 {
-        const char *cp = *cpp;
+        const unsigned char *cp = *cpp;
         char *beg = dn, tc;
         int b, blen, plen;
 
@@ -681,7 +668,7 @@ irc_decode_bitstring(const char **cpp, char *dn, const char *eom)
 
         *cpp = cp;
         return(dn - beg);
-}
+} /*2*/
 
 /*
  * irc_ns_name_pton(src, dst, dstsiz)
@@ -717,7 +704,7 @@ irc_ns_name_pton(const char *src, unsigned char *dst, size_t dstsiz)
                cp + 2,
                &label,
                &bp,
-               (const char *)eom))
+               eom))
             != 0) {
           errno = e;
           return(-1);
@@ -821,7 +808,7 @@ irc_ns_name_pton(const char *src, unsigned char *dst, size_t dstsiz)
   }
 
   return (0);
-}
+} /*2*/
 
 /*
  * irc_ns_name_pack(src, dst, dstsiz, dnptrs, lastdnptr)
@@ -930,7 +917,7 @@ cleanup:
     return (-1);
   }
   return(dstp - dst);
-}
+} /*2*/
 
 static int
 irc_ns_name_compress(const char *src, unsigned char *dst, size_t dstsiz,
@@ -945,11 +932,12 @@ irc_ns_name_compress(const char *src, unsigned char *dst, size_t dstsiz,
 
 static int
 irc_encode_bitsring(const char **bp, const char *end, unsigned char **labelp,
-                    unsigned char **dst, const char *eom)
+                    unsigned char **dst, const unsigned char *eom)
 {
   int afterslash = 0;
   const char *cp = *bp;
-  char *tp, c;
+  unsigned char *tp;
+  char c;
   const char *beg_blen;
   char *end_blen = NULL;
   int value = 0, count = 0, tbcount = 0, blen = 0;
@@ -966,7 +954,7 @@ irc_encode_bitsring(const char **bp, const char *end, unsigned char **labelp,
   if (!isxdigit((*cp) & 0xff)) /* reject '\[x/BLEN]' */
     return(EINVAL);
 
-  for (tp = (char*)(dst + 1); cp < end && tp < eom; cp++) {
+  for (tp = *dst + 1; cp < end && tp < eom; cp++) {
     switch((c = *cp)) {
     case ']': /* end of the bitstring */
       if (afterslash) {
@@ -1043,10 +1031,10 @@ irc_encode_bitsring(const char **bp, const char *end, unsigned char **labelp,
   **dst = blen;
 
   *bp = cp;
-  *dst = (unsigned char*)tp;
+  *dst = tp;
 
   return(0);
-}
+} /*2*/
 
 /*
  * dn_find(domain, msg, dnptrs, lastdnptr)
@@ -1115,7 +1103,7 @@ irc_dn_find(const unsigned char *domain, const unsigned char *msg,
   }
   errno = ENOENT;
   return (-1);
-}
+} /*2*/
 
 /*
  *  *  Thinking in noninternationalized USASCII (per the DNS spec),
@@ -1128,7 +1116,7 @@ mklower(int ch)
     return(ch + 0x20);
 
   return(ch);
-}
+} /*2*/
 
 /* From resolv/mkquery.c */
 
@@ -1169,7 +1157,8 @@ irc_res_mkquery(
 
 	if ((buflen -= QFIXEDSZ) < 0)
 	  return (-1);
-	if ((n = irc_dn_comp(dname, cp, buflen, dnptrs, lastdnptr)) < 0)
+	if ((n = irc_ns_name_compress(dname, cp, buflen, (const unsigned char **)dnptrs,
+                                                         (const unsigned char **)lastdnptr)) < 0)
 	  return (-1);
 
 	cp += n;
