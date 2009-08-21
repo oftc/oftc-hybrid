@@ -309,17 +309,14 @@ make_request(dns_callback_fnc callback, void *ctx)
 void
 delete_resolver_queries(const void *vptr)
 {
-  dlink_node *ptr;
-  dlink_node *next_ptr;
-  struct reslist *request;
+  dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, request_list.head)
   {
-    if ((request = ptr->data) != NULL)
-    {
-      if (request->callback_ctx == vptr)
-        rem_request(request);
-    }
+    struct reslist *request = ptr->data;
+
+    if (request->callback_ctx == vptr)
+      rem_request(request);
   }
 }
 
