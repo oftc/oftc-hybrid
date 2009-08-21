@@ -143,6 +143,8 @@ int
 irc_res_init(void)
 {
   irc_nscount = 0;
+  memset(irc_nsaddr_list, 0, sizeof(irc_nsaddr_list));
+
   return parse_resvconf();
 }
 
