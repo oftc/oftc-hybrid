@@ -770,7 +770,6 @@ res_readreply(fde_t *fd, void *data)
   HEADER *header;
   struct reslist *request = NULL;
   int rc;
-  int answer_count;
   socklen_t len = sizeof(struct irc_ssaddr);
   struct irc_ssaddr lsin;
 
@@ -794,16 +793,16 @@ res_readreply(fde_t *fd, void *data)
   header->arcount = ntohs(header->arcount);
 
   /*
-   * response for an id which we have already received an answer for
-   * just ignore this response.
-   */
-  if (0 == (request = find_id(header->id)))
-    return;
-
-  /*
    * check against possibly fake replies
    */
   if (!res_ourserver(&lsin))
+    return;
+
+  /*
+   * response for an id which we have already received an answer for
+   * just ignore this response.
+   */
+  if (!(request = find_id(header->id)))
     return;
 
   if ((header->rcode != NO_ERRORS) || (header->ancount == 0))
@@ -816,9 +815,7 @@ res_readreply(fde_t *fd, void *data)
    * If this fails there was an error decoding the received packet, 
    * try it again and hope it works the next time.
    */
-  answer_count = proc_answer(request, header, buf, buf + rc);
-
-  if (answer_count)
+  if (proc_answer(request, header, buf, buf + rc))
   {
     if (request->type == T_PTR)
     {
