@@ -96,7 +96,6 @@
 
 struct irc_ssaddr irc_nsaddr_list[IRCD_MAXNS];
 int irc_nscount = 0;
-char irc_domain[HOSTLEN + 1];
 
 static const char digitvalue[256] = {
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*16*/
@@ -209,9 +208,7 @@ parse_resvconf(void)
     if ((p = strpbrk(arg, " \t")) != NULL)
       *p = '\0';  /* take the first word */
 
-    if (irccmp(opt, "domain") == 0)
-      strlcpy(irc_domain, arg, HOSTLEN);
-    else if (irccmp(opt, "nameserver") == 0)
+    if (irccmp(opt, "nameserver") == 0)
       add_nameserver(arg);
   }
 

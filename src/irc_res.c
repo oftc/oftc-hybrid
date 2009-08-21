@@ -108,11 +108,6 @@ static int send_res_msg(const char *buf, int len, int count);
 static void resend_query(struct reslist *request);
 static int proc_answer(struct reslist *request, HEADER *header, char *, char *);
 static struct reslist *find_id(int id);
-static struct DNSReply *make_dnsreply(struct reslist *request);
-
-extern struct irc_ssaddr irc_nsaddr_list[IRCD_MAXNS];
-extern int irc_nscount;
-extern char irc_domain[HOSTLEN+1];
 
 
 /*
@@ -273,30 +268,6 @@ restart_resolver(void)
 }
 
 /*
- * add_local_domain - Add the domain to hostname, if it is missing
- * (as suggested by eps@TOASTER.SFSU.EDU)
- */
-void
-add_local_domain(char *hname, size_t size)
-{
-  /* try to fix up unqualified names 
-   */
-  if (strchr(hname, '.') == NULL)
-  {
-    if (irc_domain[0])
-    {
-      size_t len = strlen(hname);
-
-      if ((strlen(irc_domain) + len + 2) < size)
-      {
-        hname[len++] = '.';
-        strcpy(hname + len, irc_domain);
-      }
-    }
-  }
-}
-
-/*
  * rem_request - remove a request from the list. 
  * This must also free any memory that has been allocated for 
  * temporary storage of DNS results.
@@ -445,8 +416,7 @@ do_query_name(dns_callback_fnc callback, void *ctx, const char *name,
 {
   char host_name[HOSTLEN + 1];
 
-  strlcpy(host_name, name, HOSTLEN + 1);
-  add_local_domain(host_name, HOSTLEN + 1);
+  strlcpy(host_name, name, sizeof(hostname));
 
   if (request == NULL)
   {
