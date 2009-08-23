@@ -3,6 +3,9 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
+/* Size of the auth heap. */
+#undef AUTH_HEAP_SIZE
+
 /* Size of the ban heap. */
 #undef BAN_HEAP_SIZE
 
@@ -23,6 +26,9 @@
 
 /* Size of the dlink_node heap. */
 #undef DNODE_HEAP_SIZE
+
+/* Size of the dns heap. */
+#undef DNS_HEAP_SIZE
 
 /* Define to 1 if this server will be an EFnet server. */
 #undef EFNET

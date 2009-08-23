@@ -605,13 +605,11 @@ main(int argc, char *argv[])
   init_class();
   init_whowas();
   watch_init();
+  init_auth();          /* Initialise the auth code */
+  init_resolver();      /* Needs to be setup before the io loop */
   read_conf_files(1);   /* cold start init conf files */
   me.id[0] = '\0';
   init_uid();
-  init_auth();          /* Initialise the auth code */
-#ifndef _WIN32
-  init_resolver();      /* Needs to be setup before the io loop */
-#endif
   initialize_server_capabs();   /* Set up default_server_capabs */
   initialize_global_set_options();
   init_channels();

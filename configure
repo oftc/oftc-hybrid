@@ -13070,6 +13070,12 @@ $as_echo "#define TOPIC_HEAP_SIZE 256" >>confdefs.h
 
 $as_echo "#define DBUF_HEAP_SIZE 64" >>confdefs.h
 
+
+$as_echo "#define AUTH_HEAP_SIZE 128" >>confdefs.h
+
+
+$as_echo "#define DNS_HEAP_SIZE 128" >>confdefs.h
+
 else
 
 $as_echo "#define NICKNAMEHISTORYLENGTH 15000" >>confdefs.h
@@ -13094,6 +13100,12 @@ $as_echo "#define TOPIC_HEAP_SIZE 1024" >>confdefs.h
 
 
 $as_echo "#define DBUF_HEAP_SIZE 512" >>confdefs.h
+
+
+$as_echo "#define AUTH_HEAP_SIZE 512" >>confdefs.h
+
+
+$as_echo "#define DNS_HEAP_SIZE 512" >>confdefs.h
 
 fi
 
