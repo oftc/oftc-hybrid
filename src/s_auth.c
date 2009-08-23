@@ -37,6 +37,7 @@
 #include "list.h"
 #include "s_auth.h"
 #include "s_conf.h"
+#include "balloc.h"
 #include "client.h"
 #include "common.h"
 #include "event.h"
@@ -77,6 +78,7 @@ enum {
 
 #define sendheader(c, i) sendto_one((c), HeaderMessages[(i)], me.name)
 
+static BlockHeap *auth_heap = NULL;
 static dlink_list auth_doing_list = { NULL, NULL, 0 };
 
 static EVH timeout_auth_queries_event;
@@ -94,6 +96,7 @@ struct Callback *auth_cb = NULL;
 void
 init_auth(void)
 {
+  auth_heap = BlockHeapCreate("auth", sizeof(struct AuthRequest), AUTH_HEAP_SIZE);
   auth_cb = register_callback("start_auth", start_auth);
   eventAddIsh("timeout_auth_queries_event", timeout_auth_queries_event, NULL, 1);
 }
@@ -104,7 +107,7 @@ init_auth(void)
 static struct AuthRequest *
 make_auth_request(struct Client *client)
 {
-  struct AuthRequest *request = MyMalloc(sizeof(struct AuthRequest));
+  struct AuthRequest *request = BlockHeapAlloc(auth_heap);
 
   client->localClient->auth = request;
   request->client           = client;
@@ -128,6 +131,7 @@ release_auth_client(struct AuthRequest *auth)
 
   client->localClient->auth = NULL;
   dlinkDelete(&auth->node, &auth_doing_list);
+  BlockHeapFree(auth_heap, auth);
 
   /*
    * When a client has auth'ed, we want to start reading what it sends
@@ -147,8 +151,8 @@ release_auth_client(struct AuthRequest *auth)
  
 /*
  * auth_dns_callback - called when resolver query finishes
- * if the query resulted in a successful search, hp will contain
- * a non-null pointer, otherwise hp will be null.
+ * if the query resulted in a successful search, name will contain
+ * a non-NULL pointer, otherwise name will be NULL.
  * set the client on it's way to a connection completion, regardless
  * of success of failure
  */
@@ -406,12 +410,14 @@ timeout_auth_queries_event(void *notused)
     if (IsDoingAuth(auth))
     {  
       ++ServerStats.is_abad;
+      ClearAuth(auth);
       sendheader(auth->client, REPORT_FAIL_ID);
     }
 
     if (IsDNSPending(auth))
     {
       delete_resolver_queries(auth);
+      ClearDNSPending(auth);
       sendheader(auth->client, REPORT_FAIL_DNS);
     }
 
@@ -595,5 +601,5 @@ delete_auth(struct AuthRequest *auth)
 
   fd_close(&auth->fd);
   dlinkDelete(&auth->node, &auth_doing_list);
-  MyFree(auth);
+  BlockHeapFree(auth_heap, auth);
 }

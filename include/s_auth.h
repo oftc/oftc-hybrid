@@ -28,12 +28,6 @@
 #include "irc_res.h"
 #include "hook.h"
 
-/* How many auth allocations to allocate in a block. I'm guessing that
- * a good number here is 64, because these are temporary and don't live
- * as long as clients do.
- *     -- adrian
- */
-#define	AUTH_BLOCK_SIZE 64
 
 struct Client;
 

@@ -21,6 +21,7 @@
 
 #include "stdinc.h"
 #include "tools.h"
+#include "balloc.h"
 #include "client.h"
 #include "list.h"
 #include "common.h"
@@ -93,6 +94,7 @@ struct reslist
 
 static fde_t ResolverFileDescriptor;
 static dlink_list request_list = { NULL, NULL, 0 };
+static BlockHeap *dns_heap = NULL;
 
 static void rem_request(struct reslist *request);
 static struct reslist *make_request(dns_callback_fnc callback, void *);
@@ -260,6 +262,7 @@ init_resolver(void)
 #ifdef HAVE_SRAND48
   srand48(CurrentTime);
 #endif
+  dns_heap = BlockHeapCreate("dns", sizeof(struct reslist), DNS_HEAP_SIZE);
   memset(&ResolverFileDescriptor, 0, sizeof(fde_t));
   start_resolver();
 }
@@ -284,8 +287,9 @@ static void
 rem_request(struct reslist *request)
 {
   dlinkDelete(&request->node, &request_list);
+
   MyFree(request->name);
-  MyFree(request);
+  BlockHeapFree(dns_heap, request);
 }
 
 /*
@@ -294,9 +298,7 @@ rem_request(struct reslist *request)
 static struct reslist *
 make_request(dns_callback_fnc callback, void *ctx)
 {
-  struct reslist *request;
-
-  request = (struct reslist *)MyMalloc(sizeof(struct reslist));
+  struct reslist *request = BlockHeapAlloc(dns_heap);
 
   request->sentat       = CurrentTime;
   request->retries      = 3;
@@ -307,7 +309,7 @@ make_request(dns_callback_fnc callback, void *ctx)
   request->callback_ctx = ctx;
 
   dlinkAdd(request, &request->node, &request_list);
-  return(request);
+  return request;
 }
 
 /*
@@ -421,7 +423,7 @@ do_query_name(dns_callback_fnc callback, void *ctx, const char *name,
 {
   char host_name[HOSTLEN + 1];
 
-  strlcpy(host_name, name, sizeof(hostname));
+  strlcpy(host_name, name, sizeof(host_name));
 
   if (request == NULL)
   {

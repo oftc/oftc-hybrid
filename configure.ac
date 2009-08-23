@@ -139,6 +139,8 @@ if test "$small_net" = yes; then
   AC_DEFINE([DNODE_HEAP_SIZE], 256, [Size of the dlink_node heap.])
   AC_DEFINE([TOPIC_HEAP_SIZE], 256, [Size of the topic heap.])
   AC_DEFINE([DBUF_HEAP_SIZE], 64, [Size of the dbuf heap.])
+  AC_DEFINE([AUTH_HEAP_SIZE], 128, [Size of the auth heap.])
+  AC_DEFINE([DNS_HEAP_SIZE], 128, [Size of the dns heap.])
 else
   AC_DEFINE([NICKNAMEHISTORYLENGTH], 15000, [Size of the WHOWAS array.])
   AC_DEFINE([CHANNEL_HEAP_SIZE], 1024, [Size of the channel heap.])
@@ -148,6 +150,8 @@ else
   AC_DEFINE([DNODE_HEAP_SIZE], 1024, [Size of the dlink_node heap.])
   AC_DEFINE([TOPIC_HEAP_SIZE], 1024, [Size of the topic heap.])
   AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
+  AC_DEFINE([AUTH_HEAP_SIZE], 512, [Size of the auth heap.])
+  AC_DEFINE([DNS_HEAP_SIZE], 512, [Size of the dns heap.])
 fi
 
 # Argument processing.
