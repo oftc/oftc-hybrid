@@ -40,8 +40,6 @@
 #define CONF_SERVER_INFO_TLS_VERSION_TLSV1 0x2
 
 struct Client;
-struct DNSReply;
-struct hostent;
 
 extern struct Callback *client_check_cb;
 
@@ -483,7 +481,6 @@ struct logging_entry
   char failed_operlog[PATH_MAX + 1];
 };
 
-extern int ypass;
 extern dlink_list class_items;
 extern dlink_list server_items;
 extern dlink_list cluster_items;
