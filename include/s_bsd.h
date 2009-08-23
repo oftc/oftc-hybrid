@@ -38,7 +38,6 @@
 
 struct Client;
 struct AccessItem;
-struct DNSReply;
 struct Listener;
 
 extern struct Callback *setup_socket_cb;

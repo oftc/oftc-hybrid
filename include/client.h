@@ -44,7 +44,6 @@
  */
 struct AccessItem;
 struct Whowas;
-struct DNSReply;
 struct Listener;
 struct Client;
 struct LocalUser;
