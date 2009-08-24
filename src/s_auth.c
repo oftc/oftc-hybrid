@@ -371,6 +371,7 @@ start_auth(va_list args)
   assert(client != NULL);
 
   auth = make_auth_request(client);
+  dlinkAdd(auth, &auth->node, &auth_doing_list);
 
   sendheader(client, REPORT_DO_DNS);
 
@@ -381,8 +382,6 @@ start_auth(va_list args)
     SetDoingAuth(auth);
     start_auth_query(auth);
   }
-
-  dlinkAdd(auth, &auth->node, &auth_doing_list);
 
   gethost_byaddr(auth_dns_callback, auth, &client->localClient->ip);
 
@@ -405,11 +404,10 @@ timeout_auth_queries_event(void *notused)
     if (auth->timeout > CurrentTime)
       continue;
 
-    fd_close(&auth->fd);
-
     if (IsDoingAuth(auth))
     {  
       ++ServerStats.is_abad;
+      fd_close(&auth->fd);
       ClearAuth(auth);
       sendheader(auth->client, REPORT_FAIL_ID);
     }
@@ -599,7 +597,9 @@ delete_auth(struct AuthRequest *auth)
   if (IsDNSPending(auth))
     delete_resolver_queries(auth);
 
-  fd_close(&auth->fd);
+  if (IsDoingAuth(auth))
+    fd_close(&auth->fd);
+
   dlinkDelete(&auth->node, &auth_doing_list);
   BlockHeapFree(auth_heap, auth);
 }
