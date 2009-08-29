@@ -569,7 +569,6 @@ extern struct split_nuh_item *find_accept(const char *, const char *,
                                           const char *, struct Client *, int);
 extern void del_accept(struct split_nuh_item *, struct Client *);
 extern void del_all_accepts(struct Client *);
-extern void set_initial_nick(struct Client *, struct Client *, const char *);
 extern void exit_client(struct Client *, struct Client *, const char *);
 extern void check_conf_klines(void);
 extern void init_client(void);

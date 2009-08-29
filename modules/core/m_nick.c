@@ -98,6 +98,52 @@ const char *_version = "$Revision$";
 #endif
 
 
+/* set_initial_nick()
+ *
+ * inputs
+ * output
+ * side effects -
+ *
+ * This function is only called to set up an initially registering
+ * client.
+ */
+static void
+set_initial_nick(struct Client *client_p, struct Client *source_p,
+                 const char *nick)
+{
+ char buf[USERLEN + 1];
+
+  /* Client setting NICK the first time */
+
+  /* This had to be copied here to avoid problems.. */
+  source_p->tsinfo = CurrentTime;
+  source_p->localClient->registration &= ~REG_NEED_NICK;
+
+  if (source_p->name[0])
+    hash_del_client(source_p);
+
+  strlcpy(source_p->name, nick, sizeof(source_p->name));
+  hash_add_client(source_p);
+
+  /* fd_desc is long enough */
+  fd_note(&client_p->localClient->fd, "Nick: %s", nick);
+
+  if (!source_p->localClient->registration)
+  {
+    strlcpy(buf, source_p->username, sizeof(buf));
+
+    /*
+     * USER already received, now we have NICK.
+     * *NOTE* For servers "NICK" *must* precede the
+     * user message (giving USER before NICK is possible
+     * only for local client connection!). register_user
+     * may reject the client and call exit_client for it
+     * --must test this and exit m_nick too!!!
+     */
+    register_local_user(client_p, source_p, nick, buf);
+  }
+}
+
 /*! \brief NICK command handler (called by unregistered,
  *         locally connected clients)
  *
