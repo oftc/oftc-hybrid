@@ -21,7 +21,5 @@ x86          gcc              Linux         Joshua Kwan <joshk@triplehelix.org>
 x86          gcc              FreeBSD       Diane Bruce <db@db.net>
 x86          gcc              OpenBSD       Joshua Kwan <joshk@triplehelix.org>
 x86          TenDRA           FreeBSD       Stuart Walsh <stu@ipng.org.uk>
-x86          MS Visual C++    Windows       Piotr Nizynski <adx@irc7.pl>
-x86          Borland C++ 5.5  Windows       Piotr Nizynski <adx@irc7.pl>
 
 $Id$

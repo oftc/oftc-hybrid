@@ -74,12 +74,6 @@ fdlist_init(void)
 void
 recalc_fdlimit(void *unused)
 {
-#ifdef _WIN32
-  /* this is what WSAStartup() usually returns. Even though they say
-   * the value is for compatibility reasons and should be ignored,
-   * we actually can create even more sockets... */
-  hard_fdlimit = 32767;
-#else
   int fdmax;
   struct rlimit limit;
 
@@ -101,17 +95,12 @@ recalc_fdlimit(void *unused)
 
   if (fdmax != hard_fdlimit)
     execute_callback(fdlimit_cb, fdmax);
-#endif
 }
 
 static inline unsigned int
 hash_fd(int fd)
 {
-#ifdef _WIN32
-  return ((((unsigned) fd) >> 2) % FD_HASH_SIZE);
-#else
   return (((unsigned) fd) % FD_HASH_SIZE);
-#endif
 }
 
 fde_t *
@@ -181,14 +170,7 @@ fd_close(fde_t *F)
   }
 
   /* Unlike squid, we're actually closing the FD here! -- adrian */
-#ifdef _WIN32
-  if (F->flags.is_socket)
-    closesocket(F->fd);
-  else
-    CloseHandle((HANDLE)F->fd);
-#else
   close(F->fd);
-#endif
   number_fd--;
 
   memset(F, 0, sizeof(fde_t));
@@ -234,7 +216,6 @@ fd_note(fde_t *F, const char *format, ...)
 /* Make sure stdio descriptors (0-2) and profiler descriptor (3)
  * always go somewhere harmless.  Use -foreground for profiling
  * or executing from gdb */
-#ifndef _WIN32
 void
 close_standard_fds(void)
 {
@@ -247,7 +228,6 @@ close_standard_fds(void)
       exit(-1); /* we're hosed if we can't even open /dev/null */
   }
 }
-#endif
 
 void
 close_fds(fde_t *one)
@@ -258,14 +238,5 @@ close_fds(fde_t *one)
   for (i = 0; i < FD_HASH_SIZE; i++)
     for (F = fd_hash[i]; F != NULL; F = F->hnext)
       if (F != one)
-      {
-#ifdef _WIN32
-        if (F->flags.is_socket)
-          closesocket(F->fd);
-        else
-	  CloseHandle((HANDLE)F->fd);
-#else
         close(F->fd);
-#endif	 
-      }
 }
