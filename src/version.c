@@ -24,11 +24,7 @@
 #include "patchlevel.h"
 #include "serno.h"
 #include "ircd.h"
-#ifndef _WIN32
 #include <sys/utsname.h>
-#else
-#include "s_bsd.h"
-#endif
 
 const char *ircd_version = PATCHLEVEL;
 const char *serno = SERIALNUM;
@@ -49,7 +45,7 @@ const char *infotext[] =
   "IRC --",
   "Based on the original code written by Jarkko Oikarinen",
   "Copyright 1988, 1989, 1990, 1991 University of Oulu, Computing Center",
-  "Copyright (c) 1997-2006 Hybrid Development Team", 
+  "Copyright (c) 1997-2009 Hybrid Development Team", 
   "",
   "This program is free software; you can redistribute it and/or",
   "modify it under the terms of the GNU General Public License as",

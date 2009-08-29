@@ -82,12 +82,6 @@
 #include <signal.h>
 #include <ctype.h>
 
-#ifdef _WIN32
-#define PATH_MAX (MAX_PATH - 1)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <winsock.h>
-#else
 #include <dirent.h>
 #include <netdb.h>
 #include <sys/socket.h>
@@ -95,7 +89,6 @@
 #include <arpa/inet.h>
 #include <sys/time.h>
 #include <sys/file.h>
-#endif
 
 #include <limits.h>
 
@@ -123,10 +116,4 @@ extern int errno;
 #endif
 
 #include "inet_misc.h"
-
-#ifdef _WIN32
-#undef strcasecmp
-#define strcasecmp stricmp
-#endif
-
 #endif

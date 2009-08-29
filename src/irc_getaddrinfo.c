@@ -387,17 +387,10 @@ explore_null(const struct addrinfo *pai, const char *servname, struct addrinfo *
 	 */
 	s = socket(pai->ai_family, SOCK_DGRAM, 0);
 	if (s < 0) {
-#ifdef _WIN32
-                errno = WSAGetLastError();
-#endif
 		if (errno != EMFILE)
 			return 0;
 	} else
-#ifdef _WIN32
-                closesocket(s);
-#else
 		close(s);
-#endif
 
 	/*
 	 * if the servname does not match socktype/protocol, ignore it.

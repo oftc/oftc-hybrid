@@ -231,9 +231,3 @@ ircd-hybrid.spec -- RPM specifications file that can be used to build an RPM of
 
 ircd.init.in     -- rc-init style file used with the spec file to allow system
                     loading of ircd-hybrid.
-
-setup-win32.h    -- This header file is a win32 compatible include/setup.h
-                    suitable for building ircd-hybrid on Windows with MSVC/BCC.
-
-win32build.bat   -- Automated BATCH script designed to aid in the building of
-                    ircd-hybrid on Windows with MSVC/BCC
