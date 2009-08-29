@@ -108,8 +108,7 @@ const char *_version = "$Revision$";
  * client.
  */
 static void
-set_initial_nick(struct Client *client_p, struct Client *source_p,
-                 const char *nick)
+set_initial_nick(struct Client *source_p, const char *nick)
 {
  char buf[USERLEN + 1];
 
@@ -126,7 +125,7 @@ set_initial_nick(struct Client *client_p, struct Client *source_p,
   hash_add_client(source_p);
 
   /* fd_desc is long enough */
-  fd_note(&client_p->localClient->fd, "Nick: %s", nick);
+  fd_note(&source_p->localClient->fd, "Nick: %s", nick);
 
   if (!source_p->localClient->registration)
   {
@@ -134,13 +133,8 @@ set_initial_nick(struct Client *client_p, struct Client *source_p,
 
     /*
      * USER already received, now we have NICK.
-     * *NOTE* For servers "NICK" *must* precede the
-     * user message (giving USER before NICK is possible
-     * only for local client connection!). register_user
-     * may reject the client and call exit_client for it
-     * --must test this and exit m_nick too!!!
      */
-    register_local_user(client_p, source_p, nick, buf);
+    register_local_user(source_p, source_p, nick, buf);
   }
 }
 
@@ -198,7 +192,7 @@ mr_nick(struct Client *client_p, struct Client *source_p,
   }
 
   if ((target_p = find_client(nick)) == NULL)
-    set_initial_nick(client_p, source_p, nick);
+    set_initial_nick(source_p, nick);
   else if (source_p == target_p)
     strcpy(source_p->name, nick);
   else
