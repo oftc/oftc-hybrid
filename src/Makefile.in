@@ -57,10 +57,9 @@ am__ircd_SOURCES_DIST = balloc.c channel.c channel_mode.c client.c \
 	list.c listener.c match.c memory.c modules.c motd.c rng_mt.c \
 	numeric.c packet.c parse.c s_conf.c s_bsd_epoll.c s_bsd_poll.c \
 	s_bsd_sigio.c s_bsd_devpoll.c s_bsd_kqueue.c s_bsd_select.c \
-	s_bsd_win32.c restart.c resv.c s_auth.c s_bsd.c s_gline.c \
-	s_log.c s_misc.c s_serv.c s_user.c send.c sprintf_irc.c \
-	tools.c version.c watch.c whowas.c ircd_parser.y ircd_lexer.l \
-	rsa.c
+	restart.c resv.c s_auth.c s_bsd.c s_gline.c s_log.c s_misc.c \
+	s_serv.c s_user.c send.c sprintf_irc.c tools.c version.c \
+	watch.c whowas.c ircd_parser.y ircd_lexer.l rsa.c
 @ENABLE_SSL_TRUE@am__objects_1 = rsa.$(OBJEXT)
 am_ircd_OBJECTS = balloc.$(OBJEXT) channel.$(OBJEXT) \
 	channel_mode.$(OBJEXT) client.$(OBJEXT) csvlib.$(OBJEXT) \
@@ -76,13 +75,12 @@ am_ircd_OBJECTS = balloc.$(OBJEXT) channel.$(OBJEXT) \
 	s_conf.$(OBJEXT) s_bsd_epoll.$(OBJEXT) s_bsd_poll.$(OBJEXT) \
 	s_bsd_sigio.$(OBJEXT) s_bsd_devpoll.$(OBJEXT) \
 	s_bsd_kqueue.$(OBJEXT) s_bsd_select.$(OBJEXT) \
-	s_bsd_win32.$(OBJEXT) restart.$(OBJEXT) resv.$(OBJEXT) \
-	s_auth.$(OBJEXT) s_bsd.$(OBJEXT) s_gline.$(OBJEXT) \
-	s_log.$(OBJEXT) s_misc.$(OBJEXT) s_serv.$(OBJEXT) \
-	s_user.$(OBJEXT) send.$(OBJEXT) sprintf_irc.$(OBJEXT) \
-	tools.$(OBJEXT) version.$(OBJEXT) watch.$(OBJEXT) \
-	whowas.$(OBJEXT) ircd_parser.$(OBJEXT) ircd_lexer.$(OBJEXT) \
-	$(am__objects_1)
+	restart.$(OBJEXT) resv.$(OBJEXT) s_auth.$(OBJEXT) \
+	s_bsd.$(OBJEXT) s_gline.$(OBJEXT) s_log.$(OBJEXT) \
+	s_misc.$(OBJEXT) s_serv.$(OBJEXT) s_user.$(OBJEXT) \
+	send.$(OBJEXT) sprintf_irc.$(OBJEXT) tools.$(OBJEXT) \
+	version.$(OBJEXT) watch.$(OBJEXT) whowas.$(OBJEXT) \
+	ircd_parser.$(OBJEXT) ircd_lexer.$(OBJEXT) $(am__objects_1)
 ircd_OBJECTS = $(am_ircd_OBJECTS)
 am__DEPENDENCIES_1 =
 ircd_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -267,10 +265,9 @@ ircd_SOURCES = balloc.c channel.c channel_mode.c client.c csvlib.c \
 	list.c listener.c match.c memory.c modules.c motd.c rng_mt.c \
 	numeric.c packet.c parse.c s_conf.c s_bsd_epoll.c s_bsd_poll.c \
 	s_bsd_sigio.c s_bsd_devpoll.c s_bsd_kqueue.c s_bsd_select.c \
-	s_bsd_win32.c restart.c resv.c s_auth.c s_bsd.c s_gline.c \
-	s_log.c s_misc.c s_serv.c s_user.c send.c sprintf_irc.c \
-	tools.c version.c watch.c whowas.c ircd_parser.y ircd_lexer.l \
-	$(am__append_1)
+	restart.c resv.c s_auth.c s_bsd.c s_gline.c s_log.c s_misc.c \
+	s_serv.c s_user.c send.c sprintf_irc.c tools.c version.c \
+	watch.c whowas.c ircd_parser.y ircd_lexer.l $(am__append_1)
 all: all-am
 
 .SUFFIXES:
@@ -407,7 +404,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_bsd_poll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_bsd_select.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_bsd_sigio.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_bsd_win32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_gline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_log.Po@am__quote@

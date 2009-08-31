@@ -47,7 +47,6 @@ ircd_SOURCES = balloc.c          \
                s_bsd_devpoll.c   \
                s_bsd_kqueue.c    \
                s_bsd_select.c    \
-               s_bsd_win32.c     \
                restart.c         \
                resv.c            \
                s_auth.c          \

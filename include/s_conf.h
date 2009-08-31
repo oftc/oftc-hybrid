@@ -546,7 +546,6 @@ extern const char *get_conf_name(ConfType);
 extern int rehash(int);
 extern int conf_add_server(struct ConfItem *, const char *);
 extern void conf_add_class_to_conf(struct ConfItem *, const char *);
-extern void conf_add_d_conf(struct AccessItem *);
 
 /* XXX consider moving these into csvlib.h */
 extern void parse_csv_file(FBFILE *, ConfType);
