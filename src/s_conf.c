@@ -180,8 +180,7 @@ unmap_conf_item(void *aconf)
 static void
 conf_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 {
-  struct AccessItem *aconf = (struct AccessItem *)vptr;
-  struct ConfItem *conf;
+  struct AccessItem *aconf = vptr;
 
   aconf->dns_pending = 0;
 
@@ -3200,37 +3199,6 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
   lookup_confhost(conf);
 
   return 0;
-}
-
-/* conf_add_d_conf()
- *
- * inputs       - pointer to config item
- * output       - NONE
- * side effects - Add a d/D line
- */
-void
-conf_add_d_conf(struct AccessItem *aconf)
-{
-  if (aconf->host == NULL)
-    return;
-
-  aconf->user = NULL;
-
-  /* XXX - Should 'd' ever be in the old conf? For new conf we don't
-   *       need this anyway, so I will disable it for now... -A1kmm
-   */
-  if (parse_netmask(aconf->host, NULL, NULL) == HM_HOST)
-  {
-    ilog(L_WARN, "Invalid Dline %s ignored", aconf->host);
-    free_access_item(aconf);
-  }
-  else
-  {
-    /* XXX ensure user is NULL */
-    MyFree(aconf->user);
-    aconf->user = NULL;
-    add_conf_by_address(CONF_DLINE, aconf);
-  }
 }
 
 /* yyerror()

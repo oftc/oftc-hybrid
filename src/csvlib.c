@@ -120,6 +120,22 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
 
           aconf->regexuser = exp_user;
           aconf->regexhost = exp_host;
+    case DLINE_TYPE:
+      parse_csv_line(line, &host_field, &reason_field, NULL);
+
+      if (host_field && parse_netmask(host_field, NULL, NULL) != HM_HOST)
+      {
+        aconf = map_to_conf(make_conf_item(DLINE_TYPE));
+        DupString(aconf->host, host_field);
+
+        if (reason_field != NULL)
+          DupString(aconf->reason, reason_field);
+        else
+          DupString(aconf->reason, "No reason");
+        add_conf_by_address(CONF_DLINE, aconf);
+      }
+
+      break;
 
           DupString(aconf->user, user_field);
           DupString(aconf->host, host_field);

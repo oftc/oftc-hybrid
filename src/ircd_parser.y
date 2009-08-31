@@ -3011,9 +3011,7 @@ kill_entry: KILL
           break;
         }
 
-        yy_conf = make_conf_item(RKLINE_TYPE);
-        yy_aconf = map_to_conf(yy_conf);
-
+        yy_aconf = map_to_conf(make_conf_item(RKLINE_TYPE));
         yy_aconf->regexuser = exp_user;
         yy_aconf->regexhost = exp_host;
 
@@ -3027,8 +3025,7 @@ kill_entry: KILL
       }
       else
       {
-        yy_conf = make_conf_item(KLINE_TYPE);
-        yy_aconf = map_to_conf(yy_conf);
+        yy_aconf = map_to_conf(make_conf_item(KLINE_TYPE));
 
         DupString(yy_aconf->user, userbuf);
         DupString(yy_aconf->host, hostbuf);
@@ -3040,10 +3037,7 @@ kill_entry: KILL
         add_conf_by_address(CONF_KILL, yy_aconf);
       }
     }
-    else
-      delete_conf_item(yy_conf);
 
-    yy_conf = NULL;
     yy_aconf = NULL;
   }
 }; 
@@ -3093,22 +3087,23 @@ kill_reason: REASON '=' QSTRING ';'
 deny_entry: DENY 
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    yy_conf = make_conf_item(DLINE_TYPE);
-    yy_aconf = map_to_conf(yy_conf);
-    /* default reason */
-    DupString(yy_aconf->reason, "No reason");
-  }
+    hostbuf[0] = reasonbuf[0] = '\0';
 } '{' deny_items '}' ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    if (yy_aconf->host && parse_netmask(yy_aconf->host, NULL, NULL) != HM_HOST)
+    if (hostbuf[0] && parse_netmask(hostbuf, NULL, NULL) != HM_HOST)
+    {
+      yy_aconf = map_to_conf(make_conf_item(DLINE_TYPE));
+      DupString(yy_aconf->host, hostbuf);
+
+      if (reasonbuf[0])
+        DupString(yy_aconf->reason, reasonbuf);
+      else
+        DupString(yy_aconf->reason, "No reason");
       add_conf_by_address(CONF_DLINE, yy_aconf);
-    else
-      delete_conf_item(yy_conf);
-    yy_conf = NULL;
-    yy_aconf = NULL;
+      yy_aconf = NULL;
+    }
   }
 }; 
 
@@ -3118,19 +3113,13 @@ deny_item:      deny_ip | deny_reason | error;
 deny_ip: IP '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    MyFree(yy_aconf->host);
-    DupString(yy_aconf->host, yylval.string);
-  }
+    strlcpy(hostbuf, yylval.string, sizeof(hostbuf));
 };
 
 deny_reason: REASON '=' QSTRING ';' 
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    MyFree(yy_aconf->reason);
-    DupString(yy_aconf->reason, yylval.string);
-  }
+    strlcpy(reasonbuf, yylval.string, sizeof(reasonbuf));
 };
 
 /***************************************************************************
@@ -3147,13 +3136,10 @@ exempt_ip: IP '=' QSTRING ';'
   {
     if (yylval.string[0] && parse_netmask(yylval.string, NULL, NULL) != HM_HOST)
     {
-      yy_conf = make_conf_item(EXEMPTDLINE_TYPE);
-      yy_aconf = map_to_conf(yy_conf);
+      yy_aconf = map_to_conf(make_conf_item(EXEMPTDLINE_TYPE));
       DupString(yy_aconf->host, yylval.string);
 
       add_conf_by_address(CONF_EXEMPTDLINE, yy_aconf);
-
-      yy_conf = NULL;
       yy_aconf = NULL;
     }
   }
