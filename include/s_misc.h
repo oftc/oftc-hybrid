@@ -26,7 +26,6 @@
 #define INCLUDED_s_misc_h
 
 extern char *date(time_t);
-extern char *small_file_date(time_t);
 extern const char *smalldate(time_t);
 #ifdef HAVE_LIBCRYPTO
 extern char *ssl_get_cipher(const SSL *);
