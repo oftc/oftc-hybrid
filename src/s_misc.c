@@ -115,25 +115,6 @@ smalldate(time_t lclock)
   return buf;
 }
 
-/* small_file_date()
- * Make a small YYYYMMDD formatted string suitable for a
- * dated file stamp. 
- */
-char *
-small_file_date(time_t lclock)
-{
-  static char timebuffer[MAX_DATE_STRING];
-  struct tm *tmptr;
-
-  if (!lclock)
-    time(&lclock);
-
-  tmptr = localtime(&lclock);
-  strftime(timebuffer, MAX_DATE_STRING, "%Y%m%d", tmptr);
-
-  return timebuffer;
-}
-
 #ifdef HAVE_LIBCRYPTO
 char *
 ssl_get_cipher(const SSL *ssl)
