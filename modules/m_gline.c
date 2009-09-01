@@ -59,9 +59,9 @@ static void set_local_gline(const struct Client *,
                             const char *, const char *, const char *);
 static int remove_gline_match(const char *, const char *);
 static int check_majority(const struct Client *, const char *,
-                          const char *, const char *, int);
-static void add_new_majority(const struct Client *,
-			     const char *, const char *, const char *);
+                          const char *, const char *, const int);
+static void add_new_majority(const struct Client *, const char *,
+                             const char *, const char *, const int);
 
 static void do_sgline(struct Client *, struct Client *, int, char *[], int);
 
@@ -69,8 +69,8 @@ static void me_gline(struct Client *, struct Client *, int, char *[]);
 static void ms_gline(struct Client *, struct Client *, int, char *[]);
 static void mo_gline(struct Client *, struct Client *, int, char *[]);
 
-static void do_sungline(struct Client *, struct Client *, int, char *[], int);
-
+static void do_sungline(struct Client *, const char *,
+                        const char *, const char *, int);
 static void me_gungline(struct Client *, struct Client *, int, char *[]);
 static void mo_gungline(struct Client *, struct Client *, int, char *[]);
 
@@ -292,7 +292,7 @@ do_sgline(struct Client *client_p, struct Client *source_p,
   DLINK_FOREACH(ptr, gdeny_items.head)
   {
     conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = map_to_conf(conf);
 
     if (match(conf->name, source_p->servptr->name) &&
         match(aconf->user, source_p->username) &&
@@ -403,7 +403,7 @@ set_local_gline(const struct Client *source_p, const char *user,
   conf = make_conf_item(GLINE_TYPE);
   aconf = map_to_conf(conf);
 
-  ircsprintf(buffer, "%s (%s)", reason, smalldate(CurrentTime));
+  snprintf(buffer, sizeof(buffer), "%s (%s)", reason, smalldate(CurrentTime));
   DupString(aconf->reason, buffer);
   DupString(aconf->user, user);
   DupString(aconf->host, host);
@@ -440,7 +440,7 @@ set_local_gline(const struct Client *source_p, const char *user,
  */
 static void
 add_new_majority(const struct Client *source_p, const char *user,
-                 const char *host, const char *reason)
+                 const char *host, const char *reason, const int type)
 {
   struct gline_pending *pending = MyMalloc(sizeof(struct gline_pending));
 
@@ -456,7 +456,7 @@ add_new_majority(const struct Client *source_p, const char *user,
   pending->last_gline_time = CurrentTime;
   pending->vote_1.time_request = CurrentTime;
 
-  dlinkAdd(pending, &pending->node, &pending_glines[GLINE_PENDING_ADD_TYPE]);
+  dlinkAdd(pending, &pending->node, &pending_glines[type]);
 }
 
 /* check_majority()
@@ -476,7 +476,7 @@ add_new_majority(const struct Client *source_p, const char *user,
  */
 static int
 check_majority(const struct Client *source_p, const char *user,
-               const char *host, const char *reason, int type)
+               const char *host, const char *reason, const int type)
 {
   dlink_node *dn_ptr = NULL;
 
@@ -545,7 +545,7 @@ check_majority(const struct Client *source_p, const char *user,
    * Didn't find this user@host gline in pending gline list
    * so add it.
    */
-  add_new_majority(source_p, user, host, reason);
+  add_new_majority(source_p, user, host, reason, type);
   return GLINE_NOT_PLACED;
 }
 
@@ -601,23 +601,18 @@ me_gungline(struct Client *client_p, struct Client *source_p,
             int parc, char *parv[])
 {
   if (ConfigFileEntry.glines)
-    do_sungline(client_p, source_p, parc, parv, 0);
+    do_sungline(source_p, parv[1], parv[2], parv[3], 0);
 }
 
 static void
-do_sungline(struct Client *client_p, struct Client *source_p,
-            int parc, char *parv[], int prop)
+do_sungline(struct Client *source_p, const char *user,
+            const char *host, const char *reason, int prop)
 {
-  const char *user   = parv[1];
-  const char *host   = parv[2]; /* user and host of GLINE "victim"   */
-  const char *reason = parv[3];
-
   assert(source_p->servptr != NULL);
 
   sendto_realops_flags(UMODE_ALL, L_ALL,
                        "%s requesting UNG-Line for [%s@%s] [%s]",
-                       get_oper_name(source_p),
-                       user, host, reason);
+                       get_oper_name(source_p), user, host, reason);
   ilog(L_TRACE, "#ungline for %s@%s [%s] requested by %s",
        user, host, reason, get_oper_name(source_p));
 
@@ -625,6 +620,16 @@ do_sungline(struct Client *client_p, struct Client *source_p,
   if (check_majority(source_p, user, host, reason, GLINE_PENDING_DEL_TYPE) ==
       GLINE_ALREADY_VOTED)
     sendto_realops_flags(UMODE_ALL, L_ALL, "oper or server has already voted");
+
+  if (prop)
+  {
+    sendto_server(source_p->from, NULL, CAP_ENCAP|CAP_TS6, NOCAPS,
+                  ":%s ENCAP * GUNGLINE %s %s :%s",
+                  ID(source_p), user, host, reason);
+    sendto_server(source_p->from, NULL, CAP_ENCAP, CAP_TS6,
+                  ":%s ENCAP * GUNGLINE %s %s :%s",
+                  source_p->name, user, host, reason);
+  }
 }
 
 /* mo_gungline()
@@ -666,29 +671,5 @@ mo_gungline(struct Client *client_p, struct Client *source_p,
                   &host, NULL, NULL, &reason) < 0)
     return;
 
-  /*
-   * call these two functions first so the 'requesting' notice always comes
-   * before the 'has triggered' notice.  -bill
-   */
-  sendto_realops_flags(UMODE_ALL, L_ALL,
-                       "%s requesting UNG-Line for [%s@%s] [%s]",
-                       get_oper_name(source_p),
-                       user, host, reason);
-  ilog(L_TRACE, "#ungline for %s@%s [%s] requested by %s!%s@%s",
-       user, host, reason, source_p->name, source_p->username,
-       source_p->host);
-
-  /* If at least 3 opers agree this user should be un G lined then do it */
-  if (check_majority(source_p, user, host, reason, GLINE_PENDING_DEL_TYPE) ==
-      GLINE_ALREADY_VOTED)
-    sendto_one(source_p,
-               ":%s NOTICE %s :This server or oper has already voted",
-               me.name, source_p->name);
-
-  sendto_server(client_p, NULL, CAP_ENCAP|CAP_TS6, NOCAPS,
-                ":%s ENCAP * GUNGLINE %s %s :%s",
-                ID(source_p), user, host, reason);
-  sendto_server(client_p, NULL, CAP_ENCAP, CAP_TS6,
-                ":%s ENCAP * GUNGLINE %s %s :%s",
-                source_p->name, user, host, reason);
+  do_sungline(source_p, user, host, reason, 1);
 }
