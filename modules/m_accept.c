@@ -1,6 +1,5 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  m_accept.c: Allows a user to talk to a +g user.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -18,8 +17,11 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
- *
- *  $Id$
+ */
+
+/*! \file m_accept.c
+ * \brief Includes required functions for processing the ACCEPT command.
+ * \version $Id$
  */
 
 #include "stdinc.h"
@@ -27,7 +29,6 @@
 #include "client.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
-#include "hash.h"       /* for find_client() */
 #include "ircd.h"
 #include "list.h"
 #include "numeric.h"
@@ -36,11 +37,9 @@
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
-#include "s_user.h"
 #include "modules.h"
 
 static void m_accept(struct Client *, struct Client *, int, char *[]);
-static void list_accepts(struct Client *);
 
 struct Message accept_msgtab = {
   "ACCEPT", 0, 0, 0, 0, MFLG_SLOW, 0, 
@@ -64,14 +63,57 @@ const char *_version = "$Revision$";
 #endif
 
 
-/* add_accept()
+/*! \brief Creates and sends a list of nick!user\@host masks a Client
+ *         has on its acceptlist.
  *
- * input        - pointer to preallocated nick
- *              - pointer to preallocated username
- *              - pointer to preallocated host
- *              - pointer to client to add to acceptlist
- * output       - none
- * side effects - target is added to clients list
+ * \param source_p The actual Client the list will be sent to.
+ */
+static void
+list_accepts(struct Client *source_p)
+{
+  int len = 0;
+  char nicks[IRCD_BUFSIZE] = { '\0' };
+  char *t = nicks;
+  const dlink_node *ptr = NULL;
+
+  len = strlen(me.name) + strlen(source_p->name) + 12;
+
+  DLINK_FOREACH(ptr, source_p->localClient->acceptlist.head)
+  {
+    const struct split_nuh_item *accept_p = ptr->data;
+    size_t masklen = strlen(accept_p->nickptr) +
+                     strlen(accept_p->userptr) +
+                     strlen(accept_p->hostptr) + 2 /* !@ */ ;
+
+    if ((t - nicks) + masklen + len  > IRCD_BUFSIZE)
+    {
+      *(t - 1) = '\0';
+      sendto_one(source_p, form_str(RPL_ACCEPTLIST),
+                 me.name, source_p->name, nicks);
+      t = nicks;
+    }
+
+    t += ircsprintf(t, "%s!%s@%s ",
+                    accept_p->nickptr,
+                    accept_p->userptr, accept_p->hostptr);
+  }
+
+  if (nicks[0] != '\0')
+  {
+    *(t - 1) = '\0';
+    sendto_one(source_p, form_str(RPL_ACCEPTLIST),
+               me.name, source_p->name, nicks);
+  }
+
+  sendto_one(source_p, form_str(RPL_ENDOFACCEPT),
+             me.name, source_p->name);
+}
+
+/*! \brief Allocates and adds a split_nuh_item holding a nick!user\@host
+ *         mask to a Client's acceptlist.
+ *
+ * \param nuh      A split_nuh_item already prepared with required masks.
+ * \param source_p The actual Client the new accept is added to.
  */
 static void
 add_accept(const struct split_nuh_item *nuh, struct Client *source_p)
@@ -174,51 +216,4 @@ m_accept(struct Client *client_p, struct Client *source_p,
       add_accept(&nuh, source_p);
     }
   }
-}
-
-/* list_accepts()
- *
- * input 	- pointer to client
- * output	- none
- * side effects	- print accept list to client
- */
-static void
-list_accepts(struct Client *source_p)
-{
-  int len = 0;
-  char nicks[IRCD_BUFSIZE] = { '\0' };
-  char *t = nicks;
-  const dlink_node *ptr = NULL;
-
-  len = strlen(me.name) + strlen(source_p->name) + 12;
-
-  DLINK_FOREACH(ptr, source_p->localClient->acceptlist.head)
-  {
-    const struct split_nuh_item *accept_p = ptr->data;
-    size_t masklen = strlen(accept_p->nickptr) +
-                     strlen(accept_p->userptr) +
-                     strlen(accept_p->hostptr) + 2 /* !@ */ ;
-
-    if ((t - nicks) + masklen + len  > IRCD_BUFSIZE)
-    {
-      *(t - 1) = '\0';
-      sendto_one(source_p, form_str(RPL_ACCEPTLIST),
-                 me.name, source_p->name, nicks);
-      t = nicks;
-    }
-
-    t += ircsprintf(t, "%s!%s@%s ",
-                    accept_p->nickptr,
-                    accept_p->userptr, accept_p->hostptr);
-  }
-
-  if (nicks[0] != '\0')
-  {
-    *(t - 1) = '\0';
-    sendto_one(source_p, form_str(RPL_ACCEPTLIST),
-               me.name, source_p->name, nicks);
-  }
-
-  sendto_one(source_p, form_str(RPL_ENDOFACCEPT),
-             me.name, source_p->name);
 }

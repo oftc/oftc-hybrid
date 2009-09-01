@@ -242,8 +242,6 @@ BlockHeapCreate(const char *const name, size_t elemsize, int elemsperblock)
      outofmemory();    /* die.. out of memory */
   }
 
-  assert(bh);
-
   bh->next = heap_list;
   heap_list = bh;
 

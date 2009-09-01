@@ -38,7 +38,8 @@
 /*! \brief Block contains status information for
  *         an allocated block in our heap.
  */
-struct Block {
+struct Block
+{
   int		freeElems;	/*!< Number of available elems */
   size_t	alloc_size;	/*!< Size of data space for each block */
   struct Block*	next;		/*!< Next in our chain of blocks */
@@ -48,8 +49,9 @@ struct Block {
 
 typedef struct Block Block;
 
-struct MemBlock {
-  dlink_node self;		/*!< Node for linking into free_list or used_list */
+struct MemBlock
+{
+  dlink_node self;		/*!< Node for linking into free_list */
   Block *block;			/*!< Which block we belong to */
 };
 typedef struct MemBlock MemBlock;
@@ -57,7 +59,8 @@ typedef struct MemBlock MemBlock;
 /*! \brief BlockHeap contains the information for the root node of the
  *         memory heap.
  */
-struct BlockHeap {
+struct BlockHeap
+{
    size_t  elemSize;            /*!< Size of each element to be stored */
    int     elemsPerBlock;       /*!< Number of elements per block */
    int     blocksAllocated;     /*!< Number of blocks allocated */
