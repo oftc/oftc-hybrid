@@ -1,6 +1,5 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  m_admin.c: Sends administrative information to a user.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -18,8 +17,11 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
- *
- *  $Id$
+ */
+
+/*! \file m_admin.c
+ * \brief Includes required functions for processing the ADMIN command.
+ * \version $Id$
  */
 
 #include "stdinc.h"
@@ -72,10 +74,18 @@ _moddeinit(void)
 }
 #endif
 
-/*
- * mr_admin - ADMIN command handler
- *      parv[0] = sender prefix   
- *      parv[1] = servername   
+/*! \brief ADMIN command handler (called by unregistered,
+ *         locally connected clients)
+ *
+ * \param client_p Pointer to allocated Client struct with physical connection
+ *                 to this server, i.e. with an open socket connected.
+ * \param source_p Pointer to allocated Client struct from which the message
+ *                 originally comes from.  This can be a local or remote client.
+ * \param parc     Integer holding the number of supplied arguments.
+ * \param parv     Argument vector where parv[0] .. parv[parc-1] are non-NULL
+ *                 pointers.
+ * \note Valid arguments for this command are:
+ *      - parv[0] = sender prefix
  */
 static void
 mr_admin(struct Client *client_p, struct Client *source_p,
@@ -101,10 +111,19 @@ mr_admin(struct Client *client_p, struct Client *source_p,
 #endif
 }
 
-/*
- * m_admin - ADMIN command handler
- *      parv[0] = sender prefix
- *      parv[1] = servername
+/*! \brief NICK command handler (called by already registered,
+ *         locally connected clients)
+ *
+ * \param client_p Pointer to allocated Client struct with physical connection
+ *                 to this server, i.e. with an open socket connected.
+ * \param source_p Pointer to allocated Client struct from which the message
+ *                 originally comes from.  This can be a local or remote client.
+ * \param parc     Integer holding the number of supplied arguments.
+ * \param parv     Argument vector where parv[0] .. parv[parc-1] are non-NULL
+ *                 pointers.
+ * \note Valid arguments for this command are:
+ *      - parv[0] = sender prefix
+ *      - parv[1] = nickname/servername
  */
 static void
 m_admin(struct Client *client_p, struct Client *source_p,
@@ -133,10 +152,19 @@ m_admin(struct Client *client_p, struct Client *source_p,
 #endif
 }
 
-/*
- * ms_admin - ADMIN command handler, used for OPERS as well
- *      parv[0] = sender prefix
- *      parv[1] = servername
+/*! \brief ADMIN command handler (called by operators and
+ *         remotely connected clients)
+ *
+ * \param client_p Pointer to allocated Client struct with physical connection
+ *                 to this server, i.e. with an open socket connected.
+ * \param source_p Pointer to allocated Client struct from which the message
+ *                 originally comes from.  This can be a local or remote client.
+ * \param parc     Integer holding the number of supplied arguments.
+ * \param parv     Argument vector where parv[0] .. parv[parc-1] are non-NULL
+ *                 pointers.
+ * \note Valid arguments for this command are:
+ *      - parv[0] = sender prefix
+ *      - parv[1] = nickname/servername
  */
 static void
 ms_admin(struct Client *client_p, struct Client *source_p,
@@ -154,11 +182,9 @@ ms_admin(struct Client *client_p, struct Client *source_p,
 #endif
 }
 
-/* do_admin()
+/*! \brief Sends administrative information about this server.
  *
- * inputs	- pointer to client to report to
- * output	- none
- * side effects	- admin info is sent to client given
+ * \param source_p Pointer to client to report to
  */
 static void
 do_admin(struct Client *source_p)
