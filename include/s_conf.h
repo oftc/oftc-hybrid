@@ -496,6 +496,7 @@ struct logging_entry
   char failed_operlog[PATH_MAX + 1];
 };
 
+extern dlink_list gdeny_items;
 extern dlink_list class_items;
 extern dlink_list server_items;
 extern dlink_list cluster_items;
