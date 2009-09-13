@@ -22,9 +22,13 @@
  *  $Id$
  */
 
+#include "config.h"
+#ifdef HAVE_LIBPCRE
+#include <pcre.h>
+#endif
+
 #include "stdinc.h"
 #include "tools.h"
-#include "pcre.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "client.h"
@@ -527,7 +531,8 @@ strlcpy(char *dst, const char *src, size_t siz)
 }
 #endif
 
-pcre *
+#ifdef HAVE_LIBPCRE
+void *
 ircd_pcre_compile(const char *pattern, const char **errptr)
 {
   int erroroffset = 0;
@@ -539,9 +544,10 @@ ircd_pcre_compile(const char *pattern, const char **errptr)
 }
 
 int
-ircd_pcre_exec(const pcre *code, const char *subject)
+ircd_pcre_exec(const void *code, const char *subject)
 {
   assert(code && subject);
 
   return pcre_exec(code, NULL, subject, strlen(subject), 0, 0, NULL, 0) < 0;
 }
+#endif

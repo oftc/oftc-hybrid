@@ -760,6 +760,8 @@ EFNET_FALSE
 EFNET_TRUE
 ENABLE_SSL_FALSE
 ENABLE_SSL_TRUE
+ENABLE_PCRE_FALSE
+ENABLE_PCRE_TRUE
 LTDLOPEN
 LT_CONFIG_H
 subdirs
@@ -909,6 +911,8 @@ with_ltdl_lib
 enable_ltdl_install
 with_zlib_path
 enable_zlib
+with_libpcre_path
+enable_libpcre
 enable_openssl
 enable_assert
 enable_small_net
@@ -1568,6 +1572,7 @@ Optional Features:
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-ltdl-install   install libltdl
   --disable-zlib          Disable ziplinks support
+  --disable-libpcre       Disable PCRE support
   --enable-openssl=DIR       Enable OpenSSL support (DIR optional).
   --disable-openssl            Disable OpenSSL support.
   --enable-assert         Enable assert() statements
@@ -1596,6 +1601,7 @@ Optional Packages:
   --with-ltdl-include=DIR use the ltdl headers installed in DIR
   --with-ltdl-lib=DIR     use the libltdl.la installed in DIR
   --with-zlib-path=DIR    Path to libz.so for ziplinks support.
+  --with-libpcre-path=DIR Path to libpcre.so for PCRE support.
   --with-nicklen=<value>  Set nickname length (default 9).
   --with-topiclen=<value> Set topic length (default 160).
   --with-syslog-facility=LOG
@@ -5118,13 +5124,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5121: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5127: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5124: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5130: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5127: output\"" >&5)
+  (eval echo "\"\$as_me:5133: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6329,7 +6335,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6332 "configure"' > conftest.$ac_ext
+  echo '#line 6338 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7853,11 +7859,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7856: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7862: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7860: \$? = $ac_status" >&5
+   echo "$as_me:7866: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8192,11 +8198,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8195: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8201: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8199: \$? = $ac_status" >&5
+   echo "$as_me:8205: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8297,11 +8303,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8300: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8306: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8304: \$? = $ac_status" >&5
+   echo "$as_me:8310: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8352,11 +8358,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8355: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8361: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8359: \$? = $ac_status" >&5
+   echo "$as_me:8365: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -10089,7 +10095,7 @@ rm -f core conftest.err conftest.$ac_objext \
   libsuff=
   case "$host_cpu" in
   x86_64*|s390x*|powerpc64*)
-    echo '#line 10092 "configure"' > conftest.$ac_ext
+    echo '#line 10098 "configure"' > conftest.$ac_ext
     if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -10742,7 +10748,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10745 "configure"
+#line 10751 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -10838,7 +10844,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10841 "configure"
+#line 10847 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11510,7 +11516,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11513 "configure"
+#line 11519 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12957,6 +12963,87 @@ fi
 fi
 
 
+# Check whether --with-libpcre-path was given.
+if test "${with_libpcre_path+set}" = set; then :
+  withval=$with_libpcre_path; LDFLAGS="-L$withval $LDFLAGS"
+fi
+
+
+# Check whether --enable-libpcre was given.
+if test "${enable_libpcre+set}" = set; then :
+  enableval=$enable_libpcre; libpcre=$enableval
+else
+  libpcre=yes
+fi
+
+
+if test "$libpcre" = yes; then
+  ac_fn_c_check_header_mongrel "$LINENO" "pcre.h" "ac_cv_header_pcre_h" "$ac_includes_default"
+if test "x$ac_cv_header_pcre_h" = x""yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcre_study in -lpcre" >&5
+$as_echo_n "checking for pcre_study in -lpcre... " >&6; }
+if test "${ac_cv_lib_pcre_pcre_study+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpcre  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pcre_study ();
+int
+main ()
+{
+return pcre_study ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pcre_pcre_study=yes
+else
+  ac_cv_lib_pcre_pcre_study=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pcre_pcre_study" >&5
+$as_echo "$ac_cv_lib_pcre_pcre_study" >&6; }
+if test "x$ac_cv_lib_pcre_pcre_study" = x""yes; then :
+
+      LIBS="-lpcre $LIBS"
+
+$as_echo "#define HAVE_LIBPCRE 1" >>confdefs.h
+
+
+else
+  libpcre=no
+fi
+
+
+else
+  libpcre=no
+fi
+
+
+fi
+ if test "$libpcre" = yes; then
+  ENABLE_PCRE_TRUE=
+  ENABLE_PCRE_FALSE='#'
+else
+  ENABLE_PCRE_TRUE='#'
+  ENABLE_PCRE_FALSE=
+fi
+
+
+
 # Check whether --enable-openssl was given.
 if test "${enable_openssl+set}" = set; then :
   enableval=$enable_openssl;  cf_enable_openssl=$enableval
@@ -13742,7 +13829,7 @@ _ACEOF
   test "$exec_prefix_NONE" && exec_prefix=NONE
 
 
-ac_config_files="$ac_config_files Makefile etc/Makefile etc/example.conf etc/example.conf.quick etc/example.efnet.conf servlink/Makefile contrib/Makefile contrib/help/Makefile src/Makefile messages/Makefile modules/Makefile modules/core/Makefile doc/Makefile help/Makefile help/opers/Makefile help/users/Makefile lib/Makefile lib/pcre/Makefile tools/Makefile"
+ac_config_files="$ac_config_files Makefile etc/Makefile etc/example.conf etc/example.conf.quick etc/example.efnet.conf servlink/Makefile contrib/Makefile contrib/help/Makefile src/Makefile messages/Makefile modules/Makefile modules/core/Makefile doc/Makefile help/Makefile help/opers/Makefile help/users/Makefile tools/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -13888,6 +13975,10 @@ LT_CONFIG_H=config.h
 
 
 
+if test -z "${ENABLE_PCRE_TRUE}" && test -z "${ENABLE_PCRE_FALSE}"; then
+  as_fn_error "conditional \"ENABLE_PCRE\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${ENABLE_SSL_TRUE}" && test -z "${ENABLE_SSL_FALSE}"; then
   as_fn_error "conditional \"ENABLE_SSL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
@@ -14763,8 +14854,6 @@ do
     "help/Makefile") CONFIG_FILES="$CONFIG_FILES help/Makefile" ;;
     "help/opers/Makefile") CONFIG_FILES="$CONFIG_FILES help/opers/Makefile" ;;
     "help/users/Makefile") CONFIG_FILES="$CONFIG_FILES help/users/Makefile" ;;
-    "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
-    "lib/pcre/Makefile") CONFIG_FILES="$CONFIG_FILES lib/pcre/Makefile" ;;
     "tools/Makefile") CONFIG_FILES="$CONFIG_FILES tools/Makefile" ;;
 
   *) as_fn_error "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

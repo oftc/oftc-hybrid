@@ -569,7 +569,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 135 "ircd_parser.y"
+#line 138 "ircd_parser.y"
 
   int number;
   char *string;

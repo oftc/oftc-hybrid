@@ -4,10 +4,10 @@ sbin_PROGRAMS = ircd
 
 AM_YFLAGS = -d
 
-AM_CPPFLAGS = $(INCLTDL) -I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
+AM_CPPFLAGS = $(INCLTDL) -I$(top_srcdir)/include
 ircd_LDFLAGS = -export-dynamic
-ircd_LDADD = $(LIBLTDL) $(top_srcdir)/lib/pcre/libpcre.a
-ircd_DEPENDENCIES = $(LIBLTDL) $(top_srcdir)/lib/pcre/libpcre.a
+ircd_LDADD = $(LIBLTDL)
+ircd_DEPENDENCIES = $(LIBLTDL)
 
 ircd_SOURCES = balloc.c          \
                channel.c         \

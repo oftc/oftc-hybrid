@@ -1903,7 +1903,7 @@ char *yytext;
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: ircd_lexer.l 908 2007-11-04 23:21:51Z stu $
+ *  $Id: ircd_lexer.l 967 2009-08-02 18:05:28Z michael $
  */
 #line 31 "ircd_lexer.l"
 #include "stdinc.h"

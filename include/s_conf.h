@@ -33,7 +33,6 @@
 #include "motd.h"               /* MessageFile */
 #include "client.h"
 #include "hook.h"
-#include "pcre.h"
 
 
 #define CONF_SERVER_INFO_TLS_VERSION_SSLV3 0x1
@@ -91,9 +90,10 @@ struct split_nuh_item
 
 struct ConfItem
 {
+  dlink_node node;      /* link into known ConfItems of this type */
+
   char *name;		/* Primary key */
-  pcre *regexpname;
-  dlink_node node;	/* link into known ConfItems of this type */
+  void *regexpname;
   unsigned int flags;
   ConfType type;
 };
@@ -141,8 +141,8 @@ struct AccessItem
   RSA *            rsa_public_key;
   struct EncCapability *cipher_preference;
 #endif
-  pcre *regexuser;
-  pcre *regexhost;
+  void *regexuser;
+  void *regexhost;
 };
 
 struct ClassItem

@@ -103,6 +103,23 @@ if test "$zlib" = yes; then
   ], zlib=no)
 fi
 
+AC_ARG_WITH(libpcre-path,
+AS_HELP_STRING([--with-libpcre-path=DIR], [Path to libpcre.so for PCRE support.]),
+[LDFLAGS="-L$withval $LDFLAGS"],)
+
+AC_ARG_ENABLE(libpcre, AS_HELP_STRING([--disable-libpcre],[Disable PCRE support]),
+[libpcre=$enableval],[libpcre=yes])
+
+if test "$libpcre" = yes; then
+  AC_CHECK_HEADER(pcre.h, [AC_CHECK_LIB(pcre, pcre_study,
+    [
+      LIBS="-lpcre $LIBS"
+      AC_DEFINE(HAVE_LIBPCRE, 1, [Define to 1 if libpcre (-lpcre) is available.])
+    ], libpcre=no)
+  ], libpcre=no)
+fi
+AM_CONDITIONAL(ENABLE_PCRE, [test "$libpcre" = yes])
+
 
 dnl Openssl checks
 AC_ARG_ENABLE(openssl,
@@ -241,8 +258,6 @@ AC_CONFIG_FILES(              \
        help/Makefile          \
 			 help/opers/Makefile		\
 			 help/users/Makefile    \
-       lib/Makefile           \
-       lib/pcre/Makefile      \
        tools/Makefile
 )
 

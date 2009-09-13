@@ -291,7 +291,7 @@ make_conf_item(ConfType type)
                                        sizeof(struct MatchItem));
     dlinkAdd(conf, &conf->node, &xconf_items);
     break;
-
+#ifdef HAVE_LIBPCRE
   case RXLINE_TYPE:
     conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
                                        sizeof(struct MatchItem));
@@ -305,7 +305,7 @@ make_conf_item(ConfType type)
     aconf->status = CONF_KLINE;
     dlinkAdd(conf, &conf->node, &rkconf_items);
     break;
-
+#endif
   case CLUSTER_TYPE:
     conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem));
     dlinkAdd(conf, &conf->node, &cluster_items);
@@ -463,7 +463,7 @@ delete_conf_item(struct ConfItem *conf)
     dlinkDelete(&conf->node, &xconf_items);
     MyFree(conf);
     break;
-
+#ifdef HAVE_LIBPCRE
   case RKLINE_TYPE:
     aconf = map_to_conf(conf);
     MyFree(aconf->regexuser);
@@ -486,7 +486,7 @@ delete_conf_item(struct ConfItem *conf)
     dlinkDelete(&conf->node, &rxconf_items);
     MyFree(conf);
     break;
-
+#endif
   case NRESV_TYPE:
     match_item = map_to_conf(conf);
     MyFree(match_item->user);
@@ -613,6 +613,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     }
     break;
 
+#ifdef HAVE_LIBPCRE
   case RXLINE_TYPE:
     DLINK_FOREACH(ptr, rxconf_items.head)
     {
@@ -641,6 +642,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
                  aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");
     }
     break;
+#endif
 
   case ULINE_TYPE:
     DLINK_FOREACH(ptr, uconf_items.head)
@@ -785,6 +787,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
   case CRESV_TYPE:
   case NRESV_TYPE:
   case CLUSTER_TYPE:
+  default:
     break;
   }
 }
@@ -1572,7 +1575,8 @@ find_matching_name_conf(ConfType type, const char *name, const char *user,
 
   switch (type)
   {
-    case RXLINE_TYPE:
+#ifdef HAVE_LIBPCRE
+  case RXLINE_TYPE:
       DLINK_FOREACH(ptr, list_p->head)
       {
         conf = ptr->data;
@@ -1582,7 +1586,7 @@ find_matching_name_conf(ConfType type, const char *name, const char *user,
           return conf;
       }
       break;
-
+#endif
   case XLINE_TYPE:
   case ULINE_TYPE:
   case NRESV_TYPE:
@@ -2056,6 +2060,7 @@ conf_connect_allowed(struct irc_ssaddr *addr, int aftype)
 static struct AccessItem *
 find_regexp_kline(const char *uhi[])
 {
+#ifdef HAVE_LIBPCRE
   const dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, rkconf_items.head)
@@ -2070,7 +2075,7 @@ find_regexp_kline(const char *uhi[])
          !ircd_pcre_exec(aptr->regexhost, uhi[2])))
       return aptr;
   }
-
+#endif
   return NULL;
 }
 
@@ -2471,11 +2476,13 @@ read_conf_files(int cold)
    */
   rebuild_isupport_message_line();
 
-  parse_conf_file(KLINE_TYPE, cold);
+#ifdef HAVE_LIBPCRE
   parse_conf_file(RKLINE_TYPE, cold);
+  parse_conf_file(RXLINE_TYPE, cold);
+#endif
+  parse_conf_file(KLINE_TYPE, cold);
   parse_conf_file(DLINE_TYPE, cold);
   parse_conf_file(XLINE_TYPE, cold);
-  parse_conf_file(RXLINE_TYPE, cold);
   parse_conf_file(NRESV_TYPE, cold);
   parse_conf_file(CRESV_TYPE, cold);
 }
