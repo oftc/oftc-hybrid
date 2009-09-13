@@ -1,6 +1,6 @@
 MAINTAINERCLEANFILES=Makefile.in
 SUBDIRS=core
-AM_CPPFLAGS=-I$(top_srcdir)/lib/pcre -I$(top_srcdir)/include $(OPENSSL_INCLUDES)
+AM_CPPFLAGS=-I$(top_srcdir)/include $(OPENSSL_INCLUDES)
 
 moduledir=$(pkglibdir)/autoload
 

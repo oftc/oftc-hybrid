@@ -29,6 +29,10 @@
 #include <libgen.h>
 #include <string.h>
 
+#include "config.h"
+#ifdef HAVE_LIBPCRE
+#include <pcre.h>
+#endif
 #include "stdinc.h"
 #include "ircd.h"
 #include "tools.h"
@@ -37,7 +41,6 @@
 #include "event.h"
 #include "s_log.h"
 #include "client.h"	/* for UMODE_ALL only */
-#include "pcre.h"
 #include "irc_string.h"
 #include "irc_getaddrinfo.h"
 #include "sprintf_irc.h"
@@ -2999,8 +3002,9 @@ kill_entry: KILL
     {
       if (regex_ban)
       {
-        pcre *exp_user = NULL;
-        pcre *exp_host = NULL;
+#ifdef HAVE_LIBPCRE
+        void *exp_user = NULL;
+        void *exp_host = NULL;
         const char *errptr = NULL;
 
         if (!(exp_user = ircd_pcre_compile(userbuf, &errptr)) ||
@@ -3022,6 +3026,10 @@ kill_entry: KILL
           DupString(yy_aconf->reason, reasonbuf);
         else
           DupString(yy_aconf->reason, "No reason");
+#else
+        ilog(L_ERROR, "Failed to add regular expression based K-Line: no PCRE support");
+        break;
+#endif
       }
       else
       {
@@ -3192,7 +3200,8 @@ gecos_entry: GECOS
     {
       if (regex_ban)
       {
-        pcre *exp_p = NULL;
+#ifdef HAVE_LIBPCRE
+        void *exp_p = NULL;
         const char *errptr = NULL;
 
         if (!(exp_p = ircd_pcre_compile(gecos_name, &errptr)))
@@ -3204,6 +3213,10 @@ gecos_entry: GECOS
 
         yy_conf = make_conf_item(RXLINE_TYPE);
         yy_conf->regexpname = exp_p;
+#else
+        ilog(L_ERROR, "Failed to add regular expression based X-Line: no PCRE support");
+        break;
+#endif
       }
       else
         yy_conf = make_conf_item(XLINE_TYPE);

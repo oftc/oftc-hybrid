@@ -26,10 +26,9 @@
 #define INCLUDED_irc_string_h
 
 #include "setup.h"
-#include "pcre.h"
 
-extern int ircd_pcre_exec(const pcre *, const char *);
-extern pcre *ircd_pcre_compile(const char *, const char **);
+extern int ircd_pcre_exec(const void *, const char *);
+extern void *ircd_pcre_compile(const char *, const char **);
 
 /*
  * match - compare name with mask, mask may contain * and ? as wildcards

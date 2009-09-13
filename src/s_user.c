@@ -53,7 +53,6 @@
 #include "hook.h"
 #include "s_misc.h"
 #include "msg.h"
-#include "pcre.h"
 #include "watch.h"
 
 int MaxClientCount     = 1;

@@ -111,7 +111,83 @@ _moddeinit(void)
 
 const char *_version = "$Revision$";
 
+/*! \brief Adds a GLINE to the configuration subsystem.
+ *
+ * \param source_p Operator requesting gline
+ * \param user     Username covered by the gline
+ * \param host     Hostname covered by the gline
+ * \param reason   Reason for the gline
+ */
+static void
+set_local_gline(const struct Client *source_p, const char *user,
+                const char *host, const char *reason)
+{
+  char buffer[IRCD_BUFSIZE];
+  struct ConfItem *conf;
+  struct AccessItem *aconf;
 
+
+  conf = make_conf_item(GLINE_TYPE);
+  aconf = map_to_conf(conf);
+
+  snprintf(buffer, sizeof(buffer), "%s (%s)", reason, smalldate(CurrentTime));
+  DupString(aconf->reason, buffer);
+  DupString(aconf->user, user);
+  DupString(aconf->host, host);
+
+  aconf->hold = CurrentTime + ConfigFileEntry.gline_time;
+  add_temp_line(conf);
+
+  sendto_realops_flags(UMODE_ALL, L_ALL,
+                       "%s added G-Line for [%s@%s] [%s]",
+                       get_oper_name(source_p),
+                       aconf->user, aconf->host, aconf->reason);
+  ilog(L_TRACE, "%s added G-Line for [%s@%s] [%s]",
+       get_oper_name(source_p), aconf->user, aconf->host, aconf->reason);
+  log_oper_action(LOG_GLINE_TYPE, source_p, "[%s@%s] [%s]\n",
+                  aconf->user, aconf->host, aconf->reason);
+  /* Now, activate gline against current online clients */
+  rehashed_klines = 1;
+}
+
+/*! \brief Removes a GLINE from the configuration subsystem.
+ *
+ * \param user     Username covered by the gline
+ * \param host     Hostname covered by the gline
+ */
+static int
+remove_gline_match(const char *user, const char *host)
+{
+  struct AccessItem *aconf;
+  dlink_node *ptr = NULL;
+  struct irc_ssaddr addr, caddr;
+  int nm_t, cnm_t, bits, cbits;
+
+  nm_t = parse_netmask(host, &addr, &bits);
+
+  DLINK_FOREACH(ptr, temporary_glines.head)
+  {
+    aconf = map_to_conf(ptr->data);
+    cnm_t = parse_netmask(aconf->host, &caddr, &cbits);
+
+    if (cnm_t != nm_t || irccmp(user, aconf->user))
+      continue;
+
+    if ((nm_t == HM_HOST && !irccmp(aconf->host, host)) ||
+        (nm_t == HM_IPV4 && bits == cbits && match_ipv4(&addr, &caddr, bits))
+#ifdef IPV6
+     || (nm_t == HM_IPV6 && bits == cbits && match_ipv6(&addr, &caddr, bits))
+#endif
+       )
+    {
+      dlinkDelete(ptr, &temporary_glines);
+      delete_one_address_conf(aconf->host, aconf);
+      return 1;
+    }
+  }
+
+  return 0;
+}
 
 /*! \brief This function is called once a majority of opers have agreed on a
  *         GLINE/GUNGLINE, and it can be placed. The information about an
@@ -262,84 +338,6 @@ check_majority(const struct Client *source_p, const char *user,
 		me.name, source_p->name, source_p->username,
 		source_p->host, source_p->servptr->name, user, host,
 		reason);
-}
-
-/*! \brief Adds a GLINE to the configuration subsystem.
- *
- * \param source_p Operator requesting gline
- * \param user     Username covered by the gline
- * \param host     Hostname covered by the gline
- * \param reason   Reason for the gline
- */
-static void
-set_local_gline(const struct Client *source_p, const char *user,
-                const char *host, const char *reason)
-{
-  char buffer[IRCD_BUFSIZE];
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-
-
-  conf = make_conf_item(GLINE_TYPE);
-  aconf = map_to_conf(conf);
-
-  snprintf(buffer, sizeof(buffer), "%s (%s)", reason, smalldate(CurrentTime));
-  DupString(aconf->reason, buffer);
-  DupString(aconf->user, user);
-  DupString(aconf->host, host);
-
-  aconf->hold = CurrentTime + ConfigFileEntry.gline_time;
-  add_temp_line(conf);
-
-  sendto_realops_flags(UMODE_ALL, L_ALL,
-                       "%s added G-Line for [%s@%s] [%s]",
-                       get_oper_name(source_p),
-                       aconf->user, aconf->host, aconf->reason);
-  ilog(L_TRACE, "%s added G-Line for [%s@%s] [%s]",
-       get_oper_name(source_p), aconf->user, aconf->host, aconf->reason);
-  log_oper_action(LOG_GLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-                  aconf->user, aconf->host, aconf->reason);
-  /* Now, activate gline against current online clients */
-  rehashed_klines = 1;
-}
-
-/*! \brief Removes a GLINE from the configuration subsystem.
- *
- * \param user     Username covered by the gline
- * \param host     Hostname covered by the gline
- */
-static int
-remove_gline_match(const char *user, const char *host)
-{
-  struct AccessItem *aconf;
-  dlink_node *ptr = NULL;
-  struct irc_ssaddr addr, caddr;
-  int nm_t, cnm_t, bits, cbits;
-
-  nm_t = parse_netmask(host, &addr, &bits);
-
-  DLINK_FOREACH(ptr, temporary_glines.head)
-  {
-    aconf = map_to_conf(ptr->data);
-    cnm_t = parse_netmask(aconf->host, &caddr, &cbits);
-
-    if (cnm_t != nm_t || irccmp(user, aconf->user))
-      continue;
-
-    if ((nm_t == HM_HOST && !irccmp(aconf->host, host)) ||
-        (nm_t == HM_IPV4 && bits == cbits && match_ipv4(&addr, &caddr, bits))
-#ifdef IPV6
-     || (nm_t == HM_IPV6 && bits == cbits && match_ipv6(&addr, &caddr, bits))
-#endif
-       )
-    {
-      dlinkDelete(ptr, &temporary_glines);
-      delete_one_address_conf(aconf->host, aconf);
-      return 1;
-    }
-  }
-
-  return 0;
 }
 
 static void
