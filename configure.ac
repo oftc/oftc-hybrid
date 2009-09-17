@@ -3,58 +3,38 @@
 
 AC_REVISION([$Id$])
 
-AC_PREREQ(2.63)
+AC_PREREQ(2.64)
 AC_INIT([ircd-hybrid], [7.2.4])
 AM_INIT_AUTOMAKE(1.11)
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src/ircd.c)
 
-
 # Checks for programs.
-AC_PROG_CC
+AC_PROG_CC_C99
+AS_IF([test "$ac_cv_prog_cc_c99" = "no"],
+    [AC_MSG_ERROR([no C99 compiler found. Aborting.])])
 AC_PROG_YACC
 AM_PROG_LEX
 AC_PROG_INSTALL
-
 
 #ltdl stuff
 LT_INIT([dlopen disable-static])
 LTDL_INIT
 LIBTOOL="$LIBTOOL --silent"
 
-
 # Checks for libraries.
 AX_CHECK_LIB_IPV4
 AX_CHECK_LIB_IPV6
 
-
 # Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_C_INLINE
 AC_C_BIGENDIAN
 
-AC_CHECK_SIZEOF(int64_t)
-AC_CHECK_SIZEOF(long long)
-
-if test "$ac_cv_sizeof_int64_t" = 8; then
-  AC_CHECK_TYPE(uint64_t)
-  AC_CHECK_TYPE(int64_t)
-elif test "$ac_cv_sizeof_long_long" = 8; then
-  AC_CHECK_TYPE(uint64_t, unsigned long long)
-  AC_CHECK_TYPE(int64_t, long long)
-else
-  AC_MSG_ERROR([Your system doesn't appear to have 64 bit integers.  Aborting.])
-fi
-
-
 # Checks for library functions.
-AC_CHECK_FUNCS_ONCE(snprintf  \
-                    vsnprintf \
-                    mmap      \
-                    strtok_r  \
-                    usleep    \
-                    strlcat   \
+AC_CHECK_FUNCS_ONCE(mmap     \
+                    strtok_r \
+                    usleep   \
+                    strlcat  \
                     strlcpy)
 
 # Checks for header files.
@@ -75,13 +55,11 @@ AC_CHECK_HEADERS_ONCE(crypt.h        \
 
 dnl check for /dev/null so we can use it to hold evil fd's
 AC_MSG_CHECKING([for /dev/null])
-if test -c /dev/null ; then
-  AC_DEFINE(PATH_DEVNULL, "/dev/null", [Path to /dev/null])
-  AC_MSG_RESULT(yes)
-else
+AS_IF([test -c /dev/null], [
+  AC_DEFINE(PATH_DEVNULL, "/dev/null",   [Path to /dev/null])
+  AC_MSG_RESULT([yes])], [
   AC_DEFINE(PATH_DEVNULL, "devnull.log", [Path to /dev/null])
-  AC_MSG_RESULT(no - using devnull.log)
-fi
+  AC_MSG_RESULT([no - using devnull.log])])
 
 
 AC_SEARCH_LIBS(crypt, crypt)
@@ -94,14 +72,14 @@ AS_HELP_STRING([--with-zlib-path=DIR], [Path to libz.so for ziplinks support.]),
 AC_ARG_ENABLE(zlib, AS_HELP_STRING([--disable-zlib],[Disable ziplinks support]),
 [zlib=$enableval],[zlib=yes])
 
-if test "$zlib" = yes; then
+AS_IF([test "$zlib" = "yes"], [
   AC_CHECK_HEADER(zlib.h, [AC_CHECK_LIB(z, zlibVersion,
     [
       LIBS="-lz $LIBS"
       AC_DEFINE(HAVE_LIBZ, 1, [Define to 1 if zlib (-lz) is available.])
     ], zlib=no)
   ], zlib=no)
-fi
+])
 
 AC_ARG_WITH(libpcre-path,
 AS_HELP_STRING([--with-libpcre-path=DIR], [Path to libpcre.so for PCRE support.]),
@@ -110,14 +88,14 @@ AS_HELP_STRING([--with-libpcre-path=DIR], [Path to libpcre.so for PCRE support.]
 AC_ARG_ENABLE(libpcre, AS_HELP_STRING([--disable-libpcre],[Disable PCRE support]),
 [libpcre=$enableval],[libpcre=yes])
 
-if test "$libpcre" = yes; then
+AS_IF([test "$libpcre" = "yes"], [
   AC_CHECK_HEADER(pcre.h, [AC_CHECK_LIB(pcre, pcre_study,
     [
       LIBS="-lpcre $LIBS"
       AC_DEFINE(HAVE_LIBPCRE, 1, [Define to 1 if libpcre (-lpcre) is available.])
     ], libpcre=no)
   ], libpcre=no)
-fi
+])
 AM_CONDITIONAL(ENABLE_PCRE, [test "$libpcre" = yes])
 
 
@@ -127,7 +105,7 @@ AC_ARG_ENABLE(openssl,
   --disable-openssl            Disable OpenSSL support. ],
 [ cf_enable_openssl=$enableval ],
 [ cf_enable_openssl="auto" ])
-AC_MSG_CHECKING(for OpenSSL)
+AC_MSG_CHECKING([for OpenSSL])
 if test "$cf_enable_openssl" != "no"; then
   cf_openssl_basedir=""
   if test "$cf_enable_openssl" != "auto" &&
@@ -172,17 +150,17 @@ if test "$cf_enable_openssl" != "no"; then
   dnl we have a problem.
   if test ! -z "$cf_openssl_basedir"; then
     LIBS="-lcrypto -lssl $LIBS"
-    AC_MSG_RESULT($cf_openssl_basedir)
+    AC_MSG_RESULT([$cf_openssl_basedir])
     cf_enable_openssl="yes"
     AC_DEFINE(HAVE_LIBCRYPTO, 1, [If we support ssl])
   else
-    AC_MSG_RESULT(not found.  Please check your path.)
+    AC_MSG_RESULT([not found. Please check your path.])
     cf_enable_openssl="no"
   fi
   unset cf_openssl_basedir
 else
   dnl If --disable-openssl was specified
-  AC_MSG_RESULT(disabled)
+  AC_MSG_RESULT([disabled])
 fi
 AM_CONDITIONAL(ENABLE_SSL, [test "$cf_enable_openssl" = yes])
 
@@ -190,9 +168,9 @@ AM_CONDITIONAL(ENABLE_SSL, [test "$cf_enable_openssl" = yes])
 AC_ARG_ENABLE(assert, AS_HELP_STRING([--enable-assert], 
                                      [Enable assert() statements]),
   [assert=$enableval], [assert=no])
-if test "$assert" = no; then
-  AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.])
-fi
+
+AS_IF([test "$assert" = "no"],
+  [AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.])])
 
 
 AC_ARG_ENABLE(small-net, AS_HELP_STRING([--enable-small-net],

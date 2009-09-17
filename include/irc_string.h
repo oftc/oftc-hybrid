@@ -85,14 +85,6 @@ extern size_t strlcpy(char *, const char *, size_t);
 extern size_t strlcat(char *, const char *, size_t);
 #endif
 
-#ifndef HAVE_SNPRINTF
-extern int snprintf(char *, size_t, const char *,...);
-#endif
-
-#ifndef HAVE_VSNPRINTF
-extern int vsnprintf(char *, size_t, const char *, va_list);
-#endif
-
 extern const char *libio_basename(const char *);
 
 /*

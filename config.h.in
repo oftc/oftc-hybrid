@@ -157,9 +157,6 @@
 /* Define if you have the shl_load function. */
 #undef HAVE_SHL_LOAD
 
-/* Define to 1 if you have the `snprintf' function. */
-#undef HAVE_SNPRINTF
-
 /* Define to 1 if you have the <socket.h> header file. */
 #undef HAVE_SOCKET_H
 
@@ -237,9 +234,6 @@
 
 /* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP
-
-/* Define to 1 if you have the `vsnprintf' function. */
-#undef HAVE_VSNPRINTF
 
 /* Define to 1 if you have the <wait.h> header file. */
 #undef HAVE_WAIT_H
@@ -324,12 +318,6 @@
 /* Set to prefix. */
 #undef PREFIX
 
-/* The size of `int64_t', as computed by sizeof. */
-#undef SIZEOF_INT64_T
-
-/* The size of `long long', as computed by sizeof. */
-#undef SIZEOF_LONG_LONG
-
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
@@ -400,20 +388,5 @@
 /* Define so that glibc/gnulib argp.h does not typedef error_t. */
 #undef __error_t_defined
 
-/* Define to empty if `const' does not conform to ANSI C. */
-#undef const
-
 /* Define to a type to use for `error_t' if it is not otherwise available. */
 #undef error_t
-
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
-#undef inline
-#endif
-
-/* Define to `long long' if <sys/types.h> does not define. */
-#undef int64_t
-
-/* Define to `unsigned long long' if <sys/types.h> does not define. */
-#undef uint64_t
