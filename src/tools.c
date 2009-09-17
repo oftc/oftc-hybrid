@@ -21,8 +21,6 @@
  *
  *  $Id: tools.c 33 2005-10-02 20:50:00Z knight $
  *
- * When you update these functions make sure you update the ones in tools.h
- * as well!!!
  */
 
 #include "stdinc.h"
@@ -64,7 +62,7 @@ dlinkAdd(void *data, dlink_node * m, dlink_list * list)
  /* Assumption: If list->tail != NULL, list->head != NULL */
  if (list->head != NULL)
    list->head->prev = m;
- else /* if (list->tail == NULL) */
+ else if (list->tail == NULL)
    list->tail = m;
 
  list->head = m;
@@ -99,7 +97,7 @@ dlinkAddTail(void *data, dlink_node *m, dlink_list *list)
   /* Assumption: If list->tail != NULL, list->head != NULL */
   if (list->tail != NULL)
     list->tail->next = m;
-  else /* if (list->head == NULL) */
+  else if (list->head == NULL)
     list->head = m;
  
   list->tail = m;

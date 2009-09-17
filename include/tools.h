@@ -55,7 +55,7 @@ extern dlink_node *dlinkFind(dlink_list *m, void *data);
 extern dlink_node *dlinkFindDelete(dlink_list *m, void *data);
 
 #ifndef NDEBUG
-void mem_frob(void *data, int len);
+extern void mem_frob(void *data, int len);
 #else
 #define mem_frob(x, y) 
 #endif

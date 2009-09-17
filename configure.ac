@@ -1,7 +1,7 @@
 # Inspired by work Copyright (C) 2006 Luca Filipozzi
 # vim: set fdm=marker ts=2 sw=2 et:
 
-AC_PREREQ(2.63)
+AC_PREREQ(2.64)
 AC_INIT([oftc-hybrid],[1.7.0-alpha1])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([include/setup.h])
@@ -34,7 +34,6 @@ AC_PROG_EGREP
 AC_PATH_PROG([TAIL],[tail])
 AM_PROG_CC_C_O
 
-
 # Checks for libraries.
 AX_CHECK_OPENSSL([AC_CHECK_LIB(crypto, RSA_free)
         AS_IF([test "$ac_cv_lib_crypto_RSA_free" = "yes"],
@@ -48,19 +47,14 @@ AX_CHECK_OPENSSL([AC_CHECK_LIB(crypto, RSA_free)
 AX_CHECK_LIB_IPV4
 AX_CHECK_LIB_IPV6
 
-
 # Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_C_INLINE
 AC_C_VOLATILE
 AC_C_BIGENDIAN
 
 AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for library functions.
-AC_CHECK_FUNCS_ONCE(snprintf  \
-                    vsnprintf \
-                    lrand48   \
+AC_CHECK_FUNCS_ONCE(lrand48   \
                     srand48   \
                     mmap      \
                     strtok_r  \
@@ -86,13 +80,11 @@ AC_CHECK_HEADERS_ONCE(crypt.h        \
 
 dnl check for /dev/null so we can use it to hold evil fd's
 AC_MSG_CHECKING([for /dev/null])
-if test -c /dev/null ; then
-  AC_DEFINE(PATH_DEVNULL, "/dev/null", [Path to /dev/null])
-  AC_MSG_RESULT(yes)
-else
+AS_IF([test -c /dev/null], [
+  AC_DEFINE(PATH_DEVNULL, "/dev/null",   [Path to /dev/null])
+  AC_MSG_RESULT([yes])], [
   AC_DEFINE(PATH_DEVNULL, "devnull.log", [Path to /dev/null])
-  AC_MSG_RESULT(no - using devnull.log)
-fi
+  AC_MSG_RESULT([no - using devnull.log])])
 
 
 AC_SEARCH_LIBS(crypt, crypt)
@@ -105,14 +97,14 @@ AS_HELP_STRING([--with-zlib-path=DIR], [Path to libz.so for ziplinks support.]),
 AC_ARG_ENABLE(zlib, AS_HELP_STRING([--disable-zlib],[Disable ziplinks support]),
 [zlib=$enableval],[zlib=yes])
 
-if test "$zlib" = yes; then
+AS_IF([test "$zlib" = "yes"], [
   AC_CHECK_HEADER(zlib.h, [AC_CHECK_LIB(z, zlibVersion,
     [
       LIBS="-lz $LIBS"
       AC_DEFINE(HAVE_LIBZ, 1, [Define to 1 if zlib (-lz) is available.])
     ], zlib=no)
   ], zlib=no)
-fi
+])
 
 AC_ARG_WITH(libpcre-path,
 AS_HELP_STRING([--with-libpcre-path=DIR], [Path to libpcre.so for PCRE support.]),
@@ -121,14 +113,14 @@ AS_HELP_STRING([--with-libpcre-path=DIR], [Path to libpcre.so for PCRE support.]
 AC_ARG_ENABLE(libpcre, AS_HELP_STRING([--disable-libpcre],[Disable PCRE support]),
 [libpcre=$enableval],[libpcre=yes])
 
-if test "$libpcre" = yes; then
+AS_IF([test "$libpcre" = "yes"], [
   AC_CHECK_HEADER(pcre.h, [AC_CHECK_LIB(pcre, pcre_study,
     [
       LIBS="-lpcre $LIBS"
       AC_DEFINE(HAVE_LIBPCRE, 1, [Define to 1 if libpcre (-lpcre) is available.])
     ], libpcre=no)
   ], libpcre=no)
-fi
+])
 AM_CONDITIONAL(ENABLE_PCRE, [test "$libpcre" = yes])
 
 
@@ -139,9 +131,9 @@ AM_CONDITIONAL(ENABLE_SSL, [test "$cf_enable_openssl" = yes])
 AC_ARG_ENABLE(assert, AS_HELP_STRING([--enable-assert], 
                                      [Enable assert() statements]),
   [assert=$enableval], [assert=no])
-if test "$assert" = no; then
-  AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.])
-fi
+
+AS_IF([test "$assert" = "no"],
+  [AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.])])
 
 AC_ARG_ENABLE(small-net, AS_HELP_STRING([--enable-small-net],
                                         [Enable small network support.]),
