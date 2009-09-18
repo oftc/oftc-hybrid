@@ -23,12 +23,10 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
-#include "common.h"
 #include "channel.h"
 #include "channel_mode.h"
-#include "list.h"
 #include "client.h"
 #include "hash.h"
 #include "irc_string.h"
@@ -183,7 +181,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
       if (chptr->mode.mode & MODE_PRIVATE)
       {
         /* Only do this if channel is set +i AND +p */
-        sendto_channel_local(CHFL_CHANOP|CHFL_HALFOP, NO, chptr,
+        sendto_channel_local(CHFL_CHANOP|CHFL_HALFOP, 0, chptr,
                              ":%s NOTICE %s :%s is inviting %s to %s.",
                              me.name, chptr->chname, source_p->name,
                              target_p->name, chptr->chname);

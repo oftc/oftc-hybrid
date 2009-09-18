@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "client.h"
 #include "common.h"
@@ -35,7 +35,6 @@
 #include "s_log.h"
 #include "s_user.h"
 #include "send.h"
-#include "list.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"

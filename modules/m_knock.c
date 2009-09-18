@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -40,7 +40,6 @@
 #include "modules.h"
 #include "s_serv.h"
 #include "s_user.h"
-#include "common.h"
 
 static void m_knock(struct Client *, struct Client *, int, char *[]);
 
@@ -170,7 +169,7 @@ m_knock(struct Client *client_p, struct Client *source_p,
   chptr->last_knock = CurrentTime;
 
   if (ConfigChannel.use_knock)
-    sendto_channel_local(CHFL_CHANOP, NO, chptr, form_str(RPL_KNOCK),
+    sendto_channel_local(CHFL_CHANOP, 0, chptr, form_str(RPL_KNOCK),
                          me.name, chptr->chname, chptr->chname,
                          source_p->name, source_p->username,
                          source_p->host);

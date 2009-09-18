@@ -65,10 +65,10 @@
 #endif /* MAP_ANONYMOUS */
 #endif
 
-#include "ircd.h"
+#include "list.h"
 #include "balloc.h"
+#include "memory.h"
 #include "irc_string.h"
-#include "tools.h"
 #include "client.h"
 #include "send.h"
 #include "numeric.h"

@@ -23,11 +23,10 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "balloc.h"
 #include "common.h"
 #include "dbuf.h"
-#include "list.h"
-#include "tools.h"
 #include "memory.h"
 
 static BlockHeap *dbuf_heap;

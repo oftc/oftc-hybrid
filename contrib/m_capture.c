@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "common.h"  
 #include "handlers.h"
 #include "client.h"
@@ -36,7 +36,6 @@
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "list.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "msg.h"
@@ -94,8 +93,6 @@ mo_capture(struct Client *client_p, struct Client *source_p,
                me.name, source_p->name);
     return;
   }
-
-  /* XXX Add oper flag in future ? */
 
   if (MyClient(source_p) && !IsAdmin(source_p))
   {

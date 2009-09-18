@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -144,7 +144,7 @@ m_topic(struct Client *client_p, struct Client *source_p,
                     ":%s TOPIC %s :%s",
                     source_p->name, chptr->chname,
                     chptr->topic == NULL ? "" : chptr->topic);
-      sendto_channel_local(ALL_MEMBERS, NO,
+      sendto_channel_local(ALL_MEMBERS, 0,
                            chptr, ":%s!%s@%s TOPIC %s :%s",
                            source_p->name,
                            source_p->username,

@@ -23,11 +23,10 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "handlers.h"
-#include "tools.h"
 #include "hook.h"
 #include "client.h"
-#include "common.h"
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"

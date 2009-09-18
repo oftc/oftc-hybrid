@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "modules.h"
 #include "s_log.h"
 #include "ircd.h"
@@ -111,8 +111,6 @@ struct Message modrestart_msgtab = {
  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_modrestart, m_ignore}
 };
 
-
-extern struct Message error_msgtab;
 
 /*
  * modules_init

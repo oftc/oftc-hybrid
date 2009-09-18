@@ -23,8 +23,8 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "client.h"
-#include "tools.h"
 #include "motd.h"
 #include "ircd.h"
 #include "send.h"
@@ -37,14 +37,14 @@
 #include "modules.h"
 #include "s_conf.h"
 
-static void m_omotd(struct Client*, struct Client*, int, char**);
+static void m_omotd(struct Client *, struct Client *, int, char *[]);
 
 struct Message omotd_msgtab = {
   "OMOTD", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, m_omotd, m_ignore}
 };
-#ifndef STATIC_MODULES
 
+#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -66,7 +66,7 @@ const char *_version = "$Revision$";
  */
 static void
 m_omotd(struct Client *client_p, struct Client *source_p,
- int parc, char *parv[])
+        int parc, char *parv[])
 {
   send_message_file(source_p, &ConfigFileEntry.opermotd);
 }

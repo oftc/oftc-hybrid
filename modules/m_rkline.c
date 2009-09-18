@@ -23,17 +23,15 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
-#include "pcre.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "hostmask.h"
 #include "numeric.h"
-#include "list.h"
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"
@@ -47,7 +45,6 @@
 #include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
-#include "tools.h"
 
 static void me_rkline(struct Client *, struct Client *, int, char *[]);
 static void mo_rkline(struct Client *, struct Client *, int, char *[]);
@@ -105,7 +102,7 @@ static void
 mo_rkline(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  pcre *exp_user = NULL, *exp_host = NULL;
+  void *exp_user = NULL, *exp_host = NULL;
   const char *errptr = NULL;
   char *reason = NULL;
   char *oper_reason = NULL;
@@ -225,7 +222,7 @@ me_rkline(struct Client *client_p, struct Client *source_p,
                               source_p->username, source_p->host,
                               SHARED_KLINE))
   {
-    pcre *exp_user = NULL, *exp_host = NULL;
+    void *exp_user = NULL, *exp_host = NULL;
     const char *errptr = NULL;
 
     if (!IsClient(source_p) ||

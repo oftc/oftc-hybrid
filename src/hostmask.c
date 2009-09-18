@@ -25,7 +25,7 @@
 #include "stdinc.h"
 #include "memory.h"
 #include "ircd_defs.h"
-#include "tools.h"
+#include "list.h"
 #include "s_conf.h"
 #include "hostmask.h"
 #include "numeric.h"

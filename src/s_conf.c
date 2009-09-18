@@ -23,8 +23,9 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "ircd_defs.h"
-#include "tools.h"
+#include "balloc.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "resv.h"
@@ -40,7 +41,6 @@
 #include "s_bsd.h"
 #include "irc_getaddrinfo.h"
 #include "ircd.h"
-#include "list.h"
 #include "listener.h"
 #include "hostmask.h"
 #include "modules.h"

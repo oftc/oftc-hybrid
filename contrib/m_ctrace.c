@@ -23,16 +23,14 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "handlers.h"
-#include "tools.h"
 #include "hook.h"
 #include "client.h"
 #include "hash.h"
-#include "common.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"
 #include "s_serv.h"

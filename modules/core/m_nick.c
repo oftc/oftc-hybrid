@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "handlers.h"
 #include "client.h"
 #include "hash.h"
@@ -35,7 +36,6 @@
 #include "whowas.h"
 #include "s_serv.h"
 #include "send.h"
-#include "list.h"
 #include "channel.h"
 #include "s_log.h"
 #include "resv.h"

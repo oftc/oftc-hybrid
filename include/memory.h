@@ -26,8 +26,8 @@
 #define _I_MEMORY_H
 
 #include "ircd_defs.h"
-#include "setup.h"
 #include "balloc.h"
+#include "config.h"
 
 extern void outofmemory(void);
 
@@ -37,4 +37,10 @@ extern void MyFree(void *);
 extern void _DupString(char **, const char *);
 
 #define DupString(x,y) _DupString(&x, y)
+
+#ifndef NDEBUG
+extern void mem_frob(void *, int);
+#else
+#define mem_frob(x, y)
+#endif
 #endif /* _I_MEMORY_H */

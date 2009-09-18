@@ -30,7 +30,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "irc_string.h"
 #include "handlers.h"
 #include "channel.h"

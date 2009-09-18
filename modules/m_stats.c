@@ -23,7 +23,8 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"	 /* dlink_node/dlink_list */
+#include "list.h"	 /* dlink_node/dlink_list */
+#include "balloc.h"
 #include "handlers.h"    /* m_pass prototype */
 #include "client.h"      /* Client */
 #include "common.h"      /* TRUE/FALSE */

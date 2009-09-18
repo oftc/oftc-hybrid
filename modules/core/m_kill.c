@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "handlers.h"
 #include "client.h"
 #include "hash.h"       /* for find_client() */

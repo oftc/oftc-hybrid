@@ -25,7 +25,6 @@
 #ifndef __HOOK_H_INCLUDED
 #define __HOOK_H_INCLUDED
 
-#include "tools.h"
 #define HOOK_V2
 
 typedef void *CBFUNC(va_list);

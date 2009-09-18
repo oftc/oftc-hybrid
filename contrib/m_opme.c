@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -39,7 +39,6 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "common.h"
 
 static void mo_opme(struct Client *, struct Client *, int, char *[]);
 
@@ -109,7 +108,7 @@ mo_opme(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (chan_is_opless(chptr) == 0)
+  if (!chan_is_opless(chptr))
   {
     sendto_one(source_p, ":%s NOTICE %s :%s Channel is not opless",
                me.name, source_p->name, chptr->chname);
@@ -155,6 +154,6 @@ mo_opme(struct Client *client_p, struct Client *source_p,
                 me.name, (unsigned long)chptr->channelts,
                 chptr->chname, source_p->name);
 
-  sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +o %s",
+  sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +o %s",
                        me.name, chptr->chname, source_p->name);
 }

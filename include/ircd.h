@@ -26,12 +26,11 @@
 #define INCLUDED_ircd_h
 
 #include "ircd_defs.h"
-#include "setup.h"
-#include "tools.h"
+#include "config.h"
 #include "memory.h"
+#include "list.h"
 
 struct Client;
-struct dlink_list;
 
 struct SetOptions
 {
@@ -51,18 +50,19 @@ struct SetOptions
 /*
  * statistics structures
  */
-struct ServerStatistics {
+struct ServerStatistics
+{
   uint64_t        is_cbs; /* bytes sent to clients */
   uint64_t        is_cbr; /* bytes received from clients */
   uint64_t        is_sbs; /* bytes sent to servers */
   uint64_t        is_sbr; /* bytes received from servers */
+
   time_t          is_cti; /* time spent connected by clients */
   time_t          is_sti; /* time spent connected by servers */
 
   unsigned int    is_cl;  /* number of client connections */
   unsigned int    is_sv;  /* number of server connections */
   unsigned int    is_ni;  /* connection but no idea who it was */
-
   unsigned int    is_ac;  /* connections accepted */
   unsigned int    is_ref; /* accepts refused */
   unsigned int    is_unco; /* unknown commands */

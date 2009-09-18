@@ -23,9 +23,8 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "common.h"
-#include "fdlist.h"
 #include "ircd.h"
 #include "send.h"
 #include "client.h"   

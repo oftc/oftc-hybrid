@@ -22,7 +22,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -34,7 +34,6 @@
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "list.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"

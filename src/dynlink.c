@@ -24,7 +24,7 @@
  */
 #include "ltdl.h"
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "irc_string.h"
 #include "modules.h"
 #include "s_log.h"

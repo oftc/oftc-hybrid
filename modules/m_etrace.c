@@ -23,8 +23,8 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "handlers.h"
-#include "tools.h"
 #include "hook.h"
 #include "client.h"
 #include "hash.h"

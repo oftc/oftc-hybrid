@@ -25,6 +25,7 @@
 #ifndef INCLUDED_client_h
 #define INCLUDED_client_h
 
+#include "list.h"
 #include "fdlist.h"
 #include "setup.h"
 #include "ircd_defs.h"
