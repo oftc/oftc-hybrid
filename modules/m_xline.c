@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
@@ -45,7 +45,6 @@
 #include "parse.h"
 #include "modules.h"
 #include "resv.h"
-#include "list.h"
 
 static void mo_xline(struct Client *, struct Client *, int, char *[]);
 static void ms_xline(struct Client *, struct Client *, int, char *[]);

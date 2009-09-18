@@ -25,7 +25,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "s_gline.h"
 #include "channel.h"
@@ -36,7 +36,6 @@
 #include "ircd.h"
 #include "hostmask.h"
 #include "numeric.h"
-#include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"
 #include "s_misc.h"
@@ -47,7 +46,6 @@
 #include "hash.h"
 #include "parse.h"
 #include "modules.h"
-#include "list.h"
 #include "s_log.h"
 
 #define GLINE_NOT_PLACED     0
@@ -331,6 +329,8 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
   user   = parv[++var_offset];
   host   = parv[++var_offset];
   reason = parv[++var_offset];
+
+  var_offset = 0;
 
   DLINK_FOREACH(ptr, gdeny_items.head)
   {

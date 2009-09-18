@@ -7,8 +7,9 @@
 #ifndef INCLUDED_irc_res_h
 #define INCLUDED_irc_res_h
 
-#include "listener.h"
 #include "config.h"
+
+struct Client; /* XXX */
 
 /* Here we define some values lifted from nameser.h */
 #define NS_NOTIFY_OP 4

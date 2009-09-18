@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "modules.h"
 #include "s_log.h"
 #include "ircd.h"
@@ -36,7 +36,6 @@
 #include "ircd_defs.h"
 #include "irc_string.h"
 #include "memory.h"
-#include "list.h"
 
 
 dlink_list mod_list = { NULL, NULL, 0 };
@@ -93,8 +92,6 @@ struct Message modrestart_msgtab = {
  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_modrestart, m_ignore}
 };
 
-
-extern struct Message error_msgtab;
 
 /*
  * modules_init

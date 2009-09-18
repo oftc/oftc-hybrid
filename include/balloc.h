@@ -30,8 +30,6 @@
 
 #include "config.h"
 #include "client.h"
-#include "tools.h"
-#include "memory.h"
 #include "ircd_defs.h"
 
 
@@ -54,6 +52,7 @@ struct MemBlock
   dlink_node self;		/*!< Node for linking into free_list */
   Block *block;			/*!< Which block we belong to */
 };
+
 typedef struct MemBlock MemBlock;
 
 /*! \brief BlockHeap contains the information for the root node of the

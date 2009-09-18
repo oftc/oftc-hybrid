@@ -24,7 +24,7 @@
 
 #include "stdinc.h"
 #include "handlers.h"
-#include "tools.h"
+#include "list.h"
 #include "hook.h"
 #include "client.h"
 #include "hash.h"

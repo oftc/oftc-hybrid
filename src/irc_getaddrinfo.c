@@ -104,7 +104,7 @@ static int explore_numeric(const struct addrinfo *, const char *,
 static struct addrinfo *get_ai(const struct addrinfo *,
 	const struct afd *, const char *);
 static int get_portmatch(const struct addrinfo *, const char *);
-static int get_port(struct addrinfo *, const char *, int);
+static int get_port(const struct addrinfo *, const char *, int);
 static const struct afd *find_afd(int);
 #if 0
 /* We will need this should we ever want gai_strerror() */
@@ -512,11 +512,11 @@ get_portmatch(const struct addrinfo *ai, const char *servname)
 {
   /* get_port does not touch first argument. when matchonly == 1. */
   /* LINTED const cast */
-  return(get_port((struct addrinfo *)ai, servname, 1));
+  return(get_port(ai, servname, 1));
 }
 
 static int
-get_port(struct addrinfo *ai, const char *servname, int matchonly)
+get_port(const struct addrinfo *ai, const char *servname, int matchonly)
 {
   const char *proto;
   struct servent *sp;

@@ -29,12 +29,8 @@
 #include <string.h>
 
 #include "config.h"
-#ifdef HAVE_LIBPCRE
-#include <pcre.h>
-#endif
 #include "stdinc.h"
 #include "ircd.h"
-#include "tools.h"
 #include "list.h"
 #include "s_conf.h"
 #include "event.h"
@@ -75,8 +71,6 @@ static char userbuf[IRCD_BUFSIZE];
 static char hostbuf[IRCD_BUFSIZE];
 static char reasonbuf[REASONLEN + 1];
 static char gecos_name[REALLEN * 4];
-
-extern dlink_list gdeny_items; /* XXX */
 
 static char *resv_reason = NULL;
 static char *listener_address = NULL;

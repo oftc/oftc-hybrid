@@ -23,14 +23,14 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
+#include "balloc.h"
 #include "s_conf.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"
 #include "handlers.h"
-#include "list.h"
 #include "modules.h"
 #include "hash.h"
 #include "resv.h"

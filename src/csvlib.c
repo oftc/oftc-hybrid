@@ -14,7 +14,7 @@
 #include <pcre.h>
 #endif
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "s_log.h"
 #include "s_conf.h"
 #include "hostmask.h"

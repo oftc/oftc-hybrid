@@ -23,7 +23,8 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"	 /* dlink_node/dlink_list */
+#include "list.h"	 /* dlink_node/dlink_list */
+#include "balloc.h"
 #include "handlers.h"    /* m_pass prototype */
 #include "client.h"      /* Client */
 #include "common.h"      /* TRUE/FALSE */
@@ -49,7 +50,6 @@
 #include "hook.h"
 #include "resv.h"  /* report_resv */
 #include "whowas.h"
-#include "list.h"
 #include "watch.h"
 
 static void do_stats(struct Client *, int, char **);

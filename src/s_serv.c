@@ -27,7 +27,7 @@
 #include <openssl/rsa.h>
 #include "rsa.h"
 #endif
-#include "tools.h"
+#include "list.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -43,7 +43,6 @@
 #include "ircd_defs.h"
 #include "s_bsd.h"
 #include "irc_getnameinfo.h"
-#include "list.h"
 #include "numeric.h"
 #include "packet.h"
 #include "irc_res.h"

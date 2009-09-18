@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -41,7 +41,6 @@
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
-#include "common.h"
 
 static void m_mode(struct Client *, struct Client *, int, char *[]);
 static void ms_tmode(struct Client *, struct Client *, int, char *[]);
@@ -279,7 +278,7 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[
         *mbuf = '\0';
         *(pbuf - 1) = '\0';
 
-        sendto_channel_local(ALL_MEMBERS, NO, chptr, "%s %s",
+        sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s",
                              modebuf, parabuf);
         sendto_server(client_p, chptr, needcap, CAP_TS6,
                       "%s %s", modebuf, parabuf);
@@ -300,7 +299,7 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[
   if (modecount)
   {
     *mbuf = *(pbuf - 1) = '\0';
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, "%s %s", modebuf, parabuf);
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s", modebuf, parabuf);
     sendto_server(client_p, chptr, needcap, CAP_TS6,
                   "%s %s", modebuf, parabuf);
   }

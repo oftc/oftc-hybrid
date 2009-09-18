@@ -21,9 +21,10 @@
  *
  *  $Id$
  */
+
 #include "stdinc.h"
 #ifndef STATIC_MODULES
-#include "tools.h"
+#include "list.h"
 #include "modules.h"
 #include "hook.h"
 #include "client.h"

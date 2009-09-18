@@ -23,11 +23,10 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
-#include "common.h"
 #include "client.h"
 #include "irc_string.h"
 #include "ircd.h"
@@ -218,10 +217,10 @@ m_kick(struct Client *client_p, struct Client *source_p,
      *   be sent anyways.  Just waiting for some oper to abuse it...
      */
     if (IsServer(source_p))
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s KICK %s %s :%s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s KICK %s %s :%s",
                            source_p->name, name, who->name, comment);
     else
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s KICK %s %s :%s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s KICK %s %s :%s",
                            source_p->name, source_p->username,
                            source_p->host, name, who->name, comment);
 

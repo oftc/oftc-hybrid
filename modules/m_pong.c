@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "ircd.h"
 #include "handlers.h"
 #include "s_user.h"

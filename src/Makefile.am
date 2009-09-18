@@ -58,7 +58,6 @@ ircd_SOURCES = balloc.c          \
                s_user.c          \
                send.c            \
                sprintf_irc.c     \
-               tools.c           \
                version.c         \
                watch.c           \
                whowas.c          \

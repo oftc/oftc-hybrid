@@ -24,7 +24,6 @@
 
 #ifndef __DBUF_H_INCLUDED
 #define __DBUF_H_INCLUDED
-#include "tools.h"
 
 #define DBUF_BLOCK_SIZE 1024  /* this is also our MTU used for sending */
 

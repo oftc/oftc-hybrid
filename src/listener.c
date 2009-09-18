@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "listener.h"
 #include "client.h"
 #include "fdlist.h"
@@ -37,7 +38,6 @@
 #include "s_conf.h"
 #include "send.h"
 #include "memory.h"
-#include "tools.h"
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/bio.h>
 #endif

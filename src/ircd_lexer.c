@@ -1907,7 +1907,6 @@ char *yytext;
  */
 #line 31 "ircd_lexer.l"
 #include "stdinc.h"
-#include "tools.h"
 #include "irc_string.h"
 #include "common.h"
 #include "s_conf.h"
@@ -1937,7 +1936,7 @@ static char conffile_stack[MAX_INCLUDE_DEPTH][IRCD_BUFSIZE];
 static void ccomment(void);
 static void cinclude(void);
 static int ieof(void);
-#line 1941 "ircd_lexer.c"
+#line 1940 "ircd_lexer.c"
 
 #define INITIAL 0
 
@@ -2117,9 +2116,9 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 70 "ircd_lexer.l"
+#line 69 "ircd_lexer.l"
 
-#line 2123 "ircd_lexer.c"
+#line 2122 "ircd_lexer.c"
 
 	if ( !(yy_init) )
 		{
@@ -2206,39 +2205,39 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 71 "ircd_lexer.l"
+#line 70 "ircd_lexer.l"
 { cinclude(); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 72 "ircd_lexer.l"
+#line 71 "ircd_lexer.l"
 { ccomment(); }
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 74 "ircd_lexer.l"
+#line 73 "ircd_lexer.l"
 { strcpy(linebuf, yytext+1); ++lineno; yyless(1); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 76 "ircd_lexer.l"
+#line 75 "ircd_lexer.l"
 ;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 77 "ircd_lexer.l"
+#line 76 "ircd_lexer.l"
 ;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 79 "ircd_lexer.l"
+#line 78 "ircd_lexer.l"
 { yylval.number = atoi(yytext); return NUMBER; }
 	YY_BREAK
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-#line 81 "ircd_lexer.l"
+#line 80 "ircd_lexer.l"
 { if (yytext[yyleng-2] == '\\')
 		    {
 		      yyless(yyleng-1); /* return last quote */
@@ -2286,1439 +2285,1439 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 126 "ircd_lexer.l"
+#line 125 "ircd_lexer.l"
 { return NOT; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 127 "ircd_lexer.l"
+#line 126 "ircd_lexer.l"
 { return ACCEPT_PASSWORD; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 128 "ircd_lexer.l"
+#line 127 "ircd_lexer.l"
 { return ACTION; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 129 "ircd_lexer.l"
+#line 128 "ircd_lexer.l"
 { return ADMIN; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 130 "ircd_lexer.l"
+#line 129 "ircd_lexer.l"
 { return ADMIN; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 131 "ircd_lexer.l"
+#line 130 "ircd_lexer.l"
 { return AFTYPE; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 132 "ircd_lexer.l"
+#line 131 "ircd_lexer.l"
 { return T_ALL; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 133 "ircd_lexer.l"
+#line 132 "ircd_lexer.l"
 { return T_ALLOW; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 134 "ircd_lexer.l"
+#line 133 "ircd_lexer.l"
 { return IRCD_AUTH; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 135 "ircd_lexer.l"
+#line 134 "ircd_lexer.l"
 { return AUTOCONN; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 136 "ircd_lexer.l"
+#line 135 "ircd_lexer.l"
 { return T_BLOCK; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 137 "ircd_lexer.l"
+#line 136 "ircd_lexer.l"
 { return BURST_AWAY; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 138 "ircd_lexer.l"
+#line 137 "ircd_lexer.l"
 { return BURST_TOPICWHO; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 139 "ircd_lexer.l"
+#line 138 "ircd_lexer.l"
 { return CAN_FLOOD; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 140 "ircd_lexer.l"
+#line 139 "ircd_lexer.l"
 { return CAN_IDLE; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 141 "ircd_lexer.l"
+#line 140 "ircd_lexer.l"
 { return CALLER_ID_WAIT; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 142 "ircd_lexer.l"
+#line 141 "ircd_lexer.l"
 { return OPERS_BYPASS_CALLERID; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 143 "ircd_lexer.l"
+#line 142 "ircd_lexer.l"
 { return CHANNEL; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 144 "ircd_lexer.l"
+#line 143 "ircd_lexer.l"
 { return CIDR_BITLEN_IPV4; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 145 "ircd_lexer.l"
+#line 144 "ircd_lexer.l"
 { return CIDR_BITLEN_IPV6; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 146 "ircd_lexer.l"
+#line 145 "ircd_lexer.l"
 { return CIPHER_PREFERENCE; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 147 "ircd_lexer.l"
+#line 146 "ircd_lexer.l"
 { return CLASS; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 148 "ircd_lexer.l"
+#line 147 "ircd_lexer.l"
 { return T_CLIENT_FLOOD; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 149 "ircd_lexer.l"
+#line 148 "ircd_lexer.l"
 { return T_CLUSTER; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 150 "ircd_lexer.l"
+#line 149 "ircd_lexer.l"
 { return COMPRESSED; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 151 "ircd_lexer.l"
+#line 150 "ircd_lexer.l"
 { return COMPRESSION_LEVEL; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 152 "ircd_lexer.l"
+#line 151 "ircd_lexer.l"
 { return CONNECT; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 153 "ircd_lexer.l"
+#line 152 "ircd_lexer.l"
 { return CONNECTFREQ; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 154 "ircd_lexer.l"
+#line 153 "ircd_lexer.l"
 { return CRYPTLINK; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 155 "ircd_lexer.l"
+#line 154 "ircd_lexer.l"
 { return DEFAULT_CIPHER_PREFERENCE; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 156 "ircd_lexer.l"
+#line 155 "ircd_lexer.l"
 { return DEFAULT_FLOODCOUNT; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 157 "ircd_lexer.l"
+#line 156 "ircd_lexer.l"
 { return DEFAULT_SPLIT_SERVER_COUNT; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 158 "ircd_lexer.l"
+#line 157 "ircd_lexer.l"
 { return DEFAULT_SPLIT_USER_COUNT; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 159 "ircd_lexer.l"
+#line 158 "ircd_lexer.l"
 { return DENY; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 160 "ircd_lexer.l"
+#line 159 "ircd_lexer.l"
 { return DESCRIPTION; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 161 "ircd_lexer.l"
+#line 160 "ircd_lexer.l"
 { return DIE; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 162 "ircd_lexer.l"
+#line 161 "ircd_lexer.l"
 { return DISABLE_AUTH; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 163 "ircd_lexer.l"
+#line 162 "ircd_lexer.l"
 { return DISABLE_FAKE_CHANNELS; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 164 "ircd_lexer.l"
+#line 163 "ircd_lexer.l"
 { return DISABLE_HIDDEN; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 165 "ircd_lexer.l"
+#line 164 "ircd_lexer.l"
 { return DISABLE_LOCAL_CHANNELS; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 166 "ircd_lexer.l"
+#line 165 "ircd_lexer.l"
 { return DISABLE_REMOTE_COMMANDS; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 167 "ircd_lexer.l"
+#line 166 "ircd_lexer.l"
 { return DOT_IN_IP6_ADDR; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 168 "ircd_lexer.l"
+#line 167 "ircd_lexer.l"
 { return DOTS_IN_IDENT; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 169 "ircd_lexer.l"
+#line 168 "ircd_lexer.l"
 { return DURATION; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 170 "ircd_lexer.l"
+#line 169 "ircd_lexer.l"
 { return EGDPOOL_PATH; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 171 "ircd_lexer.l"
+#line 170 "ircd_lexer.l"
 { return EMAIL; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 172 "ircd_lexer.l"
+#line 171 "ircd_lexer.l"
 { return ENABLE; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 173 "ircd_lexer.l"
+#line 172 "ircd_lexer.l"
 { return ENCRYPTED; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 174 "ircd_lexer.l"
+#line 173 "ircd_lexer.l"
 { return EXCEED_LIMIT; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 175 "ircd_lexer.l"
+#line 174 "ircd_lexer.l"
 { return EXEMPT; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 176 "ircd_lexer.l"
+#line 175 "ircd_lexer.l"
 { return FAKENAME; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 177 "ircd_lexer.l"
+#line 176 "ircd_lexer.l"
 { return IRCD_FLAGS; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 178 "ircd_lexer.l"
+#line 177 "ircd_lexer.l"
 { return FLATTEN_LINKS; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 179 "ircd_lexer.l"
+#line 178 "ircd_lexer.l"
 { return FGLINELOG; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 180 "ircd_lexer.l"
+#line 179 "ircd_lexer.l"
 { return FGLINELOG; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 181 "ircd_lexer.l"
+#line 180 "ircd_lexer.l"
 { return FKILLLOG; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 182 "ircd_lexer.l"
+#line 181 "ircd_lexer.l"
 { return FIOERRLOG; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 183 "ircd_lexer.l"
+#line 182 "ircd_lexer.l"
 { return FIOERRLOG; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 184 "ircd_lexer.l"
+#line 183 "ircd_lexer.l"
 { return FKILLLOG; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 185 "ircd_lexer.l"
+#line 184 "ircd_lexer.l"
 { return FKLINELOG; }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 186 "ircd_lexer.l"
+#line 185 "ircd_lexer.l"
 { return FKLINELOG; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 187 "ircd_lexer.l"
+#line 186 "ircd_lexer.l"
 { return FFAILED_OPERLOG; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 188 "ircd_lexer.l"
+#line 187 "ircd_lexer.l"
 { return FOPERLOG; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 189 "ircd_lexer.l"
+#line 188 "ircd_lexer.l"
 { return FOPERLOG; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 190 "ircd_lexer.l"
+#line 189 "ircd_lexer.l"
 { return FUSERLOG; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 191 "ircd_lexer.l"
+#line 190 "ircd_lexer.l"
 { return FUSERLOG; }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 192 "ircd_lexer.l"
+#line 191 "ircd_lexer.l"
 { return GECOS; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 193 "ircd_lexer.l"
+#line 192 "ircd_lexer.l"
 { return GENERAL; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 194 "ircd_lexer.l"
+#line 193 "ircd_lexer.l"
 { return GLINE; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 195 "ircd_lexer.l"
+#line 194 "ircd_lexer.l"
 { return GLINES; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 196 "ircd_lexer.l"
+#line 195 "ircd_lexer.l"
 { return GLINE_EXEMPT; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 197 "ircd_lexer.l"
+#line 196 "ircd_lexer.l"
 { return GLINE_MIN_CIDR; }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 198 "ircd_lexer.l"
+#line 197 "ircd_lexer.l"
 { return GLINE_MIN_CIDR6; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 199 "ircd_lexer.l"
+#line 198 "ircd_lexer.l"
 { return GLOBAL_KILL; }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 200 "ircd_lexer.l"
+#line 199 "ircd_lexer.l"
 { return NEED_IDENT; }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 201 "ircd_lexer.l"
+#line 200 "ircd_lexer.l"
 { return NEED_IDENT; }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 202 "ircd_lexer.l"
+#line 201 "ircd_lexer.l"
 { return HAVENT_READ_CONF; }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 203 "ircd_lexer.l"
+#line 202 "ircd_lexer.l"
 { return HIDDEN; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 204 "ircd_lexer.l"
+#line 203 "ircd_lexer.l"
 { return HIDDEN_ADMIN; }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 205 "ircd_lexer.l"
+#line 204 "ircd_lexer.l"
 { return HIDDEN_NAME; }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 206 "ircd_lexer.l"
+#line 205 "ircd_lexer.l"
 { return HIDDEN_OPER; }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 207 "ircd_lexer.l"
+#line 206 "ircd_lexer.l"
 { return HIDE_SERVER_IPS; }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 208 "ircd_lexer.l"
+#line 207 "ircd_lexer.l"
 { return HIDE_SERVERS; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 209 "ircd_lexer.l"
+#line 208 "ircd_lexer.l"
 { return HIDE_SPOOF_IPS; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 210 "ircd_lexer.l"
+#line 209 "ircd_lexer.l"
 { return HOST; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 211 "ircd_lexer.l"
+#line 210 "ircd_lexer.l"
 { return HUB; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 212 "ircd_lexer.l"
+#line 211 "ircd_lexer.l"
 { return HUB_MASK; }
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 213 "ircd_lexer.l"
+#line 212 "ircd_lexer.l"
 { return IDLETIME; }
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 214 "ircd_lexer.l"
+#line 213 "ircd_lexer.l"
 { return IGNORE_BOGUS_TS; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 215 "ircd_lexer.l"
+#line 214 "ircd_lexer.l"
 { return INVISIBLE_ON_CONNECT; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 216 "ircd_lexer.l"
+#line 215 "ircd_lexer.l"
 { return IP; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 217 "ircd_lexer.l"
+#line 216 "ircd_lexer.l"
 { return T_IPV4; }
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 218 "ircd_lexer.l"
+#line 217 "ircd_lexer.l"
 { return T_IPV6; }
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 219 "ircd_lexer.l"
+#line 218 "ircd_lexer.l"
 { return JOIN_FLOOD_COUNT; }
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 220 "ircd_lexer.l"
+#line 219 "ircd_lexer.l"
 { return JOIN_FLOOD_TIME; }
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 221 "ircd_lexer.l"
+#line 220 "ircd_lexer.l"
 { return KILL; }
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-#line 222 "ircd_lexer.l"
+#line 221 "ircd_lexer.l"
 { return KILL_CHASE_TIME_LIMIT; }
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-#line 223 "ircd_lexer.l"
+#line 222 "ircd_lexer.l"
 { return KLINE; }
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
-#line 224 "ircd_lexer.l"
+#line 223 "ircd_lexer.l"
 { return KLINE_EXEMPT; }
 	YY_BREAK
 case 107:
 YY_RULE_SETUP
-#line 225 "ircd_lexer.l"
+#line 224 "ircd_lexer.l"
 { return T_L_CRIT; }
 	YY_BREAK
 case 108:
 YY_RULE_SETUP
-#line 226 "ircd_lexer.l"
+#line 225 "ircd_lexer.l"
 { return T_L_DEBUG; }
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
-#line 227 "ircd_lexer.l"
+#line 226 "ircd_lexer.l"
 { return T_L_ERROR; }
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
-#line 228 "ircd_lexer.l"
+#line 227 "ircd_lexer.l"
 { return T_L_INFO; }
 	YY_BREAK
 case 111:
 YY_RULE_SETUP
-#line 229 "ircd_lexer.l"
+#line 228 "ircd_lexer.l"
 { return T_L_NOTICE; }
 	YY_BREAK
 case 112:
 YY_RULE_SETUP
-#line 230 "ircd_lexer.l"
+#line 229 "ircd_lexer.l"
 { return T_L_TRACE; }
 	YY_BREAK
 case 113:
 YY_RULE_SETUP
-#line 231 "ircd_lexer.l"
+#line 230 "ircd_lexer.l"
 { return T_L_WARN; }
 	YY_BREAK
 case 114:
 YY_RULE_SETUP
-#line 232 "ircd_lexer.l"
+#line 231 "ircd_lexer.l"
 { return LEAF_MASK; }
 	YY_BREAK
 case 115:
 YY_RULE_SETUP
-#line 233 "ircd_lexer.l"
+#line 232 "ircd_lexer.l"
 { return LISTEN; }
 	YY_BREAK
 case 116:
 YY_RULE_SETUP
-#line 234 "ircd_lexer.l"
+#line 233 "ircd_lexer.l"
 { return LOG_LEVEL; }
 	YY_BREAK
 case 117:
 YY_RULE_SETUP
-#line 235 "ircd_lexer.l"
+#line 234 "ircd_lexer.l"
 { return LOGGING; }
 	YY_BREAK
 case 118:
 YY_RULE_SETUP
-#line 236 "ircd_lexer.l"
+#line 235 "ircd_lexer.l"
 { return LOGGING; }
 	YY_BREAK
 case 119:
 YY_RULE_SETUP
-#line 237 "ircd_lexer.l"
+#line 236 "ircd_lexer.l"
 { return T_LOGPATH; }
 	YY_BREAK
 case 120:
 YY_RULE_SETUP
-#line 238 "ircd_lexer.l"
+#line 237 "ircd_lexer.l"
 { return TMASKED; }
 	YY_BREAK
 case 121:
 YY_RULE_SETUP
-#line 239 "ircd_lexer.l"
+#line 238 "ircd_lexer.l"
 { return T_MAX_CLIENTS; }
 	YY_BREAK
 case 122:
 YY_RULE_SETUP
-#line 240 "ircd_lexer.l"
+#line 239 "ircd_lexer.l"
 { return MAX_IDENT; }
 	YY_BREAK
 case 123:
 YY_RULE_SETUP
-#line 241 "ircd_lexer.l"
+#line 240 "ircd_lexer.l"
 { return MAX_LOCAL; }
 	YY_BREAK
 case 124:
 YY_RULE_SETUP
-#line 242 "ircd_lexer.l"
+#line 241 "ircd_lexer.l"
 { return MAX_GLOBAL; }
 	YY_BREAK
 case 125:
 YY_RULE_SETUP
-#line 243 "ircd_lexer.l"
+#line 242 "ircd_lexer.l"
 { return MAX_NUMBER; }
 	YY_BREAK
 case 126:
 YY_RULE_SETUP
-#line 244 "ircd_lexer.l"
+#line 243 "ircd_lexer.l"
 { return MAX_WATCH; }
 	YY_BREAK
 case 127:
 YY_RULE_SETUP
-#line 245 "ircd_lexer.l"
+#line 244 "ircd_lexer.l"
 { return MESSAGE_LOCALE; }
 	YY_BREAK
 case 128:
 YY_RULE_SETUP
-#line 246 "ircd_lexer.l"
+#line 245 "ircd_lexer.l"
 { return MIN_NONWILDCARD; }
 	YY_BREAK
 case 129:
 YY_RULE_SETUP
-#line 247 "ircd_lexer.l"
+#line 246 "ircd_lexer.l"
 { return MIN_NONWILDCARD_SIMPLE; }
 	YY_BREAK
 case 130:
 YY_RULE_SETUP
-#line 248 "ircd_lexer.l"
+#line 247 "ircd_lexer.l"
 { return NAME; }
 	YY_BREAK
 case 131:
 YY_RULE_SETUP
-#line 249 "ircd_lexer.l"
+#line 248 "ircd_lexer.l"
 { return NEED_PASSWORD; }
 	YY_BREAK
 case 132:
 YY_RULE_SETUP
-#line 250 "ircd_lexer.l"
+#line 249 "ircd_lexer.l"
 { return NETWORK_DESC; }
 	YY_BREAK
 case 133:
 YY_RULE_SETUP
-#line 251 "ircd_lexer.l"
+#line 250 "ircd_lexer.l"
 { return NETWORK_NAME; }
 	YY_BREAK
 case 134:
 YY_RULE_SETUP
-#line 252 "ircd_lexer.l"
+#line 251 "ircd_lexer.l"
 { return NICK; }
 	YY_BREAK
 case 135:
 YY_RULE_SETUP
-#line 253 "ircd_lexer.l"
+#line 252 "ircd_lexer.l"
 { return NICK_CHANGES; }
 	YY_BREAK
 case 136:
 YY_RULE_SETUP
-#line 254 "ircd_lexer.l"
+#line 253 "ircd_lexer.l"
 { yylval.number = NO; return TBOOL; }
 	YY_BREAK
 case 137:
 YY_RULE_SETUP
-#line 255 "ircd_lexer.l"
+#line 254 "ircd_lexer.l"
 { return NO_CREATE_ON_SPLIT; }
 	YY_BREAK
 case 138:
 YY_RULE_SETUP
-#line 256 "ircd_lexer.l"
+#line 255 "ircd_lexer.l"
 { return NO_JOIN_ON_SPLIT; }
 	YY_BREAK
 case 139:
 YY_RULE_SETUP
-#line 257 "ircd_lexer.l"
+#line 256 "ircd_lexer.l"
 { return NO_OPER_FLOOD; }
 	YY_BREAK
 case 140:
 YY_RULE_SETUP
-#line 258 "ircd_lexer.l"
+#line 257 "ircd_lexer.l"
 { return NO_TILDE; }
 	YY_BREAK
 case 141:
 YY_RULE_SETUP
-#line 259 "ircd_lexer.l"
+#line 258 "ircd_lexer.l"
 { return NUMBER_PER_CIDR; }
 	YY_BREAK
 case 142:
 YY_RULE_SETUP
-#line 260 "ircd_lexer.l"
+#line 259 "ircd_lexer.l"
 { return NUMBER_PER_IP; }
 	YY_BREAK
 case 143:
 YY_RULE_SETUP
-#line 261 "ircd_lexer.l"
+#line 260 "ircd_lexer.l"
 { return OPERATOR; }
 	YY_BREAK
 case 144:
 YY_RULE_SETUP
-#line 262 "ircd_lexer.l"
+#line 261 "ircd_lexer.l"
 { return OPER_LOG; }
 	YY_BREAK
 case 145:
 YY_RULE_SETUP
-#line 263 "ircd_lexer.l"
+#line 262 "ircd_lexer.l"
 { return OPER_PASS_RESV; }
 	YY_BREAK
 case 146:
 YY_RULE_SETUP
-#line 264 "ircd_lexer.l"
+#line 263 "ircd_lexer.l"
 { return OPERATOR; }
 	YY_BREAK
 case 147:
 YY_RULE_SETUP
-#line 265 "ircd_lexer.l"
+#line 264 "ircd_lexer.l"
 { return PASSWORD; }
 	YY_BREAK
 case 148:
 YY_RULE_SETUP
-#line 266 "ircd_lexer.l"
+#line 265 "ircd_lexer.l"
 { return PASSWORD; }
 	YY_BREAK
 case 149:
 YY_RULE_SETUP
-#line 267 "ircd_lexer.l"
+#line 266 "ircd_lexer.l"
 { return PING_COOKIE; }
 	YY_BREAK
 case 150:
 YY_RULE_SETUP
-#line 268 "ircd_lexer.l"
+#line 267 "ircd_lexer.l"
 { return PING_TIME; }
 	YY_BREAK
 case 151:
 YY_RULE_SETUP
-#line 269 "ircd_lexer.l"
+#line 268 "ircd_lexer.l"
 { return PING_WARNING; }
 	YY_BREAK
 case 152:
 YY_RULE_SETUP
-#line 270 "ircd_lexer.l"
+#line 269 "ircd_lexer.l"
 { return PORT; }
 	YY_BREAK
 case 153:
 YY_RULE_SETUP
-#line 271 "ircd_lexer.l"
+#line 270 "ircd_lexer.l"
 { return RESV; }
 	YY_BREAK
 case 154:
 YY_RULE_SETUP
-#line 272 "ircd_lexer.l"
+#line 271 "ircd_lexer.l"
 { return QUIET_ON_BAN; }
 	YY_BREAK
 case 155:
 YY_RULE_SETUP
-#line 273 "ircd_lexer.l"
+#line 272 "ircd_lexer.l"
 { return REASON; }
 	YY_BREAK
 case 156:
 YY_RULE_SETUP
-#line 274 "ircd_lexer.l"
+#line 273 "ircd_lexer.l"
 { return REDIRPORT; }
 	YY_BREAK
 case 157:
 YY_RULE_SETUP
-#line 275 "ircd_lexer.l"
+#line 274 "ircd_lexer.l"
 { return REDIRSERV; }
 	YY_BREAK
 case 158:
 YY_RULE_SETUP
-#line 276 "ircd_lexer.l"
+#line 275 "ircd_lexer.l"
 { return REGEX_T; }
 	YY_BREAK
 case 159:
 YY_RULE_SETUP
-#line 277 "ircd_lexer.l"
+#line 276 "ircd_lexer.l"
 { return REHASH; }
 	YY_BREAK
 case 160:
 YY_RULE_SETUP
-#line 278 "ircd_lexer.l"
+#line 277 "ircd_lexer.l"
 { return T_REJECT; }
 	YY_BREAK
 case 161:
 YY_RULE_SETUP
-#line 279 "ircd_lexer.l"
+#line 278 "ircd_lexer.l"
 { return TREJECT_HOLD_TIME; }
 	YY_BREAK
 case 162:
 YY_RULE_SETUP
-#line 280 "ircd_lexer.l"
+#line 279 "ircd_lexer.l"
 { return REMOTE; }
 	YY_BREAK
 case 163:
 YY_RULE_SETUP
-#line 281 "ircd_lexer.l"
+#line 280 "ircd_lexer.l"
 { return REMOTEBAN; }
 	YY_BREAK
 case 164:
 YY_RULE_SETUP
-#line 282 "ircd_lexer.l"
+#line 281 "ircd_lexer.l"
 { return RESTRICT_CHANNELS; }
 	YY_BREAK
 case 165:
 YY_RULE_SETUP
-#line 283 "ircd_lexer.l"
+#line 282 "ircd_lexer.l"
 { return RESV; }
 	YY_BREAK
 case 166:
 YY_RULE_SETUP
-#line 284 "ircd_lexer.l"
+#line 283 "ircd_lexer.l"
 { return RESV_EXEMPT; }
 	YY_BREAK
 case 167:
 YY_RULE_SETUP
-#line 285 "ircd_lexer.l"
+#line 284 "ircd_lexer.l"
 { return RSA_PRIVATE_KEY_FILE; }
 	YY_BREAK
 case 168:
 YY_RULE_SETUP
-#line 286 "ircd_lexer.l"
+#line 285 "ircd_lexer.l"
 { return RSA_PUBLIC_KEY_FILE; }
 	YY_BREAK
 case 169:
 YY_RULE_SETUP
-#line 287 "ircd_lexer.l"
+#line 286 "ircd_lexer.l"
 { return T_SSL; }
 	YY_BREAK
 case 170:
 YY_RULE_SETUP
-#line 288 "ircd_lexer.l"
+#line 287 "ircd_lexer.l"
 { return SSL_CERTIFICATE_FILE; }
 	YY_BREAK
 case 171:
 YY_RULE_SETUP
-#line 289 "ircd_lexer.l"
+#line 288 "ircd_lexer.l"
 { return T_SSL_CONNECTION_METHOD; }
 	YY_BREAK
 case 172:
 YY_RULE_SETUP
-#line 290 "ircd_lexer.l"
+#line 289 "ircd_lexer.l"
 { return T_SSLV3; }
 	YY_BREAK
 case 173:
 YY_RULE_SETUP
-#line 291 "ircd_lexer.l"
+#line 290 "ircd_lexer.l"
 { return T_TLSV1; }
 	YY_BREAK
 case 174:
 YY_RULE_SETUP
-#line 292 "ircd_lexer.l"
+#line 291 "ircd_lexer.l"
 { return SEND_PASSWORD; }
 	YY_BREAK
 case 175:
 YY_RULE_SETUP
-#line 293 "ircd_lexer.l"
+#line 292 "ircd_lexer.l"
 { return SENDQ; }
 	YY_BREAK
 case 176:
 YY_RULE_SETUP
-#line 294 "ircd_lexer.l"
+#line 293 "ircd_lexer.l"
 { return T_SERVER; }
 	YY_BREAK
 case 177:
 YY_RULE_SETUP
-#line 295 "ircd_lexer.l"
+#line 294 "ircd_lexer.l"
 { return SERVERHIDE; }
 	YY_BREAK
 case 178:
 YY_RULE_SETUP
-#line 296 "ircd_lexer.l"
+#line 295 "ircd_lexer.l"
 { return SERVERINFO; }
 	YY_BREAK
 case 179:
 YY_RULE_SETUP
-#line 297 "ircd_lexer.l"
+#line 296 "ircd_lexer.l"
 { return SERVLINK_PATH; }
 	YY_BREAK
 case 180:
 YY_RULE_SETUP
-#line 298 "ircd_lexer.l"
+#line 297 "ircd_lexer.l"
 { return T_SHARED; }
 	YY_BREAK
 case 181:
 YY_RULE_SETUP
-#line 299 "ircd_lexer.l"
+#line 298 "ircd_lexer.l"
 { return SHORT_MOTD; }
 	YY_BREAK
 case 182:
 YY_RULE_SETUP
-#line 300 "ircd_lexer.l"
+#line 299 "ircd_lexer.l"
 { return IRCD_SID; }
 	YY_BREAK
 case 183:
 YY_RULE_SETUP
-#line 301 "ircd_lexer.l"
+#line 300 "ircd_lexer.l"
 { return SILENT; }
 	YY_BREAK
 case 184:
 YY_RULE_SETUP
-#line 302 "ircd_lexer.l"
+#line 301 "ircd_lexer.l"
 { return SPOOF; }
 	YY_BREAK
 case 185:
 YY_RULE_SETUP
-#line 303 "ircd_lexer.l"
+#line 302 "ircd_lexer.l"
 { return SPOOF_NOTICE; }
 	YY_BREAK
 case 186:
 YY_RULE_SETUP
-#line 304 "ircd_lexer.l"
+#line 303 "ircd_lexer.l"
 { return TKLINE_EXPIRE_NOTICES; }
 	YY_BREAK
 case 187:
 YY_RULE_SETUP
-#line 305 "ircd_lexer.l"
+#line 304 "ircd_lexer.l"
 { return TYPE; }
 	YY_BREAK
 case 188:
 YY_RULE_SETUP
-#line 306 "ircd_lexer.l"
+#line 305 "ircd_lexer.l"
 { return TRUE_NO_OPER_FLOOD; }
 	YY_BREAK
 case 189:
 YY_RULE_SETUP
-#line 307 "ircd_lexer.l"
+#line 306 "ircd_lexer.l"
 { return T_UMODES; }
 	YY_BREAK
 case 190:
 YY_RULE_SETUP
-#line 308 "ircd_lexer.l"
+#line 307 "ircd_lexer.l"
 { return UNKLINE; }
 	YY_BREAK
 case 191:
 YY_RULE_SETUP
-#line 309 "ircd_lexer.l"
+#line 308 "ircd_lexer.l"
 { return USE_EGD; }
 	YY_BREAK
 case 192:
 YY_RULE_SETUP
-#line 310 "ircd_lexer.l"
+#line 309 "ircd_lexer.l"
 { return USE_EXCEPT; }
 	YY_BREAK
 case 193:
 YY_RULE_SETUP
-#line 311 "ircd_lexer.l"
+#line 310 "ircd_lexer.l"
 { return USE_INVEX; }
 	YY_BREAK
 case 194:
 YY_RULE_SETUP
-#line 312 "ircd_lexer.l"
+#line 311 "ircd_lexer.l"
 { return USE_KNOCK; }
 	YY_BREAK
 case 195:
 YY_RULE_SETUP
-#line 313 "ircd_lexer.l"
+#line 312 "ircd_lexer.l"
 { return USE_LOGGING; }
 	YY_BREAK
 case 196:
 YY_RULE_SETUP
-#line 314 "ircd_lexer.l"
+#line 313 "ircd_lexer.l"
 { return USE_WHOIS_ACTUALLY; }
 	YY_BREAK
 case 197:
 YY_RULE_SETUP
-#line 315 "ircd_lexer.l"
+#line 314 "ircd_lexer.l"
 { return THROTTLE_TIME; }
 	YY_BREAK
 case 198:
 YY_RULE_SETUP
-#line 316 "ircd_lexer.l"
+#line 315 "ircd_lexer.l"
 { return USER; } 
 	YY_BREAK
 case 199:
 YY_RULE_SETUP
-#line 317 "ircd_lexer.l"
+#line 316 "ircd_lexer.l"
 { return TKLINE; } 
 	YY_BREAK
 case 200:
 YY_RULE_SETUP
-#line 318 "ircd_lexer.l"
+#line 317 "ircd_lexer.l"
 { return TXLINE; } 
 	YY_BREAK
 case 201:
 YY_RULE_SETUP
-#line 319 "ircd_lexer.l"
+#line 318 "ircd_lexer.l"
 { return TRESV; } 
 	YY_BREAK
 case 202:
 YY_RULE_SETUP
-#line 320 "ircd_lexer.l"
+#line 319 "ircd_lexer.l"
 { return VHOST; }
 	YY_BREAK
 case 203:
 YY_RULE_SETUP
-#line 321 "ircd_lexer.l"
+#line 320 "ircd_lexer.l"
 { return VHOST6; }
 	YY_BREAK
 case 204:
 YY_RULE_SETUP
-#line 322 "ircd_lexer.l"
+#line 321 "ircd_lexer.l"
 { return WARN; }
 	YY_BREAK
 case 205:
 YY_RULE_SETUP
-#line 323 "ircd_lexer.l"
+#line 322 "ircd_lexer.l"
 { return XLINE; }
 	YY_BREAK
 case 206:
 YY_RULE_SETUP
-#line 324 "ircd_lexer.l"
+#line 323 "ircd_lexer.l"
 { yylval.number = YES; return TBOOL; }
 	YY_BREAK
 case 207:
 YY_RULE_SETUP
-#line 326 "ircd_lexer.l"
+#line 325 "ircd_lexer.l"
 { return FAILED_OPER_NOTICE; }
 	YY_BREAK
 case 208:
 YY_RULE_SETUP
-#line 327 "ircd_lexer.l"
+#line 326 "ircd_lexer.l"
 { return MAX_ACCEPT; }
 	YY_BREAK
 case 209:
 YY_RULE_SETUP
-#line 328 "ircd_lexer.l"
+#line 327 "ircd_lexer.l"
 { return MAX_NICK_CHANGES; }
 	YY_BREAK
 case 210:
 YY_RULE_SETUP
-#line 329 "ircd_lexer.l"
+#line 328 "ircd_lexer.l"
 { return MAX_CHANS_PER_USER; }
 	YY_BREAK
 case 211:
 YY_RULE_SETUP
-#line 330 "ircd_lexer.l"
+#line 329 "ircd_lexer.l"
 { return MAX_NICK_TIME; }
 	YY_BREAK
 case 212:
 YY_RULE_SETUP
-#line 331 "ircd_lexer.l"
+#line 330 "ircd_lexer.l"
 { return ANTI_NICK_FLOOD; }
 	YY_BREAK
 case 213:
 YY_RULE_SETUP
-#line 332 "ircd_lexer.l"
+#line 331 "ircd_lexer.l"
 { return ANTI_SPAM_EXIT_MESSAGE_TIME; }
 	YY_BREAK
 case 214:
 YY_RULE_SETUP
-#line 333 "ircd_lexer.l"
+#line 332 "ircd_lexer.l"
 { return TS_MAX_DELTA; }
 	YY_BREAK
 case 215:
 YY_RULE_SETUP
-#line 334 "ircd_lexer.l"
+#line 333 "ircd_lexer.l"
 { return TS_WARN_DELTA; }
 	YY_BREAK
 case 216:
 YY_RULE_SETUP
-#line 335 "ircd_lexer.l"
+#line 334 "ircd_lexer.l"
 { return LINKS_DELAY; }
 	YY_BREAK
 case 217:
 YY_RULE_SETUP
-#line 336 "ircd_lexer.l"
+#line 335 "ircd_lexer.l"
 { return KLINE_REASON; }
 	YY_BREAK
 case 218:
 YY_RULE_SETUP
-#line 337 "ircd_lexer.l"
+#line 336 "ircd_lexer.l"
 { return KLINE_WITH_REASON; }
 	YY_BREAK
 case 219:
 YY_RULE_SETUP
-#line 338 "ircd_lexer.l"
+#line 337 "ircd_lexer.l"
 { return WARN_NO_NLINE; }
 	YY_BREAK
 case 220:
 YY_RULE_SETUP
-#line 340 "ircd_lexer.l"
+#line 339 "ircd_lexer.l"
 { return STATS_E_DISABLED; }
 	YY_BREAK
 case 221:
 YY_RULE_SETUP
-#line 341 "ircd_lexer.l"
+#line 340 "ircd_lexer.l"
 { return STATS_O_OPER_ONLY; }
 	YY_BREAK
 case 222:
 YY_RULE_SETUP
-#line 342 "ircd_lexer.l"
+#line 341 "ircd_lexer.l"
 { return STATS_K_OPER_ONLY; }
 	YY_BREAK
 case 223:
 YY_RULE_SETUP
-#line 343 "ircd_lexer.l"
+#line 342 "ircd_lexer.l"
 { return STATS_I_OPER_ONLY; }
 	YY_BREAK
 case 224:
 YY_RULE_SETUP
-#line 344 "ircd_lexer.l"
+#line 343 "ircd_lexer.l"
 { return STATS_P_OPER_ONLY; }
 	YY_BREAK
 case 225:
 YY_RULE_SETUP
-#line 345 "ircd_lexer.l"
+#line 344 "ircd_lexer.l"
 { return PACE_WAIT; }
 	YY_BREAK
 case 226:
 YY_RULE_SETUP
-#line 346 "ircd_lexer.l"
+#line 345 "ircd_lexer.l"
 { return PACE_WAIT_SIMPLE; }
 	YY_BREAK
 case 227:
 YY_RULE_SETUP
-#line 347 "ircd_lexer.l"
+#line 346 "ircd_lexer.l"
 { return KNOCK_DELAY; }
 	YY_BREAK
 case 228:
 YY_RULE_SETUP
-#line 348 "ircd_lexer.l"
+#line 347 "ircd_lexer.l"
 { return KNOCK_DELAY_CHANNEL; }
 	YY_BREAK
 case 229:
 YY_RULE_SETUP
-#line 349 "ircd_lexer.l"
+#line 348 "ircd_lexer.l"
 { return MAX_BANS; }
 	YY_BREAK
 case 230:
 YY_RULE_SETUP
-#line 350 "ircd_lexer.l"
+#line 349 "ircd_lexer.l"
 { return MODULES; }
 	YY_BREAK
 case 231:
 YY_RULE_SETUP
-#line 351 "ircd_lexer.l"
+#line 350 "ircd_lexer.l"
 { return MODULE; }
 	YY_BREAK
 case 232:
 YY_RULE_SETUP
-#line 352 "ircd_lexer.l"
+#line 351 "ircd_lexer.l"
 { return PATH; }
 	YY_BREAK
 case 233:
 YY_RULE_SETUP
-#line 353 "ircd_lexer.l"
+#line 352 "ircd_lexer.l"
 { return MAX_TARGETS; }
 	YY_BREAK
 case 234:
 YY_RULE_SETUP
-#line 355 "ircd_lexer.l"
+#line 354 "ircd_lexer.l"
 { return T_UNXLINE; }
 	YY_BREAK
 case 235:
 YY_RULE_SETUP
-#line 356 "ircd_lexer.l"
+#line 355 "ircd_lexer.l"
 { return T_UNRESV; }
 	YY_BREAK
 case 236:
 YY_RULE_SETUP
-#line 358 "ircd_lexer.l"
+#line 357 "ircd_lexer.l"
 { return OPER_ONLY_UMODES; }
 	YY_BREAK
 case 237:
 YY_RULE_SETUP
-#line 359 "ircd_lexer.l"
+#line 358 "ircd_lexer.l"
 { return OPER_UMODES; }
 	YY_BREAK
 case 238:
 YY_RULE_SETUP
-#line 360 "ircd_lexer.l"
+#line 359 "ircd_lexer.l"
 { return T_BOTS; }
 	YY_BREAK
 case 239:
 YY_RULE_SETUP
-#line 361 "ircd_lexer.l"
+#line 360 "ircd_lexer.l"
 { return T_CCONN; }
 	YY_BREAK
 case 240:
 YY_RULE_SETUP
-#line 362 "ircd_lexer.l"
+#line 361 "ircd_lexer.l"
 { return T_CCONN_FULL; }
 	YY_BREAK
 case 241:
 YY_RULE_SETUP
-#line 363 "ircd_lexer.l"
+#line 362 "ircd_lexer.l"
 { return T_DEAF; }
 	YY_BREAK
 case 242:
 YY_RULE_SETUP
-#line 364 "ircd_lexer.l"
+#line 363 "ircd_lexer.l"
 { return T_DEBUG; }
 	YY_BREAK
 case 243:
 YY_RULE_SETUP
-#line 365 "ircd_lexer.l"
+#line 364 "ircd_lexer.l"
 { return T_FULL; }
 	YY_BREAK
 case 244:
 YY_RULE_SETUP
-#line 366 "ircd_lexer.l"
+#line 365 "ircd_lexer.l"
 { return T_SKILL; }
 	YY_BREAK
 case 245:
 YY_RULE_SETUP
-#line 367 "ircd_lexer.l"
+#line 366 "ircd_lexer.l"
 { return T_NCHANGE; }
 	YY_BREAK
 case 246:
 YY_RULE_SETUP
-#line 368 "ircd_lexer.l"
+#line 367 "ircd_lexer.l"
 { return T_REJ; }
 	YY_BREAK
 case 247:
 YY_RULE_SETUP
-#line 369 "ircd_lexer.l"
+#line 368 "ircd_lexer.l"
 { return T_UNAUTH; }
 	YY_BREAK
 case 248:
 YY_RULE_SETUP
-#line 370 "ircd_lexer.l"
+#line 369 "ircd_lexer.l"
 { return T_SPY; }
 	YY_BREAK
 case 249:
 YY_RULE_SETUP
-#line 371 "ircd_lexer.l"
+#line 370 "ircd_lexer.l"
 { return T_EXTERNAL; }
 	YY_BREAK
 case 250:
 YY_RULE_SETUP
-#line 372 "ircd_lexer.l"
+#line 371 "ircd_lexer.l"
 { return T_OPERWALL; }
 	YY_BREAK
 case 251:
 YY_RULE_SETUP
-#line 373 "ircd_lexer.l"
+#line 372 "ircd_lexer.l"
 { return T_SERVNOTICE; }
 	YY_BREAK
 case 252:
 YY_RULE_SETUP
-#line 374 "ircd_lexer.l"
+#line 373 "ircd_lexer.l"
 { return T_INVISIBLE; }
 	YY_BREAK
 case 253:
 YY_RULE_SETUP
-#line 375 "ircd_lexer.l"
+#line 374 "ircd_lexer.l"
 { return T_WALLOP; }
 	YY_BREAK
 case 254:
 YY_RULE_SETUP
-#line 376 "ircd_lexer.l"
+#line 375 "ircd_lexer.l"
 { return T_CALLERID; }
 	YY_BREAK
 case 255:
 YY_RULE_SETUP
-#line 377 "ircd_lexer.l"
+#line 376 "ircd_lexer.l"
 { return T_SOFTCALLERID; }
 	YY_BREAK
 case 256:
 YY_RULE_SETUP
-#line 378 "ircd_lexer.l"
+#line 377 "ircd_lexer.l"
 { return T_DRONE; }
 	YY_BREAK
 case 257:
 YY_RULE_SETUP
-#line 379 "ircd_lexer.l"
+#line 378 "ircd_lexer.l"
 { return T_LOCOPS; }
 	YY_BREAK
 case 258:
 YY_RULE_SETUP
-#line 380 "ircd_lexer.l"
+#line 379 "ircd_lexer.l"
 { return TOPICBURST; }
 	YY_BREAK
 case 259:
 YY_RULE_SETUP
-#line 382 "ircd_lexer.l"
+#line 381 "ircd_lexer.l"
 { return WEEKS; }
 	YY_BREAK
 case 260:
 YY_RULE_SETUP
-#line 383 "ircd_lexer.l"
+#line 382 "ircd_lexer.l"
 { return WEEKS; }
 	YY_BREAK
 case 261:
 YY_RULE_SETUP
-#line 384 "ircd_lexer.l"
+#line 383 "ircd_lexer.l"
 { return DAYS; }
 	YY_BREAK
 case 262:
 YY_RULE_SETUP
-#line 385 "ircd_lexer.l"
+#line 384 "ircd_lexer.l"
 { return DAYS; }
 	YY_BREAK
 case 263:
 YY_RULE_SETUP
-#line 386 "ircd_lexer.l"
+#line 385 "ircd_lexer.l"
 { return HOURS; }
 	YY_BREAK
 case 264:
 YY_RULE_SETUP
-#line 387 "ircd_lexer.l"
+#line 386 "ircd_lexer.l"
 { return HOURS; }
 	YY_BREAK
 case 265:
 YY_RULE_SETUP
-#line 388 "ircd_lexer.l"
+#line 387 "ircd_lexer.l"
 { return MINUTES; }
 	YY_BREAK
 case 266:
 YY_RULE_SETUP
-#line 389 "ircd_lexer.l"
+#line 388 "ircd_lexer.l"
 { return MINUTES; }
 	YY_BREAK
 case 267:
 YY_RULE_SETUP
-#line 390 "ircd_lexer.l"
+#line 389 "ircd_lexer.l"
 { return SECONDS; }
 	YY_BREAK
 case 268:
 YY_RULE_SETUP
-#line 391 "ircd_lexer.l"
+#line 390 "ircd_lexer.l"
 { return SECONDS; }
 	YY_BREAK
 case 269:
 YY_RULE_SETUP
-#line 393 "ircd_lexer.l"
+#line 392 "ircd_lexer.l"
 { return BYTES; }
 	YY_BREAK
 case 270:
 YY_RULE_SETUP
-#line 394 "ircd_lexer.l"
+#line 393 "ircd_lexer.l"
 { return BYTES; }
 	YY_BREAK
 case 271:
 YY_RULE_SETUP
-#line 395 "ircd_lexer.l"
+#line 394 "ircd_lexer.l"
 { return KBYTES; }
 	YY_BREAK
 case 272:
 YY_RULE_SETUP
-#line 396 "ircd_lexer.l"
+#line 395 "ircd_lexer.l"
 { return KBYTES; }
 	YY_BREAK
 case 273:
 YY_RULE_SETUP
-#line 397 "ircd_lexer.l"
+#line 396 "ircd_lexer.l"
 { return KBYTES; }
 	YY_BREAK
 case 274:
 YY_RULE_SETUP
-#line 398 "ircd_lexer.l"
+#line 397 "ircd_lexer.l"
 { return KBYTES; }
 	YY_BREAK
 case 275:
 YY_RULE_SETUP
-#line 399 "ircd_lexer.l"
+#line 398 "ircd_lexer.l"
 { return KBYTES; }
 	YY_BREAK
 case 276:
 YY_RULE_SETUP
-#line 400 "ircd_lexer.l"
+#line 399 "ircd_lexer.l"
 { return MBYTES; }
 	YY_BREAK
 case 277:
 YY_RULE_SETUP
-#line 401 "ircd_lexer.l"
+#line 400 "ircd_lexer.l"
 { return MBYTES; }
 	YY_BREAK
 case 278:
 YY_RULE_SETUP
-#line 402 "ircd_lexer.l"
+#line 401 "ircd_lexer.l"
 { return MBYTES; }
 	YY_BREAK
 case 279:
 YY_RULE_SETUP
-#line 403 "ircd_lexer.l"
+#line 402 "ircd_lexer.l"
 { return MBYTES; }
 	YY_BREAK
 case 280:
 YY_RULE_SETUP
-#line 404 "ircd_lexer.l"
+#line 403 "ircd_lexer.l"
 { return MBYTES; }
 	YY_BREAK
 case 281:
 YY_RULE_SETUP
-#line 405 "ircd_lexer.l"
+#line 404 "ircd_lexer.l"
 { return GBYTES; }
 	YY_BREAK
 case 282:
 YY_RULE_SETUP
-#line 406 "ircd_lexer.l"
+#line 405 "ircd_lexer.l"
 { return GBYTES; }
 	YY_BREAK
 case 283:
 YY_RULE_SETUP
-#line 407 "ircd_lexer.l"
+#line 406 "ircd_lexer.l"
 { return GBYTES; }
 	YY_BREAK
 case 284:
 YY_RULE_SETUP
-#line 408 "ircd_lexer.l"
+#line 407 "ircd_lexer.l"
 { return GBYTES; }
 	YY_BREAK
 case 285:
 YY_RULE_SETUP
-#line 409 "ircd_lexer.l"
+#line 408 "ircd_lexer.l"
 { return GBYTES; }
 	YY_BREAK
 case 286:
 YY_RULE_SETUP
-#line 410 "ircd_lexer.l"
+#line 409 "ircd_lexer.l"
 { return TBYTES; }
 	YY_BREAK
 case 287:
 YY_RULE_SETUP
-#line 411 "ircd_lexer.l"
+#line 410 "ircd_lexer.l"
 { return TBYTES; }
 	YY_BREAK
 case 288:
 YY_RULE_SETUP
-#line 412 "ircd_lexer.l"
+#line 411 "ircd_lexer.l"
 { return TBYTES; }
 	YY_BREAK
 case 289:
 YY_RULE_SETUP
-#line 413 "ircd_lexer.l"
+#line 412 "ircd_lexer.l"
 { return TBYTES; }
 	YY_BREAK
 case 290:
 YY_RULE_SETUP
-#line 414 "ircd_lexer.l"
+#line 413 "ircd_lexer.l"
 { return TBYTES; }
 	YY_BREAK
 case 291:
 YY_RULE_SETUP
-#line 415 "ircd_lexer.l"
+#line 414 "ircd_lexer.l"
 { return TWODOTS; }
 	YY_BREAK
 case 292:
 YY_RULE_SETUP
-#line 417 "ircd_lexer.l"
+#line 416 "ircd_lexer.l"
 { return yytext[0]; }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 418 "ircd_lexer.l"
+#line 417 "ircd_lexer.l"
 { if (ieof()) yyterminate(); }
 	YY_BREAK
 case 293:
 YY_RULE_SETUP
-#line 420 "ircd_lexer.l"
+#line 419 "ircd_lexer.l"
 ECHO;
 	YY_BREAK
-#line 3722 "ircd_lexer.c"
+#line 3721 "ircd_lexer.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -4674,7 +4673,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 420 "ircd_lexer.l"
+#line 419 "ircd_lexer.l"
 
 
 

@@ -26,6 +26,7 @@
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
+#include "list.h"
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "client.h"
@@ -36,7 +37,6 @@
 #include "irc_getnameinfo.h"
 #include "irc_getaddrinfo.h"
 #include "ircd.h"
-#include "list.h"
 #include "listener.h"
 #include "numeric.h"
 #include "packet.h"

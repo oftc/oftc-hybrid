@@ -26,21 +26,17 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
+#include "balloc.h"
 #include "s_user.h"
 #include "s_misc.h"
 #include "client.h"
-#include "common.h"
 #include "hash.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
-#include "list.h"
-#include "listener.h"
-#include "motd.h"
 #include "numeric.h"
 #include "s_conf.h"
-#include "s_log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "supported.h"
@@ -48,7 +44,6 @@
 #include "memory.h"
 #include "packet.h"
 #include "s_misc.h"
-#include "msg.h"
 #include "watch.h"
 
 #define WATCH_HEAP_SIZE 32

@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -33,7 +33,6 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_serv.h"
@@ -150,8 +149,8 @@ names_non_public_non_secret(struct Client *source_p)
   char buf[IRCD_BUFSIZE];
   char *t;
 
-  mlen = ircsprintf(buf,form_str(RPL_NAMREPLY),
-                    me.name, source_p->name, "*", "*");
+  mlen = ircsprintf(buf, form_str(RPL_NAMREPLY), me.name,
+                    source_p->name, "*", "*");
   cur_len = mlen;
   t = buf + mlen;
 

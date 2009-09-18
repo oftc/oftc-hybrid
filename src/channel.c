@@ -25,7 +25,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -35,7 +35,6 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "s_serv.h"             /* captab */
 #include "s_user.h"
@@ -141,7 +140,7 @@ remove_user_from_channel(struct Membership *member)
 
   BlockHeapFree(member_heap, member);
 
-  if (dlink_list_length(&chptr->members) == 0)
+  if (chptr->members.head == NULL)
     destroy_channel(chptr);
 }
 

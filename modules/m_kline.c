@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
@@ -32,7 +32,6 @@
 #include "ircd.h"
 #include "hostmask.h"
 #include "numeric.h"
-#include "list.h"
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"
@@ -46,7 +45,6 @@
 #include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
-#include "tools.h"
 #include "irc_getnameinfo.h"
 
 

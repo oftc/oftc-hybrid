@@ -28,12 +28,8 @@
 #endif
 
 #include "stdinc.h"
-#include "tools.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
-#include "client.h"
-#include "list.h"
-#include "memory.h"
 
 #ifndef INADDRSZ 
 #define INADDRSZ 4
@@ -426,7 +422,7 @@ inetntop(int af, const void *src, char *dst, unsigned int size)
     case AF_INET6:
       if (IN6_IS_ADDR_V4MAPPED((const struct in6_addr *)src) ||
           IN6_IS_ADDR_V4COMPAT((const struct in6_addr *)src))
-        return inet_ntop4((unsigned char *)&((const struct in6_addr *)src)->s6_addr[12], dst, size);
+        return inet_ntop4((const unsigned char *)&((const struct in6_addr *)src)->s6_addr[12], dst, size);
       else 
         return inet_ntop6(src, dst, size);
 #endif

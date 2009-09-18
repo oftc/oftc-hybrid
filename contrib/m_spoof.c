@@ -72,7 +72,7 @@
 
 /* List of ircd includes from ../include/ */
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "client.h"
 #include "common.h"     /* FALSE bleah */

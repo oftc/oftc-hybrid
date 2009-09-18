@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "s_user.h"
 #include "s_misc.h"
 #include "channel.h"
@@ -36,7 +36,6 @@
 #include "sprintf_irc.h"
 #include "s_bsd.h"
 #include "ircd.h"
-#include "list.h"
 #include "listener.h"
 #include "motd.h"
 #include "numeric.h"

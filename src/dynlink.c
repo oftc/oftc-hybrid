@@ -26,7 +26,7 @@
 #include "ltdl.h"
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "irc_string.h"
 #include "modules.h"
 #include "s_log.h"
@@ -44,7 +44,8 @@ static char unknown_ver[] = "<unknown>";
 void
 dynlink_init(void)
 {
-  if (lt_dlinit()) {
+  if (lt_dlinit())
+  {
     ilog(L_ERROR, "Couldn't initialize the libltdl run time dynamic"
          " link library. Exiting.");
     exit(0);
