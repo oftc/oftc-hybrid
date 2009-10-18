@@ -263,7 +263,7 @@ check_pings_list(dlink_list *list)
         struct AccessItem *aconf;
 
         conf = make_conf_item(KLINE_TYPE);
-        aconf = (struct AccessItem *)map_to_conf(conf);
+        aconf = map_to_conf(conf);
 
         DupString(aconf->host, client_p->host);
         DupString(aconf->reason, "idle exceeder");
@@ -578,8 +578,14 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
 static void
 update_client_exit_stats(struct Client *client_p)
 {
-  if (IsClient(client_p))
+  if (IsServer(client_p))
   {
+    sendto_realops_flags(UMODE_EXTERNAL, L_ALL, "Server %s split from %s",
+                         client_p->name, client_p->servptr->name);
+  }
+  else if (IsClient(client_p))
+  {
+    assert(Count.total > 0);
     --Count.total;
     if (IsOper(client_p))
       --Count.oper;
@@ -968,6 +974,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
     }
     else if (IsClient(source_p))
     {
+      assert(Count.local > 0);
       Count.local--;
 
       if (IsOper(source_p))

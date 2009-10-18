@@ -458,10 +458,10 @@ auth_connect_callback(fde_t *fd, int error, void *data)
     return;
   }
 
-  if (getsockname(auth->client->localClient->fd.fd, (struct sockaddr *) &us,
-      (socklen_t *) &ulen) ||
-      getpeername(auth->client->localClient->fd.fd, (struct sockaddr *) &them,
-      (socklen_t *) &tlen))
+  if (getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&us,
+      &ulen) ||
+      getpeername(auth->client->localClient->fd.fd, (struct sockaddr *)&them,
+      &tlen))
   {
     ilog(L_INFO, "auth get{sock,peer}name error for %s",
         get_client_name(auth->client, SHOW_IP));

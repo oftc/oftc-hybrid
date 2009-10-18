@@ -80,14 +80,14 @@ extern struct ServerStatistics ServerStats;
 
 struct Counter
 {
-  int myserver; /* my servers          */
-  int oper;     /* Opers               */
-  int local;    /* Local Clients       */
-  int total;    /* total clients       */
-  int invisi;   /* invisible clients   */
-  int max_loc;  /* MAX local clients   */
-  int max_tot;  /* MAX global clients  */
   uint64_t totalrestartcount; /* Total client count ever */
+  unsigned int myserver; /* my servers          */
+  unsigned int oper;     /* Opers               */
+  unsigned int local;    /* Local Clients       */
+  unsigned int total;    /* total clients       */
+  unsigned int invisi;   /* invisible clients   */
+  unsigned int max_loc;  /* MAX local clients   */
+  unsigned int max_tot;  /* MAX global clients  */
 };
 
 extern struct SetOptions GlobalSetOptions; /* defined in ircd.c */
@@ -112,15 +112,14 @@ extern int doremotd;
 extern struct Counter Count;
 extern struct timeval SystemTime;
 #define CurrentTime SystemTime.tv_sec
-extern time_t nextconnect;
 extern int default_server_capabs;
 #ifdef HAVE_LIBCRYPTO
 extern int bio_spare_fd;
 #endif /* HAVE_LIBCRYPTO */
 
-extern int splitmode;
-extern int splitchecking;
-extern int split_users;
+extern unsigned int splitmode;
+extern unsigned int splitchecking;
+extern unsigned int split_users;
 extern unsigned int split_servers;
 
 extern dlink_list unknown_list;       /* unknown clients ON this server only        */

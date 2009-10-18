@@ -45,12 +45,18 @@ struct Channel
   dlink_node node;
 
   struct Channel *hnextch;
-
   struct Mode mode;
+
   char *topic;
   char *topic_info;
+
+  time_t channelts;
   time_t topic_time;
   time_t last_knock; /*!< don't allow knock to flood */
+  time_t last_join_time;
+  time_t first_received_message_time; /*!< channel flood control */
+  unsigned int flags;
+  int received_number_of_privmsgs;
 
   dlink_list members;
   dlink_list invites;
@@ -59,13 +65,8 @@ struct Channel
   dlink_list invexlist;
   dlink_list quietlist;
 
-  time_t first_received_message_time; /*!< channel flood control */
-  int received_number_of_privmsgs;
-  int flags;
   float number_joined;
-  time_t last_join_time;
 
-  time_t channelts;
   char chname[CHANNELLEN + 1];
 };
 
@@ -83,11 +84,11 @@ struct Membership
 struct Ban
 {
   dlink_node node;
-  size_t len;
   char *name;
   char *username;
   char *host;
   char *who;
+  size_t len;
   time_t when;
   struct irc_ssaddr addr;
   int bits;
@@ -98,7 +99,7 @@ extern dlink_list global_channel_list;
 
 extern int check_channel_name(const char *, int);
 extern int can_send(struct Channel *, struct Client *, struct Membership *);
-extern int is_banned(struct Channel *, struct Client *);
+extern int is_banned(const struct Channel *, const struct Client *);
 extern int can_join(struct Client *, struct Channel *, const char *);
 extern int has_member_flags(struct Membership *, unsigned int);
 

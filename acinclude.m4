@@ -183,7 +183,6 @@ AC_DEFUN([AX_ARG_ENABLE_EFNET],[
     AC_DEFINE([EFNET],[1],[Define to 1 if this server will be an EFnet server.])
 		AC_DEFINE([TS5_ONLY],[1],[If Defined to 1 server links to your network must have a minimum of TS5.])
 	else
-		AC_DEFINE([INVARIANTS],[1],[Miscellaneous sanity checks for the IRCd. Makes it slightly slower])
 		use_efnet="no"
   fi
   AM_CONDITIONAL([EFNET],[test "$use_efnet" = "yes"])
@@ -209,7 +208,7 @@ dnl {{{ ax_arg_enable_warnings
 AC_DEFUN([AX_ARG_ENABLE_WARNINGS],[
   AC_ARG_ENABLE([warnings],[AC_HELP_STRING([--enable-warnings],[Enable compiler warnings.])],[warnings="$enableval"],[warnings="no"])
   if test "$warnings" = "yes" ; then
-    CFLAGS="-Wall -Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wno-unused -Wundef"
+    CFLAGS="-Wall -Wextra -Wno-unused -Wcast-qual -Wcast-align -Wbad-function-cast -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wundef"
   fi
 ])dnl }}}
 dnl {{{ ax_arg_enable_efence

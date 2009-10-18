@@ -47,8 +47,8 @@ struct module
   const char *version;
   void *handle;
   void *address;
-  int core;
   void (*modremove)(void);
+  int core;
 };
 
 struct module_path

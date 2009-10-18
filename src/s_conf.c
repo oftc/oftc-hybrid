@@ -148,22 +148,22 @@ static BlockHeap *ip_entry_heap = NULL;
 static int ip_entries_count = 0;
 
 
-inline void *
+void *
 map_to_conf(struct ConfItem *aconf)
 {
   void *conf;
-  conf = (void *)((unsigned long)aconf +
-      (unsigned long)sizeof(struct ConfItem));
+  conf = (void *)((uintptr_t)aconf +
+		  (uintptr_t)sizeof(struct ConfItem));
   return(conf);
 }
 
-inline struct ConfItem *
+struct ConfItem *
 unmap_conf_item(void *aconf)
 {
   struct ConfItem *conf;
 
-  conf = (struct ConfItem *)((unsigned long)aconf -
-           (unsigned long)sizeof(struct ConfItem));
+  conf = (struct ConfItem *)((uintptr_t)aconf -
+			     (uintptr_t)sizeof(struct ConfItem));
   return(conf);
 }
 

@@ -58,7 +58,7 @@ static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
 
 struct Callback *setup_socket_cb = NULL;
 
-static void comm_connect_callback(fde_t *fd, int status);
+static void comm_connect_callback(fde_t *, int);
 static PF comm_connect_timeout;
 static void comm_connect_dns_callback(void *, const struct irc_ssaddr *, const char *);
 static PF comm_connect_tryconnect;
@@ -213,9 +213,8 @@ close_connection(struct Client *client_p)
      * If the connection has been up for a long amount of time, schedule
      * a 'quick' reconnect, else reset the next-connect cycle.
      */
-    if ((conf = find_conf_exact(SERVER_TYPE,
-				  client_p->name, client_p->username,
-				  client_p->host)))
+    if ((conf = find_conf_exact(SERVER_TYPE, client_p->name,
+                                client_p->username, client_p->host)))
     {
       /*
        * Reschedule a faster reconnect, if this was a automatically
@@ -223,13 +222,11 @@ close_connection(struct Client *client_p)
        * a rehash in between, the status has been changed to
        * CONF_ILLEGAL). But only do this if it was a "good" link.
        */
-      aconf = (struct AccessItem *)map_to_conf(conf);
-      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+      aconf  = map_to_conf(conf);
+      aclass = map_to_conf(aconf->class_ptr);
       aconf->hold = time(NULL);
       aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
         HANGONRETRYDELAY : ConFreq(aclass);
-      if (nextconnect > aconf->hold)
-        nextconnect = aconf->hold;
     }
   }
   else if (IsClient(client_p))
@@ -354,10 +351,10 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
    */
   memcpy(&new_client->ip, irn, sizeof(struct irc_ssaddr));
 
-  irc_getnameinfo((struct sockaddr*)&new_client->ip,
-        new_client->ip.ss_len,  new_client->sockhost, 
-        HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
-  new_client->aftype = new_client->ip.ss.ss_family;
+  irc_getnameinfo((struct sockaddr*)&new_client->localClient->ip,
+        new_client->localClient->ip.ss_len, new_client->sockhost, 
+        sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
+  new_client->localClient->aftype = new_client->localClient->ip.ss.ss_family;
 #ifdef IPV6
   if (new_client->sockhost[0] == ':')
     strlcat(new_client->host, "0", HOSTLEN+1);
@@ -765,7 +762,7 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
    * reserved fd limit, but we can deal with that when comm_open()
    * also does it. XXX -- adrian
    */
-  newfd = accept(lptr->fd.fd, (struct sockaddr *)pn, (socklen_t *)&addrlen);
+  newfd = accept(lptr->fd.fd, (struct sockaddr *)pn, &addrlen);
   if (newfd < 0)
     return -1;
 

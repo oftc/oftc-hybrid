@@ -491,15 +491,15 @@ try_connections(void *unused)
   DLINK_FOREACH(ptr, server_items.head)
   {
     conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = map_to_conf(conf);
 
     /* Also when already connecting! (update holdtimes) --SRB 
      */
-    if (!(aconf->status & CONF_SERVER) || aconf->port <= 0 ||
+    if (!(aconf->status & CONF_SERVER) || !aconf->port ||
         !(IsConfAllowAutoConn(aconf)))
       continue;
 
-    cltmp = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+    cltmp = map_to_conf(aconf->class_ptr);
 
     /* Skip this entry if the use of it is still on hold until
      * future. Otherwise handle this entry (and set it on hold
@@ -583,7 +583,7 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
   DLINK_FOREACH(ptr, server_items.head)
   {
     conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = map_to_conf(conf);
 
     if (!match(name, conf->name))
       continue;

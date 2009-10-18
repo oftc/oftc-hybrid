@@ -122,6 +122,7 @@ struct AccessItem
   unsigned int     status;   /* If CONF_ILLEGAL, delete when no clients */
   unsigned int     flags;
   unsigned int     modes;
+  unsigned int     port;
   int              clients;  /* Number of *LOCAL* clients using this */
   struct irc_ssaddr my_ipnum; /* ip to bind to for outgoing connect */
   struct irc_ssaddr ipnum;	/* ip to connect to */
@@ -131,7 +132,6 @@ struct AccessItem
   char *	   reason;
   char *	   oper_reason;
   char *           user;     /* user part of user@host */
-  int              port;
   char *           fakename;   /* Mask name */
   time_t           hold;     /* Hold action until this time (calendar time) */
   struct ConfItem *class_ptr;  /* Class of connection */
@@ -148,6 +148,8 @@ struct AccessItem
 
 struct ClassItem
 {
+  dlink_list list_ipv4;         /* base of per cidr ipv4 client link list */
+  dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
   unsigned int max_sendq;
   int con_freq;
   int ping_freq;
@@ -161,17 +163,15 @@ struct ClassItem
   int cidr_bitlen_ipv4;
   int cidr_bitlen_ipv6;
   int number_per_cidr;
-  dlink_list list_ipv4;         /* base of per cidr ipv4 client link list */
-  dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
   int active;
   char *reject_message;
 };
 
 struct CidrItem
 {
+  dlink_node node;
   struct irc_ssaddr mask;
   int number_on_this_cidr;
-  dlink_node node;
 };
 
 struct ip_entry
@@ -442,9 +442,9 @@ struct config_channel_entry
 
 struct config_server_hide
 {
+  char *hidden_name;
   int flatten_links;
   int hide_servers;
-  char *hidden_name;
   int links_delay;
   int links_disabled;
   int hidden;
@@ -454,6 +454,7 @@ struct config_server_hide
 
 struct server_info
 {
+  char *sid;
   char *name;
   char *description;
   char *network_name;
@@ -465,11 +466,10 @@ struct server_info
   SSL_CTX *client_ctx;
   unsigned int tls_version;
 #endif
-  char *sid;
   int hub;
   struct irc_ssaddr ip;
   struct irc_ssaddr ip6;
-  int max_clients;
+  unsigned int max_clients;
   int specific_ipv4_vhost;
   int specific_ipv6_vhost;
   struct sockaddr_in dns_host;

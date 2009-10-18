@@ -424,7 +424,7 @@ destroy_channel(struct Channel *chptr)
  * \return string pointer "=" if public, "@" if secret else "*"
  */
 static const char *
-channel_pub_or_secret(struct Channel *chptr)
+channel_pub_or_secret(const struct Channel *chptr)
 {
   if (SecretChannel(chptr))
     return "@";
@@ -659,7 +659,7 @@ is_quiet(const struct Channel *chptr, const struct Client *who)
  * \return 0 if not banned, 1 otherwise
  */
 int
-is_banned(struct Channel *chptr, struct Client *who)
+is_banned(const struct Channel *chptr, const struct Client *who)
 {
   if (find_bmask(who, &chptr->banlist))
     if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
@@ -731,7 +731,7 @@ find_channel_link(struct Client *client_p, struct Channel *chptr)
 
   DLINK_FOREACH(ptr, client_p->channel.head)
     if (((struct Membership *)ptr->data)->chptr == chptr)
-      return (struct Membership *)ptr->data;
+      return ptr->data;
 
   return NULL;
 }

@@ -86,7 +86,7 @@ static void heap_garbage_collection(void *);
  * \param ptr  Pointer to memory to be freed
  * \param size The size of the memory space
  */
-static inline void
+static void
 free_block(void *ptr, size_t size)
 {
 #ifdef HAVE_MMAP
@@ -125,7 +125,7 @@ initBlockHeap(void)
  * \param size Size of block to allocate
  * \return Address pointer to allocated data space
  */
-static inline void *
+static void *
 get_block(size_t size)
 {
 #ifdef HAVE_MMAP

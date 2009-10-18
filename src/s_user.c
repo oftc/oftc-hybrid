@@ -54,8 +54,8 @@
 #include "msg.h"
 #include "watch.h"
 
-int MaxClientCount     = 1;
-int MaxConnectionCount = 1;
+unsigned int MaxClientCount     = 1;
+unsigned int MaxConnectionCount = 1;
 struct Callback *entering_umode_cb = NULL;
 struct Callback *umode_cb = NULL;
 struct Callback *uid_get_cb = NULL;
@@ -163,7 +163,7 @@ assemble_umode_buffer(void)
   unsigned int idx = 0;
   char *umode_buffer_ptr = umode_buffer;
 
-  for (; idx < (sizeof(user_modes) / sizeof(int)); ++idx)
+  for (; idx < (sizeof(user_modes) / sizeof(user_modes[0])); ++idx)
     if (user_modes[idx])
       *umode_buffer_ptr++ = idx;
 
@@ -479,12 +479,13 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
   source_p->localClient->allow_read = MAX_FLOOD_BURST;
 
+  assert(dlinkFindDelete(&unknown_list, source_p));
+
   if ((m = dlinkFindDelete(&unknown_list, source_p)) != NULL)
   {
     free_dlink_node(m);
     dlinkAdd(source_p, &source_p->localClient->lclient_node, &local_client_list);
   }
-  else assert(0);
 
   user_welcome(source_p);
   add_user_host(source_p->username, source_p->host, 0);
@@ -1097,10 +1098,10 @@ void
 send_umode(struct Client *client_p, struct Client *source_p,
            unsigned int old, unsigned int sendmask, char *umode_buf)
 {
+  char *m = umode_buf;
   int what = 0;
   unsigned int i;
   unsigned int flag;
-  char *m = umode_buf;
 
   /*
    * build a string in umode_buf to represent the change in the user's
