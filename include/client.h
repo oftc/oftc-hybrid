@@ -52,10 +52,10 @@ struct LocalUser;
 
 struct Server
 {
-  char by[NICKLEN];       /* who activated this connection     */
   struct ConfItem *sconf; /* ConfItem connect{} pointer for this server */
   dlink_list server_list; /* Servers on this server            */
   dlink_list client_list; /* Clients on this server            */
+  char by[NICKLEN];       /* who activated this connection     */
 };
 
 struct SlinkRpl
@@ -79,7 +79,7 @@ struct ZipStats
 
 struct ListTask
 {
-  int hash_index;       /* the bucket we are currently in */
+  unsigned int hash_index; /* the bucket we are currently in */
   dlink_list show_mask; /* show these channels..          */
   dlink_list hide_mask; /* ..and hide these ones          */
   unsigned int users_min, users_max;
@@ -92,27 +92,28 @@ struct Client
   dlink_node node;
   dlink_node lnode;             /* Used for Server->servers/users */
 
-  struct Client *hnext;		/* For client hash table lookups by name */
-  struct Client *idhnext;	/* For SID hash table lookups by sid */
+  struct LocalUser *localClient;
+  struct Client    *hnext;		/* For client hash table lookups by name */
+  struct Client    *idhnext;	/* For SID hash table lookups by sid */
+  struct Server    *serv;       /* ...defined, if this is a server */
+  struct Client    *servptr;    /* Points to server this Client is on */
+  struct Client    *from;       /* == self, if Local Client, *NEVER* NULL! */
+  struct Whowas    *whowas;     /* Pointers to whowas structs */
+  char             *away;
 
-  struct Server*    serv;       /* ...defined, if this is a server */
-  struct Client*    servptr;    /* Points to server this Client is on */
-  struct Client*    from;       /* == self, if Local Client, *NEVER* NULL! */
-
-  struct Whowas*    whowas;     /* Pointers to whowas structs */
   time_t            lasttime;   /* ...should be only LOCAL clients? --msa */
   time_t            firsttime;  /* time client was created */
   time_t            since;      /* last time we parsed something */
   time_t            tsinfo;     /* TS on the nick, SVINFO on server */
-
-  unsigned int      umodes;     /* opers, normal users subset */
   uint64_t          flags;      /* client flags */
 
-  unsigned short    hopcount;   /* number of servers to this 0 = local */
-  unsigned short    status;     /* Client type */
-  unsigned char     handler;    /* Handler index */
+  unsigned int      umodes;     /* opers, normal users subset */
+  unsigned int      hopcount;   /* number of servers to this 0 = local */
+  unsigned int      status;     /* Client type */
+  unsigned int      handler;    /* Handler index */
   unsigned int      serial;     /* used to enforce 1 send per nick */
-  char *away;
+
+  dlink_list        channel;   /* chain of channel pointer blocks */
 
   /*
    * client->name is the unique name for a client nick or host
@@ -151,9 +152,6 @@ struct Client
    */
   char              sockhost[HOSTIPLEN + 1]; /* This is the host name from the 
                                                 socket ip address as string */
-  dlink_list        channel;   /* chain of channel pointer blocks */
-
-  struct LocalUser *localClient;
 };
 
 struct LocalUser
@@ -175,24 +173,25 @@ struct LocalUser
 
 
   /* Anti flooding part, all because of lamers... */
-  time_t            last_away; /* Away since... */
-  time_t            last_join_time;   /* when this client last 
-                                         joined a channel */
-  time_t            last_leave_time;  /* when this client last 
+  time_t       last_knock;    /* time of last knock */
+  time_t       last_away; /* Away since... */
+  time_t       last_join_time;   /* when this client last 
+                                    joined a channel */
+  time_t       last_leave_time;  /* when this client last 
                                        * left a channel */
-  int               join_leave_count; /* count of JOIN/LEAVE in less than 
+  int          join_leave_count; /* count of JOIN/LEAVE in less than 
                                          MIN_JOIN_LEAVE_TIME seconds */
-  int               oper_warn_count_down; /* warn opers of this possible 
+  int          oper_warn_count_down; /* warn opers of this possible 
                                           spambot every time this gets to 0 */
-  time_t            reject_delay;
-  time_t            last_caller_id_time;
-  time_t            first_received_message_time;
-  time_t            last_nick_change;
+  time_t       reject_delay;
+  time_t       last_caller_id_time;
+  time_t       first_received_message_time;
+  time_t       last_nick_change;
 
-  int               received_number_of_privmsgs;
-  unsigned int      number_of_nick_changes;
+  int          received_number_of_privmsgs;
+  unsigned int number_of_nick_changes;
 
-  struct ListTask   *list_task;
+  struct ListTask  *list_task;
   /* Send and receive dbufs .. */
   struct dbuf_queue buf_sendq;
   struct dbuf_queue buf_recvq;
@@ -242,7 +241,6 @@ struct LocalUser
    */
   int allow_read;	/* how many we're allowed to read in this second */
   int sent_parsed;      /* how many messages we've parsed in this second */
-  time_t last_knock;    /* time of last knock */
 
   char*          response;  /* expected response from client */
   char*          auth_oper; /* Operator to become if they supply the response.*/

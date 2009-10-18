@@ -30,10 +30,9 @@
 #define TOTALSIDUID (IRC_MAXSID + IRC_MAXUID)
 
 struct Client;
-struct AccessItem;
 
-extern int MaxClientCount;     /* GLOBAL - highest number of clients     */
-extern int MaxConnectionCount; /* GLOBAL - highest number of connections */
+extern unsigned int MaxClientCount;     /* GLOBAL - highest number of clients     */
+extern unsigned int MaxConnectionCount; /* GLOBAL - highest number of connections */
 extern struct Callback *entering_umode_cb;
 extern struct Callback *umode_cb;
 extern struct Callback *uid_get_cb;

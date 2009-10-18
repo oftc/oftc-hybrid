@@ -93,7 +93,6 @@ char ircd_platform[PLATFORMLEN];
 
 int dorehash = 0;
 int doremotd = 0;
-time_t nextconnect = 1;       /* time for next try_connections call */
 
 /* Set to zero because it should be initialized later using
  * initialize_server_capabs
@@ -104,9 +103,9 @@ int default_server_capabs = 0;
 int bio_spare_fd = -1;
 #endif
 
-int splitmode;
-int splitchecking;
-int split_users;
+unsigned int splitmode;
+unsigned int splitchecking;
+unsigned int split_users;
 unsigned int split_servers;
 
 /* Do klines the same way hybrid-6 did them, i.e. at the
@@ -568,9 +567,7 @@ main(int argc, char *argv[])
   /* Check if there is pidfile and daemon already running */
   check_pidfile(pidFileName);
 
-#ifndef NOBALLOC
   initBlockHeap();
-#endif
   init_dlink_nodes();
   init_callbacks();
   initialize_message_files();

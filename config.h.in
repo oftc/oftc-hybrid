@@ -241,9 +241,6 @@
 /* This value is set to 1 to indicate that the system argz facility works */
 #undef HAVE_WORKING_ARGZ
 
-/* Miscellaneous sanity checks for the IRCd. Makes it slightly slower */
-#undef INVARIANTS
-
 /* Define to 1 if you have IPv6 support. */
 #undef IPV6
 

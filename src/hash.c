@@ -902,8 +902,8 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
 {
   if (SecretChannel(chptr) && !IsMember(source_p, chptr))
     return;
-  if ((unsigned int)dlink_list_length(&chptr->members) < list_task->users_min ||
-      (unsigned int)dlink_list_length(&chptr->members) > list_task->users_max ||
+  if (dlink_list_length(&chptr->members) < list_task->users_min ||
+      dlink_list_length(&chptr->members) > list_task->users_max ||
       (chptr->channelts != 0 &&
        ((unsigned int)chptr->channelts < list_task->created_min ||
         (unsigned int)chptr->channelts > list_task->created_max)) ||
@@ -941,7 +941,7 @@ safe_list_channels(struct Client *source_p, struct ListTask *list_task,
 
   if (!only_unmasked_channels)
   {
-    int i;
+    unsigned int i;
 
     for (i = list_task->hash_index; i < HASHSIZE; ++i)
     {

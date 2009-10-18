@@ -113,9 +113,9 @@ static int cancel_clients(struct Client *, struct Client *, char *);
 static void remove_unknown(struct Client *, char *, char *);
 static void do_numeric(char[], struct Client *, struct Client *, int, char **);
 static void handle_command(struct Message *, struct Client *, struct Client *, unsigned int, char **);
-static void recurse_report_messages(struct Client *source_p, struct MessageTree *mtree);
-static void add_msg_element(struct MessageTree *mtree_p, struct Message *msg_p, const char *cmd);
-static void del_msg_element(struct MessageTree *mtree_p, const char *cmd);
+static void recurse_report_messages(struct Client *, const struct MessageTree *);
+static void add_msg_element(struct MessageTree *, struct Message *, const char *);
+static void del_msg_element(struct MessageTree *, const char *);
 
 /* turn a string into a parc/parv pair */
 static inline int
@@ -451,15 +451,15 @@ add_msg_element(struct MessageTree *mtree_p,
      * Thus 'A' -> 0x1 'B' -> 0x2 'c' -> 0x3 etc.
      */
 
-    if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN-1)]) == NULL)
+    if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN - 1)]) == NULL)
     {
-      ntree_p = (struct MessageTree *)MyMalloc(sizeof(struct MessageTree));
-      mtree_p->pointers[*cmd & (MAXPTRLEN-1)] = ntree_p;
+      ntree_p = MyMalloc(sizeof(struct MessageTree));
+      mtree_p->pointers[*cmd & (MAXPTRLEN - 1)] = ntree_p;
 
       mtree_p->links++;		/* Have new pointer, so up ref count */
     }
 
-    add_msg_element(ntree_p, msg_p, cmd+1);
+    add_msg_element(ntree_p, msg_p, cmd + 1);
   }
 }
 
@@ -503,13 +503,13 @@ del_msg_element(struct MessageTree *mtree_p, const char *cmd)
   }
   else
   {
-    if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN-1)]) != NULL)
+    if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN - 1)]) != NULL)
     {
-      del_msg_element(ntree_p, cmd+1);
+      del_msg_element(ntree_p, cmd + 1);
 
       if (ntree_p->links == 0)
       {
-	mtree_p->pointers[*cmd & (MAXPTRLEN-1)] = NULL;
+	mtree_p->pointers[*cmd & (MAXPTRLEN - 1)] = NULL;
 	mtree_p->links--;
 	MyFree(ntree_p);
       }
@@ -602,8 +602,8 @@ find_command(const char *cmd)
 void
 report_messages(struct Client *source_p)
 {
-  struct MessageTree *mtree = &msg_tree;
-  int i;
+  const struct MessageTree *mtree = &msg_tree;
+  unsigned int i;
 
   for (i = 0; i < MAXPTRLEN; i++)
     if (mtree->pointers[i] != NULL)
@@ -611,9 +611,9 @@ report_messages(struct Client *source_p)
 }
 
 static void
-recurse_report_messages(struct Client *source_p, struct MessageTree *mtree)
+recurse_report_messages(struct Client *source_p, const struct MessageTree *mtree)
 {
-  int i;
+  unsigned int i;
 
   if (mtree->msg != NULL)
     sendto_one(source_p, form_str(RPL_STATSCOMMANDS),

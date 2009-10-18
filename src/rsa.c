@@ -31,6 +31,7 @@
 #include <openssl/bn.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
+#include <openssl/opensslv.h>
 
 #include "memory.h"
 #include "rsa.h"
@@ -136,7 +137,7 @@ verify_private_key(void)
   
   if (mkey->version != key->version)
   {
-#if (OPENSSL_VERSION_NUMBER & 0x00907000) == 0x00907000
+#if (OPENSSL_VERSION_NUMBER >= 0x00907000)
     ilog(L_CRIT, "Private key corrupted: version %li != version %li",
                  mkey->version, key->version);
 #else

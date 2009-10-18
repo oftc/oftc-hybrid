@@ -38,8 +38,8 @@ struct module
   char *name;
   const char *version;
   void *handle;
-  int core;
   void (*modremove)(void);
+  int core;
 };
 
 struct module_path

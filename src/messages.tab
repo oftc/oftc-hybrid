@@ -726,7 +726,7 @@ static struct NumericInfo replies[] = {
 /* 699 */  {NULL, NULL, NULL},
 /* 700 */  {NULL, NULL, NULL},
 /* 701 */  {NULL, NULL, NULL},
-/* 702 */  {"RPL_MODLIST", ":%s 702 %s %s 0x%x %s %s", NULL},
+/* 702 */  {"RPL_MODLIST", ":%s 702 %s %s %p %s %s", NULL},
 /* 703 */  {"RPL_ENDOFMODLIST", ":%s 703 %s :End of /MODLIST.", NULL},
 /* 704 */  {"RPL_HELPSTART", ":%s 704 %s %s :%s", NULL},
 /* 705 */  {"RPL_HELPTXT", ":%s 705 %s %s :%s", NULL},

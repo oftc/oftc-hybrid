@@ -13412,9 +13412,6 @@ $as_echo "#define EFNET 1" >>confdefs.h
 $as_echo "#define TS5_ONLY 1" >>confdefs.h
 
 	else
-
-$as_echo "#define INVARIANTS 1" >>confdefs.h
-
 		use_efnet="no"
   fi
    if test "$use_efnet" = "yes"; then
@@ -13468,7 +13465,7 @@ else
 fi
 
   if test "$warnings" = "yes" ; then
-    CFLAGS="-Wall -Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wno-unused -Wundef"
+    CFLAGS="-Wall -Wextra -Wno-unused -Wcast-qual -Wcast-align -Wbad-function-cast -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wundef"
   fi
 
 

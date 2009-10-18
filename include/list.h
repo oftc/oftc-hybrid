@@ -65,7 +65,7 @@ struct _dlink_list
 {
   dlink_node *head;
   dlink_node *tail;
-  unsigned long length;
+  unsigned int length;
 };
 
 extern void dlinkAdd(void *, dlink_node *, dlink_list *);
@@ -79,5 +79,4 @@ extern dlink_node *dlinkFindDelete(dlink_list *, void *);
 extern void init_dlink_nodes(void);
 extern void free_dlink_node(dlink_node *);
 extern dlink_node *make_dlink_node(void);
-
 #endif

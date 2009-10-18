@@ -526,8 +526,8 @@ mo_modrestart(struct Client *client_p, struct Client *source_p,
   load_core_modules(0);
 
   sendto_realops_flags(UMODE_ALL, L_ALL,
-              "Module Restart: %u modules unloaded, %lu modules loaded",
+              "Module Restart: %u modules unloaded, %u modules loaded",
 			modnum, dlink_list_length(&mod_list));
-  ilog(L_WARN, "Module Restart: %u modules unloaded, %lu modules loaded",
+  ilog(L_WARN, "Module Restart: %u modules unloaded, %u modules loaded",
        modnum, dlink_list_length(&mod_list));
 }
