@@ -40,7 +40,6 @@
 #include "client.h" /* CIPHERKEYLEN .. eww */
 #include "ircd.h" /* bio_spare_fd */
 
-static void binary_to_hex(unsigned char *bin, char *hex, int length);
 
 /*
  * report_crypto_errors - Dump crypto error list to log
@@ -136,15 +135,8 @@ verify_private_key(void)
                  mkey->pad, key->pad);
   
   if (mkey->version != key->version)
-  {
-#if (OPENSSL_VERSION_NUMBER >= 0x00907000)
     ilog(L_CRIT, "Private key corrupted: version %li != version %li",
                  mkey->version, key->version);
-#else
-    ilog(L_CRIT, "Private key corrupted: version %i != version %i",
-                 mkey->version, key->version);
-#endif
-  }    
 
 
   if (BN_cmp(mkey->n, key->n))
@@ -175,7 +167,7 @@ binary_to_hex(unsigned char *bin, char *hex, int length)
   static const char trans[] = "0123456789ABCDEF";
   int i;
 
-  for(i = 0; i < length; i++)
+  for (i = 0; i < length; i++)
   {
     hex[i  << 1]      = trans[bin[i] >> 4];
     hex[(i << 1) + 1] = trans[bin[i] & 0xf];

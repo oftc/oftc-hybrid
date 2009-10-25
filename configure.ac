@@ -71,14 +71,11 @@ AC_CHECK_HEADERS_ONCE(crypt.h        \
                       sys/param.h    \
                       errno.h        \
                       sys/syslog.h   \
-                      stddef.h       \
-                      libgen.h       \
                       sys/wait.h     \
                       wait.h         \
                       link.h)
 
-
-dnl check for /dev/null so we can use it to hold evil fd's
+# check for /dev/null so we can use it to hold evil fd's
 AC_MSG_CHECKING([for /dev/null])
 AS_IF([test -c /dev/null], [
   AC_DEFINE(PATH_DEVNULL, "/dev/null",   [Path to /dev/null])
@@ -139,7 +136,7 @@ AC_ARG_ENABLE(small-net, AS_HELP_STRING([--enable-small-net],
                                         [Enable small network support.]),
 [small_net=$enableval], [small_net=no])
 
-if test "$small_net" = yes; then
+AS_IF([test "$small_net" = "yes"], [
   AC_DEFINE([NICKNAMEHISTORYLENGTH], 1500, [Size of the WHOWAS array.])
   AC_DEFINE([CHANNEL_HEAP_SIZE], 256, [Size of the channel heap.])
   AC_DEFINE([BAN_HEAP_SIZE], 128, [Size of the ban heap.])
@@ -149,8 +146,8 @@ if test "$small_net" = yes; then
   AC_DEFINE([TOPIC_HEAP_SIZE], 256, [Size of the topic heap.])
   AC_DEFINE([DBUF_HEAP_SIZE], 64, [Size of the dbuf heap.])
   AC_DEFINE([AUTH_HEAP_SIZE], 128, [Size of the auth heap.])
-  AC_DEFINE([DNS_HEAP_SIZE], 128, [Size of the dns heap.])
-else
+  AC_DEFINE([DNS_HEAP_SIZE], 128, [Size of the dns heap.])], [
+
   AC_DEFINE([NICKNAMEHISTORYLENGTH], 15000, [Size of the WHOWAS array.])
   AC_DEFINE([CHANNEL_HEAP_SIZE], 1024, [Size of the channel heap.])
   AC_DEFINE([BAN_HEAP_SIZE], 1024, [Size of the ban heap.])
@@ -160,8 +157,7 @@ else
   AC_DEFINE([TOPIC_HEAP_SIZE], 1024, [Size of the topic heap.])
   AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
   AC_DEFINE([AUTH_HEAP_SIZE], 512, [Size of the auth heap.])
-  AC_DEFINE([DNS_HEAP_SIZE], 512, [Size of the dns heap.])
-fi
+  AC_DEFINE([DNS_HEAP_SIZE], 512, [Size of the dns heap.])])
 
 # Argument processing.
 AX_ARG_ENABLE_IOLOOP_MECHANISM
@@ -200,7 +196,6 @@ AC_CONFIG_FILES(               \
 			 help/opers/Makefile		 \
 			 help/users/Makefile     \
 			 include/Makefile        \
-       tools/Makefile
-)
+       tools/Makefile)
 
 AC_OUTPUT

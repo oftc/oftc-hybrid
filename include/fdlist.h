@@ -41,7 +41,6 @@ enum {
 
 struct _fde;
 struct Client;
-struct DNSQuery;
 
 /* Callback for completed IO events */
 typedef void PF(struct _fde *, void *);
@@ -106,12 +105,7 @@ extern fde_t *lookup_fd(int);
 extern void fd_open(fde_t *, int, int, const char *);
 extern void fd_close(fde_t *);
 extern void fd_dump(struct Client *);
-#ifndef __GNUC__
-extern void fd_note(fde_t *, const char *format, ...);
-#else
-extern void  fd_note(fde_t *, const char *format, ...)
-  __attribute__((format (printf, 2, 3)));
-#endif
+extern void fd_note(fde_t *, const char *, ...);
 extern void close_standard_fds(void);
 extern void close_fds(fde_t *);
 extern void recalc_fdlimit(void *);

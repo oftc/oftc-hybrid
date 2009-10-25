@@ -222,8 +222,8 @@ struct LocalUser
   time_t last; /* Last time we got a PRIVMSG */
 
   char              *passwd;
-  int               caps;       /* capabilities bit-field */
-  int               enc_caps;   /* cipher capabilities bit-field */
+  unsigned int       caps;       /* capabilities bit-field */
+  unsigned int       enc_caps;   /* cipher capabilities bit-field */
 
 #ifdef HAVE_LIBCRYPTO
   struct EncCapability *in_cipher;
