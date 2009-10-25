@@ -18,10 +18,9 @@ AC_PROG_YACC
 AM_PROG_LEX
 AC_PROG_INSTALL
 
-#ltdl stuff
+# Initializing libtool.
 LT_INIT([dlopen disable-static])
 LTDL_INIT
-LIBTOOL="$LIBTOOL --silent"
 
 # Checks for libraries.
 AX_CHECK_LIB_IPV4
@@ -45,15 +44,13 @@ AC_CHECK_HEADERS_ONCE(crypt.h        \
                       sys/param.h    \
                       errno.h        \
                       sys/syslog.h   \
-                      stddef.h       \
-                      libgen.h       \
                       types.h        \
                       socket.h       \
                       sys/wait.h     \
                       wait.h         \
                       link.h)
 
-dnl check for /dev/null so we can use it to hold evil fd's
+# check for /dev/null so we can use it to hold evil fd's
 AC_MSG_CHECKING([for /dev/null])
 AS_IF([test -c /dev/null], [
   AC_DEFINE(PATH_DEVNULL, "/dev/null",   [Path to /dev/null])
@@ -162,6 +159,32 @@ else
   dnl If --disable-openssl was specified
   AC_MSG_RESULT([disabled])
 fi
+
+AS_IF([test "$cf_enable_openssl" != "no"],
+ [AC_MSG_CHECKING(for OpenSSL 0.9.7 or above)
+  AC_RUN_IFELSE(
+    AC_LANG_PROGRAM([
+    #include <openssl/opensslv.h>
+    #include <stdlib.h>],
+    [[exit(!(OPENSSL_VERSION_NUMBER >= 0x00907000));]]),
+  [cf_openssl_version_ok=yes],
+  [cf_openssl_version_ok=no],
+  [cf_openssl_version_ok=no])
+
+  AS_IF([test "$cf_openssl_version_ok" = "yes"],
+    [AC_MSG_RESULT(found)
+   
+    AC_CHECK_LIB(crypto, RSA_free)
+    AS_IF([test "$ac_cv_lib_crypto_RSA_free" = "yes"],
+      [AC_CHECK_FUNCS(EVP_bf_cfb           \
+                      EVP_cast5_cfb        \
+                      EVP_idea_cfb         \
+                      EVP_rc5_32_12_16_cfb \
+                      EVP_des_ede3_cfb     \
+                      EVP_des_cfb)])
+    ],[AC_MSG_RESULT(no - OpenSSL support disabled)
+    cf_enable_openssl="no"])])
+
 AM_CONDITIONAL(ENABLE_SSL, [test "$cf_enable_openssl" = yes])
 
 
@@ -177,7 +200,7 @@ AC_ARG_ENABLE(small-net, AS_HELP_STRING([--enable-small-net],
                                         [Enable small network support.]),
 [small_net=$enableval], [small_net=no])
 
-if test "$small_net" = yes; then
+AS_IF([test "$small_net" = "yes"], [
   AC_DEFINE([NICKNAMEHISTORYLENGTH], 1500, [Size of the WHOWAS array.])
   AC_DEFINE([CHANNEL_HEAP_SIZE], 256, [Size of the channel heap.])
   AC_DEFINE([BAN_HEAP_SIZE], 128, [Size of the ban heap.])
@@ -187,8 +210,8 @@ if test "$small_net" = yes; then
   AC_DEFINE([TOPIC_HEAP_SIZE], 256, [Size of the topic heap.])
   AC_DEFINE([DBUF_HEAP_SIZE], 64, [Size of the dbuf heap.])
   AC_DEFINE([AUTH_HEAP_SIZE], 128, [Size of the auth heap.])
-  AC_DEFINE([DNS_HEAP_SIZE], 128, [Size of the dns heap.])
-else
+  AC_DEFINE([DNS_HEAP_SIZE], 128, [Size of the dns heap.])], [
+
   AC_DEFINE([NICKNAMEHISTORYLENGTH], 15000, [Size of the WHOWAS array.])
   AC_DEFINE([CHANNEL_HEAP_SIZE], 1024, [Size of the channel heap.])
   AC_DEFINE([BAN_HEAP_SIZE], 1024, [Size of the ban heap.])
@@ -198,8 +221,7 @@ else
   AC_DEFINE([TOPIC_HEAP_SIZE], 1024, [Size of the topic heap.])
   AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
   AC_DEFINE([AUTH_HEAP_SIZE], 512, [Size of the auth heap.])
-  AC_DEFINE([DNS_HEAP_SIZE], 512, [Size of the dns heap.])
-fi
+  AC_DEFINE([DNS_HEAP_SIZE], 512, [Size of the dns heap.])])
 
 
 # Argument processing.
@@ -236,7 +258,6 @@ AC_CONFIG_FILES(              \
        help/Makefile          \
 			 help/opers/Makefile		\
 			 help/users/Makefile    \
-       tools/Makefile
-)
+       tools/Makefile)
 
 AC_OUTPUT

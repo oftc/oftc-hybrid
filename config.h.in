@@ -100,6 +100,24 @@
 /* Define to 1 if the system has the type `error_t'. */
 #undef HAVE_ERROR_T
 
+/* Define to 1 if you have the `EVP_bf_cfb' function. */
+#undef HAVE_EVP_BF_CFB
+
+/* Define to 1 if you have the `EVP_cast5_cfb' function. */
+#undef HAVE_EVP_CAST5_CFB
+
+/* Define to 1 if you have the `EVP_des_cfb' function. */
+#undef HAVE_EVP_DES_CFB
+
+/* Define to 1 if you have the `EVP_des_ede3_cfb' function. */
+#undef HAVE_EVP_DES_EDE3_CFB
+
+/* Define to 1 if you have the `EVP_idea_cfb' function. */
+#undef HAVE_EVP_IDEA_CFB
+
+/* Define to 1 if you have the `EVP_rc5_32_12_16_cfb' function. */
+#undef HAVE_EVP_RC5_32_12_16_CFB
+
 /* Define to 1 if you have the `inet_aton' function. */
 #undef HAVE_INET_ATON
 
@@ -112,7 +130,7 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* If we support ssl */
+/* Define to 1 if you have the `crypto' library (-lcrypto). */
 #undef HAVE_LIBCRYPTO
 
 /* Define if you have the libdl library or equivalent. */
@@ -120,9 +138,6 @@
 
 /* Define if libdlloader will be built on this platform */
 #undef HAVE_LIBDLLOADER
-
-/* Define to 1 if you have the <libgen.h> header file. */
-#undef HAVE_LIBGEN_H
 
 /* Define to 1 if libpcre (-lpcre) is available. */
 #undef HAVE_LIBPCRE
@@ -159,9 +174,6 @@
 
 /* Define to 1 if you have the <socket.h> header file. */
 #undef HAVE_SOCKET_H
-
-/* Define to 1 if you have the <stddef.h> header file. */
-#undef HAVE_STDDEF_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H

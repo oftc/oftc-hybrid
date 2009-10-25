@@ -544,9 +544,9 @@ sendto_channel_butone(struct Client *one, struct Client *from,
  * -davidt
  */
 void 
-sendto_server(struct Client *one,
-              struct Channel *chptr, unsigned long caps,
-              unsigned long nocaps,
+sendto_server(struct Client *one, const struct Channel *chptr,
+              const unsigned int caps,
+              const unsigned int nocaps,
               const char *format, ...)
 {
   va_list args;
@@ -731,8 +731,9 @@ sendto_channel_local_butone(struct Client *one, int type,
  *		  remote to this server.
  */
 void
-sendto_channel_remote(struct Client *one, struct Client *from, int type, int caps,
-                      int nocaps, struct Channel *chptr, const char *pattern, ...)
+sendto_channel_remote(struct Client *one, struct Client *from, int type,
+                      const unsigned int caps, const unsigned int nocaps,
+                      struct Channel *chptr, const char *pattern, ...)
 {
   va_list args;
   char buffer[IRCD_BUFSIZE];

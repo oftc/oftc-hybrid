@@ -145,7 +145,7 @@ main () { return 1; } /* F_SETSIG not defined */
 dnl {{{ ax_arg_with_topiclen
 AC_DEFUN([AX_ARG_WITH_TOPICLEN],[
   AC_ARG_WITH([topiclen],[AC_HELP_STRING([--with-topiclen=<value>],[Set topic length (default 160).])],[topiclen="$withval"],[topiclen="160"])
-  AC_DEFINE_UNQUOTED([TOPICLEN],[($topiclen+1)],[Length of topics.]) 
+  AC_DEFINE_UNQUOTED([TOPICLEN],[($topiclen)],[Length of topics.]) 
 ])dnl }}}
 dnl {{{ ax_arg_with_nicklen
 AC_DEFUN([AX_ARG_WITH_NICKLEN],[

@@ -30,6 +30,7 @@
 
 #include "defaults.h"
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -47,17 +48,6 @@
 #endif
 #endif
 
-#ifdef HAVE_STDDEF_H
-# include <stddef.h>
-#else /* This is basically what stddef.h provides on most systems */
-# ifndef NULL
-#  define NULL ((void*)0)
-# endif
-# ifndef offsetof
-#  define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
-# endif
-#endif
-
 #ifdef HAVE_CRYPT_H
 #include <crypt.h>
 #endif
@@ -71,10 +61,6 @@
 #include <assert.h>
 #include <time.h>
 #include <fcntl.h>
-
-#ifdef HAVE_LIBGEN_H
-#include <libgen.h>
-#endif
 
 #include <stdarg.h>
 #include <signal.h>

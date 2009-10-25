@@ -82,7 +82,7 @@ static void chm_invex(struct Client *, struct Client *, struct Channel *,
                       int, int *, char **, int *, int, int, char, void *,
                       const char *);
 static void send_cap_mode_changes(struct Client *, struct Client *,
-                                  struct Channel *, int, int);
+                                  struct Channel *, unsigned int, unsigned int);
 static void send_mode_changes(struct Client *, struct Client *,
                               struct Channel *, char *);
 
@@ -1429,7 +1429,7 @@ get_channel_access(struct Client *source_p, struct Membership *member)
 
 static void
 send_cap_mode_changes(struct Client *client_p, struct Client *source_p,
-                      struct Channel *chptr, int cap, int nocap)
+                      struct Channel *chptr, unsigned int cap, unsigned int nocap)
 {
   int i, mbl, pbl, arglen, nc, mc;
   int len;

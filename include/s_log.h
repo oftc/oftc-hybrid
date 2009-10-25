@@ -39,11 +39,7 @@ extern void init_log(const char *);
 extern void reopen_log(const char *);
 extern void set_log_level(const int);
 extern int get_log_level(void);
-#ifdef __GNUC__
-extern void ilog(const int, const char *, ...) __attribute__((format(printf, 2, 3)));
-#else
 extern void ilog(const int, const char *, ...);
-#endif
 extern const char *get_log_level_as_string(int);
 extern void log_user_exit(struct Client *);
 extern void log_oper_action(int type, const struct Client *, const char *, ...);

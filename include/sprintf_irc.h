@@ -30,23 +30,10 @@
  * Proto types
  */
 
-extern int vsprintf_irc(char *str, const char *format, va_list);
-
-/* XXX NOT USED AND NOT DEFINED */
-extern int vsnprintf_irc(char *, int, const char*, va_list);
-
-/* old */
-/* extern int ircsprintf(char *str, char *format, ...); */
-/* */
+extern int vsprintf_irc(char *, const char *, va_list);
 
 /*
  * ircsprintf - optimized sprintf
  */
-#ifdef __GNUC__
-extern int ircsprintf(char*, const char*, ...)
-               __attribute__ ((format(printf, 2, 3)));
-#else
-extern int ircsprintf(char *str, const char *format, ...);
-#endif
-
+extern int ircsprintf(char *, const char *, ...);
 #endif /* SPRINTF_IRC */
