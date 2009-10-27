@@ -380,7 +380,7 @@ count_memory(struct Client *source_p)
   unsigned int local_client_conf_count = 0;      /* local client conf links */
   unsigned int users_counted = 0;                /* user structs */
 
-  unsigned int channel_users = 0; /* XXX */
+  unsigned int channel_members = 0;
   unsigned int channel_invites = 0;
   unsigned int channel_bans = 0;
   unsigned int channel_except = 0;
@@ -404,10 +404,6 @@ count_memory(struct Client *source_p)
   uint64_t conf_memory = 0;       /* memory used by conf lines      */
   uint64_t mem_ips_stored;        /* memory used by ip address hash */
 
-  uint64_t client_hash_table_size = 0;
-  uint64_t channel_hash_table_size = 0;
-  uint64_t resv_hash_table_size = 0;
-  uint64_t id_hash_table_size = 0;
   uint64_t total_channel_memory = 0;
   uint64_t totww = 0;
 
@@ -420,11 +416,10 @@ count_memory(struct Client *source_p)
   uint64_t total_memory = 0;
   unsigned int topic_count = 0;
 
-  unsigned int wlh = 0;   /* watchlist headers     */
-  unsigned int wle = 0;   /* watchlist entries     */
-  uint64_t wlhm = 0; /* watchlist memory used */
+  unsigned int watch_list_headers = 0;   /* watchlist headers     */
+  unsigned int watch_list_entries = 0;   /* watchlist entries     */
+  uint64_t watch_list_memory = 0; /* watchlist memory used */
 
-  count_whowas_memory(&wwu, &wwm);
 
   DLINK_FOREACH(gptr, global_client_list.head)
   {
@@ -434,7 +429,7 @@ count_memory(struct Client *source_p)
     {
       ++local_client_count;
       local_client_conf_count += dlink_list_length(&target_p->localClient->confs);
-      wle += dlink_list_length(&target_p->localClient->watches);
+      watch_list_entries += dlink_list_length(&target_p->localClient->watches);
     }
     else
       ++remote_client_count;
@@ -459,52 +454,46 @@ count_memory(struct Client *source_p)
     const struct Ban *actualBan;
     const struct Channel *chptr = gptr->data;
 
-    channel_users   += dlink_list_length(&chptr->members);
+    channel_members += dlink_list_length(&chptr->members);
     channel_invites += dlink_list_length(&chptr->invites);
 
     if (chptr->topic != NULL)
       ++topic_count;
 
-    if ((channel_bans = dlink_list_length(&chptr->banlist)))
+    channel_bans += dlink_list_length(&chptr->banlist);
+    channel_ban_memory += dlink_list_length(&chptr->banlist) * sizeof(struct Ban);
+
+    DLINK_FOREACH(dlink, chptr->banlist.head)
     {
-      channel_ban_memory = channel_bans * sizeof(struct Ban);
+      actualBan = dlink->data;
+      assert(actualBan->who);
 
-      DLINK_FOREACH(dlink, chptr->banlist.head)
-      {
-        actualBan = dlink->data;
-        assert(actualBan->who);
-
-        channel_ban_memory += actualBan->len + 3;
-        channel_ban_memory += strlen(actualBan->who) + 1;
-      }
+      channel_ban_memory += actualBan->len + 1;
+      channel_ban_memory += strlen(actualBan->who) + 1;
     }
 
-    if ((channel_except = dlink_list_length(&chptr->exceptlist)))
+    channel_except += dlink_list_length(&chptr->exceptlist);
+    channel_except_memory += dlink_list_length(&chptr->exceptlist) * sizeof(struct Ban);
+
+    DLINK_FOREACH(dlink, chptr->exceptlist.head)
     {
-      channel_except_memory = channel_except * sizeof(struct Ban);
+      actualBan = dlink->data;
+      assert(actualBan->who);
 
-      DLINK_FOREACH(dlink, chptr->exceptlist.head)
-      {
-        actualBan = dlink->data;
-        assert(actualBan->who);
-
-        channel_except_memory += actualBan->len + 3;
-        channel_except_memory += strlen(actualBan->who) + 1;
-      }
+      channel_except_memory += actualBan->len + 1;
+      channel_except_memory += strlen(actualBan->who) + 1;
     }
 
-    if ((channel_invex = dlink_list_length(&chptr->invexlist)))
+    channel_invex += dlink_list_length(&chptr->invexlist);
+    channel_invex_memory += dlink_list_length(&chptr->invexlist) * sizeof(struct Ban);
+
+    DLINK_FOREACH(dlink, chptr->invexlist.head)
     {
-      channel_invex_memory = channel_invex * sizeof(struct Ban);
+      actualBan = dlink->data;
+      assert(actualBan->who);
 
-      DLINK_FOREACH(dlink, chptr->invexlist.head)
-      {
-        actualBan = dlink->data;
-        assert(actualBan->who);
-
-        channel_invex_memory += actualBan->len + 3;
-        channel_invex_memory += strlen(actualBan->who) + 1;
-      }
+      channel_invex_memory += actualBan->len + 1;
+      channel_invex_memory += strlen(actualBan->who) + 1;
     }
   }
 
@@ -538,11 +527,13 @@ count_memory(struct Client *source_p)
   /* count up all classes */
   class_count = dlink_list_length(&class_items);
 
-  watch_count_memory(&wlh, &wlhm);
+  count_whowas_memory(&wwu, &wwm);
+  watch_count_memory(&watch_list_headers, &watch_list_memory);
 
   sendto_one(source_p, ":%s %d %s z :WATCH headers %u(%u) entries %d(%d)",
-             me.name, RPL_STATSDEBUG, source_p->name, wlh, wlhm, wle,
-             wle * sizeof(dlink_node));
+             me.name, RPL_STATSDEBUG, source_p->name, watch_list_headers,
+             watch_list_memory, watch_list_entries,
+             watch_list_entries * sizeof(dlink_node) * 2);
 
   sendto_one(source_p, ":%s %d %s z :Clients %u(%u)",
              me.name, RPL_STATSDEBUG, source_p->name, users_counted,
@@ -556,13 +547,6 @@ count_memory(struct Client *source_p)
              me.name, RPL_STATSDEBUG, source_p->name,
              local_client_conf_count,
              (unsigned long long)(local_client_conf_count * sizeof(dlink_node)));
-
-  /* XXX  ConfigItemList fix */
-#if 0
-  sendto_one(source_p, ":%s %d %s z :Conflines %lu(%d)",
-             me.name, RPL_STATSDEBUG, source_p->name,
-             dlink_list_length(&ConfigItemList), (int) conf_memory);
-#endif
 
   sendto_one(source_p, ":%s %d %s z :Resv channels %lu(%lu) nicks %lu(%lu)",
              me.name, RPL_STATSDEBUG, source_p->name,
@@ -594,13 +578,13 @@ count_memory(struct Client *source_p)
              channel_invex, channel_invex_memory);
 
   sendto_one(source_p, ":%s %d %s z :Channel members %u(%llu) invites %u(%llu)",
-             me.name, RPL_STATSDEBUG, source_p->name, channel_users,
-             (unsigned long long)(channel_users * sizeof(struct Membership)),
+             me.name, RPL_STATSDEBUG, source_p->name, channel_members,
+             (unsigned long long)(channel_members * sizeof(struct Membership)),
              channel_invites, (unsigned long long)channel_invites *
              sizeof(dlink_node) * 2);
 
   total_channel_memory = channel_memory + channel_ban_memory +
-                         channel_users * sizeof(struct Membership) +
+                         channel_members * sizeof(struct Membership) +
                          (channel_invites * sizeof(dlink_node)*2);
 
   sendto_one(source_p, ":%s %d %s z :Safelist %u(%llu)",
@@ -616,19 +600,7 @@ count_memory(struct Client *source_p)
              NICKNAMEHISTORYLENGTH, wwm);
 
   totww = wwu * sizeof(struct Client) + wwm;
-/****
-  client_hash_table_size  = hash_get_client_table_size();
-  channel_hash_table_size = hash_get_channel_table_size();
-  resv_hash_table_size    = hash_get_resv_table_size();
-  id_hash_table_size      = hash_get_id_table_size();
 
-  sendto_one(source_p, ":%s %d %s z :Hash: client %u(%lu) chan %u(%lu) resv "
-             "%u(%lu) id %u(%lu)",
-             me.name, RPL_STATSDEBUG, source_p->name,
-             U_MAX, client_hash_table_size,
-             CH_MAX, channel_hash_table_size , R_MAX,
-             resv_hash_table_size, U_MAX, id_hash_table_size);
-****/
   count_ip_hash(&number_ips_stored,&mem_ips_stored);
   sendto_one(source_p, ":%s %d %s z :iphash %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
@@ -636,11 +608,6 @@ count_memory(struct Client *source_p)
 
   total_memory = totww + total_channel_memory + conf_memory + class_count *
                  sizeof(struct ClassItem);
-  total_memory += client_hash_table_size;
-  total_memory += channel_hash_table_size;
-  total_memory += resv_hash_table_size;
-  total_memory += id_hash_table_size;
-
   sendto_one(source_p, ":%s %d %s z :Total: whowas %llu channel %llu conf %llu",
              me.name, RPL_STATSDEBUG, source_p->name, totww,
              total_channel_memory, conf_memory);

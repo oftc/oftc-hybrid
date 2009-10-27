@@ -552,7 +552,7 @@ static int
 clean_nick_name(const char *nick, const int local)
 {
   const char *p = nick;
-  assert(nick &&);
+  assert(nick && *nick);
 
   /* nicks can't start with a digit or - or be 0 length */
   /* This closer duplicates behaviour of hybrid-6 */
