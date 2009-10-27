@@ -1,8 +1,17 @@
 -- ircd-hybrid-7.3 RELNOTES
+o) Fixed bug where unregistered clients were not able to complete registration
+   process with /quote PONG <ping_cookie> in case the client was assigned a
+   zero value ping-cookie. This may only happen with general::ping_cookie
+   being enabled.
+o) "STATS z" now shows the actual amount of memory consumption being
+   used by channel bans/excepts/invites.
+o) Fixed archaic bug where bursting servers with missconfigured NICKLEN were
+   able to desync the network's nickname database.
+o) The PCRE library has been removed from the ircd sources. ./configure will
+   now automatically detect an already installed version of the PCRE library.
 o) Various resolver improvements and fixes
 o) Implemented GUNGLINE (global ungline)
-o) Updated PCRE lib to latest 7.9 release
-o) Completely rewrote build system. we're now using automake and libtool
+o) Completely rewrote build system. We're now using automake and libtool
 o) Added support for sha256/sha512 encrypted passwords to mkpasswd
 o) Added ssl_server_protocol configuration option to servinfo{}.
    Valid flags are 'sslv3' and 'tlsv1'
