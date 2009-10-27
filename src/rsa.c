@@ -27,7 +27,6 @@
 #include <openssl/pem.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
-#include <openssl/md5.h>
 #include <openssl/bn.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -99,18 +98,7 @@ verify_private_key(void)
     return -1;
   }
 
-  /*
-   * jdc -- Let's do this a little differently.  According to the
-   *        OpenSSL documentation, you need to METHOD_free(key) before
-   *        assigning it.  Don't believe me?  Check out the following
-   *        URL:  http://www.openssl.org/docs/crypto/pem.html#BUGS
-   * P.S. -- I have no idea why the key= assignment has to be typecasted.
-   *         For some reason the system thinks PEM_read_bio_RSAPrivateKey
-   *         is returning an int, not a RSA *.
-   * androsyn -- Thats because you didn't have a prototype and including
-   * 		 pem.h breaks things for some reason..
-   */
-  key = (RSA *) PEM_read_bio_RSAPrivateKey(file, NULL, 0, NULL);
+  key = PEM_read_bio_RSAPrivateKey(file, NULL, 0, NULL);
 
   if (key == NULL)
   {
