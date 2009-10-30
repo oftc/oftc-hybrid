@@ -31,6 +31,7 @@
 #include "stdinc.h"
 #if USE_IOPOLL_MECHANISM == __IOPOLL_MECHANISM_RTSIGIO
 #include <sys/poll.h>
+#include "list.h"
 #include "fdlist.h"
 #include "hook.h"
 #include "ircd.h"
