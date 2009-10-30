@@ -624,8 +624,6 @@ main(int argc, char *argv[])
   /* add ourselves to global_serv_list */
   dlinkAdd(&me, make_dlink_node(), &global_serv_list);
 
-  check_class();
-
 #ifndef STATIC_MODULES
   if (chdir(MODPATH))
   {
