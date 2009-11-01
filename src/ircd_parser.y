@@ -512,10 +512,13 @@ serverinfo_item:        serverinfo_name | serverinfo_vhost |
 
 serverinfo_ssl_connection_method: T_SSL_CONNECTION_METHOD
 {
+#ifdef HAVE_LIBCRYPTO
   if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
     ServerInfo.tls_version = 0;
+#endif
 } '=' method_types ';'
 {
+#ifdef HAVE_LIBCRYPTO
   if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
   {
     if (!(ServerInfo.tls_version & CONF_SERVER_INFO_TLS_VERSION_SSLV3))
@@ -523,17 +526,22 @@ serverinfo_ssl_connection_method: T_SSL_CONNECTION_METHOD
     if (!(ServerInfo.tls_version & CONF_SERVER_INFO_TLS_VERSION_TLSV1))
       SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_TLSv1);
   }
+#endif
 };
 
 method_types: method_types ',' method_type_item | method_type_item;
 method_type_item: T_SSLV3
 {
+#ifdef HAVE_LIBCRYPTO
   if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
     ServerInfo.tls_version |= CONF_SERVER_INFO_TLS_VERSION_SSLV3;
+#endif
 } | T_TLSV1
 {
+#ifdef HAVE_LIBCRYPTO
   if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
     ServerInfo.tls_version |= CONF_SERVER_INFO_TLS_VERSION_TLSV1;
+#endif
 };
 
 serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
