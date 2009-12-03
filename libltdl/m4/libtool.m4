@@ -6893,10 +6893,6 @@ lt_simple_link_test_code='public class conftest { public static void main(String
 # ltmain only uses $CC for tagged configurations so make sure $CC is set.
 _LT_TAG_COMPILER
 
-# save warnings/boilerplate of simple test code
-_LT_COMPILER_BOILERPLATE
-_LT_LINKER_BOILERPLATE
-
 # Allow CC to be a program name with arguments.
 lt_save_CC="$CC"
 lt_save_GCC=$GCC
@@ -6906,6 +6902,13 @@ compiler=$CC
 _LT_TAGVAR(compiler, $1)=$CC
 _LT_TAGVAR(LD, $1)="$LD"
 _LT_CC_BASENAME([$compiler])
+
+ac_compile='$CC -c $GCJFLAGS conftest.$ac_ext >&AS_MESSAGE_LOG_FD'
+ac_link='$CC -o conftest$ac_exeext --main=conftest $GCJFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&AS_MESSAGE_LOG_FD'
+
+# save warnings/boilerplate of simple test code
+_LT_COMPILER_BOILERPLATE
+_LT_LINKER_BOILERPLATE
 
 # GCJ did not exist at the time GCC didn't implicitly link libc in.
 _LT_TAGVAR(archive_cmds_need_lc, $1)=no
