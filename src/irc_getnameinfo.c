@@ -84,7 +84,7 @@ irc_getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
   unsigned short port;
   int family, i;
   const char *addr;
-  u_int32_t v4a;
+  uint32_t v4a;
   char numserv[512];
   char numaddr[512];
 
@@ -138,7 +138,7 @@ irc_getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
 
 	switch (sa->sa_family) {
 	case AF_INET:
-		v4a = (u_int32_t)
+		v4a = (uint32_t)
 		    ntohl(((const struct sockaddr_in *)sa)->sin_addr.s_addr);
 		if (IN_MULTICAST(v4a) || IN_EXPERIMENTAL(v4a))
 			flags |= NI_NUMERICHOST;

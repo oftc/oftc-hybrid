@@ -127,8 +127,8 @@ struct sockaddr_storage {
 struct sockaddr_storage
 {
 	sa_family_t ss_family;
-	u_int32_t __ss_align;
-	char __ss_padding[(128 - (2 * sizeof (u_int32_t)))];
+	uint32_t __ss_align;
+	char __ss_padding[(128 - (2 * sizeof (uint32_t)))];
 };
 #endif /* SOCKADDR_IN_HAS_LEN */
 #endif /* HAVE_STRUCT_SOCKADDR_STORAGE */
