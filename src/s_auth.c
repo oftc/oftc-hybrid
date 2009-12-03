@@ -445,7 +445,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
   char authbuf[32];
   socklen_t ulen = sizeof(struct irc_ssaddr);
   socklen_t tlen = sizeof(struct irc_ssaddr);
-  u_int16_t uport, tport;
+  uint16_t uport, tport;
 #ifdef IPV6
   struct sockaddr_in6 *v6;
 #else

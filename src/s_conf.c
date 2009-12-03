@@ -1179,7 +1179,7 @@ hash_ip(struct irc_ssaddr *addr)
   {
     struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
     int hash;
-    u_int32_t ip;
+    uint32_t ip;
 
     ip   = ntohl(v4->sin_addr.s_addr);
     hash = ((ip >> 12) + ip) & (IP_HASH_SIZE-1);
@@ -1190,7 +1190,7 @@ hash_ip(struct irc_ssaddr *addr)
   {
     int hash;
     struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)addr;
-    u_int32_t *ip = (u_int32_t *)&v6->sin6_addr.s6_addr;
+    uint32_t *ip = (uint32_t *)&v6->sin6_addr.s6_addr;
 
     hash  = ip[0] ^ ip[3];
     hash ^= hash >> 16;  
