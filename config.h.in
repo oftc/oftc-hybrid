@@ -205,7 +205,7 @@
 /* Define to 1 if the system has the type `struct sockaddr_in6'. */
 #undef HAVE_STRUCT_SOCKADDR_IN6
 
-/* Define to 1 if `struct sockaddr_in' is a member of `sin_len'. */
+/* Define to 1 if `sin_len' is a member of `struct sockaddr_in'. */
 #undef HAVE_STRUCT_SOCKADDR_IN_SIN_LEN
 
 /* Define to 1 if the system has the type `struct sockaddr_storage'. */

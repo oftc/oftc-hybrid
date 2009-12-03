@@ -35,7 +35,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = help/opers
-DIST_COMMON = $(dist_help_DATA) $(srcdir)/Makefile.am \
+DIST_COMMON = $(dist_helpf_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -69,8 +69,8 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(helpdir)"
-DATA = $(dist_help_DATA)
+am__installdirs = "$(DESTDIR)$(helpfdir)"
+DATA = $(dist_helpf_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -212,8 +212,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
-helpdir = $(pkgdatadir)/help/opers
-dist_help_DATA = accept cmode etrace ison list map nick ping resv stats trace    \
+helpfdir = $(pkgdatadir)/help/opers
+dist_helpf_DATA = accept cmode etrace ison list map nick ping resv stats trace    \
                  unxline whois admin connect gline gungline join locops modlist  \
                  notice pong rkline svinfo uhelp user whowas away cryptlink hash \
                  kick lusers modload omotd post rxline testgecos umode           \
@@ -263,26 +263,26 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-dist_helpDATA: $(dist_help_DATA)
+install-dist_helpfDATA: $(dist_helpf_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(helpdir)" || $(MKDIR_P) "$(DESTDIR)$(helpdir)"
-	@list='$(dist_help_DATA)'; test -n "$(helpdir)" || list=; \
+	test -z "$(helpfdir)" || $(MKDIR_P) "$(DESTDIR)$(helpfdir)"
+	@list='$(dist_helpf_DATA)'; test -n "$(helpfdir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(helpdir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(helpdir)" || exit $$?; \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(helpfdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(helpfdir)" || exit $$?; \
 	done
 
-uninstall-dist_helpDATA:
+uninstall-dist_helpfDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_help_DATA)'; test -n "$(helpdir)" || list=; \
+	@list='$(dist_helpf_DATA)'; test -n "$(helpfdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	test -n "$$files" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(helpdir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(helpdir)" && rm -f $$files
+	echo " ( cd '$(DESTDIR)$(helpfdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(helpfdir)" && rm -f $$files
 tags: TAGS
 TAGS:
 
@@ -324,7 +324,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(helpdir)"; do \
+	for dir in "$(DESTDIR)$(helpfdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -372,7 +372,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dist_helpDATA
+install-data-am: install-dist_helpfDATA
 
 install-dvi: install-dvi-am
 
@@ -416,24 +416,24 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dist_helpDATA
+uninstall-am: uninstall-dist_helpfDATA
 
 .MAKE: install-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dist_helpDATA install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	uninstall uninstall-am uninstall-dist_helpDATA
+	install-data install-data-am install-dist_helpfDATA \
+	install-dvi install-dvi-am install-exec install-exec-am \
+	install-html install-html-am install-info install-info-am \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
+	ps ps-am uninstall uninstall-am uninstall-dist_helpfDATA
 
 
-help: $(dist_help_DATA)
+helpf: $(dist_helpf_DATA)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
