@@ -1,4 +1,4 @@
--- ircd-hybrid-7.3 RELNOTES
+-- ircd-hybrid-7.3-rc1 RELNOTES
 o) Major 64-bit cleanups and portability fixes.
 o) Fixed bug where unregistered clients were not able to complete registration
    process with /quote PONG <ping_cookie> in case the client was assigned a
