@@ -1,3 +1,6 @@
+-- oftc-hybrid 1.6.8 RELNOTES
+o) Fix a crash bug as noted in CVE-2009-4016.
+
 -- oftc-hybrid 1.6.7 RELNOTES
 o) Fix a bug causing temp dlines to crash ircd when they expire
 
