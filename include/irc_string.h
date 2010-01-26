@@ -102,7 +102,7 @@ extern char *basename(char *);
  * clean_string - cleanup control and high ascii characters
  * -Dianora
  */
-extern char *clean_string(char *, const unsigned char *, size_t);
+extern char *clean_string(char *, const unsigned char *, ssize_t);
 
 /*
  * strip_tabs - convert tabs to spaces
