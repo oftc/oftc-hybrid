@@ -61,8 +61,8 @@ show_links(va_list args)
 
   if (IsClient(source_p))
     sendto_realops_flags(UMODE_SPY, L_ALL,
-                         "LINKS '%s' requested by %s (%s@%s) [%s]",
-                         parv[1] ? parv[1] : "", source_p->name,
+                         "links requested by %s (%s@%s) [%s]",
+                         source_p->name,
 			 source_p->username, source_p->host,
 			 source_p->servptr->name);
 

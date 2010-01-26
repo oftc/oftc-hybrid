@@ -88,12 +88,6 @@ extern size_t strlcat(char *, const char *, size_t);
 extern const char *libio_basename(const char *);
 
 /*
- * clean_string - cleanup control and high ascii characters
- * -Dianora
- */
-extern char *clean_string(char *, const unsigned char *, size_t);
-
-/*
  * strip_tabs - convert tabs to spaces
  * - jdc
  */
