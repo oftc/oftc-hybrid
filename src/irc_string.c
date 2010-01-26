@@ -77,7 +77,7 @@ myctime(time_t value)
  * -Dianora
  */
 char *
-clean_string(char* dest, const unsigned char* src, size_t len)
+clean_string(char* dest, const unsigned char* src, ssize_t len)
 {
   char* d    = dest; 
   assert(0 != dest);
@@ -91,10 +91,7 @@ clean_string(char* dest, const unsigned char* src, size_t len)
   while (*src && (len > 0))
   {
     if (*src & 0x80)             /* if high bit is set */
-    {
       *d++ = '.';
-      --len;
-    }
     else if (!IsPrint(*src))       /* if NOT printable */
     {
       *d++ = '^';
@@ -103,6 +100,7 @@ clean_string(char* dest, const unsigned char* src, size_t len)
     }
     else
       *d++ = *src;
+
     ++src, --len;
   }
   *d = '\0';
