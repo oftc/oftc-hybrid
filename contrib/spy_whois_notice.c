@@ -26,9 +26,9 @@
 #ifndef STATIC_MODULES
 #include "list.h"
 #include "modules.h"
+#include "client.h"
 #include "hash.h"
 #include "hook.h"
-#include "client.h"
 #include "ircd.h"
 #include "send.h"
 
