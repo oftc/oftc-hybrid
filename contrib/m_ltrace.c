@@ -158,7 +158,7 @@ do_ltrace(struct Client *source_p, int parc, char **parv)
       return;
   }
 
-  doall = (parv[1] && (parc > 1)) ? match(tname, me.name): TRUE;
+  doall = (parv[1] && (parc > 1)) ? match(tname, me.name) : 1;
   wilds = !parv[1] || strchr(tname, '*') || strchr(tname, '?');
   dow = wilds || doall;
   
