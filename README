@@ -57,9 +57,9 @@ Feature Specific Requirements:
 
 - TESTED PLATFORMS:  The code has been tested on the following platforms, and
   is known to run properly.
-  FreeBSD 3.x/4.x/5.x (gcc only, TenDRA will work but only with the latest
+  FreeBSD 3.x/4.x/5.x/7.x/8.0 (gcc only, TenDRA will work but only with the latest
   cvs version from ten15.org)
-  Linux glibc 2.2/2.3
+  Linux glibc 2.2/2.3/2.10.1
   Solaris 2.6/7/8
   OpenBSD 2.8-3.2
   HP-UX 11.00-11.22
