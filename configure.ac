@@ -21,6 +21,7 @@ AC_PROG_INSTALL
 # Initializing libtool.
 LT_INIT([dlopen disable-static])
 LTDL_INIT
+LIBTOOL="$LIBTOOL --silent"
 
 # Checks for libraries.
 AX_CHECK_LIB_IPV4
@@ -253,11 +254,11 @@ AC_CONFIG_FILES(              \
        src/Makefile           \
        messages/Makefile      \
        modules/Makefile       \
-			 modules/core/Makefile	\
+       modules/core/Makefile  \
        doc/Makefile           \
        help/Makefile          \
-			 help/opers/Makefile		\
-			 help/users/Makefile    \
+       help/opers/Makefile    \
+       help/users/Makefile    \
        tools/Makefile)
 
 AC_OUTPUT
