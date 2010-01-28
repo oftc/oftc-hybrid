@@ -159,7 +159,6 @@ dohelp(struct Client *source_p, const char *hpath, char *topic)
 
   if (stat(path, &sb) < 0)
   {
-    ilog(L_NOTICE, "help file %s not found", path);
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
     return;
@@ -167,7 +166,6 @@ dohelp(struct Client *source_p, const char *hpath, char *topic)
 
   if (!S_ISREG(sb.st_mode))
   {
-    ilog(L_NOTICE, "help file %s not found", path);
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
     return;
@@ -209,12 +207,12 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
   while (fbgets(line, sizeof(line), file))
   {
     line[strlen(line) - 1] = '\0';
-    if(line[0] != '#')
+    if (line[0] != '#')
     {
       if (!started)
       {
         type = RPL_HELPSTART;
-	started = 1;
+        started = 1;
       }
       else
         type = RPL_HELPTXT;
