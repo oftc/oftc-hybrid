@@ -48,3 +48,11 @@ modules_LTLIBRARIES = m_die.la     \
                       m_squit.la
 
 modules: $(modules_LTLIBRARIES)
+
+install-exec-hook:
+	if test -d $(pkglibdir)-old; then \
+		rm -rf $(pkglibdir)-old; \
+	fi
+	if test -d $(pkglibdir); then \
+		mv $(pkglibdir) $(pkglibdir)-old; \
+	fi
