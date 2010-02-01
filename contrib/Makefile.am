@@ -86,6 +86,3 @@ spy_trace_notice_la_SOURCES = spy_trace_notice.c
 spy_whois_notice_la_SOURCES = spy_whois_notice.c
 
 modules: $(modules_LTLIBRARIES)
-
-%.la: %.lo
-	$(LINK) -rpath $(modulesdir) $(MODULE_FLAGS) $< $(LIBS)

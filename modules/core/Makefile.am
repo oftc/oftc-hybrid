@@ -21,5 +21,10 @@ m_server_la_SOURCES=m_server.c
 m_sjoin_la_SOURCES=m_sjoin.c
 m_squit_la_SOURCES=m_squit.c
 
-install-exec-local:
-	rm -f $(DESTDIR)/$(pkglibdir)/*.la $(DESTDIR)/$(pkblibdir)/*.a $(DESTDIR)/$(pkblibdir)/*.so 
+install-exec-hook:
+	if test -d $(pkglibdir)-old; then \
+		rm -rf $(pkglibdir)-old; \
+	fi
+	if test -d $(pkglibdir); then \
+		mv $(pkglibdir) $(pkglibdir)-old; \
+	fi
