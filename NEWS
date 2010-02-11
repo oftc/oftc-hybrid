@@ -1,4 +1,4 @@
--- ircd-hybrid-7.3-rc1 RELNOTES
+-- ircd-hybrid-7.3-rc1 Release Notes
 o) Major 64-bit cleanups and portability fixes.
 o) Fixed bug where unregistered clients were not able to complete registration
    process with /quote PONG <ping_cookie> in case the client was assigned a
@@ -36,7 +36,7 @@ o) Minor code optimizations and cleanups
 o) ACCEPT now supports nick!user@host masks
 
 
--- ircd-hybrid-7.2.3 RELNOTES
+-- ircd-hybrid-7.2.3 Release Notes
 o) Added ircd-italian.lang language file
 o) Added -full to etrace
 o) Added +C for opers
@@ -49,7 +49,7 @@ o) Fixed command line arguments handling to allow more than one switch
 o) Fixed numeric delivery for mixed TS5 target on the other side of a TS6 server.
 
 
--- ircd-hybrid-7.2.2 RELNOTES
+-- ircd-hybrid-7.2.2 Release Notes
 o) Added channel::disable_fake_channels config directive
 o) Fixed broken FORCEJOIN  (contrib)
 o) Added missing documentation for connect::vhost
@@ -72,7 +72,7 @@ o) Minor resolv.conf parser fixes.  Added missing support for ';' comments
 o) Fixed core on MODRESTART
 
 
--- ircd-hybrid-7.2.1 RELNOTES
+-- ircd-hybrid-7.2.1 Release Notes
 o) Fixed build on SRV4
 o) Fixed problem where ircd would disconnect all SSL connections
 o) Added initial CAP support.  Additional documentation can be found
@@ -92,7 +92,7 @@ o) Don't allow shared k-lines to be set without a valid reason
 o) Improved channel ban match processing.  This also fixes CIDR bans
 
 
--- ircd-hybrid-7.2.0 RELNOTES
+-- ircd-hybrid-7.2.0 Release Notes
 o) Fixed broken operwall = yes;
 o) Added 'umode' directive to oper{}.  List of modes to get on /OPER.
    This behaves exactly like H6's sixth O line field
@@ -105,7 +105,7 @@ o) Fixed va_list bug on amd64
 o) Fixed /dev/poll
 
 
--- ircd-hybrid-7.2rc1 RELNOTES
+-- ircd-hybrid-7.2rc1 Release Notes
 o) ircd can dynamically change all its client/fd limits at runtime
 o) Added epoll as the primary I/O engine under Linux
 o) Local channels will not show up in remote /WHOIS
@@ -123,7 +123,7 @@ o) Fixed RESV/XLINE bug in conjunction with names that include escaped
    characters such as \*, \?, \#.
 
 
--- ircd-hybrid-7.2beta1 RELNOTES
+-- ircd-hybrid-7.2beta1 Release Notes
 o) Usermode +G, like +g, but allow messaging from people on common channels
 o) Usermode +D - "deaf", don't receive channel messages
 o) RXLINE and RKLINE - commands for setting perl compatible regular expression
