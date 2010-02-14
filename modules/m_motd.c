@@ -37,7 +37,6 @@
 #include "modules.h"
 #include "s_conf.h"
 
-static void mr_motd(struct Client *, struct Client *, int, char *[]);
 static void m_motd(struct Client*, struct Client*, int, char *[]);
 static void mo_motd(struct Client*, struct Client*, int, char *[]);
 
@@ -50,7 +49,7 @@ static void mo_motd(struct Client*, struct Client*, int, char *[]);
  */
 struct Message motd_msgtab = {
   "MOTD", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {mr_motd, m_motd, mo_motd, m_ignore, mo_motd, m_ignore}
+  { m_unregistered, m_motd, mo_motd, m_ignore, mo_motd, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -80,20 +79,6 @@ _moddeinit(void)
   uninstall_hook(motd_cb, do_motd);
 }
 #endif
-
-/* mr_motd()
- *
- * parv[0] = sender prefix
- */
-static void
-mr_motd(struct Client *client_p, struct Client *source_p,
-        int parc, char *parv[])
-{
-  ClearCap(client_p, CAP_TS6);
-  /* allow unregistered clients to see the motd, but exit them */
-  send_message_file(source_p, &ConfigFileEntry.motd);
-  exit_client(source_p, source_p, "Client Exit after MOTD");
-}
 
 /*
 ** m_motd

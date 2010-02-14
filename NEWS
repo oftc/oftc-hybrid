@@ -34,6 +34,7 @@ o) Removed broken LazyLinks
 o) Removed --disable-gline-voting configure option
 o) Minor code optimizations and cleanups
 o) ACCEPT now supports nick!user@host masks
+o) Unregistered clients are no longer allowed to request the server's motd
 
 
 -- ircd-hybrid-7.2.3 Release Notes
