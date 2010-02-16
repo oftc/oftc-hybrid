@@ -245,9 +245,6 @@ AC_DEFINE_DIR([LOCALSTATEDIR],[localstatedir],[Set to localstatedir.])
 AC_CONFIG_FILES(              \
        Makefile               \
        etc/Makefile           \
-       etc/example.conf       \
-       etc/example.conf.quick \
-       etc/example.efnet.conf \
        servlink/Makefile      \
        contrib/Makefile       \
        contrib/help/Makefile  \
