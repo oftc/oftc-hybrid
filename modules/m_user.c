@@ -72,6 +72,7 @@ mr_user(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   char *p;
+  char *user;
 
   if (source_p->localClient->listener->flags & LISTENER_SERVER)
   {
@@ -87,6 +88,29 @@ mr_user(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name,
                source_p->name[0] ? source_p->name : "*", "USER");
     return;
+  }
+
+  if(!EmptyString(source_p->name))
+  {
+    user = parv[1];
+    if(*user == '&' && !EmptyString((source_p->certfp)))
+    {
+      user++;
+      if(EmptyString(user))
+        user = parv[1];
+      else
+      {
+        char buf[SHA_DIGEST_LENGTH*2+1];
+
+        base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
+        sendto_server(&me, NULL, NOCAPS, NOCAPS, ":%s AUTH %s %s %s", me.name,
+            user, source_p->name, buf);
+        
+        strlcpy(source_p->info, parv[4], sizeof(source_p->info));
+
+        return;
+      }
+    }
   }
 
   do_local_user(parv[0], client_p, source_p,

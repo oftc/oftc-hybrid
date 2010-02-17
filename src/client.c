@@ -1309,7 +1309,24 @@ set_initial_nick(struct Client *client_p, struct Client *source_p,
   
   if (!source_p->localClient->registration)
   {
+    char *user = buf;
+
     strlcpy(buf, source_p->username, sizeof(buf));
+    if(*user == '&' && !EmptyString((source_p->certfp)))
+    {
+      user++;
+      if(EmptyString(user))
+        user = buf;
+      else
+      {
+        char certfp[SHA_DIGEST_LENGTH*2+1];
+
+        base16_encode(certfp, sizeof(certfp), source_p->certfp, sizeof(source_p->certfp));
+        sendto_server(&me, NULL, NOCAPS, NOCAPS, ":%s AUTH %s %s %s", me.name,
+            source_p->name, user, certfp);
+        return;
+      }
+    }
 
     /*
      * USER already received, now we have NICK.
