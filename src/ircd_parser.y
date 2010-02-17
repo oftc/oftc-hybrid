@@ -171,7 +171,6 @@ unhook_hub_leaf_confs(void)
 %token  DISABLE_HIDDEN
 %token  DISABLE_LOCAL_CHANNELS
 %token  DISABLE_REMOTE_COMMANDS
-%token  DOT_IN_IP6_ADDR
 %token  DOTS_IN_IDENT
 %token	DURATION
 %token  EGDPOOL_PATH
@@ -3179,7 +3178,7 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_default_cipher_preference |
                     general_compression_level | general_client_flood |
                     general_throttle_time | general_havent_read_conf |
-                    general_dot_in_ip6_addr | general_ping_cookie |
+                    general_ping_cookie |
                     general_disable_auth | general_burst_away |
 		    general_tkline_expire_notices | general_gline_min_cidr |
                     general_gline_min_cidr6 | general_use_whois_actually |
@@ -3654,10 +3653,6 @@ general_client_flood: T_CLIENT_FLOOD '=' sizespec ';'
   ConfigFileEntry.client_flood = $3;
 };
 
-general_dot_in_ip6_addr: DOT_IN_IP6_ADDR '=' TBOOL ';'
-{
-  ConfigFileEntry.dot_in_ip6_addr = yylval.number;
-};
 
 /*************************************************************************** 
  *  section glines

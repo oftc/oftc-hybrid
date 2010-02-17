@@ -35,6 +35,7 @@ o) Removed --disable-gline-voting configure option
 o) Minor code optimizations and cleanups
 o) ACCEPT now supports nick!user@host masks
 o) Unregistered clients are no longer allowed to request the server's motd
+o) general::dot_in_ip6_addr configuration option is obsolete and no longer exists
 
 
 -- ircd-hybrid-7.2.3 Release Notes

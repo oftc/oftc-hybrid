@@ -163,7 +163,6 @@ disable_fake_channels { return DISABLE_FAKE_CHANNELS; }
 disable_hidden	{ return DISABLE_HIDDEN; }
 disable_local_channels { return DISABLE_LOCAL_CHANNELS; }
 disable_remote_commands	{ return DISABLE_REMOTE_COMMANDS; }
-dot_in_ip6_addr { return DOT_IN_IP6_ADDR; }
 dots_in_ident   { return DOTS_IN_IDENT; }
 duration	{ return DURATION; }
 egdpool_path        { return EGDPOOL_PATH; }
