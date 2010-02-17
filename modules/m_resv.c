@@ -282,7 +282,7 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
           resv_p->name, resv_p->reason);
       ilog(L_TRACE, "%s added temporary %d min. RESV for [%s] [%s]",
           source_p->name, (int)tkline_time/60,
-          conf->name, resv_p->reason);
+          resv_p->name, resv_p->reason);
       resv_p->hold = CurrentTime + tkline_time;
       add_temp_line(conf);
       write_conf_line(source_p, conf, NULL /* not used */, 0 /* not used */, 
