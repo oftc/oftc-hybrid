@@ -355,19 +355,14 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
         new_client->ip.ss_len, new_client->sockhost, 
         sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
   new_client->aftype = new_client->ip.ss.ss_family;
-#ifdef IPV6
-  if (new_client->sockhost[0] == ':')
-    strlcat(new_client->host, "0", HOSTLEN+1);
 
-  if (new_client->aftype == AF_INET6 && 
-      ConfigFileEntry.dot_in_ip6_addr == 1)
+  if (new_client->sockhost[0] == ':')
   {
-    strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
-    strlcat(new_client->host, ".", HOSTLEN+1);
+    strlcpy(new_client->host, "0", sizeof(new_client->host));
+    strlcpy(new_client->host+1, new_client->sockhost, sizeof(new_client->host)-1);
   }
   else
-#endif
-    strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
+    strlcpy(new_client->host, new_client->sockhost, sizeof(new_client->host));
 
   new_client->localClient->listener = listener;
   ++listener->ref_count;

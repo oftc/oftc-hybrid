@@ -1947,7 +1947,6 @@ set_default_conf(void)
   ConfigFileEntry.default_floodcount = 8; /* XXX */
   ConfigFileEntry.failed_oper_notice = YES;
   ConfigFileEntry.dots_in_ident = 0;      /* XXX */
-  ConfigFileEntry.dot_in_ip6_addr = YES;
   ConfigFileEntry.min_nonwildcard = 4;
   ConfigFileEntry.min_nonwildcard_simple = 3;
   ConfigFileEntry.max_accept = 20;

@@ -361,7 +361,6 @@ struct config_file_entry
   unsigned char compression_level;
   int gline_min_cidr;
   int gline_min_cidr6;
-  int dot_in_ip6_addr;
   int dots_in_ident;
   int failed_oper_notice;
   int anti_spam_exit_message_time;

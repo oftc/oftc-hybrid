@@ -380,12 +380,6 @@ static const struct InfoStruct info_table[] =
     "Number of permissable dots in an ident"
   },
   {
-    "dot_in_ip6_addr",
-    OUTPUT_BOOLEAN,
-    &ConfigFileEntry.dot_in_ip6_addr,
-    "Suffix a . to ip6 addresses (for linked servers still running hybrid-6)"
-  },
-  {
     "min_nonwildcard",
     OUTPUT_DECIMAL,
     &ConfigFileEntry.min_nonwildcard,
