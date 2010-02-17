@@ -3222,7 +3222,7 @@ general_tkline_expire_notices: TKLINE_EXPIRE_NOTICES '=' TBOOL ';'
   ConfigFileEntry.tkline_expire_notices = yylval.number;
 };
 
-general_kill_chase_time_limit: KILL_CHASE_TIME_LIMIT '=' NUMBER ';'
+general_kill_chase_time_limit: KILL_CHASE_TIME_LIMIT '=' timespec ';'
 {
   ConfigFileEntry.kill_chase_time_limit = $3;
 };
