@@ -93,18 +93,26 @@ mr_user(struct Client *client_p, struct Client *source_p,
   if(!EmptyString(source_p->name))
   {
     user = parv[1];
-    if(*user == '&' && !EmptyString((source_p->certfp)))
+    if(*user == '&')
     {
       user++;
       if(EmptyString(user))
         user = parv[1];
       else
       {
-        char buf[SHA_DIGEST_LENGTH*2+1];
+        if(!EmptyString(source_p->certfp))
+        {
+          char buf[SHA_DIGEST_LENGTH*2+1];
 
-        base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
-        sendto_server(&me, NULL, NOCAPS, NOCAPS, ":%s AUTH %s %s %s", me.name,
-            user, source_p->name, buf);
+          base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
+          sendto_server(&me, NULL, NOCAPS, NOCAPS, ":%s AUTH %s %s %s", me.name,
+              user, source_p->name, buf);
+        }
+        else
+        {
+          sendto_server(&me, NULL, NOCAPS, NOCAPS, ":%s AUTH %s %s %s", me.name,
+              user, source_p->name, source_p->localClient->passwd);
+        }
         
         strlcpy(source_p->info, parv[4], sizeof(source_p->info));
 

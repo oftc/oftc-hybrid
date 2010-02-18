@@ -588,7 +588,8 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
  */
 struct AccessItem *
 find_address_conf(const char *host, const char *user,
-                  struct irc_ssaddr *ip, int aftype, char *password, char *certfp)
+                  struct irc_ssaddr *ip, int aftype, char *password, 
+                  char *certfp, int nick_reg)
 {
   struct AccessItem *iconf, *kconf;
 
@@ -598,7 +599,7 @@ find_address_conf(const char *host, const char *user,
     return(NULL);
 
   /* If they are exempt from K-lines, return the best I-line. -A1kmm */
-  if (IsConfExemptKline(iconf))
+  if (IsConfExemptKline(iconf) || (*user == '&' && nick_reg))
     return(iconf);
 
   /* Find the best K-line... -A1kmm */

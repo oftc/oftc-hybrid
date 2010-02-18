@@ -960,13 +960,14 @@ verify_access(struct Client *client_p, const char *username,
   {
     aconf = find_address_conf(client_p->host, client_p->username,
            &client_p->ip, client_p->aftype, client_p->localClient->passwd,
-           client_p->certfp);
+           client_p->certfp, IsNickServReg(client_p));
   }
   else
   {
     strlcpy(non_ident+1, username, sizeof(non_ident)-1);
     aconf = find_address_conf(client_p->host,non_ident, &client_p->ip, 
-        client_p->aftype, client_p->localClient->passwd, client_p->certfp);
+        client_p->aftype, client_p->localClient->passwd, client_p->certfp,
+        IsNickServReg(client_p));
   }
 
   uhi[0] = IsGotId(client_p) ? client_p->username : non_ident;
