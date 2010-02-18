@@ -1038,14 +1038,9 @@ oper_entry: OPERATOR
 
 oper_name_b: | oper_name_t;
 oper_items:     oper_items oper_item | oper_item;
-oper_item:      oper_name | oper_user | oper_password | oper_hidden_admin |
-                oper_hidden_oper | oper_umodes |
-		oper_class | oper_global_kill | oper_remote |
-                oper_kline | oper_xline | oper_unkline |
-		oper_gline | oper_nick_changes | oper_remoteban |
-                oper_die | oper_rehash | oper_admin | oper_operwall |
-		oper_encrypted | oper_rsa_public_key_file |
-                oper_flags | error ';' ;
+oper_item:      oper_name | oper_user | oper_password |
+                oper_umodes | oper_class | oper_encrypted |
+		oper_rsa_public_key_file | oper_flags | error ';' ;
 
 oper_name: NAME '=' QSTRING ';'
 {
@@ -1262,160 +1257,6 @@ oper_umodes_item:  T_BOTS
 {
   if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_LOCOPS;
-};
-
-oper_global_kill: GLOBAL_KILL '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_GLOBAL_KILL;
-    else
-      yy_aconf->port &= ~OPER_FLAG_GLOBAL_KILL;
-  }
-};
-
-oper_remote: REMOTE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_REMOTE;
-    else
-      yy_aconf->port &= ~OPER_FLAG_REMOTE; 
-  }
-};
-
-oper_remoteban: REMOTEBAN '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_REMOTEBAN;
-    else
-      yy_aconf->port &= ~OPER_FLAG_REMOTEBAN;
-  }
-};
-
-oper_kline: KLINE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_K;
-    else
-      yy_aconf->port &= ~OPER_FLAG_K;
-  }
-};
-
-oper_xline: XLINE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_X;
-    else
-      yy_aconf->port &= ~OPER_FLAG_X;
-  }
-};
-
-oper_unkline: UNKLINE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_UNKLINE;
-    else
-      yy_aconf->port &= ~OPER_FLAG_UNKLINE; 
-  }
-};
-
-oper_gline: GLINE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_GLINE;
-    else
-      yy_aconf->port &= ~OPER_FLAG_GLINE;
-  }
-};
-
-oper_nick_changes: NICK_CHANGES '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_N;
-    else
-      yy_aconf->port &= ~OPER_FLAG_N;
-  }
-};
-
-oper_die: DIE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_DIE;
-    else
-      yy_aconf->port &= ~OPER_FLAG_DIE;
-  }
-};
-
-oper_rehash: REHASH '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_REHASH;
-    else
-      yy_aconf->port &= ~OPER_FLAG_REHASH;
-  }
-};
-
-oper_admin: ADMIN '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_ADMIN;
-    else
-      yy_aconf->port &= ~OPER_FLAG_ADMIN;
-  }
-};
-
-oper_hidden_admin: HIDDEN_ADMIN '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_HIDDEN_ADMIN;
-    else
-      yy_aconf->port &= ~OPER_FLAG_HIDDEN_ADMIN;
-  }
-};
-
-oper_hidden_oper: HIDDEN_OPER '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_HIDDEN_OPER;
-    else
-      yy_aconf->port &= ~OPER_FLAG_HIDDEN_OPER;
-  }
-};
-
-oper_operwall: T_OPERWALL '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_OPERWALL;
-    else
-      yy_aconf->port &= ~OPER_FLAG_OPERWALL;
-  }
 };
 
 oper_flags: IRCD_FLAGS
@@ -1875,11 +1716,8 @@ auth_entry: IRCD_AUTH
 
 auth_items:     auth_items auth_item | auth_item;
 auth_item:      auth_user | auth_passwd | auth_class | auth_flags |
-                auth_kline_exempt | auth_need_ident |
-                auth_exceed_limit | auth_no_tilde | auth_gline_exempt |
-		auth_spoof | auth_spoof_notice |
-                auth_redir_serv | auth_redir_port | auth_can_flood |
-                auth_need_password | auth_encrypted | error ';' ;
+                auth_spoof | auth_redir_serv | auth_redir_port |
+                auth_encrypted | error ';' ;
 
 auth_user: USER '=' QSTRING ';'
 {
@@ -1931,17 +1769,6 @@ auth_passwd: PASSWORD '=' QSTRING ';'
   }
 };
 
-auth_spoof_notice: SPOOF_NOTICE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_SPOOF_NOTICE;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_SPOOF_NOTICE;
-  }
-};
-
 auth_class: CLASS '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
@@ -1977,7 +1804,6 @@ auth_flags_item_atom: SPOOF_NOTICE
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_SPOOF_NOTICE;
     else yy_aconf->flags |= CONF_FLAGS_SPOOF_NOTICE;
   }
-
 } | EXCEED_LIMIT
 {
   if (conf_parser_ctx.pass == 2)
@@ -2043,72 +1869,6 @@ auth_flags_item_atom: SPOOF_NOTICE
   }
 };
 
-auth_kline_exempt: KLINE_EXEMPT '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_EXEMPTKLINE;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_EXEMPTKLINE;
-  }
-};
-
-auth_need_ident: NEED_IDENT '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_NEED_IDENTD;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_NEED_IDENTD;
-  }
-};
-
-auth_exceed_limit: EXCEED_LIMIT '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_NOLIMIT;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_NOLIMIT;
-  }
-};
-
-auth_can_flood: CAN_FLOOD '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_CAN_FLOOD;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_CAN_FLOOD;
-  }
-};
-
-auth_no_tilde: NO_TILDE '=' TBOOL ';' 
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_NO_TILDE;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_NO_TILDE;
-  }
-};
-
-auth_gline_exempt: GLINE_EXEMPT '=' TBOOL ';' 
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_EXEMPTGLINE;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_EXEMPTGLINE;
-  }
-};
-
 /* XXX - need check for illegal hostnames here */
 auth_spoof: SPOOF '=' QSTRING ';' 
 {
@@ -2145,17 +1905,6 @@ auth_redir_port: REDIRPORT '=' NUMBER ';'
   {
     yy_aconf->flags |= CONF_FLAGS_REDIR;
     yy_aconf->port = $3;
-  }
-};
-
-auth_need_password: NEED_PASSWORD '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_NEED_PASSWORD;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_NEED_PASSWORD;
   }
 };
 
@@ -2557,12 +2306,11 @@ connect_name_b: | connect_name_t;
 connect_items:  connect_items connect_item | connect_item;
 connect_item:   connect_name | connect_host | connect_vhost |
 		connect_send_password | connect_accept_password |
-		connect_aftype | connect_port |
- 		connect_fakename | connect_flags | connect_hub_mask | 
-		connect_leaf_mask | connect_class | connect_auto |
-		connect_encrypted | connect_compressed | connect_cryptlink |
+		connect_aftype | connect_port | connect_fakename |
+		connect_flags | connect_hub_mask | connect_leaf_mask |
+		connect_class | connect_encrypted |
 		connect_rsa_public_key_file | connect_cipher_preference |
-                connect_topicburst | error ';' ;
+                error ';' ;
 
 connect_name: NAME '=' QSTRING ';'
 {
@@ -2785,54 +2533,6 @@ connect_encrypted: ENCRYPTED '=' TBOOL ';'
       yy_aconf->flags |= CONF_FLAGS_ENCRYPTED;
     else
       yy_aconf->flags &= ~CONF_FLAGS_ENCRYPTED;
-  }
-};
-
-connect_cryptlink: CRYPTLINK '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_CRYPTLINK;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_CRYPTLINK;
-  }
-};
-
-connect_compressed: COMPRESSED '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-#ifndef HAVE_LIBZ
-      yyerror("Ignoring compressed=yes; -- no zlib support");
-#else
-      yy_aconf->flags |= CONF_FLAGS_COMPRESSED;
-#endif
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_COMPRESSED;
-  }
-};
-
-connect_auto: AUTOCONN '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_ALLOW_AUTO_CONN;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_ALLOW_AUTO_CONN;
-  }
-};
-
-connect_topicburst: TOPICBURST '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      SetConfTopicBurst(yy_aconf);
-    else
-      ClearConfTopicBurst(yy_aconf);
   }
 };
 
