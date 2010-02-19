@@ -308,6 +308,8 @@ ssl_handshake(int fd, struct Client *client_p)
       ilog(L_WARN, "Client %s!%s@%s gave bad SSL client certificate: %d",
           client_p->name, client_p->username, client_p->host, res);
     }
+
+    X509_free(cert);
   }
 
   if (ret <= 0)
