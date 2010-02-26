@@ -1324,12 +1324,12 @@ set_initial_nick(struct Client *client_p, struct Client *source_p,
           char certfp[SHA_DIGEST_LENGTH*2+1];
 
           base16_encode(certfp, sizeof(certfp), source_p->certfp, sizeof(source_p->certfp));
-          sendto_server(&me, NULL, NOCAPS, NOCAPS, ":%s AUTH %s %s %s", 
+          sendto_server(&me, NULL, NOCAPS, NOCAPS, ":%s AUTH 1 %s %s %s", 
               me.name, source_p->name, user, certfp);
         }
         else
         {
-          sendto_server(&me, NULL, NOCAPS, NOCAPS, ":%s AUTH %s %s %s",
+          sendto_server(&me, NULL, NOCAPS, NOCAPS, ":%s AUTH 0 %s %s %s",
               me.name, source_p->name, user, source_p->localClient->passwd);
         }
         return;

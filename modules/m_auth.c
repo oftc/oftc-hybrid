@@ -62,8 +62,8 @@ const char *_version = "$Revision: 978 $";
 /*
 ** ms_auth
 **      parv[0] = sender prefix
-**      parv[1] = account(username) authenticating for
-**      parv[2] = nickname authenticating for
+**      parv[1] = nickname authenticating for
+**      parv[2] = account(username) authenticating for
 **      parv[3] = result
 **      parv[4] = reason
 */
@@ -73,7 +73,7 @@ ms_auth(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p;
 
-  target_p = find_client(parv[2]);
+  target_p = find_client(parv[1]);
 
   if(target_p == NULL)
     return;
@@ -85,14 +85,14 @@ ms_auth(struct Client *client_p, struct Client *source_p,
       target_p->umodes |= UMODE_NICKSERVREG;
       if(target_p->localClient->registration & REG_NEED_USER)
       {
-        do_local_user(parv[2], target_p, target_p,
-            parv[1], /* username */
+        do_local_user(parv[1], target_p, target_p,
+            parv[2], /* username */
             "*", /* host     */
             "*", /* server   */
             target_p->info  /* users real name */ );
       }
       else
-        register_local_user(target_p, target_p, parv[2], parv[1]);
+        register_local_user(target_p, target_p, parv[1], parv[2]);
     }
     else
       exit_client(target_p, &me, parv[4]);
