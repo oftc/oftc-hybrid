@@ -1,3 +1,6 @@
+-- oftc-hybrid 1.6.9 RELNOTES
+o) Fix a crash bug only affecting solaris
+
 -- oftc-hybrid 1.6.8 RELNOTES
 o) Fix a crash bug as noted in CVE-2009-4016.
 
