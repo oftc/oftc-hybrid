@@ -112,7 +112,6 @@ struct Client
   unsigned int      hopcount;   /* number of servers to this 0 = local */
   unsigned int      status;     /* Client type */
   unsigned int      handler;    /* Handler index */
-  unsigned int      serial;     /* used to enforce 1 send per nick */
 
   dlink_list        channel;   /* chain of channel pointer blocks */
 
@@ -176,6 +175,7 @@ struct LocalUser
 
   unsigned int operflags;     /* oper priv flags */
 
+  unsigned int serial;     /* used to enforce 1 send per nick */
 
   /* Anti flooding part, all because of lamers... */
   time_t       last_knock;    /* time of last knock */

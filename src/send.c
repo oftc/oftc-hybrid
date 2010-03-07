@@ -44,15 +44,11 @@
 #include "irc_getnameinfo.h"
 #include "packet.h"
 
-#define LOG_BUFSIZE 2048
 
 struct Callback *iosend_cb = NULL;
 struct Callback *iosendctrl_cb = NULL;
-
-static void send_message(struct Client *, char *, int);
-static void send_message_remote(struct Client *, struct Client *, char *, int);
-
 static unsigned int current_serial = 0;
+
 
 /* send_format()
  *
@@ -86,7 +82,7 @@ send_format(char *lsendbuf, int bufsize, const char *pattern, va_list args)
 
   lsendbuf[len++] = '\r';
   lsendbuf[len++] = '\n';
-  return (len);
+  return len;
 }
 
 /*
@@ -461,9 +457,7 @@ sendto_channel_butone(struct Client *one, struct Client *from,
   char remote_buf[IRCD_BUFSIZE];
   char uid_buf[IRCD_BUFSIZE];
   int local_len, remote_len, uid_len;
-  dlink_node *ptr;
-  dlink_node *ptr_next;
-  struct Client *target_p;
+  dlink_node *ptr = NULL, *ptr_next = NULL;
 
   if (IsServer(from))
     local_len = ircsprintf(local_buf, ":%s %s %s ",
@@ -494,18 +488,19 @@ sendto_channel_butone(struct Client *one, struct Client *from,
 
   DLINK_FOREACH_SAFE(ptr, ptr_next, chptr->members.head)
   {
-    target_p = ((struct Membership *)ptr->data)->client_p;
-    assert(target_p != NULL);
+    struct Client *target_p = ((struct Membership *)ptr->data)->client_p;
+
+    assert(IsClient(target_p));
 
     if (IsDefunct(target_p) || IsDeaf(target_p) || target_p->from == one)
       continue;
 
-    if (MyClient(target_p))
+    if (MyConnect(target_p))
     {
-      if (target_p->serial != current_serial)
+      if (target_p->localClient->serial != current_serial)
       {
         send_message(target_p, local_buf, local_len);
-        target_p->serial = current_serial;
+        target_p->localClient->serial = current_serial;
       }
     }
     else
@@ -513,13 +508,13 @@ sendto_channel_butone(struct Client *one, struct Client *from,
       /* Now check whether a message has been sent to this
        * remote link already
        */
-      if (target_p->from->serial != current_serial)
+      if (target_p->from->localClient->serial != current_serial)
       {
         if (IsCapable(target_p->from, CAP_TS6))
           send_message_remote(target_p->from, from, uid_buf, uid_len);
         else
           send_message_remote(target_p->from, from, remote_buf, remote_len);
-        target_p->from->serial = current_serial;
+        target_p->from->localClient->serial = current_serial;
       }
     }
   }
@@ -622,16 +617,16 @@ sendto_common_channels_local(struct Client *user, int touser,
       assert(target_p != NULL);
 
       if (!MyConnect(target_p) || target_p == user || IsDefunct(target_p) ||
-          target_p->serial == current_serial)
+          target_p->localClient->serial == current_serial)
         continue;
 
-      target_p->serial = current_serial;
+      target_p->localClient->serial = current_serial;
       send_message(target_p, buffer, len);
     }
   }
 
   if (touser && MyConnect(user) && !IsDead(user) &&
-      user->serial != current_serial)
+      user->localClient->serial != current_serial)
     send_message(user, buffer, len);
 }
 
@@ -764,10 +759,10 @@ sendto_channel_remote(struct Client *one, struct Client *from, int type,
         ((target_p->from->localClient->caps & caps) != caps) ||
         ((target_p->from->localClient->caps & nocaps) != 0))
       continue;
-    if (target_p->from->serial != current_serial)
+    if (target_p->from->localClient->serial != current_serial)
     {
       send_message(target_p, buffer, len);
-      target_p->from->serial = current_serial;
+      target_p->from->localClient->serial = current_serial;
     }
   } 
 }
@@ -793,9 +788,9 @@ static int
 match_it(const struct Client *one, const char *mask, int what)
 {
   if (what == MATCH_HOST)
-    return(match(mask, one->host));
+    return match(mask, one->host);
 
-  return(match(mask, one->servptr->name));
+  return match(mask, one->servptr->name);
 }
 
 /* sendto_match_butone()
@@ -903,7 +898,7 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap,
     if (IsMe(target_p) || target_p->from == source_p->from)
       continue;
 
-    if (target_p->from->serial == current_serial)
+    if (target_p->from->localClient->serial == current_serial)
       continue;
 
     if (match(mask, target_p->name))
@@ -912,7 +907,7 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap,
        * if we set the serial here, then we'll never do a
        * match() again, if !IsCapable()
        */
-      target_p->from->serial = current_serial;
+      target_p->from->localClient->serial = current_serial;
       found++;
 
       if (!IsCapable(target_p->from, cap))
@@ -1030,8 +1025,7 @@ void
 sendto_wallops_flags(unsigned int flags, struct Client *source_p,
                      const char *pattern, ...)
 {
-  struct Client *client_p;
-  dlink_node *ptr;
+  dlink_node *ptr = NULL;
   va_list args;
   char buffer[IRCD_BUFSIZE];
   int len;
@@ -1080,7 +1074,7 @@ void
 ts_warn(const char *pattern, ...)
 {
   va_list args;
-  char buffer[LOG_BUFSIZE];
+  char buffer[IRCD_BUFSIZE];
   static time_t last = 0;
   static int warnings = 0;
 
