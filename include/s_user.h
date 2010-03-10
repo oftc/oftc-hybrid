@@ -35,7 +35,6 @@ extern unsigned int MaxClientCount;     /* GLOBAL - highest number of clients   
 extern unsigned int MaxConnectionCount; /* GLOBAL - highest number of connections */
 extern struct Callback *entering_umode_cb;
 extern struct Callback *umode_cb;
-extern struct Callback *uid_get_cb;
 extern unsigned int user_modes[];
 
 extern void assemble_umode_buffer(void);
@@ -47,12 +46,11 @@ extern void show_lusers(struct Client *);
 extern void show_isupport(struct Client *);
 extern void oper_up(struct Client *, const char *);
 
-extern void register_local_user(struct Client *, struct Client *,
-                                const char *, const char *);
-extern void register_remote_user(struct Client *, struct Client *,
+extern void register_local_user(struct Client *);
+extern void register_remote_user(struct Client *,
                                  const char *, const char *,
                                  const char *, const char *);
-extern void do_local_user(const char *, struct Client *, struct Client *,
+extern void do_local_user(struct Client *,
                           const char *, const char *, const char *,
                           const char *);
 extern void init_uid(void);

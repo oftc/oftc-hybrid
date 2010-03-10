@@ -90,7 +90,7 @@ mr_user(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  do_local_user(parv[0], client_p, source_p,
+  do_local_user(source_p,
                 parv[1], /* username */
                 parv[2], /* host     */
                 parv[3], /* server   */

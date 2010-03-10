@@ -361,10 +361,7 @@ cap_end(struct Client *sptr, const char *caplist)
   /* if client is now done... */
   if (!sptr->localClient->registration)
   {
-    char buf[USERLEN + 1];
-
-    strlcpy(buf, sptr->username, sizeof(buf));
-    register_local_user(sptr, sptr, sptr->name, buf);
+    register_local_user(sptr);
     return 0;
   }
 

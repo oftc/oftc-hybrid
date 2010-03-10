@@ -58,15 +58,14 @@ unsigned int MaxClientCount     = 1;
 unsigned int MaxConnectionCount = 1;
 struct Callback *entering_umode_cb = NULL;
 struct Callback *umode_cb = NULL;
-struct Callback *uid_get_cb = NULL;
 
 static char umode_buffer[IRCD_BUFSIZE];
 
 static void user_welcome(struct Client *);
 static void report_and_set_user_flags(struct Client *, const struct AccessItem *);
 static int check_xline(struct Client *);
-static void introduce_client(struct Client *, struct Client *);
-static void *uid_get(va_list);
+static void introduce_client(struct Client *);
+static const char *uid_get(void);
 
 /* Used for building up the isupport string,
  * used with init_isupport, add_isupport, delete_isupport
@@ -280,24 +279,22 @@ show_isupport(struct Client *source_p)
 **         nick from local user or kill him/her...
 */
 void
-register_local_user(struct Client *client_p, struct Client *source_p, 
-                    const char *nick, const char *username)
+register_local_user(struct Client *source_p)
 {
   const struct AccessItem *aconf = NULL;
   dlink_node *ptr = NULL;
   dlink_node *m = NULL;
 
   assert(source_p != NULL);
+  assert(source_p == source_p->from);
   assert(MyConnect(source_p));
-  assert(source_p->username != username);
   assert(!source_p->localClient->registration);
 
-  ClearCap(client_p, CAP_TS6);
+  ClearCap(source_p, CAP_TS6);
 
   if (ConfigFileEntry.ping_cookie)
   {
-    if (!IsPingSent(source_p) &&
-       source_p->localClient->random_ping == 0)
+    if (!IsPingSent(source_p) && source_p->localClient->random_ping == 0)
     {
       do
         source_p->localClient->random_ping = (unsigned long)rand();
@@ -316,7 +313,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   /* Straight up the maximum rate of flooding... */
   source_p->localClient->allow_read = MAX_FLOOD_BURST;
 
-  if (!execute_callback(client_check_cb, source_p, username))
+  if (!execute_callback(client_check_cb, source_p, source_p->username))
     return;
 
   if (valid_hostname(source_p->host) == 0)
@@ -332,7 +329,8 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
   if (!IsGotId(source_p))
   {
-    const char *p = NULL;
+    char username[USERLEN + 1];
+    const char *p = username;
     unsigned int i = 0;
 
     if (IsNeedIdentd(aconf))
@@ -344,17 +342,14 @@ register_local_user(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    p = username;
+    strlcpy(username, source_p->username, sizeof(username));
 
     if (!IsNoTilde(aconf))
       source_p->username[i++] = '~';
 
-    while (*p && i < USERLEN)
-    {
+    for (; *p && i < USERLEN; ++p)
       if (*p != '[')
         source_p->username[i++] = *p;
-      p++;
-    }
 
     source_p->username[i] = '\0';
   }
@@ -382,7 +377,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   /* report if user has &^>= etc. and set flags as needed in source_p */
   report_and_set_user_flags(source_p, aconf);
 
-  if (IsDead(client_p))
+  if (IsDead(source_p))
     return;
 
   /* Limit clients -
@@ -398,7 +393,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   {
     sendto_realops_flags(UMODE_FULL, L_ALL,
                          "Too many clients, rejecting %s[%s].",
-                         nick, source_p->host);
+                         source_p->name, source_p->host);
     ++ServerStats.is_ref;
     exit_client(source_p, &me, "Sorry, server is full - try later");
     return;
@@ -410,24 +405,22 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     char tmpstr2[IRCD_BUFSIZE];
 
     sendto_realops_flags(UMODE_REJ, L_ALL, "Invalid username: %s (%s@%s)",
-                         nick, source_p->username, source_p->host);
+                         source_p->name, source_p->username, source_p->host);
     ++ServerStats.is_ref;
     ircsprintf(tmpstr2, "Invalid username [%s]", source_p->username);
     exit_client(source_p, &me, tmpstr2);
     return;
   }
 
-  assert(source_p == client_p);
-
   if (check_xline(source_p))
     return;
 
   if (me.id[0])
   {
-    const char *id = execute_callback(uid_get_cb, source_p);
+    const char *id = NULL;
 
-    while (hash_find_id(id) != NULL)
-      id = execute_callback(uid_get_cb, source_p);
+    while (hash_find_id((id = uid_get())) != NULL)
+      ;
 
     strlcpy(source_p->id, id, sizeof(source_p->id));
     hash_add_id(source_p);
@@ -435,7 +428,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
   sendto_realops_flags(UMODE_CCONN, L_ALL,
                        "Client connecting: %s (%s@%s) [%s] {%s} [%s]",
-                       nick, source_p->username, source_p->host,
+                       source_p->name, source_p->username, source_p->host,
                        ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                        "255.255.255.255" : source_p->sockhost,
                        get_client_class(source_p),
@@ -443,7 +436,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
   sendto_realops_flags(UMODE_CCONN_FULL, L_ALL,
                        "CLICONN %s %s %s %s %s %s %s 0 %s",
-                       nick, source_p->username, source_p->host,
+                       source_p->name, source_p->username, source_p->host,
                        ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                        "255.255.255.255" : source_p->sockhost,
 		       get_client_class(source_p),
@@ -469,15 +462,14 @@ register_local_user(struct Client *client_p, struct Client *source_p,
                            Count.max_loc);
   }
 
-  SetClient(source_p);
-
-  source_p->servptr = &me;
-  dlinkAdd(source_p, &source_p->lnode, &source_p->servptr->serv->client_list);
-
   /* Increment our total user count here */
   if (++Count.total > Count.max_tot)
     Count.max_tot = Count.total;
   ++Count.totalrestartcount;
+
+  assert(source_p->servptr == &me);
+  SetClient(source_p);
+  dlinkAdd(source_p, &source_p->lnode, &source_p->servptr->serv->client_list);
 
   source_p->localClient->allow_read = MAX_FLOOD_BURST;
 
@@ -491,13 +483,12 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   add_user_host(source_p->username, source_p->host, 0);
   SetUserHost(source_p);
 
-  introduce_client(client_p, source_p);
+  introduce_client(source_p);
 }
 
 /* register_remote_user()
  *
- * inputs       - client_p directly connected client
- *              - source_p remote or directly connected client
+ * inputs       - source_p remote or directly connected client
  *              - username to register as
  *              - host name to register as
  *              - server name
@@ -507,7 +498,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
  *		  is introduced by a server.
  */
 void
-register_remote_user(struct Client *client_p, struct Client *source_p,
+register_remote_user(struct Client *source_p,
                      const char *username, const char *host, const char *server,
                      const char *realname)
 {
@@ -537,7 +528,7 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
                          "No server %s for user %s[%s@%s] from %s",
                          server, source_p->name, source_p->username,
                          source_p->host, source_p->from->name);
-    kill_client(client_p, source_p, "%s (Server doesn't exist)", me.name);
+    kill_client(source_p->from, source_p, "%s (Server doesn't exist)", me.name);
 
     SetKilled(source_p);
     exit_client(source_p, &me, "Ghosted Client");
@@ -548,10 +539,10 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
   {
     sendto_realops_flags(UMODE_DEBUG, L_ALL, 
                          "Bad User [%s] :%s USER %s@%s %s, != %s[%s]",
-                         client_p->name, source_p->name, source_p->username,
+                         source_p->from->name, source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name,
                          target_p->name, target_p->from->name);
-    kill_client(client_p, source_p,
+    kill_client(source_p->from, source_p,
                 "%s (NICK from wrong direction (%s != %s))",
                 me.name, source_p->servptr->name, target_p->from->name);
     SetKilled(source_p);
@@ -578,20 +569,19 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
 
   cidr_limit_reached(1, &source_p->ip, aclass);
 
-  introduce_client(client_p, source_p);
+  introduce_client(source_p);
 }
 
 /* introduce_client()
  *
- * inputs	- client_p
- *              - source_p
+ * inputs	- source_p
  * output	- NONE
  * side effects - This common function introduces a client to the rest
  *		  of the net, either from a local client connect or
  *		  from a remote connect.
  */
 static void
-introduce_client(struct Client *client_p, struct Client *source_p)
+introduce_client(struct Client *source_p)
 {
   dlink_node *server_node = NULL;
   static char ubuf[12];
@@ -613,7 +603,7 @@ introduce_client(struct Client *client_p, struct Client *source_p)
   {
     struct Client *server = server_node->data;
 
-    if (server == client_p)
+    if (server == source_p->from)
         continue;
 
     if (IsCapable(server, CAP_TS6) && HasID(source_p))
@@ -661,15 +651,12 @@ valid_hostname(const char *hostname)
 
   assert(p != NULL);
 
-  if ('.' == *p || ':' == *p)
+  if (*p == '.' || *p == ':')
     return 0;
 
-  while (*p)
-  {
+  for (; *p; ++p)
     if (!IsHostChar(*p))
       return 0;
-    p++;
-  }
 
   return 1;
 }
@@ -693,7 +680,7 @@ valid_username(const char *username)
 
   assert(p != NULL);
 
-  if ('~' == *p)
+  if (*p == '~')
     ++p;
 
   /* reject usernames that don't start with an alphanum
@@ -707,11 +694,9 @@ valid_username(const char *username)
   {
     if ((*p == '.') && ConfigFileEntry.dots_in_ident)
     {
-      dots++;
-
-      if (dots > ConfigFileEntry.dots_in_ident)
+      if (++dots > ConfigFileEntry.dots_in_ident)
         return 0;
-      if (!IsUserChar(p[1]))
+      if (!IsUserChar(*(p + 1)))
         return 0;
     }
     else if (!IsUserChar(*p))
@@ -800,22 +785,13 @@ report_and_set_user_flags(struct Client *source_p, const struct AccessItem *acon
  * side effects -
  */
 void
-do_local_user(const char *nick, struct Client *client_p, struct Client *source_p,
+do_local_user(struct Client *source_p,
               const char *username, const char *host, const char *server,
               const char *realname)
 {
   assert(source_p != NULL);
   assert(source_p->username != username);
-
-  if (source_p == NULL)
-    return;
-
-  if (!IsUnknown(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_ALREADYREGISTRED),
-               me.name, nick);
-    return;
-  }
+  assert(IsUnknown(source_p));
 
   source_p->localClient->registration &= ~REG_NEED_USER;
 
@@ -831,16 +807,10 @@ do_local_user(const char *nick, struct Client *client_p, struct Client *source_p
   strlcpy(source_p->client_server, server, sizeof(source_p->client_server));
 
   if (!IsGotId(source_p)) 
-  {
-    /* save the username in the client
-     * If you move this you'll break ping cookies..you've been warned 
-     */
     strlcpy(source_p->username, username, sizeof(source_p->username));
-  }
 
   if (!source_p->localClient->registration)
-    /* NICK already received, now I have USER... */
-    register_local_user(client_p, source_p, source_p->name, username);
+    register_local_user(source_p);
 }
 
 /* change_simple_umode()
@@ -1371,7 +1341,6 @@ init_uid(void)
 
   entering_umode_cb = register_callback("entering_umode", NULL);
   umode_cb = register_callback("changing_umode", change_simple_umode);
-  uid_get_cb = register_callback("uid_get", uid_get);
 }
 
 /*
@@ -1414,8 +1383,8 @@ add_one_to_uid(int i)
  * output       - new UID is returned to caller
  * side effects - new_uid is incremented by one.
  */
-static void *
-uid_get(va_list args)
+static const char *
+uid_get(void)
 {
   add_one_to_uid(TOTALSIDUID - 1);    /* index from 0 */
   return new_uid;
