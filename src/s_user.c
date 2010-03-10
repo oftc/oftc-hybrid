@@ -778,41 +778,6 @@ report_and_set_user_flags(struct Client *source_p, const struct AccessItem *acon
   }
 }
 
-/* do_local_user()
- *
- * inputs	-
- * output	- NONE
- * side effects -
- */
-void
-do_local_user(struct Client *source_p,
-              const char *username, const char *host, const char *server,
-              const char *realname)
-{
-  assert(source_p != NULL);
-  assert(source_p->username != username);
-  assert(IsUnknown(source_p));
-
-  source_p->localClient->registration &= ~REG_NEED_USER;
-
-  /*
-   * don't take the clients word for it, ever
-   */
-  source_p->servptr = &me;
-
-  strlcpy(source_p->info, realname, sizeof(source_p->info));
-
-  /* stash for later */
-  strlcpy(source_p->client_host, host, sizeof(source_p->client_host));
-  strlcpy(source_p->client_server, server, sizeof(source_p->client_server));
-
-  if (!IsGotId(source_p)) 
-    strlcpy(source_p->username, username, sizeof(source_p->username));
-
-  if (!source_p->localClient->registration)
-    register_local_user(source_p);
-}
-
 /* change_simple_umode()
  *
  * this callback can be hooked to allow special handling of
