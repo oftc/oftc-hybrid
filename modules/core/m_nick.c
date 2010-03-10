@@ -108,8 +108,6 @@ const char *_version = "$Revision$";
 static void
 set_initial_nick(struct Client *source_p, const char *nick)
 {
- char buf[USERLEN + 1];
-
   /* Client setting NICK the first time */
 
   /* This had to be copied here to avoid problems.. */
@@ -126,14 +124,7 @@ set_initial_nick(struct Client *source_p, const char *nick)
   fd_note(&source_p->localClient->fd, "Nick: %s", nick);
 
   if (!source_p->localClient->registration)
-  {
-    strlcpy(buf, source_p->username, sizeof(buf));
-
-    /*
-     * USER already received, now we have NICK.
-     */
-    register_local_user(source_p, source_p, nick, buf);
-  }
+    register_local_user(source_p);
 }
 
 /*! \brief NICK command handler (called by unregistered,
@@ -192,7 +183,7 @@ mr_nick(struct Client *client_p, struct Client *source_p,
   if ((target_p = find_client(nick)) == NULL)
     set_initial_nick(source_p, nick);
   else if (source_p == target_p)
-    strcpy(source_p->name, nick);
+    strlcpy(source_p->name, nick, sizeof(source_p->name));
   else
     sendto_one(source_p, form_str(ERR_NICKNAMEINUSE), me.name, "*", nick);
 }
@@ -652,7 +643,7 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
         source_p->umodes |= flag & SEND_UMODES;
       }
 
-      register_remote_user(client_p, source_p, parv[5], parv[6],
+      register_remote_user(source_p, parv[5], parv[6],
                            parv[7], ngecos);
       return;
     }
@@ -730,7 +721,7 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
     source_p->umodes |= flag & SEND_UMODES;
   }
 
-  register_remote_user(client_p, source_p, parv[5], parv[6],
+  register_remote_user(source_p, parv[5], parv[6],
                        servername, parv[9]);
 }
 

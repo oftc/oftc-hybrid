@@ -869,7 +869,7 @@ m_registered(struct Client *client_p, struct Client *source_p,
              int parc, char *parv[])
 {
   sendto_one(client_p, form_str(ERR_ALREADYREGISTRED),   
-             me.name, parv[0]); 
+             me.name, source_p->name);
 }
 
 void
