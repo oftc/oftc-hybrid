@@ -133,7 +133,7 @@ ilog(const int priority, const char *fmt, ...)
     return;
 
   va_start(args, fmt);
-  vsprintf(buf, fmt, args);
+  vsnprintf(buf, sizeof(buf), fmt, args);
   va_end(args);
 
 #ifdef USE_SYSLOG  
