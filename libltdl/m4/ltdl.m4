@@ -146,15 +146,21 @@ dnl AC_DEFUN([AC_LIBLTDL_INSTALLABLE], [])
 # -----------------
 # Code shared by LTDL_INSTALLABLE and LTDL_INIT([installable]).
 m4_defun([_LTDL_INSTALLABLE],
-[AC_CHECK_LIB([ltdl], [lt_dlinit], [lt_lib_ltdl=yes])
+[if test -f $prefix/lib/libltdl.la; then
+  lt_save_LDFLAGS="$LDFLAGS"
+  LDFLAGS="-L$prefix/lib $LDFLAGS"
+  AC_CHECK_LIB([ltdl], [lt_dlinit], [lt_lib_ltdl=yes])
+  LDFLAGS="$lt_save_LDFLAGS"
   if test x"${lt_lib_ltdl-no}" = xyes; then
     if test x"$enable_ltdl_install" != xyes; then
-      AC_MSG_WARN([not overwriting installed libltdl, force with `--enable-ltdl-install'])
+      # Don't overwrite $prefix/lib/libltdl.la without --enable-ltdl-install
+      AC_MSG_WARN([not overwriting libltdl at $prefix, force with `--enable-ltdl-install'])
       enable_ltdl_install=no
     fi
   elif test x"$enable_ltdl_install" = xno; then
     AC_MSG_WARN([libltdl not installed, but installation disabled])
   fi
+fi
 
 # If configure.ac declared an installable ltdl, and the user didn't override
 # with --disable-ltdl-install, we will install the shipped libltdl.
