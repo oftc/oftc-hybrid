@@ -1096,7 +1096,7 @@ ts_warn(const char *pattern, ...)
   }
 
   va_start(args, pattern);
-  vsprintf_irc(buffer, pattern, args);
+  vsnprintf(buffer, sizeof(buffer), pattern, args);
   va_end(args);
 
   sendto_realops_flags(UMODE_ALL, L_ALL, "%s", buffer);
