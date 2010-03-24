@@ -21,7 +21,7 @@ AC_PROG_INSTALL
 # Initializing libtool.
 LT_CONFIG_LTDL_DIR([libltdl])
 LT_INIT([dlopen disable-static])
-LTDL_INIT
+LTDL_INIT([convenience])
 LIBTOOL="$LIBTOOL --silent"
 
 # Checks for libraries.

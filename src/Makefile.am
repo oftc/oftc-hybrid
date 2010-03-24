@@ -4,10 +4,10 @@ sbin_PROGRAMS = ircd
 
 AM_YFLAGS = -d
 
-AM_CPPFLAGS = $(INCLTDL) -I$(top_srcdir)/include
+AM_CPPFLAGS = $(LTDLINCL) -I$(top_srcdir)/include
 ircd_LDFLAGS = -export-dynamic
 ircd_LDADD = $(LIBLTDL)
-ircd_DEPENDENCIES = $(LIBLTDL)
+ircd_DEPENDENCIES = $(LTDLDEPS)
 
 ircd_SOURCES = balloc.c          \
                channel.c         \

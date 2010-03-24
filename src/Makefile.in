@@ -254,10 +254,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
 AM_YFLAGS = -d
-AM_CPPFLAGS = $(INCLTDL) -I$(top_srcdir)/include
+AM_CPPFLAGS = $(LTDLINCL) -I$(top_srcdir)/include
 ircd_LDFLAGS = -export-dynamic
 ircd_LDADD = $(LIBLTDL)
-ircd_DEPENDENCIES = $(LIBLTDL)
+ircd_DEPENDENCIES = $(LTDLDEPS)
 ircd_SOURCES = balloc.c channel.c channel_mode.c client.c csvlib.c \
 	dbuf.c dynlink.c event.c fdlist.c fileio.c getopt.c hash.c \
 	hook.c hostmask.c irc_getaddrinfo.c irc_getnameinfo.c \
