@@ -21,7 +21,7 @@ AC_PROG_INSTALL
 # Initializing libtool.
 LT_CONFIG_LTDL_DIR([libltdl])
 LT_INIT([dlopen disable-static])
-LTDL_INIT([convenience])
+LTDL_INIT([recursive convenience])
 LIBTOOL="$LIBTOOL --silent"
 
 # Checks for libraries.
@@ -250,6 +250,7 @@ AC_CONFIG_FILES(              \
        contrib/Makefile       \
        contrib/help/Makefile  \
        src/Makefile           \
+       libltdl/Makefile       \
        messages/Makefile      \
        modules/Makefile       \
        modules/core/Makefile  \
