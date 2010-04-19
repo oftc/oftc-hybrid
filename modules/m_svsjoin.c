@@ -87,7 +87,7 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
   char *newch = NULL;
   dlink_node *ptr = NULL;
 
-  if ((target_p = find_client(parv[1])) == NULL || !IsClient(target_p))
+  if ((target_p = find_person(source_p, parv[1])) == NULL)
     return;
 
   if (!MyConnect(target_p))
