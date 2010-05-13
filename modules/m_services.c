@@ -71,7 +71,7 @@
 
 static void m_svsnick(struct Client *, struct Client *, int, char *[]);
 
-static void m_botserv(struct Client *, struct Client *, int, char *[]);
+static void m_groupserv(struct Client *, struct Client *, int, char *[]);
 static void m_chanserv(struct Client *, struct Client *, int, char *[]);
 static void m_global(struct Client *, struct Client *, int, char *[]);
 static void m_helpserv(struct Client *, struct Client *, int, char *[]);
@@ -95,9 +95,9 @@ struct Message svsnick_msgtab = {
 };
 
 /* Services */
-struct Message botserv_msgtab = {
-  "BOTSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
+struct Message groupserv_msgtab = {
+  "GROUPSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
 };
 
 struct Message chanserv_msgtab = {
@@ -173,7 +173,7 @@ struct Message os_msgtab = {
 
 struct Message bs_msgtab = {
   "BS", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
+  {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -181,7 +181,7 @@ void
 _modinit(void)
 {
   mod_add_cmd(&svsnick_msgtab);
-  mod_add_cmd(&botserv_msgtab);
+  mod_add_cmd(&groupserv_msgtab);
   mod_add_cmd(&chanserv_msgtab); 
   mod_add_cmd(&global_msgtab);
   mod_add_cmd(&helpserv_msgtab);
@@ -203,7 +203,7 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&svsnick_msgtab);
-  mod_del_cmd(&botserv_msgtab);
+  mod_del_cmd(&groupserv_msgtab);
   mod_del_cmd(&chanserv_msgtab); 
   mod_del_cmd(&global_msgtab);
   mod_del_cmd(&helpserv_msgtab);
@@ -281,7 +281,7 @@ m_svsnick(struct Client *client_p, struct Client *source_p,
  * These generate the services functions through
  * a macro.
  */
-services_function(m_botserv,  "BotServ",  "BOTSERV" )
+services_function(m_groupserv,  "GroupServ",  "GROUPSERV" )
 services_function(m_chanserv, "ChanServ", "CHANSERV")
 services_function(m_global,   "Global",   "GLOBAL"  )
 services_function(m_helpserv, "HelpServ", "HELPSERV")
