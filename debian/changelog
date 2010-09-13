@@ -1,9 +1,21 @@
-oftc-hybrid (1.6.3.dfsg-2) unreleased-unstable; urgency=low
+oftc-hybrid (1.6.9.dfsg-1) unstable; urgency=low
 
-  * Add Homepage and Vcs-* fields
+  * New upstream version.
+  * Use external PCRE lib.
+  * Add Homepage and Vcs-* fields.
   * Mangle version numbers in watch file.
+  * Patch from the NMU (thanks!) dropped, implemented upstream in a different
+    way.
 
- -- Christoph Berg <myon@debian.org>  Sat, 22 Mar 2008 21:53:56 +0100
+ -- Christoph Berg <myon@debian.org>  Mon, 13 Sep 2010 22:36:37 +0200
+
+oftc-hybrid (1.6.3.dfsg-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Added int_underflow.patch(thanks to Steffen Joeris)
+    Fixes (DSA-1980-1)/(CVE-2009-4016) (Closes: #567193).
+
+ -- Martijn van Brummelen <martijn@brumit.nl>  Tue, 11 May 2010 20:18:12 +0200
 
 oftc-hybrid (1.6.3.dfsg-1) unstable; urgency=low
 

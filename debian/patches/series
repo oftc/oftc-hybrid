@@ -1,3 +1,4 @@
 destdir
 defaults
 respond-manpage
+external-pcre

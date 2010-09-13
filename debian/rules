@@ -25,7 +25,7 @@ build-stamp: configure-stamp
 
 install: build-stamp
 	dh_testroot
-	dh_clean -k
+	dh_prep
 	dh_installdirs
 	$(MAKE) install DESTDIR=$D
 	$(MAKE) -C messages install DESTDIR=$D
@@ -79,8 +79,8 @@ binary-arch: install
 
 clean: unpatch
 	dh_testdir
-	-$(MAKE) distclean
-	-$(MAKE) -C tools/rsa_respond distclean
+	[ ! -f Makefile ] || $(MAKE) distclean
+	[ ! -f tools/rsa_respond/Makefile ] || $(MAKE) -C tools/rsa_respond distclean
 	dh_clean
 	rm -f src/y.tab.? src/lex.yy.c src/tags configure-stamp build-stamp
 

@@ -2,15 +2,15 @@ Source: oftc-hybrid
 Section: net
 Priority: extra
 Maintainer: Christoph Berg <myon@debian.org>
-Build-Depends: debhelper (>> 4), quilt (>> 0.40), bison, flex, zlib1g-dev, libssl-dev
-Standards-Version: 3.7.3
+Build-Depends: debhelper (>> 7), quilt, bison, flex, zlib1g-dev, libssl-dev, libpcre3-dev
+Standards-Version: 3.9.1
 Vcs-Browser: http://svn.oftc.net/svn/oftc-hybrid/branches/debian-oftc-hybrid/
-Vcs-Svn: https://svn.oftc.net/svn/oftc-hybrid/branches/debian-oftc-hybrid/
+Vcs-Svn: http://svn.oftc.net/svn/oftc-hybrid/branches/debian-oftc-hybrid/
 Homepage: http://www.oftc.net/oftc/CodingProjects
 
 Package: oftc-hybrid
 Architecture: any
-Depends: ${shlibs:Depends}, adduser
+Depends: ${shlibs:Depends}, adduser, ${misc:Depends}
 Provides: ircd
 Suggests: oftc-hybrid-doc, oftc-hybrid-respond
 Conflicts: ircd-hybrid, dancer-ircd
@@ -21,7 +21,7 @@ Description: Hybrid 7 IRC daemon - OFTC branch
 Package: oftc-hybrid-doc
 Section: doc
 Architecture: all
-Depends: oftc-hybrid
+Depends: oftc-hybrid, ${misc:Depends}
 Description: Documentation for oftc-hybrid
  This is the IRC server designed for use on OFTC (irc.oftc.net), based on the
  Hybrid 7 ircd.
@@ -30,7 +30,7 @@ Description: Documentation for oftc-hybrid
 
 Package: oftc-hybrid-respond
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: respond binary for oftc-hybrid challenge oper authentication
  The oftc-hybrid IRC server offers challenge-response IRC operator
  authentication using RSA keys. This package provides the client-side
