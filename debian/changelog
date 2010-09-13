@@ -4,6 +4,7 @@ oftc-hybrid (1.6.9.dfsg-1) unstable; urgency=low
   * Use external PCRE lib.
   * Add Homepage and Vcs-* fields.
   * Mangle version numbers in watch file.
+  * Update watch file for new URL. (Closes: #551404)
   * Patch from the NMU (thanks!) dropped, implemented upstream in a different
     way.
 
