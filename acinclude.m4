@@ -43,7 +43,7 @@ AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
   dnl {{{ check for epoll oechanism support
   iopoll_mechanism_epoll=2
   AC_DEFINE_UNQUOTED([__IOPOLL_MECHANISM_EPOLL],[$iopoll_mechanism_epoll],[epoll mechanism])
-  AC_RUN_IFELSE([AC_LANG_PROGRAM([
+  AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/epoll.h>
 #include <sys/syscall.h>
 #if defined(__stub_epoll_create) || defined(__stub___epoll_create) || defined(EPOLL_NEED_BODY)
@@ -72,8 +72,8 @@ AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
 #endif
 _syscall1(int, epoll_create, int, size)
 #endif
-main() { return epoll_create(256) == -1 ? 1 : 0; }
-  ])],[is_epoll_mechanism_available="yes"],[is_epoll_mechanism_available="no"])
+]], [[ return epoll_create(256) == -1 ? 1 : 0 ]])],
+  [is_epoll_mechanism_available="yes"],[is_epoll_mechanism_available="no"])
   dnl }}}
   dnl {{{ check for devpoll mechanism support
   iopoll_mechanism_devpoll=3
@@ -90,14 +90,16 @@ main() { return epoll_create(256) == -1 ? 1 : 0; }
   dnl {{{ check for rtsigio mechanism support
   iopoll_mechanism_rtsigio=4
   AC_DEFINE_UNQUOTED([__IOPOLL_MECHANISM_RTSIGIO],[$iopoll_mechanism_rtsigio],[rtsigio mechanism])
-  AC_RUN_IFELSE([AC_LANG_PROGRAM([
+  AC_RUN_IFELSE([AC_LANG_PROGRAM([[
+#define _GNU_SOURCE
 #include <fcntl.h>
+static unsigned int have_f_setsig = 0;
+  ]], [[
 #ifdef F_SETSIG
-main () { return 0; } /* F_SETSIG defined */
-#else
-main () { return 1; } /* F_SETSIG not defined */
+  have_f_setsig = 1;
 #endif
-  ])],[is_rtsigio_mechanism_available="yes"],[is_rtsigio_mechanism_available="no"])
+  return have_f_setsig == 0;
+  ]])], [is_rtsigio_mechanism_available="yes"],[is_rtsigio_mechanism_available="no"])
   dnl }}}
   dnl {{{ check for poll mechanism support
   iopoll_mechanism_poll=5
