@@ -164,18 +164,18 @@ fi
 
 AS_IF([test "$cf_enable_openssl" != "no"],
  [AC_MSG_CHECKING(for OpenSSL 0.9.7 or above)
-  AC_RUN_IFELSE(
+  AC_RUN_IFELSE([
     AC_LANG_PROGRAM([
     #include <openssl/opensslv.h>
     #include <stdlib.h>],
-    [[exit(!(OPENSSL_VERSION_NUMBER >= 0x00907000));]]),
+    [[ exit(!(OPENSSL_VERSION_NUMBER >= 0x00907000)); ]])],
   [cf_openssl_version_ok=yes],
   [cf_openssl_version_ok=no],
   [cf_openssl_version_ok=no])
 
   AS_IF([test "$cf_openssl_version_ok" = "yes"],
     [AC_MSG_RESULT(found)
-   
+
     AC_CHECK_LIB(crypto, RSA_free)
     AS_IF([test "$ac_cv_lib_crypto_RSA_free" = "yes"],
       [AC_CHECK_FUNCS(EVP_bf_cfb           \
