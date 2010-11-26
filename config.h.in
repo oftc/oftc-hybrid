@@ -172,6 +172,9 @@
 /* Define if you have the shl_load function. */
 #undef HAVE_SHL_LOAD
 
+/* Define to 1 if you have the `socketpair' function. */
+#undef HAVE_SOCKETPAIR
+
 /* Define to 1 if you have the <socket.h> header file. */
 #undef HAVE_SOCKET_H
 

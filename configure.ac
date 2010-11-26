@@ -36,7 +36,8 @@ AC_CHECK_FUNCS_ONCE(mmap     \
                     strtok_r \
                     usleep   \
                     strlcat  \
-                    strlcpy)
+                    strlcpy  \
+                    socketpair)
 
 # Checks for header files.
 AC_CHECK_HEADERS_ONCE(crypt.h        \
