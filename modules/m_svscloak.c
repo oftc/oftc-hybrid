@@ -111,6 +111,8 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
     }
     strncpy(target_p->host, hostname, HOSTLEN);
     off_history(target_p);
+
+    rehashed_klines = 1;
   }
   else
   {   
