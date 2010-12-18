@@ -142,10 +142,9 @@ struct Client
    * gcos field in /etc/passwd but anything can go here.
    */
   char              info[REALLEN + 1]; /* Free form additional client info */
-  char              client_host[HOSTLEN + 1];
-  char              client_server[HOSTLEN + 1];
 
-  /* client->sockhost contains the ip address gotten from the socket as a
+  /*
+   * client->sockhost contains the ip address gotten from the socket as a
    * string, this field should be considered read-only once the connection
    * has been made. (set in s_bsd.c only)
    */
@@ -159,9 +158,10 @@ struct LocalUser
    * The following fields are allocated only for local clients
    * (directly connected to *this* server with a socket.
    */
-  dlink_node        lclient_node;
+  dlink_node   lclient_node;
 
-
+  char         client_host[HOSTLEN + 1];
+  char         client_server[HOSTLEN + 1];
 
   unsigned int registration;
   unsigned int cap_client;    /* Client capabilities (from us) */

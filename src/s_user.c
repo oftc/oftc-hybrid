@@ -442,9 +442,9 @@ register_local_user(struct Client *source_p)
                        "255.255.255.255" : source_p->sockhost,
 		       get_client_class(source_p),
 		       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
-                           "<hidden>" : source_p->client_host,
+                           "<hidden>" : source_p->localClient->client_host,
 		       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
-                           "<hidden>" : source_p->client_server,
+                           "<hidden>" : source_p->localClient->client_server,
                        source_p->info);
 
 

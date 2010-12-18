@@ -203,8 +203,8 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 		   target_p->username,
 		   target_p->host,
 		   IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
-		   IsIPSpoof(target_p) ? "<hidden>" : target_p->client_host,
-		   IsIPSpoof(target_p) ? "<hidden>" : target_p->client_server,
+		   IsIPSpoof(target_p) ? "<hidden>" : target_p->localClient->client_host,
+		   IsIPSpoof(target_p) ? "<hidden>" : target_p->localClient->client_server,
 		   target_p->info);
       else
         sendto_one(source_p, FORM_STR_RPL_ETRACE_FULL,
@@ -216,8 +216,8 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 		   target_p->username,
 		   target_p->host,
 		   target_p->sockhost,
-		   target_p->client_host,
-		   target_p->client_server,
+		   target_p->localClient->client_host,
+		   target_p->localClient->client_server,
 		   target_p->info);
     }
     else
