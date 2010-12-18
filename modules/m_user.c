@@ -85,8 +85,8 @@ do_local_user(struct Client *source_p,
   strlcpy(source_p->info, realname, sizeof(source_p->info));
 
   /* stash for later */
-  strlcpy(source_p->client_host, host, sizeof(source_p->client_host));
-  strlcpy(source_p->client_server, server, sizeof(source_p->client_server));
+  strlcpy(source_p->localClient->client_host, host, sizeof(source_p->localClient->client_host));
+  strlcpy(source_p->localClient->client_server, server, sizeof(source_p->localClient->client_server));
 
   if (!IsGotId(source_p))
     strlcpy(source_p->username, username, sizeof(source_p->username));
@@ -107,7 +107,7 @@ static void
 mr_user(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  char *p;
+  char *p = NULL;
 
   if (source_p->localClient->listener->flags & LISTENER_SERVER)
   {
