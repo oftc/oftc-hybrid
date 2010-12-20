@@ -465,12 +465,16 @@ extern const char *get_locale(void);
 	RPL_EODUMP	     642	unreal
 */
 
+#define RPL_WHOISSECURE      671
 #define RPL_MODLIST          702
 #define RPL_ENDOFMODLIST     703
 
 #define RPL_HELPSTART        704
 #define RPL_HELPTXT          705
 #define RPL_ENDOFHELP        706
+
+#define RPL_ETRACE_FULL      708
+#define RPL_ETRACE           709
 
 #define RPL_KNOCK	     710
 #define RPL_KNOCKDLVR	     711

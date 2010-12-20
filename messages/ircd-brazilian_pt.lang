@@ -32,12 +32,11 @@ RPL_ENDOFTRACE:		 :%s 262 %s %s :Fim do /TRACE
 RPL_LOAD2HI:		 :%s 263 %s :O servidor está temporariamente sobrecarregado. Por favor aguarde e tente novamente.
 RPL_LOCALUSERS:		 :%s 265 %s :Usuários locais atualmente: %d  Máximo: %d
 RPL_GLOBALUSERS:	 :%s 266 %s :Usuários globais atualmente: %d  Máximo: %d
-RPL_WHOISSSL:            :%s 275 %s %s :é conectado via SSL (link seguro)
 RPL_ENDOFACCEPT:	 :%s 282 %s :Fim da lista /ACCEPT.
 RPL_UNAWAY:		 :%s 305 %s :Você não está mais marcado como away
 RPL_NOWAWAY:		 :%s 306 %s :Você foi marcado como estando away
-RPL_WHOISADMIN:          :%s 313 %s %s :é um Administrador do Servidor
-RPL_WHOISOPERATOR:       :%s 313 %s %s :é um Operador do IRC
+RPL_WHOISADMIN:		 :%s 313 %s %s :é um Administrador do Servidor
+RPL_WHOISOPERATOR:	 :%s 313 %s %s :é um Operador do IRC
 RPL_ENDOFWHO:		 :%s 315 %s %s :Fim do /WHO.
 RPL_WHOISIDLE:		 :%s 317 %s %s %d %d :segundos inativo
 RPL_ENDOFWHOIS:		 :%s 318 %s %s :Fim do /WHOIS.
@@ -59,7 +58,7 @@ RPL_MOTDSTART:		 :%s 375 %s :- %s Mensagem do dia -
 RPL_ENDOFMOTD:		 :%s 376 %s :Fim do /MOTD.
 RPL_YOUREOPER:		 :%s 381 %s :Você entrou... na Zona do Crepúsculo!
 RPL_REHASHING:		 :%s 382 %s %s :Recarregando
-RPL_HOSTHIDDEN:          :%s 396 %s :agora seu host está escondido
+RPL_HOSTHIDDEN:		 :%s 396 %s :agora seu host está escondido
 ERR_NOSUCHNICK:		 :%s 401 %s %s :Nenhum canal/nick
 ERR_NOSUCHSERVER:	 :%s 402 %s %s :Nenhum servidor
 ERR_NOSUCHCHANNEL:	 :%s 403 %s %s :Nenhum canal
@@ -112,6 +111,7 @@ ERR_USERNOTONSERV:	 :%s 504 %s %s :Usuário não está neste servidor
 ERR_WRONGPONG:		 :%s 513 %s :Para conectar, digite /QUOTE PONG %lu
 ERR_LISTSYNTAX:		 :%s 521 %s :Sintaxe má formada para lista
 ERR_HELPNOTFOUND:	 :%s 524 %s %s :Ajuda não encontrada
+RPL_WHOISSECURE:	 :%s 671 %s %s :é conectado via SSL (link seguro)
 RPL_ENDOFMODLIST:	 :%s 703 %s :Fim de /MODLIST.
 RPL_ENDOFHELP:		 :%s 706 %s %s :Fim de /HELP.
 RPL_KNOCK:		 :%s 710 %s %s %s!%s@%s :pediu por um convite.
