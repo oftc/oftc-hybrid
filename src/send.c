@@ -1130,7 +1130,7 @@ kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,
   char buf_uid[IRCD_BUFSIZE], buf_nick[IRCD_BUFSIZE];
   int len_uid = 0, len_nick = 0;
 
-  if (HasID(source_p) && (me.id[0] != '\0'))
+  if (HasID(source_p))
   {
     have_uid = 1;
     va_start(args, pattern);

@@ -99,7 +99,7 @@ mr_pass(struct Client *client_p, struct Client *source_p,
   }
 
   /* only do this stuff if we are doing ts6 */
-  if (parc > 4 && me.id[0])
+  if (parc > 4)
   {
     if (atoi(parv[3]) >= 6 && valid_sid(parv[4]))
     {

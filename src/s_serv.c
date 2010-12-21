@@ -562,6 +562,27 @@ try_connections(void *unused)
 }
 
 int
+valid_servname(const char *name)
+{
+  unsigned int length = 0;
+  unsigned int dots   = 0;
+  const char *p = name;
+
+  for (; *p; ++p)
+  {
+    if (!IsServChar(*p))
+      return 1;
+
+    ++length;
+
+    if (*p == '.')
+      ++dots;
+  }
+
+  return !dots || length > HOSTLEN;
+}
+
+int
 check_server(const char *name, struct Client *client_p, int cryptlink)
 {
   dlink_node *ptr;
@@ -996,7 +1017,7 @@ server_estab(struct Client *client_p)
     }
   }
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = map_to_conf(conf);
 
   if (IsUnknown(client_p) && !IsConfCryptLink(aconf))
   {
@@ -1004,15 +1025,8 @@ server_estab(struct Client *client_p)
      *        2.  Check aconf->spasswd, not aconf->passwd.
      */
     if (!EmptyString(aconf->spasswd))
-    {
-      /* only send ts6 format PASS if we have ts6 enabled */
-    if (me.id[0] != '\0')		/* Send TS 6 form only if id */
-        sendto_one(client_p, "PASS %s TS %d %s",
-                   aconf->spasswd, TS_CURRENT, me.id);
-      else
-        sendto_one(client_p, "PASS %s TS 5",
-                   aconf->spasswd);
-    }
+      sendto_one(client_p, "PASS %s TS %d %s",
+                 aconf->spasswd, TS_CURRENT, me.id);
 
     /* Pass my info to the new server
      *
@@ -1038,8 +1052,7 @@ server_estab(struct Client *client_p)
      */
     sendto_one(client_p, "SERVER %s 1 :%s%s",
                my_name_for_link(conf), 
-               ConfigServerHide.hidden ? "(H) " : "",
-               (me.info[0]) ? (me.info) : "IRCers United");
+               ConfigServerHide.hidden ? "(H) " : "", me.info);
     send_queued_write(client_p);
   }
 
@@ -1063,9 +1076,7 @@ server_estab(struct Client *client_p)
     SetServlink(client_p);
   }
 
-  /* only send ts6 format SVINFO if we have ts6 enabled */ 
-  sendto_one(client_p, "SVINFO %d %d 0 :%lu",
-             (me.id[0] ? TS_CURRENT : 5), TS_MIN,
+  sendto_one(client_p, "SVINFO %d %d 0 :%lu", TS_CURRENT, TS_MIN,
              (unsigned long)CurrentTime);
 
   /* assumption here is if they passed the correct TS version, they also passed an SID */
@@ -1636,7 +1647,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   strlcpy(client_p->host, aconf->host, sizeof(client_p->host));
 
   /* We already converted the ip once, so lets use it - stu */
-  strlcpy(client_p->sockhost, buf, HOSTIPLEN);
+  strlcpy(client_p->sockhost, buf, sizeof(client_p->sockhost));
 
   /* create a socket for the server connection */ 
   if (comm_open(&client_p->localClient->fd, aconf->ipnum.ss.ss_family,
@@ -1846,13 +1857,10 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 #endif
 
   /* jdc -- Check and send spasswd, not passwd. */
-  if (!EmptyString(aconf->spasswd) && (me.id[0] != '\0'))
+  if (!EmptyString(aconf->spasswd))
       /* Send TS 6 form only if id */
     sendto_one(client_p, "PASS %s TS %d %s",
                aconf->spasswd, TS_CURRENT, me.id);
-  else
-    sendto_one(client_p, "PASS %s TS 5",
-               aconf->spasswd);
 
   /* Pass my info to the new server
    *
@@ -1975,9 +1983,7 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
                     | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
                     | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), CAP_ENC_MASK);
 
-  if (me.id[0])
-    sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);
-
+  sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);
   sendto_one(client_p, "CRYPTLINK SERV %s %s :%s%s",
              my_name_for_link(conf), key_to_send,
              ConfigServerHide.hidden ? "(H) " : "", me.info);

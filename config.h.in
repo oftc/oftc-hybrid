@@ -351,9 +351,6 @@
 /* Size of the topic heap. */
 #undef TOPIC_HEAP_SIZE
 
-/* If Defined to 1 server links to your network must have a minimum of TS5. */
-#undef TS5_ONLY
-
 /* use this iopoll mechanism */
 #undef USE_IOPOLL_MECHANISM
 

@@ -302,11 +302,7 @@ struct LocalUser
  * ts stuff
  */
 #define TS_CURRENT      6       /* current TS protocol version */
-#ifdef TS5_ONLY
-#define TS_MIN          5
-#else
-#define TS_MIN          3       /* minimum supported TS protocol version */
-#endif
+#define TS_MIN          5       /* minimum supported TS protocol version */
 #define TS_DOESTS       0x20000000
 #define DoesTS(x)       ((x)->tsinfo == TS_DOESTS)
 

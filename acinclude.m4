@@ -162,7 +162,6 @@ AC_DEFUN([AX_ARG_ENABLE_EFNET],[
   if test "$efnet" = "yes" ; then
 		use_efnet="yes"
     AC_DEFINE([EFNET],[1],[Define to 1 if this server will be an EFnet server.])
-		AC_DEFINE([TS5_ONLY],[1],[If Defined to 1 server links to your network must have a minimum of TS5.])
 	else
 		use_efnet="no"
   fi

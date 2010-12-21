@@ -233,6 +233,7 @@ extern struct EncCapability CipherTable[];
 #define HUNTED_ISME     0       /* if this server should execute the command */
 #define HUNTED_PASS     1       /* if message passed onwards successfully */
 
+extern int valid_servname(const char *);
 extern int check_server(const char *, struct Client *, int);
 extern int hunt_server(struct Client *, struct Client *,
                        const char *, int, int, char **);
