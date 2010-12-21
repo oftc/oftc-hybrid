@@ -904,7 +904,6 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
               break;
 
             ClearOper(source_p);
-            source_p->umodes &= ~ConfigFileEntry.oper_only_umodes;
             Count.oper--;
 
             if (MyConnect(source_p))
@@ -913,6 +912,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
 
               detach_conf(source_p, OPER_TYPE);
               ClearOperFlags(source_p);
+              source_p->umodes &= ~ConfigFileEntry.oper_only_umodes;
 
               if ((dm = dlinkFindDelete(&oper_list, source_p)) != NULL)
                 free_dlink_node(dm);
