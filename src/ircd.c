@@ -589,25 +589,31 @@ main(int argc, char *argv[])
   init_auth();          /* Initialise the auth code */
   init_resolver();      /* Needs to be setup before the io loop */
   read_conf_files(1);   /* cold start init conf files */
-  me.id[0] = '\0';
   init_uid();
   initialize_server_capabs();   /* Set up default_server_capabs */
   initialize_global_set_options();
   init_channels();
 
-  if (ServerInfo.name == NULL)
+  if (EmptyString(ServerInfo.sid))
   {
-    ilog(L_CRIT, "No server name specified in serverinfo block.");
+    ilog(L_CRIT, "ERROR: No server id specified in serverinfo block.");
+    exit(EXIT_FAILURE);
+  }
+
+  strlcpy(me.id, ServerInfo.sid, sizeof(me.id));
+
+  if (EmptyString(ServerInfo.name))
+  {
+    ilog(L_CRIT, "ERROR: No server name specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
   strlcpy(me.name, ServerInfo.name, sizeof(me.name));
 
   /* serverinfo{} description must exist.  If not, error out.*/
-  if (ServerInfo.description == NULL)
+  if (EmptyString(ServerInfo.description))
   {
-    ilog(L_CRIT,
-      "ERROR: No server description specified in serverinfo block.");
+    ilog(L_CRIT, "ERROR: No server description specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
@@ -620,6 +626,8 @@ main(int argc, char *argv[])
   make_server(&me);
 
   me.lasttime = me.since = me.firsttime = CurrentTime;
+
+  hash_add_id(&me);
   hash_add_client(&me);
   
   /* add ourselves to global_serv_list */
@@ -628,15 +636,20 @@ main(int argc, char *argv[])
 #ifndef STATIC_MODULES
   if (chdir(MODPATH))
   {
-    ilog (L_CRIT, "Could not load core modules. Terminating!");
+    ilog(L_CRIT, "Could not load core modules. Terminating!");
     exit(EXIT_FAILURE);
   }
 
   load_all_modules(1);
   load_conf_modules();
   load_core_modules(1);
+
   /* Go back to DPATH after checking to see if we can chdir to MODPATH */
-  chdir(ConfigFileEntry.dpath);
+  if (chdir(ConfigFileEntry.dpath))
+  {
+    perror("chdir");
+    exit(EXIT_FAILURE);
+  }
 #else
   load_all_modules(1);
 #endif

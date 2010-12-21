@@ -42,11 +42,10 @@
 #include "modules.h"
 
 
-static void mr_server(struct Client *, struct Client *, int, char **);
-static void ms_server(struct Client *, struct Client *, int, char **);
-static void ms_sid(struct Client *, struct Client *, int, char **);
+static void mr_server(struct Client *, struct Client *, int, char *[]);
+static void ms_server(struct Client *, struct Client *, int, char *[]);
+static void ms_sid(struct Client *, struct Client *, int, char *[]);
 
-static int bogus_host(char *host);
 static void set_server_gecos(struct Client *, char *);
 static struct Client *server_exists(char *);
 
@@ -115,7 +114,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (bogus_host(name))
+  if (valid_servname(name))
   {
     exit_client(client_p, client_p, "Bogus server name");
     return;
@@ -171,7 +170,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
       break;
   }
 
-  if ((me.id[0] && client_p->id[0] && (target_p = hash_find_id(client_p->id)))
+  if ((client_p->id[0] && (target_p = hash_find_id(client_p->id)))
       || (target_p = server_exists(name)))
   {
     /* This link is trying feed me a server that I already have
@@ -784,31 +783,6 @@ set_server_gecos(struct Client *client_p, char *info)
   }
   else
     strlcpy(client_p->info, "(Unknown Location)", sizeof(client_p->info));
-}
-
-/* bogus_host()
- *
- * inputs	- hostname
- * output	- 1 if a bogus hostname input,
- *              - 0 if its valid
- * side effects	- none
- */
-static int
-bogus_host(char *host)
-{
-  unsigned int dots = 0;
-  char *s;
-
-  for (s = host; *s; s++)
-  {
-    if (!IsServChar(*s))
-      return(1);
-
-    if ('.' == *s)
-      ++dots;
-  }
-
-  return(!dots);
 }
 
 /* server_exists()

@@ -281,6 +281,7 @@ show_isupport(struct Client *source_p)
 void
 register_local_user(struct Client *source_p)
 {
+  const char *id = NULL;
   const struct AccessItem *aconf = NULL;
   dlink_node *ptr = NULL;
   dlink_node *m = NULL;
@@ -415,16 +416,11 @@ register_local_user(struct Client *source_p)
   if (check_xline(source_p))
     return;
 
-  if (me.id[0])
-  {
-    const char *id = NULL;
+  while (hash_find_id((id = uid_get())) != NULL)
+    ;
 
-    while (hash_find_id((id = uid_get())) != NULL)
-      ;
-
-    strlcpy(source_p->id, id, sizeof(source_p->id));
-    hash_add_id(source_p);
-  }
+  strlcpy(source_p->id, id, sizeof(source_p->id));
+  hash_add_id(source_p);
 
   sendto_realops_flags(UMODE_CCONN, L_ALL,
                        "Client connecting: %s (%s@%s) [%s] {%s} [%s]",
@@ -850,7 +846,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
      return;
   }
 
-  if (source_p != target_p || target_p->from != source_p->from)
+  if (source_p != target_p)
   {
      sendto_one(source_p, form_str(ERR_USERSDONTMATCH),
                 me.name, source_p->name);
@@ -1139,11 +1135,11 @@ user_welcome(struct Client *source_p)
 
   if (ConfigFileEntry.short_motd)
   {
-    sendto_one(source_p, "NOTICE %s :*** Notice -- motd was last changed at %s",
-               source_p->name, ConfigFileEntry.motd.lastChangedDate);
+    sendto_one(source_p, ":%s NOTICE %s :*** Notice -- motd was last changed at %s",
+               me.name, source_p->name, ConfigFileEntry.motd.lastChangedDate);
     sendto_one(source_p,
-               "NOTICE %s :*** Notice -- Please read the motd if you haven't "
-               "read it", source_p->name);
+               ":%s NOTICE %s :*** Notice -- Please read the motd if you haven't "
+               "read it", me.name, source_p->name);
     sendto_one(source_p, form_str(RPL_MOTDSTART),
                me.name, source_p->name, me.name);
     sendto_one(source_p, form_str(RPL_MOTD),
@@ -1260,7 +1256,6 @@ static char new_uid[TOTALSIDUID + 1];     /* allow for \0 */
 int
 valid_sid(const char *sid)
 {
-
   if (strlen(sid) == IRC_MAXSID)
     if (IsDigit(*sid))
       if (IsAlNum(*(sid + 1)) && IsAlNum(*(sid + 2)))
@@ -1285,15 +1280,10 @@ init_uid(void)
 
   memset(new_uid, 0, sizeof(new_uid));
 
-  if (ServerInfo.sid != NULL)
-  {
+  if (!EmptyString(ServerInfo.sid))
     strlcpy(new_uid, ServerInfo.sid, sizeof(new_uid));
-    strlcpy(me.id, ServerInfo.sid, sizeof(me.id));
 
-    hash_add_id(&me);
-  }
-
-  for (i = 0; i < IRC_MAXSID; i++)
+  for (i = 0; i < IRC_MAXSID; ++i)
     if (new_uid[i] == '\0') 
       new_uid[i] = 'A';
 
