@@ -627,13 +627,14 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
 serverinfo_name: NAME '=' QSTRING ';' 
 {
   /* this isn't rehashable */
-  if (conf_parser_ctx.pass == 2)
+  if (conf_parser_ctx.pass == 2 && !ServerInfo.name)
   {
-    if (ServerInfo.name == NULL)
+    if (valid_servname(yylval.string))
+      DupString(ServerInfo.name, yylval.string);
+    else
     {
-      /* the ircd will exit() in main() if we dont set one */
-      if (strlen(yylval.string) <= HOSTLEN)
-        DupString(ServerInfo.name, yylval.string);
+      ilog(L_ERROR, "Ignoring serverinfo::name -- invalid name. Aborting.");
+      exit(0);
     }
   }
 };
@@ -647,7 +648,7 @@ serverinfo_sid: IRCD_SID '=' QSTRING ';'
       DupString(ServerInfo.sid, yylval.string);
     else
     {
-      ilog(L_ERROR, "Ignoring config file entry SID -- invalid SID. Aborting.");
+      ilog(L_ERROR, "Ignoring serverinfo::sid -- invalid SID. Aborting.");
       exit(0);
     }
   }

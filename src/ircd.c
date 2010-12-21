@@ -331,10 +331,7 @@ initialize_server_capabs(void)
 {
   add_capability("QS", CAP_QS, 1);
   add_capability("EOB", CAP_EOB, 1);
-
-  if (ServerInfo.sid != NULL)	/* only enable TS6 if we have an SID */
-    add_capability("TS6", CAP_TS6, 0);
-
+  add_capability("TS6", CAP_TS6, 0);
   add_capability("ZIP", CAP_ZIP, 0);
   add_capability("CLUSTER", CAP_CLUSTER, 1);
 #ifdef HALFOPS
