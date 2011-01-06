@@ -383,7 +383,6 @@ delete_conf_item(struct ConfItem *conf)
     MyFree(aconf->oper_reason);
     MyFree(aconf->user);
     MyFree(aconf->host);
-    MyFree(aconf->fakename);
 #ifdef HAVE_LIBCRYPTO
     if (aconf->rsa_public_key)
       RSA_free(aconf->rsa_public_key);
@@ -733,8 +732,6 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
 	*p++ = 'A';
       if (IsConfCryptLink(aconf))
 	*p++ = 'C';
-      if (aconf->fakename)
-	*p++ = 'M';
       if (IsConfTopicBurst(aconf))
         *p++ = 'T';
       if (IsConfCompressed(aconf))

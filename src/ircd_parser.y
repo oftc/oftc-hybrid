@@ -180,7 +180,6 @@ unhook_hub_leaf_confs(void)
 %token  EXCEED_LIMIT
 %token  EXEMPT
 %token  FAILED_OPER_NOTICE
-%token  FAKENAME
 %token  IRCD_FLAGS
 %token  FLATTEN_LINKS
 %token  FFAILED_OPERLOG
@@ -2307,7 +2306,7 @@ connect_name_b: | connect_name_t;
 connect_items:  connect_items connect_item | connect_item;
 connect_item:   connect_name | connect_host | connect_vhost |
 		connect_send_password | connect_accept_password |
-		connect_aftype | connect_port | connect_fakename |
+		connect_aftype | connect_port |
 		connect_flags | connect_hub_mask | connect_leaf_mask |
 		connect_class | connect_encrypted |
 		connect_rsa_public_key_file | connect_cipher_preference |
@@ -2424,15 +2423,6 @@ connect_aftype: AFTYPE '=' T_IPV4 ';'
   if (conf_parser_ctx.pass == 2)
     yy_aconf->aftype = AF_INET6;
 #endif
-};
-
-connect_fakename: FAKENAME '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    MyFree(yy_aconf->fakename);
-    DupString(yy_aconf->fakename, yylval.string);
-  }
 };
 
 connect_flags: IRCD_FLAGS

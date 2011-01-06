@@ -171,7 +171,6 @@ enable		{ return ENABLE; }
 encrypted       { return ENCRYPTED; }
 exceed_limit    { return EXCEED_LIMIT; }
 exempt		{ return EXEMPT; }
-fakename	{ return FAKENAME; }
 flags           { return IRCD_FLAGS; }
 flatten_links	{ return FLATTEN_LINKS; }
 fglinelog 	{ return FGLINELOG; }

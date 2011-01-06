@@ -162,7 +162,7 @@ mo_trace(struct Client *client_p, struct Client *source_p,
         {
           ac2ptr = ptr->data;
 
-          if (match(tname, ac2ptr->name) || match(ac2ptr->name, tname))
+          if (match(tname, ac2ptr->name))
             break;
           else
             ac2ptr = NULL;

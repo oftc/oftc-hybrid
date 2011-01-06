@@ -236,22 +236,6 @@ check_cipher(struct Client *client_p, struct AccessItem *aconf)
 }
 #endif /* HAVE_LIBCRYPTO */
 
-/* my_name_for_link()
- * return wildcard name of my server name 
- * according to given config entry --Jto
- */
-const char *
-my_name_for_link(struct ConfItem *conf)
-{
-  struct AccessItem *aconf;
-
-  aconf = (struct AccessItem *)map_to_conf(conf);
-  if (aconf->fakename != NULL)
-    return aconf->fakename;
-  else
-    return me.name;
-}
-
 /*
  * write_links_file
  *
@@ -571,7 +555,7 @@ valid_servname(const char *name)
   for (; *p; ++p)
   {
     if (!IsServChar(*p))
-      return 1;
+      return 0;
 
     ++length;
 
@@ -579,7 +563,7 @@ valid_servname(const char *name)
       ++dots;
   }
 
-  return !dots || length > HOSTLEN;
+  return dots != 0 && length <= HOSTLEN;
 }
 
 int
@@ -1051,8 +1035,7 @@ server_estab(struct Client *client_p)
      * Nagle is already disabled at this point --adx
      */
     sendto_one(client_p, "SERVER %s 1 :%s%s",
-               my_name_for_link(conf), 
-               ConfigServerHide.hidden ? "(H) " : "", me.info);
+               me.name, ConfigServerHide.hidden ? "(H) " : "", me.info);
     send_queued_write(client_p);
   }
 
@@ -1162,10 +1145,6 @@ server_estab(struct Client *client_p)
     if (target_p == client_p)
       continue;
 
-    if ((conf = target_p->serv->sconf) &&
-         match(my_name_for_link(conf), client_p->name))
-      continue;
-
     if (IsCapable(target_p, CAP_TS6) && HasID(client_p))
       sendto_one(target_p, ":%s SID %s 2 %s :%s%s",
                  me.id, client_p->name, client_p->id,
@@ -1196,17 +1175,12 @@ server_estab(struct Client *client_p)
   **    is destroyed...)
   */
 
-  conf = client_p->serv->sconf;
-
   DLINK_FOREACH_PREV(ptr, global_serv_list.tail)
   {
     target_p = ptr->data;
 
     /* target_p->from == target_p for target_p == client_p */
-    if (target_p->from == client_p)
-      continue;
-
-    if (match(my_name_for_link(conf), target_p->name))
+    if (IsMe(target_p) || target_p->from == client_p)
       continue;
 
     if (IsCapable(client_p, CAP_TS6))
@@ -1874,8 +1848,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
                     | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
-             my_name_for_link(conf), 
-	     ConfigServerHide.hidden ? "(H) " : "", 
+             me.name, ConfigServerHide.hidden ? "(H) " : "", 
 	     me.info);
 
   /* If we've been marked dead because a send failed, just exit
@@ -1908,7 +1881,7 @@ find_servconn_in_progress(const char *name)
     cptr = ptr->data;
 
     if (cptr && cptr->name[0])
-      if (match(cptr->name, name) || match(name, cptr->name))
+      if (match(name, cptr->name))
         return cptr;
   }
   
@@ -1985,7 +1958,7 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
 
   sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);
   sendto_one(client_p, "CRYPTLINK SERV %s %s :%s%s",
-             my_name_for_link(conf), key_to_send,
+             me.name, key_to_send,
              ConfigServerHide.hidden ? "(H) " : "", me.info);
 
   SetHandshake(client_p);

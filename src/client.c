@@ -719,23 +719,17 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
 
   assert(!IsMe(source_p));
 
-  if (IsServer(source_p))
-  {
-    dlinkDelete(&source_p->lnode, &source_p->servptr->serv->server_list);
-
-    if ((lp = dlinkFindDelete(&global_serv_list, source_p)) != NULL)
-      free_dlink_node(lp);
-  }
-  else if (IsClient(source_p))
+  if (IsClient(source_p))
   {
     if (source_p->servptr->serv != NULL)
       dlinkDelete(&source_p->lnode, &source_p->servptr->serv->client_list);
 
-    /* If a person is on a channel, send a QUIT notice
-    ** to every client (person) on the same channel (so
-    ** that the client can show the "**signoff" message).
-    ** (Note: The notice is to the local clients *only*)
-    */
+    /*
+     * If a person is on a channel, send a QUIT notice
+     * to every client (person) on the same channel (so
+     * that the client can show the "**signoff" message).
+     * (Note: The notice is to the local clients *only*)
+     */
     sendto_common_channels_local(source_p, 0, ":%s!%s@%s QUIT :%s",
                                  source_p->name, source_p->username,
                                  source_p->host, quitmsg);
@@ -755,6 +749,13 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
 
       del_all_accepts(source_p);
     }
+  }
+  else if (IsServer(source_p))
+  {
+    dlinkDelete(&source_p->lnode, &source_p->servptr->serv->server_list);
+
+    if ((lp = dlinkFindDelete(&global_serv_list, source_p)) != NULL)
+      free_dlink_node(lp);
   }
 
   /* Remove source_p from the client lists */
@@ -795,11 +796,11 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
 static void
 recurse_send_quits(struct Client *original_source_p, struct Client *source_p,
                    struct Client *from, struct Client *to, const char *comment,
-                   const char *splitstr, const char *myname)
+                   const char *splitstr)
 {
   dlink_node *ptr, *next;
   struct Client *target_p;
-  int hidden = match(myname, source_p->name);
+  int hidden = match(me.name, source_p->name); /* XXX */
 
   assert(to != source_p);  /* should be already removed from serv_list */
 
@@ -818,7 +819,7 @@ recurse_send_quits(struct Client *original_source_p, struct Client *source_p,
 
   DLINK_FOREACH_SAFE(ptr, next, source_p->serv->server_list.head)
     recurse_send_quits(original_source_p, ptr->data, from, to,
-                       comment, splitstr, myname);
+                       comment, splitstr);
 
   if (!hidden && ((source_p == original_source_p && to != from) ||
                   !IsCapable(to, CAP_QS)))
@@ -859,22 +860,11 @@ static void
 remove_dependents(struct Client *source_p, struct Client *from,
                   const char *comment, const char *splitstr)
 {
-  struct Client *to;
-  struct ConfItem *conf;
-  static char myname[HOSTLEN+1];
-  dlink_node *ptr;
+  dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, serv_list.head)
-  {
-    to = ptr->data;
-
-    if ((conf = to->serv->sconf) != NULL)
-      strlcpy(myname, my_name_for_link(conf), sizeof(myname));
-    else
-      strlcpy(myname, me.name, sizeof(myname));
-    recurse_send_quits(source_p, source_p, from, to,
-                       comment, splitstr, myname);
-  }
+    recurse_send_quits(source_p, source_p, from, ptr->data,
+                       comment, splitstr);
 
   recurse_remove_clients(source_p, splitstr);
 }
@@ -900,7 +890,7 @@ remove_dependents(struct Client *source_p, struct Client *from,
 void
 exit_client(struct Client *source_p, struct Client *from, const char *comment)
 {
-  dlink_node *m;
+  dlink_node *m = NULL;
 
   if (MyConnect(source_p))
   {

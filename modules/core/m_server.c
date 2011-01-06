@@ -34,7 +34,8 @@
 #include "numeric.h"     /* ERR_xxx */
 #include "s_conf.h"      /* struct AccessItem */
 #include "s_log.h"       /* log level defines */
-#include "s_serv.h"      /* server_estab, check_server, my_name_for_link */
+#include "s_serv.h"      /* server_estab, check_server */
+#include "s_user.h"
 #include "send.h"        /* sendto_one */
 #include "motd.h"
 #include "msg.h"
@@ -47,7 +48,6 @@ static void ms_server(struct Client *, struct Client *, int, char *[]);
 static void ms_sid(struct Client *, struct Client *, int, char *[]);
 
 static void set_server_gecos(struct Client *, char *);
-static struct Client *server_exists(char *);
 
 struct Message server_msgtab = {
   "SERVER", 0, 0, 4, 0, MFLG_SLOW | MFLG_UNREG, 0,
@@ -93,7 +93,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
   struct Client *target_p;
   int hop;
 
-  if (parc < 4)
+  if (parc < 4 || EmptyString(parv[3]))
   {
     sendto_one(client_p, "ERROR :No servername");
     exit_client(client_p, client_p, "Wrong number of args");
@@ -104,20 +104,29 @@ mr_server(struct Client *client_p, struct Client *source_p,
   hop  = atoi(parv[2]);
   strlcpy(info, parv[3], sizeof(info));
 
-  /* Reject a direct nonTS server connection if we're TS_ONLY -orabidoo
+  /*
+   * Reject a direct nonTS server connection if we're TS_ONLY -orabidoo
    */
   if (!DoesTS(client_p))
   {
-    sendto_realops_flags(UMODE_ALL, L_ADMIN, "Link %s dropped, non-TS server",
-                         get_client_name(client_p, HIDE_IP));
-    sendto_realops_flags(UMODE_ALL, L_OPER,  "Link %s dropped, non-TS server",
-                         get_client_name(client_p, MASK_IP));
+    sendto_realops_flags(UMODE_ALL, L_ADMIN,
+          "Unauthorized server connection attempt from %s: Non-TS server "
+          "for server %s", get_client_name(client_p, HIDE_IP), name);
+    sendto_realops_flags(UMODE_ALL, L_OPER,
+          "Unauthorized server connection attempt from %s: Non-TS server "
+          "for server %s", get_client_name(client_p, MASK_IP), name);
     exit_client(client_p, client_p, "Non-TS server");
     return;
   }
 
-  if (valid_servname(name))
+  if (!valid_servname(name))
   {
+    sendto_realops_flags(UMODE_ALL, L_ADMIN,
+          "Unauthorized server connection attempt from %s: Bogus server name "
+          "for server %s", get_client_name(client_p, HIDE_IP), name);
+    sendto_realops_flags(UMODE_ALL, L_OPER,
+          "Unauthorized server connection attempt from %s: Bogus server name "
+          "for server %s", get_client_name(client_p, MASK_IP), name);
     exit_client(client_p, client_p, "Bogus server name");
     return;
   }
@@ -188,7 +197,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
   }
 
   if ((client_p->id[0] && (target_p = hash_find_id(client_p->id)))
-      || (target_p = server_exists(name)))
+      || (target_p = find_server(name)))
   {
     /* This link is trying feed me a server that I already have
      * access through another path -- multiple paths not accepted
@@ -255,7 +264,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
   if (!IsServer(source_p))
     return;
 
-  if (parc < 4)
+  if (parc < 4 || EmptyString(parv[3]))
   {
     sendto_one(client_p, "ERROR :No servername");
     return;
@@ -265,7 +274,20 @@ ms_server(struct Client *client_p, struct Client *source_p,
   hop  = atoi(parv[2]);
   strlcpy(info, parv[3], sizeof(info));
 
-  if ((target_p = server_exists(name)))
+  if (!valid_servname(name))
+  {
+    sendto_realops_flags(UMODE_ALL, L_ADMIN,
+                         "Link %s introduced server with bogus server name %s",
+                         get_client_name(client_p, SHOW_IP), name);
+    sendto_realops_flags(UMODE_ALL, L_OPER,
+                         "Link %s introduced server with bogus server name %s",
+                         get_client_name(client_p, MASK_IP), name);
+    sendto_one(client_p, "ERROR :Bogus server name introduced");
+    exit_client(client_p, &me, "Bogus server name intoduced");
+    return;
+  }
+
+  if ((target_p = find_server(name)))
   {
     /* This link is trying feed me a server that I already have
      * access through another path -- multiple paths not accepted
@@ -310,49 +332,6 @@ ms_server(struct Client *client_p, struct Client *source_p,
     if (target_p != client_p)
       exit_client(target_p, &me, "Overridden");
 
-  /* User nicks never have '.' in them and server names
-   * must always have '.' in them.
-   */
-  if (strchr(name, '.') == NULL)
-  {
-    /* Server trying to use the same name as a person. Would
-     * cause a fair bit of confusion. Enough to make it hellish
-     * for a while and servers to send stuff to the wrong place.
-     */
-    sendto_one(client_p,"ERROR :Nickname %s already exists!", name);
-    sendto_realops_flags(UMODE_ALL, L_ADMIN,
-			   "Link %s cancelled: Server/nick collision on %s",
-		/* inpath */ get_client_name(client_p, HIDE_IP), name);
-    sendto_realops_flags(UMODE_ALL, L_OPER,
-          "Link %s cancelled: Server/nick collision on %s",
-	  get_client_name(client_p, MASK_IP), name);
-    exit_client(client_p, client_p, "Nick as Server");
-    return;
-  }
-
-  if (strlen(name) > HOSTLEN)
-  {
-    sendto_realops_flags(UMODE_ALL, L_ADMIN,
-                         "Link %s introduced server with invalid servername %s",
-                         get_client_name(client_p, HIDE_IP), name);
-    sendto_realops_flags(UMODE_ALL, L_OPER,
-                         "Link %s introduced server with invalid servername %s",
-                         client_p->name, name);
-    exit_client(client_p, &me, "Invalid servername introduced.");
-    return;
-  }
-
-  /* Server is informing about a new server behind
-   * this link. Create REMOTE server structure,
-   * add it to list and propagate word to my other
-   * server links...
-   */
-  if (parc == 1 || info[0] == '\0')
-  {
-    sendto_one(client_p, "ERROR :No server info specified for %s", name);
-    return;
-  }
-
   /* See if the newly found server is behind a guaranteed
    * leaf. If so, close the link.
    */
@@ -362,7 +341,8 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
     if (match(conf->name, client_p->name))
     {
-      match_item = (struct MatchItem *)map_to_conf(conf);
+      match_item = map_to_conf(conf);
+
       if (match(match_item->host, name))
 	llined++;
     }
@@ -374,7 +354,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
     if (match(conf->name, client_p->name))
     {
-      match_item = (struct MatchItem *)map_to_conf(conf);
+      match_item = map_to_conf(conf);
 
       if (match(match_item->host, name))
 	hlined++;
@@ -425,58 +405,33 @@ ms_server(struct Client *client_p, struct Client *source_p,
                          get_client_name(client_p, HIDE_IP), name);
     sendto_realops_flags(UMODE_ALL, L_OPER,
 			 "Link %s introduced leafed server %s.",
-                         client_p->name, name);
-      /* If it is new, we are probably misconfigured, so split the
-       * non-hub server introducing this. Otherwise, split the new
-       * server. -A1kmm.
-       */
-      /* wastes too much bandwidth, generates too many errors on
-       * larger networks, dont bother. --fl_
-       */
-      exit_client(client_p, &me, "Leafed Server.");
-      return;
+                         get_client_name(client_p, MASK_IP), name);
+    /* If it is new, we are probably misconfigured, so split the
+     * non-hub server introducing this. Otherwise, split the new
+     * server. -A1kmm.
+     */
+    /* wastes too much bandwidth, generates too many errors on
+     * larger networks, dont bother. --fl_
+     */
+    exit_client(client_p, &me, "Leafed Server.");
+    return;
   }
 
   target_p = make_client(client_p);
   make_server(target_p);
   target_p->hopcount = hop;
+  target_p->servptr = source_p;
 
   strlcpy(target_p->name, name, sizeof(target_p->name));
 
   set_server_gecos(target_p, info);
-
-  target_p->servptr = source_p;
-
   SetServer(target_p);
 
-  if ((target_p->node.prev != NULL) || (target_p->node.next != NULL))
-  {
-    sendto_realops_flags(UMODE_ALL, L_OPER,
-			 "already linked %s at %s:%d", target_p->name,
-			 __FILE__, __LINE__);
-    ilog(L_ERROR, "already linked client %s at %s:%d", target_p->name,
-	 __FILE__, __LINE__);
-    assert(0==1);
-  }
-  else
-  {
-    dlinkAdd(target_p, &target_p->node, &global_client_list);
-    dlinkAdd(target_p, make_dlink_node(), &global_serv_list);
-  }
+  dlinkAdd(target_p, &target_p->node, &global_client_list);
+  dlinkAdd(target_p, make_dlink_node(), &global_serv_list);
+  dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->server_list);
 
   hash_add_client(target_p);
-  /* XXX test that target_p->lnode.prev and .next are NULL as well? */
-  if ((target_p->lnode.prev != NULL) || (target_p->lnode.next != NULL))
-  {
-    sendto_realops_flags(UMODE_ALL, L_OPER,
-			 "already lnode linked %s at %s:%d", target_p->name,
-			 __FILE__, __LINE__);
-    ilog(L_ERROR, "already lnode linked %s at %s:%d", target_p->name,
-	 __FILE__, __LINE__);
-    assert(0==2);
-  }
-  else
-    dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->server_list);
 
   /* Old sendto_serv_but_one() call removed because we now
    * need to send different names to different servers
@@ -489,21 +444,6 @@ ms_server(struct Client *client_p, struct Client *source_p,
     if (bclient_p == client_p)
       continue;
 
-    if ((conf = bclient_p->serv->sconf) == NULL)
-    {
-      sendto_realops_flags(UMODE_ALL, L_ADMIN,
-			   "Lost connect{} block for %s on %s. Closing",
-                           get_client_name(client_p, HIDE_IP), name);
-      sendto_realops_flags(UMODE_ALL, L_OPER,
-			   "Lost connect{} block for %s on %s. Closing",
-                           get_client_name(client_p, MASK_IP), name);
-      exit_client(client_p, client_p, "Lost connect{} block");
-      continue;
-    }
-
-    if (match(my_name_for_link(conf), target_p->name))
-      continue;
-
     sendto_one(bclient_p, ":%s SERVER %s %d :%s%s",
                ID_or_name(source_p, bclient_p), target_p->name, hop + 1,
                IsHidden(target_p) ? "(H) " : "",
@@ -511,7 +451,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
   }
 
   sendto_realops_flags(UMODE_EXTERNAL, L_ALL,
-		       "Server %s being introduced by %s",
+                       "Server %s being introduced by %s",
                        target_p->name, source_p->name);
 }
 
@@ -535,43 +475,70 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   int llined = 0;
   dlink_node *ptr, *ptr_next;
   int hop;
-#define SID_NAME	parv[1]
-#define SID_HOP		parv[2]
-#define SID_SID		parv[3]
-#define SID_GECOS	parv[4]
-
-  hop = atoi(SID_HOP);
 
   /* Just to be sure -A1kmm. */
   if (!IsServer(source_p))
     return;
 
-  strlcpy(info, SID_GECOS, sizeof(info));
+  if (parc < 5 || EmptyString(parv[4]))
+  {
+    sendto_one(client_p, "ERROR :No servername");
+    return;
+  }
+
+  hop = atoi(parv[2]);
+  strlcpy(info, parv[4], sizeof(info));
+
+  if (!valid_servname(parv[1]))
+  {
+    sendto_realops_flags(UMODE_ALL, L_ADMIN,
+                         "Link %s introduced server with bogus server name %s",
+                         get_client_name(client_p, SHOW_IP), parv[1]);
+    sendto_realops_flags(UMODE_ALL, L_OPER,
+                         "Link %s introduced server with bogus server name %s",
+                         get_client_name(client_p, MASK_IP), parv[1]);
+    sendto_one(client_p, "ERROR :Bogus server name introduced");
+    exit_client(client_p, &me, "Bogus server name intoduced");
+    return;
+  }
+
+  if (!valid_sid(parv[3]))
+  {
+    sendto_realops_flags(UMODE_ALL, L_ADMIN,
+                         "Link %s introduced server with bogus server ID %s",
+                         get_client_name(client_p, SHOW_IP), parv[3]);
+    sendto_realops_flags(UMODE_ALL, L_OPER,
+                         "Link %s introduced server with bogus server ID %s",
+                         get_client_name(client_p, MASK_IP), parv[3]);
+    sendto_one(client_p, "ERROR :Bogus server ID introduced");
+    exit_client(client_p, &me, "Bogus server ID intoduced");
+    return;
+  }
 
   /* collision on SID? */
-  if ((target_p = hash_find_id(SID_SID)) != NULL)
+  if ((target_p = hash_find_id(parv[3])))
   {
-    sendto_one(client_p, "ERROR :SID %s already exists", SID_SID);
+    sendto_one(client_p, "ERROR :SID %s already exists", parv[3]);
     sendto_realops_flags(UMODE_ALL, L_ADMIN,
 			 "Link %s cancelled, SID %s already exists",
-                         get_client_name(client_p, SHOW_IP), SID_SID);
+                         get_client_name(client_p, SHOW_IP), parv[3]);
     sendto_realops_flags(UMODE_ALL, L_OPER,
 			 "Link %s cancelled, SID %s already exists",
-                         client_p->name, SID_SID);
+                         client_p->name, parv[3]);
     exit_client(client_p, &me, "Server Exists");
     return;
   }
 
   /* collision on name? */
-  if ((target_p = server_exists(SID_NAME)) != NULL)
+  if ((target_p = find_server(parv[1])))
   {
-    sendto_one(client_p, "ERROR :Server %s already exists", SID_NAME);
+    sendto_one(client_p, "ERROR :Server %s already exists", parv[1]);
     sendto_realops_flags(UMODE_ALL, L_ADMIN,
                          "Link %s cancelled, server %s already exists",   
-                         get_client_name(client_p, SHOW_IP), SID_NAME);
+                         get_client_name(client_p, SHOW_IP), parv[1]);
     sendto_realops_flags(UMODE_ALL, L_OPER,
                          "Link %s cancelled, server %s already exists",   
-                         client_p->name, SID_NAME);       
+                         client_p->name, parv[1]);
     exit_client(client_p, &me, "Server Exists");
     return;
   }
@@ -580,41 +547,9 @@ ms_sid(struct Client *client_p, struct Client *source_p,
    * a connect comes in with same name toss the pending one,
    * but only if it's not the same client! - Dianora
    */
-  if ((target_p = find_servconn_in_progress(SID_NAME)))
+  if ((target_p = find_servconn_in_progress(parv[1])))
     if (target_p != client_p)
       exit_client(target_p, &me, "Overridden");
-
-  /* User nicks never have '.' in them and server names
-   * must always have '.' in them.
-   */
-  if (strchr(SID_NAME, '.') == NULL || /* servernames must have a '.' and nicks must not */
-      strlen(SID_NAME) > HOSTLEN)      /* ensure the name of the server is not too long  */
-  {
-    /* Server trying to use the same name as a person. Would
-     * cause a fair bit of confusion. Enough to make it hellish
-     * for a while and servers to send stuff to the wrong place.
-     */
-    sendto_one(client_p, "ERROR :Invalid servername");
-    sendto_realops_flags(UMODE_ALL, L_ADMIN,
-			 "Link %s cancelled: servername name %s invalid",
-		         get_client_name(client_p, SHOW_IP), SID_NAME);
-    sendto_realops_flags(UMODE_ALL, L_OPER,
-                         "Link %s cancelled: servername name %s invalid",
-	                 get_client_name(client_p, MASK_IP), SID_NAME);
-    exit_client(client_p, client_p, "Nick as Server");
-    return;
-  }
-
-  /* Server is informing about a new server behind
-   * this link. Create REMOTE server structure,
-   * add it to list and propagate word to my other
-   * server links...
-   */
-  if (parc == 1 || info[0] == '\0')
-  {
-    sendto_one(client_p, "ERROR :No server info specified for %s", SID_NAME);
-    return;
-  }
 
   /* See if the newly found server is behind a guaranteed
    * leaf. If so, close the link.
@@ -625,8 +560,9 @@ ms_sid(struct Client *client_p, struct Client *source_p,
 
     if (match(conf->name, client_p->name))
     {
-      match_item = (struct MatchItem *)map_to_conf(conf);
-      if (match(match_item->host, SID_NAME))
+      match_item = map_to_conf(conf);
+
+      if (match(match_item->host, parv[1]))
 	llined++;
     }
   }
@@ -637,9 +573,9 @@ ms_sid(struct Client *client_p, struct Client *source_p,
 
     if (match(conf->name, client_p->name))
     {
-      match_item = (struct MatchItem *)map_to_conf(conf);
+      match_item = map_to_conf(conf);
 
-      if (match(match_item->host, SID_NAME))
+      if (match(match_item->host, parv[1]))
 	hlined++;
     }
   }
@@ -672,9 +608,9 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   {
     /* OOOPs nope can't HUB */
     sendto_realops_flags(UMODE_ALL, L_ADMIN, "Non-Hub link %s introduced %s.",
-                         get_client_name(client_p, SHOW_IP), SID_NAME);
+                         get_client_name(client_p, SHOW_IP), parv[1]);
     sendto_realops_flags(UMODE_ALL, L_OPER,  "Non-Hub link %s introduced %s.",
-                         get_client_name(client_p, MASK_IP), SID_NAME);
+                         get_client_name(client_p, MASK_IP), parv[1]);
     exit_client(source_p, &me, "No matching hub_mask.");
     return;
   }
@@ -685,10 +621,10 @@ ms_sid(struct Client *client_p, struct Client *source_p,
     /* OOOPs nope can't HUB this leaf */
     sendto_realops_flags(UMODE_ALL, L_ADMIN,
 			 "Link %s introduced leafed server %s.",
-                         get_client_name(client_p, SHOW_IP), SID_NAME);
+                         get_client_name(client_p, SHOW_IP), parv[1]);
     sendto_realops_flags(UMODE_ALL, L_OPER,  
 			 "Link %s introduced leafed server %s.",
-                         client_p->name, SID_NAME);
+                         get_client_name(client_p, MASK_IP), parv[1]);
     exit_client(client_p, &me, "Leafed Server.");
     return;
   }
@@ -696,45 +632,19 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   target_p = make_client(client_p);
   make_server(target_p);
   target_p->hopcount = hop;
-
-  strlcpy(target_p->name, SID_NAME, sizeof(target_p->name));
-  strlcpy(target_p->id, SID_SID, sizeof(target_p->id));
-
-  set_server_gecos(target_p, info);
-
   target_p->servptr = source_p;
 
+  strlcpy(target_p->name, parv[1], sizeof(target_p->name));
+  strlcpy(target_p->id, parv[3], sizeof(target_p->id));
+
+  set_server_gecos(target_p, info);
   SetServer(target_p);
 
-  if ((target_p->node.prev != NULL) || (target_p->node.next != NULL))
-  {
-    sendto_realops_flags(UMODE_ALL, L_ADMIN,
-			 "already linked %s at %s:%d", target_p->name,
-			 __FILE__, __LINE__);
-    ilog(L_ERROR, "already linked %s at %s:%d", target_p->name,
-	 __FILE__, __LINE__);
-    assert(0==3);
-  }
-  else
-  {
-    dlinkAdd(target_p, &target_p->node, &global_client_list);
-    dlinkAdd(target_p, make_dlink_node(), &global_serv_list);
-  }
+  dlinkAdd(target_p, &target_p->node, &global_client_list);
+  dlinkAdd(target_p, make_dlink_node(), &global_serv_list);
+  dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->server_list);
 
   hash_add_client(target_p);
-  /* XXX test that target_p->lnode.prev and next are NULL as well? */
-  if ((target_p->lnode.prev != NULL) || (target_p->lnode.next != NULL))
-  {
-    sendto_realops_flags(UMODE_ALL, L_OPER,
-			 "already lnode linked %s at %s:%d", target_p->name,
-			 __FILE__, __LINE__);
-    ilog(L_ERROR, "already lnode linked %s at %s:%d", target_p->name,
-	 __FILE__, __LINE__);
-    assert(0==4);
-  }
-  else
-    dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->server_list);
-
   hash_add_id(target_p);
 
   DLINK_FOREACH_SAFE(ptr, ptr_next, serv_list.head)
@@ -743,26 +653,11 @@ ms_sid(struct Client *client_p, struct Client *source_p,
     
     if (bclient_p == client_p)
       continue;
-    
-    if ((conf = bclient_p->serv->sconf) == NULL)
-    {
-      sendto_realops_flags(UMODE_ALL, L_ADMIN,
-                           "Lost connect{} block for %s on %s. Closing",
-                           get_client_name(client_p, HIDE_IP), SID_NAME);
-      sendto_realops_flags(UMODE_ALL, L_OPER,
-                           "Lost connect{} block for %s on %s. Closing",
-                           get_client_name(client_p, MASK_IP), SID_NAME);
-      exit_client(client_p, client_p, "Lost connect{} block");
-      continue;
-    }
 
-    if (match(my_name_for_link(conf), target_p->name))
-      continue;
-    
     if (IsCapable(bclient_p, CAP_TS6))
       sendto_one(bclient_p, ":%s SID %s %d %s :%s%s",
                  ID_or_name(source_p, client_p), target_p->name, hop + 1,
-                 SID_SID, IsHidden(target_p) ? "(H) " : "",
+                 parv[3], IsHidden(target_p) ? "(H) " : "",
                  target_p->info);
     else
       sendto_one(bclient_p, ":%s SERVER %s %d :%s%s",
@@ -772,7 +667,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   }
 
   sendto_realops_flags(UMODE_EXTERNAL, L_ALL, 
-		       "Server %s being introduced by %s",
+                       "Server %s being introduced by %s",
                        target_p->name, source_p->name);
 }
 
@@ -844,27 +739,4 @@ set_server_gecos(struct Client *client_p, char *info)
   }
   else
     strlcpy(client_p->info, "(Unknown Location)", sizeof(client_p->info));
-}
-
-/* server_exists()
- *
- * inputs	- servername
- * output	- 1 if server exists, 0 if doesnt exist
- */
-static struct Client *
-server_exists(char *servername)
-{
-  struct Client *target_p;
-  dlink_node *ptr;
-
-  DLINK_FOREACH(ptr, global_serv_list.head)
-  {
-    target_p = ptr->data;
-
-    if (match(target_p->name, servername) || 
-        match(servername, target_p->name))
-      return(target_p);
-  }
-
-  return(NULL);
 }
