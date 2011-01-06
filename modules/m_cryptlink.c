@@ -298,7 +298,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
   /* CRYPTLINK SERV support => TS support */
   client_p->tsinfo = TS_DOESTS;
 
-  if (valid_servname(name))
+  if (!valid_servname(name))
   {
     exit_client(client_p, client_p, "Bogus server name");
     return;

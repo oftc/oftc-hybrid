@@ -131,7 +131,6 @@ struct AccessItem
   char *	   reason;
   char *	   oper_reason;
   char *           user;     /* user part of user@host */
-  char *           fakename;   /* Mask name */
   time_t           hold;     /* Hold action until this time (calendar time) */
   struct ConfItem *class_ptr;  /* Class of connection */
   int              aftype;

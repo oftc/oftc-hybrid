@@ -237,7 +237,6 @@ extern int valid_servname(const char *);
 extern int check_server(const char *, struct Client *, int);
 extern int hunt_server(struct Client *, struct Client *,
                        const char *, int, int, char **);
-extern const char *my_name_for_link(struct ConfItem *);
 extern void add_capability(const char *, int, int);
 extern int delete_capability(const char *);
 extern int find_capability(const char *);

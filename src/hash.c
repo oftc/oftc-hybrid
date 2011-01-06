@@ -417,47 +417,6 @@ hash_find_id(const char *name)
   return client_p;
 }
 
-/*
- * Whats happening in this next loop ? Well, it takes a name like
- * foo.bar.edu and proceeds to earch for *.edu and then *.bar.edu.
- * This is for checking full server names against masks although
- * it isnt often done this way in lieu of using matches().
- *
- * Rewrote to do *.bar.edu first, which is the most likely case,
- * also made const correct
- * --Bleep
- */
-static struct Client *
-hash_find_masked_server(const char *name)
-{
-  char buf[HOSTLEN + 1];
-  char *p = buf;
-  char *s = NULL;
-  struct Client *server = NULL;
-
-  if (*name == '*' || *name == '.')
-    return NULL;
-
-  /*
-   * copy the damn thing and be done with it
-   */
-  strlcpy(buf, name, sizeof(buf));
-
-  while ((s = strchr(p, '.')) != NULL)
-  {
-    *--s = '*';
-
-    /* Dont need to check IsServer() here since nicknames cant
-     * have *'s in them anyway.
-     */
-    if ((server = find_client(s)) != NULL)
-      return server;
-    p = s + 2;
-  }
-
-  return NULL;
-}
-
 struct Client *
 find_server(const char *name)
 {
@@ -488,7 +447,7 @@ find_server(const char *name)
     }
   }
 
-  return (client_p != NULL) ? client_p : hash_find_masked_server(name);
+  return client_p;
 }
 
 /* hash_find_channel()

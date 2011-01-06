@@ -103,14 +103,14 @@ mo_jupe(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (valid_servname(parv[1]))
+  if (!valid_servname(parv[1]))
   {
     sendto_one(source_p, ":%s NOTICE %s :Invalid servername: %s",
                me.name, source_p->name, parv[1]);
     return;
   }
 
-  if (match(parv[1], me.name))
+  if (!irccmp(parv[1], me.name))
   {
     sendto_one(source_p, ":%s NOTICE %s :I can't jupe myself!",
                me.name, source_p->name);
