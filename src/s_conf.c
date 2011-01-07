@@ -1884,7 +1884,6 @@ set_default_conf(void)
   ServerInfo.max_clients = MAXCLIENTS_MAX;
 
   ServerInfo.hub = 0;
-  delete_capability("HUB");
   ServerInfo.dns_host.sin_addr.s_addr = 0;
   ServerInfo.dns_host.sin_port = 0;
   AdminInfo.name = NULL;
@@ -1940,22 +1939,22 @@ set_default_conf(void)
   ConfigFileEntry.disable_auth = NO;
   ConfigFileEntry.disable_remote = NO;
   ConfigFileEntry.kill_chase_time_limit = 90;
-  ConfigFileEntry.default_floodcount = 8; /* XXX */
+  ConfigFileEntry.default_floodcount = 8;
   ConfigFileEntry.failed_oper_notice = YES;
-  ConfigFileEntry.dots_in_ident = 0;      /* XXX */
+  ConfigFileEntry.dots_in_ident = 0;
   ConfigFileEntry.min_nonwildcard = 4;
   ConfigFileEntry.min_nonwildcard_simple = 3;
   ConfigFileEntry.max_accept = 20;
-  ConfigFileEntry.anti_nick_flood = NO;   /* XXX */
+  ConfigFileEntry.anti_nick_flood = NO;
   ConfigFileEntry.max_nick_time = 20;
   ConfigFileEntry.max_nick_changes = 5;
-  ConfigFileEntry.anti_spam_exit_message_time = 0;  /* XXX */
+  ConfigFileEntry.anti_spam_exit_message_time = 0;
   ConfigFileEntry.ts_warn_delta = TS_WARN_DELTA_DEFAULT;
-  ConfigFileEntry.ts_max_delta = TS_MAX_DELTA_DEFAULT;  /* XXX */
+  ConfigFileEntry.ts_max_delta = TS_MAX_DELTA_DEFAULT;
   ConfigFileEntry.kline_with_reason = YES;
   ConfigFileEntry.kline_reason = NULL;
   ConfigFileEntry.warn_no_nline = YES;
-  ConfigFileEntry.stats_o_oper_only = NO; /* XXX */
+  ConfigFileEntry.stats_o_oper_only = NO;
   ConfigFileEntry.stats_k_oper_only = 1;  /* masked */
   ConfigFileEntry.stats_i_oper_only = 1;  /* masked */
   ConfigFileEntry.stats_P_oper_only = NO;
@@ -1965,17 +1964,17 @@ set_default_conf(void)
   ConfigFileEntry.pace_wait_simple = 1;
   ConfigFileEntry.short_motd = NO;
   ConfigFileEntry.ping_cookie = NO;
-  ConfigFileEntry.no_oper_flood = NO;     /* XXX */
-  ConfigFileEntry.true_no_oper_flood = NO;  /* XXX */
+  ConfigFileEntry.no_oper_flood = NO;
+  ConfigFileEntry.true_no_oper_flood = NO;
   ConfigFileEntry.oper_pass_resv = YES;
-  ConfigFileEntry.glines = NO;            /* XXX */
-  ConfigFileEntry.gline_time = 12 * 3600; /* XXX */
+  ConfigFileEntry.glines = NO;
+  ConfigFileEntry.gline_time = 12 * 3600;
   ConfigFileEntry.idletime = 0;
   ConfigFileEntry.max_targets = MAX_TARGETS_DEFAULT;
   ConfigFileEntry.client_flood = CLIENT_FLOOD_DEFAULT;
-  ConfigFileEntry.oper_only_umodes = UMODE_DEBUG;  /* XXX */
+  ConfigFileEntry.oper_only_umodes = UMODE_DEBUG;
   ConfigFileEntry.oper_umodes = UMODE_BOTS | UMODE_LOCOPS | UMODE_SERVNOTICE |
-    UMODE_OPERWALL | UMODE_WALLOP;        /* XXX */
+    UMODE_OPERWALL | UMODE_WALLOP;
   DupString(ConfigFileEntry.servlink_path, SLPATH);
 #ifdef HAVE_LIBCRYPTO
   /* jdc -- This is our default value for a cipher.  According to the
