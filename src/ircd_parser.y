@@ -769,20 +769,7 @@ serverinfo_max_clients: T_MAX_CLIENTS '=' NUMBER ';'
 serverinfo_hub: HUB '=' TBOOL ';' 
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-    {
-      ServerInfo.hub = 1;
-      delete_capability("HUB");
-      add_capability("HUB", CAP_HUB, 1);
-    }
-    else if (ServerInfo.hub)
-    {
-
-      ServerInfo.hub = 0;
-      delete_capability("HUB");
-    }
-  }
+    ServerInfo.hub = yylval.number;
 };
 
 /***************************************************************************
