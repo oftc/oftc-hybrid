@@ -578,7 +578,7 @@ extern int valid_comment(struct Client *, char *, int);
 
 #define TK_SECONDS 0
 #define TK_MINUTES 1
-extern time_t valid_tkline(char *, int);
+extern time_t valid_tkline(const char *, int);
 extern int match_conf_password(const char *, const struct AccessItem *);
 
 #define NOT_AUTHORIZED    (-1)

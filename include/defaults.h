@@ -85,7 +85,7 @@
 
 #define HANGONRETRYDELAY 60     /* Recommended value: 30-60 seconds */
 #define HYBRID_SOMAXCONN 25
-#define MAX_TDKLINE_TIME	(24*60*30)
+#define MAX_TDKLINE_TIME	(24*60*360)
 #define HANGONGOODLINK 3600     /* Recommended value: 30-60 minutes */
 
 /* tests show that about 7 fds are not registered by fdlist.c, these
