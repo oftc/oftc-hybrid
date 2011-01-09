@@ -43,7 +43,6 @@ struct Message lusers_msgtab = {
   {m_unregistered, m_lusers, ms_lusers, m_ignore, ms_lusers, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -57,7 +56,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /* m_lusers - LUSERS message handler
  * parv[0] = sender

@@ -48,7 +48,6 @@ struct Message knock_msgtab = {
   { m_unregistered, m_knock, m_knock, m_ignore, m_knock, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -66,7 +65,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /* m_knock
  *    parv[0] = sender prefix

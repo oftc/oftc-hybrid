@@ -42,7 +42,6 @@ struct Message users_msgtab = {
   { m_unregistered, m_users, mo_users, m_ignore, mo_users, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -56,7 +55,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * m_users
@@ -71,7 +69,8 @@ m_users(struct Client *client_p, struct Client *source_p,
 
   if (last_used + ConfigFileEntry.pace_wait_simple > CurrentTime)
   {
-    sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name);
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
+               me.name, source_p->name);
     return;
   }
 

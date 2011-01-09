@@ -38,16 +38,15 @@
 #include "hook.h"
 
 static void do_links(struct Client *, int, char **);
-static void m_links(struct Client*, struct Client*, int, char**);
-static void mo_links(struct Client*, struct Client*, int, char**);
-static void ms_links(struct Client*, struct Client*, int, char**);
+static void m_links(struct Client *, struct Client *, int, char *[]);
+static void mo_links(struct Client *, struct Client *, int, char *[]);
+static void ms_links(struct Client *, struct Client *, int, char *[]);
 
 struct Message links_msgtab = {
   "LINKS", 0, 0, 0, 0, MFLG_SLOW, 0,
   {m_unregistered, m_links, ms_links, m_ignore, mo_links, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 const char *_version = "$Revision$";
 static struct Callback *links_cb;
 
@@ -76,7 +75,6 @@ _moddeinit(void)
   uninstall_hook(links_cb, va_links);
 }
 
-#endif
 
 static void
 do_links(struct Client *source_p, int parc, char **parv)
@@ -158,8 +156,8 @@ m_links(struct Client *client_p, struct Client *source_p,
                me.name, source_p->name);
     return;
   }
-  else
-    last_used = CurrentTime;
+
+  last_used = CurrentTime;
 
   if (!ConfigServerHide.flatten_links)
   {
@@ -167,11 +165,7 @@ m_links(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-#ifdef STATIC_MODULES
-  do_links(source_p, parc, parv);
-#else
   execute_callback(links_cb, source_p, parc, parv);
-#endif
 }
 
 static void
@@ -180,17 +174,11 @@ mo_links(struct Client *client_p, struct Client *source_p,
 {
   if (parc > 2) 
     if (!ConfigFileEntry.disable_remote || IsOper(source_p))
-    {
-        if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1, parc, parv)
+      if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1, parc, parv)
             != HUNTED_ISME)
         return;
-    }
 
-#ifdef STATIC_MODULES
-  do_links(source_p, parc, parv);
-#else
   execute_callback(links_cb, source_p, parc, parv);
-#endif
 }
 
 /*

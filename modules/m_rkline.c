@@ -71,7 +71,6 @@ struct Message unrkline_msgtab = {
    {m_unregistered, m_not_oper, ms_unrkline, me_unrkline, mo_unrkline, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -87,7 +86,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /* mo_rkline()
  *

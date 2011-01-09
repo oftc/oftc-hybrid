@@ -51,7 +51,6 @@ struct Message cap_msgtab = {
   { m_cap, m_cap, m_ignore, m_ignore, m_cap, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -65,7 +64,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 #define CAPFL_HIDDEN    0x0001  /**< Do not advertize this capability */
 #define CAPFL_PROHIBIT  0x0002  /**< Client may not set this capability */

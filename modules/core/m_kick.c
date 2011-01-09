@@ -47,7 +47,6 @@ struct Message kick_msgtab = {
   {m_unregistered, m_kick, m_kick, m_ignore, m_kick, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -61,7 +60,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /* m_kick()
  *  parv[0] = sender prefix

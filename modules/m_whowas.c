@@ -50,7 +50,6 @@ struct Message whowas_msgtab = {
   { m_unregistered, m_whowas, mo_whowas, m_ignore, mo_whowas, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -64,7 +63,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
 ** m_whowas
@@ -77,7 +75,7 @@ m_whowas(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if (parc < 2 || *parv[1] == '\0')
+  if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
                me.name, source_p->name);
@@ -90,8 +88,8 @@ m_whowas(struct Client *client_p, struct Client *source_p,
                me.name, source_p->name);
     return;
   }
-  else
-    last_used = CurrentTime;
+
+  last_used = CurrentTime;
 
   whowas_do(client_p, source_p, parc, parv);
 }
@@ -100,7 +98,7 @@ static void
 mo_whowas(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  if (parc < 2 || *parv[1] == '\0')
+  if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
                me.name, source_p->name);
@@ -144,7 +142,7 @@ whowas_do(struct Client *client_p, struct Client *source_p,
 
   for (; temp; temp = temp->next)
   {
-    if (irccmp(nick, temp->name) == 0)
+    if (!irccmp(nick, temp->name))
     {
       sendto_one(source_p, form_str(RPL_WHOWASUSER),
                  me.name, source_p->name, temp->name,

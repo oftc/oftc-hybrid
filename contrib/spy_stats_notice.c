@@ -23,7 +23,6 @@
  */
 
 #include "stdinc.h"
-#ifndef STATIC_MODULES
 #include "list.h"
 #include "modules.h"
 #include "hook.h"
@@ -86,4 +85,3 @@ show_stats(va_list args)
 
   return pass_callback(prev_hook, source_p, parc, parv);
 }
-#endif

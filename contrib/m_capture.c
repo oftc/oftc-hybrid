@@ -56,7 +56,6 @@ struct Message uncapture_msgtab = {
   {m_unregistered, m_ignore, mo_uncapture, mo_uncapture, mo_uncapture, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -72,7 +71,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /* mo_capture
  *      parv[0] = sender prefix

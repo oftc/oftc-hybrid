@@ -50,7 +50,6 @@ struct Message oper_msgtab = {
   { m_unregistered, m_oper, m_ignore, m_ignore, mo_oper, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -64,7 +63,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
 ** m_oper
@@ -102,7 +100,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = map_to_conf(conf);
 
   if (match_conf_password(password, aconf))
   {

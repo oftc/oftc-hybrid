@@ -48,7 +48,6 @@ struct Message topic_msgtab = {
   {m_unregistered, m_topic, m_topic, m_ignore, m_topic, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -62,7 +61,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /* m_topic()
  *  parv[0] = sender prefix

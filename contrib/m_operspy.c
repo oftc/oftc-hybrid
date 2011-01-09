@@ -128,7 +128,6 @@ static const struct operspy_s {
   { NULL, NULL }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -140,8 +139,9 @@ _moddeinit(void)
 {
   mod_del_cmd(&operspy_msgtab);
 }
+
 const char *_version = "$Revision$";
-#endif
+
 
 #ifdef OPERSPY_LOG
 static void operspy_log(struct Client *, const char *, const char *);

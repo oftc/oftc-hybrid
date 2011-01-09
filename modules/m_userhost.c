@@ -44,7 +44,6 @@ struct Message userhost_msgtab = {
   {m_unregistered, m_userhost, m_userhost, m_ignore, m_userhost, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -58,7 +57,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * m_userhost added by Darren Reed 13/8/91 to aid clients and reduce

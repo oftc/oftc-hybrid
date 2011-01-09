@@ -46,7 +46,6 @@ struct Message accept_msgtab = {
   { m_unregistered, m_accept, m_ignore, m_ignore, m_accept, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -60,7 +59,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 
 /*! \brief Creates and sends a list of nick!user\@host masks a Client

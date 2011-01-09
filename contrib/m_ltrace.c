@@ -49,7 +49,6 @@ struct Message ltrace_msgtab = {
   {m_unregistered, m_ltrace, mo_ltrace, m_ignore, mo_ltrace, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 const char *_version = "$Revision$";
 static struct Callback *ltrace_cb;
 
@@ -77,7 +76,6 @@ _moddeinit(void)
   mod_del_cmd(&ltrace_msgtab);
   uninstall_hook(ltrace_cb, va_ltrace);
 }
-#endif
 
 static void report_this_status(struct Client *, struct Client *, int);
 
@@ -138,7 +136,7 @@ do_ltrace(struct Client *source_p, int parc, char **parv)
         {
           ac2ptr = ptr->data;
 
-          if (match(tname, ac2ptr->name) || match(ac2ptr->name, tname))
+          if (match(tname, ac2ptr->name))
             break;
           else
             ac2ptr = NULL;
@@ -250,11 +248,7 @@ mo_ltrace(struct Client *client_p, struct Client *source_p,
     if (hunt_server(client_p, source_p, ":%s LTRACE %s :%s", 2, parc, parv))
       return;
 
-#ifdef STATIC_MODULES
-  do_ltrace(source_p, parc, parv);
-#else
   execute_callback(ltrace_cb, source_p, parc, parv);
-#endif
 }
 
 /*

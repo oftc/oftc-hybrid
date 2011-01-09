@@ -140,12 +140,6 @@ m_ltrace_la_OBJECTS = $(am_m_ltrace_la_OBJECTS)
 m_ltrace_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(m_ltrace_la_LDFLAGS) $(LDFLAGS) -o $@
-m_mkpasswd_la_LIBADD =
-am_m_mkpasswd_la_OBJECTS = m_mkpasswd.lo
-m_mkpasswd_la_OBJECTS = $(am_m_mkpasswd_la_OBJECTS)
-m_mkpasswd_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(m_mkpasswd_la_LDFLAGS) $(LDFLAGS) -o $@
 m_ojoin_la_LIBADD =
 am_m_ojoin_la_OBJECTS = m_ojoin.lo
 m_ojoin_la_OBJECTS = $(am_m_ojoin_la_OBJECTS)
@@ -243,12 +237,11 @@ SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
 	$(m_ctrace_la_SOURCES) $(m_flags_la_SOURCES) \
 	$(m_force_la_SOURCES) $(m_jupe_la_SOURCES) \
 	$(m_killhost_la_SOURCES) $(m_ltrace_la_SOURCES) \
-	$(m_mkpasswd_la_SOURCES) $(m_ojoin_la_SOURCES) \
-	$(m_operspy_la_SOURCES) $(m_opme_la_SOURCES) \
-	$(m_services_la_SOURCES) $(m_spoof_la_SOURCES) \
-	$(spy_admin_notice_la_SOURCES) $(spy_info_notice_la_SOURCES) \
-	$(spy_links_notice_la_SOURCES) $(spy_motd_notice_la_SOURCES) \
-	$(spy_stats_notice_la_SOURCES) \
+	$(m_ojoin_la_SOURCES) $(m_operspy_la_SOURCES) \
+	$(m_opme_la_SOURCES) $(m_services_la_SOURCES) \
+	$(m_spoof_la_SOURCES) $(spy_admin_notice_la_SOURCES) \
+	$(spy_info_notice_la_SOURCES) $(spy_links_notice_la_SOURCES) \
+	$(spy_motd_notice_la_SOURCES) $(spy_stats_notice_la_SOURCES) \
 	$(spy_stats_p_notice_la_SOURCES) \
 	$(spy_trace_notice_la_SOURCES) $(spy_whois_notice_la_SOURCES)
 DIST_SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
@@ -257,12 +250,11 @@ DIST_SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
 	$(m_ctrace_la_SOURCES) $(m_flags_la_SOURCES) \
 	$(m_force_la_SOURCES) $(m_jupe_la_SOURCES) \
 	$(m_killhost_la_SOURCES) $(m_ltrace_la_SOURCES) \
-	$(m_mkpasswd_la_SOURCES) $(m_ojoin_la_SOURCES) \
-	$(m_operspy_la_SOURCES) $(m_opme_la_SOURCES) \
-	$(m_services_la_SOURCES) $(m_spoof_la_SOURCES) \
-	$(spy_admin_notice_la_SOURCES) $(spy_info_notice_la_SOURCES) \
-	$(spy_links_notice_la_SOURCES) $(spy_motd_notice_la_SOURCES) \
-	$(spy_stats_notice_la_SOURCES) \
+	$(m_ojoin_la_SOURCES) $(m_operspy_la_SOURCES) \
+	$(m_opme_la_SOURCES) $(m_services_la_SOURCES) \
+	$(m_spoof_la_SOURCES) $(spy_admin_notice_la_SOURCES) \
+	$(spy_info_notice_la_SOURCES) $(spy_links_notice_la_SOURCES) \
+	$(spy_motd_notice_la_SOURCES) $(spy_stats_notice_la_SOURCES) \
 	$(spy_stats_p_notice_la_SOURCES) \
 	$(spy_trace_notice_la_SOURCES) $(spy_whois_notice_la_SOURCES)
 ETAGS = etags
@@ -424,7 +416,6 @@ modules_LTLIBRARIES = example_module.la     \
                       m_jupe.la             \
                       m_killhost.la         \
                       m_ltrace.la           \
-                      m_mkpasswd.la         \
                       m_ojoin.la            \
                       m_operspy.la          \
                       m_opme.la             \
@@ -451,7 +442,6 @@ m_force_la_LDFLAGS = $(MODULE_FLAGS)
 m_jupe_la_LDFLAGS = $(MODULE_FLAGS)
 m_killhost_la_LDFLAGS = $(MODULE_FLAGS)
 m_ltrace_la_LDFLAGS = $(MODULE_FLAGS)
-m_mkpasswd_la_LDFLAGS = $(MODULE_FLAGS)
 m_ojoin_la_LDFLAGS = $(MODULE_FLAGS)
 m_operspy_la_LDFLAGS = $(MODULE_FLAGS)
 m_opme_la_LDFLAGS = $(MODULE_FLAGS)
@@ -477,7 +467,6 @@ m_force_la_SOURCES = m_force.c
 m_jupe_la_SOURCES = m_jupe.c
 m_killhost_la_SOURCES = m_killhost.c
 m_ltrace_la_SOURCES = m_ltrace.c
-m_mkpasswd_la_SOURCES = m_mkpasswd.c
 m_ojoin_la_SOURCES = m_ojoin.c
 m_operspy_la_SOURCES = m_operspy.c
 m_opme_la_SOURCES = m_opme.c
@@ -580,8 +569,6 @@ m_killhost.la: $(m_killhost_la_OBJECTS) $(m_killhost_la_DEPENDENCIES)
 	$(m_killhost_la_LINK) -rpath $(modulesdir) $(m_killhost_la_OBJECTS) $(m_killhost_la_LIBADD) $(LIBS)
 m_ltrace.la: $(m_ltrace_la_OBJECTS) $(m_ltrace_la_DEPENDENCIES) 
 	$(m_ltrace_la_LINK) -rpath $(modulesdir) $(m_ltrace_la_OBJECTS) $(m_ltrace_la_LIBADD) $(LIBS)
-m_mkpasswd.la: $(m_mkpasswd_la_OBJECTS) $(m_mkpasswd_la_DEPENDENCIES) 
-	$(m_mkpasswd_la_LINK) -rpath $(modulesdir) $(m_mkpasswd_la_OBJECTS) $(m_mkpasswd_la_LIBADD) $(LIBS)
 m_ojoin.la: $(m_ojoin_la_OBJECTS) $(m_ojoin_la_DEPENDENCIES) 
 	$(m_ojoin_la_LINK) -rpath $(modulesdir) $(m_ojoin_la_OBJECTS) $(m_ojoin_la_LIBADD) $(LIBS)
 m_operspy.la: $(m_operspy_la_OBJECTS) $(m_operspy_la_DEPENDENCIES) 
@@ -627,7 +614,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_jupe.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_killhost.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_ltrace.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_mkpasswd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_ojoin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_operspy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_opme.Plo@am__quote@

@@ -43,7 +43,6 @@ struct Message quit_msgtab = {
   {m_quit, m_quit, ms_quit, m_ignore, m_quit, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -57,7 +56,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
 ** m_quit

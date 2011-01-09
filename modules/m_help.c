@@ -54,7 +54,6 @@ struct Message uhelp_msgtab = {
   {m_unregistered, m_help, m_ignore, m_ignore, mo_uhelp, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -70,7 +69,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * m_help - HELP message handler

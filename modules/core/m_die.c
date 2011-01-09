@@ -48,7 +48,6 @@ struct Message die_msgtab = {
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_die, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -62,7 +61,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * mo_die - DIE command handler

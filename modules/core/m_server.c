@@ -59,7 +59,6 @@ struct Message sid_msgtab = {
   {rfc1459_command_send_error, m_ignore, ms_sid, m_ignore, m_ignore, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void 
 _modinit(void)
 {
@@ -75,7 +74,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 
 /* mr_server()

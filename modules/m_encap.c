@@ -40,7 +40,6 @@ struct Message encap_msgtab = {
   {m_ignore, m_ignore, ms_encap, m_ignore, m_ignore, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -55,7 +54,6 @@ _moddeinit(void)
   delete_capability("ENCAP");
 }
 const char *_version = "$Revision$";
-#endif
 
 /*
  * ms_encap()

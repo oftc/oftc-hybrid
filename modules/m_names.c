@@ -51,7 +51,6 @@ struct Message names_msgtab = {
   {m_unregistered, m_names, m_ignore, m_ignore, m_names, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -65,7 +64,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /************************************************************************
  * m_names() - Added by Jto 27 Apr 1989

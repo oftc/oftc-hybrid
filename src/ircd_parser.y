@@ -467,18 +467,14 @@ modules_item:   modules_module | modules_path | error ';' ;
 
 modules_module: MODULE '=' QSTRING ';'
 {
-#ifndef STATIC_MODULES /* NOOP in the static case */
   if (conf_parser_ctx.pass == 2)
     add_conf_module(libio_basename(yylval.string));
-#endif
 };
 
 modules_path: PATH '=' QSTRING ';'
 {
-#ifndef STATIC_MODULES
   if (conf_parser_ctx.pass == 2)
     mod_add_path(yylval.string);
-#endif
 };
 
 

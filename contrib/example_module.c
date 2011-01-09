@@ -23,7 +23,7 @@
  * These ones are necessary to build THIS module...
  */
 
-#include "stdinc.h" /* includes setup.h, for STATIC_MODULES */
+#include "stdinc.h" /* includes setup.h */
 
 #include "client.h" /* Required for IsClient, etc. */
 
@@ -111,7 +111,6 @@ struct Message test_msgtab = {
 };
 /* That's the msgtab finished */
 
-#ifndef STATIC_MODULES
 /* Here we tell it what to do when the module is loaded */
 void
 _modinit(void)
@@ -131,7 +130,6 @@ _moddeinit(void)
 /* When we last modified the file (shown in /modlist), this is usually:
  */
 const char *_version = "$Revision$";
-#endif
 
 /*
  * mr_test

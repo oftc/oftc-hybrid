@@ -51,7 +51,6 @@ struct Message trace_msgtab = {
   { m_unregistered, m_trace, ms_trace, m_ignore, mo_trace, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 const char *_version = "$Revision$";
 static struct Callback *trace_cb;
 
@@ -79,7 +78,6 @@ _moddeinit(void)
   mod_del_cmd(&trace_msgtab);
   uninstall_hook(trace_cb, va_actual_trace);
 }
-#endif
 
 static void report_this_status(struct Client *, struct Client *, int);
 
@@ -177,12 +175,9 @@ mo_trace(struct Client *client_p, struct Client *source_p,
                    ircd_version, tname, "ac2ptr_is_NULL!!");
       return;
     }
+
     case HUNTED_ISME:
-#ifdef STATIC_MODULES
-      do_actual_trace(source_p, parc, parv);
-#else
       execute_callback(trace_cb, source_p, parc, parv);
-#endif
       break;
     default:
       return;

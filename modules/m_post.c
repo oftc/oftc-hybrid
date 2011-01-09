@@ -34,7 +34,7 @@
 #include "modules.h"
 #include "s_conf.h"
 
-static void mr_dumb_proxy(struct Client*, struct Client*, int, char**);
+static void mr_dumb_proxy(struct Client *, struct Client *, int, char *[]);
 
 struct Message post_msgtab = {
   "POST", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
@@ -51,8 +51,6 @@ struct Message put_msgtab = {
   {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
 };
 
-
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -70,7 +68,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
 ** mr_dumb_proxy

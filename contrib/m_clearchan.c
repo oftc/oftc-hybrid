@@ -52,7 +52,6 @@ struct Message clearchan_msgtab = {
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_clearchan, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -66,7 +65,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
 ** mo_clearchan

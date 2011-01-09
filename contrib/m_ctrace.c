@@ -47,7 +47,6 @@ struct Message ctrace_msgtab = {
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ctrace, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 const char *_version = "$Revision$";
 static struct Callback *ctrace_cb;
 
@@ -75,7 +74,6 @@ _moddeinit(void)
   mod_del_cmd(&ctrace_msgtab);
   uninstall_hook(ctrace_cb, va_ctrace);
 }
-#endif
 
 static void report_this_status(struct Client *, struct Client *);
 
@@ -95,11 +93,7 @@ mo_ctrace(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-#ifdef STATIC_MODULES
-  do_ctrace(source_p, parc, parv);
-#else
   execute_callback(ctrace_cb, source_p, parc, parv);
-#endif
 }
 
 /*

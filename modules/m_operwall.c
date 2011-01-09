@@ -35,16 +35,15 @@
 #include "modules.h"
 #include "s_serv.h"
 
-static void mo_operwall(struct Client *, struct Client *, int, char **);
-static void ms_operwall(struct Client *, struct Client *, int, char **);
-static void me_operwall(struct Client *, struct Client *, int, char **);
+static void mo_operwall(struct Client *, struct Client *, int, char *[]);
+static void ms_operwall(struct Client *, struct Client *, int, char *[]);
+static void me_operwall(struct Client *, struct Client *, int, char *[]);
 
 struct Message operwall_msgtab = {
   "OPERWALL", 0, 0, 2, 0, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, ms_operwall, me_operwall, mo_operwall, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -58,7 +57,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 
 /*

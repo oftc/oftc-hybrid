@@ -39,7 +39,7 @@ struct Message eob_msgtab = {
   "EOB", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0, 
   {m_unregistered, m_ignore, ms_eob, m_ignore, m_ignore, m_ignore}
 };
-#ifndef STATIC_MODULES
+
 void
 _modinit(void)
 {
@@ -53,7 +53,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * ms_eob - EOB command handler

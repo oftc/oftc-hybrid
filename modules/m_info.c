@@ -55,7 +55,6 @@ struct Message info_msgtab = {
   { m_unregistered, m_info, ms_info, m_ignore, mo_info, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 const char *_version = "$Revision$";
 static struct Callback *info_cb;
 
@@ -79,7 +78,6 @@ _moddeinit(void)
   mod_del_cmd(&info_msgtab);
   uninstall_hook(info_cb, va_send_info_text);
 }
-#endif
 
 /*
  * jdc -- Structure for our configuration value table
@@ -586,8 +584,8 @@ m_info(struct Client *client_p, struct Client *source_p,
                me.name, source_p->name);
     return;
   }
-  else
-    last_used = CurrentTime;
+
+  last_used = CurrentTime;
 
   if (!ConfigFileEntry.disable_remote)
   {
@@ -598,11 +596,7 @@ m_info(struct Client *client_p, struct Client *source_p,
     }
   }
 
-#ifdef STATIC_MODULES
-  send_info_text(source_p);
-#else
   execute_callback(info_cb, source_p, parc, parv);
-#endif
 }
 
 /*
@@ -618,11 +612,7 @@ mo_info(struct Client *client_p, struct Client *source_p,
                   parc, parv) != HUNTED_ISME)
     return;
 
-#ifdef STATIC_MODULES
-  send_info_text(source_p);
-#else
   execute_callback(info_cb, source_p, parc, parv);
-#endif
 }
 
 /*
@@ -641,11 +631,7 @@ ms_info(struct Client *client_p, struct Client *source_p,
                   1, parc, parv) != HUNTED_ISME)
     return;
 
-#ifdef STATIC_MODULES
-  send_info_text(source_p);
-#else
   execute_callback(info_cb, source_p, parc, parv);
-#endif
 }
 
 /* send_info_text()

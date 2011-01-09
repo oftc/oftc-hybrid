@@ -44,7 +44,6 @@ struct Message map_msgtab = {
   { m_unregistered, m_map, m_ignore, m_ignore, mo_map, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -58,7 +57,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 
 /* m_map()

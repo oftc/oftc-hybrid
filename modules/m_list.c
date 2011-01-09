@@ -48,7 +48,6 @@ struct Message list_msgtab = {
   {m_unregistered, m_list, m_ignore, m_ignore, mo_list, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -66,7 +65,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 static int
 has_wildcards(const char *s)
@@ -112,19 +110,19 @@ do_list(struct Client *source_p, int parc, char *parv[])
       switch (*opt)
       {
         case '<': if ((i = atoi(opt + 1)) > 0)
-		    lt->users_max = (unsigned int) i - 1;
+                    lt->users_max = (unsigned int) i - 1;
                   else
-		    errors = 1;
-		  break;
+                    errors = 1;
+                  break;
         case '>': if ((i = atoi(opt + 1)) >= 0)
-		    lt->users_min = (unsigned int) i + 1;
-		  else
-		    errors = 1;
-		  break;
+                    lt->users_min = (unsigned int) i + 1;
+                  else
+                    errors = 1;
+                  break;
         case '-': break;
         case 'C':
-	case 'c': switch (*++opt)
-	          {
+        case 'c': switch (*++opt)
+                  {
 		    case '<': if ((i = atoi(opt + 1)) >= 0)
 		                lt->created_max = (unsigned int) (CurrentTime
 				                  - 60 * i);

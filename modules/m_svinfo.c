@@ -36,14 +36,13 @@
 #include "modules.h"
 
 
-static void ms_svinfo(struct Client*, struct Client*, int, char**);
+static void ms_svinfo(struct Client *, struct Client *, int, char *[]);
 
 struct Message svinfo_msgtab = {
   "SVINFO", 0, 0, 4, 0, MFLG_SLOW, 0,
   {m_unregistered, m_ignore, ms_svinfo, m_ignore, m_ignore, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -57,7 +56,7 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
+
 /*
  * ms_svinfo - SVINFO message handler
  *      parv[0] = sender prefix

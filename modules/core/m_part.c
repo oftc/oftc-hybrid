@@ -48,7 +48,6 @@ struct Message part_msgtab = {
   { m_unregistered, m_part, m_part, m_ignore, m_part, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -62,7 +61,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 
 /* part_one_client()

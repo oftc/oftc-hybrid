@@ -66,7 +66,6 @@ struct Message unrxline_msgtab = {
   { m_unregistered, m_not_oper, ms_unrxline, m_ignore, mo_unrxline, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -82,7 +81,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 static int
 already_placed_rxline(struct Client *source_p, const char *gecos)

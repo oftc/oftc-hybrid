@@ -62,7 +62,6 @@ struct Message stats_msgtab = {
   { m_unregistered, m_stats, ms_stats, m_ignore, mo_stats, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 const char *_version = "$Revision$";
 static struct Callback *stats_cb;
 
@@ -90,7 +89,6 @@ _moddeinit(void)
   mod_del_cmd(&stats_msgtab);
   uninstall_hook(stats_cb, va_stats);
 }
-#endif
 
 static char *parse_stats_args(int, char **, int *, int *);
 static void stats_L(struct Client *, char *, int, int, char);
@@ -263,14 +261,10 @@ m_stats(struct Client *client_p, struct Client *source_p,
                from, to);
     return;
   }
-  else
-    last_used = CurrentTime;
 
-#ifdef STATIC_MODULES
-  do_stats(source_p, parc, parv);
-#else
+  last_used = CurrentTime;
+
   execute_callback(stats_cb, source_p, parc, parv);
-#endif
 }
 
 /*
@@ -301,11 +295,7 @@ mo_stats(struct Client *client_p, struct Client *source_p,
     to = source_p->name;
   }
 
-#ifdef STATIC_MODULES
-  do_stats(source_p, parc, parv);
-#else
   execute_callback(stats_cb, source_p, parc, parv);
-#endif
 }
 
 /*

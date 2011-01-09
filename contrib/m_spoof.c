@@ -113,7 +113,6 @@ struct Message delspoof_msgtab = {
 #endif
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -129,7 +128,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 #ifdef SPOOF_FILE
 static void

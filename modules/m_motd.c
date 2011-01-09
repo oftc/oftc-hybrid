@@ -37,8 +37,8 @@
 #include "modules.h"
 #include "s_conf.h"
 
-static void m_motd(struct Client*, struct Client*, int, char *[]);
-static void mo_motd(struct Client*, struct Client*, int, char *[]);
+static void m_motd(struct Client *, struct Client *, int, char *[]);
+static void mo_motd(struct Client *, struct Client *, int, char *[]);
 
 /*
  * note regarding mo_motd being used twice:
@@ -52,7 +52,6 @@ struct Message motd_msgtab = {
   { m_unregistered, m_motd, mo_motd, m_ignore, mo_motd, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 const char *_version = "$Revision$";
 static struct Callback *motd_cb;
 
@@ -78,7 +77,6 @@ _moddeinit(void)
   mod_del_cmd(&motd_msgtab);
   uninstall_hook(motd_cb, do_motd);
 }
-#endif
 
 /*
 ** m_motd
@@ -107,11 +105,7 @@ m_motd(struct Client *client_p, struct Client *source_p,
                     != HUNTED_ISME)
       return;
 
-#ifdef STATIC_MODULES
-  send_message_file(source_p, &ConfigFileEntry.motd);
-#else
   execute_callback(motd_cb, source_p, parc, parv);
-#endif
 }
 
 /*
@@ -129,9 +123,5 @@ mo_motd(struct Client *client_p, struct Client *source_p,
   if (hunt_server(client_p, source_p, ":%s MOTD :%s",1,parc,parv)!=HUNTED_ISME)
     return;
 
-#ifdef STATIC_MODULES
-  send_message_file(source_p, &ConfigFileEntry.motd);
-#else
   execute_callback(motd_cb, source_p, parc, parv);
-#endif
 }

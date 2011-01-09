@@ -45,7 +45,6 @@ struct Message watch_msgtab = {
   { m_unregistered, m_watch, m_ignore, m_ignore, m_watch, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -61,7 +60,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * RPL_NOWON        - Online at the moment (Succesfully added to WATCH-list)

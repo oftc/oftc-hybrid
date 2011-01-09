@@ -43,7 +43,6 @@ struct Message user_msgtab = {
   { mr_user, m_registered, m_ignore, m_ignore, m_registered, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -57,7 +56,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 
 /* do_local_user()

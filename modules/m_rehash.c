@@ -38,14 +38,13 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mo_rehash(struct Client *, struct Client *, int, char **);
+static void mo_rehash(struct Client *, struct Client *, int, char *[]);
 
 struct Message rehash_msgtab = {
   "REHASH", 0, 0, 0, 0, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_rehash, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -59,7 +58,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * mo_rehash - REHASH message handler

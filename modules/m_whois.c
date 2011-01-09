@@ -56,7 +56,6 @@ struct Message whois_msgtab = {
   { m_unregistered, m_whois, mo_whois, m_ignore, mo_whois, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 const char *_version = "$Revision$";
 static struct Callback *whois_cb;
 
@@ -84,7 +83,6 @@ _moddeinit(void)
   mod_del_cmd(&whois_msgtab);
   uninstall_hook(whois_cb, va_whois);
 }
-#endif
 
 /*
 ** m_whois
@@ -113,8 +111,8 @@ m_whois(struct Client *client_p, struct Client *source_p,
                  me.name, source_p->name);
       return;
     }
-    else
-      last_used = CurrentTime;
+
+    last_used = CurrentTime;
 
     /* if we have serverhide enabled, they can either ask the clients
      * server, or our server.. I dont see why they would need to ask
@@ -130,11 +128,7 @@ m_whois(struct Client *client_p, struct Client *source_p,
     parv[1] = parv[2];
   }
 
-#ifdef STATIC_MODULES
-  do_whois(source_p, parc, parv);
-#else
   execute_callback(whois_cb, source_p, parc, parv);
-#endif
 }
 
 /*
@@ -162,11 +156,7 @@ mo_whois(struct Client *client_p, struct Client *source_p,
     parv[1] = parv[2];
   }
 
-#ifdef STATIC_MODULES
-  do_whois(source_p, parc, parv);
-#else
   execute_callback(whois_cb, source_p, parc, parv);
-#endif
 }
 
 /* do_whois()
@@ -294,8 +284,7 @@ global_whois(struct Client *source_p, const char *nick)
 static int
 single_whois(struct Client *source_p, struct Client *target_p)
 {
-  dlink_node *ptr;
-  struct Channel *chptr;
+  dlink_node *ptr = NULL;
 
   if (!IsInvisible(target_p) || target_p == source_p)
   {
@@ -307,7 +296,8 @@ single_whois(struct Client *source_p, struct Client *target_p)
   /* target_p is +i. Check if it is on any common channels with source_p */
   DLINK_FOREACH(ptr, target_p->channel.head)
   {
-    chptr = ((struct Membership *) ptr->data)->chptr;
+    struct Channel *chptr = ((struct Membership *) ptr->data)->chptr;
+
     if (IsMember(source_p, chptr))
     {
       whois_person(source_p, target_p);

@@ -60,7 +60,6 @@ struct Message version_msgtab = {
   { m_unregistered, m_version, ms_version, m_ignore, mo_version, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -74,7 +73,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * m_version - VERSION command handler
@@ -94,15 +92,13 @@ m_version(struct Client *client_p, struct Client *source_p,
                me.name, source_p->name);
     return;
   }
-  else
-    last_used = CurrentTime;
+
+  last_used = CurrentTime;
 
   if (!ConfigFileEntry.disable_remote)
-  {
     if (hunt_server(client_p, source_p, ":%s VERSION :%s",
                     1, parc, parv) != HUNTED_ISME)
       return;
-  }
 
   sendto_one(source_p, form_str(RPL_VERSION),
              me.name, source_p->name, ircd_version, serno,

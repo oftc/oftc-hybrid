@@ -60,7 +60,6 @@ struct Message forcepart_msgtab = {
   { m_ignore, m_not_oper, mo_forcepart, mo_forcepart, mo_forcepart, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -76,7 +75,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /* m_forcejoin()
  *  parv[0] = sender prefix

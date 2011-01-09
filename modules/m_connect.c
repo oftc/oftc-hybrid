@@ -47,7 +47,6 @@ struct Message connect_msgtab = {
   { m_unregistered, m_not_oper, ms_connect, m_ignore, mo_connect, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -61,7 +60,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * mo_connect - CONNECT command handler

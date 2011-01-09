@@ -37,15 +37,14 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mr_pong(struct Client *, struct Client *, int, char **);
-static void ms_pong(struct Client *, struct Client *, int, char **);
+static void mr_pong(struct Client *, struct Client *, int, char *[]);
+static void ms_pong(struct Client *, struct Client *, int, char *[]);
 
 struct Message pong_msgtab = {
   "PONG", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0,
   {mr_pong, m_ignore, ms_pong, m_ignore, m_ignore, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -59,7 +58,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 static void
 ms_pong(struct Client *client_p, struct Client *source_p,
@@ -68,7 +66,7 @@ ms_pong(struct Client *client_p, struct Client *source_p,
   struct Client *target_p;
   const char *origin, *destination;
 
-  if (parc < 2 || *parv[1] == '\0')
+  if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOORIGIN),
                me.name, parv[0]);
@@ -131,4 +129,3 @@ mr_pong(struct Client *client_p, struct Client *source_p,
   else
     sendto_one(source_p, form_str(ERR_NOORIGIN), me.name, parv[0]);
 }
-

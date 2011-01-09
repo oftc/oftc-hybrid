@@ -61,7 +61,6 @@ struct Message bmask_msgtab = {
   {m_ignore, m_ignore, ms_bmask, m_ignore, m_ignore, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -79,7 +78,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * m_mode - MODE command handler

@@ -23,7 +23,6 @@
  */
 
 #include "stdinc.h"
-#ifndef STATIC_MODULES
 #include "list.h"
 #include "modules.h"
 #include "client.h"
@@ -80,4 +79,3 @@ show_notice(va_list args)
 
   return pass_callback(prev_hook, source_p, parc, parv);
 }
-#endif

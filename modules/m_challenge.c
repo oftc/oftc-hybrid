@@ -42,7 +42,7 @@
 
 static void failed_challenge_notice(struct Client *, const char *,
 				    const char *);
-static void m_challenge(struct Client *, struct Client *, int, char **);
+static void m_challenge(struct Client *, struct Client *, int, char *[]);
 
 /* We have openssl support, so include /CHALLENGE */
 struct Message challenge_msgtab = {
@@ -50,7 +50,6 @@ struct Message challenge_msgtab = {
   { m_unregistered, m_challenge, m_ignore, m_ignore, m_challenge, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -64,7 +63,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * m_challenge - generate RSA challenge for wouldbe oper
@@ -97,9 +95,9 @@ m_challenge(struct Client *client_p, struct Client *source_p,
     if (irccmp(source_p->localClient->response, ++parv[1]))
     {
       sendto_one(source_p, form_str(ERR_PASSWDMISMATCH), me.name,
-		 source_p->name);
+                 source_p->name);
       failed_challenge_notice(source_p, source_p->localClient->auth_oper,
-			      "challenge failed");
+                              "challenge failed");
       return;
     }
     
@@ -194,7 +192,7 @@ m_challenge(struct Client *client_p, struct Client *source_p,
  */
 static void
 failed_challenge_notice(struct Client *source_p, const char *name,
-			const char *reason)
+                        const char *reason)
 {
   if (ConfigFileEntry.failed_oper_notice)
     sendto_realops_flags(UMODE_ALL, L_ALL, "Failed CHALLENGE attempt as %s "

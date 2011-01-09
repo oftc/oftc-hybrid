@@ -1759,9 +1759,7 @@ rehash(int sig)
   if (ServerInfo.description != NULL)
     strlcpy(me.info, ServerInfo.description, sizeof(me.info));
 
-#ifndef STATIC_MODULES
   load_conf_modules();
-#endif
 
   flush_deleted_I_P();
 
@@ -2629,9 +2627,7 @@ clear_out_old_conf(void)
   clear_out_address_conf();
 
   /* clean out module paths */
-#ifndef STATIC_MODULES
   mod_clear_paths();
-#endif
 
   /* clean out ServerInfo */
   MyFree(ServerInfo.description);
@@ -3121,7 +3117,7 @@ valid_tkline(const char *p, int minutes)
   for (; *p; ++p)
   {
     if (!IsDigit(*p))
-      return;
+      return 0;
 
     result *= 10;
     result += ((*p) & 0xF);

@@ -46,7 +46,6 @@ struct Message away_msgtab = {
   {m_unregistered, m_away, ms_away, m_ignore, mo_away, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -62,7 +61,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /***********************************************************************
  * m_away() - Added 14 Dec 1988 by jto. 

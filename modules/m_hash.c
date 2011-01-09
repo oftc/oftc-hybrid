@@ -49,7 +49,6 @@ struct Message hash_msgtab = {
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_hash, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -63,7 +62,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 static void
 mo_hash(struct Client *client_p, struct Client *source_p,

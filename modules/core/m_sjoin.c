@@ -48,7 +48,6 @@ struct Message sjoin_msgtab = {
   {m_unregistered, m_ignore, ms_sjoin, m_ignore, m_ignore, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -62,7 +61,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 static char modebuf[MODEBUFLEN];
 static char parabuf[MODEBUFLEN];

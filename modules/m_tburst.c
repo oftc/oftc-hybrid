@@ -55,8 +55,6 @@ struct Message tb_msgtab = {
   { m_ignore, m_ignore, ms_tb, m_ignore, m_ignore, m_ignore }
 };
 
-#ifndef STATIC_MODULES
-
 void
 _modinit(void)
 {
@@ -78,8 +76,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-
-#endif /* !STATIC_MODULES */
 
 /* ms_tburst()
  *

@@ -47,7 +47,6 @@ struct Message invite_msgtab = {
   { m_unregistered, m_invite, m_invite, m_ignore, m_invite, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -61,7 +60,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
 ** m_invite

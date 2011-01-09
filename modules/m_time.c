@@ -44,7 +44,6 @@ struct Message time_msgtab = {
   { m_unregistered, m_time, mo_time, m_ignore, mo_time, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -58,7 +57,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * m_time

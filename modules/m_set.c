@@ -52,7 +52,6 @@ struct Message set_msgtab = {
   {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_set, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -66,7 +65,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /* Structure used for the SET table itself */
 struct SetStruct

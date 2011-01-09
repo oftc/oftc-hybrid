@@ -39,7 +39,6 @@ struct Message capab_msgtab = {
   { mr_capab, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore }
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -53,7 +52,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-#endif
 
 /*
  * mr_capab - CAPAB message handler

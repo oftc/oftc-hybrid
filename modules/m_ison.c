@@ -43,7 +43,6 @@ struct Message ison_msgtab = {
   {m_unregistered, m_ison, m_ignore, m_ignore, m_ison, m_ignore}
 };
 
-#ifndef STATIC_MODULES
 void
 _modinit(void)
 {
@@ -55,9 +54,8 @@ _moddeinit(void)
 {
   mod_del_cmd(&ison_msgtab);
 }
-const char *_version = "$Revision$";
-#endif
 
+const char *_version = "$Revision$";
 
 
 /*
