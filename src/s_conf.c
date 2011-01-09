@@ -3114,27 +3114,24 @@ conf_yy_fatal_error(const char *msg)
  * Originally written by Dianora (Diane, db@db.net)
  */
 time_t
-valid_tkline(char *p, int minutes)
+valid_tkline(const char *p, int minutes)
 {
   time_t result = 0;
 
-  while (*p)
+  for (; *p; ++p)
   {
-    if (IsDigit(*p))
-    {
-      result *= 10;
-      result += ((*p) & 0xF);
-      p++;
-    }
-    else
-      return 0;
+    if (!IsDigit(*p))
+      return;
+
+    result *= 10;
+    result += ((*p) & 0xF);
   }
 
-  /* in the degenerate case where oper does a /quote kline 0 user@host :reason 
+  /*
+   * In the degenerate case where oper does a /quote kline 0 user@host :reason 
    * i.e. they specifically use 0, I am going to return 1 instead
    * as a return value of non-zero is used to flag it as a temporary kline
    */
-
   if (result == 0)
     result = 1;
 
