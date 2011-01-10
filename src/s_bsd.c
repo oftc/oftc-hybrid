@@ -775,8 +775,7 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
 
 /* 
  * remove_ipv6_mapping() - Removes IPv4-In-IPv6 mapping from an address
- * This function should really inspect the struct itself rather than relying
- * on inet_pton and inet_ntop.  OSes with IPv6 mapping listening on both
+ * OSes with IPv6 mapping listening on both
  * AF_INET and AF_INET6 map AF_INET connections inside AF_INET6 structures
  * 
  */
@@ -786,15 +785,15 @@ remove_ipv6_mapping(struct irc_ssaddr *addr)
 {
   if (addr->ss.ss_family == AF_INET6)
   {
-    struct sockaddr_in6 *v6;
-
-    v6 = (struct sockaddr_in6*)addr;
-    if (IN6_IS_ADDR_V4MAPPED(&v6->sin6_addr))
+    if (IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)addr)->sin6_addr))
     {
-      char v4ip[HOSTIPLEN];
-      struct sockaddr_in *v4 = (struct sockaddr_in*)addr;
-      inetntop(AF_INET6, &v6->sin6_addr, v4ip, HOSTIPLEN);
-      inet_pton(AF_INET, v4ip, &v4->sin_addr);
+      struct sockaddr_in6 v6; 
+      struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
+
+      memcpy(&v6, addr, sizeof(v6));
+      memset(v4, 0, sizeof(struct sockaddr_in));
+      memcpy(&v4->sin_addr, &v6.sin6_addr.s6_addr[12], sizeof(v4->sin_addr));
+
       addr->ss.ss_family = AF_INET;
       addr->ss_len = sizeof(struct sockaddr_in);
     }
