@@ -1269,11 +1269,7 @@ stats_memory(struct Client *source_p)
 static void
 stats_numbers(struct Client *source_p)
 {
-  if (!IsOper(source_p))
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               from, to);
-  else
-    dump_counters(source_p);
+  dump_counters(source_p);
 }
 
 static void
