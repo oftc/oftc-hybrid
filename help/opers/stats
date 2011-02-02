@@ -24,7 +24,8 @@ X h - Shows ircd callback statistics
 ^ k - Shows temporary K lines (or matched temp klines)
 * L - Shows IP and generic info about [nick]
 * l - Shows hostname and generic info about [nick]
-  m - Shows commands and their usage
+* m - Shows commands and their usage
+* n - Shows IP/cidr connect numbers
 ^ o - Shows O/o lines
 * P - Shows configured ports
   p - Shows opers connected and their idle times
