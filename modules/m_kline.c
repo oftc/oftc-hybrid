@@ -45,7 +45,6 @@
 #include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
-#include "irc_getnameinfo.h"
 
 
 static void me_kline(struct Client *, struct Client *, int, char **);

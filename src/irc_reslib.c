@@ -87,8 +87,6 @@
 #include "irc_reslib.h"
 #include "fileio.h"
 #include "irc_string.h"
-#include "irc_getaddrinfo.h"
-#include "s_log.h"
 
 #define NS_TYPE_ELT             0x40 /* EDNS0 extended label type */
 #define DNS_LABELTYPE_BITSTRING 0x41
@@ -233,11 +231,8 @@ add_nameserver(char *arg)
   hints.ai_socktype = SOCK_DGRAM;
   hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
-  if (irc_getaddrinfo(arg, "domain", &hints, &res))
-  {
-    ilog(L_WARN, "Failed to add nameserver %s", arg);
+  if (getaddrinfo(arg, "domain", &hints, &res))
     return;
-  }
 
   if (res == NULL)
   {
@@ -248,7 +243,7 @@ add_nameserver(char *arg)
   memcpy(&irc_nsaddr_list[irc_nscount].ss, res->ai_addr, res->ai_addrlen);
   irc_nsaddr_list[irc_nscount].ss_len = res->ai_addrlen;
   irc_nscount++;
-  irc_freeaddrinfo(res);
+  freeaddrinfo(res);
 }
 
 /*
