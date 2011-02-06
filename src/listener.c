@@ -32,8 +32,6 @@
 #include "ircd.h"
 #include "ircd_defs.h"
 #include "s_bsd.h"
-#include "irc_getnameinfo.h"
-#include "irc_getaddrinfo.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "send.h"
@@ -52,9 +50,7 @@ static struct Listener *
 make_listener(int port, struct irc_ssaddr *addr)
 {
   struct Listener *listener = MyMalloc(sizeof(struct Listener));
-  assert(listener != 0);
 
-  listener->name = me.name;
   listener->port = port;
   memcpy(&listener->addr, addr, sizeof(struct irc_ssaddr));
 
@@ -66,9 +62,6 @@ free_listener(struct Listener *listener)
 {
   assert(listener != NULL);
 
-  if (listener == NULL)
-    return;
-
   dlinkDelete(&listener->listener_node, &ListenerPollList);
   MyFree(listener);
 }
@@ -78,14 +71,12 @@ free_listener(struct Listener *listener)
  * returns "host.foo.org:6667" for a given listener
  */
 const char *
-get_listener_name(const struct Listener *listener)
+get_listener_name(const struct Listener *const listener)
 {
   static char buf[HOSTLEN + HOSTLEN + PORTNAMELEN + 4];
 
-  assert(listener != NULL);
-
-  ircsprintf(buf, "%s[%s/%u]",
-             me.name, listener->name, listener->port);
+  snprintf(buf, sizeof(buf), "%s[%s/%u]", me.name,
+           listener->name, listener->port);
   return buf;
 }
 
@@ -145,6 +136,12 @@ inetport(struct Listener *listener)
   struct irc_ssaddr lsin;
   socklen_t opt = 1;
 
+  memset(&lsin, 0, sizeof(lsin));
+  memcpy(&lsin, &listener->addr, sizeof(lsin));
+
+  getnameinfo((struct sockaddr *)&lsin, lsin.ss_len, listener->name,
+              sizeof(listener->name), NULL, 0, NI_NUMERICHOST);
+
   /*
    * At first, open a new socket
    */
@@ -155,13 +152,6 @@ inetport(struct Listener *listener)
                  get_listener_name(listener), errno);
     return 0;
   }
-
-  memset(&lsin, 0, sizeof(lsin));
-  memcpy(&lsin, &listener->addr, sizeof(struct irc_ssaddr));
-  
-  irc_getnameinfo((struct sockaddr*)&lsin, lsin.ss_len, listener->vhost, 
-        HOSTLEN, NULL, 0, NI_NUMERICHOST);
-  listener->name = listener->vhost;
 
   /*
    * XXX - we don't want to do all this crap for a listener
@@ -264,15 +254,15 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
 #ifdef IPV6
   if (ServerInfo.can_use_v6)
   {
-    snprintf(portname, PORTNAMELEN, "%d", port);
-    irc_getaddrinfo("::", portname, &hints, &res);
+    snprintf(portname, sizeof(portname), "%d", port);
+    getaddrinfo("::", portname, &hints, &res);
     vaddr.ss.ss_family = AF_INET6;
     assert(res != NULL);
 
     memcpy((struct sockaddr*)&vaddr, res->ai_addr, res->ai_addrlen);
     vaddr.ss_port = port;
     vaddr.ss_len = res->ai_addrlen;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
   }
   else
 #endif
@@ -288,15 +278,15 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
 
   if (vhost_ip)
   {
-    if (irc_getaddrinfo(vhost_ip, portname, &hints, &res))
-        return;
+    if (getaddrinfo(vhost_ip, portname, &hints, &res))
+      return;
 
     assert(res != NULL);
 
     memcpy((struct sockaddr*)&vaddr, res->ai_addr, res->ai_addrlen);
     vaddr.ss_port = port;
     vaddr.ss_len = res->ai_addrlen;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
   }
 #ifdef IPV6
   else if (pass == 0 && ServerInfo.can_use_v6)
@@ -355,8 +345,7 @@ close_listener(struct Listener *listener)
 void 
 close_listeners(void)
 {
-  dlink_node *ptr;
-  dlink_node *next_ptr;
+  dlink_node *ptr = NULL, *next_ptr = NULL;
 
   /* close all 'extra' listening ports we have */
   DLINK_FOREACH_SAFE(ptr, next_ptr, ListenerPollList.head)
@@ -378,8 +367,6 @@ accept_connection(fde_t *pfd, void *data)
   memset(&addr, 0, sizeof(addr));
 
   assert(listener != NULL);
-  if (listener == NULL)
-    return;
 
   /* There may be many reasons for error return, but
    * in otherwise correctly working environment the

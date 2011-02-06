@@ -98,6 +98,4 @@
 #else
 extern int errno;
 #endif
-
-#include "inet_misc.h"
 #endif

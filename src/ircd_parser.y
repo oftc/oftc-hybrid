@@ -37,7 +37,6 @@
 #include "s_log.h"
 #include "client.h"	/* for UMODE_ALL only */
 #include "irc_string.h"
-#include "irc_getaddrinfo.h"
 #include "sprintf_irc.h"
 #include "memory.h"
 #include "modules.h"
@@ -693,7 +692,7 @@ serverinfo_vhost: VHOST '=' QSTRING ';'
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
-    if (irc_getaddrinfo(yylval.string, NULL, &hints, &res))
+    if (getaddrinfo(yylval.string, NULL, &hints, &res))
       ilog(L_ERROR, "Invalid netmask for server vhost(%s)", yylval.string);
     else
     {
@@ -702,7 +701,7 @@ serverinfo_vhost: VHOST '=' QSTRING ';'
       memcpy(&ServerInfo.ip, res->ai_addr, res->ai_addrlen);
       ServerInfo.ip.ss.ss_family = res->ai_family;
       ServerInfo.ip.ss_len = res->ai_addrlen;
-      irc_freeaddrinfo(res);
+      freeaddrinfo(res);
 
       ServerInfo.specific_ipv4_vhost = 1;
     }
@@ -722,7 +721,7 @@ serverinfo_vhost6: VHOST6 '=' QSTRING ';'
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
-    if (irc_getaddrinfo(yylval.string, NULL, &hints, &res))
+    if (getaddrinfo(yylval.string, NULL, &hints, &res))
       ilog(L_ERROR, "Invalid netmask for server vhost6(%s)", yylval.string);
     else
     {
@@ -731,7 +730,7 @@ serverinfo_vhost6: VHOST6 '=' QSTRING ';'
       memcpy(&ServerInfo.ip6, res->ai_addr, res->ai_addrlen);
       ServerInfo.ip6.ss.ss_family = res->ai_family;
       ServerInfo.ip6.ss_len = res->ai_addrlen;
-      irc_freeaddrinfo(res);
+      freeaddrinfo(res);
 
       ServerInfo.specific_ipv6_vhost = 1;
     }
@@ -2340,7 +2339,7 @@ connect_vhost: VHOST '=' QSTRING ';'
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
-    if (irc_getaddrinfo(yylval.string, NULL, &hints, &res))
+    if (getaddrinfo(yylval.string, NULL, &hints, &res))
       ilog(L_ERROR, "Invalid netmask for server vhost(%s)", yylval.string);
     else
     {
@@ -2349,7 +2348,7 @@ connect_vhost: VHOST '=' QSTRING ';'
       memcpy(&yy_aconf->my_ipnum, res->ai_addr, res->ai_addrlen);
       yy_aconf->my_ipnum.ss.ss_family = res->ai_family;
       yy_aconf->my_ipnum.ss_len = res->ai_addrlen;
-      irc_freeaddrinfo(res);
+      freeaddrinfo(res);
     }
   }
 };

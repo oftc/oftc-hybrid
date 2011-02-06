@@ -13190,15 +13190,9 @@ fi
 
 
 
-  ac_fn_c_check_type "$LINENO" "struct sockaddr_in6" "ac_cv_type_struct_sockaddr_in6" "$ac_includes_default"
+  ac_fn_c_check_type "$LINENO" "struct sockaddr_in6" "ac_cv_type_struct_sockaddr_in6" "#include <netinet/in.h>
+"
 if test "x$ac_cv_type_struct_sockaddr_in6" = xyes; then :
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_STRUCT_SOCKADDR_IN6 1
-_ACEOF
-
-
-else
 
 $as_echo "#define IPV6 1" >>confdefs.h
 

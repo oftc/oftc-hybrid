@@ -37,19 +37,18 @@ struct Client;
 struct Listener
 {
   dlink_node	   listener_node;      /* list node pointer */
-  const char*      name;               /* listener name */
   fde_t            fd;                 /* file descriptor */
   int              port;               /* listener IP port */
   int              ref_count;          /* number of connection references */
   int              active;             /* current state of listener */
   struct irc_ssaddr addr;              /* virtual address or INADDR_ANY */
-  char              vhost[HOSTLEN + 1]; /* virtual name of listener */
+  char              name[HOSTLEN + 1]; /* virtual name of listener */
   unsigned int      flags;
 };
 
 extern void add_listener(int, const char *, unsigned int);
 extern void close_listeners(void);
-extern const char *get_listener_name(const struct Listener *);
+extern const char *get_listener_name(const struct Listener *const);
 extern void show_ports(struct Client *);
 extern void free_listener(struct Listener *);
 #endif /* INCLUDED_listener_h */

@@ -34,14 +34,11 @@
 #include "dbuf.h"
 #include "event.h"
 #include "irc_string.h"
-#include "irc_getnameinfo.h"
-#include "irc_getaddrinfo.h"
 #include "ircd.h"
 #include "listener.h"
 #include "numeric.h"
 #include "packet.h"
 #include "irc_res.h"
-#include "inet_misc.h"
 #include "restart.h"
 #include "s_auth.h"
 #include "s_conf.h"
@@ -307,31 +304,29 @@ ssl_handshake(int fd, struct Client *client_p)
 void
 add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 {
-  struct Client *new_client;
-
-  assert(NULL != listener);
-
-  new_client = make_client(NULL);
+  struct Client *new_client = make_client(NULL);
 
   fd_open(&new_client->localClient->fd, fd, 1,
           (listener->flags & LISTENER_SSL) ?
 	  "Incoming SSL connection" : "Incoming connection");
 
-  /* 
+  /*
    * copy address to 'sockhost' as a string, copy it to host too
    * so we have something valid to put into error messages...
    */
   memcpy(&new_client->localClient->ip, irn, sizeof(struct irc_ssaddr));
 
-  irc_getnameinfo((struct sockaddr*)&new_client->localClient->ip,
-        new_client->localClient->ip.ss_len, new_client->sockhost, 
-        sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
+  getnameinfo((struct sockaddr *)&new_client->localClient->ip,
+              new_client->localClient->ip.ss_len, new_client->sockhost, 
+              sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
   new_client->localClient->aftype = new_client->localClient->ip.ss.ss_family;
 
-  if (new_client->sockhost[0] == ':')
+  if (new_client->sockhost[0] == ':' && new_client->sockhost[1] == ':')
   {
     strlcpy(new_client->host, "0", sizeof(new_client->host));
     strlcpy(new_client->host+1, new_client->sockhost, sizeof(new_client->host)-1);
+    memmove(new_client->sockhost+1, new_client->sockhost, sizeof(new_client->sockhost)-1);
+    new_client->sockhost[0] = '0';
   }
   else
     strlcpy(new_client->host, new_client->sockhost, sizeof(new_client->host));
@@ -521,7 +516,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
 
   snprintf(portname, sizeof(portname), "%d", port);
 
-  if (irc_getaddrinfo(host, portname, &hints, &res))
+  if (getaddrinfo(host, portname, &hints, &res))
   {
     /* Send the DNS request, for the next level */
     if (aftype == AF_INET6)
@@ -537,7 +532,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     memcpy(&fd->connect.hostaddr, res->ai_addr, res->ai_addrlen);
     fd->connect.hostaddr.ss_len = res->ai_addrlen;
     fd->connect.hostaddr.ss.ss_family = res->ai_family;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
     comm_settimeout(fd, timeout*1000, comm_connect_timeout, NULL);
     comm_connect_tryconnect(fd, NULL);
   }

@@ -37,7 +37,6 @@
 #include "memory.h"
 #include "irc_res.h"
 #include "irc_reslib.h"
-#include "irc_getnameinfo.h"
 #include "common.h"
 
 #if (CHAR_BIT != 8)
@@ -846,9 +845,9 @@ report_dns_servers(struct Client *source_p)
 
   for (i = 0; i < irc_nscount; i++)
   {
-    irc_getnameinfo((struct sockaddr *)&(irc_nsaddr_list[i]),
-                    irc_nsaddr_list[i].ss_len, ipaddr,
-                    sizeof(ipaddr), NULL, 0, NI_NUMERICHOST);
+    getnameinfo((struct sockaddr *)&(irc_nsaddr_list[i]),
+                irc_nsaddr_list[i].ss_len, ipaddr,
+                sizeof(ipaddr), NULL, 0, NI_NUMERICHOST);
     sendto_one(source_p, form_str(RPL_STATSALINE),
                me.name, source_p->name, ipaddr); 
   }

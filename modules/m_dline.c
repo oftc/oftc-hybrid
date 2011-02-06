@@ -45,7 +45,6 @@
 #include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
-#include "irc_getnameinfo.h"
 
 
 static void mo_dline(struct Client *, struct Client *, int, char *[]);
@@ -172,10 +171,9 @@ mo_dline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    irc_getnameinfo((struct sockaddr *)&target_p->localClient->ip,
-                    target_p->localClient->ip.ss_len, hostip,
-                    sizeof(hostip), NULL, 0, NI_NUMERICHOST);
-
+    getnameinfo((struct sockaddr *)&target_p->localClient->ip,
+                target_p->localClient->ip.ss_len, hostip,
+                sizeof(hostip), NULL, 0, NI_NUMERICHOST);
     dlhost = hostip;
     t = parse_netmask(dlhost, NULL, &bits);
     assert(t == HM_IPV4 || t == HM_IPV6);
