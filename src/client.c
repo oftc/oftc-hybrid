@@ -31,7 +31,6 @@
 #include "fdlist.h"
 #include "hash.h"
 #include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd.h"
 #include "s_gline.h"
 #include "numeric.h"
@@ -76,7 +75,7 @@ static dlink_node *eac_next;  /* next aborted client to exit */
 
 static void check_pings_list(dlink_list *);
 static void check_unknowns_list(void);
-static void ban_them(struct Client *client_p, struct ConfItem *conf);
+static void ban_them(struct Client *, struct ConfItem *);
 
 
 /* init_client()
@@ -318,8 +317,8 @@ check_pings_list(dlink_list *list)
 		 get_client_name(client_p, HIDE_IP));
 	  }
 
-          ircsprintf(scratch, "Ping timeout: %d seconds",
-                     (int)(CurrentTime - client_p->lasttime));
+          snprintf(scratch, sizeof(scratch), "Ping timeout: %d seconds",
+                   (int)(CurrentTime - client_p->lasttime));
           exit_client(client_p, &me, scratch);
         }
         /* else if (!IsPingWarning(client_p) && pingwarn > 0 && */
@@ -678,14 +677,14 @@ find_chasing(struct Client *client_p, struct Client *source_p, const char *user,
  *        to modify what it points!!!
  */
 const char *
-get_client_name(struct Client *client, int showip)
+get_client_name(const struct Client *client, int showip)
 {
   static char nbuf[HOSTLEN * 2 + USERLEN + 5];
 
   assert(client != NULL);
 
   if (irccmp(client->name, client->host) == 0)
-    return(client->name);
+    return client->name;
 
   if (ConfigServerHide.hide_server_ips)
     if (IsServer(client) || IsConnecting(client) || IsHandshake(client))
@@ -700,22 +699,23 @@ get_client_name(struct Client *client, int showip)
   {
     case SHOW_IP:
       if (*client->sockhost != '\0')
-        ircsprintf(nbuf, "%s[%s@%s]", client->name, client->username,
+        snprintf(nbuf, sizeof(nbuf), "%s[%s@%s]", client->name, client->username,
                    client->sockhost);
       else
-        ircsprintf(nbuf, "%s[%s@%s]", client->name, client->username,
+        snprintf(nbuf, sizeof(nbuf), "%s[%s@%s]", client->name, client->username,
                    client->host);
       break;
     case MASK_IP:
-      ircsprintf(nbuf, "%s[%s@255.255.255.255]", client->name,
-                 client->username);
+      snprintf(nbuf, sizeof(nbuf), "%s[%s@255.255.255.255]",
+               client->name, client->username);
       break;
     default:
-      ircsprintf(nbuf, "%s[%s@%s]", client->name, client->username,
-                 client->host);
+      snprintf(nbuf, sizeof(nbuf), "%s[%s@%s]",
+               client->name,
+               client->username, client->host);
   }
 
-  return(nbuf);
+  return nbuf;
 }
 
 void
@@ -1169,8 +1169,8 @@ dead_link_on_read(struct Client *client_p, int error)
     strlcpy(errmsg, "Remote host closed the connection",
             sizeof(errmsg));
   else
-    ircsprintf(errmsg, "Read error: %s",
-               strerror(current_error));
+    snprintf(errmsg, sizeof(errmsg), "Read error: %s",
+             strerror(current_error));
 
   exit_client(client_p, &me, errmsg);
 }

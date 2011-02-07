@@ -34,7 +34,6 @@
 #include "fdlist.h"
 #include "hash.h"
 #include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd_signal.h"
 #include "s_gline.h"
 #include "motd.h"
@@ -194,8 +193,9 @@ set_time(void)
 
   if (newtime.tv_sec < CurrentTime)
   {
-    ircsprintf(to_send, "System clock is running backwards - (%lu < %lu)",
-               (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
+    snprintf(to_send, sizeof(to_send),
+             "System clock is running backwards - (%lu < %lu)",
+             (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
     report_error(L_ALL, to_send, me.name, 0);
     set_back_events(CurrentTime - newtime.tv_sec);
   }
@@ -353,7 +353,7 @@ write_pidfile(const char *filename)
   {
     char buff[32];
     unsigned int pid = (unsigned int)getpid();
-    size_t nbytes = ircsprintf(buff, "%u\n", pid);
+    size_t nbytes = snprintf(buff, sizeof(buff), "%u\n", pid);
 
     if ((fbputs(buff, fb, nbytes) == -1))
       ilog(L_ERROR, "Error writing %u to pid file %s (%s)",
