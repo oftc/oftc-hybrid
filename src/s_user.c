@@ -409,7 +409,8 @@ register_local_user(struct Client *source_p)
     sendto_realops_flags(UMODE_REJ, L_ALL, "Invalid username: %s (%s@%s)",
                          source_p->name, source_p->username, source_p->host);
     ++ServerStats.is_ref;
-    ircsprintf(tmpstr2, "Invalid username [%s]", source_p->username);
+    snprintf(tmpstr2, sizeof(tmpstr2), "Invalid username [%s]",
+             source_p->username);
     exit_client(source_p, &me, tmpstr2);
     return;
   }
