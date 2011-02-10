@@ -336,6 +336,8 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     listener = make_listener(port, &vaddr);
     dlinkAdd(listener, &listener->listener_node, &ListenerPollList);
     listener->flags = flags;
+    if(IsWebsocket(listener))
+      websocket_add(listener, vhost_ip);
   }
 
   if (inetport(listener))

@@ -739,8 +739,6 @@ main(int argc, char *argv[])
 
   eventAddIsh("check_godmode", check_godmode, NULL, 60);
 
-  websocket_init();
-
   io_loop();
   return(0);
 }

@@ -320,6 +320,7 @@ tresv		{ return TRESV; }
 vhost	{ return VHOST; }
 vhost6	{ return VHOST6; }
 warn		{ return WARN; }
+websocket { return WEBSOCKET; }
 xline		{ return XLINE; }
 yes		{ yylval.number = YES; return TBOOL; }
 

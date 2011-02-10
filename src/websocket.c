@@ -7,8 +7,6 @@
 #include "s_bsd.h"
 #include "packet.h"
 
-#define WEBSOCKET_PORT 8080
-
 enum hybrid_protocols {
   IRC,
   PROTOCOL_COUNT,
@@ -35,25 +33,16 @@ static struct libwebsocket_protocols protocols[] = {
 };
 
 void
-websocket_init() {
-  /* TODO XXX FIXME ZOMG this should come from the config file of course
-    and use the websocket flag there as well */
-  add_listener(WEBSOCKET_PORT, "0.0.0.0", LISTENER_WEBSOCKET);
-
-  dlink_node *ptr;
-  struct Listener *listener = NULL;
-
-  DLINK_FOREACH(ptr, ListenerPollList.head) {
-    listener = ptr->data;
-    if(IsWebsocket(listener)) {
-      listener->wsc = libwebsocket_create_context(WEBSOCKET_PORT, protocols,
-        NULL, NULL, -1, -1, 0);
-    }
-  }
+websocket_add(struct Listener *listener, const char *vhost)
+{
+  /* TODO FIXME XXX libwebsockets doesn't support bound ip yet */
+  listener->wsc = libwebsocket_create_context(listener->port, protocols,
+    NULL, NULL, -1, -1, 0);
 }
 
 void
-websocket_poll() {
+websocket_poll()
+{
   dlink_node *ptr;
   struct Listener *listener = NULL;
   DLINK_FOREACH(ptr, ListenerPollList.head) {

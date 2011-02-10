@@ -390,6 +390,7 @@ unhook_hub_leaf_confs(void)
 %token  XLINE
 %token  WARN
 %token  WARN_NO_NLINE
+%token  WEBSOCKET
 
 %type <string> QSTRING
 %type <number> NUMBER
@@ -1788,6 +1789,10 @@ listen_flags_item: T_SSL
 {
   if (ypass == 2)
     listener_flags |= LISTENER_HIDDEN;
+} | WEBSOCKET
+{
+  if (ypass == 2)
+    listener_flags |= LISTENER_WEBSOCKET;
 };
 
 listen_items:   listen_items listen_item | listen_item;
