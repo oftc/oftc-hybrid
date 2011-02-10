@@ -1,0 +1,17 @@
+*.so
+*.a
+*.o
+*Makefile
+*y.tab.c
+*y.tab.h
+*.depend
+autom4te.cache*
+config.log
+config.status
+include/setup.h
+servlink/servlink
+src/ircd
+src/lex.yy.c
+tools/encspeed
+tools/mkpasswd
+

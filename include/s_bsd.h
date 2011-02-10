@@ -43,7 +43,7 @@ struct Listener;
 
 extern struct Callback *setup_socket_cb;
 
-extern void add_connection(struct Listener *, struct irc_ssaddr *, int);
+extern void add_connection(struct Listener *, struct irc_ssaddr *, int, struct Client **);
 extern void close_connection(struct Client *);
 extern int  connect_server(struct AccessItem *, struct Client *,
                            struct DNSReply *);

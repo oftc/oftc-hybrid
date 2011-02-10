@@ -63,6 +63,7 @@
 #include "balloc.h"
 #include "motd.h"
 #include "supported.h"
+#include "websocket.h"
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
  * number of files allowed to be open by this process.
@@ -295,6 +296,8 @@ io_loop(void)
     exit_aborted_clients();
     free_exited_clients();
     send_queued_all();
+
+    websocket_poll();
 
     /* Check to see whether we have to rehash the configuration .. */
     if (dorehash)
@@ -735,6 +738,8 @@ main(int argc, char *argv[])
     eventAddIsh("check_splitmode", check_splitmode, NULL, 60);
 
   eventAddIsh("check_godmode", check_godmode, NULL, 60);
+
+  websocket_init();
 
   io_loop();
   return(0);

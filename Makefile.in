@@ -68,7 +68,7 @@ distclean:
 		cd $$i && ${MAKE} ${MFLAGS} distclean || exit; cd ..; \
 	done
 
-depend:
+depend: libwebsockets
 	@for i in $(DEPEND_DIRS); do \
 		echo "depend ==> $$i";\
 		cd $$i && ${MAKE} ${MFLAGS} .depend || exit; cd .. ; \
@@ -85,3 +85,6 @@ include/setup.h:
 
 # A la Linux kernel config :)
 dep: depend
+
+libwebsockets:
+	cd libwebsockets && ${MAKE} ${MFLAGS}

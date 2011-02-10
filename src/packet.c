@@ -119,7 +119,7 @@ extract_one_line(struct dbuf_queue *qptr, char *buffer)
 /*
  * parse_client_queued - parse client queued messages
  */
-static void
+void
 parse_client_queued(struct Client *client_p)
 { 
   int dolen = 0;
@@ -412,7 +412,7 @@ read_packet(fde_t *fd, void *data)
   struct Client *client_p = data;
   int length = 0;
 
-  if (IsDefunct(client_p))
+  if (IsDefunct(client_p) || fd->websocket)
     return;
 
   /*

@@ -280,6 +280,8 @@ close_connection(struct Client *client_p)
   MyFree(client_p->localClient->passwd);
   detach_conf(client_p, CONF_TYPE);
   client_p->from = NULL; /* ...this should catch them! >:) --msa */
+
+  websocket_close(client_p);
 }
 
 #ifdef HAVE_LIBCRYPTO
@@ -350,7 +352,8 @@ ssl_handshake(int fd, struct Client *client_p)
  * any client list yet.
  */
 void
-add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
+add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd,
+  struct Client **new_client_pass)
 {
   struct Client *new_client;
 
@@ -358,9 +361,15 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 
   new_client = make_client(NULL);
 
-  fd_open(&new_client->localClient->fd, fd, 1,
-          (listener->flags & LISTENER_SSL) ?
-	  "Incoming SSL connection" : "Incoming connection");
+  if(!IsWebsocket(listener))
+  {
+    fd_open(&new_client->localClient->fd, fd, 1,
+            (listener->flags & LISTENER_SSL) ?
+	    "Incoming SSL connection" : "Incoming connection");
+  } else {
+    fd_open(&new_client->localClient->fd, fd, 1, "Incoming WebSocket Connection");
+    new_client->localClient->fd.websocket = 1;
+  }
 
   /* 
    * copy address to 'sockhost' as a string, copy it to host too
@@ -409,6 +418,11 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
   else
 #endif
     execute_callback(auth_cb, new_client);
+
+  if(new_client_pass)
+  {
+    *new_client_pass = new_client;
+  }
 }
 
 /*

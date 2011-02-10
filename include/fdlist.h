@@ -90,6 +90,7 @@ typedef struct _fde {
 #ifdef HAVE_LIBCRYPTO
   SSL *ssl;
 #endif
+  int websocket;
   struct _fde *hnext;
 } fde_t;
 

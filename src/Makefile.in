@@ -38,7 +38,8 @@ PROGS		= ircd
 SSL_LIBS	= @SSL_LIBS@
 SSL_INCLUDES	= @SSL_INCLUDES@
 IRCDLIBS	= @MODULES_LIBS@ @LIBS@ ../lib/pcre/libpcre.a $(SSL_LIBS)
-INCLUDES	= -I../include -I../lib/pcre $(SSL_INCLUDES)
+IRCDLIBS	+= ../libwebsockets/lib/.libs/libwebsockets.a
+INCLUDES	= -I../include -I../lib/pcre $(SSL_INCLUDES) -I../libwebsockets/lib/
 CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
  
 default:	all
@@ -109,6 +110,7 @@ BASE_SRCS =	\
  sprintf_irc.c \
  tools.c \
  version.c \
+ websocket.c \
  whowas.c 
 
 SRCS = ${BASE_SRCS} $(NETIO_SRC)

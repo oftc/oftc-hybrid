@@ -1125,6 +1125,8 @@ AC_CONFIG_FILES(		\
 	lib/pcre/Makefile
 )
 
+AC_CONFIG_SUBDIRS(libwebsockets)
+
 AC_OUTPUT
 
 dnl Configure options probably changed

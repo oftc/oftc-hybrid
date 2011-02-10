@@ -56,5 +56,6 @@ PF read_ctrl_packet;
 PF read_packet;
 PF flood_recalc;
 void flood_endgrace(struct Client *);
+void parse_client_queued(struct Client *);
 
 #endif /* INCLUDED_packet_h */

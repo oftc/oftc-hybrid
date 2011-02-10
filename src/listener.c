@@ -42,11 +42,12 @@
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/bio.h>
 #endif
+#include "libwebsockets.h"
 
 
 static PF accept_connection;
 
-static dlink_list ListenerPollList = { NULL, NULL, 0 };
+dlink_list ListenerPollList = { NULL, NULL, 0 };
 static void close_listener(struct Listener *listener);
 
 static struct Listener *
@@ -119,6 +120,10 @@ show_ports(struct Client *source_p)
 
     if (listener->flags & LISTENER_SSL)
       *p++ = 's';
+
+    if (IsWebsocket(listener))
+      *p++ = 'w';
+
     *p = '\0';
     sendto_one(source_p, form_str(RPL_STATSPLINE),
                me.name, source_p->name, 'P', listener->port,
@@ -150,7 +155,8 @@ inetport(struct Listener *listener)
   /*
    * At first, open a new socket
    */
-  if (comm_open(&listener->fd, listener->addr.ss.ss_family, SOCK_STREAM, 0,
+  if (!IsWebsocket(listener) &&
+      comm_open(&listener->fd, listener->addr.ss.ss_family, SOCK_STREAM, 0,
                 "Listener socket") == -1)
   {
     report_error(L_ALL, "opening listener socket %s:%s",
@@ -169,7 +175,7 @@ inetport(struct Listener *listener)
    * XXX - we don't want to do all this crap for a listener
    * set_sock_opts(listener);
    */
-  if (setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
+  if (!IsWebsocket(listener) && setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
   {
 #ifdef _WIN32
     errno = WSAGetLastError();
@@ -186,7 +192,7 @@ inetport(struct Listener *listener)
    */
   lsin.ss_port = htons(listener->port);
 
-  if (bind(listener->fd.fd, (struct sockaddr *)&lsin, lsin.ss_len))
+  if (!IsWebsocket(listener) && bind(listener->fd.fd, (struct sockaddr *)&lsin, lsin.ss_len))
   {
 #ifdef _WIN32
     errno = WSAGetLastError();
@@ -197,7 +203,7 @@ inetport(struct Listener *listener)
     return(0);
   }
 
-  if (listen(listener->fd.fd, HYBRID_SOMAXCONN))
+  if (!IsWebsocket(listener) && listen(listener->fd.fd, HYBRID_SOMAXCONN))
   {
 #ifdef _WIN32
     errno = WSAGetLastError();
@@ -349,7 +355,9 @@ close_listener(struct Listener *listener)
   if (listener == NULL)
     return;
 
-  if (listener->fd.flags.open)
+  if (IsWebsocket(listener) && listener->wsc)
+    libwebsocket_context_destroy(listener->wsc);
+  else if (listener->fd.flags.open)
     fd_close(&listener->fd);
 
   listener->active = 0;
@@ -389,7 +397,7 @@ accept_connection(fde_t *pfd, void *data)
   memset(&addr, 0, sizeof(addr));
 
   assert(listener != NULL);
-  if (listener == NULL)
+  if (listener == NULL || IsWebsocket(listener))
     return;
 
   /* There may be many reasons for error return, but
@@ -458,7 +466,7 @@ accept_connection(fde_t *pfd, void *data)
     }
 
     ++ServerStats->is_ac;
-    add_connection(listener, &addr, fd);
+    add_connection(listener, &addr, fd, NULL);
   }
 
   /* Re-register a new IO request for the next accept .. */

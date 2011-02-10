@@ -44,6 +44,7 @@
 #include "hook.h"
 #include "irc_getnameinfo.h"
 #include "packet.h"
+#include "websocket.h"
 
 #define LOG_BUFSIZE 2048
 
@@ -298,7 +299,13 @@ send_queued_write(struct Client *to)
       }
       else
 #endif
-        retlen = send(to->localClient->fd.fd, first->data, first->size, 0);
+        if(!to->localClient->fd.websocket)
+          retlen = send(to->localClient->fd.fd, first->data, first->size, 0);
+        else
+        {
+          retlen = first->size;
+          websocket_write(to, first->data, first->size);
+        }
 
       if (retlen <= 0)
       {
