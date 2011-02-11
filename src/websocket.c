@@ -48,7 +48,7 @@ websocket_poll()
   DLINK_FOREACH(ptr, ListenerPollList.head) {
     listener = ptr->data;
     if(IsWebsocket(listener)) {
-      libwebsocket_service(listener->wsc, 100);
+      libwebsocket_service(listener->wsc, 0);
     }
   }
 }
