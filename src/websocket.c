@@ -91,18 +91,21 @@ websocket_protocol_callback(struct libwebsocket *wsi,
     case LWS_CALLBACK_RECEIVE:
       {
         execute_callback(iorecv_cb, wsd->client, len, in);
-        if (wsd->client->lasttime < CurrentTime)
-          wsd->client->lasttime = CurrentTime;
-        if (wsd->client->lasttime > wsd->client->since)
-          wsd->client->since = CurrentTime;
-        ClearPingSent(wsd->client);
-        parse_client_queued(wsd->client);
-        /* TODO XXX FIXME Flood Detection */
+        if(wsd->client->flags & FLAGS_FINISHED_AUTH)
+        {
+          if (wsd->client->lasttime < CurrentTime)
+            wsd->client->lasttime = CurrentTime;
+          if (wsd->client->lasttime > wsd->client->since)
+            wsd->client->since = CurrentTime;
+          ClearPingSent(wsd->client);
+          parse_client_queued(wsd->client);
+          /* TODO XXX FIXME Flood Detection */
+        }
       }
       break;
     case LWS_CALLBACK_HTTP:
       /* TODO XXX FIXME probably drop this client */
-      exit_client(wsd->client, &me, "Remote host closed the connection |HTTP");
+      exit_client(wsd->client, &me, "Remote host sent invalid command -- HTTP");
       break;
     default:
       break;
@@ -124,5 +127,6 @@ websocket_write(struct Client *client, const char *oldbuf, size_t len)
 void
 websocket_close(struct Client *client)
 {
+  /* TODO XXX FIXME this is probably going to nullref sometime */
   libwebsocket_client_close(client->localClient->wsi);
 }
