@@ -128,5 +128,6 @@ void
 websocket_close(struct Client *client)
 {
   /* TODO XXX FIXME this is probably going to nullref sometime */
-  libwebsocket_client_close(client->localClient->wsi);
+  /* this probably shouldn't be in the private externs send upstream */
+  libwebsocket_close_and_free_session(client->localClient->wsi);
 }
