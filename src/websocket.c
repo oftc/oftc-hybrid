@@ -16,7 +16,6 @@ enum hybrid_protocols {
 };
 
 struct WebSocketData {
-  struct Listener *listener;
   struct Client *client;
 };
 
@@ -84,14 +83,12 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
         if (number_fd > hard_fdlimit - 10)
         {
           ++ServerStats->is_ref;
-          libwebsockets_hangup_on_client(wsc, fd);
           return 1;
         }
 
         if ((pe = conf_connect_allowed(&addr, addr.ss.ss_family)) != 0)
         {
           ++ServerStats->is_ref;
-          libwebsockets_hangup_on_client(wsc, fd);
           return 1;
         }
       }
@@ -115,7 +112,6 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
             getpeername(fd, (struct sockaddr *)&addr, &addrlen);
             addr.ss_len = addrlen;
 
-            wsd->listener = listener;
             ++ServerStats->is_ac;
             add_connection(listener, (struct irc_ssaddr *)&addr, fd, &wsd->client);
             wsd->client->localClient->fd.websocket = wsi;
