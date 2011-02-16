@@ -68,6 +68,15 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
         socklen_t addrlen = sizeof(addr);
         int fd = (int)user;
         int pe;
+        dlink_node *ptr;
+        struct Listener *listener = NULL;
+
+        DLINK_FOREACH(ptr, ListenerPollList.head)
+        {
+          listener = ptr->data;
+          if(IsWebsocket(listener) && listener->wsc == wsc && !listener->active)
+            return 1;
+        }
 
         getpeername(fd, (struct sockaddr *)&addr, &addrlen);
         addr.ss_len = addrlen;
@@ -88,7 +97,8 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
       }
       break;
     case LWS_CALLBACK_CLOSED:
-      exit_client(wsd->client, &me, "Remote host closed the connection");
+      if(wsd && wsd->client)
+        exit_client(wsd->client, &me, "Remote host closed the connection");
       break;
     case LWS_CALLBACK_ESTABLISHED:
       {
@@ -115,9 +125,12 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
       }
       break;
     case LWS_CALLBACK_RECEIVE:
-      execute_callback(iorecv_cb, wsd->client, len, in);
-      if(wsd->client->flags & FLAGS_FINISHED_AUTH)
-        finish_client_read(wsd->client);
+      if(wsd && wsd->client)
+      {
+        execute_callback(iorecv_cb, wsd->client, len, in);
+        if(wsd->client->flags & FLAGS_FINISHED_AUTH)
+          finish_client_read(wsd->client);
+      }
       break;
     case LWS_CALLBACK_HTTP:
       if(ConfigFileEntry.websocket_redirect &&
@@ -142,14 +155,16 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
 int
 websocket_write(struct Client *client, const char *oldbuf, size_t len)
 {
-  if(!IsDead(client) || !IsSendqBlocked(to))
+  if(!IsDead(client) || !IsSendqBlocked(client))
   {
-    /* TODO XXX FIXME This seems pretty optimistic */
     int ret;
     unsigned char *buf = MyMalloc(LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING);
     memcpy(&buf[LWS_SEND_BUFFER_PRE_PADDING], oldbuf, len);
     ret = libwebsocket_write(client->localClient->fd.websocket, &buf[LWS_SEND_BUFFER_PRE_PADDING], len, LWS_WRITE_TEXT);
     MyFree(buf);
+    if(ret == 0) {
+      ret = 1;
+    }
     return ret;
   }
   return 0;
