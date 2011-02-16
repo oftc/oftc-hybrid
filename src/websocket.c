@@ -139,14 +139,20 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
   return 0;
 }
 
-void
+int
 websocket_write(struct Client *client, const char *oldbuf, size_t len)
 {
-  /* TODO XXX FIXME This seems pretty optimistic */
-  unsigned char *buf = MyMalloc(LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING);
-  memcpy(&buf[LWS_SEND_BUFFER_PRE_PADDING], oldbuf, len);
-  libwebsocket_write(client->localClient->fd.websocket, &buf[LWS_SEND_BUFFER_PRE_PADDING], len, LWS_WRITE_TEXT);
-  MyFree(buf);
+  if(!IsDead(client) || !IsSendqBlocked(to))
+  {
+    /* TODO XXX FIXME This seems pretty optimistic */
+    int ret;
+    unsigned char *buf = MyMalloc(LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING);
+    memcpy(&buf[LWS_SEND_BUFFER_PRE_PADDING], oldbuf, len);
+    ret = libwebsocket_write(client->localClient->fd.websocket, &buf[LWS_SEND_BUFFER_PRE_PADDING], len, LWS_WRITE_TEXT);
+    MyFree(buf);
+    return ret;
+  }
+  return 0;
 }
 
 void
