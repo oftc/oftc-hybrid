@@ -1,4 +1,7 @@
 #include "stdinc.h"
+
+#ifdef WEBSOCKETS
+
 #include "tools.h"
 #include "ircd.h"
 #include "listener.h"
@@ -178,3 +181,5 @@ websocket_close_listener(struct Listener *listener)
   if (IsWebsocket(listener) && listener->wsc)
     libwebsocket_context_destroy(listener->wsc);
 }
+
+#endif

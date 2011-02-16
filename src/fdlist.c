@@ -191,7 +191,9 @@ fd_close(fde_t *F)
   else
     CloseHandle((HANDLE)F->fd);
 #else
+#ifdef WEBSOCKETS
   if(!F->websocket)
+#endif
     close(F->fd);
 #endif
   number_fd--;

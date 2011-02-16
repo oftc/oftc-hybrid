@@ -39,7 +39,9 @@
 #include "send.h"
 #include "irc_getnameinfo.h"
 
+#ifdef WEBSOCKETS
 #include "websocket.h"
+#endif
 
 #define READBUF_SIZE 16384
 
@@ -448,8 +450,13 @@ read_packet(fde_t *fd, void *data)
   struct Client *client_p = data;
   int length = 0;
 
-  if (IsDefunct(client_p) || fd->websocket)
+  if (IsDefunct(client_p))
     return;
+
+#ifdef WEBSOCKETS
+  if (fd->websocket)
+    return;
+#endif
 
   /*
    * Read some data. We *used to* do anti-flood protection here, but

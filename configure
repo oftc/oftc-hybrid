@@ -691,6 +691,7 @@ ZLIB_LD
 SELECT_TYPE
 CLOBBER
 BALLOC_C
+subdirs
 EXAMPLE_CONF
 MODULES_LIBS
 MOD_TARGET
@@ -701,7 +702,6 @@ PICFLAGS
 IRC_CFLAGS
 SEDOBJ
 DYNLINK_C
-subdirs
 LIBOBJS
 LTLIBOBJS'
 ac_subst_files=''
@@ -716,7 +716,7 @@ CPPFLAGS
 CPP
 YACC
 YFLAGS'
-ac_subdirs_all='libwebsockets'
+ac_subdirs_all='subdirs_set'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -1306,6 +1306,7 @@ Optional Features:
   --enable-efnet          For IRCDs running on EFnet.
   --disable-gline-voting  Disable G-line voting.
   --enable-halfops        Enable halfops support.
+  --enable-websockets     Enable websocket support.
   --enable-syslog="EVENTS"
                           Enable syslog for events: kill, squit, connect,
                           users, oper, space separated in quotes (default:
@@ -10049,6 +10050,24 @@ _ACEOF
 
 fi
 
+# Check whether --enable-websockets was given.
+if test "${enable_websockets+set}" = set; then
+  enableval=$enable_websockets; websockets=$enableval
+else
+  websockets=yes
+fi
+
+
+if test "$websockets" = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define WEBSOCKETS 1
+_ACEOF
+
+  subdirs="$subdirs subdirs_set"
+
+fi
+
 
 
 { echo "$as_me:$LINENO: checking for syslog options" >&5
@@ -11068,8 +11087,6 @@ fi
 ac_config_files="$ac_config_files Makefile etc/Makefile servlink/Makefile contrib/Makefile contrib/help/Makefile src/Makefile messages/Makefile modules/Makefile tools/Makefile doc/Makefile help/Makefile lib/Makefile lib/pcre/Makefile"
 
 
-subdirs="$subdirs libwebsockets"
-
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -11775,6 +11792,7 @@ ZLIB_LD!$ZLIB_LD$ac_delim
 SELECT_TYPE!$SELECT_TYPE$ac_delim
 CLOBBER!$CLOBBER$ac_delim
 BALLOC_C!$BALLOC_C$ac_delim
+subdirs!$subdirs$ac_delim
 EXAMPLE_CONF!$EXAMPLE_CONF$ac_delim
 MODULES_LIBS!$MODULES_LIBS$ac_delim
 MOD_TARGET!$MOD_TARGET$ac_delim
@@ -11785,7 +11803,6 @@ PICFLAGS!$PICFLAGS$ac_delim
 IRC_CFLAGS!$IRC_CFLAGS$ac_delim
 SEDOBJ!$SEDOBJ$ac_delim
 DYNLINK_C!$DYNLINK_C$ac_delim
-subdirs!$subdirs$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
@@ -12439,6 +12456,7 @@ echo "EFnet server ............ $tmpresult"
 echo "Halfops support ......... $halfops"
 echo "Small network ........... $small_net"
 echo "G-Line voting ........... $gline_voting"
+echo "Websockets support ...... $websockets"
 echo
 echo "Configured limits:"
 echo "NICKLEN ................. $NICKLEN"

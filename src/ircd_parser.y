@@ -1792,8 +1792,10 @@ listen_flags_item: T_SSL
     listener_flags |= LISTENER_HIDDEN;
 } | WEBSOCKET
 {
+#ifdef WEBSOCKETS
   if (ypass == 2)
     listener_flags |= LISTENER_WEBSOCKET;
+#endif
 };
 
 listen_items:   listen_items listen_item | listen_item;
@@ -3580,11 +3582,13 @@ general_default_cipher_preference: DEFAULT_CIPHER_PREFERENCE '=' QSTRING ';'
 
 general_websocket_redirect: WEBSOCKET_REDIRECT '=' QSTRING ';'
 {
+#ifdef WEBSOCKETS
   if (ypass == 2)
   {
     MyFree(ConfigFileEntry.websocket_redirect);
     DupString(ConfigFileEntry.websocket_redirect, yylval.string);
   }
+#endif
 }
 
 general_compression_level: COMPRESSION_LEVEL '=' NUMBER ';'

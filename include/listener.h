@@ -27,20 +27,21 @@
 
 #define LISTENER_SSL    0x1
 #define LISTENER_HIDDEN 0x2
-#define LISTENER_WEBSOCKET 0x4
 
 #include "ircd_defs.h"  
 #include "tools.h"
 #include "fdlist.h"
-
-#define IsWebsocket(x) ((x)->flags & LISTENER_WEBSOCKET)
 
 #define TOOFAST_WARNING "ERROR :Trying to reconnect too fast.\r\n"
 #define DLINE_WARNING "ERROR :You have been D-lined.\r\n"
 
 struct Client;
 
+#ifdef WEBSOCKETS
 struct libwebsocket_context;
+#define IsWebsocket(x) ((x)->flags & LISTENER_WEBSOCKET)
+#define LISTENER_WEBSOCKET 0x4
+#endif
 
 struct Listener
 {
@@ -53,7 +54,9 @@ struct Listener
   struct irc_ssaddr addr;              /* virtual address or INADDR_ANY */
   char              vhost[HOSTLEN + 1]; /* virtual name of listener */
   unsigned int      flags;
+#ifdef WEBSOCKETS
   struct libwebsocket_context *wsc;
+#endif
 };
 
 extern void add_listener(int, const char *, unsigned int);

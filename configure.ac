@@ -847,6 +847,15 @@ if test "$halfops" = yes; then
 	AC_DEFINE(HALFOPS, 1, [Define if you want halfops support.])
 fi
 
+AC_ARG_ENABLE(websockets,
+AC_HELP_STRING([--enable-websockets],[Enable websocket support.]),
+[websockets=$enableval], [websockets=yes])
+
+if test "$websockets" = yes; then
+  AC_DEFINE(WEBSOCKETS, 1, [Define if you want websocket support.])
+  AC_CONFIG_SUBDIRS(subdirs_set)
+fi
+
 AC_SUBST(EXAMPLE_CONF)
 
 AC_MSG_CHECKING(for syslog options)
@@ -1125,7 +1134,6 @@ AC_CONFIG_FILES(		\
 	lib/pcre/Makefile
 )
 
-AC_CONFIG_SUBDIRS(libwebsockets)
 
 AC_OUTPUT
 
@@ -1170,6 +1178,7 @@ echo "EFnet server ............ $tmpresult"
 echo "Halfops support ......... $halfops"
 echo "Small network ........... $small_net"
 echo "G-Line voting ........... $gline_voting"
+echo "Websockets support ...... $websockets"
 echo
 echo "Configured limits:"
 echo "NICKLEN ................. $NICKLEN"

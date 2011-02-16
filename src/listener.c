@@ -42,8 +42,10 @@
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/bio.h>
 #endif
-#include "websocket.h"
 
+#ifdef WEBSOCKETS
+#include "websocket.h"
+#endif
 
 static PF accept_connection;
 
@@ -121,8 +123,10 @@ show_ports(struct Client *source_p)
     if (listener->flags & LISTENER_SSL)
       *p++ = 's';
 
+#ifdef WEBSOCKETS
     if (IsWebsocket(listener))
       *p++ = 'w';
+#endif
 
     *p = '\0';
     sendto_one(source_p, form_str(RPL_STATSPLINE),
@@ -155,7 +159,10 @@ inetport(struct Listener *listener)
   /*
    * At first, open a new socket
    */
-  if (!IsWebsocket(listener) &&
+  if (
+#ifdef WEBSOCKETS
+      !IsWebsocket(listener) &&
+#endif
       comm_open(&listener->fd, listener->addr.ss.ss_family, SOCK_STREAM, 0,
                 "Listener socket") == -1)
   {
@@ -175,7 +182,11 @@ inetport(struct Listener *listener)
    * XXX - we don't want to do all this crap for a listener
    * set_sock_opts(listener);
    */
-  if (!IsWebsocket(listener) && setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
+  if (
+#ifdef WEBSOCKETS
+      !IsWebsocket(listener) &&
+#endif
+      setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
   {
 #ifdef _WIN32
     errno = WSAGetLastError();
@@ -192,7 +203,11 @@ inetport(struct Listener *listener)
    */
   lsin.ss_port = htons(listener->port);
 
-  if (!IsWebsocket(listener) && bind(listener->fd.fd, (struct sockaddr *)&lsin, lsin.ss_len))
+  if (
+#ifdef WEBSOCKETS
+      !IsWebsocket(listener) &&
+#endif
+      bind(listener->fd.fd, (struct sockaddr *)&lsin, lsin.ss_len))
   {
 #ifdef _WIN32
     errno = WSAGetLastError();
@@ -203,7 +218,11 @@ inetport(struct Listener *listener)
     return(0);
   }
 
-  if (!IsWebsocket(listener) && listen(listener->fd.fd, HYBRID_SOMAXCONN))
+  if (
+#ifdef WEBSOCKETS
+      !IsWebsocket(listener) &&
+#endif
+      listen(listener->fd.fd, HYBRID_SOMAXCONN))
   {
 #ifdef _WIN32
     errno = WSAGetLastError();
@@ -336,8 +355,11 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     listener = make_listener(port, &vaddr);
     dlinkAdd(listener, &listener->listener_node, &ListenerPollList);
     listener->flags = flags;
+
+#ifdef WEBSOCKETS
     if(IsWebsocket(listener))
       websocket_add(listener, vhost_ip);
+#endif
   }
 
   if (inetport(listener))
@@ -357,7 +379,9 @@ close_listener(struct Listener *listener)
   if (listener == NULL)
     return;
 
+#ifdef WEBSOCKETS
   websocket_close_listener(listener);
+#endif
 
   if (listener->fd.flags.open)
     fd_close(&listener->fd);
@@ -396,8 +420,13 @@ accept_connection(fde_t *pfd, void *data)
   memset(&addr, 0, sizeof(addr));
 
   assert(listener != NULL);
-  if (listener == NULL || IsWebsocket(listener))
+  if (listener == NULL)
     return;
+
+#ifdef WEBSOCKETS
+  if (IsWebsocket(listener))
+    return;
+#endif
 
   /* There may be many reasons for error return, but
    * in otherwise correctly working environment the

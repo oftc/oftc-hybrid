@@ -283,7 +283,9 @@ close_connection(struct Client *client_p)
   detach_conf(client_p, CONF_TYPE);
   client_p->from = NULL; /* ...this should catch them! >:) --msa */
 
+#ifdef WEBSOCKETS
   websocket_close(client_p);
+#endif
 }
 
 #ifdef HAVE_LIBCRYPTO
@@ -363,16 +365,14 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd,
 
   new_client = make_client(NULL);
 
-  if(!IsWebsocket(listener))
-  {
+#ifdef WEBSOCKETS
+  if(IsWebsocket(listener))
+    fd_open(&new_client->localClient->fd, fd, 1, "Incoming WebSocket Connection");
+  else
+#endif
     fd_open(&new_client->localClient->fd, fd, 1,
             (listener->flags & LISTENER_SSL) ?
 	    "Incoming SSL connection" : "Incoming connection");
-  }
-  else
-  {
-    fd_open(&new_client->localClient->fd, fd, 1, "Incoming WebSocket Connection");
-  }
 
   /* 
    * copy address to 'sockhost' as a string, copy it to host too

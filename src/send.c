@@ -299,14 +299,16 @@ send_queued_write(struct Client *to)
       }
       else
 #endif
-        if(!to->localClient->fd.websocket)
-          retlen = send(to->localClient->fd.fd, first->data, first->size, 0);
-        else
+#ifdef WEBSOCKETS
+        if(to->localClient->fd.websocket)
         {
           retlen = websocket_write(to, first->data, first->size);
           if (retlen > 0)
             retlen = first->size;
         }
+        else
+#endif
+          retlen = send(to->localClient->fd.fd, first->data, first->size, 0);
 
       if (retlen <= 0)
       {
@@ -323,7 +325,11 @@ send_queued_write(struct Client *to)
       me.localClient->send.bytes += retlen;
     } while (dbuf_length(&to->localClient->buf_sendq));
 
-    if ((retlen < 0) && (ignoreErrno(errno)) && !to->localClient->fd.websocket)
+    if ((retlen < 0) && (ignoreErrno(errno))
+#ifdef WEBSOCKETS
+        && !to->localClient->fd.websocket
+#endif
+      )
     {
       /* we have a non-fatal error, reschedule a write */
       SetSendqBlocked(to);
@@ -332,9 +338,11 @@ send_queued_write(struct Client *to)
     }
     else if (retlen <= 0)
     {
+#ifdef WEBSOCKETS
       if(retlen == 0 && to->localClient->fd.websocket)
       /* Already dead or blocked */
         return;
+#endif
 
       dead_link_on_write(to, errno);
       return;

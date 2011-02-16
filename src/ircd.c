@@ -64,7 +64,9 @@
 #include "motd.h"
 #include "supported.h"
 
+#ifdef WEBSOCKETS
 #include "websocket.h"
+#endif
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
  * number of files allowed to be open by this process.
@@ -293,7 +295,9 @@ io_loop(void)
     while (eventNextTime() <= CurrentTime)
       eventRun();
 
+#ifdef WEBSOCKETS
     websocket_poll();
+#endif
 
     comm_select();
     exit_aborted_clients();
