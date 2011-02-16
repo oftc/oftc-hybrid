@@ -63,6 +63,7 @@
 #include "balloc.h"
 #include "motd.h"
 #include "supported.h"
+
 #include "websocket.h"
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
@@ -292,12 +293,12 @@ io_loop(void)
     while (eventNextTime() <= CurrentTime)
       eventRun();
 
+    websocket_poll();
+
     comm_select();
     exit_aborted_clients();
     free_exited_clients();
     send_queued_all();
-
-    websocket_poll();
 
     /* Check to see whether we have to rehash the configuration .. */
     if (dorehash)

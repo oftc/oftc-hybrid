@@ -408,6 +408,7 @@ struct config_file_entry
   struct EncCapability *default_cipher_preference;
 #endif
   int godmode_timeout; 
+  char *websocket_redirect;
 };
 
 struct config_channel_entry

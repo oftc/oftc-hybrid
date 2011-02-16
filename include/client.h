@@ -49,8 +49,6 @@ struct Listener;
 struct Client;
 struct LocalUser;
 
-struct libwebsocket;
-
 /*
  * Client structures
  */
@@ -268,8 +266,6 @@ struct LocalUser
 
   char*          response;  /* expected response from client */
   char*          auth_oper; /* Operator to become if they supply the response.*/
-
-  struct libwebsocket *wsi;
 };
 
 /*

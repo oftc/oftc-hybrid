@@ -8,5 +8,6 @@ extern void websocket_add(struct Listener *, const char *);
 extern void websocket_poll();
 extern void websocket_write(struct Client *, char *, int);
 extern void websocket_close(struct Client *);
+extern void websocket_close_listener(struct Listener *);
 
 #endif //INCLUDED_websocket_h

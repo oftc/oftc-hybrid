@@ -391,6 +391,7 @@ unhook_hub_leaf_confs(void)
 %token  WARN
 %token  WARN_NO_NLINE
 %token  WEBSOCKET
+%token  WEBSOCKET_REDIRECT
 
 %type <string> QSTRING
 %type <number> NUMBER
@@ -3303,6 +3304,7 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_gline_min_cidr6 | general_use_whois_actually |
 		    general_reject_hold_time | general_stats_e_disabled | 
         general_godmode_timeout |
+        general_websocket_redirect |
 		    error;
 
 
@@ -3575,6 +3577,15 @@ general_default_cipher_preference: DEFAULT_CIPHER_PREFERENCE '=' QSTRING ';'
     yyerror("Ignoring default_cipher_preference -- no OpenSSL support");
 #endif
 };
+
+general_websocket_redirect: WEBSOCKET_REDIRECT '=' QSTRING ';'
+{
+  if (ypass == 2)
+  {
+    MyFree(ConfigFileEntry.websocket_redirect);
+    DupString(ConfigFileEntry.websocket_redirect, yylval.string);
+  }
+}
 
 general_compression_level: COMPRESSION_LEVEL '=' NUMBER ';'
 {

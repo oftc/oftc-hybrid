@@ -55,6 +55,8 @@
 #include "s_user.h"
 #include "hook.h"
 
+#include "websocket.h"
+
 static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
   "Error during DNS lookup", "connect timeout", "Error during connect()",
   "Comm Error" };
@@ -366,9 +368,10 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd,
     fd_open(&new_client->localClient->fd, fd, 1,
             (listener->flags & LISTENER_SSL) ?
 	    "Incoming SSL connection" : "Incoming connection");
-  } else {
+  }
+  else
+  {
     fd_open(&new_client->localClient->fd, fd, 1, "Incoming WebSocket Connection");
-    new_client->localClient->fd.websocket = 1;
   }
 
   /* 

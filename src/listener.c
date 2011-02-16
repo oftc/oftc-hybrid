@@ -42,7 +42,7 @@
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/bio.h>
 #endif
-#include "libwebsockets.h"
+#include "websocket.h"
 
 
 static PF accept_connection;
@@ -357,9 +357,9 @@ close_listener(struct Listener *listener)
   if (listener == NULL)
     return;
 
-  if (IsWebsocket(listener) && listener->wsc)
-    libwebsocket_context_destroy(listener->wsc);
-  else if (listener->fd.flags.open)
+  websocket_close_listener(listener);
+
+  if (listener->fd.flags.open)
     fd_close(&listener->fd);
 
   listener->active = 0;
@@ -383,9 +383,6 @@ close_listeners(void)
   DLINK_FOREACH_SAFE(ptr, next_ptr, ListenerPollList.head)
     close_listener(ptr->data);
 }
-
-#define TOOFAST_WARNING "ERROR :Trying to reconnect too fast.\r\n"
-#define DLINE_WARNING "ERROR :You have been D-lined.\r\n"
 
 static void 
 accept_connection(fde_t *pfd, void *data)

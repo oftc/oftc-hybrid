@@ -35,7 +35,12 @@
 
 #define IsWebsocket(x) ((x)->flags & LISTENER_WEBSOCKET)
 
+#define TOOFAST_WARNING "ERROR :Trying to reconnect too fast.\r\n"
+#define DLINE_WARNING "ERROR :You have been D-lined.\r\n"
+
 struct Client;
+
+struct libwebsocket_context;
 
 struct Listener
 {
