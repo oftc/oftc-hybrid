@@ -452,6 +452,7 @@ struct server_info
   char *network_desc;
 #ifdef HAVE_LIBCRYPTO
   char *rsa_private_key_file;
+  char *ssl_certificate_file;
   RSA *rsa_private_key;
   SSL_CTX *ctx;
 #endif

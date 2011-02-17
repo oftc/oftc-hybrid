@@ -545,6 +545,9 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
       yyerror("RSA private key does not match the SSL certificate public key!");
       break;
     }
+
+    MyFree(ServerInfo.ssl_certificate_file);
+    DupString(ServerInfo.ssl_certificate_file, yylval.string);
   }
 #endif
 };

@@ -42,7 +42,8 @@ websocket_add(struct Listener *listener, const char *vhost)
 {
   /* TODO FIXME XXX libwebsockets doesn't support bound ip yet */
   listener->wsc = libwebsocket_create_context(listener->port, protocols,
-    NULL, NULL, -1, -1, 0);
+    ServerInfo.ssl_certificate_file,
+    ServerInfo.rsa_private_key_file, -1, -1, 0);
 }
 
 void
