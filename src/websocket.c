@@ -172,7 +172,8 @@ websocket_write(struct Client *client, const char *oldbuf, size_t len)
 void
 websocket_close(struct Client *client)
 {
-  libwebsockets_hangup_on_client(client->localClient->listener->wsc, client->localClient->fd.fd);
+  if(client->localClient->fd.websocket)
+    libwebsockets_hangup_on_client(client->localClient->listener->wsc, client->localClient->fd.fd);
 }
 
 void

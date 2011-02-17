@@ -258,6 +258,10 @@ close_connection(struct Client *client_p)
   else
     ServerStats->is_ni++;
 
+#ifdef WEBSOCKETS
+  websocket_close(client_p);
+#endif
+
 #ifdef HAVE_LIBCRYPTO
   if (client_p->localClient->fd.ssl)
   {
@@ -282,10 +286,6 @@ close_connection(struct Client *client_p)
   MyFree(client_p->localClient->passwd);
   detach_conf(client_p, CONF_TYPE);
   client_p->from = NULL; /* ...this should catch them! >:) --msa */
-
-#ifdef WEBSOCKETS
-  websocket_close(client_p);
-#endif
 }
 
 #ifdef HAVE_LIBCRYPTO
