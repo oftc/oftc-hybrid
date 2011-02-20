@@ -471,7 +471,7 @@ register_local_user(struct Client *source_p)
 
   source_p->localClient->allow_read = MAX_FLOOD_BURST;
 
-  assert(dlinkFindDelete(&unknown_list, source_p));
+  assert(dlinkFind(&unknown_list, source_p));
 
   if ((m = dlinkFindDelete(&unknown_list, source_p)) != NULL)
   {
