@@ -73,6 +73,7 @@ extern void dlinkAddBefore(dlink_node *, void *, dlink_node *, dlink_list *);
 extern void dlinkAddTail(void *, dlink_node *, dlink_list *);
 extern void dlinkDelete(dlink_node *, dlink_list *);
 extern void dlinkMoveList(dlink_list *, dlink_list *);
+extern void dlink_move_node(dlink_node *, dlink_list *, dlink_list *);
 extern dlink_node *dlinkFind(dlink_list *, void *);
 extern dlink_node *dlinkFindDelete(dlink_list *, void *);
 

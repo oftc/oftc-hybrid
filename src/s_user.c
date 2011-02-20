@@ -284,7 +284,6 @@ register_local_user(struct Client *source_p)
   const char *id = NULL;
   const struct AccessItem *aconf = NULL;
   dlink_node *ptr = NULL;
-  dlink_node *m = NULL;
 
   assert(source_p != NULL);
   assert(source_p == source_p->from);
@@ -472,11 +471,8 @@ register_local_user(struct Client *source_p)
 
   assert(dlinkFind(&unknown_list, source_p));
 
-  if ((m = dlinkFindDelete(&unknown_list, source_p)) != NULL)
-  {
-    free_dlink_node(m);
-    dlinkAdd(source_p, &source_p->localClient->lclient_node, &local_client_list);
-  }
+  dlink_move_node(&source_p->localClient->lclient_node,
+                  &unknown_list, &local_client_list);
 
   user_welcome(source_p);
   add_user_host(source_p->username, source_p->host, 0);

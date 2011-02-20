@@ -969,7 +969,6 @@ server_estab(struct Client *client_p)
   char *host;
   const char *inpath;
   static char inpath_ip[HOSTLEN * 2 + USERLEN + 6];
-  dlink_node *m;
   dlink_node *ptr;
 
   assert(client_p != NULL);
@@ -1100,11 +1099,10 @@ server_estab(struct Client *client_p)
   /* Some day, all these lists will be consolidated *sigh* */
   dlinkAdd(client_p, &client_p->lnode, &me.serv->server_list);
 
-  m = dlinkFind(&unknown_list, client_p);
-  assert(NULL != m);
+  assert(dlinkFind(&unknown_list, client_p));
 
-  dlinkDelete(m, &unknown_list);
-  dlinkAdd(client_p, m, &serv_list);
+  dlink_move_node(&client_p->localClient->lclient_node,
+                  &unknown_list, &serv_list);
 
   Count.myserver++;
 
