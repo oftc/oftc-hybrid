@@ -520,7 +520,7 @@ count_memory(struct Client *source_p)
   count_whowas_memory(&wwu, &wwm);
   watch_count_memory(&watch_list_headers, &watch_list_memory);
 
-  sendto_one(source_p, ":%s %d %s z :WATCH headers %u(%u) entries %d(%d)",
+  sendto_one(source_p, ":%s %d %s z :WATCH headers %u(%u) entries %d(%u)",
              me.name, RPL_STATSDEBUG, source_p->name, watch_list_headers,
              watch_list_memory, watch_list_entries,
              watch_list_entries * sizeof(dlink_node) * 2);
@@ -538,7 +538,7 @@ count_memory(struct Client *source_p)
              local_client_conf_count,
              (unsigned long long)(local_client_conf_count * sizeof(dlink_node)));
 
-  sendto_one(source_p, ":%s %d %s z :Resv channels %lu(%lu) nicks %lu(%lu)",
+  sendto_one(source_p, ":%s %d %s z :Resv channels %u(%lu) nicks %u(%lu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              dlink_list_length(&resv_channel_list),
              dlink_list_length(&resv_channel_list) * sizeof(struct ResvChannel),
@@ -549,7 +549,7 @@ count_memory(struct Client *source_p)
              me.name, RPL_STATSDEBUG, source_p->name,
              class_count, (unsigned long long)(class_count * sizeof(struct ClassItem)));
 
-  sendto_one(source_p, ":%s %d %s z :Channels %lu(%llu) Topics %u(%d)",
+  sendto_one(source_p, ":%s %d %s z :Channels %uu(%llu) Topics %u(%u)",
              me.name, RPL_STATSDEBUG, source_p->name,
              dlink_list_length(&global_channel_list),
              channel_memory, topic_count, topic_count *
@@ -604,13 +604,13 @@ count_memory(struct Client *source_p)
 
   local_client_memory_used = local_client_count*(sizeof(struct Client) + sizeof(struct LocalUser));
   total_memory += local_client_memory_used;
-  sendto_one(source_p, ":%s %d %s z :Local client Memory in use: %d(%llu)",
+  sendto_one(source_p, ":%s %d %s z :Local client Memory in use: %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name, local_client_count,
              local_client_memory_used);
 
   remote_client_memory_used = remote_client_count * sizeof(struct Client);
   total_memory += remote_client_memory_used;
-  sendto_one(source_p, ":%s %d %s z :Remote client Memory in use: %d(%llu)",
+  sendto_one(source_p, ":%s %d %s z :Remote client Memory in use: %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name, remote_client_count,
              remote_client_memory_used);
 
@@ -1203,25 +1203,20 @@ stats_shared(struct Client *source_p)
 static void
 stats_servers(struct Client *source_p)
 {
-  struct Client *target_p;
-  dlink_node *ptr;
-  int j = 0;
+  dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, serv_list.head)
   {
-    target_p = ptr->data;
-
-    j++;
+    const struct Client *target_p = ptr->data;
 
     sendto_one(source_p, ":%s %d %s v :%s (%s!%s@%s) Idle: %d",
-               from, RPL_STATSDEBUG, to,
-	       target_p->name,
-	       (target_p->serv->by[0] ? target_p->serv->by : "Remote."),
-	       "*", "*", (int)(CurrentTime - target_p->lasttime));
+               from, RPL_STATSDEBUG, to, target_p->name,
+               (target_p->serv->by[0] ? target_p->serv->by : "Remote."),
+               "*", "*", (int)(CurrentTime - target_p->lasttime));
   }
 
-  sendto_one(source_p, ":%s %d %s v :%d Server(s)",
-             from, RPL_STATSDEBUG, to, j);
+  sendto_one(source_p, ":%s %d %s v :%u Server(s)",
+             from, RPL_STATSDEBUG, to, dlink_list_length(&serv_list));
 }
 
 static void
