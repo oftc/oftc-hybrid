@@ -1,3 +1,10 @@
+-- ircd-hybrid-7.3 Release Notes
+o) Added Bulgarian language file provided by Borislav Borisov
+o) Server hostmasking has been removed due to TS6 requirements
+o) Fixed broken IPv6 detection
+o) Minor code optimizations. Reduced memory consumption
+
+
 -- ircd-hybrid-7.3-rc1 Release Notes
 o) Major 64-bit cleanups and portability fixes.
 o) Fixed bug where unregistered clients were not able to complete registration
