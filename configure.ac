@@ -4,7 +4,7 @@
 AC_REVISION([$Id$])
 
 AC_PREREQ(2.68)
-AC_INIT([ircd-hybrid], [7.3-rc1], [bugs@ircd-hybrid.org])
+AC_INIT([ircd-hybrid], [7.3.0], [bugs@ircd-hybrid.org])
 AM_INIT_AUTOMAKE(1.11.1)
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADER(config.h)
