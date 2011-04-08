@@ -105,7 +105,7 @@ o) +R - Cannot join channel unless regisitered with NickServ
 o) +M - Cannot talk on channel unless registered with NickServ
 o) +S - Cannot join channel unless using SSL
 
--- ircd-hybrid-7.3 Release Notes
+-- ircd-hybrid-7.3.0 Release Notes
 o) Added Bulgarian language file provided by Borislav Borisov
 o) Server hostmasking has been removed due to TS6 requirements
 o) Fixed broken IPv6 detection
