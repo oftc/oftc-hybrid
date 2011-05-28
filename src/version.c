@@ -69,7 +69,7 @@ const char *infotext[] =
   "cryogen, Stuart Walsh <stu@ipng.org.uk>",
   "Dianora, Diane Bruce <db@db.net>",
   "metalrock, Jack Low <jclow@csupomona.edu>",
-  "Michael, Michael Wobst <michael.wobst@gmail.com>",
+  "Michael, Michael Wobst <michael@wobst.at>",
   "Rodder, Jon Lusky <lusky@blown.net>",
   "Wohali, Joan Touzet <joant@ieee.org>",
   "",
