@@ -423,12 +423,12 @@ register_local_user(struct Client *source_p)
   hash_add_id(source_p);
 
   sendto_realops_flags(UMODE_CCONN, L_ALL,
-                       "Client connecting: %s (%s@%s) [%s] {%s} [%s]",
+                       "Client connecting: %s (%s@%s) [%s] {%s} [%s] <%s>",
                        source_p->name, source_p->username, source_p->host,
                        ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                        "255.255.255.255" : source_p->sockhost,
                        get_client_class(source_p),
-                       source_p->info);
+                       source_p->info, source_p->id);
 
   sendto_realops_flags(UMODE_CCONN_FULL, L_ALL,
                        "CLICONN %s %s %s %s %s %s %s 0 %s",
