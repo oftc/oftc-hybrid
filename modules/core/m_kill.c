@@ -112,7 +112,8 @@ mo_kill(struct Client *client_p, struct Client *source_p,
 
   if ((target_p = find_client(user)) == NULL)
   {
-    /* If the user has recently changed nick, automatically
+    /*
+     * If the user has recently changed nick, automatically
      * rewrite the KILL for this new nickname--this keeps
      * servers in synch when nick change and kill collide
      */
@@ -148,8 +149,10 @@ mo_kill(struct Client *client_p, struct Client *source_p,
                source_p->name, source_p->username, source_p->host,
                target_p->name, reason);
 
-  /* Do not change the format of this message.  There's no point in changing messages
-   * that have been around for ever, for no reason.. */
+  /*
+   * Do not change the format of this message. There's no point in changing messages
+   * that have been around for ever, for no reason..
+   */
   sendto_realops_flags(UMODE_ALL, L_ALL,
 		       "Received KILL message for %s. From %s Path: %s (%s)", 
 		       target_p->name, source_p->name, me.name, reason);
@@ -160,23 +163,23 @@ mo_kill(struct Client *client_p, struct Client *source_p,
 		  me.name, reason);
 
   /*
-  ** And pass on the message to other servers. Note, that if KILL
-  ** was changed, the message has to be sent to all links, also
-  ** back.
-  ** Suicide kills are NOT passed on --SRB
-  */
+   * And pass on the message to other servers. Note, that if KILL
+   * was changed, the message has to be sent to all links, also
+   * back.
+   * Suicide kills are NOT passed on --SRB
+   */
   if (!MyConnect(target_p))
   {
     relay_kill(client_p, source_p, target_p, inpath, reason);
       /*
-      ** Set FLAGS_KILLED. This prevents exit_one_client from sending
-      ** the unnecessary QUIT for this. (This flag should never be
-      ** set in any other place)
-      */
+       * Set FLAGS_KILLED. This prevents exit_one_client from sending
+       * the unnecessary QUIT for this. (This flag should never be
+       * set in any other place)
+       */
     SetKilled(target_p);
   }
 
-  ircsprintf(buf, "Killed (%s (%s))", source_p->name, reason);
+  snprintf(buf, sizeof(buf), "Killed (%s (%s))", source_p->name, reason);
   exit_client(target_p, source_p, buf);
 }
 
@@ -195,7 +198,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
   const char *path;
   char def_reason[] = "No reason";
 
-  if (*parv[1] == '\0')
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "KILL");
@@ -229,9 +232,9 @@ ms_kill(struct Client *client_p, struct Client *source_p,
        * not an uid, automatically rewrite the KILL for this new nickname.
        * --this keeps servers in synch when nick change and kill collide
        */
-    if(IsDigit(*user))	/* Somehow an uid was not found in the hash ! */
+    if (IsDigit(*user))	/* Somehow an uid was not found in the hash ! */
       return;
-    if((target_p = get_history(user,
+    if ((target_p = get_history(user,
 		       (time_t)ConfigFileEntry.kill_chase_time_limit))
        == NULL)
     {
@@ -239,6 +242,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
 		 me.name, source_p->name, user);
       return;
     }
+
     sendto_one(source_p,":%s NOTICE %s :KILL changed from %s to %s",
 	       me.name, source_p->name, user, target_p->name);
   }
@@ -274,18 +278,14 @@ ms_kill(struct Client *client_p, struct Client *source_p,
    * local --fl
    */
   if (IsOper(source_p)) /* send it normally */
-  {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Received KILL message for %s. From %s Path: %s!%s!%s!%s %s",
                          target_p->name, source_p->name, source_p->servptr->name, 
                          source_p->host, source_p->username, source_p->name, reason);
-  }
   else
-  {
     sendto_realops_flags(UMODE_SKILL, L_ALL,
                          "Received KILL message for %s. From %s %s",
                          target_p->name, source_p->name, reason);
-  }
 
   ilog(L_INFO,"KILL From %s For %s Path %s %s",
        source_p->name, target_p->name, source_p->name, reason);
@@ -295,9 +295,9 @@ ms_kill(struct Client *client_p, struct Client *source_p,
 
   /* reason comes supplied with its own ()'s */
   if (IsServer(source_p) && (IsHidden(source_p) || ConfigServerHide.hide_servers))
-    ircsprintf(buf, "Killed (%s %s)", me.name, reason);
+    snprintf(buf, sizeof(buf), "Killed (%s %s)", me.name, reason);
   else
-    ircsprintf(buf, "Killed (%s %s)", source_p->name, reason);
+    snprintf(buf, sizeof(buf), "Killed (%s %s)", source_p->name, reason);
 
   exit_client(target_p, source_p, buf);
 }
