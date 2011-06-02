@@ -3,7 +3,7 @@ o) Added Bulgarian language file provided by Borislav Borisov
 o) Server hostmasking has been removed due to TS6 requirements
 o) Fixed broken IPv6 detection
 o) Minor code optimizations. Reduced memory consumption
-
+o) User IDs are now shown in client connection notices
 
 -- ircd-hybrid-7.3-rc1 Release Notes
 o) Major 64-bit cleanups and portability fixes.
