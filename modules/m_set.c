@@ -346,8 +346,7 @@ quote_max(struct Client *source_p, int newval)
 
     sendto_realops_flags(UMODE_ALL, L_ALL,
 	"%s set new MAXCLIENTS to %d (%d current)",
-	get_oper_name(source_p), source_p->username, source_p->host,
-	ServerInfo.max_clients, Count.local);
+	get_oper_name(source_p), ServerInfo.max_clients, Count.local);
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :Current MAXCLIENTS = %d (%d)",
