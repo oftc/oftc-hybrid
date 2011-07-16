@@ -330,7 +330,7 @@ quote_max(struct Client *source_p, int newval)
     {
       sendto_one(source_p,
         ":%s NOTICE %s :You cannot set MAXCLIENTS to > %d, restoring to %d",
-	me.name, source_p->name, MAXCLIENTS_MAX);
+	me.name, source_p->name, MAXCLIENTS_MAX, ServerInfo.max_clients);
       return;
     }
 
