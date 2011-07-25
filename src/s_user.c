@@ -54,8 +54,7 @@
 #include "msg.h"
 #include "watch.h"
 
-unsigned int MaxClientCount     = 1;
-unsigned int MaxConnectionCount = 1;
+
 struct Callback *entering_umode_cb = NULL;
 struct Callback *umode_cb = NULL;
 
@@ -234,13 +233,13 @@ show_lusers(struct Client *source_p)
 
   if (!ConfigServerHide.hide_servers || IsOper(source_p))
     sendto_one(source_p, form_str(RPL_STATSCONN), from, to,
-               MaxConnectionCount, MaxClientCount, Count.totalrestartcount);
+               Count.max_loc_con, Count.max_loc_cli, Count.totalrestartcount);
 
-  if (Count.local > MaxClientCount)
-    MaxClientCount = Count.local;
+  if (Count.local > Count.max_loc_cli)
+    Count.max_loc_cli = Count.local;
 
-  if ((Count.local + Count.myserver) > MaxConnectionCount)
-    MaxConnectionCount = Count.local + Count.myserver; 
+  if ((Count.local + Count.myserver) > Count.max_loc_con)
+    Count.max_loc_con = Count.local + Count.myserver; 
 }
 
 /* show_isupport()

@@ -577,12 +577,7 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
 static void
 update_client_exit_stats(struct Client *client_p)
 {
-  if (IsServer(client_p))
-  {
-    sendto_realops_flags(UMODE_EXTERNAL, L_ALL, "Server %s split from %s",
-                         client_p->name, client_p->servptr->name);
-  }
-  else if (IsClient(client_p))
+  if (IsClient(client_p))
   {
     assert(Count.total > 0);
     --Count.total;
@@ -591,6 +586,9 @@ update_client_exit_stats(struct Client *client_p)
     if (IsInvisible(client_p))
       --Count.invisi;
   }
+  else if (IsServer(client_p))
+    sendto_realops_flags(UMODE_EXTERNAL, L_ALL, "Server %s split from %s",
+                         client_p->name, client_p->servptr->name);
 
   if (splitchecking && !splitmode)
     check_splitmode(NULL);
