@@ -52,24 +52,24 @@ struct SetOptions
  */
 struct ServerStatistics
 {
-  uint64_t        is_cbs; /* bytes sent to clients */
-  uint64_t        is_cbr; /* bytes received from clients */
-  uint64_t        is_sbs; /* bytes sent to servers */
-  uint64_t        is_sbr; /* bytes received from servers */
+  uint64_t        is_cbs;  /* bytes sent to clients */
+  uint64_t        is_cbr;  /* bytes received from clients */
+  uint64_t        is_sbs;  /* bytes sent to servers */
+  uint64_t        is_sbr;  /* bytes received from servers */
 
-  time_t          is_cti; /* time spent connected by clients */
-  time_t          is_sti; /* time spent connected by servers */
+  time_t          is_cti;  /* time spent connected by clients */
+  time_t          is_sti;  /* time spent connected by servers */
 
-  unsigned int    is_cl;  /* number of client connections */
-  unsigned int    is_sv;  /* number of server connections */
-  unsigned int    is_ni;  /* connection but no idea who it was */
-  unsigned int    is_ac;  /* connections accepted */
-  unsigned int    is_ref; /* accepts refused */
+  unsigned int    is_cl;   /* number of client connections */
+  unsigned int    is_sv;   /* number of server connections */
+  unsigned int    is_ni;   /* connection but no idea who it was */
+  unsigned int    is_ac;   /* connections accepted */
+  unsigned int    is_ref;  /* accepts refused */
   unsigned int    is_unco; /* unknown commands */
   unsigned int    is_wrdi; /* command going in wrong direction */
   unsigned int    is_unpf; /* unknown prefix */
   unsigned int    is_empt; /* empty message */
-  unsigned int    is_num; /* numeric message */
+  unsigned int    is_num;  /* numeric message */
   unsigned int    is_kill; /* number of kills generated on collisions */
   unsigned int    is_asuc; /* successful auth requests */
   unsigned int    is_abad; /* bad auth requests */
@@ -81,13 +81,15 @@ extern struct ServerStatistics ServerStats;
 struct Counter
 {
   uint64_t totalrestartcount; /* Total client count ever */
-  unsigned int myserver; /* my servers          */
-  unsigned int oper;     /* Opers               */
-  unsigned int local;    /* Local Clients       */
-  unsigned int total;    /* total clients       */
-  unsigned int invisi;   /* invisible clients   */
-  unsigned int max_loc;  /* MAX local clients   */
-  unsigned int max_tot;  /* MAX global clients  */
+  unsigned int myserver;      /* my servers          */
+  unsigned int oper;          /* Opers               */
+  unsigned int local;         /* Local Clients       */
+  unsigned int total;         /* total clients       */
+  unsigned int invisi;        /* invisible clients   */
+  unsigned int max_loc;       /* MAX local clients   */
+  unsigned int max_tot;       /* MAX global clients  */
+  unsigned int max_loc_con;   /* MAX local connection count (clients + server) */
+  unsigned int max_loc_cli;   /* XXX This is redundant - Max local client count */
 };
 
 extern struct SetOptions GlobalSetOptions; /* defined in ircd.c */

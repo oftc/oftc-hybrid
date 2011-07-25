@@ -195,7 +195,14 @@ close_connection(struct Client *client_p)
     send_queued_write(client_p);
   }
 
-  if (IsServer(client_p))
+  if (IsClient(client_p))
+  {
+    ++ServerStats.is_cl;
+    ServerStats.is_cbs += client_p->localClient->send.bytes;
+    ServerStats.is_cbr += client_p->localClient->recv.bytes;
+    ServerStats.is_cti += CurrentTime - client_p->firsttime;
+  }
+  else if (IsServer(client_p))
   {
     ++ServerStats.is_sv;
     ServerStats.is_sbs += client_p->localClient->send.bytes;
@@ -225,13 +232,6 @@ close_connection(struct Client *client_p)
       aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
         HANGONRETRYDELAY : ConFreq(aclass);
     }
-  }
-  else if (IsClient(client_p))
-  {
-    ++ServerStats.is_cl;
-    ServerStats.is_cbs += client_p->localClient->send.bytes;
-    ServerStats.is_cbr += client_p->localClient->recv.bytes;
-    ServerStats.is_cti += CurrentTime - client_p->firsttime;
   }
   else
     ++ServerStats.is_ni;
