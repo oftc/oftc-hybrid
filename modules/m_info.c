@@ -57,19 +57,10 @@ struct Message info_msgtab = {
 
 #ifndef STATIC_MODULES
 const char *_version = "$Revision$";
-static struct Callback *info_cb;
-
-static void *
-va_send_info_text(va_list args)
-{
-  send_info_text(va_arg(args, struct Client *));
-  return NULL;
-}
 
 void
 _modinit(void)
 {
-  info_cb = register_callback("doing_info", va_send_info_text);
   mod_add_cmd(&info_msgtab);
 }
 
@@ -77,7 +68,6 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&info_msgtab);
-  uninstall_hook(info_cb, va_send_info_text);
 }
 #endif
 
@@ -596,19 +586,11 @@ m_info(struct Client *client_p, struct Client *source_p,
     last_used = CurrentTime;
 
   if (!ConfigFileEntry.disable_remote)
-  {
-    if (hunt_server(client_p,source_p, ":%s INFO :%s",
-                    1, parc, parv) != HUNTED_ISME)
-    {
+    if (hunt_server(client_p,source_p, ":%s INFO :%s", 1,
+                    parc, parv) != HUNTED_ISME)
       return;
-    }
-  }
 
-#ifdef STATIC_MODULES
   send_info_text(source_p);
-#else
-  execute_callback(info_cb, source_p, parc, parv);
-#endif
 }
 
 /*
@@ -624,11 +606,7 @@ mo_info(struct Client *client_p, struct Client *source_p,
                   parc, parv) != HUNTED_ISME)
     return;
 
-#ifdef STATIC_MODULES
   send_info_text(source_p);
-#else
-  execute_callback(info_cb, source_p, parc, parv);
-#endif
 }
 
 /*
@@ -643,15 +621,11 @@ ms_info(struct Client *client_p, struct Client *source_p,
   if (!IsClient(source_p))
       return;
 
-  if (hunt_server(client_p, source_p, ":%s INFO :%s",
-                  1, parc, parv) != HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s INFO :%s", 1,
+                  parc, parv) != HUNTED_ISME)
     return;
 
-#ifdef STATIC_MODULES
   send_info_text(source_p);
-#else
-  execute_callback(info_cb, source_p, parc, parv);
-#endif
 }
 
 /* send_info_text()
@@ -665,7 +639,12 @@ send_info_text(struct Client *source_p)
 {
   const char **text = infotext;
   char *source, *target;
-  
+
+  sendto_realops_flags(UMODE_SPY, L_ALL,
+                       "INFO requested by %s (%s@%s) [%s]",
+                       source_p->name, source_p->username,
+                       source_p->host, source_p->servptr->name);
+
   if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) &&
       HasID(source_p))
     source = me.id, target = source_p->id;

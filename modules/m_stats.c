@@ -45,9 +45,9 @@
 #include "s_user.h"      /* show_opers */
 #include "event.h"	 /* events */
 #include "dbuf.h"
+#include "hook.h"
 #include "parse.h"
 #include "modules.h"
-#include "hook.h"
 #include "resv.h"  /* report_resv */
 #include "whowas.h"
 #include "list.h"
@@ -57,7 +57,7 @@
 #include "irc_getnameinfo.h"
 #include "watch.h"
 
-static void do_stats(struct Client *, int, char **);
+static void do_stats(struct Client *, int, char *[]);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
 static void mo_stats(struct Client *, struct Client *, int, char *[]);
 static void ms_stats(struct Client *, struct Client *, int, char *[]);
@@ -69,23 +69,10 @@ struct Message stats_msgtab = {
 
 #ifndef STATIC_MODULES
 const char *_version = "$Revision$";
-static struct Callback *stats_cb;
-
-static void *
-va_stats(va_list args)
-{
-  struct Client *source_p = va_arg(args, struct Client *);
-  int parc = va_arg(args, int);
-  char **parv = va_arg(args, char **);
-
-  do_stats(source_p, parc, parv);
-  return NULL;
-}
 
 void
 _modinit(void)
 {
-  stats_cb = register_callback("doing_stats", va_stats);
   mod_add_cmd(&stats_msgtab);
 }
 
@@ -93,7 +80,6 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&stats_msgtab);
-  uninstall_hook(stats_cb, va_stats);
 }
 #endif
 
@@ -193,8 +179,9 @@ static const struct StatsStruct
 const char *from, *to;
 
 static void
-do_stats(struct Client *source_p, int parc, char **parv)
+do_stats(struct Client *source_p, int parc, char *parv[])
 {
+  static const struct StatsStruct *tab = stats_cmd_table;
   char statchar = *parv[1];
   int i;
 
@@ -205,13 +192,13 @@ do_stats(struct Client *source_p, int parc, char **parv)
     return;
   }
 
-  for (i = 0; stats_cmd_table[i].handler; i++)
+  for (; tab->handler; ++tab)
   {
-    if (stats_cmd_table[i].letter == statchar)
+    if (tab->letter == statchar)
     {
       /* The stats table says what privs are needed, so check --fl_ */
-      if ((stats_cmd_table[i].need_admin && !IsAdmin(source_p)) ||
-          (stats_cmd_table[i].need_oper && !IsOper(source_p)))
+      if ((tab->need_admin && !IsAdmin(source_p)) ||
+          (tab->need_oper && !IsOper(source_p)))
       {
         sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                    from, to);
@@ -220,9 +207,22 @@ do_stats(struct Client *source_p, int parc, char **parv)
 
       /* Blah, stats L needs the parameters, none of the others do.. */
       if (statchar == 'L' || statchar == 'l')
-        stats_cmd_table[i].handler(source_p, parc, parv);
+      {
+        sendto_realops_flags(UMODE_SPY, L_ALL,
+                             "STATS %c requested by %s (%s@%s) [%s] on %s",
+                             statchar, source_p->name, source_p->username,
+                             source_p->host, source_p->servptr->name,
+                             parc > 2 ? parv[2] : "<no recipient>");
+        tab->handler(source_p, parc, parv);
+      }
       else
-        stats_cmd_table[i].handler(source_p);
+      {
+        sendto_realops_flags(UMODE_SPY, L_ALL,
+                             "STATS %c requested by %s (%s@%s) [%s]",
+                             statchar, source_p->name, source_p->username,
+                             source_p->host, source_p->servptr->name);
+        tab->handler(source_p);
+      }
 
       break;
     }
@@ -249,7 +249,8 @@ m_stats(struct Client *client_p, struct Client *source_p,
 
   /* Is the stats meant for us? */
   if (!ConfigFileEntry.disable_remote)
-    if (hunt_server(client_p,source_p,":%s STATS %s :%s",2,parc,parv) != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s STATS %s :%s", 2,
+                    parc, parv) != HUNTED_ISME)
       return;
 
   if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
@@ -273,11 +274,9 @@ m_stats(struct Client *client_p, struct Client *source_p,
   else
     last_used = CurrentTime;
 
-#ifdef STATIC_MODULES
+  last_used = CurrentTime;
+
   do_stats(source_p, parc, parv);
-#else
-  execute_callback(stats_cb, source_p, parc, parv);
-#endif
 }
 
 /*
@@ -308,11 +307,7 @@ mo_stats(struct Client *client_p, struct Client *source_p,
     to = source_p->name;
   }
 
-#ifdef STATIC_MODULES
   do_stats(source_p, parc, parv);
-#else
-  execute_callback(stats_cb, source_p, parc, parv);
-#endif
 }
 
 /*
