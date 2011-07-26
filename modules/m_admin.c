@@ -34,7 +34,6 @@
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
-#include "hook.h"
 #include "modules.h"
 #include "irc_string.h"
 
@@ -48,20 +47,11 @@ struct Message admin_msgtab = {
   {mr_admin, m_admin, ms_admin, m_ignore, ms_admin, m_ignore}
 };
 
-static struct Callback *admin_cb;
 const char *_version = "$Revision$";
-
-static void *
-va_admin(va_list args)
-{
-  do_admin(va_arg(args, struct Client *));
-  return NULL;
-}
 
 void
 _modinit(void)
 {
-  admin_cb = register_callback("doing_admin", va_admin);
   mod_add_cmd(&admin_msgtab);
 }
 
@@ -69,7 +59,6 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&admin_msgtab);
-  uninstall_hook(admin_cb, va_admin);
 }
 
 /*! \brief ADMIN command handler (called by unregistered,
@@ -102,7 +91,7 @@ mr_admin(struct Client *client_p, struct Client *source_p,
 
   last_used = CurrentTime;
 
-  execute_callback(admin_cb, source_p, parc, parv);
+  do_admin(source_p);
 }
 
 /*! \brief NICK command handler (called by already registered,
@@ -139,7 +128,7 @@ m_admin(struct Client *client_p, struct Client *source_p,
                     parc, parv) != HUNTED_ISME)
       return;
 
-  execute_callback(admin_cb, source_p, parc, parv);
+  do_admin(source_p);
 }
 
 /*! \brief ADMIN command handler (called by operators and
@@ -160,12 +149,12 @@ static void
 ms_admin(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  if (hunt_server(client_p, source_p, ":%s ADMIN :%s", 1, parc, parv)
-                  != HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s ADMIN :%s", 1,
+                  parc, parv) != HUNTED_ISME)
     return;
 
   if (IsClient(source_p))
-    execute_callback(admin_cb, source_p, parc, parv);
+    do_admin(source_p);
 }
 
 /*! \brief Sends administrative information about this server.
@@ -177,6 +166,11 @@ do_admin(struct Client *source_p)
 {
   const char *me_name;
   const char *nick;
+
+  sendto_realops_flags(UMODE_SPY, L_ALL,
+                       "ADMIN requested by %s (%s@%s) [%s]",
+                       source_p->name, source_p->username,
+                       source_p->host, source_p->servptr->name);
 
   me_name = ID_or_name(&me, source_p->from);
   nick = ID_or_name(source_p, source_p->from);

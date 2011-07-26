@@ -42,7 +42,7 @@
 #include "s_conf.h"
 
 
-static void do_etrace(struct Client *, int, char **);
+static void do_etrace(struct Client *, int, char *[]);
 static void mo_etrace(struct Client *, struct Client *, int, char *[]);
 
 struct Message etrace_msgtab = {
@@ -51,23 +51,10 @@ struct Message etrace_msgtab = {
 };
 
 const char *_version = "$Revision$";
-static struct Callback *etrace_cb;
-
-static void *
-va_etrace(va_list args)
-{
-  struct Client *source_p = va_arg(args, struct Client *);
-  int parc = va_arg(args, int);
-  char **parv = va_arg(args, char **);
-
-  do_etrace(source_p, parc, parv);
-  return NULL;
-}
 
 void
 _modinit(void)
 {
-  etrace_cb = register_callback("doing_etrace", va_etrace);
   mod_add_cmd(&etrace_msgtab);
 }
 
@@ -75,7 +62,6 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&etrace_msgtab);
-  uninstall_hook(etrace_cb, va_etrace);
 }
 
 static void report_this_status(struct Client *, struct Client *, int);
@@ -84,7 +70,7 @@ static void report_this_status(struct Client *, struct Client *, int);
  * do_etrace()
  */
 static void
-do_etrace(struct Client *source_p, int parc, char **parv)
+do_etrace(struct Client *source_p, int parc, char *parv[])
 {
   const char *tname = NULL;
   struct Client *target_p = NULL;
@@ -92,6 +78,11 @@ do_etrace(struct Client *source_p, int parc, char **parv)
   int do_all = 0;
   int full_etrace = 0;
   dlink_node *ptr;
+
+  sendto_realops_flags(UMODE_SPY, L_ALL,
+                       "ETRACE requested by %s (%s@%s) [%s]",
+                       source_p->name, source_p->username,
+                       source_p->host, source_p->servptr->name);
 
   if (parc > 1)
   {
@@ -158,7 +149,7 @@ static void
 mo_etrace(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  execute_callback(etrace_cb, source_p, parc, parv);
+  do_etrace(source_p, parc, parv);
 }
 
 /* report_this_status()

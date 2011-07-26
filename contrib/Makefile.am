@@ -20,15 +20,7 @@ modules_LTLIBRARIES = example_module.la     \
                       m_operspy.la          \
                       m_opme.la             \
                       m_services.la         \
-                      m_spoof.la            \
-                      spy_admin_notice.la   \
-                      spy_info_notice.la    \
-                      spy_links_notice.la   \
-                      spy_motd_notice.la    \
-                      spy_stats_notice.la   \
-                      spy_stats_p_notice.la \
-                      spy_trace_notice.la   \
-                      spy_whois_notice.la
+                      m_spoof.la
 
 example_module_la_LDFLAGS = $(MODULE_FLAGS)
 ip_cloaking_la_LDFLAGS = $(MODULE_FLAGS)
@@ -47,14 +39,6 @@ m_operspy_la_LDFLAGS = $(MODULE_FLAGS)
 m_opme_la_LDFLAGS = $(MODULE_FLAGS)
 m_services_la_LDFLAGS = $(MODULE_FLAGS)
 m_spoof_la_LDFLAGS = $(MODULE_FLAGS)
-spy_admin_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_info_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_links_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_motd_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_stats_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_stats_p_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_trace_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_whois_notice_la_LDFLAGS = $(MODULE_FLAGS)
 
 example_module_la_SOURCES = example_module.c
 ip_cloaking_la_SOURCES = ip_cloaking.c
@@ -73,13 +57,5 @@ m_operspy_la_SOURCES = m_operspy.c
 m_opme_la_SOURCES = m_opme.c
 m_services_la_SOURCES = m_services.c
 m_spoof_la_SOURCES = m_spoof.c
-spy_admin_notice_la_SOURCES = spy_admin_notice.c
-spy_info_notice_la_SOURCES = spy_info_notice.c
-spy_links_notice_la_SOURCES = spy_links_notice.c
-spy_motd_notice_la_SOURCES = spy_motd_notice.c
-spy_stats_notice_la_SOURCES = spy_stats_notice.c
-spy_stats_p_notice_la_SOURCES = spy_stats_p_notice.c
-spy_trace_notice_la_SOURCES = spy_trace_notice.c
-spy_whois_notice_la_SOURCES = spy_whois_notice.c
 
 modules: $(modules_LTLIBRARIES)

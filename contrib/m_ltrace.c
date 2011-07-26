@@ -40,9 +40,9 @@
 #include "parse.h"
 #include "modules.h"
 
-static void do_ltrace(struct Client *, int, char **);
-static void m_ltrace(struct Client *, struct Client *, int, char **);
-static void mo_ltrace(struct Client *, struct Client *, int, char **);
+static void do_ltrace(struct Client *, int, char *[]);
+static void m_ltrace(struct Client *, struct Client *, int, char *[]);
+static void mo_ltrace(struct Client *, struct Client *, int, char *[]);
 
 struct Message ltrace_msgtab = {
   "LTRACE", 0, 0, 0, 0, MFLG_SLOW, 0,
@@ -50,23 +50,10 @@ struct Message ltrace_msgtab = {
 };
 
 const char *_version = "$Revision$";
-static struct Callback *ltrace_cb;
-
-static void *
-va_ltrace(va_list args)
-{
-  struct Client *source_p = va_arg(args, struct Client *);
-  int parc = va_arg(args, int);
-  char **parv = va_arg(args, char **);
-
-  do_ltrace(source_p, parc, parv);
-  return NULL;
-}
 
 void
 _modinit(void)
 {
-  ltrace_cb = register_callback("doing_ltrace", va_ltrace);
   mod_add_cmd(&ltrace_msgtab);
 }
 
@@ -74,7 +61,6 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&ltrace_msgtab);
-  uninstall_hook(ltrace_cb, va_ltrace);
 }
 
 static void report_this_status(struct Client *, struct Client *, int);
@@ -116,7 +102,7 @@ m_ltrace(struct Client *client_p, struct Client *source_p,
  * do_ltrace
  */
 static void
-do_ltrace(struct Client *source_p, int parc, char **parv)
+do_ltrace(struct Client *source_p, int parc, char *parv[])
 {
   struct Client *target_p = NULL;
   int   doall;
@@ -155,6 +141,11 @@ do_ltrace(struct Client *source_p, int parc, char **parv)
     default:
       return;
   }
+
+  sendto_realops_flags(UMODE_SPY, L_ALL,
+                       "LTRACE requested by %s (%s@%s) [%s]",
+                       source_p->name, source_p->username,
+                       source_p->host, source_p->servptr->name);
 
   doall = (parv[1] && (parc > 1)) ? match(tname, me.name) : 1;
   wilds = !parv[1] || strchr(tname, '*') || strchr(tname, '?');
@@ -248,7 +239,7 @@ mo_ltrace(struct Client *client_p, struct Client *source_p,
     if (hunt_server(client_p, source_p, ":%s LTRACE %s :%s", 2, parc, parv))
       return;
 
-  execute_callback(ltrace_cb, source_p, parc, parv);
+  do_ltrace(source_p, parc, parv);
 }
 
 /*

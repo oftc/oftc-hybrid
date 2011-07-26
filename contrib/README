@@ -183,25 +183,6 @@ example_module.c --  This is an example module template to help users create
                      their own modules.
 
 
-Spy Modules ::
------------------------------------------------
-
-The following modules are the 'spy' parts and are accessible via the +y
-user mode.
-
-spy_admin_notice.c   -- Spy on clients doing ADMIN
-spy_info_notice.c    -- Spy on clients doing INFO
-spy_links_notice.c   -- Spy on clients doing LINKS
-spy_motd_notice.c    -- Spy on clients doing MOTD
-spy_stats_notice.c   -- Spy on clients doing all STATS
-spy_stats_p_notice.c -- Spy on clients doing STATS p only
-spy_trace_notice.c   -- Spy on clients doing TRACE/LTRACE
-spy_whois_notice.c   -- Spy on local clients who WHOIS you.
-
-Note: If you have both spy_stats_notice.c and spy_stats_p_notice.c
-loaded at the same time you will get two messages. So only load one
-or the other to avoid duplicate NOTICE events.
-
 Help Files ::
 -----------------------------------------------
 

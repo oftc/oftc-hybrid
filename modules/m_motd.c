@@ -30,7 +30,6 @@
 #include "send.h"
 #include "numeric.h"
 #include "handlers.h"
-#include "hook.h"
 #include "msg.h"
 #include "s_serv.h"     /* hunt_server */
 #include "parse.h"
@@ -53,21 +52,20 @@ struct Message motd_msgtab = {
 };
 
 const char *_version = "$Revision$";
-static struct Callback *motd_cb;
 
-static void *
-do_motd(va_list args)
+static void
+do_motd(struct Client *source_p)
 {
-  struct Client *source_p = va_arg(args, struct Client *);
-
+  sendto_realops_flags(UMODE_SPY, L_ALL,
+                       "MOTD requested by %s (%s@%s) [%s]",
+                       source_p->name, source_p->username,
+                       source_p->host, source_p->servptr->name);
   send_message_file(source_p, &ConfigFileEntry.motd);
-  return NULL;
 }
 
 void
 _modinit(void)
 {
-  motd_cb = register_callback("doing_motd", do_motd);
   mod_add_cmd(&motd_msgtab);
 }
 
@@ -75,7 +73,6 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&motd_msgtab);
-  uninstall_hook(motd_cb, do_motd);
 }
 
 /*
@@ -101,11 +98,11 @@ m_motd(struct Client *client_p, struct Client *source_p,
 
   /* This is safe enough to use during non hidden server mode */
   if (!ConfigFileEntry.disable_remote && !ConfigServerHide.hide_servers)
-    if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1, parc, parv)
-                    != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1,
+                    parc, parv) != HUNTED_ISME)
       return;
 
-  execute_callback(motd_cb, source_p, parc, parv);
+  do_motd(source_p);
 }
 
 /*
@@ -120,8 +117,9 @@ mo_motd(struct Client *client_p, struct Client *source_p,
   if (!IsClient(source_p))
     return;
 
-  if (hunt_server(client_p, source_p, ":%s MOTD :%s",1,parc,parv)!=HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1,
+                  parc, parv) != HUNTED_ISME)
     return;
 
-  execute_callback(motd_cb, source_p, parc, parv);
+  do_motd(source_p);
 }

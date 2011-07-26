@@ -48,23 +48,10 @@ struct Message ctrace_msgtab = {
 };
 
 const char *_version = "$Revision$";
-static struct Callback *ctrace_cb;
-
-static void *
-va_ctrace(va_list args)
-{
-  struct Client *source_p = va_arg(args, struct Client *);
-  int parc = va_arg(args, int);
-  char **parv = va_arg(args, char **);
-
-  do_ctrace(source_p, parc, parv);
-  return NULL;
-}
 
 void
 _modinit(void)
 {
-  ctrace_cb = register_callback("doing_ctrace", va_ctrace);
   mod_add_cmd(&ctrace_msgtab);
 }
 
@@ -72,7 +59,6 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&ctrace_msgtab);
-  uninstall_hook(ctrace_cb, va_ctrace);
 }
 
 static void report_this_status(struct Client *, struct Client *);
@@ -93,7 +79,7 @@ mo_ctrace(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  execute_callback(ctrace_cb, source_p, parc, parv);
+  do_ctrace(source_p, parc, parv);
 }
 
 /*
@@ -102,18 +88,19 @@ mo_ctrace(struct Client *client_p, struct Client *source_p,
 static void
 do_ctrace(struct Client *source_p, int parc, char *parv[])
 {
-  struct Client *target_p = NULL;
   char *class_looking_for;
-  const char *class_name;
+  const char *class_name = parv[1];
   dlink_node *ptr;
 
-  class_looking_for = parv[1];
+  sendto_realops_flags(UMODE_SPY, L_ALL,
+                       "CTRACE requested by %s (%s@%s) [%s]",
+                       source_p->name, source_p->username,
+                       source_p->host, source_p->servptr->name);
 
   /* report all direct connections */
-
   DLINK_FOREACH(ptr, local_client_list.head)
   {
-    target_p = ptr->data;
+    struct Client *target_p = ptr->data;
 
     class_name = get_client_class(target_p);
     if ((class_name != NULL) && match(class_looking_for, class_name))

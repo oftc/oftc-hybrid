@@ -170,54 +170,6 @@ m_spoof_la_OBJECTS = $(am_m_spoof_la_OBJECTS)
 m_spoof_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(m_spoof_la_LDFLAGS) $(LDFLAGS) -o $@
-spy_admin_notice_la_LIBADD =
-am_spy_admin_notice_la_OBJECTS = spy_admin_notice.lo
-spy_admin_notice_la_OBJECTS = $(am_spy_admin_notice_la_OBJECTS)
-spy_admin_notice_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(spy_admin_notice_la_LDFLAGS) $(LDFLAGS) -o $@
-spy_info_notice_la_LIBADD =
-am_spy_info_notice_la_OBJECTS = spy_info_notice.lo
-spy_info_notice_la_OBJECTS = $(am_spy_info_notice_la_OBJECTS)
-spy_info_notice_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(spy_info_notice_la_LDFLAGS) $(LDFLAGS) -o $@
-spy_links_notice_la_LIBADD =
-am_spy_links_notice_la_OBJECTS = spy_links_notice.lo
-spy_links_notice_la_OBJECTS = $(am_spy_links_notice_la_OBJECTS)
-spy_links_notice_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(spy_links_notice_la_LDFLAGS) $(LDFLAGS) -o $@
-spy_motd_notice_la_LIBADD =
-am_spy_motd_notice_la_OBJECTS = spy_motd_notice.lo
-spy_motd_notice_la_OBJECTS = $(am_spy_motd_notice_la_OBJECTS)
-spy_motd_notice_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(spy_motd_notice_la_LDFLAGS) $(LDFLAGS) -o $@
-spy_stats_notice_la_LIBADD =
-am_spy_stats_notice_la_OBJECTS = spy_stats_notice.lo
-spy_stats_notice_la_OBJECTS = $(am_spy_stats_notice_la_OBJECTS)
-spy_stats_notice_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(spy_stats_notice_la_LDFLAGS) $(LDFLAGS) -o $@
-spy_stats_p_notice_la_LIBADD =
-am_spy_stats_p_notice_la_OBJECTS = spy_stats_p_notice.lo
-spy_stats_p_notice_la_OBJECTS = $(am_spy_stats_p_notice_la_OBJECTS)
-spy_stats_p_notice_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(spy_stats_p_notice_la_LDFLAGS) $(LDFLAGS) -o $@
-spy_trace_notice_la_LIBADD =
-am_spy_trace_notice_la_OBJECTS = spy_trace_notice.lo
-spy_trace_notice_la_OBJECTS = $(am_spy_trace_notice_la_OBJECTS)
-spy_trace_notice_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(spy_trace_notice_la_LDFLAGS) $(LDFLAGS) -o $@
-spy_whois_notice_la_LIBADD =
-am_spy_whois_notice_la_OBJECTS = spy_whois_notice.lo
-spy_whois_notice_la_OBJECTS = $(am_spy_whois_notice_la_OBJECTS)
-spy_whois_notice_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(spy_whois_notice_la_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -239,11 +191,7 @@ SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
 	$(m_killhost_la_SOURCES) $(m_ltrace_la_SOURCES) \
 	$(m_ojoin_la_SOURCES) $(m_operspy_la_SOURCES) \
 	$(m_opme_la_SOURCES) $(m_services_la_SOURCES) \
-	$(m_spoof_la_SOURCES) $(spy_admin_notice_la_SOURCES) \
-	$(spy_info_notice_la_SOURCES) $(spy_links_notice_la_SOURCES) \
-	$(spy_motd_notice_la_SOURCES) $(spy_stats_notice_la_SOURCES) \
-	$(spy_stats_p_notice_la_SOURCES) \
-	$(spy_trace_notice_la_SOURCES) $(spy_whois_notice_la_SOURCES)
+	$(m_spoof_la_SOURCES)
 DIST_SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
 	$(m_capture_la_SOURCES) $(m_change_la_SOURCES) \
 	$(m_classlist_la_SOURCES) $(m_clearchan_la_SOURCES) \
@@ -252,11 +200,7 @@ DIST_SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
 	$(m_killhost_la_SOURCES) $(m_ltrace_la_SOURCES) \
 	$(m_ojoin_la_SOURCES) $(m_operspy_la_SOURCES) \
 	$(m_opme_la_SOURCES) $(m_services_la_SOURCES) \
-	$(m_spoof_la_SOURCES) $(spy_admin_notice_la_SOURCES) \
-	$(spy_info_notice_la_SOURCES) $(spy_links_notice_la_SOURCES) \
-	$(spy_motd_notice_la_SOURCES) $(spy_stats_notice_la_SOURCES) \
-	$(spy_stats_p_notice_la_SOURCES) \
-	$(spy_trace_notice_la_SOURCES) $(spy_whois_notice_la_SOURCES)
+	$(m_spoof_la_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -420,15 +364,7 @@ modules_LTLIBRARIES = example_module.la     \
                       m_operspy.la          \
                       m_opme.la             \
                       m_services.la         \
-                      m_spoof.la            \
-                      spy_admin_notice.la   \
-                      spy_info_notice.la    \
-                      spy_links_notice.la   \
-                      spy_motd_notice.la    \
-                      spy_stats_notice.la   \
-                      spy_stats_p_notice.la \
-                      spy_trace_notice.la   \
-                      spy_whois_notice.la
+                      m_spoof.la
 
 example_module_la_LDFLAGS = $(MODULE_FLAGS)
 ip_cloaking_la_LDFLAGS = $(MODULE_FLAGS)
@@ -447,14 +383,6 @@ m_operspy_la_LDFLAGS = $(MODULE_FLAGS)
 m_opme_la_LDFLAGS = $(MODULE_FLAGS)
 m_services_la_LDFLAGS = $(MODULE_FLAGS)
 m_spoof_la_LDFLAGS = $(MODULE_FLAGS)
-spy_admin_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_info_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_links_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_motd_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_stats_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_stats_p_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_trace_notice_la_LDFLAGS = $(MODULE_FLAGS)
-spy_whois_notice_la_LDFLAGS = $(MODULE_FLAGS)
 example_module_la_SOURCES = example_module.c
 ip_cloaking_la_SOURCES = ip_cloaking.c
 m_capture_la_SOURCES = m_capture.c
@@ -472,14 +400,6 @@ m_operspy_la_SOURCES = m_operspy.c
 m_opme_la_SOURCES = m_opme.c
 m_services_la_SOURCES = m_services.c
 m_spoof_la_SOURCES = m_spoof.c
-spy_admin_notice_la_SOURCES = spy_admin_notice.c
-spy_info_notice_la_SOURCES = spy_info_notice.c
-spy_links_notice_la_SOURCES = spy_links_notice.c
-spy_motd_notice_la_SOURCES = spy_motd_notice.c
-spy_stats_notice_la_SOURCES = spy_stats_notice.c
-spy_stats_p_notice_la_SOURCES = spy_stats_p_notice.c
-spy_trace_notice_la_SOURCES = spy_trace_notice.c
-spy_whois_notice_la_SOURCES = spy_whois_notice.c
 all: all-am
 
 .SUFFIXES:
@@ -579,22 +499,6 @@ m_services.la: $(m_services_la_OBJECTS) $(m_services_la_DEPENDENCIES)
 	$(m_services_la_LINK) -rpath $(modulesdir) $(m_services_la_OBJECTS) $(m_services_la_LIBADD) $(LIBS)
 m_spoof.la: $(m_spoof_la_OBJECTS) $(m_spoof_la_DEPENDENCIES) 
 	$(m_spoof_la_LINK) -rpath $(modulesdir) $(m_spoof_la_OBJECTS) $(m_spoof_la_LIBADD) $(LIBS)
-spy_admin_notice.la: $(spy_admin_notice_la_OBJECTS) $(spy_admin_notice_la_DEPENDENCIES) 
-	$(spy_admin_notice_la_LINK) -rpath $(modulesdir) $(spy_admin_notice_la_OBJECTS) $(spy_admin_notice_la_LIBADD) $(LIBS)
-spy_info_notice.la: $(spy_info_notice_la_OBJECTS) $(spy_info_notice_la_DEPENDENCIES) 
-	$(spy_info_notice_la_LINK) -rpath $(modulesdir) $(spy_info_notice_la_OBJECTS) $(spy_info_notice_la_LIBADD) $(LIBS)
-spy_links_notice.la: $(spy_links_notice_la_OBJECTS) $(spy_links_notice_la_DEPENDENCIES) 
-	$(spy_links_notice_la_LINK) -rpath $(modulesdir) $(spy_links_notice_la_OBJECTS) $(spy_links_notice_la_LIBADD) $(LIBS)
-spy_motd_notice.la: $(spy_motd_notice_la_OBJECTS) $(spy_motd_notice_la_DEPENDENCIES) 
-	$(spy_motd_notice_la_LINK) -rpath $(modulesdir) $(spy_motd_notice_la_OBJECTS) $(spy_motd_notice_la_LIBADD) $(LIBS)
-spy_stats_notice.la: $(spy_stats_notice_la_OBJECTS) $(spy_stats_notice_la_DEPENDENCIES) 
-	$(spy_stats_notice_la_LINK) -rpath $(modulesdir) $(spy_stats_notice_la_OBJECTS) $(spy_stats_notice_la_LIBADD) $(LIBS)
-spy_stats_p_notice.la: $(spy_stats_p_notice_la_OBJECTS) $(spy_stats_p_notice_la_DEPENDENCIES) 
-	$(spy_stats_p_notice_la_LINK) -rpath $(modulesdir) $(spy_stats_p_notice_la_OBJECTS) $(spy_stats_p_notice_la_LIBADD) $(LIBS)
-spy_trace_notice.la: $(spy_trace_notice_la_OBJECTS) $(spy_trace_notice_la_DEPENDENCIES) 
-	$(spy_trace_notice_la_LINK) -rpath $(modulesdir) $(spy_trace_notice_la_OBJECTS) $(spy_trace_notice_la_LIBADD) $(LIBS)
-spy_whois_notice.la: $(spy_whois_notice_la_OBJECTS) $(spy_whois_notice_la_DEPENDENCIES) 
-	$(spy_whois_notice_la_LINK) -rpath $(modulesdir) $(spy_whois_notice_la_OBJECTS) $(spy_whois_notice_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -619,14 +523,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_opme.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_services.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_spoof.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spy_admin_notice.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spy_info_notice.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spy_links_notice.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spy_motd_notice.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spy_stats_notice.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spy_stats_p_notice.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spy_trace_notice.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spy_whois_notice.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
