@@ -142,7 +142,7 @@ m_who(struct Client *client_p, struct Client *source_p,
 
     if (lp != NULL)
       do_who(source_p, target_p, chptr->chname,
-             get_member_status(lp->data, NO));
+             get_member_status(lp->data, !!HasCap(source_p, CAP_MULTI_PREFIX)));
     else
       do_who(source_p, target_p, NULL, "");
 
@@ -157,7 +157,7 @@ m_who(struct Client *client_p, struct Client *source_p,
   else
     who_global(source_p, mask, server_oper);
 
- /* Wasn't a nick, wasn't a channel, wasn't a '*' so ... */
+  /* Wasn't a nick, wasn't a channel, wasn't a '*' so ... */
   sendto_one(source_p, form_str(RPL_ENDOFWHO),
              me.name, source_p->name, mask);
 }
@@ -314,7 +314,7 @@ do_who_on_channel(struct Client *source_p, struct Channel *chptr,
     {
       if (server_oper && !IsOper(target_p))
         continue;
-      do_who(source_p, target_p, chname, get_member_status(ms, NO));
+      do_who(source_p, target_p, chname, get_member_status(ms, !!HasCap(source_p, CAP_MULTI_PREFIX)));
     }
   }
 }
@@ -332,13 +332,13 @@ static void
 do_who(struct Client *source_p, struct Client *target_p,
        const char *chname, const char *op_flags)
 {
-  char status[6];
+  char status[8]; /* G*#@%+\0 */
 
   if (IsOper(source_p))
-    ircsprintf(status, "%c%s%s%s", target_p->away ? 'G' : 'H',
+    snprintf(status, sizeof(status), "%c%s%s%s", target_p->away ? 'G' : 'H',
 	       IsOper(target_p) ? "*" : "", IsCaptured(target_p) ? "#" : "", op_flags);
   else
-    ircsprintf(status, "%c%s%s", target_p->away ? 'G' : 'H',
+    snprintf(status, sizeof(status), "%c%s%s", target_p->away ? 'G' : 'H',
 	       IsOper(target_p) ? "*" : "", op_flags);
 
   if (ConfigServerHide.hide_servers)

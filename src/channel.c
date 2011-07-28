@@ -447,7 +447,7 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
   char *t = NULL, *start = NULL;
   int tlen = 0;
   int is_member = IsMember(source_p, chptr);
-  int multi_prefix = (source_p->localClient->cap_active & CAP_MULTI_PREFIX) != 0;
+  int multi_prefix = HasCap(source_p, CAP_MULTI_PREFIX) != 0;
 
   if (PubChannel(chptr) || is_member)
   {

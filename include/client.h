@@ -310,6 +310,8 @@ struct LocalUser
 
 #define CAP_MULTI_PREFIX  0x00000001
 
+#define HasCap(x, y) ((x)->localClient->cap_active & (y))
+
 /* housekeeping flags */
 #define FLAGS_PINGSENT      0x0000000000000001 /* Unreplied ping sent                      */
 #define FLAGS_DEADSOCKET    0x0000000000000002 /* Local socket is dead--Exiting soon       */
