@@ -2466,7 +2466,7 @@ get_oper_name(const struct Client *client_p)
   struct AccessItem *aconf;
 
   /* +5 for !,@,{,} and null */
-  static char buffer[NICKLEN+USERLEN+HOSTLEN+HOSTLEN+5];
+  static char buffer[NICKLEN + USERLEN + HOSTLEN + HOSTLEN + 5];
 
   if (MyConnect(client_p))
   {
@@ -2477,10 +2477,10 @@ get_oper_name(const struct Client *client_p)
 
       if (IsConfOperator(aconf))
       {
-  ircsprintf(buffer, "%s!%s@%s{%s}", client_p->name,
-       client_p->username, client_p->host,
-       conf->name);
-  return buffer;
+        snprintf(buffer, "%s!%s@%s{%s}", client_p->name,
+            client_p->username, client_p->host,
+            conf->name);
+        return buffer;
       }
     }
 
@@ -2490,8 +2490,8 @@ get_oper_name(const struct Client *client_p)
     assert(0); /* Oper without oper conf! */
   }
 
-  ircsprintf(buffer, "%s!%s@%s{%s}", client_p->name,
-       client_p->username, client_p->host, client_p->servptr->name);
+  snprintf(buffer, sizeof(buffer), "%s!%s@%s{%s}", client_p->name,
+      client_p->username, client_p->host, client_p->servptr->name);
   return buffer;
 }
 
@@ -2586,21 +2586,25 @@ read_conf_files(int cold)
   fbclose(conf_parser_ctx.conf_file);
 
   add_isupport("NETWORK", ServerInfo.network_name, -1);
-  ircsprintf(chanmodes, "b%s%s:%d", ConfigChannel.use_except ? "e" : "",
-             ConfigChannel.use_invex ? "I" : "", ConfigChannel.max_bans);
+  snprintf(chanmodes, sizeof(chanmodes), "b%s%s:%d",
+           ConfigChannel.use_except ? "e" : "",
+           ConfigChannel.use_invex ? "I" : "", ConfigChannel.max_bans);
   add_isupport("MAXLIST", chanmodes, -1);
   add_isupport("MAXTARGETS", NULL, ConfigFileEntry.max_targets);
+
   if (ConfigChannel.disable_local_channels)
     add_isupport("CHANTYPES", "#", -1);
   else
     add_isupport("CHANTYPES", "#&", -1);
-  ircsprintf(chanlimit, "%s:%d", ConfigChannel.disable_local_channels ? "#" : "#&",
-       ConfigChannel.max_chans_per_user);
+  snprintf(chanlimit, sizeof(chanlimit), "%s:%d",
+           ConfigChannel.disable_local_channels ? "#" : "#&",
+	   ConfigChannel.max_chans_per_user);
   add_isupport("CHANLIMIT", chanlimit, -1);
-  ircsprintf(chanmodes, "%s%s%s%s", ConfigChannel.use_except ? "e" : "",
-       ConfigChannel.use_invex ? "I" : "", ConfigChannel.use_quiet ? "q" : "",
-       "b,k,l,imnpstMRS");
+  snprintf(chanmodes, sizeof(chanmodes), "%s%s%s%s", 
+      ConfigChannel.use_except ? "e" : "", ConfigChannel.use_invex ? "I" : "", 
+      ConfigChannel.use_quiet ? "q" : "", "b,k,l,imnpstMRS");
   add_isupport("CHANNELLEN", NULL, LOCAL_CHANNELLEN);
+
   if (ConfigChannel.use_except)
     add_isupport("EXCEPTS", "e", -1);
   if (ConfigChannel.use_invex)
