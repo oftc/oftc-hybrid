@@ -85,7 +85,7 @@ _moddeinit(void)
 
 static char *parse_stats_args(int, char **, int *, int *);
 static void stats_L(struct Client *, char *, int, int, char);
-static void stats_L_list(struct Client *s, char *, int, int, dlink_list *, char);
+static void stats_L_list(struct Client *, char *, int, int, dlink_list *, char);
 
 static void stats_dns_servers(struct Client *);
 static void stats_connect(struct Client *);
@@ -129,51 +129,51 @@ static const struct StatsStruct
   const unsigned int need_admin;
 } stats_cmd_table[] = {
   /* letter     function            need_oper need_admin */
-  { 'a',	stats_dns_servers,	1,	1,	},
-  { 'A',	stats_dns_servers,	1,	1,	},
-  { 'c',	stats_connect,		1,	0,	},
-  { 'C',	stats_connect,		1,	0,	},
-  { 'd',	stats_tdeny,		1,	0,	},
-  { 'D',	stats_deny,		1,	0,	},
-  { 'e', 	stats_exempt,		1,	0,	},
-  { 'E',	stats_events,		1,	0,	},
-  { 'f',	fd_dump,		1,	1,	},
-  { 'F',	fd_dump,		1,	1,	},
-  { 'g',	stats_pending_glines,	1,	0,	},
-  { 'G',	stats_glines,		1,	0,	},
-  { 'h',	stats_hooks,		1,	1,	},
-  { 'H',	stats_hubleaf,		1,	0,	},
-  { 'i',	stats_auth,		0,	0,	},
-  { 'I',	stats_auth,		0,	0,	},
-  { 'k',	stats_tklines,		0,	0,	},
-  { 'K',	stats_klines,		0,	0,	},
-  { 'l',	stats_ltrace,		1,	0,	},
-  { 'L',	stats_ltrace,		1,	0,	},
-  { 'm',	stats_messages,		1,	0,	},
-  { 'M',	stats_messages,		1,	0,	},
-  { 'n',	stats_numbers,		1,	0,	},
-  { 'o',	stats_oper,		0,	0,	},
-  { 'O',	stats_oper,		0,	0,	},
-  { 'p',	stats_operedup,		0,	0,	},
-  { 'P',	stats_ports,		0,	0,	},
-  { 'q',	stats_resv,		1,	0,	},
-  { 'Q',	stats_resv,		1,	0,	},
-  { 'r',	stats_usage,		1,	0,	},
-  { 'R',	stats_usage,		1,	0,	},
-  { 't',	stats_tstats,		1,	0,	},
-  { 'T',	stats_tstats,		1,	0,	},
-  { 'u',	stats_uptime,		0,	0,	},
-  { 'U',	stats_shared,		1,	0,	},
-  { 'v',	stats_servers,		1,	0,	},
-  { 'V',	stats_gdeny,		1,	0,	},
-  { 'x',	stats_gecos,		1,	0,	},
-  { 'X',	stats_gecos,		1,	0,	},
-  { 'y',	stats_class,		1,	0,	},
-  { 'Y',	stats_class,		1,	0,	},
-  { 'z',	stats_memory,		1,	0,	},
-  { 'Z',	stats_ziplinks,		1,	0,	},
-  { '?',	stats_servlinks,	0,	0,	},
-  { '\0',       NULL,		        0,	0,	}
+  { 'a',	stats_dns_servers,	1,	1	},
+  { 'A',	stats_dns_servers,	1,	1	},
+  { 'c',	stats_connect,		1,	0	},
+  { 'C',	stats_connect,		1,	0	},
+  { 'd',	stats_tdeny,		1,	0	},
+  { 'D',	stats_deny,		1,	0	},
+  { 'e', 	stats_exempt,		1,	0	},
+  { 'E',	stats_events,		1,	0	},
+  { 'f',	fd_dump,		1,	1	},
+  { 'F',	fd_dump,		1,	1	},
+  { 'g',	stats_pending_glines,	1,	0	},
+  { 'G',	stats_glines,		1,	0	},
+  { 'h',	stats_hooks,		1,	1	},
+  { 'H',	stats_hubleaf,		1,	0	},
+  { 'i',	stats_auth,		0,	0	},
+  { 'I',	stats_auth,		0,	0	},
+  { 'k',	stats_tklines,		0,	0	},
+  { 'K',	stats_klines,		0,	0	},
+  { 'l',	stats_ltrace,		1,	0	},
+  { 'L',	stats_ltrace,		1,	0	},
+  { 'm',	stats_messages,		1,	0	},
+  { 'M',	stats_messages,		1,	0	},
+  { 'n',	stats_numbers,		1,	0	},
+  { 'o',	stats_oper,		0,	0	},
+  { 'O',	stats_oper,		0,	0	},
+  { 'p',	stats_operedup,		0,	0	},
+  { 'P',	stats_ports,		0,	0	},
+  { 'q',	stats_resv,		1,	0	},
+  { 'Q',	stats_resv,		1,	0	},
+  { 'r',	stats_usage,		1,	0	},
+  { 'R',	stats_usage,		1,	0	},
+  { 't',	stats_tstats,		1,	0	},
+  { 'T',	stats_tstats,		1,	0	},
+  { 'u',	stats_uptime,		0,	0	},
+  { 'U',	stats_shared,		1,	0	},
+  { 'v',	stats_servers,		1,	0	},
+  { 'V',	stats_gdeny,		1,	0	},
+  { 'x',	stats_gecos,		1,	0	},
+  { 'X',	stats_gecos,		1,	0	},
+  { 'y',	stats_class,		1,	0	},
+  { 'Y',	stats_class,		1,	0	},
+  { 'z',	stats_memory,		1,	0	},
+  { 'Z',	stats_ziplinks,		1,	0	},
+  { '?',	stats_servlinks,	0,	0	},
+  { '\0',       NULL,		        0,	0	}
 };
 
 const char *from, *to;
@@ -181,9 +181,8 @@ const char *from, *to;
 static void
 do_stats(struct Client *source_p, int parc, char *parv[])
 {
-  static const struct StatsStruct *tab = stats_cmd_table;
+  const struct StatsStruct *tab = stats_cmd_table;
   char statchar = *parv[1];
-  int i;
 
   if (statchar == '\0')
   {
@@ -308,6 +307,24 @@ mo_stats(struct Client *client_p, struct Client *source_p,
   }
 
   do_stats(source_p, parc, parv);
+}
+
+/*
+ * ms_stats - STATS message handler
+ *      parv[0] = sender prefix
+ *      parv[1] = statistics selector (defaults to Message frequency)
+ *      parv[2] = server name (current server defaulted, if omitted)
+ */
+static void
+ms_stats(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
+{
+  if (hunt_server(client_p, source_p, ":%s STATS %s :%s", 2,
+                  parc, parv) != HUNTED_ISME)
+    return;
+
+  if (IsClient(source_p))
+    mo_stats(client_p, source_p, parc, parv);
 }
 
 /*
@@ -1223,11 +1240,13 @@ static void
 stats_uptime(struct Client *source_p)
 {
   time_t now = CurrentTime - me.since;
+
   sendto_one(source_p, form_str(RPL_STATSUPTIME), from, to,
-             now/86400, (now/3600)%24, (now/60)%60, now%60);
+             now / 86400, (now / 3600) % 24, (now / 60) % 60, now % 60);
+
   if (!ConfigFileEntry.disable_remote || IsOper(source_p))
      sendto_one(source_p, form_str(RPL_STATSCONN), from, to,
-                MaxConnectionCount, MaxClientCount, Count.totalrestartcount);
+                Count.max_loc_con, Count.max_loc_cli, Count.totalrestartcount);
 }
 
 static void
@@ -1400,23 +1419,6 @@ stats_ltrace(struct Client *source_p, int parc, char *parv[])
   else
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                from, to, "STATS");
-}
-
-/*
- * ms_stats - STATS message handler
- *      parv[0] = sender prefix
- *      parv[1] = statistics selector (defaults to Message frequency)
- *      parv[2] = server name (current server defaulted, if omitted)
- */
-static void
-ms_stats(struct Client *client_p, struct Client *source_p,
-         int parc, char *parv[])
-{
-  if (hunt_server(client_p,source_p,":%s STATS %s :%s",2,parc,parv)!=HUNTED_ISME)
-    return;
-
-  if (IsClient(source_p))
-    mo_stats(client_p, source_p, parc, parv);
 }
 
 /*
