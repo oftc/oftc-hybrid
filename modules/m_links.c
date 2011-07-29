@@ -48,6 +48,17 @@ struct Message links_msgtab = {
 
 const char *_version = "$Revision$";
 
+void
+_modinit(void)
+{
+  mod_add_cmd(&links_msgtab);
+}
+
+void
+_moddeinit(void)
+{
+  mod_del_cmd(&links_msgtab);
+}
 
 static void
 do_links(struct Client *source_p, int parc, char *parv[])
@@ -98,7 +109,8 @@ do_links(struct Client *source_p, int parc, char *parv[])
                me_name, nick,
                EmptyString(mask) ? "*" : mask);
   }
-  else {
+  else
+  {
     /*
      * Print our own info so at least it looks like a normal links
      * then print out the file (which may or may not be empty)
