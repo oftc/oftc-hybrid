@@ -52,23 +52,10 @@ struct Message trace_msgtab = {
 };
 
 const char *_version = "$Revision$";
-static struct Callback *trace_cb;
-
-static void *
-va_actual_trace(va_list args)
-{
-  struct Client *source_p = va_arg(args, struct Client *);
-  int parc = va_arg(args, int);
-  char **parv = va_arg(args, char **);
-
-  do_actual_trace(source_p, parc, parv);
-  return NULL;
-}
 
 void
 _modinit(void)
 {
-  trace_cb = register_callback("doing_trace", va_actual_trace);
   mod_add_cmd(&trace_msgtab);
 }
 
@@ -76,7 +63,6 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&trace_msgtab);
-  uninstall_hook(trace_cb, va_actual_trace);
 }
 
 static void report_this_status(struct Client *, struct Client *, int);
@@ -177,11 +163,27 @@ mo_trace(struct Client *client_p, struct Client *source_p,
     }
 
     case HUNTED_ISME:
-      execute_callback(trace_cb, source_p, parc, parv);
+      do_actual_trace(source_p, parc, parv);
       break;
     default:
       return;
   }
+}
+
+/*
+** ms_trace
+**      parv[0] = sender prefix
+**      parv[1] = servername
+*/
+static void
+ms_trace(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
+{
+  if (hunt_server(client_p, source_p, ":%s TRACE %s :%s", 2, parc, parv))
+    return;
+
+  if (IsOper(source_p))
+    mo_trace(client_p, source_p, parc, parv);
 }
 
 static void
@@ -317,22 +319,6 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFTRACE), from, to, tname);
-}
-
-/*
-** ms_trace
-**      parv[0] = sender prefix
-**      parv[1] = servername
-*/
-static void
-ms_trace(struct Client *client_p, struct Client *source_p,
-         int parc, char *parv[])
-{
-  if (hunt_server(client_p, source_p, ":%s TRACE %s :%s", 2, parc, parv))
-    return;
-
-  if (IsOper(source_p))
-    mo_trace(client_p, source_p, parc, parv);
 }
 
 /* report_this_status()

@@ -40,8 +40,6 @@ struct Callback
 
 struct Client;
 
-extern dlink_list callback_list;  /* listing/debugging purposes */
-
 extern struct Callback *register_callback(const char *, CBFUNC *);
 extern void *execute_callback(struct Callback *, ...);
 extern struct Callback *find_callback(const char *);

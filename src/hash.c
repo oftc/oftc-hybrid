@@ -83,16 +83,6 @@ init_hash(void)
   namehost_heap = BlockHeapCreate("namehost", sizeof(struct NameHost), CLIENT_HEAP_SIZE);
 
   hashf_xor_key = genrand_int32() % 256;  /* better than nothing --adx */
-
-  /* Clear the hash tables first */
-  for (i = 0; i < HASHSIZE; ++i)
-  {
-    idTable[i]          = NULL;
-    clientTable[i]      = NULL;
-    channelTable[i]     = NULL;
-    userhostTable[i]    = NULL;
-    resvchannelTable[i] = NULL;
-  }
 }
 
 /*
@@ -216,10 +206,8 @@ hash_del_id(struct Client *client_p)
     else
     {
       while (tmp->idhnext != client_p)
-      {
         if ((tmp = tmp->idhnext) == NULL)
           return;
-      }
 
       tmp->idhnext = tmp->idhnext->idhnext;
       client_p->idhnext = client_p;
@@ -249,10 +237,8 @@ hash_del_client(struct Client *client_p)
     else
     {
       while (tmp->hnext != client_p)
-      {
         if ((tmp = tmp->hnext) == NULL)
           return;
-      }
 
       tmp->hnext = tmp->hnext->hnext;
       client_p->hnext = client_p;
@@ -282,10 +268,8 @@ hash_del_userhost(struct UserHost *userhost)
     else
     {
       while (tmp->next != userhost)
-      {
         if ((tmp = tmp->next) == NULL)
           return;
-      }
 
       tmp->next = tmp->next->next;
       userhost->next = userhost;
@@ -316,10 +300,8 @@ hash_del_channel(struct Channel *chptr)
     else
     {
       while (tmp->hnextch != chptr)
-      {
         if ((tmp = tmp->hnextch) == NULL)
           return;
-      }
 
       tmp->hnextch = tmp->hnextch->hnextch;
       chptr->hnextch = chptr;
@@ -343,10 +325,8 @@ hash_del_resv(struct ResvChannel *chptr)
     else
     {
       while (tmp->hnext != chptr)
-      {
         if ((tmp = tmp->hnext) == NULL)
           return;
-      }
 
       tmp->hnext = tmp->hnext->hnext;
       chptr->hnext = chptr;
