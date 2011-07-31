@@ -507,15 +507,10 @@ main(int argc, char *argv[])
 
     /* It ain't random, but it ought to be a little harder to guess */
   srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
-  memset(&me, 0, sizeof(me));
-  memset(&meLocalUser, 0, sizeof(meLocalUser));
+
   me.localClient = &meLocalUser;
   dlinkAdd(&me, &me.node, &global_client_list);	/* Pointer to beginning
 						   of Client list */
-
-  memset(&ServerInfo, 0, sizeof(ServerInfo));
-  memset(&ServerStats, 0, sizeof(ServerStats));
-
   /* Initialise the channel capability usage counts... */
   init_chcap_usage_counts();
 
@@ -616,13 +611,12 @@ main(int argc, char *argv[])
 
   strlcpy(me.info, ServerInfo.description, sizeof(me.info));
 
-  me.from    = &me;
-  me.servptr = &me;
+  me.from     = &me;
+  me.servptr  = &me;
+  me.lasttime = me.since = me.firsttime = CurrentTime;
 
   SetMe(&me);
   make_server(&me);
-
-  me.lasttime = me.since = me.firsttime = CurrentTime;
 
   hash_add_id(&me);
   hash_add_client(&me);

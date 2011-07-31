@@ -1,6 +1,5 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  hook.c: Provides a generic event hooking interface.
  *
  *  Copyright (C) 2003 Piotr Nizynski, Advanced IRC Services Project Team
  *  Copyright (C) 2005 Hybrid Development Team
@@ -23,6 +22,11 @@
  *  $Id$
  */
 
+/*! \file hook.c
+ * \brief Provides a generic event hooking interface.
+ * \version $Id$
+ */
+
 #include "stdinc.h"
 #include "list.h"
 #include "hook.h"
@@ -33,21 +37,15 @@
 #include "send.h"
 #include "client.h"
 
-dlink_list callback_list = {NULL, NULL, 0};
+static dlink_list callback_list = { NULL, NULL, 0} ;
 
-/*
- * register_callback()
- *
- * Creates a new callback.
- *
- * inputs:
- *   name  -  name used to identify the callback
+/*! \brief Creates a new callback.
+ * \param name name used to identify the callback
  *            (can be NULL for anonymous callbacks)
- *   func  -  initial function attached to the chain
+ * \param func initial function attached to the chain
  *            (can be NULL to create an empty chain)
- * output: pointer to Callback structure or NULL if already exists
- *
- * NOTE: Once registered, a callback should never be freed!
+ * \return pointer to Callback structure or NULL if already exists
+ * \note Once registered, a callback should never be freed!
  * That's because there may be modules which depend on it
  * (even if no functions are attached). That's also why
  * we dynamically allocate the struct here -- we don't want
@@ -57,36 +55,35 @@ dlink_list callback_list = {NULL, NULL, 0};
 struct Callback *
 register_callback(const char *name, CBFUNC *func)
 {
-  struct Callback *cb;
+  struct Callback *cb = NULL;
 
   if (name != NULL)
+  {
     if ((cb = find_callback(name)) != NULL)
     {
       if (func != NULL)
         dlinkAdd(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
       return (NULL);
     }
+  }
 
   cb = MyMalloc(sizeof(struct Callback));
   if (func != NULL)
     dlinkAdd(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
+
   if (name != NULL)
   {
     DupString(cb->name, name);
     dlinkAdd(cb, &cb->node, &callback_list);
   }
-  return (cb);
+
+  return cb;
 }
 
-/*
- * execute_callback()
- *
- * Passes control down the callback hook chain.
- *
- * inputs:
- *   callback  -  pointer to Callback structure
- *   param     -  argument to pass
- * output: function return value
+/*! \brief Passes control down the callback hook chain.
+ * \param cb  pointer to Callback structure
+ * \param ... argument to pass
+ * \return function return value
  */
 void *
 execute_callback(struct Callback *cb, ...)
@@ -98,24 +95,20 @@ execute_callback(struct Callback *cb, ...)
   cb->last = CurrentTime;
 
   if (!is_callback_present(cb))
-    return (NULL);
+    return NULL;
 
   va_start(args, cb);
   res = ((CBFUNC *) cb->chain.head->data)(args);
   va_end(args);
-  return (res);
+
+  return res;
 }
 
-/*
- * pass_callback()
- *
- * Called by a hook function to pass code flow further
- * in the hook chain.
- *
- * inputs:
- *   this_hook  -  pointer to dlink_node of the current hook function
- *   ...        -  (original or modified) arguments to be passed
- * output: callback return value
+/*! \brief Called by a hook function to pass code flow further
+ *         in the hook chain.
+ * \param this_hook pointer to dlink_node of the current hook function
+ * \param ...       (original or modified) arguments to be passed
+ * \return callback return value
  */
 void *
 pass_callback(dlink_node *this_hook, ...)
@@ -124,53 +117,45 @@ pass_callback(dlink_node *this_hook, ...)
   va_list args;
 
   if (this_hook->next == NULL)
-    return (NULL);  /* reached the last one */
+    return NULL;  /* reached the last one */
 
   va_start(args, this_hook);
   res = ((CBFUNC *) this_hook->next->data)(args);
   va_end(args);
-  return (res);
+
+  return res;
 }
 
-/*
- * find_callback()
- *
- * Finds a named callback.
- *
- * inputs:
- *   name  -  name of the callback
- * output: pointer to Callback structure or NULL if not found
+/*! \brief Finds a named callback.
+ * \param name name of the callback
+ * \return pointer to Callback structure or NULL if not found
  */
 struct Callback *
 find_callback(const char *name)
 {
-  struct Callback *cb;
   dlink_node *ptr;
 
   DLINK_FOREACH(ptr, callback_list.head)
   {
-    cb = ptr->data;
+    struct Callback *cb = ptr->data;
+
     if (!irccmp(cb->name, name))
-      return (cb);
+      return cb;
   }
 
-  return (NULL);
+  return NULL;
 }
 
-/*
- * install_hook()
+/*! \brief Installs a hook for the given callback.
  *
- * Installs a hook for the given callback.
- *
- * inputs:
- *   cb      -  pointer to Callback structure
- *   hook    -  address of hook function
- * output: pointer to dlink_node of the hook (used when
- *         passing control to the next hook in the chain);
- *         valid till uninstall_hook() is called
- *
- * NOTE: The new hook is installed at the beginning of the chain,
+ * The new hook is installed at the beginning of the chain,
  * so it has full control over functions installed earlier.
+ *
+ * \param cb   pointer to Callback structure
+ * \param hook address of hook function
+ * \return pointer to dlink_node of the hook (used when passing
+ *         control to the next hook in the chain);
+ *         valid till uninstall_hook() is called
  */
 dlink_node *
 install_hook(struct Callback *cb, CBFUNC *hook)
@@ -178,18 +163,12 @@ install_hook(struct Callback *cb, CBFUNC *hook)
   dlink_node *node = MyMalloc(sizeof(dlink_node));
 
   dlinkAdd(hook, node, &cb->chain);
-  return (node);
+  return node;
 }
 
-/*
- * uninstall_hook()
- *
- * Removes a specific hook for the given callback.
- *
- * inputs:
- *   cb      -  pointer to Callback structure
- *   hook    -  address of hook function
- * output: none
+/*! \brief Removes a specific hook for the given callback.
+ * \param cb   pointer to Callback structure
+ * \param hook address of hook function
  */
 void
 uninstall_hook(struct Callback *cb, CBFUNC *hook)
@@ -201,21 +180,14 @@ uninstall_hook(struct Callback *cb, CBFUNC *hook)
   MyFree(ptr);
 }
 
-/*
- * stats_hooks()
- *
- * Displays registered callbacks and lengths of their hook chains.
- * (This is the handler of /stats h)
- *
- * inputs:
- *   source_p  -  pointer to struct Client
- * output: none
+/*! \brief Displays registered callbacks and lengths of their hook chains.
+ *         (This is the handler of /stats h)
+ * \param source_p pointer to struct Client
  */
 void
 stats_hooks(struct Client *source_p)
 {
   dlink_node *ptr;
-  struct Callback *cb;
   char lastused[32];
 
   sendto_one(source_p, ":%s %d %s : %-20s %-20s Used     Hooks", me.name,
@@ -225,7 +197,7 @@ stats_hooks(struct Client *source_p)
 
   DLINK_FOREACH(ptr, callback_list.head)
   {
-    cb = ptr->data;
+    struct Callback *cb = ptr->data;
 
     if (cb->last != 0)
       snprintf(lastused, sizeof(lastused), "%d seconds ago",
