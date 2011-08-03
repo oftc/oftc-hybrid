@@ -55,6 +55,8 @@
 #define MODE_TOPICLIMIT 0x0008
 #define MODE_INVITEONLY 0x0010
 #define MODE_NOPRIVMSGS 0x0020
+#define MODE_SSLONLY    0x0040
+#define MODE_OPERONLY   0x0080
 
 /* cache flags for silence on ban */
 #define CHFL_BAN_CHECKED  0x0080

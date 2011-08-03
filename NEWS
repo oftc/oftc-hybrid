@@ -7,6 +7,9 @@ o) User IDs are now shown in client connection notices
 o) Increased maximum temporary kline time to 360 days
 o) Added back STATS/TRACE/MOTD/ADMIN request notices. Removed
    spy_*_notice modules accordingly.
+o) Channelmode +O; channel can be joined by ircops only.
+o) Channelmode +S; only clients with a secure connection (ssl/tls)
+   can join this channel.
 
 
 -- ircd-hybrid-7.3-rc1 Release Notes

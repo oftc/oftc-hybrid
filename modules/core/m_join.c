@@ -505,6 +505,8 @@ static const struct mode_letter
   { MODE_MODERATED,  'm' },
   { MODE_INVITEONLY, 'i' },
   { MODE_PRIVATE,    'p' },
+  { MODE_OPERONLY,   'O' },
+  { MODE_SSLONLY,    'S' },
   { 0, '\0' }
 };
 
