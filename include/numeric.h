@@ -382,6 +382,7 @@ extern const char *get_locale(void);
 /*	ERR_LINKSET	     469	unreal */
 /*	ERR_LINKCHANNEL	     470	unreal */
 /*      ERR_KICKEDFROMCHAN   470         aircd */
+#define ERR_OPERONLYCHAN     470
 #define ERR_CHANNELISFULL    471
 #define ERR_UNKNOWNMODE      472
 #define ERR_INVITEONLYCHAN   473
@@ -391,8 +392,6 @@ extern const char *get_locale(void);
 #define ERR_BANLISTFULL      478        /* I stole the numeric from ircu -db */
 #define ERR_BADCHANNAME      479
 /* 	ERR_LINKFAIL	     479	unreal */
-/*	ERR_CANNOTKNOCK	     480	unreal */
-/*	ERR_NOULINE	     480	austnet */
 #define ERR_SSLONLYCHAN      480
 #define ERR_NOPRIVILEGES     481
 #define ERR_CHANOPRIVSNEEDED 482

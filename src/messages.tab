@@ -25,9 +25,9 @@ static struct NumericInfo replies[] = {
 /* 002 */  {"RPL_YOURHOST", ":%s 002 %s :Your host is %s, running version %s", NULL},
 /* 003 */  {"RPL_CREATED", ":%s 003 %s :This server was created %s", NULL},
 #ifdef HALFOPS
-/* 004 */  {"RPL_MYINFO", ":%s 004 %s %s %s %s biklmnopstveIh bkloveIh", NULL},
+/* 004 */  {"RPL_MYINFO", ":%s 004 %s %s %s %s biklmnopstveIhOS bkloveIh", NULL},
 #else
-/* 004 */  {"RPL_MYINFO", ":%s 004 %s %s %s %s biklmnopstveI bkloveI", NULL},
+/* 004 */  {"RPL_MYINFO", ":%s 004 %s %s %s %s biklmnopstveIOS bkloveI", NULL},
 #endif
 /* 005 */  {"RPL_ISUPPORT", ":%s 005 %s %s :are supported by this server", NULL},
 /* 006 */  {NULL, NULL, NULL},
@@ -494,7 +494,7 @@ static struct NumericInfo replies[] = {
 /* 467 */  {NULL, NULL, NULL},
 /* 468 */  {NULL, NULL, NULL},
 /* 469 */  {NULL, NULL, NULL},
-/* 470 */  {NULL, NULL, NULL},
+/* 470 */  {"ERR_OPERONLYCHAN", ":%s 470 %s %s :Cannot join channel (+O)", NULL},
 /* 471 */  {"ERR_CHANNELISFULL", ":%s 471 %s %s :Cannot join channel (+l)", NULL},
 /* 472 */  {"ERR_UNKNOWNMODE", ":%s 472 %s %c :is unknown mode char to me", NULL},
 /* 473 */  {"ERR_INVITEONLYCHAN", ":%s 473 %s %s :Cannot join channel (+i)", NULL},

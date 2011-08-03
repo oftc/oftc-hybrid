@@ -332,17 +332,18 @@ static const struct mode_letter
   const unsigned int mode;
   const unsigned char letter;
 } flags[] = {
-  { MODE_INVITEONLY,     'i' },
-  { MODE_MODERATED,      'm' },
-  { MODE_NOPRIVMSGS,     'n' },
-  { MODE_PRIVATE,        'p' },
-  { MODE_SECRET,         's' },
-  { MODE_TOPICLIMIT,     't' }, 
-  { MODE_NOCOLOR,        'c' },
-  { MODE_OPMODERATED,    'z' },
-  { MODE_SPEAKONLYIFREG, 'M' },
-  { MODE_REGONLY,        'R' },
-  { MODE_SSLONLY,        'S' },
+  { MODE_NOCOLOR,    'c' },
+  { MODE_INVITEONLY, 'i' },
+  { MODE_MODERATED,  'm' },
+  { MODE_NOPRIVMSGS, 'n' },
+  { MODE_PRIVATE,    'p' },
+  { MODE_SECRET,     's' },
+  { MODE_TOPICLIMIT, 't' },
+  { MODE_OPMODERATED,'z' },
+  { MODE_SPEAKIFREG, 'M' },
+  { MODE_OPERONLY,   'O' },
+  { MODE_REGONLY,    'R' },
+  { MODE_SSLONLY,    'S' },
   { 0, '\0' }
 };
 
@@ -448,7 +449,8 @@ fix_key_old(char *arg)
 #define SM_ERR_RPL_E        0x00000010
 #define SM_ERR_NOTONCHANNEL 0x00000020 /* Not on channel    */
 #define SM_ERR_RPL_I        0x00000040
-#define SM_ERR_RPL_Q        0x00000080 
+#define SM_ERR_NOTOPER      0x00000080
+#define SM_ERR_RPL_Q        0x00000100 
 
 /* Now lets do some stuff to keep track of what combinations of
  * servers exist...
@@ -654,6 +656,76 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
 }
 
 static void
+chm_operonly(struct Client *client_p, struct Client *source_p, struct Channel *chptr,
+            int parc, int *parn, char **parv, int *errors, int alev, int dir,
+            char c, void *d, const char *chname)
+{
+  long mode_type;
+
+  mode_type = (long)d;
+
+  if ((alev < CHACCESS_HALFOP) ||
+      ((mode_type == MODE_PRIVATE) && (alev < CHACCESS_CHANOP)))
+  {
+    if (!(*errors & SM_ERR_NOOPS))
+      sendto_one(source_p, form_str(alev == CHACCESS_NOTONCHAN ?
+                                    ERR_NOTONCHANNEL : ERR_CHANOPRIVSNEEDED),
+                 me.name, source_p->name, chname);
+    *errors |= SM_ERR_NOOPS;
+    return;
+  }
+  else if (MyClient(source_p) && !IsOper(source_p))
+  {
+    if (!(*errors & SM_ERR_NOTOPER))
+    {
+      if (alev == CHACCESS_NOTONCHAN)
+        sendto_one(source_p, form_str(ERR_NOTONCHANNEL),
+                   me.name, source_p->name, chname);
+      else
+        sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+                   me.name, source_p->name);
+    }
+
+    *errors |= SM_ERR_NOTOPER;
+    return;
+  }
+
+  /* If have already dealt with this simple mode, ignore it */
+  if (simple_modes_mask & mode_type)
+    return;
+
+  simple_modes_mask |= mode_type;
+
+  if ((dir == MODE_ADD)) /* && !(chptr->mode.mode & mode_type)) */
+  {
+    chptr->mode.mode |= mode_type;
+
+    mode_changes[mode_count].letter = c;
+    mode_changes[mode_count].dir = MODE_ADD;
+    mode_changes[mode_count].caps = 0;
+    mode_changes[mode_count].nocaps = 0;
+    mode_changes[mode_count].id = NULL;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count++].arg = NULL;
+  }
+  else if ((dir == MODE_DEL)) /* && (chptr->mode.mode & mode_type)) */
+  {
+    /* setting - */
+
+    chptr->mode.mode &= ~mode_type;
+
+    mode_changes[mode_count].letter = c;
+    mode_changes[mode_count].dir = MODE_DEL;
+    mode_changes[mode_count].caps = 0;
+    mode_changes[mode_count].nocaps = 0;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count].id = NULL;
+    mode_changes[mode_count++].arg = NULL;
+  }
+}
+
+static void
 chm_ban(struct Client *client_p, struct Client *source_p,
         struct Channel *chptr, int parc, int *parn,
         char **parv, int *errors, int alev, int dir, char c, void *d,
@@ -712,16 +784,8 @@ chm_ban(struct Client *client_p, struct Client *source_p,
         return;
       break;
     case MODE_DEL:
-/* XXX grrrrrrr */
-#ifdef NO_BAN_COOKIE
       if (!del_id(chptr, mask, CHFL_BAN))
         return;
-#else
-     /* XXX this hack allows /mode * +o-b nick ban.cookie
-      * I'd like to see this hack go away in the future.
-      */
-      del_id(chptr, mask, CHFL_BAN);
-#endif
       break;
     default:
       assert(0);
@@ -1441,7 +1505,6 @@ struct ChannelMode
   void *d;
 };
 
-/* *INDENT-OFF* */
 static struct ChannelMode ModeTable[255] =
 {
   {chm_nosuch, NULL},
@@ -1459,11 +1522,11 @@ static struct ChannelMode ModeTable[255] =
   {chm_nosuch, NULL},                             /* L */
   {chm_simple, (void*)MODE_SPEAKONLYIFREG},       /* M */
   {chm_nosuch, NULL},                             /* N */
-  {chm_nosuch, NULL},                             /* O */
+  {chm_operonly, (void *) MODE_OPERONLY},         /* O */
   {chm_nosuch, NULL},                             /* P */
   {chm_nosuch, NULL},                             /* Q */
-  {chm_simple, (void*)MODE_REGONLY},              /* R */
-  {chm_simple, (void*)MODE_SSLONLY},              /* S */
+  {chm_simple, (void *)MODE_REGONLY},              /* R */
+  {chm_simple, (void *)MODE_SSLONLY},              /* S */
   {chm_nosuch, NULL},                             /* T */
   {chm_nosuch, NULL},                             /* U */
   {chm_nosuch, NULL},                             /* V */
@@ -1508,7 +1571,6 @@ static struct ChannelMode ModeTable[255] =
   {chm_nosuch, NULL},                             /* y */
   {chm_simple, (void *) MODE_OPMODERATED},        /* z */
 };
-/* *INDENT-ON* */
 
 /* get_channel_access()
  *
