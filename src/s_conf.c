@@ -2458,7 +2458,7 @@ read_conf_files(int cold)
   add_isupport("CHANLIMIT", chanlimit, -1);
   snprintf(chanmodes, sizeof(chanmodes), "%s%s%s",
            ConfigChannel.use_except ? "e" : "",
-	   ConfigChannel.use_invex ? "I" : "", "b,k,l,imnpst");
+	   ConfigChannel.use_invex ? "I" : "", "b,k,l,imnpstOS");
   add_isupport("CHANNELLEN", NULL, LOCAL_CHANNELLEN);
 
   if (ConfigChannel.use_except)
