@@ -275,25 +275,27 @@
      T_UNRESV = 493,
      T_UNXLINE = 494,
      T_WALLOP = 495,
-     THROTTLE_TIME = 496,
-     TOPICBURST = 497,
-     TRUE_NO_OPER_FLOOD = 498,
-     TKLINE = 499,
-     TXLINE = 500,
-     TRESV = 501,
-     UNKLINE = 502,
-     USER = 503,
-     USE_EGD = 504,
-     USE_EXCEPT = 505,
-     USE_INVEX = 506,
-     USE_KNOCK = 507,
-     USE_LOGGING = 508,
-     USE_WHOIS_ACTUALLY = 509,
-     VHOST = 510,
-     VHOST6 = 511,
-     XLINE = 512,
-     WARN = 513,
-     WARN_NO_NLINE = 514
+     T_SERVICE = 496,
+     T_SERVICE_NAME = 497,
+     THROTTLE_TIME = 498,
+     TOPICBURST = 499,
+     TRUE_NO_OPER_FLOOD = 500,
+     TKLINE = 501,
+     TXLINE = 502,
+     TRESV = 503,
+     UNKLINE = 504,
+     USER = 505,
+     USE_EGD = 506,
+     USE_EXCEPT = 507,
+     USE_INVEX = 508,
+     USE_KNOCK = 509,
+     USE_LOGGING = 510,
+     USE_WHOIS_ACTUALLY = 511,
+     VHOST = 512,
+     VHOST6 = 513,
+     XLINE = 514,
+     WARN = 515,
+     WARN_NO_NLINE = 516
    };
 #endif
 /* Tokens.  */
@@ -535,25 +537,27 @@
 #define T_UNRESV 493
 #define T_UNXLINE 494
 #define T_WALLOP 495
-#define THROTTLE_TIME 496
-#define TOPICBURST 497
-#define TRUE_NO_OPER_FLOOD 498
-#define TKLINE 499
-#define TXLINE 500
-#define TRESV 501
-#define UNKLINE 502
-#define USER 503
-#define USE_EGD 504
-#define USE_EXCEPT 505
-#define USE_INVEX 506
-#define USE_KNOCK 507
-#define USE_LOGGING 508
-#define USE_WHOIS_ACTUALLY 509
-#define VHOST 510
-#define VHOST6 511
-#define XLINE 512
-#define WARN 513
-#define WARN_NO_NLINE 514
+#define T_SERVICE 496
+#define T_SERVICE_NAME 497
+#define THROTTLE_TIME 498
+#define TOPICBURST 499
+#define TRUE_NO_OPER_FLOOD 500
+#define TKLINE 501
+#define TXLINE 502
+#define TRESV 503
+#define UNKLINE 504
+#define USER 505
+#define USE_EGD 506
+#define USE_EXCEPT 507
+#define USE_INVEX 508
+#define USE_KNOCK 509
+#define USE_LOGGING 510
+#define USE_WHOIS_ACTUALLY 511
+#define VHOST 512
+#define VHOST6 513
+#define XLINE 514
+#define WARN 515
+#define WARN_NO_NLINE 516
 
 
 
@@ -571,7 +575,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 575 "ircd_parser.h"
+#line 579 "ircd_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -363,6 +363,8 @@ unhook_hub_leaf_confs(void)
 %token  T_UNRESV
 %token  T_UNXLINE
 %token  T_WALLOP
+%token  T_SERVICE
+%token  T_SERVICE_NAME
 %token  THROTTLE_TIME
 %token  TOPICBURST
 %token  TRUE_NO_OPER_FLOOD
@@ -405,6 +407,7 @@ conf_item:        admin_entry
                 | serverinfo_entry
 		| serverhide_entry
                 | resv_entry
+                | service_entry
                 | shared_entry
 		| cluster_entry
                 | connect_entry
@@ -1948,6 +1951,26 @@ resv_nick: NICK '=' QSTRING ';'
 };
 
 /***************************************************************************
+ *  section service
+ ***************************************************************************/
+service_entry: T_SERVICE '{' service_items '}' ';';
+
+service_items:     service_items service_item | service_item;
+service_item:      service_name | error;
+
+service_name: NAME '=' QSTRING ';'
+{
+  if (conf_parser_ctx.pass == 2)
+  {
+    if (valid_servname(yylval.string))
+    {
+      yy_conf = make_conf_item(SERVICE_TYPE);
+      DupString(yy_conf->name, yylval.string);
+    }
+  }
+};
+
+/***************************************************************************
  *  section shared, for sharing remote klines etc.
  ***************************************************************************/
 shared_entry: T_SHARED
@@ -2856,7 +2879,7 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
 		    general_tkline_expire_notices | general_gline_min_cidr |
                     general_gline_min_cidr6 | general_use_whois_actually |
 		    general_reject_hold_time | general_stats_e_disabled |
-		    general_max_watch |
+		    general_max_watch | general_service_name |
 		    error;
 
 
@@ -3158,6 +3181,15 @@ general_egdpool_path: EGDPOOL_PATH '=' QSTRING ';'
   {
     MyFree(ConfigFileEntry.egdpool_path);
     DupString(ConfigFileEntry.egdpool_path, yylval.string);
+  }
+};
+
+general_service_name: T_SERVICE_NAME '=' QSTRING ';'
+{
+  if (conf_parser_ctx.pass == 2)
+  {
+    MyFree(ConfigFileEntry.service_name);
+    DupString(ConfigFileEntry.service_name, yylval.string);
   }
 };
 

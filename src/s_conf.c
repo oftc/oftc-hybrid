@@ -58,6 +58,7 @@ struct Callback *client_check_cb = NULL;
 struct config_server_hide ConfigServerHide;
 
 /* general conf items link list root, other than k lines etc. */
+dlink_list service_items = { NULL, NULL, 0 };
 dlink_list server_items  = { NULL, NULL, 0 };
 dlink_list cluster_items = { NULL, NULL, 0 };
 dlink_list hub_items     = { NULL, NULL, 0 };
@@ -321,6 +322,12 @@ make_conf_item(ConfType type)
     dlinkAdd(conf, &conf->node, &nresv_items);
     break;
 
+  case SERVICE_TYPE:
+    status = CONF_SERVICE;
+    conf = MyMalloc(sizeof(struct ConfItem));
+    dlinkAdd(conf, &conf->node, &service_items);
+    break;
+
   case CLASS_TYPE:
     conf = MyMalloc(sizeof(struct ConfItem) +
                            sizeof(struct ClassItem));
@@ -526,6 +533,11 @@ delete_conf_item(struct ConfItem *conf)
     MyFree(conf);
     break;
 
+  case SERVICE_TYPE:
+    dlinkDelete(&conf->node, &service_items);
+    MyFree(conf);
+    break;
+
   default:
     break;
   }
@@ -715,6 +727,13 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
 
   case CONF_TYPE:
   case CLIENT_TYPE:
+    break;
+
+  case SERVICE_TYPE: /* XXX TBD */
+    DLINK_FOREACH(ptr, service_items.head)
+    {
+      conf = ptr->data;
+    }
     break;
 
   case SERVER_TYPE:
@@ -1583,6 +1602,18 @@ find_matching_name_conf(ConfType type, const char *name, const char *user,
       }
       break;
 #endif
+  case SERVICE_TYPE:
+    DLINK_FOREACH(ptr, list_p->head)
+    {
+      conf = ptr->data;
+
+      if (EmptyString(conf->name))
+        continue;
+      if ((name != NULL) && !irccmp(name, conf->name))
+        return conf;
+    }
+    break;
+
   case XLINE_TYPE:
   case ULINE_TYPE:
   case NRESV_TYPE:
@@ -1849,6 +1880,7 @@ set_default_conf(void)
   ConfigServerHide.hide_server_ips = NO;
 
   
+  DupString(ConfigFileEntry.service_name, SERVICE_NAME_DEFAULT);
   ConfigFileEntry.max_watch = WATCHSIZE_DEFAULT;
   ConfigFileEntry.gline_min_cidr = 16;
   ConfigFileEntry.gline_min_cidr6 = 48;
@@ -1958,6 +1990,9 @@ validate_conf(void)
 
   if (ServerInfo.network_desc == NULL)
     DupString(ServerInfo.network_desc,NETWORK_DESC_DEFAULT);
+
+  if (ConfigFileEntry.service_name == NULL)
+    DupString(ConfigFileEntry.service_name, SERVICE_NAME_DEFAULT);
 
   if ((ConfigFileEntry.client_flood < CLIENT_FLOOD_MIN) ||
       (ConfigFileEntry.client_flood > CLIENT_FLOOD_MAX))
@@ -2530,7 +2565,7 @@ clear_out_old_conf(void)
   dlink_list *free_items [] = {
     &server_items,   &oconf_items,    &hub_items, &leaf_items,
      &uconf_items,   &xconf_items, &rxconf_items, &rkconf_items,
-     &nresv_items, &cluster_items,  &gdeny_items, NULL
+     &nresv_items, &cluster_items,  &gdeny_items, &service_items, NULL
   };
 
   dlink_list ** iterator = free_items; /* C is dumb */
@@ -2673,6 +2708,9 @@ clear_out_old_conf(void)
    */
 
   /* clean out general */
+  MyFree(ConfigFileEntry.service_name);
+  ConfigFileEntry.service_name = NULL;
+
   MyFree(ConfigFileEntry.servlink_path);
   ConfigFileEntry.servlink_path = NULL;
 #ifdef HAVE_LIBCRYPTO

@@ -112,6 +112,7 @@
 /* ServerInfo default values */
 #define NETWORK_NAME_DEFAULT "EFnet"             /* default for network_name */
 #define NETWORK_DESC_DEFAULT "Eris Free Network" /* default for network_desc */
+#define SERVICE_NAME_DEFAULT "service.someserver"
 
 /* General defaults */
 #define MAXIMUM_LINKS_DEFAULT 0         /* default for maximum_links */

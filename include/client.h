@@ -346,6 +346,7 @@ struct LocalUser
 #define FLAGS_PINGWARNING   0x0000000040000000 /* unreplied ping warning already sent      */
 #define FLAGS_FINISHED_AUTH 0x0000000080000000 /* Client has been released from auth       */
 #define FLAGS_FLOOD_NOTICED 0x0000000100000000
+#define FLAGS_SERVICE       0x0000000200000000 /* Client/server is a network service       */
 
 
 /* umodes, settable flags */
@@ -497,6 +498,8 @@ struct LocalUser
 #define SetPingCookie(x)        ((x)->flags |= FLAGS_PING_COOKIE)
 #define IsHidden(x)             ((x)->flags &  FLAGS_HIDDEN)
 #define SetHidden(x)            ((x)->flags |= FLAGS_HIDDEN)
+#define IsService(x)            ((x)->flags &  FLAGS_SERVICE)
+#define SetService(x)           ((x)->flags |= FLAGS_SERVICE)
 
 #define IsSendqBlocked(x)       ((x)->flags &  FLAGS_BLOCKED)
 #define SetSendqBlocked(x)      ((x)->flags |= FLAGS_BLOCKED)

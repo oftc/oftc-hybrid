@@ -71,7 +71,8 @@ typedef enum
   GLINE_TYPE,
   CRESV_TYPE,     
   NRESV_TYPE,
-  GDENY_TYPE
+  GDENY_TYPE,
+  SERVICE_TYPE
 } ConfType;
 
 struct split_nuh_item
@@ -206,6 +207,7 @@ struct CidrItem
 #define CONF_ULINE              0x00002000
 #define CONF_EXEMPTDLINE        0x00004000
 #define CONF_GLINE              0x00008000
+#define CONF_SERVICE            0x00010000
 
 #define CONF_SERVER_MASK       CONF_SERVER
 #define CONF_CLIENT_MASK       (CONF_CLIENT | CONF_OPERATOR | CONF_SERVER_MASK)
@@ -340,6 +342,7 @@ struct config_file_entry
 
   char *servlink_path;
   char *egdpool_path;
+  char *service_name;
 
   MessageFile motd;
   MessageFile opermotd;
@@ -487,6 +490,7 @@ extern dlink_list hub_items;
 extern dlink_list rxconf_items;
 extern dlink_list rkconf_items;
 extern dlink_list leaf_items;
+extern dlink_list service_items;
 extern dlink_list temporary_klines;
 extern dlink_list temporary_dlines;
 extern dlink_list temporary_glines;

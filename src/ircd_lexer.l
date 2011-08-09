@@ -291,6 +291,8 @@ sendq		{ return SENDQ; }
 server          { return T_SERVER; }
 serverhide	{ return SERVERHIDE; }
 serverinfo	{ return SERVERINFO; }
+serice          { return T_SERVICE; }
+service_name    { return T_SERVICE_NAME; }
 servlink_path   { return SERVLINK_PATH; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }

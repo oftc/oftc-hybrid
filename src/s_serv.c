@@ -1101,6 +1101,10 @@ server_estab(struct Client *client_p)
   /* fixing eob timings.. -gnp */
   client_p->firsttime = CurrentTime;
 
+
+  if (find_matching_name_conf(SERVICE_TYPE, client_p->name, NULL, NULL, 0))
+    SetService(client_p);
+
   /* Show the real host/IP to admins */
   sendto_realops_flags(UMODE_ALL, L_ADMIN,
                        "Link with %s established: (%s) link",
