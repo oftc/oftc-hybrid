@@ -1115,6 +1115,10 @@ server_estab(struct Client *client_p)
   /* fixing eob timings.. -gnp */
   client_p->firsttime = CurrentTime;
 
+
+  if (find_matching_name_conf(SERVICE_TYPE, client_p->name, NULL, NULL, 0))
+    SetService(client_p);
+
   /* Now show the masked hostname/IP to opers */
   sendto_realops_flags(UMODE_ALL, L_ALL, 
                        "Link with %s established: (%s) link",
