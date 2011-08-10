@@ -202,8 +202,8 @@ extern const char *get_locale(void);
 #define RPL_TEXT             304
 #define RPL_UNAWAY           305
 #define RPL_NOWAWAY          306
-#define	RPL_USERIP	     307	/* Undernet extension */
-/*	RPL_WHOISREGNICK     307 	Numeric List: Dalnet */
+/*	RPL_USERIP	     307	Undernet extension */
+#define RPL_WHOISREGNICK     307
 /*	RPL_SUSERHOST	     307	austnet */
 /*      RPL_NOTIFYACTION     308         aircd */
 #define RPL_WHOISADMIN	     308	/* Numeric List: Dalnet */

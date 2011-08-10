@@ -652,7 +652,7 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
 
     strlcpy(source_p->info, parv[8], sizeof(source_p->info));
     /* copy the nick in place */
-    strcpy(source_p->name, nick);
+    strlcpy(source_p->name, nick, sizeof(source_p->name));
     hash_add_client(source_p);
 
     if (parc > 8)
@@ -684,6 +684,7 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
     /* client changing their nick */
     if (!samenick)
     {
+      DelUMode(source_p, UMODE_REGISTERED);
       watch_check_hash(source_p, RPL_LOGOFF);
       source_p->tsinfo = newts ? newts : CurrentTime;
     }
@@ -705,7 +706,7 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
   if (source_p->name[0])
     hash_del_client(source_p);
 
-  strcpy(source_p->name, nick);
+  strlcpy(source_p->name, nick, sizeof(source_p->name));
   hash_add_client(source_p);
 
   if (!samenick)
