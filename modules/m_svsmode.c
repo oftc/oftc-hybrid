@@ -22,7 +22,7 @@
 
 /*! \file m_svsmode.c
  * \brief Includes required functions for processing the SVSMODE command.
- * \version $Id: m_admin.c 1144 2011-07-26 19:33:54Z michael $
+ * \version $Id$
  */
 
 #include "stdinc.h"
@@ -47,7 +47,7 @@ struct Message svsmode_msgtab = {
   {m_ignore, m_ignore, ms_svsmode, m_ignore, m_ignore, m_ignore}
 };
 
-const char *_version = "$Revision: 1144 $";
+const char *_version = "$Revision$";
 
 void
 _modinit(void)
