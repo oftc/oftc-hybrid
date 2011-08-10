@@ -46,6 +46,7 @@ modules_LTLIBRARIES = m_accept.la    \
                       m_set.la       \
                       m_stats.la     \
                       m_svinfo.la    \
+                      m_svsmode.la   \
                       m_tburst.la    \
                       m_testline.la  \
                       m_testmask.la  \
@@ -111,6 +112,7 @@ endif
 m_set_la_LDFLAGS = $(MODULE_FLAGS)
 m_stats_la_LDFLAGS = $(MODULE_FLAGS)
 m_svinfo_la_LDFLAGS = $(MODULE_FLAGS)
+m_svsmode_la_LDFLAGS = $(MODULE_FLAGS)
 m_tburst_la_LDFLAGS = $(MODULE_FLAGS)
 m_testline_la_LDFLAGS = $(MODULE_FLAGS)
 m_testmask_la_LDFLAGS = $(MODULE_FLAGS)
@@ -173,6 +175,7 @@ endif
 m_set_la_SOURCES = m_set.c
 m_stats_la_SOURCES = m_stats.c
 m_svinfo_la_SOURCES = m_svinfo.c
+m_svsmode_la_SOURCES = m_svsmode.c
 m_tburst_la_SOURCES = m_tburst.c
 m_testline_la_SOURCES = m_testline.c
 m_testmask_la_SOURCES = m_testmask.c

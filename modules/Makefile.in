@@ -331,6 +331,12 @@ m_svinfo_la_OBJECTS = $(am_m_svinfo_la_OBJECTS)
 m_svinfo_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(m_svinfo_la_LDFLAGS) $(LDFLAGS) -o $@
+m_svsmode_la_LIBADD =
+am_m_svsmode_la_OBJECTS = m_svsmode.lo
+m_svsmode_la_OBJECTS = $(am_m_svsmode_la_OBJECTS)
+m_svsmode_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(m_svsmode_la_LDFLAGS) $(LDFLAGS) -o $@
 m_tburst_la_LIBADD =
 am_m_tburst_la_OBJECTS = m_tburst.lo
 m_tburst_la_OBJECTS = $(am_m_tburst_la_OBJECTS)
@@ -460,14 +466,15 @@ SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_resv_la_SOURCES) $(m_rkline_la_SOURCES) \
 	$(m_rxline_la_SOURCES) $(m_set_la_SOURCES) \
 	$(m_stats_la_SOURCES) $(m_svinfo_la_SOURCES) \
-	$(m_tburst_la_SOURCES) $(m_testline_la_SOURCES) \
-	$(m_testmask_la_SOURCES) $(m_time_la_SOURCES) \
-	$(m_topic_la_SOURCES) $(m_trace_la_SOURCES) \
-	$(m_user_la_SOURCES) $(m_userhost_la_SOURCES) \
-	$(m_users_la_SOURCES) $(m_version_la_SOURCES) \
-	$(m_wallops_la_SOURCES) $(m_watch_la_SOURCES) \
-	$(m_who_la_SOURCES) $(m_whois_la_SOURCES) \
-	$(m_whowas_la_SOURCES) $(m_xline_la_SOURCES)
+	$(m_svsmode_la_SOURCES) $(m_tburst_la_SOURCES) \
+	$(m_testline_la_SOURCES) $(m_testmask_la_SOURCES) \
+	$(m_time_la_SOURCES) $(m_topic_la_SOURCES) \
+	$(m_trace_la_SOURCES) $(m_user_la_SOURCES) \
+	$(m_userhost_la_SOURCES) $(m_users_la_SOURCES) \
+	$(m_version_la_SOURCES) $(m_wallops_la_SOURCES) \
+	$(m_watch_la_SOURCES) $(m_who_la_SOURCES) \
+	$(m_whois_la_SOURCES) $(m_whowas_la_SOURCES) \
+	$(m_xline_la_SOURCES)
 DIST_SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_away_la_SOURCES) $(m_cap_la_SOURCES) $(m_capab_la_SOURCES) \
 	$(m_challenge_la_SOURCES) $(m_close_la_SOURCES) \
@@ -488,14 +495,15 @@ DIST_SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_resv_la_SOURCES) $(am__m_rkline_la_SOURCES_DIST) \
 	$(am__m_rxline_la_SOURCES_DIST) $(m_set_la_SOURCES) \
 	$(m_stats_la_SOURCES) $(m_svinfo_la_SOURCES) \
-	$(m_tburst_la_SOURCES) $(m_testline_la_SOURCES) \
-	$(m_testmask_la_SOURCES) $(m_time_la_SOURCES) \
-	$(m_topic_la_SOURCES) $(m_trace_la_SOURCES) \
-	$(m_user_la_SOURCES) $(m_userhost_la_SOURCES) \
-	$(m_users_la_SOURCES) $(m_version_la_SOURCES) \
-	$(m_wallops_la_SOURCES) $(m_watch_la_SOURCES) \
-	$(m_who_la_SOURCES) $(m_whois_la_SOURCES) \
-	$(m_whowas_la_SOURCES) $(m_xline_la_SOURCES)
+	$(m_svsmode_la_SOURCES) $(m_tburst_la_SOURCES) \
+	$(m_testline_la_SOURCES) $(m_testmask_la_SOURCES) \
+	$(m_time_la_SOURCES) $(m_topic_la_SOURCES) \
+	$(m_trace_la_SOURCES) $(m_user_la_SOURCES) \
+	$(m_userhost_la_SOURCES) $(m_users_la_SOURCES) \
+	$(m_version_la_SOURCES) $(m_wallops_la_SOURCES) \
+	$(m_watch_la_SOURCES) $(m_who_la_SOURCES) \
+	$(m_whois_la_SOURCES) $(m_whowas_la_SOURCES) \
+	$(m_xline_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-dvi-recursive install-exec-recursive \
@@ -690,10 +698,10 @@ modules_LTLIBRARIES = m_accept.la m_admin.la m_away.la m_capab.la \
 	m_map.la m_motd.la m_names.la m_omotd.la m_oper.la \
 	m_operwall.la m_pass.la m_ping.la m_pong.la m_post.la \
 	m_rehash.la m_restart.la m_resv.la m_set.la m_stats.la \
-	m_svinfo.la m_tburst.la m_testline.la m_testmask.la m_time.la \
-	m_topic.la m_trace.la m_user.la m_userhost.la m_users.la \
-	m_version.la m_wallops.la m_watch.la m_who.la m_whois.la \
-	m_whowas.la m_xline.la $(am__append_1)
+	m_svinfo.la m_svsmode.la m_tburst.la m_testline.la \
+	m_testmask.la m_time.la m_topic.la m_trace.la m_user.la \
+	m_userhost.la m_users.la m_version.la m_wallops.la m_watch.la \
+	m_who.la m_whois.la m_whowas.la m_xline.la $(am__append_1)
 m_challenge_la_LDFLAGS = $(MODULE_FLAGS)
 m_cryptlink_la_LDFLAGS = $(MODULE_FLAGS)
 m_accept_la_LDFLAGS = $(MODULE_FLAGS)
@@ -737,6 +745,7 @@ m_resv_la_LDFLAGS = $(MODULE_FLAGS)
 m_set_la_LDFLAGS = $(MODULE_FLAGS)
 m_stats_la_LDFLAGS = $(MODULE_FLAGS)
 m_svinfo_la_LDFLAGS = $(MODULE_FLAGS)
+m_svsmode_la_LDFLAGS = $(MODULE_FLAGS)
 m_tburst_la_LDFLAGS = $(MODULE_FLAGS)
 m_testline_la_LDFLAGS = $(MODULE_FLAGS)
 m_testmask_la_LDFLAGS = $(MODULE_FLAGS)
@@ -796,6 +805,7 @@ m_resv_la_SOURCES = m_resv.c
 m_set_la_SOURCES = m_set.c
 m_stats_la_SOURCES = m_stats.c
 m_svinfo_la_SOURCES = m_svinfo.c
+m_svsmode_la_SOURCES = m_svsmode.c
 m_tburst_la_SOURCES = m_tburst.c
 m_testline_la_SOURCES = m_testline.c
 m_testmask_la_SOURCES = m_testmask.c
@@ -963,6 +973,8 @@ m_stats.la: $(m_stats_la_OBJECTS) $(m_stats_la_DEPENDENCIES)
 	$(m_stats_la_LINK) -rpath $(modulesdir) $(m_stats_la_OBJECTS) $(m_stats_la_LIBADD) $(LIBS)
 m_svinfo.la: $(m_svinfo_la_OBJECTS) $(m_svinfo_la_DEPENDENCIES) 
 	$(m_svinfo_la_LINK) -rpath $(modulesdir) $(m_svinfo_la_OBJECTS) $(m_svinfo_la_LIBADD) $(LIBS)
+m_svsmode.la: $(m_svsmode_la_OBJECTS) $(m_svsmode_la_DEPENDENCIES) 
+	$(m_svsmode_la_LINK) -rpath $(modulesdir) $(m_svsmode_la_OBJECTS) $(m_svsmode_la_LIBADD) $(LIBS)
 m_tburst.la: $(m_tburst_la_OBJECTS) $(m_tburst_la_DEPENDENCIES) 
 	$(m_tburst_la_LINK) -rpath $(modulesdir) $(m_tburst_la_OBJECTS) $(m_tburst_la_LIBADD) $(LIBS)
 m_testline.la: $(m_testline_la_OBJECTS) $(m_testline_la_DEPENDENCIES) 
@@ -1045,6 +1057,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_set.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_stats.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_svinfo.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_svsmode.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_tburst.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_testline.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_testmask.Plo@am__quote@
