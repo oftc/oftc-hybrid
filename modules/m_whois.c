@@ -399,7 +399,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
                ConfigServerHide.hidden_name,
 	       ServerInfo.network_desc);
 
-  if (HasUMode(source_p, UMODE_REGISTERED))
+  if (HasUMode(target_p, UMODE_REGISTERED))
     sendto_one(source_p, form_str(RPL_WHOISREGNICK),
                me.name, source_p->name, target_p->name);
 
