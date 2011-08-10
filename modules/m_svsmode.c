@@ -177,7 +177,7 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
                   target_p->name, (unsigned long)target_p->tsinfo, modes);
   }
 
-  if (MyClient(target_p) && (setflags != target_p->umodes))
+  if (MyConnect(target_p) && (setflags != target_p->umodes))
   {
     char modebuf[IRCD_BUFSIZE];
 
