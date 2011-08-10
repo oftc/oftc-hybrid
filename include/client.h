@@ -106,6 +106,7 @@ struct Client
   time_t            tsinfo;     /* TS on the nick, SVINFO on server */
   time_t            umodestime; /* Time client set umode +S */
   unsigned long	    connect_id; /* unique connection ID */
+  time_t            servicestamp;
   uint64_t          flags;      /* client flags */
 
   unsigned int      umodes;     /* opers, normal users subset */
