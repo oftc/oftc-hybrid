@@ -1292,6 +1292,15 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
       source_p->tsinfo = CurrentTime;
       clear_ban_cache_client(source_p);
       watch_check_hash(source_p, RPL_LOGOFF);
+
+      if (HasUMode(source_p, UMODE_REGISTERED))
+      {
+        unsigned int oldmodes = source_p->umodes;
+        char modebuf[IRCD_BUFSIZE] = { '\0' };
+
+        DelUMode(source_p, UMODE_REGISTERED);
+        send_umode(source_p, source_p, oldmodes, 0xffffffff, modebuf);
+      }
     }
 
     /* XXX - the format of this notice should eventually be changed

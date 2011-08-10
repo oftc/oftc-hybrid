@@ -126,7 +126,7 @@ unsigned int user_modes[256] =
   UMODE_CALLERID,     /* g */
   0,                  /* h */
   UMODE_INVISIBLE,    /* i */
-  0,                  /* j */
+  UMODE_REJ,          /* j */
   UMODE_SKILL,        /* k */
   UMODE_LOCOPS,       /* l */
   0,                  /* m */
@@ -134,7 +134,7 @@ unsigned int user_modes[256] =
   UMODE_OPER,         /* o */
   0,                  /* p */
   0,                  /* q */
-  UMODE_REJ,          /* r */
+  UMODE_REGISTERED,   /* r */
   UMODE_SERVNOTICE,   /* s */
   0,                  /* t */
   UMODE_UNAUTH,       /* u */
@@ -885,6 +885,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
         /* we may not get these,
          * but they shouldnt be in default
          */
+        case 'r':
         case ' ' :
         case '\n':
         case '\r':
@@ -917,11 +918,11 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(ERR_UMODEUNKNOWNFLAG),
                me.name, source_p->name);
 
-  if ((source_p->umodes & UMODE_NCHANGE) && !IsOperN(source_p))
+  if (HasUMode(source_p, UMODE_NCHANGE) && !IsOperN(source_p))
   {
     sendto_one(source_p, ":%s NOTICE %s :*** You have no admin flag;",
                me.name, source_p->name);
-    source_p->umodes &= ~UMODE_NCHANGE; /* only tcm's really need this */
+    DelUMode(source_p, UMODE_NCHANGE); /* only tcm's really need this */
   }
 
   if (MyConnect(source_p) && (source_p->umodes & UMODE_ADMIN) &&
@@ -1187,9 +1188,9 @@ oper_up(struct Client *source_p)
   SetOFlag(source_p, oconf->port);
 
   if (IsOperAdmin(source_p) || IsOperHiddenAdmin(source_p))
-    source_p->umodes |= UMODE_ADMIN;
+    AddUMode(source_p, UMODE_ADMIN);
   if (!IsOperN(source_p))
-    source_p->umodes &= ~UMODE_NCHANGE;
+    DelUMode(source_p, UMODE_NCHANGE);
 
   sendto_realops_flags(UMODE_ALL, L_ALL, "%s (%s@%s) is now an operator",
                        source_p->name, source_p->username, source_p->host);

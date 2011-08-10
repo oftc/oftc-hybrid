@@ -369,6 +369,7 @@ struct LocalUser
 #define UMODE_LOCOPS       0x00010000 /* show locops */
 #define UMODE_DEAF         0x00020000 /* don't receive channel messages */
 #define UMODE_CCONN_FULL   0x00040000 /* add unused fields to connection monitoring */
+#define UMODE_REGISTERED   0x00080000 /* User has identified for that nick. */
 
 /* user information flags, only settable by remote mode or local oper */
 #define UMODE_OPER         0x40000000 /* Operator */
@@ -376,8 +377,14 @@ struct LocalUser
 
 #define UMODE_ALL	   UMODE_SERVNOTICE
 
+#define HasUMode(x, y) ((x)->umodes &   (y))
+#define AddUMode(x, y) ((x)->umodes |=  (y))
+#define DelUMode(x, y) ((x)->umodes &= ~(y))
+
 #define SEND_UMODES  (UMODE_INVISIBLE | UMODE_OPER | UMODE_WALLOP | \
-                      UMODE_ADMIN)
+                      UMODE_REGISTERED | UMODE_ADMIN)
+
+
 
 
 /* oper priv flags */

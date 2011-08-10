@@ -331,7 +331,7 @@ static struct NumericInfo replies[] = {
 /* 304 */  {"RPL_TEXT", NULL, NULL},
 /* 305 */  {"RPL_UNAWAY", ":%s 305 %s :You are no longer marked as being away", NULL},
 /* 306 */  {"RPL_NOWAWAY", ":%s 306 %s :You have been marked as being away", NULL},
-/* 307 */  {NULL, NULL, NULL},
+/* 307 */  {"RPL_WHOISREGNICK", ":%s 307 %s %s :has identified for this nick", NULL},
 /* 308 */  {"RPL_WHOISADMIN", ":%s 313 %s %s :is a Server Administrator", NULL},
 /* 309 */  {NULL, NULL, NULL},
 /* 310 */  {NULL, NULL, NULL},
