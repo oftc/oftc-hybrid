@@ -381,8 +381,9 @@ whois_person(struct Client *source_p, struct Client *target_p)
                ConfigServerHide.hidden_name,
 	       ServerInfo.network_desc);
 
-  sendto_one(source_p, form_str(RPL_WHOISREGNICK),
-             me.name, source_p->name, target_p->name);
+  if (HasUMode(source_p, UMODE_REGISTERED))
+    sendto_one(source_p, form_str(RPL_WHOISREGNICK),
+               me.name, source_p->name, target_p->name);
 
   if (target_p->away != NULL)
     sendto_one(source_p, form_str(RPL_AWAY),
