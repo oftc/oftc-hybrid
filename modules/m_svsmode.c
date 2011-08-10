@@ -121,6 +121,12 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
       case '-':
         what = MODE_DEL;
         break;
+
+      case 'd':
+        if (extarg && IsDigit(*extarg))
+          target_p->servicestamp = strtoul(extarg, NULL, 0);
+        break;
+
       case 'o':
         if (what == MODE_DEL && IsOper(target_p))
         {
@@ -142,14 +148,25 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
 
         break;
 
+      case 'i':
+        if (what == MODE_ADD && !HasUMode(target_p, UMODE_INVISIBLE))
+        {
+          AddUMode(target_p, UMODE_INVISIBLE);
+          ++Count.invisi;
+        }
+
+        if (what == MODE_DEL && HasUMode(target_p, UMODE_INVISIBLE))
+        {
+          DelUMode(target_p, UMODE_INVISIBLE);
+          --Count.invisi;
+        }
+
+        break;
+
       case ' ':
       case '\n':
       case '\r':
       case '\t':
-        break;
-      case 'd':
-        if (extarg && IsDigit(*extarg))
-          target_p->servicestamp = strtoul(extarg, NULL, 0);
         break;
       default:
         if ((flag = user_modes[(unsigned char)*m]))
