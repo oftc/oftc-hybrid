@@ -464,7 +464,7 @@ static struct NumericInfo replies[] = {
 /* 437 */  {"ERR_UNAVAILRESOURCE", ":%s 437 %s %s :Nick/channel is temporarily unavailable", NULL},
 /* 438 */  {"ERR_NICKTOOFAST", ":%s 438 %s %s %s :Nick change too fast. Please wait %d seconds.", NULL},
 /* 439 */  {NULL, NULL, NULL},
-/* 440 */  {"ERR_SERVICESDOWN", ":%s 440 %s :Services is currently down.", NULL},
+/* 440 */  {"ERR_SERVICESDOWN", ":%s 440 %s %s :Services is currently down.", NULL},
 /* 441 */  {"ERR_USERNOTINCHANNEL", ":%s 441 %s %s %s :They aren't on that channel", NULL},
 /* 442 */  {"ERR_NOTONCHANNEL", ":%s 442 %s %s :You're not on that channel", NULL},
 /* 443 */  {"ERR_USERONCHANNEL", ":%s 443 %s %s %s :is already on channel", NULL},

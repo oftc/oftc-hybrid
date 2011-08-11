@@ -44,6 +44,7 @@ modules_LTLIBRARIES = m_accept.la    \
                       m_restart.la   \
                       m_resv.la      \
                       m_set.la       \
+                      m_services.la  \
                       m_stats.la     \
                       m_svinfo.la    \
                       m_svsmode.la   \
@@ -111,6 +112,7 @@ m_rkline_la_LDFLAGS = $(MODULE_FLAGS)
 m_rxline_la_LDFLAGS = $(MODULE_FLAGS)
 endif
 m_set_la_LDFLAGS = $(MODULE_FLAGS)
+m_services_la_LDFLAGS = $(MODULE_FLAGS)
 m_stats_la_LDFLAGS = $(MODULE_FLAGS)
 m_svinfo_la_LDFLAGS = $(MODULE_FLAGS)
 m_svsmode_la_LDFLAGS = $(MODULE_FLAGS)
@@ -175,6 +177,7 @@ m_rkline_la_SOURCES = m_rkline.c
 m_rxline_la_SOURCES = m_rxline.c
 endif
 m_set_la_SOURCES = m_set.c
+m_services_la_SOURCES = m_services.c
 m_stats_la_SOURCES = m_stats.c
 m_svinfo_la_SOURCES = m_svinfo.c
 m_svsmode_la_SOURCES = m_svsmode.c
