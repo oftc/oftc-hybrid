@@ -55,6 +55,9 @@ static void chm_nosuch(struct Client *, struct Client *,
 static void chm_simple(struct Client *, struct Client *, struct Channel *,
                        int, int *, char **, int *, int, int, char, void *,
                        const char *);
+static void chm_registered(struct Client *, struct Client *, struct Channel *,
+                       int, int *, char **, int *, int, int, char, void *,
+                       const char *);
 static void chm_limit(struct Client *, struct Client *, struct Channel *,
                       int, int *, char **, int *, int, int, char, void *,
                       const char *);
@@ -337,6 +340,7 @@ static const struct mode_letter
   { MODE_MODERATED,  'm' },
   { MODE_NOPRIVMSGS, 'n' },
   { MODE_PRIVATE,    'p' },
+  { MODE_REGISTERED, 'r' },
   { MODE_SECRET,     's' },
   { MODE_TOPICLIMIT, 't' },
   { MODE_OPMOD,      'z' },
@@ -374,7 +378,7 @@ channel_modes(struct Channel *chptr, struct Client *client_p,
   {
     *mbuf++ = 'l';
 
-    if (IsMember(client_p, chptr) || IsServer(client_p))
+    if (IsServer(client_p) || IsService(client_p) || IsMember(client_p, chptr))
       pbuf += ircsprintf(pbuf, "%d ", chptr->mode.limit);
   }
 
@@ -382,7 +386,7 @@ channel_modes(struct Channel *chptr, struct Client *client_p,
   {
     *mbuf++ = 'k';
 
-    if (*pbuf || IsMember(client_p, chptr) || IsServer(client_p))
+    if (IsServer(client_p) || IsService(client_p) || IsMember(client_p, chptr))
       ircsprintf(pbuf, "%s ", chptr->mode.key);
   }
 
@@ -450,7 +454,8 @@ fix_key_old(char *arg)
 #define SM_ERR_NOTONCHANNEL 0x00000020 /* Not on channel    */
 #define SM_ERR_RPL_I        0x00000040
 #define SM_ERR_NOTOPER      0x00000080
-#define SM_ERR_RPL_Q        0x00000100 
+#define SM_ERR_ONLYSERVER   0x00000100
+#define SM_ERR_RPL_Q        0x00000200 
 
 /* Now lets do some stuff to keep track of what combinations of
  * servers exist...
@@ -627,6 +632,68 @@ chm_simple(struct Client *client_p, struct Client *source_p, struct Channel *chp
    * 
    * -Dianora 
    */ 
+  if ((dir == MODE_ADD)) /* && !(chptr->mode.mode & mode_type)) */
+  {
+    chptr->mode.mode |= mode_type;
+
+    mode_changes[mode_count].letter = c;
+    mode_changes[mode_count].dir = MODE_ADD;
+    mode_changes[mode_count].caps = 0;
+    mode_changes[mode_count].nocaps = 0;
+    mode_changes[mode_count].id = NULL;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count++].arg = NULL;
+  }
+  else if ((dir == MODE_DEL)) /* && (chptr->mode.mode & mode_type)) */
+  {
+    /* setting - */
+
+    chptr->mode.mode &= ~mode_type;
+
+    mode_changes[mode_count].letter = c;
+    mode_changes[mode_count].dir = MODE_DEL;
+    mode_changes[mode_count].caps = 0;
+    mode_changes[mode_count].nocaps = 0;
+    mode_changes[mode_count].mems = ALL_MEMBERS;
+    mode_changes[mode_count].id = NULL;
+    mode_changes[mode_count++].arg = NULL;
+  }
+}
+
+static void
+chm_registered(struct Client *client_p, struct Client *source_p, struct Channel *chptr,
+           int parc, int *parn, char **parv, int *errors, int alev, int dir,
+           char c, void *d, const char *chname)
+{
+  long mode_type;
+
+  mode_type = (long)d;
+
+
+  if (!IsServer(source_p) && !IsService(source_p))
+  {
+    if (!(*errors & SM_ERR_ONLYSERVER))
+      sendto_one(source_p, form_str(alev == CHACCESS_NOTONCHAN ?
+                                    ERR_NOTONCHANNEL : ERR_ONLYSERVERSCANCHANGE),
+                 me.name, source_p->name, chname);
+    *errors |= SM_ERR_ONLYSERVER;
+    return;
+  }
+
+  /* If have already dealt with this simple mode, ignore it */
+  if (simple_modes_mask & mode_type)
+    return;
+
+  simple_modes_mask |= mode_type;
+
+  /* setting + */
+  /* Apparently, (though no one has ever told the hybrid group directly) 
+   * admins don't like redundant mode checking. ok. It would have been nice 
+   * if you had have told us directly. I've left the original code snippets 
+   * in place. 
+   * 
+   * -Dianora 
+   */
   if ((dir == MODE_ADD)) /* && !(chptr->mode.mode & mode_type)) */
   {
     chptr->mode.mode |= mode_type;
@@ -1561,7 +1628,7 @@ static struct ChannelMode ModeTable[255] =
   {chm_op, NULL},                                 /* o */
   {chm_simple, (void *) MODE_PRIVATE},            /* p */
   {chm_quiet, NULL},                              /* q */
-  {chm_nosuch, NULL},                             /* r */
+  {chm_registered, (void *) MODE_REGISTERED},     /* r */
   {chm_simple, (void *) MODE_SECRET},             /* s */
   {chm_simple, (void *) MODE_TOPICLIMIT},         /* t */
   {chm_nosuch, NULL},                             /* u */

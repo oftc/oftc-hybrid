@@ -492,7 +492,7 @@ static struct NumericInfo replies[] = {
 /* 465 */  {"ERR_YOUREBANNEDCREEP", ":%s 465 %s :You are banned from this server- %s", NULL},
 /* 466 */  {NULL, NULL, NULL},
 /* 467 */  {NULL, NULL, NULL},
-/* 468 */  {NULL, NULL, NULL},
+/* 468 */  {"ERR_ONLYSERVERSCANCHANGE", ":%s 468 %s %s :Only servers can change that mode", NULL},
 /* 469 */  {NULL, NULL, NULL},
 /* 470 */  {"ERR_OPERONLYCHAN", ":%s 470 %s %s :Cannot join channel (+O)", NULL},
 /* 471 */  {"ERR_CHANNELISFULL", ":%s 471 %s %s :Cannot join channel (+l)", NULL},

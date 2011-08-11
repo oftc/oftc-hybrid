@@ -178,6 +178,9 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
       case 'R':
         mode.mode |= MODE_REGONLY;
         break;
+      case 'r':
+        mode.mode |= MODE_REGISTERED;
+        break;
       case 'O':
         mode.mode |= MODE_OPERONLY;
         break;
@@ -663,6 +666,7 @@ static const struct mode_letter
   { MODE_INVITEONLY, 'i' },
   { MODE_PRIVATE,    'p' },
   { MODE_SPEAKIFREG, 'M' },
+  { MODE_REGISTERED, 'r' },
   { MODE_OPERONLY,   'O' },
   { MODE_REGONLY,    'R' },
   { MODE_SSLONLY,    'S' },
