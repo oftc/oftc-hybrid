@@ -365,7 +365,7 @@ extern const char *get_locale(void);
 #define ERR_ALREADYREGISTRED 462
 #define ERR_PASSWDMISMATCH   464
 #define ERR_YOUREBANNEDCREEP 465
-/* 	ERR_ONLYSERVERSCANCHANGE 468	   Dalnet,unreal */
+#define ERR_ONLYSERVERSCANCHANGE 468
 /*	ERR_LINKSET	     469	unreal */
 /*	ERR_LINKCHANNEL	     470	unreal */
 /*      ERR_KICKEDFROMCHAN   470         aircd */

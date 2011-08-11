@@ -57,6 +57,7 @@
 #define MODE_NOPRIVMSGS 0x0020
 #define MODE_SSLONLY    0x0040
 #define MODE_OPERONLY   0x0080
+#define MODE_REGISTERED 0x0100 /* Channel has been registered with ChanServ */
 
 /* cache flags for silence on ban */
 #define CHFL_BAN_CHECKED  0x0080

@@ -542,6 +542,13 @@ register_remote_user(struct Client *source_p,
     return;
   }
 
+  /*
+   * If the nick has been introduced by a services server,
+   * make it a service as well.
+   */
+  if (IsService(source_p->servptr))
+    SetService(source_p);
+
   /* Increment our total user count here */
   if (++Count.total > Count.max_tot)
     Count.max_tot = Count.total;

@@ -718,7 +718,7 @@ find_channel_link(struct Client *client_p, struct Channel *chptr)
 int
 can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 {
-  if (IsServer(source_p))
+  if (IsServer(source_p) || IsService(source_p))
     return CAN_SEND_OPV;
 
   if (MyClient(source_p) && !IsExemptResv(source_p))
