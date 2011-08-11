@@ -676,6 +676,31 @@ valid_username(const char *username)
   return 1;
 }
 
+/* clean_nick_name()
+ *
+ * input        - nickname
+ *              - whether it's a local nick (1) or remote (0)
+ * output       - none
+ * side effects - walks through the nickname, returning 0 if erroneous
+ */
+int
+valid_nickname(const char *nickname, const int local)
+{
+  const char *p = nickname;
+  assert(nickname && *nickname);
+
+  /* nicks can't start with a digit or - or be 0 length */
+  /* This closer duplicates behaviour of hybrid-6 */
+  if (*p == '-' || (IsDigit(*p) && local) || *p == '\0')
+    return 0;
+
+  for (; *p; ++p)
+    if (!IsNickChar(*p))
+      return 0;
+
+  return p - nickname <= (NICKLEN - 1);
+}
+
 /* report_and_set_user_flags()
  *
  * inputs       - pointer to source_p

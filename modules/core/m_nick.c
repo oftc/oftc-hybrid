@@ -62,7 +62,6 @@ static int check_clean_user(struct Client *client_p, char *nick, char *user,
 static int check_clean_host(struct Client *client_p, char *nick, char *host,
 			    struct Client *server_p);
 
-static int clean_nick_name(const char *, const int);
 static int clean_user_name(const char *);
 static int clean_host_name(const char *);
 static void perform_nick_collides(struct Client *, struct Client *, struct Client *,
@@ -162,7 +161,7 @@ mr_nick(struct Client *client_p, struct Client *source_p,
   strlcpy(nick, parv[1], sizeof(nick));
 
   /* check the nickname is ok */
-  if (!clean_nick_name(nick, 1))
+  if (!valid_nickname(nick, 1))
   {
     sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
                me.name, EmptyString(parv[0]) ? "*" : parv[0], parv[1]);
@@ -223,7 +222,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
   strlcpy(nick, parv[1], sizeof(nick));
 
   /* check the nickname is ok */
-  if (!clean_nick_name(nick, 1))
+  if (!valid_nickname(nick, 1))
   {
     sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
                me.name, source_p->name, nick);
@@ -450,7 +449,7 @@ check_clean_nick(struct Client *client_p, struct Client *source_p,
   /* the old code did some wacky stuff here, if the nick is invalid, kill it
    * and dont bother messing at all
    */
-  if (!clean_nick_name(nick, 0))
+  if (!valid_nickname(nick, 0))
   {
     ++ServerStats.is_kill;
     sendto_realops_flags(UMODE_DEBUG, L_ALL,
@@ -528,31 +527,6 @@ check_clean_host(struct Client *client_p, char *nick,
   }
 
   return 0;
-}
-
-/* clean_nick_name()
- *
- * input	- nickname
- *              - whether it's a local nick (1) or remote (0)
- * output	- none
- * side effects - walks through the nickname, returning 0 if erroneous
- */
-static int
-clean_nick_name(const char *nick, const int local)
-{
-  const char *p = nick;
-  assert(nick && *nick);
-
-  /* nicks can't start with a digit or - or be 0 length */
-  /* This closer duplicates behaviour of hybrid-6 */
-  if (*p == '-' || (IsDigit(*p) && local) || *p == '\0')
-    return 0;
-
-  for (; *p; ++p)
-    if (!IsNickChar(*p))
-      return 0;
-
-  return p - nick <= (NICKLEN - 1);
 }
 
 /* clean_user_name()
