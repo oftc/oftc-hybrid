@@ -77,7 +77,6 @@
         char *parv[]) \
 { deliver_services_msg(b, c, client_p, source_p, parc, parv); }
 
-static void mo_svsnick(struct Client *, struct Client *, int, char *[]);
 
 static void m_botserv(struct Client *, struct Client *, int, char *[]);
 static void m_chanserv(struct Client *, struct Client *, int, char *[]);
@@ -92,15 +91,8 @@ static void m_seenserv(struct Client *, struct Client *, int, char *[]);
 static void m_statserv(struct Client *, struct Client *, int, char *[]);
 
 static void get_string(int, char *[], char *);
-static int clean_nick_name(char *, int);
 static void deliver_services_msg(const char *, const char *, struct Client *,
                                  struct Client *, int, char *[]);
-
-/* SVS commands */
-struct Message svsnick_msgtab = {
-  "SVSNICK", 0, 0, 3, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_svsnick, mo_svsnick, mo_svsnick, m_ignore}
-};
 
 /* Services */
 struct Message botserv_msgtab = {
@@ -187,7 +179,6 @@ struct Message bs_msgtab = {
 void
 _modinit(void)
 {
-  mod_add_cmd(&svsnick_msgtab);
   mod_add_cmd(&botserv_msgtab);
   mod_add_cmd(&chanserv_msgtab); 
   mod_add_cmd(&global_msgtab);
@@ -209,7 +200,6 @@ _modinit(void)
 void
 _moddeinit(void)
 {
-  mod_del_cmd(&svsnick_msgtab);
   mod_del_cmd(&botserv_msgtab);
   mod_del_cmd(&chanserv_msgtab); 
   mod_del_cmd(&global_msgtab);
@@ -229,67 +219,6 @@ _moddeinit(void)
 }
 
 const char *_version = "$Revision$";
-
-/*
- * mo_svsnick()
- *
- * parv[0] = sender prefix
- * parv[1] = user to force
- * parv[2] = nick to force them to
- */
-static void
-mo_svsnick(struct Client *client_p, struct Client *source_p,
-           int parc, char *parv[])
-{
-  char newnick[NICKLEN];
-  struct Client *target_p = NULL;
-
-  if (MyClient(source_p) && !IsOperAdmin(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVS),
-               me.name, parv[0], "SVSNICK");
-    return;
-  }
-
-  if (parc < 3 || *parv[2] == '\0')
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, parv[0], "SVSNICK");
-    return;
-  }
-
-  if ((target_p = find_person(client_p, parv[1])) == NULL)
-  {
-    sendto_one(source_p, form_str(ERR_NOSUCHNICK),
-               me.name, parv[0], parv[1]);
-    return;
-  }
-
-  /* terminate nick to NICKLEN */
-  strlcpy(newnick, parv[2], sizeof(newnick));
-
-  if (!clean_nick_name(newnick, 1))
-  {
-    if (IsClient(source_p))
-      sendto_one(source_p, ":%s NOTICE %s :*** Notice -- Invalid new ",
-                 "nickname: %s", me.name, parv[0], newnick);
-    return;
-  }
-
-  if (find_client(newnick) != NULL)
-  {
-    if (IsClient(source_p))
-      sendto_one(source_p, ":%s NOTICE %s :*** Notice -- Nickname %s is "
-                 "already in use", me.name, parv[0], newnick);
-    return;
-  }
-
-  if (MyConnect(target_p))
-    change_local_nick(&me, target_p, newnick);
-  else
-    sendto_one(target_p, ":%s ENCAP %s SVSNICK %s %s",
-               me.name, target_p->servptr->name, ID(target_p), newnick);
-}
 
 /*
  * These generate the services functions through
@@ -324,31 +253,6 @@ get_string(int parc, char *parv[], char *buf)
   for (; ii < parc; ++ii)
     bw += ircsprintf(buf+bw, "%s ", parv[ii]);
   buf[bw-1] = '\0';
-}
-
-/*
- * clean_nick_name()
- *
- * input        - nickname
- * output       - none
- * side effects - walks through the nickname, returning 0 if erroneous
- */
-static int
-clean_nick_name(char *nick, int local)
-{
-  assert(nick);
-
-  /* nicks can't start with a digit or - or be 0 length */
-  /* This closer duplicates behaviour of hybrid-6 */
-
-  if (*nick == '-' || (IsDigit(*nick) && local) || *nick == '\0')
-    return 0;
-
-  for (; *nick; ++nick)
-    if (!IsNickChar(*nick))
-      return 0;
-
-  return 1;
 }
 
 /*
