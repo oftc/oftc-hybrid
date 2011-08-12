@@ -101,7 +101,7 @@ mo_capture(struct Client *client_p, struct Client *source_p,
 
   if ((p = strchr(parv[1], '@')) == NULL)
   {
-    if ((target_p = find_client(parv[1])) != NULL && IsClient(target_p))
+    if ((target_p = hash_find_client(parv[1])) != NULL && IsClient(target_p))
     {
       if (MyConnect(target_p) && source_p != target_p)
       {
@@ -208,7 +208,7 @@ mo_uncapture(struct Client *client_p, struct Client *source_p,
 
   if ((p = strchr(parv[1], '@')) == NULL)
   {      
-    if ((target_p = find_client(parv[1])) != NULL && IsClient(target_p))
+    if ((target_p = hash_find_client(parv[1])) != NULL && IsClient(target_p))
     {
       if (MyConnect(target_p))
       {

@@ -334,7 +334,7 @@ hash_del_resv(struct ResvChannel *chptr)
   }
 }
 
-/* find_client()
+/* hash_find_client()
  *
  * inputs       - pointer to name
  * output       - NONE
@@ -343,7 +343,7 @@ hash_del_resv(struct ResvChannel *chptr)
  *                it to the top of the list and returns it.
  */
 struct Client *
-find_client(const char *name)
+hash_find_client(const char *name)
 {
   unsigned int hashv = strhash(name);
   struct Client *client_p;
@@ -399,7 +399,7 @@ hash_find_id(const char *name)
 }
 
 struct Client *
-find_server(const char *name)
+hash_find_server(const char *name)
 {
   unsigned int hashv = strhash(name);
   struct Client *client_p = NULL;

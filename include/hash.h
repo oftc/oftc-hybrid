@@ -57,8 +57,8 @@ extern void hash_del_userhost(struct UserHost *);
 
 extern struct UserHost *hash_find_userhost(const char *);
 extern struct Client *hash_find_id(const char *);
-extern struct Client *find_client(const char *);
-extern struct Client *find_server(const char *);
+extern struct Client *hash_find_client(const char *);
+extern struct Client *hash_find_server(const char *);
 extern struct Channel *hash_find_channel(const char *);
 extern void *hash_get_bucket(int, unsigned int);
 extern struct ResvChannel *hash_find_resv(const char *);

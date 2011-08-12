@@ -122,12 +122,6 @@ m_force_la_OBJECTS = $(am_m_force_la_OBJECTS)
 m_force_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(m_force_la_LDFLAGS) $(LDFLAGS) -o $@
-m_jupe_la_LIBADD =
-am_m_jupe_la_OBJECTS = m_jupe.lo
-m_jupe_la_OBJECTS = $(am_m_jupe_la_OBJECTS)
-m_jupe_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(m_jupe_la_LDFLAGS) $(LDFLAGS) -o $@
 m_killhost_la_LIBADD =
 am_m_killhost_la_OBJECTS = m_killhost.lo
 m_killhost_la_OBJECTS = $(am_m_killhost_la_OBJECTS)
@@ -158,12 +152,6 @@ m_opme_la_OBJECTS = $(am_m_opme_la_OBJECTS)
 m_opme_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(m_opme_la_LDFLAGS) $(LDFLAGS) -o $@
-m_services_la_LIBADD =
-am_m_services_la_OBJECTS = m_services.lo
-m_services_la_OBJECTS = $(am_m_services_la_OBJECTS)
-m_services_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(m_services_la_LDFLAGS) $(LDFLAGS) -o $@
 m_spoof_la_LIBADD =
 am_m_spoof_la_OBJECTS = m_spoof.lo
 m_spoof_la_OBJECTS = $(am_m_spoof_la_OBJECTS)
@@ -187,19 +175,17 @@ SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
 	$(m_capture_la_SOURCES) $(m_change_la_SOURCES) \
 	$(m_classlist_la_SOURCES) $(m_clearchan_la_SOURCES) \
 	$(m_ctrace_la_SOURCES) $(m_flags_la_SOURCES) \
-	$(m_force_la_SOURCES) $(m_jupe_la_SOURCES) \
-	$(m_killhost_la_SOURCES) $(m_ltrace_la_SOURCES) \
-	$(m_ojoin_la_SOURCES) $(m_operspy_la_SOURCES) \
-	$(m_opme_la_SOURCES) $(m_services_la_SOURCES) \
+	$(m_force_la_SOURCES) $(m_killhost_la_SOURCES) \
+	$(m_ltrace_la_SOURCES) $(m_ojoin_la_SOURCES) \
+	$(m_operspy_la_SOURCES) $(m_opme_la_SOURCES) \
 	$(m_spoof_la_SOURCES)
 DIST_SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
 	$(m_capture_la_SOURCES) $(m_change_la_SOURCES) \
 	$(m_classlist_la_SOURCES) $(m_clearchan_la_SOURCES) \
 	$(m_ctrace_la_SOURCES) $(m_flags_la_SOURCES) \
-	$(m_force_la_SOURCES) $(m_jupe_la_SOURCES) \
-	$(m_killhost_la_SOURCES) $(m_ltrace_la_SOURCES) \
-	$(m_ojoin_la_SOURCES) $(m_operspy_la_SOURCES) \
-	$(m_opme_la_SOURCES) $(m_services_la_SOURCES) \
+	$(m_force_la_SOURCES) $(m_killhost_la_SOURCES) \
+	$(m_ltrace_la_SOURCES) $(m_ojoin_la_SOURCES) \
+	$(m_operspy_la_SOURCES) $(m_opme_la_SOURCES) \
 	$(m_spoof_la_SOURCES)
 ETAGS = etags
 CTAGS = ctags
@@ -357,13 +343,11 @@ modules_LTLIBRARIES = example_module.la     \
                       m_ctrace.la           \
                       m_flags.la            \
                       m_force.la            \
-                      m_jupe.la             \
                       m_killhost.la         \
                       m_ltrace.la           \
                       m_ojoin.la            \
                       m_operspy.la          \
                       m_opme.la             \
-                      m_services.la         \
                       m_spoof.la
 
 example_module_la_LDFLAGS = $(MODULE_FLAGS)
@@ -375,13 +359,11 @@ m_clearchan_la_LDFLAGS = $(MODULE_FLAGS)
 m_ctrace_la_LDFLAGS = $(MODULE_FLAGS)
 m_flags_la_LDFLAGS = $(MODULE_FLAGS)
 m_force_la_LDFLAGS = $(MODULE_FLAGS)
-m_jupe_la_LDFLAGS = $(MODULE_FLAGS)
 m_killhost_la_LDFLAGS = $(MODULE_FLAGS)
 m_ltrace_la_LDFLAGS = $(MODULE_FLAGS)
 m_ojoin_la_LDFLAGS = $(MODULE_FLAGS)
 m_operspy_la_LDFLAGS = $(MODULE_FLAGS)
 m_opme_la_LDFLAGS = $(MODULE_FLAGS)
-m_services_la_LDFLAGS = $(MODULE_FLAGS)
 m_spoof_la_LDFLAGS = $(MODULE_FLAGS)
 example_module_la_SOURCES = example_module.c
 ip_cloaking_la_SOURCES = ip_cloaking.c
@@ -392,13 +374,11 @@ m_clearchan_la_SOURCES = m_clearchan.c
 m_ctrace_la_SOURCES = m_ctrace.c
 m_flags_la_SOURCES = m_flags.c
 m_force_la_SOURCES = m_force.c
-m_jupe_la_SOURCES = m_jupe.c
 m_killhost_la_SOURCES = m_killhost.c
 m_ltrace_la_SOURCES = m_ltrace.c
 m_ojoin_la_SOURCES = m_ojoin.c
 m_operspy_la_SOURCES = m_operspy.c
 m_opme_la_SOURCES = m_opme.c
-m_services_la_SOURCES = m_services.c
 m_spoof_la_SOURCES = m_spoof.c
 all: all-am
 
@@ -483,8 +463,6 @@ m_flags.la: $(m_flags_la_OBJECTS) $(m_flags_la_DEPENDENCIES)
 	$(m_flags_la_LINK) -rpath $(modulesdir) $(m_flags_la_OBJECTS) $(m_flags_la_LIBADD) $(LIBS)
 m_force.la: $(m_force_la_OBJECTS) $(m_force_la_DEPENDENCIES) 
 	$(m_force_la_LINK) -rpath $(modulesdir) $(m_force_la_OBJECTS) $(m_force_la_LIBADD) $(LIBS)
-m_jupe.la: $(m_jupe_la_OBJECTS) $(m_jupe_la_DEPENDENCIES) 
-	$(m_jupe_la_LINK) -rpath $(modulesdir) $(m_jupe_la_OBJECTS) $(m_jupe_la_LIBADD) $(LIBS)
 m_killhost.la: $(m_killhost_la_OBJECTS) $(m_killhost_la_DEPENDENCIES) 
 	$(m_killhost_la_LINK) -rpath $(modulesdir) $(m_killhost_la_OBJECTS) $(m_killhost_la_LIBADD) $(LIBS)
 m_ltrace.la: $(m_ltrace_la_OBJECTS) $(m_ltrace_la_DEPENDENCIES) 
@@ -495,8 +473,6 @@ m_operspy.la: $(m_operspy_la_OBJECTS) $(m_operspy_la_DEPENDENCIES)
 	$(m_operspy_la_LINK) -rpath $(modulesdir) $(m_operspy_la_OBJECTS) $(m_operspy_la_LIBADD) $(LIBS)
 m_opme.la: $(m_opme_la_OBJECTS) $(m_opme_la_DEPENDENCIES) 
 	$(m_opme_la_LINK) -rpath $(modulesdir) $(m_opme_la_OBJECTS) $(m_opme_la_LIBADD) $(LIBS)
-m_services.la: $(m_services_la_OBJECTS) $(m_services_la_DEPENDENCIES) 
-	$(m_services_la_LINK) -rpath $(modulesdir) $(m_services_la_OBJECTS) $(m_services_la_LIBADD) $(LIBS)
 m_spoof.la: $(m_spoof_la_OBJECTS) $(m_spoof_la_DEPENDENCIES) 
 	$(m_spoof_la_LINK) -rpath $(modulesdir) $(m_spoof_la_OBJECTS) $(m_spoof_la_LIBADD) $(LIBS)
 
@@ -515,13 +491,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_ctrace.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_flags.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_force.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_jupe.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_killhost.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_ltrace.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_ojoin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_operspy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_opme.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_services.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_spoof.Plo@am__quote@
 
 .c.o:

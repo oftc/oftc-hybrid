@@ -140,7 +140,7 @@ mo_trace(struct Client *client_p, struct Client *source_p,
     {
       struct Client *ac2ptr = NULL;
 
-      if ((ac2ptr = find_client(tname)) == NULL)
+      if ((ac2ptr = hash_find_client(tname)) == NULL)
       {
         DLINK_FOREACH(ptr, global_client_list.head)
         {
@@ -236,7 +236,7 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
     const char *name;
     const char *class_name;
 
-    target_p = find_client(tname);
+    target_p = hash_find_client(tname);
       
     if (target_p && IsClient(target_p)) 
     {

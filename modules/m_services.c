@@ -159,7 +159,7 @@ m_nickserv(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_server(ConfigFileEntry.service_name)))
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG NickServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -186,7 +186,7 @@ m_chanserv(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_server(ConfigFileEntry.service_name)))
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG ChanServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -213,7 +213,7 @@ m_memoserv(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_server(ConfigFileEntry.service_name)))
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG MemoServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -240,7 +240,7 @@ m_operserv(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_server(ConfigFileEntry.service_name)))
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG OperServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -267,7 +267,7 @@ m_botserv(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_server(ConfigFileEntry.service_name)))
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG BotServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -293,7 +293,7 @@ m_identify(struct Client *client_p, struct Client *source_p,
 
   if (IsChanPrefix(*parv[1]))
   {
-    if ((target_p = find_server(ConfigFileEntry.service_name)))
+    if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
       sendto_one(target_p, ":%s PRIVMSG ChanServ@%s :IDENTIFY %s",
                  source_p->name, ConfigFileEntry.service_name, parv[1]);
     else
@@ -302,7 +302,7 @@ m_identify(struct Client *client_p, struct Client *source_p,
   }
   else
   {
-    if ((target_p = find_server(ConfigFileEntry.service_name)))
+    if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
       sendto_one(target_p, ":%s PRIVMSG NickServ@%s :IDENTIFY %s",
                  source_p->name, ConfigFileEntry.service_name, parv[1]);
     else

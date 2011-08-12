@@ -157,7 +157,7 @@ ms_squit(struct Client *client_p, struct Client *source_p,
 
   server = parv[1];
 
-  if ((target_p = find_server(server)) == NULL)
+  if ((target_p = hash_find_server(server)) == NULL)
     return;
 
   if (!IsServer(target_p) || IsMe(target_p))

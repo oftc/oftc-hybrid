@@ -195,7 +195,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
   }
 
   if ((client_p->id[0] && (target_p = hash_find_id(client_p->id)))
-      || (target_p = find_server(name)))
+      || (target_p = hash_find_server(name)))
   {
     /* This link is trying feed me a server that I already have
      * access through another path -- multiple paths not accepted
@@ -285,7 +285,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_server(name)))
+  if ((target_p = hash_find_server(name)))
   {
     /* This link is trying feed me a server that I already have
      * access through another path -- multiple paths not accepted
@@ -532,7 +532,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   }
 
   /* collision on name? */
-  if ((target_p = find_server(parv[1])))
+  if ((target_p = hash_find_server(parv[1])))
   {
     sendto_one(client_p, "ERROR :Server %s already exists", parv[1]);
     sendto_realops_flags(UMODE_ALL, L_ADMIN,

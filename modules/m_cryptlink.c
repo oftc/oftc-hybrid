@@ -330,7 +330,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
       break;
   }
 
-  if ((target_p = find_server(name)))
+  if ((target_p = hash_find_server(name)))
   {
     /*
      * This link is trying feed me a server that I already have

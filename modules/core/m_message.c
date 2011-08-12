@@ -795,7 +795,7 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
       return;
     }
 
-    if ((target_p = find_server(server + 1)) != NULL)
+    if ((target_p = hash_find_server(server + 1)) != NULL)
     {
       if (!IsMe(target_p))
       {

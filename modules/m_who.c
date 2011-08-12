@@ -130,7 +130,7 @@ m_who(struct Client *client_p, struct Client *source_p,
   }
 
   /* '/who nick' */
-  if (((target_p = find_client(mask)) != NULL) &&
+  if (((target_p = hash_find_client(mask)) != NULL) &&
       IsClient(target_p) && (!server_oper || IsOper(target_p)))
   {
     DLINK_FOREACH(lp, target_p->channel.head)

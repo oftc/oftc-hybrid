@@ -101,16 +101,6 @@ m_force.c        --  This module will force a user to either part or join a
                               FORCEPART lamer #chitchat
 
 
-m_jupe.c         --  Similar to the OperServ command JUPE, this module adds the
-                     ability to jupiter (ban) a server from your network. It can
-                     be extremely dangerous if not used correctly or without 
-                     proper information. So use it with EXTREME care.
-
-                     Syntax: JUPE <server> :[reason]
-
-                     Example: JUPE node.server.net :get lost
-
-
 m_killhost.c     --  Similar to the OperServ command KILLHOST, allows you to
                      issue (mass) KILLs to a specific hostname or hostmask that is 
                      connected to the server.
@@ -151,20 +141,6 @@ m_opme.c         --  This module will allow an IRC operator to op themselves in
 
                      Syntax: OPME <channel>
                      Example: OPME #orphanchan
-
-
-m_services.c     --  This module will add services hook support to hybrid. It
-                     will add secure messaging aliases to services like such
-                     as NickServ, OperServ and so on. It also adds SVSNICK
-                     support to allow NickServ to change nicknames should
-                     a user fail to identify or if an operator chooses
-                     to want to change a user's nickname if it is offensive.
-                     To use the aliases simply do ServiceName without MSG,
-                     e.g. /NickServ IDENTIFY instead of /MSG NickServ IDENTIFY.
-
-                     Syntax: SVSNICK <nickname> <newnick>
-
-                     Example: SVSNICK fsck lamer
 
 
 m_spoof.c        --  This module adds automated auth {} block configurations

@@ -222,7 +222,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
        * the ID check should always come first, though, since it is so easy.
        */
       if ((from = find_person(client_p, sender)) == NULL)
-        from = find_server(sender);
+        from = hash_find_server(sender);
 
       /* Hmm! If the client corresponding to the
        * prefix is not found--what is the correct
@@ -758,7 +758,7 @@ do_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
   ircsprintf(t," :%s", parv[parc-1]);
 
   if (((target_p = find_person(client_p, parv[1])) != NULL) ||
-      ((target_p = find_server(parv[1])) != NULL))
+      ((target_p = hash_find_server(parv[1])) != NULL))
   {
     if (IsMe(target_p)) 
     {

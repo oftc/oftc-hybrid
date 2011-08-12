@@ -177,7 +177,7 @@ mr_nick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_client(nick)) == NULL)
+  if ((target_p = hash_find_client(nick)) == NULL)
     set_initial_nick(source_p, nick);
   else if (source_p == target_p)
     strlcpy(source_p->name, nick, sizeof(source_p->name));
@@ -238,7 +238,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_client(nick)) == NULL)
+  if ((target_p = hash_find_client(nick)) == NULL)
     change_local_nick(client_p, source_p, nick);
   else if (target_p == source_p)
   {
@@ -306,7 +306,7 @@ ms_nick(struct Client *client_p, struct Client *source_p,
 
   if (parc == 9)
   {
-    struct Client *server_p = find_server(parv[7]);
+    struct Client *server_p = hash_find_server(parv[7]);
 
     if (server_p == NULL)
     {
@@ -340,7 +340,7 @@ ms_nick(struct Client *client_p, struct Client *source_p,
   }
 
   /* if the nick doesnt exist, allow it and process like normal */
-  if ((target_p = find_client(parv[1])) == NULL)
+  if ((target_p = hash_find_client(parv[1])) == NULL)
     nick_from_server(client_p, source_p, parc, parv, newts, parv[1], parv[8]);
   else if (IsUnknown(target_p))
   {
@@ -418,7 +418,7 @@ ms_uid(struct Client *client_p, struct Client *source_p,
     return;
   }
     
-  if ((target_p = find_client(parv[1])) == NULL)
+  if ((target_p = hash_find_client(parv[1])) == NULL)
     uid_from_server(client_p, source_p, parc, parv, newts, parv[1], parv[9]);
   else if (IsUnknown(target_p))
   {
@@ -608,9 +608,9 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
         unsigned int flag = user_modes[(unsigned char)*m];
 
         if (flag & UMODE_INVISIBLE)
-	  ++Count.invisi;
+          ++Count.invisi;
         if (flag & UMODE_OPER)
-	  ++Count.oper;
+          ++Count.oper;
 
         source_p->umodes |= flag & SEND_UMODES;
       }
