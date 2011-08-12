@@ -240,7 +240,7 @@ m_svsnick(struct Client *client_p, struct Client *source_p,
   if (parc < 3 || *parv[2] == '\0')
     return;
 
-  if ((target_p = find_person(client_p, parv[1])) == NULL)
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                me.name, parv[0], parv[1]);
@@ -258,7 +258,7 @@ m_svsnick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (find_client(newnick) != NULL)
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     if (IsClient(source_p))
       sendto_one(source_p, ":%s NOTICE %s :*** Notice -- Nickname %s is "
@@ -303,8 +303,24 @@ services_function(m_statserv, "StatServ", "STATSERV")
 static void
 get_string(int parc, char *parv[], char *buf)
 {
-  int ii = 0;
-  int bw = 0;
+  struct Client *target_p = NULL;
+
+  assert(client_p && source_p);
+  assert(client_p == source_p);
+
+  if (parc < 2 || EmptyString(parv[1]))
+  {
+    sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
+               me.name, source_p->name);
+    return;
+  }
+
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  {
+    sendto_one(target_p, ":%s PRIVMSG MemoServ@%s :%s",
+               source_p->name, ConfigFileEntry.service_name, parv[1]);
+    return;
+  }
 
   for (; ii < parc; ++ii)
     bw += ircsprintf(buf+bw, "%s ", parv[ii]);
@@ -329,9 +345,12 @@ clean_nick_name(char *nick, int local)
   if (*nick == '-' || (IsDigit(*nick) && local) || *nick == '\0')
     return 0;
 
-  for (; *nick; ++nick)
-    if (!IsNickChar(*nick))
-      return 0;
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  {
+    sendto_one(target_p, ":%s PRIVMSG OperServ@%s :%s",
+               source_p->name, ConfigFileEntry.service_name, parv[1]);
+    return;
+  }
 
   return 1;
 }
@@ -376,6 +395,16 @@ m_identify(struct Client *client_p, struct Client *source_p,
                  "<password> - for channel", me.name, source_p->name);
       break;
   }
+
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  {
+    sendto_one(target_p, ":%s PRIVMSG BotServ@%s :%s",
+               source_p->name, ConfigFileEntry.service_name, parv[1]);
+    return;
+  }
+
+  sendto_one(source_p, form_str(ERR_SERVICESDOWN),
+             me.name, source_p->name, "BotServ");
 }
 
 /*
@@ -401,13 +430,22 @@ deliver_services_msg(const char *service, const char *command,
     return;
   }
 
-  if (!(target_p = find_server(SERVICES_NAME)))
-    sendto_one(source_p, form_str(ERR_SERVICESDOWN),
-               me.name, source_p->name);
+  if (IsChanPrefix(*parv[1]))
+  {
+    if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+      sendto_one(target_p, ":%s PRIVMSG ChanServ@%s :IDENTIFY %s",
+                 source_p->name, ConfigFileEntry.service_name, parv[1]);
+    else
+      sendto_one(source_p, form_str(ERR_SERVICESDOWN),
+                 me.name, source_p->name, "ChanServ");
+  }
   else
   {
-    get_string(parc - 1, parv + 1, buf);
-    sendto_one(target_p, ":%s PRIVMSG %s@%s :%s",
-               source_p->name, service, SERVICES_NAME, buf);
+    if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+      sendto_one(target_p, ":%s PRIVMSG NickServ@%s :IDENTIFY %s",
+                 source_p->name, ConfigFileEntry.service_name, parv[1]);
+    else
+      sendto_one(source_p, form_str(ERR_SERVICESDOWN),
+                 me.name, source_p->name, "NickServ");
   }
 }

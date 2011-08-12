@@ -112,7 +112,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
   else
     reason = def_reason;
 
-  if ((target_p = find_client(user)) == NULL)
+  if ((target_p = hash_find_client(user)) == NULL)
   {
     /*
      * If the user has recently changed nick, automatically
@@ -139,7 +139,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!MyConnect(target_p) && (!IsOperGlobalKill(source_p)))
+  if (!MyConnect(target_p) && !IsOperGlobalKill(source_p))
   {
     sendto_one(source_p, ":%s NOTICE %s :Nick %s isnt on your server",
                me.name, source_p->name, target_p->name);

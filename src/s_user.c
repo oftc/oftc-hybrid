@@ -510,7 +510,7 @@ register_remote_user(struct Client *source_p,
   /*
    * coming from another server, take the servers word for it
    */
-  source_p->servptr = find_server(server);
+  source_p->servptr = hash_find_server(server);
 
   /* Super GhostDetect:
    * If we can't find the server the user is supposed to be on,

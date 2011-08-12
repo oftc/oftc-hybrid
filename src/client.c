@@ -616,7 +616,7 @@ find_person(const struct Client *client_p, const char *name)
     }
   }
   else
-    c2ptr = find_client(name);
+    c2ptr = hash_find_client(name);
 
   return ((c2ptr != NULL && IsClient(c2ptr)) ? c2ptr : NULL);
 }
@@ -636,10 +636,10 @@ find_chasing(struct Client *client_p, struct Client *source_p, const char *user,
     *chasing = 0;
 
   if (who)
-    return(who);
+    return who;
 
   if (IsDigit(*user))
-    return(NULL);
+    return NULL;
 
   if ((who = get_history(user,
 			(time_t)ConfigFileEntry.kill_chase_time_limit))
@@ -647,13 +647,13 @@ find_chasing(struct Client *client_p, struct Client *source_p, const char *user,
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                me.name, source_p->name, user);
-    return(NULL);
+    return NULL;
   }
 
   if (chasing)
     *chasing = 1;
 
-  return(who);
+  return who;
 }
 
 /*

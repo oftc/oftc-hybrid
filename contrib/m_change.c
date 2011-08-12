@@ -104,7 +104,7 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
       return;
   }
   else {
-    target_p = find_client(parv[1]);
+    target_p = hash_find_client(parv[1]);
 
     if (target_p == NULL || !IsClient(target_p))
     {
@@ -165,7 +165,7 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
       return;
   }
   else {
-    target_p = find_client(parv[1]);
+    target_p = hash_find_client(parv[1]);
 
     if (target_p == NULL || !IsClient(target_p))
     {
@@ -223,7 +223,7 @@ mo_chgname(struct Client *client_p, struct Client *source_p,
     parv[2] = parv[1];
     target_p = source_p;
   }
-  else if ((target_p = find_client(parv[1])) == NULL)
+  else if ((target_p = hash_find_client(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                me.name, source_p->name, parv[1]);

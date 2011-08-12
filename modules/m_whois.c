@@ -199,7 +199,7 @@ do_whois(struct Client *source_p, int parc, char **parv)
 
   if (strpbrk(nick, "?#*") == NULL)
   {
-    if ((target_p = find_client(nick)) != NULL)
+    if ((target_p = hash_find_client(nick)) != NULL)
     {
       if (IsClient(target_p))
       {

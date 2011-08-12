@@ -92,8 +92,8 @@ do_etrace(struct Client *source_p, int parc, char *parv[])
   {
     if (irccmp(parv[1], "-full") == 0)
     {
-      parv++;
-      parc--;
+      ++parv;
+      --parc;
       full_etrace = 1;
     }
   }
@@ -115,7 +115,7 @@ do_etrace(struct Client *source_p, int parc, char *parv[])
 
   if (!wilds && !do_all)
   {
-    target_p = find_client(tname);
+    target_p = hash_find_client(tname);
 
     if (target_p && MyClient(target_p))
       report_this_status(source_p, target_p, full_etrace);

@@ -87,16 +87,16 @@ ms_pong(struct Client *client_p, struct Client *source_p,
   if (!EmptyString(destination) && !match(destination, me.name) &&
       irccmp(destination, me.id))
   {
-      if ((target_p = find_client(destination)) ||
-          (target_p = find_server(destination)))
-        sendto_one(target_p,":%s PONG %s %s",
-                   parv[0], origin, destination);
-      else
-        {
-          sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
-                     me.name, parv[0], destination);
-          return;
-        }
+    if ((target_p = hash_find_client(destination)) ||
+        (target_p = hash_find_server(destination)))
+      sendto_one(target_p, ":%s PONG %s %s",
+                 parv[0], origin, destination);
+    else
+    {
+      sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
+                 me.name, parv[0], destination);
+      return;
+    }
   }
 }
 
