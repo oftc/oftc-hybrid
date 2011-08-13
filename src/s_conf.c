@@ -1555,6 +1555,9 @@ map_to_list(ConfType type)
   case SERVER_TYPE:
     return(&server_items);
     break;
+  case SERVICE_TYPE:
+    return(&service_items);
+    break;
   case CLUSTER_TYPE:
     return(&cluster_items);
     break;
