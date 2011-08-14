@@ -135,6 +135,7 @@ extern const char *get_locale(void);
 #define RPL_STATSHLINE       244
 /* 245 No longer used in ircd-hybrid */
 #define RPL_STATSSLINE       245
+#define RPL_STATSSERVICE     246
 #define RPL_STATSXLINE       247
 #define RPL_STATSULINE       248
 #define RPL_STATSDEBUG       249

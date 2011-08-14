@@ -105,6 +105,7 @@ static void stats_operedup(struct Client *);
 static void stats_ports(struct Client *);
 static void stats_resv(struct Client *);
 static void stats_usage(struct Client *);
+static void stats_service(struct Client *);
 static void stats_tstats(struct Client *);
 static void stats_uptime(struct Client *);
 static void stats_shared(struct Client *);
@@ -159,6 +160,7 @@ static const struct StatsStruct
   { 'Q',	stats_resv,		1,	0	},
   { 'r',	stats_usage,		1,	0	},
   { 'R',	stats_usage,		1,	0	},
+  { 'S',        stats_service,          1,      0       },
   { 't',	stats_tstats,		1,	0	},
   { 'T',	stats_tstats,		1,	0	},
   { 'u',	stats_uptime,		0,	0	},
@@ -1162,6 +1164,12 @@ static void
 stats_usage(struct Client *source_p)
 {
   send_usage(source_p);
+}
+
+static void
+stats_service(struct Client *source_p)
+{
+  report_confitem_types(source_p, SERVICE_TYPE, 0);
 }
 
 static void

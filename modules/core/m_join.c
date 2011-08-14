@@ -508,63 +508,49 @@ do_join_0(struct Client *client_p, struct Client *source_p)
   }
 }
 
-/* set_final_mode()
+/* set_final_mode
  *
- * inputs       - pointer to mode to setup
- *              - pointer to old mode
+ * inputs       - channel mode
+ *              - old channel mode
  * output       - NONE
- * side effects -
+ * side effects - walk through all the channel modes turning off modes
+ *                that were on in oldmode but aren't on in mode.
+ *                Then walk through turning on modes that are on in mode
+ *                but were not set in oldmode.
  */
-static const struct mode_letter
-{
-  unsigned int mode;
-  unsigned char letter;
-} flags[] = {
-  { MODE_NOPRIVMSGS, 'n' },
-  { MODE_TOPICLIMIT, 't' },
-  { MODE_SECRET,     's' },
-  { MODE_MODERATED,  'm' },
-  { MODE_INVITEONLY, 'i' },
-  { MODE_PRIVATE,    'p' },
-  { MODE_REGISTERED, 'r' },
-  { MODE_OPERONLY,   'O' },
-  { MODE_SSLONLY,    'S' },
-  { 0, '\0' }
-};
-
 static void
 set_final_mode(struct Mode *mode, struct Mode *oldmode)
 {
+  const struct mode_letter *tab;
   char *pbuf = parabuf;
   int what   = 0;
   int len;
-  int i;
 
-  for (i = 0; flags[i].letter; i++)
+  for (tab = chan_modes; tab->letter; ++tab)
   {
-    if ((flags[i].mode & mode->mode) &&
-        !(flags[i].mode & oldmode->mode))
+    if ((tab->mode & mode->mode) &&
+        !(tab->mode & oldmode->mode))
     {
       if (what != 1)
       {
         *mbuf++ = '+';
         what = 1;
       }
-      *mbuf++ = flags[i].letter;
+      *mbuf++ = tab->letter;
     }
   }
 
-  for (i = 0; flags[i].letter; i++)
+  for (tab = chan_modes; tab->letter; ++tab)
   {
-    if ((flags[i].mode & oldmode->mode) &&
-        !(flags[i].mode & mode->mode))
+    if ((tab->mode & oldmode->mode) &&
+        !(tab->mode & mode->mode))
     {
       if (what != -1)
       {
         *mbuf++ = '-';
         what = -1;
       }
-      *mbuf++ = flags[i].letter;
+      *mbuf++ = tab->letter;
     }
   }
 

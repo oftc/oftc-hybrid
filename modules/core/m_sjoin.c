@@ -652,41 +652,20 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
  *		  Then walk through turning on modes that are on in mode
  *		  but were not set in oldmode.
  */
-
-static const struct mode_letter
-{
-  unsigned int mode;
-  unsigned char letter;
-} flags[] = {
-  { MODE_NOCOLOR,    'c' },
-  { MODE_NOPRIVMSGS, 'n' },
-  { MODE_TOPICLIMIT, 't' },
-  { MODE_SECRET,     's' },
-  { MODE_MODERATED,  'm' },
-  { MODE_INVITEONLY, 'i' },
-  { MODE_PRIVATE,    'p' },
-  { MODE_SPEAKIFREG, 'M' },
-  { MODE_REGISTERED, 'r' },
-  { MODE_OPERONLY,   'O' },
-  { MODE_REGONLY,    'R' },
-  { MODE_SSLONLY,    'S' },
-  { 0, '\0' }
-};
-
 static void
 set_final_mode(struct Mode *mode, struct Mode *oldmode)
 {
+  const struct mode_letter *tab;
   char *pbuf = parabuf;
   int len;
-  int i;
 
   *mbuf++ = '-';
 
-  for (i = 0; flags[i].letter; i++)
+  for (tab = chan_modes; tab->letter; ++tab)
   {
-    if ((flags[i].mode & oldmode->mode) &&
-        !(flags[i].mode & mode->mode))
-      *mbuf++ = flags[i].letter;
+    if ((tab->mode & oldmode->mode) &&
+        !(tab->mode & mode->mode))
+      *mbuf++ = tab->letter;
   }
 
   if (oldmode->limit != 0 && mode->limit == 0)
@@ -705,11 +684,11 @@ set_final_mode(struct Mode *mode, struct Mode *oldmode)
   else
     *mbuf++ = '+';
 
-  for (i = 0; flags[i].letter; i++)
+  for (tab = chan_modes; tab->letter; ++tab)
   {
-    if ((flags[i].mode & mode->mode) &&
-        !(flags[i].mode & oldmode->mode))
-      *mbuf++ = flags[i].letter;
+    if ((tab->mode & mode->mode) &&
+        !(tab->mode & oldmode->mode))
+      *mbuf++ = tab->letter;
   }
 
   if (mode->limit != 0 && oldmode->limit != mode->limit)

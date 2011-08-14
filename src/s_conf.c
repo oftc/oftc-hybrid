@@ -740,10 +740,12 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
   case CLIENT_TYPE:
     break;
 
-  case SERVICE_TYPE: /* XXX TBD */
+  case SERVICE_TYPE:
     DLINK_FOREACH(ptr, service_items.head)
     {
       conf = ptr->data;
+      sendto_one(source_p, form_str(RPL_STATSSERVICE),
+                 me.name, source_p->name, 'S', "*", conf->name, 0, 0);
     }
     break;
 

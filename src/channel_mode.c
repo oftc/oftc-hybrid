@@ -330,11 +330,7 @@ del_id(struct Channel *chptr, char *banid, int type)
   return 0;
 }
 
-static const struct mode_letter
-{
-  const unsigned int mode;
-  const unsigned char letter;
-} flags[] = {
+const struct mode_letter chan_modes[] = {
   { MODE_NOCOLOR,    'c' },
   { MODE_INVITEONLY, 'i' },
   { MODE_MODERATED,  'm' },
@@ -365,14 +361,14 @@ void
 channel_modes(struct Channel *chptr, struct Client *client_p,
               char *mbuf, char *pbuf)
 {
-  int i;
+  const struct mode_letter *tab = chan_modes;
 
   *mbuf++ = '+';
   *pbuf = '\0';
 
-  for (i = 0; flags[i].mode; ++i)
-    if (chptr->mode.mode & flags[i].mode)
-      *mbuf++ = flags[i].letter;
+  for (; tab->mode; ++tab)
+    if (chptr->mode.mode & tab->mode)
+      *mbuf++ = tab->letter;
 
   if (chptr->mode.limit)
   {
@@ -1592,8 +1588,8 @@ static struct ChannelMode ModeTable[255] =
   {chm_operonly, (void *)MODE_OPERONLY},          /* O */
   {chm_nosuch, NULL},                             /* P */
   {chm_nosuch, NULL},                             /* Q */
-  {chm_simple, (void *)MODE_REGONLY},             /* R */
-  {chm_simple, (void *)MODE_SSLONLY},             /* S */
+  {chm_simple, (void *) MODE_REGONLY},            /* R */
+  {chm_simple, (void *) MODE_SSLONLY},            /* S */
   {chm_nosuch, NULL},                             /* T */
   {chm_nosuch, NULL},                             /* U */
   {chm_nosuch, NULL},                             /* V */

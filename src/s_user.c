@@ -106,10 +106,8 @@ unsigned int user_modes[256] =
   0,                  /* O */
   UMODE_SERVICE,      /* P */
   0,                  /* Q */
-  UMODE_NICKSERVREG,  /* R */
+  UMODE_REGONLY,      /* R */
   UMODE_GOD,          /* S */
-  0,                  /* R */
-  UMODE_REGONLY,      /* S */
   0,                  /* T */
   0,                  /* U */
   0,                  /* V */

@@ -608,12 +608,16 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
     if ((p_or_n != NOTICE) && target_p->away)
       sendto_one(source_p, form_str(RPL_AWAY), me.name,
                  source_p->name, target_p->name, target_p->away);
-    if (HasUMode(target_p, UMODE_REGONLY) && !HasUMode(source_p, UMODE_REGISTERED|UMODE_OPER))
+
+    if (HasUMode(target_p, UMODE_REGONLY) && target_p != source_p)
     {
-      if (p_or_n != NOTICE)
-        sendto_one(source_p, form_str(ERR_NONONREG), me.name, source_p->name,
-                   target_p->name);
-      return;
+      if (!HasUMode(source_p, UMODE_REGISTERED|UMODE_OPER))
+      {
+        if (p_or_n != NOTICE)
+          sendto_one(source_p, form_str(ERR_NONONREG), me.name, source_p->name,
+                     target_p->name);
+        return;
+      }
     }
   }
 
