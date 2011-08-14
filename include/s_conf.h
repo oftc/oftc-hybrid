@@ -255,17 +255,17 @@ struct ip_entry
 #define CONF_FLAGS_NOMATCH_IP           0x00000020
 #define CONF_FLAGS_EXEMPTKLINE          0x00000040
 #define CONF_FLAGS_NOLIMIT              0x00000080
-#define CONF_FLAGS_IDLE_LINED           0x00000100
+/*                                      0x00000100 */
 #define CONF_FLAGS_SPOOF_IP             0x00000200
 #define CONF_FLAGS_SPOOF_NOTICE         0x00000400
 #define CONF_FLAGS_REDIR                0x00000800
 #define CONF_FLAGS_EXEMPTGLINE          0x00001000
-#define CONF_FLAGS_RESTRICTED           0x00002000
+/*                                      0x00002000 */
 #define CONF_FLAGS_CAN_FLOOD            0x00100000
 #define CONF_FLAGS_NEED_PASSWORD        0x00200000
 /* server flags */
 #define CONF_FLAGS_ALLOW_AUTO_CONN      0x00004000
-#define CONF_FLAGS_LAZY_LINK            0x00008000
+/*                                      0x00008000 */
 #define CONF_FLAGS_ENCRYPTED            0x00010000
 #define CONF_FLAGS_COMPRESSED           0x00020000
 #define CONF_FLAGS_TEMPORARY            0x00040000
@@ -285,11 +285,9 @@ struct ip_entry
 #define IsConfExemptLimits(x)   ((x)->flags & CONF_FLAGS_NOLIMIT)
 #define IsConfExemptGline(x)    ((x)->flags & CONF_FLAGS_EXEMPTGLINE)
 #define IsConfExemptResv(x)     ((x)->flags & CONF_FLAGS_EXEMPTRESV)
-#define IsConfIdlelined(x)      ((x)->flags & CONF_FLAGS_IDLE_LINED)
 #define IsConfDoIdentd(x)       ((x)->flags & CONF_FLAGS_DO_IDENTD)
 #define IsConfDoSpoofIp(x)      ((x)->flags & CONF_FLAGS_SPOOF_IP)
 #define IsConfSpoofNotice(x)    ((x)->flags & CONF_FLAGS_SPOOF_NOTICE)
-#define IsConfRestricted(x)     ((x)->flags & CONF_FLAGS_RESTRICTED)
 #define IsConfEncrypted(x)      ((x)->flags & CONF_FLAGS_ENCRYPTED)
 #define SetConfEncrypted(x)	((x)->flags |= CONF_FLAGS_ENCRYPTED)
 #define ClearConfEncrypted(x)	((x)->flags &= ~CONF_FLAGS_ENCRYPTED)
@@ -397,7 +395,6 @@ struct config_file_entry
   int pace_wait_simple;
   int gline_time;
   int gline_logging;
-  int idletime;
   int oper_only_umodes;
   int oper_umodes;
   int max_targets;

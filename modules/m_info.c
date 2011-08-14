@@ -520,12 +520,6 @@ static const struct InfoStruct info_table[] =
     "Opers can over-ride RESVs"
   },
   {
-    "idletime",
-    OUTPUT_DECIMAL,
-    &ConfigFileEntry.idletime,
-    "Number of seconds before a client is considered idle"
-  },
-  {
     "max_targets",
     OUTPUT_DECIMAL,
     &ConfigFileEntry.max_targets,

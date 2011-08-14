@@ -136,7 +136,6 @@ block		{ return T_BLOCK; }
 burst_away      { return BURST_AWAY; }
 burst_topicwho  { return BURST_TOPICWHO; }
 can_flood	{ return CAN_FLOOD; }
-can_idle        { return CAN_IDLE; }
 caller_id_wait	{ return CALLER_ID_WAIT; }
 opers_bypass_callerid  { return OPERS_BYPASS_CALLERID; }
 channel		{ return CHANNEL; }
@@ -209,7 +208,6 @@ hide_spoof_ips	{ return HIDE_SPOOF_IPS; }
 host		{ return HOST; }
 hub		{ return HUB; }
 hub_mask	{ return HUB_MASK; }
-idletime        { return IDLETIME; }
 ignore_bogus_ts { return IGNORE_BOGUS_TS; }
 invisible_on_connect { return INVISIBLE_ON_CONNECT; }
 ip		{ return IP; }
@@ -295,7 +293,7 @@ server          { return T_SERVER; }
 serverhide	{ return SERVERHIDE; }
 serverinfo	{ return SERVERINFO; }
 service          { return T_SERVICE; }
-services_name    { return T_SERVICE_NAME; }
+services_name    { return T_SERVICES_NAME; }
 servlink_path   { return SERVLINK_PATH; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }

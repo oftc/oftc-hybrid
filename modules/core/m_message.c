@@ -464,7 +464,7 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
   {
     /* idle time shouldnt be reset by notices --fl */
     if (p_or_n != NOTICE)
-      source_p->localClient->last = CurrentTime;
+      source_p->localClient->last_privmsg = CurrentTime;
   }
 
 #ifndef STATIC_MODULES
@@ -546,7 +546,7 @@ msg_channel_flags(int p_or_n, const char *command, struct Client *client_p,
   {
     /* idletime shouldnt be reset by notice --fl */
     if (p_or_n != NOTICE)
-      source_p->localClient->last = CurrentTime;
+      source_p->localClient->last_privmsg = CurrentTime;
 
     sendto_channel_local_butone(source_p, type, chptr, ":%s!%s@%s %s %c%s :%s",
                                 source_p->name, source_p->username,
@@ -591,15 +591,10 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
   if (MyConnect(source_p))
   {
     /*
-     * reset idle time for message only if its not to self 
-     * and its not a notice
-     * NOTE: Normally we really should reset their idletime
-     * if the are messaging themselves, but we have to go
-     * this way in order to prevent them to trick out
-     * idle-klines.
+     * reset idle time for message only if it's not a notice
      */
-    if ((p_or_n != NOTICE) && (source_p != target_p))
-      source_p->localClient->last = CurrentTime;
+    if ((p_or_n != NOTICE))
+      source_p->localClient->last_privmsg = CurrentTime;
 
 #ifndef STATIC_MODULES
   execute_callback(client_message, source_p, target_p, text);
@@ -856,7 +851,7 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
                    ID_or_name(source_p, target_p->from),
 		   command, nick, text);
 	if ((p_or_n != NOTICE) && MyClient(source_p))
-	  source_p->localClient->last = CurrentTime;
+	  source_p->localClient->last_privmsg = CurrentTime;
 	return;
       }
 
@@ -898,7 +893,7 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
 		     source_p->name, source_p->username, source_p->host,
                      command, nick, text);
 	  if ((p_or_n != NOTICE) && MyClient(source_p))
-	    source_p->localClient->last = CurrentTime;
+	    source_p->localClient->last_privmsg = CurrentTime;
 	}
 	else
 	  sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
@@ -968,7 +963,7 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
                         "%s $%s :%s", command, nick, text);
 
     if ((p_or_n != NOTICE) && MyClient(source_p))
-      source_p->localClient->last = CurrentTime;
+      source_p->localClient->last_privmsg = CurrentTime;
 
     return;
   }

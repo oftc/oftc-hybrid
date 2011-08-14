@@ -252,32 +252,6 @@ check_pings_list(dlink_list *list)
       continue;
     }
 
-    if (GlobalSetOptions.idletime && IsClient(client_p))
-    {
-      if (!IsExemptKline(client_p) && !IsOper(client_p) &&
-          !IsIdlelined(client_p) &&
-	  ((CurrentTime - client_p->localClient->last) > GlobalSetOptions.idletime))
-      {
-        struct ConfItem *conf;
-        struct AccessItem *aconf;
-
-        conf = make_conf_item(KLINE_TYPE);
-        aconf = map_to_conf(conf);
-
-        DupString(aconf->host, client_p->host);
-        DupString(aconf->reason, "idle exceeder");
-        DupString(aconf->user, client_p->username);
-        aconf->hold = CurrentTime + 60;
-        add_temp_line(conf);
-
-        sendto_realops_flags(UMODE_ALL, L_ALL, 
-                             "Idle time limit exceeded for %s - temp k-lining",
-                             get_client_name(client_p, HIDE_IP));
-        exit_client(client_p, &me, aconf->reason);
-        continue;
-      }
-    }
-
     if (!IsRegistered(client_p))
       ping = CONNECTTIMEOUT, pingwarn = 0;
     else

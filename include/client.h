@@ -193,6 +193,7 @@ struct LocalUser
   time_t       last_caller_id_time;
   time_t       first_received_message_time;
   time_t       last_nick_change;
+  time_t       last_privmsg; /* Last time we got a PRIVMSG */
 
   int          received_number_of_privmsgs;
   unsigned int number_of_nick_changes;
@@ -213,7 +214,6 @@ struct LocalUser
   dlink_list        watches;   /* chain of Watch pointer blocks */
   dlink_list        confs;     /* Configuration record associated */
   dlink_list        invited;   /* chain of invite pointer blocks */
-  time_t last; /* Last time we got a PRIVMSG */
 
   char              *passwd;
   unsigned int       caps;       /* capabilities bit-field */
@@ -335,9 +335,9 @@ struct LocalUser
 #define FLAGS_EXEMPTGLINE   0x0000000000004000 /* client can't be G-lined                  */
 #define FLAGS_EXEMPTKLINE   0x0000000000008000 /* client is exempt from kline              */
 #define FLAGS_NOLIMIT       0x0000000000010000 /* client is exempt from limits             */
-#define FLAGS_RESTRICTED    0x0000000000020000 /* client cannot op others                  */
+#define FLAGS_UNUSED___     0x0000000000020000 /* Unused                                   */
 #define FLAGS_PING_COOKIE   0x0000000000040000 /* PING Cookie                              */
-#define FLAGS_IDLE_LINED    0x0000000000080000 /* client is exempt from idle-time limits   */
+#define FLAGS_UNUSED____    0x0000000000080000 /* Unused                                   */
 #define FLAGS_IP_SPOOFING   0x0000000000100000 /* client IP is spoofed                     */
 #define FLAGS_FLOODDONE     0x0000000000200000 /* Flood grace period has been ended.       */
 #define FLAGS_EOB           0x0000000000400000 /* server has received EOB                  */
@@ -511,11 +511,6 @@ struct LocalUser
 #define SetExemptResv(x)        ((x)->flags |= FLAGS_EXEMPTRESV)
 #define SetIPSpoof(x)           ((x)->flags |= FLAGS_IP_SPOOFING)
 #define IsIPSpoof(x)            ((x)->flags & FLAGS_IP_SPOOFING)
-
-#define IsIdlelined(x)          ((x)->flags &  FLAGS_IDLE_LINED)
-#define SetIdlelined(x)         ((x)->flags |= FLAGS_IDLE_LINED)
-#define IsRestricted(x)         ((x)->flags &  FLAGS_RESTRICTED)
-#define SetRestricted(x)        ((x)->flags |= FLAGS_RESTRICTED)
 
 #define IsFloodDone(x)          ((x)->flags &  FLAGS_FLOODDONE)
 #define SetFloodDone(x)         ((x)->flags |= FLAGS_FLOODDONE)
