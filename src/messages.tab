@@ -501,7 +501,8 @@ static struct NumericInfo replies[] = {
 /* 474 */  {"ERR_BANNEDFROMCHAN", ":%s 474 %s %s :Cannot join channel (+b)", NULL},
 /* 475 */  {"ERR_BADCHANNELKEY", ":%s 475 %s %s :Cannot join channel (+k)", NULL},
 /* 476 */  {NULL, NULL, NULL},
-/* 477 */  {"ERR_REGONLYCHAN", ":%s 477 %s %s :Cannot join channel (Need to be identified to join this channel, '/msg NickServ help' to learn how to register.)", NULL},
+/* 477 */  {"ERR_NEEDREGGEDNICK", ":%s 477 %s %s :You need to identify to a registered nick to join or speak in that "
+                                       "channel.", NULL},
 /* 478 */  {"ERR_BANLISTFULL", ":%s 478 %s %s %s :Channel ban list is full", NULL},
 /* 479 */  {"ERR_BADCHANNAME", ":%s 479 %s %s :Illegal channel name", NULL},
 /* 480 */  {"ERR_SSLONLYCHAN", ":%s 480 %s %s :Cannot join channel (+S)", NULL},
@@ -510,7 +511,8 @@ static struct NumericInfo replies[] = {
 /* 483 */  {"ERR_CANTKILLSERVER", ":%s 483 %s :You can't kill a server!", NULL},
 /* 484 */  {"ERR_RESTRICTED", ":%s 484 %s :You are restricted", NULL},
 /* 485 */  {NULL, NULL, NULL},
-/* 486 */  {NULL, NULL, NULL},
+/* 486 */  {"ERR_NONONREG", ":%s 486 %s %s :You must identify to a registered "
+                                "nick to private message that person", NULL},
 /* 487 */  {NULL, NULL, NULL},
 /* 488 */  {NULL, NULL, NULL},
 /* 489 */  {NULL, NULL, NULL},

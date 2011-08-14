@@ -690,6 +690,9 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
     return ERR_SSLONLYCHAN;
 #endif
 
+  if ((chptr->mode.mode & MODE_REGONLY) && !HasUMode(source_p, UMODE_REGISTERED))
+    return ERR_NEEDREGGEDNICK;
+
   if ((chptr->mode.mode & MODE_OPERONLY) && !IsOper(source_p))
     return ERR_OPERONLYCHAN;
 
@@ -750,7 +753,7 @@ find_channel_link(struct Client *client_p, struct Channel *chptr)
  * \param ms       pointer to Membership struct (can be NULL)
  * \return CAN_SEND_OPV if op or voiced on channel\n
  *         CAN_SEND_NONOP if can send to channel but is not an op\n
- *         CAN_SEND_NO if they cannot send to channel\n
+ *         ERR_CANNOTSENDTOCHAN or ERR_NEEDREGGEDNICK if they cannot send to channel\n
  */
 int
 can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
@@ -761,7 +764,7 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
   if (MyClient(source_p) && !IsExemptResv(source_p))
     if (!(IsOper(source_p) && ConfigFileEntry.oper_pass_resv))
       if (!hash_find_resv(chptr->chname) == ConfigChannel.restrict_channels)
-        return CAN_SEND_NO;
+        return ERR_CANNOTSENDTOCHAN;
 
   if (ms != NULL || (ms = find_channel_link(source_p, chptr)))
   {
@@ -778,14 +781,14 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
     if (ConfigChannel.quiet_on_ban && MyClient(source_p))
     {
       if (ms->flags & CHFL_BAN_SILENCED)
-        return CAN_SEND_NO;
+        return ERR_CANNOTSENDTOCHAN;
 
       if (!(ms->flags & CHFL_BAN_CHECKED))
       {
         if (is_banned(chptr, source_p))
         {
           ms->flags |= (CHFL_BAN_CHECKED|CHFL_BAN_SILENCED);
-          return CAN_SEND_NO;
+          return ERR_CANNOTSENDTOCHAN;
         }
 
         ms->flags |= CHFL_BAN_CHECKED;
@@ -793,10 +796,10 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
     }
   }
   else if (chptr->mode.mode & MODE_NOPRIVMSGS)
-    return CAN_SEND_NO;
+    return ERR_CANNOTSENDTOCHAN;
 
   if (chptr->mode.mode & MODE_MODERATED)
-    return CAN_SEND_NO;
+    return ERR_CANNOTSENDTOCHAN;
 
   if(SpeakOnlyIfReg(chptr) && !IsNickServReg(source_p))
     return CAN_SEND_ONLY_IF_REG;

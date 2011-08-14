@@ -388,7 +388,7 @@ extern const char *get_locale(void);
 #define ERR_INVITEONLYCHAN   473
 #define ERR_BANNEDFROMCHAN   474
 #define ERR_BADCHANNELKEY    475
-#define ERR_REGONLYCHAN      477
+#define ERR_NEEDREGGEDNICK   477
 #define ERR_BANLISTFULL      478        /* I stole the numeric from ircu -db */
 #define ERR_BADCHANNAME      479
 /* 	ERR_LINKFAIL	     479	unreal */
@@ -403,7 +403,7 @@ extern const char *get_locale(void);
 /*      ERR_UNIQOPRIVSNEEDED 485           IRCnet extension */
 /*	ERR_KILLDENY         485	   unreal */
 /*	ERR_CANTKICKADMIN    485	   PTlink */
-/*	ERR_HTMDISABLED      486	   unreal */
+#define ERR_NONONREG         486
 /*      ERR_CHANTOORECENT    487           IRCnet extension (?) */
 /*      ERR_TSLESSCHAN       488           IRCnet extension (?) */
 /*	ERR_VOICENEEDED      489           Undernet extension */

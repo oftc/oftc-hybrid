@@ -472,8 +472,7 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
 #endif
 
   /* chanops and voiced can flood their own channel with impunity */
-  result = can_send(chptr, source_p, NULL);
-  if (result > 0)
+  if ((result = can_send(chptr, source_p, NULL)) < 0)
   {
     if (result == CAN_SEND_OPV ||
         !flood_attack_channel(p_or_n, source_p, chptr, chptr->chname))
@@ -589,7 +588,7 @@ static void
 msg_client(int p_or_n, const char *command, struct Client *source_p,
            struct Client *target_p, char *text)
 {
-  if (MyClient(source_p))
+  if (MyConnect(source_p))
   {
     /*
      * reset idle time for message only if its not to self 
@@ -601,15 +600,22 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
      */
     if ((p_or_n != NOTICE) && (source_p != target_p))
       source_p->localClient->last = CurrentTime;
-  }
 
 #ifndef STATIC_MODULES
   execute_callback(client_message, source_p, target_p, text);
 #endif
 
-  if (MyConnect(source_p) && (p_or_n != NOTICE) && target_p->away)
-    sendto_one(source_p, form_str(RPL_AWAY), me.name,
-               source_p->name, target_p->name, target_p->away);
+    if ((p_or_n != NOTICE) && target_p->away)
+      sendto_one(source_p, form_str(RPL_AWAY), me.name,
+                 source_p->name, target_p->name, target_p->away);
+    if (HasUMode(target_p, UMODE_REGONLY) && !HasUMode(source_p, UMODE_REGISTERED|UMODE_OPER))
+    {
+      if (p_or_n != NOTICE)
+        sendto_one(source_p, form_str(ERR_NONONREG), me.name, source_p->name,
+                   target_p->name);
+      return;
+    }
+  }
 
   if (MyClient(target_p))
   {
