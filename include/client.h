@@ -371,6 +371,7 @@ struct LocalUser
 #define UMODE_DEAF         0x00020000 /* don't receive channel messages */
 #define UMODE_CCONN_FULL   0x00040000 /* add unused fields to connection monitoring */
 #define UMODE_REGISTERED   0x00080000 /* User has identified for that nick. */
+#define UMODE_REGONLY      0x00010000 /* Only registered nicks may PM */
 
 /* user information flags, only settable by remote mode or local oper */
 #define UMODE_OPER         0x40000000 /* Operator */

@@ -35,8 +35,8 @@
 
 /* can_send results */
 #define CAN_SEND_NO	0
-#define CAN_SEND_NONOP  1
-#define CAN_SEND_OPV	2
+#define CAN_SEND_NONOP  -1
+#define CAN_SEND_OPV	-2
 
 
 /* Channel related flags */
@@ -58,6 +58,7 @@
 #define MODE_SSLONLY    0x0040
 #define MODE_OPERONLY   0x0080
 #define MODE_REGISTERED 0x0100 /* Channel has been registered with ChanServ */
+#define MODE_REGONLY    0x0200
 
 /* cache flags for silence on ban */
 #define CHFL_BAN_CHECKED  0x0080
