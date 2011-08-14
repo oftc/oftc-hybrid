@@ -35,7 +35,6 @@ struct Client;
 struct SetOptions
 {
   int autoconn;      /* autoconn enabled for all servers? */
-  int idletime;
   int floodcount;    /* Number of messages in 1 second    */
   /* XXX for join flood catching - Dianora */
   int joinfloodtime;

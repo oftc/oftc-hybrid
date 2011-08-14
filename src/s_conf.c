@@ -1928,7 +1928,6 @@ set_default_conf(void)
   ConfigFileEntry.oper_pass_resv = YES;
   ConfigFileEntry.glines = NO;
   ConfigFileEntry.gline_time = 12 * 3600;
-  ConfigFileEntry.idletime = 0;
   ConfigFileEntry.max_targets = MAX_TARGETS_DEFAULT;
   ConfigFileEntry.client_flood = CLIENT_FLOOD_DEFAULT;
   ConfigFileEntry.oper_only_umodes = UMODE_DEBUG;

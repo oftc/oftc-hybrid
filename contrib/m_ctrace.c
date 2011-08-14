@@ -141,7 +141,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
                        me.name, source_p->name, class_name, name,
                        IsAdmin(source_p) ? target_p->sockhost : "255.255.255.255",
                        CurrentTime - target_p->lasttime,
-                       CurrentTime - target_p->localClient->last);
+                       CurrentTime - target_p->localClient->last_privmsg);
           else if (IsOper(target_p))
           {
             if (ConfigFileEntry.hide_spoof_ips)
@@ -149,13 +149,13 @@ report_this_status(struct Client *source_p, struct Client *target_p)
 		         me.name, source_p->name, class_name, name, 
 		         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
 		         CurrentTime - target_p->lasttime,
-		         CurrentTime - target_p->localClient->last);
+		         CurrentTime - target_p->localClient->last_privmsg);
 	    else   
               sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                          me.name, source_p->name, class_name, name,
                          (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                          CurrentTime - target_p->lasttime,
-                         CurrentTime - target_p->localClient->last);
+                         CurrentTime - target_p->localClient->last_privmsg);
           }
 	  else
           {
@@ -164,13 +164,13 @@ report_this_status(struct Client *source_p, struct Client *target_p)
 		         me.name, source_p->name, class_name, name,
                          IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
 		         CurrentTime - target_p->lasttime,
-		         CurrentTime - target_p->localClient->last);
+		         CurrentTime - target_p->localClient->last_privmsg);
             else
               sendto_one(source_p, form_str(RPL_TRACEUSER),
                          me.name, source_p->name, class_name, name,
                          (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                          CurrentTime - target_p->lasttime,
-                         CurrentTime - target_p->localClient->last);
+                         CurrentTime - target_p->localClient->last_privmsg);
           }
         }
       break;

@@ -309,7 +309,7 @@ register_local_user(struct Client *source_p)
       return;
   }
 
-  source_p->localClient->last = CurrentTime;
+  source_p->localClient->last_privmsg = CurrentTime;
   /* Straight up the maximum rate of flooding... */
   source_p->localClient->allow_read = MAX_FLOOD_BURST;
 
@@ -760,15 +760,6 @@ report_and_set_user_flags(struct Client *source_p, const struct AccessItem *acon
     sendto_one(source_p,
                ":%s NOTICE %s :*** You are exempt from user limits. congrats.",
                me.name,source_p->name);
-  }
-
-  /* If this user is exempt from idle time outs */
-  if (IsConfIdlelined(aconf))
-  {
-    SetIdlelined(source_p);
-    sendto_one(source_p,
-               ":%s NOTICE %s :*** You are exempt from idle limits. congrats.",
-               me.name, source_p->name);
   }
 
   if (IsConfCanFlood(aconf))

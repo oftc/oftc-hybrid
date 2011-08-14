@@ -147,7 +147,6 @@ unhook_hub_leaf_confs(void)
 %token  BYTES KBYTES MBYTES GBYTES TBYTES
 %token  CALLER_ID_WAIT
 %token  CAN_FLOOD
-%token  CAN_IDLE
 %token  CHANNEL
 %token	CIDR_BITLEN_IPV4
 %token	CIDR_BITLEN_IPV6
@@ -212,7 +211,6 @@ unhook_hub_leaf_confs(void)
 %token  HOST
 %token  HUB
 %token  HUB_MASK
-%token  IDLETIME
 %token  IGNORE_BOGUS_TS
 %token  INVISIBLE_ON_CONNECT
 %token  IP
@@ -364,7 +362,7 @@ unhook_hub_leaf_confs(void)
 %token  T_UNXLINE
 %token  T_WALLOP
 %token  T_SERVICE
-%token  T_SERVICE_NAME
+%token  T_SERVICES_NAME
 %token  THROTTLE_TIME
 %token  TOPICBURST
 %token  TRUE_NO_OPER_FLOOD
@@ -1817,13 +1815,6 @@ auth_flags_item_atom: SPOOF_NOTICE
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_CAN_FLOOD;
     else yy_aconf->flags |= CONF_FLAGS_CAN_FLOOD;
   }
-} | CAN_IDLE
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_IDLE_LINED;
-    else yy_aconf->flags |= CONF_FLAGS_IDLE_LINED;
-  }
 } | NO_TILDE
 {
   if (conf_parser_ctx.pass == 2)
@@ -2864,7 +2855,7 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_pace_wait_simple | general_stats_P_oper_only |
                     general_short_motd | general_no_oper_flood |
                     general_true_no_oper_flood | general_oper_pass_resv |
-                    general_idletime | general_message_locale |
+                    general_message_locale |
                     general_oper_only_umodes | general_max_targets |
                     general_use_egd | general_egdpool_path |
                     general_oper_umodes | general_caller_id_wait |
@@ -2879,7 +2870,7 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
 		    general_tkline_expire_notices | general_gline_min_cidr |
                     general_gline_min_cidr6 | general_use_whois_actually |
 		    general_reject_hold_time | general_stats_e_disabled |
-		    general_max_watch | general_service_name |
+		    general_max_watch | general_services_name |
 		    error;
 
 
@@ -3096,11 +3087,6 @@ general_message_locale: MESSAGE_LOCALE '=' QSTRING ';'
   }
 };
 
-general_idletime: IDLETIME '=' timespec ';'
-{
-  ConfigFileEntry.idletime = $3;
-};
-
 general_dots_in_ident: DOTS_IN_IDENT '=' NUMBER ';'
 {
   ConfigFileEntry.dots_in_ident = $3;
@@ -3184,9 +3170,9 @@ general_egdpool_path: EGDPOOL_PATH '=' QSTRING ';'
   }
 };
 
-general_service_name: T_SERVICE_NAME '=' QSTRING ';'
+general_services_name: T_SERVICES_NAME '=' QSTRING ';'
 {
-  if (conf_parser_ctx.pass == 2)
+  if (conf_parser_ctx.pass == 2 && valid_servname(yylval.string))
   {
     MyFree(ConfigFileEntry.service_name);
     DupString(ConfigFileEntry.service_name, yylval.string);

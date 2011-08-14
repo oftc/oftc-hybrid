@@ -1090,14 +1090,14 @@ stats_operedup(struct Client *source_p)
 		 (IsOperHiddenAdmin(target_p) ? 'O' : 'A') : 'O',
 		 oper_privs_as_string(target_p->localClient->operflags),
 		 target_p->name, target_p->username, target_p->host,
-		 (int)(CurrentTime - target_p->localClient->last));
+		 (int)(CurrentTime - target_p->localClient->last_privmsg));
     else
       sendto_one(source_p, ":%s %d %s p :[%c] %s (%s@%s) Idle: %d",
                  from, RPL_STATSDEBUG, to,
                  IsAdmin(target_p) ?
 		 (IsOperHiddenAdmin(target_p) ? 'O' : 'A') : 'O',
 		 target_p->name, target_p->username, target_p->host,
-		 (int)(CurrentTime - target_p->localClient->last));
+		 (int)(CurrentTime - target_p->localClient->last_privmsg));
   }
 
   sendto_one(source_p, ":%s %d %s p :%lu OPER(s)",
