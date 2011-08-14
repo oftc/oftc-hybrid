@@ -729,10 +729,12 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
   case CLIENT_TYPE:
     break;
 
-  case SERVICE_TYPE: /* XXX TBD */
+  case SERVICE_TYPE:
     DLINK_FOREACH(ptr, service_items.head)
     {
       conf = ptr->data;
+      sendto_one(source_p, form_str(RPL_STATSSERVICE),
+                 me.name, source_p->name, 'S', "*", conf->name, 0, 0);
     }
     break;
 
@@ -2496,7 +2498,7 @@ read_conf_files(int cold)
   add_isupport("CHANLIMIT", chanlimit, -1);
   snprintf(chanmodes, sizeof(chanmodes), "%s%s%s",
            ConfigChannel.use_except ? "e" : "",
-	   ConfigChannel.use_invex ? "I" : "", "b,k,l,imnpstOS");
+	   ConfigChannel.use_invex ? "I" : "", "b,k,l,imnprstORS");
   add_isupport("CHANNELLEN", NULL, LOCAL_CHANNELLEN);
 
   if (ConfigChannel.use_except)

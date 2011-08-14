@@ -25,9 +25,9 @@ static struct NumericInfo replies[] = {
 /* 002 */  {"RPL_YOURHOST", ":%s 002 %s :Your host is %s, running version %s", NULL},
 /* 003 */  {"RPL_CREATED", ":%s 003 %s :This server was created %s", NULL},
 #ifdef HALFOPS
-/* 004 */  {"RPL_MYINFO", ":%s 004 %s %s %s %s biklmnopstveIhOS bkloveIh", NULL},
+/* 004 */  {"RPL_MYINFO", ":%s 004 %s %s %s %s biklmnoprstveIhORS bkloveIh", NULL},
 #else
-/* 004 */  {"RPL_MYINFO", ":%s 004 %s %s %s %s biklmnopstveIOS bkloveI", NULL},
+/* 004 */  {"RPL_MYINFO", ":%s 004 %s %s %s %s biklmnoprstveIORS bkloveI", NULL},
 #endif
 /* 005 */  {"RPL_ISUPPORT", ":%s 005 %s %s :are supported by this server", NULL},
 /* 006 */  {NULL, NULL, NULL},
@@ -270,7 +270,7 @@ static struct NumericInfo replies[] = {
 /* 243 */  {"RPL_STATSOLINE", ":%s 243 %s %c %s@%s * %s %s %s", NULL},
 /* 244 */  {"RPL_STATSHLINE", ":%s 244 %s %c %s * %s %d %s",  NULL},
 /* 245 */  {"RPL_STATSSLINE", NULL, NULL},
-/* 246 */  {NULL, NULL, NULL},
+/* 246 */  {"RPL_STATSSERVICE", ":%s 246 %s %c %s * %s %d %d", NULL},
 /* 247 */  {"RPL_STATSXLINE", ":%s 247 %s %s %d %s :%s", NULL},
 /* 248 */  {"RPL_STATSULINE", ":%s 248 %s U %s %s@%s %s", NULL},
 /* 249 */  {NULL, NULL, NULL},

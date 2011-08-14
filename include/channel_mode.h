@@ -99,6 +99,13 @@ struct ChCapCombo
   unsigned int cap_no;
 };
 
+struct mode_letter
+{
+  const unsigned int mode;
+  const unsigned char letter;
+};
+
+extern const struct mode_letter chan_modes[];
 extern int add_id(struct Client *, struct Channel *, char *, int);
 extern void set_channel_mode(struct Client *, struct Client *, struct Channel *,
                              struct Membership *, int, char **, char *);

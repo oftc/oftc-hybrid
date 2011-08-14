@@ -106,8 +106,8 @@ unsigned int user_modes[256] =
   0,                  /* O */
   0,                  /* P */
   0,                  /* Q */
-  0,                  /* R */
-  UMODE_REGONLY,      /* S */
+  UMODE_REGONLY,      /* R */
+  0,                  /* S */
   0,                  /* T */
   0,                  /* U */
   0,                  /* V */
