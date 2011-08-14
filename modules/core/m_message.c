@@ -622,7 +622,7 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
     if (!IsServer(source_p) && IsSetCallerId(target_p))
     {
       /* Here is the anti-flood bot/spambot code -db */
-      if (source_p == target_p || accept_message(source_p, target_p) || IsService(source_p) ||
+      if (accept_message(source_p, target_p) || IsService(source_p) ||
          (IsOper(source_p) && (ConfigFileEntry.opers_bypass_callerid == 1)))
       {
         sendto_one(target_p, ":%s!%s@%s %s %s :%s",
