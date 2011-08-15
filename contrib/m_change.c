@@ -48,17 +48,17 @@ static void mo_chghost(struct Client *, struct Client *, int, char *[]);
 static void mo_chgname(struct Client *, struct Client *, int, char *[]);
 
 struct Message chgident_msgtab = {
-  "CHGIDENT", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "CHGIDENT", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, mo_chgident, mo_chgident, mo_chgident, m_ignore}
 };
 
 struct Message chghost_msgtab = {
-  "CHGHOST", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "CHGHOST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, mo_chghost, mo_chghost, mo_chghost, m_ignore}
 };
 
 struct Message chgname_msgtab = {
-  "CHGNAME", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "CHGNAME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, mo_chgname, mo_chgname, mo_chgname, m_ignore}
 };
 

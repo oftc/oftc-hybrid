@@ -33,10 +33,10 @@
 #include "parse.h"
 #include "modules.h"
 
-static void ms_eob(struct Client*, struct Client*, int, char**);
+static void ms_eob(struct Client*, struct Client*, int, char*[]);
 
 struct Message eob_msgtab = {
-  "EOB", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0, 
+  "EOB", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0, 
   {m_unregistered, m_ignore, ms_eob, m_ignore, m_ignore, m_ignore}
 };
 

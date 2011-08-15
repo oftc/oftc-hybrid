@@ -37,7 +37,7 @@ static void m_error(struct Client *, struct Client *, int, char *[]);
 static void ms_error(struct Client *, struct Client *, int, char *[]);
 
 struct Message error_msgtab = {
- "ERROR", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0,
+ "ERROR", 0, 0, 1, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
   { m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore }
 };
 

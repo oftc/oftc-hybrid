@@ -62,7 +62,7 @@ static void cryptlink_serv(struct Client *, struct Client *, int, char **);
 static void cryptlink_auth(struct Client *, struct Client *, int, char **);
 
 struct Message cryptlink_msgtab = {
-  "CRYPTLINK", 0, 0, 4, 0, MFLG_SLOW | MFLG_UNREG, 0,
+  "CRYPTLINK", 0, 0, 4, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
   {mr_cryptlink, m_ignore, rfc1459_command_send_error, m_ignore, m_ignore, m_ignore}
 };
 

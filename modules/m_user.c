@@ -39,7 +39,7 @@
 static void mr_user(struct Client *, struct Client *, int, char *[]);
 
 struct Message user_msgtab = {
-  "USER", 0, 0, 5, 0, MFLG_SLOW, 0L,
+  "USER", 0, 0, 5, MAXPARA, MFLG_SLOW, 0L,
   { mr_user, m_registered, m_ignore, m_ignore, m_registered, m_ignore }
 };
 

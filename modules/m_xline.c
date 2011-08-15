@@ -61,12 +61,12 @@ static int remove_txline_match(const char *);
 static void relay_xline(struct Client *, char *[]);
 
 struct Message xline_msgtab = {
-  "XLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "XLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, ms_xline, me_xline, mo_xline, m_ignore }
 };
 
 struct Message unxline_msgtab = {
-  "UNXLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "UNXLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, ms_unxline, m_ignore, mo_unxline, m_ignore }
 };
 

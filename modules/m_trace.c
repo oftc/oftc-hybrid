@@ -47,7 +47,7 @@ static void mo_trace(struct Client *, struct Client *, int, char *[]);
 static void do_actual_trace(struct Client *, int, char *[]);
 
 struct Message trace_msgtab = {
-  "TRACE", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "TRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_trace, ms_trace, m_ignore, mo_trace, m_ignore }
 };
 

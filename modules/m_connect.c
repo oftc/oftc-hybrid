@@ -43,7 +43,7 @@ static void mo_connect(struct Client *, struct Client *, int, char *[]);
 static void ms_connect(struct Client *, struct Client *, int, char *[]);
 
 struct Message connect_msgtab = {
-  "CONNECT", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "CONNECT", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, ms_connect, m_ignore, mo_connect, m_ignore }
 };
 

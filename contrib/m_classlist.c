@@ -40,7 +40,7 @@
 static void mo_classlist(struct Client *, struct Client *, int, char *[]);
 
 struct Message classlist_msgtab = {
-  "CLASSLIST", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "CLASSLIST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_classlist, m_ignore}
 };
 

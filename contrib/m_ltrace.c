@@ -45,7 +45,7 @@ static void m_ltrace(struct Client *, struct Client *, int, char *[]);
 static void mo_ltrace(struct Client *, struct Client *, int, char *[]);
 
 struct Message ltrace_msgtab = {
-  "LTRACE", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "LTRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_ltrace, mo_ltrace, m_ignore, mo_ltrace, m_ignore}
 };
 

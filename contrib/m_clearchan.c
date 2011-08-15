@@ -48,7 +48,7 @@ static void remove_our_modes(struct Channel *);
 static void remove_a_mode(struct Channel *, int, char);
 
 struct Message clearchan_msgtab = {
-  "CLEARCHAN", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "CLEARCHAN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_clearchan, m_ignore }
 };
 

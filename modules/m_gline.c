@@ -65,12 +65,12 @@ static void mo_gungline(struct Client *, struct Client *, int, char *[]);
  * -db
  */
 struct Message gline_msgtab = {
-  "GLINE", 0, 0, 3, 0, MFLG_SLOW, 0,
+  "GLINE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, ms_gline, me_gline, mo_gline, m_ignore }
 };
 
 struct Message ungline_msgtab = {
-  "GUNGLINE", 0, 0, 3, 0, MFLG_SLOW, 0,
+  "GUNGLINE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, me_gungline, mo_gungline, m_ignore }
 };
 

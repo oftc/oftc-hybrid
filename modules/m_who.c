@@ -46,7 +46,7 @@ static time_t last_used = 0;
 static void m_who(struct Client *, struct Client *, int, char *[]);
 
 struct Message who_msgtab = {
-  "WHO", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "WHO", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_who, m_ignore, m_ignore, m_who, m_ignore}
 };
 

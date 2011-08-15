@@ -44,7 +44,7 @@ static void m_list(struct Client *, struct Client *, int, char *[]);
 static void mo_list(struct Client *, struct Client *, int, char *[]);
 
 struct Message list_msgtab = {
-  "LIST", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "LIST", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_list, m_ignore, m_ignore, mo_list, m_ignore}
 };
 

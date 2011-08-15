@@ -45,7 +45,7 @@ static void mo_hash(struct Client *, struct Client *, int, char *[]);
 
 
 struct Message hash_msgtab = {
- "HASH", 0, 0, 0, 0, MFLG_SLOW, 0,
+ "HASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_hash, m_ignore }
 };
 

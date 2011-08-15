@@ -111,65 +111,12 @@ static char buffer[1024];
 
 static int cancel_clients(struct Client *, struct Client *, char *);
 static void remove_unknown(struct Client *, char *, char *);
-static void do_numeric(char[], struct Client *, struct Client *, int, char **);
-static void handle_command(struct Message *, struct Client *, struct Client *, unsigned int, char **);
+static void handle_numeric(char[], struct Client *, struct Client *, int, char *[]);
+static void handle_command(struct Message *, struct Client *, struct Client *, unsigned int, char *[]);
 static void recurse_report_messages(struct Client *, const struct MessageTree *);
 static void add_msg_element(struct MessageTree *, struct Message *, const char *);
 static void del_msg_element(struct MessageTree *, const char *);
 
-/* turn a string into a parc/parv pair */
-static inline int
-string_to_array(char *string, char *parv[MAXPARA])
-{
-  char *p;
-  char *buf = string;
-  int x = 1;
-
-  parv[x] = NULL;
-
-  while (*buf == ' ') /* skip leading spaces */
-    buf++;
-
-  if (*buf == '\0') /* ignore all-space args */
-    return(x);
-
-  do
-  {
-    if (*buf == ':') /* Last parameter */
-    {
-      buf++;
-      parv[x++] = buf;
-      parv[x]   = NULL;
-      return(x);
-    }
-    else
-    {
-      parv[x++] = buf;
-      parv[x]   = NULL;
-
-      if ((p = strchr(buf, ' ')) != NULL)
-      {
-        *p++ = '\0';
-        buf  = p;
-      }
-      else
-        return(x);
-    }       
-
-    while (*buf == ' ')
-      buf++;
-
-    if (*buf == '\0')
-      return(x);
-  } while (x < MAXPARA - 1);
-
-  if (*p == ':')
-    p++;
-
-  parv[x++] = p;
-  parv[x]   = NULL;
-  return(x);
-}
 
 /*
  * parse a buffer.
@@ -180,13 +127,13 @@ void
 parse(struct Client *client_p, char *pbuffer, char *bufend)
 {
   struct Client *from = client_p;
+  struct Message *msg_ptr = NULL;
   char *ch;
   char *s;
   char *numeric = 0;
-  unsigned int i = 0;
-  int paramcount;
+  unsigned int parc = 0;
+  unsigned int paramcount;
   int mpara = 0;
-  struct Message *mptr = NULL;
 
   if (IsDefunct(client_p))
     return;
@@ -197,22 +144,18 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
   for (ch = pbuffer; *ch == ' '; ch++) /* skip spaces */
     /* null statement */ ;
 
-  para[0] = from->name;
-
   if (*ch == ':')
   {
-    ch++;
-
-    /* Copy the prefix to 'sender' assuming it terminates
+    /*
+     * Copy the prefix to 'sender' assuming it terminates
      * with SPACE (or NULL, which is an error, though).
      */
-    sender = ch;
+    sender = ++ch;
 
     if ((s = strchr(ch, ' ')) != NULL)
     {
       *s = '\0';
-      s++;
-      ch = s;
+      ch = ++s;
     }
 
     if (*sender && IsServer(client_p))
@@ -237,8 +180,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
         return;
       }
 
-      para[0] = from->name;
-
       if (from->from != client_p)
       {
         ++ServerStats.is_wrdi;
@@ -248,7 +189,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
     }
 
     while (*ch == ' ')
-      ch++;
+      ++ch;
   }
 
   if (*ch == '\0')
@@ -268,7 +209,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
   if (*(ch + 3) == ' ' && /* ok, lets see if its a possible numeric.. */
       IsDigit(*ch) && IsDigit(*(ch + 1)) && IsDigit(*(ch + 2)))
   {
-    mptr = NULL;
     numeric = ch;
     paramcount = MAXPARA;
     ++ServerStats.is_num;
@@ -282,7 +222,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
     if ((s = strchr(ch, ' ')) != NULL)
       *s++ = '\0';
 
-    if ((mptr = find_command(ch)) == NULL)
+    if ((msg_ptr = find_command(ch)) == NULL)
     {
       /* Note: Give error message *only* to recognized
        * persons. It's a nightmare situation to have
@@ -305,27 +245,80 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
       return;
     }
 
-    assert(mptr->cmd != NULL);
+    assert(msg_ptr->cmd != NULL);
 
-    paramcount = mptr->parameters;
-    mpara      = mptr->maxpara;
+    paramcount = msg_ptr->args_max;
+    mpara      = msg_ptr->args_min;
 
     ii = bufend - ((s) ? s : ch);
-    mptr->bytes += ii;
+    msg_ptr->bytes += ii;
   }
 
-  if (s != NULL)
-    i = string_to_array(s, para);
-  else
+  /*
+   * Must the following loop really be so devious? On surface it
+   * splits the message to parameters from blank spaces. But, if
+   * paramcount has been reached, the rest of the message goes into
+   * this last parameter (about same effect as ":" has...) --msa
+   */
+
+  /* Note initially true: s==NULL || *(s-1) == '\0' !! */
+
+  para[parc] = from->name;
+
+  if (s)
   {
-    i = 0;
-    para[1] = NULL;
+    if (paramcount > MAXPARA)
+      paramcount = MAXPARA;
+
+    while (1)
+    {
+       while (*s == ' ')
+         *s++ = '\0';
+
+       if (*s == '\0')
+         break;
+
+       if (*s == ':')
+       {
+         /* The rest is a single parameter */
+         para[++parc] = s + 1;
+         break;
+       }
+
+       para[++parc] = s;
+
+       if (parc >= paramcount)
+         break;
+
+       while (*s && *s != ' ')
+         ++s;
+    }
   }
 
-  if (mptr == NULL)
-    do_numeric(numeric, client_p, from, i, para);
+  para[++parc] = NULL;
+
+  ilog(L_INFO, "RAW: COMMAND=%s parv[0]=%s, parv[1]=%s, parv[2]=%s, parv[3]=%s, parv[4]=%s, "
+       "parv[5]=%s, parv[6]=%s, parv[7]=%s, parv[8]=%s, parv[9]=%s, "
+       "parv[10]=%s, parv[11]=%s, parv[12]=%s",
+       msg_ptr->cmd,
+       para[ 0] ? para[ 0] : "",
+       para[ 1] ? para[ 1] : "",
+       para[ 2] ? para[ 2] : "",
+       para[ 3] ? para[ 3] : "",
+       para[ 4] ? para[ 4] : "",
+       para[ 5] ? para[ 5] : "",
+       para[ 6] ? para[ 6] : "",
+       para[ 7] ? para[ 7] : "",
+       para[ 8] ? para[ 8] : "",
+       para[ 9] ? para[ 9] : "",
+       para[10] ? para[10] : "",
+       para[11] ? para[11] : "",
+       para[12] ? para[12] : "");
+
+  if (msg_ptr != NULL)
+    handle_command(msg_ptr, client_p, from, parc, para);
   else
-    handle_command(mptr, client_p, from, i, para);
+    handle_numeric(numeric, client_p, from, parc, para);
 }
 
 /* handle_command()
@@ -364,7 +357,7 @@ handle_command(struct Message *mptr, struct Client *client_p,
   handler = mptr->handlers[client_p->handler];
 
   /* check right amount of params is passed... --is */
-  if (i < mptr->parameters)
+  if (i < mptr->args_min)
   {
     if (!IsServer(client_p))
     {
@@ -376,7 +369,7 @@ handle_command(struct Message *mptr, struct Client *client_p,
       sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "Dropping server %s due to (invalid) command '%s' "
                            "with only %d arguments (expecting %d).",
-                           client_p->name, mptr->cmd, i, mptr->parameters);
+                           client_p->name, mptr->cmd, i, mptr->args_min);
       ilog(L_CRIT, "Insufficient parameters (%d) for command '%s' from %s.",
            i, mptr->cmd, client_p->name);
       exit_client(client_p, client_p,
@@ -728,8 +721,8 @@ remove_unknown(struct Client *client_p, char *lsender, char *lbuffer)
  *      a ping pong error message...
  */
 static void
-do_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
-           int parc, char *parv[])
+handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
+               int parc, char *parv[])
 {
   struct Client *target_p;
   struct Channel *chptr;

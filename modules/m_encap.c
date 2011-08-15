@@ -36,7 +36,7 @@
 static void ms_encap(struct Client *, struct Client *, int, char *[]);
 
 struct Message encap_msgtab = {
-  "ENCAP", 0, 0, 3, 0, MFLG_SLOW, 0,
+  "ENCAP", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_encap, m_ignore, m_ignore, m_ignore}
 };
 
@@ -109,9 +109,10 @@ ms_encap(struct Client *client_p, struct Client *source_p,
   if ((mptr = find_command(parv[2])) == NULL)
     return;
 
+#ifdef NOT_USED_YET
   paramcount = mptr->parameters;
   mpara      = mptr->maxpara;
-
+#endif
   mptr->bytes += strlen(buffer);
 
   /*

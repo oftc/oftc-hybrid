@@ -47,7 +47,7 @@ static void kh_relay_kill(struct Client *, struct Client *, struct Client *,
                           const char *, const char *);
 
 struct Message killhost_msgtab = {
-  "KILLHOST", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "KILLHOST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_ignore, m_ignore, m_ignore, mo_killhost, m_ignore }
 };
 

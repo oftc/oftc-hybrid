@@ -49,12 +49,12 @@ static void parse_resv(struct Client *, char *, int, char *);
 static void remove_resv(struct Client *, const char *);
 
 struct Message resv_msgtab = {
-  "RESV", 0, 0, 3, 0, MFLG_SLOW, 0,
+  "RESV", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_not_oper, ms_resv, me_resv, mo_resv, m_ignore }
 };
 
 struct Message unresv_msgtab = {
-  "UNRESV", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "UNRESV", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_not_oper, ms_unresv, m_ignore, mo_unresv, m_ignore }
 };
 

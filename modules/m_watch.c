@@ -41,7 +41,7 @@
 static void m_watch(struct Client *, struct Client *, int, char *[]);
 
 struct Message watch_msgtab = {
-  "WATCH", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "WATCH", 0, 0, 0, 1, MFLG_SLOW, 0,
   { m_unregistered, m_watch, m_ignore, m_ignore, m_watch, m_ignore }
 };
 

@@ -46,7 +46,7 @@ static void do_etrace(struct Client *, int, char *[]);
 static void mo_etrace(struct Client *, struct Client *, int, char *[]);
 
 struct Message etrace_msgtab = {
-  "ETRACE", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "ETRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_etrace, m_ignore}
 };
 

@@ -82,7 +82,7 @@ struct Message test_msgtab = {
  /* This would add the command "TEST" which requires no additional
   * parameters
   */
-  "TEST", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "TEST", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
 
  /* Fields are in order:
   *-> {unregged, regged, remote, encap, oper, dummy}

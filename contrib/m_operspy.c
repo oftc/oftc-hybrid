@@ -99,7 +99,7 @@ static void operspy_whois(struct Client *, int, char *[]);
 
 
 struct Message operspy_msgtab = {
-  "OPERSPY", 0, 0, 3, 4, MFLG_SLOW, 0,
+  "OPERSPY", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_not_oper, ms_operspy, ms_operspy, mo_operspy, m_ignore}
 };
 

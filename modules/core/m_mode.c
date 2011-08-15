@@ -47,17 +47,17 @@ static void ms_tmode(struct Client *, struct Client *, int, char *[]);
 static void ms_bmask(struct Client *, struct Client *, int, char *[]);
 
 struct Message mode_msgtab = {
-  "MODE", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "MODE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_mode, m_mode, m_ignore, m_mode, m_ignore}
 };
 
 struct Message tmode_msgtab = { 
-  "TMODE", 0, 0, 4, 0, MFLG_SLOW, 0,
+  "TMODE", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_tmode, m_ignore, m_ignore, m_ignore}
 };
 
 struct Message bmask_msgtab = {
-  "BMASK", 0, 0, 5, 0, MFLG_SLOW, 0,
+  "BMASK", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_bmask, m_ignore, m_ignore, m_ignore}
 };
 

@@ -40,7 +40,7 @@
 static void m_userhost(struct Client *, struct Client *, int, char *[]);
 
 struct Message userhost_msgtab = {
-  "USERHOST", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "USERHOST", 0, 0, 1, 1, MFLG_SLOW, 0,
   {m_unregistered, m_userhost, m_userhost, m_ignore, m_userhost, m_ignore}
 };
 
@@ -70,20 +70,18 @@ m_userhost(struct Client *client_p, struct Client *source_p,
   struct Client *target_p;
   char buf[IRCD_BUFSIZE];
   char response[NICKLEN*2+USERLEN+HOSTLEN+30];
-  char *t;
-  int i;               /* loop counter */
+  char *t = NULL, *p = NULL, *nick = NULL;
+  int i = 0;               /* loop counter */
   int cur_len;
   int rl;
 
   cur_len = ircsprintf(buf,form_str(RPL_USERHOST),me.name, parv[0], "");
   t = buf + cur_len;
 
-  for (i = 0; i < 5; i++)
+  for (nick = strtoken(&p, parv[1], " "); nick && i++ < 5;
+       nick = strtoken(&p,    NULL, " "))
   {
-    if (parv[i + 1] == NULL)
-      break;
-
-    if ((target_p = find_person(client_p, parv[i+1])) != NULL)
+    if ((target_p = find_person(client_p, nick)) != NULL)
     {
       /*
        * Show real IP for USERHOST on yourself.

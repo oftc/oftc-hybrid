@@ -56,7 +56,7 @@ static const char serveropts[] = {
 };
 
 struct Message version_msgtab = {
-  "VERSION", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "VERSION", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_version, ms_version, m_ignore, mo_version, m_ignore }
 };
 

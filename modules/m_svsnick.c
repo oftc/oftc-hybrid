@@ -46,7 +46,7 @@
 static void ms_svsnick(struct Client *, struct Client *, int, char *[]);
 
 struct Message svsnick_msgtab = {
-  "SVSNICK", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
+  "SVSNICK", 0, 0, 4, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
   {m_ignore, m_ignore, ms_svsnick, m_ignore, m_ignore, m_ignore}
 };
 

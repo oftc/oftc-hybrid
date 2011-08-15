@@ -96,7 +96,7 @@ static void mo_spoof(struct Client *, struct Client *, int, char *[]);
 static void mo_delspoof(struct Client *, struct Client *, int, char *[]);
 
 struct Message spoof_msgtab = {
-  "SPOOF", 0, 0, 3, 0, MFLG_SLOW, 0,
+  "SPOOF", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
 #ifdef RECEIVE_SPOOF
   {m_unregistered, m_not_oper, mo_spoof, m_ignore, mo_spoof, m_ignore}
 #else
@@ -105,7 +105,7 @@ struct Message spoof_msgtab = {
 };
 
 struct Message delspoof_msgtab = {
-  "DELSPOOF", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "DELSPOOF", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
 #ifdef RECEIVE_SPOOF
   {m_unregistered, m_not_oper, mo_delspoof, m_ignore, mo_delspoof, m_ignore}
 #else

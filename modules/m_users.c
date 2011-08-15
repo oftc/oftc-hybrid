@@ -38,7 +38,7 @@ static void m_users(struct Client *, struct Client *, int, char *[]);
 static void mo_users(struct Client *, struct Client *, int, char *[]);
 
 struct Message users_msgtab = {
-  "USERS", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "USERS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_users, mo_users, m_ignore, mo_users, m_ignore }
 };
 

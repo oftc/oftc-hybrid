@@ -67,12 +67,12 @@ static int clean_host_name(const char *);
 static void perform_nick_collides(struct Client *, struct Client *, struct Client *,
 				  int, char **, time_t, char *, char *, char *);
 struct Message nick_msgtab = {
-  "NICK", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "NICK", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {mr_nick, m_nick, ms_nick, m_ignore, m_nick, m_ignore}
 };
 
 struct Message uid_msgtab = {
-  "UID", 0, 0, 10, 0, MFLG_SLOW, 0,
+  "UID", 0, 0, 10, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_uid, m_ignore, m_ignore, m_ignore}
 };
 

@@ -40,7 +40,7 @@ static void m_time(struct Client *, struct Client *, int, char *[]);
 static void mo_time(struct Client *, struct Client *, int, char *[]);
 
 struct Message time_msgtab = {
-  "TIME", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "TIME", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_time, mo_time, m_ignore, mo_time, m_ignore }
 };
 

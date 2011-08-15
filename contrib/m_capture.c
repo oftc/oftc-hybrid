@@ -47,12 +47,12 @@ static void mo_capture(struct Client *, struct Client *, int, char *[]);
 static void mo_uncapture(struct Client *, struct Client *, int, char *[]);
 
 struct Message capture_msgtab = {
-  "CAPTURE", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "CAPTURE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_ignore, mo_capture, mo_capture, mo_capture, m_ignore}
 };
 
 struct Message uncapture_msgtab = {
-  "UNCAPTURE", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "UNCAPTURE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_ignore, mo_uncapture, mo_uncapture, mo_uncapture, m_ignore}
 };
 
