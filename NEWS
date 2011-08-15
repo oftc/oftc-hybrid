@@ -1,3 +1,4 @@
+test
 -- ircd-hybrid-7.2.4 RELNOTES
 o) Fixed occasional core when placing RESVs on channel names
 o) Fixed topic desynchronization which sometimes may
