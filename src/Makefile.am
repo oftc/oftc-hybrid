@@ -5,12 +5,12 @@ if HAVE_CRYPT
 ircd_SOURCES+=crypt.c
 endif
 ircd_LDFLAGS=@LIBLTDL@ -export-dynamic
-ircd_CFLAGS=-I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
+ircd_CFLAGS=-I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre -I$(top_srcdir)/libevent/include
 INCLUDES=@INCLTDL@
 if USE_SHARED_MODULES
 ircd_LDADD=
 else
 ircd_LDADD=$(top_srcdir)/modules/libmodules.la
 endif
-ircd_LDADD+=$(top_srcdir)/lib/pcre/libpcre.a
+ircd_LDADD+=$(top_srcdir)/lib/pcre/libpcre.a $(top_srcdir)/libevent/libevent.la
 AM_YFLAGS=-d

@@ -17,8 +17,14 @@ include/setup.h
 include/stamp-h1
 install-sh
 .deps
-libltdl/
+.libs
+libltdl
 libtool
 ltmain.sh
 missing
 ylwrap
+servlink/servlink
+src/ircd
+src/ircd_lexer.c
+src/ircd_parser.c
+src/ircd_parser.h
