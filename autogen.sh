@@ -70,4 +70,8 @@ run $ACLOCAL $ACLOCAL_FLAGS
 run $AUTOHEADER
 run $AUTOMAKE $AUTOMAKE_FLAGS
 run $AUTOCONF
+
+echo "Running autogen.sh in libevent..."
+cd libevent && run "sh autogen.sh" && cd ..
+
 test "$ARGS" = "" && echo "Now type './configure ...' and 'make' to compile."

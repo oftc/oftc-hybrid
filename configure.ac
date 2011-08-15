@@ -87,6 +87,7 @@ AC_DEFINE_DIR([LIBDIR],[libdir],[Set to libdir.])
 AC_DEFINE_DIR([DATADIR],[datadir],[Set to datadir.])
 AC_DEFINE_DIR([LOCALSTATEDIR],[localstatedir],[Set to localstatedir.])
 AC_CONFIG_SUBDIRS(libltdl)
+AC_CONFIG_SUBDIRS(libevent)
 
 AC_CONFIG_FILES(               \
        Makefile                \
