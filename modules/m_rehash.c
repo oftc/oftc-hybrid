@@ -41,7 +41,7 @@
 static void mo_rehash(struct Client *, struct Client *, int, char **);
 
 struct Message rehash_msgtab = {
-  "REHASH", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "REHASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_rehash, m_ignore}
 };
 

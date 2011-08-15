@@ -43,7 +43,7 @@ static void do_ctrace(struct Client *, int, char *[]);
 static void mo_ctrace(struct Client *, struct Client *, int, char *[]);
 
 struct Message ctrace_msgtab = {
-  "CTRACE", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "CTRACE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ctrace, m_ignore}
 };
 

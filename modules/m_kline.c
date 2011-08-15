@@ -64,12 +64,12 @@ static char buffer[IRCD_BUFSIZE];
 static int remove_tkline_match(const char *, const char *);
 
 struct Message kline_msgtab = {
-  "KLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "KLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
    {m_unregistered, m_not_oper, ms_kline, me_kline, mo_kline, m_ignore}
 };
 
 struct Message unkline_msgtab = {
-  "UNKLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "UNKLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
    {m_unregistered, m_not_oper, ms_unkline, me_unkline, mo_unkline, m_ignore}
 };
 

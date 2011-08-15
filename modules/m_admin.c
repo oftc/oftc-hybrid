@@ -43,7 +43,7 @@ static void ms_admin(struct Client *, struct Client *, int, char *[]);
 static void do_admin(struct Client *);
 
 struct Message admin_msgtab = {
-  "ADMIN", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0, 
+  "ADMIN", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0, 
   {mr_admin, m_admin, ms_admin, m_ignore, ms_admin, m_ignore}
 };
 

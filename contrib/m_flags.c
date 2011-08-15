@@ -57,7 +57,7 @@ static char *set_flags_to_string(struct Client *);
 static char *unset_flags_to_string(struct Client *);
 
 struct Message flags_msgtab = {
-  "FLAGS", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "FLAGS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_flags, m_ignore, m_ignore, mo_flags, m_ignore}
 };
 

@@ -47,7 +47,7 @@ static void mo_motd(struct Client*, struct Client*, int, char *[]);
  * for 'oper only' information in the mo_ function(s).
  */
 struct Message motd_msgtab = {
-  "MOTD", 0, 0, 0, 1, MFLG_SLOW, 0,
+  "MOTD", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_motd, mo_motd, m_ignore, mo_motd, m_ignore }
 };
 

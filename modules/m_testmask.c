@@ -51,7 +51,7 @@
 static void mo_testmask(struct Client *, struct Client *, int, char *[]);
 
 struct Message testmask_msgtab = {
-  "TESTMASK", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "TESTMASK", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testmask, m_ignore}
 };
 

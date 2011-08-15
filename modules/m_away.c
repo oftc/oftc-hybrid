@@ -42,7 +42,7 @@ static void mo_away(struct Client *, struct Client *, int, char *[]);
 static void ms_away(struct Client *, struct Client *, int, char *[]);
 
 struct Message away_msgtab = {
-  "AWAY", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "AWAY", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_away, ms_away, m_ignore, mo_away, m_ignore}
 };
 

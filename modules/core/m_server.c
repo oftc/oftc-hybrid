@@ -50,12 +50,12 @@ static void ms_sid(struct Client *, struct Client *, int, char *[]);
 static void set_server_gecos(struct Client *, char *);
 
 struct Message server_msgtab = {
-  "SERVER", 0, 0, 4, 0, MFLG_SLOW | MFLG_UNREG, 0,
+  "SERVER", 0, 0, 4, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
   {mr_server, m_registered, ms_server, m_ignore, m_registered, m_ignore}
 };
 
 struct Message sid_msgtab = {
-  "SID", 0, 0, 5, 0, MFLG_SLOW, 0,
+  "SID", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
   {rfc1459_command_send_error, m_ignore, ms_sid, m_ignore, m_ignore, m_ignore}
 };
 
@@ -93,7 +93,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
   struct Client *target_p;
   int hop;
 
-  if (parc < 4 || EmptyString(parv[3]))
+  if (EmptyString(parv[3]))
   {
     sendto_one(client_p, "ERROR :No servername");
     exit_client(client_p, client_p, "Wrong number of args");
@@ -238,7 +238,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
   if (!IsServer(source_p))
     return;
 
-  if (parc < 4 || EmptyString(parv[3]))
+  if (EmptyString(parv[3]))
   {
     sendto_one(client_p, "ERROR :No servername");
     return;
@@ -442,7 +442,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   if (!IsServer(source_p))
     return;
 
-  if (parc < 5 || EmptyString(parv[4]))
+  if (EmptyString(parv[4]))
   {
     sendto_one(client_p, "ERROR :No servername");
     return;

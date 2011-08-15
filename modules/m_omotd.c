@@ -40,7 +40,7 @@
 static void m_omotd(struct Client *, struct Client *, int, char *[]);
 
 struct Message omotd_msgtab = {
-  "OMOTD", 0, 0, 0, 1, MFLG_SLOW, 0,
+  "OMOTD", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, m_omotd, m_ignore}
 };
 

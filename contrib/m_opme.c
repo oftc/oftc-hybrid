@@ -43,7 +43,7 @@
 static void mo_opme(struct Client *, struct Client *, int, char *[]);
 
 struct Message opme_msgtab = {
-  "OPME", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "OPME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_opme, m_ignore }
 };
 

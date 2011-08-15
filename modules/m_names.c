@@ -47,7 +47,7 @@ static void names_non_public_non_secret(struct Client *);
 static void m_names(struct Client *, struct Client *, int, char *[]);
 
 struct Message names_msgtab = {
-  "NAMES", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "NAMES", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_names, m_ignore, m_ignore, m_names, m_ignore}
 };
 

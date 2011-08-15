@@ -57,12 +57,12 @@ static void remove_xline(struct Client *, char *);
 static int remove_txline(const char *);
 
 struct Message rxline_msgtab = {
-  "RXLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "RXLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, ms_rxline, m_ignore, mo_rxline, m_ignore }
 };
 
 struct Message unrxline_msgtab = {
-  "UNRXLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "UNRXLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, ms_unrxline, m_ignore, mo_unrxline, m_ignore }
 };
 

@@ -41,7 +41,7 @@ static void m_locops(struct Client *, struct Client *, int, char *[]);
 static void ms_locops(struct Client *, struct Client *, int, char *[]);
 
 struct Message locops_msgtab = {
-  "LOCOPS", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "LOCOPS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, ms_locops, m_ignore, m_locops, m_ignore }
 };
 

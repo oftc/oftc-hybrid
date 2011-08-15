@@ -41,7 +41,7 @@
 static void mo_ojoin(struct Client *, struct Client *, int, char *[]);
 
 struct Message ojoin_msgtab = {
-  "OJOIN", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "OJOIN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ojoin, m_ignore }
 };
 

@@ -56,7 +56,7 @@ static char sendbuf[MODEBUFLEN];
 static char *mbuf;
 
 struct Message join_msgtab = {
-  "JOIN", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "JOIN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_join, ms_join, m_ignore, m_join, m_ignore }
 };
 

@@ -42,7 +42,7 @@ static void mo_links(struct Client *, struct Client *, int, char *[]);
 static void ms_links(struct Client *, struct Client *, int, char *[]);
 
 struct Message links_msgtab = {
-  "LINKS", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "LINKS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_links, ms_links, m_ignore, mo_links, m_ignore}
 };
 

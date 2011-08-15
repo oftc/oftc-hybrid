@@ -40,7 +40,7 @@ static void m_ping(struct Client*, struct Client*, int, char**);
 static void ms_ping(struct Client*, struct Client*, int, char**);
 
 struct Message ping_msgtab = {
-  "PING", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "PING", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_ping, ms_ping, m_ignore, m_ping, m_ping}
 };
 

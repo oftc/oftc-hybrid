@@ -46,7 +46,7 @@ static void m_oper(struct Client *, struct Client *, int, char *[]);
 static void mo_oper(struct Client *, struct Client *, int, char *[]);
 
 struct Message oper_msgtab = {
-  "OPER", 0, 0, 3, 0, MFLG_SLOW, 0,
+  "OPER", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_oper, m_ignore, m_ignore, mo_oper, m_ignore }
 };
 

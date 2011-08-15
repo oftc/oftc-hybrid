@@ -51,12 +51,12 @@ static void mo_forcejoin(struct Client *, struct Client *, int parc, char *[]);
 static void mo_forcepart(struct Client *, struct Client *, int parc, char *[]);
 
 struct Message forcejoin_msgtab = {
-  "FORCEJOIN", 0, 0, 3, 0, MFLG_SLOW, 0,
+  "FORCEJOIN", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_not_oper, mo_forcejoin, mo_forcejoin, mo_forcejoin, m_ignore }
 };
 
 struct Message forcepart_msgtab = {
-  "FORCEPART", 0, 0, 3, 0, MFLG_SLOW, 0,
+  "FORCEPART", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_not_oper, mo_forcepart, mo_forcepart, mo_forcepart, m_ignore }
 };
 

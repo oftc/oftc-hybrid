@@ -43,7 +43,7 @@
 static void ms_svsmode(struct Client *, struct Client *, int, char *[]);
 
 struct Message svsmode_msgtab = {
-  "SVSMODE", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
+  "SVSMODE", 0, 0, 3, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
   {m_ignore, m_ignore, ms_svsmode, m_ignore, m_ignore, m_ignore}
 };
 

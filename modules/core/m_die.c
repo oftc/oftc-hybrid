@@ -43,7 +43,7 @@
 static void mo_die(struct Client *, struct Client *, int, char *[]);
 
 struct Message die_msgtab = {
-  "DIE", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "DIE", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_die, m_ignore}
 };
 

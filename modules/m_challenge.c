@@ -44,7 +44,7 @@ static void m_challenge(struct Client *, struct Client *, int, char **);
 
 /* We have openssl support, so include /CHALLENGE */
 struct Message challenge_msgtab = {
-  "CHALLENGE", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "CHALLENGE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_challenge, m_ignore, m_ignore, m_challenge, m_ignore }
 };
 

@@ -94,12 +94,12 @@ static void handle_special(int p_or_n, const char *command,
 			   struct Client *source_p, char *nick, char *text);
 
 struct Message privmsg_msgtab = {
-  "PRIVMSG", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0L,
+  "PRIVMSG", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
   {m_unregistered, m_privmsg, m_privmsg, m_ignore, m_privmsg, m_ignore}
 };
 
 struct Message notice_msgtab = {
-  "NOTICE", 0, 0, 1, 0, MFLG_SLOW, 0L,
+  "NOTICE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_notice, m_notice, m_ignore, m_notice, m_ignore}
 };
 

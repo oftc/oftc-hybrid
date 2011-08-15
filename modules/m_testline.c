@@ -44,12 +44,12 @@ static void mo_testline(struct Client *, struct Client *, int, char *[]);
 static void mo_testgecos(struct Client *, struct Client *, int, char *[]);
 
 struct Message testline_msgtab = {
-  "TESTLINE", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "TESTLINE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testline, m_ignore }
 };
 
 struct Message testgecos_msgtab = {
-  "TESTGECOS", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "TESTGECOS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testgecos, m_ignore }
 };
  

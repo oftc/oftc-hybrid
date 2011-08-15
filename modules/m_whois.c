@@ -52,7 +52,7 @@ static void m_whois(struct Client *, struct Client *, int, char *[]);
 static void mo_whois(struct Client *, struct Client *, int, char *[]);
 
 struct Message whois_msgtab = {
-  "WHOIS", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "WHOIS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_whois, mo_whois, m_ignore, mo_whois, m_ignore }
 };
 

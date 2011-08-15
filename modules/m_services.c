@@ -79,19 +79,6 @@ static void m_identify(struct Client *, struct Client *, int, char *[]);
 static void m_memoserv(struct Client *, struct Client *, int, char *[]);
 static void m_nickserv(struct Client *, struct Client *, int, char *[]);
 static void m_operserv(struct Client *, struct Client *, int, char *[]);
-static void m_seenserv(struct Client *, struct Client *, int, char *[]);
-static void m_statserv(struct Client *, struct Client *, int, char *[]);
-
-static void get_string(int, char *[], char *);
-static int clean_nick_name(char *, int);
-static void deliver_services_msg(const char *, const char *, struct Client *,
-                                 struct Client *, int, char *[]);
-
-/* SVS commands */
-struct Message svsnick_msgtab = {
-  "SVSNICK", 0, 0, 3, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_ignore, m_svsnick, m_svsnick, m_ignore, m_ignore}
-};
 
 /* Services */
 struct Message groupserv_msgtab = {
@@ -99,38 +86,50 @@ struct Message groupserv_msgtab = {
   {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
 };
 
-struct Message chanserv_msgtab = {
-  "CHANSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
+struct Message ms_msgtab = {
+  "MS", 0, 0, 2, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
+};
+
+struct Message ns_msgtab = {
+  "NS", 0, 0, 2, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
+};
+
+struct Message os_msgtab = {
+  "OS", 0, 0, 2, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
+};
+
+struct Message bs_msgtab = {
+  "BS", 0, 0, 2, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
+};
+
+struct Message cs_msgtab = {
+  "CS", 0, 0, 2, 1, MFLG_SLOW, 0,
   {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
 };
 
-struct Message global_msgtab = {
-  "GLOBAL", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_global, m_ignore, m_ignore, m_global, m_ignore}
+struct Message botserv_msgtab = {
+  "BOTSERV", 0, 0, 2, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
 };
 
-struct Message helpserv_msgtab = {
-  "HELPSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
-};
-
-struct Message hostserv_msgtab = {
-  "HOSTSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_hostserv, m_ignore, m_ignore, m_hostserv, m_ignore}
 };
 
 struct Message memoserv_msgtab = {
-  "MEMOSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "MEMOSERV", 0, 0, 2, 1, MFLG_SLOW, 0,
   {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
 };
 
 struct Message nickserv_msgtab = {
-  "NICKSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "NICKSERV", 0, 0, 2, 1, MFLG_SLOW, 0,
   {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
 };
 
 struct Message operserv_msgtab = {
-  "OPERSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "OPERSERV", 0, 0, 2, 1, MFLG_SLOW, 0,
   {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
 };
 
@@ -151,7 +150,7 @@ struct Message cs_msgtab = {
 };
 
 struct Message identify_msgtab = {
-  "IDENTIFY", 0, 0, 0, 2, MFLG_SLOW, 0,
+  "IDENTIFY", 0, 0, 2, 1, MFLG_SLOW, 0,
   {m_unregistered, m_identify, m_ignore, m_ignore, m_identify, m_ignore}
 };
 
@@ -179,7 +178,6 @@ struct Message bs_msgtab = {
 void
 _modinit(void)
 {
-  mod_add_cmd(&svsnick_msgtab);
   mod_add_cmd(&groupserv_msgtab);
   mod_add_cmd(&chanserv_msgtab); 
   mod_add_cmd(&global_msgtab);
@@ -201,7 +199,6 @@ _modinit(void)
 void
 _moddeinit(void)
 {
-  mod_del_cmd(&svsnick_msgtab);
   mod_del_cmd(&groupserv_msgtab);
   mod_del_cmd(&chanserv_msgtab); 
   mod_del_cmd(&global_msgtab);
@@ -237,7 +234,13 @@ m_svsnick(struct Client *client_p, struct Client *source_p,
   char newnick[NICKLEN];
   struct Client *target_p = NULL;
 
-  if (parc < 3 || *parv[2] == '\0')
+  assert(client_p && source_p);
+  assert(client_p == source_p);
+
+  if (EmptyString(parv[1]))
+  {
+    sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
+               me.name, source_p->name);
     return;
 
   if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
@@ -250,7 +253,16 @@ m_svsnick(struct Client *client_p, struct Client *source_p,
   /* terminate nick to NICKLEN */
   strlcpy(newnick, parv[2], sizeof(newnick));
 
-  if (!clean_nick_name(newnick, 1))
+static void
+m_chanserv(struct Client *client_p, struct Client *source_p,
+           int parc, char *parv[])
+{
+  struct Client *target_p = NULL;
+
+  assert(client_p && source_p);
+  assert(client_p == source_p);
+
+  if (EmptyString(parv[1]))
   {
     if (IsClient(source_p))
       sendto_one(source_p, ":%s NOTICE %s :*** Notice -- Invalid new ",
@@ -308,7 +320,7 @@ get_string(int parc, char *parv[], char *buf)
   assert(client_p && source_p);
   assert(client_p == source_p);
 
-  if (parc < 2 || EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
                me.name, source_p->name);
@@ -342,8 +354,12 @@ clean_nick_name(char *nick, int local)
   /* nicks can't start with a digit or - or be 0 length */
   /* This closer duplicates behaviour of hybrid-6 */
 
-  if (*nick == '-' || (IsDigit(*nick) && local) || *nick == '\0')
-    return 0;
+  if (EmptyString(parv[1]))
+  {
+    sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
+               me.name, source_p->name);
+    return;
+  }
 
   if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
@@ -368,7 +384,10 @@ m_identify(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  switch (parc)
+  assert(client_p && source_p);
+  assert(client_p == source_p);
+
+  if (EmptyString(parv[1]))
   {
     case 2:
       if (!(target_p = find_server(SERVICES_NAME)))
@@ -423,7 +442,7 @@ deliver_services_msg(const char *service, const char *command,
   struct Client *target_p = NULL;
   char buf[IRCD_BUFSIZE] = { '\0' };
 
-  if (parc < 2 || *parv[1] == '\0')
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, command);

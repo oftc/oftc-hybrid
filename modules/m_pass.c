@@ -38,7 +38,7 @@
 static void mr_pass(struct Client *, struct Client *, int, char *[]);
 
 struct Message pass_msgtab = {
-  "PASS", 0, 0, 2, 0, MFLG_SLOW | MFLG_UNREG, 0,
+  "PASS", 0, 0, 2, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
   { mr_pass, m_registered, m_ignore, m_ignore, m_registered, mr_pass }
 };
 

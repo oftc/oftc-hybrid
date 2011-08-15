@@ -44,7 +44,7 @@
 static void m_knock(struct Client *, struct Client *, int, char *[]);
 
 struct Message knock_msgtab = {
-  "KNOCK", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "KNOCK", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_knock, m_knock, m_ignore, m_knock, m_ignore }
 };
 

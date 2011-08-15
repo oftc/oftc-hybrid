@@ -62,12 +62,12 @@ static char buffer[IRCD_BUFSIZE];
 static int remove_trkline_match(const char *, const char *);
 
 struct Message rkline_msgtab = {
-  "RKLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "RKLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
    {m_unregistered, m_not_oper, ms_rkline, me_rkline, mo_rkline, m_ignore}
 };
 
 struct Message unrkline_msgtab = {
-  "UNRKLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "UNRKLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
    {m_unregistered, m_not_oper, ms_unrkline, me_unrkline, mo_unrkline, m_ignore}
 };
 

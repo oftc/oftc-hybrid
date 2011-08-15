@@ -46,12 +46,12 @@ static void set_topic(struct Client *, struct Channel *, time_t,
                       const char *, const char *);
 
 struct Message tburst_msgtab = {
-  "TBURST", 0, 0, 5, 0, MFLG_SLOW, 0,
+  "TBURST", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore }
 };
 
 struct Message tb_msgtab = {
-  "TB", 0, 0, 4, 0, MFLG_SLOW, 0,
+  "TB", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_ignore, ms_tb, m_ignore, m_ignore, m_ignore }
 };
 

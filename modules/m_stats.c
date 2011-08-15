@@ -62,7 +62,7 @@ static void mo_stats(struct Client *, struct Client *, int, char *[]);
 static void ms_stats(struct Client *, struct Client *, int, char *[]);
 
 struct Message stats_msgtab = {
-  "STATS", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "STATS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_stats, ms_stats, m_ignore, mo_stats, m_ignore }
 };
 

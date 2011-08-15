@@ -47,7 +47,7 @@
 static void m_cap(struct Client *, struct Client *, int, char *[]);
 
 struct Message cap_msgtab = {
-  "CAP", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "CAP", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_cap, m_cap, m_ignore, m_ignore, m_cap, m_ignore }
 };
 
@@ -407,7 +407,7 @@ m_cap(struct Client *cptr, struct Client *sptr, int parc, char *parv[])
   char *subcmd = NULL, *caplist = NULL;
   struct subcmd *cmd = NULL;
 
-  if (parc < 2 || EmptyString(parv[1]))    /* a subcommand is required */
+  if (EmptyString(parv[1]))    /* a subcommand is required */
     return;
 
   subcmd = parv[1];

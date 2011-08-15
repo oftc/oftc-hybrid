@@ -45,12 +45,12 @@ static void dohelp(struct Client *, const char *, char *);
 static void sendhelpfile(struct Client *, const char *, const char *);
 
 struct Message help_msgtab = {
-  "HELP", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "HELP", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_help, m_ignore, m_ignore, mo_help, m_ignore}
 };
 
 struct Message uhelp_msgtab = {
-  "UHELP", 0, 0, 0, 0, MFLG_SLOW, 0,
+  "UHELP", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_help, m_ignore, m_ignore, mo_uhelp, m_ignore}
 };
 
