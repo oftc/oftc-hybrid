@@ -51,4 +51,5 @@ levent_init()
 {
   event_set_log_callback(levent_log_cb);
   event_set_fatal_callback(levent_fatal_callback);
+  event_set_mem_functions(MyMalloc, MyRealloc, MyFree);
 }
