@@ -50,57 +50,57 @@ static void m_operserv(struct Client *, struct Client *, int, char *[]);
 static void m_identify(struct Client *, struct Client *, int, char *[]);
 
 struct Message ms_msgtab = {
-  "MS", 0, 0, 2, 1, MFLG_SLOW, 0,
+  "MS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
 };
 
 struct Message ns_msgtab = {
-  "NS", 0, 0, 2, 1, MFLG_SLOW, 0,
+  "NS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
 };
 
 struct Message os_msgtab = {
-  "OS", 0, 0, 2, 1, MFLG_SLOW, 0,
+  "OS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
 };
 
 struct Message bs_msgtab = {
-  "BS", 0, 0, 2, 1, MFLG_SLOW, 0,
+  "BS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
 };
 
 struct Message cs_msgtab = {
-  "CS", 0, 0, 2, 1, MFLG_SLOW, 0,
+  "CS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
 };
 
 struct Message botserv_msgtab = {
-  "BOTSERV", 0, 0, 2, 1, MFLG_SLOW, 0,
+  "BOTSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
 };
 
 struct Message chanserv_msgtab = {
-  "CHANSERV", 0, 0, 2, 1, MFLG_SLOW, 0,
+  "CHANSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
 };
 
 struct Message memoserv_msgtab = {
-  "MEMOSERV", 0, 0, 2, 1, MFLG_SLOW, 0,
+  "MEMOSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
 };
 
 struct Message nickserv_msgtab = {
-  "NICKSERV", 0, 0, 2, 1, MFLG_SLOW, 0,
+  "NICKSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
 };
 
 struct Message operserv_msgtab = {
-  "OPERSERV", 0, 0, 2, 1, MFLG_SLOW, 0,
+  "OPERSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
 };
 
 struct Message identify_msgtab = {
-  "IDENTIFY", 0, 0, 2, 1, MFLG_SLOW, 0,
+  "IDENTIFY", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_identify, m_ignore, m_ignore, m_identify, m_ignore}
 };
 
