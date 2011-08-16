@@ -5,10 +5,12 @@
  */
 
 #include "stdinc.h"
-
+#include "common.h"
 #include "ircd.h"
 #include "levent.h"
 #include "s_log.h"
+#include "restart.h"
+
 #include <event2/event.h>
 
 static void 
@@ -38,8 +40,15 @@ levent_log_cb(int severity, const char *msg)
   ilog(log_level, "%s", msg);
 }
 
+static void
+levent_fatal_callback(int err)
+{
+  server_die("Fatal error from libevent", YES);
+}
+
 void
 levent_init()
 {
   event_set_log_callback(levent_log_cb);
+  event_set_fatal_callback(levent_fatal_callback);
 }
