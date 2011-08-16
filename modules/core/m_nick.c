@@ -638,9 +638,9 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
       {
         unsigned int flag = user_modes[(unsigned char)*m];
 
-        if (flag & UMODE_INVISIBLE)
+        if ((flag & UMODE_INVISIBLE) && !HasUMode(source_p, UMODE_INVISIBLE))
           ++Count.invisi;
-        if (flag & UMODE_OPER)
+        if ((flag & UMODE_OPER) && !HasUMode(source_p, UMODE_OPER))
           ++Count.oper;
 
         source_p->umodes |= flag & SEND_UMODES;
@@ -731,9 +731,9 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
   {
     unsigned int flag = user_modes[(unsigned char)*m];
 
-    if (flag & UMODE_INVISIBLE)
+    if ((flag & UMODE_INVISIBLE) && !HasUMode(source_p, UMODE_INVISIBLE))
       ++Count.invisi;
-    if (flag & UMODE_OPER)
+    if ((flag & UMODE_OPER) && !HasUMode(source_p, UMODE_OPER))
       ++Count.oper;
 
     source_p->umodes |= flag & SEND_UMODES;
