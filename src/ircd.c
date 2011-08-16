@@ -628,6 +628,7 @@ main(int argc, char *argv[])
 
   get_ircd_platform(ircd_platform);
 
+  levent_init();
   /* Init the event subsystem */
   eventInit();
   /* We need this to initialise the fd array before anything else */
