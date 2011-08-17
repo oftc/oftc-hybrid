@@ -29,6 +29,7 @@
 #include <netinet/tcp.h>
 #endif
 #include "fdlist.h"
+#include "levent.h"
 #include "s_bsd.h"
 #include "client.h"
 #include "common.h"
@@ -64,8 +65,6 @@ static void comm_connect_callback(fde_t *fd, int status);
 static PF comm_connect_timeout;
 static void comm_connect_dns_callback(void *vptr, struct DNSReply *reply);
 static PF comm_connect_tryconnect;
-
-extern void init_netio(void);
 
 /* check_can_use_v6()
  *  Check if the system can open AF_INET6 sockets
@@ -183,7 +182,6 @@ void
 init_comm(void)
 {
   setup_socket_cb = register_callback("setup_socket", setup_socket);
-  init_netio();
 }
 
 /*
@@ -320,12 +318,12 @@ ssl_handshake(int fd, struct Client *client_p)
     switch (SSL_get_error(client_p->localClient->fd.ssl, ret))
     {
       case SSL_ERROR_WANT_WRITE:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
+        levent_add(&client_p->localClient->fd, COMM_SELECT_WRITE,
 	               (PF *) ssl_handshake, client_p, 30);
         return;
 
       case SSL_ERROR_WANT_READ:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
+        levent_add(&client_p->localClient->fd, COMM_SELECT_READ,
 	               (PF *) ssl_handshake, client_p, 30);
         return;
 
@@ -706,7 +704,7 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
       comm_connect_callback(fd, COMM_OK);
     else if (ignoreErrno(errno))
       /* Ignore error? Reschedule */
-      comm_setselect(fd, COMM_SELECT_WRITE, comm_connect_tryconnect,
+      levent_add(fd, COMM_SELECT_WRITE, comm_connect_tryconnect,
                      NULL, 0);
     else
       /* Error? Fail with COMM_ERR_CONNECT */

@@ -25,5 +25,7 @@
 #define INCLUDED_levent_h
 
 extern void levent_init();
+extern void levent_add();
+extern void levent_loop();
 
 #endif /* INCLUDED_levent_h */

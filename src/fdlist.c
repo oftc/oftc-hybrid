@@ -29,7 +29,8 @@
 #include "ircd.h"    /* GlobalSetOptions */
 #include "irc_string.h"
 #include "rlimits.h"
-#include "s_bsd.h"   /* comm_setselect */
+#include "s_bsd.h"
+#include "levent.h"   
 #include "s_conf.h"  /* ServerInfo */
 #include "send.h"
 #include "memory.h"
@@ -160,7 +161,7 @@ fd_close(fde_t *F)
     fd_next_in_loop = F->hnext;
 
   if (F->flags.is_socket)
-    comm_setselect(F, COMM_SELECT_WRITE | COMM_SELECT_READ, NULL, NULL, 0);
+    levent_add(F, COMM_SELECT_WRITE | COMM_SELECT_READ, NULL, NULL, 0);
 
   if (F->dns_query != NULL)
   {

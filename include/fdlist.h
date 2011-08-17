@@ -59,6 +59,7 @@ typedef struct _fde {
   int fd;		/* So we can use the fde_t as a callback ptr */
   int comm_index;	/* where in the poll list we live */
   int evcache;          /* current fd events as set up by the underlying I/O */
+  void *evptr;
   char desc[FD_DESC_SZ];
   PF *read_handler;
   void *read_data;

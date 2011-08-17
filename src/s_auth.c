@@ -48,6 +48,7 @@
 #include "numeric.h"
 #include "packet.h"
 #include "irc_res.h"
+#include "levent.h"
 #include "s_bsd.h"
 #include "s_log.h"
 #include "send.h"
@@ -572,7 +573,7 @@ read_auth_reply(fde_t *fd, void *data)
     errno = WSAGetLastError();
 #endif
     if (ignoreErrno(errno))
-      comm_setselect(fd, COMM_SELECT_READ, read_auth_reply, auth, 0);
+      levent_add(fd, COMM_SELECT_READ, read_auth_reply, auth, 0);
     else
       auth_error(auth);
     return;

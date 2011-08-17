@@ -292,7 +292,7 @@ io_loop(void)
     while (eventNextTime() <= CurrentTime)
       eventRun();
 
-    comm_select();
+    levent_loop();
     exit_aborted_clients();
     free_exited_clients();
     send_queued_all();

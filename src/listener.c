@@ -30,6 +30,7 @@
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "ircd_defs.h"
+#include "levent.h"
 #include "s_bsd.h"
 #include "irc_getnameinfo.h"
 #include "irc_getaddrinfo.h"
@@ -461,6 +462,5 @@ accept_connection(fde_t *pfd, void *data)
   }
 
   /* Re-register a new IO request for the next accept .. */
-  comm_setselect(&listener->fd, COMM_SELECT_READ, accept_connection,
-                 listener, 0);
+  levent_add(&listener->fd, COMM_SELECT_READ, accept_connection, listener, 0);
 }

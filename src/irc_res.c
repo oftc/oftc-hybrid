@@ -32,6 +32,7 @@
 #include "restart.h"
 #include "fdlist.h"
 #include "fileio.h" /* for fbopen / fbclose / fbputs */
+#include "levent.h"
 #include "s_bsd.h"
 #include "s_log.h"
 #include "send.h"
@@ -250,8 +251,8 @@ start_resolver(void)
       return;
 
     /* At the moment, the resolver FD data is global .. */
-    comm_setselect(&ResolverFileDescriptor, COMM_SELECT_READ,
-        res_readreply, NULL, 0);
+    levent_add(&ResolverFileDescriptor, COMM_SELECT_READ, res_readreply, 
+        NULL, 0);
     eventAdd("timeout_resolver", timeout_resolver, NULL, 1);
   }
 }
@@ -790,7 +791,7 @@ res_readreply(fde_t *fd, void *data)
   /* Re-schedule a read *after* recvfrom, or we'll be registering
    * interest where it'll instantly be ready for read :-) -- adrian
    */
-  comm_setselect(fd, COMM_SELECT_READ, res_readreply, NULL, 0);
+  levent_add(fd, COMM_SELECT_READ, res_readreply, NULL, 0);
   /* Better to cast the sizeof instead of rc */
   if (rc <= (int)(sizeof(HEADER)))
     return;

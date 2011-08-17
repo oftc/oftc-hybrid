@@ -41,6 +41,7 @@
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "ircd_defs.h"
+#include "levent.h"
 #include "s_bsd.h"
 #include "irc_getnameinfo.h"
 #include "list.h"
@@ -1927,7 +1928,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 
   /* don't move to serv_list yet -- we haven't sent a burst! */
   /* If we get here, we're ok, so lets start reading some data */
-  comm_setselect(fd, COMM_SELECT_READ, read_packet, client_p, 0);
+  levent_add(fd, COMM_SELECT_READ, read_packet, client_p, 0);
 }
 
 struct Client *
@@ -1963,12 +1964,12 @@ ssl_server_handshake(int fd, struct Client *client_p)
     switch ((err = SSL_get_error(client_p->localClient->fd.ssl, ret)))
     {
       case SSL_ERROR_WANT_WRITE:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
+        levent_add(&client_p->localClient->fd, COMM_SELECT_WRITE,
             (PF *) ssl_server_handshake, client_p, 0);
         return;
 
       case SSL_ERROR_WANT_READ:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
+        levent_add(&client_p->localClient->fd, COMM_SELECT_READ,
             (PF *) ssl_server_handshake, client_p, 0);
         return;
 
@@ -1980,7 +1981,8 @@ ssl_server_handshake(int fd, struct Client *client_p)
         return;
     }
   }
-  comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ, read_packet, client_p, 0); 
+  levent_add(&client_p->localClient->fd, COMM_SELECT_READ, read_packet, 
+      client_p, 0); 
 }
 
 void
@@ -2119,7 +2121,7 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
                                       "Went dead during handshake");
   else if (fd != NULL)
     /* If we get here, we're ok, so lets start reading some data */
-    comm_setselect(fd, COMM_SELECT_READ, read_packet, client_p, 0);
+    levent_add(fd, COMM_SELECT_READ, read_packet, client_p, 0);
 }
 
 void
