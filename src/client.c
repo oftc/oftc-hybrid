@@ -931,13 +931,18 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
     /* As soon as a client is known to be a server of some sort
      * it has to be put on the serv_list, or SJOIN's to this new server
      * from the connect burst will not be seen.
+     * XXX - TBV.  This is not true. The only place where we put a server on
+     * serv_list is in server_estab right now after registration process.
+     * And only after this, a burst is sent to the remote server, i.e. we never
+     * send a burst to STAT_CONNECTING, or STAT_HANDSHAKE. This will need
+     * more investigation later on, but for now, it's not a problem after all.
      */
     if (IsServer(source_p) || IsConnecting(source_p) ||
         IsHandshake(source_p))
     {
-      if ((m = dlinkFindDelete(&serv_list, source_p)) != NULL)
+      if (dlinkFind(&serv_list, source_p))
       {
-        free_dlink_node(m);
+        dlinkDelete(&source_p->localClient->lclient_node, &serv_list);
         unset_chcap_usage_counts(source_p);
       }
 
