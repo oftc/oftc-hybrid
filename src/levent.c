@@ -56,7 +56,7 @@ levent_event_callback(int fd, short what, void *data)
   PF *handler;
   struct event *ev = F->evptr;
 
-  ilog(L_DEBUG, "data on %d (%d)", fd, what);
+  //ilog(L_DEBUG, "data on %d (%d)", fd, what);
 
   if(F == NULL || !F->flags.open || ev == NULL)
     return;
@@ -88,17 +88,19 @@ void
 levent_add(fde_t *F, unsigned int type, PF *handler, void *data, time_t timeout)
 {
   short what = 0;
+  int op;
+
+  //ilog(L_DEBUG, "fd %d type %d handler %p data %p timeout %d", F->fd,
+    //  type, handler, data, timeout);
 
   if(type & COMM_SELECT_READ)
   {
-    what |= EV_READ;
     F->read_handler = handler;
     F->read_data = data;
   }
 
   if(type & COMM_SELECT_WRITE)
   {
-    what |= EV_WRITE;
     F->write_handler = handler;
     F->write_data = data;
   }
@@ -109,13 +111,62 @@ levent_add(fde_t *F, unsigned int type, PF *handler, void *data, time_t timeout)
     F->timeout_handler = handler;
     F->timeout_data = data;
   }
-  
-  ilog(L_DEBUG, "adding %d %d %p", F->fd, what, F->evptr);
 
-  if(F->evptr == NULL)
-    F->evptr = event_new(eventbase, F->fd, what, levent_event_callback, F);
+  if(F->read_handler != NULL)
+  {
+//    ilog(L_DEBUG, "Marking for read");
+    what |= EV_READ;
+  }
+  if(F->write_handler != NULL)
+  {
+//    ilog(L_DEBUG, "Marking for write");
+    what |= EV_WRITE;
+  }
 
-  event_add(F->evptr, NULL);
+  if(what != F->evcache)
+  {
+    if(what == 0)
+    {
+//      ilog(L_DEBUG, "Deleteing");
+      op = 0; // del
+    }
+    else if(F->evcache == 0)
+    {
+//      ilog(L_DEBUG, "Adding");
+      op = 1; // add
+    }
+    else
+    {
+//      ilog(L_DEBUG, "Modifying");
+      op = 2; // modify
+    }
+
+    F->evcache = what;
+
+    switch(op)
+    {
+      case 0:
+        if(F->evptr == NULL)
+          return;
+        event_del(F->evptr);
+        F->evptr = NULL;
+        break;
+      case 1:
+      case 2:
+        if(F->evptr != NULL)
+          event_del(F->evptr);
+
+        F->evptr = event_new(eventbase, F->fd, what, levent_event_callback, F);
+        event_add(F->evptr, NULL);
+        break;
+    }
+  }
+  else
+  {
+//    ilog(L_DEBUG, "evcache == what, no change %d", F->evcache);
+    if(F->evptr != NULL)
+      event_add(F->evptr, NULL);
+  }
 }
 
 void
@@ -125,8 +176,7 @@ levent_loop()
 
   ret = event_base_loop(eventbase, EVLOOP_NONBLOCK);
 
-  if(ret == 1)
-    usleep(10000);
+  usleep(10000);
 
   if(ret == -1)
     server_die("event loop problem", YES);
@@ -138,6 +188,8 @@ levent_init()
   event_set_log_callback(levent_log_cb);
   event_set_fatal_callback(levent_fatal_callback);
   event_set_mem_functions(MyMalloc, MyRealloc, MyFree);
+
+  event_enable_debug_mode();
 
   eventbase = event_base_new();
 
