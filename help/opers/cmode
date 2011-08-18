@@ -31,6 +31,13 @@ NO PARAMETERS:
               channel who hasn't received an /invite or whose host isn't in
               the +I list.
 
+     +O     - 'IRCOps only'. This will prevent anyone who hasn't obtained
+              IRCOp status from joining your channel. Can be set by an IRCOp
+              only.
+
+     +S     - 'SSL only'. This will prevent anyone who isn't securely connected
+              via SSL/TLS from joining your channel.
+
 
 WITH PARAMETERS:
 ----------------
@@ -79,4 +86,3 @@ WITH PARAMETERS:
               invite-only (+i) channel, based on a nick!user@host match.
 
               PARAMS: /mode #channel +IIII n!u@h1b n!u@h2b n!u@h3b n!u@h4
-
