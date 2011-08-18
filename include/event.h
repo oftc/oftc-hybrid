@@ -43,15 +43,14 @@ struct ev_entry
   time_t frequency;
   time_t when;
   int active;
+  void *evptr;
 };
 
 extern void eventAdd(const char *, EVH *, void *, time_t);
 extern void eventAddIsh(const char *, EVH *, void *, time_t);
-extern void eventRun(void);
-extern time_t eventNextTime(void);
 extern void eventInit(void);
 extern void eventDelete(EVH *, void *);
-extern void set_back_events(time_t);
 extern void show_events(struct Client *);
 
+extern const char *last_event_ran;
 #endif /* INCLUDED_event_h */

@@ -169,6 +169,39 @@ levent_add(fde_t *F, unsigned int type, PF *handler, void *data, time_t timeout)
   }
 }
 
+static void
+levent_timer_callback(int fd, short what, void *data)
+{
+  struct ev_entry *entry = (struct ev_entry *)data;
+  if(entry != NULL)
+  {
+    last_event_ran = entry->name;
+    entry->func(entry->arg);
+    entry->when = CurrentTime + entry->frequency;
+  }
+}
+
+void
+levent_timer_add(struct ev_entry *entry)
+{
+  if(entry->evptr != NULL)
+    levent_timer_del(entry);
+
+  entry->evptr = event_new(eventbase, -1, EV_PERSIST, levent_timer_callback, entry);
+  struct timeval tv = { entry->frequency, 0 };
+  event_add(entry->evptr, &tv);
+}
+
+void
+levent_timer_del(struct ev_entry *entry)
+{
+  if (entry->evptr != NULL)
+  {
+    event_del(entry->evptr);
+    entry->evptr = NULL;
+  }
+}
+
 void
 levent_loop()
 {
