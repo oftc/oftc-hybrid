@@ -249,7 +249,6 @@ set_time(void)
     ircsprintf(to_send, "System clock is running backwards - (%lu < %lu)",
                (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
     report_error(L_ALL, to_send, me.name, 0);
-    set_back_events(CurrentTime - newtime.tv_sec);
   }
 
   SystemTime.tv_sec  = newtime.tv_sec;
@@ -285,12 +284,6 @@ io_loop(void)
         safe_list_channels(client_p, client_p->localClient->list_task, 0);
       }
     }
-
-    /* Run pending events, then get the number of seconds to the next
-     * event
-     */
-    while (eventNextTime() <= CurrentTime)
-      eventRun();
 
     levent_loop();
     exit_aborted_clients();

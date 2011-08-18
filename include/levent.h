@@ -24,8 +24,12 @@
 #ifndef INCLUDED_levent_h
 #define INCLUDED_levent_h
 
+#include "event.h"
+
 extern void levent_init();
 extern void levent_add();
 extern void levent_loop();
+extern void levent_timer_add(struct ev_entry *);
+extern void levent_timer_del(struct ev_entry *);
 
 #endif /* INCLUDED_levent_h */

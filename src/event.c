@@ -59,7 +59,7 @@
 #include "s_log.h"
 #include "numeric.h"
 
-static const char *last_event_ran = NULL;
+const char *last_event_ran = NULL;
 static struct ev_entry event_table[MAX_EVENTS];
 static time_t event_time_min = -1;
 static int eventFind(EVH *func, void *arg);
@@ -76,7 +76,7 @@ void
 eventAdd(const char *name, EVH *func, void *arg, time_t when)
 {
   int i;
-  
+
   /* find first inactive index, or use next index */
   for (i = 0; i < MAX_EVENTS; i++)
   {
@@ -91,6 +91,8 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
 
       if ((event_table[i].when < event_time_min) || (event_time_min == -1))
 	event_time_min = event_table[i].when;
+
+      levent_timer_add(&event_table[i]);
 
       return;
     }
@@ -118,6 +120,8 @@ eventDelete(EVH *func, void *arg)
   event_table[i].func = NULL;
   event_table[i].arg = NULL;
   event_table[i].active = 0;
+
+  levent_timer_del(&event_table[i]);
 }
 
 /* 
@@ -143,54 +147,6 @@ eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_ish)
   }
 
   eventAdd(name, func, arg, delta_ish);
-}
-
-/*
- * void eventRun(void)
- *
- * Input: None
- * Output: None
- * Side Effects: Runs pending events in the event list
- */
-void
-eventRun(void)
-{
-  int i;
-
-  for (i = 0; i < MAX_EVENTS; i++)
-  {
-    if (event_table[i].active && (event_table[i].when <= CurrentTime))
-    {
-      last_event_ran = event_table[i].name;
-      event_table[i].func(event_table[i].arg);
-      event_table[i].when = CurrentTime + event_table[i].frequency;
-      event_time_min = -1;
-    }
-  }
-}
-
-/*
- * time_t eventNextTime(void)
- * 
- * Input: None
- * Output: Specifies the next time eventRun() should be run
- * Side Effects: None
- */
-time_t
-eventNextTime(void)
-{
-  int i;
-
-  if (event_time_min == -1)
-  {
-    for (i = 0; i < MAX_EVENTS; i++)
-    {
-      if (event_table[i].active && ((event_table[i].when < event_time_min) || (event_time_min == -1)))
-        event_time_min = event_table[i].when;
-    }
-  }
-
-  return(event_time_min);
 }
 
 /*
@@ -269,24 +225,3 @@ show_events(struct Client *source_p)
   sendto_one(source_p, ":%s %d %s : ",
     me.name, RPL_STATSDEBUG, source_p->name);
 }
-
-/*
- * void set_back_events(time_t by)
- * Input: Time to set back events by.
- * Output: None.
- * Side-effects: Sets back all events by "by" seconds.
- */
-void
-set_back_events(time_t by)
-{
-  int i;
-
-  for (i = 0; i < MAX_EVENTS; i++)
-  {
-    if (event_table[i].when > by)
-      event_table[i].when -= by;
-    else
-      event_table[i].when = 0;
-  }
-}
-
