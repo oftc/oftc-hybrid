@@ -573,7 +573,6 @@ extern void del_all_accepts(struct Client *);
 extern void exit_client(struct Client *, struct Client *, const char *);
 extern void check_conf_klines(void);
 extern void init_client(void);
-extern void change_local_nick(struct Client *, struct Client *, const char *);
 extern void dead_link_on_write(struct Client *, int);
 extern void dead_link_on_read(struct Client *, int);
 extern void exit_aborted_clients(void);
