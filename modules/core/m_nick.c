@@ -137,11 +137,10 @@ set_initial_nick(struct Client *source_p, const char *nick)
  * side effects - changes nick of a LOCAL user
  */
 static void
-change_local_nick(struct Client *client_p, struct Client *source_p, const char *nick)
+change_local_nick(struct Client *source_p, const char *nick)
 {
-  int samenick = 0;
-
   assert(source_p->name[0] && !EmptyString(nick));
+  assert(MyConnect(source_p));
 
   /*
    * Client just changing his/her nick. If he/she is
@@ -160,7 +159,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
      !ConfigFileEntry.anti_nick_flood ||
      (IsOper(source_p) && ConfigFileEntry.no_oper_flood))
   {
-    samenick = !irccmp(source_p->name, nick);
+    int samenick = !irccmp(source_p->name, nick);
 
     if (!samenick)
     {
@@ -188,10 +187,10 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
                                  source_p->host, nick);
     add_history(source_p, 1);
 
-    sendto_server(client_p, NULL, CAP_TS6, NOCAPS,
+    sendto_server(source_p, NULL, CAP_TS6, NOCAPS,
                   ":%s NICK %s :%lu",
                   ID(source_p), nick, (unsigned long)source_p->tsinfo);
-    sendto_server(client_p, NULL, NOCAPS, CAP_TS6,
+    sendto_server(source_p, NULL, NOCAPS, CAP_TS6,
                   ":%s NICK %s :%lu",
                   source_p->name, nick, (unsigned long)source_p->tsinfo);
 
@@ -203,7 +202,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
       watch_check_hash(source_p, RPL_LOGON);
 
     /* fd_desc is long enough */
-    fd_note(&client_p->localClient->fd, "Nick: %s", nick);
+    fd_note(&source_p->localClient->fd, "Nick: %s", nick);
   }
   else
     sendto_one(source_p, form_str(ERR_NICKTOOFAST),
@@ -294,6 +293,8 @@ m_nick(struct Client *client_p, struct Client *source_p,
   char nick[NICKLEN];
   struct Client *target_p = NULL;
 
+  assert(source_p == client_p);
+
   if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
@@ -344,7 +345,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
   }
 
   if ((target_p = hash_find_client(nick)) == NULL)
-    change_local_nick(client_p, source_p, nick);
+    change_local_nick(source_p, nick);
   else if (target_p == source_p)
   {
     /*
@@ -354,7 +355,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
 
     /* check the nick isnt exactly the same */
     if (strcmp(target_p->name, nick))
-      change_local_nick(client_p, source_p, nick);
+      change_local_nick(source_p, nick);
   }
   else if (IsUnknown(target_p))
   {
@@ -363,7 +364,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
      * user) then drop the unregged client
      */
     exit_client(target_p, &me, "Overridden");
-    change_local_nick(client_p, source_p, nick);
+    change_local_nick(source_p, nick);
   }
   else
     sendto_one(source_p, form_str(ERR_NICKNAMEINUSE), me.name,
