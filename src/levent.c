@@ -14,6 +14,8 @@
 
 #include <event2/event.h>
 
+#undef EVENT_DEBUGGING 
+
 struct event_base *eventbase;
 
 static void 
@@ -56,7 +58,9 @@ levent_event_callback(int fd, short what, void *data)
   PF *handler;
   struct event *ev = F->evptr;
 
-  //ilog(L_DEBUG, "data on %d (%d)", fd, what);
+#ifdef EVENT_DEBUGGING
+  ilog(L_DEBUG, "data on %d (%d)", fd, what);
+#endif
 
   if(F == NULL || !F->flags.open || ev == NULL)
     return;
@@ -90,8 +94,10 @@ levent_add(fde_t *F, unsigned int type, PF *handler, void *data, time_t timeout)
   short what = 0;
   int op;
 
-  //ilog(L_DEBUG, "fd %d type %d handler %p data %p timeout %d", F->fd,
-    //  type, handler, data, timeout);
+#ifdef EVENT_DEBUGGING
+  ilog(L_DEBUG, "fd %d type %d handler %p data %p timeout %d", F->fd,
+      type, handler, data, timeout);
+#endif
 
   if(type & COMM_SELECT_READ)
   {
@@ -114,12 +120,16 @@ levent_add(fde_t *F, unsigned int type, PF *handler, void *data, time_t timeout)
 
   if(F->read_handler != NULL)
   {
-//    ilog(L_DEBUG, "Marking for read");
+#ifdef EVENT_DEBUGGING
+    ilog(L_DEBUG, "Marking for read");
+#endif
     what |= EV_READ;
   }
   if(F->write_handler != NULL)
   {
-//    ilog(L_DEBUG, "Marking for write");
+#ifdef EVENT_DEBUGGING
+    ilog(L_DEBUG, "Marking for write");
+#endif
     what |= EV_WRITE;
   }
 
@@ -127,17 +137,23 @@ levent_add(fde_t *F, unsigned int type, PF *handler, void *data, time_t timeout)
   {
     if(what == 0)
     {
-//      ilog(L_DEBUG, "Deleteing");
+#ifdef EVENT_DEBUGGING
+      ilog(L_DEBUG, "Deleteing");
+#endif
       op = 0; // del
     }
     else if(F->evcache == 0)
     {
-//      ilog(L_DEBUG, "Adding");
+#ifdef EVENT_DEBUGGING
+      ilog(L_DEBUG, "Adding");
+#endif
       op = 1; // add
     }
     else
     {
-//      ilog(L_DEBUG, "Modifying");
+#ifdef EVENT_DEBUGGING
+      ilog(L_DEBUG, "Modifying");
+#endif
       op = 2; // modify
     }
 
@@ -163,7 +179,9 @@ levent_add(fde_t *F, unsigned int type, PF *handler, void *data, time_t timeout)
   }
   else
   {
-//    ilog(L_DEBUG, "evcache == what, no change %d", F->evcache);
+#ifdef EVENT_DEBUGGING
+    ilog(L_DEBUG, "evcache == what, no change %d", F->evcache);
+#endif
     if(F->evptr != NULL)
       event_add(F->evptr, NULL);
   }
