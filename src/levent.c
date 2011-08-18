@@ -192,6 +192,8 @@ levent_loop()
 {
   int ret;
 
+  set_time();
+
   ret = event_base_loop(eventbase, EVLOOP_NONBLOCK);
 
   usleep(10000);
