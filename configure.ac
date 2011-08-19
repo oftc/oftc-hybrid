@@ -54,7 +54,6 @@ AC_CHECK_FUNC([strlcpy],[AC_DEFINE([HAVE_STRLCPY],[1],[Define to 1 if you have t
 AC_CHECK_FUNC([basename],[AC_DEFINE([HAVE_BASENAME],[1],[Define to 1 if you have the basename() function.])])
 
 # Argument processing.
-AX_ARG_ENABLE_IOLOOP_MECHANISM
 AX_ARG_DISABLE_BLOCK_ALLOC
 AX_ARG_DISABLE_SHARED_MODULES
 AX_ARG_WITH_NICKLEN

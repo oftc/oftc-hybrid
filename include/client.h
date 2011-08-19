@@ -31,7 +31,6 @@
 #include "ircd_handler.h"
 #include "dbuf.h"
 #include "channel.h"
-#include "irc_res.h"
 
 #define HOSTIPLEN	53 /* sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255.ipv6") */
 #define PASSWDLEN       20

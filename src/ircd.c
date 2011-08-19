@@ -45,7 +45,6 @@
 #include "numeric.h"
 #include "packet.h"
 #include "parse.h"
-#include "irc_res.h"
 #include "restart.h"
 #include "s_auth.h"
 #include "s_bsd.h"
@@ -63,6 +62,7 @@
 #include "motd.h"
 #include "supported.h"
 #include "watch.h"
+#include "levent.h"
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
  * number of files allowed to be open by this process.
@@ -249,7 +249,6 @@ set_time(void)
     ircsprintf(to_send, "System clock is running backwards - (%lu < %lu)",
                (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
     report_error(L_ALL, to_send, me.name, 0);
-    set_back_events(CurrentTime - newtime.tv_sec);
   }
 
   SystemTime.tv_sec  = newtime.tv_sec;
@@ -257,60 +256,75 @@ set_time(void)
 }
 
 static void
-io_loop(void)
+check_safe_list_channels(int fd, short what, void *arg)
 {
-  while (1 == 1)
+  if (listing_client_list.head)
   {
-    /*
-     * Maybe we want a flags word?
-     * ie. if (REHASHED_KLINES(global_flags)) 
-     * SET_REHASHED_KLINES(global_flags)
-     * CLEAR_REHASHED_KLINES(global_flags)
-     *
-     * - Dianora
-     */
-    if (rehashed_klines)
+    dlink_node *ptr = NULL, *ptr_next = NULL;
+    DLINK_FOREACH_SAFE(ptr, ptr_next, listing_client_list.head)
     {
-      check_conf_klines();
-      rehashed_klines = 0;
-    }
-
-    if (listing_client_list.head)
-    {
-      dlink_node *ptr = NULL, *ptr_next = NULL;
-      DLINK_FOREACH_SAFE(ptr, ptr_next, listing_client_list.head)
-      {
-        struct Client *client_p = ptr->data;
-        assert(client_p->localClient->list_task);
-        safe_list_channels(client_p, client_p->localClient->list_task, 0);
-      }
-    }
-
-    /* Run pending events, then get the number of seconds to the next
-     * event
-     */
-    while (eventNextTime() <= CurrentTime)
-      eventRun();
-
-    comm_select();
-    exit_aborted_clients();
-    free_exited_clients();
-    send_queued_all();
-
-    /* Check to see whether we have to rehash the configuration .. */
-    if (dorehash)
-    {
-      rehash(1);
-      dorehash = 0;
-    }
-    if (doremotd)
-    {
-      read_message_file(&ConfigFileEntry.motd);
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-                           "Got signal SIGUSR1, reloading ircd motd file");
-      doremotd = 0;
+      struct Client *client_p = ptr->data;
+      assert(client_p->localClient->list_task);
+      safe_list_channels(client_p, client_p->localClient->list_task, 0);
     }
   }
+}
+
+static void
+check_rehash(int fd, short what, void *arg)
+{
+  /*
+   * Maybe we want a flags word?
+   * ie. if (REHASHED_KLINES(global_flags))
+   * SET_REHASHED_KLINES(global_flags)
+   * CLEAR_REHASHED_KLINES(global_flags)
+   *
+   * - Dianora
+   */
+  if (rehashed_klines)
+  {
+    check_conf_klines();
+    rehashed_klines = 0;
+  }
+  /* Check to see whether we have to rehash the configuration .. */
+  if (dorehash)
+  {
+    rehash(1);
+    dorehash = 0;
+  }
+  if (doremotd)
+  {
+    read_message_file(&ConfigFileEntry.motd);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Got signal SIGUSR1, reloading ircd motd file");
+    doremotd = 0;
+  }
+}
+
+static void
+client_loop(int fd, short what, void *arg)
+{
+  exit_aborted_clients();
+  free_exited_clients();
+  send_queued_all();
+}
+
+static void
+update_time(int fd, short what, void *arg)
+{
+  set_time();
+}
+
+static void
+io_loop(void)
+{
+  const struct timeval default_loop_time = { 0, 10000 }; // 10ms
+  void *clp_event = levent_timer_add_generic(&default_loop_time, client_loop, NULL);
+  void *csl_event = levent_timer_add_generic(&default_loop_time, check_safe_list_channels, NULL);
+  void *crh_event = levent_timer_add_generic(&default_loop_time, check_rehash, NULL);
+  void *upt_event = levent_timer_add_generic(&default_loop_time, update_time, NULL);
+
+  levent_loop();
 }
 
 /* initalialize_global_set_options()
@@ -628,6 +642,7 @@ main(int argc, char *argv[])
 
   get_ircd_platform(ircd_platform);
 
+  levent_init();
   /* Init the event subsystem */
   eventInit();
   /* We need this to initialise the fd array before anything else */
@@ -657,9 +672,6 @@ main(int argc, char *argv[])
   me.id[0] = '\0';
   init_uid();
   init_auth();          /* Initialise the auth code */
-#ifndef _WIN32
-  init_resolver();      /* Needs to be setup before the io loop */
-#endif
   initialize_server_capabs();   /* Set up default_server_capabs */
   initialize_global_set_options();
   init_channels();

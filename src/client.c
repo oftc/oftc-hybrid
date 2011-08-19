@@ -51,7 +51,6 @@
 #include "hostmask.h"
 #include "balloc.h"
 #include "listener.h"
-#include "irc_res.h"
 #include "userhost.h"
 #include "watch.h"
 
@@ -717,7 +716,7 @@ void
 free_exited_clients(void)
 {
   dlink_node *ptr = NULL, *next = NULL;
-  
+
   DLINK_FOREACH_SAFE(ptr, next, dead_list.head)
   {
     free_client(ptr->data);

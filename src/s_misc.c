@@ -30,7 +30,6 @@
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "irc_res.h"
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"

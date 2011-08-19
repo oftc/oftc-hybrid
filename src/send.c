@@ -34,6 +34,7 @@
 #include "handlers.h"
 #include "numeric.h"
 #include "fdlist.h"
+#include "levent.h"
 #include "s_bsd.h"
 #include "s_serv.h"
 #include "sprintf_irc.h"
@@ -312,7 +313,7 @@ send_queued_write(struct Client *to)
     {
       /* we have a non-fatal error, reschedule a write */
       SetSendqBlocked(to);
-      comm_setselect(&to->localClient->fd, COMM_SELECT_WRITE,
+      levent_add(&to->localClient->fd, COMM_SELECT_WRITE,
                      (PF *)sendq_unblocked, (void *)to, 0);
     }
     else if (retlen <= 0)
@@ -383,7 +384,7 @@ send_queued_slink_write(struct Client *to)
     if (to->localClient->slinkq_len)
     {
       SetSlinkqBlocked(to);
-      comm_setselect(&to->localClient->ctrlfd, COMM_SELECT_WRITE,
+      levent_add(&to->localClient->ctrlfd, COMM_SELECT_WRITE,
                      (PF *)slinkq_unblocked, (void *)to, 0);
     }
   }

@@ -3,6 +3,8 @@
 *.la
 *.lo
 *.a
+*.so
+*.swp
 Makefile
 aclocal.m4
 autom4te.cache
@@ -17,8 +19,15 @@ include/setup.h
 include/stamp-h1
 install-sh
 .deps
-libltdl/
+.depend
+.libs
+libltdl
 libtool
 ltmain.sh
 missing
 ylwrap
+servlink/servlink
+src/ircd
+src/ircd_lexer.c
+src/ircd_parser.c
+src/ircd_parser.h
