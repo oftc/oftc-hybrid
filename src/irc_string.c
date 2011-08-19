@@ -236,29 +236,6 @@ inetntoa(const char *in)
   return buf;
 }
 
-#ifndef HAVE_BASENAME
-
-/* basename()
- *
- * input	- i.e. "/usr/local/ircd/modules/m_whois.so"
- * output	- i.e. "m_whois.so"
- * side effects - this will be overwritten on subsequent calls
- */
-char *
-basename(char *path)
-{
-  char *s;
-
-  if ((s = strrchr(path, '/')) == NULL)
-    s = path;
-  else
-    s++;
-
-  return s;
-}
-
-#endif /* !HAVE_BASENAME */
-
 /*
  * Copyright (c) 1996-1999 by Internet Software Consortium.
  *
