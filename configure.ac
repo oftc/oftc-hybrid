@@ -40,8 +40,6 @@ AC_C_VOLATILE
 AC_C_BIGENDIAN
 
 # Checks for library functions.
-AC_CHECK_FUNC([snprintf],[AC_DEFINE([HAVE_SNPRINTF],[1],[Define to 1 if you have the snprintf() function.])])
-AC_CHECK_FUNC([vsnprintf],[AC_DEFINE([HAVE_VSNPRINTF],[1],[Define to 1 if you have the vsnprintf() function.])])
 AC_CHECK_FUNC([lrand48],[AC_DEFINE([HAVE_LRAND48],[1],[Define to 1 if you have the lrand48() function.])])
 AC_CHECK_FUNC([srand48],[AC_DEFINE([HAVE_LRAND48],[1],[Define to 1 if you have the srand48() function.])])
 AC_CHECK_FUNC([mmap],[AC_DEFINE([HAVE_MMAP],[1],[Define to 1 if you have the mmap() function.])])
