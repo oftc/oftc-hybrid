@@ -294,12 +294,7 @@ send_queued_write(struct Client *to)
         retlen = send(to->localClient->fd.fd, first->data, first->size, 0);
 
       if (retlen <= 0)
-      {
-#ifdef _WIN32
-        errno = WSAGetLastError();
-#endif
         break;
-      }
 
       dbuf_delete(&to->localClient->buf_sendq, retlen);
 

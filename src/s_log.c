@@ -112,13 +112,8 @@ write_log(const char *message)
   if (logFile == NULL)
     return;
 
-#ifdef _WIN32
-  nbytes = snprintf(buf, sizeof(buf), "[%s] %s\r\n",
-                    smalldate(CurrentTime), message);
-#else
-  nbytes = snprintf(buf, sizeof(buf), "[%s] %s\n",
-                    smalldate(CurrentTime), message);
-#endif
+  nbytes = snprintf(buf, sizeof(buf), "[%s] %s\n", 
+      smalldate(CurrentTime), message);
   fbputs(buf, logFile, nbytes);
 }
    

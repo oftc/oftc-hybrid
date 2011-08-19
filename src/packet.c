@@ -451,10 +451,6 @@ read_packet(fde_t *fd, void *data)
 #endif
     {
       length = recv(fd->fd, readBuf, READBUF_SIZE, 0);
-#ifdef _WIN32
-      if (length < 0)
-        errno = WSAGetLastError();
-#endif
     }
 
     if (length <= 0)

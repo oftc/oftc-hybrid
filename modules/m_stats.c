@@ -323,7 +323,6 @@ mo_stats(struct Client *client_p, struct Client *source_p,
 static void
 send_usage(struct Client *source_p)
 {
-#ifndef _WIN32
   struct rusage rus;
   time_t secs;
   time_t rup;
@@ -335,7 +334,6 @@ send_usage(struct Client *source_p)
 # else
   int hzz = 1;
 # endif
-#endif
 
   if (getrusage(RUSAGE_SELF, &rus) == -1)
   {

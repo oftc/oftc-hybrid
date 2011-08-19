@@ -1822,9 +1822,7 @@ rehash(int sig)
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                          "Got signal SIGHUP, reloading ircd.conf file");
 
-#ifndef _WIN32
   restart_resolver();
-#endif
   /* don't close listeners until we know we can go ahead with the rehash */
 
   /* Check to see if we magically got(or lost) IPv6 support */

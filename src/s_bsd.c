@@ -23,11 +23,9 @@
  */
 
 #include "stdinc.h"
-#ifndef _WIN32
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-#endif
 #include "fdlist.h"
 #include "levent.h"
 #include "s_bsd.h"
@@ -75,11 +73,7 @@ check_can_use_v6(void)
   else
   {
     ServerInfo.can_use_v6 = 1;
-#ifdef _WIN32
-    closesocket(v6);
-#else
     close(v6);
-#endif
   }
 }
 
@@ -92,11 +86,7 @@ check_can_use_v6(void)
 int
 get_sockerr(int fd)
 {
-#ifndef _WIN32
   int errtmp = errno;
-#else
-  int errtmp = WSAGetLastError();
-#endif
 #ifdef SO_ERROR
   int err = 0;
   socklen_t len = sizeof(err);
@@ -158,9 +148,7 @@ setup_socket(va_list args)
   setsockopt(fd, IPPROTO_IP, IP_TOS, (char *) &opt, sizeof(opt));
 #endif
 
-#ifndef _WIN32
   fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
-#endif
 
   return NULL;
 }
@@ -679,9 +667,6 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
   /* Error? */
   if (retval < 0)
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     /*
      * If we get EISCONN, then we've already connect()ed the socket,
      * which is a good thing.
@@ -741,9 +726,6 @@ comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
   fd = socket(family, sock_type, proto);
   if (fd < 0)
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     return -1; /* errno will be passed through, yay.. */
   }
 
@@ -781,9 +763,6 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
   newfd = accept(lptr->fd.fd, (struct sockaddr *)pn, (socklen_t *)&addrlen);
   if (newfd < 0)
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     return -1;
   }
 

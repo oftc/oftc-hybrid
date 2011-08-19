@@ -529,17 +529,10 @@ read_auth_reply(fde_t *fd, void *data)
    *
    *    --nenolod
    */
-#ifndef _WIN32
   len = read(fd->fd, buf, AUTH_BUFSIZ);
-#else
-  len = recv(fd->fd, buf, AUTH_BUFSIZ, 0);
-#endif
   
   if (len < 0)
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     if (ignoreErrno(errno))
       levent_add(fd, COMM_SELECT_READ, read_auth_reply, auth, 0);
     else

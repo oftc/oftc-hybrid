@@ -101,11 +101,6 @@ AC_DEFUN([AX_ARG_WITH_IRCD_HEAP_SIZE],[
   AC_ARG_WITH([ircd-heap-size],[AC_HELP_STRING([--ircd-heap-size=<value>],[Set ircd heap size (default 8).])],[ircd_heap_size="$withval"],[ircd_heap_size="8"])
   AC_DEFINE_UNQUOTED([IRCD_HEAP_SIZE],[$ircd_heap_size],[Size of the ircd heap.])
 ])dnl }}}
-dnl {{{ ax_arg_with_mqueue_heap_size
-AC_DEFUN([AX_ARG_WITH_MQUEUE_HEAP_SIZE],[
-  AC_ARG_WITH([mqueue-heap-size],[AC_HELP_STRING([--mqueue-size=<value>],[Set mqueue heap size (default 256).])],[mqueue_heap_size="$withval"],[mqueue_heap_size="256"])
-  AC_DEFINE_UNQUOTED([MQUEUE_HEAP_SIZE],[$mqueue_heap_size],[Size of the floodserv mqueue heap.])
-])dnl }}}
 dnl {{{ ax_arg_with_fmsg_heap_size
 AC_DEFUN([AX_ARG_WITH_FMSG_HEAP_SIZE],[
   AC_ARG_WITH([fmsg-heap-size],[AC_HELP_STRING([--fmsg-size=<value>],[Set fmsg heap size (default 256).])],[fmsg_heap_size="$withval"],[fmsg_heap_size="256"])

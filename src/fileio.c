@@ -41,41 +41,7 @@ int
 file_open(fde_t *F, const char *filename, int mode, int fmode)
 {
   int fd;
-#ifdef _WIN32
-  DWORD dwDesiredAccess = 0;
-
-  switch (mode & ~(O_CREAT | O_TRUNC | O_APPEND))
-  {
-    case O_RDONLY:
-      dwDesiredAccess = GENERIC_READ;
-      break;
-    case O_WRONLY:
-      dwDesiredAccess = GENERIC_WRITE;
-      break;
-    case O_RDWR:
-      dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
-  }
-
-  fd = (int) CreateFile(
-    filename,
-    dwDesiredAccess,
-    FILE_SHARE_READ | ((dwDesiredAccess & GENERIC_WRITE) ? 0:FILE_SHARE_WRITE),
-    NULL,
-    ((mode & O_CREAT) == 0) ? OPEN_EXISTING :
-    ((mode & O_TRUNC) ? CREATE_ALWAYS : OPEN_ALWAYS),
-    FILE_ATTRIBUTE_NORMAL,
-    NULL
-  );
-
-  if (fd == (int)INVALID_HANDLE_VALUE)
-  {
-    errno = GetLastError();
-    return -1;
-  }
-
-  if ((mode & O_APPEND))
-    SetFilePointer((HANDLE)fd, 0, NULL, FILE_END);
-#else
+  
   if (number_fd == hard_fdlimit)
   {
     errno = ENFILE;
@@ -84,7 +50,6 @@ file_open(fde_t *F, const char *filename, int mode, int fmode)
 
   if ((fd = open(filename, mode, fmode)) < 0)
     return -1;
-#endif
 
   fd_open(F, fd, 0, filename);
   return 0;
@@ -141,11 +106,8 @@ fbrewind(FBFILE *fb)
   fb->flags = 0;
   fb->pbptr = NULL;
 
-#ifdef _WIN32
-  SetFilePointer((HANDLE)fb->F.fd, 0, NULL, FILE_BEGIN);
-#else
   lseek(fb->F.fd, 0, SEEK_SET);
-#endif
+  
   return 0;
 }
 
@@ -166,12 +128,7 @@ fbfill(FBFILE *fb)
   if (fb->flags)
     return -1;
 
-#ifdef _WIN32
-  if (!ReadFile((HANDLE)fb->F.fd, fb->buf, BUFSIZ, (LPDWORD)&n, NULL))
-    n = -1;
-#else
   n = read(fb->F.fd, fb->buf, BUFSIZ);
-#endif
 
   if (n > 0)
   {
@@ -268,12 +225,7 @@ fbputs(const char *str, FBFILE *fb, size_t nbytes)
   if (0 == fb->flags)
   {
     assert(strlen(str) == nbytes);
-#ifdef _WIN32
-    if (!WriteFile((HANDLE)fb->F.fd, str, nbytes, (LPDWORD)&n, NULL))
-      n = -1;
-#else
     n = write(fb->F.fd, str, nbytes);
-#endif
     if (n == -1)
       fb->flags |= FB_FAIL;
   }
