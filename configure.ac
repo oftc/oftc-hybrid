@@ -44,7 +44,6 @@ AC_CHECK_FUNC([lrand48],[AC_DEFINE([HAVE_LRAND48],[1],[Define to 1 if you have t
 AC_CHECK_FUNC([srand48],[AC_DEFINE([HAVE_LRAND48],[1],[Define to 1 if you have the srand48() function.])])
 AC_CHECK_FUNC([mmap],[AC_DEFINE([HAVE_MMAP],[1],[Define to 1 if you have the mmap() function.])])
 AC_CHECK_FUNC([strtok_r],[AC_DEFINE([HAVE_STRTOK_R],[1],[Define to 1 if you have the strtok_r() function.])])
-AC_CHECK_FUNC([usleep],[AC_DEFINE([HAVE_USLEEP],[1],[Define to 1 if you have the usleep() function.])])
 AC_CHECK_FUNC([strlcat],[AC_DEFINE([HAVE_STRLCAT],[1],[Define to 1 if you have the strlcat() function.])])
 AC_CHECK_FUNC([strlcpy],[AC_DEFINE([HAVE_STRLCPY],[1],[Define to 1 if you have the strlcpy() function.])])
 
