@@ -384,11 +384,9 @@ mo_dline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-#ifdef IPV6
   if (t == HM_IPV6)
     t = AF_INET6;
   else
-#endif
     t = AF_INET;
 
   parse_netmask(dlhost, &daddr, NULL);
@@ -458,11 +456,9 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
 
   if ((t = parse_netmask(lhost, &iphost, &t)) != HM_HOST)
   {
-#ifdef IPV6
     if (t == HM_IPV6)
       t = AF_INET6;
     else
-#endif
       t = AF_INET;
     piphost = &iphost;
   }
@@ -664,9 +660,7 @@ remove_tkline_match(const char *host, const char *user)
       continue;
     if ((nm_t==HM_HOST && !irccmp(tk_c->host, host)) ||
         (nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
-#ifdef IPV6
         || (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
-#endif
        )
     {
       dlinkDelete(tk_n, &temporary_klines);
@@ -702,9 +696,7 @@ remove_tdline_match(const char *cidr)
 
     if((nm_t==HM_HOST && !irccmp(td_conf->host, cidr)) ||
        (nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
-#ifdef IPV6
        || (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
-#endif
       )
     {
       dlinkDelete(td_node, &temporary_dlines);

@@ -434,7 +434,6 @@ h_set_user_mode(va_list args)
        * IPv6 could potentially core the server if a user connected via IPv6 sets +h
        * so we need to check and break before that happens. -- knight-
        */
-#ifdef IPV6
       if (target_p->localClient->aftype == AF_INET6)
       {
         if (!vhost_ipv6_err)
@@ -445,7 +444,6 @@ h_set_user_mode(va_list args)
         }
       }
       else
-#endif
         set_vhost(client_p, target_p, target_p);
     }
 

@@ -161,10 +161,8 @@ inet_aton(const char *cp, struct in_addr * addr)
 static const char *inet_ntop4(const unsigned char *src, char *dst,
 			      size_t size);
 
-#ifdef IPV6
 static const char *inet_ntop6(const unsigned char *src, char *dst,
 			      size_t size);
-#endif
 
 /* char *
  * isc_net_ntop(af, src, dst, size)
@@ -180,10 +178,8 @@ inet_ntop(int af, const void *src, char *dst, size_t size)
 	switch (af) {
 	case AF_INET:
 		return (inet_ntop4(src, dst, size));
-#ifdef IPV6
 	case AF_INET6:
 		return (inet_ntop6(src, dst, size));
-#endif
 	default:
 		errno = EAFNOSUPPORT;
 		return (NULL);
@@ -224,7 +220,6 @@ inet_ntop4(const unsigned char *src, char *dst, size_t size)
  * author:
  *	Paul Vixie, 1996.
  */
-#ifdef IPV6
 static const char *
 inet_ntop6(const unsigned char *src, char *dst, size_t size)
 {
@@ -320,9 +315,7 @@ inet_ntop6(const unsigned char *src, char *dst, size_t size)
 #ifdef NO_INET_PTON
 
 static int inet_pton4(const char *src, unsigned char *dst);
-#ifdef IPV6
 static int inet_pton6(const char *src, unsigned char *dst);
-#endif
 
 /* int
  * inet_pton(af, src, dst)
@@ -343,10 +336,8 @@ inet_pton(int af,
 	switch (af) {
 	case AF_INET:
 		return (inet_pton4(src, dst));
-#ifdef IPV6
 	case AF_INET6:
 		return (inet_pton6(src, dst));
-#endif
 	default:
 		errno = EAFNOSUPPORT;
 		return (-1);
@@ -417,7 +408,6 @@ inet_pton4(src, dst)
  * author:
  *	Paul Vixie, 1996.
  */
-#ifdef IPV6
 static int
 inet_pton6(src, dst)
 	const char *src;
@@ -502,6 +492,4 @@ inet_pton6(src, dst)
 	memcpy(dst, tmp, NS_IN6ADDRSZ);
 	return (1);
 }
-#endif /* IPV6 */
-
 #endif /* NO_INET_PTON */

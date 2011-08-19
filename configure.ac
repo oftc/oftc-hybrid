@@ -28,8 +28,6 @@ AC_PATH_PROG([TAIL],[tail])
 
 # Checks for libraries.
 AX_CHECK_LIB_OPENSSL
-AX_CHECK_LIB_IPV4
-AX_CHECK_LIB_IPV6
 AX_CHECK_LIB_CRYPT
 
 # Checks for header files.

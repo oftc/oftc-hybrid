@@ -249,10 +249,8 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   struct irc_ssaddr vaddr;
   struct addrinfo hints, *res;
   char portname[PORTNAMELEN + 1];
-#ifdef IPV6
   static short int pass = 0; /* if ipv6 and no address specified we need to
 				have two listeners; one for each protocol. */
-#endif
 
   /*
    * if no or invalid port in conf line, don't bother
@@ -269,7 +267,6 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   /* Get us ready for a bind() and don't bother doing dns lookup */
   hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
-#ifdef IPV6
   if (ServerInfo.can_use_v6)
   {
     snprintf(portname, PORTNAMELEN, "%d", port);
@@ -283,7 +280,6 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     freeaddrinfo(res);
   }
   else
-#endif
   {
     struct sockaddr_in *v4 = (struct sockaddr_in*) &vaddr;
     v4->sin_addr.s_addr = INADDR_ANY;
@@ -306,7 +302,6 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     vaddr.ss_len = res->ai_addrlen;
     freeaddrinfo(res);
   }
-#ifdef IPV6
   else if (pass == 0 && ServerInfo.can_use_v6)
   {
     /* add the ipv4 listener if we havent already */
@@ -314,7 +309,6 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     add_listener(port, "0.0.0.0", flags);
   }
   pass = 0;
-#endif
 
   if ((listener = find_listener(port, &vaddr)))
   {

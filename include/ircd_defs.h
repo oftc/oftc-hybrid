@@ -33,7 +33,6 @@
  */
 #ifndef INCLUDED_ircd_defs_h
 #define INCLUDED_ircd_defs_h
-#include "inet_misc.h"
 
 /* Right out of the RFC */
 #define IRCD_BUFSIZE    512     /* WARNING: *DONT* CHANGE THIS!!!!         */

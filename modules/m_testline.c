@@ -139,11 +139,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
   if (t != HM_HOST)
   {
     aconf = find_dline_conf(&ip, 
-#ifdef IPV6 
                             (t == HM_IPV6) ? AF_INET6 : AF_INET
-#else
-                            AF_INET
-#endif
                             );
     if (aconf != NULL)
     {
@@ -188,11 +184,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 
   if (t != HM_HOST)
     aconf = find_address_conf(given_host, given_name, &ip, 
-#ifdef IPV6
                               (t == HM_IPV6) ? AF_INET6 : AF_INET,
-#else
-                              AF_INET,
-#endif
                               parv[2], parv[3] == NULL ? parv[2] : parv[3], 0);
   else
     aconf = find_address_conf(given_host, given_name, NULL, 0, parv[2], 

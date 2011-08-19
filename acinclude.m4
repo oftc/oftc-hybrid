@@ -1,16 +1,5 @@
 dnl Inspired by work Copyright (C) 2006 Luca Filipozzi
 dnl vim: set fdm=marker sw=2 ts=2 et si:
-dnl {{{ ax_check_lib_ipv4
-AC_DEFUN([AX_CHECK_LIB_IPV4],[
-  AC_SEARCH_LIBS([socket],[socket],,[AC_MSG_ERROR([socket library not found])])
-  AC_CHECK_FUNCS([inet_aton inet_ntop inet_pton])
-  AC_CHECK_TYPES([struct sockaddr_in, struct sockaddr_storage, struct addrinfo],,,[#include <netdb.h>])
-  AC_CHECK_MEMBERS([struct sockaddr_in.sin_len],,,[#include <netdb.h>])
-])dnl }}}
-dnl {{{ ax_check_lib_ipv6
-AC_DEFUN([AX_CHECK_LIB_IPV6],[
-  AC_CHECK_TYPES([struct sockaddr_in6],,[AC_DEFINE([IPV6],[1],[Define to 1 if you have IPv6 support.])],,[#include <netdb.h>])
-])dnl }}}
 dnl {{{ ax_check_crypt
 AC_DEFUN([AX_CHECK_LIB_CRYPT],[
 	AC_SEARCH_LIBS(crypt, [crypt descrypt],,)

@@ -1125,13 +1125,10 @@ find_or_add_ip(struct irc_ssaddr *ip_in)
   struct ip_entry *ptr, *newptr;
   int hash_index = hash_ip(ip_in), res;
   struct sockaddr_in *v4 = (struct sockaddr_in *)ip_in, *ptr_v4;
-#ifdef IPV6
   struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)ip_in, *ptr_v6;
-#endif
 
   for (ptr = ip_hash_table[hash_index]; ptr; ptr = ptr->next)
   {
-#ifdef IPV6
     if (ptr->ip.ss.ss_family != ip_in->ss.ss_family)
       continue;
     if (ip_in->ss.ss_family == AF_INET6)
@@ -1140,7 +1137,6 @@ find_or_add_ip(struct irc_ssaddr *ip_in)
       res = memcmp(&v6->sin6_addr, &ptr_v6->sin6_addr, sizeof(struct in6_addr));
     }
     else
-#endif
     {
       ptr_v4 = (struct sockaddr_in *)&ptr->ip;
       res = memcmp(&v4->sin_addr, &ptr_v4->sin_addr, sizeof(struct in_addr));
@@ -1181,13 +1177,10 @@ remove_one_ip(struct irc_ssaddr *ip_in)
   struct ip_entry *last_ptr = NULL;
   int hash_index = hash_ip(ip_in), res;
   struct sockaddr_in *v4 = (struct sockaddr_in *)ip_in, *ptr_v4;
-#ifdef IPV6
   struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)ip_in, *ptr_v6;
-#endif
 
   for (ptr = ip_hash_table[hash_index]; ptr; ptr = ptr->next)
   {
-#ifdef IPV6
     if (ptr->ip.ss.ss_family != ip_in->ss.ss_family)
       continue;
     if (ip_in->ss.ss_family == AF_INET6)
@@ -1196,7 +1189,6 @@ remove_one_ip(struct irc_ssaddr *ip_in)
       res = memcmp(&v6->sin6_addr, &ptr_v6->sin6_addr, sizeof(struct in6_addr));
     }
     else
-#endif
     {
       ptr_v4 = (struct sockaddr_in *)&ptr->ip;
       res = memcmp(&v4->sin_addr, &ptr_v4->sin_addr, sizeof(struct in_addr));
@@ -1240,7 +1232,6 @@ hash_ip(struct irc_ssaddr *addr)
     hash = ((ip >> 12) + ip) & (IP_HASH_SIZE-1);
     return hash;
   }
-#ifdef IPV6
   else
   {
     int hash;
@@ -1253,9 +1244,6 @@ hash_ip(struct irc_ssaddr *addr)
     hash  = hash & (IP_HASH_SIZE - 1);
     return hash;
   }
-#else
-  return 0;
-#endif
 }
 
 /* count_ip_hash()
@@ -3887,7 +3875,6 @@ cidr_limit_reached(int over_rule,
     mask_addr(&cidr->mask, CidrBitlenIPV4(aclass));
     dlinkAdd(cidr, &cidr->node, &aclass->list_ipv4);
   }
-#ifdef IPV6
   else if (CidrBitlenIPV6(aclass) > 0)
   {
     DLINK_FOREACH(ptr, aclass->list_ipv6.head)
@@ -3907,7 +3894,6 @@ cidr_limit_reached(int over_rule,
     mask_addr(&cidr->mask, CidrBitlenIPV6(aclass));
     dlinkAdd(cidr, &cidr->node, &aclass->list_ipv6);
   }
-#endif
   return 0;
 }
 
@@ -3949,7 +3935,6 @@ remove_from_cidr_check(struct irc_ssaddr *ip, struct ClassItem *aclass)
       }
     }
   }
-#ifdef IPV6
   else if (CidrBitlenIPV6(aclass) > 0)
   {
     DLINK_FOREACH_SAFE(ptr, next_ptr, aclass->list_ipv6.head)
@@ -3967,7 +3952,6 @@ remove_from_cidr_check(struct irc_ssaddr *ip, struct ClassItem *aclass)
       }
     }
   }
-#endif
 }
 
 static void
@@ -4025,12 +4009,10 @@ rebuild_cidr_class(struct ConfItem *conf, struct ClassItem *new_class)
                         &old_class->list_ipv4, &new_class->list_ipv4,
                         CidrBitlenIPV4(old_class) != CidrBitlenIPV4(new_class));
 
-#ifdef IPV6
     if (CidrBitlenIPV6(old_class) > 0 && CidrBitlenIPV6(new_class) > 0)
       rebuild_cidr_list(AF_INET6, conf, new_class,
                         &old_class->list_ipv6, &new_class->list_ipv6,
                         CidrBitlenIPV6(old_class) != CidrBitlenIPV6(new_class));
-#endif
   }
 
   destroy_cidr_class(old_class);

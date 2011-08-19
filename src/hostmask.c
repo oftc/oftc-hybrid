@@ -34,10 +34,8 @@
 #include "sprintf_irc.h"
 #include "s_misc.h"
 
-#ifdef IPV6
 static int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
 static unsigned long hash_ipv6(struct irc_ssaddr *, int);
-#endif
 static int try_parse_v4_netmask(const char *, struct irc_ssaddr *, int *);
 static unsigned long hash_ipv4(struct irc_ssaddr *, int);
 
@@ -63,7 +61,6 @@ static unsigned long hash_ipv4(struct irc_ssaddr *, int);
    Also a bug in DigitParse above.
    -Gozem 2002-07-19 gozem@linux.nu
 */
-#ifdef IPV6
 static int
 try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
 {
@@ -159,7 +156,6 @@ try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
     *b = bits;
   return HM_IPV6;
 }
-#endif
 
 /* int try_parse_v4_netmask(const char *, struct irc_ssaddr *, int *);
  * Input: A possible IPV4 address as a string.
@@ -244,10 +240,8 @@ try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
 int
 parse_netmask(const char *text, struct irc_ssaddr *addr, int *b)
 {
-#ifdef IPV6
-    if (strchr(text, ':'))
+  if (strchr(text, ':'))
     return try_parse_v6_netmask(text, addr, b);
-#endif
   if (strchr(text, '.'))
     return try_parse_v4_netmask(text, addr, b);
   return HM_HOST;
@@ -259,7 +253,6 @@ parse_netmask(const char *text, struct irc_ssaddr *addr, int *b)
  * Output: if match, -1 else 0
  * Side effects: None
  */
-#ifdef IPV6
 int
 match_ipv6(struct irc_ssaddr *addr, struct irc_ssaddr *mask, int bits)
 {
@@ -277,7 +270,6 @@ match_ipv6(struct irc_ssaddr *addr, struct irc_ssaddr *mask, int bits)
     return -1;
   return 0;
 }
-#endif
 /* int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int)
  * Input: An IP address, an IP mask, the number of bits in the mask.
  * Output: if match, -1 else 0
@@ -306,22 +298,17 @@ void
 mask_addr(struct irc_ssaddr *ip, int bits)
 {
   int mask;
-#ifdef IPV6
   struct sockaddr_in6 *v6_base_ip;
   int i, m, n;
-#endif
   struct sockaddr_in *v4_base_ip;
 
-#ifdef IPV6
   if (ip->ss.ss_family != AF_INET6)
-#endif
   {
     v4_base_ip = (struct sockaddr_in*)ip;
     mask = ~((1 << (32 - bits)) - 1);
     v4_base_ip->sin_addr.s_addr =
       htonl(ntohl(v4_base_ip->sin_addr.s_addr) & mask);
   }
-#ifdef IPV6
   else
   {
     n = bits / 8;
@@ -333,7 +320,6 @@ mask_addr(struct irc_ssaddr *ip, int bits)
     for (i = n + 1; i < 16; i++)
       v6_base_ip->sin6_addr.s6_addr[i] = 0;
   }
-#endif
 }
 
 /* Hashtable stuff...now external as its used in m_stats.c */
@@ -368,7 +354,6 @@ hash_ipv4(struct irc_ssaddr *addr, int bits)
  * Output: A hash value of the IP address.
  * Side effects: None
  */
-#ifdef IPV6
 static unsigned long
 hash_ipv6(struct irc_ssaddr *addr, int bits)
 {
@@ -392,7 +377,6 @@ hash_ipv6(struct irc_ssaddr *addr, int bits)
   }
   return v & (ATABLE_SIZE - 1);
 }
-#endif
 
 /* int hash_text(const char *start)
  * Input: The start of the text to hash.
@@ -462,7 +446,6 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
   if (addr)
   {
     /* Check for IPV6 matches... */
-#ifdef IPV6
     if (fam == AF_INET6)
     {
       for (b = 128; b >= 0; b -= 16)
@@ -482,7 +465,6 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
       }
     }
     else
-#endif
     if (fam == AF_INET)
     {
       for (b = 32; b >= 0; b -= 8)
@@ -699,7 +681,6 @@ add_conf_by_address(int type, struct AccessItem *aconf)
   masktype = parse_netmask(address, &arec->Mask.ipa.addr, &bits);
   arec->Mask.ipa.bits = bits;
   arec->masktype = masktype;
-#ifdef IPV6
   if (masktype == HM_IPV6)
   {
     /* We have to do this, since we do not re-hash for every bit -A1kmm. */
@@ -708,7 +689,6 @@ add_conf_by_address(int type, struct AccessItem *aconf)
     atable[hv] = arec;
   }
   else 
-#endif
   if (masktype == HM_IPV4)
   {
     /* We have to do this, since we do not re-hash for every bit -A1kmm. */
@@ -746,7 +726,6 @@ delete_one_address_conf(const char *address, struct AccessItem *aconf)
   struct irc_ssaddr addr;
   masktype = parse_netmask(address, &addr, &bits);
 
-#ifdef IPV6
   if (masktype == HM_IPV6)
   {
     /* We have to do this, since we do not re-hash for every bit -A1kmm. */
@@ -754,7 +733,6 @@ delete_one_address_conf(const char *address, struct AccessItem *aconf)
     hv = hash_ipv6(&addr, bits);
   }
   else
-#endif
   if (masktype == HM_IPV4)
   {
     /* We have to do this, since we do not re-hash for every bit -A1kmm. */

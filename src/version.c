@@ -23,6 +23,8 @@
 
 #include "patchlevel.h"
 #include "serno.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include "ircd.h"
 #ifndef _WIN32
 #include <sys/utsname.h>
