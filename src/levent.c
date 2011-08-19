@@ -16,8 +16,6 @@
 #include <event2/event.h>
 #include <event2/dns.h>
 
-#undef EVENT_DEBUGGING 
-
 struct event_base *eventbase;
 struct evdns_base *dnsbase;
 
@@ -61,10 +59,6 @@ levent_event_callback(int fd, short what, void *data)
   PF *handler;
   struct event *ev = F->evptr;
 
-#ifdef EVENT_DEBUGGING
-  ilog(L_DEBUG, "data on %d (%d)", fd, what);
-#endif
-
   if(F == NULL || !F->flags.open || ev == NULL)
     return;
 
@@ -97,11 +91,6 @@ levent_add(fde_t *F, unsigned int type, PF *handler, void *data, time_t timeout)
   short what = 0;
   int op;
 
-#ifdef EVENT_DEBUGGING
-  ilog(L_DEBUG, "fd %d type %d handler %p data %p timeout %d", F->fd,
-      type, handler, data, timeout);
-#endif
-
   if(type & COMM_SELECT_READ)
   {
     F->read_handler = handler;
@@ -122,43 +111,18 @@ levent_add(fde_t *F, unsigned int type, PF *handler, void *data, time_t timeout)
   }
 
   if(F->read_handler != NULL)
-  {
-#ifdef EVENT_DEBUGGING
-    ilog(L_DEBUG, "Marking for read");
-#endif
     what |= EV_READ;
-  }
   if(F->write_handler != NULL)
-  {
-#ifdef EVENT_DEBUGGING
-    ilog(L_DEBUG, "Marking for write");
-#endif
     what |= EV_WRITE;
-  }
 
   if(what != F->evcache)
   {
     if(what == 0)
-    {
-#ifdef EVENT_DEBUGGING
-      ilog(L_DEBUG, "Deleteing");
-#endif
       op = 0; // del
-    }
     else if(F->evcache == 0)
-    {
-#ifdef EVENT_DEBUGGING
-      ilog(L_DEBUG, "Adding");
-#endif
       op = 1; // add
-    }
     else
-    {
-#ifdef EVENT_DEBUGGING
-      ilog(L_DEBUG, "Modifying");
-#endif
       op = 2; // modify
-    }
 
     F->evcache = what;
 
@@ -182,9 +146,6 @@ levent_add(fde_t *F, unsigned int type, PF *handler, void *data, time_t timeout)
   }
   else
   {
-#ifdef EVENT_DEBUGGING
-    ilog(L_DEBUG, "evcache == what, no change %d", F->evcache);
-#endif
     if(F->evptr != NULL)
       event_add(F->evptr, NULL);
   }
@@ -228,17 +189,14 @@ levent_dns_callback(int result, char type, int count, int ttl, void *addresses, 
 {
   struct DNSQuery *query = (struct DNSQuery *)arg;
   struct DNSReply *reply = (struct DNSReply *)query->dnsptr;
-  char tmp[256];
 
   if(result != DNS_ERR_NONE)
   {
     if(result == DNS_ERR_NOTEXIST && query->aftype == AF_INET6 && reply->h_name != NULL)
     {
-      ilog(L_DEBUG, "%s not found ipv6, trying v4", reply->h_name);
       gethost_byname_type(reply->h_name, query, AF_INET);
       return;
     }
-    ilog(L_DEBUG, "DNS Error %d", result);
     (*query->callback)(query->ptr, NULL);
     MyFree(reply);
     return;
@@ -249,8 +207,6 @@ levent_dns_callback(int result, char type, int count, int ttl, void *addresses, 
     if(reply->h_name != NULL)
       MyFree(reply->h_name);
     DupString(reply->h_name, ((char **)addresses)[0]);
-
-    ilog(L_DEBUG, "PTR answer %s", reply->h_name);
 
     gethost_byname(reply->h_name, query);
 
@@ -266,10 +222,6 @@ levent_dns_callback(int result, char type, int count, int ttl, void *addresses, 
 
     memcpy(&v4addr->sin_addr, &v4[0], sizeof(struct in_addr));
 
-    evutil_inet_ntop(AF_INET, &v4addr->sin_addr, tmp, 256);
-
-    ilog(L_DEBUG, "A Answer %s", tmp);
-
     (*query->callback)(query->ptr, reply);
     MyFree(reply);
   }
@@ -283,10 +235,6 @@ levent_dns_callback(int result, char type, int count, int ttl, void *addresses, 
 
     memcpy(&v6addr->sin6_addr, &v6[0], sizeof(struct in6_addr));
 
-    evutil_inet_ntop(AF_INET6, &v6addr->sin6_addr, tmp, 256);
-
-    ilog(L_DEBUG, "AAAA Answer %s", tmp);
-
     (*query->callback)(query->ptr, reply);
     MyFree(reply);
   }
@@ -295,8 +243,6 @@ levent_dns_callback(int result, char type, int count, int ttl, void *addresses, 
 void 
 gethost_byaddr(const struct irc_ssaddr *addr, struct DNSQuery *query)
 {
-  char tmp[256];
-
   if(query->dnsptr == NULL)
   {
     struct DNSReply *reply = MyMalloc(sizeof(struct DNSReply)); 
@@ -311,8 +257,6 @@ gethost_byaddr(const struct irc_ssaddr *addr, struct DNSQuery *query)
 
     query->aftype = AF_INET;
 
-    evutil_inet_ntop(AF_INET, &v4->sin_addr, tmp, 256);
-
     evdns_base_resolve_reverse(dnsbase, &v4->sin_addr, 0,
         levent_dns_callback, query);
   }
@@ -322,13 +266,9 @@ gethost_byaddr(const struct irc_ssaddr *addr, struct DNSQuery *query)
 
     query->aftype = AF_INET6;
 
-    evutil_inet_ntop(AF_INET6, v6, tmp, 256);
-
     evdns_base_resolve_reverse_ipv6(dnsbase, &v6->sin6_addr, 0,
         levent_dns_callback, query);
   }
-
-  ilog(L_DEBUG, "Looking up IP to host %s", tmp);
 }
 
 void 
@@ -340,7 +280,6 @@ gethost_byname(const char *name, struct DNSQuery *query)
 void 
 gethost_byname_type(const char *name, struct DNSQuery *query, int aftype)
 {
-  ilog(L_DEBUG, "Looking up host to ip aftype %d %s", aftype, name);
   if(query->dnsptr == NULL)
   {
     struct DNSReply *reply = MyMalloc(sizeof(struct DNSReply)); 
