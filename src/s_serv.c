@@ -47,7 +47,6 @@
 #include "list.h"
 #include "numeric.h"
 #include "packet.h"
-#include "irc_res.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "s_log.h"

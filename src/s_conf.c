@@ -51,7 +51,7 @@
 #include "s_gline.h"
 #include "fileio.h"
 #include "memory.h"
-#include "irc_res.h"
+#include "levent.h"
 #include "userhost.h"
 #include "s_user.h"
 #include "channel_mode.h"
@@ -393,10 +393,7 @@ delete_conf_item(struct ConfItem *conf)
     aconf = map_to_conf(conf);
 
     if (aconf->dns_query != NULL)
-    {
-      delete_resolver_queries(aconf->dns_query);
       MyFree(aconf->dns_query);
-    }
     if (aconf->passwd != NULL)
       memset(aconf->passwd, 0, strlen(aconf->passwd));
     if (aconf->spasswd != NULL)

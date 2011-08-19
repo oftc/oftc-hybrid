@@ -23,6 +23,7 @@
  */
 #include "stdinc.h"
 #include "tools.h"
+#include "client.h"
 #include "levent.h"
 #include "s_bsd.h"
 #include "s_conf.h"

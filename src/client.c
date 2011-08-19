@@ -51,7 +51,6 @@
 #include "hostmask.h"
 #include "balloc.h"
 #include "listener.h"
-#include "irc_res.h"
 #include "userhost.h"
 #include "watch.h"
 

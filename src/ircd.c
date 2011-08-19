@@ -45,7 +45,6 @@
 #include "numeric.h"
 #include "packet.h"
 #include "parse.h"
-#include "irc_res.h"
 #include "restart.h"
 #include "s_auth.h"
 #include "s_bsd.h"
@@ -63,6 +62,7 @@
 #include "motd.h"
 #include "supported.h"
 #include "watch.h"
+#include "levent.h"
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
  * number of files allowed to be open by this process.
@@ -651,9 +651,6 @@ main(int argc, char *argv[])
   me.id[0] = '\0';
   init_uid();
   init_auth();          /* Initialise the auth code */
-#ifndef _WIN32
-  init_resolver();      /* Needs to be setup before the io loop */
-#endif
   initialize_server_capabs();   /* Set up default_server_capabs */
   initialize_global_set_options();
   init_channels();

@@ -35,19 +35,18 @@
 #include "stdinc.h"
 #include "tools.h"
 #include "list.h"
+#include "fdlist.h"
 #include "s_auth.h"
 #include "s_conf.h"
 #include "client.h"
 #include "common.h"
 #include "event.h"
-#include "fdlist.h"              /* fdlist_add */
 #include "hook.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "packet.h"
-#include "irc_res.h"
 #include "levent.h"
 #include "s_bsd.h"
 #include "s_log.h"
@@ -439,20 +438,16 @@ timeout_auth_queries_event(void *notused)
 
       if (IsDNSPending(auth))
       {
-	struct Client *client_p = auth->client;
+        struct Client *client_p = auth->client;
 
-	dlinkDelete(&auth->dns_node, &auth_doing_dns_list);
-	if (client_p->localClient->dns_query != NULL)
-        {
-	  delete_resolver_queries(client_p->localClient->dns_query);
+        dlinkDelete(&auth->dns_node, &auth_doing_dns_list);
+        if (client_p->localClient->dns_query != NULL)
           MyFree(client_p->localClient->dns_query);
-        }
-	auth->client->localClient->dns_query = NULL;
-	sendheader(client_p, REPORT_FAIL_DNS);
+        auth->client->localClient->dns_query = NULL;
+        sendheader(client_p, REPORT_FAIL_DNS);
       }
 
-      ilog(L_INFO, "DNS/AUTH timeout %s",
-	   get_client_name(auth->client, SHOW_IP));
+      ilog(L_INFO, "DNS/AUTH timeout %s", get_client_name(auth->client, SHOW_IP));
 
       dlinkDelete(&auth->ident_node, &auth_doing_ident_list);
       release_auth_client(auth->client);
@@ -649,7 +644,6 @@ delete_auth(struct Client *target_p)
 
       if (auth->client == target_p)
       {
-        delete_resolver_queries(target_p->localClient->dns_query);
         MyFree(target_p->localClient->dns_query);
         target_p->localClient->dns_query = NULL;
 

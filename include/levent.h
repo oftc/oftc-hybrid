@@ -26,10 +26,28 @@
 
 #include "event.h"
 
+struct DNSReply
+{
+  char *h_name;
+  struct irc_ssaddr addr;
+};
+
+struct DNSQuery
+{
+  void *ptr; /* pointer used by callback to identify request */
+  void (*callback)(void* vptr, struct DNSReply *reply); /* callback to call */
+  void *dnsptr;
+  int aftype;
+};
+
 extern void levent_init();
 extern void levent_add();
 extern void levent_loop();
 extern void levent_timer_add(struct ev_entry *);
 extern void levent_timer_del(struct ev_entry *);
+extern void restart_resolver();
+extern void gethost_byaddr(const struct irc_ssaddr *, struct DNSQuery *);
+extern void gethost_byname(const char *, struct DNSQuery *);
+extern void gethost_byname_type(const char *, struct DNSQuery *, int);
 
 #endif /* INCLUDED_levent_h */

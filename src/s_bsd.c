@@ -43,7 +43,6 @@
 #include "listener.h"
 #include "numeric.h"
 #include "packet.h"
-#include "irc_res.h"
 #include "inet_misc.h"
 #include "restart.h"
 #include "s_auth.h"
@@ -574,10 +573,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     fd->dns_query = MyMalloc(sizeof(struct DNSQuery));
     fd->dns_query->ptr = fd;
     fd->dns_query->callback = comm_connect_dns_callback;
-    if (aftype == AF_INET6)
-      gethost_byname_type(host, fd->dns_query, T_AAAA);
-    else
-      gethost_byname_type(host, fd->dns_query, T_A);
+    gethost_byname_type(host, fd->dns_query, aftype);
   }
   else
   {
@@ -663,6 +659,8 @@ comm_connect_dns_callback(void *vptr, struct DNSReply *reply)
   F->connect.hostaddr.ss_len = reply->addr.ss_len;
 
   /* Now, call the tryconnect() routine to try a connect() */
+  if(reply->h_name != NULL)
+    MyFree(reply->h_name);
   MyFree(F->dns_query);
   F->dns_query = NULL;
   comm_connect_tryconnect(F, NULL);
