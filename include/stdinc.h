@@ -48,9 +48,7 @@
 # endif 
 #endif  
 
-#ifdef HAVE_STRTOK_R
-# define strtoken(x, y, z) strtok_r(y, z, x)
-#endif
+#define strtoken(x, y, z) strtok_r(y, z, x)
 
 #include <sys/types.h>
 
