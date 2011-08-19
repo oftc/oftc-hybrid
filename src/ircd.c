@@ -302,6 +302,14 @@ check_rehash(int fd, short what, void *arg)
 }
 
 static void
+client_loop(int fd, short what, void *arg)
+{
+  exit_aborted_clients();
+  free_exited_clients();
+  send_queued_all();
+}
+
+static void
 update_time(int fd, short what, void *arg)
 {
   set_time();
@@ -311,9 +319,7 @@ static void
 io_loop(void)
 {
   const struct timeval default_loop_time = { 0, 10000 }; // 10ms
-  void *eac_event = levent_timer_add_generic(&default_loop_time, exit_aborted_clients, NULL);
-  void *fec_event = levent_timer_add_generic(&default_loop_time, free_exited_clients, NULL);
-  void *sqa_event = levent_timer_add_generic(&default_loop_time, send_queued_all, NULL);
+  void *clp_event = levent_timer_add_generic(&default_loop_time, client_loop, NULL);
   void *csl_event = levent_timer_add_generic(&default_loop_time, check_safe_list_channels, NULL);
   void *crh_event = levent_timer_add_generic(&default_loop_time, check_rehash, NULL);
   void *upt_event = levent_timer_add_generic(&default_loop_time, update_time, NULL);

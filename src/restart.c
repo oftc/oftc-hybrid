@@ -81,7 +81,7 @@ server_die(const char *mesg, int rboot)
 
   ilog(L_NOTICE, buffer);
 
-  send_queued_all(-1, 0, NULL);
+  send_queued_all();
   close_fds(NULL);
 
   unlink(pidFileName);
