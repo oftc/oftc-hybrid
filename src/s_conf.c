@@ -38,7 +38,6 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "s_bsd.h"
-#include "irc_getaddrinfo.h"
 #include "ircd.h"
 #include "list.h"
 #include "listener.h"
@@ -1304,7 +1303,7 @@ dump_ip_hash_table(struct Client *source_p)
   {
     for(ptr = ip_hash_table[i]; ptr != NULL; ptr = ptr->next)
     {
-      int ret = irc_getnameinfo((struct sockaddr*)&ptr->ip, ptr->ip.ss_len,
+      int ret = getnameinfo((struct sockaddr*)&ptr->ip, ptr->ip.ss_len,
                   numaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
 
       sendto_one(source_p, ":%s %d %s n :ip_hash_table: %s %d", me.name, 
@@ -2095,7 +2094,7 @@ lookup_confhost(struct ConfItem *conf)
   /* Get us ready for a bind() and don't bother doing dns lookup */
   hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
-  if (irc_getaddrinfo(aconf->host, NULL, &hints, &res))
+  if (getaddrinfo(aconf->host, NULL, &hints, &res))
   {
     conf_dns_lookup(aconf);
     return;
@@ -2106,7 +2105,7 @@ lookup_confhost(struct ConfItem *conf)
   memcpy(&aconf->ipnum, res->ai_addr, res->ai_addrlen);
   aconf->ipnum.ss_len = res->ai_addrlen;
   aconf->ipnum.ss.ss_family = res->ai_family;
-  irc_freeaddrinfo(res);
+  freeaddrinfo(res);
 }
 
 /* conf_connect_allowed()

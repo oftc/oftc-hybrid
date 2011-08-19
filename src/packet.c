@@ -39,7 +39,6 @@
 #include "memory.h"
 #include "hook.h"
 #include "send.h"
-#include "irc_getnameinfo.h"
 
 #define READBUF_SIZE 16384
 

@@ -32,8 +32,6 @@
 #include "ircd_defs.h"
 #include "levent.h"
 #include "s_bsd.h"
-#include "irc_getnameinfo.h"
-#include "irc_getaddrinfo.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "send.h"
@@ -160,7 +158,7 @@ inetport(struct Listener *listener)
   memset(&lsin, 0, sizeof(lsin));
   memcpy(&lsin, &listener->addr, sizeof(struct irc_ssaddr));
   
-  irc_getnameinfo((struct sockaddr*)&lsin, lsin.ss_len, listener->vhost, 
+  getnameinfo((struct sockaddr*)&lsin, lsin.ss_len, listener->vhost, 
         HOSTLEN, NULL, 0, NI_NUMERICHOST);
   listener->name = listener->vhost;
 
@@ -275,14 +273,14 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   if (ServerInfo.can_use_v6)
   {
     snprintf(portname, PORTNAMELEN, "%d", port);
-    irc_getaddrinfo("::", portname, &hints, &res);
+    getaddrinfo("::", portname, &hints, &res);
     vaddr.ss.ss_family = AF_INET6;
     assert(res != NULL);
 
     memcpy((struct sockaddr*)&vaddr, res->ai_addr, res->ai_addrlen);
     vaddr.ss_port = port;
     vaddr.ss_len = res->ai_addrlen;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
   }
   else
 #endif
@@ -298,7 +296,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
 
   if (vhost_ip)
   {
-    if (irc_getaddrinfo(vhost_ip, portname, &hints, &res))
+    if (getaddrinfo(vhost_ip, portname, &hints, &res))
         return;
 
     assert(res != NULL);
@@ -306,7 +304,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     memcpy((struct sockaddr*)&vaddr, res->ai_addr, res->ai_addrlen);
     vaddr.ss_port = port;
     vaddr.ss_len = res->ai_addrlen;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
   }
 #ifdef IPV6
   else if (pass == 0 && ServerInfo.can_use_v6)

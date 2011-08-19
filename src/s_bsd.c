@@ -36,8 +36,6 @@
 #include "dbuf.h"
 #include "event.h"
 #include "irc_string.h"
-#include "irc_getnameinfo.h"
-#include "irc_getaddrinfo.h"
 #include "ircd.h"
 #include "list.h"
 #include "listener.h"
@@ -363,7 +361,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
    */
   memcpy(&new_client->ip, irn, sizeof(struct irc_ssaddr));
 
-  irc_getnameinfo((struct sockaddr*)&new_client->ip,
+  getnameinfo((struct sockaddr*)&new_client->ip,
         new_client->ip.ss_len,  new_client->sockhost, 
         HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
   new_client->aftype = new_client->ip.ss.ss_family;
@@ -567,7 +565,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
 
   snprintf(portname, PORTNAMELEN, "%d", port);
 
-  if (irc_getaddrinfo(host, portname, &hints, &res))
+  if (getaddrinfo(host, portname, &hints, &res))
   {
     /* Send the DNS request, for the next level */
     fd->dns_query = MyMalloc(sizeof(struct DNSQuery));
@@ -583,7 +581,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     memcpy(&fd->connect.hostaddr, res->ai_addr, res->ai_addrlen);
     fd->connect.hostaddr.ss_len = res->ai_addrlen;
     fd->connect.hostaddr.ss.ss_family = res->ai_family;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
     comm_settimeout(fd, timeout*1000, comm_connect_timeout, NULL);
     comm_connect_tryconnect(fd, NULL);
   }

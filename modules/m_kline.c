@@ -47,8 +47,6 @@
 #include "parse.h"
 #include "modules.h"
 #include "tools.h"
-#include "irc_getnameinfo.h"
-
 
 static void me_kline(struct Client *, struct Client *, int, char **);
 static void mo_kline(struct Client *, struct Client *, int, char **);
@@ -370,9 +368,8 @@ mo_dline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    irc_getnameinfo((struct sockaddr *)&target_p->ip,
-                    target_p->ip.ss_len, hostip,
-                    sizeof(hostip), NULL, 0, NI_NUMERICHOST);
+    getnameinfo((struct sockaddr *)&target_p->ip, target_p->ip.ss_len, hostip,
+        sizeof(hostip), NULL, 0, NI_NUMERICHOST);
 
     dlhost = hostip;
     t = parse_netmask(dlhost, NULL, &bits);

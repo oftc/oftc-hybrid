@@ -43,7 +43,6 @@
 #include "s_log.h"
 #include "memory.h"
 #include "hook.h"
-#include "irc_getnameinfo.h"
 #include "packet.h"
 
 #define LOG_BUFSIZE 2048

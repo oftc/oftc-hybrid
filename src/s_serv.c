@@ -43,7 +43,6 @@
 #include "ircd_defs.h"
 #include "levent.h"
 #include "s_bsd.h"
-#include "irc_getnameinfo.h"
 #include "list.h"
 #include "numeric.h"
 #include "packet.h"
@@ -1638,7 +1637,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   conf = unmap_conf_item(aconf);
 
   /* log */
-  irc_getnameinfo((struct sockaddr*)&aconf->ipnum, aconf->ipnum.ss_len,
+  getnameinfo((struct sockaddr*)&aconf->ipnum, aconf->ipnum.ss_len,
 		  buf, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
   ilog(L_NOTICE, "Connect to %s[%s] @%s", aconf->user, aconf->host,
        buf);
