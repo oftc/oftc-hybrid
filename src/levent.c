@@ -240,6 +240,7 @@ levent_dns_callback(int result, char type, int count, int ttl, void *addresses, 
     }
     ilog(L_DEBUG, "DNS Error %d", result);
     (*query->callback)(query->ptr, NULL);
+    MyFree(reply);
     return;
   }
 
@@ -270,6 +271,7 @@ levent_dns_callback(int result, char type, int count, int ttl, void *addresses, 
     ilog(L_DEBUG, "A Answer %s", tmp);
 
     (*query->callback)(query->ptr, reply);
+    MyFree(reply);
   }
   else if(type == DNS_IPv6_AAAA)
   {
@@ -286,6 +288,7 @@ levent_dns_callback(int result, char type, int count, int ttl, void *addresses, 
     ilog(L_DEBUG, "AAAA Answer %s", tmp);
 
     (*query->callback)(query->ptr, reply);
+    MyFree(reply);
   }
 }
 

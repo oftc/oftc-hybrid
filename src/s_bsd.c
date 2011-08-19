@@ -659,8 +659,6 @@ comm_connect_dns_callback(void *vptr, struct DNSReply *reply)
   F->connect.hostaddr.ss_len = reply->addr.ss_len;
 
   /* Now, call the tryconnect() routine to try a connect() */
-  if(reply->h_name != NULL)
-    MyFree(reply->h_name);
   MyFree(F->dns_query);
   F->dns_query = NULL;
   comm_connect_tryconnect(F, NULL);
