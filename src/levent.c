@@ -208,10 +208,9 @@ levent_timer_add(struct ev_entry *entry)
   if(entry->evptr != NULL)
     levent_timer_del(entry);
 
-  entry->evptr = event_new(eventbase, -1, EV_PERSIST, levent_timer_callback, entry);
   struct timeval tv = { entry->frequency, 0 };
-  event_add(entry->evptr, &tv);
-  }
+  entry->evptr = levent_timer_add_generic(&tv, levent_timer_callback, entry);
+}
 
 void
 levent_timer_del(struct ev_entry *entry)
@@ -221,6 +220,21 @@ levent_timer_del(struct ev_entry *entry)
     event_del(entry->evptr);
     entry->evptr = NULL;
   }
+}
+
+void *
+levent_timer_add_generic(const struct timeval *tv, void (*cb)(int, short, void*), void *arg)
+{
+  struct event *evptr = event_new(eventbase, -1, EV_PERSIST, cb, arg);
+  event_add(evptr, tv);
+  return evptr;
+}
+
+void
+levent_timer_del_generic(void *evptr)
+{
+  if(evptr != NULL)
+    event_del(evptr);
 }
 
 static void
@@ -364,16 +378,8 @@ gethost_byname_type(const char *name, struct DNSQuery *query, int aftype)
 void
 levent_loop()
 {
-  int ret;
-
-  set_time();
-
-  ret = event_base_loop(eventbase, EVLOOP_NONBLOCK);
-
-  usleep(10000);
-
-  if(ret == -1)
-    server_die("event loop problem", YES);
+  event_base_dispatch(eventbase);
+  server_die("event loop problem", YES);
 }
 
 void restart_resolver()

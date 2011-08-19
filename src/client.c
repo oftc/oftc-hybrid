@@ -713,10 +713,10 @@ get_client_name(struct Client *client, int showip)
 }
 
 void
-free_exited_clients(void)
+free_exited_clients(int fd, short what, void *arg)
 {
   dlink_node *ptr = NULL, *next = NULL;
-  
+
   DLINK_FOREACH_SAFE(ptr, next, dead_list.head)
   {
     free_client(ptr->data);
@@ -1162,7 +1162,7 @@ dead_link_on_read(struct Client *client_p, int error)
 }
 
 void
-exit_aborted_clients(void)
+exit_aborted_clients(int fd, short what, void *arg)
 {
   dlink_node *ptr;
   struct Client *target_p;

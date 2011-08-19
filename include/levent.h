@@ -41,10 +41,12 @@ struct DNSQuery
 };
 
 extern void levent_init();
-extern void levent_add();
+extern void levent_add(fde_t *, unsigned int, PF *, void *, time_t);
 extern void levent_loop();
 extern void levent_timer_add(struct ev_entry *);
 extern void levent_timer_del(struct ev_entry *);
+extern void *levent_timer_add_generic(const struct timeval *, void (*)(int, short, void*), void *);
+extern void levent_timer_del_generic(void *);
 extern void restart_resolver();
 extern void gethost_byaddr(const struct irc_ssaddr *, struct DNSQuery *);
 extern void gethost_byname(const char *, struct DNSQuery *);

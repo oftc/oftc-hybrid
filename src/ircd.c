@@ -256,54 +256,69 @@ set_time(void)
 }
 
 static void
-io_loop(void)
+check_safe_list_channels(int fd, short what, void *arg)
 {
-  while (1 == 1)
+  if (listing_client_list.head)
   {
-    /*
-     * Maybe we want a flags word?
-     * ie. if (REHASHED_KLINES(global_flags)) 
-     * SET_REHASHED_KLINES(global_flags)
-     * CLEAR_REHASHED_KLINES(global_flags)
-     *
-     * - Dianora
-     */
-    if (rehashed_klines)
+    dlink_node *ptr = NULL, *ptr_next = NULL;
+    DLINK_FOREACH_SAFE(ptr, ptr_next, listing_client_list.head)
     {
-      check_conf_klines();
-      rehashed_klines = 0;
-    }
-
-    if (listing_client_list.head)
-    {
-      dlink_node *ptr = NULL, *ptr_next = NULL;
-      DLINK_FOREACH_SAFE(ptr, ptr_next, listing_client_list.head)
-      {
-        struct Client *client_p = ptr->data;
-        assert(client_p->localClient->list_task);
-        safe_list_channels(client_p, client_p->localClient->list_task, 0);
-      }
-    }
-
-    levent_loop();
-    exit_aborted_clients();
-    free_exited_clients();
-    send_queued_all();
-
-    /* Check to see whether we have to rehash the configuration .. */
-    if (dorehash)
-    {
-      rehash(1);
-      dorehash = 0;
-    }
-    if (doremotd)
-    {
-      read_message_file(&ConfigFileEntry.motd);
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-                           "Got signal SIGUSR1, reloading ircd motd file");
-      doremotd = 0;
+      struct Client *client_p = ptr->data;
+      assert(client_p->localClient->list_task);
+      safe_list_channels(client_p, client_p->localClient->list_task, 0);
     }
   }
+}
+
+static void
+check_rehash(int fd, short what, void *arg)
+{
+  /*
+   * Maybe we want a flags word?
+   * ie. if (REHASHED_KLINES(global_flags))
+   * SET_REHASHED_KLINES(global_flags)
+   * CLEAR_REHASHED_KLINES(global_flags)
+   *
+   * - Dianora
+   */
+  if (rehashed_klines)
+  {
+    check_conf_klines();
+    rehashed_klines = 0;
+  }
+  /* Check to see whether we have to rehash the configuration .. */
+  if (dorehash)
+  {
+    rehash(1);
+    dorehash = 0;
+  }
+  if (doremotd)
+  {
+    read_message_file(&ConfigFileEntry.motd);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Got signal SIGUSR1, reloading ircd motd file");
+    doremotd = 0;
+  }
+}
+
+static void
+update_time(int fd, short what, void *arg)
+{
+  set_time();
+}
+
+static void
+io_loop(void)
+{
+  const struct timeval default_loop_time = { 0, 10000 }; // 10ms
+  void *eac_event = levent_timer_add_generic(&default_loop_time, exit_aborted_clients, NULL);
+  void *fec_event = levent_timer_add_generic(&default_loop_time, free_exited_clients, NULL);
+  void *sqa_event = levent_timer_add_generic(&default_loop_time, send_queued_all, NULL);
+  void *csl_event = levent_timer_add_generic(&default_loop_time, check_safe_list_channels, NULL);
+  void *crh_event = levent_timer_add_generic(&default_loop_time, check_rehash, NULL);
+  void *upt_event = levent_timer_add_generic(&default_loop_time, update_time, NULL);
+
+  levent_loop();
 }
 
 /* initalialize_global_set_options()

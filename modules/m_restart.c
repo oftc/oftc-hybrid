@@ -300,7 +300,7 @@ do_shutdown(const char *msg, int rboot)
   // Pass our data.
   //
   burst_all(make_dummy(transfd[1]));
-  send_queued_all();
+  send_queued_all(-1, 0, NULL);
 
   snprintf(buf, sizeof(buf), "\001%ld\r\n", me.since);
   write(transfd[1], buf, strlen(buf));

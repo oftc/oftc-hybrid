@@ -397,7 +397,7 @@ send_queued_slink_write(struct Client *to)
  * side effects - try to flush sendq of each client
  */
 void
-send_queued_all(void)
+send_queued_all(int fd, short what, void *arg)
 {
   dlink_node *ptr;
 
