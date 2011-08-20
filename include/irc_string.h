@@ -90,9 +90,6 @@ const char *myctime(time_t);
 
 #define EmptyString(x) (!(x) || (*(x) == '\0'))
 
-#ifndef HAVE_STRTOK_R
-extern char *strtoken(char **, char *, const char *);
-#endif
 
 /*
  * character macros
