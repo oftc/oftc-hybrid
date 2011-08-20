@@ -37,7 +37,6 @@
 #include "sprintf_irc.h"
 #include "ircd_signal.h"
 #include "list.h"
-#include "s_gline.h"
 #include "motd.h"
 #include "ircd_handler.h"
 #include "msg.h"         /* msgtab */
@@ -79,7 +78,7 @@ struct server_info ServerInfo;
 struct admin_info AdminInfo = { NULL, NULL, NULL };
 struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0 };
 struct ServerState_t server_state = { 0 };
-struct logging_entry ConfigLoggingEntry = { 1, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} }; 
+struct logging_entry ConfigLoggingEntry = { 1, {0}, {0}, {0}, {0}, {0}, {0}, {0} }; 
 struct ServerStatistics ServerStats;
 struct timeval SystemTime;
 struct Client me;             /* That's me */
@@ -583,7 +582,6 @@ main(int argc, char *argv[])
   ConfigFileEntry.rxlinefile = RXPATH; /* Server regex xline file   */
   ConfigFileEntry.rklinefile = RKPATH; /* Server regex kline file   */
   ConfigFileEntry.dlinefile  = DLPATH; /* dline file                */
-  ConfigFileEntry.glinefile  = GPATH;  /* gline log file            */
   ConfigFileEntry.cresvfile  = CRESVPATH; /* channel resv file      */
   ConfigFileEntry.nresvfile  = NRESVPATH; /* nick resv file         */
   myargv = argv;
@@ -708,7 +706,6 @@ main(int argc, char *argv[])
 
   ilog(L_NOTICE, "Server Ready");
 
-  eventAddIsh("cleanup_glines", cleanup_glines, NULL, CLEANUP_GLINES_TIME);
   eventAddIsh("cleanup_tklines", cleanup_tklines, NULL, CLEANUP_TKLINES_TIME);
 
   /* We want try_connections to be called as soon as possible now! -- adrian */

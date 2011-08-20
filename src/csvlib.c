@@ -230,8 +230,6 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
         }
         break;
 
-      case GLINE_TYPE:
-      case GDENY_TYPE:
       case CONF_TYPE:
       case OPER_TYPE:
       case CLIENT_TYPE:

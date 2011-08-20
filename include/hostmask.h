@@ -59,8 +59,6 @@ extern struct AccessItem *find_address_conf(const char *, const char *,
                                             char *, int);
 extern struct AccessItem *find_kline_conf(const char *, const char *, const char *,
                                           struct irc_ssaddr *, int);
-extern struct AccessItem *find_gline_conf(const char *, const char *,
-                                          struct irc_ssaddr *, int);
 extern struct AccessItem *find_dline_conf(struct irc_ssaddr *, int);
 extern struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
                                                int, int, const char *, const char *,

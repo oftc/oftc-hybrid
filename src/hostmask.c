@@ -592,25 +592,7 @@ find_address_conf(const char *host, const char *user,
   if (kconf != NULL)
     return(kconf);
 
-  kconf = find_conf_by_address(host, ip, CONF_GLINE, aftype, user, NULL, NULL);
-  if (kconf != NULL && !IsConfExemptGline(iconf))
-    return(kconf);
-
   return(iconf);
-}
-
-struct AccessItem *
-find_gline_conf(const char *host, const char *user,
-                struct irc_ssaddr *ip, int aftype)
-{
-  struct AccessItem *eline;
-
-  eline = find_conf_by_address(host, ip, CONF_EXEMPTKLINE, aftype,
-                               user, NULL, NULL);
-  if (eline != NULL)
-    return(eline);
-
-  return(find_conf_by_address(host, ip, CONF_GLINE, aftype, user, NULL, NULL));
 }
 
 /* find_kline_conf
@@ -842,8 +824,6 @@ show_iline_prefix(struct Client *sptr, struct AccessItem *aconf, const char *nam
     *prefix_ptr++ = '=';
   if (MyOper(sptr) && IsConfExemptKline(aconf))
     *prefix_ptr++ = '^';
-  if (MyOper(sptr) && IsConfExemptGline(aconf))
-    *prefix_ptr++ = '_';
   if (MyOper(sptr) && IsConfExemptLimits(aconf))
     *prefix_ptr++ = '>';
   if (MyOper(sptr) && IsConfIdlelined(aconf))

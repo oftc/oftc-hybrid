@@ -1,6 +1,6 @@
 MAINTAINERCLEANFILES=Makefile.in
 sbin_PROGRAMS=ircd
-ircd_SOURCES=balloc.c channel.c channel_mode.c client.c csvlib.c dbuf.c dynlink.c event.c fdlist.c fileio.c getopt.c hash.c hook.c hostmask.c irc_string.c ircd.c ircd_signal.c levent.c list.c listener.c m_error.c match.c memory.c modules.c motd.c numeric.c packet.c parse.c s_conf.c restart.c resv.c rsa.c s_auth.c s_bsd.c s_gline.c s_log.c s_misc.c s_serv.c s_user.c send.c sprintf_irc.c tools.c version.c watch.c whowas.c ircd_parser.y ircd_lexer.l
+ircd_SOURCES=balloc.c channel.c channel_mode.c client.c csvlib.c dbuf.c dynlink.c event.c fdlist.c fileio.c getopt.c hash.c hook.c hostmask.c irc_string.c ircd.c ircd_signal.c levent.c list.c listener.c m_error.c match.c memory.c modules.c motd.c numeric.c packet.c parse.c s_conf.c restart.c resv.c rsa.c s_auth.c s_bsd.c s_log.c s_misc.c s_serv.c s_user.c send.c sprintf_irc.c tools.c version.c watch.c whowas.c ircd_parser.y ircd_lexer.l
 if HAVE_CRYPT
 ircd_SOURCES+=crypt.c
 endif

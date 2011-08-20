@@ -127,12 +127,6 @@
 
 	  * --disable-zlib - Build the ircd without ziplinks support.
 
-	  * --disable-gline-voting - This is good for small networks or where
-	    G-Line voting is not necessary. Please understand that by disabling
-	    this, it will allow any operator with G-Line permissions to G-Line
-	    someone without requiring the approval of 2 other operators. However,
-	    it is useful if you use proxy scanners or services that do G-Lines. 
-
    3.  Run 'make'; this should build the ircd.
 
    4.  Run 'make install'; this will install the server, modules(1), and tools
@@ -144,7 +138,7 @@
        contrib/ folder to compile and install the modules and help pages.
 
    6.  If you wish to enable the user log, oper log, and failed oper log,
-       kill log, kline log and the gline log issue these commands at the
+       kill log, kline log issue these commands at the
        shell prompt (in the prefix directory).
 
        $ touch logs/userlog
@@ -152,7 +146,6 @@
        $ touch logs/foperlog
        $ touch logs/kill
        $ touch logs/kline
-       $ touch logs/gline
 
        Note: If you use different names in ircd.conf, you must 'touch'
              their specific names.
@@ -161,9 +154,7 @@
        have changed drastically...
 
        By default, the kline file is named kline.conf, the dline file is 
-       named dline.conf, the xline file is called xline.conf, and the gline 
-       file is called gline.conf.
-
+       named dline.conf, the xline file is called xline.conf
        The nick resv file is named nresv.conf, channel resv file is named
        cresv.conf.
 

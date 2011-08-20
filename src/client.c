@@ -34,7 +34,6 @@
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "list.h"
-#include "s_gline.h"
 #include "numeric.h"
 #include "packet.h"
 #include "s_auth.h"
@@ -422,27 +421,6 @@ check_conf_klines(void)
       continue; /* and go examine next fd/client_p */
     }
 
-    if (ConfigFileEntry.glines && (aconf = find_gline(client_p)))
-    {
-      if (IsExemptKline(client_p) ||
-          IsExemptGline(client_p))
-      {
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                             "GLINE over-ruled for %s, client is %sline_exempt",
-                             get_client_name(client_p, HIDE_IP), IsExemptKline(client_p) ? "k" : "g");
-        continue;
-      }
-
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-          "GLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
-          aconf->reason, get_client_name(client_p, SHOW_IP));
-
-      conf = unmap_conf_item(aconf);
-      ban_them(client_p, conf);
-      /* and go examine next fd/client_p */    
-      continue;
-    } 
-
     if ((aconf = find_kill(client_p)) != NULL) 
     {
 
@@ -515,7 +493,6 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
   const char *type_string = NULL;
   const char dline_string[] = "D-line";
   const char kline_string[] = "K-line";
-  const char gline_string[] = "G-line";
   const char xline_string[] = "X-line";
 
   switch (conf->type)
@@ -527,10 +504,6 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
       break;
     case DLINE_TYPE:
       type_string = dline_string;
-      aconf = map_to_conf(conf);
-      break;
-    case GLINE_TYPE:
-      type_string = gline_string;
       aconf = map_to_conf(conf);
       break;
     case RXLINE_TYPE:

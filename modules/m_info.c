@@ -152,12 +152,6 @@ static const struct InfoStruct info_table[] =
     "K-Line log file"
   },
   {
-    "fglinelog",
-    OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.glinelog,
-    "G-Line log file"
-  },
-  {
     "restrict_channels",
     OUTPUT_BOOLEAN_YN,
     &ConfigChannel.restrict_channels,
@@ -294,18 +288,6 @@ static const struct InfoStruct info_table[] =
     OUTPUT_BOOLEAN_YN,
     &ConfigServerHide.hide_server_ips,
     "Prevent people from seeing server IPs"
-  },
-  {
-    "gline_min_cidr",
-    OUTPUT_DECIMAL,
-    &ConfigFileEntry.gline_min_cidr,
-    "Minimum required length of a CIDR bitmask for IPv4 G-Lines"
-  },
-  {
-    "gline_min_cidr6",
-    OUTPUT_DECIMAL,
-    &ConfigFileEntry.gline_min_cidr6,
-    "Minimum required length of a CIDR bitmask for IPv6 G-Lines"
   },
   {
     "invisible_on_connect",
@@ -558,18 +540,6 @@ static const struct InfoStruct info_table[] =
     OUTPUT_DECIMAL,
     &ConfigFileEntry.throttle_time,
     "Minimum time between client reconnects"
-  },
-  {
-    "glines",
-    OUTPUT_BOOLEAN,
-    &ConfigFileEntry.glines,
-    "G-line (network-wide K-line) support"
-  },
-  {
-    "duration",
-    OUTPUT_DECIMAL,
-    &ConfigFileEntry.gline_time,
-    "Expiry time for G-lines"
   },
   /* --[  END OF TABLE  ]---------------------------------------------- */
   {

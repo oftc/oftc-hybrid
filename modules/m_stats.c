@@ -30,7 +30,6 @@
 #include "irc_string.h"  
 #include "ircd.h"        /* me */
 #include "listener.h"    /* show_ports */
-#include "s_gline.h"
 #include "ircd_handler.h"
 #include "msg.h"         /* Message */
 #include "hostmask.h"
@@ -105,9 +104,6 @@ static void stats_deny(struct Client *);
 static void stats_tdeny(struct Client *);
 static void stats_exempt(struct Client *);
 static void stats_events(struct Client *);
-static void stats_pending_glines(struct Client *);
-static void stats_glines(struct Client *);
-static void stats_gdeny(struct Client *);
 static void stats_hubleaf(struct Client *);
 static void stats_auth(struct Client *);
 static void stats_tklines(struct Client *);
@@ -151,8 +147,6 @@ static const struct StatsStruct
   { 'E',	stats_events,		1,	0,	},
   { 'f',	fd_dump,		1,	1,	},
   { 'F',	fd_dump,		1,	1,	},
-  { 'g',	stats_pending_glines,	1,	0,	},
-  { 'G',	stats_glines,		1,	0,	},
   { 'h',	stats_hooks,		1,	1,	},
   { 'H',	stats_hubleaf,		1,	0,	},
   { 'i',	stats_auth,		0,	0,	},
@@ -177,7 +171,6 @@ static const struct StatsStruct
   { 'u',	stats_uptime,		0,	0,	},
   { 'U',	stats_shared,		1,	0,	},
   { 'v',	stats_servers,		1,	0,	},
-  { 'V',	stats_gdeny,		1,	0,	},
   { 'x',	stats_gecos,		1,	0,	},
   { 'X',	stats_gecos,		1,	0,	},
   { 'y',	stats_class,		1,	0,	},
@@ -855,122 +848,6 @@ static void
 stats_events(struct Client *source_p)
 {
   show_events(source_p);
-}
-
-/* stats_pending_glines()
- *
- * input        - client pointer
- * output       - none
- * side effects - client is shown list of pending glines
- */
-static void
-stats_pending_glines(struct Client *source_p)
-{
-#ifdef GLINE_VOTING
-  dlink_node *pending_node;
-  struct gline_pending *glp_ptr;
-  char timebuffer[MAX_DATE_STRING];
-  struct tm *tmptr;
-
-  if (!ConfigFileEntry.glines)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :This server does not support G-Lines",
-               from, to); 
-    return;
-  }
-
-  if (dlink_list_length(&pending_glines) > 0)
-    sendto_one(source_p, ":%s NOTICE %s :Pending G-lines",
-               from, to);
-
-  DLINK_FOREACH(pending_node, pending_glines.head)
-  {
-    glp_ptr = pending_node->data;
-    tmptr   = localtime(&glp_ptr->time_request1);
-    strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
-
-    sendto_one(source_p,
-               ":%s NOTICE %s :1) %s!%s@%s on %s requested gline at %s for %s@%s [%s]",
-               from, to, glp_ptr->oper_nick1,
-               glp_ptr->oper_user1, glp_ptr->oper_host1,
-               glp_ptr->oper_server1, timebuffer,
-               glp_ptr->user, glp_ptr->host, glp_ptr->reason1);
-
-    if (glp_ptr->oper_nick2[0] != '\0')
-    {
-      tmptr = localtime(&glp_ptr->time_request2);
-      strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
-      sendto_one(source_p,
-      ":%s NOTICE %s :2) %s!%s@%s on %s requested gline at %s for %s@%s [%s]",
-                 from, to, glp_ptr->oper_nick2,
-                 glp_ptr->oper_user2, glp_ptr->oper_host2,
-                 glp_ptr->oper_server2, timebuffer,
-                 glp_ptr->user, glp_ptr->host, glp_ptr->reason2);
-    }
-  }
-
-  sendto_one(source_p, ":%s NOTICE %s :End of Pending G-lines",
-             from, to);
-#else
-  sendto_one(source_p, ":%s NOTICE %s :This server does not support G-Line voting",
-             from, to);
-#endif /* GLINE VOTING */
-}
-
-/* stats_glines()
- *
- * input        - client pointer
- * output       - none
- * side effects - client is shown list of glines
- */
-static void
-stats_glines(struct Client *source_p)
-{
-  struct AddressRec *arec = NULL;
-  int i = 0;
-
-  if (!ConfigFileEntry.glines)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :This server does not support G-Lines",
-               from, to);
-    return;
-  }
-
-  for (; i < ATABLE_SIZE; ++i)
-  {
-    for (arec = atable[i]; arec; arec = arec->next)
-    {
-      if (arec->type == CONF_GLINE)
-      {
-        const struct AccessItem *aconf = arec->aconf;
-
-        sendto_one(source_p, form_str(RPL_STATSKLINE),
-                   from, to, "G",
-                   aconf->host ? aconf->host : "*",
-                   aconf->user ? aconf->user : "*",
-                   aconf->reason ? aconf->reason : "No reason", "" );
-      }
-    }
-  }
-}
-
-/* stats_gdeny()
- *
- * input        - client pointer
- * outputs      - none
- * side effects - client is shown gline ACL
- */
-static void
-stats_gdeny(struct Client *source_p)
-{
-  if (!ConfigFileEntry.glines)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :This server does not support G-Lines",
-               from, to);
-    return;
-  }
-
-  report_confitem_types(source_p, GDENY_TYPE, 0);
 }
 
 static void

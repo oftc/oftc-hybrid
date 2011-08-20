@@ -35,7 +35,6 @@
 #include "handlers.h"
 #include "s_serv.h"
 #include "msg.h"
-#include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
 #include "event.h"

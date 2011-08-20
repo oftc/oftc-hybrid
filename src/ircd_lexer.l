@@ -176,9 +176,7 @@ exempt		{ return EXEMPT; }
 fakename	{ return FAKENAME; }
 flags           { return IRCD_FLAGS; }
 flatten_links	{ return FLATTEN_LINKS; }
-fglinelog 	{ return FGLINELOG; }
 client_certificate_hash { return CLIENTCERT_HASH; }
-fname_glinelog  { return FGLINELOG; }
 fkilllog	{ return FKILLLOG; }
 fioerrlog	{ return FIOERRLOG; }
 fname_ioerrlog	{ return FIOERRLOG; }
@@ -192,11 +190,8 @@ fname_userlog	{ return FUSERLOG; }
 fuserlog   	{ return FUSERLOG; }
 gecos		{ return GECOS; }
 general		{ return GENERAL; }
-gline		{ return GLINE; }
-glines		{ return GLINES; }
-gline_exempt    { return GLINE_EXEMPT; }
-gline_min_cidr  { return GLINE_MIN_CIDR; }
-gline_min_cidr6 { return GLINE_MIN_CIDR6; }
+kline_min_cidr  { return KLINE_MIN_CIDR; }
+kline_min_cidr6 { return KLINE_MIN_CIDR6; }
 global_kill	{ return GLOBAL_KILL; }
 godmode_timeout { return GODMODE_TIMEOUT; }
 have_ident	{ return NEED_IDENT; }

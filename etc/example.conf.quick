@@ -119,8 +119,7 @@ auth {
 	user = "*@172.16.0.0/12";
 	user = "*test@123D:B567:*";
 	password = "letmein";
-	flags = need_password, spoof_notice, exceed_limit, kline_exempt,
-		gline_exempt, no_tilde;
+	flags = need_password, spoof_notice, exceed_limit, kline_exempt, no_tilde;
 	spoof = "I.still.hate.packets";
 	class = "opers";
 };
@@ -150,7 +149,7 @@ operator {
 	encrypted = yes;
 	#rsa_public_key_file = "/usr/local/ircd/etc/oper.pub";
 	class = "opers";
-	flags = global_kill, remote, kline, unkline, gline,
+	flags = global_kill, remote, kline, unkline, 
 		xline, die, rehash, nick_changes, admin;
 };
 
@@ -357,20 +356,6 @@ general {
 	#egdpool_path = "/var/run/egd-pool";
 	#compression_level = 6;
 	throttle_time = 10;
-};
-
-glines {
-        enable = yes;
-        duration = 1 day;
-	logging = reject;
-
-        user = "god@I.still.hate.packets";
-        name = "hades.arpa";      
-        action = reject, block;
-
-        user = "god@*"; 
-        name = "*";
-        action = block;
 };
 
 modules {

@@ -323,10 +323,6 @@ log_oper_action(int log_type, const struct Client *source_p,
     logfile = ConfigLoggingEntry.klinelog;
     log_message = "TEMP RKLINE";
     break;
-  case LOG_GLINE_TYPE:
-    logfile = ConfigLoggingEntry.glinelog;
-    log_message = "GLINE";
-    break;
   case LOG_KILL_TYPE:
     logfile = ConfigLoggingEntry.killlog;
     log_message = "KILL";

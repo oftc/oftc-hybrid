@@ -190,20 +190,14 @@ unhook_hub_leaf_confs(void)
 %token  FFAILED_OPERLOG
 %token  FKILLLOG
 %token  FKLINELOG
-%token  FGLINELOG
 %token  FIOERRLOG
 %token  FOPERLOG
 %token  FOPERSPYLOG
 %token  FUSERLOG
 %token  GECOS
 %token  GENERAL
-%token  GLINE
-%token  GLINES
-%token  GLINE_EXEMPT
-%token  GLINE_LOG
-%token  GLINE_TIME
-%token  GLINE_MIN_CIDR
-%token  GLINE_MIN_CIDR6
+%token  KLINE_MIN_CIDR
+%token  KLINE_MIN_CIDR6
 %token  GLOBAL_KILL
 %token  GODMODE_TIMEOUT
 %token  IRCD_AUTH
@@ -422,7 +416,6 @@ conf_item:        admin_entry
                 | deny_entry
 		| exempt_entry
 		| general_entry
-		| gline_entry
                 | gecos_entry
                 | modules_entry
                 | error ';'
@@ -816,7 +809,7 @@ logging_items:          logging_items logging_item |
 logging_item:           logging_path | logging_oper_log |
 			logging_log_level |
 			logging_use_logging | logging_fuserlog |
-			logging_foperlog | logging_fglinelog |
+			logging_foperlog | 
 			logging_fklinelog | logging_killlog |
 			logging_foperspylog | logging_ioerrlog |
 			logging_ffailed_operlog |
@@ -856,13 +849,6 @@ logging_foperspylog: FOPERSPYLOG '=' QSTRING ';'
   if (ypass == 2)
     strlcpy(ConfigLoggingEntry.operspylog, yylval.string,
             sizeof(ConfigLoggingEntry.operspylog));
-};
-
-logging_fglinelog: FGLINELOG '=' QSTRING ';'
-{
-  if (ypass == 2)
-    strlcpy(ConfigLoggingEntry.glinelog, yylval.string,
-            sizeof(ConfigLoggingEntry.glinelog));
 };
 
 logging_fklinelog: FKLINELOG '=' QSTRING ';'
@@ -1031,7 +1017,7 @@ oper_item:      oper_name | oper_user | oper_password | oper_hidden_admin |
                 oper_hidden_oper | oper_umodes |
 		oper_class | oper_global_kill | oper_remote |
                 oper_kline | oper_xline | oper_unkline |
-		oper_gline | oper_nick_changes | oper_remoteban |
+		 oper_nick_changes | oper_remoteban |
                 oper_die | oper_rehash | oper_admin | oper_operwall |
 		oper_encrypted | oper_rsa_public_key_file | oper_client_certificate_hash|
                 oper_flags | error ';' ;
@@ -1342,17 +1328,6 @@ oper_unkline: UNKLINE '=' TBOOL ';'
   }
 };
 
-oper_gline: GLINE '=' TBOOL ';'
-{
-  if (ypass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_GLINE;
-    else
-      yy_aconf->port &= ~OPER_FLAG_GLINE;
-  }
-};
-
 oper_nick_changes: NICK_CHANGES '=' TBOOL ';'
 {
   if (ypass == 2)
@@ -1472,13 +1447,6 @@ oper_flags_item_atom: GLOBAL_KILL
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_X;
     else yy_aconf->port |= OPER_FLAG_X;
-  }
-} | GLINE
-{
-  if (ypass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_GLINE;
-    else yy_aconf->port |= OPER_FLAG_GLINE;
   }
 } | DIE
 {
@@ -1908,7 +1876,7 @@ auth_entry: IRCD_AUTH
 auth_items:     auth_items auth_item | auth_item;
 auth_item:      auth_user | auth_passwd | auth_class | auth_flags |
                 auth_kline_exempt | auth_need_ident |
-                auth_exceed_limit | auth_no_tilde | auth_gline_exempt |
+                auth_exceed_limit | auth_no_tilde | 
 		auth_spoof | auth_spoof_notice |
                 auth_redir_serv | auth_redir_port | auth_can_flood |
                 auth_need_password | auth_encrypted | auth_client_certificate_hash | error ';' ;
@@ -2072,13 +2040,6 @@ auth_flags_item_atom: SPOOF_NOTICE
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_NO_TILDE;
     else yy_aconf->flags |= CONF_FLAGS_NO_TILDE;
   } 
-} | GLINE_EXEMPT
-{
-  if (ypass == 2)
-  {
-    if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_EXEMPTGLINE;
-    else yy_aconf->flags |= CONF_FLAGS_EXEMPTGLINE;
-  } 
 } | RESV_EXEMPT
 {
   if (ypass == 2)
@@ -2147,17 +2108,6 @@ auth_no_tilde: NO_TILDE '=' TBOOL ';'
       yy_aconf->flags |= CONF_FLAGS_NO_TILDE;
     else
       yy_aconf->flags &= ~CONF_FLAGS_NO_TILDE;
-  }
-};
-
-auth_gline_exempt: GLINE_EXEMPT '=' TBOOL ';' 
-{
-  if (ypass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_EXEMPTGLINE;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_EXEMPTGLINE;
   }
 };
 
@@ -3284,8 +3234,8 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_throttle_time | general_havent_read_conf |
                     general_dot_in_ip6_addr | general_ping_cookie |
                     general_disable_auth | general_burst_away |
-		    general_tkline_expire_notices | general_gline_min_cidr |
-                    general_gline_min_cidr6 | general_use_whois_actually |
+		    general_tkline_expire_notices | general_kline_min_cidr |
+                    general_kline_min_cidr6 | general_use_whois_actually |
 		    general_reject_hold_time | general_stats_e_disabled | 
         general_godmode_timeout |
 		    general_max_watch |
@@ -3297,14 +3247,14 @@ general_max_watch: MAX_WATCH '=' NUMBER ';'
   ConfigFileEntry.max_watch = $3;
 };
 
-general_gline_min_cidr: GLINE_MIN_CIDR '=' NUMBER ';'
+general_kline_min_cidr: KLINE_MIN_CIDR '=' NUMBER ';'
 {
-  ConfigFileEntry.gline_min_cidr = $3;
+  ConfigFileEntry.kline_min_cidr = $3;
 };
 
-general_gline_min_cidr6: GLINE_MIN_CIDR6 '=' NUMBER ';'
+general_kline_min_cidr6: KLINE_MIN_CIDR6 '=' NUMBER ';'
 {
-  ConfigFileEntry.gline_min_cidr6 = $3;
+  ConfigFileEntry.kline_min_cidr6 = $3;
 };
 
 general_burst_away: BURST_AWAY '=' TBOOL ';'
@@ -3772,174 +3722,6 @@ general_client_flood: T_CLIENT_FLOOD '=' sizespec ';'
 general_dot_in_ip6_addr: DOT_IN_IP6_ADDR '=' TBOOL ';'
 {
   ConfigFileEntry.dot_in_ip6_addr = yylval.number;
-};
-
-/*************************************************************************** 
- *  section glines
- ***************************************************************************/
-gline_entry: GLINES
-{
-  if (ypass == 2)
-  {
-    yy_conf = make_conf_item(GDENY_TYPE);
-    yy_aconf = map_to_conf(yy_conf);
-  }
-} '{' gline_items '}' ';'
-{
-  if (ypass == 2)
-  {
-    /*
-     * since we re-allocate yy_conf/yy_aconf after the end of action=, at the
-     * end we will have one extra, so we should free it.
-     */
-    if (yy_conf->name == NULL || yy_aconf->user == NULL)
-    {
-      delete_conf_item(yy_conf);
-      yy_conf = NULL;
-      yy_aconf = NULL;
-    }
-  }
-};
-
-gline_items:        gline_items gline_item | gline_item;
-gline_item:         gline_enable | 
-                    gline_duration |
-		    gline_logging |
-                    gline_user |
-                    gline_server | 
-                    gline_action |
-                    error;
-
-gline_enable: ENABLE '=' TBOOL ';'
-{
-  if (ypass == 2)
-    ConfigFileEntry.glines = yylval.number;
-};
-
-gline_duration: DURATION '=' timespec ';'
-{
-  if (ypass == 2)
-    ConfigFileEntry.gline_time = $3;
-};
-
-gline_logging: LOGGING
-{
-  if (ypass == 2)
-    ConfigFileEntry.gline_logging = 0;
-} '=' gline_logging_types ';';
-gline_logging_types:	 gline_logging_types ',' gline_logging_type_item | gline_logging_type_item;
-gline_logging_type_item: T_REJECT
-{
-  if (ypass == 2)
-    ConfigFileEntry.gline_logging |= GDENY_REJECT;
-} | T_BLOCK
-{
-  if (ypass == 2)
-    ConfigFileEntry.gline_logging |= GDENY_BLOCK;
-};
-
-gline_user: USER '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    struct split_nuh_item nuh;
-
-    nuh.nuhmask  = yylval.string;
-    nuh.nickptr  = NULL;
-    nuh.userptr  = userbuf;
-    nuh.hostptr  = hostbuf;
-
-    nuh.nicksize = 0;
-    nuh.usersize = sizeof(userbuf);
-    nuh.hostsize = sizeof(hostbuf);
-
-    split_nuh(&nuh);
-
-    if (yy_aconf->user == NULL)
-    {
-      DupString(yy_aconf->user, userbuf);
-      DupString(yy_aconf->host, hostbuf);
-    }
-    else
-    {
-      struct CollectItem *yy_tmp = MyMalloc(sizeof(struct CollectItem));
-
-      DupString(yy_tmp->user, userbuf);
-      DupString(yy_tmp->host, hostbuf);
-
-      dlinkAdd(yy_tmp, &yy_tmp->node, &col_conf_list);
-    }
-  }
-};
-
-gline_server: NAME '=' QSTRING ';'
-{
-  if (ypass == 2)  
-  {
-    MyFree(yy_conf->name);
-    DupString(yy_conf->name, yylval.string);
-  }
-};
-
-gline_action: ACTION
-{
-  if (ypass == 2)
-    yy_aconf->flags = 0;
-} '=' gdeny_types ';'
-{
-  if (ypass == 2)
-  {
-    struct CollectItem *yy_tmp = NULL;
-    dlink_node *ptr, *next_ptr;
-
-    DLINK_FOREACH_SAFE(ptr, next_ptr, col_conf_list.head)
-    {
-      struct AccessItem *new_aconf;
-      struct ConfItem *new_conf;
-
-      yy_tmp = ptr->data;
-      new_conf = make_conf_item(GDENY_TYPE);
-      new_aconf = map_to_conf(new_conf);
-
-      new_aconf->flags = yy_aconf->flags;
-
-      if (yy_conf->name != NULL)
-        DupString(new_conf->name, yy_conf->name);
-      else
-        DupString(new_conf->name, "*");
-      if (yy_aconf->user != NULL)
-         DupString(new_aconf->user, yy_tmp->user);
-      else   
-        DupString(new_aconf->user, "*");
-      if (yy_aconf->host != NULL)
-        DupString(new_aconf->host, yy_tmp->host);
-      else
-        DupString(new_aconf->host, "*");
-
-      dlinkDelete(&yy_tmp->node, &col_conf_list);
-    }
-
-    /*
-     * In case someone has fed us with more than one action= after user/name
-     * which would leak memory  -Michael
-     */
-    if (yy_conf->name == NULL || yy_aconf->user == NULL)
-      delete_conf_item(yy_conf);
-
-    yy_conf = make_conf_item(GDENY_TYPE);
-    yy_aconf = map_to_conf(yy_conf);
-  }
-};
-
-gdeny_types: gdeny_types ',' gdeny_type_item | gdeny_type_item;
-gdeny_type_item: T_REJECT
-{
-  if (ypass == 2)
-    yy_aconf->flags |= GDENY_REJECT;
-} | T_BLOCK
-{
-  if (ypass == 2)
-    yy_aconf->flags |= GDENY_BLOCK;
 };
 
 /***************************************************************************

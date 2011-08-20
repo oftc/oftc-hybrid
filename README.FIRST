@@ -8,7 +8,7 @@ If you don't read this first, we won't help you.
   *   when configure is run.                                              *
   *   You now need to ./configure --prefix="/path/to/install/it"          *
   * - The old config format WILL NOT WORK. Please see etc/example.conf ! *
-  * - The old kline, dline, xline, gline format WILL NOT WORK.
+  * - The old kline, dline, xlinei format WILL NOT WORK.
   *************************************************************************
 
   ALSO, IF YOU ARE UPGRADING YOUR CURRENT SOURCE TREE, AND YOU TRY TO BUILD

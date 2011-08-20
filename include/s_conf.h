@@ -59,10 +59,8 @@ typedef enum
   RXLINE_TYPE,
   XLINE_TYPE,    
   ULINE_TYPE,
-  GLINE_TYPE,
   CRESV_TYPE,     
   NRESV_TYPE,
-  GDENY_TYPE
 } ConfType;
 
 struct split_nuh_item
@@ -206,7 +204,6 @@ struct ip_entry
 #define CONF_ULINE              0x00002000
 #define CONF_EXEMPTDLINE        0x00004000
 #define CONF_SERVICES           0x00010000
-#define CONF_GLINE              0x00008000
 
 #define CONF_SERVER_MASK       CONF_SERVER
 #define CONF_CLIENT_MASK       (CONF_CLIENT | CONF_OPERATOR | CONF_SERVER_MASK)
@@ -230,7 +227,6 @@ struct ip_entry
 #define IsConfTypeOfClient(x)	((x)->status & CONF_CLIENT_MASK)
 #define IsConfUline(x)		((x)->status & CONF_ULINE)
 #define IsConfXline(x)		((x)->status & CONF_XLINE)
-#define IsConfGline(x)          ((x)->status == CONF_GLINE)
 
 /* AccessItem->flags */
 
@@ -248,7 +244,6 @@ struct ip_entry
 #define CONF_FLAGS_SPOOF_IP             0x00000200
 #define CONF_FLAGS_SPOOF_NOTICE         0x00000400
 #define CONF_FLAGS_REDIR                0x00000800
-#define CONF_FLAGS_EXEMPTGLINE          0x00001000
 #define CONF_FLAGS_RESTRICTED           0x00002000
 #define CONF_FLAGS_CAN_FLOOD            0x00100000
 #define CONF_FLAGS_NEED_PASSWORD        0x00200000
@@ -273,7 +268,6 @@ struct ip_entry
 #define IsNoMatchIp(x)          ((x)->flags & CONF_FLAGS_NOMATCH_IP)
 #define IsConfExemptKline(x)    ((x)->flags & CONF_FLAGS_EXEMPTKLINE)
 #define IsConfExemptLimits(x)   ((x)->flags & CONF_FLAGS_NOLIMIT)
-#define IsConfExemptGline(x)    ((x)->flags & CONF_FLAGS_EXEMPTGLINE)
 #define IsConfExemptResv(x)     ((x)->flags & CONF_FLAGS_EXEMPTRESV)
 #define IsConfIdlelined(x)      ((x)->flags & CONF_FLAGS_IDLE_LINED)
 #define IsConfDoIdentd(x)       ((x)->flags & CONF_FLAGS_DO_IDENTD)
@@ -323,10 +317,6 @@ struct ip_entry
 				 SHARED_RESV | SHARED_TRESV | SHARED_UNRESV |\
                                  SHARED_LOCOPS)
 
-/* gline acl entry actions */
-#define GDENY_BLOCK		0x1
-#define GDENY_REJECT		0x2
-
 #define DEFAULT_CLASS_REJECT_MESSAGE "No more connections permitted from your host"
 
 struct config_file_entry
@@ -338,7 +328,6 @@ struct config_file_entry
   const char *rxlinefile;
   const char *rklinefile;
   const char *dlinefile;
-  const char *glinefile;
   const char *cresvfile;
   const char *nresvfile;
 
@@ -354,8 +343,8 @@ struct config_file_entry
 
   unsigned char compression_level;
   int max_watch;
-  int gline_min_cidr;
-  int gline_min_cidr6;
+  int kline_min_cidr;
+  int kline_min_cidr6;
   int dot_in_ip6_addr;
   int dots_in_ident;
   int failed_oper_notice;
@@ -378,7 +367,6 @@ struct config_file_entry
   int no_oper_flood;
   int true_no_oper_flood;
   int oper_pass_resv;
-  int glines;
   int hide_spoof_ips;
   int burst_away;
   int use_whois_actually;
@@ -388,8 +376,6 @@ struct config_file_entry
   char *kline_reason;
   int pace_wait;
   int pace_wait_simple;
-  int gline_time;
-  int gline_logging;
   int idletime;
   int oper_only_umodes;
   int oper_umodes;
@@ -479,7 +465,6 @@ struct logging_entry
   unsigned int use_logging;
   char operlog[PATH_MAX + 1];
   char userlog[PATH_MAX + 1];
-  char glinelog[PATH_MAX + 1];
   char ioerrlog[PATH_MAX + 1];
   char klinelog[PATH_MAX + 1];
   char killlog[PATH_MAX + 1];
@@ -497,7 +482,6 @@ extern dlink_list rkconf_items;
 extern dlink_list leaf_items;
 extern dlink_list temporary_klines;
 extern dlink_list temporary_dlines;
-extern dlink_list temporary_glines;
 extern dlink_list temporary_xlines;
 extern dlink_list temporary_rxlines;
 extern dlink_list temporary_rklines;
@@ -531,7 +515,6 @@ extern int detach_conf(struct Client *, ConfType);
 extern struct ConfItem *find_conf_name(dlink_list *, const char *, ConfType);
 extern struct ConfItem *find_conf_exact(ConfType, const char *, const char *, const char *);
 extern struct AccessItem *find_kill(struct Client *);
-extern struct AccessItem *find_gline(struct Client *);
 extern int conf_connect_allowed(struct irc_ssaddr *, int);
 extern char *oper_privs_as_string(const unsigned int);
 extern void split_nuh(struct split_nuh_item *);

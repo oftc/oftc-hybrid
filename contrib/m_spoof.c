@@ -57,7 +57,7 @@
 /* Usage: SPOOF <umask@hmask> <free.form.spoof|-> [flags|- [password]]
  *            -- Appends an auth{} block. Flags consist of characters:
  *            t (no_tilde), i (need_ident), k (kline_exempt),
- *            g (gline_exempt), l (exceed_limit), o (class = "opers"),
+ *            l (exceed_limit), o (class = "opers"),
  *            f (can_flood), p (need_password), everything other is ignored.
  *        DELSPOOF <umask@hmask>
  *            -- Removes an auth{} block of exact umask@hmask, if found
@@ -295,8 +295,6 @@ mo_spoof(struct Client *client_p, struct Client *source_p,
                 break;
       case 'k': i |= CONF_FLAGS_EXEMPTKLINE;   /* kline_exempt = yes; */
                 break;
-      case 'g': i |= CONF_FLAGS_EXEMPTGLINE;   /* gline_exempt = yes; */
-                break;
       case 'l': i |= CONF_FLAGS_NOLIMIT;       /* exceed_limit = yes; */
                 break;
       case 'o': class_opers = 1;               /* class = "opers"; */
@@ -312,7 +310,6 @@ mo_spoof(struct Client *client_p, struct Client *source_p,
     try_flag(f, &i, CONF_FLAGS_NO_TILDE, "no_tilde");
     try_flag(f, &i, CONF_FLAGS_NEED_IDENTD, "need_ident");
     try_flag(f, &i, CONF_FLAGS_EXEMPTKLINE, "kline_exempt");
-    try_flag(f, &i, CONF_FLAGS_EXEMPTGLINE, "gline_exempt");
     try_flag(f, &i, CONF_FLAGS_NOLIMIT, "exceed_limit");
     try_flag(f, &i, CONF_FLAGS_CAN_FLOOD, "can_flood");
     try_flag(f, &i, CONF_FLAGS_NEED_PASSWORD, "need_password");

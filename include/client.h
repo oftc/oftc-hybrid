@@ -329,7 +329,6 @@ struct LocalUser
 #define FLAGS_SERVLINK      0x00000800 /* servlink has servlink process            */
 #define FLAGS_MARK	    0x00001000 /* marked client                            */
 #define FLAGS_CANFLOOD	    0x00002000 /* client has the ability to flood          */
-#define FLAGS_EXEMPTGLINE   0x00004000 /* client can't be G-lined                  */
 #define FLAGS_EXEMPTKLINE   0x00008000 /* client is exempt from kline              */
 #define FLAGS_NOLIMIT       0x00010000 /* client is exempt from limits             */
 #define FLAGS_RESTRICTED    0x00020000 /* client cannot op others                  */
@@ -387,7 +386,6 @@ struct LocalUser
 #define OPER_FLAG_GLOBAL_KILL  0x00000001 /* oper can global kill        */
 #define OPER_FLAG_REMOTE       0x00000002 /* oper can do squits/connects */
 #define OPER_FLAG_UNKLINE      0x00000004 /* oper can use unkline        */
-#define OPER_FLAG_GLINE        0x00000008 /* oper can use gline          */
 #define OPER_FLAG_N            0x00000010 /* oper can umode n            */
 #define OPER_FLAG_K            0x00000020 /* oper can kill/kline         */
 #define OPER_FLAG_X            0x00000040 /* oper can xline              */
@@ -490,8 +488,6 @@ struct LocalUser
 #define SetExemptKline(x)       ((x)->flags |= FLAGS_EXEMPTKLINE)
 #define IsExemptLimits(x)       ((x)->flags & FLAGS_NOLIMIT)
 #define SetExemptLimits(x)      ((x)->flags |= FLAGS_NOLIMIT)
-#define IsExemptGline(x)        ((x)->flags & FLAGS_EXEMPTGLINE)
-#define SetExemptGline(x)       ((x)->flags |= FLAGS_EXEMPTGLINE)
 #define IsExemptResv(x)         ((x)->flags & FLAGS_EXEMPTRESV)
 #define SetExemptResv(x)        ((x)->flags |= FLAGS_EXEMPTRESV)
 #define SetIPSpoof(x)           ((x)->flags |= FLAGS_IP_SPOOFING)
@@ -529,7 +525,6 @@ struct LocalUser
 #define IsOperGlobalKill(x)     (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_GLOBAL_KILL : 0)
 #define IsOperRemote(x)         (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_REMOTE : 0)
 #define IsOperUnkline(x)        (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_UNKLINE : 0)
-#define IsOperGline(x)          (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_GLINE : 0)
 #define IsOperN(x)              (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_N : 0)
 #define IsOperK(x)              (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_K : 0)
 #define IsOperDie(x)            (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_DIE : 0)

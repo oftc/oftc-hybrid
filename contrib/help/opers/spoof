@@ -12,7 +12,7 @@ SPOOF *god@10.0.0.* i.hate.packets
 
 That will give him the spoof. However you can specify flags as well:
 
-t (no_tilde), i (need_ident), k (kline_exempt), g (gline_exempt),
+t (no_tilde), i (need_ident), k (kline_exempt), 
 l (exceed_limit), o (class = "opers"), f (can_flood), p (need_password)
 
 So if I want to give god a spoof but exempt him from K-Lines and G-Lines:

@@ -57,7 +57,6 @@ struct Capability
 #define CAP_IE		0x00000010 /* Can do invite exceptions            */
 #define CAP_EOB		0x00000020 /* Can do EOB message                  */
 #define CAP_KLN		0x00000040 /* Can do KLINE message                */
-#define CAP_GLN		0x00000080 /* Can do GLINE message                */
 #define CAP_HUB		0x00000100 /* This server is a HUB                */
 #define CAP_TS6		0x00000200 /* Can do TS6                          */
 #define CAP_ZIP		0x00000400 /* Can do ZIPlinks                     */

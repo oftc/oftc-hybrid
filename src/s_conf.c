@@ -47,7 +47,6 @@
 #include "fdlist.h"
 #include "s_log.h"
 #include "send.h"
-#include "s_gline.h"
 #include "fileio.h"
 #include "memory.h"
 #include "levent.h"
@@ -91,13 +90,11 @@ dlink_list rxconf_items  = { NULL, NULL, 0 };
 dlink_list rkconf_items  = { NULL, NULL, 0 };
 dlink_list nresv_items   = { NULL, NULL, 0 };
 dlink_list class_items   = { NULL, NULL, 0 };
-dlink_list gdeny_items   = { NULL, NULL, 0 };
 
 dlink_list temporary_klines  = { NULL, NULL, 0 };
 dlink_list temporary_dlines  = { NULL, NULL, 0 };
 dlink_list temporary_xlines  = { NULL, NULL, 0 };
 dlink_list temporary_rklines = { NULL, NULL, 0 };
-dlink_list temporary_glines  = { NULL, NULL, 0 };
 dlink_list temporary_rxlines = { NULL, NULL, 0 };
 dlink_list temporary_resv = { NULL, NULL, 0 };
 
@@ -235,7 +232,6 @@ make_conf_item(ConfType type)
   {
   case DLINE_TYPE:
   case EXEMPTDLINE_TYPE:
-  case GLINE_TYPE:
   case KLINE_TYPE:
   case CLIENT_TYPE:
   case OPER_TYPE:
@@ -258,10 +254,6 @@ make_conf_item(ConfType type)
 
     case KLINE_TYPE:
       status = CONF_KLINE;
-      break;
-
-    case GLINE_TYPE:
-      status = CONF_GLINE;
       break;
 
     case CLIENT_TYPE:
@@ -300,12 +292,6 @@ make_conf_item(ConfType type)
     conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
                                        sizeof(struct MatchItem));
     dlinkAdd(conf, &conf->node, &uconf_items);
-    break;
-
-  case GDENY_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct AccessItem));
-    dlinkAdd(conf, &conf->node, &gdeny_items);
     break;
 
   case XLINE_TYPE:
@@ -384,7 +370,6 @@ delete_conf_item(struct ConfItem *conf)
   {
   case DLINE_TYPE:
   case EXEMPTDLINE_TYPE:
-  case GLINE_TYPE:
   case KLINE_TYPE:
   case CLIENT_TYPE:
   case OPER_TYPE:
@@ -417,7 +402,6 @@ delete_conf_item(struct ConfItem *conf)
     {
     case EXEMPTDLINE_TYPE:
     case DLINE_TYPE:
-    case GLINE_TYPE:
     case KLINE_TYPE:
     case CLIENT_TYPE:
       MyFree(conf);
@@ -524,14 +508,6 @@ delete_conf_item(struct ConfItem *conf)
     MyFree(conf);
     break;
 
-  case GDENY_TYPE:
-    aconf = map_to_conf(conf);
-    MyFree(aconf->user);
-    MyFree(aconf->host);
-    dlinkDelete(&conf->node, &gdeny_items);
-    MyFree(conf);
-    break;
-
   case CLUSTER_TYPE:
     dlinkDelete(&conf->node, &cluster_items);
     MyFree(conf);
@@ -596,32 +572,6 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
 
   switch (type)
   {
-  case GDENY_TYPE:
-    DLINK_FOREACH(ptr, gdeny_items.head)
-    {
-      conf = ptr->data;
-      aconf = map_to_conf(conf);
-
-      p = buf;
-
-      if (aconf->flags & GDENY_BLOCK)
-        *p++ = 'B';
-      else
-        *p++ = 'b';
-
-      if (aconf->flags & GDENY_REJECT)
-        *p++ = 'R';
-      else
-        *p++ = 'r';
-
-      *p = '\0';
-
-      sendto_one(source_p, ":%s %d %s V %s@%s %s %s",
-                 me.name, RPL_STATSDEBUG, source_p->name, 
-                 aconf->user, aconf->host, conf->name, buf);
-    }
-    break;
-
   case XLINE_TYPE:
     DLINK_FOREACH(ptr, xconf_items.head)
     {
@@ -802,7 +752,6 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     }
     break;
 
-  case GLINE_TYPE:
   case KLINE_TYPE:
   case DLINE_TYPE:
   case EXEMPTDLINE_TYPE:
@@ -1014,13 +963,10 @@ verify_access(struct Client *client_p, const char *username,
 
       return(attach_iline(client_p, conf, reason));
     }
-    else if (rkconf || IsConfKill(aconf) || (ConfigFileEntry.glines && IsConfGline(aconf)))
+    else if (rkconf || IsConfKill(aconf))
     {
       /* XXX */
       aconf = rkconf ? rkconf : aconf;
-      if (IsConfGline(aconf))
-        sendto_one(client_p, ":%s NOTICE %s :*** G-lined", me.name,
-                   client_p->name);
       if (ConfigFileEntry.kline_with_reason)
         sendto_one(client_p, ":%s NOTICE %s :*** Banned %s", 
                   me.name, client_p->name, aconf->reason);
@@ -1612,7 +1558,6 @@ map_to_list(ConfType type)
     return(&cluster_items);
     break;
   case CONF_TYPE:
-  case GLINE_TYPE:
   case KLINE_TYPE:
   case DLINE_TYPE:
   case CRESV_TYPE:
@@ -1894,7 +1839,6 @@ set_default_conf(void)
   ConfigLoggingEntry.operlog[0] = '\0';
   ConfigLoggingEntry.userlog[0] = '\0';
   ConfigLoggingEntry.klinelog[0] = '\0';
-  ConfigLoggingEntry.glinelog[0] = '\0';
   ConfigLoggingEntry.killlog[0] = '\0';
   ConfigLoggingEntry.operspylog[0] = '\0';
   ConfigLoggingEntry.ioerrlog[0] = '\0';
@@ -1927,8 +1871,8 @@ set_default_conf(void)
 
   
   ConfigFileEntry.max_watch = WATCHSIZE_DEFAULT;
-  ConfigFileEntry.gline_min_cidr = 16;
-  ConfigFileEntry.gline_min_cidr6 = 48;
+  ConfigFileEntry.kline_min_cidr = 16;
+  ConfigFileEntry.kline_min_cidr6 = 48;
   ConfigFileEntry.invisible_on_connect = YES;
   ConfigFileEntry.burst_away = NO;
   ConfigFileEntry.use_whois_actually = YES;
@@ -1967,8 +1911,6 @@ set_default_conf(void)
   ConfigFileEntry.no_oper_flood = NO;     /* XXX */
   ConfigFileEntry.true_no_oper_flood = NO;  /* XXX */
   ConfigFileEntry.oper_pass_resv = YES;
-  ConfigFileEntry.glines = NO;            /* XXX */
-  ConfigFileEntry.gline_time = 12 * 3600; /* XXX */
   ConfigFileEntry.idletime = 0;
   ConfigFileEntry.max_targets = MAX_TARGETS_DEFAULT;
   ConfigFileEntry.client_flood = CLIENT_FLOOD_DEFAULT;
@@ -2186,23 +2128,6 @@ find_kill(struct Client *client_p)
   return NULL;
 }
 
-struct AccessItem *
-find_gline(struct Client *client_p)
-{
-  struct AccessItem *aconf;
-
-  assert(client_p != NULL);
-
-  aconf = find_gline_conf(client_p->host, client_p->username,
-                          &client_p->ip,
-                          client_p->aftype);
-
-  if (aconf && (aconf->status & CONF_GLINE))
-    return aconf;
-
-  return NULL;
-}
-
 /* add_temp_line()
  *
  * inputs        - pointer to struct ConfItem
@@ -2230,13 +2155,6 @@ add_temp_line(struct ConfItem *conf)
     SetConfTemporary(aconf);
     dlinkAdd(conf, &conf->node, &temporary_klines);
     add_conf_by_address(CONF_KILL, aconf);
-  }
-  else if (conf->type == GLINE_TYPE)
-  {
-    aconf = map_to_conf(conf);
-    SetConfTemporary(aconf);
-    dlinkAdd(conf, &conf->node, &temporary_glines);
-    add_conf_by_address(CONF_GLINE, aconf);
   }
   else if (conf->type == XLINE_TYPE)
   {
@@ -2270,7 +2188,6 @@ add_temp_line(struct ConfItem *conf)
 void
 cleanup_tklines(void *notused)
 {
-  expire_tklines(&temporary_glines);
   expire_tklines(&temporary_klines);
   expire_tklines(&temporary_dlines);
   expire_tklines(&temporary_xlines);
@@ -2300,14 +2217,11 @@ expire_tklines(dlink_list *tklist)
   DLINK_FOREACH_SAFE(ptr, next_ptr, tklist->head)
   {
     conf = ptr->data;
-    if (conf->type == GLINE_TYPE ||
-        conf->type == KLINE_TYPE ||
-        conf->type == DLINE_TYPE)
+    if (conf->type == KLINE_TYPE || conf->type == DLINE_TYPE)
     {
       aconf = (struct AccessItem *)map_to_conf(conf);
       if (aconf->hold <= CurrentTime)
       {
-        /* XXX - Do we want GLINE expiry notices?? */
         /* Alert opers that a TKline expired - Hwy */
         if (ConfigFileEntry.tkline_expire_notices)
         {
@@ -2421,7 +2335,6 @@ static const struct oper_privs
   { OPER_FLAG_ADMIN,       OPER_FLAG_HIDDEN_ADMIN,  'A' },
   { OPER_FLAG_REMOTEBAN,   0,                       'B' },
   { OPER_FLAG_DIE,         0,                       'D' },
-  { OPER_FLAG_GLINE,       0,                       'G' },
   { OPER_FLAG_REHASH,      0,                       'H' },
   { OPER_FLAG_K,           0,                       'K' },
   { OPER_FLAG_OPERWALL,    0,                       'L' },
@@ -2510,7 +2423,6 @@ clear_temp_list(dlink_list *list)
     conf = ptr->data;
     switch(conf->type)
     {
-      case GLINE_TYPE:
       case KLINE_TYPE:
       case DLINE_TYPE:
         aconf = (struct AccessItem *)map_to_conf(conf);
@@ -2575,7 +2487,6 @@ read_conf_files(int cold)
   if (!cold)
   {
     clear_out_old_conf();
-    clear_temp_list(&temporary_glines);
     clear_temp_list(&temporary_klines);
     clear_temp_list(&temporary_dlines);
     clear_temp_list(&temporary_xlines);
@@ -2670,7 +2581,7 @@ clear_out_old_conf(void)
   dlink_list *free_items [] = {
     &server_items,   &oconf_items,    &hub_items, &leaf_items,
     &uconf_items,   &xconf_items, &rxconf_items, &rkconf_items,
-    &nresv_items, &cluster_items,  &gdeny_items, NULL
+    &nresv_items, &cluster_items,  NULL
   };
 
   dlink_list ** iterator = free_items; /* C is dumb */
@@ -2892,9 +2803,6 @@ get_conf_name(ConfType type)
       break;
     case NRESV_TYPE:
       return ConfigFileEntry.nresvfile;
-      break;
-    case GLINE_TYPE:
-      return ConfigFileEntry.glinefile;
       break;
 
     default:
