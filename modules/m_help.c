@@ -165,7 +165,6 @@ dohelp(struct Client *source_p, const char *hpath, char *topic)
     return;
   }
 
-#ifndef _WIN32
   if (!S_ISREG(sb.st_mode))
   {
     ilog(L_NOTICE, "help file %s not found", path);
@@ -173,7 +172,6 @@ dohelp(struct Client *source_p, const char *hpath, char *topic)
                me.name, source_p->name, topic);
     return;
   }
-#endif
 
   sendhelpfile(source_p, path, topic);
 }

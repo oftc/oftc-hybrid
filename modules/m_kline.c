@@ -47,8 +47,6 @@
 #include "parse.h"
 #include "modules.h"
 #include "tools.h"
-#include "irc_getnameinfo.h"
-
 
 static void me_kline(struct Client *, struct Client *, int, char **);
 static void mo_kline(struct Client *, struct Client *, int, char **);
@@ -370,9 +368,8 @@ mo_dline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    irc_getnameinfo((struct sockaddr *)&target_p->ip,
-                    target_p->ip.ss_len, hostip,
-                    sizeof(hostip), NULL, 0, NI_NUMERICHOST);
+    getnameinfo((struct sockaddr *)&target_p->ip, target_p->ip.ss_len, hostip,
+        sizeof(hostip), NULL, 0, NI_NUMERICHOST);
 
     dlhost = hostip;
     t = parse_netmask(dlhost, NULL, &bits);
@@ -387,11 +384,9 @@ mo_dline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-#ifdef IPV6
   if (t == HM_IPV6)
     t = AF_INET6;
   else
-#endif
     t = AF_INET;
 
   parse_netmask(dlhost, &daddr, NULL);
@@ -461,11 +456,9 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
 
   if ((t = parse_netmask(lhost, &iphost, &t)) != HM_HOST)
   {
-#ifdef IPV6
     if (t == HM_IPV6)
       t = AF_INET6;
     else
-#endif
       t = AF_INET;
     piphost = &iphost;
   }
@@ -667,9 +660,7 @@ remove_tkline_match(const char *host, const char *user)
       continue;
     if ((nm_t==HM_HOST && !irccmp(tk_c->host, host)) ||
         (nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
-#ifdef IPV6
         || (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
-#endif
        )
     {
       dlinkDelete(tk_n, &temporary_klines);
@@ -705,9 +696,7 @@ remove_tdline_match(const char *cidr)
 
     if((nm_t==HM_HOST && !irccmp(td_conf->host, cidr)) ||
        (nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
-#ifdef IPV6
        || (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
-#endif
       )
     {
       dlinkDelete(td_node, &temporary_dlines);

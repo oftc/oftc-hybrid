@@ -23,11 +23,9 @@
  */
 
 #include "stdinc.h"
-#ifndef _WIN32
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-#endif
 #include "fdlist.h"
 #include "levent.h"
 #include "s_bsd.h"
@@ -36,14 +34,11 @@
 #include "dbuf.h"
 #include "event.h"
 #include "irc_string.h"
-#include "irc_getnameinfo.h"
-#include "irc_getaddrinfo.h"
 #include "ircd.h"
 #include "list.h"
 #include "listener.h"
 #include "numeric.h"
 #include "packet.h"
-#include "inet_misc.h"
 #include "restart.h"
 #include "s_auth.h"
 #include "s_conf.h"
@@ -71,7 +66,6 @@ static PF comm_connect_tryconnect;
 void
 check_can_use_v6(void)
 {
-#ifdef IPV6
   int v6;
 
   if ((v6 = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
@@ -79,15 +73,8 @@ check_can_use_v6(void)
   else
   {
     ServerInfo.can_use_v6 = 1;
-#ifdef _WIN32
-    closesocket(v6);
-#else
     close(v6);
-#endif
   }
-#else
-  ServerInfo.can_use_v6 = 0;
-#endif
 }
 
 /* get_sockerr - get the error value from the socket or the current errno
@@ -99,11 +86,7 @@ check_can_use_v6(void)
 int
 get_sockerr(int fd)
 {
-#ifndef _WIN32
   int errtmp = errno;
-#else
-  int errtmp = WSAGetLastError();
-#endif
 #ifdef SO_ERROR
   int err = 0;
   socklen_t len = sizeof(err);
@@ -165,9 +148,7 @@ setup_socket(va_list args)
   setsockopt(fd, IPPROTO_IP, IP_TOS, (char *) &opt, sizeof(opt));
 #endif
 
-#ifndef _WIN32
   fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
-#endif
 
   return NULL;
 }
@@ -363,11 +344,10 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
    */
   memcpy(&new_client->ip, irn, sizeof(struct irc_ssaddr));
 
-  irc_getnameinfo((struct sockaddr*)&new_client->ip,
+  getnameinfo((struct sockaddr*)&new_client->ip,
         new_client->ip.ss_len,  new_client->sockhost, 
         HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
   new_client->aftype = new_client->ip.ss.ss_family;
-#ifdef IPV6
   if (new_client->sockhost[0] == ':')
     strlcat(new_client->host, "0", HOSTLEN+1);
 
@@ -378,7 +358,6 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
     strlcat(new_client->host, ".", HOSTLEN+1);
   }
   else
-#endif
     strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
 
   new_client->connect_id = ++connect_id;
@@ -567,7 +546,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
 
   snprintf(portname, PORTNAMELEN, "%d", port);
 
-  if (irc_getaddrinfo(host, portname, &hints, &res))
+  if (getaddrinfo(host, portname, &hints, &res))
   {
     /* Send the DNS request, for the next level */
     fd->dns_query = MyMalloc(sizeof(struct DNSQuery));
@@ -583,7 +562,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     memcpy(&fd->connect.hostaddr, res->ai_addr, res->ai_addrlen);
     fd->connect.hostaddr.ss_len = res->ai_addrlen;
     fd->connect.hostaddr.ss.ss_family = res->ai_family;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
     comm_settimeout(fd, timeout*1000, comm_connect_timeout, NULL);
     comm_connect_tryconnect(fd, NULL);
   }
@@ -688,9 +667,6 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
   /* Error? */
   if (retval < 0)
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     /*
      * If we get EISCONN, then we've already connect()ed the socket,
      * which is a good thing.
@@ -750,9 +726,6 @@ comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
   fd = socket(family, sock_type, proto);
   if (fd < 0)
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     return -1; /* errno will be passed through, yay.. */
   }
 
@@ -790,17 +763,10 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
   newfd = accept(lptr->fd.fd, (struct sockaddr *)pn, (socklen_t *)&addrlen);
   if (newfd < 0)
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     return -1;
   }
 
-#ifdef IPV6
   remove_ipv6_mapping(pn);
-#else
-  pn->ss_len = addrlen;
-#endif
 
   execute_callback(setup_socket_cb, newfd);
 
@@ -815,7 +781,6 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
  * AF_INET and AF_INET6 map AF_INET connections inside AF_INET6 structures
  * 
  */
-#ifdef IPV6
 void
 remove_ipv6_mapping(struct irc_ssaddr *addr)
 {
@@ -828,7 +793,7 @@ remove_ipv6_mapping(struct irc_ssaddr *addr)
     {
       char v4ip[HOSTIPLEN];
       struct sockaddr_in *v4 = (struct sockaddr_in*)addr;
-      inetntop(AF_INET6, &v6->sin6_addr, v4ip, HOSTIPLEN);
+      inet_ntop(AF_INET6, &v6->sin6_addr, v4ip, HOSTIPLEN);
       inet_pton(AF_INET, v4ip, &v4->sin_addr);
       addr->ss.ss_family = AF_INET;
       addr->ss_len = sizeof(struct sockaddr_in);
@@ -839,4 +804,3 @@ remove_ipv6_mapping(struct irc_ssaddr *addr)
   else
     addr->ss_len = sizeof(struct sockaddr_in);
 } 
-#endif

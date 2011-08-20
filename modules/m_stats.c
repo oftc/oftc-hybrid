@@ -53,7 +53,6 @@
 #include "rlimits.h"     /* getrlimit() */
 #include "s_log.h"       /* ilog */
 #include "hash.h"
-#include "irc_getnameinfo.h"
 #include "watch.h"
 
 static void do_stats(struct Client *, int, char **);
@@ -324,7 +323,6 @@ mo_stats(struct Client *client_p, struct Client *source_p,
 static void
 send_usage(struct Client *source_p)
 {
-#ifndef _WIN32
   struct rusage rus;
   time_t secs;
   time_t rup;
@@ -336,7 +334,6 @@ send_usage(struct Client *source_p)
 # else
   int hzz = 1;
 # endif
-#endif
 
   if (getrusage(RUSAGE_SELF, &rus) == -1)
   {
@@ -706,7 +703,7 @@ dump_counters(struct Client *source_p)
     {
       cidr = ptr2->data;
 
-      ret = irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
+      ret = getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
           ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
       if (ret != 0)
         continue;
@@ -719,7 +716,7 @@ dump_counters(struct Client *source_p)
     {
       cidr = ptr2->data;
 
-      ret = irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
+      ret = getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
           ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
       if (ret != 0)
         continue;

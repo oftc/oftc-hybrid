@@ -66,8 +66,6 @@ extern int comm_accept(struct Listener *, struct irc_ssaddr *pn);
 extern void init_comm(void);
 extern int read_message (time_t, unsigned char);
 extern void check_can_use_v6(void);
-#ifdef IPV6
 extern void remove_ipv6_mapping(struct irc_ssaddr *);
-#endif
 
 #endif /* INCLUDED_s_bsd_h */

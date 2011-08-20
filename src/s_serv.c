@@ -37,13 +37,11 @@
 #include "fdlist.h"
 #include "hash.h"
 #include "irc_string.h"
-#include "inet_misc.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "ircd_defs.h"
 #include "levent.h"
 #include "s_bsd.h"
-#include "irc_getnameinfo.h"
 #include "list.h"
 #include "numeric.h"
 #include "packet.h"
@@ -715,19 +713,15 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
   if (aconf != NULL)
   {
     struct sockaddr_in *v4;
-#ifdef IPV6
     struct sockaddr_in6 *v6;
-#endif
     switch (aconf->aftype)
     {
-#ifdef IPV6
       case AF_INET6: 
         v6 = (struct sockaddr_in6 *)&aconf->ipnum;
 
         if (IN6_IS_ADDR_UNSPECIFIED(&v6->sin6_addr))
           memcpy(&aconf->ipnum, &client_p->ip, sizeof(struct irc_ssaddr));
         break;
-#endif
       case AF_INET:
         v4 = (struct sockaddr_in *)&aconf->ipnum;
 
@@ -1638,7 +1632,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   conf = unmap_conf_item(aconf);
 
   /* log */
-  irc_getnameinfo((struct sockaddr*)&aconf->ipnum, aconf->ipnum.ss_len,
+  getnameinfo((struct sockaddr*)&aconf->ipnum, aconf->ipnum.ss_len,
 		  buf, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
   ilog(L_NOTICE, "Connect to %s[%s] @%s", aconf->user, aconf->host,
        buf);
@@ -1765,7 +1759,6 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
                          NULL, 0, serv_connect_callback, client_p, aconf->aftype, 
                          CONNECTTIMEOUT);
       break;
-#ifdef IPV6
     case AF_INET6:
       {
         struct irc_ssaddr ipn;
@@ -1805,7 +1798,6 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
               NULL, 0, serv_connect_callback, client_p,
               aconf->aftype, CONNECTTIMEOUT);
       }
-#endif
   }
   return (1);
 }

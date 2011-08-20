@@ -171,12 +171,9 @@ auth_dns_callback(void *vptr, struct DNSReply *reply)
   if (reply != NULL)
   {
     struct sockaddr_in *v4, *v4dns;
-#ifdef IPV6
     struct sockaddr_in6 *v6, *v6dns;
-#endif
     int good = 1;
 
-#ifdef IPV6
     if (auth->client->ip.ss.ss_family == AF_INET6)
     {
       v6 = (struct sockaddr_in6 *)&auth->client->ip;
@@ -188,7 +185,6 @@ auth_dns_callback(void *vptr, struct DNSReply *reply)
       }
     }
     else
-#endif
     {
       v4 = (struct sockaddr_in *)&auth->client->ip;
       v4dns = (struct sockaddr_in *)&reply->addr;
@@ -256,11 +252,7 @@ start_auth_query(struct AuthRequest *auth)
 {
   struct irc_ssaddr localaddr;
   socklen_t locallen = sizeof(struct irc_ssaddr);
-#ifdef IPV6
   struct sockaddr_in6 *v6;
-#else
-  struct sockaddr_in *v4;
-#endif
 
   /* open a socket of the same type as the client socket */
   if (comm_open(&auth->fd, auth->client->ip.ss.ss_family,
@@ -287,15 +279,9 @@ start_auth_query(struct AuthRequest *auth)
   getsockname(auth->client->localClient->fd.fd, (struct sockaddr*)&localaddr,
       &locallen);
 
-#ifdef IPV6
   remove_ipv6_mapping(&localaddr);
   v6 = (struct sockaddr_in6 *)&localaddr;
   v6->sin6_port = htons(0);
-#else
-  localaddr.ss_len = locallen;
-  v4 = (struct sockaddr_in *)&localaddr;
-  v4->sin_port = htons(0);
-#endif
   localaddr.ss_port = htons(0);
 
   SetDoingAuth(auth);
@@ -477,11 +463,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
   socklen_t ulen = sizeof(struct irc_ssaddr);
   socklen_t tlen = sizeof(struct irc_ssaddr);
   u_int16_t uport, tport;
-#ifdef IPV6
   struct sockaddr_in6 *v6;
-#else
-  struct sockaddr_in *v4;
-#endif
 
   if (error != COMM_OK)
   {
@@ -500,21 +482,12 @@ auth_connect_callback(fde_t *fd, int error, void *data)
     return;
   }
 
-#ifdef IPV6
   v6 = (struct sockaddr_in6 *)&us;
   uport = ntohs(v6->sin6_port);
   v6 = (struct sockaddr_in6 *)&them;
   tport = ntohs(v6->sin6_port);
   remove_ipv6_mapping(&us);
   remove_ipv6_mapping(&them);
-#else
-  v4 = (struct sockaddr_in *)&us;
-  uport = ntohs(v4->sin_port);
-  v4 = (struct sockaddr_in *)&them;
-  tport = ntohs(v4->sin_port);
-  us.ss_len = ulen;
-  them.ss_len = tlen;
-#endif
   
   ircsprintf(authbuf, "%u , %u\r\n", tport, uport); 
 
@@ -556,17 +529,10 @@ read_auth_reply(fde_t *fd, void *data)
    *
    *    --nenolod
    */
-#ifndef _WIN32
   len = read(fd->fd, buf, AUTH_BUFSIZ);
-#else
-  len = recv(fd->fd, buf, AUTH_BUFSIZ, 0);
-#endif
   
   if (len < 0)
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     if (ignoreErrno(errno))
       levent_add(fd, COMM_SELECT_READ, read_auth_reply, auth, 0);
     else

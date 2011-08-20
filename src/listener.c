@@ -32,8 +32,6 @@
 #include "ircd_defs.h"
 #include "levent.h"
 #include "s_bsd.h"
-#include "irc_getnameinfo.h"
-#include "irc_getaddrinfo.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "send.h"
@@ -160,7 +158,7 @@ inetport(struct Listener *listener)
   memset(&lsin, 0, sizeof(lsin));
   memcpy(&lsin, &listener->addr, sizeof(struct irc_ssaddr));
   
-  irc_getnameinfo((struct sockaddr*)&lsin, lsin.ss_len, listener->vhost, 
+  getnameinfo((struct sockaddr*)&lsin, lsin.ss_len, listener->vhost, 
         HOSTLEN, NULL, 0, NI_NUMERICHOST);
   listener->name = listener->vhost;
 
@@ -170,9 +168,6 @@ inetport(struct Listener *listener)
    */
   if (setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     report_error(L_ALL, "setting SO_REUSEADDR for listener %s:%s",
                  get_listener_name(listener), errno);
     fd_close(&listener->fd);
@@ -187,9 +182,6 @@ inetport(struct Listener *listener)
 
   if (bind(listener->fd.fd, (struct sockaddr *)&lsin, lsin.ss_len))
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     report_error(L_ALL, "binding listener socket %s:%s",
                  get_listener_name(listener), errno);
     fd_close(&listener->fd);
@@ -198,9 +190,6 @@ inetport(struct Listener *listener)
 
   if (listen(listener->fd.fd, HYBRID_SOMAXCONN))
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     report_error(L_ALL, "listen failed for %s:%s",
                  get_listener_name(listener), errno);
     fd_close(&listener->fd);
@@ -251,10 +240,8 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   struct irc_ssaddr vaddr;
   struct addrinfo hints, *res;
   char portname[PORTNAMELEN + 1];
-#ifdef IPV6
   static short int pass = 0; /* if ipv6 and no address specified we need to
 				have two listeners; one for each protocol. */
-#endif
 
   /*
    * if no or invalid port in conf line, don't bother
@@ -271,21 +258,19 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   /* Get us ready for a bind() and don't bother doing dns lookup */
   hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
-#ifdef IPV6
   if (ServerInfo.can_use_v6)
   {
     snprintf(portname, PORTNAMELEN, "%d", port);
-    irc_getaddrinfo("::", portname, &hints, &res);
+    getaddrinfo("::", portname, &hints, &res);
     vaddr.ss.ss_family = AF_INET6;
     assert(res != NULL);
 
     memcpy((struct sockaddr*)&vaddr, res->ai_addr, res->ai_addrlen);
     vaddr.ss_port = port;
     vaddr.ss_len = res->ai_addrlen;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
   }
   else
-#endif
   {
     struct sockaddr_in *v4 = (struct sockaddr_in*) &vaddr;
     v4->sin_addr.s_addr = INADDR_ANY;
@@ -298,7 +283,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
 
   if (vhost_ip)
   {
-    if (irc_getaddrinfo(vhost_ip, portname, &hints, &res))
+    if (getaddrinfo(vhost_ip, portname, &hints, &res))
         return;
 
     assert(res != NULL);
@@ -306,9 +291,8 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     memcpy((struct sockaddr*)&vaddr, res->ai_addr, res->ai_addrlen);
     vaddr.ss_port = port;
     vaddr.ss_len = res->ai_addrlen;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
   }
-#ifdef IPV6
   else if (pass == 0 && ServerInfo.can_use_v6)
   {
     /* add the ipv4 listener if we havent already */
@@ -316,7 +300,6 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     add_listener(port, "0.0.0.0", flags);
   }
   pass = 0;
-#endif
 
   if ((listener = find_listener(port, &vaddr)))
   {
@@ -422,11 +405,7 @@ accept_connection(fde_t *pfd, void *data)
 
       if (!(listener->flags & LISTENER_SSL))
         send(fd, "ERROR :All connections in use\r\n", 32, 0);
-#ifdef _WIN32
-      closesocket(fd);
-#else
       close(fd);
-#endif
       break;    /* jump out and re-register a new io request */
     }
 
@@ -449,11 +428,7 @@ accept_connection(fde_t *pfd, void *data)
             break;
         }
 
-#ifdef _WIN32
-      closesocket(fd);
-#else
       close(fd);
-#endif
       continue;    /* drop the one and keep on clearing the queue */
     }
 

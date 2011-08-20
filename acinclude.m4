@@ -1,16 +1,5 @@
 dnl Inspired by work Copyright (C) 2006 Luca Filipozzi
 dnl vim: set fdm=marker sw=2 ts=2 et si:
-dnl {{{ ax_check_lib_ipv4
-AC_DEFUN([AX_CHECK_LIB_IPV4],[
-  AC_SEARCH_LIBS([socket],[socket],,[AC_MSG_ERROR([socket library not found])])
-  AC_CHECK_FUNCS([inet_aton inet_ntop inet_pton])
-  AC_CHECK_TYPES([struct sockaddr_in, struct sockaddr_storage, struct addrinfo],,,[#include <netdb.h>])
-  AC_CHECK_MEMBERS([struct sockaddr_in.sin_len],,,[#include <netdb.h>])
-])dnl }}}
-dnl {{{ ax_check_lib_ipv6
-AC_DEFUN([AX_CHECK_LIB_IPV6],[
-  AC_CHECK_TYPES([struct sockaddr_in6],,[AC_DEFINE([IPV6],[1],[Define to 1 if you have IPv6 support.])],,[#include <netdb.h>])
-])dnl }}}
 dnl {{{ ax_check_crypt
 AC_DEFUN([AX_CHECK_LIB_CRYPT],[
 	AC_SEARCH_LIBS(crypt, [crypt descrypt],,)
@@ -111,11 +100,6 @@ dnl {{{ ax_arg_with_ircd_heap_size
 AC_DEFUN([AX_ARG_WITH_IRCD_HEAP_SIZE],[
   AC_ARG_WITH([ircd-heap-size],[AC_HELP_STRING([--ircd-heap-size=<value>],[Set ircd heap size (default 8).])],[ircd_heap_size="$withval"],[ircd_heap_size="8"])
   AC_DEFINE_UNQUOTED([IRCD_HEAP_SIZE],[$ircd_heap_size],[Size of the ircd heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_mqueue_heap_size
-AC_DEFUN([AX_ARG_WITH_MQUEUE_HEAP_SIZE],[
-  AC_ARG_WITH([mqueue-heap-size],[AC_HELP_STRING([--mqueue-size=<value>],[Set mqueue heap size (default 256).])],[mqueue_heap_size="$withval"],[mqueue_heap_size="256"])
-  AC_DEFINE_UNQUOTED([MQUEUE_HEAP_SIZE],[$mqueue_heap_size],[Size of the floodserv mqueue heap.])
 ])dnl }}}
 dnl {{{ ax_arg_with_fmsg_heap_size
 AC_DEFUN([AX_ARG_WITH_FMSG_HEAP_SIZE],[

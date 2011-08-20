@@ -126,7 +126,6 @@ int rehashed_klines = 0;
 /*
  * get_vm_top - get the operating systems notion of the resident set size
  */
-#ifndef _WIN32
 static unsigned long
 get_vm_top(void)
 {
@@ -175,7 +174,6 @@ make_daemon(void)
 
   setsid();
 }
-#endif
 
 /*
  * get_maxrss - get the operating systems notion of the resident set size
@@ -183,11 +181,7 @@ make_daemon(void)
 unsigned long
 get_maxrss(void)
 {
-#ifdef _WIN32
-  return (0);   /* FIXME */
-#else
   return (get_vm_top() - initialVMTop);
-#endif
 }
 
 static int printVersion = 0;
@@ -218,31 +212,18 @@ set_time(void)
 {
   static char to_send[200];
   struct timeval newtime;
-#ifdef _WIN32
-  FILETIME ft;
-
-  GetSystemTimeAsFileTime(&ft);
-  if (ft.dwLowDateTime < 0xd53e8000)
-    ft.dwHighDateTime--;
-  ft.dwLowDateTime -= 0xd53e8000;
-  ft.dwHighDateTime -= 0x19db1de;
-
-  newtime.tv_sec  = (*(uint64_t *) &ft) / 10000000;
-  newtime.tv_usec = (*(uint64_t *) &ft) / 10 % 1000000;
-#else
+  
   newtime.tv_sec  = 0;
   newtime.tv_usec = 0;
 
   if (gettimeofday(&newtime, NULL) == -1)
   {
-    ilog(L_ERROR, "Clock Failure (%s), TS can be corrupted",
-         strerror(errno));
+    ilog(L_ERROR, "Clock Failure (%s), TS can be corrupted", strerror(errno));
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Clock Failure (%s), TS can be corrupted",
                          strerror(errno));
     restart("Clock Failure");
   }
-#endif
 
   if (newtime.tv_sec < CurrentTime)
   {
@@ -451,7 +432,6 @@ write_pidfile(const char *filename)
 static void
 check_pidfile(const char *filename)
 {
-#ifndef _WIN32
   FBFILE *fb;
   char buff[32];
   pid_t pidfromfile;
@@ -483,7 +463,6 @@ check_pidfile(const char *filename)
   {
     /* log(L_ERROR, "Error opening pid file %s", filename); */
   }
-#endif
 }
 
 /* setup_corefile()
@@ -568,7 +547,6 @@ main(int argc, char *argv[])
   /* Check to see if the user is running
    * us as root, which is a nono
    */
-#ifndef _WIN32
   if (geteuid() == 0)
   {
     fprintf(stderr, "Don't run ircd as root!!!\n");
@@ -580,7 +558,6 @@ main(int argc, char *argv[])
 
   /* set initialVMTop before we allocate any memory */
   initialVMTop = get_vm_top();
-#endif
 
   /* save server boot time right away, so getrusage works correctly */
   set_time();
@@ -628,7 +605,6 @@ main(int argc, char *argv[])
 
   init_ssl();
 
-#ifndef _WIN32
   if (!server_state.foreground)
   {
     make_daemon();
@@ -638,7 +614,6 @@ main(int argc, char *argv[])
     print_startup(getpid());
 
   setup_signals();
-#endif
 
   get_ircd_platform(ircd_platform);
 

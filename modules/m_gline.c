@@ -583,9 +583,7 @@ remove_gline_match(const char *user, const char *host)
 
     if ((nm_t == HM_HOST && !irccmp(aconf->host, host)) ||
         (nm_t == HM_IPV4 && bits == cbits && match_ipv4(&addr, &caddr, bits))
-#ifdef IPV6
      || (nm_t == HM_IPV6 && bits == cbits && match_ipv6(&addr, &caddr, bits))
-#endif
     )
     {
       dlinkDelete(ptr, &temporary_glines);

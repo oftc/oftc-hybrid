@@ -23,12 +23,10 @@
 
 #include "patchlevel.h"
 #include "serno.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include "ircd.h"
-#ifndef _WIN32
 #include <sys/utsname.h>
-#else
-#include "s_bsd.h"
-#endif
 
 const char *ircd_version = PATCHLEVEL;
 const char *serno = SERIALNUM;

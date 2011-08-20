@@ -44,7 +44,6 @@
 #include "modules.h"
 #include "common.h"
 #include "packet.h"
-#include "irc_getaddrinfo.h"
 #include "channel_mode.h"
 #include "watch.h"
 
@@ -746,13 +745,13 @@ client_from_server(struct Client *client_p, struct Client *source_p, int parc,
   hints.ai_family = AF_UNSPEC;
   hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
-  irc_getaddrinfo(parv[7], 0, &hints, &res);
+  getaddrinfo(parv[7], 0, &hints, &res);
 
   if(res != NULL)
   {
     memcpy(&source_p->ip, res->ai_addr, res->ai_addrlen);
     source_p->ip.ss_len = res->ai_addrlen;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
   }
 
   hash_add_client(source_p);
