@@ -793,7 +793,7 @@ remove_ipv6_mapping(struct irc_ssaddr *addr)
     {
       char v4ip[HOSTIPLEN];
       struct sockaddr_in *v4 = (struct sockaddr_in*)addr;
-      inetntop(AF_INET6, &v6->sin6_addr, v4ip, HOSTIPLEN);
+      inet_ntop(AF_INET6, &v6->sin6_addr, v4ip, HOSTIPLEN);
       inet_pton(AF_INET, v4ip, &v4->sin_addr);
       addr->ss.ss_family = AF_INET;
       addr->ss_len = sizeof(struct sockaddr_in);
