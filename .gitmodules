@@ -1,3 +1,6 @@
 [submodule "libevent"]
 	path = libevent
 	url = git://levent.git.sourceforge.net/gitroot/levent/libevent
+[submodule "yajl"]
+	path = yajl
+	url = https://github.com/lloyd/yajl.git
