@@ -53,9 +53,9 @@ static void ms_nick(struct Client *, struct Client *, int, char **);
 static void ms_uid(struct Client *, struct Client *, int, char **);
 
 static void nick_from_server(struct Client *, struct Client *, int, char **,
-                             time_t, char *, char *);
+                             time_t, time_t, char *, char *);
 static void uid_from_server(struct Client *, struct Client *, int, char **,
-                               time_t, char *, char *);
+                               time_t, time_t, char *, char *);
 static int check_clean_nick(struct Client *client_p, struct Client *source_p, 
                             char *nick, struct Client *server_p);
 static int check_clean_user(struct Client *client_p, char *nick, char *user,
@@ -66,7 +66,7 @@ static int check_clean_host(struct Client *client_p, char *nick, char *host,
 static int clean_user_name(const char *);
 static int clean_host_name(const char *);
 static void perform_nick_collides(struct Client *, struct Client *, struct Client *,
-				  int, char **, time_t, char *, char *, char *);
+				  int, char **, time_t, time_t, char *, char *, char *);
 struct Message nick_msgtab = {
   "NICK", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {mr_nick, m_nick, ms_nick, m_ignore, m_nick, m_ignore}
@@ -368,7 +368,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
  *  - parv[1] = nickname
  *  - parv[2] = TS when nick change
  *
- * server introducing new nick
+ * server introducing new nick (without services support)
  *  - parv[0] = sender prefix
  *  - parv[1] = nickname
  *  - parv[2] = hop count
@@ -378,6 +378,18 @@ m_nick(struct Client *client_p, struct Client *source_p,
  *  - parv[6] = hostname
  *  - parv[7] = server
  *  - parv[8] = ircname
+ *
+ * server introducing new nick (with services support)
+ *  - parv[0] = sender prefix
+ *  - parv[1] = nickname
+ *  - parv[2] = hop count
+ *  - parv[3] = TS
+ *  - parv[4] = umode
+ *  - parv[5] = username
+ *  - parv[6] = hostname
+ *  - parv[7] = server
+ *  - parv[8] = services id (timestamp)
+ *  - parv[9] = ircname
  */
 static void
 ms_nick(struct Client *client_p, struct Client *source_p,
@@ -385,11 +397,12 @@ ms_nick(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
   time_t newts = 0;
+  time_t svsid = 0;
 
   if (parc < 2 || EmptyString(parv[1]))
     return;
 
-  if (parc == 9)
+  if (parc >= 9)
   {
     struct Client *server_p = hash_find_server(parv[7]);
 
@@ -410,6 +423,8 @@ ms_nick(struct Client *client_p, struct Client *source_p,
 
     if (IsServer(source_p))
       newts = atol(parv[3]);
+    if (IsServer(source_p) && parc == 10)
+      svsid = atol(parv[8]);
   }
   else if (parc == 3)
   {
@@ -426,21 +441,21 @@ ms_nick(struct Client *client_p, struct Client *source_p,
 
   /* if the nick doesnt exist, allow it and process like normal */
   if ((target_p = hash_find_client(parv[1])) == NULL)
-    nick_from_server(client_p, source_p, parc, parv, newts, parv[1], parv[8]);
+    nick_from_server(client_p, source_p, parc, parv, newts, svsid, parv[1], parv[parc-1]);
   else if (IsUnknown(target_p))
   {
     /* we're not living in the past anymore, an unknown client is local only. */
     exit_client(target_p, &me, "Overridden");
-    nick_from_server(client_p, source_p, parc, parv, newts, parv[1], parv[8]);
+    nick_from_server(client_p, source_p, parc, parv, newts, svsid, parv[1], parv[parc-1]);
   }
   else if (target_p == source_p)
   {
     if (strcmp(target_p->name, parv[1]))
-      nick_from_server(client_p, source_p, parc, parv, newts, parv[1], parv[8]);
+      nick_from_server(client_p, source_p, parc, parv, newts, svsid, parv[1], parv[parc-1]);
   }
   else
     perform_nick_collides(source_p, client_p, target_p, parc, parv,
-                          newts, parv[1], parv[8], NULL);
+                          newts, svsid, parv[1], parv[parc-1], NULL);
 }
 
 
@@ -455,6 +470,7 @@ ms_nick(struct Client *client_p, struct Client *source_p,
  *                 pointers.
  * \note Valid arguments for this command are:
  *
+ * server introducing new nick (without services support)
  *  - parv[0] = sender prefix
  *  - parv[1] = nickname
  *  - parv[2] = hop count
@@ -465,6 +481,19 @@ ms_nick(struct Client *client_p, struct Client *source_p,
  *  - parv[7] = ip
  *  - parv[8] = uid
  *  - parv[9] = ircname (gecos)
+ *
+ * server introducing new nick (with services support)
+ *  - parv[ 0] = sender prefix
+ *  - parv[ 1] = nickname
+ *  - parv[ 2] = hop count
+ *  - parv[ 3] = TS
+ *  - parv[ 4] = umode
+ *  - parv[ 5] = username
+ *  - parv[ 6] = hostname
+ *  - parv[ 7] = ip
+ *  - parv[ 8] = uid
+ *  - parv[ 9] = services id (timestamp)
+ *  - parv[10] = ircname (gecos)
  */
 static void
 ms_uid(struct Client *client_p, struct Client *source_p,
@@ -472,8 +501,9 @@ ms_uid(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
   time_t newts = 0;
+  time_t svsid = 0;
 
-  if (parc != 10 || EmptyString(parv[9]))
+  if (parc < 10 || EmptyString(parv[parc-1]))
     return;
 
   if (check_clean_nick(client_p, source_p, parv[1], source_p) ||
@@ -482,6 +512,7 @@ ms_uid(struct Client *client_p, struct Client *source_p,
     return;
 
   newts = atol(parv[3]);
+  svsid = parc == 11 ? atol(parv[9]) : 0;
 
   /*
    * if there is an ID collision, kill our client, and kill theirs.
@@ -504,15 +535,15 @@ ms_uid(struct Client *client_p, struct Client *source_p,
   }
     
   if ((target_p = hash_find_client(parv[1])) == NULL)
-    uid_from_server(client_p, source_p, parc, parv, newts, parv[1], parv[9]);
+    uid_from_server(client_p, source_p, parc, parv, newts, svsid, parv[1], parv[parc-1]);
   else if (IsUnknown(target_p))
   {
     exit_client(target_p, &me, "Overridden");
-    uid_from_server(client_p, source_p, parc, parv, newts, parv[1], parv[9]);
+    uid_from_server(client_p, source_p, parc, parv, newts, svsid, parv[1], parv[parc-1]);
   }
   else
-    perform_nick_collides(source_p, client_p, target_p,
-                          parc, parv, newts, parv[1], parv[9], parv[8]);
+    perform_nick_collides(source_p, client_p, target_p, parc, parv, newts, svsid, parv[1],
+                          parv[parc-1], parv[8]);
 }			  
 
 /* check_clean_nick()
@@ -658,7 +689,7 @@ clean_host_name(const char *host)
  */
 static void
 nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
-                 char *parv[], time_t newts, char *nick, char *ngecos)
+                 char *parv[], time_t newts, time_t svsid, char *nick, char *ngecos)
 {
   int samenick = 0;
 
@@ -678,7 +709,8 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
       ts_warn("Remote nick %s (%s) introduced without a TS", nick, parv[0]);
     }
 
-    strlcpy(source_p->info, parv[8], sizeof(source_p->info));
+    source_p->servicestamp = svsid;
+    strlcpy(source_p->info, ngecos, sizeof(source_p->info));
     /* copy the nick in place */
     strlcpy(source_p->name, nick, sizeof(source_p->name));
     hash_add_client(source_p);
@@ -746,7 +778,7 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
  */
 static void
 uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
-                   char *parv[], time_t newts, char *nick, char *ugecos)
+                char *parv[], time_t newts, time_t svsid, char *nick, char *ugecos)
 {
   const char *m = NULL;
   const char *servername = source_p->name;
@@ -756,12 +788,13 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
 
   source_p->hopcount = atoi(parv[2]);
   source_p->tsinfo = newts;
+  source_p->servicestamp = svsid;
 
   /* copy the nick in place */
   strcpy(source_p->name, nick);
   strlcpy(source_p->id, parv[8], sizeof(source_p->id));
   strlcpy(source_p->sockhost, parv[7], sizeof(source_p->sockhost));
-  strlcpy(source_p->info, parv[9], sizeof(source_p->info));
+  strlcpy(source_p->info, ugecos, sizeof(source_p->info));
 
   hash_add_client(source_p);
   hash_add_id(source_p);
@@ -780,13 +813,13 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
   }
 
   register_remote_user(source_p, parv[5], parv[6],
-                       servername, parv[9]);
+                       servername, ugecos);
 }
 
 static void
 perform_nick_collides(struct Client *source_p, struct Client *client_p, 
                       struct Client *target_p, int parc, char *parv[], 
-                      time_t newts, char *nick, char *gecos, char *uid)
+                      time_t newts, time_t svsid, char *nick, char *gecos, char *uid)
 {
   int sameuser;
   
@@ -862,10 +895,10 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
         SetKilled(target_p);
 	exit_client(target_p, &me, "Nick collision");
 	
-	if (parc == 9)
-	  nick_from_server(client_p, source_p, parc, parv, newts, nick, gecos);
-	else if (parc == 10)
-	  uid_from_server(client_p, source_p, parc, parv, newts, nick, gecos);
+	if (!uid && (parc == 9 || parc == 10))
+	  nick_from_server(client_p, source_p, parc, parv, newts, svsid, nick, gecos);
+	else if (uid && (parc == 10 || parc == 11))
+	  uid_from_server(client_p, source_p, parc, parv, newts, svsid, nick, gecos);
 	  
 	return;
       }
@@ -959,5 +992,5 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
   /* we should only ever call nick_from_server() here, as
    * this is a client changing nick, not a new client
    */
-  nick_from_server(client_p, source_p, parc, parv, newts, nick, gecos);
+  nick_from_server(client_p, source_p, parc, parv, newts, svsid, nick, gecos);
 }
