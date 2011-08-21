@@ -6,6 +6,8 @@
 #undef __STRICT_ANSI__
 #include "s_log.h"
 #include "memory.h"
+#include "s_user.h"
+#include "numeric.h"
 
 struct config_section_entry general_section_entries[] = {
   { GENERAL_SECTION_ENTRY(anti_nick_flood, json_type_boolean) }, 
@@ -80,6 +82,17 @@ validate_general_section()
     ilog(L_CRIT, "Consider actually reading/editing the conf file, and removing this line.");
     exit(0);
   }
+
+  general_config.oper_only_umodes_int = mode_string_to_flags(general_config.oper_only_umodes);
+  general_config.oper_umodes_int = mode_string_to_flags(general_config.oper_umodes);
+
+  if(strlen(general_config.message_locale) > LOCALE_LENGTH - 2)
+    general_config.message_locale[LOCALE_LENGTH-1] = '\0';
+
+  set_locale(general_config.message_locale);
+
+  if(general_config.compression_level < 1 || general_config.compression_level > 9)
+    general_config.compression_level = 0;
 }
 
 void

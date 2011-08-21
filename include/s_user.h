@@ -65,5 +65,6 @@ extern void delete_isupport(const char *);
 extern void init_isupport(void);
 extern void rebuild_isupport_message_line(void);
 extern void check_godmode(void *);
+extern unsigned int mode_string_to_flags(const char *);
 
 #endif

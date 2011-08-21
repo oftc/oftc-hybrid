@@ -60,6 +60,9 @@ struct conf_general
   int use_egd;
   int use_whois_actually;
   int warn_no_nline;
+
+  int oper_umodes_int;
+  int oper_only_umodes_int;
 };
 
 extern struct conf_general general_config;
