@@ -1,8 +1,6 @@
 #ifndef CONF_GENERAL_H
 #define CONF_GENERAL_H
 
-extern struct conf_general general_config;
-
 struct conf_general
 {
   int anti_nick_flood;
@@ -64,6 +62,10 @@ struct conf_general
   int warn_no_nline;
 };
 
+extern struct conf_general general_config;
+
 void general_section_process(void *);
+
+#define GENERAL_SECTION_ENTRY(name, type) #name, type, offsetof(struct conf_general, name), ssizeof(struct conf_general, name)
 
 #endif

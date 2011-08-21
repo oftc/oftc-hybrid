@@ -40,6 +40,7 @@
 #include "client.h" /* CIPHERKEYLEN .. eww */
 #include "ircd.h" /* bio_spare_fd */
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 static void binary_to_hex(unsigned char *bin, char *hex, int length);
 
@@ -72,14 +73,14 @@ verify_private_key(void)
   RSA *mkey;
 
   /* If the rsa_private_key directive isn't found, error out. */
-  if (ServerInfo.rsa_private_key == NULL)
+  if (serverinfo_config.rsa_private_key == NULL)
   {
     ilog(L_NOTICE, "rsa_private_key in serverinfo{} is not defined.");
     return -1;
   }
 
   /* If rsa_private_key_file isn't available, error out. */
-  if (ServerInfo.rsa_private_key_file == NULL)
+  if (serverinfo_config.rsa_private_key_file == NULL)
   {
     ilog(L_NOTICE, "Internal error: rsa_private_key_file isn't defined.");
     return -1;
@@ -88,7 +89,7 @@ verify_private_key(void)
   if (bio_spare_fd > -1)
     close(bio_spare_fd);
 
-  file = BIO_new_file(ServerInfo.rsa_private_key_file, "r");
+  file = BIO_new_file(serverinfo_config.rsa_private_key_file, "r");
 
   /*
    * If BIO_new_file returned NULL (according to OpenSSL docs), then
@@ -125,7 +126,7 @@ verify_private_key(void)
   BIO_free(file);
   bio_spare_fd = save_spare_fd("SSL private key validation");
 
-  mkey = ServerInfo.rsa_private_key;
+  mkey = serverinfo_config.rsa_private_key;
 
   /*
    * Compare the in-memory key to the key we just loaded above.  If

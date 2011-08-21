@@ -3,8 +3,6 @@
 
 #define ssizeof(t, m) sizeof(((t *)0)->m)
 
-#define SECTION_ENTRY(name, type) #name, type, offsetof(struct conf_general, name), ssizeof(struct conf_general, name)
-
 typedef void CSP(void *);
 
 struct config_section
@@ -23,3 +21,4 @@ struct config_section_entry
 
 void init_config();
 struct config_section_entry *find_section_entry(struct config_section_entry *, const char *);
+void section_process(void *, char *, struct config_section_entry *);

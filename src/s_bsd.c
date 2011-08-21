@@ -49,6 +49,7 @@
 #include "s_user.h"
 #include "hook.h"
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
   "Error during DNS lookup", "connect timeout", "Error during connect()",
@@ -70,10 +71,10 @@ check_can_use_v6(void)
   int v6;
 
   if ((v6 = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
-    ServerInfo.can_use_v6 = 0;
+    serverinfo_config.can_use_v6 = 0;
   else
   {
-    ServerInfo.can_use_v6 = 1;
+    serverinfo_config.can_use_v6 = 1;
     close(v6);
   }
 }
@@ -368,7 +369,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 #ifdef HAVE_LIBCRYPTO
   if (listener->flags & LISTENER_SSL)
   {
-    if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.ctx)) == NULL)
+    if ((new_client->localClient->fd.ssl = SSL_new(serverinfo_config.ctx)) == NULL)
     {
       ilog(L_CRIT, "SSL_new() ERROR! -- %s",
            ERR_error_string(ERR_get_error(), NULL));

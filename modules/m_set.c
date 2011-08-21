@@ -43,7 +43,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_user.h"
-
+#include "conf_serverinfo.h"
 
 static void mo_set(struct Client *, struct Client *, int, char *[]);
 
@@ -344,20 +344,20 @@ quote_max(struct Client *source_p, int newval)
     {
       sendto_one(source_p,
 	":%s NOTICE %s :You cannot set MAXCLIENTS to < %d, restoring to %d",
-	me.name, source_p->name, MAXCLIENTS_MIN, ServerInfo.max_clients);
+	me.name, source_p->name, MAXCLIENTS_MIN, serverinfo_config.max_clients);
       return;
     }
 
-    ServerInfo.max_clients = newval;
+    serverinfo_config.max_clients = newval;
 
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
 	"%s!%s@%s set new MAXCLIENTS to %d (%d current)",
 	source_p->name, source_p->username, source_p->host,
-	ServerInfo.max_clients, Count.local);
+	serverinfo_config.max_clients, Count.local);
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :Current MAXCLIENTS = %d (%d)",
-               me.name, source_p->name, ServerInfo.max_clients, Count.local);
+               me.name, source_p->name, serverinfo_config.max_clients, Count.local);
 }
 
 /* SET MSGLOCALE */

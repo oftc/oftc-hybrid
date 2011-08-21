@@ -54,6 +54,7 @@
 #include "memory.h"
 #include "channel.h" /* chcap_usage_counts stuff...*/
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 #define MIN_CONN_FREQ 300
 
@@ -1034,7 +1035,7 @@ server_estab(struct Client *client_p)
   /* If there is something in the serv_list, it might be this
    * connecting server..
    */
-  if (!ServerInfo.hub && serv_list.head)   
+  if (!serverinfo_config.hub && serv_list.head)   
   {
     if (client_p != serv_list.head->data || serv_list.head->next)
     {
@@ -1071,7 +1072,7 @@ server_estab(struct Client *client_p)
      * - Dianora
      */
 
-    send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+    send_capabilities(client_p, aconf, (serverinfo_config.hub ? CAP_HUB : 0)
       | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
       | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
@@ -1743,13 +1744,13 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
 			 serv_connect_callback, client_p, aconf->aftype,
 			 CONNECTTIMEOUT);
       }
-      else if (ServerInfo.specific_ipv4_vhost)
+      else if (serverinfo_config.specific_ipv4_vhost)
       {
         struct irc_ssaddr ipn;
         memset(&ipn, 0, sizeof(struct irc_ssaddr));
         ipn.ss.ss_family = AF_INET;
         ipn.ss_port = 0;
-        memcpy(&ipn, &ServerInfo.ip, sizeof(struct irc_ssaddr));
+        memcpy(&ipn, &serverinfo_config.ip, sizeof(struct irc_ssaddr));
         comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
                          (struct sockaddr *)&ipn, ipn.ss_len,
                          serv_connect_callback, client_p, aconf->aftype,
@@ -1782,9 +1783,9 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
               serv_connect_callback, client_p,
               aconf->aftype, CONNECTTIMEOUT);
         }
-        else if (ServerInfo.specific_ipv6_vhost)
+        else if (serverinfo_config.specific_ipv6_vhost)
         {
-          memcpy(&ipn, &ServerInfo.ip6, sizeof(struct irc_ssaddr));
+          memcpy(&ipn, &serverinfo_config.ip6, sizeof(struct irc_ssaddr));
           ipn.ss.ss_family = AF_INET6;
           ipn.ss_port = 0;
           comm_connect_tcp(&client_p->localClient->fd,
@@ -1895,7 +1896,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
    * Pass on TB if supported.
    * - Dianora
    */
-  send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+  send_capabilities(client_p, aconf, (serverinfo_config.hub ? CAP_HUB : 0)
                     | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
                     | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
@@ -1994,8 +1995,8 @@ ssllink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
 
   aconf = (struct AccessItem *)map_to_conf(conf);
 
-  pubkey = RSAPublicKey_dup(ServerInfo.rsa_private_key);
-  cert = create_certificate(pubkey, ServerInfo.rsa_private_key, 
+  pubkey = RSAPublicKey_dup(serverinfo_config.rsa_private_key);
+  cert = create_certificate(pubkey, serverinfo_config.rsa_private_key, 
       me.name, me.name, 2*60*60);
   RSA_free(pubkey);
 
@@ -2006,7 +2007,7 @@ ssllink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
   if (me.id[0])
     sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);
 
-  send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+  send_capabilities(client_p, aconf, (serverinfo_config.hub ? CAP_HUB : 0)
       | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
       | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), CAP_ENC_MASK);
 
@@ -2041,8 +2042,8 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
   int enc_len;
 
   /* get key */
-  if ((!ServerInfo.rsa_private_key) ||
-      (!RSA_check_key(ServerInfo.rsa_private_key)) )
+  if ((!serverinfo_config.rsa_private_key) ||
+      (!RSA_check_key(serverinfo_config.rsa_private_key)) )
   {
     cryptlink_error(client_p, "SERV", "Invalid RSA private key",
                                       "Invalid RSA private key");
@@ -2065,7 +2066,7 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
     return;
   }
 
-  encrypted = MyMalloc(RSA_size(ServerInfo.rsa_private_key));
+  encrypted = MyMalloc(RSA_size(serverinfo_config.rsa_private_key));
   enc_len   = RSA_public_encrypt(CIPHERKEYLEN,
                                  (unsigned char *)randkey,
                                  (unsigned char *)encrypted,
@@ -2091,7 +2092,7 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
     return;
   }
 
-  send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+  send_capabilities(client_p, aconf, (serverinfo_config.hub ? CAP_HUB : 0)
                     | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
                     | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), CAP_ENC_MASK);
 

@@ -35,6 +35,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 static char *confopts(struct Client *);
 static void m_version(struct Client *, struct Client *, int, char *[]);
@@ -169,7 +170,7 @@ confopts(struct Client *source_p)
   *p++ = 'g';
 
   /* might wanna hide this :P */
-  if (ServerInfo.hub && 
+  if (serverinfo_config.hub && 
       (!general_config.disable_remote_commands || IsOper(source_p)))
   {
     *p++ = 'H';

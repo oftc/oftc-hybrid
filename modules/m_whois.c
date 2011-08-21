@@ -45,6 +45,7 @@
 #include "modules.h"
 #include "hook.h"
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 static void do_whois(struct Client *, int, char **);
 static int single_whois(struct Client *, struct Client *);
@@ -400,7 +401,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
     sendto_one(source_p, form_str(RPL_WHOISSERVER),
 	       me.name, source_p->name, target_p->name,
                ConfigServerHide.hidden_name,
-	       ServerInfo.network_desc);
+	       serverinfo_config.network_desc);
 
   if (target_p->away != NULL)
     sendto_one(source_p, form_str(RPL_AWAY),

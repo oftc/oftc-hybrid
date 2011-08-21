@@ -4,9 +4,13 @@
 #include "json.h"
 #undef __STRICT_ANSI__
 #include "config.h"
+#include "ircd_defs.h"
 #include "conf_general.h"
+#include "conf_serverinfo.h"
+#include "memory.h"
 
 struct config_section config_sections[] = {
+  { "serverinfo", serverinfo_section_process },
   { "general", general_section_process },
   { "", NULL }
 };
@@ -43,6 +47,61 @@ find_section_entry(struct config_section_entry *list, const char *name)
   }
 
   return NULL;
+}
+
+void
+section_process(void *obj, char *ptr, struct config_section_entry *entry_list)
+{
+  json_object_object_foreach(obj, key, value)
+  {
+    struct config_section_entry *entry;
+    json_type obj_type = json_object_get_type(value);
+
+    entry = find_section_entry(entry_list, key);
+
+    if(entry == NULL)
+    {
+      ilog(L_WARN, "Unexpected entry %s", key);
+      continue;
+    }
+
+    if(obj_type != entry->type)
+    {
+      ilog(L_WARN, "type mismatch element %s expected %d got %d", key,
+          obj_type, entry->type);
+      continue;
+    }
+
+    switch(obj_type)
+    {
+      case json_type_int:
+      {
+        int intval = json_object_get_int(value);
+
+        memcpy(ptr + entry->offset, &intval, entry->length);
+        break;
+      }
+      case json_type_boolean:
+      {
+        int boolval = json_object_get_boolean(value);
+
+        memcpy(ptr + entry->offset, &boolval, entry->length);
+        break;
+      }
+      case json_type_string:
+      {
+        char *strval;
+        
+        DupString(strval, json_object_get_string(value));
+        memcpy(ptr + entry->offset, &strval, entry->length);
+        break;
+      }
+      default:
+        ilog(L_DEBUG, "type %d as yet not handled field name is %s", obj_type,
+            key);
+        break;
+    }
+  }
 }
 
 void

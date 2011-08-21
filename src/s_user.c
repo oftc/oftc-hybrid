@@ -56,6 +56,7 @@
 #include "pcre.h"
 #include "watch.h"
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 int MaxClientCount     = 1;
 int MaxConnectionCount = 1;
@@ -405,8 +406,8 @@ register_local_user(struct Client *client_p, struct Client *source_p,
    *   -Taner
    */
   /* Except "F:" clients */
-  if ((Count.local >= ServerInfo.max_clients + MAX_BUFFER) ||
-      (Count.local >= ServerInfo.max_clients && !IsExemptLimits(source_p)))
+  if ((Count.local >= serverinfo_config.max_clients + MAX_BUFFER) ||
+      (Count.local >= serverinfo_config.max_clients && !IsExemptLimits(source_p)))
   {
     sendto_realops_flags(UMODE_FULL, L_ALL,
                          "Too many clients, rejecting %s[%s].",
@@ -1200,7 +1201,7 @@ user_welcome(struct Client *source_p)
 #endif
 
   sendto_one(source_p, form_str(RPL_WELCOME), me.name, source_p->name, 
-             ServerInfo.network_name, source_p->name);
+             serverinfo_config.network_name, source_p->name);
   sendto_one(source_p, form_str(RPL_YOURHOST), me.name, source_p->name,
              get_listener_name(source_p->localClient->listener), ircd_version);
   sendto_one(source_p, form_str(RPL_CREATED),
@@ -1363,10 +1364,10 @@ init_uid(void)
 
   memset(new_uid, 0, sizeof(new_uid));
 
-  if (ServerInfo.sid != NULL)
+  if (serverinfo_config.sid != NULL)
   {
-    strlcpy(new_uid, ServerInfo.sid, sizeof(new_uid));
-    strlcpy(me.id, ServerInfo.sid, sizeof(me.id));
+    strlcpy(new_uid, serverinfo_config.sid, sizeof(new_uid));
+    strlcpy(me.id, serverinfo_config.sid, sizeof(me.id));
 
     hash_add_id(&me);
   }

@@ -375,28 +375,6 @@ struct config_server_hide
   int hide_server_ips;
 };
 
-struct server_info
-{
-  char *name;
-  char *description;
-  char *network_name;
-  char *network_desc;
-#ifdef HAVE_LIBCRYPTO
-  char *rsa_private_key_file;
-  RSA *rsa_private_key;
-  SSL_CTX *ctx;
-#endif
-  char *sid;
-  int hub;
-  struct irc_ssaddr ip;
-  struct irc_ssaddr ip6;
-  int max_clients;
-  int specific_ipv4_vhost;
-  int specific_ipv6_vhost;
-  struct sockaddr_in dns_host;
-  int can_use_v6;
-};
-
 struct admin_info
 {
   char *name;

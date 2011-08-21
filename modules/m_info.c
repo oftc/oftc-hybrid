@@ -42,6 +42,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 static void send_conf_options(struct Client *);
 static void send_birthdate_online_time(struct Client *);
@@ -107,19 +108,19 @@ static const struct InfoStruct info_table[] =
   {
     "network_name",
     OUTPUT_STRING,
-    &ServerInfo.network_name,
+    &serverinfo_config.network_name,
     "Network name"
   },
   {
     "network_desc",
     OUTPUT_STRING,
-    &ServerInfo.network_desc,
+    &serverinfo_config.network_desc,
     "Network description"
   },
   {
     "hub",
     OUTPUT_BOOLEAN_YN,
-    &ServerInfo.hub,
+    &serverinfo_config.hub,
     "Server is a hub"
   },
   {

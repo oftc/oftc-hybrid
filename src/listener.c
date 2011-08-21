@@ -40,7 +40,7 @@
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/bio.h>
 #endif
-
+#include "conf_serverinfo.h"
 
 static PF accept_connection;
 
@@ -258,7 +258,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   /* Get us ready for a bind() and don't bother doing dns lookup */
   hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
-  if (ServerInfo.can_use_v6)
+  if (serverinfo_config.can_use_v6)
   {
     snprintf(portname, PORTNAMELEN, "%d", port);
     getaddrinfo("::", portname, &hints, &res);
@@ -293,7 +293,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     vaddr.ss_len = res->ai_addrlen;
     freeaddrinfo(res);
   }
-  else if (pass == 0 && ServerInfo.can_use_v6)
+  else if (pass == 0 && serverinfo_config.can_use_v6)
   {
     /* add the ipv4 listener if we havent already */
     pass = 1;

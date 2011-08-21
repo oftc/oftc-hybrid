@@ -31,10 +31,11 @@
 #include "rlimits.h"
 #include "s_bsd.h"
 #include "levent.h"   
-#include "s_conf.h"  /* ServerInfo */
+#include "s_conf.h"  /* serverinfo_config */
 #include "send.h"
 #include "memory.h"
 #include "numeric.h"
+#include "conf_serverinfo.h"
 
 fde_t *fd_hash[FD_HASH_SIZE];
 fde_t *fd_next_in_loop = NULL;
@@ -49,14 +50,14 @@ changing_fdlimit(va_list args)
 
   hard_fdlimit = va_arg(args, int);
 
-  if (ServerInfo.max_clients > MAXCLIENTS_MAX)
+  if (serverinfo_config.max_clients > MAXCLIENTS_MAX)
   {
     if (old_fdlimit != 0)
       sendto_realops_flags(UMODE_ALL, L_ALL,
         "HARD_FDLIMIT changed to %d, adjusting MAXCLIENTS to %d",
         hard_fdlimit, MAXCLIENTS_MAX);
 
-    ServerInfo.max_clients = MAXCLIENTS_MAX;
+    serverinfo_config.max_clients = MAXCLIENTS_MAX;
   }
 
   return NULL;

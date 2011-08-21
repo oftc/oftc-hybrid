@@ -1,4 +1,18 @@
 {
+  "serverinfo":
+  {
+    "description": "hybrid-7 test server";
+    "hub": false;
+    "max_clients": 512;
+    "name": "hades.arpa";
+    "network_desc": "This is My Network";
+    "network_name": "MyNet";
+    "rsa_private_key_file": "/usr/local/ircd/etc/rsa.key";
+    "sid": "_CHANGE_ME_";
+    "ssl_certificate_file": "/usr/local/ircd/etc/cert.pem";
+    "vhost": "192.169.0.1";
+    "vhost6": "3ffe:80e8:546::2";
+  },
   "general":
   {
     "anti_nick_flood": true,

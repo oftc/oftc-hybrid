@@ -287,7 +287,6 @@ send_password	{ return SEND_PASSWORD; }
 sendq		{ return SENDQ; }
 server          { return T_SERVER; }
 serverhide	{ return SERVERHIDE; }
-serverinfo	{ return SERVERINFO; }
 servlink_path   { return SERVLINK_PATH; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }

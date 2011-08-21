@@ -50,6 +50,7 @@
 #include "s_user.h"
 #include "s_misc.h"
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/rsa.h>
@@ -303,7 +304,6 @@ unhook_hub_leaf_confs(void)
 %token  SENDQ
 %token  SEND_PASSWORD
 %token  SERVERHIDE
-%token  SERVERINFO
 %token  SERVLINK_PATH
 %token  SSLLINK
 %token  IRCD_SID
@@ -406,7 +406,6 @@ conf_item:        admin_entry
                 | class_entry 
                 | listen_entry
                 | auth_entry
-                | serverinfo_entry
 		| serverhide_entry
                 | resv_entry
                 | shared_entry
@@ -490,275 +489,6 @@ modules_path: PATH '=' QSTRING ';'
   if (ypass == 2)
     mod_add_path(yylval.string);
 #endif
-};
-
-/***************************************************************************
- *  section serverinfo
- ***************************************************************************/
-serverinfo_entry: SERVERINFO
-  '{' serverinfo_items '}' ';';
-
-serverinfo_items:       serverinfo_items serverinfo_item |
-                        serverinfo_item ;
-serverinfo_item:        serverinfo_name | serverinfo_vhost |
-                        serverinfo_hub | serverinfo_description |
-                        serverinfo_network_name | serverinfo_network_desc |
-                        serverinfo_max_clients | 
-                        serverinfo_rsa_private_key_file | serverinfo_vhost6 |
-                        serverinfo_sid | serverinfo_ssl_certificate_file |
-			error ';' ;
-
-serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
-{
-#ifdef HAVE_LIBCRYPTO
-  if (ypass == 2 && ServerInfo.ctx) 
-  {
-    if (!ServerInfo.rsa_private_key_file)
-    {
-      yyerror("No rsa_private_key_file specified, SSL disabled");
-      break;
-    }
-
-    if (SSL_CTX_use_certificate_chain_file(ServerInfo.ctx,
-      yylval.string) <= 0)
-    {
-      yyerror(ERR_lib_error_string(ERR_get_error()));
-      break;
-    }
-
-    if (SSL_CTX_use_PrivateKey_file(ServerInfo.ctx,
-      ServerInfo.rsa_private_key_file, SSL_FILETYPE_PEM) <= 0)
-    {
-      yyerror(ERR_lib_error_string(ERR_get_error()));
-      break;
-    }
-
-    if (!SSL_CTX_check_private_key(ServerInfo.ctx))
-    {
-      yyerror("RSA private key does not match the SSL certificate public key!");
-      break;
-    }
-  }
-#endif
-};
-
-serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
-{
-#ifdef HAVE_LIBCRYPTO
-  if (ypass == 1)
-  {
-    BIO *file;
-
-    if (ServerInfo.rsa_private_key)
-    {
-      RSA_free(ServerInfo.rsa_private_key);
-      ServerInfo.rsa_private_key = NULL;
-    }
-
-    if (ServerInfo.rsa_private_key_file)
-    {
-      MyFree(ServerInfo.rsa_private_key_file);
-      ServerInfo.rsa_private_key_file = NULL;
-    }
-
-    DupString(ServerInfo.rsa_private_key_file, yylval.string);
-
-    if ((file = BIO_new_file(yylval.string, "r")) == NULL)
-    {
-      yyerror("File open failed, ignoring");
-      break;
-    }
-
-    ServerInfo.rsa_private_key = (RSA *)PEM_read_bio_RSAPrivateKey(file, NULL,
-      0, NULL);
-
-    (void)BIO_set_close(file, BIO_CLOSE);
-    BIO_free(file);
-
-    if (ServerInfo.rsa_private_key == NULL)
-    {
-      yyerror("Couldn't extract key, ignoring");
-      break;
-    }
-
-    if (!RSA_check_key(ServerInfo.rsa_private_key))
-    {
-      RSA_free(ServerInfo.rsa_private_key);
-      ServerInfo.rsa_private_key = NULL;
-
-      yyerror("Invalid key, ignoring");
-      break;
-    }
-
-    /* require 2048 bit (256 byte) key */
-    if (RSA_size(ServerInfo.rsa_private_key) != 256)
-    {
-      RSA_free(ServerInfo.rsa_private_key);
-      ServerInfo.rsa_private_key = NULL;
-
-      yyerror("Not a 2048 bit key, ignoring");
-    }
-  }
-#endif
-};
-
-serverinfo_name: NAME '=' QSTRING ';' 
-{
-  /* this isn't rehashable */
-  if (ypass == 2)
-  {
-    if (ServerInfo.name == NULL)
-    {
-      /* the ircd will exit() in main() if we dont set one */
-      if (strlen(yylval.string) <= HOSTLEN)
-        DupString(ServerInfo.name, yylval.string);
-    }
-  }
-};
-
-serverinfo_sid: IRCD_SID '=' QSTRING ';' 
-{
-  /* this isn't rehashable */
-  if (ypass == 2 && !ServerInfo.sid)
-  {
-    if (valid_sid(yylval.string))
-      DupString(ServerInfo.sid, yylval.string);
-    else
-    {
-      ilog(L_ERROR, "Ignoring config file entry SID -- invalid SID. Aborting.");
-      exit(0);
-    }
-  }
-};
-
-serverinfo_description: DESCRIPTION '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(ServerInfo.description);
-    DupString(ServerInfo.description,yylval.string);
-  }
-};
-
-serverinfo_network_name: NETWORK_NAME '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    char *p;
-
-    if ((p = strchr(yylval.string, ' ')) != NULL)
-      p = '\0';
-
-    MyFree(ServerInfo.network_name);
-    DupString(ServerInfo.network_name, yylval.string);
-  }
-};
-
-serverinfo_network_desc: NETWORK_DESC '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(ServerInfo.network_desc);
-    DupString(ServerInfo.network_desc, yylval.string);
-  }
-};
-
-serverinfo_vhost: VHOST '=' QSTRING ';'
-{
-  if (ypass == 2 && *yylval.string != '*')
-  {
-    struct addrinfo hints, *res;
-
-    memset(&hints, 0, sizeof(hints));
-
-    hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
-
-    if (getaddrinfo(yylval.string, NULL, &hints, &res))
-      ilog(L_ERROR, "Invalid netmask for server vhost(%s)", yylval.string);
-    else
-    {
-      assert(res != NULL);
-
-      memcpy(&ServerInfo.ip, res->ai_addr, res->ai_addrlen);
-      ServerInfo.ip.ss.ss_family = res->ai_family;
-      ServerInfo.ip.ss_len = res->ai_addrlen;
-      freeaddrinfo(res);
-
-      ServerInfo.specific_ipv4_vhost = 1;
-    }
-  }
-};
-
-serverinfo_vhost6: VHOST6 '=' QSTRING ';'
-{
-  if (ypass == 2 && *yylval.string != '*')
-  {
-    struct addrinfo hints, *res;
-
-    memset(&hints, 0, sizeof(hints));
-
-    hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
-
-    if (getaddrinfo(yylval.string, NULL, &hints, &res))
-      ilog(L_ERROR, "Invalid netmask for server vhost6(%s)", yylval.string);
-    else
-    {
-      assert(res != NULL);
-
-      memcpy(&ServerInfo.ip6, res->ai_addr, res->ai_addrlen);
-      ServerInfo.ip6.ss.ss_family = res->ai_family;
-      ServerInfo.ip6.ss_len = res->ai_addrlen;
-      freeaddrinfo(res);
-
-      ServerInfo.specific_ipv6_vhost = 1;
-    }
-  }
-};
-
-serverinfo_max_clients: T_MAX_CLIENTS '=' NUMBER ';'
-{
-  if (ypass == 2)
-  {
-    recalc_fdlimit(NULL);
-
-    if ($3 < MAXCLIENTS_MIN)
-    {
-      char buf[IRCD_BUFSIZE];
-      ircsprintf(buf, "MAXCLIENTS too low, setting to %d", MAXCLIENTS_MIN);
-      yyerror(buf);
-    }
-    else if ($3 > MAXCLIENTS_MAX)
-    {
-      char buf[IRCD_BUFSIZE];
-      ircsprintf(buf, "MAXCLIENTS too high, setting to %d", MAXCLIENTS_MAX);
-      yyerror(buf);
-    }
-    else
-      ServerInfo.max_clients = $3;
-  }
-};
-
-serverinfo_hub: HUB '=' TBOOL ';' 
-{
-  if (ypass == 2)
-  {
-    if (yylval.number)
-    {
-      ServerInfo.hub = 1;
-      delete_capability("HUB");
-      add_capability("HUB", CAP_HUB, 1);
-    }
-    else if (ServerInfo.hub)
-    {
-
-      ServerInfo.hub = 0;
-      delete_capability("HUB");
-    }
-  }
 };
 
 /***************************************************************************
@@ -1749,7 +1479,7 @@ port_item: NUMBER
   {
     if ((listener_flags & LISTENER_SSL))
 #ifdef HAVE_LIBCRYPTO
-      if (!ServerInfo.ctx)
+      if (!serverinfo_config.ctx)
 #endif
       {
         yyerror("SSL not available - port closed");
@@ -1765,7 +1495,7 @@ port_item: NUMBER
 
     if ((listener_flags & LISTENER_SSL))
 #ifdef HAVE_LIBCRYPTO
-      if (!ServerInfo.ctx)
+      if (!serverinfo_config.ctx)
 #endif
       {
         yyerror("SSL not available - port closed");

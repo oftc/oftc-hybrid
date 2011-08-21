@@ -64,6 +64,7 @@
 #include "levent.h"
 #include "config.h"
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
  * number of files allowed to be open by this process.
@@ -74,8 +75,6 @@ struct SetOptions GlobalSetOptions;
 
 /* configuration set from ircd.conf */
 struct config_file_entry ConfigFileEntry; 
-/* server info set from ircd.conf */
-struct server_info ServerInfo;
 /* admin info set from ircd.conf */
 struct admin_info AdminInfo = { NULL, NULL, NULL };
 struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -379,7 +378,7 @@ initialize_server_capabs(void)
   add_capability("QS", CAP_QS, 1);
   add_capability("EOB", CAP_EOB, 1);
 
-  if (ServerInfo.sid != NULL)	/* only enable TS6 if we have an SID */
+  if (serverinfo_config.sid != NULL)	/* only enable TS6 if we have an SID */
     add_capability("TS6", CAP_TS6, 0);
 
   add_capability("ZIP", CAP_ZIP, 0);
@@ -509,8 +508,8 @@ init_ssl(void)
   SSL_load_error_strings();
   SSLeay_add_ssl_algorithms();
 
-  ServerInfo.ctx = SSL_CTX_new(SSLv23_method());
-  if (!ServerInfo.ctx)
+  serverinfo_config.ctx = SSL_CTX_new(SSLv23_method());
+  if (!serverinfo_config.ctx)
   {
     const char *s;
 
@@ -519,9 +518,9 @@ init_ssl(void)
     ilog(L_CRIT, "ERROR: Could not initialize the SSL context -- %s\n", s);
   }
 
-  SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_NO_SSLv2);
-  SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
-  SSL_CTX_set_verify(ServerInfo.ctx, SSL_VERIFY_PEER, always_accept_verify_cb);
+  SSL_CTX_set_options(serverinfo_config.ctx, SSL_OP_NO_SSLv2);
+  SSL_CTX_set_options(serverinfo_config.ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
+  SSL_CTX_set_verify(serverinfo_config.ctx, SSL_VERIFY_PEER, always_accept_verify_cb);
 
   bio_spare_fd = save_spare_fd("SSL private key validation");
 #endif /* HAVE_LIBCRYPTO */
@@ -571,7 +570,7 @@ main(int argc, char *argv[])
   dlinkAdd(&me, &me.node, &global_client_list);	/* Pointer to beginning
 						   of Client list */
 
-  memset(&ServerInfo, 0, sizeof(ServerInfo));
+  memset(&serverinfo_config, 0, sizeof(serverinfo_config));
   memset(&ServerStats, 0, sizeof(ServerStats));
 
   /* Initialise the channel capability usage counts... */
@@ -652,23 +651,23 @@ main(int argc, char *argv[])
   initialize_global_set_options();
   init_channels();
 
-  if (ServerInfo.name == NULL)
+  if (serverinfo_config.name == NULL)
   {
     ilog(L_CRIT, "No server name specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
-  strlcpy(me.name, ServerInfo.name, sizeof(me.name));
+  strlcpy(me.name, serverinfo_config.name, sizeof(me.name));
 
   /* serverinfo{} description must exist.  If not, error out.*/
-  if (ServerInfo.description == NULL)
+  if (serverinfo_config.description == NULL)
   {
     ilog(L_CRIT,
       "ERROR: No server description specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
-  strlcpy(me.info, ServerInfo.description, sizeof(me.info));
+  strlcpy(me.info, serverinfo_config.description, sizeof(me.info));
 
   me.from    = &me;
   me.servptr = &me;

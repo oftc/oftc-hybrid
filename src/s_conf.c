@@ -54,6 +54,7 @@
 #include "s_user.h"
 #include "channel_mode.h"
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 enum FullCause
 {
@@ -1776,8 +1777,8 @@ rehash(int sig)
 
   read_conf_files(0);
 
-  if (ServerInfo.description != NULL)
-    strlcpy(me.info, ServerInfo.description, sizeof(me.info));
+  if (serverinfo_config.description != NULL)
+    strlcpy(me.info, serverinfo_config.description, sizeof(me.info));
 
 #ifndef STATIC_MODULES
   load_conf_modules();
@@ -1811,26 +1812,26 @@ set_default_conf(void)
   assert(class_default == (struct ConfItem *) class_items.tail->data);
 
 #ifdef HAVE_LIBCRYPTO
-  ServerInfo.rsa_private_key = NULL;
-  ServerInfo.rsa_private_key_file = NULL;
+  serverinfo_config.rsa_private_key = NULL;
+  serverinfo_config.rsa_private_key_file = NULL;
 #endif
 
-  /* ServerInfo.name is not rehashable */
-  /* ServerInfo.name = ServerInfo.name; */
-  ServerInfo.description = NULL;
-  DupString(ServerInfo.network_name, NETWORK_NAME_DEFAULT);
-  DupString(ServerInfo.network_desc, NETWORK_DESC_DEFAULT);
+  /* serverinfo_config.name is not rehashable */
+  /* serverinfo_config.name = serverinfo_config.name; */
+  serverinfo_config.description = NULL;
+  DupString(serverinfo_config.network_name, NETWORK_NAME_DEFAULT);
+  DupString(serverinfo_config.network_desc, NETWORK_DESC_DEFAULT);
 
-  memset(&ServerInfo.ip, 0, sizeof(ServerInfo.ip));
-  ServerInfo.specific_ipv4_vhost = 0;
-  memset(&ServerInfo.ip6, 0, sizeof(ServerInfo.ip6));
-  ServerInfo.specific_ipv6_vhost = 0;
+  memset(&serverinfo_config.ip, 0, sizeof(serverinfo_config.ip));
+  serverinfo_config.specific_ipv4_vhost = 0;
+  memset(&serverinfo_config.ip6, 0, sizeof(serverinfo_config.ip6));
+  serverinfo_config.specific_ipv6_vhost = 0;
 
-  ServerInfo.max_clients = MAXCLIENTS_MAX;
+  serverinfo_config.max_clients = MAXCLIENTS_MAX;
   /* Don't reset hub, as that will break lazylinks */
-  /* ServerInfo.hub = NO; */
-  ServerInfo.dns_host.sin_addr.s_addr = 0;
-  ServerInfo.dns_host.sin_port = 0;
+  /* serverinfo_config.hub = NO; */
+  serverinfo_config.dns_host.sin_addr.s_addr = 0;
+  serverinfo_config.dns_host.sin_port = 0;
   AdminInfo.name = NULL;
   AdminInfo.email = NULL;
   AdminInfo.description = NULL;
@@ -1973,11 +1974,11 @@ validate_conf(void)
   if (general_config.servlink_path == NULL)
     DupString(general_config.servlink_path, SLPATH);
 
-  if (ServerInfo.network_name == NULL)
-    DupString(ServerInfo.network_name,NETWORK_NAME_DEFAULT);
+  if (serverinfo_config.network_name == NULL)
+    DupString(serverinfo_config.network_name,NETWORK_NAME_DEFAULT);
 
-  if (ServerInfo.network_desc == NULL)
-    DupString(ServerInfo.network_desc,NETWORK_DESC_DEFAULT);
+  if (serverinfo_config.network_desc == NULL)
+    DupString(serverinfo_config.network_desc,NETWORK_DESC_DEFAULT);
 
   if ((general_config.client_flood < CLIENT_FLOOD_MIN) ||
       (general_config.client_flood > CLIENT_FLOOD_MAX))
@@ -2498,7 +2499,7 @@ read_conf_files(int cold)
   read_conf(conf_fbfile_in);
   fbclose(conf_fbfile_in);
 
-  add_isupport("NETWORK", ServerInfo.network_name, -1);
+  add_isupport("NETWORK", serverinfo_config.network_name, -1);
   ircsprintf(chanmodes, "b%s%s:%d", ConfigChannel.use_except ? "e" : "",
              ConfigChannel.use_invex ? "I" : "", ConfigChannel.max_bans);
   add_isupport("MAXLIST", chanmodes, -1);
@@ -2681,24 +2682,24 @@ clear_out_old_conf(void)
   mod_clear_paths();
 #endif
 
-  /* clean out ServerInfo */
-  MyFree(ServerInfo.description);
-  ServerInfo.description = NULL;
-  MyFree(ServerInfo.network_name);
-  ServerInfo.network_name = NULL;
-  MyFree(ServerInfo.network_desc);
-  ServerInfo.network_desc = NULL;
+  /* clean out serverinfo_config */
+  MyFree(serverinfo_config.description);
+  serverinfo_config.description = NULL;
+  MyFree(serverinfo_config.network_name);
+  serverinfo_config.network_name = NULL;
+  MyFree(serverinfo_config.network_desc);
+  serverinfo_config.network_desc = NULL;
   MyFree(general_config.egdpool_path);
   general_config.egdpool_path = NULL;
 #ifdef HAVE_LIBCRYPTO
-  if (ServerInfo.rsa_private_key != NULL)
+  if (serverinfo_config.rsa_private_key != NULL)
   {
-    RSA_free(ServerInfo.rsa_private_key);
-    ServerInfo.rsa_private_key = NULL;
+    RSA_free(serverinfo_config.rsa_private_key);
+    serverinfo_config.rsa_private_key = NULL;
   }
 
-  MyFree(ServerInfo.rsa_private_key_file);
-  ServerInfo.rsa_private_key_file = NULL;
+  MyFree(serverinfo_config.rsa_private_key_file);
+  serverinfo_config.rsa_private_key_file = NULL;
 #endif
 
   /* clean out old resvs from the conf */

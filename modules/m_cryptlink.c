@@ -52,6 +52,7 @@
 #include "s_serv.h"      /* server_estab, check_server, my_name_for_link */
 #include "motd.h"
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 static int bogus_host(char *host);
 static char *parse_cryptserv_args(struct Client *client_p,
@@ -190,9 +191,9 @@ cryptlink_auth(struct Client *client_p, struct Client *source_p,
       "verify_private_key() returned -1.  Check log for information.");
   }
 
-  key = MyMalloc(RSA_size(ServerInfo.rsa_private_key));
+  key = MyMalloc(RSA_size(serverinfo_config.rsa_private_key));
   len = RSA_private_decrypt(enc_len, (unsigned char *)enc,(unsigned char *)key,
-                            ServerInfo.rsa_private_key,
+                            serverinfo_config.rsa_private_key,
                             RSA_PKCS1_PADDING);
 
   if (len < client_p->localClient->in_cipher->keylen)
@@ -399,7 +400,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  encrypted = MyMalloc(RSA_size(ServerInfo.rsa_private_key));
+  encrypted = MyMalloc(RSA_size(serverinfo_config.rsa_private_key));
   enc_len   = RSA_public_encrypt(client_p->localClient->out_cipher->keylen,
                                (unsigned char *)key,
                                (unsigned char *)encrypted,
@@ -472,15 +473,15 @@ parse_cryptserv_args(struct Client *client_p, char *parv[],
       "verify_private_key() returned -1.  Check log for information.");
   }
 
-  if (ServerInfo.rsa_private_key == NULL)
+  if (serverinfo_config.rsa_private_key == NULL)
   {
     cryptlink_error(client_p, "SERV", "No local private key found", NULL);
     return(NULL);
   }
 
-  out = MyMalloc(RSA_size(ServerInfo.rsa_private_key));
+  out = MyMalloc(RSA_size(serverinfo_config.rsa_private_key));
   len = RSA_private_decrypt(decoded_len, tmp, out,
-                            ServerInfo.rsa_private_key,
+                            serverinfo_config.rsa_private_key,
                             RSA_PKCS1_PADDING);
 
   MyFree(tmp);

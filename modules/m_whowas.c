@@ -40,6 +40,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "conf_general.h"
+#include "conf_serverinfo.h"
 
 static void m_whowas(struct Client *, struct Client *, int, char *[]);
 static void mo_whowas(struct Client *, struct Client *, int, char *[]);
@@ -154,7 +155,7 @@ whowas_do(struct Client *client_p, struct Client *source_p,
       if (ConfigServerHide.hide_servers && !IsOper(source_p))
         sendto_one(source_p, form_str(RPL_WHOISSERVER),
                    me.name, source_p->name, temp->name,
-                   ServerInfo.network_name, myctime(temp->logoff));
+                   serverinfo_config.network_name, myctime(temp->logoff));
       else
         sendto_one(source_p, form_str(RPL_WHOISSERVER),
                    me.name, source_p->name, temp->name,
