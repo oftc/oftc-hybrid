@@ -4,22 +4,22 @@
 #define __STRICT_ANSI__
 #include "json.h"
 #undef __STRICT_ANSI__
-
 #include "s_log.h"
+#include "memory.h"
 
 struct config_section_entry general_section_entries[] = {
   { SECTION_ENTRY(anti_nick_flood, json_type_boolean) }, 
   { SECTION_ENTRY(anti_spam_exit_message_time, json_type_int) }, 
   { SECTION_ENTRY(burst_away, json_type_boolean) }, 
   { SECTION_ENTRY(caller_id_wait, json_type_int) }, 
-  { SECTION_ENTRY(client_flood, json_type_boolean) }, 
+  { SECTION_ENTRY(client_flood, json_type_int) }, 
   { SECTION_ENTRY(compression_level, json_type_int) }, 
   { SECTION_ENTRY(default_cipher_preference, json_type_string) }, 
   { SECTION_ENTRY(default_floodcount, json_type_int) }, 
   { SECTION_ENTRY(disable_auth, json_type_boolean) }, 
   { SECTION_ENTRY(disable_remote_commands, json_type_boolean) }, 
   { SECTION_ENTRY(dot_in_ip6_addr, json_type_boolean) }, 
-  { SECTION_ENTRY(dots_in_ident, json_type_boolean) }, 
+  { SECTION_ENTRY(dots_in_ident, json_type_int) }, 
   { SECTION_ENTRY(egdpool_path, json_type_string) }, 
   { SECTION_ENTRY(failed_oper_notice, json_type_boolean) }, 
   { SECTION_ENTRY(godmode_timeout, json_type_int) }, 
@@ -112,6 +112,15 @@ general_section_process(void *obj)
         int boolval = json_object_get_boolean(value);
 
         memcpy(genptr + entry->offset, &boolval, entry->length);
+        break;
+      }
+      case json_type_string:
+      {
+        char *strval;
+        
+        DupString(strval, json_object_get_string(value));
+
+        memcpy(genptr + entry->offset, &strval, entry->length);
         break;
       }
       default:
