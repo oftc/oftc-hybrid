@@ -55,6 +55,7 @@
 #include "msg.h"
 #include "pcre.h"
 #include "watch.h"
+#include "conf_general.h"
 
 int MaxClientCount     = 1;
 int MaxConnectionCount = 1;
@@ -296,7 +297,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
 
   ClearCap(client_p, CAP_TS6);
 
-  if (ConfigFileEntry.ping_cookie)
+  if (general_config.ping_cookie)
   {
     if (!IsPingSent(source_p) &&
        source_p->localClient->random_ping == 0)
@@ -436,7 +437,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL,
                        "Client connecting: %s (%s@%s) [%s] {%s} [%s]",
                        nick, source_p->username, source_p->host,
-                       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                       general_config.hide_spoof_ips && IsIPSpoof(source_p) ?
                        "255.255.255.255" : source_p->sockhost,
                        get_client_class(source_p),
                        source_p->info);
@@ -444,12 +445,12 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   sendto_realops_flags(UMODE_CCONN_FULL, L_ALL,
                        "CLICONN %s %s %s %s %s %s %s 0 %s",
                        nick, source_p->username, source_p->host,
-                       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                       general_config.hide_spoof_ips && IsIPSpoof(source_p) ?
                        "255.255.255.255" : source_p->sockhost,
 		       get_client_class(source_p),
-		       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+		       general_config.hide_spoof_ips && IsIPSpoof(source_p) ?
                            "<hidden>" : source_p->client_host,
-		       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+		       general_config.hide_spoof_ips && IsIPSpoof(source_p) ?
                            "<hidden>" : source_p->client_server,
                        source_p->info);
 
@@ -458,7 +459,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   if (IsDead(source_p))
     return;
 
-  if (ConfigFileEntry.invisible_on_connect)
+  if (general_config.invisible_on_connect)
   {
     source_p->umodes |= UMODE_INVISIBLE;
     Count.invisi++;
@@ -707,11 +708,11 @@ valid_username(const char *username)
 
   while (*++p)
   {
-    if ((*p == '.') && ConfigFileEntry.dots_in_ident)
+    if ((*p == '.') && general_config.dots_in_ident)
     {
       dots++;
 
-      if (dots > ConfigFileEntry.dots_in_ident)
+      if (dots > general_config.dots_in_ident)
         return 0;
       if (!IsUserChar(p[1]))
         return 0;
@@ -970,7 +971,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
               break;
 
             ClearOper(source_p);
-            source_p->umodes &= ~ConfigFileEntry.oper_only_umodes;
+            //source_p->umodes &= ~general_config.oper_only_umodes;
             Count.oper--;
 
             if (MyConnect(source_p))
@@ -1001,8 +1002,8 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
         default:
           if ((flag = user_modes[(unsigned char)*m]))
           {
-            if (MyConnect(source_p) && !IsOper(source_p) &&
-                (ConfigFileEntry.oper_only_umodes & flag))
+            if (MyConnect(source_p) && !IsOper(source_p))// &&
+             //   (general_config.oper_only_umodes & flag))
             {
               badflag = 1;
             }
@@ -1199,7 +1200,7 @@ user_welcome(struct Client *source_p)
 
   show_lusers(source_p);
 
-  if (ConfigFileEntry.short_motd)
+  if (general_config.short_motd)
   {
     sendto_one(source_p, "NOTICE %s :*** Notice -- motd was last changed at %s",
                source_p->name, ConfigFileEntry.motd.lastChangedDate);
@@ -1287,11 +1288,11 @@ oper_up(struct Client *source_p, const char *name)
 
   if (oconf->modes)
     source_p->umodes |= oconf->modes;
-  else if (ConfigFileEntry.oper_umodes)
-    source_p->umodes |= ConfigFileEntry.oper_umodes;
-  else
-    source_p->umodes |= (UMODE_SERVNOTICE|UMODE_OPERWALL|
-                         UMODE_WALLOP|UMODE_LOCOPS);
+//  else if (general_config.oper_umodes)
+  //  source_p->umodes |= general_config.oper_umodes;
+//  else
+//    source_p->umodes |= (UMODE_SERVNOTICE|UMODE_OPERWALL|
+//                         UMODE_WALLOP|UMODE_LOCOPS);
 
   if (!(old & UMODE_INVISIBLE) && IsInvisible(source_p))
     ++Count.invisi;
@@ -1584,7 +1585,7 @@ check_godmode(void *unused)
   dlink_node *ptr;
   unsigned int old;
 
-  if(ConfigFileEntry.godmode_timeout <= 0)
+  if(general_config.godmode_timeout <= 0)
     return;
 
   DLINK_FOREACH(ptr, oper_list.head)
@@ -1594,7 +1595,7 @@ check_godmode(void *unused)
     old = oper_p->umodes;
 
     if(IsGod(oper_p) && (CurrentTime - oper_p->umodestime) > 
-        ConfigFileEntry.godmode_timeout)
+        general_config.godmode_timeout)
     {
       ClearGod(oper_p);
       send_umode_out(oper_p, oper_p, old);

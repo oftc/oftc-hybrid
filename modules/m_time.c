@@ -35,6 +35,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
+#include "conf_general.h"
 
 static void m_time(struct Client*, struct Client*, int, char**);
 static void mo_time(struct Client*, struct Client*, int, char**);
@@ -73,11 +74,11 @@ m_time(struct Client *client_p, struct Client *source_p,
     flood_endgrace(source_p);
 
   /* This is safe enough to use during non hidden server mode */
-  if(!ConfigFileEntry.disable_remote)
-    {
-      if (hunt_server(client_p,source_p,":%s TIME :%s",1,parc,parv) != HUNTED_ISME)
-        return;
-    }
+  if(!general_config.disable_remote_commands)
+  {
+    if (hunt_server(client_p,source_p,":%s TIME :%s",1,parc,parv) != HUNTED_ISME)
+      return;
+  }
 
   sendto_one(source_p, form_str(RPL_TIME), me.name,
              parv[0], me.name, date(0));

@@ -34,6 +34,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "conf_general.h"
 
 static char *confopts(struct Client *);
 static void m_version(struct Client *, struct Client *, int, char *[]);
@@ -87,7 +88,7 @@ m_version(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+  if ((last_used + general_config.pace_wait_simple) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
     sendto_one(source_p, form_str(RPL_LOAD2HI),
@@ -97,7 +98,7 @@ m_version(struct Client *client_p, struct Client *source_p,
   else
     last_used = CurrentTime;
 
-  if (!ConfigFileEntry.disable_remote)
+  if (!general_config.disable_remote_commands)
   {
     if (hunt_server(client_p, source_p, ":%s VERSION :%s",
                     1, parc, parv) != HUNTED_ISME)
@@ -169,7 +170,7 @@ confopts(struct Client *source_p)
 
   /* might wanna hide this :P */
   if (ServerInfo.hub && 
-      (!ConfigFileEntry.disable_remote || IsOper(source_p)))
+      (!general_config.disable_remote_commands || IsOper(source_p)))
   {
     *p++ = 'H';
   }
@@ -182,7 +183,7 @@ confopts(struct Client *source_p)
     *p++ = 'K';
   *p++ = 'M';
 
-  if (ConfigFileEntry.ignore_bogus_ts)
+  if (general_config.ignore_bogus_ts)
     *p++ = 'T';
 #ifdef USE_SYSLOG
   *p++ = 'Y';

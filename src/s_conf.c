@@ -53,6 +53,7 @@
 #include "userhost.h"
 #include "s_user.h"
 #include "channel_mode.h"
+#include "conf_general.h"
 
 enum FullCause
 {
@@ -954,7 +955,7 @@ verify_access(struct Client *client_p, const char *username,
       {
         conf = unmap_conf_item(aconf);
 
-        if (!ConfigFileEntry.hide_spoof_ips && IsConfSpoofNotice(aconf))
+        if (!general_config.hide_spoof_ips && IsConfSpoofNotice(aconf))
           sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL, "%s spoofing: %s as %s",
                                client_p->name, client_p->host, conf->name);
         strlcpy(client_p->host, conf->name, sizeof(client_p->host));
@@ -967,7 +968,7 @@ verify_access(struct Client *client_p, const char *username,
     {
       /* XXX */
       aconf = rkconf ? rkconf : aconf;
-      if (ConfigFileEntry.kline_with_reason)
+      if (general_config.kline_with_reason)
         sendto_one(client_p, ":%s NOTICE %s :*** Banned %s", 
                   me.name, client_p->name, aconf->reason);
       return(BANNED_CLIENT);
@@ -1144,7 +1145,7 @@ remove_one_ip(struct irc_ssaddr *ip_in)
     if (ptr->count > 0)
       ptr->count--;
     if (ptr->count == 0 &&
-  (CurrentTime-ptr->last_attempt) >= ConfigFileEntry.throttle_time)
+  (CurrentTime-ptr->last_attempt) >= general_config.throttle_time)
     {
       if (last_ptr != NULL)
   last_ptr->next = ptr->next;
@@ -1271,7 +1272,7 @@ garbage_collect_ip_entries(void)
       next_ptr = ptr->next;
 
       if (ptr->count == 0 &&
-          (CurrentTime - ptr->last_attempt) >= ConfigFileEntry.throttle_time)
+          (CurrentTime - ptr->last_attempt) >= general_config.throttle_time)
       {
         if (last_ptr != NULL)
           last_ptr->next = ptr->next;
@@ -1870,54 +1871,54 @@ set_default_conf(void)
   ConfigServerHide.hide_server_ips = NO;
 
   
-  ConfigFileEntry.max_watch = WATCHSIZE_DEFAULT;
-  ConfigFileEntry.kline_min_cidr = 16;
-  ConfigFileEntry.kline_min_cidr6 = 48;
-  ConfigFileEntry.invisible_on_connect = YES;
-  ConfigFileEntry.burst_away = NO;
-  ConfigFileEntry.use_whois_actually = YES;
-  ConfigFileEntry.tkline_expire_notices = YES;
-  ConfigFileEntry.hide_spoof_ips = YES;
-  ConfigFileEntry.ignore_bogus_ts = NO;
-  ConfigFileEntry.disable_auth = NO;
-  ConfigFileEntry.disable_remote = NO;
-  ConfigFileEntry.kill_chase_time_limit = 90;
-  ConfigFileEntry.default_floodcount = 8; /* XXX */
-  ConfigFileEntry.failed_oper_notice = YES;
-  ConfigFileEntry.dots_in_ident = 0;      /* XXX */
-  ConfigFileEntry.dot_in_ip6_addr = YES;
-  ConfigFileEntry.min_nonwildcard = 4;
-  ConfigFileEntry.min_nonwildcard_simple = 3;
-  ConfigFileEntry.max_accept = 20;
-  ConfigFileEntry.anti_nick_flood = NO;   /* XXX */
-  ConfigFileEntry.max_nick_time = 20;
-  ConfigFileEntry.max_nick_changes = 5;
-  ConfigFileEntry.anti_spam_exit_message_time = 0;  /* XXX */
-  ConfigFileEntry.ts_warn_delta = TS_WARN_DELTA_DEFAULT;
-  ConfigFileEntry.ts_max_delta = TS_MAX_DELTA_DEFAULT;  /* XXX */
-  ConfigFileEntry.kline_with_reason = YES;
-  ConfigFileEntry.kline_reason = NULL;
-  ConfigFileEntry.warn_no_nline = YES;
-  ConfigFileEntry.stats_o_oper_only = NO; /* XXX */
-  ConfigFileEntry.stats_k_oper_only = 1;  /* masked */
-  ConfigFileEntry.stats_i_oper_only = 1;  /* masked */
-  ConfigFileEntry.stats_P_oper_only = NO;
-  ConfigFileEntry.caller_id_wait = 60;
-  ConfigFileEntry.opers_bypass_callerid = NO;
-  ConfigFileEntry.pace_wait = 10;
-  ConfigFileEntry.pace_wait_simple = 1;
-  ConfigFileEntry.short_motd = NO;
-  ConfigFileEntry.ping_cookie = NO;
-  ConfigFileEntry.no_oper_flood = NO;     /* XXX */
-  ConfigFileEntry.true_no_oper_flood = NO;  /* XXX */
-  ConfigFileEntry.oper_pass_resv = YES;
-  ConfigFileEntry.idletime = 0;
-  ConfigFileEntry.max_targets = MAX_TARGETS_DEFAULT;
-  ConfigFileEntry.client_flood = CLIENT_FLOOD_DEFAULT;
-  ConfigFileEntry.oper_only_umodes = UMODE_DEBUG;  /* XXX */
-  ConfigFileEntry.oper_umodes = UMODE_BOTS | UMODE_LOCOPS | UMODE_SERVNOTICE |
-    UMODE_OPERWALL | UMODE_WALLOP;        /* XXX */
-  DupString(ConfigFileEntry.servlink_path, SLPATH);
+  general_config.max_watch = WATCHSIZE_DEFAULT;
+  general_config.kline_min_cidr = 16;
+  general_config.kline_min_cidr6 = 48;
+  general_config.invisible_on_connect = YES;
+  general_config.burst_away = NO;
+  general_config.use_whois_actually = YES;
+  general_config.tkline_expire_notices = YES;
+  general_config.hide_spoof_ips = YES;
+  general_config.ignore_bogus_ts = NO;
+  general_config.disable_auth = NO;
+  general_config.disable_remote_commands = NO;
+  general_config.kill_chase_time_limit = 90;
+  general_config.default_floodcount = 8; /* XXX */
+  general_config.failed_oper_notice = YES;
+  general_config.dots_in_ident = 0;      /* XXX */
+  general_config.dot_in_ip6_addr = YES;
+  general_config.min_nonwildcard = 4;
+  general_config.min_nonwildcard_simple = 3;
+  general_config.max_accept = 20;
+  general_config.anti_nick_flood = NO;   /* XXX */
+  general_config.max_nick_time = 20;
+  general_config.max_nick_changes = 5;
+  general_config.anti_spam_exit_message_time = 0;  /* XXX */
+  general_config.ts_warn_delta = TS_WARN_DELTA_DEFAULT;
+  general_config.ts_max_delta = TS_MAX_DELTA_DEFAULT;  /* XXX */
+  general_config.kline_with_reason = YES;
+  general_config.kline_reason = NULL;
+  general_config.warn_no_nline = YES;
+  general_config.stats_o_oper_only = NO; /* XXX */
+  general_config.stats_k_oper_only = 1;  /* masked */
+  general_config.stats_i_oper_only = 1;  /* masked */
+  general_config.stats_P_oper_only = NO;
+  general_config.caller_id_wait = 60;
+  general_config.opers_bypass_callerid = NO;
+  general_config.pace_wait = 10;
+  general_config.pace_wait_simple = 1;
+  general_config.short_motd = NO;
+  general_config.ping_cookie = NO;
+  general_config.no_oper_flood = NO;     /* XXX */
+  general_config.true_no_oper_flood = NO;  /* XXX */
+  general_config.oper_pass_resv = YES;
+  general_config.idletime = 0;
+  general_config.max_targets = MAX_TARGETS_DEFAULT;
+  general_config.client_flood = CLIENT_FLOOD_DEFAULT;
+//  general_config.oper_only_umodes = UMODE_DEBUG;  /* XXX */
+//  general_config.oper_umodes = UMODE_BOTS | UMODE_LOCOPS | UMODE_SERVNOTICE |
+//    UMODE_OPERWALL | UMODE_WALLOP;        /* XXX */
+  DupString(general_config.servlink_path, SLPATH);
 #ifdef HAVE_LIBCRYPTO
   /* jdc -- This is our default value for a cipher.  According to the
    *        CRYPTLINK document (doc/cryptlink.txt), BF/128 must be supported
@@ -1927,14 +1928,14 @@ set_default_conf(void)
    *        NOTE: I apologise for the hard-coded value of "1" (BF/128).
    *              This should be moved into a find_cipher() routine.
    */
-  ConfigFileEntry.default_cipher_preference = &CipherTable[1];
+//  general_config.default_cipher_preference = &CipherTable[1];
 #endif
-  ConfigFileEntry.use_egd = NO;
-  ConfigFileEntry.egdpool_path = NULL;
+  general_config.use_egd = NO;
+  general_config.egdpool_path = NULL;
 #ifdef HAVE_LIBZ
-  ConfigFileEntry.compression_level = 0;
+  general_config.compression_level = 0;
 #endif
-  ConfigFileEntry.throttle_time = 10;
+  general_config.throttle_time = 10;
 }
 
 /* read_conf() 
@@ -1964,14 +1965,14 @@ read_conf(FBFILE *file)
 static void
 validate_conf(void)
 {
-  if (ConfigFileEntry.ts_warn_delta < TS_WARN_DELTA_MIN)
-    ConfigFileEntry.ts_warn_delta = TS_WARN_DELTA_DEFAULT;
+  if (general_config.ts_warn_delta < TS_WARN_DELTA_MIN)
+    general_config.ts_warn_delta = TS_WARN_DELTA_DEFAULT;
 
-  if (ConfigFileEntry.ts_max_delta < TS_MAX_DELTA_MIN)
-    ConfigFileEntry.ts_max_delta = TS_MAX_DELTA_DEFAULT;
+  if (general_config.ts_max_delta < TS_MAX_DELTA_MIN)
+    general_config.ts_max_delta = TS_MAX_DELTA_DEFAULT;
 
-  if (ConfigFileEntry.servlink_path == NULL)
-    DupString(ConfigFileEntry.servlink_path, SLPATH);
+  if (general_config.servlink_path == NULL)
+    DupString(general_config.servlink_path, SLPATH);
 
   if (ServerInfo.network_name == NULL)
     DupString(ServerInfo.network_name,NETWORK_NAME_DEFAULT);
@@ -1979,11 +1980,11 @@ validate_conf(void)
   if (ServerInfo.network_desc == NULL)
     DupString(ServerInfo.network_desc,NETWORK_DESC_DEFAULT);
 
-  if ((ConfigFileEntry.client_flood < CLIENT_FLOOD_MIN) ||
-      (ConfigFileEntry.client_flood > CLIENT_FLOOD_MAX))
-    ConfigFileEntry.client_flood = CLIENT_FLOOD_MAX;
+  if ((general_config.client_flood < CLIENT_FLOOD_MIN) ||
+      (general_config.client_flood > CLIENT_FLOOD_MAX))
+    general_config.client_flood = CLIENT_FLOOD_MAX;
 
-  ConfigFileEntry.max_watch = IRCD_MAX(ConfigFileEntry.max_watch, WATCHSIZE_MIN);
+  general_config.max_watch = IRCD_MAX(general_config.max_watch, WATCHSIZE_MIN);
 }
 
 /* lookup_confhost()
@@ -2059,7 +2060,7 @@ conf_connect_allowed(struct irc_ssaddr *addr, int aftype)
   ip_found = find_or_add_ip(addr);
 
   if ((CurrentTime - ip_found->last_attempt) <
-      ConfigFileEntry.throttle_time)
+      general_config.throttle_time)
   {
     ip_found->last_attempt = CurrentTime;
     return TOO_FAST;
@@ -2223,7 +2224,7 @@ expire_tklines(dlink_list *tklist)
       if (aconf->hold <= CurrentTime)
       {
         /* Alert opers that a TKline expired - Hwy */
-        if (ConfigFileEntry.tkline_expire_notices)
+        if (general_config.tkline_expire_notices)
         {
           if (aconf->status & CONF_KILL)
           {
@@ -2253,7 +2254,7 @@ expire_tklines(dlink_list *tklist)
       xconf = (struct MatchItem *)map_to_conf(conf);
       if (xconf->hold <= CurrentTime)
       {
-        if (ConfigFileEntry.tkline_expire_notices)
+        if (general_config.tkline_expire_notices)
           sendto_realops_flags(UMODE_ALL, L_ALL,
               "Temporary X-line for [%s] %sexpired", conf->name,
               conf->type == RXLINE_TYPE ? "(REGEX) " : "");
@@ -2270,7 +2271,7 @@ expire_tklines(dlink_list *tklist)
       aconf = map_to_conf(conf);
       if (aconf->hold <= CurrentTime)
       {
-        if (ConfigFileEntry.tkline_expire_notices)
+        if (general_config.tkline_expire_notices)
           sendto_realops_flags(UMODE_ALL, L_ALL,
               "Temporary K-line for [%s@%s] (REGEX) expired",
               (aconf->user) ? aconf->user : "*",
@@ -2288,7 +2289,7 @@ expire_tklines(dlink_list *tklist)
       nconf = (struct MatchItem *)map_to_conf(conf);
       if (nconf->hold <= CurrentTime)
       {
-        if (ConfigFileEntry.tkline_expire_notices)
+        if (general_config.tkline_expire_notices)
           sendto_realops_flags(UMODE_ALL, L_ALL,
               "Temporary RESV for [%s] expired", conf->name);
         dlinkDelete(ptr, tklist);
@@ -2304,7 +2305,7 @@ expire_tklines(dlink_list *tklist)
       cconf = (struct ResvChannel *)map_to_conf(conf);
       if (cconf->hold <= CurrentTime)
       {
-        if (ConfigFileEntry.tkline_expire_notices)
+        if (general_config.tkline_expire_notices)
           sendto_realops_flags(UMODE_ALL, L_ALL,
               "Temporary RESV for [%s] expired", cconf->name);
         dlinkDelete(ptr, tklist);
@@ -2502,7 +2503,7 @@ read_conf_files(int cold)
   ircsprintf(chanmodes, "b%s%s:%d", ConfigChannel.use_except ? "e" : "",
              ConfigChannel.use_invex ? "I" : "", ConfigChannel.max_bans);
   add_isupport("MAXLIST", chanmodes, -1);
-  add_isupport("MAXTARGETS", NULL, ConfigFileEntry.max_targets);
+  add_isupport("MAXTARGETS", NULL, general_config.max_targets);
   if (ConfigChannel.disable_local_channels)
     add_isupport("CHANTYPES", "#", -1);
   else
@@ -2688,8 +2689,8 @@ clear_out_old_conf(void)
   ServerInfo.network_name = NULL;
   MyFree(ServerInfo.network_desc);
   ServerInfo.network_desc = NULL;
-  MyFree(ConfigFileEntry.egdpool_path);
-  ConfigFileEntry.egdpool_path = NULL;
+  MyFree(general_config.egdpool_path);
+  general_config.egdpool_path = NULL;
 #ifdef HAVE_LIBCRYPTO
   if (ServerInfo.rsa_private_key != NULL)
   {
@@ -2721,10 +2722,10 @@ clear_out_old_conf(void)
    */
 
   /* clean out general */
-  MyFree(ConfigFileEntry.servlink_path);
-  ConfigFileEntry.servlink_path = NULL;
+  MyFree(general_config.servlink_path);
+  general_config.servlink_path = NULL;
 #ifdef HAVE_LIBCRYPTO
-  ConfigFileEntry.default_cipher_preference = NULL;
+  general_config.default_cipher_preference = NULL;
 #endif /* HAVE_LIBCRYPTO */
   delete_isupport("INVEX");
   delete_isupport("EXCEPTS");
@@ -3274,7 +3275,7 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
          * If we find enough non-wild characters, we can
          * break - no point in searching further.
          */
-        if (++nonwild >= ConfigFileEntry.min_nonwildcard)
+        if (++nonwild >= general_config.min_nonwildcard)
           return 1;
         else
           anywild = 1;
@@ -3288,7 +3289,7 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
 
   if (warn)
     sendto_one(source_p, ":%s NOTICE %s :Please include at least %d non-wildcard characters with the mask",
-               me.name, source_p->name, ConfigFileEntry.min_nonwildcard);
+               me.name, source_p->name, general_config.min_nonwildcard);
   return 0;
 }
 

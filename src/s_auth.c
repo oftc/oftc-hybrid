@@ -52,6 +52,7 @@
 #include "s_log.h"
 #include "send.h"
 #include "memory.h"
+#include "conf_general.h"
 
 static const char *HeaderMessages[] = {
   ":%s NOTICE AUTH :*** Looking up your hostname...",
@@ -386,7 +387,7 @@ start_auth(va_list args)
 
   sendheader(client, REPORT_DO_DNS);
 
-  if (ConfigFileEntry.disable_auth == 0)
+  if (!general_config.disable_auth)
     start_auth_query(auth);
 
   /* auth order changed, before gethost_byaddr can immediately call

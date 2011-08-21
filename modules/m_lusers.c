@@ -34,6 +34,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "conf_general.h"
 
 static void m_lusers(struct Client*, struct Client*, int, char**);
 static void ms_lusers(struct Client*, struct Client*, int, char**);
@@ -75,7 +76,7 @@ m_lusers(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+  if ((last_used + general_config.pace_wait_simple) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
     if (MyClient(source_p))
@@ -85,7 +86,7 @@ m_lusers(struct Client *client_p, struct Client *source_p,
   else
     last_used = CurrentTime;
 
-  if (parc > 2 && !ConfigFileEntry.disable_remote)
+  if (parc > 2 && !general_config.disable_remote_commands)
   {   
     if (hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc, parv) != HUNTED_ISME)
       return;

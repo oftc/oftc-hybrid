@@ -189,7 +189,6 @@ foperlog   	{ return FOPERLOG; }
 fname_userlog	{ return FUSERLOG; }
 fuserlog   	{ return FUSERLOG; }
 gecos		{ return GECOS; }
-general		{ return GENERAL; }
 kline_min_cidr  { return KLINE_MIN_CIDR; }
 kline_min_cidr6 { return KLINE_MIN_CIDR6; }
 global_kill	{ return GLOBAL_KILL; }

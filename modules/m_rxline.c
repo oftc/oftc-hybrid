@@ -47,6 +47,7 @@
 #include "modules.h"
 #include "resv.h"
 #include "list.h"
+#include "conf_general.h"
 
 static void mo_rxline(struct Client *, struct Client *, int, char *[]);
 static void ms_rxline(struct Client *, struct Client *, int, char *[]);
@@ -294,7 +295,7 @@ valid_xline(struct Client *source_p, char *gecos, char *reason, int warn)
   {
     if (warn)
       sendto_one(source_p, ":%s NOTICE %s :Please include at least %d non-wildcard characters with the rxline",
-                 me.name, source_p->name, ConfigFileEntry.min_nonwildcard_simple);
+                 me.name, source_p->name, general_config.min_nonwildcard_simple);
 
     return 0;
   }

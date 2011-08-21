@@ -36,6 +36,7 @@
 #include "irc_string.h"
 #include "ircd_defs.h"
 #include "s_conf.h"
+#include "conf_general.h"
 
 dlink_list resv_channel_list = { NULL, NULL, 0 };
 
@@ -222,7 +223,7 @@ valid_wild_card_simple(const char *data)
   while (*p != '\0')
   {
     if ((*p == '\\' && *++p) || (*p && !IsMWildChar(*p)))
-      if (++nonwild == ConfigFileEntry.min_nonwildcard_simple)
+      if (++nonwild == general_config.min_nonwildcard_simple)
         return 1;
     if (*p != '\0')
       ++p;

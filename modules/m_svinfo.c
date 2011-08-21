@@ -34,7 +34,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-
+#include "conf_general.h"
 
 static void ms_svinfo(struct Client*, struct Client*, int, char**);
 
@@ -108,38 +108,26 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
   strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&CurrentTime));
   strftime(theirtimestamp, sizeof(theirtimestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&theirtime));
 
-  if (deltat > ConfigFileEntry.ts_max_delta)
+  if (deltat > general_config.ts_max_delta)
     {
 
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
           "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
-          get_client_name(source_p, SHOW_IP),
-          (unsigned long) CurrentTime,
-          timestamp,
-          (unsigned long) theirtime,
-          theirtimestamp,
-          (int) deltat);
+          get_client_name(source_p, SHOW_IP), (unsigned long) CurrentTime,
+          timestamp, (unsigned long) theirtime, theirtimestamp, (int) deltat);
       ilog(L_NOTICE,
           "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
-          get_client_name(source_p, SHOW_IP),
-          (unsigned long) CurrentTime,
-          timestamp,
-          (unsigned long) theirtime,
-          theirtimestamp,
-          (int) deltat);
+          get_client_name(source_p, SHOW_IP), (unsigned long) CurrentTime,
+          timestamp, (unsigned long) theirtime, theirtimestamp, (int) deltat);
       exit_client(source_p, source_p, "Excessive TS delta");
       return;
     }
 
-  if (deltat > ConfigFileEntry.ts_warn_delta)
+  if (deltat > general_config.ts_warn_delta)
     { 
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                "Link %s notable TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
-                source_p->name,
-                (unsigned long) CurrentTime,
-                timestamp,
-                (unsigned long) theirtime,
-                theirtimestamp,
-                (int) deltat);
+          "Link %s notable TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
+          source_p->name, (unsigned long) CurrentTime, timestamp,
+          (unsigned long) theirtime, theirtimestamp, (int) deltat);
     }
 }

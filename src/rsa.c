@@ -39,6 +39,7 @@
 #include "s_log.h"
 #include "client.h" /* CIPHERKEYLEN .. eww */
 #include "ircd.h" /* bio_spare_fd */
+#include "conf_general.h"
 
 static void binary_to_hex(unsigned char *bin, char *hex, int length);
 
@@ -188,8 +189,8 @@ int
 get_randomness(unsigned char *buf, int length)
 {
     /* Seed OpenSSL PRNG with EGD enthropy pool -kre */
-    if (ConfigFileEntry.use_egd &&
-        (ConfigFileEntry.egdpool_path != NULL))
+    if (general_config.use_egd &&
+        (general_config.egdpool_path != NULL))
     {
       if (RAND_egd(ConfigFileEntry.egdpool_path) == -1)
             return -1;

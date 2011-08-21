@@ -53,6 +53,7 @@
 #include "send.h"
 #include "memory.h"
 #include "channel.h" /* chcap_usage_counts stuff...*/
+#include "conf_general.h"
 
 #define MIN_CONN_FREQ 300
 
@@ -222,8 +223,8 @@ check_cipher(struct Client *client_p, struct AccessItem *aconf)
   /* Use connect{} specific info if available */
   if (aconf->cipher_preference)
     epref = aconf->cipher_preference;
-  else if (ConfigFileEntry.default_cipher_preference)
-    epref = ConfigFileEntry.default_cipher_preference;
+//  else if (general_config.default_cipher_preference)
+//    epref = general_config.default_cipher_preference;
 
   /*
    * If the server supports the capability in hand, return the matching
@@ -859,8 +860,8 @@ send_capabilities(struct Client *client_p, struct AccessItem *aconf,
     /* use connect{} specific info if available */
     if (aconf->cipher_preference)
       epref = aconf->cipher_preference;
-    else if (ConfigFileEntry.default_cipher_preference)
-      epref = ConfigFileEntry.default_cipher_preference;
+    else if (general_config.default_cipher_preference)
+      epref = general_config.default_cipher_preference;
 
     if (epref && (epref->cap & enc_can_send))
     {
@@ -1098,11 +1099,11 @@ server_estab(struct Client *client_p)
     {
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                            "Warning: fork failed for server %s -- check servlink_path (%s)",
-                           get_client_name(client_p, HIDE_IP), ConfigFileEntry.servlink_path);
+                           get_client_name(client_p, HIDE_IP), general_config.servlink_path);
       sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL, "Warning: fork failed for server "
                            "%s -- check servlink_path (%s)",
                            get_client_name(client_p, MASK_IP),
-                           ConfigFileEntry.servlink_path);
+                           general_config.servlink_path);
       exit_client(client_p, &me, "fork failed");
       return;
     }
@@ -1295,7 +1296,7 @@ start_io(struct Client *server)
     *buf++ = SLINKCMD_SET_ZIP_OUT_LEVEL;
     *buf++ = 0; /* |          */
     *buf++ = 1; /* \ len is 1 */
-    *buf++ = ConfigFileEntry.compression_level;
+    *buf++ = general_config.compression_level;
     *buf++ = SLINKCMD_START_ZIP_IN;
     *buf++ = SLINKCMD_START_ZIP_OUT;
   }
@@ -1413,7 +1414,7 @@ fork_server(struct Client *server)
     kid_argv[5] = fd_str[2];    /* network */
     kid_argv[6] = NULL;
 
-    execv(ConfigFileEntry.servlink_path, kid_argv);
+    execv(general_config.servlink_path, kid_argv);
 
     _exit(1);
   }

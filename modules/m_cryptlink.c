@@ -51,6 +51,7 @@
 #include "s_log.h"       /* log level defines */
 #include "s_serv.h"      /* server_estab, check_server, my_name_for_link */
 #include "motd.h"
+#include "conf_general.h"
 
 static int bogus_host(char *host);
 static char *parse_cryptserv_args(struct Client *client_p,
@@ -309,7 +310,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
   switch (check_server(name, client_p, CHECK_SERVER_CRYPTLINK))
   {
     case -1:
-      if (ConfigFileEntry.warn_no_nline)
+      if (general_config.warn_no_nline)
       {
         cryptlink_error(client_p, "SERV",
           "Unauthorized server connection attempt: No entry for server",

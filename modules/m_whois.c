@@ -44,6 +44,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "hook.h"
+#include "conf_general.h"
 
 static void do_whois(struct Client *, int, char **);
 static int single_whois(struct Client *, struct Client *);
@@ -109,7 +110,7 @@ m_whois(struct Client *client_p, struct Client *source_p,
   if (parc > 2 && !EmptyString(parv[2]))
   {
     /* seeing as this is going across servers, we should limit it */
-    if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+    if ((last_used + general_config.pace_wait_simple) > CurrentTime)
     {
       sendto_one(source_p, form_str(RPL_LOAD2HI),
                  me.name, source_p->name);
@@ -122,7 +123,7 @@ m_whois(struct Client *client_p, struct Client *source_p,
      * server, or our server.. I dont see why they would need to ask
      * anything else for info about the client.. --fl_
      */
-    if (ConfigFileEntry.disable_remote)
+    if (general_config.disable_remote_commands)
       parv[1] = parv[2];
 
     if (hunt_server(client_p, source_p, ":%s WHOIS %s :%s", 1,
@@ -214,7 +215,7 @@ do_whois(struct Client *source_p, int parc, char **parv)
   {
     if (!IsOper(source_p))
     {
-      if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+      if ((last_used + general_config.pace_wait_simple) > CurrentTime)
       {
         sendto_one(source_p, form_str(RPL_LOAD2HI),
                    me.name, source_p->name);
@@ -431,7 +432,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
     sendto_one(source_p, form_str(RPL_WHOISSERVICE), me.name, source_p->name,
         target_p->name);
 
-  if (ConfigFileEntry.use_whois_actually)
+  if (general_config.use_whois_actually)
   {
     int show_ip = 0;
 

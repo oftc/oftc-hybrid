@@ -1,6 +1,8 @@
 #ifndef CONF_GENERAL_H
 #define CONF_GENERAL_H
 
+extern struct conf_general general_config;
+
 struct conf_general
 {
   int anti_nick_flood;

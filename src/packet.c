@@ -39,6 +39,7 @@
 #include "memory.h"
 #include "hook.h"
 #include "send.h"
+#include "conf_general.h"
 
 #define READBUF_SIZE 16384
 
@@ -169,9 +170,9 @@ parse_client_queued(struct Client *client_p)
   }
   else if (IsClient(client_p))
   {
-    if (ConfigFileEntry.no_oper_flood && (IsOper(client_p) || IsCanFlood(client_p)))
+    if (general_config.no_oper_flood && (IsOper(client_p) || IsCanFlood(client_p)))
     {
-      if (ConfigFileEntry.true_no_oper_flood)
+      if (general_config.true_no_oper_flood)
         checkflood = -1;
       else
         checkflood = 0;
@@ -185,7 +186,7 @@ parse_client_queued(struct Client *client_p)
     for (;;)
     {
       if (IsDefunct(client_p))
-	break;
+        break;
 
       /* This flood protection works as follows:
        *
@@ -493,9 +494,9 @@ read_packet(fde_t *fd, void *data)
     /* TBD - ConfigFileEntry.client_flood should be a size_t */
     if (!(IsServer(client_p) || IsHandshake(client_p) || IsConnecting(client_p))
         && (dbuf_length(&client_p->localClient->buf_recvq) >
-            (unsigned int)ConfigFileEntry.client_flood))
+            (unsigned int)general_config.client_flood))
     {
-      if (!(ConfigFileEntry.no_oper_flood && IsOper(client_p)))
+      if (!(general_config.no_oper_flood && IsOper(client_p)))
       {
         exit_client(client_p, client_p, "Excess Flood");
         return;

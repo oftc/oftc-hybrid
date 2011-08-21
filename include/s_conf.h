@@ -340,62 +340,6 @@ struct config_file_entry
   MessageFile motd;
   MessageFile opermotd;
   MessageFile linksfile;
-
-  unsigned char compression_level;
-  int max_watch;
-  int kline_min_cidr;
-  int kline_min_cidr6;
-  int dot_in_ip6_addr;
-  int dots_in_ident;
-  int failed_oper_notice;
-  int anti_spam_exit_message_time;
-  int max_accept;
-  int max_nick_time;
-  int max_nick_changes;
-  int ts_max_delta;
-  int ts_warn_delta;
-  int anti_nick_flood;
-  int kline_with_reason;
-  int warn_no_nline;
-  int invisible_on_connect;
-  int stats_e_disabled;
-  int stats_o_oper_only;
-  int stats_k_oper_only;
-  int stats_i_oper_only;
-  int stats_P_oper_only;
-  int short_motd;
-  int no_oper_flood;
-  int true_no_oper_flood;
-  int oper_pass_resv;
-  int hide_spoof_ips;
-  int burst_away;
-  int use_whois_actually;
-  int tkline_expire_notices;
-  int opers_bypass_callerid;
-  int ignore_bogus_ts;
-  char *kline_reason;
-  int pace_wait;
-  int pace_wait_simple;
-  int idletime;
-  int oper_only_umodes;
-  int oper_umodes;
-  int max_targets;
-  int caller_id_wait;
-  int min_nonwildcard;
-  int min_nonwildcard_simple;
-  int kill_chase_time_limit;
-  int default_floodcount;
-  int client_flood;
-  /* 0 == don't use throttle... */
-  int throttle_time;
-  int use_egd;
-  int ping_cookie;
-  int disable_auth;
-  int disable_remote;
-#ifdef HAVE_LIBCRYPTO
-  struct EncCapability *default_cipher_preference;
-#endif
-  int godmode_timeout; 
 };
 
 struct config_channel_entry

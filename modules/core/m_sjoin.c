@@ -41,6 +41,7 @@
 #include "modules.h"
 #include "s_serv.h"
 #include "s_conf.h"
+#include "conf_general.h"
 
 static void ms_sjoin(struct Client *, struct Client *, int, char *[]);
 
@@ -214,7 +215,7 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
   oldts = chptr->channelts;
   oldmode = &chptr->mode;
 
-  if (ConfigFileEntry.ignore_bogus_ts)
+  if (general_config.ignore_bogus_ts)
   {
     if (newts < 800000000)
     {
@@ -231,11 +232,11 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
     if (!newts && !isnew && oldts)
     {
       sendto_channel_local(ALL_MEMBERS, NO, chptr,
- 		  	   ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to 0",
-		  	   me.name, chptr->chname, chptr->chname, (unsigned long)oldts);
+          ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to 0",
+          me.name, chptr->chname, chptr->chname, (unsigned long)oldts);
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-		           "Server %s changing TS on %s from %lu to 0",
-			   source_p->name, chptr->chname, (unsigned long)oldts);
+          "Server %s changing TS on %s from %lu to 0",
+          source_p->name, chptr->chname, (unsigned long)oldts);
     }
   }
 

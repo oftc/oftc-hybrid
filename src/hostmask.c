@@ -33,6 +33,7 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "s_misc.h"
+#include "conf_general.h"
 
 static int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
 static unsigned long hash_ipv6(struct irc_ssaddr *, int);
@@ -860,27 +861,30 @@ report_auth(struct Client *client_p)
         if (!MyOper(client_p) && IsConfDoSpoofIp(aconf))
           continue;
 
-	conf = unmap_conf_item(aconf);
+        conf = unmap_conf_item(aconf);
 
         /* We are doing a partial list, based on what matches the u@h of the
          * sender, so prepare the strings for comparing --fl_
-	 */
-        if (ConfigFileEntry.hide_spoof_ips)
+         */
+        if (general_config.hide_spoof_ips)
+        {
           sendto_one(client_p, form_str(RPL_STATSILINE), me.name,
-                     client_p->name, 'I',
-		     conf->name == NULL ? "*" : conf->name,
-		     show_iline_prefix(client_p, aconf, aconf->user),
-                     IsConfDoSpoofIp(aconf) ? "255.255.255.255" :
-                     aconf->host, aconf->port,
-		     aconf->class_ptr ? aconf->class_ptr->name : "<default>");
-		     
+              client_p->name, 'I',
+              conf->name == NULL ? "*" : conf->name,
+              show_iline_prefix(client_p, aconf, aconf->user),
+              IsConfDoSpoofIp(aconf) ? "255.255.255.255" :
+              aconf->host, aconf->port,
+              aconf->class_ptr ? aconf->class_ptr->name : "<default>");
+        }
         else
+        {
           sendto_one(client_p, form_str(RPL_STATSILINE), me.name,
-                     client_p->name, 'I',
-		     conf->name == NULL ? "*" : conf->name,
-		     show_iline_prefix(client_p, aconf, aconf->user),
-                     aconf->host, aconf->port,
-		     aconf->class_ptr ? aconf->class_ptr->name : "<default>");
+              client_p->name, 'I',
+              conf->name == NULL ? "*" : conf->name,
+              show_iline_prefix(client_p, aconf, aconf->user),
+              aconf->host, aconf->port,
+              aconf->class_ptr ? aconf->class_ptr->name : "<default>");
+        }
       }
     }
   }

@@ -37,6 +37,7 @@
 #include "irc_string.h"
 #include "s_log.h"
 #include "s_user.h"
+#include "conf_general.h"
 
 static void failed_challenge_notice(struct Client *, const char *,
 				    const char *);
@@ -196,7 +197,7 @@ static void
 failed_challenge_notice(struct Client *source_p, const char *name,
 			const char *reason)
 {
-  if (ConfigFileEntry.failed_oper_notice)
+  if (general_config.failed_oper_notice)
     sendto_realops_flags(UMODE_ALL, L_ALL, "Failed CHALLENGE attempt as %s "
                          "by %s (%s@%s) - %s", name, source_p->name,
                          source_p->username, source_p->host, reason);

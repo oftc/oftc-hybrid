@@ -39,7 +39,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-
+#include "conf_general.h"
 
 static void m_whowas(struct Client *, struct Client *, int, char *[]);
 static void mo_whowas(struct Client *, struct Client *, int, char *[]);
@@ -84,7 +84,7 @@ m_whowas(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if ((last_used + general_config.pace_wait) > CurrentTime)
   {
     sendto_one(source_p,form_str(RPL_LOAD2HI),
                me.name, source_p->name);

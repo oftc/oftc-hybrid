@@ -40,6 +40,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "irc_string.h"
+#include "conf_general.h"
 
 static void m_who(struct Client*, struct Client*, int, char**);
 
@@ -619,7 +620,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
     return;
   }
   /* if HTM, drop this too */
-  if((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime && !IsOper(source_p))
+  if((last_used + general_config.pace_wait_simple) > CurrentTime && !IsOper(source_p))
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name);
     return;

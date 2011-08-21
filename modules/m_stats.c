@@ -53,6 +53,7 @@
 #include "s_log.h"       /* ilog */
 #include "hash.h"
 #include "watch.h"
+#include "conf_general.h"
 
 static void do_stats(struct Client *, int, char **);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
@@ -239,7 +240,7 @@ m_stats(struct Client *client_p, struct Client *source_p,
   static time_t last_used = 0;
 
   /* Is the stats meant for us? */
-  if (!ConfigFileEntry.disable_remote)
+  if (!general_config.disable_remote_commands)
     if (hunt_server(client_p,source_p,":%s STATS %s :%s",2,parc,parv) != HUNTED_ISME)
       return;
 
@@ -255,7 +256,7 @@ m_stats(struct Client *client_p, struct Client *source_p,
   }
 
   /* Check the user is actually allowed to do /stats, and isnt flooding */
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if ((last_used + general_config.pace_wait) > CurrentTime)
   {
     sendto_one(source_p,form_str(RPL_LOAD2HI),
                from, to);
@@ -819,7 +820,7 @@ stats_exempt(struct Client *source_p)
   struct AccessItem *aconf;
   int i;
 
-  if (ConfigFileEntry.stats_e_disabled)
+  if (general_config.stats_e_disabled)
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
@@ -861,12 +862,12 @@ static void
 stats_auth(struct Client *source_p)
 {
   /* Oper only, if unopered, return ERR_NOPRIVILEGES */
-  if ((ConfigFileEntry.stats_i_oper_only == 2) && !IsOper(source_p))
+  if ((general_config.stats_i_oper_only == 2) && !IsOper(source_p))
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
 
   /* If unopered, Only return matching auth blocks */
-  else if ((ConfigFileEntry.stats_i_oper_only == 1) && !IsOper(source_p))
+  else if ((general_config.stats_i_oper_only == 1) && !IsOper(source_p))
   {
     struct ConfItem *conf;
     struct AccessItem *aconf;
@@ -900,12 +901,12 @@ stats_tklines(struct Client *source_p)
 {
   struct ConfItem *conf;
   /* Oper only, if unopered, return ERR_NOPRIVILEGES */
-  if ((ConfigFileEntry.stats_k_oper_only == 2) && !IsOper(source_p))
+  if ((general_config.stats_k_oper_only == 2) && !IsOper(source_p))
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
 
   /* If unopered, Only return matching klines */
-  else if ((ConfigFileEntry.stats_k_oper_only == 1) && !IsOper(source_p))
+  else if ((general_config.stats_k_oper_only == 1) && !IsOper(source_p))
   {
     struct AccessItem *aconf;
 
@@ -939,12 +940,12 @@ static void
 stats_klines(struct Client *source_p)
 {
   /* Oper only, if unopered, return ERR_NOPRIVILEGES */
-  if ((ConfigFileEntry.stats_k_oper_only == 2) && !IsOper(source_p))
+  if ((general_config.stats_k_oper_only == 2) && !IsOper(source_p))
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
 
   /* If unopered, Only return matching klines */
-  else if ((ConfigFileEntry.stats_k_oper_only == 1) && !IsOper(source_p))
+  else if ((general_config.stats_k_oper_only == 1) && !IsOper(source_p))
   {
     struct AccessItem *aconf;
 
@@ -983,7 +984,7 @@ stats_messages(struct Client *source_p)
 static void
 stats_oper(struct Client *source_p)
 {
-  if (!IsOper(source_p) && ConfigFileEntry.stats_o_oper_only)
+  if (!IsOper(source_p) && general_config.stats_o_oper_only)
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
   else
@@ -1055,7 +1056,7 @@ stats_operedup(struct Client *source_p)
 static void
 stats_ports(struct Client *source_p)
 {
-  if (!IsOper(source_p) && ConfigFileEntry.stats_P_oper_only)
+  if (!IsOper(source_p) && general_config.stats_P_oper_only)
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
   else
@@ -1151,7 +1152,7 @@ stats_uptime(struct Client *source_p)
   time_t now = CurrentTime - me.since;
   sendto_one(source_p, form_str(RPL_STATSUPTIME), from, to,
              now/86400, (now/3600)%24, (now/60)%60, now%60);
-  if (!ConfigFileEntry.disable_remote || IsOper(source_p))
+  if (!general_config.disable_remote_commands || IsOper(source_p))
      sendto_one(source_p, form_str(RPL_STATSCONN), from, to,
                 MaxConnectionCount, MaxClientCount, Count.totalrestartcount);
 }

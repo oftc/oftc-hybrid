@@ -39,6 +39,7 @@
 #include "irc_string.h"
 #include "hash.h"
 #include "packet.h"
+#include "conf_general.h"
 
 struct entity
 {
@@ -287,12 +288,11 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
       {
         if (!duplicate_ptr(chptr))
         {
-          if (ntargets >= ConfigFileEntry.max_targets)
+          if (ntargets >= general_config.max_targets)
           {
-            sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
-                       ID_or_name(&me, client_p),
-                       ID_or_name(source_p, client_p), nick,
-		       ConfigFileEntry.max_targets);
+            sendto_one(source_p, form_str(ERR_TOOMANYTARGETS), 
+                ID_or_name(&me, client_p), ID_or_name(source_p, client_p), 
+                nick, general_config.max_targets);
             return (1);
           }
           targets[ntargets].ptr = (void *)chptr;
@@ -314,14 +314,13 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
     {
       if (!duplicate_ptr(target_p))
       {
-        if (ntargets >= ConfigFileEntry.max_targets)
-	  {
-	    sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
-                       ID_or_name(&me, client_p),
-                       ID_or_name(source_p, client_p), nick,
-		       ConfigFileEntry.max_targets);
-	    return (1);
-	  }
+        if (ntargets >= general_config.max_targets)
+        {
+          sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
+              ID_or_name(&me, client_p), ID_or_name(source_p, client_p), 
+              nick, general_config.max_targets);
+          return (1);
+        }
         targets[ntargets].ptr = (void *)target_p;
         targets[ntargets].type = ENTITY_CLIENT;
         targets[ntargets++].flags = 0;
@@ -377,12 +376,11 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
 
         if (!duplicate_ptr(chptr))
         {
-          if (ntargets >= ConfigFileEntry.max_targets)
+          if (ntargets >= general_config.max_targets)
           {
-	    sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
-                       ID_or_name(&me, client_p),
-                       ID_or_name(source_p, client_p), nick,
-		       ConfigFileEntry.max_targets);
+            sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
+                ID_or_name(&me, client_p), ID_or_name(source_p, client_p), 
+                nick, general_config.max_targets);
             return(1);
           }
           targets[ntargets].ptr = (void *)chptr;
@@ -616,7 +614,7 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
     {
       /* Here is the anti-flood bot/spambot code -db */
       if (source_p == target_p || accept_message(source_p, target_p) ||
-         (IsOper(source_p) && (ConfigFileEntry.opers_bypass_callerid == 1)))
+         (IsOper(source_p) && (general_config.opers_bypass_callerid)))
       {
         sendto_one(target_p, ":%s!%s@%s %s %s :%s",
                    source_p->name, source_p->username,
@@ -626,21 +624,21 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
       {
         /* check for accept, flag recipient incoming message */
         if (p_or_n != NOTICE)
-	  sendto_one(source_p, form_str(RPL_TARGUMODEG),
-		     ID_or_name(&me, source_p->from),
-		     ID_or_name(source_p, source_p->from), target_p->name);
+          sendto_one(source_p, form_str(RPL_TARGUMODEG),
+              ID_or_name(&me, source_p->from), 
+              ID_or_name(source_p, source_p->from), target_p->name);
 
         if ((target_p->localClient->last_caller_id_time +
-             ConfigFileEntry.caller_id_wait) < CurrentTime)
+              general_config.caller_id_wait) < CurrentTime)
         {
           if (p_or_n != NOTICE)
-	    sendto_one(source_p, form_str(RPL_TARGNOTIFY),
-		       ID_or_name(&me, source_p->from),
-		       ID_or_name(source_p, source_p->from), target_p->name);
+            sendto_one(source_p, form_str(RPL_TARGNOTIFY),
+                ID_or_name(&me, source_p->from),
+                ID_or_name(source_p, source_p->from), target_p->name);
 
           sendto_one(target_p, form_str(RPL_UMODEGMSG),
-                     me.name, target_p->name,
-                     get_client_name(source_p, HIDE_IP));
+              me.name, target_p->name,
+              get_client_name(source_p, HIDE_IP));
 
           target_p->localClient->last_caller_id_time = CurrentTime;
 
@@ -891,8 +889,8 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
 	else
 	  sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
                      ID_or_name(&me, client_p),
-                     ID_or_name(source_p, client_p), nick,
-		     ConfigFileEntry.max_targets);
+                     ID_or_name(source_p, client_p), nick, 
+                     general_config.max_targets);
       }
     }
     else if (server && *(server+1) && (target_p == NULL))

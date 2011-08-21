@@ -33,6 +33,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
+#include "conf_general.h"
 
 static void m_quit(struct Client *, struct Client *, int, char *[]);
 static void ms_quit(struct Client *, struct Client *, int, char *[]);
@@ -74,9 +75,11 @@ m_quit(struct Client *client_p, struct Client *source_p,
     comment = strip_color(comment);
   
   if (comment[0] && (IsOper(source_p) ||
-      (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
-      < CurrentTime))
+        (source_p->firsttime + general_config.anti_spam_exit_message_time)
+        < CurrentTime))
+  {
     strlcpy(reason+6, comment, sizeof(reason)-6);
+  }
   else
     reason[0] = 0;
 

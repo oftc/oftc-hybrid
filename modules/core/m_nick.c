@@ -46,6 +46,7 @@
 #include "packet.h"
 #include "channel_mode.h"
 #include "watch.h"
+#include "conf_general.h"
 
 static void m_nick(struct Client *, struct Client *, int, char **);
 static void mr_nick(struct Client *, struct Client *, int, char **);
@@ -183,9 +184,9 @@ m_nick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (find_matching_name_conf(NRESV_TYPE, nick,
-			     NULL, NULL, 0) && !IsExemptResv(source_p) &&
-     !(IsOper(source_p) && ConfigFileEntry.oper_pass_resv))
+  if (find_matching_name_conf(NRESV_TYPE, nick, NULL, NULL, 0) && 
+      !IsExemptResv(source_p) && !(IsOper(source_p) && 
+        general_config.oper_pass_resv))
   {
     sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
                me.name, parv[0], nick);

@@ -33,6 +33,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "conf_general.h"
 
 static void m_users(struct Client *, struct Client *, int, char *[]);
 static void mo_users(struct Client *, struct Client *, int, char *[]);
@@ -69,7 +70,7 @@ m_users(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if (last_used + ConfigFileEntry.pace_wait_simple > CurrentTime)
+  if (last_used + general_config.pace_wait_simple > CurrentTime)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name);
     return;
@@ -77,7 +78,7 @@ m_users(struct Client *client_p, struct Client *source_p,
 
   last_used = CurrentTime;
 
-  if (!ConfigFileEntry.disable_remote)
+  if (!general_config.disable_remote_commands)
     if (hunt_server(client_p, source_p, ":%s USERS :%s", 1,
                     parc, parv) != HUNTED_ISME)
       return;

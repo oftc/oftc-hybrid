@@ -40,6 +40,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
+#include "conf_general.h"
 
 static struct ConfItem *find_password_conf(const char *, struct Client *);
 static void failed_oper_notice(struct Client *, const char *, const char *);
@@ -185,7 +186,7 @@ static void
 failed_oper_notice(struct Client *source_p, const char *name,
                    const char *reason)
 {
-  if (ConfigFileEntry.failed_oper_notice)
+  if (general_config.failed_oper_notice)
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Failed OPER attempt as %s "
                          "by %s (%s@%s) - %s", name, source_p->name,
                          source_p->username, source_p->host, reason);

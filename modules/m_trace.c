@@ -40,6 +40,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
+#include "conf_general.h"
 
 static void m_trace(struct Client *, struct Client *, int, char *[]);
 static void ms_trace(struct Client *, struct Client *, int, char *[]);
@@ -391,55 +392,55 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
        * but anyone can see all the opers.
        */
       if ((IsOper(source_p) &&
-	   (MyClient(source_p) || !(dow && IsInvisible(target_p))))
-	  || !dow || IsOper(target_p))
-	{
-          if (IsAdmin(target_p) && !ConfigFileEntry.hide_spoof_ips)
-	    sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
-                       from, to, class_name, name,
-                       IsOperAdmin(source_p) ? target_p->sockhost : "255.255.255.255",
-                       CurrentTime - target_p->lasttime,
-                       CurrentTime - target_p->localClient->last);
-		       
-	  else if (IsOper(target_p))
-          {
-	    if (ConfigFileEntry.hide_spoof_ips)
-	      sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
-		         from, to, class_name, name, 
-		         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
-		         CurrentTime - target_p->lasttime,
-		         CurrentTime - target_p->localClient->last);
-	    else
-              sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
-                         from, to, class_name, name,
-                         MyOper(source_p) ? target_p->sockhost :
-                         (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                         CurrentTime - target_p->lasttime,
-                         CurrentTime - target_p->localClient->last);
-	  }		       
-	  else
-          {
-	    const char *format_str=NULL;
-	    if (IsOper(source_p) && IsCaptured(target_p))
-	      format_str = form_str(RPL_TRACECAPTURED);
-	    else
-	      format_str = form_str(RPL_TRACEUSER);
+	   (MyClient(source_p) || !(dow && IsInvisible(target_p)))) || 
+          !dow || IsOper(target_p))
+      {
+        if (IsAdmin(target_p) && !general_config.hide_spoof_ips)
+          sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
+              from, to, class_name, name,
+              IsOperAdmin(source_p) ? target_p->sockhost : "255.255.255.255",
+              CurrentTime - target_p->lasttime,
+              CurrentTime - target_p->localClient->last);
 
-            if (ConfigFileEntry.hide_spoof_ips)
-	      sendto_one(source_p, format_str,
-		         from, to, class_name, name,
-                         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
-		         CurrentTime - target_p->lasttime,
-		         CurrentTime - target_p->localClient->last);
-	    else
-              sendto_one(source_p, format_str,
-                         from, to, class_name, name,
-                         MyOper(source_p) ? target_p->sockhost :
-                         (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                         CurrentTime - target_p->lasttime,
-                         CurrentTime - target_p->localClient->last);
-	  }
-	}
+        else if (IsOper(target_p))
+        {
+          if (general_config.hide_spoof_ips)
+            sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
+                from, to, class_name, name, 
+                IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
+                CurrentTime - target_p->lasttime,
+                CurrentTime - target_p->localClient->last);
+          else
+            sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
+                from, to, class_name, name,
+                MyOper(source_p) ? target_p->sockhost :
+                (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
+                CurrentTime - target_p->lasttime,
+                CurrentTime - target_p->localClient->last);
+        }		       
+        else
+        {
+          const char *format_str=NULL;
+          if (IsOper(source_p) && IsCaptured(target_p))
+            format_str = form_str(RPL_TRACECAPTURED);
+          else
+            format_str = form_str(RPL_TRACEUSER);
+
+          if (general_config.hide_spoof_ips)
+            sendto_one(source_p, format_str,
+                from, to, class_name, name,
+                IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
+                CurrentTime - target_p->lasttime,
+                CurrentTime - target_p->localClient->last);
+          else
+            sendto_one(source_p, format_str,
+                from, to, class_name, name,
+                MyOper(source_p) ? target_p->sockhost :
+                (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
+                CurrentTime - target_p->lasttime,
+                CurrentTime - target_p->localClient->last);
+        }
+      }
       break;
     case STAT_SERVER:
     {

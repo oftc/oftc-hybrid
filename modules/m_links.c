@@ -36,6 +36,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "hook.h"
+#include "conf_general.h"
 
 static void do_links(struct Client *, int, char **);
 static void m_links(struct Client*, struct Client*, int, char**);
@@ -156,7 +157,7 @@ m_links(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if ((last_used + general_config.pace_wait) > CurrentTime)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, source_p->name);
@@ -183,7 +184,7 @@ mo_links(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
   if (parc > 2) 
-    if (!ConfigFileEntry.disable_remote || IsOper(source_p))
+    if (!general_config.disable_remote_commands || IsOper(source_p))
     {
         if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1, parc, parv)
             != HUNTED_ISME)

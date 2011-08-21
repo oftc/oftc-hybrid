@@ -52,6 +52,7 @@
 #include "listener.h"
 #include "userhost.h"
 #include "watch.h"
+#include "conf_general.h"
 
 dlink_list listing_client_list = { NULL, NULL, 0 };
 /* Pointer to beginning of Client list */
@@ -517,7 +518,7 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
       break;
   }
 
-  if (ConfigFileEntry.kline_with_reason)
+  if (general_config.kline_with_reason)
   {
     if (aconf != NULL)
       user_reason = aconf->reason ? aconf->reason : type_string;
@@ -527,8 +528,8 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
   else
     user_reason = type_string;
 
-  if (ConfigFileEntry.kline_reason != NULL)
-    channel_reason = ConfigFileEntry.kline_reason;
+  if (general_config.kline_reason != NULL)
+    channel_reason = general_config.kline_reason;
   else
     channel_reason = user_reason;
 
@@ -612,7 +613,7 @@ find_chasing(struct Client *client_p, struct Client *source_p, const char *user,
     return(NULL);
 
   if ((who = get_history(user,
-			(time_t)ConfigFileEntry.kill_chase_time_limit))
+			(time_t)general_config.kill_chase_time_limit))
 			 == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
@@ -658,7 +659,7 @@ get_client_name(struct Client *client, int showip)
     if (IsServer(client) || IsConnecting(client) || IsHandshake(client))
       showip = MASK_IP;
 
-  if (ConfigFileEntry.hide_spoof_ips)
+  if (general_config.hide_spoof_ips)
     if (showip == SHOW_IP && IsIPSpoof(client))
       showip = MASK_IP;
 
@@ -938,14 +939,14 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
       watch_del_watch_list(source_p);
       sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL, "Client exiting: %s (%s@%s) [%s] [%s]",
                            source_p->name, source_p->username, source_p->host, comment,
-                           ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                           general_config.hide_spoof_ips && IsIPSpoof(source_p) ?
                            "255.255.255.255" : source_p->sockhost);
       sendto_realops_flags(UMODE_CCONN_FULL, L_ALL, "CLIEXIT: %s %s %s %s 0 %s",
                            source_p->name,
 			   source_p->username,
 			   source_p->host,
 
-                           ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+                           general_config.hide_spoof_ips && IsIPSpoof(source_p) ?
                            "255.255.255.255" : source_p->sockhost,
 			   comment);
     }
@@ -1341,16 +1342,16 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
    * on that channel. Propagate notice to other servers.
    */
   if ((source_p->localClient->last_nick_change +
-       ConfigFileEntry.max_nick_time) < CurrentTime)
+       general_config.max_nick_time) < CurrentTime)
     source_p->localClient->number_of_nick_changes = 0;
   source_p->localClient->last_nick_change = CurrentTime;
   source_p->localClient->number_of_nick_changes++;
 
-  if ((ConfigFileEntry.anti_nick_flood && 
+  if ((general_config.anti_nick_flood && 
       (source_p->localClient->number_of_nick_changes
-       <= ConfigFileEntry.max_nick_changes)) ||
-     !ConfigFileEntry.anti_nick_flood || 
-     (IsOper(source_p) && ConfigFileEntry.no_oper_flood))
+       <= general_config.max_nick_changes)) ||
+     !general_config.anti_nick_flood || 
+     (IsOper(source_p) && general_config.no_oper_flood))
   {
     samenick = !irccmp(source_p->name, nick);
 
@@ -1398,5 +1399,5 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
   else
     sendto_one(source_p, form_str(ERR_NICKTOOFAST),
                me.name, source_p->name, source_p->name,
-               nick, ConfigFileEntry.max_nick_time);
+               nick, general_config.max_nick_time);
 }

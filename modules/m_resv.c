@@ -38,6 +38,7 @@
 #include "s_log.h"
 #include "resv.h"
 #include "hash.h"
+#include "conf_general.h"
 
 static void mo_resv(struct Client *, struct Client *, int, char *[]);
 static void me_resv(struct Client *, struct Client *, int, char *[]);
@@ -309,7 +310,7 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
     if (!valid_wild_card_simple(name))
     {
       sendto_one(source_p, ":%s NOTICE %s :Please include at least %d non-wildcard characters with the resv",
-                 me.name, source_p->name, ConfigFileEntry.min_nonwildcard_simple);
+                 me.name, source_p->name, general_config.min_nonwildcard_simple);
       return;
     }
 

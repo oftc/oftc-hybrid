@@ -36,6 +36,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
+#include "conf_general.h"
 
 static void mr_motd(struct Client *, struct Client *, int, char *[]);
 static void m_motd(struct Client*, struct Client*, int, char *[]);
@@ -106,7 +107,7 @@ m_motd(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if ((last_used + general_config.pace_wait) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
     sendto_one(source_p, form_str(RPL_LOAD2HI),
@@ -117,7 +118,7 @@ m_motd(struct Client *client_p, struct Client *source_p,
   last_used = CurrentTime;
 
   /* This is safe enough to use during non hidden server mode */
-  if (!ConfigFileEntry.disable_remote && !ConfigServerHide.hide_servers)
+  if (!general_config.disable_remote_commands && !ConfigServerHide.hide_servers)
     if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1, parc, parv)
                     != HUNTED_ISME)
       return;

@@ -36,6 +36,7 @@
 #include "s_serv.h"
 #include "packet.h"
 #include "s_user.h"
+#include "conf_general.h"
 
 static void m_away(struct Client *, struct Client *, int, char *[]);
 static void mo_away(struct Client *, struct Client *, int, char *[]);
@@ -112,7 +113,7 @@ m_away(struct Client *client_p, struct Client *source_p,
   }
 
   /* Marking as away */
-  if ((CurrentTime - source_p->localClient->last_away) < ConfigFileEntry.pace_wait)
+  if ((CurrentTime - source_p->localClient->last_away) < general_config.pace_wait)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, source_p->name);

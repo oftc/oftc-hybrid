@@ -35,6 +35,7 @@
 #include "hook.h"
 #include "modules.h"
 #include "irc_string.h"
+#include "conf_general.h"
 
 static void m_admin(struct Client *, struct Client *, int, char *[]);
 static void mr_admin(struct Client *, struct Client *, int, char *[]);
@@ -85,7 +86,7 @@ mr_admin(struct Client *client_p, struct Client *source_p,
 
   ClearCap(client_p, CAP_TS6);
 
-  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+  if ((last_used + general_config.pace_wait_simple) > CurrentTime)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, EmptyString(parv[0]) ? "*" : parv[0]);
@@ -112,7 +113,7 @@ m_admin(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+  if ((last_used + general_config.pace_wait_simple) > CurrentTime)
   {
     sendto_one(source_p,form_str(RPL_LOAD2HI),
                me.name, source_p->name);
@@ -121,7 +122,7 @@ m_admin(struct Client *client_p, struct Client *source_p,
 
   last_used = CurrentTime;
 
-  if (!ConfigFileEntry.disable_remote)
+  if (!general_config.disable_remote_commands)
     if (hunt_server(client_p, source_p, ":%s ADMIN :%s", 1,
                     parc, parv) != HUNTED_ISME)
       return;

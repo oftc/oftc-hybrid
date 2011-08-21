@@ -38,6 +38,7 @@
 #include "parse.h"
 #include "s_user.h"
 #include "modules.h"
+#include "conf_general.h"
 
 static void m_accept(struct Client *, struct Client *, int, char *[]);
 static void list_accepts(struct Client *);
@@ -146,7 +147,7 @@ m_accept(struct Client *client_p, struct Client *source_p,
     else if (*mask != '\0')
     {
       if (dlink_list_length(&source_p->localClient->acceptlist) >=
-          ConfigFileEntry.max_accept)
+          general_config.max_accept)
       {
         sendto_one(source_p, form_str(ERR_ACCEPTFULL),
                    me.name, source_p->name);

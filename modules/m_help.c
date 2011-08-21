@@ -35,6 +35,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "irc_string.h"
+#include "conf_general.h"
 
 #define HELPLEN 400
 
@@ -83,7 +84,7 @@ m_help(struct Client *client_p, struct Client *source_p,
   static time_t last_used = 0;
 
   /* HELP is always local */
-  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+  if ((last_used + general_config.pace_wait_simple) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
     sendto_one(source_p,form_str(RPL_LOAD2HI),

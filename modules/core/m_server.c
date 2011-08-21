@@ -41,7 +41,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-
+#include "conf_general.h"
 
 static void mr_server(struct Client *, struct Client *, int, char **);
 static void ms_server(struct Client *, struct Client *, int, char **);
@@ -128,7 +128,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
   switch (check_server(name, client_p, CHECK_SERVER_NOCRYPTLINK))
   {
     case -1:
-      if (ConfigFileEntry.warn_no_nline)
+      if (general_config.warn_no_nline)
       {
         sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
            "Unauthorized server connection attempt from %s: No entry for "

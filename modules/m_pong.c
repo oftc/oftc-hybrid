@@ -35,6 +35,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "conf_general.h"
 
 static void mr_pong(struct Client *, struct Client *, int, char **);
 static void ms_pong(struct Client *, struct Client *, int, char **);
@@ -107,7 +108,7 @@ mr_pong(struct Client *client_p, struct Client *source_p,
 
   if (parc == 2 && *parv[1] != '\0')
   {
-    if (ConfigFileEntry.ping_cookie && !source_p->localClient->registration)
+    if (general_config.ping_cookie && !source_p->localClient->registration)
     {
       unsigned long incoming_ping = strtoul(parv[1], NULL, 10);
 

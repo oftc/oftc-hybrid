@@ -40,6 +40,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_user.h"
+#include "conf_general.h"
 
 static void m_list(struct Client *, struct Client *, int, char *[]);
 static void mo_list(struct Client *, struct Client *, int, char *[]);
@@ -209,7 +210,7 @@ m_list(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if (((last_used + ConfigFileEntry.pace_wait) > CurrentTime))
+  if (((last_used + general_config.pace_wait) > CurrentTime))
   {
     sendto_one(source_p,form_str(RPL_LOAD2HI),me.name,parv[0]);
     return;

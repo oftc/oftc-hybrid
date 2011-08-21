@@ -41,6 +41,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "conf_general.h"
 
 static void send_conf_options(struct Client *);
 static void send_birthdate_online_time(struct Client *);
@@ -292,253 +293,253 @@ static const struct InfoStruct info_table[] =
   {
     "invisible_on_connect",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.invisible_on_connect,
+    &general_config.invisible_on_connect,
     "Automatically set mode +i on connecting users"
   },
   {
     "burst_away",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.burst_away,
+    &general_config.burst_away,
     "Send /away string that users have set on the server burst"
   },
   {
     "use_whois_actually",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.use_whois_actually,
+    &general_config.use_whois_actually,
     "Show IP address on /WHOIS when possible"
   },
   {
     "kill_chase_time_limit",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.kill_chase_time_limit,
+    &general_config.kill_chase_time_limit,
     "Nick Change Tracker for KILL"
   },
   {
     "hide_spoof_ips",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.hide_spoof_ips,
+    &general_config.hide_spoof_ips,
     "Hide spoofed IP's"
   },
   {
     "ignore_bogus_ts",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.ignore_bogus_ts,
+    &general_config.ignore_bogus_ts,
     "Ignore bogus timestamps from other servers"
   },
   {
     "disable_auth",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.disable_auth,
+    &general_config.disable_auth,
     "Completely disable ident lookups"
   },
   {
     "disable_remote_commands",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.disable_remote,
+    &general_config.disable_remote_commands,
     "Prevent users issuing commands on remote servers"
   },
   {
     "tkline_expire_notices",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.tkline_expire_notices,
+    &general_config.tkline_expire_notices,
     "Show temporary kline/xline expire notices"
   },
   {
     "default_floodcount",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.default_floodcount,
+    &general_config.default_floodcount,
     "Startup value of FLOODCOUNT"
   },
   {
     "failed_oper_notice",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.failed_oper_notice,
+    &general_config.failed_oper_notice,
     "Inform opers if someone /oper's with the wrong password"
   },
   {
     "dots_in_ident",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.dots_in_ident,
+    &general_config.dots_in_ident,
     "Number of permissable dots in an ident"
   },
   {
     "dot_in_ip6_addr",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.dot_in_ip6_addr,
+    &general_config.dot_in_ip6_addr,
     "Suffix a . to ip6 addresses (for linked servers still running hybrid-6)"
   },
   {
     "min_nonwildcard",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.min_nonwildcard,
+    &general_config.min_nonwildcard,
     "Minimum non-wildcard chars in K/G lines"
   },
   {
     "min_nonwildcard_simple",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.min_nonwildcard_simple,
+    &general_config.min_nonwildcard_simple,
     "Minimum non-wildcards in gecos bans"
   },
   {
     "max_accept",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.max_accept,
+    &general_config.max_accept,
     "Maximum nicknames on accept list"
   },
   {
     "anti_nick_flood",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.anti_nick_flood,
+    &general_config.anti_nick_flood,
     "NICK flood protection"
   },
   {
     "max_nick_time",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.max_nick_time,
+    &general_config.max_nick_time,
     "NICK flood protection time interval"
   },
   {
     "max_nick_changes",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.max_nick_changes,
+    &general_config.max_nick_changes,
     "NICK change threshhold setting"
   },
   {
     "anti_spam_exit_message_time",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.anti_spam_exit_message_time,
+    &general_config.anti_spam_exit_message_time,
     "Duration a client must be connected for to have an exit message"
   },
   {
     "ts_warn_delta",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.ts_warn_delta,
+    &general_config.ts_warn_delta,
     "Maximum permitted TS delta before displaying a warning"
   },
   {
     "ts_max_delta",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.ts_max_delta,
+    &general_config.ts_max_delta,
     "Maximum permitted TS delta from another server"
   },
   {
     "kline_with_reason",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.kline_with_reason,
+    &general_config.kline_with_reason,
     "Display K-line reason to client on disconnect"
   },
   {
     "kline_reason",
     OUTPUT_STRING,
-    &ConfigFileEntry.kline_reason,
+    &general_config.kline_reason,
     "Reason given to K-lined clients on sign off"
   },
   {
     "warn_no_nline",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.warn_no_nline,
+    &general_config.warn_no_nline,
     "Display warning if connecting server lacks N-line"
   },
   {
     "stats_o_oper_only",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.stats_o_oper_only,
+    &general_config.stats_o_oper_only,
     "STATS O output is only shown to operators"
   },
   {
     "stats_P_oper_only",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.stats_P_oper_only,
+    &general_config.stats_P_oper_only,
     "STATS P is only shown to operators"
   },
   {
     "stats_i_oper_only",
     OUTPUT_BOOLEAN2,
-    &ConfigFileEntry.stats_i_oper_only,
+    &general_config.stats_i_oper_only,
     "STATS I output is only shown to operators"
   },
   {
     "stats_k_oper_only",
     OUTPUT_BOOLEAN2,
-    &ConfigFileEntry.stats_k_oper_only,
+    &general_config.stats_k_oper_only,
     "STATS K output is only shown to operators"
   },
   {
     "caller_id_wait",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.caller_id_wait,
+    &general_config.caller_id_wait,
     "Minimum delay between notifying UMODE +g users of messages"
   },
   {
     "opers_bypass_callerid",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.opers_bypass_callerid,
+    &general_config.opers_bypass_callerid,
     "Allows IRC operators to message users who are +g (callerid)"
   },
   {
     "pace_wait_simple",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.pace_wait_simple,
+    &general_config.pace_wait_simple,
     "Minimum delay between less intensive commands"
   },
   {
     "pace_wait",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.pace_wait,
+    &general_config.pace_wait,
     "Minimum delay between uses of certain commands"
   },
   {
     "short_motd",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.short_motd,
+    &general_config.short_motd,
     "Do not show MOTD; only tell clients they should read it"
   },
   {
     "ping_cookie",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.ping_cookie,
+    &general_config.ping_cookie,
     "Require ping cookies to connect"
   },
   {
     "no_oper_flood",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.no_oper_flood,
+    &general_config.no_oper_flood,
     "Reduce flood control for operators"
   },
   {
     "true_no_oper_flood",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.true_no_oper_flood,
+    &general_config.true_no_oper_flood,
     "Completely disable flood control for operators"
   },
   {
     "oper_pass_resv",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.oper_pass_resv,
+    &general_config.oper_pass_resv,
     "Opers can over-ride RESVs"
   },
   {
     "idletime",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.idletime,
+    &general_config.idletime,
     "Number of seconds before a client is considered idle"
   },
   {
     "max_targets",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.max_targets,
+    &general_config.max_targets,
     "The maximum number of PRIVMSG/NOTICE targets"
   },
   {
     "client_flood",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.client_flood,
+    &general_config.client_flood,
     "Maximum amount of data in a client's queue before they are disconnected"
   },
   {
     "throttle_time",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.throttle_time,
+    &general_config.throttle_time,
     "Minimum time between client reconnects"
   },
   /* --[  END OF TABLE  ]---------------------------------------------- */
@@ -561,7 +562,7 @@ m_info(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if ((last_used + general_config.pace_wait) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
     sendto_one(source_p, form_str(RPL_LOAD2HI),
@@ -571,7 +572,7 @@ m_info(struct Client *client_p, struct Client *source_p,
   else
     last_used = CurrentTime;
 
-  if (!ConfigFileEntry.disable_remote)
+  if (!general_config.disable_remote_commands)
   {
     if (hunt_server(client_p,source_p, ":%s INFO :%s",
                     1, parc, parv) != HUNTED_ISME)

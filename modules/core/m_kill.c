@@ -38,7 +38,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-
+#include "conf_general.h"
 
 static char buf[IRCD_BUFSIZE];
 
@@ -118,8 +118,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
      * servers in synch when nick change and kill collide
      */
     if ((target_p = get_history(user, 
-				(time_t)ConfigFileEntry.kill_chase_time_limit))
-				== NULL)
+            (time_t)general_config.kill_chase_time_limit)) == NULL)
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                  me.name, source_p->name, user);
@@ -233,8 +232,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
     if(IsDigit(*user))	/* Somehow an uid was not found in the hash ! */
       return;
     if((target_p = get_history(user,
-		       (time_t)ConfigFileEntry.kill_chase_time_limit))
-       == NULL)
+		       (time_t)general_config.kill_chase_time_limit)) == NULL)
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
 		 me.name, source_p->name, user);

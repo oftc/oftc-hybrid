@@ -63,6 +63,7 @@
 #include "watch.h"
 #include "levent.h"
 #include "config.h"
+#include "conf_general.h"
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
  * number of files allowed to be open by this process.
@@ -323,8 +324,8 @@ initialize_global_set_options(void)
   GlobalSetOptions.spam_time = MIN_JOIN_LEAVE_TIME;
   GlobalSetOptions.spam_num  = MAX_JOIN_LEAVE_COUNT;
 
-  if (ConfigFileEntry.default_floodcount)
-    GlobalSetOptions.floodcount = ConfigFileEntry.default_floodcount;
+  if (general_config.default_floodcount)
+    GlobalSetOptions.floodcount = general_config.default_floodcount;
   else
     GlobalSetOptions.floodcount = 10;
 
@@ -343,7 +344,7 @@ initialize_global_set_options(void)
   }
 
   GlobalSetOptions.ident_timeout = IDENT_TIMEOUT;
-  GlobalSetOptions.idletime = ConfigFileEntry.idletime;
+  GlobalSetOptions.idletime = general_config.idletime;
   /* End of global set options */
 }
 

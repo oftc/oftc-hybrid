@@ -41,7 +41,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_log.h"
-
+#include "conf_general.h"
 
 static void m_join(struct Client *, struct Client *, int, char *[]);
 static void ms_join(struct Client *, struct Client *, int, char *[]);
@@ -167,7 +167,7 @@ m_join(struct Client *client_p, struct Client *source_p,
     }
 
     if (!IsExemptResv(source_p) &&
-        !(IsOper(source_p) && ConfigFileEntry.oper_pass_resv) &&
+        !(IsOper(source_p) && general_config.oper_pass_resv) &&
         (!hash_find_resv(chan) == ConfigChannel.restrict_channels))
     {
       sendto_one(source_p, form_str(ERR_BADCHANNAME),
@@ -373,7 +373,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
   oldts   = chptr->channelts;
   oldmode = &chptr->mode;
 
-  if (ConfigFileEntry.ignore_bogus_ts)
+  if (general_config.ignore_bogus_ts)
   {
     if (newts < 800000000)
     {

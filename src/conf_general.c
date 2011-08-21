@@ -70,6 +70,18 @@ struct config_section_entry general_section_entries[] = {
 
 struct conf_general general_config;
 
+static void
+validate_general_section()
+{
+  if(general_config.havent_read_conf)
+  {
+    ilog(L_CRIT, "You haven't read your config file properly.");
+    ilog(L_CRIT, "There is a line in the example conf that will kill your server if not removed.");
+    ilog(L_CRIT, "Consider actually reading/editing the conf file, and removing this line.");
+    exit(0);
+  }
+}
+
 void
 general_section_process(void *obj)
 {
@@ -129,4 +141,5 @@ general_section_process(void *obj)
         break;
     }
   }
+  validate_general_section();
 }

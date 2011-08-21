@@ -44,6 +44,7 @@
 #include "event.h"
 #include "memory.h"
 #include "balloc.h"
+#include "conf_general.h"
 
 struct config_channel_entry ConfigChannel;
 dlink_list global_channel_list = { NULL, NULL, 0 };
@@ -750,7 +751,7 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
     return CAN_SEND_OPV;
 
   if (MyClient(source_p) && !IsExemptResv(source_p))
-    if (!(IsOper(source_p) && ConfigFileEntry.oper_pass_resv))
+    if (!(IsOper(source_p) && general_config.oper_pass_resv))
       if (!hash_find_resv(chptr->chname) == ConfigChannel.restrict_channels)
         return CAN_SEND_NO;
 

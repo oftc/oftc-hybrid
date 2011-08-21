@@ -41,6 +41,7 @@
 #include "modules.h"
 #include "s_conf.h"
 #include "packet.h"
+#include "conf_general.h"
 
 static void m_part(struct Client *, struct Client *, int, char *[]);
 
@@ -105,10 +106,9 @@ part_one_client(struct Client *client_p, struct Client *source_p,
   if(msg_has_colors(reason) && (chptr->mode.mode & MODE_NOCOLOR)) 
     reason = strip_color(reason); 
   
-  if (reason[0] && (!MyConnect(source_p) ||
-      ((can_send(chptr, source_p, ms) &&
-       (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
-        < CurrentTime))))
+  if (reason[0] && (!MyConnect(source_p) || ((can_send(chptr, source_p, ms) &&
+            (source_p->firsttime + general_config.anti_spam_exit_message_time)
+          < CurrentTime))))
   {
     sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
                   ":%s PART %s :%s", ID(source_p), chptr->chname,

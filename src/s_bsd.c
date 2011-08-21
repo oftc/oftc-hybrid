@@ -48,6 +48,7 @@
 #include "memory.h"
 #include "s_user.h"
 #include "hook.h"
+#include "conf_general.h"
 
 static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
   "Error during DNS lookup", "connect timeout", "Error during connect()",
@@ -352,7 +353,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
     strlcat(new_client->host, "0", HOSTLEN+1);
 
   if (new_client->aftype == AF_INET6 && 
-      ConfigFileEntry.dot_in_ip6_addr == 1)
+      general_config.dot_in_ip6_addr == 1)
   {
     strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
     strlcat(new_client->host, ".", HOSTLEN+1);

@@ -46,6 +46,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "tools.h"
+#include "conf_general.h"
 
 static void me_kline(struct Client *, struct Client *, int, char **);
 static void mo_kline(struct Client *, struct Client *, int, char **);
@@ -152,8 +153,8 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   if ((p = strchr(host, '/')) != NULL)
   {
     int bitlen = strtol(++p, NULL, 10);
-    int min_bitlen = strchr(host, ':') ? ConfigFileEntry.kline_min_cidr6 :
-      ConfigFileEntry.kline_min_cidr;
+    int min_bitlen = strchr(host, ':') ? general_config.kline_min_cidr6 :
+      general_config.kline_min_cidr;
 
     if (bitlen < min_bitlen)
     {
