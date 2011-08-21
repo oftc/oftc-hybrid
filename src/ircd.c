@@ -62,6 +62,7 @@
 #include "supported.h"
 #include "watch.h"
 #include "levent.h"
+#include "config.h"
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
  * number of files allowed to be open by this process.
@@ -642,6 +643,7 @@ main(int argc, char *argv[])
   init_whowas();
   watch_init();
   read_conf_files(1);   /* cold start init conf files */
+  init_config();
   me.id[0] = '\0';
   init_uid();
   init_auth();          /* Initialise the auth code */

@@ -63,6 +63,7 @@
 #define SPATH   BINPATH "/ircd"                 /* ircd executable */
 #define SLPATH  BINPATH "/servlink"             /* servlink executable */
 #define CPATH   ETCPATH "/ircd.conf"            /* ircd.conf file */
+#define CCPATH   ETCPATH "/ircd.json"            /* ircd.conf file */
 #define KPATH   ETCPATH "/kline.conf"           /* kline file */
 #define CRESVPATH   ETCPATH "/cresv.conf"       /* channel resvs file */
 #define NRESVPATH   ETCPATH "/nresv.conf"       /* nick resvs file */
