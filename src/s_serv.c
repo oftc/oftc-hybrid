@@ -868,20 +868,42 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
   }
 
   /* XXX Both of these need to have a :me.name or :mySID!?!?! */
-  if (HasID(target_p) && IsCapable(client_p, CAP_TS6))
-    sendto_one(client_p, ":%s UID %s %d %lu %s %s %s %s %s :%s",
-               target_p->servptr->id,
-               target_p->name, target_p->hopcount + 1,
-               (unsigned long) target_p->tsinfo,
-               ubuf, target_p->username, target_p->host,
-               (MyClient(target_p) && IsIPSpoof(target_p)) ?
-               "0" : target_p->sockhost, target_p->id, target_p->info);
+  if (IsCapable(client_p, CAP_SVS))
+  {
+    if (HasID(target_p) && IsCapable(client_p, CAP_TS6))
+      sendto_one(client_p, ":%s UID %s %d %lu %s %s %s %s %s %lu :%s",
+                 target_p->servptr->id,
+                 target_p->name, target_p->hopcount + 1,
+                 (unsigned long) target_p->tsinfo,
+                 ubuf, target_p->username, target_p->host,
+                 (MyClient(target_p) && IsIPSpoof(target_p)) ?
+                 "0" : target_p->sockhost, target_p->id,
+                 (unsigned long)target_p->servicestamp, target_p->info);
+    else
+      sendto_one(client_p, "NICK %s %d %lu %s %s %s %s %lu :%s",
+                 target_p->name, target_p->hopcount + 1,
+                 (unsigned long) target_p->tsinfo,
+                 ubuf, target_p->username, target_p->host,
+                 target_p->servptr->name, (unsigned long)target_p->servicestamp,
+                 target_p->info);
+  }
   else
-    sendto_one(client_p, "NICK %s %d %lu %s %s %s %s :%s",
-	       target_p->name, target_p->hopcount + 1,
-	       (unsigned long) target_p->tsinfo,
-	       ubuf, target_p->username, target_p->host,
-	       target_p->servptr->name, target_p->info);
+  {
+    if (HasID(target_p) && IsCapable(client_p, CAP_TS6))
+      sendto_one(client_p, ":%s UID %s %d %lu %s %s %s %s %s :%s",
+                 target_p->servptr->id,
+                 target_p->name, target_p->hopcount + 1,
+                 (unsigned long) target_p->tsinfo,
+                 ubuf, target_p->username, target_p->host,
+                 (MyClient(target_p) && IsIPSpoof(target_p)) ?
+                 "0" : target_p->sockhost, target_p->id, target_p->info);
+    else
+      sendto_one(client_p, "NICK %s %d %lu %s %s %s %s :%s",
+                 target_p->name, target_p->hopcount + 1,
+                 (unsigned long) target_p->tsinfo,
+                 ubuf, target_p->username, target_p->host,
+                 target_p->servptr->name, target_p->info);
+  }
 
   if(!EmptyString(target_p->realhost)) 
     sendto_one(client_p, "REALHOST %s %s", target_p->name, target_p->realhost);
