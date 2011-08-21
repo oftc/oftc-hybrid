@@ -160,6 +160,20 @@ unsigned int user_modes[256] =
   /* 0xF0 */ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0  /* 0xFF */
 };
 
+unsigned int
+mode_string_to_flags(const char *mode)
+{
+  unsigned int modes = 0;
+
+  while(*mode != '\0')
+  {
+    modes |= user_modes[(unsigned int)*mode];
+    mode++;
+  }
+
+  return modes;
+}
+
 void
 assemble_umode_buffer(void)
 {
@@ -971,7 +985,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
               break;
 
             ClearOper(source_p);
-            //source_p->umodes &= ~general_config.oper_only_umodes;
+            source_p->umodes &= ~mode_string_to_flags(general_config.oper_only_umodes);
             Count.oper--;
 
             if (MyConnect(source_p))
@@ -1002,8 +1016,9 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
         default:
           if ((flag = user_modes[(unsigned char)*m]))
           {
-            if (MyConnect(source_p) && !IsOper(source_p))// &&
-             //   (general_config.oper_only_umodes & flag))
+            unsigned int oper_only_umodes = mode_string_to_flags(general_config.oper_only_umodes);
+            if (MyConnect(source_p) && !IsOper(source_p) && 
+                (oper_only_umodes & flag))
             {
               badflag = 1;
             }
@@ -1288,11 +1303,11 @@ oper_up(struct Client *source_p, const char *name)
 
   if (oconf->modes)
     source_p->umodes |= oconf->modes;
-//  else if (general_config.oper_umodes)
-  //  source_p->umodes |= general_config.oper_umodes;
-//  else
-//    source_p->umodes |= (UMODE_SERVNOTICE|UMODE_OPERWALL|
-//                         UMODE_WALLOP|UMODE_LOCOPS);
+  else if (!EmptyString(general_config.oper_umodes))
+    source_p->umodes |= mode_string_to_flags(general_config.oper_umodes);
+  else
+    source_p->umodes |= (UMODE_SERVNOTICE|UMODE_OPERWALL|
+                         UMODE_WALLOP|UMODE_LOCOPS|UMODE_GOD);
 
   if (!(old & UMODE_INVISIBLE) && IsInvisible(source_p))
     ++Count.invisi;

@@ -1915,9 +1915,8 @@ set_default_conf(void)
   general_config.idletime = 0;
   general_config.max_targets = MAX_TARGETS_DEFAULT;
   general_config.client_flood = CLIENT_FLOOD_DEFAULT;
-//  general_config.oper_only_umodes = UMODE_DEBUG;  /* XXX */
-//  general_config.oper_umodes = UMODE_BOTS | UMODE_LOCOPS | UMODE_SERVNOTICE |
-//    UMODE_OPERWALL | UMODE_WALLOP;        /* XXX */
+  general_config.oper_only_umodes = "D";
+  general_config.oper_umodes = "blswz";
   DupString(general_config.servlink_path, SLPATH);
 #ifdef HAVE_LIBCRYPTO
   /* jdc -- This is our default value for a cipher.  According to the
