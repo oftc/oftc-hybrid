@@ -231,7 +231,6 @@ unhook_hub_leaf_confs(void)
 %token  LINKS_DELAY
 %token  LISTEN
 %token  T_LOG
-%token  LOGGING
 %token  LOG_LEVEL
 %token  MAX_ACCEPT
 %token  MAX_BANS
@@ -379,7 +378,6 @@ unhook_hub_leaf_confs(void)
 %token  USE_INVEX
 %token  USE_QUIET
 %token  USE_KNOCK
-%token  USE_LOGGING
 %token  USE_WHOIS_ACTUALLY
 %token  VHOST
 %token  VHOST6
@@ -400,8 +398,7 @@ conf:
         ;
 
 conf_item:        
-                 logging_entry
-                | oper_entry
+                 oper_entry
 		| channel_entry
                 | class_entry 
                 | listen_entry
@@ -489,117 +486,6 @@ modules_path: PATH '=' QSTRING ';'
   if (ypass == 2)
     mod_add_path(yylval.string);
 #endif
-};
-
-/***************************************************************************
- *  section logging
- ***************************************************************************/
-/* XXX */
-logging_entry:          LOGGING  '{' logging_items '}' ';' ;
-
-logging_items:          logging_items logging_item |
-                        logging_item ;
-
-logging_item:           logging_path | logging_oper_log |
-			logging_log_level |
-			logging_use_logging | logging_fuserlog |
-			logging_foperlog | 
-			logging_fklinelog | logging_killlog |
-			logging_foperspylog | logging_ioerrlog |
-			logging_ffailed_operlog |
-			error ';' ;
-
-logging_path:           T_LOGPATH '=' QSTRING ';' 
-                        {
-                        };
-
-logging_oper_log:	OPER_LOG '=' QSTRING ';'
-                        {
-                        };
-
-logging_fuserlog: FUSERLOG '=' QSTRING ';'
-{
-  if (ypass == 2)
-    strlcpy(ConfigLoggingEntry.userlog, yylval.string,
-            sizeof(ConfigLoggingEntry.userlog));
-};
-
-logging_ffailed_operlog: FFAILED_OPERLOG '=' QSTRING ';'
-{
-  if (ypass == 2)
-    strlcpy(ConfigLoggingEntry.failed_operlog, yylval.string,
-            sizeof(ConfigLoggingEntry.failed_operlog));
-};
-
-logging_foperlog: FOPERLOG '=' QSTRING ';'
-{
-  if (ypass == 2)
-    strlcpy(ConfigLoggingEntry.operlog, yylval.string,
-            sizeof(ConfigLoggingEntry.operlog));
-};
-
-logging_foperspylog: FOPERSPYLOG '=' QSTRING ';'
-{
-  if (ypass == 2)
-    strlcpy(ConfigLoggingEntry.operspylog, yylval.string,
-            sizeof(ConfigLoggingEntry.operspylog));
-};
-
-logging_fklinelog: FKLINELOG '=' QSTRING ';'
-{
-  if (ypass == 2)
-    strlcpy(ConfigLoggingEntry.klinelog, yylval.string,
-            sizeof(ConfigLoggingEntry.klinelog));
-};
-
-logging_ioerrlog: FIOERRLOG '=' QSTRING ';'
-{
-  if (ypass == 2)
-    strlcpy(ConfigLoggingEntry.ioerrlog, yylval.string,
-            sizeof(ConfigLoggingEntry.ioerrlog));
-};
-
-logging_killlog: FKILLLOG '=' QSTRING ';'
-{
-  if (ypass == 2)
-    strlcpy(ConfigLoggingEntry.killlog, yylval.string,
-            sizeof(ConfigLoggingEntry.killlog));
-};
-
-logging_log_level: LOG_LEVEL '=' T_L_CRIT ';'
-{ 
-  if (ypass == 2)
-    set_log_level(L_CRIT);
-} | LOG_LEVEL '=' T_L_ERROR ';'
-{
-  if (ypass == 2)
-    set_log_level(L_ERROR);
-} | LOG_LEVEL '=' T_L_WARN ';'
-{
-  if (ypass == 2)
-    set_log_level(L_WARN);
-} | LOG_LEVEL '=' T_L_NOTICE ';'
-{
-  if (ypass == 2)
-    set_log_level(L_NOTICE);
-} | LOG_LEVEL '=' T_L_TRACE ';'
-{
-  if (ypass == 2)
-    set_log_level(L_TRACE);
-} | LOG_LEVEL '=' T_L_INFO ';'
-{
-  if (ypass == 2)
-    set_log_level(L_INFO);
-} | LOG_LEVEL '=' T_L_DEBUG ';'
-{
-  if (ypass == 2)
-    set_log_level(L_DEBUG);
-};
-
-logging_use_logging: USE_LOGGING '=' TBOOL ';'
-{
-  if (ypass == 2)
-    ConfigLoggingEntry.use_logging = yylval.number;
 };
 
 /***************************************************************************

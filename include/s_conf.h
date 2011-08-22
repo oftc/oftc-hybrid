@@ -382,18 +382,6 @@ struct admin_info
   char *email;
 };
 
-struct logging_entry
-{
-  unsigned int use_logging;
-  char operlog[PATH_MAX + 1];
-  char userlog[PATH_MAX + 1];
-  char ioerrlog[PATH_MAX + 1];
-  char klinelog[PATH_MAX + 1];
-  char killlog[PATH_MAX + 1];
-  char operspylog[PATH_MAX + 1];
-  char failed_operlog[PATH_MAX + 1];
-};
-
 extern int ypass;
 extern dlink_list class_items;
 extern dlink_list server_items;
@@ -407,7 +395,6 @@ extern dlink_list temporary_dlines;
 extern dlink_list temporary_xlines;
 extern dlink_list temporary_rxlines;
 extern dlink_list temporary_rklines;
-extern struct logging_entry ConfigLoggingEntry;
 extern struct config_file_entry ConfigFileEntry;/* defined in ircd.c*/
 extern struct config_channel_entry ConfigChannel;/* defined in channel.c*/
 extern struct config_server_hide ConfigServerHide; /* defined in s_conf.c */

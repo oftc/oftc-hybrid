@@ -56,6 +56,7 @@
 #include "conf_general.h"
 #include "conf_serverinfo.h"
 #include "conf_admin.h"
+#include "conf_logging.h"
 
 enum FullCause
 {
@@ -1789,7 +1790,7 @@ rehash(int sig)
 
   rehashed_klines = 1;
 
-  if (ConfigLoggingEntry.use_logging)
+  if (logging_config.use_logging)
     reopen_log(logFileName);
 
   return(0);
@@ -1835,14 +1836,7 @@ set_default_conf(void)
   serverinfo_config.dns_host.sin_port = 0;
 
   set_log_level(L_NOTICE);
-  ConfigLoggingEntry.use_logging = 1;
-  ConfigLoggingEntry.operlog[0] = '\0';
-  ConfigLoggingEntry.userlog[0] = '\0';
-  ConfigLoggingEntry.klinelog[0] = '\0';
-  ConfigLoggingEntry.killlog[0] = '\0';
-  ConfigLoggingEntry.operspylog[0] = '\0';
-  ConfigLoggingEntry.ioerrlog[0] = '\0';
-  ConfigLoggingEntry.failed_operlog[0] = '\0';
+  logging_config.use_logging = 1;
 
   ConfigChannel.disable_fake_channels = NO;
   ConfigChannel.restrict_channels = NO;

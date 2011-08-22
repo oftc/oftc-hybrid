@@ -9,11 +9,13 @@
 #include "conf_general.h"
 #include "conf_serverinfo.h"
 #include "conf_admin.h"
+#include "conf_logging.h"
 
 struct config_section config_sections[] = {
   { "serverinfo", serverinfo_section_process },
   { "general", general_section_process },
   { "admin", admin_section_process},
+  { "logging", logging_section_process},
   { "", NULL }
 };
   

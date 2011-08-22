@@ -43,6 +43,7 @@
 #include "modules.h"
 #include "conf_general.h"
 #include "conf_serverinfo.h"
+#include "conf_logging.h"
 
 static void send_conf_options(struct Client *);
 static void send_birthdate_online_time(struct Client *);
@@ -126,31 +127,31 @@ static const struct InfoStruct info_table[] =
   {
     "use_logging",
     OUTPUT_BOOLEAN_YN,
-    &ConfigLoggingEntry.use_logging,
+    &logging_config.use_logging,
     "Enable logging"
   },
   {
     "fuserlog",
     OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.userlog,
+    &logging_config.userlog,
     "User log file"
   },
   {
     "foperlog",
     OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.operlog,
+    &logging_config.operlog,
     "Operator log file"
   },
   {
     "fkilllog",
     OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.killlog,
+    &logging_config.killlog,
     "Kill log file"
   },
   {
     "fklinelog",
     OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.klinelog,
+    &logging_config.klinelog,
     "K-Line log file"
   },
   {

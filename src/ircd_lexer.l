@@ -227,8 +227,6 @@ l_warn		{ return T_L_WARN; }
 leaf_mask	{ return LEAF_MASK; }
 listen		{ return LISTEN; }
 log_level	{ return LOG_LEVEL; }
-log		{ return LOGGING; }
-logging         { return LOGGING; }
 logpath         { return T_LOGPATH; }
 masked		{ return TMASKED; }
 max_clients     { return T_MAX_CLIENTS; }
@@ -304,7 +302,6 @@ use_except	{ return USE_EXCEPT; }
 use_invex	{ return USE_INVEX; }
 use_quiet { return USE_QUIET; }
 use_knock	{ return USE_KNOCK; }
-use_logging	{ return USE_LOGGING; }
 use_whois_actually { return USE_WHOIS_ACTUALLY; }
 throttle_time { return THROTTLE_TIME; }
 user		{ return USER; } 

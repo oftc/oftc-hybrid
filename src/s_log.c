@@ -45,6 +45,7 @@
 #include "event.h"	/* Needed for EVH etc. */
 #include "s_conf.h"
 #include "memory.h"
+#include "conf_logging.h"
 
 /* some older syslogs would overflow at 2024 */
 #define LOG_BUFSIZE 2000
@@ -139,7 +140,7 @@ ilog(const int priority, const char *fmt, ...)
   if (priority <= L_DEBUG)
     syslog(sysLogLevel[priority], "%s", buf);
 #endif
-  if (ConfigLoggingEntry.use_logging)
+  if (logging_config.use_logging)
     write_log(buf);
 }
   
@@ -222,11 +223,11 @@ log_user_exit(struct Client *source_p)
     {
       if (user_log_fb == NULL)
       {
-	if ((ConfigLoggingEntry.userlog[0] != '\0') && 
-	   (user_log_fb = fbopen(ConfigLoggingEntry.userlog, "r")) != NULL)
+	if ((logging_config.userlog[0] != '\0') && 
+	   (user_log_fb = fbopen(logging_config.userlog, "r")) != NULL)
 	{
 	  fbclose(user_log_fb);
-	  user_log_fb = fbopen(ConfigLoggingEntry.userlog, "a");
+	  user_log_fb = fbopen(logging_config.userlog, "a");
 	}
       }
 
@@ -293,49 +294,49 @@ log_oper_action(int log_type, const struct Client *source_p,
   switch(log_type)
   {
   case LOG_OPER_TYPE:
-    logfile = ConfigLoggingEntry.operlog;
+    logfile = logging_config.operlog;
     log_message = "OPER";
     break;
   case LOG_FAILED_OPER_TYPE:
-    logfile = ConfigLoggingEntry.failed_operlog;
+    logfile = logging_config.failed_operlog;
     log_message = "FAILED OPER";
     break;
   case LOG_KLINE_TYPE:
-    logfile = ConfigLoggingEntry.klinelog;
+    logfile = logging_config.klinelog;
     log_message = "KLINE";
     break;
   case LOG_RKLINE_TYPE:
-    logfile = ConfigLoggingEntry.klinelog;
+    logfile = logging_config.klinelog;
     log_message = "RKLINE";
     break;
   case LOG_DLINE_TYPE:
-    logfile = ConfigLoggingEntry.klinelog;
+    logfile = logging_config.klinelog;
     log_message = "DLINE";
     break;
   case LOG_TEMP_DLINE_TYPE:
-    logfile = ConfigLoggingEntry.klinelog;
+    logfile = logging_config.klinelog;
     log_message = "TEMP DLINE";
     break;
   case LOG_TEMP_KLINE_TYPE:
-    logfile = ConfigLoggingEntry.klinelog;
+    logfile = logging_config.klinelog;
     log_message = "TEMP KLINE";
   case LOG_TEMP_RKLINE_TYPE:
-    logfile = ConfigLoggingEntry.klinelog;
+    logfile = logging_config.klinelog;
     log_message = "TEMP RKLINE";
     break;
   case LOG_KILL_TYPE:
-    logfile = ConfigLoggingEntry.killlog;
+    logfile = logging_config.killlog;
     log_message = "KILL";
     break;
   case LOG_IOERR_TYPE:
-    logfile = ConfigLoggingEntry.ioerrlog;
+    logfile = logging_config.ioerrlog;
     log_message = "IO ERR";
     break;
   default:
     return;
   }
 
-  if (*logfile == '\0')
+  if(logfile == NULL)
     return;
 
   p = linebuf;
