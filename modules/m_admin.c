@@ -36,6 +36,7 @@
 #include "modules.h"
 #include "irc_string.h"
 #include "conf_general.h"
+#include "conf_admin.h"
 
 static void m_admin(struct Client *, struct Client *, int, char *[]);
 static void mr_admin(struct Client *, struct Client *, int, char *[]);
@@ -172,13 +173,13 @@ do_admin(struct Client *source_p)
 
   sendto_one(source_p, form_str(RPL_ADMINME),
 	     me_name, nick, me.name);
-  if (AdminInfo.name != NULL)
+  if (admin_config.name != NULL)
     sendto_one(source_p, form_str(RPL_ADMINLOC1),
-	       me_name, nick, AdminInfo.name);
-  if (AdminInfo.description != NULL)
+	       me_name, nick, admin_config.name);
+  if (admin_config.description != NULL)
     sendto_one(source_p, form_str(RPL_ADMINLOC2),
-	       me_name, nick, AdminInfo.description);
-  if (AdminInfo.email != NULL)
+	       me_name, nick, admin_config.description);
+  if (admin_config.email != NULL)
     sendto_one(source_p, form_str(RPL_ADMINEMAIL),
-	       me_name, nick, AdminInfo.email);
+	       me_name, nick, admin_config.email);
 }

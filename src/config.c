@@ -1,5 +1,6 @@
 #include "stdinc.h"
 #include "s_log.h"
+#include "memory.h"
 #define __STRICT_ANSI__
 #include "json.h"
 #undef __STRICT_ANSI__
@@ -7,11 +8,12 @@
 #include "ircd_defs.h"
 #include "conf_general.h"
 #include "conf_serverinfo.h"
-#include "memory.h"
+#include "conf_admin.h"
 
 struct config_section config_sections[] = {
   { "serverinfo", serverinfo_section_process },
   { "general", general_section_process },
+  { "admin", admin_section_process},
   { "", NULL }
 };
   

@@ -55,6 +55,7 @@
 #include "channel_mode.h"
 #include "conf_general.h"
 #include "conf_serverinfo.h"
+#include "conf_admin.h"
 
 enum FullCause
 {
@@ -1832,9 +1833,6 @@ set_default_conf(void)
   /* serverinfo_config.hub = NO; */
   serverinfo_config.dns_host.sin_addr.s_addr = 0;
   serverinfo_config.dns_host.sin_port = 0;
-  AdminInfo.name = NULL;
-  AdminInfo.email = NULL;
-  AdminInfo.description = NULL;
 
   set_log_level(L_NOTICE);
   ConfigLoggingEntry.use_logging = 1;
@@ -2705,13 +2703,13 @@ clear_out_old_conf(void)
   /* clean out old resvs from the conf */
   clear_conf_resv();
 
-  /* clean out AdminInfo */
-  MyFree(AdminInfo.name);
-  AdminInfo.name = NULL;
-  MyFree(AdminInfo.email);
-  AdminInfo.email = NULL;
-  MyFree(AdminInfo.description);
-  AdminInfo.description = NULL;
+  /* clean out admin_config */
+  MyFree(admin_config.name);
+  admin_config.name = NULL;
+  MyFree(admin_config.email);
+  admin_config.email = NULL;
+  MyFree(admin_config.description);
+  admin_config.description = NULL;
 
   /* operator{} and class{} blocks are freed above */
   /* clean out listeners */

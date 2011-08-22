@@ -412,7 +412,6 @@ extern struct config_file_entry ConfigFileEntry;/* defined in ircd.c*/
 extern struct config_channel_entry ConfigChannel;/* defined in channel.c*/
 extern struct config_server_hide ConfigServerHide; /* defined in s_conf.c */
 extern struct server_info ServerInfo;       /* defined in ircd.c */
-extern struct admin_info AdminInfo;        /* defined in ircd.c */
 extern int valid_wild_card(struct Client *, int, int, ...);
 /* End GLOBAL section */
 

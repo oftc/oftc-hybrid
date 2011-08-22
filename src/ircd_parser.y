@@ -399,8 +399,8 @@ conf:
         | conf conf_item
         ;
 
-conf_item:        admin_entry
-                | logging_entry
+conf_item:        
+                 logging_entry
                 | oper_entry
 		| channel_entry
                 | class_entry 
@@ -489,42 +489,6 @@ modules_path: PATH '=' QSTRING ';'
   if (ypass == 2)
     mod_add_path(yylval.string);
 #endif
-};
-
-/***************************************************************************
- * admin section
- ***************************************************************************/
-admin_entry: ADMIN  '{' admin_items '}' ';' ;
-
-admin_items: admin_items admin_item | admin_item;
-admin_item:  admin_name | admin_description |
-             admin_email | error ';' ;
-
-admin_name: NAME '=' QSTRING ';' 
-{
-  if (ypass == 2)
-  {
-    MyFree(AdminInfo.name);
-    DupString(AdminInfo.name, yylval.string);
-  }
-};
-
-admin_email: EMAIL '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(AdminInfo.email);
-    DupString(AdminInfo.email, yylval.string);
-  }
-};
-
-admin_description: DESCRIPTION '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(AdminInfo.description);
-    DupString(AdminInfo.description, yylval.string);
-  }
 };
 
 /***************************************************************************

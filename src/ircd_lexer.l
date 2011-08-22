@@ -126,8 +126,7 @@ include   \.include{WS}(\<.*\>|\".*\")
 ~		{ return NOT; }
 accept_password { return ACCEPT_PASSWORD; }
 action		{ return ACTION; }
-admin		{ return ADMIN; }
-administrator	{ return ADMIN; }
+admin { return ADMIN; }
 aftype		{ return AFTYPE; }
 all		{ return T_ALL; }
 allow		{ return T_ALLOW; }
