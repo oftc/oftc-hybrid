@@ -806,3 +806,30 @@ remove_ipv6_mapping(struct irc_ssaddr *addr)
   else
     addr->ss_len = sizeof(struct sockaddr_in);
 } 
+
+int
+get_addr_from_ip(const char *ip, struct irc_ssaddr *addr)
+{
+  struct addrinfo hints, *res;
+
+  memset(&hints, 0, sizeof(hints));
+
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
+
+  if(getaddrinfo(ip, NULL, &hints, &res))
+      return FALSE;
+  else
+  {
+    assert(res != NULL);
+
+    memcpy(addr, res->ai_addr, res->ai_addrlen);
+    addr->ss.ss_family = res->ai_family;
+    addr->ss_len = res->ai_addrlen;
+    
+    freeaddrinfo(res);
+  }
+
+  return TRUE;
+}

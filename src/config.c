@@ -93,11 +93,11 @@ section_process(void *obj, char *ptr, struct config_section_entry *entry_list)
         char *strval;
         char *addr;
 
-        addr = (char*)(*(int*)strval);
-        MyFree(addr);
-
         strval = ptr + entry->offset;
+        addr = (char*)(*(int*)strval);
         
+        MyFree(addr);
+      
         DupString(strval, json_object_get_string(value));
         memcpy(ptr + entry->offset, &strval, entry->length);
         break;

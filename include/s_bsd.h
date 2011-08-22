@@ -62,10 +62,10 @@ extern int comm_open(fde_t *F, int family, int sock_type, int proto,
            	     const char *note);
 extern int comm_accept(struct Listener *, struct irc_ssaddr *pn);
 
-/* These must be defined in the network IO loop code of your choice */
 extern void init_comm(void);
 extern int read_message (time_t, unsigned char);
 extern void check_can_use_v6(void);
 extern void remove_ipv6_mapping(struct irc_ssaddr *);
+int get_addr_from_ip(const char *, struct irc_ssaddr *);
 
 #endif /* INCLUDED_s_bsd_h */
