@@ -855,7 +855,7 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
     return;
   sendto_one(source_p, form_str(RPL_LIST), me.name, source_p->name,
              chptr->chname, dlink_list_length(&chptr->members),
-             chptr->topic == NULL ? "" : chptr->topic);
+             chptr->topic);
 }
 
 /* safe_list_channels()

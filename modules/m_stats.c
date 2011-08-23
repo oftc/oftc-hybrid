@@ -467,7 +467,7 @@ count_memory(struct Client *source_p)
     channel_members += dlink_list_length(&chptr->members);
     channel_invites += dlink_list_length(&chptr->invites);
 
-    if (chptr->topic != NULL)
+    if (chptr->topic[0])
       ++topic_count;
 
     channel_bans += dlink_list_length(&chptr->banlist);

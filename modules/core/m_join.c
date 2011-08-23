@@ -278,7 +278,7 @@ m_join(struct Client *client_p, struct Client *source_p,
 
     del_invite(chptr, source_p);
 
-    if (chptr->topic != NULL)
+    if (chptr->topic[0])
     {
       sendto_one(source_p, form_str(RPL_TOPIC), me.name,
                  source_p->name, chptr->chname, chptr->topic);
@@ -409,10 +409,9 @@ ms_join(struct Client *client_p, struct Client *source_p,
   {
     remove_our_modes(chptr, source_p);
 
-    if (chptr->topic)
+    if (chptr->topic[0])
     {
-      set_channel_topic(chptr, NULL, NULL, 0);
-      chptr->topic_time = 0;
+      set_channel_topic(chptr, "", "", 0);
       sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :",
                            (IsHidden(source_p) ||
                            ConfigServerHide.hide_servers) ?
@@ -680,4 +679,3 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
                          chptr->chname, lmodebuf, sendbuf);
   }
 }
-

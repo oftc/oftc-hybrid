@@ -133,14 +133,14 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
 
   if (accept_remote)
   {
-    int topic_differs = strcmp(chptr->topic ? chptr->topic : "", topic);
+    int topic_differs = strcmp(chptr->topic, topic);
 
     set_channel_topic(chptr, topic, setby, remote_topic_ts);
 
     if (topic_differs)
       sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
                            ConfigServerHide.hide_servers ? me.name : source_p->name,
-                           chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
+                           chptr->chname, chptr->topic);
   }
 
   /*
@@ -208,7 +208,7 @@ static void
 set_topic(struct Client *source_p, struct Channel *chptr, time_t topicts,
           const char *topicwho, const char *topic)
 {
-  int new_topic = strcmp(chptr->topic ? chptr->topic : "", topic);
+  int new_topic = strcmp(chptr->topic, topic);
 
   set_channel_topic(chptr, topic, topicwho, topicts);
 
@@ -216,18 +216,18 @@ set_topic(struct Client *source_p, struct Channel *chptr, time_t topicts,
   if (new_topic)
     sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
                          ConfigServerHide.hide_servers ? me.name : source_p->name,
-                         chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
+                         chptr->chname, chptr->topic);
 
   sendto_server(source_p, chptr, CAP_TBURST, NOCAPS,
                 ":%s TBURST %lu %s %lu %s :%s",
                 me.name, (unsigned long)chptr->channelts, chptr->chname,
                 (unsigned long)chptr->topic_time,
-                chptr->topic_info == NULL ? "" : chptr->topic_info,
-                chptr->topic == NULL ? "" : chptr->topic);
+                chptr->topic_info,
+                chptr->topic);
   sendto_server(source_p, chptr, CAP_TB, CAP_TBURST,
                 ":%s TB %s %lu %s :%s",
                 me.name, chptr->chname,
                 (unsigned long)chptr->topic_time, 
-                chptr->topic_info == NULL ? "" : chptr->topic_info,
-                chptr->topic == NULL ? "" : chptr->topic);
+                chptr->topic_info,
+                chptr->topic);
 }

@@ -47,8 +47,8 @@ struct Channel
   struct Channel *hnextch;
   struct Mode mode;
 
-  char *topic;
-  char *topic_info;
+  char topic[TOPICLEN + 1];
+  char topic_info[USERHOST_REPLYLEN];
 
   time_t channelts;
   time_t topic_time;
@@ -115,7 +115,6 @@ extern void channel_modes(struct Channel *, struct Client *, char *, char *);
 extern void check_spambot_warning(struct Client *, const char *);
 extern void check_splitmode(void *);
 extern void free_channel_list(dlink_list *);
-extern void free_topic(struct Channel *);
 extern void destroy_channel(struct Channel *);
 extern void set_channel_topic(struct Channel *, const char *, const char *, time_t);
 

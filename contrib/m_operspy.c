@@ -223,7 +223,7 @@ operspy_list(struct Client *client_p, int parc, char *parv[])
     {
       sendto_one(client_p, form_str(RPL_LIST), me.name, client_p->name,
                  chptr_list->chname, dlink_list_length(&chptr_list->members),
-                 chptr_list->topic == NULL ? "" : chptr_list->topic);
+                 chptr_list->topic);
     }
   }
 
@@ -321,7 +321,7 @@ operspy_topic(struct Client *client_p, int parc, char *parv[])
   operspy_log(client_p, "TOPIC", parv[2]);
 #endif
 
-  if (chptr_topic->topic == NULL)
+  if (chptr_topic->topic == '\0')
     sendto_one(client_p, form_str(RPL_NOTOPIC),
                me.name, client_p->name, parv[2]);
   else

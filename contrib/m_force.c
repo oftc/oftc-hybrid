@@ -201,7 +201,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
       }
     }
 
-    if (chptr->topic != NULL)
+    if (chptr->topic[0])
     {
       sendto_one(target_p, form_str(RPL_TOPIC),
                  me.name, target_p->name,

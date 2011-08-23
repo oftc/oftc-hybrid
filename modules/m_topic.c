@@ -119,25 +119,24 @@ m_topic(struct Client *client_p, struct Client *source_p,
     {
       char topic_info[USERHOST_REPLYLEN]; 
 
-      ircsprintf(topic_info, "%s!%s@%s", source_p->name,
-                 source_p->username, source_p->host);
+      snprintf(topic_info, sizeof(topic_info), "%s!%s@%s", source_p->name,
+               source_p->username, source_p->host);
       set_channel_topic(chptr, parv[2], topic_info, CurrentTime);
 
       sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
                     ":%s TOPIC %s :%s",
                     ID(source_p), chptr->chname,
-                    chptr->topic == NULL ? "" : chptr->topic);
+                    chptr->topic);
       sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
                     ":%s TOPIC %s :%s",
                     source_p->name, chptr->chname,
-                    chptr->topic == NULL ? "" : chptr->topic);
+                    chptr->topic);
       sendto_channel_local(ALL_MEMBERS, 0,
                            chptr, ":%s!%s@%s TOPIC %s :%s",
                            source_p->name,
                            source_p->username,
                            source_p->host,
-                           chptr->chname, chptr->topic == NULL ?
-                           "" : chptr->topic);
+                           chptr->chname, chptr->topic);
     }
     else
       sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
@@ -147,7 +146,7 @@ m_topic(struct Client *client_p, struct Client *source_p,
   {
     if (!SecretChannel(chptr) || IsMember(source_p, chptr))
     {
-      if (chptr->topic == NULL)
+      if (chptr->topic[0] == '\0')
         sendto_one(source_p, form_str(RPL_NOTOPIC),
                    from, to, chptr->chname);
       else

@@ -157,7 +157,7 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
                              me.name, chptr->chname, modeletter, source_p->name);
 
       /* send the topic... */
-      if (chptr->topic != NULL)
+      if (chptr->topic[0])
       {
         sendto_one(source_p, form_str(RPL_TOPIC),
                    me.name, source_p->name, chptr->chname,
