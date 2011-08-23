@@ -48,7 +48,6 @@ struct config_channel_entry ConfigChannel;
 dlink_list global_channel_list = { NULL, NULL, 0 };
 BlockHeap *ban_heap;    /*! \todo ban_heap shouldn't be a global var */
 
-static BlockHeap *topic_heap = NULL;
 static BlockHeap *member_heap = NULL;
 static BlockHeap *channel_heap = NULL;
 
@@ -69,7 +68,6 @@ init_channels(void)
 
   channel_heap = BlockHeapCreate("channel", sizeof(struct Channel), CHANNEL_HEAP_SIZE);
   ban_heap = BlockHeapCreate("ban", sizeof(struct Ban), BAN_HEAP_SIZE);
-  topic_heap = BlockHeapCreate("topic", TOPICLEN+1 + USERHOST_REPLYLEN, TOPIC_HEAP_SIZE);
   member_heap = BlockHeapCreate("member", sizeof(struct Membership), CHANNEL_HEAP_SIZE*2);
 }
 
@@ -409,9 +407,6 @@ destroy_channel(struct Channel *chptr)
   free_channel_list(&chptr->banlist);
   free_channel_list(&chptr->exceptlist);
   free_channel_list(&chptr->invexlist);
-
-  /* Free the topic */
-  free_topic(chptr);
 
   dlinkDelete(&chptr->node, &global_channel_list);
   hash_del_channel(chptr);
@@ -902,46 +897,6 @@ check_splitmode(void *unused)
   }
 }
 
-/*! \brief Allocates a new topic
- * \param chptr Channel to allocate a new topic for
- */
-static void
-allocate_topic(struct Channel *chptr)
-{
-  void *ptr = NULL;
-
-  if (chptr == NULL)
-    return;
-
-  ptr = BlockHeapAlloc(topic_heap);  
-
-  /* Basically we allocate one large block for the topic and
-   * the topic info.  We then split it up into two and shove it
-   * in the chptr 
-   */
-  chptr->topic       = ptr;
-  chptr->topic_info  = (char *)ptr + TOPICLEN+1;
-  *chptr->topic      = '\0';
-  *chptr->topic_info = '\0';
-}
-
-void
-free_topic(struct Channel *chptr)
-{
-  void *ptr = NULL;
-  assert(chptr);
-  if (chptr->topic == NULL)
-    return;
-
-  /*
-   * If you change allocate_topic you MUST change this as well
-   */
-  ptr = chptr->topic; 
-  BlockHeapFree(topic_heap, ptr);    
-  chptr->topic      = NULL;
-  chptr->topic_info = NULL;
-}
-
 /*! \brief Sets the channel topic for chptr
  * \param chptr      Pointer to struct Channel
  * \param topic      The topic string
@@ -952,24 +907,9 @@ void
 set_channel_topic(struct Channel *chptr, const char *topic,
                   const char *topic_info, time_t topicts)
 {
-  if (!EmptyString(topic))
-  {
-    if (chptr->topic == NULL)
-      allocate_topic(chptr);
-
-    strlcpy(chptr->topic, topic, TOPICLEN+1);
-    strlcpy(chptr->topic_info, topic_info, USERHOST_REPLYLEN);
-    chptr->topic_time = topicts; 
-  }
-  else
-  {
-    /*
-     * Do not reset chptr->topic_time here, it's required for
-     * bursting topics properly.
-     */
-    if (chptr->topic != NULL)
-      free_topic(chptr);
-  }
+  strlcpy(chptr->topic, topic, sizeof(chptr->topic));
+  strlcpy(chptr->topic_info, topic_info, sizeof(chptr->topic_info));
+  chptr->topic_time = topicts; 
 }
 
 int 
