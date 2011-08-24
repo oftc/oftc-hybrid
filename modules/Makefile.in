@@ -153,6 +153,12 @@ m_gline_la_OBJECTS = $(am_m_gline_la_OBJECTS)
 m_gline_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(m_gline_la_LDFLAGS) $(LDFLAGS) -o $@
+m_globops_la_LIBADD =
+am_m_globops_la_OBJECTS = m_globops.lo
+m_globops_la_OBJECTS = $(am_m_globops_la_OBJECTS)
+m_globops_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(m_globops_la_LDFLAGS) $(LDFLAGS) -o $@
 m_hash_la_LIBADD =
 am_m_hash_la_OBJECTS = m_hash.lo
 m_hash_la_OBJECTS = $(am_m_hash_la_OBJECTS)
@@ -464,8 +470,8 @@ SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_connect_la_SOURCES) $(m_cryptlink_la_SOURCES) \
 	$(m_dline_la_SOURCES) $(m_encap_la_SOURCES) \
 	$(m_eob_la_SOURCES) $(m_etrace_la_SOURCES) \
-	$(m_gline_la_SOURCES) $(m_hash_la_SOURCES) \
-	$(m_help_la_SOURCES) $(m_info_la_SOURCES) \
+	$(m_gline_la_SOURCES) $(m_globops_la_SOURCES) \
+	$(m_hash_la_SOURCES) $(m_help_la_SOURCES) $(m_info_la_SOURCES) \
 	$(m_invite_la_SOURCES) $(m_ison_la_SOURCES) \
 	$(m_kline_la_SOURCES) $(m_knock_la_SOURCES) \
 	$(m_links_la_SOURCES) $(m_list_la_SOURCES) \
@@ -494,8 +500,8 @@ DIST_SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_connect_la_SOURCES) $(m_cryptlink_la_SOURCES) \
 	$(m_dline_la_SOURCES) $(m_encap_la_SOURCES) \
 	$(m_eob_la_SOURCES) $(m_etrace_la_SOURCES) \
-	$(m_gline_la_SOURCES) $(m_hash_la_SOURCES) \
-	$(m_help_la_SOURCES) $(m_info_la_SOURCES) \
+	$(m_gline_la_SOURCES) $(m_globops_la_SOURCES) \
+	$(m_hash_la_SOURCES) $(m_help_la_SOURCES) $(m_info_la_SOURCES) \
 	$(m_invite_la_SOURCES) $(m_ison_la_SOURCES) \
 	$(m_kline_la_SOURCES) $(m_knock_la_SOURCES) \
 	$(m_links_la_SOURCES) $(m_list_la_SOURCES) \
@@ -707,16 +713,16 @@ modulesdir = $(pkglibdir)/modules/autoload
 modules_LTLIBRARIES = m_accept.la m_admin.la m_away.la m_capab.la \
 	m_cap.la m_challenge.la m_close.la m_connect.la m_cryptlink.la \
 	m_dline.la m_encap.la m_eob.la m_etrace.la m_gline.la \
-	m_hash.la m_help.la m_info.la m_invite.la m_ison.la m_kline.la \
-	m_knock.la m_links.la m_list.la m_locops.la m_lusers.la \
-	m_map.la m_motd.la m_names.la m_omotd.la m_oper.la \
-	m_operwall.la m_pass.la m_ping.la m_pong.la m_post.la \
-	m_rehash.la m_restart.la m_resv.la m_set.la m_services.la \
-	m_stats.la m_svinfo.la m_svsmode.la m_svsnick.la m_tburst.la \
-	m_testline.la m_testmask.la m_time.la m_topic.la m_trace.la \
-	m_user.la m_userhost.la m_users.la m_version.la m_wallops.la \
-	m_watch.la m_who.la m_whois.la m_whowas.la m_xline.la \
-	$(am__append_1)
+	m_globops.la m_hash.la m_help.la m_info.la m_invite.la \
+	m_ison.la m_kline.la m_knock.la m_links.la m_list.la \
+	m_locops.la m_lusers.la m_map.la m_motd.la m_names.la \
+	m_omotd.la m_oper.la m_operwall.la m_pass.la m_ping.la \
+	m_pong.la m_post.la m_rehash.la m_restart.la m_resv.la \
+	m_set.la m_services.la m_stats.la m_svinfo.la m_svsmode.la \
+	m_svsnick.la m_tburst.la m_testline.la m_testmask.la m_time.la \
+	m_topic.la m_trace.la m_user.la m_userhost.la m_users.la \
+	m_version.la m_wallops.la m_watch.la m_who.la m_whois.la \
+	m_whowas.la m_xline.la $(am__append_1)
 m_challenge_la_LDFLAGS = $(MODULE_FLAGS)
 m_cryptlink_la_LDFLAGS = $(MODULE_FLAGS)
 m_accept_la_LDFLAGS = $(MODULE_FLAGS)
@@ -731,6 +737,7 @@ m_encap_la_LDFLAGS = $(MODULE_FLAGS)
 m_eob_la_LDFLAGS = $(MODULE_FLAGS)
 m_etrace_la_LDFLAGS = $(MODULE_FLAGS)
 m_gline_la_LDFLAGS = $(MODULE_FLAGS)
+m_globops_la_LDFLAGS = $(MODULE_FLAGS)
 m_hash_la_LDFLAGS = $(MODULE_FLAGS)
 m_help_la_LDFLAGS = $(MODULE_FLAGS)
 m_info_la_LDFLAGS = $(MODULE_FLAGS)
@@ -793,6 +800,7 @@ m_encap_la_SOURCES = m_encap.c
 m_eob_la_SOURCES = m_eob.c
 m_etrace_la_SOURCES = m_etrace.c
 m_gline_la_SOURCES = m_gline.c
+m_globops_la_SOURCES = m_globops.c
 m_hash_la_SOURCES = m_hash.c
 m_help_la_SOURCES = m_help.c
 m_info_la_SOURCES = m_info.c
@@ -934,6 +942,8 @@ m_etrace.la: $(m_etrace_la_OBJECTS) $(m_etrace_la_DEPENDENCIES)
 	$(m_etrace_la_LINK) -rpath $(modulesdir) $(m_etrace_la_OBJECTS) $(m_etrace_la_LIBADD) $(LIBS)
 m_gline.la: $(m_gline_la_OBJECTS) $(m_gline_la_DEPENDENCIES) 
 	$(m_gline_la_LINK) -rpath $(modulesdir) $(m_gline_la_OBJECTS) $(m_gline_la_LIBADD) $(LIBS)
+m_globops.la: $(m_globops_la_OBJECTS) $(m_globops_la_DEPENDENCIES) 
+	$(m_globops_la_LINK) -rpath $(modulesdir) $(m_globops_la_OBJECTS) $(m_globops_la_LIBADD) $(LIBS)
 m_hash.la: $(m_hash_la_OBJECTS) $(m_hash_la_DEPENDENCIES) 
 	$(m_hash_la_LINK) -rpath $(modulesdir) $(m_hash_la_OBJECTS) $(m_hash_la_LIBADD) $(LIBS)
 m_help.la: $(m_help_la_OBJECTS) $(m_help_la_DEPENDENCIES) 
@@ -1051,6 +1061,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_eob.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_etrace.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_gline.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_globops.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_hash.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_help.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_info.Plo@am__quote@

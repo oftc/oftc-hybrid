@@ -19,6 +19,7 @@ modules_LTLIBRARIES = m_accept.la    \
                       m_eob.la       \
                       m_etrace.la    \
                       m_gline.la     \
+                      m_globops.la   \
                       m_hash.la      \
                       m_help.la      \
                       m_info.la      \
@@ -83,6 +84,7 @@ m_encap_la_LDFLAGS = $(MODULE_FLAGS)
 m_eob_la_LDFLAGS = $(MODULE_FLAGS)
 m_etrace_la_LDFLAGS = $(MODULE_FLAGS)
 m_gline_la_LDFLAGS = $(MODULE_FLAGS)
+m_globops_la_LDFLAGS = $(MODULE_FLAGS)
 m_hash_la_LDFLAGS = $(MODULE_FLAGS)
 m_help_la_LDFLAGS = $(MODULE_FLAGS)
 m_info_la_LDFLAGS = $(MODULE_FLAGS)
@@ -148,6 +150,7 @@ m_encap_la_SOURCES = m_encap.c
 m_eob_la_SOURCES = m_eob.c
 m_etrace_la_SOURCES = m_etrace.c
 m_gline_la_SOURCES = m_gline.c
+m_globops_la_SOURCES = m_globops.c
 m_hash_la_SOURCES = m_hash.c
 m_help_la_SOURCES = m_help.c
 m_info_la_SOURCES = m_info.c

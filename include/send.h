@@ -67,6 +67,7 @@ extern void sendto_match_servs(struct Client *, const char *, int,
                                const char *, ...);
 extern void sendto_realops_flags(unsigned int, int,
                                  const char *, ...);
+extern void sendto_globops_flags(unsigned int, int, const char *, ...);
 extern void sendto_wallops_flags(unsigned int, struct Client *,
                                  const char *, ...);
 extern void ts_warn(const char *, ...);
