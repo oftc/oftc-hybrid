@@ -37,12 +37,12 @@
 #include "parse.h"
 #include "modules.h"
 
-static void m_locops(struct Client *, struct Client *, int, char *[]);
+static void mo_locops(struct Client *, struct Client *, int, char *[]);
 static void ms_locops(struct Client *, struct Client *, int, char *[]);
 
 struct Message locops_msgtab = {
   "LOCOPS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, ms_locops, m_ignore, m_locops, m_ignore }
+  { m_unregistered, m_not_oper, ms_locops, m_ignore, mo_locops, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -62,14 +62,14 @@ const char *_version = "$Revision$";
 #endif
 
 /*
- * m_locops - LOCOPS message handler
+ * mo_locops - LOCOPS message handler
  * (write to *all* local opers currently online)
  *      parv[0] = sender prefix
  *      parv[1] = message text
  */
 static void
-m_locops(struct Client *client_p, struct Client *source_p,
-         int parc, char *parv[])
+mo_locops(struct Client *client_p, struct Client *source_p,
+          int parc, char *parv[])
 {
   const char *message = parv[1];
 
