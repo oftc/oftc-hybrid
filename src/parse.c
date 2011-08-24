@@ -296,24 +296,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
   para[++parc] = NULL;
 
-  ilog(L_INFO, "RAW: COMMAND=%s parv[0]=%s, parv[1]=%s, parv[2]=%s, parv[3]=%s, parv[4]=%s, "
-       "parv[5]=%s, parv[6]=%s, parv[7]=%s, parv[8]=%s, parv[9]=%s, "
-       "parv[10]=%s, parv[11]=%s, parv[12]=%s",
-       msg_ptr->cmd,
-       para[ 0] ? para[ 0] : "",
-       para[ 1] ? para[ 1] : "",
-       para[ 2] ? para[ 2] : "",
-       para[ 3] ? para[ 3] : "",
-       para[ 4] ? para[ 4] : "",
-       para[ 5] ? para[ 5] : "",
-       para[ 6] ? para[ 6] : "",
-       para[ 7] ? para[ 7] : "",
-       para[ 8] ? para[ 8] : "",
-       para[ 9] ? para[ 9] : "",
-       para[10] ? para[10] : "",
-       para[11] ? para[11] : "",
-       para[12] ? para[12] : "");
-
   if (msg_ptr != NULL)
     handle_command(msg_ptr, client_p, from, parc, para);
   else
