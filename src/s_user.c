@@ -57,6 +57,7 @@
 #include "watch.h"
 #include "conf_general.h"
 #include "conf_serverinfo.h"
+#include "conf_serverhide.h"
 
 int MaxClientCount     = 1;
 int MaxConnectionCount = 1;
@@ -210,7 +211,7 @@ show_lusers(struct Client *source_p)
     to = source_p->name;
   }
 
-  if (!ConfigServerHide.hide_servers || IsOper(source_p))
+  if (!serverhide_config.hide_servers || IsOper(source_p))
     sendto_one(source_p, form_str(RPL_LUSERCLIENT),
                from, to, (Count.total-Count.invisi),
                Count.invisi, dlink_list_length(&global_serv_list));
@@ -230,7 +231,7 @@ show_lusers(struct Client *source_p)
     sendto_one(source_p, form_str(RPL_LUSERCHANNELS),
                from, to, dlink_list_length(&global_channel_list));
 
-  if (!ConfigServerHide.hide_servers || IsOper(source_p))
+  if (!serverhide_config.hide_servers || IsOper(source_p))
   {
     sendto_one(source_p, form_str(RPL_LUSERME),
                from, to, Count.local, Count.myserver);
@@ -251,7 +252,7 @@ show_lusers(struct Client *source_p)
              from, to, Count.total, Count.max_tot,
              Count.total, Count.max_tot);
 
-  if (!ConfigServerHide.hide_servers || IsOper(source_p))
+  if (!serverhide_config.hide_servers || IsOper(source_p))
     sendto_one(source_p, form_str(RPL_STATSCONN), from, to,
                MaxConnectionCount, MaxClientCount, Count.totalrestartcount);
 

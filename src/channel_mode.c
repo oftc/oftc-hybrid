@@ -46,6 +46,7 @@
 #include "s_log.h"
 #include "msg.h"
 #include "conf_channel.h"
+#include "conf_serverhide.h"
 
 /* some small utility functions */
 static char *check_string(char *);
@@ -1698,7 +1699,7 @@ send_mode_changes(struct Client *client_p, struct Client *source_p,
 
   if (IsServer(source_p))
     mbl = ircsprintf(modebuf, ":%s MODE %s ", (IsHidden(source_p) ||
-		     ConfigServerHide.hide_servers) ?
+		     serverhide_config.hide_servers) ?
 		     me.name : source_p->name, chname);
   else
     mbl = ircsprintf(modebuf, ":%s!%s@%s MODE %s ", source_p->name,

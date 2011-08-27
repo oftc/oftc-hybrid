@@ -37,6 +37,7 @@
 #include "modules.h"
 #include "s_conf.h"
 #include "conf_general.h"
+#include "conf_serverhide.h"
 
 static void mr_motd(struct Client *, struct Client *, int, char *[]);
 static void m_motd(struct Client*, struct Client*, int, char *[]);
@@ -118,7 +119,7 @@ m_motd(struct Client *client_p, struct Client *source_p,
   last_used = CurrentTime;
 
   /* This is safe enough to use during non hidden server mode */
-  if (!general_config.disable_remote_commands && !ConfigServerHide.hide_servers)
+  if (!general_config.disable_remote_commands && !serverhide_config.hide_servers)
     if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1, parc, parv)
                     != HUNTED_ISME)
       return;

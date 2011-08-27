@@ -42,6 +42,7 @@
 #include "packet.h"
 #include "common.h"
 #include "s_log.h"
+#include "conf_serverhide.h"
 
 static void m_topic(struct Client *, struct Client *, int, char **);
 static void ms_topic(struct Client *, struct Client *, int, char **);
@@ -230,7 +231,7 @@ ms_topic(struct Client *client_p, struct Client *source_p,
 
     set_channel_topic(chptr, parv[4], parv[2], atoi(parv[3]));
 
-    if (ConfigServerHide.hide_servers)
+    if (serverhide_config.hide_servers)
     {
       sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
                            me.name, chptr->chname,

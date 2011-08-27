@@ -43,6 +43,7 @@
 #include "s_log.h"
 #include "conf_general.h"
 #include "conf_channel.h"
+#include "conf_serverhide.h"
 
 static void m_join(struct Client *, struct Client *, int, char *[]);
 static void ms_join(struct Client *, struct Client *, int, char *[]);
@@ -438,7 +439,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
       chptr->topic_time = 0;
       sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :",
                            (IsHidden(source_p) ||
-                           ConfigServerHide.hide_servers) ?
+                           serverhide_config.hide_servers) ?
                            me.name : source_p->name, chptr->chname);
     }
 
@@ -450,7 +451,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
    
   if (*modebuf != '\0')
   {
-    servername = (ConfigServerHide.hide_servers || IsHidden(source_p)) ?
+    servername = (serverhide_config.hide_servers || IsHidden(source_p)) ?
                   me.name : source_p->name;
 
     /* This _SHOULD_ be to ALL_MEMBERS
@@ -686,7 +687,7 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
       sendto_channel_local(ALL_MEMBERS, 0, chptr,
                            ":%s MODE %s %s%s",
                            (IsHidden(source_p) ||
-                           ConfigServerHide.hide_servers) ?
+                           serverhide_config.hide_servers) ?
                            me.name : source_p->name,
                            chptr->chname, lmodebuf, sendbuf);
       mbuf = lmodebuf;
@@ -709,7 +710,7 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
     }
     sendto_channel_local(ALL_MEMBERS, 0, chptr,
                          ":%s MODE %s %s%s",
-                         (IsHidden(source_p) || ConfigServerHide.hide_servers) ?
+                         (IsHidden(source_p) || serverhide_config.hide_servers) ?
                          me.name : source_p->name,
                          chptr->chname, lmodebuf, sendbuf);
   }

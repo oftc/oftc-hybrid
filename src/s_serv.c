@@ -56,6 +56,7 @@
 #include "conf_general.h"
 #include "conf_serverinfo.h"
 #include "conf_channel.h"
+#include "conf_serverhide.h"
 
 #define MIN_CONN_FREQ 300
 
@@ -300,7 +301,7 @@ write_links_file(void* notused)
       continue;
 
     /* skip hidden servers */
-    if (IsHidden(target_p) && !ConfigServerHide.disable_hidden)
+    if (IsHidden(target_p) && !serverhide_config.disable_hidden)
       continue;
 
     if (target_p->info[0])
@@ -550,7 +551,7 @@ try_connections(void *unused)
        * error afterwards if it fails.
        *   -- adrian
        */
-      if (ConfigServerHide.hide_server_ips)
+      if (serverhide_config.hide_server_ips)
         sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Connection to %s activated.",
                              conf->name);
       else
@@ -1089,7 +1090,7 @@ server_estab(struct Client *client_p)
      */
     sendto_one(client_p, "SERVER %s 1 :%s%s",
                my_name_for_link(conf), 
-               ConfigServerHide.hidden ? "(H) " : "",
+               serverhide_config.hidden ? "(H) " : "",
                (me.info[0]) ? (me.info) : "IRCers United");
     send_queued_write(client_p);
   }
@@ -1833,7 +1834,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
     /* We have an error, so report it and quit
      * Admins get to see any IP, mere opers don't *sigh*
      */
-     if (ConfigServerHide.hide_server_ips)
+     if (serverhide_config.hide_server_ips)
        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                             "Error connecting to %s: %s",
                             client_p->name, comm_errstr(status));
@@ -1903,7 +1904,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 
  sendto_one(client_p, "SERVER %s 1 :%s%s",
              my_name_for_link(conf), 
-	     ConfigServerHide.hidden ? "(H) " : "", 
+	     serverhide_config.hidden ? "(H) " : "", 
 	     me.info);
 
   /* If we've been marked dead because a send failed, just exit
@@ -2015,7 +2016,7 @@ ssllink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
       my_name_for_link(conf), 
-      ConfigServerHide.hidden ? "(H) " : "", 
+      serverhide_config.hidden ? "(H) " : "", 
       me.info);
 
   /* If we've been marked dead because a send failed, just exit
@@ -2102,7 +2103,7 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
 
   sendto_one(client_p, "CRYPTLINK SERV %s %s :%s%s",
              my_name_for_link(conf), key_to_send,
-             ConfigServerHide.hidden ? "(H) " : "", me.info);
+             serverhide_config.hidden ? "(H) " : "", me.info);
 
   SetHandshake(client_p);
   SetWaitAuth(client_p);

@@ -46,6 +46,7 @@
 #include "hook.h"
 #include "conf_general.h"
 #include "conf_serverinfo.h"
+#include "conf_serverhide.h"
 
 static void do_whois(struct Client *, int, char **);
 static int single_whois(struct Client *, struct Client *);
@@ -393,14 +394,14 @@ whois_person(struct Client *source_p, struct Client *target_p)
     }
   }
 
-  if (IsOper(source_p) || !ConfigServerHide.hide_servers || target_p == source_p)
+  if (IsOper(source_p) || !serverhide_config.hide_servers || target_p == source_p)
     sendto_one(source_p, form_str(RPL_WHOISSERVER),
         me.name, source_p->name, target_p->name,
                server_p->name, server_p->info);
   else
     sendto_one(source_p, form_str(RPL_WHOISSERVER),
 	       me.name, source_p->name, target_p->name,
-               ConfigServerHide.hidden_name,
+               serverhide_config.hidden_name,
 	       serverinfo_config.network_desc);
 
   if (target_p->away != NULL)

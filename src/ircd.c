@@ -66,6 +66,7 @@
 #include "conf_general.h"
 #include "conf_serverinfo.h"
 #include "conf_channel.h"
+#include "conf_serverhide.h"
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
  * number of files allowed to be open by this process.
@@ -717,10 +718,10 @@ main(int argc, char *argv[])
   /* Setup the timeout check. I'll shift it later :)  -- adrian */
   eventAddIsh("comm_checktimeouts", comm_checktimeouts, NULL, 1);
 
-  if (ConfigServerHide.links_delay > 0)
-    eventAddIsh("write_links_file", write_links_file, NULL, ConfigServerHide.links_delay);
+  if (serverhide_config.links_delay > 0)
+    eventAddIsh("write_links_file", write_links_file, NULL, serverhide_config.links_delay);
   else
-    ConfigServerHide.links_disabled = 1;
+    serverhide_config.links_disabled = 1;
 
   if (splitmode)
     eventAddIsh("check_splitmode", check_splitmode, NULL, 60);

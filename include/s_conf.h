@@ -342,18 +342,6 @@ struct config_file_entry
   MessageFile linksfile;
 };
 
-struct config_server_hide
-{
-  int flatten_links;
-  int hide_servers;
-  char *hidden_name;
-  int links_delay;
-  int links_disabled;
-  int hidden;
-  int disable_hidden;
-  int hide_server_ips;
-};
-
 struct admin_info
 {
   char *name;
@@ -375,7 +363,6 @@ extern dlink_list temporary_xlines;
 extern dlink_list temporary_rxlines;
 extern dlink_list temporary_rklines;
 extern struct config_file_entry ConfigFileEntry;/* defined in ircd.c*/
-extern struct config_server_hide ConfigServerHide; /* defined in s_conf.c */
 extern struct server_info ServerInfo;       /* defined in ircd.c */
 extern int valid_wild_card(struct Client *, int, int, ...);
 /* End GLOBAL section */

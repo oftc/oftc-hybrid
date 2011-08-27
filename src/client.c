@@ -53,6 +53,7 @@
 #include "userhost.h"
 #include "watch.h"
 #include "conf_general.h"
+#include "conf_serverhide.h"
 
 dlink_list listing_client_list = { NULL, NULL, 0 };
 /* Pointer to beginning of Client list */
@@ -655,7 +656,7 @@ get_client_name(struct Client *client, int showip)
   if (irccmp(client->name, client->host) == 0)
     return(client->name);
 
-  if (ConfigServerHide.hide_server_ips)
+  if (serverhide_config.hide_server_ips)
     if (IsServer(client) || IsConnecting(client) || IsHandshake(client))
       showip = MASK_IP;
 
@@ -1004,7 +1005,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
     /* This shouldn't ever happen */
     assert(source_p->serv != NULL && source_p->servptr != NULL);
 
-    if (ConfigServerHide.hide_servers)
+    if (serverhide_config.hide_servers)
       /*
        * Set netsplit message to "*.net *.split" to still show 
        * that its a split, but hide the servers splitting

@@ -302,7 +302,6 @@ unhook_hub_leaf_confs(void)
 %token  SECONDS MINUTES HOURS DAYS WEEKS
 %token  SENDQ
 %token  SEND_PASSWORD
-%token  SERVERHIDE
 %token  SERVLINK_PATH
 %token  SSLLINK
 %token  IRCD_SID
@@ -402,7 +401,6 @@ conf_item:
                 | class_entry 
                 | listen_entry
                 | auth_entry
-		| serverhide_entry
                 | resv_entry
                 | shared_entry
 		| cluster_entry
@@ -2779,71 +2777,4 @@ gecos_reason: REASON '=' QSTRING ';'
 {
   if (ypass == 2)
     strlcpy(reasonbuf, yylval.string, sizeof(reasonbuf));
-};
-
-/***************************************************************************
- *  section serverhide
- ***************************************************************************/
-serverhide_entry: SERVERHIDE
-  '{' serverhide_items '}' ';';
-
-serverhide_items:   serverhide_items serverhide_item | serverhide_item;
-serverhide_item:    serverhide_flatten_links | serverhide_hide_servers |
-		    serverhide_links_delay |
-		    serverhide_disable_hidden |
-		    serverhide_hidden | serverhide_hidden_name |
-		    serverhide_hide_server_ips |
-                    error;
-
-serverhide_flatten_links: FLATTEN_LINKS '=' TBOOL ';'
-{
-  if (ypass == 2)
-    ConfigServerHide.flatten_links = yylval.number;
-};
-
-serverhide_hide_servers: HIDE_SERVERS '=' TBOOL ';'
-{
-  if (ypass == 2)
-    ConfigServerHide.hide_servers = yylval.number;
-};
-
-serverhide_hidden_name: HIDDEN_NAME '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(ConfigServerHide.hidden_name);
-    DupString(ConfigServerHide.hidden_name, yylval.string);
-  }
-};
-
-serverhide_links_delay: LINKS_DELAY '=' timespec ';'
-{
-  if (ypass == 2)
-  {
-    if (($3 > 0) && ConfigServerHide.links_disabled == 1)
-    {
-      eventAddIsh("write_links_file", write_links_file, NULL, $3);
-      ConfigServerHide.links_disabled = 0;
-    }
-
-    ConfigServerHide.links_delay = $3;
-  }
-};
-
-serverhide_hidden: HIDDEN '=' TBOOL ';'
-{
-  if (ypass == 2)
-    ConfigServerHide.hidden = yylval.number;
-};
-
-serverhide_disable_hidden: DISABLE_HIDDEN '=' TBOOL ';'
-{
-  if (ypass == 2)
-    ConfigServerHide.disable_hidden = yylval.number;
-};
-
-serverhide_hide_server_ips: HIDE_SERVER_IPS '=' TBOOL ';'
-{
-  if (ypass == 2)
-    ConfigServerHide.hide_server_ips = yylval.number;
 };

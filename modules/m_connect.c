@@ -38,6 +38,7 @@
 #include "parse.h"
 #include "hash.h"
 #include "modules.h"
+#include "conf_serverhide.h"
 
 static void mo_connect(struct Client *, struct Client *, int, char **);
 static void ms_connect(struct Client *, struct Client *, int, char **);
@@ -171,7 +172,7 @@ mo_connect(struct Client* client_p, struct Client* source_p,
    */
   if (serv_connect(aconf, source_p))
   {
-    if (!ConfigServerHide.hide_server_ips && IsAdmin(source_p))
+    if (!serverhide_config.hide_server_ips && IsAdmin(source_p))
       sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s[%s].%d",
                  me.name, source_p->name, aconf->host,
                  conf->name, aconf->port);

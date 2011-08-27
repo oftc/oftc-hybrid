@@ -41,6 +41,7 @@
 #include "memory.h"
 #include "s_user.h"
 #include "s_serv.h"
+#include "conf_serverhide.h"
 
 /*
  * (based on orabidoo's parser code)
@@ -815,7 +816,7 @@ do_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
       return;
     
     /* Fake it for server hiding, if its our client */
-    if (ConfigServerHide.hide_servers &&
+    if (serverhide_config.hide_servers &&
         MyClient(target_p) && !IsOper(target_p))
       sendto_one(target_p, ":%s %s %s%s", me.name, numeric, target_p->name, buffer);
     else

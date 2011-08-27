@@ -39,6 +39,7 @@
 #include "hash.h"
 #include "s_serv.h"
 #include "s_conf.h"
+#include "conf_serverhide.h"
 
 static void ms_tb(struct Client *, struct Client *, int, char *[]);
 static void ms_tburst(struct Client *, struct Client *, int, char *[]);
@@ -143,7 +144,7 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
 
     if (topic_differs)
       sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
-                           ConfigServerHide.hide_servers ? me.name : source_p->name,
+                           serverhide_config.hide_servers ? me.name : source_p->name,
                            chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
   }
 
@@ -219,7 +220,7 @@ set_topic(struct Client *source_p, struct Channel *chptr, time_t topicts,
   /* Only send TOPIC to channel if it's different */
   if (new_topic)
     sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
-                         ConfigServerHide.hide_servers ? me.name : source_p->name,
+                         serverhide_config.hide_servers ? me.name : source_p->name,
                          chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
 
   sendto_server(source_p, chptr, CAP_TBURST, NOCAPS,

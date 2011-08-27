@@ -54,6 +54,7 @@
 #include "hash.h"
 #include "watch.h"
 #include "conf_general.h"
+#include "conf_serverhide.h"
 
 static void do_stats(struct Client *, int, char **);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
@@ -1259,7 +1260,7 @@ stats_servlinks(struct Client *source_p)
   time_t uptime = 0;
   dlink_node *ptr = NULL;
 
-  if (ConfigServerHide.flatten_links && !IsOper(source_p))
+  if (serverhide_config.flatten_links && !IsOper(source_p))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);

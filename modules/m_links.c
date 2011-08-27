@@ -37,6 +37,7 @@
 #include "modules.h"
 #include "hook.h"
 #include "conf_general.h"
+#include "conf_serverhide.h"
 
 static void do_links(struct Client *, int, char **);
 static void m_links(struct Client*, struct Client*, int, char**);
@@ -82,7 +83,7 @@ _moddeinit(void)
 static void
 do_links(struct Client *source_p, int parc, char **parv)
 {
-  if (IsOper(source_p) || !ConfigServerHide.flatten_links)
+  if (IsOper(source_p) || !serverhide_config.flatten_links)
   {
     char *mask = (parc > 2 ? parv[2] : parv[1]);
     const char *me_name, *nick, *p;
@@ -166,7 +167,7 @@ m_links(struct Client *client_p, struct Client *source_p,
   else
     last_used = CurrentTime;
 
-  if (!ConfigServerHide.flatten_links)
+  if (!serverhide_config.flatten_links)
   {
     mo_links(client_p, source_p, parc, parv);
     return;

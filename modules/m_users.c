@@ -34,6 +34,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "conf_general.h"
+#include "conf_serverhide.h"
 
 static void m_users(struct Client *, struct Client *, int, char *[]);
 static void mo_users(struct Client *, struct Client *, int, char *[]);
@@ -84,10 +85,10 @@ m_users(struct Client *client_p, struct Client *source_p,
       return;
 
   sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, source_p->name,
-             ConfigServerHide.hide_servers ? Count.total : Count.local,
-             ConfigServerHide.hide_servers ? Count.max_tot : Count.max_loc,
-             ConfigServerHide.hide_servers ? Count.total : Count.local,
-             ConfigServerHide.hide_servers ? Count.max_tot : Count.max_loc);
+             serverhide_config.hide_servers ? Count.total : Count.local,
+             serverhide_config.hide_servers ? Count.max_tot : Count.max_loc,
+             serverhide_config.hide_servers ? Count.total : Count.local,
+             serverhide_config.hide_servers ? Count.max_tot : Count.max_loc);
 
   sendto_one(source_p, form_str(RPL_GLOBALUSERS), me.name, source_p->name,
              Count.total, Count.max_tot, Count.total, Count.max_tot);
@@ -106,7 +107,7 @@ mo_users(struct Client *client_p, struct Client *source_p,
                   parc, parv) != HUNTED_ISME)
     return;
 
-  if (!IsOper(source_p) && ConfigServerHide.hide_servers)
+  if (!IsOper(source_p) && serverhide_config.hide_servers)
     sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, source_p->name,
                Count.total, Count.max_tot, Count.total, Count.max_tot);
   else

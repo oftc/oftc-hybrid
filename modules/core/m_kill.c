@@ -39,6 +39,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "conf_general.h"
+#include "conf_serverhide.h"
 
 static char buf[IRCD_BUFSIZE];
 
@@ -254,7 +255,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
     if (IsServer(source_p))
     {
       /* dont send clients kills from a hidden server */
-      if ((IsHidden(source_p) || ConfigServerHide.hide_servers) && !IsOper(target_p))
+      if ((IsHidden(source_p) || serverhide_config.hide_servers) && !IsOper(target_p))
         sendto_one(target_p, ":%s KILL %s :%s",
  		   me.name, target_p->name, reason);
       else
@@ -293,7 +294,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
   SetKilled(target_p);
 
   /* reason comes supplied with its own ()'s */
-  if (IsServer(source_p) && (IsHidden(source_p) || ConfigServerHide.hide_servers))
+  if (IsServer(source_p) && (IsHidden(source_p) || serverhide_config.hide_servers))
     ircsprintf(buf, "Killed (%s %s)", me.name, reason);
   else
     ircsprintf(buf, "Killed (%s %s)", source_p->name, reason);

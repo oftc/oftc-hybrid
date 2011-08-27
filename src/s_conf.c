@@ -58,6 +58,7 @@
 #include "conf_admin.h"
 #include "conf_logging.h"
 #include "conf_channel.h"
+#include "conf_serverhide.h"
 
 enum FullCause
 {
@@ -81,7 +82,6 @@ char *full_reasons[] =
 };
 
 struct Callback *client_check_cb = NULL;
-struct config_server_hide ConfigServerHide;
 
 /* general conf items link list root, other than k lines etc. */
 dlink_list server_items  = { NULL, NULL, 0 };
@@ -724,7 +724,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
       /*
        * Allow admins to see actual ips unless hide_server_ips is enabled
        */
-      if (!ConfigServerHide.hide_server_ips && IsAdmin(source_p))
+      if (!serverhide_config.hide_server_ips && IsAdmin(source_p))
   sendto_one(source_p, form_str(RPL_STATSCLINE),
        me.name, source_p->name, 'C', aconf->host,
        buf, conf->name, aconf->port,
@@ -1856,13 +1856,13 @@ set_default_conf(void)
   channel_config.no_create_on_split = NO;
   channel_config.burst_topicwho = YES;
 
-  ConfigServerHide.flatten_links = NO;
-  ConfigServerHide.links_delay = 300;
-  ConfigServerHide.hidden = NO;
-  ConfigServerHide.disable_hidden = NO;
-  ConfigServerHide.hide_servers = NO;
-  DupString(ConfigServerHide.hidden_name, NETWORK_NAME_DEFAULT);
-  ConfigServerHide.hide_server_ips = NO;
+  serverhide_config.flatten_links = NO;
+  serverhide_config.links_delay = 300;
+  serverhide_config.hidden = NO;
+  serverhide_config.disable_hidden = NO;
+  serverhide_config.hide_servers = NO;
+  DupString(serverhide_config.hidden_name, NETWORK_NAME_DEFAULT);
+  serverhide_config.hide_server_ips = NO;
 
   
   general_config.max_watch = WATCHSIZE_DEFAULT;

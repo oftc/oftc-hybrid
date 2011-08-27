@@ -41,6 +41,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
+#include "conf_serverhide.h"
 
 static void m_invite(struct Client *, struct Client *, int, char *[]);
 
@@ -110,7 +111,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
    */
   if (!MyConnect(target_p) && (*parv[2] == '&'))
   {
-    if (ConfigServerHide.hide_servers == 0)
+    if (serverhide_config.hide_servers == 0)
       sendto_one(source_p, form_str(ERR_USERNOTONSERV),
                  me.name, source_p->name, target_p->name);
     return;

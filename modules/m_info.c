@@ -45,6 +45,7 @@
 #include "conf_serverinfo.h"
 #include "conf_logging.h"
 #include "conf_channel.h"
+#include "conf_serverhide.h"
 
 static void send_conf_options(struct Client *);
 static void send_birthdate_online_time(struct Client *);
@@ -254,43 +255,43 @@ static const struct InfoStruct info_table[] =
   {
     "flatten_links",
     OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.flatten_links,
+    &serverhide_config.flatten_links,
     "Flatten /links list"
   },
   {
     "links_delay",
     OUTPUT_DECIMAL,
-    &ConfigServerHide.links_delay,
+    &serverhide_config.links_delay,
     "Links rehash delay"
   },
   {
     "hidden",
     OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.hidden,
+    &serverhide_config.hidden,
     "Hide this server from a flattened /links on remote servers"
   },
   {
     "disable_hidden",
     OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.disable_hidden,
+    &serverhide_config.disable_hidden,
     "Prevent servers from hiding themselves from a flattened /links"
   },
   {
     "hide_servers",
     OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.hide_servers,
+    &serverhide_config.hide_servers,
     "Hide servernames from users"
   },
   {
     "hidden_name",
     OUTPUT_STRING,
-    &ConfigServerHide.hidden_name,
+    &serverhide_config.hidden_name,
     "Server name users see if hide_servers = yes"
   },
   {
     "hide_server_ips",
     OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.hide_server_ips,
+    &serverhide_config.hide_server_ips,
     "Prevent people from seeing server IPs"
   },
   {
