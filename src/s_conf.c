@@ -57,6 +57,7 @@
 #include "conf_serverinfo.h"
 #include "conf_admin.h"
 #include "conf_logging.h"
+#include "conf_channel.h"
 
 enum FullCause
 {
@@ -1838,22 +1839,22 @@ set_default_conf(void)
   set_log_level(L_NOTICE);
   logging_config.use_logging = 1;
 
-  ConfigChannel.disable_fake_channels = NO;
-  ConfigChannel.restrict_channels = NO;
-  ConfigChannel.disable_local_channels = NO;
-  ConfigChannel.use_invex = YES;
-  ConfigChannel.use_except = YES;
-  ConfigChannel.use_knock = YES;
-  ConfigChannel.knock_delay = 300;
-  ConfigChannel.knock_delay_channel = 60;
-  ConfigChannel.max_chans_per_user = 15;
-  ConfigChannel.quiet_on_ban = YES;
-  ConfigChannel.max_bans = 25;
-  ConfigChannel.default_split_user_count = 0;
-  ConfigChannel.default_split_server_count = 0;
-  ConfigChannel.no_join_on_split = NO;
-  ConfigChannel.no_create_on_split = NO;
-  ConfigChannel.burst_topicwho = YES;
+  channel_config.disable_fake_channels = NO;
+  channel_config.restrict_channels = NO;
+  channel_config.disable_local_channels = NO;
+  channel_config.use_invex = YES;
+  channel_config.use_except = YES;
+  channel_config.use_knock = YES;
+  channel_config.knock_delay = 300;
+  channel_config.knock_delay_channel = 60;
+  channel_config.max_chans_per_user = 15;
+  channel_config.quiet_on_ban = YES;
+  channel_config.max_bans = 25;
+  channel_config.default_split_user_count = 0;
+  channel_config.default_split_server_count = 0;
+  channel_config.no_join_on_split = NO;
+  channel_config.no_create_on_split = NO;
+  channel_config.burst_topicwho = YES;
 
   ConfigServerHide.flatten_links = NO;
   ConfigServerHide.links_delay = 300;
@@ -2492,24 +2493,24 @@ read_conf_files(int cold)
   fbclose(conf_fbfile_in);
 
   add_isupport("NETWORK", serverinfo_config.network_name, -1);
-  ircsprintf(chanmodes, "b%s%s:%d", ConfigChannel.use_except ? "e" : "",
-             ConfigChannel.use_invex ? "I" : "", ConfigChannel.max_bans);
+  ircsprintf(chanmodes, "b%s%s:%d", channel_config.use_except ? "e" : "",
+             channel_config.use_invex ? "I" : "", channel_config.max_bans);
   add_isupport("MAXLIST", chanmodes, -1);
   add_isupport("MAXTARGETS", NULL, general_config.max_targets);
-  if (ConfigChannel.disable_local_channels)
+  if (channel_config.disable_local_channels)
     add_isupport("CHANTYPES", "#", -1);
   else
     add_isupport("CHANTYPES", "#&", -1);
-  ircsprintf(chanlimit, "%s:%d", ConfigChannel.disable_local_channels ? "#" : "#&",
-       ConfigChannel.max_chans_per_user);
+  ircsprintf(chanlimit, "%s:%d", channel_config.disable_local_channels ? "#" : "#&",
+       channel_config.max_chans_per_user);
   add_isupport("CHANLIMIT", chanlimit, -1);
-  ircsprintf(chanmodes, "%s%s%s%s", ConfigChannel.use_except ? "e" : "",
-       ConfigChannel.use_invex ? "I" : "", ConfigChannel.use_quiet ? "q" : "",
+  ircsprintf(chanmodes, "%s%s%s%s", channel_config.use_except ? "e" : "",
+       channel_config.use_invex ? "I" : "", channel_config.use_quiet ? "q" : "",
        "b,k,l,imnpstMRS");
   add_isupport("CHANNELLEN", NULL, LOCAL_CHANNELLEN);
-  if (ConfigChannel.use_except)
+  if (channel_config.use_except)
     add_isupport("EXCEPTS", "e", -1);
-  if (ConfigChannel.use_invex)
+  if (channel_config.use_invex)
     add_isupport("INVEX", "I", -1);
   add_isupport("CHANMODES", chanmodes, -1);
 

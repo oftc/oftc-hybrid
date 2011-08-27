@@ -55,6 +55,7 @@
 #include "channel.h" /* chcap_usage_counts stuff...*/
 #include "conf_general.h"
 #include "conf_serverinfo.h"
+#include "conf_channel.h"
 
 #define MIN_CONN_FREQ 300
 
@@ -1547,7 +1548,7 @@ send_tb(struct Client *client_p, struct Channel *chptr)
                  chptr->topic ? chptr->topic : "");
     else if (IsCapable(client_p, CAP_TB))
     {
-      if (ConfigChannel.burst_topicwho)
+      if (channel_config.burst_topicwho)
       {
         sendto_one(client_p, ":%s TB %s %lu %s :%s",
                    me.name, chptr->chname,

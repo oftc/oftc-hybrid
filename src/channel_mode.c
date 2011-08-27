@@ -39,12 +39,13 @@
 #include "s_user.h"
 #include "send.h"
 #include "whowas.h"
-#include "s_conf.h"             /* ConfigFileEntry, ConfigChannel */
+#include "s_conf.h"             /* ConfigFileEntry, channel_config */
 #include "event.h"
 #include "memory.h"
 #include "balloc.h"
 #include "s_log.h"
 #include "msg.h"
+#include "conf_channel.h"
 
 /* some small utility functions */
 static char *check_string(char *);
@@ -167,7 +168,7 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
                dlink_list_length(&chptr->exceptlist) +
                dlink_list_length(&chptr->invexlist);
 
-    if (num_mask >= ConfigChannel.max_bans)
+    if (num_mask >= channel_config.max_bans)
     {
       sendto_one(client_p, form_str(ERR_BANLISTFULL),
                  me.name, client_p->name, chptr->chname, banid);
@@ -749,7 +750,7 @@ chm_except(struct Client *client_p, struct Client *source_p,
    * set the mode.  This prevents the abuse of +e when just a few
    * servers support it. --fl
    */
-  if (!ConfigChannel.use_except && MyClient(source_p) && 
+  if (!channel_config.use_except && MyClient(source_p) && 
       ((dir == MODE_ADD) && (parc > *parn)))
   {
     if (*errors & SM_ERR_RPL_E)
@@ -822,7 +823,7 @@ chm_except(struct Client *client_p, struct Client *source_p,
   mode_changes[mode_count].caps = CAP_EX;
   mode_changes[mode_count].nocaps = 0;
 
-  if (ConfigChannel.use_except)
+  if (channel_config.use_except)
     mode_changes[mode_count].mems = ONLY_CHANOPS;
   else
     mode_changes[mode_count].mems = ONLY_SERVERS;
@@ -843,7 +844,7 @@ chm_invex(struct Client *client_p, struct Client *source_p,
    * set the mode.  This prevents the abuse of +I when just a few
    * servers support it --fl
    */
-  if (!ConfigChannel.use_invex && MyClient(source_p) && 
+  if (!channel_config.use_invex && MyClient(source_p) && 
       (dir == MODE_ADD) && (parc > *parn))
   {
     if (*errors & SM_ERR_RPL_I)
@@ -916,7 +917,7 @@ chm_invex(struct Client *client_p, struct Client *source_p,
   mode_changes[mode_count].caps = CAP_IE;
   mode_changes[mode_count].nocaps = 0;
 
-  if (ConfigChannel.use_invex)
+  if (channel_config.use_invex)
     mode_changes[mode_count].mems = ONLY_CHANOPS;
   else
     mode_changes[mode_count].mems = ONLY_SERVERS;
@@ -960,7 +961,7 @@ chm_quiet(struct Client *client_p, struct Client *source_p,
                source_p->name, chname);
     return;
   }
- if (!ConfigChannel.use_quiet && MyClient(source_p) && 
+ if (!channel_config.use_quiet && MyClient(source_p) && 
       (dir == MODE_ADD) && (parc > *parn))
   {
     if (*errors & SM_ERR_RPL_Q)
@@ -1010,7 +1011,7 @@ chm_quiet(struct Client *client_p, struct Client *source_p,
   mode_changes[mode_count].caps = CAP_QUIET;
   mode_changes[mode_count].nocaps = 0;
 
-  if (ConfigChannel.use_quiet)
+  if (channel_config.use_quiet)
     mode_changes[mode_count].mems = ONLY_CHANOPS;
   else
     mode_changes[mode_count].mems = ONLY_SERVERS;

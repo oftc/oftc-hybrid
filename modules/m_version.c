@@ -36,6 +36,7 @@
 #include "modules.h"
 #include "conf_general.h"
 #include "conf_serverinfo.h"
+#include "conf_channel.h"
 
 static char *confopts(struct Client *);
 static void m_version(struct Client *, struct Client *, int, char *[]);
@@ -165,7 +166,7 @@ confopts(struct Client *source_p)
   static char result[12];
   char *p = result;
 
-  if (ConfigChannel.use_except)
+  if (channel_config.use_except)
     *p++ = 'e';
   *p++ = 'g';
 
@@ -176,11 +177,11 @@ confopts(struct Client *source_p)
     *p++ = 'H';
   }
 
-  if (ConfigChannel.use_invex)
+  if (channel_config.use_invex)
     *p++ = 'I';
-  if (ConfigChannel.use_quiet)
+  if (channel_config.use_quiet)
     *p++ = 'q';
-  if (ConfigChannel.use_knock)
+  if (channel_config.use_knock)
     *p++ = 'K';
   *p++ = 'M';
 

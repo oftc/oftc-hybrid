@@ -342,27 +342,6 @@ struct config_file_entry
   MessageFile linksfile;
 };
 
-struct config_channel_entry
-{
-  int disable_fake_channels;
-  int restrict_channels;
-  int disable_local_channels;
-  int use_except;
-  int use_invex;
-  int use_quiet;
-  int use_knock;
-  int knock_delay;
-  int knock_delay_channel;
-  unsigned int max_bans;
-  unsigned int max_chans_per_user;
-  int no_create_on_split;
-  int no_join_on_split;
-  int quiet_on_ban;
-  int burst_topicwho;
-  int default_split_server_count;
-  int default_split_user_count;
-};
-
 struct config_server_hide
 {
   int flatten_links;
@@ -396,7 +375,6 @@ extern dlink_list temporary_xlines;
 extern dlink_list temporary_rxlines;
 extern dlink_list temporary_rklines;
 extern struct config_file_entry ConfigFileEntry;/* defined in ircd.c*/
-extern struct config_channel_entry ConfigChannel;/* defined in channel.c*/
 extern struct config_server_hide ConfigServerHide; /* defined in s_conf.c */
 extern struct server_info ServerInfo;       /* defined in ircd.c */
 extern int valid_wild_card(struct Client *, int, int, ...);

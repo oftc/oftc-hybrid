@@ -154,7 +154,7 @@ unhook_hub_leaf_confs(void)
 %token  CALLER_ID_WAIT
 %token  CAN_FLOOD
 %token  CAN_IDLE
-%token  CHANNEL
+%token CHANNEL
 %token	CIDR_BITLEN_IPV4
 %token	CIDR_BITLEN_IPV6
 %token  CIPHER_PREFERENCE
@@ -399,7 +399,6 @@ conf:
 
 conf_item:        
                  oper_entry
-		| channel_entry
                 | class_entry 
                 | listen_entry
                 | auth_entry
@@ -2780,119 +2779,6 @@ gecos_reason: REASON '=' QSTRING ';'
 {
   if (ypass == 2)
     strlcpy(reasonbuf, yylval.string, sizeof(reasonbuf));
-};
-
-/***************************************************************************
- *  section channel
- ***************************************************************************/
-channel_entry: CHANNEL
-  '{' channel_items '}' ';';
-
-channel_items:      channel_items channel_item | channel_item;
-channel_item:       channel_disable_local_channels | channel_use_except |
-                    channel_use_invex | channel_use_quiet | channel_use_knock |
-                    channel_max_bans | channel_knock_delay |
-                    channel_knock_delay_channel | channel_max_chans_per_user |
-                    channel_quiet_on_ban | channel_default_split_user_count |
-                    channel_default_split_server_count |
-                    channel_no_create_on_split | channel_restrict_channels |
-                    channel_no_join_on_split | channel_burst_topicwho |
-                    channel_jflood_count | channel_jflood_time |
-                    channel_disable_fake_channels | error;
-
-channel_disable_fake_channels: DISABLE_FAKE_CHANNELS '=' TBOOL ';'
-{
-  ConfigChannel.disable_fake_channels = yylval.number;
-};
-
-channel_restrict_channels: RESTRICT_CHANNELS '=' TBOOL ';'
-{
-  ConfigChannel.restrict_channels = yylval.number;
-};
-
-channel_disable_local_channels: DISABLE_LOCAL_CHANNELS '=' TBOOL ';'
-{
-  ConfigChannel.disable_local_channels = yylval.number;
-};
-
-channel_use_except: USE_EXCEPT '=' TBOOL ';'
-{
-  ConfigChannel.use_except = yylval.number;
-};
-
-channel_use_invex: USE_INVEX '=' TBOOL ';'
-{
-  ConfigChannel.use_invex = yylval.number;
-};
-
-channel_use_quiet: USE_QUIET '=' TBOOL ';'
-{
-  ConfigChannel.use_quiet = yylval.number;
-};
-
-channel_use_knock: USE_KNOCK '=' TBOOL ';'
-{
-  ConfigChannel.use_knock = yylval.number;
-};
-
-channel_knock_delay: KNOCK_DELAY '=' timespec ';'
-{
-  ConfigChannel.knock_delay = $3;
-};
-
-channel_knock_delay_channel: KNOCK_DELAY_CHANNEL '=' timespec ';'
-{
-  ConfigChannel.knock_delay_channel = $3;
-};
-
-channel_max_chans_per_user: MAX_CHANS_PER_USER '=' NUMBER ';'
-{
-  ConfigChannel.max_chans_per_user = $3;
-};
-
-channel_quiet_on_ban: QUIET_ON_BAN '=' TBOOL ';'
-{
-  ConfigChannel.quiet_on_ban = yylval.number;
-};
-
-channel_max_bans: MAX_BANS '=' NUMBER ';'
-{
-  ConfigChannel.max_bans = $3;
-};
-
-channel_default_split_user_count: DEFAULT_SPLIT_USER_COUNT '=' NUMBER ';'
-{
-  ConfigChannel.default_split_user_count = $3;
-};
-
-channel_default_split_server_count: DEFAULT_SPLIT_SERVER_COUNT '=' NUMBER ';'
-{
-  ConfigChannel.default_split_server_count = $3;
-};
-
-channel_no_create_on_split: NO_CREATE_ON_SPLIT '=' TBOOL ';'
-{
-  ConfigChannel.no_create_on_split = yylval.number;
-};
-
-channel_no_join_on_split: NO_JOIN_ON_SPLIT '=' TBOOL ';'
-{
-  ConfigChannel.no_join_on_split = yylval.number;
-};
-
-channel_burst_topicwho: BURST_TOPICWHO '=' TBOOL ';'
-{
-  ConfigChannel.burst_topicwho = yylval.number;
-};
-
-channel_jflood_count: JOIN_FLOOD_COUNT '=' NUMBER ';'
-{
-  GlobalSetOptions.joinfloodcount = yylval.number;
-};
-
-channel_jflood_time: JOIN_FLOOD_TIME '=' timespec ';'
-{
-  GlobalSetOptions.joinfloodtime = yylval.number;
 };
 
 /***************************************************************************

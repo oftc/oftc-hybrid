@@ -46,6 +46,7 @@
 #include "modules.h"
 #include "channel.h"
 #include "channel_mode.h"
+#include "conf_channel.h"
 
 static void ms_svsjoin(struct Client *, struct Client *, int parc, char *[]);
 
@@ -207,7 +208,7 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
      * local channels... but...
      * I don't want to break anything - scuzzy
      */
-    if (ConfigChannel.disable_local_channels && (*newch == '&'))
+    if (channel_config.disable_local_channels && (*newch == '&'))
       return;
 
     chptr = make_channel(newch);

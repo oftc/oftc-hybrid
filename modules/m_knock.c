@@ -41,6 +41,7 @@
 #include "s_serv.h"
 #include "s_user.h"
 #include "common.h"
+#include "conf_channel.h"
 
 static void m_knock(struct Client *, struct Client *, int, char *[]);
 
@@ -96,7 +97,7 @@ m_knock(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!ConfigChannel.use_knock && MyClient(source_p))
+  if (!channel_config.use_knock && MyClient(source_p))
   {
     sendto_one(source_p, form_str(ERR_KNOCKDISABLED),
                me.name, source_p->name);
@@ -146,7 +147,7 @@ m_knock(struct Client *client_p, struct Client *source_p,
      *
      * we only limit local requests..
      */
-    if ((source_p->localClient->last_knock + ConfigChannel.knock_delay) >
+    if ((source_p->localClient->last_knock + channel_config.knock_delay) >
         CurrentTime)
     {
       sendto_one(source_p, form_str(ERR_TOOMANYKNOCK), me.name,
@@ -154,7 +155,7 @@ m_knock(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    if ((chptr->last_knock + ConfigChannel.knock_delay_channel) > CurrentTime)
+    if ((chptr->last_knock + channel_config.knock_delay_channel) > CurrentTime)
     {
       sendto_one(source_p, form_str(ERR_TOOMANYKNOCK), me.name,
                  source_p->name, chptr->chname, "channel");
@@ -169,7 +170,7 @@ m_knock(struct Client *client_p, struct Client *source_p,
 
   chptr->last_knock = CurrentTime;
 
-  if (ConfigChannel.use_knock)
+  if (channel_config.use_knock)
     sendto_channel_local(CHFL_CHANOP, NO, chptr, form_str(RPL_KNOCK),
                          me.name, chptr->chname, chptr->chname,
                          source_p->name, source_p->username,

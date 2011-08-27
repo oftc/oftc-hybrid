@@ -42,6 +42,7 @@
 #include "modules.h"
 #include "s_log.h"
 #include "conf_general.h"
+#include "conf_channel.h"
 
 static void m_join(struct Client *, struct Client *, int, char *[]);
 static void ms_join(struct Client *, struct Client *, int, char *[]);
@@ -159,7 +160,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       continue;
     }
 
-    if (ConfigChannel.disable_local_channels && (*chan == '&'))
+    if (channel_config.disable_local_channels && (*chan == '&'))
     {
       sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                  me.name, source_p->name, chan);
@@ -168,7 +169,7 @@ m_join(struct Client *client_p, struct Client *source_p,
 
     if (!IsExemptResv(source_p) &&
         !(IsOper(source_p) && general_config.oper_pass_resv) &&
-        (!hash_find_resv(chan) == ConfigChannel.restrict_channels))
+        (!hash_find_resv(chan) == channel_config.restrict_channels))
     {
       sendto_one(source_p, form_str(ERR_BADCHANNAME),
                  me.name, source_p->name, chan);
@@ -178,9 +179,9 @@ m_join(struct Client *client_p, struct Client *source_p,
       continue;
     }
 
-    if ((dlink_list_length(&source_p->channel) >= ConfigChannel.max_chans_per_user) &&
+    if ((dlink_list_length(&source_p->channel) >= channel_config.max_chans_per_user) &&
         (!IsOper(source_p) || (dlink_list_length(&source_p->channel) >=
-                               ConfigChannel.max_chans_per_user * 3)))
+                               channel_config.max_chans_per_user * 3)))
     {
       sendto_one(source_p, form_str(ERR_TOOMANYCHANNELS),
                  me.name, source_p->name, chan);
@@ -193,7 +194,7 @@ m_join(struct Client *client_p, struct Client *source_p,
         continue;
 
       if (splitmode && !IsOper(source_p) && (*chan != '&') &&
-          ConfigChannel.no_join_on_split)
+          channel_config.no_join_on_split)
       {
         sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
                    me.name, source_p->name, chan);
@@ -222,7 +223,7 @@ m_join(struct Client *client_p, struct Client *source_p,
     else
     {
       if (splitmode && !IsOper(source_p) && (*chan != '&') &&
-          (ConfigChannel.no_create_on_split || ConfigChannel.no_join_on_split))
+          (channel_config.no_create_on_split || channel_config.no_join_on_split))
       {
         sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
                    me.name, source_p->name, chan);

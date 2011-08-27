@@ -44,6 +44,7 @@
 #include "conf_general.h"
 #include "conf_serverinfo.h"
 #include "conf_logging.h"
+#include "conf_channel.h"
 
 static void send_conf_options(struct Client *);
 static void send_birthdate_online_time(struct Client *);
@@ -157,97 +158,97 @@ static const struct InfoStruct info_table[] =
   {
     "restrict_channels",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.restrict_channels,
+    &channel_config.restrict_channels,
     "Only reserved channels are allowed"
   },
   {
     "disable_local_channels",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.disable_local_channels,
+    &channel_config.disable_local_channels,
     "Prevent users from joining &channels"
   },
  {
     "use_invex",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_invex,
+    &channel_config.use_invex,
     "Enable chanmode +I (invite exceptions)"
   },
  {
    "use_quiet",
    OUTPUT_BOOLEAN_YN,
-   &ConfigChannel.use_quiet,
+   &channel_config.use_quiet,
    "Enable chanmode +q (Quiet users)"
  },
   {
     "use_except",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_except,
+    &channel_config.use_except,
     "Enable chanmode +e (ban exceptions)"
   },
   {
     "use_knock",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_knock,
+    &channel_config.use_knock,
     "Enable /KNOCK"
   },
   {
     "knock_delay",
     OUTPUT_DECIMAL,
-    &ConfigChannel.knock_delay,
+    &channel_config.knock_delay,
     "Delay between a users KNOCK attempts"
   },
   {
     "knock_delay_channel",
     OUTPUT_DECIMAL,
-    &ConfigChannel.knock_delay_channel,
+    &channel_config.knock_delay_channel,
     "Delay between KNOCK attempts to a channel"
   },
   {
     "max_chans_per_user",
     OUTPUT_DECIMAL,
-    &ConfigChannel.max_chans_per_user,
+    &channel_config.max_chans_per_user,
     "Maximum number of channels a user can join"
   },
   {
     "quiet_on_ban",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.quiet_on_ban,
+    &channel_config.quiet_on_ban,
     "Banned users may not send text to a channel"
   },
   {
     "max_bans",
     OUTPUT_DECIMAL,
-    &ConfigChannel.max_bans,
+    &channel_config.max_bans,
     "Total +b/e/I modes allowed in a channel"
   },
   {
     "default_split_user_count",
     OUTPUT_DECIMAL,
-    &ConfigChannel.default_split_user_count,
+    &channel_config.default_split_user_count,
     "Startup value of SPLITUSERS"
   },
   {
     "default_split_server_count",
     OUTPUT_DECIMAL,
-    &ConfigChannel.default_split_server_count,
+    &channel_config.default_split_server_count,
     "Startup value of SPLITNUM"
   },
   {
     "no_create_on_split",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.no_create_on_split,
+    &channel_config.no_create_on_split,
     "Disallow creation of channels when split"
   },
   {
     "no_join_on_split",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.no_join_on_split,
+    &channel_config.no_join_on_split,
     "Disallow joining channels when split"
   },
   {
     "burst_topicwho",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.burst_topicwho,
+    &channel_config.burst_topicwho,
     "Enable sending of who set topic on topicburst"
   },
   {

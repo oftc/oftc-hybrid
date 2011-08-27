@@ -65,6 +65,7 @@
 #include "config.h"
 #include "conf_general.h"
 #include "conf_serverinfo.h"
+#include "conf_channel.h"
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
  * number of files allowed to be open by this process.
@@ -329,11 +330,11 @@ initialize_global_set_options(void)
   GlobalSetOptions.joinfloodcount = 16;
   GlobalSetOptions.joinfloodtime = 8;
 
-  split_servers = ConfigChannel.default_split_server_count;
-  split_users   = ConfigChannel.default_split_user_count;
+  split_servers = channel_config.default_split_server_count;
+  split_users   = channel_config.default_split_user_count;
 
-  if (split_users && split_servers && (ConfigChannel.no_create_on_split ||
-                                       ConfigChannel.no_join_on_split))
+  if (split_users && split_servers && (channel_config.no_create_on_split ||
+                                       channel_config.no_join_on_split))
   {
     splitmode     = 1;
     splitchecking = 1;

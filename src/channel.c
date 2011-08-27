@@ -40,13 +40,13 @@
 #include "s_serv.h"             /* captab */
 #include "s_user.h"
 #include "send.h"
-#include "s_conf.h"             /* ConfigFileEntry, ConfigChannel */
+#include "s_conf.h"             /* ConfigFileEntry, channel_config */
 #include "event.h"
 #include "memory.h"
 #include "balloc.h"
 #include "conf_general.h"
+#include "conf_channel.h"
 
-struct config_channel_entry ConfigChannel;
 dlink_list global_channel_list = { NULL, NULL, 0 };
 BlockHeap *ban_heap;    /*! \todo ban_heap shouldn't be a global var */
 
@@ -324,7 +324,7 @@ check_channel_name(const char *name, int local)
   if (!IsChanPrefix(*p))
     return 0;
 
-  if (!local || !ConfigChannel.disable_fake_channels)
+  if (!local || !channel_config.disable_fake_channels)
   {
     while (*++p)
       if (!IsChanChar(*p))
@@ -523,7 +523,7 @@ add_invite(struct Channel *chptr, struct Client *who)
    * delete last link in chain if the list is max length
    */
   if (dlink_list_length(&who->localClient->invited) >=
-      ConfigChannel.max_chans_per_user)
+      channel_config.max_chans_per_user)
     del_invite(who->localClient->invited.tail->data, who);
 
   /* add client to channel invite list */
@@ -648,7 +648,7 @@ is_quiet(const struct Channel *chptr, const struct Client *who)
   assert(IsClient(who));
 
   if (find_bmask(who, &chptr->quietlist))
-    if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
+    if (!channel_config.use_except || !find_bmask(who, &chptr->exceptlist))
       return 1;
 
   return 0;
@@ -662,7 +662,7 @@ int
 is_banned(struct Channel *chptr, struct Client *who)
 {
   if (find_bmask(who, &chptr->banlist))
-    if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
+    if (!channel_config.use_except || !find_bmask(who, &chptr->exceptlist))
       return 1;
 
   return 0;
@@ -687,7 +687,7 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
 
   if (chptr->mode.mode & MODE_INVITEONLY)
     if (!dlinkFind(&source_p->localClient->invited, chptr))
-      if (!ConfigChannel.use_invex || !find_bmask(source_p, &chptr->invexlist))
+      if (!channel_config.use_invex || !find_bmask(source_p, &chptr->invexlist))
         return ERR_INVITEONLYCHAN;
 
   if (chptr->mode.key[0] && (!key || irccmp(chptr->mode.key, key)))
@@ -752,7 +752,7 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 
   if (MyClient(source_p) && !IsExemptResv(source_p))
     if (!(IsOper(source_p) && general_config.oper_pass_resv))
-      if (!hash_find_resv(chptr->chname) == ConfigChannel.restrict_channels)
+      if (!hash_find_resv(chptr->chname) == channel_config.restrict_channels)
         return CAN_SEND_NO;
 
   if (ms != NULL || (ms = find_channel_link(source_p, chptr)))
@@ -760,14 +760,14 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
     if (ms->flags & (CHFL_CHANOP|CHFL_HALFOP|CHFL_VOICE))
       return CAN_SEND_OPV;
 
-    if (ConfigChannel.use_quiet && MyClient(source_p))
+    if (channel_config.use_quiet && MyClient(source_p))
     {
       if (is_quiet(chptr, source_p))
         return CAN_SEND_NO;
     }
 
     /* cache can send if quiet_on_ban and banned */
-    if (ConfigChannel.quiet_on_ban && MyClient(source_p))
+    if (channel_config.quiet_on_ban && MyClient(source_p))
     {
       if (ms->flags & CHFL_BAN_SILENCED)
         return CAN_SEND_NO;
@@ -868,8 +868,8 @@ check_spambot_warning(struct Client *source_p, const char *name)
 void
 check_splitmode(void *unused)
 {
-  if (splitchecking && (ConfigChannel.no_join_on_split ||
-                        ConfigChannel.no_create_on_split))
+  if (splitchecking && (channel_config.no_join_on_split ||
+                        channel_config.no_create_on_split))
   {
     const unsigned int server = dlink_list_length(&global_serv_list);
 
