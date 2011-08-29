@@ -642,7 +642,7 @@ main(int argc, char *argv[])
   init_whowas();
   watch_init();
   read_conf_files(1);   /* cold start init conf files */
-  init_config();
+  init_config(1);
   me.id[0] = '\0';
   init_uid();
   init_auth();          /* Initialise the auth code */

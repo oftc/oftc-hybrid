@@ -68,6 +68,9 @@ struct conf_general
 extern struct conf_general general_config;
 
 void general_section_process(void *);
+void general_section_clearout();
+void general_section_validate();
+void general_section_set_defaults();
 
 #define GENERAL_SECTION_ENTRY(name, type) #name, type, offsetof(struct conf_general, name), ssizeof(struct conf_general, name)
 

@@ -18,7 +18,6 @@ struct conf_serverinfo
   char *vhost6;
 
   int can_use_v6;
-  struct sockaddr_in dns_host;
   int specific_ipv4_vhost;
   int specific_ipv6_vhost;
 #ifdef HAVE_LIBCRYPTO
@@ -32,5 +31,8 @@ struct conf_serverinfo
 extern struct conf_serverinfo serverinfo_config;
 
 void serverinfo_section_process(void *);
+void serverinfo_section_clearout();
+void serverinfo_section_validate();
+void serverinfo_section_set_defaults();
 
 #endif

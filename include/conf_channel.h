@@ -25,6 +25,9 @@ struct conf_channel
 extern struct conf_channel channel_config;
 
 void channel_section_process(void *);
+void channel_section_clearout();
+void channel_section_set_defaults();
+void channel_section_validate();
 
 #define CHANNEL_SECTION_ENTRY(name, type) #name, type, offsetof(struct conf_channel, name), ssizeof(struct conf_channel, name)
 

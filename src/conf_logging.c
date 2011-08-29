@@ -21,8 +21,20 @@ struct config_section_entry logging_section_entries[] = {
 
 struct conf_logging logging_config = { 0 };
 
-static void
-validate_logging_section()
+void
+logging_section_clearout()
+{
+}
+
+void
+logging_section_set_defaults()
+{
+  set_log_level(L_NOTICE);
+  logging_config.use_logging = 1;
+}
+
+void
+logging_section_validate()
 {
   set_log_level(logging_config.log_level);
   if(logging_config.operlog != NULL && strlen(logging_config.operlog) > PATH_MAX)
@@ -74,6 +86,4 @@ logging_section_process(void *obj)
   json_object *jobj = (json_object *)obj;
 
   section_process(jobj, (char*)&logging_config, logging_section_entries);
-
-  validate_logging_section();
 }

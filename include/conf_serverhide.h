@@ -16,6 +16,9 @@ struct conf_serverhide
 extern struct conf_serverhide serverhide_config;
 
 void serverhide_section_process(void *);
+void serverhide_section_clearout();
+void serverhide_section_set_defaults();
+void serverhide_section_validate();
 
 #define SERVERHIDE_SECTION_ENTRY(name, type) #name, type, offsetof(struct conf_serverhide, name), ssizeof(struct conf_serverhide, name)
 

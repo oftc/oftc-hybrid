@@ -17,6 +17,9 @@ struct conf_logging
 extern struct conf_logging logging_config;
 
 void logging_section_process(void *);
+void logging_section_clearout();
+void logging_section_validate();
+void logging_section_set_defaults();
 
 #define LOGGING_SECTION_ENTRY(name, type) #name, type, offsetof(struct conf_logging, name), ssizeof(struct conf_logging, name)
 

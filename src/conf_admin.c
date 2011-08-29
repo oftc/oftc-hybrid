@@ -14,8 +14,24 @@ struct config_section_entry admin_section_entries[] = {
 
 struct conf_admin admin_config;
 
-static void
-validate_admin_section()
+void
+admin_section_clearout()
+{
+  MyFree(admin_config.name);
+  admin_config.name = NULL;
+  MyFree(admin_config.email);
+  admin_config.email = NULL;
+  MyFree(admin_config.description);
+  admin_config.description = NULL;
+}
+
+void
+admin_section_set_defaults()
+{
+}
+
+void
+admin_section_validate()
 {
 }
 
@@ -27,6 +43,4 @@ admin_section_process(void *obj)
   memset(&admin_config, 0, sizeof(admin_config));
 
   section_process(jobj, (char*)&admin_config, admin_section_entries);
-
-  validate_admin_section();
 }

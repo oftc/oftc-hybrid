@@ -10,13 +10,17 @@
 #include "conf_serverinfo.h"
 #include "conf_admin.h"
 #include "conf_logging.h"
+#include "conf_channel.h"
+#include "conf_serverhide.h"
 
 struct config_section config_sections[] = {
-  { "serverinfo", serverinfo_section_process },
-  { "general", general_section_process },
-  { "admin", admin_section_process},
-  { "logging", logging_section_process},
-  { "", NULL }
+  { CONF_SECTION(serverinfo) },
+  { CONF_SECTION(general) },
+  { CONF_SECTION(admin) },
+  { CONF_SECTION(logging) },
+  { CONF_SECTION(channel) },
+  { CONF_SECTION(serverhide) },
+  { CONF_SECTION_END }
 };
   
 struct config_section *
@@ -115,7 +119,17 @@ section_process(void *obj, char *ptr, struct config_section_entry *entry_list)
 }
 
 void
-init_config()
+do_post_config_setup()
+{
+  /*
+   * message_locale may have changed.  rebuild isupport since it relies
+   * on strlen(form_str(RPL_ISUPPORT))
+   */
+  rebuild_isupport_message_line();
+}
+
+void
+init_config(int cold_start)
 {
   json_object *config_object;
   json_type conftype;
@@ -148,6 +162,13 @@ init_config()
       return;
     }
 
+    if(!cold_start)
+      (section->conf_section_clearout)();
+
+    (section->conf_section_set_defaults)();
     (section->conf_section_process)(value);
+    (section->conf_section_validate)();
   }
+
+  do_post_config_setup();
 }

@@ -112,8 +112,6 @@ int ypass = 1; /* used by yyparse()      */
 
 /* internally defined functions */
 static void lookup_confhost(struct ConfItem *);
-static void set_default_conf(void);
-static void validate_conf(void);
 static void read_conf(FBFILE *);
 static void clear_out_old_conf(void);
 static void flush_deleted_I_P(void);
@@ -1779,6 +1777,7 @@ rehash(int sig)
   check_can_use_v6();
 
   read_conf_files(0);
+  init_config(0);
 
   if (serverinfo_config.description != NULL)
     strlcpy(me.info, serverinfo_config.description, sizeof(me.info));
@@ -1797,140 +1796,6 @@ rehash(int sig)
   return(0);
 }
 
-/* set_default_conf()
- *
- * inputs - NONE
- * output - NONE
- * side effects - Set default values here.
- *      This is called **PRIOR** to parsing the
- *      configuration file.  If you want to do some validation
- *      of values later, put them in validate_conf().
- */
-static void
-set_default_conf(void)
-{
-  /* verify init_class() ran, this should be an unnecessary check
-   * but its not much work.
-   */
-  assert(class_default == (struct ConfItem *) class_items.tail->data);
-
-#ifdef HAVE_LIBCRYPTO
-  serverinfo_config.rsa_private_key = NULL;
-  serverinfo_config.rsa_private_key_file = NULL;
-#endif
-
-  /* serverinfo_config.name is not rehashable */
-  /* serverinfo_config.name = serverinfo_config.name; */
-  serverinfo_config.description = NULL;
-  DupString(serverinfo_config.network_name, NETWORK_NAME_DEFAULT);
-  DupString(serverinfo_config.network_desc, NETWORK_DESC_DEFAULT);
-
-  memset(&serverinfo_config.ip, 0, sizeof(serverinfo_config.ip));
-  serverinfo_config.specific_ipv4_vhost = 0;
-  memset(&serverinfo_config.ip6, 0, sizeof(serverinfo_config.ip6));
-  serverinfo_config.specific_ipv6_vhost = 0;
-
-  serverinfo_config.max_clients = MAXCLIENTS_MAX;
-  /* Don't reset hub, as that will break lazylinks */
-  /* serverinfo_config.hub = NO; */
-  serverinfo_config.dns_host.sin_addr.s_addr = 0;
-  serverinfo_config.dns_host.sin_port = 0;
-
-  set_log_level(L_NOTICE);
-  logging_config.use_logging = 1;
-
-  channel_config.disable_fake_channels = NO;
-  channel_config.restrict_channels = NO;
-  channel_config.disable_local_channels = NO;
-  channel_config.use_invex = YES;
-  channel_config.use_except = YES;
-  channel_config.use_knock = YES;
-  channel_config.knock_delay = 300;
-  channel_config.knock_delay_channel = 60;
-  channel_config.max_chans_per_user = 15;
-  channel_config.quiet_on_ban = YES;
-  channel_config.max_bans = 25;
-  channel_config.default_split_user_count = 0;
-  channel_config.default_split_server_count = 0;
-  channel_config.no_join_on_split = NO;
-  channel_config.no_create_on_split = NO;
-  channel_config.burst_topicwho = YES;
-
-  serverhide_config.flatten_links = NO;
-  serverhide_config.links_delay = 300;
-  serverhide_config.hidden = NO;
-  serverhide_config.disable_hidden = NO;
-  serverhide_config.hide_servers = NO;
-  DupString(serverhide_config.hidden_name, NETWORK_NAME_DEFAULT);
-  serverhide_config.hide_server_ips = NO;
-
-  
-  general_config.max_watch = WATCHSIZE_DEFAULT;
-  general_config.kline_min_cidr = 16;
-  general_config.kline_min_cidr6 = 48;
-  general_config.invisible_on_connect = YES;
-  general_config.burst_away = NO;
-  general_config.use_whois_actually = YES;
-  general_config.tkline_expire_notices = YES;
-  general_config.hide_spoof_ips = YES;
-  general_config.ignore_bogus_ts = NO;
-  general_config.disable_auth = NO;
-  general_config.disable_remote_commands = NO;
-  general_config.kill_chase_time_limit = 90;
-  general_config.default_floodcount = 8; /* XXX */
-  general_config.failed_oper_notice = YES;
-  general_config.dots_in_ident = 0;      /* XXX */
-  general_config.dot_in_ip6_addr = YES;
-  general_config.min_nonwildcard = 4;
-  general_config.min_nonwildcard_simple = 3;
-  general_config.max_accept = 20;
-  general_config.anti_nick_flood = NO;   /* XXX */
-  general_config.max_nick_time = 20;
-  general_config.max_nick_changes = 5;
-  general_config.anti_spam_exit_message_time = 0;  /* XXX */
-  general_config.ts_warn_delta = TS_WARN_DELTA_DEFAULT;
-  general_config.ts_max_delta = TS_MAX_DELTA_DEFAULT;  /* XXX */
-  general_config.kline_with_reason = YES;
-  general_config.kline_reason = NULL;
-  general_config.warn_no_nline = YES;
-  general_config.stats_o_oper_only = NO; /* XXX */
-  general_config.stats_k_oper_only = 1;  /* masked */
-  general_config.stats_i_oper_only = 1;  /* masked */
-  general_config.stats_P_oper_only = NO;
-  general_config.caller_id_wait = 60;
-  general_config.opers_bypass_callerid = NO;
-  general_config.pace_wait = 10;
-  general_config.pace_wait_simple = 1;
-  general_config.short_motd = NO;
-  general_config.ping_cookie = NO;
-  general_config.no_oper_flood = NO;     /* XXX */
-  general_config.true_no_oper_flood = NO;  /* XXX */
-  general_config.oper_pass_resv = YES;
-  general_config.idletime = 0;
-  general_config.max_targets = MAX_TARGETS_DEFAULT;
-  general_config.client_flood = CLIENT_FLOOD_DEFAULT;
-  general_config.oper_only_umodes = "D";
-  general_config.oper_umodes = "blswz";
-  DupString(general_config.servlink_path, SLPATH);
-#ifdef HAVE_LIBCRYPTO
-  /* jdc -- This is our default value for a cipher.  According to the
-   *        CRYPTLINK document (doc/cryptlink.txt), BF/128 must be supported
-   *        under all circumstances if cryptlinks are enabled.  So,
-   *        this will be our default.
-   *
-   *        NOTE: I apologise for the hard-coded value of "1" (BF/128).
-   *              This should be moved into a find_cipher() routine.
-   */
-//  general_config.default_cipher_preference = &CipherTable[1];
-#endif
-  general_config.use_egd = NO;
-  general_config.egdpool_path = NULL;
-#ifdef HAVE_LIBZ
-  general_config.compression_level = 0;
-#endif
-  general_config.throttle_time = 10;
-}
-
 /* read_conf() 
  *
  * inputs       - file descriptor pointing to config file to use
@@ -1942,7 +1807,6 @@ read_conf(FBFILE *file)
 {
   lineno = 0;
 
-  set_default_conf(); /* Set default values prior to conf parsing */
   ypass = 1;
   yyparse();        /* pick up the classes first */
 
@@ -1950,34 +1814,7 @@ read_conf(FBFILE *file)
 
   ypass = 2;
   yyparse();          /* Load the values from the conf */
-  validate_conf();    /* Check to make sure some values are still okay. */
-                      /* Some global values are also loaded here. */
   check_class();      /* Make sure classes are valid */
-}
-
-static void
-validate_conf(void)
-{
-  if (general_config.ts_warn_delta < TS_WARN_DELTA_MIN)
-    general_config.ts_warn_delta = TS_WARN_DELTA_DEFAULT;
-
-  if (general_config.ts_max_delta < TS_MAX_DELTA_MIN)
-    general_config.ts_max_delta = TS_MAX_DELTA_DEFAULT;
-
-  if (general_config.servlink_path == NULL)
-    DupString(general_config.servlink_path, SLPATH);
-
-  if (serverinfo_config.network_name == NULL)
-    DupString(serverinfo_config.network_name,NETWORK_NAME_DEFAULT);
-
-  if (serverinfo_config.network_desc == NULL)
-    DupString(serverinfo_config.network_desc,NETWORK_DESC_DEFAULT);
-
-  if ((general_config.client_flood < CLIENT_FLOOD_MIN) ||
-      (general_config.client_flood > CLIENT_FLOOD_MAX))
-    general_config.client_flood = CLIENT_FLOOD_MAX;
-
-  general_config.max_watch = IRCD_MAX(general_config.max_watch, WATCHSIZE_MIN);
 }
 
 /* lookup_confhost()
@@ -2448,8 +2285,6 @@ void
 read_conf_files(int cold)
 {
   const char *filename;
-  char chanmodes[32];
-  char chanlimit[32];
 
   filename = get_conf_name(CONF_TYPE);
 
@@ -2491,34 +2326,6 @@ read_conf_files(int cold)
 
   read_conf(conf_fbfile_in);
   fbclose(conf_fbfile_in);
-
-  add_isupport("NETWORK", serverinfo_config.network_name, -1);
-  ircsprintf(chanmodes, "b%s%s:%d", channel_config.use_except ? "e" : "",
-             channel_config.use_invex ? "I" : "", channel_config.max_bans);
-  add_isupport("MAXLIST", chanmodes, -1);
-  add_isupport("MAXTARGETS", NULL, general_config.max_targets);
-  if (channel_config.disable_local_channels)
-    add_isupport("CHANTYPES", "#", -1);
-  else
-    add_isupport("CHANTYPES", "#&", -1);
-  ircsprintf(chanlimit, "%s:%d", channel_config.disable_local_channels ? "#" : "#&",
-       channel_config.max_chans_per_user);
-  add_isupport("CHANLIMIT", chanlimit, -1);
-  ircsprintf(chanmodes, "%s%s%s%s", channel_config.use_except ? "e" : "",
-       channel_config.use_invex ? "I" : "", channel_config.use_quiet ? "q" : "",
-       "b,k,l,imnpstMRS");
-  add_isupport("CHANNELLEN", NULL, LOCAL_CHANNELLEN);
-  if (channel_config.use_except)
-    add_isupport("EXCEPTS", "e", -1);
-  if (channel_config.use_invex)
-    add_isupport("INVEX", "I", -1);
-  add_isupport("CHANMODES", chanmodes, -1);
-
-  /*
-   * message_locale may have changed.  rebuild isupport since it relies
-   * on strlen(form_str(RPL_ISUPPORT))
-   */
-  rebuild_isupport_message_line();
 
   parse_conf_file(KLINE_TYPE, cold);
   parse_conf_file(RKLINE_TYPE, cold);
@@ -2675,36 +2482,8 @@ clear_out_old_conf(void)
   mod_clear_paths();
 #endif
 
-  /* clean out serverinfo_config */
-  MyFree(serverinfo_config.description);
-  serverinfo_config.description = NULL;
-  MyFree(serverinfo_config.network_name);
-  serverinfo_config.network_name = NULL;
-  MyFree(serverinfo_config.network_desc);
-  serverinfo_config.network_desc = NULL;
-  MyFree(general_config.egdpool_path);
-  general_config.egdpool_path = NULL;
-#ifdef HAVE_LIBCRYPTO
-  if (serverinfo_config.rsa_private_key != NULL)
-  {
-    RSA_free(serverinfo_config.rsa_private_key);
-    serverinfo_config.rsa_private_key = NULL;
-  }
-
-  MyFree(serverinfo_config.rsa_private_key_file);
-  serverinfo_config.rsa_private_key_file = NULL;
-#endif
-
   /* clean out old resvs from the conf */
   clear_conf_resv();
-
-  /* clean out admin_config */
-  MyFree(admin_config.name);
-  admin_config.name = NULL;
-  MyFree(admin_config.email);
-  admin_config.email = NULL;
-  MyFree(admin_config.description);
-  admin_config.description = NULL;
 
   /* operator{} and class{} blocks are freed above */
   /* clean out listeners */
@@ -2713,15 +2492,6 @@ clear_out_old_conf(void)
   /* auth{}, quarantine{}, shared{}, connect{}, kill{}, deny{},
    * exempt{} and gecos{} blocks are freed above too
    */
-
-  /* clean out general */
-  MyFree(general_config.servlink_path);
-  general_config.servlink_path = NULL;
-#ifdef HAVE_LIBCRYPTO
-  general_config.default_cipher_preference = NULL;
-#endif /* HAVE_LIBCRYPTO */
-  delete_isupport("INVEX");
-  delete_isupport("EXCEPTS");
 }
 
 /* flush_deleted_I_P()

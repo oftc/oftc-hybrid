@@ -29,7 +29,53 @@ struct config_section_entry serverinfo_section_entries[] = {
 struct conf_serverinfo serverinfo_config = { 0 };
 
 void
-validate_serverinfo_section()
+serverinfo_section_clearout()
+{
+  MyFree(serverinfo_config.description);
+  serverinfo_config.description = NULL;
+  MyFree(serverinfo_config.network_name);
+  serverinfo_config.network_name = NULL;
+  MyFree(serverinfo_config.network_desc);
+  serverinfo_config.network_desc = NULL;
+
+#ifdef HAVE_LIBCRYPTO
+  if (serverinfo_config.rsa_private_key != NULL)
+  {
+    RSA_free(serverinfo_config.rsa_private_key);
+    serverinfo_config.rsa_private_key = NULL;
+  }
+
+  MyFree(serverinfo_config.rsa_private_key_file);
+  serverinfo_config.rsa_private_key_file = NULL;
+#endif
+}
+
+void
+serverinfo_section_set_defaults()
+{
+#ifdef HAVE_LIBCRYPTO
+  serverinfo_config.rsa_private_key = NULL;
+  serverinfo_config.rsa_private_key_file = NULL;
+#endif
+
+  /* serverinfo_config.name is not rehashable */
+  /* serverinfo_config.name = serverinfo_config.name; */
+  serverinfo_config.description = NULL;
+  DupString(serverinfo_config.network_name, NETWORK_NAME_DEFAULT);
+  DupString(serverinfo_config.network_desc, NETWORK_DESC_DEFAULT);
+
+  memset(&serverinfo_config.ip, 0, sizeof(serverinfo_config.ip));
+  serverinfo_config.specific_ipv4_vhost = 0;
+  memset(&serverinfo_config.ip6, 0, sizeof(serverinfo_config.ip6));
+  serverinfo_config.specific_ipv6_vhost = 0;
+
+  serverinfo_config.max_clients = MAXCLIENTS_MAX;
+  /* Don't reset hub, as that will break lazylinks */
+  /* serverinfo_config.hub = NO; */
+}
+
+void
+serverinfo_section_validate()
 {
   BIO *file;
 
@@ -141,6 +187,14 @@ validate_serverinfo_section()
   {
     add_capability("HUB", CAP_HUB, 1);
   }
+
+  add_isupport("NETWORK", serverinfo_config.network_name, -1);
+
+  if (serverinfo_config.network_name == NULL)
+    DupString(serverinfo_config.network_name, NETWORK_NAME_DEFAULT);
+
+  if (serverinfo_config.network_desc == NULL)
+    DupString(serverinfo_config.network_desc, NETWORK_DESC_DEFAULT);
 }
 
 void
@@ -149,6 +203,4 @@ serverinfo_section_process(void *obj)
   json_object *jobj = (json_object *)obj;
 
   section_process(jobj, (char*)&serverinfo_config, serverinfo_section_entries);
-
-  validate_serverinfo_section();
 }
