@@ -45,7 +45,6 @@
 #include "hostmask.h"
 #include "send.h"
 #include "listener.h"
-#include "resv.h"
 #include "numeric.h"
 #include "s_user.h"
 #include "s_misc.h"
@@ -77,7 +76,6 @@ static char gecos_name[REALLEN * 4];
 
 extern dlink_list gdeny_items; /* XXX */
 
-static char *resv_reason = NULL;
 static char *listener_address = NULL;
 static int not_atom = 0;
 
@@ -401,7 +399,6 @@ conf_item:
                 | class_entry 
                 | listen_entry
                 | auth_entry
-                | resv_entry
                 | shared_entry
 		| cluster_entry
                 | connect_entry
@@ -1738,62 +1735,6 @@ auth_need_password: NEED_PASSWORD '=' TBOOL ';'
   }
 };
 
-
-/***************************************************************************
- *  section resv
- ***************************************************************************/
-resv_entry: RESV
-{
-  if (ypass == 2)
-  {
-    MyFree(resv_reason);
-    resv_reason = NULL;
-  }
-} '{' resv_items '}' ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(resv_reason);
-    resv_reason = NULL;
-  }
-};
-
-resv_items:	resv_items resv_item | resv_item;
-resv_item:	resv_creason | resv_channel | resv_nick | error ';' ;
-
-resv_creason: REASON '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(resv_reason);
-    DupString(resv_reason, yylval.string);
-  }
-};
-
-resv_channel: CHANNEL '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    if (IsChanPrefix(*yylval.string))
-    {
-      char def_reason[] = "No reason";
-
-      create_channel_resv(yylval.string, resv_reason != NULL ? resv_reason : def_reason, 1);
-    }
-  }
-  /* ignore it for now.. but we really should make a warning if
-   * its an erroneous name --fl_ */
-};
-
-resv_nick: NICK '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    char def_reason[] = "No reason";
-
-    create_nick_resv(yylval.string, resv_reason != NULL ? resv_reason : def_reason, 1);
-  }
-};
 
 /***************************************************************************
  *  section shared, for sharing remote klines etc.
