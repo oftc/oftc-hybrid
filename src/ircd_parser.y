@@ -43,7 +43,6 @@
 #include "s_serv.h"
 #include "hostmask.h"
 #include "send.h"
-#include "listener.h"
 #include "numeric.h"
 #include "s_user.h"
 #include "s_misc.h"
@@ -66,7 +65,6 @@ static char *yy_class_name = NULL;
 static dlink_list col_conf_list  = { NULL, NULL, 0 };
 static dlink_list hub_conf_list  = { NULL, NULL, 0 };
 static dlink_list leaf_conf_list = { NULL, NULL, 0 };
-static unsigned int listener_flags = 0;
 static unsigned int regex_ban = 0;
 static char userbuf[IRCD_BUFSIZE];
 static char hostbuf[IRCD_BUFSIZE];
@@ -75,7 +73,6 @@ static char gecos_name[REALLEN * 4];
 
 extern dlink_list gdeny_items; /* XXX */
 
-static char *listener_address = NULL;
 static int not_atom = 0;
 
 struct CollectItem
@@ -226,7 +223,6 @@ unhook_hub_leaf_confs(void)
 %token  KNOCK_DELAY_CHANNEL
 %token  LEAF_MASK
 %token  LINKS_DELAY
-%token  LISTEN
 %token  T_LOG
 %token  LOG_LEVEL
 %token  MAX_ACCEPT
@@ -394,7 +390,6 @@ conf:
 conf_item:        
                  oper_entry
                 | class_entry 
-                | listen_entry
                 | auth_entry
                 | shared_entry
 		| cluster_entry
@@ -1227,106 +1222,6 @@ class_reject_message: REJECT_MESSAGE '=' QSTRING ';'
   {
     MyFree(yy_class->reject_message);
     DupString(yy_class->reject_message, yylval.string);
-  }
-};
-
-/***************************************************************************
- *  section listen
- ***************************************************************************/
-listen_entry: LISTEN
-{
-  if (ypass == 2)
-  {
-    listener_address = NULL;
-    listener_flags = 0;
-  }
-} '{' listen_items '}' ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(listener_address);
-    listener_address = NULL;
-  }
-};
-
-listen_flags: IRCD_FLAGS
-{
-  listener_flags = 0;
-} '='  listen_flags_items ';';
-
-listen_flags_items: listen_flags_items ',' listen_flags_item | listen_flags_item;
-listen_flags_item: T_SSL
-{
-  if (ypass == 2)
-    listener_flags |= LISTENER_SSL;
-} | HIDDEN
-{
-  if (ypass == 2)
-    listener_flags |= LISTENER_HIDDEN;
-} | T_SERVER
-{
-  if (ypass == 2)
-    listener_flags |= LISTENER_SERVER;
-};
-
-
-
-listen_items:   listen_items listen_item | listen_item;
-listen_item:    listen_port | listen_flags | listen_address | listen_host | error ';';
-
-listen_port: PORT '=' port_items { listener_flags = 0; } ';';
-
-port_items: port_items ',' port_item | port_item;
-
-port_item: NUMBER
-{
-  if (ypass == 2)
-  {
-    if ((listener_flags & LISTENER_SSL))
-#ifdef HAVE_LIBCRYPTO
-      if (!serverinfo_config.ctx)
-#endif
-      {
-        yyerror("SSL not available - port closed");
-	break;
-      }
-    add_listener($1, listener_address, listener_flags);
-  }
-} | NUMBER TWODOTS NUMBER
-{
-  if (ypass == 2)
-  {
-    int i;
-
-    if ((listener_flags & LISTENER_SSL))
-#ifdef HAVE_LIBCRYPTO
-      if (!serverinfo_config.ctx)
-#endif
-      {
-        yyerror("SSL not available - port closed");
-	break;
-      }
-
-    for (i = $1; i <= $3; ++i)
-      add_listener(i, listener_address, listener_flags);
-  }
-};
-
-listen_address: IP '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(listener_address);
-    DupString(listener_address, yylval.string);
-  }
-};
-
-listen_host: HOST '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(listener_address);
-    DupString(listener_address, yylval.string);
   }
 };
 

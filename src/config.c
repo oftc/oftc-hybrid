@@ -1,6 +1,7 @@
 #include "stdinc.h"
 #include "s_log.h"
 #include "memory.h"
+#include "s_user.h"
 #define __STRICT_ANSI__
 #include "json.h"
 #undef __STRICT_ANSI__
@@ -13,6 +14,7 @@
 #include "conf_channel.h"
 #include "conf_serverhide.h"
 #include "conf_modules.h"
+#include "conf_listen.h"
 
 struct config_section config_sections[] = {
   { CONF_SECTION(serverinfo) },
@@ -22,6 +24,7 @@ struct config_section config_sections[] = {
   { CONF_SECTION(channel) },
   { CONF_SECTION(serverhide) },
   { CONF_SECTION(modules) },
+  { CONF_SECTION(listen) },
   { CONF_SECTION_END }
 };
   

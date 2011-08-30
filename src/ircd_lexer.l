@@ -225,7 +225,6 @@ l_notice 	{ return T_L_NOTICE; }
 l_trace		{ return T_L_TRACE; }
 l_warn		{ return T_L_WARN; }
 leaf_mask	{ return LEAF_MASK; }
-listen		{ return LISTEN; }
 log_level	{ return LOG_LEVEL; }
 logpath         { return T_LOGPATH; }
 masked		{ return TMASKED; }
