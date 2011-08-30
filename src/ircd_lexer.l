@@ -337,8 +337,6 @@ pace_wait_simple	{ return PACE_WAIT_SIMPLE; }
 knock_delay             { return KNOCK_DELAY; }
 knock_delay_channel	{ return KNOCK_DELAY_CHANNEL; }
 max_bans                { return MAX_BANS; }
-modules                 { return MODULES; }
-module                  { return MODULE; }
 path                    { return PATH; }
 max_targets             { return MAX_TARGETS; }
 

@@ -40,7 +40,6 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "memory.h"
-#include "modules.h"
 #include "s_serv.h"
 #include "hostmask.h"
 #include "send.h"
@@ -244,8 +243,6 @@ unhook_hub_leaf_confs(void)
 %token  MESSAGE_LOCALE
 %token  MIN_NONWILDCARD
 %token  MIN_NONWILDCARD_SIMPLE
-%token  MODULE
-%token  MODULES
 %token  NAME
 %token  NEED_PASSWORD
 %token  NETWORK_DESC
@@ -406,7 +403,6 @@ conf_item:
                 | deny_entry
 		| exempt_entry
     | gecos_entry
-    | modules_entry
     | error ';'
     | error '}'
 
@@ -446,41 +442,6 @@ sizespec:	NUMBER sizespec_ { $$ = $1 + $2; }
 		| NUMBER KBYTES sizespec_ { $$ = $1 * 1024 + $3; }
 		| NUMBER MBYTES sizespec_ { $$ = $1 * 1024 * 1024 + $3; }
 		;
-
-
-/***************************************************************************
- *  section modules
- ***************************************************************************/
-modules_entry: MODULES
-  '{' modules_items '}' ';';
-
-modules_items:  modules_items modules_item | modules_item;
-modules_item:   modules_module | modules_path | error ';' ;
-
-modules_module: MODULE '=' QSTRING ';'
-{
-#ifndef STATIC_MODULES /* NOOP in the static case */
-  if (ypass == 2)
-  {
-    char *m_bn;
-
-    m_bn = basename(yylval.string);
-
-    /* I suppose we should just ignore it if it is already loaded(since
-     * otherwise we would flood the opers on rehash) -A1kmm.
-     */
-    add_conf_module(yylval.string);
-  }
-#endif
-};
-
-modules_path: PATH '=' QSTRING ';'
-{
-#ifndef STATIC_MODULES
-  if (ypass == 2)
-    mod_add_path(yylval.string);
-#endif
-};
 
 /***************************************************************************
  * section oper

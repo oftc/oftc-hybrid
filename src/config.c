@@ -12,6 +12,7 @@
 #include "conf_logging.h"
 #include "conf_channel.h"
 #include "conf_serverhide.h"
+#include "conf_modules.h"
 
 struct config_section config_sections[] = {
   { CONF_SECTION(serverinfo) },
@@ -20,6 +21,7 @@ struct config_section config_sections[] = {
   { CONF_SECTION(logging) },
   { CONF_SECTION(channel) },
   { CONF_SECTION(serverhide) },
+  { CONF_SECTION(modules) },
   { CONF_SECTION_END }
 };
   
