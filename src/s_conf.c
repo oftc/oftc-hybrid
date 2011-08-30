@@ -40,7 +40,6 @@
 #include "s_bsd.h"
 #include "ircd.h"
 #include "list.h"
-#include "listener.h"
 #include "hostmask.h"
 #include "modules.h"
 #include "numeric.h"
@@ -2486,9 +2485,6 @@ clear_out_old_conf(void)
   clear_conf_resv();
 
   /* operator{} and class{} blocks are freed above */
-  /* clean out listeners */
-  close_listeners();
-
   /* auth{}, quarantine{}, shared{}, connect{}, kill{}, deny{},
    * exempt{} and gecos{} blocks are freed above too
    */

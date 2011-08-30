@@ -11,6 +11,7 @@
 void
 listen_section_clearout()
 {
+  close_listeners();
 }
 
 void
