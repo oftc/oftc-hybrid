@@ -41,6 +41,7 @@
 #include "modules.h"
 #include "s_conf.h"
 #include "conf_general.h"
+#include "conf_class.h"
 
 static void m_trace(struct Client *, struct Client *, int, char *[]);
 static void ms_trace(struct Client *, struct Client *, int, char *[]);
@@ -195,7 +196,7 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
 {
   struct Client *target_p = NULL;
   struct ConfItem *conf;
-  struct ClassItem *cltmp;
+  struct conf_class *cltmp;
   int doall = 0;
   int wilds, dow;
   dlink_node *ptr;
@@ -307,10 +308,9 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
     report_this_status(source_p, target_p, dow);
   }
 
-  DLINK_FOREACH(ptr, class_items.head)
+  DLINK_FOREACH(ptr, class_get_list()->head)
   {
-    conf = ptr->data;
-    cltmp = map_to_conf(conf);
+    cltmp = (struct conf_class *)ptr->data;
 
     if (CurrUserCount(cltmp) > 0)
       sendto_one(source_p, form_str(RPL_TRACECLASS),

@@ -55,6 +55,7 @@
 #include "watch.h"
 #include "conf_general.h"
 #include "conf_serverhide.h"
+#include "conf_class.h"
 
 static void do_stats(struct Client *, int, char **);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
@@ -536,7 +537,7 @@ count_memory(struct Client *source_p)
   }
 #endif
   /* count up all classes */
-  class_count = dlink_list_length(&class_items);
+  class_count = class_get_count();
 
   watch_count_memory(&wlh, &wlhm);
 
@@ -573,7 +574,7 @@ count_memory(struct Client *source_p)
 
   sendto_one(source_p, ":%s %d %s z :Classes %u(%lu)",
              me.name, RPL_STATSDEBUG, source_p->name,
-             class_count, (unsigned long)(class_count * sizeof(struct ClassItem)));
+             class_count, (unsigned long)(class_count * sizeof(struct conf_class)));
 
   sendto_one(source_p, ":%s %d %s z :Channels %lu(%lu) Topics %u(%d)",
              me.name, RPL_STATSDEBUG, source_p->name,
@@ -635,7 +636,7 @@ count_memory(struct Client *source_p)
              number_ips_stored, (int)mem_ips_stored);
 
   total_memory = totww + total_channel_memory + conf_memory + class_count *
-                 sizeof(struct ClassItem);
+                 sizeof(struct conf_class);
   total_memory += client_hash_table_size;
   total_memory += channel_hash_table_size;
   total_memory += resv_hash_table_size;
@@ -681,8 +682,7 @@ count_memory(struct Client *source_p)
 static void
 dump_counters(struct Client *source_p)
 {
-  struct ClassItem *classitem;
-  struct ConfItem *conf;
+  struct conf_class *classitem;
   struct CidrItem *cidr;
   dlink_node *ptr, *ptr2;
   char ipaddr[HOSTIPLEN];
@@ -690,10 +690,9 @@ dump_counters(struct Client *source_p)
 
   dump_userhosttable(source_p);
   dump_ip_hash_table(source_p);
-  DLINK_FOREACH(ptr, class_items.head)
+  DLINK_FOREACH(ptr, class_get_list()->head)
   {
-    conf = ptr->data;
-    classitem = map_to_conf(conf);
+    classitem = (struct conf_class *)ptr->data;
     DLINK_FOREACH(ptr2, classitem->list_ipv4.head)
     {
       cidr = ptr2->data;
@@ -704,7 +703,7 @@ dump_counters(struct Client *source_p)
         continue;
 
       sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name,
-          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr,
+          RPL_STATSCCOUNT, source_p->name, classitem->name, ipaddr,
           CidrBitlenIPV4(classitem), cidr->number_on_this_cidr);
     }
     DLINK_FOREACH(ptr2, classitem->list_ipv6.head)
@@ -717,7 +716,7 @@ dump_counters(struct Client *source_p)
         continue;
 
       sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name,
-          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr,
+          RPL_STATSCCOUNT, source_p->name, classitem->name, ipaddr,
           CidrBitlenIPV6(classitem), cidr->number_on_this_cidr);
     }
   }
@@ -1204,7 +1203,7 @@ stats_gecos(struct Client *source_p)
 static void
 stats_class(struct Client *source_p)
 {
-  report_confitem_types(source_p, CLASS_TYPE, 0);
+  class_report_items(source_p);
 }
 
 static void

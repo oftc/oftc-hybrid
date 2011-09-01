@@ -59,8 +59,6 @@ static char *class_name = NULL;
 static struct ConfItem *yy_conf = NULL;
 static struct AccessItem *yy_aconf = NULL;
 static struct MatchItem *yy_match_item = NULL;
-static struct ClassItem *yy_class = NULL;
-static char *yy_class_name = NULL;
 
 static dlink_list col_conf_list  = { NULL, NULL, 0 };
 static dlink_list hub_conf_list  = { NULL, NULL, 0 };
@@ -389,7 +387,6 @@ conf:
 
 conf_item:        
                  oper_entry
-                | class_entry 
                 | auth_entry
                 | shared_entry
 		| cluster_entry
@@ -462,7 +459,7 @@ oper_entry: OPERATOR
     dlink_node *ptr;
     dlink_node *next_ptr;
 
-    conf_add_class_to_conf(yy_conf, class_name);
+//    conf_add_class_to_conf(yy_conf, class_name);
 
     /* Now, make sure there is a copy of the "base" given oper
      * block in each of the collected copies
@@ -489,7 +486,7 @@ oper_entry: OPERATOR
         DupString(new_aconf->host, yy_tmp->host);
       else
         DupString(new_aconf->host, "*");
-      conf_add_class_to_conf(new_conf, class_name);
+  //    conf_add_class_to_conf(new_conf, class_name);
       if (yy_aconf->passwd != NULL)
         DupString(new_aconf->passwd, yy_aconf->passwd);
 
@@ -523,7 +520,7 @@ oper_entry: OPERATOR
       if (yy_tmp->name && yy_tmp->passwd && yy_tmp->host)
 #endif
       {
-        conf_add_class_to_conf(new_conf, class_name);
+        //conf_add_class_to_conf(new_conf, class_name);
 	if (yy_tmp->name != NULL)
 	  DupString(new_conf->name, yy_tmp->name);
       }
@@ -1052,180 +1049,6 @@ oper_flags_item_atom: GLOBAL_KILL
 
 
 /***************************************************************************
- *  section class
- ***************************************************************************/
-class_entry: CLASS
-{
-  if (ypass == 1)
-  {
-    yy_conf = make_conf_item(CLASS_TYPE);
-    yy_class = map_to_conf(yy_conf);
-  }
-} class_name_b '{' class_items '}' ';'
-{
-  if (ypass == 1)
-  {
-    struct ConfItem *cconf = NULL;
-    struct ClassItem *class = NULL;
-
-    if (yy_class_name == NULL)
-      delete_conf_item(yy_conf);
-    else
-    {
-      cconf = find_exact_name_conf(CLASS_TYPE, yy_class_name, NULL, NULL, NULL);
-
-      if (cconf != NULL)		/* The class existed already */
-      {
-        int user_count = 0;
-
-        rebuild_cidr_class(cconf, yy_class);
-
-        class = map_to_conf(cconf);
-
-        user_count = class->curr_user_count;
-        memcpy(class, yy_class, sizeof(*class));
-        class->curr_user_count = user_count;
-        class->active = 1;
-
-        delete_conf_item(yy_conf);
-
-        MyFree(cconf->name);            /* Allows case change of class name */
-        cconf->name = yy_class_name;
-        if(class->reject_message == NULL)
-          DupString(class->reject_message, DEFAULT_CLASS_REJECT_MESSAGE);
-      }
-      else	/* Brand new class */
-      {
-        MyFree(yy_conf->name);          /* just in case it was allocated */
-        if(yy_class->reject_message == NULL)
-          DupString(yy_class->reject_message, DEFAULT_CLASS_REJECT_MESSAGE);
-        yy_conf->name = yy_class_name;
-        yy_class->active = 1;
-      }
-    }
-
-    yy_class_name = NULL;
-  }
-};
-
-class_name_b: | class_name_t;
-
-class_items:    class_items class_item | class_item;
-class_item:     class_name |
-		class_cidr_bitlen_ipv4 | class_cidr_bitlen_ipv6 |
-    class_ping_time |
-		class_ping_warning |
-		class_number_per_cidr |
-    class_number_per_ip |
-    class_connectfreq |
-    class_max_number |
-    class_max_global |
-    class_max_local |
-    class_max_ident |
-    class_sendq |
-    class_reject_message |
-		error ';' ;
-
-class_name: NAME '=' QSTRING ';' 
-{
-  if (ypass == 1)
-  {
-    MyFree(yy_class_name);
-    DupString(yy_class_name, yylval.string);
-  }
-};
-
-class_name_t: QSTRING
-{
-  if (ypass == 1)
-  {
-    MyFree(yy_class_name);
-    DupString(yy_class_name, yylval.string);
-  }
-};
-
-class_ping_time: PING_TIME '=' timespec ';'
-{
-  if (ypass == 1)
-    PingFreq(yy_class) = $3;
-};
-
-class_ping_warning: PING_WARNING '=' timespec ';'
-{
-  if (ypass == 1)
-    PingWarning(yy_class) = $3;
-};
-
-class_number_per_ip: NUMBER_PER_IP '=' NUMBER ';'
-{
-  if (ypass == 1)
-    MaxPerIp(yy_class) = $3;
-};
-
-class_connectfreq: CONNECTFREQ '=' timespec ';'
-{
-  if (ypass == 1)
-    ConFreq(yy_class) = $3;
-};
-
-class_max_number: MAX_NUMBER '=' NUMBER ';'
-{
-  if (ypass == 1)
-    MaxTotal(yy_class) = $3;
-};
-
-class_max_global: MAX_GLOBAL '=' NUMBER ';'
-{
-  if (ypass == 1)
-    MaxGlobal(yy_class) = $3;
-};
-
-class_max_local: MAX_LOCAL '=' NUMBER ';'
-{
-  if (ypass == 1)
-    MaxLocal(yy_class) = $3;
-};
-
-class_max_ident: MAX_IDENT '=' NUMBER ';'
-{
-  if (ypass == 1)
-    MaxIdent(yy_class) = $3;
-};
-
-class_sendq: SENDQ '=' sizespec ';'
-{
-  if (ypass == 1)
-    MaxSendq(yy_class) = $3;
-};
-
-class_cidr_bitlen_ipv4: CIDR_BITLEN_IPV4 '=' NUMBER ';'
-{
-  if (ypass == 1)
-    CidrBitlenIPV4(yy_class) = $3;
-};
-
-class_cidr_bitlen_ipv6: CIDR_BITLEN_IPV6 '=' NUMBER ';'
-{
-  if (ypass == 1)
-    CidrBitlenIPV6(yy_class) = $3;
-};
-
-class_number_per_cidr: NUMBER_PER_CIDR '=' NUMBER ';'
-{
-  if (ypass == 1)
-    NumberPerCidr(yy_class) = $3;
-};
-
-class_reject_message: REJECT_MESSAGE '=' QSTRING ';'
-{
-  if (ypass == 1)
-  {
-    MyFree(yy_class->reject_message);
-    DupString(yy_class->reject_message, yylval.string);
-  }
-};
-
-/***************************************************************************
  *  section auth
  ***************************************************************************/
 auth_entry: IRCD_AUTH
@@ -1249,7 +1072,7 @@ auth_entry: IRCD_AUTH
 
     if (yy_aconf->user && yy_aconf->host)
     {
-      conf_add_class_to_conf(yy_conf, class_name);
+   //   conf_add_class_to_conf(yy_conf, class_name);
       add_conf_by_address(CONF_CLIENT, yy_aconf);
     }
     else
@@ -1290,7 +1113,7 @@ auth_entry: IRCD_AUTH
         memcpy(new_aconf->certfp, yy_aconf->certfp, SHA_DIGEST_LENGTH);
       }
 
-      conf_add_class_to_conf(new_conf, class_name);
+//      conf_add_class_to_conf(new_conf, class_name);
       add_conf_by_address(CONF_CLIENT, new_aconf);
       dlinkDelete(&yy_tmp->node, &col_conf_list);
       free_collect_item(yy_tmp);

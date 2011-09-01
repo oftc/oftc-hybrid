@@ -239,7 +239,6 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
       case LEAF_TYPE:
       case ULINE_TYPE:
       case EXEMPTDLINE_TYPE:
-      case CLASS_TYPE:
         break;
     }
   }

@@ -15,6 +15,7 @@
 #include "conf_serverhide.h"
 #include "conf_modules.h"
 #include "conf_listen.h"
+#include "conf_class.h"
 
 struct config_section config_sections[] = {
   { CONF_SECTION(serverinfo) },
@@ -25,6 +26,7 @@ struct config_section config_sections[] = {
   { CONF_SECTION(serverhide) },
   { CONF_SECTION(modules) },
   { CONF_SECTION(listen) },
+  { CONF_SECTION(class) },
   { CONF_SECTION_END }
 };
   

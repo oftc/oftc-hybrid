@@ -50,6 +50,7 @@
 #include "hook.h"
 #include "conf_general.h"
 #include "conf_serverinfo.h"
+#include "conf_class.h"
 
 static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
   "Error during DNS lookup", "connect timeout", "Error during connect()",
@@ -176,7 +177,7 @@ close_connection(struct Client *client_p)
 {
   struct ConfItem *conf;
   struct AccessItem *aconf;
-  struct ClassItem *aclass;
+  struct conf_class *aclass;
 
   assert(NULL != client_p);
 
@@ -217,7 +218,7 @@ close_connection(struct Client *client_p)
        * CONF_ILLEGAL). But only do this if it was a "good" link.
        */
       aconf = (struct AccessItem *)map_to_conf(conf);
-      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+      aclass = aconf->class_ptr;
       aconf->hold = time(NULL);
       aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
         HANGONRETRYDELAY : ConFreq(aclass);

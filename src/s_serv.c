@@ -57,6 +57,7 @@
 #include "conf_serverinfo.h"
 #include "conf_channel.h"
 #include "conf_serverhide.h"
+#include "conf_class.h"
 
 #define MIN_CONN_FREQ 300
 
@@ -485,7 +486,7 @@ try_connections(void *unused)
   dlink_node *ptr;
   struct ConfItem *conf;
   struct AccessItem *aconf;
-  struct ClassItem *cltmp;
+  struct conf_class *cltmp;
   int confrq;
 
   /* TODO: change this to set active flag to 0 when added to event! --Habeeb */
@@ -503,7 +504,7 @@ try_connections(void *unused)
         !(IsConfAllowAutoConn(aconf)))
       continue;
 
-    cltmp = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+    cltmp = aconf->class_ptr;
 
     /* Skip this entry if the use of it is still on hold until
      * future. Otherwise handle this entry (and set it on hold

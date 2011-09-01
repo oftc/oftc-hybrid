@@ -40,12 +40,10 @@ struct DNSReply;
 struct hostent;
 
 extern FBFILE *conf_fbfile_in;
-extern struct Callback *client_check_cb;
 
 typedef enum
 {  
   CONF_TYPE, 
-  CLASS_TYPE,
   OPER_TYPE,
   CLIENT_TYPE,
   SERVER_TYPE,
@@ -120,7 +118,7 @@ struct AccessItem
   int              port;
   char *           fakename;   /* Mask name */
   time_t           hold;     /* Hold action until this time (calendar time) */
-  struct ConfItem *class_ptr;  /* Class of connection */
+  struct conf_class *class_ptr;  /* Class of connection */
   struct DNSQuery* dns_query;
   int              aftype;
 #ifdef HAVE_LIBCRYPTO
@@ -131,27 +129,6 @@ struct AccessItem
 #endif
   pcre *regexuser;
   pcre *regexhost;
-};
-
-struct ClassItem
-{
-  long max_sendq;
-  int con_freq;
-  int ping_freq;
-  int ping_warning;
-  int max_total;
-  int max_local;
-  int max_global;
-  int max_ident;
-  int max_perip;
-  int curr_user_count;
-  int cidr_bitlen_ipv4;
-  int cidr_bitlen_ipv6;
-  int number_per_cidr;
-  dlink_list list_ipv4;         /* base of per cidr ipv4 client link list */
-  dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
-  int active;
-  char *reject_message;
 };
 
 struct CidrItem
@@ -169,15 +146,15 @@ struct ip_entry
   struct ip_entry *next;
 };
 
-#define ConFreq(x)	((x)->con_freq)
-#define PingFreq(x)	((x)->ping_freq)
+#define ConFreq(x)	((x)->connect_freq)
+#define PingFreq(x)	((x)->ping_time)
 #define PingWarning(x)  ((x)->ping_warning)
-#define MaxTotal(x)	((x)->max_total)
+#define MaxTotal(x)	((x)->max_number)
 #define MaxGlobal(x)	((x)->max_global)
 #define MaxLocal(x)	((x)->max_local)
 #define MaxIdent(x)	((x)->max_ident)
-#define MaxPerIp(x)	((x)->max_perip)
-#define MaxSendq(x)	((x)->max_sendq)
+#define MaxPerIp(x)	((x)->number_per_ip)
+#define MaxSendq(x)	((x)->sendq)
 #define CurrUserCount(x) ((x)->curr_user_count)
 #define CidrBitlenIPV4(x)	((x)->cidr_bitlen_ipv4)
 #define CidrBitlenIPV6(x)	((x)->cidr_bitlen_ipv6)
@@ -317,8 +294,6 @@ struct ip_entry
 				 SHARED_RESV | SHARED_TRESV | SHARED_UNRESV |\
                                  SHARED_LOCOPS)
 
-#define DEFAULT_CLASS_REJECT_MESSAGE "No more connections permitted from your host"
-
 struct config_file_entry
 {
   const char *dpath;          /* DPATH if set from command line */
@@ -350,7 +325,6 @@ struct admin_info
 };
 
 extern int ypass;
-extern dlink_list class_items;
 extern dlink_list server_items;
 extern dlink_list cluster_items;
 extern dlink_list hub_items;
@@ -371,7 +345,6 @@ extern unsigned long get_sendq(struct Client *);
 extern const char *get_client_class(struct Client *);
 extern int get_client_ping(struct Client *, int *);
 extern void check_class(void);
-extern void init_class(void);
 extern struct ConfItem *find_class(const char *);
 extern void init_ip_hash_table(void);
 extern void count_ip_hash(int *, unsigned long *);
@@ -444,9 +417,7 @@ extern int match_conf_password(const char *, const struct AccessItem *);
 
 extern void cluster_a_line(struct Client *,
 			   const char *, int, int, const char *,...);
-extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
 extern struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
-extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
-extern void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
+//extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
 
 #endif /* INCLUDED_s_conf_h */

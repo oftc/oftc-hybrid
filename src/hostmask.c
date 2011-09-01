@@ -34,6 +34,7 @@
 #include "sprintf_irc.h"
 #include "s_misc.h"
 #include "conf_general.h"
+#include "conf_class.h"
 
 static int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
 static unsigned long hash_ipv6(struct irc_ssaddr *, int);

@@ -39,6 +39,7 @@
 #include "resv.h"
 #include "hash.h"
 #include "modules.h"
+#include "conf_class.h"
 
 static void mo_testline(struct Client *, struct Client *, int, char *[]);
 static void mo_testgecos(struct Client *, struct Client *, int, char *[]);

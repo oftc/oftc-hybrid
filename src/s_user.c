@@ -58,6 +58,7 @@
 #include "conf_general.h"
 #include "conf_serverinfo.h"
 #include "conf_serverhide.h"
+#include "conf_class.h"
 
 int MaxClientCount     = 1;
 int MaxConnectionCount = 1;
