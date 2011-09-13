@@ -365,6 +365,7 @@ unhook_hub_leaf_confs(void)
 %token  T_UNAUTH
 %token  T_UNRESV
 %token  T_UNXLINE
+%token  T_GLOBOPS
 %token  T_WALLOP
 %token  T_GOD
 %token  T_NICKSERVREG
@@ -1380,6 +1381,13 @@ oper_flags_item_atom: GLOBAL_KILL
   {
     if (not_atom) yy_aconf->port &= ~OPER_FLAG_OPERWALL;
     else yy_aconf->port |= OPER_FLAG_OPERWALL;
+  }
+} | T_GLOBOPS
+{
+  if (conf_parser_ctx.pass == 2)
+  {
+    if (not_atom) yy_aconf->port &= ~OPER_FLAG_GLOBOPS;
+    else yy_aconf->port |= OPER_FLAG_GLOBOPS;
   }
 } | OPER_SPY_T
 {

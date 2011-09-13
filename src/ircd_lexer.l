@@ -193,6 +193,7 @@ glines		{ return GLINES; }
 gline_exempt    { return GLINE_EXEMPT; }
 gline_min_cidr  { return GLINE_MIN_CIDR; }
 gline_min_cidr6 { return GLINE_MIN_CIDR6; }
+globops         { return T_GLOBOPS; }
 global_kill	{ return GLOBAL_KILL; }
 godmode_timeout { return GODMODE_TIMEOUT; }
 have_ident	{ return NEED_IDENT; }
