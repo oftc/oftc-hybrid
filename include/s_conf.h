@@ -580,6 +580,6 @@ extern void cluster_a_line(struct Client *,
 extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
 
 /* XXX **/
-extern int yylex(void);
+//extern int yylex(void);
 
 #endif /* INCLUDED_s_conf_h */

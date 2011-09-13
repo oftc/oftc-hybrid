@@ -405,6 +405,7 @@ struct LocalUser
 #define OPER_FLAG_OPER_SPY     0x00001000 /* */
 #define OPER_FLAG_REMOTEBAN    0x00002000 /* */
 #define OPER_FLAG_HIDDEN_OPER  0x00004000 /* */
+#define OPER_FLAG_GLOBOPS      0x00008000
 
 #define SetOFlag(x, y) ((x)->localClient->operflags |= (y))
 
@@ -534,6 +535,7 @@ struct LocalUser
 #define IsOperHiddenAdmin(x)	(MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_HIDDEN_ADMIN : 0)
 #define IsOperX(x)              (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_X : 0)
 #define IsOperWall(x)           (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_OPERWALL : 0)
+#define IsOperGlobops(x)        (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_GLOBOPS : 0)
 #define IsOperRemoteBan(x)      (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_REMOTEBAN : 0)
 #define IsOperHidden(x)         (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_HIDDEN_OPER : 0)
 

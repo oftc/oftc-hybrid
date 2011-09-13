@@ -272,28 +272,29 @@
      T_UNAUTH = 490,
      T_UNRESV = 491,
      T_UNXLINE = 492,
-     T_WALLOP = 493,
-     T_SERVICE = 494,
-     T_SERVICES_NAME = 495,
-     THROTTLE_TIME = 496,
-     TOPICBURST = 497,
-     TRUE_NO_OPER_FLOOD = 498,
-     TKLINE = 499,
-     TXLINE = 500,
-     TRESV = 501,
-     UNKLINE = 502,
-     USER = 503,
-     USE_EGD = 504,
-     USE_EXCEPT = 505,
-     USE_INVEX = 506,
-     USE_KNOCK = 507,
-     USE_LOGGING = 508,
-     USE_WHOIS_ACTUALLY = 509,
-     VHOST = 510,
-     VHOST6 = 511,
-     XLINE = 512,
-     WARN = 513,
-     WARN_NO_NLINE = 514
+     T_GLOBOPS = 493,
+     T_WALLOP = 494,
+     T_SERVICE = 495,
+     T_SERVICES_NAME = 496,
+     THROTTLE_TIME = 497,
+     TOPICBURST = 498,
+     TRUE_NO_OPER_FLOOD = 499,
+     TKLINE = 500,
+     TXLINE = 501,
+     TRESV = 502,
+     UNKLINE = 503,
+     USER = 504,
+     USE_EGD = 505,
+     USE_EXCEPT = 506,
+     USE_INVEX = 507,
+     USE_KNOCK = 508,
+     USE_LOGGING = 509,
+     USE_WHOIS_ACTUALLY = 510,
+     VHOST = 511,
+     VHOST6 = 512,
+     XLINE = 513,
+     WARN = 514,
+     WARN_NO_NLINE = 515
    };
 #endif
 /* Tokens.  */
@@ -532,28 +533,29 @@
 #define T_UNAUTH 490
 #define T_UNRESV 491
 #define T_UNXLINE 492
-#define T_WALLOP 493
-#define T_SERVICE 494
-#define T_SERVICES_NAME 495
-#define THROTTLE_TIME 496
-#define TOPICBURST 497
-#define TRUE_NO_OPER_FLOOD 498
-#define TKLINE 499
-#define TXLINE 500
-#define TRESV 501
-#define UNKLINE 502
-#define USER 503
-#define USE_EGD 504
-#define USE_EXCEPT 505
-#define USE_INVEX 506
-#define USE_KNOCK 507
-#define USE_LOGGING 508
-#define USE_WHOIS_ACTUALLY 509
-#define VHOST 510
-#define VHOST6 511
-#define XLINE 512
-#define WARN 513
-#define WARN_NO_NLINE 514
+#define T_GLOBOPS 493
+#define T_WALLOP 494
+#define T_SERVICE 495
+#define T_SERVICES_NAME 496
+#define THROTTLE_TIME 497
+#define TOPICBURST 498
+#define TRUE_NO_OPER_FLOOD 499
+#define TKLINE 500
+#define TXLINE 501
+#define TRESV 502
+#define UNKLINE 503
+#define USER 504
+#define USE_EGD 505
+#define USE_EXCEPT 506
+#define USE_INVEX 507
+#define USE_KNOCK 508
+#define USE_LOGGING 509
+#define USE_WHOIS_ACTUALLY 510
+#define VHOST 511
+#define VHOST6 512
+#define XLINE 513
+#define WARN 514
+#define WARN_NO_NLINE 515
 
 
 
@@ -571,7 +573,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 575 "ircd_parser.h"
+#line 577 "ircd_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
