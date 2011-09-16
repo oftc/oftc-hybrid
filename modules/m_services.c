@@ -75,16 +75,19 @@ static void m_chanserv(struct Client *, struct Client *, int, char *[]);
 static void m_global(struct Client *, struct Client *, int, char *[]);
 static void m_helpserv(struct Client *, struct Client *, int, char *[]);
 static void m_hostserv(struct Client *, struct Client *, int, char *[]);
-static void m_identify(struct Client *, struct Client *, int, char *[]);
 static void m_memoserv(struct Client *, struct Client *, int, char *[]);
 static void m_nickserv(struct Client *, struct Client *, int, char *[]);
 static void m_operserv(struct Client *, struct Client *, int, char *[]);
+static void m_statserv(struct Client *, struct Client *, int, char *[]);
+static void m_helpserv(struct Client *, struct Client *, int, char *[]);
+static void m_identify(struct Client *, struct Client *, int, char *[]);
 
 /* Services */
 struct Message groupserv_msgtab = {
   "GROUPSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
   {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
 };
+
 
 struct Message ms_msgtab = {
   "MS", 0, 0, 0, 1, MFLG_SLOW, 0,
@@ -109,6 +112,16 @@ struct Message bs_msgtab = {
 struct Message cs_msgtab = {
   "CS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
+};
+
+struct Message ss_msgtab = {
+  "SS", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_statserv, m_ignore, m_ignore, m_statserv, m_ignore}
+};
+
+struct Message hs_msgtab = {
+  "HS", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
 };
 
 struct Message botserv_msgtab = {
@@ -136,20 +149,14 @@ struct Message operserv_msgtab = {
   {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
 };
 
-struct Message seenserv_msgtab = {
-  "SEENSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_seenserv, m_ignore, m_ignore, m_seenserv, m_ignore}
-};
-
 struct Message statserv_msgtab = {
-  "STATSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "STATSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_statserv, m_ignore, m_ignore, m_statserv, m_ignore}
 };
 
-/* Short-hand aliases for NickServ, ChanServ, MemoServ and OperServ */
-struct Message cs_msgtab = {
-  "CS", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
+struct Message helpserv_msgtab = {
+  "HELPSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
 };
 
 struct Message identify_msgtab = {
@@ -190,13 +197,16 @@ _modinit(void)
   mod_add_cmd(&memoserv_msgtab);
   mod_add_cmd(&nickserv_msgtab);
   mod_add_cmd(&operserv_msgtab);
-  mod_add_cmd(&seenserv_msgtab);
   mod_add_cmd(&statserv_msgtab);
+  mod_add_cmd(&helpserv_msgtab);
+  mod_add_cmd(&identify_msgtab);
   mod_add_cmd(&bs_msgtab);
   mod_add_cmd(&ns_msgtab);
   mod_add_cmd(&cs_msgtab);
   mod_add_cmd(&ms_msgtab);
   mod_add_cmd(&os_msgtab);
+  mod_add_cmd(&ss_msgtab);
+  mod_add_cmd(&hs_msgtab);
 }
 
 void
@@ -207,17 +217,19 @@ _moddeinit(void)
   mod_del_cmd(&global_msgtab);
   mod_del_cmd(&helpserv_msgtab);
   mod_del_cmd(&hostserv_msgtab);
-  mod_del_cmd(&identify_msgtab);
   mod_del_cmd(&memoserv_msgtab);
   mod_del_cmd(&nickserv_msgtab);
   mod_del_cmd(&operserv_msgtab);
-  mod_del_cmd(&seenserv_msgtab);
   mod_del_cmd(&statserv_msgtab);
+  mod_del_cmd(&helpserv_msgtab);
+  mod_del_cmd(&identify_msgtab);
   mod_del_cmd(&bs_msgtab);
   mod_del_cmd(&ns_msgtab);
   mod_del_cmd(&cs_msgtab);
   mod_del_cmd(&ms_msgtab);
   mod_del_cmd(&os_msgtab);
+  mod_del_cmd(&ss_msgtab);
+  mod_del_cmd(&hs_msgtab);
 }
 
 const char *_version = "$Revision$";
@@ -382,8 +394,62 @@ clean_nick_name(char *nick, int local)
  * parv[2] = ChanServ Password
  */
 static void
-m_identify(struct Client *client_p, struct Client *source_p,
+m_statserv(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
+{
+  struct Client *target_p = NULL;
+
+  assert(client_p && source_p);
+  assert(client_p == source_p);
+
+  if (EmptyString(parv[1]))
+  {
+    sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
+               me.name, source_p->name);
+    return;
+  }
+
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  {
+    sendto_one(target_p, ":%s PRIVMSG StatServ@%s :%s",
+               source_p->name, ConfigFileEntry.service_name, parv[1]);
+    return;
+  }
+
+  sendto_one(source_p, form_str(ERR_SERVICESDOWN),
+             me.name, source_p->name, "StatServ");
+}
+
+static void
+m_helpserv(struct Client *client_p, struct Client *source_p,
+           int parc, char *parv[])
+{
+  struct Client *target_p = NULL;
+
+  assert(client_p && source_p);
+  assert(client_p == source_p);
+
+  if (EmptyString(parv[1]))
+  {
+    sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
+               me.name, source_p->name);
+    return;
+  }
+
+  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  {
+    sendto_one(target_p, ":%s PRIVMSG HelpServ@%s :%s",
+               source_p->name, ConfigFileEntry.service_name, parv[1]);
+    return;
+  }
+
+  sendto_one(source_p, form_str(ERR_SERVICESDOWN),
+             me.name, source_p->name, "HelpServ");
+}
+
+static void
+m_botserv(struct Client *client_p, struct Client *source_p,
+          int parc, char *parv[])
 {
   struct Client *target_p = NULL;
 
