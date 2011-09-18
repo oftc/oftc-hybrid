@@ -404,7 +404,7 @@ subcmd_search(const char *cmd, const struct subcmd *elem)
 static void
 m_cap(struct Client *cptr, struct Client *sptr, int parc, char *parv[])
 {
-  char *subcmd = NULL, *caplist = NULL;
+  const char *subcmd = NULL, *caplist = NULL;
   struct subcmd *cmd = NULL;
 
   if (EmptyString(parv[1]))    /* a subcommand is required */
@@ -420,8 +420,8 @@ m_cap(struct Client *cptr, struct Client *sptr, int parc, char *parv[])
                       sizeof(cmdlist) / sizeof(struct subcmd),
                       sizeof(struct subcmd), (bqcmp)subcmd_search)))
   {
-    sendto_one(sptr, form_str(ERR_INVALIDCAPCMD),
-               me.name, sptr->name, subcmd);
+    sendto_one(sptr, form_str(ERR_INVALIDCAPCMD), me.name,
+               sptr->name[0] ? sptr->name : "*", subcmd);
     return;
   }
 
