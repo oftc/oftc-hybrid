@@ -69,7 +69,7 @@ do_links(struct Client *source_p, int parc, char *parv[])
                        source_p->username, source_p->host,
                        source_p->servptr->name);
 
-  if (IsOper(source_p) || !ConfigServerHide.flatten_links)
+  if (HasUMode(source_p, UMODE_OPER) || !ConfigServerHide.flatten_links)
   {
     const char *mask = (parc > 2 ? parv[2] : parv[1]);
     const char *me_name, *nick, *p;
@@ -164,7 +164,7 @@ mo_links(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
   if (parc > 2) 
-    if (!ConfigFileEntry.disable_remote || IsOper(source_p))
+    if (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER))
       if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1,
                       parc, parv) != HUNTED_ISME)
         return;

@@ -89,7 +89,7 @@ mo_killhost(struct Client *client_p, struct Client *source_p,
   unsigned int count = 0;
   struct split_nuh_item nuh;
 
-  if (!(IsOperK(source_p) || IsOperGlobalKill(source_p)))
+  if (!(HasOFlag(source_p, OPER_FLAG_K) || HasOFlag(source_p, OPER_FLAG_GLOBAL_KILL)))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -126,7 +126,7 @@ mo_killhost(struct Client *client_p, struct Client *source_p,
     if (!IsClient(target_p) || (source_p == target_p))
       continue;
 
-    if (!MyConnect(target_p) && !IsOperGlobalKill(source_p))
+    if (!MyConnect(target_p) && !HasOFlag(source_p, OPER_FLAG_GLOBAL_KILL))
       continue;
 
     if (match(nick, target_p->name) &&
@@ -148,7 +148,7 @@ mo_killhost(struct Client *client_p, struct Client *source_p,
       if (!MyConnect(target_p))
       {
         kh_relay_kill(client_p, source_p, target_p, inpath, reason);
-        SetKilled(target_p);
+        AddFlag(target_p, FLAGS_KILLED);
       }
 
       if (!count++)

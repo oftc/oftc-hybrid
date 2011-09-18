@@ -123,7 +123,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!IsServer(source_p) && !IsService(source_p))
+  if (!IsServer(source_p) && !HasFlag(source_p, FLAGS_SERVICE))
   {
     if ((ms = find_channel_link(source_p, chptr)) == NULL)
     {

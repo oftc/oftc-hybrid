@@ -69,7 +69,7 @@ m_quit(struct Client *client_p, struct Client *source_p,
   char *comment = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
   char reason[KICKLEN + 1] = "Quit: ";
 
-  if (comment[0] && (IsOper(source_p) ||
+  if (comment[0] && (HasUMode(source_p, UMODE_OPER) ||
       (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
       < CurrentTime))
     strlcpy(reason+6, comment, sizeof(reason)-6);

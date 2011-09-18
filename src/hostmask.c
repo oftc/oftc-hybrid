@@ -908,7 +908,7 @@ report_Klines(struct Client *client_p, int tkline)
             (!tkline && ((aconf = arec->aconf)->flags & CONF_FLAGS_TEMPORARY)))
           continue;
 
-	if (IsOper(client_p))
+	if (HasUMode(client_p, UMODE_OPER))
 	  sendto_one(client_p, form_str(RPL_STATSKLINE), me.name,
                      client_p->name, p, aconf->host, aconf->user,
 		     aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");

@@ -167,7 +167,7 @@ confopts(struct Client *source_p)
 
   /* might wanna hide this :P */
   if (ServerInfo.hub && 
-      (!ConfigFileEntry.disable_remote || IsOper(source_p)))
+      (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER)))
   {
     *p++ = 'H';
   }

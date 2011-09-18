@@ -648,7 +648,7 @@ send_info_text(struct Client *source_p)
                source, target, line);
   }
 
-  if (IsOper(source_p))
+  if (HasUMode(source_p, UMODE_OPER))
     send_conf_options(source_p);
 
   send_birthdate_online_time(source_p);
@@ -808,7 +808,7 @@ send_conf_options(struct Client *source_p)
    */
 #ifndef EFNET
   /* jdc -- Only send compile information to admins. */
-  if (IsAdmin(source_p))
+  if (HasUMode(source_p, UMODE_ADMIN))
     sendto_one(source_p, ":%s %d %s :Running on [%s]",
                from, RPL_INFO, to, ircd_platform); 
 #endif

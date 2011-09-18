@@ -76,7 +76,7 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
   dlink_node *ptr;
 
   /* admins only */
-  if (!IsAdmin(source_p))
+  if (!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);

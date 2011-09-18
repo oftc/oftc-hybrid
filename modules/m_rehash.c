@@ -69,7 +69,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
 {
   int found = 0;
 
-  if (!IsOperRehash(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_REHASH))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "rehash");

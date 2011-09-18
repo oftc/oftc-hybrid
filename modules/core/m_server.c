@@ -425,9 +425,8 @@ ms_server(struct Client *client_p, struct Client *source_p,
   set_server_gecos(target_p, info);
   SetServer(target_p);
 
-
-  if (IsService(source_p) || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
-    SetService(target_p);
+  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
+    AddFlag(target_p, FLAGS_SERVICE);
 
   dlinkAdd(target_p, &target_p->node, &global_client_list);
   dlinkAdd(target_p, make_dlink_node(), &global_serv_list);
@@ -642,8 +641,8 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   set_server_gecos(target_p, info);
   SetServer(target_p);
 
-  if (IsService(source_p) || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
-    SetService(target_p);
+  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
+    AddFlag(target_p, FLAGS_SERVICE);
 
   dlinkAdd(target_p, &target_p->node, &global_client_list);
   dlinkAdd(target_p, make_dlink_node(), &global_serv_list);

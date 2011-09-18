@@ -139,7 +139,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   time_t cur_time;
   char hostip[HOSTIPLEN];
 
-  if (!IsOperK(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_K))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "kline");
@@ -299,7 +299,7 @@ mo_undline(struct Client *client_p, struct Client *source_p,
 {
   const char *cidr = NULL;
 
-  if (!IsOperUnkline(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_UNKLINE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "undline");

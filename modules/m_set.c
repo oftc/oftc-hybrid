@@ -236,7 +236,7 @@ quote_floodcount(struct Client *source_p, int newval)
 static void
 quote_identtimeout(struct Client *source_p, int newval)
 {
-  if (!IsAdmin(source_p))
+  if (!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "set");

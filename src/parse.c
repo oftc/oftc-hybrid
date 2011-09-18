@@ -783,7 +783,7 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
     
     /* Fake it for server hiding, if its our client */
     if (ConfigServerHide.hide_servers &&
-        MyClient(target_p) && !IsOper(target_p))
+        MyClient(target_p) && !HasUMode(target_p, UMODE_OPER))
       sendto_one(target_p, ":%s %s %s%s", me.name, numeric, target_p->name, buffer);
     else
       sendto_one(target_p, ":%s %s %s%s", ID_or_name(source_p, target_p->from),

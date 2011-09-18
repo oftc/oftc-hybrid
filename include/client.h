@@ -274,9 +274,6 @@ struct LocalUser
 #define IsServer(x)             ((x)->status == STAT_SERVER)
 #define IsClient(x)             ((x)->status == STAT_CLIENT)
 
-#define IsOper(x)		((x)->umodes & UMODE_OPER)
-#define IsAdmin(x)		((x)->umodes & UMODE_ADMIN)
-
 #define SetConnecting(x)        {(x)->status = STAT_CONNECTING; \
 				 (x)->handler = UNREGISTERED_HANDLER; }
 
@@ -293,11 +290,11 @@ struct LocalUser
 				 (x)->handler = SERVER_HANDLER; }
 
 #define SetClient(x)            {(x)->status = STAT_CLIENT; \
-				 (x)->handler = IsOper((x)) ? \
+				 (x)->handler = HasUMode(x, UMODE_OPER) ? \
 					OPER_HANDLER : CLIENT_HANDLER; }
 
-#define SetEob(x)		((x)->flags |= FLAGS_EOB)
-#define HasSentEob(x)		((x)->flags & FLAGS_EOB)
+#define MyConnect(x)            ((x)->localClient != NULL)
+#define MyClient(x)             (MyConnect(x) && IsClient(x))
 
 /*
  * ts stuff
@@ -349,6 +346,11 @@ struct LocalUser
 #define FLAGS_FLOOD_NOTICED 0x0000000100000000
 #define FLAGS_SERVICE       0x0000000200000000 /* Client/server is a network service       */
 
+#define HasFlag(x, y) ((x)->flags &   (y))
+#define AddFlag(x, y) ((x)->flags |=  (y))
+#define DelFlag(x, y) ((x)->flags &= ~(y))
+
+
 
 /* umodes, settable flags */
 #define UMODE_SERVNOTICE   0x00000001 /* server notices such as kill */
@@ -372,8 +374,6 @@ struct LocalUser
 #define UMODE_CCONN_FULL   0x00040000 /* add unused fields to connection monitoring */
 #define UMODE_REGISTERED   0x00080000 /* User has identified for that nick. */
 #define UMODE_REGONLY      0x00100000 /* Only registered nicks may PM */
-
-/* user information flags, only settable by remote mode or local oper */
 #define UMODE_OPER         0x40000000 /* Operator */
 #define UMODE_ADMIN        0x80000000 /* Admin on server */ 
 
@@ -385,7 +385,6 @@ struct LocalUser
 
 #define SEND_UMODES  (UMODE_INVISIBLE | UMODE_OPER | UMODE_WALLOP | \
                       UMODE_REGISTERED | UMODE_ADMIN)
-
 
 
 
@@ -407,20 +406,19 @@ struct LocalUser
 #define OPER_FLAG_HIDDEN_OPER  0x00004000 /* */
 #define OPER_FLAG_GLOBOPS      0x00008000
 
-#define SetOFlag(x, y) ((x)->localClient->operflags |= (y))
+#define HasOFlag(x, y) (MyConnect(x) ? (x)->localClient->operflags & (y) : 0)
+#define AddOFlag(x, y) ((x)->localClient->operflags |=  (y))
+#define DelOFlag(x, y) ((x)->localClient->operflags &= ~(y))
+#define ClrOFlag(x)    ((x)->localClient->operflags = 0)
+
 
 
 /* flags macros. */
-#define IsMsgFloodNoticed(x)       ((x)->flags & FLAGS_FLOOD_NOTICED)
-#define SetMsgFloodNoticed(x)      ((x)->flags |= FLAGS_FLOOD_NOTICED)
-#define ClearMsgFloodNoticed(x)    ((x)->flags &= ~FLAGS_FLOOD_NOTICED)
 #define IsAuthFinished(x)       ((x)->flags & FLAGS_FINISHED_AUTH)
 #define IsDead(x)               ((x)->flags & FLAGS_DEADSOCKET)
 #define SetDead(x)              ((x)->flags |= FLAGS_DEADSOCKET)
 #define IsClosing(x)		((x)->flags & FLAGS_CLOSING)
 #define SetClosing(x)		((x)->flags |= FLAGS_CLOSING)
-#define IsKilled(x)		((x)->flags & FLAGS_KILLED)
-#define SetKilled(x)		((x)->flags |= FLAGS_KILLED)
 #define IsCryptIn(x)            ((x)->flags &  FLAGS_CRYPTIN)
 #define SetCryptIn(x)           ((x)->flags |= FLAGS_CRYPTIN)
 #define IsCryptOut(x)           ((x)->flags &  FLAGS_CRYPTOUT)
@@ -430,36 +428,20 @@ struct LocalUser
 #define ClearWaitAuth(x)        ((x)->flags &= ~FLAGS_WAITAUTH)
 #define HasServlink(x)          ((x)->flags &  FLAGS_SERVLINK)
 #define SetServlink(x)          ((x)->flags |= FLAGS_SERVLINK)
-#define MyConnect(x)            ((x)->localClient != NULL)
-#define MyClient(x)             (MyConnect(x) && IsClient(x))
-#define SetMark(x)		((x)->flags |= FLAGS_MARK)
-#define ClearMark(x)		((x)->flags &= ~FLAGS_MARK)
-#define IsMarked(x)		((x)->flags & FLAGS_MARK)
 #define SetCanFlood(x)		((x)->flags |= FLAGS_CANFLOOD)
 #define IsCanFlood(x)		((x)->flags & FLAGS_CANFLOOD)
 #define IsDefunct(x)            ((x)->flags & (FLAGS_DEADSOCKET|FLAGS_CLOSING| \
 					       FLAGS_KILLED))
 
 /* oper flags */
-#define MyOper(x)               (MyConnect(x) && IsOper(x))
+#define MyOper(x)               (MyConnect(x) && HasUMode(x, UMODE_OPER))
 
 #define SetOper(x)              {(x)->umodes |= UMODE_OPER; \
 				 if (!IsServer((x))) (x)->handler = OPER_HANDLER;}
 
 #define ClearOper(x)            {(x)->umodes &= ~(UMODE_OPER|UMODE_ADMIN); \
-				 if (!IsOper((x)) && !IsServer((x))) \
+				 if (!HasUMode(x, UMODE_OPER) && !IsServer((x))) \
 				  (x)->handler = CLIENT_HANDLER; }
-
-#define IsPrivileged(x)         (IsOper(x) || IsServer(x))
-
-/* umode flags */
-#define IsInvisible(x)          ((x)->umodes & UMODE_INVISIBLE)
-#define SendWallops(x)          ((x)->umodes & UMODE_WALLOP)
-#define IsSetCallerId(x)        ((x)->umodes & \
-                                 (UMODE_CALLERID|UMODE_SOFTCALLERID))
-#define IsSoftCallerId(x)       ((x)->umodes & UMODE_SOFTCALLERID)
-#define IsDeaf(x)               ((x)->umodes & UMODE_DEAF)
-#define IsFull(x)		((x)->umodes & UMODE_CCONN_FULL)
 
 #define SetSendQExceeded(x)	((x)->flags |= FLAGS_SENDQEX)
 #define IsSendQExceeded(x)	((x)->flags &  FLAGS_SENDQEX)
@@ -503,8 +485,6 @@ struct LocalUser
 #define SetPingCookie(x)        ((x)->flags |= FLAGS_PING_COOKIE)
 #define IsHidden(x)             ((x)->flags &  FLAGS_HIDDEN)
 #define SetHidden(x)            ((x)->flags |= FLAGS_HIDDEN)
-#define IsService(x)            ((x)->flags &  FLAGS_SERVICE)
-#define SetService(x)           ((x)->flags |= FLAGS_SERVICE)
 
 #define IsSendqBlocked(x)       ((x)->flags &  FLAGS_BLOCKED)
 #define SetSendqBlocked(x)      ((x)->flags |= FLAGS_BLOCKED)
@@ -513,31 +493,10 @@ struct LocalUser
 #define SetSlinkqBlocked(x)     ((x)->flags |= FLAGS_SBLOCKED)
 #define ClearSlinkqBlocked(x)   ((x)->flags &= ~FLAGS_SBLOCKED)
 
-#define IsBursted(x)            ((x)->flags &  FLAGS_BURSTED)
-#define SetBursted(x)           ((x)->flags |= FLAGS_BURSTED)
-#define ClearBursted(x)         ((x)->flags &= ~FLAGS_BURSTED)
-
 #define IsCaptured(x)           ((x)->handler == DUMMY_HANDLER)
 #define SetCaptured(x)          ((x)->handler = DUMMY_HANDLER)
 #define ClearCaptured(x)        ((x)->handler = CLIENT_HANDLER)
 
-/* operflags macros */
-#define ClearOperFlags(x)	((x)->localClient->operflags = 0)
-#define IsOperGlobalKill(x)     (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_GLOBAL_KILL : 0)
-#define IsOperRemote(x)         (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_REMOTE : 0)
-#define IsOperUnkline(x)        (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_UNKLINE : 0)
-#define IsOperGline(x)          (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_GLINE : 0)
-#define IsOperN(x)              (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_N : 0)
-#define IsOperK(x)              (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_K : 0)
-#define IsOperDie(x)            (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_DIE : 0)
-#define IsOperRehash(x)         (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_REHASH : 0)
-#define IsOperAdmin(x)          (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_ADMIN : 0)
-#define IsOperHiddenAdmin(x)	(MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_HIDDEN_ADMIN : 0)
-#define IsOperX(x)              (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_X : 0)
-#define IsOperWall(x)           (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_OPERWALL : 0)
-#define IsOperGlobops(x)        (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_GLOBOPS : 0)
-#define IsOperRemoteBan(x)      (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_REMOTEBAN : 0)
-#define IsOperHidden(x)         (MyConnect(x) ? (x)->localClient->operflags & OPER_FLAG_HIDDEN_OPER : 0)
 
 /*
  * definitions for get_client_name

@@ -70,7 +70,7 @@ mo_globops(struct Client *client_p, struct Client *source_p,
 {
   const char *message = parv[1];
 
-  if (!IsOperGlobops(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_GLOBOPS))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "globops");

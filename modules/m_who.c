@@ -131,7 +131,7 @@ m_who(struct Client *client_p, struct Client *source_p,
 
   /* '/who nick' */
   if (((target_p = hash_find_client(mask)) != NULL) &&
-      IsClient(target_p) && (!server_oper || IsOper(target_p)))
+      IsClient(target_p) && (!server_oper || HasUMode(target_p, UMODE_OPER)))
   {
     DLINK_FOREACH(lp, target_p->channel.head)
     {
@@ -184,20 +184,20 @@ who_common_channel(struct Client *source_p, struct Channel *chptr,
   {
     target_p = ((struct Membership *)ptr->data)->client_p;
 
-    if (!IsInvisible(target_p) || IsMarked(target_p))
+    if (!HasUMode(target_p, UMODE_INVISIBLE) || HasFlag(target_p, FLAGS_MARK))
       continue;
 
-    if (server_oper && !IsOper(target_p))
+    if (server_oper && !HasUMode(target_p, UMODE_OPER))
       continue;
 
-    SetMark(target_p);
+    AddFlag(target_p, FLAGS_MARK);
 
     assert(target_p->servptr != NULL);
 
     if ((mask == NULL) ||
       match(mask, target_p->name) || match(mask, target_p->username) ||
       match(mask, target_p->host) || 
-      ((!ConfigServerHide.hide_servers || IsOper(source_p)) &&
+      ((!ConfigServerHide.hide_servers || HasUMode(source_p, UMODE_OPER)) &&
        match(mask, target_p->servptr->name)) ||
       match(mask, target_p->info))
     {
@@ -232,7 +232,7 @@ who_global(struct Client *source_p, char *mask, int server_oper)
   dlink_node *gcptr_next;
   int maxmatches = 500;
 
-  if (!IsOper(source_p))
+  if (!HasUMode(source_p, UMODE_OPER))
   {
     if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
     {
@@ -259,13 +259,13 @@ who_global(struct Client *source_p, char *mask, int server_oper)
     if (!IsClient(target_p))
       continue;
 
-    if (IsInvisible(target_p))
+    if (HasUMode(target_p, UMODE_INVISIBLE))
     {
-      ClearMark(target_p);
+      DelFlag(target_p, FLAGS_MARK);
       continue;
     }
 
-    if (server_oper && !IsOper(target_p))
+    if (server_oper && !HasUMode(target_p, UMODE_OPER))
       continue;
 
     assert(target_p->servptr != NULL);
@@ -310,9 +310,9 @@ do_who_on_channel(struct Client *source_p, struct Channel *chptr,
     ms = ptr->data;
     target_p = ms->client_p;
 
-    if (member || !IsInvisible(target_p))
+    if (member || !HasUMode(target_p, UMODE_INVISIBLE))
     {
-      if (server_oper && !IsOper(target_p))
+      if (server_oper && !HasUMode(target_p, UMODE_OPER))
         continue;
       do_who(source_p, target_p, chname, get_member_status(ms, !!HasCap(source_p, CAP_MULTI_PREFIX)));
     }
@@ -334,19 +334,20 @@ do_who(struct Client *source_p, struct Client *target_p,
 {
   char status[8]; /* G*#@%+\0 */
 
-  if (IsOper(source_p))
+  if (HasUMode(source_p, UMODE_OPER))
     snprintf(status, sizeof(status), "%c%s%s%s", target_p->away ? 'G' : 'H',
-	       IsOper(target_p) ? "*" : "", IsCaptured(target_p) ? "#" : "", op_flags);
+             HasUMode(target_p, UMODE_OPER) ? "*" : "",
+             IsCaptured(target_p) ? "#" : "", op_flags);
   else
     snprintf(status, sizeof(status), "%c%s%s", target_p->away ? 'G' : 'H',
-	       IsOper(target_p) ? "*" : "", op_flags);
+             HasUMode(target_p, UMODE_OPER) ? "*" : "", op_flags);
 
   if (ConfigServerHide.hide_servers)
   {
     sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
 	       (chname) ? (chname) : "*",
                target_p->username, target_p->host,
-	       IsOper(source_p) ? target_p->servptr->name : "*",
+	       HasUMode(source_p, UMODE_OPER) ? target_p->servptr->name : "*",
 	       target_p->name, status, 0, target_p->info);
   }
   else

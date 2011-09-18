@@ -579,11 +579,11 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
 
   if (MyClient(target_p))
   {
-    if (!IsServer(source_p) && IsSetCallerId(target_p))
+    if (!IsServer(source_p) && HasUMode(target_p, UMODE_CALLERID|UMODE_SOFTCALLERID))
     {
       /* Here is the anti-flood bot/spambot code -db */
-      if (accept_message(source_p, target_p) || IsService(source_p) ||
-         (IsOper(source_p) && (ConfigFileEntry.opers_bypass_callerid == 1)))
+      if (accept_message(source_p, target_p) || HasFlag(source_p, FLAGS_SERVICE) ||
+         (HasUMode(source_p, UMODE_OPER) && (ConfigFileEntry.opers_bypass_callerid == 1)))
       {
         sendto_one(target_p, ":%s!%s@%s %s %s :%s",
                    source_p->name, source_p->username,
@@ -623,7 +623,7 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
        * we dont give warnings.. we then check if theyre opered 
        * (to avoid flood warnings), lastly if theyre our client
        * and flooding    -- fl */
-      if (!MyClient(source_p) || IsOper(source_p) ||
+      if (!MyClient(source_p) || HasUMode(source_p, UMODE_OPER) ||
           (MyClient(source_p) &&
            !flood_attack_client(p_or_n, source_p, target_p)))
         sendto_anywhere(target_p, source_p, "%s %s :%s",
@@ -632,7 +632,7 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
   }
   else
     /* The target is a remote user.. same things apply  -- fl */
-  if (!MyClient(source_p) || IsOper(source_p) ||
+  if (!MyClient(source_p) || HasUMode(source_p, UMODE_OPER) ||
         (MyClient(source_p)
            && !flood_attack_client(p_or_n, source_p, target_p)))
     sendto_anywhere(target_p, source_p, "%s %s :%s", command, target_p->name,
@@ -668,20 +668,20 @@ flood_attack_client(int p_or_n, struct Client *source_p,
       if (target_p->localClient->received_number_of_privmsgs <= 0)
       {
         target_p->localClient->received_number_of_privmsgs = 0;
-        ClearMsgFloodNoticed(target_p);
+        DelFlag(target_p, FLAGS_FLOOD_NOTICED);
       }
     }
 
     if ((target_p->localClient->received_number_of_privmsgs >=
-         GlobalSetOptions.floodcount) || IsMsgFloodNoticed(target_p))
+         GlobalSetOptions.floodcount) || HasFlag(target_p, FLAGS_FLOOD_NOTICED))
     {
-      if (!IsMsgFloodNoticed(target_p))
+      if (!HasFlag(target_p, FLAGS_FLOOD_NOTICED))
       {
         sendto_realops_flags(UMODE_BOTS, L_ALL,
                              "Possible Flooder %s on %s target: %s",
                              get_client_name(source_p, HIDE_IP),
                              source_p->servptr->name, target_p->name);
-        SetMsgFloodNoticed(target_p);
+        AddFlag(target_p, FLAGS_FLOOD_NOTICED);
         /* add a bit of penalty */
         target_p->localClient->received_number_of_privmsgs += 2;
       }
@@ -793,7 +793,7 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
   {
     count = 0;
 
-    if ((host = strchr(nick, '%')) && !IsOper(source_p))
+    if ((host = strchr(nick, '%')) && !HasUMode(source_p, UMODE_OPER))
     {
       sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                  ID_or_name(&me, client_p),
@@ -824,7 +824,7 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
       /* Check if someones msg'ing opers@our.server */
       if (strcmp(nick, "opers") == 0)
       {
-	if (!IsOper(source_p))
+	if (!HasUMode(source_p, UMODE_OPER))
 	  sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                      ID_or_name(&me, client_p),
                      ID_or_name(source_p, client_p));
@@ -874,7 +874,7 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
     return;
   }
 
-  if (!IsOper(source_p))
+  if (!HasUMode(source_p, UMODE_OPER))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                ID_or_name(&me, client_p),
@@ -892,7 +892,7 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
   {
     if ((*(nick+1) == '$' || *(nick+1) == '#'))
       nick++;
-    else if(MyOper(source_p))
+    else if (MyClient(source_p) && HasUMode(source_p, UMODE_OPER))
     {
       sendto_one(source_p, 
                  ":%s NOTICE %s :The command %s %s is no longer supported, please use $%s",

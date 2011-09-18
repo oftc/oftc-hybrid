@@ -104,7 +104,7 @@ mo_users(struct Client *client_p, struct Client *source_p,
                   parc, parv) != HUNTED_ISME)
     return;
 
-  if (!IsOper(source_p) && ConfigServerHide.hide_servers)
+  if (!HasUMode(source_p, UMODE_OPER) && ConfigServerHide.hide_servers)
     sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, source_p->name,
                Count.total, Count.max_tot, Count.total, Count.max_tot);
   else

@@ -86,7 +86,7 @@ ms_svsnick(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL, *exists_p = NULL;
 
-  if (!IsService(source_p) || (parc < 4) || !valid_nickname(parv[2], 1))
+  if (!HasFlag(source_p, FLAGS_SERVICE) || (parc < 4) || !valid_nickname(parv[2], 1))
     return;
 
   if (hunt_server(client_p, source_p, ":%s SVSNICK %s %s :%s",

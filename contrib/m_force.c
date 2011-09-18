@@ -93,7 +93,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
   char *newch = NULL;
   dlink_node *ptr = NULL;
 
-  if (!IsAdmin(source_p))
+  if (!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -284,7 +284,7 @@ mo_forcepart(struct Client *client_p, struct Client *source_p,
   struct Channel *chptr = NULL;
   struct Membership *member = NULL;
 
-  if (!IsAdmin(source_p))
+  if (!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);

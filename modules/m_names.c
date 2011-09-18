@@ -157,7 +157,7 @@ names_non_public_non_secret(struct Client *source_p)
   {
     c2ptr = gc2ptr->data;
 
-    if (!IsClient(c2ptr) || IsInvisible(c2ptr))
+    if (!IsClient(c2ptr) || HasUMode(c2ptr, UMODE_INVISIBLE))
       continue;
 
     shown_already = NO;

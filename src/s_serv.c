@@ -857,7 +857,7 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
   if (!IsClient(target_p))
     return;
 
-  send_umode(NULL, target_p, 0, IsOperHiddenAdmin(target_p) ?
+  send_umode(NULL, target_p, 0, HasOFlag(target_p, OPER_FLAG_HIDDEN_ADMIN) ?
     SEND_UMODES & ~UMODE_ADMIN : SEND_UMODES, ubuf);
 
   if (ubuf[0] == '\0')
@@ -1125,7 +1125,7 @@ server_estab(struct Client *client_p)
 
 
   if (find_matching_name_conf(SERVICE_TYPE, client_p->name, NULL, NULL, 0))
-    SetService(client_p);
+    AddFlag(client_p, FLAGS_SERVICE);
 
   /* Show the real host/IP to admins */
   sendto_realops_flags(UMODE_ALL, L_ADMIN,
@@ -1454,10 +1454,10 @@ burst_all(struct Client *client_p)
   {
     struct Client *target_p = ptr->data;
 
-    if (!IsBursted(target_p) && target_p->from != client_p)
+    if (!HasFlag(target_p, FLAGS_BURSTED) && target_p->from != client_p)
       sendnick_TS(client_p, target_p);
     
-    ClearBursted(target_p);
+    DelFlag(target_p, FLAGS_BURSTED);
   }
 
   /* We send the time we started the burst, and let the remote host determine an EOB time,
@@ -1540,9 +1540,9 @@ burst_members(struct Client *client_p, struct Channel *chptr)
     ms       = ptr->data;
     target_p = ms->client_p;
 
-    if (!IsBursted(target_p))
+    if (!HasFlag(target_p, FLAGS_BURSTED))
     {
-      SetBursted(target_p);
+      AddFlag(target_p, FLAGS_BURSTED);
 
       if (target_p->from != client_p)
         sendnick_TS(client_p, target_p);

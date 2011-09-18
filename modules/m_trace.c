@@ -182,7 +182,7 @@ ms_trace(struct Client *client_p, struct Client *source_p,
   if (hunt_server(client_p, source_p, ":%s TRACE %s :%s", 2, parc, parv))
     return;
 
-  if (IsOper(source_p))
+  if (HasUMode(source_p, UMODE_OPER))
     mo_trace(client_p, source_p, parc, parv);
 }
 
@@ -230,7 +230,7 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
   dow = wilds || doall;
 
   set_time();
-  if (!IsOper(source_p) || !dow) /* non-oper traces must be full nicks */
+  if (!HasUMode(source_p, UMODE_OPER) || !dow) /* non-oper traces must be full nicks */
                               /* lets also do this for opers tracing nicks */
   {
     const char *name;
@@ -243,7 +243,7 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
       name = get_client_name(target_p, HIDE_IP);
       class_name = get_client_class(target_p);
 
-      if (IsOper(target_p))
+      if (HasUMode(target_p, UMODE_OPER))
       {
         sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                    from, to, class_name, name, 
@@ -271,9 +271,9 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
   {
     target_p = ptr->data;
 
-    if (IsInvisible(target_p) && dow &&
-	!(MyConnect(source_p) && IsOper(source_p)) &&
-	!IsOper(target_p) && (target_p != source_p))
+    if (HasUMode(target_p, UMODE_INVISIBLE) && dow &&
+	!(MyConnect(source_p) && HasUMode(source_p, UMODE_OPER)) &&
+	!HasUMode(target_p, UMODE_OPER) && (target_p != source_p))
       continue;
     if (!doall && wilds && !match(tname, target_p->name))
       continue;
@@ -356,12 +356,12 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
     case STAT_CONNECTING:
       sendto_one(source_p, form_str(RPL_TRACECONNECTING),
                  from, to, class_name, 
-		 IsOperAdmin(source_p) ? name : target_p->name);
+		 HasUMode(source_p, UMODE_ADMIN) ? name : target_p->name);
       break;
     case STAT_HANDSHAKE:
       sendto_one(source_p, form_str(RPL_TRACEHANDSHAKE),
                  from, to, class_name, 
-                 IsOperAdmin(source_p) ? name : target_p->name);
+                 HasUMode(source_p, UMODE_ADMIN) ? name : target_p->name);
       break;
     case STAT_ME:
       break;
@@ -376,18 +376,18 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
        * Only opers see users if there is a wildcard
        * but anyone can see all the opers.
        */
-      if ((IsOper(source_p) &&
-	   (MyClient(source_p) || !(dow && IsInvisible(target_p))))
-	  || !dow || IsOper(target_p))
+      if ((HasUMode(source_p, UMODE_OPER) &&
+	   (MyClient(source_p) || !(dow && HasUMode(target_p, UMODE_INVISIBLE))))
+	  || !dow || HasUMode(target_p, UMODE_OPER))
 	{
-          if (IsAdmin(target_p) && !ConfigFileEntry.hide_spoof_ips)
+          if (HasUMode(target_p, UMODE_ADMIN) && !ConfigFileEntry.hide_spoof_ips)
 	    sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                        from, to, class_name, name,
-                       IsOperAdmin(source_p) ? target_p->sockhost : "255.255.255.255",
+                       HasUMode(source_p, UMODE_ADMIN) ? target_p->sockhost : "255.255.255.255",
                        CurrentTime - target_p->lasttime,
                        CurrentTime - target_p->localClient->last_privmsg);
 		       
-	  else if (IsOper(target_p))
+	  else if (HasUMode(target_p, UMODE_OPER))
           {
 	    if (ConfigFileEntry.hide_spoof_ips)
 	      sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
@@ -406,7 +406,7 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
 	  else
           {
 	    const char *format_str=NULL;
-	    if (IsOper(source_p) && IsCaptured(target_p))
+	    if (HasUMode(source_p, UMODE_OPER) && IsCaptured(target_p))
 	      format_str = form_str(RPL_TRACECAPTURED);
 	    else
 	      format_str = form_str(RPL_TRACEUSER);
@@ -434,7 +434,7 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
 
       trace_get_dependent(&servers, &clients, target_p);
 
-      if (!IsOperAdmin(source_p))
+      if (!HasUMode(source_p, UMODE_ADMIN))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),

@@ -109,7 +109,7 @@ do_etrace(struct Client *source_p, int parc, char *parv[])
     tname = "*";
   }
 
-  if (IsFull(source_p))
+  if (HasUMode(source_p, UMODE_CCONN_FULL))
     full_etrace = 1;
 
   if (!wilds && !do_all)
@@ -180,7 +180,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 	sendto_one(source_p, form_str(RPL_ETRACE_FULL),
 		   me.name,
 		   source_p->name,
-		   IsOper(target_p) ? "Oper" : "User",
+		   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User",
 		   class_name,
 		   target_p->name,
 		   target_p->username,
@@ -193,7 +193,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
         sendto_one(source_p, form_str(RPL_ETRACE_FULL),
 		   me.name,
 		   source_p->name, 
-		   IsOper(target_p) ? "Oper" : "User", 
+		   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User", 
 		   class_name,
 		   target_p->name,
 		   target_p->username,
@@ -209,7 +209,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 	sendto_one(source_p, form_str(RPL_ETRACE),
 		   me.name,
 		   source_p->name,
-		   IsOper(target_p) ? "Oper" : "User",
+		   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User",
 		   class_name,
 		   target_p->name,
 		   target_p->username,
@@ -220,7 +220,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 	sendto_one(source_p, form_str(RPL_ETRACE),
 		   me.name,
 		   source_p->name, 
-		   IsOper(target_p) ? "Oper" : "User", 
+		   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User", 
 		   class_name,
 		   target_p->name,
 		   target_p->username,

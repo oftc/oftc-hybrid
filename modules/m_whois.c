@@ -200,7 +200,7 @@ do_whois(struct Client *source_p, int parc, char **parv)
   }
   else /* wilds is true */
   {
-    if (!IsOper(source_p))
+    if (!HasUMode(source_p, UMODE_OPER))
     {
       if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
       {
@@ -286,7 +286,7 @@ single_whois(struct Client *source_p, struct Client *target_p)
 {
   dlink_node *ptr = NULL;
 
-  if (!IsInvisible(target_p) || target_p == source_p)
+  if (!HasUMode(target_p, UMODE_INVISIBLE) || target_p == source_p)
   {
     /* always show user if they are visible (no +i) */
     whois_person(source_p, target_p);
@@ -371,7 +371,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
     sendto_one(source_p, "%s", buf);
   }
 
-  if (IsOper(source_p) || !ConfigServerHide.hide_servers || target_p == source_p)
+  if (HasUMode(source_p, UMODE_OPER) || !ConfigServerHide.hide_servers || target_p == source_p)
     sendto_one(source_p, form_str(RPL_WHOISSERVER),
                me.name, source_p->name, target_p->name,
                server_p->name, server_p->info);
@@ -390,16 +390,16 @@ whois_person(struct Client *source_p, struct Client *target_p)
                me.name, source_p->name, target_p->name,
                target_p->away);
 
-  if (IsSetCallerId(target_p) && !IsSoftCallerId(target_p))
+  if (HasUMode(target_p, UMODE_SOFTCALLERID) && !HasUMode(target_p, UMODE_SOFTCALLERID))
     sendto_one(source_p, form_str(RPL_TARGUMODEG),
                me.name, source_p->name, target_p->name);
 
-  if (IsOper(target_p))
-    sendto_one(source_p, form_str((IsAdmin(target_p) &&
-               !IsOperHiddenAdmin(target_p)) ? RPL_WHOISADMIN :
+  if (HasUMode(target_p, UMODE_OPER))
+    sendto_one(source_p, form_str((HasUMode(target_p, UMODE_ADMIN) &&
+               !HasOFlag(target_p, OPER_FLAG_HIDDEN_ADMIN)) ? RPL_WHOISADMIN :
                RPL_WHOISOPERATOR), me.name, source_p->name, target_p->name);
 
-  if (IsOper(source_p) && IsCaptured(target_p))
+  if (HasUMode(source_p, UMODE_OPER) && IsCaptured(target_p))
     sendto_one(source_p, form_str(RPL_ISCAPTURED),
                me.name, source_p->name, target_p->name);
 
@@ -409,10 +409,10 @@ whois_person(struct Client *source_p, struct Client *target_p)
 
     if ((target_p->sockhost[0] != '\0') && irccmp(target_p->sockhost, "0"))
     {
-      if ((IsAdmin(source_p) || source_p == target_p))
+      if ((HasUMode(source_p, UMODE_ADMIN) || source_p == target_p))
 	show_ip = 1;
       else if (IsIPSpoof(target_p))
-	show_ip = (IsOper(source_p) && !ConfigFileEntry.hide_spoof_ips);
+	show_ip = (HasUMode(source_p, UMODE_OPER) && !ConfigFileEntry.hide_spoof_ips);
       else
 	show_ip = 1;
 
@@ -434,8 +434,8 @@ whois_person(struct Client *source_p, struct Client *target_p)
                CurrentTime - target_p->localClient->last_privmsg,
                target_p->firsttime);
 
-    if (IsOper(target_p) && target_p != source_p)
-      if ((target_p->umodes & UMODE_SPY))
+    if (HasUMode(target_p, UMODE_OPER) && target_p != source_p)
+      if (HasUMode(target_p, UMODE_SPY))
         sendto_one(target_p, ":%s NOTICE %s :*** Notice -- %s (%s@%s) [%s] is doing "
                    "a whois on you", me.name, target_p->name, source_p->name,
                    source_p->username, source_p->host, source_p->servptr->name);

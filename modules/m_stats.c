@@ -189,8 +189,8 @@ do_stats(struct Client *source_p, int parc, char *parv[])
     if (tab->letter == statchar)
     {
       /* The stats table says what privs are needed, so check --fl_ */
-      if ((tab->need_admin && !IsAdmin(source_p)) ||
-          (tab->need_oper && !IsOper(source_p)))
+      if ((tab->need_admin && !HasUMode(source_p, UMODE_ADMIN)) ||
+          (tab->need_oper && !HasUMode(source_p, UMODE_OPER)))
       {
         sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                    from, to);
@@ -927,12 +927,12 @@ static void
 stats_auth(struct Client *source_p)
 {
   /* Oper only, if unopered, return ERR_NOPRIVILEGES */
-  if ((ConfigFileEntry.stats_i_oper_only == 2) && !IsOper(source_p))
+  if ((ConfigFileEntry.stats_i_oper_only == 2) && !HasUMode(source_p, UMODE_OPER))
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
 
   /* If unopered, Only return matching auth blocks */
-  else if ((ConfigFileEntry.stats_i_oper_only == 1) && !IsOper(source_p))
+  else if ((ConfigFileEntry.stats_i_oper_only == 1) && !HasUMode(source_p, UMODE_OPER))
   {
     struct ConfItem *conf;
     struct AccessItem *aconf;
@@ -969,12 +969,12 @@ stats_tklines(struct Client *source_p)
 {
   struct ConfItem *conf;
   /* Oper only, if unopered, return ERR_NOPRIVILEGES */
-  if ((ConfigFileEntry.stats_k_oper_only == 2) && !IsOper(source_p))
+  if ((ConfigFileEntry.stats_k_oper_only == 2) && !HasUMode(source_p, UMODE_OPER))
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
 
   /* If unopered, Only return matching klines */
-  else if ((ConfigFileEntry.stats_k_oper_only == 1) && !IsOper(source_p))
+  else if ((ConfigFileEntry.stats_k_oper_only == 1) && !HasUMode(source_p, UMODE_OPER))
   {
     struct AccessItem *aconf;
 
@@ -1011,12 +1011,12 @@ static void
 stats_klines(struct Client *source_p)
 {
   /* Oper only, if unopered, return ERR_NOPRIVILEGES */
-  if ((ConfigFileEntry.stats_k_oper_only == 2) && !IsOper(source_p))
+  if ((ConfigFileEntry.stats_k_oper_only == 2) && !HasUMode(source_p, UMODE_OPER))
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
 
   /* If unopered, Only return matching klines */
-  else if ((ConfigFileEntry.stats_k_oper_only == 1) && !IsOper(source_p))
+  else if ((ConfigFileEntry.stats_k_oper_only == 1) && !HasUMode(source_p, UMODE_OPER))
   {
     struct AccessItem *aconf;
 
@@ -1058,7 +1058,7 @@ stats_messages(struct Client *source_p)
 static void
 stats_oper(struct Client *source_p)
 {
-  if (!IsOper(source_p) && ConfigFileEntry.stats_o_oper_only)
+  if (!HasUMode(source_p, UMODE_OPER) && ConfigFileEntry.stats_o_oper_only)
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
   else
@@ -1080,22 +1080,22 @@ stats_operedup(struct Client *source_p)
   {
     const struct Client *target_p = ptr->data;
 
-    if (IsOperHidden(target_p) && !IsOper(source_p))
+    if (HasOFlag(target_p, OPER_FLAG_HIDDEN_OPER) && !HasUMode(source_p, UMODE_OPER))
       continue;
 
-    if (MyClient(source_p) && IsOper(source_p))
+    if (MyClient(source_p) && HasUMode(source_p, UMODE_OPER))
       sendto_one(source_p, ":%s %d %s p :[%c][%s] %s (%s@%s) Idle: %d",
                  from, RPL_STATSDEBUG, to,
-                 IsAdmin(target_p) ?
-		 (IsOperHiddenAdmin(target_p) ? 'O' : 'A') : 'O',
+                 HasUMode(target_p, UMODE_ADMIN) ?
+		 (HasOFlag(target_p, OPER_FLAG_HIDDEN_ADMIN) ? 'O' : 'A') : 'O',
 		 oper_privs_as_string(target_p->localClient->operflags),
 		 target_p->name, target_p->username, target_p->host,
 		 (int)(CurrentTime - target_p->localClient->last_privmsg));
     else
       sendto_one(source_p, ":%s %d %s p :[%c] %s (%s@%s) Idle: %d",
                  from, RPL_STATSDEBUG, to,
-                 IsAdmin(target_p) ?
-		 (IsOperHiddenAdmin(target_p) ? 'O' : 'A') : 'O',
+                 HasUMode(target_p, UMODE_ADMIN) ?
+		 (HasOFlag(target_p, OPER_FLAG_HIDDEN_ADMIN) ? 'O' : 'A') : 'O',
 		 target_p->name, target_p->username, target_p->host,
 		 (int)(CurrentTime - target_p->localClient->last_privmsg));
   }
@@ -1107,7 +1107,7 @@ stats_operedup(struct Client *source_p)
 static void
 stats_ports(struct Client *source_p)
 {
-  if (!IsOper(source_p) && ConfigFileEntry.stats_P_oper_only)
+  if (!HasUMode(source_p, UMODE_OPER) && ConfigFileEntry.stats_P_oper_only)
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
   else
@@ -1211,7 +1211,7 @@ stats_uptime(struct Client *source_p)
   sendto_one(source_p, form_str(RPL_STATSUPTIME), from, to,
              now / 86400, (now / 3600) % 24, (now / 60) % 60, now % 60);
 
-  if (!ConfigFileEntry.disable_remote || IsOper(source_p))
+  if (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER))
      sendto_one(source_p, form_str(RPL_STATSCONN), from, to,
                 Count.max_loc_con, Count.max_loc_cli, Count.totalrestartcount);
 }
@@ -1307,7 +1307,7 @@ stats_servlinks(struct Client *source_p)
   time_t uptime = 0;
   dlink_node *ptr = NULL;
 
-  if (ConfigServerHide.flatten_links && !IsOper(source_p))
+  if (ConfigServerHide.flatten_links && !HasUMode(source_p, UMODE_OPER))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
@@ -1324,7 +1324,7 @@ stats_servlinks(struct Client *source_p)
     /* ":%s 211 %s %s %u %u %llu %u %llu :%u %u %s" */
     sendto_one(source_p, form_str(RPL_STATSLINKINFO),
                from, to,
-               get_client_name(target_p, IsAdmin(source_p) ? SHOW_IP : MASK_IP),
+               get_client_name(target_p, HasUMode(source_p, UMODE_ADMIN) ? SHOW_IP : MASK_IP),
                dbuf_length(&target_p->localClient->buf_sendq),
                target_p->localClient->send.messages,
                target_p->localClient->send.bytes >> 10,
@@ -1332,7 +1332,7 @@ stats_servlinks(struct Client *source_p)
                target_p->localClient->recv.bytes >> 10,
                (unsigned)(CurrentTime - target_p->firsttime),
                (CurrentTime > target_p->since) ? (unsigned)(CurrentTime - target_p->since): 0,
-               IsOper(source_p) ? show_capabilities(target_p) : "TS");
+               HasUMode(source_p, UMODE_OPER) ? show_capabilities(target_p) : "TS");
   }
 
   sendB >>= 10;
@@ -1417,9 +1417,9 @@ stats_L_list(struct Client *source_p,char *name, int doall, int wilds,
   {
     target_p = ptr->data;
 
-    if (IsInvisible(target_p) && (doall || wilds) &&
-	!(MyConnect(source_p) && IsOper(source_p)) &&
-	!IsOper(target_p) && (target_p != source_p))
+    if (HasUMode(target_p, UMODE_INVISIBLE) && (doall || wilds) &&
+	!(MyConnect(source_p) && HasUMode(source_p, UMODE_OPER)) &&
+	!HasUMode(target_p, UMODE_OPER) && (target_p != source_p))
       continue;
     if (!doall && wilds && !match(name, target_p->name))
       continue;
@@ -1428,9 +1428,9 @@ stats_L_list(struct Client *source_p,char *name, int doall, int wilds,
 
     /* This basically shows ips for our opers if its not a server/admin, or
      * its one of our admins.  */
-    if(MyClient(source_p) && IsOper(source_p) && 
-       (IsAdmin(source_p) || 
-       (!IsServer(target_p) && !IsAdmin(target_p) && 
+    if(MyClient(source_p) && HasUMode(source_p, UMODE_OPER) && 
+       (HasUMode(source_p, UMODE_ADMIN) ||
+       (!IsServer(target_p) && !HasUMode(target_p, UMODE_ADMIN) && 
        !IsHandshake(target_p) && !IsConnecting(target_p))))
     {
       sendto_one(source_p, form_str(RPL_STATSLINKINFO),
@@ -1450,7 +1450,7 @@ stats_L_list(struct Client *source_p,char *name, int doall, int wilds,
     else
     {
       /* If its a hidden ip, an admin, or a server, mask the real IP */
-      if(IsIPSpoof(target_p) || IsServer(target_p) || IsAdmin(target_p)
+      if(IsIPSpoof(target_p) || IsServer(target_p) || HasUMode(target_p, UMODE_ADMIN)
          || IsHandshake(target_p) || IsConnecting(target_p))
         sendto_one(source_p, form_str(RPL_STATSLINKINFO),
                    from, to,

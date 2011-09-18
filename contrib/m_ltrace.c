@@ -164,7 +164,7 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
       name = get_client_name(target_p, HIDE_IP);
       class_name = get_client_class(target_p);
 
-      if (IsOper(target_p))
+      if (HasUMode(target_p, UMODE_OPER))
       {
         if (ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
@@ -191,7 +191,7 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
   {
     target_p = ptr->data;
 
-    if (!IsOper(target_p))
+    if (!HasUMode(target_p, UMODE_OPER))
       continue;
 
     if (!doall && wilds && !match(tname, target_p->name))
@@ -228,7 +228,7 @@ static void
 mo_ltrace(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  if (!IsOper(source_p))
+  if (!HasUMode(source_p, UMODE_OPER))
   {
     sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name, parv[0],
                parc > 1 ? parv[1] : me.name);
@@ -265,17 +265,17 @@ report_this_status(struct Client *source_p, struct Client *target_p,
     case STAT_CONNECTING:
       sendto_one(source_p, form_str(RPL_TRACECONNECTING), me.name,
                  source_p->name, class_name, 
-                 IsAdmin(source_p) ? name : target_p->name);
+                 HasUMode(source_p, UMODE_ADMIN) ? name : target_p->name);
       break;
 
     case STAT_HANDSHAKE:
       sendto_one(source_p, form_str(RPL_TRACEHANDSHAKE), me.name,
                  source_p->name, class_name, 
-                 IsAdmin(source_p) ? name : target_p->name);
+                 HasUMode(source_p, UMODE_ADMIN) ? name : target_p->name);
       break;
 
     case STAT_CLIENT:
-      if (IsAdmin(target_p))
+      if (HasUMode(target_p, UMODE_ADMIN))
       {
         if (ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
@@ -286,12 +286,12 @@ report_this_status(struct Client *source_p, struct Client *target_p,
         else
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, source_p->name, class_name, name,
-                     IsAdmin(source_p) ? target_p->sockhost :
+                     HasUMode(source_p, UMODE_ADMIN) ? target_p->sockhost :
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                      CurrentTime - target_p->lasttime,
                      CurrentTime - target_p->localClient->last_privmsg);
       }
-      else if (IsOper(target_p))
+      else if (HasUMode(target_p, UMODE_OPER))
       {
         if (ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
@@ -315,7 +315,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 
       trace_get_dependent(&servers, &clients, target_p);
 
-      if (!IsAdmin(source_p))
+      if (!HasUMode(source_p, UMODE_ADMIN))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),

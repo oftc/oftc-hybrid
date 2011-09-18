@@ -159,7 +159,7 @@ mo_spoof(struct Client *client_p, struct Client *source_p,
   struct AddressRec *arec;
 #endif
 
-  if (MyConnect(source_p) && !IsOperAdmin(source_p))
+  if (MyConnect(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "SPOOF");
@@ -351,7 +351,7 @@ mo_delspoof(struct Client *client_p, struct Client *source_p,
   const char *user = NULL;
   char *host = NULL;
 
-  if (MyConnect(source_p) && !IsOperAdmin(source_p))
+  if (MyConnect(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS), me.name, parv[0], "DELSPOOF");
     return;
