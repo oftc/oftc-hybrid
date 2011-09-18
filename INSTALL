@@ -38,7 +38,7 @@
        README.
 
    2.  Run the configure script. It will create config.h and the
-       Makefiles to match your system. In hybrid-7, the paths are now handled
+       Makefiles to match your system. The paths are now handled
        with the --prefix option to configure.
        /usr/local/ircd is the default if no prefix is specified.
 
