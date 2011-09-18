@@ -138,17 +138,17 @@ report_this_status(struct Client *source_p, struct Client *target_p)
   {
     case STAT_CLIENT:
 
-      if ((IsOper(source_p) &&
-          (MyClient(source_p) || !IsInvisible(target_p)))
-          || IsOper(target_p))
+      if ((HasUMode(source_p, UMODE_OPER) &&
+          (MyClient(source_p) || !HasUMode(target_p, UMODE_INVISIBLE)))
+          || HasUMode(target_p, UMODE_OPER))
       {
-        if (IsAdmin(target_p) && !ConfigFileEntry.hide_spoof_ips)
+        if (HasUMode(target_p, UMODE_ADMIN) && !ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                        me.name, source_p->name, class_name, name,
-                       IsAdmin(source_p) ? target_p->sockhost : "255.255.255.255",
+                       HasUMode(source_p, UMODE_ADMIN) ? target_p->sockhost : "255.255.255.255",
                        CurrentTime - target_p->lasttime,
                        CurrentTime - target_p->localClient->last_privmsg);
-          else if (IsOper(target_p))
+          else if (HasUMode(target_p, UMODE_OPER))
           {
             if (ConfigFileEntry.hide_spoof_ips)
 	      sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
@@ -181,7 +181,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
         }
       break;
     case STAT_SERVER:
-      if (!IsAdmin(source_p))
+      if (!HasUMode(source_p, UMODE_ADMIN))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),

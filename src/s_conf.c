@@ -708,16 +708,16 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
       aconf = map_to_conf(conf);
 
       /* Don't allow non opers to see oper privs */
-      if (IsOper(source_p))
-  sendto_one(source_p, form_str(RPL_STATSOLINE),
-       me.name, source_p->name, 'O', aconf->user, aconf->host,
-       conf->name, oper_privs_as_string(aconf->port),
-       aconf->class_ptr ? aconf->class_ptr->name : "<default>");
+      if (HasUMode(source_p, UMODE_OPER))
+        sendto_one(source_p, form_str(RPL_STATSOLINE),
+		   me.name, source_p->name, 'O', aconf->user, aconf->host,
+		   conf->name, oper_privs_as_string(aconf->port),
+		   aconf->class_ptr ? aconf->class_ptr->name : "<default>");
       else
-  sendto_one(source_p, form_str(RPL_STATSOLINE),
-       me.name, source_p->name, 'O', aconf->user, aconf->host,
-                   conf->name, "0",
-       aconf->class_ptr ? aconf->class_ptr->name : "<default>");
+        sendto_one(source_p, form_str(RPL_STATSOLINE),
+            me.name, source_p->name, 'O', aconf->user, aconf->host,
+            conf->name, "0",
+            aconf->class_ptr ? aconf->class_ptr->name : "<default>");
     }
     break;
 
@@ -775,16 +775,16 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
       /*
        * Allow admins to see actual ips unless hide_server_ips is enabled
        */
-      if (!ConfigServerHide.hide_server_ips && IsAdmin(source_p))
+      if (!ConfigServerHide.hide_server_ips && HasUMode(source_p, UMODE_ADMIN))
         sendto_one(source_p, form_str(RPL_STATSCLINE),
-       me.name, source_p->name, 'C', aconf->host,
-       buf, conf->name, aconf->port,
-       aconf->class_ptr ? aconf->class_ptr->name : "<default>");
-        else
-          sendto_one(source_p, form_str(RPL_STATSCLINE),
-                     me.name, source_p->name, 'C',
-         "*@127.0.0.1", buf, conf->name, aconf->port,
-         aconf->class_ptr ? aconf->class_ptr->name : "<default>");
+            me.name, source_p->name, 'C', aconf->host,
+            buf, conf->name, aconf->port,
+            aconf->class_ptr ? aconf->class_ptr->name : "<default>");
+      else
+        sendto_one(source_p, form_str(RPL_STATSCLINE),
+            me.name, source_p->name, 'C',
+            "*@127.0.0.1", buf, conf->name, aconf->port,
+            aconf->class_ptr ? aconf->class_ptr->name : "<default>");
     }
     break;
 
@@ -3489,7 +3489,7 @@ parse_aline(const char *cmd, struct Client *source_p,
   return -1;
       }
 
-      if (!IsOperRemoteBan(source_p))
+      if (!HasOFlag(source_p, OPER_FLAG_REMOTEBAN))
       {
         sendto_one(source_p, form_str(ERR_NOPRIVS),
                    me.name, source_p->name, "remoteban");

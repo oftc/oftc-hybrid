@@ -460,7 +460,8 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
       ms       = ptr->data;
       target_p = ms->client_p;
 
-      if (IsInvisible(target_p) && !is_member && !IsGod(source_p))
+      if (HasUMode(target_p, UMODE_INVISIBLE) && !is_member &&
+          !HasUMode(target_p, UMODE_GOD))
         continue;
 
       tlen = strlen(target_p->name) + 1;  /* nick + space */
@@ -688,7 +689,7 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
   if ((chptr->mode.mode & MODE_REGONLY) && !HasUMode(source_p, UMODE_REGISTERED))
     return ERR_NEEDREGGEDNICK;
 
-  if ((chptr->mode.mode & MODE_OPERONLY) && !IsOper(source_p))
+  if ((chptr->mode.mode & MODE_OPERONLY) && !HasUMode(source_p, UMODE_OPER))
     return ERR_OPERONLYCHAN;
 
   if (chptr->mode.mode & MODE_INVITEONLY)
@@ -753,11 +754,12 @@ find_channel_link(struct Client *client_p, struct Channel *chptr)
 int
 can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 {
-  if (IsServer(source_p) || IsGod(source_p) || IsService(source_p))
+  if (IsServer(source_p) || HasFlag(source_p, FLAGS_SERVICE) ||
+      HasUMode(source_p, UMODE_GOD))
     return CAN_SEND_OPV;
 
   if (MyClient(source_p) && !IsExemptResv(source_p))
-    if (!(IsOper(source_p) && ConfigFileEntry.oper_pass_resv))
+    if (!(HasUMode(source_p, UMODE_OPER) && ConfigFileEntry.oper_pass_resv))
       if (!hash_find_resv(chptr->chname) == ConfigChannel.restrict_channels)
         return ERR_CANNOTSENDTOCHAN;
 

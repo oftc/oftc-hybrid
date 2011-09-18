@@ -88,7 +88,7 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !IsOperAdmin(source_p))
+  if (MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "CHGIDENT");
@@ -149,7 +149,7 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !IsOperAdmin(source_p))
+  if (MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "CHGHOST");
@@ -211,7 +211,7 @@ mo_chgname(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !IsOperAdmin(source_p))
+  if (MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "CHGNAME");

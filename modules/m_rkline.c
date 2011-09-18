@@ -115,7 +115,7 @@ mo_rkline(struct Client *client_p, struct Client *source_p,
   time_t tkline_time = 0;
   time_t cur_time = 0;
 
-  if (!IsAdmin(source_p) || !IsOperK(source_p))
+  if (!HasUMode(source_p, UMODE_ADMIN) || !HasOFlag(source_p, OPER_FLAG_K))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "rkline");
@@ -332,7 +332,7 @@ mo_unrkline(struct Client *client_p,struct Client *source_p,
   char *target_server = NULL;
   char *user, *host;
 
-  if (!IsAdmin(source_p) || !IsOperUnkline(source_p))
+  if (!HasUMode(source_p, UMODE_ADMIN) || !HasOFlag(source_p, OPER_FLAG_UNKLINE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "unrkline");

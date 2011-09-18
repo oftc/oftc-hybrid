@@ -97,7 +97,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
   if (IsDigit(*user))	/* opers shouldn't be trying uids anyway ;-) */
     return;
 
-  if (!IsOperK(source_p) && !IsOperGlobalKill(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_GLOBAL_KILL|OPER_FLAG_K))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -139,7 +139,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!MyConnect(target_p) && !IsOperGlobalKill(source_p))
+  if (!MyConnect(target_p) && !HasOFlag(source_p, OPER_FLAG_GLOBAL_KILL))
   {
     sendto_one(source_p, ":%s NOTICE %s :Nick %s isnt on your server",
                me.name, source_p->name, target_p->name);
@@ -178,7 +178,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
        * the unnecessary QUIT for this. (This flag should never be
        * set in any other place)
        */
-    SetKilled(target_p);
+    AddFlag(target_p, FLAGS_KILLED);
   }
 
   snprintf(buf, sizeof(buf), "Killed (%s (%s))", source_p->name, reason);
@@ -261,7 +261,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
     if (IsServer(source_p))
     {
       /* dont send clients kills from a hidden server */
-      if ((IsHidden(source_p) || ConfigServerHide.hide_servers) && !IsOper(target_p))
+      if ((IsHidden(source_p) || ConfigServerHide.hide_servers) && !HasUMode(target_p, UMODE_OPER))
         sendto_one(target_p, ":%s KILL %s :%s",
  		   me.name, target_p->name, reason);
       else
@@ -279,7 +279,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
   /* path must contain at least 2 !'s, or bitchx falsely declares it
    * local --fl
    */
-  if (IsOper(source_p)) /* send it normally */
+  if (HasUMode(source_p, UMODE_OPER)) /* send it normally */
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Received KILL message for %s. From %s Path: %s!%s!%s!%s %s",
                          target_p->name, source_p->name, source_p->servptr->name, 
@@ -293,7 +293,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
        source_p->name, target_p->name, source_p->name, reason);
 
   relay_kill(client_p, source_p, target_p, path, reason);
-  SetKilled(target_p);
+  AddFlag(target_p, FLAGS_KILLED);
 
   /* reason comes supplied with its own ()'s */
   if (IsServer(source_p) && (IsHidden(source_p) || ConfigServerHide.hide_servers))

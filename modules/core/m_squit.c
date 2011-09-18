@@ -113,7 +113,7 @@ mo_squit(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!MyConnect(target_p) && !IsOperRemote(source_p))
+  if (!MyConnect(target_p) && !HasOFlag(source_p, OPER_FLAG_REMOTE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);

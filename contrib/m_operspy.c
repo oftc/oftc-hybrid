@@ -79,7 +79,7 @@
 /* enable OPERSPY version of TOPIC */
 #define OPERSPY_TOPIC
 
-#define IsOperspy(x) (IsOper(x) && MyClient(x) && IsAdmin(x))
+#define IsOperspy(x) (HasUMode(x, UMODE_OPER) && MyClient(x) && HasUMode(x, UMODE_ADMIN))
 
 /* The commands we will add */
 static void ms_operspy(struct Client *, struct Client *, int, char *[]);
@@ -501,8 +501,8 @@ operspy_whois(struct Client *client_p, int parc, char *parv[])
              client_p->name, target_p->name, a2client_p->name,
              a2client_p->info);
 
-  if (IsOper(target_p))
-    sendto_one(client_p, form_str(IsAdmin(target_p) ? RPL_WHOISADMIN :
+  if (HasUMode(target_p, UMODE_OPER))
+    sendto_one(client_p, form_str(HasUMode(target_p, UMODE_ADMIN) ? RPL_WHOISADMIN :
                RPL_WHOISOPERATOR), me.name, client_p->name, target_p->name);
 
   if (MyConnect(target_p))
@@ -522,7 +522,7 @@ do_who(struct Client *source_p, struct Client *target_p,
   char status[8];
 
   ircsprintf(status, "%c%s%s", target_p->away ? 'G' : 'H',
-             IsOper(target_p) ? "*" : "", op_flags);
+             HasUMode(target_p, UMODE_OPER) ? "*" : "", op_flags);
   sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
              (chname) ? (chname) : "*",
              target_p->username,
@@ -545,7 +545,7 @@ who_global(struct Client *source_p, char *mask, int server_oper)
     if (!IsClient(target_p))
       continue;
 
-    if (server_oper && !IsOper(target_p))
+    if (server_oper && !HasUMode(target_p, UMODE_OPER))
       continue;
 
     if (!mask ||
@@ -607,7 +607,7 @@ operspy_log(struct Client *source_p, const char *command, const char *target)
   assert(source_p != NULL);
 
 #ifdef OPERSPY_LOGFILE
-  if (IsOper(source_p) && MyClient(source_p))
+  if (HasUMode(source_p, UMODE_OPER) && MyClient(source_p))
   {
     DLINK_FOREACH(cnode, source_p->localClient->confs.head)
     {

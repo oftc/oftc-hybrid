@@ -555,9 +555,9 @@ update_client_exit_stats(struct Client *client_p)
   {
     assert(Count.total > 0);
     --Count.total;
-    if (IsOper(client_p))
+    if (HasUMode(client_p, UMODE_OPER))
       --Count.oper;
-    if (IsInvisible(client_p))
+    if (HasUMode(client_p, UMODE_INVISIBLE))
       --Count.invisi;
   }
   else if (IsServer(client_p))
@@ -585,7 +585,7 @@ find_person(const struct Client *client_p, const char *name)
     if ((c2ptr = hash_find_id(name)) != NULL)
     {
       /* invisible users shall not be found by UID guessing */
-      if (IsInvisible(c2ptr) && !IsServer(client_p))
+      if (HasUMode(c2ptr, UMODE_INVISIBLE) && !IsServer(client_p))
         c2ptr = NULL;
     }
   }
@@ -885,8 +885,8 @@ remove_dependents(struct Client *source_p, struct Client *from,
  * this on any struct Client, regardless of its state.
  *
  * Note, you shouldn't exit remote _users_ without first doing
- * SetKilled and propagating a kill or similar message. However,
- * it is perfectly correct to call exit_client to force a _server_
+ * AddFlag(x, FLAGS_KILLED) and propagating a kill or similar message.
+ * However, it is perfectly correct to call exit_client to force a _server_
  * quit (either local or remote one).
  *
  * inputs:       - a client pointer that is going to be exited
@@ -939,7 +939,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
       assert(Count.local > 0);
       Count.local--;
 
-      if (IsOper(source_p))
+      if (HasUMode(source_p, UMODE_OPER))
       {
         if ((m = dlinkFindDelete(&oper_list, source_p)) != NULL)
           free_dlink_node(m);
@@ -1049,7 +1049,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
            source_p->localClient->recv.bytes >> 10);
     }
   }
-  else if (IsClient(source_p) && !IsKilled(source_p))
+  else if (IsClient(source_p) && !HasFlag(source_p, FLAGS_KILLED))
   {
     sendto_server(from->from, NULL, CAP_TS6, NOCAPS,
                   ":%s QUIT :%s", ID(source_p), comment);
@@ -1247,7 +1247,7 @@ accept_message(struct Client *source,
                                       source->host, target, 1))
     return 1;
 
-  if (IsSoftCallerId(target))
+  if (HasUMode(target, UMODE_SOFTCALLERID))
     DLINK_FOREACH(ptr, target->channel.head)
       if (IsMember(source, ((struct Membership *)ptr->data)->chptr))
         return 1;

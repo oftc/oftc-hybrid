@@ -94,7 +94,7 @@ mo_capture(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (MyClient(source_p) && !IsAdmin(source_p))
+  if (MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "CAPTURE");
@@ -107,7 +107,7 @@ mo_capture(struct Client *client_p, struct Client *source_p,
     {
       if (MyConnect(target_p) && source_p != target_p)
       {
-        if (IsOper(target_p))
+        if (HasUMode(target_p, UMODE_OPER))
         {
           sendto_one(source_p, form_str(ERR_NOPRIVS),
                      me.name, source_p->name, "CAPTURE");
@@ -165,7 +165,7 @@ mo_capture(struct Client *client_p, struct Client *source_p,
     {
       target_p = ptr->data;
 
-      if ((source_p == target_p) || IsOper(target_p) || IsCaptured(target_p))
+      if ((source_p == target_p) || HasUMode(target_p, UMODE_OPER) || IsCaptured(target_p))
         continue;
 
       if (match(nick, target_p->name) &&
@@ -194,7 +194,7 @@ mo_uncapture(struct Client *client_p, struct Client *source_p,
   char *nick = NULL, *user = NULL, *host = NULL, *p = NULL;
   dlink_node *ptr = NULL;
 
-  if (MyClient(source_p) && !IsAdmin(source_p))
+  if (MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "CAPTURE");

@@ -166,7 +166,7 @@ parse_client_queued(struct Client *client_p)
   }
   else if (IsClient(client_p))
   {
-    if (ConfigFileEntry.no_oper_flood && (IsOper(client_p) || IsCanFlood(client_p)))
+    if (ConfigFileEntry.no_oper_flood && (HasUMode(client_p, UMODE_OPER) || IsCanFlood(client_p)))
     {
       if (ConfigFileEntry.true_no_oper_flood)
         checkflood = -1;
@@ -493,7 +493,7 @@ read_packet(fde_t *fd, void *data)
         && (dbuf_length(&client_p->localClient->buf_recvq) >
             (unsigned int)ConfigFileEntry.client_flood))
     {
-      if (!(ConfigFileEntry.no_oper_flood && IsOper(client_p)))
+      if (!(ConfigFileEntry.no_oper_flood && HasUMode(client_p, UMODE_OPER)))
       {
         exit_client(client_p, client_p, "Excess Flood");
         return;

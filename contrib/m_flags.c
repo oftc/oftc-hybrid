@@ -307,7 +307,7 @@ mo_flags(struct Client *client_p, struct Client *source_p,
 
       if (!irccmp(flag, "NICKCHANGES"))
       {
-        if (!IsOperN(source_p))
+        if (!HasOFlag(source_p, OPER_FLAG_N))
         {
           sendto_one(source_p,
                      ":%s NOTICE %s :*** You have no nick_changes flag;",
@@ -405,7 +405,7 @@ unset_flags_to_string(struct Client *client_p)
   /* Clear it to begin with, we'll be doing a lot of ircsprintf's */
   setflags[0] = '\0';
 
-  isoper = IsOper(client_p) != 0;
+  isoper = HasUMode(client_p, UMODE_OPER) != 0;
 
   for (i = 0; flag_table[i].name; i++)
   {
@@ -419,7 +419,7 @@ unset_flags_to_string(struct Client *client_p)
     }
   }
 
-  if (IsOper(client_p) && IsOperN(client_p))
+  if (HasUMode(client_p, UMODE_OPER) && HasOFlag(client_p, OPER_FLAG_N))
   {
     if (!(client_p->umodes & UMODE_NCHANGE))
     {

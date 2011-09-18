@@ -93,7 +93,7 @@ mo_connect(struct Client *client_p, struct Client *source_p,
 
   if (parc > 3)
   {
-    if (!IsOperRemote(source_p))
+    if (!HasOFlag(source_p, OPER_FLAG_REMOTE))
     {
       sendto_one(source_p, form_str(ERR_NOPRIVS),
                  me.name, source_p->name, "connect");
@@ -173,7 +173,7 @@ mo_connect(struct Client *client_p, struct Client *source_p,
    */
   if (serv_connect(aconf, source_p))
   {
-    if (!ConfigServerHide.hide_server_ips && IsAdmin(source_p))
+    if (!ConfigServerHide.hide_server_ips && HasUMode(source_p, UMODE_ADMIN))
       sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s[%s].%d",
                  me.name, source_p->name, aconf->host,
                  conf->name, aconf->port);
@@ -312,4 +312,3 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    */
   aconf->port = tmpport;
 }
-

@@ -715,7 +715,7 @@ mo_gline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!IsOperGline(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_GLINE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "gline");
@@ -893,7 +893,7 @@ mo_ungline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!IsOperUnkline(source_p) || !IsOperGline(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_GLINE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "gline");

@@ -94,7 +94,7 @@ part_one_client(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (MyConnect(source_p) && !IsOper(source_p))
+  if (MyConnect(source_p) && !HasUMode(source_p, UMODE_OPER))
     check_spambot_warning(source_p, NULL);
 
   /*

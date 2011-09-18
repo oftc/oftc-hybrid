@@ -313,7 +313,7 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
       return;
     }
 
-    if (!IsAdmin(source_p) && strpbrk(name, "*?#"))
+    if (!HasUMode(source_p, UMODE_ADMIN) && strpbrk(name, "*?#"))
     {
       sendto_one(source_p, ":%s NOTICE %s :You must be an admin to perform a "
                  "wildcard RESV", me.name, source_p->name);

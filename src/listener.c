@@ -99,7 +99,7 @@ show_ports(struct Client *source_p)
     p = buf;
 
     if (listener->flags & LISTENER_HIDDEN) {
-      if (!IsAdmin(source_p))
+      if (!HasUMode(source_p, UMODE_ADMIN))
         continue;
       *p++ = 'H';
     }
@@ -111,7 +111,7 @@ show_ports(struct Client *source_p)
     *p = '\0';
     sendto_one(source_p, form_str(RPL_STATSPLINE),
                me.name, source_p->name, 'P', listener->port,
-               IsAdmin(source_p) ? listener->name : me.name,
+               HasUMode(source_p, UMODE_ADMIN) ? listener->name : me.name,
                listener->ref_count, buf,
                listener->active ? "active" : "disabled");
   }

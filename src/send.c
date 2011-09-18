@@ -189,7 +189,7 @@ send_message_remote(struct Client *to, struct Client *from,
                   me.name, to->name, me.name, to->name,
                   to->username, to->host, to->from->name);
 
-    SetKilled(to);
+    AddFlag(to, FLAGS_KILLED);
 
     if (IsClient(from))
       sendto_one(from, form_str(ERR_GHOSTEDCLIENT),
@@ -491,7 +491,7 @@ sendto_channel_butone(struct Client *one, struct Client *from,
 
     assert(IsClient(target_p));
 
-    if (IsDefunct(target_p) || IsDeaf(target_p) || target_p->from == one)
+    if (IsDefunct(target_p) || HasUMode(target_p, UMODE_DEAF) || target_p->from == one)
       continue;
 
     if (MyConnect(target_p))
@@ -663,7 +663,7 @@ sendto_channel_local(int type, int nodeaf, struct Channel *chptr,
       continue;
 
     if (!MyConnect(target_p) || IsDefunct(target_p) ||
-        (nodeaf && IsDeaf(target_p)))
+        (nodeaf && HasUMode(target_p, UMODE_DEAF)))
       continue;
 
     send_message(target_p, buffer, len);
@@ -706,7 +706,7 @@ sendto_channel_local_butone(struct Client *one, int type,
       continue;
 
     if (!MyConnect(target_p) || target_p == one ||
-        IsDefunct(target_p) || IsDeaf(target_p))
+        IsDefunct(target_p) || HasUMode(target_p, UMODE_DEAF))
       continue;
     send_message(target_p, buffer, len);
   }
@@ -972,13 +972,13 @@ sendto_realops_remote(struct Client *source_p, unsigned int flags, int level,
   DLINK_FOREACH(ptr, oper_list.head)
   {
     struct Client *client_p = ptr->data;
-    assert(client_p->umodes & UMODE_OPER);
+    assert(HasUmode(client_p, UMODE_OPER));
 
     /* If we're sending it to opers and theyre an admin, skip.
      * If we're sending it to admins, and theyre not, skip.
      */
-    if (((level == L_ADMIN) && !IsAdmin(client_p)) ||
-        ((level == L_OPER) && IsAdmin(client_p)))
+    if (((level == L_ADMIN) && !HasUmode(client_p, UMODE_ADMIN)) ||
+        ((level == L_OPER) && HasUmode(client_p, UMODE_ADMIN)))
       continue;
 
     if (client_p->umodes & flags)
@@ -1030,11 +1030,11 @@ sendto_globops_flags(unsigned int flags, int level, const char *pattern, ...)
     /* If we're sending it to opers and theyre an admin, skip.
      * If we're sending it to admins, and theyre not, skip.
      */
-    if (((level == L_ADMIN) && !IsAdmin(client_p)) ||
-        ((level == L_OPER) && IsAdmin(client_p)))
+    if (((level == L_ADMIN) && !HasUMode(client_p, UMODE_ADMIN)) ||
+        ((level == L_OPER) && HasUMode(client_p, UMODE_ADMIN)))
       continue;
 
-    if (client_p->umodes & flags)
+    if (HasUMode(client_p, flags))
       sendto_one(client_p, ":%s NOTICE %s :*** Global -- %s",
                  me.name, client_p->name, nbuf);
   }
@@ -1075,7 +1075,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
           struct Client *client_p = ptr->data;
           assert(client_p->umodes & UMODE_OPER);
 
-          if ((client_p->umodes & flags) && !IsDefunct(client_p))
+          if ((HasUMode(client_p, flags) && !IsDefunct(client_p))
             send_message(client_p, buffer, len);
         }
         break;
@@ -1083,7 +1083,8 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
         DLINK_FOREACH(ptr, local_client_list.head)
         {
             struct Client *client_p = ptr->data;
-            if((client_p->umodes & flags) && !IsDefunct(client_p))
+
+            if ((HasUMode(client_p, flags) && !IsDefunct(client_p))
               send_message(client_p, buffer, len);
         }
         break;

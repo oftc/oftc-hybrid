@@ -374,7 +374,7 @@ channel_modes(struct Channel *chptr, struct Client *client_p,
   {
     *mbuf++ = 'l';
 
-    if (IsServer(client_p) || IsService(client_p) || IsMember(client_p, chptr))
+    if (IsServer(client_p) || HasFlag(client_p, FLAGS_SERVICE) || IsMember(client_p, chptr))
       pbuf += ircsprintf(pbuf, "%d ", chptr->mode.limit);
   }
 
@@ -382,7 +382,7 @@ channel_modes(struct Channel *chptr, struct Client *client_p,
   {
     *mbuf++ = 'k';
 
-    if (IsServer(client_p) || IsService(client_p) || IsMember(client_p, chptr))
+    if (IsServer(client_p) || HasFlag(client_p, FLAGS_SERVICE) || IsMember(client_p, chptr))
       ircsprintf(pbuf, "%s ", chptr->mode.key);
   }
 
@@ -666,7 +666,7 @@ chm_registered(struct Client *client_p, struct Client *source_p, struct Channel 
   mode_type = (long)d;
 
 
-  if (!IsServer(source_p) && !IsService(source_p))
+  if (!IsServer(source_p) && !HasFlag(source_p, FLAGS_SERVICE))
   {
     if (!(*errors & SM_ERR_ONLYSERVER))
       sendto_one(source_p, form_str(alev == CHACCESS_NOTONCHAN ?
@@ -737,7 +737,7 @@ chm_operonly(struct Client *client_p, struct Client *source_p, struct Channel *c
     *errors |= SM_ERR_NOOPS;
     return;
   }
-  else if (MyClient(source_p) && !IsOper(source_p))
+  else if (MyClient(source_p) && !HasUMode(source_p, UMODE_OPER))
   {
     if (!(*errors & SM_ERR_NOTOPER))
     {

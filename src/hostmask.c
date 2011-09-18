@@ -953,7 +953,7 @@ report_Klines(struct Client *client_p, int tkline)
             (!tkline && ((aconf = arec->aconf)->flags & CONF_FLAGS_TEMPORARY)))
           continue;
 
-        if (IsOper(client_p))
+        if (HasUMode(client_p, UMODE_OPER))
         {
           if(aconf->hold != 0)
             ircsprintf(buf, "%s Expires (%s)", 

@@ -166,7 +166,7 @@ m_join(struct Client *client_p, struct Client *source_p,
     }
 
     if (!IsExemptResv(source_p) &&
-        !(IsOper(source_p) && ConfigFileEntry.oper_pass_resv) &&
+        !(HasUMode(source_p, UMODE_OPER) && ConfigFileEntry.oper_pass_resv) &&
         (!hash_find_resv(chan) == ConfigChannel.restrict_channels))
     {
       sendto_one(source_p, form_str(ERR_BADCHANNAME),
@@ -178,7 +178,7 @@ m_join(struct Client *client_p, struct Client *source_p,
     }
 
     if ((dlink_list_length(&source_p->channel) >= ConfigChannel.max_chans_per_user) &&
-        (!IsOper(source_p) || (dlink_list_length(&source_p->channel) >=
+        (!HasUMode(source_p, UMODE_OPER) || (dlink_list_length(&source_p->channel) >=
                                ConfigChannel.max_chans_per_user * 3)))
     {
       sendto_one(source_p, form_str(ERR_TOOMANYCHANNELS),
@@ -191,7 +191,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       if (IsMember(source_p, chptr))
         continue;
 
-      if (splitmode && !IsOper(source_p) && (*chan != '&') &&
+      if (splitmode && !HasUMode(source_p, UMODE_OPER) && (*chan != '&') &&
           ConfigChannel.no_join_on_split)
       {
         sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
@@ -220,7 +220,7 @@ m_join(struct Client *client_p, struct Client *source_p,
     }
     else
     {
-      if (splitmode && !IsOper(source_p) && (*chan != '&') &&
+      if (splitmode && !HasUMode(source_p, UMODE_OPER) && (*chan != '&') &&
           (ConfigChannel.no_create_on_split || ConfigChannel.no_join_on_split))
       {
         sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
@@ -236,7 +236,7 @@ m_join(struct Client *client_p, struct Client *source_p,
             source_p->username, source_p->host);
     }
 
-    if (!IsOper(source_p))
+    if (!HasUMode(source_p, UMODE_OPER))
       check_spambot_warning(source_p, chptr->chname);
 
     if(i != 0 && IsGod(source_p) && MyClient(source_p))
@@ -488,8 +488,9 @@ do_join_0(struct Client *client_p, struct Client *source_p)
   struct Channel *chptr = NULL;
   dlink_node *ptr = NULL, *ptr_next = NULL;
 
-  if (source_p->channel.head && MyConnect(source_p) && !IsOper(source_p))
-    check_spambot_warning(source_p, NULL);
+  if (source_p->channel.head)
+    if (MyConnect(source_p) && !HasUMode(source_p, UMODE_OPER))
+      check_spambot_warning(source_p, NULL);
 
   DLINK_FOREACH_SAFE(ptr, ptr_next, source_p->channel.head)
   {

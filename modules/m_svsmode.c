@@ -88,7 +88,7 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
   char *m = NULL, *modes = NULL, *extarg = NULL;
   time_t ts = 0;
 
-  if (!IsService(source_p) || (parc < 3))
+  if (!HasFlag(source_p, FLAGS_SERVICE) || (parc < 3))
     return;
 
   if ((parc >= 4) && ((*parv[3] == '+') || (*parv[3] == '-')))
@@ -128,7 +128,7 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
         break;
 
       case 'o':
-        if (what == MODE_DEL && IsOper(target_p))
+        if (what == MODE_DEL && HasUMode(target_p, UMODE_OPER))
         {
           ClearOper(target_p);
           Count.oper--;
@@ -138,7 +138,7 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
             dlink_node *dm = NULL;
 
             detach_conf(target_p, OPER_TYPE);
-            ClearOperFlags(target_p);
+            ClrOFlag(target_p);
             DelUMode(target_p, ConfigFileEntry.oper_only_umodes);
  
            if ((dm = dlinkFindDelete(&oper_list, target_p)) != NULL)

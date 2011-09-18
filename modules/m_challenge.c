@@ -81,7 +81,7 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   assert(source_p->localClient);
 
   /* if theyre an oper, reprint oper motd and ignore */
-  if (IsOper(source_p))
+  if (HasUMode(source_p, UMODE_OPER))
   {
     sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, parv[0]);
     send_message_file(source_p, &ConfigFileEntry.opermotd);

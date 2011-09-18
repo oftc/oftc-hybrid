@@ -157,7 +157,7 @@ change_local_nick(struct Client *source_p, const char *nick)
       (source_p->localClient->number_of_nick_changes
        <= ConfigFileEntry.max_nick_changes)) ||
      !ConfigFileEntry.anti_nick_flood ||
-     (IsOper(source_p) && ConfigFileEntry.no_oper_flood))
+     (HasUMode(source_p, UMODE_OPER) && ConfigFileEntry.no_oper_flood))
   {
     int samenick = !irccmp(source_p->name, nick);
 
@@ -319,7 +319,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
 
   if (find_matching_name_conf(NRESV_TYPE, nick,
 			     NULL, NULL, 0) && !IsExemptResv(source_p) &&
-     !(IsOper(source_p) && ConfigFileEntry.oper_pass_resv))
+     !(HasUMode(source_p, UMODE_OPER) && ConfigFileEntry.oper_pass_resv))
   {
     sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
                me.name, source_p->name, nick);
@@ -550,7 +550,7 @@ ms_uid(struct Client *client_p, struct Client *source_p,
 		               me.name);
 
     ++ServerStats.is_kill;
-    SetKilled(target_p);
+    AddFlag(target_p, FLAGS_KILLED);
     exit_client(target_p, &me, "ID Collision");
     return;
   }
@@ -602,7 +602,7 @@ check_clean_nick(struct Client *client_p, struct Client *source_p,
       kill_client_ll_serv_butone(client_p, source_p,
                                  "%s (Bad Nickname)",
 				 me.name);
-      SetKilled(source_p);
+      AddFlag(source_p, FLAGS_KILLED);
       exit_client(source_p, &me, "Bad Nickname");
     }
 
@@ -891,7 +891,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
       sendto_one(target_p, form_str(ERR_NICKCOLLISION),
                  me.name, target_p->name, target_p->name);
 
-      SetKilled(target_p);
+      AddFlag(target_p, FLAGS_KILLED);
       exit_client(target_p, &me, "Nick collision (new)");
       return;
     }
@@ -937,7 +937,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
 	                           "%s (Nick collision (new))",
 				   me.name);
 
-        SetKilled(target_p);
+        AddFlag(target_p, FLAGS_KILLED);
 	exit_client(target_p, &me, "Nick collision");
 	
 	if (!uid && (parc == 9 || parc == 10))
@@ -969,10 +969,10 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
       kill_client_ll_serv_butone(NULL, target_p, "%s (Nick change collision)",
                                  me.name);
 
-      SetKilled(target_p);
+      AddFlag(target_p, FLAGS_KILLED);
       exit_client(target_p, &me, "Nick collision (new)");
 
-      SetKilled(source_p);
+      AddFlag(source_p, FLAGS_KILLED);
       exit_client(source_p, &me, "Nick collision (old)");
       return;
     }
@@ -1000,7 +1000,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
 	                           "%s (Nick change collision)",
 				   me.name);
 
-        SetKilled(source_p);
+        AddFlag(source_p, FLAGS_KILLED);
 	
 	if (sameuser)
 	  exit_client(source_p, &me, "Nick collision (old)");
@@ -1029,7 +1029,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
        sendto_one(target_p, form_str(ERR_NICKCOLLISION),
                   me.name, target_p->name, target_p->name);
 
-       SetKilled(target_p);
+       AddFlag(target_p, FLAGS_KILLED);
        exit_client(target_p, &me, "Nick collision");
      }
    }

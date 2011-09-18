@@ -125,7 +125,7 @@ mo_rxline(struct Client *client_p, struct Client *source_p,
   char *target_server = NULL;
   time_t tkline_time = 0;
 
-  if (!IsOperX(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_X))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "rxline");
@@ -208,7 +208,7 @@ mo_unrxline(struct Client *client_p, struct Client *source_p,
   char *gecos = NULL;
   char *target_server = NULL;
 
-  if (!IsOperX(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_X))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "unrxline");
