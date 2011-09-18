@@ -34,7 +34,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@ENABLE_PCRE_TRUE@am__append_1 = m_rkline.la m_rxline.la
 subdir = modules
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -303,22 +302,6 @@ m_resv_la_OBJECTS = $(am_m_resv_la_OBJECTS)
 m_resv_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(m_resv_la_LDFLAGS) $(LDFLAGS) -o $@
-m_rkline_la_LIBADD =
-am__m_rkline_la_SOURCES_DIST = m_rkline.c
-@ENABLE_PCRE_TRUE@am_m_rkline_la_OBJECTS = m_rkline.lo
-m_rkline_la_OBJECTS = $(am_m_rkline_la_OBJECTS)
-m_rkline_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(m_rkline_la_LDFLAGS) $(LDFLAGS) -o $@
-@ENABLE_PCRE_TRUE@am_m_rkline_la_rpath = -rpath $(modulesdir)
-m_rxline_la_LIBADD =
-am__m_rxline_la_SOURCES_DIST = m_rxline.c
-@ENABLE_PCRE_TRUE@am_m_rxline_la_OBJECTS = m_rxline.lo
-m_rxline_la_OBJECTS = $(am_m_rxline_la_OBJECTS)
-m_rxline_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(m_rxline_la_LDFLAGS) $(LDFLAGS) -o $@
-@ENABLE_PCRE_TRUE@am_m_rxline_la_rpath = -rpath $(modulesdir)
 m_services_la_LIBADD =
 am_m_services_la_OBJECTS = m_services.lo
 m_services_la_OBJECTS = $(am_m_services_la_OBJECTS)
@@ -481,8 +464,7 @@ SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_operwall_la_SOURCES) $(m_pass_la_SOURCES) \
 	$(m_ping_la_SOURCES) $(m_pong_la_SOURCES) $(m_post_la_SOURCES) \
 	$(m_rehash_la_SOURCES) $(m_restart_la_SOURCES) \
-	$(m_resv_la_SOURCES) $(m_rkline_la_SOURCES) \
-	$(m_rxline_la_SOURCES) $(m_services_la_SOURCES) \
+	$(m_resv_la_SOURCES) $(m_services_la_SOURCES) \
 	$(m_set_la_SOURCES) $(m_stats_la_SOURCES) \
 	$(m_svinfo_la_SOURCES) $(m_svsmode_la_SOURCES) \
 	$(m_svsnick_la_SOURCES) $(m_tburst_la_SOURCES) \
@@ -511,8 +493,7 @@ DIST_SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_operwall_la_SOURCES) $(m_pass_la_SOURCES) \
 	$(m_ping_la_SOURCES) $(m_pong_la_SOURCES) $(m_post_la_SOURCES) \
 	$(m_rehash_la_SOURCES) $(m_restart_la_SOURCES) \
-	$(m_resv_la_SOURCES) $(am__m_rkline_la_SOURCES_DIST) \
-	$(am__m_rxline_la_SOURCES_DIST) $(m_services_la_SOURCES) \
+	$(m_resv_la_SOURCES) $(m_services_la_SOURCES) \
 	$(m_set_la_SOURCES) $(m_stats_la_SOURCES) \
 	$(m_svinfo_la_SOURCES) $(m_svsmode_la_SOURCES) \
 	$(m_svsnick_la_SOURCES) $(m_tburst_la_SOURCES) \
@@ -710,19 +691,68 @@ MODULE_FLAGS = -module -avoid-version
 SUBDIRS = core
 AM_CPPFLAGS = -I$(top_srcdir)/include
 modulesdir = $(pkglibdir)/modules/autoload
-modules_LTLIBRARIES = m_accept.la m_admin.la m_away.la m_capab.la \
-	m_cap.la m_challenge.la m_close.la m_connect.la m_cryptlink.la \
-	m_dline.la m_encap.la m_eob.la m_etrace.la m_gline.la \
-	m_globops.la m_hash.la m_help.la m_info.la m_invite.la \
-	m_ison.la m_kline.la m_knock.la m_links.la m_list.la \
-	m_locops.la m_lusers.la m_map.la m_motd.la m_names.la \
-	m_omotd.la m_oper.la m_operwall.la m_pass.la m_ping.la \
-	m_pong.la m_post.la m_rehash.la m_restart.la m_resv.la \
-	m_set.la m_services.la m_stats.la m_svinfo.la m_svsmode.la \
-	m_svsnick.la m_tburst.la m_testline.la m_testmask.la m_time.la \
-	m_topic.la m_trace.la m_user.la m_userhost.la m_users.la \
-	m_version.la m_wallops.la m_watch.la m_who.la m_whois.la \
-	m_whowas.la m_xline.la $(am__append_1)
+modules_LTLIBRARIES = m_accept.la    \
+                      m_admin.la     \
+                      m_away.la      \
+                      m_capab.la     \
+                      m_cap.la       \
+                      m_challenge.la \
+                      m_close.la     \
+                      m_connect.la   \
+                      m_cryptlink.la \
+                      m_dline.la     \
+                      m_encap.la     \
+                      m_eob.la       \
+                      m_etrace.la    \
+                      m_gline.la     \
+                      m_globops.la   \
+                      m_hash.la      \
+                      m_help.la      \
+                      m_info.la      \
+                      m_invite.la    \
+                      m_ison.la      \
+                      m_kline.la     \
+                      m_knock.la     \
+                      m_links.la     \
+                      m_list.la      \
+                      m_locops.la    \
+                      m_lusers.la    \
+                      m_map.la       \
+                      m_motd.la      \
+                      m_names.la     \
+                      m_omotd.la     \
+                      m_oper.la      \
+                      m_operwall.la  \
+                      m_pass.la      \
+                      m_ping.la      \
+                      m_pong.la      \
+                      m_post.la      \
+                      m_rehash.la    \
+                      m_restart.la   \
+                      m_resv.la      \
+                      m_set.la       \
+                      m_services.la  \
+                      m_stats.la     \
+                      m_svinfo.la    \
+                      m_svsmode.la   \
+                      m_svsnick.la   \
+                      m_tburst.la    \
+                      m_testline.la  \
+                      m_testmask.la  \
+                      m_time.la      \
+                      m_topic.la     \
+                      m_trace.la     \
+                      m_user.la      \
+                      m_userhost.la  \
+                      m_users.la     \
+                      m_version.la   \
+                      m_wallops.la   \
+                      m_watch.la     \
+                      m_who.la       \
+                      m_whois.la     \
+                      m_whowas.la    \
+                      m_xline.la
+
 m_challenge_la_LDFLAGS = $(MODULE_FLAGS)
 m_cryptlink_la_LDFLAGS = $(MODULE_FLAGS)
 m_accept_la_LDFLAGS = $(MODULE_FLAGS)
@@ -762,8 +792,6 @@ m_post_la_LDFLAGS = $(MODULE_FLAGS)
 m_rehash_la_LDFLAGS = $(MODULE_FLAGS)
 m_restart_la_LDFLAGS = $(MODULE_FLAGS)
 m_resv_la_LDFLAGS = $(MODULE_FLAGS)
-@ENABLE_PCRE_TRUE@m_rkline_la_LDFLAGS = $(MODULE_FLAGS)
-@ENABLE_PCRE_TRUE@m_rxline_la_LDFLAGS = $(MODULE_FLAGS)
 m_set_la_LDFLAGS = $(MODULE_FLAGS)
 m_services_la_LDFLAGS = $(MODULE_FLAGS)
 m_stats_la_LDFLAGS = $(MODULE_FLAGS)
@@ -825,8 +853,6 @@ m_post_la_SOURCES = m_post.c
 m_rehash_la_SOURCES = m_rehash.c
 m_restart_la_SOURCES = m_restart.c
 m_resv_la_SOURCES = m_resv.c
-@ENABLE_PCRE_TRUE@m_rkline_la_SOURCES = m_rkline.c
-@ENABLE_PCRE_TRUE@m_rxline_la_SOURCES = m_rxline.c
 m_set_la_SOURCES = m_set.c
 m_services_la_SOURCES = m_services.c
 m_stats_la_SOURCES = m_stats.c
@@ -992,10 +1018,6 @@ m_restart.la: $(m_restart_la_OBJECTS) $(m_restart_la_DEPENDENCIES)
 	$(m_restart_la_LINK) -rpath $(modulesdir) $(m_restart_la_OBJECTS) $(m_restart_la_LIBADD) $(LIBS)
 m_resv.la: $(m_resv_la_OBJECTS) $(m_resv_la_DEPENDENCIES) 
 	$(m_resv_la_LINK) -rpath $(modulesdir) $(m_resv_la_OBJECTS) $(m_resv_la_LIBADD) $(LIBS)
-m_rkline.la: $(m_rkline_la_OBJECTS) $(m_rkline_la_DEPENDENCIES) 
-	$(m_rkline_la_LINK) $(am_m_rkline_la_rpath) $(m_rkline_la_OBJECTS) $(m_rkline_la_LIBADD) $(LIBS)
-m_rxline.la: $(m_rxline_la_OBJECTS) $(m_rxline_la_DEPENDENCIES) 
-	$(m_rxline_la_LINK) $(am_m_rxline_la_rpath) $(m_rxline_la_OBJECTS) $(m_rxline_la_LIBADD) $(LIBS)
 m_services.la: $(m_services_la_OBJECTS) $(m_services_la_DEPENDENCIES) 
 	$(m_services_la_LINK) -rpath $(modulesdir) $(m_services_la_OBJECTS) $(m_services_la_LIBADD) $(LIBS)
 m_set.la: $(m_set_la_OBJECTS) $(m_set_la_DEPENDENCIES) 
@@ -1086,8 +1108,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_rehash.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_restart.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_resv.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_rkline.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_rxline.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_services.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_set.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_stats.Plo@am__quote@

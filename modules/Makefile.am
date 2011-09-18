@@ -66,9 +66,7 @@ modules_LTLIBRARIES = m_accept.la    \
                       m_whois.la     \
                       m_whowas.la    \
                       m_xline.la
-if ENABLE_PCRE
-modules_LTLIBRARIES += m_rkline.la m_rxline.la
-endif
+
 
 m_challenge_la_LDFLAGS = $(MODULE_FLAGS)
 m_cryptlink_la_LDFLAGS = $(MODULE_FLAGS)
@@ -109,10 +107,6 @@ m_post_la_LDFLAGS = $(MODULE_FLAGS)
 m_rehash_la_LDFLAGS = $(MODULE_FLAGS)
 m_restart_la_LDFLAGS = $(MODULE_FLAGS)
 m_resv_la_LDFLAGS = $(MODULE_FLAGS)
-if ENABLE_PCRE
-m_rkline_la_LDFLAGS = $(MODULE_FLAGS)
-m_rxline_la_LDFLAGS = $(MODULE_FLAGS)
-endif
 m_set_la_LDFLAGS = $(MODULE_FLAGS)
 m_services_la_LDFLAGS = $(MODULE_FLAGS)
 m_stats_la_LDFLAGS = $(MODULE_FLAGS)
@@ -175,10 +169,6 @@ m_post_la_SOURCES = m_post.c
 m_rehash_la_SOURCES = m_rehash.c
 m_restart_la_SOURCES = m_restart.c
 m_resv_la_SOURCES = m_resv.c
-if ENABLE_PCRE
-m_rkline_la_SOURCES = m_rkline.c
-m_rxline_la_SOURCES = m_rxline.c
-endif
 m_set_la_SOURCES = m_set.c
 m_services_la_SOURCES = m_services.c
 m_stats_la_SOURCES = m_stats.c
