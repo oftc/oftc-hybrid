@@ -43,7 +43,7 @@
 #include "modules.h"
 #include "hook.h"
 
-static void do_whois(struct Client *, int, char **);
+static void do_whois(struct Client *, int, char *[]);
 static int single_whois(struct Client *, struct Client *);
 static void whois_person(struct Client *, struct Client *);
 static int global_whois(struct Client *, const char *);
@@ -57,23 +57,10 @@ struct Message whois_msgtab = {
 };
 
 const char *_version = "$Revision$";
-static struct Callback *whois_cb;
-
-static void *
-va_whois(va_list args)
-{
-  struct Client *source_p = va_arg(args, struct Client *);
-  int parc = va_arg(args, int);
-  char **parv = va_arg(args, char **);
-
-  do_whois(source_p, parc, parv);
-  return NULL;
-}
 
 void
 _modinit(void)
 {
-  whois_cb = register_callback("doing_whois", va_whois);
   mod_add_cmd(&whois_msgtab);
 }
 
@@ -81,7 +68,6 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&whois_msgtab);
-  uninstall_hook(whois_cb, va_whois);
 }
 
 /*
@@ -128,7 +114,7 @@ m_whois(struct Client *client_p, struct Client *source_p,
     parv[1] = parv[2];
   }
 
-  execute_callback(whois_cb, source_p, parc, parv);
+  do_whois(source_p, parc, parv);
 }
 
 /*
@@ -156,7 +142,7 @@ mo_whois(struct Client *client_p, struct Client *source_p,
     parv[1] = parv[2];
   }
 
-  execute_callback(whois_cb, source_p, parc, parv);
+  do_whois(source_p, parc, parv);
 }
 
 /* do_whois()
@@ -168,7 +154,7 @@ mo_whois(struct Client *client_p, struct Client *source_p,
  * side effects - Does whois
  */
 static void
-do_whois(struct Client *source_p, int parc, char **parv)
+do_whois(struct Client *source_p, int parc, char *parv[])
 {
   static time_t last_used = 0;
   struct Client *target_p;
