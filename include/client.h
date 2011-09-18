@@ -89,7 +89,7 @@ struct ListTask
   dlink_list hide_mask; /**< ..and hide these ones */
 
   unsigned int hash_index; /**< the bucket we are currently in */
-  unsigned int users_min
+  unsigned int users_min;
   unsigned int users_max;
   unsigned int created_min;
   unsigned int created_max;
