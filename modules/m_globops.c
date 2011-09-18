@@ -97,7 +97,7 @@ static void
 ms_globops(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
-  if (parc != 2 || EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
     return;
 
   sendto_server(client_p, NULL, CAP_TS6, NOCAPS, ":%s GLOBOPS :%s",
