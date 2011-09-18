@@ -62,7 +62,7 @@ _moddeinit(void)
 }
 
 
-/*! \brief SVSMODE command handler (called by servers or services)
+/*! \brief SVSMODE command handler (called by services)
  *
  * \param client_p Pointer to allocated Client struct with physical connection
  *                 to this server, i.e. with an open socket connected.
@@ -88,7 +88,7 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
   char *m = NULL, *modes = NULL, *extarg = NULL;
   time_t ts = 0;
 
-  if (!HasFlag(source_p, FLAGS_SERVICE) || (parc < 3))
+  if (!HasFlag(source_p, FLAGS_SERVICE))
     return;
 
   if ((parc >= 4) && ((*parv[3] == '+') || (*parv[3] == '-')))
