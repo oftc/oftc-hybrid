@@ -150,7 +150,7 @@ operator {
 	encrypted = yes;
 	#rsa_public_key_file = "/usr/local/ircd/etc/oper.pub";
 	class = "opers";
-	flags = global_kill, remote, kline, unkline, gline,
+	flags = global_kill, remote, kline, unkline, gline, module,
 		xline, die, rehash, nick_changes, admin;
 };
 

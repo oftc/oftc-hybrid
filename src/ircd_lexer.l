@@ -122,7 +122,6 @@ include   \.include{WS}(\<.*\>|\".*\")
 		    }
 		}
 
-~		{ return NOT; }
 accept_password { return ACCEPT_PASSWORD; }
 action		{ return ACTION; }
 admin		{ return ADMIN; }
@@ -278,6 +277,7 @@ reject_hold_time { return TREJECT_HOLD_TIME; }
 reject_message { return REJECT_MESSAGE; }
 remote		{ return REMOTE; }
 remoteban	{ return REMOTEBAN; }
+restart         { return T_RESTART; }
 restrict_channels { return RESTRICT_CHANNELS; }
 resv		{ return RESV; }
 resv_exempt     { return RESV_EXEMPT; }

@@ -346,7 +346,7 @@ mo_restart(struct Client *client_p, struct Client *source_p,
 {
   char buf[IRCD_BUFSIZE]; 
 
-  if (!HasOFlag(source_p, OPER_FLAG_DIE))
+  if (!HasOFlag(source_p, OPER_FLAG_RESTART))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "restart");

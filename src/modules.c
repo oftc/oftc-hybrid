@@ -361,7 +361,7 @@ mo_modload(struct Client *client_p, struct Client *source_p,
 {
   char *m_bn;
 
-  if (!HasUMode(source_p, UMODE_ADMIN))
+  if (!HasOFlag(source_p, OPER_FLAG_MODULE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -389,7 +389,7 @@ mo_modunload(struct Client *client_p, struct Client *source_p,
   dlink_node *ptr;
   struct module *modp;
 
-  if (!HasUMode(source_p, UMODE_ADMIN))
+  if (!HasOFlag(source_p, OPER_FLAG_MODULE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -434,7 +434,7 @@ mo_modreload(struct Client *client_p, struct Client *source_p,
   struct module *modp;
   int check_core;
 
-  if (!HasUMode(source_p, UMODE_ADMIN))
+  if (!HasOFlag(source_p, OPER_FLAG_MODULE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -477,7 +477,7 @@ mo_modlist(struct Client *client_p, struct Client *source_p,
   dlink_node *ptr;
   struct module *modp;
 
-  if (!HasUMode(source_p, UMODE_ADMIN))
+  if (!HasOFlag(source_p, OPER_FLAG_MODULE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -517,7 +517,7 @@ mo_modrestart(struct Client *client_p, struct Client *source_p,
   unsigned int modnum = 0;
   dlink_node *ptr = NULL, *ptr_next = NULL;
 
-  if (!HasUMode(source_p, UMODE_ADMIN))
+  if (!HasOFlag(source_p, OPER_FLAG_MODULE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);

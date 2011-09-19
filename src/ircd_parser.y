@@ -75,7 +75,6 @@ static char gecos_name[REALLEN * 4];
 
 static char *resv_reason = NULL;
 static char *listener_address = NULL;
-static int not_atom = 0;
 
 struct CollectItem
 {
@@ -258,7 +257,6 @@ unhook_hub_leaf_confs(void)
 %token  NO_JOIN_ON_SPLIT
 %token  NO_OPER_FLOOD
 %token  NO_TILDE
-%token  NOT
 %token  NUMBER
 %token  NUMBER_PER_IDENT
 %token  NUMBER_PER_CIDR
@@ -368,7 +366,7 @@ unhook_hub_leaf_confs(void)
 %token  T_GLOBOPS
 %token  T_WALLOP
 %token  T_GOD
-%token  T_NICKSERVREG
+%token  T_RESTART
 %token  T_SERVICE
 %token  T_SERVICES_NAME
 %token  THROTTLE_TIME
@@ -1292,131 +1290,83 @@ oper_umodes_item:  T_BOTS
 
 oper_flags: IRCD_FLAGS
 {
+  if (conf_parser_ctx.pass == 2)
+    yy_aconf->port = 0;
 } '='  oper_flags_items ';';
 
 oper_flags_items: oper_flags_items ',' oper_flags_item | oper_flags_item;
-oper_flags_item: NOT { not_atom = 1; } oper_flags_item_atom
-		| { not_atom = 0; } oper_flags_item_atom;
-
-oper_flags_item_atom: GLOBAL_KILL
+oper_flags_item: GLOBAL_KILL
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom)yy_aconf->port &= ~OPER_FLAG_GLOBAL_KILL;
-    else yy_aconf->port |= OPER_FLAG_GLOBAL_KILL;
-  }
+    yy_aconf->port |= OPER_FLAG_GLOBAL_KILL;
 } | REMOTE
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_REMOTE;
-    else yy_aconf->port |= OPER_FLAG_REMOTE;
-  }
+    yy_aconf->port |= OPER_FLAG_REMOTE;
 } | KLINE
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_K;
-    else yy_aconf->port |= OPER_FLAG_K;
-  }
+    yy_aconf->port |= OPER_FLAG_K;
 } | UNKLINE
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_UNKLINE;
-    else yy_aconf->port |= OPER_FLAG_UNKLINE;
-  } 
+    yy_aconf->port |= OPER_FLAG_UNKLINE;
 } | XLINE
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_X;
-    else yy_aconf->port |= OPER_FLAG_X;
-  }
+    yy_aconf->port |= OPER_FLAG_X;
 } | GLINE
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_GLINE;
-    else yy_aconf->port |= OPER_FLAG_GLINE;
-  }
+    yy_aconf->port |= OPER_FLAG_GLINE;
 } | DIE
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_DIE;
-    else yy_aconf->port |= OPER_FLAG_DIE;
-  }
+    yy_aconf->port |= OPER_FLAG_DIE;
+} | T_RESTART
+{
+  if (conf_parser_ctx.pass == 2)
+    yy_aconf->port |= OPER_FLAG_RESTART;
 } | REHASH
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_REHASH;
-    else yy_aconf->port |= OPER_FLAG_REHASH;
-  }
+    yy_aconf->port |= OPER_FLAG_REHASH;
 } | ADMIN
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_ADMIN;
-    else yy_aconf->port |= OPER_FLAG_ADMIN;
-  }
+    yy_aconf->port |= OPER_FLAG_ADMIN;
 } | HIDDEN_ADMIN
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_HIDDEN_ADMIN;
-    else yy_aconf->port |= OPER_FLAG_HIDDEN_ADMIN;
-  }
+    yy_aconf->port |= OPER_FLAG_HIDDEN_ADMIN;
 } | NICK_CHANGES
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_N;
-    else yy_aconf->port |= OPER_FLAG_N;
-  }
+    yy_aconf->port |= OPER_FLAG_N;
 } | T_OPERWALL
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_OPERWALL;
-    else yy_aconf->port |= OPER_FLAG_OPERWALL;
-  }
+    yy_aconf->port |= OPER_FLAG_OPERWALL;
 } | T_GLOBOPS
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_GLOBOPS;
-    else yy_aconf->port |= OPER_FLAG_GLOBOPS;
-  }
+    yy_aconf->port |= OPER_FLAG_GLOBOPS;
 } | OPER_SPY_T
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_OPER_SPY;
-    else yy_aconf->port |= OPER_FLAG_OPER_SPY;
-  }
+    yy_aconf->port |= OPER_FLAG_OPER_SPY;
 } | HIDDEN_OPER
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_HIDDEN_OPER;
-    else yy_aconf->port |= OPER_FLAG_HIDDEN_OPER;
-  }
+    yy_aconf->port |= OPER_FLAG_HIDDEN_OPER;
 } | REMOTEBAN
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->port &= ~OPER_FLAG_REMOTEBAN;
-    else yy_aconf->port |= OPER_FLAG_REMOTEBAN;
-  }
-} | ENCRYPTED
+    yy_aconf->port |= OPER_FLAG_REMOTEBAN;
+} | MODULE
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) ClearConfEncrypted(yy_aconf);
-    else SetConfEncrypted(yy_aconf);
-  }
+    yy_aconf->port |= OPER_FLAG_MODULE;
 };
 
 
@@ -1871,72 +1821,42 @@ auth_flags: IRCD_FLAGS
 } '='  auth_flags_items ';';
 
 auth_flags_items: auth_flags_items ',' auth_flags_item | auth_flags_item;
-auth_flags_item: NOT { not_atom = 1; } auth_flags_item_atom
-		| { not_atom = 0; } auth_flags_item_atom;
-
-auth_flags_item_atom: SPOOF_NOTICE
+auth_flags_item: SPOOF_NOTICE
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_SPOOF_NOTICE;
-    else yy_aconf->flags |= CONF_FLAGS_SPOOF_NOTICE;
-  }
+    yy_aconf->flags |= CONF_FLAGS_SPOOF_NOTICE;
 } | EXCEED_LIMIT
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_NOLIMIT;
-    else yy_aconf->flags |= CONF_FLAGS_NOLIMIT;
-  }
+    yy_aconf->flags |= CONF_FLAGS_NOLIMIT;
 } | KLINE_EXEMPT
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_EXEMPTKLINE;
-    else yy_aconf->flags |= CONF_FLAGS_EXEMPTKLINE;
-  } 
+    yy_aconf->flags |= CONF_FLAGS_EXEMPTKLINE;
 } | NEED_IDENT
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_NEED_IDENTD;
-    else yy_aconf->flags |= CONF_FLAGS_NEED_IDENTD;
-  }
+    yy_aconf->flags |= CONF_FLAGS_NEED_IDENTD;
 } | CAN_FLOOD
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_CAN_FLOOD;
-    else yy_aconf->flags |= CONF_FLAGS_CAN_FLOOD;
-  }
+    yy_aconf->flags |= CONF_FLAGS_CAN_FLOOD;
 } | NO_TILDE
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_NO_TILDE;
-    else yy_aconf->flags |= CONF_FLAGS_NO_TILDE;
-  } 
+    yy_aconf->flags |= CONF_FLAGS_NO_TILDE;
 } | GLINE_EXEMPT
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_EXEMPTGLINE;
-    else yy_aconf->flags |= CONF_FLAGS_EXEMPTGLINE;
-  } 
+    yy_aconf->flags |= CONF_FLAGS_EXEMPTGLINE;
 } | RESV_EXEMPT
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_EXEMPTRESV;
-    else yy_aconf->flags |= CONF_FLAGS_EXEMPTRESV;
-  }
+    yy_aconf->flags |= CONF_FLAGS_EXEMPTRESV;
 } | NEED_PASSWORD
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_NEED_PASSWORD;
-    else yy_aconf->flags |= CONF_FLAGS_NEED_PASSWORD;
-  }
+    yy_aconf->flags |= CONF_FLAGS_NEED_PASSWORD;
 };
 
 /* XXX - need check for illegal hostnames here */
@@ -2520,50 +2440,33 @@ connect_flags: IRCD_FLAGS
 } '='  connect_flags_items ';';
 
 connect_flags_items: connect_flags_items ',' connect_flags_item | connect_flags_item;
-connect_flags_item: NOT  { not_atom = 1; } connect_flags_item_atom
-			|  { not_atom = 0; } connect_flags_item_atom;
-
-connect_flags_item_atom: COMPRESSED
+connect_flags_item: COMPRESSED
 {
   if (conf_parser_ctx.pass == 2)
 #ifndef HAVE_LIBZ
     yyerror("Ignoring flags = compressed; -- no zlib support");
 #else
  {
-   if (not_atom)ClearConfCompressed(yy_aconf);
-   else SetConfCompressed(yy_aconf);
+   SetConfCompressed(yy_aconf);
  }
 #endif
 } | CRYPTLINK
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom)ClearConfCryptLink(yy_aconf);
-    else SetConfCryptLink(yy_aconf);
-  }
+    SetConfCryptLink(yy_aconf);
 } | AUTOCONN
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom)ClearConfAllowAutoConn(yy_aconf);
-    else SetConfAllowAutoConn(yy_aconf);
-  }
+    SetConfAllowAutoConn(yy_aconf);
 } | BURST_AWAY
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom)ClearConfAwayBurst(yy_aconf);
-    else SetConfAwayBurst(yy_aconf);
-  }
+    SetConfAwayBurst(yy_aconf);
 } | TOPICBURST
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (not_atom)ClearConfTopicBurst(yy_aconf);
-    else SetConfTopicBurst(yy_aconf);
-  }
-}
-;
+    SetConfTopicBurst(yy_aconf);
+};
 
 connect_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
 {
