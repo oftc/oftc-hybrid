@@ -414,6 +414,8 @@ struct LocalUser
 #define OPER_FLAG_REMOTEBAN    0x00002000 /* */
 #define OPER_FLAG_HIDDEN_OPER  0x00004000 /* */
 #define OPER_FLAG_GLOBOPS      0x00008000
+#define OPER_FLAG_MODULE       0x00010000 /**< Oper can use MODULE commands */
+#define OPER_FLAG_RESTART      0x00020000 /**< Oper can use RESTART command */
 
 #define HasOFlag(x, y) (MyConnect(x) ? (x)->localClient->operflags & (y) : 0)
 #define AddOFlag(x, y) ((x)->localClient->operflags |=  (y))
