@@ -1272,9 +1272,6 @@ oper_up(struct Client *source_p, const char *name)
     AddUMode(source_p, oconf->modes);
   else if (ConfigFileEntry.oper_umodes)
     AddUMode(source_p, ConfigFileEntry.oper_umodes);
-  else
-    AddUMode(source_p, UMODE_SERVNOTICE|UMODE_OPERWALL|
-                       UMODE_WALLOP|UMODE_LOCOPS);
 
   if (!(old & UMODE_INVISIBLE) && HasUMode(source_p, UMODE_INVISIBLE))
     ++Count.invisi;
