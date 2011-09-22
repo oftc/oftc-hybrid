@@ -301,8 +301,13 @@ whois_person(struct Client *source_p, struct Client *target_p)
              target_p->username, target_p->host, target_p->info);
 
   if(!IsService(target_p))
+    cur_len = mlen = snprintf(buf, sizeof(buf), form_str(RPL_WHOISCHANNELS),
+        me.name, source_p->name, target_p->name, "");
+  t = buf + mlen;
+
+  DLINK_FOREACH(lp, target_p->channel.head)
   {
-    cur_len = mlen = ircsprintf(buf, form_str(RPL_WHOISCHANNELS),
+    cur_len = mlen = snprintf(buf, sizeof(buf), form_str(RPL_WHOISCHANNELS),
         me.name, source_p->name, target_p->name, "");
     t = buf + mlen;
 

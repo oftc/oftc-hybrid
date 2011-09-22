@@ -171,7 +171,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   else
     add_conf_by_address(CONF_DLINE, aconf);
 
-  ircsprintf(buffer, "%s (%s)", reason, current_date);
+  snprintf(buffer, sizeof(buffer), "%s (%s)", reason, current_date);
   DupString(aconf->reason, buffer);
   if (oper_reason != NULL)
     DupString(aconf->oper_reason, oper_reason);

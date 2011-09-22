@@ -200,7 +200,7 @@ me_kline(struct Client *client_p, struct Client *source_p,
     DupString(aconf->host, khost);
     DupString(aconf->user, kuser);
 
-    ircsprintf(buffer, "%s (%s)", kreason, current_date);
+    snprintf(buffer, sizeof(buffer), "%s (%s)", kreason, current_date);
     DupString(aconf->reason, buffer);
       
     if (oper_reason != NULL)

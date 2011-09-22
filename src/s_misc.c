@@ -86,10 +86,10 @@ date(time_t lclock)
   if (minswest < 0)
     minswest = -minswest;
 
-  ircsprintf(buf, "%s %s %d %d -- %02u:%02u:%02u %c%02u:%02u",
-             weekdays[lt->tm_wday], months[lt->tm_mon],lt->tm_mday,
-             lt->tm_year + 1900, lt->tm_hour, lt->tm_min, lt->tm_sec,
-             plus, minswest/60, minswest%60);
+  snprintf(buf, sizeof(buf), "%s %s %d %d -- %02u:%02u:%02u %c%02u:%02u",
+           weekdays[lt->tm_wday], months[lt->tm_mon],lt->tm_mday,
+           lt->tm_year + 1900, lt->tm_hour, lt->tm_min, lt->tm_sec,
+           plus, minswest/60, minswest%60);
   return buf;
 }
 
@@ -108,7 +108,7 @@ smalldate(time_t lclock)
   gm = &gmbuf; 
   lt = localtime(&lclock);
   
-  ircsprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d",
+  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
              lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
              lt->tm_hour, lt->tm_min, lt->tm_sec);
 
