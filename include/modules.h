@@ -43,9 +43,7 @@ struct module
   void *handle;
   void (*modinit)(void);
   void (*modexit)(void);
-  void (*modremove)(void);
   unsigned int flags;
-  int core;
 };
 
 struct module_path
