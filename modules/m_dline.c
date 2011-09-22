@@ -195,8 +195,8 @@ mo_dline(struct Client *client_p, struct Client *source_p,
 
   if (tkline_time != 0)
   {
-    ircsprintf(buffer, "Temporary D-line %d min. - %s (%s)",
-	       (int)(tkline_time/60), reason, current_date);
+    snprintf(buffer, sizeof(buffer), "Temporary D-line %d min. - %s (%s)",
+             (int)(tkline_time/60), reason, current_date);
     DupString(aconf->reason, buffer);
     if (oper_reason != NULL)
       DupString(aconf->oper_reason, oper_reason);
@@ -204,7 +204,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   }
   else
   {
-    ircsprintf(buffer, "%s (%s)", reason, current_date);
+    snprintf(buffer, sizeof(buffer), "%s (%s)", reason, current_date);
     DupString(aconf->reason, buffer);
     if (oper_reason != NULL)
       DupString(aconf->oper_reason, oper_reason);

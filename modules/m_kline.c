@@ -134,8 +134,8 @@ mo_kline(struct Client *client_p, struct Client *source_p,
 
   if (tkline_time != 0)
   {
-    ircsprintf(buffer, "Temporary K-line %d min. - %s (%s)",
-               (int)(tkline_time/60), reason, current_date);
+    snprintf(buffer, sizeof(buffer), "Temporary K-line %d min. - %s (%s)",
+             (int)(tkline_time/60), reason, current_date);
     DupString(aconf->reason, buffer);
 
     if (oper_reason != NULL)
@@ -144,7 +144,7 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   }
   else
   {
-    ircsprintf(buffer, "%s (%s)", reason, current_date);
+    snprintf(buffer, sizeof(buffer), "%s (%s)", reason, current_date);
     DupString(aconf->reason, buffer);
 
     if (oper_reason != NULL)
@@ -197,8 +197,8 @@ me_kline(struct Client *client_p, struct Client *source_p,
 
     if (tkline_time != 0)
     {
-      ircsprintf(buffer, "Temporary K-line %d min. - %s (%s)",
-                 (int)(tkline_time/60), kreason, current_date);
+      snprintf(buffer, sizeof(buffer), "Temporary K-line %d min. - %s (%s)",
+               (int)(tkline_time/60), kreason, current_date);
       DupString(aconf->reason, buffer);
 
       if (oper_reason != NULL)
@@ -207,7 +207,7 @@ me_kline(struct Client *client_p, struct Client *source_p,
     }
     else
     {
-      ircsprintf(buffer, "%s (%s)", kreason, current_date);
+      snprintf(buffer, sizeof(buffer), "%s (%s)", kreason, current_date);
       DupString(aconf->reason, buffer);
 
       if (oper_reason != NULL)

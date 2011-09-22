@@ -58,7 +58,7 @@ ms_encap(struct Client *client_p, struct Client *source_p,
     if ((cur_len + len) >= sizeof(buffer))
       return;
 
-    ircsprintf(ptr, "%s ", parv[i]);
+    snprintf(ptr, sizeof(buffer) - cur_len, "%s ", parv[i]);
     cur_len += len;
     ptr += len;
   }
@@ -72,12 +72,12 @@ ms_encap(struct Client *client_p, struct Client *source_p,
    */
 
   if (parc == 3)
-    ircsprintf(ptr, "%s", parv[2]);
+    snprintf(ptr, sizeof(buffer) - cur_len, "%s", parv[2]);
   else
-    ircsprintf(ptr, ":%s", parv[parc-1]);
+    snprintf(ptr, sizeof(buffer) - cur_len, ":%s", parv[parc - 1]);
 
   if ((cur_len + len) >= sizeof(buffer))
-    buffer[sizeof(buffer)-1] = '\0';
+    buffer[sizeof(buffer) - 1] = '\0';
 
   sendto_match_servs(source_p, parv[1], CAP_ENCAP,
                      "ENCAP %s", buffer);
@@ -104,10 +104,8 @@ ms_encap(struct Client *client_p, struct Client *source_p,
   parc -= 2;
   parv[0] = ptr;
 
-  if ((handler = mptr->handlers[ENCAP_HANDLER]) == NULL)
-    return;
-
-  (*handler)(client_p, source_p, parc, parv);
+  if ((handler = mptr->handlers[ENCAP_HANDLER]))
+    (*handler)(client_p, source_p, parc, parv);
 }
 
 static struct Message encap_msgtab = {

@@ -79,8 +79,8 @@ names_non_public_non_secret(struct Client *source_p)
   char buf[IRCD_BUFSIZE];
   char *t;
 
-  mlen = ircsprintf(buf, form_str(RPL_NAMREPLY), me.name,
-                    source_p->name, "*", "*");
+  mlen = snprintf(buf, sizeof(buf), form_str(RPL_NAMREPLY),
+                  me.name, source_p->name, "*", "*");
   cur_len = mlen;
   t = buf + mlen;
 
