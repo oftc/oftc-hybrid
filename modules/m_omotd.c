@@ -32,31 +32,10 @@
 #include "handlers.h"
 #include "hook.h"
 #include "msg.h"
-#include "s_serv.h"     /* hunt_server */
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
 
-static void m_omotd(struct Client *, struct Client *, int, char *[]);
-
-struct Message omotd_msgtab = {
-  "OMOTD", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, m_omotd, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&omotd_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&omotd_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /* m_omotd()
  *
@@ -68,3 +47,30 @@ m_omotd(struct Client *client_p, struct Client *source_p,
 {
   send_message_file(source_p, &ConfigFileEntry.opermotd);
 }
+
+static struct Message omotd_msgtab = {
+  "OMOTD", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, m_omotd, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&omotd_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&omotd_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

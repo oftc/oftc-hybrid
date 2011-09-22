@@ -39,27 +39,6 @@
 #include "hash.h"
 #include "modules.h"
 
-static void mo_connect(struct Client *, struct Client *, int, char *[]);
-static void ms_connect(struct Client *, struct Client *, int, char *[]);
-
-struct Message connect_msgtab = {
-  "CONNECT", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, ms_connect, m_ignore, mo_connect, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&connect_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&connect_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /*
  * mo_connect - CONNECT command handler
@@ -313,3 +292,30 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    */
   aconf->port = tmpport;
 }
+
+static struct Message connect_msgtab = {
+  "CONNECT", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, ms_connect, m_ignore, mo_connect, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&connect_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&connect_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

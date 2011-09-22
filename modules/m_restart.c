@@ -36,26 +36,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mo_restart(struct Client *, struct Client *, int, char *[]);
-
-struct Message restart_msgtab = {
-  "RESTART", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_restart, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&restart_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&restart_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /*
  * mo_restart
@@ -92,3 +72,30 @@ mo_restart(struct Client *client_p, struct Client *source_p,
            get_oper_name(source_p));
   server_die(buf, 1);
 }
+
+static struct Message restart_msgtab = {
+  "RESTART", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_restart, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&restart_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&restart_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -36,22 +36,6 @@
 #include "modules.h"
 #include "s_conf.h"
 
-static void m_motd(struct Client *, struct Client *, int, char *[]);
-static void mo_motd(struct Client *, struct Client *, int, char *[]);
-
-/*
- * note regarding mo_motd being used twice:
- * this is not a kludge.  any rate limiting, shide, or whatever
- * other access restrictions should be done by the source's server.
- * for security's sake, still check that the source is an oper
- * for 'oper only' information in the mo_ function(s).
- */
-struct Message motd_msgtab = {
-  "MOTD", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_motd, mo_motd, m_ignore, mo_motd, m_ignore }
-};
-
-const char *_version = "$Revision$";
 
 static void
 do_motd(struct Client *source_p)
@@ -61,18 +45,6 @@ do_motd(struct Client *source_p)
                        source_p->name, source_p->username,
                        source_p->host, source_p->servptr->name);
   send_message_file(source_p, &ConfigFileEntry.motd);
-}
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&motd_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&motd_msgtab);
 }
 
 /*
@@ -106,6 +78,14 @@ m_motd(struct Client *client_p, struct Client *source_p,
 }
 
 /*
+ * note regarding mo_motd being used twice:
+ * this is not a kludge.  any rate limiting, shide, or whatever
+ * other access restrictions should be done by the source's server.
+ * for security's sake, still check that the source is an oper
+ * for 'oper only' information in the mo_ function(s).
+ */
+
+/*
 ** mo_motd
 **      parv[0] = sender prefix
 **      parv[1] = servername
@@ -123,3 +103,30 @@ mo_motd(struct Client *client_p, struct Client *source_p,
 
   do_motd(source_p);
 }
+
+static struct Message motd_msgtab = {
+  "MOTD", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_motd, mo_motd, m_ignore, mo_motd, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&motd_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&motd_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -35,11 +35,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static char *confopts(struct Client *);
-static void m_version(struct Client *, struct Client *, int, char *[]);
-static void ms_version(struct Client *, struct Client *, int, char *[]);
-static void mo_version(struct Client *, struct Client *, int, char *[]);
-
 /* Option string. */
 static const char serveropts[] = {
   ' ',
@@ -55,24 +50,51 @@ static const char serveropts[] = {
   '\0'
 };
 
-struct Message version_msgtab = {
-  "VERSION", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_version, ms_version, m_ignore, mo_version, m_ignore }
-};
-
-void
-_modinit(void)
+/* confopts()
+ *
+ * input  - client pointer
+ * output - ircd.conf option string
+ * side effects - none
+ */
+static char *
+confopts(struct Client *source_p)
 {
-  mod_add_cmd(&version_msgtab);
-}
+  static char result[12];
+  char *p = result;
 
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&version_msgtab);
-}
+  if (ConfigChannel.use_except)
+    *p++ = 'e';
+  if (ConfigFileEntry.glines)
+    *p++ = 'G';
+  *p++ = 'g';
 
-const char *_version = "$Revision$";
+  /* might wanna hide this :P */
+  if (ServerInfo.hub &&
+      (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER)))
+  {
+    *p++ = 'H';
+  }
+
+  if (ConfigChannel.use_invex)
+    *p++ = 'I';
+  if (ConfigChannel.use_knock)
+    *p++ = 'K';
+  *p++ = 'M';
+
+  if (ConfigFileEntry.ignore_bogus_ts)
+    *p++ = 'T';
+#ifdef USE_SYSLOG
+  *p++ = 'Y';
+#endif
+#ifdef HAVE_LIBZ
+  *p++ = 'Z';
+#endif
+  *p++ = '6';
+
+  *p = '\0';
+
+  return result;
+}
 
 /*
  * m_version - VERSION command handler
@@ -120,7 +142,8 @@ mo_version(struct Client *client_p, struct Client *source_p,
 		  1, parc, parv) != HUNTED_ISME)
     return;
 
-  sendto_one(source_p, form_str(RPL_VERSION), me.name, parv[0], ircd_version, 
+  sendto_one(source_p, form_str(RPL_VERSION), me.name,
+             source_p->name, ircd_version, 
   	     serno, me.name, confopts(source_p), serveropts);
 
   show_isupport(source_p);
@@ -147,48 +170,29 @@ ms_version(struct Client *client_p, struct Client *source_p,
   }
 }
 
-/* confopts()
- *
- * input  - client pointer
- * output - ircd.conf option string
- * side effects - none
- */
-static char *
-confopts(struct Client *source_p)
+static struct Message version_msgtab = {
+  "VERSION", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_version, ms_version, m_ignore, mo_version, m_ignore }
+};
+
+static void
+module_init(void)
 {
-  static char result[12];
-  char *p = result;
-
-  if (ConfigChannel.use_except)
-    *p++ = 'e';
-  if (ConfigFileEntry.glines)
-    *p++ = 'G';
-  *p++ = 'g';
-
-  /* might wanna hide this :P */
-  if (ServerInfo.hub && 
-      (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER)))
-  {
-    *p++ = 'H';
-  }
-
-  if (ConfigChannel.use_invex)
-    *p++ = 'I';
-  if (ConfigChannel.use_knock)
-    *p++ = 'K';
-  *p++ = 'M';
-
-  if (ConfigFileEntry.ignore_bogus_ts)
-    *p++ = 'T';
-#ifdef USE_SYSLOG
-  *p++ = 'Y';
-#endif
-#ifdef HAVE_LIBZ
-  *p++ = 'Z';
-#endif
-  *p++ = '6';
-
-  *p = '\0';
-
-  return result;
+  mod_add_cmd(&version_msgtab);
 }
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&version_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

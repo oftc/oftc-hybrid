@@ -35,26 +35,6 @@
 #include "s_serv.h"
 #include "s_user.h"
 
-static void mr_pass(struct Client *, struct Client *, int, char *[]);
-
-struct Message pass_msgtab = {
-  "PASS", 0, 0, 2, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
-  { mr_pass, m_registered, m_ignore, m_ignore, m_registered, mr_pass }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&pass_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&pass_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /*
  * m_pass() - Added Sat, 4 March 1989
@@ -71,17 +51,19 @@ mr_pass(struct Client *client_p, struct Client *source_p,
 {
   char *password = parv[1];
 
+  assert(client_p == source_p);
+
   if (EmptyString(password))
   {
-    sendto_one(client_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, EmptyString(parv[0]) ? "*" : parv[0], "PASS");
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name,
+               source_p->name[0] ? source_p->name : "*", "PASS");
     return;
   }
 
-  MyFree(client_p->localClient->passwd);
+  MyFree(source_p->localClient->passwd);
   if (strlen(password) > PASSWDLEN)
     password[PASSWDLEN] = '\0';
-  DupString(client_p->localClient->passwd, password);
+  DupString(source_p->localClient->passwd, password);
 
   if (parc > 2)
   {
@@ -92,8 +74,8 @@ mr_pass(struct Client *client_p, struct Client *source_p,
      * safely assume if there is a ":TS" then its a TS server
      * -Dianora
      */
-    if (!irccmp(parv[2], "TS") && client_p->tsinfo == 0)
-      client_p->tsinfo = TS_DOESTS;
+    if (!irccmp(parv[2], "TS") && source_p->tsinfo == 0)
+      source_p->tsinfo = TS_DOESTS;
   }
 
   /* only do this stuff if we are doing ts6 */
@@ -101,8 +83,35 @@ mr_pass(struct Client *client_p, struct Client *source_p,
   {
     if (atoi(parv[3]) >= 6 && valid_sid(parv[4]))
     {
-      strlcpy(client_p->id, parv[4], sizeof(client_p->id));
-      SetCapable(client_p, CAP_TS6);
+      strlcpy(source_p->id, parv[4], sizeof(source_p->id));
+      SetCapable(source_p, CAP_TS6);
     }
   }
 }
+
+static struct Message pass_msgtab = {
+  "PASS", 0, 0, 2, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  { mr_pass, m_registered, m_ignore, m_ignore, m_registered, mr_pass }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&pass_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&pass_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

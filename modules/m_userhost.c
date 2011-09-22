@@ -37,27 +37,6 @@
 #include "s_conf.h"
 
 
-static void m_userhost(struct Client *, struct Client *, int, char *[]);
-
-struct Message userhost_msgtab = {
-  "USERHOST", 0, 0, 1, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_userhost, m_userhost, m_ignore, m_userhost, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&userhost_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&userhost_msgtab);
-}
-
-const char *_version = "$Revision$";
-
 /*
  * m_userhost added by Darren Reed 13/8/91 to aid clients and reduce
  * the need for complicated requests like WHOIS. It returns user/host
@@ -75,7 +54,7 @@ m_userhost(struct Client *client_p, struct Client *source_p,
   int cur_len;
   int rl;
 
-  cur_len = ircsprintf(buf,form_str(RPL_USERHOST),me.name, parv[0], "");
+  cur_len = ircsprintf(buf, form_str(RPL_USERHOST), me.name, source_p->name, "");
   t = buf + cur_len;
 
   for (nick = strtoken(&p, parv[1], " "); nick && i++ < 5;
@@ -121,3 +100,30 @@ m_userhost(struct Client *client_p, struct Client *source_p,
 
   sendto_one(source_p, "%s", buf);
 }
+
+static struct Message userhost_msgtab = {
+  "USERHOST", 0, 0, 1, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_userhost, m_userhost, m_ignore, m_userhost, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&userhost_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&userhost_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

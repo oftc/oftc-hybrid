@@ -53,46 +53,6 @@
 #define GLINE_PLACED         1
 
 
-static void me_gline(struct Client *, struct Client *, int, char *[]);
-static void ms_gline(struct Client *, struct Client *, int, char *[]);
-static void mo_gline(struct Client *, struct Client *, int, char *[]);
-static void me_gungline(struct Client *, struct Client *, int, char *[]);
-static void mo_gungline(struct Client *, struct Client *, int, char *[]);
-
-/*
- * gline enforces 3 parameters to force operator to give a reason
- * a gline is not valid with "No reason"
- * -db
- */
-struct Message gline_msgtab = {
-  "GLINE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, ms_gline, me_gline, mo_gline, m_ignore }
-};
-
-struct Message ungline_msgtab = {
-  "GUNGLINE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, me_gungline, mo_gungline, m_ignore }
-};
-
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&gline_msgtab);
-  mod_add_cmd(&ungline_msgtab);
-  add_capability("GLN", CAP_GLN, 1);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&gline_msgtab);
-  mod_del_cmd(&ungline_msgtab);
-  delete_capability("GLN");
-}
-
-const char *_version = "$Revision$";
-
 /*! \brief Adds a GLINE to the configuration subsystem.
  *
  * \param source_p Operator requesting gline
@@ -647,3 +607,44 @@ mo_gungline(struct Client *client_p, struct Client *source_p,
 
   do_sungline(source_p, user, host, reason, 1);
 }
+
+/*
+ * gline enforces 3 parameters to force operator to give a reason
+ * a gline is not valid with "No reason"
+ * -db
+ */
+static struct Message gline_msgtab = {
+  "GLINE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, ms_gline, me_gline, mo_gline, m_ignore }
+};
+
+static struct Message ungline_msgtab = {
+  "GUNGLINE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, me_gungline, mo_gungline, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&gline_msgtab);
+  mod_add_cmd(&ungline_msgtab);
+  add_capability("GLN", CAP_GLN, 1);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&gline_msgtab);
+  mod_del_cmd(&ungline_msgtab);
+  delete_capability("GLN");
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

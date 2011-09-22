@@ -42,72 +42,6 @@
 #include "modules.h"
 
 
-static void names_all_visible_channels(struct Client *);
-static void names_non_public_non_secret(struct Client *);
-static void m_names(struct Client *, struct Client *, int, char *[]);
-
-struct Message names_msgtab = {
-  "NAMES", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_names, m_ignore, m_ignore, m_names, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&names_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&names_msgtab);
-}
-
-const char *_version = "$Revision$";
-
-/************************************************************************
- * m_names() - Added by Jto 27 Apr 1989
- ************************************************************************/
-
-/*
-** m_names
-**      parv[0] = sender prefix
-**      parv[1] = channel
-*/
-static void
-m_names(struct Client *client_p, struct Client *source_p,
-        int parc, char *parv[])
-{ 
-  struct Channel *chptr = NULL;
-  char *s;
-  char *para = parc > 1 ? parv[1] : NULL;
-
-  if (!EmptyString(para))
-  {
-    while (*para == ',')
-      ++para;
-
-    if ((s = strchr(para, ',')) != NULL)
-      *s = '\0';
-
-    if (*para == '\0')
-      return;
-
-    if ((chptr = hash_find_channel(para)) != NULL)
-      channel_member_names(source_p, chptr, 1);
-    else
-      sendto_one(source_p, form_str(RPL_ENDOFNAMES),
-                 me.name, source_p->name, para);
-  }
-  else
-  {
-    names_all_visible_channels(source_p);
-    names_non_public_non_secret(source_p);
-    sendto_one(source_p, form_str(RPL_ENDOFNAMES),
-               me.name, source_p->name, "*");
-  }
-}
-
 /* names_all_visible_channels()
  *
  * inputs       - pointer to client struct requesting names
@@ -123,10 +57,8 @@ names_all_visible_channels(struct Client *source_p)
    * First, do all visible channels (public and the one user self is)
    */
   DLINK_FOREACH(ptr, global_channel_list.head)
-  {
     /* Find users on same channel (defined by chptr) */
     channel_member_names(source_p, ptr->data, 0);
-  }
 }
 
 /* names_non_public_non_secret()
@@ -200,3 +132,69 @@ names_non_public_non_secret(struct Client *source_p)
   if (reply_to_send)
     sendto_one(source_p, "%s", buf);
 }
+
+/*
+** m_names
+**      parv[0] = sender prefix
+**      parv[1] = channel
+*/
+static void
+m_names(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
+{
+  struct Channel *chptr = NULL;
+  char *s;
+  char *para = parc > 1 ? parv[1] : NULL;
+
+  if (!EmptyString(para))
+  {
+    while (*para == ',')
+      ++para;
+
+    if ((s = strchr(para, ',')) != NULL)
+      *s = '\0';
+
+    if (*para == '\0')
+      return;
+
+    if ((chptr = hash_find_channel(para)) != NULL)
+      channel_member_names(source_p, chptr, 1);
+    else
+      sendto_one(source_p, form_str(RPL_ENDOFNAMES),
+                 me.name, source_p->name, para);
+  }
+  else
+  {
+    names_all_visible_channels(source_p);
+    names_non_public_non_secret(source_p);
+    sendto_one(source_p, form_str(RPL_ENDOFNAMES),
+               me.name, source_p->name, "*");
+  }
+}
+
+static struct Message names_msgtab = {
+  "NAMES", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_names, m_ignore, m_ignore, m_names, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&names_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&names_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

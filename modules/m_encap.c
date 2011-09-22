@@ -33,27 +33,6 @@
 #include "modules.h"
 #include "irc_string.h"
 
-static void ms_encap(struct Client *, struct Client *, int, char *[]);
-
-struct Message encap_msgtab = {
-  "ENCAP", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_encap, m_ignore, m_ignore, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&encap_msgtab);
-  add_capability("ENCAP", CAP_ENCAP, 1);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&encap_msgtab);
-  delete_capability("ENCAP");
-}
-const char *_version = "$Revision$";
 
 /*
  * ms_encap()
@@ -130,3 +109,32 @@ ms_encap(struct Client *client_p, struct Client *source_p,
 
   (*handler)(client_p, source_p, parc, parv);
 }
+
+static struct Message encap_msgtab = {
+  "ENCAP", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_encap, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&encap_msgtab);
+  add_capability("ENCAP", CAP_ENCAP, 1);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&encap_msgtab);
+  delete_capability("ENCAP");
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

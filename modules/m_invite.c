@@ -40,26 +40,6 @@
 #include "modules.h"
 #include "packet.h"
 
-static void m_invite(struct Client *, struct Client *, int, char *[]);
-
-struct Message invite_msgtab = {
-  "INVITE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_invite, m_invite, m_ignore, m_invite, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&invite_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&invite_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /*
 ** m_invite
@@ -189,3 +169,30 @@ m_invite(struct Client *client_p, struct Client *source_p,
                ID_or_name(target_p, target_p->from),
                chptr->chname, (unsigned long)chptr->channelts);
 }
+
+static struct Message invite_msgtab = {
+  "INVITE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_invite, m_invite, m_ignore, m_invite, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&invite_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&invite_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

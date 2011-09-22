@@ -38,28 +38,6 @@
 #include "s_user.h"
 #include "watch.h"
 
-static void m_watch(struct Client *, struct Client *, int, char *[]);
-
-struct Message watch_msgtab = {
-  "WATCH", 0, 0, 0, 1, MFLG_SLOW, 0,
-  { m_unregistered, m_watch, m_ignore, m_ignore, m_watch, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&watch_msgtab);
-  add_isupport("WATCH", NULL, ConfigFileEntry.max_watch);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&watch_msgtab);
-  delete_isupport("WATCH");
-}
-
-const char *_version = "$Revision$";
 
 /*
  * RPL_NOWON        - Online at the moment (Succesfully added to WATCH-list)
@@ -262,3 +240,32 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc, char *parv[]
     /* Hmm.. unknown prefix character.. Ignore it. :-) */
   }
 }
+
+static struct Message watch_msgtab = {
+  "WATCH", 0, 0, 0, 1, MFLG_SLOW, 0,
+  { m_unregistered, m_watch, m_ignore, m_ignore, m_watch, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&watch_msgtab);
+  add_isupport("WATCH", NULL, ConfigFileEntry.max_watch);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&watch_msgtab);
+  delete_isupport("WATCH");
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

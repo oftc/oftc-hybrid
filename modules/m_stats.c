@@ -52,34 +52,10 @@
 #include "whowas.h"
 #include "watch.h"
 
-static void do_stats(struct Client *, int, char *[]);
-static void m_stats(struct Client *, struct Client *, int, char *[]);
-static void mo_stats(struct Client *, struct Client *, int, char *[]);
-static void ms_stats(struct Client *, struct Client *, int, char *[]);
-
-struct Message stats_msgtab = {
-  "STATS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_stats, ms_stats, m_ignore, mo_stats, m_ignore }
-};
-
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&stats_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&stats_msgtab);
-}
 
 static char *parse_stats_args(int, char **, int *, int *);
 static void stats_L(struct Client *, char *, int, int, char);
 static void stats_L_list(struct Client *, char *, int, int, dlink_list *, char);
-
 static void stats_dns_servers(struct Client *);
 static void stats_connect(struct Client *);
 static void stats_deny(struct Client *);
@@ -1515,3 +1491,30 @@ parse_stats_args(int parc, char *parv[], int *doall, int *wilds)
   else
     return(NULL);
 }
+
+static struct Message stats_msgtab = {
+  "STATS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_stats, ms_stats, m_ignore, mo_stats, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&stats_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&stats_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

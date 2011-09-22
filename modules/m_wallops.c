@@ -36,27 +36,6 @@
 #include "modules.h"
 #include "s_serv.h"
 
-static void ms_wallops(struct Client *, struct Client *, int, char *[]);
-static void mo_wallops(struct Client *, struct Client *, int, char *[]);
-
-struct Message wallops_msgtab = {
-  "WALLOPS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_wallops, m_ignore, mo_wallops, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&wallops_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&wallops_msgtab);
-}
- 
-const char *_version = "$Revision$";
 
 /*
  * mo_wallops (write to *all* opers currently online)
@@ -108,3 +87,29 @@ ms_wallops(struct Client *client_p, struct Client *source_p,
                 ":%s WALLOPS :%s", source_p->name, message);
 }
 
+static struct Message wallops_msgtab = {
+  "WALLOPS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, ms_wallops, m_ignore, mo_wallops, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&wallops_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&wallops_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

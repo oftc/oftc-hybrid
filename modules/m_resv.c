@@ -39,40 +39,10 @@
 #include "resv.h"
 #include "hash.h"
 
-static void mo_resv(struct Client *, struct Client *, int, char *[]);
-static void me_resv(struct Client *, struct Client *, int, char *[]);
-static void ms_resv(struct Client *, struct Client *, int, char *[]);
-static void mo_unresv(struct Client *, struct Client *, int, char *[]);
-static void ms_unresv(struct Client *, struct Client *, int, char *[]);
 
 static void parse_resv(struct Client *, char *, int, char *);
 static void remove_resv(struct Client *, const char *);
 
-struct Message resv_msgtab = {
-  "RESV", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
-  { m_ignore, m_not_oper, ms_resv, me_resv, mo_resv, m_ignore }
-};
-
-struct Message unresv_msgtab = {
-  "UNRESV", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_ignore, m_not_oper, ms_unresv, m_ignore, mo_unresv, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&resv_msgtab);
-  mod_add_cmd(&unresv_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&resv_msgtab);
-  mod_del_cmd(&unresv_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /* mo_resv()
  *   parv[0] = sender prefix
@@ -430,3 +400,37 @@ remove_resv(struct Client *source_p, const char *name)
                          get_oper_name(source_p), name);
   }
 }
+
+static struct Message resv_msgtab = {
+  "RESV", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  { m_ignore, m_not_oper, ms_resv, me_resv, mo_resv, m_ignore }
+};
+
+static struct Message unresv_msgtab = {
+  "UNRESV", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_ignore, m_not_oper, ms_unresv, m_ignore, mo_unresv, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&resv_msgtab);
+  mod_add_cmd(&unresv_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&resv_msgtab);
+  mod_del_cmd(&unresv_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

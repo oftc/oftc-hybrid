@@ -36,27 +36,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mo_globops(struct Client *, struct Client *, int, char *[]);
-static void ms_globops(struct Client *, struct Client *, int, char *[]);
-
-struct Message globops_msgtab = {
-  "GLOBOPS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, ms_globops, m_ignore, mo_globops, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&globops_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&globops_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /*
  * mo_globops - GLOBOPS message handler
@@ -108,3 +87,30 @@ ms_globops(struct Client *client_p, struct Client *source_p,
   sendto_globops_flags(UMODE_ALL, L_ALL, "from: %s: %s",
                        source_p->name, parv[1]);
 }
+
+static struct Message globops_msgtab = {
+  "GLOBOPS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, ms_globops, m_ignore, mo_globops, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&globops_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&globops_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

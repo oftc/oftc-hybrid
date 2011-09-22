@@ -37,27 +37,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mo_locops(struct Client *, struct Client *, int, char *[]);
-static void ms_locops(struct Client *, struct Client *, int, char *[]);
-
-struct Message locops_msgtab = {
-  "LOCOPS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, ms_locops, m_ignore, mo_locops, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&locops_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&locops_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /*
  * mo_locops - LOCOPS message handler
@@ -101,3 +80,30 @@ ms_locops(struct Client *client_p, struct Client *source_p,
                               "*", "*", SHARED_LOCOPS))
     sendto_wallops_flags(UMODE_LOCOPS, source_p, "SLOCOPS - %s", parv[2]);
 }
+
+static struct Message locops_msgtab = {
+  "LOCOPS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, ms_locops, m_ignore, mo_locops, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&locops_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&locops_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

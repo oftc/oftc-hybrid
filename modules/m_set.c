@@ -45,27 +45,6 @@
 #include "s_user.h"
 
 
-static void mo_set(struct Client *, struct Client *, int, char *[]);
-
-struct Message set_msgtab = {
-  "SET", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_set, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&set_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&set_msgtab);
-}
-
-const char *_version = "$Revision$";
-
 /* Structure used for the SET table itself */
 struct SetStruct
 {
@@ -653,3 +632,30 @@ mo_set(struct Client *client_p, struct Client *source_p,
 
   list_quote_commands(source_p);
 }
+
+static struct Message set_msgtab = {
+  "SET", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_set, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&set_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&set_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -40,27 +40,6 @@
 #include "restart.h"
 
 
-static void mo_die(struct Client *, struct Client *, int, char *[]);
-
-struct Message die_msgtab = {
-  "DIE", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_die, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&die_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&die_msgtab);
-}
-
-const char *_version = "$Revision$";
-
 /*
  * mo_die - DIE command handler
  */
@@ -95,3 +74,30 @@ mo_die(struct Client *client_p, struct Client *source_p,
            get_oper_name(source_p));
   server_die(buf, 0);
 }
+
+static struct Message die_msgtab = {
+  "DIE", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_die, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&die_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&die_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

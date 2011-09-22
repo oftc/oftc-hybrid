@@ -41,8 +41,6 @@
 #include "modules.h"
 
 
-static void m_join(struct Client *, struct Client *, int, char *[]);
-static void ms_join(struct Client *, struct Client *, int, char *[]);
 static void do_join_0(struct Client *, struct Client *);
 
 static void set_final_mode(struct Mode *, struct Mode *);
@@ -53,25 +51,6 @@ static char modebuf[MODEBUFLEN];
 static char parabuf[MODEBUFLEN];
 static char sendbuf[MODEBUFLEN];
 static char *mbuf;
-
-struct Message join_msgtab = {
-  "JOIN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_join, ms_join, m_ignore, m_join, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&join_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&join_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /* last0() stolen from ircu */
 static char *
@@ -680,3 +659,30 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
                          chptr->chname, lmodebuf, sendbuf);
   }
 }
+
+static struct Message join_msgtab = {
+  "JOIN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_join, ms_join, m_ignore, m_join, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&join_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&join_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

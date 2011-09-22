@@ -42,32 +42,10 @@
 #include "parse.h"
 #include "modules.h"
 
+
 static void send_conf_options(struct Client *);
 static void send_birthdate_online_time(struct Client *);
 static void send_info_text(struct Client *);
-
-static void m_info(struct Client *, struct Client *, int, char *[]);
-static void ms_info(struct Client *, struct Client *, int, char *[]);
-static void mo_info(struct Client *, struct Client *, int, char *[]);
-
-struct Message info_msgtab = {
-  "INFO", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_info, ms_info, m_ignore, mo_info, m_ignore }
-};
-
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&info_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&info_msgtab);
-}
 
 /*
  * jdc -- Structure for our configuration value table
@@ -815,3 +793,30 @@ send_conf_options(struct Client *source_p)
   sendto_one(source_p, form_str(RPL_INFO),
              from, to, "");
 }
+
+static struct Message info_msgtab = {
+  "INFO", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_info, ms_info, m_ignore, mo_info, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&info_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&info_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

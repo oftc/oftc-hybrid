@@ -208,18 +208,17 @@ mod_clear_paths(void)
  * output       - NULL if not found or pointer to module
  * side effects - NONE
  */
-dlink_node *
+struct module *
 findmodule_byname(const char *name)
 {
-  dlink_node *ptr;
-  struct module *modp;
+  dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, mod_list.head)
   {
-    modp = ptr->data;
+    struct module *modp = ptr->data;
 
     if (strcmp(modp->name, name) == 0)
-      return ptr;
+      return modp;
   }
 
   return NULL;
@@ -382,8 +381,7 @@ mo_modunload(struct Client *client_p, struct Client *source_p,
              int parc, char *parv[])
 {
   const char *m_bn = NULL;
-  dlink_node *ptr;
-  struct module *modp;
+  struct module *modp = NULL;
 
   if (!HasOFlag(source_p, OPER_FLAG_MODULE))
   {
@@ -394,24 +392,20 @@ mo_modunload(struct Client *client_p, struct Client *source_p,
 
   m_bn = libio_basename(parv[1]);
 
-  if ((ptr = findmodule_byname(m_bn)) == NULL)
+  if ((modp = findmodule_byname(m_bn)) == NULL)
   {
     sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
                me.name, source_p->name, m_bn);
     return;
   }
 
-  modp = ptr->data;
-
-  if (modp->core == 1)
+  if (modp->flags & MODULE_FLAG_CORE)
   {
     sendto_one(source_p,
                ":%s NOTICE %s :Module %s is a core module and may not be unloaded",
 	       me.name, source_p->name, m_bn);
     return;
   }
-
-  /* XXX might want to simply un dlink it here */
 
   if (unload_one_module(m_bn, 1) == -1)
   {
@@ -426,8 +420,7 @@ mo_modreload(struct Client *client_p, struct Client *source_p,
              int parc, char *parv[])
 {
   const char *m_bn = NULL;
-  dlink_node *ptr;
-  struct module *modp;
+  struct module *modp = NULL;
   int check_core;
 
   if (!HasOFlag(source_p, OPER_FLAG_MODULE))
@@ -439,15 +432,14 @@ mo_modreload(struct Client *client_p, struct Client *source_p,
 
   m_bn = libio_basename(parv[1]);
 
-  if ((ptr = findmodule_byname(m_bn)) == NULL)
+  if ((modp = findmodule_byname(m_bn)) == NULL)
   {
     sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
                me.name, source_p->name, m_bn);
     return;
   }
 
-  modp = ptr->data;
-  check_core = modp->core;
+  check_core = (modp->flags & MODULE_FLAG_CORE) != 0;
 
   if (unload_one_module(m_bn, 1) == -1)
   {
@@ -488,7 +480,7 @@ mo_modlist(struct Client *client_p, struct Client *source_p,
 
     sendto_one(source_p, form_str(RPL_MODLIST), me.name, parv[0],
                modp->name, modp->handle,
-               modp->version, modp->core?"(core)":"");
+               modp->version, (modp->flags & MODULE_FLAG_CORE) ?"(core)":"");
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFMODLIST),

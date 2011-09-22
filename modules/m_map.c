@@ -35,69 +35,6 @@
 
 
 static char buf[IRCD_BUFSIZE];
-static void m_map(struct Client *, struct Client *, int, char *[]);
-static void mo_map(struct Client *, struct Client *, int, char *[]);
-static void dump_map(struct Client *, const struct Client *, int, char *);
-
-struct Message map_msgtab = {
-  "MAP", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_map, m_ignore, m_ignore, mo_map, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&map_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&map_msgtab);
-}
-
-const char *_version = "$Revision$";
-
-
-/* m_map()
- *	parv[0] = sender prefix
- */
-static void
-m_map(struct Client *client_p, struct Client *source_p,
-      int parc, char *parv[])
-{
-  static time_t last_used = 0;
-
-  if (ConfigServerHide.flatten_links)
-  {
-    m_not_oper(client_p, source_p, parc, parv);
-    return;
-  }
-
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
-  {
-    /* safe enough to give this on a local connect only */
-    sendto_one(source_p, form_str(RPL_LOAD2HI),
-               me.name, source_p->name);
-    return;
-  }
-
-  last_used = CurrentTime;
-
-  dump_map(source_p, &me, 0, buf);
-  sendto_one(source_p, form_str(RPL_MAPEND), me.name, source_p->name);
-}
-
-/* mo_map()
- *      parv[0] = sender prefix
- */
-static void
-mo_map(struct Client *client_p, struct Client *source_p,
-       int parc, char *parv[])
-{
-  dump_map(source_p, &me, 0, buf);
-  sendto_one(source_p, form_str(RPL_MAPEND), me.name, source_p->name);
-}
 
 /* dump_map()
  *   dumps server map, called recursively.
@@ -178,3 +115,70 @@ dump_map(struct Client *client_p, const struct Client *root_p,
     ++i;
   }
 }
+
+/* m_map()
+ *      parv[0] = sender prefix
+ */
+static void
+m_map(struct Client *client_p, struct Client *source_p,
+      int parc, char *parv[])
+{
+  static time_t last_used = 0;
+
+  if (ConfigServerHide.flatten_links)
+  {
+    m_not_oper(client_p, source_p, parc, parv);
+    return;
+  }
+
+  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  {
+    /* safe enough to give this on a local connect only */
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
+               me.name, source_p->name);
+    return;
+  }
+
+  last_used = CurrentTime;
+
+  dump_map(source_p, &me, 0, buf);
+  sendto_one(source_p, form_str(RPL_MAPEND), me.name, source_p->name);
+}
+
+/* mo_map()
+ *      parv[0] = sender prefix
+ */
+static void
+mo_map(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
+{
+  dump_map(source_p, &me, 0, buf);
+  sendto_one(source_p, form_str(RPL_MAPEND), me.name, source_p->name);
+}
+
+static struct Message map_msgtab = {
+  "MAP", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_map, m_ignore, m_ignore, mo_map, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&map_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&map_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

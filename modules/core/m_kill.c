@@ -43,29 +43,8 @@
 
 static char buf[IRCD_BUFSIZE];
 
-static void ms_kill(struct Client *, struct Client *, int, char *[]);
-static void mo_kill(struct Client *, struct Client *, int, char *[]);
 static void relay_kill(struct Client *, struct Client *, struct Client *,
                        const char *, const char *);
-
-struct Message kill_msgtab = {
-  "KILL", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_kill, m_ignore, mo_kill, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&kill_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&kill_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /* mo_kill()
  *  parv[0] = sender prefix
@@ -336,3 +315,29 @@ relay_kill(struct Client *one, struct Client *source_p,
   }
 }
 
+static struct Message kill_msgtab = {
+  "KILL", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, ms_kill, m_ignore, mo_kill, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&kill_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&kill_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

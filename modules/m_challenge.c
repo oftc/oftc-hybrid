@@ -40,29 +40,24 @@
 #include "s_log.h"
 #include "s_user.h"
 
-static void failed_challenge_notice(struct Client *, const char *,
-				    const char *);
-static void m_challenge(struct Client *, struct Client *, int, char *[]);
 
-/* We have openssl support, so include /CHALLENGE */
-struct Message challenge_msgtab = {
-  "CHALLENGE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_challenge, m_ignore, m_ignore, m_challenge, m_ignore }
-};
-
-void
-_modinit(void)
+/* failed_challenge_notice()
+ *
+ * inputs       - pointer to client doing /oper ...
+ *              - pointer to nick they tried to oper as
+ *              - pointer to reason they have failed
+ * output       - nothing
+ * side effects - notices all opers of the failed oper attempt if enabled
+ */
+static void
+failed_challenge_notice(struct Client *source_p, const char *name,
+                        const char *reason)
 {
-  mod_add_cmd(&challenge_msgtab);
+  if (ConfigFileEntry.failed_oper_notice)
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Failed CHALLENGE attempt as %s "
+                         "by %s (%s@%s) - %s", name, source_p->name,
+                         source_p->username, source_p->host, reason);
 }
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&challenge_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /*
  * m_challenge - generate RSA challenge for wouldbe oper
@@ -81,7 +76,7 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   /* if theyre an oper, reprint oper motd and ignore */
   if (HasUMode(source_p, UMODE_OPER))
   {
-    sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, parv[0]);
+    sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
     send_message_file(source_p, &ConfigFileEntry.opermotd);
     return;
   }
@@ -110,7 +105,7 @@ m_challenge(struct Client *client_p, struct Client *source_p,
                                   source_p->username, source_p->sockhost);
     if (conf == NULL)
     {
-      sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, parv[0]);
+      sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
       log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n",
 		      source_p->localClient->auth_oper);
       return;
@@ -157,7 +152,7 @@ m_challenge(struct Client *client_p, struct Client *source_p,
 
   if (aconf == NULL)
   {
-    sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, parv[0]);
+    sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
     conf = find_exact_name_conf(OPER_TYPE, parv[1], NULL, NULL);
     failed_challenge_notice(source_p, parv[1], (conf != NULL)
                             ? "host mismatch" : "no oper {} block");
@@ -169,34 +164,43 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   {
     sendto_one (source_p, ":%s NOTICE %s :I'm sorry, PK authentication "
 		"is not enabled for your oper{} block.", me.name,
-		parv[0]);
+		source_p->name);
     return;
   }
 
   if (!generate_challenge(&challenge, &(source_p->localClient->response),
                           aconf->rsa_public_key))
     sendto_one(source_p, form_str(RPL_RSACHALLENGE),
-               me.name, parv[0], challenge);
+               me.name, source_p->name, challenge);
 
   DupString(source_p->localClient->auth_oper, conf->name);
   MyFree(challenge);
 }
 
-/* failed_challenge_notice()
- *
- * inputs       - pointer to client doing /oper ...
- *              - pointer to nick they tried to oper as
- *              - pointer to reason they have failed
- * output       - nothing
- * side effects - notices all opers of the failed oper attempt if enabled
- */
+static struct Message challenge_msgtab = {
+  "CHALLENGE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_challenge, m_ignore, m_ignore, m_challenge, m_ignore }
+};
+
 static void
-failed_challenge_notice(struct Client *source_p, const char *name,
-                        const char *reason)
+module_init(void)
 {
-  if (ConfigFileEntry.failed_oper_notice)
-    sendto_realops_flags(UMODE_ALL, L_ALL, "Failed CHALLENGE attempt as %s "
-                         "by %s (%s@%s) - %s", name, source_p->name,
-                         source_p->username, source_p->host, reason);
+  mod_add_cmd(&challenge_msgtab);
 }
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&challenge_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};
 #endif

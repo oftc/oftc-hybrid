@@ -43,27 +43,6 @@
 #include "watch.h"
 #include "whowas.h"
 
-static void ms_svsnick(struct Client *, struct Client *, int, char *[]);
-
-struct Message svsnick_msgtab = {
-  "SVSNICK", 0, 0, 4, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
-  {m_ignore, m_ignore, ms_svsnick, m_ignore, m_ignore, m_ignore}
-};
-
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&svsnick_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&svsnick_msgtab);
-}
-
 
 /*! \brief SVSNICK command handler (called by services)
  *
@@ -143,3 +122,30 @@ ms_svsnick(struct Client *client_p, struct Client *source_p,
 
   fd_note(&target_p->localClient->fd, "Nick: %s", parv[2]);
 }
+
+static struct Message svsnick_msgtab = {
+  "SVSNICK", 0, 0, 4, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  {m_ignore, m_ignore, ms_svsnick, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&svsnick_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&svsnick_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

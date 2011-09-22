@@ -47,13 +47,6 @@
 #include "modules.h"
 
 
-static void me_kline(struct Client *, struct Client *, int, char **);
-static void mo_kline(struct Client *, struct Client *, int, char **);
-static void ms_kline(struct Client *, struct Client *, int, char **);
-static void me_unkline(struct Client *, struct Client *, int, char **);
-static void mo_unkline(struct Client *, struct Client *, int, char **);
-static void ms_unkline(struct Client *, struct Client *, int, char **);
-
 static int already_placed_kline(struct Client *, const char *, const char *, int);
 static void apply_kline(struct Client *, struct ConfItem *, const char *, time_t);
 static void apply_tkline(struct Client *, struct ConfItem *, int);
@@ -61,35 +54,6 @@ static void apply_tkline(struct Client *, struct ConfItem *, int);
 static char buffer[IRCD_BUFSIZE];
 static int remove_tkline_match(const char *, const char *);
 
-struct Message kline_msgtab = {
-  "KLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, ms_kline, me_kline, mo_kline, m_ignore}
-};
-
-struct Message unkline_msgtab = {
-  "UNKLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, ms_unkline, me_unkline, mo_unkline, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&kline_msgtab);
-  mod_add_cmd(&unkline_msgtab);
-  add_capability("KLN", CAP_KLN, 1);
-  add_capability("UNKLN", CAP_UNKLN, 1);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&kline_msgtab);
-  mod_del_cmd(&unkline_msgtab);
-  delete_capability("UNKLN");
-  delete_capability("KLN");
-}
-
-const char *_version = "$Revision$";
 
 /* mo_kline()
  *
@@ -556,3 +520,41 @@ remove_tkline_match(const char *host, const char *user)
 
   return 0;
 }
+
+static struct Message kline_msgtab = {
+  "KLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+   {m_unregistered, m_not_oper, ms_kline, me_kline, mo_kline, m_ignore}
+};
+
+static struct Message unkline_msgtab = {
+  "UNKLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+   {m_unregistered, m_not_oper, ms_unkline, me_unkline, mo_unkline, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&kline_msgtab);
+  mod_add_cmd(&unkline_msgtab);
+  add_capability("KLN", CAP_KLN, 1);
+  add_capability("UNKLN", CAP_UNKLN, 1);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&kline_msgtab);
+  mod_del_cmd(&unkline_msgtab);
+  delete_capability("UNKLN");
+  delete_capability("KLN");
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -37,27 +37,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mr_pong(struct Client *, struct Client *, int, char *[]);
-static void ms_pong(struct Client *, struct Client *, int, char *[]);
-
-struct Message pong_msgtab = {
-  "PONG", 0, 0, 1, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_pong, m_ignore, ms_pong, m_ignore, m_ignore, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&pong_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&pong_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 static void
 ms_pong(struct Client *client_p, struct Client *source_p,
@@ -69,7 +48,7 @@ ms_pong(struct Client *client_p, struct Client *source_p,
   if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOORIGIN),
-               me.name, parv[0]);
+               me.name, source_p->name);
     return;
   }
 
@@ -88,11 +67,11 @@ ms_pong(struct Client *client_p, struct Client *source_p,
     if ((target_p = hash_find_client(destination)) ||
         (target_p = hash_find_server(destination)))
       sendto_one(target_p, ":%s PONG %s %s",
-                 parv[0], origin, destination);
+                 source_p->name, origin, destination);
     else
     {
       sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
-                 me.name, parv[0], destination);
+                 me.name, source_p->name, destination);
       return;
     }
   }
@@ -127,5 +106,33 @@ mr_pong(struct Client *client_p, struct Client *source_p,
     }
   }
   else
-    sendto_one(source_p, form_str(ERR_NOORIGIN), me.name, parv[0]);
+    sendto_one(source_p, form_str(ERR_NOORIGIN),
+               me.name, source_p->name);
 }
+
+static struct Message pong_msgtab = {
+  "PONG", 0, 0, 1, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  {mr_pong, m_ignore, ms_pong, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&pong_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&pong_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

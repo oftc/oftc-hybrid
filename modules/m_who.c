@@ -41,29 +41,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static time_t last_used = 0;
-
-static void m_who(struct Client *, struct Client *, int, char *[]);
-
-struct Message who_msgtab = {
-  "WHO", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_who, m_ignore, m_ignore, m_who, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&who_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&who_msgtab);
-}
-
-const char *_version = "$Revision$";
-
 static void who_global(struct Client *, char *, int);
 static void do_who(struct Client *, struct Client *,
                    const char *, const char *);
@@ -231,6 +208,7 @@ who_global(struct Client *source_p, char *mask, int server_oper)
   dlink_node *gcptr;
   dlink_node *gcptr_next;
   int maxmatches = 500;
+  static time_t last_used = 0;
 
   if (!HasUMode(source_p, UMODE_OPER))
   {
@@ -358,3 +336,30 @@ do_who(struct Client *source_p, struct Client *target_p,
 	       status, target_p->hopcount, target_p->info);
   }
 }
+
+static struct Message who_msgtab = {
+  "WHO", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_who, m_ignore, m_ignore, m_who, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&who_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&who_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -36,27 +36,6 @@
 #include "modules.h"
 #include "packet.h"
 
-static void m_time(struct Client *, struct Client *, int, char *[]);
-static void mo_time(struct Client *, struct Client *, int, char *[]);
-
-struct Message time_msgtab = {
-  "TIME", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_time, mo_time, m_ignore, mo_time, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&time_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&time_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /*
  * m_time
@@ -93,3 +72,30 @@ mo_time(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(RPL_TIME), me.name,
                source_p->name, me.name, date(0));
 }
+
+static struct Message time_msgtab = {
+  "TIME", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_time, mo_time, m_ignore, mo_time, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&time_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&time_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

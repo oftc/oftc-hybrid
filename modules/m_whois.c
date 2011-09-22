@@ -48,27 +48,6 @@ static int single_whois(struct Client *, struct Client *);
 static void whois_person(struct Client *, struct Client *);
 static int global_whois(struct Client *, const char *);
 
-static void m_whois(struct Client *, struct Client *, int, char *[]);
-static void mo_whois(struct Client *, struct Client *, int, char *[]);
-
-struct Message whois_msgtab = {
-  "WHOIS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_whois, mo_whois, m_ignore, mo_whois, m_ignore }
-};
-
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&whois_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&whois_msgtab);
-}
 
 /*
 ** m_whois
@@ -427,3 +406,30 @@ whois_person(struct Client *source_p, struct Client *target_p)
                    source_p->username, source_p->host, source_p->servptr->name);
   }
 }
+
+static struct Message whois_msgtab = {
+  "WHOIS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_whois, mo_whois, m_ignore, mo_whois, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&whois_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&whois_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

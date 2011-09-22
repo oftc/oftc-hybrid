@@ -32,13 +32,19 @@
 #include "msg.h"
 #include "memory.h"
 
+
+#define MODULE_FLAG_CORE 0x1
+
 struct module
 {
   dlink_node node;
   char *name;
   const char *version;
   void *handle;
+  void (*modinit)(void);
+  void (*modexit)(void);
   void (*modremove)(void);
+  unsigned int flags;
   int core;
 };
 
@@ -47,6 +53,8 @@ struct module_path
   dlink_node node;
   char path[PATH_MAX + 1];
 };
+
+extern dlink_list mod_list;
 
 /* add a path */
 extern void mod_add_path(const char *);
@@ -71,6 +79,6 @@ extern int unload_one_module(const char *, int);
 extern int modules_valid_suffix(const char *);
 extern int load_one_module(const char *, int);
 extern int load_a_module(const char *, int, int);
-extern dlink_node *findmodule_byname(const char *);
+extern struct module *findmodule_byname(const char *);
 extern void modules_init(void);
 #endif /* INCLUDED_modules_h */

@@ -43,38 +43,7 @@
 #include "modules.h"
 
 
-static void mr_server(struct Client *, struct Client *, int, char *[]);
-static void ms_server(struct Client *, struct Client *, int, char *[]);
-static void ms_sid(struct Client *, struct Client *, int, char *[]);
-
 static void set_server_gecos(struct Client *, char *);
-
-struct Message server_msgtab = {
-  "SERVER", 0, 0, 4, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_server, m_registered, ms_server, m_ignore, m_registered, m_ignore}
-};
-
-struct Message sid_msgtab = {
-  "SID", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
-  {rfc1459_command_send_error, m_ignore, ms_sid, m_ignore, m_ignore, m_ignore}
-};
-
-void 
-_modinit(void)
-{
-  mod_add_cmd(&server_msgtab);
-  mod_add_cmd(&sid_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&server_msgtab);
-  mod_del_cmd(&sid_msgtab);
-}
-
-const char *_version = "$Revision$";
-
 
 /* mr_server()
  *  parv[0] = sender prefix
@@ -744,3 +713,37 @@ set_server_gecos(struct Client *client_p, char *info)
   else
     strlcpy(client_p->info, "(Unknown Location)", sizeof(client_p->info));
 }
+
+static struct Message server_msgtab = {
+  "SERVER", 0, 0, 4, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  {mr_server, m_registered, ms_server, m_ignore, m_registered, m_ignore}
+};
+
+static struct Message sid_msgtab = {
+  "SID", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
+  {rfc1459_command_send_error, m_ignore, ms_sid, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&sid_msgtab);
+  mod_add_cmd(&server_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&sid_msgtab);
+  mod_del_cmd(&server_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

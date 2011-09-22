@@ -46,12 +46,6 @@
 #include "modules.h"
 #include "resv.h"
 
-static void mo_xline(struct Client *, struct Client *, int, char *[]);
-static void ms_xline(struct Client *, struct Client *, int, char *[]);
-static void me_xline(struct Client *, struct Client *, int, char *[]);
-
-static void mo_unxline(struct Client *, struct Client *, int, char *[]);
-static void ms_unxline(struct Client *, struct Client *, int, char *[]);
 
 static int valid_xline(struct Client *, char *, char *, int);
 static void write_xline(struct Client *, char *, char *, time_t);
@@ -59,33 +53,6 @@ static void remove_xline(struct Client *, char *);
 static int remove_txline_match(const char *);
 
 static void relay_xline(struct Client *, char *[]);
-
-struct Message xline_msgtab = {
-  "XLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, ms_xline, me_xline, mo_xline, m_ignore }
-};
-
-struct Message unxline_msgtab = {
-  "UNXLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, ms_unxline, m_ignore, mo_unxline, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&xline_msgtab);
-  mod_add_cmd(&unxline_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&xline_msgtab);
-  mod_del_cmd(&unxline_msgtab);
-}
-
-const char *_version = "$Revision$";
-
 
 /* mo_xline()
  *
@@ -467,3 +434,37 @@ remove_txline_match(const char *gecos)
 
   return 0;
 }
+
+static struct Message xline_msgtab = {
+  "XLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, ms_xline, me_xline, mo_xline, m_ignore }
+};
+
+static struct Message unxline_msgtab = {
+  "UNXLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, ms_unxline, m_ignore, mo_unxline, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&xline_msgtab);
+  mod_add_cmd(&unxline_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&xline_msgtab);
+  mod_del_cmd(&unxline_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

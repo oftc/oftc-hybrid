@@ -40,42 +40,46 @@
 #include "s_serv.h"
 #include "s_conf.h"
 
-static void ms_tb(struct Client *, struct Client *, int, char *[]);
-static void ms_tburst(struct Client *, struct Client *, int, char *[]);
-static void set_topic(struct Client *, struct Channel *, time_t,
-                      const char *, const char *);
 
-struct Message tburst_msgtab = {
-  "TBURST", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
-  { m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore }
-};
-
-struct Message tb_msgtab = {
-  "TB", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
-  { m_ignore, m_ignore, ms_tb, m_ignore, m_ignore, m_ignore }
-};
-
-void
-_modinit(void)
+/*
+ * set_topic
+ *
+ * inputs       - source_p pointer
+ *              - channel pointer
+ *              - topicts to set
+ *              - who to set as who doing the topic
+ *              - topic
+ * output       - none
+ * Side effects - simply propagates topic as needed
+ * little helper function, could be removed
+ */
+static void
+set_topic(struct Client *source_p, struct Channel *chptr, time_t topicts,
+          const char *topicwho, const char *topic)
 {
-  mod_add_cmd(&tb_msgtab);
-  add_capability("TB", CAP_TB, 1);
+  int new_topic = strcmp(chptr->topic, topic);
 
-  mod_add_cmd(&tburst_msgtab);
-  add_capability("TBURST", CAP_TBURST, 1);
+  set_channel_topic(chptr, topic, topicwho, topicts);
+
+  /* Only send TOPIC to channel if it's different */
+  if (new_topic)
+    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
+                         ConfigServerHide.hide_servers ? me.name : source_p->name,
+                         chptr->chname, chptr->topic);
+
+  sendto_server(source_p, chptr, CAP_TBURST, NOCAPS,
+                ":%s TBURST %lu %s %lu %s :%s",
+                me.name, (unsigned long)chptr->channelts, chptr->chname,
+                (unsigned long)chptr->topic_time,
+                chptr->topic_info,
+                chptr->topic);
+  sendto_server(source_p, chptr, CAP_TB, CAP_TBURST,
+                ":%s TB %s %lu %s :%s",
+                me.name, chptr->chname,
+                (unsigned long)chptr->topic_time,
+                chptr->topic_info,
+                chptr->topic);
 }
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&tb_msgtab);
-  delete_capability("TB");
-
-  mod_del_cmd(&tburst_msgtab);
-  delete_capability("TBURST");
-}
-
-const char *_version = "$Revision$";
 
 /* ms_tburst()
  *
@@ -192,42 +196,42 @@ ms_tb(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   set_topic(source_p, chptr, tb_topicts, tb_whoset, tb_topic);
 }
 
-/*
- * set_topic
- *
- * inputs	- source_p pointer
- *		- channel pointer
- *		- topicts to set
- *		- who to set as who doing the topic
- *		- topic
- * output	- none
- * Side effects	- simply propagates topic as needed
- * little helper function, could be removed
- */
+static struct Message tburst_msgtab = {
+  "TBURST", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
+  { m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore }
+};
+
+static struct Message tb_msgtab = {
+  "TB", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
+  { m_ignore, m_ignore, ms_tb, m_ignore, m_ignore, m_ignore }
+};
+
 static void
-set_topic(struct Client *source_p, struct Channel *chptr, time_t topicts,
-          const char *topicwho, const char *topic)
+module_init(void)
 {
-  int new_topic = strcmp(chptr->topic, topic);
+  mod_add_cmd(&tb_msgtab);
+  add_capability("TB", CAP_TB, 1);
 
-  set_channel_topic(chptr, topic, topicwho, topicts);
-
-  /* Only send TOPIC to channel if it's different */
-  if (new_topic)
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
-                         ConfigServerHide.hide_servers ? me.name : source_p->name,
-                         chptr->chname, chptr->topic);
-
-  sendto_server(source_p, chptr, CAP_TBURST, NOCAPS,
-                ":%s TBURST %lu %s %lu %s :%s",
-                me.name, (unsigned long)chptr->channelts, chptr->chname,
-                (unsigned long)chptr->topic_time,
-                chptr->topic_info,
-                chptr->topic);
-  sendto_server(source_p, chptr, CAP_TB, CAP_TBURST,
-                ":%s TB %s %lu %s :%s",
-                me.name, chptr->chname,
-                (unsigned long)chptr->topic_time, 
-                chptr->topic_info,
-                chptr->topic);
+  mod_add_cmd(&tburst_msgtab);
+  add_capability("TBURST", CAP_TBURST, 1);
 }
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&tb_msgtab);
+  delete_capability("TB");
+
+  mod_del_cmd(&tburst_msgtab);
+  delete_capability("TBURST");
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};
