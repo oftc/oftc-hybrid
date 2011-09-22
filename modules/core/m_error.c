@@ -33,28 +33,6 @@
 #include "s_log.h"
 
 
-static void m_error(struct Client *, struct Client *, int, char *[]);
-static void ms_error(struct Client *, struct Client *, int, char *[]);
-
-struct Message error_msgtab = {
- "ERROR", 0, 0, 1, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
-  { m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&error_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&error_msgtab);
-}
-
-const char *_version = "$Revision$";
-
 /*
  * Note: At least at protocol level ERROR has only one parameter.
  * --msa
@@ -111,3 +89,30 @@ ms_error(struct Client *client_p, struct Client *source_p,
                          source_p->name,
                          get_client_name(client_p, MASK_IP), para);
 }
+
+static struct Message error_msgtab = {
+ "ERROR", 0, 0, 1, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  { m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&error_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&error_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

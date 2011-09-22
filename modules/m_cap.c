@@ -44,28 +44,6 @@
 #include "packet.h"
 #include "irc_string.h"
 
-static void m_cap(struct Client *, struct Client *, int, char *[]);
-
-struct Message cap_msgtab = {
-  "CAP", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_cap, m_cap, m_ignore, m_ignore, m_cap, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&cap_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&cap_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 #define CAPFL_HIDDEN    0x0001  /**< Do not advertize this capability */
 #define CAPFL_PROHIBIT  0x0002  /**< Client may not set this capability */
@@ -164,16 +142,16 @@ find_cap(const char **caplist_p, int *neg_p)
   return cap;    /* and return the capability (if any) */
 }
 
-/** Send a CAP \a subcmd list of capability changes to \a sptr.
+/** Send a CAP \a subcmd list of capability changes to \a source_p.
  * If more than one line is necessary, each line before the last has
  * an added "*" parameter before that line's capability list.
- * @param[in] sptr Client receiving capability list.
+ * @param[in] source_p Client receiving capability list.
  * @param[in] set Capabilities to show as set (with ack and sticky modifiers).
  * @param[in] rem Capabalities to show as removed (with no other modifier).
  * @param[in] subcmd Name of capability subcommand.
  */
 static int
-send_caplist(struct Client *sptr, unsigned int set,
+send_caplist(struct Client *source_p, unsigned int set,
              unsigned int rem, const char *subcmd)
 {
   char capbuf[IRCD_BUFSIZE] = "", pfx[16];
@@ -182,7 +160,7 @@ send_caplist(struct Client *sptr, unsigned int set,
 
   /* set up the buffer for the final LS message... */
   clen = snprintf(cmdbuf, sizeof(capbuf), ":%s CAP %s %s ", me.name,
-                  sptr->name[0] ? sptr->name : "*", subcmd);
+                  source_p->name[0] ? source_p->name : "*", subcmd);
 
   for (i = 0, loc = 0; i < CAPAB_LIST_LEN; ++i)
   {
@@ -221,7 +199,7 @@ send_caplist(struct Client *sptr, unsigned int set,
     if (sizeof(capbuf) < (clen + loc + len + 15))
     {
       /* would add too much; must flush */
-      sendto_one(sptr, "%s* :%s", cmdbuf, capbuf);
+      sendto_one(source_p, "%s* :%s", cmdbuf, capbuf);
       capbuf[(loc = 0)] = '\0';    /* re-terminate the buffer... */
     }
 
@@ -229,39 +207,39 @@ send_caplist(struct Client *sptr, unsigned int set,
                     "%s%s", pfx, capab_list[i].name);
   }
 
-  sendto_one(sptr, "%s:%s", cmdbuf, capbuf);
+  sendto_one(source_p, "%s:%s", cmdbuf, capbuf);
 
   return 0;    /* convenience return */
 }
 
 static int
-cap_ls(struct Client *sptr, const char *caplist)
+cap_ls(struct Client *source_p, const char *caplist)
 {
-  if (IsUnknown(sptr)) /* registration hasn't completed; suspend it... */
-    sptr->localClient->registration |= REG_NEED_CAP;
+  if (IsUnknown(source_p)) /* registration hasn't completed; suspend it... */
+    source_p->localClient->registration |= REG_NEED_CAP;
 
-  return send_caplist(sptr, 0, 0, "LS"); /* send list of capabilities */
+  return send_caplist(source_p, 0, 0, "LS"); /* send list of capabilities */
 }
 
 static int
-cap_req(struct Client *sptr, const char *caplist)
+cap_req(struct Client *source_p, const char *caplist)
 {
   const char *cl = caplist;
   struct capabilities *cap = NULL;
   unsigned int set = 0, rem = 0;
-  unsigned int cs = sptr->localClient->cap_client; /* capability set */
-  unsigned int as = sptr->localClient->cap_active; /* active set */
+  unsigned int cs = source_p->localClient->cap_client; /* capability set */
+  unsigned int as = source_p->localClient->cap_active; /* active set */
   int neg = 0;
 
-  if (IsUnknown(sptr)) /* registration hasn't completed; suspend it... */
-    sptr->localClient->registration |= REG_NEED_CAP;
+  if (IsUnknown(source_p)) /* registration hasn't completed; suspend it... */
+    source_p->localClient->registration |= REG_NEED_CAP;
 
   while (cl) { /* walk through the capabilities list... */
     if (!(cap = find_cap(&cl, &neg)) /* look up capability... */
 	|| (!neg && (cap->flags & CAPFL_PROHIBIT)) /* is it prohibited? */
         || (neg && (cap->flags & CAPFL_STICKY))) { /* is it sticky? */
-      sendto_one(sptr, ":%s CAP %s NAK :%s", me.name,
-                 sptr->name[0] ? sptr->name : "*", caplist);
+      sendto_one(source_p, ":%s CAP %s NAK :%s", me.name,
+                 source_p->name[0] ? source_p->name : "*", caplist);
       return 0; /* can't complete requested op... */
     }
 
@@ -287,16 +265,16 @@ cap_req(struct Client *sptr, const char *caplist)
   }
 
   /* Notify client of accepted changes and copy over results. */
-  send_caplist(sptr, set, rem, "ACK");
+  send_caplist(source_p, set, rem, "ACK");
 
-  sptr->localClient->cap_client = cs;
-  sptr->localClient->cap_active = as;
+  source_p->localClient->cap_client = cs;
+  source_p->localClient->cap_active = as;
 
   return 0;
 }
 
 static int
-cap_ack(struct Client *sptr, const char *caplist)
+cap_ack(struct Client *source_p, const char *caplist)
 {
   const char *cl = caplist;
   struct capabilities *cap = NULL;
@@ -311,21 +289,21 @@ cap_ack(struct Client *sptr, const char *caplist)
   {
     /* walk through the capabilities list... */
     if (!(cap = find_cap(&cl, &neg)) || /* look up capability... */
-	(neg ? (sptr->localClient->cap_active & cap->cap) :
-              !(sptr->localClient->cap_active & cap->cap))) /* uh... */
+	(neg ? (source_p->localClient->cap_active & cap->cap) :
+              !(source_p->localClient->cap_active & cap->cap))) /* uh... */
       continue;
 
     if (neg)    /* set or clear the active capability... */
-      sptr->localClient->cap_active &= ~cap->cap;
+      source_p->localClient->cap_active &= ~cap->cap;
     else
-      sptr->localClient->cap_active |=  cap->cap;
+      source_p->localClient->cap_active |=  cap->cap;
   }
 
   return 0;
 }
 
 static int
-cap_clear(struct Client *sptr, const char *caplist)
+cap_clear(struct Client *source_p, const char *caplist)
 {
   struct capabilities *cap = NULL;
   unsigned int ii;
@@ -336,32 +314,32 @@ cap_clear(struct Client *sptr, const char *caplist)
     cap = &capab_list[ii];
 
     /* Only clear active non-sticky capabilities. */
-    if (!(sptr->localClient->cap_active & cap->cap) || (cap->flags & CAPFL_STICKY))
+    if (!(source_p->localClient->cap_active & cap->cap) || (cap->flags & CAPFL_STICKY))
       continue;
 
     cleared |= cap->cap;
-    sptr->localClient->cap_client &= ~cap->cap;
+    source_p->localClient->cap_client &= ~cap->cap;
 
     if (!(cap->flags & CAPFL_PROTO))
-      sptr->localClient->cap_active &= ~cap->cap;
+      source_p->localClient->cap_active &= ~cap->cap;
   }
 
-  return send_caplist(sptr, 0, cleared, "ACK");
+  return send_caplist(source_p, 0, cleared, "ACK");
 }
 
 static int
-cap_end(struct Client *sptr, const char *caplist)
+cap_end(struct Client *source_p, const char *caplist)
 {
-  if (!IsUnknown(sptr))    /* registration has completed... */
+  if (!IsUnknown(source_p))    /* registration has completed... */
     return 0;    /* so just ignore the message... */
 
   /* capability negotiation is now done... */
-  sptr->localClient->registration &= ~REG_NEED_CAP;
+  source_p->localClient->registration &= ~REG_NEED_CAP;
 
   /* if client is now done... */
-  if (!sptr->localClient->registration)
+  if (!source_p->localClient->registration)
   {
-    register_local_user(sptr);
+    register_local_user(source_p);
     return 0;
   }
 
@@ -369,16 +347,16 @@ cap_end(struct Client *sptr, const char *caplist)
 }
 
 static int
-cap_list(struct Client *sptr, const char *caplist)
+cap_list(struct Client *source_p, const char *caplist)
 {
   /* Send the list of the client's capabilities */
-  return send_caplist(sptr, sptr->localClient->cap_client, 0, "LIST");
+  return send_caplist(source_p, source_p->localClient->cap_client, 0, "LIST");
 }
 
 static struct subcmd
 {
   const char *cmd;
-  int (*proc)(struct Client *sptr, const char *caplist);
+  int (*proc)(struct Client *, const char *);
 } cmdlist[] = {
   { "ACK",   cap_ack   },
   { "CLEAR", cap_clear },
@@ -396,13 +374,13 @@ subcmd_search(const char *cmd, const struct subcmd *elem)
 }
 
 /** Handle a capability request or response from a client.
- * \param cptr Client that sent us the message.
- * \param sptr Original source of message.
- * \param parc Number of arguments.
- * \param parv Argument vector.
+ * \param client_p Client that sent us the message.
+ * \param source_p Original source of message.
+ * \param parc     Number of arguments.
+ * \param parv     Argument vector.
  */
 static void
-m_cap(struct Client *cptr, struct Client *sptr, int parc, char *parv[])
+m_cap(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
   const char *subcmd = NULL, *caplist = NULL;
   struct subcmd *cmd = NULL;
@@ -420,12 +398,39 @@ m_cap(struct Client *cptr, struct Client *sptr, int parc, char *parv[])
                       sizeof(cmdlist) / sizeof(struct subcmd),
                       sizeof(struct subcmd), (bqcmp)subcmd_search)))
   {
-    sendto_one(sptr, form_str(ERR_INVALIDCAPCMD), me.name,
-               sptr->name[0] ? sptr->name : "*", subcmd);
+    sendto_one(source_p, form_str(ERR_INVALIDCAPCMD), me.name,
+               source_p->name[0] ? source_p->name : "*", subcmd);
     return;
   }
 
   /* then execute it... */
   if (cmd->proc)
-    (cmd->proc)(sptr, caplist);
+    (cmd->proc)(source_p, caplist);
 }
+
+static struct Message cap_msgtab = {
+  "CAP", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_cap, m_cap, m_ignore, m_ignore, m_cap, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&cap_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&cap_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -48,28 +48,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mo_testmask(struct Client *, struct Client *, int, char *[]);
-
-struct Message testmask_msgtab = {
-  "TESTMASK", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testmask, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&testmask_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&testmask_msgtab);
-}
- 
-const char *_version = "$Revision$";
-#endif
 
 /* mo_testmask()
  *
@@ -120,3 +98,30 @@ mo_testmask(struct Client *client_p, struct Client *source_p,
   sendto_one(source_p, form_str(RPL_TESTMASK), me.name, source_p->name,
 	     given_user, given_host, local_count, remote_count);
 }
+
+static struct Message testmask_msgtab = {
+  "TESTMASK", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testmask, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&testmask_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&testmask_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -49,8 +49,6 @@
 #include "handlers.h"
 #include "sprintf_irc.h"
 
-static void mo_restart(struct Client *, struct Client *, int, char *[]);
-
 #ifdef HAVE_LIBCRYPTO
 #define CanForward(x)   (!IsDefunct(x) && !(x)->localClient->fd.ssl)
 #else
@@ -315,26 +313,8 @@ do_shutdown(const char *msg, int rboot)
 
   exit(0);
 }
-struct Message restart_msgtab = {
-  "RESTART", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_restart, m_ignore }
-};
 
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&restart_msgtab);
-}
 
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&restart_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * mo_restart
@@ -371,3 +351,30 @@ mo_restart(struct Client *client_p, struct Client *source_p,
              get_oper_name(source_p));
   do_shutdown(buf, YES);
 }
+
+static struct Message restart_msgtab = {
+  "RESTART", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_restart, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&restart_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&restart_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

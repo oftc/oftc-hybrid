@@ -34,9 +34,8 @@
 
 #if USE_SHARED_MODULES
 
-extern dlink_list mod_list;
 
-static char unknown_ver[] = "<unknown>";
+static const char *unknown_ver = "<unknown>";
 
 /* This file contains the core functions to use dynamic libraries.
  * -TimeMr14C
@@ -62,23 +61,19 @@ dynlink_init()
 int
 unload_one_module(char *name, int warn)
 {
-  dlink_node *ptr = NULL;
   struct module *modp = NULL;
 
-  if ((ptr = findmodule_byname(name)) == NULL) 
+  if ((modp = findmodule_byname(name)) == NULL) 
     return -1;
 
-  modp = ptr->data;
-
-  if (modp->modremove)
-    (*modp->modremove)();
-
-  lt_dlclose(modp->handle);
+  if (modp->modexit)
+   modp->modexit();
 
   assert(dlink_list_length(&mod_list) > 0);
-  dlinkDelete(ptr, &mod_list);
+  dlinkDelete(&modp->node, &mod_list);
   MyFree(modp->name);
-  MyFree(modp);
+
+  lt_dlclose(modp->handle);
 
   if (warn == 1)
   {
@@ -99,17 +94,10 @@ int
 load_a_module(char *path, int warn, int core)
 {
   lt_dlhandle tmpptr = NULL;
-  void *addr = NULL;
-  char *mod_basename;
-  void (*initfunc)(void) = NULL;
-  void (*mod_deinit)(void) = NULL;
-  char **verp;
-  char *ver;
-  struct module *modp;
+  const char *mod_basename = NULL;
+  struct module *modp = NULL;
 
-  mod_basename = basename(path);
-
-  if (findmodule_byname(mod_basename) != NULL)
+  if (findmodule_byname((mod_basename = libio_basename(path))))
     return 1;
 
   if(!(tmpptr = lt_dlopen(path)))
@@ -123,57 +111,36 @@ load_a_module(char *path, int warn, int core)
     return -1;
   }
 
-  if ((initfunc = lt_dlsym(tmpptr, "_modinit")) == NULL &&
-      /* Only for compatibility, because some systems have underscore
-       * prepended symbol names */
-      (initfunc = lt_dlsym(tmpptr, "__modinit")) == NULL)
+  if ((modp = lt_dlsym(tmpptr, "module_entry")) == NULL)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL, "Module %s has no _modinit() function",
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Module %s has no module_entry export",
                          mod_basename);
-    ilog(L_WARN, "Module %s has no _modinit() function", mod_basename);
+    ilog(L_WARN, "Module %s has no module_entry export", mod_basename);
     lt_dlclose(tmpptr);
     return -1;
   }
 
-  mod_deinit = lt_dlsym(tmpptr, "_moddeinit");
+  modp->handle = tmpptr;
 
-  if (mod_deinit == NULL && (mod_deinit = lt_dlsym(tmpptr, "__moddeinit")) == NULL)
-  {
-    sendto_realops_flags(UMODE_ALL, L_ALL, "Module %s has no _moddeinit() function",
-                         mod_basename);
-    ilog(L_WARN, "Module %s has no _moddeinit() function", mod_basename);
-    /* blah blah soft error, see above. */
-    mod_deinit = NULL;
-  }
+  if (EmptyString(modp->version))
+    modp->version = unknown_ver;
 
-  verp = (char **)lt_dlsym(tmpptr, "_version");
-
-  if (verp == NULL && (verp = (char **)lt_dlsym(tmpptr, "__version")) == NULL)
-    ver = unknown_ver;
-  else
-    ver = *verp;
-
-  modp            = MyMalloc(sizeof(struct module));
-  addr = tmpptr;
-
-  modp->handle    = tmpptr;
-  modp->address   = addr;
-  modp->version   = ver;
-  modp->core      = core;
-  modp->modremove = mod_deinit;
+  if (core)
+    modp->flags |= MODULE_FLAG_CORE;
 
   DupString(modp->name, mod_basename);
   dlinkAdd(modp, &modp->node, &mod_list);
 
-  initfunc();
+  if (modp->modinit)
+    modp->modinit();
 
   if (warn == 1)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-                         "Module %s [version: %s] loaded at %p",
-                         mod_basename, ver, addr);
-    ilog(L_WARN, "Module %s [version: %s] loaded at %p",
-         mod_basename, ver, addr);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Module %s [version: %s handle: %p] loaded.",
+                         modp->name, modp->version, tmpptr);
+    ilog(L_WARN, "Module %s [version: %s handle: %p] loaded.",
+         modp->name, modp->version, tmpptr);
   }
 
   return 0;

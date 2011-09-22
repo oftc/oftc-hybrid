@@ -41,28 +41,6 @@
 #include "s_serv.h"
 #include "s_conf.h"
 
-static void ms_sjoin(struct Client *, struct Client *, int, char *[]);
-
-struct Message sjoin_msgtab = {
-  "SJOIN", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_ignore, ms_sjoin, m_ignore, m_ignore, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&sjoin_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&sjoin_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 static char modebuf[MODEBUFLEN];
 static char parabuf[MODEBUFLEN];
@@ -868,3 +846,30 @@ remove_ban_list(struct Channel *chptr, struct Client *source_p,
   sendto_server(source_p, chptr, cap, CAP_TS6,
 		"%s %s", lmodebuf, lparabuf);
 }
+
+static struct Message sjoin_msgtab = {
+  "SJOIN", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_ignore, ms_sjoin, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&sjoin_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&sjoin_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

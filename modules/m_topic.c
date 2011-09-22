@@ -43,28 +43,6 @@
 #include "common.h"
 #include "s_log.h"
 
-static void m_topic(struct Client *, struct Client *, int, char *[]);
-
-struct Message topic_msgtab = {
-  "TOPIC", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_topic, m_topic, m_ignore, m_topic, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&topic_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&topic_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /* m_topic()
  *  parv[0] = sender prefix
@@ -180,3 +158,30 @@ m_topic(struct Client *client_p, struct Client *source_p,
                  from, to, chptr->chname);
   }
 }
+
+static struct Message topic_msgtab = {
+  "TOPIC", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_topic, m_topic, m_ignore, m_topic, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&topic_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&topic_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

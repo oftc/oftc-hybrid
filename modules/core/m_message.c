@@ -72,9 +72,6 @@ static int duplicate_ptr(void *);
 static void m_message(int, const char *, struct Client *,
                       struct Client *, int, char **);
 
-static void m_privmsg(struct Client *, struct Client *, int, char **);
-static void m_notice(struct Client *, struct Client *, int, char **);
-
 static void msg_channel(int p_or_n, const char *command,
                         struct Client *client_p,
                         struct Client *source_p,
@@ -92,39 +89,6 @@ static void msg_client(int p_or_n, const char *command,
 static void handle_special(int p_or_n, const char *command,
 			   struct Client *client_p,
 			   struct Client *source_p, char *nick, char *text);
-
-struct Message privmsg_msgtab = {
-  "PRIVMSG", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
-  {m_unregistered, m_privmsg, m_privmsg, m_ignore, m_privmsg, m_ignore}
-};
-
-struct Message notice_msgtab = {
-  "NOTICE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_notice, m_notice, m_ignore, m_notice, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-struct Callback *client_message;
-struct Callback *channel_message;
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&privmsg_msgtab);
-  mod_add_cmd(&notice_msgtab);
-  client_message = register_callback("client_message", NULL);
-  channel_message = register_callback("channel_message", NULL);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&privmsg_msgtab);
-  mod_del_cmd(&notice_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
 ** m_privmsg
@@ -1008,3 +972,37 @@ find_userhost(char *user, char *host, int *count)
 
   return(res);
 }
+
+static struct Message privmsg_msgtab = {
+  "PRIVMSG", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  {m_unregistered, m_privmsg, m_privmsg, m_ignore, m_privmsg, m_ignore}
+};
+
+static struct Message notice_msgtab = {
+  "NOTICE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_notice, m_notice, m_ignore, m_notice, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&privmsg_msgtab);
+  mod_add_cmd(&notice_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&privmsg_msgtab);
+  mod_del_cmd(&notice_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

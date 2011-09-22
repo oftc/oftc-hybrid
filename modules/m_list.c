@@ -40,33 +40,6 @@
 #include "modules.h"
 #include "s_user.h"
 
-static void m_list(struct Client *, struct Client *, int, char *[]);
-static void mo_list(struct Client *, struct Client *, int, char *[]);
-
-struct Message list_msgtab = {
-  "LIST", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_list, m_ignore, m_ignore, mo_list, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&list_msgtab);
-  add_isupport("ELIST", "CMNTU", -1);
-  add_isupport("SAFELIST", NULL, -1);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&list_msgtab);
-  delete_isupport("ELIST");
-  delete_isupport("SAFELIST");
-}
-
-const char *_version = "$Revision$";
-#endif
 
 static int
 has_wildcards(const char *s)
@@ -210,7 +183,8 @@ m_list(struct Client *client_p, struct Client *source_p,
 
   if (((last_used + ConfigFileEntry.pace_wait) > CurrentTime))
   {
-    sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0]);
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
+               me.name, source_p->name);
     return;
   }
 
@@ -230,3 +204,34 @@ mo_list(struct Client *client_p, struct Client *source_p,
 {
   do_list(source_p, parc, parv);
 }
+
+static struct Message list_msgtab = {
+  "LIST", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_list, m_ignore, m_ignore, mo_list, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&list_msgtab);
+  add_isupport("ELIST", "CMNTU", -1);
+  add_isupport("SAFELIST", NULL, -1);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&list_msgtab);
+  delete_isupport("ELIST");
+  delete_isupport("SAFELIST");
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

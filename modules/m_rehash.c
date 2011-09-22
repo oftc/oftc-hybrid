@@ -38,28 +38,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mo_rehash(struct Client *, struct Client *, int, char **);
-
-struct Message rehash_msgtab = {
-  "REHASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_rehash, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&rehash_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&rehash_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * mo_rehash - REHASH message handler
@@ -140,3 +118,30 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     rehash(0);
   }
 }
+
+static struct Message rehash_msgtab = {
+  "REHASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_rehash, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&rehash_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&rehash_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

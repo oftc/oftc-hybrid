@@ -32,28 +32,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mr_capab(struct Client *, struct Client *, int, char *[]);
-
-struct Message capab_msgtab = {
-  "CAPAB", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
-  { mr_capab, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&capab_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&capab_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * mr_capab - CAPAB message handler
@@ -126,3 +104,30 @@ mr_capab(struct Client *client_p, struct Client *source_p,
     }
   }
 }
+
+static struct Message capab_msgtab = {
+  "CAPAB", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  { mr_capab, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&capab_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&capab_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

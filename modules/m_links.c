@@ -36,31 +36,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static void do_links(struct Client *, int, char *[]);
-static void m_links(struct Client *, struct Client *, int, char *[]);
-static void mo_links(struct Client *, struct Client *, int, char *[]);
-static void ms_links(struct Client *, struct Client *, int, char *[]);
-
-struct Message links_msgtab = {
-  "LINKS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_links, ms_links, m_ignore, mo_links, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&links_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&links_msgtab);
-}
-#endif
 
 static void
 do_links(struct Client *source_p, int parc, char *parv[])
@@ -132,6 +107,19 @@ do_links(struct Client *source_p, int parc, char *parv[])
   }
 }
 
+static void
+mo_links(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
+{
+  if (parc > 2)
+    if (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER))
+      if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1,
+                      parc, parv) != HUNTED_ISME)
+        return;
+
+  do_links(source_p, parc, parv);
+}
+
 /*
  * m_links - LINKS message handler
  *      parv[0] = sender prefix
@@ -165,21 +153,6 @@ m_links(struct Client *client_p, struct Client *source_p,
   do_links(source_p, parc, parv);
 }
 
-static void
-mo_links(struct Client *client_p, struct Client *source_p,
-         int parc, char *parv[])
-{
-  if (parc > 2) 
-  {
-    if (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER))
-      if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1,
-            parc, parv) != HUNTED_ISME)
-        return;
-  }
-
-  do_links(source_p, parc, parv);
-}
-
 /*
  * ms_links - LINKS message handler
  *      parv[0] = sender prefix
@@ -200,3 +173,30 @@ ms_links(struct Client *client_p, struct Client *source_p,
   if (IsClient(source_p))
     m_links(client_p, source_p, parc, parv);
 }
+
+static struct Message links_msgtab = {
+  "LINKS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_links, ms_links, m_ignore, mo_links, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&links_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&links_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

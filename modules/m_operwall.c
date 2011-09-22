@@ -35,31 +35,6 @@
 #include "modules.h"
 #include "s_serv.h"
 
-static void mo_operwall(struct Client *, struct Client *, int, char **);
-static void ms_operwall(struct Client *, struct Client *, int, char **);
-static void me_operwall(struct Client *, struct Client *, int, char **);
-
-struct Message operwall_msgtab = {
-  "OPERWALL", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_operwall, me_operwall, mo_operwall, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&operwall_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&operwall_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
 
 /*
  * mo_operwall - OPERWALL message handler
@@ -135,3 +110,30 @@ me_operwall(struct Client *client_p, struct Client *source_p,
 
   sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }
+
+static struct Message operwall_msgtab = {
+  "OPERWALL", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, ms_operwall, me_operwall, mo_operwall, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&operwall_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&operwall_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

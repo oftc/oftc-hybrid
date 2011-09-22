@@ -41,75 +41,6 @@
 #include "modules.h"
 
 
-static void m_whowas(struct Client *, struct Client *, int, char *[]);
-static void mo_whowas(struct Client *, struct Client *, int, char *[]);
-static void whowas_do(struct Client *, struct Client *, int, char *[]);
-
-struct Message whowas_msgtab = {
-  "WHOWAS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_whowas, mo_whowas, m_ignore, mo_whowas, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&whowas_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&whowas_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
-/*
-** m_whowas
-**      parv[0] = sender prefix
-**      parv[1] = nickname queried
-*/
-static void
-m_whowas(struct Client *client_p, struct Client *source_p,
-         int parc, char *parv[])
-{
-  static time_t last_used = 0;
-
-  if (parc < 2 || *parv[1] == '\0')
-  {
-    sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
-               me.name, source_p->name);
-    return;
-  }
-
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
-  {
-    sendto_one(source_p,form_str(RPL_LOAD2HI),
-               me.name, source_p->name);
-    return;
-  }
-  else
-    last_used = CurrentTime;
-
-  whowas_do(client_p, source_p, parc, parv);
-}
-
-static void
-mo_whowas(struct Client *client_p, struct Client *source_p,
-          int parc, char *parv[])
-{
-  if (parc < 2 || *parv[1] == '\0')
-  {
-    sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
-               me.name, source_p->name);
-    return;
-  }
-
-  whowas_do(client_p, source_p, parc, parv);
-}
-
 static void
 whowas_do(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
@@ -173,3 +104,74 @@ whowas_do(struct Client *client_p, struct Client *source_p,
   sendto_one(source_p, form_str(RPL_ENDOFWHOWAS),
              me.name, source_p->name, parv[1]);
 }
+
+/*
+** m_whowas
+**      parv[0] = sender prefix
+**      parv[1] = nickname queried
+*/
+static void
+m_whowas(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
+{
+  static time_t last_used = 0;
+
+  if (parc < 2 || EmptyString(parv[1]))
+  {
+    sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
+               me.name, source_p->name);
+    return;
+  }
+
+  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  {
+    sendto_one(source_p,form_str(RPL_LOAD2HI),
+               me.name, source_p->name);
+    return;
+  }
+
+  last_used = CurrentTime;
+
+  whowas_do(client_p, source_p, parc, parv);
+}
+
+static void
+mo_whowas(struct Client *client_p, struct Client *source_p,
+          int parc, char *parv[])
+{
+  if (parc < 2 || EmptyString(parv[1]))
+  {
+    sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
+               me.name, source_p->name);
+    return;
+  }
+
+  whowas_do(client_p, source_p, parc, parv);
+}
+
+static struct Message whowas_msgtab = {
+  "WHOWAS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_whowas, mo_whowas, m_ignore, mo_whowas, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&whowas_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&whowas_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

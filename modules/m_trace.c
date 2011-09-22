@@ -41,32 +41,8 @@
 #include "modules.h"
 #include "s_conf.h"
 
-static void m_trace(struct Client *, struct Client *, int, char *[]);
-static void ms_trace(struct Client *, struct Client *, int, char *[]);
-static void mo_trace(struct Client *, struct Client *, int, char *[]);
+
 static void do_actual_trace(struct Client *, int, char *[]);
-
-struct Message trace_msgtab = {
-  "TRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_trace, ms_trace, m_ignore, mo_trace, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&trace_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&trace_msgtab);
-}
-#endif
-
 static void report_this_status(struct Client *, struct Client *, int);
 
 static void
@@ -452,3 +428,30 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
       break;
   }
 }
+
+static struct Message trace_msgtab = {
+  "TRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_trace, ms_trace, m_ignore, mo_trace, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&trace_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&trace_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

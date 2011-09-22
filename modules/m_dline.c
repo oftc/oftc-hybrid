@@ -47,38 +47,8 @@
 #include "modules.h"
 
 
-static void mo_dline(struct Client *, struct Client *, int, char *[]);
-static void mo_undline(struct Client *, struct Client *, int, char *[]);
-
 static int remove_tdline_match(const char *);
 
-struct Message dline_msgtab = {
-  "DLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_dline, m_ignore}
-};
-
-struct Message undline_msgtab = {
-  "UNDLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_undline, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&dline_msgtab);
-  mod_add_cmd(&undline_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&dline_msgtab);
-  mod_del_cmd(&undline_msgtab);
-}
-
-const char *_version = "$Revision$";
-
-static char buffer[IRCD_BUFSIZE];
 
 /* mo_dline()
  *
@@ -106,6 +76,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   const char *current_date = NULL;
   time_t cur_time;
   char hostip[HOSTIPLEN];
+  char buffer[IRCD_BUFSIZE];
 
   if (!HasOFlag(source_p, OPER_FLAG_K))
   {
@@ -297,3 +268,37 @@ mo_undline(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, ":%s NOTICE %s :No D-Line for [%s] found",
                me.name, source_p->name, cidr);
 }
+
+static struct Message dline_msgtab = {
+  "DLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+   {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_dline, m_ignore}
+};
+
+static struct Message undline_msgtab = {
+  "UNDLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+   {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_undline, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&dline_msgtab);
+  mod_add_cmd(&undline_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&dline_msgtab);
+  mod_del_cmd(&undline_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -40,30 +40,6 @@
 #include "modules.h"
 
 
-static void ms_squit(struct Client *, struct Client *, int, char *[]);
-static void mo_squit(struct Client *, struct Client *, int, char *[]);
-
-struct Message squit_msgtab = {
-  "SQUIT", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_squit, m_ignore, mo_squit, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&squit_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&squit_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
 /* mo_squit - SQUIT message handler
  *  parv[0] = sender prefix
  *  parv[1] = server name
@@ -174,10 +150,37 @@ ms_squit(struct Client *client_p, struct Client *source_p,
   {
     sendto_realops_flags(UMODE_CCONN, L_ALL, "Remote SQUIT %s from %s (%s)",
                          target_p->name, source_p->name, comment);
-    ilog(L_TRACE, "SQUIT From %s : %s (%s)", parv[0],
+    ilog(L_TRACE, "SQUIT From %s : %s (%s)", source_p->name,
          target_p->name, comment);
 
    }
 
    exit_client(target_p, source_p, comment);
 }
+
+static struct Message squit_msgtab = {
+  "SQUIT", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, ms_squit, m_ignore, mo_squit, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&squit_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&squit_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

@@ -36,30 +36,6 @@
 
 
 static char buf[IRCD_BUFSIZE];
-static void mo_map(struct Client *, struct Client *, int, char *[]);
-static void dump_map(struct Client *, const struct Client *, int, char *);
-
-struct Message map_msgtab = {
-  "MAP", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_map, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&map_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&map_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
 static int line_counter;
 
 /* mo_map()
@@ -178,3 +154,30 @@ dump_map(struct Client *client_p, const struct Client *root_p,
     ++i;
   }
 }
+
+static struct Message map_msgtab = {
+  "MAP", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_map, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&map_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&map_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

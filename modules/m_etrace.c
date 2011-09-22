@@ -44,30 +44,6 @@
 #define FORM_STR_RPL_ETRACE	 ":%s 709 %s %s %s %s %s %s :%s"
 #define FORM_STR_RPL_ETRACE_FULL ":%s 708 %s %s %s %s %s %s %s %s :%s"
 
-static void do_etrace(struct Client *, int, char *[]);
-static void mo_etrace(struct Client *, struct Client *, int, char *[]);
-
-struct Message etrace_msgtab = {
-  "ETRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_etrace, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&etrace_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&etrace_msgtab);
-}
-#endif
-
 static void report_this_status(struct Client *, struct Client *, int);
 
 /*
@@ -232,3 +208,30 @@ report_this_status(struct Client *source_p, struct Client *target_p,
     }
   }
 }
+
+static struct Message etrace_msgtab = {
+  "ETRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_etrace, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&etrace_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&etrace_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

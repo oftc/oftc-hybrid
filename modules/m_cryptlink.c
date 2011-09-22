@@ -53,18 +53,13 @@
 #include "s_serv.h"      /* server_estab, check_server, my_name_for_link */
 #include "motd.h"
 
+
 static char *parse_cryptserv_args(struct Client *client_p,
                                   char *parv[], int parc, char *info,
                                   char *key);
 
-static void mr_cryptlink(struct Client *, struct Client *, int, char **);
 static void cryptlink_serv(struct Client *, struct Client *, int, char **);
 static void cryptlink_auth(struct Client *, struct Client *, int, char **);
-
-struct Message cryptlink_msgtab = {
-  "CRYPTLINK", 0, 0, 4, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_cryptlink, m_ignore, rfc1459_command_send_error, m_ignore, m_ignore, m_ignore}
-};
 
 struct CryptLinkStruct
 {
@@ -80,23 +75,6 @@ static struct CryptLinkStruct cryptlink_cmd_table[] =
   /* End of table */
   { NULL,	NULL,	}
 };
-
-#ifndef STATIC_MODULES
-void 
-_modinit(void)
-{
-  mod_add_cmd(&cryptlink_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&cryptlink_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
 
 /* mr_cryptlink - CRYPTLINK message handler
  *      parv[0] == CRYPTLINK
@@ -509,4 +487,31 @@ parse_cryptserv_args(struct Client *client_p, char *parv[],
 
   return(name);
 }
+
+static struct Message cryptlink_msgtab = {
+  "CRYPTLINK", 0, 0, 4, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  {mr_cryptlink, m_ignore, rfc1459_command_send_error, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&cryptlink_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&cryptlink_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};
 #endif

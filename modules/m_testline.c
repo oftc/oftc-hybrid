@@ -40,36 +40,6 @@
 #include "hash.h"
 #include "modules.h"
 
-static void mo_testline(struct Client *, struct Client *, int, char *[]);
-static void mo_testgecos(struct Client *, struct Client *, int, char *[]);
-
-struct Message testline_msgtab = {
-  "TESTLINE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testline, m_ignore }
-};
-
-struct Message testgecos_msgtab = {
-  "TESTGECOS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testgecos, m_ignore }
-};
- 
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&testline_msgtab);
-  mod_add_cmd(&testgecos_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&testline_msgtab);
-  mod_del_cmd(&testgecos_msgtab);
-}
- 
-const char *_version = "$Revision$";
-#endif
 
 /* mo_testline()
  *
@@ -287,3 +257,37 @@ mo_testgecos(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(RPL_NOTESTLINE),
                me.name, source_p->name, parv[1]);
 }
+
+static struct Message testline_msgtab = {
+  "TESTLINE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testline, m_ignore }
+};
+
+struct Message testgecos_msgtab = {
+  "TESTGECOS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testgecos, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&testline_msgtab);
+  mod_add_cmd(&testgecos_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&testline_msgtab);
+  mod_del_cmd(&testgecos_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

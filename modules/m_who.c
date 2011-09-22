@@ -41,33 +41,11 @@
 #include "modules.h"
 #include "irc_string.h"
 
-static void m_who(struct Client*, struct Client*, int, char**);
-
-struct Message who2_msgtab = {
-  "WHO", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_who, m_who, m_ignore, m_who, m_ignore}
-};
-
 struct flag_item
 {
   int mode;
   char letter;
 };
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&who2_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&who2_msgtab);
-}
-const char *_version = "$Revision$";
-#endif
 
 /* Internally defined stuffs */
 typedef struct SearchOptions
@@ -686,3 +664,29 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   return;
 }
 
+static struct Message who_msgtab = {
+  "WHO", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_who, m_ignore, m_ignore, m_who, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&who_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&who_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

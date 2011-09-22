@@ -35,29 +35,6 @@
 #include "modules.h"
 #include "s_conf.h"
 
-static void m_quit(struct Client *, struct Client *, int, char *[]);
-static void ms_quit(struct Client *, struct Client *, int, char *[]);
-
-struct Message quit_msgtab = {
-  "QUIT", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
-  {m_quit, m_quit, ms_quit, m_ignore, m_quit, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&quit_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&quit_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
 ** m_quit
@@ -100,3 +77,30 @@ ms_quit(struct Client *client_p, struct Client *source_p,
 
   exit_client(source_p, source_p, comment);
 }
+
+static struct Message quit_msgtab = {
+  "QUIT", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  {m_quit, m_quit, ms_quit, m_ignore, m_quit, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&quit_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&quit_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

@@ -48,10 +48,6 @@
 #include "channel_mode.h"
 #include "watch.h"
 
-static void m_nick(struct Client *, struct Client *, int, char **);
-static void mr_nick(struct Client *, struct Client *, int, char **);
-static void ms_nick(struct Client *, struct Client *, int, char **);
-static void ms_uid(struct Client *, struct Client *, int, char **);
 
 static void nick_from_server(struct Client *, struct Client *, int, char **,
                              time_t, time_t, char *, char *);
@@ -68,33 +64,6 @@ static int clean_user_name(const char *);
 static int clean_host_name(const char *);
 static void perform_nick_collides(struct Client *, struct Client *, struct Client *,
 				  int, char **, time_t, time_t, char *, char *, char *);
-struct Message nick_msgtab = {
-  "NICK", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {mr_nick, m_nick, ms_nick, m_ignore, m_nick, m_ignore}
-};
-
-struct Message uid_msgtab = {
-  "UID", 0, 0, 10, MAXPARA, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_uid, m_ignore, m_ignore, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&nick_msgtab);
-  mod_add_cmd(&uid_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&nick_msgtab);
-  mod_del_cmd(&uid_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 
 /* set_initial_nick()
@@ -1039,3 +1008,37 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
    */
   nick_from_server(client_p, source_p, parc, parv, newts, svsid, nick, gecos);
 }
+
+static struct Message nick_msgtab = {
+  "NICK", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {mr_nick, m_nick, ms_nick, m_ignore, m_nick, m_ignore}
+};
+
+static struct Message uid_msgtab = {
+  "UID", 0, 0, 10, MAXPARA, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_uid, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&uid_msgtab);
+  mod_add_cmd(&nick_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&uid_msgtab);
+  mod_del_cmd(&nick_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

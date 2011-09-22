@@ -40,27 +40,6 @@
 #include "irc_string.h"
 #include "s_user.h"
 
-static void ms_svsmode(struct Client *, struct Client *, int, char *[]);
-
-struct Message svsmode_msgtab = {
-  "SVSMODE", 0, 0, 3, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
-  {m_ignore, m_ignore, ms_svsmode, m_ignore, m_ignore, m_ignore}
-};
-
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&svsmode_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&svsmode_msgtab);
-}
-
 
 /*! \brief SVSMODE command handler (called by services)
  *
@@ -201,3 +180,30 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
     send_umode(target_p, target_p, setflags, 0xffffffff, modebuf);
   }
 }
+
+static struct Message svsmode_msgtab = {
+  "SVSMODE", 0, 0, 3, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  {m_ignore, m_ignore, ms_svsmode, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&svsmode_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&svsmode_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

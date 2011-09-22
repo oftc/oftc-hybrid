@@ -37,33 +37,6 @@
 #include "packet.h"
 #include "s_user.h"
 
-static void m_away(struct Client *, struct Client *, int, char *[]);
-static void mo_away(struct Client *, struct Client *, int, char *[]);
-static void ms_away(struct Client *, struct Client *, int, char *[]);
-
-struct Message away_msgtab = {
-  "AWAY", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_away, ms_away, m_ignore, mo_away, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&away_msgtab);
-  add_isupport("AWAYLEN", NULL, AWAYLEN);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&away_msgtab);
-  delete_isupport("AWAYLEN");
-}
-
-const char *_version = "$Revision$";
-#endif
-
 /***********************************************************************
  * m_away() - Added 14 Dec 1988 by jto. 
  *            Not currently really working, I don't like this
@@ -260,3 +233,32 @@ ms_away(struct Client *client_p, struct Client *source_p,
   strcpy(cur_away_msg, new_away_msg);
   source_p->away = cur_away_msg;
 }
+
+static struct Message away_msgtab = {
+  "AWAY", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_away, ms_away, m_ignore, mo_away, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&away_msgtab);
+  add_isupport("AWAYLEN", NULL, AWAYLEN);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&away_msgtab);
+  delete_isupport("AWAYLEN");
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

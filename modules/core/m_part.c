@@ -41,29 +41,6 @@
 #include "s_conf.h"
 #include "packet.h"
 
-static void m_part(struct Client *, struct Client *, int, char *[]);
-
-struct Message part_msgtab = {
-  "PART", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_part, m_part, m_ignore, m_part, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&part_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&part_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
 
 /* part_one_client()
  *
@@ -167,3 +144,30 @@ m_part(struct Client *client_p, struct Client *source_p,
        name = strtoken(&p,    NULL, ","))
     part_one_client(client_p, source_p, name, reason);
 }
+
+static struct Message part_msgtab = {
+  "PART", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_part, m_part, m_ignore, m_part, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&part_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&part_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

@@ -42,29 +42,6 @@
 #include "sprintf_irc.h"
 #include "common.h"
 
-static void m_kick(struct Client *, struct Client *, int, char *[]);
-
-struct Message kick_msgtab = {
-  "KICK", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_kick, m_kick, m_ignore, m_kick, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&kick_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&kick_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
 /* m_kick()
  *  parv[0] = sender prefix
  *  parv[1] = channel
@@ -265,3 +242,30 @@ m_kick(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(ERR_USERNOTINCHANNEL),
                from, to, user, name);
 }
+
+static struct Message kick_msgtab = {
+  "KICK", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_kick, m_kick, m_ignore, m_kick, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&kick_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&kick_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

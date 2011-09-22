@@ -70,173 +70,6 @@
 
 static void m_svsnick(struct Client *, struct Client *, int, char *[]);
 
-static void m_groupserv(struct Client *, struct Client *, int, char *[]);
-static void m_chanserv(struct Client *, struct Client *, int, char *[]);
-static void m_global(struct Client *, struct Client *, int, char *[]);
-static void m_helpserv(struct Client *, struct Client *, int, char *[]);
-static void m_hostserv(struct Client *, struct Client *, int, char *[]);
-static void m_memoserv(struct Client *, struct Client *, int, char *[]);
-static void m_nickserv(struct Client *, struct Client *, int, char *[]);
-static void m_operserv(struct Client *, struct Client *, int, char *[]);
-static void m_statserv(struct Client *, struct Client *, int, char *[]);
-static void m_helpserv(struct Client *, struct Client *, int, char *[]);
-static void m_identify(struct Client *, struct Client *, int, char *[]);
-
-/* Services */
-struct Message groupserv_msgtab = {
-  "GROUPSERV", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
-};
-
-
-struct Message ms_msgtab = {
-  "MS", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
-};
-
-struct Message ns_msgtab = {
-  "NS", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
-};
-
-struct Message os_msgtab = {
-  "OS", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
-};
-
-struct Message bs_msgtab = {
-  "BS", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
-};
-
-struct Message cs_msgtab = {
-  "CS", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
-};
-
-struct Message ss_msgtab = {
-  "SS", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_statserv, m_ignore, m_ignore, m_statserv, m_ignore}
-};
-
-struct Message hs_msgtab = {
-  "HS", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
-};
-
-struct Message botserv_msgtab = {
-  "BOTSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
-};
-
-struct Message chanserv_msgtab = {
-  "CHANSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
-};
-
-struct Message memoserv_msgtab = {
-  "MEMOSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
-};
-
-struct Message nickserv_msgtab = {
-  "NICKSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
-};
-
-struct Message operserv_msgtab = {
-  "OPERSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
-};
-
-struct Message statserv_msgtab = {
-  "STATSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_statserv, m_ignore, m_ignore, m_statserv, m_ignore}
-};
-
-struct Message helpserv_msgtab = {
-  "HELPSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
-};
-
-struct Message identify_msgtab = {
-  "IDENTIFY", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_identify, m_ignore, m_ignore, m_identify, m_ignore}
-};
-
-struct Message ms_msgtab = {
-  "MS", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
-};
-
-struct Message ns_msgtab = {
-  "NS", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
-};
-
-struct Message os_msgtab = {
-  "OS", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
-};
-
-struct Message bs_msgtab = {
-  "BS", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&groupserv_msgtab);
-  mod_add_cmd(&chanserv_msgtab); 
-  mod_add_cmd(&global_msgtab);
-  mod_add_cmd(&helpserv_msgtab);
-  mod_add_cmd(&hostserv_msgtab);
-  mod_add_cmd(&identify_msgtab);
-  mod_add_cmd(&memoserv_msgtab);
-  mod_add_cmd(&nickserv_msgtab);
-  mod_add_cmd(&operserv_msgtab);
-  mod_add_cmd(&statserv_msgtab);
-  mod_add_cmd(&helpserv_msgtab);
-  mod_add_cmd(&identify_msgtab);
-  mod_add_cmd(&bs_msgtab);
-  mod_add_cmd(&ns_msgtab);
-  mod_add_cmd(&cs_msgtab);
-  mod_add_cmd(&ms_msgtab);
-  mod_add_cmd(&os_msgtab);
-  mod_add_cmd(&ss_msgtab);
-  mod_add_cmd(&hs_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&groupserv_msgtab);
-  mod_del_cmd(&chanserv_msgtab); 
-  mod_del_cmd(&global_msgtab);
-  mod_del_cmd(&helpserv_msgtab);
-  mod_del_cmd(&hostserv_msgtab);
-  mod_del_cmd(&memoserv_msgtab);
-  mod_del_cmd(&nickserv_msgtab);
-  mod_del_cmd(&operserv_msgtab);
-  mod_del_cmd(&statserv_msgtab);
-  mod_del_cmd(&helpserv_msgtab);
-  mod_del_cmd(&identify_msgtab);
-  mod_del_cmd(&bs_msgtab);
-  mod_del_cmd(&ns_msgtab);
-  mod_del_cmd(&cs_msgtab);
-  mod_del_cmd(&ms_msgtab);
-  mod_del_cmd(&os_msgtab);
-  mod_del_cmd(&ss_msgtab);
-  mod_del_cmd(&hs_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
-/*
- * m_svsnick()
  *
  * parv[0] = sender prefix
  * parv[1] = user to force
@@ -537,3 +370,140 @@ deliver_services_msg(const char *service, const char *command,
                  me.name, source_p->name, "NickServ");
   }
 }
+
+static struct Message ms_msgtab = {
+  "GS", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
+};
+
+static struct Message ms_msgtab = {
+  "MS", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
+};
+
+static struct Message ns_msgtab = {
+  "NS", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
+};
+
+static struct Message os_msgtab = {
+  "OS", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
+};
+
+static struct Message bs_msgtab = {
+  "BS", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
+};
+
+static struct Message cs_msgtab = {
+  "CS", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
+};
+
+static struct Message ss_msgtab = {
+  "SS", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_statserv, m_ignore, m_ignore, m_statserv, m_ignore}
+};
+
+static struct Message hs_msgtab = {
+  "HS", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
+};
+
+static struct Message botserv_msgtab = {
+  "BOTSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
+};
+
+static struct Message chanserv_msgtab = {
+  "CHANSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
+};
+
+static struct Message chanserv_msgtab = {
+  "GROUPSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
+};
+
+static struct Message memoserv_msgtab = {
+  "MEMOSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
+};
+
+static struct Message nickserv_msgtab = {
+  "NICKSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
+};
+
+static struct Message operserv_msgtab = {
+  "OPERSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
+};
+
+static struct Message statserv_msgtab = {
+  "STATSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_statserv, m_ignore, m_ignore, m_statserv, m_ignore}
+};
+
+static struct Message helpserv_msgtab = {
+  "HELPSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
+};
+
+static struct Message identify_msgtab = {
+  "IDENTIFY", 0, 0, 0, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_identify, m_ignore, m_ignore, m_identify, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&botserv_msgtab);
+  mod_add_cmd(&chanserv_msgtab);
+  mod_add_cmd(&groupserv_msgtab);
+  mod_add_cmd(&memoserv_msgtab);
+  mod_add_cmd(&nickserv_msgtab);
+  mod_add_cmd(&operserv_msgtab);
+  mod_add_cmd(&statserv_msgtab);
+  mod_add_cmd(&helpserv_msgtab);
+  mod_add_cmd(&identify_msgtab);
+  mod_add_cmd(&bs_msgtab);
+  mod_add_cmd(&ns_msgtab);
+  mod_add_cmd(&cs_msgtab);
+  mod_add_cmd(&ms_msgtab);
+  mod_add_cmd(&os_msgtab);
+  mod_add_cmd(&ss_msgtab);
+  mod_add_cmd(&hs_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&botserv_msgtab);
+  mod_del_cmd(&chanserv_msgtab);
+  mod_del_cmd(&groupserv_msgtab);
+  mod_del_cmd(&memoserv_msgtab);
+  mod_del_cmd(&nickserv_msgtab);
+  mod_del_cmd(&operserv_msgtab);
+  mod_del_cmd(&statserv_msgtab);
+  mod_del_cmd(&helpserv_msgtab);
+  mod_del_cmd(&identify_msgtab);
+  mod_del_cmd(&bs_msgtab);
+  mod_del_cmd(&ns_msgtab);
+  mod_del_cmd(&cs_msgtab);
+  mod_del_cmd(&ms_msgtab);
+  mod_del_cmd(&os_msgtab);
+  mod_del_cmd(&ss_msgtab);
+  mod_del_cmd(&hs_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};
