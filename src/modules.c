@@ -478,7 +478,7 @@ mo_modlist(struct Client *client_p, struct Client *source_p,
     if (parc > 1 && !match(parv[1], modp->name))
       continue;
 
-    sendto_one(source_p, form_str(RPL_MODLIST), me.name, parv[0],
+    sendto_one(source_p, form_str(RPL_MODLIST), me.name, source_p->name,
                modp->name, modp->handle,
                modp->version, (modp->flags & MODULE_FLAG_CORE) ?"(core)":"");
   }

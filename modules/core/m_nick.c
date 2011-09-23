@@ -202,8 +202,8 @@ mr_nick(struct Client *client_p, struct Client *source_p,
 
   if (parc < 2 || EmptyString(parv[1]))
   {
-    sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
-               me.name, EmptyString(parv[0]) ? "*" : parv[0]);
+    sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN), me.name,
+               source_p->name[0] ? source_p->name : "*");
     return;
   }
 
@@ -217,8 +217,8 @@ mr_nick(struct Client *client_p, struct Client *source_p,
   /* check the nickname is ok */
   if (!valid_nickname(nick, 1))
   {
-    sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
-               me.name, EmptyString(parv[0]) ? "*" : parv[0], parv[1]);
+    sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME), me.name,
+               source_p->name[0] ? source_p->name : "*", parv[1]);
     return;
   }
 
@@ -226,8 +226,8 @@ mr_nick(struct Client *client_p, struct Client *source_p,
   if (find_matching_name_conf(NRESV_TYPE, nick, NULL, NULL, 0) &&
       !IsExemptResv(source_p))
   {
-    sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
-               me.name, EmptyString(parv[0]) ? "*" : parv[0], nick);
+    sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME), me.name,
+               source_p->name[0] ? source_p->name : "*", nick);
     return;
   }
 

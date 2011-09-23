@@ -60,7 +60,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
   {
     if (irccmp(parv[1], "DNS") == 0)
     {
-      sendto_one(source_p, form_str(RPL_REHASHING), me.name, parv[0], "DNS");
+      sendto_one(source_p, form_str(RPL_REHASHING), me.name, source_p->name, "DNS");
       sendto_realops_flags(UMODE_ALL, L_ALL, "%s is rehashing DNS",
                            get_oper_name(source_p));
       restart_resolver();   /* re-read /etc/resolv.conf AGAIN?
@@ -70,7 +70,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     else if (irccmp(parv[1], "FDLIMIT") == 0)
     {
       sendto_one(source_p, form_str(RPL_REHASHING), me.name,
-                 parv[0], "FDLIMIT");
+                 source_p->name, "FDLIMIT");
       sendto_realops_flags(UMODE_ALL, L_ALL, "%s is updating FDLIMIT",
                            get_oper_name(source_p));
       recalc_fdlimit(NULL);

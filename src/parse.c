@@ -822,7 +822,8 @@ m_unregistered(struct Client *client_p, struct Client *source_p,
   if (client_p->localClient->number_of_nick_changes == 0)
   {
     sendto_one(client_p, ":%s %d * %s :Register first.",
-               me.name, ERR_NOTREGISTERED, parv[0]);
+               me.name, ERR_NOTREGISTERED,
+               client_p->name[0] ? client_p->name : "*");
     client_p->localClient->number_of_nick_changes++;
   }
 }
