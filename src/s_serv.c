@@ -393,7 +393,7 @@ hunt_server(struct Client *client_p, struct Client *source_p, const char *comman
       if (!(target_p = hash_find_server(parv[server])))
       {
         sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
-                   me.name, parv[0], parv[server]);
+                   me.name, source_p->name, parv[server]);
         return(HUNTED_NOSUCH);
       }
     }
@@ -421,7 +421,7 @@ hunt_server(struct Client *client_p, struct Client *source_p, const char *comman
     if(!IsRegistered(target_p))
     {
       sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
-                 me.name, parv[0], parv[server]);
+                 me.name, source_p->name, parv[server]);
       return HUNTED_NOSUCH;
     }
 
@@ -444,7 +444,7 @@ hunt_server(struct Client *client_p, struct Client *source_p, const char *comman
   } 
 
   sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
-             me.name, parv[0], parv[server]);
+             me.name, source_p->name, parv[server]);
   return(HUNTED_NOSUCH);
 }
 
