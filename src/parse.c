@@ -814,25 +814,15 @@ void
 m_unregistered(struct Client *client_p, struct Client *source_p,
                int parc, char *parv[])
 {
-  /* bit of a hack.
-   * I don't =really= want to waste a bit in a flag
-   * number_of_nick_changes is only really valid after the client
-   * is fully registered..
-   */
-  if (client_p->localClient->number_of_nick_changes == 0)
-  {
-    sendto_one(client_p, ":%s %d * %s :Register first.",
-               me.name, ERR_NOTREGISTERED,
-               client_p->name[0] ? client_p->name : "*");
-    client_p->localClient->number_of_nick_changes++;
-  }
+  sendto_one(source_p, form_str(ERR_NOTREGISTERED), me.name,
+             source_p->name[0] ? source_p->name : "*");
 }
 
 void
 m_registered(struct Client *client_p, struct Client *source_p,
              int parc, char *parv[])
 {
-  sendto_one(client_p, form_str(ERR_ALREADYREGISTRED),   
+  sendto_one(source_p, form_str(ERR_ALREADYREGISTRED),   
              me.name, source_p->name);
 }
 
