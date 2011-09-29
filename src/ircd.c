@@ -62,9 +62,6 @@
 #include "supported.h"
 #include "watch.h"
 
-/* Try and find the correct name to use with getrlimit() for setting the max.
- * number of files allowed to be open by this process.
- */
 
 /* /quote set variables */
 struct SetOptions GlobalSetOptions;
