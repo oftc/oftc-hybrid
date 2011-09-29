@@ -28,7 +28,6 @@
 #include "event.h"
 #include "ircd.h"    /* GlobalSetOptions */
 #include "irc_string.h"
-#include "rlimits.h"
 #include "s_bsd.h"   /* comm_setselect */
 #include "s_conf.h"  /* ServerInfo */
 #include "send.h"
@@ -77,10 +76,10 @@ recalc_fdlimit(void *unused)
   int fdmax;
   struct rlimit limit;
 
-  if (!getrlimit(RLIMIT_FD_MAX, &limit))
+  if (!getrlimit(RLIMIT_NOFILE, &limit))
   {
     limit.rlim_cur = limit.rlim_max;
-    setrlimit(RLIMIT_FD_MAX, &limit);
+    setrlimit(RLIMIT_NOFILE, &limit);
   }
 
   fdmax = getdtablesize();
