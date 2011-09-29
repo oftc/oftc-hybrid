@@ -219,7 +219,6 @@ ms_server(struct Client *client_p, struct Client *source_p,
   char info[REALLEN + 1];
   char *name;
   struct Client *target_p;
-  struct Client *bclient_p;
   struct ConfItem *conf;
   struct MatchItem *match_item;
   int hop;
@@ -403,22 +402,9 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
   hash_add_client(target_p);
 
-  /* Old sendto_serv_but_one() call removed because we now
-   * need to send different names to different servers
-   * (domain name matching)
-   */
-  DLINK_FOREACH_SAFE(ptr, ptr_next, serv_list.head)
-  {
-    bclient_p = ptr->data;
-
-    if (bclient_p == client_p)
-      continue;
-
-    sendto_one(bclient_p, ":%s SERVER %s %d :%s%s",
-               ID_or_name(source_p, bclient_p), target_p->name, hop + 1,
-               IsHidden(target_p) ? "(H) " : "",
-               target_p->info);
-  }
+  sendto_server(client_p, NULL, NOCAPS, NOCAPS, ":%s SERVER %s %d :%s%s",
+                source_p->name, target_p->name, hop + 1,
+                IsHidden(target_p) ? "(H) " : "", target_p->info);
 
   sendto_realops_flags(UMODE_EXTERNAL, L_ALL,
                        "Server %s being introduced by %s",
@@ -438,7 +424,6 @@ ms_sid(struct Client *client_p, struct Client *source_p,
 {
   char info[REALLEN + 1];
   struct Client *target_p;
-  struct Client *bclient_p;
   struct ConfItem *conf;
   struct MatchItem *match_item;
   int hlined = 0;
@@ -620,24 +605,12 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   hash_add_client(target_p);
   hash_add_id(target_p);
 
-  DLINK_FOREACH_SAFE(ptr, ptr_next, serv_list.head)
-  {
-    bclient_p = ptr->data;
-    
-    if (bclient_p == client_p)
-      continue;
-
-    if (IsCapable(bclient_p, CAP_TS6))
-      sendto_one(bclient_p, ":%s SID %s %d %s :%s%s",
-                 ID_or_name(source_p, client_p), target_p->name, hop + 1,
-                 parv[3], IsHidden(target_p) ? "(H) " : "",
-                 target_p->info);
-    else
-      sendto_one(bclient_p, ":%s SERVER %s %d :%s%s",
-                 source_p->name, target_p->name, hop + 1,
-                 IsHidden(target_p) ? "(H) " : "",
-                 target_p->info);
-  }
+  sendto_server(client_p, NULL, CAP_TS6, NOCAPS, ":%s SID %s %d %s :%s%s",
+                ID_or_name(source_p, client_p), target_p->name, hop + 1,
+                IsHidden(target_p) ? "(H) " : "", target_p->info);
+  sendto_server(client_p, NULL, NOCAPS, CAP_TS6, ":%s SERVER %s %d :%s%s",
+                source_p->name, target_p->name, hop + 1,
+                IsHidden(target_p) ? "(H) " : "", target_p->info);
 
   sendto_realops_flags(UMODE_EXTERNAL, L_ALL, 
                        "Server %s being introduced by %s",
