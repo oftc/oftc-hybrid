@@ -67,7 +67,6 @@ extern void add_conf_module(const char *);
 /* load all modules listed in conf */
 extern void load_conf_modules(void);
 
-extern void dynlink_init(void);
 extern int unload_one_module(const char *, int);
 extern int modules_valid_suffix(const char *);
 extern int load_one_module(const char *, int);
