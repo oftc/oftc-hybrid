@@ -15,7 +15,6 @@ ircd_SOURCES = balloc.c          \
                client.c          \
                csvlib.c          \
                dbuf.c            \
-               dynlink.c         \
                event.c           \
                fdlist.c          \
                fileio.c          \
