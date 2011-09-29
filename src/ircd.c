@@ -601,9 +601,11 @@ main(int argc, char *argv[])
 
   strlcpy(me.info, ServerInfo.description, sizeof(me.info));
 
-  me.from     = &me;
-  me.servptr  = &me;
-  me.lasttime = me.since = me.firsttime = CurrentTime;
+  me.from                   = &me;
+  me.servptr                = &me;
+  me.localClient->lasttime  = CurrentTime;
+  me.localClient->since     = CurrentTime;
+  me.localClient->firsttime = CurrentTime;
 
   SetMe(&me);
   make_server(&me);

@@ -49,7 +49,7 @@ m_quit(struct Client *client_p, struct Client *source_p,
   char reason[KICKLEN + 1] = "Quit: ";
 
   if (comment[0] && (HasUMode(source_p, UMODE_OPER) ||
-      (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
+      (source_p->localClient->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
       < CurrentTime))
     strlcpy(reason+6, comment, sizeof(reason)-6);
   else

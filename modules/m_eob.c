@@ -48,7 +48,7 @@ ms_eob(struct Client *client_p, struct Client *source_p,
 
   sendto_realops_flags(UMODE_ALL, L_ALL, "End of burst from %s (%u seconds)",
                        source_p->name,
-                       (unsigned int)(CurrentTime - source_p->firsttime));
+                       (unsigned int)(CurrentTime - source_p->localClient->firsttime));
   AddFlag(source_p, FLAGS_EOB);
 }
 

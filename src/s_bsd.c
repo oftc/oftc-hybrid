@@ -200,14 +200,14 @@ close_connection(struct Client *client_p)
     ++ServerStats.is_cl;
     ServerStats.is_cbs += client_p->localClient->send.bytes;
     ServerStats.is_cbr += client_p->localClient->recv.bytes;
-    ServerStats.is_cti += CurrentTime - client_p->firsttime;
+    ServerStats.is_cti += CurrentTime - client_p->localClient->firsttime;
   }
   else if (IsServer(client_p))
   {
     ++ServerStats.is_sv;
     ServerStats.is_sbs += client_p->localClient->send.bytes;
     ServerStats.is_sbr += client_p->localClient->recv.bytes;
-    ServerStats.is_sti += CurrentTime - client_p->firsttime;
+    ServerStats.is_sti += CurrentTime - client_p->localClient->firsttime;
 
     /* XXX Does this even make any sense at all anymore?
      * scheduling a 'quick' reconnect could cause a pile of
@@ -229,7 +229,7 @@ close_connection(struct Client *client_p)
       aconf  = map_to_conf(conf);
       aclass = map_to_conf(aconf->class_ptr);
       aconf->hold = time(NULL);
-      aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
+      aconf->hold += (aconf->hold - client_p->localClient->since > HANGONGOODLINK) ?
         HANGONRETRYDELAY : ConFreq(aclass);
     }
   }

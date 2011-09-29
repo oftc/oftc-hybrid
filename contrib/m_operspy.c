@@ -509,7 +509,7 @@ operspy_whois(struct Client *client_p, int parc, char *parv[])
     sendto_one(client_p, form_str(RPL_WHOISIDLE), me.name,
                client_p->name, target_p->name,
                CurrentTime - target_p->localClient->last_privmsg,
-               target_p->firsttime);
+               target_p->localClient->firsttime);
   sendto_one(client_p, form_str(RPL_ENDOFWHOIS),
              me.name, client_p->name, parv[2]);
 }

@@ -466,10 +466,10 @@ read_packet(fde_t *fd, void *data)
 
     execute_callback(iorecv_cb, client_p, length, readBuf);
 
-    if (client_p->lasttime < CurrentTime)
-      client_p->lasttime = CurrentTime;
-    if (client_p->lasttime > client_p->since)
-      client_p->since = CurrentTime;
+    if (client_p->localClient->lasttime < CurrentTime)
+      client_p->localClient->lasttime = CurrentTime;
+    if (client_p->localClient->lasttime > client_p->localClient->since)
+      client_p->localClient->since = CurrentTime;
     ClearPingSent(client_p);
 
     /* Attempt to parse what we have */

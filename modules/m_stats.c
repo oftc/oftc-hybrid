@@ -329,7 +329,7 @@ send_usage(struct Client *source_p)
   if (secs == 0)
     secs = 1;
 
-  rup = (CurrentTime - me.since) * hzz;
+  rup = (CurrentTime - me.localClient->since) * hzz;
 
   if (rup == 0)
     rup = 1;
@@ -1132,7 +1132,7 @@ stats_tstats(struct Client *source_p)
 
     sp->is_sbs += target_p->localClient->send.bytes;
     sp->is_sbr += target_p->localClient->recv.bytes;
-    sp->is_sti += CurrentTime - target_p->firsttime;
+    sp->is_sti += CurrentTime - target_p->localClient->firsttime;
   }
 
   sp->is_cl += dlink_list_length(&local_client_list);
@@ -1143,7 +1143,7 @@ stats_tstats(struct Client *source_p)
 
     sp->is_cbs += target_p->localClient->send.bytes;
     sp->is_cbr += target_p->localClient->recv.bytes;
-    sp->is_cti += CurrentTime - target_p->firsttime;
+    sp->is_cti += CurrentTime - target_p->localClient->firsttime;
   }
 
   sp->is_ni += dlink_list_length(&unknown_list);
@@ -1182,7 +1182,7 @@ stats_tstats(struct Client *source_p)
 static void
 stats_uptime(struct Client *source_p)
 {
-  time_t now = CurrentTime - me.since;
+  time_t now = CurrentTime - me.localClient->since;
 
   sendto_one(source_p, form_str(RPL_STATSUPTIME), from, to,
              now / 86400, (now / 3600) % 24, (now / 60) % 60, now % 60);
@@ -1216,7 +1216,7 @@ stats_servers(struct Client *source_p)
     sendto_one(source_p, ":%s %d %s v :%s (%s!%s@%s) Idle: %d",
                from, RPL_STATSDEBUG, to, target_p->name,
                (target_p->serv->by[0] ? target_p->serv->by : "Remote."),
-               "*", "*", (int)(CurrentTime - target_p->lasttime));
+               "*", "*", (int)(CurrentTime - target_p->localClient->lasttime));
   }
 
   sendto_one(source_p, ":%s %d %s v :%u Server(s)",
@@ -1306,8 +1306,8 @@ stats_servlinks(struct Client *source_p)
                target_p->localClient->send.bytes >> 10,
                target_p->localClient->recv.messages,
                target_p->localClient->recv.bytes >> 10,
-               (unsigned)(CurrentTime - target_p->firsttime),
-               (CurrentTime > target_p->since) ? (unsigned)(CurrentTime - target_p->since): 0,
+               (unsigned)(CurrentTime - target_p->localClient->firsttime),
+               (CurrentTime > target_p->localClient->since) ? (unsigned)(CurrentTime - target_p->localClient->since): 0,
                HasUMode(source_p, UMODE_OPER) ? show_capabilities(target_p) : "TS");
   }
 
@@ -1323,7 +1323,7 @@ stats_servlinks(struct Client *source_p)
              from, RPL_STATSDEBUG, to,
              _GMKv(recvB), _GMKs(recvB));
 
-  uptime = (CurrentTime - me.since);
+  uptime = (CurrentTime - me.localClient->since);
 
   sendto_one(source_p, ":%s %d %s ? :Server send: %7.2f %s (%4.1f K/s)",
              from, RPL_STATSDEBUG, to,
@@ -1419,8 +1419,8 @@ stats_L_list(struct Client *source_p,char *name, int doall, int wilds,
                  target_p->localClient->send.bytes>>10,
                  target_p->localClient->recv.messages,
                  target_p->localClient->recv.bytes>>10,
-                 (unsigned)(CurrentTime - target_p->firsttime),
-                 (CurrentTime > target_p->since) ? (unsigned)(CurrentTime - target_p->since):0,
+                 (unsigned)(CurrentTime - target_p->localClient->firsttime),
+                 (CurrentTime > target_p->localClient->since) ? (unsigned)(CurrentTime - target_p->localClient->since):0,
                  IsServer(target_p) ? show_capabilities(target_p) : "-");
     }
     else
@@ -1436,8 +1436,8 @@ stats_L_list(struct Client *source_p,char *name, int doall, int wilds,
 		   target_p->localClient->send.bytes>>10,
 		   target_p->localClient->recv.messages,
 		   target_p->localClient->recv.bytes>>10,
-		   (unsigned)(CurrentTime - target_p->firsttime),
-		   (CurrentTime > target_p->since) ? (unsigned)(CurrentTime - target_p->since):0,
+		   (unsigned)(CurrentTime - target_p->localClient->firsttime),
+		   (CurrentTime > target_p->localClient->since) ? (unsigned)(CurrentTime - target_p->localClient->since):0,
 		   IsServer(target_p) ? show_capabilities(target_p) : "-");
       else /* show the real IP */
         sendto_one(source_p, form_str(RPL_STATSLINKINFO),
@@ -1450,8 +1450,8 @@ stats_L_list(struct Client *source_p,char *name, int doall, int wilds,
 		   target_p->localClient->send.bytes>>10,
 		   target_p->localClient->recv.messages,
 		   target_p->localClient->recv.bytes>>10,
-		   (unsigned)(CurrentTime - target_p->firsttime),
-		   (CurrentTime > target_p->since) ? (unsigned)(CurrentTime - target_p->since):0,
+		   (unsigned)(CurrentTime - target_p->localClient->firsttime),
+		   (CurrentTime > target_p->localClient->since) ? (unsigned)(CurrentTime - target_p->localClient->since):0,
 		   IsServer(target_p) ? show_capabilities(target_p) : "-");
     }
   }

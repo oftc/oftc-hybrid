@@ -1121,7 +1121,7 @@ server_estab(struct Client *client_p)
   make_server(client_p);
 
   /* fixing eob timings.. -gnp */
-  client_p->firsttime = CurrentTime;
+  client_p->localClient->firsttime = CurrentTime;
 
 
   if (find_matching_name_conf(SERVICE_TYPE, client_p->name, NULL, NULL, 0))
