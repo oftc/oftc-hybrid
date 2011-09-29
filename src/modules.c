@@ -40,8 +40,7 @@
 #include "memory.h"
 
 
-dlink_list mod_list = { NULL, NULL, 0 };
-
+static dlink_list modules_list = { NULL, NULL, 0 };
 
 static const char *unknown_ver = "<unknown>";
 
@@ -122,8 +121,8 @@ unload_one_module(const char *name, int warn)
   if (modp->modexit)
    modp->modexit();
 
-  assert(dlink_list_length(&mod_list) > 0);
-  dlinkDelete(&modp->node, &mod_list);
+  assert(dlink_list_length(&modules_list) > 0);
+  dlinkDelete(&modp->node, &modules_list);
   MyFree(modp->name);
 
   lt_dlclose(modp->handle);
@@ -180,7 +179,7 @@ load_a_module(const char *path, int warn, int core)
     modp->flags |= MODULE_FLAG_CORE;
 
   DupString(modp->name, mod_basename);
-  dlinkAdd(modp, &modp->node, &mod_list);
+  dlinkAdd(modp, &modp->node, &modules_list);
 
   if (modp->modinit)
     modp->modinit();
@@ -321,7 +320,7 @@ findmodule_byname(const char *name)
 {
   dlink_node *ptr = NULL;
 
-  DLINK_FOREACH(ptr, mod_list.head)
+  DLINK_FOREACH(ptr, modules_list.head)
   {
     struct module *modp = ptr->data;
 
@@ -579,7 +578,7 @@ mo_modlist(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  DLINK_FOREACH(ptr, mod_list.head)
+  DLINK_FOREACH(ptr, modules_list.head)
   {
     const struct module *modp = ptr->data;
 
@@ -613,9 +612,9 @@ mo_modrestart(struct Client *client_p, struct Client *source_p,
   sendto_one(source_p, ":%s NOTICE %s :Reloading all modules",
              me.name, source_p->name);
 
-  modnum = dlink_list_length(&mod_list);
+  modnum = dlink_list_length(&modules_list);
 
-  DLINK_FOREACH_SAFE(ptr, ptr_next, mod_list.head)
+  DLINK_FOREACH_SAFE(ptr, ptr_next, modules_list.head)
   {
     struct module *modp = ptr->data;
     unload_one_module(modp->name, 0);
@@ -627,7 +626,7 @@ mo_modrestart(struct Client *client_p, struct Client *source_p,
 
   sendto_realops_flags(UMODE_ALL, L_ALL,
               "Module Restart: %u modules unloaded, %u modules loaded",
-			modnum, dlink_list_length(&mod_list));
+			modnum, dlink_list_length(&modules_list));
   ilog(L_WARN, "Module Restart: %u modules unloaded, %u modules loaded",
-       modnum, dlink_list_length(&mod_list));
+       modnum, dlink_list_length(&modules_list));
 }

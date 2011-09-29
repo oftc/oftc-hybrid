@@ -52,8 +52,6 @@ struct module_path
   char path[PATH_MAX + 1];
 };
 
-extern dlink_list mod_list;
-
 /* add a path */
 extern void mod_add_path(const char *);
 extern void mod_clear_paths(void);
@@ -68,9 +66,6 @@ extern void load_core_modules(int);
 extern void add_conf_module(const char *);
 /* load all modules listed in conf */
 extern void load_conf_modules(void);
-
-extern void _modinit(void);
-extern void _moddeinit(void);
 
 extern void dynlink_init(void);
 extern int unload_one_module(const char *, int);
