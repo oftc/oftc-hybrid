@@ -112,9 +112,6 @@ struct Client
   struct Whowas    *whowas;     /**< Pointers to whowas structs */
   char             *away;       /**< Client's AWAY message. Can be set/unset via AWAY command */
 
-  time_t            lasttime;   /**< ...should be only LOCAL clients? --msa */
-  time_t            firsttime;  /**< time client was created */
-  time_t            since;      /**< last time we parsed something */
   time_t            tsinfo;     /**< TS on the nick, SVINFO on server */
   time_t            servicestamp; /**< Last time client has been identified for its nick */
   uint64_t          flags;      /**< client flags */
@@ -191,6 +188,9 @@ struct LocalUser
 
   unsigned int serial;     /**< used to enforce 1 send per nick */
 
+  time_t       lasttime;   /**< ...should be only LOCAL clients? --msa */
+  time_t       firsttime;  /**< time client was created */
+  time_t       since;      /**< last time we parsed something */
   time_t       last_knock;    /**< time of last knock */
   time_t       last_away; /**< Away since... */
   time_t       last_join_time;   /**< when this client last 

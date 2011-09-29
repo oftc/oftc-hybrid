@@ -117,11 +117,13 @@ make_client(struct Client *from)
 
   if (from == NULL)
   {
-    client_p->from  = client_p; /* 'from' of local client is self! */
-    client_p->since = client_p->lasttime = client_p->firsttime = CurrentTime;
-
-    client_p->localClient = BlockHeapAlloc(lclient_heap);
+    client_p->from                      = client_p; /* 'from' of local client is self! */
+    client_p->localClient               = BlockHeapAlloc(lclient_heap);
+    client_p->localClient->since        = CurrentTime;
+    client_p->localClient->lasttime     = CurrentTime;
+    client_p->localClient->firsttime    = CurrentTime;
     client_p->localClient->registration = REG_INIT;
+
     /* as good a place as any... */
     dlinkAdd(client_p, &client_p->localClient->lclient_node, &unknown_list);
   }
@@ -257,7 +259,7 @@ check_pings_list(dlink_list *list)
     else
       ping = get_client_ping(client_p, &pingwarn);
 
-    if (ping < CurrentTime - client_p->lasttime)
+    if (ping < CurrentTime - client_p->localClient->lasttime)
     {
       if (!IsPingSent(client_p))
       {
@@ -268,12 +270,12 @@ check_pings_list(dlink_list *list)
 	 */
 	SetPingSent(client_p);
 	ClearPingWarning(client_p);
-	client_p->lasttime = CurrentTime - ping;
+	client_p->localClient->lasttime = CurrentTime - ping;
 	sendto_one(client_p, "PING :%s", ID_or_name(&me, client_p));
       }
       else
       {
-        if (CurrentTime - client_p->lasttime >= 2 * ping)
+        if (CurrentTime - client_p->localClient->lasttime >= 2 * ping)
         {
           /*
            * If the client/server hasn't talked to us in 2*ping seconds
@@ -292,7 +294,7 @@ check_pings_list(dlink_list *list)
 	  }
 
           snprintf(scratch, sizeof(scratch), "Ping timeout: %d seconds",
-                   (int)(CurrentTime - client_p->lasttime));
+                   (int)(CurrentTime - client_p->localClient->lasttime));
           exit_client(client_p, &me, scratch);
         }
         /* else if (!IsPingWarning(client_p) && pingwarn > 0 && */
@@ -301,7 +303,7 @@ check_pings_list(dlink_list *list)
             * link until it splits. */
         else if (pingwarn > 0 &&
 	         (IsServer(client_p) || IsHandshake(client_p)) &&
-	         CurrentTime - client_p->lasttime >= ping + pingwarn)
+	         CurrentTime - client_p->localClient->lasttime >= ping + pingwarn)
         {
           char timestamp[200];
           strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&CurrentTime));
@@ -350,7 +352,7 @@ check_unknowns_list(void)
      * Check UNKNOWN connections - if they have been in this state
      * for > 30s, close them.
      */
-    if (IsAuthFinished(client_p) && (CurrentTime - client_p->firsttime) > 30)
+    if (IsAuthFinished(client_p) && (CurrentTime - client_p->localClient->firsttime) > 30)
       exit_client(client_p, &me, "Registration timed out");
   }
 }
@@ -1038,13 +1040,13 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
 
     if (source_p->servptr == &me)
     {
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-                           "%s was connected for %d seconds.  %lu/%lu sendK/recvK.",
-                           source_p->name, (int)(CurrentTime - source_p->firsttime),
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+                           "%s was connected for %d seconds.  %llu/%llu sendK/recvK.",
+                           source_p->name, (int)(CurrentTime - source_p->localClient->firsttime),
                            source_p->localClient->send.bytes >> 10,
                            source_p->localClient->recv.bytes >> 10);
       ilog(L_NOTICE, "%s was connected for %d seconds.  %llu/%llu sendK/recvK.",
-           source_p->name, (int)(CurrentTime - source_p->firsttime), 
+           source_p->name, (int)(CurrentTime - source_p->localClient->firsttime), 
            source_p->localClient->send.bytes >> 10,
            source_p->localClient->recv.bytes >> 10);
     }
@@ -1112,7 +1114,7 @@ dead_link_on_read(struct Client *client_p, int error)
 
   if (IsServer(client_p) || IsHandshake(client_p))
   {
-    int connected = CurrentTime - client_p->firsttime;
+    int connected = CurrentTime - client_p->localClient->firsttime;
       
     if (error == 0)
     {

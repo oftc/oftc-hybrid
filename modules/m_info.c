@@ -654,13 +654,13 @@ send_birthdate_online_time(struct Client *source_p)
   {
     sendto_one(source_p, ":%s %d %s :On-line since %s",
                me.id, RPL_INFO, source_p->id,
-               myctime(me.firsttime));
+               myctime(me.localClient->firsttime));
   }
   else
   {
     sendto_one(source_p, ":%s %d %s :On-line since %s",
                me.name, RPL_INFO, source_p->name,
-               myctime(me.firsttime));
+               myctime(me.localClient->firsttime));
   }
 }
 

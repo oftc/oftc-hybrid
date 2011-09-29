@@ -431,7 +431,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
     sendto_one(source_p, form_str(RPL_WHOISIDLE),
                me.name, source_p->name, target_p->name,
                CurrentTime - target_p->localClient->last_privmsg,
-               target_p->firsttime);
+               target_p->localClient->firsttime);
 
     if (HasUMode(target_p, UMODE_OPER) && target_p != source_p)
       if (HasUMode(target_p, UMODE_SPY))

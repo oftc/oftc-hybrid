@@ -54,7 +54,7 @@ show_watch(struct Client *client_p, const char *name,
   if ((target_p = find_person(client_p, name)))
     sendto_one(client_p, form_str(rpl1), me.name, client_p->name,
                target_p->name, target_p->username,
-               target_p->host, target_p->lasttime);
+               target_p->host, target_p->tsinfo);
   else
     sendto_one(client_p, form_str(rpl2), me.name, client_p->name,
                name, "*", "*", 0);
