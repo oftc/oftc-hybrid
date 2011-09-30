@@ -36,10 +36,6 @@
 #include "s_conf.h"
 #include "send.h"
 #include "memory.h"
-#ifdef HAVE_LIBCRYPTO
-#include <openssl/bio.h>
-#endif
-
 
 static PF accept_connection;
 
@@ -68,7 +64,7 @@ free_listener(struct Listener *listener)
 
 /*
  * get_listener_name - return displayable listener name and port
- * returns "host.foo.org:6667" for a given listener
+ * returns "host.foo.org/6667" for a given listener
  */
 const char *
 get_listener_name(const struct Listener *const listener)
@@ -153,10 +149,6 @@ inetport(struct Listener *listener)
     return 0;
   }
 
-  /*
-   * XXX - we don't want to do all this crap for a listener
-   * set_sock_opts(listener);
-   */
   if (setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
   {
     report_error(L_ALL, "setting SO_REUSEADDR for listener %s:%s",
