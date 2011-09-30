@@ -109,7 +109,6 @@ static int cancel_clients(struct Client *, struct Client *, char *);
 static void remove_unknown(struct Client *, char *, char *);
 static void handle_numeric(char[], struct Client *, struct Client *, int, char *[]);
 static void handle_command(struct Message *, struct Client *, struct Client *, unsigned int, char *[]);
-static void recurse_report_messages(struct Client *, const struct MessageTree *);
 static void add_msg_element(struct MessageTree *, struct Message *, const char *);
 static void del_msg_element(struct MessageTree *, const char *);
 
@@ -124,12 +123,11 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 {
   struct Client *from = client_p;
   struct Message *msg_ptr = NULL;
-  char *ch;
-  char *s;
-  char *numeric = 0;
+  char *ch = NULL;
+  char *s = NULL;
+  char *numeric = NULL;
   unsigned int parc = 0;
   unsigned int paramcount;
-  int mpara = 0;
 
   if (IsDefunct(client_p))
     return;
@@ -137,7 +135,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
   assert(client_p->localClient->fd.flags.open);
   assert((bufend - pbuffer) < 512);
 
-  for (ch = pbuffer; *ch == ' '; ch++) /* skip spaces */
+  for (ch = pbuffer; *ch == ' '; ++ch) /* skip spaces */
     /* null statement */ ;
 
   if (*ch == ':')
@@ -156,10 +154,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
     if (*sender && IsServer(client_p))
     {
-      /*
-       * XXX it could be useful to know which of these occurs most frequently.
-       * the ID check should always come first, though, since it is so easy.
-       */
       if ((from = find_person(client_p, sender)) == NULL)
         from = hash_find_server(sender);
 
@@ -229,7 +223,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
        * Hm, when is the buffer empty -- if a command
        * code has been found ?? -Armin
        */
-      if (pbuffer[0] != '\0')
+      if (*pbuffer != '\0')
       {
         if (IsClient(from))
           sendto_one(from, form_str(ERR_UNKNOWNCOMMAND),
@@ -243,8 +237,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
     assert(msg_ptr->cmd != NULL);
 
     paramcount = msg_ptr->args_max;
-    mpara      = msg_ptr->args_min;
-
     ii = bufend - ((s) ? s : ch);
     msg_ptr->bytes += ii;
   }
@@ -449,11 +441,11 @@ del_msg_element(struct MessageTree *mtree_p, const char *cmd)
 {
   struct MessageTree *ntree_p;
 
-  /* In case this is called for a nonexistent command
+  /*
+   * In case this is called for a nonexistent command
    * check that there is a msg pointer here, else links-- goes -ve
    * -db
    */
-
   if ((*cmd == '\0') && (mtree_p->msg != NULL))
   {
     mtree_p->msg = NULL;
@@ -506,16 +498,10 @@ msg_tree_parse(const char *cmd, struct MessageTree *root)
 void
 mod_add_cmd(struct Message *msg)
 {
-  struct Message *found_msg;
-
-  if (msg == NULL)
-    return;
-
-  /* someone loaded a module with a bad messagetab */
-  assert(msg->cmd != NULL);
+  assert(msg && msg->cmd);
 
   /* command already added? */
-  if ((found_msg = msg_tree_parse(msg->cmd, &msg_tree)) != NULL)
+  if (msg_tree_parse(msg->cmd, &msg_tree))
     return;
 
   add_msg_element(&msg_tree, msg, msg->cmd);
@@ -531,10 +517,7 @@ mod_add_cmd(struct Message *msg)
 void
 mod_del_cmd(struct Message *msg)
 {
-  assert(msg != NULL);
-
-  if (msg == NULL)
-    return;
+  assert(msg && msg->cmd);
 
   del_msg_element(&msg_tree, msg->cmd);
 }
@@ -551,6 +534,22 @@ find_command(const char *cmd)
   return msg_tree_parse(cmd, &msg_tree);
 }
 
+static void
+recurse_report_messages(struct Client *source_p, const struct MessageTree *mtree)
+{
+  unsigned int i;
+
+  if (mtree->msg != NULL)
+    sendto_one(source_p, form_str(RPL_STATSCOMMANDS),
+               me.name, source_p->name, mtree->msg->cmd,
+               mtree->msg->count, mtree->msg->bytes,
+               mtree->msg->rcount);
+
+  for (i = 0; i < MAXPTRLEN; ++i)
+    if (mtree->pointers[i] != NULL)
+      recurse_report_messages(source_p, mtree->pointers[i]);
+}
+
 /* report_messages()
  *
  * inputs	- pointer to client to report to
@@ -563,23 +562,7 @@ report_messages(struct Client *source_p)
   const struct MessageTree *mtree = &msg_tree;
   unsigned int i;
 
-  for (i = 0; i < MAXPTRLEN; i++)
-    if (mtree->pointers[i] != NULL)
-      recurse_report_messages(source_p, mtree->pointers[i]);
-}
-
-static void
-recurse_report_messages(struct Client *source_p, const struct MessageTree *mtree)
-{
-  unsigned int i;
-
-  if (mtree->msg != NULL)
-    sendto_one(source_p, form_str(RPL_STATSCOMMANDS),
-               me.name, source_p->name, mtree->msg->cmd,
-               mtree->msg->count, mtree->msg->bytes,
-               mtree->msg->rcount);
-
-  for (i = 0; i < MAXPTRLEN; i++)
+  for (i = 0; i < MAXPTRLEN; ++i)
     if (mtree->pointers[i] != NULL)
       recurse_report_messages(source_p, mtree->pointers[i]);
 }
