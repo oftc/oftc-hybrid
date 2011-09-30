@@ -1,3 +1,24 @@
+-- ircd-hybrid-8.0 Release Notes
+o) Implemented full services support. Among other things, the following changes
+   have been done for this:
+   - Added SVSNICK, and SVSMODE command handlers
+   - Added service stamps to NICK/UID messages
+   - Usermode +r (registered nick) has been added, as well as
+     channelmode +r (registered channel).
+   - Various services shortcuts have been added (/NS, /CS, /NICKSERV, /CHANSERV, etc.)
+   - Added channelmode +R (only registered clients may join that channel)
+   - Added usermode +R (only registered clients may send a private message)
+   - Added services{} block to ircd.conf
+   - Added services_name directive to general{} block
+o) RKLINE and RXLINE commands have been removed. Regular expression based
+   bans should only be added via ircd.conf
+o) Added 'globops', 'restart' and 'module' operator privilege flags.
+   Read etc/example.conf for further explanation of what these flags
+   are supposed to be doing.
+o) Idle-time klines have been removed
+o) Cleaned up modules API. Old modules won't work anymore
+
+
 -- ircd-hybrid-7.3.0 Release Notes
 o) Added Bulgarian language file provided by Borislav Borisov
 o) Server hostmasking has been removed due to TS6 requirements
