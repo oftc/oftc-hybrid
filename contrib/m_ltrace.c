@@ -24,8 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
-#include "hook.h"
 #include "client.h"
 #include "hash.h"
 #include "irc_string.h"
@@ -36,7 +34,6 @@
 #include "s_serv.h"
 #include "s_conf.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 

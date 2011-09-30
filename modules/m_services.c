@@ -39,7 +39,6 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "hash.h"
 #include "fdlist.h"
@@ -51,11 +50,6 @@
 #include "whowas.h"
 #include "s_serv.h"
 #include "send.h"
-#include "list.h"
-#include "channel.h"
-#include "s_log.h"
-#include "resv.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "common.h"

@@ -24,18 +24,15 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"  
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_serv.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
@@ -92,7 +89,7 @@ part_one_client(struct Client *client_p, struct Client *source_p,
     sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
                   ":%s PART %s :%s", source_p->name, chptr->chname,
                   reason);
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s PART %s :%s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s PART %s :%s",
                          source_p->name, source_p->username,
                          source_p->host, chptr->chname, reason);
   }
@@ -102,7 +99,7 @@ part_one_client(struct Client *client_p, struct Client *source_p,
                   ":%s PART %s", ID(source_p), chptr->chname);
     sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
                   ":%s PART %s", source_p->name, chptr->chname);
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s PART %s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s PART %s",
                          source_p->name, source_p->username,
                          source_p->host, chptr->chname);
   }

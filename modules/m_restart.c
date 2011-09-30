@@ -28,7 +28,7 @@
 #include "channel_mode.h"
 #include "client.h"
 #include "hash.h"
-#include "common.h"
+#include "client.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "ircd_defs.h"
@@ -36,7 +36,6 @@
 #include "numeric.h"
 #include "packet.h"
 #include "parse.h"
-#include "msg.h"
 #include "restart.h"
 #include "s_serv.h"
 #include "s_user.h"
@@ -313,7 +312,6 @@ do_shutdown(const char *msg, int rboot)
 
   exit(0);
 }
-
 
 
 /*

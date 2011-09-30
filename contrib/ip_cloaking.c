@@ -52,7 +52,6 @@
 #include "whowas.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"
 #include "hash.h"
 #include "hook.h"
 #include "irc_string.h"
@@ -441,7 +440,7 @@ h_set_user_mode(va_list args)
         {
           sendto_one(target_p, ":%s NOTICE %s :*** Sorry, IP cloaking "
                      "does not support IPv6 users!", me.name, target_p->name);
-          vhost_ipv6_err = YES;
+          vhost_ipv6_err = 1;
         }
       }
       else

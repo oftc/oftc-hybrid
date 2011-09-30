@@ -30,7 +30,6 @@
 %{
 #include "stdinc.h"
 #include "irc_string.h"
-#include "common.h"
 #include "s_conf.h"
 #include "memory.h"
 #include "hostmask.h"
@@ -248,7 +247,7 @@ network_desc    { return NETWORK_DESC; }
 network_name    { return NETWORK_NAME; }
 nick		{ return NICK; }
 nick_changes	{ return NICK_CHANGES; }
-no		{ yylval.number = NO; return TBOOL; }
+no		{ yylval.number = 0; return TBOOL; }
 no_create_on_split { return NO_CREATE_ON_SPLIT; }
 no_join_on_split   { return NO_JOIN_ON_SPLIT; }
 no_oper_flood   { return NO_OPER_FLOOD; }
@@ -323,7 +322,7 @@ vhost	{ return VHOST; }
 vhost6	{ return VHOST6; }
 warn		{ return WARN; }
 xline		{ return XLINE; }
-yes		{ yylval.number = YES; return TBOOL; }
+yes		{ yylval.number = 1; return TBOOL; }
 
 failed_oper_notice      { return FAILED_OPER_NOTICE; }
 max_accept              { return MAX_ACCEPT; }

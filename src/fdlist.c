@@ -21,10 +21,10 @@
  *
  *  $Id$
  */
+
 #include "stdinc.h"
 #include "fdlist.h"
 #include "client.h"  /* struct Client */
-#include "common.h"
 #include "event.h"
 #include "ircd.h"    /* GlobalSetOptions */
 #include "irc_string.h"
@@ -33,6 +33,7 @@
 #include "send.h"
 #include "memory.h"
 #include "numeric.h"
+#include "s_misc.h"
 
 fde_t *fd_hash[FD_HASH_SIZE];
 fde_t *fd_next_in_loop = NULL;

@@ -23,17 +23,14 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h" /* ConfigFileEntry */
 
 
 static void

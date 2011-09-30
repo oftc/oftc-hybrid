@@ -26,11 +26,9 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "s_gline.h"
 #include "channel.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
@@ -40,7 +38,6 @@
 #include "s_conf.h"
 #include "s_misc.h"
 #include "send.h"
-#include "msg.h"
 #include "fileio.h"
 #include "s_serv.h"
 #include "hash.h"
@@ -370,7 +367,7 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
 
   if (ConfigFileEntry.glines)
   {
-    if (!valid_wild_card(source_p, YES, 2, user, host))
+    if (!valid_wild_card(source_p, 1, 2, user, host))
       return;
 
     if (IsClient(source_p))

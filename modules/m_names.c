@@ -24,11 +24,9 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"   /* bleah */
 #include "hash.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
@@ -36,8 +34,6 @@
 #include "numeric.h"
 #include "send.h"
 #include "s_serv.h"
-#include "s_conf.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
@@ -71,7 +67,7 @@ static void
 names_non_public_non_secret(struct Client *source_p)
 {
   int mlen, tlen, cur_len;
-  int reply_to_send = NO;
+  int reply_to_send = 0;
   int shown_already;
   dlink_node *gc2ptr, *lp;
   struct Client *c2ptr;
@@ -92,7 +88,7 @@ names_non_public_non_secret(struct Client *source_p)
     if (!IsClient(c2ptr) || HasUMode(c2ptr, UMODE_INVISIBLE))
       continue;
 
-    shown_already = NO;
+    shown_already = 0;
 
     /* We already know the user is not +i. If they are on no common
      * channels with source_p, they have not been shown yet. */
@@ -102,7 +98,7 @@ names_non_public_non_secret(struct Client *source_p)
 
       if (IsMember(source_p, ch3ptr))
       {
-        shown_already = YES;
+        shown_already = 1;
         break;
       }
     }
@@ -126,7 +122,7 @@ names_non_public_non_secret(struct Client *source_p)
 
     cur_len += tlen + 1;
 
-    reply_to_send = YES;
+    reply_to_send = 1;
   }
 
   if (reply_to_send)

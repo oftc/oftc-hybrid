@@ -23,20 +23,15 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "list.h"
-#include "hook.h"
 #include "client.h"
 #include "hash.h"
-#include "common.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "fdlist.h"
 #include "s_bsd.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
@@ -196,10 +191,10 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
                        source_p->host, source_p->servptr->name);
 
   if (match(tname, me.name))
-    doall = TRUE;
+    doall = 1;
   else if (!MyClient(source_p) && !strcmp(tname, me.id))
   {
-    doall = TRUE;
+    doall = 1;
     tname = me.name;
   }
 

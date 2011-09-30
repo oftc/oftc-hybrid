@@ -25,15 +25,11 @@
 #include "stdinc.h"
 #include "list.h"	 /* dlink_node/dlink_list */
 #include "balloc.h"
-#include "handlers.h"    /* m_pass prototype */
 #include "client.h"      /* Client */
-#include "common.h"      /* TRUE/FALSE */
 #include "irc_string.h"  
 #include "ircd.h"        /* me */
 #include "listener.h"    /* show_ports */
 #include "s_gline.h"
-#include "ircd_handler.h"
-#include "msg.h"         /* Message */
 #include "hostmask.h"
 #include "numeric.h"     /* ERR_xxx */
 #include "send.h"        /* sendto_one */

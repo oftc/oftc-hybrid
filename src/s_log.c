@@ -35,7 +35,6 @@
 #endif
 
 #include "client.h"	/* Needed for struct Client */
-#include "common.h"
 #include "s_log.h"
 #include "fileio.h"
 #include "irc_string.h"

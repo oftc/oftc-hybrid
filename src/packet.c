@@ -27,7 +27,6 @@
 #include "s_conf.h"
 #include "s_serv.h"
 #include "client.h"
-#include "common.h"
 #include "ircd.h"
 #include "parse.h"
 #include "fdlist.h"
@@ -36,6 +35,7 @@
 #include "memory.h"
 #include "hook.h"
 #include "send.h"
+#include "s_misc.h"
 
 #define READBUF_SIZE 16384
 

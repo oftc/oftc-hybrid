@@ -23,14 +23,11 @@
  */
 
 #include "stdinc.h"
-#include "list.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "irc_string.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"

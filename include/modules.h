@@ -25,11 +25,7 @@
 #ifndef INCLUDED_modules_h
 #define INCLUDED_modules_h
 
-#include "parse.h"
-
-#include "ircd_handler.h"
-#include "msg.h"
-#include "memory.h"
+#include "config.h"
 
 #ifndef STATIC_MODULES
 

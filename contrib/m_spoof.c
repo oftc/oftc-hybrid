@@ -73,9 +73,7 @@
 /* List of ircd includes from ../include/ */
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"     /* FALSE bleah */
 #include "hash.h"
 #include "hostmask.h"
 #include "ircd.h"
@@ -88,7 +86,6 @@
 #include "s_log.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 

@@ -40,7 +40,6 @@
 #include "s_conf.h"
 #include "balloc.h"
 #include "client.h"
-#include "common.h"
 #include "event.h"
 #include "hook.h"
 #include "irc_string.h"

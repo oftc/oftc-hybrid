@@ -23,7 +23,6 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
@@ -31,7 +30,6 @@
 #include "s_user.h"    /* show_lusers */
 #include "send.h"
 #include "s_conf.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 

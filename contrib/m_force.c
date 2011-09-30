@@ -29,9 +29,7 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"     /* FALSE bleah */
 #include "ircd.h"
 #include "irc_string.h"
 #include "numeric.h"
@@ -41,7 +39,6 @@
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "channel.h"
@@ -163,14 +160,14 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    add_user_to_channel(chptr, target_p, type, NO);
+    add_user_to_channel(chptr, target_p, type, 0);
 
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s JOIN :%s",
                          target_p->name, target_p->username,
                          target_p->host, chptr->chname);
 
     if (sjmode)
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +%c %s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +%c %s",
                            me.name, chptr->chname, mode, target_p->name);
 
     if (chptr->chname[0] == '#')
@@ -247,7 +244,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
           "Channel %s created by %s!%s@%s", chname, target_p->name,
           target_p->username, target_p->host);
 
-    add_user_to_channel(chptr, target_p, CHFL_CHANOP, NO);
+    add_user_to_channel(chptr, target_p, CHFL_CHANOP, 0);
 
     /* send out a join, make target_p join chptr */
     if (chptr->chname[0] == '#')
@@ -262,7 +259,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
                     chptr->chname, target_p->name);
     }
 
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s JOIN :%s",
                          target_p->name, target_p->username,
                          target_p->host, chptr->chname);
 
@@ -346,7 +343,7 @@ mo_forcepart(struct Client *client_p, struct Client *source_p,
                   chptr->chname, target_p->name);
   }
 
-  sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s PART %s :%s",
+  sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s PART %s :%s",
                        target_p->name, target_p->username,
                        target_p->host, chptr->chname,
                        target_p->name);

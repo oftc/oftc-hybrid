@@ -29,16 +29,14 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"
 #include "ircd.h"
 #include "send.h"
-#include "msg.h"
 #include "modules.h"
 #include "hash.h"
 #include "s_serv.h"
 #include "s_conf.h"
+#include "parse.h"
 
 
 /*
@@ -63,7 +61,7 @@ set_topic(struct Client *source_p, struct Channel *chptr, time_t topicts,
 
   /* Only send TOPIC to channel if it's different */
   if (new_topic)
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :%s",
                          ConfigServerHide.hide_servers ? me.name : source_p->name,
                          chptr->chname, chptr->topic);
 
@@ -142,7 +140,7 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
     set_channel_topic(chptr, topic, setby, remote_topic_ts);
 
     if (topic_differs)
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :%s",
                            ConfigServerHide.hide_servers ? me.name : source_p->name,
                            chptr->chname, chptr->topic);
   }

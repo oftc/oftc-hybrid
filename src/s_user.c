@@ -29,7 +29,6 @@
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"
 #include "fdlist.h"
 #include "hash.h"
 #include "hostmask.h"
@@ -51,7 +50,7 @@
 #include "userhost.h"
 #include "hook.h"
 #include "s_misc.h"
-#include "msg.h"
+#include "parse.h"
 #include "watch.h"
 
 

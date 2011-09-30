@@ -23,13 +23,11 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"  /* m_pass prototype */
 #include "client.h"      /* client struct */
 #include "irc_string.h" 
 #include "send.h"        /* sendto_one */
 #include "numeric.h"     /* ERR_xxx */
 #include "ircd.h"        /* me */
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_serv.h"

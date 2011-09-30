@@ -23,21 +23,15 @@
  */
 
 #include "stdinc.h"
-#include "list.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "irc_string.h"
 #include "numeric.h"
-#include "fdlist.h"
-#include "s_bsd.h"
-#include "s_log.h"
-#include "s_conf.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "restart.h"
+#include "s_conf.h"
 
 
 /*

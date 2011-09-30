@@ -27,7 +27,6 @@
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"
 #include "hash.h"
 #include "hostmask.h"
 #include "irc_string.h"
@@ -43,7 +42,7 @@
 #include "memory.h"
 #include "balloc.h"
 #include "s_log.h"
-#include "msg.h"
+#include "parse.h"
 
 /* some small utility functions */
 static char *check_string(char *);
@@ -1858,7 +1857,7 @@ send_mode_changes(struct Client *client_p, struct Client *source_p,
         modebuf[mbl - 1] = '\0';
 
       if (nc != 0)
-        sendto_channel_local(ALL_MEMBERS, NO, chptr, "%s %s", modebuf, parabuf);
+        sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s", modebuf, parabuf);
 
       nc = 0;
       mc = 0;
@@ -1898,7 +1897,7 @@ send_mode_changes(struct Client *client_p, struct Client *source_p,
     parabuf[pbl - 1] = 0;
 
   if (nc != 0)
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, "%s %s", modebuf, parabuf);
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s", modebuf, parabuf);
 
   nc = 0;
   mc = 0;

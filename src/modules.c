@@ -32,7 +32,6 @@
 #include "client.h"
 #include "send.h"
 #include "s_conf.h"
-#include "handlers.h"
 #include "numeric.h"
 #include "parse.h"
 #include "ircd_defs.h"
