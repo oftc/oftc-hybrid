@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "client.h"
 #include "hash.h"
 #include "fdlist.h"
@@ -40,10 +39,8 @@
 #include "channel_mode.h"
 #include "s_log.h"
 #include "resv.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "common.h"
 #include "packet.h"
 #include "watch.h"
 

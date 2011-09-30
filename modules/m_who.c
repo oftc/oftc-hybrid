@@ -24,8 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "common.h"   
-#include "handlers.h"
 #include "client.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -37,7 +35,6 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "s_conf.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
@@ -81,7 +78,7 @@ m_who(struct Client *client_p, struct Client *source_p,
     if ((lp = source_p->channel.head) != NULL)
     {
       struct Channel *mychannel = ((struct Membership *)lp->data)->chptr;
-      do_who_on_channel(source_p, mychannel, mychannel->chname, YES,
+      do_who_on_channel(source_p, mychannel, mychannel->chname, 1,
                         server_oper);
     }
 
@@ -96,9 +93,9 @@ m_who(struct Client *client_p, struct Client *source_p,
     if ((chptr = hash_find_channel(mask)) != NULL)
     {
       if (IsMember(source_p, chptr))
-        do_who_on_channel(source_p, chptr, chptr->chname, YES, server_oper);
+        do_who_on_channel(source_p, chptr, chptr->chname, 1, server_oper);
       else if (!SecretChannel(chptr))
-        do_who_on_channel(source_p, chptr, chptr->chname, NO, server_oper);
+        do_who_on_channel(source_p, chptr, chptr->chname, 0, server_oper);
     }
 
     sendto_one(source_p, form_str(RPL_ENDOFWHO),

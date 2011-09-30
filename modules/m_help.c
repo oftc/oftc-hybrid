@@ -23,11 +23,8 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
-#include "ircd_handler.h"
-#include "msg.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"

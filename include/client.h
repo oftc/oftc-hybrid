@@ -32,7 +32,6 @@
 #include "fdlist.h"
 #include "config.h"
 #include "ircd_defs.h"
-#include "ircd_handler.h"
 #include "dbuf.h"
 #include "channel.h"
 #include "irc_res.h"

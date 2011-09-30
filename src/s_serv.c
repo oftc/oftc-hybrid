@@ -31,7 +31,6 @@
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"
 #include "dbuf.h"
 #include "event.h"
 #include "fdlist.h"
@@ -51,6 +50,7 @@
 #include "send.h"
 #include "memory.h"
 #include "channel.h" /* chcap_usage_counts stuff...*/
+#include "parse.h"
 
 #define MIN_CONN_FREQ 300
 

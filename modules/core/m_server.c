@@ -24,9 +24,7 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"    /* m_server prototype */
 #include "client.h"      /* client struct */
-#include "common.h"      /* TRUE bleah */
 #include "event.h"
 #include "hash.h"        /* add_to_client_hash_table */
 #include "irc_string.h" 
@@ -37,8 +35,6 @@
 #include "s_serv.h"      /* server_estab, check_server */
 #include "s_user.h"
 #include "send.h"        /* sendto_one */
-#include "motd.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 

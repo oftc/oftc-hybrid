@@ -26,7 +26,6 @@
 #include "list.h"
 #include "channel.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
@@ -39,9 +38,7 @@
 #include "s_misc.h"
 #include "send.h"
 #include "hash.h"
-#include "handlers.h"
 #include "s_serv.h"
-#include "msg.h"
 #include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
@@ -186,7 +183,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   if ((oper_reason = strchr(reason, '|')) != NULL)
     *oper_reason++ = '\0';
 
-  if (!valid_comment(source_p, reason, YES))
+  if (!valid_comment(source_p, reason, 1))
     return;
 
   conf = make_conf_item(DLINE_TYPE);

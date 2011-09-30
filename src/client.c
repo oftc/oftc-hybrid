@@ -26,7 +26,6 @@
 #include "list.h"
 #include "client.h"
 #include "channel_mode.h"
-#include "common.h"
 #include "event.h"
 #include "fdlist.h"
 #include "hash.h"

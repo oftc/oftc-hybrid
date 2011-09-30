@@ -25,13 +25,13 @@
 #include "stdinc.h"
 #include "client.h"
 #include "modules.h"
-#include "handlers.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
 #include "ircd.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
+#include "parse.h"
 
 
 static char buf[IRCD_BUFSIZE];

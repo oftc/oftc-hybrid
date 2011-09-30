@@ -30,10 +30,9 @@
  */
 
 #include "stdinc.h"
-#ifdef HAVE_LIBCRYPTO
 
+#ifdef HAVE_LIBCRYPTO
 #include "list.h"
-#include "handlers.h"
 #include "client.h"      /* client struct */
 #include "ircd.h"        /* me */
 #include "modules.h"
@@ -41,11 +40,9 @@
 #include "send.h"        /* sendto_one */
 #include <openssl/rsa.h> /* rsa.h is implicit when building this */
 #include "rsa.h"
-#include "msg.h"
 #include "parse.h"
 #include "irc_string.h"  /* strncpy_irc */
 #include "memory.h"
-#include "common.h"      /* TRUE bleah */
 #include "event.h"
 #include "hash.h"        /* add_to_client_hash_table */
 #include "s_conf.h"      /* struct AccessItem */

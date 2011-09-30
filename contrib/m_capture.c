@@ -24,8 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "common.h"  
-#include "handlers.h"
 #include "client.h"
 #include "hash.h"
 #include "channel.h"
@@ -38,10 +36,8 @@
 #include "send.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "hook.h"
 
 static void mo_capture(struct Client *, struct Client *, int, char *[]);
 static void mo_uncapture(struct Client *, struct Client *, int, char *[]);
@@ -151,7 +147,7 @@ mo_capture(struct Client *client_p, struct Client *source_p,
       nick = "*";
     }
 
-    if (!valid_wild_card(source_p, YES, 3, nick, user, host))
+    if (!valid_wild_card(source_p, 1, 3, nick, user, host))
       return;
 
     if (IsClient(client_p))

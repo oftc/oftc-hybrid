@@ -23,9 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "list.h"
 #include "ircd.h"
-#include "handlers.h"
 #include "s_user.h"
 #include "client.h"
 #include "hash.h"       /* for find_client() */
@@ -33,7 +31,6 @@
 #include "s_conf.h"
 #include "send.h"
 #include "irc_string.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 

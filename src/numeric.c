@@ -26,7 +26,6 @@
 
 #include "numeric.h"
 #include "irc_string.h"
-#include "common.h"     /* NULL cripes */
 #include "memory.h"
 #include "s_log.h"
 #include "fileio.h"

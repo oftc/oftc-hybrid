@@ -32,11 +32,9 @@
 #include "stdinc.h"
 #include "list.h"
 #include "irc_string.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"     /* FALSE bleah */
 #include "ircd.h"
 #include "sprintf_irc.h"
 #include "numeric.h"
@@ -47,7 +45,6 @@
 #include "s_serv.h"
 #include "s_misc.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "hash.h"
@@ -298,8 +295,9 @@ operspy_names(struct Client *client_p, int parc, char *parv[])
    */ 
   if (IsMember(client_p, chptr_names))
     channel_member_names(client_p, chptr_names, 1);
-  else {
-    add_user_to_channel(chptr_names, client_p, CHFL_CHANOP, NO);
+  else
+  {
+    add_user_to_channel(chptr_names, client_p, CHFL_CHANOP, 0);
     channel_member_names(client_p, chptr_names, 1);
     remove_user_from_channel(find_channel_link(client_p, chptr_names));
   }
@@ -399,7 +397,7 @@ operspy_who(struct Client *client_p, int parc, char *parv[])
         ((struct Membership *)target_p_who->channel.head->data)->chptr;
 
       do_who(client_p, target_p_who, chptr_who->chname,
-             get_member_status(target_p_who->channel.head->data, NO));
+             get_member_status(target_p_who->channel.head->data, 0));
     }
     else
     {
@@ -441,7 +439,7 @@ operspy_whois(struct Client *client_p, int parc, char *parv[])
   char *t = NULL;
   int mlen, tlen;
   int cur_len = 0;
-  int reply_to_send = NO;
+  int reply_to_send = 0;
 
   if (strchr(parv[2], '?') || strchr(parv[2], '*'))
   {
@@ -487,14 +485,14 @@ operspy_whois(struct Client *client_p, int parc, char *parv[])
 
     tlen = ircsprintf(t, "%s%s%s ",
                      ShowChannel(client_p, chptr_whois) ? "" : "%",
-                     get_member_status((struct Membership *)lp->data, YES),
+                     get_member_status((struct Membership *)lp->data, 1),
                      chptr_whois->chname);
     t += tlen;
     cur_len += tlen;
-    reply_to_send = YES;
+    reply_to_send = 1;
   }
 
-  if (reply_to_send == YES)
+  if (reply_to_send == 1)
     sendto_one(client_p, "%s", buf);
 
   sendto_one(client_p, form_str(RPL_WHOISSERVER), me.name,
@@ -561,7 +559,7 @@ who_global(struct Client *source_p, char *mask, int server_oper)
 
         chptr = ((struct Membership *)(target_p->channel.head->data))->chptr;
         snprintf(fl, sizeof(fl), "%s",
-                 get_member_status((struct Membership *)(target_p->channel.head->data), NO));
+                 get_member_status((struct Membership *)(target_p->channel.head->data), 0));
 
         do_who(source_p, target_p, chptr->chname, fl);
       }

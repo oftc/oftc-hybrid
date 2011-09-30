@@ -26,11 +26,6 @@
 #define INCLUDED_modules_h
 
 #include "config.h"
-#include "parse.h"
-
-#include "ircd_handler.h"
-#include "msg.h"
-#include "memory.h"
 
 
 #define MODULE_FLAG_CORE 0x1

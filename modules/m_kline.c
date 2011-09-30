@@ -26,7 +26,6 @@
 #include "list.h"
 #include "channel.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
@@ -39,9 +38,7 @@
 #include "s_misc.h"
 #include "send.h"
 #include "hash.h"
-#include "handlers.h"
 #include "s_serv.h"
-#include "msg.h"
 #include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
@@ -117,7 +114,7 @@ mo_kline(struct Client *client_p, struct Client *source_p,
     cluster_a_line(source_p, "KLINE", CAP_KLN, SHARED_KLINE,
                    "%d %s %s :%s", tkline_time, user, host, reason);
 
-  if (already_placed_kline(source_p, user, host, YES))
+  if (already_placed_kline(source_p, user, host, 1))
     return;
 
   /* Look for an oper reason */
@@ -187,7 +184,7 @@ me_kline(struct Client *client_p, struct Client *source_p,
                               SHARED_KLINE))
   {
     if (!IsClient(source_p) ||
-        already_placed_kline(source_p, kuser, khost, YES))
+        already_placed_kline(source_p, kuser, khost, 1))
       return;
 
     conf = make_conf_item(KLINE_TYPE);

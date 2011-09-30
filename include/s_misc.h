@@ -31,6 +31,11 @@ extern const char *smalldate(time_t);
 extern char *ssl_get_cipher(const SSL *);
 #endif
 
+/* Just blindly define our own MIN/MAX macro */
+
+#define IRCD_MAX(a, b)  ((a) > (b) ? (a) : (b))
+#define IRCD_MIN(a, b)  ((a) < (b) ? (a) : (b))
+
 #define _1MEG     (1024.0)
 #define _1GIG     (1024.0*1024.0)
 #define _1TER     (1024.0*1024.0*1024.0)

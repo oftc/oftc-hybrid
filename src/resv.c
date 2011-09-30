@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "common.h"
 #include "ircd.h"
 #include "send.h"
 #include "client.h"   

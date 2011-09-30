@@ -29,7 +29,6 @@
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"
 #include "event.h"
 #include "fdlist.h"
 #include "hash.h"
@@ -37,8 +36,6 @@
 #include "ircd_signal.h"
 #include "s_gline.h"
 #include "motd.h"
-#include "ircd_handler.h"
-#include "msg.h"         /* msgtab */
 #include "hostmask.h"
 #include "numeric.h"
 #include "packet.h"

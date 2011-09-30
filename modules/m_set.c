@@ -25,7 +25,6 @@
 /* rewritten by jdc */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "event.h"
 #include "irc_string.h"
@@ -35,14 +34,13 @@
 #include "s_bsd.h"
 #include "s_serv.h"
 #include "send.h"
-#include "common.h"   /* for NO */
 #include "channel.h"
 #include "s_log.h"
 #include "s_conf.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_user.h"
+#include "s_misc.h"
 
 
 /* Structure used for the SET table itself */

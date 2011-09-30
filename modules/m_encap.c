@@ -23,9 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "msg.h"
 #include "parse.h"
 #include "sprintf_irc.h"
 #include "s_serv.h"

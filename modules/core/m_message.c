@@ -24,15 +24,12 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "common.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "channel.h"
@@ -40,6 +37,7 @@
 #include "irc_string.h"
 #include "hash.h"
 #include "packet.h"
+
 
 struct entity
 {
@@ -494,7 +492,7 @@ msg_channel_flags(int p_or_n, const char *command, struct Client *client_p,
      * another good catch, lee.  we never would echo to remote clients anyway,
      * so use slightly less intensive sendto_channel_local()
      */
-    sendto_channel_local(type, YES, chptr, ":%s!%s@%s %s %c%s :%s",
+    sendto_channel_local(type, 1, chptr, ":%s!%s@%s %s %c%s :%s",
                          source_p->name, source_p->username,
                          source_p->host, command, c, chptr->chname, text);
   }

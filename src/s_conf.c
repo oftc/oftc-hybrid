@@ -31,7 +31,6 @@
 #include "resv.h"
 #include "channel.h"
 #include "client.h"
-#include "common.h"
 #include "event.h"
 #include "hash.h"
 #include "hook.h"
@@ -53,6 +52,8 @@
 #include "userhost.h"
 #include "s_user.h"
 #include "channel_mode.h"
+#include "parse.h"
+#include "s_misc.h"
 
 struct Callback *client_check_cb = NULL;
 struct config_server_hide ConfigServerHide;
@@ -1859,74 +1860,74 @@ set_default_conf(void)
   ConfigLoggingEntry.ioerrlog[0] = '\0';
   ConfigLoggingEntry.failed_operlog[0] = '\0';
 
-  ConfigChannel.disable_fake_channels = NO;
-  ConfigChannel.restrict_channels = NO;
-  ConfigChannel.disable_local_channels = NO;
-  ConfigChannel.use_invex = YES;
-  ConfigChannel.use_except = YES;
-  ConfigChannel.use_knock = YES;
+  ConfigChannel.disable_fake_channels = 0;
+  ConfigChannel.restrict_channels = 0;
+  ConfigChannel.disable_local_channels = 0;
+  ConfigChannel.use_invex = 1;
+  ConfigChannel.use_except = 1;
+  ConfigChannel.use_knock = 1;
   ConfigChannel.knock_delay = 300;
   ConfigChannel.knock_delay_channel = 60;
   ConfigChannel.max_chans_per_user = 15;
-  ConfigChannel.quiet_on_ban = YES;
+  ConfigChannel.quiet_on_ban = 1;
   ConfigChannel.max_bans = 25;
   ConfigChannel.default_split_user_count = 0;
   ConfigChannel.default_split_server_count = 0;
-  ConfigChannel.no_join_on_split = NO;
-  ConfigChannel.no_create_on_split = NO;
-  ConfigChannel.burst_topicwho = YES;
+  ConfigChannel.no_join_on_split = 0;
+  ConfigChannel.no_create_on_split = 0;
+  ConfigChannel.burst_topicwho = 1;
 
-  ConfigServerHide.flatten_links = NO;
+  ConfigServerHide.flatten_links = 0;
   ConfigServerHide.links_delay = 300;
-  ConfigServerHide.hidden = NO;
-  ConfigServerHide.disable_hidden = NO;
-  ConfigServerHide.hide_servers = NO;
+  ConfigServerHide.hidden = 0;
+  ConfigServerHide.disable_hidden = 0;
+  ConfigServerHide.hide_servers = 0;
   DupString(ConfigServerHide.hidden_name, NETWORK_NAME_DEFAULT);
-  ConfigServerHide.hide_server_ips = NO;
+  ConfigServerHide.hide_server_ips = 0;
 
   
   DupString(ConfigFileEntry.service_name, SERVICE_NAME_DEFAULT);
   ConfigFileEntry.max_watch = WATCHSIZE_DEFAULT;
   ConfigFileEntry.gline_min_cidr = 16;
   ConfigFileEntry.gline_min_cidr6 = 48;
-  ConfigFileEntry.invisible_on_connect = YES;
-  ConfigFileEntry.burst_away = NO;
-  ConfigFileEntry.use_whois_actually = YES;
-  ConfigFileEntry.tkline_expire_notices = YES;
-  ConfigFileEntry.hide_spoof_ips = YES;
-  ConfigFileEntry.ignore_bogus_ts = NO;
-  ConfigFileEntry.disable_auth = NO;
-  ConfigFileEntry.disable_remote = NO;
+  ConfigFileEntry.invisible_on_connect = 1;
+  ConfigFileEntry.burst_away = 0;
+  ConfigFileEntry.use_whois_actually = 1;
+  ConfigFileEntry.tkline_expire_notices = 1;
+  ConfigFileEntry.hide_spoof_ips = 1;
+  ConfigFileEntry.ignore_bogus_ts = 0;
+  ConfigFileEntry.disable_auth = 0;
+  ConfigFileEntry.disable_remote = 0;
   ConfigFileEntry.kill_chase_time_limit = 90;
   ConfigFileEntry.default_floodcount = 8;
-  ConfigFileEntry.failed_oper_notice = YES;
+  ConfigFileEntry.failed_oper_notice = 1;
   ConfigFileEntry.dots_in_ident = 0;
   ConfigFileEntry.min_nonwildcard = 4;
   ConfigFileEntry.min_nonwildcard_simple = 3;
   ConfigFileEntry.max_accept = 20;
-  ConfigFileEntry.anti_nick_flood = NO;
+  ConfigFileEntry.anti_nick_flood = 0;
   ConfigFileEntry.max_nick_time = 20;
   ConfigFileEntry.max_nick_changes = 5;
   ConfigFileEntry.anti_spam_exit_message_time = 0;
   ConfigFileEntry.ts_warn_delta = TS_WARN_DELTA_DEFAULT;
   ConfigFileEntry.ts_max_delta = TS_MAX_DELTA_DEFAULT;
-  ConfigFileEntry.kline_with_reason = YES;
+  ConfigFileEntry.kline_with_reason = 1;
   ConfigFileEntry.kline_reason = NULL;
-  ConfigFileEntry.warn_no_nline = YES;
-  ConfigFileEntry.stats_o_oper_only = NO;
+  ConfigFileEntry.warn_no_nline = 1;
+  ConfigFileEntry.stats_o_oper_only = 0;
   ConfigFileEntry.stats_k_oper_only = 1;  /* masked */
   ConfigFileEntry.stats_i_oper_only = 1;  /* masked */
-  ConfigFileEntry.stats_P_oper_only = NO;
+  ConfigFileEntry.stats_P_oper_only = 0;
   ConfigFileEntry.caller_id_wait = 60;
-  ConfigFileEntry.opers_bypass_callerid = NO;
+  ConfigFileEntry.opers_bypass_callerid = 0;
   ConfigFileEntry.pace_wait = 10;
   ConfigFileEntry.pace_wait_simple = 1;
-  ConfigFileEntry.short_motd = NO;
-  ConfigFileEntry.ping_cookie = NO;
-  ConfigFileEntry.no_oper_flood = NO;
-  ConfigFileEntry.true_no_oper_flood = NO;
-  ConfigFileEntry.oper_pass_resv = YES;
-  ConfigFileEntry.glines = NO;
+  ConfigFileEntry.short_motd = 0;
+  ConfigFileEntry.ping_cookie = 0;
+  ConfigFileEntry.no_oper_flood = 0;
+  ConfigFileEntry.true_no_oper_flood = 0;
+  ConfigFileEntry.oper_pass_resv = 1;
+  ConfigFileEntry.glines = 0;
   ConfigFileEntry.gline_time = 12 * 3600;
   ConfigFileEntry.max_targets = MAX_TARGETS_DEFAULT;
   ConfigFileEntry.client_flood = CLIENT_FLOOD_DEFAULT;
@@ -1945,7 +1946,7 @@ set_default_conf(void)
    */
   ConfigFileEntry.default_cipher_preference = &CipherTable[1];
 #endif
-  ConfigFileEntry.use_egd = NO;
+  ConfigFileEntry.use_egd = 0;
   ConfigFileEntry.egdpool_path = NULL;
 #ifdef HAVE_LIBZ
   ConfigFileEntry.compression_level = 0;
@@ -3381,11 +3382,11 @@ parse_aline(const char *cmd, struct Client *source_p,
       return -1;
     }
 
-    if ((parse_flags & AWILD) && !valid_wild_card(source_p, YES, 2, *up_p, *h_p))
+    if ((parse_flags & AWILD) && !valid_wild_card(source_p, 1, 2, *up_p, *h_p))
       return -1;
   }
   else
-    if ((parse_flags & AWILD) && !valid_wild_card(source_p, YES, 1, *up_p))
+    if ((parse_flags & AWILD) && !valid_wild_card(source_p, 1, 1, *up_p))
       return -1;
 
   if (reason != NULL)
@@ -3393,7 +3394,7 @@ parse_aline(const char *cmd, struct Client *source_p,
     if (parc != 0 && !EmptyString(*parv))
     {
       *reason = *parv;
-      if (!valid_comment(source_p, *reason, YES))
+      if (!valid_comment(source_p, *reason, 1))
 	return -1;
     }
     else

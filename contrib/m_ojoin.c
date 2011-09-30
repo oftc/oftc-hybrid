@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "client.h"
 #include "ircd.h"
@@ -32,11 +31,10 @@
 #include "send.h"
 #include "irc_string.h"
 #include "hash.h"
-#include "msg.h"
 #include "s_serv.h"
 #include "modules.h"
 #include "channel_mode.h"
-#include "common.h"
+#include "parse.h"
 
 static void mo_ojoin(struct Client *, struct Client *, int, char *[]);
 

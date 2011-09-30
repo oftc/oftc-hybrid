@@ -11,9 +11,7 @@ modules_LTLIBRARIES = example_module.la     \
                       m_classlist.la        \
                       m_clearchan.la        \
                       m_ctrace.la           \
-                      m_flags.la            \
                       m_force.la            \
-                      m_killhost.la         \
                       m_ltrace.la           \
                       m_ojoin.la            \
                       m_operspy.la          \
@@ -27,9 +25,7 @@ m_change_la_LDFLAGS = $(MODULE_FLAGS)
 m_classlist_la_LDFLAGS = $(MODULE_FLAGS)
 m_clearchan_la_LDFLAGS = $(MODULE_FLAGS)
 m_ctrace_la_LDFLAGS = $(MODULE_FLAGS)
-m_flags_la_LDFLAGS = $(MODULE_FLAGS)
 m_force_la_LDFLAGS = $(MODULE_FLAGS)
-m_killhost_la_LDFLAGS = $(MODULE_FLAGS)
 m_ltrace_la_LDFLAGS = $(MODULE_FLAGS)
 m_ojoin_la_LDFLAGS = $(MODULE_FLAGS)
 m_operspy_la_LDFLAGS = $(MODULE_FLAGS)
@@ -43,9 +39,7 @@ m_change_la_SOURCES = m_change.c
 m_classlist_la_SOURCES = m_classlist.c
 m_clearchan_la_SOURCES = m_clearchan.c
 m_ctrace_la_SOURCES = m_ctrace.c
-m_flags_la_SOURCES = m_flags.c
 m_force_la_SOURCES = m_force.c
-m_killhost_la_SOURCES = m_killhost.c
 m_ltrace_la_SOURCES = m_ltrace.c
 m_ojoin_la_SOURCES = m_ojoin.c
 m_operspy_la_SOURCES = m_operspy.c

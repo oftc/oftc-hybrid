@@ -33,11 +33,11 @@
 #include "fileio.h" /* for fbopen / fbclose / fbputs */
 #include "s_bsd.h"
 #include "s_log.h"
+#include "s_misc.h"
 #include "send.h"
 #include "memory.h"
 #include "irc_res.h"
 #include "irc_reslib.h"
-#include "common.h"
 
 #if (CHAR_BIT != 8)
 #error this code needs to be able to address individual octets 

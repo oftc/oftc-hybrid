@@ -24,9 +24,7 @@
 
 #include "stdinc.h"
 #include "whowas.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
@@ -36,7 +34,6 @@
 #include "s_user.h"
 #include "send.h"
 #include "s_conf.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 

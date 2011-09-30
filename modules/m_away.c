@@ -23,13 +23,11 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
@@ -37,16 +35,6 @@
 #include "packet.h"
 #include "s_user.h"
 
-/***********************************************************************
- * m_away() - Added 14 Dec 1988 by jto. 
- *            Not currently really working, I don't like this
- *            call at all...
- *
- *            ...trying to make it work. I don't like it either,
- *            but perhaps it's worth the load it causes to net.
- *            This requires flooding of the whole net like NICK,
- *            USER, MODE, etc messages...  --msa
- ***********************************************************************/
 
 /*
  * m_away

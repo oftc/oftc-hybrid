@@ -23,11 +23,9 @@
  */
 
 #include "stdinc.h"
-#include "parse.h"
 #include "client.h"
+#include "parse.h"
 #include "channel.h"
-#include "handlers.h"
-#include "common.h"
 #include "hash.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
@@ -35,8 +33,6 @@
 #include "numeric.h"
 #include "s_log.h"
 #include "send.h"
-#include "ircd_handler.h"
-#include "msg.h"
 #include "s_conf.h"
 #include "memory.h"
 #include "s_user.h"
@@ -791,7 +787,7 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
     return;
   }
   else if ((chptr = hash_find_channel(parv[1])) != NULL)
-    sendto_channel_local(ALL_MEMBERS, NO, chptr,
+    sendto_channel_local(ALL_MEMBERS, 0, chptr,
 			 ":%s %s %s %s",
 			 source_p->name,
 			 numeric, chptr->chname, buffer);

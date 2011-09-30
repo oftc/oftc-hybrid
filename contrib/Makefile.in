@@ -110,24 +110,12 @@ m_ctrace_la_OBJECTS = $(am_m_ctrace_la_OBJECTS)
 m_ctrace_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(m_ctrace_la_LDFLAGS) $(LDFLAGS) -o $@
-m_flags_la_LIBADD =
-am_m_flags_la_OBJECTS = m_flags.lo
-m_flags_la_OBJECTS = $(am_m_flags_la_OBJECTS)
-m_flags_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(m_flags_la_LDFLAGS) $(LDFLAGS) -o $@
 m_force_la_LIBADD =
 am_m_force_la_OBJECTS = m_force.lo
 m_force_la_OBJECTS = $(am_m_force_la_OBJECTS)
 m_force_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(m_force_la_LDFLAGS) $(LDFLAGS) -o $@
-m_killhost_la_LIBADD =
-am_m_killhost_la_OBJECTS = m_killhost.lo
-m_killhost_la_OBJECTS = $(am_m_killhost_la_OBJECTS)
-m_killhost_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(m_killhost_la_LDFLAGS) $(LDFLAGS) -o $@
 m_ltrace_la_LIBADD =
 am_m_ltrace_la_OBJECTS = m_ltrace.lo
 m_ltrace_la_OBJECTS = $(am_m_ltrace_la_OBJECTS)
@@ -174,16 +162,14 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
 	$(m_capture_la_SOURCES) $(m_change_la_SOURCES) \
 	$(m_classlist_la_SOURCES) $(m_clearchan_la_SOURCES) \
-	$(m_ctrace_la_SOURCES) $(m_flags_la_SOURCES) \
-	$(m_force_la_SOURCES) $(m_killhost_la_SOURCES) \
+	$(m_ctrace_la_SOURCES) $(m_force_la_SOURCES) \
 	$(m_ltrace_la_SOURCES) $(m_ojoin_la_SOURCES) \
 	$(m_operspy_la_SOURCES) $(m_opme_la_SOURCES) \
 	$(m_spoof_la_SOURCES)
 DIST_SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
 	$(m_capture_la_SOURCES) $(m_change_la_SOURCES) \
 	$(m_classlist_la_SOURCES) $(m_clearchan_la_SOURCES) \
-	$(m_ctrace_la_SOURCES) $(m_flags_la_SOURCES) \
-	$(m_force_la_SOURCES) $(m_killhost_la_SOURCES) \
+	$(m_ctrace_la_SOURCES) $(m_force_la_SOURCES) \
 	$(m_ltrace_la_SOURCES) $(m_ojoin_la_SOURCES) \
 	$(m_operspy_la_SOURCES) $(m_opme_la_SOURCES) \
 	$(m_spoof_la_SOURCES)
@@ -341,9 +327,7 @@ modules_LTLIBRARIES = example_module.la     \
                       m_classlist.la        \
                       m_clearchan.la        \
                       m_ctrace.la           \
-                      m_flags.la            \
                       m_force.la            \
-                      m_killhost.la         \
                       m_ltrace.la           \
                       m_ojoin.la            \
                       m_operspy.la          \
@@ -357,9 +341,7 @@ m_change_la_LDFLAGS = $(MODULE_FLAGS)
 m_classlist_la_LDFLAGS = $(MODULE_FLAGS)
 m_clearchan_la_LDFLAGS = $(MODULE_FLAGS)
 m_ctrace_la_LDFLAGS = $(MODULE_FLAGS)
-m_flags_la_LDFLAGS = $(MODULE_FLAGS)
 m_force_la_LDFLAGS = $(MODULE_FLAGS)
-m_killhost_la_LDFLAGS = $(MODULE_FLAGS)
 m_ltrace_la_LDFLAGS = $(MODULE_FLAGS)
 m_ojoin_la_LDFLAGS = $(MODULE_FLAGS)
 m_operspy_la_LDFLAGS = $(MODULE_FLAGS)
@@ -372,9 +354,7 @@ m_change_la_SOURCES = m_change.c
 m_classlist_la_SOURCES = m_classlist.c
 m_clearchan_la_SOURCES = m_clearchan.c
 m_ctrace_la_SOURCES = m_ctrace.c
-m_flags_la_SOURCES = m_flags.c
 m_force_la_SOURCES = m_force.c
-m_killhost_la_SOURCES = m_killhost.c
 m_ltrace_la_SOURCES = m_ltrace.c
 m_ojoin_la_SOURCES = m_ojoin.c
 m_operspy_la_SOURCES = m_operspy.c
@@ -459,12 +439,8 @@ m_clearchan.la: $(m_clearchan_la_OBJECTS) $(m_clearchan_la_DEPENDENCIES)
 	$(m_clearchan_la_LINK) -rpath $(modulesdir) $(m_clearchan_la_OBJECTS) $(m_clearchan_la_LIBADD) $(LIBS)
 m_ctrace.la: $(m_ctrace_la_OBJECTS) $(m_ctrace_la_DEPENDENCIES) 
 	$(m_ctrace_la_LINK) -rpath $(modulesdir) $(m_ctrace_la_OBJECTS) $(m_ctrace_la_LIBADD) $(LIBS)
-m_flags.la: $(m_flags_la_OBJECTS) $(m_flags_la_DEPENDENCIES) 
-	$(m_flags_la_LINK) -rpath $(modulesdir) $(m_flags_la_OBJECTS) $(m_flags_la_LIBADD) $(LIBS)
 m_force.la: $(m_force_la_OBJECTS) $(m_force_la_DEPENDENCIES) 
 	$(m_force_la_LINK) -rpath $(modulesdir) $(m_force_la_OBJECTS) $(m_force_la_LIBADD) $(LIBS)
-m_killhost.la: $(m_killhost_la_OBJECTS) $(m_killhost_la_DEPENDENCIES) 
-	$(m_killhost_la_LINK) -rpath $(modulesdir) $(m_killhost_la_OBJECTS) $(m_killhost_la_LIBADD) $(LIBS)
 m_ltrace.la: $(m_ltrace_la_OBJECTS) $(m_ltrace_la_DEPENDENCIES) 
 	$(m_ltrace_la_LINK) -rpath $(modulesdir) $(m_ltrace_la_OBJECTS) $(m_ltrace_la_LIBADD) $(LIBS)
 m_ojoin.la: $(m_ojoin_la_OBJECTS) $(m_ojoin_la_DEPENDENCIES) 
@@ -489,9 +465,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_classlist.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_clearchan.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_ctrace.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_flags.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_force.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_killhost.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_ltrace.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_ojoin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_operspy.Plo@am__quote@

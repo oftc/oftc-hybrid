@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -36,11 +35,10 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "hash.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
-#include "common.h"
+
 
 static void mo_clearchan(struct Client *, struct Client *, int, char *[]);
 static void kick_list(struct Client *, struct Channel *);

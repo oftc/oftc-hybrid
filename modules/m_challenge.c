@@ -24,17 +24,13 @@
 
 #include "stdinc.h"
 #ifdef HAVE_LIBCRYPTO
-
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "modules.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_conf.h"
-/* -lcrypto is implicit for building this module! */
 #include "rsa.h"
-#include "msg.h"
 #include "parse.h"
 #include "irc_string.h"
 #include "s_log.h"

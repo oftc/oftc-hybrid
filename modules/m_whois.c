@@ -24,8 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "common.h"  
-#include "handlers.h"
 #include "client.h"
 #include "hash.h"
 #include "channel.h"
@@ -38,10 +36,9 @@
 #include "send.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "hook.h"
+
 
 static void do_whois(struct Client *, int, char *[]);
 static int single_whois(struct Client *, struct Client *);
@@ -292,7 +289,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
   int mlen;
   char *t = NULL;
   int tlen;
-  int reply_to_send = NO;
+  int reply_to_send = 0;
 
   server_p = target_p->servptr;
 
@@ -323,10 +320,10 @@ whois_person(struct Client *source_p, struct Client *target_p)
 	t = buf + mlen;
       }
 
-      tlen = ircsprintf(t, "%s%s ", get_member_status(ms, YES), chptr->chname);
+      tlen = ircsprintf(t, "%s%s ", get_member_status(ms, 1), chptr->chname);
       t += tlen;
       cur_len += tlen;
-      reply_to_send = YES;
+      reply_to_send = 1;
     }
   }
 
