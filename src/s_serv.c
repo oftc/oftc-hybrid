@@ -1135,7 +1135,7 @@ server_estab(struct Client *client_p)
   sendto_realops_flags(UMODE_ALL, L_OPER,
                        "Link with %s established: (%s) link",
                        inpath,show_capabilities(client_p));
-  ilog(L_NOTICE, "Link with %s established: (%s) link",
+  ilog(LOG_TYPE_IRCD, "Link with %s established: (%s) link",
        inpath_ip, show_capabilities(client_p));
 
   client_p->serv->sconf = conf;
@@ -1592,7 +1592,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   /* log */
   getnameinfo((struct sockaddr *)&aconf->ipnum, aconf->ipnum.ss_len,
               buf, sizeof(buf), NULL, 0, NI_NUMERICHOST);
-  ilog(L_NOTICE, "Connect to %s[%s] @%s", aconf->user, aconf->host,
+  ilog(LOG_TYPE_IRCD, "Connect to %s[%s] @%s", aconf->user, aconf->host,
        buf);
 
   /* Still processing a DNS lookup? -> exit */
@@ -1999,7 +1999,7 @@ cryptlink_error(struct Client *client_p, const char *type,
                        get_client_name(client_p, SHOW_IP), type, reason);
   sendto_realops_flags(UMODE_ALL, L_OPER,  "%s: CRYPTLINK %s error - %s",
                        get_client_name(client_p, MASK_IP), type, reason);
-  ilog(L_ERROR, "%s: CRYPTLINK %s error - %s",
+  ilog(LOG_TYPE_IRCD, "%s: CRYPTLINK %s error - %s",
        get_client_name(client_p, SHOW_IP), type, reason);
 
   /* If client_reason isn't NULL, then exit the client with the message

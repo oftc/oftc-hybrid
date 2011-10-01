@@ -469,14 +469,7 @@ struct admin_info
 struct logging_entry
 {
   unsigned int use_logging;
-  char operlog[PATH_MAX + 1];
-  char userlog[PATH_MAX + 1];
-  char glinelog[PATH_MAX + 1];
-  char ioerrlog[PATH_MAX + 1];
-  char klinelog[PATH_MAX + 1];
-  char killlog[PATH_MAX + 1];
-  char operspylog[PATH_MAX + 1];
-  char failed_operlog[PATH_MAX + 1];
+  unsigned int timestamp;
 };
 
 extern dlink_list gdeny_items;

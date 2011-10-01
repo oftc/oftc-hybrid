@@ -272,11 +272,10 @@ apply_tkline(struct Client *source_p, struct ConfItem *conf,
   sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. K-Line [%s@%s]",
 	     MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
 	     source_p->name, tkline_time/60, aconf->user, aconf->host);
-  ilog(L_TRACE, "%s added temporary %d min. K-Line for [%s@%s] [%s]",
+  ilog(LOG_TYPE_KLINE, "%s added temporary %d min. K-Line for [%s@%s] [%s]",
        source_p->name, tkline_time/60,
        aconf->user, aconf->host, aconf->reason);
-  log_oper_action(LOG_TEMP_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-		  aconf->user, aconf->host, aconf->reason);
+
   rehashed_klines = 1;
 }
 
@@ -387,7 +386,7 @@ mo_unkline(struct Client *client_p,struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the temporary K-Line for: [%s@%s]",
                          get_oper_name(source_p), user, host);
-    ilog(L_NOTICE, "%s removed temporary K-Line for [%s@%s]",
+    ilog(LOG_TYPE_KLINE, "%s removed temporary K-Line for [%s@%s]",
          source_p->name, user, host);
     return;
   }
@@ -399,7 +398,7 @@ mo_unkline(struct Client *client_p,struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the K-Line for: [%s@%s]",
                          get_oper_name(source_p), user, host);
-    ilog(L_NOTICE, "%s removed K-Line for [%s@%s]",
+    ilog(LOG_TYPE_KLINE, "%s removed K-Line for [%s@%s]",
          source_p->name, user, host);
   }
   else
@@ -445,7 +444,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
       sendto_realops_flags(UMODE_ALL, L_ALL,  
                            "%s has removed the temporary K-Line for: [%s@%s]",
                            get_oper_name(source_p), kuser, khost);
-      ilog(L_NOTICE, "%s removed temporary K-Line for [%s@%s]",
+      ilog(LOG_TYPE_KLINE, "%s removed temporary K-Line for [%s@%s]",
            source_p->name, kuser, khost);
       return;
     }
@@ -458,7 +457,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
                            "%s has removed the K-Line for: [%s@%s]",
                          get_oper_name(source_p), kuser, khost);
 
-      ilog(L_NOTICE, "%s removed K-Line for [%s@%s]",
+      ilog(LOG_TYPE_KLINE, "%s removed K-Line for [%s@%s]",
            source_p->name, kuser, khost);
     }
     else

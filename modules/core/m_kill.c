@@ -134,10 +134,8 @@ mo_kill(struct Client *client_p, struct Client *source_p,
 		       "Received KILL message for %s. From %s Path: %s (%s)", 
 		       target_p->name, source_p->name, me.name, reason);
 
-  ilog(L_INFO, "KILL From %s For %s Path %s (%s)",
+  ilog(LOG_TYPE_KILL, "KILL From %s For %s Path %s (%s)",
        source_p->name, target_p->name, me.name, reason);
-  log_oper_action(LOG_KILL_TYPE, source_p, "%s %s\n",
-		  me.name, reason);
 
   /*
    * And pass on the message to other servers. Note, that if KILL
@@ -264,7 +262,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
                          "Received KILL message for %s. From %s %s",
                          target_p->name, source_p->name, reason);
 
-  ilog(L_INFO,"KILL From %s For %s Path %s %s",
+  ilog(LOG_TYPE_KILL, "KILL From %s For %s Path %s %s",
        source_p->name, target_p->name, source_p->name, reason);
 
   relay_kill(client_p, source_p, target_p, path, reason);

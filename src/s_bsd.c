@@ -130,8 +130,7 @@ report_error(int level, const char* text, const char* who, int error)
   who = (who) ? who : "";
 
   sendto_realops_flags(UMODE_DEBUG, level, text, who, strerror(error));
-  log_oper_action(LOG_IOERR_TYPE, NULL, "%s %s %s\n", who, text, strerror(error));
-  ilog(L_ERROR, text, who, strerror(error));
+  ilog(LOG_TYPE_IRCD, text, who, strerror(error));
 }
 
 /*
@@ -338,7 +337,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
   {
     if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.server_ctx)) == NULL)
     {
-      ilog(L_CRIT, "SSL_new() ERROR! -- %s",
+      ilog(LOG_TYPE_IRCD, "SSL_new() ERROR! -- %s",
            ERR_error_string(ERR_get_error(), NULL));
 
       SetDead(new_client);

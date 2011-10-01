@@ -288,7 +288,7 @@ check_pings_list(dlink_list *list)
 	    sendto_realops_flags(UMODE_ALL, L_OPER,
 				 "No response from %s, closing link",
 				 get_client_name(client_p, MASK_IP));
-	    ilog(L_NOTICE, "No response from %s, closing link",
+	    ilog(LOG_TYPE_IRCD, "No response from %s, closing link",
 		 get_client_name(client_p, HIDE_IP));
 	  }
 
@@ -311,7 +311,7 @@ check_pings_list(dlink_list *list)
 	  sendto_realops_flags(UMODE_ALL, L_OPER,
 	                       "Warning, no response from %s in %d seconds",
 	                       get_client_name(client_p, MASK_IP), pingwarn);
-          ilog(L_NOTICE, "No response from %s in %d seconds",
+          ilog(LOG_TYPE_IRCD, "No response from %s in %d seconds",
 	       get_client_name(client_p, HIDE_IP), pingwarn);
         }
       }
@@ -899,6 +899,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
     }
     else if (IsClient(source_p))
     {
+      time_t on_for = CurrentTime - source_p->localClient->firsttime;
       assert(Count.local > 0);
       Count.local--;
 
@@ -923,10 +924,15 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
                            source_p->name,
 			   source_p->username,
 			   source_p->host,
-
                            ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                            "255.255.255.255" : source_p->sockhost,
 			   comment);
+      ilog(LOG_TYPE_USER, "%s (%3u:%02u:%02u): %s!%s@%s %llu/%llu",
+           myctime(source_p->localClient->firsttime), (unsigned int)(on_for / 3600),
+           (unsigned int)((on_for % 3600)/60), (unsigned int)(on_for % 60),
+           source_p->name, source_p->username, source_p->host,
+           source_p->localClient->send.bytes>>10,
+           source_p->localClient->recv.bytes>>10);
     }
 
     /* As soon as a client is known to be a server of some sort
@@ -950,8 +956,6 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
       if (IsServer(source_p))
         Count.myserver--;
     }
-
-    log_user_exit(source_p);
 
     if (!IsDead(source_p))
     {
@@ -1006,7 +1010,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
                            source_p->name, (int)(CurrentTime - source_p->localClient->firsttime),
                            source_p->localClient->send.bytes >> 10,
                            source_p->localClient->recv.bytes >> 10);
-      ilog(L_NOTICE, "%s was connected for %d seconds.  %llu/%llu sendK/recvK.",
+      ilog(LOG_TYPE_IRCD, "%s was connected for %d seconds.  %llu/%llu sendK/recvK.",
            source_p->name, (int)(CurrentTime - source_p->localClient->firsttime), 
            source_p->localClient->send.bytes >> 10,
            source_p->localClient->recv.bytes >> 10);
@@ -1089,7 +1093,7 @@ dead_link_on_read(struct Client *client_p, int error)
 			   "Server %s closed the connection",
 			   get_client_name(client_p, MASK_IP));
 
-      ilog(L_NOTICE, "Server %s closed the connection",
+      ilog(LOG_TYPE_IRCD, "Server %s closed the connection",
 	   get_client_name(client_p, SHOW_IP));
     }
     else

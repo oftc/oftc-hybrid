@@ -832,7 +832,7 @@ check_client(va_list args)
  
   /* I'm already in big trouble if source_p->localClient is NULL -db */
   if ((i = verify_access(source_p, username)))
-    ilog(L_INFO, "Access denied: %s[%s]", 
+    ilog(LOG_TYPE_IRCD, "Access denied: %s[%s]", 
          source_p->name, source_p->sockhost);
 
   switch (i)
@@ -842,7 +842,7 @@ check_client(va_list args)
                            "Too many on IP for %s (%s).",
 			   get_client_name(source_p, SHOW_IP),
 			   source_p->sockhost);
-      ilog(L_INFO,"Too many connections on IP from %s.",
+      ilog(LOG_TYPE_IRCD, "Too many connections on IP from %s.",
 	   get_client_name(source_p, SHOW_IP));
       ++ServerStats.is_ref;
       exit_client(source_p, &me, "No more connections allowed on that IP");
@@ -853,7 +853,7 @@ check_client(va_list args)
                            "I-line is full for %s (%s).",
 			   get_client_name(source_p, SHOW_IP),
 			   source_p->sockhost);
-      ilog(L_INFO,"Too many connections from %s.",
+      ilog(LOG_TYPE_IRCD, "Too many connections from %s.",
 	   get_client_name(source_p, SHOW_IP));
       ++ServerStats.is_ref;
       exit_client(source_p, &me, 
@@ -870,7 +870,7 @@ check_client(va_list args)
 			   source_p->sockhost,
 			   source_p->localClient->listener->name,
 			   source_p->localClient->listener->port);
-      ilog(L_INFO,
+      ilog(LOG_TYPE_IRCD,
 	  "Unauthorized client connection from %s on [%s/%u].",
 	  get_client_name(source_p, SHOW_IP),
 	  source_p->localClient->listener->name,
@@ -1800,9 +1800,9 @@ rehash(int sig)
   flush_deleted_I_P();
 
   rehashed_klines = 1;
-
+/* XXX */
   if (ConfigLoggingEntry.use_logging)
-    reopen_log(logFileName);
+    log_close_all();
 
   return(0);
 }
@@ -1849,16 +1849,10 @@ set_default_conf(void)
   AdminInfo.email = NULL;
   AdminInfo.description = NULL;
 
-  set_log_level(L_NOTICE);
+  log_close_all();
+
   ConfigLoggingEntry.use_logging = 1;
-  ConfigLoggingEntry.operlog[0] = '\0';
-  ConfigLoggingEntry.userlog[0] = '\0';
-  ConfigLoggingEntry.klinelog[0] = '\0';
-  ConfigLoggingEntry.glinelog[0] = '\0';
-  ConfigLoggingEntry.killlog[0] = '\0';
-  ConfigLoggingEntry.operspylog[0] = '\0';
-  ConfigLoggingEntry.ioerrlog[0] = '\0';
-  ConfigLoggingEntry.failed_operlog[0] = '\0';
+  ConfigLoggingEntry.timestamp = 1;
 
   ConfigChannel.disable_fake_channels = 0;
   ConfigChannel.restrict_channels = 0;
@@ -2022,7 +2016,7 @@ lookup_confhost(struct ConfItem *conf)
   if (EmptyString(aconf->host) ||
       EmptyString(aconf->user))
   {
-    ilog(L_ERROR, "Host/server name error: (%s) (%s)",
+    ilog(LOG_TYPE_IRCD, "Host/server name error: (%s) (%s)",
          aconf->host, conf->name);
     return;
   }
@@ -2461,7 +2455,7 @@ read_conf_files(int cold)
   {
     if (cold)
     {
-      ilog(L_CRIT, "Unable to read configuration file '%s': %s",
+      ilog(LOG_TYPE_IRCD, "Unable to read configuration file '%s': %s",
            filename, strerror(errno));
       exit(-1);
     }
@@ -2539,7 +2533,7 @@ parse_conf_file(int type, int cold)
   if ((file = fbopen(filename, "r")) == NULL)
   {
     if (cold)
-      ilog(L_ERROR, "Unable to read configuration file '%s': %s",
+      ilog(LOG_TYPE_IRCD, "Unable to read configuration file '%s': %s",
            filename, strerror(errno));
     else
       sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -3075,7 +3069,7 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
   if (!aconf->host || !conf->name)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Bad connect block");
-    ilog(L_WARN, "Bad connect block");
+    ilog(LOG_TYPE_IRCD, "Bad connect block");
     return -1;
   }
 
@@ -3083,7 +3077,7 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Bad connect block, name %s",
                          conf->name);
-    ilog(L_WARN, "Bad connect block, host %s", conf->name);
+    ilog(LOG_TYPE_IRCD, "Bad connect block, host %s", conf->name);
     return -1;
   }
 
@@ -3127,7 +3121,7 @@ yyerror(const char *msg)
   strip_tabs(newlinebuf, linebuf, sizeof(newlinebuf));
   sendto_realops_flags(UMODE_ALL, L_ALL, "\"%s\", line %u: %s: %s",
                        conffilebuf, lineno + 1, msg, newlinebuf);
-  ilog(L_WARN, "\"%s\", line %u: %s: %s",
+  ilog(LOG_TYPE_IRCD, "\"%s\", line %u: %s: %s",
        conffilebuf, lineno + 1, msg, newlinebuf);
 }
 

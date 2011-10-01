@@ -288,10 +288,8 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
 			 aconf->user, aconf->host, aconf->reason);
     sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
                from, to, aconf->user, aconf->host);
-    ilog(L_TRACE, "%s added K-Line for [%s@%s] [%s]",
+    ilog(LOG_TYPE_KLINE, "%s added K-Line for [%s@%s] [%s]",
          source_p->name, aconf->user, aconf->host, aconf->reason);
-    log_oper_action(LOG_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-		    aconf->user, aconf->host, aconf->reason);
     write_csv_line(out, "%s%s%s%s%s%s%d",
 		   aconf->user, aconf->host,
 		   aconf->reason, aconf->oper_reason, current_date,
@@ -306,10 +304,9 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
                          aconf->user, aconf->host, aconf->reason);
     sendto_one(source_p, ":%s NOTICE %s :Added RK-Line [%s@%s]",
                from, to, aconf->user, aconf->host);
-    ilog(L_TRACE, "%s added K-Line for [%s@%s] [%s]",
+    ilog(LOG_TYPE_IRCD, "%s added K-Line for [%s@%s] [%s]",
          source_p->name, aconf->user, aconf->host, aconf->reason);
-    log_oper_action(LOG_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-		    aconf->user, aconf->host, aconf->reason);
+
     write_csv_line(out, "%s%s%s%s%s%s%d",
                    aconf->user, aconf->host,
                    aconf->reason, aconf->oper_reason, current_date,
@@ -323,10 +320,8 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
                          get_oper_name(source_p), aconf->host, aconf->reason);
     sendto_one(source_p, ":%s NOTICE %s :Added D-Line [%s] to %s",
                from, to, aconf->host, filename);
-    ilog(L_TRACE, "%s added D-Line for [%s] [%s]",
+    ilog(LOG_TYPE_DLINE, "%s added D-Line for [%s] [%s]",
          get_oper_name(source_p), aconf->host, aconf->reason);
-    log_oper_action(LOG_DLINE_TYPE, source_p, "[%s] [%s]\n",
-		    aconf->host, aconf->reason);
     write_csv_line(out, "%s%s%s%s%s%d",
 		   aconf->host, aconf->reason, aconf->oper_reason, 
 		   current_date,
@@ -343,7 +338,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
 	       ":%s NOTICE %s :Added X-Line [%s] [%d] [%s] to %s",
                from, to, conf->name, 
 	       xconf->action, xconf->reason, filename);
-    ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
+    ilog(LOG_TYPE_IRCD, "%s added X-Line for [%s] [%s]",
          get_oper_name(source_p), conf->name, xconf->reason);
     write_csv_line(out, "%s%s%s%s%s%d",
 		   conf->name, xconf->reason, xconf->oper_reason,
@@ -360,7 +355,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
                ":%s NOTICE %s :Added RX-Line [%s] [%s] to %s",
                from, to, conf->name,
                xconf->reason, filename);
-    ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
+    ilog(LOG_TYPE_IRCD, "%s added X-Line for [%s] [%s]",
          get_oper_name(source_p), conf->name, xconf->reason);
     write_csv_line(out, "%s%s%s%s%s%d",
                    conf->name, xconf->reason, xconf->oper_reason,

@@ -72,7 +72,7 @@ struct server_info ServerInfo;
 struct admin_info AdminInfo = { NULL, NULL, NULL };
 struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 struct ServerState_t server_state = { 0 };
-struct logging_entry ConfigLoggingEntry = { 1, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} }; 
+struct logging_entry ConfigLoggingEntry = { 1 }; 
 struct ServerStatistics ServerStats;
 struct timeval SystemTime;
 struct Client me;             /* That's me */
@@ -178,7 +178,7 @@ set_time(void)
 
   if (gettimeofday(&newtime, NULL) == -1)
   {
-    ilog(L_ERROR, "Clock Failure (%s), TS can be corrupted",
+    ilog(LOG_TYPE_IRCD, "Clock Failure (%s), TS can be corrupted",
          strerror(errno));
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Clock Failure (%s), TS can be corrupted",
@@ -351,7 +351,7 @@ write_pidfile(const char *filename)
     size_t nbytes = snprintf(buff, sizeof(buff), "%u\n", pid);
 
     if ((fbputs(buff, fb, nbytes) == -1))
-      ilog(L_ERROR, "Error writing %u to pid file %s (%s)",
+      ilog(LOG_TYPE_IRCD, "Error writing %u to pid file %s (%s)",
            pid, filename, strerror(errno));
 
     fbclose(fb);
@@ -359,7 +359,7 @@ write_pidfile(const char *filename)
   }
   else
   {
-    ilog(L_ERROR, "Error opening pid file %s", filename);
+    ilog(LOG_TYPE_IRCD, "Error opening pid file %s", filename);
   }
 }
 
@@ -448,7 +448,7 @@ init_ssl(void)
 
     fprintf(stderr, "ERROR: Could not initialize the SSL context -- %s\n",
             s = ERR_lib_error_string(ERR_get_error()));
-    ilog(L_CRIT, "ERROR: Could not initialize the SSL context -- %s\n", s);
+    ilog(LOG_TYPE_IRCD, "ERROR: Could not initialize the SSL context -- %s\n", s);
   }
 
   SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv2);
@@ -546,7 +546,7 @@ main(int argc, char *argv[])
   eventInit();
   /* We need this to initialise the fd array before anything else */
   fdlist_init();
-  init_log(logFileName);
+  log_add_file(LOG_TYPE_IRCD, 0, logFileName);
   check_can_use_v6();
   init_comm();         /* This needs to be setup early ! -- adrian */
   /* Check if there is pidfile and daemon already running */
@@ -575,7 +575,7 @@ main(int argc, char *argv[])
 
   if (EmptyString(ServerInfo.sid))
   {
-    ilog(L_CRIT, "ERROR: No server id specified in serverinfo block.");
+    ilog(LOG_TYPE_IRCD, "ERROR: No server id specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
@@ -583,7 +583,7 @@ main(int argc, char *argv[])
 
   if (EmptyString(ServerInfo.name))
   {
-    ilog(L_CRIT, "ERROR: No server name specified in serverinfo block.");
+    ilog(LOG_TYPE_IRCD, "ERROR: No server name specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
@@ -592,7 +592,7 @@ main(int argc, char *argv[])
   /* serverinfo{} description must exist.  If not, error out.*/
   if (EmptyString(ServerInfo.description))
   {
-    ilog(L_CRIT, "ERROR: No server description specified in serverinfo block.");
+    ilog(LOG_TYPE_IRCD, "ERROR: No server description specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
@@ -615,7 +615,7 @@ main(int argc, char *argv[])
 
   if (chdir(MODPATH))
   {
-    ilog(L_CRIT, "Could not load core modules. Terminating!");
+    ilog(LOG_TYPE_IRCD, "Could not load core modules. Terminating!");
     exit(EXIT_FAILURE);
   }
 
@@ -638,7 +638,7 @@ main(int argc, char *argv[])
 
   write_pidfile(pidFileName);
 
-  ilog(L_NOTICE, "Server Ready");
+  ilog(LOG_TYPE_IRCD, "Server Ready");
 
   eventAddIsh("cleanup_glines", cleanup_glines, NULL, CLEANUP_GLINES_TIME);
   eventAddIsh("cleanup_tklines", cleanup_tklines, NULL, CLEANUP_TKLINES_TIME);

@@ -128,7 +128,7 @@ unload_one_module(const char *name, int warn)
 
   if (warn == 1)
   {
-    ilog(L_INFO, "Module %s unloaded", name);
+    ilog(LOG_TYPE_IRCD, "Module %s unloaded", name);
     sendto_realops_flags(UMODE_ALL, L_ALL, "Module %s unloaded", name);
   }
 
@@ -156,7 +156,7 @@ load_a_module(const char *path, int warn, int core)
 
     sendto_realops_flags(UMODE_ALL, L_ALL, "Error loading module %s: %s",
                          mod_basename, err);
-    ilog(L_WARN, "Error loading module %s: %s", mod_basename, err);
+    ilog(LOG_TYPE_IRCD, "Error loading module %s: %s", mod_basename, err);
     return -1;
   }
 
@@ -164,7 +164,7 @@ load_a_module(const char *path, int warn, int core)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Module %s has no module_entry export",
                          mod_basename);
-    ilog(L_WARN, "Module %s has no module_entry export", mod_basename);
+    ilog(LOG_TYPE_IRCD, "Module %s has no module_entry export", mod_basename);
     lt_dlclose(tmpptr);
     return -1;
   }
@@ -188,7 +188,7 @@ load_a_module(const char *path, int warn, int core)
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Module %s [version: %s handle: %p] loaded.",
                          modp->name, modp->version, tmpptr);
-    ilog(L_WARN, "Module %s [version: %s handle: %p] loaded.",
+    ilog(LOG_TYPE_IRCD, "Module %s [version: %s handle: %p] loaded.",
          modp->name, modp->version, tmpptr);
   }
 
@@ -207,7 +207,7 @@ modules_init(void)
 {
   if (lt_dlinit())
   {
-    ilog(L_ERROR, "Couldn't initialize the libltdl run time dynamic"
+    ilog(LOG_TYPE_IRCD, "Couldn't initialize the libltdl run time dynamic"
          " link library. Exiting.");
     exit(0);
   }
@@ -347,7 +347,7 @@ load_all_modules(int warn)
 
   if ((system_module_dir = opendir(AUTOMODPATH)) == NULL)
   {
-    ilog(L_WARN, "Could not load modules from %s: %s",
+    ilog(LOG_TYPE_IRCD, "Could not load modules from %s: %s",
          AUTOMODPATH, strerror(errno));
     return;
   }
@@ -405,7 +405,7 @@ load_core_modules(int warn)
 
     if (load_a_module(module_name, warn, 1) == -1)
     {
-      ilog(L_CRIT, "Error loading core module %s: terminating ircd",
+      ilog(LOG_TYPE_IRCD, "Error loading core module %s: terminating ircd",
            core_module_table[i]);
       exit(EXIT_FAILURE);
     }
@@ -451,7 +451,7 @@ load_one_module(const char *path, int coremodule)
 
   sendto_realops_flags(UMODE_ALL, L_ALL,
                        "Cannot locate module %s", path);
-  ilog(L_WARN, "Cannot locate module %s", path);
+  ilog(LOG_TYPE_IRCD, "Cannot locate module %s", path);
   return -1;
 }
 
@@ -558,7 +558,7 @@ mo_modreload(struct Client *client_p, struct Client *source_p,
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Error reloading core "
                          "module: %s: terminating ircd", parv[1]);
-    ilog(L_CRIT, "Error loading core module %s: terminating ircd", parv[1]);
+    ilog(LOG_TYPE_IRCD, "Error loading core module %s: terminating ircd", parv[1]);
     exit(0);
   }
 }
@@ -624,8 +624,8 @@ mo_modrestart(struct Client *client_p, struct Client *source_p,
   load_core_modules(0);
 
   sendto_realops_flags(UMODE_ALL, L_ALL,
-              "Module Restart: %u modules unloaded, %u modules loaded",
+                      "Module Restart: %u modules unloaded, %u modules loaded",
 			modnum, dlink_list_length(&modules_list));
-  ilog(L_WARN, "Module Restart: %u modules unloaded, %u modules loaded",
+  ilog(LOG_TYPE_IRCD, "Module Restart: %u modules unloaded, %u modules loaded",
        modnum, dlink_list_length(&modules_list));
 }

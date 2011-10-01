@@ -65,7 +65,7 @@ init_netio(void)
 
   if ((fd = kqueue()) < 0)
   {
-    ilog(L_CRIT, "init_netio: Couldn't open kqueue fd!");
+    ilog(LOG_TYPE_IRCD, "init_netio: Couldn't open kqueue fd!");
     exit(115); /* Whee! */
   }
 

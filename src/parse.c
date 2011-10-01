@@ -340,7 +340,7 @@ handle_command(struct Message *mptr, struct Client *client_p,
                            "Dropping server %s due to (invalid) command '%s' "
                            "with only %d arguments (expecting %d).",
                            client_p->name, mptr->cmd, i, mptr->args_min);
-      ilog(L_CRIT, "Insufficient parameters (%d) for command '%s' from %s.",
+      ilog(LOG_TYPE_IRCD, "Insufficient parameters (%d) for command '%s' from %s.",
            i, mptr->cmd, client_p->name);
       exit_client(client_p, client_p,
                   "Not enough arguments to server command.");
@@ -820,7 +820,7 @@ rfc1459_command_send_error(struct Client *client_p, struct Client *source_p,
 
   in_para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
 
-  ilog(L_ERROR, "Received ERROR message from %s: %s",
+  ilog(LOG_TYPE_IRCD, "Received ERROR message from %s: %s",
        source_p->name, in_para);
 
   if (client_p == source_p)

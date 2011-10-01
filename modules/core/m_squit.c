@@ -102,7 +102,7 @@ mo_squit(struct Client *client_p, struct Client *source_p,
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Received SQUIT %s from %s (%s)",
                          target_p->name, get_client_name(source_p, HIDE_IP), comment);
-    ilog(L_NOTICE, "Received SQUIT %s from %s (%s)",
+    ilog(LOG_TYPE_IRCD, "Received SQUIT %s from %s (%s)",
          target_p->name, get_client_name(source_p, HIDE_IP), comment);
   }
 
@@ -153,7 +153,7 @@ ms_squit(struct Client *client_p, struct Client *source_p,
     sendto_server(NULL, NULL, NOCAPS, CAP_TS6,
                   ":%s WALLOPS :Remote SQUIT %s from %s (%s)",
                   me.name, target_p->name, source_p->name, comment);
-    ilog(L_TRACE, "SQUIT From %s : %s (%s)", source_p->name,
+    ilog(LOG_TYPE_IRCD, "SQUIT From %s : %s (%s)", source_p->name,
          target_p->name, comment);
 
    }

@@ -249,7 +249,7 @@ start_auth_query(struct AuthRequest *auth)
   {
     report_error(L_ALL, "creating auth stream socket %s:%s", 
         get_client_name(auth->client, SHOW_IP), errno);
-    ilog(L_ERROR, "Unable to create auth socket for %s",
+    ilog(LOG_TYPE_IRCD, "Unable to create auth socket for %s",
         get_client_name(auth->client, SHOW_IP));
     ++ServerStats.is_abad;
     return 0;
@@ -418,7 +418,7 @@ timeout_auth_queries_event(void *notused)
       sendheader(auth->client, REPORT_FAIL_DNS);
     }
 
-    ilog(L_INFO, "DNS/AUTH timeout %s",
+    ilog(LOG_TYPE_IRCD, "DNS/AUTH timeout %s",
          get_client_name(auth->client, SHOW_IP));
     release_auth_client(auth);
   }
@@ -462,7 +462,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
       getpeername(auth->client->localClient->fd.fd, (struct sockaddr *)&them,
       &tlen))
   {
-    ilog(L_INFO, "auth get{sock,peer}name error for %s",
+    ilog(LOG_TYPE_IRCD, "auth get{sock,peer}name error for %s",
         get_client_name(auth->client, SHOW_IP));
     auth_error(auth);
     return;

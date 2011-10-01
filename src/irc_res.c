@@ -679,7 +679,7 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
          * but its possible its just a broken nameserver with still
          * valid answers. But lets do some rudimentary logging for now...
          */
-        ilog(L_ERROR, "irc_res.c bogus type %d", type);
+        ilog(LOG_TYPE_IRCD, "irc_res.c bogus type %d", type);
         break;
     }
   }

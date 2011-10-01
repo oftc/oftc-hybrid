@@ -77,7 +77,7 @@ server_die(const char *mesg, int rboot)
     sendto_one(target_p, ":%s ERROR :%s", me.name, buffer);
   }
 
-  ilog(L_NOTICE, buffer);
+  ilog(LOG_TYPE_IRCD, buffer);
 
   send_queued_all();
   close_fds(NULL);

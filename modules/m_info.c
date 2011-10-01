@@ -90,36 +90,6 @@ static const struct InfoStruct info_table[] =
     "Enable logging"
   },
   {
-    "fuserlog",
-    OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.userlog,
-    "User log file"
-  },
-  {
-    "foperlog",
-    OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.operlog,
-    "Operator log file"
-  },
-  {
-    "fkilllog",
-    OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.killlog,
-    "Kill log file"
-  },
-  {
-    "fklinelog",
-    OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.klinelog,
-    "K-Line log file"
-  },
-  {
-    "fglinelog",
-    OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.glinelog,
-    "G-Line log file"
-  },
-  {
     "restrict_channels",
     OUTPUT_BOOLEAN_YN,
     &ConfigChannel.restrict_channels,

@@ -240,12 +240,12 @@ save_spare_fd(const char *spare_purpose)
 
   if (spare_fd < 0)
   {
-    ilog(L_NOTICE, "Failed to reserve low fd for %s - open failed", spare_purpose);
+    ilog(LOG_TYPE_IRCD, "Failed to reserve low fd for %s - open failed", spare_purpose);
     return -1;
   }
   else if (spare_fd > 255)
   {
-    ilog(L_NOTICE, "Failed to reserve low fd for %s - too high", spare_purpose);
+    ilog(LOG_TYPE_IRCD, "Failed to reserve low fd for %s - too high", spare_purpose);
     close(spare_fd);
     return -1;
   }

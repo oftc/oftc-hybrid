@@ -70,10 +70,9 @@ apply_tdline(struct Client *source_p, struct ConfItem *conf,
   sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. D-Line [%s]",
 	     MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
              source_p->name, tkline_time/60, aconf->host);
-  ilog(L_TRACE, "%s added temporary %d min. D-Line for [%s] [%s]",
+  ilog(LOG_TYPE_DLINE, "%s added temporary %d min. D-Line for [%s] [%s]",
        source_p->name, tkline_time/60, aconf->host, aconf->reason);
-  log_oper_action(LOG_TEMP_DLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-		  aconf->user, aconf->host, aconf->reason);
+
   rehashed_klines = 1;
 }
 
@@ -282,7 +281,7 @@ mo_undline(struct Client *client_p, struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the temporary D-Line for: [%s]",
                          get_oper_name(source_p), cidr);
-    ilog(L_NOTICE, "%s removed temporary D-Line for [%s]", source_p->name, cidr);
+    ilog(LOG_TYPE_DLINE, "%s removed temporary D-Line for [%s]", source_p->name, cidr);
     return;
   }
 
@@ -293,7 +292,7 @@ mo_undline(struct Client *client_p, struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL,
 			 "%s has removed the D-Line for: [%s]",
 			 get_oper_name(source_p), cidr);
-    ilog(L_NOTICE, "%s removed D-Line for [%s]",
+    ilog(LOG_TYPE_DLINE, "%s removed D-Line for [%s]",
          get_oper_name(source_p), cidr);
   }
   else

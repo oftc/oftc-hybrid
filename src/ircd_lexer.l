@@ -85,7 +85,7 @@ include   \.include{WS}(\<.*\>|\".*\")
 		    {
 		      yylval.string = yytext+1;
 		      if(yylval.string[yyleng-2] != '"')
-			ilog(L_ERROR, "Unterminated character string");
+			ilog(LOG_TYPE_IRCD, "Unterminated character string");
 		      else
 			{
 			  int i,j;
@@ -108,7 +108,7 @@ include   \.include{WS}(\<.*\>|\".*\")
 								 * happen
 								 */
 				    {
-				      ilog(L_ERROR,
+				      ilog(LOG_TYPE_IRCD,
 					   "Unterminated character string");
 				      break;
 				    }
@@ -168,21 +168,9 @@ enable		{ return ENABLE; }
 encrypted       { return ENCRYPTED; }
 exceed_limit    { return EXCEED_LIMIT; }
 exempt		{ return EXEMPT; }
+file            { return T_FILE; }
 flags           { return IRCD_FLAGS; }
 flatten_links	{ return FLATTEN_LINKS; }
-fglinelog 	{ return FGLINELOG; }
-fname_glinelog  { return FGLINELOG; }
-fkilllog	{ return FKILLLOG; }
-fioerrlog	{ return FIOERRLOG; }
-fname_ioerrlog	{ return FIOERRLOG; }
-fname_killlog	{ return FKILLLOG; }
-fklinelog	{ return FKLINELOG; }
-fname_klinelog	{ return FKLINELOG; }
-ffailed_operlog	{ return FFAILED_OPERLOG; }
-fname_operlog	{ return FOPERLOG; }
-foperlog   	{ return FOPERLOG; }
-fname_userlog	{ return FUSERLOG; }
-fuserlog   	{ return FUSERLOG; }
 gecos		{ return GECOS; }
 general		{ return GENERAL; }
 gline		{ return GLINE; }
@@ -216,19 +204,9 @@ kill		{ return KILL; }
 kill_chase_time_limit { return KILL_CHASE_TIME_LIMIT; }
 kline		{ return KLINE; }
 kline_exempt	{ return KLINE_EXEMPT; }
-l_crit		{ return T_L_CRIT; }
-l_debug		{ return T_L_DEBUG; }
-l_error		{ return T_L_ERROR; }
-l_info		{ return T_L_INFO; }
-l_notice 	{ return T_L_NOTICE; }
-l_trace		{ return T_L_TRACE; }
-l_warn		{ return T_L_WARN; }
 leaf_mask	{ return LEAF_MASK; }
 listen		{ return LISTEN; }
-log_level	{ return LOG_LEVEL; }
-log		{ return LOGGING; }
-logging         { return LOGGING; }
-logpath         { return T_LOGPATH; }
+log		{ return T_LOG; }
 masked		{ return TMASKED; }
 max_clients     { return T_MAX_CLIENTS; }
 max_ident	{ return MAX_IDENT; }
@@ -253,7 +231,6 @@ no_tilde	{ return NO_TILDE; }
 number_per_cidr	{ return NUMBER_PER_CIDR; }
 number_per_ip	{ return NUMBER_PER_IP; }
 oper		{ return OPERATOR; }
-oper_log        { return OPER_LOG; }
 oper_pass_resv	{ return OPER_PASS_RESV; }
 operator	{ return OPERATOR; }
 passwd		{ return PASSWORD; }
@@ -296,8 +273,10 @@ shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }
 sid		{ return IRCD_SID; }
 silent          { return SILENT; }
+size            { return T_SIZE; }
 spoof		{ return SPOOF; }
 spoof_notice	{ return SPOOF_NOTICE; }
+timestamp       { return T_TIMESTAMP; }
 tkline_expire_notices { return TKLINE_EXPIRE_NOTICES; }
 type		{ return TYPE; }
 true_no_oper_flood { return TRUE_NO_OPER_FLOOD; }
@@ -469,7 +448,7 @@ cinclude(void)
 
   /* do stacking and co. */ 
   if (include_stack_ptr >= MAX_INCLUDE_DEPTH)
-    ilog(L_ERROR, "Includes nested too deep in %s", p);
+    ilog(LOG_TYPE_IRCD, "Includes nested too deep in %s", p);
   else
   {
     FBFILE *tmp_fbfile_in = NULL;
@@ -484,7 +463,7 @@ cinclude(void)
     
     if (tmp_fbfile_in == NULL)
     {
-      ilog(L_ERROR, "Unable to read configuration file '%s': %s",
+      ilog(LOG_TYPE_IRCD, "Unable to read configuration file '%s': %s",
            filenamebuf, strerror(errno));
       return;
     }

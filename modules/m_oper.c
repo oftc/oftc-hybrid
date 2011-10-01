@@ -82,6 +82,10 @@ failed_oper_notice(struct Client *source_p, const char *name,
     sendto_realops_flags(UMODE_ALL, L_ALL, "Failed OPER attempt as %s "
                          "by %s (%s@%s) - %s", name, source_p->name,
                          source_p->username, source_p->host, reason);
+
+  ilog(LOG_TYPE_OPER, "Failed OPER attempt as %s "
+       "by %s (%s@%s) - %s", name, source_p->name,
+       source_p->username, source_p->host, reason);
 }
 
 /*
@@ -116,7 +120,6 @@ m_oper(struct Client *client_p, struct Client *source_p,
     conf = find_exact_name_conf(OPER_TYPE, name, NULL, NULL);
     failed_oper_notice(source_p, name, (conf != NULL) ?
                        "host mismatch" : "no oper {} block");
-    log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", name);
     return;
   }
 
@@ -129,21 +132,18 @@ m_oper(struct Client *client_p, struct Client *source_p,
       sendto_one(source_p, ":%s NOTICE %s :Can't attach conf!",
                  me.name, source_p->name);
       failed_oper_notice(source_p, name, "can't attach conf!");
-      log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", name);
       return;
     }
 
     oper_up(source_p);
 
-    ilog(L_TRACE, "OPER %s by %s!%s@%s",
+    ilog(LOG_TYPE_OPER, "OPER %s by %s!%s@%s",
          name, source_p->name, source_p->username, source_p->host);
-    log_oper_action(LOG_OPER_TYPE, source_p, "%s\n", name);
   }
   else
   {
     sendto_one(source_p, form_str(ERR_PASSWDMISMATCH), me.name, source_p->name);
     failed_oper_notice(source_p, name, "password mismatch");
-    log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", name);
   }
 }
 
