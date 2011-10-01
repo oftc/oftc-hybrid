@@ -379,7 +379,7 @@ log {
 	file {
 		type = oper;
 		name = "/home/ircd/var/log/oper.log";
-		size = 50 megabytes;
+		size = unlimited;
 	};
 
 	file {
