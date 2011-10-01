@@ -32,6 +32,7 @@
 #include "s_misc.h"
 #include "s_conf.h"
 #include "memory.h"
+#include "send.h"
 
 /* some older syslogs would overflow at 2024 */
 #define LOG_BUFSIZE 2000
@@ -48,10 +49,9 @@ log_add_file(unsigned int type, size_t size, const char *path)
 {
   if (log_type_table[type].file)
     fbclose(log_type_table[type].file);
-  else
-    log_type_table[type].file = MyMalloc(sizeof(FBFILE));
 
   strlcpy(log_type_table[type].path, path, sizeof(log_type_table[type].path));
+  log_type_table[type].size = size;
 
   return (log_type_table[type].file = fbopen(path, "a")) != NULL;
 }
@@ -67,9 +67,24 @@ log_close_all(void)
       continue;
 
     fbclose(log_type_table[type].file);
-    MyFree(log_type_table[type].file);
+    log_type_table[type].file = NULL;
   }
 }
+
+static int
+log_exceed_size(unsigned int type)
+{
+  struct stat sb;
+
+  if (!log_type_table[type].size)
+    return 0;
+
+  if (stat(log_type_table[type].path, &sb) < 0)
+    return -1;
+
+  return (size_t)sb.st_size > log_type_table[type].size;
+}
+
 
 static void 
 write_log(unsigned int type, const char *message)
@@ -101,7 +116,25 @@ ilog(unsigned int type, const char *fmt, ...)
   va_start(args, fmt);
   vsnprintf(buf, sizeof(buf), fmt, args);
   va_end(args);
-  write_log(type, buf);
+
+  if (ConfigLoggingEntry.use_logging)
+  {
+    write_log(type, buf);
+
+    if (log_exceed_size(type) <= 0)
+      return;
+
+    snprintf(buf, sizeof(buf), "Rotating logfile %s",
+             log_type_table[type].path);
+    write_log(type, buf);
+    fbclose(log_type_table[type].file);
+    log_type_table[type].file = NULL;
+
+    snprintf(buf, sizeof(buf), "%s.old", log_type_table[type].path);
+    unlink(buf);
+    rename(log_type_table[type].path, buf);
+    log_add_file(type, log_type_table[type].size, log_type_table[type].path);
+  }
 } 
 
 void
