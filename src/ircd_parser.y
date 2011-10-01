@@ -339,6 +339,7 @@ unhook_hub_leaf_confs(void)
 %token  T_SSL
 %token  T_UMODES
 %token  T_UNAUTH
+%token  T_UNLIMITED
 %token  T_UNRESV
 %token  T_UNXLINE
 %token  T_GLOBOPS
@@ -836,6 +837,9 @@ logging_file_name: NAME '=' QSTRING ';'
 logging_file_size: T_SIZE '=' sizespec ';'
 {
   lsize = $3;
+} | T_SIZE '=' T_UNLIMITED ';'
+{
+  lsize = 0;
 };
 
 logging_file_type: TYPE

@@ -160,6 +160,7 @@ disable_fake_channels { return DISABLE_FAKE_CHANNELS; }
 disable_hidden	{ return DISABLE_HIDDEN; }
 disable_local_channels { return DISABLE_LOCAL_CHANNELS; }
 disable_remote_commands	{ return DISABLE_REMOTE_COMMANDS; }
+dline           { return T_DLINE; }
 dots_in_ident   { return DOTS_IN_IDENT; }
 duration	{ return DURATION; }
 egdpool_path        { return EGDPOOL_PATH; }
@@ -282,6 +283,7 @@ type		{ return TYPE; }
 true_no_oper_flood { return TRUE_NO_OPER_FLOOD; }
 umodes          { return T_UMODES; }
 unkline		{ return UNKLINE; }
+unlimited       { return T_UNLIMITED; }
 use_egd 	{ return USE_EGD; }
 use_except	{ return USE_EXCEPT; }
 use_invex	{ return USE_INVEX; }

@@ -250,35 +250,36 @@
      T_SSL = 468,
      T_UMODES = 469,
      T_UNAUTH = 470,
-     T_UNRESV = 471,
-     T_UNXLINE = 472,
-     T_GLOBOPS = 473,
-     T_WALLOP = 474,
-     T_RESTART = 475,
-     T_SERVICE = 476,
-     T_SERVICES_NAME = 477,
-     T_TIMESTAMP = 478,
-     THROTTLE_TIME = 479,
-     TOPICBURST = 480,
-     TRUE_NO_OPER_FLOOD = 481,
-     TKLINE = 482,
-     TXLINE = 483,
-     TRESV = 484,
-     UNKLINE = 485,
-     USER = 486,
-     USE_EGD = 487,
-     USE_EXCEPT = 488,
-     USE_INVEX = 489,
-     USE_KNOCK = 490,
-     USE_LOGGING = 491,
-     USE_WHOIS_ACTUALLY = 492,
-     VHOST = 493,
-     VHOST6 = 494,
-     XLINE = 495,
-     WARN = 496,
-     WARN_NO_NLINE = 497,
-     T_SIZE = 498,
-     T_FILE = 499
+     T_UNLIMITED = 471,
+     T_UNRESV = 472,
+     T_UNXLINE = 473,
+     T_GLOBOPS = 474,
+     T_WALLOP = 475,
+     T_RESTART = 476,
+     T_SERVICE = 477,
+     T_SERVICES_NAME = 478,
+     T_TIMESTAMP = 479,
+     THROTTLE_TIME = 480,
+     TOPICBURST = 481,
+     TRUE_NO_OPER_FLOOD = 482,
+     TKLINE = 483,
+     TXLINE = 484,
+     TRESV = 485,
+     UNKLINE = 486,
+     USER = 487,
+     USE_EGD = 488,
+     USE_EXCEPT = 489,
+     USE_INVEX = 490,
+     USE_KNOCK = 491,
+     USE_LOGGING = 492,
+     USE_WHOIS_ACTUALLY = 493,
+     VHOST = 494,
+     VHOST6 = 495,
+     XLINE = 496,
+     WARN = 497,
+     WARN_NO_NLINE = 498,
+     T_SIZE = 499,
+     T_FILE = 500
    };
 #endif
 /* Tokens.  */
@@ -495,35 +496,36 @@
 #define T_SSL 468
 #define T_UMODES 469
 #define T_UNAUTH 470
-#define T_UNRESV 471
-#define T_UNXLINE 472
-#define T_GLOBOPS 473
-#define T_WALLOP 474
-#define T_RESTART 475
-#define T_SERVICE 476
-#define T_SERVICES_NAME 477
-#define T_TIMESTAMP 478
-#define THROTTLE_TIME 479
-#define TOPICBURST 480
-#define TRUE_NO_OPER_FLOOD 481
-#define TKLINE 482
-#define TXLINE 483
-#define TRESV 484
-#define UNKLINE 485
-#define USER 486
-#define USE_EGD 487
-#define USE_EXCEPT 488
-#define USE_INVEX 489
-#define USE_KNOCK 490
-#define USE_LOGGING 491
-#define USE_WHOIS_ACTUALLY 492
-#define VHOST 493
-#define VHOST6 494
-#define XLINE 495
-#define WARN 496
-#define WARN_NO_NLINE 497
-#define T_SIZE 498
-#define T_FILE 499
+#define T_UNLIMITED 471
+#define T_UNRESV 472
+#define T_UNXLINE 473
+#define T_GLOBOPS 474
+#define T_WALLOP 475
+#define T_RESTART 476
+#define T_SERVICE 477
+#define T_SERVICES_NAME 478
+#define T_TIMESTAMP 479
+#define THROTTLE_TIME 480
+#define TOPICBURST 481
+#define TRUE_NO_OPER_FLOOD 482
+#define TKLINE 483
+#define TXLINE 484
+#define TRESV 485
+#define UNKLINE 486
+#define USER 487
+#define USE_EGD 488
+#define USE_EXCEPT 489
+#define USE_INVEX 490
+#define USE_KNOCK 491
+#define USE_LOGGING 492
+#define USE_WHOIS_ACTUALLY 493
+#define VHOST 494
+#define VHOST6 495
+#define XLINE 496
+#define WARN 497
+#define WARN_NO_NLINE 498
+#define T_SIZE 499
+#define T_FILE 500
 
 
 
@@ -541,7 +543,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 545 "ircd_parser.h"
+#line 547 "ircd_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
