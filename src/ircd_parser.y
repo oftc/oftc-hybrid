@@ -818,7 +818,7 @@ logging_file_entry:
   lsize = 0;
 } T_FILE  '{' logging_file_items '}' ';'
 {
-  if (conf_parser_ctx.pass == 2)
+  if (conf_parser_ctx.pass == 2 && ltype > 0)
     log_add_file(ltype, lsize, lfile);
 };
 
