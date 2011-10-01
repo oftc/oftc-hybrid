@@ -56,7 +56,7 @@ init_netio(void)
 
   if ((fd = open("/dev/poll", O_RDWR)) < 0)
   {
-    ilog(L_CRIT, "init_netio: Couldn't open /dev/poll - %d: %s",
+    ilog(LOG_TYPE_IRCD, "init_netio: Couldn't open /dev/poll - %d: %s",
          errno, strerror(errno));
     exit(115); /* Whee! */
   }
@@ -82,7 +82,7 @@ devpoll_write_update(int fd, int events)
 
   /* Write the thing to our poll fd */
   if (write(dpfd.fd, &pfd, sizeof(pfd)) != sizeof(pfd))
-    ilog(L_NOTICE, "devpoll_write_update: dpfd write failed %d: %s",
+    ilog(LOG_TYPE_IRCD, "devpoll_write_update: dpfd write failed %d: %s",
          errno, strerror(errno));
 }
 

@@ -1127,7 +1127,7 @@ ts_warn(const char *pattern, ...)
   va_end(args);
 
   sendto_realops_flags(UMODE_ALL, L_ALL, "%s", buffer);
-  ilog(L_CRIT, "%s", buffer);
+  ilog(LOG_TYPE_IRCD, "%s", buffer);
 }
 
 /* kill_client()

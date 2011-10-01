@@ -25,40 +25,19 @@
 #ifndef INCLUDED_s_log_h
 #define INCLUDED_s_log_h
 
-struct Client;
+#define LOG_TYPE_IRCD  0
+#define LOG_TYPE_KILL  1
+#define LOG_TYPE_KLINE 2
+#define LOG_TYPE_DLINE 3
+#define LOG_TYPE_GLINE 4
+#define LOG_TYPE_OPER  5
+#define LOG_TYPE_USER  6
+#define LOG_TYPE_DEBUG 7
+#define LOG_TYPE_LAST  8
 
-#define L_CRIT   0
-#define L_ERROR  1
-#define L_WARN   2
-#define L_NOTICE 3
-#define L_TRACE  4
-#define L_INFO   5
-#define L_DEBUG  6
-
-extern void init_log(const char *);
-extern void reopen_log(const char *);
-extern void set_log_level(const int);
-extern int get_log_level(void);
-extern void ilog(const int, const char *, ...);
-extern const char *get_log_level_as_string(int);
-extern void log_user_exit(struct Client *);
-extern void log_oper_action(int type, const struct Client *, const char *, ...);
 extern void oftc_log(char *, ...);
-
-
-enum {
-  LOG_OPER_TYPE,
-  LOG_FAILED_OPER_TYPE,
-  LOG_KLINE_TYPE,
-  LOG_TEMP_KLINE_TYPE,
-  LOG_RKLINE_TYPE,
-  LOG_TEMP_RKLINE_TYPE,
-  LOG_DLINE_TYPE,
-  LOG_TEMP_DLINE_TYPE,
-  LOG_GLINE_TYPE,
-  LOG_KILL_TYPE,
-  LOG_OPERSPY_TYPE,
-  LOG_IOERR_TYPE
-};
+extern int log_add_file(unsigned int, size_t, const char *);
+extern void log_close_all(void);
+extern void ilog(unsigned int, const char *, ...);
 
 #endif /* INCLUDED_s_log_h */

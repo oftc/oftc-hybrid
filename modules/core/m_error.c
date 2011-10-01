@@ -46,7 +46,7 @@ m_error(struct Client *client_p, struct Client *source_p,
 
   para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
 
-  ilog(L_ERROR, "Received ERROR message from %s: %s",
+  ilog(LOG_TYPE_IRCD, "Received ERROR message from %s: %s",
        source_p->name, para);
 
   if (client_p == source_p)
@@ -76,7 +76,7 @@ ms_error(struct Client *client_p, struct Client *source_p,
 
   para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
 
-  ilog(L_ERROR, "Received ERROR message from %s: %s",
+  ilog(LOG_TYPE_IRCD, "Received ERROR message from %s: %s",
        source_p->name, para);
 
   if (client_p == source_p)

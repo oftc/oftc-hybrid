@@ -138,7 +138,7 @@ mo_connect(struct Client *client_p, struct Client *source_p,
   /*
    * Notify all operators about remote connect requests
    */
-  ilog(L_TRACE, "CONNECT From %s : %s %s", 
+  ilog(LOG_TYPE_IRCD, "CONNECT From %s : %s %s", 
        source_p->name, parv[1], parv[2] ? parv[2] : "");
 
   aconf->port = port;
@@ -266,7 +266,7 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   sendto_realops_flags(UMODE_ALL, L_ALL, NULL, "Remote CONNECT %s %d from %s",
                        parv[1], port, get_client_name(source_p, SHOW_IP));
 
-  ilog(L_TRACE, "CONNECT From %s : %s %d", 
+  ilog(LOG_TYPE_IRCD, "CONNECT From %s : %s %d", 
        source_p->name, parv[1], port);
 
   aconf->port = port;

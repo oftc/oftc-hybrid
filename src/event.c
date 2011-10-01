@@ -96,7 +96,7 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
     }
   }
   /* XXX if reach here, its an error */
-  ilog(L_ERROR, "Event table is full! (%d)", i);
+  ilog(LOG_TYPE_IRCD, "Event table is full! (%d)", i);
 }
 
 /*

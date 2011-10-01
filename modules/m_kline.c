@@ -356,7 +356,7 @@ mo_unkline(struct Client *client_p,struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the temporary K-Line for: [%s@%s]",
                          get_oper_name(source_p), user, host);
-    ilog(L_NOTICE, "%s removed temporary K-Line for [%s@%s]",
+    ilog(LOG_TYPE_KLINE, "%s removed temporary K-Line for [%s@%s]",
          source_p->name, user, host);
     remove_conf_line(KLINE_TYPE, source_p, user, host);
     return;
@@ -369,7 +369,7 @@ mo_unkline(struct Client *client_p,struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the K-Line for: [%s@%s]",
                          get_oper_name(source_p), user, host);
-    ilog(L_NOTICE, "%s removed K-Line for [%s@%s]",
+    ilog(LOG_TYPE_KLINE, "%s removed K-Line for [%s@%s]",
          source_p->name, user, host);
   }
   else
@@ -415,7 +415,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
       sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s has removed the temporary K-Line for: [%s@%s]",
                            get_oper_name(source_p), kuser, khost);
-      ilog(L_NOTICE, "%s removed temporary K-Line for [%s@%s]",
+      ilog(LOG_TYPE_KLINE, "%s removed temporary K-Line for [%s@%s]",
            source_p->name, kuser, khost);
       remove_conf_line(KLINE_TYPE, source_p, kuser, khost);
       return;
@@ -429,7 +429,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
                            "%s has removed the K-Line for: [%s@%s]",
                          get_oper_name(source_p), kuser, khost);
 
-      ilog(L_NOTICE, "%s removed K-Line for [%s@%s]",
+      ilog(LOG_TYPE_KLINE, "%s removed K-Line for [%s@%s]",
            source_p->name, kuser, khost);
     }
     else

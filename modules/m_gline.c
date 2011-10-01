@@ -83,10 +83,9 @@ set_local_gline(const struct Client *source_p, const char *user,
                        "%s added G-Line for [%s@%s] [%s]",
                        get_oper_name(source_p),
                        aconf->user, aconf->host, aconf->reason);
-  ilog(L_TRACE, "%s added G-Line for [%s@%s] [%s]",
+  ilog(LOG_TYPE_GLINE, "%s added G-Line for [%s@%s] [%s]",
        get_oper_name(source_p), aconf->user, aconf->host, aconf->reason);
-  log_oper_action(LOG_GLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-                  aconf->user, aconf->host, aconf->reason);
+
   /* Now, activate gline against current online clients */
   rehashed_klines = 1;
 }
@@ -220,7 +219,7 @@ check_majority(const struct Client *source_p, const char *user,
           sendto_realops_flags(UMODE_ALL, L_ALL,
                                "%s has removed the G-Line for: [%s@%s]",
                                get_oper_name(source_p), user, host);
-          ilog(L_NOTICE, "%s removed G-Line for [%s@%s]",
+          ilog(LOG_TYPE_GLINE, "%s removed G-Line for [%s@%s]",
                get_oper_name(source_p), user, host);
         }
       }
@@ -348,7 +347,7 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Blocked G-Line %s requested on [%s@%s] [%s]",
                          get_oper_name(source_p), user, host, reason);
-    ilog(L_TRACE, "Blocked G-Line %s requested on [%s@%s] [%s]",
+    ilog(LOG_TYPE_GLINE, "Blocked G-Line %s requested on [%s@%s] [%s]",
          get_oper_name(source_p), user, host, reason);
     logged = 1;
   }
@@ -359,7 +358,7 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL, "Rejected G-Line %s requested on [%s@%s] [%s]",
                            get_oper_name(source_p), user, host, reason);
-      ilog(L_TRACE, "Rejected G-Line %s requested on [%s@%s] [%s]",
+      ilog(LOG_TYPE_GLINE, "Rejected G-Line %s requested on [%s@%s] [%s]",
            get_oper_name(source_p), user, host, reason);
     }
     return;
@@ -403,7 +402,7 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
                           "%s requesting G-Line for [%s@%s] [%s]",
                           get_oper_name(source_p),
                           user, host, reason);
-     ilog(L_TRACE, "#gline for %s@%s [%s] requested by %s",
+     ilog(LOG_TYPE_GLINE, "#gline for %s@%s [%s] requested by %s",
           user, host, reason, get_oper_name(source_p));
 #else 
      set_local_gline(source_p, user, host, reason);
@@ -700,7 +699,7 @@ mo_gline(struct Client *client_p, struct Client *source_p,
                        "%s requesting G-Line for [%s@%s] [%s]",
                        get_oper_name(source_p),
                        user, host, reason);
-  ilog(L_TRACE, "#gline for %s@%s [%s] requested by %s!%s@%s",
+  ilog(LOG_TYPE_GLINE, "#gline for %s@%s [%s] requested by %s!%s@%s",
        user, host, reason, source_p->name, source_p->username,
        source_p->host);
 
@@ -765,7 +764,7 @@ do_sungline(struct Client *source_p, const char *user,
   sendto_realops_flags(UMODE_ALL, L_ALL,
                        "%s requesting UNG-Line for [%s@%s] [%s]",
                        get_oper_name(source_p), user, host, reason);
-  ilog(L_TRACE, "#ungline for %s@%s [%s] requested by %s",
+  ilog(LOG_TYPE_GLINE, "#ungline for %s@%s [%s] requested by %s",
        user, host, reason, get_oper_name(source_p));
 
   /* If at least 3 opers agree this user should be un G lined then do it */

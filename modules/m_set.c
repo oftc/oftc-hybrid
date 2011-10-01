@@ -58,7 +58,6 @@ static void quote_autoconn(struct Client *, const char *, int);
 static void quote_autoconnall(struct Client *, int);
 static void quote_floodcount(struct Client *, int);
 static void quote_identtimeout(struct Client *, int);
-static void quote_log(struct Client *, int);
 static void quote_max(struct Client *, int);
 static void quote_msglocale(struct Client *, char *);
 static void quote_spamnum(struct Client *, int);
@@ -87,7 +86,6 @@ static const struct SetStruct set_cmd_table[] =
   { "AUTOCONNALL",	quote_autoconnall,	0,	1 },
   { "FLOODCOUNT",	quote_floodcount,	0,	1 },
   { "IDENTTIMEOUT",	quote_identtimeout,	0,	1 },
-  { "LOG",		quote_log,		0,	1 },
   { "MAX",		quote_max,		0,	1 },
   { "MSGLOCALE",	quote_msglocale,	1,	0 },
   { "SPAMNUM",		quote_spamnum,		0,	1 },
@@ -234,33 +232,6 @@ quote_identtimeout(struct Client *source_p, int newval)
   else
     sendto_one(source_p, ":%s NOTICE %s :IDENTTIMEOUT is currently %d",
 	       me.name, source_p->name, GlobalSetOptions.ident_timeout);
-}
-
-/* SET LOG */
-static void
-quote_log(struct Client *source_p, int newval)
-{
-  if (newval >= 0)
-  {
-    if (newval < L_WARN)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :LOG must be > %d (L_WARN)",
-                 me.name, source_p->name, L_WARN);
-      return;
-    }
-
-    if (newval > L_DEBUG)
-      newval = L_DEBUG;
-
-    set_log_level(newval);
-    sendto_realops_flags(UMODE_ALL, L_ALL, "%s has changed LOG level to %i (%s)",
-                         get_oper_name(source_p), get_log_level(),
-                         get_log_level_as_string(get_log_level()));
-  }
-  else
-    sendto_one(source_p, ":%s NOTICE %s :LOG level is currently %i (%s)",
-               me.name, source_p->name, get_log_level(),
-               get_log_level_as_string(get_log_level()));
 }
 
 /* SET MAX */

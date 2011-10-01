@@ -270,8 +270,8 @@ comm_select(void)
 
   if (CurrentTime - last_rtsigqo_warning >= 30)
   {
-    ilog(L_WARN, "Kernel RT Signal queue overflowed.  "
-                 "Is /proc/sys/kernel/rtsig-max too small?");
+    ilog(LOG_TYPE_IRCD, "Kernel RT Signal queue overflowed.  "
+         "Is /proc/sys/kernel/rtsig-max too small?");
     last_rtsigqo_warning = CurrentTime;
   }
 

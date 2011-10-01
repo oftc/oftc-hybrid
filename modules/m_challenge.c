@@ -53,6 +53,10 @@ failed_challenge_notice(struct Client *source_p, const char *name,
     sendto_realops_flags(UMODE_ALL, L_ALL, "Failed CHALLENGE attempt as %s "
                          "by %s (%s@%s) - %s", name, source_p->name,
                          source_p->username, source_p->host, reason);
+
+  ilog(LOG_TYPE_OPER, "Failed CHALLENGE attempt as %s "
+       "by %s (%s@%s) - %s", name, source_p->name,
+       source_p->username, source_p->host, reason);
 }
 
 /*
@@ -101,8 +105,8 @@ m_challenge(struct Client *client_p, struct Client *source_p,
                                   source_p->username, source_p->sockhost);
     if (conf == NULL)
     {
+      /* XXX: logging */
       sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
-      log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n",
           source_p->localClient->auth_oper);
       return;
     }
@@ -112,18 +116,14 @@ m_challenge(struct Client *client_p, struct Client *source_p,
       sendto_one(source_p,":%s NOTICE %s :Can't attach conf!",
      me.name, source_p->name);   
       failed_challenge_notice(source_p, conf->name, "can't attach conf!");
-      log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", 
-          source_p->localClient->auth_oper);
       return;
     }
 
     oper_up(source_p);
 
-    ilog(L_TRACE, "OPER %s by %s!%s@%s",
-   source_p->localClient->auth_oper, source_p->name, source_p->username,
-   source_p->host);
-    log_oper_action(LOG_OPER_TYPE, source_p,
-        "%s\n", source_p->localClient->auth_oper);
+    ilog(LOG_TYPE_OPER, "OPER %s by %s!%s@%s",
+	 source_p->localClient->auth_oper, source_p->name, source_p->username,
+	 source_p->host);
 
     MyFree(source_p->localClient->response);
     MyFree(source_p->localClient->auth_oper);
@@ -152,7 +152,6 @@ m_challenge(struct Client *client_p, struct Client *source_p,
     conf = find_exact_name_conf(OPER_TYPE, parv[1], NULL, NULL);
     failed_challenge_notice(source_p, parv[1], (conf != NULL)
                             ? "host mismatch" : "no oper {} block");
-    log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", parv[1]);
     return;
   }
 

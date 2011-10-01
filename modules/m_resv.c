@@ -241,14 +241,14 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
           tkline_time/60,
           (MyClient(source_p) ? "local" : "remote"), name);
       sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s has placed a %d minute %s RESV on channel: %s [%s]",
-          get_oper_name(source_p),
-          tkline_time/60,
-          (MyClient(source_p) ? "local" : "remote"),
-          resv_p->name, resv_p->reason);
-      ilog(L_TRACE, "%s added temporary %d min. RESV for [%s] [%s]",
-          source_p->name, (int)tkline_time/60,
-          resv_p->name, resv_p->reason);
+			   "%s has placed a %d minute %s RESV on channel: %s [%s]",
+			   get_oper_name(source_p),
+			   tkline_time/60,
+			   (MyClient(source_p) ? "local" : "remote"),
+			   resv_p->name, resv_p->reason);
+      ilog(LOG_TYPE_IRCD, "%s added temporary %d min. RESV for [%s] [%s]",
+	   source_p->name, (int)tkline_time/60,
+	   conf->name, resv_p->reason);
       resv_p->hold = CurrentTime + tkline_time;
       add_temp_line(conf);
       write_conf_line(source_p, conf, NULL /* not used */, 0 /* not used */, 
@@ -305,14 +305,14 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
           (MyClient(source_p) ? "local" : "remote"),
           conf->name, resv_p->reason);
       sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s has placed a %d minute %s RESV on nick %s : [%s]",
-          get_oper_name(source_p),
-          tkline_time/60,
-          (MyClient(source_p) ? "local" : "remote"),
-          conf->name, resv_p->reason);
-      ilog(L_TRACE, "%s added temporary %d min. RESV for [%s] [%s]",
-          source_p->name, (int)tkline_time/60,
-          conf->name, resv_p->reason);
+			   "%s has placed a %d minute %s RESV on nick %s : [%s]",
+			   get_oper_name(source_p),
+			   tkline_time/60,
+			   (MyClient(source_p) ? "local" : "remote"),
+			   conf->name, resv_p->reason);
+      ilog(LOG_TYPE_IRCD, "%s added temporary %d min. RESV for [%s] [%s]",
+	   source_p->name, (int)tkline_time/60,
+	   conf->name, resv_p->reason);
       resv_p->hold = CurrentTime + tkline_time;
       add_temp_line(conf);
       write_conf_line(source_p, conf, NULL /* not used */, 0 /* not used */,

@@ -88,7 +88,7 @@ outofmemory(void)
   if (was_here++)
     abort();
 
-  ilog(L_CRIT, "Out of memory: restarting server...");
+  ilog(LOG_TYPE_IRCD, "Out of memory: restarting server...");
   restart("Out of Memory");
 }
 

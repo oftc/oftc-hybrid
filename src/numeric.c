@@ -90,8 +90,8 @@ change_reply(const char *locale, int linecnt, int reply, char *new_reply)
               for (; *old >= '0' && *old <= '9'; old++); /* skip size prefix */
               if (*new != *old++)
               {
-                ilog(L_ERROR, "Incompatible format symbols (%s.lang, %d)",
-	                      locale, linecnt);
+                ilog(LOG_TYPE_IRCD, "Incompatible format symbols (%s.lang, %d)",
+                     locale, linecnt);
                 return 0;
               }
               found = 1;
@@ -101,7 +101,7 @@ change_reply(const char *locale, int linecnt, int reply, char *new_reply)
         }
         if (!found)
         {
-          ilog(L_ERROR, "Too many format symbols (%s.lang, %d)", locale, linecnt);
+          ilog(LOG_TYPE_IRCD, "Too many format symbols (%s.lang, %d)", locale, linecnt);
           return(0);
         }
       }
@@ -175,8 +175,8 @@ set_locale(const char *locale)
       if (*reply != ':')
       {
         error:
-        ilog(L_ERROR, "Invalid line in language file (%s.lang, %d)",
-	              locale, linecnt);
+        ilog(LOG_TYPE_IRCD, "Invalid line in language file (%s.lang, %d)",
+             locale, linecnt);
 	res = 0;
 	continue;
       }
@@ -205,7 +205,7 @@ set_locale(const char *locale)
     }
     if (i != -1)
     {
-      ilog(L_ERROR,
+      ilog(LOG_TYPE_IRCD,
 	   "Unknown numeric %s (%s.lang, %d)", ident, locale, linecnt);
       res = 0;
     }

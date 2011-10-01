@@ -346,7 +346,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           get_oper_name(source_p), aconf->user, aconf->host, aconf->reason);
       sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
           from, to, aconf->user, aconf->host);
-      ilog(L_TRACE, "%s added K-Line for [%s@%s] [%s]",
+      ilog(LOG_KLINE_TYPE, "%s added K-Line for [%s@%s] [%s]",
           source_p->name, aconf->user, aconf->host, aconf->reason);
       log_oper_action(LOG_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
           aconf->user, aconf->host, aconf->reason);
@@ -363,7 +363,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
       sendto_one(source_p,
           ":%s NOTICE %s :Added temporary %d min. K-Line [%s@%s]", from, to, 
           duration/60, aconf->user, aconf->host);
-      ilog(L_TRACE, "%s added temporary %jd min. K-Line for [%s@%s] [%s]",
+      ilog(LOG_KLINE_TYPE, "%s added temporary %jd min. K-Line for [%s@%s] [%s]",
           source_p->name, (intmax_t)(duration/60), aconf->user, aconf->host, aconf->reason);
       log_oper_action(LOG_TEMP_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
           aconf->user, aconf->host, aconf->reason);
@@ -383,7 +383,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           aconf->user, aconf->host, aconf->reason);
       sendto_one(source_p, ":%s NOTICE %s :Added RK-Line [%s@%s]",
           from, to, aconf->user, aconf->host);
-      ilog(L_TRACE, "%s added K-Line for [%s@%s] [%s]",
+      ilog(LOG_KLINE_TYPE, "%s added K-Line for [%s@%s] [%s]",
           source_p->name, aconf->user, aconf->host, aconf->reason);
       log_oper_action(LOG_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",
           aconf->user, aconf->host, aconf->reason);
@@ -401,7 +401,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
       sendto_one(source_p, 
           ":%s NOTICE %s :Added temporary %d min. RK-Line [%s@%s]", from, to, 
           duration/60, aconf->user, aconf->host);
-      ilog(L_TRACE, "%s added temporary %jd min. RK-Line for [%s@%s] [%s]",
+      ilog(LOG_TYPE_IRCD, "%s added temporary %jd min. RK-Line for [%s@%s] [%s]",
           source_p->name, (intmax_t)(duration/60),
           aconf->user, aconf->host, aconf->reason);
       log_oper_action(LOG_TEMP_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",
@@ -422,7 +422,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           get_oper_name(source_p), aconf->host, aconf->reason);
       sendto_one(source_p, ":%s NOTICE %s :Added D-Line [%s] to %s",
           from, to, aconf->host, filename);
-      ilog(L_TRACE, "%s added D-Line for [%s] [%s]",
+      ilog(LOG_DLINE_TYPE, "%s added D-Line for [%s] [%s]",
           get_oper_name(source_p), aconf->host, aconf->reason);
       log_oper_action(LOG_DLINE_TYPE, source_p, "[%s] [%s]\n",
           aconf->host, aconf->reason);
@@ -439,7 +439,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
 
       sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. D-Line [%s]",
           from, to, duration/60, aconf->host);
-      ilog(L_TRACE, "%s added temporary %d min. D-Line for [%s] [%s]",
+      ilog(LOG_DLINE_TYPE, "%s added temporary %d min. D-Line for [%s] [%s]",
           source_p->name, (int)duration/60, aconf->host, aconf->reason);
       log_oper_action(LOG_TEMP_DLINE_TYPE, source_p, "[%s@%s] [%s]\n",
           aconf->user, aconf->host, aconf->reason);
@@ -461,7 +461,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           ":%s NOTICE %s :Added X-Line [%s] [%d] [%s] to %s",
           from, to, conf->name, 
           xconf->action, xconf->reason, filename);
-      ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
+      ilog(LOG_TYPE_IRCD, "%s added X-Line for [%s] [%s]",
           get_oper_name(source_p), conf->name, xconf->reason);
       write_csv_line(out, "%s%s%s%s%s%d",
           conf->name, xconf->reason, xconf->oper_reason,
@@ -476,7 +476,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
       sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. X-Line [%s]",
           MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
           source_p->name, (int)duration/60, conf->name);
-      ilog(L_TRACE, "%s added temporary %d min. X-Line for [%s] [%s]",
+      ilog(LOG_TYPE_IRCD, "%s added temporary %d min. X-Line for [%s] [%s]",
           source_p->name, (int)duration/60,
           conf->name, xconf->reason);
       write_csv_line(out, "%s%s%s%s%s%d%d",
@@ -498,7 +498,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           ":%s NOTICE %s :Added RX-Line [%s] [%s] to %s",
           from, to, conf->name,
           xconf->reason, filename);
-      ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
+      ilog(LOG_TYPE_IRCD, "%s added X-Line for [%s] [%s]",
           get_oper_name(source_p), conf->name, xconf->reason);
       write_csv_line(out, "%s%s%s%s%s%d",
           conf->name, xconf->reason, xconf->oper_reason,
@@ -512,7 +512,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
       sendto_one(source_p, 
           ":%s NOTICE %s :Added temporary %d min. RX-Line [%s]",
           from, to, (int)duration/60, conf->name);
-      ilog(L_TRACE, "%s added temporary %d min. RX-Line for [%s] [%s]",
+      ilog(LOG_TYPE_IRCD, "%s added temporary %d min. RX-Line for [%s] [%s]",
           source_p->name, (int)duration/60,
           conf->name, xconf->reason);
       write_csv_line(out, "%s%s%s%s%s%d%d",

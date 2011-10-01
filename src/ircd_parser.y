@@ -72,7 +72,9 @@ static char userbuf[IRCD_BUFSIZE];
 static char hostbuf[IRCD_BUFSIZE];
 static char reasonbuf[REASONLEN + 1];
 static char gecos_name[REALLEN * 4];
-
+static char lfile[IRCD_BUFSIZE];
+static unsigned int ltype = 0;
+static unsigned int lsize = 0;
 static char *resv_reason = NULL;
 static char *listener_address = NULL;
 
@@ -181,20 +183,11 @@ unhook_hub_leaf_confs(void)
 %token  FAILED_OPER_NOTICE
 %token  IRCD_FLAGS
 %token  FLATTEN_LINKS
-%token  FFAILED_OPERLOG
-%token  FKILLLOG
-%token  FKLINELOG
-%token  FGLINELOG
-%token  FIOERRLOG
-%token  FOPERLOG
-%token  FOPERSPYLOG
-%token  FUSERLOG
 %token  GECOS
 %token  GENERAL
 %token  GLINE
 %token  GLINES
 %token  GLINE_EXEMPT
-%token  GLINE_LOG
 %token  GLINE_TIME
 %token  GLINE_MIN_CIDR
 %token  GLINE_MIN_CIDR6
@@ -229,8 +222,6 @@ unhook_hub_leaf_confs(void)
 %token  LINKS_DELAY
 %token  LISTEN
 %token  T_LOG
-%token  LOGGING
-%token  LOG_LEVEL
 %token  MAX_ACCEPT
 %token  MAX_BANS
 %token  MAX_CHANS_PER_USER
@@ -264,7 +255,6 @@ unhook_hub_leaf_confs(void)
 %token  NUMBER_PER_IP_GLOBAL
 %token  OPERATOR
 %token  OPERS_BYPASS_CALLERID
-%token  OPER_LOG
 %token  OPER_ONLY_UMODES
 %token  OPER_PASS_RESV
 %token  OPER_SPY_T
@@ -335,6 +325,7 @@ unhook_hub_leaf_confs(void)
 %token  T_CLIENT_FLOOD
 %token  T_DEAF
 %token  T_DEBUG
+%token  T_DLINE
 %token  T_DRONE
 %token  T_EXTERNAL
 %token  T_FULL
@@ -342,14 +333,6 @@ unhook_hub_leaf_confs(void)
 %token  T_IPV4
 %token  T_IPV6
 %token  T_LOCOPS
-%token  T_LOGPATH
-%token  T_L_CRIT
-%token  T_L_DEBUG
-%token  T_L_ERROR
-%token  T_L_INFO
-%token  T_L_NOTICE
-%token  T_L_TRACE
-%token  T_L_WARN
 %token  T_MAX_CLIENTS
 %token  T_NCHANGE
 %token  T_OPERWALL
@@ -369,6 +352,7 @@ unhook_hub_leaf_confs(void)
 %token  T_RESTART
 %token  T_SERVICE
 %token  T_SERVICES_NAME
+%token  T_TIMESTAMP
 %token  THROTTLE_TIME
 %token  TOPICBURST
 %token  TRUE_NO_OPER_FLOOD
@@ -389,6 +373,8 @@ unhook_hub_leaf_confs(void)
 %token  XLINE
 %token  WARN
 %token  WARN_NO_NLINE
+%token  T_SIZE
+%token  T_FILE
 
 %type <string> QSTRING
 %type <number> NUMBER
@@ -644,7 +630,7 @@ serverinfo_name: NAME '=' QSTRING ';'
       DupString(ServerInfo.name, yylval.string);
     else
     {
-      ilog(L_ERROR, "Ignoring serverinfo::name -- invalid name. Aborting.");
+      ilog(LOG_TYPE_IRCD, "Ignoring serverinfo::name -- invalid name. Aborting.");
       exit(0);
     }
   }
@@ -659,7 +645,7 @@ serverinfo_sid: IRCD_SID '=' QSTRING ';'
       DupString(ServerInfo.sid, yylval.string);
     else
     {
-      ilog(L_ERROR, "Ignoring serverinfo::sid -- invalid SID. Aborting.");
+      ilog(LOG_TYPE_IRCD, "Ignoring serverinfo::sid -- invalid SID. Aborting.");
       exit(0);
     }
   }
@@ -710,7 +696,7 @@ serverinfo_vhost: VHOST '=' QSTRING ';'
     hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
     if (getaddrinfo(yylval.string, NULL, &hints, &res))
-      ilog(L_ERROR, "Invalid netmask for server vhost(%s)", yylval.string);
+      ilog(LOG_TYPE_IRCD, "Invalid netmask for server vhost(%s)", yylval.string);
     else
     {
       assert(res != NULL);
@@ -739,7 +725,7 @@ serverinfo_vhost6: VHOST6 '=' QSTRING ';'
     hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
     if (getaddrinfo(yylval.string, NULL, &hints, &res))
-      ilog(L_ERROR, "Invalid netmask for server vhost6(%s)", yylval.string);
+      ilog(LOG_TYPE_IRCD, "Invalid netmask for server vhost6(%s)", yylval.string);
     else
     {
       assert(res != NULL);
@@ -823,120 +809,88 @@ admin_description: DESCRIPTION '=' QSTRING ';'
 /***************************************************************************
  *  section logging
  ***************************************************************************/
-/* XXX */
-logging_entry:          LOGGING  '{' logging_items '}' ';' ;
+logging_entry:          T_LOG  '{' logging_items '}' ';' ;
+logging_items:          logging_items logging_item | logging_item ;
 
-logging_items:          logging_items logging_item |
-                        logging_item ;
-
-logging_item:           logging_path | logging_oper_log |
-			logging_log_level |
-			logging_use_logging | logging_fuserlog |
-			logging_foperlog | logging_fglinelog |
-			logging_fklinelog | logging_killlog |
-			logging_foperspylog | logging_ioerrlog |
-			logging_ffailed_operlog |
+logging_item:   	logging_use_logging | logging_timestamp | logging_file_entry |
 			error ';' ;
-
-logging_path:           T_LOGPATH '=' QSTRING ';' 
-                        {
-                        };
-
-logging_oper_log:	OPER_LOG '=' QSTRING ';'
-                        {
-                        };
-
-logging_fuserlog: FUSERLOG '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    strlcpy(ConfigLoggingEntry.userlog, yylval.string,
-            sizeof(ConfigLoggingEntry.userlog));
-};
-
-logging_ffailed_operlog: FFAILED_OPERLOG '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    strlcpy(ConfigLoggingEntry.failed_operlog, yylval.string,
-            sizeof(ConfigLoggingEntry.failed_operlog));
-};
-
-logging_foperlog: FOPERLOG '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    strlcpy(ConfigLoggingEntry.operlog, yylval.string,
-            sizeof(ConfigLoggingEntry.operlog));
-};
-
-logging_foperspylog: FOPERSPYLOG '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    strlcpy(ConfigLoggingEntry.operspylog, yylval.string,
-            sizeof(ConfigLoggingEntry.operspylog));
-};
-
-logging_fglinelog: FGLINELOG '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    strlcpy(ConfigLoggingEntry.glinelog, yylval.string,
-            sizeof(ConfigLoggingEntry.glinelog));
-};
-
-logging_fklinelog: FKLINELOG '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    strlcpy(ConfigLoggingEntry.klinelog, yylval.string,
-            sizeof(ConfigLoggingEntry.klinelog));
-};
-
-logging_ioerrlog: FIOERRLOG '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    strlcpy(ConfigLoggingEntry.ioerrlog, yylval.string,
-            sizeof(ConfigLoggingEntry.ioerrlog));
-};
-
-logging_killlog: FKILLLOG '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    strlcpy(ConfigLoggingEntry.killlog, yylval.string,
-            sizeof(ConfigLoggingEntry.killlog));
-};
-
-logging_log_level: LOG_LEVEL '=' T_L_CRIT ';'
-{ 
-  if (conf_parser_ctx.pass == 2)
-    set_log_level(L_CRIT);
-} | LOG_LEVEL '=' T_L_ERROR ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    set_log_level(L_ERROR);
-} | LOG_LEVEL '=' T_L_WARN ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    set_log_level(L_WARN);
-} | LOG_LEVEL '=' T_L_NOTICE ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    set_log_level(L_NOTICE);
-} | LOG_LEVEL '=' T_L_TRACE ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    set_log_level(L_TRACE);
-} | LOG_LEVEL '=' T_L_INFO ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    set_log_level(L_INFO);
-} | LOG_LEVEL '=' T_L_DEBUG ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    set_log_level(L_DEBUG);
-};
 
 logging_use_logging: USE_LOGGING '=' TBOOL ';'
 {
   if (conf_parser_ctx.pass == 2)
     ConfigLoggingEntry.use_logging = yylval.number;
 };
+
+logging_timestamp: T_TIMESTAMP '=' TBOOL ';'
+{
+  if (conf_parser_ctx.pass == 2)
+    ConfigLoggingEntry.timestamp = yylval.number;
+};
+
+logging_file_entry:
+{
+  lfile[0] = '\0';
+  ltype = 0;
+  lsize = 0;
+} T_FILE  '{' logging_file_items '}' ';'
+{
+  if (conf_parser_ctx.pass == 2)
+    log_add_file(ltype, lsize, lfile);
+};
+
+logging_file_items: logging_file_items logging_file_item |
+                    logging_file_item ;
+
+logging_file_item:  logging_file_name | logging_file_type |
+                    logging_file_size | error ';' ;
+
+logging_file_name: NAME '=' QSTRING ';'
+{
+  strlcpy(lfile, yylval.string, sizeof(lfile));
+}
+
+logging_file_size: T_SIZE '=' sizespec ';'
+{
+  lsize = $3;
+};
+
+logging_file_type: TYPE
+{
+  if (conf_parser_ctx.pass == 2)
+    ltype = 0;
+} '='  logging_file_type_items ';' ;
+
+logging_file_type_items: logging_file_type_items ',' logging_file_type_item | logging_file_type_item;
+logging_file_type_item:  USER
+{
+  if (conf_parser_ctx.pass == 2)
+    ltype = LOG_TYPE_USER;
+} | OPERATOR
+{
+  if (conf_parser_ctx.pass == 2)
+    ltype = LOG_TYPE_OPER;
+} | GLINE
+{
+  if (conf_parser_ctx.pass == 2)
+    ltype = LOG_TYPE_GLINE;
+} | T_DLINE
+{
+  if (conf_parser_ctx.pass == 2)
+    ltype = LOG_TYPE_DLINE;
+} | KLINE
+{
+  if (conf_parser_ctx.pass == 2)
+    ltype = LOG_TYPE_KLINE;
+} | KILL
+{
+  if (conf_parser_ctx.pass == 2)
+    ltype = LOG_TYPE_KILL;
+} | T_DEBUG
+{
+  if (conf_parser_ctx.pass == 2)
+    ltype = LOG_TYPE_DEBUG;
+};
+
 
 /***************************************************************************
  * section oper
@@ -1873,7 +1827,7 @@ auth_spoof: SPOOF '=' QSTRING ';'
     }
     else
     {
-      ilog(L_ERROR, "Spoofs must be less than %d..ignoring it", HOSTLEN);
+      ilog(LOG_TYPE_IRCD, "Spoofs must be less than %d..ignoring it", HOSTLEN);
       yy_conf->name = NULL;
     }
   }
@@ -2368,7 +2322,7 @@ connect_vhost: VHOST '=' QSTRING ';'
     hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
     if (getaddrinfo(yylval.string, NULL, &hints, &res))
-      ilog(L_ERROR, "Invalid netmask for server vhost(%s)", yylval.string);
+      ilog(LOG_TYPE_IRCD, "Invalid netmask for server vhost(%s)", yylval.string);
     else
     {
       assert(res != NULL);
@@ -2613,7 +2567,7 @@ kill_entry: KILL
         if (!(exp_user = ircd_pcre_compile(userbuf, &errptr)) ||
             !(exp_host = ircd_pcre_compile(hostbuf, &errptr)))
         {
-          ilog(L_ERROR, "Failed to add regular expression based K-Line: %s",
+          ilog(LOG_TYPE_IRCD, "Failed to add regular expression based K-Line: %s",
                errptr);
           break;
         }
@@ -2630,7 +2584,7 @@ kill_entry: KILL
         else
           DupString(yy_aconf->reason, "No reason");
 #else
-        ilog(L_ERROR, "Failed to add regular expression based K-Line: no PCRE support");
+        ilog(LOG_TYPE_IRCD, "Failed to add regular expression based K-Line: no PCRE support");
         break;
 #endif
       }
@@ -2809,7 +2763,7 @@ gecos_entry: GECOS
 
         if (!(exp_p = ircd_pcre_compile(gecos_name, &errptr)))
         {
-          ilog(L_ERROR, "Failed to add regular expression based X-Line: %s",
+          ilog(LOG_TYPE_IRCD, "Failed to add regular expression based X-Line: %s",
                errptr);
           break;
         }
@@ -2817,7 +2771,7 @@ gecos_entry: GECOS
         yy_conf = make_conf_item(RXLINE_TYPE);
         yy_conf->regexpname = exp_p;
 #else
-        ilog(L_ERROR, "Failed to add regular expression based X-Line: no PCRE support");
+        ilog(LOG_TYPE_IRCD, "Failed to add regular expression based X-Line: no PCRE support");
         break;
 #endif
       }
@@ -3001,9 +2955,9 @@ general_havent_read_conf: HAVENT_READ_CONF '=' NUMBER ';'
 {
   if (($3 > 0) && conf_parser_ctx.pass == 1)
   {
-    ilog(L_CRIT, "You haven't read your config file properly.");
-    ilog(L_CRIT, "There is a line in the example conf that will kill your server if not removed.");
-    ilog(L_CRIT, "Consider actually reading/editing the conf file, and removing this line.");
+    ilog(LOG_TYPE_IRCD, "You haven't read your config file properly.");
+    ilog(LOG_TYPE_IRCD, "There is a line in the example conf that will kill your server if not removed.");
+    ilog(LOG_TYPE_IRCD, "Consider actually reading/editing the conf file, and removing this line.");
     exit(0);
   }
 };
@@ -3431,7 +3385,7 @@ gline_duration: DURATION '=' timespec ';'
     ConfigFileEntry.gline_time = $3;
 };
 
-gline_logging: LOGGING
+gline_logging: T_LOG
 {
   if (conf_parser_ctx.pass == 2)
     ConfigFileEntry.gline_logging = 0;

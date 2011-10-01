@@ -53,7 +53,7 @@ report_crypto_errors(void)
 
   while ((cnt < 100) && (e = ERR_get_error()))
   {
-    ilog(L_CRIT, "SSL error: %s", ERR_error_string(e, 0));
+    ilog(LOG_TYPE_IRCD, "SSL error: %s", ERR_error_string(e, 0));
     cnt++;
   }
 }
@@ -71,14 +71,14 @@ verify_private_key(void)
   /* If the rsa_private_key directive isn't found, error out. */
   if (ServerInfo.rsa_private_key == NULL)
   {
-    ilog(L_NOTICE, "rsa_private_key in serverinfo{} is not defined.");
+    ilog(LOG_TYPE_IRCD, "rsa_private_key in serverinfo{} is not defined.");
     return -1;
   }
 
   /* If rsa_private_key_file isn't available, error out. */
   if (ServerInfo.rsa_private_key_file == NULL)
   {
-    ilog(L_NOTICE, "Internal error: rsa_private_key_file isn't defined.");
+    ilog(LOG_TYPE_IRCD, "Internal error: rsa_private_key_file isn't defined.");
     return -1;
   }
 
@@ -94,7 +94,7 @@ verify_private_key(void)
   if (file == NULL)
   {
     bio_spare_fd = save_spare_fd("SSL private key validation");
-    ilog(L_NOTICE, "Failed to open private key file - can't validate it");
+    ilog(LOG_TYPE_IRCD, "Failed to open private key file - can't validate it");
     return -1;
   }
 
@@ -102,7 +102,7 @@ verify_private_key(void)
 
   if (key == NULL)
   {
-    ilog(L_NOTICE, "PEM_read_bio_RSAPrivateKey() failed; possibly not RSA?");
+    ilog(LOG_TYPE_IRCD, "PEM_read_bio_RSAPrivateKey() failed; possibly not RSA?");
     report_crypto_errors();
     return -1;
   }
@@ -119,30 +119,30 @@ verify_private_key(void)
    * in-memory key vs. the one we just loaded.  This is bad, mmmkay?
    */
   if (mkey->pad != key->pad)
-    ilog(L_CRIT, "Private key corrupted: pad %i != pad %i",
-                 mkey->pad, key->pad);
+    ilog(LOG_TYPE_IRCD, "Private key corrupted: pad %i != pad %i",
+         mkey->pad, key->pad);
   
   if (mkey->version != key->version)
-    ilog(L_CRIT, "Private key corrupted: version %li != version %li",
-                 mkey->version, key->version);
+    ilog(LOG_TYPE_IRCD, "Private key corrupted: version %li != version %li",
+         mkey->version, key->version);
 
 
   if (BN_cmp(mkey->n, key->n))
-    ilog(L_CRIT, "Private key corrupted: n differs");
+    ilog(LOG_TYPE_IRCD, "Private key corrupted: n differs");
   if (BN_cmp(mkey->e, key->e))
-    ilog(L_CRIT, "Private key corrupted: e differs");
+    ilog(LOG_TYPE_IRCD, "Private key corrupted: e differs");
   if (BN_cmp(mkey->d, key->d))
-    ilog(L_CRIT, "Private key corrupted: d differs");
+    ilog(LOG_TYPE_IRCD, "Private key corrupted: d differs");
   if (BN_cmp(mkey->p, key->p))
-    ilog(L_CRIT, "Private key corrupted: p differs");
+    ilog(LOG_TYPE_IRCD, "Private key corrupted: p differs");
   if (BN_cmp(mkey->q, key->q))
-    ilog(L_CRIT, "Private key corrupted: q differs");
+    ilog(LOG_TYPE_IRCD, "Private key corrupted: q differs");
   if (BN_cmp(mkey->dmp1, key->dmp1))
-    ilog(L_CRIT, "Private key corrupted: dmp1 differs");
+    ilog(LOG_TYPE_IRCD, "Private key corrupted: dmp1 differs");
   if (BN_cmp(mkey->dmq1, key->dmq1))
-    ilog(L_CRIT, "Private key corrupted: dmq1 differs");
+    ilog(LOG_TYPE_IRCD, "Private key corrupted: dmq1 differs");
   if (BN_cmp(mkey->iqmp, key->iqmp))
-    ilog(L_CRIT, "Private key corrupted: iqmp differs");
+    ilog(LOG_TYPE_IRCD, "Private key corrupted: iqmp differs");
 
   RSA_free(key);
   return 0;

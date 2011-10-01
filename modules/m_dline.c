@@ -247,7 +247,7 @@ mo_undline(struct Client *client_p, struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the temporary D-Line for: [%s]",
                          get_oper_name(source_p), cidr);
-    ilog(L_NOTICE, "%s removed temporary D-Line for [%s]", source_p->name, cidr);
+    ilog(LOG_TYPE_DLINE, "%s removed temporary D-Line for [%s]", source_p->name, cidr);
     return;
   }
 
@@ -258,7 +258,7 @@ mo_undline(struct Client *client_p, struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL,
 			 "%s has removed the D-Line for: [%s]",
 			 get_oper_name(source_p), cidr);
-    ilog(L_NOTICE, "%s removed D-Line for [%s]",
+    ilog(LOG_TYPE_DLINE, "%s removed D-Line for [%s]",
          get_oper_name(source_p), cidr);
   }
   else
