@@ -50,9 +50,9 @@ modules_LTLIBRARIES = m_die.la     \
 modules: $(modules_LTLIBRARIES)
 
 install-exec-hook:
-	if test -d $(pkglibdir)-old; then \
-		rm -rf $(pkglibdir)-old; \
+	if test -d $(DESTDIR)$(pkglibdir)-old; then \
+		rm -rf $(DESTDIR)$(pkglibdir)-old; \
 	fi
-	if test -d $(pkglibdir); then \
-		mv $(pkglibdir) $(pkglibdir)-old; \
+	if test -d $(DESTDIR)$(pkglibdir); then \
+		mv $(DESTDIR)$(pkglibdir) $(DESTDIR)$(pkglibdir)-old; \
 	fi
