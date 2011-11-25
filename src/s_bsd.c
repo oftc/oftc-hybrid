@@ -51,6 +51,7 @@
 #include "conf_general.h"
 #include "conf_serverinfo.h"
 #include "conf_class.h"
+#include "websocket.h"
 
 static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
   "Error during DNS lookup", "connect timeout", "Error during connect()",
@@ -236,6 +237,8 @@ close_connection(struct Client *client_p)
   else
     ++ServerStats.is_ni;
 
+  websocket_close(client_p);
+
 #ifdef HAVE_LIBCRYPTO
   if (client_p->localClient->fd.ssl)
   {
@@ -329,17 +332,30 @@ ssl_handshake(int fd, struct Client *client_p)
  * any client list yet.
  */
 void
-add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
+add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd,
+  struct Client **new_client_pass)
 {
   struct Client *new_client;
+  char incoming_desc[FD_DESC_SZ];
 
   assert(NULL != listener);
 
   new_client = make_client(NULL);
 
-  fd_open(&new_client->localClient->fd, fd, 1,
-          (listener->flags & LISTENER_SSL) ?
-	  "Incoming SSL connection" : "Incoming connection");
+  if (IsWebsocket(listener))
+  {
+    strlcpy(incoming_desc, "Incoming WebSocket Connection", sizeof(incoming_desc));
+  }
+  else if (listener->flags & LISTENER_SSL)
+  {
+    strlcpy(incoming_desc, "Incoming SSL Connection", sizeof(incoming_desc));
+  }
+  else
+  {
+    strlcpy(incoming_desc, "Incoming SSL Connection", sizeof(incoming_desc));
+  }
+
+  fd_open(&new_client->localClient->fd, fd, 1, incoming_desc);
 
   /* 
    * copy address to 'sockhost' as a string, copy it to host too
@@ -386,6 +402,11 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
   else
 #endif
     execute_callback(auth_cb, new_client);
+
+  if (new_client_pass)
+  {
+    *new_client_pass = new_client;
+  }
 }
 
 /*

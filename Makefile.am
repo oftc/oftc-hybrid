@@ -1,5 +1,5 @@
 MAINTAINERCLEANFILES=aclocal.m4 config.h.in config.h.in~ config.guess config.log config.status config.sub configure install-sh missing mkinstalldirs Makefile.in depcomp compile ltmain.sh
-SUBDIRS=libltdl doc etc help include lib messages libevent json-c modules servlink src
+SUBDIRS=libltdl doc etc help include lib messages libevent json-c libwebsockets modules servlink src
 
 maintainer-clean-local:
 	rm -f ${PACKAGE}-${VERSION}.tar.gz

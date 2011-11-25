@@ -67,6 +67,7 @@
 #include "conf_serverinfo.h"
 #include "conf_channel.h"
 #include "conf_serverhide.h"
+#include "websocket.h"
 
 /* Try and find the correct name to use with getrlimit() for setting the max.
  * number of files allowed to be open by this process.
@@ -303,6 +304,8 @@ io_loop(void)
   void *csl_event = levent_timer_add_generic(&default_loop_time, check_safe_list_channels, NULL);
   void *crh_event = levent_timer_add_generic(&default_loop_time, check_rehash, NULL);
   void *upt_event = levent_timer_add_generic(&default_loop_time, update_time, NULL);
+
+  void *web_event = levent_timer_add_generic(&default_loop_time, websocket_poll, NULL);
 
   levent_loop();
 }

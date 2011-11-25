@@ -43,6 +43,8 @@ struct _fde;
 struct Client;
 struct DNSQuery;
 
+struct libwebsocket;
+
 /* Callback for completed IO events */
 typedef void PF(struct _fde *, void *);
 
@@ -91,6 +93,7 @@ typedef struct _fde {
 #ifdef HAVE_LIBCRYPTO
   SSL *ssl;
 #endif
+  struct libwebsocket *websocket;
   struct _fde *hnext;
 } fde_t;
 

@@ -78,6 +78,7 @@ AC_DEFINE_DIR([LOCALSTATEDIR],[localstatedir],[Set to localstatedir.])
 AC_CONFIG_SUBDIRS(libltdl)
 AC_CONFIG_SUBDIRS(libevent)
 AC_CONFIG_SUBDIRS(json-c)
+AC_CONFIG_SUBDIRS(libwebsockets)
 
 AC_CONFIG_FILES(               \
        Makefile                \

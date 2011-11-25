@@ -44,7 +44,7 @@
 
 static PF accept_connection;
 
-static dlink_list ListenerPollList = { NULL, NULL, 0 };
+extern dlink_list ListenerPollList = { NULL, NULL, 0 };
 static void close_listener(struct Listener *listener);
 
 static struct Listener *
@@ -114,8 +114,13 @@ show_ports(struct Client *source_p)
 
     if (listener->flags & LISTENER_SERVER)
       *p++ = 'S';
+
     if (listener->flags & LISTENER_SSL)
       *p++ = 's';
+
+    if (IsWebsocket(listener))
+      *p++ = 'w';
+
     *p = '\0';
     sendto_one(source_p, form_str(RPL_STATSPLINE),
                me.name, source_p->name, 'P', listener->port,
@@ -147,7 +152,7 @@ inetport(struct Listener *listener)
   /*
    * At first, open a new socket
    */
-  if (comm_open(&listener->fd, listener->addr.ss.ss_family, SOCK_STREAM, 0,
+  if (!IsWebsocket(listener) && comm_open(&listener->fd, listener->addr.ss.ss_family, SOCK_STREAM, 0,
                 "Listener socket") == -1)
   {
     report_error(L_ALL, "opening listener socket %s:%s",
@@ -166,7 +171,7 @@ inetport(struct Listener *listener)
    * XXX - we don't want to do all this crap for a listener
    * set_sock_opts(listener);
    */
-  if (setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
+  if (!IsWebsocket(listener) && setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
   {
     report_error(L_ALL, "setting SO_REUSEADDR for listener %s:%s",
                  get_listener_name(listener), errno);
@@ -180,7 +185,7 @@ inetport(struct Listener *listener)
    */
   lsin.ss_port = htons(listener->port);
 
-  if (bind(listener->fd.fd, (struct sockaddr *)&lsin, lsin.ss_len))
+  if (!IsWebsocket(listener) && bind(listener->fd.fd, (struct sockaddr *)&lsin, lsin.ss_len))
   {
     report_error(L_ALL, "binding listener socket %s:%s",
                  get_listener_name(listener), errno);
@@ -188,7 +193,7 @@ inetport(struct Listener *listener)
     return 0;
   }
 
-  if (listen(listener->fd.fd, HYBRID_SOMAXCONN))
+  if (!IsWebsocket(listener) && listen(listener->fd.fd, HYBRID_SOMAXCONN))
   {
     report_error(L_ALL, "listen failed for %s:%s",
                  get_listener_name(listener), errno);
@@ -312,6 +317,9 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     listener = make_listener(port, &vaddr);
     dlinkAdd(listener, &listener->listener_node, &ListenerPollList);
     listener->flags = flags;
+
+    if (IsWebsocket(listener))
+      websocket_add(listener, vhost_ip);
   }
 
   if (inetport(listener))
@@ -330,6 +338,8 @@ close_listener(struct Listener *listener)
 
   if (listener == NULL)
     return;
+
+  websocket_close_listener(listener);
 
   if (listener->fd.flags.open)
     fd_close(&listener->fd);
@@ -372,6 +382,9 @@ accept_connection(fde_t *pfd, void *data)
 
   assert(listener != NULL);
   if (listener == NULL)
+    return;
+
+  if (IsWebsocket(listener))
     return;
 
   /* There may be many reasons for error return, but
@@ -433,7 +446,7 @@ accept_connection(fde_t *pfd, void *data)
     }
 
     ++ServerStats.is_ac;
-    add_connection(listener, &addr, fd);
+    add_connection(listener, &addr, fd, NULL);
   }
 
   /* Re-register a new IO request for the next accept .. */

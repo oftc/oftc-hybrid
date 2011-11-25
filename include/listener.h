@@ -28,12 +28,16 @@
 #define LISTENER_SSL    0x1
 #define LISTENER_HIDDEN 0x2
 #define LISTENER_SERVER 0x4
+#define LISTENER_WEBSOCKET 0x8
 
 #include "ircd_defs.h"  
 #include "tools.h"
 #include "fdlist.h"
 
 struct Client;
+
+struct libwebsocket_context;
+#define IsWebsocket(x) ((x)->flags & LISTENER_WEBSOCKET)
 
 struct Listener
 {
@@ -46,6 +50,7 @@ struct Listener
   struct irc_ssaddr addr;              /* virtual address or INADDR_ANY */
   char              vhost[HOSTLEN + 1]; /* virtual name of listener */
   unsigned int      flags;
+  struct libwebsocket_context *wsc;   /* Websocket Context */
 };
 
 extern void add_listener(int, const char *, unsigned int);
@@ -54,4 +59,5 @@ extern const char *get_listener_name(const struct Listener *);
 extern void show_ports(struct Client *);
 extern void free_listener(struct Listener *);
 struct Listener *find_listener(int port, struct irc_ssaddr *addr);
+extern dlink_list ListenerPollList;
 #endif /* INCLUDED_listener_h */

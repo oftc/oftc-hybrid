@@ -40,6 +40,7 @@
 #include "hook.h"
 #include "send.h"
 #include "conf_general.h"
+#include "websocket.h"
 
 #define READBUF_SIZE 16384
 
@@ -121,9 +122,9 @@ extract_one_line(struct dbuf_queue *qptr, char *buffer)
 /*
  * parse_client_queued - parse client queued messages
  */
-static void
+void
 parse_client_queued(struct Client *client_p)
-{ 
+{
   int dolen = 0;
   int checkflood = 1;
   struct LocalUser *lclient_p = client_p->localClient;
@@ -406,6 +407,40 @@ iorecv_default(va_list args)
 }
 
 /*
+ * finish_read - Handle ping and flood detection.
+ */
+int
+finish_client_read(struct Client *client_p)
+{
+  if (client_p->lasttime < CurrentTime)
+    client_p->lasttime = CurrentTime;
+  if (client_p->lasttime > client_p->since)
+    client_p->since = CurrentTime;
+  ClearPingSent(client_p);
+
+  /* Attempt to parse what we have */
+  parse_client_queued(client_p);
+
+  if (IsDefunct(client_p))
+    return 1;
+
+  /* Check to make sure we're not flooding */
+  /* TBD - ConfigFileEntry.client_flood should be a size_t */
+  if (!(IsServer(client_p) || IsHandshake(client_p) || IsConnecting(client_p))
+      && (dbuf_length(&client_p->localClient->buf_recvq) >
+          (unsigned int)ConfigFileEntry.client_flood))
+  {
+    if (!(ConfigFileEntry.no_oper_flood && IsOper(client_p)))
+    {
+      exit_client(client_p, client_p, "Excess Flood");
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+/*
  * read_packet - Read a 'packet' of data from a connection and process it.
  */
 void
@@ -415,6 +450,9 @@ read_packet(fde_t *fd, void *data)
   int length = 0;
 
   if (IsDefunct(client_p))
+    return;
+
+  if (fd->websocket)
     return;
 
   /*
@@ -478,30 +516,8 @@ read_packet(fde_t *fd, void *data)
             get_client_name(client_p, SHOW_IP), CurrentTime - client_p->lasttime, timestamp);
     }
 
-    if (client_p->lasttime < CurrentTime)
-      client_p->lasttime = CurrentTime;
-    if (client_p->lasttime > client_p->since)
-      client_p->since = CurrentTime;
-    ClearPingSent(client_p);
-
-    /* Attempt to parse what we have */
-    parse_client_queued(client_p);
-
-    if (IsDefunct(client_p))
+    if (finish_client_read(client_p))
       return;
-
-    /* Check to make sure we're not flooding */
-    /* TBD - ConfigFileEntry.client_flood should be a size_t */
-    if (!(IsServer(client_p) || IsHandshake(client_p) || IsConnecting(client_p))
-        && (dbuf_length(&client_p->localClient->buf_recvq) >
-            (unsigned int)general_config.client_flood))
-    {
-      if (!(general_config.no_oper_flood && IsOper(client_p)))
-      {
-        exit_client(client_p, client_p, "Excess Flood");
-        return;
-      }
-    }
   }
 #ifdef HAVE_LIBCRYPTO
   while (length == sizeof(readBuf) || fd->ssl);
