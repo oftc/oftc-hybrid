@@ -63,6 +63,8 @@ struct conf_general
 
   int oper_umodes_int;
   int oper_only_umodes_int;
+
+  char *websocket_redirect;
 };
 
 extern struct conf_general general_config;

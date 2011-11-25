@@ -9,6 +9,9 @@
 #include "packet.h"
 #include "send.h"
 #include "s_conf.h"
+#include "conf_general.h"
+#include "conf_serverinfo.h"
+#include "irc_string.h"
 
 enum hybrid_protocols {
   IRC,
@@ -40,8 +43,8 @@ websocket_add(struct Listener *listener, const char *vhost)
   /* TODO FIXME XXX libwebsockets doesn't support bound ip yet */
   listener->wsc = libwebsocket_create_context(listener->port, NULL, protocols,
     libwebsocket_internal_extensions,
-    ServerInfo.ssl_certificate_file,
-    ServerInfo.rsa_private_key_file, -1, -1, 0);
+    serverinfo_config.ssl_certificate_file,
+    serverinfo_config.rsa_private_key_file, -1, -1, 0);
 }
 
 void
@@ -131,19 +134,16 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
       }
       break;
     case LWS_CALLBACK_HTTP:
-      /*
-      if(ConfigFileEntry.websocket_redirect &&
-         strlen(ConfigFileEntry.websocket_redirect) > 0)
+      if (!EmptyString(general_config.websocket_redirect))
       {
         char buf[512];
         size_t len = snprintf(buf, sizeof(buf),
           "HTTP/1.0 301 Moved Permanently\x0d\x0a"
           "Location: %s\x0d\x0a"
           "\x0d\x0a",
-          ConfigFileEntry.websocket_redirect);
+          general_config.websocket_redirect);
         libwebsocket_write(wsi, (unsigned char *)buf, len, LWS_WRITE_HTTP);
       }
-      */
       break;
     default:
       break;

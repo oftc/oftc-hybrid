@@ -68,6 +68,7 @@ struct config_section_entry general_section_entries[] = {
   { GENERAL_SECTION_ENTRY(use_egd, json_type_boolean) }, 
   { GENERAL_SECTION_ENTRY(use_whois_actually, json_type_boolean) }, 
   { GENERAL_SECTION_ENTRY(warn_no_nline, json_type_boolean) }, 
+  { GENERAL_SECTION_ENTRY(websocket_redirect, json_type_string) },
   { "", 0, 0, 0 }
 };
 
@@ -142,6 +143,7 @@ general_section_set_defaults()
   general_config.compression_level = 0;
 #endif
   general_config.throttle_time = 10;
+  general_config.websocket_redirect = NULL;
 }
 
 void

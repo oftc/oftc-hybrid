@@ -82,6 +82,13 @@ listen_section_process(void *obj)
 
         flags |= LISTENER_SERVER;
       }
+      else if(strcmp(key, "websocket") == 0)
+      {
+        if(obj_type != json_type_boolean)
+          continue;
+
+        flags |= LISTENER_WEBSOCKET;
+      }
     }
     if(flags & LISTENER_SSL && serverinfo_config.ctx == NULL)
       ilog(L_WARN, "SSL listener specified but SSL not enabled, ignoring");
