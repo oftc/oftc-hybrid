@@ -54,7 +54,7 @@ websocket_poll(int fd, short what, void *arg)
   struct Listener *listener = NULL;
   DLINK_FOREACH(ptr, ListenerPollList.head) {
     listener = ptr->data;
-    if(IsWebsocket(listener)) {
+    if (IsWebsocket(listener)) {
       libwebsocket_service(listener->wsc, 0);
     }
   }
@@ -78,7 +78,7 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
         DLINK_FOREACH(ptr, ListenerPollList.head)
         {
           listener = ptr->data;
-          if(IsWebsocket(listener) && listener->wsc == wsc && !listener->active)
+          if (IsWebsocket(listener) && listener->wsc == wsc && !listener->active)
             return 1;
         }
 
@@ -99,7 +99,7 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
       }
       break;
     case LWS_CALLBACK_CLOSED:
-      if(wsd && wsd->client)
+      if (wsd != NULL && wsd->client)
         exit_client(wsd->client, &me, "Remote host closed the connection");
       break;
     case LWS_CALLBACK_ESTABLISHED:
@@ -108,7 +108,7 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
         struct Listener *listener = NULL;
         DLINK_FOREACH(ptr, ListenerPollList.head) {
           listener = ptr->data;
-          if(IsWebsocket(listener) && listener->wsc == wsc)
+          if (IsWebsocket(listener) && listener->wsc == wsc)
           {
             int fd = libwebsocket_get_socket_fd(wsi);
             struct irc_ssaddr addr;
@@ -126,10 +126,10 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
       }
       break;
     case LWS_CALLBACK_RECEIVE:
-      if(wsd && wsd->client)
+      if (wsd != NULL && wsd->client)
       {
         execute_callback(iorecv_cb, wsd->client, len, in);
-        if(wsd->client->flags & FLAGS_FINISHED_AUTH)
+        if (wsd->client->flags & FLAGS_FINISHED_AUTH)
           finish_client_read(wsd->client);
       }
       break;
@@ -155,14 +155,14 @@ websocket_protocol_callback(struct libwebsocket_context *wsc, struct libwebsocke
 int
 websocket_write(struct Client *client, const char *oldbuf, size_t len)
 {
-  if(!IsDead(client) || !IsSendqBlocked(client))
+  if (!IsDead(client) || !IsSendqBlocked(client))
   {
     int ret;
     unsigned char *buf = MyMalloc(LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING);
     memcpy(&buf[LWS_SEND_BUFFER_PRE_PADDING], oldbuf, len);
     ret = libwebsocket_write(client->localClient->fd.websocket, &buf[LWS_SEND_BUFFER_PRE_PADDING], len, LWS_WRITE_TEXT);
     MyFree(buf);
-    if(ret == 0) {
+    if (ret == 0) {
       ret = 1;
     }
     return ret;
@@ -173,13 +173,13 @@ websocket_write(struct Client *client, const char *oldbuf, size_t len)
 void
 websocket_close(struct Client *client)
 {
-  if(client->localClient->fd.websocket)
+  if (client->localClient->fd.websocket != NULL)
     libwebsockets_hangup_on_client(client->localClient->listener->wsc, client->localClient->fd.fd);
 }
 
 void
 websocket_close_listener(struct Listener *listener)
 {
-  if (IsWebsocket(listener) && listener->wsc)
+  if (IsWebsocket(listener) && listener->wsc != NULL)
     libwebsocket_context_destroy(listener->wsc);
 }
