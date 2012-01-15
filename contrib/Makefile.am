@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 MODULE_FLAGS = -module -avoid-version
 
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
+AM_CPPFLAGS = -I$(top_srcdir)/include
 modulesdir = $(pkglibdir)/modules/autoload
 
 modules_LTLIBRARIES = example_module.la     \
