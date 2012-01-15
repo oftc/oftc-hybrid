@@ -1132,7 +1132,7 @@ irc_res_mkquery(
 	HEADER *hp;
 	unsigned char *cp;
 	int n;
-	unsigned char *dnptrs[20], **dpp, **lastdnptr;
+	const unsigned char *dnptrs[20], **dpp, **lastdnptr;
 
 	/*
 	 * Initialize header fields.
@@ -1155,8 +1155,8 @@ irc_res_mkquery(
 
 	if ((buflen -= QFIXEDSZ) < 0)
 	  return (-1);
-	if ((n = irc_ns_name_compress(dname, cp, buflen, (const unsigned char **)dnptrs,
-                                                         (const unsigned char **)lastdnptr)) < 0)
+	if ((n = irc_ns_name_compress(dname, cp, buflen, dnptrs,
+                                                         lastdnptr)) < 0)
 	  return (-1);
 
 	cp += n;
