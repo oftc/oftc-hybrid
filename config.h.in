@@ -291,6 +291,9 @@
    */
 #undef LT_OBJDIR
 
+/* Define to the shared library suffix, say, ".dylib". */
+#undef LT_SHARED_EXT
+
 /* Define to 1 to disable debugging. */
 #undef NDEBUG
 
