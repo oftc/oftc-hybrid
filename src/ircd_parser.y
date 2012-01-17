@@ -2048,9 +2048,6 @@ connect_entry: CONNECT
     yy_aconf->passwd = NULL;
     /* defaults */
     yy_aconf->port = PORTNUM;
-
-    if (ConfigFileEntry.burst_away)
-      yy_aconf->flags = CONF_FLAGS_BURST_AWAY;
   }
   else
   {
@@ -2736,7 +2733,7 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_compression_level | general_client_flood |
                     general_throttle_time | general_havent_read_conf |
                     general_ping_cookie |
-                    general_disable_auth | general_burst_away |
+                    general_disable_auth | 
 		    general_tkline_expire_notices | general_gline_min_cidr |
                     general_gline_min_cidr6 | general_use_whois_actually |
 		    general_reject_hold_time | general_stats_e_disabled |
@@ -2757,11 +2754,6 @@ general_gline_min_cidr: GLINE_MIN_CIDR '=' NUMBER ';'
 general_gline_min_cidr6: GLINE_MIN_CIDR6 '=' NUMBER ';'
 {
   ConfigFileEntry.gline_min_cidr6 = $3;
-};
-
-general_burst_away: BURST_AWAY '=' TBOOL ';'
-{
-  ConfigFileEntry.burst_away = yylval.number;
 };
 
 general_use_whois_actually: USE_WHOIS_ACTUALLY '=' TBOOL ';'
