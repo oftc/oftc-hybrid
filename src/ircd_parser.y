@@ -2129,8 +2129,8 @@ connect_entry: CONNECT
   if (conf_parser_ctx.pass == 2)
   {
     yy_conf = make_conf_item(SERVER_TYPE);
-    yy_aconf = (struct AccessItem *)map_to_conf(yy_conf);
-    yy_aconf->passwd = NULL;
+    yy_aconf = map_to_conf(yy_conf);
+
     /* defaults */
     yy_aconf->port = PORTNUM;
   }
