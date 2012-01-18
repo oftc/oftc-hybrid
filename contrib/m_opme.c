@@ -37,28 +37,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mo_opme(struct Client *, struct Client *, int, char *[]);
-
-struct Message opme_msgtab = {
-  "OPME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_opme, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&opme_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&opme_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 static int
 chan_is_opless(const struct Channel *const chptr)
@@ -115,16 +93,12 @@ mo_opme(struct Client *client_p, struct Client *source_p,
   AddMemberFlag(member, CHFL_CHANOP);
 
   if (*parv[1] == '&')
-  {
-    sendto_wallops_flags(UMODE_LOCOPS, &me,
-                         "OPME called for [%s] by %s!%s@%s",
+    sendto_wallops_flags(UMODE_LOCOPS, &me, "OPME called for [%s] by %s!%s@%s",
                          chptr->chname, source_p->name, source_p->username,
                          source_p->host);
-  }
   else
   {
-    sendto_wallops_flags(UMODE_WALLOP, &me,
-                         "OPME called for [%s] by %s!%s@%s",
+    sendto_wallops_flags(UMODE_WALLOP, &me, "OPME called for [%s] by %s!%s@%s",
                          chptr->chname, source_p->name, source_p->username,
                          source_p->host);
     sendto_server(NULL, NULL, NOCAPS, NOCAPS,
@@ -133,7 +107,7 @@ mo_opme(struct Client *client_p, struct Client *source_p,
                   source_p->host);
   }
 
-  ilog(L_NOTICE, "OPME called for [%s] by %s!%s@%s",
+  ilog(LOG_TYPE_IRCD, "OPME called for [%s] by %s!%s@%s",
        chptr->chname, source_p->name, source_p->username,
        source_p->host);
 
@@ -154,3 +128,30 @@ mo_opme(struct Client *client_p, struct Client *source_p,
   sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +o %s",
                        me.name, chptr->chname, source_p->name);
 }
+
+static struct Message opme_msgtab = {
+  "OPME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_opme, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&opme_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&opme_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -44,36 +44,6 @@
 #include "channel.h"
 #include "channel_mode.h"
 
-static void mo_forcejoin(struct Client *, struct Client *, int parc, char *[]);
-static void mo_forcepart(struct Client *, struct Client *, int parc, char *[]);
-
-struct Message forcejoin_msgtab = {
-  "FORCEJOIN", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
-  { m_ignore, m_not_oper, mo_forcejoin, mo_forcejoin, mo_forcejoin, m_ignore }
-};
-
-struct Message forcepart_msgtab = {
-  "FORCEPART", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
-  { m_ignore, m_not_oper, mo_forcepart, mo_forcepart, mo_forcepart, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&forcejoin_msgtab);
-  mod_add_cmd(&forcepart_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&forcejoin_msgtab);
-  mod_del_cmd(&forcepart_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /* m_forcejoin()
  *  parv[0] = sender prefix
@@ -265,7 +235,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
 
     chptr->mode.mode |= MODE_TOPICLIMIT | MODE_NOPRIVMSGS;
 
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +nt",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +nt",
                          me.name, chptr->chname);
 
     target_p->localClient->last_join_time = CurrentTime;
@@ -349,3 +319,37 @@ mo_forcepart(struct Client *client_p, struct Client *source_p,
                        target_p->name);
   remove_user_from_channel(member);
 }
+
+static struct Message forcejoin_msgtab = {
+  "FORCEJOIN", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  { m_ignore, m_not_oper, mo_forcejoin, mo_forcejoin, mo_forcejoin, m_ignore }
+};
+
+static struct Message forcepart_msgtab = {
+  "FORCEPART", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  { m_ignore, m_not_oper, mo_forcepart, mo_forcepart, mo_forcepart, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&forcejoin_msgtab);
+  mod_add_cmd(&forcepart_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&forcejoin_msgtab);
+  mod_del_cmd(&forcepart_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};
