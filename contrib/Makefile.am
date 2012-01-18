@@ -6,7 +6,6 @@ modulesdir = $(pkglibdir)/modules/autoload
 
 modules_LTLIBRARIES = example_module.la     \
                       ip_cloaking.la        \
-                      m_capture.la          \
                       m_change.la           \
                       m_classlist.la        \
                       m_clearchan.la        \
@@ -21,7 +20,6 @@ modules_LTLIBRARIES = example_module.la     \
 
 example_module_la_LDFLAGS = $(MODULE_FLAGS)
 ip_cloaking_la_LDFLAGS = $(MODULE_FLAGS)
-m_capture_la_LDFLAGS = $(MODULE_FLAGS)
 m_change_la_LDFLAGS = $(MODULE_FLAGS)
 m_classlist_la_LDFLAGS = $(MODULE_FLAGS)
 m_clearchan_la_LDFLAGS = $(MODULE_FLAGS)
@@ -37,7 +35,6 @@ m_webirc_la_LDFLAGS = $(MODULE_FLAGS)
 
 example_module_la_SOURCES = example_module.c
 ip_cloaking_la_SOURCES = ip_cloaking.c
-m_capture_la_SOURCES = m_capture.c
 m_change_la_SOURCES = m_change.c
 m_classlist_la_SOURCES = m_classlist.c
 m_clearchan_la_SOURCES = m_clearchan.c

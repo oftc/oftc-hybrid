@@ -78,10 +78,6 @@
 
 #define IsOperspy(x) (HasUMode(x, UMODE_OPER) && MyClient(x) && HasUMode(x, UMODE_ADMIN))
 
-/* The commands we will add */
-static void ms_operspy(struct Client *, struct Client *, int, char *[]);
-static void mo_operspy(struct Client *, struct Client *, int, char *[]);
-
 /* extensions for OPERSPY WHO */
 static void do_who(struct Client *, struct Client *, char *, const char *);
 static void who_global(struct Client *, char *, int);
@@ -93,12 +89,10 @@ static void operspy_names(struct Client *, int, char *[]);
 static void operspy_topic(struct Client *, int, char *[]);
 static void operspy_who(struct Client *, int, char *[]);
 static void operspy_whois(struct Client *, int, char *[]);
+#ifdef OPERSPY_LOG
+static void operspy_log(struct Client *, const char *, const char *);
+#endif
 
-
-struct Message operspy_msgtab = {
-  "OPERSPY", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
-  {m_ignore, m_not_oper, ms_operspy, ms_operspy, mo_operspy, m_ignore}
-};
 
 static const struct operspy_s {
   const char *const cmd;
@@ -124,25 +118,6 @@ static const struct operspy_s {
 #endif
   { NULL, NULL }
 };
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&operspy_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&operspy_msgtab);
-}
-
-const char *_version = "$Revision$";
-
-
-#ifdef OPERSPY_LOG
-static void operspy_log(struct Client *, const char *, const char *);
-#endif
 
 static void
 ms_operspy(struct Client *client_p, struct Client *source_p,
@@ -319,7 +294,7 @@ operspy_topic(struct Client *client_p, int parc, char *parv[])
   operspy_log(client_p, "TOPIC", parv[2]);
 #endif
 
-  if (chptr_topic->topic == '\0')
+  if (chptr_topic->topic[0] == '\0')
     sendto_one(client_p, form_str(RPL_NOTOPIC),
                me.name, client_p->name, parv[2]);
   else
@@ -585,7 +560,7 @@ do_who_on_channel(struct Client *source_p, struct Channel *chptr,
   DLINK_FOREACH(ptr, chptr->members.head)
   {
     ms = ptr->data;
-    do_who(source_p, ms->client_p, chname, get_member_status(ms, NO));
+    do_who(source_p, ms->client_p, chname, get_member_status(ms, 0));
   }
 }
 
@@ -640,3 +615,30 @@ operspy_log(struct Client *source_p, const char *command, const char *target)
                        command, target);
 }
 #endif /* OPERSPY_LOG */
+
+static struct Message operspy_msgtab = {
+  "OPERSPY", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  {m_ignore, m_not_oper, ms_operspy, ms_operspy, mo_operspy, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&operspy_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&operspy_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

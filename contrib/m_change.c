@@ -39,42 +39,6 @@
 #include "hash.h"
 #include "userhost.h"
 
-static void mo_chgident(struct Client *, struct Client *, int, char *[]);
-static void mo_chghost(struct Client *, struct Client *, int, char *[]);
-static void mo_chgname(struct Client *, struct Client *, int, char *[]);
-
-struct Message chgident_msgtab = {
-  "CHGIDENT", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_chgident, mo_chgident, mo_chgident, m_ignore}
-};
-
-struct Message chghost_msgtab = {
-  "CHGHOST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_chghost, mo_chghost, mo_chghost, m_ignore}
-};
-
-struct Message chgname_msgtab = {
-  "CHGNAME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_chgname, mo_chgname, mo_chgname, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&chgident_msgtab);
-  mod_add_cmd(&chghost_msgtab);
-  mod_add_cmd(&chgname_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&chgname_msgtab);
-  mod_del_cmd(&chghost_msgtab);
-  mod_del_cmd(&chgident_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 static void
 mo_chgident(struct Client *client_p, struct Client *source_p,
@@ -250,3 +214,44 @@ mo_chgname(struct Client *client_p, struct Client *source_p,
     sendto_one(target_p, ":%s NOTICE %s :Your realname is now [%s]",
                me.name, target_p->name, target_p->info);
 }
+
+static struct Message chgident_msgtab = {
+  "CHGIDENT", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, mo_chgident, mo_chgident, mo_chgident, m_ignore}
+};
+
+static struct Message chghost_msgtab = {
+  "CHGHOST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, mo_chghost, mo_chghost, mo_chghost, m_ignore}
+};
+
+static struct Message chgname_msgtab = {
+  "CHGNAME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, mo_chgname, mo_chgname, mo_chgname, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&chgident_msgtab);
+  mod_add_cmd(&chghost_msgtab);
+  mod_add_cmd(&chgname_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&chgname_msgtab);
+  mod_del_cmd(&chghost_msgtab);
+  mod_del_cmd(&chgident_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

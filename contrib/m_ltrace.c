@@ -38,29 +38,8 @@
 #include "modules.h"
 
 static void do_ltrace(struct Client *, int, char *[]);
-static void m_ltrace(struct Client *, struct Client *, int, char *[]);
-static void mo_ltrace(struct Client *, struct Client *, int, char *[]);
-
-struct Message ltrace_msgtab = {
-  "LTRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_ltrace, mo_ltrace, m_ignore, mo_ltrace, m_ignore}
-};
-
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&ltrace_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&ltrace_msgtab);
-}
-
 static void report_this_status(struct Client *, struct Client *, int);
+
 
 static void
 trace_get_dependent(int *const server,
@@ -85,14 +64,14 @@ static void
 m_ltrace(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  char *tname;
+  const char *tname = NULL;
 
   if (parc > 1)
     tname = parv[1];
   else
     tname = me.name;
   sendto_one(source_p, form_str(RPL_ENDOFTRACE),
-             me.name, parv[0], tname);
+             me.name, source_p->name, tname);
 }
 
 /*
@@ -333,3 +312,30 @@ report_this_status(struct Client *source_p, struct Client *target_p,
       break;
   }
 }
+
+static struct Message ltrace_msgtab = {
+  "LTRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_ltrace, mo_ltrace, m_ignore, mo_ltrace, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&ltrace_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&ltrace_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -37,28 +37,8 @@
 #include "modules.h"
 
 static void do_ctrace(struct Client *, int, char *[]);
-static void mo_ctrace(struct Client *, struct Client *, int, char *[]);
-
-struct Message ctrace_msgtab = {
-  "CTRACE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ctrace, m_ignore}
-};
-
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&ctrace_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&ctrace_msgtab);
-}
-
 static void report_this_status(struct Client *, struct Client *);
+
 
 /*
 ** mo_ctrace
@@ -72,7 +52,7 @@ mo_ctrace(struct Client *client_p, struct Client *source_p,
   if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, parv[0], "CTRACE");
+               me.name, source_p->name, "CTRACE");
     return;
   }
 
@@ -85,8 +65,8 @@ mo_ctrace(struct Client *client_p, struct Client *source_p,
 static void
 do_ctrace(struct Client *source_p, int parc, char *parv[])
 {
-  char *class_looking_for;
-  const char *class_name = parv[1];
+  char *class_looking_for = parv[1];
+  const char *class_name = NULL;
   dlink_node *ptr;
 
   sendto_realops_flags(UMODE_SPY, L_ALL,
@@ -105,7 +85,7 @@ do_ctrace(struct Client *source_p, int parc, char *parv[])
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name,
-             parv[0], class_looking_for);
+             source_p->name, class_looking_for);
 }
 
 /*
@@ -188,3 +168,30 @@ report_this_status(struct Client *source_p, struct Client *target_p)
       break;
   }
 }
+
+static struct Message ctrace_msgtab = {
+  "CTRACE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ctrace, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&ctrace_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&ctrace_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

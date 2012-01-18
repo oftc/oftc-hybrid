@@ -89,42 +89,6 @@
 #include "parse.h"
 #include "modules.h"
 
-static void mo_spoof(struct Client *, struct Client *, int, char *[]);
-static void mo_delspoof(struct Client *, struct Client *, int, char *[]);
-
-struct Message spoof_msgtab = {
-  "SPOOF", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
-#ifdef RECEIVE_SPOOF
-  {m_unregistered, m_not_oper, mo_spoof, m_ignore, mo_spoof, m_ignore}
-#else
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_spoof, m_ignore}
-#endif
-};
-
-struct Message delspoof_msgtab = {
-  "DELSPOOF", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
-#ifdef RECEIVE_SPOOF
-  {m_unregistered, m_not_oper, mo_delspoof, m_ignore, mo_delspoof, m_ignore}
-#else
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_delspoof, m_ignore}
-#endif
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&spoof_msgtab);
-  mod_add_cmd(&delspoof_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&delspoof_msgtab);
-  mod_del_cmd(&spoof_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 #ifdef SPOOF_FILE
 static void
@@ -328,7 +292,7 @@ mo_spoof(struct Client *client_p, struct Client *source_p,
   sendto_realops_flags(UMODE_ALL, L_ALL,
                        "%s added auth for %s@%s [spoof: %s, flags: %s]",
                        source_p->name, user, host, spoof, flags);
-  ilog(L_TRACE, "%s added auth for %s@%s [spoof: %s, flags: %s]",
+  ilog(LOG_TYPE_IRCD, "%s added auth for %s@%s [spoof: %s, flags: %s]",
                 source_p->name, user, host, spoof, flags);
 #endif
 }
@@ -500,3 +464,45 @@ mo_delspoof(struct Client *client_p, struct Client *source_p,
                        source_p->name, user, host);
 #endif
 }
+
+static struct Message spoof_msgtab = {
+  "SPOOF", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+#ifdef RECEIVE_SPOOF
+  {m_unregistered, m_not_oper, mo_spoof, m_ignore, mo_spoof, m_ignore}
+#else
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_spoof, m_ignore}
+#endif
+};
+
+static struct Message delspoof_msgtab = {
+  "DELSPOOF", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
+#ifdef RECEIVE_SPOOF
+  {m_unregistered, m_not_oper, mo_delspoof, m_ignore, mo_delspoof, m_ignore}
+#else
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_delspoof, m_ignore}
+#endif
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&spoof_msgtab);
+  mod_add_cmd(&delspoof_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&delspoof_msgtab);
+  mod_del_cmd(&spoof_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

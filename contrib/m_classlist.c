@@ -35,27 +35,6 @@
 #include "modules.h"
 
 
-static void mo_classlist(struct Client *, struct Client *, int, char *[]);
-
-struct Message classlist_msgtab = {
-  "CLASSLIST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_classlist, m_ignore}
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&classlist_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&classlist_msgtab);
-}
-
-const char *_version = "$Revision$";
-
 /* mo_classlist()
  *
  *      parv[0] = sender prefix
@@ -93,3 +72,30 @@ mo_classlist(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, ":%s NOTICE %s :No Class found matching %s",
                me.name, source_p->name, parv[1]);
 }
+
+static struct Message classlist_msgtab = {
+  "CLASSLIST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_classlist, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&classlist_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&classlist_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

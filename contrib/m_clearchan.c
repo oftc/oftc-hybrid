@@ -40,29 +40,10 @@
 #include "s_conf.h"
 
 
-static void mo_clearchan(struct Client *, struct Client *, int, char *[]);
 static void kick_list(struct Client *, struct Channel *);
 static void remove_our_modes(struct Channel *);
 static void remove_a_mode(struct Channel *, int, char);
 
-struct Message clearchan_msgtab = {
-  "CLEARCHAN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_clearchan, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&clearchan_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&clearchan_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /*
 ** mo_clearchan
@@ -103,7 +84,7 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
                 ":%s WALLOPS :CLEARCHAN called for [%s] by %s!%s@%s",
                 me.name, chptr->chname, source_p->name, source_p->username,
                 source_p->host);
-  ilog(L_NOTICE, "CLEARCHAN called for [%s] by %s!%s@%s",
+  ilog(LOG_TYPE_IRCD, "CLEARCHAN called for [%s] by %s!%s@%s",
        chptr->chname, source_p->name, source_p->username, source_p->host);
 
   /*
@@ -137,7 +118,8 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
 
   chptr->mode.mode = MODE_SECRET | MODE_TOPICLIMIT |
                      MODE_INVITEONLY | MODE_NOPRIVMSGS;
-  free_topic(chptr);
+
+  set_channel_topic(chptr, "", "", 0);
   chptr->mode.key[0] = '\0';
 
   /* Kick the users out and join the oper */
@@ -258,3 +240,30 @@ remove_a_mode(struct Channel *chptr, int mask, char flag)
                          lpara[1], lpara[2], lpara[3]);
   }
 }
+
+static struct Message clearchan_msgtab = {
+  "CLEARCHAN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_clearchan, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&clearchan_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&clearchan_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

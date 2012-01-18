@@ -71,67 +71,8 @@ static unsigned int umode_vhost = 0;
 static int vhost_ipv6_err;
 static dlink_node *prev_enter_umode;
 static dlink_node *prev_umode;
-
-const char *_version = "$Revision$";
-
 static void *reset_ipv6err_flag(va_list);
 static void *h_set_user_mode(va_list);
-
-void _modinit(void)
-{
-  if (!user_modes['h'])
-  {
-    unsigned int all_umodes = 0, i;
-
-    for (i = 0; i < 128; i++)
-      all_umodes |= user_modes[i];
-
-    for (umode_vhost = 1; umode_vhost && (all_umodes & umode_vhost);
-         umode_vhost <<= 1);
-
-    if (!umode_vhost)
-    {
-      ilog(L_ERROR, "You have more than 32 usermodes, "
-           "IP cloaking not installed");
-      sendto_realops_flags(UMODE_ALL, L_ALL, "You have more than "
-                           "32 usermodes, IP cloaking not installed");
-      return;
-    }
-
-    user_modes['h'] = umode_vhost;
-    assemble_umode_buffer();
-  }
-  else
-  {
-    ilog(L_ERROR, "Usermode +h already in use, IP cloaking not installed");
-    sendto_realops_flags(UMODE_ALL, L_ALL, "Usermode +h already in use, "
-                         "IP cloaking not installed");
-    return;
-  }
-
-  prev_enter_umode = install_hook(entering_umode_cb, reset_ipv6err_flag);
-  prev_umode = install_hook(umode_cb, h_set_user_mode);
-}
-
-void _moddeinit(void)
-{
-  if (umode_vhost)
-  {
-    dlink_node *ptr;
-
-    DLINK_FOREACH(ptr, local_client_list.head)
-    {
-      struct Client *cptr = ptr->data;
-      cptr->umodes &= ~umode_vhost;
-    }
-
-    user_modes['h'] = 0;
-    assemble_umode_buffer();
-
-    uninstall_hook(entering_umode_cb, reset_ipv6err_flag);
-    uninstall_hook(umode_cb, h_set_user_mode);
-  }
-}
 
 /*
  * The implementation originally comes from Gary S. Brown. The tables
@@ -263,13 +204,13 @@ crc32(const char *s, unsigned int len)
  * side effects - not IPv6 friendly
  */
 static int
-str2arr (char **pparv, char *string, char *delim)
+str2arr(char **pparv, char *string, const char *delim)
 {
   char *tok;
   int pparc = 0;
 
   /* Diane had suggested to use this method rather than while() -- knight */
-  for (tok = strtok (string, delim); tok != NULL; tok = strtok (NULL, delim))
+  for (tok = strtok(string, delim); tok != NULL; tok = strtok(NULL, delim))
   {
     pparv[pparc++] = tok;
   }
@@ -405,7 +346,7 @@ reset_ipv6err_flag(va_list args)
   struct Client *client_p = va_arg(args, struct Client *);
   struct Client *source_p = va_arg(args, struct Client *);
 
-  vhost_ipv6_err = NO;
+  vhost_ipv6_err = 0;
 
   return pass_callback(prev_enter_umode, client_p, source_p);
 }
@@ -453,3 +394,71 @@ h_set_user_mode(va_list args)
 
   return pass_callback(prev_umode, client_p, target_p, what, flag);
 }
+
+static void
+module_init(void)
+{
+  if (!user_modes['h'])
+  {
+    unsigned int all_umodes = 0, i;
+
+    for (i = 0; i < 128; i++)
+      all_umodes |= user_modes[i];
+
+    for (umode_vhost = 1; umode_vhost && (all_umodes & umode_vhost);
+         umode_vhost <<= 1);
+
+    if (!umode_vhost)
+    {
+      ilog(LOG_TYPE_IRCD, "You have more than 32 usermodes, "
+           "IP cloaking not installed");
+      sendto_realops_flags(UMODE_ALL, L_ALL, "You have more than "
+                           "32 usermodes, IP cloaking not installed");
+      return;
+    }
+
+    user_modes['h'] = umode_vhost;
+    assemble_umode_buffer();
+  }
+  else
+  {
+    ilog(LOG_TYPE_IRCD, "Usermode +h already in use, IP cloaking not installed");
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Usermode +h already in use, "
+                         "IP cloaking not installed");
+    return;
+  }
+
+  prev_enter_umode = install_hook(entering_umode_cb, reset_ipv6err_flag);
+  prev_umode = install_hook(umode_cb, h_set_user_mode);
+}
+
+static void
+module_exit(void)
+{
+  if (umode_vhost)
+  {
+    dlink_node *ptr;
+
+    DLINK_FOREACH(ptr, local_client_list.head)
+    {
+      struct Client *cptr = ptr->data;
+      cptr->umodes &= ~umode_vhost;
+    }
+
+    user_modes['h'] = 0;
+    assemble_umode_buffer();
+
+    uninstall_hook(entering_umode_cb, reset_ipv6err_flag);
+    uninstall_hook(umode_cb, h_set_user_mode);
+  }
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

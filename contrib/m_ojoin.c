@@ -36,26 +36,6 @@
 #include "channel_mode.h"
 #include "parse.h"
 
-static void mo_ojoin(struct Client *, struct Client *, int, char *[]);
-
-struct Message ojoin_msgtab = {
-  "OJOIN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ojoin, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&ojoin_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&ojoin_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /* mo_ojoin()
  *      parv[0] = sender prefix
@@ -121,18 +101,14 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
 
     /* Error checking here */
     if ((chptr = hash_find_channel(name)) == NULL)
-    {
       sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                  me.name, source_p->name, name);
-    }
     else if (IsMember(source_p, chptr))
-    {
       sendto_one(source_p, ":%s NOTICE %s :Please part %s before using OJOIN",
                  me.name, source_p->name, name);
-    }
     else
     {
-      add_user_to_channel(chptr, source_p, flags, NO);
+      add_user_to_channel(chptr, source_p, flags, 0);
 
       if (chptr->chname[0] == '#')
         DLINK_FOREACH(ptr, serv_list.head)
@@ -145,13 +121,13 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
                      "@" : prefix, ID_or_name(source_p, serv_p));
         }
 
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN %s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s JOIN %s",
                            source_p->name, source_p->username,
                            source_p->host,
                            chptr->chname);
 
       if (modeletter != '\0')
-        sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +%c %s",
+        sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +%c %s",
                              me.name, chptr->chname, modeletter, source_p->name);
 
       /* send the topic... */
@@ -170,3 +146,30 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
     }
   }
 }
+
+static struct Message ojoin_msgtab = {
+  "OJOIN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ojoin, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&ojoin_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&ojoin_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};
