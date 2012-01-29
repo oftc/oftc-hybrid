@@ -482,8 +482,8 @@ full_usage(void)
 {
   printf("mkpasswd [-5|-6|-m|-d|-b|-e] [-l saltlength] [-r rounds] [-s salt] [-p plaintext]\n");
   printf("         [-R rawsalt]\n");
-  printf("-5 Generate a SHA256 password\n");
-  printf("-6 Generate a SHA512 password\n");
+  printf("-5 Generate a SHA-256 password\n");
+  printf("-6 Generate a SHA-512 password\n");
   printf("-m Generate an MD5 password\n");
   printf("-d Generate a DES password\n");
   printf("-b Generate a BlowFish password\n");
@@ -506,8 +506,8 @@ brief_usage(void)
   printf("mkpasswd - password hash generator\n");
   printf("Standard DES:  mkpasswd [-d] [-s salt] [-p plaintext]\n");
   printf("Extended DES:  mkpasswd -e [-r rounds] [-s salt] [-p plaintext]\n");
-  printf("      SHA256:  mkpasswd -5 [-l saltlength] [-s salt] [-p plaintext]\n");
-  printf("      SHA512:  mkpasswd -6 [-l saltlength] [-s salt] [-p plaintext]\n");
+  printf("     SHA-256:  mkpasswd -5 [-l saltlength] [-s salt] [-p plaintext]\n");
+  printf("     SHA-512:  mkpasswd -6 [-l saltlength] [-s salt] [-p plaintext]\n");
   printf("         MD5:  mkpasswd -m [-l saltlength] [-s salt] [-p plaintext]\n");
   printf("    BlowFish:  mkpasswd -b [-r rounds] [-l saltlength] [-s salt]\n");
   printf("                           [-p plaintext]\n");
