@@ -4,7 +4,9 @@ o) Implemented full services support. Among other things, the following changes
    - Added SVSNICK, and SVSMODE command handlers
    - Added service stamps to NICK/UID messages
    - Usermode +r (registered nick) has been added, as well as
-     channelmode +r (registered channel).
+     channelmode +r (registered channel)
+   - Now that usermode +r has a different function than before, rejected
+     client notices now go to new usermode +j
    - Various services shortcuts have been added (/NS, /CS, /NICKSERV, /CHANSERV, etc.)
    - Added channelmode +R (only registered clients may join that channel)
    - Added usermode +R (only registered clients may send a private message)
@@ -14,9 +16,14 @@ o) RKLINE and RXLINE commands have been removed. Regular expression based
    bans should only be added via ircd.conf
 o) Added 'globops', 'restart' and 'module' operator privilege flags.
    Read etc/example.conf for further explanation of what these flags
-   are supposed to be doing.
+   are supposed to be doing
 o) Idle-time klines have been removed
 o) Cleaned up modules API. Old modules won't work anymore
+o) Remove general::burst_away configuration directive. AWAY bursts are now
+   controlled via connect::flags explicitly
+o) Introduced new logging subsystem including log rotation based on
+   file sizes
+
 
 --------------------------------------------------------------------------------
 

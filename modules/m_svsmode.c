@@ -54,7 +54,7 @@
  *      - parv[1] = nickname
  *      - parv[2] = TS (or mode, depending on svs version)
  *      - parv[3] = mode (or services id if old svs version)
- *      - parv[4] = optional arguement (services id)
+ *      - parv[4] = optional argument (services id)
  */
 static void
 ms_svsmode(struct Client *client_p, struct Client *source_p,
