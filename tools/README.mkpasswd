@@ -1,4 +1,3 @@
-mkpasswd.c documentation
 $Id$
 
 This is documentation for the mkpasswd.c included in ircd-hybrid-8.
@@ -39,7 +38,7 @@ The maximum length of an MD5 salt is limited to your systems crypt()
   implementation, typically 8.
 
 Supported Platforms (Known and tested):
-Linux glibc (DES and MD5)
+Linux glibc (SHA since glibc 2.7, DES and MD5)
 FreeBSD 3.x (DES (MD5 maybe))
 FreeBSD 4.x (DES and MD5)
 Solaris 2.5-2.6 (DES only)
