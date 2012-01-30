@@ -431,7 +431,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
   if (!IsClient(source_p) || !match(parv[1], me.name))
     return;
 
-  if (!HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE,
+  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE,
 				   source_p->servptr->name,
 				   source_p->username, source_p->host,
 				   SHARED_UNKLINE))
