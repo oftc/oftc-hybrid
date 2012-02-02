@@ -31,16 +31,6 @@ ip_cloaking.c    --  This module enables IP/hostname cloaking support for
                      information.
 
 
-m_capture.c      --  This module will essentially capture a client (making it
-                     impossible for a user to send commands to the server).
-
-                     Syntax: CAPTURE <nickname/mask>
-		             UNCAPTURE <nickname/mask>
-
-                     Example: (UN)CAPTURE scriptkiddie
-		              (UN)CAPTURE *!*@abuser.host
-
-
 m_change.c       --  This module will allow IRC operators to alter the ident,
                      hostname or gecos (realname) fields of a given user.
 
@@ -161,6 +151,11 @@ m_spoof.c        --  This module adds automated auth {} block configurations
                               DELSPOOF *@other.host.edu
 
 
+m_webirc.c       --  Adds CGI:IRC/WebIRC support. A special auth{} block is
+                     required in order to enable WebIRC support. For more
+                     details check m_webirc.c
+
+
 example_module.c --  This is an example module template to help users create
                      their own modules.
 
@@ -180,7 +175,7 @@ Other files that have been put into the contrib directory but do not have
 a specific category are listed here with a brief description of what they
 are and what they do.
 
-challange.irc    -- ircII script that works in conjunction with rsa_respond
+challenge.irc    -- ircII script that works in conjunction with rsa_respond
                     so you can authenticate within your client.
 
 ircd-hybrid.spec -- RPM specifications file that can be used to build an RPM of
