@@ -896,7 +896,7 @@ oper_entry: OPERATOR
     MyFree(class_name);
     class_name = NULL;
   }
-} oper_name_b '{' oper_items '}' ';'
+} '{' oper_items '}' ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
@@ -931,6 +931,10 @@ oper_entry: OPERATOR
 	DupString(new_aconf->host, yy_tmp->host);
       else
 	DupString(new_aconf->host, "*");
+
+      new_aconf->type = parse_netmask(new_aconf->host, &new_aconf->ipnum,
+                                     &new_aconf->bits);
+
       conf_add_class_to_conf(new_conf, class_name);
       if (yy_aconf->passwd != NULL)
         DupString(new_aconf->passwd, yy_aconf->passwd);
@@ -977,25 +981,12 @@ oper_entry: OPERATOR
   }
 }; 
 
-oper_name_b: | oper_name_t;
 oper_items:     oper_items oper_item | oper_item;
 oper_item:      oper_name | oper_user | oper_password |
                 oper_umodes | oper_class | oper_encrypted |
 		oper_rsa_public_key_file | oper_flags | error ';' ;
 
 oper_name: NAME '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (strlen(yylval.string) > OPERNICKLEN)
-      yylval.string[OPERNICKLEN] = '\0';
-
-    MyFree(yy_conf->name);
-    DupString(yy_conf->name, yylval.string);
-  }
-};
-
-oper_name_t: QSTRING
 {
   if (conf_parser_ctx.pass == 2)
   {
@@ -1028,6 +1019,9 @@ oper_user: USER '=' QSTRING ';'
     {
       DupString(yy_aconf->user, userbuf);
       DupString(yy_aconf->host, hostbuf);
+
+      yy_aconf->type = parse_netmask(yy_aconf->host, &yy_aconf->ipnum,
+                                    &yy_aconf->bits);
     }
     else
     {
@@ -1292,7 +1286,7 @@ class_entry: CLASS
     yy_conf = make_conf_item(CLASS_TYPE);
     yy_class = map_to_conf(yy_conf);
   }
-} class_name_b '{' class_items '}' ';'
+} '{' class_items '}' ';'
 {
   if (conf_parser_ctx.pass == 1)
   {
@@ -1303,7 +1297,7 @@ class_entry: CLASS
       delete_conf_item(yy_conf);
     else
     {
-      cconf = find_exact_name_conf(CLASS_TYPE, yy_class_name, NULL, NULL);
+      cconf = find_exact_name_conf(CLASS_TYPE, NULL, yy_class_name, NULL, NULL);
 
       if (cconf != NULL)		/* The class existed already */
       {
@@ -1335,8 +1329,6 @@ class_entry: CLASS
   }
 };
 
-class_name_b: | class_name_t;
-
 class_items:    class_items class_item | class_item;
 class_item:     class_name |
 		class_cidr_bitlen_ipv4 | class_cidr_bitlen_ipv6 |
@@ -1353,15 +1345,6 @@ class_item:     class_name |
 		error ';' ;
 
 class_name: NAME '=' QSTRING ';' 
-{
-  if (conf_parser_ctx.pass == 1)
-  {
-    MyFree(yy_class_name);
-    DupString(yy_class_name, yylval.string);
-  }
-};
-
-class_name_t: QSTRING
 {
   if (conf_parser_ctx.pass == 1)
   {
@@ -2054,7 +2037,7 @@ connect_entry: CONNECT
     MyFree(class_name);
     class_name = NULL;
   }
-} connect_name_b '{' connect_items '}' ';'
+} '{' connect_items '}' ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
@@ -2182,7 +2165,6 @@ connect_entry: CONNECT
   }
 };
 
-connect_name_b: | connect_name_t;
 connect_items:  connect_items connect_item | connect_item;
 connect_item:   connect_name | connect_host | connect_vhost |
 		connect_send_password | connect_accept_password |
@@ -2193,18 +2175,6 @@ connect_item:   connect_name | connect_host | connect_vhost |
                 error ';' ;
 
 connect_name: NAME '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yy_conf->name != NULL)
-      yyerror("Multiple connect name entry");
-
-    MyFree(yy_conf->name);
-    DupString(yy_conf->name, yylval.string);
-  }
-};
-
-connect_name_t: QSTRING
 {
   if (conf_parser_ctx.pass == 2)
   {

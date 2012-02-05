@@ -1673,7 +1673,7 @@ find_matching_name_conf(ConfType type, const char *name, const char *user,
  * side effects - looks for an exact match on name field
  */
 struct ConfItem *
-find_exact_name_conf(ConfType type, const char *name,
+find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
                      const char *user, const char *host)
 {
   dlink_node *ptr = NULL;
@@ -1714,20 +1714,44 @@ find_exact_name_conf(ConfType type, const char *name,
     DLINK_FOREACH(ptr, list_p->head)
     {
       conf = ptr->data;
-      aconf = (struct AccessItem *)map_to_conf(conf);
+      aconf = map_to_conf(conf);
+
       if (EmptyString(conf->name))
-	continue;
-    
-      if (irccmp(conf->name, name) == 0)
+        continue;
+
+      if (!irccmp(conf->name, name))
       {
-	if ((user == NULL && (host == NULL)))
-	  return (conf);
-	if (EmptyString(aconf->user) || EmptyString(aconf->host))
-	  return (conf);
-	if (match(aconf->user, user) && match(aconf->host, host))
-	  return (conf);
+        if (!who)
+          return conf;
+        if (EmptyString(aconf->user) || EmptyString(aconf->host))
+          return conf;
+        if (match(aconf->user, who->username))
+        {
+          switch (aconf->type)
+          {
+            case HM_HOST:
+              if (match(aconf->host, who->host) || match(aconf->host, who->sockhost))
+                return conf;
+              break;
+            case HM_IPV4:
+              if (who->localClient->aftype == AF_INET)
+                if (match_ipv4(&who->localClient->ip, &aconf->ipnum, aconf->bits))
+                  return conf;
+              break;
+#ifdef IPV6
+            case HM_IPV6:
+              if (who->localClient->aftype == AF_INET6)
+                if (match_ipv6(&who->localClient->ip, &aconf->ipnum, aconf->bits))
+                  return conf;
+              break;
+#endif
+            default:
+              assert(0);
+          }
+        }
       }
     }
+
     break;
 
   case SERVER_TYPE:
@@ -2909,7 +2933,7 @@ find_class(const char *classname)
 {
   struct ConfItem *conf;
 
-  if ((conf = find_exact_name_conf(CLASS_TYPE, classname, NULL, NULL)) != NULL)
+  if ((conf = find_exact_name_conf(CLASS_TYPE, NULL, classname, NULL, NULL)) != NULL)
     return conf;
 
   return class_default;
