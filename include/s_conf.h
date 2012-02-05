@@ -124,6 +124,8 @@ struct AccessItem
   unsigned int     modes;
   unsigned int     port;
   int              clients;  /* Number of *LOCAL* clients using this */
+  int              bits;
+  int              type;
   struct irc_ssaddr my_ipnum; /* ip to bind to for outgoing connect */
   struct irc_ssaddr ipnum;	/* ip to connect to */
   char *           host;     /* host part of user@host */
@@ -537,8 +539,8 @@ extern char *oper_privs_as_string(const unsigned int);
 extern void split_nuh(struct split_nuh_item *);
 extern struct ConfItem *find_matching_name_conf(ConfType, const char *,
                                                 const char *, const char *, int);
-extern struct ConfItem *find_exact_name_conf(ConfType, const char *,
-                                             const char *, const char *, const char *);
+extern struct ConfItem *find_exact_name_conf(ConfType, const struct Client *, const char *,
+                                             const char *, const char *);
 extern void delete_conf_item(struct ConfItem *);
 extern void report_confitem_types(struct Client *, ConfType, int);
 extern void yyerror(const char *);
