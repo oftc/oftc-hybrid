@@ -37,18 +37,6 @@
 #include "packet.h"
 
 
-/* find_password_conf()
- *
- * inputs       - name
- *              - pointer to source_p
- * output       - pointer to oper conf or NULL
- * side effects - NONE
- */
-static struct ConfItem *
-find_password_conf(const char *name, const struct Client *source_p)
-{
-  return find_exact_name_conf(OPER_TYPE, source_p, name, NULL, NULL);
-}
 
 /* failed_oper_notice()
  *
@@ -98,7 +86,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
   if (!IsFloodDone(source_p))
     flood_endgrace(source_p);
 
-  if ((conf = find_password_conf(name, source_p)) == NULL)
+  if ((conf = find_exact_name_conf(OPER_TYPE, source_p, name, NULL, NULL)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
     conf = find_exact_name_conf(OPER_TYPE, NULL, name, NULL, NULL);
