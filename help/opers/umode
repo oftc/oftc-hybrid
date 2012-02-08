@@ -14,7 +14,7 @@ Usermodes: (* designates that the umode is oper only)
        * +s     - Can see generic server messages and oper kills.
        * +c     - Can see client connections and exits.
        * +u     - Can see unauthorized client connections.
-       * +r     - Can see 'rejected' client notices.
+       * +j     - Can see 'rejected' client notices.
        * +k     - Can see server kill messages.
        * +f     - Can see 'I-line is full' notices.
        * +y     - Can see stats/links/admin requests to name a few.
