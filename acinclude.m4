@@ -221,27 +221,6 @@ AC_DEFUN([AX_ARG_ENABLE_EFENCE],[
     AC_SEARCH_LIBS([malloc],[efence],,[AC_MSG_ERROR([efence library not found])])
   fi
 ])dnl }}}
-dnl {{{ ax_arg_enable_syslog
-AC_DEFUN([AX_ARG_ENABLE_SYSLOG],[
-  AC_CHECK_HEADERS([syslog.h sys/syslog.h])
-  AC_ARG_ENABLE([syslog],[AC_HELP_STRING([--enable-syslog="EVENTS"],[Enable syslog for events: users oper (space separated in quotes; default: disabled).])],[syslog="$enableval"],[syslog="no"])
-  if test "$enableval" != "no" ; then
-    for option in $enableval ; do
-      case "$option" in
-        users) AC_DEFINE([SYSLOG_USERS],[1],[Send user log stuff to syslog.]) ;;
-        oper) AC_DEFINE([SYSLOG_OPER],[1],[Send oper log stuff to syslog.]) ;;
-        yes) : ;;
-        *) AC_MSG_ERROR([invalid value for --enable-syslog: $option]) ;;
-      esac
-    done
-    AC_DEFINE([USE_SYSLOG],[1],[Define to 1 if you want to use syslog.])
-  fi
-])dnl }}}
-dnl {{{ ax_arg_with_syslog_facility
-AC_DEFUN([AX_ARG_WITH_SYSLOG],[
-  AC_ARG_WITH([syslog-facility],[AC_HELP_STRING([--with-syslog-facility=LOG],[Define the syslog facility to use (default: LOG_LOCAL4)])],[syslog_facility="$withval"],[syslog_facility="LOG_LOCAL4"])
-  AC_DEFINE_UNQUOTED([LOG_FACILITY],[$syslog_facility],[Set to syslog facility to use.])
-])dnl }}}
 dnl {{{ ac_define_dir
 dnl http://autoconf-archive.cryp.to/ac_define_dir.html
 AC_DEFUN([AC_DEFINE_DIR], [

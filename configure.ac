@@ -166,14 +166,20 @@ AX_ARG_DISABLE_BLOCK_ALLOC
 AX_ARG_DISABLE_SHARED_MODULES
 AX_ARG_WITH_NICKLEN
 AX_ARG_WITH_TOPICLEN
+<<<<<<< HEAD
 AX_ARG_WITH_SYSLOG
 AX_ARG_WITH_SERVICS_NAME
+=======
+>>>>>>> e520291... - remove AX_ENABLE_SYSLOG. This is now obsolete with the new logging subsystem
 AX_ARG_ENABLE_EFNET
 AX_ARG_ENABLE_HALFOPS
 AX_ARG_ENABLE_DEBUGGING
 AX_ARG_ENABLE_WARNINGS
+<<<<<<< HEAD
 AX_ARG_ENABLE_EFENCE
 AX_ARG_ENABLE_SYSLOG
+=======
+>>>>>>> e520291... - remove AX_ENABLE_SYSLOG. This is now obsolete with the new logging subsystem
 
 AC_DEFINE_DIR([PREFIX],[prefix],[Set to prefix.])
 AC_DEFINE_DIR([SYSCONFDIR],[sysconfdir],[Set to sysconfdir.])

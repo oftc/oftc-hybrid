@@ -130,12 +130,6 @@ Info MyInformation[] = {
   { "TS_MAX_DELTA_DEFAULT", "", TS_MAX_DELTA_DEFAULT, "Maximum Allowed TS Delta from another Server" },
   { "TS_WARN_DELTA_DEFAULT", "", TS_WARN_DELTA_DEFAULT, "Maximum TS Delta before Sending Warning" },
 
-#ifdef USE_SYSLOG
-  { "USE_SYSLOG", "ON", 0, "Log Errors to syslog file" },
-#else
-  { "USE_SYSLOG", "OFF", 0, "Log Errors to syslog file" },
-#endif /* USE_SYSLOG */
-
   /* since we don't want to include the world here, NULL probably
    * isn't defined by the time we read this, just use plain 0 instead
    * 0 is guaranteed by the language to be assignable to ALL built
