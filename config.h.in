@@ -211,9 +211,6 @@
 /* Define to 1 if the system has the type `struct sockaddr_storage'. */
 #undef HAVE_STRUCT_SOCKADDR_STORAGE
 
-/* Define to 1 if you have the <syslog.h> header file. */
-#undef HAVE_SYSLOG_H
-
 /* Define to 1 if you have the <sys/devpoll.h> header file. */
 #undef HAVE_SYS_DEVPOLL_H
 
@@ -264,9 +261,6 @@
 
 /* Set to localstatedir. */
 #undef LOCALSTATEDIR
-
-/* Set to syslog facility to use. */
-#undef LOG_FACILITY
 
 /* Define if the OS needs help to load dependent libraries for dlopen(). */
 #undef LTDL_DLOPEN_DEPLIBS
@@ -339,12 +333,6 @@
 /* Set to sysconfdir. */
 #undef SYSCONFDIR
 
-/* Send oper log stuff to syslog. */
-#undef SYSLOG_OPER
-
-/* Send user log stuff to syslog. */
-#undef SYSLOG_USERS
-
 /* Length of topics. */
 #undef TOPICLEN
 
@@ -353,9 +341,6 @@
 
 /* use this iopoll mechanism */
 #undef USE_IOPOLL_MECHANISM
-
-/* Define to 1 if you want to use syslog. */
-#undef USE_SYSLOG
 
 /* Version number of package */
 #undef VERSION

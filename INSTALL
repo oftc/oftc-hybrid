@@ -2,7 +2,7 @@
 
    $Id$
 
-   Copyright (c) 1997-2011 IRCD-Hybrid Development Team
+   Copyright (c) 1997-2012 IRCD-Hybrid Development Team
 
      ----------------------------------------------------------------------
 
@@ -96,14 +96,6 @@
             used for *small* networks, as this tends to be a performance hit
             on larger networks.
 
-          * --enable-syslog=kill/squit/connect/users/oper, separated by
-            spaces, in quotes - Enables syslog logging, with events you specify
-            (none is okay too, and logs the most essential messages only.)
-
-          * --enable-syslog-facility=FACILITY - Check with your sysadmin to see
-            what this should be; by default it is LOG_LOCAL4. If you get it wrong
-            initially, no problem; just edit the value in include/setup.h.
-
           * --with-nicklen,
             --with-topiclen - Respectively, sets the maximum NICK length and
             maximum TOPIC length. Note that this must be consistent across your
@@ -120,21 +112,7 @@
    5.  If you wish to install the contrib modules, run 'make install' in the
        contrib/ folder to compile and install the modules and help pages.
 
-   6.  If you wish to enable the user log, oper log, and failed oper log,
-       kill log, kline log and the gline log issue these commands at the
-       shell prompt (in the prefix directory).
-
-       $ touch logs/userlog
-       $ touch logs/operlog
-       $ touch logs/foperlog
-       $ touch logs/kill
-       $ touch logs/kline
-       $ touch logs/gline
-
-       Note: If you use different names in ircd.conf, you must 'touch'
-             their specific names.
-
-   7.  If you are upgrading from Hybrid 5 or Hybrid 6, the config files
+   6.  If you are upgrading from Hybrid 5 or Hybrid 6, the config files
        have changed drastically.
 
        By default, the kline file is named kline.conf, the dline file is 

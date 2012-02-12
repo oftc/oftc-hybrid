@@ -82,9 +82,6 @@ confopts(struct Client *source_p)
 
   if (ConfigFileEntry.ignore_bogus_ts)
     *p++ = 'T';
-#ifdef USE_SYSLOG
-  *p++ = 'Y';
-#endif
 #ifdef HAVE_LIBZ
   *p++ = 'Z';
 #endif

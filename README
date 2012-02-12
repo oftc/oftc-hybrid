@@ -70,9 +70,6 @@ Feature Specific Requirements:
 
   It probably does not compile on AIX or libc5 Linux.
 
-- Old Hybrid 5/6 configuration files are no longer supported.  All conf
-  files will have to be converted to the Hybrid 7 format.
-
 - If you are wondering why config.h no longer exists, it's because most
   things that were once in config.h are now specified in the 'general'
   block of ircd.conf.  Look at example.conf for more information about
