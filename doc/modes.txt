@@ -12,8 +12,7 @@ Here is a guide to the preceding modes:
 
 User Modes:
 
-+a - admin        - Admin status.  Able to load and unload modules,
-                    and see IP's in STATS c
++a - admin        - Admin status. Can for example see IPs in "STATS c"
 +b - bots         - See bot and drone flooding notices
 +c - cconn        - Client connection/quit notices
 +D - deaf         - Don't receive channel messages
@@ -22,11 +21,11 @@ User Modes:
 +G - softcallerid - Server Side Ignore for users not on your channels
 +g - callerid     - Server Side Ignore (see modeg.txt)
 +i - invisible    - Not shown in NAMES or WHO unless you share a channel
++j - rej          - See rejected client notices
 +k - skill        - See server generated KILL messages
 +l - locops       - See LOCOPS messages
 +n - nchange      - See client nick changes
 +o - oper         - Operator status
-+r - rej          - See rejected client notices
 +s - servnotice   - See general server notices
 +u - unauth       - See unauthorized client notices
 +w - wallop       - See server generated WALLOPS
