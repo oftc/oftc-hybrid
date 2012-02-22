@@ -315,7 +315,8 @@ do_who(struct Client *source_p, struct Client *target_p,
              IsCaptured(target_p) ? "#" : "", op_flags);
   else
     snprintf(status, sizeof(status), "%c%s%s", target_p->away ? 'G' : 'H',
-             HasUMode(target_p, UMODE_OPER) ? "*" : "", op_flags);
+             HasUMode(target_p, UMODE_OPER) &&
+             !HasUMode(target_p, UMODE_HIDDEN) ? "*" : "", op_flags);
 
   if (ConfigServerHide.hide_servers)
   {

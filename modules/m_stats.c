@@ -1052,22 +1052,20 @@ stats_operedup(struct Client *source_p)
   {
     const struct Client *target_p = ptr->data;
 
-    if (HasOFlag(target_p, OPER_FLAG_HIDDEN_OPER) && !HasUMode(source_p, UMODE_OPER))
+    if (HasUMode(target_p, UMODE_HIDDEN) && !HasUMode(source_p, UMODE_OPER))
       continue;
 
     if (MyClient(source_p) && HasUMode(source_p, UMODE_OPER))
       sendto_one(source_p, ":%s %d %s p :[%c][%s] %s (%s@%s) Idle: %d",
                  from, RPL_STATSDEBUG, to,
-                 HasUMode(target_p, UMODE_ADMIN) ?
-		 (HasOFlag(target_p, OPER_FLAG_HIDDEN_ADMIN) ? 'O' : 'A') : 'O',
+                 HasUMode(target_p, UMODE_ADMIN) ? 'A' : 'O',
 		 oper_privs_as_string(target_p->localClient->operflags),
 		 target_p->name, target_p->username, target_p->host,
 		 (int)(CurrentTime - target_p->localClient->last_privmsg));
     else
       sendto_one(source_p, ":%s %d %s p :[%c] %s (%s@%s) Idle: %d",
                  from, RPL_STATSDEBUG, to,
-                 HasUMode(target_p, UMODE_ADMIN) ?
-		 (HasOFlag(target_p, OPER_FLAG_HIDDEN_ADMIN) ? 'O' : 'A') : 'O',
+                 HasUMode(target_p, UMODE_ADMIN) ? 'A' : 'O',
 		 target_p->name, target_p->username, target_p->host,
 		 (int)(CurrentTime - target_p->localClient->last_privmsg));
   }

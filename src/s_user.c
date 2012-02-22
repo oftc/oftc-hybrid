@@ -95,7 +95,7 @@ unsigned int user_modes[256] =
   0,                  /* E */
   0,                  /* F */
   UMODE_SOFTCALLERID, /* G */
-  0,                  /* H */
+  UMODE_HIDDEN,       /* H */
   0,                  /* I */
   0,                  /* J */
   0,                  /* K */
@@ -972,7 +972,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
   }
 
   if (MyConnect(source_p) && HasUMode(source_p, UMODE_ADMIN) &&
-      !HasOFlag(source_p, OPER_FLAG_HIDDEN_ADMIN|OPER_FLAG_ADMIN))
+      !HasOFlag(source_p, OPER_FLAG_ADMIN))
   {
     sendto_one(source_p, ":%s NOTICE %s :*** You have no admin flag;",
                me.name, source_p->name);
@@ -1069,8 +1069,7 @@ send_umode_out(struct Client *client_p, struct Client *source_p,
   char buf[IRCD_BUFSIZE] = { '\0' };
   dlink_node *ptr = NULL;
 
-  send_umode(NULL, source_p, old, HasOFlag(source_p, OPER_FLAG_HIDDEN_ADMIN) ?
-             SEND_UMODES & ~UMODE_ADMIN : SEND_UMODES, buf);
+  send_umode(NULL, source_p, old, SEND_UMODES, buf);
 
   if (buf[0])
   {
@@ -1230,7 +1229,7 @@ oper_up(struct Client *source_p)
 
   AddOFlag(source_p, oconf->port);
 
-  if (HasOFlag(source_p, OPER_FLAG_HIDDEN_ADMIN|OPER_FLAG_ADMIN))
+  if (HasOFlag(source_p, OPER_FLAG_ADMIN))
     AddUMode(source_p, UMODE_ADMIN);
   if (!HasOFlag(source_p, OPER_FLAG_N))
     DelUMode(source_p, UMODE_NCHANGE);

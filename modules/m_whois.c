@@ -357,9 +357,10 @@ whois_person(struct Client *source_p, struct Client *target_p)
                me.name, source_p->name, target_p->name);
 
   if (HasUMode(target_p, UMODE_OPER))
-    sendto_one(source_p, form_str((HasUMode(target_p, UMODE_ADMIN) &&
-               !HasOFlag(target_p, OPER_FLAG_HIDDEN_ADMIN)) ? RPL_WHOISADMIN :
-               RPL_WHOISOPERATOR), me.name, source_p->name, target_p->name);
+    if (!HasUMode(target_p, UMODE_HIDDEN) || HasUMode(source_p, UMODE_OPER))
+      sendto_one(source_p, form_str(HasUMode(target_p, UMODE_ADMIN) ? RPL_WHOISADMIN :
+                 RPL_WHOISOPERATOR),
+                 me.name, source_p->name, target_p->name);
 
   if (HasUMode(source_p, UMODE_OPER) && IsCaptured(target_p))
     sendto_one(source_p, form_str(RPL_ISCAPTURED),

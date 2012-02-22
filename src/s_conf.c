@@ -2369,23 +2369,22 @@ expire_tklines(dlink_list *tklist)
 static const struct oper_privs
 {
   const unsigned int oprivs;
-  const unsigned int hidden;
   const unsigned char c;
 } flag_list[] = {
-  { OPER_FLAG_ADMIN,       OPER_FLAG_HIDDEN_ADMIN,  'A' },
-  { OPER_FLAG_REMOTEBAN,   0,                       'B' },
-  { OPER_FLAG_DIE,         0,                       'D' },
-  { OPER_FLAG_GLINE,       0,                       'G' },
-  { OPER_FLAG_REHASH,      0,                       'H' },
-  { OPER_FLAG_K,           0,                       'K' },
-  { OPER_FLAG_OPERWALL,    0,                       'L' },
-  { OPER_FLAG_N,           0,                       'N' },
-  { OPER_FLAG_GLOBAL_KILL, 0,                       'O' },
-  { OPER_FLAG_REMOTE,      0,                       'R' },
-  { OPER_FLAG_OPER_SPY,    0,                       'S' },
-  { OPER_FLAG_UNKLINE,     0,                       'U' },
-  { OPER_FLAG_X,           0,                       'X' },
-  { 0, 0, '\0' }
+  { OPER_FLAG_ADMIN,       'A' },
+  { OPER_FLAG_REMOTEBAN,   'B' },
+  { OPER_FLAG_DIE,         'D' },
+  { OPER_FLAG_GLINE,       'G' },
+  { OPER_FLAG_REHASH,      'H' },
+  { OPER_FLAG_K,           'K' },
+  { OPER_FLAG_OPERWALL,    'L' },
+  { OPER_FLAG_N,           'N' },
+  { OPER_FLAG_GLOBAL_KILL, 'O' },
+  { OPER_FLAG_REMOTE,      'R' },
+  { OPER_FLAG_OPER_SPY,    'S' },
+  { OPER_FLAG_UNKLINE,     'U' },
+  { OPER_FLAG_X,           'X' },
+  { 0, '\0' }
 };
 
 char *
@@ -2397,8 +2396,7 @@ oper_privs_as_string(const unsigned int port)
 
   for (; flag_list[i].oprivs; ++i)
   {
-    if ((port & flag_list[i].oprivs) &&
-        (port & flag_list[i].hidden) == 0)
+    if (port & flag_list[i].oprivs)
       *privs_ptr++ = flag_list[i].c;
     else
       *privs_ptr++ = ToLowerTab[flag_list[i].c];
