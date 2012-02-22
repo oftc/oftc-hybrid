@@ -857,8 +857,7 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
   if (!IsClient(target_p))
     return;
 
-  send_umode(NULL, target_p, 0, HasOFlag(target_p, OPER_FLAG_HIDDEN_ADMIN) ?
-    SEND_UMODES & ~UMODE_ADMIN : SEND_UMODES, ubuf);
+  send_umode(NULL, target_p, 0, SEND_UMODES, ubuf);
 
   if (ubuf[0] == '\0')
   {

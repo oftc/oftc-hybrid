@@ -27,3 +27,4 @@ Usermodes: (* designates that the umode is oper only)
          +G     - "soft caller id": block private messages from people not on
                   any common channels with you (unless they are /accept'ed)
          +g     - "caller id" mode: only allow /accept clients to message you
+       * +H     - Operator status is hidden to other users.

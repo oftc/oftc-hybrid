@@ -197,9 +197,7 @@ unhook_hub_leaf_confs(void)
 %token  NEED_IDENT
 %token  HAVENT_READ_CONF
 %token  HIDDEN
-%token  HIDDEN_ADMIN
 %token	HIDDEN_NAME
-%token  HIDDEN_OPER
 %token  HIDE_SERVER_IPS
 %token  HIDE_SERVERS
 %token	HIDE_SPOOF_IPS
@@ -1182,6 +1180,10 @@ oper_umodes_item:  T_BOTS
 {
   if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_FULL;
+} | HIDDEN
+{
+  if (conf_parser_ctx.pass == 2)
+    yy_aconf->modes |= UMODE_HIDDEN;
 } | T_SKILL
 {
   if (conf_parser_ctx.pass == 2)
@@ -1287,10 +1289,6 @@ oper_flags_item: GLOBAL_KILL
 {
   if (conf_parser_ctx.pass == 2)
     yy_aconf->port |= OPER_FLAG_ADMIN;
-} | HIDDEN_ADMIN
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_aconf->port |= OPER_FLAG_HIDDEN_ADMIN;
 } | NICK_CHANGES
 {
   if (conf_parser_ctx.pass == 2)
@@ -1307,10 +1305,6 @@ oper_flags_item: GLOBAL_KILL
 {
   if (conf_parser_ctx.pass == 2)
     yy_aconf->port |= OPER_FLAG_OPER_SPY;
-} | HIDDEN_OPER
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_aconf->port |= OPER_FLAG_HIDDEN_OPER;
 } | REMOTEBAN
 {
   if (conf_parser_ctx.pass == 2)
@@ -3170,6 +3164,9 @@ umode_oitem:     T_BOTS
 } | T_FULL
 {
   ConfigFileEntry.oper_umodes |= UMODE_FULL;
+} | HIDDEN
+{
+  ConfigFileEntry.oper_umodes |= UMODE_HIDDEN;
 } | T_SKILL
 {
   ConfigFileEntry.oper_umodes |= UMODE_SKILL;
@@ -3241,6 +3238,9 @@ umode_item:	T_BOTS
 } | T_SKILL
 {
   ConfigFileEntry.oper_only_umodes |= UMODE_SKILL;
+} | HIDDEN
+{
+  ConfigFileEntry.oper_only_umodes |= UMODE_HIDDEN;
 } | T_NCHANGE
 {
   ConfigFileEntry.oper_only_umodes |= UMODE_NCHANGE;
