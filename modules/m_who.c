@@ -73,7 +73,7 @@ m_who(struct Client *client_p, struct Client *source_p,
   collapse(mask);
 
   /* '/who *' */
-  if (mask[0] == '*' && !mask[1])
+  if (!irccmp(mask, "*"))
   {
     if ((lp = source_p->channel.head) != NULL)
     {
@@ -82,7 +82,8 @@ m_who(struct Client *client_p, struct Client *source_p,
                         server_oper);
     }
 
-    sendto_one(source_p, form_str(RPL_ENDOFWHO), me.name, source_p->name, "*");
+    sendto_one(source_p, form_str(RPL_ENDOFWHO),
+               me.name, source_p->name, "*");
     return;
   }
 
@@ -126,7 +127,7 @@ m_who(struct Client *client_p, struct Client *source_p,
   }
 
   /* '/who 0' */
-  if (mask[0] == '0' && !mask[1])
+  if (!irccmp(mask, "0"))
     who_global(source_p, NULL, server_oper);
   else
     who_global(source_p, mask, server_oper);
@@ -151,18 +152,19 @@ static void
 who_common_channel(struct Client *source_p, struct Channel *chptr,
                    char *mask, int server_oper, int *maxmatches)
 {
-  dlink_node *ptr;
-  struct Client *target_p;
+  dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, chptr->members.head)
   {
-    target_p = ((struct Membership *)ptr->data)->client_p;
+    struct Client *target_p = ((struct Membership *)ptr->data)->client_p;
 
     if (!HasUMode(target_p, UMODE_INVISIBLE) || HasFlag(target_p, FLAGS_MARK))
       continue;
 
-    if (server_oper && !HasUMode(target_p, UMODE_OPER))
-      continue;
+    if (server_oper)
+      if (!HasUMode(target_p, UMODE_OPER) ||
+          (HasUMode(target_p, UMODE_HIDDEN) && !HasUMode(source_p, UMODE_OPER)))
+        continue;
 
     AddFlag(target_p, FLAGS_MARK);
 
@@ -240,8 +242,10 @@ who_global(struct Client *source_p, char *mask, int server_oper)
       continue;
     }
 
-    if (server_oper && !HasUMode(target_p, UMODE_OPER))
-      continue;
+    if (server_oper)
+      if (!HasUMode(target_p, UMODE_OPER) ||
+          (HasUMode(target_p, UMODE_HIDDEN) && !HasUMode(source_p, UMODE_OPER)))
+        continue;
 
     assert(target_p->servptr != NULL);
 
@@ -287,8 +291,10 @@ do_who_on_channel(struct Client *source_p, struct Channel *chptr,
 
     if (member || !HasUMode(target_p, UMODE_INVISIBLE))
     {
-      if (server_oper && !HasUMode(target_p, UMODE_OPER))
-        continue;
+      if (server_oper)
+        if (!HasUMode(target_p, UMODE_OPER) ||
+            (HasUMode(target_p, UMODE_HIDDEN) && !HasUMode(source_p, UMODE_OPER)))
+          continue;
       do_who(source_p, target_p, chname, get_member_status(ms, !!HasCap(source_p, CAP_MULTI_PREFIX)));
     }
   }
