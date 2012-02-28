@@ -44,8 +44,6 @@
 #include "modules.h"
 
 
-static int remove_tdline_match(const char *);
-
 /* apply_tdline()
  *
  * inputs	-
@@ -74,6 +72,45 @@ apply_tdline(struct Client *source_p, struct ConfItem *conf,
        source_p->name, tkline_time/60, aconf->host, aconf->reason);
 
   rehashed_klines = 1;
+}
+
+/* static int remove_tdline_match(const char *host, const char *user)
+ * Input: An ip to undline.
+ * Output: returns YES on success, NO if no tdline removed.
+ * Side effects: Any matching tdlines are removed.
+ */
+static int
+remove_tdline_match(const char *host)
+{
+  struct AccessItem *td_conf;
+  dlink_node *td_node;
+  struct irc_ssaddr addr, caddr;
+  int nm_t, cnm_t, bits, cbits;
+
+  nm_t = parse_netmask(host, &addr, &bits);
+
+  DLINK_FOREACH(td_node, temporary_dlines.head)
+  {
+    td_conf = map_to_conf(td_node->data);
+    cnm_t   = parse_netmask(td_conf->host, &caddr, &cbits);
+
+    if (cnm_t != nm_t)
+      continue;
+
+    if ((nm_t == HM_HOST && !irccmp(td_conf->host, host)) ||
+        (nm_t == HM_IPV4 && bits == cbits && match_ipv4(&addr, &caddr, bits))
+#ifdef IPV6
+     || (nm_t == HM_IPV6 && bits == cbits && match_ipv6(&addr, &caddr, bits))
+#endif
+      )
+    {
+      dlinkDelete(td_node, &temporary_dlines);
+      delete_one_address_conf(td_conf->host, td_conf);
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 /* mo_dline()
@@ -211,44 +248,6 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   rehashed_klines = 1;
 }
 
-/* static int remove_tdline_match(const char *host, const char *user)
- * Input: An ip to undline.
- * Output: returns YES on success, NO if no tdline removed.
- * Side effects: Any matching tdlines are removed.
- */
-static int
-remove_tdline_match(const char *cidr)
-{
-  struct AccessItem *td_conf;
-  dlink_node *td_node;
-  struct irc_ssaddr addr, caddr;
-  int nm_t, cnm_t, bits, cbits;
-  nm_t = parse_netmask(cidr, &addr, &bits);
-
-  DLINK_FOREACH(td_node, temporary_dlines.head)
-  {
-    td_conf = map_to_conf(td_node->data);
-    cnm_t   = parse_netmask(td_conf->host, &caddr, &cbits);
-
-    if (cnm_t != nm_t)
-      continue;
-
-    if((nm_t==HM_HOST && !irccmp(td_conf->host, cidr)) ||
-       (nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
-#ifdef IPV6
-       || (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
-#endif
-      )
-    {
-      dlinkDelete(td_node, &temporary_dlines);
-      delete_one_address_conf(td_conf->host, td_conf);
-      return 1;
-    }
-  }
-
-  return 0;
-}
-
 /*
 ** m_undline
 ** added May 28th 2000 by Toby Verrall <toot@melnet.co.uk>
@@ -262,7 +261,7 @@ static void
 mo_undline(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
-  const char *cidr = NULL;
+  const char *addr = NULL;
 
   if (!HasOFlag(source_p, OPER_FLAG_UNKLINE))
   {
@@ -271,33 +270,33 @@ mo_undline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  cidr = parv[1];
+  addr = parv[1];
 
-  if (remove_tdline_match(cidr))
+  if (remove_tdline_match(addr))
   {
     sendto_one(source_p,
               ":%s NOTICE %s :Un-Dlined [%s] from temporary D-Lines",
-              me.name, source_p->name, cidr);
+              me.name, source_p->name, addr);
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the temporary D-Line for: [%s]",
-                         get_oper_name(source_p), cidr);
-    ilog(LOG_TYPE_DLINE, "%s removed temporary D-Line for [%s]", source_p->name, cidr);
+                         get_oper_name(source_p), addr);
+    ilog(LOG_TYPE_DLINE, "%s removed temporary D-Line for [%s]", source_p->name, addr);
     return;
   }
 
-  if (remove_conf_line(DLINE_TYPE, source_p, cidr, NULL) > 0)
+  if (remove_conf_line(DLINE_TYPE, source_p, addr, NULL) > 0)
   {
     sendto_one(source_p, ":%s NOTICE %s :D-Line for [%s] is removed",
-               me.name, source_p->name, cidr);
+               me.name, source_p->name, addr);
     sendto_realops_flags(UMODE_ALL, L_ALL,
 			 "%s has removed the D-Line for: [%s]",
-			 get_oper_name(source_p), cidr);
+			 get_oper_name(source_p), addr);
     ilog(LOG_TYPE_DLINE, "%s removed D-Line for [%s]",
-         get_oper_name(source_p), cidr);
+         get_oper_name(source_p), addr);
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :No D-Line for [%s] found",
-               me.name, source_p->name, cidr);
+               me.name, source_p->name, addr);
 }
 
 static struct Message dline_msgtab = {

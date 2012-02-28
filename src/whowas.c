@@ -116,10 +116,10 @@ get_history(const char *nick, time_t timelimit)
       continue;
     if (temp->logoff < timelimit)
       continue;
-    return(temp->online);
+    return temp->online;
   }
 
-  return(NULL);
+  return NULL;
 }
 
 void
