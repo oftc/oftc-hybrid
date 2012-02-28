@@ -61,18 +61,21 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
     return;
 
   if (TS_CURRENT < atoi(parv[2]) || atoi(parv[1]) < TS_MIN)
-    {
-      /*
-       * a server with the wrong TS version connected; since we're
-       * TS_ONLY we can't fall back to the non-TS protocol so
-       * we drop the link  -orabidoo
-       */
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
+  {
+    /*
+     * a server with the wrong TS version connected; since we're
+     * TS_ONLY we can't fall back to the non-TS protocol so
+     * we drop the link  -orabidoo
+     */
+    sendto_realops_flags(UMODE_ALL, L_ADMIN,
             "Link %s dropped, wrong TS protocol version (%s,%s)",
             get_client_name(source_p, SHOW_IP), parv[1], parv[2]);
-      exit_client(source_p, source_p, "Incompatible TS version");
-      return;
-    }
+    sendto_realops_flags(UMODE_ALL, L_OPER,
+                 "Link %s dropped, wrong TS protocol version (%s,%s)",
+                 get_client_name(source_p, MASK_IP), parv[1], parv[2]);
+    exit_client(source_p, source_p, "Incompatible TS version");
+    return;
+  }
 
   /*
    * since we're here, might as well set CurrentTime while we're at it
@@ -85,16 +88,15 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
   strftime(theirtimestamp, sizeof(theirtimestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&theirtime));
 
   if (deltat > ConfigFileEntry.ts_max_delta)
-    {
-
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-          "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
-          get_client_name(source_p, SHOW_IP),
-          (unsigned long) CurrentTime,
-          timestamp,
-          (unsigned long) theirtime,
-          theirtimestamp,
-          (int) deltat);
+  {
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
+        "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
+        get_client_name(source_p, SHOW_IP),
+        (unsigned long) CurrentTime,
+        timestamp,
+        (unsigned long) theirtime,
+        theirtimestamp,
+        (int) deltat);
       ilog(LOG_TYPE_IRCD,
           "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
           get_client_name(source_p, SHOW_IP),
@@ -117,7 +119,6 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
                 (unsigned long) theirtime,
                 theirtimestamp,
                 (int) deltat);
-    }
 }
 
 static struct Message svinfo_msgtab = {

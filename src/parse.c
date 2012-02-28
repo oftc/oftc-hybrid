@@ -704,7 +704,7 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
     t += tl;
   }
 
-  ircsprintf(t," :%s", parv[parc-1]);
+  ircsprintf(t, " :%s", parv[parc-1]);
 
   if (((target_p = find_person(client_p, parv[1])) != NULL) ||
       ((target_p = hash_find_server(parv[1])) != NULL))

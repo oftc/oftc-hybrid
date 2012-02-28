@@ -44,10 +44,10 @@
 int
 match(const char *mask, const char *name)
 {
-  const unsigned char* m = (const unsigned char *) mask;
-  const unsigned char* n = (const unsigned char *) name;
-  const unsigned char* ma = NULL;
-  const unsigned char* na = (const unsigned char *) name;
+  const unsigned char *m = (const unsigned char *)mask;
+  const unsigned char *n = (const unsigned char *)name;
+  const unsigned char *ma = NULL;
+  const unsigned char *na = (const unsigned char *)name;
 
   assert(mask != NULL);
   assert(name != NULL);
@@ -72,7 +72,7 @@ match(const char *mask, const char *name)
         return 1;
       if (!ma)
         return 0;
-      for (m--; (m > (const unsigned char*) mask) && (*m == '?'); m--)
+      for (m--; (m > (const unsigned char *)mask) && (*m == '?'); m--)
         ;
       if (*m == '*')
         return 1;
@@ -87,7 +87,7 @@ match(const char *mask, const char *name)
        */
       while (*m == '*')
         m++;
-      return (*m == 0);
+      return *m == 0;
     }
 
     if (ToLower(*m) != ToLower(*n) && *m != '?' && (*m != '#' || !IsDigit(*n)))
@@ -112,10 +112,10 @@ match(const char *mask, const char *name)
 int
 match_esc(const char *mask, const char *name)
 {
-  const unsigned char *m = (const unsigned char *) mask;
-  const unsigned char *n = (const unsigned char *) name;
+  const unsigned char *m = (const unsigned char *)mask;
+  const unsigned char *n = (const unsigned char *)name;
   const unsigned char *ma = NULL;
-  const unsigned char *na = (const unsigned char *) name;
+  const unsigned char *na = (const unsigned char *)name;
 
   assert(mask != NULL);
   assert(name != NULL);
@@ -140,7 +140,7 @@ match_esc(const char *mask, const char *name)
         return 1;
       if (!ma)
         return 0;
-      for (m--; (m > (const unsigned char*) mask) && (*m == '?'); m--)
+      for (m--; (m > (const unsigned char *)mask) && (*m == '?'); m--)
         ;
       if (*m == '*')
         return 1;
@@ -155,7 +155,7 @@ match_esc(const char *mask, const char *name)
        */
       while (*m == '*')
         m++;
-      return (*m == 0);
+      return *m == 0;
     }
 
     if (*m != '?' && (*m != '#' || IsDigit(*n)))
@@ -263,8 +263,8 @@ collapse_esc(char *pattern)
 int
 irccmp(const char *s1, const char *s2)
 {
-  const unsigned char *str1 = (const unsigned char *) s1;
-  const unsigned char *str2 = (const unsigned char *) s2;
+  const unsigned char *str1 = (const unsigned char *)s1;
+  const unsigned char *str2 = (const unsigned char *)s2;
 
   assert(s1 != NULL);
   assert(s2 != NULL);
@@ -273,8 +273,9 @@ irccmp(const char *s1, const char *s2)
   {
     if (*str1 == '\0')
       return 0;
-    str1++;
-    str2++;
+
+    ++str1;
+    ++str2;
   }
 
   return 1;
