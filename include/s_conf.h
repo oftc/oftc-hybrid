@@ -316,19 +316,18 @@ struct ip_entry
  * These defines are used for both shared and cluster.
  */
 #define SHARED_KLINE		0x0001
-#define SHARED_TKLINE		0x0002
-#define SHARED_UNKLINE		0x0004
-#define SHARED_XLINE		0x0008
-#define SHARED_TXLINE		0x0010
-#define SHARED_UNXLINE		0x0020
-#define SHARED_RESV		0x0040
-#define SHARED_TRESV		0x0080
-#define SHARED_UNRESV		0x0100
-#define SHARED_LOCOPS           0x0200
-#define SHARED_ALL		(SHARED_KLINE | SHARED_TKLINE | SHARED_UNKLINE | \
-				 SHARED_XLINE | SHARED_TXLINE | SHARED_UNXLINE | \
-				 SHARED_RESV | SHARED_TRESV | SHARED_UNRESV |\
-                                 SHARED_LOCOPS)
+#define SHARED_UNKLINE		0x0002
+#define SHARED_XLINE		0x0004
+#define SHARED_UNXLINE		0x0008
+#define SHARED_RESV		0x0010
+#define SHARED_UNRESV		0x0020
+#define SHARED_LOCOPS           0x0040
+#define SHARED_DLINE            0x0080
+#define SHARED_UNDLINE          0x0100
+#define SHARED_ALL		(SHARED_KLINE | SHARED_UNKLINE |\
+				 SHARED_XLINE | SHARED_UNXLINE |\
+				 SHARED_RESV | SHARED_UNRESV |\
+                                 SHARED_LOCOPS | SHARED_DLINE | SHARED_UNDLINE)
 
 /* gline acl entry actions */
 #define GDENY_BLOCK		0x1
