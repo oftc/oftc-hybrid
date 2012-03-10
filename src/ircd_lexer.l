@@ -281,6 +281,7 @@ type		{ return TYPE; }
 true_no_oper_flood { return TRUE_NO_OPER_FLOOD; }
 umodes          { return T_UMODES; }
 unkline		{ return UNKLINE; }
+undline         { return T_UNDLINE; }
 unlimited       { return T_UNLIMITED; }
 use_egd 	{ return USE_EGD; }
 use_except	{ return USE_EXCEPT; }

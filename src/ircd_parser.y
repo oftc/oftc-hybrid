@@ -337,6 +337,7 @@ unhook_hub_leaf_confs(void)
 %token  T_SSL
 %token  T_UMODES
 %token  T_UNAUTH
+%token  T_UNDLINE
 %token  T_UNLIMITED
 %token  T_UNRESV
 %token  T_UNXLINE
@@ -1219,6 +1220,14 @@ oper_flags_item: GLOBAL_KILL
 {
   if (conf_parser_ctx.pass == 2)
     yy_aconf->port |= OPER_FLAG_UNKLINE;
+} | T_DLINE
+{
+  if (conf_parser_ctx.pass == 2)
+    yy_aconf->port |= OPER_FLAG_DLINE;
+} | T_UNDLINE
+{
+  if (conf_parser_ctx.pass == 2)
+    yy_aconf->port |= OPER_FLAG_UNDLINE;
 } | XLINE
 {
   if (conf_parser_ctx.pass == 2)
@@ -1889,22 +1898,22 @@ shared_type_item: KLINE
 {
   if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_KLINE;
-} | TKLINE
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_match_item->action |= SHARED_TKLINE;
 } | UNKLINE
 {
   if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_UNKLINE;
+} | T_DLINE
+{
+  if (conf_parser_ctx.pass == 2)
+    yy_match_item->action |= SHARED_DLINE;
+} | T_UNDLINE
+{
+  if (conf_parser_ctx.pass == 2)
+    yy_match_item->action |= SHARED_UNDLINE;
 } | XLINE
 {
   if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_XLINE;
-} | TXLINE
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_match_item->action |= SHARED_TXLINE;
 } | T_UNXLINE
 {
   if (conf_parser_ctx.pass == 2)
@@ -1913,10 +1922,6 @@ shared_type_item: KLINE
 {
   if (conf_parser_ctx.pass == 2)
     yy_match_item->action |= SHARED_RESV;
-} | TRESV
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_match_item->action |= SHARED_TRESV;
 } | T_UNRESV
 {
   if (conf_parser_ctx.pass == 2)
@@ -1971,22 +1976,22 @@ cluster_type_item: KLINE
 {
   if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_KLINE;
-} | TKLINE
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_conf->flags |= SHARED_TKLINE;
 } | UNKLINE
 {
   if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_UNKLINE;
+} | T_DLINE
+{
+  if (conf_parser_ctx.pass == 2)
+    yy_conf->flags |= SHARED_DLINE;
+} | T_UNDLINE
+{
+  if (conf_parser_ctx.pass == 2)
+    yy_conf->flags |= SHARED_UNDLINE;
 } | XLINE
 {
   if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_XLINE;
-} | TXLINE
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_conf->flags |= SHARED_TXLINE;
 } | T_UNXLINE
 {
   if (conf_parser_ctx.pass == 2)
@@ -1995,10 +2000,6 @@ cluster_type_item: KLINE
 {
   if (conf_parser_ctx.pass == 2)
     yy_conf->flags |= SHARED_RESV;
-} | TRESV
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_conf->flags |= SHARED_TRESV;
 } | T_UNRESV
 {
   if (conf_parser_ctx.pass == 2)
