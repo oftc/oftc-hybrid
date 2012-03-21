@@ -139,16 +139,11 @@ opers_bypass_callerid  { return OPERS_BYPASS_CALLERID; }
 channel		{ return CHANNEL; }
 cidr_bitlen_ipv4	{ return CIDR_BITLEN_IPV4; }
 cidr_bitlen_ipv6	{ return CIDR_BITLEN_IPV6; }
-cipher_preference { return CIPHER_PREFERENCE; }
 class		{ return CLASS; }
 client_flood	{ return T_CLIENT_FLOOD; }
 cluster		{ return T_CLUSTER; }
-compressed	{ return COMPRESSED; }
-compression_level { return COMPRESSION_LEVEL; }
 connect		{ return CONNECT; }
 connectfreq     { return CONNECTFREQ; }
-cryptlink	{ return CRYPTLINK; }
-default_cipher_preference { return DEFAULT_CIPHER_PREFERENCE; }
 default_floodcount  { return DEFAULT_FLOODCOUNT; }
 default_split_server_count { return DEFAULT_SPLIT_SERVER_COUNT; }
 default_split_user_count   { return DEFAULT_SPLIT_USER_COUNT; }
@@ -267,7 +262,6 @@ serverhide	{ return SERVERHIDE; }
 serverinfo	{ return SERVERINFO; }
 service          { return T_SERVICE; }
 services_name    { return T_SERVICES_NAME; }
-servlink_path   { return SERVLINK_PATH; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }
 sid		{ return IRCD_SID; }

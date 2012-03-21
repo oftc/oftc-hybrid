@@ -101,7 +101,6 @@
             maximum TOPIC length. Note that this must be consistent across your
             entire network. Defaults are 9 and 120, respectively.
 
-          * --disable-zlib - Build the ircd without ziplinks support.
 
 
    3.  Run 'make'; this should build the ircd.

@@ -45,10 +45,6 @@ mr_capab(struct Client *client_p, struct Client *source_p,
   int cap;
   char *p = NULL;
   char *s = NULL;
-#ifdef HAVE_LIBCRYPTO
-  const struct EncCapability *ecap;
-  unsigned int cipher = 0;
-#endif
 
   if (client_p->localClient->caps && !(IsCapable(client_p, CAP_TS6)))
   {
@@ -59,48 +55,10 @@ mr_capab(struct Client *client_p, struct Client *source_p,
   SetCapable(client_p, CAP_CAP);
 
   for (i = 1; i < parc; ++i)
-  {
     for (s = strtoken(&p, parv[i], " "); s;
          s = strtoken(&p,    NULL, " "))
-    {
-#ifdef HAVE_LIBCRYPTO
-      if (!strncmp(s, "ENC:", 4))
-      {
-        /* Skip the "ENC:" portion */
-        s += 4;
-
-        /* Check the remaining portion against the list of ciphers we
-         * have available (CipherTable).
-         */
-        for (ecap = CipherTable; ecap->name; ++ecap)
-        {
-          if (!irccmp(ecap->name, s) && (ecap->cap & CAP_ENC_MASK))
-          {
-            cipher = ecap->cap;
-            break;
-          }
-        }
-
-        /* Since the name and capabilities matched, use it. */
-        if (cipher != 0)
-        {
-          SetCapable(client_p, CAP_ENC);
-          client_p->localClient->enc_caps |= cipher;
-        }
-        else
-        {
-          /* cipher is still zero; we didn't find a matching entry. */
-          exit_client(client_p, client_p,
-	              "Cipher selected is not available here.");
-          return;
-        }
-      }
-      else /* normal capab */
-#endif
         if ((cap = find_capability(s)) != 0)
           SetCapable(client_p, cap);
-    }
-  }
 }
 
 static struct Message capab_msgtab = {

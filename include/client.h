@@ -61,27 +61,6 @@ struct Server
   char by[NICKLEN];       /**< who activated this connection */
 };
 
-/*! \brief SlinkRpl structure */
-struct SlinkRpl
-{
-  int command;
-  int datalen;
-  int gotdatalen;
-  int readdata;
-  unsigned char *data;
-};
-
-/*! \brief ZipStats structure */
-struct ZipStats
-{
-  uint64_t in;
-  uint64_t in_wire;
-  uint64_t out;
-  uint64_t out_wire;
-  double in_ratio;
-  double out_ratio;
-};
-
 /*! \brief ListTask structure */
 struct ListTask
 {
@@ -224,24 +203,7 @@ struct LocalUser
   unsigned int       caps;       /**< capabilities bit-field */
   unsigned int       enc_caps;   /**< cipher capabilities bit-field */
 
-#ifdef HAVE_LIBCRYPTO
-  struct EncCapability *in_cipher;
-  struct EncCapability *out_cipher;
-
-  char              in_key[CIPHERKEYLEN];
-  char              out_key[CIPHERKEYLEN];
-#endif
-
   fde_t             fd;
-  fde_t             ctrlfd;     /**< For servers: control fd used for sending commands
-                                   to servlink */
-
-  struct SlinkRpl  slinkrpl;    /**< slink reply being parsed */
-  char    *slinkq;              /**< sendq for control data */
-  int              slinkq_ofs;  /**< ofset into slinkq */
-  int              slinkq_len;  /**< length remaining after slinkq_ofs */
-
-  struct ZipStats  zipstats;
 
   /* Anti-flood stuff. We track how many messages were parsed and how
    * many we were allowed in the current second, and apply a simple
@@ -327,10 +289,10 @@ struct LocalUser
 #define FLAGS_NEEDID        0x0000000000000020 /**< auth{} block say must use ident return */
 #define FLAGS_SENDQEX       0x0000000000000040 /**< Sendq exceeded */
 #define FLAGS_IPHASH        0x0000000000000080 /**< iphashed this client */
-#define FLAGS_CRYPTIN       0x0000000000000100 /**< incoming data must be decrypted */
-#define FLAGS_CRYPTOUT      0x0000000000000200 /**< outgoing data must be encrypted */
-#define FLAGS_WAITAUTH      0x0000000000000400 /**< waiting for CRYPTLINK AUTH command */
-#define FLAGS_SERVLINK      0x0000000000000800 /**< servlink has servlink process */
+#define FLAGS_UNUSED_       0x0000000000000100 /**< Unused */
+#define FLAGS_UNUSED__      0x0000000000000200 /**< Unused */
+#define FLAGS_UNUSED_____   0x0000000000000400 /**< Unused */
+#define FLAGS_UNUSED______  0x0000000000000800 /**< Unused */
 #define FLAGS_MARK          0x0000000000001000 /**< marked client */
 #define FLAGS_CANFLOOD      0x0000000000002000 /**< client has the ability to flood */
 #define FLAGS_EXEMPTGLINE   0x0000000000004000 /**< client can't be G-lined */
@@ -344,7 +306,7 @@ struct LocalUser
 #define FLAGS_EOB           0x0000000000400000 /**< server has sent us an EOB */
 #define FLAGS_HIDDEN        0x0000000000800000 /**< a hidden server. not shown in /links */
 #define FLAGS_BLOCKED       0x0000000001000000 /**< must wait for COMM_SELECT_WRITE */
-#define FLAGS_SBLOCKED      0x0000000002000000 /**< slinkq is blocked */
+#define FLAGS_UNUSED_______ 0x0000000002000000 /**< Unused */
 #define FLAGS_USERHOST      0x0000000004000000 /**< client is in userhost hash */
 #define FLAGS_BURSTED       0x0000000008000000 /**< user was already bursted */
 #define FLAGS_EXEMPTRESV    0x0000000010000000 /**< client is exempt from RESV */
@@ -430,15 +392,6 @@ struct LocalUser
 #define SetDead(x)              ((x)->flags |= FLAGS_DEADSOCKET)
 #define IsClosing(x)		((x)->flags & FLAGS_CLOSING)
 #define SetClosing(x)		((x)->flags |= FLAGS_CLOSING)
-#define IsCryptIn(x)            ((x)->flags &  FLAGS_CRYPTIN)
-#define SetCryptIn(x)           ((x)->flags |= FLAGS_CRYPTIN)
-#define IsCryptOut(x)           ((x)->flags &  FLAGS_CRYPTOUT)
-#define SetCryptOut(x)          ((x)->flags |= FLAGS_CRYPTOUT)
-#define IsWaitAuth(x)           ((x)->flags &  FLAGS_WAITAUTH)
-#define SetWaitAuth(x)          ((x)->flags |= FLAGS_WAITAUTH)
-#define ClearWaitAuth(x)        ((x)->flags &= ~FLAGS_WAITAUTH)
-#define HasServlink(x)          ((x)->flags &  FLAGS_SERVLINK)
-#define SetServlink(x)          ((x)->flags |= FLAGS_SERVLINK)
 #define SetCanFlood(x)		((x)->flags |= FLAGS_CANFLOOD)
 #define IsCanFlood(x)		((x)->flags & FLAGS_CANFLOOD)
 #define IsDefunct(x)            ((x)->flags & (FLAGS_DEADSOCKET|FLAGS_CLOSING| \
@@ -500,9 +453,6 @@ struct LocalUser
 #define IsSendqBlocked(x)       ((x)->flags &  FLAGS_BLOCKED)
 #define SetSendqBlocked(x)      ((x)->flags |= FLAGS_BLOCKED)
 #define ClearSendqBlocked(x)    ((x)->flags &= ~FLAGS_BLOCKED)
-#define IsSlinkqBlocked(x)      ((x)->flags &  FLAGS_SBLOCKED)
-#define SetSlinkqBlocked(x)     ((x)->flags |= FLAGS_SBLOCKED)
-#define ClearSlinkqBlocked(x)   ((x)->flags &= ~FLAGS_SBLOCKED)
 
 #define IsCaptured(x)           ((x)->handler == DUMMY_HANDLER)
 #define SetCaptured(x)          ((x)->handler = DUMMY_HANDLER)

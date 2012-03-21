@@ -13,7 +13,6 @@ modules_LTLIBRARIES = m_accept.la    \
                       m_challenge.la \
                       m_close.la     \
                       m_connect.la   \
-                      m_cryptlink.la \
                       m_dline.la     \
                       m_encap.la     \
                       m_eob.la       \
@@ -69,7 +68,6 @@ modules_LTLIBRARIES = m_accept.la    \
 
 
 m_challenge_la_LDFLAGS = $(MODULE_FLAGS)
-m_cryptlink_la_LDFLAGS = $(MODULE_FLAGS)
 m_accept_la_LDFLAGS = $(MODULE_FLAGS)
 m_admin_la_LDFLAGS = $(MODULE_FLAGS)
 m_away_la_LDFLAGS = $(MODULE_FLAGS)
@@ -138,7 +136,6 @@ m_cap_la_SOURCES = m_cap.c
 m_challenge_la_SOURCES = m_challenge.c
 m_close_la_SOURCES = m_close.c
 m_connect_la_SOURCES = m_connect.c
-m_cryptlink_la_SOURCES = m_cryptlink.c
 m_dline_la_SOURCES = m_dline.c
 m_encap_la_SOURCES = m_encap.c
 m_eob_la_SOURCES = m_eob.c

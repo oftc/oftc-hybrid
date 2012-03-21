@@ -81,7 +81,6 @@ static void stats_class(struct Client *);
 static void stats_memory(struct Client *);
 static void stats_servlinks(struct Client *);
 static void stats_ltrace(struct Client *, int, char **);
-static void stats_ziplinks(struct Client *);
 
 /* This table contains the possible stats items, in order:
  * /stats name,  function to call, operonly? adminonly? /stats letter
@@ -136,7 +135,6 @@ static const struct StatsStruct
   { 'y',	stats_class,		1,	0	},
   { 'Y',	stats_class,		1,	0	},
   { 'z',	stats_memory,		1,	0	},
-  { 'Z',	stats_ziplinks,		1,	0	},
   { '?',	stats_servlinks,	0,	0	},
   { '\0',       NULL,		        0,	0	}
 };
@@ -1234,40 +1232,6 @@ static void
 stats_memory(struct Client *source_p)
 {
   count_memory(source_p);
-}
-
-static void
-stats_ziplinks(struct Client *source_p)
-{
-  dlink_node *ptr = NULL;
-  unsigned int sent_data = 0;
-
-  DLINK_FOREACH(ptr, serv_list.head)
-  {
-    const struct Client *target_p = ptr->data;
-
-    if (IsCapable(target_p, CAP_ZIP))
-    {
-      /* we use memcpy(3) and a local copy of the structure to
-       * work around a register use bug on GCC on the SPARC.
-       * -jmallett, 04/27/2002
-       */
-      struct ZipStats zipstats;
-
-      memcpy(&zipstats, &target_p->localClient->zipstats, sizeof(zipstats));
-
-      sendto_one(source_p, ":%s %d %s Z :ZipLinks stats for %s send[%.2f%% "
-                 "compression (%llu bytes data/%llu bytes wire)] recv[%.2f%% "
-                 "compression (%llu bytes data/%llu bytes wire)]",
-                 from, RPL_STATSDEBUG, to, target_p->name,
-                 zipstats.out_ratio, zipstats.out, zipstats.out_wire,
-                 zipstats.in_ratio,  zipstats.in,  zipstats.in_wire);
-      ++sent_data;
-    }
-  }
-
-  sendto_one(source_p, ":%s %d %s Z :%u ziplink(s)",
-             from, RPL_STATSDEBUG, to, sent_data);
 }
 
 static void

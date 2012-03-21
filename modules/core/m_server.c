@@ -97,7 +97,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
   /* Now we just have to call check_server and everything should
    * be check for us... -A1kmm.
    */
-  switch (check_server(name, client_p, CHECK_SERVER_NOCRYPTLINK))
+  switch (check_server(name, client_p))
   {
     case -1:
       if (ConfigFileEntry.warn_no_nline)

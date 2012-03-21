@@ -142,9 +142,6 @@
 /* Define to 1 if libpcre (-lpcre) is available. */
 #undef HAVE_LIBPCRE
 
-/* Define to 1 if zlib (-lz) is available. */
-#undef HAVE_LIBZ
-
 /* Define to 1 if you have the <link.h> header file. */
 #undef HAVE_LINK_H
 
