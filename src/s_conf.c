@@ -762,12 +762,8 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
 
       if (IsConfAllowAutoConn(aconf))
         *p++ = 'A';
-      if (IsConfCryptLink(aconf))
-        *p++ = 'C';
       if (IsConfTopicBurst(aconf))
         *p++ = 'T';
-      if (IsConfCompressed(aconf))
-        *p++ = 'Z';
       if (buf[0] == '\0')
         *p++ = '*';
 
@@ -2024,23 +2020,8 @@ set_default_conf(void)
   ConfigFileEntry.oper_only_umodes = UMODE_DEBUG;
   ConfigFileEntry.oper_umodes = UMODE_BOTS | UMODE_LOCOPS | UMODE_SERVNOTICE |
     UMODE_OPERWALL | UMODE_WALLOP;
-  DupString(ConfigFileEntry.servlink_path, SLPATH);
-#ifdef HAVE_LIBCRYPTO
-  /* jdc -- This is our default value for a cipher.  According to the
-   *        CRYPTLINK document (doc/cryptlink.txt), BF/128 must be supported
-   *        under all circumstances if cryptlinks are enabled.  So,
-   *        this will be our default.
-   *
-   *        NOTE: I apologise for the hard-coded value of "1" (BF/128).
-   *              This should be moved into a find_cipher() routine.
-   */
-  ConfigFileEntry.default_cipher_preference = &CipherTable[1];
-#endif
   ConfigFileEntry.use_egd = 0;
   ConfigFileEntry.egdpool_path = NULL;
-#ifdef HAVE_LIBZ
-  ConfigFileEntry.compression_level = 0;
-#endif
   ConfigFileEntry.throttle_time = 10;
 }
 
@@ -2076,9 +2057,6 @@ validate_conf(void)
 
   if (ConfigFileEntry.ts_max_delta < TS_MAX_DELTA_MIN)
     ConfigFileEntry.ts_max_delta = TS_MAX_DELTA_DEFAULT;
-
-  if (ConfigFileEntry.servlink_path == NULL)
-    DupString(ConfigFileEntry.servlink_path, SLPATH);
 
   if (ServerInfo.network_name == NULL)
     DupString(ServerInfo.network_name,NETWORK_NAME_DEFAULT);
@@ -2869,11 +2847,6 @@ clear_out_old_conf(void)
   MyFree(ConfigFileEntry.service_name);
   ConfigFileEntry.service_name = NULL;
 
-  MyFree(ConfigFileEntry.servlink_path);
-  ConfigFileEntry.servlink_path = NULL;
-#ifdef HAVE_LIBCRYPTO
-  ConfigFileEntry.default_cipher_preference = NULL;
-#endif /* HAVE_LIBCRYPTO */
   delete_isupport("INVEX");
   delete_isupport("EXCEPTS");
 }
@@ -3232,7 +3205,7 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
     return -1;
   }
 
-  if (EmptyString(aconf->passwd) && !IsConfCryptLink(aconf))
+  if (EmptyString(aconf->passwd))
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Bad connect block, name %s",
                          conf->name);

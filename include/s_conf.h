@@ -138,9 +138,9 @@ struct AccessItem
   struct ConfItem *class_ptr;  /* Class of connection */
   int              aftype;
 #ifdef HAVE_LIBCRYPTO
+  /* certs */
   char *           rsa_public_key_file;
   RSA *            rsa_public_key;
-  struct EncCapability *cipher_preference;
   char *certfp;
 #endif
   void *regexuser;
@@ -269,9 +269,9 @@ struct ip_entry
 #define CONF_FLAGS_ALLOW_AUTO_CONN      0x00004000
 /*                                      0x00008000 */
 #define CONF_FLAGS_ENCRYPTED            0x00010000
-#define CONF_FLAGS_COMPRESSED           0x00020000
+#define CONF_FLAGS_UNUSED1___           0x00020000
 #define CONF_FLAGS_TEMPORARY            0x00040000
-#define CONF_FLAGS_CRYPTLINK            0x00080000
+#define CONF_FLAGS_UNUSED2___           0x00080000
 #define CONF_FLAGS_BURST_AWAY           0x00400000
 #define CONF_FLAGS_EXEMPTRESV           0x00800000
 #define CONF_FLAGS_TOPICBURST           0x01000000
@@ -293,12 +293,6 @@ struct ip_entry
 #define IsConfEncrypted(x)      ((x)->flags & CONF_FLAGS_ENCRYPTED)
 #define SetConfEncrypted(x)	((x)->flags |= CONF_FLAGS_ENCRYPTED)
 #define ClearConfEncrypted(x)	((x)->flags &= ~CONF_FLAGS_ENCRYPTED)
-#define IsConfCompressed(x)     ((x)->flags & CONF_FLAGS_COMPRESSED)
-#define SetConfCompressed(x)    ((x)->flags |= CONF_FLAGS_COMPRESSED)
-#define ClearConfCompressed(x)  ((x)->flags &= ~CONF_FLAGS_COMPRESSED)
-#define IsConfCryptLink(x)      ((x)->flags & CONF_FLAGS_CRYPTLINK)
-#define SetConfCryptLink(x)     ((x)->flags |= CONF_FLAGS_CRYPTLINK)
-#define ClearConfCryptLink(x)   ((x)->flags &= ~CONF_FLAGS_CRYPTLINK)
 #define IsConfAllowAutoConn(x)  ((x)->flags & CONF_FLAGS_ALLOW_AUTO_CONN)
 #define SetConfAllowAutoConn(x)	((x)->flags |= CONF_FLAGS_ALLOW_AUTO_CONN)
 #define ClearConfAllowAutoConn(x) ((x)->flags &= ~CONF_FLAGS_ALLOW_AUTO_CONN)
@@ -350,8 +344,6 @@ struct config_file_entry
 
   char *logpath;
   char *operlog;
-
-  char *servlink_path;
   char *egdpool_path;
   char *service_name;
 
@@ -359,7 +351,6 @@ struct config_file_entry
   MessageFile opermotd;
   MessageFile linksfile;
 
-  unsigned char compression_level;
   int gline_min_cidr;
   int gline_min_cidr6;
   int dots_in_ident;
@@ -411,9 +402,6 @@ struct config_file_entry
   int ping_cookie;
   int disable_auth;
   int disable_remote;
-#ifdef HAVE_LIBCRYPTO
-  struct EncCapability *default_cipher_preference;
-#endif
   int godmode_timeout; 
 };
 

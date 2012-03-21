@@ -40,7 +40,6 @@
 #define READBUF_SIZE 16384
 
 struct Callback *iorecv_cb = NULL;
-struct Callback *iorecvctrl_cb = NULL;
 
 static char readBuf[READBUF_SIZE];
 static void client_dopacket(struct Client *, char *, size_t);
@@ -269,122 +268,6 @@ flood_recalc(fde_t *fd, void *data)
     /* and finally, reset the flood check */
     comm_setflush(fd, 1000, flood_recalc, client_p);
   }
-}
-
-/*
- * read_ctrl_packet - Read a 'packet' of data from a servlink control
- *                    link and process it.
- */
-void
-read_ctrl_packet(fde_t *fd, void *data)
-{
-  struct Client *server = data;
-  struct LocalUser *lserver = server->localClient;
-  struct SlinkRpl *reply;
-  int length = 0;
-  unsigned char tmp[2];
-  unsigned char *len = tmp;
-  struct SlinkRplDef *replydef;
-
-  assert(lserver != NULL);
-    
-  reply = &lserver->slinkrpl;
-
-  if (IsDefunct(server))
-    return;
-
-  if (!reply->command)
-  {
-    reply->gotdatalen = 0;
-    reply->readdata = 0;
-    reply->data = NULL;
-
-    length = recv(fd->fd, tmp, 1, 0);
-
-    if (length <= 0)
-    {
-      if ((length == -1) && ignoreErrno(errno))
-        goto nodata;
-      dead_link_on_read(server, length);
-      return;
-    }
-    reply->command = tmp[0];
-  }
-
-  for (replydef = slinkrpltab; replydef->handler; replydef++)
-  {
-    if (replydef->replyid == (unsigned int)reply->command)
-      break;
-  }
-
-  /* we should be able to trust a local slink process...
-   * and if it sends an invalid command, that's a bug.. */
-  assert(replydef->handler);
-
-  if ((replydef->flags & SLINKRPL_FLAG_DATA) && (reply->gotdatalen < 2))
-  {
-    /* we need a datalen u16 which we don't have yet... */
-    length = recv(fd->fd, len, (2 - reply->gotdatalen), 0);
-    if (length <= 0)
-    {
-      if ((length == -1) && ignoreErrno(errno))
-        goto nodata;
-      dead_link_on_read(server, length);
-      return;
-    }
-
-    if (reply->gotdatalen == 0)
-    {
-      reply->datalen = *len << 8;
-      reply->gotdatalen++;
-      length--;
-      len++;
-    }
-    if (length && (reply->gotdatalen == 1))
-    {
-      reply->datalen |= *len;
-      reply->gotdatalen++;
-      if (reply->datalen > 0)
-        reply->data = MyMalloc(reply->datalen);
-    }
-
-    if (reply->gotdatalen < 2)
-      return; /* wait for more data */
-  }
-
-  if (reply->readdata < reply->datalen) /* try to get any remaining data */
-  {
-    length = recv(fd->fd, (reply->data + reply->readdata),
-                  (reply->datalen - reply->readdata), 0);
-    if (length <= 0)
-    {
-      if ((length == -1) && ignoreErrno(errno))
-        goto nodata;
-      dead_link_on_read(server, length);
-      return;
-    }
-
-    reply->readdata += length;
-    if (reply->readdata < reply->datalen)
-      return; /* wait for more data */
-  }
-
-  execute_callback(iorecvctrl_cb, server, reply->command);
-
-  /* we now have the command and any data, pass it off to the handler */
-  (*replydef->handler)(reply->command, reply->datalen, reply->data, server);
-
-  /* reset SlinkRpl */                      
-  if (reply->datalen > 0)
-    MyFree(reply->data);
-  reply->command = 0;
-
-  if (IsDead(server))
-    return;
-
-nodata:
-  /* If we get here, we need to register for another COMM_SELECT_READ */
-  comm_setselect(fd, COMM_SELECT_READ, read_ctrl_packet, server, 0);
 }
 
 /*

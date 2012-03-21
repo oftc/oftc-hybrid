@@ -153,14 +153,9 @@ unhook_hub_leaf_confs(void)
 %token  CHANNEL
 %token	CIDR_BITLEN_IPV4
 %token	CIDR_BITLEN_IPV6
-%token  CIPHER_PREFERENCE
 %token  CLASS
-%token  COMPRESSED
-%token  COMPRESSION_LEVEL
 %token  CONNECT
 %token  CONNECTFREQ
-%token  CRYPTLINK
-%token  DEFAULT_CIPHER_PREFERENCE
 %token  DEFAULT_FLOODCOUNT
 %token  DEFAULT_SPLIT_SERVER_COUNT
 %token  DEFAULT_SPLIT_USER_COUNT
@@ -293,7 +288,6 @@ unhook_hub_leaf_confs(void)
 %token  SEND_PASSWORD
 %token  SERVERHIDE
 %token  SERVERINFO
-%token  SERVLINK_PATH
 %token  IRCD_SID
 %token	TKLINE_EXPIRE_NOTICES
 %token  T_SHARED
@@ -2123,60 +2117,46 @@ connect_entry: CONNECT
   {
     struct CollectItem *yy_hconf=NULL;
     struct CollectItem *yy_lconf=NULL;
-    dlink_node *ptr;
-    dlink_node *next_ptr;
-#ifdef HAVE_LIBCRYPTO
+    dlink_node *ptr = NULL, *next_ptr = NULL;
+
     if (yy_aconf->host &&
-	((yy_aconf->passwd && yy_aconf->spasswd) ||
-	 (yy_aconf->rsa_public_key && IsConfCryptLink(yy_aconf))))
-#else /* !HAVE_LIBCRYPTO */
-      if (yy_aconf->host && !IsConfCryptLink(yy_aconf) && 
-	  yy_aconf->passwd && yy_aconf->spasswd)
-#endif /* !HAVE_LIBCRYPTO */
-	{
-	  if (conf_add_server(yy_conf, class_name) == -1)
-	  {
-	    delete_conf_item(yy_conf);
-	    yy_conf = NULL;
-	    yy_aconf = NULL;
-	  }
-	}
-	else
-	{
-	  /* Even if yy_conf ->name is NULL
-	   * should still unhook any hub/leaf confs still pending
-	   */
-	  unhook_hub_leaf_confs();
+        yy_aconf->passwd && yy_aconf->spasswd)
+    {
+      if (conf_add_server(yy_conf, class_name) == -1)
+      {
+        delete_conf_item(yy_conf);
+	yy_conf = NULL;
+	yy_aconf = NULL;
+      }
+    }
+    else
+    {
+      /* Even if yy_conf ->name is NULL
+       * should still unhook any hub/leaf confs still pending
+       */
+      unhook_hub_leaf_confs();
 
-	  if (yy_conf->name != NULL)
-	  {
-#ifndef HAVE_LIBCRYPTO
-	    if (IsConfCryptLink(yy_aconf))
-	      yyerror("Ignoring connect block -- no OpenSSL support");
-#else
-	    if (IsConfCryptLink(yy_aconf) && !yy_aconf->rsa_public_key)
-	      yyerror("Ignoring connect block -- missing key");
-#endif
-	    if (yy_aconf->host == NULL)
-	      yyerror("Ignoring connect block -- missing host");
-	    else if (!IsConfCryptLink(yy_aconf) && 
-		    (!yy_aconf->passwd || !yy_aconf->spasswd))
-              yyerror("Ignoring connect block -- missing password");
-	  }
+      if (yy_conf->name != NULL)
+      {
+        if (yy_aconf->host == NULL)
+          yyerror("Ignoring connect block -- missing host");
+        else if (!yy_aconf->passwd || !yy_aconf->spasswd)
+          yyerror("Ignoring connect block -- missing password");
+      }
 
 
-          /* XXX
-           * This fixes a try_connections() core (caused by invalid class_ptr
-           * pointers) reported by metalrock. That's an ugly fix, but there
-           * is currently no better way. The entire config subsystem needs an
-           * rewrite ASAP. make_conf_item() shouldn't really add things onto
-           * a doubly linked list immediately without any sanity checks!  -Michael
-           */
-          delete_conf_item(yy_conf);
+      /* XXX
+       * This fixes a try_connections() core (caused by invalid class_ptr
+       * pointers) reported by metalrock. That's an ugly fix, but there
+       * is currently no better way. The entire config subsystem needs an
+       * rewrite ASAP. make_conf_item() shouldn't really add things onto
+       * a doubly linked list immediately without any sanity checks!  -Michael
+       */
+      delete_conf_item(yy_conf);
 
-          yy_aconf = NULL;
-	  yy_conf = NULL;
-	}
+      yy_aconf = NULL;
+      yy_conf = NULL;
+    }
 
       /*
        * yy_conf is still pointing at the server that is having
@@ -2250,8 +2230,7 @@ connect_item:   connect_name | connect_host | connect_vhost |
 		connect_send_password | connect_accept_password |
 		connect_aftype | connect_port |
 		connect_flags | connect_hub_mask | connect_leaf_mask |
-		connect_class | connect_encrypted |
-		connect_rsa_public_key_file | connect_cipher_preference |
+		connect_class | connect_encrypted | 
                 error ';' ;
 
 connect_name: NAME '=' QSTRING ';'
@@ -2360,21 +2339,7 @@ connect_flags: IRCD_FLAGS
 } '='  connect_flags_items ';';
 
 connect_flags_items: connect_flags_items ',' connect_flags_item | connect_flags_item;
-connect_flags_item: COMPRESSED
-{
-  if (conf_parser_ctx.pass == 2)
-#ifndef HAVE_LIBZ
-    yyerror("Ignoring flags = compressed; -- no zlib support");
-#else
- {
-   SetConfCompressed(yy_aconf);
- }
-#endif
-} | CRYPTLINK
-{
-  if (conf_parser_ctx.pass == 2)
-    SetConfCryptLink(yy_aconf);
-} | AUTOCONN
+connect_flags_item: AUTOCONN
 {
   if (conf_parser_ctx.pass == 2)
     SetConfAllowAutoConn(yy_aconf);
@@ -2386,47 +2351,6 @@ connect_flags_item: COMPRESSED
 {
   if (conf_parser_ctx.pass == 2)
     SetConfTopicBurst(yy_aconf);
-};
-
-connect_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
-{
-#ifdef HAVE_LIBCRYPTO
-  if (conf_parser_ctx.pass == 2)
-  {
-    BIO *file;
-
-    if (yy_aconf->rsa_public_key != NULL)
-    {
-      RSA_free(yy_aconf->rsa_public_key);
-      yy_aconf->rsa_public_key = NULL;
-    }
-
-    if (yy_aconf->rsa_public_key_file != NULL)
-    {
-      MyFree(yy_aconf->rsa_public_key_file);
-      yy_aconf->rsa_public_key_file = NULL;
-    }
-
-    DupString(yy_aconf->rsa_public_key_file, yylval.string);
-
-    if ((file = BIO_new_file(yylval.string, "r")) == NULL)
-    {
-      yyerror("Ignoring rsa_public_key_file -- file doesn't exist");
-      break;
-    }
-
-    yy_aconf->rsa_public_key = (RSA *)PEM_read_bio_RSA_PUBKEY(file, NULL, 0, NULL);
-
-    if (yy_aconf->rsa_public_key == NULL)
-    {
-      yyerror("Ignoring rsa_public_key_file -- Key invalid; check key syntax.");
-      break;
-    }
-      
-    (void)BIO_set_close(file, BIO_CLOSE);
-    BIO_free(file);
-  }
-#endif /* HAVE_LIBCRYPTO */
 };
 
 connect_encrypted: ENCRYPTED '=' TBOOL ';'
@@ -2473,38 +2397,6 @@ connect_class: CLASS '=' QSTRING ';'
     MyFree(class_name);
     DupString(class_name, yylval.string);
   }
-};
-
-connect_cipher_preference: CIPHER_PREFERENCE '=' QSTRING ';'
-{
-#ifdef HAVE_LIBCRYPTO
-  if (conf_parser_ctx.pass == 2)
-  {
-    struct EncCapability *ecap;
-    const char *cipher_name;
-    int found = 0;
-
-    yy_aconf->cipher_preference = NULL;
-    cipher_name = yylval.string;
-
-    for (ecap = CipherTable; ecap->name; ecap++)
-    {
-      if ((irccmp(ecap->name, cipher_name) == 0) &&
-          (ecap->cap & CAP_ENC_MASK))
-      {
-        yy_aconf->cipher_preference = ecap;
-        found = 1;
-        break;
-      }
-    }
-
-    if (!found)
-      yyerror("Invalid cipher");
-  }
-#else
-  if (conf_parser_ctx.pass == 2)
-    yyerror("Ignoring cipher_preference -- no OpenSSL support");
-#endif
 };
 
 /***************************************************************************
@@ -2807,9 +2699,8 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_oper_umodes | general_caller_id_wait |
                     general_opers_bypass_callerid | general_default_floodcount |
                     general_min_nonwildcard | general_min_nonwildcard_simple |
-                    general_servlink_path | general_disable_remote_commands |
-                    general_default_cipher_preference |
-                    general_compression_level | general_client_flood |
+                    general_disable_remote_commands |
+                    general_client_flood |
                     general_throttle_time | general_havent_read_conf |
                     general_ping_cookie |
                     general_disable_auth | 
@@ -3042,65 +2933,6 @@ general_dots_in_ident: DOTS_IN_IDENT '=' NUMBER ';'
 general_max_targets: MAX_TARGETS '=' NUMBER ';'
 {
   ConfigFileEntry.max_targets = $3;
-};
-
-general_servlink_path: SERVLINK_PATH '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    MyFree(ConfigFileEntry.servlink_path);
-    DupString(ConfigFileEntry.servlink_path, yylval.string);
-  }
-};
-
-general_default_cipher_preference: DEFAULT_CIPHER_PREFERENCE '=' QSTRING ';'
-{
-#ifdef HAVE_LIBCRYPTO
-  if (conf_parser_ctx.pass == 2)
-  {
-    struct EncCapability *ecap;
-    const char *cipher_name;
-    int found = 0;
-
-    ConfigFileEntry.default_cipher_preference = NULL;
-    cipher_name = yylval.string;
-
-    for (ecap = CipherTable; ecap->name; ecap++)
-    {
-      if ((irccmp(ecap->name, cipher_name) == 0) &&
-          (ecap->cap & CAP_ENC_MASK))
-      {
-        ConfigFileEntry.default_cipher_preference = ecap;
-        found = 1;
-        break;
-      }
-    }
-
-    if (!found)
-      yyerror("Invalid cipher");
-  }
-#else
-  if (conf_parser_ctx.pass == 2)
-    yyerror("Ignoring default_cipher_preference -- no OpenSSL support");
-#endif
-};
-
-general_compression_level: COMPRESSION_LEVEL '=' NUMBER ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    ConfigFileEntry.compression_level = $3;
-#ifndef HAVE_LIBZ
-    yyerror("Ignoring compression_level -- no zlib support");
-#else
-    if ((ConfigFileEntry.compression_level < 1) ||
-        (ConfigFileEntry.compression_level > 9))
-    {
-      yyerror("Ignoring invalid compression_level, using default");
-      ConfigFileEntry.compression_level = 0;
-    }
-#endif
-  }
 };
 
 general_use_egd: USE_EGD '=' TBOOL ';'

@@ -86,7 +86,6 @@ static void stats_memory(struct Client *);
 static void stats_numbers(struct Client *);
 static void stats_servlinks(struct Client *);
 static void stats_ltrace(struct Client *, int, char **);
-static void stats_ziplinks(struct Client *);
 
 /* This table contains the possible stats items, in order:
  * /stats name,  function to call, operonly? adminonly? /stats letter
@@ -142,7 +141,6 @@ static const struct StatsStruct
   { 'y',	stats_class,		1,	0	},
   { 'Y',	stats_class,		1,	0	},
   { 'z',	stats_memory,		1,	0	},
-  { 'Z',	stats_ziplinks,		1,	0	},
   { '?',	stats_servlinks,	0,	0	},
   { '\0',       NULL,		        0,	0	}
 };

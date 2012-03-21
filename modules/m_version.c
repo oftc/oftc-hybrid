@@ -84,9 +84,6 @@ confopts(struct Client *source_p)
 
   if (ConfigFileEntry.ignore_bogus_ts)
     *p++ = 'T';
-#ifdef HAVE_LIBZ
-  *p++ = 'Z';
-#endif
   *p++ = '6';
 
   *p = '\0';

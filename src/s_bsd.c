@@ -246,12 +246,6 @@ close_connection(struct Client *client_p)
   if (client_p->localClient->fd.flags.open)
     fd_close(&client_p->localClient->fd);
 
-  if (HasServlink(client_p))
-  {
-    if (client_p->localClient->ctrlfd.flags.open)
-      fd_close(&client_p->localClient->ctrlfd);
-  }
-
   dbuf_clear(&client_p->localClient->buf_sendq);
   dbuf_clear(&client_p->localClient->buf_recvq);
   

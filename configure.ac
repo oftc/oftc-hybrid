@@ -88,22 +88,6 @@ AS_IF([test -c /dev/null], [
 AC_SEARCH_LIBS(crypt, crypt)
 
 
-AC_ARG_WITH(zlib-path,
-AS_HELP_STRING([--with-zlib-path=DIR], [Path to libz.so for ziplinks support.]),
-[LDFLAGS="-L$withval $LDFLAGS"],)
-
-AC_ARG_ENABLE(zlib, AS_HELP_STRING([--disable-zlib],[Disable ziplinks support]),
-[zlib=$enableval],[zlib=yes])
-
-AS_IF([test "$zlib" = "yes"], [
-  AC_CHECK_HEADER(zlib.h, [AC_CHECK_LIB(z, zlibVersion,
-    [
-      LIBS="-lz $LIBS"
-      AC_DEFINE(HAVE_LIBZ, 1, [Define to 1 if zlib (-lz) is available.])
-    ], zlib=no)
-  ], zlib=no)
-])
-
 AC_ARG_WITH(libpcre-path,
 AS_HELP_STRING([--with-libpcre-path=DIR], [Path to libpcre.so for PCRE support.]),
 [LDFLAGS="-L$withval $LDFLAGS"],)
@@ -191,7 +175,6 @@ AC_DEFINE_DIR([LOCALSTATEDIR],[localstatedir],[Set to localstatedir.])
 AC_CONFIG_FILES(               \
        Makefile                \
        etc/Makefile            \
-       servlink/Makefile       \
        contrib/Makefile        \
        contrib/help/Makefile   \
        src/Makefile            \

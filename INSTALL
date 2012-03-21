@@ -101,7 +101,6 @@
             maximum TOPIC length. Note that this must be consistent across your
             entire network. Defaults are 9 and 120, respectively.
 
-          * --disable-zlib - Build the ircd without ziplinks support.
 
           * --disable-gline-voting - This is good for small networks or where
             G-Line voting is not necessary. Please understand that by disabling

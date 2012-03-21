@@ -324,7 +324,6 @@ initialize_server_capabs(void)
   add_capability("QS", CAP_QS, 1);
   add_capability("EOB", CAP_EOB, 1);
   add_capability("TS6", CAP_TS6, 0);
-  add_capability("ZIP", CAP_ZIP, 0);
   add_capability("CLUSTER", CAP_CLUSTER, 1);
   add_capability("SVS", CAP_SVS, 1);
 #ifdef HALFOPS
@@ -477,8 +476,6 @@ init_callbacks(void)
 {
   iorecv_cb = register_callback("iorecv", iorecv_default);
   iosend_cb = register_callback("iosend", iosend_default);
-  iorecvctrl_cb = register_callback("iorecvctrl", NULL);
-  iosendctrl_cb = register_callback("iosendctrl", NULL);
 }
 
 int
@@ -656,8 +653,6 @@ main(int argc, char *argv[])
   /* We want try_connections to be called as soon as possible now! -- adrian */
   /* No, 'cause after a restart it would cause all sorts of nick collides */
   eventAddIsh("try_connections", try_connections, NULL, STARTUP_CONNECTIONS_TIME);
-
-  eventAddIsh("collect_zipstats", collect_zipstats, NULL, ZIPSTATS_TIME);
 
   /* Setup the timeout check. I'll shift it later :)  -- adrian */
   eventAddIsh("comm_checktimeouts", comm_checktimeouts, NULL, 1);

@@ -61,8 +61,7 @@
 
 
 /* files */
-#define SPATH   SBINPATH "/ircd"                 /* ircd executable */
-#define SLPATH  BINPATH "/servlink"             /* servlink executable */
+#define SPATH   SBINPATH "/ircd"                /* ircd executable */
 #define CPATH   ETCPATH "/ircd.conf"            /* ircd.conf file */
 #define KPATH   ETCPATH "/kline.conf"           /* kline file */
 #define CRESVPATH   ETCPATH "/cresv.conf"       /* channel resvs file */

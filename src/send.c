@@ -43,7 +43,6 @@
 
 
 struct Callback *iosend_cb = NULL;
-struct Callback *iosendctrl_cb = NULL;
 static unsigned int current_serial = 0;
 
 
@@ -222,17 +221,6 @@ sendq_unblocked(fde_t *fd, struct Client *client_p)
 }
 
 /*
- ** slinkq_unblocked
- **      Called when a server control socket is ready for writing.
- */
-static void
-slinkq_unblocked(fde_t *fd, struct Client *client_p)
-{
-  ClearSlinkqBlocked(client_p);
-  send_queued_slink_write(client_p);
-}
-
-/*
  ** send_queued_write
  **      This is called when there is a chance that some output would
  **      be possible. This attempts to empty the send queue as far as
@@ -306,72 +294,6 @@ send_queued_write(struct Client *to)
     {
       dead_link_on_write(to, errno);
       return;
-    }
-  }
-}
-
-/*
- ** send_queued_slink_write
- **      This is called when there is a chance the some output would
- **      be possible. This attempts to empty the send queue as far as
- **      possible, and then if any data is left, a write is rescheduled.
- */
-void
-send_queued_slink_write(struct Client *to)
-{
-  int retlen;
-
-  /*
-   ** Once socket is marked dead, we cannot start writing to it,
-   ** even if the error is removed...
-   */
-  if (IsDead(to) || IsSlinkqBlocked(to))
-    return;  /* no use calling send() now */
-
-  /* Next, lets try to write some data */
-  if (to->localClient->slinkq != NULL)
-  {
-    retlen = send(to->localClient->ctrlfd.fd,
-                   to->localClient->slinkq + to->localClient->slinkq_ofs,
-                   to->localClient->slinkq_len, 0);
-    if (retlen < 0)
-    {
-      /* If we have a fatal error */
-      if (!ignoreErrno(errno))
-      {
-	dead_link_on_write(to, errno);
-	return;
-      }
-    }
-    else if (retlen == 0)
-    {
-      /* 0 bytes is an EOF .. */
-      dead_link_on_write(to, 0);
-      return;
-    }
-    else
-    {
-      execute_callback(iosendctrl_cb, to, retlen,
-        to->localClient->slinkq + to->localClient->slinkq_ofs);
-      to->localClient->slinkq_len -= retlen;
-
-      assert(to->localClient->slinkq_len >= 0);
-      if (to->localClient->slinkq_len)
-        to->localClient->slinkq_ofs += retlen;
-      else
-      {
-        to->localClient->slinkq_ofs = 0;
-        MyFree(to->localClient->slinkq);
-        to->localClient->slinkq = NULL;
-      }
-    }
-
-    /* Finally, if we have any more data, reschedule a write */
-    if (to->localClient->slinkq_len)
-    {
-      SetSlinkqBlocked(to);
-      comm_setselect(&to->localClient->ctrlfd, COMM_SELECT_WRITE,
-                     (PF *)slinkq_unblocked, (void *)to, 0);
     }
   }
 }
