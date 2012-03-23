@@ -275,6 +275,7 @@ struct ip_entry
 #define CONF_FLAGS_BURST_AWAY           0x00400000
 #define CONF_FLAGS_EXEMPTRESV           0x00800000
 #define CONF_FLAGS_TOPICBURST           0x01000000
+#define CONF_FLAGS_SSL                  0x02000000
 
 /* Macros for struct AccessItem */
 #define IsLimitIp(x)            ((x)->flags & CONF_FLAGS_LIMIT_IP)
@@ -305,6 +306,9 @@ struct ip_entry
 #define IsConfTopicBurst(x)     ((x)->flags & CONF_FLAGS_TOPICBURST)
 #define SetConfTopicBurst(x)    ((x)->flags |= CONF_FLAGS_TOPICBURST)
 #define ClearConfTopicBurst(x)  ((x)->flags &= ~CONF_FLAGS_TOPICBURST)
+#define IsConfSSL(x)      ((x)->flags & CONF_FLAGS_SSL)
+#define SetConfSSL(x)     ((x)->flags |= CONF_FLAGS_SSL)
+#define ClearConfSSL(x)   ((x)->flags &= ~CONF_FLAGS_SSL)
 
 /* shared/cluster server entry types 
  * These defines are used for both shared and cluster.

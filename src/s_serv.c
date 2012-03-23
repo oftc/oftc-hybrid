@@ -46,6 +46,7 @@
 #include "s_conf.h"
 #include "s_serv.h"
 #include "s_log.h"
+#include "s_misc.h"
 #include "s_user.h"
 #include "send.h"
 #include "memory.h"
@@ -882,16 +883,28 @@ server_estab(struct Client *client_p)
   /* fixing eob timings.. -gnp */
   client_p->localClient->firsttime = CurrentTime;
 
-
   if (find_matching_name_conf(SERVICE_TYPE, client_p->name, NULL, NULL, 0))
     AddFlag(client_p, FLAGS_SERVICE);
 
-  /* Now show the masked hostname/IP to opers */
-  sendto_realops_flags(UMODE_ALL, L_ALL, 
-                       "Link with %s established: (%s) link",
-                       inpath,show_capabilities(client_p));
-  ilog(LOG_TYPE_IRCD, "Link with %s established: (%s) link",
-       inpath_ip, show_capabilities(client_p));
+  /* Show the real host/IP to admins */
+  if (client_p->localClient->fd.ssl)
+  {
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Link with %s established: [SSL: %s] (Capabilities: %s)",
+                         inpath_ip, ssl_get_cipher(client_p->localClient->fd.ssl),
+                         show_capabilities(client_p));
+    ilog(LOG_TYPE_IRCD, "Link with %s established: [SSL: %s] (Capabilities: %s)",
+         inpath_ip, ssl_get_cipher(client_p->localClient->fd.ssl),
+         show_capabilities(client_p));
+  }
+  else
+  {
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Link with %s established: (Capabilities: %s)",
+                         inpath_ip,show_capabilities(client_p));
+    ilog(LOG_TYPE_IRCD, "Link with %s established: (Capabilities: %s)",
+         inpath_ip, show_capabilities(client_p));
+  }
 
   client_p->serv->sconf = conf;
 
@@ -1387,6 +1400,105 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   return (1);
 }
 
+#ifdef HAVE_LIBCRYPTO
+static void
+finish_ssl_server_handshake(struct Client *client_p)
+{
+  struct ConfItem *conf=NULL;
+  struct AccessItem *aconf=NULL;
+
+  conf = find_conf_name(&client_p->localClient->confs,
+                        client_p->name, SERVER_TYPE);
+  if (conf == NULL)
+  {
+    sendto_realops_flags(UMODE_ALL, L_ADMIN,
+                         "Lost connect{} block for %s", get_client_name(client_p, HIDE_IP));
+    sendto_realops_flags(UMODE_ALL, L_OPER,
+                         "Lost connect{} block for %s", get_client_name(client_p, MASK_IP));
+
+    exit_client(client_p, &me, "Lost connect{} block");
+    return;
+  }
+
+  aconf = map_to_conf(conf);
+
+  /* jdc -- Check and send spasswd, not passwd. */
+  if (!EmptyString(aconf->spasswd))
+    sendto_one(client_p, "PASS %s TS %d %s",
+               aconf->spasswd, TS_CURRENT, me.id);
+
+  send_capabilities(client_p, aconf,
+                   (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0));
+
+  sendto_one(client_p, "SERVER %s 1 :%s%s",
+             me.name, ConfigServerHide.hidden ? "(H) " : "",
+             me.info);
+
+  /* If we've been marked dead because a send failed, just exit
+   * here now and save everyone the trouble of us ever existing.
+   */
+  if (IsDead(client_p))
+  {
+      sendto_realops_flags(UMODE_ALL, L_ADMIN,
+                           "%s[%s] went dead during handshake",
+                           client_p->name,
+                           client_p->host);
+      sendto_realops_flags(UMODE_ALL, L_OPER,
+                           "%s went dead during handshake", client_p->name);
+      return;
+  }
+
+  /* don't move to serv_list yet -- we haven't sent a burst! */
+  /* If we get here, we're ok, so lets start reading some data */
+  comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ, read_packet, client_p, 0);
+}
+
+static void
+ssl_server_handshake(struct Client *client_p)
+{
+  int ret;
+  int err;
+
+  ret = SSL_connect(client_p->localClient->fd.ssl);
+
+  if (ret <= 0)
+  {
+    switch ((err = SSL_get_error(client_p->localClient->fd.ssl, ret)))
+    {
+      case SSL_ERROR_WANT_WRITE:
+        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
+            (PF *) ssl_server_handshake, client_p, 0);
+        return;
+      case SSL_ERROR_WANT_READ:
+        comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
+            (PF *) ssl_server_handshake, client_p, 0);
+        return;
+      default:
+        exit_client(client_p, client_p, "Error during SSL handshake");
+        return;
+    }
+  }
+
+  finish_ssl_server_handshake(client_p);
+}
+
+static void
+ssl_connect_init(struct Client *client_p, fde_t *fd)
+{
+  if ((client_p->localClient->fd.ssl = SSL_new(ServerInfo.client_ctx)) == NULL)
+  {
+    ilog(LOG_TYPE_IRCD, "SSL_new() ERROR! -- %s",
+         ERR_error_string(ERR_get_error(), NULL));
+    SetDead(client_p);
+    exit_client(client_p, client_p, "SSL_new failed");
+    return;
+  }
+
+  SSL_set_fd(fd->ssl, fd->fd);
+  ssl_server_handshake(client_p);
+}
+#endif
+
 /* serv_connect_callback() - complete a server connection.
  * 
  * This routine is called after the server connection attempt has
@@ -1448,26 +1560,23 @@ serv_connect_callback(fde_t *fd, int status, void *data)
     return;
   }
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = map_to_conf(conf);
   /* Next, send the initial handshake */
   SetHandshake(client_p);
 
 #ifdef HAVE_LIBCRYPTO
-  /* TBD: initialization */
+  if (IsConfSSL(aconf))
+  {
+    ssl_connect_init(client_p, fd);
+    return;
+  }
 #endif
 
   /* jdc -- Check and send spasswd, not passwd. */
   if (!EmptyString(aconf->spasswd))
-      /* Send TS 6 form only if id */
     sendto_one(client_p, "PASS %s TS %d %s",
                aconf->spasswd, TS_CURRENT, me.id);
 
-  /* Pass my info to the new server
-   *
-   * Pass on ZIP if supported
-   * Pass on TB if supported.
-   * - Dianora
-   */
   send_capabilities(client_p, aconf,
                    (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0));
 

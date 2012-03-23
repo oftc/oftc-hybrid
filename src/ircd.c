@@ -452,14 +452,27 @@ init_ssl(void)
   {
     const char *s;
 
-    fprintf(stderr, "ERROR: Could not initialize the SSL context -- %s\n",
+    fprintf(stderr, "ERROR: Could not initialize the SSL Server context -- %s\n",
             s = ERR_lib_error_string(ERR_get_error()));
-    ilog(LOG_TYPE_IRCD, "ERROR: Could not initialize the SSL context -- %s\n", s);
+    ilog(LOG_TYPE_IRCD, "ERROR: Could not initialize the SSL Server context -- %s\n", s);
   }
 
   SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv2);
   SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
   SSL_CTX_set_verify(ServerInfo.server_ctx, SSL_VERIFY_PEER, always_accept_verify_cb);
+
+  if ((ServerInfo.client_ctx = SSL_CTX_new(SSLv23_client_method())) == NULL)
+  {
+    const char *s;
+
+    fprintf(stderr, "ERROR: Could not initialize the SSL Client context -- %s\n",
+            s = ERR_lib_error_string(ERR_get_error()));
+    ilog(LOG_TYPE_IRCD, "ERROR: Could not initialize the SSL Client context -- %s\n", s);
+  }
+
+  SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv2);
+  SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
+  SSL_CTX_set_verify(ServerInfo.client_ctx, SSL_VERIFY_NONE, NULL);
 
   bio_spare_fd = save_spare_fd("SSL private key validation");
 #endif /* HAVE_LIBCRYPTO */
