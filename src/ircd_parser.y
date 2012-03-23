@@ -483,9 +483,16 @@ serverinfo_ssl_connection_method: T_SSL_CONNECTION_METHOD
   if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
   {
     if (!(ServerInfo.tls_version & CONF_SERVER_INFO_TLS_VERSION_SSLV3))
+    {
       SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv3);
+      SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv3);
+    }
+
     if (!(ServerInfo.tls_version & CONF_SERVER_INFO_TLS_VERSION_TLSV1))
+    {
       SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_TLSv1);
+      SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_TLSv1);
+    }
   }
 #endif
 };
@@ -517,6 +524,8 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
     }
 
     if (SSL_CTX_use_certificate_file(ServerInfo.server_ctx, yylval.string,
+                                     SSL_FILETYPE_PEM) <= 0 ||
+        SSL_CTX_use_certificate_file(ServerInfo.client_ctx, yylval.string,
                                      SSL_FILETYPE_PEM) <= 0)
     {
       yyerror(ERR_lib_error_string(ERR_get_error()));
@@ -524,13 +533,16 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
     }
 
     if (SSL_CTX_use_PrivateKey_file(ServerInfo.server_ctx, ServerInfo.rsa_private_key_file,
+                                    SSL_FILETYPE_PEM) <= 0 ||
+        SSL_CTX_use_PrivateKey_file(ServerInfo.client_ctx, ServerInfo.rsa_private_key_file,
                                     SSL_FILETYPE_PEM) <= 0)
     {
       yyerror(ERR_lib_error_string(ERR_get_error()));
       break;
     }
 
-    if (!SSL_CTX_check_private_key(ServerInfo.server_ctx))
+    if (!SSL_CTX_check_private_key(ServerInfo.server_ctx) ||
+        !SSL_CTX_check_private_key(ServerInfo.client_ctx))
     {
       yyerror(ERR_lib_error_string(ERR_get_error()));
       break;
@@ -2266,6 +2278,10 @@ connect_flags_item: AUTOCONN
 {
   if (conf_parser_ctx.pass == 2)
     SetConfTopicBurst(yy_aconf);
+} | T_SSL
+{
+  if (conf_parser_ctx.pass == 2)
+    SetConfSSL(yy_aconf);
 };
 
 connect_encrypted: ENCRYPTED '=' TBOOL ';'

@@ -751,6 +751,8 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
 
       if (IsConfAllowAutoConn(aconf))
 	*p++ = 'A';
+      if (IsConfSSL(aconf))
+        *p++ = 'S';
       if (IsConfTopicBurst(aconf))
         *p++ = 'T';
       if (buf[0] == '\0')
