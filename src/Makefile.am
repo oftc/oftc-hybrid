@@ -5,10 +5,6 @@ ircd_SOURCES=balloc.c channel.c channel_mode.c client.c csvlib.c dbuf.c event.c 
 ircd_LDFLAGS=-export-dynamic $(OPENSSL_LDFLAGS)
 AM_CPPFLAGS=$(LTDLINCL) -I$(top_srcdir)/include $(OPENSSL_INCLUDES)
 
-if ENABLE_SSL
-ircd_SOURCES += rsa.c
-endif
-
 if USE_SHARED_MODULES
 ircd_LDADD=$(LIBLTDL)
 ircd_DEPENDENCIES=$(LTDLDEPS)
