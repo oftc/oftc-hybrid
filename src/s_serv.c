@@ -757,6 +757,9 @@ server_estab(struct Client *client_p)
   const char *inpath;
   static char inpath_ip[HOSTLEN * 2 + USERLEN + 6];
   dlink_node *ptr;
+#ifdef HAVE_LIBCRYPTO
+  const COMP_METHOD *compression = NULL, *expansion = NULL;
+#endif
 
   assert(client_p != NULL);
 
@@ -874,22 +877,33 @@ server_estab(struct Client *client_p)
     AddFlag(client_p, FLAGS_SERVICE);
 
   /* Show the real host/IP to admins */
+#ifdef HAVE_LIBCRYPTO
   if (client_p->localClient->fd.ssl)
   {
+    compression = SSL_get_current_compression(client_p->localClient->fd.ssl);
+    expansion   = SSL_get_current_expansion(client_p->localClient->fd.ssl);
+
     sendto_realops_flags(UMODE_ALL, L_ADMIN,
-                         "Link with %s established: [SSL: %s] (Capabilities: %s)",
+                         "Link with %s established: [SSL: %s, Compression/Expansion method: %s/%s] (Capabilities: %s)",
                          inpath_ip, ssl_get_cipher(client_p->localClient->fd.ssl),
+                         compression ? SSL_COMP_get_name(compression) : "NONE",
+                         expansion ? SSL_COMP_get_name(expansion) : "NONE",
                          show_capabilities(client_p));
     /* Now show the masked hostname/IP to opers */
     sendto_realops_flags(UMODE_ALL, L_OPER,
-                         "Link with %s established: [SSL: %s] (Capabilities: %s)",
+                         "Link with %s established: [SSL: %s, Compression/Expansion method: %s/%s] (Capabilities: %s)",
                          inpath, ssl_get_cipher(client_p->localClient->fd.ssl),
+                         compression ? SSL_COMP_get_name(compression) : "NONE",
+                         expansion ? SSL_COMP_get_name(expansion) : "NONE",
                          show_capabilities(client_p));
-    ilog(LOG_TYPE_IRCD, "Link with %s established: [SSL: %s] (Capabilities: %s)",
+    ilog(LOG_TYPE_IRCD, "Link with %s established: [SSL: %s, Compression/Expansion method: %s/%s] (Capabilities: %s)",
          inpath_ip, ssl_get_cipher(client_p->localClient->fd.ssl),
+         compression ? SSL_COMP_get_name(compression) : "NONE",
+         expansion ? SSL_COMP_get_name(expansion) : "NONE",
          show_capabilities(client_p));
   }
   else
+#endif
   {
     sendto_realops_flags(UMODE_ALL, L_ADMIN,
                          "Link with %s established: (Capabilities: %s)",
