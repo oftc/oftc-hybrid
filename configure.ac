@@ -133,10 +133,8 @@ if test "$cf_enable_openssl" != "no"; then
   dnl If we have a basedir defined, then everything is okay.  Otherwise,
   dnl we have a problem.
   if test ! -z "$cf_openssl_basedir"; then
-    LIBS="-lcrypto -lssl $LIBS"
     AC_MSG_RESULT([$cf_openssl_basedir])
     cf_enable_openssl="yes"
-    AC_DEFINE(HAVE_LIBCRYPTO, 1, [If we support ssl])
   else
     AC_MSG_RESULT([not found. Please check your path.])
     cf_enable_openssl="no"
@@ -148,12 +146,12 @@ else
 fi
 
 AS_IF([test "$cf_enable_openssl" != "no"],
- [AC_MSG_CHECKING(for OpenSSL 0.9.7 or above)
+ [AC_MSG_CHECKING(for OpenSSL 0.9.8 or above)
   AC_RUN_IFELSE([
     AC_LANG_PROGRAM([
     #include <openssl/opensslv.h>
     #include <stdlib.h>],
-    [[ exit(!(OPENSSL_VERSION_NUMBER >= 0x00907000)); ]])],
+    [[ exit(!(OPENSSL_VERSION_NUMBER >= 0x00908000)); ]])],
   [cf_openssl_version_ok=yes],
   [cf_openssl_version_ok=no],
   [cf_openssl_version_ok=no])
@@ -161,18 +159,13 @@ AS_IF([test "$cf_enable_openssl" != "no"],
   AS_IF([test "$cf_openssl_version_ok" = "yes"],
     [AC_MSG_RESULT(found)
 
-    AC_CHECK_LIB(crypto, RSA_free)
-    AS_IF([test "$ac_cv_lib_crypto_RSA_free" = "yes"],
-      [AC_CHECK_FUNCS(EVP_bf_cfb           \
-                      EVP_cast5_cfb        \
-                      EVP_idea_cfb         \
-                      EVP_rc5_32_12_16_cfb \
-                      EVP_des_ede3_cfb     \
-                      EVP_des_cfb)])
+    AC_CHECK_LIB(ssl, SSL_connect)
+    AS_IF([test "$ac_cv_lib_ssl_SSL_connect" = "yes"],
+      [AC_CHECK_LIB(crypto, RSA_free)])
     ],[AC_MSG_RESULT(no - OpenSSL support disabled)
     cf_enable_openssl="no"])])
 
-AM_CONDITIONAL(ENABLE_SSL, [test "$cf_enable_openssl" = yes])
+AM_CONDITIONAL(ENABLE_SSL, [test "$ac_cv_lib_crypto_RSA_free" = yes])
 
 
 AC_ARG_ENABLE(assert, AS_HELP_STRING([--enable-assert], 

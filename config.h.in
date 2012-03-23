@@ -100,24 +100,6 @@
 /* Define to 1 if the system has the type `error_t'. */
 #undef HAVE_ERROR_T
 
-/* Define to 1 if you have the `EVP_bf_cfb' function. */
-#undef HAVE_EVP_BF_CFB
-
-/* Define to 1 if you have the `EVP_cast5_cfb' function. */
-#undef HAVE_EVP_CAST5_CFB
-
-/* Define to 1 if you have the `EVP_des_cfb' function. */
-#undef HAVE_EVP_DES_CFB
-
-/* Define to 1 if you have the `EVP_des_ede3_cfb' function. */
-#undef HAVE_EVP_DES_EDE3_CFB
-
-/* Define to 1 if you have the `EVP_idea_cfb' function. */
-#undef HAVE_EVP_IDEA_CFB
-
-/* Define to 1 if you have the `EVP_rc5_32_12_16_cfb' function. */
-#undef HAVE_EVP_RC5_32_12_16_CFB
-
 /* Define to 1 if you have the `inet_aton' function. */
 #undef HAVE_INET_ATON
 
@@ -141,6 +123,9 @@
 
 /* Define to 1 if libpcre (-lpcre) is available. */
 #undef HAVE_LIBPCRE
+
+/* Define to 1 if you have the `ssl' library (-lssl). */
+#undef HAVE_LIBSSL
 
 /* Define to 1 if you have the <link.h> header file. */
 #undef HAVE_LINK_H

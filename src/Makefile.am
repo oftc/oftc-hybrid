@@ -46,6 +46,7 @@ ircd_SOURCES = balloc.c          \
                s_bsd_select.c    \
                restart.c         \
                resv.c            \
+               rsa.c             \
                s_auth.c          \
                s_bsd.c           \
                s_gline.c         \
@@ -60,6 +61,3 @@ ircd_SOURCES = balloc.c          \
                whowas.c          \
                ircd_parser.y     \
                ircd_lexer.l
-if ENABLE_SSL
-ircd_SOURCES += rsa.c
-endif
