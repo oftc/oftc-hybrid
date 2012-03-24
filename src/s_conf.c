@@ -390,6 +390,7 @@ delete_conf_item(struct ConfItem *conf)
     MyFree(aconf->oper_reason);
     MyFree(aconf->user);
     MyFree(aconf->host);
+    MyFree(aconf->cipher_list);
 #ifdef HAVE_LIBCRYPTO
     if (aconf->rsa_public_key)
       RSA_free(aconf->rsa_public_key);

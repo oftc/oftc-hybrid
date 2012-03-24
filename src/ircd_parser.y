@@ -52,6 +52,7 @@
 #include <openssl/rsa.h>
 #include <openssl/bio.h>
 #include <openssl/pem.h>
+#include <openssl/dh.h>
 #endif
 
 static char *class_name = NULL;
@@ -273,6 +274,7 @@ unhook_hub_leaf_confs(void)
 %token  RSA_PRIVATE_KEY_FILE
 %token  RSA_PUBLIC_KEY_FILE
 %token  SSL_CERTIFICATE_FILE
+%token  SSL_DH_PARAM_FILE
 %token  T_SSL_CONNECTION_METHOD
 %token  T_SSLV3
 %token  T_TLSV1
@@ -309,6 +311,7 @@ unhook_hub_leaf_confs(void)
 %token  T_CALLERID
 %token  T_CCONN
 %token  T_CCONN_FULL
+%token  T_SSL_CIPHER_LIST
 %token  T_CLIENT_FLOOD
 %token  T_DEAF
 %token  T_DEBUG
@@ -464,10 +467,10 @@ serverinfo_items:       serverinfo_items serverinfo_item | serverinfo_item ;
 serverinfo_item:        serverinfo_name | serverinfo_vhost |
                         serverinfo_hub | serverinfo_description |
                         serverinfo_network_name | serverinfo_network_desc |
-                        serverinfo_max_clients | 
+                        serverinfo_max_clients | serverinfo_ssl_dh_param_file |
                         serverinfo_rsa_private_key_file | serverinfo_vhost6 |
                         serverinfo_sid | serverinfo_ssl_certificate_file |
-                        serverinfo_ssl_connection_method |
+                        serverinfo_ssl_connection_method | serverinfo_ssl_cipher_list |
 			error ';' ;
 
 
@@ -578,8 +581,7 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
       break;
     }
 
-    ServerInfo.rsa_private_key = (RSA *)PEM_read_bio_RSAPrivateKey(file, NULL,
-      0, NULL);
+    ServerInfo.rsa_private_key = PEM_read_bio_RSAPrivateKey(file, NULL, 0, NULL);
 
     BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
@@ -607,6 +609,40 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
 
       yyerror("Not a 2048 bit key, ignoring");
     }
+  }
+#endif
+};
+
+serverinfo_ssl_dh_param_file: SSL_DH_PARAM_FILE '=' QSTRING ';'
+{
+/* TBD - XXX: error reporting */
+#ifdef HAVE_LIBCRYPTO
+  if (conf_parser_ctx.pass == 2 && ServerInfo.server_ctx)
+  {
+    BIO *file = BIO_new_file(yylval.string, "r");
+
+    if (file)
+    {
+      DH *dh = PEM_read_bio_DHparams(file, NULL, NULL, NULL);
+
+      BIO_free(file);
+
+      if (dh)
+      {
+        SSL_CTX_set_tmp_dh(ServerInfo.server_ctx, dh);
+        DH_free(dh);
+      }
+    }
+  }
+#endif
+};
+
+serverinfo_ssl_cipher_list: T_SSL_CIPHER_LIST '=' QSTRING ';'
+{
+#ifdef HAVE_LIBCRYPTO
+  if (conf_parser_ctx.pass == 2 && ServerInfo.server_ctx)
+  {
+    SSL_CTX_set_cipher_list(ServerInfo.server_ctx, yylval.string);
   }
 #endif
 };
@@ -2155,7 +2191,7 @@ connect_entry: CONNECT
 connect_items:  connect_items connect_item | connect_item;
 connect_item:   connect_name | connect_host | connect_vhost |
 		connect_send_password | connect_accept_password |
-		connect_aftype | connect_port |
+		connect_aftype | connect_port | connect_ssl_cipher_list |
 		connect_flags | connect_hub_mask | connect_leaf_mask |
 		connect_class | connect_encrypted | 
                 error ';' ;
@@ -2329,6 +2365,21 @@ connect_class: CLASS '=' QSTRING ';'
     DupString(class_name, yylval.string);
   }
 };
+
+connect_ssl_cipher_list: T_SSL_CIPHER_LIST '=' QSTRING ';'
+{
+#ifdef HAVE_LIBCRYPTO
+  if (conf_parser_ctx.pass == 2)
+  {
+    MyFree(yy_aconf->cipher_list);
+    DupString(yy_aconf->cipher_list, yylval.string);
+  }
+#else
+  if (conf_parser_ctx.pass == 2)
+    yyerror("Ignoring connect::ciphers -- no OpenSSL support");
+#endif
+};
+
 
 /***************************************************************************
  *  section kill

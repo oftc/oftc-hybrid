@@ -1421,7 +1421,7 @@ finish_ssl_server_handshake(struct Client *client_p)
 }
 
 static void
-ssl_server_handshake(struct Client *client_p)
+ssl_server_handshake(fde_t *fd, struct Client *client_p)
 {
   int ret;
   int err;
@@ -1450,7 +1450,7 @@ ssl_server_handshake(struct Client *client_p)
 }
 
 static void
-ssl_connect_init(struct Client *client_p, fde_t *fd)
+ssl_connect_init(struct Client *client_p, struct AccessItem *aconf, fde_t *fd)
 {
   if ((client_p->localClient->fd.ssl = SSL_new(ServerInfo.client_ctx)) == NULL)
   {
@@ -1462,7 +1462,11 @@ ssl_connect_init(struct Client *client_p, fde_t *fd)
   }
 
   SSL_set_fd(fd->ssl, fd->fd);
-  ssl_server_handshake(client_p);
+
+  if (!EmptyString(aconf->cipher_list))
+    SSL_set_cipher_list(client_p->localClient->fd.ssl, aconf->cipher_list);
+
+  ssl_server_handshake(NULL, client_p);
 }
 #endif
 
@@ -1536,7 +1540,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 #ifdef HAVE_LIBCRYPTO
   if (IsConfSSL(aconf))
   {
-    ssl_connect_init(client_p, fd);
+    ssl_connect_init(client_p, aconf, fd);
     return;
   }
 #endif
