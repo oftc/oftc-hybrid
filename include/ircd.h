@@ -114,10 +114,6 @@ extern struct Counter Count;
 extern struct timeval SystemTime;
 #define CurrentTime SystemTime.tv_sec
 extern int default_server_capabs;
-#ifdef HAVE_LIBCRYPTO
-extern int bio_spare_fd;
-#endif /* HAVE_LIBCRYPTO */
-
 extern unsigned int splitmode;
 extern unsigned int splitchecking;
 extern unsigned int split_users;

@@ -90,11 +90,6 @@ int doremotd = 0;
  * initialize_server_capabs
  */
 int default_server_capabs = 0;
-
-#ifdef HAVE_LIBCRYPTO
-int bio_spare_fd = -1;
-#endif
-
 unsigned int splitmode;
 unsigned int splitchecking;
 unsigned int split_users;
@@ -473,8 +468,6 @@ init_ssl(void)
   SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv2);
   SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
   SSL_CTX_set_verify(ServerInfo.client_ctx, SSL_VERIFY_NONE, NULL);
-
-  bio_spare_fd = save_spare_fd("SSL private key validation");
 #endif /* HAVE_LIBCRYPTO */
 }
 

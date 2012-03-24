@@ -232,23 +232,3 @@ fbputs(const char *str, FBFILE *fb, size_t nbytes)
 
   return n;
 }
-
-int
-save_spare_fd(const char *spare_purpose)
-{
-  int spare_fd = open(PATH_DEVNULL, O_RDONLY, 0);
-
-  if (spare_fd < 0)
-  {
-    ilog(LOG_TYPE_IRCD, "Failed to reserve low fd for %s - open failed", spare_purpose);
-    return -1;
-  }
-  else if (spare_fd > 255)
-  {
-    ilog(LOG_TYPE_IRCD, "Failed to reserve low fd for %s - too high", spare_purpose);
-    close(spare_fd);
-    return -1;
-  }
-
-  return spare_fd;
-}
