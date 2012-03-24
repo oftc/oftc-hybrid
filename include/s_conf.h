@@ -139,6 +139,7 @@ struct AccessItem
   int              aftype;
 #ifdef HAVE_LIBCRYPTO
   /* certs */
+  char *cipher_list;
   char *           rsa_public_key_file;
   RSA *            rsa_public_key;
   char *certfp;

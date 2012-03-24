@@ -256,6 +256,8 @@ rsa_public_key_file		{ return RSA_PUBLIC_KEY_FILE; }
 ssl 				{ return T_SSL; }
 ssl_certificate_file        { return SSL_CERTIFICATE_FILE; }
 ssl_server_protocol       { return T_SSL_CONNECTION_METHOD; }
+ssl_dh_param_file       { return SSL_DH_PARAM_FILE; }
+ssl_cipher_list         { return T_SSL_CIPHER_LIST; }
 sslv3		{ return T_SSLV3; }
 tlsv1		{ return T_TLSV1; }
 send_password	{ return SEND_PASSWORD; }
