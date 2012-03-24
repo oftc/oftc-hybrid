@@ -1434,15 +1434,21 @@ ssl_server_handshake(fde_t *fd, struct Client *client_p)
     {
       case SSL_ERROR_WANT_WRITE:
         comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
-            (PF *) ssl_server_handshake, client_p, 0);
+                       (PF *)ssl_server_handshake, client_p, 0);
         return;
       case SSL_ERROR_WANT_READ:
         comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
-            (PF *) ssl_server_handshake, client_p, 0);
+                       (PF *)ssl_server_handshake, client_p, 0);
         return;
       default:
+      {
+        const char *sslerr = ERR_error_string(ERR_get_error(), NULL);
+        sendto_realops_flags(UMODE_ALL, L_ALL,
+                             "Error connecting to %s: %s", client_p->name,
+                             sslerr ? sslerr : "unknown SSL error");
         exit_client(client_p, client_p, "Error during SSL handshake");
         return;
+      }
     }
   }
 
