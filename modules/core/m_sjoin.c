@@ -36,7 +36,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_serv.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_misc.h"
 
 

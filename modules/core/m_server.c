@@ -30,8 +30,8 @@
 #include "irc_string.h" 
 #include "ircd.h"        /* me */
 #include "numeric.h"     /* ERR_xxx */
-#include "s_conf.h"      /* struct AccessItem */
-#include "s_log.h"       /* log level defines */
+#include "conf.h"      /* struct AccessItem */
+#include "log.h"       /* log level defines */
 #include "s_serv.h"      /* server_estab, check_server */
 #include "s_user.h"
 #include "send.h"        /* sendto_one */

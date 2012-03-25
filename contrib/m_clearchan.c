@@ -29,7 +29,7 @@
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_log.h"
+#include "log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "irc_string.h"
@@ -37,7 +37,7 @@
 #include "hash.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
+#include "conf.h"
 
 
 static void kick_list(struct Client *, struct Channel *);

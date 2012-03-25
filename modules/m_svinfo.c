@@ -28,8 +28,8 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "parse.h"
 #include "modules.h"
 
@@ -44,7 +44,7 @@
  */
 static void
 ms_svinfo(struct Client *client_p, struct Client *source_p,
-	  int parc, char *parv[])
+          int parc, char *parv[])
 {
   time_t deltat;
   time_t theirtime;

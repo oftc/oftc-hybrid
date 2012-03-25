@@ -27,7 +27,7 @@
 #include "modules.h"
 #include "numeric.h"
 #include "send.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "ircd.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"

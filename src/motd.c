@@ -29,7 +29,7 @@
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "fileio.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "numeric.h"
 #include "client.h"

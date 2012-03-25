@@ -44,8 +44,8 @@
 #include "restart.h"
 #include "s_auth.h"
 #include "s_bsd.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "s_misc.h"
 #include "s_serv.h"      /* try_connections */
 #include "send.h"

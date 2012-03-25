@@ -31,7 +31,7 @@
 #include "ircd.h"
 #include "list.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
 #include "parse.h"

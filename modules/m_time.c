@@ -27,7 +27,7 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "s_misc.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
 #include "parse.h"

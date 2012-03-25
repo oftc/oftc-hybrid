@@ -34,8 +34,8 @@
 
 #include "memory.h"
 #include "rsa.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 
 
 /*

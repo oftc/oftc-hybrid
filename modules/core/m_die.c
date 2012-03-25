@@ -31,7 +31,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "restart.h"
-#include "s_conf.h"
+#include "conf.h"
 
 
 /*

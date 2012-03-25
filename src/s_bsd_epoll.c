@@ -29,7 +29,7 @@
 #include "ircd.h"
 #include "memory.h"
 #include "s_bsd.h"
-#include "s_log.h"
+#include "log.h"
 #include <sys/epoll.h>
 #include <sys/syscall.h>
 

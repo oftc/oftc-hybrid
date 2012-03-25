@@ -29,7 +29,7 @@
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "parse.h"
 #include "modules.h"

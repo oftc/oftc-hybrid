@@ -26,7 +26,7 @@
 #include "client.h"
 #include "irc_string.h"
 #include "s_serv.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "parse.h"
 #include "modules.h"
 
@@ -57,7 +57,7 @@ mr_capab(struct Client *client_p, struct Client *source_p,
   for (i = 1; i < parc; ++i)
     for (s = strtoken(&p, parv[i], " "); s;
          s = strtoken(&p,    NULL, " "))
-        if ((cap = find_capability(s)) != 0)
+        if ((cap = find_capability(s)))
           SetCapable(client_p, cap);
 }
 

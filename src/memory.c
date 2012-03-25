@@ -27,7 +27,7 @@
 #include "ircd_defs.h"
 #include "irc_string.h"
 #include "memory.h"
-#include "s_log.h"
+#include "log.h"
 #include "restart.h"
 
 

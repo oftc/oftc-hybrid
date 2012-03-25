@@ -28,9 +28,9 @@
 #include "hash.h"       /* for find_client() */
 #include "ircd.h"
 #include "numeric.h"
-#include "s_log.h"
+#include "log.h"
 #include "s_serv.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "whowas.h"
 #include "irc_string.h"

@@ -56,7 +56,7 @@
 #include "client.h"
 #include "send.h"
 #include "memory.h"
-#include "s_log.h"
+#include "log.h"
 #include "numeric.h"
 
 static const char *last_event_ran = NULL;

@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  s_conf.h: A header for the configuration functions.
+ *  conf.h: A header for the configuration functions.
  *
  *  Copyright (C) 2005 by the past and present ircd coders, and others.
  *

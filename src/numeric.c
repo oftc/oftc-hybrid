@@ -27,7 +27,7 @@
 #include "numeric.h"
 #include "irc_string.h"
 #include "memory.h"
-#include "s_log.h"
+#include "log.h"
 #include "fileio.h"
 #include "send.h"
 #include "client.h"

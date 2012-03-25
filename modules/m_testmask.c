@@ -38,7 +38,7 @@
 #include "ircd_defs.h"
 #include "ircd.h"
 #include "restart.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "hostmask.h"
 #include "numeric.h"

@@ -33,7 +33,7 @@
 #include "ircd_defs.h"
 #include "s_bsd.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "memory.h"
 

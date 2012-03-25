@@ -32,7 +32,7 @@
 #include "fdlist.h"
 #include "fileio.h" /* for fbopen / fbclose / fbputs */
 #include "s_bsd.h"
-#include "s_log.h"
+#include "log.h"
 #include "s_misc.h"
 #include "send.h"
 #include "memory.h"

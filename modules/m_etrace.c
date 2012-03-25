@@ -35,7 +35,7 @@
 #include "send.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
+#include "conf.h"
 
 #define FORM_STR_RPL_ETRACE	 ":%s 709 %s %s %s %s %s %s :%s"
 #define FORM_STR_RPL_ETRACE_FULL ":%s 708 %s %s %s %s %s %s %s %s :%s"

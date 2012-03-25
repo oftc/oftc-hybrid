@@ -25,7 +25,7 @@
 #include "stdinc.h"
 #include "list.h"
 #include "balloc.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"

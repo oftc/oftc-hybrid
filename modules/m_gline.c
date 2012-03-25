@@ -35,7 +35,7 @@
 #include "hostmask.h"
 #include "numeric.h"
 #include "s_bsd.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_misc.h"
 #include "send.h"
 #include "fileio.h"
@@ -43,7 +43,7 @@
 #include "hash.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_log.h"
+#include "log.h"
 
 #define GLINE_NOT_PLACED     0
 #ifdef GLINE_VOTING

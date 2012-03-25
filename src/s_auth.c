@@ -32,12 +32,13 @@
  *     any messages from it.
  *     --Bleep  Thomas Helvey <tomh@inxpress.net>
  */
+
 #include "stdinc.h"
 #include "list.h"
 #include "ircd_defs.h"
 #include "fdlist.h"
 #include "s_auth.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "balloc.h"
 #include "client.h"
 #include "event.h"
@@ -47,7 +48,7 @@
 #include "packet.h"
 #include "irc_res.h"
 #include "s_bsd.h"
-#include "s_log.h"
+#include "log.h"
 #include "send.h"
 
 

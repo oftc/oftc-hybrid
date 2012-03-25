@@ -30,7 +30,7 @@
 #include "hook.h"
 #include "ircd.h"
 #include "s_bsd.h"
-#include "s_log.h"
+#include "log.h"
 
 /*
  * Note that this is only a single list - multiple lists is kinda pointless

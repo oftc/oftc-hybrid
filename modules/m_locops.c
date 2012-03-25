@@ -28,7 +28,7 @@
 #include "irc_string.h"
 #include "numeric.h"
 #include "send.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_user.h"
 #include "s_serv.h"
 #include "hash.h"
