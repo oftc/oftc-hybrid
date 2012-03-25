@@ -36,14 +36,13 @@
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
 #include "supported.h"
 #include "whowas.h"
 #include "memory.h"
 #include "packet.h"
-#include "s_misc.h"
 #include "watch.h"
 
 #define WATCH_HEAP_SIZE 32

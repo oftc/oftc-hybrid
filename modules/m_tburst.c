@@ -35,7 +35,7 @@
 #include "modules.h"
 #include "hash.h"
 #include "s_serv.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "parse.h"
 
 

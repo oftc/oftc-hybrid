@@ -36,8 +36,8 @@ build_triplet = @build@
 host_triplet = @host@
 sbin_PROGRAMS = ircd$(EXEEXT)
 subdir = src
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in ircd_lexer.c \
-	ircd_parser.c ircd_parser.h
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in conf_lexer.c \
+	conf_parser.c conf_parser.h
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
@@ -50,24 +50,24 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
 am_ircd_OBJECTS = balloc.$(OBJEXT) channel.$(OBJEXT) \
-	channel_mode.$(OBJEXT) client.$(OBJEXT) csvlib.$(OBJEXT) \
+	channel_mode.$(OBJEXT) client.$(OBJEXT) conf.$(OBJEXT) \
+	conf_lexer.$(OBJEXT) conf_parser.$(OBJEXT) csvlib.$(OBJEXT) \
 	dbuf.$(OBJEXT) event.$(OBJEXT) fdlist.$(OBJEXT) \
 	fileio.$(OBJEXT) getopt.$(OBJEXT) hash.$(OBJEXT) \
 	hook.$(OBJEXT) hostmask.$(OBJEXT) irc_res.$(OBJEXT) \
 	irc_reslib.$(OBJEXT) irc_string.$(OBJEXT) ircd.$(OBJEXT) \
 	ircd_signal.$(OBJEXT) list.$(OBJEXT) listener.$(OBJEXT) \
-	match.$(OBJEXT) memory.$(OBJEXT) modules.$(OBJEXT) \
-	motd.$(OBJEXT) rng_mt.$(OBJEXT) numeric.$(OBJEXT) \
-	packet.$(OBJEXT) parse.$(OBJEXT) s_conf.$(OBJEXT) \
+	log.$(OBJEXT) match.$(OBJEXT) memory.$(OBJEXT) \
+	modules.$(OBJEXT) motd.$(OBJEXT) rng_mt.$(OBJEXT) \
+	numeric.$(OBJEXT) packet.$(OBJEXT) parse.$(OBJEXT) \
 	s_bsd_epoll.$(OBJEXT) s_bsd_poll.$(OBJEXT) \
 	s_bsd_sigio.$(OBJEXT) s_bsd_devpoll.$(OBJEXT) \
 	s_bsd_kqueue.$(OBJEXT) s_bsd_select.$(OBJEXT) \
 	restart.$(OBJEXT) resv.$(OBJEXT) rsa.$(OBJEXT) \
 	s_auth.$(OBJEXT) s_bsd.$(OBJEXT) s_gline.$(OBJEXT) \
-	s_log.$(OBJEXT) s_misc.$(OBJEXT) s_serv.$(OBJEXT) \
-	s_user.$(OBJEXT) send.$(OBJEXT) sprintf_irc.$(OBJEXT) \
-	version.$(OBJEXT) watch.$(OBJEXT) whowas.$(OBJEXT) \
-	ircd_parser.$(OBJEXT) ircd_lexer.$(OBJEXT)
+	s_misc.$(OBJEXT) s_serv.$(OBJEXT) s_user.$(OBJEXT) \
+	send.$(OBJEXT) sprintf_irc.$(OBJEXT) version.$(OBJEXT) \
+	watch.$(OBJEXT) whowas.$(OBJEXT)
 ircd_OBJECTS = $(am_ircd_OBJECTS)
 am__DEPENDENCIES_1 =
 ircd_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -250,6 +250,9 @@ ircd_SOURCES = balloc.c          \
                channel.c         \
                channel_mode.c    \
                client.c          \
+               conf.c            \
+               conf_lexer.l      \
+               conf_parser.y     \
                csvlib.c          \
                dbuf.c            \
                event.c           \
@@ -266,6 +269,7 @@ ircd_SOURCES = balloc.c          \
                ircd_signal.c     \
                list.c            \
                listener.c        \
+               log.c             \
                match.c           \
                memory.c          \
                modules.c         \
@@ -274,7 +278,6 @@ ircd_SOURCES = balloc.c          \
                numeric.c         \
                packet.c          \
                parse.c           \
-               s_conf.c          \
                s_bsd_epoll.c     \
                s_bsd_poll.c      \
                s_bsd_sigio.c     \
@@ -287,7 +290,6 @@ ircd_SOURCES = balloc.c          \
                s_auth.c          \
                s_bsd.c           \
                s_gline.c         \
-               s_log.c           \
                s_misc.c          \
                s_serv.c          \
                s_user.c          \
@@ -295,9 +297,7 @@ ircd_SOURCES = balloc.c          \
                sprintf_irc.c     \
                version.c         \
                watch.c           \
-               whowas.c          \
-               ircd_parser.y     \
-               ircd_lexer.l
+               whowas.c
 
 all: all-am
 
@@ -376,9 +376,9 @@ clean-sbinPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-ircd_parser.h: ircd_parser.c
-	@if test ! -f $@; then rm -f ircd_parser.c; else :; fi
-	@if test ! -f $@; then $(MAKE) $(AM_MAKEFLAGS) ircd_parser.c; else :; fi
+conf_parser.h: conf_parser.c
+	@if test ! -f $@; then rm -f conf_parser.c; else :; fi
+	@if test ! -f $@; then $(MAKE) $(AM_MAKEFLAGS) conf_parser.c; else :; fi
 ircd$(EXEEXT): $(ircd_OBJECTS) $(ircd_DEPENDENCIES) $(EXTRA_ircd_DEPENDENCIES) 
 	@rm -f ircd$(EXEEXT)
 	$(ircd_LINK) $(ircd_OBJECTS) $(ircd_LDADD) $(LIBS)
@@ -393,6 +393,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/channel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/channel_mode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conf_lexer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conf_parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/csvlib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dbuf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/event.Po@am__quote@
@@ -406,11 +409,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/irc_reslib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/irc_string.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ircd.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ircd_lexer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ircd_parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ircd_signal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/listener.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/match.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/memory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modules.Po@am__quote@
@@ -430,9 +432,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_bsd_poll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_bsd_select.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_bsd_sigio.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_gline.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_log.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_misc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_serv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/s_user.Po@am__quote@
@@ -594,9 +594,9 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-rm -f ircd_lexer.c
-	-rm -f ircd_parser.c
-	-rm -f ircd_parser.h
+	-rm -f conf_lexer.c
+	-rm -f conf_parser.c
+	-rm -f conf_parser.h
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-sbinPROGRAMS \

@@ -1761,12 +1761,12 @@ char *yytext;
 #line 31 "ircd_lexer.l"
 #include "stdinc.h"
 #include "irc_string.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "memory.h"
 #include "hostmask.h"
-#include "s_log.h"
+#include "log.h"
 
-#include "ircd_parser.h"
+#include "conf_parser.h"
 
 #undef YY_INPUT
 #define YY_FATAL_ERROR(msg) conf_yy_fatal_error(msg)

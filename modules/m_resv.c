@@ -32,8 +32,8 @@
 #include "send.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "resv.h"
 #include "hash.h"
 

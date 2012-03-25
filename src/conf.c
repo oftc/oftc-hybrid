@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  s_conf.c: Configuration file functions.
+ *  conf.c: Configuration file functions.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -26,7 +26,7 @@
 #include "list.h"
 #include "ircd_defs.h"
 #include "balloc.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "resv.h"
 #include "channel.h"
@@ -43,7 +43,7 @@
 #include "modules.h"
 #include "numeric.h"
 #include "fdlist.h"
-#include "s_log.h"
+#include "log.h"
 #include "send.h"
 #include "s_gline.h"
 #include "fileio.h"
@@ -3545,7 +3545,7 @@ match_conf_password(const char *password, const struct AccessItem *aconf)
  * inputs	- client sending the cluster
  *		- command name "KLINE" "XLINE" etc.
  *		- capab -- CAP_KLN etc. from s_serv.h
- *		- cluster type -- CLUSTER_KLINE etc. from s_conf.h
+ *		- cluster type -- CLUSTER_KLINE etc. from conf.h
  *		- pattern and args to send along
  * output	- none
  * side effects	- Take source_p send the pattern with args given

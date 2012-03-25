@@ -33,7 +33,7 @@
 #include "s_serv.h"
 #include "s_user.h"
 #include "send.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "memory.h"
 
 /* internally defined function */

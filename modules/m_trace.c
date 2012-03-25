@@ -34,7 +34,7 @@
 #include "send.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
+#include "conf.h"
 
 
 static void do_actual_trace(struct Client *, int, char *[]);

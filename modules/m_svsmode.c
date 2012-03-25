@@ -36,7 +36,7 @@
 #include "modules.h"
 #include "irc_string.h"
 #include "s_user.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "hook.h"
 
 

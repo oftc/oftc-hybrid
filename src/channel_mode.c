@@ -37,11 +37,11 @@
 #include "s_user.h"
 #include "send.h"
 #include "whowas.h"
-#include "s_conf.h"             /* ConfigFileEntry, ConfigChannel */
+#include "conf.h"             /* ConfigFileEntry, ConfigChannel */
 #include "event.h"
 #include "memory.h"
 #include "balloc.h"
-#include "s_log.h"
+#include "log.h"
 #include "parse.h"
 
 /* some small utility functions */

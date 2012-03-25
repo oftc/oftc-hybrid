@@ -36,7 +36,7 @@
 #include "fdlist.h"
 #include "hash.h"
 #include "s_bsd.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
 #include "parse.h"

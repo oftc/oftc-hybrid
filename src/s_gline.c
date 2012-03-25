@@ -28,7 +28,7 @@
 #include "irc_string.h"
 #include "ircd.h"
 #include "hostmask.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_misc.h"
 #include "send.h"
 #include "s_serv.h"

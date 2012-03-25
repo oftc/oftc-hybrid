@@ -30,7 +30,7 @@
 #include "ircd.h"
 #include "channel_mode.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
 #include "parse.h"

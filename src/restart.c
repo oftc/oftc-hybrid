@@ -29,7 +29,7 @@
 #include "ircd.h"
 #include "irc_string.h"
 #include "send.h"
-#include "s_log.h"
+#include "log.h"
 #include "client.h" /* for UMODE_ALL */
 #include "memory.h"
 

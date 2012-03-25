@@ -32,7 +32,7 @@
 #include "irc_res.h"
 #include "fdlist.h"
 #include "s_bsd.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
 #include "memory.h"

@@ -34,7 +34,7 @@
 #include "send.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "parse.h"
 #include "modules.h"
 

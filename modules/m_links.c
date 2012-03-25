@@ -29,7 +29,7 @@
 #include "numeric.h"
 #include "s_serv.h"
 #include "send.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "motd.h"
 #include "parse.h"
 #include "modules.h"

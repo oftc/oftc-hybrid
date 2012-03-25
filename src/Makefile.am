@@ -13,6 +13,9 @@ ircd_SOURCES = balloc.c          \
                channel.c         \
                channel_mode.c    \
                client.c          \
+               conf.c            \
+               conf_lexer.l      \
+               conf_parser.y     \
                csvlib.c          \
                dbuf.c            \
                event.c           \
@@ -29,6 +32,7 @@ ircd_SOURCES = balloc.c          \
                ircd_signal.c     \
                list.c            \
                listener.c        \
+               log.c             \
                match.c           \
                memory.c          \
                modules.c         \
@@ -37,7 +41,6 @@ ircd_SOURCES = balloc.c          \
                numeric.c         \
                packet.c          \
                parse.c           \
-               s_conf.c          \
                s_bsd_epoll.c     \
                s_bsd_poll.c      \
                s_bsd_sigio.c     \
@@ -50,7 +53,6 @@ ircd_SOURCES = balloc.c          \
                s_auth.c          \
                s_bsd.c           \
                s_gline.c         \
-               s_log.c           \
                s_misc.c          \
                s_serv.c          \
                s_user.c          \
@@ -58,6 +60,4 @@ ircd_SOURCES = balloc.c          \
                sprintf_irc.c     \
                version.c         \
                watch.c           \
-               whowas.c          \
-               ircd_parser.y     \
-               ircd_lexer.l
+               whowas.c

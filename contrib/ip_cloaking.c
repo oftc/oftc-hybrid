@@ -61,10 +61,10 @@
 #include "s_serv.h"
 #include "s_user.h"
 #include "send.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "modules.h"
 #include "memory.h"
-#include "s_log.h"
+#include "log.h"
 #include "sprintf_irc.h"
 
 static unsigned int umode_vhost = 0;

@@ -38,7 +38,7 @@
 #include "s_serv.h"             /* captab */
 #include "s_user.h"
 #include "send.h"
-#include "s_conf.h"             /* ConfigFileEntry, ConfigChannel */
+#include "conf.h"             /* ConfigFileEntry, ConfigChannel */
 #include "event.h"
 #include "memory.h"
 #include "balloc.h"

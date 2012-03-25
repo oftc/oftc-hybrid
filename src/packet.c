@@ -24,7 +24,7 @@
 #include "stdinc.h"
 #include "list.h"
 #include "s_bsd.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "client.h"
 #include "ircd.h"

@@ -15,8 +15,8 @@
 #endif
 #include "stdinc.h"
 #include "list.h"
-#include "s_log.h"
-#include "s_conf.h"
+#include "log.h"
+#include "conf.h"
 #include "hostmask.h"
 #include "client.h"
 #include "irc_string.h"

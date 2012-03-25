@@ -35,7 +35,7 @@
 #include "send.h"        /* sendto_one */
 #include "fdlist.h"      /* PF and friends */
 #include "s_bsd.h"       /* highest_fd */
-#include "s_conf.h"      /* AccessItem, report_configured_links */
+#include "conf.h"      /* AccessItem, report_configured_links */
 #include "s_misc.h"      /* serv_info */
 #include "s_serv.h"      /* hunt_server */
 #include "s_user.h"      /* show_opers */

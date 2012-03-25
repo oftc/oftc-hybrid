@@ -1,6 +1,6 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  s_log.c: Logger functions.
+ *  log.c: Logger functions.
  *
  *  Copyright (C) 2002 by the past and present ircd coders, and others.
  *
@@ -24,13 +24,13 @@
 
 #include "stdinc.h"
 
-#include "s_log.h"
+#include "log.h"
 #include "fileio.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "s_misc.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "memory.h"
 #include "send.h"
 

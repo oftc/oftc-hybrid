@@ -77,9 +77,9 @@
 #include "stdinc.h"
 #include "ircd.h"
 #include "list.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "event.h"
-#include "s_log.h"
+#include "log.h"
 #include "client.h"	/* for UMODE_ALL only */
 #include "irc_string.h"
 #include "sprintf_irc.h"

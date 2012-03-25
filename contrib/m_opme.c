@@ -29,7 +29,7 @@
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_log.h"
+#include "log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "irc_string.h"
