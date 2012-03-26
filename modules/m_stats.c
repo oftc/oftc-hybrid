@@ -47,6 +47,7 @@
 #include "resv.h"  /* report_resv */
 #include "whowas.h"
 #include "watch.h"
+#include "irc_res.h"
 
 
 static char *parse_stats_args(int, char **, int *, int *);
