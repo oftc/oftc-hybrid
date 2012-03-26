@@ -51,6 +51,7 @@
 #include "s_log.h"       /* ilog */
 #include "hash.h"
 #include "watch.h"
+#include "irc_res.h"
 
 
 static char *parse_stats_args(int, char **, int *, int *);

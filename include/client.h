@@ -33,11 +33,9 @@
 #include "ircd_defs.h"
 #include "dbuf.h"
 #include "channel.h"
-#include "irc_res.h"
 
 #define HOSTIPLEN       53 /* sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255.ipv6") */
 #define PASSWDLEN       20
-#define CIPHERKEYLEN    64 /* 512bit */
 #define IDLEN           12 /* this is the maximum length, not the actual
                               generated length; DO NOT CHANGE! */
 
@@ -160,6 +158,7 @@ struct LocalUser
   unsigned int registration;
   unsigned int cap_client;    /**< Client capabilities (from us) */
   unsigned int cap_active;    /**< Active capabilities (to us) */
+  unsigned int       caps;       /**< capabilities bit-field */
 
   unsigned int operflags;     /**< IRC Operator privilege flags */
   unsigned int random_ping; /**< Holding a 32bit value used for PING cookies */
@@ -206,9 +205,6 @@ struct LocalUser
   dlink_list        invited;   /**< chain of invite pointer blocks */
 
   char              *passwd;
-  unsigned int       caps;       /**< capabilities bit-field */
-  unsigned int       enc_caps;   /**< cipher capabilities bit-field */
-
   fde_t             fd;
 
   /* Anti-flood stuff. We track how many messages were parsed and how
