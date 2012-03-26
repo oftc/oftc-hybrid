@@ -221,7 +221,6 @@ AC_DEFINE_DIR([LOCALSTATEDIR],[localstatedir],[Set to localstatedir.])
 
 AC_CONFIG_FILES(              \
        Makefile               \
-       etc/Makefile           \
        contrib/Makefile       \
        contrib/help/Makefile  \
        src/Makefile           \
