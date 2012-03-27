@@ -14,8 +14,8 @@ ircd_SOURCES = balloc.c          \
                channel_mode.c    \
                client.c          \
                conf.c            \
-               conf_lexer.l      \
                conf_parser.y     \
+               conf_lexer.l      \
                csvlib.c          \
                dbuf.c            \
                event.c           \

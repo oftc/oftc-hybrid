@@ -275,7 +275,8 @@ unhook_hub_leaf_confs(void)
 %token  RSA_PUBLIC_KEY_FILE
 %token  SSL_CERTIFICATE_FILE
 %token  SSL_DH_PARAM_FILE
-%token  T_SSL_CONNECTION_METHOD
+%token  T_SSL_CLIENT_METHOD
+%token  T_SSL_SERVER_METHOD
 %token  T_SSLV3
 %token  T_TLSV1
 %token  RESV
@@ -470,48 +471,41 @@ serverinfo_item:        serverinfo_name | serverinfo_vhost |
                         serverinfo_max_clients | serverinfo_ssl_dh_param_file |
                         serverinfo_rsa_private_key_file | serverinfo_vhost6 |
                         serverinfo_sid | serverinfo_ssl_certificate_file |
-                        serverinfo_ssl_connection_method | serverinfo_ssl_cipher_list |
+                        serverinfo_ssl_client_method | serverinfo_ssl_server_method |
+                        serverinfo_ssl_cipher_list |
 			error ';' ;
 
 
-serverinfo_ssl_connection_method: T_SSL_CONNECTION_METHOD
-{
-#ifdef HAVE_LIBCRYPTO
-  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
-    ServerInfo.tls_version = 0;
-#endif
-} '=' method_types ';'
-{
-#ifdef HAVE_LIBCRYPTO
-  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
-  {
-    if (!(ServerInfo.tls_version & CONF_SERVER_INFO_TLS_VERSION_SSLV3))
-    {
-      SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv3);
-      SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv3);
-    }
+serverinfo_ssl_client_method: T_SSL_CLIENT_METHOD '=' client_method_types ';' ;
+serverinfo_ssl_server_method: T_SSL_SERVER_METHOD '=' server_method_types ';' ;
 
-    if (!(ServerInfo.tls_version & CONF_SERVER_INFO_TLS_VERSION_TLSV1))
-    {
-      SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_TLSv1);
-      SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_TLSv1);
-    }
-  }
-#endif
-};
-
-method_types: method_types ',' method_type_item | method_type_item;
-method_type_item: T_SSLV3
+client_method_types: client_method_types ',' client_method_type_item | client_method_type_item;
+client_method_type_item: T_SSLV3
 {
 #ifdef HAVE_LIBCRYPTO
-  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
-    ServerInfo.tls_version |= CONF_SERVER_INFO_TLS_VERSION_SSLV3;
+  if (conf_parser_ctx.pass == 2 && ServerInfo.client_ctx)
+    SSL_CTX_clear_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv3);
 #endif
 } | T_TLSV1
 {
 #ifdef HAVE_LIBCRYPTO
-  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
-    ServerInfo.tls_version |= CONF_SERVER_INFO_TLS_VERSION_TLSV1;
+  if (conf_parser_ctx.pass == 2 && ServerInfo.client_ctx)
+    SSL_CTX_clear_options(ServerInfo.client_ctx, SSL_OP_NO_TLSv1);
+#endif
+};
+
+server_method_types: server_method_types ',' server_method_type_item | server_method_type_item;
+server_method_type_item: T_SSLV3
+{
+#ifdef HAVE_LIBCRYPTO
+  if (conf_parser_ctx.pass == 2 && ServerInfo.server_ctx)
+    SSL_CTX_clear_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv3);
+#endif
+} | T_TLSV1
+{
+#ifdef HAVE_LIBCRYPTO
+  if (conf_parser_ctx.pass == 2 && ServerInfo.server_ctx)
+    SSL_CTX_clear_options(ServerInfo.server_ctx, SSL_OP_NO_TLSv1);
 #endif
 };
 
@@ -641,9 +635,7 @@ serverinfo_ssl_cipher_list: T_SSL_CIPHER_LIST '=' QSTRING ';'
 {
 #ifdef HAVE_LIBCRYPTO
   if (conf_parser_ctx.pass == 2 && ServerInfo.server_ctx)
-  {
     SSL_CTX_set_cipher_list(ServerInfo.server_ctx, yylval.string);
-  }
 #endif
 };
 
