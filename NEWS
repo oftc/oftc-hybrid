@@ -121,8 +121,8 @@ o) Implemented full services support. Among other things, the following changes
    - Added services_name directive to general{} block
 o) RKLINE and RXLINE commands have been removed. Regular expression based
    bans should only be added via ircd.conf
-o) Added 'globops', 'restart' and 'module' operator privilege flags.
-   Read etc/example.conf for further explanation of what these flags
+o) Added 'globops', 'restart', 'dline', 'undline' and 'module' operator privilege flags.
+   Read doc/example.conf for further explanation of what these flags
    are supposed to be doing
 o) Idle-time klines have been removed
 o) Cleaned up modules API. Old modules won't work anymore
@@ -130,6 +130,14 @@ o) Remove general::burst_away configuration directive. AWAY bursts are now
    controlled via connect::flags explicitly
 o) Introduced new logging subsystem including log rotation based on
    file sizes
+o) Added support for remote D-lines
+o) Added usermode +H which is basically a replacement for the hidden_admin and
+   hidden_oper operator flags. With usermode +H, irc operator status can now
+   be hidden even on remote servers
+o) The servlink program has been removed. ircd-hybrid can now make use of SSL/TLS
+   for inter-server communication.
+   NOTE: compressed server links are of course still available, but a SSL/TLS
+   connection is required, as compression is now handled via the OpenSSL library
 
 
 --------------------------------------------------------------------------------
