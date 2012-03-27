@@ -441,7 +441,6 @@ struct server_info
   RSA *rsa_private_key;
   SSL_CTX *server_ctx;
   SSL_CTX *client_ctx;
-  unsigned int tls_version;
 #endif
   int hub;
   struct irc_ssaddr ip;
