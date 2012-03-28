@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "m_info.h"
 #include "channel.h"
 #include "client.h"
 #include "irc_string.h"
@@ -64,6 +63,31 @@ struct InfoStruct
 static const struct InfoStruct info_table[] =
 {
   /* --[  START OF TABLE  ]-------------------------------------------- */
+
+  {
+    "CPATH",
+    OUTPUT_STRING,
+    &ConfigFileEntry.configfile,
+    "Path to Main Configuration File"
+  },
+  {
+    "DPATH",
+    OUTPUT_STRING,
+    &ConfigFileEntry.dpath,
+    "Directory Containing Configuration Files"
+  },
+  {
+    "DLPATH",
+    OUTPUT_STRING,
+    &ConfigFileEntry.dlinefile,
+    "Path to D-line File"
+  },
+  {
+    "KPATH",
+    OUTPUT_STRING,
+    &ConfigFileEntry.klinefile,
+    "Path to K-line File"
+  },
   {
     "network_name",
     OUTPUT_STRING,
@@ -632,7 +656,6 @@ send_birthdate_online_time(struct Client *source_p)
 static void
 send_conf_options(struct Client *source_p)
 {
-  Info *infoptr;
   const char *from, *to;
   const struct InfoStruct *iptr = NULL;
 
@@ -648,22 +671,6 @@ send_conf_options(struct Client *source_p)
   {
     from = me.name;
     to = source_p->name;
-  }
-
-  for (infoptr = MyInformation; infoptr->name; infoptr++)
-  {
-    if (infoptr->intvalue)
-    {
-      sendto_one(source_p, ":%s %d %s :%-30s %-5d [%-30s]",
-                 from, RPL_INFO, to, infoptr->name,
-                 infoptr->intvalue, infoptr->desc);
-    }
-    else
-    {
-      sendto_one(source_p, ":%s %d %s :%-30s %-5s [%-30s]",
-                 from, RPL_INFO, to, infoptr->name,
-                 infoptr->strvalue, infoptr->desc);
-    }
   }
 
   /*
