@@ -27,15 +27,11 @@
 #include "log.h"
 #include "fileio.h"
 #include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd.h"
-#include "s_misc.h"
 #include "conf.h"
-#include "memory.h"
 #include "send.h"
+#include "s_misc.h"
 
-/* some older syslogs would overflow at 2024 */
-#define LOG_BUFSIZE 2000
 
 static struct {
   char path[PATH_MAX + 1];
@@ -45,7 +41,7 @@ static struct {
 
 
 int
-log_add_file(unsigned int type, size_t size, const char *path)
+log_add_file(enum log_type type, size_t size, const char *path)
 {
   if (log_type_table[type].file)
     fbclose(log_type_table[type].file);
@@ -87,13 +83,10 @@ log_exceed_size(unsigned int type)
 
 
 static void 
-write_log(unsigned int type, const char *message)
+write_log(enum log_type type, const char *message)
 {
   char buf[LOG_BUFSIZE];
   size_t nbytes = 0;
-
-  if (log_type_table[type].file == NULL)
-    return;
 
   if (ConfigLoggingEntry.timestamp)
     nbytes = snprintf(buf, sizeof(buf), "[%s] %s\n",
@@ -105,13 +98,13 @@ write_log(unsigned int type, const char *message)
 }
    
 void
-ilog(unsigned int type, const char *fmt, ...)
+ilog(enum log_type type, const char *fmt, ...)
 {
   char buf[LOG_BUFSIZE];
   va_list args;
 
-  assert(fmt);
-  assert(type >= 0 && type < LOG_TYPE_LAST);
+  if (log_type_table[type].file == NULL)
+    return;
 
   va_start(args, fmt);
   vsnprintf(buf, sizeof(buf), fmt, args);

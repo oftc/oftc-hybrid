@@ -25,19 +25,23 @@
 #ifndef INCLUDED_s_log_h
 #define INCLUDED_s_log_h
 
-#define LOG_TYPE_IRCD  0
-#define LOG_TYPE_KILL  1
-#define LOG_TYPE_KLINE 2
-#define LOG_TYPE_DLINE 3
-#define LOG_TYPE_GLINE 4
-#define LOG_TYPE_OPER  5
-#define LOG_TYPE_USER  6
-#define LOG_TYPE_DEBUG 7
-#define LOG_TYPE_LAST  8
+#define LOG_BUFSIZE 1024
 
 extern void oftc_log(char *, ...);
-extern int log_add_file(unsigned int, size_t, const char *);
+enum log_type {
+  LOG_TYPE_IRCD,
+  LOG_TYPE_KILL,
+  LOG_TYPE_KLINE,
+  LOG_TYPE_DLINE,
+  LOG_TYPE_GLINE,
+  LOG_TYPE_OPER,
+  LOG_TYPE_USER,
+  LOG_TYPE_DEBUG,
+  LOG_TYPE_LAST
+};
+
+extern int log_add_file(enum log_type, size_t, const char *);
 extern void log_close_all(void);
-extern void ilog(unsigned int, const char *, ...);
+extern void ilog(enum log_type, const char *, ...);
 
 #endif /* INCLUDED_s_log_h */
