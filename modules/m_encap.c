@@ -45,6 +45,9 @@ ms_encap(struct Client *client_p, struct Client *source_p,
 {
   char buffer[IRCD_BUFSIZE], *ptr = buffer;
   unsigned int cur_len = 0, len, i;
+#ifdef NOT_USED_YET
+  int paramcount, mpara = 0;
+#endif
   struct Message *mptr = NULL;
   MessageHandler handler = 0;
 
