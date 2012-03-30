@@ -62,7 +62,6 @@ static void send_tb(struct Client *client_p, struct Channel *chptr);
 
 static CNCB serv_connect_callback;
 
-static void start_io(struct Client *);
 static void burst_members(struct Client *, struct Channel *);
 
 /*

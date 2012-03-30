@@ -220,7 +220,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
   int hop;
   int hlined = 0;
   int llined = 0;
-  dlink_node *ptr, *ptr_next;
+  dlink_node *ptr = NULL;
 
   /* Just to be sure -A1kmm. */
   if (!IsServer(source_p))
@@ -424,7 +424,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   struct MatchItem *match_item;
   int hlined = 0;
   int llined = 0;
-  dlink_node *ptr, *ptr_next;
+  dlink_node *ptr = NULL;
   int hop;
 
   /* Just to be sure -A1kmm. */
