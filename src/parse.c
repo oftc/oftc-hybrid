@@ -109,8 +109,6 @@ static int cancel_clients(struct Client *, struct Client *, char *);
 static void remove_unknown(struct Client *, char *, char *);
 static void handle_numeric(char[], struct Client *, struct Client *, int, char *[]);
 static void handle_command(struct Message *, struct Client *, struct Client *, unsigned int, char *[]);
-static void add_msg_element(struct MessageTree *, struct Message *, const char *);
-static void del_msg_element(struct MessageTree *, const char *);
 
 
 /*
@@ -303,7 +301,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
  */
 static void
 handle_command(struct Message *mptr, struct Client *client_p,
-               struct Client *from, unsigned int i, char *hpara[MAXPARA])
+               struct Client *from, unsigned int i, char *hpara[])
 {
   MessageHandler handler = 0;
 
