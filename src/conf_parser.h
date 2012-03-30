@@ -254,28 +254,27 @@
      T_RESTART = 472,
      T_SERVICE = 473,
      T_SERVICES_NAME = 474,
-     T_TIMESTAMP = 475,
-     THROTTLE_TIME = 476,
-     TOPICBURST = 477,
-     TRUE_NO_OPER_FLOOD = 478,
-     TKLINE = 479,
-     TXLINE = 480,
-     TRESV = 481,
-     UNKLINE = 482,
-     USER = 483,
-     USE_EGD = 484,
-     USE_EXCEPT = 485,
-     USE_INVEX = 486,
-     USE_KNOCK = 487,
-     USE_LOGGING = 488,
-     USE_WHOIS_ACTUALLY = 489,
-     VHOST = 490,
-     VHOST6 = 491,
-     XLINE = 492,
-     WARN = 493,
-     WARN_NO_NLINE = 494,
-     T_SIZE = 495,
-     T_FILE = 496
+     THROTTLE_TIME = 475,
+     TOPICBURST = 476,
+     TRUE_NO_OPER_FLOOD = 477,
+     TKLINE = 478,
+     TXLINE = 479,
+     TRESV = 480,
+     UNKLINE = 481,
+     USER = 482,
+     USE_EGD = 483,
+     USE_EXCEPT = 484,
+     USE_INVEX = 485,
+     USE_KNOCK = 486,
+     USE_LOGGING = 487,
+     USE_WHOIS_ACTUALLY = 488,
+     VHOST = 489,
+     VHOST6 = 490,
+     XLINE = 491,
+     WARN = 492,
+     WARN_NO_NLINE = 493,
+     T_SIZE = 494,
+     T_FILE = 495
    };
 #endif
 /* Tokens.  */
@@ -496,28 +495,27 @@
 #define T_RESTART 472
 #define T_SERVICE 473
 #define T_SERVICES_NAME 474
-#define T_TIMESTAMP 475
-#define THROTTLE_TIME 476
-#define TOPICBURST 477
-#define TRUE_NO_OPER_FLOOD 478
-#define TKLINE 479
-#define TXLINE 480
-#define TRESV 481
-#define UNKLINE 482
-#define USER 483
-#define USE_EGD 484
-#define USE_EXCEPT 485
-#define USE_INVEX 486
-#define USE_KNOCK 487
-#define USE_LOGGING 488
-#define USE_WHOIS_ACTUALLY 489
-#define VHOST 490
-#define VHOST6 491
-#define XLINE 492
-#define WARN 493
-#define WARN_NO_NLINE 494
-#define T_SIZE 495
-#define T_FILE 496
+#define THROTTLE_TIME 475
+#define TOPICBURST 476
+#define TRUE_NO_OPER_FLOOD 477
+#define TKLINE 478
+#define TXLINE 479
+#define TRESV 480
+#define UNKLINE 481
+#define USER 482
+#define USE_EGD 483
+#define USE_EXCEPT 484
+#define USE_INVEX 485
+#define USE_KNOCK 486
+#define USE_LOGGING 487
+#define USE_WHOIS_ACTUALLY 488
+#define VHOST 489
+#define VHOST6 490
+#define XLINE 491
+#define WARN 492
+#define WARN_NO_NLINE 493
+#define T_SIZE 494
+#define T_FILE 495
 
 
 
@@ -535,7 +533,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 539 "conf_parser.h"
+#line 537 "conf_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

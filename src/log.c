@@ -87,12 +87,10 @@ write_log(enum log_type type, const char *message)
 {
   char buf[LOG_BUFSIZE];
   size_t nbytes = 0;
+  struct tm *lt = localtime(&CurrentTime);
 
-  if (ConfigLoggingEntry.timestamp)
-    nbytes = snprintf(buf, sizeof(buf), "[%s] %s\n",
-                      smalldate(CurrentTime), message);
-  else
-    nbytes = snprintf(buf, sizeof(buf), "%s\n", message);
+  nbytes = strftime(buf, sizeof(buf), "[%FT%H:%M:%S%z] ", lt);
+  nbytes += snprintf(buf+nbytes, sizeof(buf)-nbytes, "%s\n", message);
 
   fbputs(buf, log_type_table[type].file, nbytes);
 }

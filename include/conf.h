@@ -462,7 +462,6 @@ struct admin_info
 struct logging_entry
 {
   unsigned int use_logging;
-  unsigned int timestamp;
 };
 
 extern dlink_list gdeny_items;
