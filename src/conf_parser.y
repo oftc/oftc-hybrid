@@ -349,7 +349,6 @@ unhook_hub_leaf_confs(void)
 %token  T_RESTART
 %token  T_SERVICE
 %token  T_SERVICES_NAME
-%token  T_TIMESTAMP
 %token  THROTTLE_TIME
 %token  TOPICBURST
 %token  TRUE_NO_OPER_FLOOD
@@ -854,19 +853,13 @@ admin_description: DESCRIPTION '=' QSTRING ';'
 logging_entry:          T_LOG  '{' logging_items '}' ';' ;
 logging_items:          logging_items logging_item | logging_item ;
 
-logging_item:   	logging_use_logging | logging_timestamp | logging_file_entry |
+logging_item:   	logging_use_logging | logging_file_entry |
 			error ';' ;
 
 logging_use_logging: USE_LOGGING '=' TBOOL ';'
 {
   if (conf_parser_ctx.pass == 2)
     ConfigLoggingEntry.use_logging = yylval.number;
-};
-
-logging_timestamp: T_TIMESTAMP '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    ConfigLoggingEntry.timestamp = yylval.number;
 };
 
 logging_file_entry:

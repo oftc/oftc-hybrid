@@ -273,7 +273,6 @@ silent          { return SILENT; }
 size            { return T_SIZE; }
 spoof		{ return SPOOF; }
 spoof_notice	{ return SPOOF_NOTICE; }
-timestamp       { return T_TIMESTAMP; }
 tkline_expire_notices { return TKLINE_EXPIRE_NOTICES; }
 type		{ return TYPE; }
 true_no_oper_flood { return TRUE_NO_OPER_FLOOD; }

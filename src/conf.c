@@ -1947,7 +1947,6 @@ set_default_conf(void)
   log_close_all();
 
   ConfigLoggingEntry.use_logging = 1;
-  ConfigLoggingEntry.timestamp = 1;
 
   ConfigChannel.disable_fake_channels = 0;
   ConfigChannel.restrict_channels = 0;
