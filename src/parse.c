@@ -102,7 +102,7 @@ static struct MessageTree msg_tree;
  * NOTE: parse() should not be called recursively by other functions!
  */
 static char *sender;
-static char *para[MAXPARA + 1];
+static char *para[MAXPARA + 2]; /* <prefix> + <params> + NULL */
 static char buffer[1024];
 
 static int cancel_clients(struct Client *, struct Client *, char *);
