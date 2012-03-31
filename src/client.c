@@ -647,25 +647,25 @@ find_chasing(struct Client *client_p, struct Client *source_p, const char *user,
  *        to modify what it points!!!
  */
 const char *
-get_client_name(const struct Client *client, int showip)
+get_client_name(const struct Client *client, enum addr_mask_type type)
 {
   static char nbuf[HOSTLEN * 2 + USERLEN + 5];
 
   assert(client != NULL);
 
-  if (irccmp(client->name, client->host) == 0)
+  if (!irccmp(client->name, client->host))
     return client->name;
 
   if (ConfigServerHide.hide_server_ips)
     if (IsServer(client) || IsConnecting(client) || IsHandshake(client))
-      showip = MASK_IP;
+      type = MASK_IP;
 
   if (ConfigFileEntry.hide_spoof_ips)
-    if (showip == SHOW_IP && IsIPSpoof(client))
-      showip = MASK_IP;
+    if (type == SHOW_IP && IsIPSpoof(client))
+      type = MASK_IP;
 
   /* And finally, let's get the host information, ip or name */
-  switch (showip)
+  switch (type)
   {
     case SHOW_IP:
       if (*client->sockhost != '\0')
