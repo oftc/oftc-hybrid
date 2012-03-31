@@ -140,12 +140,6 @@ m_opme_la_OBJECTS = $(am_m_opme_la_OBJECTS)
 m_opme_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(m_opme_la_LDFLAGS) $(LDFLAGS) -o $@
-m_spoof_la_LIBADD =
-am_m_spoof_la_OBJECTS = m_spoof.lo
-m_spoof_la_OBJECTS = $(am_m_spoof_la_OBJECTS)
-m_spoof_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(m_spoof_la_LDFLAGS) $(LDFLAGS) -o $@
 m_webirc_la_LIBADD =
 am_m_webirc_la_OBJECTS = m_webirc.lo
 m_webirc_la_OBJECTS = $(am_m_webirc_la_OBJECTS)
@@ -170,15 +164,13 @@ SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
 	$(m_clearchan_la_SOURCES) $(m_ctrace_la_SOURCES) \
 	$(m_force_la_SOURCES) $(m_ltrace_la_SOURCES) \
 	$(m_ojoin_la_SOURCES) $(m_operspy_la_SOURCES) \
-	$(m_opme_la_SOURCES) $(m_spoof_la_SOURCES) \
-	$(m_webirc_la_SOURCES)
+	$(m_opme_la_SOURCES) $(m_webirc_la_SOURCES)
 DIST_SOURCES = $(example_module_la_SOURCES) $(ip_cloaking_la_SOURCES) \
 	$(m_change_la_SOURCES) $(m_classlist_la_SOURCES) \
 	$(m_clearchan_la_SOURCES) $(m_ctrace_la_SOURCES) \
 	$(m_force_la_SOURCES) $(m_ltrace_la_SOURCES) \
 	$(m_ojoin_la_SOURCES) $(m_operspy_la_SOURCES) \
-	$(m_opme_la_SOURCES) $(m_spoof_la_SOURCES) \
-	$(m_webirc_la_SOURCES)
+	$(m_opme_la_SOURCES) $(m_webirc_la_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -337,7 +329,6 @@ modules_LTLIBRARIES = example_module.la     \
                       m_ojoin.la            \
                       m_operspy.la          \
                       m_opme.la             \
-                      m_spoof.la            \
                       m_webirc.la
 
 example_module_la_LDFLAGS = $(MODULE_FLAGS)
@@ -351,7 +342,6 @@ m_ltrace_la_LDFLAGS = $(MODULE_FLAGS)
 m_ojoin_la_LDFLAGS = $(MODULE_FLAGS)
 m_operspy_la_LDFLAGS = $(MODULE_FLAGS)
 m_opme_la_LDFLAGS = $(MODULE_FLAGS)
-m_spoof_la_LDFLAGS = $(MODULE_FLAGS)
 m_webirc_la_LDFLAGS = $(MODULE_FLAGS)
 example_module_la_SOURCES = example_module.c
 ip_cloaking_la_SOURCES = ip_cloaking.c
@@ -364,7 +354,6 @@ m_ltrace_la_SOURCES = m_ltrace.c
 m_ojoin_la_SOURCES = m_ojoin.c
 m_operspy_la_SOURCES = m_operspy.c
 m_opme_la_SOURCES = m_opme.c
-m_spoof_la_SOURCES = m_spoof.c
 m_webirc_la_SOURCES = m_webirc.c
 all: all-am
 
@@ -453,8 +442,6 @@ m_operspy.la: $(m_operspy_la_OBJECTS) $(m_operspy_la_DEPENDENCIES) $(EXTRA_m_ope
 	$(m_operspy_la_LINK) -rpath $(modulesdir) $(m_operspy_la_OBJECTS) $(m_operspy_la_LIBADD) $(LIBS)
 m_opme.la: $(m_opme_la_OBJECTS) $(m_opme_la_DEPENDENCIES) $(EXTRA_m_opme_la_DEPENDENCIES) 
 	$(m_opme_la_LINK) -rpath $(modulesdir) $(m_opme_la_OBJECTS) $(m_opme_la_LIBADD) $(LIBS)
-m_spoof.la: $(m_spoof_la_OBJECTS) $(m_spoof_la_DEPENDENCIES) $(EXTRA_m_spoof_la_DEPENDENCIES) 
-	$(m_spoof_la_LINK) -rpath $(modulesdir) $(m_spoof_la_OBJECTS) $(m_spoof_la_LIBADD) $(LIBS)
 m_webirc.la: $(m_webirc_la_OBJECTS) $(m_webirc_la_DEPENDENCIES) $(EXTRA_m_webirc_la_DEPENDENCIES) 
 	$(m_webirc_la_LINK) -rpath $(modulesdir) $(m_webirc_la_OBJECTS) $(m_webirc_la_LIBADD) $(LIBS)
 
@@ -475,7 +462,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_ojoin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_operspy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_opme.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_spoof.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_webirc.Plo@am__quote@
 
 .c.o:
