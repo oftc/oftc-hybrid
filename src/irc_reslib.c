@@ -84,7 +84,6 @@
 #include "ircd_defs.h"
 #include "irc_res.h"
 #include "irc_reslib.h"
-#include "fileio.h"
 #include "irc_string.h"
 
 #define NS_TYPE_ELT             0x40 /* EDNS0 extended label type */
@@ -160,15 +159,15 @@ parse_resvconf(void)
   char *opt;
   char *arg;
   char input[MAXLINE];
-  FBFILE *file;
+  FILE *file;
 
   /* XXX "/etc/resolv.conf" should be from a define in config.h perhaps
    * for cygwin support etc. this hardcodes it to unix for now -db
    */
-  if ((file = fbopen("/etc/resolv.conf", "r")) == NULL)
+  if ((file = fopen("/etc/resolv.conf", "r")) == NULL)
     return -1;
 
-  while (fbgets(input, sizeof(input), file) != NULL)
+  while (fgets(input, sizeof(input), file) != NULL)
   {
     /* blow away any newline */
     if ((p = strpbrk(input, "\r\n")) != NULL)
@@ -213,7 +212,7 @@ parse_resvconf(void)
       add_nameserver(arg);
   }
 
-  fbclose(file);
+  fclose(file);
   return 0;
 }
 

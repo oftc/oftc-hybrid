@@ -46,7 +46,6 @@
 #include "log.h"
 #include "send.h"
 #include "s_gline.h"
-#include "fileio.h"
 #include "memory.h"
 #include "irc_res.h"
 #include "userhost.h"
@@ -93,7 +92,7 @@ struct conf_parser_context conf_parser_ctx = { 0, 0, NULL };
 static void lookup_confhost(struct ConfItem *);
 static void set_default_conf(void);
 static void validate_conf(void);
-static void read_conf(FBFILE *);
+static void read_conf(FILE *);
 static void clear_out_old_conf(void);
 static void flush_deleted_I_P(void);
 static void expire_tklines(dlink_list *);
@@ -1962,7 +1961,7 @@ set_default_conf(void)
  * side effects	- Read configuration file.
  */
 static void
-read_conf(FBFILE *file)
+read_conf(FILE *file)
 {
   lineno = 0;
 
@@ -1970,7 +1969,7 @@ read_conf(FBFILE *file)
   conf_parser_ctx.pass = 1;
   yyparse();	      /* pick up the classes first */
 
-  fbrewind(file);
+  rewind(file);
 
   conf_parser_ctx.pass = 2;
   yyparse();          /* Load the values from the conf */
@@ -2453,7 +2452,7 @@ read_conf_files(int cold)
   */
   strlcpy(conffilebuf, filename, sizeof(conffilebuf));
 
-  if ((conf_parser_ctx.conf_file = fbopen(filename, "r")) == NULL)
+  if ((conf_parser_ctx.conf_file = fopen(filename, "r")) == NULL)
   {
     if (cold)
     {
@@ -2474,7 +2473,7 @@ read_conf_files(int cold)
     clear_out_old_conf();
 
   read_conf(conf_parser_ctx.conf_file);
-  fbclose(conf_parser_ctx.conf_file);
+  fclose(conf_parser_ctx.conf_file);
 
   add_isupport("NETWORK", ServerInfo.network_name, -1);
   snprintf(chanmodes, sizeof(chanmodes), "b%s%s:%d",
@@ -2529,10 +2528,10 @@ read_conf_files(int cold)
 static void
 parse_conf_file(int type, int cold)
 {
-  FBFILE *file = NULL;
+  FILE *file = NULL;
   const char *filename = get_conf_name(type);
 
-  if ((file = fbopen(filename, "r")) == NULL)
+  if ((file = fopen(filename, "r")) == NULL)
   {
     if (cold)
       ilog(LOG_TYPE_IRCD, "Unable to read configuration file '%s': %s",
@@ -2545,7 +2544,7 @@ parse_conf_file(int type, int cold)
   else
   {
     parse_csv_file(file, type);
-    fbclose(file);
+    fclose(file);
   }
 }
 
@@ -3132,9 +3131,9 @@ yyerror(const char *msg)
 }
 
 int
-conf_fbgets(char *lbuf, unsigned int max_size, FBFILE *fb)
+conf_fbgets(char *lbuf, unsigned int max_size, FILE *fb)
 {
-  if (fbgets(lbuf, max_size, fb) == NULL)
+  if (fgets(lbuf, max_size, fb) == NULL)
     return 0;
 
   return strlen(lbuf);

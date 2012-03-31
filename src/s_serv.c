@@ -81,13 +81,13 @@ write_links_file(void* notused)
   MessageFileLine *newMessageLine = 0;
   MessageFile *MessageFileptr;
   const char *p;
-  FBFILE *file;
+  FILE *file;
   char buff[512];
   dlink_node *ptr;
 
   MessageFileptr = &ConfigFileEntry.linksfile;
 
-  if ((file = fbopen(MessageFileptr->fileName, "w")) == NULL)
+  if ((file = fopen(MessageFileptr->fileName, "w")) == NULL)
     return;
 
   for (mptr = MessageFileptr->contentsOfFile; mptr; mptr = next_mptr)
@@ -101,8 +101,7 @@ write_links_file(void* notused)
 
   DLINK_FOREACH(ptr, global_serv_list.head)
   {
-    size_t nbytes = 0;
-    struct Client *target_p = ptr->data;
+    const struct Client *target_p = ptr->data;
 
     /* skip ourselves, we send ourselves in /links */
     if (IsMe(target_p))
@@ -133,8 +132,8 @@ write_links_file(void* notused)
      */
     assert(strlen(target_p->name) + strlen(me.name) + 6 + strlen(p) <= 
             MESSAGELINELEN);
-    ircsprintf(newMessageLine->line, "%s %s :1 %s",
-               target_p->name, me.name, p);
+    snprintf(newMessageLine->line, sizeof(newMessageLine->line), "%s %s :1 %s",
+             target_p->name, me.name, p);
     newMessageLine->next = NULL;
 
     if (MessageFileptr->contentsOfFile)
@@ -149,11 +148,11 @@ write_links_file(void* notused)
       currentMessageLine = newMessageLine;
     }
 
-    nbytes = ircsprintf(buff, "%s %s :1 %s\n", target_p->name, me.name, p);
-    fbputs(buff, file, nbytes);
+    snprintf(buff, sizeof(buff), "%s %s :1 %s\n", target_p->name, me.name, p);
+    fputs(buff, file);
   }
 
-  fbclose(file);
+  fclose(file);
 }
 
 /* hunt_server()

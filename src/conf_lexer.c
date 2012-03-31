@@ -1760,7 +1760,7 @@ char *yytext;
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: conf_lexer.l 1316 2012-03-27 17:05:51Z michael $
+ *  $Id: conf_lexer.l 1324 2012-03-30 21:40:38Z michael $
  */
 #line 31 "conf_lexer.l"
 #include "stdinc.h"
@@ -1786,7 +1786,7 @@ char conffilebuf[IRCD_BUFSIZE];
 static int include_stack_ptr = 0;
 static YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
 static unsigned int lineno_stack[MAX_INCLUDE_DEPTH];
-static FBFILE *inc_fbfile_in[MAX_INCLUDE_DEPTH];
+static FILE *inc_fbfile_in[MAX_INCLUDE_DEPTH];
 static char conffile_stack[MAX_INCLUDE_DEPTH][IRCD_BUFSIZE];
 static void ccomment(void);
 static void cinclude(void);
@@ -4463,7 +4463,7 @@ cinclude(void)
     ilog(LOG_TYPE_IRCD, "Includes nested too deep in %s", p);
   else
   {
-    FBFILE *tmp_fbfile_in = NULL;
+    FILE *tmp_fbfile_in = NULL;
     char filenamebuf[IRCD_BUFSIZE];
 
     if (*p == '/')  /* if it is an absolute path */
@@ -4471,7 +4471,7 @@ cinclude(void)
     else
       snprintf(filenamebuf, sizeof(filenamebuf), "%s/%s", ETCPATH, p);
 
-    tmp_fbfile_in = fbopen(filenamebuf, "r");
+    tmp_fbfile_in = fopen(filenamebuf, "r");
     
     if (tmp_fbfile_in == NULL)
     {
@@ -4499,7 +4499,7 @@ ieof(void)
 {
   /* log(L_NOTICE, "return from include stack!"); */
   if (include_stack_ptr)
-    fbclose(conf_parser_ctx.conf_file);
+    fclose(conf_parser_ctx.conf_file);
   if (--include_stack_ptr < 0)
   {
     /* log(L_NOTICE, "terminating lexer"); */

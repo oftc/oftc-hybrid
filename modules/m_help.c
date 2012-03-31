@@ -143,19 +143,19 @@ dohelp(struct Client *source_p, const char *hpath, char *topic)
 static void 
 sendhelpfile(struct Client *source_p, const char *path, const char *topic)
 {
-  FBFILE *file;
+  FILE *file;
   char line[HELPLEN];
   char started = 0;
   int type;
 
-  if ((file = fbopen(path, "r")) == NULL)
+  if ((file = fopen(path, "r")) == NULL)
   {
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
     return;
   }
 
-  if (fbgets(line, sizeof(line), file) == NULL)
+  if (fgets(line, sizeof(line), file) == NULL)
   {
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
@@ -170,7 +170,7 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
     started = 1;
   }
 
-  while (fbgets(line, sizeof(line), file))
+  while (fgets(line, sizeof(line), file))
   {
     line[strlen(line) - 1] = '\0';
     if (line[0] != '#')
@@ -188,7 +188,7 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
     }
   }
 
-  fbclose(file);
+  fclose(file);
   sendto_one(source_p, form_str(RPL_HELPTXT),
              me.name, source_p->name, topic, "");
   sendto_one(source_p, form_str(RPL_ENDOFHELP),

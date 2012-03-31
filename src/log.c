@@ -25,7 +25,6 @@
 #include "stdinc.h"
 
 #include "log.h"
-#include "fileio.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "conf.h"
@@ -36,7 +35,7 @@
 static struct {
   char path[PATH_MAX + 1];
   size_t size;
-  FBFILE *file;
+  FILE *file;
 } log_type_table[LOG_TYPE_LAST];
 
 
@@ -44,12 +43,12 @@ int
 log_add_file(enum log_type type, size_t size, const char *path)
 {
   if (log_type_table[type].file)
-    fbclose(log_type_table[type].file);
+    fclose(log_type_table[type].file);
 
   strlcpy(log_type_table[type].path, path, sizeof(log_type_table[type].path));
   log_type_table[type].size = size;
 
-  return (log_type_table[type].file = fbopen(path, "a")) != NULL;
+  return (log_type_table[type].file = fopen(path, "a")) != NULL;
 }
 
 void
@@ -62,7 +61,7 @@ log_close_all(void)
     if (log_type_table[type].file == NULL)
       continue;
 
-    fbclose(log_type_table[type].file);
+    fclose(log_type_table[type].file);
     log_type_table[type].file = NULL;
   }
 }
@@ -90,11 +89,12 @@ write_log(enum log_type type, const char *message)
   struct tm *lt = localtime(&CurrentTime);
 
   nbytes = strftime(buf, sizeof(buf), "[%FT%H:%M:%S%z] ", lt);
-  nbytes += snprintf(buf+nbytes, sizeof(buf)-nbytes, "%s\n", message);
+  snprintf(buf+nbytes, sizeof(buf)-nbytes, "%s\n", message);
 
-  fbputs(buf, log_type_table[type].file, nbytes);
+  fputs(buf, log_type_table[type].file);
+  fflush(log_type_table[type].file);
 }
-   
+
 void
 ilog(enum log_type type, const char *fmt, ...)
 {
@@ -118,7 +118,7 @@ ilog(enum log_type type, const char *fmt, ...)
     snprintf(buf, sizeof(buf), "Rotating logfile %s",
              log_type_table[type].path);
     write_log(type, buf);
-    fbclose(log_type_table[type].file);
+    fclose(log_type_table[type].file);
     log_type_table[type].file = NULL;
 
     snprintf(buf, sizeof(buf), "%s.old", log_type_table[type].path);

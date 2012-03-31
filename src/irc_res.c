@@ -30,7 +30,6 @@
 #include "numeric.h"
 #include "rng_mt.h"
 #include "fdlist.h"
-#include "fileio.h" /* for fbopen / fbclose / fbputs */
 #include "s_bsd.h"
 #include "log.h"
 #include "s_misc.h"

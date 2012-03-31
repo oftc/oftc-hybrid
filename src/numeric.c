@@ -28,7 +28,6 @@
 #include "irc_string.h"
 #include "memory.h"
 #include "log.h"
-#include "fileio.h"
 #include "send.h"
 #include "client.h"
 #include "messages.tab"
@@ -120,7 +119,7 @@ set_locale(const char *locale)
   int i, res = 1, linecnt = 0;
   char buffer[IRCD_BUFSIZE + 1];
   char *ident, *reply;
-  FBFILE *f;
+  FILE *f;
 
   /* Restore standard replies */
   for (i = 0; i <= ERR_LAST_ERR_MSG; i++)   /* 0 isn't a magic number! ;> */
@@ -143,14 +142,14 @@ set_locale(const char *locale)
    * of MSGPATH.
    */
   snprintf(buffer, sizeof(buffer), "%s/%s.lang", MSGPATH, locale);
-  if ((f = fbopen(buffer, "r")) == NULL)
+  if ((f = fopen(buffer, "r")) == NULL)
   {
     strlcpy(used_locale, "standard", sizeof(used_locale));  /* XXX */
     return;
   }
 
   /* Process the language file */
-  while (fbgets(buffer, sizeof(buffer), f))
+  while (fgets(buffer, sizeof(buffer), f))
   {
     ++linecnt;
     if (buffer[0] == ';')
@@ -210,7 +209,7 @@ set_locale(const char *locale)
       res = 0;
     }
   }
-  fbclose(f);
+  fclose(f);
 
   strlcpy(used_locale, locale, sizeof(used_locale));
   if (!res)

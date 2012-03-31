@@ -28,7 +28,6 @@
 #include "ircd.h"
 #include "fdlist.h"
 #include "s_bsd.h"
-#include "fileio.h"
 #include "conf.h"
 #include "send.h"
 #include "numeric.h"
@@ -167,7 +166,7 @@ read_message_file(MessageFile *MessageFileptr)
 
   char buffer[MESSAGELINELEN];
   char *p;
-  FBFILE *file;
+  FILE *file;
 
   for (mptr = MessageFileptr->contentsOfFile; mptr; mptr = next_mptr)
   {
@@ -191,10 +190,10 @@ read_message_file(MessageFile *MessageFileptr)
                local_tm->tm_hour,
                local_tm->tm_min);
 
-  if ((file = fbopen(MessageFileptr->fileName, "r")) == NULL)
+  if ((file = fopen(MessageFileptr->fileName, "r")) == NULL)
     return(-1);
 
-  while (fbgets(buffer, sizeof(buffer), file))
+  while (fgets(buffer, sizeof(buffer), file))
   {
     if ((p = strchr(buffer, '\n')) != NULL)
       *p = '\0';
@@ -217,7 +216,7 @@ read_message_file(MessageFile *MessageFileptr)
     }
   }
 
-  fbclose(file);
+  fclose(file);
   return(0);
 }
 

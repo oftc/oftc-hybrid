@@ -20,7 +20,6 @@ ircd_SOURCES = balloc.c          \
                dbuf.c            \
                event.c           \
                fdlist.c          \
-               fileio.c          \
                getopt.c          \
                hash.c            \
                hook.c            \
