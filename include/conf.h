@@ -27,7 +27,6 @@
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/rsa.h>
 #endif
-#include "fileio.h"             /* FBFILE */
 #include "ircd_defs.h"
 #include "motd.h"               /* MessageFile */
 #include "client.h"
@@ -45,7 +44,7 @@ struct conf_parser_context
 {
   unsigned int boot;
   unsigned int pass;
-  FBFILE *conf_file;
+  FILE *conf_file;
 };
 
 extern struct conf_parser_context conf_parser_ctx;
@@ -535,7 +534,7 @@ extern void delete_conf_item(struct ConfItem *);
 extern void report_confitem_types(struct Client *, ConfType, int);
 extern void yyerror(const char *);
 extern int conf_yy_fatal_error(const char *);
-extern int conf_fbgets(char *, unsigned int, FBFILE *);
+extern int conf_fbgets(char *, unsigned int, FILE *);
 extern void write_conf_line(struct Client *, struct ConfItem *,
                             const char *, time_t, time_t);
 extern int remove_conf_line(ConfType, struct Client *, const char *,
@@ -548,7 +547,7 @@ extern int conf_add_server(struct ConfItem *, const char *);
 extern void conf_add_class_to_conf(struct ConfItem *, const char *);
 
 /* XXX consider moving these into csvlib.h */
-extern void parse_csv_file(FBFILE *, ConfType);
+extern void parse_csv_file(FILE *, ConfType);
 
 extern char *get_oper_name(const struct Client *);
 

@@ -570,8 +570,7 @@ operspy_log(struct Client *source_p, const char *command, const char *target)
 {
   struct ConfItem *conf = NULL;
 #ifdef OPERSPY_LOGFILE
-  size_t nbytes = 0;
-  FBFILE *operspy_fb;
+  FILE *operspy_fb;
   dlink_node *cnode;
   const char *opername = source_p->name;
   char linebuf[IRCD_BUFSIZE], logfile[IRCD_BUFSIZE];
@@ -593,16 +592,16 @@ operspy_log(struct Client *source_p, const char *command, const char *target)
   else if (!MyClient(source_p))
     opername = "remote";
 
-  ircsprintf(logfile, "%s/operspy.%s.log", LOGPATH, opername);
-  if ((operspy_fb = fbopen(logfile, "a")) == NULL)
+  snprintf(logfile, sizeof(logfile), "%s/operspy.%s.log", LOGPATH, opername);
+  if ((operspy_fb = fopen(logfile, "a")) == NULL)
     return;
 
-  nbytes = ircsprintf(linebuf, "[%s] OPERSPY %s %s %s\n",
-                      smalldate(CurrentTime),
-                      get_oper_name(source_p),
-                      command, target);
-  fbputs(linebuf, operspy_fb, nbytes);
-  fbclose(operspy_fb);
+  snprintf(linebuf, sizeof(linebuf), "[%s] OPERSPY %s %s %s\n",
+           smalldate(CurrentTime),
+           get_oper_name(source_p),
+           command, target);
+  fputs(linebuf, operspy_fb);
+  fclose(operspy_fb);
 #endif
 
 #ifdef OPERSPY_NOTICE

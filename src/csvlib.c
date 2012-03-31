@@ -33,8 +33,8 @@
 
 
 static void parse_csv_line(char *, ...);
-static int write_csv_line(FBFILE *, const char *, ...);
-static int flush_write(struct Client *, FBFILE *, FBFILE *, 
+static int write_csv_line(FILE *, const char *, ...);
+static int flush_write(struct Client *, FILE *, FILE *, 
                        const char *, const char *);
 static char *getfield(char *);
 
@@ -46,7 +46,7 @@ static char *getfield(char *);
  * side effects	-
  */
 void
-parse_csv_file(FBFILE *file, ConfType conf_type)
+parse_csv_file(FILE *file, ConfType conf_type)
 {
   struct ConfItem *conf;
   struct AccessItem *aconf;
@@ -63,7 +63,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
   char  line[IRCD_BUFSIZE];
   char  *p;
 
-  while (fbgets(line, sizeof(line), file) != NULL)
+  while (fgets(line, sizeof(line), file) != NULL)
   {
     duration_field = NULL;
 
@@ -306,7 +306,7 @@ void
 write_conf_line(struct Client *source_p, struct ConfItem *conf,
 		const char *current_date, time_t cur_time, time_t duration)
 {
-  FBFILE *out;
+  FILE *out;
   const char *filename, *from, *to;
   struct AccessItem *aconf;
   struct MatchItem *xconf;
@@ -328,7 +328,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     to = source_p->name;
   }
 
-  if ((out = fbopen(filename, "a")) == NULL)
+  if ((out = fopen(filename, "a")) == NULL)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "*** Problem opening %s ", filename);
@@ -538,23 +538,23 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     break;
 
   default:
-    fbclose(out);
+    fclose(out);
     return;
   }
 
-  fbclose(out);
+  fclose(out);
 }
 
 /*
  * write_csv_line()
  *
- * inputs	- pointer to FBFILE *
+ * inputs	- pointer to FILE *
  *		- formatted string
  * output	-
  * side effects - single line is written to csv conf file
  */
 static int
-write_csv_line(FBFILE *out, const char *format, ...)
+write_csv_line(FILE *out, const char *format, ...)
 {
   char c;
   size_t bytes = 0;
@@ -662,7 +662,7 @@ write_csv_line(FBFILE *out, const char *format, ...)
 
   va_end(args);
   str = tmp;
-  fbputs(str, out, bytes);
+  fputs(str, out);
 
   return(bytes);
 }
@@ -738,7 +738,7 @@ int
 remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const char *pat2)
 {
   const char *filename;
-  FBFILE *in, *out;
+  FILE *in, *out;
   int pairme=0;
   char buf[IRCD_BUFSIZE], buff[IRCD_BUFSIZE], temppath[IRCD_BUFSIZE];
   char *found1;
@@ -754,7 +754,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
 
   filename = get_conf_name(type);
 
-  if ((in = fbopen(filename, "r")) == NULL)
+  if ((in = fopen(filename, "r")) == NULL)
   {
     sendto_one(source_p, ":%s NOTICE %s :Cannot open %s", me.name,
                source_p->name, filename);
@@ -764,11 +764,11 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
   ircsprintf(temppath, "%s.tmp", filename);
   oldumask = umask(0);
 
-  if ((out = fbopen(temppath, "w")) == NULL)
+  if ((out = fopen(temppath, "w")) == NULL)
   {
     sendto_one(source_p, ":%s NOTICE %s :Cannot open %s", me.name,
 	       source_p->name, temppath);
-    fbclose(in);
+    fclose(in);
     umask(oldumask);
     return -1;
   }
@@ -776,7 +776,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
   umask(oldumask);
   oldumask = umask(0);
 
-  while (fbgets(buf, sizeof(buf), in) != NULL) 
+  while (fgets(buf, sizeof(buf), in) != NULL) 
   {
     if ((*buf == '\0') || (*buf == '#'))
     {
@@ -831,8 +831,8 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
     }
   }
 
-  fbclose(in);
-  fbclose(out);
+  fclose(in);
+  fclose(out);
 
 /* The result of the rename should be checked too... oh well */
 /* If there was an error on a write above, then its been reported
@@ -885,10 +885,10 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
  * -Dianora
  */
 static int
-flush_write(struct Client *source_p, FBFILE *in, FBFILE* out, 
+flush_write(struct Client *source_p, FILE *in, FILE* out, 
             const char *buf, const char *temppath)
 {
-  int error_on_write = (fbputs(buf, out, strlen(buf)) < 0) ? (-1) : (0);
+  int error_on_write = fputs(buf, out) < 0 ? (-1) : (0);
 
   if (error_on_write)
   {
@@ -896,8 +896,8 @@ flush_write(struct Client *source_p, FBFILE *in, FBFILE* out,
 	       me.name, source_p->name, temppath);
     if(temppath != NULL)
       (void)unlink(temppath);
-    fbclose(in);
-    fbclose(out);
+    fclose(in);
+    fclose(out);
   }
 
   return (error_on_write);

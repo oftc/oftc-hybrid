@@ -38,7 +38,6 @@
 #include "conf.h"
 #include "s_misc.h"
 #include "send.h"
-#include "fileio.h"
 #include "s_serv.h"
 #include "hash.h"
 #include "parse.h"

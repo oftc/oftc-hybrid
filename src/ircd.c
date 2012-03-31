@@ -335,20 +335,20 @@ initialize_server_capabs(void)
 static void
 write_pidfile(const char *filename)
 {
-  FBFILE *fb;
+  FILE *fb;
 
-  if ((fb = fbopen(filename, "w")))
+  if ((fb = fopen(filename, "w")))
   {
     char buff[32];
     unsigned int pid = (unsigned int)getpid();
-    size_t nbytes = snprintf(buff, sizeof(buff), "%u\n", pid);
 
-    if ((fbputs(buff, fb, nbytes) == -1))
+    snprintf(buff, sizeof(buff), "%u\n", pid);
+
+    if ((fputs(buff, fb) == -1))
       ilog(LOG_TYPE_IRCD, "Error writing %u to pid file %s (%s)",
            pid, filename, strerror(errno));
 
-    fbclose(fb);
-    return;
+    fclose(fb);
   }
   else
   {
@@ -367,14 +367,14 @@ write_pidfile(const char *filename)
 static void
 check_pidfile(const char *filename)
 {
-  FBFILE *fb;
+  FILE *fb;
   char buff[32];
   pid_t pidfromfile;
 
   /* Don't do logging here, since we don't have log() initialised */
-  if ((fb = fbopen(filename, "r")))
+  if ((fb = fopen(filename, "r")))
   {
-    if (fbgets(buff, 20, fb) == NULL)
+    if (fgets(buff, 20, fb) == NULL)
     {
       /* log(L_ERROR, "Error reading from pid file %s (%s)", filename,
        * strerror(errno));
@@ -392,7 +392,7 @@ check_pidfile(const char *filename)
       }
     }
 
-    fbclose(fb);
+    fclose(fb);
   }
   else if (errno != ENOENT)
   {

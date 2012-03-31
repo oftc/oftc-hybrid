@@ -85,7 +85,6 @@
 #include "ircd_defs.h"
 #include "irc_res.h"
 #include "irc_reslib.h"
-#include "fileio.h"
 #include "irc_string.h"
 #include "s_log.h"
 
@@ -162,15 +161,15 @@ parse_resvconf(void)
   char *opt;
   char *arg;
   char input[MAXLINE];
-  FBFILE *file;
+  FILE *file;
 
   /* XXX "/etc/resolv.conf" should be from a define in setup.h perhaps
    * for cygwin support etc. this hardcodes it to unix for now -db
    */
-  if ((file = fbopen("/etc/resolv.conf", "r")) == NULL)
-    return(-1);
+  if ((file = fopen("/etc/resolv.conf", "r")) == NULL)
+    return -1;
 
-  while (fbgets(input, MAXLINE, file) != NULL)
+  while (fgets(input, sizeof(input), file) != NULL)
   {
     /* blow away any newline */
     if ((p = strpbrk(input, "\r\n")) != NULL)
@@ -208,8 +207,8 @@ parse_resvconf(void)
       add_nameserver(arg);
   }
 
-  fbclose(file);
-  return(0);
+  fclose(file);
+  return 0;
 }
 
 /* add_nameserver()
