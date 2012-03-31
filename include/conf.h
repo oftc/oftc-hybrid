@@ -34,9 +34,6 @@
 #include "hook.h"
 
 
-#define CONF_SERVER_INFO_TLS_VERSION_SSLV3 0x1
-#define CONF_SERVER_INFO_TLS_VERSION_TLSV1 0x2
-
 struct Client;
 
 extern struct Callback *client_check_cb;

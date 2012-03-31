@@ -50,6 +50,15 @@ struct Client;
 struct LocalUser;
 
 
+
+/*! \brief addr_mask_type enumeration */
+enum addr_mask_type
+{
+  HIDE_IP, /**< IP is hidden. Resolved hostname is shown instead */
+  SHOW_IP, /**< IP is shown. No parts of it are hidden or masked */
+  MASK_IP  /**< IP is masked. 255.255.255.255 is shown instead */
+};
+
 /*! \brief Server structure */
 struct Server
 {
@@ -455,14 +464,6 @@ struct LocalUser
 #define ClearCaptured(x)        ((x)->handler = CLIENT_HANDLER)
 
 
-/*
- * definitions for get_client_name
- * TBD - make this an enum
- */
-#define HIDE_IP 0
-#define SHOW_IP 1
-#define MASK_IP 2
-
 extern struct Client me;
 extern dlink_list listing_client_list;
 extern dlink_list global_client_list;
@@ -482,6 +483,6 @@ extern void free_exited_clients(void);
 extern struct Client *make_client(struct Client *);
 extern struct Client *find_chasing(struct Client *, struct Client *, const char *, int *);
 extern struct Client *find_person(const struct Client *const, const char *);
-extern const char *get_client_name(const struct Client *, int);
+extern const char *get_client_name(const struct Client *, enum addr_mask_type);
 
 #endif /* INCLUDED_client_h */
