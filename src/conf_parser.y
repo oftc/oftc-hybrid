@@ -57,6 +57,8 @@
 #include <openssl/dh.h>
 #endif
 
+int yylex(void);
+
 static char *class_name = NULL;
 static struct ConfItem *yy_conf = NULL;
 static struct AccessItem *yy_aconf = NULL;
