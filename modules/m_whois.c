@@ -365,7 +365,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
                me.name, source_p->name, target_p->name,
                target_p->away);
 
-  if (HasUMode(target_p, UMODE_SOFTCALLERID) && !HasUMode(target_p, UMODE_SOFTCALLERID))
+  if (HasUMode(target_p, UMODE_CALLERID) && !HasUMode(target_p, UMODE_SOFTCALLERID))
     sendto_one(source_p, form_str(RPL_TARGUMODEG),
                me.name, source_p->name, target_p->name);
 
