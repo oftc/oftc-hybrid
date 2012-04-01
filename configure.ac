@@ -36,31 +36,17 @@ AC_CHECK_FUNCS_ONCE(mmap     \
                     strtok_r \
                     usleep   \
                     strlcat  \
-                    strlcpy  \
-                    socketpair)
+                    strlcpy)
 
 # Checks for header files.
 AC_CHECK_HEADERS_ONCE(crypt.h        \
-                      inttypes.h     \
-                      stdint.h       \
                       sys/resource.h \
                       sys/param.h    \
-                      errno.h        \
-                      sys/syslog.h   \
                       types.h        \
                       socket.h       \
                       sys/wait.h     \
                       wait.h         \
                       link.h)
-
-# check for /dev/null so we can use it to hold evil fd's
-AC_MSG_CHECKING([for /dev/null])
-AS_IF([test -c /dev/null], [
-  AC_DEFINE(PATH_DEVNULL, "/dev/null",   [Path to /dev/null])
-  AC_MSG_RESULT([yes])], [
-  AC_DEFINE(PATH_DEVNULL, "devnull.log", [Path to /dev/null])
-  AC_MSG_RESULT([no - using devnull.log])])
-
 
 AC_SEARCH_LIBS(crypt, crypt)
 

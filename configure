@@ -2367,14 +2367,9 @@ as_fn_append ac_func_list " strtok_r"
 as_fn_append ac_func_list " usleep"
 as_fn_append ac_func_list " strlcat"
 as_fn_append ac_func_list " strlcpy"
-as_fn_append ac_func_list " socketpair"
 as_fn_append ac_header_list " crypt.h"
-as_fn_append ac_header_list " inttypes.h"
-as_fn_append ac_header_list " stdint.h"
 as_fn_append ac_header_list " sys/resource.h"
 as_fn_append ac_header_list " sys/param.h"
-as_fn_append ac_header_list " errno.h"
-as_fn_append ac_header_list " sys/syslog.h"
 as_fn_append ac_header_list " types.h"
 as_fn_append ac_header_list " socket.h"
 as_fn_append ac_header_list " sys/wait.h"
@@ -13508,8 +13503,6 @@ done
 
 
 
-
-
 # Checks for header files.
 
 
@@ -13544,34 +13537,6 @@ done
 
 
 
-
-
-
-
-
-
-
-
-
-
-# check for /dev/null so we can use it to hold evil fd's
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for /dev/null" >&5
-$as_echo_n "checking for /dev/null... " >&6; }
-if test -c /dev/null; then :
-
-
-$as_echo "#define PATH_DEVNULL \"/dev/null\"" >>confdefs.h
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-
-
-$as_echo "#define PATH_DEVNULL \"devnull.log\"" >>confdefs.h
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no - using devnull.log" >&5
-$as_echo "no - using devnull.log" >&6; }
-fi
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing crypt" >&5

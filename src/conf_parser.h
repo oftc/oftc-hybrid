@@ -525,7 +525,7 @@ typedef union YYSTYPE
 {
 
 /* Line 2068 of yacc.c  */
-#line 133 "conf_parser.y"
+#line 135 "conf_parser.y"
 
   int number;
   char *string;
