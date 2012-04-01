@@ -37,13 +37,11 @@ struct dlink_list;
 
 extern void *iosend_default(va_list);
 extern struct Callback *iosend_cb;
-extern struct Callback *iosendctrl_cb;
 
 /* send.c prototypes */
 
 extern void sendq_unblocked(fde_t *, struct Client *);
 extern void send_queued_write(struct Client *);
-extern void send_queued_slink_write(struct Client *);
 extern void send_queued_all(void);
 extern void sendto_one(struct Client *, const char *, ...);
 extern void sendto_channel_butone(struct Client *, struct Client *,
