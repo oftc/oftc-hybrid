@@ -2,7 +2,7 @@
 
    $Id$
 
-   Copyright (c) 2001 by ircd-hybrid team
+   Copyright (c) 2001-2012 by ircd-hybrid team
 
      ----------------------------------------------------------------------
 
@@ -10,7 +10,7 @@
    options to limit what users can and cannot do on the server. Each option
    can be enabled or disabled at runtime.
 
-   This document describes the Hybrid 7 implementation of the server hiding
+   This document describes the ircd-hybrid implementation of the server hiding
    ideas originated by (and credited to) numerous people.
 
      * LINKS as a file: This option is always enabled. It will generate a
@@ -91,7 +91,7 @@
 
 Using Non-QS Compliant Hubs
 
-   The flattened LINKS option will, as a side effect, display all user QUIT's
+   The flattened LINKS option will, as a side effect, display all user QUITs
    due to network splits in the following format:
 
    :user QUIT :*.net *.split
