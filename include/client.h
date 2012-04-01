@@ -100,8 +100,8 @@ struct Client
 
   time_t            tsinfo;     /**< TS on the nick, SVINFO on server */
   time_t            servicestamp; /**< Last time client has been identified for its nick */
-  uint64_t          flags;      /**< client flags */
 
+  unsigned int      flags;      /**< client flags */
   unsigned int      umodes;     /**< opers, normal users subset */
   unsigned int      hopcount;   /**< number of servers to this 0 = local */
   unsigned int      status;     /**< Client type */
@@ -286,40 +286,33 @@ struct LocalUser
 #define HasCap(x, y) ((x)->localClient->cap_active & (y))
 
 /* housekeeping flags */
-#define FLAGS_PINGSENT      0x0000000000000001 /**< Unreplied ping sent */
-#define FLAGS_DEADSOCKET    0x0000000000000002 /**< Local socket is dead--Exiting soon */
-#define FLAGS_KILLED        0x0000000000000004 /**< Prevents "QUIT" from being sent for this */
-#define FLAGS_CLOSING       0x0000000000000008 /**< set when closing to suppress errors */
-#define FLAGS_GOTID         0x0000000000000010 /**< successful ident lookup achieved */
-#define FLAGS_NEEDID        0x0000000000000020 /**< auth{} block say must use ident return */
-#define FLAGS_SENDQEX       0x0000000000000040 /**< Sendq exceeded */
-#define FLAGS_IPHASH        0x0000000000000080 /**< iphashed this client */
-#define FLAGS_UNUSED_       0x0000000000000100 /**< Unused */
-#define FLAGS_UNUSED__      0x0000000000000200 /**< Unused */
-#define FLAGS_UNUSED_____   0x0000000000000400 /**< Unused */
-#define FLAGS_UNUSED______  0x0000000000000800 /**< Unused */
-#define FLAGS_MARK          0x0000000000001000 /**< marked client */
-#define FLAGS_CANFLOOD      0x0000000000002000 /**< client has the ability to flood */
-#define FLAGS_EXEMPTGLINE   0x0000000000004000 /**< client can't be G-lined */
-#define FLAGS_EXEMPTKLINE   0x0000000000008000 /**< client is exempt from kline */
-#define FLAGS_NOLIMIT       0x0000000000010000 /**< client is exempt from limits */
-#define FLAGS_UNUSED___     0x0000000000020000 /**< Unused */
-#define FLAGS_PING_COOKIE   0x0000000000040000 /**< PING Cookie */
-#define FLAGS_UNUSED____    0x0000000000080000 /**< Unused */
-#define FLAGS_IP_SPOOFING   0x0000000000100000 /**< client IP is spoofed */
-#define FLAGS_FLOODDONE     0x0000000000200000 /**< Flood grace period has been ended. */
-#define FLAGS_EOB           0x0000000000400000 /**< server has sent us an EOB */
-#define FLAGS_HIDDEN        0x0000000000800000 /**< a hidden server. not shown in /links */
-#define FLAGS_BLOCKED       0x0000000001000000 /**< must wait for COMM_SELECT_WRITE */
-#define FLAGS_UNUSED_______ 0x0000000002000000 /**< Unused */
-#define FLAGS_USERHOST      0x0000000004000000 /**< client is in userhost hash */
-#define FLAGS_BURSTED       0x0000000008000000 /**< user was already bursted */
-#define FLAGS_EXEMPTRESV    0x0000000010000000 /**< client is exempt from RESV */
-#define FLAGS_GOTUSER       0x0000000020000000 /**< if we received a USER command */
-#define FLAGS_PINGWARNING   0x0000000040000000 /**< unreplied ping warning already sent */
-#define FLAGS_FINISHED_AUTH 0x0000000080000000 /**< Client has been released from auth */
-#define FLAGS_FLOOD_NOTICED 0x0000000100000000 /**< Notice to opers about this flooder has been sent */
-#define FLAGS_SERVICE       0x0000000200000000 /**< Client/server is a network service */
+#define FLAGS_PINGSENT      0x00000001 /**< Unreplied ping sent */
+#define FLAGS_DEADSOCKET    0x00000002 /**< Local socket is dead--Exiting soon */
+#define FLAGS_KILLED        0x00000004 /**< Prevents "QUIT" from being sent for this */
+#define FLAGS_CLOSING       0x00000008 /**< set when closing to suppress errors */
+#define FLAGS_GOTID         0x00000010 /**< successful ident lookup achieved */
+#define FLAGS_NEEDID        0x00000020 /**< auth{} block say must use ident return */
+#define FLAGS_SENDQEX       0x00000040 /**< Sendq exceeded */
+#define FLAGS_IPHASH        0x00000080 /**< iphashed this client */
+#define FLAGS_MARK          0x00000100 /**< marked client */
+#define FLAGS_CANFLOOD      0x00000200 /**< client has the ability to flood */
+#define FLAGS_EXEMPTGLINE   0x00000400 /**< client can't be G-lined */
+#define FLAGS_EXEMPTKLINE   0x00000800 /**< client is exempt from kline */
+#define FLAGS_NOLIMIT       0x00001000 /**< client is exempt from limits */
+#define FLAGS_PING_COOKIE   0x00002000 /**< PING Cookie */
+#define FLAGS_IP_SPOOFING   0x00004000 /**< client IP is spoofed */
+#define FLAGS_FLOODDONE     0x00008000 /**< Flood grace period has been ended. */
+#define FLAGS_EOB           0x00010000 /**< server has sent us an EOB */
+#define FLAGS_HIDDEN        0x00020000 /**< a hidden server. not shown in /links */
+#define FLAGS_BLOCKED       0x00040000 /**< must wait for COMM_SELECT_WRITE */
+#define FLAGS_USERHOST      0x00080000 /**< client is in userhost hash */
+#define FLAGS_BURSTED       0x00100000 /**< user was already bursted */
+#define FLAGS_EXEMPTRESV    0x00200000 /**< client is exempt from RESV */
+#define FLAGS_GOTUSER       0x00400000 /**< if we received a USER command */
+#define FLAGS_PINGWARNING   0x00800000 /**< unreplied ping warning already sent */
+#define FLAGS_FINISHED_AUTH 0x01000000 /**< Client has been released from auth */
+#define FLAGS_FLOOD_NOTICED 0x02000000 /**< Notice to opers about this flooder has been sent */
+#define FLAGS_SERVICE       0x04000000 /**< Client/server is a network service */
 
 #define HasFlag(x, y) ((x)->flags &   (y))
 #define AddFlag(x, y) ((x)->flags |=  (y))
@@ -350,8 +343,8 @@ struct LocalUser
 #define UMODE_REGISTERED   0x00080000 /**< User has identified for that nick. */
 #define UMODE_REGONLY      0x00100000 /**< Only registered nicks may PM */
 #define UMODE_HIDDEN       0x00200000 /**< Operator status is hidden */
-#define UMODE_OPER         0x40000000 /**< Operator */
-#define UMODE_ADMIN        0x80000000 /**< Admin on server */ 
+#define UMODE_OPER         0x00400000 /**< Operator */
+#define UMODE_ADMIN        0x00800000 /**< Admin on server */ 
 
 #define UMODE_ALL          UMODE_SERVNOTICE
 
