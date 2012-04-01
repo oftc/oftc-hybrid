@@ -250,29 +250,23 @@ struct ip_entry
 #define CONF_FLAGS_LIMIT_IP             0x00000002
 #define CONF_FLAGS_NO_TILDE             0x00000004
 #define CONF_FLAGS_NEED_IDENTD          0x00000008
-/*                                      0x00000010 */
-#define CONF_FLAGS_NOMATCH_IP           0x00000020
-#define CONF_FLAGS_EXEMPTKLINE          0x00000040
-#define CONF_FLAGS_NOLIMIT              0x00000080
-/*                                      0x00000100 */
-#define CONF_FLAGS_SPOOF_IP             0x00000200
-#define CONF_FLAGS_SPOOF_NOTICE         0x00000400
-#define CONF_FLAGS_REDIR                0x00000800
-#define CONF_FLAGS_EXEMPTGLINE          0x00001000
-/*                                      0x00002000 */
-#define CONF_FLAGS_CAN_FLOOD            0x00100000
-#define CONF_FLAGS_NEED_PASSWORD        0x00200000
+#define CONF_FLAGS_NOMATCH_IP           0x00000010
+#define CONF_FLAGS_EXEMPTKLINE          0x00000020
+#define CONF_FLAGS_NOLIMIT              0x00000040
+#define CONF_FLAGS_SPOOF_IP             0x00000080
+#define CONF_FLAGS_SPOOF_NOTICE         0x00000100
+#define CONF_FLAGS_REDIR                0x00000200
+#define CONF_FLAGS_EXEMPTGLINE          0x00000400
+#define CONF_FLAGS_CAN_FLOOD            0x00000800
+#define CONF_FLAGS_NEED_PASSWORD        0x00001000
 /* server flags */
-#define CONF_FLAGS_ALLOW_AUTO_CONN      0x00004000
-/*                                      0x00008000 */
-#define CONF_FLAGS_ENCRYPTED            0x00010000
-#define CONF_FLAGS_UNUSED1___           0x00020000
-#define CONF_FLAGS_TEMPORARY            0x00040000
-#define CONF_FLAGS_UNUSED2___           0x00080000
-#define CONF_FLAGS_BURST_AWAY           0x00400000
-#define CONF_FLAGS_EXEMPTRESV           0x00800000
-#define CONF_FLAGS_TOPICBURST           0x01000000
-#define CONF_FLAGS_SSL                  0x02000000
+#define CONF_FLAGS_ALLOW_AUTO_CONN      0x00002000
+#define CONF_FLAGS_ENCRYPTED            0x00004000
+#define CONF_FLAGS_TEMPORARY            0x00008000
+#define CONF_FLAGS_BURST_AWAY           0x00010000
+#define CONF_FLAGS_EXEMPTRESV           0x00020000
+#define CONF_FLAGS_TOPICBURST           0x00040000
+#define CONF_FLAGS_SSL                  0x00080000
 
 /* Macros for struct AccessItem */
 #define IsLimitIp(x)            ((x)->flags & CONF_FLAGS_LIMIT_IP)
