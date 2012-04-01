@@ -71,8 +71,6 @@ static struct ResvChannel *resvchannelTable[HASHSIZE];
 void
 init_hash(void)
 {
-  unsigned int i;
-
   /* Default the userhost/namehost sizes to CLIENT_HEAP_SIZE for now,
    * should be a good close approximation anyway
    * - Dianora
