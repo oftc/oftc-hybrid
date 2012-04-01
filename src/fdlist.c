@@ -49,7 +49,7 @@ changing_fdlimit(va_list args)
 
   hard_fdlimit = va_arg(args, int);
 
-  if (ServerInfo.max_clients > MAXCLIENTS_MAX)
+  if (ServerInfo.max_clients > (unsigned int)MAXCLIENTS_MAX)
   {
     if (old_fdlimit != 0)
       sendto_realops_flags(UMODE_ALL, L_ALL,
