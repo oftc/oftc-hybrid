@@ -632,7 +632,7 @@ get_client_name(const struct Client *client, enum addr_mask_type type)
 
   assert(client != NULL);
 
-  if (!irccmp(client->name, client->host))
+  if (!MyConnect(client) || !irccmp(client->name, client->host))
     return client->name;
 
   if (ConfigServerHide.hide_server_ips)
@@ -647,16 +647,17 @@ get_client_name(const struct Client *client, enum addr_mask_type type)
   switch (type)
   {
     case SHOW_IP:
-      if (MyConnect(client))
-      {
-        snprintf(nbuf, sizeof(nbuf), "%s[%s@%s]",
-                 client->name,
-                 client->username, client->sockhost);
-        break;
-      }
+      snprintf(nbuf, sizeof(nbuf), "%s[%s@%s]",
+               client->name,
+               client->username, client->sockhost);
+      break;
     case MASK_IP:
-      snprintf(nbuf, sizeof(nbuf), "%s[%s@255.255.255.255]",
-               client->name, client->username);
+      if (client->localClient->aftype == AF_INET)
+        snprintf(nbuf, sizeof(nbuf), "%s[%s@255.255.255.255]",
+                 client->name, client->username);
+      else
+        snprintf(nbuf, sizeof(nbuf), "%s[%s@ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]",
+                 client->name, client->username);
       break;
     default:
       snprintf(nbuf, sizeof(nbuf), "%s[%s@%s]",
