@@ -632,12 +632,16 @@ get_client_name(const struct Client *client, enum addr_mask_type type)
 
   assert(client != NULL);
 
-  if (!MyConnect(client) || !irccmp(client->name, client->host))
+  if (!MyConnect(client)) 
     return client->name;
 
-  if (ConfigServerHide.hide_server_ips)
-    if (IsServer(client) || IsConnecting(client) || IsHandshake(client))
+  if (IsServer(client) || IsConnecting(client) || IsHandshake(client))
+  {
+    if (!irccmp(client->name, client->host))
+      return client->name;
+    else if (ConfigServerHide.hide_server_ips)
       type = MASK_IP;
+  }
 
   if (ConfigFileEntry.hide_spoof_ips)
     if (type == SHOW_IP && IsIPSpoof(client))
