@@ -47,7 +47,7 @@
 #ifndef __include_rng_mt_header__
 #define __include_rng_mt_header__
 
-extern void init_genrand(unsigned long);
-extern void init_by_array(unsigned long[], int);
-extern unsigned long genrand_int32(void);
+extern void init_genrand(uint32_t);
+extern void init_by_array(uint32_t[], int);
+extern uint32_t genrand_int32(void);
 #endif

@@ -34,10 +34,10 @@
 
 #ifdef IPV6
 static int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
-static unsigned long hash_ipv6(struct irc_ssaddr *, int);
+static uint32_t hash_ipv6(struct irc_ssaddr *, int);
 #endif
 static int try_parse_v4_netmask(const char *, struct irc_ssaddr *, int *);
-static unsigned long hash_ipv4(struct irc_ssaddr *, int);
+static uint32_t hash_ipv4(struct irc_ssaddr *, int);
 
 #define DigitParse(ch) do { \
                        if (ch >= '0' && ch <= '9') \
@@ -361,13 +361,13 @@ init_host_hash(void)
  * Output: A hash value of the IP address.
  * Side effects: None
  */
-static unsigned long
+static uint32_t
 hash_ipv4(struct irc_ssaddr *addr, int bits)
 {
   if (bits != 0)
   {
     struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
-    unsigned long av = ntohl(v4->sin_addr.s_addr) & ~((1 << (32 - bits)) - 1);
+    uint32_t av = ntohl(v4->sin_addr.s_addr) & ~((1 << (32 - bits)) - 1);
 
     return (av ^ (av >> 12) ^ (av >> 24)) & (ATABLE_SIZE - 1);
   }
@@ -381,10 +381,10 @@ hash_ipv4(struct irc_ssaddr *addr, int bits)
  * Side effects: None
  */
 #ifdef IPV6
-static unsigned long
+static uint32_t
 hash_ipv6(struct irc_ssaddr *addr, int bits)
 {
-  unsigned long v = 0, n;
+  uint32_t v = 0, n;
   struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)addr;
 
   for (n = 0; n < 16; n++)
@@ -411,11 +411,11 @@ hash_ipv6(struct irc_ssaddr *addr, int bits)
  * Output: The hash of the string between 1 and (TH_MAX-1)
  * Side-effects: None.
  */
-static int
+static uint32_t
 hash_text(const char *start)
 {
   const char *p = start;
-  unsigned long h = 0;
+  uint32_t h = 0;
 
   while (*p)
     h = (h << 4) - (h + (unsigned char)ToLower(*p++));
@@ -429,7 +429,7 @@ hash_text(const char *start)
  *         wildcard in the string.
  * Side-effects: None.
  */
-static unsigned long
+static uint32_t
 get_mask_hash(const char *text)
 {
   const char *hp = "", *p;
@@ -456,7 +456,7 @@ struct AccessItem *
 find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
                      int fam, const char *username, const char *password)
 {
-  unsigned long hprecv = 0;
+  unsigned int hprecv = 0;
   struct AccessItem *hprec = NULL;
   struct AddressRec *arec;
   int b;
@@ -653,9 +653,9 @@ add_conf_by_address(int type, struct AccessItem *aconf)
 {
   const char *address;
   const char *username;
-  static unsigned long prec_value = 0xFFFFFFFF;
+  static unsigned int prec_value = 0xFFFFFFFF;
   int masktype, bits;
-  unsigned long hv;
+  uint32_t hv;
   struct AddressRec *arec;
 
   address = aconf->host;
@@ -712,7 +712,7 @@ void
 delete_one_address_conf(const char *address, struct AccessItem *aconf)
 {
   int masktype, bits;
-  unsigned long hv;
+  uint32_t hv;
   struct AddressRec *arec, *arecl = NULL;
   struct irc_ssaddr addr;
 
