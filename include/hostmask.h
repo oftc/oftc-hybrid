@@ -35,7 +35,7 @@ enum
 struct HostMaskEntry
 {
   int type, subtype;
-  unsigned long precedence;
+  unsigned int precedence;
   char *hostmask;
   void *data;
   struct HostMaskEntry *next, *nexthash;
@@ -93,7 +93,7 @@ struct AddressRec
   int type;
 
   /* Higher precedences overrule lower ones... */
-  unsigned long precedence;
+  unsigned int precedence;
 
   /* Only checked if !(type & 1)... */
   const char *username;
