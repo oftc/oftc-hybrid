@@ -129,7 +129,7 @@ res_ourserver(const struct irc_ssaddr *inp)
   const struct sockaddr_in *v4in = (const struct sockaddr_in *)inp; 
   int ns;
 
-  for (ns = 0;  ns < irc_nscount;  ns++)
+  for (ns = 0; ns < irc_nscount; ++ns)
   {
     const struct irc_ssaddr *srv = &irc_nsaddr_list[ns];
 #ifdef IPV6
@@ -147,18 +147,15 @@ res_ourserver(const struct irc_ssaddr *inp)
       case AF_INET6:
         if (srv->ss.ss_family == inp->ss.ss_family)
           if (v6->sin6_port == v6in->sin6_port)
-            if ((memcmp(&v6->sin6_addr.s6_addr, &v6in->sin6_addr.s6_addr, 
-                    sizeof(struct in6_addr)) == 0) || 
-                (memcmp(&v6->sin6_addr.s6_addr, &in6addr_any, 
-                        sizeof(struct in6_addr)) == 0))
+            if (!memcmp(&v6->sin6_addr.s6_addr, &v6in->sin6_addr.s6_addr,
+                        sizeof(struct in6_addr)))
               return 1;
         break;
 #endif
       case AF_INET:
         if (srv->ss.ss_family == inp->ss.ss_family)
           if (v4->sin_port == v4in->sin_port)
-            if ((v4->sin_addr.s_addr == INADDR_ANY) || 
-                (v4->sin_addr.s_addr == v4in->sin_addr.s_addr))
+            if (v4->sin_addr.s_addr == v4in->sin_addr.s_addr)
               return 1;
         break;
       default:
