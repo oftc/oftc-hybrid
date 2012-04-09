@@ -95,6 +95,7 @@
 struct irc_ssaddr irc_nsaddr_list[IRCD_MAXNS];
 int irc_nscount = 0;
 
+static const char digits[] = "0123456789";
 static const char digitvalue[256] = {
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*16*/
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*32*/
@@ -114,10 +115,6 @@ static const char digitvalue[256] = {
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*256*/
 };
 
-static int parse_resvconf(void);
-static void add_nameserver(char *arg);
-
-static const char digits[] = "0123456789";
 static int labellen(const unsigned char *lp);
 static int special(int ch);
 static int printable(int ch);
@@ -137,13 +134,37 @@ static int irc_ns_name_ntop(const unsigned char *, char *, size_t);
 static int irc_ns_name_skip(const unsigned char **, const unsigned char *);
 static int mklower(int ch);
   
-int
-irc_res_init(void)
-{
-  irc_nscount = 0;
-  memset(irc_nsaddr_list, 0, sizeof(irc_nsaddr_list));
 
-  return parse_resvconf();
+/* add_nameserver()
+ *
+ * input        - either an IPV4 address in dotted quad
+ *                or an IPV6 address in : format
+ * output       - NONE
+ * side effects - entry in irc_nsaddr_list is filled in as needed
+ */
+static void
+add_nameserver(const char *arg)
+{
+  struct addrinfo hints, *res;
+
+  /* Done max number of nameservers? */
+  if (irc_nscount >= IRCD_MAXNS)
+    return;
+
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family   = PF_UNSPEC;
+  hints.ai_socktype = SOCK_DGRAM;
+  hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
+
+  if (getaddrinfo(arg, "domain", &hints, &res))
+    return;
+
+  if (res == NULL)
+    return;
+
+  memcpy(&irc_nsaddr_list[irc_nscount].ss, res->ai_addr, res->ai_addrlen);
+  irc_nsaddr_list[irc_nscount++].ss_len = res->ai_addrlen;
+  freeaddrinfo(res);
 }
 
 /* parse_resvconf()
@@ -152,7 +173,7 @@ irc_res_init(void)
  * output - -1 if failure 0 if success
  * side effects - fills in irc_nsaddr_list
  */
-static int
+static void
 parse_resvconf(void)
 {
   char *p;
@@ -165,7 +186,7 @@ parse_resvconf(void)
    * for cygwin support etc. this hardcodes it to unix for now -db
    */
   if ((file = fopen("/etc/resolv.conf", "r")) == NULL)
-    return -1;
+    return;
 
   while (fgets(input, sizeof(input), file) != NULL)
   {
@@ -208,44 +229,23 @@ parse_resvconf(void)
     if ((p = strpbrk(arg, " \t")) != NULL)
       *p = '\0';  /* take the first word */
 
-    if (irccmp(opt, "nameserver") == 0)
+    if (!irccmp(opt, "nameserver"))
       add_nameserver(arg);
   }
 
   fclose(file);
-  return 0;
 }
 
-/* add_nameserver()
- *
- * input        - either an IPV4 address in dotted quad
- *                or an IPV6 address in : format
- * output       - NONE
- * side effects - entry in irc_nsaddr_list is filled in as needed
- */
-static void
-add_nameserver(char *arg)
+void
+irc_res_init(void)
 {
-  struct addrinfo hints, *res;
-  /* Done max number of nameservers? */
-  if ((irc_nscount) >= IRCD_MAXNS)
-    return;
+  irc_nscount = 0;
+  memset(irc_nsaddr_list, 0, sizeof(irc_nsaddr_list));
 
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_family   = PF_UNSPEC;
-  hints.ai_socktype = SOCK_DGRAM;
-  hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
+  parse_resvconf();
 
-  if (getaddrinfo(arg, "domain", &hints, &res))
-    return;
-
-  if (res == NULL)
-    return;
-
-  memcpy(&irc_nsaddr_list[irc_nscount].ss, res->ai_addr, res->ai_addrlen);
-  irc_nsaddr_list[irc_nscount].ss_len = res->ai_addrlen;
-  irc_nscount++;
-  freeaddrinfo(res);
+  if (!irc_nscount)
+    add_nameserver("127.0.0.1");
 }
 
 /*
