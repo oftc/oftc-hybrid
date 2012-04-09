@@ -183,13 +183,12 @@ hunt_server(struct Client *client_p, struct Client *source_p, const char *comman
   dlink_node *ptr;
   int wilds;
 
-  /* Assume it's me, if no server
-   */
-  if (parc <= server || EmptyString(parv[server]) ||
-      match(me.name, parv[server]) ||
-      match(parv[server], me.name) ||
-      !strcmp(parv[server], me.id))
-    return(HUNTED_ISME);
+  /* Assume it's me, if no server */
+  if (parc <= server || EmptyString(parv[server]))
+    return HUNTED_ISME;
+
+  if (!strcmp(parv[server], me.id) || match(parv[server], me.name))
+    return HUNTED_ISME;
 
   /* These are to pickup matches that would cause the following
    * message to go in the wrong direction while doing quick fast
