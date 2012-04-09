@@ -55,7 +55,7 @@
 
 #define USERHOST_REPLYLEN       (NICKLEN+HOSTLEN+USERLEN+5)
 #define MAX_DATE_STRING 32      /* maximum string length for a date string */
-#define IRCD_MAXNS      2       /* Maximum number of nameservers in 
+#define IRCD_MAXNS      3       /* Maximum number of nameservers in 
                                    /etc/resolv.conf we care about */
 
 #define LOWEST_SAFE_FD  4	/* skip stdin, stdout, stderr, and profiler */
