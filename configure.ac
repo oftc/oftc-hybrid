@@ -74,24 +74,11 @@ AC_CHECK_HEADERS_ONCE(crypt.h        \
 
 AC_SEARCH_LIBS(crypt, crypt)
 
-
-AC_ARG_WITH(libpcre-path,
-AS_HELP_STRING([--with-libpcre-path=DIR], [Path to libpcre.so for PCRE support.]),
-[LDFLAGS="-L$withval $LDFLAGS"],)
-
-AC_ARG_ENABLE(libpcre, AS_HELP_STRING([--disable-libpcre],[Disable PCRE support]),
-[libpcre=$enableval],[libpcre=yes])
-
-AS_IF([test "$libpcre" = "yes"], [
-  AC_CHECK_HEADER(pcre.h, [AC_CHECK_LIB(pcre, pcre_study,
-    [
-      LIBS="-lpcre $LIBS"
-      AC_DEFINE(HAVE_LIBPCRE, 1, [Define to 1 if libpcre (-lpcre) is available.])
-    ], libpcre=no)
-  ], libpcre=no)
-])
-AM_CONDITIONAL(ENABLE_PCRE, [test "$libpcre" = yes])
-
+AC_ARG_ENABLE(libpcre,
+  [AS_HELP_STRING([--disable-libpcre],[Disable PCRE support])], [],
+    [AC_CHECK_HEADER(pcre.h,
+      [AC_SEARCH_LIBS(pcre_study, pcre,
+        [AC_DEFINE(HAVE_LIBPCRE, 1, [Define to 1 if libpcre (-lpcre) is available.])])])], [])
 
 AH_TEMPLATE([HAVE_LIBCRYPTO], [If we support ssl])
 
