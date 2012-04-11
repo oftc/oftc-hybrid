@@ -21,13 +21,13 @@ AM_ENABLE_SHARED
 AC_PROG_INSTALL
 AC_GNU_SOURCE
 AC_PROG_CC_C99
-  AS_IF([test "$ac_cv_prog_cc_c99" = "no"],
-    [AC_MSG_ERROR([no C99 compiler found. Aborting.])])
-AC_PROG_RANLIB
-AC_PROG_LIBTOOL
+AS_IF([test "$ac_cv_prog_cc_c99" = "no"],
+    [AC_MSG_ERROR([no suitable C99 compiler found. Aborting.])])
+AC_PROG_INSTALL
 
 LIBTOOL="$LIBTOOL --silent"
 AM_PROG_LEX
+AC_PROG_LIBTOOL
 AC_PROG_YACC
 AC_PROG_AWK
 AC_PROG_EGREP
@@ -70,8 +70,7 @@ AC_CHECK_HEADERS_ONCE(crypt.h        \
                       socket.h       \
 >>>>>>> 6ba0004... - Remove unused configure tests
                       sys/wait.h     \
-                      wait.h         \
-                      link.h)
+                      wait.h)
 
 AC_SEARCH_LIBS(crypt, crypt)
 
