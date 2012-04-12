@@ -282,22 +282,27 @@ irccmp(const char *s1, const char *s2)
 }
 
 int
-ircncmp(const char* s1, const char *s2, size_t n)
+ircncmp(const char *s1, const char *s2, size_t n)
 {
-  const unsigned char *str1 = (const unsigned char *) s1;
-  const unsigned char *str2 = (const unsigned char *) s2;
-  int res;
+  const unsigned char *str1 = (const unsigned char *)s1;
+  const unsigned char *str2 = (const unsigned char *)s2;
 
   assert(s1 != NULL);
   assert(s2 != NULL);
 
-  while ((res = ToUpper(*str1) - ToUpper(*str2)) == 0)
+  if (n == 0)
+    return 0;
+
+  while (ToUpper(*str1) == ToUpper(*str2))
   {
-    str1++, str2++, n--;
-    if (n == 0 || (*str1 == '\0' && *str2 == '\0'))
+    if (*str1 == '\0')
       return 0;
+
+    ++str1;
+    ++str2;
   }
-  return res;
+
+  return 1;
 }
 
 const unsigned char ToLowerTab[] = { 
