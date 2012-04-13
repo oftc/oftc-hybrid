@@ -646,7 +646,11 @@ serverinfo_ssl_dh_param_file: SSL_DH_PARAM_FILE '=' QSTRING ';'
 
       if (dh)
       {
-        SSL_CTX_set_tmp_dh(ServerInfo.server_ctx, dh);
+        if (DH_size(dh) < 128)
+          ilog(LOG_TYPE_IRCD, "Ignoring serverinfo::ssl_dh_param_file -- need at least a 1024 bit DH prime size");
+        else
+          SSL_CTX_set_tmp_dh(ServerInfo.server_ctx, dh);
+
         DH_free(dh);
       }
     }
