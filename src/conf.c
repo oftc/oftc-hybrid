@@ -3255,21 +3255,6 @@ yyerror(const char *msg)
        conffilebuf, lineno + 1, msg, newlinebuf);
 }
 
-int
-conf_fbgets(char *lbuf, unsigned int max_size, FILE *fb)
-{
-  if (fgets(lbuf, max_size, fb) == NULL)
-    return 0;
-
-  return strlen(lbuf);
-}
-
-int
-conf_yy_fatal_error(const char *msg)
-{
-  return 0;
-}
-
 /*
  * valid_tkline()
  * 
