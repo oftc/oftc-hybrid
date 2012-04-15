@@ -509,8 +509,6 @@ extern struct ConfItem *find_exact_name_conf(ConfType, const struct Client *, co
 extern void delete_conf_item(struct ConfItem *);
 extern void report_confitem_types(struct Client *, ConfType, int);
 extern void yyerror(const char *);
-extern int conf_yy_fatal_error(const char *);
-extern int conf_fbgets(char *, unsigned int, FILE *);
 extern void write_conf_line(struct Client *, struct ConfItem *,
                             const char *, time_t);
 extern int remove_conf_line(ConfType, struct Client *, const char *,

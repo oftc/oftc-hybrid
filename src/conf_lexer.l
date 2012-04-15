@@ -39,7 +39,7 @@
 #undef YY_INPUT
 #define YY_FATAL_ERROR(msg) conf_yy_fatal_error(msg)
 #define YY_INPUT(buf,result,max_size) \
-  if (!(result = conf_fbgets(buf, max_size, conf_parser_ctx.conf_file))) \
+  if (!(result = conf_yy_input(buf, max_size))) \
     YY_FATAL_ERROR("input in flex scanner failed"); 
 #define MAX_INCLUDE_DEPTH 10
 
@@ -56,6 +56,19 @@ static char conffile_stack[MAX_INCLUDE_DEPTH][IRCD_BUFSIZE];
 static void ccomment(void);
 static void cinclude(void);
 static int ieof(void);
+
+static int
+conf_yy_input(char *lbuf, unsigned int max_size)
+{
+  return !fgets(lbuf, max_size, conf_parser_ctx.conf_file) ? 0 : strlen(lbuf);
+}
+
+static int
+conf_yy_fatal_error(const char *msg)
+{
+  return 0;
+}
+
 %}
 
 WS        [[:blank:]]*
@@ -68,7 +81,7 @@ include   \.include{WS}(\<.*\>|\".*\")
 {include}       { cinclude(); }
 "/*"	        { ccomment(); }
 
-\n.*	        { strcpy(linebuf, yytext+1); ++lineno; yyless(1); }
+\n.*	        { strlcpy(linebuf, yytext+1, sizeof(linebuf)); ++lineno; yyless(1); }
 
 {WS}            ;
 {COMMENT}       ;
