@@ -142,7 +142,7 @@ make_daemon(void)
 
 static int printVersion = 0;
 
-struct lgetopt myopts[] = {
+static struct lgetopt myopts[] = {
   {"dlinefile",  &ConfigFileEntry.dlinefile, 
    STRING, "File to use for dline.conf"},
   {"configfile", &ConfigFileEntry.configfile, 
