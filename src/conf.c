@@ -2386,22 +2386,19 @@ oper_privs_as_string(const unsigned int port)
  *         "oper" is server name for remote opers
  * Side effects: None.
  */
-char *
+const char *
 get_oper_name(const struct Client *client_p)
 {
-  dlink_node *cnode;
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-
+  dlink_node *cnode = NULL;
   /* +5 for !,@,{,} and null */
   static char buffer[NICKLEN + USERLEN + HOSTLEN + HOSTLEN + 5];
 
   if (MyConnect(client_p))
   {
-    DLINK_FOREACH(cnode, client_p->localClient->confs.head)
+    if ((cnode = client_p->localClient->confs.head))
     {
-      conf = cnode->data;
-      aconf = map_to_conf(conf);
+      struct ConfItem *conf = cnode->data;
+      const struct AccessItem *aconf = map_to_conf(conf);
 
       if (IsConfOperator(aconf))
       {
