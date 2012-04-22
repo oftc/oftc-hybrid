@@ -36,7 +36,7 @@ struct Mode
 {
   unsigned int mode;   /*!< simple modes */
   unsigned int limit;  /*!< +l userlimit */
-  char key[KEYLEN];    /*!< +k key */
+  char key[KEYLEN + 1];    /*!< +k key */
 };
 
 /*! \brief Channel structure */

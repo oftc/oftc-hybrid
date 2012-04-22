@@ -48,9 +48,7 @@
 #define REASONLEN       120
 #define KICKLEN         160
 #define AWAYLEN         160
-
-/* 23+1 for \0 */
-#define KEYLEN          24
+#define KEYLEN          23
 #define OPERNICKLEN     NICKLEN*2 /* Length of OPERNICKs. */
 
 #define USERHOST_REPLYLEN       (NICKLEN+HOSTLEN+USERLEN+5)
