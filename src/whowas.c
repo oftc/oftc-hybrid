@@ -29,13 +29,6 @@
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
-#include "ircd_defs.h"
-#include "numeric.h"
-#include "s_serv.h"
-#include "s_user.h"
-#include "send.h"
-#include "conf.h"
-#include "memory.h"
 
 
 static struct Whowas WHOWAS[NICKNAMEHISTORYLENGTH];
