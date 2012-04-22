@@ -538,7 +538,7 @@ extern void conf_add_class_to_conf(struct ConfItem *, const char *);
 /* XXX consider moving these into csvlib.h */
 extern void parse_csv_file(FILE *, ConfType);
 
-extern char *get_oper_name(const struct Client *);
+extern const char *get_oper_name(const struct Client *);
 
 extern void *map_to_conf(struct ConfItem *);
 extern struct ConfItem *unmap_conf_item(void *);
