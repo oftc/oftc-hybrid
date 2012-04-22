@@ -573,7 +573,7 @@ main(int argc, char *argv[])
   clear_tree_parse();
   init_client();
   init_class();
-  init_whowas();
+  whowas_init();
   watch_init();
   init_auth();          /* Initialise the auth code */
   init_resolver();      /* Needs to be setup before the io loop */

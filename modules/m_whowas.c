@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "whowas.h"
 #include "client.h"
 #include "hash.h"
@@ -42,10 +43,10 @@ static void
 whowas_do(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  struct Whowas *temp = NULL;
   int cur = 0;
   int max = -1;
   char *p = NULL, *nick = NULL;
+  const dlink_node *ptr = NULL;
 
   if (parc > 2)
   {
@@ -68,11 +69,11 @@ whowas_do(struct Client *client_p, struct Client *source_p,
   if (*nick == '\0')
     return;
 
-  temp  = WHOWASHASH[strhash(nick)];
-
-  for (; temp; temp = temp->next)
+  DLINK_FOREACH(ptr, WHOWASHASH[strhash(nick)].head)
   {
-    if (irccmp(nick, temp->name) == 0)
+    const struct Whowas *temp = ptr->data;
+
+    if (!irccmp(nick, temp->name))
     {
       sendto_one(source_p, form_str(RPL_WHOWASUSER),
                  me.name, source_p->name, temp->name,
@@ -87,7 +88,7 @@ whowas_do(struct Client *client_p, struct Client *source_p,
         sendto_one(source_p, form_str(RPL_WHOISSERVER),
                    me.name, source_p->name, temp->name,
                    temp->servername, myctime(temp->logoff));
-      cur++;
+      ++cur;
     }
 
     if (max > 0 && cur >= max)
