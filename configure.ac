@@ -5,7 +5,7 @@ AC_REVISION([$Id$])
 
 AC_PREREQ(2.68)
 AC_INIT([ircd-hybrid], [8beta1], [bugs@ircd-hybrid.org])
-AM_INIT_AUTOMAKE(1.11.4)
+AM_INIT_AUTOMAKE(1.11.5)
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src/ircd.c)
@@ -153,7 +153,7 @@ AC_ARG_ENABLE(small-net, AS_HELP_STRING([--enable-small-net],
 [small_net=$enableval], [small_net=no])
 
 AS_IF([test "$small_net" = "yes"], [
-  AC_DEFINE([NICKNAMEHISTORYLENGTH], 1500, [Size of the WHOWAS array.])
+  AC_DEFINE([NICKNAMEHISTORYLENGTH], 2048, [Size of the WHOWAS array.])
   AC_DEFINE([CHANNEL_HEAP_SIZE], 256, [Size of the channel heap.])
   AC_DEFINE([BAN_HEAP_SIZE], 128, [Size of the ban heap.])
   AC_DEFINE([CLIENT_HEAP_SIZE], 256, [Size of the client heap.])
@@ -164,7 +164,7 @@ AS_IF([test "$small_net" = "yes"], [
   AC_DEFINE([AUTH_HEAP_SIZE], 128, [Size of the auth heap.])
   AC_DEFINE([DNS_HEAP_SIZE], 128, [Size of the dns heap.])], [
 
-  AC_DEFINE([NICKNAMEHISTORYLENGTH], 15000, [Size of the WHOWAS array.])
+  AC_DEFINE([NICKNAMEHISTORYLENGTH], 16384, [Size of the WHOWAS array.])
   AC_DEFINE([CHANNEL_HEAP_SIZE], 1024, [Size of the channel heap.])
   AC_DEFINE([BAN_HEAP_SIZE], 1024, [Size of the ban heap.])
   AC_DEFINE([CLIENT_HEAP_SIZE], 1024, [Size of the client heap.])

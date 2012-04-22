@@ -44,7 +44,6 @@
  * pre declare structs
  */
 struct AccessItem;
-struct Whowas;
 struct Listener;
 struct Client;
 struct LocalUser;
@@ -95,7 +94,6 @@ struct Client
   struct Server    *serv;       /**< ...defined, if this is a server */
   struct Client    *servptr;    /**< Points to server this Client is on */
   struct Client    *from;       /**< == self, if Local Client, *NEVER* NULL! */
-  struct Whowas    *whowas;     /**< Pointers to whowas structs */
   char             *away;       /**< Client's AWAY message. Can be set/unset via AWAY command */
 
   time_t            tsinfo;     /**< TS on the nick, SVINFO on server */
@@ -107,6 +105,7 @@ struct Client
   unsigned int      status;     /**< Client type */
   unsigned int      handler;    /**< Handler index */
 
+  dlink_list        whowas;
   dlink_list        channel;   /**< chain of channel pointer blocks */
 
   char name[HOSTLEN + 1]; /**< unique name for a client nick or host */

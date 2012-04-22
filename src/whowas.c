@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "whowas.h"
 #include "client.h"
 #include "hash.h"
@@ -36,85 +37,78 @@
 #include "conf.h"
 #include "memory.h"
 
-/* internally defined function */
-static void add_whowas_to_clist(struct Whowas **, struct Whowas *);
-static void del_whowas_from_clist(struct Whowas **, struct Whowas *);
-static void add_whowas_to_list(struct Whowas **, struct Whowas *);
-static void del_whowas_from_list(struct Whowas **, struct Whowas *);
 
-struct Whowas WHOWAS[NICKNAMEHISTORYLENGTH];
-struct Whowas *WHOWASHASH[HASHSIZE];
+static struct Whowas WHOWAS[NICKNAMEHISTORYLENGTH];
+dlink_list WHOWASHASH[HASHSIZE];
 
-static unsigned int whowas_next = 0;
 
 void
 add_history(struct Client *client_p, int online)
 {
+  static unsigned int whowas_next = 0;
   struct Whowas *who = &WHOWAS[whowas_next];
 
   assert(client_p && client_p->servptr);
 
+  if (++whowas_next == NICKNAMEHISTORYLENGTH)
+    whowas_next = 0;
+
   if (who->hashv != -1)
   {
     if (who->online)
-      del_whowas_from_clist(&(who->online->whowas),who);
-    del_whowas_from_list(&WHOWASHASH[who->hashv], who);
+      dlinkDelete(&who->cnode, &who->online->whowas);
+
+    dlinkDelete(&who->tnode, &WHOWASHASH[who->hashv]);
   }
 
   who->hashv = strhash(client_p->name);
   who->logoff = CurrentTime;
 
-  /* NOTE: strcpy ok here, the sizes in the client struct MUST
-   * match the sizes in the whowas struct
-   */
   strlcpy(who->name, client_p->name, sizeof(who->name));
-  strcpy(who->username, client_p->username);
-  strcpy(who->hostname, client_p->host);
-  strcpy(who->realname, client_p->info);
-
+  strlcpy(who->username, client_p->username, sizeof(who->username));
+  strlcpy(who->hostname, client_p->host, sizeof(who->hostname));
+  strlcpy(who->realname, client_p->info, sizeof(who->realname));
   strlcpy(who->servername, client_p->servptr->name, sizeof(who->servername));
 
   if (online)
   {
     who->online = client_p;
-    add_whowas_to_clist(&(client_p->whowas), who);
+    dlinkAdd(who, &who->cnode, &client_p->whowas);
   }
   else
     who->online = NULL;
 
-  add_whowas_to_list(&WHOWASHASH[who->hashv], who);
-  whowas_next++;
-
-  if (whowas_next == NICKNAMEHISTORYLENGTH)
-    whowas_next = 0;
+  dlinkAdd(who, &who->tnode, &WHOWASHASH[who->hashv]);
 }
 
 void
 off_history(struct Client *client_p)
 {
-  struct Whowas *temp, *next;
+  dlink_node *ptr = NULL, *ptr_next = NULL;
 
-  for (temp = client_p->whowas; temp; temp=next)
+  DLINK_FOREACH_SAFE(ptr, ptr_next, client_p->whowas.head)
   {
-    next = temp->cnext;
+    struct Whowas *temp = ptr->data;
+
     temp->online = NULL;
-    del_whowas_from_clist(&(client_p->whowas), temp);
+    dlinkDelete(&temp->cnode, &client_p->whowas);
   }
 }
 
 struct Client *
 get_history(const char *nick, time_t timelimit)
 {
-  struct Whowas *temp;
+  dlink_node *ptr = NULL;
 
   timelimit = CurrentTime - timelimit;
-  temp = WHOWASHASH[strhash(nick)];
 
-  for (; temp; temp = temp->next)
+  DLINK_FOREACH(ptr, WHOWASHASH[strhash(nick)].head)
   {
-    if (irccmp(nick, temp->name))
-      continue;
+    struct Whowas *temp = ptr->data;
+
     if (temp->logoff < timelimit)
+      continue;
+    if (irccmp(nick, temp->name))
       continue;
     return temp->online;
   }
@@ -146,58 +140,10 @@ count_whowas_memory(unsigned int *wwu, uint64_t *wwum)
 }
 
 void
-init_whowas(void)
+whowas_init(void)
 {
-  int i;
+  unsigned int idx;
 
-  for (i = 0; i < NICKNAMEHISTORYLENGTH; i++)
-  {
-    memset(&WHOWAS[i], 0, sizeof(struct Whowas));
-    WHOWAS[i].hashv = -1;
-  }
-
-  for (i = 0; i < HASHSIZE; ++i)
-    WHOWASHASH[i] = NULL;        
-}
-
-static void
-add_whowas_to_clist(struct Whowas **bucket, struct Whowas *whowas)
-{
-  whowas->cprev = NULL;
-
-  if ((whowas->cnext = *bucket) != NULL)
-    whowas->cnext->cprev = whowas;
-  *bucket = whowas;
-}
- 
-static void
-del_whowas_from_clist(struct Whowas **bucket, struct Whowas *whowas)
-{
-  if (whowas->cprev)
-    whowas->cprev->cnext = whowas->cnext;
-  else
-    *bucket = whowas->cnext;
-  if (whowas->cnext)
-    whowas->cnext->cprev = whowas->cprev;
-}
-
-static void
-add_whowas_to_list(struct Whowas **bucket, struct Whowas *whowas)
-{
-  whowas->prev = NULL;
-
-  if ((whowas->next = *bucket) != NULL)
-    whowas->next->prev = whowas;
-  *bucket = whowas;
-}
- 
-static void
-del_whowas_from_list(struct Whowas **bucket, struct Whowas *whowas)
-{
-  if (whowas->prev)
-    whowas->prev->next = whowas->next;
-  else
-    *bucket = whowas->next;
-  if (whowas->next)
-    whowas->next->prev = whowas->prev;
+  for (idx = 0; idx < NICKNAMEHISTORYLENGTH; ++idx)
+    WHOWAS[idx].hashv = -1;
 }

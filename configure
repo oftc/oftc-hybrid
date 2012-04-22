@@ -13882,7 +13882,7 @@ fi
 if test "$small_net" = "yes"; then :
 
 
-$as_echo "#define NICKNAMEHISTORYLENGTH 1500" >>confdefs.h
+$as_echo "#define NICKNAMEHISTORYLENGTH 2048" >>confdefs.h
 
 
 $as_echo "#define CHANNEL_HEAP_SIZE 256" >>confdefs.h
@@ -13915,7 +13915,7 @@ else
 
 
 
-$as_echo "#define NICKNAMEHISTORYLENGTH 15000" >>confdefs.h
+$as_echo "#define NICKNAMEHISTORYLENGTH 16384" >>confdefs.h
 
 
 $as_echo "#define CHANNEL_HEAP_SIZE 1024" >>confdefs.h
