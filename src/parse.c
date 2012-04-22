@@ -347,19 +347,6 @@ handle_command(struct Message *mptr, struct Client *client_p,
     (*handler)(client_p, from, i, hpara);
 }
 
-/* clear_tree_parse()
- *
- * inputs       - NONE
- * output       - NONE
- * side effects - MUST MUST be called at startup ONCE before
- *                any other keyword routine is used.
- */
-void
-clear_tree_parse(void)
-{
-  memset(&msg_tree, 0, sizeof(msg_tree));
-}
-
 /* add_msg_element()
  *
  * inputs	- pointer to MessageTree

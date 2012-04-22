@@ -154,7 +154,6 @@ struct Message
 #define MAXPARA    15
 
 extern void parse(struct Client *, char *, char *);
-extern void clear_tree_parse(void);
 extern void mod_add_cmd(struct Message *);
 extern void mod_del_cmd(struct Message *);
 extern struct Message *find_command(const char *);

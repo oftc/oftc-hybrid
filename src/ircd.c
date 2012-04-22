@@ -570,7 +570,6 @@ main(int argc, char *argv[])
   init_hash();
   init_ip_hash_table();      /* client host ip hash table */
   init_host_hash();          /* Host-hashtable. */
-  clear_tree_parse();
   init_client();
   init_class();
   whowas_init();
