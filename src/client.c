@@ -129,6 +129,7 @@ make_client(struct Client *from)
   else
     client_p->from = from; /* 'from' of local client is self! */
 
+  client_p->idhnext = client_p;
   client_p->hnext  = client_p;
   client_p->status = STAT_UNKNOWN;
   strcpy(client_p->username, "unknown");
@@ -149,8 +150,11 @@ free_client(struct Client *client_p)
   assert(client_p != NULL);
   assert(client_p != &me);
   assert(client_p->hnext == client_p);
+  assert(client_p->idhnext == client_p);
   assert(client_p->channel.head == NULL);
   assert(dlink_list_length(&client_p->channel) == 0);
+  assert(dlink_list_length(&client_p->whowas) == 0);
+  assert(!IsServer(client_p) || IsServer(client_p) && client_p->serv);
 
   MyFree(client_p->away);
   MyFree(client_p->serv);
@@ -159,6 +163,7 @@ free_client(struct Client *client_p)
   {
     assert(client_p->localClient->invited.head == NULL);
     assert(dlink_list_length(&client_p->localClient->invited) == 0);
+    assert(dlink_list_length(&client_p->localClient->watches) == 0); 
     assert(IsClosing(client_p) && IsDead(client_p));
 
     MyFree(client_p->localClient->response);
