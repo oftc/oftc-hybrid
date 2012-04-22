@@ -32,10 +32,8 @@
 #include "channel.h"
 #include "client.h"
 #include "event.h"
-#include "hash.h"
 #include "hook.h"
 #include "irc_string.h"
-#include "sprintf_irc.h"
 #include "s_bsd.h"
 #include "ircd.h"
 #include "listener.h"
@@ -83,15 +81,11 @@ dlink_list temporary_resv = { NULL, NULL, 0 };
 extern unsigned int lineno;
 extern char linebuf[];
 extern char conffilebuf[IRCD_BUFSIZE];
-extern char yytext[];
 extern int yyparse(); /* defined in y.tab.c */
 
 struct conf_parser_context conf_parser_ctx = { 0, 0, NULL };
 
 /* internally defined functions */
-static void lookup_confhost(struct ConfItem *);
-static void set_default_conf(void);
-static void validate_conf(void);
 static void read_conf(FILE *);
 static void clear_out_old_conf(void);
 static void flush_deleted_I_P(void);
@@ -1954,30 +1948,6 @@ set_default_conf(void)
   ConfigFileEntry.throttle_time = 10;
 }
 
-/* read_conf() 
- *
- * inputs       - file descriptor pointing to config file to use
- * output       - None
- * side effects	- Read configuration file.
- */
-static void
-read_conf(FILE *file)
-{
-  lineno = 0;
-
-  set_default_conf(); /* Set default values prior to conf parsing */
-  conf_parser_ctx.pass = 1;
-  yyparse();	      /* pick up the classes first */
-
-  rewind(file);
-
-  conf_parser_ctx.pass = 2;
-  yyparse();          /* Load the values from the conf */
-  validate_conf();    /* Check to make sure some values are still okay. */
-                      /* Some global values are also loaded here. */
-  check_class();      /* Make sure classes are valid */
-}
-
 static void
 validate_conf(void)
 {
@@ -2001,6 +1971,30 @@ validate_conf(void)
     ConfigFileEntry.client_flood = CLIENT_FLOOD_MAX;
 
   ConfigFileEntry.max_watch = IRCD_MAX(ConfigFileEntry.max_watch, WATCHSIZE_MIN);
+}
+
+/* read_conf() 
+ *
+ * inputs       - file descriptor pointing to config file to use
+ * output       - None
+ * side effects	- Read configuration file.
+ */
+static void
+read_conf(FILE *file)
+{
+  lineno = 0;
+
+  set_default_conf(); /* Set default values prior to conf parsing */
+  conf_parser_ctx.pass = 1;
+  yyparse();	      /* pick up the classes first */
+
+  rewind(file);
+
+  conf_parser_ctx.pass = 2;
+  yyparse();          /* Load the values from the conf */
+  validate_conf();    /* Check to make sure some values are still okay. */
+                      /* Some global values are also loaded here. */
+  check_class();      /* Make sure classes are valid */
 }
 
 /* lookup_confhost()
