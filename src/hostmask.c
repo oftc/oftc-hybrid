@@ -348,7 +348,7 @@ mask_addr(struct irc_ssaddr *ip, int bits)
 }
 
 /* Hashtable stuff...now external as its used in m_stats.c */
-struct AddressRec *atable[ATABLE_SIZE];
+dlink_list atable[ATABLE_SIZE];
 
 void
 init_host_hash(void)
@@ -417,8 +417,8 @@ hash_text(const char *start)
   const char *p = start;
   uint32_t h = 0;
 
-  while (*p)
-    h = (h << 4) - (h + (unsigned char)ToLower(*p++));
+  for (; *p; ++p)
+    h = (h << 4) - (h + (unsigned char)ToLower(*p));
 
   return h & (ATABLE_SIZE - 1);
 }
@@ -457,6 +457,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
                      int fam, const char *username, const char *password)
 {
   unsigned int hprecv = 0;
+  dlink_node *ptr = NULL;
   struct AccessItem *hprec = NULL;
   struct AddressRec *arec;
   int b;
@@ -474,7 +475,10 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
     {
       for (b = 128; b >= 0; b -= 16)
       {
-        for (arec = atable[hash_ipv6(addr, b)]; arec; arec = arec->next)
+        DLINK_FOREACH(ptr, atable[hash_ipv6(addr, b)].head)
+        {
+          arec = ptr->data; 
+
           if (arec->type == (type & ~0x1) &&
               arec->precedence > hprecv &&
               arec->masktype == HM_IPV6 &&
@@ -487,6 +491,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
             hprecv = arec->precedence;
             hprec = arec->aconf;
           }
+        }
       }
     }
     else
@@ -495,7 +500,10 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
     {
       for (b = 32; b >= 0; b -= 8)
       {
-        for (arec = atable[hash_ipv4(addr, b)]; arec; arec = arec->next)
+        DLINK_FOREACH(ptr, atable[hash_ipv4(addr, b)].head)
+        {
+          arec = ptr->data;
+
           if (arec->type == (type & ~0x1) &&
               arec->precedence > hprecv &&
               arec->masktype == HM_IPV4 &&
@@ -508,6 +516,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
             hprecv = arec->precedence;
             hprec = arec->aconf;
           }
+        }
       }
     }
   }
@@ -518,8 +527,10 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
 
     while (1)
     {
-      for (arec = atable[hash_text(p)]; arec != NULL; arec = arec->next)
-        if ((arec->type == (type & ~0x1)) &&
+        DLINK_FOREACH(ptr, atable[hash_text(p)].head)
+        {
+          arec = ptr->data;
+          if ((arec->type == (type & ~0x1)) &&
             arec->precedence > hprecv &&
             (arec->masktype == HM_HOST) &&
             match(arec->Mask.hostname, name) &&
@@ -530,12 +541,17 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
           hprecv = arec->precedence;
           hprec = arec->aconf;
         }
+      }
       p = strchr(p, '.');
       if (p == NULL)
         break;
       p++;
     }
-    for (arec = atable[0]; arec; arec = arec->next)
+
+    DLINK_FOREACH(ptr, atable[0].head)
+    {
+      arec = ptr->data;
+
       if (arec->type == (type & ~0x1) &&
           arec->precedence > hprecv &&
           arec->masktype == HM_HOST &&
@@ -547,6 +563,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
         hprecv = arec->precedence;
         hprec = arec->aconf;
       }
+    }
   }
 
   return hprec;
@@ -649,13 +666,12 @@ find_dline_conf(struct irc_ssaddr *addr, int aftype)
  * Side-effects: Adds this entry to the hash table.
  */
 void
-add_conf_by_address(int type, struct AccessItem *aconf)
+add_conf_by_address(const unsigned int type, struct AccessItem *aconf)
 {
   const char *address;
   const char *username;
   static unsigned int prec_value = 0xFFFFFFFF;
-  int masktype, bits;
-  uint32_t hv;
+  int bits = 0;
   struct AddressRec *arec;
 
   address = aconf->host;
@@ -668,38 +684,32 @@ add_conf_by_address(int type, struct AccessItem *aconf)
     address = "/NOMATCH!/";
 
   arec = MyMalloc(sizeof(struct AddressRec));
-  masktype = parse_netmask(address, &arec->Mask.ipa.addr, &bits);
+  arec->masktype = parse_netmask(address, &arec->Mask.ipa.addr, &bits);
   arec->Mask.ipa.bits = bits;
-  arec->masktype = masktype;
-
-#ifdef IPV6
-  if (masktype == HM_IPV6)
-  {
-    /* We have to do this, since we do not re-hash for every bit -A1kmm. */
-    bits -= bits % 16;
-    arec->next = atable[(hv = hash_ipv6(&arec->Mask.ipa.addr, bits))];
-    atable[hv] = arec;
-  }
-  else 
-#endif
-  if (masktype == HM_IPV4)
-  {
-    /* We have to do this, since we do not re-hash for every bit -A1kmm. */
-    bits -= bits % 8;
-    arec->next = atable[(hv = hash_ipv4(&arec->Mask.ipa.addr, bits))];
-    atable[hv] = arec;
-  }
-  else
-  {
-    arec->Mask.hostname = address;
-    arec->next = atable[(hv = get_mask_hash(address))];
-    atable[hv] = arec;
-  }
-
   arec->username = username;
   arec->aconf = aconf;
   arec->precedence = prec_value--;
   arec->type = type;
+
+  switch (arec->masktype)
+  {
+    case HM_IPV4:
+      /* We have to do this, since we do not re-hash for every bit -A1kmm. */
+      bits -= bits % 8;
+      dlinkAdd(arec, &arec->node, &atable[hash_ipv4(&arec->Mask.ipa.addr, bits)]);
+      break;
+#ifdef IPV6
+    case HM_IPV6:
+      /* We have to do this, since we do not re-hash for every bit -A1kmm. */
+      bits -= bits % 16;
+      dlinkAdd(arec, &arec->node, &atable[hash_ipv6(&arec->Mask.ipa.addr, bits)]);
+      break;
+#endif
+    default: /* HM_HOST */
+      arec->Mask.hostname = address;
+      dlinkAdd(arec, &arec->node, &atable[get_mask_hash(address)]);
+      break;
+  }
 }
 
 /* void delete_one_address(const char*, struct AccessItem*)
@@ -711,49 +721,45 @@ add_conf_by_address(int type, struct AccessItem *aconf)
 void
 delete_one_address_conf(const char *address, struct AccessItem *aconf)
 {
-  int masktype, bits;
-  uint32_t hv;
-  struct AddressRec *arec, *arecl = NULL;
+  int bits = 0;
+  uint32_t hv = 0;
+  dlink_node *ptr = NULL, *ptr_next = NULL;
   struct irc_ssaddr addr;
 
-  masktype = parse_netmask(address, &addr, &bits);
-
+  switch (parse_netmask(address, &addr, &bits))
+  {
+    case HM_IPV4:
+      /* We have to do this, since we do not re-hash for every bit -A1kmm. */
+      bits -= bits % 8;
+      hv = hash_ipv4(&addr, bits);
+      break;
 #ifdef IPV6
-  if (masktype == HM_IPV6)
-  {
-    /* We have to do this, since we do not re-hash for every bit -A1kmm. */
-    bits -= bits % 16;
-    hv = hash_ipv6(&addr, bits);
-  }
-  else
+    case HM_IPV6:
+      /* We have to do this, since we do not re-hash for every bit -A1kmm. */
+      bits -= bits % 16;
+      hv = hash_ipv6(&addr, bits);
+      break;
 #endif
-  if (masktype == HM_IPV4)
-  {
-    /* We have to do this, since we do not re-hash for every bit -A1kmm. */
-    bits -= bits % 8;
-    hv = hash_ipv4(&addr, bits);
+    default: /* HM_HOST */
+      hv = get_mask_hash(address);
+      break;
   }
-  else
-    hv = get_mask_hash(address);
 
-  for (arec = atable[hv]; arec; arec = arec->next)
+  DLINK_FOREACH_SAFE(ptr, ptr_next, atable[hv].head)
   {
+    struct AddressRec *arec = ptr->data;
+
     if (arec->aconf == aconf)
     {
-      if (arecl)
-        arecl->next = arec->next;
-      else
-        atable[hv] = arec->next;
-
+      dlinkDelete(&arec->node, &atable[hv]);
       aconf->status |= CONF_ILLEGAL;
 
-      if (aconf->clients == 0)
+      if (!aconf->clients)
         free_access_item(aconf);
 
       MyFree(arec);
       return;
     }
-    arecl = arec;
   }
 }
 
@@ -767,42 +773,27 @@ delete_one_address_conf(const char *address, struct AccessItem *aconf)
 void
 clear_out_address_conf(void)
 {
-  int i;
-  struct AddressRec *arec;
-  struct AddressRec *last_arec;
-  struct AddressRec *next_arec;
+  unsigned int i = 0;
+  dlink_node *ptr = NULL, *ptr_next = NULL;
  
-  for (i = 0; i < ATABLE_SIZE; i++)
+  for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    last_arec = NULL;
+    ptr = ptr_next = NULL;
 
-    for (arec = atable[i]; arec; arec = next_arec)
+    DLINK_FOREACH_SAFE(ptr, ptr_next, atable[i].head)
     {
+      struct AddressRec *arec = ptr->data;
+
       /* We keep the temporary K-lines and destroy the
        * permanent ones, just to be confusing :) -A1kmm
        */  
-      next_arec = arec->next;
-
-      if (arec->aconf->flags & CONF_FLAGS_TEMPORARY)
+      if (!(arec->aconf->flags & CONF_FLAGS_TEMPORARY))
       {
-        last_arec = arec;
-      }
-      else   
-      {
+        dlinkDelete(&arec->node, &atable[i]);
         /* unlink it from link list - Dianora */
-  
-        if (last_arec == NULL)
-        {
-          atable[i] = next_arec;
-        }
-        else
-        {
-          last_arec->next = next_arec;
-        }
-
         arec->aconf->status |= CONF_ILLEGAL;
 
-        if (arec->aconf->clients == 0)
+        if (!arec->aconf->clients)
           free_access_item(arec->aconf);
         MyFree(arec);
       }
@@ -862,15 +853,20 @@ show_iline_prefix(struct Client *sptr, struct AccessItem *aconf, const char *nam
 void
 report_auth(struct Client *client_p)
 {
-  struct AddressRec *arec;
   struct ConfItem *conf;
   struct AccessItem *aconf;
-  int i;
+  dlink_node *ptr = NULL;
+  unsigned int i;
 
-  for (i = 0; i < ATABLE_SIZE; i++)
+
+  for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    for (arec = atable[i]; arec; arec = arec->next)
+    ptr = NULL;
+
+    DLINK_FOREACH(ptr, atable[i].head)
     {
+      struct AddressRec *arec = ptr->data;
+
       if (arec->type == CONF_CLIENT)
       {
         aconf = arec->aconf;
@@ -914,20 +910,24 @@ report_auth(struct Client *client_p)
 void
 report_Klines(struct Client *client_p, int tkline)
 {
-  struct AddressRec *arec = NULL;
   struct AccessItem *aconf = NULL;
-  int i;
+  unsigned int i = 0;
   const char *p = NULL;
+  dlink_node *ptr = NULL;
 
   if (tkline)
     p = "k";
   else
     p = "K";
 
-  for (i = 0; i < ATABLE_SIZE; i++)
+  for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    for (arec = atable[i]; arec; arec = arec->next)
+    ptr = NULL;
+
+    DLINK_FOREACH(ptr, atable[i].head)
     {
+      struct AddressRec *arec = ptr->data;
+
       if (arec->type == CONF_KILL)
       {
         if ((tkline && !((aconf = arec->aconf)->flags & CONF_FLAGS_TEMPORARY)) ||

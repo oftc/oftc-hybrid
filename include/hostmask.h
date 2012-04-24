@@ -25,7 +25,7 @@
 #ifndef INCLUDE_hostmask_h
 #define INCLUDE_hostmask_h 1
 
-enum
+enum hostmask_type
 {
   HM_HOST,
   HM_IPV4,
@@ -46,7 +46,7 @@ extern int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int);
 extern void mask_addr(struct irc_ssaddr *, int);
 extern int parse_netmask(const char *, struct irc_ssaddr *, int *);
 
-extern void add_conf_by_address(int, struct AccessItem *);
+extern void add_conf_by_address(const unsigned int, struct AccessItem *);
 extern void delete_one_address_conf(const char *, struct AccessItem *);
 extern void clear_out_address_conf(void);
 extern void init_host_hash(void);
@@ -67,12 +67,12 @@ extern struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *
 /* Hashtable stuff... */
 #define ATABLE_SIZE 0x1000
 
-extern struct AddressRec *atable[ATABLE_SIZE];
+extern dlink_list atable[ATABLE_SIZE];
 
 struct AddressRec
 {
   /* masktype: HM_HOST, HM_IPV4, HM_IPV6 -A1kmm */
-  int masktype;
+  enum hostmask_type masktype;
 
   union
   {
@@ -88,7 +88,7 @@ struct AddressRec
   } Mask;
 
   /* type: CONF_CLIENT, CONF_DLINE, CONF_KILL etc... -A1kmm */
-  int type;
+  unsigned int type;
 
   /* Higher precedences overrule lower ones... */
   unsigned int precedence;
@@ -97,7 +97,6 @@ struct AddressRec
   const char *username;
   struct AccessItem *aconf;
 
-  /* The next record in this hash bucket. */
-  struct AddressRec *next;
+  dlink_node node;
 };
 #endif /* INCLUDE_hostmask_h */
