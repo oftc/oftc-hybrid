@@ -701,14 +701,20 @@ stats_connect(struct Client *source_p)
 static void
 stats_deny(struct Client *source_p)
 {
-  struct AddressRec *arec;
+  struct ConfItem *conf;
   struct AccessItem *aconf;
-  int i;
+  dlink_node *ptr = NULL;
+  unsigned int i = 0;
 
-  for (i = 0; i < ATABLE_SIZE; i++)
+
+  for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    for (arec = atable[i]; arec; arec=arec->next)
+    ptr = NULL;
+
+    DLINK_FOREACH(ptr, atable[i].head)
     {
+      struct AddressRec *arec = ptr->data;
+
       if (arec->type == CONF_DLINE)
       {
         aconf = arec->aconf;
@@ -734,14 +740,20 @@ stats_deny(struct Client *source_p)
 static void
 stats_tdeny(struct Client *source_p)
 {
-  struct AddressRec *arec;
+  struct ConfItem *conf;
   struct AccessItem *aconf;
-  int i;
+  dlink_node *ptr = NULL;
+  unsigned int i = 0;
 
-  for (i = 0; i < ATABLE_SIZE; i++)
+
+  for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    for (arec = atable[i]; arec; arec=arec->next)
+    ptr = NULL;
+
+    DLINK_FOREACH(ptr, atable[i].head)
     {
+      struct AddressRec *arec = ptr->data;
+
       if (arec->type == CONF_DLINE)
       {
         aconf = arec->aconf;
@@ -768,9 +780,10 @@ stats_tdeny(struct Client *source_p)
 static void
 stats_exempt(struct Client *source_p)
 {
-  struct AddressRec *arec;
+  struct ConfItem *conf;
   struct AccessItem *aconf;
-  int i;
+  dlink_node *ptr = NULL;
+  unsigned int i = 0;
 
   if (ConfigFileEntry.stats_e_disabled)
   {
@@ -779,10 +792,15 @@ stats_exempt(struct Client *source_p)
     return;
   }
 
-  for (i = 0; i < ATABLE_SIZE; i++)
+
+  for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    for (arec = atable[i]; arec; arec=arec->next)
+    ptr = NULL;
+
+    DLINK_FOREACH(ptr, atable[i].head)
     {
+      struct AddressRec *arec = ptr->data;
+
       if (arec->type == CONF_EXEMPTDLINE)
       {
         aconf = arec->aconf;
@@ -870,8 +888,8 @@ stats_pending_glines(struct Client *source_p)
 static void
 stats_glines(struct Client *source_p)
 {
-  struct AddressRec *arec = NULL;
-  int i = 0;
+  dlink_node *ptr = NULL;
+  unsigned int i = 0;
 
   if (!ConfigFileEntry.glines)
   {
@@ -880,10 +898,14 @@ stats_glines(struct Client *source_p)
     return;
   }
 
-  for (; i < ATABLE_SIZE; ++i)
+  for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    for (arec = atable[i]; arec; arec = arec->next)
+    ptr = NULL;
+
+    DLINK_FOREACH(ptr, atable[i].head)
     {
+      struct AddressRec *arec = ptr->data;
+
       if (arec->type == CONF_GLINE)
       {
         const struct AccessItem *aconf = arec->aconf;
