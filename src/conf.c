@@ -3181,12 +3181,7 @@ conf_add_class_to_conf(struct ConfItem *conf, const char *class_name)
 int
 conf_add_server(struct ConfItem *conf, const char *class_name)
 {
-  struct AccessItem *aconf;
-  struct split_nuh_item nuh;
-  char conf_user[USERLEN + 1];
-  char conf_host[HOSTLEN + 1];
-
-  aconf = map_to_conf(conf);
+  struct AccessItem *aconf = map_to_conf(conf);
 
   conf_add_class_to_conf(conf, class_name);
 
@@ -3204,24 +3199,6 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
     ilog(LOG_TYPE_IRCD, "Bad connect block, host %s", conf->name);
     return -1;
   }
-
-  nuh.nuhmask  = aconf->host;
-  nuh.nickptr  = NULL;
-  nuh.userptr  = conf_user;
-  nuh.hostptr  = conf_host;
-
-  nuh.nicksize = 0;
-  nuh.usersize = sizeof(conf_user);
-  nuh.hostsize = sizeof(conf_host);
-
-  split_nuh(&nuh);
-
-  MyFree(aconf->host);
-  aconf->host = NULL;
-
-  DupString(aconf->user, conf_user); /* somehow username checking for servers
-                                 got lost in H6/7, will have to be re-added */
-  DupString(aconf->host, conf_host);
 
   lookup_confhost(conf);
 
