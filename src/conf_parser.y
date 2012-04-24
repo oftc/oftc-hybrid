@@ -2191,9 +2191,6 @@ connect_name: NAME '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    if (yy_conf->name != NULL)
-      yyerror("Multiple connect name entry");
-
     MyFree(yy_conf->name);
     DupString(yy_conf->name, yylval.string);
   }
