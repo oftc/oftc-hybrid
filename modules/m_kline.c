@@ -283,7 +283,7 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
     piphost = NULL;
   }
 
-  if ((aconf = find_conf_by_address(lhost, piphost, CONF_KILL, t, luser, NULL, NULL)))
+  if ((aconf = find_conf_by_address(lhost, piphost, CONF_KLINE, t, luser, NULL, NULL)))
   {
     if (warn)
     {
@@ -462,23 +462,12 @@ ms_unkline(struct Client *client_p, struct Client *source_p,
 static int
 remove_tkline_match(const char *host, const char *user)
 {
-  struct AccessItem *tk_c;
-  dlink_node *tk_n;
-  struct irc_ssaddr addr, caddr;
-  int nm_t, cnm_t, bits, cbits;
+  struct irc_ssaddr iphost, *piphost;
+  struct AccessItem *aconf;
+  int t;
 
-  nm_t = parse_netmask(host, &addr, &bits);
-
-  DLINK_FOREACH(tk_n, temporary_klines.head)
+  if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
-    tk_c  = map_to_conf(tk_n->data);
-    cnm_t = parse_netmask(tk_c->host, &caddr, &cbits);
-
-    if (cnm_t != nm_t || irccmp(user, tk_c->user))
-      continue;
-
-    if ((nm_t == HM_HOST && !irccmp(tk_c->host, host)) ||
-        (nm_t == HM_IPV4 && bits == cbits && match_ipv4(&addr, &caddr, bits))
 #ifdef IPV6
         || (nm_t == HM_IPV6 && bits == cbits && match_ipv6(&addr, &caddr, bits))
 #endif

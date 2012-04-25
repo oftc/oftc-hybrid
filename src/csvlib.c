@@ -38,6 +38,41 @@ static int flush_write(struct Client *, FILE *, FILE *,
                        const char *, const char *);
 static char *getfield(char *);
 
+int
+find_and_delete_temporary(const char *user, const char *host, int type)
+{
+  struct irc_ssaddr iphost, *piphost;
+  struct AccessItem *aconf;
+  int t;
+
+  if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
+  {
+#ifdef IPV6
+    if (t == HM_IPV6)
+      t = AF_INET6;
+    else
+#endif
+      t = AF_INET;
+    piphost = &iphost;
+  }
+  else
+  {
+    t = 0;
+    piphost = NULL;
+  }
+
+  if ((aconf = find_conf_by_address(host, piphost, type, t, user, NULL)))
+  {
+    if (IsConfTemporary(aconf))
+    {
+      delete_one_address_conf(host, aconf);
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 /* parse_csv_file()
  *
  * inputs	- FILE pointer

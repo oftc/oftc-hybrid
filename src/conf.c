@@ -92,10 +92,7 @@ dlink_list nresv_items   = { NULL, NULL, 0 };
 dlink_list class_items   = { NULL, NULL, 0 };
 dlink_list gdeny_items   = { NULL, NULL, 0 };
 
-dlink_list temporary_klines  = { NULL, NULL, 0 };
-dlink_list temporary_dlines  = { NULL, NULL, 0 };
 dlink_list temporary_xlines  = { NULL, NULL, 0 };
-dlink_list temporary_glines  = { NULL, NULL, 0 };
 dlink_list temporary_resv = { NULL, NULL, 0 };
 
 extern unsigned int lineno;
@@ -2231,32 +2228,7 @@ find_gline(struct Client *client_p)
 void
 add_temp_line(struct ConfItem *conf)
 {
-  struct AccessItem *aconf;
-
-  if (conf->type == DLINE_TYPE)
-  {
-    aconf = map_to_conf(conf);
-    SetConfTemporary(aconf);
-    dlinkAdd(conf, &conf->node, &temporary_dlines);
-    MyFree(aconf->user);
-    aconf->user = NULL;
-    add_conf_by_address(CONF_DLINE, aconf);
-  }
-  else if (conf->type == KLINE_TYPE)
-  {
-    aconf = map_to_conf(conf);
-    SetConfTemporary(aconf);
-    dlinkAdd(conf, &conf->node, &temporary_klines);
-    add_conf_by_address(CONF_KILL, aconf);
-  }
-  else if (conf->type == GLINE_TYPE)
-  {
-    aconf = map_to_conf(conf);
-    SetConfTemporary(aconf);
-    dlinkAdd(conf, &conf->node, &temporary_glines);
-    add_conf_by_address(CONF_GLINE, aconf);
-  }
-  else if (conf->type == XLINE_TYPE)
+  if (conf->type == XLINE_TYPE)
   {
     conf->flags |= CONF_FLAGS_TEMPORARY;
     dlinkAdd(conf, make_dlink_node(), &temporary_xlines);
@@ -2278,9 +2250,7 @@ add_temp_line(struct ConfItem *conf)
 void
 cleanup_tklines(void *notused)
 {
-  expire_tklines(&temporary_glines);
-  expire_tklines(&temporary_klines);
-  expire_tklines(&temporary_dlines);
+  hostmask_expire_temporary();
   expire_tklines(&temporary_xlines);
   expire_tklines(&temporary_resv);
 }
@@ -2299,7 +2269,6 @@ expire_tklines(dlink_list *tklist)
   struct ConfItem *conf;
   struct MatchItem *xconf;
   struct MatchItem *nconf;
-  struct AccessItem *aconf;
   struct ResvChannel *cconf;
   int expired = FALSE;
 
@@ -2352,24 +2321,6 @@ expire_tklines(dlink_list *tklist)
         dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
         remove_conf_line(conf->type, &me, conf->name, NULL);
-        delete_conf_item(conf);
-        expired = TRUE;
-        break;
-      }
-    }
-    else if (conf->type == RKLINE_TYPE)
-    {
-      aconf = map_to_conf(conf);
-      if (aconf->hold <= CurrentTime)
-      {
-        if (ConfigFileEntry.tkline_expire_notices)
-          sendto_realops_flags(UMODE_ALL, L_ALL,
-              "Temporary K-line for [%s@%s] (REGEX) expired",
-              (aconf->user) ? aconf->user : "*",
-              (aconf->host) ? aconf->host : "*");
-        dlinkDelete(ptr, tklist);
-        free_dlink_node(ptr);
-        remove_conf_line(conf->type, &me, aconf->user, aconf->host);
         delete_conf_item(conf);
         expired = TRUE;
         break;

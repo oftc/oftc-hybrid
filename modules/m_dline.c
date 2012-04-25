@@ -54,30 +54,31 @@ static int remove_tdline_match(const char *);
 static int
 remove_tdline_match(const char *host)
 {
-  struct AccessItem *td_conf;
-  dlink_node *td_node;
-  struct irc_ssaddr addr, caddr;
-  int nm_t, cnm_t, bits, cbits;
+  struct irc_ssaddr iphost, *piphost;
+  struct AccessItem *aconf;
+  int t;
 
-  nm_t = parse_netmask(host, &addr, &bits);
-
-  DLINK_FOREACH(td_node, temporary_dlines.head)
+  if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
-    td_conf = map_to_conf(td_node->data);
-    cnm_t   = parse_netmask(td_conf->host, &caddr, &cbits);
-
-    if (cnm_t != nm_t)
-      continue;
-
-    if ((nm_t == HM_HOST && !irccmp(td_conf->host, host)) ||
-        (nm_t == HM_IPV4 && bits == cbits && match_ipv4(&addr, &caddr, bits))
 #ifdef IPV6
-     || (nm_t == HM_IPV6 && bits == cbits && match_ipv6(&addr, &caddr, bits))
+    if (t == HM_IPV6)
+      t = AF_INET6;
+    else
 #endif
-      )
+      t = AF_INET;
+    piphost = &iphost;
+  }
+  else
+  {
+    t = 0;
+    piphost = NULL;
+  }
+
+  if ((aconf = find_conf_by_address(host, piphost, CONF_DLINE, t, NULL, NULL)))
+  {
+    if (IsConfTemporary(aconf))
     {
-      dlinkDelete(td_node, &temporary_dlines);
-      delete_one_address_conf(td_conf->host, td_conf);
+      delete_one_address_conf(host, aconf);
       return 1;
     }
   }

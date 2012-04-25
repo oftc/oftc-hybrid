@@ -179,7 +179,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                  aconf->class_ptr ? aconf->class_ptr->name : "<default>", "");
       ++matches;
     }
-    else if (aconf->status & CONF_KILL)
+    else if (aconf->status & CONF_KLINE)
     {
       sendto_one(source_p, form_str(RPL_TESTLINE),
                  me.name, source_p->name,

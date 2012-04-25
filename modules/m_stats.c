@@ -996,7 +996,7 @@ stats_tklines(struct Client *source_p)
 
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host, &source_p->ip,
-          CONF_KILL, source_p->aftype, source_p->username, NULL, NULL);
+          CONF_KLINE, source_p->aftype, source_p->username, NULL, NULL);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_KILL,
           0, source_p->username, NULL, NULL);
@@ -1033,7 +1033,7 @@ stats_klines(struct Client *source_p)
     /* search for a kline */
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host, &source_p->ip,
-          CONF_KILL, source_p->aftype, source_p->username, NULL, NULL);
+          CONF_KLINE, source_p->aftype, source_p->username, NULL, NULL);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_KILL,
           0, source_p->username, NULL, NULL);

@@ -2511,6 +2511,8 @@ kill_entry: KILL
       }
       else
       {
+        find_and_delete_temporary(userbuf, hostbuf, CONF_KLINE);
+
         yy_aconf = map_to_conf(make_conf_item(KLINE_TYPE));
 
         DupString(yy_aconf->user, userbuf);
@@ -2520,7 +2522,7 @@ kill_entry: KILL
           DupString(yy_aconf->reason, reasonbuf);
         else
           DupString(yy_aconf->reason, "No reason");
-        add_conf_by_address(CONF_KILL, yy_aconf);
+        add_conf_by_address(CONF_KLINE, yy_aconf);
       }
     }
 
@@ -2580,6 +2582,8 @@ deny_entry: DENY
   {
     if (hostbuf[0] && parse_netmask(hostbuf, NULL, NULL) != HM_HOST)
     {
+      find_and_delete_temporary(NULL, hostbuf, CONF_DLINE);
+
       yy_aconf = map_to_conf(make_conf_item(DLINE_TYPE));
       DupString(yy_aconf->host, hostbuf);
 
