@@ -73,9 +73,7 @@ dlink_list gdeny_items	 = { NULL, NULL, 0 };
 dlink_list temporary_klines  = { NULL, NULL, 0 };
 dlink_list temporary_dlines  = { NULL, NULL, 0 };
 dlink_list temporary_xlines  = { NULL, NULL, 0 };
-dlink_list temporary_rklines = { NULL, NULL, 0 };
 dlink_list temporary_glines  = { NULL, NULL, 0 };
-dlink_list temporary_rxlines = { NULL, NULL, 0 };
 dlink_list temporary_resv = { NULL, NULL, 0 };
 
 extern unsigned int lineno;
@@ -566,7 +564,7 @@ static const unsigned int shared_bit_table[] =
  * side effects	-
  */
 void
-report_confitem_types(struct Client *source_p, ConfType type, int temp)
+report_confitem_types(struct Client *source_p, ConfType type)
 {
   dlink_node *ptr = NULL;
   struct ConfItem *conf = NULL;
@@ -575,7 +573,6 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
   struct ClassItem *classitem = NULL;
   char buf[12];
   char *p = NULL;
-  const char *pfx = NULL;
 
   switch (type)
   {
@@ -627,23 +624,18 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
 
       sendto_one(source_p, form_str(RPL_STATSXLINE),
                  me.name, source_p->name,
-                 matchitem->hold ? "xR": "XR", matchitem->count,
+                 "XR", matchitem->count,
                  conf->name, matchitem->reason);
     }
     break;
 
   case RKLINE_TYPE:
-    pfx = temp ? "kR" : "KR";
-
     DLINK_FOREACH(ptr, rkconf_items.head)
     {
       aconf = map_to_conf((conf = ptr->data));
 
-      if (temp && !(conf->flags & CONF_FLAGS_TEMPORARY))
-        continue;
-
       sendto_one(source_p, form_str(RPL_STATSKLINE), me.name,
-                 source_p->name, pfx, aconf->host, aconf->user,
+                 source_p->name, "KR", aconf->host, aconf->user,
                  aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");
     }
     break;
@@ -2190,16 +2182,6 @@ add_temp_line(struct ConfItem *conf)
     conf->flags |= CONF_FLAGS_TEMPORARY;
     dlinkAdd(conf, make_dlink_node(), &temporary_xlines);
   }
-  else if (conf->type == RXLINE_TYPE)
-  {
-    conf->flags |= CONF_FLAGS_TEMPORARY;
-    dlinkAdd(conf, make_dlink_node(), &temporary_rxlines);
-  }
-  else if (conf->type == RKLINE_TYPE)
-  {
-    conf->flags |= CONF_FLAGS_TEMPORARY;
-    dlinkAdd(conf, make_dlink_node(), &temporary_rklines);
-  }
   else if ((conf->type == NRESV_TYPE) || (conf->type == CRESV_TYPE))
   {
     conf->flags |= CONF_FLAGS_TEMPORARY;
@@ -2221,8 +2203,6 @@ cleanup_tklines(void *notused)
   expire_tklines(&temporary_klines);
   expire_tklines(&temporary_dlines);
   expire_tklines(&temporary_xlines);
-  expire_tklines(&temporary_rxlines);
-  expire_tklines(&temporary_rklines);
   expire_tklines(&temporary_resv);
 }
 
