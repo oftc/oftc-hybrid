@@ -481,8 +481,6 @@ extern dlink_list temporary_klines;
 extern dlink_list temporary_dlines;
 extern dlink_list temporary_glines;
 extern dlink_list temporary_xlines;
-extern dlink_list temporary_rxlines;
-extern dlink_list temporary_rklines;
 extern struct logging_entry ConfigLoggingEntry;
 extern struct config_file_entry ConfigFileEntry;/* defined in ircd.c*/
 extern struct config_channel_entry ConfigChannel;/* defined in channel.c*/
@@ -522,7 +520,7 @@ extern struct ConfItem *find_matching_name_conf(ConfType, const char *,
 extern struct ConfItem *find_exact_name_conf(ConfType, const struct Client *, const char *,
                                              const char *, const char *);
 extern void delete_conf_item(struct ConfItem *);
-extern void report_confitem_types(struct Client *, ConfType, int);
+extern void report_confitem_types(struct Client *, ConfType);
 extern void yyerror(const char *);
 extern void write_conf_line(struct Client *, struct ConfItem *,
                             const char *, time_t, time_t);

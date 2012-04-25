@@ -689,7 +689,7 @@ stats_dns_servers(struct Client *source_p)
 static void
 stats_connect(struct Client *source_p)
 {
-  report_confitem_types(source_p, SERVER_TYPE, 0);
+  report_confitem_types(source_p, SERVER_TYPE);
 }
 
 /* stats_deny()
@@ -936,14 +936,14 @@ stats_gdeny(struct Client *source_p)
     return;
   }
 
-  report_confitem_types(source_p, GDENY_TYPE, 0);
+  report_confitem_types(source_p, GDENY_TYPE);
 }
 
 static void
 stats_hubleaf(struct Client *source_p)
 {
-  report_confitem_types(source_p, HUB_TYPE, 0);
-  report_confitem_types(source_p, LEAF_TYPE, 0);
+  report_confitem_types(source_p, HUB_TYPE);
+  report_confitem_types(source_p, LEAF_TYPE);
 }
 
 static void
@@ -1014,7 +1014,6 @@ stats_tklines(struct Client *source_p)
   /* Theyre opered, or allowed to see all klines */
   else {
     report_Klines(source_p, 1);
-    report_confitem_types(source_p, RKLINE_TYPE, 1);
   }
 }
 
@@ -1053,7 +1052,7 @@ stats_klines(struct Client *source_p)
   /* Theyre opered, or allowed to see all klines */
   else {
     report_Klines(source_p, 0);
-    report_confitem_types(source_p, RKLINE_TYPE, 0);
+    report_confitem_types(source_p, RKLINE_TYPE);
   }
 }
 
@@ -1070,7 +1069,7 @@ stats_oper(struct Client *source_p)
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                from, to);
   else
-    report_confitem_types(source_p, OPER_TYPE, 0);
+    report_confitem_types(source_p, OPER_TYPE);
 }
 
 /* stats_operedup()
@@ -1136,7 +1135,7 @@ stats_usage(struct Client *source_p)
 static void
 stats_service(struct Client *source_p)
 {
-  report_confitem_types(source_p, SERVICE_TYPE, 0);
+  report_confitem_types(source_p, SERVICE_TYPE);
 }
 
 static void
@@ -1226,7 +1225,7 @@ stats_uptime(struct Client *source_p)
 static void
 stats_shared(struct Client *source_p)
 {
-  report_confitem_types(source_p, ULINE_TYPE, 0);
+  report_confitem_types(source_p, ULINE_TYPE);
 }
 
 /* stats_servers()
@@ -1257,14 +1256,14 @@ stats_servers(struct Client *source_p)
 static void
 stats_gecos(struct Client *source_p)
 {
-  report_confitem_types(source_p, XLINE_TYPE, 0);
-  report_confitem_types(source_p, RXLINE_TYPE, 0);
+  report_confitem_types(source_p, XLINE_TYPE);
+  report_confitem_types(source_p, RXLINE_TYPE);
 }
 
 static void
 stats_class(struct Client *source_p)
 {
-  report_confitem_types(source_p, CLASS_TYPE, 0);
+  report_confitem_types(source_p, CLASS_TYPE);
 }
 
 static void
