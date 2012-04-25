@@ -540,7 +540,7 @@ extern int match_conf_password(const char *, const struct AccessItem *);
 #define BANNED_CLIENT     (-4)
 #define TOO_FAST          (-5)
 
-#define CLEANUP_TKLINES_TIME 5
+#define CLEANUP_TKLINES_TIME 60
 
 extern void cluster_a_line(struct Client *,
 			   const char *, int, int, const char *,...);
