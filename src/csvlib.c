@@ -38,6 +38,41 @@ static int flush_write(struct Client *, FILE *, FILE *,
                        const char *, const char *);
 static char *getfield(char *);
 
+int
+find_and_delete_temporary(const char *user, const char *host, int type)
+{
+  struct irc_ssaddr iphost, *piphost;
+  struct AccessItem *aconf;
+  int t;
+
+  if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
+  {
+#ifdef IPV6
+    if (t == HM_IPV6)
+      t = AF_INET6;
+    else
+#endif
+      t = AF_INET;
+    piphost = &iphost;
+  }
+  else
+  {
+    t = 0;
+    piphost = NULL;
+  }
+
+  if ((aconf = find_conf_by_address(host, piphost, type, t, user, NULL)))
+  {
+    if (IsConfTemporary(aconf))
+    {
+      delete_one_address_conf(host, aconf);
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 /* parse_csv_file()
  *
  * inputs	- FILE pointer
@@ -71,6 +106,9 @@ parse_csv_file(FILE *file, ConfType conf_type)
     {
     case KLINE_TYPE:
       parse_csv_line(line, &user_field, &host_field, &reason_field, NULL);
+
+      find_and_delete_temporary(user_field, host_field, CONF_KLINE);
+
       conf = make_conf_item(KLINE_TYPE);
       aconf = map_to_conf(conf);
 
@@ -81,7 +119,7 @@ parse_csv_file(FILE *file, ConfType conf_type)
       if (user_field != NULL)
 	DupString(aconf->user, user_field);
       if (aconf->host != NULL)
-	add_conf_by_address(CONF_KILL, aconf);
+	add_conf_by_address(CONF_KLINE, aconf);
       break;
 #ifdef HAVE_LIBPCRE
     case RKLINE_TYPE:
@@ -123,6 +161,8 @@ parse_csv_file(FILE *file, ConfType conf_type)
 
       if (host_field && parse_netmask(host_field, NULL, NULL) != HM_HOST)
       {
+        find_and_delete_temporary(NULL, host_field, CONF_DLINE);
+
         aconf = map_to_conf(make_conf_item(DLINE_TYPE));
         DupString(aconf->host, host_field);
 

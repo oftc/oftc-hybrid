@@ -193,8 +193,7 @@ struct CidrItem
 #define CONF_CLIENT             0x00000002
 #define CONF_SERVER             0x00000004
 #define CONF_OPERATOR           0x00000008
-#define CONF_KILL               0x00000010
-#define CONF_KLINE              CONF_KILL
+#define CONF_KLINE              0x00000010
 #define CONF_CLASS              0x00000020
 #define CONF_LEAF               0x00000040
 #define CONF_LISTEN_PORT        0x00000080
@@ -225,7 +224,7 @@ struct CidrItem
 #define IsConfLeaf(x)		((x)->status == CONF_LEAF)
 #define SetConfLeaf(x)		((x)->status = CONF_LEAF)
 #define IsConfHubOrLeaf(x)	((x)->status & (CONF_HUB|CONF_LEAF))
-#define IsConfKill(x)		((x)->status == CONF_KILL)
+#define IsConfKill(x)		((x)->status == CONF_KLINE)
 #define IsConfClient(x)		((x)->status & CONF_CLIENT)
 #define IsConfTypeOfClient(x)	((x)->status & CONF_CLIENT_MASK)
 #define IsConfUline(x)		((x)->status & CONF_ULINE)
@@ -463,9 +462,6 @@ extern dlink_list rxconf_items;
 extern dlink_list rkconf_items;
 extern dlink_list leaf_items;
 extern dlink_list service_items;
-extern dlink_list temporary_klines;
-extern dlink_list temporary_dlines;
-extern dlink_list temporary_glines;
 extern dlink_list temporary_xlines;
 extern struct logging_entry ConfigLoggingEntry;
 extern struct config_file_entry ConfigFileEntry;/* defined in ircd.c*/
@@ -520,7 +516,7 @@ extern void conf_add_class_to_conf(struct ConfItem *, const char *);
 
 /* XXX consider moving these into csvlib.h */
 extern void parse_csv_file(FILE *, ConfType);
-
+extern int find_and_delete_temporary(const char *, const char *, int);
 extern const char *get_oper_name(const struct Client *);
 
 extern void *map_to_conf(struct ConfItem *);
@@ -544,7 +540,7 @@ extern int match_conf_password(const char *, const struct AccessItem *);
 #define BANNED_CLIENT     (-4)
 #define TOO_FAST          (-5)
 
-#define CLEANUP_TKLINES_TIME 60
+#define CLEANUP_TKLINES_TIME 5
 
 extern void cluster_a_line(struct Client *,
 			   const char *, int, int, const char *,...);

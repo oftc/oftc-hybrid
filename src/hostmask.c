@@ -31,6 +31,7 @@
 #include "numeric.h"
 #include "send.h"
 #include "irc_string.h"
+#include "ircd.h"
 
 #ifdef IPV6
 static int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
@@ -453,7 +454,7 @@ get_mask_hash(const char *text)
  * should always be true (i.e. aconf->flags & CONF_FLAGS_NEED_PASSWORD == 0)
  */
 struct AccessItem *
-find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
+find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int type,
                      int fam, const char *username, const char *password)
 {
   unsigned int hprecv = 0;
@@ -591,7 +592,7 @@ find_address_conf(const char *host, const char *user,
     return iconf;
 
   /* Find the best K-line... -A1kmm */
-  kconf = find_conf_by_address(host, ip, CONF_KILL, aftype, user, NULL);
+  kconf = find_conf_by_address(host, ip, CONF_KLINE, aftype, user, NULL);
 
   /* If they are K-lined, return the K-line. Otherwise, return the
    * I-line. -A1kmm */
@@ -638,7 +639,7 @@ find_kline_conf(const char *host, const char *user,
   if (eline != NULL)
     return eline;
 
-  return find_conf_by_address(host, ip, CONF_KILL, aftype, user, NULL);
+  return find_conf_by_address(host, ip, CONF_KLINE, aftype, user, NULL);
 }
 
 /* struct AccessItem* find_dline_conf(struct irc_ssaddr*, int)
@@ -801,6 +802,66 @@ clear_out_address_conf(void)
   }
 }
 
+static void
+hostmask_send_expiration(struct AddressRec *arec)
+{
+  char ban_type = '\0';
+
+  if (!ConfigFileEntry.tkline_expire_notices)
+    return;
+
+  switch (arec->type)
+  {
+    case CONF_KLINE:
+      ban_type = 'K';
+      break;
+    case CONF_DLINE:
+      ban_type = 'D';
+      break;
+    case CONF_GLINE:
+      ban_type = 'G';
+      break;
+  }
+  
+  sendto_realops_flags(UMODE_ALL, L_ALL,
+                       "Temporary %c-line for [%s@%s] expired", ban_type,
+                       (arec->aconf->user) ? arec->aconf->user : "*",
+                       (arec->aconf->host) ? arec->aconf->host : "*");
+}
+
+void
+hostmask_expire_temporary(void)
+{
+  unsigned int i = 0;
+  dlink_node *ptr = NULL, *ptr_next = NULL;
+
+  for (i = 0; i < ATABLE_SIZE; ++i)
+  {
+    ptr = ptr_next = NULL;
+
+    DLINK_FOREACH_SAFE(ptr, ptr_next, atable[i].head)
+    {
+      struct AddressRec *arec = ptr->data;
+
+      if (!IsConfTemporary(arec->aconf) || arec->aconf->hold > CurrentTime)
+        continue;
+
+      switch (arec->type)
+      {
+        case CONF_KLINE:
+        case CONF_DLINE:
+        case CONF_GLINE:
+          hostmask_send_expiration(arec);
+
+          dlinkDelete(&arec->node, &atable[i]);
+          free_access_item(arec->aconf);
+          MyFree(arec);
+          break;
+      }
+    }
+  }
+}
+
 /*
  * show_iline_prefix()
  *
@@ -928,7 +989,7 @@ report_Klines(struct Client *client_p, int tkline)
     {
       struct AddressRec *arec = ptr->data;
 
-      if (arec->type == CONF_KILL)
+      if (arec->type == CONF_KLINE)
       {
         if ((tkline && !((aconf = arec->aconf)->flags & CONF_FLAGS_TEMPORARY)) ||
             (!tkline && ((aconf = arec->aconf)->flags & CONF_FLAGS_TEMPORARY)))

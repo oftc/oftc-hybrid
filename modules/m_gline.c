@@ -74,7 +74,8 @@ set_local_gline(const struct Client *source_p, const char *user,
   DupString(aconf->host, host);
 
   aconf->hold = CurrentTime + ConfigFileEntry.gline_time;
-  add_temp_line(conf);
+  SetConfTemporary(aconf);
+  add_conf_by_address(CONF_GLINE, aconf);
 
   sendto_realops_flags(UMODE_ALL, L_ALL,
                        "%s added G-Line for [%s@%s] [%s]",
@@ -95,30 +96,31 @@ set_local_gline(const struct Client *source_p, const char *user,
 static int
 remove_gline_match(const char *user, const char *host)
 {
+  struct irc_ssaddr iphost, *piphost;
   struct AccessItem *aconf;
-  dlink_node *ptr = NULL;
-  struct irc_ssaddr addr, caddr;
-  int nm_t, cnm_t, bits, cbits;
+  int t;
 
-  nm_t = parse_netmask(host, &addr, &bits);
-
-  DLINK_FOREACH(ptr, temporary_glines.head)
+  if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
-    aconf = map_to_conf(ptr->data);
-    cnm_t = parse_netmask(aconf->host, &caddr, &cbits);
-
-    if (cnm_t != nm_t || irccmp(user, aconf->user))
-      continue;
-
-    if ((nm_t == HM_HOST && !irccmp(aconf->host, host)) ||
-        (nm_t == HM_IPV4 && bits == cbits && match_ipv4(&addr, &caddr, bits))
 #ifdef IPV6
-     || (nm_t == HM_IPV6 && bits == cbits && match_ipv6(&addr, &caddr, bits))
+    if (t == HM_IPV6)
+      t = AF_INET6;
+    else
 #endif
-       )
+      t = AF_INET;
+    piphost = &iphost;
+  }
+  else
+  {
+    t = 0;
+    piphost = NULL;
+  }
+
+  if ((aconf = find_conf_by_address(host, piphost, CONF_GLINE, t, user, NULL)))
+  {
+    if (IsConfTemporary(aconf))
     {
-      dlinkDelete(ptr, &temporary_glines);
-      delete_one_address_conf(aconf->host, aconf);
+      delete_one_address_conf(host, aconf);
       return 1;
     }
   }

@@ -243,7 +243,7 @@ apply_kline(struct Client *source_p, struct ConfItem *conf,
 {
   struct AccessItem *aconf = map_to_conf(conf);
 
-  add_conf_by_address(CONF_KILL, aconf);
+  add_conf_by_address(CONF_KLINE, aconf);
   write_conf_line(source_p, conf, current_date, cur_time);
   /* Now, activate kline against current online clients */
   rehashed_klines = 1;
@@ -263,7 +263,9 @@ apply_tkline(struct Client *source_p, struct ConfItem *conf,
 
   aconf = (struct AccessItem *)map_to_conf(conf);
   aconf->hold = CurrentTime + tkline_time;
-  add_temp_line(conf);
+  SetConfTemporary(aconf);
+  add_conf_by_address(CONF_KLINE, aconf);
+
   sendto_realops_flags(UMODE_ALL, L_ALL,
 		       "%s added temporary %d min. K-Line for [%s@%s] [%s]",
 		       get_oper_name(source_p), tkline_time/60,
@@ -313,7 +315,7 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
     piphost = NULL;
   }
 
-  if ((aconf = find_conf_by_address(lhost, piphost, CONF_KILL, t, luser, NULL)))
+  if ((aconf = find_conf_by_address(lhost, piphost, CONF_KLINE, t, luser, NULL)))
   {
     if (warn)
     {
@@ -490,32 +492,33 @@ ms_unkline(struct Client *client_p, struct Client *source_p,
 static int
 remove_tkline_match(const char *host, const char *user)
 {
-  struct AccessItem *tk_c;
-  dlink_node *tk_n;
-  struct irc_ssaddr addr, caddr;
-  int nm_t, cnm_t, bits, cbits;
+  struct irc_ssaddr iphost, *piphost;
+  struct AccessItem *aconf;
+  int t;
 
-  nm_t = parse_netmask(host, &addr, &bits);
-
-  DLINK_FOREACH(tk_n, temporary_klines.head)
+  if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
-    tk_c  = map_to_conf(tk_n->data);
-    cnm_t = parse_netmask(tk_c->host, &caddr, &cbits);
-
-    if (cnm_t != nm_t || irccmp(user, tk_c->user))
-      continue;
-
-    if ((nm_t == HM_HOST && !irccmp(tk_c->host, host)) ||
-        (nm_t == HM_IPV4 && bits == cbits && match_ipv4(&addr, &caddr, bits))
 #ifdef IPV6
-     || (nm_t == HM_IPV6 && bits == cbits && match_ipv6(&addr, &caddr, bits))
+    if (t == HM_IPV6)
+      t = AF_INET6;
+    else
 #endif
-       )
-      {
-        dlinkDelete(tk_n, &temporary_klines);
-        delete_one_address_conf(tk_c->host, tk_c);
-        return 1;
-      }
+      t = AF_INET;
+    piphost = &iphost;
+  }
+  else
+  {
+    t = 0;
+    piphost = NULL;
+  }
+
+  if ((aconf = find_conf_by_address(host, piphost, CONF_KLINE, t, user, NULL)))
+  {
+    if (IsConfTemporary(aconf))
+    {
+      delete_one_address_conf(host, aconf);
+      return 1;
+    }
   }
 
   return 0;
