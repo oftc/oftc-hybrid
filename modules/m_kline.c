@@ -283,7 +283,7 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
     piphost = NULL;
   }
 
-  if ((aconf = find_conf_by_address(lhost, piphost, CONF_KLINE, t, luser, NULL, NULL)))
+  if ((aconf = find_conf_by_address(lhost, piphost, CONF_KLINE, t, luser, NULL, 0, NULL)))
   {
     if (warn)
     {
@@ -471,7 +471,18 @@ remove_tkline_match(const char *host, const char *user)
 #ifdef IPV6
         || (nm_t == HM_IPV6 && bits == cbits && match_ipv6(&addr, &caddr, bits))
 #endif
-       )
+      t = AF_INET;
+    piphost = &iphost;
+  }
+  else
+  {
+    t = 0;
+    piphost = NULL;
+  }
+
+  if ((aconf = find_conf_by_address(host, piphost, CONF_KLINE, t, user, NULL, 0)))
+  {
+    if (IsConfTemporary(aconf))
     {
       dlinkDelete(tk_n, &temporary_klines);
       delete_one_address_conf(tk_c->host, tk_c);

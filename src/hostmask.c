@@ -454,7 +454,7 @@ get_mask_hash(const char *text)
  */
 struct AccessItem *
 find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int type,
-                     int fam, const char *username, const char *password,
+                     int fam, const char *username, const char *password, int do_match,
                      const char *certfp)
 {
   unsigned int hprecv = 0;
@@ -462,6 +462,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
   struct AccessItem *hprec = NULL;
   struct AddressRec *arec;
   int b;
+  int (*cmpfunc)(const char *, const char *) = do_match ? match : irccmp;
 
   if (username == NULL)
     username = "";
@@ -487,7 +488,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
               arec->precedence > hprecv &&
               arec->masktype == HM_IPV6 &&
               match_ipv6(addr, &arec->Mask.ipa.addr, arec->Mask.ipa.bits) &&
-              (type & CONF_RESERVED || match(arec->username, username)) &&
+              (type & CONF_RESERVED || cmpfunc(arec->username, username) == do_match) &&
               (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
                match_conf_password(password, arec->aconf)))
           {
@@ -512,7 +513,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
               arec->masktype == HM_IPV4 &&
               match_ipv4(addr, &arec->Mask.ipa.addr,
                          arec->Mask.ipa.bits) &&
-              (type & CONF_RESERVED || match(arec->username, username)) &&
+              (type & CONF_RESERVED || cmpfunc(arec->username, username) == do_match) &&
               (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
                match_conf_password(password, arec->aconf)))
           {
@@ -548,7 +549,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
               continue;
           }
           else
-            if(!match(arec->Mask.hostname, name))
+            if(cmpfunc(arec->Mask.hostname, name) == do_match)
               continue;
         }
         else
@@ -585,7 +586,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
             continue;
         }
         else
-          if(!match(arec->Mask.hostname, name))
+          if(cmpfunc(arec->Mask.hostname, name) == do_match)
             continue;
       }
       else
@@ -618,7 +619,7 @@ find_address_conf(const char *host, const char *user,
 
   /* Find the best I-line... If none, return NULL -A1kmm */
   if ((iconf = find_conf_by_address(host, ip, CONF_CLIENT, aftype, user,
-                                    password, certfp)) == NULL)
+                                    password, 1, certfp)) == NULL)
     return NULL;
 
   /* If they are exempt from K-lines, return the best I-line. -A1kmm */
@@ -626,14 +627,14 @@ find_address_conf(const char *host, const char *user,
     return iconf;
 
   /* Find the best K-line... -A1kmm */
-  kconf = find_conf_by_address(host, ip, CONF_KLINE, aftype, user, NULL, NULL);
+  kconf = find_conf_by_address(host, ip, CONF_KLINE, aftype, user, NULL, 1, NULL);
 
   /* If they are K-lined, return the K-line. Otherwise, return the
    * I-line. -A1kmm */
   if (kconf != NULL)
     return kconf;
 
-  kconf = find_conf_by_address(host, ip, CONF_GLINE, aftype, user, NULL, NULL);
+  kconf = find_conf_by_address(host, ip, CONF_GLINE, aftype, user, NULL, 1, NULL);
   if (kconf != NULL && !IsConfExemptGline(iconf))
     return kconf;
 
@@ -647,11 +648,11 @@ find_gline_conf(const char *host, const char *user,
   struct AccessItem *eline;
 
   eline = find_conf_by_address(host, ip, CONF_EXEMPTKLINE, aftype,
-                               user, NULL, NULL);
+                               user, NULL, 1, NULL);
   if (eline != NULL)
     return eline;
 
-  return find_conf_by_address(host, ip, CONF_GLINE, aftype, user, NULL, NULL);
+  return find_conf_by_address(host, ip, CONF_GLINE, aftype, user, NULL, 1, NULL);
 }
 
 /* find_kline_conf
@@ -669,11 +670,11 @@ find_kline_conf(const char *host, const char *user, const char *certfp,
   struct AccessItem *eline;
 
   eline = find_conf_by_address(host, ip, CONF_EXEMPTKLINE, aftype,
-                               user, NULL, certfp);
+                               user, NULL, 1, certfp);
   if (eline != NULL)
     return eline;
 
-  return find_conf_by_address(host, ip, CONF_KLINE, aftype, user, NULL, NULL);
+  return find_conf_by_address(host, ip, CONF_KLINE, aftype, user, NULL, 1, NULL);
 }
 
 /* struct AccessItem* find_dline_conf(struct irc_ssaddr*, int)
@@ -688,10 +689,10 @@ find_dline_conf(struct irc_ssaddr *addr, int aftype)
   struct AccessItem *eline;
 
   eline = find_conf_by_address(NULL, addr, CONF_EXEMPTDLINE | 1, aftype,
-                               NULL, NULL, NULL);
+                               NULL, NULL, 1, NULL);
   if (eline != NULL)
     return eline;
-  return find_conf_by_address(NULL, addr, CONF_DLINE | 1, aftype, NULL, NULL, NULL);
+  return find_conf_by_address(NULL, addr, CONF_DLINE | 1, aftype, NULL, NULL, 1, NULL);
 }
 
 /* void add_conf_by_address(int, struct AccessItem *aconf)

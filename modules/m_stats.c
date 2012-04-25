@@ -962,10 +962,10 @@ stats_auth(struct Client *source_p)
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host, &source_p->ip,
           CONF_CLIENT, source_p->aftype, source_p->username,
-          source_p->localClient->passwd, source_p->certfp);
+          source_p->localClient->passwd, 1, source_p->certfp);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_CLIENT,
-          0, source_p->username, NULL, source_p->certfp);
+          0, source_p->username, NULL, 1, source_p->certfp);
 
     if (aconf == NULL)
       return;
@@ -996,10 +996,10 @@ stats_tklines(struct Client *source_p)
 
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host, &source_p->ip,
-          CONF_KLINE, source_p->aftype, source_p->username, NULL, NULL);
+          CONF_KLINE, source_p->aftype, source_p->username, NULL, 1, NULL);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_KILL,
-          0, source_p->username, NULL, NULL);
+          0, source_p->username, NULL, 1, NULL);
 
     if (aconf == NULL)
       return;
@@ -1033,10 +1033,10 @@ stats_klines(struct Client *source_p)
     /* search for a kline */
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host, &source_p->ip,
-          CONF_KLINE, source_p->aftype, source_p->username, NULL, NULL);
+          CONF_KLINE, source_p->aftype, source_p->username, NULL, 0, NULL);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_KILL,
-          0, source_p->username, NULL, NULL);
+          0, source_p->username, NULL, 0, NULL);
 
     if (aconf == NULL)
       return;
