@@ -28,17 +28,10 @@
 #include "list.h"
 #include "conf.h"
 #include "hostmask.h"
-#include "numeric.h"
 #include "send.h"
 #include "irc_string.h"
 #include "ircd.h"
 
-#ifdef IPV6
-static int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
-static uint32_t hash_ipv6(struct irc_ssaddr *, int);
-#endif
-static int try_parse_v4_netmask(const char *, struct irc_ssaddr *, int *);
-static uint32_t hash_ipv4(struct irc_ssaddr *, int);
 
 #define DigitParse(ch) do { \
                        if (ch >= '0' && ch <= '9') \
@@ -288,6 +281,7 @@ match_ipv6(struct irc_ssaddr *addr, struct irc_ssaddr *mask, int bits)
   return 0;
 }
 #endif
+
 /* int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int)
  * Input: An IP address, an IP mask, the number of bits in the mask.
  * Output: if match, -1 else 0
@@ -858,152 +852,6 @@ hostmask_expire_temporary(void)
           free_access_item(arec->aconf);
           MyFree(arec);
           break;
-      }
-    }
-  }
-}
-
-/*
- * show_iline_prefix()
- *
- * inputs       - pointer to struct Client requesting output
- *              - pointer to struct AccessItem 
- *              - name to which iline prefix will be prefixed to
- * output       - pointer to static string with prefixes listed in ascii form
- * side effects - NONE
- */
-char *
-show_iline_prefix(struct Client *sptr, struct AccessItem *aconf, const char *name)
-{
-  static char prefix_of_host[USERLEN + 14];
-  char *prefix_ptr = prefix_of_host;
-
-  if (IsNoTilde(aconf))
-    *prefix_ptr++ = '-';
-  if (IsLimitIp(aconf))
-    *prefix_ptr++ = '!';
-  if (IsNeedIdentd(aconf))
-    *prefix_ptr++ = '+';
-  if (!IsNeedPassword(aconf))
-    *prefix_ptr++ = '&';
-  if (IsConfExemptResv(aconf))
-    *prefix_ptr++ = '$';
-  if (IsNoMatchIp(aconf))
-    *prefix_ptr++ = '%';
-  if (IsConfDoSpoofIp(aconf))
-    *prefix_ptr++ = '=';
-  if (MyOper(sptr) && IsConfExemptKline(aconf))
-    *prefix_ptr++ = '^';
-  if (MyOper(sptr) && IsConfExemptGline(aconf))
-    *prefix_ptr++ = '_';
-  if (MyOper(sptr) && IsConfExemptLimits(aconf))
-    *prefix_ptr++ = '>';
-  if (IsConfCanFlood(aconf))
-    *prefix_ptr++ = '|';
-
-  strlcpy(prefix_ptr, name, USERLEN+1);
-
-  return prefix_of_host;
-}
-
-/* report_auth()
- *
- * Inputs: pointer to client to report to
- * Output: None
- * Side effects: Reports configured auth{} blocks to client_p
- */
-void
-report_auth(struct Client *client_p)
-{
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-  dlink_node *ptr = NULL;
-  unsigned int i;
-
-
-  for (i = 0; i < ATABLE_SIZE; ++i)
-  {
-    ptr = NULL;
-
-    DLINK_FOREACH(ptr, atable[i].head)
-    {
-      struct AddressRec *arec = ptr->data;
-
-      if (arec->type == CONF_CLIENT)
-      {
-        aconf = arec->aconf;
-
-        if (!MyOper(client_p) && IsConfDoSpoofIp(aconf))
-          continue;
-
-	conf = unmap_conf_item(aconf);
-
-        /* We are doing a partial list, based on what matches the u@h of the
-         * sender, so prepare the strings for comparing --fl_
-	 */
-        if (ConfigFileEntry.hide_spoof_ips)
-          sendto_one(client_p, form_str(RPL_STATSILINE), me.name,
-                     client_p->name, 'I',
-		     conf->name == NULL ? "*" : conf->name,
-		     show_iline_prefix(client_p, aconf, aconf->user),
-                     IsConfDoSpoofIp(aconf) ? "255.255.255.255" :
-                     aconf->host, aconf->port,
-		     aconf->class_ptr ? aconf->class_ptr->name : "<default>");
-		     
-        else
-          sendto_one(client_p, form_str(RPL_STATSILINE), me.name,
-                     client_p->name, 'I',
-		     conf->name == NULL ? "*" : conf->name,
-		     show_iline_prefix(client_p, aconf, aconf->user),
-                     aconf->host, aconf->port,
-		     aconf->class_ptr ? aconf->class_ptr->name : "<default>");
-      }
-    }
-  }
-}
-
-/* report_Klines()
- * Inputs: Client to report to,
- *	   type(==0 for perm, !=0 for temporary)
- *	   mask 
- * Output: None
- * Side effects: Reports configured K(or k)-lines to client_p.
- */
-void
-report_Klines(struct Client *client_p, int tkline)
-{
-  struct AccessItem *aconf = NULL;
-  unsigned int i = 0;
-  const char *p = NULL;
-  dlink_node *ptr = NULL;
-
-  if (tkline)
-    p = "k";
-  else
-    p = "K";
-
-  for (i = 0; i < ATABLE_SIZE; ++i)
-  {
-    ptr = NULL;
-
-    DLINK_FOREACH(ptr, atable[i].head)
-    {
-      struct AddressRec *arec = ptr->data;
-
-      if (arec->type == CONF_KLINE)
-      {
-        if ((tkline && !((aconf = arec->aconf)->flags & CONF_FLAGS_TEMPORARY)) ||
-            (!tkline && ((aconf = arec->aconf)->flags & CONF_FLAGS_TEMPORARY)))
-          continue;
-
-        if (HasUMode(client_p, UMODE_OPER))
-          sendto_one(client_p, form_str(RPL_STATSKLINE), me.name,
-                     client_p->name, p, aconf->host, aconf->user,
-                     aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");
-        else
-          sendto_one(client_p, form_str(RPL_STATSKLINE), me.name,
-                     client_p->name, p, aconf->host, aconf->user,
-                     aconf->reason, "");
       }
     }
   }

@@ -25,6 +25,9 @@
 #ifndef INCLUDE_hostmask_h
 #define INCLUDE_hostmask_h 1
 
+#define ATABLE_SIZE 0x1000
+
+
 enum hostmask_type
 {
   HM_HOST,
@@ -40,34 +43,6 @@ struct HostMaskEntry
   void *data;
   struct HostMaskEntry *next, *nexthash;
 };
-
-extern int match_ipv6(struct irc_ssaddr *, struct irc_ssaddr *, int);
-extern int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int);
-extern void mask_addr(struct irc_ssaddr *, int);
-extern int parse_netmask(const char *, struct irc_ssaddr *, int *);
-
-extern void add_conf_by_address(const unsigned int, struct AccessItem *);
-extern void delete_one_address_conf(const char *, struct AccessItem *);
-extern void clear_out_address_conf(void);
-extern void init_host_hash(void);
-extern void report_Klines(struct Client *, int);
-extern void report_auth(struct Client *);
-extern void hostmask_expire_temporary(void);
-extern char *show_iline_prefix(struct Client *, struct AccessItem *, const char *);
-extern struct AccessItem *find_address_conf(const char *, const char *,
-                                            struct irc_ssaddr *, int, char *);
-extern struct AccessItem *find_kline_conf(const char *, const char *,
-                                          struct irc_ssaddr *, int);
-extern struct AccessItem *find_gline_conf(const char *, const char *,
-                                          struct irc_ssaddr *, int);
-extern struct AccessItem *find_dline_conf(struct irc_ssaddr *, int);
-extern struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
-                                               unsigned int, int, const char *, const char *, int);
-
-/* Hashtable stuff... */
-#define ATABLE_SIZE 0x1000
-
-extern dlink_list atable[ATABLE_SIZE];
 
 struct AddressRec
 {
@@ -99,4 +74,26 @@ struct AddressRec
 
   dlink_node node;
 };
+
+extern dlink_list atable[ATABLE_SIZE];
+extern int parse_netmask(const char *, struct irc_ssaddr *, int *);
+extern int match_ipv6(struct irc_ssaddr *, struct irc_ssaddr *, int);
+extern int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int);
+
+extern void mask_addr(struct irc_ssaddr *, int);
+extern void init_host_hash(void);
+extern void add_conf_by_address(const unsigned int, struct AccessItem *);
+extern void delete_one_address_conf(const char *, struct AccessItem *);
+extern void clear_out_address_conf(void);
+extern void hostmask_expire_temporary(void);
+
+extern struct AccessItem *find_address_conf(const char *, const char *,
+                                            struct irc_ssaddr *, int, char *);
+extern struct AccessItem *find_kline_conf(const char *, const char *,
+                                          struct irc_ssaddr *, int);
+extern struct AccessItem *find_gline_conf(const char *, const char *,
+                                          struct irc_ssaddr *, int);
+extern struct AccessItem *find_dline_conf(struct irc_ssaddr *, int);
+extern struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
+                                               unsigned int, int, const char *, const char *, int);
 #endif /* INCLUDE_hostmask_h */
