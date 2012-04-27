@@ -22,12 +22,12 @@ AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
   dnl {{{ allow the user to specify desired mechanism
   desired_iopoll_mechanism="none"
   dnl FIXME need to handle arguments a bit better (see ac_arg_disable_block_alloc)
-  AC_ARG_ENABLE([kqueue], [AC_HELP_STRING([--enable-kqueue], [Force kqueue usage.])], [desired_iopoll_mechanism="kqueue"])
-  AC_ARG_ENABLE([epoll],  [AC_HELP_STRING([--enable-epoll],  [Force epoll usage.])],  [desired_iopoll_mechanism="epoll"])
-  AC_ARG_ENABLE([devpoll],[AC_HELP_STRING([--enable-devpoll],[Force devpoll usage.])],[desired_iopoll_mechanism="devpoll"])
-  AC_ARG_ENABLE([rtsigio],[AC_HELP_STRING([--enable-rtsigio],[Force rtsigio usage.])],[desired_iopoll_mechanism="rtsigio"])
-  AC_ARG_ENABLE([poll],   [AC_HELP_STRING([--enable-poll],   [Force poll usage.])],   [desired_iopoll_mechanism="poll"]) 
-  AC_ARG_ENABLE([select], [AC_HELP_STRING([--enable-select], [Force select usage.])], [desired_iopoll_mechanism="select"])
+  AC_ARG_ENABLE([kqueue], [AS_HELP_STRING([--enable-kqueue], [Force kqueue usage.])], [desired_iopoll_mechanism="kqueue"])
+  AC_ARG_ENABLE([epoll],  [AS_HELP_STRING([--enable-epoll],  [Force epoll usage.])],  [desired_iopoll_mechanism="epoll"])
+  AC_ARG_ENABLE([devpoll],[AS_HELP_STRING([--enable-devpoll],[Force devpoll usage.])],[desired_iopoll_mechanism="devpoll"])
+  AC_ARG_ENABLE([rtsigio],[AS_HELP_STRING([--enable-rtsigio],[Force rtsigio usage.])],[desired_iopoll_mechanism="rtsigio"])
+  AC_ARG_ENABLE([poll],   [AS_HELP_STRING([--enable-poll],   [Force poll usage.])],   [desired_iopoll_mechanism="poll"]) 
+  AC_ARG_ENABLE([select], [AS_HELP_STRING([--enable-select], [Force select usage.])], [desired_iopoll_mechanism="select"])
   dnl }}}
   dnl {{{ preamble
   AC_MSG_CHECKING([for optimal/desired iopoll mechanism])
@@ -147,17 +147,17 @@ static unsigned int have_f_setsig = 0;
 ])dnl }}}
 dnl {{{ ax_arg_with_topiclen
 AC_DEFUN([AX_ARG_WITH_TOPICLEN],[
-  AC_ARG_WITH([topiclen],[AC_HELP_STRING([--with-topiclen=<value>],[Set topic length (default 160).])],[topiclen="$withval"],[topiclen="160"])
+  AC_ARG_WITH([topiclen],[AS_HELP_STRING([--with-topiclen=<value>],[Set topic length (default 160).])],[topiclen="$withval"],[topiclen="160"])
   AC_DEFINE_UNQUOTED([TOPICLEN],[($topiclen)],[Length of topics.]) 
 ])dnl }}}
 dnl {{{ ax_arg_with_nicklen
 AC_DEFUN([AX_ARG_WITH_NICKLEN],[
-  AC_ARG_WITH([nicklen],[AC_HELP_STRING([--with-nicklen=<value>],[Set nickname length (default 9).])],[nicklen="$withval"],[nicklen="9"])
+  AC_ARG_WITH([nicklen],[AS_HELP_STRING([--with-nicklen=<value>],[Set nickname length (default 9).])],[nicklen="$withval"],[nicklen="9"])
   AC_DEFINE_UNQUOTED([NICKLEN],[($nicklen+1)],[Length of nicknames.]) 
 ])dnl }}}
 dnl {{{ ax_arg_enable_efnet
 AC_DEFUN([AX_ARG_ENABLE_EFNET],[
-  AC_ARG_ENABLE([efnet],[AC_HELP_STRING([--enable-efnet],[For IRCDs running on EFnet.])],[efnet="$enableval"],[efnet="no"])
+  AC_ARG_ENABLE([efnet],[AS_HELP_STRING([--enable-efnet],[For IRCDs running on EFnet.])],[efnet="$enableval"],[efnet="no"])
   if test "$efnet" = "yes" ; then
 		use_efnet="yes"
     AC_DEFINE([EFNET],[1],[Define to 1 if this server will be an EFnet server.])
@@ -168,14 +168,14 @@ AC_DEFUN([AX_ARG_ENABLE_EFNET],[
 ])dnl }}}
 dnl {{{ ax_arg_enable_halfops
 AC_DEFUN([AX_ARG_ENABLE_HALFOPS],[
-  AC_ARG_ENABLE([halfops],[AC_HELP_STRING([--enable-halfops],[Enable halfops support.])],[halfops="$enableval"],[halfops="no"])
+  AC_ARG_ENABLE([halfops],[AS_HELP_STRING([--enable-halfops],[Enable halfops support.])],[halfops="$enableval"],[halfops="no"])
   if test "$halfops" = "yes" ; then
     AC_DEFINE([HALFOPS],[1],[Define to 1 if you want halfops support.])
   fi
 ])dnl }}}
 dnl {{{ ax_arg_enable_debugging
 AC_DEFUN([AX_ARG_ENABLE_DEBUGGING],[
-  AC_ARG_ENABLE([debugging],[AC_HELP_STRING([--enable-debugging],[Enable debugging.])],[debugging="$enableval"],[debugging="no"])
+  AC_ARG_ENABLE([debugging],[AS_HELP_STRING([--enable-debugging],[Enable debugging.])],[debugging="$enableval"],[debugging="no"])
   if test "$debugging" = "yes" ; then
     AC_DEFINE([DEBUG],[1],[Define to 1 to enable debugging.])
     CFLAGS="-Wall -g -O0"
@@ -185,7 +185,7 @@ AC_DEFUN([AX_ARG_ENABLE_DEBUGGING],[
 ])dnl }}}
 dnl {{{ ax_arg_enable_warnings
 AC_DEFUN([AX_ARG_ENABLE_WARNINGS],[
-  AC_ARG_ENABLE([warnings],[AC_HELP_STRING([--enable-warnings],[Enable compiler warnings.])],[warnings="$enableval"],[warnings="no"])
+  AC_ARG_ENABLE([warnings],[AS_HELP_STRING([--enable-warnings],[Enable compiler warnings.])],[warnings="$enableval"],[warnings="no"])
   if test "$warnings" = "yes" ; then
     CFLAGS="-Wall -Wextra -Wno-unused -Wcast-qual -Wcast-align -Wbad-function-cast -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wundef"
   fi
