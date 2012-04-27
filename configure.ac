@@ -3,9 +3,9 @@
 
 AC_REVISION([$Id$])
 
-AC_PREREQ(2.68)
+AC_PREREQ(2.69)
 AC_INIT([ircd-hybrid], [8beta1], [bugs@ircd-hybrid.org])
-AM_INIT_AUTOMAKE(1.11.5)
+AM_INIT_AUTOMAKE(1.12)
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src/ircd.c)
