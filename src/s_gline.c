@@ -95,7 +95,7 @@ static void
 expire_pending_glines(struct gline_pending *in)
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
-  int idx = 0;
+  unsigned int idx = 0;
 
   for (; idx < GLINE_PENDING_ADD_TYPE + 1; ++idx)
   {
@@ -110,7 +110,5 @@ expire_pending_glines(struct gline_pending *in)
         MyFree(glp_ptr);
       }
     }
-
-    ptr = NULL, next_ptr = NULL;
   }
 }

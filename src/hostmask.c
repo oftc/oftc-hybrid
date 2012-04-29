@@ -774,8 +774,6 @@ clear_out_address_conf(void)
  
   for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    ptr = ptr_next = NULL;
-
     DLINK_FOREACH_SAFE(ptr, ptr_next, atable[i].head)
     {
       struct AddressRec *arec = ptr->data;
@@ -832,8 +830,6 @@ hostmask_expire_temporary(void)
 
   for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    ptr = ptr_next = NULL;
-
     DLINK_FOREACH_SAFE(ptr, ptr_next, atable[i].head)
     {
       struct AddressRec *arec = ptr->data;

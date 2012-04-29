@@ -642,8 +642,6 @@ stats_deny(struct Client *source_p)
 
   for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    ptr = NULL;
-
     DLINK_FOREACH(ptr, atable[i].head)
     {
       struct AddressRec *arec = ptr->data;
@@ -683,8 +681,6 @@ stats_tdeny(struct Client *source_p)
 
   for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    ptr = NULL;
-
     DLINK_FOREACH(ptr, atable[i].head)
     {
       struct AddressRec *arec = ptr->data;
@@ -731,8 +727,6 @@ stats_exempt(struct Client *source_p)
 
   for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    ptr = NULL;
-
     DLINK_FOREACH(ptr, atable[i].head)
     {
       struct AddressRec *arec = ptr->data;
@@ -867,11 +861,9 @@ stats_glines(struct Client *source_p)
 
   for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    ptr = NULL;
-
     DLINK_FOREACH(ptr, atable[i].head)
     {
-      struct AddressRec *arec = ptr->data;
+      const struct AddressRec *arec = ptr->data;
 
       if (arec->type == CONF_GLINE)
       {
@@ -967,8 +959,6 @@ report_auth(struct Client *client_p)
 
   for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    ptr = NULL;
-
     DLINK_FOREACH(ptr, atable[i].head)
     {
       struct AddressRec *arec = ptr->data;
@@ -1069,8 +1059,6 @@ report_Klines(struct Client *client_p, int tkline)
 
   for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    ptr = NULL;
-
     DLINK_FOREACH(ptr, atable[i].head)
     {
       struct AddressRec *arec = ptr->data;
