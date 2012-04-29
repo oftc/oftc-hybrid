@@ -93,9 +93,8 @@ cleanup_glines(void *unused)
 static void
 expire_pending_glines(void)
 {
-  dlink_node *ptr;
-  dlink_node *next_ptr;
-  struct gline_pending *glp_ptr;
+  dlink_node *ptr = NULL, *next_ptr = NULL;
+  unsigned int idx = 0;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, pending_glines.head)
   {
