@@ -1022,9 +1022,6 @@ oper_name: NAME '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    if (strlen(yylval.string) > OPERNICKLEN)
-      yylval.string[OPERNICKLEN] = '\0';
-
     MyFree(yy_conf->name);
     DupString(yy_conf->name, yylval.string);
   }

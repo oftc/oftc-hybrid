@@ -49,7 +49,6 @@
 #define KICKLEN         160
 #define AWAYLEN         160
 #define KEYLEN          23
-#define OPERNICKLEN     NICKLEN*2 /* Length of OPERNICKs. */
 
 #define USERHOST_REPLYLEN       (NICKLEN+HOSTLEN+USERLEN+5)
 #define MAX_DATE_STRING 32      /* maximum string length for a date string */
