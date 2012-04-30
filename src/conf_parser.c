@@ -4693,7 +4693,7 @@ yyreduce:
 #line 1393 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    PingFreq(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->ping_freq = (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4703,7 +4703,7 @@ yyreduce:
 #line 1399 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    PingWarning(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->ping_warning = (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4713,7 +4713,7 @@ yyreduce:
 #line 1405 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    MaxPerIp(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->max_perip = (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4723,7 +4723,7 @@ yyreduce:
 #line 1411 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    ConFreq(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->con_freq = (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4733,7 +4733,7 @@ yyreduce:
 #line 1417 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    MaxTotal(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->max_total = (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4743,7 +4743,7 @@ yyreduce:
 #line 1423 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    MaxGlobal(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->max_global = (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4753,7 +4753,7 @@ yyreduce:
 #line 1429 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    MaxLocal(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->max_local = (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4763,7 +4763,7 @@ yyreduce:
 #line 1435 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    MaxIdent(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->max_ident = (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4773,7 +4773,7 @@ yyreduce:
 #line 1441 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    MaxSendq(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->max_sendq = (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4783,7 +4783,7 @@ yyreduce:
 #line 1447 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    CidrBitlenIPV4(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->cidr_bitlen_ipv4 = (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4793,7 +4793,7 @@ yyreduce:
 #line 1453 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    CidrBitlenIPV6(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->cidr_bitlen_ipv6 = (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4803,7 +4803,7 @@ yyreduce:
 #line 1459 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    NumberPerCidr(yy_class) = (yyvsp[(3) - (4)].number);
+    yy_class->number_per_cidr = (yyvsp[(3) - (4)].number);
 }
     break;
 

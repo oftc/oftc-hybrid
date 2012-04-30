@@ -324,10 +324,10 @@ make_conf_item(ConfType type)
 
     aclass = map_to_conf(conf);
     aclass->active = 1;
-    ConFreq(aclass) = DEFAULT_CONNECTFREQUENCY;
-    PingFreq(aclass) = DEFAULT_PINGFREQUENCY;
-    MaxTotal(aclass) = MAXIMUM_LINKS_DEFAULT;
-    MaxSendq(aclass) = DEFAULT_SENDQ;
+    aclass->con_freq = DEFAULT_CONNECTFREQUENCY;
+    aclass->ping_freq = DEFAULT_PINGFREQUENCY;
+    aclass->max_total = MAXIMUM_LINKS_DEFAULT;
+    aclass->max_sendq = DEFAULT_SENDQ;
 
     break;
 
@@ -701,10 +701,10 @@ report_confitem_types(struct Client *source_p, ConfType type)
       classitem = map_to_conf(conf);
       sendto_one(source_p, form_str(RPL_STATSYLINE),
 		 me.name, source_p->name, 'Y',
-		 conf->name, PingFreq(classitem),
-		 ConFreq(classitem),
-		 MaxTotal(classitem), MaxSendq(classitem),
-                 CurrUserCount(classitem),
+		 conf->name, classitem->ping_freq,
+		 classitem->con_freq,
+		 classitem->max_total, classitem->max_sendq,
+                 classitem->curr_user_count,
                  classitem->active ? "active" : "disabled");
     }
     break;
@@ -1014,15 +1014,15 @@ attach_iline(struct Client *client_p, struct ConfItem *conf)
    * setting a_limit_reached if any limit is reached.
    * - Dianora
    */
-  if (MaxTotal(aclass) != 0 && CurrUserCount(aclass) >= MaxTotal(aclass))
+  if (aclass->max_total != 0 && aclass->curr_user_count >= aclass->max_total)
     a_limit_reached = 1;
-  else if (MaxPerIp(aclass) != 0 && ip_found->count > MaxPerIp(aclass))
+  else if (aclass->max_perip != 0 && ip_found->count > aclass->max_perip)
     a_limit_reached = 1;
-  else if (MaxLocal(aclass) != 0 && local >= MaxLocal(aclass))
+  else if (aclass->max_local != 0 && local >= aclass->max_local)
     a_limit_reached = 1;
-  else if (MaxGlobal(aclass) != 0 && global >= MaxGlobal(aclass))
+  else if (aclass->max_global != 0 && global >= aclass->max_global)
     a_limit_reached = 1;
-  else if (MaxIdent(aclass) != 0 && ident >= MaxIdent(aclass) &&
+  else if (aclass->max_ident != 0 && ident >= aclass->max_ident &&
            client_p->username[0] != '~')
     a_limit_reached = 1;
 
@@ -1305,7 +1305,7 @@ detach_conf(struct Client *client_p, ConfType type)
 
         assert(aconf->clients > 0);
 
-        if ((aclass_conf = ClassPtr(aconf)) != NULL)
+        if ((aclass_conf = aconf->class_ptr) != NULL)
         {
           aclass = map_to_conf(aclass_conf);
 
@@ -1371,7 +1371,7 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
                              &client_p->localClient->ip, aclass))
         return TOO_MANY;    /* Already at maximum allowed */
 
-    CurrUserCount(aclass)++;
+    aclass->curr_user_count++;
     aconf->clients++;
   }
   else if (conf->type == HUB_TYPE || conf->type == LEAF_TYPE)
@@ -1467,7 +1467,7 @@ find_conf_exact(ConfType type, const char *name, const char *user,
     {
       struct ClassItem *aclass = map_to_conf(aconf->class_ptr);
 
-      if (aconf->clients >= MaxTotal(aclass))
+      if (aconf->clients >= aclass->max_total)
 	continue;
     }
 
@@ -2724,8 +2724,8 @@ get_conf_ping(struct ConfItem *conf, int *pingwarn)
     if (aconf->class_ptr != NULL)
     {
       aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
-      *pingwarn = PingWarning(aclass);
-      return PingFreq(aclass);
+      *pingwarn = aclass->ping_warning;
+      return aclass->ping_freq;
     }
   }
 
@@ -2829,7 +2829,7 @@ check_class(void)
   {
     struct ClassItem *aclass = map_to_conf(ptr->data);
 
-    if (!aclass->active && !CurrUserCount(aclass))
+    if (!aclass->active && !aclass->curr_user_count)
     {
       destroy_cidr_class(aclass);
       delete_conf_item(ptr->data);
@@ -2853,10 +2853,10 @@ init_class(void)
   aclass = map_to_conf(class_default);
   aclass->active = 1;
   DupString(class_default->name, "default");
-  ConFreq(aclass)  = DEFAULT_CONNECTFREQUENCY;
-  PingFreq(aclass) = DEFAULT_PINGFREQUENCY;
-  MaxTotal(aclass) = MAXIMUM_LINKS_DEFAULT;
-  MaxSendq(aclass) = DEFAULT_SENDQ;
+  aclass->con_freq  = DEFAULT_CONNECTFREQUENCY;
+  aclass->ping_freq = DEFAULT_PINGFREQUENCY;
+  aclass->max_total = MAXIMUM_LINKS_DEFAULT;
+  aclass->max_sendq = DEFAULT_SENDQ;
 
   client_check_cb = register_callback("check_client", check_client);
 }
@@ -2889,7 +2889,7 @@ get_sendq(struct Client *client_p)
 	if ((class_conf = aconf->class_ptr) == NULL)
 	  continue;
 	aclass = (struct ClassItem *)map_to_conf(class_conf);
-	sendq = MaxSendq(aclass);
+	sendq = aclass->max_sendq;
 	return sendq;
       }
     }
@@ -3568,20 +3568,20 @@ cidr_limit_reached(int over_rule,
   dlink_node *ptr = NULL;
   struct CidrItem *cidr;
 
-  if (NumberPerCidr(aclass) <= 0)
+  if (aclass->number_per_cidr <= 0)
     return 0;
 
   if (ip->ss.ss_family == AF_INET)
   {
-    if (CidrBitlenIPV4(aclass) <= 0)
+    if (aclass->cidr_bitlen_ipv4 <= 0)
       return 0;
 
     DLINK_FOREACH(ptr, aclass->list_ipv4.head)
     {
       cidr = ptr->data;
-      if (match_ipv4(ip, &cidr->mask, CidrBitlenIPV4(aclass)))
+      if (match_ipv4(ip, &cidr->mask, aclass->cidr_bitlen_ipv4))
       {
-        if (!over_rule && (cidr->number_on_this_cidr >= NumberPerCidr(aclass)))
+        if (!over_rule && (cidr->number_on_this_cidr >= aclass->number_per_cidr))
           return -1;
         cidr->number_on_this_cidr++;
         return 0;
@@ -3590,18 +3590,18 @@ cidr_limit_reached(int over_rule,
     cidr = MyMalloc(sizeof(struct CidrItem));
     cidr->number_on_this_cidr = 1;
     cidr->mask = *ip;
-    mask_addr(&cidr->mask, CidrBitlenIPV4(aclass));
+    mask_addr(&cidr->mask, aclass->cidr_bitlen_ipv4);
     dlinkAdd(cidr, &cidr->node, &aclass->list_ipv4);
   }
 #ifdef IPV6
-  else if (CidrBitlenIPV6(aclass) > 0)
+  else if (aclass->cidr_bitlen_ipv6 > 0)
   {
     DLINK_FOREACH(ptr, aclass->list_ipv6.head)
     {
       cidr = ptr->data;
-      if (match_ipv6(ip, &cidr->mask, CidrBitlenIPV6(aclass)))
+      if (match_ipv6(ip, &cidr->mask, aclass->cidr_bitlen_ipv6))
       {
-        if (!over_rule && (cidr->number_on_this_cidr >= NumberPerCidr(aclass)))
+        if (!over_rule && (cidr->number_on_this_cidr >= aclass->number_per_cidr))
           return -1;
         cidr->number_on_this_cidr++;
         return 0;
@@ -3610,7 +3610,7 @@ cidr_limit_reached(int over_rule,
     cidr = MyMalloc(sizeof(struct CidrItem));
     cidr->number_on_this_cidr = 1;
     cidr->mask = *ip;
-    mask_addr(&cidr->mask, CidrBitlenIPV6(aclass));
+    mask_addr(&cidr->mask, aclass->cidr_bitlen_ipv6);
     dlinkAdd(cidr, &cidr->node, &aclass->list_ipv6);
   }
 #endif
@@ -3632,18 +3632,18 @@ remove_from_cidr_check(struct irc_ssaddr *ip, struct ClassItem *aclass)
   dlink_node *next_ptr = NULL;
   struct CidrItem *cidr;
 
-  if (NumberPerCidr(aclass) == 0)
+  if (aclass->number_per_cidr == 0)
     return;
 
   if (ip->ss.ss_family == AF_INET)
   {
-    if (CidrBitlenIPV4(aclass) <= 0)
+    if (aclass->cidr_bitlen_ipv4 <= 0)
       return;
 
     DLINK_FOREACH_SAFE(ptr, next_ptr, aclass->list_ipv4.head)
     {
       cidr = ptr->data;
-      if (match_ipv4(ip, &cidr->mask, CidrBitlenIPV4(aclass)))
+      if (match_ipv4(ip, &cidr->mask, aclass->cidr_bitlen_ipv4))
       {
 	cidr->number_on_this_cidr--;
 	if (cidr->number_on_this_cidr == 0)
@@ -3656,12 +3656,12 @@ remove_from_cidr_check(struct irc_ssaddr *ip, struct ClassItem *aclass)
     }
   }
 #ifdef IPV6
-  else if (CidrBitlenIPV6(aclass) > 0)
+  else if (aclass->cidr_bitlen_ipv6 > 0)
   {
     DLINK_FOREACH_SAFE(ptr, next_ptr, aclass->list_ipv6.head)
     {
       cidr = ptr->data;
-      if (match_ipv6(ip, &cidr->mask, CidrBitlenIPV6(aclass)))
+      if (match_ipv6(ip, &cidr->mask, aclass->cidr_bitlen_ipv6))
       {
 	cidr->number_on_this_cidr--;
 	if (cidr->number_on_this_cidr == 0)
@@ -3724,18 +3724,18 @@ rebuild_cidr_class(struct ConfItem *conf, struct ClassItem *new_class)
 {
   struct ClassItem *old_class = map_to_conf(conf);
 
-  if (NumberPerCidr(old_class) > 0 && NumberPerCidr(new_class) > 0)
+  if (old_class->number_per_cidr > 0 && new_class->number_per_cidr > 0)
   {
-    if (CidrBitlenIPV4(old_class) > 0 && CidrBitlenIPV4(new_class) > 0)
+    if (old_class->cidr_bitlen_ipv4 > 0 && new_class->cidr_bitlen_ipv4 > 0)
       rebuild_cidr_list(AF_INET, conf, new_class,
                         &old_class->list_ipv4, &new_class->list_ipv4,
-                        CidrBitlenIPV4(old_class) != CidrBitlenIPV4(new_class));
+                        old_class->cidr_bitlen_ipv4 != new_class->cidr_bitlen_ipv4);
 
 #ifdef IPV6
-    if (CidrBitlenIPV6(old_class) > 0 && CidrBitlenIPV6(new_class) > 0)
+    if (old_class->cidr_bitlen_ipv6 > 0 && new_class->cidr_bitlen_ipv6 > 0)
       rebuild_cidr_list(AF_INET6, conf, new_class,
                         &old_class->list_ipv6, &new_class->list_ipv6,
-                        CidrBitlenIPV6(old_class) != CidrBitlenIPV6(new_class));
+                        old_class->cidr_bitlen_ipv6 != new_class->cidr_bitlen_ipv6);
 #endif
   }
 

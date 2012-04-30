@@ -63,7 +63,7 @@ mo_classlist(struct Client *client_p, struct Client *source_p,
       const struct ClassItem *aclass = map_to_conf(conf);
       sendto_one(source_p, ":%s NOTICE %s :%s %d",
                  me.name, source_p->name, conf->name,
-                 CurrUserCount(aclass));
+                 aclass->curr_user_count);
       found_class = 1;
     }
   }
