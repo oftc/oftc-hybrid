@@ -320,8 +320,6 @@ struct config_file_entry
   const char *cresvfile;
   const char *nresvfile;
 
-  char *logpath;
-  char *operlog;
   char *egdpool_path;
   char *service_name;
 
