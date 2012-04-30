@@ -228,7 +228,7 @@ close_connection(struct Client *client_p)
       aclass = map_to_conf(aconf->class_ptr);
       aconf->hold = time(NULL);
       aconf->hold += (aconf->hold - client_p->localClient->since > HANGONGOODLINK) ?
-        HANGONRETRYDELAY : ConFreq(aclass);
+        HANGONRETRYDELAY : aclass->con_freq;
     }
   }
   else

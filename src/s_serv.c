@@ -324,8 +324,8 @@ try_connections(void *unused)
       confrq = DEFAULT_CONNECTFREQUENCY;
     else
     {
-      confrq = ConFreq(cltmp);
-      if (confrq < MIN_CONN_FREQ )
+      confrq = cltmp->con_freq;
+      if (confrq < MIN_CONN_FREQ)
 	confrq = MIN_CONN_FREQ;
     }
 
@@ -337,7 +337,7 @@ try_connections(void *unused)
     if (hash_find_server(conf->name) != NULL)
       continue;
 
-    if (CurrUserCount(cltmp) < MaxTotal(cltmp))
+    if (cltmp->curr_user_count < cltmp->max_total)
     {
       /* Go to the end of the list, if not already last */
       if (ptr->next != NULL)

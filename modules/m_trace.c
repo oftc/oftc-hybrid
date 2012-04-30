@@ -285,9 +285,9 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
     conf = ptr->data;
     cltmp = map_to_conf(conf);
 
-    if (CurrUserCount(cltmp) > 0)
+    if (cltmp->curr_user_count > 0)
       sendto_one(source_p, form_str(RPL_TRACECLASS),
-                 from, to, conf->name, CurrUserCount(cltmp));
+                 from, to, conf->name, cltmp->curr_user_count);
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFTRACE), from, to, tname);

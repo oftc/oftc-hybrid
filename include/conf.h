@@ -180,22 +180,6 @@ struct ip_entry
   struct ip_entry *next;
 };
 
-#define ConFreq(x)	((x)->con_freq)
-#define PingFreq(x)	((x)->ping_freq)
-#define PingWarning(x)  ((x)->ping_warning)
-#define MaxTotal(x)	((x)->max_total)
-#define MaxGlobal(x)	((x)->max_global)
-#define MaxLocal(x)	((x)->max_local)
-#define MaxIdent(x)	((x)->max_ident)
-#define MaxPerIp(x)	((x)->max_perip)
-#define MaxSendq(x)	((x)->max_sendq)
-#define CurrUserCount(x) ((x)->curr_user_count)
-#define CidrBitlenIPV4(x)	((x)->cidr_bitlen_ipv4)
-#define CidrBitlenIPV6(x)	((x)->cidr_bitlen_ipv6)
-#define NumberPerCidr(x) ((x)->number_per_cidr)
-
-#define ClassPtr(x)      ((x)->class_ptr)
-
 
 #define CONF_ILLEGAL            0x80000000
 #define CONF_RESERVED           0x00000001

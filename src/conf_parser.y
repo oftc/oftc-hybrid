@@ -1451,73 +1451,73 @@ class_name: NAME '=' QSTRING ';'
 class_ping_time: PING_TIME '=' timespec ';'
 {
   if (conf_parser_ctx.pass == 1)
-    PingFreq(yy_class) = $3;
+    yy_class->ping_freq = $3;
 };
 
 class_ping_warning: PING_WARNING '=' timespec ';'
 {
   if (conf_parser_ctx.pass == 1)
-    PingWarning(yy_class) = $3;
+    yy_class->ping_warning = $3;
 };
 
 class_number_per_ip: NUMBER_PER_IP '=' NUMBER ';'
 {
   if (conf_parser_ctx.pass == 1)
-    MaxPerIp(yy_class) = $3;
+    yy_class->max_perip = $3;
 };
 
 class_connectfreq: CONNECTFREQ '=' timespec ';'
 {
   if (conf_parser_ctx.pass == 1)
-    ConFreq(yy_class) = $3;
+    yy_class->con_freq = $3;
 };
 
 class_max_number: MAX_NUMBER '=' NUMBER ';'
 {
   if (conf_parser_ctx.pass == 1)
-    MaxTotal(yy_class) = $3;
+    yy_class->max_total = $3;
 };
 
 class_max_global: MAX_GLOBAL '=' NUMBER ';'
 {
   if (conf_parser_ctx.pass == 1)
-    MaxGlobal(yy_class) = $3;
+    yy_class->max_global = $3;
 };
 
 class_max_local: MAX_LOCAL '=' NUMBER ';'
 {
   if (conf_parser_ctx.pass == 1)
-    MaxLocal(yy_class) = $3;
+    yy_class->max_local = $3;
 };
 
 class_max_ident: MAX_IDENT '=' NUMBER ';'
 {
   if (conf_parser_ctx.pass == 1)
-    MaxIdent(yy_class) = $3;
+    yy_class->max_ident = $3;
 };
 
 class_sendq: SENDQ '=' sizespec ';'
 {
   if (conf_parser_ctx.pass == 1)
-    MaxSendq(yy_class) = $3;
+    yy_class->max_sendq = $3;
 };
 
 class_cidr_bitlen_ipv4: CIDR_BITLEN_IPV4 '=' NUMBER ';'
 {
   if (conf_parser_ctx.pass == 1)
-    CidrBitlenIPV4(yy_class) = $3;
+    yy_class->cidr_bitlen_ipv4 = $3;
 };
 
 class_cidr_bitlen_ipv6: CIDR_BITLEN_IPV6 '=' NUMBER ';'
 {
   if (conf_parser_ctx.pass == 1)
-    CidrBitlenIPV6(yy_class) = $3;
+    yy_class->cidr_bitlen_ipv6 = $3;
 };
 
 class_number_per_cidr: NUMBER_PER_CIDR '=' NUMBER ';'
 {
   if (conf_parser_ctx.pass == 1)
-    NumberPerCidr(yy_class) = $3;
+    yy_class->number_per_cidr = $3;
 };
 
 class_reject_message: REJECT_MESSAGE '=' QSTRING ';'
