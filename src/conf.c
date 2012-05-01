@@ -2967,7 +2967,7 @@ get_sendq(struct Client *client_p)
   struct ClassItem *aclass;
   struct AccessItem *aconf;
 
-  assert(IsMe(client_p));
+  assert(!IsMe(client_p));
 
   if ((cnode = client_p->localClient->confs.head))
   {
