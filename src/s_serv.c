@@ -457,25 +457,6 @@ check_server(const char *name, struct Client *client_p)
 
   attach_conf(client_p, server_conf);
 
-  /* Now find all leaf or hub config items for this server */
-  DLINK_FOREACH(ptr, hub_items.head)
-  {
-    conf = ptr->data;
-
-    if (!match(name, conf->name))
-      continue;
-    attach_conf(client_p, conf);
-  }
-
-  DLINK_FOREACH(ptr, leaf_items.head)
-  {
-    conf = ptr->data;
-
-    if (!match(name, conf->name))
-      continue;
-    attach_conf(client_p, conf);
-  }
-
   server_aconf = map_to_conf(server_conf);
 
   if (!IsConfTopicBurst(server_aconf))
