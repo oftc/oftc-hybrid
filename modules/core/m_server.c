@@ -293,7 +293,6 @@ ms_server(struct Client *client_p, struct Client *source_p,
     if (target_p != client_p)
       exit_client(target_p, &me, "Overridden");
 
-//  ptr = client_p->confs.head;
   aconf = map_to_conf(source_p->localClient->confs.head->data);
 
   /* See if the newly found server is behind a guaranteed
@@ -484,6 +483,8 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   if ((target_p = find_servconn_in_progress(parv[1])))
     if (target_p != client_p)
       exit_client(target_p, &me, "Overridden");
+
+  aconf = map_to_conf(source_p->localClient->confs.head->data);
 
   /* See if the newly found server is behind a guaranteed
    * leaf. If so, close the link.
