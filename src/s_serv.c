@@ -681,7 +681,7 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
   }
 #endif
 
-  if (IsConfAwayBurst((struct AccessItem *)map_to_conf(client_p->serv->sconf)))
+  if (IsConfAwayBurst((struct AccessItem *)map_to_conf(client_p->localClient->confs.head->data)))
     if (!EmptyString(target_p->away))
       sendto_one(client_p, ":%s AWAY :%s", target_p->name,
                  target_p->away);
@@ -895,8 +895,6 @@ server_estab(struct Client *client_p)
     ilog(LOG_TYPE_IRCD, "Link with %s established: (Capabilities: %s)",
          inpath_ip, show_capabilities(client_p));
   }
-
-  client_p->serv->sconf = conf;
 
   fd_note(&client_p->localClient->fd, "Server: %s", client_p->name);
 
