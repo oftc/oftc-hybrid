@@ -2502,19 +2502,6 @@ clear_out_old_conf(void)
 	  delete_conf_item(conf);
 	}
       }
-      else if (conf->type == CLIENT_TYPE)
-      {
-	aconf = map_to_conf(conf);
-
-	if (aconf->clients != 0)
-        {
-	  SetConfIllegal(aconf);
-	}
-	else
-	{
-	  delete_conf_item(conf);
-	}
-      }
       else if (conf->type == XLINE_TYPE  ||
                conf->type == RXLINE_TYPE ||
                conf->type == RKLINE_TYPE)
