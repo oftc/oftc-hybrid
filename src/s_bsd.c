@@ -176,11 +176,11 @@ init_comm(void)
 void
 close_connection(struct Client *client_p)
 {
-  struct ConfItem *conf;
   struct AccessItem *aconf;
   struct ClassItem *aclass;
+  dlink_node *ptr = NULL;
 
-  assert(NULL != client_p);
+  assert(client_p);
 
   if (!IsDead(client_p))
   {
@@ -207,28 +207,20 @@ close_connection(struct Client *client_p)
     ServerStats.is_sbr += client_p->localClient->recv.bytes;
     ServerStats.is_sti += CurrentTime - client_p->localClient->firsttime;
 
-    /* XXX Does this even make any sense at all anymore?
-     * scheduling a 'quick' reconnect could cause a pile of
-     * nick collides under TSora protocol... -db
-     */
-    /*
-     * If the connection has been up for a long amount of time, schedule
-     * a 'quick' reconnect, else reset the next-connect cycle.
-     */
-    if ((conf = find_conf_exact(SERVER_TYPE, client_p->name,
-                                client_p->username, client_p->host)))
+    DLINK_FOREACH(ptr, server_items.head)
     {
+      struct ConfItem *conf = ptr->data;
+
+      if (irccmp(conf->name, client_p->name))
+        continue;
+
       /*
-       * Reschedule a faster reconnect, if this was a automatically
-       * connected configuration entry. (Note that if we have had
-       * a rehash in between, the status has been changed to
-       * CONF_ILLEGAL). But only do this if it was a "good" link.
+       * Reset next-connect cycle of all connect{} blocks that match
+       * this servername.
        */
       aconf  = map_to_conf(conf);
       aclass = map_to_conf(aconf->class_ptr);
-      aconf->hold = time(NULL);
-      aconf->hold += (aconf->hold - client_p->localClient->since > HANGONGOODLINK) ?
-        HANGONRETRYDELAY : aclass->con_freq;
+      aconf->hold = CurrentTime + aclass->con_freq;
     }
   }
   else

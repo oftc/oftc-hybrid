@@ -78,14 +78,13 @@
 #define OPATH   ETCPATH "/opers.motd"           /* oper MOTD file */
 #define LIPATH  ETCPATH "/links.txt"            /* cached links file */
 
-/* this file is included to supply default
- * values for things which are now configurable at runtime.
+/*
+ * This file is included to supply default values for things which
+ * are now configurable at runtime.
  */
 
-#define HANGONRETRYDELAY 60     /* Recommended value: 30-60 seconds */
 #define HYBRID_SOMAXCONN 25
 #define MAX_TDKLINE_TIME	(24*60*360)
-#define HANGONGOODLINK 3600     /* Recommended value: 30-60 minutes */
 
 /* tests show that about 7 fds are not registered by fdlist.c, these
  * include std* descriptors + some others (by OpenSSL etc.). Note this is
