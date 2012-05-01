@@ -61,7 +61,6 @@ enum addr_mask_type
 /*! \brief Server structure */
 struct Server
 {
-  struct ConfItem *sconf; /**< ConfItem connect{} pointer for this server */
   dlink_list server_list; /**< Servers on this server */
   dlink_list client_list; /**< Clients on this server */
   char by[NICKLEN];       /**< who activated this connection */
