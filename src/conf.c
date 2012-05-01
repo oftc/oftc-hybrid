@@ -3316,22 +3316,11 @@ match_conf_password(const char *password, const struct AccessItem *aconf)
 {
   const char *encr = NULL;
 
-  if (password == NULL || aconf->passwd == NULL)
+  if (EmptyString(password) || EmptyString(aconf->passwd))
     return 0;
 
   if (aconf->flags & CONF_FLAGS_ENCRYPTED)
-  {
-    /* use first two chars of the password they send in as salt */
-    /* If the password in the conf is MD5, and ircd is linked
-     * to scrypt on FreeBSD, or the standard crypt library on
-     * glibc Linux, then this code will work fine on generating
-     * the proper encrypted hash for comparison.
-     */
-    if (*aconf->passwd)
-      encr = crypt(password, aconf->passwd);
-    else
-      encr = "";
-  }
+    encr = crypt(password, aconf->passwd);
   else
     encr = password;
 
