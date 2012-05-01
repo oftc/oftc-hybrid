@@ -123,8 +123,8 @@ struct AccessItem
   int              clients;  /* Number of *LOCAL* clients using this */
   int              bits;
   int              type;
-  struct irc_ssaddr my_ipnum; /* ip to bind to for outgoing connect */
-  struct irc_ssaddr ipnum;	/* ip to connect to */
+  struct irc_ssaddr bind;  /* ip to bind to for outgoing connect */
+  struct irc_ssaddr addr;  /* ip to connect to */
   char *           host;     /* host part of user@host */
   char *           passwd;
   char *           spasswd;  /* Password to send. */

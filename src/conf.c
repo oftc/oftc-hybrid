@@ -161,7 +161,7 @@ conf_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
   aconf->dns_pending = 0;
 
   if (addr != NULL)
-    memcpy(&aconf->ipnum, addr, sizeof(aconf->ipnum));
+    memcpy(&aconf->addr, addr, sizeof(aconf->addr));
   else
     aconf->dns_failed = 1;
 }
@@ -1683,13 +1683,13 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
               break;
             case HM_IPV4:
               if (who->localClient->aftype == AF_INET)
-                if (match_ipv4(&who->localClient->ip, &aconf->ipnum, aconf->bits))
+                if (match_ipv4(&who->localClient->ip, &aconf->addr, aconf->bits))
                   return conf;
               break;
 #ifdef IPV6
             case HM_IPV6:
               if (who->localClient->aftype == AF_INET6)
-                if (match_ipv6(&who->localClient->ip, &aconf->ipnum, aconf->bits))
+                if (match_ipv6(&who->localClient->ip, &aconf->addr, aconf->bits))
                   return conf;
               break;
 #endif
@@ -1997,9 +1997,9 @@ lookup_confhost(struct ConfItem *conf)
 
   assert(res != NULL);
 
-  memcpy(&aconf->ipnum, res->ai_addr, res->ai_addrlen);
-  aconf->ipnum.ss_len = res->ai_addrlen;
-  aconf->ipnum.ss.ss_family = res->ai_family;
+  memcpy(&aconf->addr, res->ai_addr, res->ai_addrlen);
+  aconf->addr.ss_len = res->ai_addrlen;
+  aconf->addr.ss.ss_family = res->ai_family;
   freeaddrinfo(res);
 }
 

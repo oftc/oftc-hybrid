@@ -939,7 +939,7 @@ oper_entry: OPERATOR
       else
 	DupString(new_aconf->host, "*");
 
-      new_aconf->type = parse_netmask(new_aconf->host, &new_aconf->ipnum,
+      new_aconf->type = parse_netmask(new_aconf->host, &new_aconf->addr,
                                      &new_aconf->bits);
 
       conf_add_class_to_conf(new_conf, class_name);
@@ -1024,7 +1024,7 @@ oper_user: USER '=' QSTRING ';'
       DupString(yy_aconf->user, userbuf);
       DupString(yy_aconf->host, hostbuf);
 
-      yy_aconf->type = parse_netmask(yy_aconf->host, &yy_aconf->ipnum,
+      yy_aconf->type = parse_netmask(yy_aconf->host, &yy_aconf->addr,
                                     &yy_aconf->bits);
     }
     else
@@ -2117,9 +2117,9 @@ connect_vhost: VHOST '=' QSTRING ';'
     {
       assert(res != NULL);
 
-      memcpy(&yy_aconf->my_ipnum, res->ai_addr, res->ai_addrlen);
-      yy_aconf->my_ipnum.ss.ss_family = res->ai_family;
-      yy_aconf->my_ipnum.ss_len = res->ai_addrlen;
+      memcpy(&yy_aconf->bind, res->ai_addr, res->ai_addrlen);
+      yy_aconf->bind.ss.ss_family = res->ai_family;
+      yy_aconf->bind.ss_len = res->ai_addrlen;
       freeaddrinfo(res);
     }
   }
