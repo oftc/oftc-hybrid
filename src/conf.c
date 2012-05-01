@@ -2683,25 +2683,21 @@ get_conf_ping(struct ConfItem *conf, int *pingwarn)
 const char *
 get_client_class(struct Client *target_p)
 {
-  dlink_node *ptr;
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
+  dlink_node *cnode = NULL;
+  struct AccessItem *aconf = NULL;
 
-  if (target_p != NULL && !IsMe(target_p) &&
-      target_p->localClient->confs.head != NULL)
+  assert(!IsMe(target_p));
+
+  if ((cnode = target_p->localClient->confs.head))
   {
-    DLINK_FOREACH(ptr, target_p->localClient->confs.head)
-    {
-      conf = ptr->data;
+    struct ConfItem *conf = cnode->data;
 
-      if (conf->type == CLIENT_TYPE || conf->type == SERVER_TYPE ||
-          conf->type == OPER_TYPE)
-      {
-        aconf = (struct AccessItem *) map_to_conf(conf);
-	if (aconf->class_ptr != NULL)
-	  return aconf->class_ptr->name;
-      }
-    }
+    assert((conf->type == CLIENT_TYPE) || (conf->type == SERVER_TYPE) ||
+          (conf->type == OPER_TYPE));
+
+    aconf = map_to_conf(conf);
+    if (aconf->class_ptr != NULL)
+      return aconf->class_ptr->name;
   }
 
   return "default";
@@ -2717,23 +2713,20 @@ get_client_class(struct Client *target_p)
 int
 get_client_ping(struct Client *target_p, int *pingwarn)
 {
-  int ping;
-  struct ConfItem *conf;
-  dlink_node *nlink;
+  int ping = 0;
+  dlink_node *cnode = NULL;
 
-  if (target_p->localClient->confs.head != NULL)
-    DLINK_FOREACH(nlink, target_p->localClient->confs.head)
-    {
-      conf = nlink->data;
+  if ((cnode = target_p->localClient->confs.head))
+  {
+    struct ConfItem *conf = cnode->data;
 
-      if ((conf->type == CLIENT_TYPE) || (conf->type == SERVER_TYPE) ||
-	  (conf->type == OPER_TYPE))
-      {
-        ping = get_conf_ping(conf, pingwarn);
-        if (ping > 0)
-          return ping;
-      }
-    }
+    assert((conf->type == CLIENT_TYPE) || (conf->type == SERVER_TYPE) ||
+          (conf->type == OPER_TYPE));
+
+    ping = get_conf_ping(conf, pingwarn);
+    if (ping > 0)
+      return ping;
+  }
 
   *pingwarn = 0;
   return DEFAULT_PINGFREQUENCY;
@@ -2813,29 +2806,30 @@ unsigned int
 get_sendq(struct Client *client_p)
 {
   unsigned int sendq = DEFAULT_SENDQ;
-  dlink_node *ptr;
-  struct ConfItem *conf;
+  dlink_node *cnode;
   struct ConfItem *class_conf;
   struct ClassItem *aclass;
   struct AccessItem *aconf;
 
-  if (client_p && !IsMe(client_p) && (client_p->localClient->confs.head))
+  assert(IsMe(client_p));
+
+  if ((cnode = client_p->localClient->confs.head))
   {
-    DLINK_FOREACH(ptr, client_p->localClient->confs.head)
-    {
-      conf = ptr->data;
-      if ((conf->type == SERVER_TYPE) || (conf->type == OPER_TYPE)
-	  || (conf->type == CLIENT_TYPE))
-      {
-	aconf = (struct AccessItem *)map_to_conf(conf);
-	if ((class_conf = aconf->class_ptr) == NULL)
-	  continue;
-	aclass = (struct ClassItem *)map_to_conf(class_conf);
-	sendq = aclass->max_sendq;
-	return sendq;
-      }
-    }
+    struct ConfItem *conf = cnode->data;
+
+    assert((conf->type == CLIENT_TYPE) || (conf->type == SERVER_TYPE) ||
+          (conf->type == OPER_TYPE));
+
+    aconf = map_to_conf(conf);
+
+    if ((class_conf = aconf->class_ptr) == NULL)
+      return DEFAULT_SENDQ; /* TBV: shouldn't be possible at all */
+
+    aclass = map_to_conf(class_conf);
+    sendq = aclass->max_sendq;
+    return sendq;
   }
+
   /* XXX return a default?
    * if here, then there wasn't an attached conf with a sendq
    * that is very bad -Dianora
