@@ -189,8 +189,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
   char info[REALLEN + 1];
   char *name;
   struct Client *target_p;
-  struct ConfItem *conf;
-  struct MatchItem *match_item;
+  struct AccessItem *aconf;
   int hop;
   int hlined = 0;
   int llined = 0;
@@ -262,34 +261,19 @@ ms_server(struct Client *client_p, struct Client *source_p,
     if (target_p != client_p)
       exit_client(target_p, &me, "Overridden");
 
+//  ptr = client_p->confs.head;
+  aconf = map_to_conf(source_p->localClient->confs.head->data);
+
   /* See if the newly found server is behind a guaranteed
    * leaf. If so, close the link.
    */
-  DLINK_FOREACH(ptr, leaf_items.head)
-  {
-    conf = ptr->data;
+  DLINK_FOREACH(ptr, aconf->leaf_list.head)
+    if (match(ptr->data, name))
+      ++llined;
 
-    if (match(conf->name, client_p->name))
-    {
-      match_item = map_to_conf(conf);
-
-      if (match(match_item->host, name))
-	llined++;
-    }
-  }
-
-  DLINK_FOREACH(ptr, hub_items.head)
-  {
-    conf = ptr->data;
-
-    if (match(conf->name, client_p->name))
-    {
-      match_item = map_to_conf(conf);
-
-      if (match(match_item->host, name))
-	hlined++;
-    }
-  }
+  DLINK_FOREACH(ptr, aconf->hub_list.head)
+    if (match(ptr->data, name))
+      ++hlined;
 
   /* Ok, this way this works is
    *
@@ -382,8 +366,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
 {
   char info[REALLEN + 1];
   struct Client *target_p;
-  struct ConfItem *conf;
-  struct MatchItem *match_item;
+  struct AccessItem *aconf = NULL;
   int hlined = 0;
   int llined = 0;
   dlink_node *ptr = NULL;
@@ -455,31 +438,14 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   /* See if the newly found server is behind a guaranteed
    * leaf. If so, close the link.
    */
-  DLINK_FOREACH(ptr, leaf_items.head)
-  {
-    conf = ptr->data;
+  DLINK_FOREACH(ptr, aconf->leaf_list.head)
+    if (match(ptr->data, parv[1]))
+      ++llined;
 
-    if (match(conf->name, client_p->name))
-    {
-      match_item = map_to_conf(conf);
+  DLINK_FOREACH(ptr, aconf->hub_list.head)
+    if (match(ptr->data, parv[1]))
+      ++hlined;
 
-      if (match(match_item->host, parv[1]))
-        llined++;
-    }
-  }
-
-  DLINK_FOREACH(ptr, hub_items.head)
-  {
-    conf = ptr->data;
-
-    if (match(conf->name, client_p->name))
-    {
-      match_item = map_to_conf(conf);
-
-      if (match(match_item->host, parv[1]))
-        hlined++;
-    }
-  }
 
   /* Ok, this way this works is
    *

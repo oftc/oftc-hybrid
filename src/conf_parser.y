@@ -67,8 +67,6 @@ static struct ClassItem *yy_class = NULL;
 static char *yy_class_name = NULL;
 
 static dlink_list col_conf_list  = { NULL, NULL, 0 };
-static dlink_list hub_conf_list  = { NULL, NULL, 0 };
-static dlink_list leaf_conf_list = { NULL, NULL, 0 };
 static unsigned int listener_flags = 0;
 static unsigned int regex_ban = 0;
 static char userbuf[IRCD_BUFSIZE];
@@ -107,29 +105,6 @@ free_collect_item(struct CollectItem *item)
   MyFree(item->rsa_public_key_file);
 #endif
   MyFree(item);
-}
-
-static void
-unhook_hub_leaf_confs(void)
-{
-  dlink_node *ptr;
-  dlink_node *next_ptr;
-  struct CollectItem *yy_hconf;
-  struct CollectItem *yy_lconf;
-
-  DLINK_FOREACH_SAFE(ptr, next_ptr, hub_conf_list.head)
-  {
-    yy_hconf = ptr->data;
-    dlinkDelete(&yy_hconf->node, &hub_conf_list);
-    free_collect_item(yy_hconf);
-  }
-
-  DLINK_FOREACH_SAFE(ptr, next_ptr, leaf_conf_list.head)
-  {
-    yy_lconf = ptr->data;
-    dlinkDelete(&yy_lconf->node, &leaf_conf_list);
-    free_collect_item(yy_lconf);
-  }
 }
 
 %}
@@ -2159,27 +2134,13 @@ connect_entry: CONNECT
 {
   if (conf_parser_ctx.pass == 2)
   {
-    struct CollectItem *yy_hconf=NULL;
-    struct CollectItem *yy_lconf=NULL;
-    dlink_node *ptr = NULL, *next_ptr = NULL;
-
-    if (yy_aconf->host &&
-        yy_aconf->passwd && yy_aconf->spasswd)
+    if (yy_aconf->host && yy_aconf->passwd && yy_aconf->spasswd)
     {
       if (conf_add_server(yy_conf, class_name) == -1)
-      {
         delete_conf_item(yy_conf);
-	yy_conf = NULL;
-	yy_aconf = NULL;
-      }
     }
     else
     {
-      /* Even if yy_conf ->name is NULL
-       * should still unhook any hub/leaf confs still pending
-       */
-      unhook_hub_leaf_confs();
-
       if (yy_conf->name != NULL)
       {
         if (yy_aconf->host == NULL)
@@ -2187,7 +2148,6 @@ connect_entry: CONNECT
         else if (!yy_aconf->passwd || !yy_aconf->spasswd)
           yyerror("Ignoring connect block -- missing password");
       }
-
 
       /* XXX
        * This fixes a try_connections() core (caused by invalid class_ptr
@@ -2197,75 +2157,12 @@ connect_entry: CONNECT
        * a doubly linked list immediately without any sanity checks!  -Michael
        */
       delete_conf_item(yy_conf);
-
-      yy_aconf = NULL;
-      yy_conf = NULL;
     }
 
-      /*
-       * yy_conf is still pointing at the server that is having
-       * a connect block built for it. This means, y_aconf->name 
-       * points to the actual irc name this server will be known as.
-       * Now this new server has a set or even just one hub_mask (or leaf_mask)
-       * given in the link list at yy_hconf. Fill in the HUB confs
-       * from this link list now.
-       */        
-      DLINK_FOREACH_SAFE(ptr, next_ptr, hub_conf_list.head)
-      {
-	struct ConfItem *new_hub_conf;
-	struct MatchItem *match_item;
-
-	yy_hconf = ptr->data;
-
-	/* yy_conf == NULL is a fatal error for this connect block! */
-	if ((yy_conf != NULL) && (yy_conf->name != NULL))
-	{
-	  new_hub_conf = make_conf_item(HUB_TYPE);
-	  match_item = (struct MatchItem *)map_to_conf(new_hub_conf);
-	  DupString(new_hub_conf->name, yy_conf->name);
-	  if (yy_hconf->user != NULL)
-	    DupString(match_item->user, yy_hconf->user);
-	  else
-	    DupString(match_item->user, "*");
-	  if (yy_hconf->host != NULL)
-	    DupString(match_item->host, yy_hconf->host);
-	  else
-	    DupString(match_item->host, "*");
-	}
-	dlinkDelete(&yy_hconf->node, &hub_conf_list);
-	free_collect_item(yy_hconf);
-      }
-
-      /* Ditto for the LEAF confs */
-
-      DLINK_FOREACH_SAFE(ptr, next_ptr, leaf_conf_list.head)
-      {
-	struct ConfItem *new_leaf_conf;
-	struct MatchItem *match_item;
-
-	yy_lconf = ptr->data;
-
-	if ((yy_conf != NULL) && (yy_conf->name != NULL))
-	{
-	  new_leaf_conf = make_conf_item(LEAF_TYPE);
-	  match_item = (struct MatchItem *)map_to_conf(new_leaf_conf);
-	  DupString(new_leaf_conf->name, yy_conf->name);
-	  if (yy_lconf->user != NULL)
-	    DupString(match_item->user, yy_lconf->user);
-	  else
-	    DupString(match_item->user, "*");
-	  if (yy_lconf->host != NULL)
-	    DupString(match_item->host, yy_lconf->host);
-	  else
-	    DupString(match_item->host, "*");
-	}
-	dlinkDelete(&yy_lconf->node, &leaf_conf_list);
-	free_collect_item(yy_lconf);
-      }
-      MyFree(class_name);
-      class_name = NULL;
-      yy_conf = NULL;
-      yy_aconf = NULL;
+    MyFree(class_name);
+    class_name = NULL;
+    yy_conf = NULL;
+    yy_aconf = NULL;
   }
 };
 
@@ -2413,12 +2310,10 @@ connect_hub_mask: HUB_MASK '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    struct CollectItem *yy_tmp;
+    char *mask;
 
-    yy_tmp = (struct CollectItem *)MyMalloc(sizeof(struct CollectItem));
-    DupString(yy_tmp->host, yylval.string);
-    DupString(yy_tmp->user, "*");
-    dlinkAdd(yy_tmp, &yy_tmp->node, &hub_conf_list);
+    DupString(mask, yylval.string);
+    dlinkAdd(mask, make_dlink_node(), &yy_aconf->hub_list);
   }
 };
 
@@ -2426,12 +2321,10 @@ connect_leaf_mask: LEAF_MASK '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    struct CollectItem *yy_tmp;
+    char *mask;
 
-    yy_tmp = (struct CollectItem *)MyMalloc(sizeof(struct CollectItem));
-    DupString(yy_tmp->host, yylval.string);
-    DupString(yy_tmp->user, "*");
-    dlinkAdd(yy_tmp, &yy_tmp->node, &leaf_conf_list);
+    DupString(mask, yylval.string);
+    dlinkAdd(mask, make_dlink_node(), &yy_aconf->leaf_list);
   }
 };
 

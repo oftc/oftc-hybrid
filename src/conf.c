@@ -81,8 +81,6 @@ struct config_server_hide ConfigServerHide;
 dlink_list service_items = { NULL, NULL, 0 };
 dlink_list server_items  = { NULL, NULL, 0 };
 dlink_list cluster_items = { NULL, NULL, 0 };
-dlink_list hub_items     = { NULL, NULL, 0 };
-dlink_list leaf_items    = { NULL, NULL, 0 };
 dlink_list oconf_items   = { NULL, NULL, 0 };
 dlink_list uconf_items   = { NULL, NULL, 0 };
 dlink_list xconf_items   = { NULL, NULL, 0 };
@@ -262,18 +260,6 @@ make_conf_item(ConfType type)
     aconf->status = status;
     break;
 
-  case LEAF_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct MatchItem));
-    dlinkAdd(conf, &conf->node, &leaf_items);
-    break;
-
-  case HUB_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct MatchItem));
-    dlinkAdd(conf, &conf->node, &hub_items);
-    break;
-
   case ULINE_TYPE:
     conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
                                        sizeof(struct MatchItem));
@@ -356,7 +342,7 @@ make_conf_item(ConfType type)
 void
 delete_conf_item(struct ConfItem *conf)
 {
-  dlink_node *m = NULL;
+  dlink_node *m = NULL, *m_next = NULL;
   struct MatchItem *match_item;
   struct AccessItem *aconf;
   ConfType type = conf->type;
@@ -416,6 +402,19 @@ delete_conf_item(struct ConfItem *conf)
 
     case SERVER_TYPE:
       aconf = map_to_conf(conf);
+
+      DLINK_FOREACH_SAFE(m, m_next, aconf->hub_list.head)
+      {
+        MyFree(m->data);
+        free_dlink_node(m);
+      }
+
+      DLINK_FOREACH_SAFE(m, m_next, aconf->leaf_list.head)
+      {
+        MyFree(m->data);
+        free_dlink_node(m);  
+      }
+
       if (!IsConfIllegal(aconf))
         dlinkDelete(&conf->node, &server_items);
       MyFree(conf);
@@ -424,30 +423,6 @@ delete_conf_item(struct ConfItem *conf)
     default:
       break;
     }
-    break;
-
-  case HUB_TYPE:
-    match_item = map_to_conf(conf);
-    MyFree(match_item->user);
-    MyFree(match_item->host);
-    MyFree(match_item->reason);
-    MyFree(match_item->oper_reason);
-    /* If marked illegal, its already been pulled off of the hub_items list */
-    if (!match_item->illegal)
-      dlinkDelete(&conf->node, &hub_items);
-    MyFree(conf);
-    break;
-
-  case LEAF_TYPE:
-    match_item = map_to_conf(conf);
-    MyFree(match_item->user);
-    MyFree(match_item->host);
-    MyFree(match_item->reason);
-    MyFree(match_item->oper_reason);
-    /* If marked illegal, its already been pulled off of the leaf_items list */
-    if (!match_item->illegal)
-      dlinkDelete(&conf->node, &leaf_items);
-    MyFree(conf);
     break;
 
   case ULINE_TYPE:
@@ -574,7 +549,7 @@ static const unsigned int shared_bit_table[] =
 void
 report_confitem_types(struct Client *source_p, ConfType type)
 {
-  dlink_node *ptr = NULL;
+  dlink_node *ptr = NULL, *dptr = NULL;
   struct ConfItem *conf = NULL;
   struct AccessItem *aconf = NULL;
   struct MatchItem *matchitem = NULL;
@@ -771,22 +746,26 @@ report_confitem_types(struct Client *source_p, ConfType type)
     break;
 
   case HUB_TYPE:
-    DLINK_FOREACH(ptr, hub_items.head)
+    DLINK_FOREACH(ptr, server_items.head)
     {
       conf = ptr->data;
-      matchitem = map_to_conf(conf);
-      sendto_one(source_p, form_str(RPL_STATSHLINE), me.name,
-     source_p->name, 'H', matchitem->host, conf->name, 0, "*");
+      aconf = map_to_conf(conf);
+
+      DLINK_FOREACH(dptr, aconf->hub_list.head)
+        sendto_one(source_p, form_str(RPL_STATSHLINE), me.name,
+                   source_p->name, 'H', dptr->data, conf->name, 0, "*");
     }
     break;
 
   case LEAF_TYPE:
-    DLINK_FOREACH(ptr, leaf_items.head)
+    DLINK_FOREACH(ptr, server_items.head)
     {
       conf = ptr->data;
-      matchitem = map_to_conf(conf);
-      sendto_one(source_p, form_str(RPL_STATSLLINE), me.name,
-     source_p->name, 'L', matchitem->host, conf->name, 0, "*");
+      aconf = map_to_conf(conf);
+
+      DLINK_FOREACH(dptr, aconf->leaf_list.head)
+        sendto_one(source_p, form_str(RPL_STATSLLINE), me.name,
+                   source_p->name, 'L', dptr->data, conf->name, 0, "*");
     }
     break;
 
@@ -1392,13 +1371,6 @@ detach_conf(struct Client *client_p, ConfType type)
           delete_conf_item(conf);
 
         break;
-
-      case LEAF_TYPE:
-      case HUB_TYPE:
-        match_item = map_to_conf(conf);
-        if (match_item->ref_count == 0 && match_item->illegal)
-          delete_conf_item(conf);
-        break;
       default:
         break;
       }
@@ -1439,11 +1411,6 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
 
     aclass->curr_user_count++;
     aconf->clients++;
-  }
-  else if (conf->type == HUB_TYPE || conf->type == LEAF_TYPE)
-  {
-    struct MatchItem *match_item = map_to_conf(conf);
-    match_item->ref_count++;
   }
 
   dlinkAdd(conf, make_dlink_node(), &client_p->localClient->confs);
@@ -2625,9 +2592,9 @@ clear_out_old_conf(void)
   struct ClassItem *cltmp;
   struct MatchItem *match_item;
   dlink_list *free_items [] = {
-    &server_items,   &oconf_items,    &hub_items, &leaf_items,
-    &uconf_items,   &xconf_items, &rxconf_items, &rkconf_items,
-    &nresv_items, &cluster_items,  &gdeny_items, &service_items, NULL
+    &server_items,   &oconf_items,
+     &uconf_items,   &xconf_items, &rxconf_items, &rkconf_items,
+     &nresv_items, &cluster_items,  &gdeny_items, &service_items, NULL
   };
 
   dlink_list ** iterator = free_items; /* C is dumb */
@@ -2678,19 +2645,7 @@ clear_out_old_conf(void)
       }
       else
       {
-        if ((conf->type == LEAF_TYPE) || (conf->type == HUB_TYPE))
-        {
-          match_item = map_to_conf(conf);
-          if (match_item->ref_count <= 0)
-            delete_conf_item(conf);
-          else
-          {
-            match_item->illegal = 1;
-            dlinkDelete(&conf->node, *iterator);
-          }
-        }
-        else
-          delete_conf_item(conf);
+        delete_conf_item(conf);
       }
     }
   }
