@@ -1719,8 +1719,6 @@ auth_user: USER '=' QSTRING ';'
   }
 };
 
-/* XXX - IP/IPV6 tags don't exist anymore - put IP/IPV6 into user. */
-
 auth_passwd: PASSWORD '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
