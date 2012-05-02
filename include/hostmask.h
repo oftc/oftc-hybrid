@@ -35,15 +35,6 @@ enum hostmask_type
   HM_IPV6
 };
 
-struct HostMaskEntry
-{
-  int type, subtype;
-  unsigned int precedence;
-  char *hostmask;
-  void *data;
-  struct HostMaskEntry *next, *nexthash;
-};
-
 struct AddressRec
 {
   /* masktype: HM_HOST, HM_IPV4, HM_IPV6 -A1kmm */
@@ -89,10 +80,6 @@ extern void hostmask_expire_temporary(void);
 
 extern struct AccessItem *find_address_conf(const char *, const char *,
                                             struct irc_ssaddr *, int, char *);
-extern struct AccessItem *find_kline_conf(const char *, const char *,
-                                          struct irc_ssaddr *, int);
-extern struct AccessItem *find_gline_conf(const char *, const char *,
-                                          struct irc_ssaddr *, int);
 extern struct AccessItem *find_dline_conf(struct irc_ssaddr *, int);
 extern struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
                                                unsigned int, int, const char *, const char *, int);
