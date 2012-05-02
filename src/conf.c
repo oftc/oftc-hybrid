@@ -1325,27 +1325,22 @@ detach_conf(struct Client *client_p, ConfType type)
 int
 attach_conf(struct Client *client_p, struct ConfItem *conf)
 {
+  struct AccessItem *aconf = map_to_conf(conf);
+  struct ClassItem *aclass = map_to_conf(aconf->class_ptr);
+
   if (dlinkFind(&client_p->localClient->confs, conf) != NULL)
     return 1;
 
-  if (conf->type == CLIENT_TYPE ||
-      conf->type == SERVER_TYPE ||
-      conf->type == OPER_TYPE)
-  {
-    struct AccessItem *aconf = map_to_conf(conf);
-    struct ClassItem *aclass = map_to_conf(aconf->class_ptr);
+  if (IsConfIllegal(aconf)) /* TBV: can't happen */
+    return NOT_AUTHORIZED;
 
-    if (IsConfIllegal(aconf))
-      return NOT_AUTHORIZED;
+  if (conf->type == CLIENT_TYPE)
+    if (cidr_limit_reached(IsConfExemptLimits(aconf),
+                           &client_p->localClient->ip, aclass))
+      return TOO_MANY;    /* Already at maximum allowed */
 
-    if (conf->type == CLIENT_TYPE)
-      if (cidr_limit_reached(IsConfExemptLimits(aconf),
-                             &client_p->localClient->ip, aclass))
-        return TOO_MANY;    /* Already at maximum allowed */
-
-    aclass->curr_user_count++;
-    aconf->clients++;
-  }
+  aclass->curr_user_count++;
+  aconf->clients++;
 
   dlinkAdd(conf, make_dlink_node(), &client_p->localClient->confs);
 
