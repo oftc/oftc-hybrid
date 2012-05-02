@@ -2156,21 +2156,20 @@ find_kill(struct Client *client_p)
 
   if(*client_p->realhost)
   {
-    aconf = find_kline_conf(client_p->realhost, client_p->username,
-        client_p->certfp, &client_p->ip, client_p->aftype);
+    aconf = find_conf_by_address(client_p->realhost, &client_p->ip,
+        CONF_KLINE, client_p->localClient->aftype,
+        client_p->username, NULL, 1, client_p->certfp);
   }
   if(aconf == NULL)
   {
-    aconf = find_kline_conf(client_p->host, client_p->username,
-        client_p->certfp, &client_p->ip, client_p->aftype);
+    aconf = find_conf_by_address(client_p->host, &client_p->localClient->ip,
+        CONF_KLINE, client_p->localClient->aftype,
+        client_p->username, NULL, 1);
   }
   if (aconf == NULL)
     aconf = find_regexp_kline(uhi);
 
-  if (aconf && (aconf->status & CONF_KLINE))
-    return aconf;
-
-  return NULL;
+  return aconf;
 }
 
 struct AccessItem *
@@ -2180,14 +2179,10 @@ find_gline(struct Client *client_p)
 
   assert(client_p != NULL);
 
-  aconf = find_gline_conf(client_p->host, client_p->username,
-                          &client_p->ip,
-                          client_p->aftype);
-
-  if (aconf && (aconf->status & CONF_GLINE))
-    return aconf;
-
-  return NULL;
+  aconf = find_conf_by_address(client_p->host, &client_p->localClient->ip,
+                               CONF_GLINE, client_p->localClient->aftype,
+                               client_p->username, NULL, 1);
+  return aconf;
 }
 
 /* add_temp_line()

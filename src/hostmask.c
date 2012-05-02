@@ -635,42 +635,6 @@ find_address_conf(const char *host, const char *user,
   return iconf;
 }
 
-struct AccessItem *
-find_gline_conf(const char *host, const char *user,
-                struct irc_ssaddr *ip, int aftype)
-{
-  struct AccessItem *eline;
-
-  eline = find_conf_by_address(host, ip, CONF_EXEMPTKLINE, aftype,
-                               user, NULL, 1, NULL);
-  if (eline != NULL)
-    return eline;
-
-  return find_conf_by_address(host, ip, CONF_GLINE, aftype, user, NULL, 1, NULL);
-}
-
-/* find_kline_conf
- *
- * inputs	- pointer to hostname
- *		- pointer to username
- *		- incoming IP and type (IPv4 vs. IPv6)
- * outut	- pointer to kline conf if found NULL if not
- * side effects	-
- */
-struct AccessItem *
-find_kline_conf(const char *host, const char *user, const char *certfp,
-		struct irc_ssaddr *ip, int aftype)
-{
-  struct AccessItem *eline;
-
-  eline = find_conf_by_address(host, ip, CONF_EXEMPTKLINE, aftype,
-                               user, NULL, 1, certfp);
-  if (eline != NULL)
-    return eline;
-
-  return find_conf_by_address(host, ip, CONF_KLINE, aftype, user, NULL, 1, NULL);
-}
-
 /* struct AccessItem* find_dline_conf(struct irc_ssaddr*, int)
  *
  * Input:	An address, an address family.

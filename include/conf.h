@@ -190,14 +190,12 @@ struct ip_entry
 #define CONF_OPERATOR           0x00000008
 #define CONF_KLINE              0x00000010
 #define CONF_CLASS              0x00000020
-#define CONF_LISTEN_PORT        0x00000040
-#define CONF_EXEMPTKLINE        0x00000080
-#define CONF_DLINE              0x00000100
-#define CONF_XLINE              0x00000200
-#define CONF_ULINE              0x00000400
-#define CONF_EXEMPTDLINE        0x00000800
-#define CONF_GLINE              0x00001000
-#define CONF_SERVICE            0x00002000
+#define CONF_DLINE              0x00000040
+#define CONF_XLINE              0x00000080
+#define CONF_ULINE              0x00000100
+#define CONF_EXEMPTDLINE        0x00000200
+#define CONF_GLINE              0x00000400
+#define CONF_SERVICE            0x00000800
 
 #define CONF_SERVER_MASK       CONF_SERVER
 #define CONF_CLIENT_MASK       (CONF_CLIENT | CONF_OPERATOR | CONF_SERVER_MASK)
@@ -213,7 +211,6 @@ struct ip_entry
 #define IsConfOperator(x)	((x)->status & CONF_OPERATOR)
 #define IsConfKill(x)		((x)->status == CONF_KLINE)
 #define IsConfClient(x)		((x)->status & CONF_CLIENT)
-#define IsConfTypeOfClient(x)	((x)->status & CONF_CLIENT_MASK)
 #define IsConfUline(x)		((x)->status & CONF_ULINE)
 #define IsConfXline(x)		((x)->status & CONF_XLINE)
 #define IsConfGline(x)          ((x)->status == CONF_GLINE)
