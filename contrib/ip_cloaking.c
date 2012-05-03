@@ -66,6 +66,7 @@
 #include "memory.h"
 #include "log.h"
 #include "sprintf_irc.h"
+#include "userhost.h"
 
 static unsigned int umode_vhost = 0;
 static int vhost_ipv6_err;
@@ -328,8 +329,15 @@ set_vhost(struct Client *client_p, struct Client *source_p,
           struct Client *target_p)
 {
   target_p->umodes |= umode_vhost;
+
+  if (IsUserHostIp(target_p))
+    delete_user_host(target_p->username, target_p->host, !MyConnect(target_p));
+
   SetIPSpoof(target_p);
   make_virthost(target_p->host, target_p->sockhost, target_p->host);
+
+  add_user_host(target_p->username, target_p->host, !MyConnect(target_p));
+  SetUserHost(target_p);
 
   if (IsClient(target_p))
     sendto_server(client_p, NULL, CAP_ENCAP, NOCAPS,
