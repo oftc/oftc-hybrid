@@ -399,9 +399,9 @@ hash_find_server(const char *name)
   struct Client *client_p = NULL;
 
   if (IsDigit(*name) && strlen(name) == IRC_MAXSID)
-    client_p = hash_find_id(name);
+    return hash_find_id(name);
 
-  if ((client_p == NULL) && (client_p = clientTable[hashv]) != NULL)
+  if ((client_p = clientTable[hashv]) != NULL)
   {
     if ((!IsServer(client_p) && !IsMe(client_p)) ||
         irccmp(name, client_p->name))
