@@ -45,7 +45,6 @@
 
 static BlockHeap *userhost_heap = NULL;
 static BlockHeap *namehost_heap = NULL;
-static struct UserHost *find_or_add_userhost(const char *);
 
 static unsigned int hashf_xor_key = 0;
 
@@ -607,6 +606,27 @@ count_user_host(const char *user, const char *host, int *global_p,
   }
 }
 
+/* find_or_add_userhost()
+ *
+ * inputs       - host name
+ * output       - none
+ * side effects - find UserHost * for given host name
+ */
+static struct UserHost *
+find_or_add_userhost(const char *host)
+{
+  struct UserHost *userhost;
+
+  if ((userhost = hash_find_userhost(host)) != NULL)
+    return userhost;
+
+  userhost = BlockHeapAlloc(userhost_heap);
+  strlcpy(userhost->host, host, sizeof(userhost->host));
+  hash_add_userhost(userhost);
+
+  return userhost;
+}
+
 /* add_user_host()
  *
  * inputs	- user name
@@ -639,12 +659,14 @@ add_user_host(const char *user, const char *host, int global)
     if (!irccmp(user, nameh->name))
     {
       nameh->gcount++;
+
       if (!global)
       {
-	if (hasident)
-	  nameh->icount++;
-	nameh->lcount++;
+        if (hasident)
+          nameh->icount++;
+        nameh->lcount++;
       }
+
       return;
     }
   }
@@ -653,6 +675,7 @@ add_user_host(const char *user, const char *host, int global)
   strlcpy(nameh->name, user, sizeof(nameh->name));
 
   nameh->gcount = 1;
+
   if (!global)
   {
     if (hasident)
@@ -698,48 +721,27 @@ delete_user_host(const char *user, const char *host, int global)
         nameh->gcount--;
       if (!global)
       {
-	if (nameh->lcount > 0)
-	  nameh->lcount--;
-	if (hasident && nameh->icount > 0)
-	  nameh->icount--;
+        if (nameh->lcount > 0)
+          nameh->lcount--;
+        if (hasident && nameh->icount > 0)
+          nameh->icount--;
       }
 
       if (nameh->gcount == 0 && nameh->lcount == 0)
       {
-	dlinkDelete(&nameh->node, &found_userhost->list);
-	BlockHeapFree(namehost_heap, nameh);
+        dlinkDelete(&nameh->node, &found_userhost->list);
+        BlockHeapFree(namehost_heap, nameh);
       }
 
       if (dlink_list_length(&found_userhost->list) == 0)
       {
-	hash_del_userhost(found_userhost);
-	BlockHeapFree(userhost_heap, found_userhost);
+        hash_del_userhost(found_userhost);
+        BlockHeapFree(userhost_heap, found_userhost);
       }
 
       return;
     }
   }
-}
-
-/* find_or_add_userhost()
- *
- * inputs	- host name
- * output	- none
- * side effects	- find UserHost * for given host name
- */
-static struct UserHost *
-find_or_add_userhost(const char *host)
-{
-  struct UserHost *userhost;
-
-  if ((userhost = hash_find_userhost(host)) != NULL)
-    return userhost;
-
-  userhost = BlockHeapAlloc(userhost_heap);
-  strlcpy(userhost->host, host, sizeof(userhost->host));
-  hash_add_userhost(userhost);
-
-  return userhost;
 }
 
 /*
