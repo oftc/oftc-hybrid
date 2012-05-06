@@ -35,7 +35,7 @@
 #include "dbuf.h"
 #include "channel.h"
 
-#define HOSTIPLEN       53 /* sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255.ipv6") */
+#define HOSTIPLEN       45 /* sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255") */
 #define PASSWDLEN       20
 #define IDLEN           12 /* this is the maximum length, not the actual
                               generated length; DO NOT CHANGE! */
