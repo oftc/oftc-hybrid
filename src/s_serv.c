@@ -1193,7 +1193,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
 {
   struct ConfItem *conf;
   struct Client *client_p;
-  char buf[HOSTIPLEN];
+  char buf[HOSTIPLEN + 1];
 
   /* conversion structs */
   struct sockaddr_in *v4;

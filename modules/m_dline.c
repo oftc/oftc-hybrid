@@ -112,7 +112,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   int bits, t;
   const char *current_date = NULL;
   time_t cur_time;
-  char hostip[HOSTIPLEN];
+  char hostip[HOSTIPLEN + 1];
   char buffer[IRCD_BUFSIZE];
 
   if (!HasOFlag(source_p, OPER_FLAG_DLINE))
@@ -259,7 +259,7 @@ ms_dline(struct Client *client_p, struct Client *source_p,
   int bits, t;
   const char *current_date = NULL;
   time_t cur_time;
-  char hostip[HOSTIPLEN];
+  char hostip[HOSTIPLEN + 1];
   char buffer[IRCD_BUFSIZE];
 
   if (parc != 5 || EmptyString(parv[4]))
