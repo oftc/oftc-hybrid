@@ -73,7 +73,7 @@ do_etrace(struct Client *source_p, int parc, char *parv[])
     tname = parv[1];
 
     if (tname != NULL)
-      wilds = strchr(tname, '*') || strchr(tname, '?');
+      wilds = has_wildcards(tname);
     else
       tname = "*";
   }

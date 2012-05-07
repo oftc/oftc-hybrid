@@ -1587,14 +1587,12 @@ parse_stats_args(int parc, char *parv[], int *doall, int *wilds)
     else if (match(name, from))
       *doall = 1;
 
-    if (strchr(name, '*') ||
-        strchr(name, '?'))
-      *wilds = 1;
+    *wilds = has_wildcards(name);
 
-    return(name);
+    return name;
   }
-  else
-    return(NULL);
+
+  return NULL;
 }
 
 static struct Message stats_msgtab = {
