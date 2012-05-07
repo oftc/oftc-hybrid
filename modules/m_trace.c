@@ -198,7 +198,7 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
     tname = me.name;
   }
 
-  wilds = !parv[1] || strchr(tname, '*') || strchr(tname, '?');
+  wilds = !parv[1] || has_wildcards(tname);
   dow = wilds || doall;
 
   set_time();

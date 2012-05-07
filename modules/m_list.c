@@ -39,18 +39,6 @@
 #include "s_user.h"
 
 
-static int
-has_wildcards(const char *s)
-{
-  char c;
-
-  while ((c = *s++))
-    if (IsMWildChar(c))
-      return 1;
-
-  return 0;
-}
-
 static void
 do_list(struct Client *source_p, int parc, char *parv[])
 {

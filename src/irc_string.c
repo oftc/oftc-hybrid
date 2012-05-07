@@ -32,6 +32,18 @@
 #include "sprintf_irc.h"
 
 
+int
+has_wildcards(const char *s)
+{
+  char c;
+
+  while ((c = *s++))
+    if (IsMWildChar(c))
+      return 1;
+
+  return 0;
+}
+
 /*
  * myctime - This is like standard ctime()-function, but it zaps away
  *   the newline from the end of that string. Also, it takes
