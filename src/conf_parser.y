@@ -122,7 +122,6 @@ free_collect_item(struct CollectItem *item)
 %token  AUTOCONN
 %token	T_BLOCK
 %token  BURST_AWAY
-%token  BURST_TOPICWHO
 %token  BYTES KBYTES MBYTES GBYTES TBYTES
 %token  CALLER_ID_WAIT
 %token  CAN_FLOOD
@@ -3139,7 +3138,7 @@ channel_item:       channel_disable_local_channels | channel_use_except |
                     channel_quiet_on_ban | channel_default_split_user_count |
                     channel_default_split_server_count |
                     channel_no_create_on_split | channel_restrict_channels |
-                    channel_no_join_on_split | channel_burst_topicwho |
+                    channel_no_join_on_split |
                     channel_jflood_count | channel_jflood_time |
                     channel_disable_fake_channels | error;
 
@@ -3216,11 +3215,6 @@ channel_no_create_on_split: NO_CREATE_ON_SPLIT '=' TBOOL ';'
 channel_no_join_on_split: NO_JOIN_ON_SPLIT '=' TBOOL ';'
 {
   ConfigChannel.no_join_on_split = yylval.number;
-};
-
-channel_burst_topicwho: BURST_TOPICWHO '=' TBOOL ';'
-{
-  ConfigChannel.burst_topicwho = yylval.number;
 };
 
 channel_jflood_count: JOIN_FLOOD_COUNT '=' NUMBER ';'

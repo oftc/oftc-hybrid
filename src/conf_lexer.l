@@ -144,7 +144,6 @@ auth		{ return IRCD_AUTH; }
 autoconn	{ return AUTOCONN; }
 block		{ return T_BLOCK; }
 burst_away      { return BURST_AWAY; }
-burst_topicwho  { return BURST_TOPICWHO; }
 can_flood	{ return CAN_FLOOD; }
 caller_id_wait	{ return CALLER_ID_WAIT; }
 opers_bypass_callerid  { return OPERS_BYPASS_CALLERID; }

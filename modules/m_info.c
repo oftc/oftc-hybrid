@@ -197,12 +197,6 @@ static const struct InfoStruct info_table[] =
     "Disallow joining channels when split"
   },
   {
-    "burst_topicwho",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.burst_topicwho,
-    "Enable sending of who set topic on topicburst"
-  },
-  {
     "flatten_links",
     OUTPUT_BOOLEAN_YN,
     &ConfigServerHide.flatten_links,

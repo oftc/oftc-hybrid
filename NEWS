@@ -32,6 +32,9 @@ o) The servlink program has been removed. ircd-hybrid can now make use of SSL/TL
    NOTE: compressed server links are of course still available, but a SSL/TLS
    connection is required, as compression is now handled via the OpenSSL library
 o) Oper login IDs are no longer limited to NICKLEN*2
+o) Removed channel::burst_topicwho configuration option. Topicsetters are
+   now sent by default
+
 
 --------------------------------------------------------------------------------
 

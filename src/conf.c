@@ -1835,7 +1835,6 @@ set_default_conf(void)
   ConfigChannel.default_split_server_count = 0;
   ConfigChannel.no_join_on_split = 0;
   ConfigChannel.no_create_on_split = 0;
-  ConfigChannel.burst_topicwho = 1;
 
   ConfigServerHide.flatten_links = 0;
   ConfigServerHide.links_delay = 300;
