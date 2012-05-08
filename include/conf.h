@@ -387,7 +387,6 @@ struct config_channel_entry
   int no_create_on_split;
   int no_join_on_split;
   int quiet_on_ban;
-  int burst_topicwho;
   int default_split_server_count;
   int default_split_user_count;
 };

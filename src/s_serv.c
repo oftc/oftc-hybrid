@@ -1076,22 +1076,10 @@ send_tb(struct Client *client_p, struct Channel *chptr)
                  chptr->topic_info,
                  chptr->topic);
     else if (IsCapable(client_p, CAP_TB))
-    {
-      if (ConfigChannel.burst_topicwho)
-      {
-        sendto_one(client_p, ":%s TB %s %lu %s :%s",
-                   me.name, chptr->chname,
-                   (unsigned long)chptr->topic_time,
-                   chptr->topic_info, chptr->topic);
-      }
-      else
-      {
-        sendto_one(client_p, ":%s TB %s %lu :%s",
-                   me.name, chptr->chname,
-                   (unsigned long)chptr->topic_time,
-                   chptr->topic);
-      }
-    }
+      sendto_one(client_p, ":%s TB %s %lu %s :%s",
+                 me.name, chptr->chname,
+                 (unsigned long)chptr->topic_time,
+                 chptr->topic_info, chptr->topic);
   }
 }
 
