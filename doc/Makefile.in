@@ -52,7 +52,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = doc
-DIST_COMMON = $(am__dist_sysconf_DATA_DIST) $(srcdir)/Makefile.am \
+DIST_COMMON = $(dist_sysconf_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -101,7 +101,6 @@ man8dir = $(mandir)/man8
 am__installdirs = "$(DESTDIR)$(man8dir)" "$(DESTDIR)$(sysconfdir)"
 NROFF = nroff
 MANS = $(man_MANS)
-am__dist_sysconf_DATA_DIST = example.conf example.efnet.conf
 DATA = $(dist_sysconf_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
@@ -246,8 +245,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
 man_MANS = ircd.8
-@EFNET_FALSE@dist_sysconf_DATA = example.conf
-@EFNET_TRUE@dist_sysconf_DATA = example.efnet.conf
+dist_sysconf_DATA = example.conf example.efnet.conf
 all: all-am
 
 .SUFFIXES:

@@ -648,8 +648,6 @@ DATADIR
 LIBDIR
 SYSCONFDIR
 PREFIX
-EFNET_FALSE
-EFNET_TRUE
 ENABLE_SSL_FALSE
 ENABLE_SSL_TRUE
 LTDLOPEN
@@ -814,7 +812,6 @@ enable_poll
 enable_select
 with_nicklen
 with_topiclen
-enable_efnet
 enable_halfops
 enable_debugging
 enable_warnings
@@ -1472,7 +1469,6 @@ Optional Features:
   --enable-rtsigio        Force rtsigio usage.
   --enable-poll           Force poll usage.
   --enable-select         Force select usage.
-  --enable-efnet          For IRCDs running on EFnet.
   --enable-halfops        Enable halfops support.
   --enable-debugging      Enable debugging.
   --enable-warnings       Enable compiler warnings.
@@ -14406,31 +14402,6 @@ _ACEOF
 
 
 
-  # Check whether --enable-efnet was given.
-if test "${enable_efnet+set}" = set; then :
-  enableval=$enable_efnet; efnet="$enableval"
-else
-  efnet="no"
-fi
-
-  if test "$efnet" = "yes" ; then
-		use_efnet="yes"
-
-$as_echo "#define EFNET 1" >>confdefs.h
-
-	else
-		use_efnet="no"
-  fi
-   if test "$use_efnet" = "yes"; then
-  EFNET_TRUE=
-  EFNET_FALSE='#'
-else
-  EFNET_TRUE='#'
-  EFNET_FALSE=
-fi
-
-
-
   # Check whether --enable-halfops was given.
 if test "${enable_halfops+set}" = set; then :
   enableval=$enable_halfops; halfops="$enableval"
@@ -14730,10 +14701,6 @@ LT_CONFIG_H=config.h
 
 if test -z "${ENABLE_SSL_TRUE}" && test -z "${ENABLE_SSL_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_SSL\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${EFNET_TRUE}" && test -z "${EFNET_FALSE}"; then
-  as_fn_error $? "conditional \"EFNET\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

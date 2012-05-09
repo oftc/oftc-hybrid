@@ -30,9 +30,6 @@
 /* Size of the dns heap. */
 #undef DNS_HEAP_SIZE
 
-/* Define to 1 if this server will be an EFnet server. */
-#undef EFNET
-
 /* Define to 1 if you want halfops support. */
 #undef HALFOPS
 

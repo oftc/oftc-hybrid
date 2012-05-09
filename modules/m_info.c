@@ -747,15 +747,6 @@ send_conf_options(struct Client *source_p)
     }
   }
 
-  /* Don't send oper_only_umodes...it's a bit mask, we will have to decode it
-   * in order for it to show up properly to opers who issue INFO
-   */
-#ifndef EFNET
-  /* jdc -- Only send compile information to admins. */
-  if (HasUMode(source_p, UMODE_ADMIN))
-    sendto_one(source_p, ":%s %d %s :Running on [%s]",
-               from, RPL_INFO, to, ircd_platform); 
-#endif
   sendto_one(source_p, form_str(RPL_INFO),
              from, to, "");
 }

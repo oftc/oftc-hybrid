@@ -24,21 +24,9 @@
 #include "patchlevel.h"
 #include "serno.h"
 #include "ircd.h"
-#include <sys/utsname.h>
 
 const char *ircd_version = PATCHLEVEL;
 const char *serno = SERIALNUM;
-
-char *
-get_ircd_platform(char *str)
-{
-  struct utsname uts;
-
-  uname(&uts);
-  snprintf(str, PLATFORMLEN, "%s %s %s %s %s", uts.sysname, uts.nodename,
-           uts.release, uts.version, uts.machine);
-  return str;
-}
 
 const char *infotext[] =
 {

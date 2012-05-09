@@ -155,17 +155,6 @@ AC_DEFUN([AX_ARG_WITH_NICKLEN],[
   AC_ARG_WITH([nicklen],[AS_HELP_STRING([--with-nicklen=<value>],[Set nickname length (default 9).])],[nicklen="$withval"],[nicklen="9"])
   AC_DEFINE_UNQUOTED([NICKLEN],[($nicklen+1)],[Length of nicknames.]) 
 ])dnl }}}
-dnl {{{ ax_arg_enable_efnet
-AC_DEFUN([AX_ARG_ENABLE_EFNET],[
-  AC_ARG_ENABLE([efnet],[AS_HELP_STRING([--enable-efnet],[For IRCDs running on EFnet.])],[efnet="$enableval"],[efnet="no"])
-  if test "$efnet" = "yes" ; then
-		use_efnet="yes"
-    AC_DEFINE([EFNET],[1],[Define to 1 if this server will be an EFnet server.])
-	else
-		use_efnet="no"
-  fi
-  AM_CONDITIONAL([EFNET],[test "$use_efnet" = "yes"])
-])dnl }}}
 dnl {{{ ax_arg_enable_halfops
 AC_DEFUN([AX_ARG_ENABLE_HALFOPS],[
   AC_ARG_ENABLE([halfops],[AS_HELP_STRING([--enable-halfops],[Enable halfops support.])],[halfops="$enableval"],[halfops="no"])

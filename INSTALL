@@ -20,9 +20,7 @@
    +------------------------------------------------------------------------+
 
    ***** EFNET NOTE *****
-   You should run ./configure with the option '--enable-efnet' to tweak
-   some options to be EFNet based. You must also use the example.efnet.conf
-   instead of example.conf.
+   You should use the example.efnet.conf instead of example.conf.
    **********************
 
      ----------------------------------------------------------------------

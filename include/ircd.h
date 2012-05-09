@@ -101,8 +101,6 @@ struct ServerState_t
 extern struct ServerState_t server_state;
 
 extern char **myargv;
-extern char ircd_platform[PLATFORMLEN];
-extern char *get_ircd_platform(char *);
 extern const char *infotext[];
 extern const char *serno;
 extern const char *ircd_version;
