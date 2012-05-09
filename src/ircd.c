@@ -81,7 +81,6 @@ const char *logFileName = LPATH;
 const char *pidFileName = PPATH;
 
 char **myargv;
-char ircd_platform[PLATFORMLEN];
 
 int dorehash = 0;
 int doremotd = 0;
@@ -549,8 +548,6 @@ main(int argc, char *argv[])
     print_startup(getpid());
 
   setup_signals();
-
-  get_ircd_platform(ircd_platform);
 
   /* Init the event subsystem */
   eventInit();

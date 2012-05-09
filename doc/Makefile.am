@@ -1,8 +1,4 @@
 MAINTAINERCLEANFILES=Makefile.in
 dist_man_MANS = ircd.8
 
-if EFNET
-dist_sysconf_DATA = example.efnet.conf
-else
-dist_sysconf_DATA = example.conf
-endif
+dist_sysconf_DATA = example.conf example.efnet.conf
