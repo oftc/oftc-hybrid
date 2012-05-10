@@ -360,9 +360,9 @@ operspy_who(struct Client *client_p, int parc, char *parv[])
     /* "nick!user@host server\0" */
     char nuh[NICKLEN + 1 + USERLEN + 1 + HOSTLEN + 1 + HOSTLEN + 1];
 
-    ircsprintf(nuh, "%s!%s@%s %s", target_p_who->name,
-               target_p_who->username, target_p_who->host,
-               target_p_who->servptr->name);
+    snprintf(nuh, sizeof(nuh), "%s!%s@%s %s", target_p_who->name,
+             target_p_who->username, target_p_who->host,
+             target_p_who->servptr->name);
     operspy_log(client_p, "WHO", nuh);
 #endif
 
@@ -375,9 +375,7 @@ operspy_who(struct Client *client_p, int parc, char *parv[])
              get_member_status(target_p_who->channel.head->data, 0));
     }
     else
-    {
       do_who(client_p, target_p_who, NULL, "");
-    }
 
     sendto_one(client_p, form_str(RPL_ENDOFWHO),
                me.name, client_p->name, mask);
@@ -389,7 +387,7 @@ operspy_who(struct Client *client_p, int parc, char *parv[])
 #endif
 
   /* /who 0 */
-  if ((*(mask + 1) == '\0') && (*mask == '0'))
+  if (!strcmp(mask, "0"))
     who_global(client_p, NULL, server_oper);
   else
     who_global(client_p, mask, server_oper);
@@ -416,7 +414,7 @@ operspy_whois(struct Client *client_p, int parc, char *parv[])
   int cur_len = 0;
   int reply_to_send = 0;
 
-  if (strchr(parv[2], '?') || strchr(parv[2], '*'))
+  if (has_wildcards(parv[2]))
   {
     sendto_one(client_p, ":%s NOTICE %s :Do not use wildcards with this.",
                me.name, client_p->name);
@@ -431,9 +429,9 @@ operspy_whois(struct Client *client_p, int parc, char *parv[])
   }
 
 #ifdef OPERSPY_LOG
-  ircsprintf(nuh, "%s!%s@%s %s",
-             target_p->name, target_p->username, target_p->host,
-             target_p->servptr->name);
+  snprintf(nuh, sizeof(nuh), "%s!%s@%s %s",
+           target_p->name, target_p->username, target_p->host,
+           target_p->servptr->name);
   operspy_log(client_p, "WHOIS", nuh);
 #endif
 
@@ -494,8 +492,8 @@ do_who(struct Client *source_p, struct Client *target_p,
 {
   char status[8];
 
-  ircsprintf(status, "%c%s%s", target_p->away ? 'G' : 'H',
-             HasUMode(target_p, UMODE_OPER) ? "*" : "", op_flags);
+  snprintf(status, sizeof(status), "%c%s%s", target_p->away ? 'G' : 'H',
+           HasUMode(target_p, UMODE_OPER) ? "*" : "", op_flags);
   sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
              (chname) ? (chname) : "*",
              target_p->username,
