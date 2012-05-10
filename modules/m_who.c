@@ -73,7 +73,7 @@ m_who(struct Client *client_p, struct Client *source_p,
   collapse(mask);
 
   /* '/who *' */
-  if (!irccmp(mask, "*"))
+  if (!strcmp(mask, "*"))
   {
     if ((lp = source_p->channel.head) != NULL)
     {
@@ -127,7 +127,7 @@ m_who(struct Client *client_p, struct Client *source_p,
   }
 
   /* '/who 0' */
-  if (!irccmp(mask, "0"))
+  if (!strcmp(mask, "0"))
     who_global(source_p, NULL, server_oper);
   else
     who_global(source_p, mask, server_oper);
