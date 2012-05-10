@@ -142,7 +142,7 @@ unload_one_module(const char *name, int warn)
  * side effects - loads a module if successful
  */
 int
-load_a_module(const char *path, int warn, int core)
+load_a_module(const char *path, int warn)
 {
   lt_dlhandle tmpptr = NULL;
   const char *mod_basename = NULL;
@@ -173,9 +173,6 @@ load_a_module(const char *path, int warn, int core)
 
   if (EmptyString(modp->version))
     modp->version = unknown_ver;
-
-  if (core)
-    modp->flags |= MODULE_FLAG_CORE;
 
   DupString(modp->name, mod_basename);
   dlinkAdd(modp, &modp->node, &modules_list);
@@ -229,11 +226,10 @@ static struct module_path *
 mod_find_path(const char *path)
 {
   dlink_node *ptr;
-  struct module_path *mpath;
 
   DLINK_FOREACH(ptr, mod_paths.head)
   {
-    mpath = ptr->data;
+    struct module_path *mpath = ptr->data;
 
     if (!strcmp(path, mpath->path))
       return mpath;
@@ -288,23 +284,18 @@ add_conf_module(const char *name)
 void
 mod_clear_paths(void)
 {
-  struct module_path *pathst = NULL;
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, mod_paths.head)
   {
-    pathst = ptr->data;
-
-    dlinkDelete(&pathst->node, &mod_paths);
-    MyFree(pathst);
+    dlinkDelete(ptr, &mod_paths);
+    MyFree(ptr->data);
   }
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, conf_modules.head)
   {
-    pathst = ptr->data;
-
-    dlinkDelete(&pathst->node, &conf_modules);
-    MyFree(pathst);
+    dlinkDelete(ptr, &conf_modules);
+    MyFree(ptr->data);
   }
 }
 
@@ -343,8 +334,6 @@ load_all_modules(int warn)
   struct dirent *ldirent = NULL;
   char module_fq_name[PATH_MAX + 1];
 
-  modules_init();
-
   if ((system_module_dir = opendir(AUTOMODPATH)) == NULL)
   {
     ilog(LOG_TYPE_IRCD, "Could not load modules from %s: %s",
@@ -358,7 +347,7 @@ load_all_modules(int warn)
     {
        snprintf(module_fq_name, sizeof(module_fq_name), "%s/%s",
                 AUTOMODPATH, ldirent->d_name);
-       load_a_module(module_fq_name, warn, 0);
+       load_a_module(module_fq_name, warn);
     }
   }
 
@@ -375,14 +364,13 @@ void
 load_conf_modules(void)
 {
   dlink_node *ptr = NULL;
-  struct module_path *mpath = NULL;
 
   DLINK_FOREACH(ptr, conf_modules.head)
   {
-    mpath = ptr->data;
+    struct module_path *mpath = ptr->data;
 
     if (findmodule_byname(mpath->path) == NULL)
-      load_one_module(mpath->path, 0);
+      load_one_module(mpath->path);
   }
 }
 
@@ -403,7 +391,7 @@ load_core_modules(int warn)
     snprintf(module_name, sizeof(module_name), "%s%s",
              MODPATH, core_module_table[i]);
 
-    if (load_a_module(module_name, warn, 1) == -1)
+    if (load_a_module(module_name, warn) == -1)
     {
       ilog(LOG_TYPE_IRCD, "Error loading core module %s: terminating ircd",
            core_module_table[i]);
@@ -420,7 +408,7 @@ load_core_modules(int warn)
  * side effects - module is loaded if found.
  */
 int
-load_one_module(const char *path, int coremodule)
+load_one_module(const char *path)
 {
   dlink_node *ptr = NULL;
   char modpath[PATH_MAX + 1];
@@ -437,16 +425,9 @@ load_one_module(const char *path, int coremodule)
 
     if (strstr(modpath, "../") == NULL &&
         strstr(modpath, "/..") == NULL) 
-    {
       if (!stat(modpath, &statbuf))
-      {
-        if (S_ISREG(statbuf.st_mode))
-        {
-          /* Regular files only please */
-          return load_a_module(modpath, 1, coremodule);
-        }
-      }
-    }
+        if (S_ISREG(statbuf.st_mode))  /* Regular files only please */
+          return load_a_module(modpath, 1);
   }
 
   sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -478,7 +459,7 @@ mo_modload(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  load_one_module(parv[1], 0);
+  load_one_module(parv[1]);
 }
 
 /* unload a module .. */
@@ -554,7 +535,7 @@ mo_modreload(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((load_one_module(parv[1], check_core) == -1) && check_core)
+  if ((load_one_module(parv[1]) == -1) && check_core)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Error reloading core "
                          "module: %s: terminating ircd", parv[1]);

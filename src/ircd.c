@@ -566,6 +566,7 @@ main(int argc, char *argv[])
   watch_init();
   init_auth();          /* Initialise the auth code */
   init_resolver();      /* Needs to be setup before the io loop */
+  modules_init();
   read_conf_files(1);   /* cold start init conf files */
   init_uid();
   initialize_server_capabs();   /* Set up default_server_capabs */

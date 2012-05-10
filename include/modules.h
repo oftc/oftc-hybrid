@@ -61,11 +61,11 @@ extern void load_core_modules(int);
 extern void add_conf_module(const char *);
 /* load all modules listed in conf */
 extern void load_conf_modules(void);
+extern void modules_init(void);
 
 extern int unload_one_module(const char *, int);
 extern int modules_valid_suffix(const char *);
-extern int load_one_module(const char *, int);
-extern int load_a_module(const char *, int, int);
+extern int load_one_module(const char *);
+extern int load_a_module(const char *, int);
 extern struct module *findmodule_byname(const char *);
-extern void modules_init(void);
 #endif /* INCLUDED_modules_h */
