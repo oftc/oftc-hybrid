@@ -69,9 +69,6 @@ mo_kill(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (IsDigit(*user))	/* opers shouldn't be trying uids anyway ;-) */
-    return;
-
   if (!HasOFlag(source_p, OPER_FLAG_GLOBAL_KILL|OPER_FLAG_K))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
