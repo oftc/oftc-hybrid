@@ -681,6 +681,8 @@ report_confitem_types(struct Client *source_p, ConfType type)
 		 classitem->con_freq,
 		 classitem->max_total, classitem->max_sendq,
                  classitem->curr_user_count,
+                 classitem->number_per_cidr, classitem->cidr_bitlen_ipv4,
+                 classitem->number_per_cidr, classitem->cidr_bitlen_ipv6,
                  classitem->active ? "active" : "disabled");
     }
     break;
