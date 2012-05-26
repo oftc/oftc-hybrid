@@ -404,12 +404,6 @@ check_server(const char *name, struct Client *client_p)
 
   assert(client_p != NULL);
 
-  if (client_p == NULL)
-    return(error);
-
-  if (strlen(name) > HOSTLEN)
-    return(-4);
-
   /* loop through looking for all possible connect items that might work */
   DLINK_FOREACH(ptr, server_items.head)
   {
@@ -427,28 +421,11 @@ check_server(const char *name, struct Client *client_p)
         match(aconf->host, client_p->sockhost))
     {
       error = -2;
-      {
-        /* A NULL password is as good as a bad one */
-        if (EmptyString(client_p->localClient->passwd))
-          return(-2);
 
-	/* code in s_conf.c should not have allowed this to be NULL */
-	if (aconf->passwd == NULL)
-	  return(-2);
+      if (!match_conf_password(client_p->localClient->passwd, aconf))
+        return -2;
 
-        if (IsConfEncrypted(aconf))
-        {
-          if (strcmp(aconf->passwd,
-              (const char *)crypt(client_p->localClient->passwd,
-				  aconf->passwd)) == 0)
-            server_conf = conf;
-        }
-        else
-        {
-          if (strcmp(aconf->passwd, client_p->localClient->passwd) == 0)
-            server_conf = conf;
-        }
-      }
+      server_conf = conf;
     }
   }
 
@@ -460,10 +437,7 @@ check_server(const char *name, struct Client *client_p)
   server_aconf = map_to_conf(server_conf);
 
   if (!IsConfTopicBurst(server_aconf))
-  {
-    ClearCap(client_p, CAP_TB);
-    ClearCap(client_p, CAP_TBURST);
-  }
+    ClearCap(client_p, CAP_TB | CAP_TBURST);
 
   if (aconf != NULL)
   {

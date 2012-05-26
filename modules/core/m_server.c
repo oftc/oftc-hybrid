@@ -143,20 +143,6 @@ mr_server(struct Client *client_p, struct Client *source_p,
       return;
       /* NOT REACHED */
       break;
-
-    /* servername is > HOSTLEN */
-    case -4:
-      sendto_realops_flags(UMODE_ALL, L_ADMIN,
-                           "Invalid servername %s from %s",
-			   name, get_client_name(client_p, HIDE_IP));
-      sendto_realops_flags(UMODE_ALL, L_OPER,
-		           "Invalid servername %s from %s",
-			   name, get_client_name(client_p, MASK_IP));
-
-      exit_client(client_p, client_p, "Invalid servername.");
-      return;
-      /* NOT REACHED */
-      break;
   }
 
   if ((client_p->id[0] && (target_p = hash_find_id(client_p->id)))
