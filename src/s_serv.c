@@ -1143,16 +1143,13 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   /* Make sure aconf is useful */
   assert(aconf != NULL);
 
-  if(aconf == NULL)
-    return (0);
-
   /* XXX should be passing struct ConfItem in the first place */
   conf = unmap_conf_item(aconf);
 
   /* log */
   getnameinfo((struct sockaddr *)&aconf->addr, aconf->addr.ss_len,
               buf, sizeof(buf), NULL, 0, NI_NUMERICHOST);
-  ilog(LOG_TYPE_IRCD, "Connect to %s[%s] @%s", aconf->user, aconf->host,
+  ilog(LOG_TYPE_IRCD, "Connect to %s[%s] @%s", conf->name, aconf->host,
        buf);
 
   /* Still processing a DNS lookup? -> exit */
