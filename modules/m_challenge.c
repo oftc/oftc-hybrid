@@ -23,7 +23,6 @@
  */
 
 #include "stdinc.h"
-#ifdef HAVE_LIBCRYPTO
 #include "client.h"
 #include "ircd.h"
 #include "modules.h"
@@ -37,6 +36,7 @@
 #include "s_user.h"
 
 
+#ifdef HAVE_LIBCRYPTO
 /* failed_challenge_notice()
  *
  * inputs       - pointer to client doing /oper ...
@@ -183,6 +183,19 @@ module_exit(void)
   mod_del_cmd(&challenge_msgtab);
 }
 
+#else
+
+static void
+module_init(void)
+{
+}
+
+static void
+module_exit(void)
+{
+}
+#endif
+
 struct module module_entry = {
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
@@ -192,4 +205,3 @@ struct module module_entry = {
   .modexit = module_exit,
   .flags   = 0
 };
-#endif
