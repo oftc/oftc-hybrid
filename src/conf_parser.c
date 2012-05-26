@@ -4747,7 +4747,7 @@ yyreduce:
 #line 1418 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    yy_class->cidr_bitlen_ipv4 = (yyvsp[(3) - (4)].number);
+    yy_class->cidr_bitlen_ipv4 = (yyvsp[(3) - (4)].number) > 32 ? 32 : (yyvsp[(3) - (4)].number);
 }
     break;
 
@@ -4757,7 +4757,7 @@ yyreduce:
 #line 1424 "conf_parser.y"
     {
   if (conf_parser_ctx.pass == 1)
-    yy_class->cidr_bitlen_ipv6 = (yyvsp[(3) - (4)].number);
+    yy_class->cidr_bitlen_ipv6 = (yyvsp[(3) - (4)].number) > 128 ? 128 : (yyvsp[(3) - (4)].number);
 }
     break;
 

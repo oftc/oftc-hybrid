@@ -1417,13 +1417,13 @@ class_sendq: SENDQ '=' sizespec ';'
 class_cidr_bitlen_ipv4: CIDR_BITLEN_IPV4 '=' NUMBER ';'
 {
   if (conf_parser_ctx.pass == 1)
-    yy_class->cidr_bitlen_ipv4 = $3;
+    yy_class->cidr_bitlen_ipv4 = $3 > 32 ? 32 : $3;
 };
 
 class_cidr_bitlen_ipv6: CIDR_BITLEN_IPV6 '=' NUMBER ';'
 {
   if (conf_parser_ctx.pass == 1)
-    yy_class->cidr_bitlen_ipv6 = $3;
+    yy_class->cidr_bitlen_ipv6 = $3 > 128 ? 128 : $3;
 };
 
 class_number_per_cidr: NUMBER_PER_CIDR '=' NUMBER ';'
