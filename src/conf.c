@@ -2043,17 +2043,12 @@ lookup_confhost(struct ConfItem *conf)
 
   aconf = map_to_conf(conf);
 
-  if (EmptyString(aconf->host) ||
-      EmptyString(aconf->user))
+  if (has_wildcards(aconf->host))
   {
     ilog(LOG_TYPE_IRCD, "Host/server name error: (%s) (%s)",
          aconf->host, conf->name);
     return;
   }
-
-  if (strchr(aconf->host, '*') ||
-      strchr(aconf->host, '?'))
-    return;
 
   /* Do name lookup now on hostnames given and store the
    * ip numbers in conf structure.
