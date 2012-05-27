@@ -4,7 +4,7 @@ o) Implemented full services support. Among other things, the following changes
    - Added SVSNICK, and SVSMODE command handlers
    - Added service stamps to NICK/UID messages
    - Added SVS to server capabilities (CAPAB). SVS capable servers can
-     deal with NICK/UID messages that contain service IDs/stamps.
+     deal with extended NICK/UID messages that contain service IDs/stamps.
    - Usermode +r (registered nick) has been added, as well as
      channelmode +r (registered channel)
    - Now that usermode +r has a different function than before, rejected
@@ -14,6 +14,7 @@ o) Implemented full services support. Among other things, the following changes
    - Added usermode +R (only registered clients may send a private message)
    - Added services{} block to ircd.conf
    - Added services_name directive to general{} block
+   - Added GLOBOPS mainly for services compatibily, but can be used by operators, too
 o) RKLINE and RXLINE commands have been removed. Regular expression based
    bans should only be added via ircd.conf
 o) Added 'globops', 'restart', 'dline', 'undline' and 'module' operator privilege flags.
