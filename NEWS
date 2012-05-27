@@ -24,18 +24,24 @@ o) Cleaned up modules API. Old modules won't work anymore
 o) Remove general::burst_away configuration directive. AWAY bursts are now
    controlled via connect::flags explicitly
 o) Introduced new logging subsystem including log rotation based on
-   file sizes
+   file sizes. Log timestamp format is ISO8601 now
 o) Added support for remote D-lines
 o) Added usermode +H which is basically a replacement for the hidden_admin and
    hidden_oper operator flags. With usermode +H, irc operator status can now
    be hidden even on remote servers
+o) Added CIDR support for operator{} blocks
 o) The servlink program has been removed. ircd-hybrid can now make use of SSL/TLS
    for inter-server communication.
    NOTE: compressed server links are of course still available, but a SSL/TLS
    connection is required, as compression is now handled via the OpenSSL library
+o) Removed 'ssl_server_protocol' configuration directive and
+   added 'ssl_client_method' and 'ssl_server_method' instead.
+   Both of these options can now be changed at runtime
 o) Oper login IDs are no longer limited to NICKLEN*2
 o) Removed channel::burst_topicwho configuration option. Topicsetters are
    now sent by default
+o) "STATS Y|y" now reports CIDR limits as well
+o) Added m_webirc.c to contrib/
 o) Overall code cleanup and speed improvements
 
 --------------------------------------------------------------------------------
