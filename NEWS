@@ -1,3 +1,8 @@
+-- ircd-hybrid-8beta2 Release Notes
+o) channel::disable_fake_channels now also disables ascii 29 (mIRC italic)
+   when set to yes
+
+
 -- ircd-hybrid-8beta1 Release Notes
 o) Implemented full services support. Among other things, the following changes
    have been done for this:
