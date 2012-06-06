@@ -611,20 +611,22 @@ find_address_conf(const char *host, const char *user,
 {
   struct AccessItem *iconf, *kconf;
 
-  /* Find the best I-line... If none, return NULL -A1kmm */
+  /* Find the best auth{} block... If none, return NULL -A1kmm */
   if ((iconf = find_conf_by_address(host, ip, CONF_CLIENT, aftype, user,
                                     password, 1, certfp)) == NULL)
     return NULL;
 
-  /* If they are exempt from K-lines, return the best I-line. -A1kmm */
+  /* If they are exempt from K-lines, return the best auth{} block. -A1kmm */
   if (IsConfExemptKline(iconf))
     return iconf;
 
   /* Find the best K-line... -A1kmm */
   kconf = find_conf_by_address(host, ip, CONF_KLINE, aftype, user, NULL, 1, NULL);
 
-  /* If they are K-lined, return the K-line. Otherwise, return the
-   * I-line. -A1kmm */
+  /*
+   * If they are K-lined, return the K-line. Otherwise, return the
+   * auth{} block. -A1kmm
+   */
   if (kconf != NULL)
     return kconf;
 
