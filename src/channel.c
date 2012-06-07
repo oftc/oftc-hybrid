@@ -671,7 +671,7 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
       if (!ConfigChannel.use_invex || !find_bmask(source_p, &chptr->invexlist))
         return ERR_INVITEONLYCHAN;
 
-  if (chptr->mode.key[0] && (!key || irccmp(chptr->mode.key, key)))
+  if (chptr->mode.key[0] && (!key || strcmp(chptr->mode.key, key)))
     return ERR_BADCHANNELKEY;
 
   if (chptr->mode.limit && dlink_list_length(&chptr->members) >=
