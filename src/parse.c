@@ -461,9 +461,9 @@ del_msg_element(struct MessageTree *mtree_p, const char *cmd)
  * side effects	- none
  */
 static struct Message *
-msg_tree_parse(const char *cmd, struct MessageTree *root)
+msg_tree_parse(const char *cmd)
 {
-  struct MessageTree *mtree = root;
+  struct MessageTree *mtree = &msg_tree;
   assert(cmd && *cmd);
 
   while (IsAlpha(*cmd) && (mtree = mtree->pointers[*cmd & (MAXPTRLEN - 1)]))
@@ -487,7 +487,7 @@ mod_add_cmd(struct Message *msg)
   assert(msg && msg->cmd);
 
   /* command already added? */
-  if (msg_tree_parse(msg->cmd, &msg_tree))
+  if (msg_tree_parse(msg->cmd))
     return;
 
   add_msg_element(&msg_tree, msg, msg->cmd);
@@ -517,7 +517,7 @@ mod_del_cmd(struct Message *msg)
 struct Message *
 find_command(const char *cmd)
 {
-  return msg_tree_parse(cmd, &msg_tree);
+  return msg_tree_parse(cmd);
 }
 
 static void

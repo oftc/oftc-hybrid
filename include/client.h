@@ -40,15 +40,6 @@
 #define IDLEN           12 /* this is the maximum length, not the actual
                               generated length; DO NOT CHANGE! */
 
-/*
- * pre declare structs
- */
-struct AccessItem;
-struct Listener;
-struct Client;
-struct LocalUser;
-
-
 
 /*! \brief addr_mask_type enumeration */
 enum addr_mask_type
@@ -79,67 +70,6 @@ struct ListTask
   unsigned int created_max;
   unsigned int topicts_min;
   unsigned int topicts_max;
-};
-
-/*! \brief Client structure */
-struct Client
-{
-  dlink_node node;
-  dlink_node lnode;             /**< Used for Server->servers/users */
-
-  struct LocalUser *localClient;
-  struct Client    *hnext;      /**< For client hash table lookups by name */
-  struct Client    *idhnext;    /**< For SID hash table lookups by sid */
-  struct Server    *serv;       /**< ...defined, if this is a server */
-  struct Client    *servptr;    /**< Points to server this Client is on */
-  struct Client    *from;       /**< == self, if Local Client, *NEVER* NULL! */
-  char             *away;       /**< Client's AWAY message. Can be set/unset via AWAY command */
-
-  time_t            tsinfo;     /**< TS on the nick, SVINFO on server */
-  time_t            servicestamp; /**< Last time client has been identified for its nick */
-
-  unsigned int      flags;      /**< client flags */
-  unsigned int      umodes;     /**< opers, normal users subset */
-  unsigned int      hopcount;   /**< number of servers to this 0 = local */
-  unsigned int      status;     /**< Client type */
-  unsigned int      handler;    /**< Handler index */
-
-  dlink_list        whowas;
-  dlink_list        channel;   /**< chain of channel pointer blocks */
-
-  char name[HOSTLEN + 1]; /**< unique name for a client nick or host */
-  char id[IDLEN + 1];       /**< client ID, unique ID per client */
-
-  /* 
-   * client->username is the username from ident or the USER message, 
-   * If the client is idented the USER message is ignored, otherwise 
-   * the username part of the USER message is put here prefixed with a 
-   * tilde depending on the auth{} block. Once a client has registered,
-   * this field should be considered read-only.
-   */ 
-  char              username[USERLEN + 1]; /* client's username */
-
-  /*
-   * client->host contains the resolved name or ip address
-   * as a string for the user, it may be fiddled with for oper spoofing etc.
-   * once it's changed the *real* address goes away. This should be
-   * considered a read-only field after the client has registered.
-   */
-  char              host[HOSTLEN + 1];     /* client's hostname */
-
-  /*
-   * client->info for unix clients will normally contain the info from the 
-   * gcos field in /etc/passwd but anything can go here.
-   */
-  char              info[REALLEN + 1]; /* Free form additional client info */
-
-  /*
-   * client->sockhost contains the ip address gotten from the socket as a
-   * string, this field should be considered read-only once the connection
-   * has been made. (set in s_bsd.c only)
-   */
-  char              sockhost[HOSTIPLEN + 1]; /* This is the host name from the 
-                                                socket ip address as string */
 };
 
 /*! \brief LocalUser structure
@@ -218,6 +148,67 @@ struct LocalUser
 
   char*          response;  /**< expected response from client */
   char*          auth_oper; /**< Operator to become if they supply the response.*/
+};
+
+/*! \brief Client structure */
+struct Client
+{
+  dlink_node node;
+  dlink_node lnode;             /**< Used for Server->servers/users */
+
+  struct LocalUser *localClient;
+  struct Client    *hnext;      /**< For client hash table lookups by name */
+  struct Client    *idhnext;    /**< For SID hash table lookups by sid */
+  struct Server    *serv;       /**< ...defined, if this is a server */
+  struct Client    *servptr;    /**< Points to server this Client is on */
+  struct Client    *from;       /**< == self, if Local Client, *NEVER* NULL! */
+  char             *away;       /**< Client's AWAY message. Can be set/unset via AWAY command */
+
+  time_t            tsinfo;     /**< TS on the nick, SVINFO on server */
+  time_t            servicestamp; /**< Last time client has been identified for its nick */
+
+  unsigned int      flags;      /**< client flags */
+  unsigned int      umodes;     /**< opers, normal users subset */
+  unsigned int      hopcount;   /**< number of servers to this 0 = local */
+  unsigned int      status;     /**< Client type */
+  unsigned int      handler;    /**< Handler index */
+
+  dlink_list        whowas;
+  dlink_list        channel;   /**< chain of channel pointer blocks */
+
+  char name[HOSTLEN + 1]; /**< unique name for a client nick or host */
+  char id[IDLEN + 1];       /**< client ID, unique ID per client */
+
+  /* 
+   * client->username is the username from ident or the USER message, 
+   * If the client is idented the USER message is ignored, otherwise 
+   * the username part of the USER message is put here prefixed with a 
+   * tilde depending on the auth{} block. Once a client has registered,
+   * this field should be considered read-only.
+   */ 
+  char              username[USERLEN + 1]; /* client's username */
+
+  /*
+   * client->host contains the resolved name or ip address
+   * as a string for the user, it may be fiddled with for oper spoofing etc.
+   * once it's changed the *real* address goes away. This should be
+   * considered a read-only field after the client has registered.
+   */
+  char              host[HOSTLEN + 1];     /* client's hostname */
+
+  /*
+   * client->info for unix clients will normally contain the info from the 
+   * gcos field in /etc/passwd but anything can go here.
+   */
+  char              info[REALLEN + 1]; /* Free form additional client info */
+
+  /*
+   * client->sockhost contains the ip address gotten from the socket as a
+   * string, this field should be considered read-only once the connection
+   * has been made. (set in s_bsd.c only)
+   */
+  char              sockhost[HOSTIPLEN + 1]; /* This is the host name from the 
+                                                socket ip address as string */
 };
 
 /*
