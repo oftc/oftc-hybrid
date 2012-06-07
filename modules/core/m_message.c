@@ -442,7 +442,6 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
       if(chptr->mode.mode & MODE_NOCOLOR && msg_has_colors(text))
         text = strip_color(text);
       sendto_channel_butone(client_p, source_p, chptr, command, ":%s", text);
-    }
   }
   else
   {

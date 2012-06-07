@@ -772,6 +772,9 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
       if (is_quiet(chptr, source_p))
         return CAN_SEND_NO;
     }
+    if (chptr->mode.mode & MODE_REGONLY)
+      if (!HasUMode(source_p, UMODE_REGISTERED))
+        return ERR_NEEDREGGEDNICK;
 
     /* cache can send if quiet_on_ban and banned */
     if (ConfigChannel.quiet_on_ban && MyClient(source_p))
@@ -800,6 +803,10 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
   if(SpeakOnlyIfReg(chptr) && !IsNickServReg(source_p))
     return CAN_SEND_ONLY_IF_REG;
  
+  if (chptr->mode.mode & MODE_REGONLY)
+    if (!HasUMode(source_p, UMODE_REGISTERED))
+      return ERR_NEEDREGGEDNICK;
+
   return CAN_SEND_NONOP;
 }
 
