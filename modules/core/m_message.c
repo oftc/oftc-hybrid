@@ -424,16 +424,21 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
   {
     if (result == CAN_SEND_OPV ||
         !flood_attack_channel(p_or_n, source_p, chptr, chptr->chname))
-    {
       sendto_channel_butone(client_p, source_p, chptr, command, ":%s", text);
-    }
   }
   else
   {
     if (p_or_n != NOTICE)
-      sendto_one(source_p, form_str(ERR_CANNOTSENDTOCHAN),
-                 ID_or_name(&me, client_p),
-                 ID_or_name(source_p, client_p), chptr->chname);
+    {
+      if (result == ERR_NEEDREGGEDNICK)
+        sendto_one(source_p, form_str(ERR_NEEDREGGEDNICK),
+                   ID_or_name(&me, client_p),
+                   ID_or_name(source_p, client_p), chptr->chname);
+      else
+        sendto_one(source_p, form_str(ERR_CANNOTSENDTOCHAN),
+                   ID_or_name(&me, client_p),
+                   ID_or_name(source_p, client_p), chptr->chname);
+    }
   }
 }
 
