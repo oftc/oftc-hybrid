@@ -728,7 +728,7 @@ valid_nickname(const char *nickname, const int local)
     if (!IsNickChar(*p))
       return 0;
 
-  return p - nickname <= (NICKLEN - 1);
+  return p - nickname <= NICKLEN;
 }
 
 /* report_and_set_user_flags()
@@ -1354,7 +1354,7 @@ init_isupport(void)
   add_isupport("DEAF", "D", -1);
   add_isupport("KICKLEN", NULL, KICKLEN);
   add_isupport("MODES", NULL, MAXMODEPARAMS);
-  add_isupport("NICKLEN", NULL, NICKLEN-1);
+  add_isupport("NICKLEN", NULL, NICKLEN);
 #ifdef HALFOPS
   add_isupport("PREFIX", "(ohv)@%+", -1);
   add_isupport("STATUSMSG", "@%+", -1);

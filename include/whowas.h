@@ -34,7 +34,7 @@ struct Whowas
 {
   int hashv;
   time_t logoff;
-  char name[NICKLEN];
+  char name[NICKLEN + 1];
   char username[USERLEN + 1];
   char hostname[HOSTLEN + 1];
   char realname[REALLEN + 1];

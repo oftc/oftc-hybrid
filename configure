@@ -14375,7 +14375,7 @@ fi
 
 
 cat >>confdefs.h <<_ACEOF
-#define NICKLEN ($nicklen+1)
+#define NICKLEN ($nicklen)
 _ACEOF
 
 

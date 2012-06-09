@@ -194,7 +194,7 @@ mr_nick(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   struct Client *target_p = NULL;
-  char nick[NICKLEN];
+  char nick[NICKLEN + 1];
   char *s = NULL;
 
   if (parc < 2 || EmptyString(parv[1]))
@@ -255,7 +255,7 @@ static void
 m_nick(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-  char nick[NICKLEN];
+  char nick[NICKLEN + 1];
   struct Client *target_p = NULL;
 
   assert(source_p == client_p);

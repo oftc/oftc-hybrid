@@ -54,7 +54,7 @@ struct Server
 {
   dlink_list server_list; /**< Servers on this server */
   dlink_list client_list; /**< Clients on this server */
-  char by[NICKLEN];       /**< who activated this connection */
+  char by[NICKLEN + 1];   /**< who activated this connection */
 };
 
 /*! \brief ListTask structure */
