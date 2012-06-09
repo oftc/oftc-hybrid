@@ -161,6 +161,12 @@ static const struct InfoStruct info_table[] =
     "Maximum number of channels a user can join"
   },
   {
+    "max_chans_per_oper",
+    OUTPUT_DECIMAL,
+    &ConfigChannel.max_chans_per_oper,
+    "Maximum number of channels an oper can join"
+  },
+  {
     "quiet_on_ban",
     OUTPUT_BOOLEAN_YN,
     &ConfigChannel.quiet_on_ban,
