@@ -156,7 +156,7 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
   size_t len = 0;
   struct Ban *ban_p = NULL;
   unsigned int num_mask;
-  char name[NICKLEN];
+  char name[NICKLEN + 1];
   char user[USERLEN + 1];
   char host[HOSTLEN + 1];
   struct split_nuh_item nuh;
@@ -266,7 +266,7 @@ del_id(struct Channel *chptr, char *banid, int type)
   dlink_list *list;
   dlink_node *ban;
   struct Ban *banptr;
-  char name[NICKLEN];
+  char name[NICKLEN + 1];
   char user[USERLEN + 1];
   char host[HOSTLEN + 1];
   struct split_nuh_item nuh;

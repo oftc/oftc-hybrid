@@ -177,7 +177,7 @@ AC_DEFUN([AX_ARG_WITH_TOPICLEN],[
 dnl {{{ ax_arg_with_nicklen
 AC_DEFUN([AX_ARG_WITH_NICKLEN],[
   AC_ARG_WITH([nicklen],[AS_HELP_STRING([--with-nicklen=<value>],[Set nickname length (default 9).])],[nicklen="$withval"],[nicklen="9"])
-  AC_DEFINE_UNQUOTED([NICKLEN],[($nicklen+1)],[Length of nicknames.]) 
+  AC_DEFINE_UNQUOTED([NICKLEN],[($nicklen)],[Length of nicknames.]) 
 ])dnl }}}
 dnl {{{ ax_arg_enable_halfops
 AC_DEFUN([AX_ARG_ENABLE_HALFOPS],[
