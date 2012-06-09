@@ -194,6 +194,7 @@ free_collect_item(struct CollectItem *item)
 %token  T_LOG
 %token  MAX_ACCEPT
 %token  MAX_BANS
+%token  MAX_CHANS_PER_OPER
 %token  MAX_CHANS_PER_USER
 %token  MAX_GLOBAL
 %token  MAX_IDENT
@@ -3266,9 +3267,9 @@ channel_entry: CHANNEL
 
 channel_items:      channel_items channel_item | channel_item;
 channel_item:       channel_disable_local_channels | channel_use_except |
-                    channel_use_invex | channel_use_quiet | channel_use_knock |
-                    channel_max_bans | channel_knock_delay |
-                    channel_knock_delay_channel | channel_max_chans_per_user |
+                    channel_use_invex | channel_use_quiet | channel_use_knock | channel_max_bans |
+                    channel_knock_delay | channel_knock_delay_channel |
+                    channel_max_chans_per_user | channel_max_chans_per_oper |
                     channel_quiet_on_ban | channel_default_split_user_count |
                     channel_default_split_server_count |
                     channel_no_create_on_split | channel_restrict_channels |
@@ -3324,6 +3325,11 @@ channel_knock_delay_channel: KNOCK_DELAY_CHANNEL '=' timespec ';'
 channel_max_chans_per_user: MAX_CHANS_PER_USER '=' NUMBER ';'
 {
   ConfigChannel.max_chans_per_user = $3;
+};
+
+channel_max_chans_per_oper: MAX_CHANS_PER_OPER '=' NUMBER ';'
+{
+  ConfigChannel.max_chans_per_oper = $3;
 };
 
 channel_quiet_on_ban: QUIET_ON_BAN '=' TBOOL ';'

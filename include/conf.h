@@ -384,6 +384,7 @@ struct config_channel_entry
   int knock_delay_channel;
   unsigned int max_bans;
   unsigned int max_chans_per_user;
+  unsigned int max_chans_per_oper;
   int no_create_on_split;
   int no_join_on_split;
   int quiet_on_ban;
