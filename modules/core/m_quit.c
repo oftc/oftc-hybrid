@@ -48,12 +48,10 @@ m_quit(struct Client *client_p, struct Client *source_p,
   if (msg_has_colors(comment))
     comment = strip_color(comment);
   
-  if (comment[0] && (HasUMode(source_p, UMODE_OPER) ||
+  if (*comment && (HasUMode(source_p, UMODE_OPER) ||
       (source_p->localClient->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
       < CurrentTime))
     strlcpy(reason+6, comment, sizeof(reason)-6);
-  else
-    reason[0] = 0;
 
   exit_client(source_p, source_p, reason);
 }
