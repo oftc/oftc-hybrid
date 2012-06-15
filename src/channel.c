@@ -728,10 +728,6 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
     if (ms->flags & (CHFL_CHANOP|CHFL_HALFOP|CHFL_VOICE))
       return CAN_SEND_OPV;
 
-    if (chptr->mode.mode & MODE_REGONLY)
-      if (!HasUMode(source_p, UMODE_REGISTERED))
-        return ERR_NEEDREGGEDNICK;
-
     /* cache can send if quiet_on_ban and banned */
     if (ConfigChannel.quiet_on_ban && MyClient(source_p))
     {
@@ -755,10 +751,6 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 
   if (chptr->mode.mode & MODE_MODERATED)
     return ERR_CANNOTSENDTOCHAN;
-
-  if (chptr->mode.mode & MODE_REGONLY)
-    if (!HasUMode(source_p, UMODE_REGISTERED))
-      return ERR_NEEDREGGEDNICK;
 
   return CAN_SEND_NONOP;
 }

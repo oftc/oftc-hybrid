@@ -1,7 +1,6 @@
 -- ircd-hybrid-8beta2 Release Notes
 o) channel::disable_fake_channels now also disables ascii 29 (mIRC italic)
    when set to yes
-o) Unregistered clients may not talk in a +R channel
 o) Added channel::max_chans_per_oper configuration directive. The old way
    was to let ircops join three times the amount of max_chans_per_user
 

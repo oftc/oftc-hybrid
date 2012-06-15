@@ -429,16 +429,9 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
   else
   {
     if (p_or_n != NOTICE)
-    {
-      if (result == ERR_NEEDREGGEDNICK)
-        sendto_one(source_p, form_str(ERR_NEEDREGGEDNICK),
-                   ID_or_name(&me, client_p),
-                   ID_or_name(source_p, client_p), chptr->chname);
-      else
-        sendto_one(source_p, form_str(ERR_CANNOTSENDTOCHAN),
-                   ID_or_name(&me, client_p),
-                   ID_or_name(source_p, client_p), chptr->chname);
-    }
+      sendto_one(source_p, form_str(ERR_CANNOTSENDTOCHAN),
+                 ID_or_name(&me, client_p),
+                 ID_or_name(source_p, client_p), chptr->chname);
   }
 }
 
