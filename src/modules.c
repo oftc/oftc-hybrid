@@ -68,7 +68,6 @@ static void mo_modload(struct Client *, struct Client *, int, char *[]);
 static void mo_modlist(struct Client *, struct Client *, int, char *[]);
 static void mo_modreload(struct Client *, struct Client *, int, char *[]);
 static void mo_modunload(struct Client *, struct Client *, int, char *[]);
-static void mo_modrestart(struct Client *, struct Client *, int, char *[]);
 
 struct Message modload_msgtab = {
  "MODLOAD", 0, 0, 2, 0, MFLG_SLOW, 0,
@@ -88,11 +87,6 @@ struct Message modreload_msgtab = {
 struct Message modlist_msgtab = {
  "MODLIST", 0, 0, 0, 0, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_modlist, m_ignore}
-};
-
-struct Message modrestart_msgtab = {
- "MODRESTART", 0, 0, 0, 0, MFLG_SLOW, 0,
- {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_modrestart, m_ignore}
 };
 
 
@@ -213,7 +207,6 @@ modules_init(void)
   mod_add_cmd(&modunload_msgtab);
   mod_add_cmd(&modreload_msgtab);
   mod_add_cmd(&modlist_msgtab);
-  mod_add_cmd(&modrestart_msgtab);
 }
 
 /* mod_find_path()
@@ -517,6 +510,34 @@ mo_modreload(struct Client *client_p, struct Client *source_p,
     return;
   }
 
+  if (!strcmp(parv[1], "*"))
+  {
+    unsigned int modnum = 0;
+    dlink_node *ptr = NULL, *ptr_next = NULL;
+
+    sendto_one(source_p, ":%s NOTICE %s :Reloading all modules",
+               me.name, source_p->name);
+
+    modnum = dlink_list_length(&modules_list);
+
+    DLINK_FOREACH_SAFE(ptr, ptr_next, modules_list.head)
+    {
+      modp = ptr->data;
+      unload_one_module(modp->name, 0);
+    }
+
+    load_all_modules(0);
+    load_conf_modules();
+    load_core_modules(0);
+
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                        "Module Restart: %u modules unloaded, %u modules loaded",
+                          modnum, dlink_list_length(&modules_list));
+    ilog(LOG_TYPE_IRCD, "Module Restart: %u modules unloaded, %u modules loaded",
+         modnum, dlink_list_length(&modules_list));
+    return;
+  }
+
   m_bn = libio_basename(parv[1]);
 
   if ((modp = findmodule_byname(m_bn)) == NULL)
@@ -572,41 +593,4 @@ mo_modlist(struct Client *client_p, struct Client *source_p,
 
   sendto_one(source_p, form_str(RPL_ENDOFMODLIST),
              me.name, source_p->name);
-}
-
-/* unload and reload all modules */
-static void
-mo_modrestart(struct Client *client_p, struct Client *source_p,
-              int parc, char *parv[])
-{
-  unsigned int modnum = 0;
-  dlink_node *ptr = NULL, *ptr_next = NULL;
-
-  if (!HasOFlag(source_p, OPER_FLAG_MODULE))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
-    return;
-  }
-
-  sendto_one(source_p, ":%s NOTICE %s :Reloading all modules",
-             me.name, source_p->name);
-
-  modnum = dlink_list_length(&modules_list);
-
-  DLINK_FOREACH_SAFE(ptr, ptr_next, modules_list.head)
-  {
-    struct module *modp = ptr->data;
-    unload_one_module(modp->name, 0);
-  }
-
-  load_all_modules(0);
-  load_conf_modules();
-  load_core_modules(0);
-
-  sendto_realops_flags(UMODE_ALL, L_ALL,
-                      "Module Restart: %u modules unloaded, %u modules loaded",
-			modnum, dlink_list_length(&modules_list));
-  ilog(LOG_TYPE_IRCD, "Module Restart: %u modules unloaded, %u modules loaded",
-       modnum, dlink_list_length(&modules_list));
 }
