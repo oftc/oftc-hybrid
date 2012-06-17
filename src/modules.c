@@ -74,7 +74,6 @@ static void mo_modload(struct Client *, struct Client *, int, char *[]);
 static void mo_modlist(struct Client *, struct Client *, int, char *[]);
 static void mo_modreload(struct Client *, struct Client *, int, char *[]);
 static void mo_modunload(struct Client *, struct Client *, int, char *[]);
-static void mo_modrestart(struct Client *, struct Client *, int, char *[]);
 
 struct Message modload_msgtab = {
  "MODLOAD", 0, 0, 2, 0, MFLG_SLOW, 0,
@@ -94,11 +93,6 @@ struct Message modreload_msgtab = {
 struct Message modlist_msgtab = {
  "MODLIST", 0, 0, 0, 0, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_modlist, m_ignore}
-};
-
-struct Message modrestart_msgtab = {
- "MODRESTART", 0, 0, 0, 0, MFLG_SLOW, 0,
- {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_modrestart, m_ignore}
 };
 
 
@@ -219,7 +213,6 @@ modules_init(void)
   mod_add_cmd(&modunload_msgtab);
   mod_add_cmd(&modreload_msgtab);
   mod_add_cmd(&modlist_msgtab);
-  mod_add_cmd(&modrestart_msgtab);
 }
 
 /* mod_find_path()
@@ -522,6 +515,34 @@ mo_modreload(struct Client *client_p, struct Client *source_p,
     return;
   }
 
+  if (!strcmp(parv[1], "*"))
+  {
+    unsigned int modnum = 0;
+    dlink_node *ptr = NULL, *ptr_next = NULL;
+
+    sendto_one(source_p, ":%s NOTICE %s :Reloading all modules",
+               me.name, source_p->name);
+
+    modnum = dlink_list_length(&modules_list);
+
+    DLINK_FOREACH_SAFE(ptr, ptr_next, modules_list.head)
+    {
+      modp = ptr->data;
+      unload_one_module(modp->name, 0);
+    }
+
+    load_all_modules(0);
+    load_conf_modules();
+    load_core_modules(0);
+
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                        "Module Restart: %u modules unloaded, %u modules loaded",
+                          modnum, dlink_list_length(&modules_list));
+    ilog(LOG_TYPE_IRCD, "Module Restart: %u modules unloaded, %u modules loaded",
+         modnum, dlink_list_length(&modules_list));
+    return;
+  }
+
   m_bn = basename(parv[1]);
 
   if ((modp = findmodule_byname(m_bn)) == NULL)
@@ -576,196 +597,3 @@ mo_modlist(struct Client *client_p, struct Client *source_p,
   sendto_one(source_p, form_str(RPL_ENDOFMODLIST),
              me.name, source_p->name);
 }
-
-/* unload and reload all modules */
-static void
-mo_modrestart(struct Client *client_p, struct Client *source_p,
-              int parc, char *parv[])
-{
-  unsigned int modnum = 0;
-  dlink_node *ptr = NULL, *ptr_next = NULL;
-
-  if (!HasOFlag(source_p, OPER_FLAG_MODULE))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
-    return;
-  }
-
-  sendto_one(source_p, ":%s NOTICE %s :Reloading all modules",
-             me.name, source_p->name);
-
-  modnum = dlink_list_length(&modules_list);
-
-  DLINK_FOREACH_SAFE(ptr, ptr_next, modules_list.head)
-  {
-    modp = ptr->data;
-    unload_one_module(modp->name, 0);
-  }
-
-  load_all_modules(0);
-  load_conf_modules();
-  load_core_modules(0);
-
-  sendto_realops_flags(UMODE_ALL, L_ALL,
-                      "Module Restart: %u modules unloaded, %u modules loaded",
-			modnum, dlink_list_length(&modules_list));
-  ilog(LOG_TYPE_IRCD, "Module Restart: %u modules unloaded, %u modules loaded",
-       modnum, dlink_list_length(&modules_list));
-}
-
-#else /* STATIC_MODULES */
-#include "s_serv.h"
-
-/* load_all_modules()
- *
- * input        - warn flag
- * output       - NONE
- * side effects - all the msgtabs are added for static modules
- */
-void
-load_all_modules(int warn)
-{
-  mod_add_cmd(&error_msgtab);
-  mod_add_cmd(&accept_msgtab);
-  mod_add_cmd(&admin_msgtab);
-  mod_add_cmd(&away_msgtab);
-  mod_add_cmd(&bmask_msgtab);
-  mod_add_cmd(&cap_msgtab);
-  mod_add_cmd(&capab_msgtab);
-  mod_add_cmd(&cburst_msgtab);
-  mod_add_cmd(&close_msgtab);
-  mod_add_cmd(&connect_msgtab);
-#ifdef HAVE_LIBCRYPTO
-  mod_add_cmd(&challenge_msgtab);
-  mod_add_cmd(&cryptlink_msgtab);
-#endif
-  mod_add_cmd(&die_msgtab);
-  mod_add_cmd(&drop_msgtab);
-  mod_add_cmd(&eob_msgtab);
-  mod_add_cmd(&etrace_msgtab);
-  mod_add_cmd(&gline_msgtab);
-  add_capability("GLN", CAP_GLN, 1);
-  mod_add_cmd(&hash_msgtab);
-  mod_add_cmd(&ungline_msgtab);
-  mod_add_cmd(&info_msgtab);
-  mod_add_cmd(&invite_msgtab);
-  mod_add_cmd(&ison_msgtab);
-  mod_add_cmd(&join_msgtab);
-  mod_add_cmd(&kick_msgtab);
-  mod_add_cmd(&kill_msgtab);
-  mod_add_cmd(&kline_msgtab);
-  add_capability("KLN", CAP_KLN, 1);
-  mod_add_cmd(&dline_msgtab);
-  mod_add_cmd(&unkline_msgtab);
-  mod_add_cmd(&undline_msgtab);
-  mod_add_cmd(&knock_msgtab);
-  add_capability("KNOCK", CAP_KNOCK, 1);
-  mod_add_cmd(&knockll_msgtab);
-  mod_add_cmd(&links_msgtab);
-  mod_add_cmd(&list_msgtab);
-  mod_add_cmd(&lljoin_msgtab);
-  mod_add_cmd(&llnick_msgtab);
-  mod_add_cmd(&locops_msgtab);
-  mod_add_cmd(&lusers_msgtab);
-  mod_add_cmd(&privmsg_msgtab);
-  mod_add_cmd(&notice_msgtab);
-  mod_add_cmd(&map_msgtab);
-  mod_add_cmd(&mode_msgtab);
-  mod_add_cmd(&motd_msgtab);
-  mod_add_cmd(&names_msgtab);
-  mod_add_cmd(&nburst_msgtab);
-  mod_add_cmd(&nick_msgtab);
-  mod_add_cmd(&omotd_msgtab);
-  mod_add_cmd(&oper_msgtab);
-  mod_add_cmd(&operwall_msgtab);
-  mod_add_cmd(&part_msgtab);
-  mod_add_cmd(&pass_msgtab);
-  mod_add_cmd(&ping_msgtab);
-  mod_add_cmd(&pong_msgtab);
-  mod_add_cmd(&post_msgtab);
-  mod_add_cmd(&get_msgtab);
-  mod_add_cmd(&put_msgtab);
-  mod_add_cmd(&quit_msgtab);
-  mod_add_cmd(&rehash_msgtab);
-  mod_add_cmd(&restart_msgtab);
-  mod_add_cmd(&resv_msgtab);
-  mod_add_cmd(&rkline_msgtab);
-  mod_add_cmd(&rxline_msgtab);
-  mod_add_cmd(&server_msgtab);
-  mod_add_cmd(&set_msgtab);
-  mod_add_cmd(&sid_msgtab);
-  mod_add_cmd(&sjoin_msgtab);
-  mod_add_cmd(&squit_msgtab);
-  mod_add_cmd(&stats_msgtab);
-  mod_add_cmd(&svinfo_msgtab);
-  mod_add_cmd(&tb_msgtab);
-  add_capability("TB", CAP_TB, 1);
-  mod_add_cmd(&tburst_msgtab);
-  add_capability("TBURST", CAP_TBURST, 1);
-  mod_add_cmd(&testline_msgtab);
-  mod_add_cmd(&testgecos_msgtab);
-  mod_add_cmd(&testmask_msgtab);
-  mod_add_cmd(&time_msgtab);
-  mod_add_cmd(&tmode_msgtab);
-  mod_add_cmd(&topic_msgtab);
-  mod_add_cmd(&trace_msgtab);
-  add_capability("UNKLN", CAP_UNKLN, 1);
-  mod_add_cmd(&uid_msgtab);
-  mod_add_cmd(&unresv_msgtab);
-  mod_add_cmd(&unxline_msgtab);
-  mod_add_cmd(&user_msgtab);
-  mod_add_cmd(&userhost_msgtab);
-  mod_add_cmd(&users_msgtab);
-  mod_add_cmd(&version_msgtab);
-  mod_add_cmd(&wallops_msgtab);
-  mod_add_cmd(&watch_msgtab);
-  mod_add_cmd(&who_msgtab);
-  mod_add_cmd(&whois_msgtab);
-  mod_add_cmd(&whowas_msgtab);
-  mod_add_cmd(&xline_msgtab);
-  mod_add_cmd(&help_msgtab);
-  mod_add_cmd(&uhelp_msgtab);
-#ifdef BUILD_CONTRIB
-  mod_add_cmd(&bs_msgtab);
-  mod_add_cmd(&botserv_msgtab);
-  mod_add_cmd(&capture_msgtab);
-  mod_add_cmd(&chanserv_msgtab);
-  mod_add_cmd(&chghost_msgtab);
-  mod_add_cmd(&chgident_msgtab);
-  mod_add_cmd(&chgname_msgtab);
-  mod_add_cmd(&classlist_msgtab);
-  mod_add_cmd(&clearchan_msgtab);
-  mod_add_cmd(&cs_msgtab);
-  mod_add_cmd(&ctrace_msgtab);
-  mod_add_cmd(&delspoof_msgtab);
-  mod_add_cmd(&flags_msgtab);
-  mod_add_cmd(&forcejoin_msgtab);
-  mod_add_cmd(&forcepart_msgtab);
-  mod_add_cmd(&global_msgtab);
-  mod_add_cmd(&help_msgtab);
-  mod_add_cmd(&uhelp_msgtab);
-  mod_add_cmd(&helpserv_msgtab);
-  mod_add_cmd(&hostserv_msgtab);
-  mod_add_cmd(&identify_msgtab);
-  mod_add_cmd(&jupe_msgtab);
-  mod_add_cmd(&killhost_msgtab);
-  mod_add_cmd(&ltrace_msgtab);
-  mod_add_cmd(&memoserv_msgtab);
-  mod_add_cmd(&mkpasswd_msgtab);
-  mod_add_cmd(&ms_msgtab);
-  mod_add_cmd(&nickserv_msgtab);
-  mod_add_cmd(&ns_msgtab);
-  mod_add_cmd(&ojoin_msgtab);
-  mod_add_cmd(&operserv_msgtab);
-  mod_add_cmd(&operspy_msgtab);
-  mod_add_cmd(&opme_msgtab);
-  mod_add_cmd(&os_msgtab);
-  mod_add_cmd(&seenserv_msgtab);
-  mod_add_cmd(&spoof_msgtab);
-  mod_add_cmd(&statserv_msgtab);
-  mod_add_cmd(&svsnick_msgtab);
-  mod_add_cmd(&uncapture_msgtab);
-#endif
-}
-#endif /* STATIC_MODULES */
