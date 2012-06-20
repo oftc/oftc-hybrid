@@ -20,6 +20,9 @@ Usermodes: (* designates that the umode is oper only)
        * +y     - Can see stats/links/admin requests to name a few.
        * +d     - Can see server debug messages.
        * +n     - Can see client nick changes.
+         +r     - User has been registered and identified for its nick.
+                  This mode can be set by servers and services only.
+         +R     - Only registered clients may message you.
        * +x     - Can see new server introduction and split messages.
        * +b     - Can see possible bot / join flood warnings.
        * +a     - Is marked as a server admin in stats p/o.
