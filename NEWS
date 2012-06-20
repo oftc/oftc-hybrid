@@ -3,6 +3,11 @@ o) channel::disable_fake_channels now also disables ascii 29 (mIRC italic)
    when set to yes
 o) Added channel::max_chans_per_oper configuration directive. The old way
    was to let ircops join three times the amount of max_chans_per_user
+o) Replaced MODLOAD, MODUNLOAD, MODRELOAD, MODLIST and MODRESTART commands
+   with the new MODULE command which can be fed with the LOAD, UNLOAD, RELOAD
+   and LIST parameters.
+   MODRESTART has been entirely removed. Use "MODULE RELOAD *" to reload all modules
+
 
 -- ircd-hybrid-8beta1 Release Notes
 o) Implemented full services support. Among other things, the following changes
