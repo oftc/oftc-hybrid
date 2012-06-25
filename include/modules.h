@@ -29,7 +29,8 @@
 
 #ifndef STATIC_MODULES
 
-#define MODULE_FLAG_CORE 0x1
+#define MODULE_FLAG_CORE     0x1
+#define MODULE_FLAG_NOUNLOAD 0x2
 
 struct module
 {
