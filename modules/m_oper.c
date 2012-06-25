@@ -78,7 +78,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
   if (EmptyString(password))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-	       me.name, source_p->name, "OPER");
+               me.name, source_p->name, "OPER");
     return;
   }
 
@@ -129,8 +129,8 @@ static void
 mo_oper(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
-  send_message_file(source_p, &ConfigFileEntry.opermotd);
+  sendto_one(source_p, form_str(RPL_YOUREOPER),
+             me.name, source_p->name);
 }
 
 static struct Message oper_msgtab = {

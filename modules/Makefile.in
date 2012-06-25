@@ -259,12 +259,6 @@ m_names_la_OBJECTS = $(am_m_names_la_OBJECTS)
 m_names_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(m_names_la_LDFLAGS) $(LDFLAGS) -o $@
-m_omotd_la_LIBADD =
-am_m_omotd_la_OBJECTS = m_omotd.lo
-m_omotd_la_OBJECTS = $(am_m_omotd_la_OBJECTS)
-m_omotd_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(m_omotd_la_LDFLAGS) $(LDFLAGS) -o $@
 m_oper_la_LIBADD =
 am_m_oper_la_OBJECTS = m_oper.lo
 m_oper_la_OBJECTS = $(am_m_oper_la_OBJECTS)
@@ -477,22 +471,21 @@ SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_links_la_SOURCES) $(m_list_la_SOURCES) \
 	$(m_locops_la_SOURCES) $(m_lusers_la_SOURCES) \
 	$(m_map_la_SOURCES) $(m_motd_la_SOURCES) $(m_names_la_SOURCES) \
-	$(m_omotd_la_SOURCES) $(m_oper_la_SOURCES) \
-	$(m_operwall_la_SOURCES) $(m_pass_la_SOURCES) \
-	$(m_ping_la_SOURCES) $(m_pong_la_SOURCES) $(m_post_la_SOURCES) \
-	$(m_rehash_la_SOURCES) $(m_restart_la_SOURCES) \
-	$(m_resv_la_SOURCES) $(m_services_la_SOURCES) \
-	$(m_set_la_SOURCES) $(m_stats_la_SOURCES) \
-	$(m_svinfo_la_SOURCES) $(m_svsmode_la_SOURCES) \
-	$(m_svsnick_la_SOURCES) $(m_tburst_la_SOURCES) \
-	$(m_testline_la_SOURCES) $(m_testmask_la_SOURCES) \
-	$(m_time_la_SOURCES) $(m_topic_la_SOURCES) \
-	$(m_trace_la_SOURCES) $(m_user_la_SOURCES) \
-	$(m_userhost_la_SOURCES) $(m_users_la_SOURCES) \
-	$(m_version_la_SOURCES) $(m_wallops_la_SOURCES) \
-	$(m_watch_la_SOURCES) $(m_who_la_SOURCES) \
-	$(m_whois_la_SOURCES) $(m_whowas_la_SOURCES) \
-	$(m_xline_la_SOURCES)
+	$(m_oper_la_SOURCES) $(m_operwall_la_SOURCES) \
+	$(m_pass_la_SOURCES) $(m_ping_la_SOURCES) $(m_pong_la_SOURCES) \
+	$(m_post_la_SOURCES) $(m_rehash_la_SOURCES) \
+	$(m_restart_la_SOURCES) $(m_resv_la_SOURCES) \
+	$(m_services_la_SOURCES) $(m_set_la_SOURCES) \
+	$(m_stats_la_SOURCES) $(m_svinfo_la_SOURCES) \
+	$(m_svsmode_la_SOURCES) $(m_svsnick_la_SOURCES) \
+	$(m_tburst_la_SOURCES) $(m_testline_la_SOURCES) \
+	$(m_testmask_la_SOURCES) $(m_time_la_SOURCES) \
+	$(m_topic_la_SOURCES) $(m_trace_la_SOURCES) \
+	$(m_user_la_SOURCES) $(m_userhost_la_SOURCES) \
+	$(m_users_la_SOURCES) $(m_version_la_SOURCES) \
+	$(m_wallops_la_SOURCES) $(m_watch_la_SOURCES) \
+	$(m_who_la_SOURCES) $(m_whois_la_SOURCES) \
+	$(m_whowas_la_SOURCES) $(m_xline_la_SOURCES)
 DIST_SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_away_la_SOURCES) $(m_cap_la_SOURCES) $(m_capab_la_SOURCES) \
 	$(m_challenge_la_SOURCES) $(m_close_la_SOURCES) \
@@ -506,22 +499,21 @@ DIST_SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_links_la_SOURCES) $(m_list_la_SOURCES) \
 	$(m_locops_la_SOURCES) $(m_lusers_la_SOURCES) \
 	$(m_map_la_SOURCES) $(m_motd_la_SOURCES) $(m_names_la_SOURCES) \
-	$(m_omotd_la_SOURCES) $(m_oper_la_SOURCES) \
-	$(m_operwall_la_SOURCES) $(m_pass_la_SOURCES) \
-	$(m_ping_la_SOURCES) $(m_pong_la_SOURCES) $(m_post_la_SOURCES) \
-	$(m_rehash_la_SOURCES) $(m_restart_la_SOURCES) \
-	$(m_resv_la_SOURCES) $(m_services_la_SOURCES) \
-	$(m_set_la_SOURCES) $(m_stats_la_SOURCES) \
-	$(m_svinfo_la_SOURCES) $(m_svsmode_la_SOURCES) \
-	$(m_svsnick_la_SOURCES) $(m_tburst_la_SOURCES) \
-	$(m_testline_la_SOURCES) $(m_testmask_la_SOURCES) \
-	$(m_time_la_SOURCES) $(m_topic_la_SOURCES) \
-	$(m_trace_la_SOURCES) $(m_user_la_SOURCES) \
-	$(m_userhost_la_SOURCES) $(m_users_la_SOURCES) \
-	$(m_version_la_SOURCES) $(m_wallops_la_SOURCES) \
-	$(m_watch_la_SOURCES) $(m_who_la_SOURCES) \
-	$(m_whois_la_SOURCES) $(m_whowas_la_SOURCES) \
-	$(m_xline_la_SOURCES)
+	$(m_oper_la_SOURCES) $(m_operwall_la_SOURCES) \
+	$(m_pass_la_SOURCES) $(m_ping_la_SOURCES) $(m_pong_la_SOURCES) \
+	$(m_post_la_SOURCES) $(m_rehash_la_SOURCES) \
+	$(m_restart_la_SOURCES) $(m_resv_la_SOURCES) \
+	$(m_services_la_SOURCES) $(m_set_la_SOURCES) \
+	$(m_stats_la_SOURCES) $(m_svinfo_la_SOURCES) \
+	$(m_svsmode_la_SOURCES) $(m_svsnick_la_SOURCES) \
+	$(m_tburst_la_SOURCES) $(m_testline_la_SOURCES) \
+	$(m_testmask_la_SOURCES) $(m_time_la_SOURCES) \
+	$(m_topic_la_SOURCES) $(m_trace_la_SOURCES) \
+	$(m_user_la_SOURCES) $(m_userhost_la_SOURCES) \
+	$(m_users_la_SOURCES) $(m_version_la_SOURCES) \
+	$(m_wallops_la_SOURCES) $(m_watch_la_SOURCES) \
+	$(m_who_la_SOURCES) $(m_whois_la_SOURCES) \
+	$(m_whowas_la_SOURCES) $(m_xline_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-dvi-recursive install-exec-recursive \
@@ -740,7 +732,6 @@ modules_LTLIBRARIES = m_accept.la    \
                       m_map.la       \
                       m_motd.la      \
                       m_names.la     \
-                      m_omotd.la     \
                       m_oper.la      \
                       m_operwall.la  \
                       m_pass.la      \
@@ -801,7 +792,6 @@ m_lusers_la_LDFLAGS = $(MODULE_FLAGS)
 m_map_la_LDFLAGS = $(MODULE_FLAGS)
 m_motd_la_LDFLAGS = $(MODULE_FLAGS)
 m_names_la_LDFLAGS = $(MODULE_FLAGS)
-m_omotd_la_LDFLAGS = $(MODULE_FLAGS)
 m_oper_la_LDFLAGS = $(MODULE_FLAGS)
 m_operwall_la_LDFLAGS = $(MODULE_FLAGS)
 m_pass_la_LDFLAGS = $(MODULE_FLAGS)
@@ -861,7 +851,6 @@ m_lusers_la_SOURCES = m_lusers.c
 m_map_la_SOURCES = m_map.c
 m_motd_la_SOURCES = m_motd.c
 m_names_la_SOURCES = m_names.c
-m_omotd_la_SOURCES = m_omotd.c
 m_oper_la_SOURCES = m_oper.c
 m_operwall_la_SOURCES = m_operwall.c
 m_pass_la_SOURCES = m_pass.c
@@ -1017,8 +1006,6 @@ m_motd.la: $(m_motd_la_OBJECTS) $(m_motd_la_DEPENDENCIES) $(EXTRA_m_motd_la_DEPE
 	$(m_motd_la_LINK) -rpath $(modulesdir) $(m_motd_la_OBJECTS) $(m_motd_la_LIBADD) $(LIBS)
 m_names.la: $(m_names_la_OBJECTS) $(m_names_la_DEPENDENCIES) $(EXTRA_m_names_la_DEPENDENCIES) 
 	$(m_names_la_LINK) -rpath $(modulesdir) $(m_names_la_OBJECTS) $(m_names_la_LIBADD) $(LIBS)
-m_omotd.la: $(m_omotd_la_OBJECTS) $(m_omotd_la_DEPENDENCIES) $(EXTRA_m_omotd_la_DEPENDENCIES) 
-	$(m_omotd_la_LINK) -rpath $(modulesdir) $(m_omotd_la_OBJECTS) $(m_omotd_la_LIBADD) $(LIBS)
 m_oper.la: $(m_oper_la_OBJECTS) $(m_oper_la_DEPENDENCIES) $(EXTRA_m_oper_la_DEPENDENCIES) 
 	$(m_oper_la_LINK) -rpath $(modulesdir) $(m_oper_la_OBJECTS) $(m_oper_la_LIBADD) $(LIBS)
 m_operwall.la: $(m_operwall_la_OBJECTS) $(m_operwall_la_DEPENDENCIES) $(EXTRA_m_operwall_la_DEPENDENCIES) 
@@ -1116,7 +1103,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_map.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_motd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_names.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_omotd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_oper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_operwall.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_pass.Plo@am__quote@

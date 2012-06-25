@@ -33,7 +33,6 @@ modules_LTLIBRARIES = m_accept.la    \
                       m_map.la       \
                       m_motd.la      \
                       m_names.la     \
-                      m_omotd.la     \
                       m_oper.la      \
                       m_operwall.la  \
                       m_pass.la      \
@@ -95,7 +94,6 @@ m_lusers_la_LDFLAGS = $(MODULE_FLAGS)
 m_map_la_LDFLAGS = $(MODULE_FLAGS)
 m_motd_la_LDFLAGS = $(MODULE_FLAGS)
 m_names_la_LDFLAGS = $(MODULE_FLAGS)
-m_omotd_la_LDFLAGS = $(MODULE_FLAGS)
 m_oper_la_LDFLAGS = $(MODULE_FLAGS)
 m_operwall_la_LDFLAGS = $(MODULE_FLAGS)
 m_pass_la_LDFLAGS = $(MODULE_FLAGS)
@@ -156,7 +154,6 @@ m_lusers_la_SOURCES = m_lusers.c
 m_map_la_SOURCES = m_map.c
 m_motd_la_SOURCES = m_motd.c
 m_names_la_SOURCES = m_names.c
-m_omotd_la_SOURCES = m_omotd.c
 m_oper_la_SOURCES = m_oper.c
 m_operwall_la_SOURCES = m_operwall.c
 m_pass_la_SOURCES = m_pass.c

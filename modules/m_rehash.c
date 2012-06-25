@@ -81,14 +81,6 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
       read_message_file(&ConfigFileEntry.motd);
       found = 1;
     }
-    else if (irccmp(parv[1], "OMOTD") == 0)
-    {
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-                           "%s is forcing re-reading of OPER MOTD file",
-                           get_oper_name(source_p));
-      read_message_file(&ConfigFileEntry.opermotd);
-      found = 1;
-    }
 
     if (found)
     {
@@ -99,7 +91,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     else
     {
       sendto_one(source_p, ":%s NOTICE %s :rehash one of :DNS FDLIMIT "
-                 "MOTD OMOTD", me.name, source_p->name);
+                 "MOTD", me.name, source_p->name);
       return;
     }
   }

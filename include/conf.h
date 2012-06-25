@@ -303,7 +303,6 @@ struct config_file_entry
   char *service_name;
 
   MessageFile motd;
-  MessageFile opermotd;
   MessageFile linksfile;
 
   int gline_min_cidr;

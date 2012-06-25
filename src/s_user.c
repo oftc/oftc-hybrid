@@ -1240,7 +1240,6 @@ oper_up(struct Client *source_p)
   sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
   sendto_one(source_p, ":%s NOTICE %s :*** Oper privs are %s",
              me.name, source_p->name, operprivs);
-  send_message_file(source_p, &ConfigFileEntry.opermotd);
 }
 
 static char new_uid[TOTALSIDUID + 1];     /* allow for \0 */
