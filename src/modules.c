@@ -45,7 +45,7 @@
 
 #ifndef STATIC_MODULES
 
-static dlink_list modules_list = { NULL, NULL, 0 };
+dlink_list modules_list = { NULL, NULL, 0 };
 
 static const char *unknown_ver = "<unknown>";
 
@@ -69,13 +69,6 @@ static const char *core_module_table[] =
 
 static dlink_list mod_paths = { NULL, NULL, 0 };
 static dlink_list conf_modules = { NULL, NULL, 0 };
-
-static void mo_module(struct Client *, struct Client *, int, char *[]);
-
-struct Message module_msgtab = {
- "MODULE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_module, m_ignore}
-};
 
 int
 modules_valid_suffix(const char *name)
@@ -189,8 +182,6 @@ modules_init(void)
          " link library. Exiting.");
     exit(0);
   }
-
-  mod_add_cmd(&module_msgtab);
 }
 
 /* mod_find_path()
@@ -410,153 +401,4 @@ load_one_module(const char *path)
                        "Cannot locate module %s", path);
   ilog(LOG_TYPE_IRCD, "Cannot locate module %s", path);
   return -1;
-}
-
-/*! \brief MODULE command handler (called by operators)
- *
- * \param client_p Pointer to allocated Client struct with physical connection
- *                 to this server, i.e. with an open socket connected.
- * \param source_p Pointer to allocated Client struct from which the message
- *                 originally comes from.  This can be a local or remote client.
- * \param parc     Integer holding the number of supplied arguments.
- * \param parv     Argument vector where parv[0] .. parv[parc-1] are non-NULL
- *                 pointers.
- * \note Valid arguments for this command are:
- *      - parv[0] = sender prefix
- *      - parv[1] = action [LOAD, UNLOAD, RELOAD, LIST]
- *      - parv[2] = module name
- */
-static void
-mo_module(struct Client *client_p, struct Client *source_p,
-          int parc, char *parv[])
-{
-  const char *m_bn = NULL;
-  struct module *modp = NULL;
-  int check_core;
-
-  if (!HasOFlag(source_p, OPER_FLAG_MODULE))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
-    return;
-  }
-
-  if (EmptyString(parv[1]))
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, source_p->name, "MODULE");
-    return;
-  }
-
-  if (!irccmp(parv[1], "LOAD"))
-  {
-    if (findmodule_byname((m_bn = basename(parv[2]))) != NULL)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Module %s is already loaded",
-                 me.name, source_p->name, m_bn);
-      return;
-    }
-
-    load_one_module(parv[2]);
-    return;
-  }
-
-  if (!irccmp(parv[1], "UNLOAD"))
-  {
-    if ((modp = findmodule_byname((m_bn = basename(parv[2])))) == NULL)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
-                 me.name, source_p->name, m_bn);
-      return;
-    }
-
-    if (modp->flags & MODULE_FLAG_CORE)
-    {
-      sendto_one(source_p,
-                 ":%s NOTICE %s :Module %s is a core module and may not be unloaded",
-                 me.name, source_p->name, m_bn);
-      return;
-    }
-
-    if (unload_one_module(m_bn, 1) == -1)
-      sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
-                 me.name, source_p->name, m_bn);
-    return;
-  }
-
-  if (!irccmp(parv[1], "RELOAD"))
-  {
-    if (!strcmp(parv[2], "*"))
-    {
-      unsigned int modnum = 0;
-      dlink_node *ptr = NULL, *ptr_next = NULL;
-
-      sendto_one(source_p, ":%s NOTICE %s :Reloading all modules",
-                 me.name, source_p->name);
-
-      modnum = dlink_list_length(&modules_list);
-
-      DLINK_FOREACH_SAFE(ptr, ptr_next, modules_list.head)
-      {
-        modp = ptr->data;
-        unload_one_module(modp->name, 0);
-      }
-
-      load_all_modules(0);
-      load_conf_modules();
-      load_core_modules(0);
-
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-                           "Module Restart: %u modules unloaded, %u modules loaded",
-                           modnum, dlink_list_length(&modules_list));
-      ilog(LOG_TYPE_IRCD, "Module Restart: %u modules unloaded, %u modules loaded",
-           modnum, dlink_list_length(&modules_list));
-      return;
-    }
-
-    if ((modp = findmodule_byname((m_bn = libio_basename(parv[2])))) == NULL)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
-               me.name, source_p->name, m_bn);
-      return;
-    }
-
-    check_core = (modp->flags & MODULE_FLAG_CORE) != 0;
-
-    if (unload_one_module(m_bn, 1) == -1)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
-                 me.name, source_p->name, m_bn);
-      return;
-    }
-
-    if ((load_one_module(parv[2]) == -1) && check_core)
-    {
-      sendto_realops_flags(UMODE_ALL, L_ALL, "Error reloading core "
-                           "module: %s: terminating ircd", parv[2]);
-      ilog(LOG_TYPE_IRCD, "Error loading core module %s: terminating ircd", parv[2]);
-      exit(0);
-    }
-
-    return;
-  }
-
-  if (!irccmp(parv[1], "LIST"))
-  {
-    const dlink_node *ptr = NULL;
-
-    DLINK_FOREACH(ptr, modules_list.head)
-    {
-      if (parc > 2 && !match(parv[2], modp->name))
-        continue;
-
-      sendto_one(source_p, form_str(RPL_MODLIST), me.name, source_p->name,
-                 modp->name, modp->handle,
-                 modp->version, (modp->flags & MODULE_FLAG_CORE) ?"(core)":"");
-    }
-
-    sendto_one(source_p, form_str(RPL_ENDOFMODLIST),
-               me.name, source_p->name);
-    return;
-  }
 }
