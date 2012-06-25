@@ -247,6 +247,12 @@ m_map_la_OBJECTS = $(am_m_map_la_OBJECTS)
 m_map_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(m_map_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
+m_module_la_LIBADD =
+am_m_module_la_OBJECTS = m_module.lo
+m_module_la_OBJECTS = $(am_m_module_la_OBJECTS)
+m_module_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(m_module_la_LDFLAGS) $(LDFLAGS) -o $@
 m_motd_la_LIBADD =
 am_m_motd_la_OBJECTS = m_motd.lo
 m_motd_la_OBJECTS = $(am_m_motd_la_OBJECTS)
@@ -470,7 +476,8 @@ SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_kline_la_SOURCES) $(m_knock_la_SOURCES) \
 	$(m_links_la_SOURCES) $(m_list_la_SOURCES) \
 	$(m_locops_la_SOURCES) $(m_lusers_la_SOURCES) \
-	$(m_map_la_SOURCES) $(m_motd_la_SOURCES) $(m_names_la_SOURCES) \
+	$(m_map_la_SOURCES) $(m_module_la_SOURCES) \
+	$(m_motd_la_SOURCES) $(m_names_la_SOURCES) \
 	$(m_oper_la_SOURCES) $(m_operwall_la_SOURCES) \
 	$(m_pass_la_SOURCES) $(m_ping_la_SOURCES) $(m_pong_la_SOURCES) \
 	$(m_post_la_SOURCES) $(m_rehash_la_SOURCES) \
@@ -498,7 +505,8 @@ DIST_SOURCES = $(m_accept_la_SOURCES) $(m_admin_la_SOURCES) \
 	$(m_kline_la_SOURCES) $(m_knock_la_SOURCES) \
 	$(m_links_la_SOURCES) $(m_list_la_SOURCES) \
 	$(m_locops_la_SOURCES) $(m_lusers_la_SOURCES) \
-	$(m_map_la_SOURCES) $(m_motd_la_SOURCES) $(m_names_la_SOURCES) \
+	$(m_map_la_SOURCES) $(m_module_la_SOURCES) \
+	$(m_motd_la_SOURCES) $(m_names_la_SOURCES) \
 	$(m_oper_la_SOURCES) $(m_operwall_la_SOURCES) \
 	$(m_pass_la_SOURCES) $(m_ping_la_SOURCES) $(m_pong_la_SOURCES) \
 	$(m_post_la_SOURCES) $(m_rehash_la_SOURCES) \
@@ -730,6 +738,7 @@ modules_LTLIBRARIES = m_accept.la    \
                       m_locops.la    \
                       m_lusers.la    \
                       m_map.la       \
+                      m_module.la    \
                       m_motd.la      \
                       m_names.la     \
                       m_oper.la      \
@@ -790,6 +799,7 @@ m_list_la_LDFLAGS = $(MODULE_FLAGS)
 m_locops_la_LDFLAGS = $(MODULE_FLAGS)
 m_lusers_la_LDFLAGS = $(MODULE_FLAGS)
 m_map_la_LDFLAGS = $(MODULE_FLAGS)
+m_module_la_LDFLAGS = $(MODULE_FLAGS)
 m_motd_la_LDFLAGS = $(MODULE_FLAGS)
 m_names_la_LDFLAGS = $(MODULE_FLAGS)
 m_oper_la_LDFLAGS = $(MODULE_FLAGS)
@@ -849,6 +859,7 @@ m_list_la_SOURCES = m_list.c
 m_locops_la_SOURCES = m_locops.c
 m_lusers_la_SOURCES = m_lusers.c
 m_map_la_SOURCES = m_map.c
+m_module_la_SOURCES = m_module.c
 m_motd_la_SOURCES = m_motd.c
 m_names_la_SOURCES = m_names.c
 m_oper_la_SOURCES = m_oper.c
@@ -1002,6 +1013,8 @@ m_lusers.la: $(m_lusers_la_OBJECTS) $(m_lusers_la_DEPENDENCIES) $(EXTRA_m_lusers
 	$(m_lusers_la_LINK) -rpath $(modulesdir) $(m_lusers_la_OBJECTS) $(m_lusers_la_LIBADD) $(LIBS)
 m_map.la: $(m_map_la_OBJECTS) $(m_map_la_DEPENDENCIES) $(EXTRA_m_map_la_DEPENDENCIES) 
 	$(m_map_la_LINK) -rpath $(modulesdir) $(m_map_la_OBJECTS) $(m_map_la_LIBADD) $(LIBS)
+m_module.la: $(m_module_la_OBJECTS) $(m_module_la_DEPENDENCIES) $(EXTRA_m_module_la_DEPENDENCIES) 
+	$(m_module_la_LINK) -rpath $(modulesdir) $(m_module_la_OBJECTS) $(m_module_la_LIBADD) $(LIBS)
 m_motd.la: $(m_motd_la_OBJECTS) $(m_motd_la_DEPENDENCIES) $(EXTRA_m_motd_la_DEPENDENCIES) 
 	$(m_motd_la_LINK) -rpath $(modulesdir) $(m_motd_la_OBJECTS) $(m_motd_la_LIBADD) $(LIBS)
 m_names.la: $(m_names_la_OBJECTS) $(m_names_la_DEPENDENCIES) $(EXTRA_m_names_la_DEPENDENCIES) 
@@ -1101,6 +1114,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_locops.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_lusers.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_map.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_module.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_motd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_names.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m_oper.Plo@am__quote@

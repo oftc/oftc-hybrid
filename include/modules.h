@@ -47,6 +47,8 @@ struct module_path
   char path[PATH_MAX + 1];
 };
 
+extern dlink_list modules_list;
+
 /* add a path */
 extern void mod_add_path(const char *);
 extern void mod_clear_paths(void);
