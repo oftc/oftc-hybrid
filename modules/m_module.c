@@ -39,6 +39,7 @@
 #include "packet.h"
 
 
+
 /*! \brief MODULE command handler (called by operators)
  *
  * \param client_p Pointer to allocated Client struct with physical connection
@@ -77,6 +78,13 @@ mo_module(struct Client *client_p, struct Client *source_p,
 
   if (!irccmp(parv[1], "LOAD"))
   {
+    if (EmptyString(parv[2]))
+    {
+      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+                 me.name, source_p->name, "MODULE");
+      return;
+    }
+
     if (findmodule_byname((m_bn = libio_basename(parv[2]))) != NULL)
     {
       sendto_one(source_p, ":%s NOTICE %s :Module %s is already loaded",
@@ -90,6 +98,13 @@ mo_module(struct Client *client_p, struct Client *source_p,
 
   if (!irccmp(parv[1], "UNLOAD"))
   {
+    if (EmptyString(parv[2]))
+    {
+      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+                 me.name, source_p->name, "MODULE");
+      return;
+    }
+
     if ((modp = findmodule_byname((m_bn = libio_basename(parv[2])))) == NULL)
     {
       sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
@@ -105,6 +120,14 @@ mo_module(struct Client *client_p, struct Client *source_p,
       return;
     }
 
+    if (modp->flags & MODULE_FLAG_NOUNLOAD)
+    {
+      sendto_one(source_p,
+                 ":%s NOTICE %s :Module %s is a resident module and may not be unloaded",
+                 me.name, source_p->name, m_bn);
+      return;
+    }
+
     if (unload_one_module(m_bn, 1) == -1)
       sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
                  me.name, source_p->name, m_bn);
@@ -113,6 +136,13 @@ mo_module(struct Client *client_p, struct Client *source_p,
 
   if (!irccmp(parv[1], "RELOAD"))
   {
+    if (EmptyString(parv[2]))
+    {
+      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+                 me.name, source_p->name, "MODULE");
+      return;
+    }
+
     if (!strcmp(parv[2], "*"))
     {
       unsigned int modnum = 0;
@@ -126,7 +156,9 @@ mo_module(struct Client *client_p, struct Client *source_p,
       DLINK_FOREACH_SAFE(ptr, ptr_next, modules_list.head)
       {
         modp = ptr->data;
-        unload_one_module(modp->name, 0);
+
+        if (!(modp->flags & MODULE_FLAG_NOUNLOAD))
+          unload_one_module(modp->name, 0);
       }
 
       load_all_modules(0);
@@ -145,6 +177,14 @@ mo_module(struct Client *client_p, struct Client *source_p,
     {
       sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
                me.name, source_p->name, m_bn);
+      return;
+    }
+
+    if (modp->flags & MODULE_FLAG_NOUNLOAD)
+    {
+      sendto_one(source_p,
+                 ":%s NOTICE %s :Module %s is a resident module and may not be unloaded",
+                 me.name, source_p->name, m_bn);
       return;
     }
 
@@ -174,6 +214,8 @@ mo_module(struct Client *client_p, struct Client *source_p,
 
     DLINK_FOREACH(ptr, modules_list.head)
     {
+      modp = ptr->data;
+
       if (parc > 2 && !match(parv[2], modp->name))
         continue;
 
@@ -190,7 +232,7 @@ mo_module(struct Client *client_p, struct Client *source_p,
 
 
 static struct Message module_msgtab = {
- "MODULE", 0, 0, 2, 0, MFLG_SLOW, 0,
+ "MODULE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_module, m_ignore}
 };
 
@@ -213,5 +255,5 @@ struct module module_entry = {
   .handle  = NULL,
   .modinit = module_init,
   .modexit = module_exit,
-  .flags   = MODULE_FLAG_CORE
+  .flags   = MODULE_FLAG_NOUNLOAD
 };
