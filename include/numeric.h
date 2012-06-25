@@ -487,10 +487,6 @@ extern const char *get_locale(void);
 #define RPL_TARGNOTIFY       717
 #define RPL_UMODEGMSG        718
 
-#define RPL_OMOTDSTART	     720
-#define RPL_OMOTD	     721
-#define RPL_ENDOFOMOTD	     722
-
 #define ERR_NOPRIVS	     723
 
 #define RPL_TESTMASK	     724

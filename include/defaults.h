@@ -75,7 +75,6 @@
 #define LPATH   LOGPATH "/ircd.log"             /* ircd logfile */
 #define OFTCLOG LOGPATH "/oftc.log" 
 #define PPATH   LOCALSTATEDIR "/ircd.pid"             /* pid file */
-#define OPATH   ETCPATH "/opers.motd"           /* oper MOTD file */
 #define LIPATH  ETCPATH "/links.txt"            /* cached links file */
 
 /*

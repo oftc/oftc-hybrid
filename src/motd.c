@@ -104,26 +104,6 @@ send_message_file(struct Client *source_p, MessageFile *motdToPrint)
       }
       break;
 
-    case OPER_MOTD:
-      if (motdToPrint->contentsOfFile != NULL)
-      {
-	sendto_one(source_p, form_str(RPL_OMOTDSTART),
-		   me.name, source_p->name, me.name);
-
-	sendto_one(source_p, form_str(RPL_OMOTD),
-		   me.name, source_p->name, motdToPrint->lastChangedDate);
-
-	for (linePointer = motdToPrint->contentsOfFile; linePointer;
-	     linePointer = linePointer->next)
-	{
-	  sendto_one(source_p, form_str(RPL_OMOTD),
-		     me.name, source_p->name, linePointer->line);
-	}
-	sendto_one(source_p, form_str(RPL_ENDOFOMOTD),
-		   me.name, source_p->name);
-      }
-      break;
-
   case ISSUPPORT:
       if (motdToPrint->contentsOfFile != NULL)
       {

@@ -297,11 +297,9 @@ static void
 initialize_message_files(void)
 {
   init_message_file(USER_MOTD, MPATH, &ConfigFileEntry.motd);
-  init_message_file(OPER_MOTD, OPATH, &ConfigFileEntry.opermotd);
   init_message_file(USER_LINKS, LIPATH, &ConfigFileEntry.linksfile);
 
   read_message_file(&ConfigFileEntry.motd);
-  read_message_file(&ConfigFileEntry.opermotd);
   read_message_file(&ConfigFileEntry.linksfile);
 
   init_isupport();
