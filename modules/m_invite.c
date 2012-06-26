@@ -81,7 +81,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
   /* done .. there should be no problem because MyConnect(source_p) should
    * always be true if parse() and such is working correctly --is
    */
-  if (!MyConnect(target_p) && (*parv[2] == '&'))
+  if ((*parv[2] == '&') && !MyConnect(target_p))
   {
     if (ConfigServerHide.hide_servers == 0)
       sendto_one(source_p, form_str(ERR_USERNOTONSERV),
