@@ -157,35 +157,12 @@ do_list(struct Client *source_p, int parc, char *parv[])
 }
 
 /*
-** m_list
-**      parv[0] = sender prefix
-**      parv[1] = channel
-*/
-static void
-m_list(struct Client *client_p, struct Client *source_p, 
-       int parc, char *parv[])
-{
-  static time_t last_used = 0;
-
-  if (((last_used + ConfigFileEntry.pace_wait) > CurrentTime))
-  {
-    sendto_one(source_p, form_str(RPL_LOAD2HI),
-               me.name, source_p->name);
-    return;
-  }
-
-  last_used = CurrentTime;
-
-  do_list(source_p, parc, parv);
-}
-
-/*
 ** mo_list
 **      parv[0] = sender prefix
 **      parv[1] = channel
 */
 static void
-mo_list(struct Client *client_p, struct Client *source_p,
+m_list(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   do_list(source_p, parc, parv);
@@ -193,7 +170,7 @@ mo_list(struct Client *client_p, struct Client *source_p,
 
 static struct Message list_msgtab = {
   "LIST", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
-  {m_unregistered, m_list, m_ignore, m_ignore, mo_list, m_ignore}
+  { m_unregistered, m_list, m_ignore, m_ignore, m_list, m_ignore }
 };
 
 static void
