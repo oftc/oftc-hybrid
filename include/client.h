@@ -97,7 +97,6 @@ struct LocalUser
   time_t       firsttime;  /**< time client was created */
   time_t       since;      /**< last time we parsed something */
   time_t       last_knock;    /**< time of last knock */
-  time_t       last_away; /**< Away since... */
   time_t       last_join_time;   /**< when this client last 
                                     joined a channel */
   time_t       last_leave_time;  /**< when this client last 
