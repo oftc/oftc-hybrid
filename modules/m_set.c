@@ -220,13 +220,13 @@ quote_identtimeout(struct Client *source_p, int newval)
   if (newval > 0)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
-		         "%s has changed IDENTTIMEOUT to %d",
-			 get_oper_name(source_p), newval);
+                         "%s has changed IDENTTIMEOUT to %d",
+                         get_oper_name(source_p), newval);
     GlobalSetOptions.ident_timeout = newval;
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :IDENTTIMEOUT is currently %d",
-	       me.name, source_p->name, GlobalSetOptions.ident_timeout);
+               me.name, source_p->name, GlobalSetOptions.ident_timeout);
 }
 
 /* SET MAX */
@@ -241,23 +241,23 @@ quote_max(struct Client *source_p, int newval)
     {
       sendto_one(source_p,
         ":%s NOTICE %s :You cannot set MAXCLIENTS to > %d, restoring to %d",
-	me.name, source_p->name, MAXCLIENTS_MAX, ServerInfo.max_clients);
+        me.name, source_p->name, MAXCLIENTS_MAX, ServerInfo.max_clients);
       return;
     }
 
     if (newval < MAXCLIENTS_MIN)
     {
       sendto_one(source_p,
-	":%s NOTICE %s :You cannot set MAXCLIENTS to < %d, restoring to %d",
-	me.name, source_p->name, MAXCLIENTS_MIN, ServerInfo.max_clients);
+        ":%s NOTICE %s :You cannot set MAXCLIENTS to < %d, restoring to %d",
+        me.name, source_p->name, MAXCLIENTS_MIN, ServerInfo.max_clients);
       return;
     }
 
     ServerInfo.max_clients = newval;
 
     sendto_realops_flags(UMODE_ALL, L_ALL,
-	"%s set new MAXCLIENTS to %d (%d current)",
-	get_oper_name(source_p), ServerInfo.max_clients, Count.local);
+        "%s set new MAXCLIENTS to %d (%d current)",
+        get_oper_name(source_p), ServerInfo.max_clients, Count.local);
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :Current MAXCLIENTS = %d (%d)",
@@ -273,11 +273,11 @@ quote_msglocale(struct Client *source_p, char *locale)
     set_locale(locale);
     rebuild_isupport_message_line();
     sendto_one(source_p, ":%s NOTICE %s :Set MSGLOCALE to '%s'",
-	       me.name, source_p->name, get_locale());
+               me.name, source_p->name, get_locale());
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :MSGLOCALE is currently '%s'",
-	       me.name, source_p->name, get_locale());
+               me.name, source_p->name, get_locale());
 }
 
 /* SET SPAMNUM */
@@ -366,8 +366,8 @@ quote_splitmode(struct Client *source_p, char *charval)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s is enabling and activating splitmode",
-	                   get_oper_name(source_p));
-		 
+                           get_oper_name(source_p));
+
       splitmode = 1;
       splitchecking = 0;
 
@@ -379,7 +379,7 @@ quote_splitmode(struct Client *source_p, char *charval)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s is enabling automatic splitmode",
-			   get_oper_name(source_p));
+                           get_oper_name(source_p));
 
       splitchecking = 1;
       check_splitmode(NULL);
@@ -392,7 +392,7 @@ quote_splitmode(struct Client *source_p, char *charval)
      */
     sendto_one(source_p, ":%s NOTICE %s :SPLITMODE is currently %s", 
                me.name, source_p->name, 
-	       splitmode_status[(splitchecking + (splitmode * 2))]);
+               splitmode_status[(splitchecking + (splitmode * 2))]);
 }
 
 /* SET SPLITNUM */
@@ -403,7 +403,7 @@ quote_splitnum(struct Client *source_p, int newval)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed SPLITNUM to %i", 
-			 get_oper_name(source_p), newval);
+                         get_oper_name(source_p), newval);
     split_servers = newval;
 
     if (splitchecking)
@@ -422,7 +422,7 @@ quote_splitusers(struct Client *source_p, int newval)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed SPLITUSERS to %i", 
-			 get_oper_name(source_p), newval);
+                         get_oper_name(source_p), newval);
     split_users = newval;
 
     if (splitchecking)
@@ -441,7 +441,7 @@ quote_jfloodtime(struct Client *source_p, int newval)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed JFLOODTIME to %i", 
-			 get_oper_name(source_p), newval);
+                         get_oper_name(source_p), newval);
     GlobalSetOptions.joinfloodtime = newval;
   }
   else
@@ -457,7 +457,7 @@ quote_jfloodcount(struct Client *source_p, int newval)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed JFLOODCOUNT to %i", 
-			 get_oper_name(source_p), newval);
+                         get_oper_name(source_p), newval);
     GlobalSetOptions.joinfloodcount = newval;
   }
   else
@@ -473,7 +473,7 @@ quote_rejecttime(struct Client *source_p, int newval)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed REJECTTIME to %i seconds", 
-			 get_oper_name(source_p), newval);
+                         get_oper_name(source_p), newval);
     GlobalSetOptions.rejecttime = newval;
   }
   else
@@ -551,9 +551,7 @@ mo_set(struct Client *client_p, struct Client *source_p,
               newval = atoi(intarg);
           }
           else
-          {
             newval = -1;
-          }
 
           if (newval < 0)
           {
