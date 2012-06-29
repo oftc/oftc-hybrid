@@ -68,8 +68,8 @@ struct AddressRec
 
 extern dlink_list atable[ATABLE_SIZE];
 extern int parse_netmask(const char *, struct irc_ssaddr *, int *);
-extern int match_ipv6(struct irc_ssaddr *, struct irc_ssaddr *, int);
-extern int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int);
+extern int match_ipv6(const struct irc_ssaddr *, const struct irc_ssaddr *, int);
+extern int match_ipv4(const struct irc_ssaddr *, const struct irc_ssaddr *, int);
 
 extern void mask_addr(struct irc_ssaddr *, int);
 extern void init_host_hash(void);

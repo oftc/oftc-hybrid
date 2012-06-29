@@ -310,7 +310,7 @@ int
 check_channel_name(const char *name, int local)
 {
   const char *p = name;
-  int max_length = local ? LOCAL_CHANNELLEN : CHANNELLEN;
+  const int max_length = local ? LOCAL_CHANNELLEN : CHANNELLEN;
   assert(name != NULL);
 
   if (!IsChanPrefix(*p))
@@ -596,7 +596,7 @@ find_bmask(const struct Client *who, const dlink_list *const list)
 
   DLINK_FOREACH(ptr, list->head)
   {
-    struct Ban *bp = ptr->data;
+    const struct Ban *bp = ptr->data;
 
     if (match(bp->name, who->name) && match(bp->username, who->username))
     {
