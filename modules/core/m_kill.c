@@ -41,8 +41,32 @@
 
 static char buf[IRCD_BUFSIZE];
 
-static void relay_kill(struct Client *, struct Client *, struct Client *,
-                       const char *, const char *);
+static void
+relay_kill(struct Client *one, struct Client *source_p,
+           struct Client *target_p, const char *inpath,
+           const char *reason)
+{
+  dlink_node *ptr = NULL;
+
+  DLINK_FOREACH(ptr, serv_list.head)
+  {
+    struct Client *client_p = ptr->data;
+
+    if (client_p == one)
+      continue;
+
+    if (MyClient(source_p))
+      sendto_one(client_p, ":%s KILL %s :%s!%s!%s!%s (%s)",
+                 ID_or_name(source_p, client_p),
+                 ID_or_name(target_p, client_p),
+                 me.name, source_p->host, source_p->username,
+                 source_p->name, reason);
+    else
+      sendto_one(client_p, ":%s KILL %s :%s %s",
+                 ID_or_name(source_p, client_p),
+                 ID_or_name(target_p, client_p), inpath, reason);
+  }
+}
 
 /* mo_kill()
  *  parv[0] = sender prefix
@@ -92,8 +116,8 @@ mo_kill(struct Client *client_p, struct Client *source_p,
      * servers in synch when nick change and kill collide
      */
     if ((target_p = get_history(user, 
-				(time_t)ConfigFileEntry.kill_chase_time_limit))
-				== NULL)
+                                (time_t)ConfigFileEntry.kill_chase_time_limit))
+                                == NULL)
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                  me.name, source_p->name, user);
@@ -128,8 +152,8 @@ mo_kill(struct Client *client_p, struct Client *source_p,
    * that have been around for ever, for no reason..
    */
   sendto_realops_flags(UMODE_ALL, L_ALL,
-		       "Received KILL message for %s. From %s Path: %s (%s)", 
-		       target_p->name, source_p->name, me.name, reason);
+                       "Received KILL message for %s. From %s Path: %s (%s)", 
+                       target_p->name, source_p->name, me.name, reason);
 
   ilog(LOG_TYPE_KILL, "KILL From %s For %s Path %s (%s)",
        source_p->name, target_p->name, me.name, reason);
@@ -200,23 +224,24 @@ ms_kill(struct Client *client_p, struct Client *source_p,
 
   if ((target_p = find_person(client_p, user)) == NULL)
   {
-      /* If the user has recently changed nick, but only if its 
-       * not an uid, automatically rewrite the KILL for this new nickname.
-       * --this keeps servers in synch when nick change and kill collide
-       */
-    if (IsDigit(*user))	/* Somehow an uid was not found in the hash ! */
+    /*
+     * If the user has recently changed nick, but only if its 
+     * not an uid, automatically rewrite the KILL for this new nickname.
+     * --this keeps servers in synch when nick change and kill collide
+     */
+    if (IsDigit(*user))   /* Somehow an uid was not found in the hash ! */
       return;
     if ((target_p = get_history(user,
-		       (time_t)ConfigFileEntry.kill_chase_time_limit))
+                                (time_t)ConfigFileEntry.kill_chase_time_limit))
        == NULL)
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
-		 me.name, source_p->name, user);
+                 me.name, source_p->name, user);
       return;
     }
 
     sendto_one(source_p,":%s NOTICE %s :KILL changed from %s to %s",
-	       me.name, source_p->name, user, target_p->name);
+               me.name, source_p->name, user, target_p->name);
   }
 
   if (IsServer(target_p) || IsMe(target_p))
@@ -233,20 +258,23 @@ ms_kill(struct Client *client_p, struct Client *source_p,
       /* dont send clients kills from a hidden server */
       if ((IsHidden(source_p) || ConfigServerHide.hide_servers) && !HasUMode(target_p, UMODE_OPER))
         sendto_one(target_p, ":%s KILL %s :%s",
- 		   me.name, target_p->name, reason);
+                   me.name, target_p->name, reason);
       else
-	sendto_one(target_p, ":%s KILL %s :%s",
-	           source_p->name, target_p->name, reason);
+        sendto_one(target_p, ":%s KILL %s :%s",
+                   source_p->name, target_p->name, reason);
     }
     else
       sendto_one(target_p, ":%s!%s@%s KILL %s :%s",
-		 source_p->name, source_p->username, source_p->host,
-		 target_p->name, reason);
+                 source_p->name, source_p->username, source_p->host,
+                 target_p->name, reason);
   }
 
-  /* Be warned, this message must be From %s, or it confuses clients
-   * so dont change it to From: or the case or anything! -- fl -- db */
-  /* path must contain at least 2 !'s, or bitchx falsely declares it
+  /*
+   * Be warned, this message must be From %s, or it confuses clients
+   * so dont change it to From: or the case or anything! -- fl -- db
+   */
+  /*
+   * path must contain at least 2 !'s, or bitchx falsely declares it
    * local --fl
    */
   if (HasUMode(source_p, UMODE_OPER)) /* send it normally */
@@ -274,39 +302,6 @@ ms_kill(struct Client *client_p, struct Client *source_p,
   exit_client(target_p, source_p, buf);
 }
 
-static void
-relay_kill(struct Client *one, struct Client *source_p,
-           struct Client *target_p, const char *inpath, const char *reason)
-{
-  dlink_node *ptr;
-  struct Client *client_p;
-  const char *from, *to;
-
-  DLINK_FOREACH(ptr, serv_list.head)
-  {
-    client_p = ptr->data;
-
-    if (client_p == NULL || client_p == one)
-      continue;
-
-    /* use UID if possible */
-    from = ID_or_name(source_p, client_p);
-    to = ID_or_name(target_p, client_p);
-
-    if (MyClient(source_p))
-    {
-        sendto_one(client_p, ":%s KILL %s :%s!%s!%s!%s (%s)",
-                   from, to,
-                   me.name, source_p->host, source_p->username,
-                   source_p->name, reason);
-    }
-    else
-    {
-        sendto_one(client_p, ":%s KILL %s :%s %s",
-                   from, to, inpath, reason);
-    }
-  }
-}
 
 static struct Message kill_msgtab = {
   "KILL", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
