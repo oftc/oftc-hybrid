@@ -263,11 +263,11 @@ parse_netmask(const char *text, struct irc_ssaddr *addr, int *b)
  */
 #ifdef IPV6
 int
-match_ipv6(struct irc_ssaddr *addr, struct irc_ssaddr *mask, int bits)
+match_ipv6(const struct irc_ssaddr *addr, const struct irc_ssaddr *mask, int bits)
 {
   int i, m, n = bits / 8;
-  struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)addr;
-  struct sockaddr_in6 *v6mask = (struct sockaddr_in6 *)mask;
+  const struct sockaddr_in6 *v6 = (const struct sockaddr_in6 *)addr;
+  const struct sockaddr_in6 *v6mask = (const struct sockaddr_in6 *)mask;
 
   for (i = 0; i < n; i++)
     if (v6->sin6_addr.s6_addr[i] != v6mask->sin6_addr.s6_addr[i])
@@ -287,10 +287,10 @@ match_ipv6(struct irc_ssaddr *addr, struct irc_ssaddr *mask, int bits)
  * Side Effects: None
  */
 int
-match_ipv4(struct irc_ssaddr *addr, struct irc_ssaddr *mask, int bits)
+match_ipv4(const struct irc_ssaddr *addr, const struct irc_ssaddr *mask, int bits)
 {
-  struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
-  struct sockaddr_in *v4mask = (struct sockaddr_in *)mask;
+  const struct sockaddr_in *v4 = (const struct sockaddr_in *)addr;
+  const struct sockaddr_in *v4mask = (const struct sockaddr_in *)mask;
 
   if ((ntohl(v4->sin_addr.s_addr) & ~((1 << (32 - bits)) - 1)) !=
       ntohl(v4mask->sin_addr.s_addr))
