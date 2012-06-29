@@ -153,9 +153,9 @@ m_join(struct Client *client_p, struct Client *source_p,
     }
 
     if (dlink_list_length(&source_p->channel) >=
-        HasUMode(source_p, UMODE_OPER) ?
-        ConfigChannel.max_chans_per_oper :
-        ConfigChannel.max_chans_per_user)
+        (HasUMode(source_p, UMODE_OPER) ?
+         ConfigChannel.max_chans_per_oper :
+         ConfigChannel.max_chans_per_user))
     {
       sendto_one(source_p, form_str(ERR_TOOMANYCHANNELS),
                  me.name, source_p->name, chan);
