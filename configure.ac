@@ -82,7 +82,7 @@ AC_ARG_ENABLE(libpcre,
 
 AH_TEMPLATE([HAVE_LIBCRYPTO], [If we support ssl])
 
-AM_CONDITIONAL(ENABLE_SSL, [test "$ac_cv_lib_crypto_RSA_free" = yes])
+AM_CONDITIONAL(ENABLE_SSL, [test "$ac_cv_lib_ssl_SSL_connect" = yes])
 
 AC_ARG_ENABLE(assert, AS_HELP_STRING([--enable-assert], 
                                      [Enable assert() statements]),
