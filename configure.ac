@@ -131,13 +131,13 @@ AS_IF([test "$cf_enable_openssl" != "no"],
   AS_IF([test "$cf_openssl_version_ok" = "yes"],
     [AC_MSG_RESULT(found)
 
-    AC_CHECK_LIB(ssl, SSL_connect)
-    AS_IF([test "$ac_cv_lib_ssl_SSL_connect" = "yes"],
-      [AC_CHECK_LIB(crypto, RSA_free)])
+    AC_CHECK_LIB(crypto, RSA_free)
+    AS_IF([test "$ac_cv_lib_crypto_RSA_free" = "yes"],
+      [AC_CHECK_LIB(ssl, SSL_connect)])
     ],[AC_MSG_RESULT(no - OpenSSL support disabled)
     cf_enable_openssl="no"])])
 
-AM_CONDITIONAL(ENABLE_SSL, [test "$ac_cv_lib_crypto_RSA_free" = yes])
+AM_CONDITIONAL(ENABLE_SSL, [test "$ac_cv_lib_ssl_SSL_connect" = yes])
 
 
 AC_ARG_ENABLE(assert, AS_HELP_STRING([--enable-assert], 
