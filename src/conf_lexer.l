@@ -278,6 +278,7 @@ serverhide	{ return SERVERHIDE; }
 serverinfo	{ return SERVERINFO; }
 service          { return T_SERVICE; }
 services_name    { return T_SERVICES_NAME; }
+set              { return T_SET; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }
 sid		{ return IRCD_SID; }

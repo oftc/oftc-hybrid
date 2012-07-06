@@ -309,6 +309,7 @@ free_collect_item(struct CollectItem *item)
 %token  T_REJ
 %token  T_SERVER
 %token  T_SERVNOTICE
+%token  T_SET
 %token  T_SKILL
 %token  T_SPY
 %token  T_SSL
@@ -1278,6 +1279,10 @@ oper_flags_item: GLOBAL_KILL
 {
   if (conf_parser_ctx.pass == 2)
     yy_aconf->port |= OPER_FLAG_REMOTEBAN;
+} | T_SET
+{
+  if (conf_parser_ctx.pass == 2)
+    yy_aconf->port |= OPER_FLAG_SET;
 } | MODULE
 {
   if (conf_parser_ctx.pass == 2)
