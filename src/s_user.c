@@ -1288,9 +1288,8 @@ oper_up(struct Client *source_p, const char *name)
   if (!HasOFlag(source_p, OPER_FLAG_N))
     DelUMode(source_p, UMODE_NCHANGE);
 
-  sendto_realops_flags(UMODE_ALL, L_ALL, "%s (%s@%s) is now an operator",
-                       source_p->name, source_p->username, source_p->host);
-
+  sendto_realops_flags(UMODE_ALL, L_ALL, "%s is now an operator",
+                       get_oper_name(source_p));
   send_umode_out(source_p, source_p, old);
   sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
   sendto_one(source_p, ":%s NOTICE %s :*** Oper privs are %s",
