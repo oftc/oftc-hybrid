@@ -509,11 +509,19 @@ static const struct InfoStruct info_table[] =
     "G-line (network-wide K-line) support"
   },
   {
-    "duration",
+    "gline_duration",
     OUTPUT_DECIMAL,
     &ConfigFileEntry.gline_time,
     "Expiry time for G-lines"
   },
+
+  {
+    "gline_request_duration",
+    OUTPUT_DECIMAL,
+    &ConfigFileEntry.gline_request_time,
+    "Expiry time for pending G-lines"
+  },
+
   /* --[  END OF TABLE  ]---------------------------------------------- */
   {
     NULL,

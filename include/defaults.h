@@ -113,6 +113,8 @@
 #define NETWORK_DESC_DEFAULT "Eris Free Network" /* default for network_desc */
 #define SERVICE_NAME_DEFAULT "service.someserver"
 
+#define GLINE_REQUEST_EXPIRE_DEFAULT 600
+
 /* General defaults */
 #define MAXIMUM_LINKS_DEFAULT 0         /* default for maximum_links */
 

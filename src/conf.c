@@ -88,7 +88,6 @@ dlink_list rxconf_items  = { NULL, NULL, 0 };
 dlink_list rkconf_items  = { NULL, NULL, 0 };
 dlink_list nresv_items   = { NULL, NULL, 0 };
 dlink_list class_items   = { NULL, NULL, 0 };
-dlink_list gdeny_items   = { NULL, NULL, 0 };
 
 dlink_list temporary_xlines  = { NULL, NULL, 0 };
 dlink_list temporary_resv = { NULL, NULL, 0 };
@@ -264,12 +263,6 @@ make_conf_item(ConfType type)
     conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
                                        sizeof(struct MatchItem));
     dlinkAdd(conf, &conf->node, &uconf_items);
-    break;
-
-  case GDENY_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct AccessItem));
-    dlinkAdd(conf, &conf->node, &gdeny_items);
     break;
 
   case XLINE_TYPE:
@@ -484,14 +477,6 @@ delete_conf_item(struct ConfItem *conf)
     MyFree(conf);
     break;
 
-  case GDENY_TYPE:
-    aconf = map_to_conf(conf);
-    MyFree(aconf->user);
-    MyFree(aconf->host);
-    dlinkDelete(&conf->node, &gdeny_items);
-    MyFree(conf);
-    break;
-
   case CLUSTER_TYPE:
     dlinkDelete(&conf->node, &cluster_items);
     MyFree(conf);
@@ -560,32 +545,6 @@ report_confitem_types(struct Client *source_p, ConfType type)
 
   switch (type)
   {
-  case GDENY_TYPE:
-    DLINK_FOREACH(ptr, gdeny_items.head)
-    {
-      conf = ptr->data;
-      aconf = map_to_conf(conf);
-
-      p = buf;
-
-      if (aconf->flags & GDENY_BLOCK)
-        *p++ = 'B';
-      else
-        *p++ = 'b';
-
-      if (aconf->flags & GDENY_REJECT)
-        *p++ = 'R';
-      else
-        *p++ = 'r';
-
-      *p = '\0';
-
-      sendto_one(source_p, ":%s %d %s V %s@%s %s %s",
-                 me.name, RPL_STATSDEBUG, source_p->name, 
-                 aconf->user, aconf->host, conf->name, buf);
-    }
-    break;
-
   case XLINE_TYPE:
     DLINK_FOREACH(ptr, xconf_items.head)
     {
@@ -1933,6 +1892,9 @@ set_default_conf(void)
   
   DupString(ConfigFileEntry.service_name, SERVICE_NAME_DEFAULT);
   ConfigFileEntry.max_watch = WATCHSIZE_DEFAULT;
+  ConfigFileEntry.glines = 0;
+  ConfigFileEntry.gline_time = 12 * 3600;
+  ConfigFileEntry.gline_request_time = GLINE_REQUEST_EXPIRE_DEFAULT;
   ConfigFileEntry.gline_min_cidr = 16;
   ConfigFileEntry.gline_min_cidr6 = 48;
   ConfigFileEntry.invisible_on_connect = 1;
@@ -1972,8 +1934,6 @@ set_default_conf(void)
   ConfigFileEntry.no_oper_flood = 0;
   ConfigFileEntry.true_no_oper_flood = 0;
   ConfigFileEntry.oper_pass_resv = 1;
-  ConfigFileEntry.glines = 0;
-  ConfigFileEntry.gline_time = 12 * 3600;
   ConfigFileEntry.max_targets = MAX_TARGETS_DEFAULT;
   ConfigFileEntry.client_flood = CLIENT_FLOOD_DEFAULT;
   ConfigFileEntry.oper_only_umodes = UMODE_DEBUG;
@@ -2592,7 +2552,7 @@ clear_out_old_conf(void)
   dlink_list *free_items [] = {
     &server_items,   &oconf_items,
      &uconf_items,   &xconf_items, &rxconf_items, &rkconf_items,
-     &nresv_items, &cluster_items,  &gdeny_items, &service_items, NULL
+     &nresv_items, &cluster_items,  &service_items, NULL
   };
 
   dlink_list ** iterator = free_items; /* C is dumb */

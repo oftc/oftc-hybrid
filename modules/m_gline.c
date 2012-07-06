@@ -287,8 +287,6 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
   const char *reason = NULL;      /* reason for "victims" demise       */
   char *user = NULL;
   char *host = NULL;              /* user and host of GLINE "victim"   */
-  int var_offset = 0, logged = 0;
-  dlink_node *ptr;
   struct Client *target_p = NULL;
 
   switch (parc)
@@ -303,7 +301,7 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
       target_p = find_person(source_p->from, parv[1]);
       if (target_p == NULL || target_p->servptr != source_p)
         return;
-      source_p = target_p, var_offset = 4;
+      source_p = target_p;
       break;
     default:
       return;
@@ -311,59 +309,20 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
 
   assert(source_p->servptr != NULL);
 
-  user = parv[++var_offset];
-  host = parv[++var_offset];
-  reason = parv[++var_offset];
+  user   = parv[parc - 3];
+  host   = parv[parc - 2];
+  reason = parv[parc - 1];
 
-  var_offset = 0;
-
-  DLINK_FOREACH(ptr, gdeny_items.head)
-  {
-    conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
-
-    if (match(conf->name, source_p->servptr->name) &&
-        match(aconf->user, source_p->username) &&
-        match(aconf->host, source_p->host))
-    {
-      var_offset = aconf->flags;
-      break;
-    }
-  }
-
-  if (prop && !(var_offset & GDENY_BLOCK))
-  {
-    sendto_server(source_p->from, NULL, CAP_GLN, NOCAPS,
-                  ":%s GLINE %s %s :%s",
-                  source_p->name, user, host, reason);
-    /* hyb-6 version to the rest */
-    sendto_server(source_p->from, NULL, NOCAPS, CAP_GLN,
-                  ":%s GLINE %s %s %s %s %s %s :%s",
-                  source_p->servptr->name,
-                  source_p->name, source_p->username, source_p->host,
-                  source_p->servptr->name,
-                  user, host, reason);
-  }
-  else if (ConfigFileEntry.gline_logging & GDENY_BLOCK && ServerInfo.hub)
-  {
-    sendto_realops_flags(UMODE_ALL, L_ALL, "Blocked G-Line %s requested on [%s@%s] [%s]",
-                         get_oper_name(source_p), user, host, reason);
-    ilog(LOG_TYPE_GLINE, "Blocked G-Line %s requested on [%s@%s] [%s]",
-         get_oper_name(source_p), user, host, reason);
-    logged = 1;
-  }
-
-  if (var_offset & GDENY_REJECT)
-  {
-    if (ConfigFileEntry.gline_logging & GDENY_REJECT && !logged)
-    {
-      sendto_realops_flags(UMODE_ALL, L_ALL, "Rejected G-Line %s requested on [%s@%s] [%s]",
-                           get_oper_name(source_p), user, host, reason);
-      ilog(LOG_TYPE_GLINE, "Rejected G-Line %s requested on [%s@%s] [%s]",
-           get_oper_name(source_p), user, host, reason);
-    }
-    return;
-  }
+  sendto_server(source_p->from, NULL, CAP_GLN, NOCAPS,
+                ":%s GLINE %s %s :%s",
+                source_p->name, user, host, reason);
+  /* hyb-6 version to the rest */
+  sendto_server(source_p->from, NULL, NOCAPS, CAP_GLN,
+                ":%s GLINE %s %s %s %s %s %s :%s",
+                source_p->servptr->name,
+                source_p->name, source_p->username, source_p->host,
+                source_p->servptr->name,
+                user, host, reason);
 
   if (ConfigFileEntry.glines)
   {

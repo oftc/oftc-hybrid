@@ -100,11 +100,12 @@ expire_pending_glines(void)
   {
     glp_ptr = ptr->data;
 
-    if (((glp_ptr->last_gline_time + GLINE_PENDING_EXPIRE) <= CurrentTime) ||
-        find_is_glined(glp_ptr->host, glp_ptr->user))
-    {
-      dlinkDelete(&glp_ptr->node, &pending_glines);
-      MyFree(glp_ptr);
+      if ((glp_ptr->last_gline_time + ConfigFileEntry.gline_request_time) <= CurrentTime ||
+          glp_ptr == in)
+      {
+        dlinkDelete(&glp_ptr->node, &pending_glines[idx]);
+        MyFree(glp_ptr);
+      }
     }
   }
 }
