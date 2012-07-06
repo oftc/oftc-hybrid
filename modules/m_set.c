@@ -499,6 +499,13 @@ mo_set(struct Client *client_p, struct Client *source_p,
   const char *intarg = NULL;
   const struct SetStruct *tab = set_cmd_table;
 
+  if (!HasOFlag(source_p, OPER_FLAG_SET))
+  {
+    sendto_one(source_p, form_str(ERR_NOPRIVS),
+               me.name, source_p->name, "set");
+    return;
+  }
+
   if (parc > 1)
   {
     /*

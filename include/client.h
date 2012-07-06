@@ -369,6 +369,7 @@ struct Client
 #define OPER_FLAG_RESTART      0x00008000 /**< Oper can use RESTART command */
 #define OPER_FLAG_DLINE        0x00010000 /**< Oper can use DLINE command   */
 #define OPER_FLAG_UNDLINE      0x00020000 /**< Oper can use UNDLINE command */
+#define OPER_FLAG_SET          0x00040000 /**< Oper can use SET command */
 
 #define HasOFlag(x, y) (MyConnect(x) ? (x)->localClient->operflags & (y) : 0)
 #define AddOFlag(x, y) ((x)->localClient->operflags |=  (y))

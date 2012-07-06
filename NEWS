@@ -116,6 +116,7 @@ o) Replaced MODLOAD, MODUNLOAD, MODRELOAD, MODLIST and MODRESTART commands
    MODRESTART has been entirely removed. Use "MODULE RELOAD *" to reload all modules
 o) Added back server notice when a client tries to obtain a reserved nick name
 o) Removed OMOTD module
+o) Added 'set' to operator privilege flags. Gives access to the "SET" command
 
 
 -- ircd-hybrid-8beta1 Release Notes
