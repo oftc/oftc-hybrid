@@ -181,8 +181,10 @@ flatten_links	{ return FLATTEN_LINKS; }
 gecos		{ return GECOS; }
 general		{ return GENERAL; }
 gline		{ return GLINE; }
-glines		{ return GLINES; }
+gline_enable    { return GLINE_ENABLE; }
 gline_exempt    { return GLINE_EXEMPT; }
+gline_duration  { return GLINE_DURATION; }
+gline_request_duration { return GLINE_REQUEST_DURATION; }
 gline_min_cidr  { return GLINE_MIN_CIDR; }
 gline_min_cidr6 { return GLINE_MIN_CIDR6; }
 globops         { return T_GLOBOPS; }

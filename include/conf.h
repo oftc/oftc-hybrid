@@ -67,7 +67,6 @@ typedef enum
   GLINE_TYPE,
   CRESV_TYPE,     
   NRESV_TYPE,
-  GDENY_TYPE,
   SERVICE_TYPE
 } ConfType;
 
@@ -282,10 +281,6 @@ struct CidrItem
 				 SHARED_RESV | SHARED_UNRESV |\
                                  SHARED_LOCOPS | SHARED_DLINE | SHARED_UNDLINE)
 
-/* gline acl entry actions */
-#define GDENY_BLOCK		0x1
-#define GDENY_REJECT		0x2
-
 struct config_file_entry
 {
   const char *dpath;          /* DPATH if set from command line */
@@ -340,7 +335,7 @@ struct config_file_entry
   int pace_wait;
   int pace_wait_simple;
   int gline_time;
-  int gline_logging;
+  int gline_request_time;
   int oper_only_umodes;
   int oper_umodes;
   int max_targets;
@@ -425,7 +420,6 @@ struct logging_entry
   unsigned int use_logging;
 };
 
-extern dlink_list gdeny_items;
 extern dlink_list class_items;
 extern dlink_list server_items;
 extern dlink_list cluster_items;

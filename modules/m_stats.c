@@ -642,25 +642,6 @@ stats_glines(struct Client *source_p, int parc, char *parv[])
   }
 }
 
-/* stats_gdeny()
- *
- * input        - client pointer
- * outputs      - none
- * side effects - client is shown gline ACL
- */
-static void
-stats_gdeny(struct Client *source_p, int parc, char *parv[])
-{
-  if (!ConfigFileEntry.glines)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :This server does not support G-Lines",
-               from, to);
-    return;
-  }
-
-  report_confitem_types(source_p, GDENY_TYPE);
-}
-
 static void
 stats_hubleaf(struct Client *source_p, int parc, char *parv[])
 {
@@ -1390,7 +1371,6 @@ static const struct StatsStruct
   { 'u',        stats_uptime,           0,      0       },
   { 'U',        stats_shared,           1,      0       },
   { 'v',        stats_servers,          1,      0       },
-  { 'V',        stats_gdeny,            1,      0       },
   { 'x',        stats_gecos,            1,      0       },
   { 'X',        stats_gecos,            1,      0       },
   { 'y',        stats_class,            1,      0       },

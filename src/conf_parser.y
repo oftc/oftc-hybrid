@@ -156,9 +156,11 @@ free_collect_item(struct CollectItem *item)
 %token  GECOS
 %token  GENERAL
 %token  GLINE
-%token  GLINES
+%token  GLINE_DURATION
+%token  GLINE_ENABLE
 %token  GLINE_EXEMPT
 %token  GLINE_TIME
+%token  GLINE_REQUEST_DURATION
 %token  GLINE_MIN_CIDR
 %token  GLINE_MIN_CIDR6
 %token  GLOBAL_KILL
@@ -373,7 +375,6 @@ conf_item:        admin_entry
                 | deny_entry
 		| exempt_entry
 		| general_entry
-		| gline_entry
                 | gecos_entry
                 | modules_entry
                 | error ';'
@@ -2537,7 +2538,9 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_throttle_time | general_havent_read_conf |
                     general_ping_cookie |
                     general_disable_auth | 
-		    general_tkline_expire_notices | general_gline_min_cidr |
+		    general_tkline_expire_notices | general_gline_enable |
+                    general_gline_duration | general_gline_request_duration |
+                    general_gline_min_cidr |
                     general_gline_min_cidr6 | general_use_whois_actually |
 		    general_reject_hold_time | general_stats_e_disabled |
 		    general_max_watch | general_services_name |
@@ -2547,6 +2550,24 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
 general_max_watch: MAX_WATCH '=' NUMBER ';'
 {
   ConfigFileEntry.max_watch = $3;
+};
+
+general_gline_enable: GLINE_ENABLE '=' TBOOL ';'
+{
+  if (conf_parser_ctx.pass == 2)
+    ConfigFileEntry.glines = yylval.number;
+};
+
+general_gline_duration: GLINE_DURATION '=' timespec ';'
+{
+  if (conf_parser_ctx.pass == 2)
+    ConfigFileEntry.gline_time = $3;
+};
+
+general_gline_request_duration: GLINE_REQUEST_DURATION '=' timespec ';'
+{
+  if (conf_parser_ctx.pass == 2)
+    ConfigFileEntry.gline_request_time = $3;
 };
 
 general_gline_min_cidr: GLINE_MIN_CIDR '=' NUMBER ';'
@@ -2956,174 +2977,6 @@ general_client_flood: T_CLIENT_FLOOD '=' sizespec ';'
   ConfigFileEntry.client_flood = $3;
 };
 
-
-/*************************************************************************** 
- *  section glines
- ***************************************************************************/
-gline_entry: GLINES
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    yy_conf = make_conf_item(GDENY_TYPE);
-    yy_aconf = map_to_conf(yy_conf);
-  }
-} '{' gline_items '}' ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    /*
-     * since we re-allocate yy_conf/yy_aconf after the end of action=, at the
-     * end we will have one extra, so we should free it.
-     */
-    if (yy_conf->name == NULL || yy_aconf->user == NULL)
-    {
-      delete_conf_item(yy_conf);
-      yy_conf = NULL;
-      yy_aconf = NULL;
-    }
-  }
-};
-
-gline_items:        gline_items gline_item | gline_item;
-gline_item:         gline_enable | 
-                    gline_duration |
-		    gline_logging |
-                    gline_user |
-                    gline_server | 
-                    gline_action |
-                    error;
-
-gline_enable: ENABLE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    ConfigFileEntry.glines = yylval.number;
-};
-
-gline_duration: DURATION '=' timespec ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    ConfigFileEntry.gline_time = $3;
-};
-
-gline_logging: T_LOG
-{
-  if (conf_parser_ctx.pass == 2)
-    ConfigFileEntry.gline_logging = 0;
-} '=' gline_logging_types ';';
-gline_logging_types:	 gline_logging_types ',' gline_logging_type_item | gline_logging_type_item;
-gline_logging_type_item: T_REJECT
-{
-  if (conf_parser_ctx.pass == 2)
-    ConfigFileEntry.gline_logging |= GDENY_REJECT;
-} | T_BLOCK
-{
-  if (conf_parser_ctx.pass == 2)
-    ConfigFileEntry.gline_logging |= GDENY_BLOCK;
-};
-
-gline_user: USER '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    struct split_nuh_item nuh;
-
-    nuh.nuhmask  = yylval.string;
-    nuh.nickptr  = NULL;
-    nuh.userptr  = userbuf;
-    nuh.hostptr  = hostbuf;
-
-    nuh.nicksize = 0;
-    nuh.usersize = sizeof(userbuf);
-    nuh.hostsize = sizeof(hostbuf);
-
-    split_nuh(&nuh);
-
-    if (yy_aconf->user == NULL)
-    {
-      DupString(yy_aconf->user, userbuf);
-      DupString(yy_aconf->host, hostbuf);
-    }
-    else
-    {
-      struct CollectItem *yy_tmp = MyMalloc(sizeof(struct CollectItem));
-
-      DupString(yy_tmp->user, userbuf);
-      DupString(yy_tmp->host, hostbuf);
-
-      dlinkAdd(yy_tmp, &yy_tmp->node, &col_conf_list);
-    }
-  }
-};
-
-gline_server: NAME '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)  
-  {
-    MyFree(yy_conf->name);
-    DupString(yy_conf->name, yylval.string);
-  }
-};
-
-gline_action: ACTION
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_aconf->flags = 0;
-} '=' gdeny_types ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    struct CollectItem *yy_tmp = NULL;
-    dlink_node *ptr, *next_ptr;
-
-    DLINK_FOREACH_SAFE(ptr, next_ptr, col_conf_list.head)
-    {
-      struct AccessItem *new_aconf;
-      struct ConfItem *new_conf;
-
-      yy_tmp = ptr->data;
-      new_conf = make_conf_item(GDENY_TYPE);
-      new_aconf = map_to_conf(new_conf);
-
-      new_aconf->flags = yy_aconf->flags;
-
-      if (yy_conf->name != NULL)
-        DupString(new_conf->name, yy_conf->name);
-      else
-        DupString(new_conf->name, "*");
-      if (yy_aconf->user != NULL)
-         DupString(new_aconf->user, yy_tmp->user);
-      else   
-        DupString(new_aconf->user, "*");
-      if (yy_aconf->host != NULL)
-        DupString(new_aconf->host, yy_tmp->host);
-      else
-        DupString(new_aconf->host, "*");
-
-      dlinkDelete(&yy_tmp->node, &col_conf_list);
-    }
-
-    /*
-     * In case someone has fed us with more than one action= after user/name
-     * which would leak memory  -Michael
-     */
-    if (yy_conf->name == NULL || yy_aconf->user == NULL)
-      delete_conf_item(yy_conf);
-
-    yy_conf = make_conf_item(GDENY_TYPE);
-    yy_aconf = map_to_conf(yy_conf);
-  }
-};
-
-gdeny_types: gdeny_types ',' gdeny_type_item | gdeny_type_item;
-gdeny_type_item: T_REJECT
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_aconf->flags |= GDENY_REJECT;
-} | T_BLOCK
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_aconf->flags |= GDENY_BLOCK;
-};
 
 /***************************************************************************
  *  section channel
