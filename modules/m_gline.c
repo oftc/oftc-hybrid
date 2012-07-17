@@ -257,8 +257,8 @@ static void
 do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
 {
   const char *reason = NULL;      /* reason for "victims" demise       */
-  char *user = NULL;
-  char *host = NULL;              /* user and host of GLINE "victim"   */
+  const char *user = NULL;
+  const char *host = NULL;        /* user and host of GLINE "victim"   */
   struct Client *target_p = NULL;
 
   switch (parc)
@@ -285,9 +285,13 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
   host   = parv[parc - 2];
   reason = parv[parc - 1];
 
-  sendto_server(source_p->from, NULL, CAP_GLN, NOCAPS,
+  sendto_server(source_p->from, NULL, CAP_GLN|CAP_TS6, NOCAPS,
+                ":%s GLINE %s %s :%s",
+                ID(source_p), user, host, reason);
+  sendto_server(source_p->from, NULL, CAP_GLN, CAP_TS6,
                 ":%s GLINE %s %s :%s",
                 source_p->name, user, host, reason);
+
   /* hyb-6 version to the rest */
   sendto_server(source_p->from, NULL, NOCAPS, CAP_GLN,
                 ":%s GLINE %s %s %s %s %s %s :%s",
@@ -363,17 +367,17 @@ mo_gline(struct Client *client_p, struct Client *source_p,
   char *reason = NULL;
   char *p;
 
-  if (!ConfigFileEntry.glines)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :GLINE disabled",
-               me.name, source_p->name);
-    return;
-  }
-
   if (!HasOFlag(source_p, OPER_FLAG_GLINE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "gline");
+    return;
+  }
+
+  if (!ConfigFileEntry.glines)
+  {
+    sendto_one(source_p, ":%s NOTICE %s :GLINE disabled",
+               me.name, source_p->name);
     return;
   }
 
@@ -425,12 +429,6 @@ mo_gline(struct Client *client_p, struct Client *source_p,
 		source_p->name, user, host, reason);
 
   /* 8 param for hyb-6 */
-  sendto_server(NULL, NULL, CAP_TS6, CAP_GLN,
-		":%s GLINE %s %s %s %s %s %s :%s",
-		ID(&me),
-                ID(source_p), source_p->username,
-		source_p->host, source_p->servptr->name, user, host,
-		reason);
   sendto_server(NULL, NULL, NOCAPS, CAP_GLN|CAP_TS6,
 		":%s GLINE %s %s %s %s %s %s :%s",
 		me.name, source_p->name, source_p->username,
@@ -542,17 +540,17 @@ mo_gungline(struct Client *client_p, struct Client *source_p,
   char *host = NULL;
   char *reason = NULL;
 
+  if (!HasOFlag(source_p, OPER_FLAG_GLINE))
+  {
+    sendto_one(source_p, form_str(ERR_NOPRIVS),
+               me.name, source_p->name, "gline");
+    return;
+  }
+
   if (!ConfigFileEntry.glines)
   {
     sendto_one(source_p, ":%s NOTICE %s :GUNGLINE disabled",
                me.name, source_p->name);
-    return;
-  }
-
-  if (!HasOFlag(source_p, OPER_FLAG_GLINE))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVS),
-               me.name, source_p->name, "gungline");
     return;
   }
 
