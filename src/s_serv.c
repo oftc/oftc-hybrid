@@ -644,7 +644,7 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
 
   if (IsConfAwayBurst((struct AccessItem *)map_to_conf(client_p->localClient->confs.head->data)))
     if (!EmptyString(target_p->away))
-      sendto_one(client_p, ":%s AWAY :%s", target_p->name,
+      sendto_one(client_p, ":%s AWAY :%s", ID_or_name(target_p, client_p),
                  target_p->away);
 
 }
