@@ -10,6 +10,7 @@ o) Replaced MODLOAD, MODUNLOAD, MODRELOAD, MODLIST and MODRESTART commands
 o) Added back server notice when a client tries to obtain a reserved nick name
 o) Removed OMOTD module
 o) Added 'set' to operator privilege flags. Gives access to the "SET" command
+o) Improved TS6 support
 
 
 -- ircd-hybrid-8beta1 Release Notes
