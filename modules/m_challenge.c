@@ -73,14 +73,6 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   struct ConfItem *conf = NULL;
   struct AccessItem *aconf = NULL;
 
-  /* if theyre an oper, reprint oper motd and ignore */
-  if (HasUMode(source_p, UMODE_OPER))
-  {
-    sendto_one(source_p, form_str(RPL_YOUREOPER),
-               me.name, source_p->name);
-    return;
-  }
-
   if (*parv[1] == '+')
   {
     /* Ignore it if we aren't expecting this... -A1kmm */
@@ -167,9 +159,17 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   MyFree(challenge);
 }
 
+static void
+mo_challenge(struct Client *client_p, struct Client *source_p,
+             int parc, char *parv[])
+{
+  sendto_one(source_p, form_str(RPL_YOUREOPER),
+             me.name, source_p->name);
+}
+
 static struct Message challenge_msgtab = {
   "CHALLENGE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
-  { m_unregistered, m_challenge, m_ignore, m_ignore, m_challenge, m_ignore }
+  { m_unregistered, m_challenge, m_ignore, m_ignore, mo_challenge, m_ignore }
 };
 
 static void
