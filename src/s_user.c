@@ -1256,8 +1256,7 @@ check_xline(struct Client *source_p)
 void
 oper_up(struct Client *source_p, const char *name)
 {
-  unsigned int old = source_p->umodes;
-  const char *operprivs = "";
+  const unsigned int old = source_p->umodes;
   const struct AccessItem *oconf = NULL;
 
   assert(source_p->localClient->confs.head);
@@ -1279,8 +1278,6 @@ oper_up(struct Client *source_p, const char *name)
   assert(dlinkFind(&oper_list, source_p) == NULL);
   dlinkAdd(source_p, make_dlink_node(), &oper_list);
 
-  operprivs = oper_privs_as_string(oconf->port);
-
   AddOFlag(source_p, oconf->port);
 
   if (HasOFlag(source_p, OPER_FLAG_ADMIN))
@@ -1292,8 +1289,6 @@ oper_up(struct Client *source_p, const char *name)
                        get_oper_name(source_p));
   send_umode_out(source_p, source_p, old);
   sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
-  sendto_one(source_p, ":%s NOTICE %s :*** Oper privs are %s",
-             me.name, source_p->name, operprivs);
 }
 
 static char new_uid[TOTALSIDUID + 1];     /* allow for \0 */
