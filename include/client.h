@@ -340,8 +340,9 @@ struct Client
 #define AddUMode(x, y) ((x)->umodes |=  (y))
 #define DelUMode(x, y) ((x)->umodes &= ~(y))
 
-#define SEND_UMODES  (UMODE_INVISIBLE | UMODE_OPER | UMODE_WALLOP | \
-                      UMODE_REGISTERED | UMODE_ADMIN | UMODE_HIDDEN)
+#define SEND_UMODES  (UMODE_INVISIBLE | UMODE_OPER | UMODE_WALLOP |\
+                      UMODE_REGONLY | UMODE_REGISTERED | UMODE_ADMIN |\
+                      UMODE_HIDDEN)
 
 
 
