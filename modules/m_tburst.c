@@ -95,7 +95,7 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
 
   if (accept_remote)
   {
-    int topic_differs = strcmp(chptr->topic, topic);
+    int topic_differs = strncmp(chptr->topic, topic, sizeof(chptr->topic) - 1);
 
     set_channel_topic(chptr, topic, setby, remote_topic_ts);
 
