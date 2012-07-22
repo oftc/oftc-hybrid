@@ -368,7 +368,7 @@ sendto_one(struct Client *to, const char *pattern, ...)
  */
 void
 sendto_channel_butone(struct Client *one, struct Client *from,
-                      struct Channel *chptr, const char *command,
+                      struct Channel *chptr, unsigned int type,
                       const char *pattern, ...)
 {
   va_list alocal, aremote, auid;
@@ -379,16 +379,15 @@ sendto_channel_butone(struct Client *one, struct Client *from,
   dlink_node *ptr = NULL, *ptr_next = NULL;
 
   if (IsServer(from))
-    local_len = ircsprintf(local_buf, ":%s %s %s ",
-                           from->name, command, chptr->chname);
+    local_len = ircsprintf(local_buf, ":%s ",
+                           from->name);
   else
-    local_len = ircsprintf(local_buf, ":%s!%s@%s %s %s ",
-                           from->name, from->username, from->host,
-                           command, chptr->chname);
-  remote_len = ircsprintf(remote_buf, ":%s %s %s ",
-                          from->name, command, chptr->chname);
-  uid_len = ircsprintf(uid_buf, ":%s %s %s ",
-                       ID(from), command, chptr->chname);
+    local_len = ircsprintf(local_buf, ":%s!%s@%s ",
+                           from->name, from->username, from->host);
+  remote_len = ircsprintf(remote_buf, ":%s ",
+                          from->name);
+  uid_len = ircsprintf(uid_buf, ":%s ",
+                       ID(from));
 
   va_start(alocal, pattern);
   va_start(aremote, pattern);
@@ -407,11 +406,15 @@ sendto_channel_butone(struct Client *one, struct Client *from,
 
   DLINK_FOREACH_SAFE(ptr, ptr_next, chptr->members.head)
   {
-    struct Client *target_p = ((struct Membership *)ptr->data)->client_p;
+    struct Membership *ms = ptr->data;
+    struct Client *target_p = ms->client_p;
 
     assert(IsClient(target_p));
 
     if (IsDefunct(target_p) || HasUMode(target_p, UMODE_DEAF) || target_p->from == one)
+      continue;
+
+    if (type != 0 && (ms->flags & type) == 0)
       continue;
 
     if (MyConnect(target_p))

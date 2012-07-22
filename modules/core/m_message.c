@@ -423,11 +423,10 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
   {
     if (result == CAN_SEND_OPV ||
         !flood_attack_channel(p_or_n, source_p, chptr, chptr->chname))
-    {
       if(chptr->mode.mode & MODE_NOCOLOR && msg_has_colors(text))
         text = strip_color(text);
-      sendto_channel_butone(client_p, source_p, chptr, command, ":%s", text);
-    }
+      sendto_channel_butone(client_p, source_p, chptr, 0, "%s %s :%s",
+                            command, chptr->chname, text);
   }
   else
   {
@@ -468,7 +467,7 @@ msg_channel_flags(int p_or_n, const char *command, struct Client *client_p,
                   struct Client *source_p, struct Channel *chptr,
                   int flags, char *text)
 {
-  int type;
+  unsigned int type;
   char c;
 
   if (flags & CHFL_VOICE)
@@ -489,35 +488,11 @@ msg_channel_flags(int p_or_n, const char *command, struct Client *client_p,
     c = '@';
   }
 
-  if (MyClient(source_p))
-  {
-    /* idletime shouldnt be reset by notice --fl */
-    if (p_or_n != NOTICE)
-      source_p->localClient->last_privmsg = CurrentTime;
+  if (MyClient(source_p) && p_or_n != NOTICE)
+    source_p->localClient->last_privmsg = CurrentTime;
 
-    sendto_channel_local_butone(source_p, type, chptr, ":%s!%s@%s %s %c%s :%s",
-                                source_p->name, source_p->username,
-                                source_p->host, command, c, chptr->chname, text);
-  }
-  else
-  {
-    /*
-     * another good catch, lee.  we never would echo to remote clients anyway,
-     * so use slightly less intensive sendto_channel_local()
-     */
-    sendto_channel_local(type, 1, chptr, ":%s!%s@%s %s %c%s :%s",
-                         source_p->name, source_p->username,
-                         source_p->host, command, c, chptr->chname, text);
-  }
-
-  if (chptr->chname[0] != '#')
-    return;
-
-  sendto_channel_remote(source_p, client_p, type, CAP_CHW, CAP_TS6, chptr,
-                ":%s %s %c%s :%s", source_p->name, command, c, chptr->chname, text);
-  sendto_channel_remote(source_p, client_p, type, CAP_CHW|CAP_TS6, NOCAPS, chptr,
-                ":%s %s %c%s :%s", ID(source_p), command, c, chptr->chname, text);
-  /* non CAP_CHW servers? */
+  sendto_channel_butone(client_p, source_p, chptr, type, "%s %c%s :%s",
+                        command, c, chptr->chname, text);
 }
 
 /* msg_client()
