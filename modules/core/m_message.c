@@ -232,10 +232,6 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
 
     if (IsChanPrefix(*nick))
     {
-      /* ignore send of local channel to a server (should not happen) */
-      if (*nick == '&' && IsServer(client_p))
-        continue;
-
       if ((chptr = hash_find_channel(nick)) != NULL)
       {
         if (!duplicate_ptr(chptr))

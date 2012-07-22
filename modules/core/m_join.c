@@ -133,13 +133,6 @@ m_join(struct Client *client_p, struct Client *source_p,
       continue;
     }
 
-    if (ConfigChannel.disable_local_channels && (*chan == '&'))
-    {
-      sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-                 me.name, source_p->name, chan);
-      continue;
-    }
-
     if (!IsExemptResv(source_p) &&
         !(HasUMode(source_p, UMODE_OPER) && ConfigFileEntry.oper_pass_resv) &&
         (!hash_find_resv(chan) == ConfigChannel.restrict_channels))
@@ -167,7 +160,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       if (IsMember(source_p, chptr))
         continue;
 
-      if (splitmode && !HasUMode(source_p, UMODE_OPER) && (*chan != '&') &&
+      if (splitmode && !HasUMode(source_p, UMODE_OPER) &&
           ConfigChannel.no_join_on_split)
       {
         sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
@@ -196,7 +189,7 @@ m_join(struct Client *client_p, struct Client *source_p,
     }
     else
     {
-      if (splitmode && !HasUMode(source_p, UMODE_OPER) && (*chan != '&') &&
+      if (splitmode && !HasUMode(source_p, UMODE_OPER) &&
           (ConfigChannel.no_create_on_split || ConfigChannel.no_join_on_split))
       {
         sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
@@ -236,11 +229,11 @@ m_join(struct Client *client_p, struct Client *source_p,
       chptr->mode.mode |= MODE_TOPICLIMIT;
       chptr->mode.mode |= MODE_NOPRIVMSGS;
 
-      sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
+      sendto_server(client_p, CAP_TS6, NOCAPS,
                     ":%s SJOIN %lu %s +nt :@%s",
                     me.id, (unsigned long)chptr->channelts,
                     chptr->chname, source_p->id);
-      sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
+      sendto_server(client_p, NOCAPS, CAP_TS6,
                     ":%s SJOIN %lu %s +nt :@%s",
                     me.name, (unsigned long)chptr->channelts,
                     chptr->chname, source_p->name);
@@ -255,11 +248,11 @@ m_join(struct Client *client_p, struct Client *source_p,
     }
     else
     {
-      sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
+      sendto_server(client_p, CAP_TS6, NOCAPS,
                     ":%s JOIN %lu %s +",
                     source_p->id, (unsigned long)chptr->channelts,
                     chptr->chname);
-      sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
+      sendto_server(client_p, NOCAPS, CAP_TS6,
                     ":%s SJOIN %lu %s + :%s",
                     me.name, (unsigned long)chptr->channelts,
                     chptr->chname, source_p->name);
@@ -319,7 +312,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (parc < 4 || *parv[2] == '&')
+  if (parc < 4)
     return;
 
   if (!check_channel_name(parv[2], 0))
@@ -440,10 +433,10 @@ ms_join(struct Client *client_p, struct Client *source_p,
                          source_p->host, chptr->chname);
   }
 
-  sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
+  sendto_server(client_p, CAP_TS6, NOCAPS,
                 ":%s JOIN %lu %s +",
                 ID(source_p), (unsigned long)chptr->channelts, chptr->chname);
-  sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
+  sendto_server(client_p, NOCAPS, CAP_TS6,
                 ":%s SJOIN %lu %s + :%s",
                 source_p->servptr->name, (unsigned long)chptr->channelts,
                 chptr->chname, source_p->name);
@@ -472,9 +465,9 @@ do_join_0(struct Client *client_p, struct Client *source_p)
   {
     chptr = ((struct Membership *)ptr->data)->chptr;
 
-    sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
+    sendto_server(client_p, CAP_TS6, NOCAPS,
                   ":%s PART %s", ID(source_p), chptr->chname);
-    sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
+    sendto_server(client_p, NOCAPS, CAP_TS6,
                   ":%s PART %s", source_p->name, chptr->chname);
     sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s PART %s",
                          source_p->name, source_p->username,

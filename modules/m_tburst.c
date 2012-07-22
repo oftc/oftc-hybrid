@@ -109,10 +109,10 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
    * Always propagate what we have received, not only if we accept the topic.
    * This will keep other servers in sync.
    */
-  sendto_server(source_p, chptr, CAP_TBURST|CAP_TS6, NOCAPS,
+  sendto_server(source_p, CAP_TBURST|CAP_TS6, NOCAPS,
                 ":%s TBURST %s %s %s %s :%s",
                 ID(source_p), parv[1], parv[2], parv[3], setby, topic);
-  sendto_server(source_p, chptr, CAP_TBURST, CAP_TS6,
+  sendto_server(source_p, CAP_TBURST, CAP_TS6,
                 ":%s TBURST %s %s %s %s :%s",
                 source_p->name, parv[1], parv[2], parv[3], setby, topic);
 }

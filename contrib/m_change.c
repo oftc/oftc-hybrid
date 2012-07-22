@@ -89,7 +89,7 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
 
   if (MyClient(source_p))
   {
-    sendto_server(client_p, NULL, NOCAPS, NOCAPS, ":%s ENCAP * CHGIDENT %s %s",
+    sendto_server(client_p, NOCAPS, NOCAPS, ":%s ENCAP * CHGIDENT %s %s",
                   source_p->name, target_p->name, parv[2]);
     sendto_one(source_p, ":%s NOTICE %s :%s changed to %s@%s",
                me.name, source_p->name, target_p->name, target_p->username,
@@ -151,7 +151,7 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
 
   if (MyClient(source_p))
   {
-    sendto_server(client_p, NULL, NOCAPS, NOCAPS, ":%s ENCAP * CHGHOST %s %s",
+    sendto_server(client_p, NOCAPS, NOCAPS, ":%s ENCAP * CHGHOST %s %s",
                   source_p->name, target_p->name, parv[2]);
     sendto_one(source_p, ":%s NOTICE %s :%s changed to %s@%s",
                me.name, source_p->name, target_p->name, target_p->username,
@@ -204,7 +204,7 @@ mo_chgname(struct Client *client_p, struct Client *source_p,
 
   if (MyClient(source_p))
   {
-    sendto_server(client_p, NULL, NOCAPS, NOCAPS, ":%s ENCAP * CHGNAME %s :%s",
+    sendto_server(client_p, NOCAPS, NOCAPS, ":%s ENCAP * CHGNAME %s :%s",
                   source_p->name, target_p->name, parv[2]);
     sendto_one(source_p, ":%s NOTICE %s :%s realname changed to [%s]",
                me.name, source_p->name, target_p->name, target_p->info);

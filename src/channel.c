@@ -287,9 +287,6 @@ send_mode_list(struct Client *client_p, struct Channel *chptr,
 void
 send_channel_modes(struct Client *client_p, struct Channel *chptr)
 {
-  if (chptr->chname[0] != '#')
-    return;
-
   *modebuf = *parabuf = '\0';
   channel_modes(chptr, client_p, modebuf, parabuf);
   send_members(client_p, chptr, modebuf, parabuf);

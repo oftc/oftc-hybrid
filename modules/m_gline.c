@@ -313,15 +313,15 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
   host   = parv[parc - 2];
   reason = parv[parc - 1];
 
-  sendto_server(source_p->from, NULL, CAP_GLN|CAP_TS6, NOCAPS,
+  sendto_server(source_p->from, CAP_GLN|CAP_TS6, NOCAPS,
                 ":%s GLINE %s %s :%s",
                 ID(source_p), user, host, reason);
-  sendto_server(source_p->from, NULL, CAP_GLN, CAP_TS6,
+  sendto_server(source_p->from, CAP_GLN, CAP_TS6,
                 ":%s GLINE %s %s :%s",
                 source_p->name, user, host, reason);
 
   /* hyb-6 version to the rest */
-  sendto_server(source_p->from, NULL, NOCAPS, CAP_GLN,
+  sendto_server(source_p->from, NOCAPS, CAP_GLN,
                 ":%s GLINE %s %s %s %s %s %s :%s",
                 source_p->servptr->name,
                 source_p->name, source_p->username, source_p->host,
@@ -668,15 +668,15 @@ mo_gline(struct Client *client_p, struct Client *source_p,
        source_p->host);
 
   /* 4 param version for hyb-7 servers */
-  sendto_server(NULL, NULL, CAP_GLN|CAP_TS6, NOCAPS,
+  sendto_server(NULL, CAP_GLN|CAP_TS6, NOCAPS,
 		":%s GLINE %s %s :%s",
 		ID(source_p), user, host, reason);
-  sendto_server(NULL, NULL, CAP_GLN, CAP_TS6,
+  sendto_server(NULL, CAP_GLN, CAP_TS6,
 		":%s GLINE %s %s :%s",
 		source_p->name, user, host, reason);
 
   /* 8 param for hyb-6 */
-  sendto_server(NULL, NULL, NOCAPS, CAP_GLN|CAP_TS6,
+  sendto_server(NULL, NOCAPS, CAP_GLN|CAP_TS6,
 		":%s GLINE %s %s %s %s %s %s :%s",
 		me.name, source_p->name, source_p->username,
 		source_p->host, source_p->servptr->name, user, host,
@@ -732,10 +732,10 @@ do_sungline(struct Client *source_p, const char *user,
 
   if (prop)
   {
-    sendto_server(source_p->from, NULL, CAP_ENCAP|CAP_TS6, NOCAPS,
+    sendto_server(source_p->from, CAP_ENCAP|CAP_TS6, NOCAPS,
                   ":%s ENCAP * GUNGLINE %s %s :%s",
                   ID(source_p), user, host, reason);
-    sendto_server(source_p->from, NULL, CAP_ENCAP, CAP_TS6,
+    sendto_server(source_p->from, CAP_ENCAP, CAP_TS6,
                   ":%s ENCAP * GUNGLINE %s %s :%s",
                   source_p->name, user, host, reason);
   }

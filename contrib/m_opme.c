@@ -92,35 +92,28 @@ mo_opme(struct Client *client_p, struct Client *source_p,
 
   AddMemberFlag(member, CHFL_CHANOP);
 
-  if (*parv[1] == '&')
-    sendto_wallops_flags(UMODE_LOCOPS, &me, "OPME called for [%s] by %s!%s@%s",
-                         chptr->chname, source_p->name, source_p->username,
-                         source_p->host);
-  else
-  {
-    sendto_wallops_flags(UMODE_WALLOP, &me, "OPME called for [%s] by %s!%s@%s",
-                         chptr->chname, source_p->name, source_p->username,
-                         source_p->host);
-    sendto_server(NULL, NULL, NOCAPS, NOCAPS,
-                  ":%s WALLOPS :OPME called for [%s] by %s!%s@%s",
-                  me.name, chptr->chname, source_p->name, source_p->username,
-                  source_p->host);
-  }
+  sendto_wallops_flags(UMODE_WALLOP, &me, "OPME called for [%s] by %s!%s@%s",
+                       chptr->chname, source_p->name, source_p->username,
+                       source_p->host);
+  sendto_server(NULL, NOCAPS, NOCAPS,
+                ":%s WALLOPS :OPME called for [%s] by %s!%s@%s",
+                me.name, chptr->chname, source_p->name, source_p->username,
+                source_p->host);
 
   ilog(LOG_TYPE_IRCD, "OPME called for [%s] by %s!%s@%s",
        chptr->chname, source_p->name, source_p->username,
        source_p->host);
 
-  sendto_server(NULL, chptr, CAP_TS6, NOCAPS,
+  sendto_server(NULL, CAP_TS6, NOCAPS,
                 ":%s PART %s", ID(source_p), chptr->chname);
-  sendto_server(NULL, chptr, NOCAPS, CAP_TS6,
+  sendto_server(NULL, NOCAPS, CAP_TS6,
                 ":%s PART %s", source_p->name, chptr->chname);
 
-  sendto_server(NULL, chptr, CAP_TS6, NOCAPS,
+  sendto_server(NULL, CAP_TS6, NOCAPS,
                 ":%s SJOIN %lu %s + :@%s",
                 me.id, (unsigned long)chptr->channelts,
                 chptr->chname, ID(source_p));
-  sendto_server(NULL, chptr, NOCAPS, CAP_TS6,
+  sendto_server(NULL, NOCAPS, CAP_TS6,
                 ":%s SJOIN %lu %s + :@%s",
                 me.name, (unsigned long)chptr->channelts,
                 chptr->chname, source_p->name);

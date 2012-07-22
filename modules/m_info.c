@@ -119,12 +119,6 @@ static const struct InfoStruct info_table[] =
     "Only reserved channels are allowed"
   },
   {
-    "disable_local_channels",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.disable_local_channels,
-    "Prevent users from joining &channels"
-  },
- {
     "use_invex",
     OUTPUT_BOOLEAN_YN,
     &ConfigChannel.use_invex,

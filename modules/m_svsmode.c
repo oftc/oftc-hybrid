@@ -155,19 +155,19 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
 
   if (extarg)
   {
-    sendto_server(client_p, NULL, CAP_TS6, NOCAPS,
+    sendto_server(client_p, CAP_TS6, NOCAPS,
                   ":%s SVSMODE %s %lu %s %s", ID(source_p),
                   ID(target_p), (unsigned long)target_p->tsinfo, modes, extarg);
-    sendto_server(client_p, NULL, NOCAPS, CAP_TS6,
+    sendto_server(client_p, NOCAPS, CAP_TS6,
                   ":%s SVSMODE %s %lu %s %s", source_p->name,
                   target_p->name, (unsigned long)target_p->tsinfo, modes, extarg);
   }
   else
   {
-    sendto_server(client_p, NULL, CAP_TS6, NOCAPS,
+    sendto_server(client_p, CAP_TS6, NOCAPS,
                   ":%s SVSMODE %s %lu %s", ID(source_p),
                   ID(target_p), (unsigned long)target_p->tsinfo, modes);
-    sendto_server(client_p, NULL, NOCAPS, CAP_TS6,
+    sendto_server(client_p, NOCAPS, CAP_TS6,
                   ":%s SVSMODE %s %lu %s", source_p->name,
                   target_p->name, (unsigned long)target_p->tsinfo, modes);
   }

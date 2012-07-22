@@ -164,7 +164,6 @@ die		{ return DIE; }
 disable_auth    { return DISABLE_AUTH; }
 disable_fake_channels { return DISABLE_FAKE_CHANNELS; }
 disable_hidden	{ return DISABLE_HIDDEN; }
-disable_local_channels { return DISABLE_LOCAL_CHANNELS; }
 disable_remote_commands	{ return DISABLE_REMOTE_COMMANDS; }
 dline           { return T_DLINE; }
 dots_in_ident   { return DOTS_IN_IDENT; }

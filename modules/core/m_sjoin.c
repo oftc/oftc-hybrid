@@ -102,10 +102,6 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
   if (IsClient(source_p) || parc < 5)
     return;
 
-  /* SJOIN's for local channels can't happen. */
-  if (*parv[2] != '#')
-    return;
-
   if (!check_channel_name(parv[2], 0))
   {
     sendto_realops_flags(UMODE_DEBUG, L_ALL, 
@@ -413,7 +409,7 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
 
     if ((nick_ptr - nick_buf + len_nick) > (IRCD_BUFSIZE  - 2))
     {
-      sendto_server(client_p, chptr, 0, CAP_TS6, "%s", nick_buf);
+      sendto_server(client_p, 0, CAP_TS6, "%s", nick_buf);
       
       buflen = ircsprintf(nick_buf, ":%s SJOIN %lu %s %s %s:",
                           source_p->name, (unsigned long)tstosend,
@@ -425,7 +421,7 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
     
     if ((uid_ptr - uid_buf + len_uid) > (IRCD_BUFSIZE - 2))
     {
-      sendto_server(client_p, chptr, CAP_TS6, 0, "%s", uid_buf);
+      sendto_server(client_p, CAP_TS6, 0, "%s", uid_buf);
       
       buflen = ircsprintf(uid_buf, ":%s SJOIN %lu %s %s %s:",
                           ID(source_p), (unsigned long)tstosend,
@@ -821,7 +817,7 @@ remove_ban_list(struct Channel *chptr, struct Client *source_p,
       *mbuf = *(pbuf - 1) = '\0';
       sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s",
                lmodebuf, lparabuf);
-      sendto_server(source_p, chptr, cap, CAP_TS6,
+      sendto_server(source_p, cap, CAP_TS6,
 		    "%s %s", lmodebuf, lparabuf);
 
       cur_len = mlen;
@@ -841,7 +837,7 @@ remove_ban_list(struct Channel *chptr, struct Client *source_p,
 
   *mbuf = *(pbuf - 1) = '\0';
   sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s", lmodebuf, lparabuf);
-  sendto_server(source_p, chptr, cap, CAP_TS6,
+  sendto_server(source_p, cap, CAP_TS6,
 		"%s %s", lmodebuf, lparabuf);
 }
 
