@@ -315,13 +315,16 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
 
       if ((chptr = hash_find_channel(nick)) != NULL)
       {
-        if (!has_member_flags(find_channel_link(source_p, chptr),
-                              CHFL_CHANOP|CHFL_HALFOP|CHFL_VOICE))
+        if (IsClient(source_p) && !HasFlag(source_p, FLAGS_SERVICE))
         {
-          sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-                     ID_or_name(&me, client_p),
-                     ID_or_name(source_p, client_p), with_prefix);
-          return(-1);
+          if (!has_member_flags(find_channel_link(source_p, chptr),
+                                CHFL_CHANOP|CHFL_HALFOP|CHFL_VOICE))
+          {
+            sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
+                       ID_or_name(&me, client_p),
+                       ID_or_name(source_p, client_p), with_prefix);
+            return(-1);
+          }
         }
 
         if (!duplicate_ptr(chptr))
