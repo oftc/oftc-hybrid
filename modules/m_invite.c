@@ -91,18 +91,16 @@ m_invite(struct Client *client_p, struct Client *source_p,
 
   chop = has_member_flags(ms, CHFL_CHANOP);
 
-  if ((chptr->mode.mode & (MODE_INVITEONLY | MODE_PRIVATE)))
+  if (MyConnect(source_p) && !chop && !HasUMode(source_p, UMODE_GOD))
   {
-    if (MyConnect(source_p) && !chop && !HasUMode(source_p, UMODE_GOD))
-    {
-      sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-          me.name, parv[0], parv[2]);
-      return;
-    }
-    if(MyConnect(source_p) && !chop)
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-          "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
-          target_p->name);
+    sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
+        me.name, parv[0], parv[2]);
+    return;
+  }
+  if(MyConnect(source_p) && !chop)
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
+        "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
+        target_p->name);
   }
   else
       /* Don't save invite even if from an op otherwise... */
@@ -139,20 +137,16 @@ m_invite(struct Client *client_p, struct Client *source_p,
 
     if (chptr->mode.mode & MODE_INVITEONLY)
     {
-      if (chptr->mode.mode & MODE_PRIVATE)
-      {
-        /* Only do this if channel is set +i AND +p */
-        sendto_channel_local(CHFL_CHANOP|CHFL_HALFOP, 0, chptr,
-                             ":%s NOTICE @%s :%s is inviting %s to %s.",
-                             me.name, chptr->chname, source_p->name,
-                             target_p->name, chptr->chname);
-        sendto_channel_remote(source_p, client_p, CHFL_CHANOP|CHFL_HALFOP,
-                              NOCAPS, NOCAPS, chptr,
-                              ":%s NOTICE @%s :%s is inviting %s to %s.",
-                              source_p->name, chptr->chname, source_p->name,
-                              target_p->name, chptr->chname);
-      }
-
+      /* Only do this if channel is set +i AND +p */
+      sendto_channel_local(CHFL_CHANOP|CHFL_HALFOP, 0, chptr,
+                           ":%s NOTICE @%s :%s is inviting %s to %s.",
+                           me.name, chptr->chname, source_p->name,
+                           target_p->name, chptr->chname);
+      sendto_channel_remote(source_p, client_p, CHFL_CHANOP|CHFL_HALFOP,
+                            NOCAPS, NOCAPS, chptr,
+                            ":%s NOTICE @%s :%s is inviting %s to %s.",
+                            source_p->name, chptr->chname, source_p->name,
+                            target_p->name, chptr->chname);
       /* Add the invite if channel is +i */
       add_invite(chptr, target_p);
     }
