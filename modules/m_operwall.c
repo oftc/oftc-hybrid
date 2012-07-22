@@ -60,9 +60,9 @@ mo_operwall(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  sendto_server(NULL, NULL, CAP_TS6, NOCAPS,
+  sendto_server(NULL, CAP_TS6, NOCAPS,
                 ":%s OPERWALL :%s", ID(source_p), message);
-  sendto_server(NULL, NULL, NOCAPS, CAP_TS6,
+  sendto_server(NULL, NOCAPS, CAP_TS6,
                 ":%s OPERWALL :%s", source_p->name, message);
   sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }
@@ -82,9 +82,9 @@ ms_operwall(struct Client *client_p, struct Client *source_p,
   if (EmptyString(message))
     return;
 
-  sendto_server(client_p, NULL, CAP_TS6, NOCAPS, ":%s OPERWALL :%s",
+  sendto_server(client_p, CAP_TS6, NOCAPS, ":%s OPERWALL :%s",
                 ID(source_p), message);
-  sendto_server(client_p, NULL, NOCAPS, CAP_TS6, ":%s OPERWALL :%s",
+  sendto_server(client_p, NOCAPS, CAP_TS6, ":%s OPERWALL :%s",
                 source_p->name, message);
   sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }

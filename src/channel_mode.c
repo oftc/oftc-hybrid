@@ -1613,7 +1613,7 @@ send_cap_mode_changes(struct Client *client_p, struct Client *source_p,
         (pbl + arglen + BAN_FUDGE) >= MODEBUFLEN)
     {
       if (nc != 0)
-        sendto_server(client_p, chptr, cap, nocap,
+        sendto_server(client_p, cap, nocap,
                       "%s %s",
 		      modebuf, parabuf);
       nc = 0;
@@ -1655,7 +1655,7 @@ send_cap_mode_changes(struct Client *client_p, struct Client *source_p,
     parabuf[pbl - 1] = 0;
 
   if (nc != 0)
-    sendto_server(client_p, chptr, cap, nocap,
+    sendto_server(client_p, cap, nocap,
                   "%s %s", modebuf, parabuf);
 }
 

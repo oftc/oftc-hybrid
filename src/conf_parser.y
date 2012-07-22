@@ -140,7 +140,6 @@ free_collect_item(struct CollectItem *item)
 %token  DISABLE_AUTH
 %token  DISABLE_FAKE_CHANNELS
 %token  DISABLE_HIDDEN
-%token  DISABLE_LOCAL_CHANNELS
 %token  DISABLE_REMOTE_COMMANDS
 %token  DOTS_IN_IDENT
 %token	DURATION
@@ -2990,7 +2989,7 @@ channel_entry: CHANNEL
   '{' channel_items '}' ';';
 
 channel_items:      channel_items channel_item | channel_item;
-channel_item:       channel_disable_local_channels | channel_use_except |
+channel_item:       channel_use_except |
                     channel_use_invex | channel_use_knock | channel_max_bans |
                     channel_knock_delay | channel_knock_delay_channel |
                     channel_max_chans_per_user | channel_max_chans_per_oper |
@@ -3009,11 +3008,6 @@ channel_disable_fake_channels: DISABLE_FAKE_CHANNELS '=' TBOOL ';'
 channel_restrict_channels: RESTRICT_CHANNELS '=' TBOOL ';'
 {
   ConfigChannel.restrict_channels = yylval.number;
-};
-
-channel_disable_local_channels: DISABLE_LOCAL_CHANNELS '=' TBOOL ';'
-{
-  ConfigChannel.disable_local_channels = yylval.number;
 };
 
 channel_use_except: USE_EXCEPT '=' TBOOL ';'

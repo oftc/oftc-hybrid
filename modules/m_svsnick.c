@@ -104,10 +104,10 @@ ms_svsnick(struct Client *client_p, struct Client *source_p,
 
   add_history(target_p, 1);
 
-  sendto_server(NULL, NULL, CAP_TS6, NOCAPS,
+  sendto_server(NULL, CAP_TS6, NOCAPS,
                 ":%s NICK %s :%lu",
                 ID(target_p), parv[2], (unsigned long)target_p->tsinfo);
-  sendto_server(NULL, NULL, NOCAPS, CAP_TS6,
+  sendto_server(NULL, NOCAPS, CAP_TS6,
                 ":%s NICK %s :%lu",
                 target_p->name, parv[2], (unsigned long)source_p->tsinfo);
 

@@ -74,21 +74,6 @@ m_invite(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  /* Do not send local channel invites to users if they are not on the
-   * same server as the person sending the INVITE message. 
-   */
-  /* Possibly should be an error sent to source_p */
-  /* done .. there should be no problem because MyConnect(source_p) should
-   * always be true if parse() and such is working correctly --is
-   */
-  if ((*parv[2] == '&') && !MyConnect(target_p))
-  {
-    if (ConfigServerHide.hide_servers == 0)
-      sendto_one(source_p, form_str(ERR_USERNOTONSERV),
-                 me.name, source_p->name, target_p->name);
-    return;
-  }
-
   if ((chptr = hash_find_channel(parv[2])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),

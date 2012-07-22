@@ -152,10 +152,10 @@ change_local_nick(struct Client *source_p, const char *nick)
                                  source_p->host, nick);
     add_history(source_p, 1);
 
-    sendto_server(source_p, NULL, CAP_TS6, NOCAPS,
+    sendto_server(source_p, CAP_TS6, NOCAPS,
                   ":%s NICK %s :%lu",
                   ID(source_p), nick, (unsigned long)source_p->tsinfo);
-    sendto_server(source_p, NULL, NOCAPS, CAP_TS6,
+    sendto_server(source_p, NOCAPS, CAP_TS6,
                   ":%s NICK %s :%lu",
                   source_p->name, nick, (unsigned long)source_p->tsinfo);
 
@@ -728,10 +728,10 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
                                  source_p->host, nick);
 
     add_history(source_p, 1);
-    sendto_server(client_p, NULL, CAP_TS6, NOCAPS,
+    sendto_server(client_p, CAP_TS6, NOCAPS,
                   ":%s NICK %s :%lu",
                   ID(source_p), nick, (unsigned long)source_p->tsinfo);
-    sendto_server(client_p, NULL, NOCAPS, CAP_TS6,
+    sendto_server(client_p, NOCAPS, CAP_TS6,
                   ":%s NICK %s :%lu",
                   source_p->name, nick, (unsigned long)source_p->tsinfo);
   }

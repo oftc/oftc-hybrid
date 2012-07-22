@@ -1028,9 +1028,9 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
   }
   else if (IsClient(source_p) && !HasFlag(source_p, FLAGS_KILLED))
   {
-    sendto_server(from->from, NULL, CAP_TS6, NOCAPS,
+    sendto_server(from->from, CAP_TS6, NOCAPS,
                   ":%s QUIT :%s", ID(source_p), comment);
-    sendto_server(from->from, NULL, NOCAPS, CAP_TS6,
+    sendto_server(from->from, NOCAPS, CAP_TS6,
                   ":%s QUIT :%s", source_p->name, comment);
   }
 

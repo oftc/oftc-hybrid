@@ -340,7 +340,7 @@ set_vhost(struct Client *client_p, struct Client *source_p,
   SetUserHost(target_p);
 
   if (IsClient(target_p))
-    sendto_server(client_p, NULL, CAP_ENCAP, NOCAPS,
+    sendto_server(client_p, CAP_ENCAP, NOCAPS,
                   ":%s ENCAP * CHGHOST %s %s",
                   me.name, target_p->name, target_p->host);
 

@@ -56,7 +56,7 @@ extern void sendto_channel_local_butone(struct Client *, int, struct Channel *,
 extern void sendto_channel_remote(struct Client *, struct Client *, int,
                                   const unsigned int, const unsigned int,
                                   struct Channel *, const char *, ...);
-extern void sendto_server(struct Client *, const struct Channel *,
+extern void sendto_server(struct Client *,
                           const unsigned int,
                           const unsigned int, const char *, ...);
 extern void sendto_match_butone(struct Client *, struct Client *, 

@@ -308,10 +308,6 @@ whois_person(struct Client *source_p, struct Client *target_p)
 
     if (ShowChannel(source_p, chptr))
     {
-      /* Don't show local channels if user is doing a remote whois */
-      if (!MyConnect(source_p) && (chptr->chname[0] == '&'))
-	continue;
-
       if ((cur_len + 3 + strlen(chptr->chname) + 1) > (IRCD_BUFSIZE - 2))
       {
 	*(t - 1) = '\0';

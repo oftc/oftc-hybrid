@@ -1784,7 +1784,6 @@ set_default_conf(void)
 
   ConfigChannel.disable_fake_channels = 0;
   ConfigChannel.restrict_channels = 0;
-  ConfigChannel.disable_local_channels = 0;
   ConfigChannel.use_invex = 1;
   ConfigChannel.use_except = 1;
   ConfigChannel.use_knock = 1;
@@ -2289,13 +2288,9 @@ read_conf_files(int cold)
   add_isupport("MAXLIST", chanmodes, -1);
   add_isupport("MAXTARGETS", NULL, ConfigFileEntry.max_targets);
 
-  if (ConfigChannel.disable_local_channels)
-    add_isupport("CHANTYPES", "#", -1);
-  else
-    add_isupport("CHANTYPES", "#&", -1);
+  add_isupport("CHANTYPES", "#", -1);
 
-  snprintf(chanlimit, sizeof(chanlimit), "%s:%d",
-           ConfigChannel.disable_local_channels ? "#" : "#&",
+  snprintf(chanlimit, sizeof(chanlimit), "#:%d",
 	   ConfigChannel.max_chans_per_user);
   add_isupport("CHANLIMIT", chanlimit, -1);
   snprintf(chanmodes, sizeof(chanmodes), "%s%s%s",
