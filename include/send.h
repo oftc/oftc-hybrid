@@ -45,7 +45,7 @@ extern void send_queued_write(struct Client *);
 extern void send_queued_all(void);
 extern void sendto_one(struct Client *, const char *, ...);
 extern void sendto_channel_butone(struct Client *, struct Client *,
-                                  struct Channel *, const char *,
+                                  struct Channel *, unsigned int,
                                   const char *, ...);
 extern void sendto_common_channels_local(struct Client *, int,
                                          const char *, ...);
