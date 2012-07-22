@@ -437,7 +437,7 @@ check_server(const char *name, struct Client *client_p)
   server_aconf = map_to_conf(server_conf);
 
   if (!IsConfTopicBurst(server_aconf))
-    ClearCap(client_p, CAP_TB | CAP_TBURST);
+    ClearCap(client_p, CAP_TBURST);
 
   if (aconf != NULL)
   {
@@ -782,7 +782,7 @@ server_estab(struct Client *client_p)
      */
 
     send_capabilities(client_p, aconf,
-      (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0));
+      (IsConfTopicBurst(aconf) ? CAP_TBURST : 0));
 
     sendto_one(client_p, "SERVER %s 1 :%s%s",
                me.name, ConfigServerHide.hidden ? "(H) " : "", me.info);
@@ -990,8 +990,7 @@ burst_all(struct Client *client_p)
       burst_members(client_p, chptr);
       send_channel_modes(client_p, chptr);
 
-      if (IsCapable(client_p, CAP_TBURST) ||
-          IsCapable(client_p, CAP_TB))
+      if (IsCapable(client_p, CAP_TBURST))
 	send_tb(client_p, chptr);
     }
   }
@@ -1023,7 +1022,7 @@ burst_all(struct Client *client_p)
  *              - pointer to channel
  * output       - NONE
  * side effects - Called on a server burst when
- *                server is CAP_TB|CAP_TBURST capable
+ *                server is CAP_TBURST capable
  */
 static void
 send_tb(struct Client *client_p, struct Channel *chptr)
@@ -1042,19 +1041,12 @@ send_tb(struct Client *client_p, struct Channel *chptr)
    * for further information   -Michael
    */
   if (chptr->topic_time != 0)
-  {
-    if (IsCapable(client_p, CAP_TBURST))
-      sendto_one(client_p, ":%s TBURST %lu %s %lu %s :%s",
-                 me.name, (unsigned long)chptr->channelts, chptr->chname,
-                 (unsigned long)chptr->topic_time,
-                 chptr->topic_info,
-                 chptr->topic);
-    else if (IsCapable(client_p, CAP_TB))
-      sendto_one(client_p, ":%s TB %s %lu %s :%s",
-                 me.name, chptr->chname,
-                 (unsigned long)chptr->topic_time,
-                 chptr->topic_info, chptr->topic);
-  }
+    sendto_one(client_p, ":%s TBURST %lu %s %lu %s :%s",
+               ID_or_name(&me, client_p),
+               (unsigned long)chptr->channelts, chptr->chname,
+               (unsigned long)chptr->topic_time,
+               chptr->topic_info,
+               chptr->topic);
 }
 
 /* burst_members()
@@ -1375,7 +1367,7 @@ finish_ssl_server_handshake(struct Client *client_p)
                aconf->spasswd, TS_CURRENT, me.id);
 
   send_capabilities(client_p, aconf,
-                   (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0));
+                   (IsConfTopicBurst(aconf) ? CAP_TBURST : 0));
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
              me.name, ConfigServerHide.hidden ? "(H) " : "",
@@ -1535,7 +1527,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
                aconf->spasswd, TS_CURRENT, me.id);
 
   send_capabilities(client_p, aconf,
-                   (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0));
+                   (IsConfTopicBurst(aconf) ? CAP_TBURST : 0));
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
              me.name, ConfigServerHide.hidden ? "(H) " : "", 

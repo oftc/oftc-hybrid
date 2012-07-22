@@ -39,46 +39,6 @@
 #include "parse.h"
 
 
-/*
- * set_topic
- *
- * inputs       - source_p pointer
- *              - channel pointer
- *              - topicts to set
- *              - who to set as who doing the topic
- *              - topic
- * output       - none
- * Side effects - simply propagates topic as needed
- * little helper function, could be removed
- */
-static void
-set_topic(struct Client *source_p, struct Channel *chptr, time_t topicts,
-          const char *topicwho, const char *topic)
-{
-  int new_topic = strcmp(chptr->topic, topic);
-
-  set_channel_topic(chptr, topic, topicwho, topicts);
-
-  /* Only send TOPIC to channel if it's different */
-  if (new_topic)
-    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :%s",
-                         ConfigServerHide.hide_servers ? me.name : source_p->name,
-                         chptr->chname, chptr->topic);
-
-  sendto_server(source_p, chptr, CAP_TBURST, NOCAPS,
-                ":%s TBURST %lu %s %lu %s :%s",
-                me.name, (unsigned long)chptr->channelts, chptr->chname,
-                (unsigned long)chptr->topic_time,
-                chptr->topic_info,
-                chptr->topic);
-  sendto_server(source_p, chptr, CAP_TB, CAP_TBURST,
-                ":%s TB %s %lu %s :%s",
-                me.name, chptr->chname,
-                (unsigned long)chptr->topic_time,
-                chptr->topic_info,
-                chptr->topic);
-}
-
 /* ms_tburst()
  *
  *      parv[0] = sender prefix
@@ -149,49 +109,12 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
    * Always propagate what we have received, not only if we accept the topic.
    * This will keep other servers in sync.
    */
-  sendto_server(source_p, chptr, CAP_TBURST, NOCAPS,
+  sendto_server(source_p, chptr, CAP_TBURST|CAP_TS6, NOCAPS,
+                ":%s TBURST %s %s %s %s :%s",
+                ID(source_p), parv[1], parv[2], parv[3], setby, topic);
+  sendto_server(source_p, chptr, CAP_TBURST, CAP_TS6,
                 ":%s TBURST %s %s %s %s :%s",
                 source_p->name, parv[1], parv[2], parv[3], setby, topic);
-  if (parc > 5 && *topic != '\0') /* unsetting a topic is not supported by TB */
-    sendto_server(source_p, chptr, CAP_TB, CAP_TBURST,
-                  ":%s TB %s %s %s :%s",
-                  source_p->name, parv[1], parv[2], setby, topic);
-}
-
-/* ms_tb()
- * 
- *      parv[0] = sender prefix
- *      parv[1] = channel name
- *      parv[2] = topic timestamp
- *      parv[3] = topic setter OR topic itself if parc == 4
- *      parv[4] = topic itself if parc == 5
- */
-#define tb_channel      parv[1]
-#define tb_topicts_str  parv[2]
-
-static void
-ms_tb(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
-{
-  struct Channel *chptr;
-  time_t tb_topicts = atol(tb_topicts_str);
-  char *tb_whoset = NULL;
-  char *tb_topic = NULL;
-
-  if ((chptr = hash_find_channel(tb_channel)) == NULL)
-    return;
-
-  if (parc == 5)
-  {
-    tb_whoset = parv[3];
-    tb_topic = parv[4];
-  }
-  else
-  {
-    tb_whoset = source_p->name;
-    tb_topic = parv[3];
-  }
-
-  set_topic(source_p, chptr, tb_topicts, tb_whoset, tb_topic);
 }
 
 static struct Message tburst_msgtab = {
@@ -199,17 +122,9 @@ static struct Message tburst_msgtab = {
   { m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore }
 };
 
-static struct Message tb_msgtab = {
-  "TB", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
-  { m_ignore, m_ignore, ms_tb, m_ignore, m_ignore, m_ignore }
-};
-
 static void
 module_init(void)
 {
-  mod_add_cmd(&tb_msgtab);
-  add_capability("TB", CAP_TB, 1);
-
   mod_add_cmd(&tburst_msgtab);
   add_capability("TBURST", CAP_TBURST, 1);
 }
@@ -217,9 +132,6 @@ module_init(void)
 static void
 module_exit(void)
 {
-  mod_del_cmd(&tb_msgtab);
-  delete_capability("TB");
-
   mod_del_cmd(&tburst_msgtab);
   delete_capability("TBURST");
 }
