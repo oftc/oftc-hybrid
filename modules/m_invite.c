@@ -88,14 +88,11 @@ m_invite(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((chptr->mode.mode & (MODE_INVITEONLY | MODE_PRIVATE)))
+  if (MyConnect(source_p) && !has_member_flags(ms, CHFL_CHANOP))
   {
-    if (MyConnect(source_p) && !has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP))
-    {
-      sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-                 me.name, source_p->name, chptr->chname);
-      return;
-    }
+    sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
+               me.name, source_p->name, chptr->chname);
+    return;
   }
 
   if (IsMember(target_p, chptr))
@@ -128,20 +125,16 @@ m_invite(struct Client *client_p, struct Client *source_p,
 
     if (chptr->mode.mode & MODE_INVITEONLY)
     {
-      if (chptr->mode.mode & MODE_PRIVATE)
-      {
-        /* Only do this if channel is set +i AND +p */
-        sendto_channel_local(CHFL_CHANOP|CHFL_HALFOP, 0, chptr,
-                             ":%s NOTICE @%s :%s is inviting %s to %s.",
-                             me.name, chptr->chname, source_p->name,
-                             target_p->name, chptr->chname);
-        sendto_channel_remote(source_p, client_p, CHFL_CHANOP|CHFL_HALFOP,
-                              NOCAPS, NOCAPS, chptr,
-                              ":%s NOTICE @%s :%s is inviting %s to %s.",
-                              source_p->name, chptr->chname, source_p->name,
-                              target_p->name, chptr->chname);
-      }
-
+      /* Only do this if channel is set +i AND +p */
+      sendto_channel_local(CHFL_CHANOP|CHFL_HALFOP, 0, chptr,
+                           ":%s NOTICE @%s :%s is inviting %s to %s.",
+                           me.name, chptr->chname, source_p->name,
+                           target_p->name, chptr->chname);
+      sendto_channel_remote(source_p, client_p, CHFL_CHANOP|CHFL_HALFOP,
+                            NOCAPS, NOCAPS, chptr,
+                            ":%s NOTICE @%s :%s is inviting %s to %s.",
+                            source_p->name, chptr->chname, source_p->name,
+                            target_p->name, chptr->chname);
       /* Add the invite if channel is +i */
       add_invite(chptr, target_p);
     }
