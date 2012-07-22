@@ -54,7 +54,7 @@ static int build_target_list(int p_or_n, const char *command,
 static int flood_attack_client(int p_or_n, struct Client *source_p,
                                struct Client *target_p);
 static int flood_attack_channel(int p_or_n, struct Client *source_p,
-                                struct Channel *chptr, char *chname);
+                                struct Channel *chptr);
 static struct Client* find_userhost (char *, char *, int *);
 
 #define ENTITY_NONE    0
@@ -422,7 +422,7 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
   if ((result = can_send(chptr, source_p, NULL)) < 0)
   {
     if (result == CAN_SEND_OPV ||
-        !flood_attack_channel(p_or_n, source_p, chptr, chptr->chname))
+        !flood_attack_channel(p_or_n, source_p, chptr))
       if(chptr->mode.mode & MODE_NOCOLOR && msg_has_colors(text))
         text = strip_color(text);
       sendto_channel_butone(client_p, source_p, chptr, 0, "%s %s :%s",
@@ -667,7 +667,7 @@ flood_attack_client(int p_or_n, struct Client *source_p,
  */
 static int
 flood_attack_channel(int p_or_n, struct Client *source_p,
-                     struct Channel *chptr, char *chname)
+                     struct Channel *chptr)
 {
   int delta;
 
@@ -702,7 +702,7 @@ flood_attack_channel(int p_or_n, struct Client *source_p,
       if (MyClient(source_p) && (p_or_n != NOTICE))
         sendto_one(source_p,
                    ":%s NOTICE %s :*** Message to %s throttled due to flooding",
-                   me.name, source_p->name, chname);
+                   me.name, source_p->name, chptr->chname);
       return(1);
     }
     else
