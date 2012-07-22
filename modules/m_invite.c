@@ -143,12 +143,12 @@ m_invite(struct Client *client_p, struct Client *source_p,
       {
         /* Only do this if channel is set +i AND +p */
         sendto_channel_local(CHFL_CHANOP|CHFL_HALFOP, 0, chptr,
-                             ":%s NOTICE %s :%s is inviting %s to %s.",
+                             ":%s NOTICE @%s :%s is inviting %s to %s.",
                              me.name, chptr->chname, source_p->name,
                              target_p->name, chptr->chname);
         sendto_channel_remote(source_p, client_p, CHFL_CHANOP|CHFL_HALFOP,
                               NOCAPS, NOCAPS, chptr,
-                              ":%s NOTICE %s :%s is inviting %s to %s.",
+                              ":%s NOTICE @%s :%s is inviting %s to %s.",
                               source_p->name, chptr->chname, source_p->name,
                               target_p->name, chptr->chname);
       }
