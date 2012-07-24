@@ -107,6 +107,7 @@ o) +S - Cannot join channel unless using SSL
 
 -- ircd-hybrid-8beta3 Release Notes
 o) &localchannels have been removed
+o) /messaging opers@some.server is no longer supported
 
 -- ircd-hybrid-8beta2 Release Notes
 o) channel::disable_fake_channels now also disables ascii 29 (mIRC italic)

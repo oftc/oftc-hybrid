@@ -778,19 +778,6 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
       if (host != NULL)
 	*host++ = '\0';
 
-      /* Check if someones msg'ing opers@our.server */
-      if (strcmp(nick, "opers") == 0)
-      {
-	if (!HasUMode(source_p, UMODE_OPER))
-	  sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-                     ID_or_name(&me, client_p),
-                     ID_or_name(source_p, client_p));
-	else
-	  sendto_realops_flags(UMODE_ALL, L_ALL, "To opers: From: %s: %s",
-			       source_p->name, text);
-	return;
-      }
-
       /*
        * Look for users which match the destination host
        * (no host == wildcard) and if one and one only is
