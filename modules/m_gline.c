@@ -259,31 +259,18 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
   const char *reason = NULL;      /* reason for "victims" demise       */
   const char *user = NULL;
   const char *host = NULL;        /* user and host of GLINE "victim"   */
-  struct Client *target_p = NULL;
 
-  switch (parc)
-  {
-    case 4: /* hyb-7 style */
-      if (!IsClient(source_p))
-        return;
-      break;
-    case 8: /* hyb-6 style */
-      if (!IsServer(source_p))
-        return;
-      target_p = find_person(source_p->from, parv[1]);
-      if (target_p == NULL || target_p->servptr != source_p)
-        return;
-      source_p = target_p;
-      break;
-    default:
-      return;
-  }
+  if (!IsClient(source_p))
+    return;
+
+  if (parc != 4 || EmptyString(parv[3]))
+    return;
 
   assert(source_p->servptr != NULL);
 
-  user   = parv[parc - 3];
-  host   = parv[parc - 2];
-  reason = parv[parc - 1];
+  user   = parv[1];
+  host   = parv[2];
+  reason = parv[3];
 
   sendto_server(source_p->from, CAP_GLN|CAP_TS6, NOCAPS,
                 ":%s GLINE %s %s :%s",
@@ -291,14 +278,6 @@ do_sgline(struct Client *source_p, int parc, char *parv[], int prop)
   sendto_server(source_p->from, CAP_GLN, CAP_TS6,
                 ":%s GLINE %s %s :%s",
                 source_p->name, user, host, reason);
-
-  /* hyb-6 version to the rest */
-  sendto_server(source_p->from, NOCAPS, CAP_GLN,
-                ":%s GLINE %s %s %s %s %s %s :%s",
-                source_p->servptr->name,
-                source_p->name, source_p->username, source_p->host,
-                source_p->servptr->name,
-                user, host, reason);
 
   if (ConfigFileEntry.glines)
   {
@@ -427,13 +406,6 @@ mo_gline(struct Client *client_p, struct Client *source_p,
   sendto_server(NULL, CAP_GLN, CAP_TS6,
 		":%s GLINE %s %s :%s",
 		source_p->name, user, host, reason);
-
-  /* 8 param for hyb-6 */
-  sendto_server(NULL, NOCAPS, CAP_GLN|CAP_TS6,
-		":%s GLINE %s %s %s %s %s %s :%s",
-		me.name, source_p->name, source_p->username,
-		source_p->host, source_p->servptr->name, user, host,
-		reason);
 }
 
 /* ms_gline()
