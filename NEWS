@@ -1,5 +1,6 @@
 -- ircd-hybrid-8beta3 Release Notes
 o) &localchannels have been removed
+o) /messaging opers@some.server is no longer supported
 
 
 -- ircd-hybrid-8beta2 Release Notes
