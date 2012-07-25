@@ -518,7 +518,7 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
     if ((p_or_n != NOTICE))
       source_p->localClient->last_privmsg = CurrentTime;
 
-    if ((p_or_n != NOTICE) && target_p->away)
+    if ((p_or_n != NOTICE) && target_p->away[0])
       sendto_one(source_p, form_str(RPL_AWAY), me.name,
                  source_p->name, target_p->name, target_p->away);
 

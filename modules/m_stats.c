@@ -143,7 +143,6 @@ stats_memory(struct Client *source_p, int parc, char *parv[])
   unsigned int safelist_count = 0;
   uint64_t safelist_memory = 0;
 
-  uint64_t away_memory = 0;       /* memory used by aways           */
   uint64_t wwm = 0;               /* whowas array memory used       */
   uint64_t conf_memory = 0;       /* memory used by conf lines      */
   uint64_t mem_ips_stored;        /* memory used by ip address hash */
@@ -182,11 +181,8 @@ stats_memory(struct Client *source_p, int parc, char *parv[])
     {
       ++users_counted;
 
-      if (target_p->away != NULL)
-      {
+      if (target_p->away[0])
         ++aways_counted;
-        away_memory += strlen(target_p->away) + 1;
-      }
     }
   }
 
@@ -283,9 +279,9 @@ stats_memory(struct Client *source_p, int parc, char *parv[])
              me.name, RPL_STATSDEBUG, source_p->name, users_counted,
              (users_counted * sizeof(struct Client)));
 
-  sendto_one(source_p, ":%s %d %s z :User aways %u(%llu)",
+  sendto_one(source_p, ":%s %d %s z :User aways %u",
              me.name, RPL_STATSDEBUG, source_p->name,
-             aways_counted, away_memory);
+             aways_counted);
 
   sendto_one(source_p, ":%s %d %s z :Attached confs %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name,
