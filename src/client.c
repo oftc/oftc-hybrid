@@ -156,7 +156,6 @@ free_client(struct Client *client_p)
   assert(dlink_list_length(&client_p->whowas) == 0);
   assert(!IsServer(client_p) || IsServer(client_p) && client_p->serv);
 
-  MyFree(client_p->away);
   MyFree(client_p->serv);
 
   if (MyConnect(client_p))

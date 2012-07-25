@@ -70,7 +70,7 @@ m_userhost(struct Client *client_p, struct Client *source_p,
         rl = ircsprintf(response, "%s%s=%c%s@%s ",
                         target_p->name,
                         HasUMode(target_p, UMODE_OPER) ? "*" : "",
-                        (target_p->away) ? '-' : '+',
+                        (target_p->away[0]) ? '-' : '+',
                         target_p->username,
                         target_p->sockhost);
       }
@@ -80,7 +80,7 @@ m_userhost(struct Client *client_p, struct Client *source_p,
                         target_p->name, (HasUMode(target_p, UMODE_OPER) &&
                                          (!HasUMode(target_p, UMODE_HIDDEN) ||
                                            HasUMode(source_p, UMODE_OPER))) ? "*" : "",
-                        (target_p->away) ? '-' : '+',
+                        (target_p->away[0]) ? '-' : '+',
                         target_p->username,
                         target_p->host);
       }

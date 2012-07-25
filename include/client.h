@@ -161,7 +161,6 @@ struct Client
   struct Server    *serv;       /**< ...defined, if this is a server */
   struct Client    *servptr;    /**< Points to server this Client is on */
   struct Client    *from;       /**< == self, if Local Client, *NEVER* NULL! */
-  char             *away;       /**< Client's AWAY message. Can be set/unset via AWAY command */
 
   time_t            tsinfo;     /**< TS on the nick, SVINFO on server */
   time_t            servicestamp; /**< Last time client has been identified for its nick */
@@ -175,6 +174,7 @@ struct Client
   dlink_list        whowas;
   dlink_list        channel;   /**< chain of channel pointer blocks */
 
+  char away[AWAYLEN + 1]; /**< Client's AWAY message. Can be set/unset via AWAY command */
   char name[HOSTLEN + 1]; /**< unique name for a client nick or host */
   char id[IDLEN + 1];       /**< client ID, unique ID per client */
 
