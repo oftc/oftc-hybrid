@@ -110,6 +110,7 @@ struct LocalUser
   time_t       first_received_message_time;
   time_t       last_nick_change;
   time_t       last_privmsg; /**< Last time we got a PRIVMSG */
+  time_t       last_away; /**< Away since... */
 
   int          received_number_of_privmsgs;
   unsigned int number_of_nick_changes;

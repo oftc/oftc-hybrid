@@ -66,6 +66,14 @@ m_away(struct Client *client_p, struct Client *source_p,
     return;
   }
 
+  if ((CurrentTime - source_p->localClient->last_away) < ConfigFileEntry.pace_wait)
+  {
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
+               me.name, source_p->name);
+    return;
+  }
+
+  source_p->localClient->last_away = CurrentTime;
   strlcpy(source_p->away, parv[1], sizeof(source_p->away));
 
   sendto_server(client_p, CAP_TS6, NOCAPS,
