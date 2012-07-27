@@ -87,7 +87,9 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
    *        The TS of the remote channel is equal to ours AND
    *        the TS of the remote topic is newer than ours
    */
-  if (remote_channel_ts < chptr->channelts)
+  if (HasFlag(source_p, FLAGS_SERVICE))
+    accept_remote = 1;
+  else if (remote_channel_ts < chptr->channelts)
     accept_remote = 1;
   else if (remote_channel_ts == chptr->channelts)
     if (remote_topic_ts > chptr->topic_time)
@@ -95,11 +97,9 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
 
   if (accept_remote)
   {
-    int topic_differs = strncmp(chptr->topic, topic, sizeof(chptr->topic) - 1);
-
     set_channel_topic(chptr, topic, setby, remote_topic_ts);
 
-    if (topic_differs)
+    if (strncmp(chptr->topic, topic, sizeof(chptr->topic) - 1))
       sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :%s",
                            ConfigServerHide.hide_servers ? me.name : source_p->name,
                            chptr->chname, chptr->topic);
