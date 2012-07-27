@@ -56,8 +56,8 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
   int accept_remote = 0;
   time_t remote_channel_ts = atol(parv[1]);
   time_t remote_topic_ts = atol(parv[3]);
-  const char *topic = "";
-  const char *setby = "";
+  const char *topic = parv[5];
+  const char *setby = parv[4];
 
   /*
    * Do NOT test parv[5] for an empty string and return if true!
@@ -69,12 +69,6 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
 
   if ((chptr = hash_find_channel(parv[2])) == NULL)
     return;
-
-  if (parc == 6)
-  {
-    topic = parv[5];
-    setby = parv[4];
-  }
 
   /*
    * The logic for accepting and rejecting channel topics was
@@ -118,7 +112,7 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
 }
 
 static struct Message tburst_msgtab = {
-  "TBURST", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
+  "TBURST", 0, 0, 6, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore }
 };
 
