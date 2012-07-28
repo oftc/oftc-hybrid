@@ -108,7 +108,7 @@ write_links_file(void* notused)
       continue;
 
     /* skip hidden servers */
-    if (IsHidden(target_p) && !ConfigServerHide.disable_hidden)
+    if (IsHidden(target_p))
       continue;
 
     if (target_p->info[0])

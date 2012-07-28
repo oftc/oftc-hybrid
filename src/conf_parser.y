@@ -139,7 +139,6 @@ free_collect_item(struct CollectItem *item)
 %token  DIE
 %token  DISABLE_AUTH
 %token  DISABLE_FAKE_CHANNELS
-%token  DISABLE_HIDDEN
 %token  DISABLE_REMOTE_COMMANDS
 %token  DOTS_IN_IDENT
 %token	DURATION
@@ -3094,7 +3093,6 @@ serverhide_entry: SERVERHIDE
 serverhide_items:   serverhide_items serverhide_item | serverhide_item;
 serverhide_item:    serverhide_flatten_links | serverhide_hide_servers |
 		    serverhide_links_delay |
-		    serverhide_disable_hidden |
 		    serverhide_hidden | serverhide_hidden_name |
 		    serverhide_hide_server_ips |
                     error;
@@ -3138,12 +3136,6 @@ serverhide_hidden: HIDDEN '=' TBOOL ';'
 {
   if (conf_parser_ctx.pass == 2)
     ConfigServerHide.hidden = yylval.number;
-};
-
-serverhide_disable_hidden: DISABLE_HIDDEN '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    ConfigServerHide.disable_hidden = yylval.number;
 };
 
 serverhide_hide_server_ips: HIDE_SERVER_IPS '=' TBOOL ';'

@@ -1801,7 +1801,6 @@ set_default_conf(void)
   ConfigServerHide.flatten_links = 0;
   ConfigServerHide.links_delay = 300;
   ConfigServerHide.hidden = 0;
-  ConfigServerHide.disable_hidden = 0;
   ConfigServerHide.hide_servers = 0;
   DupString(ConfigServerHide.hidden_name, NETWORK_NAME_DEFAULT);
   ConfigServerHide.hide_server_ips = 0;
