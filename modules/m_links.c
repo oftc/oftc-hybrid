@@ -58,6 +58,11 @@ do_links(struct Client *source_p, int parc, char *parv[])
     {
       target_p = ptr->data;
 
+      /* skip hidden servers */
+      if (!HasUMode(source_p, UMODE_OPER))
+        if (IsHidden(target_p) && !ConfigServerHide.disable_hidden)
+          continue;
+
       if (!EmptyString(mask) && !match(mask, target_p->name))
         continue;
 
