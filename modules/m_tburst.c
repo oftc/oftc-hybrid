@@ -91,9 +91,11 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
 
   if (accept_remote)
   {
+    int topic_differs = strncmp(chptr->topic, topic, sizeof(chptr->topic) - 1);
+
     set_channel_topic(chptr, topic, setby, remote_topic_ts);
 
-    if (strncmp(chptr->topic, topic, sizeof(chptr->topic) - 1))
+    if (topic_differs)
       sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :%s",
                            ConfigServerHide.hide_servers ? me.name : source_p->name,
                            chptr->chname, chptr->topic);
