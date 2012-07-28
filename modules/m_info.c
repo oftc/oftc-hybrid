@@ -221,12 +221,6 @@ static const struct InfoStruct info_table[] =
     "Hide this server from a flattened /links on remote servers"
   },
   {
-    "disable_hidden",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.disable_hidden,
-    "Prevent servers from hiding themselves from a flattened /links"
-  },
-  {
     "hide_servers",
     OUTPUT_BOOLEAN_YN,
     &ConfigServerHide.hide_servers,

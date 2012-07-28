@@ -393,7 +393,6 @@ struct config_server_hide
   int links_delay;
   int links_disabled;
   int hidden;
-  int disable_hidden;
   int hide_server_ips;
 };
 
