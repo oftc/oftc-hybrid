@@ -1,8 +1,9 @@
 -- ircd-hybrid-8beta3 Release Notes
 o) &localchannels have been removed
 o) /messaging opers@some.server is no longer supported
-o) fixed bug that would possibly lead to a topic desynchronization
-o) removed serverhide::disable_hidden configuration option
+o) Fixed bug that would possibly lead to a topic desynchronization
+o) Removed serverhide::disable_hidden configuration option
+o) Dropped ircd-hybrid-6 GLINE compatibility mode
 
 
 -- ircd-hybrid-8beta2 Release Notes
