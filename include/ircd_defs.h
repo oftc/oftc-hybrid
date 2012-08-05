@@ -41,6 +41,10 @@
 #define USERLEN          10
 #define PORTNAMELEN 6  /* ":31337" */
 
+#define HOSTIPLEN       45 /* sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255") */
+#define PASSWDLEN       20
+#define IDLEN           12 /* this is the maximum length, not the actual
+                              generated length; DO NOT CHANGE! */
 #define REALLEN         50
 #define KILLLEN         90
 #define LOCAL_CHANNELLEN 50
