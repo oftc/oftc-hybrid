@@ -133,9 +133,11 @@ m_knock(struct Client *client_p, struct Client *source_p,
 
   chptr->last_knock = CurrentTime;
 
-  sendto_channel_local(CHFL_CHANOP, 0, chptr, form_str(RPL_KNOCK),
+  sendto_channel_local(CHFL_CHANOP, 0, chptr,
+                       ":%s NOTICE @%s :KNOCK: %s (%s [%s@%s] has asked for an invite)",
                        me.name, chptr->chname, chptr->chname,
-                       source_p->name, source_p->username,
+                       source_p->name,
+                       source_p->username,
                        source_p->host);
 
   sendto_server(client_p, CAP_KNOCK|CAP_TS6, NOCAPS,
