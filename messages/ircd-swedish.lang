@@ -100,12 +100,9 @@ RPL_KNOCKDLVR:           :%s 711 %s %s :Din KNOCK har blivit skickad.
 ERR_TOOMANYKNOCK:        :%s 712 %s %s :För många KNOCKs (%s).
 ERR_CHANOPEN:            :%s 713 %s %s :Kanalen är öppen.
 ERR_KNOCKONCHAN:         :%s 714 %s %s :Du är redan i den kanalen.
-ERR_KNOCKDISABLED:       :%s 715 %s :KNOCKs är avaktiverat.
 RPL_TARGUMODEG:          :%s 716 %s %s :är i +g läge (server-side ignorering)
 RPL_TARGNOTIFY:          :%s 717 %s %s :har blivit informerad om att du skickat ett meddelande.
 RPL_UMODEGMSG:           :%s 718 %s %s :skriver till dig, och du har umode +g aktiverat.
-RPL_OMOTDSTART:          :%s 720 %s :Start på OPER MOTD.
-RPL_ENDOFOMOTD:          :%s 722 %s :Slut på OPER MOTD.
 ERR_NOPRIVS:             :%s 723 %s %s :Otillräckliga oper privilegier.
 RPL_TESTMASK:            :%s 724 %s %s@%s %d %d :Lokal/fjärr klient matchar.
 RPL_NOTESTLINE:          :%s 726 %s %s :Ingen match/träff.

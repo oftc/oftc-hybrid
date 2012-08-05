@@ -119,30 +119,6 @@ static const struct InfoStruct info_table[] =
     "Only reserved channels are allowed"
   },
   {
-    "use_invex",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_invex,
-    "Enable chanmode +I (invite exceptions)"
-  },
- {
-   "use_quiet",
-   OUTPUT_BOOLEAN_YN,
-   &ConfigChannel.use_quiet,
-   "Enable chanmode +q (Quiet users)"
- },
-  {
-    "use_except",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_except,
-    "Enable chanmode +e (ban exceptions)"
-  },
-  {
-    "use_knock",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_knock,
-    "Enable /KNOCK"
-  },
-  {
     "knock_delay",
     OUTPUT_DECIMAL,
     &ConfigChannel.knock_delay,

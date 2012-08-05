@@ -115,12 +115,9 @@ RPL_KNOCKDLVR:           :%s 711 %s %s :Jouw KNOCK is afgeleverd.
 ERR_TOOMANYKNOCK:        :%s 712 %s %s :Te veel KNOCKs (%s).
 ERR_CHANOPEN:            :%s 713 %s %s :Kanaal is open.
 ERR_KNOCKONCHAN:         :%s 714 %s %s :Jij bent al in dat kanaal.
-ERR_KNOCKDISABLED:       :%s 715 %s :KNOCKs zijn uitgezet.
 RPL_TARGUMODEG:          :%s 716 %s %s :is in +g mode (server kant negeer)
 RPL_TARGNOTIFY:          :%s 717 %s %s :is op het hoogte gesteld van jouw bericht.
 RPL_UMODEGMSG:           :%s 718 %s %s :stuurde jou een bericht, maar jij bent momenteel in umode +g.
-RPL_OMOTDSTART:          :%s 720 %s :Start van OPER MOTD.
-RPL_ENDOFOMOTD:          :%s 722 %s :Einde van OPER MOTD.
 ERR_NOPRIVS:             :%s 723 %s %s :Niet voldoende operator privileges.
 RPL_TESTMASK:            :%s 724 %s %s@%s %d %d :Lokaal/remote clienten zijn gelijk.
 RPL_NOTESTLINE:          :%s 726 %s %s :Geen gelijken

@@ -119,13 +119,9 @@ RPL_KNOCKDLVR:		 :%s 711 %s %s :Il tuo messaggio è stato consegnato.
 ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Troppi messaggi (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :Il canale è aperto.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :Sei già presente nel canale.
-ERR_KNOCKDISABLED:	 :%s 715 %s :Messaggi disabilitati.
 RPL_TARGUMODEG:		 :%s 716 %s %s :è in modalità +g  (Lato server ignorato)
 RPL_TARGNOTIFY:		 :%s 717 %s %s :siete informati che avete inviato un messaggio a loro.
 RPL_UMODEGMSG:		 :%s 718 %s %s :Vi è arrivato un messaggio e voi siete senza modalita +g.
-RPL_OMOTDSTART:		 :%s 720 %s :Inizio del MOTD degli operatori di IRC.
-RPL_OMOTD:		 :%s 721 %s :%s
-RPL_ENDOFOMOTD:		 :%s 722 %s :Fine del MOTD degli operatori di IRC.
 ERR_NOPRIVS:		 :%s 723 %s %s :Privilegi di Oper insufficienti.
 RPL_TESTMASK:		 :%s 724 %s %s@%s %d %d :Locale/remoto clients corrispondente.
 RPL_TESTLINE:		 :%s 725 %s %c %ld %s :%s | %s

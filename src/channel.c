@@ -654,7 +654,7 @@ int
 is_banned(const struct Channel *chptr, const struct Client *who)
 {
   if (find_bmask(who, &chptr->banlist))
-    if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
+    if (!find_bmask(who, &chptr->exceptlist))
       return 1;
 
   return 0;
@@ -690,7 +690,7 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
 
   if (chptr->mode.mode & MODE_INVITEONLY)
     if (!dlinkFind(&source_p->localClient->invited, chptr))
-      if (!ConfigChannel.use_invex || !find_bmask(source_p, &chptr->invexlist))
+      if (!find_bmask(source_p, &chptr->invexlist))
         return ERR_INVITEONLYCHAN;
 
   if (chptr->mode.key[0] && (!key || strcmp(chptr->mode.key, key)))

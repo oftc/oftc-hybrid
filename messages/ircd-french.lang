@@ -110,4 +110,3 @@ RPL_KNOCKDLVR:		 :%s 711 %s %s :Votre KNOCK a été envoyé.
 ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Trop de KNOCKs (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :La chaîne est ouverte.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :Vous êtes déjà sur cette chaîne.
-ERR_KNOCKDISABLED:	 :%s 715 %s :Les KNOCKs sont désactivés ici.
