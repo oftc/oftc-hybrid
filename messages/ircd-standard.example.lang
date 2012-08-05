@@ -129,13 +129,9 @@ RPL_KNOCKDLVR:		 :%s 711 %s %s :Your KNOCK has been delivered.
 ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Too many KNOCKs (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :Channel is open.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :You are already on that channel.
-ERR_KNOCKDISABLED:	 :%s 715 %s :KNOCKs are disabled.
 RPL_TARGUMODEG:		 :%s 716 %s %s :is in +g mode (server side ignore)
 RPL_TARGNOTIFY:		 :%s 717 %s %s :has been informed that you messaged them.
 RPL_UMODEGMSG:		 :%s 718 %s %s :is messaging you, and you are umode +g.
-RPL_OMOTDSTART:		 :%s 720 %s :Start of OPER MOTD.
-RPL_OMOTD:		 :%s 721 %s :%s
-RPL_ENDOFOMOTD:		 :%s 722 %s :End of OPER MOTD.
 ERR_NOPRIVS:		 :%s 723 %s %s :Insufficient oper privs.
 RPL_TESTMASK:		 :%s 724 %s %s@%s %d %d :Local/remote clients match.
 RPL_TESTLINE:		 :%s 725 %s %c %ld %s :%s | %s

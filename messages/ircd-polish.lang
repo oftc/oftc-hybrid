@@ -93,20 +93,16 @@ ERR_USERNOTONSERV:      :%s 504 %s %s :U¿ytkownik nie korzysta z tego serwera
 ERR_WRONGPONG:          :%s 513 %s :Aby siê po³aczyæ, wpisz /QUOTE PONG %lu
 ERR_LISTSYNTAX:         :%s 521 %s :Z³a sk³adnia dla LIST, wpisz /QUOTE HELP LIST
 ERR_HELPNOTFOUND:       :%s 524 %s %s :Nie odnaleziono pomocy
-RPL_WHOISSECURE:           :%s 671 %s %s :u¿ywa SSL (bezpiecznego po³aczenia)
+RPL_WHOISSECURE:        :%s 671 %s %s :u¿ywa SSL (bezpiecznego po³aczenia)
 RPL_ENDOFHELP:          :%s 706 %s %s :Koniec /HELP.
 RPL_KNOCK:              :%s 710 %s %s %s!%s@%s :prosi o zaproszenie.
 RPL_KNOCKDLVR:          :%s 711 %s %s :Twój KNOCK zosta³ dostarczony.
 ERR_TOOMANYKNOCK:       :%s 712 %s %s :Zbyt wiele KNOCK (%s).
 ERR_CHANOPEN:           :%s 713 %s %s :Kana³ jest otwarty.
 ERR_KNOCKONCHAN:        :%s 714 %s %s :Jestes ju¿ na tym kanale.
-ERR_KNOCKDISABLED:      :%s 715 %s :KNOCK jest wy³aczone.
 RPL_TARGUMODEG:         :%s 716 %s %s :jest w trybie +g (server side ignore)
 RPL_TARGNOTIFY:         :%s 717 %s %s :U¿ytkownik zosta³ poinformowany, ¿e do niego pisano.
 RPL_UMODEGMSG:          :%s 718 %s %s :pisze do Ciebie, ale jestes w trybie +g.
-RPL_OMOTDSTART:         :%s 720 %s :Poczatek OPER MOTD.
-RPL_OMOTD:              :%s 721 %s :%s
-RPL_ENDOFOMOTD:         :%s 722 %s :Koniec OPER MOTD.
 ERR_NOPRIVS:            :%s 723 %s %s :Za ma³e uprawnienia operatora.
 RPL_TESTMASK:           :%s 724 %s %s@%s %d %d :Lokalnych/zdalnych pasujacych klientów.
 RPL_NOTESTLINE:         :%s 726 %s %s :Brak pasujacych

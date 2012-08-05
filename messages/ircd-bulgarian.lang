@@ -97,6 +97,3 @@ RPL_KNOCKDLVR:           :%s 711 %s %s :Вашия KNOCK е доставен.
 ERR_TOOMANYKNOCK:        :%s 712 %s %s :Твърде много KNOCKs (%s).
 ERR_CHANOPEN:            :%s 713 %s %s :Канала е отворен.
 ERR_KNOCKONCHAN:         :%s 714 %s %s :Вие вече сте в този канал.
-ERR_KNOCKDISABLED:       :%s 715 %s :KNOCKs недостъпен
-RPL_OMOTDSTART:          :%s 720 %s :Начало на OPER MOTD.
-RPL_ENDOFOMOTD:          :%s 722 %s :Край на OPER MOTD.

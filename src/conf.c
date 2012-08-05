@@ -1784,9 +1784,6 @@ set_default_conf(void)
 
   ConfigChannel.disable_fake_channels = 0;
   ConfigChannel.restrict_channels = 0;
-  ConfigChannel.use_invex = 1;
-  ConfigChannel.use_except = 1;
-  ConfigChannel.use_knock = 1;
   ConfigChannel.knock_delay = 300;
   ConfigChannel.knock_delay_channel = 60;
   ConfigChannel.max_chans_per_user = 25;
@@ -2281,9 +2278,8 @@ read_conf_files(int cold)
   fclose(conf_parser_ctx.conf_file);
 
   add_isupport("NETWORK", ServerInfo.network_name, -1);
-  snprintf(chanmodes, sizeof(chanmodes), "b%s%s:%d",
-           ConfigChannel.use_except ? "e" : "",
-           ConfigChannel.use_invex ? "I" : "", ConfigChannel.max_bans);
+  snprintf(chanmodes, sizeof(chanmodes), "beI:%d",
+           ConfigChannel.max_bans);
   add_isupport("MAXLIST", chanmodes, -1);
   add_isupport("MAXTARGETS", NULL, ConfigFileEntry.max_targets);
 
@@ -2292,15 +2288,12 @@ read_conf_files(int cold)
   snprintf(chanlimit, sizeof(chanlimit), "#:%d",
 	   ConfigChannel.max_chans_per_user);
   add_isupport("CHANLIMIT", chanlimit, -1);
-  snprintf(chanmodes, sizeof(chanmodes), "%s%s%s",
-           ConfigChannel.use_except ? "e" : "",
-	   ConfigChannel.use_invex ? "I" : "", "b,k,l,imnprstORS");
+  snprintf(chanmodes, sizeof(chanmodes), "%s",
+           "beI,k,l,imnprstORS");
   add_isupport("CHANNELLEN", NULL, LOCAL_CHANNELLEN);
 
-  if (ConfigChannel.use_except)
-    add_isupport("EXCEPTS", "e", -1);
-  if (ConfigChannel.use_invex)
-    add_isupport("INVEX", "I", -1);
+  add_isupport("EXCEPTS", "e", -1);
+  add_isupport("INVEX", "I", -1);
   add_isupport("CHANMODES", chanmodes, -1);
 
   /*

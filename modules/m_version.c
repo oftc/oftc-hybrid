@@ -61,8 +61,8 @@ confopts(struct Client *source_p)
   static char result[12];
   char *p = result;
 
-  if (ConfigChannel.use_except)
-    *p++ = 'e';
+  *p++ = 'e'; /* excepts */
+
   if (ConfigFileEntry.glines)
     *p++ = 'G';
   *p++ = 'g';
@@ -74,10 +74,8 @@ confopts(struct Client *source_p)
     *p++ = 'H';
   }
 
-  if (ConfigChannel.use_invex)
-    *p++ = 'I';
-  if (ConfigChannel.use_knock)
-    *p++ = 'K';
+  *p++ = 'I'; /* invex */
+  *p++ = 'K'; /* knock */
   *p++ = 'M';
 
   if (ConfigFileEntry.ignore_bogus_ts)

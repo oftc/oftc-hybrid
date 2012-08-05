@@ -331,9 +331,6 @@ free_collect_item(struct CollectItem *item)
 %token  UNKLINE
 %token  USER
 %token  USE_EGD
-%token  USE_EXCEPT
-%token  USE_INVEX
-%token  USE_KNOCK
 %token  USE_LOGGING
 %token  USE_WHOIS_ACTUALLY
 %token  VHOST
@@ -2988,8 +2985,7 @@ channel_entry: CHANNEL
   '{' channel_items '}' ';';
 
 channel_items:      channel_items channel_item | channel_item;
-channel_item:       channel_use_except |
-                    channel_use_invex | channel_use_knock | channel_max_bans |
+channel_item:       channel_max_bans |
                     channel_knock_delay | channel_knock_delay_channel |
                     channel_max_chans_per_user | channel_max_chans_per_oper |
                     channel_quiet_on_ban | channel_default_split_user_count |
@@ -3007,21 +3003,6 @@ channel_disable_fake_channels: DISABLE_FAKE_CHANNELS '=' TBOOL ';'
 channel_restrict_channels: RESTRICT_CHANNELS '=' TBOOL ';'
 {
   ConfigChannel.restrict_channels = yylval.number;
-};
-
-channel_use_except: USE_EXCEPT '=' TBOOL ';'
-{
-  ConfigChannel.use_except = yylval.number;
-};
-
-channel_use_invex: USE_INVEX '=' TBOOL ';'
-{
-  ConfigChannel.use_invex = yylval.number;
-};
-
-channel_use_knock: USE_KNOCK '=' TBOOL ';'
-{
-  ConfigChannel.use_knock = yylval.number;
 };
 
 channel_knock_delay: KNOCK_DELAY '=' timespec ';'

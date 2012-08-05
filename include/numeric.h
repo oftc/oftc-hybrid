@@ -468,7 +468,6 @@ extern const char *get_locale(void);
 #define ERR_TOOMANYKNOCK     712
 #define ERR_CHANOPEN         713
 #define ERR_KNOCKONCHAN      714
-#define ERR_KNOCKDISABLED    715
 
 #define RPL_TARGUMODEG       716
 #define RPL_TARGNOTIFY       717

@@ -741,7 +741,7 @@ static struct NumericInfo replies[] = {
 /* 712 */  {"ERR_TOOMANYKNOCK", ":%s 712 %s %s :Too many KNOCKs (%s).", NULL},
 /* 713 */  {"ERR_CHANOPEN", ":%s 713 %s %s :Channel is open.", NULL},
 /* 714 */  {"ERR_KNOCKONCHAN", ":%s 714 %s %s :You are already on that channel.", NULL},
-/* 715 */  {"ERR_KNOCKDISABLED", ":%s 715 %s :KNOCKs are disabled.", NULL},
+/* 715 */  {NULL, NULL, NULL},
 /* 716 */  {"RPL_TARGUMODEG", ":%s 716 %s %s :is in +g mode (server side ignore)", NULL},
 /* 717 */  {"RPL_TARGNOTIFY", ":%s 717 %s %s :has been informed that you messaged them.", NULL},
 /* 718 */  {"RPL_UMODEGMSG", ":%s 718 %s %s :is messaging you, and you are umode +g.", NULL},

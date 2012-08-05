@@ -830,20 +830,6 @@ chm_except(struct Client *client_p, struct Client *source_p,
 {
   char *mask = NULL;
 
-  /* if we have +e disabled, allow local clients to do anything but
-   * set the mode.  This prevents the abuse of +e when just a few
-   * servers support it. --fl
-   */
-  if (!ConfigChannel.use_except && MyClient(source_p) && 
-      ((dir == MODE_ADD) && (parc > *parn)))
-  {
-    if (*errors & SM_ERR_RPL_E)
-      return;
-
-    *errors |= SM_ERR_RPL_E;
-    return;
-  }
-
   if (alev < CHACCESS_HALFOP)
   {
     if (!(*errors & SM_ERR_NOOPS))
@@ -906,12 +892,7 @@ chm_except(struct Client *client_p, struct Client *source_p,
   mode_changes[mode_count].dir = dir;
   mode_changes[mode_count].caps = CAP_EX;
   mode_changes[mode_count].nocaps = 0;
-
-  if (ConfigChannel.use_except)
-    mode_changes[mode_count].mems = ONLY_CHANOPS;
-  else
-    mode_changes[mode_count].mems = ONLY_SERVERS;
-
+  mode_changes[mode_count].mems = ONLY_CHANOPS;
   mode_changes[mode_count].id = NULL;
   mode_changes[mode_count++].arg = mask;
 }
@@ -923,20 +904,6 @@ chm_invex(struct Client *client_p, struct Client *source_p,
           const char *chname)
 {
   char *mask = NULL;
-
-  /* if we have +I disabled, allow local clients to do anything but
-   * set the mode.  This prevents the abuse of +I when just a few
-   * servers support it --fl
-   */
-  if (!ConfigChannel.use_invex && MyClient(source_p) && 
-      (dir == MODE_ADD) && (parc > *parn))
-  {
-    if (*errors & SM_ERR_RPL_I)
-      return;
-    
-    *errors |= SM_ERR_RPL_I;
-    return;
-  }
 
   if (alev < CHACCESS_HALFOP)
   {
@@ -1000,12 +967,7 @@ chm_invex(struct Client *client_p, struct Client *source_p,
   mode_changes[mode_count].dir = dir;
   mode_changes[mode_count].caps = CAP_IE;
   mode_changes[mode_count].nocaps = 0;
-
-  if (ConfigChannel.use_invex)
-    mode_changes[mode_count].mems = ONLY_CHANOPS;
-  else
-    mode_changes[mode_count].mems = ONLY_SERVERS;
-
+  mode_changes[mode_count].mems = ONLY_CHANOPS;
   mode_changes[mode_count].id = NULL;
   mode_changes[mode_count++].arg = mask;
 }

@@ -4,6 +4,8 @@ o) /messaging opers@some.server is no longer supported
 o) Fixed bug that would possibly lead to a topic desynchronization
 o) Removed serverhide::disable_hidden configuration option
 o) Dropped ircd-hybrid-6 GLINE compatibility mode
+o) use_invex, use_except and use_knock configuration options
+   have been removed. These features are now enabled by default
 
 
 -- ircd-hybrid-8beta2 Release Notes

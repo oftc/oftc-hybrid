@@ -119,13 +119,9 @@ RPL_KNOCKDLVR:		 :%s 711 %s %s :KNOCK-ul tau a fost livrat.
 ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Prea multe KNOCK (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :Canalul este deschis.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :Te afli deja pe acel canal.
-ERR_KNOCKDISABLED:	 :%s 715 %s :functia KNOCK este dezactivata.
 RPL_TARGUMODEG:		 :%s 716 %s %s :se afla in modul +g (server side ignore)
 RPL_TARGNOTIFY:		 :%s 717 %s %s :has been informed that you messaged them.
 RPL_UMODEGMSG:		 :%s 718 %s %s :iti trimite mesaj,si tu ai setat umode +g.
-RPL_OMOTDSTART:		 :%s 720 %s :Inceputul OPER MOTD.
-RPL_OMOTD:		 :%s 721 %s :%s
-RPL_ENDOFOMOTD:		 :%s 722 %s :Sfarsitul OPER MOTD.
 ERR_NOPRIVS:		 :%s 723 %s %s :privilegii de operator insuficiente.
 RPL_TESTMASK:		 :%s 724 %s %s@%s %d %d :Local/remote clients match.
 RPL_TESTLINE:		 :%s 725 %s %c %ld %s :%s | %s

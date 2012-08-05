@@ -67,13 +67,6 @@ m_knock(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!ConfigChannel.use_knock && MyClient(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_KNOCKDISABLED),
-               me.name, source_p->name);
-    return;
-  }
-
   if ((chptr = hash_find_channel(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
@@ -140,11 +133,10 @@ m_knock(struct Client *client_p, struct Client *source_p,
 
   chptr->last_knock = CurrentTime;
 
-  if (ConfigChannel.use_knock)
-    sendto_channel_local(CHFL_CHANOP, 0, chptr, form_str(RPL_KNOCK),
-                         me.name, chptr->chname, chptr->chname,
-                         source_p->name, source_p->username,
-                         source_p->host);
+  sendto_channel_local(CHFL_CHANOP, 0, chptr, form_str(RPL_KNOCK),
+                       me.name, chptr->chname, chptr->chname,
+                       source_p->name, source_p->username,
+                       source_p->host);
 
   sendto_server(client_p, CAP_KNOCK|CAP_TS6, NOCAPS,
                 ":%s KNOCK %s", ID(source_p), chptr->chname);

@@ -292,9 +292,6 @@ unkline		{ return UNKLINE; }
 undline         { return T_UNDLINE; }
 unlimited       { return T_UNLIMITED; }
 use_egd 	{ return USE_EGD; }
-use_except	{ return USE_EXCEPT; }
-use_invex	{ return USE_INVEX; }
-use_knock	{ return USE_KNOCK; }
 use_logging	{ return USE_LOGGING; }
 use_whois_actually { return USE_WHOIS_ACTUALLY; }
 throttle_time { return THROTTLE_TIME; }

@@ -273,18 +273,15 @@ extern int yydebug;
      UNKLINE = 482,
      USER = 483,
      USE_EGD = 484,
-     USE_EXCEPT = 485,
-     USE_INVEX = 486,
-     USE_KNOCK = 487,
-     USE_LOGGING = 488,
-     USE_WHOIS_ACTUALLY = 489,
-     VHOST = 490,
-     VHOST6 = 491,
-     XLINE = 492,
-     WARN = 493,
-     WARN_NO_NLINE = 494,
-     T_SIZE = 495,
-     T_FILE = 496
+     USE_LOGGING = 485,
+     USE_WHOIS_ACTUALLY = 486,
+     VHOST = 487,
+     VHOST6 = 488,
+     XLINE = 489,
+     WARN = 490,
+     WARN_NO_NLINE = 491,
+     T_SIZE = 492,
+     T_FILE = 493
    };
 #endif
 /* Tokens.  */
@@ -515,18 +512,15 @@ extern int yydebug;
 #define UNKLINE 482
 #define USER 483
 #define USE_EGD 484
-#define USE_EXCEPT 485
-#define USE_INVEX 486
-#define USE_KNOCK 487
-#define USE_LOGGING 488
-#define USE_WHOIS_ACTUALLY 489
-#define VHOST 490
-#define VHOST6 491
-#define XLINE 492
-#define WARN 493
-#define WARN_NO_NLINE 494
-#define T_SIZE 495
-#define T_FILE 496
+#define USE_LOGGING 485
+#define USE_WHOIS_ACTUALLY 486
+#define VHOST 487
+#define VHOST6 488
+#define XLINE 489
+#define WARN 490
+#define WARN_NO_NLINE 491
+#define T_SIZE 492
+#define T_FILE 493
 
 
 
@@ -541,7 +535,7 @@ typedef union YYSTYPE
 
 
 /* Line 2049 of yacc.c  */
-#line 545 "conf_parser.h"
+#line 539 "conf_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
