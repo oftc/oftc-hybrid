@@ -12,7 +12,7 @@ RPL_MAPEND:             :%s 017 %s :Koniec /MAP
 RPL_YOURID:             :%s 042 %s %s :Twój unikalny ID
 RPL_ENDOFSTATS:         :%s 219 %s %c :Koniec raportu /STATS
 RPL_STATSUPTIME:        :%s 242 %s :Serwer dzia³a %d dni, %d:%02d:%02d
-RPL_STATSCONN:          :%s 250 %s :Najwy¿sza liczba po³aczeñ: %d (%d klientów) (%d od startu serwera)
+RPL_STATSCONN:          :%s 250 %s :Najwy¿sza liczba po³aczeñ: %d (%d klientów) (%llu od startu serwera)
 RPL_LUSERCLIENT:        :%s 251 %s :Jest %d u¿ytkowników i %d niewidzialnych na %d serwerach
 RPL_LUSEROP:            :%s 252 %s %d :aktywnych IRC Operatorów
 RPL_LUSERUNKNOWN:       :%s 253 %s %d :- liczba niezarejestrowanych po³aczeñ
@@ -104,5 +104,5 @@ RPL_TARGUMODEG:         :%s 716 %s %s :jest w trybie +g (server side ignore)
 RPL_TARGNOTIFY:         :%s 717 %s %s :U¿ytkownik zosta³ poinformowany, ¿e do niego pisano.
 RPL_UMODEGMSG:          :%s 718 %s %s :pisze do Ciebie, ale jestes w trybie +g.
 ERR_NOPRIVS:            :%s 723 %s %s :Za ma³e uprawnienia operatora.
-RPL_TESTMASK:           :%s 724 %s %s@%s %d %d :Lokalnych/zdalnych pasujacych klientów.
+RPL_TESTMASK:           :%s 724 %s %s!%s@%s %u %u :Lokalnych/zdalnych pasujacych klientów.
 RPL_NOTESTLINE:         :%s 726 %s %s :Brak pasujacych

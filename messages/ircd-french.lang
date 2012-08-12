@@ -24,7 +24,7 @@ RPL_TRACENEWTYPE:	 :%s 208 %s <nouvelletype> 0 %s
 RPL_TRACECLASS:		 :%s 209 %s Classe %s %d
 RPL_ENDOFSTATS:		 :%s 219 %s %c :Fin de reportage /STATS
 RPL_STATSUPTIME:	 :%s 242 %s :Le serveur fonctionne depuis %d jours, %dh %dm %ds
-RPL_STATSCONN:		 :%s 250 %s :Plus grand nombre de connexions simultanées: %d (%d clients) (%d connexions reçues)
+RPL_STATSCONN:		 :%s 250 %s :Plus grand nombre de connexions simultanées: %d (%d clients) (%llu connexions reçues)
 RPL_LUSERCLIENT:	 :%s 251 %s :Il y a %d clients et %d invisibles sur %d serveurs
 RPL_LUSERUNKNOWN:	 :%s 253 %s %d :connexion(s) inconnue(s)
 RPL_LUSERCHANNELS:	 :%s 254 %s %d :chaînes crées
