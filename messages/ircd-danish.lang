@@ -15,7 +15,7 @@ RPL_TRACEUSER:           :%s 205 %s Bruger %s %s (%s) %lu %lu
 RPL_TRACECLASS:          :%s 209 %s Klasse %s %d
 RPL_ENDOFSTATS:          :%s 219 %s %c :Slutningen p† /STATS rapporten
 RPL_STATSUPTIME:         :%s 242 %s :Server oppe %d dag(e), %d:%02d:%02d
-RPL_STATSCONN:           :%s 250 %s :H›jeste forbindelser antal: %d (%d brugere) (%d forbindelser modtaget)
+RPL_STATSCONN:           :%s 250 %s :H›jeste forbindelser antal: %d (%d brugere) (%llu forbindelser modtaget)
 RPL_LUSERCLIENT:         :%s 251 %s :Der er %d brugere og %d usynlige p† %d servere
 RPL_LUSEROP:             :%s 252 %s %d :IRC Operatorer er her
 RPL_LUSERUNKNOWN:        :%s 253 %s %d :ukendt forbindelse(r)

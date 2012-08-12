@@ -21,7 +21,7 @@ RPL_TRACENEWTYPE:	 :%s 208 %s <noultip> 0 %s
 RPL_TRACECLASS:		 :%s 209 %s Clasa %s %d
 RPL_ENDOFSTATS:		 :%s 219 %s %c :Sfarsitul /STATS report
 RPL_STATSUPTIME:	 :%s 242 %s :Server Up %d days, %d:%02d:%02d
-RPL_STATSCONN:		 :%s 250 %s :Numarul maxim de conexiuni: %d (%d clienti) (%d conexiuni primite)
+RPL_STATSCONN:		 :%s 250 %s :Numarul maxim de conexiuni: %d (%d clienti) (%llu conexiuni primite)
 RPL_LUSERCLIENT:	 :%s 251 %s :Exista %d utilizatori si %d invizibili pe %d servere
 RPL_LUSEROP:		 :%s 252 %s %d :IRC Operatori prezenti
 RPL_LUSERUNKNOWN:	 :%s 253 %s %d :conexiuni necunoscute
@@ -123,6 +123,4 @@ RPL_TARGUMODEG:		 :%s 716 %s %s :se afla in modul +g (server side ignore)
 RPL_TARGNOTIFY:		 :%s 717 %s %s :has been informed that you messaged them.
 RPL_UMODEGMSG:		 :%s 718 %s %s :iti trimite mesaj,si tu ai setat umode +g.
 ERR_NOPRIVS:		 :%s 723 %s %s :privilegii de operator insuficiente.
-RPL_TESTMASK:		 :%s 724 %s %s@%s %d %d :Local/remote clients match.
-RPL_TESTLINE:		 :%s 725 %s %c %ld %s :%s | %s
 RPL_NOTESTLINE:		 :%s 726 %s %s :Nu exista potriviri

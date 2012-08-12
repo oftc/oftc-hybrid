@@ -15,7 +15,7 @@ RPL_TRACENEWTYPE:        :%s 208 %s <novi tip> 0 %s
 RPL_TRACECLASS:          :%s 209 %s Klasa %s %d
 RPL_ENDOFSTATS:          :%s 219 %s %c :Kraj /STATS izvje¹taja
 RPL_STATSUPTIME:         :%s 242 %s :Server radi %d dana, %d:%02d:%02d
-RPL_STATSCONN:           :%s 250 %s :Najveæi broj veza: %d (%d klijenata) (%d veza zaprimljeno))
+RPL_STATSCONN:           :%s 250 %s :Najveæi broj veza: %d (%d klijenata) (%llu veza zaprimljeno))
 RPL_LUSERCLIENT:         :%s 251 %s :Ima %d korisnika i %d nevidljivih na %d servera
 RPL_LUSEROP:             :%s 252 %s %d :IRC Operatora na vezi
 RPL_LUSERUNKNOWN:        :%s 253 %s %d :nepoznatih veza

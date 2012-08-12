@@ -14,7 +14,7 @@ RPL_TRACEUSER:           :%s 205 %s Bruker %s %s (%s) %lu %lu
 RPL_TRACENEWTYPE:        :%s 208 %s <nytype> 0 %s
 RPL_TRACECLASS:          :%s 209 %s Klasse %s %d
 RPL_STATSUPTIME:         :%s 242 %s :Serveren har vært oppe %d dager, %d:%02d:%02d
-RPL_STATSCONN:           :%s 250 %s :Høyeste tilkoblings telling: %d (%d klienter) (%d tilkoblinger received)
+RPL_STATSCONN:           :%s 250 %s :Høyeste tilkoblings telling: %d (%d klienter) (%llu tilkoblinger received)
 RPL_LUSERCLIENT:         :%s 251 %s :Det er %d brukere og %d usynlige på %d serverere
 RPL_LUSEROP:             :%s 252 %s %d :IRC Operatører online
 RPL_LUSERUNKNOWN:        :%s 253 %s %d :ukjente tilkoblinger

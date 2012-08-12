@@ -12,7 +12,7 @@ RPL_MAPEND:              :%s 017 %s :Край на /MAP
 RPL_YOURID:              :%s 042 %s %s :вашият уникален ID
 RPL_ENDOFSTATS:          :%s 219 %s %c :Край на отчета /STATS
 RPL_STATSUPTIME:         :%s 242 %s :Сървъра работи %d дена, %d:%02d:%02d
-RPL_STATSCONN:           :%s 250 %s :Най голямо количество свързани: %d (%d клиенти) (%d входящи свързвания)
+RPL_STATSCONN:           :%s 250 %s :Най голямо количество свързани: %d (%d клиенти) (%llu входящи свързвания)
 RPL_LUSERCLIENT:         :%s 251 %s :В момента има %d потребителя %d невидими на %d сървъра
 RPL_LUSEROP:             :%s 252 %s %d :IRC Опъри на линия
 RPL_LUSERUNKNOWN:        :%s 253 %s %d :неизвестни свръзки
