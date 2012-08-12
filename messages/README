@@ -1,12 +1,13 @@
 Translated message files (user/admin submitted)
 
-There are user submitted message files for ircd-hybrid-7. Read the 
+There are user submitted message files for ircd-hybrid-8. Read the 
 example file in this directory (ircd-standard.example.lang) and the file
 doc/messages.txt to learn how to create, install, and possibly submit
 your own .lang files.
 
 At the present time, the following languages are supported:
 
+brazilian portuguese - maintained by Marcelo Lipienski <und3rl1n3d@gmail.com>
 swedish - maintained by trbz - Chris C <chris@mircscripter.com>
 croatian - maintained by Martin - Vid Strpic <strpic@bofhlet.net>
 french - maintained by joshk - Joshua Kwan <joshk@triplehelix.org>
