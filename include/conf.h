@@ -301,7 +301,6 @@ struct config_file_entry
   const char *rxlinefile;
   const char *rklinefile;
   const char *dlinefile;
-  const char *glinefile;
   const char *cresvfile;
   const char *nresvfile;
 

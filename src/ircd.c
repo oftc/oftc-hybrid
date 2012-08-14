@@ -515,7 +515,6 @@ main(int argc, char *argv[])
   ConfigFileEntry.rxlinefile = RXPATH; /* Server regex xline file   */
   ConfigFileEntry.rklinefile = RKPATH; /* Server regex kline file   */
   ConfigFileEntry.dlinefile  = DLPATH; /* dline file                */
-  ConfigFileEntry.glinefile  = GPATH;  /* gline log file            */
   ConfigFileEntry.cresvfile  = CRESVPATH; /* channel resv file      */
   ConfigFileEntry.nresvfile  = NRESVPATH; /* nick resv file         */
   myargv = argv;

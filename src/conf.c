@@ -2731,10 +2731,6 @@ get_conf_name(ConfType type)
     case NRESV_TYPE:
       return ConfigFileEntry.nresvfile;
       break;
-    case GLINE_TYPE:
-      return ConfigFileEntry.glinefile;
-      break;
-
     default:
       return NULL;  /* This should NEVER HAPPEN since we call this function
                        only with the above values, this will cause us to core
