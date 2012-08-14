@@ -234,38 +234,6 @@ m_botserv(struct Client *client_p, struct Client *source_p,
              me.name, source_p->name, "BotServ");
 }
 
-static void
-m_identify(struct Client *client_p, struct Client *source_p,
-           int parc, char *parv[])
-{
-  struct Client *target_p = NULL;
-
-  if (EmptyString(parv[1]))
-  {
-    sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
-               me.name, source_p->name);
-    return;
-  }
-
-  if (IsChanPrefix(*parv[1]))
-  {
-    if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
-      sendto_one(target_p, ":%s PRIVMSG ChanServ@%s :IDENTIFY %s",
-                 source_p->name, ConfigFileEntry.service_name, parv[1]);
-    else
-      sendto_one(source_p, form_str(ERR_SERVICESDOWN),
-                 me.name, source_p->name, "ChanServ");
-  }
-  else
-  {
-    if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
-      sendto_one(target_p, ":%s PRIVMSG NickServ@%s :IDENTIFY %s",
-                 source_p->name, ConfigFileEntry.service_name, parv[1]);
-    else
-      sendto_one(source_p, form_str(ERR_SERVICESDOWN),
-                 me.name, source_p->name, "NickServ");
-  }
-}
 
 static struct Message ms_msgtab = {
   "MS", 0, 0, 0, 1, MFLG_SLOW, 0,
@@ -337,10 +305,6 @@ static struct Message helpserv_msgtab = {
   {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
 };
 
-static struct Message identify_msgtab = {
-  "IDENTIFY", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_identify, m_ignore, m_ignore, m_identify, m_ignore}
-};
 
 static void
 module_init(void)
@@ -352,7 +316,6 @@ module_init(void)
   mod_add_cmd(&operserv_msgtab);
   mod_add_cmd(&statserv_msgtab);
   mod_add_cmd(&helpserv_msgtab);
-  mod_add_cmd(&identify_msgtab);
   mod_add_cmd(&bs_msgtab);
   mod_add_cmd(&ns_msgtab);
   mod_add_cmd(&cs_msgtab);
@@ -372,7 +335,6 @@ module_exit(void)
   mod_del_cmd(&operserv_msgtab);
   mod_del_cmd(&statserv_msgtab);
   mod_del_cmd(&helpserv_msgtab);
-  mod_del_cmd(&identify_msgtab);
   mod_del_cmd(&bs_msgtab);
   mod_del_cmd(&ns_msgtab);
   mod_del_cmd(&cs_msgtab);
