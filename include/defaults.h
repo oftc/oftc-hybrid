@@ -66,7 +66,6 @@
 #define CRESVPATH   ETCPATH "/cresv.conf"       /* channel resvs file */
 #define NRESVPATH   ETCPATH "/nresv.conf"       /* nick resvs file */
 #define DLPATH  ETCPATH "/dline.conf"           /* dline file */
-#define GPATH   ETCPATH "/gline.conf"           /* gline conffile */
 #define XPATH   ETCPATH "/xline.conf"           /* xline file */
 #define RXPATH  ETCPATH "/rxline.conf"
 #define RKPATH  ETCPATH "/rkline.conf"
