@@ -106,6 +106,7 @@ o) +M - Cannot talk on channel unless registered with NickServ
 o) +S - Cannot join channel unless using SSL
 
 -- ircd-hybrid-8beta3 Release Notes
+o) Fixed wrong syntax of several language files
 o) &localchannels have been removed
 o) /messaging opers@some.server is no longer supported
 o) Fixed bug that would possibly lead to a topic desynchronization
