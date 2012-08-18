@@ -1,4 +1,5 @@
 -- ircd-hybrid-8beta3 Release Notes
+o) Fixed wrong syntax of several language files
 o) &localchannels have been removed
 o) /messaging opers@some.server is no longer supported
 o) Fixed bug that would possibly lead to a topic desynchronization
