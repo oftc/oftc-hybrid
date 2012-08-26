@@ -576,7 +576,6 @@ update_client_exit_stats(struct Client *client_p)
  * output	- return client pointer
  * side effects - find person by (nick)name
  */
-/* XXX - ugly wrapper */
 struct Client *
 find_person(const struct Client *client_p, const char *name)
 {
