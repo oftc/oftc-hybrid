@@ -604,7 +604,6 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
     ubuf[1] = '\0';
   }
 
-  /* XXX Both of these need to have a :me.name or :mySID!?!?! */
   if (IsCapable(client_p, CAP_SVS))
   {
     if (HasID(target_p) && IsCapable(client_p, CAP_TS6))
