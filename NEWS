@@ -1,3 +1,10 @@
+-- ircd-hybrid-8rc1 Release Notes
+o) Removed general::client_flood configuration option and added the
+   new 'recvq' configuration directive to class{} blocks.
+   The max size of a receive queue can be seen in "STATS Y"
+   for each class
+
+
 -- ircd-hybrid-8beta3 Release Notes
 o) Fixed wrong syntax of several language files
 o) &localchannels have been removed

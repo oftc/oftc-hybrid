@@ -290,7 +290,6 @@ free_collect_item(struct CollectItem *item)
 %token  T_CCONN
 %token  T_CCONN_FULL
 %token  T_SSL_CIPHER_LIST
-%token  T_CLIENT_FLOOD
 %token  T_DEAF
 %token  T_DEBUG
 %token  T_DLINE
@@ -304,6 +303,7 @@ free_collect_item(struct CollectItem *item)
 %token  T_MAX_CLIENTS
 %token  T_NCHANGE
 %token  T_OPERWALL
+%token  T_RECVQ
 %token  T_REJ
 %token  T_SERVER
 %token  T_SERVNOTICE
@@ -1350,7 +1350,7 @@ class_item:     class_name |
 		class_max_global |
 		class_max_local |
 		class_max_ident |
-                class_sendq |
+                class_sendq | class_recvq |
 		error ';' ;
 
 class_name: NAME '=' QSTRING ';' 
@@ -1414,6 +1414,13 @@ class_sendq: SENDQ '=' sizespec ';'
 {
   if (conf_parser_ctx.pass == 1)
     yy_class->max_sendq = $3;
+};
+
+class_recvq: T_RECVQ '=' sizespec ';'
+{
+  if (conf_parser_ctx.pass == 1)
+    if ($3 >= CLIENT_FLOOD_MIN && $3 <= CLIENT_FLOOD_MAX)
+      yy_class->max_recvq = $3;
 };
 
 class_cidr_bitlen_ipv4: CIDR_BITLEN_IPV4 '=' NUMBER ';'
@@ -2534,7 +2541,6 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_opers_bypass_callerid | general_default_floodcount |
                     general_min_nonwildcard | general_min_nonwildcard_simple |
                     general_disable_remote_commands |
-                    general_client_flood |
                     general_throttle_time | general_havent_read_conf |
                     general_ping_cookie |
                     general_disable_auth | 
@@ -2970,11 +2976,6 @@ general_min_nonwildcard_simple: MIN_NONWILDCARD_SIMPLE '=' NUMBER ';'
 general_default_floodcount: DEFAULT_FLOODCOUNT '=' NUMBER ';'
 {
   ConfigFileEntry.default_floodcount = $3;
-};
-
-general_client_flood: T_CLIENT_FLOOD '=' sizespec ';'
-{
-  ConfigFileEntry.client_flood = $3;
 };
 
 

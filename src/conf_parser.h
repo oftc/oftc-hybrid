@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_CONF_PARSER_H
-# define YY_CONF_PARSER_H
+#ifndef YY_Y_TAB_H
+# define YY_Y_TAB_H
 /* Enabling traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -232,20 +232,20 @@ extern int yydebug;
      T_CCONN = 441,
      T_CCONN_FULL = 442,
      T_SSL_CIPHER_LIST = 443,
-     T_CLIENT_FLOOD = 444,
-     T_DEAF = 445,
-     T_DEBUG = 446,
-     T_DLINE = 447,
-     T_DRONE = 448,
-     T_EXTERNAL = 449,
-     T_FULL = 450,
-     T_INVISIBLE = 451,
-     T_IPV4 = 452,
-     T_IPV6 = 453,
-     T_LOCOPS = 454,
-     T_MAX_CLIENTS = 455,
-     T_NCHANGE = 456,
-     T_OPERWALL = 457,
+     T_DEAF = 444,
+     T_DEBUG = 445,
+     T_DLINE = 446,
+     T_DRONE = 447,
+     T_EXTERNAL = 448,
+     T_FULL = 449,
+     T_INVISIBLE = 450,
+     T_IPV4 = 451,
+     T_IPV6 = 452,
+     T_LOCOPS = 453,
+     T_MAX_CLIENTS = 454,
+     T_NCHANGE = 455,
+     T_OPERWALL = 456,
+     T_RECVQ = 457,
      T_REJ = 458,
      T_SERVER = 459,
      T_SERVNOTICE = 460,
@@ -471,20 +471,20 @@ extern int yydebug;
 #define T_CCONN 441
 #define T_CCONN_FULL 442
 #define T_SSL_CIPHER_LIST 443
-#define T_CLIENT_FLOOD 444
-#define T_DEAF 445
-#define T_DEBUG 446
-#define T_DLINE 447
-#define T_DRONE 448
-#define T_EXTERNAL 449
-#define T_FULL 450
-#define T_INVISIBLE 451
-#define T_IPV4 452
-#define T_IPV6 453
-#define T_LOCOPS 454
-#define T_MAX_CLIENTS 455
-#define T_NCHANGE 456
-#define T_OPERWALL 457
+#define T_DEAF 444
+#define T_DEBUG 445
+#define T_DLINE 446
+#define T_DRONE 447
+#define T_EXTERNAL 448
+#define T_FULL 449
+#define T_INVISIBLE 450
+#define T_IPV4 451
+#define T_IPV6 452
+#define T_LOCOPS 453
+#define T_MAX_CLIENTS 454
+#define T_NCHANGE 455
+#define T_OPERWALL 456
+#define T_RECVQ 457
 #define T_REJ 458
 #define T_SERVER 459
 #define T_SERVNOTICE 460
@@ -558,4 +558,4 @@ int yyparse ();
 #endif
 #endif /* ! YYPARSE_PARAM */
 
-#endif /* !YY_CONF_PARSER_H  */
+#endif /* !YY_Y_TAB_H  */

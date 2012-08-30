@@ -94,9 +94,12 @@
 
 /* class {} default values */
 #define DEFAULT_SENDQ 9000000           /* default max SendQ */
+#define DEFAULT_RECVQ 2560           /* default max RecvQ */
 #define PORTNUM 6667                    /* default outgoing portnum */
 #define DEFAULT_PINGFREQUENCY    120    /* Default ping frequency */
 #define DEFAULT_CONNECTFREQUENCY 600    /* Default connect frequency */
+#define CLIENT_FLOOD_MAX     8000
+#define CLIENT_FLOOD_MIN     512
 
 #define WATCHSIZE_MIN 1
 #define WATCHSIZE_DEFAULT 32
@@ -114,10 +117,6 @@
 
 /* General defaults */
 #define MAXIMUM_LINKS_DEFAULT 0         /* default for maximum_links */
-
-#define CLIENT_FLOOD_DEFAULT 2560       /* default for client_flood */
-#define CLIENT_FLOOD_MAX     8000
-#define CLIENT_FLOOD_MIN     512
 
 #define LINKS_DELAY_DEFAULT  300
 
