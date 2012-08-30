@@ -151,7 +151,6 @@ channel		{ return CHANNEL; }
 cidr_bitlen_ipv4	{ return CIDR_BITLEN_IPV4; }
 cidr_bitlen_ipv6	{ return CIDR_BITLEN_IPV6; }
 class		{ return CLASS; }
-client_flood	{ return T_CLIENT_FLOOD; }
 cluster		{ return T_CLUSTER; }
 connect		{ return CONNECT; }
 connectfreq     { return CONNECTFREQ; }
@@ -249,6 +248,7 @@ port		{ return PORT; }
 quarantine	{ return RESV; }
 quiet_on_ban    { return QUIET_ON_BAN; }
 reason		{ return REASON; }
+recvq           { return T_RECVQ; }
 redirport       { return REDIRPORT; }
 redirserv       { return REDIRSERV; }
 regex           { return REGEX_T; }

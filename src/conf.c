@@ -318,6 +318,7 @@ make_conf_item(ConfType type)
     aclass->ping_freq = DEFAULT_PINGFREQUENCY;
     aclass->max_total = MAXIMUM_LINKS_DEFAULT;
     aclass->max_sendq = DEFAULT_SENDQ;
+    aclass->max_recvq = DEFAULT_RECVQ;
 
     break;
 
@@ -646,10 +647,11 @@ report_confitem_types(struct Client *source_p, ConfType type)
       conf = ptr->data;
       classitem = map_to_conf(conf);
       sendto_one(source_p, form_str(RPL_STATSYLINE),
-     me.name, source_p->name, 'Y',
-     conf->name, classitem->ping_freq,
-     classitem->con_freq,
-     classitem->max_total, classitem->max_sendq,
+		 me.name, source_p->name, 'Y',
+		 conf->name, classitem->ping_freq,
+		 classitem->con_freq,
+		 classitem->max_total, classitem->max_sendq,
+                 classitem->max_recvq,
                  classitem->curr_user_count,
                  classitem->number_per_cidr, classitem->cidr_bitlen_ipv4,
                  classitem->number_per_cidr, classitem->cidr_bitlen_ipv6,
@@ -1924,7 +1926,6 @@ set_default_conf(void)
   ConfigFileEntry.true_no_oper_flood = 0;
   ConfigFileEntry.oper_pass_resv = 1;
   ConfigFileEntry.max_targets = MAX_TARGETS_DEFAULT;
-  ConfigFileEntry.client_flood = CLIENT_FLOOD_DEFAULT;
   ConfigFileEntry.oper_only_umodes = UMODE_DEBUG;
   ConfigFileEntry.oper_umodes = UMODE_BOTS | UMODE_LOCOPS | UMODE_SERVNOTICE |
     UMODE_OPERWALL | UMODE_WALLOP;
@@ -1950,10 +1951,6 @@ validate_conf(void)
 
   if (ConfigFileEntry.service_name == NULL)
     DupString(ConfigFileEntry.service_name, SERVICE_NAME_DEFAULT);
-
-  if ((ConfigFileEntry.client_flood < CLIENT_FLOOD_MIN) ||
-      (ConfigFileEntry.client_flood > CLIENT_FLOOD_MAX))
-    ConfigFileEntry.client_flood = CLIENT_FLOOD_MAX;
 
   ConfigFileEntry.max_watch = IRCD_MAX(ConfigFileEntry.max_watch, WATCHSIZE_MIN);
 }
@@ -2885,6 +2882,7 @@ init_class(void)
   aclass->ping_freq = DEFAULT_PINGFREQUENCY;
   aclass->max_total = MAXIMUM_LINKS_DEFAULT;
   aclass->max_sendq = DEFAULT_SENDQ;
+  aclass->max_recvq = DEFAULT_RECVQ;
 
   client_check_cb = register_callback("check_client", check_client);
 }
@@ -2928,6 +2926,41 @@ get_sendq(struct Client *client_p)
    * that is very bad -Dianora
    */
   return DEFAULT_SENDQ;
+}
+
+unsigned int
+get_recvq(struct Client *client_p)
+{
+  unsigned int recvq = DEFAULT_RECVQ;
+  dlink_node *cnode;
+  struct ConfItem *class_conf;
+  struct ClassItem *aclass;
+  struct AccessItem *aconf;
+
+  assert(!IsMe(client_p));
+
+  if ((cnode = client_p->localClient->confs.head))
+  {
+    struct ConfItem *conf = cnode->data;
+
+    assert((conf->type == CLIENT_TYPE) || (conf->type == SERVER_TYPE) ||
+          (conf->type == OPER_TYPE));
+
+    aconf = map_to_conf(conf);
+
+    if ((class_conf = aconf->class_ptr) == NULL)
+      return DEFAULT_RECVQ; /* TBV: shouldn't be possible at all */
+
+    aclass = map_to_conf(class_conf);
+    recvq = aclass->max_recvq;
+    return recvq;
+  }
+
+  /* XXX return a default?
+   * if here, then there wasn't an attached conf with a recvq
+   * that is very bad -Dianora
+   */
+  return DEFAULT_RECVQ;
 }
 
 /* conf_add_class_to_conf()

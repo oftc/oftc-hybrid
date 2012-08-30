@@ -455,12 +455,6 @@ static const struct InfoStruct info_table[] =
     "The maximum number of PRIVMSG/NOTICE targets"
   },
   {
-    "client_flood",
-    OUTPUT_DECIMAL,
-    &ConfigFileEntry.client_flood,
-    "Maximum amount of data in a client's queue before they are disconnected"
-  },
-  {
     "throttle_time",
     OUTPUT_DECIMAL,
     &ConfigFileEntry.throttle_time,

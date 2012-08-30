@@ -150,6 +150,7 @@ struct ClassItem
   dlink_list list_ipv4;         /* base of per cidr ipv4 client link list */
   dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
   unsigned int max_sendq;
+  unsigned int max_recvq;
   int con_freq;
   int ping_freq;
   int ping_warning;
@@ -354,7 +355,6 @@ struct config_file_entry
   int min_nonwildcard_simple;
   int kill_chase_time_limit;
   int default_floodcount;
-  int client_flood;
   /* 0 == don't use throttle... */
   int throttle_time;
   int use_egd;
@@ -445,6 +445,7 @@ extern int valid_wild_card(struct Client *, int, int, ...);
 /* End GLOBAL section */
 
 extern unsigned int get_sendq(struct Client *);
+extern unsigned int get_recvq(struct Client *);
 extern const char *get_client_class(struct Client *);
 extern int get_client_ping(struct Client *, int *);
 extern void check_class(void);
