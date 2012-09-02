@@ -68,8 +68,6 @@
 #define NRESVPATH   ETCPATH "/nresv.conf"       /* nick resvs file */
 #define DLPATH  ETCPATH "/dline.conf"           /* dline file */
 #define XPATH   ETCPATH "/xline.conf"           /* xline file */
-#define RXPATH  ETCPATH "/rxline.conf"
-#define RKPATH  ETCPATH "/rkline.conf"
 #define MPATH   ETCPATH "/ircd.motd"            /* MOTD file */
 #define LPATH   LOGPATH "/ircd.log"             /* ircd logfile */
 #define OFTCLOG LOGPATH "/oftc.log" 

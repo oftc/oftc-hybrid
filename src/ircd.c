@@ -512,8 +512,6 @@ main(int argc, char *argv[])
   ConfigFileEntry.configfile = CPATH;  /* Server configuration file */
   ConfigFileEntry.klinefile  = KPATH;  /* Server kline file         */
   ConfigFileEntry.xlinefile  = XPATH;  /* Server xline file         */
-  ConfigFileEntry.rxlinefile = RXPATH; /* Server regex xline file   */
-  ConfigFileEntry.rklinefile = RKPATH; /* Server regex kline file   */
   ConfigFileEntry.dlinefile  = DLPATH; /* dline file                */
   ConfigFileEntry.cresvfile  = CRESVPATH; /* channel resv file      */
   ConfigFileEntry.nresvfile  = NRESVPATH; /* nick resv file         */
