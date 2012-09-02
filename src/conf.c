@@ -2546,17 +2546,11 @@ get_conf_name(ConfType type)
     case KLINE_TYPE:
       return ConfigFileEntry.klinefile;
       break;
-    case RKLINE_TYPE:
-      return ConfigFileEntry.rklinefile;
-      break;
     case DLINE_TYPE:
       return ConfigFileEntry.dlinefile;
       break;
     case XLINE_TYPE:
       return ConfigFileEntry.xlinefile;
-      break;
-    case RXLINE_TYPE:
-      return ConfigFileEntry.rxlinefile;
       break;
     case CRESV_TYPE:
       return ConfigFileEntry.cresvfile;
@@ -3204,7 +3198,7 @@ find_user_host(struct Client *source_p, char *user_host_or_nick,
     
     return 1;
   }
-  else if (!(flags & NOUSERLOOKUP))
+  else
   {
     /* Try to find user@host mask from nick */
     /* Okay to use source_p as the first param, because source_p == client_p */

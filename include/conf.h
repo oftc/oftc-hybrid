@@ -288,8 +288,6 @@ struct config_file_entry
   const char *configfile;
   const char *klinefile;
   const char *xlinefile;
-  const char *rxlinefile;
-  const char *rklinefile;
   const char *dlinefile;
   const char *cresvfile;
   const char *nresvfile;
@@ -484,7 +482,6 @@ extern void *map_to_conf(struct ConfItem *);
 extern struct ConfItem *unmap_conf_item(void *);
 /* XXX should the parse_aline stuff go into another file ?? */
 #define AWILD 0x1		/* check wild cards */
-#define NOUSERLOOKUP 0x2 /* Don't lookup the user@host on /rkline nick */
 extern int parse_aline(const char *, struct Client *, int, char **,
 		       int, char **, char **, time_t *, char **, char **);
 extern int valid_comment(struct Client *, char *, int);
