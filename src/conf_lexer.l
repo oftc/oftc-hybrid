@@ -134,15 +134,12 @@ include   \.include{WS}(\<.*\>|\".*\")
 		}
 
 accept_password { return ACCEPT_PASSWORD; }
-action		{ return ACTION; }
 admin		{ return ADMIN; }
 administrator	{ return ADMIN; }
 aftype		{ return AFTYPE; }
 all		{ return T_ALL; }
-allow		{ return T_ALLOW; }
 auth		{ return IRCD_AUTH; }
 autoconn	{ return AUTOCONN; }
-block		{ return T_BLOCK; }
 can_flood	{ return CAN_FLOOD; }
 caller_id_wait	{ return CALLER_ID_WAIT; }
 opers_bypass_callerid  { return OPERS_BYPASS_CALLERID; }
@@ -164,10 +161,8 @@ disable_fake_channels { return DISABLE_FAKE_CHANNELS; }
 disable_remote_commands	{ return DISABLE_REMOTE_COMMANDS; }
 dline           { return T_DLINE; }
 dots_in_ident   { return DOTS_IN_IDENT; }
-duration	{ return DURATION; }
 egdpool_path        { return EGDPOOL_PATH; }
 email		{ return EMAIL; }
-enable		{ return ENABLE; }
 encrypted       { return ENCRYPTED; }
 exceed_limit    { return EXCEED_LIMIT; }
 exempt		{ return EXEMPT; }
@@ -250,7 +245,6 @@ redirport       { return REDIRPORT; }
 redirserv       { return REDIRSERV; }
 regex           { return REGEX_T; }
 rehash		{ return REHASH; }
-reject		{ return T_REJECT; }
 reject_hold_time { return TREJECT_HOLD_TIME; }
 remote		{ return REMOTE; }
 remoteban	{ return REMOTEBAN; }
@@ -279,7 +273,6 @@ set              { return T_SET; }
 shared          { return T_SHARED; }
 short_motd      { return SHORT_MOTD; }
 sid		{ return IRCD_SID; }
-silent          { return SILENT; }
 size            { return T_SIZE; }
 spoof		{ return SPOOF; }
 spoof_notice	{ return SPOOF_NOTICE; }
@@ -295,12 +288,8 @@ use_logging	{ return USE_LOGGING; }
 use_whois_actually { return USE_WHOIS_ACTUALLY; }
 throttle_time { return THROTTLE_TIME; }
 user		{ return USER; } 
-tkline		{ return TKLINE; } 
-txline		{ return TXLINE; } 
-tresv		{ return TRESV; } 
 vhost	{ return VHOST; }
 vhost6	{ return VHOST6; }
-warn		{ return WARN; }
 xline		{ return XLINE; }
 yes		{ yylval.number = 1; return TBOOL; }
 
@@ -357,7 +346,6 @@ invisible               { return T_INVISIBLE; }
 wallop                  { return T_WALLOP; }
 callerid                { return T_CALLERID; }
 softcallerid            { return T_SOFTCALLERID; }
-drone                   { return T_DRONE; }
 locops                  { return T_LOCOPS; }
 
 weeks			{ return WEEKS; }
@@ -383,16 +371,6 @@ megabyte		{ return MBYTES; }
 mbytes			{ return MBYTES; }
 mbyte			{ return MBYTES; }
 mb			{ return MBYTES; }
-gigabytes		{ return GBYTES; }
-gigabyte		{ return GBYTES; }
-gbytes			{ return GBYTES; }
-gbyte			{ return GBYTES; }
-gb			{ return GBYTES; }
-terabytes		{ return TBYTES; }
-terabyte		{ return TBYTES; }
-tbytes			{ return TBYTES; }
-tbyte			{ return TBYTES; }
-tb			{ return TBYTES; }
 \.\.                    { return TWODOTS; }
 
 .		        { return yytext[0]; }
