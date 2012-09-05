@@ -436,9 +436,6 @@ check_server(const char *name, struct Client *client_p)
 
   server_aconf = map_to_conf(server_conf);
 
-  if (!IsConfTopicBurst(server_aconf))
-    ClearCap(client_p, CAP_TBURST);
-
   if (aconf != NULL)
   {
     struct sockaddr_in *v4;
@@ -641,10 +638,9 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
                  target_p->servptr->name, target_p->info);
   }
 
-  if (IsConfAwayBurst((struct AccessItem *)map_to_conf(client_p->localClient->confs.head->data)))
-    if (target_p->away[0])
-      sendto_one(client_p, ":%s AWAY :%s", ID_or_name(target_p, client_p),
-                 target_p->away);
+  if (target_p->away[0])
+    sendto_one(client_p, ":%s AWAY :%s", ID_or_name(target_p, client_p),
+               target_p->away);
 
 }
 
@@ -767,8 +763,7 @@ server_estab(struct Client *client_p)
      * - Dianora
      */
 
-    send_capabilities(client_p, aconf,
-      (IsConfTopicBurst(aconf) ? CAP_TBURST : 0));
+    send_capabilities(client_p, aconf, 0);
 
     sendto_one(client_p, "SERVER %s 1 :%s%s",
                me.name, ConfigServerHide.hidden ? "(H) " : "", me.info);
@@ -1320,8 +1315,7 @@ finish_ssl_server_handshake(struct Client *client_p)
     sendto_one(client_p, "PASS %s TS %d %s",
                aconf->spasswd, TS_CURRENT, me.id);
 
-  send_capabilities(client_p, aconf,
-                   (IsConfTopicBurst(aconf) ? CAP_TBURST : 0));
+  send_capabilities(client_p, aconf, 0);
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
              me.name, ConfigServerHide.hidden ? "(H) " : "",
@@ -1482,8 +1476,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
     sendto_one(client_p, "PASS %s TS %d %s",
                aconf->spasswd, TS_CURRENT, me.id);
 
-  send_capabilities(client_p, aconf,
-                   (IsConfTopicBurst(aconf) ? CAP_TBURST : 0));
+  send_capabilities(client_p, aconf, 0);
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
              me.name, ConfigServerHide.hidden ? "(H) " : "", 

@@ -143,7 +143,6 @@ allow		{ return T_ALLOW; }
 auth		{ return IRCD_AUTH; }
 autoconn	{ return AUTOCONN; }
 block		{ return T_BLOCK; }
-burst_away      { return BURST_AWAY; }
 can_flood	{ return CAN_FLOOD; }
 caller_id_wait	{ return CALLER_ID_WAIT; }
 opers_bypass_callerid  { return OPERS_BYPASS_CALLERID; }
@@ -360,7 +359,6 @@ callerid                { return T_CALLERID; }
 softcallerid            { return T_SOFTCALLERID; }
 drone                   { return T_DRONE; }
 locops                  { return T_LOCOPS; }
-topicburst		{ return TOPICBURST; }
 
 weeks			{ return WEEKS; }
 week			{ return WEEKS; }

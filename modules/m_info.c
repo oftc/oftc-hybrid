@@ -233,12 +233,6 @@ static const struct InfoStruct info_table[] =
     "Automatically set mode +i on connecting users"
   },
   {
-    "burst_away",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.burst_away,
-    "Send /away string that users have set on the server burst"
-  },
-  {
     "use_whois_actually",
     OUTPUT_BOOLEAN_YN,
     &ConfigFileEntry.use_whois_actually,
