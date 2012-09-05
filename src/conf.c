@@ -686,8 +686,6 @@ report_confitem_types(struct Client *source_p, ConfType type)
         *p++ = 'A';
       if (IsConfSSL(aconf))
         *p++ = 'S';
-      if (IsConfTopicBurst(aconf))
-        *p++ = 'T';
       if (buf[0] == '\0')
         *p++ = '*';
 
@@ -1889,7 +1887,6 @@ set_default_conf(void)
   ConfigFileEntry.gline_min_cidr = 16;
   ConfigFileEntry.gline_min_cidr6 = 48;
   ConfigFileEntry.invisible_on_connect = 1;
-  ConfigFileEntry.burst_away = 0;
   ConfigFileEntry.use_whois_actually = 1;
   ConfigFileEntry.tkline_expire_notices = 1;
   ConfigFileEntry.hide_spoof_ips = 1;

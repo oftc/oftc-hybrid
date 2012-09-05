@@ -236,10 +236,8 @@ struct ip_entry
 #define CONF_FLAGS_ALLOW_AUTO_CONN      0x00002000
 #define CONF_FLAGS_ENCRYPTED            0x00004000
 #define CONF_FLAGS_TEMPORARY            0x00008000
-#define CONF_FLAGS_BURST_AWAY           0x00010000
-#define CONF_FLAGS_EXEMPTRESV           0x00020000
-#define CONF_FLAGS_TOPICBURST           0x00040000
-#define CONF_FLAGS_SSL                  0x00080000
+#define CONF_FLAGS_EXEMPTRESV           0x00010000
+#define CONF_FLAGS_SSL                  0x00020000
 
 /* Macros for struct AccessItem */
 #define IsLimitIp(x)            ((x)->flags & CONF_FLAGS_LIMIT_IP)
@@ -264,12 +262,6 @@ struct ip_entry
 #define IsConfTemporary(x)      ((x)->flags & CONF_FLAGS_TEMPORARY)
 #define SetConfTemporary(x)     ((x)->flags |= CONF_FLAGS_TEMPORARY)
 #define IsConfRedir(x)          ((x)->flags & CONF_FLAGS_REDIR)
-#define IsConfAwayBurst(x)      ((x)->flags & CONF_FLAGS_BURST_AWAY)
-#define SetConfAwayBurst(x)     ((x)->flags |= CONF_FLAGS_BURST_AWAY)
-#define ClearConfAwayBurst(x)   ((x)->flags &= ~CONF_FLAGS_BURST_AWAY)
-#define IsConfTopicBurst(x)     ((x)->flags & CONF_FLAGS_TOPICBURST)
-#define SetConfTopicBurst(x)    ((x)->flags |= CONF_FLAGS_TOPICBURST)
-#define ClearConfTopicBurst(x)  ((x)->flags &= ~CONF_FLAGS_TOPICBURST)
 #define IsConfSSL(x)      ((x)->flags & CONF_FLAGS_SSL)
 #define SetConfSSL(x)     ((x)->flags |= CONF_FLAGS_SSL)
 #define ClearConfSSL(x)   ((x)->flags &= ~CONF_FLAGS_SSL)
@@ -335,7 +327,6 @@ struct config_file_entry
   int oper_pass_resv;
   int glines;
   int hide_spoof_ips;
-  int burst_away;
   int use_whois_actually;
   int tkline_expire_notices;
   int opers_bypass_callerid;

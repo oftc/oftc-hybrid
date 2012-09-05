@@ -123,7 +123,6 @@ free_collect_item(struct CollectItem *item)
 %token  ANTI_SPAM_EXIT_MESSAGE_TIME
 %token  AUTOCONN
 %token	T_BLOCK
-%token  BURST_AWAY
 %token  BYTES KBYTES MBYTES GBYTES TBYTES
 %token  CALLER_ID_WAIT
 %token  CAN_FLOOD
@@ -329,7 +328,6 @@ free_collect_item(struct CollectItem *item)
 %token  T_SERVICE
 %token  T_SERVICES_NAME
 %token  THROTTLE_TIME
-%token  TOPICBURST
 %token  TRUE_NO_OPER_FLOOD
 %token  TKLINE
 %token  TXLINE
@@ -2271,14 +2269,6 @@ connect_flags_item: AUTOCONN
 {
   if (conf_parser_ctx.pass == 2)
     SetConfAllowAutoConn(yy_aconf);
-} | BURST_AWAY
-{
-  if (conf_parser_ctx.pass == 2)
-    SetConfAwayBurst(yy_aconf);
-} | TOPICBURST
-{
-  if (conf_parser_ctx.pass == 2)
-    SetConfTopicBurst(yy_aconf);
 } | T_SSL
 {
   if (conf_parser_ctx.pass == 2)
