@@ -115,15 +115,12 @@ free_collect_item(struct CollectItem *item)
 }
 
 %token  ACCEPT_PASSWORD
-%token  ACTION
 %token  ADMIN
 %token  AFTYPE
-%token	T_ALLOW
 %token  ANTI_NICK_FLOOD
 %token  ANTI_SPAM_EXIT_MESSAGE_TIME
 %token  AUTOCONN
-%token	T_BLOCK
-%token  BYTES KBYTES MBYTES GBYTES TBYTES
+%token  BYTES KBYTES MBYTES
 %token  CALLER_ID_WAIT
 %token  CAN_FLOOD
 %token  CHANNEL
@@ -142,10 +139,8 @@ free_collect_item(struct CollectItem *item)
 %token  DISABLE_FAKE_CHANNELS
 %token  DISABLE_REMOTE_COMMANDS
 %token  DOTS_IN_IDENT
-%token	DURATION
 %token  EGDPOOL_PATH
 %token  EMAIL
-%token	ENABLE
 %token  ENCRYPTED
 %token  EXCEED_LIMIT
 %token  EXEMPT
@@ -158,7 +153,6 @@ free_collect_item(struct CollectItem *item)
 %token  GLINE_DURATION
 %token  GLINE_ENABLE
 %token  GLINE_EXEMPT
-%token  GLINE_TIME
 %token  GLINE_REQUEST_DURATION
 %token  GLINE_MIN_CIDR
 %token  GLINE_MIN_CIDR6
@@ -219,10 +213,8 @@ free_collect_item(struct CollectItem *item)
 %token  NO_OPER_FLOOD
 %token  NO_TILDE
 %token  NUMBER
-%token  NUMBER_PER_IDENT
 %token  NUMBER_PER_CIDR
 %token  NUMBER_PER_IP
-%token  NUMBER_PER_IP_GLOBAL
 %token  OPERATOR
 %token  OPERS_BYPASS_CALLERID
 %token  OPER_ONLY_UMODES
@@ -251,7 +243,6 @@ free_collect_item(struct CollectItem *item)
 %token  REMOTEBAN
 %token  REJECT_MESSAGE
 %token  RESTRICT_CHANNELS
-%token  RESTRICTED
 %token  RSA_PRIVATE_KEY_FILE
 %token  RSA_PUBLIC_KEY_FILE
 %token  SSL_CERTIFICATE_FILE
@@ -273,7 +264,6 @@ free_collect_item(struct CollectItem *item)
 %token  T_CLUSTER
 %token  TYPE
 %token  SHORT_MOTD
-%token  SILENT
 %token  SPOOF
 %token  SPOOF_NOTICE
 %token  STATS_E_DISABLED
@@ -283,7 +273,6 @@ free_collect_item(struct CollectItem *item)
 %token  STATS_P_OPER_ONLY
 %token  TBOOL
 %token  TMASKED
-%token  T_REJECT
 %token  TS_MAX_DELTA
 %token  TS_WARN_DELTA
 %token  TWODOTS
@@ -297,7 +286,6 @@ free_collect_item(struct CollectItem *item)
 %token  T_DEAF
 %token  T_DEBUG
 %token  T_DLINE
-%token  T_DRONE
 %token  T_EXTERNAL
 %token  T_FULL
 %token  T_INVISIBLE
@@ -329,9 +317,6 @@ free_collect_item(struct CollectItem *item)
 %token  T_SERVICES_NAME
 %token  THROTTLE_TIME
 %token  TRUE_NO_OPER_FLOOD
-%token  TKLINE
-%token  TXLINE
-%token  TRESV
 %token  UNKLINE
 %token  USER
 %token  USE_EGD
@@ -340,7 +325,6 @@ free_collect_item(struct CollectItem *item)
 %token  VHOST
 %token  VHOST6
 %token  XLINE
-%token  WARN
 %token  WARN_NO_NLINE
 %token  T_SIZE
 %token  T_FILE
