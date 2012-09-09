@@ -98,7 +98,7 @@ AC_DEFINE([LCLIENT_HEAP_SIZE], 512, [Size of the local client heap.])
 AC_DEFINE([DNODE_HEAP_SIZE], 1024, [Size of the dlink_node heap.])
 AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
 AC_DEFINE([AUTH_HEAP_SIZE], 256, [Size of the auth heap.])
-AC_DEFINE([DNS_HEAP_SIZE], 256, [Size of the dns heap.])])
+AC_DEFINE([DNS_HEAP_SIZE], 256, [Size of the dns heap.])
 
 # Argument processing.
 AX_ARG_ENABLE_IOLOOP_MECHANISM
