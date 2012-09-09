@@ -300,9 +300,6 @@
 /* Length of topics. */
 #undef TOPICLEN
 
-/* Size of the topic heap. */
-#undef TOPIC_HEAP_SIZE
-
 /* use this iopoll mechanism */
 #undef USE_IOPOLL_MECHANISM
 

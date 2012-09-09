@@ -4,7 +4,7 @@
 AC_REVISION([$Id$])
 
 AC_PREREQ(2.69)
-AC_INIT([ircd-hybrid], [8rc1], [bugs@ircd-hybrid.org])
+AC_INIT([ircd-hybrid], [8.0.0rc1], [bugs@ircd-hybrid.org])
 AM_INIT_AUTOMAKE(1.12.3)
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADER(config.h)
@@ -148,32 +148,15 @@ AS_IF([test "$assert" = "no"],
   [AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.])])
 
 
-AC_ARG_ENABLE(small-net, AS_HELP_STRING([--enable-small-net],
-                                        [Enable small network support.]),
-[small_net=$enableval], [small_net=no])
-
-AS_IF([test "$small_net" = "yes"], [
-  AC_DEFINE([NICKNAMEHISTORYLENGTH], 2048, [Size of the WHOWAS array.])
-  AC_DEFINE([CHANNEL_HEAP_SIZE], 256, [Size of the channel heap.])
-  AC_DEFINE([BAN_HEAP_SIZE], 128, [Size of the ban heap.])
-  AC_DEFINE([CLIENT_HEAP_SIZE], 256, [Size of the client heap.])
-  AC_DEFINE([LCLIENT_HEAP_SIZE], 128, [Size of the local client heap.])
-  AC_DEFINE([DNODE_HEAP_SIZE], 256, [Size of the dlink_node heap.])
-  AC_DEFINE([TOPIC_HEAP_SIZE], 256, [Size of the topic heap.])
-  AC_DEFINE([DBUF_HEAP_SIZE], 64, [Size of the dbuf heap.])
-  AC_DEFINE([AUTH_HEAP_SIZE], 128, [Size of the auth heap.])
-  AC_DEFINE([DNS_HEAP_SIZE], 128, [Size of the dns heap.])], [
-
-  AC_DEFINE([NICKNAMEHISTORYLENGTH], 16384, [Size of the WHOWAS array.])
-  AC_DEFINE([CHANNEL_HEAP_SIZE], 1024, [Size of the channel heap.])
-  AC_DEFINE([BAN_HEAP_SIZE], 1024, [Size of the ban heap.])
-  AC_DEFINE([CLIENT_HEAP_SIZE], 1024, [Size of the client heap.])
-  AC_DEFINE([LCLIENT_HEAP_SIZE], 512, [Size of the local client heap.])
-  AC_DEFINE([DNODE_HEAP_SIZE], 1024, [Size of the dlink_node heap.])
-  AC_DEFINE([TOPIC_HEAP_SIZE], 1024, [Size of the topic heap.])
-  AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
-  AC_DEFINE([AUTH_HEAP_SIZE], 512, [Size of the auth heap.])
-  AC_DEFINE([DNS_HEAP_SIZE], 512, [Size of the dns heap.])])
+AC_DEFINE([NICKNAMEHISTORYLENGTH], 16384, [Size of the WHOWAS array.])
+AC_DEFINE([CHANNEL_HEAP_SIZE], 1024, [Size of the channel heap.])
+AC_DEFINE([BAN_HEAP_SIZE], 1024, [Size of the ban heap.])
+AC_DEFINE([CLIENT_HEAP_SIZE], 1024, [Size of the client heap.])
+AC_DEFINE([LCLIENT_HEAP_SIZE], 512, [Size of the local client heap.])
+AC_DEFINE([DNODE_HEAP_SIZE], 1024, [Size of the dlink_node heap.])
+AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
+AC_DEFINE([AUTH_HEAP_SIZE], 256, [Size of the auth heap.])
+AC_DEFINE([DNS_HEAP_SIZE], 256, [Size of the dns heap.])])
 
 
 # Argument processing.

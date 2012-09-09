@@ -89,11 +89,6 @@
             may or may not kick/deop other halfops depending on if (+p) is
             set. Halfops may not set (+/-p).
 
-          * --enable-small-net - Tunes the server for smaller networks by
-            reducing the startup memory footprint. This should really only be
-            used for *small* networks, as this tends to be a performance hit
-            on larger networks.
-
           * --with-nicklen,
             --with-topiclen - Respectively, sets the maximum NICK length and
             maximum TOPIC length. Note that this must be consistent across your
