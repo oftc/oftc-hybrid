@@ -43,16 +43,6 @@ m_change.c       --  This module will allow IRC operators to alter the ident,
                               CHGNAME lart oorgle
 
 
-m_classlist.c    --  This module will show the number of clients connected in
-                     a specific class. Valid classes would be servers, users,
-                     operators, or any custom one you defined in class {} 
-                     blocks.
-
-                     Syntax: CLASSLIST <class>
-
-                     Example: CLASSLIST users
-
-
 m_clearchan.c    --  Similar to the OperServ command CLEARCHAN, this module
                      will clear all users out of a channel, joins the person
                      who issued it, and locks the channel. It should be noted
@@ -72,15 +62,6 @@ m_ctrace.c       --  This module will perform a trace on a certain class. Valid
                      Example: CTRACE users
 
 
-m_flags.c        --  This module adds csircd like support for changing
-                     usermodes. If passed without any arguments, it will
-                     show what flags are enabled and which are available.
-
-                     Syntax: FLAGS [+|-FLAG]
-
-                     Example: FLAGS +CALLERID
-
-
 m_force.c        --  This module will force a user to either part or join a
                      channel with an optional status (@%+)
 
@@ -89,15 +70,6 @@ m_force.c        --  This module will force a user to either part or join a
 
                      Example: FORCEJOIN nick @#chitchat
                               FORCEPART lamer #chitchat
-
-
-m_killhost.c     --  Similar to the OperServ command KILLHOST, allows you to
-                     issue (mass) KILLs to a specific hostname or hostmask that is 
-                     connected to the server.
-
-                     Syntax: KILLHOST <hostmask> [reason]
-
-                     Example: KILLHOST *@cloners.com clones
 
 
 m_ltrace.c       --  This module will give a limited trace. This is similar to
@@ -137,18 +109,6 @@ m_opme.c         --  This module will allow an IRC operator to op themselves in
 
                      Syntax: OPME <channel>
                      Example: OPME #orphanchan
-
-
-m_spoof.c        --  This module adds automated auth {} block configurations
-                     on local and over-local levels. Check m_spoof.c for
-                     more information and the help pages for SPOOF and
-                     DELSPOOF.
-
-                     Syntax: SPOOF <umask@hmask> <spoof> [flags [password]]
-                             DELSPOOF <umask@hmask>
-
-                     Example: SPOOF *@some.host.org i.hate.packets lkgf
-                              DELSPOOF *@other.host.edu
 
 
 m_webirc.c       --  Adds CGI:IRC/WebIRC support. A special auth{} block is
