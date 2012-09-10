@@ -3858,7 +3858,7 @@ yyreduce:
 		  yy_aconf->rsa_public_key_file);
 
         file = BIO_new_file(yy_aconf->rsa_public_key_file, "r");
-        new_aconf->rsa_public_key = (RSA *)PEM_read_bio_RSA_PUBKEY(file, 
+        new_aconf->rsa_public_key = PEM_read_bio_RSA_PUBKEY(file, 
 							   NULL, 0, NULL);
         BIO_set_close(file, BIO_CLOSE);
         BIO_free(file);
@@ -4002,7 +4002,7 @@ yyreduce:
       break;
     }
 
-    yy_aconf->rsa_public_key = (RSA *)PEM_read_bio_RSA_PUBKEY(file, NULL, 0, NULL);
+    yy_aconf->rsa_public_key = PEM_read_bio_RSA_PUBKEY(file, NULL, 0, NULL);
 
     if (yy_aconf->rsa_public_key == NULL)
     {

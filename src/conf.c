@@ -1226,7 +1226,6 @@ detach_conf(struct Client *client_p, ConfType type)
   struct ClassItem *aclass;
   struct AccessItem *aconf;
   struct ConfItem *aclass_conf;
-  struct MatchItem *match_item;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->localClient->confs.head)
   {
@@ -2349,7 +2348,6 @@ clear_out_old_conf(void)
   struct ConfItem *conf;
   struct AccessItem *aconf;
   struct ClassItem *cltmp;
-  struct MatchItem *match_item;
   dlink_list *free_items [] = {
     &server_items,   &oconf_items,
      &uconf_items,   &xconf_items, &rxconf_items, &rkconf_items,
