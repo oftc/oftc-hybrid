@@ -286,11 +286,11 @@ ms_server(struct Client *client_p, struct Client *source_p,
    */
   DLINK_FOREACH(ptr, aconf->leaf_list.head)
     if (match(ptr->data, name))
-      ++llined;
+      llined = 1, break;
 
   DLINK_FOREACH(ptr, aconf->hub_list.head)
     if (match(ptr->data, name))
-      ++hlined;
+      hlined = 1, break;
 
   /* Ok, this way this works is
    *
@@ -477,11 +477,11 @@ ms_sid(struct Client *client_p, struct Client *source_p,
    */
   DLINK_FOREACH(ptr, aconf->leaf_list.head)
     if (match(ptr->data, parv[1]))
-      ++llined;
+      llined = 1, break;
 
   DLINK_FOREACH(ptr, aconf->hub_list.head)
     if (match(ptr->data, parv[1]))
-      ++hlined;
+      hlined = 1, break;
 
 
   /* Ok, this way this works is
