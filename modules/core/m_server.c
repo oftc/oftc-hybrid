@@ -227,13 +227,6 @@ ms_server(struct Client *client_p, struct Client *source_p,
      * doesnt exist, although ircd can handle it, its not a realistic
      * solution.. --fl_ 
      */
-    /* It is behind a host-masked server. Completely ignore the
-     * server message(don't propagate or we will delink from whoever
-     * we propagate to). -A1kmm
-     */
-    if (irccmp(target_p->name, name) && target_p->from == client_p)
-      return;
-
     sendto_one(client_p, "ERROR :Server %s already exists", name);
     sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "Link %s cancelled, server %s already exists",
@@ -257,11 +250,17 @@ ms_server(struct Client *client_p, struct Client *source_p,
    */
   DLINK_FOREACH(ptr, aconf->leaf_list.head)
     if (match(ptr->data, name))
-      llined = 1, break;
+    {
+      llined = 1;
+      break;
+    }
 
   DLINK_FOREACH(ptr, aconf->hub_list.head)
     if (match(ptr->data, name))
-      hlined = 1, break;
+    {
+      hlined = 1;
+      break;
+    }
 
   /* Ok, this way this works is
    *
@@ -400,7 +399,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "Link %s cancelled, SID %s already exists",
                          get_client_name(client_p, SHOW_IP), parv[3]);
-    exit_client(client_p, &me, "Server Exists");
+    exit_client(client_p, &me, "SID Exists");
     return;
   }
 
@@ -430,11 +429,17 @@ ms_sid(struct Client *client_p, struct Client *source_p,
    */
   DLINK_FOREACH(ptr, aconf->leaf_list.head)
     if (match(ptr->data, parv[1]))
-      llined = 1, break;
+    {
+      llined = 1;
+      break;
+    }
 
   DLINK_FOREACH(ptr, aconf->hub_list.head)
     if (match(ptr->data, parv[1]))
-      hlined = 1, break;
+    {
+      hlined = 1;
+      break;
+    }
 
 
   /* Ok, this way this works is
