@@ -782,17 +782,13 @@ recurse_send_quits(struct Client *original_source_p, struct Client *source_p,
 {
   dlink_node *ptr, *next;
   struct Client *target_p;
-  int hidden = match(me.name, source_p->name); /* XXX */
 
   assert(to != source_p);  /* should be already removed from serv_list */
 
   /* If this server can handle quit storm (QS) removal
    * of dependents, just send the SQUIT
-   *
-   * Always check *all* dependent servers if some of them are
-   * hidden behind fakename. If so, send out the QUITs -adx
    */
-  if (hidden || !IsCapable(to, CAP_QS))
+  if (!IsCapable(to, CAP_QS))
     DLINK_FOREACH_SAFE(ptr, next, source_p->serv->client_list.head)
     {
       target_p = ptr->data;
@@ -803,8 +799,8 @@ recurse_send_quits(struct Client *original_source_p, struct Client *source_p,
     recurse_send_quits(original_source_p, ptr->data, from, to,
                        comment, splitstr);
 
-  if (!hidden && ((source_p == original_source_p && to != from) ||
-                  !IsCapable(to, CAP_QS)))
+  if ((source_p == original_source_p && to != from) ||
+                  !IsCapable(to, CAP_QS))
   {
     /* don't use a prefix here - we have to be 100% sure the message
      * will be accepted without Unknown prefix etc.. */
