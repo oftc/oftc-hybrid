@@ -253,14 +253,9 @@ irccmp(const char *s1, const char *s2)
   assert(s1 != NULL);
   assert(s2 != NULL);
   
-  while (ToUpper(*str1) == ToUpper(*str2))
-  {
+  for (; ToUpper(*str1) == ToUpper(*str2); ++str1, ++str2)
     if (*str1 == '\0')
       return 0;
-
-    ++str1;
-    ++str2;
-  }
 
   return 1;
 }
@@ -273,18 +268,14 @@ ircncmp(const char *s1, const char *s2, size_t n)
 
   assert(s1 != NULL);
   assert(s2 != NULL);
+  assert(n > 0);
 
   if (n == 0)
     return 0;
 
-  while (ToUpper(*str1) == ToUpper(*str2))
-  {
-    if (*str1 == '\0')
+  for (; ToUpper(*str1) == ToUpper(*str2); ++str1, ++str2)
+    if (--n == 0 || *str1 == '\0')
       return 0;
-
-    ++str1;
-    ++str2;
-  }
 
   return 1;
 }
