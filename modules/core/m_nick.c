@@ -392,7 +392,7 @@ ms_nick(struct Client *client_p, struct Client *source_p,
   time_t newts = 0;
   time_t svsid = 0;
 
-  if (parc < 2 || EmptyString(parv[1]))
+  if (parc < 3 || EmptyString(parv[parc - 1]))
     return;
 
   if (parc >= 9)
