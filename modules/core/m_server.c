@@ -39,7 +39,7 @@
 #include "modules.h"
 
 
-static void set_server_gecos(struct Client *, char *);
+static void set_server_gecos(struct Client *, const char *);
 
 /* mr_server()
  *  parv[0] = sender prefix
@@ -51,7 +51,6 @@ static void
 mr_server(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  char info[REALLEN + 1];
   char *name;
   struct Client *target_p;
   int hop;
@@ -65,7 +64,6 @@ mr_server(struct Client *client_p, struct Client *source_p,
 
   name = parv[1];
   hop  = atoi(parv[2]);
-  strlcpy(info, parv[3], sizeof(info));
 
   /*
    * Reject a direct nonTS server connection if we're TS_ONLY -orabidoo
@@ -160,7 +158,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
    * connect{} block in client_p->name
    */
   strlcpy(client_p->name, name, sizeof(client_p->name));
-  set_server_gecos(client_p, info);
+  set_server_gecos(client_p, parv[3]);
   client_p->hopcount = hop;
   server_estab(client_p);
 }
@@ -175,7 +173,6 @@ static void
 ms_server(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  char info[REALLEN + 1];
   char *name;
   struct Client *target_p;
   struct AccessItem *aconf;
@@ -196,7 +193,6 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
   name = parv[1];
   hop  = atoi(parv[2]);
-  strlcpy(info, parv[3], sizeof(info));
 
   if (!valid_servname(name))
   {
@@ -320,7 +316,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
   strlcpy(target_p->name, name, sizeof(target_p->name));
 
-  set_server_gecos(target_p, info);
+  set_server_gecos(target_p, parv[3]);
   SetServer(target_p);
 
   if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
@@ -351,7 +347,6 @@ static void
 ms_sid(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-  char info[REALLEN + 1];
   struct Client *target_p;
   struct AccessItem *aconf = NULL;
   int hlined = 0;
@@ -370,7 +365,6 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   }
 
   hop = atoi(parv[2]);
-  strlcpy(info, parv[4], sizeof(info));
 
   if (!valid_servname(parv[1]))
   {
@@ -494,7 +488,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   strlcpy(target_p->name, parv[1], sizeof(target_p->name));
   strlcpy(target_p->id, parv[3], sizeof(target_p->id));
 
-  set_server_gecos(target_p, info);
+  set_server_gecos(target_p, parv[4]);
   SetServer(target_p);
 
   if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
@@ -526,65 +520,19 @@ ms_sid(struct Client *client_p, struct Client *source_p,
  * side effects - servers gecos field is set
  */
 static void
-set_server_gecos(struct Client *client_p, char *info)
+set_server_gecos(struct Client *client_p, const char *info)
 {
-  /* check the info for [IP] */
-  if (info[0])
+  const char *s = info;
+
+  /* check for (H) which is a hidden server */
+  if (!strncmp(s, "(H) ", 4))
   {
-    char *p;
-    char *s;
-    char *t;
-    
-    s = info;
-    
-    /* we should only check the first word for an ip */
-    if ((p = strchr(s, ' ')) != NULL)
-      *p = '\0';
-      
-    /* check for a ] which would symbolise an [IP] */
-    if ((t = strchr(s, ']')) != NULL)
-    {
-      /* set s to after the first space */
-      if (p)
-        s = ++p;
-      else
-        s = NULL;
-    }
-    /* no ], put the space back */
-    else if (p)
-      *p = ' ';
-
-    /* p may have been set to a trailing space, so check s exists and that
-     * it isnt \0 */
-    if (s && (*s != '\0'))
-    {
-      /* a space? if not (H) could be the last part of info.. */
-      if ((p = strchr(s, ' ')))
-        *p = '\0';
-      
-      /* check for (H) which is a hidden server */
-      if (!strcmp(s, "(H)"))
-      {
-        SetHidden(client_p);
-
-        /* if there was no space.. theres nothing to set info to */
-        if (p)
-	  s = ++p;
-	else
-	  s = NULL;
-      }
-      else if (p)
-        *p = ' ';
-
-      /* if there was a trailing space, s could point to \0, so check */
-      if (s && (*s != '\0'))
-        strlcpy(client_p->info, s, sizeof(client_p->info));
-      else
-        strlcpy(client_p->info, "(Unknown Location)", sizeof(client_p->info));
-    }
-    else
-      strlcpy(client_p->info, "(Unknown Location)", sizeof(client_p->info));
+    SetHidden(client_p);
+    s = s + 4;
   }
+
+  if (!EmptyString(s))
+    strlcpy(client_p->info, s, sizeof(client_p->info));
   else
     strlcpy(client_p->info, "(Unknown Location)", sizeof(client_p->info));
 }
