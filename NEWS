@@ -3,6 +3,7 @@ o) Removed general::client_flood configuration option and added the
    new 'recvq' configuration directive to class{} blocks.
    The max size of a receive queue can be seen in "STATS Y"
    for each class
+o) A server's description can again include the '[' and ']' characters
 
 
 -- ircd-hybrid-8beta3 Release Notes
