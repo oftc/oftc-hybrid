@@ -2295,10 +2295,6 @@ read_conf_files(int cold)
    */
   rebuild_isupport_message_line();
 
-#ifdef HAVE_LIBPCRE
-  parse_conf_file(RKLINE_TYPE, cold);
-  parse_conf_file(RXLINE_TYPE, cold);
-#endif
   parse_conf_file(KLINE_TYPE, cold);
   parse_conf_file(DLINE_TYPE, cold);
   parse_conf_file(XLINE_TYPE, cold);
