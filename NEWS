@@ -106,7 +106,8 @@ o) +M - Cannot talk on channel unless registered with NickServ
 o) +S - Cannot join channel unless using SSL
 
 -- ircd-hybrid-8.0.0 Release Notes
-
+o) Fixed an off-by-one with spoofs. Spoofs are now also checked for
+   invalid characters.
 
 -- ircd-hybrid-8rc1 Release Notes
 o) Removed general::client_flood configuration option and added the
