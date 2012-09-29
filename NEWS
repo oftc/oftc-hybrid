@@ -1,3 +1,6 @@
+-- ircd-hybrid-8.0.0 Release Notes
+
+
 -- ircd-hybrid-8rc1 Release Notes
 o) Removed general::client_flood configuration option and added the
    new 'recvq' configuration directive to class{} blocks.
