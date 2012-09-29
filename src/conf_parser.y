@@ -1711,21 +1711,20 @@ auth_flags_item: SPOOF_NOTICE
     yy_aconf->flags |= CONF_FLAGS_NEED_PASSWORD;
 };
 
-/* XXX - need check for illegal hostnames here */
 auth_spoof: SPOOF '=' QSTRING ';' 
 {
   if (conf_parser_ctx.pass == 2)
   {
     MyFree(yy_conf->name);
 
-    if (strlen(yylval.string) < HOSTLEN)
+    if (strlen(yylval.string) <= HOSTLEN && valid_hostname(yylval.string))
     {    
       DupString(yy_conf->name, yylval.string);
       yy_aconf->flags |= CONF_FLAGS_SPOOF_IP;
     }
     else
     {
-      ilog(LOG_TYPE_IRCD, "Spoofs must be less than %d..ignoring it", HOSTLEN);
+      ilog(LOG_TYPE_IRCD, "Spoof either is too long or contains invalid characters. Ignoring it.");
       yy_conf->name = NULL;
     }
   }
