@@ -47,8 +47,7 @@ do_links(struct Client *source_p, int parc, char *parv[])
   if (HasUMode(source_p, UMODE_OPER) || !ConfigServerHide.flatten_links)
   {
     const char *mask = (parc > 2 ? parv[2] : parv[1]);
-    const char *me_name, *nick, *p;
-    struct Client *target_p;
+    const char *me_name, *nick;
     dlink_node *ptr;
 
     me_name = ID_or_name(&me, source_p->from);
@@ -56,7 +55,7 @@ do_links(struct Client *source_p, int parc, char *parv[])
 
     DLINK_FOREACH(ptr, global_serv_list.head)
     {
-      target_p = ptr->data;
+      struct Client *target_p = ptr->data;
 
       /* skip hidden servers */
       if (IsHidden(target_p))
@@ -66,23 +65,14 @@ do_links(struct Client *source_p, int parc, char *parv[])
       if (!EmptyString(mask) && !match(mask, target_p->name))
         continue;
 
-      if (target_p->info[0])
-      {
-        if ((p = strchr(target_p->info, ']')))
-          p += 2; /* skip the nasty [IP] part */
-        else
-          p = target_p->info;
-      } 
-      else
-        p = "(Unknown Location)";
-
-      /* We just send the reply, as if they are here there's either no SHIDE,
+      /*
+       * We just send the reply, as if they are here there's either no SHIDE,
        * or they're an oper..  
        */
       sendto_one(source_p, form_str(RPL_LINKS),
                  me_name, nick,
-		 target_p->name, target_p->servptr->name,
-                 target_p->hopcount, p);
+                 target_p->name, target_p->servptr->name,
+                 target_p->hopcount, target_p->info[0]);
     }
   
     sendto_one(source_p, form_str(RPL_ENDOFLINKS),
