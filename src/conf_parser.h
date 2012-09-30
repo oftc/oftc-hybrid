@@ -255,13 +255,12 @@ extern int yydebug;
      USER = 464,
      USE_EGD = 465,
      USE_LOGGING = 466,
-     USE_WHOIS_ACTUALLY = 467,
-     VHOST = 468,
-     VHOST6 = 469,
-     XLINE = 470,
-     WARN_NO_NLINE = 471,
-     T_SIZE = 472,
-     T_FILE = 473
+     VHOST = 467,
+     VHOST6 = 468,
+     XLINE = 469,
+     WARN_NO_NLINE = 470,
+     T_SIZE = 471,
+     T_FILE = 472
    };
 #endif
 /* Tokens.  */
@@ -474,13 +473,12 @@ extern int yydebug;
 #define USER 464
 #define USE_EGD 465
 #define USE_LOGGING 466
-#define USE_WHOIS_ACTUALLY 467
-#define VHOST 468
-#define VHOST6 469
-#define XLINE 470
-#define WARN_NO_NLINE 471
-#define T_SIZE 472
-#define T_FILE 473
+#define VHOST 467
+#define VHOST6 468
+#define XLINE 469
+#define WARN_NO_NLINE 470
+#define T_SIZE 471
+#define T_FILE 472
 
 
 
@@ -495,7 +493,7 @@ typedef union YYSTYPE
 
 
 /* Line 2049 of yacc.c  */
-#line 499 "conf_parser.h"
+#line 497 "conf_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -316,7 +316,6 @@ struct config_file_entry
   int oper_pass_resv;
   int glines;
   int hide_spoof_ips;
-  int use_whois_actually;
   int tkline_expire_notices;
   int opers_bypass_callerid;
   int ignore_bogus_ts;

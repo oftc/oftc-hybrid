@@ -285,7 +285,6 @@ undline         { return T_UNDLINE; }
 unlimited       { return T_UNLIMITED; }
 use_egd 	{ return USE_EGD; }
 use_logging	{ return USE_LOGGING; }
-use_whois_actually { return USE_WHOIS_ACTUALLY; }
 throttle_time { return THROTTLE_TIME; }
 user		{ return USER; } 
 vhost	{ return VHOST; }

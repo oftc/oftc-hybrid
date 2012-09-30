@@ -290,6 +290,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
   char *t = NULL;
   int tlen;
   int reply_to_send = 0;
+  int show_ip = 0;
 
   server_p = target_p->servptr;
 
@@ -362,23 +363,18 @@ whois_person(struct Client *source_p, struct Client *target_p)
     sendto_one(source_p, form_str(RPL_ISCAPTURED),
                me.name, source_p->name, target_p->name);
 
-  if (ConfigFileEntry.use_whois_actually)
+  if (strcmp(target_p->sockhost, "0"))
   {
-    int show_ip = 0;
+    if (HasUMode(source_p, UMODE_ADMIN) || source_p == target_p)
+      show_ip = 1;
+    else if (IsIPSpoof(target_p))
+      show_ip = (HasUMode(source_p, UMODE_OPER) && !ConfigFileEntry.hide_spoof_ips);
+    else
+      show_ip = 1;
 
-    if (strcmp(target_p->sockhost, "0"))
-    {
-      if ((HasUMode(source_p, UMODE_ADMIN) || source_p == target_p))
-	show_ip = 1;
-      else if (IsIPSpoof(target_p))
-	show_ip = (HasUMode(source_p, UMODE_OPER) && !ConfigFileEntry.hide_spoof_ips);
-      else
-	show_ip = 1;
-
-      sendto_one(source_p, form_str(RPL_WHOISACTUALLY),
-                 me.name, source_p->name, target_p->name,
-                 show_ip ? target_p->sockhost : "255.255.255.255");
-    }
+    sendto_one(source_p, form_str(RPL_WHOISACTUALLY),
+               me.name, source_p->name, target_p->name,
+               show_ip ? target_p->sockhost : "255.255.255.255");
   }
 
   if (MyConnect(target_p)) /* Can't do any of this if not local! db */

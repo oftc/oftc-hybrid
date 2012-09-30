@@ -1810,7 +1810,6 @@ set_default_conf(void)
   ConfigFileEntry.gline_min_cidr = 16;
   ConfigFileEntry.gline_min_cidr6 = 48;
   ConfigFileEntry.invisible_on_connect = 1;
-  ConfigFileEntry.use_whois_actually = 1;
   ConfigFileEntry.tkline_expire_notices = 1;
   ConfigFileEntry.hide_spoof_ips = 1;
   ConfigFileEntry.ignore_bogus_ts = 0;
