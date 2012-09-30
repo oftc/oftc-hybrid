@@ -75,17 +75,14 @@ static void burst_members(struct Client *, struct Channel *);
 void
 write_links_file(void* notused)
 {
-  MessageFileLine *next_mptr = 0;
-  MessageFileLine *mptr = 0;
-  MessageFileLine *currentMessageLine = 0;
-  MessageFileLine *newMessageLine = 0;
-  MessageFile *MessageFileptr;
-  const char *p;
+  MessageFileLine *next_mptr = NULL;
+  MessageFileLine *mptr = NULL;
+  MessageFileLine *currentMessageLine = NULL;
+  MessageFileLine *newMessageLine = NULL;
+  MessageFile *MessageFileptr = &ConfigFileEntry.linksfile;
   FILE *file;
   char buff[512];
   dlink_node *ptr;
-
-  MessageFileptr = &ConfigFileEntry.linksfile;
 
   if ((file = fopen(MessageFileptr->fileName, "w")) == NULL)
     return;
@@ -97,7 +94,6 @@ write_links_file(void* notused)
   }
 
   MessageFileptr->contentsOfFile = NULL;
-  currentMessageLine             = NULL;
 
   DLINK_FOREACH(ptr, global_serv_list.head)
   {
@@ -111,30 +107,16 @@ write_links_file(void* notused)
     if (IsHidden(target_p))
       continue;
 
-    if (target_p->info[0])
-      p = target_p->info;
-    else
-      p = "(Unknown Location)";
-
     newMessageLine = MyMalloc(sizeof(MessageFileLine));
 
-    /* Attempt to format the file in such a way it follows the usual links output
+    /*
+     * Attempt to format the file in such a way it follows the usual links output
      * ie  "servername uplink :hops info"
      * Mostly for aesthetic reasons - makes it look pretty in mIRC ;)
      * - madmax
      */
-
-    /* 
-     * For now, check this ircsprintf wont overflow - it shouldnt on a
-     * default config but it is configurable..
-     * This should be changed to an snprintf at some point, but I'm wanting to
-     * know if this is a cause of a bug - cryogen
-     */
-    assert(strlen(target_p->name) + strlen(me.name) + 6 + strlen(p) <= 
-            MESSAGELINELEN);
     snprintf(newMessageLine->line, sizeof(newMessageLine->line), "%s %s :1 %s",
-             target_p->name, me.name, p);
-    newMessageLine->next = NULL;
+             target_p->name, me.name, target_p->info);
 
     if (MessageFileptr->contentsOfFile)
     {
@@ -148,7 +130,8 @@ write_links_file(void* notused)
       currentMessageLine = newMessageLine;
     }
 
-    snprintf(buff, sizeof(buff), "%s %s :1 %s\n", target_p->name, me.name, p);
+    snprintf(buff, sizeof(buff), "%s %s :1 %s\n",
+             target_p->name, me.name, target_p->info);
     fputs(buff, file);
   }
 
