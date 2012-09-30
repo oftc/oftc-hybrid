@@ -233,12 +233,6 @@ static const struct InfoStruct info_table[] =
     "Automatically set mode +i on connecting users"
   },
   {
-    "use_whois_actually",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.use_whois_actually,
-    "Show IP address on /WHOIS when possible"
-  },
-  {
     "kill_chase_time_limit",
     OUTPUT_DECIMAL,
     &ConfigFileEntry.kill_chase_time_limit,

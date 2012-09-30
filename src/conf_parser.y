@@ -321,7 +321,6 @@ free_collect_item(struct CollectItem *item)
 %token  USER
 %token  USE_EGD
 %token  USE_LOGGING
-%token  USE_WHOIS_ACTUALLY
 %token  VHOST
 %token  VHOST6
 %token  XLINE
@@ -2626,11 +2625,11 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_tkline_expire_notices | general_gline_enable |
                     general_gline_duration | general_gline_request_duration |
                     general_gline_min_cidr |
-                    general_gline_min_cidr6 | general_use_whois_actually |
-                    general_reject_hold_time | general_stats_e_disabled | 
+                    general_gline_min_cidr6 | 
                     general_godmode_timeout |
-                    general_max_watch | general_services_name |
-                    error;
+		    general_reject_hold_time | general_stats_e_disabled |
+		    general_max_watch | general_services_name |
+		    error;
 
 
 general_max_watch: MAX_WATCH '=' NUMBER ';'
@@ -2664,11 +2663,6 @@ general_gline_min_cidr: GLINE_MIN_CIDR '=' NUMBER ';'
 general_gline_min_cidr6: GLINE_MIN_CIDR6 '=' NUMBER ';'
 {
   ConfigFileEntry.gline_min_cidr6 = $3;
-};
-
-general_use_whois_actually: USE_WHOIS_ACTUALLY '=' TBOOL ';'
-{
-  ConfigFileEntry.use_whois_actually = yylval.number;
 };
 
 general_reject_hold_time: TREJECT_HOLD_TIME '=' timespec ';'
