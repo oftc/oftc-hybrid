@@ -45,7 +45,7 @@
  *   password = "<password>"; # encryption possible
  *   spoof = "webirc."
  *   class = "users";
- *   encryption = yes; # [Using encryption is highly recommended]
+ *   encrypted = yes; # [Using encryption is highly recommended]
  * };
  *
  * Possible flags:
