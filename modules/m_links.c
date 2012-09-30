@@ -72,7 +72,7 @@ do_links(struct Client *source_p, int parc, char *parv[])
       sendto_one(source_p, form_str(RPL_LINKS),
                  me_name, nick,
                  target_p->name, target_p->servptr->name,
-                 target_p->hopcount, target_p->info[0]);
+                 target_p->hopcount, target_p->info);
     }
   
     sendto_one(source_p, form_str(RPL_ENDOFLINKS),
