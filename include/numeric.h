@@ -78,7 +78,6 @@ extern const char *get_locale(void);
 #define RPL_TRACEOPERATOR    204
 #define RPL_TRACEUSER        205
 #define RPL_TRACESERVER      206
-#define RPL_TRACECAPTURED    207
 #define RPL_TRACENEWTYPE     208
 #define RPL_TRACECLASS       209
 
@@ -491,8 +490,6 @@ extern const char *get_locale(void);
 #define RPL_TESTMASK	     724
 #define RPL_TESTLINE	     725
 #define RPL_NOTESTLINE	     726
-#define RPL_ISCAPTURED	     727
-#define RPL_ISUNCAPTURED     728
 
 #define ERR_LAST_ERR_MSG     999
 

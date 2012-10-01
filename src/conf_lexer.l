@@ -247,8 +247,6 @@ redirport       { return REDIRPORT; }
 redirserv       { return REDIRSERV; }
 regex           { return REGEX_T; }
 rehash		{ return REHASH; }
-reject_hold_time { return TREJECT_HOLD_TIME; }
-reject_message { return REJECT_MESSAGE; }
 remote		{ return REMOTE; }
 remoteban	{ return REMOTEBAN; }
 restart         { return T_RESTART; }
@@ -306,8 +304,6 @@ anti_spam_exit_message_time { return ANTI_SPAM_EXIT_MESSAGE_TIME; }
 ts_max_delta            { return TS_MAX_DELTA; }
 ts_warn_delta           { return TS_WARN_DELTA; }
 links_delay             { return LINKS_DELAY; }
-kline_reason		{ return KLINE_REASON; }
-kline_with_reason       { return KLINE_WITH_REASON; }
 warn_no_nline           { return WARN_NO_NLINE; }
 
 stats_e_disabled        { return STATS_E_DISABLED; }

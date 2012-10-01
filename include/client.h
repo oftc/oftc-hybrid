@@ -100,7 +100,6 @@ struct LocalUser
                                          MIN_JOIN_LEAVE_TIME seconds */
   int          oper_warn_count_down; /**< warn opers of this possible 
                                           spambot every time this gets to 0 */
-  time_t       reject_delay;
   time_t       last_caller_id_time;
   time_t       first_received_message_time;
   time_t       last_nick_change;
@@ -441,10 +440,6 @@ struct Client
 #define IsSendqBlocked(x)       ((x)->flags &  FLAGS_BLOCKED)
 #define SetSendqBlocked(x)      ((x)->flags |= FLAGS_BLOCKED)
 #define ClearSendqBlocked(x)    ((x)->flags &= ~FLAGS_BLOCKED)
-
-#define IsCaptured(x)           ((x)->handler == DUMMY_HANDLER)
-#define SetCaptured(x)          ((x)->handler = DUMMY_HANDLER)
-#define ClearCaptured(x)        ((x)->handler = CLIENT_HANDLER)
 
 
 extern struct Client me;

@@ -36,11 +36,8 @@ struct SetOptions
 {
   int autoconn;      /* autoconn enabled for all servers? */
   int floodcount;    /* Number of messages in 1 second    */
-  /* XXX for join flood catching - Dianora */
   int joinfloodtime;
   int joinfloodcount;
-  /* XXX */
-  int rejecttime;
   int ident_timeout; /* timeout for identd lookups        */
   int spam_num;
   int spam_time;

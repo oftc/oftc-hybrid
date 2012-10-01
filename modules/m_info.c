@@ -341,18 +341,6 @@ static const struct InfoStruct info_table[] =
     "Maximum permitted TS delta from another server"
   },
   {
-    "kline_with_reason",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.kline_with_reason,
-    "Display K-line reason to client on disconnect"
-  },
-  {
-    "kline_reason",
-    OUTPUT_STRING,
-    &ConfigFileEntry.kline_reason,
-    "Reason given to K-lined clients on sign off"
-  },
-  {
     "warn_no_nline",
     OUTPUT_BOOLEAN,
     &ConfigFileEntry.warn_no_nline,

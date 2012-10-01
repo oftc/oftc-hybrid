@@ -1230,15 +1230,7 @@ check_xline(struct Client *source_p)
                          source_p->sockhost);
 
     ++ServerStats.is_ref;
-    if (REJECT_HOLD_TIME > 0)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Bad user info",
-                 me.name, source_p->name);
-      source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
-      SetCaptured(source_p);
-    }
-    else
-      exit_client(source_p, &me, "Bad user info");
+    exit_client(source_p, &me, "Bad user info");
     return 1;
   }
 
