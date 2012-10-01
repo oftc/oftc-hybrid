@@ -71,10 +71,12 @@
           enable select(2) instead (bad idea), you must use --enable-select.
 
           * --enable-openssl - Enable the openssl dependent crypto functions.
-            This will allow CHALLENGE to work and encrypted links. On systems
-            where the configure script can automatically detect OpenSSL, this
-            option is not necessary. If configure cannot find OpenSSL, you
-            must specify a path with this option
+            Required for the SSL Challenge controlled OPER feature, compressed
+            and/or SSL/TLS server links, as well as SSL/TLS client connections.
+
+            On systems where the configure script can automatically detect
+            OpenSSL, this option is not necessary. If configure cannot find
+            OpenSSL, you must specify a path with this option
             (--enable-openssl=/path/to/openssl)
 
 
