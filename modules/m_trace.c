@@ -379,20 +379,14 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
 	  }		       
 	  else
           {
-	    const char *format_str=NULL;
-	    if (HasUMode(source_p, UMODE_OPER) && IsCaptured(target_p))
-	      format_str = form_str(RPL_TRACECAPTURED);
-	    else
-	      format_str = form_str(RPL_TRACEUSER);
-
             if (ConfigFileEntry.hide_spoof_ips)
-	      sendto_one(source_p, format_str,
+	      sendto_one(source_p, form_str(RPL_TRACEUSER),
 		         from, to, class_name, name,
                          IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
 		         CurrentTime - target_p->localClient->lasttime,
 		         CurrentTime - target_p->localClient->last_privmsg);
 	    else
-              sendto_one(source_p, format_str,
+              sendto_one(source_p, form_str(RPL_TRACEUSER),
                          from, to, class_name, name,
                          MyOper(source_p) ? target_p->sockhost :
                          (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),

@@ -313,12 +313,11 @@ static void
 do_who(struct Client *source_p, struct Client *target_p,
        const char *chname, const char *op_flags)
 {
-  char status[8]; /* G*#@%+\0 */
+  char status[7]; /* G*@%+\0 */
 
   if (HasUMode(source_p, UMODE_OPER))
-    snprintf(status, sizeof(status), "%c%s%s%s", target_p->away[0] ? 'G' : 'H',
-             HasUMode(target_p, UMODE_OPER) ? "*" : "",
-             IsCaptured(target_p) ? "#" : "", op_flags);
+    snprintf(status, sizeof(status), "%c%s%s", target_p->away[0] ? 'G' : 'H',
+             HasUMode(target_p, UMODE_OPER) ? "*" : "", op_flags);
   else
     snprintf(status, sizeof(status), "%c%s%s", target_p->away[0] ? 'G' : 'H',
              HasUMode(target_p, UMODE_OPER) &&

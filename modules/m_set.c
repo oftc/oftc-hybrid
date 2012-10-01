@@ -67,7 +67,6 @@ static void quote_splitusers(struct Client *, int);
 static void list_quote_commands(struct Client *);
 static void quote_jfloodtime(struct Client *, int);
 static void quote_jfloodcount(struct Client *, int);
-static void quote_rejecttime(struct Client *, int);
 
 /* 
  * If this ever needs to be expanded to more than one arg of each
@@ -94,7 +93,6 @@ static const struct SetStruct set_cmd_table[] =
   { "SPLITUSERS",	quote_splitusers,	0,	1 },
   { "JFLOODTIME",	quote_jfloodtime,	0,	1 },
   { "JFLOODCOUNT",	quote_jfloodcount,	0,	1 },
-  { "REJECTTIME",	quote_rejecttime,	0,	1 },
   /* -------------------------------------------------------- */
   { NULL,               NULL,                   0,      0 }
 };
@@ -463,22 +461,6 @@ quote_jfloodcount(struct Client *source_p, int newval)
   else
     sendto_one(source_p, ":%s NOTICE %s :JFLOODCOUNT is currently %i", 
                me.name, source_p->name, GlobalSetOptions.joinfloodcount);
-}
-
-/* SET REJECTTIME */
-static void
-quote_rejecttime(struct Client *source_p, int newval)
-{
-  if (newval >= 0)
-  {
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "%s has changed REJECTTIME to %i seconds", 
-                         get_oper_name(source_p), newval);
-    GlobalSetOptions.rejecttime = newval;
-  }
-  else
-    sendto_one(source_p, ":%s NOTICE %s :REJECTTIME is currently %i seconds", 
-               me.name, source_p->name, GlobalSetOptions.rejecttime);
 }
 
 /*

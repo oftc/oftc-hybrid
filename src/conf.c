@@ -798,33 +798,11 @@ check_client(va_list args)
 	  source_p->localClient->listener->name,
 	  source_p->localClient->listener->port);
 
-      /* XXX It is prolematical whether it is better to use the
-       * capture reject code here or rely on the connecting too fast code.
-       * - Dianora
-       */
-      if (REJECT_HOLD_TIME > 0)
-      {
-	sendto_one(source_p, ":%s NOTICE %s :You are not authorized to use this server",
-		   me.name, source_p->name);
-	source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
-	SetCaptured(source_p);
-      }
-      else
-	exit_client(source_p, &me, "You are not authorized to use this server");
+      exit_client(source_p, &me, "You are not authorized to use this server");
       break;
 
    case BANNED_CLIENT:
-     /*
-      * Don't exit them immediately, play with them a bit.
-      * - Dianora
-      */
-     if (REJECT_HOLD_TIME > 0)
-     {
-       source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
-       SetCaptured(source_p);
-     }
-     else
-       exit_client(source_p, &me, "Banned");
+     exit_client(source_p, &me, "Banned");
      ++ServerStats.is_ref;
      break;
 
@@ -912,9 +890,8 @@ verify_access(struct Client *client_p, const char *username)
       if (IsConfGline(aconf))
         sendto_one(client_p, ":%s NOTICE %s :*** G-lined", me.name,
                    client_p->name);
-      if (ConfigFileEntry.kline_with_reason)
-        sendto_one(client_p, ":%s NOTICE %s :*** Banned %s", 
-                  me.name, client_p->name, aconf->reason);
+      sendto_one(client_p, ":%s NOTICE %s :*** Banned: %s", 
+                 me.name, client_p->name, aconf->reason);
       return(BANNED_CLIENT);
     }
   }
@@ -1828,8 +1805,6 @@ set_default_conf(void)
   ConfigFileEntry.anti_spam_exit_message_time = 0;
   ConfigFileEntry.ts_warn_delta = TS_WARN_DELTA_DEFAULT;
   ConfigFileEntry.ts_max_delta = TS_MAX_DELTA_DEFAULT;
-  ConfigFileEntry.kline_with_reason = 1;
-  ConfigFileEntry.kline_reason = NULL;
   ConfigFileEntry.warn_no_nline = 1;
   ConfigFileEntry.stats_o_oper_only = 0;
   ConfigFileEntry.stats_k_oper_only = 1;  /* masked */

@@ -302,7 +302,6 @@ struct config_file_entry
   int ts_max_delta;
   int ts_warn_delta;
   int anti_nick_flood;
-  int kline_with_reason;
   int warn_no_nline;
   int invisible_on_connect;
   int stats_e_disabled;
@@ -319,7 +318,6 @@ struct config_file_entry
   int tkline_expire_notices;
   int opers_bypass_callerid;
   int ignore_bogus_ts;
-  char *kline_reason;
   int pace_wait;
   int pace_wait_simple;
   int gline_time;

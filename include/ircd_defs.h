@@ -70,7 +70,4 @@ struct irc_ssaddr
   unsigned char   ss_len;
   in_port_t       ss_port;
 };
-
-#define REJECT_HOLD_TIME GlobalSetOptions.rejecttime
-
 #endif /* INCLUDED_ircd_defs_h */

@@ -359,10 +359,6 @@ whois_person(struct Client *source_p, struct Client *target_p)
                  RPL_WHOISOPERATOR),
                  me.name, source_p->name, target_p->name);
 
-  if (HasUMode(source_p, UMODE_OPER) && IsCaptured(target_p))
-    sendto_one(source_p, form_str(RPL_ISCAPTURED),
-               me.name, source_p->name, target_p->name);
-
   if (strcmp(target_p->sockhost, "0"))
   {
     if (HasUMode(source_p, UMODE_ADMIN) || source_p == target_p)

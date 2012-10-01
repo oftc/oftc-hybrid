@@ -250,13 +250,6 @@ check_pings_list(dlink_list *list)
       continue; 
     }
 
-    if (client_p->localClient->reject_delay > 0)
-    {
-      if (client_p->localClient->reject_delay <= CurrentTime)
-	exit_client(client_p, &me, "Rejected");
-      continue;
-    }
-
     if (!IsRegistered(client_p))
       ping = CONNECTTIMEOUT, pingwarn = 0;
     else
@@ -337,13 +330,6 @@ check_unknowns_list(void)
   DLINK_FOREACH_SAFE(ptr, next_ptr, unknown_list.head)
   {
     struct Client *client_p = ptr->data;
-
-    if (client_p->localClient->reject_delay > 0)
-    {
-      if (client_p->localClient->reject_delay <= CurrentTime)
-        exit_client(client_p, &me, "Rejected");
-      continue;
-    }
 
     /*
      * Check UNKNOWN connections - if they have been in this state
@@ -463,7 +449,6 @@ static void
 ban_them(struct Client *client_p, struct ConfItem *conf)
 {
   const char *user_reason = NULL;	/* What is sent to user */
-  const char *channel_reason = NULL;	/* What is sent to channel */
   struct AccessItem *aconf = NULL;
   struct MatchItem *xconf = NULL;
   const char *type_string = NULL;
@@ -498,20 +483,10 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
       break;
   }
 
-  if (ConfigFileEntry.kline_with_reason)
-  {
-    if (aconf != NULL)
-      user_reason = aconf->reason ? aconf->reason : type_string;
-    if (xconf != NULL)
-      user_reason = xconf->reason ? xconf->reason : type_string;
-  }
-  else
-    user_reason = type_string;
-
-  if (ConfigFileEntry.kline_reason != NULL)
-    channel_reason = ConfigFileEntry.kline_reason;
-  else
-    channel_reason = user_reason;
+  if (aconf != NULL)
+    user_reason = aconf->reason ? aconf->reason : type_string;
+  if (xconf != NULL)
+    user_reason = xconf->reason ? xconf->reason : type_string;
 
   sendto_realops_flags(UMODE_ALL, L_ALL, "%s active for %s",
                        type_string, get_client_name(client_p, HIDE_IP));
@@ -520,7 +495,7 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
     sendto_one(client_p, form_str(ERR_YOUREBANNEDCREEP),
 	       me.name, client_p->name, user_reason);
 
-  exit_client(client_p, &me, channel_reason);
+  exit_client(client_p, &me, user_reason);
 }
 
 /* update_client_exit_stats()

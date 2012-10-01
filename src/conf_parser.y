@@ -173,8 +173,6 @@ free_collect_item(struct CollectItem *item)
 %token	KILL_CHASE_TIME_LIMIT
 %token  KLINE
 %token  KLINE_EXEMPT
-%token  KLINE_REASON
-%token  KLINE_WITH_REASON
 %token  KNOCK_DELAY
 %token  KNOCK_DELAY_CHANNEL
 %token  LEAF_MASK
@@ -234,7 +232,6 @@ free_collect_item(struct CollectItem *item)
 %token  REDIRSERV
 %token  REGEX_T
 %token  REHASH
-%token  TREJECT_HOLD_TIME
 %token  REMOTE
 %token  REMOTEBAN
 %token  RESTRICT_CHANNELS
@@ -2498,8 +2495,8 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
 		    general_max_nick_time | general_max_nick_changes |
 		    general_max_accept | general_anti_spam_exit_message_time |
                     general_ts_warn_delta | general_ts_max_delta |
-                    general_kill_chase_time_limit | general_kline_with_reason |
-                    general_kline_reason | general_invisible_on_connect |
+                    general_kill_chase_time_limit |
+                    general_invisible_on_connect |
                     general_warn_no_nline | general_dots_in_ident |
                     general_stats_o_oper_only | general_stats_k_oper_only |
                     general_pace_wait | general_stats_i_oper_only |
@@ -2520,7 +2517,7 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_gline_duration | general_gline_request_duration |
                     general_gline_min_cidr |
                     general_gline_min_cidr6 |
-		    general_reject_hold_time | general_stats_e_disabled |
+		    general_stats_e_disabled |
 		    general_max_watch | general_services_name |
 		    error;
 
@@ -2556,11 +2553,6 @@ general_gline_min_cidr: GLINE_MIN_CIDR '=' NUMBER ';'
 general_gline_min_cidr6: GLINE_MIN_CIDR6 '=' NUMBER ';'
 {
   ConfigFileEntry.gline_min_cidr6 = $3;
-};
-
-general_reject_hold_time: TREJECT_HOLD_TIME '=' timespec ';'
-{
-  GlobalSetOptions.rejecttime = yylval.number;
 };
 
 general_tkline_expire_notices: TKLINE_EXPIRE_NOTICES '=' TBOOL ';'
@@ -2637,20 +2629,6 @@ general_havent_read_conf: HAVENT_READ_CONF '=' NUMBER ';'
     ilog(LOG_TYPE_IRCD, "There is a line in the example conf that will kill your server if not removed.");
     ilog(LOG_TYPE_IRCD, "Consider actually reading/editing the conf file, and removing this line.");
     exit(0);
-  }
-};
-
-general_kline_with_reason: KLINE_WITH_REASON '=' TBOOL ';'
-{
-  ConfigFileEntry.kline_with_reason = yylval.number;
-};
-
-general_kline_reason: KLINE_REASON '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    MyFree(ConfigFileEntry.kline_reason);
-    DupString(ConfigFileEntry.kline_reason, yylval.string);
   }
 };
 
