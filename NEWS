@@ -88,11 +88,6 @@ o) Overall code cleanup and speed improvements
 
 --------------------------------------------------------------------------------
 
-NOTE: This is still BETA code.  Run it at your own risk.  By running this
- code you assume FULL responsibility for any problems it may cause.  We do
- NOT recommend that you run BETA code on production IRC networks such
- as EFnet.
-
 BUGS: Major bugs in this release are listed in BUGS
 
 BUG REPORTS: If you run this code and encounter problems, you must report
