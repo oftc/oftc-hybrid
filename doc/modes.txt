@@ -68,7 +68,5 @@ Channel Modes:
 The third part of the 004 numeric lists channel modes that require arguments.
 Currently these are bkloveIh.
 
-Note that most of the channel modes can be disabled in the conf file for
-networks that do not wish to support them.
 
 # $Id$

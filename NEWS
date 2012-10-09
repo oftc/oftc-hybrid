@@ -143,6 +143,7 @@ o) Added back server notice when a client tries to obtain a reserved nick name
 o) Removed OMOTD module
 o) Added 'set' to operator privilege flags. Gives access to the "SET" command
 o) Improved TS6 support
+o) Channel keys/passwords are now case sensitive
 
 
 -- ircd-hybrid-8beta1 Release Notes
