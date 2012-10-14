@@ -133,6 +133,7 @@ make_client(struct Client *from)
   client_p->hnext  = client_p;
   client_p->status = STAT_UNKNOWN;
   strcpy(client_p->username, "unknown");
+  strcpy(client_p->svid, "0");
 
   return client_p;
 }

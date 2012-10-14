@@ -101,8 +101,8 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
         break;
 
       case 'd':
-        if (extarg && IsDigit(*extarg))
-          target_p->servicestamp = strtoul(extarg, NULL, 0);
+        if (!EmptyString(extarg))
+          strlcpy(target_p->svid, extarg, sizeof(target_p->svid));
         break;
 
       case 'o':

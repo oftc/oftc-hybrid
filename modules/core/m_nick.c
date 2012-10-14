@@ -46,9 +46,9 @@
 
 
 static void nick_from_server(struct Client *, struct Client *, int, char **,
-                             time_t, time_t, char *, char *);
+                             time_t, const char *, char *, char *);
 static void uid_from_server(struct Client *, struct Client *, int, char **,
-                               time_t, time_t, char *, char *);
+                               time_t, const char *, char *, char *);
 static int check_clean_nick(struct Client *client_p, struct Client *source_p, 
                             char *nick, struct Client *server_p);
 static int check_clean_user(struct Client *client_p, char *nick, char *user,
@@ -59,7 +59,7 @@ static int check_clean_host(struct Client *client_p, char *nick, char *host,
 static int clean_user_name(const char *);
 static int clean_host_name(const char *);
 static void perform_nick_collides(struct Client *, struct Client *, struct Client *,
-				  int, char **, time_t, time_t, char *, char *, char *);
+				  int, char **, time_t, const char *, char *, char *, char *);
 
 
 /* set_initial_nick()
@@ -371,7 +371,7 @@ ms_nick(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
   time_t newts = 0;
-  time_t svsid = 0;
+  const char *svsid = "0";
 
   if (parc < 3 || EmptyString(parv[parc - 1]))
     return;
@@ -398,7 +398,7 @@ ms_nick(struct Client *client_p, struct Client *source_p,
     if (IsServer(source_p))
       newts = atol(parv[3]);
     if (IsServer(source_p) && parc == 10)
-      svsid = atol(parv[8]);
+      svsid = parv[8];
   }
   else if (parc == 3)
   {
@@ -475,7 +475,7 @@ ms_uid(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
   time_t newts = 0;
-  time_t svsid = 0;
+  const char *svsid = "0";
 
   if (parc < 10 || EmptyString(parv[parc-1]))
     return;
@@ -486,7 +486,7 @@ ms_uid(struct Client *client_p, struct Client *source_p,
     return;
 
   newts = atol(parv[3]);
-  svsid = parc == 11 ? atol(parv[9]) : 0;
+  svsid = parc == 11 ? parv[9] : "0";
 
   /*
    * if there is an ID collision, kill our client, and kill theirs.
@@ -663,7 +663,7 @@ clean_host_name(const char *host)
  */
 static void
 nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
-                 char *parv[], time_t newts, time_t svsid, char *nick, char *ngecos)
+                 char *parv[], time_t newts, const char *svsid, char *nick, char *ngecos)
 {
   int samenick = 0;
 
@@ -683,7 +683,7 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
       ts_warn("Remote nick %s (%s) introduced without a TS", nick, parv[0]);
     }
 
-    source_p->servicestamp = svsid;
+    strlcpy(source_p->svid, svsid, sizeof(source_p->svid));
     strlcpy(source_p->info, ngecos, sizeof(source_p->info));
     /* copy the nick in place */
     strlcpy(source_p->name, nick, sizeof(source_p->name));
@@ -752,7 +752,7 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
  */
 static void
 uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
-                char *parv[], time_t newts, time_t svsid, char *nick, char *ugecos)
+                char *parv[], time_t newts, const char *svsid, char *nick, char *ugecos)
 {
   const char *m = NULL;
   const char *servername = source_p->name;
@@ -762,7 +762,7 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
 
   source_p->hopcount = atoi(parv[2]);
   source_p->tsinfo = newts;
-  source_p->servicestamp = svsid;
+  strlcpy(source_p->svid, svsid, sizeof(source_p->svid));
 
   /* copy the nick in place */
   strcpy(source_p->name, nick);
@@ -793,7 +793,7 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
 static void
 perform_nick_collides(struct Client *source_p, struct Client *client_p, 
                       struct Client *target_p, int parc, char *parv[], 
-                      time_t newts, time_t svsid, char *nick, char *gecos, char *uid)
+                      time_t newts, const char *svsid, char *nick, char *gecos, char *uid)
 {
   int sameuser;
   
