@@ -155,7 +155,6 @@ struct Client
   struct Client    *from;       /**< == self, if Local Client, *NEVER* NULL! */
 
   time_t            tsinfo;     /**< TS on the nick, SVINFO on server */
-  time_t            servicestamp; /**< Last time client has been identified for its nick */
 
   unsigned int      flags;      /**< client flags */
   unsigned int      umodes;     /**< opers, normal users subset */
@@ -168,8 +167,9 @@ struct Client
 
   char away[AWAYLEN + 1]; /**< Client's AWAY message. Can be set/unset via AWAY command */
   char name[HOSTLEN + 1]; /**< unique name for a client nick or host */
+  char svid[HOSTLEN + 1]; /**< Services ID. XXX: Going with HOSTLEN for now. NICKLEN might be too small
+                                if dealing with timestamps */
   char id[IDLEN + 1];       /**< client ID, unique ID per client */
-
   /* 
    * client->username is the username from ident or the USER message, 
    * If the client is idented the USER message is ignored, otherwise 

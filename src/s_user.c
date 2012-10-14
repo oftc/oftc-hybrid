@@ -609,21 +609,21 @@ introduce_client(struct Client *source_p)
     if (IsCapable(server, CAP_SVS))
     {
       if (IsCapable(server, CAP_TS6) && HasID(source_p))
-        sendto_one(server, ":%s UID %s %d %lu %s %s %s %s %s %lu :%s",
+        sendto_one(server, ":%s UID %s %d %lu %s %s %s %s %s %s :%s",
                    source_p->servptr->id,
                    source_p->name, source_p->hopcount+1,
                    (unsigned long)source_p->tsinfo,
                    ubuf, source_p->username, source_p->host,
                    (MyClient(source_p) && IsIPSpoof(source_p)) ?
                    "0" : source_p->sockhost, source_p->id,
-                   (unsigned long)source_p->servicestamp,
+                   source_p->svid,
                    source_p->info);
       else
-        sendto_one(server, "NICK %s %d %lu %s %s %s %s %lu :%s",
+        sendto_one(server, "NICK %s %d %lu %s %s %s %s %s :%s",
                    source_p->name, source_p->hopcount+1,
                    (unsigned long)source_p->tsinfo,
                    ubuf, source_p->username, source_p->host,
-                   source_p->servptr->name, (unsigned long)source_p->servicestamp,
+                   source_p->servptr->name, source_p->svid,
                    source_p->info);
 
       if(!EmptyString(source_p->certfp))
