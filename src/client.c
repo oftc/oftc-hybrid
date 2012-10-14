@@ -555,15 +555,16 @@ update_client_exit_stats(struct Client *client_p)
 struct Client *
 find_person(const struct Client *client_p, const char *name)
 {
-  struct Client *c2ptr;
+  struct Client *c2ptr = NULL;
 
   if (IsDigit(*name))
   {
     if ((c2ptr = hash_find_id(name)) != NULL)
     {
       /* invisible users shall not be found by UID guessing */
-      if (HasUMode(c2ptr, UMODE_INVISIBLE) && !IsServer(client_p))
-        c2ptr = NULL;
+      if (HasUMode(c2ptr, UMODE_INVISIBLE))
+        if (!IsServer(client_p) && !HasFlag(client_p, FLAGS_SERVICE))
+          c2ptr = NULL;
     }
   }
   else
