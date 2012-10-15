@@ -228,6 +228,10 @@ mo_module(struct Client *client_p, struct Client *source_p,
                me.name, source_p->name);
     return;
   }
+
+  sendto_one(source_p, ":%s NOTICE %s :%s is not a valid option. "
+             "Choose from LOAD, UNLOAD, RELOAD, LIST",
+             me.name, source_p->name, parv[1]);
 }
 
 
