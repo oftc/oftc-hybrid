@@ -126,20 +126,3 @@ Help Files ::
 Each contrib module listed here has an accompanying help page or set of
 help pages. They will be installed when you issue 'make install' inside
 the contrib directory. To view them do /QUOTE HELP COMMAND.
-
-
-Other Files ::
------------------------------------------------
-
-Other files that have been put into the contrib directory but do not have
-a specific category are listed here with a brief description of what they
-are and what they do.
-
-challenge.irc    -- ircII script that works in conjunction with rsa_respond
-                    so you can authenticate within your client.
-
-ircd-hybrid.spec -- RPM specifications file that can be used to build an RPM of
-                    ircd-hybrid.
-
-ircd.init.in     -- rc-init style file used with the spec file to allow system
-                    loading of ircd-hybrid.
