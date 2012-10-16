@@ -45,17 +45,17 @@ mr_dumb_proxy(struct Client *client_p, struct Client *source_p,
 }
 
 static struct Message post_msgtab = {
-  "POST", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  "POST", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
 };
 
 static struct Message get_msgtab = {
-  "GET", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  "GET", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
 };
 
 static struct Message put_msgtab = {
-  "PUT", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  "PUT", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
 };
 

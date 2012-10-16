@@ -74,7 +74,7 @@ ms_quit(struct Client *client_p, struct Client *source_p,
 }
 
 static struct Message quit_msgtab = {
-  "QUIT", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  "QUIT", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_quit, m_quit, ms_quit, m_ignore, m_quit, m_ignore}
 };
 
