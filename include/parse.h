@@ -147,10 +147,6 @@ struct Message
 #define   MFLG_SLOW             0x001   /* Command can be executed roughly
                                          * once per 2 seconds.                
                                          */
-#define   MFLG_UNREG            0x002   /* Command available to unregistered
-                                         * clients.                          
-                                         */
-
 #define MAXPARA    15
 
 extern void parse(struct Client *, char *, char *);

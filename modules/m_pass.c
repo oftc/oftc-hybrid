@@ -88,7 +88,7 @@ mr_pass(struct Client *client_p, struct Client *source_p,
 }
 
 static struct Message pass_msgtab = {
-  "PASS", 0, 0, 2, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  "PASS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { mr_pass, m_registered, m_ignore, m_ignore, m_registered, mr_pass }
 };
 

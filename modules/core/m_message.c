@@ -901,7 +901,7 @@ find_userhost(char *user, char *host, int *count)
 }
 
 static struct Message privmsg_msgtab = {
-  "PRIVMSG", 0, 0, 0, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  "PRIVMSG", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_privmsg, m_privmsg, m_ignore, m_privmsg, m_ignore}
 };
 

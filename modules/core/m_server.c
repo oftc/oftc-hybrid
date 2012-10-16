@@ -590,7 +590,7 @@ set_server_gecos(struct Client *client_p, const char *info)
 }
 
 static struct Message server_msgtab = {
-  "SERVER", 0, 0, 4, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  "SERVER", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
   {mr_server, m_registered, ms_server, m_ignore, m_registered, m_ignore}
 };
 

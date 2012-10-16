@@ -108,7 +108,7 @@ mr_pong(struct Client *client_p, struct Client *source_p,
 }
 
 static struct Message pong_msgtab = {
-  "PONG", 0, 0, 1, MAXPARA, MFLG_SLOW | MFLG_UNREG, 0,
+  "PONG", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
   {mr_pong, m_ignore, ms_pong, m_ignore, m_ignore, m_ignore}
 };
 
