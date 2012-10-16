@@ -317,8 +317,8 @@ handle_command(struct Message *mptr, struct Client *client_p,
   {
     if (!IsServer(client_p))
     {
-      sendto_one(client_p, form_str(ERR_NEEDMOREPARAMS),
-                   me.name, EmptyString(hpara[0]) ? "*" : hpara[0], mptr->cmd);
+      sendto_one(client_p, form_str(ERR_NEEDMOREPARAMS), me.name,
+                 EmptyString(hpara[0]) ? "*" : hpara[0], mptr->cmd);
     }
     else
     {
@@ -357,15 +357,15 @@ handle_command(struct Message *mptr, struct Client *client_p,
  * in the parent.
  */
 static void
-add_msg_element(struct MessageTree *mtree_p, 
-		struct Message *msg_p, const char *cmd)
+add_msg_element(struct MessageTree *mtree_p, struct Message *msg_p,
+                const char *cmd)
 {
   struct MessageTree *ntree_p;
 
   if (*cmd == '\0')
   {
     mtree_p->msg = msg_p;
-    mtree_p->links++;		/* Have msg pointer, so up ref count */
+    mtree_p->links++;  /* Have msg pointer, so up ref count */
   }
   else
   {
@@ -380,7 +380,7 @@ add_msg_element(struct MessageTree *mtree_p,
       ntree_p = MyMalloc(sizeof(struct MessageTree));
       mtree_p->pointers[*cmd & (MAXPTRLEN - 1)] = ntree_p;
 
-      mtree_p->links++;		/* Have new pointer, so up ref count */
+      mtree_p->links++;  /* Have new pointer, so up ref count */
     }
 
     add_msg_element(ntree_p, msg_p, cmd + 1);
@@ -433,9 +433,9 @@ del_msg_element(struct MessageTree *mtree_p, const char *cmd)
 
       if (ntree_p->links == 0)
       {
-	mtree_p->pointers[*cmd & (MAXPTRLEN - 1)] = NULL;
-	mtree_p->links--;
-	MyFree(ntree_p);
+        mtree_p->pointers[*cmd & (MAXPTRLEN - 1)] = NULL;
+        mtree_p->links--;
+        MyFree(ntree_p);
       }
     }
   }
@@ -717,8 +717,8 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
 
       if ((num != ERR_NOSUCHNICK))
         sendto_realops_flags(UMODE_ALL, L_ADMIN,
-			     "*** %s(via %s) sent a %s numeric to me: %s",
-			     source_p->name, client_p->name, numeric, buffer);
+                             "*** %s(via %s) sent a %s numeric to me: %s",
+                             source_p->name, client_p->name, numeric, buffer);
       return;
     }
     else if (target_p->from == client_p) 
@@ -743,10 +743,9 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
     return;
   }
   else if ((chptr = hash_find_channel(parv[1])) != NULL)
-    sendto_channel_local(ALL_MEMBERS, 0, chptr,
-			 ":%s %s %s %s",
-			 source_p->name,
-			 numeric, chptr->chname, buffer);
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s %s %s %s",
+                         source_p->name,
+                         numeric, chptr->chname, buffer);
 }
 
 /* m_not_oper()
