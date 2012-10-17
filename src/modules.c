@@ -130,9 +130,11 @@ load_a_module(const char *path, int warn)
 
   if ((modp = lt_dlsym(tmpptr, "module_entry")) == NULL)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL, "Module %s has no module_entry export",
-                         mod_basename);
-    ilog(LOG_TYPE_IRCD, "Module %s has no module_entry export", mod_basename);
+    const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
+
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Error loading module %s: %s",
+                         mod_basename, err);
+    ilog(LOG_TYPE_IRCD, "Error loading module %s: %s", mod_basename, err);
     lt_dlclose(tmpptr);
     return -1;
   }
