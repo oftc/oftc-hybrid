@@ -866,7 +866,8 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
       source_p->localClient->auth = NULL;
     }
 
-    /* This source_p could have status of one of STAT_UNKNOWN, STAT_CONNECTING
+    /*
+     * This source_p could have status of one of STAT_UNKNOWN, STAT_CONNECTING
      * STAT_HANDSHAKE or STAT_UNKNOWN
      * all of which are lumped together into unknown_list
      *
@@ -885,10 +886,8 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
       Count.local--;
 
       if (HasUMode(source_p, UMODE_OPER))
-      {
         if ((m = dlinkFindDelete(&oper_list, source_p)) != NULL)
           free_dlink_node(m);
-      }
 
       assert(dlinkFind(&local_client_list, source_p));
       dlinkDelete(&source_p->localClient->lclient_node, &local_client_list);
@@ -915,27 +914,14 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
            source_p->localClient->send.bytes>>10,
            source_p->localClient->recv.bytes>>10);
     }
-
-    /* As soon as a client is known to be a server of some sort
-     * it has to be put on the serv_list, or SJOIN's to this new server
-     * from the connect burst will not be seen.
-     * XXX - TBV.  This is not true. The only place where we put a server on
-     * serv_list is in server_estab right now after registration process.
-     * And only after this, a burst is sent to the remote server, i.e. we never
-     * send a burst to STAT_CONNECTING, or STAT_HANDSHAKE. This will need
-     * more investigation later on, but for now, it's not a problem after all.
-     */
-    if (IsServer(source_p) || IsConnecting(source_p) ||
-        IsHandshake(source_p))
+    else if (IsServer(source_p))
     {
-      if (dlinkFind(&serv_list, source_p))
-      {
-        dlinkDelete(&source_p->localClient->lclient_node, &serv_list);
-        unset_chcap_usage_counts(source_p);
-      }
+      assert(Count.myserver > 0);
+      --Count.myserver;
 
-      if (IsServer(source_p))
-        Count.myserver--;
+      assert(dlinkFind(&serv_list, source_p));
+      dlinkDelete(&source_p->localClient->lclient_node, &serv_list);
+      unset_chcap_usage_counts(source_p);
     }
 
     if (!IsDead(source_p))
