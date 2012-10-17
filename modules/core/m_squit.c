@@ -123,25 +123,21 @@ ms_squit(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
   struct Client *target_p = NULL;
-  char *comment;
-  const char *server;
-  char def_reason[] = "No reason";
+  const char *comment = NULL;
 
-  if (parc < 2 || EmptyString(parv[1]))
+  if (parc < 2 || EmptyString(parv[parc - 1]))
     return;
 
-  server = parv[1];
-
-  if ((target_p = hash_find_server(server)) == NULL)
+  if ((target_p = hash_find_server(parv[1])) == NULL)
     return;
 
-  if (!IsServer(target_p) || IsMe(target_p))
+  if (!IsServer(target_p) && !IsMe(target_p))
     return;
 
-  comment = (parc > 2 && parv[2]) ? parv[2] : def_reason;
+  if (IsMe(target_p))
+    target_p = client_p;
 
-  if (strlen(comment) > (size_t)REASONLEN)
-    comment[REASONLEN] = '\0';
+  comment = (parc > 2 && parv[parc - 1]) ? parv[parc - 1] : client_p->name;
 
   if (MyConnect(target_p))
   {
@@ -149,7 +145,6 @@ ms_squit(struct Client *client_p, struct Client *source_p,
                          target_p->name, source_p->name, comment);
     ilog(LOG_TYPE_IRCD, "SQUIT From %s : %s (%s)", source_p->name,
          target_p->name, comment);
-
    }
 
    exit_client(target_p, source_p, comment);
