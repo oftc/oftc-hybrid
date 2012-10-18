@@ -825,7 +825,6 @@ report_Klines(struct Client *client_p, int tkline)
 static void
 stats_tklines(struct Client *source_p, int parc, char *parv[])
 {
-  struct ConfItem *conf;
   /* Oper only, if unopered, return ERR_NOPRIVILEGES */
   if ((ConfigFileEntry.stats_k_oper_only == 2) && !HasUMode(source_p, UMODE_OPER))
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
@@ -834,7 +833,7 @@ stats_tklines(struct Client *source_p, int parc, char *parv[])
   /* If unopered, Only return matching klines */
   else if ((ConfigFileEntry.stats_k_oper_only == 1) && !HasUMode(source_p, UMODE_OPER))
   {
-    struct AccessItem *aconf;
+    struct AccessItem *aconf = NULL;
 
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host,
@@ -852,8 +851,6 @@ stats_tklines(struct Client *source_p, int parc, char *parv[])
     /* dont report a permanent kline as a tkline */
     if (!(aconf->flags & CONF_FLAGS_TEMPORARY))
       return;
-
-    conf = unmap_conf_item(aconf);
 
     sendto_one(source_p, form_str(RPL_STATSKLINE), from,
                to, "k", aconf->host, aconf->user, aconf->reason, "");
@@ -875,7 +872,7 @@ stats_klines(struct Client *source_p, int parc, char *parv[])
   /* If unopered, Only return matching klines */
   else if ((ConfigFileEntry.stats_k_oper_only == 1) && !HasUMode(source_p, UMODE_OPER))
   {
-    struct AccessItem *aconf;
+    struct AccessItem *aconf = NULL;
 
     /* search for a kline */
     if (MyConnect(source_p))
