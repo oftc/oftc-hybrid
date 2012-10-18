@@ -339,6 +339,8 @@ set_vhost(struct Client *client_p, struct Client *source_p,
   add_user_host(target_p->username, target_p->host, !MyConnect(target_p));
   SetUserHost(target_p);
 
+  clear_ban_cache_client(target_p);
+
   if (IsClient(target_p))
     sendto_server(client_p, CAP_ENCAP, NOCAPS,
                   ":%s ENCAP * CHGHOST %s %s",
