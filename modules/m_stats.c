@@ -821,7 +821,7 @@ stats_tklines(struct Client *source_p, int parc, char *parv[])
   /* If unopered, Only return matching klines */
   else if ((ConfigFileEntry.stats_k_oper_only == 1) && !HasUMode(source_p, UMODE_OPER))
   {
-    struct AccessItem *aconf;
+    struct AccessItem *aconf = NULL;
 
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host,
@@ -860,7 +860,7 @@ stats_klines(struct Client *source_p, int parc, char *parv[])
   /* If unopered, Only return matching klines */
   else if ((ConfigFileEntry.stats_k_oper_only == 1) && !HasUMode(source_p, UMODE_OPER))
   {
-    struct AccessItem *aconf;
+    struct AccessItem *aconf = NULL;
 
     /* search for a kline */
     if (MyConnect(source_p))
