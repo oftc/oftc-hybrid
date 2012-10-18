@@ -196,26 +196,13 @@
 
      ----------------------------------------------------------------------
 
-                                  B. Scripting
-
-   The following script is for EPIC 4 only. It was written by Greg Prosser,
-   xyst <gregp@blackened.net>.
-
-   Please note that passphrase protected keys cannot be used in conjunction
-   with this script.
-
-   The script is called challenge.irc and sits in contrib/. Please review
-   it for more details.
-
-     ----------------------------------------------------------------------
-
                                        Notes
 
-   [1] Some platforms may require Makefile changes in order to link in the    
-       OpenSSL library. This may change in the future.                        
-   [2] Platforms known to function include: Linux, FreeBSD, Solaris, and      
-       Cygwin.                                                                
-   [3] A screenshot of the program is available on                            
-       http://www.wohmart.com/ircd/pub/irc_tools/rsa/winrespond.png .                               
-   [4] The winrespond source depends on a working, up to date, Cygwin         
+   [1] Some platforms may require Makefile changes in order to link in the
+       OpenSSL library. This may change in the future.
+   [2] Platforms known to function include: Linux, FreeBSD, Solaris, and
+       Cygwin.
+   [3] A screenshot of the program is available on
+       http://www.wohmart.com/ircd/pub/irc_tools/rsa/winrespond.png .
+   [4] The winrespond source depends on a working, up to date, Cygwin
        installation.
