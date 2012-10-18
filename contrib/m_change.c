@@ -38,6 +38,7 @@
 #include "s_user.h"
 #include "hash.h"
 #include "userhost.h"
+#include "channel_mode.h"
 
 
 static void
@@ -96,9 +97,14 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
                target_p->host);
   }
 
-  if (MyConnect(target_p) && IsClient(source_p))
-    sendto_one(target_p, ":%s NOTICE %s :You are now %s@%s",
-               me.name, target_p->name, target_p->username, target_p->host);
+  if (MyClient(target_p))
+  {
+    if (IsClient(source_p))
+      sendto_one(target_p, ":%s NOTICE %s :You are now %s@%s",
+                 me.name, target_p->name, target_p->username, target_p->host);
+
+    clear_ban_cache_client(target_p);
+  }
 }
 
 static void
@@ -158,9 +164,13 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
                target_p->host);
   }
 
-  if (MyConnect(target_p) && IsClient(source_p))
-    sendto_one(target_p, ":%s NOTICE %s :You are now %s@%s",
-               me.name, target_p->name, target_p->username, target_p->host);
+  if (MyClient(target_p))
+  {
+    if (IsClient(source_p))
+      sendto_one(target_p, ":%s NOTICE %s :You are now %s@%s",
+                 me.name, target_p->name, target_p->username, target_p->host);
+    clear_ban_cache_client(target_p);
+  }
 }
 
 static void

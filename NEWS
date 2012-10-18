@@ -4,6 +4,7 @@ o) Fixed an off-by-one with spoofs. Spoofs are now also checked for
 o) Removed general::use_whois_actually configuration directive. This is
    now enabled by default
 o) Minor SQUIT handling fixes
+o) Fixed bancache not being updated on CHGHOST/CHGIDENT
 
 
 -- ircd-hybrid-8rc1 Release Notes
