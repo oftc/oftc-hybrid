@@ -129,8 +129,8 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                    IsConfTemporary(aconf) ? 'd' : 'D',
                    IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
                    : 0L,
-                   aconf->host, aconf->reason, aconf->oper_reason);
-      }
+                   aconf->host, aconf->reason,
+                   aconf->oper_reason ? aconf->oper_reason : "");
     }
   }
 

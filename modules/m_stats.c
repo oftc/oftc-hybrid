@@ -414,7 +414,7 @@ stats_deny(struct Client *source_p, int parc, char *parv[])
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'D', aconf->host, aconf->reason,
-		   aconf->oper_reason);
+		   aconf->oper_reason ? aconf->oper_reason : "");
       }
     }
   }
@@ -450,7 +450,7 @@ stats_tdeny(struct Client *source_p, int parc, char *parv[])
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'd', aconf->host, aconf->reason,
-		   aconf->oper_reason);
+		   aconf->oper_reason ? aconf->oper_reason : "");
       }
     }
   }
@@ -489,7 +489,7 @@ stats_exempt(struct Client *source_p, int parc, char *parv[])
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'e', aconf->host, 
-		   aconf->reason, aconf->oper_reason);
+		   aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");
       }
     }
   }
@@ -881,8 +881,7 @@ stats_klines(struct Client *source_p, int parc, char *parv[])
       return;
       
     sendto_one(source_p, form_str(RPL_STATSKLINE), from,
-               to, "K", aconf->host, aconf->user, aconf->reason,
-	       aconf->oper_reason);
+               to, "K", aconf->host, aconf->user, aconf->reason, "");
   }
   /* Theyre opered, or allowed to see all klines */
   else {
