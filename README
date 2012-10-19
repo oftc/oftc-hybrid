@@ -1,4 +1,13 @@
+Contact Information:
+
+  * Bug Reports:
+    - bugs@ircd-hybrid.org
+  * General Discussion and Support mailing list:
+    - https://lists.ircd-hybrid.org/mailman/listinfo/hybrid
+    - hybrid@lists.ircd-hybrid.org
+
 ******************************* IMPORTANT *************************************
+
 
   ************ Note for those who don't bother reading docs ***************
   * - Reading INSTALL is now a must, as the old DPATH is now specified    *
@@ -39,32 +48,14 @@ Feature Specific Requirements:
 
 - Please read doc/index.txt to get an overview of the current documentation.
 
-- There is also a mailing list for general discussion of Hybrid.  To subscribe
-  to the Hybrid List, use this link:
-  https://lists.ircd-hybrid.org/mailman/listinfo/hybrid
-
-- To report bugs in hybrid, send the bug report to bugs@ircd-hybrid.org
-
 - Known bugs are listed in the BUGS file
-
-- SOLARIS USERS: this code appears to tickle a bug in older gcc and 
-  egcs ONLY on 64-bit Solaris7.  gcc-2.95 and SunPro C on 64bit should
-  work fine, and any gcc or SunPro compiled on 32bit.
 
 - TESTED PLATFORMS:  The code has been tested on the following platforms, and
   is known to run properly.
   (FIXME: this list is out of date)
-  FreeBSD 3.x/4.x/5.x/7.x/8.0 (gcc only, TenDRA will work but only with the latest
-  cvs version from ten15.org)
-  Linux glibc 2.2/2.3/2.10.1/2.12.1
-  Solaris 2.6/7/8
-  OpenBSD 2.8-3.2
-  HP-UX 11.00-11.22
-  IRIX64 6.5.19 (gcc only; MIPSpro is unconfirmed)
-  NetBSD 1.4-1.6
-  Tru64 UNIX 5.2b (only tested with native cc)
-
-  It probably does not compile on AIX or libc5 Linux.
+  CentOS 5.8
+  Red Hat Linux 9
+  Ubuntu 12.04
 
 - If you are wondering why config.h no longer exists, it's because most
   things that were once in config.h are now specified in the 'general'
@@ -73,8 +64,7 @@ Feature Specific Requirements:
 
 - /etc/resolv.conf must exist for the resolver to work.
 
-- Please read NEWS for information about what is in
-  this release.
+- Please read NEWS for information about what is in this release.
 
 - Other files recommended for reading: BUGS, INSTALL
 
