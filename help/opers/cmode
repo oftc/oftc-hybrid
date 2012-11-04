@@ -89,7 +89,7 @@ WITH PARAMETERS:
 
               PARAMS: /mode #channel +eeee n!u@h1b n!u@h2b n!u@h3b n!u@h4
 
-     +q     - 'Quiet'. This will prevent a user from talking in a room 
+     +q     - 'Quiet'. This will prevent a user from talking in a channel 
               as well as preventing the usage of NICK while in that 
               room. This is based on a nick!ident@host match.
 
