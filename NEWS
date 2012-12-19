@@ -105,9 +105,14 @@ o) +R - Cannot join channel unless regisitered with NickServ
 o) +M - Cannot talk on channel unless registered with NickServ
 o) +S - Cannot join channel unless using SSL
 
--- ircd-hybrid-8.0.0 Release Notes
-o) Fixed possible TBURST desynchronization with services
-o) Fixed TBURST sending server's name to clients if it's a hidden server
+
+-- ircd-hybrid-8.0.2 Release Notes
+o) Minor updates to the build system
+o) Fixed broken --enable-assert configure switch
+o) Fixed bug where timed events stopped from working if the system's
+   clock is running backwards
+o) STATS q|Q now shows how many times a resv{} block has been matched
+
 
 -- ircd-hybrid-8.0.1 Release Notes
 o) Fixed broken CIDR support for CHALLENGE based irc operator logins
