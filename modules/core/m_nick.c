@@ -195,6 +195,7 @@ mr_nick(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   struct Client *target_p = NULL;
+  struct ConfItem *conf = NULL;
   char nick[NICKLEN + 1];
   char *s = NULL;
 
@@ -221,15 +222,20 @@ mr_nick(struct Client *client_p, struct Client *source_p,
   }
 
   /* check if the nick is resv'd */
-  if (find_matching_name_conf(NRESV_TYPE, nick, NULL, NULL, 0) &&
-      !IsExemptResv(source_p))
+  if (!IsExemptResv(source_p))
   {
-    sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME), me.name,
-               source_p->name[0] ? source_p->name : "*", nick);
-    sendto_realops_flags(L_ALL, UMODE_REJ,
-                         "Forbidding reserved nick [%s] from user %s",
-                         nick, get_client_name(client_p, HIDE_IP));
-    return;
+    if ((conf = find_matching_name_conf(NRESV_TYPE, nick, NULL, NULL, 0)))
+    {
+      struct MatchItem *mi = map_to_conf(conf);
+      ++mi->count;
+
+      sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME), me.name,
+                 source_p->name[0] ? source_p->name : "*", nick);
+      sendto_realops_flags(L_ALL, UMODE_REJ,
+                           "Forbidding reserved nick [%s] from user %s",
+                           nick, get_client_name(client_p, HIDE_IP));
+      return;
+    }
   }
 
   if ((target_p = hash_find_client(nick)) == NULL)
@@ -261,6 +267,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
 {
   char nick[NICKLEN + 1];
   struct Client *target_p = NULL;
+  struct ConfItem *conf = NULL;
 
   assert(source_p == client_p);
 
@@ -286,16 +293,20 @@ m_nick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (find_matching_name_conf(NRESV_TYPE, nick,
-			     NULL, NULL, 0) && !IsExemptResv(source_p) &&
-     !(HasUMode(source_p, UMODE_OPER) && ConfigFileEntry.oper_pass_resv))
+  if (!IsExemptResv(source_p) && !(HasUMode(source_p, UMODE_OPER) &&
+                                   ConfigFileEntry.oper_pass_resv))
   {
-    sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
-               me.name, source_p->name, nick);
-    sendto_realops_flags(L_ALL, UMODE_REJ,
-                         "Forbidding reserved nick [%s] from user %s",
-                         nick, get_client_name(client_p, HIDE_IP));
-    return;
+    if ((conf = find_matching_name_conf(NRESV_TYPE, nick, NULL, NULL, 0)))
+    {
+      struct MatchItem *mi = map_to_conf(conf);
+      ++mi->count;
+      sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
+                 me.name, source_p->name, nick);
+      sendto_realops_flags(L_ALL, UMODE_REJ,
+                           "Forbidding reserved nick [%s] from user %s",
+                           nick, get_client_name(client_p, HIDE_IP));
+      return;
+    }
   }
 
   if(!HasUMode(source_p, UMODE_OPER))
