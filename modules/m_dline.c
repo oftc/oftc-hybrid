@@ -74,7 +74,7 @@ remove_tdline_match(const char *host)
     piphost = NULL;
   }
 
-  if ((aconf = find_conf_by_address(host, piphost, CONF_DLINE, t, NULL, NULL, 0, NULL)))
+  if ((aconf = find_conf_by_address(host, piphost, CONF_DLINE | 1, t, NULL, NULL, 0, NULL)))
   {
     if (IsConfTemporary(aconf))
     {
