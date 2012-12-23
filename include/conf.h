@@ -33,6 +33,8 @@
 #include "hook.h"
 
 
+#define CONF_NOREASON "<No reason supplied>"
+
 struct Client;
 
 extern struct Callback *client_check_cb;

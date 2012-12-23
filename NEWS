@@ -106,6 +106,12 @@ o) +M - Cannot talk on channel unless registered with NickServ
 o) +S - Cannot join channel unless using SSL
 
 
+-- ircd-hybrid-8.0.3 Release Notes
+o) Fixed core on UNDLINE
+o) XLINE/KLINE/RESV/DLINE/SQUIT and KILL now have the same default reason
+   if a reason hasn't been specified
+
+
 -- ircd-hybrid-8.0.2 Release Notes
 o) Minor updates to the build system
 o) Fixed broken --enable-assert configure switch
