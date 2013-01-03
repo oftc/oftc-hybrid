@@ -1,0 +1,14 @@
+*.in
+config.log
+aclocal.m4
+COPYING
+autom4te.cache
+configure
+config.guess
+config.sub
+depcomp
+install-sh
+ltmain.sh
+missing
+ylwrap
+libltdl
