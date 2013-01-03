@@ -40,7 +40,7 @@
 static void m_userhost(struct Client *, struct Client *, int, char *[]);
 
 struct Message userhost_msgtab = {
-  "USERHOST", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "USERHOST", 0, 0, 2, 0, MFLG_SLOW, 0,
   {m_unregistered, m_userhost, m_userhost, m_ignore, m_userhost, m_ignore}
 };
 
