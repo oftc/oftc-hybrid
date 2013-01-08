@@ -31,6 +31,20 @@ NO PARAMETERS:
               channel who hasn't received an /invite or whose host isn't in
               the +I list.
 
+     +c     - 'No color'.  All markup (color, bold, underline, etc.) in
+              messages is stripped.
+
+     +z     - 'Op moderated'.  Messages blocked by +m, +b and +q are instead
+              sent to ops.
+
+     +M     - 'Quiet unidentified'.  Messages from users that are not
+              registered and indentified are blocked.
+
+     +R     - 'Identified users only'.  Only users that are registered and
+              identified may join. 
+
+     +S     - 'SSL only'.  Only users that are connected using SSL may
+              join. 
 
 WITH PARAMETERS:
 ----------------
@@ -75,8 +89,13 @@ WITH PARAMETERS:
 
               PARAMS: /mode #channel +eeee n!u@h1b n!u@h2b n!u@h3b n!u@h4
 
+     +q     - 'Quiet'. This will prevent a user from talking in a channel 
+              as well as preventing the usage of NICK while in that 
+              room. This is based on a nick!ident@host match.
+
+              PARAMS: /mode #channel +qqqq n!u@h1b n!u@h2b n!u@h3b n!u@h4
+
      +I     - 'Invite Exempt'.  This will allow a user to join an
               invite-only (+i) channel, based on a nick!user@host match.
 
               PARAMS: /mode #channel +IIII n!u@h1b n!u@h2b n!u@h3b n!u@h4
-
