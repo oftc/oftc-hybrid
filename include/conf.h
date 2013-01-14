@@ -509,4 +509,5 @@ extern struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
 extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
 extern void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
 
+extern void conf_error_report(const char *);
 #endif /* INCLUDED_s_conf_h */
