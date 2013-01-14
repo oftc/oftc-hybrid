@@ -57,8 +57,9 @@
 #define UHPATH      DATADIR "/" PACKAGE "/help/users"
 #define AUTOMODPATH MODPATH "/autoload/"
 #define ETCPATH     SYSCONFDIR
-#define LOGPATH     LOCALSTATEDIR "/log"
 
+#define	LOGPATH		  LOCALSTATEDIR "/log"
+#define RUNPATH           LOCALSTATEDIR "/run"
 
 /* files */
 #define SPATH   SBINPATH "/ircd"                /* ircd executable */
@@ -71,7 +72,7 @@
 #define MPATH   ETCPATH "/ircd.motd"            /* MOTD file */
 #define LPATH   LOGPATH "/ircd.log"             /* ircd logfile */
 #define OFTCLOG LOGPATH "/oftc.log" 
-#define PPATH   LOCALSTATEDIR "/ircd.pid"             /* pid file */
+#define PPATH   RUNPATH "/ircd.pid"             /* pid file */
 #define LIPATH  ETCPATH "/links.txt"            /* cached links file */
 
 /*
