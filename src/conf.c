@@ -1728,9 +1728,6 @@ rehash(int sig)
   flush_deleted_I_P();
 
   rehashed_klines = 1;
-/* XXX */
-  if (ConfigLoggingEntry.use_logging)
-    log_close_all();
 
   return(0);
 }
@@ -1777,7 +1774,7 @@ set_default_conf(void)
   AdminInfo.email = NULL;
   AdminInfo.description = NULL;
 
-  log_close_all();
+  log_del_all();
 
   ConfigLoggingEntry.use_logging = 1;
 
@@ -2366,6 +2363,8 @@ read_conf_files(int cold)
 
   read_conf(conf_parser_ctx.conf_file);
   fclose(conf_parser_ctx.conf_file);
+
+  log_reopen_all();
 
   add_isupport("NETWORK", ServerInfo.network_name, -1);
   snprintf(chanmodes, sizeof(chanmodes), "beI:%d",
