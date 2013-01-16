@@ -1394,7 +1394,6 @@ init_isupport(void)
   add_isupport("DEAF", "D", -1);
   add_isupport("KICKLEN", NULL, KICKLEN);
   add_isupport("MODES", NULL, MAXMODEPARAMS);
-  add_isupport("NICKLEN", NULL, NICKLEN);
 #ifdef HALFOPS
   add_isupport("PREFIX", "(ohv)@%+", -1);
   add_isupport("STATUSMSG", "@%+", -1);
@@ -1402,7 +1401,6 @@ init_isupport(void)
   add_isupport("PREFIX", "(ov)@+", -1);
   add_isupport("STATUSMSG", "@+", -1);
 #endif
-  add_isupport("TOPICLEN", NULL, TOPICLEN);
 }
 
 /*

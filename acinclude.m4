@@ -139,30 +139,6 @@ AC_DEFUN([AX_ARG_DISABLE_BLOCK_ALLOC],[
   fi
   AC_DEFINE_UNQUOTED([USE_BLOCK_ALLOC],[$use_block_alloc],[use block alloc])
 ])dnl }}}
-dnl {{{ ax_arg_disable_shared_modules (FIXME)
-AC_DEFUN([AX_ARG_DISABLE_SHARED_MODULES],[
-  AC_ARG_ENABLE([shared-modules],[AC_HELP_STRING([--disable-shared-modules],[Disable shared modules.])],[shared_modules="$enableval"],[shared_modules="yes"])
-  AC_CHECK_HEADERS([dlfcn.h link.h])
-  AC_CHECK_FUNCS([dlopen dlinfo])
-  if test "$shared_modules" = "yes" ; then
-    use_shared_modules="yes"
-    AC_DEFINE([USE_SHARED_MODULES],[1],[Define to 1 if you want to use shared modules.])
-  else
-    use_shared_modules="no"
-    AC_MSG_WARN([shared module support has been disabled per supplied configure option])
-  fi
-  AM_CONDITIONAL([USE_SHARED_MODULES],[test "$shared_modules" = "yes"])
-])dnl }}}
-dnl {{{ ax_arg_with_topiclen
-AC_DEFUN([AX_ARG_WITH_TOPICLEN],[
-  AC_ARG_WITH([topiclen],[AS_HELP_STRING([--with-topiclen=<value>],[Set topic length (default 160).])],[topiclen="$withval"],[topiclen="160"])
-  AC_DEFINE_UNQUOTED([TOPICLEN],[($topiclen)],[Length of topics.]) 
-])dnl }}}
-dnl {{{ ax_arg_with_nicklen
-AC_DEFUN([AX_ARG_WITH_NICKLEN],[
-  AC_ARG_WITH([nicklen],[AS_HELP_STRING([--with-nicklen=<value>],[Set nickname length (default 9).])],[nicklen="$withval"],[nicklen="9"])
-  AC_DEFINE_UNQUOTED([NICKLEN],[($nicklen)],[Length of nicknames.]) 
-])dnl }}}
 dnl {{{ ax_arg_enable_halfops
 AC_DEFUN([AX_ARG_ENABLE_HALFOPS],[
   AC_ARG_ENABLE([halfops],[AS_HELP_STRING([--enable-halfops],[Enable halfops support.])],[halfops="$enableval"],[halfops="no"])
