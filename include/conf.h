@@ -245,6 +245,7 @@ struct ip_entry
 #define CONF_FLAGS_SSL                  0x00020000
 #define CONF_FLAGS_RANDOM_IDLE          0x00040000
 #define CONF_FLAGS_HIDE_IDLE_FROM_OPERS 0x00080000
+#define CONF_FLAGS_FAKE_IDLE            0x00100000
 
 /* Macros for struct AccessItem */
 #define IsLimitIp(x)            ((x)->flags & CONF_FLAGS_LIMIT_IP)
