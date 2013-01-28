@@ -23,5 +23,6 @@
  */
 
 #ifndef PATCHLEVEL
-#define PATCHLEVEL   "hybrid-8.0.5+oftc1.7.0-alpha1"
+#define PATCHLEVEL   "hybrid-8.0.6+oftc1.7.0-alpha1"
+>>>>>>> 521466f... - Bump patchlevel
 #endif
