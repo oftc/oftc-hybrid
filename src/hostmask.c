@@ -199,11 +199,8 @@ try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
     else if (c == '/')
     {
       char *after;
-      errno = 0;
       bits = strtoul(p + 1, &after, 10);
-      if (*after)
-        return HM_HOST;
-      if(bits == 0 && errno != 0)
+      if(bits < 0 || *after != '\0')
         return HM_HOST;
       if (bits > n * 8)
         return HM_HOST;
