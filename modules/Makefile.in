@@ -61,11 +61,12 @@ OFTC_SRCS = \
   m_gnotice.c \
   m_map.c \
   m_realhost.c \
-	m_services.c\
+	m_services.c \
   m_shedding.c \
-  m_svscloak.c\
-  m_svsmode.c\
-  m_tburst.c\
+  m_svscloak.c \
+  m_svsmode.c \
+  m_tburst.c \
+  m_webirc.c
  
 SRCS =       \
   m_accept.c \
