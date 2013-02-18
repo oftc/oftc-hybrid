@@ -65,6 +65,7 @@ OFTC_SRCS = \
   m_shedding.c \
   m_svscloak.c \
   m_svsmode.c \
+  m_svsjoin.c \
   m_tburst.c \
   m_webirc.c
  
