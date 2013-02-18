@@ -1,0 +1,12 @@
+*.o
+*.so*
+*.a
+.depend
+Makefile
+config.log
+config.status
+y.tab.*
+lex.yy.c
+src/ircd
+servlink/servlink
+include/setup.h
