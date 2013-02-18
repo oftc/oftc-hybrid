@@ -121,6 +121,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   struct AccessItem *aconf = NULL;
   struct ConfItem *conf = NULL;
   struct addrinfo hints, *res;
+  char original_sockhost[HOSTIPLEN + 1];
 
   assert(source_p == client_p);
 
@@ -178,6 +179,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   source_p->aftype = res->ai_family;
   freeaddrinfo(res);
 
+  strlcpy(original_sockhost, source_p->sockhost, sizeof(original_sockhost));
   strlcpy(source_p->sockhost, parv[4], sizeof(source_p->sockhost));
 
   if (strlen(parv[3]) <= HOSTLEN)
@@ -196,5 +198,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
     }
   }
 
-  sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL, "CGI:IRC host/IP set to %s %s", parv[3], parv[4]);
+  sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL,
+                       "CGI:IRC host/IP set %s to %s (%s)", original_sockhost,
+                       parv[3], parv[4]);
 }
