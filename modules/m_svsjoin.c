@@ -51,7 +51,7 @@ static void ms_svsjoin(struct Client *, struct Client *, int parc, char *[]);
 
 struct Message svsjoin_msgtab = {
   "SVSJOIN", 0, 0, 3, 0, MFLG_SLOW, 0,
-  { m_ignore, m_ignore, ms_svsjoin, m_ignore, m_ignore, m_ignore }
+  { m_ignore, m_ignore, ms_svsjoin, ms_svsjoin, m_ignore, m_ignore }
 };
 
 #ifndef STATIC_MODULES
