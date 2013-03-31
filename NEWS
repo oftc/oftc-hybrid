@@ -104,6 +104,10 @@ o) Add new channel modes:
 o) +R - Cannot join channel unless regisitered with NickServ
 o) +M - Cannot talk on channel unless registered with NickServ
 o) +S - Cannot join channel unless using SSL
+-- ircd-hybrid-8.0.7 Release Notes
+o) Added SVSHOST command handler which allows services to change the
+   hostname of a specific user
+
 
 -- ircd-hybrid-8.0.6 Release Notes
 o) Fix bug where idle time sometimes is 0 even if the client didn't

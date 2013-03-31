@@ -52,6 +52,7 @@ modules_LTLIBRARIES = m_accept.la    \
                       m_stats.la     \
                       m_svinfo.la    \
                       m_svscloak.la  \
+                      m_svshost.la   \
                       m_svsmode.la   \
                       m_svsnick.la   \
                       m_tburst.la    \
@@ -122,6 +123,7 @@ m_shedding_la_SOURCES = m_shedding.c
 m_stats_la_SOURCES = m_stats.c
 m_svinfo_la_SOURCES = m_svinfo.c
 m_svscloak_la_SOURCES = m_svscloak.c
+m_svshost_la_SOURCES = m_svshost.c
 m_svsmode_la_SOURCES = m_svsmode.c
 m_svsnick_la_SOURCES = m_svsnick.c
 m_tburst_la_SOURCES = m_tburst.c
