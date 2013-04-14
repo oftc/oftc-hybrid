@@ -54,6 +54,10 @@
 #include <openssl/err.h>
 #endif
 
+#ifdef HAVE_LIBGEOIP
+#include <GeoIP.h>
+#endif
+
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>

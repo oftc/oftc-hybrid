@@ -60,6 +60,9 @@
 #include "watch.h"
 
 
+#ifdef HAVE_LIBGEOIP
+GeoIP *geoip_ctx;
+#endif
 /* /quote set variables */
 struct SetOptions GlobalSetOptions;
 
@@ -575,6 +578,9 @@ main(int argc, char *argv[])
   initialize_global_set_options();
   init_channels();
 
+#ifdef HAVE_LIBGEOIP
+  geoip_ctx = GeoIP_new(GEOIP_STANDARD);
+#endif
   if (EmptyString(ServerInfo.sid))
   {
     ilog(LOG_TYPE_IRCD, "ERROR: No server id specified in serverinfo block.");

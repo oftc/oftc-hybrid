@@ -120,6 +120,7 @@ struct AccessItem
   unsigned int     flags;
   unsigned int     modes;
   unsigned int     port;
+  unsigned int     country_id;
   int              clients;  /* Number of *LOCAL* clients using this */
   int              bits;
   int              type;
@@ -246,6 +247,7 @@ struct ip_entry
 #define CONF_FLAGS_RANDOM_IDLE          0x00040000
 #define CONF_FLAGS_HIDE_IDLE_FROM_OPERS 0x00080000
 #define CONF_FLAGS_FAKE_IDLE            0x00100000
+#define CONF_FLAGS_NO_JOIN              0x00200000
 
 /* Macros for struct AccessItem */
 #define IsLimitIp(x)            ((x)->flags & CONF_FLAGS_LIMIT_IP)
@@ -273,6 +275,7 @@ struct ip_entry
 #define IsConfSSL(x)      ((x)->flags & CONF_FLAGS_SSL)
 #define SetConfSSL(x)     ((x)->flags |= CONF_FLAGS_SSL)
 #define ClearConfSSL(x)   ((x)->flags &= ~CONF_FLAGS_SSL)
+#define IsConfNoJoin(x)      ((x)->flags & CONF_FLAGS_NO_JOIN)
 
 /* shared/cluster server entry types 
  * These defines are used for both shared and cluster.
