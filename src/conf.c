@@ -2026,19 +2026,6 @@ find_kill(struct Client *client_p)
         CONF_KLINE, client_p->aftype,
         client_p->username, NULL, 1, client_p->certfp);
   }
-  if (aconf == NULL)
-    aconf = find_regexp_kline(uhi);
-
-  return aconf;
-}
-
-struct AccessItem *
-find_gline(struct Client *client_p)
-{
-  struct AccessItem *aconf;
-
-  assert(client_p != NULL);
-
   aconf = find_conf_by_address(client_p->host, &client_p->ip,
                                CONF_GLINE, client_p->aftype,
                                client_p->username, NULL, 1, client_p->certfp);

@@ -298,7 +298,6 @@ free_collect_item(struct CollectItem *item)
 %token  T_LOCOPS
 %token  T_MAX_CLIENTS
 %token  T_NCHANGE
-%token  T_NO_JOIN
 %token  T_OPERWALL
 %token  T_RECVQ
 %token  T_REJ
@@ -332,7 +331,6 @@ free_collect_item(struct CollectItem *item)
 %token  WARN_NO_NLINE
 %token  T_SIZE
 %token  T_FILE
-%token  COUNTRY_CODE
 
 %type <string> QSTRING
 %type <number> NUMBER
@@ -1738,7 +1736,6 @@ auth_entry: IRCD_AUTH
 
       new_aconf->flags = yy_aconf->flags;
       new_aconf->port  = yy_aconf->port;
-      new_aconf->country_id = yy_aconf->country_id;
 
       DupString(new_aconf->user, yy_tmp->user);
       collapse(new_aconf->user);
@@ -1846,12 +1843,6 @@ auth_class: CLASS '=' QSTRING ';'
   }
 };
 
-auth_country_code: COUNTRY_CODE '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_aconf->country_id = GeoIP_id_by_code(yylval.string);
-};
-
 auth_encrypted: ENCRYPTED '=' TBOOL ';'
 {
   if (conf_parser_ctx.pass == 2)
@@ -1904,10 +1895,6 @@ auth_flags_item: SPOOF_NOTICE
 {
   if (conf_parser_ctx.pass == 2)
     yy_aconf->flags |= CONF_FLAGS_NEED_PASSWORD;
-} | T_NO_JOIN
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_aconf->flags |= CONF_FLAGS_NO_JOIN;
 };
 
 auth_spoof: SPOOF '=' QSTRING ';' 

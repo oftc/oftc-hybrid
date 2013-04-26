@@ -31,7 +31,7 @@
 #include "send.h"
 #include "irc_string.h"
 #include "ircd.h"
-#include "log.h"
+
 
 #define DigitParse(ch) do { \
                        if (ch >= '0' && ch <= '9') \
@@ -486,9 +486,6 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
               (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
                match_conf_password(password, arec->aconf)))
           {
-            if (arec->aconf->country_id && (arec->aconf->country_id != country_id))
-              continue;
-
             hprecv = arec->precedence;
             hprec = arec->aconf;
           }
@@ -514,9 +511,6 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
               (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
                match_conf_password(password, arec->aconf)))
           {
-            if (arec->aconf->country_id && (arec->aconf->country_id != country_id))
-              continue;
-
             hprecv = arec->precedence;
             hprec = arec->aconf;
           }
@@ -559,9 +553,6 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
             (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
              match_conf_password(password, arec->aconf)))
         {
-          if (arec->aconf->country_id && (arec->aconf->country_id != country_id))
-            continue;
-
           hprecv = arec->precedence;
           hprec = arec->aconf;
         }
@@ -599,9 +590,6 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
           (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
            match_conf_password(password, arec->aconf)))
       {
-        if (arec->aconf->country_id && (arec->aconf->country_id != country_id))
-          continue;
-
         hprecv = arec->precedence;
         hprec = arec->aconf;
       }
