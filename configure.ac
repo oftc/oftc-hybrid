@@ -90,7 +90,8 @@ AC_ARG_ENABLE(assert, AS_HELP_STRING([--enable-assert],
 AS_IF([test "$assert" = "no"],
   [AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.])])
 
-AC_DEFINE([NICKNAMEHISTORYLENGTH], 16384, [Size of the WHOWAS array.])
+
+AC_DEFINE([NICKNAMEHISTORYLENGTH], 32768, [Size of the WHOWAS array.])
 AC_DEFINE([CHANNEL_HEAP_SIZE], 1024, [Size of the channel heap.])
 AC_DEFINE([BAN_HEAP_SIZE], 1024, [Size of the ban heap.])
 AC_DEFINE([CLIENT_HEAP_SIZE], 1024, [Size of the client heap.])
