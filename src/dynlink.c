@@ -29,6 +29,7 @@
 #include "s_log.h"
 #include "client.h"
 #include "send.h"
+#include <libgen.h>
 
 #ifndef RTLD_NOW
 #define RTLD_NOW RTLD_LAZY /* openbsd deficiency */

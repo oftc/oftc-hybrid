@@ -354,7 +354,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
       sendto_one(source_p,
           ":%s NOTICE %s :Added temporary %d min. K-Line [%s@%s]", from, to, 
           duration/60, aconf->user, aconf->host);
-      ilog(L_TRACE, "%s added temporary %ld min. K-Line for [%s@%s] [%s]",
+      ilog(L_TRACE, "%s added temporary %zd min. K-Line for [%s@%s] [%s]",
           source_p->name, duration/60, aconf->user, aconf->host, aconf->reason);
       log_oper_action(LOG_TEMP_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
           aconf->user, aconf->host, aconf->reason);
@@ -392,7 +392,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
       sendto_one(source_p, 
           ":%s NOTICE %s :Added temporary %d min. RK-Line [%s@%s]", from, to, 
           duration/60, aconf->user, aconf->host);
-      ilog(L_TRACE, "%s added temporary %ld min. RK-Line for [%s@%s] [%s]",
+      ilog(L_TRACE, "%s added temporary %zd min. RK-Line for [%s@%s] [%s]",
           source_p->name, duration/60,
           aconf->user, aconf->host, aconf->reason);
       log_oper_action(LOG_TEMP_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",

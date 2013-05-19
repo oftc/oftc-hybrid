@@ -479,10 +479,6 @@ modules_module: MODULE '=' QSTRING ';'
 #ifndef STATIC_MODULES /* NOOP in the static case */
   if (ypass == 2)
   {
-    char *m_bn;
-
-    m_bn = basename(yylval.string);
-
     /* I suppose we should just ignore it if it is already loaded(since
      * otherwise we would flood the opers on rehash) -A1kmm.
      */

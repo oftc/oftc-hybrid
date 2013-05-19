@@ -51,7 +51,7 @@
 #define DPATH       PREFIX
 #define BINPATH     PREFIX "/bin/"
 #define MSGPATH     DATADIR "/" PACKAGE "/messages"
-#define MODPATH     LIBDIR "/" PACKAGE "/modules/"
+#define MODPATH     LIBDIR "/" PACKAGE "/"
 #define HPATH       DATADIR "/" PACKAGE "/help/opers"
 #define UHPATH      DATADIR "/" PACKAGE "/help/users"
 #define AUTOMODPATH MODPATH "/autoload/"
