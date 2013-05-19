@@ -4,7 +4,11 @@ dnl {{{ ax_check_lib_ipv4
 AC_DEFUN([AX_CHECK_LIB_IPV4],[
   AC_SEARCH_LIBS([socket],[socket],,[AC_MSG_ERROR([socket library not found])])
   AC_CHECK_FUNCS([inet_aton inet_ntop inet_pton])
-  AC_CHECK_TYPES([struct sockaddr_in, struct sockaddr_storage, struct addrinfo],,,[#include <netdb.h>])
+  AC_CHECK_TYPES([struct sockaddr_in, struct sockaddr_storage, struct addrinfo],,,[
+    #include <netinet/in.h>
+    #include <sys/socket.h>
+    #include <netdb.h>
+  ])
   AC_CHECK_MEMBERS([struct sockaddr_in.sin_len],,,[#include <netdb.h>])
 ])dnl }}}
 dnl {{{ ax_check_lib_ipv6
@@ -42,12 +46,12 @@ AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
   dnl {{{ check for kqueue mechanism support
   iopoll_mechanism_kqueue=1
   AC_DEFINE_UNQUOTED([__IOPOLL_MECHANISM_KQUEUE],[$iopoll_mechanism_kqueue],[kqueue mechanism])
-  AC_LINK_IFELSE([AC_LANG_FUNC_LINK_TRY([kevent])],[is_kqueue_mechanism_available="yes"],[is_kqueue_mechanism_available="no"])
+  AC_LINK_IFELSE([AC_LANG_SOURCE([AC_LANG_FUNC_LINK_TRY([kevent])])],[is_kqueue_mechanism_available="yes"],[is_kqueue_mechanism_available="no"])
   dnl }}}
   dnl {{{ check for epoll oechanism support
   iopoll_mechanism_epoll=2
   AC_DEFINE_UNQUOTED([__IOPOLL_MECHANISM_EPOLL],[$iopoll_mechanism_epoll],[epoll mechanism])
-  AC_RUN_IFELSE([
+  AC_RUN_IFELSE([AC_LANG_PROGRAM([
 #include <sys/epoll.h>
 #include <sys/syscall.h>
 #if defined(__stub_epoll_create) || defined(__stub___epoll_create) || defined(EPOLL_NEED_BODY)
@@ -77,7 +81,7 @@ AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
 _syscall1(int, epoll_create, int, size)
 #endif
 main() { return epoll_create(256) == -1 ? 1 : 0; }
-  ],[is_epoll_mechanism_available="yes"],[is_epoll_mechanism_available="no"])
+  ])],[is_epoll_mechanism_available="yes"],[is_epoll_mechanism_available="no"])
   dnl }}}
   dnl {{{ check for devpoll mechanism support
   iopoll_mechanism_devpoll=3
@@ -111,7 +115,7 @@ main () { return 1; } /* F_SETSIG not defined */
   dnl {{{ check for select mechanism support
   iopoll_mechanism_select=6
   AC_DEFINE_UNQUOTED([__IOPOLL_MECHANISM_SELECT],[$iopoll_mechanism_select],[select mechanism])
-  AC_LINK_IFELSE([AC_LANG_FUNC_LINK_TRY([select])],[is_select_mechanism_available="yes"],[is_select_mechanism_available="no"])
+  AC_LINK_IFELSE([AC_LANG_SOURCE([AC_LANG_FUNC_LINK_TRY([select])])],[is_select_mechanism_available="yes"],[is_select_mechanism_available="no"])
   dnl }}}
   dnl {{{ determine the optimal mechanism
   optimal_iopoll_mechanism="none"
@@ -165,7 +169,6 @@ AC_DEFUN([AX_ARG_DISABLE_SHARED_MODULES],[
   AC_CHECK_FUNCS([dlopen dlinfo])
   if test "$shared_modules" = "yes" ; then
     use_shared_modules="yes"
-    AC_CHECK_LIB([dl],[dlopen],,[AC_MSG_ERROR([dl library not found])])
     AC_DEFINE([USE_SHARED_MODULES],[1],[Define to 1 if you want to use shared modules.])
   else
     use_shared_modules="no"

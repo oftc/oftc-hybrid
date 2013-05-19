@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.59)
 AC_INIT([oftc-hybrid],[1.7.0])
-AM_INIT_AUTOMAKE([oftc-hybrid],[1.7.0])
+AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([include/setup.h])
 AM_MAINTAINER_MODE
 
@@ -25,6 +25,7 @@ AC_PROG_YACC
 AC_PROG_AWK
 AC_PROG_EGREP
 AC_PATH_PROG([TAIL],[tail])
+AM_PROG_CC_C_O
 
 # Checks for libraries.
 AX_CHECK_LIB_OPENSSL

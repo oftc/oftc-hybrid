@@ -6,7 +6,7 @@ ircd_SOURCES+=crypt.c
 endif
 ircd_LDFLAGS=@LIBLTDL@ -export-dynamic
 ircd_CFLAGS=-I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
-INCLUDES=@INCLTDL@
+AM_CPPFLAGS=@INCLTDL@
 if USE_SHARED_MODULES
 ircd_LDADD=
 else
