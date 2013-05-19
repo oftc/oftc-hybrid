@@ -103,7 +103,7 @@ code. Apparently IBM isn't going to fix the problem, and we would rather not
 disable optimization (in this module it actually makes a big difference, and
 the pcre module can use all the optimization it can get). */
 
-volatile int dummy;
+//volatile int dummy;
 
 do
   {
@@ -161,7 +161,7 @@ do
       case OP_BRAMINZERO:
       if (!set_start_bits(++tcode, start_bits, caseless, utf8, cd))
         return FALSE;
-      dummy = 1;
+      //dummy = 1;
       do tcode += GET(tcode,1); while (*tcode == OP_ALT);
       tcode += 1+LINK_SIZE;
       break;

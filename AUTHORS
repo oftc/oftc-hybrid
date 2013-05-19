@@ -1,4 +1,4 @@
-$Id$
+$Id: AUTHORS 903 2007-11-04 14:11:03Z michael $
 
 The hybrid team is a group of ircd coders who were frustrated
 with the instability and all-out "dirtiness" of the EFnet ircd's
@@ -27,6 +27,7 @@ The following people have contributed blood, sweat, and/or code to
 recent releases of Hybrid, in nick alphabetical order:
 
 A1kmm, Andrew Miller <a1kmm@mware.virtualave.net>
+Adrian Chadd <adrian@creative.net.au
 AndroSyn, Aaron Sethman <androsyn@ratbox.org>
 bane, Dragan Dosen <bane@idolnet.org>
 bysin, Ben Kittridge <bkittridge@cfl.rr.com>

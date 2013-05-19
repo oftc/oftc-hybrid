@@ -37,6 +37,9 @@
 #include "irc_string.h"
 #include "memory.h"
 #include "list.h"
+#include <libgen.h>
+
+#define SHARED_SUFFIX ".so"
 
 /* -TimeMr14C:
  * I have moved the dl* function definitions and

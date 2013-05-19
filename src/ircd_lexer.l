@@ -37,7 +37,7 @@
 #include "hostmask.h"
 #include "s_log.h"
 
-#include "y.tab.h"
+#include "ircd_parser.h"
 
 #undef YY_INPUT
 #define YY_FATAL_ERROR(msg) conf_yy_fatal_error(msg)
@@ -291,6 +291,7 @@ ssl 				{ return T_SSL; }
 ssl_certificate_file        { return SSL_CERTIFICATE_FILE; }
 send_password	{ return SEND_PASSWORD; }
 sendq		{ return SENDQ; }
+server          { return T_SERVER; }
 serverhide	{ return SERVERHIDE; }
 serverinfo	{ return SERVERINFO; }
 servlink_path   { return SERVLINK_PATH; }

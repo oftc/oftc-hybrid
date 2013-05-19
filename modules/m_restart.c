@@ -302,7 +302,7 @@ do_shutdown(const char *msg, int rboot)
   burst_all(make_dummy(transfd[1]));
   send_queued_all();
 
-  snprintf(buf, sizeof(buf), "\001%ld\r\n", me.since);
+  snprintf(buf, sizeof(buf), "\001%zd\r\n", me.since);
   write(transfd[1], buf, strlen(buf));
 
   DLINK_FOREACH(ptr, local_client_list.head)

@@ -1119,7 +1119,6 @@ sendto_gnotice_flags(int flags, int level, char *origin,
 {
   struct Client *target_p;
   dlink_node *ptr;
-  dlink_node *ptr_next;
   va_list args;
   char nbuf[IRCD_BUFSIZE*2];
 
@@ -1129,7 +1128,6 @@ sendto_gnotice_flags(int flags, int level, char *origin,
   
   DLINK_FOREACH(ptr, oper_list.head)
   {
-    ptr_next = ptr->next;
     target_p = ptr->data;
 
     if(target_p->umodes & flags)

@@ -29,6 +29,7 @@
 #include "s_log.h"
 #include "client.h"
 #include "send.h"
+#include <libgen.h>
 
 #ifndef RTLD_NOW
 #define RTLD_NOW RTLD_LAZY /* openbsd deficiency */
@@ -38,6 +39,8 @@
 # include <link.h>
 #endif
 
+#if USE_SHARED_MODULES
+
 extern dlink_list mod_list;
 
 static char unknown_ver[] = "<unknown>";
@@ -45,145 +48,6 @@ static char unknown_ver[] = "<unknown>";
 /* This file contains the core functions to use dynamic libraries.
  * -TimeMr14C
  */
-
-#if !defined(HAVE_SHL_LOAD) && !defined(HAVE_DLFUNC)
-/*
- * Fake dlfunc(3) if we don't have it, cause it's happy.
- */
-typedef void (*__function_p)(void);
-
-static __function_p
-dlfunc(void *myHandle, const char *functionName)
-{
-  /* XXX This is not guaranteed to work, but with
-   * traditional dl*(3), it is the best we can do.
-   * -jmallett
-   */
-  void *symbolp;
-
-  symbolp = dlsym(myHandle, functionName);
-  return((__function_p)(uintptr_t)symbolp);
-}
-#endif
-
-#ifdef HAVE_MACH_O_DYLD_H
-/*
-** jmallett's dl*(3) shims for NSModule(3) systems.
-*/
-#include <mach-o/dyld.h>
-
-#ifndef HAVE_DLOPEN
-#ifndef	RTLD_LAZY
-#define RTLD_LAZY 2185 /* built-in dl*(3) don't care */
-#endif
-
-void undefinedErrorHandler(const char *);
-NSModule multipleErrorHandler(NSSymbol, NSModule, NSModule);
-void linkEditErrorHandler(NSLinkEditErrors, int, const char *, const char *);
-char *dlerror(void);
-void *dlopen(char *, int);
-int dlclose(void *);
-void *dlsym(void *, char *);
-
-static int firstLoad = TRUE;
-static int myDlError;
-static const char *myErrorTable[] =
-{
-  "Loading file as object failed\n",
-  "Loading file as object succeeded\n",
-  "Not a valid shared object\n",
-  "Architecture of object invalid on this architecture\n",
-  "Invalid or corrupt image\n",
-  "Could not access object\n",
-  "NSCreateObjectFileImageFromFile failed\n",
-  NULL
-};
-
-void
-undefinedErrorHandler(const char *symbolName)
-{
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Undefined symbol: %s", symbolName);
-  ilog(L_WARN, "Undefined symbol: %s", symbolName);
-  return;
-}
-
-NSModule
-multipleErrorHandler(NSSymbol s, NSModule old, NSModule new)
-{
-  /* XXX
-  ** This results in substantial leaking of memory... Should free one
-  ** module, maybe?
-  */
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,"Symbol `%s' found in `%s' and `%s'",
-                       NSNameOfSymbol(s), NSNameOfModule(old), NSNameOfModule(new));
-  ilog(L_WARN, "Symbol `%s' found in `%s' and `%s'", NSNameOfSymbol(s),
-       NSNameOfModule(old), NSNameOfModule(new));
-  /* We return which module should be considered valid, I believe */
-  return(new);
-}
-
-void
-linkEditErrorHandler(NSLinkEditErrors errorClass, int errnum,
-		     const char *fileName, const char *errorString)
-{
-  sendto_realops_flags(UMODE_ALL, L_ALL, "Link editor error: %s for %s",
-                       errorString, fileName);
-  ilog(L_WARN, "Link editor error: %s for %s", errorString, fileName);
-  return;
-}
-
-char *
-dlerror(void)
-{
-  return(myDlError == NSObjectFileImageSuccess ? NULL : myErrorTable[myDlError % 7]);
-}
-
-void *
-dlopen(char *filename, int unused)
-{
-  NSObjectFileImage myImage;
-  NSModule myModule;
-
-  if (firstLoad)
-  {
-    /* If we are loading our first symbol (huzzah!) we should go ahead
-     * and install link editor error handling!
-     */
-    NSLinkEditErrorHandlers linkEditorErrorHandlers;
-
-    linkEditorErrorHandlers.undefined = undefinedErrorHandler;
-    linkEditorErrorHandlers.multiple  = multipleErrorHandler;
-    linkEditorErrorHandlers.linkEdit  = linkEditErrorHandler;
-    NSInstallLinkEditErrorHandlers(&linkEditorErrorHandlers);
-    firstLoad = FALSE;
-  }
-
-  myDlError = NSCreateObjectFileImageFromFile(filename, &myImage);
-
-  if (myDlError != NSObjectFileImageSuccess)
-    return(NULL);
-
-  myModule = NSLinkModule(myImage, filename, NSLINKMODULE_OPTION_PRIVATE);
-  return((void *)myModule);
-}
-
-int
-dlclose(void *myModule)
-{
-  NSUnLinkModule(myModule, FALSE);
-  return(0);
-}
-
-void *
-dlsym(void *myModule, char *mySymbolName)
-{
-  NSSymbol mySymbol;
-
-  mySymbol = NSLookupSymbolInModule((NSModule)myModule, mySymbolName);
-  return NSAddressOfSymbol(mySymbol);
-}
-#endif
-#endif
 
 /* unload_one_module()
  *
@@ -383,3 +247,4 @@ load_a_module(char *path, int warn, int core)
 
   return(0);
 }
+#endif
