@@ -4,11 +4,13 @@ ircd_SOURCES=balloc.c channel.c channel_mode.c client.c csvlib.c dbuf.c dynlink.
 if HAVE_CRYPT
 ircd_SOURCES+=crypt.c
 endif
-ircd_LDFLAGS=@LIBLTDL@ -export-dynamic
-ircd_CFLAGS=-I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
-AM_CPPFLAGS=@INCLTDL@
+
+ircd_LDFLAGS=-export-dynamic
+AM_CPPFLAGS=$(LTDLINCL) -I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
+
 if USE_SHARED_MODULES
-ircd_LDADD=
+ircd_LDADD=$(LIBLTDL)
+ircd_DEPENDENCIES=$(LTDLDEPS)
 else
 ircd_LDADD=$(top_srcdir)/modules/libmodules.la
 endif
