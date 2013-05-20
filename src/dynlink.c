@@ -22,6 +22,7 @@
  * $Id$
  *
  */
+#include "ltdl.h"
 #include "stdinc.h"
 #include "tools.h"
 #include "irc_string.h"
@@ -30,14 +31,6 @@
 #include "client.h"
 #include "send.h"
 #include <libgen.h>
-
-#ifndef RTLD_NOW
-#define RTLD_NOW RTLD_LAZY /* openbsd deficiency */
-#endif
-
-#if defined(HAVE_DLINFO) && defined(HAVE_LINK_H)
-# include <link.h>
-#endif
 
 #if USE_SHARED_MODULES
 
@@ -48,6 +41,16 @@ static char unknown_ver[] = "<unknown>";
 /* This file contains the core functions to use dynamic libraries.
  * -TimeMr14C
  */
+
+void
+dynlink_init()
+{
+  if(lt_dlinit())
+  {
+    ilog(L_ERROR, "Couldn't initialize the libltdl runtime dynamic link library.  Exiting");
+    exit(0);
+  }
+}
 
 /* unload_one_module()
  *
@@ -70,21 +73,8 @@ unload_one_module(char *name, int warn)
   if (modp->modremove)
     (*modp->modremove)();
 
-#ifdef HAVE_SHL_LOAD
-    /* shl_* and friends have a slightly different format than dl*. But it does not
-     * require creation of a totally new modules.c, instead proper usage of
-     * defines solve this case. -TimeMr14C
-     */
-  shl_unload((shl_t) & (modp->handle));
-#else
-  /* We use FreeBSD's dlfunc(3) interface, or fake it as we
-   * used to here if it isn't there.  The interface should
-   * be standardised some day, and so it eventually will be
-   * providing something guaranteed to do the right thing here.
-   *          -jmallett
-   */
-  dlclose(modp->handle);
-#endif
+  lt_dlclose(modp->handle);
+
   assert(dlink_list_length(&mod_list) > 0);
   dlinkDelete(ptr, &mod_list);
   MyFree(modp->name);
@@ -108,14 +98,7 @@ unload_one_module(char *name, int warn)
 int
 load_a_module(char *path, int warn, int core)
 {
-#ifdef HAVE_DLINFO
-  struct link_map *map;
-#endif
-#ifdef HAVE_SHL_LOAD
-  shl_t tmpptr;
-#else
-  void *tmpptr = NULL;
-#endif
+  lt_dlhandle tmpptr = NULL;
   void *addr = NULL;
   char *mod_basename;
   void (*initfunc)(void) = NULL;
@@ -127,79 +110,34 @@ load_a_module(char *path, int warn, int core)
   mod_basename = basename(path);
 
   if (findmodule_byname(mod_basename) != NULL)
-    return(1);
+    return 1;
 
-#ifdef HAVE_SHL_LOAD
-  tmpptr = shl_load(path, BIND_IMMEDIATE, NULL);
-#else
-  tmpptr = dlopen(path, RTLD_NOW);
-#endif
-
-  if (tmpptr == NULL)
+  if(!(tmpptr = lt_dlopen(path)))
   {
-#ifdef HAVE_SHL_LOAD
-    const char *err = strerror(errno);
-#else
-    const char *err = dlerror();
-#endif
+    const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
+
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Error loading module %s: %s",
                          mod_basename, err);
     ilog(L_WARN, "Error loading module %s: %s", mod_basename, err);
     
-    return(-1);
+    return -1;
   }
 
-#ifdef HAVE_SHL_LOAD
-  if (shl_findsym(&tmpptr, "_modinit", TYPE_UNDEFINED, (void *)&initfunc) == -1)
-  {
-    if (shl_findsym(&tmpptr, "__modinit", TYPE_UNDEFINED, (void *)&initfunc) == -1)
-    {
-      ilog(L_WARN, "Module %s has no _modinit() function", mod_basename);
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s has no _modinit() function",
-                           mod_basename);
-      shl_unload(tmpptr);
-      return(-1);
-    }
-  }
-
-  if (shl_findsym(&tmpptr, "_moddeinit", TYPE_UNDEFINED, (void *)&mod_deinit) == -1)
-  {
-    if (shl_findsym(&tmpptr, "__moddeinit", TYPE_UNDEFINED, (void *)&mod_deinit) == -1)
-    {
-      ilog(L_WARN, "Module %s has no _moddeinit() function", mod_basename);
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s has no _moddeinit() function",
-                           mod_basename);
-      /* this is a soft error.  we're allowed not to have one, i guess.
-       * (judging by the code in unload_one_module() */
-      mod_deinit = NULL;
-    }
-  }
-
-  if (shl_findsym(&tmpptr, "_version", TYPE_UNDEFINED, &verp) == -1)
-  {
-    if (shl_findsym(&tmpptr, "__version", TYPE_UNDEFINED, &verp) == -1)
-      ver = unknown_ver;
-    else
-      ver = *verp;
-  }
-  else
-    ver = *verp;
-#else
-  if ((initfunc = (void(*)(void))dlfunc(tmpptr, "_modinit")) == NULL &&
+  if ((initfunc = lt_dlsym(tmpptr, "_modinit")) == NULL &&
       /* Only for compatibility, because some systems have underscore
        * prepended symbol names */
-      (initfunc = (void(*)(void))dlfunc(tmpptr, "__modinit")) == NULL)
+      (initfunc = lt_dlsym(tmpptr, "__modinit")) == NULL)
   {
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s has no _modinit() function",
                          mod_basename);
     ilog(L_WARN, "Module %s has no _modinit() function", mod_basename);
-    dlclose(tmpptr);
-    return(-1);
+    lt_dlclose(tmpptr);
+    return -1;
   }
 
-  mod_deinit = (void(*)(void))dlfunc(tmpptr, "_moddeinit");
+  mod_deinit = lt_dlsym(tmpptr, "_moddeinit");
 
-  if (mod_deinit == NULL && (mod_deinit = (void(*)(void))dlfunc(tmpptr, "__moddeinit")) == NULL)
+  if (mod_deinit == NULL && (mod_deinit = lt_dlsym(tmpptr, "__moddeinit")) == NULL)
   {
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s has no _moddeinit() function",
                          mod_basename);
@@ -208,22 +146,15 @@ load_a_module(char *path, int warn, int core)
     mod_deinit = NULL;
   }
 
-  verp = (char **)dlsym(tmpptr, "_version");
+  verp = (char **)lt_dlsym(tmpptr, "_version");
 
-  if (verp == NULL && (verp = (char **)dlsym(tmpptr, "__version")) == NULL)
+  if (verp == NULL && (verp = (char **)lt_dlsym(tmpptr, "__version")) == NULL)
     ver = unknown_ver;
   else
     ver = *verp;
-#endif
 
   modp            = MyMalloc(sizeof(struct module));
-#ifdef HAVE_DLINFO
-  dlinfo(tmpptr, RTLD_DI_LINKMAP, &map);
-  if (map != NULL)
-    addr = (void *)map->l_addr;
-  else
-#endif
-    addr = tmpptr;
+  addr = tmpptr;
 
   modp->handle    = tmpptr;
   modp->address   = addr;
@@ -245,6 +176,6 @@ load_a_module(char *path, int warn, int core)
          mod_basename, ver, addr);
   }
 
-  return(0);
+  return 0;
 }
 #endif

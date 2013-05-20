@@ -84,4 +84,4 @@ m_xline_la_SOURCES=m_xline.c
 #soft_reboot_la_SOURCES=soft_reboot.c
 
 install-exec-local:
-	rm -f $(DESTDIR)/$(pkglibdir)/*.la $(DESTDIR)/$(pkblibdir)/*.a
+	rm -f $(DESTDIR)/$(moduledir)/*.la $(DESTDIR)/$(moduledir)/*.a $(DESTDIR)/$(moduledir)/*.so
