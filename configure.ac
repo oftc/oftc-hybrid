@@ -19,7 +19,9 @@ AM_ENABLE_SHARED
 # Checks for programs.
 AC_PROG_INSTALL
 AC_GNU_SOURCE
-AC_PROG_CC
+AC_PROG_CC_C99
+  AS_IF([test "$ac_cv_prog_cc_c99" = "no"],
+    [AC_MSG_ERROR([no C99 compiler found. Aborting.])])
 AC_PROG_RANLIB
 AC_PROG_LIBTOOL
 LIBTOOL="$LIBTOOL --silent"
