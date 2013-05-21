@@ -39,7 +39,7 @@
 /*
  * MyMalloc - allocate memory, call outofmemory on failure
  */
-void *
+inline void *
 MyMalloc(size_t size)
 {
   void *ret = calloc(1, size);
@@ -52,7 +52,7 @@ MyMalloc(size_t size)
 /*
  * MyRealloc - reallocate memory, call outofmemory on failure
  */
-void *
+inline void *
 MyRealloc(void *x, size_t y)
 {
   void *ret = realloc(x, y);
@@ -62,14 +62,14 @@ MyRealloc(void *x, size_t y)
   return(ret);
 }
 
-void
+inline void
 MyFree(void *x)
 {
   if (x)
     free(x);
 }
 
-void
+inline void
 _DupString(char **x, const char *y)
 {
   (*x) = malloc(strlen(y) + 1);
