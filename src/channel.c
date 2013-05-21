@@ -883,8 +883,7 @@ check_splitmode(void *unused)
     {
       splitmode = 1;
 
-      sendto_gnotice_flags(UMODE_ALL,L_ALL, me.name, &me, NULL,
-                           "Network split, activating splitmode");
+      sendto_realops_flags(UMODE_ALL, L_ALL, "Network split, activating splitmode");
       eventAddIsh("check_splitmode", check_splitmode, NULL, 10);
     }
     else if (splitmode && (server > split_servers) && (Count.total > split_users))
