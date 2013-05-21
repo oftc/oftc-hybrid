@@ -1052,13 +1052,16 @@ sendto_realops_flags(unsigned int flags, int level, const char *pattern, ...)
      * If we're sending it to admins, and theyre not, skip.
      */
     if (((level == L_ADMIN) && !IsAdmin(client_p)) ||
-	((level == L_OPER) && IsAdmin(client_p)))
+        ((level == L_OPER) && IsAdmin(client_p)))
       continue;
 
     if (client_p->umodes & flags)
       sendto_one(client_p, ":%s NOTICE %s :*** Notice -- %s",
-                 me.name, client_p->name, nbuf);
+          me.name, client_p->name, nbuf);
   }
+
+  sendto_server(NULL, &me, NULL, CAP_ENCAP, NOCAPS, LL_ICLIENT,
+      ":%s ENCAP * GNOTICE %d %d %s", me.name, flags, level, nbuf);
 }
 
 /* sendto_wallops_flags()
