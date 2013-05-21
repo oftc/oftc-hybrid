@@ -84,7 +84,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     if (irccmp(parv[1], "DNS") == 0)
     {
       sendto_one(source_p, form_str(RPL_REHASHING), me.name, parv[0], "DNS");
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s is rehashing DNS",
+      sendto_realops_flags(UMODE_ALL, L_ALL,  "%s is rehashing DNS",
                            get_oper_name(source_p));
       restart_resolver();   /* re-read /etc/resolv.conf AGAIN?
                                and close/re-open res socket */
@@ -94,7 +94,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     {
       sendto_one(source_p, form_str(RPL_REHASHING), me.name,
                  parv[0], "FDLIMIT");
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s is updating FDLIMIT",
+      sendto_realops_flags(UMODE_ALL, L_ALL,  "%s is updating FDLIMIT",
                            get_oper_name(source_p));
       recalc_fdlimit(NULL);
       found = 1;
@@ -103,7 +103,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
 #endif
     if (irccmp(parv[1], "MOTD") == 0)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s is forcing re-reading of MOTD file",
                            get_oper_name(source_p));
       read_message_file(&ConfigFileEntry.motd);
@@ -111,7 +111,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     }
     else if (irccmp(parv[1], "OMOTD") == 0)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s is forcing re-reading of OPER MOTD file",
                            get_oper_name(source_p));
       read_message_file(&ConfigFileEntry.opermotd);
@@ -140,7 +140,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
   {
     sendto_one(source_p, form_str(RPL_REHASHING),
                me.name, source_p->name, ConfigFileEntry.configfile);
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "%s is rehashing server config file",
                          get_oper_name(source_p));
     ilog(L_NOTICE, "REHASH From %s[%s]",

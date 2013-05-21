@@ -857,7 +857,7 @@ check_client(va_list args)
     case MAX_IP:
     case MAX_CIDR:
     case MAX_IDENT:
-      sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_FULL, L_ALL, 
           full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
       ilog(L_INFO, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
       ServerStats->is_ref++;
@@ -865,7 +865,7 @@ check_client(va_list args)
       bad = TRUE;
       break;
     case TOO_MANY:
-      sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_FULL, L_ALL, 
                            "Too many on IP for %s (%s). (generic too_many)",
          get_client_name(source_p, SHOW_IP),
          source_p->sockhost);
@@ -876,7 +876,7 @@ check_client(va_list args)
       break;
 
     case I_LINE_FULL:
-      sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_FULL, L_ALL, 
                            "I-line is full for %s (%s).",
          get_client_name(source_p, SHOW_IP),
          source_p->sockhost);
@@ -896,7 +896,7 @@ check_client(va_list args)
       irc_getnameinfo((struct sockaddr*)&source_p->ip,
             source_p->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
             NI_NUMERICHOST);
-      sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_UNAUTH, L_ALL, 
          "Unauthorized client connection from %s [%s] on [%s/%u].",
          get_client_name(source_p, SHOW_IP),
          ipaddr,
@@ -1017,7 +1017,7 @@ verify_access(struct Client *client_p, const char *username,
         conf = unmap_conf_item(aconf);
 
         if (!ConfigFileEntry.hide_spoof_ips && IsConfSpoofNotice(aconf))
-          sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL, "%s spoofing: %s as %s",
+          sendto_realops_flags(UMODE_ALL, L_ADMIN,  "%s spoofing: %s as %s",
                                client_p->name, client_p->host, conf->name);
         strlcpy(client_p->host, conf->name, sizeof(client_p->host));
         SetIPSpoof(client_p);
@@ -1842,7 +1842,7 @@ int
 rehash(int sig)
 {
   if (sig != 0)
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "Got signal SIGHUP, reloading ircd.conf file");
 
 #ifndef _WIN32
@@ -2661,7 +2661,7 @@ parse_conf_file(int type, int cold)
       ilog(L_ERROR, "Unable to read configuration file '%s': %s",
            filename, strerror(errno));
     else
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                     "Unable to read configuration file '%s': %s",
                            filename, strerror(errno));
   }
@@ -3138,11 +3138,11 @@ conf_add_class_to_conf(struct ConfItem *conf, const char *class_name)
     aconf->class_ptr = class_default;
 
     if (conf->type == CLIENT_TYPE)
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
          "Warning *** Defaulting to default class for %s@%s",
          aconf->user, aconf->host);
     else
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
          "Warning *** Defaulting to default class for %s",
          conf->name);
   }
@@ -3155,11 +3155,11 @@ conf_add_class_to_conf(struct ConfItem *conf, const char *class_name)
   if (aconf->class_ptr == NULL || !class->active)
   {
     if (conf->type == CLIENT_TYPE)
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
          "Warning *** Defaulting to default class for %s@%s",
          aconf->user, aconf->host);
     else
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
          "Warning *** Defaulting to default class for %s",
          conf->name);
     aconf->class_ptr = class_default;
@@ -3187,7 +3187,7 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
 
   if (!aconf->host || !conf->name)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Bad connect block");
+    sendto_realops_flags(UMODE_ALL, L_ALL,  "Bad connect block");
     ilog(L_WARN, "Bad connect block");
     return -1;
   }
@@ -3269,7 +3269,7 @@ yyerror(const char *msg)
     return;
 
   strip_tabs(newlinebuf, linebuf, sizeof(newlinebuf));
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "\"%s\", line %u: %s: %s",
+  sendto_realops_flags(UMODE_ALL, L_ALL,  "\"%s\", line %u: %s: %s",
                        conffilebuf, lineno + 1, msg, newlinebuf);
   ilog(L_WARN, "\"%s\", line %u: %s: %s",
        conffilebuf, lineno + 1, msg, newlinebuf);

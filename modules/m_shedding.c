@@ -101,7 +101,7 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
   {
       eventDelete(user_shedding_main, NULL);
       eventDelete(user_shedding_shed, NULL);
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
               "User shedding DISABLED by %s", source_p->name);
       return;
   }
@@ -125,7 +125,7 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
   if (parc > 3)
     operstoo = !!atoi(parv[2]);
     
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, 
+  sendto_realops_flags(UMODE_ALL, L_ALL,  
           "User shedding ENABLED by %s (%s). Shedding interval: %d seconds (Opers too: %s)", 
           source_p->name, parv[parc-1], rate, operstoo ? "Yes" : "No");
   /* Set a minimum because we need to do a bit of variance */

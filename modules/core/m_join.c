@@ -173,7 +173,7 @@ m_join(struct Client *client_p, struct Client *source_p,
     {
       sendto_one(source_p, form_str(ERR_BADCHANNAME),
                  me.name, source_p->name, chan);
-      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_SPY, L_ALL, 
                            "User %s (%s@%s) is attempting to join locally juped channel %s",
                            source_p->name, source_p->username, source_p->host, chan);
       continue;
@@ -223,7 +223,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       flags = CHFL_CHANOP;
       chptr = make_channel(chan);
       if(MyClient(source_p))
-        sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+        sendto_realops_flags(UMODE_SPY, L_ALL, 
             "Channel %s created by %s!%s@%s", chan, source_p->name,
             source_p->username, source_p->host);
     }
@@ -246,7 +246,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: JOIN %s", source_p->name,
           chptr->chname);
-      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, 
           tmp);
       oftc_log(tmp);
     }
@@ -350,7 +350,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
 
   if (!check_channel_name(parv[2], 0))
   {
-    sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
                          "*** Too long or invalid channel name from %s: %s",
                          client_p->name, parv[2]);
     return;
@@ -365,7 +365,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
     isnew = 1;
     chptr = make_channel(parv[2]);
     if(MyClient(source_p))
-      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_SPY, L_ALL, 
           "Channel %s created by %s!%s@%s", parv[2], source_p->name,
           source_p->username, source_p->host);
   }
@@ -378,7 +378,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
   {
     if (newts < 800000000)
     {
-      sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_DEBUG, L_ALL, 
                            "*** Bogus TS %lu on %s ignored from %s",
                            (unsigned long)newts, chptr->chname,
                            client_p->name);
@@ -393,7 +393,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
       sendto_channel_local(ALL_MEMBERS, NO, chptr,
                              ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to 0",
                              me.name, chptr->chname, chptr->chname, (unsigned long)oldts);
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "Server %s changing TS on %s from %lu to 0",
                            source_p->name, chptr->chname, (unsigned long)oldts);
     }

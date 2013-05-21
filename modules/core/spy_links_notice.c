@@ -60,7 +60,7 @@ show_links(va_list args)
   char **parv = va_arg(args, char **);
 
   if (IsClient(source_p))
-    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_SPY, L_ALL, 
                          "LINKS '%s' requested by %s (%s@%s) [%s]",
                          parv[1] ? parv[1] : "", source_p->name,
 			 source_p->username, source_p->host,

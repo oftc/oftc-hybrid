@@ -124,7 +124,7 @@ slink_error(unsigned int rpl, unsigned int len, unsigned char *data,
 
   data[len-1] = '\0';
 
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "SlinkError for %s: %s",
+  sendto_realops_flags(UMODE_ALL, L_ALL,  "SlinkError for %s: %s",
                        server_p->name, data);
   /* XXX should this be exit_client? */
   exit_client(server_p, &me, "servlink error -- terminating link");
@@ -561,10 +561,10 @@ try_connections(void *unused)
        *   -- adrian
        */
       if (ConfigServerHide.hide_server_ips)
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Connection to %s activated.",
+        sendto_realops_flags(UMODE_ALL, L_ALL,  "Connection to %s activated.",
                              conf->name);
       else
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Connection to %s[%s] activated.",
+        sendto_realops_flags(UMODE_ALL, L_ALL,  "Connection to %s[%s] activated.",
                              conf->name, aconf->host);
 
       serv_connect(aconf, NULL);
@@ -1028,7 +1028,7 @@ server_estab(struct Client *client_p)
       == NULL)
   {
     /* This shouldn't happen, better tell the ops... -A1kmm */
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Warning: Lost connect{} block "
+    sendto_realops_flags(UMODE_ALL, L_ALL,  "Warning: Lost connect{} block "
                          "for server %s(this shouldn't happen)!", host);
     exit_client(client_p, &me, "Lost connect{} block!");
     return;
@@ -1108,10 +1108,10 @@ server_estab(struct Client *client_p)
   {
     if (fork_server(client_p) < 0)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "Warning: fork failed for server %s -- check servlink_path (%s)",
                            get_client_name(client_p, HIDE_IP), ConfigFileEntry.servlink_path);
-      sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL, "Warning: fork failed for server "
+      sendto_realops_flags(UMODE_ALL, L_OPER,  "Warning: fork failed for server "
                            "%s -- check servlink_path (%s)",
                            get_client_name(client_p, MASK_IP),
                            ConfigFileEntry.servlink_path);
@@ -1177,7 +1177,7 @@ server_estab(struct Client *client_p)
   client_p->firsttime = CurrentTime;
 
   /* Now show the masked hostname/IP to opers */
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+  sendto_realops_flags(UMODE_ALL, L_ALL, 
                        "Link with %s established: (%s) link",
                        inpath,show_capabilities(client_p));
   ilog(L_NOTICE, "Link with %s established: (%s) link",
@@ -1918,7 +1918,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   /* Still processing a DNS lookup? -> exit */
   if (aconf->dns_query != NULL)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_OPER, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_OPER, 
                          "Error connecting to %s: Error during DNS lookup", conf->name);
     return (0);
   }
@@ -1928,7 +1928,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
    */
   if ((client_p = find_server(conf->name)) != NULL)
   { 
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 		         "Server %s already present from %s",
 		         conf->name, get_client_name(client_p, SHOW_IP));
  
@@ -1971,7 +1971,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
    */
   if (!attach_connect_block(client_p, conf->name, aconf->host))
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 		         "Host %s is not enabled for connecting:no C/N-line",
 			 conf->name);
     if (by && IsClient(by) && !MyClient(by))  
@@ -2111,11 +2111,11 @@ serv_connect_callback(fde_t *fd, int status, void *data)
      * Admins get to see any IP, mere opers don't *sigh*
      */
      if (ConfigServerHide.hide_server_ips)
-       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+       sendto_realops_flags(UMODE_ALL, L_ALL, 
                             "Error connecting to %s: %s",
                             client_p->name, comm_errstr(status));
      else
-       sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+       sendto_realops_flags(UMODE_ALL, L_ADMIN, 
 	      		    "Error connecting to %s[%s]: %s", client_p->name,
 			    client_p->host, comm_errstr(status));
 
@@ -2136,7 +2136,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 			client_p->name, SERVER_TYPE); 
   if (conf == NULL)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ADMIN, 
 	                 "Lost connect{} block for %s", get_client_name(client_p, HIDE_IP));
 
     exit_client(client_p, &me, "Lost connect{} block");
@@ -2188,7 +2188,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
    */
   if (IsDead(client_p)) 
   {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
 			   "%s[%s] went dead during handshake",
                            client_p->name,
 			   client_p->host);
@@ -2314,7 +2314,7 @@ void
 cryptlink_error(struct Client *client_p, const char *type,
                 const char *reason, const char *client_reason)
 {
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s: CRYPTLINK %s error - %s",
+  sendto_realops_flags(UMODE_ALL, L_ALL,  "%s: CRYPTLINK %s error - %s",
                        get_client_name(client_p, SHOW_IP), type, reason);
 
 

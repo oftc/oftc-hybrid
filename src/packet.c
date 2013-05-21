@@ -476,7 +476,7 @@ read_packet(fde_t *fd, void *data)
     {
         char timestamp[200];
         strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&CurrentTime));
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+        sendto_realops_flags(UMODE_ALL, L_ALL, 
             "Finally received packets from %s again after %d seconds (at %s)",
             get_client_name(client_p, SHOW_IP), CurrentTime - client_p->lasttime, timestamp);
     }

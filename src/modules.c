@@ -384,7 +384,7 @@ load_one_module(char *path, int coremodule)
     }
   }
 
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+  sendto_realops_flags(UMODE_ALL, L_ALL, 
                        "Cannot locate module %s", path);
   ilog(L_WARN, "Cannot locate module %s", path);
   return -1;
@@ -498,7 +498,7 @@ mo_modreload(struct Client *client_p, struct Client *source_p,
 
   if ((load_one_module(parv[1], check_core) == -1) && check_core)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Error reloading core "
+    sendto_realops_flags(UMODE_ALL, L_ALL,  "Error reloading core "
                          "module: %s: terminating ircd", parv[1]);
     ilog(L_CRIT, "Error loading core module %s: terminating ircd", parv[1]);
     exit(0);
