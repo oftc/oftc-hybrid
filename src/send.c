@@ -118,7 +118,7 @@ send_message(struct Client *to, char *buf, int len)
   if (dbuf_length(&to->localClient->buf_sendq) + len > get_sendq(to))
   {
     if (IsServer(to))
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "Max SendQ limit exceeded for %s: %lu > %lu",
                            get_client_name(to, HIDE_IP),
                            (unsigned long)(dbuf_length(&to->localClient->buf_sendq) + len),
@@ -161,7 +161,7 @@ send_message_remote(struct Client *to, struct Client *from,
 {
   if (!MyConnect(to))
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "server send message to %s [%s] dropped from %s(Not local server)",
 			 to->name, to->from->name, from->name);
     return;
@@ -181,13 +181,13 @@ send_message_remote(struct Client *to, struct Client *from,
   {
     if (IsServer(from))
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "Send message to %s [%s] dropped from %s(Fake Dir)",
                            to->name, to->from->name, from->name);
       return;
     }
 
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "Ghosted: %s[%s@%s] from %s[%s@%s] (%s)",
                          to->name, to->username, to->host,
                          from->name, from->username, from->host,
@@ -1186,7 +1186,7 @@ ts_warn(const char *pattern, ...)
   vsprintf_irc(buffer, pattern, args);
   va_end(args);
 
-  sendto_gnotice_flags(UMODE_ALL, L_ALL,  me.name, &me, NULL, "%s", buffer);
+  sendto_realops_flags(UMODE_ALL, L_ALL,  "%s", buffer);
   ilog(L_CRIT, "%s", buffer);
 }
 

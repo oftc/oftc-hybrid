@@ -307,7 +307,7 @@ del_id(struct Channel *chptr, char *banid, int type)
       list = &chptr->quietlist;
       break;
     default:
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "del_id() called with unknown ban type %d!", type);
       return 0;
   }
@@ -573,7 +573,7 @@ god_mode_check(struct Client *source_p, char *chname, int alev, int parc,
   for(i = 1; i < parc; i++)
     ircsprintf(tmp, "%s %s", tmp, parv[i]);
 
-  sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
+  sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,  tmp);
   oftc_log(tmp);
 }
 

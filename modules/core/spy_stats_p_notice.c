@@ -63,7 +63,7 @@ show_stats_p(va_list args)
     return NULL;  /* shouldn't happen */
 
   if (parv[1][0] == 'p')
-    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_SPY, L_ALL, 
                          "STATS p requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);

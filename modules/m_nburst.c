@@ -100,7 +100,7 @@ ms_nburst(struct Client *client_p, struct Client *source_p,
   if (!ServerInfo.hub && IsCapable(client_p, CAP_LL))
     return;
 #ifdef DEBUGLL
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "NBURST called by %s for %s %s %s",
+  sendto_realops_flags(UMODE_ALL, L_ALL,  "NBURST called by %s for %s %s %s",
     client_p->name,
     nick,
     nick_new ? nick_new : "",

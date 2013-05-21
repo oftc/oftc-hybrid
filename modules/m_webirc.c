@@ -127,7 +127,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
 
   if (invalid_hostname(parv[4]))
   {
-    sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL, "CGI:IRC: Invalid IP");
+    sendto_realops_flags(UMODE_UNAUTH, L_ALL,  "CGI:IRC: Invalid IP");
     return;
   }
 
@@ -143,19 +143,19 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
 
   if (!IsConfDoSpoofIp(aconf) || irccmp(conf->name, "webirc."))
   {
-    sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL, "Not a CGI:IRC auth block: %s", source_p->sockhost);
+    sendto_realops_flags(UMODE_UNAUTH, L_ALL,  "Not a CGI:IRC auth block: %s", source_p->sockhost);
     return;
   }
 
   if (EmptyString(aconf->passwd))
   {
-    sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL, "CGI:IRC auth blocks must have a password");
+    sendto_realops_flags(UMODE_UNAUTH, L_ALL,  "CGI:IRC auth blocks must have a password");
     return;
   }
 
   if (!match_conf_password(parv[1], aconf))
   {
-    sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL, "CGI:IRC password incorrect");
+    sendto_realops_flags(UMODE_UNAUTH, L_ALL,  "CGI:IRC password incorrect");
     return;
   }
 
@@ -167,7 +167,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
 
   if (getaddrinfo(parv[4], NULL, &hints, &res))
   {
-    sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL, "Inavlid CGI:IRC IP %s", parv[4]);
+    sendto_realops_flags(UMODE_UNAUTH, L_ALL,  "Inavlid CGI:IRC IP %s", parv[4]);
     return;
   }
 
@@ -198,7 +198,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
     }
   }
 
-  sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL,
+  sendto_realops_flags(UMODE_CCONN, L_ALL, 
                        "CGI:IRC host/IP set %s to %s (%s)", original_sockhost,
                        parv[3], parv[4]);
 }
