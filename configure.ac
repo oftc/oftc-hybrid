@@ -7,16 +7,21 @@ AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([include/setup.h])
 AM_MAINTAINER_MODE
 
+AC_USE_SYSTEM_EXTENSIONS
+
 #ltdl stuff
+LT_CONFIG_LTDL_DIR([libltdl])
+LT_INIT([dlopen])
+LTDL_INIT([convenience])
 AC_LIBTOOL_DLOPEN
-AC_LIBLTDL_CONVENIENCE
-AC_SUBST(INCLTDL)
-AC_SUBST(LIBLTDL)
+AM_ENABLE_SHARED
 
 # Checks for programs.
 AC_PROG_INSTALL
 AC_GNU_SOURCE
-AC_PROG_CC
+AC_PROG_CC_C99
+  AS_IF([test "$ac_cv_prog_cc_c99" = "no"],
+    [AC_MSG_ERROR([no C99 compiler found. Aborting.])])
 AC_PROG_RANLIB
 AC_PROG_LIBTOOL
 LIBTOOL="$LIBTOOL --silent"
@@ -88,7 +93,6 @@ AC_DEFINE_DIR([LIBDIR],[libdir],[Set to libdir.])
 AC_DEFINE_DIR([MODULEDIR],[moduledir],[Set to moduledir.])
 AC_DEFINE_DIR([DATADIR],[datadir],[Set to datadir.])
 AC_DEFINE_DIR([LOCALSTATEDIR],[localstatedir],[Set to localstatedir.])
-AC_CONFIG_SUBDIRS(libltdl)
 
 AC_CONFIG_FILES(               \
        Makefile                \
