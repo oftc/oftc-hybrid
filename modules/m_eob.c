@@ -66,7 +66,7 @@ static void
 ms_eob(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-   sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+   sendto_realops_flags(UMODE_ALL, L_ALL, 
                         "End of burst from %s (%d seconds)",
                         source_p->name, 
 			(unsigned int)(CurrentTime - source_p->firsttime));

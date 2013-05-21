@@ -151,7 +151,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
 
   /* Do not change the format of this message.  There's no point in changing messages
    * that have been around for ever, for no reason.. */
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+  sendto_realops_flags(UMODE_ALL, L_ALL, 
 		       "Received KILL message for %s. From %s Path: %s (%s)", 
 		       target_p->name, source_p->name, me.name, reason);
 

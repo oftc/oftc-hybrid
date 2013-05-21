@@ -59,7 +59,7 @@ show_motd(va_list args)
   char **parv = va_arg(args, char **);
 
   if (IsClient(source_p))
-    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_SPY, L_ALL, 
                          "motd requested by %s (%s@%s) [%s]",
                          source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);

@@ -111,7 +111,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
    */
   if (!DoesTS(client_p))
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Link %s dropped, non-TS server",
+    sendto_realops_flags(UMODE_ALL, L_ALL,  "Link %s dropped, non-TS server",
                          get_client_name(client_p, SHOW_IP));
     exit_client(client_p, client_p, "Non-TS server");
     return;
@@ -131,7 +131,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
     case -1:
       if (ConfigFileEntry.warn_no_nline)
       {
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+        sendto_realops_flags(UMODE_ALL, L_ALL, 
            "Unauthorized server connection attempt from %s: No entry for "
            "servername %s", get_client_name(client_p, SHOW_IP), name);
       }
@@ -142,7 +142,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
       break;
 
     case -2:
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
            "Unauthorized server connection attempt from %s: Bad password "
            "for server %s", get_client_name(client_p, SHOW_IP), name);
 
@@ -152,7 +152,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
       break;
 
     case -3:
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
            "Unauthorized server connection attempt from %s: Invalid host "
            "for server %s", get_client_name(client_p, SHOW_IP), name);
 
@@ -163,7 +163,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
 
     /* servername is > HOSTLEN */
     case -4:
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "Invalid servername %s from %s",
 			   name, get_client_name(client_p, SHOW_IP));
 
@@ -186,7 +186,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
      * Definitely don't do that here. This is from an unregistered
      * connect - A1kmm.
      */
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "Attempt to re-introduce server %s from %s",
                          name, get_client_name(client_p, SHOW_IP));
     sendto_one(client_p, "ERROR :Server already exists.");
@@ -207,7 +207,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
     if (IsCapable(client_p, CAP_HUB))
     {
       ClearCap(client_p, CAP_LL);
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                "*** LazyLinks to a hub from a hub, that's a no-no.");
     }
     else
@@ -216,7 +216,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
 
       if (!client_p->localClient->serverMask)
       {
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "serverMask is full!");
+        sendto_realops_flags(UMODE_ALL, L_ALL,  "serverMask is full!");
         /* try and negotiate a non LL connect */
         ClearCap(client_p, CAP_LL);
       }
@@ -227,7 +227,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
     if (!IsCapable(client_p, CAP_HUB))
     {
       ClearCap(client_p, CAP_LL);
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                "*** LazyLinks to a leaf from a leaf, that's a no-no.");
     }
   } 
@@ -303,7 +303,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
       return;
 
     sendto_one(client_p, "ERROR :Server %s already exists", name);
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "Link %s cancelled, server %s already exists",
                          get_client_name(client_p, SHOW_IP), name);
     exit_client(client_p, &me, "Server Exists");
@@ -328,7 +328,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
      * for a while and servers to send stuff to the wrong place.
      */
     sendto_one(client_p,"ERROR :Nickname %s already exists!", name);
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 			   "Link %s cancelled: Server/nick collision on %s",
 		/* inpath */ get_client_name(client_p, SHOW_IP), name);
     exit_client(client_p, client_p, "Nick as Server");
@@ -337,7 +337,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
   if (strlen(name) > HOSTLEN)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ADMIN, 
                          "Link %s introduced server with invalid servername %s",
                          get_client_name(client_p, SHOW_IP), name);
     exit_client(client_p, &me, "Invalid servername introduced.");
@@ -410,7 +410,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
   if (!hlined || (IsCapable(client_p, CAP_LL) && !IsCapable(client_p, CAP_HUB)))
   {
     /* OOOPs nope can't HUB */
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Non-Hub link %s introduced %s.",
+    sendto_realops_flags(UMODE_ALL, L_ALL,  "Non-Hub link %s introduced %s.",
                          get_client_name(client_p, SHOW_IP), name);
     exit_client(source_p, &me, "No matching hub_mask.");
     return;
@@ -420,7 +420,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
   if (llined)
   {
     /* OOOPs nope can't HUB this leaf */
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "Link %s introduced leafed server %s.",
                          get_client_name(client_p, SHOW_IP), name);
       /* If it is new, we are probably misconfigured, so split the
@@ -490,7 +490,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
     if ((conf = bclient_p->serv->sconf) == NULL)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
 			   "Lost connect{} block for %s on %s. Closing",
                            get_client_name(client_p, SHOW_IP), name);
       exit_client(client_p, client_p, "Lost connect{} block");
@@ -544,7 +544,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   if ((target_p = hash_find_id(SID_SID)) != NULL)
   {
     sendto_one(client_p, "ERROR :SID %s already exists", SID_SID);
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "Link %s cancelled, SID %s already exists",
                          get_client_name(client_p, SHOW_IP), SID_SID);
     exit_client(client_p, &me, "Server Exists");
@@ -555,7 +555,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   if ((target_p = server_exists(SID_NAME)) != NULL)
   {
     sendto_one(client_p, "ERROR :Server %s already exists", SID_NAME);
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "Link %s cancelled, server %s already exists",   
                          get_client_name(client_p, SHOW_IP), SID_NAME);
     exit_client(client_p, &me, "Server Exists");
@@ -581,7 +581,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
      * for a while and servers to send stuff to the wrong place.
      */
     sendto_one(client_p, "ERROR :Invalid servername");
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "Link %s cancelled: servername name %s invalid",
 		         get_client_name(client_p, SHOW_IP), SID_NAME);
     exit_client(client_p, client_p, "Nick as Server");
@@ -654,7 +654,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   if (!hlined || (IsCapable(client_p, CAP_LL) && !IsCapable(client_p, CAP_HUB)))
   {
     /* OOOPs nope can't HUB */
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Non-Hub link %s introduced %s.",
+    sendto_realops_flags(UMODE_ALL, L_ALL,  "Non-Hub link %s introduced %s.",
                          get_client_name(client_p, SHOW_IP), SID_NAME);
     exit_client(source_p, &me, "No matching hub_mask.");
     return;
@@ -664,10 +664,10 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   if (llined)
   {
     /* OOOPs nope can't HUB this leaf */
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "Link %s introduced leafed server %s.",
                          get_client_name(client_p, SHOW_IP), SID_NAME);
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "Link %s introduced leafed server %s.",
                          client_p->name, SID_NAME);
     exit_client(client_p, &me, "Leafed Server.");
@@ -729,7 +729,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
     
     if ((conf = bclient_p->serv->sconf) == NULL)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "Lost connect{} block for %s on %s. Closing",
                            get_client_name(client_p, SHOW_IP), SID_NAME);
       exit_client(client_p, client_p, "Lost connect{} block");

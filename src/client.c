@@ -271,7 +271,7 @@ check_pings_list(dlink_list *list)
         aconf->hold = CurrentTime + 60;
         add_temp_line(conf);
 
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+        sendto_realops_flags(UMODE_ALL, L_ALL, 
                              "Idle time limit exceeded for %s - temp k-lining",
                              get_client_name(client_p, HIDE_IP));
         exit_client(client_p, &me, aconf->reason);
@@ -308,7 +308,7 @@ check_pings_list(dlink_list *list)
            */
           if (IsServer(client_p) || IsHandshake(client_p))
 	  {
-     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+     sendto_realops_flags(UMODE_ALL, L_ALL, 
         "No response from %s, closing link",
         get_client_name(client_p, SHOW_IP));
 	    
@@ -337,7 +337,7 @@ check_pings_list(dlink_list *list)
            * the PING, notify the opers so that they are aware of the problem.
            */
 	  SetPingWarning(client_p);
-          sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+          sendto_realops_flags(UMODE_ALL, L_ALL, 
 	                       "Warning, no response from %s in %d seconds (at %s)",
 	                       get_client_name(client_p, SHOW_IP), (CurrentTime - client_p->lasttime - ping), timestamp);
 	
@@ -413,7 +413,7 @@ check_conf_klines(void)
       if (aconf->status & CONF_EXEMPTDLINE)
         continue;
 
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
           "DLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
           aconf->reason, get_client_name(client_p, SHOW_IP));
       
@@ -427,13 +427,13 @@ check_conf_klines(void)
       if (IsExemptKline(client_p) ||
           IsExemptGline(client_p))
       {
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+        sendto_realops_flags(UMODE_ALL, L_ALL, 
                              "GLINE over-ruled for %s, client is %sline_exempt",
                              get_client_name(client_p, HIDE_IP), IsExemptKline(client_p) ? "k" : "g");
         continue;
       }
 
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
           "GLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
           aconf->reason, get_client_name(client_p, SHOW_IP));
 
@@ -449,13 +449,13 @@ check_conf_klines(void)
       /* if there is a returned struct AccessItem.. then kill it */
       if (IsExemptKline(client_p))
       {
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+        sendto_realops_flags(UMODE_ALL, L_ALL, 
                              "KLINE over-ruled for %s, client is kline_exempt",
                              get_client_name(client_p, HIDE_IP));
         continue;
       }
 
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, 
+      sendto_realops_flags(UMODE_ALL, L_ALL,  
           "KLINE %s@%s (%s) active for %s", aconf->user, aconf->host, 
           aconf->reason, get_client_name(client_p, SHOW_IP));
 
@@ -472,7 +472,7 @@ check_conf_klines(void)
                                         NULL, NULL, 0)) != NULL)
     {
       aconf = map_to_conf(conf);
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
           "XLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
           aconf->reason, get_client_name(client_p, SHOW_IP));
 
@@ -995,7 +995,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
       if (source_p->localClient->list_task != NULL)
         free_list_task(source_p->localClient->list_task, source_p);
 
-      sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL, "Client exiting: %s (%s@%s) [%s] [%s]",
+      sendto_realops_flags(UMODE_CCONN, L_ALL,  "Client exiting: %s (%s@%s) [%s] [%s]",
                            source_p->name, source_p->username, source_p->host, comment,
                            ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                            "255.255.255.255" : source_p->sockhost);
@@ -1081,7 +1081,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
 
     if (source_p->servptr == &me)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s was connected for %d seconds.  %lu/%lu sendK/recvK.",
                            source_p->name, (int)(CurrentTime - source_p->firsttime),
                            source_p->localClient->send.bytes >> 10,
@@ -1160,7 +1160,7 @@ dead_link_on_read(struct Client *client_p, int error)
     if (error == 0)
     {
       /* Admins get the real IP */
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
 			   "Server %s closed the connection",
 			   get_client_name(client_p, SHOW_IP));
 
@@ -1180,7 +1180,7 @@ dead_link_on_read(struct Client *client_p, int error)
 		   get_client_name(client_p, MASK_IP), current_error);
     }
 
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "%s had been connected for %d day%s, %2d:%02d:%02d",
 			 client_p->name, connected/86400,
 			 (connected/86400 == 1) ? "" : "s",
@@ -1212,7 +1212,7 @@ exit_aborted_clients(void)
 
     if (target_p == NULL)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "Warning: null client on abort_list!");
       dlinkDelete(ptr, &abort_list);
       free_dlink_node(ptr);
@@ -1447,7 +1447,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
     /* XXX - the format of this notice should eventually be changed
      * to either %s[%s@%s], or even better would be get_client_name() -bill
      */
-    sendto_gnotice_flags(UMODE_NCHANGE, L_ALL, me.name, &me, NULL, "Nick change: From %s to %s [%s@%s]",
+    sendto_realops_flags(UMODE_NCHANGE, L_ALL,  "Nick change: From %s to %s [%s@%s]",
                          source_p->name, nick, source_p->username, source_p->host);
     sendto_common_channels_local(source_p, 1, ":%s!%s@%s NICK :%s",
                                  source_p->name, source_p->username,

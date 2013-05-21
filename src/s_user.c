@@ -408,7 +408,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   {
     char tmpstr2[IRCD_BUFSIZE];
 
-    sendto_gnotice_flags(UMODE_REJ, L_ALL, me.name, &me, NULL, "Invalid username: %s (%s@%s)",
+    sendto_realops_flags(UMODE_REJ, L_ALL,  "Invalid username: %s (%s@%s)",
                          nick, source_p->username, source_p->host);
     ServerStats->is_ref++;
     ircsprintf(tmpstr2, "Invalid username [%s]", source_p->username);
@@ -439,7 +439,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
                   source_p->ip.ss_len, ipaddr,
                   HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
 
-  sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL,
+  sendto_realops_flags(UMODE_CCONN, L_ALL, 
                        "Client connecting: %s (%s@%s) [%s] {%s} [%s]",
                        nick, source_p->username, source_p->host,
                        ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
@@ -474,7 +474,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     Count.max_loc = Count.local;
 
     if (!(Count.max_loc % 10))
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "New Max Local Clients: %d",
+      sendto_realops_flags(UMODE_ALL, L_ALL,  "New Max Local Clients: %d",
                            Count.max_loc);
   }
 
@@ -544,7 +544,7 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
    */
   if (source_p->servptr == NULL)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "No server %s for user %s[%s@%s] from %s",
                          server, source_p->name, source_p->username,
                          source_p->host, source_p->from->name);
@@ -557,7 +557,7 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
 
   if ((target_p = source_p->servptr) && target_p->from != source_p->from)
   {
-    sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
                          "Bad User [%s] :%s USER %s@%s %s, != %s[%s]",
                          client_p->name, source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name,
@@ -920,7 +920,7 @@ change_simple_umode(va_list args)
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is setting God mode", source_p->name);
-      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
+      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,  tmp);
       oftc_log(tmp);
       source_p->umodestime = CurrentTime;
     }
@@ -964,7 +964,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
 
   if (IsServer(source_p))
   {
-     sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL, "*** Mode for User %s from %s",
+     sendto_realops_flags(UMODE_ALL, L_ADMIN,  "*** Mode for User %s from %s",
                           parv[1], source_p->name);
      return;
   }
@@ -1304,7 +1304,7 @@ check_xline(struct Client *source_p)
     else
       reason = "No Reason";
 
-    sendto_gnotice_flags(UMODE_REJ, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_REJ, L_ALL, 
                          "X-line Rejecting [%s] [%s], user %s [%s]",
                          source_p->info, reason,
                          get_client_name(source_p, HIDE_IP),
@@ -1365,7 +1365,7 @@ oper_up(struct Client *source_p, const char *name)
     source_p->umodes |= UMODE_ADMIN;
   if (!IsOperN(source_p))
     source_p->umodes &= ~UMODE_NCHANGE;
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s (%s@%s) is now an operator(%s)",
+  sendto_realops_flags(UMODE_ALL, L_ALL,  "%s (%s@%s) is now an operator(%s)",
                        source_p->name, source_p->username, source_p->host, name);
   send_umode_out(source_p, source_p, old);
   sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
