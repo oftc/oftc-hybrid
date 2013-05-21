@@ -75,11 +75,9 @@ static void ms_gnotice(struct Client *client_p,
   message = parv[3];
   
   if (EmptyString(message) || EmptyString(parv[1]))
-    { 
-      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-                 me.name, parv[0], "GNOTICE");
-      return;
-    }
-  
-  sendto_gnotice_flags(atoi(parv[2]), L_ALL, parv[1], source_p, client_p, "%s", message);
+  { 
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+        me.name, parv[0], "GNOTICE");
+    return;
+  }
 }

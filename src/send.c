@@ -1112,43 +1112,6 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
   }
 }
 
-void
-sendto_gnotice_flags(int flags, int level, char *origin,
-        struct Client *source_p, struct Client *client_p,
-        const char *pattern, ...)
-{
-  struct Client *target_p;
-  dlink_node *ptr;
-  va_list args;
-  char nbuf[IRCD_BUFSIZE*2];
-
-  va_start(args, pattern);
-  vsnprintf(nbuf, IRCD_BUFSIZE, pattern, args);
-  va_end(args);
-  
-  DLINK_FOREACH(ptr, oper_list.head)
-  {
-    target_p = ptr->data;
-
-    if(target_p->umodes & flags)
-    {
-      /* If we're sending it to opers and theyre an admin, skip.
-       * If we're sending it to admins, and theyre not, skip.
-       * Note that this wont make a difference at the other end because I
-       * cocked up when i first did gnotices
-       */
-      if (((level == L_ADMIN) && !IsAdmin(target_p)) ||
-              ((level == L_OPER) && IsAdmin(target_p)))
-        continue;
-
-      sendto_one(target_p, ":%s NOTICE %s :%s", origin, target_p->name, nbuf);
-    }
-  }
-  sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
-    ":%s GNOTICE %s %d :%s", me.name, origin, flags, nbuf);
-}
-
-
 /* ts_warn()
  *
  * inputs	- var args message
