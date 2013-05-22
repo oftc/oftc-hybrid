@@ -72,21 +72,11 @@ static void
 me_gnotice(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
   char *message;
-  int flags, level, message_param;
+  int flags, level;
 
-  if(parc < 4)
-  {
-    message_param = 3;
-    level = L_ALL;
-  }
-  else
-  {
-    message_param = 4;
-    level = atoi(parv[3]);
-  }
-
-  message = parv[message_param];
-  flags = atoi(parv[2]);
+  message = parv[3];
+  level = atoi(parv[2]);
+  flags = atoi(parv[1]);
 
   if(EmptyString(message))
   {
@@ -94,7 +84,7 @@ me_gnotice(struct Client *client_p, struct Client *source_p, int parc, char *par
     return;
   }
 
-  sendto_realops_flags(flags, level, "%s", message);
+  sendto_realops_remote(flags, level, message);
 }
 
 static void 

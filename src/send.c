@@ -1023,25 +1023,11 @@ sendto_anywhere(struct Client *to, struct Client *from,
     send_message_remote(send_to, from, buffer, len);
 }
 
-/* sendto_realops_flags()
- *
- * inputs	- flag types of messages to show to real opers
- *		- flag indicating opers/admins
- *		- var args input message
- * output	- NONE
- * side effects	- Send to *local* ops only but NOT +s nonopers.
- */
 void
-sendto_realops_flags(unsigned int flags, int level, const char *pattern, ...)
+sendto_realops_remote(unsigned int flags, int level, const char *message)
 {
   struct Client *client_p;
-  char nbuf[IRCD_BUFSIZE];
   dlink_node *ptr;
-  va_list args;
-
-  va_start(args, pattern);
-  vsnprintf(nbuf, IRCD_BUFSIZE, pattern, args);
-  va_end(args);
 
   DLINK_FOREACH(ptr, oper_list.head)
   {
@@ -1057,8 +1043,29 @@ sendto_realops_flags(unsigned int flags, int level, const char *pattern, ...)
 
     if (client_p->umodes & flags)
       sendto_one(client_p, ":%s NOTICE %s :*** Notice -- %s",
-          me.name, client_p->name, nbuf);
+          me.name, client_p->name, message);
   }
+}
+
+/* sendto_realops_flags()
+ *
+ * inputs	- flag types of messages to show to real opers
+ *		- flag indicating opers/admins
+ *		- var args input message
+ * output	- NONE
+ * side effects	- Send to *local* ops only but NOT +s nonopers.
+ */
+void
+sendto_realops_flags(unsigned int flags, int level, const char *pattern, ...)
+{
+  char nbuf[IRCD_BUFSIZE];
+  va_list args;
+
+  va_start(args, pattern);
+  vsnprintf(nbuf, IRCD_BUFSIZE, pattern, args);
+  va_end(args);
+
+  sendto_realops_remote(flags, level, nbuf);
 
   sendto_server(NULL, &me, NULL, CAP_ENCAP, NOCAPS, LL_ICLIENT,
       ":%s ENCAP * GNOTICE %d %d :%s", me.name, flags, level, nbuf);
