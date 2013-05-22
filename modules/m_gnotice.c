@@ -84,7 +84,7 @@ me_gnotice(struct Client *client_p, struct Client *source_p, int parc, char *par
     return;
   }
 
-  sendto_realops_remote(flags, level, message);
+  sendto_realops_remote(source_p, flags, level, message);
 }
 
 static void 

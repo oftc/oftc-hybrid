@@ -1024,7 +1024,8 @@ sendto_anywhere(struct Client *to, struct Client *from,
 }
 
 void
-sendto_realops_remote(unsigned int flags, int level, const char *message)
+sendto_realops_remote(struct Client *source_p, unsigned int flags, int level, 
+    const char *message)
 {
   struct Client *client_p;
   dlink_node *ptr;
@@ -1043,7 +1044,7 @@ sendto_realops_remote(unsigned int flags, int level, const char *message)
 
     if (client_p->umodes & flags)
       sendto_one(client_p, ":%s NOTICE %s :*** Notice -- %s",
-          me.name, client_p->name, message);
+          source_p->name, client_p->name, message);
   }
 }
 
@@ -1065,7 +1066,7 @@ sendto_realops_flags(unsigned int flags, int level, const char *pattern, ...)
   vsnprintf(nbuf, IRCD_BUFSIZE, pattern, args);
   va_end(args);
 
-  sendto_realops_remote(flags, level, nbuf);
+  sendto_realops_remote(&me, flags, level, nbuf);
 
   sendto_server(NULL, &me, NULL, CAP_ENCAP, NOCAPS, LL_ICLIENT,
       ":%s ENCAP * GNOTICE %d %d :%s", me.name, flags, level, nbuf);
