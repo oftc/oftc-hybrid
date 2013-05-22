@@ -34,7 +34,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-
+#include "send.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "hash.h"
@@ -44,10 +44,11 @@
 
 
 static void ms_gnotice(struct Client *, struct Client *, int, char **);
+static void me_gnotice(struct Client *, struct Client *, int, char **);
 
 struct Message gnotice_msgtab = {
   "GNOTICE", 0, 0, 3, 0, MFLG_SLOW | MFLG_UNREG, 0L,
-  {m_ignore, m_ignore, ms_gnotice, m_ignore, m_ignore, m_ignore}
+  {m_ignore, m_ignore, ms_gnotice, me_gnotice, m_ignore, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -67,8 +68,37 @@ _moddeinit(void)
 const char *_version = "$Revision: 334 $";
 #endif
 
-static void ms_gnotice(struct Client *client_p, 
-          struct Client *source_p, int parc, char *parv[])
+static void
+me_gnotice(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+{
+  char *message;
+  int flags, level, message_param;
+
+  if(parc < 4)
+  {
+    message_param = 3;
+    level = L_ALL;
+  }
+  else
+  {
+    message_param = 4;
+    level = atoi(parv[3]);
+  }
+
+  message = parv[message_param];
+  flags = atoi(parv[2]);
+
+  if(EmptyString(message))
+  {
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, parv[0], "GNOTICE");
+    return;
+  }
+
+  sendto_realops_flags(flags, level, "%s", message);
+}
+
+static void 
+ms_gnotice(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
   char* message;
   
