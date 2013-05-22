@@ -1043,7 +1043,7 @@ sendto_realops_remote(struct Client *source_p, unsigned int flags, int level,
       continue;
 
     if (client_p->umodes & flags)
-      sendto_one(client_p, ":%s NOTICE %s :*** Notice -- %s",
+      sendto_one(client_p, ":%s NOTICE %s :%s",
           source_p->name, client_p->name, message);
   }
 }
