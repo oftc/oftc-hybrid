@@ -1061,7 +1061,7 @@ sendto_realops_flags(unsigned int flags, int level, const char *pattern, ...)
   }
 
   sendto_server(NULL, &me, NULL, CAP_ENCAP, NOCAPS, LL_ICLIENT,
-      ":%s ENCAP * GNOTICE %d %d %s", me.name, flags, level, nbuf);
+      ":%s ENCAP * GNOTICE %d %d :%s", me.name, flags, level, nbuf);
 }
 
 /* sendto_wallops_flags()
