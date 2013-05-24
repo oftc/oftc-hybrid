@@ -68,6 +68,7 @@ AC_CHECK_FUNC([usleep],[AC_DEFINE([HAVE_USLEEP],[1],[Define to 1 if you have the
 AC_CHECK_FUNC([strlcat],[AC_DEFINE([HAVE_STRLCAT],[1],[Define to 1 if you have the strlcat() function.])])
 AC_CHECK_FUNC([strlcpy],[AC_DEFINE([HAVE_STRLCPY],[1],[Define to 1 if you have the strlcpy() function.])])
 AC_CHECK_FUNC([basename],[AC_DEFINE([HAVE_BASENAME],[1],[Define to 1 if you have the basename() function.])])
+AC_CHECK_FUNC([socketpair],[AC_DEFINE([HAVE_SOCKETPAIR],[1],[Define to 1 if you have the socketpair() function.])])
 
 # Argument processing.
 AX_ARG_ENABLE_IOLOOP_MECHANISM
