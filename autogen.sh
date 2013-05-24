@@ -4,6 +4,7 @@
 
 LIBTOOLIZE_FLAGS="--automake --ltdl"
 AUTOMAKE_FLAGS="--add-missing"
+ACLOCAL_FLAGS="-I m4 --install"
 
 ARGV0=$0
 ARGS="$@"

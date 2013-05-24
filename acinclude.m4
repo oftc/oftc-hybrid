@@ -20,12 +20,6 @@ AC_DEFUN([AX_CHECK_LIB_CRYPT],[
 	AC_SEARCH_LIBS(crypt, [crypt descrypt],,)
   AM_CONDITIONAL([HAVE_CRYPT],[test "$ac_cv_search_crypt" = "none required"])
 ])dnl }}}
-dnl {{{ ax_check_lib_openssl
-AC_DEFUN([AX_CHECK_LIB_OPENSSL],[
-  AC_CHECK_HEADER([openssl/sha.h],,[AC_MSG_ERROR([openssl header files not found])])
-  AC_CHECK_LIB([ssl],[SHA_Init],,[AC_MSG_ERROR([openssl library not found])])
-  AC_CHECK_LIB([crypto],[EVP_MD_CTX_init],,[AC_MSG_ERROR([openssl library not found])])
-])dnl }}}
 dnl {{{ ax_arg_enable_ioloop_mechanism (FIXME)
 AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
   dnl {{{ allow the user to specify desired mechanism
