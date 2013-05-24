@@ -5,8 +5,8 @@ if HAVE_CRYPT
 ircd_SOURCES+=crypt.c
 endif
 
-ircd_LDFLAGS=-export-dynamic
-AM_CPPFLAGS=$(LTDLINCL) -I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
+ircd_LDFLAGS=-export-dynamic $(OPENSSL_LDFLAGS)
+AM_CPPFLAGS=$(LTDLINCL) -I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre $(OPENSSL_INCLUDES)
 
 if USE_SHARED_MODULES
 ircd_LDADD=$(LIBLTDL)
@@ -14,5 +14,5 @@ ircd_DEPENDENCIES=$(LTDLDEPS)
 else
 ircd_LDADD=$(top_srcdir)/modules/libmodules.la
 endif
-ircd_LDADD+=$(top_srcdir)/lib/pcre/libpcre.a
+ircd_LDADD+=$(top_srcdir)/lib/pcre/libpcre.a $(OPENSSL_LIBS)
 AM_YFLAGS=-d

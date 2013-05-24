@@ -33,7 +33,15 @@ AC_PATH_PROG([TAIL],[tail])
 AM_PROG_CC_C_O
 
 # Checks for libraries.
-AX_CHECK_LIB_OPENSSL
+AX_CHECK_OPENSSL([AC_CHECK_LIB(crypto, RSA_free)
+        AS_IF([test "$ac_cv_lib_crypto_RSA_free" = "yes"],
+          [AC_CHECK_FUNCS(EVP_bf_cfb           \
+                          EVP_cast5_cfb        \
+                          EVP_idea_cfb         \
+                          EVP_rc5_32_12_16_cfb \
+                          EVP_des_ede3_cfb     \
+                          EVP_des_cfb)])], [AC_MSG_RESULT(no - OpenSSL support disabled)
+  cf_enable_openssl="no"])
 AX_CHECK_LIB_IPV4
 AX_CHECK_LIB_IPV6
 AX_CHECK_LIB_CRYPT
@@ -46,6 +54,8 @@ AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
 AC_C_BIGENDIAN
+
+AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for library functions.
 AC_CHECK_FUNC([snprintf],[AC_DEFINE([HAVE_SNPRINTF],[1],[Define to 1 if you have the snprintf() function.])])
