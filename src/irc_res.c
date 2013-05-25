@@ -65,12 +65,11 @@ typedef enum
 {
   REQ_IDLE,  /* We're doing not much at all */
   REQ_PTR,   /* Looking up a PTR */
-  REQ_A,     /* Looking up an A, possibly because AAAA failed */
+  REQ_A,     /* Looking up an A */
 #ifdef IPV6
   REQ_AAAA,  /* Looking up an AAAA */
 #endif
   REQ_CNAME, /* We got a CNAME in response, we better get a real answer next */
-  REQ_INT    /* ip6.arpa failed, falling back to ip6.int */
 } request_state;
 
 struct reslist 
@@ -464,7 +463,7 @@ do_query_name(struct DNSQuery *query, const char *name,
 #ifdef IPV6
     if (type == T_A)
       request->state = REQ_A;
-    else
+    else if(type == T_AAAA)
       request->state = REQ_AAAA;
 #else
     request->state = REQ_A;
@@ -502,13 +501,8 @@ do_query_number(struct DNSQuery *query, const struct irc_ssaddr *addr,
     struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)addr;
     cp = (const unsigned char *)&v6->sin6_addr.s6_addr;
 
-    if (request != NULL && request->state == REQ_INT)
-      intarpa = "int";
-    else
-      intarpa = "arpa";
-
     (void)sprintf(ipbuf, "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x."
-                  "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.ip6.%s.",
+                  "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.ip6.arpa.",
                   (unsigned int)(cp[15]&0xf), (unsigned int)(cp[15]>>4),
                   (unsigned int)(cp[14]&0xf), (unsigned int)(cp[14]>>4),
                   (unsigned int)(cp[13]&0xf), (unsigned int)(cp[13]>>4),
@@ -524,7 +518,7 @@ do_query_number(struct DNSQuery *query, const struct irc_ssaddr *addr,
                   (unsigned int)(cp[3]&0xf), (unsigned int)(cp[3]>>4),
                   (unsigned int)(cp[2]&0xf), (unsigned int)(cp[2]>>4),
                   (unsigned int)(cp[1]&0xf), (unsigned int)(cp[1]>>4),
-                  (unsigned int)(cp[0]&0xf), (unsigned int)(cp[0]>>4), intarpa);
+                  (unsigned int)(cp[0]&0xf), (unsigned int)(cp[0]>>4));
   }
 #endif
   if (request == NULL)
@@ -596,14 +590,11 @@ resend_query(struct reslist *request)
       do_query_number(NULL, &request->addr, request);
       break;
     case T_A:
+ #ifdef IPV6
+    case T_AAAA:
+#endif
       do_query_name(NULL, request->name, request, request->type);
       break;
-#ifdef IPV6
-    case T_AAAA:
-      /* didnt work, try A */
-      if (request->state == REQ_AAAA)
-        do_query_name(NULL, request->name, request, T_A);
-#endif
     default:
       break;
   }
@@ -818,46 +809,8 @@ res_readreply(fde_t *fd, void *data)
 
   if ((header->rcode != NO_ERRORS) || (header->ancount == 0))
   {
-    if (NXDOMAIN == header->rcode)
-    {
-      /* 
-       * If we havent already tried this, and we're looking up AAAA, try A
-       * now
-       */
-#ifdef IPV6
-      if (request->state == REQ_AAAA && request->type == T_AAAA)
-      {
-        request->timeout += 4;
-        resend_query(request);
-      }
-      else if (request->type == T_PTR && request->state != REQ_INT &&
-               request->addr.ss.ss_family == AF_INET6)
-      {
-        request->state = REQ_INT;
-        request->timeout += 4;
-        request->retries--;
-        resend_query(request);
-      }
-      else	/* It's NXDOMAIN but not IPV6 */
-#endif
-      {
-        /*
-         * If a bad error was returned, stop here and don't
-         * send any more (no retries granted).
-         */
-        (*request->query->callback)(request->query->ptr, NULL);
-        rem_request(request);
-      }
-    }
-    else	/* Some other error other than NXDOMAIN */
-    {
-      /*
-       * If a bad error was returned, stop here and don't
-       * send any more (no retries granted).
-       */
-      (*request->query->callback)(request->query->ptr, NULL);
-      rem_request(request);
-    }
+    (*request->query->callback)(request->query->ptr, NULL);
+    rem_request(request);
     return;
   }
   /*
