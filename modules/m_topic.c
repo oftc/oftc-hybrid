@@ -98,8 +98,6 @@ m_topic(struct Client *client_p, struct Client *source_p,
 
   if (MyClient(source_p) && !IsFloodDone(source_p))
     flood_endgrace(source_p);
-
->>>>>> fe4c458... - Removed lazylink leftovers
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                from, to, parv[1]);
