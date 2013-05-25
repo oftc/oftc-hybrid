@@ -100,7 +100,7 @@ ms_cburst(struct Client *client_p, struct Client *source_p,
     key = "";
 
 #ifdef DEBUGLL
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "CBURST called by %s for %s %s %s",
+  sendto_realops_flags(UMODE_ALL, L_ALL, NULL, "CBURST called by %s for %s %s %s",
                        client_p->name, name, nick ? nick : "", key ? key : "");
 #endif
   if ((chptr = hash_find_channel(name)) == NULL)
@@ -109,7 +109,7 @@ ms_cburst(struct Client *client_p, struct Client *source_p,
     {
       if (!check_channel_name(name, 0))
       {
-        sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
+        sendto_realops_flags(UMODE_DEBUG, L_ALL, NULL,
                              "*** Too long or invalid channel name from %s: %s",
                              client_p->name, name);
         return;
@@ -138,7 +138,7 @@ ms_cburst(struct Client *client_p, struct Client *source_p,
   }
   else
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, NULL,
                          "*** CBURST request received from non LL capable server! [%s]",
                          client_p->name);
     }

@@ -118,7 +118,7 @@ send_message(struct Client *to, char *buf, int len)
   if (dbuf_length(&to->localClient->buf_sendq) + len > get_sendq(to))
   {
     if (IsServer(to))
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "Max SendQ limit exceeded for %s: %lu > %lu",
                            get_client_name(to, HIDE_IP),
                            (unsigned long)(dbuf_length(&to->localClient->buf_sendq) + len),
@@ -161,7 +161,7 @@ send_message_remote(struct Client *to, struct Client *from,
 {
   if (!MyConnect(to))
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "server send message to %s [%s] dropped from %s(Not local server)",
 			 to->name, to->from->name, from->name);
     return;
@@ -181,13 +181,13 @@ send_message_remote(struct Client *to, struct Client *from,
   {
     if (IsServer(from))
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "Send message to %s [%s] dropped from %s(Fake Dir)",
                            to->name, to->from->name, from->name);
       return;
     }
 
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "Ghosted: %s[%s@%s] from %s[%s@%s] (%s)",
                          to->name, to->username, to->host,
                          from->name, from->username, from->host,
@@ -1023,6 +1023,31 @@ sendto_anywhere(struct Client *to, struct Client *from,
     send_message_remote(send_to, from, buffer, len);
 }
 
+void
+sendto_realops_remote(struct Client *source_p, unsigned int flags, int level, 
+    const char *message)
+{
+  struct Client *client_p;
+  dlink_node *ptr;
+
+  DLINK_FOREACH(ptr, oper_list.head)
+  {
+    client_p = ptr->data;
+    assert(client_p->umodes & UMODE_OPER);
+
+    /* If we're sending it to opers and theyre an admin, skip.
+     * If we're sending it to admins, and theyre not, skip.
+     */
+    if (((level == L_ADMIN) && !IsAdmin(client_p)) ||
+        ((level == L_OPER) && IsAdmin(client_p)))
+      continue;
+
+    if (client_p->umodes & flags)
+      sendto_one(client_p, ":%s NOTICE %s :%s",
+          source_p->name, client_p->name, message);
+  }
+}
+
 /* sendto_realops_flags()
  *
  * inputs	- flag types of messages to show to real opers
@@ -1034,31 +1059,17 @@ sendto_anywhere(struct Client *to, struct Client *from,
 void
 sendto_realops_flags(unsigned int flags, int level, const char *pattern, ...)
 {
-  struct Client *client_p;
   char nbuf[IRCD_BUFSIZE];
-  dlink_node *ptr;
   va_list args;
 
   va_start(args, pattern);
   vsnprintf(nbuf, IRCD_BUFSIZE, pattern, args);
   va_end(args);
 
-  DLINK_FOREACH(ptr, oper_list.head)
-  {
-    client_p = ptr->data;
-    assert(client_p->umodes & UMODE_OPER);
+  sendto_realops_remote(&me, flags, level, nbuf);
 
-    /* If we're sending it to opers and theyre an admin, skip.
-     * If we're sending it to admins, and theyre not, skip.
-     */
-    if (((level == L_ADMIN) && !IsAdmin(client_p)) ||
-	((level == L_OPER) && IsAdmin(client_p)))
-      continue;
-
-    if (client_p->umodes & flags)
-      sendto_one(client_p, ":%s NOTICE %s :*** Notice -- %s",
-                 me.name, client_p->name, nbuf);
-  }
+  sendto_server(NULL, &me, NULL, CAP_ENCAP, NOCAPS, LL_ICLIENT,
+      ":%s ENCAP * GNOTICE %d %d :%s", me.name, flags, level, nbuf);
 }
 
 /* sendto_wallops_flags()
@@ -1112,43 +1123,6 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
   }
 }
 
-void
-sendto_gnotice_flags(int flags, int level, char *origin,
-        struct Client *source_p, struct Client *client_p,
-        const char *pattern, ...)
-{
-  struct Client *target_p;
-  dlink_node *ptr;
-  va_list args;
-  char nbuf[IRCD_BUFSIZE*2];
-
-  va_start(args, pattern);
-  vsnprintf(nbuf, IRCD_BUFSIZE, pattern, args);
-  va_end(args);
-  
-  DLINK_FOREACH(ptr, oper_list.head)
-  {
-    target_p = ptr->data;
-
-    if(target_p->umodes & flags)
-    {
-      /* If we're sending it to opers and theyre an admin, skip.
-       * If we're sending it to admins, and theyre not, skip.
-       * Note that this wont make a difference at the other end because I
-       * cocked up when i first did gnotices
-       */
-      if (((level == L_ADMIN) && !IsAdmin(target_p)) ||
-              ((level == L_OPER) && IsAdmin(target_p)))
-        continue;
-
-      sendto_one(target_p, ":%s NOTICE %s :%s", origin, target_p->name, nbuf);
-    }
-  }
-  sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
-    ":%s GNOTICE %s %d :%s", me.name, origin, flags, nbuf);
-}
-
-
 /* ts_warn()
  *
  * inputs	- var args message
@@ -1186,7 +1160,7 @@ ts_warn(const char *pattern, ...)
   vsprintf_irc(buffer, pattern, args);
   va_end(args);
 
-  sendto_gnotice_flags(UMODE_ALL, L_ALL,  me.name, &me, NULL, "%s", buffer);
+  sendto_realops_flags(UMODE_ALL, L_ALL,  "%s", buffer);
   ilog(L_CRIT, "%s", buffer);
 }
 

@@ -125,7 +125,7 @@ ms_lljoin(struct Client *client_p, struct Client *source_p,
 
   if (!check_channel_name(chname, 0))
   {
-    sendto_gnotice_flags(UMODE_DEBUG, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
                          "*** Too long or invalid channel name from %s: %s",
                          target_p->name, chname);
     return;

@@ -180,7 +180,7 @@ quote_autoconnall(struct Client *source_p, int newval)
 {
   if (newval >= 0)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s has changed AUTOCONNALL to %i",
+    sendto_realops_flags(UMODE_ALL, L_ALL,  "%s has changed AUTOCONNALL to %i",
                          source_p->name, newval);
 
     GlobalSetOptions.autoconn = newval;
@@ -199,7 +199,7 @@ quote_floodcount(struct Client *source_p, int newval)
   if (newval >= 0)
   {
     GlobalSetOptions.floodcount = newval;
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "%s has changed FLOODCOUNT to %i", source_p->name,
                          GlobalSetOptions.floodcount);
   }
@@ -223,7 +223,7 @@ quote_identtimeout(struct Client *source_p, int newval)
 
   if (newval > 0)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 		         "%s has changed IDENTTIMEOUT to %d",
 			 get_oper_name(source_p), newval);
     GlobalSetOptions.ident_timeout = newval;
@@ -241,14 +241,14 @@ quote_idletime(struct Client *source_p, int newval)
   {
     if (newval == 0)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s has disabled idletime checking",
                            source_p->name);
       GlobalSetOptions.idletime = 0;
     }
     else
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s has changed IDLETIME to %i",
                            source_p->name, newval);
       GlobalSetOptions.idletime = (newval*60);
@@ -283,7 +283,7 @@ quote_log( struct Client *source_p, int newval )
 
     set_log_level(newval);
     log_level_as_string = get_log_level_as_string(newval);
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s has changed LOG level to %i (%s)",
+    sendto_realops_flags(UMODE_ALL, L_ALL,  "%s has changed LOG level to %i (%s)",
                          source_p->name, newval, log_level_as_string);
   }
   else
@@ -320,7 +320,7 @@ quote_max (struct Client *source_p, int newval)
 
     ServerInfo.max_clients = newval;
 
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
 	"%s!%s@%s set new MAXCLIENTS to %d (%d current)",
 	source_p->name, source_p->username, source_p->host,
 	ServerInfo.max_clients, Count.local);
@@ -354,7 +354,7 @@ quote_spamnum( struct Client *source_p, int newval )
   {
     if (newval == 0)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s has disabled ANTI_SPAMBOT", source_p->name);
       GlobalSetOptions.spam_num = newval;
       return;
@@ -362,7 +362,7 @@ quote_spamnum( struct Client *source_p, int newval )
 
     GlobalSetOptions.spam_num = IRCD_MAX(newval, MIN_SPAM_NUM);
 
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s has changed SPAMNUM to %i",
+    sendto_realops_flags(UMODE_ALL, L_ALL,  "%s has changed SPAMNUM to %i",
 		source_p->name, GlobalSetOptions.spam_num);
   }
   else
@@ -378,7 +378,7 @@ quote_spamtime( struct Client *source_p, int newval )
   if (newval > 0)
   {
     GlobalSetOptions.spam_time = IRCD_MAX(newval, MIN_SPAM_TIME);
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s has changed SPAMTIME to %i",
+    sendto_realops_flags(UMODE_ALL, L_ALL,  "%s has changed SPAMTIME to %i",
 		source_p->name, GlobalSetOptions.spam_time);
   }
   else
@@ -423,7 +423,7 @@ quote_splitmode(struct Client *source_p, char *charval)
     /* OFF */
     if (newval == 0)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s is disabling splitmode",
                            get_oper_name(source_p));
 
@@ -435,7 +435,7 @@ quote_splitmode(struct Client *source_p, char *charval)
     /* ON */
     else if (newval == 1)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s is enabling and activating splitmode",
 	                   get_oper_name(source_p));
 		 
@@ -448,7 +448,7 @@ quote_splitmode(struct Client *source_p, char *charval)
     /* AUTO */
     else if (newval == 2)
     {
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s is enabling automatic splitmode",
 			   get_oper_name(source_p));
 
@@ -472,7 +472,7 @@ quote_splitnum(struct Client *source_p, int newval)
 {
   if (newval >= 0)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "%s has changed SPLITNUM to %i", 
 			 source_p->name, newval);
     split_servers = newval;
@@ -491,7 +491,7 @@ quote_splitusers(struct Client *source_p, int newval)
 {
   if (newval >= 0)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "%s has changed SPLITUSERS to %i", 
 			 source_p->name, newval);
     split_users = newval;

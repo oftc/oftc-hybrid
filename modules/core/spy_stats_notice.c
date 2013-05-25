@@ -68,18 +68,18 @@ show_stats(va_list args)
   if (statchar == 'L' || statchar == 'l')
   {
     if (parc > 2 && *parv[2])
-      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_SPY, L_ALL, 
                            "STATS %c requested by %s (%s@%s) [%s] on %s",
 			   statchar, source_p->name, source_p->username,
 			   source_p->host, source_p->servptr->name, parv[2]);
     else
-      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_SPY, L_ALL, 
                            "STATS %c requested by %s (%s@%s) [%s]",
                            statchar, source_p->name, source_p->username,
 			   source_p->host, source_p->servptr->name);
   }
   else if (statchar != 'p')
-    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_SPY, L_ALL, 
                          "STATS %c requested by %s (%s@%s) [%s]",
                          statchar, source_p->name, source_p->username,
                          source_p->host, source_p->servptr->name);

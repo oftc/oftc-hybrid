@@ -212,7 +212,7 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
 
     chptr = make_channel(newch);
     if(MyClient(target_p))
-      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+      sendto_realops_flags(UMODE_SPY, L_ALL, 
           "Channel %s created by %s!%s@%s", chptr->chname, target_p->name,
           target_p->username, target_p->host);
 

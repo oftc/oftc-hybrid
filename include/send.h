@@ -77,6 +77,7 @@ extern void sendto_match_servs(struct Client *, const char *, int,
                                const char *, ...) AFP(4, 5);
 extern void sendto_realops_flags(unsigned int, int,
                                  const char *, ...) AFP(3, 4);
+extern void sendto_realops_remote(struct Client *, unsigned int, int, const char *);
 extern void sendto_wallops_flags(unsigned int, struct Client *,
                                  const char *, ...) AFP(3, 4);
 extern void ts_warn(const char *, ...) AFP(1, 2);
@@ -87,8 +88,6 @@ extern void kill_client(struct Client *, struct Client *,
                         const char *, ... ) AFP(3, 4);
 extern void kill_client_ll_serv_butone(struct Client *, struct Client *,
                                        const char *, ...) AFP(3, 4);
-
-extern  void sendto_gnotice_flags(int, int, char *, struct Client *, struct Client *, const char *, ...);
 
 #define ALL_MEMBERS  0
 #define NON_CHANOPS  1

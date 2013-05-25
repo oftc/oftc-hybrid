@@ -756,7 +756,7 @@ serverinfo_hub: HUB '=' TBOOL ';'
       /* Don't become a hub if we have a lazylink active. */
       if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
       {
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+        sendto_realops_flags(UMODE_ALL, L_ALL, 
                              "Ignoring config file line hub=yes; "
                              "due to active LazyLink (%s)", uplink->name);
       }
@@ -781,7 +781,7 @@ serverinfo_hub: HUB '=' TBOOL ';'
         const struct Client *acptr = ptr->data;
         if (MyConnect(acptr) && IsCapable(acptr, CAP_LL))
         {
-          sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+          sendto_realops_flags(UMODE_ALL, L_ALL,
                                "Ignoring config file line hub=no; "
                                "due to active LazyLink (%s)",
                                acptr->name);

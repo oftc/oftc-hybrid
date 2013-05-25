@@ -186,7 +186,7 @@ cryptlink_auth(struct Client *client_p, struct Client *source_p,
 
   if (verify_private_key() == -1)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ADMIN, 
       "verify_private_key() returned -1.  Check log for information.");
   }
 
@@ -358,7 +358,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
       if (IsCapable(client_p, CAP_HUB))
       {
           ClearCap(client_p,CAP_LL);
-          sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+          sendto_realops_flags(UMODE_ALL, L_ALL, 
                "*** LazyLinks to a hub from a hub, that's a no-no.");
       }
       else
@@ -367,7 +367,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
 
           if(!client_p->localClient->serverMask)
           {
-              sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+              sendto_realops_flags(UMODE_ALL, L_ALL, 
                                    "serverMask is full!");
               /* try and negotiate a non LL connect */
               ClearCap(client_p,CAP_LL);
@@ -379,7 +379,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
       if (!IsCapable(client_p, CAP_HUB))
       {
         ClearCap(client_p,CAP_LL);
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+        sendto_realops_flags(UMODE_ALL, L_ALL, 
           "*** LazyLinks to a leaf from a leaf, that's a no-no.");
       }
   }
@@ -501,7 +501,7 @@ parse_cryptserv_args(struct Client *client_p, char *parv[],
 
   if (verify_private_key() == -1)
   {
-    sendto_gnotice_flags(UMODE_ALL, L_ADMIN, me.name, &me, NULL,
+    sendto_realops_flags(UMODE_ALL, L_ADMIN, 
       "verify_private_key() returned -1.  Check log for information.");
   }
 
