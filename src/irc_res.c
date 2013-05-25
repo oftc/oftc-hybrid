@@ -483,9 +483,6 @@ do_query_number(struct DNSQuery *query, const struct irc_ssaddr *addr,
 {
   char ipbuf[128];
   const unsigned char *cp;
-#ifdef IPV6
-  const char *intarpa;
-#endif
   if (addr->ss.ss_family == AF_INET)
   {
     struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
