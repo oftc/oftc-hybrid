@@ -537,3 +537,5 @@ bogus_host(char *host)
 
   return(!dots || length > HOSTLEN);
 }
+
+#endif

@@ -617,6 +617,7 @@ introduce_client(struct Client *client_p, struct Client *source_p)
         continue;
 
     if (IsCapable(server, CAP_TS6) && HasID(source_p))
+    {
       sendto_one(server, ":%s UID %s %d %lu %s %s %s %s %s :%s",
                  source_p->servptr->id,
                  source_p->name, source_p->hopcount+1,
@@ -624,7 +625,9 @@ introduce_client(struct Client *client_p, struct Client *source_p)
                  ubuf, source_p->username, source_p->host,
                  (MyClient(source_p) && IsIPSpoof(source_p)) ?
                  "0" : source_p->sockhost, source_p->id, source_p->info);
+    }
     else
+    {
       sendto_one(server, "NICK %s %d %lu %s %s %s %s :%s",
                  source_p->name, source_p->hopcount+1,
                  (unsigned long)source_p->tsinfo,
@@ -637,39 +640,7 @@ introduce_client(struct Client *client_p, struct Client *source_p)
       char buf[SHA_DIGEST_LENGTH*2+1];
 
       base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
-      sendto_one(uplink, "CERTFP %s %s", source_p->name, buf);
-    }
-  }
-  else
-  {
-    DLINK_FOREACH(server_node, serv_list.head)
-    {
-      struct Client *server = server_node->data;
-
-      if (server == client_p)
-        continue;
-
-      if (IsCapable(server, CAP_TS6) && HasID(source_p))
-        sendto_one(server, ":%s UID %s %d %lu %s %s %s %s %s :%s",
-                   source_p->servptr->id,
-                   source_p->name, source_p->hopcount+1,
-                   (unsigned long)source_p->tsinfo,
-                   ubuf, source_p->username, source_p->host,
-                   (MyClient(source_p) && IsIPSpoof(source_p)) ?
-                   "0" : source_p->sockhost, source_p->id, source_p->info);
-      else
-        sendto_one(server, "NICK %s %d %lu %s %s %s %s :%s",
-                   source_p->name, source_p->hopcount+1,
-                   (unsigned long)source_p->tsinfo,
-                   ubuf, source_p->username, source_p->host,
-                   source_p->servptr->name, source_p->info);
-      if(!EmptyString(source_p->certfp))
-      {
-        char buf[SHA_DIGEST_LENGTH*2+1];
-
-        base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
-        sendto_one(server, "CERTFP %s %s", source_p->name, buf);
-      }
+      sendto_one(server, "CERTFP %s %s", source_p->name, buf);
     }
   }
 }

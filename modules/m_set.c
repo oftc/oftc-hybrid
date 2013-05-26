@@ -174,7 +174,7 @@ quote_autoconn(struct Client *source_p, const char *arg, int newval)
 
   if (arg != NULL)
   {
-    struct ConfItem *conf = find_exact_name_conf(SERVER_TYPE, arg, NULL, NULL);
+    struct ConfItem *conf = find_exact_name_conf(SERVER_TYPE, arg, NULL, NULL, NULL);
 
     if (conf != NULL)
     {

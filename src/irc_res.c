@@ -561,7 +561,7 @@ resend_query(struct reslist *request)
  #ifdef IPV6
     case T_AAAA:
 #endif
-      do_query_name(NULL, request->name, request, request->type);
+      do_query_name(NULL, request->callback_ctx, request->name, request, request->type);
       break;
     default:
       break;
@@ -775,7 +775,7 @@ res_readreply(fde_t *fd, void *data)
 
   if ((header->rcode != NO_ERRORS) || (header->ancount == 0))
   {
-    (*request->query->callback)(request->query->ptr, NULL);
+    (*request->callback)(request->callback_ctx, NULL, NULL);
     rem_request(request);
     return;
   }

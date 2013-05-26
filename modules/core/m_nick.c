@@ -352,14 +352,8 @@ ms_nick(struct Client *client_p, struct Client *source_p,
 
     if (check_clean_nick(client_p, source_p, parv[1], server_p) ||
         check_clean_user(client_p, parv[1], parv[5], server_p) ||
-	check_clean_host(client_p, parv[1], parv[6], server_p))
+        check_clean_host(client_p, parv[1], parv[6], server_p))
       return;
-
-    /* check the length of the clients gecos */
-    if (strlen(parv[8]) > REALLEN)
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-			   "Long realname from server %s for %s",
-			   nserver, nnick);
 
     if (IsServer(source_p))
       newts = atol(parv[3]);

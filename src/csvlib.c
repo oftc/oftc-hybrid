@@ -123,6 +123,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
           aconf = map_to_conf(make_conf_item(RKLINE_TYPE));
 
           aconf->regexuser = exp_user;
+          aconf->regexhost = exp_host;
           DupString(aconf->user, user_field);
           DupString(aconf->host, host_field);
 
@@ -130,40 +131,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
             DupString(aconf->reason, reason_field);
           else
             DupString(aconf->reason, "No reason");
-          aconf->regexhost = exp_host;
-#endif
-    case DLINE_TYPE:
-      parse_csv_line(line, &host_field, &reason_field, NULL);
-
-      if (host_field && parse_netmask(host_field, NULL, NULL) != HM_HOST)
-      {
-        aconf = map_to_conf(make_conf_item(DLINE_TYPE));
-        DupString(aconf->host, host_field);
-
-        if (reason_field != NULL)
-          DupString(aconf->reason, reason_field);
-        else
-          DupString(aconf->reason, "No reason");
-        add_conf_by_address(CONF_DLINE, aconf);
-      }
-
-      break;
-
-    case XLINE_TYPE:
-      parse_csv_line(line, &name_field, &reason_field, &oper_reason, NULL);
-      conf = make_conf_item(XLINE_TYPE);
-      match_item = (struct MatchItem *)map_to_conf(conf);
-      if (name_field != NULL)
-	DupString(conf->name, name_field);
-      if (reason_field != NULL)
-	DupString(match_item->reason, reason_field);
-      break;
-#ifdef HAVE_LIBPCRE
-    case RXLINE_TYPE:
-    {
-      const char *errptr = NULL;
-      pcre *exp_p = NULL;
-
+ 
           if (oper_reason != NULL)
             DupString(aconf->oper_reason, oper_reason);
 
@@ -174,23 +142,27 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
           }
         }
         break;
-
+#endif
       case DLINE_TYPE:
         parse_csv_line(line, &host_field, &reason_field, &temp, &temp, &temp, 
             &temp, &duration_field, NULL);
-        conf = make_conf_item(DLINE_TYPE);
-        aconf = (struct AccessItem *)map_to_conf(conf);
-        if (host_field != NULL)
-          DupString(aconf->host, host_field);
-        if (reason_field != NULL)
-          DupString(aconf->reason, reason_field);
-        if(duration_field != NULL)
+        if (host_field != NULL && parse_netmask(host_field, NULL, NULL) != HM_HOST)
         {
-          aconf->hold = atoi(duration_field);
-          add_temp_line(conf);
+          conf = make_conf_item(DLINE_TYPE);
+          aconf = map_to_conf(conf);
+          DupString(aconf->host, host_field);
+
+          if (reason_field != NULL)
+            DupString(aconf->reason, reason_field);
+          if(duration_field != NULL)
+          {
+            aconf->hold = atoi(duration_field);
+            add_temp_line(conf);
+          }
+          else
+            add_conf_by_address(CONF_DLINE, aconf);
         }
-        else
-          conf_add_d_conf(aconf);
+
         break;
 
       case XLINE_TYPE:
@@ -210,6 +182,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
         }
         break;
 
+#ifdef HAVE_LIBPCRE
       case RXLINE_TYPE:
         {
           const char *errptr = NULL;
@@ -245,6 +218,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
           }
         }
         break;
+#endif
 
       case CRESV_TYPE:
         parse_csv_line(line, &name_field, &reason_field, &duration_field, NULL);

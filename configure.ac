@@ -4,7 +4,7 @@
 AC_PREREQ(2.64)
 AC_INIT([oftc-hybrid],[1.7.0-alpha1])
 AM_INIT_AUTOMAKE
-AC_CONFIG_HEADERS([include/setup.h])
+AC_CONFIG_HEADERS([include/config.h])
 AM_MAINTAINER_MODE
 
 AC_USE_SYSTEM_EXTENSIONS

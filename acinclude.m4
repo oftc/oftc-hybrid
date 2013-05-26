@@ -254,3 +254,11 @@ AC_DEFUN([AC_DEFINE_DIR], [
   test "$exec_prefix_NONE" && exec_prefix=NONE
 ])dnl }}}
 ]) dnl }}}
+
+dnl {{{ ax_Arg_with_services_name
+  AC_DEFUN([AX_ARG_WITH_SERVICS_NAME],[
+      AC_ARG_WITH([services-name],[AC_HELP_STRING([--with-services-name=SERVICES_NAME],[Set the name of your
+          services server])],[services_name="$withval"],[services_name="services.oftc.net"])
+      AC_DEFINE_UNQUOTED(SERVICES_NAME,"$services_name",[Name of the services
+        server.])
+      ]) dnl }}}

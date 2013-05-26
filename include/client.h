@@ -107,7 +107,6 @@ struct Client
   time_t            tsinfo;     /* TS on the nick, SVINFO on server */
   time_t            umodestime; /* Time client set umode +S */
   unsigned long	    connect_id; /* unique connection ID */
-  unsigned int      umodes;     /* opers, normal users subset */
   uint64_t          flags;      /* client flags */
 
   unsigned int      umodes;     /* opers, normal users subset */
@@ -157,9 +156,6 @@ struct Client
                                                 socket ip address as string */
   char              realhost[HOSTLEN];
 
-  dlink_list        channel;   /* chain of channel pointer blocks */
-
-  struct LocalUser *localClient;
   struct irc_ssaddr ip;
   int 		          aftype;	/* Makes life easier for DNS res in IPV6 */
   char              certfp[SHA_DIGEST_LENGTH];
@@ -251,7 +247,6 @@ struct LocalUser
    */
   int allow_read;	/* how many we're allowed to read in this second */
   int sent_parsed;      /* how many messages we've parsed in this second */
-  time_t last_knock;    /* time of last knock */
   unsigned long random_ping;
 
   char*          response;  /* expected response from client */

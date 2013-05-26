@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"

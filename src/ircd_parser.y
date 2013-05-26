@@ -1127,7 +1127,7 @@ oper_user: USER '=' QSTRING ';'
 
 oper_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     char tmp[SHA_DIGEST_LENGTH];
     
@@ -1303,7 +1303,7 @@ oper_umodes_item:  T_BOTS
     yy_aconf->modes |= UMODE_LOCOPS;
 } | T_GOD
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_GOD;
 };
 
@@ -1751,7 +1751,7 @@ class_number_per_cidr: NUMBER_PER_CIDR '=' NUMBER ';'
 
 class_reject_message: REJECT_MESSAGE '=' QSTRING ';'
 {
-  if (ypass == 1)
+  if (conf_parser_ctx.pass == 1)
   {
     MyFree(yy_class->reject_message);
     DupString(yy_class->reject_message, yylval.string);
@@ -1996,7 +1996,7 @@ auth_passwd: PASSWORD '=' QSTRING ';'
 
 auth_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     char tmp[SHA_DIGEST_LENGTH];
 
@@ -3157,7 +3157,7 @@ exempt_ip: IP '=' QSTRING ';'
 
 exempt_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
 {
-  if (ypass == 2)
+  if (conf_parser_ctx.pass == 2)
   {
     char tmp[SHA_DIGEST_LENGTH];
 

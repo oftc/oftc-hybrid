@@ -845,7 +845,7 @@ check_client(va_list args)
       sendto_realops_flags(UMODE_FULL, L_ALL, 
           full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
       ilog(L_INFO, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
-      ServerStats->is_ref++;
+      ServerStats.is_ref++;
       exit_client(source_p, &me, reject_reason);
       bad = TRUE;
       break;
@@ -854,7 +854,8 @@ check_client(va_list args)
                            "Too many on IP for %s (%s). (generic too_many)",
          get_client_name(source_p, SHOW_IP),
          source_p->sockhost);
-      ilog(L_INFO,"Too many connections on IP from %s.",
+      ilog(L_INFO, "Too many connections on IP from %s.",
+          get_client_name(source_p, SHOW_IP));
       exit_client(source_p, &me, reject_reason);
       break;
 
@@ -874,6 +875,7 @@ check_client(va_list args)
       ++ServerStats.is_ref;
       /* jdc - lists server name & port connections are on */
       /*       a purely cosmetical change */
+      sendto_realops_flags(UMODE_FULL, L_ALL, 
 			   "Unauthorized client connection from %s [%s] on [%s/%u].",
 			   get_client_name(source_p, SHOW_IP),
 			   source_p->sockhost,

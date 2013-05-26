@@ -81,6 +81,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "ircd_defs.h"
 #include "irc_res.h"
 #include "irc_reslib.h"

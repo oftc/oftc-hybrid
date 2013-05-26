@@ -40,7 +40,7 @@
 #include "s_serv.h"
 #include "s_log.h"
 #include "sprintf_irc.h"
-
+#include "common.h"
 
 static void m_kick(struct Client *, struct Client *, int, char *[]);
 

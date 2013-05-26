@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"

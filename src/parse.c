@@ -280,7 +280,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
   {
     mptr = NULL;
     numeric = ch;
-    paramcount = MAXPARA;
     ++ServerStats.is_num;
     s = ch + 3;  /* I know this is ' ' from above if            */
     *s++ = '\0'; /* blow away the ' ', and point s to next part */
