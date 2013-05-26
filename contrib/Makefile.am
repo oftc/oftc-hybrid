@@ -1,4 +1,3 @@
-AUTOMAKE_OPTIONS = foreign
 MODULE_FLAGS = -module -avoid-version
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
