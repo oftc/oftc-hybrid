@@ -155,8 +155,6 @@ struct Client
                                                 socket ip address as string */
   char              realhost[HOSTLEN];
 
-  struct irc_ssaddr ip;
-  int 		          aftype;	/* Makes life easier for DNS res in IPV6 */
   char              certfp[SHA_DIGEST_LENGTH];
 };
 

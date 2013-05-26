@@ -120,8 +120,8 @@ o) The PCRE library has been removed from the ircd sources. ./configure will
 o) Various resolver improvements and fixes
 o) Implemented GUNGLINE (global ungline)
 o) Completely rewrote build system. We're now using automake and libtool
-o) Added support for SHA-256/512 encrypted passwords to mkpasswd. Wether
-   passwords hashed using these alogorithms will work depends on the system's
+o) Added support for SHA-256/512 encrypted passwords to mkpasswd. Whether
+   passwords hashed using these algorithms will work depends on the system's
    crypt() implementation. For example, SHA-256/512 is available in glibc since
    version 2.7.
 o) Added ssl_server_protocol configuration option to servinfo{}.
@@ -174,6 +174,7 @@ o) "STATS y|Y" now shows whether a class is active or disabled
 o) Added ircd-brazilian_pt.lang language file
 o) Misc. ACCEPT fixes. E.g. don't remove an accept record if a client is
    changing between equivalent nicknames like 'nick' and 'NiCk'.
+o) Minor resolv.conf parser fixes.  Added missing support for ';' comments
 o) Fixed core on MODRESTART
 
 
