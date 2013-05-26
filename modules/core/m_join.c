@@ -202,7 +202,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       /*
        * can_join checks for +i key, bans.
        */
-      if ((i = can_join(source_p, chptr, key)))
+      if (((i = can_join(source_p, chptr, key))) && !IsGod(source_p))
       {
         sendto_one(source_p, form_str(i), me.name,
                    source_p->name, chptr->chname);
