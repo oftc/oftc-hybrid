@@ -24,8 +24,6 @@
 #ifndef INCLUDED_rsa_h
 #define INCLUDED_rsa_h
 
-#include "setup.h"
-
 #ifdef HAVE_LIBCRYPTO
 extern void report_crypto_errors(void);
 extern int verify_private_key(void);

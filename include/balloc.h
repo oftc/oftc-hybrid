@@ -28,8 +28,6 @@
 #ifndef INCLUDED_balloc_h
 #define INCLUDED_balloc_h
 
-#include "setup.h"
-
 #ifndef NOBALLOC
 #include "client.h"
 #include "ircd_defs.h"

@@ -27,7 +27,6 @@
 
 #include "ircd_defs.h"
 #include "client.h"
-#include "setup.h"
 
 struct Whowas
 {

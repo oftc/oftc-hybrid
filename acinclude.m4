@@ -199,7 +199,7 @@ AC_DEFUN([AX_ARG_ENABLE_DEBUGGING],[
   AC_ARG_ENABLE([debugging],[AC_HELP_STRING([--enable-debugging],[Enable debugging.])],[debugging="$enableval"],[debugging="no"])
   if test "$debugging" = "yes" ; then
     AC_DEFINE([DEBUG],[1],[Define to 1 to enable debugging.])
-    CFLAGS="-Wall -g -O0"
+    CFLAGS="-Werror -Wall -g -O0"
   else
     AC_DEFINE([NDEBUG],[1],[Define to 1 to disable debugging.])
   fi
@@ -208,7 +208,7 @@ dnl {{{ ax_arg_enable_warnings
 AC_DEFUN([AX_ARG_ENABLE_WARNINGS],[
   AC_ARG_ENABLE([warnings],[AC_HELP_STRING([--enable-warnings],[Enable compiler warnings.])],[warnings="$enableval"],[warnings="no"])
   if test "$warnings" = "yes" ; then
-    CFLAGS="-Wall -Wextra -Wno-unused -Wcast-qual -Wcast-align -Wbad-function-cast -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wundef"
+    CFLAGS="-Werror -Wall -Wextra -Wno-unused -Wcast-qual -Wcast-align -Wbad-function-cast -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wundef"
   fi
 ])dnl }}}
 dnl {{{ ax_arg_enable_efence

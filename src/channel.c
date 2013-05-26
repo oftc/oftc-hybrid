@@ -962,10 +962,9 @@ set_channel_topic(struct Channel *chptr, const char *topic,
 }
 
 int 
-msg_has_colors(char *msg)
+msg_has_colors(const char *msg)
 {
-
-  char *c;
+  const char *c;
   if (msg == NULL)
     return 0;
   c = msg;
@@ -984,10 +983,10 @@ msg_has_colors(char *msg)
 }
 
 char *
-strip_color(char* string)
+strip_color(const char* string)
 {
-  char *source = string;
-  char *dest = string;
+  const char *source = string;
+  char *dest = (char *)string;
   char *last_non_space = NULL;
 
   for (; source && *source; source++)
@@ -1020,6 +1019,9 @@ strip_color(char* string)
   *dest = '\0';
   if (last_non_space)
     *last_non_space = '\0';
-  return string;
+
+  dest = (char *)string;
+
+  return dest;
 }
 

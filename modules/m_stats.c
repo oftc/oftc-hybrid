@@ -424,9 +424,6 @@ count_memory(struct Client *source_p)
   unsigned int topic_count = 0;
 
   struct rlimit rlim;
-  unsigned int wlh = 0;   /* watchlist headers     */
-  unsigned int wle = 0;   /* watchlist entries     */
-  uint64_t wlhm = 0; /* watchlist memory used */
   unsigned int watch_list_headers = 0;   /* watchlist headers     */
   unsigned int watch_list_entries = 0;   /* watchlist entries     */
   uint64_t watch_list_memory = 0; /* watchlist memory used */
@@ -640,7 +637,7 @@ count_memory(struct Client *source_p)
   sendto_one(source_p,
              ":%s %d %s z :TOTAL: %llu",
              me.name, RPL_STATSDEBUG, source_p->name,
-             (int)total_memory, get_maxrss());
+             total_memory);
 
   if (getrlimit(RLIMIT_FD_MAX, &rlim) == 0) {
     sendto_one(source_p,

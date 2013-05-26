@@ -40,6 +40,7 @@
 #include "sprintf_irc.h"
 #include "s_bsd.h"
 #include "irc_getaddrinfo.h"
+#include "irc_getnameinfo.h"
 #include "ircd.h"
 #include "listener.h"
 #include "hostmask.h"

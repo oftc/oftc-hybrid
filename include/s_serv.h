@@ -24,7 +24,6 @@
 
 #ifndef INCLUDED_serv_h
 #define INCLUDED_serv_h
-#include "setup.h"
 
 /* collect ziplinks compression ratios/etc every minute */
 #define ZIPSTATS_TIME           60

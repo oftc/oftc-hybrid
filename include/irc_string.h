@@ -25,8 +25,6 @@
 #ifndef INCLUDED_irc_string_h
 #define INCLUDED_irc_string_h
 
-#include "setup.h"
-
 extern int ircd_pcre_exec(const void *, const char *);
 extern void *ircd_pcre_compile(const char *, const char **);
 

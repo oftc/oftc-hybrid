@@ -25,7 +25,6 @@
 #ifndef INCLUDED_modules_h
 #define INCLUDED_modules_h
 
-#include "setup.h"
 #include "parse.h"
 
 #ifdef HAVE_SHL_LOAD

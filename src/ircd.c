@@ -84,7 +84,6 @@ struct timeval SystemTime;
 struct Client me;             /* That's me */
 struct LocalUser meLocalUser; /* That's also part of me */
 
-static unsigned long initialVMTop = 0;   /* top of virtual memory at init */
 const char *logFileName = LPATH;
 const char *pidFileName = PPATH;
 
