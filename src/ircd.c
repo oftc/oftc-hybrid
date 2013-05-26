@@ -467,6 +467,8 @@ init_ssl(void)
     ilog(L_CRIT, "ERROR: Could not initialize the SSL context -- %s\n", s);
   }
 
+  SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv2);
+  SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
   SSL_CTX_set_verify(ServerInfo.server_ctx, SSL_VERIFY_PEER, always_accept_verify_cb);
 
   bio_spare_fd = save_spare_fd("SSL private key validation");
