@@ -852,24 +852,25 @@ check_client(va_list args)
       break;
     case TOO_MANY:
       sendto_realops_flags(UMODE_FULL, L_ALL, 
-                           "Too many on IP for %s (%s). (generic too_many)",
-         get_client_name(source_p, SHOW_IP),
-         source_p->sockhost);
+          "Too many on IP for %s (%s). (generic too_many)",
+          get_client_name(source_p, SHOW_IP),
+          source_p->sockhost);
       ilog(L_INFO, "Too many connections on IP from %s.",
           get_client_name(source_p, SHOW_IP));
+      ServerStats.is_ref++;
       exit_client(source_p, &me, reject_reason);
       break;
 
     case I_LINE_FULL:
       sendto_realops_flags(UMODE_FULL, L_ALL, 
-                           "I-line is full for %s (%s).",
-         get_client_name(source_p, SHOW_IP),
-         source_p->sockhost);
+          "I-line is full for %s (%s).",
+          get_client_name(source_p, SHOW_IP),
+          source_p->sockhost);
       ilog(L_INFO,"Too many connections from %s.",
-	   get_client_name(source_p, SHOW_IP));
+          get_client_name(source_p, SHOW_IP));
       ++ServerStats.is_ref;
       exit_client(source_p, &me, 
-    "No more connections allowed in your connection class");
+          "No more connections allowed in your connection class");
       break;
 
     case NOT_AUTHORIZED:
@@ -877,16 +878,16 @@ check_client(va_list args)
       /* jdc - lists server name & port connections are on */
       /*       a purely cosmetical change */
       sendto_realops_flags(UMODE_FULL, L_ALL, 
-			   "Unauthorized client connection from %s [%s] on [%s/%u].",
-			   get_client_name(source_p, SHOW_IP),
-			   source_p->sockhost,
-			   source_p->localClient->listener->name,
-			   source_p->localClient->listener->port);
+          "Unauthorized client connection from %s [%s] on [%s/%u].",
+          get_client_name(source_p, SHOW_IP),
+          source_p->sockhost,
+          source_p->localClient->listener->name,
+          source_p->localClient->listener->port);
       ilog(L_INFO,
-    "Unauthorized client connection from %s on [%s/%u].",
-    get_client_name(source_p, SHOW_IP),
-    source_p->localClient->listener->name,
-    source_p->localClient->listener->port);
+          "Unauthorized client connection from %s on [%s/%u].",
+          get_client_name(source_p, SHOW_IP),
+          source_p->localClient->listener->name,
+          source_p->localClient->listener->port);
 
       /* XXX It is prolematical whether it is better to use the
        * capture reject code here or rely on the connecting too fast code.
@@ -894,33 +895,33 @@ check_client(va_list args)
        */
       if (REJECT_HOLD_TIME > 0)
       {
-  sendto_one(source_p, ":%s NOTICE %s :You are not authorized to use this server",
-       me.name, source_p->name);
-  source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
-  SetCaptured(source_p);
+        sendto_one(source_p, ":%s NOTICE %s :You are not authorized to use this server",
+            me.name, source_p->name);
+        source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
+        SetCaptured(source_p);
       }
       else
-  exit_client(source_p, &me, "You are not authorized to use this server");
+        exit_client(source_p, &me, "You are not authorized to use this server");
       break;
 
-   case BANNED_CLIENT:
-     /*
+    case BANNED_CLIENT:
+      /*
       * Don't exit them immediately, play with them a bit.
       * - Dianora
-      */
-     if (REJECT_HOLD_TIME > 0)
-     {
-       source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
-       SetCaptured(source_p);
-     }
-     else
-       exit_client(source_p, &me, "Banned");
-     ++ServerStats.is_ref;
-     break;
+       */
+      if (REJECT_HOLD_TIME > 0)
+      {
+        source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
+        SetCaptured(source_p);
+      }
+      else
+        exit_client(source_p, &me, "Banned");
+      ++ServerStats.is_ref;
+      break;
 
-   case 0:
-   default:
-     break;
+    case 0:
+    default:
+      break;
   }
 
   return (bad ? NULL : source_p);
