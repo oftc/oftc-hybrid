@@ -4,16 +4,17 @@ dnl {{{ ax_check_lib_ipv4
 AC_DEFUN([AX_CHECK_LIB_IPV4],[
   AC_SEARCH_LIBS([socket],[socket],,[AC_MSG_ERROR([socket library not found])])
   AC_CHECK_FUNCS([inet_aton inet_ntop inet_pton])
-  AC_CHECK_TYPES([struct sockaddr_in, struct sockaddr_storage, struct addrinfo],,,[
-    #include <netinet/in.h>
-    #include <sys/socket.h>
-    #include <netdb.h>
+  AC_CHECK_TYPES([struct sockaddr_in, struct sockaddr_storage, struct addrinfo],,,[#include <sys/types.h>
+   #include <sys/socket.h>
+   #include <netdb.h>
   ])
-  AC_CHECK_MEMBERS([struct sockaddr_in.sin_len],,,[#include <netdb.h>])
+  AC_CHECK_MEMBERS([struct sockaddr_in.sin_len],,,[#include <sys/types.h>
+  <sys/socket.h>])
 ])dnl }}}
 dnl {{{ ax_check_lib_ipv6
 AC_DEFUN([AX_CHECK_LIB_IPV6],[
-  AC_CHECK_TYPES([struct sockaddr_in6],,[AC_DEFINE([IPV6],[1],[Define to 1 if you have IPv6 support.])],,[#include <netdb.h>])
+  AC_CHECK_TYPES([struct sockaddr_in6],,[AC_DEFINE([IPV6],[1],[Define to 1 if you have IPv6 support.])],,[#include <sys/types.h>
+   <sys/socket.h>])
 ])dnl }}}
 dnl {{{ ax_arg_enable_ioloop_mechanism (FIXME)
 AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[

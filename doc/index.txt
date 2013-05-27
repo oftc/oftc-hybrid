@@ -18,8 +18,6 @@ messages.txt            - A general help file for users and admins to
 modeg.txt               - An in depth description of the server side silence
                           user mode (+g)
 modes.txt               - A list of all user and channel modes
-operguide.txt           - EFnet operator's guide
-opermyth.txt            - Oper myth's, describes what opers can and cannot do
 resv.txt		- Outline of the RESV command.
 server-version-info     - Overview of the flags shown in /version
 serverhide.txt          - Information about the server hide options
