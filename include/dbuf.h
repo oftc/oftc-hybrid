@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: dbuf.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef __DBUF_H_INCLUDED

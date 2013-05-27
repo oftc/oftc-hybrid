@@ -1,4 +1,4 @@
-# $Id: unkline 33 2005-10-02 20:50:00Z knight $
+# $Id$
 UNKLINE <user@host>
 
 Will attempt to unkline the given <user@host>

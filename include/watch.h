@@ -22,7 +22,7 @@
 
 /*! \file watch.h
  * \brief Header including structures and prototypes for WATCH support
- * \version $Id: watch.h 790 2006-08-27 18:16:37Z michael $
+ * \version $Id$
  */
 
 #ifndef INCLUDED_watch_h

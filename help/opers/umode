@@ -1,4 +1,4 @@
-# $Id: umode 33 2005-10-02 20:50:00Z knight $
+# $Id$
 MODE <nick> <+|-><modes>
 
 Usermodes: (* designates that the umode is oper only)

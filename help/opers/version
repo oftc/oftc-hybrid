@@ -1,4 +1,4 @@
-# $Id: version 33 2005-10-02 20:50:00Z knight $
+# $Id$
 VERSION [servername]
 
 VERSION will display the server version of the specified

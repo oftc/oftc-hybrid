@@ -1,6 +1,6 @@
 ; ircd-hybrid-7 standard message file - for Romanian
 ; Copyright (C) 2007 Bogdan Mintoi <bogdomania@yahoo.com>
-; $Id:$
+; $Id$
 ; 
 
 RPL_WELCOME:		 :%s 001 %s :Bine ai venit pe reteaua ValceaNet %s

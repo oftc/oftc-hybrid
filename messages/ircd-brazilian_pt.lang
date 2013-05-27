@@ -1,7 +1,7 @@
 ; ircd-hybrid-7 custom message file
 ; Copyright (C) 2003
 ; Marcelo Lipienski <und3rl1n3d@gmail.com>
-; $Id: ircd-brazilian_pt.lang 33 2005-10-02 20:50:00Z knight $
+; $Id$
 
 RPL_WELCOME:		 :%s 001 %s :Bem-vindo a %s Internet Relay Chat Network %s
 RPL_YOURHOST:		 :%s 002 %s :Você está no servidor %s, rodando a versão %s

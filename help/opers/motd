@@ -1,4 +1,4 @@
-# $Id: motd 33 2005-10-02 20:50:00Z knight $
+# $Id$
 MOTD [servername]
 
 MOTD will display the message of the day for the

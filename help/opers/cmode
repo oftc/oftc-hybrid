@@ -1,4 +1,4 @@
-# $Id: cmode 33 2005-10-02 20:50:00Z knight $
+# $Id$
 MODE <channel> <+|-><modes> [parameters]
 
 =-=-=-=-=-=-=-=-=-=-=
