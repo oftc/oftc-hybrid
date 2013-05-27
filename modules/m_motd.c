@@ -23,8 +23,8 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "client.h"
-#include "tools.h"
 #include "motd.h"
 #include "ircd.h"
 #include "send.h"

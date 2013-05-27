@@ -1,13 +1,14 @@
 MAINTAINERCLEANFILES=Makefile.in
-AM_CPPFLAGS=-I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
+AM_CPPFLAGS=-I$(top_srcdir)/include 
 if USE_SHARED_MODULES
 AM_LDFLAGS=-no-undefined -module -avoid-version
-pkglib_LTLIBRARIES=m_die.la m_join.la m_kick.la m_kill.la m_message.la m_mode.la m_nick.la m_part.la m_quit.la m_server.la m_sjoin.la m_squit.la
+pkglib_LTLIBRARIES=m_die.la m_error.la m_join.la m_kick.la m_kill.la m_message.la m_mode.la m_nick.la m_part.la m_quit.la m_server.la m_sjoin.la m_squit.la
 else
 AM_LDFLAGS=-static
 noinst_LTLIBRARIES=m_die.la m_join.la m_kick.la m_kill.la m_message.la m_mode.la m_nick.la m_part.la m_quit.la m_server.la m_sjoin.la m_squit.la
 endif
 m_die_la_SOURCES=m_die.c
+m_error_la_SOURCES=m_error.c
 m_join_la_SOURCES=m_join.c
 m_kick_la_SOURCES=m_kick.c
 m_kill_la_SOURCES=m_kill.c

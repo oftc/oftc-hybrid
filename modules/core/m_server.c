@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"    /* m_server prototype */
 #include "client.h"      /* client struct */
 #include "common.h"      /* TRUE bleah */
@@ -31,12 +31,10 @@
 #include "hash.h"        /* add_to_client_hash_table */
 #include "irc_string.h" 
 #include "ircd.h"        /* me */
-#include "list.h"        /* make_server */
 #include "numeric.h"     /* ERR_xxx */
 #include "s_conf.h"      /* struct AccessItem */
 #include "s_log.h"       /* log level defines */
 #include "s_serv.h"      /* server_estab, check_server, my_name_for_link */
-#include "s_stats.h"     /* ServerStats */
 #include "send.h"        /* sendto_one */
 #include "motd.h"
 #include "msg.h"
@@ -59,7 +57,7 @@ struct Message server_msgtab = {
 
 struct Message sid_msgtab = {
   "SID", 0, 0, 5, 0, MFLG_SLOW, 0,
-  {m_error, m_ignore, ms_sid, m_ignore, m_ignore, m_ignore}
+  {rfc1459_command_send_error, m_ignore, ms_sid, m_ignore, m_ignore, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -111,7 +109,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
    */
   if (!DoesTS(client_p))
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Link %s dropped, non-TS server",
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Link %s dropped, non-TS server",
                          get_client_name(client_p, SHOW_IP));
     exit_client(client_p, client_p, "Non-TS server");
     return;
@@ -201,36 +199,6 @@ mr_server(struct Client *client_p, struct Client *source_p,
   if ((target_p = find_servconn_in_progress(name)))
     if (target_p != client_p)
       exit_client(target_p, &me, "Overridden");
-
-  if (ServerInfo.hub && IsCapable(client_p, CAP_LL))
-  {
-    if (IsCapable(client_p, CAP_HUB))
-    {
-      ClearCap(client_p, CAP_LL);
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-               "*** LazyLinks to a hub from a hub, that's a no-no.");
-    }
-    else
-    {
-      client_p->localClient->serverMask = nextFreeMask();
-
-      if (!client_p->localClient->serverMask)
-      {
-        sendto_realops_flags(UMODE_ALL, L_ALL,  "serverMask is full!");
-        /* try and negotiate a non LL connect */
-        ClearCap(client_p, CAP_LL);
-      }
-    }
-  }
-  else if (IsCapable(client_p, CAP_LL))
-  {
-    if (!IsCapable(client_p, CAP_HUB))
-    {
-      ClearCap(client_p, CAP_LL);
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-               "*** LazyLinks to a leaf from a leaf, that's a no-no.");
-    }
-  } 
 
   /* if we are connecting (Handshake), we already have the name from the
    * connect{} block in client_p->name
@@ -406,11 +374,11 @@ ms_server(struct Client *client_p, struct Client *source_p,
    * .edu's
    */
 
-  /* Ok, check client_p can hub the new server, and make sure it's not a LL */
-  if (!hlined || (IsCapable(client_p, CAP_LL) && !IsCapable(client_p, CAP_HUB)))
+  /* Ok, check client_p can hub the new server */
+  if (!hlined)
   {
     /* OOOPs nope can't HUB */
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Non-Hub link %s introduced %s.",
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Non-Hub link %s introduced %s.",
                          get_client_name(client_p, SHOW_IP), name);
     exit_client(source_p, &me, "No matching hub_mask.");
     return;
@@ -473,9 +441,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
     assert(0==2);
   }
   else
-    dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->servers);
-
-  client_p->serv->dep_servers++;
+    dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->server_list);
 
   /* Old sendto_serv_but_one() call removed because we now
    * need to send different names to different servers
@@ -651,10 +617,10 @@ ms_sid(struct Client *client_p, struct Client *source_p,
    */
 
   /* Ok, check client_p can hub the new server, and make sure it's not a LL */
-  if (!hlined || (IsCapable(client_p, CAP_LL) && !IsCapable(client_p, CAP_HUB)))
+  if (!hlined)
   {
     /* OOOPs nope can't HUB */
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Non-Hub link %s introduced %s.",
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Non-Hub link %s introduced %s.",
                          get_client_name(client_p, SHOW_IP), SID_NAME);
     exit_client(source_p, &me, "No matching hub_mask.");
     return;
@@ -714,11 +680,9 @@ ms_sid(struct Client *client_p, struct Client *source_p,
     assert(0==4);
   }
   else
-    dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->servers);
+    dlinkAdd(target_p, &target_p->lnode, &target_p->servptr->serv->server_list);
 
   hash_add_id(target_p);
-
-  client_p->serv->dep_servers++;
 
   DLINK_FOREACH_SAFE(ptr, ptr_next, serv_list.head)
   {

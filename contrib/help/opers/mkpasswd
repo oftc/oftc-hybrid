@@ -1,4 +1,4 @@
-# $Id: mkpasswd 570 2006-04-27 21:52:26Z michael $
+# $Id$
 MKPASSWD <plaintext> [DES|MD5]
 
 The MKPASSWD command is essentially the same as the mkpasswd binary

@@ -38,4 +38,4 @@ SET <option> <value>
   SPLITUSERS  - Sets the minimum amount of users needed to
                 deactivate automatic splitmode.
 
-# $Id: set 416 2006-02-10 09:50:59Z michael $
+# $Id$

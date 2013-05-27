@@ -25,8 +25,8 @@
 #ifndef INCLUDED_client_h
 #define INCLUDED_client_h
 
+#include "list.h"
 #include "fdlist.h"
-#include "setup.h"
 #include "ircd_defs.h"
 #include "ircd_handler.h"
 #include "dbuf.h"
@@ -44,23 +44,17 @@
  */
 struct AccessItem;
 struct Whowas;
-struct DNSReply;
 struct Listener;
 struct Client;
 struct LocalUser;
 
-/*
- * Client structures
- */
 
 struct Server
 {
-  char by[NICKLEN];       /* who activated this connection     */
   struct ConfItem *sconf; /* ConfItem connect{} pointer for this server */
-  dlink_list servers;     /* Servers on this server            */
-  dlink_list users;       /* Users on this server              */
-  int dep_servers;        /* Total number of dependent servers on all levels */
-  int dep_users;          /* Total number of dependent users on all levels */
+  dlink_list server_list; /* Servers on this server            */
+  dlink_list client_list; /* Clients on this server            */
+  char by[NICKLEN];       /* who activated this connection     */
 };
 
 struct SlinkRpl
@@ -74,17 +68,17 @@ struct SlinkRpl
 
 struct ZipStats
 {
-  unsigned long in;
-  unsigned long in_wire;
-  unsigned long out;
-  unsigned long out_wire;
+  uint64_t in;
+  uint64_t in_wire;
+  uint64_t out;
+  uint64_t out_wire;
   double in_ratio;
   double out_ratio;
 };
 
 struct ListTask
 {
-  int hash_index;       /* the bucket we are currently in */
+  unsigned int hash_index; /* the bucket we are currently in */
   dlink_list show_mask; /* show these channels..          */
   dlink_list hide_mask; /* ..and hide these ones          */
   unsigned int users_min, users_max;
@@ -97,43 +91,36 @@ struct Client
   dlink_node node;
   dlink_node lnode;             /* Used for Server->servers/users */
 
-  struct Client *hnext;		/* For client hash table lookups by name */
-  struct Client *idhnext;	/* For SID hash table lookups by sid */
+  struct LocalUser *localClient;
+  struct Client    *hnext;		/* For client hash table lookups by name */
+  struct Client    *idhnext;	/* For SID hash table lookups by sid */
+  struct Server    *serv;       /* ...defined, if this is a server */
+  struct Client    *servptr;    /* Points to server this Client is on */
+  struct Client    *from;       /* == self, if Local Client, *NEVER* NULL! */
+  struct Whowas    *whowas;     /* Pointers to whowas structs */
+  char             *away;
 
-  struct Server*    serv;       /* ...defined, if this is a server */
-  struct Client*    servptr;    /* Points to server this Client is on */
-  struct Client*    from;       /* == self, if Local Client, *NEVER* NULL! */
-
-  struct Whowas*    whowas;     /* Pointers to whowas structs */
   time_t            lasttime;   /* ...should be only LOCAL clients? --msa */
   time_t            firsttime;  /* time client was created */
   time_t            since;      /* last time we parsed something */
   time_t            tsinfo;     /* TS on the nick, SVINFO on server */
   time_t            umodestime; /* Time client set umode +S */
   unsigned long	    connect_id; /* unique connection ID */
-  unsigned int      umodes;     /* opers, normal users subset */
-  unsigned int      flags;      /* client flags */
+  uint64_t          flags;      /* client flags */
 
-  unsigned short    hopcount;   /* number of servers to this 0 = local */
-  unsigned short    status;     /* Client type */
-  unsigned char     handler;    /* Handler index */
-  unsigned long     serial;	/* used to enforce 1 send per nick */
-  unsigned long     lazyLinkClientExists; /* This client exists on the
-					   * bit mapped lazylink servers 
-					   * mapped here
-					   */
-  char *away;
+  unsigned int      umodes;     /* opers, normal users subset */
+  unsigned int      hopcount;   /* number of servers to this 0 = local */
+  unsigned int      status;     /* Client type */
+  unsigned int      handler;    /* Handler index */
+  unsigned int      serial;     /* used to enforce 1 send per nick */
+
+  dlink_list        channel;   /* chain of channel pointer blocks */
+
   /*
    * client->name is the unique name for a client nick or host
    */
   char name[HOSTLEN + 1]; 
   char id[IDLEN + 1];       /* client ID, unique ID per client */
-
-  /*
-   * client->llname is used to store the clients requested nick
-   * temporarily for new connections.
-   */
-  char              llname[NICKLEN];
 
   /* 
    * client->username is the username from ident or the USER message, 
@@ -166,19 +153,10 @@ struct Client
    */
   char              sockhost[HOSTIPLEN + 1]; /* This is the host name from the 
                                                 socket ip address as string */
-  char              realhost[HOSTLEN];
-  /* caller ID allow list */
-  /* This has to be here, since a client on an on_allow_list could
-   * be a remote client. simpler to keep both here.
-   */
-  dlink_list	      allow_list;	/* clients I'll allow to talk to me */
-  dlink_list	      on_allow_list;	/* clients that have =me= on their allow list*/
-
-  dlink_list        channel;   /* chain of channel pointer blocks */
-
-  struct LocalUser *localClient;
   struct irc_ssaddr ip;
-  int 		          aftype;	/* Makes life easier for DNS res in IPV6 */
+  int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
+ 
+  char              realhost[HOSTLEN];
   char              certfp[SHA_DIGEST_LENGTH];
 };
 
@@ -188,31 +166,37 @@ struct LocalUser
    * The following fields are allocated only for local clients
    * (directly connected to *this* server with a socket.
    */
+  dlink_node        lclient_node;
+
+
+
   unsigned int registration;
   unsigned int cap_client;    /* Client capabilities (from us) */
   unsigned int cap_active;    /* Active capabilities (to us) */
 
+  unsigned int operflags;     /* oper priv flags */
+
+
   /* Anti flooding part, all because of lamers... */
-  time_t            last_away; /* Away since... */
-  time_t            last_join_time;   /* when this client last 
-                                         joined a channel */
-  time_t            last_leave_time;  /* when this client last 
+  time_t       last_knock;    /* time of last knock */
+  time_t       last_away; /* Away since... */
+  time_t       last_join_time;   /* when this client last 
+                                    joined a channel */
+  time_t       last_leave_time;  /* when this client last 
                                        * left a channel */
-  int               join_leave_count; /* count of JOIN/LEAVE in less than 
+  int          join_leave_count; /* count of JOIN/LEAVE in less than 
                                          MIN_JOIN_LEAVE_TIME seconds */
-  int               oper_warn_count_down; /* warn opers of this possible 
+  int          oper_warn_count_down; /* warn opers of this possible 
                                           spambot every time this gets to 0 */
-  time_t            reject_delay;
-  time_t            last_caller_id_time;
-  time_t            first_received_message_time;
-  int               received_number_of_privmsgs;
-  int               flood_noticed;
+  time_t       reject_delay;
+  time_t       last_caller_id_time;
+  time_t       first_received_message_time;
+  time_t       last_nick_change;
 
-  dlink_node        lclient_node;
+  int          received_number_of_privmsgs;
+  unsigned int number_of_nick_changes;
 
-  unsigned int      operflags; /* oper priv flags */
-
-  struct ListTask   *list_task;
+  struct ListTask  *list_task;
   /* Send and receive dbufs .. */
   struct dbuf_queue buf_sendq;
   struct dbuf_queue buf_recvq;
@@ -222,18 +206,17 @@ struct LocalUser
     uint64_t bytes;             /* Statistics: total bytes sent/received */
   } recv, send;
 
+  struct AuthRequest *auth;
   struct Listener *listener;   /* listener accepted from */
+  dlink_list        acceptlist; /* clients I'll allow to talk to me */
+  dlink_list        watches;   /* chain of Watch pointer blocks */
   dlink_list        confs;     /* Configuration record associated */
   dlink_list        invited;   /* chain of invite pointer blocks */
-  struct DNSQuery   *dns_query; /* result returned from resolver query */
-  unsigned long     serverMask; /* Only used for Lazy Links */
   time_t last; /* Last time we got a PRIVMSG */
-  time_t            last_nick_change;
-  int               number_of_nick_changes;
 
   char              *passwd;
-  int               caps;       /* capabilities bit-field */
-  int               enc_caps;   /* cipher capabilities bit-field */
+  unsigned int       caps;       /* capabilities bit-field */
+  unsigned int       enc_caps;   /* cipher capabilities bit-field */
 
 #ifdef HAVE_LIBCRYPTO
   struct EncCapability *in_cipher;
@@ -261,7 +244,6 @@ struct LocalUser
    */
   int allow_read;	/* how many we're allowed to read in this second */
   int sent_parsed;      /* how many messages we've parsed in this second */
-  time_t last_knock;    /* time of last knock */
   unsigned long random_ping;
 
   char*          response;  /* expected response from client */
@@ -337,38 +319,39 @@ struct LocalUser
 #define CAP_MULTI_PREFIX  0x00000001
 
 /* housekeeping flags */
-#define FLAGS_PINGSENT      0x00000001 /* Unreplied ping sent                      */
-#define FLAGS_DEADSOCKET    0x00000002 /* Local socket is dead--Exiting soon       */
-#define FLAGS_KILLED        0x00000004 /* Prevents "QUIT" from being sent for this */
-#define FLAGS_CLOSING       0x00000008 /* set when closing to suppress errors      */
-#define FLAGS_GOTID         0x00000010 /* successful ident lookup achieved         */
-#define FLAGS_NEEDID        0x00000020 /* I-lines say must use ident return        */
-#define FLAGS_SENDQEX       0x00000040 /* Sendq exceeded                           */
-#define FLAGS_IPHASH        0x00000080 /* iphashed this client                     */
-#define FLAGS_CRYPTIN       0x00000100 /* incoming data must be decrypted          */
-#define FLAGS_CRYPTOUT      0x00000200 /* outgoing data must be encrypted          */
-#define FLAGS_WAITAUTH      0x00000400 /* waiting for CRYPTLINK AUTH command       */
-#define FLAGS_SERVLINK      0x00000800 /* servlink has servlink process            */
-#define FLAGS_MARK	    0x00001000 /* marked client                            */
-#define FLAGS_CANFLOOD	    0x00002000 /* client has the ability to flood          */
-#define FLAGS_EXEMPTGLINE   0x00004000 /* client can't be G-lined                  */
-#define FLAGS_EXEMPTKLINE   0x00008000 /* client is exempt from kline              */
-#define FLAGS_NOLIMIT       0x00010000 /* client is exempt from limits             */
-#define FLAGS_RESTRICTED    0x00020000 /* client cannot op others                  */
-#define FLAGS_PING_COOKIE   0x00040000 /* PING Cookie                              */
-#define FLAGS_IDLE_LINED    0x00080000 /* client is exempt from idle-time limits   */
-#define FLAGS_IP_SPOOFING   0x00100000 /* client IP is spoofed                     */
-#define FLAGS_FLOODDONE     0x00200000 /* Flood grace period has been ended.       */
-#define FLAGS_EOB           0x00400000 /* server has received EOB                  */
-#define FLAGS_HIDDEN        0x00800000 /* a hidden server. not shown in /links     */
-#define FLAGS_BLOCKED       0x01000000 /* must wait for COMM_SELECT_WRITE          */
-#define FLAGS_SBLOCKED      0x02000000 /* slinkq is blocked                        */
-#define FLAGS_USERHOST      0x04000000 /* client is in userhost hash               */
-#define FLAGS_BURSTED       0x08000000 /* user was already bursted                 */
-#define FLAGS_EXEMPTRESV    0x10000000 /* client is exempt from RESV               */
-#define FLAGS_GOTUSER       0x20000000 /* if we received a USER command            */
-#define FLAGS_PINGWARNING   0x40000000 /* unreplied ping warning already sent      */
-#define FLAGS_FINISHED_AUTH 0x80000000 /* Client has been released from auth       */
+#define FLAGS_PINGSENT      0x0000000000000001 /* Unreplied ping sent                      */
+#define FLAGS_DEADSOCKET    0x0000000000000002 /* Local socket is dead--Exiting soon       */
+#define FLAGS_KILLED        0x0000000000000004 /* Prevents "QUIT" from being sent for this */
+#define FLAGS_CLOSING       0x0000000000000008 /* set when closing to suppress errors      */
+#define FLAGS_GOTID         0x0000000000000010 /* successful ident lookup achieved         */
+#define FLAGS_NEEDID        0x0000000000000020 /* I-lines say must use ident return        */
+#define FLAGS_SENDQEX       0x0000000000000040 /* Sendq exceeded                           */
+#define FLAGS_IPHASH        0x0000000000000080 /* iphashed this client                     */
+#define FLAGS_CRYPTIN       0x0000000000000100 /* incoming data must be decrypted          */
+#define FLAGS_CRYPTOUT      0x0000000000000200 /* outgoing data must be encrypted          */
+#define FLAGS_WAITAUTH      0x0000000000000400 /* waiting for CRYPTLINK AUTH command       */
+#define FLAGS_SERVLINK      0x0000000000000800 /* servlink has servlink process            */
+#define FLAGS_MARK	    0x0000000000001000 /* marked client                            */
+#define FLAGS_CANFLOOD	    0x0000000000002000 /* client has the ability to flood          */
+#define FLAGS_EXEMPTGLINE   0x0000000000004000 /* client can't be G-lined                  */
+#define FLAGS_EXEMPTKLINE   0x0000000000008000 /* client is exempt from kline              */
+#define FLAGS_NOLIMIT       0x0000000000010000 /* client is exempt from limits             */
+#define FLAGS_RESTRICTED    0x0000000000020000 /* client cannot op others                  */
+#define FLAGS_PING_COOKIE   0x0000000000040000 /* PING Cookie                              */
+#define FLAGS_IDLE_LINED    0x0000000000080000 /* client is exempt from idle-time limits   */
+#define FLAGS_IP_SPOOFING   0x0000000000100000 /* client IP is spoofed                     */
+#define FLAGS_FLOODDONE     0x0000000000200000 /* Flood grace period has been ended.       */
+#define FLAGS_EOB           0x0000000000400000 /* server has received EOB                  */
+#define FLAGS_HIDDEN        0x0000000000800000 /* a hidden server. not shown in /links     */
+#define FLAGS_BLOCKED       0x0000000001000000 /* must wait for COMM_SELECT_WRITE          */
+#define FLAGS_SBLOCKED      0x0000000002000000 /* slinkq is blocked                        */
+#define FLAGS_USERHOST      0x0000000004000000 /* client is in userhost hash               */
+#define FLAGS_BURSTED       0x0000000008000000 /* user was already bursted                 */
+#define FLAGS_EXEMPTRESV    0x0000000010000000 /* client is exempt from RESV               */
+#define FLAGS_GOTUSER       0x0000000020000000 /* if we received a USER command            */
+#define FLAGS_PINGWARNING   0x0000000040000000 /* unreplied ping warning already sent      */
+#define FLAGS_FINISHED_AUTH 0x0000000080000000 /* Client has been released from auth       */
+#define FLAGS_FLOOD_NOTICED 0x0000000100000000
 
 
 /* umodes, settable flags */
@@ -426,6 +409,9 @@ struct LocalUser
 
 
 /* flags macros. */
+#define IsMsgFloodNoticed(x)       ((x)->flags & FLAGS_FLOOD_NOTICED)
+#define SetMsgFloodNoticed(x)      ((x)->flags |= FLAGS_FLOOD_NOTICED)
+#define ClearMsgFloodNoticed(x)    ((x)->flags &= ~FLAGS_FLOOD_NOTICED)
 #define IsAuthFinished(x)       ((x)->flags & FLAGS_FINISHED_AUTH)
 #define IsDead(x)               ((x)->flags & FLAGS_DEADSOCKET)
 #define SetDead(x)              ((x)->flags |= FLAGS_DEADSOCKET)
@@ -576,13 +562,13 @@ extern dlink_list listing_client_list;
 extern dlink_list global_client_list;
 
 extern int accept_message(struct Client *, struct Client *);
-extern void set_initial_nick(struct Client *, struct Client *, const char *);
+extern struct split_nuh_item *find_accept(const char *, const char *,
+                                          const char *, struct Client *, int);
+extern void del_accept(struct split_nuh_item *, struct Client *);
+extern void del_all_accepts(struct Client *);
 extern void exit_client(struct Client *, struct Client *, const char *);
 extern void check_conf_klines(void);
 extern void init_client(void);
-extern void del_from_accept(struct Client *, struct Client *);
-extern void del_all_accepts(struct Client *);
-extern void del_all_their_accepts(struct Client *);
 extern void change_local_nick(struct Client *, struct Client *, const char *);
 extern void dead_link_on_write(struct Client *, int);
 extern void dead_link_on_read(struct Client *, int);

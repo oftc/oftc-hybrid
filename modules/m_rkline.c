@@ -23,17 +23,15 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
-#include "pcre.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "hostmask.h"
 #include "numeric.h"
-#include "list.h"
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"
@@ -47,7 +45,6 @@
 #include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
-#include "tools.h"
 
 static void me_rkline(struct Client *, struct Client *, int, char *[]);
 static void mo_rkline(struct Client *, struct Client *, int, char *[]);
@@ -105,7 +102,7 @@ static void
 mo_rkline(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  pcre *exp_user = NULL, *exp_host = NULL;
+  void *exp_user = NULL, *exp_host = NULL;
   const char *errptr = NULL;
   char *reason = NULL;
   char *oper_reason = NULL;
@@ -133,17 +130,17 @@ mo_rkline(struct Client *client_p, struct Client *source_p,
   {
     if (HasID(source_p))
     {
-      sendto_server(NULL, source_p, NULL, CAP_KLN|CAP_TS6, NOCAPS, LL_ICLIENT,
+      sendto_server(NULL, NULL, CAP_KLN|CAP_TS6, NOCAPS,
                     ":%s RKLINE %s %lu %s %s :%s",
                     source_p->id, target_server, (unsigned long)tkline_time,
                     user, host, reason);
-      sendto_server(NULL, source_p, NULL, CAP_KLN, CAP_TS6, LL_ICLIENT,
+      sendto_server(NULL, NULL, CAP_KLN, CAP_TS6,
                     ":%s RKLINE %s %lu %s %s :%s",
                     source_p->name, target_server, (unsigned long)tkline_time,
                     user, host, reason);
     }
     else
-      sendto_server(NULL, source_p, NULL, CAP_KLN, NOCAPS, LL_ICLIENT,
+      sendto_server(NULL, NULL, CAP_KLN, NOCAPS,
                     ":%s RKLINE %s %lu %s %s :%s",
                     source_p->name, target_server, (unsigned long)tkline_time,
                     user, host, reason);
@@ -225,7 +222,7 @@ me_rkline(struct Client *client_p, struct Client *source_p,
                               source_p->username, source_p->host,
                               SHARED_KLINE))
   {
-    pcre *exp_user = NULL, *exp_host = NULL;
+    void *exp_user = NULL, *exp_host = NULL;
     const char *errptr = NULL;
 
     if (!IsClient(source_p) ||
@@ -432,7 +429,7 @@ me_unrkline(struct Client *client_p, struct Client *source_p,
       sendto_one(source_p,
                  ":%s NOTICE %s :Un-klined [%s@%s] from temporary RK-Lines",
                  me.name, source_p->name, user, host);
-      sendto_realops_flags(UMODE_ALL, L_ALL,  
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s has removed the temporary RK-Line for: [%s@%s]",
                            get_oper_name(source_p), user, host);
       ilog(L_NOTICE, "%s removed temporary RK-Line for [%s@%s]",

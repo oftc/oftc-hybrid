@@ -38,7 +38,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: event.c 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 /*
@@ -50,7 +50,7 @@
  */
 
 #include "stdinc.h"
-
+#include "list.h"
 #include "ircd.h"
 #include "event.h"
 #include "client.h"

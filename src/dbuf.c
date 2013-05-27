@@ -19,15 +19,14 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: dbuf.c 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "balloc.h"
 #include "common.h"
 #include "dbuf.h"
-#include "list.h"
-#include "tools.h"
 #include "memory.h"
 
 static BlockHeap *dbuf_heap;

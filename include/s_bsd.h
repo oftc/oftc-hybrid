@@ -19,13 +19,12 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_bsd.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef INCLUDED_s_bsd_h
 #define INCLUDED_s_bsd_h
 
-#include "setup.h"       
 #include "fdlist.h"
 #include "hook.h"
 
@@ -38,15 +37,12 @@
 
 struct Client;
 struct AccessItem;
-struct DNSReply;
 struct Listener;
 
 extern struct Callback *setup_socket_cb;
 
 extern void add_connection(struct Listener *, struct irc_ssaddr *, int);
 extern void close_connection(struct Client *);
-extern int  connect_server(struct AccessItem *, struct Client *,
-                           struct DNSReply *);
 extern void report_error(int, const char *, const char *, int);
 
 extern int get_sockerr(int);
@@ -63,6 +59,7 @@ extern int comm_open(fde_t *F, int family, int sock_type, int proto,
 extern int comm_accept(struct Listener *, struct irc_ssaddr *pn);
 
 /* These must be defined in the network IO loop code of your choice */
+extern void init_netio(void);
 extern void comm_setselect(fde_t *, unsigned int, PF *, void *, time_t);
 extern void init_comm(void);
 extern int read_message (time_t, unsigned char);

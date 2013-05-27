@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
@@ -70,7 +71,7 @@ _moddeinit(void)
   eventDelete(user_shedding_shed, NULL);
 }
 
-const char *_version = "$Revision: 472 $";
+const char *_version = "$Revision$";
 #endif
 
 /* Local function prototypes */
@@ -125,7 +126,7 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
   if (parc > 3)
     operstoo = !!atoi(parv[2]);
     
-  sendto_realops_flags(UMODE_ALL, L_ALL,  
+  sendto_realops_flags(UMODE_ALL, L_ALL, 
           "User shedding ENABLED by %s (%s). Shedding interval: %d seconds (Opers too: %s)", 
           source_p->name, parv[parc-1], rate, operstoo ? "Yes" : "No");
   /* Set a minimum because we need to do a bit of variance */

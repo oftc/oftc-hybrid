@@ -29,7 +29,6 @@
 
 %{
 #include "stdinc.h"
-#include "tools.h"
 #include "irc_string.h"
 #include "common.h"
 #include "s_conf.h"
@@ -42,7 +41,7 @@
 #undef YY_INPUT
 #define YY_FATAL_ERROR(msg) conf_yy_fatal_error(msg)
 #define YY_INPUT(buf,result,max_size) \
-  if (!(result = conf_fbgets(buf, max_size, conf_fbfile_in))) \
+  if (!(result = conf_fbgets(buf, max_size, conf_parser_ctx.conf_file))) \
     YY_FATAL_ERROR("input in flex scanner failed"); 
 #define MAX_INCLUDE_DEPTH 10
 
@@ -231,7 +230,6 @@ l_info		{ return T_L_INFO; }
 l_notice 	{ return T_L_NOTICE; }
 l_trace		{ return T_L_TRACE; }
 l_warn		{ return T_L_WARN; }
-lazylink	{ return LAZYLINK; }
 leaf_mask	{ return LEAF_MASK; }
 listen		{ return LISTEN; }
 log_level	{ return LOG_LEVEL; }
@@ -244,6 +242,7 @@ max_ident	{ return MAX_IDENT; }
 max_local	{ return MAX_LOCAL; }
 max_global	{ return MAX_GLOBAL; }
 max_number	{ return MAX_NUMBER; }
+max_watch       { return MAX_WATCH; }
 message_locale	{ return MESSAGE_LOCALE; }
 min_nonwildcard { return MIN_NONWILDCARD; }
 min_nonwildcard_simple	{ return MIN_NONWILDCARD_SIMPLE; }
@@ -289,6 +288,9 @@ rsa_private_key_file		{ return RSA_PRIVATE_KEY_FILE; }
 rsa_public_key_file		{ return RSA_PUBLIC_KEY_FILE; }
 ssl 				{ return T_SSL; }
 ssl_certificate_file        { return SSL_CERTIFICATE_FILE; }
+ssl_server_protocol       { return T_SSL_CONNECTION_METHOD; }
+sslv3		{ return T_SSLV3; }
+tlsv1		{ return T_TLSV1; }
 send_password	{ return SEND_PASSWORD; }
 sendq		{ return SENDQ; }
 server          { return T_SERVER; }
@@ -497,11 +499,11 @@ cinclude(void)
 
     lineno_stack[include_stack_ptr] = lineno;
     lineno = 1;
-    inc_fbfile_in[include_stack_ptr] = conf_fbfile_in;
+    inc_fbfile_in[include_stack_ptr] = conf_parser_ctx.conf_file;
     strlcpy(conffile_stack[include_stack_ptr], conffilebuf, IRCD_BUFSIZE);
     include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
-    conf_fbfile_in = tmp_fbfile_in;
-    snprintf(conffilebuf, sizeof(conffilebuf), "%s", p);
+    conf_parser_ctx.conf_file = tmp_fbfile_in;
+    snprintf(conffilebuf, sizeof(conffilebuf), "%s", filenamebuf);
     yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
   }
 }
@@ -514,7 +516,7 @@ ieof(void)
 {
   /* log(L_NOTICE, "return from include stack!"); */
   if (include_stack_ptr)
-    fbclose(conf_fbfile_in);
+    fbclose(conf_parser_ctx.conf_file);
   if (--include_stack_ptr < 0)
   {
     /* log(L_NOTICE, "terminating lexer"); */
@@ -529,7 +531,7 @@ ieof(void)
   /* log(L_NOTICE, "deleting include_stack_ptr=%d", include_stack_ptr); */
   yy_delete_buffer(YY_CURRENT_BUFFER);
   lineno = lineno_stack[include_stack_ptr];
-  conf_fbfile_in = inc_fbfile_in[include_stack_ptr];
+  conf_parser_ctx.conf_file = inc_fbfile_in[include_stack_ptr];
   strlcpy(conffilebuf, conffile_stack[include_stack_ptr], sizeof(conffilebuf)); 
   yy_switch_to_buffer(include_stack[include_stack_ptr]);
 

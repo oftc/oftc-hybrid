@@ -25,7 +25,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -35,7 +35,6 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "s_serv.h"             /* captab */
 #include "s_user.h"
@@ -47,7 +46,6 @@
 
 struct config_channel_entry ConfigChannel;
 dlink_list global_channel_list = { NULL, NULL, 0 };
-dlink_list lazylink_channels = { NULL, NULL, 0 };
 BlockHeap *ban_heap;    /*! \todo ban_heap shouldn't be a global var */
 
 static BlockHeap *topic_heap = NULL;
@@ -143,7 +141,7 @@ remove_user_from_channel(struct Membership *member)
 
   BlockHeapFree(member_heap, member);
 
-  if (dlink_list_length(&chptr->members) == 0)
+  if (chptr->members.head == NULL)
     destroy_channel(chptr);
 }
 
@@ -418,10 +416,6 @@ destroy_channel(struct Channel *chptr)
   dlinkDelete(&chptr->node, &global_channel_list);
   hash_del_channel(chptr);
 
-  if (ServerInfo.hub)
-    if ((ptr = dlinkFindDelete(&lazylink_channels, chptr)))
-      free_dlink_node(ptr);
-
   BlockHeapFree(channel_heap, chptr);
 }
 
@@ -430,7 +424,7 @@ destroy_channel(struct Channel *chptr)
  * \return string pointer "=" if public, "@" if secret else "*"
  */
 static const char *
-channel_pub_or_secret(struct Channel *chptr)
+channel_pub_or_secret(const struct Channel *chptr)
 {
   if (SecretChannel(chptr))
     return "@";
@@ -665,7 +659,7 @@ is_quiet(const struct Channel *chptr, const struct Client *who)
  * \return 0 if not banned, 1 otherwise
  */
 int
-is_banned(struct Channel *chptr, struct Client *who)
+is_banned(const struct Channel *chptr, const struct Client *who)
 {
   if (find_bmask(who, &chptr->banlist))
     if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
@@ -737,7 +731,7 @@ find_channel_link(struct Client *client_p, struct Channel *chptr)
 
   DLINK_FOREACH(ptr, client_p->channel.head)
     if (((struct Membership *)ptr->data)->chptr == chptr)
-      return (struct Membership *)ptr->data;
+      return ptr->data;
 
   return NULL;
 }
@@ -968,10 +962,9 @@ set_channel_topic(struct Channel *chptr, const char *topic,
 }
 
 int 
-msg_has_colors(char *msg)
+msg_has_colors(const char *msg)
 {
-
-  char *c;
+  const char *c;
   if (msg == NULL)
     return 0;
   c = msg;
@@ -990,10 +983,10 @@ msg_has_colors(char *msg)
 }
 
 char *
-strip_color(char* string)
+strip_color(const char* string)
 {
-  char *source = string;
-  char *dest = string;
+  const char *source = string;
+  char *dest = (char *)string;
   char *last_non_space = NULL;
 
   for (; source && *source; source++)
@@ -1026,6 +1019,9 @@ strip_color(char* string)
   *dest = '\0';
   if (last_non_space)
     *last_non_space = '\0';
-  return string;
+
+  dest = (char *)string;
+
+  return dest;
 }
 

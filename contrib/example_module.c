@@ -16,7 +16,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *   $Id: example_module.c 75 2005-10-04 19:35:11Z knight $
+ *   $Id$
  */
 
 /* List of ircd includes from ../include/ 
@@ -99,7 +99,7 @@ struct Message test_msgtab = {
   * m_unregistered: prevent the client using this if unregistered
   * m_not_oper:     tell the client it requires being an operator
   * m_ignore:       ignore the command when it comes from certain types
-  * m_error:        give an error when the command comes from certain types
+  * rfc1459_command_send_error: give an error when the command comes from certain types
   */
   { mr_test, m_test, ms_test, m_ignore, mo_test, m_ignore }
 
@@ -130,7 +130,7 @@ _moddeinit(void)
 
 /* When we last modified the file (shown in /modlist), this is usually:
  */
-const char *_version = "$Revision: 33 $";
+const char *_version = "$Revision$";
 #endif
 
 /*

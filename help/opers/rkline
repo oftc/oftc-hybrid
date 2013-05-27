@@ -1,4 +1,4 @@
-# $Id: rkline 33 2005-10-02 20:50:00Z knight $
+# $Id$
 RKLINE [time] <mask> [ON <server>] :[reason]
 
 [time] if present, gives number of minutes for temporary RXLINE

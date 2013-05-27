@@ -24,7 +24,7 @@
 
 #include "stdinc.h"
 #include "handlers.h"
-#include "tools.h"
+#include "list.h"
 #include "hook.h"
 #include "client.h"
 #include "hash.h"
@@ -40,16 +40,15 @@
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
-#include "irc_getnameinfo.h"
 
-static void m_trace(struct Client *, struct Client *, int, char **);
-static void ms_trace(struct Client*, struct Client*, int, char**);
-static void mo_trace(struct Client*, struct Client*, int, char**);
-static void do_actual_trace(struct Client *, int, char **);
+static void m_trace(struct Client *, struct Client *, int, char *[]);
+static void ms_trace(struct Client *, struct Client *, int, char *[]);
+static void mo_trace(struct Client *, struct Client *, int, char *[]);
+static void do_actual_trace(struct Client *, int, char *[]);
 
 struct Message trace_msgtab = {
   "TRACE", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_trace, ms_trace, m_ignore, mo_trace, m_ignore}
+  { m_unregistered, m_trace, ms_trace, m_ignore, mo_trace, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -82,8 +81,20 @@ _moddeinit(void)
 }
 #endif
 
-static int report_this_status(struct Client *source_p, struct Client *target_p,
-			      int dow, int link_u_p, int link_u_s);
+static void report_this_status(struct Client *, struct Client *, int);
+
+static void
+trace_get_dependent(int *const server,
+                    int *const client, const struct Client *target_p)
+{
+  const dlink_node *ptr = NULL;
+
+  (*server)++;
+  (*client) += dlink_list_length(&target_p->serv->client_list);
+
+  DLINK_FOREACH(ptr, target_p->serv->server_list.head)
+    trace_get_dependent(server, client, ptr->data);
+}
 
 /*
  * m_trace()
@@ -179,7 +190,7 @@ mo_trace(struct Client *client_p, struct Client *source_p,
 }
 
 static void
-do_actual_trace(struct Client *source_p, int parc, char **parv)
+do_actual_trace(struct Client *source_p, int parc, char *parv[])
 {
   struct Client *target_p = NULL;
   struct ConfItem *conf;
@@ -222,25 +233,19 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
   {
     const char *name;
     const char *class_name;
-    char ipaddr[HOSTIPLEN];
 
     target_p = find_client(tname);
       
     if (target_p && IsClient(target_p)) 
     {
       name = get_client_name(target_p, HIDE_IP);
-      /* should we not use sockhost here? - stu */
-      irc_getnameinfo((struct sockaddr*)&target_p->ip,
-		      target_p->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
-		      NI_NUMERICHOST);
-
       class_name = get_client_class(target_p);
 
       if (IsOper(target_p))
       {
         sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                    from, to, class_name, name, 
-                   IsIPSpoof(target_p) ? "255.255.255.255" : ipaddr,
+                   IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
                    CurrentTime - target_p->lasttime,
                    CurrentTime - target_p->localClient->last);
       }
@@ -248,7 +253,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
       {
         sendto_one(source_p,form_str(RPL_TRACEUSER),
                    from, to, class_name, name, 
-		   IsIPSpoof(target_p) ? "255.255.255.255" : ipaddr,
+		   IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
                    CurrentTime - target_p->lasttime,
                    CurrentTime - target_p->localClient->last);
       }
@@ -273,7 +278,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
-    report_this_status(source_p, target_p, dow, 0, 0);
+    report_this_status(source_p, target_p, dow);
   }
 
   DLINK_FOREACH(ptr, serv_list.head)
@@ -285,8 +290,7 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
-    report_this_status(source_p, target_p, dow,
-      target_p->serv->dep_users, target_p->serv->dep_servers);
+    report_this_status(source_p, target_p, dow);
   }
 
   /* This section is to report the unknowns */
@@ -299,21 +303,21 @@ do_actual_trace(struct Client *source_p, int parc, char **parv)
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
-    report_this_status(source_p, target_p, dow, 0, 0);
+    report_this_status(source_p, target_p, dow);
   }
 
   DLINK_FOREACH(ptr, class_items.head)
   {
     conf = ptr->data;
-    cltmp = (struct ClassItem *)map_to_conf(conf);
+    cltmp = map_to_conf(conf);
+
     if (CurrUserCount(cltmp) > 0)
       sendto_one(source_p, form_str(RPL_TRACECLASS),
-		 from, to, conf->name, CurrUserCount(cltmp));
+                 from, to, conf->name, CurrUserCount(cltmp));
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFTRACE), from, to, tname);
 }
-
 
 /*
 ** ms_trace
@@ -338,15 +342,12 @@ ms_trace(struct Client *client_p, struct Client *source_p,
  * output	- counter of number of hits
  * side effects - NONE
  */
-static int
-report_this_status(struct Client *source_p, struct Client *target_p,
-                   int dow, int link_u_p, int link_s_p)
+static void
+report_this_status(struct Client *source_p, struct Client *target_p, int dow)
 {
   const char *name;
   const char *class_name;
   const char *from, *to;
-  char ip[HOSTIPLEN];
-  int cnt = 0;
 
   if (!MyConnect(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
   {
@@ -359,42 +360,34 @@ report_this_status(struct Client *source_p, struct Client *target_p,
     to = source_p->name;
   }
 
-  /* Should this be sockhost? - stu */
-  irc_getnameinfo((struct sockaddr*)&target_p->ip, 
-        target_p->ip.ss_len, ip, HOSTIPLEN, NULL, 0, 
-        NI_NUMERICHOST);
   name = get_client_name(target_p, HIDE_IP);
   class_name = get_client_class(target_p);
 
   set_time();
 
-  switch(target_p->status)
+  switch (target_p->status)
   {
     case STAT_CONNECTING:
       sendto_one(source_p, form_str(RPL_TRACECONNECTING),
                  from, to, class_name, 
 		 IsOperAdmin(source_p) ? name : target_p->name);
-		   
-      cnt++;
       break;
     case STAT_HANDSHAKE:
       sendto_one(source_p, form_str(RPL_TRACEHANDSHAKE),
                  from, to, class_name, 
                  IsOperAdmin(source_p) ? name : target_p->name);
-		   
-      cnt++;
       break;
     case STAT_ME:
       break;
     case STAT_UNKNOWN:
       /* added time -Taner */
       sendto_one(source_p, form_str(RPL_TRACEUNKNOWN),
-		 from, to, class_name, name, ip,
+		 from, to, class_name, name, target_p->sockhost,
 		 target_p->firsttime ? CurrentTime - target_p->firsttime : -1);
-      cnt++;
       break;
     case STAT_CLIENT:
-      /* Only opers see users if there is a wildcard
+      /*
+       * Only opers see users if there is a wildcard
        * but anyone can see all the opers.
        */
       if ((IsOper(source_p) &&
@@ -404,7 +397,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
           if (IsAdmin(target_p) && !ConfigFileEntry.hide_spoof_ips)
 	    sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                        from, to, class_name, name,
-                       IsOperAdmin(source_p) ? ip : "255.255.255.255",
+                       IsOperAdmin(source_p) ? target_p->sockhost : "255.255.255.255",
                        CurrentTime - target_p->lasttime,
                        CurrentTime - target_p->localClient->last);
 		       
@@ -413,14 +406,14 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 	    if (ConfigFileEntry.hide_spoof_ips)
 	      sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
 		         from, to, class_name, name, 
-		         IsIPSpoof(target_p) ? "255.255.255.255" : ip,
+		         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
 		         CurrentTime - target_p->lasttime,
 		         CurrentTime - target_p->localClient->last);
 	    else
               sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                          from, to, class_name, name,
-                         MyOper(source_p) ? ip :
-                         (IsIPSpoof(target_p) ? "255.255.255.255" : ip),
+                         MyOper(source_p) ? target_p->sockhost :
+                         (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                          CurrentTime - target_p->lasttime,
                          CurrentTime - target_p->localClient->last);
 	  }		       
@@ -435,38 +428,40 @@ report_this_status(struct Client *source_p, struct Client *target_p,
             if (ConfigFileEntry.hide_spoof_ips)
 	      sendto_one(source_p, format_str,
 		         from, to, class_name, name,
-                         IsIPSpoof(target_p) ? "255.255.255.255" : ip,
+                         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
 		         CurrentTime - target_p->lasttime,
 		         CurrentTime - target_p->localClient->last);
 	    else
               sendto_one(source_p, format_str,
                          from, to, class_name, name,
-                         MyOper(source_p) ? ip :
-                         (IsIPSpoof(target_p) ? "255.255.255.255" : ip),
+                         MyOper(source_p) ? target_p->sockhost :
+                         (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                          CurrentTime - target_p->lasttime,
                          CurrentTime - target_p->localClient->last);
 	  }
-	  cnt++;
 	}
       break;
     case STAT_SERVER:
-      if(!IsOperAdmin(source_p))
+    {
+      int clients = 0;
+      int servers = 0;
+
+      trace_get_dependent(&servers, &clients, target_p);
+
+      if (!IsOperAdmin(source_p))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),
-		 from, to, class_name, link_s_p,
-		 link_u_p, name, *(target_p->serv->by) ?
+		 from, to, class_name, servers,
+		 clients, name, *(target_p->serv->by) ?
 		 target_p->serv->by : "*", "*",
 		 me.name, CurrentTime - target_p->lasttime);
-      cnt++;
       break;
+    }
       
     default: /* ...we actually shouldn't come here... --msa */
       sendto_one(source_p, form_str(RPL_TRACENEWTYPE),
-		 from, to, name);
-      cnt++;
+                 from, to, name);
       break;
   }
-
-  return cnt;
 }

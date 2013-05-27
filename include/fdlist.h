@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: fdlist.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef INCLUDED_fdlist_h
@@ -41,7 +41,6 @@ enum {
 
 struct _fde;
 struct Client;
-struct DNSQuery;
 
 /* Callback for completed IO events */
 typedef void PF(struct _fde *, void *);
@@ -70,7 +69,7 @@ typedef struct _fde {
   PF *flush_handler;
   void *flush_data;
   time_t flush_timeout;
-  struct DNSQuery *dns_query;
+
   struct {
     unsigned int open:1;
     unsigned int is_socket:1;
@@ -106,12 +105,7 @@ extern fde_t *lookup_fd(int);
 extern void fd_open(fde_t *, int, int, const char *);
 extern void fd_close(fde_t *);
 extern void fd_dump(struct Client *);
-#ifndef __GNUC__
-extern void fd_note(fde_t *, const char *format, ...);
-#else
-extern void  fd_note(fde_t *, const char *format, ...)
-  __attribute__((format (printf, 2, 3)));
-#endif
+extern void fd_note(fde_t *, const char *, ...);
 extern void close_standard_fds(void);
 extern void close_fds(fde_t *);
 extern void recalc_fdlimit(void *);

@@ -1,13 +1,14 @@
 # Inspired by work Copyright (C) 2006 Luca Filipozzi
 # vim: set fdm=marker ts=2 sw=2 et:
 
-AC_PREREQ(2.59)
+AC_PREREQ(2.64)
 AC_INIT([oftc-hybrid],[1.7.0-alpha1])
 AM_INIT_AUTOMAKE
-AC_CONFIG_HEADERS([include/setup.h])
+AC_CONFIG_HEADERS([include/config.h])
 AM_MAINTAINER_MODE
 
 AC_USE_SYSTEM_EXTENSIONS
+
 
 #ltdl stuff
 LT_CONFIG_LTDL_DIR([libltdl])
@@ -24,6 +25,7 @@ AC_PROG_CC_C99
     [AC_MSG_ERROR([no C99 compiler found. Aborting.])])
 AC_PROG_RANLIB
 AC_PROG_LIBTOOL
+
 LIBTOOL="$LIBTOOL --silent"
 AM_PROG_LEX
 AC_PROG_YACC
@@ -44,51 +46,126 @@ AX_CHECK_OPENSSL([AC_CHECK_LIB(crypto, RSA_free)
   cf_enable_openssl="no"])
 AX_CHECK_LIB_IPV4
 AX_CHECK_LIB_IPV6
-AX_CHECK_LIB_CRYPT
-
-# Checks for header files.
-AC_CHECK_HEADERS([sys/resource.h]) # ick
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_C_INLINE
 AC_C_VOLATILE
 AC_C_BIGENDIAN
 
 AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for library functions.
-AC_CHECK_FUNC([snprintf],[AC_DEFINE([HAVE_SNPRINTF],[1],[Define to 1 if you have the snprintf() function.])])
-AC_CHECK_FUNC([vsnprintf],[AC_DEFINE([HAVE_VSNPRINTF],[1],[Define to 1 if you have the vsnprintf() function.])])
-AC_CHECK_FUNC([lrand48],[AC_DEFINE([HAVE_LRAND48],[1],[Define to 1 if you have the lrand48() function.])])
-AC_CHECK_FUNC([srand48],[AC_DEFINE([HAVE_LRAND48],[1],[Define to 1 if you have the srand48() function.])])
-AC_CHECK_FUNC([mmap],[AC_DEFINE([HAVE_MMAP],[1],[Define to 1 if you have the mmap() function.])])
-AC_CHECK_FUNC([strtok_r],[AC_DEFINE([HAVE_STRTOK_R],[1],[Define to 1 if you have the strtok_r() function.])])
-AC_CHECK_FUNC([usleep],[AC_DEFINE([HAVE_USLEEP],[1],[Define to 1 if you have the usleep() function.])])
-AC_CHECK_FUNC([strlcat],[AC_DEFINE([HAVE_STRLCAT],[1],[Define to 1 if you have the strlcat() function.])])
-AC_CHECK_FUNC([strlcpy],[AC_DEFINE([HAVE_STRLCPY],[1],[Define to 1 if you have the strlcpy() function.])])
-AC_CHECK_FUNC([basename],[AC_DEFINE([HAVE_BASENAME],[1],[Define to 1 if you have the basename() function.])])
-AC_CHECK_FUNC([socketpair],[AC_DEFINE([HAVE_SOCKETPAIR],[1],[Define to 1 if you have the socketpair() function.])])
+AC_CHECK_FUNCS_ONCE(lrand48     \
+                    srand48     \
+                    mmap        \
+                    strtok_r    \
+                    usleep      \
+                    strlcat     \
+                    strlcpy     \
+                    socketpair  \
+                    basename)
+
+# Checks for header files.
+AC_CHECK_HEADERS_ONCE(crypt.h        \
+                      inttypes.h     \
+                      stdint.h       \
+                      sys/resource.h \
+                      sys/param.h    \
+                      errno.h        \
+                      sys/syslog.h   \
+                      sys/wait.h     \
+                      wait.h         \
+                      link.h)
+
+# check for /dev/null so we can use it to hold evil fd's
+AC_MSG_CHECKING([for /dev/null])
+AS_IF([test -c /dev/null], [
+  AC_DEFINE(PATH_DEVNULL, "/dev/null",   [Path to /dev/null])
+  AC_MSG_RESULT([yes])], [
+  AC_DEFINE(PATH_DEVNULL, "devnull.log", [Path to /dev/null])
+  AC_MSG_RESULT([no - using devnull.log])])
+
+
+AC_SEARCH_LIBS(crypt, crypt)
+
+
+AC_ARG_WITH(zlib-path,
+AS_HELP_STRING([--with-zlib-path=DIR], [Path to libz.so for ziplinks support.]),
+[LDFLAGS="-L$withval $LDFLAGS"],)
+
+AC_ARG_ENABLE(zlib, AS_HELP_STRING([--disable-zlib],[Disable ziplinks support]),
+[zlib=$enableval],[zlib=yes])
+
+AS_IF([test "$zlib" = "yes"], [
+  AC_CHECK_HEADER(zlib.h, [AC_CHECK_LIB(z, zlibVersion,
+    [
+      LIBS="-lz $LIBS"
+      AC_DEFINE(HAVE_LIBZ, 1, [Define to 1 if zlib (-lz) is available.])
+    ], zlib=no)
+  ], zlib=no)
+])
+
+AC_ARG_WITH(libpcre-path,
+AS_HELP_STRING([--with-libpcre-path=DIR], [Path to libpcre.so for PCRE support.]),
+[LDFLAGS="-L$withval $LDFLAGS"],)
+
+AC_ARG_ENABLE(libpcre, AS_HELP_STRING([--disable-libpcre],[Disable PCRE support]),
+[libpcre=$enableval],[libpcre=yes])
+
+AS_IF([test "$libpcre" = "yes"], [
+  AC_CHECK_HEADER(pcre.h, [AC_CHECK_LIB(pcre, pcre_study,
+    [
+      LIBS="-lpcre $LIBS"
+      AC_DEFINE(HAVE_LIBPCRE, 1, [Define to 1 if libpcre (-lpcre) is available.])
+    ], libpcre=no)
+  ], libpcre=no)
+])
+AM_CONDITIONAL(ENABLE_PCRE, [test "$libpcre" = yes])
+
+
+AH_TEMPLATE([HAVE_LIBCRYPTO], [If we support ssl])
+
+AM_CONDITIONAL(ENABLE_SSL, [test "$cf_enable_openssl" = yes])
+
+AC_ARG_ENABLE(assert, AS_HELP_STRING([--enable-assert], 
+                                     [Enable assert() statements]),
+  [assert=$enableval], [assert=no])
+
+AS_IF([test "$assert" = "no"],
+  [AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.])])
+
+AC_ARG_ENABLE(small-net, AS_HELP_STRING([--enable-small-net],
+                                        [Enable small network support.]),
+[small_net=$enableval], [small_net=no])
+
+AS_IF([test "$small_net" = "yes"], [
+  AC_DEFINE([NICKNAMEHISTORYLENGTH], 1500, [Size of the WHOWAS array.])
+  AC_DEFINE([CHANNEL_HEAP_SIZE], 256, [Size of the channel heap.])
+  AC_DEFINE([BAN_HEAP_SIZE], 128, [Size of the ban heap.])
+  AC_DEFINE([CLIENT_HEAP_SIZE], 256, [Size of the client heap.])
+  AC_DEFINE([LCLIENT_HEAP_SIZE], 128, [Size of the local client heap.])
+  AC_DEFINE([DNODE_HEAP_SIZE], 256, [Size of the dlink_node heap.])
+  AC_DEFINE([TOPIC_HEAP_SIZE], 256, [Size of the topic heap.])
+  AC_DEFINE([DBUF_HEAP_SIZE], 64, [Size of the dbuf heap.])
+  AC_DEFINE([AUTH_HEAP_SIZE], 128, [Size of the auth heap.])
+  AC_DEFINE([DNS_HEAP_SIZE], 128, [Size of the dns heap.])], [
+
+  AC_DEFINE([NICKNAMEHISTORYLENGTH], 15000, [Size of the WHOWAS array.])
+  AC_DEFINE([CHANNEL_HEAP_SIZE], 1024, [Size of the channel heap.])
+  AC_DEFINE([BAN_HEAP_SIZE], 1024, [Size of the ban heap.])
+  AC_DEFINE([CLIENT_HEAP_SIZE], 1024, [Size of the client heap.])
+  AC_DEFINE([LCLIENT_HEAP_SIZE], 512, [Size of the local client heap.])
+  AC_DEFINE([DNODE_HEAP_SIZE], 1024, [Size of the dlink_node heap.])
+  AC_DEFINE([TOPIC_HEAP_SIZE], 1024, [Size of the topic heap.])
+  AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
+  AC_DEFINE([AUTH_HEAP_SIZE], 512, [Size of the auth heap.])
+  AC_DEFINE([DNS_HEAP_SIZE], 512, [Size of the dns heap.])])
 
 # Argument processing.
 AX_ARG_ENABLE_IOLOOP_MECHANISM
 AX_ARG_DISABLE_BLOCK_ALLOC
 AX_ARG_DISABLE_SHARED_MODULES
 AX_ARG_WITH_NICKLEN
-AX_ARG_WITH_USERLEN
-AX_ARG_WITH_HOSTLEN
 AX_ARG_WITH_TOPICLEN
-AX_ARG_WITH_LCLIENT_HEAP_SIZE
-AX_ARG_WITH_CLIENT_HEAP_SIZE
-AX_ARG_WITH_CHANNEL_HEAP_SIZE
-AX_ARG_WITH_DBUF_HEAP_SIZE
-AX_ARG_WITH_DNODE_HEAP_SIZE
-AX_ARG_WITH_BAN_HEAP_SIZE
-AX_ARG_WITH_TOPIC_HEAP_SIZE
-AX_ARG_WITH_IRCD_HEAP_SIZE
-AX_ARG_WITH_MQUEUE_HEAP_SIZE
-AX_ARG_WITH_FMSG_HEAP_SIZE
-AX_ARG_WITH_NICKNAME_HISTORY_LENGTH
 AX_ARG_WITH_SYSLOG
 AX_ARG_WITH_SERVICS_NAME
 AX_ARG_ENABLE_EFNET
@@ -120,8 +197,6 @@ AC_CONFIG_FILES(               \
 			 help/opers/Makefile		 \
 			 help/users/Makefile     \
 			 include/Makefile        \
-       lib/Makefile            \
-       lib/pcre/Makefile
-)
+       tools/Makefile)
 
 AC_OUTPUT

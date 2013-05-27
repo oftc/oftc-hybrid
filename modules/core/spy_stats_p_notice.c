@@ -50,7 +50,7 @@ _moddeinit(void)
     uninstall_hook(stats_cb, show_stats_p);
 }
 
-const char *_version = "$Revision: 33 $";
+const char *_version = "$Revision$";
 
 static void *
 show_stats_p(va_list args)

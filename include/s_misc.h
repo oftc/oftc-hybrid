@@ -19,17 +19,16 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_misc.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef INCLUDED_s_misc_h
 #define INCLUDED_s_misc_h
 
 extern char *date(time_t);
-extern char *small_file_date(time_t);
 extern const char *smalldate(time_t);
 #ifdef HAVE_LIBCRYPTO
-extern char *ssl_get_cipher(SSL *);
+extern char *ssl_get_cipher(const SSL *);
 #endif
 void base16_encode(char *, size_t, const char *, size_t);
 int base16_decode(char *, size_t, const char *, size_t);

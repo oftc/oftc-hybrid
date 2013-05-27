@@ -1,17 +1,146 @@
--- ircd-hybrid-7.2.4 RELNOTES
+-- oftc-hybrid 1.6.9 RELNOTES
+o) Fix a crash bug only affecting solaris
+
+-- oftc-hybrid 1.6.8 RELNOTES
+o) Fix a crash bug as noted in CVE-2009-4016.
+
+-- oftc-hybrid 1.6.7 RELNOTES
+o) Fix a bug causing temp dlines to crash ircd when they expire
+
+-- oftc-hybrid 1.6.6 RELNOTES
+o) A bit like below but done properly so that SSL still works
+
+-- oftc-hybrid 1.6.5 RELNOTES
+o) Fix a bug causing users connecting on the SSL port to never be disconnected
+if they didn't do anything
+
+-- oftc-hybrid 1.6.4 RELNOTES
+o) Support sending certificate chains in SSL handshakes
+o) Fix a bug in the client notice that tells you your certificate fingerprint on connect
+
+-- oftc-hybrid 1.6.3 RELNOTES
+o) Fix a core in temporary RESVs 
+
+-- oftc-hybrid 1.6.2 RELNOTES
+o) Fix SVSNICK to not fail for flood reasons, also prevent opers from using it.
+o) Fix a bug in shedding causing it to fail randomly.
+o) Fix a long standing bug in wallops preventing local non oper users from
+seeing them.
+
+-- oftc-hybrid 1.6.1 RELNOTES
+o) Fix bug causing KICK evasions when +S to not work.
+o) Fix bug causing +T users to be able to be kicked.
+
+-- oftc-hybrid 1.6.0 RELNOTES
+o) Add ability to accept ssl client certifiates and store their fingerprints
+	 against the client.
+o) Add usermode +P for services clients only.  Not settable by users.
+o) Add channel mode +z - op moderation. Ops will see any messages sent to
+   moderated channels.
+o) K-Lines are now enforced on realhost if applicable.
+o) User shedding now starts from the back of the client list instead of the
+   front so that users who just joined arent the first choice for shedding.
+o) Remote and timed xlines fixes.
+o) Various bug fixes.
+
+-- oftc-hybrid 1.5.7 RELNOTES
+o) Bugfix release to fix the class name display in the reject notice.
+
+-- oftc-hybrid 1.5.6 RELNOTES
+o) Make temporary lines get written into the conf files so they are permenant
+but duration based
+o) Various things to support this such as displaying expiration time in oper
+reason in stats k
+o) Fixed a bug in god mode when a channel TS was 0.
+o) Fix chmode +S so that it actually works instead of doing the opposite.
+o) Added class information to the reject notices.
+o) Update smalldate() to give us a better datetime format
+
+-- oftc-hybrid 1.5.5 RELNOTES
+o) Bugfix release
+
+-- oftc-hybrid 1.5.4 RELNOTES
+o) Fix the +i WHO option, and add CIDR to it
+o) Make cidr classes global so max_per_cidr is global
+o) max_per_ip is now global too
+o) Added a reject_message to the class{} block to allow configurable messages
+o) Added stats n which dumps user counts in all areas(host, ip, cidr)
+o) Added --with-services-name configure option
+o) Reduced startup connect timer
+
+-- oftc-hybrid 1.5.3 RELNOTES
+o) Actually fix the /names output bug instead of making it worse
+o) UMode +S now times out after a configurable timeout
+o) Fix a critical bug in the kqueue io handler
+
+-- oftc-hybrid 1.5.2 RELNOTES
+o) Bugfix release to make stats E non admin-only and stats p not show remote
+    non-admins
+
+-- oftc-hybrid 1.5.1 RELNOTES
+o) Allow non chanops to view +q lists
+o) Fix a bug in /names output
+o) DNS server failure is now reported a little better
+o) /stats p is now global and will show all opers on the network
+
+-- oftc-hybrid 1.5.0 RELNOTES
+o) UMode +G moved to +S to make way for hybrid +G
+o) UMode +S removed
+o) Shedding accepted new paramters
+o) The various services shortcuts and SVSNICK are now from hybrid contrib
+o) Code merged with hybrid 7.2.2 release
+o) Added channel mode +q which prevents users matching that mask from speaking
+    on a channel
+
+-- oftc-hybrid 1.4.1 RELNOTES
+o) Fix amd64 issues.
+o) Fixed server max_connections
+o) Other misc fixes.
+
+-- oftc-hybrid 1.4.0 RELNOTES
+o) Add Client SSL Support
+o) Add user shedding
+o) Add new channel modes:
+o) +R - Cannot join channel unless regisitered with NickServ
+o) +M - Cannot talk on channel unless registered with NickServ
+o) +S - Cannot join channel unless using SSL
+
+-- ircd-hybrid-7.3 RELNOTES
+o) Major 64-bit cleanups and portability fixes.
+o) Fixed bug where unregistered clients were not able to complete registration
+   process with /quote PONG <ping_cookie> in case the client was assigned a
+   zero value ping-cookie. This may only happen with general::ping_cookie
+   being enabled.
+o) "STATS z" now shows the actual amount of memory consumption being
+   used by channel bans/excepts/invites.
+o) Fixed archaic bug where bursting servers with missconfigured NICKLEN were
+   able to desync the network's nickname database.
+o) The PCRE library has been removed from the ircd sources. ./configure will
+   now automatically detect an already installed version of the PCRE library.
+o) Various resolver improvements and fixes
+o) Implemented GUNGLINE (global ungline)
+o) Completely rewrote build system. We're now using automake and libtool
+o) Added support for SHA-256/512 encrypted passwords to mkpasswd. Whether
+   passwords hashed using these algorithms will work depends on the system's
+   crypt() implementation. For example, SHA-256/512 is available in glibc since
+   version 2.7.
+o) Added ssl_server_protocol configuration option to servinfo{}.
+   Valid flags are 'sslv3' and 'tlsv1'
+o) Added new 'server' option to listener::flags. Listener with that flag
+   set may only accept server connections.
 o) Fixed occasional core when placing RESVs on channel names
 o) Fixed topic desynchronization which sometimes may
    happen during netbursts
-o) WATCH support implemented. Known from other daemons, such
-   as Dreamforge and Bahamut.
+o) WATCH support implemented. Known from other irc-daemons, such
+   as Dreamforge and Bahamut. The general::max_watch configuration directive
+   has been added in order to allow run-time configuration of how many
+   watch entries a single client may have on its watchlist.
 o) Fixed bug which would cause invalid invisible counts on oper-up in case
    operator::umodes and/or general::oper_umodes contains 'invisible'
 o) Removed broken LazyLinks
+o) Removed --disable-gline-voting configure option
 o) Minor code optimizations and cleanups
 o) ACCEPT now supports nick!user@host masks
-o) Added new 'server' option to listener::flags. Listener with that flag
-   set may only have server connections.
-
 
 -- ircd-hybrid-7.2.3 RELNOTES
 o) Added ircd-italian.lang language file
@@ -99,7 +228,6 @@ o) Get "KLINE nick" to work with clients that have a spoof
 o) Fixed RESV/XLINE bug in conjunction with names that include escaped
    characters such as \*, \?, \#.
 
-
 -- ircd-hybrid-7.2beta1 RELNOTES
 o) Usermode +G, like +g, but allow messaging from people on common channels
 o) Usermode +D - "deaf", don't receive channel messages
@@ -124,10 +252,8 @@ o) Introduced new listen::flags directive.  Currently available flags are
 BUGS: Major bugs in this release are listed in BUGS
 
 BUG REPORTS: If you run this code and encounter problems, you must report
- the bug in one of the following ways:
-  a) By EMAIL to bugs@ircd-hybrid.org
-  b) On http://forum.ircd-hybrid.org/
- Please include a gdb backtrace and a copy of your setup.h and
+ the bug by EMAIL to bugs@ircd-hybrid.org
+ Please include a gdb backtrace and a copy of your config.h and
  ircd.conf with any report (with passwords and other sensitive
  information masked).
 
@@ -136,13 +262,10 @@ DISCUSSION: There is a mailing list for discussion of hybrid issues,
     https://lists.ircd-hybrid.org/mailman/listinfo/hybrid
  This is the proper place to discuss new features, bugs, etc.  Posting here
  is much more likely to get something done than ranting on #TZ.
- You can also use Hybrid forums at http://forum.ircd-hybrid.org/
 
 Questions/comments directed to bugs@ircd-hybrid.org
 
-Please read doc/whats-new.txt for information about what is in this release
-
-Other files recommended for reading: BUGS, README.FIRST, INSTALL
+Other files recommended for reading: BUGS, README, INSTALL
 
 --------------------------------------------------------------------------------
-$Id: NEWS 903 2007-11-04 14:11:03Z michael $
+$Id$

@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "motd.h"
 #include "ircd.h"
 #include "fdlist.h"

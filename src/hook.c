@@ -20,18 +20,18 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: hook.c 157 2005-10-18 06:33:24Z adx $
+ *  $Id$
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "hook.h"
 #include "ircd.h"
-#include "list.h"
 #include "memory.h"
 #include "numeric.h"
-#include "tools.h"
 #include "irc_string.h"
 #include "send.h"
+#include "client.h"
 
 dlink_list callback_list = {NULL, NULL, 0};
 

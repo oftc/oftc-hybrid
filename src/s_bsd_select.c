@@ -20,11 +20,12 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_bsd_select.c 908 2007-11-04 23:21:51Z stu $
+ *  $Id$
  */
 
 #include "stdinc.h"
 #if USE_IOPOLL_MECHANISM == __IOPOLL_MECHANISM_SELECT
+#include "list.h"
 #include "fdlist.h"
 #include "hook.h"
 #include "ircd.h"

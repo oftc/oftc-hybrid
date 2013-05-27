@@ -73,7 +73,7 @@ _moddeinit(void)
     uninstall_hook(etrace_cb, show_etrace);
 }
 
-const char *_version = "$Revision: 448 $";
+const char *_version = "$Revision$";
 
 static void *
 show_trace(va_list args)

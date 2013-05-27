@@ -19,17 +19,14 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: irc_string.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef INCLUDED_irc_string_h
 #define INCLUDED_irc_string_h
 
-#include "setup.h"
-#include "pcre.h"
-
-extern int ircd_pcre_exec(const pcre *, const char *);
-extern pcre *ircd_pcre_compile(const char *, const char **);
+extern int ircd_pcre_exec(const void *, const char *);
+extern void *ircd_pcre_compile(const char *, const char **);
 
 /*
  * match - compare name with mask, mask may contain * and ? as wildcards
@@ -84,14 +81,6 @@ extern size_t strlcpy(char *, const char *, size_t);
 
 #ifndef HAVE_STRLCAT
 extern size_t strlcat(char *, const char *, size_t);
-#endif
-
-#ifndef HAVE_SNPRINTF
-extern int snprintf(char *, size_t, const char *,...);
-#endif
-
-#ifndef HAVE_VSNPRINTF
-extern int vsnprintf(char *, size_t, const char *, va_list);
 #endif
 
 #ifndef HAVE_BASENAME

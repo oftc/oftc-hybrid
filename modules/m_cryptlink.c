@@ -30,6 +30,9 @@
  */
 
 #include "stdinc.h"
+#ifdef HAVE_LIBCRYPTO
+
+#include "list.h"
 #include "handlers.h"
 #include "client.h"      /* client struct */
 #include "ircd.h"        /* me */
@@ -41,16 +44,13 @@
 #include "msg.h"
 #include "parse.h"
 #include "irc_string.h"  /* strncpy_irc */
-#include "tools.h"
 #include "memory.h"
 #include "common.h"      /* TRUE bleah */
 #include "event.h"
 #include "hash.h"        /* add_to_client_hash_table */
-#include "list.h"        /* make_server */
 #include "s_conf.h"      /* struct AccessItem */
 #include "s_log.h"       /* log level defines */
 #include "s_serv.h"      /* server_estab, check_server, my_name_for_link */
-#include "s_stats.h"     /* ServerStats */
 #include "motd.h"
 
 static int bogus_host(char *host);
@@ -64,7 +64,7 @@ static void cryptlink_auth(struct Client *, struct Client *, int, char **);
 
 struct Message cryptlink_msgtab = {
   "CRYPTLINK", 0, 0, 4, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_cryptlink, m_ignore, m_error, m_ignore, m_ignore, m_ignore}
+  {mr_cryptlink, m_ignore, rfc1459_command_send_error, m_ignore, m_ignore, m_ignore}
 };
 
 struct CryptLinkStruct
@@ -79,7 +79,7 @@ static struct CryptLinkStruct cryptlink_cmd_table[] =
   { "AUTH",	cryptlink_auth,	},
   { "SERV",	cryptlink_serv,	},
   /* End of table */
-  { (char *)0,	(void (*)())0,	}
+  { NULL,	NULL,	}
 };
 
 #ifndef STATIC_MODULES
@@ -353,37 +353,6 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (ServerInfo.hub && IsCapable(client_p, CAP_LL))
-  {
-      if (IsCapable(client_p, CAP_HUB))
-      {
-          ClearCap(client_p,CAP_LL);
-          sendto_realops_flags(UMODE_ALL, L_ALL, 
-               "*** LazyLinks to a hub from a hub, that's a no-no.");
-      }
-      else
-      {
-          client_p->localClient->serverMask = nextFreeMask();
-
-          if(!client_p->localClient->serverMask)
-          {
-              sendto_realops_flags(UMODE_ALL, L_ALL, 
-                                   "serverMask is full!");
-              /* try and negotiate a non LL connect */
-              ClearCap(client_p,CAP_LL);
-          }
-      }
-  }
-  else if (IsCapable(client_p, CAP_LL))
-  {
-      if (!IsCapable(client_p, CAP_HUB))
-      {
-        ClearCap(client_p,CAP_LL);
-        sendto_realops_flags(UMODE_ALL, L_ALL, 
-          "*** LazyLinks to a leaf from a leaf, that's a no-no.");
-      }
-  }
-
   conf = find_conf_name(&client_p->localClient->confs,
 			name, SERVER_TYPE);
   if (conf == NULL)
@@ -452,9 +421,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
   MyFree(encrypted);
 
   if (!IsWaitAuth(client_p))
-  {
     cryptlink_init(client_p, conf, NULL);
-  }
 
   sendto_one(client_p, "CRYPTLINK AUTH %s %s",
              client_p->localClient->out_cipher->name,
@@ -570,3 +537,5 @@ bogus_host(char *host)
 
   return(!dots || length > HOSTLEN);
 }
+
+#endif

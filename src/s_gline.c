@@ -23,24 +23,17 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
-#include "handlers.h"
+#include "list.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "hostmask.h"
-#include "fdlist.h"
-#include "s_bsd.h"
 #include "s_conf.h"
 #include "s_misc.h"
 #include "send.h"
-#include "msg.h"
-#include "fileio.h"
 #include "s_serv.h"
 #include "s_gline.h"
 #include "event.h"
-#include "list.h"
 #include "memory.h"
 
 dlink_list pending_glines = { NULL, NULL, 0 };

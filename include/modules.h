@@ -25,15 +25,7 @@
 #ifndef INCLUDED_modules_h
 #define INCLUDED_modules_h
 
-#include "setup.h"
 #include "parse.h"
-
-#ifdef HAVE_SHL_LOAD
-#include <dl.h>
-#endif
-#if !defined(STATIC_MODULES) && defined(HAVE_DLFCN_H)
-#include <dlfcn.h>
-#endif
 
 #include "ircd_handler.h"
 #include "msg.h"
@@ -47,8 +39,8 @@ struct module
   const char *version;
   void *handle;
   void *address;
-  int core;
   void (*modremove)(void);
+  int core;
 };
 
 struct module_path
@@ -171,6 +163,7 @@ extern struct Message userhost_msgtab;
 extern struct Message users_msgtab;
 extern struct Message version_msgtab;
 extern struct Message wallops_msgtab;
+extern struct Message watch_msgtab;
 extern struct Message who_msgtab;
 extern struct Message whois_msgtab;
 extern struct Message whowas_msgtab;

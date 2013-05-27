@@ -1,7 +1,7 @@
 /*
  * include/irc_reslib.h (C)opyright 1992 Darren Reed.
  *
- * $Id: irc_reslib.h 33 2005-10-02 20:50:00Z knight $
+ * $Id$
  */
 #ifndef INCLUDED_ircdreslib_h
 #define INCLUDED_ircdreslib_h
@@ -45,6 +45,8 @@
 	(cp) += NS_INT32SZ; \
 }
 
+extern struct irc_ssaddr irc_nsaddr_list[];
+extern int irc_nscount;
 extern int irc_res_init(void);
 extern int irc_dn_expand(const unsigned char *msg, const unsigned char *eom, const unsigned char *src, char *dst, int dstsiz);
 extern int irc_dn_skipname(const unsigned char *ptr, const unsigned char *eom);

@@ -23,12 +23,12 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "ircd_defs.h"
-#include "tools.h"
+#include "balloc.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "resv.h"
-#include "s_stats.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
@@ -39,10 +39,9 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "s_bsd.h"
-#include "irc_getnameinfo.h"
 #include "irc_getaddrinfo.h"
+#include "irc_getnameinfo.h"
 #include "ircd.h"
-#include "list.h"
 #include "listener.h"
 #include "hostmask.h"
 #include "modules.h"
@@ -109,7 +108,8 @@ extern char linebuf[];
 extern char conffilebuf[IRCD_BUFSIZE];
 extern char yytext[];
 extern int yyparse(); /* defined in y.tab.c */
-int ypass = 1; /* used by yyparse()      */
+
+struct conf_parser_context conf_parser_ctx = { 0, 0, NULL };
 
 /* internally defined functions */
 static void lookup_confhost(struct ConfItem *);
@@ -135,8 +135,6 @@ static void destroy_cidr_class(struct ClassItem *);
 
 static void flags_to_ascii(unsigned int, const unsigned int[], char *, int);
 
-FBFILE *conf_fbfile_in = NULL;
-
 /* address of default class conf */
 static struct ConfItem *class_default;
 
@@ -151,22 +149,22 @@ static BlockHeap *ip_entry_heap = NULL;
 static int ip_entries_count = 0;
 
 
-inline void *
+void *
 map_to_conf(struct ConfItem *aconf)
 {
   void *conf;
-  conf = (void *)((unsigned long)aconf +
-      (unsigned long)sizeof(struct ConfItem));
+  conf = (void *)((uintptr_t)aconf +
+		  (uintptr_t)sizeof(struct ConfItem));
   return(conf);
 }
 
-inline struct ConfItem *
+struct ConfItem *
 unmap_conf_item(void *aconf)
 {
   struct ConfItem *conf;
 
-  conf = (struct ConfItem *)((unsigned long)aconf -
-           (unsigned long)sizeof(struct ConfItem));
+  conf = (struct ConfItem *)((uintptr_t)aconf -
+			     (uintptr_t)sizeof(struct ConfItem));
   return(conf);
 }
 
@@ -181,25 +179,16 @@ unmap_conf_item(void *aconf)
  * if successful save hp in the conf item it was called with
  */
 static void
-conf_dns_callback(void *vptr, struct DNSReply *reply)
+conf_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 {
-  struct AccessItem *aconf = (struct AccessItem *)vptr;
-  struct ConfItem *conf;
+  struct AccessItem *aconf = vptr;
 
-  MyFree(aconf->dns_query);
-  aconf->dns_query = NULL;
+  aconf->dns_pending = 0;
 
-  if (reply != NULL)
-    memcpy(&aconf->ipnum, &reply->addr, sizeof(reply->addr));
-  else {
-    ilog(L_NOTICE, "Host not found: %s, ignoring connect{} block",
-         aconf->host);
-    conf = unmap_conf_item(aconf);
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "Ignoring connect{} block for %s - host not found",
-       conf->name);
-    delete_conf_item(conf);
-  }
+  if (addr != NULL)
+    memcpy(&aconf->ipnum, addr, sizeof(aconf->ipnum));
+  else
+    aconf->dns_failed = 1;
 }
 
 /* conf_dns_lookup()
@@ -211,12 +200,10 @@ conf_dns_callback(void *vptr, struct DNSReply *reply)
 static void
 conf_dns_lookup(struct AccessItem *aconf)
 {
-  if (aconf->dns_query == NULL)
+  if (!aconf->dns_pending)
   {
-    aconf->dns_query = MyMalloc(sizeof(struct DNSQuery));
-    aconf->dns_query->ptr = aconf;
-    aconf->dns_query->callback = conf_dns_callback;
-    gethost_byname(aconf->host, aconf->dns_query);
+    aconf->dns_pending = 1;
+    gethost_byname(conf_dns_callback, aconf, aconf->host);
   }
 }
 
@@ -316,7 +303,7 @@ make_conf_item(ConfType type)
                                        sizeof(struct MatchItem));
     dlinkAdd(conf, &conf->node, &xconf_items);
     break;
-
+#ifdef HAVE_LIBPCRE
   case RXLINE_TYPE:
     conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
                                        sizeof(struct MatchItem));
@@ -330,7 +317,7 @@ make_conf_item(ConfType type)
     aconf->status = CONF_KLINE;
     dlinkAdd(conf, &conf->node, &rkconf_items);
     break;
-
+#endif
   case CLUSTER_TYPE:
     conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem));
     dlinkAdd(conf, &conf->node, &cluster_items);
@@ -394,11 +381,8 @@ delete_conf_item(struct ConfItem *conf)
   case SERVER_TYPE:
     aconf = map_to_conf(conf);
 
-    if (aconf->dns_query != NULL)
-    {
-      delete_resolver_queries(aconf->dns_query);
-      MyFree(aconf->dns_query);
-    }
+    if (aconf->dns_pending)
+      delete_resolver_queries(aconf);
     if (aconf->passwd != NULL)
       memset(aconf->passwd, 0, strlen(aconf->passwd));
     if (aconf->spasswd != NULL)
@@ -491,7 +475,7 @@ delete_conf_item(struct ConfItem *conf)
     dlinkDelete(&conf->node, &xconf_items);
     MyFree(conf);
     break;
-
+#ifdef HAVE_LIBPCRE
   case RKLINE_TYPE:
     aconf = map_to_conf(conf);
     MyFree(aconf->regexuser);
@@ -514,7 +498,7 @@ delete_conf_item(struct ConfItem *conf)
     dlinkDelete(&conf->node, &rxconf_items);
     MyFree(conf);
     break;
-
+#endif
   case NRESV_TYPE:
     match_item = map_to_conf(conf);
     MyFree(match_item->user);
@@ -641,6 +625,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
     }
     break;
 
+#ifdef HAVE_LIBPCRE
   case RXLINE_TYPE:
     DLINK_FOREACH(ptr, rxconf_items.head)
     {
@@ -669,6 +654,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
                  aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");
     }
     break;
+#endif
 
   case ULINE_TYPE:
     DLINK_FOREACH(ptr, uconf_items.head)
@@ -756,19 +742,18 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
       buf[0] = '\0';
 
       if (IsConfAllowAutoConn(aconf))
-  *p++ = 'A';
+        *p++ = 'A';
       if (IsConfCryptLink(aconf))
-  *p++ = 'C';
-      if (IsConfLazyLink(aconf))
-  *p++ = 'L';
+        *p++ = 'C';
+      *p++ = 'C';
       if (aconf->fakename)
-  *p++ = 'M';
+        *p++ = 'M';
       if (IsConfTopicBurst(aconf))
         *p++ = 'T';
       if (IsConfCompressed(aconf))
         *p++ = 'Z';
       if (buf[0] == '\0')
-  *p++ = '*';
+        *p++ = '*';
 
       *p = '\0';
 
@@ -815,6 +800,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
   case CRESV_TYPE:
   case NRESV_TYPE:
   case CLUSTER_TYPE:
+  default:
     break;
   }
 }
@@ -860,53 +846,48 @@ check_client(va_list args)
       sendto_realops_flags(UMODE_FULL, L_ALL, 
           full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
       ilog(L_INFO, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
-      ServerStats->is_ref++;
+      ServerStats.is_ref++;
       exit_client(source_p, &me, reject_reason);
       bad = TRUE;
       break;
     case TOO_MANY:
       sendto_realops_flags(UMODE_FULL, L_ALL, 
-                           "Too many on IP for %s (%s). (generic too_many)",
-         get_client_name(source_p, SHOW_IP),
-         source_p->sockhost);
-      ilog(L_INFO,"Too many connections on IP from %s.",
-     get_client_name(source_p, SHOW_IP));
-      ServerStats->is_ref++;
+          "Too many on IP for %s (%s). (generic too_many)",
+          get_client_name(source_p, SHOW_IP),
+          source_p->sockhost);
+      ilog(L_INFO, "Too many connections on IP from %s.",
+          get_client_name(source_p, SHOW_IP));
+      ServerStats.is_ref++;
       exit_client(source_p, &me, reject_reason);
       break;
 
     case I_LINE_FULL:
       sendto_realops_flags(UMODE_FULL, L_ALL, 
-                           "I-line is full for %s (%s).",
-         get_client_name(source_p, SHOW_IP),
-         source_p->sockhost);
+          "I-line is full for %s (%s).",
+          get_client_name(source_p, SHOW_IP),
+          source_p->sockhost);
       ilog(L_INFO,"Too many connections from %s.",
-     get_client_name(source_p, SHOW_IP));
-       ServerStats->is_ref++;
+          get_client_name(source_p, SHOW_IP));
+      ++ServerStats.is_ref;
       exit_client(source_p, &me, 
-    "No more connections allowed in your connection class");
+          "No more connections allowed in your connection class");
       break;
 
     case NOT_AUTHORIZED:
-    {
-      static char ipaddr[HOSTIPLEN];
-      ServerStats->is_ref++;
+      ++ServerStats.is_ref;
       /* jdc - lists server name & port connections are on */
       /*       a purely cosmetical change */
-      irc_getnameinfo((struct sockaddr*)&source_p->ip,
-            source_p->ip.ss_len, ipaddr, HOSTIPLEN, NULL, 0,
-            NI_NUMERICHOST);
-      sendto_realops_flags(UMODE_UNAUTH, L_ALL, 
-         "Unauthorized client connection from %s [%s] on [%s/%u].",
-         get_client_name(source_p, SHOW_IP),
-         ipaddr,
-         source_p->localClient->listener->name,
-         source_p->localClient->listener->port);
+      sendto_realops_flags(UMODE_FULL, L_ALL, 
+          "Unauthorized client connection from %s [%s] on [%s/%u].",
+          get_client_name(source_p, SHOW_IP),
+          source_p->sockhost,
+          source_p->localClient->listener->name,
+          source_p->localClient->listener->port);
       ilog(L_INFO,
-    "Unauthorized client connection from %s on [%s/%u].",
-    get_client_name(source_p, SHOW_IP),
-    source_p->localClient->listener->name,
-    source_p->localClient->listener->port);
+          "Unauthorized client connection from %s on [%s/%u].",
+          get_client_name(source_p, SHOW_IP),
+          source_p->localClient->listener->name,
+          source_p->localClient->listener->port);
 
       /* XXX It is prolematical whether it is better to use the
        * capture reject code here or rely on the connecting too fast code.
@@ -914,34 +895,33 @@ check_client(va_list args)
        */
       if (REJECT_HOLD_TIME > 0)
       {
-  sendto_one(source_p, ":%s NOTICE %s :You are not authorized to use this server",
-       me.name, source_p->name);
-  source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
-  SetCaptured(source_p);
+        sendto_one(source_p, ":%s NOTICE %s :You are not authorized to use this server",
+            me.name, source_p->name);
+        source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
+        SetCaptured(source_p);
       }
       else
-  exit_client(source_p, &me, "You are not authorized to use this server");
+        exit_client(source_p, &me, "You are not authorized to use this server");
       break;
-    }
- 
-   case BANNED_CLIENT:
-     /*
+
+    case BANNED_CLIENT:
+      /*
       * Don't exit them immediately, play with them a bit.
       * - Dianora
-      */
-     if (REJECT_HOLD_TIME > 0)
-     {
-       source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
-       SetCaptured(source_p);
-     }
-     else
-       exit_client(source_p, &me, "Banned");
-     ServerStats->is_ref++;
-     break;
+       */
+      if (REJECT_HOLD_TIME > 0)
+      {
+        source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
+        SetCaptured(source_p);
+      }
+      else
+        exit_client(source_p, &me, "Banned");
+      ++ServerStats.is_ref;
+      break;
 
-   case 0:
-   default:
-     break;
+    case 0:
+    default:
+      break;
   }
 
   return (bad ? NULL : source_p);
@@ -1017,7 +997,7 @@ verify_access(struct Client *client_p, const char *username,
         conf = unmap_conf_item(aconf);
 
         if (!ConfigFileEntry.hide_spoof_ips && IsConfSpoofNotice(aconf))
-          sendto_realops_flags(UMODE_ALL, L_ADMIN,  "%s spoofing: %s as %s",
+          sendto_realops_flags(UMODE_ALL, L_ADMIN, "%s spoofing: %s as %s",
                                client_p->name, client_p->host, conf->name);
         strlcpy(client_p->host, conf->name, sizeof(client_p->host));
         SetIPSpoof(client_p);
@@ -1280,7 +1260,7 @@ hash_ip(struct irc_ssaddr *addr)
  * used in the hash.
  */
 void
-count_ip_hash(int *number_ips_stored, unsigned long *mem_ips_stored)
+count_ip_hash(unsigned int *number_ips_stored, uint64_t *mem_ips_stored)
 {
   struct ip_entry *ptr;
   int i;
@@ -1666,7 +1646,8 @@ find_matching_name_conf(ConfType type, const char *name, const char *user,
 
   switch (type)
   {
-    case RXLINE_TYPE:
+#ifdef HAVE_LIBPCRE
+  case RXLINE_TYPE:
       DLINK_FOREACH(ptr, list_p->head)
       {
         conf = ptr->data;
@@ -1676,7 +1657,7 @@ find_matching_name_conf(ConfType type, const char *name, const char *user,
           return conf;
       }
       break;
-
+#endif
   case XLINE_TYPE:
   case ULINE_TYPE:
   case NRESV_TYPE:
@@ -1845,9 +1826,8 @@ rehash(int sig)
     sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "Got signal SIGHUP, reloading ircd.conf file");
 
-#ifndef _WIN32
   restart_resolver();
-#endif
+
   /* don't close listeners until we know we can go ahead with the rehash */
 
   /* Check to see if we magically got(or lost) IPv6 support */
@@ -1906,8 +1886,9 @@ set_default_conf(void)
   ServerInfo.specific_ipv6_vhost = 0;
 
   ServerInfo.max_clients = MAXCLIENTS_MAX;
-  /* Don't reset hub, as that will break lazylinks */
-  /* ServerInfo.hub = NO; */
+
+  ServerInfo.hub = 0;
+  delete_capability("HUB");
   ServerInfo.dns_host.sin_addr.s_addr = 0;
   ServerInfo.dns_host.sin_port = 0;
   AdminInfo.name = NULL;
@@ -1950,6 +1931,8 @@ set_default_conf(void)
   DupString(ConfigServerHide.hidden_name, NETWORK_NAME_DEFAULT);
   ConfigServerHide.hide_server_ips = NO;
 
+  
+  ConfigFileEntry.max_watch = WATCHSIZE_DEFAULT;
   ConfigFileEntry.gline_min_cidr = 16;
   ConfigFileEntry.gline_min_cidr6 = 48;
   ConfigFileEntry.invisible_on_connect = YES;
@@ -2030,12 +2013,12 @@ read_conf(FBFILE *file)
   lineno = 0;
 
   set_default_conf(); /* Set default values prior to conf parsing */
-  ypass = 1;
-  yyparse();        /* pick up the classes first */
+  conf_parser_ctx.pass = 1;
+  yyparse();	      /* pick up the classes first */
 
   fbrewind(file);
 
-  ypass = 2;
+  conf_parser_ctx.pass = 2;
   yyparse();          /* Load the values from the conf */
   validate_conf();    /* Check to make sure some values are still okay. */
                       /* Some global values are also loaded here. */
@@ -2063,6 +2046,8 @@ validate_conf(void)
   if ((ConfigFileEntry.client_flood < CLIENT_FLOOD_MIN) ||
       (ConfigFileEntry.client_flood > CLIENT_FLOOD_MAX))
     ConfigFileEntry.client_flood = CLIENT_FLOOD_MAX;
+
+  ConfigFileEntry.max_watch = IRCD_MAX(ConfigFileEntry.max_watch, WATCHSIZE_MIN);
 }
 
 /* lookup_confhost()
@@ -2151,6 +2136,7 @@ conf_connect_allowed(struct irc_ssaddr *addr, int aftype)
 static struct AccessItem *
 find_regexp_kline(const char *uhi[])
 {
+#ifdef HAVE_LIBPCRE
   const dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, rkconf_items.head)
@@ -2165,7 +2151,7 @@ find_regexp_kline(const char *uhi[])
          !ircd_pcre_exec(aptr->regexhost, uhi[2])))
       return aptr;
   }
-
+#endif
   return NULL;
 }
 
@@ -2564,6 +2550,7 @@ read_conf_files(int cold)
   char chanmodes[32];
   char chanlimit[32];
 
+  conf_parser_ctx.boot = cold;
   filename = get_conf_name(CONF_TYPE);
 
   /* We need to know the initial filename for the yyerror() to report
@@ -2574,7 +2561,7 @@ read_conf_files(int cold)
   */
   strlcpy(conffilebuf, filename, sizeof(conffilebuf));
 
-  if ((conf_fbfile_in = fbopen(filename, "r")) == NULL)
+  if ((conf_parser_ctx.conf_file = fbopen(filename, "r")) == NULL)
   {
     if (cold)
     {
@@ -2603,8 +2590,8 @@ read_conf_files(int cold)
     clear_temp_list(&temporary_resv);
   }
 
-  read_conf(conf_fbfile_in);
-  fbclose(conf_fbfile_in);
+  read_conf(conf_parser_ctx.conf_file);
+  fbclose(conf_parser_ctx.conf_file);
 
   add_isupport("NETWORK", ServerInfo.network_name, -1);
   ircsprintf(chanmodes, "b%s%s:%d", ConfigChannel.use_except ? "e" : "",
@@ -2634,11 +2621,13 @@ read_conf_files(int cold)
    */
   rebuild_isupport_message_line();
 
-  parse_conf_file(KLINE_TYPE, cold);
+#ifdef HAVE_LIBPCRE
   parse_conf_file(RKLINE_TYPE, cold);
+  parse_conf_file(RXLINE_TYPE, cold);
+#endif
+  parse_conf_file(KLINE_TYPE, cold);
   parse_conf_file(DLINE_TYPE, cold);
   parse_conf_file(XLINE_TYPE, cold);
-  parse_conf_file(RXLINE_TYPE, cold);
   parse_conf_file(NRESV_TYPE, cold);
   parse_conf_file(CRESV_TYPE, cold);
 }
@@ -3087,10 +3076,10 @@ init_class(void)
  * output       - sendq for this client as found from its class
  * side effects - NONE
  */
-unsigned long
+unsigned int
 get_sendq(struct Client *client_p)
 {
-  unsigned long sendq = DEFAULT_SENDQ;
+  unsigned int sendq = DEFAULT_SENDQ;
   dlink_node *ptr;
   struct ConfItem *conf;
   struct ConfItem *class_conf;
@@ -3187,7 +3176,7 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
 
   if (!aconf->host || !conf->name)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Bad connect block");
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Bad connect block");
     ilog(L_WARN, "Bad connect block");
     return -1;
   }
@@ -3223,37 +3212,6 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
   return 0;
 }
 
-/* conf_add_d_conf()
- *
- * inputs       - pointer to config item
- * output       - NONE
- * side effects - Add a d/D line
- */
-void
-conf_add_d_conf(struct AccessItem *aconf)
-{
-  if (aconf->host == NULL)
-    return;
-
-  aconf->user = NULL;
-
-  /* XXX - Should 'd' ever be in the old conf? For new conf we don't
-   *       need this anyway, so I will disable it for now... -A1kmm
-   */
-  if (parse_netmask(aconf->host, NULL, NULL) == HM_HOST)
-  {
-    ilog(L_WARN, "Invalid Dline %s ignored", aconf->host);
-    free_access_item(aconf);
-  }
-  else
-  {
-    /* XXX ensure user is NULL */
-    MyFree(aconf->user);
-    aconf->user = NULL;
-    add_conf_by_address(CONF_DLINE, aconf);
-  }
-}
-
 /* yyerror()
  *
  * inputs - message from parser
@@ -3265,11 +3223,11 @@ yyerror(const char *msg)
 {
   char newlinebuf[IRCD_BUFSIZE];
 
-  if (ypass != 1)
+  if (conf_parser_ctx.pass != 1)
     return;
 
   strip_tabs(newlinebuf, linebuf, sizeof(newlinebuf));
-  sendto_realops_flags(UMODE_ALL, L_ALL,  "\"%s\", line %u: %s: %s",
+  sendto_realops_flags(UMODE_ALL, L_ALL, "\"%s\", line %u: %s: %s",
                        conffilebuf, lineno + 1, msg, newlinebuf);
   ilog(L_WARN, "\"%s\", line %u: %s: %s",
        conffilebuf, lineno + 1, msg, newlinebuf);
@@ -3429,7 +3387,7 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
  *                if target_server is NULL and an "ON" is found error
  *                is reported.
  *                if reason pointer is NULL ignore pointer,
- *                this allows usee of parse_a_line in unkline etc.
+ *                this allows use of parse_a_line in unkline etc.
  *
  * - Dianora
  */
@@ -3545,7 +3503,7 @@ parse_aline(const char *cmd, struct Client *source_p,
 
   if (reason != NULL)
   {
-    if (parc != 0)
+    if (parc != 0 && !EmptyString(*parv))
     {
       *reason = *parv;
       if (!valid_comment(source_p, *reason, YES))

@@ -25,7 +25,6 @@
 #ifndef INCLUDED_m_info_h
 #define INCLUDED_m_info_h
 
-#include "setup.h"
 #include "defaults.h"
 
 typedef struct Information

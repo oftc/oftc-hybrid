@@ -9,13 +9,16 @@
  *  $Id$
  */
 
+#include "config.h"
+#ifdef HAVE_LIBPCRE
+#include <pcre.h>
+#endif
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "s_log.h"
 #include "s_conf.h"
 #include "hostmask.h"
 #include "client.h"
-#include "pcre.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "memory.h"
@@ -97,6 +100,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
         }
         break;
 
+#ifdef HAVE_LIBPCRE
       case RKLINE_TYPE:
         {
           const char *errptr = NULL;
@@ -120,7 +124,6 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
 
           aconf->regexuser = exp_user;
           aconf->regexhost = exp_host;
-
           DupString(aconf->user, user_field);
           DupString(aconf->host, host_field);
 
@@ -128,7 +131,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
             DupString(aconf->reason, reason_field);
           else
             DupString(aconf->reason, "No reason");
-
+ 
           if (oper_reason != NULL)
             DupString(aconf->oper_reason, oper_reason);
 
@@ -139,23 +142,27 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
           }
         }
         break;
-
+#endif
       case DLINE_TYPE:
         parse_csv_line(line, &host_field, &reason_field, &temp, &temp, &temp, 
             &temp, &duration_field, NULL);
-        conf = make_conf_item(DLINE_TYPE);
-        aconf = (struct AccessItem *)map_to_conf(conf);
-        if (host_field != NULL)
-          DupString(aconf->host, host_field);
-        if (reason_field != NULL)
-          DupString(aconf->reason, reason_field);
-        if(duration_field != NULL)
+        if (host_field != NULL && parse_netmask(host_field, NULL, NULL) != HM_HOST)
         {
-          aconf->hold = atoi(duration_field);
-          add_temp_line(conf);
+          conf = make_conf_item(DLINE_TYPE);
+          aconf = map_to_conf(conf);
+          DupString(aconf->host, host_field);
+
+          if (reason_field != NULL)
+            DupString(aconf->reason, reason_field);
+          if(duration_field != NULL)
+          {
+            aconf->hold = atoi(duration_field);
+            add_temp_line(conf);
+          }
+          else
+            add_conf_by_address(CONF_DLINE, aconf);
         }
-        else
-          conf_add_d_conf(aconf);
+
         break;
 
       case XLINE_TYPE:
@@ -175,6 +182,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
         }
         break;
 
+#ifdef HAVE_LIBPCRE
       case RXLINE_TYPE:
         {
           const char *errptr = NULL;
@@ -210,6 +218,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
           }
         }
         break;
+#endif
 
       case CRESV_TYPE:
         parse_csv_line(line, &name_field, &reason_field, &duration_field, NULL);
@@ -363,7 +372,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           get_oper_name(source_p), cur_time, aconf->hold);
     }
     break;
-
+#ifdef HAVE_LIBPCRE
   case RKLINE_TYPE:
     aconf = map_to_conf(conf);
     if(duration == 0)
@@ -403,7 +412,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           get_oper_name(source_p), cur_time, aconf->hold);
     }
     break;
-
+#endif
   case DLINE_TYPE:
     aconf = (struct AccessItem *)map_to_conf(conf);
     if(duration == 0)
@@ -476,7 +485,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
  
     }
     break;
-
+#ifdef HAVE_LIBPCRE
   case RXLINE_TYPE:
     xconf = (struct MatchItem *)map_to_conf(conf);
     if(duration == 0)
@@ -511,7 +520,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           current_date, get_oper_name(source_p), cur_time, xconf->hold);
     }
     break;
-
+#endif
   case CRESV_TYPE:
     cresv_p = (struct ResvChannel *)map_to_conf(conf);
     if(duration == 0)

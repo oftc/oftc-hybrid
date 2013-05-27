@@ -20,7 +20,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_bsd_epoll.c 908 2007-11-04 23:21:51Z stu $
+ *  $Id$
  */
 
 #include "stdinc.h"
@@ -123,7 +123,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
                void *client_data, time_t timeout)
 {
   int new_events, op;
-  struct epoll_event ep_event;
+  struct epoll_event ep_event = { 0, { 0 } };
 
   if ((type & COMM_SELECT_READ))
   {

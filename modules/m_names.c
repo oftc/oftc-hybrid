@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -33,7 +33,6 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_serv.h"
@@ -45,13 +44,11 @@
 
 static void names_all_visible_channels(struct Client *);
 static void names_non_public_non_secret(struct Client *);
-
 static void m_names(struct Client *, struct Client *, int, char *[]);
-static void ms_names(struct Client *, struct Client *, int, char *[]);
 
 struct Message names_msgtab = {
   "NAMES", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_names, ms_names, m_ignore, m_names, m_ignore}
+  {m_unregistered, m_names, m_ignore, m_ignore, m_names, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -124,18 +121,15 @@ m_names(struct Client *client_p, struct Client *source_p,
 static void
 names_all_visible_channels(struct Client *source_p)
 {
-  dlink_node *ptr;
-  struct Channel *chptr;
+  dlink_node *ptr = NULL;
 
   /* 
    * First, do all visible channels (public and the one user self is)
    */
   DLINK_FOREACH(ptr, global_channel_list.head)
   {
-    chptr = ptr->data;
-
     /* Find users on same channel (defined by chptr) */
-    channel_member_names(source_p, chptr, 0);
+    channel_member_names(source_p, ptr->data, 0);
   }
 }
 
@@ -157,8 +151,8 @@ names_non_public_non_secret(struct Client *source_p)
   char buf[IRCD_BUFSIZE];
   char *t;
 
-  mlen = ircsprintf(buf,form_str(RPL_NAMREPLY),
-                    me.name, source_p->name, "*", "*");
+  mlen = ircsprintf(buf, form_str(RPL_NAMREPLY), me.name,
+                    source_p->name, "*", "*");
   cur_len = mlen;
   t = buf + mlen;
 
@@ -209,22 +203,4 @@ names_non_public_non_secret(struct Client *source_p)
 
   if (reply_to_send)
     sendto_one(source_p, "%s", buf);
-}
-
-static void
-ms_names(struct Client *client_p, struct Client *source_p,
-         int parc, char *parv[])
-{
-  /* If its running as a hub, and linked with lazy links
-   * then allow leaf to use normal client m_names()
-   * other wise, ignore it.
-   */
-  if (ServerInfo.hub)
-  {
-    if (!IsCapable(client_p->from, CAP_LL))
-      return;
-  }
-
-  if (IsClient(source_p))
-    m_names(client_p, source_p, parc, parv);
 }

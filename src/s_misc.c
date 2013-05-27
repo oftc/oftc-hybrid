@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_misc.c 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #include "stdinc.h"
@@ -115,55 +115,17 @@ smalldate(time_t lclock)
   return buf;
 }
 
-/* small_file_date()
- * Make a small YYYYMMDD formatted string suitable for a
- * dated file stamp. 
- */
-char *
-small_file_date(time_t lclock)
-{
-  static char timebuffer[MAX_DATE_STRING];
-  struct tm *tmptr;
-
-  if (!lclock)
-    time(&lclock);
-
-  tmptr = localtime(&lclock);
-  strftime(timebuffer, MAX_DATE_STRING, "%Y%m%d", tmptr);
-
-  return timebuffer;
-}
-
 #ifdef HAVE_LIBCRYPTO
 char *
-ssl_get_cipher(SSL *ssl)
+ssl_get_cipher(const SSL *ssl)
 {
-  static char buffer[128];
-  const char *name = NULL;
-  int bits;
-
-  switch (ssl->session->ssl_version)
-  {
-    case SSL2_VERSION:
-      name = "SSLv2";
-      break;
-
-    case SSL3_VERSION:
-      name = "SSLv3";
-      break;
-
-    case TLS1_VERSION:
-      name = "TLSv1";
-      break;
-
-    default:
-      name = "UNKNOWN";
-  }
+  static char buffer[IRCD_BUFSIZE / 4];
+  int bits = 0;
 
   SSL_CIPHER_get_bits(SSL_get_current_cipher(ssl), &bits);
 
-  snprintf(buffer, sizeof(buffer), "%s %s-%d",
-           name, SSL_get_cipher(ssl), bits);
+  snprintf(buffer, sizeof(buffer), "%s %s-%d", SSL_get_version(ssl),
+           SSL_get_cipher(ssl), bits);
   
   return buffer;
 }

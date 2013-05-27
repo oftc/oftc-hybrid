@@ -27,7 +27,6 @@
 
 #include "ircd_defs.h"
 #include "client.h"
-#include "setup.h"
 
 struct Whowas
 {
@@ -78,7 +77,7 @@ extern struct Client *get_history(const char *, time_t);
 /*
 ** for debugging...counts related structures stored in whowas array.
 */
-extern void count_whowas_memory(int *, unsigned long *);
+extern void count_whowas_memory(unsigned int *, uint64_t *);
 
 /* XXX m_whowas.c in modules needs these */
 extern struct Whowas *WHOWASHASH[];

@@ -16,7 +16,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *   $Id: /local/oftc-hybrid/trunk/modules/soft_reboot.c 1141 2006-11-23T13:37:21.703719Z stu  $
+ *   $Id$
  */
 
 #include "stdinc.h"
@@ -615,7 +615,7 @@ do_verify_conf(va_list args)
   return NULL;
 }
 
-INIT_MODULE(soft_reboot, "$Revision: 1141 $")
+INIT_MODULE(soft_reboot, "$Revision$")
 {
   h_shutdown = install_hook(ircd_shutdown, do_shutdown);
   h_verify = install_hook(verify_conf, do_verify_conf);

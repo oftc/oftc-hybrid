@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "common.h"  
 #include "handlers.h"
 #include "client.h"
@@ -36,7 +36,6 @@
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "list.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "msg.h"
@@ -94,8 +93,6 @@ mo_capture(struct Client *client_p, struct Client *source_p,
                me.name, source_p->name);
     return;
   }
-
-  /* XXX Add oper flag in future ? */
 
   if (MyClient(source_p) && !IsAdmin(source_p))
   {
@@ -160,7 +157,7 @@ mo_capture(struct Client *client_p, struct Client *source_p,
       return;
 
     if (IsClient(client_p))
-      sendto_server(client_p, NULL, NULL, CAP_ENCAP, 0, 0,
+      sendto_server(client_p, NULL, CAP_ENCAP, 0,
                     ":%s ENCAP * CAPTURE %s!%s@%s",
                     source_p->name, nick, user, host);
 
@@ -258,7 +255,7 @@ mo_uncapture(struct Client *client_p, struct Client *source_p,
     }
 
     if (IsClient(client_p))
-      sendto_server(client_p, NULL, NULL, CAP_ENCAP, 0, 0,
+      sendto_server(client_p, NULL, CAP_ENCAP, 0,
                     ":%s ENCAP * UNCAPTURE %s!%s@%s",
                     source_p->name, nick, user, host);
 

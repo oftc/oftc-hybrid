@@ -22,14 +22,13 @@
  *  $Id$
  */
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "s_bsd.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "client.h"
 #include "common.h"
 #include "ircd.h"
-#include "list.h"
 #include "parse.h"
 #include "fdlist.h"
 #include "packet.h"
@@ -451,10 +450,6 @@ read_packet(fde_t *fd, void *data)
 #endif
     {
       length = recv(fd->fd, readBuf, READBUF_SIZE, 0);
-#ifdef _WIN32
-      if (length < 0)
-        errno = WSAGetLastError();
-#endif
     }
 
     if (length <= 0)

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *  $Id: irc_getaddrinfo.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 extern int irc_getaddrinfo(const char *hostname, const char *servname,

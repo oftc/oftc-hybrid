@@ -23,11 +23,10 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
-#include "common.h"
 #include "client.h"
 #include "irc_string.h"
 #include "ircd.h"
@@ -41,7 +40,7 @@
 #include "s_serv.h"
 #include "s_log.h"
 #include "sprintf_irc.h"
-
+#include "common.h"
 
 static void m_kick(struct Client *, struct Client *, int, char *[]);
 
@@ -99,7 +98,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
     to = source_p->name;
   }
 
-  if (*parv[2] == '\0')
+  if (EmptyString(parv[2]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                from, to, "KICK");
@@ -207,7 +206,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: to evade KICK from %s: %s %s %s",
           who->name, source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
-      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,  tmp);
+      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, "%s", tmp);
       oftc_log(tmp);
 
       return;
@@ -238,17 +237,17 @@ m_kick(struct Client *client_p, struct Client *source_p,
      *   be sent anyways.  Just waiting for some oper to abuse it...
      */
     if (IsServer(source_p))
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s KICK %s %s :%s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s KICK %s %s :%s",
                            source_p->name, name, who->name, comment);
     else
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s KICK %s %s :%s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s KICK %s %s :%s",
                            source_p->name, source_p->username,
                            source_p->host, name, who->name, comment);
 
-    sendto_server(client_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
                   ":%s KICK %s %s :%s",
                   ID(source_p), chptr->chname, ID(who), comment);
-    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
                   ":%s KICK %s %s :%s", source_p->name, chptr->chname,
                   who->name, comment);
 
@@ -258,7 +257,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: KICK %s %s %s",
           source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
-      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,  tmp);
+      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, "%s", tmp);
       oftc_log(tmp);
     }
   }

@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
@@ -32,7 +32,6 @@
 #include "ircd.h"
 #include "hostmask.h"
 #include "numeric.h"
-#include "list.h"
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_conf.h"
@@ -46,7 +45,6 @@
 #include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
-#include "tools.h"
 #include "irc_getnameinfo.h"
 
 
@@ -69,7 +67,7 @@ struct Message kline_msgtab = {
 
 struct Message dline_msgtab = {
   "DLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, m_error, m_ignore, mo_dline, m_ignore}
+   {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_dline, m_ignore}
 };
 
 struct Message unkline_msgtab = {
@@ -79,7 +77,7 @@ struct Message unkline_msgtab = {
 
 struct Message undline_msgtab = {
   "UNDLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, m_error, m_ignore, mo_undline, m_ignore}
+   {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_undline, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -171,17 +169,17 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   {
     if (HasID(source_p))
     {
-      sendto_server(NULL, source_p, NULL, CAP_KLN|CAP_TS6, NOCAPS, LL_ICLIENT,
+      sendto_server(NULL, NULL, CAP_KLN|CAP_TS6, NOCAPS,
                     ":%s KLINE %s %lu %s %s :%s",
                     source_p->id, target_server, (unsigned long)tkline_time,
                     user, host, reason);
-      sendto_server(NULL, source_p, NULL, CAP_KLN, CAP_TS6, LL_ICLIENT,
+      sendto_server(NULL, NULL, CAP_KLN, CAP_TS6,
                     ":%s KLINE %s %lu %s %s :%s",
                     source_p->name, target_server, (unsigned long)tkline_time,
                     user, host, reason);
     }
     else
-      sendto_server(NULL, source_p, NULL, CAP_KLN, NOCAPS, LL_ICLIENT,
+      sendto_server(NULL, NULL, CAP_KLN, NOCAPS,
                     ":%s KLINE %s %lu %s %s :%s",
                     source_p->name, target_server, (unsigned long)tkline_time,
                     user, host, reason);
@@ -604,7 +602,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
       sendto_one(source_p,
                  ":%s NOTICE %s :Un-klined [%s@%s] from temporary K-Lines",
                  me.name, source_p->name, kuser, khost);
-      sendto_realops_flags(UMODE_ALL, L_ALL,  
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s has removed the temporary K-Line for: [%s@%s]",
                            get_oper_name(source_p), kuser, khost);
       ilog(L_NOTICE, "%s removed temporary K-Line for [%s@%s]",

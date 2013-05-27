@@ -24,7 +24,7 @@
  */
 #include "ltdl.h"
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "irc_string.h"
 #include "modules.h"
 #include "s_log.h"
@@ -83,7 +83,7 @@ unload_one_module(char *name, int warn)
   if (warn == 1)
   {
     ilog(L_INFO, "Module %s unloaded", name);
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Module %s unloaded", name);
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Module %s unloaded", name);
   }
 
   return 0;
@@ -116,7 +116,7 @@ load_a_module(char *path, int warn, int core)
   {
     const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
 
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Error loading module %s: %s",
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Error loading module %s: %s",
                          mod_basename, err);
     ilog(L_WARN, "Error loading module %s: %s", mod_basename, err);
     
@@ -128,7 +128,7 @@ load_a_module(char *path, int warn, int core)
        * prepended symbol names */
       (initfunc = lt_dlsym(tmpptr, "__modinit")) == NULL)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Module %s has no _modinit() function",
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Module %s has no _modinit() function",
                          mod_basename);
     ilog(L_WARN, "Module %s has no _modinit() function", mod_basename);
     lt_dlclose(tmpptr);
@@ -139,7 +139,7 @@ load_a_module(char *path, int warn, int core)
 
   if (mod_deinit == NULL && (mod_deinit = lt_dlsym(tmpptr, "__moddeinit")) == NULL)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Module %s has no _moddeinit() function",
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Module %s has no _moddeinit() function",
                          mod_basename);
     ilog(L_WARN, "Module %s has no _moddeinit() function", mod_basename);
     /* blah blah soft error, see above. */

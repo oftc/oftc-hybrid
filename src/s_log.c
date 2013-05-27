@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_log.c 582 2006-05-02 20:47:11Z michael $
+ *  $Id$
  */
 
 #include "stdinc.h"
@@ -112,13 +112,9 @@ write_log(const char *message)
   if (logFile == NULL)
     return;
 
-#ifdef _WIN32
-  nbytes = snprintf(buf, sizeof(buf), "[%s] %s\r\n",
-                    smalldate(CurrentTime), message);
-#else
   nbytes = snprintf(buf, sizeof(buf), "[%s] %s\n",
                     smalldate(CurrentTime), message);
-#endif
+
   fbputs(buf, logFile, nbytes);
 }
    

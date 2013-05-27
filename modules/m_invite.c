@@ -23,12 +23,10 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
-#include "common.h"
 #include "channel.h"
 #include "channel_mode.h"
-#include "list.h"
 #include "client.h"
 #include "hash.h"
 #include "irc_string.h"
@@ -84,7 +82,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
   if (IsServer(source_p))
     return;
 
-  if (*parv[2] == '\0')
+  if (EmptyString(parv[2]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "INVITE");
@@ -171,18 +169,6 @@ m_invite(struct Client *client_p, struct Client *source_p,
     if (atoi(parv[3]) > chptr->channelts)
       return;
 
-  if (!MyConnect(target_p) && ServerInfo.hub &&
-      IsCapable(target_p->from, CAP_LL))
-  {
-    /* target_p is connected to a LL leaf, connected to us */
-    if (IsClient(source_p))
-      client_burst_if_needed(target_p->from, source_p);
-
-    if ((chptr->lazyLinkChannelExists &
-         target_p->from->localClient->serverMask) == 0)
-      burst_channel(target_p->from, chptr);
-  }
-
   if (MyConnect(target_p))
   {
     sendto_one(target_p, ":%s!%s@%s INVITE %s :%s",
@@ -195,7 +181,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
       if (chptr->mode.mode & MODE_PRIVATE)
       {
         /* Only do this if channel is set +i AND +p */
-        sendto_channel_local(CHFL_CHANOP|CHFL_HALFOP, NO, chptr,
+        sendto_channel_local(CHFL_CHANOP|CHFL_HALFOP, 0, chptr,
                              ":%s NOTICE %s :%s is inviting %s to %s.",
                              me.name, chptr->chname, source_p->name,
                              target_p->name, chptr->chname);

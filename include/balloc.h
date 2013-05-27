@@ -21,26 +21,23 @@
 
 /*! \file balloc.h
  * \brief A block allocator
- * \version $Id: balloc.h 33 2005-10-02 20:50:00Z knight $
+ * \version $Id$
  * \todo Get rid of all typedefs in this file
  */
 
 #ifndef INCLUDED_balloc_h
 #define INCLUDED_balloc_h
 
-#include "setup.h"
-
 #ifndef NOBALLOC
 #include "client.h"
-#include "tools.h"
-#include "memory.h"
 #include "ircd_defs.h"
 
 
 /*! \brief Block contains status information for
  *         an allocated block in our heap.
  */
-struct Block {
+struct Block
+{
   int		freeElems;	/*!< Number of available elems */
   size_t	alloc_size;	/*!< Size of data space for each block */
   struct Block*	next;		/*!< Next in our chain of blocks */
@@ -50,16 +47,19 @@ struct Block {
 
 typedef struct Block Block;
 
-struct MemBlock {
-  dlink_node self;		/*!< Node for linking into free_list or used_list */
+struct MemBlock
+{
+  dlink_node self;		/*!< Node for linking into free_list */
   Block *block;			/*!< Which block we belong to */
 };
+
 typedef struct MemBlock MemBlock;
 
 /*! \brief BlockHeap contains the information for the root node of the
  *         memory heap.
  */
-struct BlockHeap {
+struct BlockHeap
+{
    size_t  elemSize;            /*!< Size of each element to be stored */
    int     elemsPerBlock;       /*!< Number of elements per block */
    int     blocksAllocated;     /*!< Number of blocks allocated */

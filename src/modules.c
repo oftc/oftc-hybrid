@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "modules.h"
 #include "s_log.h"
 #include "ircd.h"
@@ -41,16 +41,6 @@
 
 #define SHARED_SUFFIX ".so"
 
-/* -TimeMr14C:
- * I have moved the dl* function definitions and
- * the two functions (load_a_module / unload_a_module) to the
- * file dynlink.c 
- * And also made the necessary changes to those functions
- * to comply with shl_load and friends.
- * In this file, to keep consistency with the makefile, 
- * I added the ability to load *.sl files, too.
- * 27/02/2002
- */
 
 #ifndef STATIC_MODULES
 
@@ -59,6 +49,7 @@ dlink_list mod_list = { NULL, NULL, 0 };
 static const char *core_module_table[] =
 {
   "m_die",
+  "m_error",
   "m_join",
   "m_kick",
   "m_kill",
@@ -121,8 +112,6 @@ struct Message modrestart_msgtab = {
 };
 
 
-extern struct Message error_msgtab;
-
 /*
  * modules_init
  *
@@ -139,7 +128,6 @@ modules_init(void)
   mod_add_cmd(&modreload_msgtab);
   mod_add_cmd(&modlist_msgtab);
   mod_add_cmd(&modrestart_msgtab);
-  mod_add_cmd(&error_msgtab);
 }
 
 /* mod_find_path()
@@ -498,7 +486,7 @@ mo_modreload(struct Client *client_p, struct Client *source_p,
 
   if ((load_one_module(parv[1], check_core) == -1) && check_core)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Error reloading core "
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Error reloading core "
                          "module: %s: terminating ircd", parv[1]);
     ilog(L_CRIT, "Error loading core module %s: terminating ircd", parv[1]);
     exit(0);
@@ -578,9 +566,9 @@ mo_modrestart(struct Client *client_p, struct Client *source_p,
   load_core_modules(0);
 
   sendto_realops_flags(UMODE_ALL, L_ALL,
-              "Module Restart: %u modules unloaded, %lu modules loaded",
+              "Module Restart: %u modules unloaded, %u modules loaded",
 			modnum, dlink_list_length(&mod_list));
-  ilog(L_WARN, "Module Restart: %u modules unloaded, %lu modules loaded",
+  ilog(L_WARN, "Module Restart: %u modules unloaded, %u modules loaded",
        modnum, dlink_list_length(&mod_list));
 }
 
@@ -689,6 +677,7 @@ load_all_modules(int warn)
   mod_add_cmd(&users_msgtab);
   mod_add_cmd(&version_msgtab);
   mod_add_cmd(&wallops_msgtab);
+  mod_add_cmd(&watch_msgtab);
   mod_add_cmd(&who_msgtab);
   mod_add_cmd(&whois_msgtab);
   mod_add_cmd(&whowas_msgtab);

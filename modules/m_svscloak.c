@@ -57,7 +57,7 @@ _moddeinit(void)
   mod_del_cmd(&map_msgtab);
 }
 
-const char* _version = "$Revision: 396 $";
+const char* _version = "$Revision$";
 
 
 /* m_svscloak - Cloaks a user - stu
@@ -98,7 +98,7 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
     }
 
     /* Send to all Servers but the one WE got the SVSCLOAK from */
-    sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS, 
+    sendto_server(client_p, NULL, NOCAPS, NOCAPS, NOFLAGS, 
           ":%s SVSCLOAK %s :%s", parv[0], parv[1], parv[2]);
 
     /* locally modify the clients structure */

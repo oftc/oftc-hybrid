@@ -59,6 +59,7 @@ _moddeinit(void)
 const char *_version = "$Revision$";
 #endif
 
+
 /*
 ** mr_user
 **      parv[0] = sender prefix

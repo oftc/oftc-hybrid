@@ -25,7 +25,7 @@
 #include "stdinc.h"
 #include "memory.h"
 #include "ircd_defs.h"
-#include "tools.h"
+#include "list.h"
 #include "s_conf.h"
 #include "hostmask.h"
 #include "numeric.h"
@@ -868,7 +868,7 @@ show_iline_prefix(struct Client *sptr, struct AccessItem *aconf, const char *nam
     *prefix_ptr++ = '<';
   if (IsConfCanFlood(aconf))
     *prefix_ptr++ = '|';
-  strlcpy(prefix_ptr, name, USERLEN);
+  strlcpy(prefix_ptr, name, USERLEN+1);
 
   return(prefix_of_host);
 }

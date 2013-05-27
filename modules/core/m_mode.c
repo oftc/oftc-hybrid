@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -41,7 +41,6 @@
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
-#include "common.h"
 
 static void m_mode(struct Client *, struct Client *, int, char *[]);
 static void ms_tmode(struct Client *, struct Client *, int, char *[]);
@@ -96,7 +95,7 @@ m_mode(struct Client *client_p, struct Client *source_p,
   static char modebuf[MODEBUFLEN];
   static char parabuf[MODEBUFLEN];
 
-  if (*parv[1] == '\0')
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "MODE");
@@ -111,49 +110,14 @@ m_mode(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!check_channel_name(parv[1], !!MyConnect(source_p)))
-  { 
-    sendto_one(source_p, form_str(ERR_BADCHANNAME),
-               me.name, source_p->name, parv[1]);
-    return;
-  }
-
-  chptr = hash_find_channel(parv[1]);
-
-  if (chptr == NULL)
+  if ((chptr = hash_find_channel(parv[1])) == NULL)
   {
-      /* if chptr isn't found locally, it =could= exist
-       * on the uplink. So ask.
-       */
-      
-      /* LazyLinks */
-      /* only send a mode upstream if a local client sent this request
-       * -davidt
-       */
-      if (MyClient(source_p) && !ServerInfo.hub && uplink &&
-	   IsCapable(uplink, CAP_LL))
-	{
-#if 0
-	  /* cache the channel if it exists on uplink */
-	  /* Lets not for now -db */
-
-	  sendto_one(uplink, ":%s CBURST %s",
-                     me.name, chptr->chname);
-#endif
-	  sendto_one(uplink, ":%s MODE %s %s",
-                     ID_or_name(source_p, uplink),
-		     chptr->chname, (parv[2] ? parv[2] : ""));
-	  return;
-	}
-      else
-	{
 	  sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
 		     ID_or_name(&me, source_p->from),
 		     ID_or_name(source_p, source_p->from),
 		     parv[1]);
 	  return;
 	}
-    }
 
   /* Now known the channel exists */
   if (parc < 3)
@@ -319,9 +283,9 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[
         *mbuf = '\0';
         *(pbuf - 1) = '\0';
 
-        sendto_channel_local(ALL_MEMBERS, NO, chptr, "%s %s",
+        sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s",
                              modebuf, parabuf);
-        sendto_server(client_p, NULL, chptr, needcap, CAP_TS6, NOFLAGS,
+        sendto_server(client_p, chptr, needcap, CAP_TS6,
                       "%s %s", modebuf, parabuf);
 
         mbuf = modebuf + mlen;
@@ -340,13 +304,13 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[
   if (modecount)
   {
     *mbuf = *(pbuf - 1) = '\0';
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, "%s %s", modebuf, parabuf);
-    sendto_server(client_p, NULL, chptr, needcap, CAP_TS6, NOFLAGS,
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s", modebuf, parabuf);
+    sendto_server(client_p, chptr, needcap, CAP_TS6,
                   "%s %s", modebuf, parabuf);
   }
 
   /* assumption here is that since the server sent BMASK, they are TS6, so they have an ID */
-  sendto_server(client_p, NULL, chptr, CAP_TS6|needcap, NOCAPS, NOFLAGS,
+  sendto_server(client_p, chptr, CAP_TS6|needcap, NOCAPS,
                 ":%s BMASK %lu %s %s :%s",
                 source_p->id, (unsigned long)chptr->channelts, chptr->chname,
                 parv[3], parv[4]);

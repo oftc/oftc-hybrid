@@ -21,8 +21,6 @@
 #ifndef INCLUDED_servlink_servlink_h
 #define INCLUDED_servlink_servlink_h
 
-#include "setup.h"
-
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/evp.h>
 #endif

@@ -19,15 +19,14 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_bsd.c 549 2006-04-20 12:46:18Z michael $
+ *  $Id$
  */
 
 #include "stdinc.h"
-#ifndef _WIN32
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-#endif
+#include "list.h"
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "client.h"
@@ -38,7 +37,6 @@
 #include "irc_getnameinfo.h"
 #include "irc_getaddrinfo.h"
 #include "ircd.h"
-#include "list.h"
 #include "listener.h"
 #include "numeric.h"
 #include "packet.h"
@@ -49,7 +47,6 @@
 #include "s_conf.h"
 #include "s_log.h"
 #include "s_serv.h"
-#include "s_stats.h"
 #include "send.h"
 #include "memory.h"
 #include "s_user.h"
@@ -61,12 +58,11 @@ static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
 
 struct Callback *setup_socket_cb = NULL;
 
-static void comm_connect_callback(fde_t *fd, int status);
+static void comm_connect_callback(fde_t *, int);
 static PF comm_connect_timeout;
-static void comm_connect_dns_callback(void *vptr, struct DNSReply *reply);
+static void comm_connect_dns_callback(void *, const struct irc_ssaddr *, const char *);
 static PF comm_connect_tryconnect;
 
-extern void init_netio(void);
 
 /* check_can_use_v6()
  *  Check if the system can open AF_INET6 sockets
@@ -82,11 +78,7 @@ check_can_use_v6(void)
   else
   {
     ServerInfo.can_use_v6 = 1;
-#ifdef _WIN32
-    closesocket(v6);
-#else
     close(v6);
-#endif
   }
 #else
   ServerInfo.can_use_v6 = 0;
@@ -102,16 +94,12 @@ check_can_use_v6(void)
 int
 get_sockerr(int fd)
 {
-#ifndef _WIN32
   int errtmp = errno;
-#else
-  int errtmp = WSAGetLastError();
-#endif
 #ifdef SO_ERROR
   int err = 0;
   socklen_t len = sizeof(err);
 
-  if (-1 < fd && !getsockopt(fd, SOL_SOCKET, SO_ERROR, (char*) &err, (socklen_t *)&len))
+  if (-1 < fd && !getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len))
   {
     if (err)
       errtmp = err;
@@ -161,16 +149,14 @@ setup_socket(va_list args)
   int fd = va_arg(args, int);
   int opt = 1;
 
-  setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *) &opt, sizeof(opt));
+  setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt));
 
 #ifdef IPTOS_LOWDELAY
   opt = IPTOS_LOWDELAY;
-  setsockopt(fd, IPPROTO_IP, IP_TOS, (char *) &opt, sizeof(opt));
+  setsockopt(fd, IPPROTO_IP, IP_TOS, &opt, sizeof(opt));
 #endif
 
-#ifndef _WIN32
   fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
-#endif
 
   return NULL;
 }
@@ -214,10 +200,10 @@ close_connection(struct Client *client_p)
 
   if (IsServer(client_p))
   {
-    ServerStats->is_sv++;
-    ServerStats->is_sbs += client_p->localClient->send.bytes;
-    ServerStats->is_sbr += client_p->localClient->recv.bytes;
-    ServerStats->is_sti += CurrentTime - client_p->firsttime;
+    ++ServerStats.is_sv;
+    ServerStats.is_sbs += client_p->localClient->send.bytes;
+    ServerStats.is_sbr += client_p->localClient->recv.bytes;
+    ServerStats.is_sti += CurrentTime - client_p->firsttime;
 
     /* XXX Does this even make any sense at all anymore?
      * scheduling a 'quick' reconnect could cause a pile of
@@ -227,9 +213,8 @@ close_connection(struct Client *client_p)
      * If the connection has been up for a long amount of time, schedule
      * a 'quick' reconnect, else reset the next-connect cycle.
      */
-    if ((conf = find_conf_exact(SERVER_TYPE,
-				  client_p->name, client_p->username,
-				  client_p->host)))
+    if ((conf = find_conf_exact(SERVER_TYPE, client_p->name,
+                                client_p->username, client_p->host)))
     {
       /*
        * Reschedule a faster reconnect, if this was a automatically
@@ -237,24 +222,22 @@ close_connection(struct Client *client_p)
        * a rehash in between, the status has been changed to
        * CONF_ILLEGAL). But only do this if it was a "good" link.
        */
-      aconf = (struct AccessItem *)map_to_conf(conf);
-      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+      aconf  = map_to_conf(conf);
+      aclass = map_to_conf(aconf->class_ptr);
       aconf->hold = time(NULL);
       aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
         HANGONRETRYDELAY : ConFreq(aclass);
-      if (nextconnect > aconf->hold)
-        nextconnect = aconf->hold;
     }
   }
   else if (IsClient(client_p))
   {
-    ServerStats->is_cl++;
-    ServerStats->is_cbs += client_p->localClient->send.bytes;
-    ServerStats->is_cbr += client_p->localClient->recv.bytes;
-    ServerStats->is_cti += CurrentTime - client_p->firsttime;
+    ++ServerStats.is_cl;
+    ServerStats.is_cbs += client_p->localClient->send.bytes;
+    ServerStats.is_cbr += client_p->localClient->recv.bytes;
+    ServerStats.is_cti += CurrentTime - client_p->firsttime;
   }
   else
-    ServerStats->is_ni++;
+    ++ServerStats.is_ni;
 
 #ifdef HAVE_LIBCRYPTO
   if (client_p->localClient->fd.ssl)
@@ -369,8 +352,8 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
   memcpy(&new_client->ip, irn, sizeof(struct irc_ssaddr));
 
   irc_getnameinfo((struct sockaddr*)&new_client->ip,
-        new_client->ip.ss_len,  new_client->sockhost, 
-        HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
+        new_client->ip.ss_len, new_client->sockhost, 
+        sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
   new_client->aftype = new_client->ip.ss.ss_family;
 #ifdef IPV6
   if (new_client->sockhost[0] == ':')
@@ -386,14 +369,13 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 #endif
     strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
 
-  new_client->connect_id = ++connect_id;
   new_client->localClient->listener = listener;
   ++listener->ref_count;
 
 #ifdef HAVE_LIBCRYPTO
   if (listener->flags & LISTENER_SSL)
   {
-    if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.ctx)) == NULL)
+    if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.server_ctx)) == NULL)
     {
       ilog(L_CRIT, "SSL_new() ERROR! -- %s",
            ERR_error_string(ERR_get_error(), NULL));
@@ -538,7 +520,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
                  void *data, int aftype, int timeout)
 {
   struct addrinfo hints, *res;
-  char portname[PORTNAMELEN+1];
+  char portname[PORTNAMELEN + 1];
 
   assert(callback);
   fd->connect.callback = callback;
@@ -570,15 +552,15 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
-  snprintf(portname, PORTNAMELEN, "%d", port);
+  snprintf(portname, sizeof(portname), "%d", port);
 
   if (irc_getaddrinfo(host, portname, &hints, &res))
   {
     /* Send the DNS request, for the next level */
-    fd->dns_query = MyMalloc(sizeof(struct DNSQuery));
-    fd->dns_query->ptr = fd;
-    fd->dns_query->callback = comm_connect_dns_callback;
-    gethost_byname(host, fd->dns_query);
+    if (aftype == AF_INET6)
+      gethost_byname_type(comm_connect_dns_callback, fd, host, T_AAAA);
+    else
+      gethost_byname_type(comm_connect_dns_callback, fd, host, T_A);
   }
   else
   {
@@ -636,14 +618,12 @@ comm_connect_timeout(fde_t *fd, void *notused)
  * otherwise we initiate the connect()
  */
 static void
-comm_connect_dns_callback(void *vptr, struct DNSReply *reply)
+comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 {
   fde_t *F = vptr;
 
-  if (reply == NULL)
+  if (name == NULL)
   {
-    MyFree(F->dns_query);
-    F->dns_query = NULL;
     comm_connect_callback(F, COMM_ERR_DNS);
     return;
   }
@@ -657,15 +637,13 @@ comm_connect_dns_callback(void *vptr, struct DNSReply *reply)
    * the DNS record around, and the DNS cache is gone anyway.. 
    *     -- adrian
    */
-  memcpy(&F->connect.hostaddr, &reply->addr, reply->addr.ss_len);
+  memcpy(&F->connect.hostaddr, addr, addr->ss_len);
   /* The cast is hacky, but safe - port offset is same on v4 and v6 */
   ((struct sockaddr_in *) &F->connect.hostaddr)->sin_port =
     F->connect.hostaddr.ss_port;
-  F->connect.hostaddr.ss_len = reply->addr.ss_len;
+  F->connect.hostaddr.ss_len = addr->ss_len;
 
   /* Now, call the tryconnect() routine to try a connect() */
-  MyFree(F->dns_query);
-  F->dns_query = NULL;
   comm_connect_tryconnect(F, NULL);
 }
 
@@ -693,9 +671,6 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
   /* Error? */
   if (retval < 0)
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     /*
      * If we get EISCONN, then we've already connect()ed the socket,
      * which is a good thing.
@@ -754,12 +729,7 @@ comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
    */
   fd = socket(family, sock_type, proto);
   if (fd < 0)
-  {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     return -1; /* errno will be passed through, yay.. */
-  }
 
   execute_callback(setup_socket_cb, fd);
 
@@ -792,14 +762,9 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
    * reserved fd limit, but we can deal with that when comm_open()
    * also does it. XXX -- adrian
    */
-  newfd = accept(lptr->fd.fd, (struct sockaddr *)pn, (socklen_t *)&addrlen);
+  newfd = accept(lptr->fd.fd, (struct sockaddr *)pn, &addrlen);
   if (newfd < 0)
-  {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     return -1;
-  }
 
 #ifdef IPV6
   remove_ipv6_mapping(pn);

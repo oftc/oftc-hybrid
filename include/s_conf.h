@@ -24,7 +24,6 @@
 
 #ifndef INCLUDED_s_conf_h
 #define INCLUDED_s_conf_h
-#include "setup.h"
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/rsa.h>
 #endif
@@ -33,14 +32,23 @@
 #include "motd.h"               /* MessageFile */
 #include "client.h"
 #include "hook.h"
-#include "pcre.h"
+
+
+#define CONF_SERVER_INFO_TLS_VERSION_SSLV3 0x1
+#define CONF_SERVER_INFO_TLS_VERSION_TLSV1 0x2
 
 struct Client;
-struct DNSReply;
-struct hostent;
 
-extern FBFILE *conf_fbfile_in;
 extern struct Callback *client_check_cb;
+
+struct conf_parser_context
+{
+  unsigned int boot;
+  unsigned int pass;
+  FBFILE *conf_file;
+};
+
+extern struct conf_parser_context conf_parser_ctx;
 
 typedef enum
 {  
@@ -81,9 +89,10 @@ struct split_nuh_item
 
 struct ConfItem
 {
+  dlink_node node;      /* link into known ConfItems of this type */
+
   char *name;		/* Primary key */
-  pcre *regexpname;
-  dlink_node node;	/* link into known ConfItems of this type */
+  void *regexpname;
   unsigned int flags;
   ConfType type;
 };
@@ -107,9 +116,12 @@ struct MatchItem
 struct AccessItem
 {
   dlink_node node;
+  unsigned int     dns_failed;
+  unsigned int     dns_pending;
   unsigned int     status;   /* If CONF_ILLEGAL, delete when no clients */
   unsigned int     flags;
   unsigned int     modes;
+  unsigned int     port;
   int              clients;  /* Number of *LOCAL* clients using this */
   struct irc_ssaddr my_ipnum; /* ip to bind to for outgoing connect */
   struct irc_ssaddr ipnum;	/* ip to connect to */
@@ -119,11 +131,9 @@ struct AccessItem
   char *	   reason;
   char *	   oper_reason;
   char *           user;     /* user part of user@host */
-  int              port;
   char *           fakename;   /* Mask name */
   time_t           hold;     /* Hold action until this time (calendar time) */
   struct ConfItem *class_ptr;  /* Class of connection */
-  struct DNSQuery* dns_query;
   int              aftype;
 #ifdef HAVE_LIBCRYPTO
   char *           rsa_public_key_file;
@@ -131,13 +141,15 @@ struct AccessItem
   struct EncCapability *cipher_preference;
   char *certfp;
 #endif
-  pcre *regexuser;
-  pcre *regexhost;
+  void *regexuser;
+  void *regexhost;
 };
 
 struct ClassItem
 {
-  long max_sendq;
+  dlink_list list_ipv4;         /* base of per cidr ipv4 client link list */
+  dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
+  unsigned int max_sendq;
   int con_freq;
   int ping_freq;
   int ping_warning;
@@ -150,17 +162,15 @@ struct ClassItem
   int cidr_bitlen_ipv4;
   int cidr_bitlen_ipv6;
   int number_per_cidr;
-  dlink_list list_ipv4;         /* base of per cidr ipv4 client link list */
-  dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
   int active;
   char *reject_message;
 };
 
 struct CidrItem
 {
+  dlink_node node;
   struct irc_ssaddr mask;
   int number_on_this_cidr;
-  dlink_node node;
 };
 
 struct ip_entry
@@ -288,9 +298,6 @@ struct ip_entry
 #define IsConfCryptLink(x)      ((x)->flags & CONF_FLAGS_CRYPTLINK)
 #define SetConfCryptLink(x)     ((x)->flags |= CONF_FLAGS_CRYPTLINK)
 #define ClearConfCryptLink(x)   ((x)->flags &= ~CONF_FLAGS_CRYPTLINK)
-#define IsConfLazyLink(x)       ((x)->flags & CONF_FLAGS_LAZY_LINK)
-#define SetConfLazyLink(x)      ((x)->flags = CONF_FLAGS_LAZY_LINK)
-#define ClearConfLazyLink(x)	((x)->flags &= ~CONF_FLAGS_LAZY_LINK)
 #define IsConfAllowAutoConn(x)  ((x)->flags & CONF_FLAGS_ALLOW_AUTO_CONN)
 #define SetConfAllowAutoConn(x)	((x)->flags |= CONF_FLAGS_ALLOW_AUTO_CONN)
 #define ClearConfAllowAutoConn(x) ((x)->flags &= ~CONF_FLAGS_ALLOW_AUTO_CONN)
@@ -358,9 +365,10 @@ struct config_file_entry
   int dots_in_ident;
   int failed_oper_notice;
   int anti_spam_exit_message_time;
-  int max_accept;
+  unsigned int max_accept;
+  unsigned int max_watch;
   int max_nick_time;
-  int max_nick_changes;
+  unsigned int max_nick_changes;
   int ts_max_delta;
   int ts_warn_delta;
   int anti_nick_flood;
@@ -433,9 +441,9 @@ struct config_channel_entry
 
 struct config_server_hide
 {
+  char *hidden_name;
   int flatten_links;
   int hide_servers;
-  char *hidden_name;
   int links_delay;
   int links_disabled;
   int hidden;
@@ -445,6 +453,7 @@ struct config_server_hide
 
 struct server_info
 {
+  char *sid;
   char *name;
   char *description;
   char *network_name;
@@ -452,13 +461,14 @@ struct server_info
 #ifdef HAVE_LIBCRYPTO
   char *rsa_private_key_file;
   RSA *rsa_private_key;
-  SSL_CTX *ctx;
+  SSL_CTX *server_ctx;
+  SSL_CTX *client_ctx;
+  unsigned int tls_version;
 #endif
-  char *sid;
   int hub;
   struct irc_ssaddr ip;
   struct irc_ssaddr ip6;
-  int max_clients;
+  unsigned int max_clients;
   int specific_ipv4_vhost;
   int specific_ipv6_vhost;
   struct sockaddr_in dns_host;
@@ -485,7 +495,7 @@ struct logging_entry
   char failed_operlog[PATH_MAX + 1];
 };
 
-extern int ypass;
+extern dlink_list gdeny_items;
 extern dlink_list class_items;
 extern dlink_list server_items;
 extern dlink_list cluster_items;
@@ -508,15 +518,15 @@ extern struct admin_info AdminInfo;        /* defined in ircd.c */
 extern int valid_wild_card(struct Client *, int, int, ...);
 /* End GLOBAL section */
 
-extern unsigned long get_sendq(struct Client *);
+extern unsigned int get_sendq(struct Client *);
 extern const char *get_client_class(struct Client *);
 extern int get_client_ping(struct Client *, int *);
 extern void check_class(void);
 extern void init_class(void);
 extern struct ConfItem *find_class(const char *);
 extern void init_ip_hash_table(void);
-extern void count_ip_hash(int *, unsigned long *);
 extern void dump_ip_hash_table(struct Client *);
+extern void count_ip_hash(unsigned int *, uint64_t *);
 extern void remove_one_ip(struct irc_ssaddr *);
 extern struct ConfItem *make_conf_item(ConfType type);
 extern void free_access_item(struct AccessItem *);
@@ -552,7 +562,6 @@ extern const char *get_conf_name(ConfType);
 extern int rehash(int);
 extern int conf_add_server(struct ConfItem *, const char *);
 extern void conf_add_class_to_conf(struct ConfItem *, const char *);
-extern void conf_add_d_conf(struct AccessItem *);
 
 /* XXX consider moving these into csvlib.h */
 extern void parse_csv_file(FBFILE *, ConfType);
@@ -568,8 +577,6 @@ extern int parse_aline(const char *, struct Client *, int, char **,
 		       int, char **, char **, time_t *, char **, char **);
 extern int valid_comment(struct Client *, char *, int);
 
-/* XXX */
-extern int yylex(void);
 
 #define TK_SECONDS 0
 #define TK_MINUTES 1
@@ -590,5 +597,8 @@ extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
 extern struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
 extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
 extern void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
+
+/* XXX **/
+extern int yylex(void);
 
 #endif /* INCLUDED_s_conf_h */

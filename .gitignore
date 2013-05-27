@@ -9,7 +9,7 @@ y.tab.*
 lex.yy.c
 src/ircd
 servlink/servlink
-include/setup.h
+include/config.h
 *.la
 *.lo
 .deps
@@ -28,7 +28,7 @@ libtool
 aclocal.m4
 configure
 depcomp
-include/setup.h.in
+include/config.h.in
 include/stamp-h1
 install-sh
 libltdl
@@ -42,3 +42,4 @@ m4/ltoptions.m4
 m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
+tools/mkpasswd

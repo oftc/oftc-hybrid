@@ -4,21 +4,17 @@ dnl {{{ ax_check_lib_ipv4
 AC_DEFUN([AX_CHECK_LIB_IPV4],[
   AC_SEARCH_LIBS([socket],[socket],,[AC_MSG_ERROR([socket library not found])])
   AC_CHECK_FUNCS([inet_aton inet_ntop inet_pton])
-  AC_CHECK_TYPES([struct sockaddr_in, struct sockaddr_storage, struct addrinfo],,,[
-    #include <netinet/in.h>
-    #include <sys/socket.h>
-    #include <netdb.h>
+  AC_CHECK_TYPES([struct sockaddr_in, struct sockaddr_storage, struct addrinfo],,,[#include <sys/types.h>
+   #include <sys/socket.h>
+   #include <netdb.h>
   ])
-  AC_CHECK_MEMBERS([struct sockaddr_in.sin_len],,,[#include <netdb.h>])
+  AC_CHECK_MEMBERS([struct sockaddr_in.sin_len],,,[#include <sys/types.h>
+  <sys/socket.h>])
 ])dnl }}}
 dnl {{{ ax_check_lib_ipv6
 AC_DEFUN([AX_CHECK_LIB_IPV6],[
-  AC_CHECK_TYPES([struct sockaddr_in6],,[AC_DEFINE([IPV6],[1],[Define to 1 if you have IPv6 support.])],,[#include <netdb.h>])
-])dnl }}}
-dnl {{{ ax_check_crypt
-AC_DEFUN([AX_CHECK_LIB_CRYPT],[
-	AC_SEARCH_LIBS(crypt, [crypt descrypt],,)
-  AM_CONDITIONAL([HAVE_CRYPT],[test "$ac_cv_search_crypt" = "none required"])
+  AC_CHECK_TYPES([struct sockaddr_in6],,[AC_DEFINE([IPV6],[1],[Define to 1 if you have IPv6 support.])],,[#include <sys/types.h>
+   <sys/socket.h>])
 ])dnl }}}
 dnl {{{ ax_arg_enable_ioloop_mechanism (FIXME)
 AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
@@ -173,84 +169,13 @@ AC_DEFUN([AX_ARG_DISABLE_SHARED_MODULES],[
 dnl {{{ ax_arg_with_topiclen
 AC_DEFUN([AX_ARG_WITH_TOPICLEN],[
   AC_ARG_WITH([topiclen],[AC_HELP_STRING([--with-topiclen=<value>],[Set topic length (default 160).])],[topiclen="$withval"],[topiclen="160"])
-  AC_DEFINE_UNQUOTED([TOPICLEN],[($topiclen+1)],[Length of topics.]) 
+  AC_DEFINE_UNQUOTED([TOPICLEN],[($topiclen)],[Length of topics.]) 
 ])dnl }}}
 dnl {{{ ax_arg_with_nicklen
 AC_DEFUN([AX_ARG_WITH_NICKLEN],[
   AC_ARG_WITH([nicklen],[AC_HELP_STRING([--with-nicklen=<value>],[Set nickname length (default 9).])],[nicklen="$withval"],[nicklen="9"])
   AC_DEFINE_UNQUOTED([NICKLEN],[($nicklen+1)],[Length of nicknames.]) 
 ])dnl }}}
-dnl {{{ ax_arg_with_userlen
-AC_DEFUN([AX_ARG_WITH_USERLEN],[
-  AC_ARG_WITH([userlen],[AC_HELP_STRING([--with-userlen=<value>],[Set username length (default 9).])],[userlen="$withval"],[userlen="9"])
-  AC_DEFINE_UNQUOTED([USERLEN],[($userlen+1)],[Length of nicknames.]) 
-])dnl }}}
-dnl {{{ ax_arg_with_hostlen
-AC_DEFUN([AX_ARG_WITH_HOSTLEN],[
-  AC_ARG_WITH([hostlen],[AC_HELP_STRING([--with-hostlen=<value>],[Set username length (default 62).])],[hostlen="$withval"],[hostlen="62"])
-  AC_DEFINE_UNQUOTED([HOSTLEN],[($hostlen+1)],[Length of nicknames.]) 
-])dnl }}}
-dnl {{{ ax_arg_with_lclient_heap_size
-AC_DEFUN([AX_ARG_WITH_LCLIENT_HEAP_SIZE],[
-  AC_ARG_WITH([lclient-heap-size],[AC_HELP_STRING([--lclient-heap-size=<value>],[Set local client heap size (default 256).])],[lclient_heap_size="$withval"],[lclient_heap_size="256"])
-  AC_DEFINE_UNQUOTED([LCLIENT_HEAP_SIZE],[$lclient_heap_size],[Size of the local client heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_nickname_history_length
-AC_DEFUN([AX_ARG_WITH_NICKNAME_HISTORY_LENGTH],[
-  AC_ARG_WITH([nickname-history-length],[AC_HELP_STRING([--nickname-history-length=<value>],[Set length of nickname history list (default 1500).])],[nickname_history_length="$withval"],[nickname_history_length="1500"])
-  AC_DEFINE_UNQUOTED([NICKNAMEHISTORYLENGTH],[$nickname_history_length],[Size of the nickname history list.])
-])dnl }}}
-dnl {{{ ax_arg_with_client_heap_size
-AC_DEFUN([AX_ARG_WITH_CLIENT_HEAP_SIZE],[
-  AC_ARG_WITH([client-heap-size],[AC_HELP_STRING([--client-heap-size=<value>],[Set client heap size (default 256).])],[client_heap_size="$withval"],[client_heap_size="256"])
-  AC_DEFINE_UNQUOTED([CLIENT_HEAP_SIZE],[$client_heap_size],[Size of the client heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_channel_heap_size
-AC_DEFUN([AX_ARG_WITH_CHANNEL_HEAP_SIZE],[
-  AC_ARG_WITH([channel-heap-size],[AC_HELP_STRING([--channel-heap-size=<value>],[Set channel heap size (default 256).])],[channel_heap_size="$withval"],[channel_heap_size="256"])
-  AC_DEFINE_UNQUOTED([CHANNEL_HEAP_SIZE],[$channel_heap_size],[Size of the channel heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_dbuf_heap_size
-AC_DEFUN([AX_ARG_WITH_DBUF_HEAP_SIZE],[
-  AC_ARG_WITH([dbuf-heap-size],[AC_HELP_STRING([--dbuf-heap-size=<value>],[Set dbuf heap size (default 64).])],[dbuf_heap_size="$withval"],[dbuf_heap_size="64"])
-  AC_DEFINE_UNQUOTED([DBUF_HEAP_SIZE],[$dbuf_heap_size],[Size of the dbuf heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_dnode_heap_size
-AC_DEFUN([AX_ARG_WITH_DNODE_HEAP_SIZE],[
-  AC_ARG_WITH([dnode-heap-size],[AC_HELP_STRING([--dnode-heap-size=<value>],[Set dnode heap size (default 256).])],[dnode_heap_size="$withval"],[dnode_heap_size="256"])
-  AC_DEFINE_UNQUOTED([DNODE_HEAP_SIZE],[$dnode_heap_size],[Size of the dlink_node heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_ban_heap_size
-AC_DEFUN([AX_ARG_WITH_BAN_HEAP_SIZE],[
-  AC_ARG_WITH([ban-heap-size],[AC_HELP_STRING([--ban-heap-size=<value>],[Set ban heap size (default 128).])],[ban_heap_size="$withval"],[ban_heap_size="128"])
-  AC_DEFINE_UNQUOTED([BAN_HEAP_SIZE],[$ban_heap_size],[Size of the ban heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_topic_heap_size
-AC_DEFUN([AX_ARG_WITH_TOPIC_HEAP_SIZE],[
-  AC_ARG_WITH([topic-heap-size],[AC_HELP_STRING([--topic-heap-size=<value>],[Set topic heap size (default 256).])],[topic_heap_size="$withval"],[topic_heap_size="256"])
-  AC_DEFINE_UNQUOTED([TOPIC_HEAP_SIZE],[$topic_heap_size],[Size of the topic heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_ircd_heap_size
-AC_DEFUN([AX_ARG_WITH_IRCD_HEAP_SIZE],[
-  AC_ARG_WITH([ircd-heap-size],[AC_HELP_STRING([--ircd-heap-size=<value>],[Set ircd heap size (default 8).])],[ircd_heap_size="$withval"],[ircd_heap_size="8"])
-  AC_DEFINE_UNQUOTED([IRCD_HEAP_SIZE],[$ircd_heap_size],[Size of the ircd heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_mqueue_heap_size
-AC_DEFUN([AX_ARG_WITH_MQUEUE_HEAP_SIZE],[
-  AC_ARG_WITH([mqueue-heap-size],[AC_HELP_STRING([--mqueue-size=<value>],[Set mqueue heap size (default 256).])],[mqueue_heap_size="$withval"],[mqueue_heap_size="256"])
-  AC_DEFINE_UNQUOTED([MQUEUE_HEAP_SIZE],[$mqueue_heap_size],[Size of the floodserv mqueue heap.])
-])dnl }}}
-dnl {{{ ax_arg_with_fmsg_heap_size
-AC_DEFUN([AX_ARG_WITH_FMSG_HEAP_SIZE],[
-  AC_ARG_WITH([fmsg-heap-size],[AC_HELP_STRING([--fmsg-size=<value>],[Set fmsg heap size (default 256).])],[fmsg_heap_size="$withval"],[fmsg_heap_size="256"])
-  AC_DEFINE_UNQUOTED([FMSG_HEAP_SIZE],[$fmsg_heap_size],[Size of the floodserv fmsg heap.])
-])dnl }}}
-dnl {{{ ax_Arg_with_services_name
-AC_DEFUN([AX_ARG_WITH_SERVICS_NAME],[
-	AC_ARG_WITH([services-name],[AC_HELP_STRING([--with-services-name=SERVICES_NAME],[Set the name of your services server])],[services_name="$withval"],[services_name="services.oftc.net"])
-	AC_DEFINE_UNQUOTED(SERVICES_NAME,"$services_name",[Name of the services
-	server.])
-]) dnl }}}
 dnl {{{ ax_arg_enable_efnet
 AC_DEFUN([AX_ARG_ENABLE_EFNET],[
   AC_ARG_ENABLE([efnet],[AC_HELP_STRING([--enable-efnet],[For IRCDs running on EFnet.])],[efnet="$enableval"],[efnet="no"])
@@ -259,7 +184,6 @@ AC_DEFUN([AX_ARG_ENABLE_EFNET],[
     AC_DEFINE([EFNET],[1],[Define to 1 if this server will be an EFnet server.])
 		AC_DEFINE([TS5_ONLY],[1],[If Defined to 1 server links to your network must have a minimum of TS5.])
 	else
-		AC_DEFINE([INVARIANTS],[1],[Miscellaneous sanity checks for the IRCd. Makes it slightly slower])
 		use_efnet="no"
   fi
   AM_CONDITIONAL([EFNET],[test "$use_efnet" = "yes"])
@@ -276,7 +200,7 @@ AC_DEFUN([AX_ARG_ENABLE_DEBUGGING],[
   AC_ARG_ENABLE([debugging],[AC_HELP_STRING([--enable-debugging],[Enable debugging.])],[debugging="$enableval"],[debugging="no"])
   if test "$debugging" = "yes" ; then
     AC_DEFINE([DEBUG],[1],[Define to 1 to enable debugging.])
-    CFLAGS="$CFLAGS -Wall -Werror -g -O0"
+    CFLAGS="-Werror -Wall -g -O0"
   else
     AC_DEFINE([NDEBUG],[1],[Define to 1 to disable debugging.])
   fi
@@ -285,7 +209,7 @@ dnl {{{ ax_arg_enable_warnings
 AC_DEFUN([AX_ARG_ENABLE_WARNINGS],[
   AC_ARG_ENABLE([warnings],[AC_HELP_STRING([--enable-warnings],[Enable compiler warnings.])],[warnings="$enableval"],[warnings="no"])
   if test "$warnings" = "yes" ; then
-    CFLAGS="-Wcast-qual -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wno-unused"
+    CFLAGS="-Werror -Wall -Wextra -Wno-unused -Wcast-qual -Wcast-align -Wbad-function-cast -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wundef"
   fi
 ])dnl }}}
 dnl {{{ ax_arg_enable_efence
@@ -331,3 +255,11 @@ AC_DEFUN([AC_DEFINE_DIR], [
   test "$exec_prefix_NONE" && exec_prefix=NONE
 ])dnl }}}
 ]) dnl }}}
+
+dnl {{{ ax_Arg_with_services_name
+  AC_DEFUN([AX_ARG_WITH_SERVICS_NAME],[
+      AC_ARG_WITH([services-name],[AC_HELP_STRING([--with-services-name=SERVICES_NAME],[Set the name of your
+          services server])],[services_name="$withval"],[services_name="services.oftc.net"])
+      AC_DEFINE_UNQUOTED(SERVICES_NAME,"$services_name",[Name of the services
+        server.])
+      ]) dnl }}}

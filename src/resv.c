@@ -23,9 +23,8 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "common.h"
-#include "fdlist.h"
 #include "ircd.h"
 #include "send.h"
 #include "client.h"   
@@ -51,8 +50,8 @@ dlink_list resv_channel_list = { NULL, NULL, 0 };
 struct ConfItem *
 create_channel_resv(char *name, char *reason, int in_conf)
 {
-  struct ConfItem *conf;
-  struct ResvChannel *resv_p;
+  struct ConfItem *conf = NULL;
+  struct ResvChannel *resv_p = NULL;
 
   if (name == NULL || reason == NULL)
     return NULL;
@@ -67,6 +66,7 @@ create_channel_resv(char *name, char *reason, int in_conf)
   resv_p = map_to_conf(conf);
 
   strlcpy(resv_p->name, name, sizeof(resv_p->name));
+  DupString(conf->name, name);
   DupString(resv_p->reason, reason);
   resv_p->conf = in_conf;
 
@@ -87,8 +87,8 @@ create_channel_resv(char *name, char *reason, int in_conf)
 struct ConfItem *
 create_nick_resv(char *name, char *reason, int in_conf)
 {
-  struct ConfItem *conf;
-  struct MatchItem *resv_p;
+  struct ConfItem *conf = NULL;
+  struct MatchItem *resv_p = NULL;
 
   if (name == NULL || reason == NULL)
     return NULL;
@@ -118,15 +118,10 @@ create_nick_resv(char *name, char *reason, int in_conf)
 void
 clear_conf_resv(void)
 {
-  dlink_node *ptr;
-  dlink_node *next_ptr;
-  struct ResvChannel *resv_cp;
+  dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, resv_channel_list.head)
-  {
-    resv_cp = ptr->data;
-    delete_channel_resv(resv_cp);
-  }
+    delete_channel_resv(ptr->data);
 }
 
 /* delete_channel_resv()
@@ -138,7 +133,7 @@ clear_conf_resv(void)
 int
 delete_channel_resv(struct ResvChannel *resv_p)
 {
-  struct ConfItem *conf;
+  struct ConfItem *conf = NULL;
   assert(resv_p != NULL);
 
   hash_del_resv(resv_p);

@@ -30,7 +30,6 @@
 #define LISTENER_SERVER 0x4
 
 #include "ircd_defs.h"  
-#include "tools.h"
 #include "fdlist.h"
 
 struct Client;

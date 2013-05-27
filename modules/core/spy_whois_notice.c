@@ -50,7 +50,7 @@ _moddeinit(void)
     uninstall_hook(whois_cb, show_notice);
 }
 
-const char *_version = "$Revision: 33 $";
+const char *_version = "$Revision$";
 
 /* show_notice
  *

@@ -19,13 +19,12 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: hook.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef __HOOK_H_INCLUDED
 #define __HOOK_H_INCLUDED
 
-#include "tools.h"
 #define HOOK_V2
 
 typedef void *CBFUNC(va_list);

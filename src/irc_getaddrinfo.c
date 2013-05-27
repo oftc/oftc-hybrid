@@ -33,7 +33,7 @@
 #include "irc_getaddrinfo.h"
 #include "ircd_defs.h"
 
-/*  $Id: irc_getaddrinfo.c 33 2005-10-02 20:50:00Z knight $ */
+/*  $Id$ */
 
 static const char in_addrany[]  = { 0, 0, 0, 0 };
 static const char in_loopback[] = { 127, 0, 0, 1 };
@@ -104,7 +104,7 @@ static int explore_numeric(const struct addrinfo *, const char *,
 static struct addrinfo *get_ai(const struct addrinfo *,
 	const struct afd *, const char *);
 static int get_portmatch(const struct addrinfo *, const char *);
-static int get_port(struct addrinfo *, const char *, int);
+static int get_port(const struct addrinfo *, const char *, int);
 static const struct afd *find_afd(int);
 #if 0
 /* We will need this should we ever want gai_strerror() */
@@ -387,17 +387,10 @@ explore_null(const struct addrinfo *pai, const char *servname, struct addrinfo *
 	 */
 	s = socket(pai->ai_family, SOCK_DGRAM, 0);
 	if (s < 0) {
-#ifdef _WIN32
-                errno = WSAGetLastError();
-#endif
 		if (errno != EMFILE)
 			return 0;
 	} else
-#ifdef _WIN32
-                closesocket(s);
-#else
 		close(s);
-#endif
 
 	/*
 	 * if the servname does not match socktype/protocol, ignore it.
@@ -519,11 +512,11 @@ get_portmatch(const struct addrinfo *ai, const char *servname)
 {
   /* get_port does not touch first argument. when matchonly == 1. */
   /* LINTED const cast */
-  return(get_port((struct addrinfo *)ai, servname, 1));
+  return(get_port(ai, servname, 1));
 }
 
 static int
-get_port(struct addrinfo *ai, const char *servname, int matchonly)
+get_port(const struct addrinfo *ai, const char *servname, int matchonly)
 {
   const char *proto;
   struct servent *sp;

@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -40,7 +41,6 @@
 #include "s_conf.h"
 #include "send.h"
 #include "userhost.h"
-#include "list.h"
 #include "irc_string.h"
 #include "s_log.h"
 #include "common.h"

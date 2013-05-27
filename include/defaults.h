@@ -49,6 +49,7 @@
 
 /* dirs */
 #define DPATH       PREFIX
+#define SBINPATH    PREFIX "/sbin/"
 #define BINPATH     PREFIX "/bin/"
 #define MSGPATH     DATADIR "/" PACKAGE "/messages"
 #define MODPATH     LIBDIR "/" PACKAGE "/"
@@ -60,7 +61,7 @@
 
 
 /* files */
-#define SPATH   BINPATH "/ircd"                 /* ircd executable */
+#define SPATH   SBINPATH "/ircd"                 /* ircd executable */
 #define SLPATH  BINPATH "/servlink"             /* servlink executable */
 #define CPATH   ETCPATH "/ircd.conf"            /* ircd.conf file */
 #define KPATH   ETCPATH "/kline.conf"           /* kline file */
@@ -103,6 +104,8 @@
 #define DEFAULT_PINGFREQUENCY    120    /* Default ping frequency */
 #define DEFAULT_CONNECTFREQUENCY 600    /* Default connect frequency */
 
+#define WATCHSIZE_MIN 1
+#define WATCHSIZE_DEFAULT 32
 #define TS_MAX_DELTA_MIN      10        /* min value for ts_max_delta */
 #define TS_MAX_DELTA_DEFAULT  600       /* default for ts_max_delta */
 #define TS_WARN_DELTA_MIN     10        /* min value for ts_warn_delta */

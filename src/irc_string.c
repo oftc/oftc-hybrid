@@ -19,17 +19,17 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: irc_string.c 593 2006-05-12 05:47:32Z michael $
+ *  $Id$
  */
 
+#include "config.h"
+#ifdef HAVE_LIBPCRE
+#include <pcre.h>
+#endif
+
 #include "stdinc.h"
-#include "tools.h"
-#include "pcre.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
-#include "client.h"
-#include "list.h"
-#include "memory.h"
 
 #ifndef INADDRSZ 
 #define INADDRSZ 4
@@ -424,7 +424,7 @@ inetntop(int af, const void *src, char *dst, unsigned int size)
     case AF_INET6:
       if (IN6_IS_ADDR_V4MAPPED((const struct in6_addr *)src) ||
           IN6_IS_ADDR_V4COMPAT((const struct in6_addr *)src))
-        return inet_ntop4((unsigned char *)&((const struct in6_addr *)src)->s6_addr[12], dst, size);
+        return inet_ntop4((const unsigned char *)&((const struct in6_addr *)src)->s6_addr[12], dst, size);
       else 
         return inet_ntop6(src, dst, size);
 #endif
@@ -529,7 +529,8 @@ strlcpy(char *dst, const char *src, size_t siz)
 }
 #endif
 
-pcre *
+#ifdef HAVE_LIBPCRE
+void *
 ircd_pcre_compile(const char *pattern, const char **errptr)
 {
   int erroroffset = 0;
@@ -541,9 +542,10 @@ ircd_pcre_compile(const char *pattern, const char **errptr)
 }
 
 int
-ircd_pcre_exec(const pcre *code, const char *subject)
+ircd_pcre_exec(const void *code, const char *subject)
 {
   assert(code && subject);
 
   return pcre_exec(code, NULL, subject, strlen(subject), 0, 0, NULL, 0) < 0;
 }
+#endif

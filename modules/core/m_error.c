@@ -23,23 +23,40 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "handlers.h"
 #include "client.h"
-#include "common.h"   /* FALSE */
 #include "ircd.h"
 #include "send.h"
 #include "msg.h"
-#include "memory.h"
+#include "modules.h"
 #include "s_log.h"
+
+
+static void m_error(struct Client *, struct Client *, int, char *[]);
+static void ms_error(struct Client *, struct Client *, int, char *[]);
 
 struct Message error_msgtab = {
  "ERROR", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0,
   { m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore }
 };
 
+void
+_modinit(void)
+{
+  mod_add_cmd(&error_msgtab);
+}
+
+void
+_moddeinit(void)
+{
+  mod_del_cmd(&error_msgtab);
+}
+
+const char *_version = "$Revision$";
+
 /*
- * Note: At least at protocol level ERROR has only one parameter,
- * although this is called internally from other functions
+ * Note: At least at protocol level ERROR has only one parameter.
  * --msa
  *
  *      parv[0] = sender prefix
@@ -58,13 +75,17 @@ m_error(struct Client *client_p, struct Client *source_p,
 
   if (client_p == source_p)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s -- %s",
-                         get_client_name(client_p, SHOW_IP), para);
+    sendto_realops_flags(UMODE_ALL, L_ADMIN, "ERROR :from %s -- %s",
+                         get_client_name(client_p, HIDE_IP), para);
+    sendto_realops_flags(UMODE_ALL, L_OPER, "ERROR :from %s -- %s",
+                         get_client_name(client_p, MASK_IP), para);
   }
   else
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s via %s -- %s",
-                         source_p->name, get_client_name(client_p, SHOW_IP), para);
+    sendto_realops_flags(UMODE_ALL, L_OPER, "ERROR :from %s via %s -- %s",
+                         source_p->name, get_client_name(client_p, MASK_IP), para);
+    sendto_realops_flags(UMODE_ALL, L_ADMIN, "ERROR :from %s via %s -- %s",
+                         source_p->name, get_client_name(client_p, HIDE_IP), para);
   }
 
   if (MyClient(source_p))
@@ -83,10 +104,10 @@ ms_error(struct Client *client_p, struct Client *source_p,
        source_p->name, para);
 
   if (client_p == source_p)
-    sendto_realops_flags(UMODE_ALL, L_ALL,"ERROR :from %s -- %s",
-                         get_client_name(client_p, SHOW_IP), para);
+    sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s -- %s",
+                         get_client_name(client_p, MASK_IP), para);
   else
-    sendto_realops_flags(UMODE_ALL, L_ALL,"ERROR :from %s via %s -- %s", source_p->name,
-                         get_client_name(client_p, SHOW_IP), para);
+    sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s via %s -- %s",
+                         source_p->name,
+                         get_client_name(client_p, MASK_IP), para);
 }
-

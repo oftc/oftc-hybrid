@@ -27,20 +27,18 @@
 #include <openssl/pem.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
-#include <openssl/md5.h>
 #include <openssl/bn.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
+#include <openssl/opensslv.h>
 
 #include "memory.h"
 #include "rsa.h"
-#include "tools.h"
 #include "s_conf.h"
 #include "s_log.h"
 #include "client.h" /* CIPHERKEYLEN .. eww */
 #include "ircd.h" /* bio_spare_fd */
 
-static void binary_to_hex(unsigned char *bin, char *hex, int length);
 
 /*
  * report_crypto_errors - Dump crypto error list to log
@@ -100,18 +98,7 @@ verify_private_key(void)
     return -1;
   }
 
-  /*
-   * jdc -- Let's do this a little differently.  According to the
-   *        OpenSSL documentation, you need to METHOD_free(key) before
-   *        assigning it.  Don't believe me?  Check out the following
-   *        URL:  http://www.openssl.org/docs/crypto/pem.html#BUGS
-   * P.S. -- I have no idea why the key= assignment has to be typecasted.
-   *         For some reason the system thinks PEM_read_bio_RSAPrivateKey
-   *         is returning an int, not a RSA *.
-   * androsyn -- Thats because you didn't have a prototype and including
-   * 		 pem.h breaks things for some reason..
-   */
-  key = (RSA *) PEM_read_bio_RSAPrivateKey(file, NULL, 0, NULL);
+  key = PEM_read_bio_RSAPrivateKey(file, NULL, 0, NULL);
 
   if (key == NULL)
   {
@@ -136,15 +123,8 @@ verify_private_key(void)
                  mkey->pad, key->pad);
   
   if (mkey->version != key->version)
-  {
-#if (OPENSSL_VERSION_NUMBER) >= 0x00907000
     ilog(L_CRIT, "Private key corrupted: version %li != version %li",
                  mkey->version, key->version);
-#else
-    ilog(L_CRIT, "Private key corrupted: version %i != version %i",
-                 mkey->version, key->version);
-#endif
-  }    
 
 
   if (BN_cmp(mkey->n, key->n))
@@ -175,7 +155,7 @@ binary_to_hex(unsigned char *bin, char *hex, int length)
   static const char trans[] = "0123456789ABCDEF";
   int i;
 
-  for(i = 0; i < length; i++)
+  for (i = 0; i < length; i++)
   {
     hex[i  << 1]      = trans[bin[i] >> 4];
     hex[(i << 1) + 1] = trans[bin[i] & 0xf];

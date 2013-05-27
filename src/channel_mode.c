@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -33,7 +33,6 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "s_serv.h"             /* captab */
 #include "s_user.h"
@@ -83,7 +82,7 @@ static void chm_invex(struct Client *, struct Client *, struct Channel *,
                       int, int *, char **, int *, int, int, char, void *,
                       const char *);
 static void send_cap_mode_changes(struct Client *, struct Client *,
-                                  struct Channel *, int, int);
+                                  struct Channel *, unsigned int, unsigned int);
 static void send_mode_changes(struct Client *, struct Client *,
                               struct Channel *, char *);
 
@@ -573,7 +572,7 @@ god_mode_check(struct Client *source_p, char *chname, int alev, int parc,
   for(i = 1; i < parc; i++)
     ircsprintf(tmp, "%s %s", tmp, parv[i]);
 
-  sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,  tmp);
+  sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, "%s", tmp);
   oftc_log(tmp);
 }
 
@@ -1038,6 +1037,18 @@ clear_ban_cache(struct Channel *chptr)
   }
 }
 
+void
+clear_ban_cache_client(struct Client *client_p)
+{
+  dlink_node *ptr = NULL;
+
+  DLINK_FOREACH(ptr, client_p->channel.head)
+  {
+    struct Membership *ms = ptr->data;
+    ms->flags &= ~(CHFL_BAN_SILENCED|CHFL_BAN_CHECKED);
+  }
+}
+
 static void
 chm_op(struct Client *client_p, struct Client *source_p,
        struct Channel *chptr, int parc, int *parn,
@@ -1088,8 +1099,11 @@ chm_op(struct Client *client_p, struct Client *source_p,
   {
 #ifdef HALFOPS
     if (has_member_flags(member, CHFL_HALFOP))
+    {
+      --*parn;
       chm_hop(client_p, source_p, chptr, parc, parn, parv, errors, alev,
               dir, c, d, chname);
+    }
 #endif
     return;
   }
@@ -1554,7 +1568,7 @@ get_channel_access(struct Client *source_p, struct Membership *member)
 
 static void
 send_cap_mode_changes(struct Client *client_p, struct Client *source_p,
-                      struct Channel *chptr, int cap, int nocap)
+                      struct Channel *chptr, unsigned int cap, unsigned int nocap)
 {
   int i, mbl, pbl, arglen, nc, mc;
   int len;
@@ -1612,8 +1626,8 @@ send_cap_mode_changes(struct Client *client_p, struct Client *source_p,
         (pbl + arglen + BAN_FUDGE) >= MODEBUFLEN)
     {
       if (nc != 0)
-        sendto_server(client_p, source_p, chptr, cap, nocap,
-                      LL_ICHAN | LL_ICLIENT, "%s %s",
+        sendto_server(client_p, chptr, cap, nocap,
+                      "%s %s",
 		      modebuf, parabuf);
       nc = 0;
       mc = 0;
@@ -1654,8 +1668,8 @@ send_cap_mode_changes(struct Client *client_p, struct Client *source_p,
     parabuf[pbl - 1] = 0;
 
   if (nc != 0)
-    sendto_server(client_p, source_p, chptr, cap, nocap,
-                  LL_ICLIENT, "%s %s", modebuf, parabuf);
+    sendto_server(client_p, chptr, cap, nocap,
+                  "%s %s", modebuf, parabuf);
 }
 
 /* void send_mode_changes(struct Client *client_p,

@@ -24,11 +24,7 @@
 #include "patchlevel.h"
 #include "serno.h"
 #include "ircd.h"
-#ifndef _WIN32
 #include <sys/utsname.h>
-#else
-#include "s_bsd.h"
-#endif
 
 const char *ircd_version = PATCHLEVEL;
 const char *serno = SERIALNUM;
@@ -49,7 +45,7 @@ const char *infotext[] =
   "IRC --",
   "Based on the original code written by Jarkko Oikarinen",
   "Copyright 1988, 1989, 1990, 1991 University of Oulu, Computing Center",
-  "Copyright (c) 1997-2006 Hybrid Development Team", 
+  "Copyright (c) 1997-2009 Hybrid Development Team", 
   "",
   "This program is free software; you can redistribute it and/or",
   "modify it under the terms of the GNU General Public License as",
@@ -69,12 +65,9 @@ const char *infotext[] =
   "",
   "The core team as, of this major release:",
   "",
-  "adx, Piotr Nizynski <adx@irc7.pl>",
   "billy-jon, William Bierman III <bill@mu.org>",
   "cryogen, Stuart Walsh <stu@ipng.org.uk>",
   "Dianora, Diane Bruce <db@db.net>",
-  "joshk, Joshua Kwan <joshk@triplehelix.org>",
-  "knight, Alan LeVee <alan.levee@prometheus-designs.net>",
   "metalrock, Jack Low <jclow@csupomona.edu>",
   "Michael, Michael Wobst <michael.wobst@gmail.com>",
   "Rodder, Jon Lusky <lusky@blown.net>",
@@ -84,19 +77,23 @@ const char *infotext[] =
   "recent releases of Hybrid, in nick alphabetical order:",
   "",
   "A1kmm, Andrew Miller <a1kmm@mware.virtualave.net>",
+  "adx, Piotr Nizynski <adx@irc7.pl>",
   "AndroSyn, Aaron Sethman <androsyn@ratbox.org>",
   "bane, Dragan Dosen <bane@idolnet.org>",
   "bysin, Ben Kittridge <bkittridge@cfl.rr.com>",
   "cosine, Patrick Alken <wnder@uwns.underworld.net>",
   "David-T, David Taylor <davidt@yadt.co.uk>",
+  "fgeek, Henri Salo <fgeek@fgeek.fi>",
   "fl, Lee Hardy <lee@leeh.co.uk>",
   "Garion, Joost Vunderink <garion@efnet.nl>",
   "Habeeb, David Supuran <habeeb@cfl.rr.com>",
   "Hwy101, W. Campbell <wcampbel@botbay.net>",
   "jmallett, Juli Mallett <jmallett@FreeBSD.org>",
+  "joshk, Joshua Kwan <joshk@triplehelix.org>",
   "jv, Jakub Vlasek <jv@pilsedu.cz>",
   "k9, Jeremy Chadwick <ircd@jdc.parodius.com>",
   "kire, Erik Small <smalle@hawaii.edu>",
+  "knight, Alan LeVee <alan.levee@prometheus-designs.net>",
   "kre, Dinko Korunic <kreator@fly.srk.fer.hr>",
   "madmax, Paul Lomax <madmax@efnet.org>",
   "nenolod, William Pitcock <nenolod@nenolod.net>",

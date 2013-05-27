@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "listener.h"
 #include "client.h"
 #include "fdlist.h"
@@ -35,10 +36,8 @@
 #include "irc_getaddrinfo.h"
 #include "numeric.h"
 #include "s_conf.h"
-#include "s_stats.h"
 #include "send.h"
 #include "memory.h"
-#include "tools.h"
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/bio.h>
 #endif
@@ -170,9 +169,6 @@ inetport(struct Listener *listener)
    */
   if (setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     report_error(L_ALL, "setting SO_REUSEADDR for listener %s:%s",
                  get_listener_name(listener), errno);
     fd_close(&listener->fd);
@@ -187,9 +183,6 @@ inetport(struct Listener *listener)
 
   if (bind(listener->fd.fd, (struct sockaddr *)&lsin, lsin.ss_len))
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     report_error(L_ALL, "binding listener socket %s:%s",
                  get_listener_name(listener), errno);
     fd_close(&listener->fd);
@@ -198,9 +191,6 @@ inetport(struct Listener *listener)
 
   if (listen(listener->fd.fd, HYBRID_SOMAXCONN))
   {
-#ifdef _WIN32
-    errno = WSAGetLastError();
-#endif
     report_error(L_ALL, "listen failed for %s:%s",
                  get_listener_name(listener), errno);
     fd_close(&listener->fd);
@@ -408,7 +398,7 @@ accept_connection(fde_t *pfd, void *data)
      */
     if (number_fd > hard_fdlimit - 10)
     {
-      ++ServerStats->is_ref;
+      ++ServerStats.is_ref;
 
       /*
        * slow down the whining to opers bit
@@ -422,11 +412,8 @@ accept_connection(fde_t *pfd, void *data)
 
       if (!(listener->flags & LISTENER_SSL))
         send(fd, "ERROR :All connections in use\r\n", 32, 0);
-#ifdef _WIN32
-      closesocket(fd);
-#else
+
       close(fd);
-#endif
       break;    /* jump out and re-register a new io request */
     }
 
@@ -436,7 +423,8 @@ accept_connection(fde_t *pfd, void *data)
      */
     if ((pe = conf_connect_allowed(&addr, addr.ss.ss_family)) != 0)
     {
-      ++ServerStats->is_ref;
+      ++ServerStats.is_ref;
+
       if (!(listener->flags & LISTENER_SSL))
         switch (pe)
         {
@@ -448,15 +436,11 @@ accept_connection(fde_t *pfd, void *data)
             break;
         }
 
-#ifdef _WIN32
-      closesocket(fd);
-#else
       close(fd);
-#endif
       continue;    /* drop the one and keep on clearing the queue */
     }
 
-    ++ServerStats->is_ac;
+    ++ServerStats.is_ac;
     add_connection(listener, &addr, fd);
   }
 

@@ -19,19 +19,14 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: memory.c 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 
 #include "stdinc.h"
 #include "ircd_defs.h"
-#include "ircd.h"
 #include "irc_string.h"
 #include "memory.h"
-#include "list.h"
-#include "client.h"
-#include "send.h"
-#include "tools.h"
 #include "s_log.h"
 #include "restart.h"
 
@@ -46,7 +41,8 @@ MyMalloc(size_t size)
 
   if (ret == NULL)
     outofmemory();
-  return(ret);
+
+  return ret;
 }
 
 /*
@@ -59,7 +55,8 @@ MyRealloc(void *x, size_t y)
 
   if (ret == NULL)
     outofmemory();
-  return(ret);
+
+  return ret;
 }
 
 inline void
@@ -88,11 +85,30 @@ outofmemory(void)
 {
   static int was_here = 0;
 
-  if (was_here)
+  if (was_here++)
     abort();
-
-  was_here = 1;
 
   ilog(L_CRIT, "Out of memory: restarting server...");
   restart("Out of Memory");
 }
+
+#ifndef NDEBUG
+/*
+ * frob some memory. debugging time.
+ * -- adrian
+ */
+void
+mem_frob(void *data, int len)
+{
+  /* correct for Intel only! little endian */
+  unsigned char b[4] = { 0xef, 0xbe, 0xad, 0xde };
+  int i;
+  char *cdata = data;
+
+  for (i = 0; i < len; i++)
+  {
+    *cdata = b[i % 4];
+    cdata++;
+  }
+}
+#endif

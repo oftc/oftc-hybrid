@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "common.h"
+#include "list.h"
 #include "ircd_signal.h"
 #include "ircd.h"         /* dorehash */
 #include "restart.h"      /* server_die */
@@ -39,7 +39,7 @@
 static void 
 sigterm_handler(int sig)  
 {
-  server_die("received signal SIGTERM", NO);
+  server_die("received signal SIGTERM", 0);
 }
 
 /* 

@@ -34,7 +34,6 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "s_log.h"
-#include "s_stats.h"
 #include "send.h"
 #include "ircd_handler.h"
 #include "msg.h"
@@ -114,9 +113,9 @@ static int cancel_clients(struct Client *, struct Client *, char *);
 static void remove_unknown(struct Client *, char *, char *);
 static void do_numeric(char[], struct Client *, struct Client *, int, char **);
 static void handle_command(struct Message *, struct Client *, struct Client *, unsigned int, char **);
-static void recurse_report_messages(struct Client *source_p, struct MessageTree *mtree);
-static void add_msg_element(struct MessageTree *mtree_p, struct Message *msg_p, const char *cmd);
-static void del_msg_element(struct MessageTree *mtree_p, const char *cmd);
+static void recurse_report_messages(struct Client *, const struct MessageTree *);
+static void add_msg_element(struct MessageTree *, struct Message *, const char *);
+static void del_msg_element(struct MessageTree *, const char *);
 
 /* turn a string into a parc/parv pair */
 static inline int
@@ -243,7 +242,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
        */
       if (from == NULL)
       {
-        ServerStats->is_unpf++;
+        ++ServerStats.is_unpf;
         remove_unknown(client_p, sender, pbuffer);
         return;
       }
@@ -252,7 +251,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
       if (from->from != client_p)
       {
-        ServerStats->is_wrdi++;
+        ++ServerStats.is_wrdi;
         cancel_clients(client_p, from, pbuffer);
         return;
       }
@@ -264,7 +263,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
   if (*ch == '\0')
   {
-    ServerStats->is_empt++;
+    ++ServerStats.is_empt;
     return;
   }
 
@@ -281,13 +280,13 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
   {
     mptr = NULL;
     numeric = ch;
-    ServerStats->is_num++;
+    ++ServerStats.is_num;
     s = ch + 3;  /* I know this is ' ' from above if            */
     *s++ = '\0'; /* blow away the ' ', and point s to next part */
   }
   else
   { 
-    int ii = 0;
+    unsigned int ii = 0;
 
     if ((s = strchr(ch, ' ')) != NULL)
       *s++ = '\0';
@@ -311,7 +310,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
                      me.name, from->name, ch);
       }
 
-      ServerStats->is_unco++;
+      ++ServerStats.is_unco;
       return;
     }
 
@@ -446,14 +445,15 @@ add_msg_element(struct MessageTree *mtree_p,
      * Thus 'A' -> 0x1 'B' -> 0x2 'c' -> 0x3 etc.
      */
 
-    if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN-1)]) == NULL)
+    if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN - 1)]) == NULL)
     {
-      ntree_p = (struct MessageTree *)MyMalloc(sizeof(struct MessageTree));
-      mtree_p->pointers[*cmd & (MAXPTRLEN-1)] = ntree_p;
+      ntree_p = MyMalloc(sizeof(struct MessageTree));
+      mtree_p->pointers[*cmd & (MAXPTRLEN - 1)] = ntree_p;
 
       mtree_p->links++;		/* Have new pointer, so up ref count */
     }
-    add_msg_element(ntree_p, msg_p, cmd+1);
+
+    add_msg_element(ntree_p, msg_p, cmd + 1);
   }
 }
 
@@ -497,12 +497,13 @@ del_msg_element(struct MessageTree *mtree_p, const char *cmd)
   }
   else
   {
-    if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN-1)]) != NULL)
+    if ((ntree_p = mtree_p->pointers[*cmd & (MAXPTRLEN - 1)]) != NULL)
     {
-      del_msg_element(ntree_p, cmd+1);
+      del_msg_element(ntree_p, cmd + 1);
+
       if (ntree_p->links == 0)
       {
-	mtree_p->pointers[*cmd & (MAXPTRLEN-1)] = NULL;
+	mtree_p->pointers[*cmd & (MAXPTRLEN - 1)] = NULL;
 	mtree_p->links--;
 	MyFree(ntree_p);
       }
@@ -583,7 +584,7 @@ mod_del_cmd(struct Message *msg)
 struct Message *
 find_command(const char *cmd)
 {
-  return(msg_tree_parse(cmd, &msg_tree));
+  return msg_tree_parse(cmd, &msg_tree);
 }
 
 /* report_messages()
@@ -595,34 +596,28 @@ find_command(const char *cmd)
 void
 report_messages(struct Client *source_p)
 {
-  struct MessageTree *mtree = &msg_tree;
-  int i;
+  const struct MessageTree *mtree = &msg_tree;
+  unsigned int i;
 
   for (i = 0; i < MAXPTRLEN; i++)
-  {
     if (mtree->pointers[i] != NULL)
       recurse_report_messages(source_p, mtree->pointers[i]);
-  }
 }
 
 static void
-recurse_report_messages(struct Client *source_p, struct MessageTree *mtree)
+recurse_report_messages(struct Client *source_p, const struct MessageTree *mtree)
 {
-  int i;
+  unsigned int i;
 
   if (mtree->msg != NULL)
-  {
     sendto_one(source_p, form_str(RPL_STATSCOMMANDS),
                me.name, source_p->name, mtree->msg->cmd,
                mtree->msg->count, mtree->msg->bytes,
                mtree->msg->rcount);
-  }
 
   for (i = 0; i < MAXPTRLEN; i++)
-  {
     if (mtree->pointers[i] != NULL)
       recurse_report_messages(source_p, mtree->pointers[i]);
-  }
 }
 
 /* cancel_clients()
@@ -656,16 +651,16 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
    */
   if (IsServer(source_p) || IsMe(source_p))
   {
-    sendto_realops_flags(UMODE_DEBUG, L_ALL,  "Message for %s[%s] from %s",
+    sendto_realops_flags(UMODE_DEBUG, L_ALL, "Message for %s[%s] from %s",
                          source_p->name, source_p->from->name,
                          get_client_name(client_p, SHOW_IP));
-    sendto_realops_flags(UMODE_DEBUG, L_ALL,  "Message for %s[%s] from %s",
+    sendto_realops_flags(UMODE_DEBUG, L_ALL, "Message for %s[%s] from %s",
                          source_p->name, source_p->from->name,
                          get_client_name(client_p, SHOW_IP));
     sendto_realops_flags(UMODE_DEBUG, L_ALL, 
                          "Not dropping server %s (%s) for Fake Direction",
                          client_p->name, source_p->name);
-    return(-1);
+    return -1;
     /* return exit_client(client_p, client_p, &me, "Fake Direction");*/
   }
 
@@ -683,7 +678,7 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
                        source_p->name, source_p->username, source_p->host,
                        source_p->from->name, get_client_name(client_p, SHOW_IP));
 
-  return(0);
+  return 0;
 }
 
 /* remove_unknown()
@@ -839,7 +834,7 @@ m_not_oper(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
   sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-             me.name, parv[0]);
+             me.name, source_p->name);
 }
 
 void
@@ -874,3 +869,32 @@ m_ignore(struct Client *client_p, struct Client *source_p,
   return;
 }
 
+void
+rfc1459_command_send_error(struct Client *client_p, struct Client *source_p,
+                           int parc, char *parv[])
+{
+  const char *in_para;
+
+  in_para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
+
+  ilog(L_ERROR, "Received ERROR message from %s: %s",
+       source_p->name, in_para);
+
+  if (client_p == source_p)
+  {
+    sendto_realops_flags(UMODE_ALL, L_ADMIN, "ERROR :from %s -- %s",
+                         get_client_name(client_p, HIDE_IP), in_para);
+    sendto_realops_flags(UMODE_ALL, L_OPER, "ERROR :from %s -- %s",
+                         get_client_name(client_p, MASK_IP), in_para);
+  }
+  else
+  {
+    sendto_realops_flags(UMODE_ALL, L_OPER, "ERROR :from %s via %s -- %s",
+                         source_p->name, get_client_name(client_p, MASK_IP), in_para);
+    sendto_realops_flags(UMODE_ALL, L_ADMIN, "ERROR :from %s via %s -- %s",
+                         source_p->name, get_client_name(client_p, HIDE_IP), in_para);
+  }
+
+  if (MyClient(source_p))
+    exit_client(source_p, source_p, "ERROR");
+}

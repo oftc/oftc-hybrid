@@ -92,8 +92,8 @@ struct ChModeChange
   const char *arg;
   const char *id;
   int dir;
-  int caps;
-  int nocaps;
+  unsigned int caps;
+  unsigned int nocaps;
   int mems;
   struct Client *client;
 };
@@ -101,14 +101,15 @@ struct ChModeChange
 struct ChCapCombo
 {
   int count;
-  int cap_yes;
-  int cap_no;
+  unsigned int cap_yes;
+  unsigned int cap_no;
 };
 
 extern int add_id(struct Client *, struct Channel *, char *, int);
 extern void set_channel_mode(struct Client *, struct Client *, struct Channel *,
                              struct Membership *, int, char **, char *);
 extern void clear_ban_cache(struct Channel *);
+extern void clear_ban_cache_client(struct Client *);
 extern void init_chcap_usage_counts(void);
 extern void set_chcap_usage_counts(struct Client *);
 extern void unset_chcap_usage_counts(struct Client *);

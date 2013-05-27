@@ -27,7 +27,7 @@
 
 /*! \file balloc.c
  * \brief A block allocator
- * \version $Id: balloc.c 585 2006-05-08 11:05:46Z michael $
+ * \version $Id$
  * 
  * About the block allocator
  *
@@ -65,10 +65,10 @@
 #endif /* MAP_ANONYMOUS */
 #endif
 
-#include "ircd.h"
+#include "list.h"
 #include "balloc.h"
+#include "memory.h"
 #include "irc_string.h"
-#include "tools.h"
 #include "client.h"
 #include "send.h"
 #include "numeric.h"
@@ -86,7 +86,7 @@ static void heap_garbage_collection(void *);
  * \param ptr  Pointer to memory to be freed
  * \param size The size of the memory space
  */
-static inline void
+static void
 free_block(void *ptr, size_t size)
 {
 #ifdef HAVE_MMAP
@@ -125,7 +125,7 @@ initBlockHeap(void)
  * \param size Size of block to allocate
  * \return Address pointer to allocated data space
  */
-static inline void *
+static void *
 get_block(size_t size)
 {
 #ifdef HAVE_MMAP
@@ -243,8 +243,6 @@ BlockHeapCreate(const char *const name, size_t elemsize, int elemsperblock)
 
      outofmemory();    /* die.. out of memory */
   }
-
-  assert(bh);
 
   bh->next = heap_list;
   heap_list = bh;

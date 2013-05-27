@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: m_services.c 606 2006-06-08 22:35:55Z stu $
+ *  $Id$
  */
 /*
  *
@@ -47,7 +47,6 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "s_conf.h"
-#include "s_stats.h"
 #include "s_user.h"
 #include "whowas.h"
 #include "s_serv.h"
@@ -221,7 +220,7 @@ _moddeinit(void)
   mod_del_cmd(&os_msgtab);
 }
 
-const char *_version = "$Revision: 606 $";
+const char *_version = "$Revision$";
 #endif
 
 /*

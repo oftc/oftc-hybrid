@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -60,7 +61,7 @@ _moddeinit(void)
   mod_del_cmd(&mode_msgtab);
 }
 
-const char *_version = "$Revision: 325 $";
+const char *_version = "$Revision$";
 #endif
 /*
  * m_svsmode - MODE command handler
@@ -126,7 +127,7 @@ static void m_svsmode(struct Client *client_p, struct Client *source_p,
         break;
        }
   /* Propogate the SVSMODE to other servers */
-  sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
+  sendto_server(client_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
                  ":%s SVSMODE %s %s :%s", parv[0], parv[1],
                   parv[2], (parc >= 4) ? parv[3] : "");
 }

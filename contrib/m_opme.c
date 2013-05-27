@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -39,7 +39,6 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "common.h"
 
 static void mo_opme(struct Client *, struct Client *, int, char *[]);
 
@@ -71,9 +70,9 @@ chan_is_opless(const struct Channel *const chptr)
 
   DLINK_FOREACH(ptr, chptr->members.head)
     if (((struct Membership *)ptr->data)->flags & CHFL_CHANOP)
-      return(0);
+      return 0;
 
-  return(1);
+  return 1;
 }
 
 /*
@@ -95,8 +94,6 @@ mo_opme(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  /* XXX - we might not have CBURSTed this channel if we are a lazylink
-   * yet. */
   if ((chptr = hash_find_channel(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
@@ -111,7 +108,7 @@ mo_opme(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (chan_is_opless(chptr) == 0)
+  if (!chan_is_opless(chptr))
   {
     sendto_one(source_p, ":%s NOTICE %s :%s Channel is not opless",
                me.name, source_p->name, chptr->chname);
@@ -133,7 +130,7 @@ mo_opme(struct Client *client_p, struct Client *source_p,
                          "OPME called for [%s] by %s!%s@%s",
                          chptr->chname, source_p->name, source_p->username,
                          source_p->host);
-    sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
+    sendto_server(NULL, NULL, NOCAPS, NOCAPS,
                   ":%s WALLOPS :OPME called for [%s] by %s!%s@%s",
                   me.name, chptr->chname, source_p->name, source_p->username,
                   source_p->host);
@@ -143,19 +140,20 @@ mo_opme(struct Client *client_p, struct Client *source_p,
        chptr->chname, source_p->name, source_p->username,
        source_p->host);
 
-  sendto_server(NULL, source_p, chptr, CAP_TS6, NOCAPS, NOFLAGS,
-                 ":%s PART %s", ID(source_p), chptr->chname);
-  sendto_server(NULL, source_p, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+  sendto_server(NULL, chptr, CAP_TS6, NOCAPS,
+                ":%s PART %s", ID(source_p), chptr->chname);
+  sendto_server(NULL, chptr, NOCAPS, CAP_TS6,
                 ":%s PART %s", source_p->name, chptr->chname);
-  sendto_server(NULL, source_p, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+
+  sendto_server(NULL, chptr, CAP_TS6, NOCAPS,
                 ":%s SJOIN %lu %s + :@%s",
                 me.id, (unsigned long)chptr->channelts,
                 chptr->chname, ID(source_p));
-  sendto_server(NULL, source_p, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+  sendto_server(NULL, chptr, NOCAPS, CAP_TS6,
                 ":%s SJOIN %lu %s + :@%s",
                 me.name, (unsigned long)chptr->channelts,
                 chptr->chname, source_p->name);
 
-  sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +o %s",
+  sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +o %s",
                        me.name, chptr->chname, source_p->name);
 }

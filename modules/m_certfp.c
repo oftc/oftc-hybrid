@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: m_realhost.c 612 2006-06-09 00:11:27Z stu $
+ *  $Id$
  *
  */
 
@@ -31,7 +31,6 @@
 #include "numeric.h"
 #include "s_conf.h"
 #include "s_misc.h"
-#include "s_stats.h"
 #include "s_user.h"
 #include "hash.h"
 #include "whowas.h"
@@ -76,7 +75,7 @@ static void ms_certfp(struct Client *source_p, struct Client *client_p, int parc
 
   base16_decode(target_p->certfp, SHA_DIGEST_LENGTH, parv[2], strlen(parv[2]));
 
-  sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
+  sendto_server(client_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
       ":%s CERTFP %s %s", parv[0], parv[1], parv[2]);
 }
 

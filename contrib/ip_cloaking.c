@@ -31,7 +31,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
  *
- * $Id: ip_cloaking.c 75 2005-10-04 19:35:11Z knight $
+ * $Id$
  */
 
 /*
@@ -73,7 +73,7 @@ static int vhost_ipv6_err;
 static dlink_node *prev_enter_umode;
 static dlink_node *prev_umode;
 
-const char *_version = "$Revision: 33 $";
+const char *_version = "$Revision$";
 
 static void *reset_ipv6err_flag(va_list);
 static void *h_set_user_mode(va_list);
@@ -242,16 +242,14 @@ static unsigned long crc32_tab[] = {
 };
 
 static unsigned long
-crc32 (const unsigned char *s, unsigned int len)
+crc32(const char *s, unsigned int len)
 {
   unsigned int i;
-  unsigned long crc32val;
+  unsigned long crc32val = 0;
 
-  crc32val = 0;
   for (i = 0; i < len; i++)
-  {
     crc32val = crc32_tab[(crc32val ^ s[i]) & 0xff] ^ (crc32val >> 8);
-  }
+
   return crc32val;
 }
 
@@ -288,9 +286,9 @@ str2arr (char **pparv, char *string, char *delim)
  * new = encrypted hostname/ip
  */
 static void
-make_virthost (char *curr, char *host, char *new)
+make_virthost(char *curr, char *host, char *new)
 {
-  static char mask[HOSTLEN + 1];
+  char mask[HOSTLEN + 1];
   char *parv[HOSTLEN + 1], *parv2[HOSTLEN + 1], s[HOSTLEN + 1], s2[HOSTLEN + 1];
   int parc = 0, parc2 = 0, len = 0;
   unsigned long hash[8];
@@ -394,12 +392,12 @@ set_vhost(struct Client *client_p, struct Client *source_p,
   make_virthost(target_p->host, target_p->sockhost, target_p->host);
 
   if (IsClient(target_p))
-    sendto_server(client_p, source_p, NULL, CAP_ENCAP, NOCAPS, LL_ICLIENT,
+    sendto_server(client_p, NULL, CAP_ENCAP, NOCAPS,
                   ":%s ENCAP * CHGHOST %s %s",
                   me.name, target_p->name, target_p->host);
 
-    sendto_one(target_p, form_str(RPL_HOSTHIDDEN),
-               me.name, target_p->name, target_p->host);
+  sendto_one(target_p, form_str(RPL_HOSTHIDDEN),
+             me.name, target_p->name, target_p->host);
 }
 
 static void *

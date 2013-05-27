@@ -23,14 +23,14 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
+#include "balloc.h"
 #include "s_conf.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"
 #include "handlers.h"
-#include "list.h"
 #include "modules.h"
 #include "hash.h"
 #include "resv.h"
@@ -397,13 +397,13 @@ hash_find_id(const char *name)
 
   if ((client_p = idTable[hashv]) != NULL)
   {
-    if (irccmp(name, client_p->id))
+    if (strcmp(name, client_p->id))
     {
       struct Client *prev;
 
       while (prev = client_p, (client_p = client_p->idhnext) != NULL)
       {
-        if (!irccmp(name, client_p->id))
+        if (!strcmp(name, client_p->id))
         {
           prev->idhnext = client_p->idhnext;
           client_p->idhnext = idTable[hashv];
@@ -927,13 +927,12 @@ list_allow_channel(const char *chname, struct ListTask *lt)
  */
 static void
 list_one_channel(struct Client *source_p, struct Channel *chptr,
-                 struct ListTask *list_task, int remote_request)
+                 struct ListTask *list_task)
 {
-  if ((remote_request && chptr->chname[0] == '&') ||
-      (SecretChannel(chptr) && !IsMember(source_p, chptr)))
+  if (SecretChannel(chptr) && !IsMember(source_p, chptr))
     return;
-  if ((unsigned int)dlink_list_length(&chptr->members) < list_task->users_min ||
-      (unsigned int)dlink_list_length(&chptr->members) > list_task->users_max ||
+  if (dlink_list_length(&chptr->members) < list_task->users_min ||
+      dlink_list_length(&chptr->members) > list_task->users_max ||
       (chptr->channelts != 0 &&
        ((unsigned int)chptr->channelts < list_task->created_min ||
         (unsigned int)chptr->channelts > list_task->created_max)) ||
@@ -965,24 +964,24 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
  */
 void
 safe_list_channels(struct Client *source_p, struct ListTask *list_task,
-                   int only_unmasked_channels, int remote_request)
+                   int only_unmasked_channels)
 {
   struct Channel *chptr = NULL;
 
   if (!only_unmasked_channels)
   {
-    int i;
+    unsigned int i;
 
-    for (i = list_task->hash_index; i < HASHSIZE; i++)
+    for (i = list_task->hash_index; i < HASHSIZE; ++i)
     {
       if (exceeding_sendq(source_p->from))
       {
         list_task->hash_index = i;
-        return; /* still more to do */
+        return;    /* still more to do */
       }
 
       for (chptr = channelTable[i]; chptr; chptr = chptr->hnextch)
-        list_one_channel(source_p, chptr, list_task, remote_request);
+        list_one_channel(source_p, chptr, list_task);
     }
   }
   else
@@ -991,7 +990,7 @@ safe_list_channels(struct Client *source_p, struct ListTask *list_task,
 
     DLINK_FOREACH(dl, list_task->show_mask.head)
       if ((chptr = hash_find_channel(dl->data)) != NULL)
-        list_one_channel(source_p, chptr, list_task, remote_request);
+        list_one_channel(source_p, chptr, list_task);
   }
 
   free_list_task(list_task, source_p);
