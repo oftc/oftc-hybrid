@@ -968,12 +968,11 @@ void
 sendto_realops_remote(struct Client *source_p, unsigned int flags, int level, 
     const char *message)
 {
-  struct Client *client_p;
-  dlink_node *ptr;
+  dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, oper_list.head)
   {
-    client_p = ptr->data;
+    struct Client *client_p = ptr->data;
     assert(client_p->umodes & UMODE_OPER);
 
     /* If we're sending it to opers and theyre an admin, skip.
@@ -1045,7 +1044,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
       case UMODE_OPERWALL:
         DLINK_FOREACH(ptr, oper_list.head)
         {
-          client_p = ptr->data;
+          struct client_p = ptr->data;
           assert(client_p->umodes & UMODE_OPER);
 
           if ((client_p->umodes & flags) && !IsDefunct(client_p))
@@ -1055,7 +1054,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
       case UMODE_WALLOP:
         DLINK_FOREACH(ptr, local_client_list.head)
         {
-            client_p = ptr->data;
+            struct client_p = ptr->data;
             if((client_p->umodes & flags) && !IsDefunct(client_p))
               send_message(client_p, buffer, len);
         }
