@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_bsd.c 549 2006-04-20 12:46:18Z michael $
+ *  $Id$
  */
 
 #include "stdinc.h"

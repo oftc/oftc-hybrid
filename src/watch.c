@@ -22,7 +22,7 @@
 
 /*! \file watch.c
  * \brief File including functions for WATCH support
- * \version $Id: watch.c 801 2006-08-30 16:54:25Z adx $
+ * \version $Id$
  */
 
 #include "stdinc.h"

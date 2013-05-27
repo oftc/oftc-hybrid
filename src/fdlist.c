@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: fdlist.c 436 2006-02-11 21:35:16Z michael $
+ *  $Id$
  */
 #include "stdinc.h"
 #include "fdlist.h"

@@ -25,7 +25,7 @@
  *  IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id: m_tb.c 122 2005-10-13 10:57:26Z adx $
+ *  $Id$
  */
 
 #include "stdinc.h"

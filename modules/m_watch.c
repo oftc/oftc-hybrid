@@ -20,7 +20,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: m_watch.c 801 2006-08-30 16:54:25Z adx $
+ *  $Id$
  */
 
 #include "stdinc.h"

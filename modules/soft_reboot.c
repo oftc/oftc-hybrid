@@ -16,7 +16,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *   $Id: /local/oftc-hybrid/trunk/modules/soft_reboot.c 1141 2006-11-23T13:37:21.703719Z stu  $
+ *   $Id$
  */
 
 #include "stdinc.h"

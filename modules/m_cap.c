@@ -19,12 +19,12 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: m_cap.c 575 2006-05-01 11:41:09Z michael $
+ *  $Id$
  */
 
 /** @file
  * @brief Capability negotiation commands
- * @version $Id: m_cap.c 575 2006-05-01 11:41:09Z michael $
+ * @version $Id$
  */
 
 #include "stdinc.h"

@@ -31,7 +31,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
  *
- * $Id: ip_cloaking.c 75 2005-10-04 19:35:11Z knight $
+ * $Id$
  */
 
 /*
