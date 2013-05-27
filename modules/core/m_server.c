@@ -118,12 +118,9 @@ mr_server(struct Client *client_p, struct Client *source_p,
 
   if (!valid_servname(name))
   {
-    sendto_realops_flags(UMODE_ALL, L_ADMIN,
+    sendto_realops_flags(UMODE_ALL, L_ALL,
           "Unauthorized server connection attempt from %s: Bogus server name "
-          "for server %s", get_client_name(client_p, HIDE_IP), name);
-    sendto_realops_flags(UMODE_ALL, L_OPER,
-          "Unauthorized server connection attempt from %s: Bogus server name "
-          "for server %s", get_client_name(client_p, MASK_IP), name);
+          "for server %s", get_client_name(client_p, SHOW_IP), name);
     exit_client(client_p, client_p, "Bogus server name");
     return;
   }
@@ -253,12 +250,9 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
   if (!valid_servname(name))
   {
-    sendto_realops_flags(UMODE_ALL, L_ADMIN,
+    sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Link %s introduced server with bogus server name %s",
                          get_client_name(client_p, SHOW_IP), name);
-    sendto_realops_flags(UMODE_ALL, L_OPER,
-                         "Link %s introduced server with bogus server name %s",
-                         get_client_name(client_p, MASK_IP), name);
     sendto_one(client_p, "ERROR :Bogus server name introduced");
     exit_client(client_p, &me, "Bogus server name intoduced");
     return;
@@ -454,12 +448,9 @@ ms_sid(struct Client *client_p, struct Client *source_p,
 
   if (!valid_servname(parv[1]))
   {
-    sendto_realops_flags(UMODE_ALL, L_ADMIN,
+    sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Link %s introduced server with bogus server name %s",
                          get_client_name(client_p, SHOW_IP), parv[1]);
-    sendto_realops_flags(UMODE_ALL, L_OPER,
-                         "Link %s introduced server with bogus server name %s",
-                         get_client_name(client_p, MASK_IP), parv[1]);
     sendto_one(client_p, "ERROR :Bogus server name introduced");
     exit_client(client_p, &me, "Bogus server name intoduced");
     return;
@@ -467,12 +458,9 @@ ms_sid(struct Client *client_p, struct Client *source_p,
 
   if (!valid_sid(parv[3]))
   {
-    sendto_realops_flags(UMODE_ALL, L_ADMIN,
+    sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Link %s introduced server with bogus server ID %s",
                          get_client_name(client_p, SHOW_IP), parv[3]);
-    sendto_realops_flags(UMODE_ALL, L_OPER,
-                         "Link %s introduced server with bogus server ID %s",
-                         get_client_name(client_p, MASK_IP), parv[3]);
     sendto_one(client_p, "ERROR :Bogus server ID introduced");
     exit_client(client_p, &me, "Bogus server ID intoduced");
     return;
