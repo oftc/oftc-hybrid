@@ -49,6 +49,7 @@
 
 /* dirs */
 #define DPATH       PREFIX
+#define SBINPATH    PREFIX "/sbin/"
 #define BINPATH     PREFIX "/bin/"
 #define MSGPATH     DATADIR "/" PACKAGE "/messages"
 #define MODPATH     LIBDIR "/" PACKAGE "/"

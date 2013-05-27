@@ -174,7 +174,7 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 #ifdef IPV6
     if (auth->client->ip.ss.ss_family == AF_INET6)
     {
-      v6 = (const struct sockaddr_in6 *)&auth->client->localClient->ip;
+      v6 = (const struct sockaddr_in6 *)&auth->client->ip;
       v6dns = (const struct sockaddr_in6 *)addr;
       if (memcmp(&v6->sin6_addr, &v6dns->sin6_addr, sizeof(struct in6_addr)) != 0)
       {
@@ -185,7 +185,7 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
     else
 #endif
     {
-      v4 = (const struct sockaddr_in *)&auth->client->localClient->ip;
+      v4 = (const struct sockaddr_in *)&auth->client->ip;
       v4dns = (const struct sockaddr_in *)addr;
       if(v4->sin_addr.s_addr != v4dns->sin_addr.s_addr)
       {
@@ -383,7 +383,7 @@ start_auth(va_list args)
     start_auth_query(auth);
   }
 
-  gethost_byaddr(auth_dns_callback, auth, &client->localClient->ip);
+  gethost_byaddr(auth_dns_callback, auth, &client->ip);
 
   return NULL;
 }

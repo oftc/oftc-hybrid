@@ -98,6 +98,8 @@ m_topic(struct Client *client_p, struct Client *source_p,
 
   if (MyClient(source_p) && !IsFloodDone(source_p))
     flood_endgrace(source_p);
+
+  if ((chptr = hash_find_channel(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                from, to, parv[1]);

@@ -153,8 +153,10 @@ struct Client
    */
   char              sockhost[HOSTIPLEN + 1]; /* This is the host name from the 
                                                 socket ip address as string */
+  struct irc_ssaddr ip;
+  int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
+ 
   char              realhost[HOSTLEN];
-
   char              certfp[SHA_DIGEST_LENGTH];
 };
 
@@ -210,8 +212,6 @@ struct LocalUser
   dlink_list        watches;   /* chain of Watch pointer blocks */
   dlink_list        confs;     /* Configuration record associated */
   dlink_list        invited;   /* chain of invite pointer blocks */
-  struct irc_ssaddr ip;
-  int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
   time_t last; /* Last time we got a PRIVMSG */
 
   char              *passwd;

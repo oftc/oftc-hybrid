@@ -351,10 +351,10 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
    */
   memcpy(&new_client->ip, irn, sizeof(struct irc_ssaddr));
 
-  irc_getnameinfo((struct sockaddr*)&new_client->localClient->ip,
-        new_client->localClient->ip.ss_len, new_client->sockhost, 
+  irc_getnameinfo((struct sockaddr*)&new_client->ip,
+        new_client->ip.ss_len, new_client->sockhost, 
         sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
-  new_client->localClient->aftype = new_client->localClient->ip.ss.ss_family;
+  new_client->aftype = new_client->ip.ss.ss_family;
 #ifdef IPV6
   if (new_client->sockhost[0] == ':')
     strlcat(new_client->host, "0", HOSTLEN+1);

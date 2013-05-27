@@ -953,7 +953,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
     SetClosing(source_p);
 
     if (IsIpHash(source_p))
-      remove_one_ip(&source_p->localClient->ip);
+      remove_one_ip(&source_p->ip);
 
     if (source_p->localClient->auth)
     {
