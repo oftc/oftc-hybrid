@@ -54,13 +54,14 @@ AC_C_BIGENDIAN
 AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for library functions.
-AC_CHECK_FUNCS_ONCE(lrand48   \
-                    srand48   \
-                    mmap      \
-                    strtok_r  \
-                    usleep    \
-                    strlcat   \
-                    strlcpy   \
+AC_CHECK_FUNCS_ONCE(lrand48     \
+                    srand48     \
+                    mmap        \
+                    strtok_r    \
+                    usleep      \
+                    strlcat     \
+                    strlcpy     \
+                    socketpair  \
                     basename)
 
 # Checks for header files.
