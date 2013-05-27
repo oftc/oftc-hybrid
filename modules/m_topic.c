@@ -129,7 +129,7 @@ m_topic(struct Client *client_p, struct Client *source_p,
         char tmp[IRCD_BUFSIZE];           
         ircsprintf(tmp, "%s is using God mode: TOPIC %s %s", source_p->name, 
             chptr->chname, parv[2]);              
-        sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,  
+        sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, 
             tmp);
         oftc_log(tmp);
       }

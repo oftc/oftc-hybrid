@@ -602,7 +602,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
       sendto_one(source_p,
                  ":%s NOTICE %s :Un-klined [%s@%s] from temporary K-Lines",
                  me.name, source_p->name, kuser, khost);
-      sendto_realops_flags(UMODE_ALL, L_ALL,  
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s has removed the temporary K-Line for: [%s@%s]",
                            get_oper_name(source_p), kuser, khost);
       ilog(L_NOTICE, "%s removed temporary K-Line for [%s@%s]",

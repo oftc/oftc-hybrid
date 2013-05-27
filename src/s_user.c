@@ -409,7 +409,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   {
     char tmpstr2[IRCD_BUFSIZE];
 
-    sendto_realops_flags(UMODE_REJ, L_ALL,  "Invalid username: %s (%s@%s)",
+    sendto_realops_flags(UMODE_REJ, L_ALL, "Invalid username: %s (%s@%s)",
                          nick, source_p->username, source_p->host);
     ++ServerStats.is_ref;
     ircsprintf(tmpstr2, "Invalid username [%s]", source_p->username);
@@ -465,7 +465,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
     Count.max_loc = Count.local;
 
     if (!(Count.max_loc % 10))
-      sendto_realops_flags(UMODE_ALL, L_ALL,  "New Max Local Clients: %d",
+      sendto_realops_flags(UMODE_ALL, L_ALL, "New Max Local Clients: %d",
                            Count.max_loc);
   }
 
@@ -868,7 +868,7 @@ change_simple_umode(va_list args)
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is setting God mode", source_p->name);
-      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,  tmp);
+      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, tmp);
       oftc_log(tmp);
       source_p->umodestime = CurrentTime;
     }
@@ -912,7 +912,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
 
   if (IsServer(source_p))
   {
-     sendto_realops_flags(UMODE_ALL, L_ADMIN,  "*** Mode for User %s from %s",
+     sendto_realops_flags(UMODE_ALL, L_ADMIN, "*** Mode for User %s from %s",
                           parv[1], source_p->name);
      return;
   }
@@ -1313,7 +1313,7 @@ oper_up(struct Client *source_p, const char *name)
     source_p->umodes |= UMODE_ADMIN;
   if (!IsOperN(source_p))
     source_p->umodes &= ~UMODE_NCHANGE;
-  sendto_realops_flags(UMODE_ALL, L_ALL,  "%s (%s@%s) is now an operator(%s)",
+  sendto_realops_flags(UMODE_ALL, L_ALL, "%s (%s@%s) is now an operator(%s)",
                        source_p->name, source_p->username, source_p->host, name);
   send_umode_out(source_p, source_p, old);
   sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);

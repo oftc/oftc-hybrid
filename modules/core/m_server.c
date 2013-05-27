@@ -109,7 +109,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
    */
   if (!DoesTS(client_p))
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Link %s dropped, non-TS server",
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Link %s dropped, non-TS server",
                          get_client_name(client_p, SHOW_IP));
     exit_client(client_p, client_p, "Non-TS server");
     return;
@@ -378,7 +378,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
   if (!hlined)
   {
     /* OOOPs nope can't HUB */
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Non-Hub link %s introduced %s.",
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Non-Hub link %s introduced %s.",
                          get_client_name(client_p, SHOW_IP), name);
     exit_client(source_p, &me, "No matching hub_mask.");
     return;
@@ -620,7 +620,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   if (!hlined)
   {
     /* OOOPs nope can't HUB */
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Non-Hub link %s introduced %s.",
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Non-Hub link %s introduced %s.",
                          get_client_name(client_p, SHOW_IP), SID_NAME);
     exit_client(source_p, &me, "No matching hub_mask.");
     return;

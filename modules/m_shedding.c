@@ -126,7 +126,7 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
   if (parc > 3)
     operstoo = !!atoi(parv[2]);
     
-  sendto_realops_flags(UMODE_ALL, L_ALL,  
+  sendto_realops_flags(UMODE_ALL, L_ALL, 
           "User shedding ENABLED by %s (%s). Shedding interval: %d seconds (Opers too: %s)", 
           source_p->name, parv[parc-1], rate, operstoo ? "Yes" : "No");
   /* Set a minimum because we need to do a bit of variance */

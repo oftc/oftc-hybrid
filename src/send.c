@@ -1106,7 +1106,7 @@ ts_warn(const char *pattern, ...)
   vsprintf_irc(buffer, pattern, args);
   va_end(args);
 
-  sendto_realops_flags(UMODE_ALL, L_ALL,  "%s", buffer);
+  sendto_realops_flags(UMODE_ALL, L_ALL, "%s", buffer);
   ilog(L_CRIT, "%s", buffer);
 }
 

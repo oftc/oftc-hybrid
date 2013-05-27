@@ -210,7 +210,7 @@ quote_autoconnall(struct Client *source_p, int newval)
 {
   if (newval >= 0)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "%s has changed AUTOCONNALL to %i",
+    sendto_realops_flags(UMODE_ALL, L_ALL, "%s has changed AUTOCONNALL to %i",
                          source_p->name, newval);
 
     GlobalSetOptions.autoconn = newval;

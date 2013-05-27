@@ -455,7 +455,7 @@ check_conf_klines(void)
         continue;
       }
 
-      sendto_realops_flags(UMODE_ALL, L_ALL,  
+      sendto_realops_flags(UMODE_ALL, L_ALL, 
           "KLINE %s@%s (%s) active for %s", aconf->user, aconf->host, 
           aconf->reason, get_client_name(client_p, SHOW_IP));
 
@@ -1345,7 +1345,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
     /* XXX - the format of this notice should eventually be changed
      * to either %s[%s@%s], or even better would be get_client_name() -bill
      */
-    sendto_realops_flags(UMODE_NCHANGE, L_ALL,  "Nick change: From %s to %s [%s@%s]",
+    sendto_realops_flags(UMODE_NCHANGE, L_ALL, "Nick change: From %s to %s [%s@%s]",
                          source_p->name, nick, source_p->username, source_p->host);
     sendto_common_channels_local(source_p, 1, ":%s!%s@%s NICK :%s",
                                  source_p->name, source_p->username,

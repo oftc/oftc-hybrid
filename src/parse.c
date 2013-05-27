@@ -651,10 +651,10 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
    */
   if (IsServer(source_p) || IsMe(source_p))
   {
-    sendto_realops_flags(UMODE_DEBUG, L_ALL,  "Message for %s[%s] from %s",
+    sendto_realops_flags(UMODE_DEBUG, L_ALL, "Message for %s[%s] from %s",
                          source_p->name, source_p->from->name,
                          get_client_name(client_p, SHOW_IP));
-    sendto_realops_flags(UMODE_DEBUG, L_ALL,  "Message for %s[%s] from %s",
+    sendto_realops_flags(UMODE_DEBUG, L_ALL, "Message for %s[%s] from %s",
                          source_p->name, source_p->from->name,
                          get_client_name(client_p, SHOW_IP));
     sendto_realops_flags(UMODE_DEBUG, L_ALL, 
@@ -884,7 +884,7 @@ rfc1459_command_send_error(struct Client *client_p, struct Client *source_p,
   {
     sendto_realops_flags(UMODE_ALL, L_ADMIN, "ERROR :from %s -- %s",
                          get_client_name(client_p, HIDE_IP), in_para);
-    sendto_realops_flags(UMODE_ALL, L_OPER,  "ERROR :from %s -- %s",
+    sendto_realops_flags(UMODE_ALL, L_OPER, "ERROR :from %s -- %s",
                          get_client_name(client_p, MASK_IP), in_para);
   }
   else

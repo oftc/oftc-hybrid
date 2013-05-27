@@ -997,7 +997,7 @@ verify_access(struct Client *client_p, const char *username,
         conf = unmap_conf_item(aconf);
 
         if (!ConfigFileEntry.hide_spoof_ips && IsConfSpoofNotice(aconf))
-          sendto_realops_flags(UMODE_ALL, L_ADMIN,  "%s spoofing: %s as %s",
+          sendto_realops_flags(UMODE_ALL, L_ADMIN, "%s spoofing: %s as %s",
                                client_p->name, client_p->host, conf->name);
         strlcpy(client_p->host, conf->name, sizeof(client_p->host));
         SetIPSpoof(client_p);
@@ -3176,7 +3176,7 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
 
   if (!aconf->host || !conf->name)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Bad connect block");
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Bad connect block");
     ilog(L_WARN, "Bad connect block");
     return -1;
   }
@@ -3227,7 +3227,7 @@ yyerror(const char *msg)
     return;
 
   strip_tabs(newlinebuf, linebuf, sizeof(newlinebuf));
-  sendto_realops_flags(UMODE_ALL, L_ALL,  "\"%s\", line %u: %s: %s",
+  sendto_realops_flags(UMODE_ALL, L_ALL, "\"%s\", line %u: %s: %s",
                        conffilebuf, lineno + 1, msg, newlinebuf);
   ilog(L_WARN, "\"%s\", line %u: %s: %s",
        conffilebuf, lineno + 1, msg, newlinebuf);

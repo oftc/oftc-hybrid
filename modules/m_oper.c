@@ -185,7 +185,7 @@ failed_oper_notice(struct Client *source_p, const char *name,
                    const char *reason)
 {
   if (ConfigFileEntry.failed_oper_notice)
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Failed OPER attempt as %s "
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Failed OPER attempt as %s "
                          "by %s (%s@%s) - %s", name, source_p->name,
                          source_p->username, source_p->host, reason);
 }

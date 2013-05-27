@@ -572,7 +572,7 @@ god_mode_check(struct Client *source_p, char *chname, int alev, int parc,
   for(i = 1; i < parc; i++)
     ircsprintf(tmp, "%s %s", tmp, parv[i]);
 
-  sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,  tmp);
+  sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, "%s", tmp);
   oftc_log(tmp);
 }
 

@@ -116,7 +116,7 @@ slink_error(unsigned int rpl, unsigned int len, unsigned char *data,
 
   data[len-1] = '\0';
 
-  sendto_realops_flags(UMODE_ALL, L_ALL,  "SlinkError for %s: %s",
+  sendto_realops_flags(UMODE_ALL, L_ALL, "SlinkError for %s: %s",
                        server_p->name, data);
   /* XXX should this be exit_client? */
   exit_client(server_p, &me, "servlink error -- terminating link");
@@ -549,10 +549,10 @@ try_connections(void *unused)
        *   -- adrian
        */
       if (ConfigServerHide.hide_server_ips)
-        sendto_realops_flags(UMODE_ALL, L_ALL,  "Connection to %s activated.",
+        sendto_realops_flags(UMODE_ALL, L_ALL, "Connection to %s activated.",
                              conf->name);
       else
-        sendto_realops_flags(UMODE_ALL, L_ALL,  "Connection to %s[%s] activated.",
+        sendto_realops_flags(UMODE_ALL, L_ALL, "Connection to %s[%s] activated.",
                              conf->name, aconf->host);
 
       serv_connect(aconf, NULL);
@@ -984,7 +984,7 @@ server_estab(struct Client *client_p)
       == NULL)
   {
     /* This shouldn't happen, better tell the ops... -A1kmm */
-    sendto_realops_flags(UMODE_ALL, L_ALL,  "Warning: Lost connect{} block "
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Warning: Lost connect{} block "
                          "for server %s(this shouldn't happen)!", host);
     exit_client(client_p, &me, "Lost connect{} block!");
     return;
@@ -1065,7 +1065,7 @@ server_estab(struct Client *client_p)
       sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "Warning: fork failed for server %s -- check servlink_path (%s)",
                            get_client_name(client_p, HIDE_IP), ConfigFileEntry.servlink_path);
-      sendto_realops_flags(UMODE_ALL, L_OPER,  "Warning: fork failed for server "
+      sendto_realops_flags(UMODE_ALL, L_OPER, "Warning: fork failed for server "
                            "%s -- check servlink_path (%s)",
                            get_client_name(client_p, MASK_IP),
                            ConfigFileEntry.servlink_path);
@@ -2051,7 +2051,7 @@ void
 cryptlink_error(struct Client *client_p, const char *type,
                 const char *reason, const char *client_reason)
 {
-  sendto_realops_flags(UMODE_ALL, L_ALL,  "%s: CRYPTLINK %s error - %s",
+  sendto_realops_flags(UMODE_ALL, L_ALL, "%s: CRYPTLINK %s error - %s",
                        get_client_name(client_p, SHOW_IP), type, reason);
 
 

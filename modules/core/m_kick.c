@@ -206,7 +206,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: to evade KICK from %s: %s %s %s",
           who->name, source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
-      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,  tmp);
+      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, "%s", tmp);
       oftc_log(tmp);
 
       return;
@@ -257,7 +257,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: KICK %s %s %s",
           source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
-      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,  tmp);
+      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, "%s", tmp);
       oftc_log(tmp);
     }
   }
