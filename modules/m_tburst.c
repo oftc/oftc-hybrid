@@ -77,7 +77,7 @@ _moddeinit(void)
   delete_capability("TBURST");
 }
 
-const char *_version = "$Revision: 122 $";
+const char *_version = "$Revision$";
 
 #endif /* !STATIC_MODULES */
 

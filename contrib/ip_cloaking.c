@@ -73,7 +73,7 @@ static int vhost_ipv6_err;
 static dlink_node *prev_enter_umode;
 static dlink_node *prev_umode;
 
-const char *_version = "$Revision: 33 $";
+const char *_version = "$Revision$";
 
 static void *reset_ipv6err_flag(va_list);
 static void *h_set_user_mode(va_list);

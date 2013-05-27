@@ -60,7 +60,7 @@ _moddeinit(void)
   delete_isupport("WATCH");
 }
 
-const char *_version = "$Revision: 588 $";
+const char *_version = "$Revision$";
 #endif
 
 /*

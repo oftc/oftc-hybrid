@@ -50,7 +50,7 @@ _moddeinit(void)
     uninstall_hook(admin_cb, show_admin);
 }
 
-const char *_version = "$Revision: 33 $";
+const char *_version = "$Revision$";
 
 static void *
 show_admin(va_list args)

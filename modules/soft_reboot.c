@@ -615,7 +615,7 @@ do_verify_conf(va_list args)
   return NULL;
 }
 
-INIT_MODULE(soft_reboot, "$Revision: 1141 $")
+INIT_MODULE(soft_reboot, "$Revision$")
 {
   h_shutdown = install_hook(ircd_shutdown, do_shutdown);
   h_verify = install_hook(verify_conf, do_verify_conf);

@@ -50,7 +50,7 @@ _moddeinit(void)
     uninstall_hook(stats_cb, show_stats);
 }
 
-const char *_version = "$Revision: 33 $";
+const char *_version = "$Revision$";
 
 /* show a stats request */
 static void *

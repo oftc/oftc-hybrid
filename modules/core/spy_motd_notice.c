@@ -49,7 +49,7 @@ _moddeinit(void)
     uninstall_hook(motd_cb, show_motd);
 }
 
-const char *_version = "$Revision: 33 $";
+const char *_version = "$Revision$";
 
 static void *
 show_motd(va_list args)
