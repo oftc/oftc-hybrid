@@ -470,6 +470,8 @@ register_local_user(struct Client *source_p)
 
   source_p->localClient->allow_read = MAX_FLOOD_BURST;
 
+  assert(dlinkFind(&unknown_list, source_p));
+
   if ((m = dlinkFindDelete(&unknown_list, source_p)) != NULL)
   {
     free_dlink_node(m);
