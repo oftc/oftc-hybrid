@@ -4,7 +4,7 @@
 ; Markus R. <mxr@chatjunkies.org>, 2005. 
 ; $Id$
 
-RPL_WELCOME:		 :%s 001 %s :Wilkommen im %s Internet Relay Chat Netz, %s!
+RPL_WELCOME:		 :%s 001 %s :Wilkommen im %s Internet Relay Chat Netzwerk, %s!
 RPL_YOURHOST:		 :%s 002 %s :Du bist verbunden mit %s, version %s
 RPL_CREATED:		 :%s 003 %s :Dieser Server wurde erstellt: %s
 RPL_ISUPPORT:		 :%s 005 %s %s :werden von diesem Server unterstützt.
@@ -31,12 +31,11 @@ RPL_ENDOFTRACE:		 :%s 262 %s %s :Ende von TRACE.
 RPL_LOAD2HI:		 :%s 263 %s :Zur Zeit kann Ihre Anfrage nicht bearbeitet werden. Der Server ist überlastet.
 RPL_LOCALUSERS:		 :%s 265 %s :Anzahl der lokalen User, zur Zeit: %d  Maximum: %d
 RPL_GLOBALUSERS:	 :%s 266 %s :Anzahl der globalen User, zur Zeit: %d  Maximum: %d
-RPL_WHOISSSL:            :%s 275 %s %s :ist über SSL verbunden (verschlüsselt).
 RPL_ENDOFACCEPT:	 :%s 282 %s :Ende der /ACCEPT-Liste.
 RPL_UNAWAY:		 :%s 305 %s :Du bist nun nicht mehr abwesend (away).
 RPL_NOWAWAY:		 :%s 306 %s :Du bist nun abwesend (away).
-RPL_WHOISADMIN:          :%s 313 %s %s :ist ein Server Administrator.
-RPL_WHOISOPERATOR:       :%s 313 %s %s :ist ein IRC Operator.
+RPL_WHOISADMIN:		 :%s 313 %s %s :ist ein Server Administrator.
+RPL_WHOISOPERATOR:	 :%s 313 %s %s :ist ein IRC Operator.
 RPL_ENDOFWHO:		 :%s 315 %s %s :Ende der /WHO-Liste.
 RPL_WHOISIDLE:		 :%s 317 %s %s %d %d :Sekunden inaktiv
 RPL_ENDOFWHOIS:		 :%s 318 %s %s :Ende der /WHOIS-Liste.
@@ -58,7 +57,7 @@ RPL_MOTDSTART:		 :%s 375 %s :- %s Nachricht des Tages -
 RPL_ENDOFMOTD:		 :%s 376 %s :Ende von /MOTD.
 RPL_YOUREOPER:		 :%s 381 %s :ich mag starke Persönlichkeiten.. besorgs mir!
 RPL_REHASHING:		 :%s 382 %s %s :Konfiguration wurde erneut eingelesen
-RPL_HOSTHIDDEN:          :%s 396 %s :ist nun dein sichtbarer Host
+RPL_HOSTHIDDEN:		 :%s 396 %s :ist nun dein sichtbarer Host
 ERR_NOSUCHNICK:		 :%s 401 %s %s :Dieser Benutzer/Raum existiert nicht
 ERR_NOSUCHSERVER:	 :%s 402 %s %s :Dieser Server existiert nicht
 ERR_NOSUCHCHANNEL:	 :%s 403 %s %s :Dieser Raum existiert nicht
@@ -111,6 +110,7 @@ ERR_USERNOTONSERV:	 :%s 504 %s %s :Benutzer ist nicht auf diesem Server.
 ERR_WRONGPONG:		 :%s 513 %s :Um den Verbindungsaufbau abzuschliessen, gib ein: /QUOTE PONG %lu
 ERR_LISTSYNTAX:		 :%s 521 %s :falscher LIST-Syntax.
 ERR_HELPNOTFOUND:	 :%s 524 %s %s :keine Hilfe verfügbar.
+RPL_WHOISSECURE:	 :%s 671 %s %s :ist über SSL verbunden (verschlüsselt).
 RPL_ENDOFMODLIST:	 :%s 703 %s :Ende von /MODLIST.
 RPL_ENDOFHELP:		 :%s 706 %s %s :Ende von /HELP.
 RPL_KNOCK:		 :%s 710 %s %s %s!%s@%s :fragt nach einer Einladung.

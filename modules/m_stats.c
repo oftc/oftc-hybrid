@@ -45,19 +45,18 @@
 #include "s_user.h"      /* show_opers */
 #include "event.h"	 /* events */
 #include "dbuf.h"
+#include "hook.h"
 #include "parse.h"
 #include "modules.h"
-#include "hook.h"
 #include "resv.h"  /* report_resv */
 #include "whowas.h"
 #include "list.h"
 #include "rlimits.h"     /* getrlimit() */
 #include "s_log.h"       /* ilog */
 #include "hash.h"
-#include "irc_getnameinfo.h"
 #include "watch.h"
 
-static void do_stats(struct Client *, int, char **);
+static void do_stats(struct Client *, int, char *[]);
 static void m_stats(struct Client *, struct Client *, int, char *[]);
 static void mo_stats(struct Client *, struct Client *, int, char *[]);
 static void ms_stats(struct Client *, struct Client *, int, char *[]);
@@ -69,23 +68,10 @@ struct Message stats_msgtab = {
 
 #ifndef STATIC_MODULES
 const char *_version = "$Revision$";
-static struct Callback *stats_cb;
-
-static void *
-va_stats(va_list args)
-{
-  struct Client *source_p = va_arg(args, struct Client *);
-  int parc = va_arg(args, int);
-  char **parv = va_arg(args, char **);
-
-  do_stats(source_p, parc, parv);
-  return NULL;
-}
 
 void
 _modinit(void)
 {
-  stats_cb = register_callback("doing_stats", va_stats);
   mod_add_cmd(&stats_msgtab);
 }
 
@@ -93,13 +79,12 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&stats_msgtab);
-  uninstall_hook(stats_cb, va_stats);
 }
 #endif
 
 static char *parse_stats_args(int, char **, int *, int *);
 static void stats_L(struct Client *, char *, int, int, char);
-static void stats_L_list(struct Client *s, char *, int, int, dlink_list *, char);
+static void stats_L_list(struct Client *, char *, int, int, dlink_list *, char);
 
 static void stats_dns_servers(struct Client *);
 static void stats_connect(struct Client *);
@@ -143,60 +128,60 @@ static const struct StatsStruct
   const unsigned int need_admin;
 } stats_cmd_table[] = {
   /* letter     function            need_oper need_admin */
-  { 'a',	stats_dns_servers,	1,	1,	},
-  { 'A',	stats_dns_servers,	1,	1,	},
-  { 'c',	stats_connect,		1,	0,	},
-  { 'C',	stats_connect,		1,	0,	},
-  { 'd',	stats_tdeny,		1,	0,	},
-  { 'D',	stats_deny,		1,	0,	},
-  { 'e', 	stats_exempt,		1,	0,	},
-  { 'E',	stats_events,		1,	0,	},
-  { 'f',	fd_dump,		1,	1,	},
-  { 'F',	fd_dump,		1,	1,	},
-  { 'g',	stats_pending_glines,	1,	0,	},
-  { 'G',	stats_glines,		1,	0,	},
-  { 'h',	stats_hooks,		1,	1,	},
-  { 'H',	stats_hubleaf,		1,	0,	},
-  { 'i',	stats_auth,		0,	0,	},
-  { 'I',	stats_auth,		0,	0,	},
-  { 'k',	stats_tklines,		0,	0,	},
-  { 'K',	stats_klines,		0,	0,	},
-  { 'l',	stats_ltrace,		1,	0,	},
-  { 'L',	stats_ltrace,		1,	0,	},
-  { 'm',	stats_messages,		1,	0,	},
-  { 'M',	stats_messages,		1,	0,	},
-  { 'n',	stats_numbers,		1,	0,	},
-  { 'o',	stats_oper,		0,	0,	},
-  { 'O',	stats_oper,		0,	0,	},
-  { 'p',	stats_operedup,		0,	0,	},
-  { 'P',	stats_ports,		0,	0,	},
-  { 'q',	stats_resv,		1,	0,	},
-  { 'Q',	stats_resv,		1,	0,	},
-  { 'r',	stats_usage,		1,	0,	},
-  { 'R',	stats_usage,		1,	0,	},
-  { 't',	stats_tstats,		1,	0,	},
-  { 'T',	stats_tstats,		1,	0,	},
-  { 'u',	stats_uptime,		0,	0,	},
-  { 'U',	stats_shared,		1,	0,	},
-  { 'v',	stats_servers,		1,	0,	},
-  { 'V',	stats_gdeny,		1,	0,	},
-  { 'x',	stats_gecos,		1,	0,	},
-  { 'X',	stats_gecos,		1,	0,	},
-  { 'y',	stats_class,		1,	0,	},
-  { 'Y',	stats_class,		1,	0,	},
-  { 'z',	stats_memory,		1,	0,	},
-  { 'Z',	stats_ziplinks,		1,	0,	},
-  { '?',	stats_servlinks,	0,	0,	},
-  { '\0',       NULL,		        0,	0,	}
+  { 'a',	stats_dns_servers,	1,	1	},
+  { 'A',	stats_dns_servers,	1,	1	},
+  { 'c',	stats_connect,		1,	0	},
+  { 'C',	stats_connect,		1,	0	},
+  { 'd',	stats_tdeny,		1,	0	},
+  { 'D',	stats_deny,		1,	0	},
+  { 'e', 	stats_exempt,		1,	0	},
+  { 'E',	stats_events,		1,	0	},
+  { 'f',	fd_dump,		1,	1	},
+  { 'F',	fd_dump,		1,	1	},
+  { 'g',	stats_pending_glines,	1,	0	},
+  { 'G',	stats_glines,		1,	0	},
+  { 'h',	stats_hooks,		1,	1	},
+  { 'H',	stats_hubleaf,		1,	0	},
+  { 'i',	stats_auth,		0,	0	},
+  { 'I',	stats_auth,		0,	0	},
+  { 'k',	stats_tklines,		0,	0	},
+  { 'K',	stats_klines,		0,	0	},
+  { 'l',	stats_ltrace,		1,	0	},
+  { 'L',	stats_ltrace,		1,	0	},
+  { 'm',	stats_messages,		1,	0	},
+  { 'M',	stats_messages,		1,	0	},
+  { 'n',	stats_numbers,		1,	0	},
+  { 'o',	stats_oper,		0,	0	},
+  { 'O',	stats_oper,		0,	0	},
+  { 'p',	stats_operedup,		0,	0	},
+  { 'P',	stats_ports,		0,	0	},
+  { 'q',	stats_resv,		1,	0	},
+  { 'Q',	stats_resv,		1,	0	},
+  { 'r',	stats_usage,		1,	0	},
+  { 'R',	stats_usage,		1,	0	},
+  { 't',	stats_tstats,		1,	0	},
+  { 'T',	stats_tstats,		1,	0	},
+  { 'u',	stats_uptime,		0,	0	},
+  { 'U',	stats_shared,		1,	0	},
+  { 'v',	stats_servers,		1,	0	},
+  { 'V',	stats_gdeny,		1,	0	},
+  { 'x',	stats_gecos,		1,	0	},
+  { 'X',	stats_gecos,		1,	0	},
+  { 'y',	stats_class,		1,	0	},
+  { 'Y',	stats_class,		1,	0	},
+  { 'z',	stats_memory,		1,	0	},
+  { 'Z',	stats_ziplinks,		1,	0	},
+  { '?',	stats_servlinks,	0,	0	},
+  { '\0',       NULL,		        0,	0	}
 };
 
 const char *from, *to;
 
 static void
-do_stats(struct Client *source_p, int parc, char **parv)
+do_stats(struct Client *source_p, int parc, char *parv[])
 {
+  const struct StatsStruct *tab = stats_cmd_table;
   char statchar = *parv[1];
-  int i;
 
   if (statchar == '\0')
   {
@@ -205,13 +190,13 @@ do_stats(struct Client *source_p, int parc, char **parv)
     return;
   }
 
-  for (i = 0; stats_cmd_table[i].handler; i++)
+  for (; tab->handler; ++tab)
   {
-    if (stats_cmd_table[i].letter == statchar)
+    if (tab->letter == statchar)
     {
       /* The stats table says what privs are needed, so check --fl_ */
-      if ((stats_cmd_table[i].need_admin && !IsAdmin(source_p)) ||
-          (stats_cmd_table[i].need_oper && !IsOper(source_p)))
+      if ((tab->need_admin && !IsAdmin(source_p)) ||
+          (tab->need_oper && !IsOper(source_p)))
       {
         sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                    from, to);
@@ -220,9 +205,22 @@ do_stats(struct Client *source_p, int parc, char **parv)
 
       /* Blah, stats L needs the parameters, none of the others do.. */
       if (statchar == 'L' || statchar == 'l')
-        stats_cmd_table[i].handler(source_p, parc, parv);
+      {
+        sendto_realops_flags(UMODE_SPY, L_ALL,
+                             "STATS %c requested by %s (%s@%s) [%s] on %s",
+                             statchar, source_p->name, source_p->username,
+                             source_p->host, source_p->servptr->name,
+                             parc > 2 ? parv[2] : "<no recipient>");
+        tab->handler(source_p, parc, parv);
+      }
       else
-        stats_cmd_table[i].handler(source_p);
+      {
+        sendto_realops_flags(UMODE_SPY, L_ALL,
+                             "STATS %c requested by %s (%s@%s) [%s]",
+                             statchar, source_p->name, source_p->username,
+                             source_p->host, source_p->servptr->name);
+        tab->handler(source_p);
+      }
 
       break;
     }
@@ -249,7 +247,8 @@ m_stats(struct Client *client_p, struct Client *source_p,
 
   /* Is the stats meant for us? */
   if (!ConfigFileEntry.disable_remote)
-    if (hunt_server(client_p,source_p,":%s STATS %s :%s",2,parc,parv) != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s STATS %s :%s", 2,
+                    parc, parv) != HUNTED_ISME)
       return;
 
   if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
@@ -273,11 +272,9 @@ m_stats(struct Client *client_p, struct Client *source_p,
   else
     last_used = CurrentTime;
 
-#ifdef STATIC_MODULES
+  last_used = CurrentTime;
+
   do_stats(source_p, parc, parv);
-#else
-  execute_callback(stats_cb, source_p, parc, parv);
-#endif
 }
 
 /*
@@ -308,11 +305,25 @@ mo_stats(struct Client *client_p, struct Client *source_p,
     to = source_p->name;
   }
 
-#ifdef STATIC_MODULES
   do_stats(source_p, parc, parv);
-#else
-  execute_callback(stats_cb, source_p, parc, parv);
-#endif
+}
+
+/*
+ * ms_stats - STATS message handler
+ *      parv[0] = sender prefix
+ *      parv[1] = statistics selector (defaults to Message frequency)
+ *      parv[2] = server name (current server defaulted, if omitted)
+ */
+static void
+ms_stats(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
+{
+  if (hunt_server(client_p, source_p, ":%s STATS %s :%s", 2,
+                  parc, parv) != HUNTED_ISME)
+    return;
+
+  if (IsClient(source_p))
+    mo_stats(client_p, source_p, parc, parv);
 }
 
 /*
@@ -538,7 +549,7 @@ count_memory(struct Client *source_p)
   count_whowas_memory(&wwu, &wwm);
   watch_count_memory(&watch_list_headers, &watch_list_memory);
 
-  sendto_one(source_p, ":%s %d %s z :WATCH headers %u(%u) entries %d(%d)",
+  sendto_one(source_p, ":%s %d %s z :WATCH headers %u(%u) entries %d(%u)",
              me.name, RPL_STATSDEBUG, source_p->name, watch_list_headers,
              watch_list_memory, watch_list_entries,
              watch_list_entries * sizeof(dlink_node) * 2);
@@ -556,7 +567,7 @@ count_memory(struct Client *source_p)
              local_client_conf_count,
              (unsigned long long)(local_client_conf_count * sizeof(dlink_node)));
 
-  sendto_one(source_p, ":%s %d %s z :Resv channels %lu(%lu) nicks %lu(%lu)",
+  sendto_one(source_p, ":%s %d %s z :Resv channels %u(%lu) nicks %u(%lu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              dlink_list_length(&resv_channel_list),
              dlink_list_length(&resv_channel_list) * sizeof(struct ResvChannel),
@@ -567,7 +578,7 @@ count_memory(struct Client *source_p)
              me.name, RPL_STATSDEBUG, source_p->name,
              class_count, (unsigned long long)(class_count * sizeof(struct ClassItem)));
 
-  sendto_one(source_p, ":%s %d %s z :Channels %lu(%llu) Topics %u(%d)",
+  sendto_one(source_p, ":%s %d %s z :Channels %uu(%llu) Topics %u(%u)",
              me.name, RPL_STATSDEBUG, source_p->name,
              dlink_list_length(&global_channel_list),
              channel_memory, topic_count, topic_count *
@@ -622,13 +633,13 @@ count_memory(struct Client *source_p)
 
   local_client_memory_used = local_client_count*(sizeof(struct Client) + sizeof(struct LocalUser));
   total_memory += local_client_memory_used;
-  sendto_one(source_p, ":%s %d %s z :Local client Memory in use: %d(%llu)",
+  sendto_one(source_p, ":%s %d %s z :Local client Memory in use: %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name, local_client_count,
              local_client_memory_used);
 
   remote_client_memory_used = remote_client_count * sizeof(struct Client);
   total_memory += remote_client_memory_used;
-  sendto_one(source_p, ":%s %d %s z :Remote client Memory in use: %d(%llu)",
+  sendto_one(source_p, ":%s %d %s z :Remote client Memory in use: %u(%llu)",
              me.name, RPL_STATSDEBUG, source_p->name, remote_client_count,
              remote_client_memory_used);
 
@@ -673,7 +684,7 @@ dump_counters(struct Client *source_p)
     {
       cidr = ptr2->data;
 
-      ret = irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
+      ret = getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
           ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
       if (ret != 0)
         continue;
@@ -686,7 +697,7 @@ dump_counters(struct Client *source_p)
     {
       cidr = ptr2->data;
 
-      ret = irc_getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
+      ret = getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
           ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
       if (ret != 0)
         continue;
@@ -1228,11 +1239,13 @@ static void
 stats_uptime(struct Client *source_p)
 {
   time_t now = CurrentTime - me.since;
+
   sendto_one(source_p, form_str(RPL_STATSUPTIME), from, to,
-             now/86400, (now/3600)%24, (now/60)%60, now%60);
+             now / 86400, (now / 3600) % 24, (now / 60) % 60, now % 60);
+
   if (!ConfigFileEntry.disable_remote || IsOper(source_p))
      sendto_one(source_p, form_str(RPL_STATSCONN), from, to,
-                MaxConnectionCount, MaxClientCount, Count.totalrestartcount);
+                Count.max_loc_con, Count.max_loc_cli, Count.totalrestartcount);
 }
 
 static void
@@ -1250,25 +1263,20 @@ stats_shared(struct Client *source_p)
 static void
 stats_servers(struct Client *source_p)
 {
-  struct Client *target_p;
-  dlink_node *ptr;
-  int j = 0;
+  dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, serv_list.head)
   {
-    target_p = ptr->data;
-
-    j++;
+    const struct Client *target_p = ptr->data;
 
     sendto_one(source_p, ":%s %d %s v :%s (%s!%s@%s) Idle: %d",
-               from, RPL_STATSDEBUG, to,
-	       target_p->name,
-	       (target_p->serv->by[0] ? target_p->serv->by : "Remote."),
-	       "*", "*", (int)(CurrentTime - target_p->lasttime));
+               from, RPL_STATSDEBUG, to, target_p->name,
+               (target_p->serv->by[0] ? target_p->serv->by : "Remote."),
+               "*", "*", (int)(CurrentTime - target_p->lasttime));
   }
 
-  sendto_one(source_p, ":%s %d %s v :%d Server(s)",
-             from, RPL_STATSDEBUG, to, j);
+  sendto_one(source_p, ":%s %d %s v :%u Server(s)",
+             from, RPL_STATSDEBUG, to, dlink_list_length(&serv_list));
 }
 
 static void
@@ -1410,23 +1418,6 @@ stats_ltrace(struct Client *source_p, int parc, char *parv[])
   else
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                from, to, "STATS");
-}
-
-/*
- * ms_stats - STATS message handler
- *      parv[0] = sender prefix
- *      parv[1] = statistics selector (defaults to Message frequency)
- *      parv[2] = server name (current server defaulted, if omitted)
- */
-static void
-ms_stats(struct Client *client_p, struct Client *source_p,
-         int parc, char *parv[])
-{
-  if (hunt_server(client_p,source_p,":%s STATS %s :%s",2,parc,parv)!=HUNTED_ISME)
-    return;
-
-  if (IsClient(source_p))
-    mo_stats(client_p, source_p, parc, parv);
 }
 
 /*

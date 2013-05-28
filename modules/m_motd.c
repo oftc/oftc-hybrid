@@ -30,14 +30,12 @@
 #include "send.h"
 #include "numeric.h"
 #include "handlers.h"
-#include "hook.h"
 #include "msg.h"
 #include "s_serv.h"     /* hunt_server */
 #include "parse.h"
 #include "modules.h"
 #include "s_conf.h"
 
-static void mr_motd(struct Client *, struct Client *, int, char *[]);
 static void m_motd(struct Client*, struct Client*, int, char *[]);
 static void mo_motd(struct Client*, struct Client*, int, char *[]);
 
@@ -50,26 +48,25 @@ static void mo_motd(struct Client*, struct Client*, int, char *[]);
  */
 struct Message motd_msgtab = {
   "MOTD", 0, 0, 0, 1, MFLG_SLOW, 0,
-  {mr_motd, m_motd, mo_motd, m_ignore, mo_motd, m_ignore}
+  { m_unregistered, m_motd, mo_motd, m_ignore, mo_motd, m_ignore }
 };
 
 #ifndef STATIC_MODULES
 const char *_version = "$Revision$";
-static struct Callback *motd_cb;
 
-static void *
-do_motd(va_list args)
+static void
+do_motd(struct Client *source_p)
 {
-  struct Client *source_p = va_arg(args, struct Client *);
-
+  sendto_realops_flags(UMODE_SPY, L_ALL,
+                       "MOTD requested by %s (%s@%s) [%s]",
+                       source_p->name, source_p->username,
+                       source_p->host, source_p->servptr->name);
   send_message_file(source_p, &ConfigFileEntry.motd);
-  return NULL;
 }
 
 void
 _modinit(void)
 {
-  motd_cb = register_callback("doing_motd", do_motd);
   mod_add_cmd(&motd_msgtab);
 }
 
@@ -77,23 +74,8 @@ void
 _moddeinit(void)
 {
   mod_del_cmd(&motd_msgtab);
-  uninstall_hook(motd_cb, do_motd);
 }
 #endif
-
-/* mr_motd()
- *
- * parv[0] = sender prefix
- */
-static void
-mr_motd(struct Client *client_p, struct Client *source_p,
-        int parc, char *parv[])
-{
-  ClearCap(client_p, CAP_TS6);
-  /* allow unregistered clients to see the motd, but exit them */
-  send_message_file(source_p, &ConfigFileEntry.motd);
-  exit_client(source_p, source_p, "Client Exit after MOTD");
-}
 
 /*
 ** m_motd
@@ -118,15 +100,11 @@ m_motd(struct Client *client_p, struct Client *source_p,
 
   /* This is safe enough to use during non hidden server mode */
   if (!ConfigFileEntry.disable_remote && !ConfigServerHide.hide_servers)
-    if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1, parc, parv)
-                    != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1,
+                    parc, parv) != HUNTED_ISME)
       return;
 
-#ifdef STATIC_MODULES
-  send_message_file(source_p, &ConfigFileEntry.motd);
-#else
-  execute_callback(motd_cb, source_p, parc, parv);
-#endif
+  do_motd(source_p);
 }
 
 /*
@@ -141,12 +119,9 @@ mo_motd(struct Client *client_p, struct Client *source_p,
   if (!IsClient(source_p))
     return;
 
-  if (hunt_server(client_p, source_p, ":%s MOTD :%s",1,parc,parv)!=HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1,
+                  parc, parv) != HUNTED_ISME)
     return;
 
-#ifdef STATIC_MODULES
-  send_message_file(source_p, &ConfigFileEntry.motd);
-#else
-  execute_callback(motd_cb, source_p, parc, parv);
-#endif
+  do_motd(source_p);
 }

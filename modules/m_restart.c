@@ -28,6 +28,8 @@
 #include "channel_mode.h"
 #include "client.h"
 #include "hash.h"
+#include "common.h"
+#include "irc_string.h"
 #include "ircd.h"
 #include "ircd_defs.h"
 #include "listener.h"
@@ -365,7 +367,7 @@ mo_restart(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  ircsprintf(buf, "received RESTART command from %s",
+  snprintf(buf, sizeof(buf), "received RESTART command from %s",
              get_oper_name(source_p));
   do_shutdown(buf, YES);
 }

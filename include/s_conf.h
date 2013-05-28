@@ -131,7 +131,6 @@ struct AccessItem
   char *	   reason;
   char *	   oper_reason;
   char *           user;     /* user part of user@host */
-  char *           fakename;   /* Mask name */
   time_t           hold;     /* Hold action until this time (calendar time) */
   struct ConfItem *class_ptr;  /* Class of connection */
   int              aftype;
@@ -361,7 +360,6 @@ struct config_file_entry
   unsigned char compression_level;
   int gline_min_cidr;
   int gline_min_cidr6;
-  int dot_in_ip6_addr;
   int dots_in_ident;
   int failed_oper_notice;
   int anti_spam_exit_message_time;
@@ -580,7 +578,7 @@ extern int valid_comment(struct Client *, char *, int);
 
 #define TK_SECONDS 0
 #define TK_MINUTES 1
-extern time_t valid_tkline(char *, int);
+extern time_t valid_tkline(const char *, int);
 extern int match_conf_password(const char *, const struct AccessItem *);
 
 #define NOT_AUTHORIZED    (-1)

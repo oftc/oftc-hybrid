@@ -33,8 +33,7 @@
  */
 #ifndef INCLUDED_ircd_defs_h
 #define INCLUDED_ircd_defs_h
-#include "inet_misc.h"
-
+#include "stdinc.h"
 /* Right out of the RFC */
 #define IRCD_BUFSIZE    512     /* WARNING: *DONT* CHANGE THIS!!!!         */
 #define HOSTLEN          63     /* Length of hostname. Updated to comply

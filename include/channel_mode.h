@@ -50,21 +50,22 @@
 #define CHFL_QUIET      0x0080 /* quiet mask +q */
 
 /* channel modes ONLY */
-#define MODE_PRIVATE        0x0001
-#define MODE_SECRET         0x0002
-#define MODE_MODERATED      0x0004
-#define MODE_TOPICLIMIT     0x0008
-#define MODE_INVITEONLY     0x0010
-#define MODE_NOPRIVMSGS     0x0020
-#define MODE_NOCOLOR        0x0040
-#define MODE_REGONLY        0x0080
-#define MODE_SPEAKONLYIFREG 0x0100
-#define MODE_SSLONLY        0x0200
-#define MODE_OPMODERATED    0x0400
+#define MODE_PRIVATE    0x0001
+#define MODE_SECRET     0x0002
+#define MODE_MODERATED  0x0004
+#define MODE_TOPICLIMIT 0x0008
+#define MODE_INVITEONLY 0x0010
+#define MODE_NOPRIVMSGS 0x0020
+#define MODE_SSLONLY    0x0040
+#define MODE_OPERONLY   0x0080
+#define MODE_NOCOLOR    0x0100
+#define MODE_REGONLY    0x0200
+#define MODE_SPEAKIFREG 0x0400
+#define MODE_OPMOD      0x0800
 
-#define CHFL_BAN_CHECKED  0x0400
-#define CHFL_BAN_SILENCED 0x0800
- 
+/* cache flags for silence on ban */
+#define CHFL_BAN_CHECKED  0x0080
+#define CHFL_BAN_SILENCED 0x0100
 
 #define MODE_QUERY  0
 #define MODE_ADD    1
@@ -82,7 +83,7 @@
  * +pi means paranoid and will generate notices on each invite */
 #define PrivateChannel(x)       (((x)->mode.mode & MODE_PRIVATE))
 #define RegOnlyChannel(x)       ((x) && ((x)->mode.mode & MODE_REGONLY))
-#define SpeakOnlyIfReg(x)       ((x) && ((x)->mode.mode & MODE_SPEAKONLYIFREG))
+#define SpeakOnlyIfReg(x)       ((x) && ((x)->mode.mode & MODE_SPEAKIFREG))
 #define SSLonlyChannel(x)       ((x) && ((x)->mode.mode & MODE_SSLONLY))
     
 

@@ -38,7 +38,6 @@
 #include "s_log.h"
 #include "client.h"	/* for UMODE_ALL only */
 #include "irc_string.h"
-#include "irc_getaddrinfo.h"
 #include "sprintf_irc.h"
 #include "memory.h"
 #include "modules.h"
@@ -173,7 +172,6 @@ unhook_hub_leaf_confs(void)
 %token  DISABLE_HIDDEN
 %token  DISABLE_LOCAL_CHANNELS
 %token  DISABLE_REMOTE_COMMANDS
-%token  DOT_IN_IP6_ADDR
 %token  DOTS_IN_IDENT
 %token	DURATION
 %token  EGDPOOL_PATH
@@ -183,7 +181,6 @@ unhook_hub_leaf_confs(void)
 %token  EXCEED_LIMIT
 %token  EXEMPT
 %token  FAILED_OPER_NOTICE
-%token  FAKENAME
 %token  IRCD_FLAGS
 %token  FLATTEN_LINKS
 %token  FFAILED_OPERLOG
@@ -641,13 +638,14 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
 serverinfo_name: NAME '=' QSTRING ';' 
 {
   /* this isn't rehashable */
-  if (conf_parser_ctx.pass == 2)
+  if (conf_parser_ctx.pass == 2 && !ServerInfo.name)
   {
-    if (ServerInfo.name == NULL)
+    if (valid_servname(yylval.string))
+      DupString(ServerInfo.name, yylval.string);
+    else
     {
-      /* the ircd will exit() in main() if we dont set one */
-      if (strlen(yylval.string) <= HOSTLEN)
-        DupString(ServerInfo.name, yylval.string);
+      ilog(L_ERROR, "Ignoring serverinfo::name -- invalid name. Aborting.");
+      exit(0);
     }
   }
 };
@@ -661,7 +659,7 @@ serverinfo_sid: IRCD_SID '=' QSTRING ';'
       DupString(ServerInfo.sid, yylval.string);
     else
     {
-      ilog(L_ERROR, "Ignoring config file entry SID -- invalid SID. Aborting.");
+      ilog(L_ERROR, "Ignoring serverinfo::sid -- invalid SID. Aborting.");
       exit(0);
     }
   }
@@ -711,7 +709,7 @@ serverinfo_vhost: VHOST '=' QSTRING ';'
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
-    if (irc_getaddrinfo(yylval.string, NULL, &hints, &res))
+    if (getaddrinfo(yylval.string, NULL, &hints, &res))
       ilog(L_ERROR, "Invalid netmask for server vhost(%s)", yylval.string);
     else
     {
@@ -720,7 +718,7 @@ serverinfo_vhost: VHOST '=' QSTRING ';'
       memcpy(&ServerInfo.ip, res->ai_addr, res->ai_addrlen);
       ServerInfo.ip.ss.ss_family = res->ai_family;
       ServerInfo.ip.ss_len = res->ai_addrlen;
-      irc_freeaddrinfo(res);
+      freeaddrinfo(res);
 
       ServerInfo.specific_ipv4_vhost = 1;
     }
@@ -740,7 +738,7 @@ serverinfo_vhost6: VHOST6 '=' QSTRING ';'
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
-    if (irc_getaddrinfo(yylval.string, NULL, &hints, &res))
+    if (getaddrinfo(yylval.string, NULL, &hints, &res))
       ilog(L_ERROR, "Invalid netmask for server vhost6(%s)", yylval.string);
     else
     {
@@ -749,7 +747,7 @@ serverinfo_vhost6: VHOST6 '=' QSTRING ';'
       memcpy(&ServerInfo.ip6, res->ai_addr, res->ai_addrlen);
       ServerInfo.ip6.ss.ss_family = res->ai_family;
       ServerInfo.ip6.ss_len = res->ai_addrlen;
-      irc_freeaddrinfo(res);
+      freeaddrinfo(res);
 
       ServerInfo.specific_ipv6_vhost = 1;
     }
@@ -783,20 +781,7 @@ serverinfo_max_clients: T_MAX_CLIENTS '=' NUMBER ';'
 serverinfo_hub: HUB '=' TBOOL ';' 
 {
   if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-    {
-      ServerInfo.hub = 1;
-      delete_capability("HUB");
-      add_capability("HUB", CAP_HUB, 1);
-    }
-    else if (ServerInfo.hub)
-    {
-
-      ServerInfo.hub = 0;
-      delete_capability("HUB");
-    }
-  }
+    ServerInfo.hub = yylval.number;
 };
 
 /***************************************************************************
@@ -1058,13 +1043,9 @@ oper_entry: OPERATOR
 
 oper_name_b: | oper_name_t;
 oper_items:     oper_items oper_item | oper_item;
-oper_item:      oper_name | oper_user | oper_password | oper_hidden_admin |
-                oper_hidden_oper | oper_umodes |
-		oper_class | oper_global_kill | oper_remote |
-                oper_kline | oper_xline | oper_unkline |
-		oper_gline | oper_nick_changes | oper_remoteban |
-                oper_die | oper_rehash | oper_admin | oper_operwall |
-		oper_encrypted | oper_rsa_public_key_file | oper_client_certificate_hash|
+oper_item:      oper_name | oper_user | oper_password | 
+                oper_umodes | oper_class | oper_encrypted | 
+                oper_rsa_public_key_file | oper_client_certificate_hash |
                 oper_flags | error ';' ;
 
 oper_name: NAME '=' QSTRING ';'
@@ -1305,160 +1286,6 @@ oper_umodes_item:  T_BOTS
 {
   if (conf_parser_ctx.pass == 2)
     yy_aconf->modes |= UMODE_GOD;
-};
-
-oper_global_kill: GLOBAL_KILL '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_GLOBAL_KILL;
-    else
-      yy_aconf->port &= ~OPER_FLAG_GLOBAL_KILL;
-  }
-};
-
-oper_remote: REMOTE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_REMOTE;
-    else
-      yy_aconf->port &= ~OPER_FLAG_REMOTE; 
-  }
-};
-
-oper_remoteban: REMOTEBAN '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_REMOTEBAN;
-    else
-      yy_aconf->port &= ~OPER_FLAG_REMOTEBAN;
-  }
-};
-
-oper_kline: KLINE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_K;
-    else
-      yy_aconf->port &= ~OPER_FLAG_K;
-  }
-};
-
-oper_xline: XLINE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_X;
-    else
-      yy_aconf->port &= ~OPER_FLAG_X;
-  }
-};
-
-oper_unkline: UNKLINE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_UNKLINE;
-    else
-      yy_aconf->port &= ~OPER_FLAG_UNKLINE; 
-  }
-};
-
-oper_gline: GLINE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_GLINE;
-    else
-      yy_aconf->port &= ~OPER_FLAG_GLINE;
-  }
-};
-
-oper_nick_changes: NICK_CHANGES '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_N;
-    else
-      yy_aconf->port &= ~OPER_FLAG_N;
-  }
-};
-
-oper_die: DIE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_DIE;
-    else
-      yy_aconf->port &= ~OPER_FLAG_DIE;
-  }
-};
-
-oper_rehash: REHASH '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_REHASH;
-    else
-      yy_aconf->port &= ~OPER_FLAG_REHASH;
-  }
-};
-
-oper_admin: ADMIN '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_ADMIN;
-    else
-      yy_aconf->port &= ~OPER_FLAG_ADMIN;
-  }
-};
-
-oper_hidden_admin: HIDDEN_ADMIN '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_HIDDEN_ADMIN;
-    else
-      yy_aconf->port &= ~OPER_FLAG_HIDDEN_ADMIN;
-  }
-};
-
-oper_hidden_oper: HIDDEN_OPER '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_HIDDEN_OPER;
-    else
-      yy_aconf->port &= ~OPER_FLAG_HIDDEN_OPER;
-  }
-};
-
-oper_operwall: T_OPERWALL '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->port |= OPER_FLAG_OPERWALL;
-    else
-      yy_aconf->port &= ~OPER_FLAG_OPERWALL;
-  }
 };
 
 oper_flags: IRCD_FLAGS
@@ -1938,11 +1765,8 @@ auth_entry: IRCD_AUTH
 
 auth_items:     auth_items auth_item | auth_item;
 auth_item:      auth_user | auth_passwd | auth_class | auth_flags |
-                auth_kline_exempt | auth_need_ident |
-                auth_exceed_limit | auth_no_tilde | auth_gline_exempt |
-		auth_spoof | auth_spoof_notice |
-                auth_redir_serv | auth_redir_port | auth_can_flood |
-                auth_need_password | auth_encrypted | auth_client_certificate_hash | error ';' ;
+                auth_spoof | auth_redir_serv | auth_redir_port | 
+                auth_encrypted | auth_client_certificate_hash | error ';' ;
 
 auth_user: USER '=' QSTRING ';'
 {
@@ -2013,18 +1837,6 @@ auth_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
   }
 };
 
-
-auth_spoof_notice: SPOOF_NOTICE '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_SPOOF_NOTICE;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_SPOOF_NOTICE;
-  }
-};
-
 auth_class: CLASS '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
@@ -2060,7 +1872,6 @@ auth_flags_item_atom: SPOOF_NOTICE
     if (not_atom) yy_aconf->flags &= ~CONF_FLAGS_SPOOF_NOTICE;
     else yy_aconf->flags |= CONF_FLAGS_SPOOF_NOTICE;
   }
-
 } | EXCEED_LIMIT
 {
   if (conf_parser_ctx.pass == 2)
@@ -2126,72 +1937,6 @@ auth_flags_item_atom: SPOOF_NOTICE
   }
 };
 
-auth_kline_exempt: KLINE_EXEMPT '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_EXEMPTKLINE;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_EXEMPTKLINE;
-  }
-};
-
-auth_need_ident: NEED_IDENT '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_NEED_IDENTD;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_NEED_IDENTD;
-  }
-};
-
-auth_exceed_limit: EXCEED_LIMIT '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_NOLIMIT;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_NOLIMIT;
-  }
-};
-
-auth_can_flood: CAN_FLOOD '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_CAN_FLOOD;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_CAN_FLOOD;
-  }
-};
-
-auth_no_tilde: NO_TILDE '=' TBOOL ';' 
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_NO_TILDE;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_NO_TILDE;
-  }
-};
-
-auth_gline_exempt: GLINE_EXEMPT '=' TBOOL ';' 
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_EXEMPTGLINE;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_EXEMPTGLINE;
-  }
-};
-
 /* XXX - need check for illegal hostnames here */
 auth_spoof: SPOOF '=' QSTRING ';' 
 {
@@ -2228,17 +1973,6 @@ auth_redir_port: REDIRPORT '=' NUMBER ';'
   {
     yy_aconf->flags |= CONF_FLAGS_REDIR;
     yy_aconf->port = $3;
-  }
-};
-
-auth_need_password: NEED_PASSWORD '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_NEED_PASSWORD;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_NEED_PASSWORD;
   }
 };
 
@@ -2641,11 +2375,10 @@ connect_items:  connect_items connect_item | connect_item;
 connect_item:   connect_name | connect_host | connect_vhost |
 		connect_send_password | connect_accept_password |
 		connect_aftype | connect_port |
- 		connect_fakename | connect_flags | connect_hub_mask | 
-		connect_leaf_mask | connect_class | connect_auto |
-		connect_encrypted | connect_compressed | connect_cryptlink |
+		connect_flags | connect_hub_mask | connect_leaf_mask |
+		connect_class | connect_encrypted |
 		connect_rsa_public_key_file | connect_cipher_preference |
-                connect_topicburst | error ';' ;
+                error ';' ;
 
 connect_name: NAME '=' QSTRING ';'
 {
@@ -2692,7 +2425,7 @@ connect_vhost: VHOST '=' QSTRING ';'
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
-    if (irc_getaddrinfo(yylval.string, NULL, &hints, &res))
+    if (getaddrinfo(yylval.string, NULL, &hints, &res))
       ilog(L_ERROR, "Invalid netmask for server vhost(%s)", yylval.string);
     else
     {
@@ -2701,7 +2434,7 @@ connect_vhost: VHOST '=' QSTRING ';'
       memcpy(&yy_aconf->my_ipnum, res->ai_addr, res->ai_addrlen);
       yy_aconf->my_ipnum.ss.ss_family = res->ai_family;
       yy_aconf->my_ipnum.ss_len = res->ai_addrlen;
-      irc_freeaddrinfo(res);
+      freeaddrinfo(res);
     }
   }
 };
@@ -2758,15 +2491,6 @@ connect_aftype: AFTYPE '=' T_IPV4 ';'
   if (conf_parser_ctx.pass == 2)
     yy_aconf->aftype = AF_INET6;
 #endif
-};
-
-connect_fakename: FAKENAME '=' QSTRING ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    MyFree(yy_aconf->fakename);
-    DupString(yy_aconf->fakename, yylval.string);
-  }
 };
 
 connect_flags: IRCD_FLAGS
@@ -2868,54 +2592,6 @@ connect_encrypted: ENCRYPTED '=' TBOOL ';'
       yy_aconf->flags |= CONF_FLAGS_ENCRYPTED;
     else
       yy_aconf->flags &= ~CONF_FLAGS_ENCRYPTED;
-  }
-};
-
-connect_cryptlink: CRYPTLINK '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_CRYPTLINK;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_CRYPTLINK;
-  }
-};
-
-connect_compressed: COMPRESSED '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-#ifndef HAVE_LIBZ
-      yyerror("Ignoring compressed=yes; -- no zlib support");
-#else
-      yy_aconf->flags |= CONF_FLAGS_COMPRESSED;
-#endif
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_COMPRESSED;
-  }
-};
-
-connect_auto: AUTOCONN '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      yy_aconf->flags |= CONF_FLAGS_ALLOW_AUTO_CONN;
-    else
-      yy_aconf->flags &= ~CONF_FLAGS_ALLOW_AUTO_CONN;
-  }
-};
-
-connect_topicburst: TOPICBURST '=' TBOOL ';'
-{
-  if (conf_parser_ctx.pass == 2)
-  {
-    if (yylval.number)
-      SetConfTopicBurst(yy_aconf);
-    else
-      ClearConfTopicBurst(yy_aconf);
   }
 };
 
@@ -3290,7 +2966,7 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_default_cipher_preference |
                     general_compression_level | general_client_flood |
                     general_throttle_time | general_havent_read_conf |
-                    general_dot_in_ip6_addr | general_ping_cookie |
+                    general_ping_cookie |
                     general_disable_auth | general_burst_away |
 		    general_tkline_expire_notices | general_gline_min_cidr |
                     general_gline_min_cidr6 | general_use_whois_actually |
@@ -3335,7 +3011,7 @@ general_tkline_expire_notices: TKLINE_EXPIRE_NOTICES '=' TBOOL ';'
   ConfigFileEntry.tkline_expire_notices = yylval.number;
 };
 
-general_kill_chase_time_limit: KILL_CHASE_TIME_LIMIT '=' NUMBER ';'
+general_kill_chase_time_limit: KILL_CHASE_TIME_LIMIT '=' timespec ';'
 {
   ConfigFileEntry.kill_chase_time_limit = $3;
 };
@@ -3777,10 +3453,6 @@ general_client_flood: T_CLIENT_FLOOD '=' sizespec ';'
   ConfigFileEntry.client_flood = $3;
 };
 
-general_dot_in_ip6_addr: DOT_IN_IP6_ADDR '=' TBOOL ';'
-{
-  ConfigFileEntry.dot_in_ip6_addr = yylval.number;
-};
 
 /*************************************************************************** 
  *  section glines

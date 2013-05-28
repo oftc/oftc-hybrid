@@ -37,7 +37,6 @@
 #include "memory.h"
 #include "irc_res.h"
 #include "irc_reslib.h"
-#include "irc_getnameinfo.h"
 #include "common.h"
 
 #if (CHAR_BIT != 8)
@@ -95,19 +94,18 @@ static fde_t ResolverFileDescriptor;
 static dlink_list request_list = { NULL, NULL, 0 };
 static BlockHeap *dns_heap = NULL;
 
-static void rem_request(struct reslist *request);
-static struct reslist *make_request(dns_callback_fnc callback, void *);
-static void do_query_name(dns_callback_fnc callback, void *,
+static void rem_request(struct reslist *);
+static struct reslist *make_request(dns_callback_fnc, void *);
+static void do_query_name(dns_callback_fnc, void *,
                           const char *, struct reslist *, int);
-static void do_query_number(dns_callback_fnc callback, void *ctx,
+static void do_query_number(dns_callback_fnc, void *,
                             const struct irc_ssaddr *,
-                            struct reslist *request);
-static void query_name(const char *name, int query_class, int query_type, 
-                       struct reslist *request);
-static int send_res_msg(const char *buf, int len, int count);
-static void resend_query(struct reslist *request);
-static int proc_answer(struct reslist *request, HEADER *header, char *, char *);
-static struct reslist *find_id(int id);
+                            struct reslist *);
+static void query_name(const char *, int, int, struct reslist *);
+static int send_res_msg(const char *, int, int);
+static void resend_query(struct reslist *);
+static int proc_answer(struct reslist *, HEADER *, char *, char *);
+static struct reslist *find_id(int);
 
 
 /*
@@ -154,7 +152,7 @@ res_ourserver(const struct irc_ssaddr *inp)
                     sizeof(struct in6_addr)) == 0) || 
                 (memcmp(&v6->sin6_addr.s6_addr, &in6addr_any, 
                         sizeof(struct in6_addr)) == 0))
-              return(1);
+              return 1;
         break;
 #endif
       case AF_INET:
@@ -162,14 +160,14 @@ res_ourserver(const struct irc_ssaddr *inp)
           if (v4->sin_port == v4in->sin_port)
             if ((v4->sin_addr.s_addr == INADDR_ANY) || 
                 (v4->sin_addr.s_addr == v4in->sin_addr.s_addr))
-              return(1);
+              return 1;
         break;
       default:
         break;
     }
   }
 
-  return(0);
+  return 0;
 }
 
 /*
@@ -207,12 +205,10 @@ timeout_query_list(time_t now)
     }
 
     if ((next_time == 0) || timeout < next_time)
-    {
       next_time = timeout;
-    }
   }
 
-  return((next_time > now) ? next_time : (now + AR_TTL));
+  return (next_time > now) ? next_time : (now + AR_TTL);
 }
 
 /*
@@ -357,7 +353,7 @@ send_res_msg(const char *msg, int len, int rcount)
       ++sent;
   }
 
-  return(sent);
+  return sent;
 }
 
 /*
@@ -366,18 +362,17 @@ send_res_msg(const char *msg, int len, int rcount)
 static struct reslist *
 find_id(int id)
 {
-  dlink_node *ptr;
-  struct reslist *request;
+  dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, request_list.head)
   {
-    request = ptr->data;
+    struct reslist *request = ptr->data;
 
     if (request->id == id)
-      return(request);
+      return request;
   }
 
-  return(NULL);
+  return NULL;
 }
 
 /* 
@@ -387,7 +382,7 @@ find_id(int id)
 void
 gethost_byname_type(dns_callback_fnc callback, void *ctx, const char *name, int type)
 {
-  assert(name != 0);
+  assert(name != NULL);
   do_query_name(callback, ctx, name, NULL, type);
 }
 
@@ -457,11 +452,11 @@ do_query_number(dns_callback_fnc callback, void *ctx,
   if (addr->ss.ss_family == AF_INET)
   {
     const struct sockaddr_in *v4 = (const struct sockaddr_in *)addr;
-    cp = (const unsigned char*)&v4->sin_addr.s_addr;
+    cp = (const unsigned char *)&v4->sin_addr.s_addr;
 
-    ircsprintf(ipbuf, "%u.%u.%u.%u.in-addr.arpa.",
-               (unsigned int)(cp[3]), (unsigned int)(cp[2]),
-               (unsigned int)(cp[1]), (unsigned int)(cp[0]));
+    snprintf(ipbuf, sizeof(ipbuf), "%u.%u.%u.%u.in-addr.arpa.",
+             (unsigned int)(cp[3]), (unsigned int)(cp[2]),
+             (unsigned int)(cp[1]), (unsigned int)(cp[0]));
   }
 #ifdef IPV6
   else if (addr->ss.ss_family == AF_INET6)
@@ -469,24 +464,25 @@ do_query_number(dns_callback_fnc callback, void *ctx,
     const struct sockaddr_in6 *v6 = (const struct sockaddr_in6 *)addr;
     cp = (const unsigned char *)&v6->sin6_addr.s6_addr;
 
-    (void)sprintf(ipbuf, "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x."
-                  "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.ip6.arpa.",
-                  (unsigned int)(cp[15]&0xf), (unsigned int)(cp[15]>>4),
-                  (unsigned int)(cp[14]&0xf), (unsigned int)(cp[14]>>4),
-                  (unsigned int)(cp[13]&0xf), (unsigned int)(cp[13]>>4),
-                  (unsigned int)(cp[12]&0xf), (unsigned int)(cp[12]>>4),
-                  (unsigned int)(cp[11]&0xf), (unsigned int)(cp[11]>>4),
-                  (unsigned int)(cp[10]&0xf), (unsigned int)(cp[10]>>4),
-                  (unsigned int)(cp[9]&0xf), (unsigned int)(cp[9]>>4),
-                  (unsigned int)(cp[8]&0xf), (unsigned int)(cp[8]>>4),
-                  (unsigned int)(cp[7]&0xf), (unsigned int)(cp[7]>>4),
-                  (unsigned int)(cp[6]&0xf), (unsigned int)(cp[6]>>4),
-                  (unsigned int)(cp[5]&0xf), (unsigned int)(cp[5]>>4),
-                  (unsigned int)(cp[4]&0xf), (unsigned int)(cp[4]>>4),
-                  (unsigned int)(cp[3]&0xf), (unsigned int)(cp[3]>>4),
-                  (unsigned int)(cp[2]&0xf), (unsigned int)(cp[2]>>4),
-                  (unsigned int)(cp[1]&0xf), (unsigned int)(cp[1]>>4),
-                  (unsigned int)(cp[0]&0xf), (unsigned int)(cp[0]>>4));
+    snprintf(ipbuf, sizeof(ipbuf), 
+        "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x."
+        "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.ip6.arpa.",
+        (unsigned int)(cp[15]&0xf), (unsigned int)(cp[15]>>4),
+        (unsigned int)(cp[14]&0xf), (unsigned int)(cp[14]>>4),
+        (unsigned int)(cp[13]&0xf), (unsigned int)(cp[13]>>4),
+        (unsigned int)(cp[12]&0xf), (unsigned int)(cp[12]>>4),
+        (unsigned int)(cp[11]&0xf), (unsigned int)(cp[11]>>4),
+        (unsigned int)(cp[10]&0xf), (unsigned int)(cp[10]>>4),
+        (unsigned int)(cp[9]&0xf), (unsigned int)(cp[9]>>4),
+        (unsigned int)(cp[8]&0xf), (unsigned int)(cp[8]>>4),
+        (unsigned int)(cp[7]&0xf), (unsigned int)(cp[7]>>4),
+        (unsigned int)(cp[6]&0xf), (unsigned int)(cp[6]>>4),
+        (unsigned int)(cp[5]&0xf), (unsigned int)(cp[5]>>4),
+        (unsigned int)(cp[4]&0xf), (unsigned int)(cp[4]>>4),
+        (unsigned int)(cp[3]&0xf), (unsigned int)(cp[3]>>4),
+        (unsigned int)(cp[2]&0xf), (unsigned int)(cp[2]>>4),
+        (unsigned int)(cp[1]&0xf), (unsigned int)(cp[1]>>4),
+        (unsigned int)(cp[0]&0xf), (unsigned int)(cp[0]>>4));
   }
 #endif
   if (request == NULL)
@@ -572,7 +568,7 @@ resend_query(struct reslist *request)
  * proc_answer - process name server reply
  */
 static int
-proc_answer(struct reslist *request, HEADER* header, char* buf, char* eob)
+proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
 {
   char hostbuf[HOSTLEN + 100]; /* working buffer */
   unsigned char *current;      /* current position in buf */
@@ -590,7 +586,7 @@ proc_answer(struct reslist *request, HEADER* header, char* buf, char* eob)
     if ((n = irc_dn_skipname(current, (unsigned char *)eob)) < 0)
       break;
 
-    current += (size_t) n + QFIXEDSZ;
+    current += (size_t)n + QFIXEDSZ;
   }
 
   /*
@@ -603,20 +599,8 @@ proc_answer(struct reslist *request, HEADER* header, char* buf, char* eob)
     n = irc_dn_expand((unsigned char *)buf, (unsigned char *)eob, current,
         hostbuf, sizeof(hostbuf));
 
-    if (n < 0)
-    {
-      /*
-       * broken message
-       */
-      return(0);
-    }
-    else if (n == 0)
-    {
-      /*
-       * no more answers left
-       */
-      return(0);
-    }
+    if (n < 0 /* broken message */ || n == 0 /* no more answers left */)
+      return 0;
 
     hostbuf[HOSTLEN] = '\0';
 
@@ -648,50 +632,51 @@ proc_answer(struct reslist *request, HEADER* header, char* buf, char* eob)
     {
       case T_A:
         if (request->type != T_A)
-          return(0);
+          return 0;
 
         /*
          * check for invalid rd_length or too many addresses
          */
         if (rd_length != sizeof(struct in_addr))
-          return(0);
+          return 0;
+
         v4 = (struct sockaddr_in *)&request->addr;
         request->addr.ss_len = sizeof(struct sockaddr_in);
         v4->sin_family = AF_INET;
         memcpy(&v4->sin_addr, current, sizeof(struct in_addr));
-        return(1);
+        return 1;
         break;
 #ifdef IPV6
       case T_AAAA:
         if (request->type != T_AAAA)
-          return(0);
+          return 0;
+
         if (rd_length != sizeof(struct in6_addr))
-          return(0);
+          return 0;
+
         request->addr.ss_len = sizeof(struct sockaddr_in6);
         v6 = (struct sockaddr_in6 *)&request->addr;
         v6->sin6_family = AF_INET6;
         memcpy(&v6->sin6_addr, current, sizeof(struct in6_addr));
-        return(1);
+        return 1;
         break;
 #endif
       case T_PTR:
         if (request->type != T_PTR)
-          return(0);
+          return 0;
+
         n = irc_dn_expand((unsigned char *)buf, (unsigned char *)eob,
             current, hostbuf, sizeof(hostbuf));
-        if (n < 0)
-          return(0); /* broken message */
-        else if (n == 0)
-          return(0); /* no more answers left */
+        if (n < 0 /* broken message */ || n == 0 /* no more answers left */)
+          return 0;
 
         strlcpy(request->name, hostbuf, HOSTLEN + 1);
-
-        return(1);
+        return 1;
         break;
       case T_CNAME: /* first check we already havent started looking 
                        into a cname */
         if (request->type != T_PTR) 
-          return(0);
+          return 0;
 
         if (request->state == REQ_CNAME)
         {
@@ -699,8 +684,8 @@ proc_answer(struct reslist *request, HEADER* header, char* buf, char* eob)
                             current, hostbuf, sizeof(hostbuf));
 
           if (n < 0)
-            return(0);
-          return(1);
+            return 0;
+          return 1;
         }
 
         request->state = REQ_CNAME;
@@ -717,7 +702,7 @@ proc_answer(struct reslist *request, HEADER* header, char* buf, char* eob)
     }
   }
 
-  return(1);
+  return 1;
 }
 
 /*
@@ -840,9 +825,9 @@ report_dns_servers(struct Client *source_p)
 
   for (i = 0; i < irc_nscount; i++)
   {
-    irc_getnameinfo((struct sockaddr *)&(irc_nsaddr_list[i]),
-                    irc_nsaddr_list[i].ss_len, ipaddr,
-                    sizeof(ipaddr), NULL, 0, NI_NUMERICHOST);
+    getnameinfo((struct sockaddr *)&(irc_nsaddr_list[i]),
+                irc_nsaddr_list[i].ss_len, ipaddr,
+                sizeof(ipaddr), NULL, 0, NI_NUMERICHOST);
     sendto_one(source_p, form_str(RPL_STATSALINE),
                me.name, source_p->name, ipaddr); 
   }

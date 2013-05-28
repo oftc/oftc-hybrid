@@ -450,7 +450,7 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
   char *t = NULL, *start = NULL;
   int tlen = 0;
   int is_member = IsMember(source_p, chptr);
-  int multi_prefix = (source_p->localClient->cap_active & CAP_MULTI_PREFIX) != 0;
+  int multi_prefix = HasCap(source_p, CAP_MULTI_PREFIX) != 0;
 
   if (PubChannel(chptr) || is_member || IsGod(source_p))
   {
@@ -684,6 +684,14 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
 
   if (is_banned(chptr, source_p))
     return ERR_BANNEDFROMCHAN;
+
+#ifdef HAVE_LIBCRYPTO
+  if ((chptr->mode.mode & MODE_SSLONLY) && !source_p->localClient->fd.ssl)
+    return ERR_SSLONLYCHAN;
+#endif
+
+  if ((chptr->mode.mode & MODE_OPERONLY) && !IsOper(source_p))
+    return ERR_OPERONLYCHAN;
 
   if (chptr->mode.mode & MODE_INVITEONLY)
     if (!dlinkFind(&source_p->localClient->invited, chptr))

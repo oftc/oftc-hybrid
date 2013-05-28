@@ -37,12 +37,10 @@
 #include "fdlist.h"
 #include "hash.h"
 #include "irc_string.h"
-#include "inet_misc.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "ircd_defs.h"
 #include "s_bsd.h"
-#include "irc_getnameinfo.h"
 #include "numeric.h"
 #include "packet.h"
 #include "irc_res.h"
@@ -236,22 +234,6 @@ check_cipher(struct Client *client_p, struct AccessItem *aconf)
   return NULL;
 }
 #endif /* HAVE_LIBCRYPTO */
-
-/* my_name_for_link()
- * return wildcard name of my server name 
- * according to given config entry --Jto
- */
-const char *
-my_name_for_link(struct ConfItem *conf)
-{
-  struct AccessItem *aconf;
-
-  aconf = (struct AccessItem *)map_to_conf(conf);
-  if (aconf->fakename != NULL)
-    return aconf->fakename;
-  else
-    return me.name;
-}
 
 /*
  * write_links_file
@@ -563,6 +545,27 @@ try_connections(void *unused)
 }
 
 int
+valid_servname(const char *name)
+{
+  unsigned int length = 0;
+  unsigned int dots   = 0;
+  const char *p = name;
+
+  for (; *p; ++p)
+  {
+    if (!IsServChar(*p))
+      return 0;
+
+    ++length;
+
+    if (*p == '.')
+      ++dots;
+  }
+
+  return dots != 0 && length <= HOSTLEN;
+}
+
+int
 check_server(const char *name, struct Client *client_p, int cryptlink)
 {
   dlink_node *ptr;
@@ -668,10 +671,6 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
     ClearCap(client_p, CAP_TBURST);
   }
 
-  /* Don't unset CAP_HUB here even if the server isn't a hub,
-   * it only indicates if the server thinks it's lazylinks are
-   * leafs or not.. if you unset it, bad things will happen
-   */
   if (aconf != NULL)
   {
     struct sockaddr_in *v4;
@@ -970,7 +969,6 @@ server_estab(struct Client *client_p)
   char *host;
   const char *inpath;
   static char inpath_ip[HOSTLEN * 2 + USERLEN + 6];
-  dlink_node *m;
   dlink_node *ptr;
 
   assert(client_p != NULL);
@@ -1010,7 +1008,7 @@ server_estab(struct Client *client_p)
     }
   }
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = map_to_conf(conf);
 
   if (IsUnknown(client_p) && !IsConfCryptLink(aconf))
   {
@@ -1018,26 +1016,18 @@ server_estab(struct Client *client_p)
      *        2.  Check aconf->spasswd, not aconf->passwd.
      */
     if (!EmptyString(aconf->spasswd))
-    {
-      /* only send ts6 format PASS if we have ts6 enabled */
-    if (me.id[0] != '\0')		/* Send TS 6 form only if id */
-        sendto_one(client_p, "PASS %s TS %d %s",
-                   aconf->spasswd, TS_CURRENT, me.id);
-      else
-        sendto_one(client_p, "PASS %s TS 5",
-                   aconf->spasswd);
-    }
+      sendto_one(client_p, "PASS %s TS %d %s",
+                 aconf->spasswd, TS_CURRENT, me.id);
 
     /* Pass my info to the new server
      *
-     * If this is a HUB, pass on CAP_HUB
      * Pass on ZIP if supported
      * Pass on TB if supported.
      * - Dianora
      */
 
-    send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
-      | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
+    send_capabilities(client_p, aconf,
+      (IsConfCompressed(aconf) ? CAP_ZIP : 0)
       | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
     /* SERVER is the last command sent before switching to ziplinks.
@@ -1051,9 +1041,7 @@ server_estab(struct Client *client_p)
      * Nagle is already disabled at this point --adx
      */
     sendto_one(client_p, "SERVER %s 1 :%s%s",
-               my_name_for_link(conf), 
-               ConfigServerHide.hidden ? "(H) " : "",
-               (me.info[0]) ? (me.info) : "IRCers United");
+               me.name, ConfigServerHide.hidden ? "(H) " : "", me.info);
     send_queued_write(client_p);
   }
 
@@ -1077,9 +1065,7 @@ server_estab(struct Client *client_p)
     SetServlink(client_p);
   }
 
-  /* only send ts6 format SVINFO if we have ts6 enabled */ 
-  sendto_one(client_p, "SVINFO %d %d 0 :%lu",
-             (me.id[0] ? TS_CURRENT : 5), TS_MIN,
+  sendto_one(client_p, "SVINFO %d %d 0 :%lu", TS_CURRENT, TS_MIN,
              (unsigned long)CurrentTime);
 
   /* assumption here is if they passed the correct TS version, they also passed an SID */
@@ -1113,11 +1099,10 @@ server_estab(struct Client *client_p)
   /* Some day, all these lists will be consolidated *sigh* */
   dlinkAdd(client_p, &client_p->lnode, &me.serv->server_list);
 
-  m = dlinkFind(&unknown_list, client_p);
-  assert(NULL != m);
+  assert(dlinkFind(&unknown_list, client_p));
 
-  dlinkDelete(m, &unknown_list);
-  dlinkAdd(client_p, m, &serv_list);
+  dlink_move_node(&client_p->localClient->lclient_node,
+                  &unknown_list, &serv_list);
 
   Count.myserver++;
 
@@ -1161,10 +1146,6 @@ server_estab(struct Client *client_p)
     if (target_p == client_p)
       continue;
 
-    if ((conf = target_p->serv->sconf) &&
-         match(my_name_for_link(conf), client_p->name))
-      continue;
-
     if (IsCapable(target_p, CAP_TS6) && HasID(client_p))
       sendto_one(target_p, ":%s SID %s 2 %s :%s%s",
                  me.id, client_p->name, client_p->id,
@@ -1195,17 +1176,12 @@ server_estab(struct Client *client_p)
   **    is destroyed...)
   */
 
-  conf = client_p->serv->sconf;
-
   DLINK_FOREACH_PREV(ptr, global_serv_list.tail)
   {
     target_p = ptr->data;
 
     /* target_p->from == target_p for target_p == client_p */
-    if (target_p->from == client_p)
-      continue;
-
-    if (match(my_name_for_link(conf), target_p->name))
+    if (IsMe(target_p) || target_p->from == client_p)
       continue;
 
     if (IsCapable(client_p, CAP_TS6))
@@ -1641,8 +1617,8 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   conf = unmap_conf_item(aconf);
 
   /* log */
-  irc_getnameinfo((struct sockaddr*)&aconf->ipnum, aconf->ipnum.ss_len,
-		  buf, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
+  getnameinfo((struct sockaddr *)&aconf->ipnum, aconf->ipnum.ss_len,
+              buf, sizeof(buf), NULL, 0, NI_NUMERICHOST);
   ilog(L_NOTICE, "Connect to %s[%s] @%s", aconf->user, aconf->host,
        buf);
 
@@ -1689,7 +1665,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   strlcpy(client_p->host, aconf->host, sizeof(client_p->host));
 
   /* We already converted the ip once, so lets use it - stu */
-  strlcpy(client_p->sockhost, buf, HOSTIPLEN);
+  strlcpy(client_p->sockhost, buf, sizeof(client_p->sockhost));
 
   /* create a socket for the server connection */ 
   if (comm_open(&client_p->localClient->fd, aconf->ipnum.ss.ss_family,
@@ -1897,28 +1873,23 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 #endif
 
   /* jdc -- Check and send spasswd, not passwd. */
-  if (!EmptyString(aconf->spasswd) && (me.id[0] != '\0'))
+  if (!EmptyString(aconf->spasswd))
       /* Send TS 6 form only if id */
     sendto_one(client_p, "PASS %s TS %d %s",
                aconf->spasswd, TS_CURRENT, me.id);
-  else
-    sendto_one(client_p, "PASS %s TS 5",
-               aconf->spasswd);
 
   /* Pass my info to the new server
    *
-   * If this is a HUB, pass on CAP_HUB
    * Pass on ZIP if supported
    * Pass on TB if supported.
    * - Dianora
    */
-  send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
-                    | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
+  send_capabilities(client_p, aconf,
+                    (IsConfCompressed(aconf) ? CAP_ZIP : 0)
                     | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
-             my_name_for_link(conf), 
-	     ConfigServerHide.hidden ? "(H) " : "", 
+             me.name, ConfigServerHide.hidden ? "(H) " : "", 
 	     me.info);
 
   /* If we've been marked dead because a send failed, just exit
@@ -1951,7 +1922,7 @@ find_servconn_in_progress(const char *name)
     cptr = ptr->data;
 
     if (cptr && cptr->name[0])
-      if (match(cptr->name, name) || match(name, cptr->name))
+      if (match(name, cptr->name))
         return cptr;
   }
   
@@ -2022,15 +1993,13 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
     return;
   }
 
-  send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
-                    | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
+  send_capabilities(client_p, aconf,
+                    (IsConfCompressed(aconf) ? CAP_ZIP : 0)
                     | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), CAP_ENC_MASK);
 
-  if (me.id[0])
-    sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);
-
+  sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);
   sendto_one(client_p, "CRYPTLINK SERV %s %s :%s%s",
-             my_name_for_link(conf), key_to_send,
+             me.name, key_to_send,
              ConfigServerHide.hidden ? "(H) " : "", me.info);
 
   SetHandshake(client_p);

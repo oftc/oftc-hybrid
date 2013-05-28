@@ -1,5 +1,5 @@
 /* doc/example.conf.quick - ircd-hybrid-7 Example configuration file
- * Copyright (C) 2000-2005 Hybrid Development Team
+ * Copyright (C) 2000-2011 Hybrid Development Team
  *
  * Written by ejb, wcampbel, db, leeh and others
  *
@@ -166,7 +166,6 @@ connect {
 	#leaf_mask = "*.uk";
 	class = "server";
 	flags = autoconn;
-	#fakename = "*.arpa";
 };
 
 connect {
@@ -298,7 +297,7 @@ serverhide {
 };
 
 general {
-	kill_chase_time_limit = 90;
+	kill_chase_time_limit = 90 seconds;
         hide_spoof_ips = yes;
         ignore_bogus_ts = no;
 
@@ -307,7 +306,6 @@ general {
 	default_floodcount = 10;
 	failed_oper_notice = yes;
 	dots_in_ident=2;
-	dot_in_ip6_addr = yes;
 	min_nonwildcard = 4;
 	min_nonwildcard_simple = 3;
 	max_accept = 20;
@@ -374,7 +372,7 @@ glines {
 };
 
 modules {
-	path = "/usr/local/ircd/modules";
-	path = "/usr/local/ircd/modules/autoload";
+	path = "/usr/local/ircd/lib/ircd-hybrid/modules";
+	path = "/usr/local/ircd/lib/ircd-hybrid/modules/autoload";
 	#module = "some_module.so";
 };

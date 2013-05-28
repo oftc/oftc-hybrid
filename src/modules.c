@@ -64,19 +64,6 @@ static const char *core_module_table[] =
   NULL
 };
 
-static const char *spy_module_table[] = 
-{
-  "spy_admin_notice",
-  "spy_info_notice",
-  "spy_links_notice",
-  "spy_motd_notice",
-  "spy_stats_notice",
-  "spy_stats_p_notice",
-  "spy_trace_notice",
-  "spy_whois_notice",
-  NULL 
-};
-
 static dlink_list mod_paths = { NULL, NULL, 0 };
 static dlink_list conf_modules = { NULL, NULL, 0 };
 
@@ -323,17 +310,6 @@ load_core_modules(int warn)
       ilog(L_CRIT, "Error loading core module %s%s: terminating ircd",
            core_module_table[i], SHARED_SUFFIX);
       exit(EXIT_FAILURE);
-    }
-  }
-  for (i = 0; spy_module_table[i]; ++i)
-  {
-    snprintf(module_name, sizeof(module_name), "%s%s%s", MODPATH,
-             spy_module_table[i], SHARED_SUFFIX);
-
-    if (load_a_module(module_name, warn, 1) == -1)
-    {
-      ilog(L_CRIT, "Error loading spy module %s%s",
-           spy_module_table[i], SHARED_SUFFIX);
     }
   }
 }
@@ -724,7 +700,6 @@ load_all_modules(int warn)
   mod_add_cmd(&statserv_msgtab);
   mod_add_cmd(&svsnick_msgtab);
   mod_add_cmd(&uncapture_msgtab);
-  /* FIXME: what about spy*? */
 #endif
 }
 #endif /* STATIC_MODULES */

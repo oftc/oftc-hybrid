@@ -112,7 +112,6 @@ struct Client
   unsigned int      hopcount;   /* number of servers to this 0 = local */
   unsigned int      status;     /* Client type */
   unsigned int      handler;    /* Handler index */
-  unsigned int      serial;     /* used to enforce 1 send per nick */
 
   dlink_list        channel;   /* chain of channel pointer blocks */
 
@@ -144,10 +143,9 @@ struct Client
    * gcos field in /etc/passwd but anything can go here.
    */
   char              info[REALLEN + 1]; /* Free form additional client info */
-  char              client_host[HOSTLEN + 1];
-  char              client_server[HOSTLEN + 1];
 
-  /* client->sockhost contains the ip address gotten from the socket as a
+  /*
+   * client->sockhost contains the ip address gotten from the socket as a
    * string, this field should be considered read-only once the connection
    * has been made. (set in s_bsd.c only)
    */
@@ -166,9 +164,10 @@ struct LocalUser
    * The following fields are allocated only for local clients
    * (directly connected to *this* server with a socket.
    */
-  dlink_node        lclient_node;
+  dlink_node   lclient_node;
 
-
+  char         client_host[HOSTLEN + 1];
+  char         client_server[HOSTLEN + 1];
 
   unsigned int registration;
   unsigned int cap_client;    /* Client capabilities (from us) */
@@ -176,6 +175,7 @@ struct LocalUser
 
   unsigned int operflags;     /* oper priv flags */
 
+  unsigned int serial;     /* used to enforce 1 send per nick */
 
   /* Anti flooding part, all because of lamers... */
   time_t       last_knock;    /* time of last knock */
@@ -306,17 +306,15 @@ struct LocalUser
  * ts stuff
  */
 #define TS_CURRENT      6       /* current TS protocol version */
-#ifdef TS5_ONLY
-#define TS_MIN          5
-#else
-#define TS_MIN          3       /* minimum supported TS protocol version */
-#endif
+#define TS_MIN          5       /* minimum supported TS protocol version */
 #define TS_DOESTS       0x20000000
 #define DoesTS(x)       ((x)->tsinfo == TS_DOESTS)
 
 
 
 #define CAP_MULTI_PREFIX  0x00000001
+
+#define HasCap(x, y) ((x)->localClient->cap_active & (y))
 
 /* housekeeping flags */
 #define FLAGS_PINGSENT      0x0000000000000001 /* Unreplied ping sent                      */
@@ -577,6 +575,6 @@ extern void free_exited_clients(void);
 extern struct Client *make_client(struct Client *);
 extern struct Client *find_chasing(struct Client *, struct Client *, const char *, int *);
 extern struct Client *find_person(const struct Client *const, const char *);
-extern const char *get_client_name(struct Client *, int);
+extern const char *get_client_name(const struct Client *, int);
 
 #endif /* INCLUDED_client_h */

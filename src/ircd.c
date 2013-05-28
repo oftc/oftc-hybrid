@@ -34,7 +34,6 @@
 #include "fdlist.h"
 #include "hash.h"
 #include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd_signal.h"
 #include "s_gline.h"
 #include "motd.h"
@@ -76,7 +75,7 @@ struct config_file_entry ConfigFileEntry;
 struct server_info ServerInfo;
 /* admin info set from ircd.conf */
 struct admin_info AdminInfo = { NULL, NULL, NULL };
-struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0 };
+struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 struct ServerState_t server_state = { 0 };
 struct logging_entry ConfigLoggingEntry = { 1, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} }; 
 struct ServerStatistics ServerStats;
@@ -194,8 +193,9 @@ set_time(void)
 
   if (newtime.tv_sec < CurrentTime)
   {
-    ircsprintf(to_send, "System clock is running backwards - (%lu < %lu)",
-               (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
+    snprintf(to_send, sizeof(to_send),
+             "System clock is running backwards - (%lu < %lu)",
+             (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
     report_error(L_ALL, to_send, me.name, 0);
     set_back_events(CurrentTime - newtime.tv_sec);
   }
@@ -330,10 +330,7 @@ initialize_server_capabs(void)
 {
   add_capability("QS", CAP_QS, 1);
   add_capability("EOB", CAP_EOB, 1);
-
-  if (ServerInfo.sid != NULL)	/* only enable TS6 if we have an SID */
-    add_capability("TS6", CAP_TS6, 0);
-
+  add_capability("TS6", CAP_TS6, 0);
   add_capability("ZIP", CAP_ZIP, 0);
   add_capability("CLUSTER", CAP_CLUSTER, 1);
 #ifdef HALFOPS
@@ -356,7 +353,7 @@ write_pidfile(const char *filename)
   {
     char buff[32];
     unsigned int pid = (unsigned int)getpid();
-    size_t nbytes = ircsprintf(buff, "%u\n", pid);
+    size_t nbytes = snprintf(buff, sizeof(buff), "%u\n", pid);
 
     if ((fbputs(buff, fb, nbytes) == -1))
       ilog(L_ERROR, "Error writing %u to pid file %s (%s)",
@@ -510,15 +507,10 @@ main(int argc, char *argv[])
 
     /* It ain't random, but it ought to be a little harder to guess */
   srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
-  memset(&me, 0, sizeof(me));
-  memset(&meLocalUser, 0, sizeof(meLocalUser));
+
   me.localClient = &meLocalUser;
   dlinkAdd(&me, &me.node, &global_client_list);	/* Pointer to beginning
 						   of Client list */
-
-  memset(&ServerInfo, 0, sizeof(ServerInfo));
-  memset(&ServerStats, 0, sizeof(ServerStats));
-
   /* Initialise the channel capability usage counts... */
   init_chcap_usage_counts();
 
@@ -589,37 +581,44 @@ main(int argc, char *argv[])
   init_auth();          /* Initialise the auth code */
   init_resolver();      /* Needs to be setup before the io loop */
   read_conf_files(1);   /* cold start init conf files */
-  me.id[0] = '\0';
   init_uid();
   initialize_server_capabs();   /* Set up default_server_capabs */
   initialize_global_set_options();
   init_channels();
 
-  if (ServerInfo.name == NULL)
+  if (EmptyString(ServerInfo.sid))
   {
-    ilog(L_CRIT, "No server name specified in serverinfo block.");
+    ilog(L_CRIT, "ERROR: No server id specified in serverinfo block.");
+    exit(EXIT_FAILURE);
+  }
+
+  strlcpy(me.id, ServerInfo.sid, sizeof(me.id));
+
+  if (EmptyString(ServerInfo.name))
+  {
+    ilog(L_CRIT, "ERROR: No server name specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
   strlcpy(me.name, ServerInfo.name, sizeof(me.name));
 
   /* serverinfo{} description must exist.  If not, error out.*/
-  if (ServerInfo.description == NULL)
+  if (EmptyString(ServerInfo.description))
   {
-    ilog(L_CRIT,
-      "ERROR: No server description specified in serverinfo block.");
+    ilog(L_CRIT, "ERROR: No server description specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
   strlcpy(me.info, ServerInfo.description, sizeof(me.info));
 
-  me.from    = &me;
-  me.servptr = &me;
+  me.from     = &me;
+  me.servptr  = &me;
+  me.lasttime = me.since = me.firsttime = CurrentTime;
 
   SetMe(&me);
   make_server(&me);
 
-  me.lasttime = me.since = me.firsttime = CurrentTime;
+  hash_add_id(&me);
   hash_add_client(&me);
   
   /* add ourselves to global_serv_list */
@@ -628,15 +627,20 @@ main(int argc, char *argv[])
 #ifndef STATIC_MODULES
   if (chdir(MODPATH))
   {
-    ilog (L_CRIT, "Could not load core modules. Terminating!");
+    ilog(L_CRIT, "Could not load core modules. Terminating!");
     exit(EXIT_FAILURE);
   }
 
   load_all_modules(1);
   load_conf_modules();
   load_core_modules(1);
+
   /* Go back to DPATH after checking to see if we can chdir to MODPATH */
-  chdir(ConfigFileEntry.dpath);
+  if (chdir(ConfigFileEntry.dpath))
+  {
+    perror("chdir");
+    exit(EXIT_FAILURE);
+  }
 #else
   load_all_modules(1);
 #endif

@@ -453,7 +453,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
 #ifdef HAVE_LIBCRYPTO
     if (target_p->localClient->fd.ssl)
     {
-      sendto_one(source_p, form_str(RPL_WHOISSSL),
+      sendto_one(source_p, form_str(RPL_WHOISSECURE),
                  me.name, source_p->name, target_p->name);
       if((target_p == source_p || IsOper(source_p)) && 
           !EmptyString(target_p->certfp))
@@ -470,5 +470,11 @@ whois_person(struct Client *source_p, struct Client *target_p)
                me.name, source_p->name, target_p->name,
                CurrentTime - target_p->localClient->last,
                target_p->firsttime);
+
+    if (IsOper(target_p) && target_p != source_p)
+      if ((target_p->umodes & UMODE_SPY))
+        sendto_one(target_p, ":%s NOTICE %s :*** Notice -- %s (%s@%s) [%s] is doing "
+                   "a whois on you", me.name, target_p->name, source_p->name,
+                   source_p->username, source_p->host, source_p->servptr->name);
   }
 }

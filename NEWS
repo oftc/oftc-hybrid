@@ -1,37 +1,37 @@
--- oftc-hybrid 1.6.9 RELNOTES
+-- oftc-hybrid 1.6.9 Release Notes
 o) Fix a crash bug only affecting solaris
 
--- oftc-hybrid 1.6.8 RELNOTES
+-- oftc-hybrid 1.6.8 Release Notes
 o) Fix a crash bug as noted in CVE-2009-4016.
 
--- oftc-hybrid 1.6.7 RELNOTES
+-- oftc-hybrid 1.6.7 Release Notes
 o) Fix a bug causing temp dlines to crash ircd when they expire
 
--- oftc-hybrid 1.6.6 RELNOTES
+-- oftc-hybrid 1.6.6 Release Notes
 o) A bit like below but done properly so that SSL still works
 
--- oftc-hybrid 1.6.5 RELNOTES
+-- oftc-hybrid 1.6.5 Release Notes
 o) Fix a bug causing users connecting on the SSL port to never be disconnected
 if they didn't do anything
 
--- oftc-hybrid 1.6.4 RELNOTES
+-- oftc-hybrid 1.6.4 Release Notes
 o) Support sending certificate chains in SSL handshakes
 o) Fix a bug in the client notice that tells you your certificate fingerprint on connect
 
--- oftc-hybrid 1.6.3 RELNOTES
+-- oftc-hybrid 1.6.3 Release Notes
 o) Fix a core in temporary RESVs 
 
--- oftc-hybrid 1.6.2 RELNOTES
+-- oftc-hybrid 1.6.2 Release Notes
 o) Fix SVSNICK to not fail for flood reasons, also prevent opers from using it.
 o) Fix a bug in shedding causing it to fail randomly.
 o) Fix a long standing bug in wallops preventing local non oper users from
 seeing them.
 
--- oftc-hybrid 1.6.1 RELNOTES
+-- oftc-hybrid 1.6.1 Release Notes
 o) Fix bug causing KICK evasions when +S to not work.
 o) Fix bug causing +T users to be able to be kicked.
 
--- oftc-hybrid 1.6.0 RELNOTES
+-- oftc-hybrid 1.6.0 Release Notes
 o) Add ability to accept ssl client certifiates and store their fingerprints
 	 against the client.
 o) Add usermode +P for services clients only.  Not settable by users.
@@ -43,10 +43,10 @@ o) User shedding now starts from the back of the client list instead of the
 o) Remote and timed xlines fixes.
 o) Various bug fixes.
 
--- oftc-hybrid 1.5.7 RELNOTES
+-- oftc-hybrid 1.5.7 Release Notes
 o) Bugfix release to fix the class name display in the reject notice.
 
--- oftc-hybrid 1.5.6 RELNOTES
+-- oftc-hybrid 1.5.6 Release Notes
 o) Make temporary lines get written into the conf files so they are permenant
 but duration based
 o) Various things to support this such as displaying expiration time in oper
@@ -56,10 +56,10 @@ o) Fix chmode +S so that it actually works instead of doing the opposite.
 o) Added class information to the reject notices.
 o) Update smalldate() to give us a better datetime format
 
--- oftc-hybrid 1.5.5 RELNOTES
+-- oftc-hybrid 1.5.5 Release Notes
 o) Bugfix release
 
--- oftc-hybrid 1.5.4 RELNOTES
+-- oftc-hybrid 1.5.4 Release Notes
 o) Fix the +i WHO option, and add CIDR to it
 o) Make cidr classes global so max_per_cidr is global
 o) max_per_ip is now global too
@@ -68,22 +68,22 @@ o) Added stats n which dumps user counts in all areas(host, ip, cidr)
 o) Added --with-services-name configure option
 o) Reduced startup connect timer
 
--- oftc-hybrid 1.5.3 RELNOTES
+-- oftc-hybrid 1.5.3 Release Notes
 o) Actually fix the /names output bug instead of making it worse
 o) UMode +S now times out after a configurable timeout
 o) Fix a critical bug in the kqueue io handler
 
--- oftc-hybrid 1.5.2 RELNOTES
+-- oftc-hybrid 1.5.2 Release Notes
 o) Bugfix release to make stats E non admin-only and stats p not show remote
     non-admins
 
--- oftc-hybrid 1.5.1 RELNOTES
+-- oftc-hybrid 1.5.1 Release Notes
 o) Allow non chanops to view +q lists
 o) Fix a bug in /names output
 o) DNS server failure is now reported a little better
 o) /stats p is now global and will show all opers on the network
 
--- oftc-hybrid 1.5.0 RELNOTES
+-- oftc-hybrid 1.5.0 Release Notes
 o) UMode +G moved to +S to make way for hybrid +G
 o) UMode +S removed
 o) Shedding accepted new paramters
@@ -92,12 +92,12 @@ o) Code merged with hybrid 7.2.2 release
 o) Added channel mode +q which prevents users matching that mask from speaking
     on a channel
 
--- oftc-hybrid 1.4.1 RELNOTES
+-- oftc-hybrid 1.4.1 Release Notes
 o) Fix amd64 issues.
 o) Fixed server max_connections
 o) Other misc fixes.
 
--- oftc-hybrid 1.4.0 RELNOTES
+-- oftc-hybrid 1.4.0 Release Notes
 o) Add Client SSL Support
 o) Add user shedding
 o) Add new channel modes:
@@ -105,7 +105,21 @@ o) +R - Cannot join channel unless regisitered with NickServ
 o) +M - Cannot talk on channel unless registered with NickServ
 o) +S - Cannot join channel unless using SSL
 
--- ircd-hybrid-7.3 RELNOTES
+-- ircd-hybrid-7.3.0 Release Notes
+o) Added Bulgarian language file provided by Borislav Borisov
+o) Server hostmasking has been removed due to TS6 requirements
+o) Fixed broken IPv6 detection
+o) Minor code optimizations. Reduced memory consumption
+o) User IDs are now shown in client connection notices
+o) Increased maximum temporary kline time to 360 days
+o) Added back STATS/TRACE/MOTD/ADMIN request notices. Removed
+   spy_*_notice modules accordingly.
+o) Channelmode +O; channel can be joined by ircops only.
+o) Channelmode +S; only clients with a secure connection (ssl/tls)
+   can join this channel.
+
+
+-- ircd-hybrid-7.3-rc1 Release Notes
 o) Major 64-bit cleanups and portability fixes.
 o) Fixed bug where unregistered clients were not able to complete registration
    process with /quote PONG <ping_cookie> in case the client was assigned a
@@ -141,8 +155,11 @@ o) Removed broken LazyLinks
 o) Removed --disable-gline-voting configure option
 o) Minor code optimizations and cleanups
 o) ACCEPT now supports nick!user@host masks
+o) Unregistered clients are no longer allowed to request the server's motd
+o) general::dot_in_ip6_addr configuration option is obsolete and no longer exists
+o) Dropped support for old style 'operflag = yes|no;' format
 
--- ircd-hybrid-7.2.3 RELNOTES
+-- ircd-hybrid-7.2.3 Release Notes
 o) Added ircd-italian.lang language file
 o) Added -full to etrace
 o) Added +C for opers
@@ -155,7 +172,7 @@ o) Fixed command line arguments handling to allow more than one switch
 o) Fixed numeric delivery for mixed TS5 target on the other side of a TS6 server.
 
 
--- ircd-hybrid-7.2.2 RELNOTES
+-- ircd-hybrid-7.2.2 Release Notes
 o) Added channel::disable_fake_channels config directive
 o) Fixed broken FORCEJOIN  (contrib)
 o) Added missing documentation for connect::vhost
@@ -178,7 +195,7 @@ o) Minor resolv.conf parser fixes.  Added missing support for ';' comments
 o) Fixed core on MODRESTART
 
 
--- ircd-hybrid-7.2.1 RELNOTES
+-- ircd-hybrid-7.2.1 Release Notes
 o) Fixed build on SRV4
 o) Fixed problem where ircd would disconnect all SSL connections
 o) Added initial CAP support.  Additional documentation can be found
@@ -198,7 +215,7 @@ o) Don't allow shared k-lines to be set without a valid reason
 o) Improved channel ban match processing.  This also fixes CIDR bans
 
 
--- ircd-hybrid-7.2.0 RELNOTES
+-- ircd-hybrid-7.2.0 Release Notes
 o) Fixed broken operwall = yes;
 o) Added 'umode' directive to oper{}.  List of modes to get on /OPER.
    This behaves exactly like H6's sixth O line field
@@ -211,7 +228,7 @@ o) Fixed va_list bug on amd64
 o) Fixed /dev/poll
 
 
--- ircd-hybrid-7.2rc1 RELNOTES
+-- ircd-hybrid-7.2rc1 Release Notes
 o) ircd can dynamically change all its client/fd limits at runtime
 o) Added epoll as the primary I/O engine under Linux
 o) Local channels will not show up in remote /WHOIS
@@ -228,7 +245,7 @@ o) Get "KLINE nick" to work with clients that have a spoof
 o) Fixed RESV/XLINE bug in conjunction with names that include escaped
    characters such as \*, \?, \#.
 
--- ircd-hybrid-7.2beta1 RELNOTES
+-- ircd-hybrid-7.2beta1 Release Notes
 o) Usermode +G, like +g, but allow messaging from people on common channels
 o) Usermode +D - "deaf", don't receive channel messages
 o) RXLINE and RKLINE - commands for setting perl compatible regular expression

@@ -116,11 +116,8 @@ mr_pong(struct Client *client_p, struct Client *source_p,
       {
         if (source_p->localClient->random_ping == incoming_ping)
         {
-          char buf[USERLEN + 1];
-
-          strlcpy(buf, source_p->username, sizeof(buf));
           SetPingCookie(source_p);
-          register_local_user(client_p, source_p, source_p->name, buf);
+          register_local_user(source_p);
         }
         else
         {

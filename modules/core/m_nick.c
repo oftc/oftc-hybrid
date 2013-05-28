@@ -44,7 +44,6 @@
 #include "modules.h"
 #include "common.h"
 #include "packet.h"
-#include "irc_getaddrinfo.h"
 #include "channel_mode.h"
 #include "watch.h"
 
@@ -110,8 +109,6 @@ const char *_version = "$Revision$";
 static void
 set_initial_nick(struct Client *source_p, const char *nick)
 {
- char buf[USERLEN + 1];
-
   /* Client setting NICK the first time */
 
   /* This had to be copied here to avoid problems.. */
@@ -128,14 +125,7 @@ set_initial_nick(struct Client *source_p, const char *nick)
   fd_note(&source_p->localClient->fd, "Nick: %s", nick);
 
   if (!source_p->localClient->registration)
-  {
-    strlcpy(buf, source_p->username, sizeof(buf));
-
-    /*
-     * USER already received, now we have NICK.
-     */
-    register_local_user(source_p, source_p, nick, buf);
-  }
+    register_local_user(source_p);
 }
 
 /*! \brief NICK command handler (called by unregistered,
@@ -194,7 +184,7 @@ mr_nick(struct Client *client_p, struct Client *source_p,
   if ((target_p = find_client(nick)) == NULL)
     set_initial_nick(source_p, nick);
   else if (source_p == target_p)
-    strcpy(source_p->name, nick);
+    strlcpy(source_p->name, nick, sizeof(source_p->name));
   else
     sendto_one(source_p, form_str(ERR_NICKNAMEINUSE), me.name, "*", nick);
 }
@@ -682,7 +672,7 @@ nick_from_server(struct Client *client_p, struct Client *source_p, int parc,
         source_p->umodes |= flag & SEND_UMODES;
       }
 
-      register_remote_user(client_p, source_p, parv[5], parv[6],
+      register_remote_user(source_p, parv[5], parv[6],
                            parv[7], ngecos);
       return;
     }
@@ -749,13 +739,13 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
   hints.ai_family = AF_UNSPEC;
   hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
-  irc_getaddrinfo(parv[7], 0, &hints, &res);
+  getaddrinfo(parv[7], 0, &hints, &res);
 
   if(res != NULL)
   {
     memcpy(&source_p->ip, res->ai_addr, res->ai_addrlen);
     source_p->ip.ss_len = res->ai_addrlen;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
   }
 
   hash_add_client(source_p);
@@ -774,7 +764,7 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
     source_p->umodes |= flag & SEND_UMODES;
   }
 
-  register_remote_user(client_p, source_p, parv[5], parv[6],
+  register_remote_user(source_p, parv[5], parv[6],
                        servername, parv[9]);
 }
 

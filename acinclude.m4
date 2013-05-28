@@ -3,6 +3,8 @@ dnl vim: set fdm=marker sw=2 ts=2 et si:
 dnl {{{ ax_check_lib_ipv4
 AC_DEFUN([AX_CHECK_LIB_IPV4],[
   AC_SEARCH_LIBS([socket],[socket],,[AC_MSG_ERROR([socket library not found])])
+  AC_SEARCH_LIBS([inet_ntoa], [nsl])
+  AC_SEARCH_LIBS([inet_aton], [resolv])
   AC_CHECK_FUNCS([inet_aton inet_ntop inet_pton])
   AC_CHECK_TYPES([struct sockaddr_in, struct sockaddr_storage, struct addrinfo],,,[#include <sys/types.h>
    #include <sys/socket.h>
@@ -13,8 +15,7 @@ AC_DEFUN([AX_CHECK_LIB_IPV4],[
 ])dnl }}}
 dnl {{{ ax_check_lib_ipv6
 AC_DEFUN([AX_CHECK_LIB_IPV6],[
-  AC_CHECK_TYPES([struct sockaddr_in6],,[AC_DEFINE([IPV6],[1],[Define to 1 if you have IPv6 support.])],,[#include <sys/types.h>
-   <sys/socket.h>])
+  AC_CHECK_TYPE([struct sockaddr_in6],[AC_DEFINE([IPV6],[1],[Define to 1 if you have IPv6 support.])],,[#include <netinet/in.h>])
 ])dnl }}}
 dnl {{{ ax_arg_enable_ioloop_mechanism (FIXME)
 AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
@@ -41,7 +42,7 @@ AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
   dnl {{{ check for epoll oechanism support
   iopoll_mechanism_epoll=2
   AC_DEFINE_UNQUOTED([__IOPOLL_MECHANISM_EPOLL],[$iopoll_mechanism_epoll],[epoll mechanism])
-  AC_RUN_IFELSE([AC_LANG_PROGRAM([
+  AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/epoll.h>
 #include <sys/syscall.h>
 #if defined(__stub_epoll_create) || defined(__stub___epoll_create) || defined(EPOLL_NEED_BODY)
@@ -70,8 +71,8 @@ AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
 #endif
 _syscall1(int, epoll_create, int, size)
 #endif
-main() { return epoll_create(256) == -1 ? 1 : 0; }
-  ])],[is_epoll_mechanism_available="yes"],[is_epoll_mechanism_available="no"])
+]], [[ return epoll_create(256) == -1 ? 1 : 0 ]])],
+  [is_epoll_mechanism_available="yes"],[is_epoll_mechanism_available="no"])
   dnl }}}
   dnl {{{ check for devpoll mechanism support
   iopoll_mechanism_devpoll=3
@@ -88,14 +89,16 @@ main() { return epoll_create(256) == -1 ? 1 : 0; }
   dnl {{{ check for rtsigio mechanism support
   iopoll_mechanism_rtsigio=4
   AC_DEFINE_UNQUOTED([__IOPOLL_MECHANISM_RTSIGIO],[$iopoll_mechanism_rtsigio],[rtsigio mechanism])
-  AC_RUN_IFELSE([AC_LANG_PROGRAM([
+  AC_RUN_IFELSE([AC_LANG_PROGRAM([[
+#define _GNU_SOURCE
 #include <fcntl.h>
+static unsigned int have_f_setsig = 0;
+  ]], [[
 #ifdef F_SETSIG
-main () { return 0; } /* F_SETSIG defined */
-#else
-main () { return 1; } /* F_SETSIG not defined */
+  have_f_setsig = 1;
 #endif
-  ])],[is_rtsigio_mechanism_available="yes"],[is_rtsigio_mechanism_available="no"])
+  return have_f_setsig == 0;
+  ]])], [is_rtsigio_mechanism_available="yes"],[is_rtsigio_mechanism_available="no"])
   dnl }}}
   dnl {{{ check for poll mechanism support
   iopoll_mechanism_poll=5
@@ -182,7 +185,6 @@ AC_DEFUN([AX_ARG_ENABLE_EFNET],[
   if test "$efnet" = "yes" ; then
 		use_efnet="yes"
     AC_DEFINE([EFNET],[1],[Define to 1 if this server will be an EFnet server.])
-		AC_DEFINE([TS5_ONLY],[1],[If Defined to 1 server links to your network must have a minimum of TS5.])
 	else
 		use_efnet="no"
   fi

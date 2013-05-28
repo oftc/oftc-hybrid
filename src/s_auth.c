@@ -44,9 +44,7 @@
 #include "event.h"
 #include "hook.h"
 #include "irc_string.h"
-#include "sprintf_irc.h"
 #include "ircd.h"
-#include "numeric.h"
 #include "packet.h"
 #include "irc_res.h"
 #include "s_bsd.h"
@@ -445,7 +443,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
   char authbuf[32];
   socklen_t ulen = sizeof(struct irc_ssaddr);
   socklen_t tlen = sizeof(struct irc_ssaddr);
-  u_int16_t uport, tport;
+  uint16_t uport, tport;
 #ifdef IPV6
   struct sockaddr_in6 *v6;
 #else
@@ -485,7 +483,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
   them.ss_len = tlen;
 #endif
   
-  ircsprintf(authbuf, "%u , %u\r\n", tport, uport); 
+  snprintf(authbuf, sizeof(authbuf), "%u , %u\r\n", tport, uport);
 
   if (send(fd->fd, authbuf, strlen(authbuf), 0) == -1)
   {

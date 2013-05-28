@@ -38,7 +38,6 @@
 #include "parse.h"
 #include "modules.h"
 #include "restart.h"
-#include "sprintf_irc.h"
 
 
 static void mo_die(struct Client *, struct Client *, int, char *[]);
@@ -94,7 +93,7 @@ mo_die(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  ircsprintf(buf, "received DIE command from %s",
-             get_oper_name(source_p));
+  snprintf(buf, sizeof(buf), "received DIE command from %s",
+           get_oper_name(source_p));
   server_die(buf, 0);
 }

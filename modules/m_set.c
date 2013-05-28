@@ -186,7 +186,7 @@ quote_autoconn(struct Client *source_p, const char *arg, int newval)
 
       sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s has changed AUTOCONN for %s to %i",
-                           source_p->name, arg, newval);
+                           get_oper_name(source_p), arg, newval);
       sendto_one(source_p,
                  ":%s NOTICE %s :AUTOCONN for %s is now set to %i",
                  me.name, source_p->name, arg, newval);
@@ -211,7 +211,7 @@ quote_autoconnall(struct Client *source_p, int newval)
   if (newval >= 0)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "%s has changed AUTOCONNALL to %i",
-                         source_p->name, newval);
+                         get_oper_name(source_p), newval);
 
     GlobalSetOptions.autoconn = newval;
   }
@@ -229,9 +229,9 @@ quote_floodcount(struct Client *source_p, int newval)
   if (newval >= 0)
   {
     GlobalSetOptions.floodcount = newval;
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-                         "%s has changed FLOODCOUNT to %i", source_p->name,
-                         GlobalSetOptions.floodcount);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "%s has changed FLOODCOUNT to %i",
+                         get_oper_name(source_p), GlobalSetOptions.floodcount);
   }
   else
   {
@@ -273,15 +273,15 @@ quote_idletime(struct Client *source_p, int newval)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s has disabled idletime checking",
-                           source_p->name);
+                           get_oper_name(source_p));
       GlobalSetOptions.idletime = 0;
     }
     else
     {
       sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s has changed IDLETIME to %i",
-                           source_p->name, newval);
-      GlobalSetOptions.idletime = (newval*60);
+                           get_oper_name(source_p), newval);
+      GlobalSetOptions.idletime = (newval * 60);
     }
   }
   else
@@ -308,8 +308,8 @@ quote_log(struct Client *source_p, int newval)
       newval = L_DEBUG;
 
     set_log_level(newval);
-    sendto_realops_flags(UMODE_ALL, L_ALL,"%s has changed LOG level to %i (%s)",
-                         source_p->name, get_log_level(),
+    sendto_realops_flags(UMODE_ALL, L_ALL, "%s has changed LOG level to %i (%s)",
+                         get_oper_name(source_p), get_log_level(),
                          get_log_level_as_string(get_log_level()));
   }
   else
@@ -330,7 +330,7 @@ quote_max(struct Client *source_p, int newval)
     {
       sendto_one(source_p,
         ":%s NOTICE %s :You cannot set MAXCLIENTS to > %d, restoring to %d",
-	me.name, source_p->name, MAXCLIENTS_MAX);
+	me.name, source_p->name, MAXCLIENTS_MAX, ServerInfo.max_clients);
       return;
     }
 
@@ -344,10 +344,9 @@ quote_max(struct Client *source_p, int newval)
 
     ServerInfo.max_clients = newval;
 
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-	"%s!%s@%s set new MAXCLIENTS to %d (%d current)",
-	source_p->name, source_p->username, source_p->host,
-	ServerInfo.max_clients, Count.local);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+	"%s set new MAXCLIENTS to %d (%d current)",
+	get_oper_name(source_p), ServerInfo.max_clients, Count.local);
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :Current MAXCLIENTS = %d (%d)",
@@ -385,8 +384,8 @@ quote_spamnum(struct Client *source_p, int newval)
     }
 
     GlobalSetOptions.spam_num = IRCD_MAX(newval, MIN_SPAM_NUM);
-    sendto_realops_flags(UMODE_ALL, L_ALL,"%s has changed SPAMNUM to %i",
-                         source_p->name, GlobalSetOptions.spam_num);
+    sendto_realops_flags(UMODE_ALL, L_ALL, "%s has changed SPAMNUM to %i",
+                         get_oper_name(source_p), GlobalSetOptions.spam_num);
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :SPAMNUM is currently %i",
@@ -401,7 +400,7 @@ quote_spamtime(struct Client *source_p, int newval)
   {
     GlobalSetOptions.spam_time = IRCD_MAX(newval, MIN_SPAM_TIME);
     sendto_realops_flags(UMODE_ALL, L_ALL, "%s has changed SPAMTIME to %i",
-                         source_p->name, GlobalSetOptions.spam_time);
+                         get_oper_name(source_p), GlobalSetOptions.spam_time);
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :SPAMTIME is currently %i",
@@ -482,7 +481,7 @@ quote_splitmode(struct Client *source_p, char *charval)
      */
     sendto_one(source_p, ":%s NOTICE %s :SPLITMODE is currently %s", 
                me.name, source_p->name, 
-	       splitmode_status[(splitchecking + (splitmode*2))]);
+	       splitmode_status[(splitchecking + (splitmode * 2))]);
 }
 
 /* SET SPLITNUM */
@@ -493,7 +492,7 @@ quote_splitnum(struct Client *source_p, int newval)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "%s has changed SPLITNUM to %i", 
-			 source_p->name, newval);
+			 get_oper_name(source_p), newval);
     split_servers = newval;
 
     if (splitchecking)
@@ -512,7 +511,7 @@ quote_splitusers(struct Client *source_p, int newval)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "%s has changed SPLITUSERS to %i", 
-			 source_p->name, newval);
+			 get_oper_name(source_p), newval);
     split_users = newval;
 
     if (splitchecking)
@@ -531,7 +530,7 @@ quote_jfloodtime(struct Client *source_p, int newval)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed JFLOODTIME to %i", 
-			 source_p->name, newval);
+			 get_oper_name(source_p), newval);
     GlobalSetOptions.joinfloodtime = newval;
   }
   else
@@ -547,7 +546,7 @@ quote_jfloodcount(struct Client *source_p, int newval)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed JFLOODCOUNT to %i", 
-			 source_p->name, newval);
+			 get_oper_name(source_p), newval);
     GlobalSetOptions.joinfloodcount = newval;
   }
   else
@@ -563,7 +562,7 @@ quote_rejecttime(struct Client *source_p, int newval)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed REJECTTIME to %i seconds", 
-			 source_p->name, newval);
+			 get_oper_name(source_p), newval);
     GlobalSetOptions.rejecttime = newval;
   }
   else

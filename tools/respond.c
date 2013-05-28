@@ -66,7 +66,7 @@ static int pass_cb(char *buf, int size, int rwflag, void *u)
 static void
 binary_to_hex( unsigned char * bin, char * hex, int length )
 {
-	char * trans = "0123456789ABCDEF";
+	static const char trans[] = "0123456789ABCDEF";
 	int i;
 
 	for( i = 0; i < length; i++ )

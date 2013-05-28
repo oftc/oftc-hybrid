@@ -34,14 +34,11 @@
 #include "dbuf.h"
 #include "event.h"
 #include "irc_string.h"
-#include "irc_getnameinfo.h"
-#include "irc_getaddrinfo.h"
 #include "ircd.h"
 #include "listener.h"
 #include "numeric.h"
 #include "packet.h"
 #include "irc_res.h"
-#include "inet_misc.h"
 #include "restart.h"
 #include "s_auth.h"
 #include "s_conf.h"
@@ -198,7 +195,14 @@ close_connection(struct Client *client_p)
     send_queued_write(client_p);
   }
 
-  if (IsServer(client_p))
+  if (IsClient(client_p))
+  {
+    ++ServerStats.is_cl;
+    ServerStats.is_cbs += client_p->localClient->send.bytes;
+    ServerStats.is_cbr += client_p->localClient->recv.bytes;
+    ServerStats.is_cti += CurrentTime - client_p->firsttime;
+  }
+  else if (IsServer(client_p))
   {
     ++ServerStats.is_sv;
     ServerStats.is_sbs += client_p->localClient->send.bytes;
@@ -228,13 +232,6 @@ close_connection(struct Client *client_p)
       aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
         HANGONRETRYDELAY : ConFreq(aclass);
     }
-  }
-  else if (IsClient(client_p))
-  {
-    ++ServerStats.is_cl;
-    ServerStats.is_cbs += client_p->localClient->send.bytes;
-    ServerStats.is_cbr += client_p->localClient->recv.bytes;
-    ServerStats.is_cti += CurrentTime - client_p->firsttime;
   }
   else
     ++ServerStats.is_ni;
@@ -335,39 +332,32 @@ ssl_handshake(int fd, struct Client *client_p)
 void
 add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 {
-  struct Client *new_client;
-
-  assert(NULL != listener);
-
-  new_client = make_client(NULL);
+  struct Client *new_client = make_client(NULL);
 
   fd_open(&new_client->localClient->fd, fd, 1,
           (listener->flags & LISTENER_SSL) ?
 	  "Incoming SSL connection" : "Incoming connection");
 
-  /* 
+  /*
    * copy address to 'sockhost' as a string, copy it to host too
    * so we have something valid to put into error messages...
    */
   memcpy(&new_client->ip, irn, sizeof(struct irc_ssaddr));
 
-  irc_getnameinfo((struct sockaddr*)&new_client->ip,
+  getnameinfo((struct sockaddr*)&new_client->ip,
         new_client->ip.ss_len, new_client->sockhost, 
         sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
   new_client->aftype = new_client->ip.ss.ss_family;
-#ifdef IPV6
-  if (new_client->sockhost[0] == ':')
-    strlcat(new_client->host, "0", HOSTLEN+1);
 
-  if (new_client->aftype == AF_INET6 && 
-      ConfigFileEntry.dot_in_ip6_addr == 1)
+  if (new_client->sockhost[0] == ':' && new_client->sockhost[1] == ':')
   {
-    strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
-    strlcat(new_client->host, ".", HOSTLEN+1);
+    strlcpy(new_client->host, "0", sizeof(new_client->host));
+    strlcpy(new_client->host+1, new_client->sockhost, sizeof(new_client->host)-1);
+    memmove(new_client->sockhost+1, new_client->sockhost, sizeof(new_client->sockhost)-1);
+    new_client->sockhost[0] = '0';
   }
   else
-#endif
-    strlcat(new_client->host, new_client->sockhost,HOSTLEN+1);
+    strlcpy(new_client->host, new_client->sockhost, sizeof(new_client->host));
 
   new_client->localClient->listener = listener;
   ++listener->ref_count;
@@ -554,7 +544,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
 
   snprintf(portname, sizeof(portname), "%d", port);
 
-  if (irc_getaddrinfo(host, portname, &hints, &res))
+  if (getaddrinfo(host, portname, &hints, &res))
   {
     /* Send the DNS request, for the next level */
     if (aftype == AF_INET6)
@@ -570,7 +560,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     memcpy(&fd->connect.hostaddr, res->ai_addr, res->ai_addrlen);
     fd->connect.hostaddr.ss_len = res->ai_addrlen;
     fd->connect.hostaddr.ss.ss_family = res->ai_family;
-    irc_freeaddrinfo(res);
+    freeaddrinfo(res);
     comm_settimeout(fd, timeout*1000, comm_connect_timeout, NULL);
     comm_connect_tryconnect(fd, NULL);
   }
@@ -780,8 +770,7 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
 
 /* 
  * remove_ipv6_mapping() - Removes IPv4-In-IPv6 mapping from an address
- * This function should really inspect the struct itself rather than relying
- * on inet_pton and inet_ntop.  OSes with IPv6 mapping listening on both
+ * OSes with IPv6 mapping listening on both
  * AF_INET and AF_INET6 map AF_INET connections inside AF_INET6 structures
  * 
  */
@@ -791,15 +780,15 @@ remove_ipv6_mapping(struct irc_ssaddr *addr)
 {
   if (addr->ss.ss_family == AF_INET6)
   {
-    struct sockaddr_in6 *v6;
-
-    v6 = (struct sockaddr_in6*)addr;
-    if (IN6_IS_ADDR_V4MAPPED(&v6->sin6_addr))
+    if (IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)addr)->sin6_addr))
     {
-      char v4ip[HOSTIPLEN];
-      struct sockaddr_in *v4 = (struct sockaddr_in*)addr;
-      inetntop(AF_INET6, &v6->sin6_addr, v4ip, HOSTIPLEN);
-      inet_pton(AF_INET, v4ip, &v4->sin_addr);
+      struct sockaddr_in6 v6; 
+      struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
+
+      memcpy(&v6, addr, sizeof(v6));
+      memset(v4, 0, sizeof(struct sockaddr_in));
+      memcpy(&v4->sin_addr, &v6.sin6_addr.s6_addr[12], sizeof(v4->sin_addr));
+
       addr->ss.ss_family = AF_INET;
       addr->ss_len = sizeof(struct sockaddr_in);
     }

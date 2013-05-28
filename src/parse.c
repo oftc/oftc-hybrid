@@ -220,20 +220,8 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
        * the ID check should always come first, though, since it is so easy.
        */
       if ((from = find_person(client_p, sender)) == NULL)
-      {
         from = find_server(sender);
 
-	if (from == NULL && IsCapable(client_p, CAP_TS6) &&
-	  client_p->name[0] == '*' && IsDigit(*sender) && strlen(sender) == 3)
-	{
-          /* Dirty hack to allow messages from masked SIDs (i.e. the ones
-           * hidden by fakename="..."). It shouldn't break anything, since
-           * unknown SIDs don't happen during normal ircd work --adx
-           */
-	  from = client_p;
-	}
-      }
-      
       /* Hmm! If the client corresponding to the
        * prefix is not found--what is the correct
        * action??? Now, I will ignore the message
@@ -859,7 +847,7 @@ m_registered(struct Client *client_p, struct Client *source_p,
              int parc, char *parv[])
 {
   sendto_one(client_p, form_str(ERR_ALREADYREGISTRED),   
-             me.name, parv[0]); 
+             me.name, source_p->name);
 }
 
 void

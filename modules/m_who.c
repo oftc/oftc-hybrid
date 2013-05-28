@@ -365,7 +365,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
     }
     flags++;
   }
-
+  
   /* if we specified search_chan, we _must_ specify something useful 
    * to go with it. Specifying a channel makes no sense, and no params make no 
    * sense either, as does specifying a nick.

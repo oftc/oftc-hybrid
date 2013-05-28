@@ -53,7 +53,6 @@
 #include "s_serv.h"      /* server_estab, check_server, my_name_for_link */
 #include "motd.h"
 
-static int bogus_host(char *host);
 static char *parse_cryptserv_args(struct Client *client_p,
                                   char *parv[], int parc, char *info,
                                   char *key);
@@ -299,7 +298,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
   /* CRYPTLINK SERV support => TS support */
   client_p->tsinfo = TS_DOESTS;
 
-  if (bogus_host(name))
+  if (!valid_servname(name))
   {
     exit_client(client_p, client_p, "Bogus server name");
     return;
@@ -510,32 +509,4 @@ parse_cryptserv_args(struct Client *client_p, char *parv[],
 
   return(name);
 }
-
-/* bogus_host()
- *
- * inputs	- hostname
- * output	- 1 if a bogus hostname input, 0 if its valid
- * side effects	- none
- */
-static int
-bogus_host(char *host)
-{
-  unsigned int length = 0;
-  unsigned int dots   = 0;
-  char *s = host;
-
-  for (; *s; s++)
-  {
-    if (!IsServChar(*s))
-      return(1);
-
-    ++length;
-
-    if ('.' == *s)
-      ++dots;
-  }
-
-  return(!dots || length > HOSTLEN);
-}
-
 #endif

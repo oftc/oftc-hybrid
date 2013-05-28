@@ -2,7 +2,7 @@
 
    $Id$
 
-   Copyright (c) 1997-2009 IRCD-Hybrid Development Team
+   Copyright (c) 1997-2011 IRCD-Hybrid Development Team
 
      ----------------------------------------------------------------------
 
@@ -35,10 +35,7 @@
    
    1.  Read the NEWS file to find out about the exciting new features in
        this version. Other good reads are BUGS, etc/example.conf, and
-       README.FIRST.
-
-       An example.conf for EFnet is in etc/ with the values "approved" as of
-       October 12th, 2003 called example.efnet.conf.
+       README.
 
    2.  Run the configure script. It will create config.h and the
        Makefiles to match your system. In hybrid-7, the paths are now handled
@@ -122,10 +119,8 @@
 
    3.  Run 'make'; this should build the ircd.
 
-   4.  Run 'make install'; this will install the server, modules(1), and tools
+   4.  Run 'make install'; this will install the server, modules, and tools
        in the path with the prefix specified when configure was ran.
-
-           (1) Unless the server was compiled without module support.
 
    5.  If you wish to install the contrib modules, run 'make install' in the
        contrib/ folder to compile and install the modules and help pages.
@@ -145,11 +140,10 @@
              their specific names.
 
    7.  If you are upgrading from Hybrid 5 or Hybrid 6, the config files
-       have changed drastically...
+       have changed drastically.
 
        By default, the kline file is named kline.conf, the dline file is 
-       named dline.conf, the xline file is called xline.conf, and the gline 
-       file is called gline.conf.
+       named dline.conf, and the xline file is called xline.conf.
 
        The nick resv file is named nresv.conf, channel resv file is named
        cresv.conf.
