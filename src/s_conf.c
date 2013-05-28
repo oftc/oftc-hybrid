@@ -413,14 +413,14 @@ delete_conf_item(struct ConfItem *conf)
     case OPER_TYPE:
       aconf = map_to_conf(conf);
       if (!IsConfIllegal(aconf))
-  dlinkDelete(&conf->node, &oconf_items);
+        dlinkDelete(&conf->node, &oconf_items);
       MyFree(conf);
       break;
 
     case SERVER_TYPE:
       aconf = map_to_conf(conf);
       if (!IsConfIllegal(aconf))
-  dlinkDelete(&conf->node, &server_items);
+        dlinkDelete(&conf->node, &server_items);
       MyFree(conf);
       break;
 
@@ -755,7 +755,7 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
        * Allow admins to see actual ips unless hide_server_ips is enabled
        */
       if (!ConfigServerHide.hide_server_ips && IsAdmin(source_p))
-  sendto_one(source_p, form_str(RPL_STATSCLINE),
+        sendto_one(source_p, form_str(RPL_STATSCLINE),
        me.name, source_p->name, 'C', aconf->host,
        buf, conf->name, aconf->port,
        aconf->class_ptr ? aconf->class_ptr->name : "<default>");
@@ -3218,9 +3218,6 @@ void
 yyerror(const char *msg)
 {
   char newlinebuf[IRCD_BUFSIZE];
-
-  if (conf_parser_ctx.pass != 1)
-    return;
 
   strip_tabs(newlinebuf, linebuf, sizeof(newlinebuf));
   sendto_realops_flags(UMODE_ALL, L_ALL, "\"%s\", line %u: %s: %s",
