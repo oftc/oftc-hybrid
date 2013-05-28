@@ -83,7 +83,7 @@
  * +pi means paranoid and will generate notices on each invite */
 #define PrivateChannel(x)       (((x)->mode.mode & MODE_PRIVATE))
 #define RegOnlyChannel(x)       ((x) && ((x)->mode.mode & MODE_REGONLY))
-#define SpeakOnlyIfReg(x)       ((x) && ((x)->mode.mode & MODE_SPEAKONLYIFREG))
+#define SpeakOnlyIfReg(x)       ((x) && ((x)->mode.mode & MODE_SPEAKIFREG))
 #define SSLonlyChannel(x)       ((x) && ((x)->mode.mode & MODE_SSLONLY))
     
 

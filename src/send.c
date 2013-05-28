@@ -1043,7 +1043,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
       case UMODE_OPERWALL:
         DLINK_FOREACH(ptr, oper_list.head)
         {
-          struct client_p = ptr->data;
+          struct Client *client_p = ptr->data;
           assert(client_p->umodes & UMODE_OPER);
 
           if ((client_p->umodes & flags) && !IsDefunct(client_p))
@@ -1053,7 +1053,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
       case UMODE_WALLOP:
         DLINK_FOREACH(ptr, local_client_list.head)
         {
-            struct client_p = ptr->data;
+            struct Client *client_p = ptr->data;
             if((client_p->umodes & flags) && !IsDefunct(client_p))
               send_message(client_p, buffer, len);
         }

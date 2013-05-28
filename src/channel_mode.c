@@ -339,7 +339,7 @@ static const struct mode_letter
   { MODE_PRIVATE,    'p' },
   { MODE_SECRET,     's' },
   { MODE_TOPICLIMIT, 't' },
-  { MODE_OPMODERATED,'z' },
+  { MODE_OPMOD,      'z' },
   { MODE_SPEAKIFREG, 'M' },
   { MODE_OPERONLY,   'O' },
   { MODE_REGONLY,    'R' },
@@ -1520,13 +1520,13 @@ static struct ChannelMode ModeTable[255] =
   {chm_nosuch, NULL},                             /* J */
   {chm_nosuch, NULL},                             /* K */
   {chm_nosuch, NULL},                             /* L */
-  {chm_simple, (void*)MODE_SPEAKONLYIFREG},       /* M */
+  {chm_simple, (void*)MODE_SPEAKIFREG},           /* M */
   {chm_nosuch, NULL},                             /* N */
-  {chm_operonly, (void *) MODE_OPERONLY},         /* O */
+  {chm_operonly, (void *)MODE_OPERONLY},          /* O */
   {chm_nosuch, NULL},                             /* P */
   {chm_nosuch, NULL},                             /* Q */
-  {chm_simple, (void *)MODE_REGONLY},              /* R */
-  {chm_simple, (void *)MODE_SSLONLY},              /* S */
+  {chm_simple, (void *)MODE_REGONLY},             /* R */
+  {chm_simple, (void *)MODE_SSLONLY},             /* S */
   {chm_nosuch, NULL},                             /* T */
   {chm_nosuch, NULL},                             /* U */
   {chm_nosuch, NULL},                             /* V */
@@ -1556,7 +1556,7 @@ static struct ChannelMode ModeTable[255] =
   {chm_nosuch, NULL},                             /* j */
   {chm_key, NULL},                                /* k */
   {chm_limit, NULL},                              /* l */
-  {chm_simple, (void *) MODE_MODERATED},          /* m */
+  {chm_simple, (void *) MODE_MODERATED},         /* m */
   {chm_simple, (void *) MODE_NOPRIVMSGS},         /* n */
   {chm_op, NULL},                                 /* o */
   {chm_simple, (void *) MODE_PRIVATE},            /* p */
@@ -1569,7 +1569,7 @@ static struct ChannelMode ModeTable[255] =
   {chm_nosuch, NULL},                             /* w */
   {chm_nosuch, NULL},                             /* x */
   {chm_nosuch, NULL},                             /* y */
-  {chm_simple, (void *) MODE_OPMODERATED},        /* z */
+  {chm_simple, (void *) MODE_OPMOD},              /* z */
 };
 
 /* get_channel_access()

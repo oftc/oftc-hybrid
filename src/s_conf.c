@@ -1288,7 +1288,7 @@ dump_ip_hash_table(struct Client *source_p)
   {
     for(ptr = ip_hash_table[i]; ptr != NULL; ptr = ptr->next)
     {
-      int ret = irc_getnameinfo((struct sockaddr*)&ptr->ip, ptr->ip.ss_len,
+      int ret = getnameinfo((struct sockaddr*)&ptr->ip, ptr->ip.ss_len,
                   numaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
 
       sendto_one(source_p, ":%s %d %s n :ip_hash_table: %s %d", me.name, 
@@ -2477,7 +2477,7 @@ get_oper_name(const struct Client *client_p)
 
       if (IsConfOperator(aconf))
       {
-        snprintf(buffer, "%s!%s@%s{%s}", client_p->name,
+        snprintf(buffer, sizeof(buffer), "%s!%s@%s{%s}", client_p->name,
             client_p->username, client_p->host,
             conf->name);
         return buffer;
@@ -3262,7 +3262,7 @@ valid_tkline(const char *p, int minutes)
   for (; *p; ++p)
   {
     if (!IsDigit(*p))
-      return;
+      return 0;
 
     result *= 10;
     result += ((*p) & 0xF);

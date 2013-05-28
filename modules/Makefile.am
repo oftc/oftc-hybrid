@@ -2,7 +2,7 @@ MAINTAINERCLEANFILES=Makefile.in
 SUBDIRS=core
 AM_CPPFLAGS=-I$(top_srcdir)/include $(OPENSSL_INCLUDES)
 
-moduledir=$(pkglibdir)/autoload
+moduledir=$(pkglibdir)/modules/autoload
 
 if USE_SHARED_MODULES
 AM_LDFLAGS=-no-undefined -module -avoid-version
@@ -80,6 +80,3 @@ m_whois_la_SOURCES=m_whois.c
 m_whowas_la_SOURCES=m_whowas.c
 m_xline_la_SOURCES=m_xline.c
 #soft_reboot_la_SOURCES=soft_reboot.c
-
-install-exec-local:
-	rm -f $(DESTDIR)/$(moduledir)/*.la $(DESTDIR)/$(moduledir)/*.a $(DESTDIR)/$(moduledir)/*.so

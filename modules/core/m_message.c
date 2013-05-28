@@ -495,7 +495,7 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
             ID_or_name(&me, client_p),
             ID_or_name(source_p, client_p), chptr->chname);
 
-      if(chptr->mode.mode & MODE_OPMODERATED)
+      if(chptr->mode.mode & MODE_OPMOD)
       {
         msg_channel_flags(p_or_n, command, client_p, source_p, chptr, CHFL_CHANOP,
             text);

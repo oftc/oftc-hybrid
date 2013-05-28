@@ -55,8 +55,10 @@ static void mo_unkline(struct Client *, struct Client *, int, char **);
 static void ms_unkline(struct Client *, struct Client *, int, char **);
 
 static int already_placed_kline(struct Client *, const char *, const char *, int);
-static void apply_kline(struct Client *, struct ConfItem *, const char *, time_t);
-static void apply_tkline(struct Client *, struct ConfItem *, int);
+static void apply_kline(struct Client *, struct ConfItem *, const char *, 
+    time_t, time_t);
+
+
 
 static char buffer[IRCD_BUFSIZE];
 static int remove_tkline_match(const char *, const char *);
@@ -96,9 +98,6 @@ const char *_version = "$Revision$";
 /* Local function prototypes */
 static int already_placed_kline(struct Client *, const char *, const char *,
     int);
-static void apply_kline(struct Client *, struct ConfItem *, const char *, 
-    time_t, time_t);
-
 static char buffer[IRCD_BUFSIZE];
 
 /* mo_kline()
@@ -293,9 +292,6 @@ apply_kline(struct Client *source_p, struct ConfItem *conf,
     add_conf_by_address(CONF_KILL, aconf);
 
   write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
-  rehashed_klines = 1;
-}
-
   rehashed_klines = 1;
 }
 
@@ -537,6 +533,4 @@ remove_tkline_match(const char *host, const char *user)
   }
 
   return(NO);
-}
-
 }

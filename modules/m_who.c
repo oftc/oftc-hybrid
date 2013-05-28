@@ -234,6 +234,138 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
           wsopts.away_plus = 1; /* they want here people */
         else
           wsopts.away_plus = 0;
+
+        wsopts.check_away = 1;
+        break;
+      case 'C':
+        wsopts.show_chan = change;
+        break;
+      case 'I':
+        wsopts.show_ip = change;
+        break;
+      case 'M':
+        wsopts.search_chan = change;
+        break;
+      case 'c':
+        if(parv[args] == NULL || !change)
+        {
+          sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
+              source_p->name);
+          return 0;
+        }
+        wsopts.channel = hash_find_channel(parv[args]);
+        if(wsopts.channel == NULL)
+        {
+          sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL), me.name,
+              source_p->name, parv[args]);
+          return 0;
+        }
+        wsopts.chan_plus = change;
+        args++;
+        break;
+      case 'g':
+        if(parv[args] == NULL || !IsOper(source_p))
+        {
+          sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
+              source_p->name);
+          return 0;
+        }
+        wsopts.gcos = parv[args];
+        wsopts.gcos_plus = change;
+        args++;
+        break;
+      case 'h':
+        if(parv[args]==NULL)
+        {
+          sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
+              source_p->name);
+          return 0;
+        }
+        wsopts.host = parv[args];
+        wsopts.host_plus = change;
+        args++;
+        break;
+      case 'i':
+        if(parv[args] == NULL || !IsOper(source_p))
+        {
+          sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
+              source_p->name);
+          return 0;
+        }
+        wsopts.ip = parv[args];
+        wsopts.ip_plus = change;
+        args++;
+        break;
+      case 'm':
+        if(parv[args] == NULL)
+        {
+          sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
+              source_p->name);
+          return 0;
+        }
+        s = parv[args];
+        while(*s)
+        {
+          for(i = 0; who_user_modes[i].mode != 0; i++)
+          {
+            if(*s == (char)who_user_modes[i].letter)
+            {
+              wsopts.umodes |= who_user_modes[i].mode;
+              break;
+            }
+          }
+          s++;
+        }
+        if(!IsOper(source_p)) /* only let users search for +/-oOaA */
+          wsopts.umodes = (wsopts.umodes&(UMODE_OPER|UMODE_ADMIN));
+        wsopts.umode_plus = change;
+        if(wsopts.umodes)
+          wsopts.check_umode = 1;
+        args++;
+        break;
+      case 'n':
+        if(parv[args] == NULL)
+        {
+          sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
+              source_p->name);
+          return 0;
+        }
+        wsopts.nick = parv[args];
+        wsopts.nick_plus = change;
+        args++;
+        break;
+      case 's':
+        if(parv[args] == NULL || !change)
+        {
+          sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
+              source_p->name);
+          return 0;
+        }
+        wsopts.server = find_server(parv[args]);
+        if(wsopts.server == NULL)
+        {
+          sendto_one(source_p, form_str(ERR_NOSUCHSERVER), me.name,
+              source_p->name, parv[args]);
+          return 0;
+        }
+        wsopts.serv_plus = change;
+        args++;
+        break;
+      case 'u':
+        if(parv[args] == NULL)
+        {
+          sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
+              source_p->name);
+          return 0;
+        }
+        wsopts.user = parv[args];
+        wsopts.user_plus = change;
+        args++;
+        break;
+    }
+    flags++;
+  }
+  
   /* if we specified search_chan, we _must_ specify something useful 
    * to go with it. Specifying a channel makes no sense, and no params make no 
    * sense either, as does specifying a nick.

@@ -173,13 +173,10 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
         mode.mode |= MODE_NOCOLOR;
         break;
       case 'M':
-        mode.mode |= MODE_SPEAKONLYIFREG;
+        mode.mode |= MODE_SPEAKIFREG;
         break;
       case 'R':
         mode.mode |= MODE_REGONLY;
-        break;
-      case 'S':
-        mode.mode |= MODE_SSLONLY;
         break;
       case 'O':
         mode.mode |= MODE_OPERONLY;

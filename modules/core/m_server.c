@@ -406,6 +406,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
     if (bclient_p == client_p)
       continue;
+  }
 
   sendto_realops_flags(UMODE_EXTERNAL, L_ALL,
                        "Server %s being introduced by %s",
@@ -481,7 +482,9 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   if ((target_p = find_server(parv[1])))
   {
     sendto_one(client_p, "ERROR :Server %s already exists", parv[1]);
-                         get_client_name(client_p, SHOW_IP), parv[1]);
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
+        "Link %s cancelled, server %s already exists",   
+        get_client_name(client_p, SHOW_IP), parv[1]);
     exit_client(client_p, &me, "Server Exists");
     return;
   }
@@ -506,7 +509,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
       match_item = map_to_conf(conf);
 
       if (match(match_item->host, parv[1]))
-	llined++;
+        llined++;
     }
   }
 
@@ -519,7 +522,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
       match_item = map_to_conf(conf);
 
       if (match(match_item->host, parv[1]))
-	hlined++;
+        hlined++;
     }
   }
 
@@ -551,7 +554,6 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   {
     /* OOOPs nope can't HUB */
     sendto_realops_flags(UMODE_ALL, L_ALL, "Non-Hub link %s introduced %s.",
-                         get_client_name(client_p, SHOW_IP), SID_NAME);
                          get_client_name(client_p, SHOW_IP), parv[1]);
     exit_client(source_p, &me, "No matching hub_mask.");
     return;
