@@ -77,6 +77,8 @@ confopts(struct Client *source_p)
 
   if (ConfigChannel.use_invex)
     *p++ = 'I';
+  if (ConfigChannel.use_quiet)
+    *p++ = 'q';
   if (ConfigChannel.use_knock)
     *p++ = 'K';
   *p++ = 'M';
