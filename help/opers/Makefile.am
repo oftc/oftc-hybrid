@@ -1,5 +1,5 @@
-MAINTAINERCLEANFILES=Makefile.in
-helpdir=$(pkgdatadir)/help/opers
+MAINTAINERCLEANFILES = Makefile.in
+helpfdir = $(pkgdatadir)/help/opers
 
 dist_helpf_DATA = accept cmode etrace ison list map nick ping resv stats trace  \
                  unxline whois admin connect gline gungline join locops module  \

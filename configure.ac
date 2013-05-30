@@ -68,7 +68,6 @@ AC_CHECK_HEADERS_ONCE(crypt.h        \
                       sys/param.h    \
                       types.h        \
                       socket.h       \
->>>>>>> 6ba0004... - Remove unused configure tests
                       sys/wait.h     \
                       wait.h)
 

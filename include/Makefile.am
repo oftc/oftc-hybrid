@@ -1,2 +1,49 @@
-MAINTAINERCLEANFILES=Makefile.in config.h.in config.h.in~
-noinst_HEADERS=balloc.h hook.h irc_string.h restart.h s_misc.h channel.h hostmask.h listener.h resv.h sprintf_irc.h channel_mode.h list.h rlimits.h s_serv.h client.h ircd_defs.h memory.h rsa.h stdinc.h common.h ircd_getopt.h m_info.h s_auth.h supported.h dbuf.h ircd.h modules.h s_bsd.h s_user.h defaults.h ircd_handler.h motd.h s_conf.h event.h ircd_signal.h msg.h send.h userhost.h fdlist.h numeric.h serno.h fileio.h packet.h config.h.in whowas.h handlers.h irc_res.h parse.h s_gline.h hash.h irc_reslib.h patchlevel.h s_log.h 
+MAINTAINERCLEANFILES = Makefile.in config.h.in config.h.in~
+noinst_HEADERS = balloc.h       \
+                 channel.h      \
+                 channel_mode.h \
+                 client.h       \
+                 conf.h         \
+                 config.h       \
+                 config.h.in    \
+                 dbuf.h         \
+                 defaults.h     \
+                 event.h        \
+                 fdlist.h       \
+                 hash.h         \
+                 hook.h         \
+                 hostmask.h     \
+                 irc_res.h      \
+                 irc_reslib.h   \
+                 irc_string.h   \
+                 ircd.h         \
+                 ircd_defs.h    \
+                 ircd_getopt.h  \
+                 ircd_signal.h  \
+                 list.h         \
+                 listener.h     \
+                 log.h          \
+                 memory.h       \
+                 modules.h      \
+                 motd.h         \
+                 numeric.h      \
+                 packet.h       \
+                 parse.h        \
+                 patchlevel.h   \
+                 restart.h      \
+                 resv.h         \
+                 rsa.h          \
+                 s_auth.h       \
+                 s_bsd.h        \
+                 s_gline.h      \
+                 s_misc.h       \
+                 s_serv.h       \
+                 s_user.h       \
+                 send.h         \
+                 serno.h        \
+                 sprintf_irc.h  \
+                 stdinc.h       \
+                 supported.h    \
+                 userhost.h     \
+                 watch.h        \
+                 whowas.h
