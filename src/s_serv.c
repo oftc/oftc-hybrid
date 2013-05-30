@@ -382,6 +382,7 @@ check_server(const char *name, struct Client *client_p)
   struct ConfItem *conf           = NULL;
   struct ConfItem *server_conf    = NULL;
   struct AccessItem *aconf        = NULL;
+  struct AccessItem *server_aconf = NULL;
   int error = -1;
 
   assert(client_p != NULL);

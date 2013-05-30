@@ -67,7 +67,6 @@ extern void sendto_match_servs(struct Client *, const char *, int,
 extern void sendto_realops_flags(unsigned int, int,
                                  const char *, ...) AFP(3,4);
 extern void sendto_realops_remote(struct Client *, unsigned int, int, const char *);
-                                 const char *, ...) AFP(3,4);
 extern void sendto_globops_flags(unsigned int, int, const char *, ...) AFP(3,4);
 extern void sendto_wallops_flags(unsigned int, struct Client *,
                                  const char *, ...) AFP(3,4);

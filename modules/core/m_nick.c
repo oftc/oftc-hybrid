@@ -648,11 +648,6 @@ check_clean_host(struct Client *client_p, char *nick,
     return 1;
   }
 
-  if (!clean_host_name(host))
-    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
-                         "Bad Hostname: %s Nickname: %s From: %s(via %s)",
-			 host, nick, server_p->name, client_p->name);
-
   return 0;
 }
 

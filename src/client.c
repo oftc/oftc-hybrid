@@ -51,7 +51,6 @@
 #include "irc_res.h"
 #include "userhost.h"
 #include "watch.h"
-#include "rng_mt.h"
 
 dlink_list listing_client_list = { NULL, NULL, 0 };
 /* Pointer to beginning of Client list */
@@ -384,27 +383,6 @@ check_conf_klines(void)
       ban_them(client_p, conf);
       continue; /* and go examine next fd/client_p */
     }
-
-    if (ConfigFileEntry.glines && (aconf = find_gline(client_p)))
-    {
-      if (IsExemptKline(client_p) ||
-          IsExemptGline(client_p))
-      {
-        sendto_realops_flags(UMODE_ALL, L_ALL, 
-                             "GLINE over-ruled for %s, client is %sline_exempt",
-                             get_client_name(client_p, HIDE_IP), IsExemptKline(client_p) ? "k" : "g");
-        continue;
-      }
-
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-          "GLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
-          aconf->reason, get_client_name(client_p, SHOW_IP));
-
-      conf = unmap_conf_item(aconf);
-      ban_them(client_p, conf);
-      /* and go examine next fd/client_p */    
-      continue;
-    } 
 
     if ((aconf = find_kill(client_p)) != NULL) 
     {
@@ -1264,7 +1242,7 @@ idle_time_get(struct Client *source_p, struct Client *target_p)
     return min_idle;
 
   if (class->flags & CONF_FLAGS_RANDOM_IDLE)
-    idle = genrand_int32();
+    idle = rand();
   else
     idle = CurrentTime - target_p->localClient->last_privmsg;
 

@@ -1574,8 +1574,8 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
                      const char *user, const char *host)
 {
   dlink_node *ptr = NULL;
-  struct AccessItem *aconf;
-  struct ConfItem *conf;
+  struct AccessItem *aconf = NULL;
+  struct ConfItem *conf = NULL;
   struct MatchItem *match_item;
   dlink_list *list_p;
 
@@ -1634,14 +1634,14 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
                   return conf;
               break;
             case HM_IPV4:
-              if (who->localClient->aftype == AF_INET)
+              if (who->aftype == AF_INET)
                 if (match_ipv4(&who->ip, &aconf->addr, aconf->bits))
                   if (!aclass->max_total || aclass->curr_user_count < aclass->max_total)
                     return conf;
               break;
 #ifdef IPV6
             case HM_IPV6:
-              if (who->localClient->aftype == AF_INET6)
+              if (who->aftype == AF_INET6)
                 if (match_ipv6(&who->ip, &aconf->addr, aconf->bits))
                   if (!aclass->max_total || aclass->curr_user_count < aclass->max_total)
                     return conf;
@@ -2006,11 +2006,6 @@ struct AccessItem *
 find_kill(struct Client *client_p)
 {
   struct AccessItem *aconf = NULL;
-  const char *uhi[3];
-
-  uhi[0] = client_p->username;
-  uhi[1] = client_p->host;
-  uhi[2] = client_p->sockhost;
 
   assert(client_p != NULL);
 
