@@ -1047,15 +1047,6 @@ chm_quiet(struct Client *client_p, struct Client *source_p,
                source_p->name, chname);
     return;
   }
- if (!ConfigChannel.use_quiet && MyClient(source_p) && 
-      (dir == MODE_ADD) && (parc > *parn))
-  {
-    if (*errors & SM_ERR_RPL_Q)
-      return;
-    
-    *errors |= SM_ERR_RPL_Q;
-    return;
-  }
 
   if (alev < CHACCESS_HALFOP)
   {
@@ -1097,10 +1088,7 @@ chm_quiet(struct Client *client_p, struct Client *source_p,
   mode_changes[mode_count].caps = CAP_QUIET;
   mode_changes[mode_count].nocaps = 0;
 
-  if (ConfigChannel.use_quiet)
-    mode_changes[mode_count].mems = ONLY_CHANOPS;
-  else
-    mode_changes[mode_count].mems = ONLY_SERVERS;
+  mode_changes[mode_count].mems = ONLY_CHANOPS;
 
   mode_changes[mode_count].id = NULL;
   mode_changes[mode_count++].arg = mask;
