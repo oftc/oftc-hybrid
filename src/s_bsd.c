@@ -30,7 +30,6 @@
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "client.h"
-#include "common.h"
 #include "dbuf.h"
 #include "event.h"
 #include "irc_string.h"
@@ -41,8 +40,8 @@
 #include "irc_res.h"
 #include "restart.h"
 #include "s_auth.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "memory.h"
@@ -131,8 +130,7 @@ report_error(int level, const char* text, const char* who, int error)
   who = (who) ? who : "";
 
   sendto_realops_flags(UMODE_DEBUG, level, text, who, strerror(error));
-  log_oper_action(LOG_IOERR_TYPE, NULL, "%s %s %s\n", who, text, strerror(error));
-  ilog(L_ERROR, text, who, strerror(error));
+  ilog(LOG_TYPE_IRCD, text, who, strerror(error));
 }
 
 /*
@@ -178,11 +176,11 @@ init_comm(void)
 void
 close_connection(struct Client *client_p)
 {
-  struct ConfItem *conf;
   struct AccessItem *aconf;
   struct ClassItem *aclass;
+  dlink_node *ptr = NULL;
 
-  assert(NULL != client_p);
+  assert(client_p);
 
   if (!IsDead(client_p))
   {
@@ -200,37 +198,29 @@ close_connection(struct Client *client_p)
     ++ServerStats.is_cl;
     ServerStats.is_cbs += client_p->localClient->send.bytes;
     ServerStats.is_cbr += client_p->localClient->recv.bytes;
-    ServerStats.is_cti += CurrentTime - client_p->firsttime;
+    ServerStats.is_cti += CurrentTime - client_p->localClient->firsttime;
   }
   else if (IsServer(client_p))
   {
     ++ServerStats.is_sv;
     ServerStats.is_sbs += client_p->localClient->send.bytes;
     ServerStats.is_sbr += client_p->localClient->recv.bytes;
-    ServerStats.is_sti += CurrentTime - client_p->firsttime;
+    ServerStats.is_sti += CurrentTime - client_p->localClient->firsttime;
 
-    /* XXX Does this even make any sense at all anymore?
-     * scheduling a 'quick' reconnect could cause a pile of
-     * nick collides under TSora protocol... -db
-     */
-    /*
-     * If the connection has been up for a long amount of time, schedule
-     * a 'quick' reconnect, else reset the next-connect cycle.
-     */
-    if ((conf = find_conf_exact(SERVER_TYPE, client_p->name,
-                                client_p->username, client_p->host)))
+    DLINK_FOREACH(ptr, server_items.head)
     {
+      struct ConfItem *conf = ptr->data;
+
+      if (irccmp(conf->name, client_p->name))
+        continue;
+
       /*
-       * Reschedule a faster reconnect, if this was a automatically
-       * connected configuration entry. (Note that if we have had
-       * a rehash in between, the status has been changed to
-       * CONF_ILLEGAL). But only do this if it was a "good" link.
+       * Reset next-connect cycle of all connect{} blocks that match
+       * this servername.
        */
       aconf  = map_to_conf(conf);
       aclass = map_to_conf(aconf->class_ptr);
-      aconf->hold = time(NULL);
-      aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
-        HANGONRETRYDELAY : ConFreq(aclass);
+      aconf->hold = CurrentTime + aclass->con_freq;
     }
   }
   else
@@ -247,12 +237,6 @@ close_connection(struct Client *client_p)
 #endif
   if (client_p->localClient->fd.flags.open)
     fd_close(&client_p->localClient->fd);
-
-  if (HasServlink(client_p))
-  {
-    if (client_p->localClient->ctrlfd.flags.open)
-      fd_close(&client_p->localClient->ctrlfd);
-  }
 
   dbuf_clear(&client_p->localClient->buf_sendq);
   dbuf_clear(&client_p->localClient->buf_recvq);
@@ -285,7 +269,7 @@ ssl_handshake(int fd, struct Client *client_p)
     }
     else
     {
-      ilog(L_WARN, "Client %s!%s@%s gave bad SSL client certificate: %d",
+      ilog(LOG_TYPE_IRCD, "Client %s!%s@%s gave bad SSL client certificate: %d",
           client_p->name, client_p->username, client_p->host, res);
     }
 
@@ -294,7 +278,7 @@ ssl_handshake(int fd, struct Client *client_p)
 
   if (ret <= 0)
   {
-    if((CurrentTime - client_p->firsttime) > 30)
+    if((CurrentTime - client_p->localClient->firsttime) > 30)
     {
       exit_client(client_p, client_p, "Timeout during SSL handshake");
       return;
@@ -367,7 +351,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
   {
     if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.server_ctx)) == NULL)
     {
-      ilog(L_CRIT, "SSL_new() ERROR! -- %s",
+      ilog(LOG_TYPE_IRCD, "SSL_new() ERROR! -- %s",
            ERR_error_string(ERR_get_error(), NULL));
 
       SetDead(new_client);

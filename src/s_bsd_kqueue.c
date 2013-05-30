@@ -30,7 +30,7 @@
 #include "ircd.h"
 #include "memory.h"
 #include "s_bsd.h"
-#include "s_log.h"
+#include "log.h"
 
 #define KE_LENGTH 128
 
@@ -65,7 +65,7 @@ init_netio(void)
 
   if ((fd = kqueue()) < 0)
   {
-    ilog(L_CRIT, "init_netio: Couldn't open kqueue fd!");
+    ilog(LOG_TYPE_IRCD, "init_netio: Couldn't open kqueue fd!");
     exit(115); /* Whee! */
   }
 

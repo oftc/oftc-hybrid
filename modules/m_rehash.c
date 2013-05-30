@@ -23,43 +23,18 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "list.h"
 #include "numeric.h"
 #include "irc_res.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
-static void mo_rehash(struct Client *, struct Client *, int, char **);
-
-struct Message rehash_msgtab = {
-  "REHASH", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_rehash, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&rehash_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&rehash_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * mo_rehash - REHASH message handler
@@ -71,7 +46,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
 {
   int found = 0;
 
-  if (!IsOperRehash(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_REHASH))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "rehash");
@@ -82,7 +57,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
   {
     if (irccmp(parv[1], "DNS") == 0)
     {
-      sendto_one(source_p, form_str(RPL_REHASHING), me.name, parv[0], "DNS");
+      sendto_one(source_p, form_str(RPL_REHASHING), me.name, source_p->name, "DNS");
       sendto_realops_flags(UMODE_ALL, L_ALL, "%s is rehashing DNS",
                            get_oper_name(source_p));
       restart_resolver();   /* re-read /etc/resolv.conf AGAIN?
@@ -92,7 +67,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     else if (irccmp(parv[1], "FDLIMIT") == 0)
     {
       sendto_one(source_p, form_str(RPL_REHASHING), me.name,
-                 parv[0], "FDLIMIT");
+                 source_p->name, "FDLIMIT");
       sendto_realops_flags(UMODE_ALL, L_ALL, "%s is updating FDLIMIT",
                            get_oper_name(source_p));
       recalc_fdlimit(NULL);
@@ -106,25 +81,17 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
       read_message_file(&ConfigFileEntry.motd);
       found = 1;
     }
-    else if (irccmp(parv[1], "OMOTD") == 0)
-    {
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-                           "%s is forcing re-reading of OPER MOTD file",
-                           get_oper_name(source_p));
-      read_message_file(&ConfigFileEntry.opermotd);
-      found = 1;
-    }
 
     if (found)
     {
-      ilog(L_NOTICE, "REHASH %s From %s",
+      ilog(LOG_TYPE_IRCD, "REHASH %s From %s",
            parv[1], get_client_name(source_p, HIDE_IP));
       return;
     }
     else
     {
       sendto_one(source_p, ":%s NOTICE %s :rehash one of :DNS FDLIMIT "
-                 "MOTD OMOTD", me.name, source_p->name);
+                 "MOTD", me.name, source_p->name);
       return;
     }
   }
@@ -135,8 +102,35 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL, 
                          "%s is rehashing server config file",
                          get_oper_name(source_p));
-    ilog(L_NOTICE, "REHASH From %s[%s]",
+    ilog(LOG_TYPE_IRCD, "REHASH From %s[%s]",
          get_oper_name(source_p), source_p->sockhost);
     rehash(0);
   }
 }
+
+static struct Message rehash_msgtab = {
+  "REHASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_rehash, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&rehash_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&rehash_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -25,7 +25,6 @@
 #include "stdinc.h"
 #include "list.h"
 #include "balloc.h"
-#include "common.h"
 #include "dbuf.h"
 #include "memory.h"
 

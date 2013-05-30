@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: s_gline.c 1459 2012-07-06 14:23:09Z michael $
  */
 
 #include "stdinc.h"
@@ -28,7 +28,7 @@
 #include "irc_string.h"
 #include "ircd.h"
 #include "hostmask.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_misc.h"
 #include "send.h"
 #include "s_serv.h"
@@ -36,9 +36,10 @@
 #include "event.h"
 #include "memory.h"
 
-dlink_list pending_glines = { NULL, NULL, 0 };
+dlink_list pending_glines[GLINE_PENDING_ADD_TYPE + 1] = { { NULL, NULL, 0 },
+                                                          { NULL, NULL, 0 } };
 
-static void expire_pending_glines(void);
+static void expire_pending_glines(struct gline_pending *);
 
 
 struct AccessItem *
@@ -64,8 +65,8 @@ find_is_glined(const char *host, const char *user)
     piphost = NULL;
   }
 
-  aconf = find_conf_by_address(host, piphost, CONF_GLINE, t, user, NULL, NULL);
-  return(aconf);
+  aconf = find_conf_by_address(host, piphost, CONF_GLINE, t, user, NULL, 0, NULL);
+  return aconf;
 }
 
 /* cleanup_glines()
@@ -78,7 +79,7 @@ find_is_glined(const char *host, const char *user)
 void
 cleanup_glines(void *unused)
 {
-  expire_pending_glines();
+  expire_pending_glines(unused);
 }
 
 /* expire_pending_glines()
@@ -91,21 +92,23 @@ cleanup_glines(void *unused)
  * enough "votes" in the time period allowed
  */
 static void
-expire_pending_glines(void)
+expire_pending_glines(struct gline_pending *in)
 {
-  dlink_node *ptr;
-  dlink_node *next_ptr;
-  struct gline_pending *glp_ptr;
+  dlink_node *ptr = NULL, *next_ptr = NULL;
+  unsigned int idx = 0;
 
-  DLINK_FOREACH_SAFE(ptr, next_ptr, pending_glines.head)
+  for (; idx < GLINE_PENDING_ADD_TYPE + 1; ++idx)
   {
-    glp_ptr = ptr->data;
-
-    if (((glp_ptr->last_gline_time + GLINE_PENDING_EXPIRE) <= CurrentTime) ||
-        find_is_glined(glp_ptr->host, glp_ptr->user))
+    DLINK_FOREACH_SAFE(ptr, next_ptr, pending_glines[idx].head)
     {
-      dlinkDelete(&glp_ptr->node, &pending_glines);
-      MyFree(glp_ptr);
+      struct gline_pending *glp_ptr = ptr->data;
+
+      if ((glp_ptr->last_gline_time + ConfigFileEntry.gline_request_time) <= CurrentTime ||
+          glp_ptr == in)
+      {
+        dlinkDelete(&glp_ptr->node, &pending_glines[idx]);
+        MyFree(glp_ptr);
+      }
     }
   }
 }

@@ -25,12 +25,10 @@
 #include "stdinc.h"
 #include "list.h"
 #include "balloc.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"
-#include "handlers.h"
 #include "modules.h"
 #include "hash.h"
 #include "resv.h"
@@ -46,7 +44,6 @@
 
 static BlockHeap *userhost_heap = NULL;
 static BlockHeap *namehost_heap = NULL;
-static struct UserHost *find_or_add_userhost(const char *);
 
 static unsigned int ircd_random_key = 0;
 
@@ -331,7 +328,7 @@ hash_del_resv(struct ResvChannel *chptr)
   }
 }
 
-/* find_client()
+/* hash_find_client()
  *
  * inputs       - pointer to name
  * output       - NONE
@@ -340,7 +337,7 @@ hash_del_resv(struct ResvChannel *chptr)
  *                it to the top of the list and returns it.
  */
 struct Client *
-find_client(const char *name)
+hash_find_client(const char *name)
 {
   unsigned int hashv = strhash(name);
   struct Client *client_p;
@@ -396,15 +393,15 @@ hash_find_id(const char *name)
 }
 
 struct Client *
-find_server(const char *name)
+hash_find_server(const char *name)
 {
   unsigned int hashv = strhash(name);
   struct Client *client_p = NULL;
 
   if (IsDigit(*name) && strlen(name) == IRC_MAXSID)
-    client_p = hash_find_id(name);
+    return hash_find_id(name);
 
-  if ((client_p == NULL) && (client_p = clientTable[hashv]) != NULL)
+  if ((client_p = clientTable[hashv]) != NULL)
   {
     if ((!IsServer(client_p) && !IsMe(client_p)) ||
         irccmp(name, client_p->name))
@@ -608,35 +605,26 @@ count_user_host(const char *user, const char *host, int *global_p,
   }
 }
 
-/* dump_userhosttable()
- * inputs        - pointer to print info to
- * output        - none
- * side effects  - NONE
+/* find_or_add_userhost()
+ *
+ * inputs       - host name
+ * output       - none
+ * side effects - find UserHost * for given host name
  */
-void
-dump_userhosttable(struct Client *source_p)
+static struct UserHost *
+find_or_add_userhost(const char *host)
 {
-  int i;
   struct UserHost *userhost;
-  dlink_node *ptr;
-  struct NameHost *nameh;
 
-  for (i = 0; i < HASHSIZE; ++i)
-  {
-    for(userhost = userhostTable[i]; userhost != NULL; userhost = userhost->next)
-    {
-      DLINK_FOREACH(ptr, userhost->list.head) 
-      {
-        nameh = ptr->data;
-        sendto_one(source_p,
-            ":%s %d %s n :userhost_table: %s@%s %d %d %d", me.name, 
-            RPL_STATSCCOUNT, source_p->name, nameh->name, userhost->host, 
-            nameh->icount, nameh->gcount, nameh->lcount);
-      }
-    }
-  } 
-} 
+  if ((userhost = hash_find_userhost(host)) != NULL)
+    return userhost;
 
+  userhost = BlockHeapAlloc(userhost_heap);
+  strlcpy(userhost->host, host, sizeof(userhost->host));
+  hash_add_userhost(userhost);
+
+  return userhost;
+}
 
 /* add_user_host()
  *
@@ -670,12 +658,14 @@ add_user_host(const char *user, const char *host, int global)
     if (!irccmp(user, nameh->name))
     {
       nameh->gcount++;
+
       if (!global)
       {
-	if (hasident)
-	  nameh->icount++;
-	nameh->lcount++;
+        if (hasident)
+          nameh->icount++;
+        nameh->lcount++;
       }
+
       return;
     }
   }
@@ -684,6 +674,7 @@ add_user_host(const char *user, const char *host, int global)
   strlcpy(nameh->name, user, sizeof(nameh->name));
 
   nameh->gcount = 1;
+
   if (!global)
   {
     if (hasident)
@@ -729,48 +720,27 @@ delete_user_host(const char *user, const char *host, int global)
         nameh->gcount--;
       if (!global)
       {
-	if (nameh->lcount > 0)
-	  nameh->lcount--;
-	if (hasident && nameh->icount > 0)
-	  nameh->icount--;
+        if (nameh->lcount > 0)
+          nameh->lcount--;
+        if (hasident && nameh->icount > 0)
+          nameh->icount--;
       }
 
       if (nameh->gcount == 0 && nameh->lcount == 0)
       {
-	dlinkDelete(&nameh->node, &found_userhost->list);
-	BlockHeapFree(namehost_heap, nameh);
+        dlinkDelete(&nameh->node, &found_userhost->list);
+        BlockHeapFree(namehost_heap, nameh);
       }
 
       if (dlink_list_length(&found_userhost->list) == 0)
       {
-	hash_del_userhost(found_userhost);
-	BlockHeapFree(userhost_heap, found_userhost);
+        hash_del_userhost(found_userhost);
+        BlockHeapFree(userhost_heap, found_userhost);
       }
 
       return;
     }
   }
-}
-
-/* find_or_add_userhost()
- *
- * inputs	- host name
- * output	- none
- * side effects	- find UserHost * for given host name
- */
-static struct UserHost *
-find_or_add_userhost(const char *host)
-{
-  struct UserHost *userhost;
-
-  if ((userhost = hash_find_userhost(host)) != NULL)
-    return userhost;
-
-  userhost = BlockHeapAlloc(userhost_heap);
-  strlcpy(userhost->host, host, sizeof(userhost->host));
-  hash_add_userhost(userhost);
-
-  return userhost;
 }
 
 /*
@@ -882,7 +852,7 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
     return;
   sendto_one(source_p, form_str(RPL_LIST), me.name, source_p->name,
              chptr->chname, dlink_list_length(&chptr->members),
-             chptr->topic == NULL ? "" : chptr->topic);
+             chptr->topic);
 }
 
 /* safe_list_channels()

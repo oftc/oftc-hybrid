@@ -44,10 +44,10 @@
 int
 match(const char *mask, const char *name)
 {
-  const unsigned char* m = (const unsigned char *) mask;
-  const unsigned char* n = (const unsigned char *) name;
-  const unsigned char* ma = NULL;
-  const unsigned char* na = (const unsigned char *) name;
+  const unsigned char *m = (const unsigned char *)mask;
+  const unsigned char *n = (const unsigned char *)name;
+  const unsigned char *ma = NULL;
+  const unsigned char *na = (const unsigned char *)name;
 
   assert(mask != NULL);
   assert(name != NULL);
@@ -56,10 +56,6 @@ match(const char *mask, const char *name)
   {
     if (*m == '*')
     {
-      /*
-       * XXX - shouldn't need to spin here, the mask should have been
-       * collapsed before match is called
-       */
       while (*m == '*')
         m++;
       ma = m;
@@ -72,7 +68,7 @@ match(const char *mask, const char *name)
         return 1;
       if (!ma)
         return 0;
-      for (m--; (m > (const unsigned char*) mask) && (*m == '?'); m--)
+      for (m--; (m > (const unsigned char *)mask) && (*m == '?'); m--)
         ;
       if (*m == '*')
         return 1;
@@ -81,13 +77,9 @@ match(const char *mask, const char *name)
     }
     else if (!*n)
     {
-      /*
-       * XXX - shouldn't need to spin here, the mask should have been
-       * collapsed before match is called
-       */
       while (*m == '*')
         m++;
-      return (*m == 0);
+      return *m == 0;
     }
 
     if (ToLower(*m) != ToLower(*n) && *m != '?' && (*m != '#' || !IsDigit(*n)))
@@ -112,10 +104,10 @@ match(const char *mask, const char *name)
 int
 match_esc(const char *mask, const char *name)
 {
-  const unsigned char *m = (const unsigned char *) mask;
-  const unsigned char *n = (const unsigned char *) name;
+  const unsigned char *m = (const unsigned char *)mask;
+  const unsigned char *n = (const unsigned char *)name;
   const unsigned char *ma = NULL;
-  const unsigned char *na = (const unsigned char *) name;
+  const unsigned char *na = (const unsigned char *)name;
 
   assert(mask != NULL);
   assert(name != NULL);
@@ -124,10 +116,6 @@ match_esc(const char *mask, const char *name)
   {
     if (*m == '*')
     {
-      /*
-       * XXX - shouldn't need to spin here, the mask should have been
-       * collapsed before match is called
-       */
       while (*m == '*')
         m++;
       ma = m;
@@ -140,7 +128,7 @@ match_esc(const char *mask, const char *name)
         return 1;
       if (!ma)
         return 0;
-      for (m--; (m > (const unsigned char*) mask) && (*m == '?'); m--)
+      for (m--; (m > (const unsigned char *)mask) && (*m == '?'); m--)
         ;
       if (*m == '*')
         return 1;
@@ -149,13 +137,9 @@ match_esc(const char *mask, const char *name)
     }
     else if (!*n)
     {
-      /*
-       * XXX - shouldn't need to spin here, the mask should have been
-       * collapsed before match is called
-       */
       while (*m == '*')
         m++;
-      return (*m == 0);
+      return *m == 0;
     }
 
     if (*m != '?' && (*m != '#' || IsDigit(*n)))
@@ -263,40 +247,37 @@ collapse_esc(char *pattern)
 int
 irccmp(const char *s1, const char *s2)
 {
-  const unsigned char *str1 = (const unsigned char *) s1;
-  const unsigned char *str2 = (const unsigned char *) s2;
+  const unsigned char *str1 = (const unsigned char *)s1;
+  const unsigned char *str2 = (const unsigned char *)s2;
 
   assert(s1 != NULL);
   assert(s2 != NULL);
   
-  while (ToUpper(*str1) == ToUpper(*str2))
-  {
+  for (; ToUpper(*str1) == ToUpper(*str2); ++str1, ++str2)
     if (*str1 == '\0')
       return 0;
-    str1++;
-    str2++;
-  }
 
   return 1;
 }
 
 int
-ircncmp(const char* s1, const char *s2, size_t n)
+ircncmp(const char *s1, const char *s2, size_t n)
 {
-  const unsigned char *str1 = (const unsigned char *) s1;
-  const unsigned char *str2 = (const unsigned char *) s2;
-  int res;
+  const unsigned char *str1 = (const unsigned char *)s1;
+  const unsigned char *str2 = (const unsigned char *)s2;
 
   assert(s1 != NULL);
   assert(s2 != NULL);
+  assert(n > 0);
 
-  while ((res = ToUpper(*str1) - ToUpper(*str2)) == 0)
-  {
-    str1++, str2++, n--;
-    if (n == 0 || (*str1 == '\0' && *str2 == '\0'))
+  if (n == 0)
+    return 0;
+
+  for (; ToUpper(*str1) == ToUpper(*str2); ++str1, ++str2)
+    if (--n == 0 || *str1 == '\0')
       return 0;
-  }
-  return res;
+
+  return 1;
 }
 
 const unsigned char ToLowerTab[] = { 
@@ -405,7 +386,7 @@ const unsigned int CharAttrs[] = {
 /* 26 */     CNTRL_C|CHAN_C|VCHAN_C|NONEOS_C,
 /* 27 */     CNTRL_C|CHAN_C|VCHAN_C|NONEOS_C,
 /* 28 */     CNTRL_C|CHAN_C|VCHAN_C|NONEOS_C,
-/* 29 */     CNTRL_C|CHAN_C|VCHAN_C|NONEOS_C,
+/* 29 */     CNTRL_C|CHAN_C|NONEOS_C,
 /* 30 */     CNTRL_C|CHAN_C|VCHAN_C|NONEOS_C,
 /* 31 */     CNTRL_C|CHAN_C|NONEOS_C,
 /* SP */     PRINT_C|SPACE_C,
@@ -414,7 +395,7 @@ const unsigned int CharAttrs[] = {
 /* # */      PRINT_C|KWILD_C|MWILD_C|CHANPFX_C|CHAN_C|VCHAN_C|NONEOS_C,
 /* $ */      PRINT_C|CHAN_C|VCHAN_C|NONEOS_C|USER_C,
 /* % */      PRINT_C|CHAN_C|VCHAN_C|NONEOS_C,
-/* & */      PRINT_C|CHANPFX_C|CHAN_C|VCHAN_C|NONEOS_C,
+/* & */      PRINT_C|CHAN_C|VCHAN_C|NONEOS_C,
 /* ' */      PRINT_C|CHAN_C|VCHAN_C|NONEOS_C,
 /* ( */      PRINT_C|CHAN_C|VCHAN_C|NONEOS_C,
 /* ) */      PRINT_C|CHAN_C|VCHAN_C|NONEOS_C,

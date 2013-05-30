@@ -23,37 +23,12 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
-#include "s_conf.h"
-#include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
-static void ms_eob(struct Client*, struct Client*, int, char**);
-
-struct Message eob_msgtab = {
-  "EOB", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0, 
-  {m_unregistered, m_ignore, ms_eob, m_ignore, m_ignore, m_ignore}
-};
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&eob_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&eob_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * ms_eob - EOB command handler
@@ -64,9 +39,38 @@ static void
 ms_eob(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-   sendto_realops_flags(UMODE_ALL, L_ALL, 
-                        "End of burst from %s (%d seconds)",
-                        source_p->name, 
-			(unsigned int)(CurrentTime - source_p->firsttime));
-   SetEob(client_p);
+  assert(IsServer(source_p));
+  assert(client_p == source_p);
+
+  sendto_realops_flags(UMODE_ALL, L_ALL, "End of burst from %s (%u seconds)",
+                       source_p->name,
+                       (unsigned int)(CurrentTime - source_p->localClient->firsttime));
+  AddFlag(source_p, FLAGS_EOB);
 }
+
+static struct Message eob_msgtab = {
+  "EOB", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_ignore, ms_eob, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&eob_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&eob_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

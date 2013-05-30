@@ -23,41 +23,16 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_serv.h"    /* hunt_server */
 #include "s_user.h"    /* show_lusers */
 #include "send.h"
-#include "s_conf.h"
-#include "msg.h"
+#include "conf.h"
 #include "parse.h"
 #include "modules.h"
 
-static void m_lusers(struct Client *, struct Client *, int, char *[]);
-static void ms_lusers(struct Client *, struct Client *, int, char *[]);
-
-struct Message lusers_msgtab = {
-  "LUSERS", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_lusers, ms_lusers, m_ignore, ms_lusers, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&lusers_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&lusers_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /* m_lusers - LUSERS message handler
  * parv[0] = sender
@@ -78,7 +53,7 @@ m_lusers(struct Client *client_p, struct Client *source_p,
   if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
-    sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0]);
+    sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name);
     return;
   }
 
@@ -109,3 +84,30 @@ ms_lusers(struct Client *client_p, struct Client *source_p,
   if (IsClient(source_p))
     show_lusers(source_p);
 }
+
+static struct Message lusers_msgtab = {
+  "LUSERS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_lusers, ms_lusers, m_ignore, ms_lusers, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&lusers_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&lusers_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

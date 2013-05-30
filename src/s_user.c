@@ -29,7 +29,6 @@
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"
 #include "fdlist.h"
 #include "hash.h"
 #include "hostmask.h"
@@ -40,8 +39,8 @@
 #include "listener.h"
 #include "motd.h"
 #include "numeric.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "supported.h"
@@ -51,7 +50,7 @@
 #include "userhost.h"
 #include "hook.h"
 #include "s_misc.h"
-#include "msg.h"
+#include "parse.h"
 #include "watch.h"
 
 
@@ -96,7 +95,7 @@ unsigned int user_modes[256] =
   0,                  /* E */
   0,                  /* F */
   UMODE_SOFTCALLERID, /* G */
-  0,                  /* H */
+  UMODE_HIDDEN,       /* H */
   0,                  /* I */
   0,                  /* J */
   0,                  /* K */
@@ -106,7 +105,7 @@ unsigned int user_modes[256] =
   0,                  /* O */
   UMODE_SERVICE,      /* P */
   0,                  /* Q */
-  UMODE_NICKSERVREG,  /* R */
+  UMODE_REGONLY,      /* R */
   UMODE_GOD,          /* S */
   0,                  /* T */
   0,                  /* U */
@@ -126,7 +125,7 @@ unsigned int user_modes[256] =
   UMODE_CALLERID,     /* g */
   0,                  /* h */
   UMODE_INVISIBLE,    /* i */
-  0,                  /* j */
+  UMODE_REJ,          /* j */
   UMODE_SKILL,        /* k */
   UMODE_LOCOPS,       /* l */
   0,                  /* m */
@@ -134,7 +133,7 @@ unsigned int user_modes[256] =
   UMODE_OPER,         /* o */
   0,                  /* p */
   0,                  /* q */
-  UMODE_REJ,          /* r */
+  UMODE_REGISTERED,   /* r */
   UMODE_SERVNOTICE,   /* s */
   0,                  /* t */
   UMODE_UNAUTH,       /* u */
@@ -190,7 +189,7 @@ show_lusers(struct Client *source_p)
     to = source_p->name;
   }
 
-  if (!ConfigServerHide.hide_servers || IsOper(source_p))
+  if (!ConfigServerHide.hide_servers || HasUMode(source_p, UMODE_OPER))
     sendto_one(source_p, form_str(RPL_LUSERCLIENT),
                from, to, (Count.total-Count.invisi),
                Count.invisi, dlink_list_length(&global_serv_list));
@@ -210,7 +209,7 @@ show_lusers(struct Client *source_p)
     sendto_one(source_p, form_str(RPL_LUSERCHANNELS),
                from, to, dlink_list_length(&global_channel_list));
 
-  if (!ConfigServerHide.hide_servers || IsOper(source_p))
+  if (!ConfigServerHide.hide_servers || HasUMode(source_p, UMODE_OPER))
   {
     sendto_one(source_p, form_str(RPL_LUSERME),
                from, to, Count.local, Count.myserver);
@@ -231,7 +230,7 @@ show_lusers(struct Client *source_p)
              from, to, Count.total, Count.max_tot,
              Count.total, Count.max_tot);
 
-  if (!ConfigServerHide.hide_servers || IsOper(source_p))
+  if (!ConfigServerHide.hide_servers || HasUMode(source_p, UMODE_OPER))
     sendto_one(source_p, form_str(RPL_STATSCONN), from, to,
                Count.max_loc_con, Count.max_loc_cli, Count.totalrestartcount);
 
@@ -308,7 +307,7 @@ register_local_user(struct Client *source_p)
       return;
   }
 
-  source_p->localClient->last = CurrentTime;
+  source_p->localClient->last_privmsg = CurrentTime;
   /* Straight up the maximum rate of flooding... */
   source_p->localClient->allow_read = MAX_FLOOD_BURST;
 
@@ -444,7 +443,7 @@ register_local_user(struct Client *source_p)
 
   if (ConfigFileEntry.invisible_on_connect)
   {
-    source_p->umodes |= UMODE_INVISIBLE;
+    AddUMode(source_p, UMODE_INVISIBLE);
     ++Count.invisi;
   }
 
@@ -510,7 +509,7 @@ register_remote_user(struct Client *source_p,
   /*
    * coming from another server, take the servers word for it
    */
-  source_p->servptr = find_server(server);
+  source_p->servptr = hash_find_server(server);
 
   /* Super GhostDetect:
    * If we can't find the server the user is supposed to be on,
@@ -524,7 +523,7 @@ register_remote_user(struct Client *source_p,
                          source_p->host, source_p->from->name);
     kill_client(source_p->from, source_p, "%s (Server doesn't exist)", me.name);
 
-    SetKilled(source_p);
+    AddFlag(source_p, FLAGS_KILLED);
     exit_client(source_p, &me, "Ghosted Client");
     return;
   }
@@ -539,10 +538,17 @@ register_remote_user(struct Client *source_p,
     kill_client(source_p->from, source_p,
                 "%s (NICK from wrong direction (%s != %s))",
                 me.name, source_p->servptr->name, target_p->from->name);
-    SetKilled(source_p);
+    AddFlag(source_p, FLAGS_KILLED);
     exit_client(source_p, &me, "USER server wrong direction");
     return;
   }
+
+  /*
+   * If the nick has been introduced by a services server,
+   * make it a service as well.
+   */
+  if (HasFlag(source_p->servptr, FLAGS_SERVICE))
+    AddFlag(source_p, FLAGS_SERVICE);
 
   /* Increment our total user count here */
   if (++Count.total > Count.max_tot)
@@ -558,7 +564,7 @@ register_remote_user(struct Client *source_p,
   SetIpHash(source_p);
 
   aconf = find_conf_by_address(source_p->host, &source_p->ip,
-       CONF_CLIENT, source_p->aftype, source_p->username, NULL, source_p->certfp);
+       CONF_CLIENT, source_p->aftype, source_p->username, NULL, 1, source_p->certfp);
   aclass = map_to_conf(aconf->class_ptr);
 
   cidr_limit_reached(1, &source_p->ip, aclass);
@@ -600,31 +606,58 @@ introduce_client(struct Client *source_p)
     if (server == source_p->from)
         continue;
 
-    if (IsCapable(server, CAP_TS6) && HasID(source_p))
+    if (IsCapable(server, CAP_SVS))
     {
-      sendto_one(server, ":%s UID %s %d %lu %s %s %s %s %s :%s",
-                 source_p->servptr->id,
-                 source_p->name, source_p->hopcount+1,
-                 (unsigned long)source_p->tsinfo,
-                 ubuf, source_p->username, source_p->host,
-                 (MyClient(source_p) && IsIPSpoof(source_p)) ?
-                 "0" : source_p->sockhost, source_p->id, source_p->info);
+      if (IsCapable(server, CAP_TS6) && HasID(source_p))
+        sendto_one(server, ":%s UID %s %d %lu %s %s %s %s %s %s :%s",
+                   source_p->servptr->id,
+                   source_p->name, source_p->hopcount+1,
+                   (unsigned long)source_p->tsinfo,
+                   ubuf, source_p->username, source_p->host,
+                   (MyClient(source_p) && IsIPSpoof(source_p)) ?
+                   "0" : source_p->sockhost, source_p->id,
+                   source_p->svid,
+                   source_p->info);
+      else
+        sendto_one(server, "NICK %s %d %lu %s %s %s %s %s :%s",
+                   source_p->name, source_p->hopcount+1,
+                   (unsigned long)source_p->tsinfo,
+                   ubuf, source_p->username, source_p->host,
+                   source_p->servptr->name, source_p->svid,
+                   source_p->info);
+
+      if(!EmptyString(source_p->certfp))
+      {
+        char buf[SHA_DIGEST_LENGTH*2+1];
+
+        base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
+        sendto_one(server, "CERTFP %s %s", source_p->name, buf);
+      }
     }
     else
     {
-      sendto_one(server, "NICK %s %d %lu %s %s %s %s :%s",
-                 source_p->name, source_p->hopcount+1,
-                 (unsigned long)source_p->tsinfo,
-                 ubuf, source_p->username, source_p->host,
-                 source_p->servptr->name, source_p->info);
-    }
+      if (IsCapable(server, CAP_TS6) && HasID(source_p))
+        sendto_one(server, ":%s UID %s %d %lu %s %s %s %s %s :%s",
+                   source_p->servptr->id,
+                   source_p->name, source_p->hopcount+1,
+                   (unsigned long)source_p->tsinfo,
+                   ubuf, source_p->username, source_p->host,
+                   (MyClient(source_p) && IsIPSpoof(source_p)) ?
+                   "0" : source_p->sockhost, source_p->id, source_p->info);
+      else
+        sendto_one(server, "NICK %s %d %lu %s %s %s %s :%s",
+                   source_p->name, source_p->hopcount+1,
+                   (unsigned long)source_p->tsinfo,
+                   ubuf, source_p->username, source_p->host,
+                   source_p->servptr->name, source_p->info);
 
-    if(!EmptyString(source_p->certfp))
-    {
-      char buf[SHA_DIGEST_LENGTH*2+1];
+      if(!EmptyString(source_p->certfp))
+      {
+        char buf[SHA_DIGEST_LENGTH*2+1];
 
-      base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
-      sendto_one(server, "CERTFP %s %s", source_p->name, buf);
+        base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
+        sendto_one(server, "CERTFP %s %s", source_p->name, buf);
+      }
     }
   }
 }
@@ -700,6 +733,31 @@ valid_username(const char *username)
   return 1;
 }
 
+/* clean_nick_name()
+ *
+ * input        - nickname
+ *              - whether it's a local nick (1) or remote (0)
+ * output       - none
+ * side effects - walks through the nickname, returning 0 if erroneous
+ */
+int
+valid_nickname(const char *nickname, const int local)
+{
+  const char *p = nickname;
+  assert(nickname && *nickname);
+
+  /* nicks can't start with a digit or - or be 0 length */
+  /* This closer duplicates behaviour of hybrid-6 */
+  if (*p == '-' || (IsDigit(*p) && local) || *p == '\0')
+    return 0;
+
+  for (; *p; ++p)
+    if (!IsNickChar(*p))
+      return 0;
+
+  return p - nickname <= NICKLEN;
+}
+
 /* report_and_set_user_flags()
  *
  * inputs       - pointer to source_p
@@ -754,15 +812,6 @@ report_and_set_user_flags(struct Client *source_p, const struct AccessItem *acon
                me.name,source_p->name);
   }
 
-  /* If this user is exempt from idle time outs */
-  if (IsConfIdlelined(aconf))
-  {
-    SetIdlelined(source_p);
-    sendto_one(source_p,
-               ":%s NOTICE %s :*** You are exempt from idle limits. congrats.",
-               me.name, source_p->name);
-  }
-
   if (IsConfCanFlood(aconf))
   {
     SetCanFlood(source_p);
@@ -791,7 +840,7 @@ change_simple_umode(va_list args)
 
   if (what == MODE_ADD)
   {
-    if(flag == UMODE_GOD && !IsGod(source_p) && MyConnect(source_p))
+    if(flag == UMODE_GOD && !HasUMode(source_p, UMODE_GOD) && MyConnect(source_p))
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is setting God mode", source_p->name);
@@ -799,13 +848,13 @@ change_simple_umode(va_list args)
       oftc_log(tmp);
       source_p->umodestime = CurrentTime;
     }
-    source_p->umodes |= flag;
+    AddUMode(source_p, flag);
   }
   else
   {
-    if(flag == UMODE_GOD && IsGod(source_p))
+    if(flag == UMODE_GOD && HasUMode(source_p, UMODE_GOD))
       source_p->umodestime = 0;
-    source_p->umodes &= ~flag;
+    DelUMode(source_p, flag);
   }
 
   return NULL;
@@ -857,7 +906,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
     *m++ = '+';
 
     for (i = 0; i < 128; i++)
-      if (source_p->umodes & user_modes[i])
+      if (HasUMode(source_p, user_modes[i]))
         *m++ = (char)i;
     *m = '\0';
 
@@ -887,7 +936,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
         case 'o':
           if (what == MODE_ADD)
           {
-            if (IsServer(client_p) && !IsOper(source_p))
+            if (IsServer(client_p) && !HasUMode(source_p, UMODE_OPER))
             {
               ++Count.oper;
               SetOper(source_p);
@@ -898,7 +947,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
             /* Only decrement the oper counts if an oper to begin with
              * found by Pat Szuta, Perly , perly@xnet.com 
              */
-            if (!IsOper(source_p))
+            if (!HasUMode(source_p, UMODE_OPER))
               break;
 
             ClearOper(source_p);
@@ -909,8 +958,8 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
               dlink_node *dm;
 
               detach_conf(source_p, OPER_TYPE);
-              ClearOperFlags(source_p);
-              source_p->umodes &= ~ConfigFileEntry.oper_only_umodes;
+              ClrOFlag(source_p);
+              DelUMode(source_p, ConfigFileEntry.oper_only_umodes);
 
               if ((dm = dlinkFindDelete(&oper_list, source_p)) != NULL)
                 free_dlink_node(dm);
@@ -922,6 +971,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
         /* we may not get these,
          * but they shouldnt be in default
          */
+        case 'r':
         case ' ' :
         case '\n':
         case '\r':
@@ -933,7 +983,7 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
         default:
           if ((flag = user_modes[(unsigned char)*m]))
           {
-            if (MyConnect(source_p) && !IsOper(source_p) &&
+            if (MyConnect(source_p) && !HasUMode(source_p, UMODE_OPER) &&
                 (ConfigFileEntry.oper_only_umodes & flag))
             {
               badflag = 1;
@@ -956,24 +1006,24 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(ERR_UMODEUNKNOWNFLAG),
                me.name, source_p->name);
 
-  if ((source_p->umodes & UMODE_NCHANGE) && !IsOperN(source_p))
+  if (HasUMode(source_p, UMODE_NCHANGE) && !HasOFlag(source_p, OPER_FLAG_N))
+  {
+    sendto_one(source_p, ":%s NOTICE %s :*** You have no nchange flag;",
+               me.name, source_p->name);
+    DelUMode(source_p, UMODE_NCHANGE);
+  }
+
+  if (MyConnect(source_p) && HasUMode(source_p, UMODE_ADMIN) &&
+      !HasOFlag(source_p, OPER_FLAG_ADMIN))
   {
     sendto_one(source_p, ":%s NOTICE %s :*** You have no admin flag;",
                me.name, source_p->name);
-    source_p->umodes &= ~UMODE_NCHANGE; /* only tcm's really need this */
+    DelUMode(source_p, UMODE_ADMIN);
   }
 
-  if (MyConnect(source_p) && (source_p->umodes & UMODE_ADMIN) &&
-      !IsOperAdmin(source_p) && !IsOperHiddenAdmin(source_p))
-  {
-    sendto_one(source_p, ":%s NOTICE %s :*** You have no admin flag;",
-               me.name, source_p->name);
-    source_p->umodes &= ~UMODE_ADMIN;
-  }
-
-  if (!(setflags & UMODE_INVISIBLE) && IsInvisible(source_p))
+  if (!(setflags & UMODE_INVISIBLE) && HasUMode(source_p, UMODE_INVISIBLE))
     ++Count.invisi;
-  if ((setflags & UMODE_INVISIBLE) && !IsInvisible(source_p))
+  if ((setflags & UMODE_INVISIBLE) && !HasUMode(source_p, UMODE_INVISIBLE))
     --Count.invisi;
 
   /*
@@ -1016,7 +1066,7 @@ send_umode(struct Client *client_p, struct Client *source_p,
     if (MyClient(source_p) && !(flag & sendmask))
       continue;
 
-    if ((flag & old) && !(source_p->umodes & flag))
+    if ((flag & old) && !HasUMode(source_p, flag))
     {
       if (what == MODE_DEL)
         *m++ = (char)i;
@@ -1027,7 +1077,7 @@ send_umode(struct Client *client_p, struct Client *source_p,
         *m++ = (char)i;
       }
     }
-    else if (!(flag & old) && (source_p->umodes & flag))
+    else if (!(flag & old) && HasUMode(source_p, flag))
     {
       if (what == MODE_ADD)
         *m++ = (char)i;
@@ -1061,8 +1111,7 @@ send_umode_out(struct Client *client_p, struct Client *source_p,
   char buf[IRCD_BUFSIZE] = { '\0' };
   dlink_node *ptr = NULL;
 
-  send_umode(NULL, source_p, old, IsOperHiddenAdmin(source_p) ?
-             SEND_UMODES & ~UMODE_ADMIN : SEND_UMODES, buf);
+  send_umode(NULL, source_p, old, SEND_UMODES, buf);
 
   if (buf[0])
   {
@@ -1181,15 +1230,7 @@ check_xline(struct Client *source_p)
                          source_p->sockhost);
 
     ++ServerStats.is_ref;
-    if (REJECT_HOLD_TIME > 0)
-    {
-      sendto_one(source_p, ":%s NOTICE %s :Bad user info",
-                 me.name, source_p->name);
-      source_p->localClient->reject_delay = CurrentTime + REJECT_HOLD_TIME;
-      SetCaptured(source_p);
-    }
-    else
-      exit_client(source_p, &me, "Bad user info");
+    exit_client(source_p, &me, "Bad user info");
     return 1;
   }
 
@@ -1205,10 +1246,9 @@ check_xline(struct Client *source_p)
  *                This could also be used by rsa oper routines. 
  */
 void
-oper_up(struct Client *source_p, const char *name)
+oper_up(struct Client *source_p)
 {
-  unsigned int old = source_p->umodes;
-  const char *operprivs = "";
+  const unsigned int old = source_p->umodes;
   const struct AccessItem *oconf = NULL;
 
   assert(source_p->localClient->confs.head);
@@ -1218,35 +1258,29 @@ oper_up(struct Client *source_p, const char *name)
   SetOper(source_p);
 
   if (oconf->modes)
-    source_p->umodes |= oconf->modes;
+    AddUMode(source_p, oconf->modes);
   else if (ConfigFileEntry.oper_umodes)
-    source_p->umodes |= ConfigFileEntry.oper_umodes;
-  else
-    source_p->umodes |= (UMODE_SERVNOTICE|UMODE_OPERWALL|
-                         UMODE_WALLOP|UMODE_LOCOPS);
+    AddUMode(source_p, ConfigFileEntry.oper_umodes);
 
-  if (!(old & UMODE_INVISIBLE) && IsInvisible(source_p))
+  if (!(old & UMODE_INVISIBLE) && HasUMode(source_p, UMODE_INVISIBLE))
     ++Count.invisi;
-  if ((old & UMODE_INVISIBLE) && !IsInvisible(source_p))
+  if ((old & UMODE_INVISIBLE) && !HasUMode(source_p, UMODE_INVISIBLE))
     --Count.invisi;
 
   assert(dlinkFind(&oper_list, source_p) == NULL);
   dlinkAdd(source_p, make_dlink_node(), &oper_list);
 
-  operprivs = oper_privs_as_string(oconf->port);
-  SetOFlag(source_p, oconf->port);
+  AddOFlag(source_p, oconf->port);
 
-  if (IsOperAdmin(source_p) || IsOperHiddenAdmin(source_p))
-    source_p->umodes |= UMODE_ADMIN;
-  if (!IsOperN(source_p))
-    source_p->umodes &= ~UMODE_NCHANGE;
-  sendto_realops_flags(UMODE_ALL, L_ALL, "%s (%s@%s) is now an operator(%s)",
-                       source_p->name, source_p->username, source_p->host, name);
+  if (HasOFlag(source_p, OPER_FLAG_ADMIN))
+    AddUMode(source_p, UMODE_ADMIN);
+  if (!HasOFlag(source_p, OPER_FLAG_N))
+    DelUMode(source_p, UMODE_NCHANGE);
+
+  sendto_realops_flags(UMODE_ALL, L_ALL, "%s is now an operator",
+                       get_oper_name(source_p));
   send_umode_out(source_p, source_p, old);
   sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
-  sendto_one(source_p, ":%s NOTICE %s :*** Oper privs are %s",
-             me.name, source_p->name, operprivs);
-  send_message_file(source_p, &ConfigFileEntry.opermotd);
 }
 
 static char new_uid[TOTALSIDUID + 1];     /* allow for \0 */
@@ -1360,7 +1394,7 @@ init_isupport(void)
   add_isupport("DEAF", "D", -1);
   add_isupport("KICKLEN", NULL, KICKLEN);
   add_isupport("MODES", NULL, MAXMODEPARAMS);
-  add_isupport("NICKLEN", NULL, NICKLEN-1);
+  add_isupport("NICKLEN", NULL, NICKLEN);
 #ifdef HALFOPS
   add_isupport("PREFIX", "(ohv)@%+", -1);
   add_isupport("STATUSMSG", "@%+", -1);
@@ -1518,10 +1552,10 @@ check_godmode(void *unused)
     
     old = oper_p->umodes;
 
-    if(IsGod(oper_p) && (CurrentTime - oper_p->umodestime) > 
+    if(HasUMode(oper_p, UMODE_GOD) && (CurrentTime - oper_p->umodestime) > 
         ConfigFileEntry.godmode_timeout)
     {
-      ClearGod(oper_p);
+      DelUMode(oper_p, UMODE_GOD);
       send_umode_out(oper_p, oper_p, old);
     }
   }

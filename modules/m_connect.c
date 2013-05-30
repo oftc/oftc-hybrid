@@ -23,45 +23,20 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "irc_string.h"
 #include "numeric.h"
 #include "fdlist.h"
 #include "s_bsd.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "hash.h"
 #include "modules.h"
 
-static void mo_connect(struct Client *, struct Client *, int, char *[]);
-static void ms_connect(struct Client *, struct Client *, int, char *[]);
-
-struct Message connect_msgtab = {
-  "CONNECT", 0, 0, 2, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, ms_connect, m_ignore, mo_connect, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&connect_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&connect_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * mo_connect - CONNECT command handler
@@ -93,7 +68,7 @@ mo_connect(struct Client *client_p, struct Client *source_p,
 
   if (parc > 3)
   {
-    if (!IsOperRemote(source_p))
+    if (!HasOFlag(source_p, OPER_FLAG_REMOTE))
     {
       sendto_one(source_p, form_str(ERR_NOPRIVS),
                  me.name, source_p->name, "connect");
@@ -105,7 +80,7 @@ mo_connect(struct Client *client_p, struct Client *source_p,
       return;
   }
 
-  if ((target_p = find_server(parv[1])))
+  if ((target_p = hash_find_server(parv[1])))
   {
     sendto_one(source_p,
 	       ":%s NOTICE %s :Connect: Server %s already exists from %s.",
@@ -163,7 +138,7 @@ mo_connect(struct Client *client_p, struct Client *source_p,
   /*
    * Notify all operators about remote connect requests
    */
-  ilog(L_TRACE, "CONNECT From %s : %s %s", 
+  ilog(LOG_TYPE_IRCD, "CONNECT From %s : %s %s", 
        source_p->name, parv[1], parv[2] ? parv[2] : "");
 
   aconf->port = port;
@@ -173,7 +148,7 @@ mo_connect(struct Client *client_p, struct Client *source_p,
    */
   if (serv_connect(aconf, source_p))
   {
-    if (!ConfigServerHide.hide_server_ips && IsAdmin(source_p))
+    if (!ConfigServerHide.hide_server_ips && HasUMode(source_p, UMODE_ADMIN))
       sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s[%s].%d",
                  me.name, source_p->name, aconf->host,
                  conf->name, aconf->port);
@@ -218,14 +193,14 @@ ms_connect(struct Client *client_p, struct Client *source_p,
                   ":%s CONNECT %s %s :%s", 3, parc, parv) != HUNTED_ISME)
     return;
 
-  if (*parv[1] == '\0')
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "CONNECT");
     return;
   }
 
-  if ((target_p = find_server(parv[1])))
+  if ((target_p = hash_find_server(parv[1])))
   {
     sendto_one(source_p,
 	       ":%s NOTICE %s :Connect: Server %s already exists from %s.",
@@ -291,7 +266,7 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   sendto_realops_flags(UMODE_ALL, L_ALL, NULL, "Remote CONNECT %s %d from %s",
                        parv[1], port, get_client_name(source_p, SHOW_IP));
 
-  ilog(L_TRACE, "CONNECT From %s : %s %d", 
+  ilog(LOG_TYPE_IRCD, "CONNECT From %s : %s %d", 
        source_p->name, parv[1], port);
 
   aconf->port = port;
@@ -313,3 +288,29 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   aconf->port = tmpport;
 }
 
+static struct Message connect_msgtab = {
+  "CONNECT", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, ms_connect, m_ignore, mo_connect, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&connect_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&connect_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

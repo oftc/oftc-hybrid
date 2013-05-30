@@ -21,7 +21,7 @@ RPL_TRACENEWTYPE:	 :%s 208 %s <nuovotipo> 0 %s
 RPL_TRACECLASS:		 :%s 209 %s Classe %s %d
 RPL_ENDOFSTATS:		 :%s 219 %s %c :Fine del rapporto /STATS 
 RPL_STATSUPTIME:	 :%s 242 %s :Server Up %d Giorni, %d:%02d:%02d
-RPL_STATSCONN:		 :%s 250 %s :Connessioni massime: %d (%d clients) (%d connessioni ricevute)
+RPL_STATSCONN:		 :%s 250 %s :Connessioni massime: %d (%d clients) (%llu connessioni ricevute)
 RPL_LUSERCLIENT: 	 :%s 251 %s :Sono presenti %d utenti e %d invisibili su %d servers
 RPL_LUSEROP:		 :%s 252 %s %d :Operatori IRC Online 
 RPL_LUSERUNKNOWN:	 :%s 253 %s %d :Connessione(i) sconosciuta(e)
@@ -119,14 +119,9 @@ RPL_KNOCKDLVR:		 :%s 711 %s %s :Il tuo messaggio è stato consegnato.
 ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Troppi messaggi (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :Il canale è aperto.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :Sei già presente nel canale.
-ERR_KNOCKDISABLED:	 :%s 715 %s :Messaggi disabilitati.
 RPL_TARGUMODEG:		 :%s 716 %s %s :è in modalità +g  (Lato server ignorato)
 RPL_TARGNOTIFY:		 :%s 717 %s %s :siete informati che avete inviato un messaggio a loro.
 RPL_UMODEGMSG:		 :%s 718 %s %s :Vi è arrivato un messaggio e voi siete senza modalita +g.
-RPL_OMOTDSTART:		 :%s 720 %s :Inizio del MOTD degli operatori di IRC.
-RPL_OMOTD:		 :%s 721 %s :%s
-RPL_ENDOFOMOTD:		 :%s 722 %s :Fine del MOTD degli operatori di IRC.
 ERR_NOPRIVS:		 :%s 723 %s %s :Privilegi di Oper insufficienti.
-RPL_TESTMASK:		 :%s 724 %s %s@%s %d %d :Locale/remoto clients corrispondente.
-RPL_TESTLINE:		 :%s 725 %s %c %ld %s :%s | %s
+RPL_TESTMASK:		 :%s 724 %s %s!%s@%s %u %u :Locale/remoto clients corrispondente.
 RPL_NOTESTLINE:		 :%s 726 %s %s :Nessuna corrispondenza

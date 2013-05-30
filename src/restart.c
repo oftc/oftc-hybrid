@@ -29,7 +29,7 @@
 #include "ircd.h"
 #include "irc_string.h"
 #include "send.h"
-#include "s_log.h"
+#include "log.h"
 #include "client.h" /* for UMODE_ALL */
 #include "memory.h"
 
@@ -77,7 +77,7 @@ server_die(const char *mesg, int rboot)
     sendto_one(target_p, ":%s ERROR :%s", me.name, buffer);
   }
 
-  ilog(L_NOTICE, buffer);
+  ilog(LOG_TYPE_IRCD, "%s", buffer);
 
   send_queued_all();
   close_fds(NULL);

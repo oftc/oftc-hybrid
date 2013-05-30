@@ -24,44 +24,18 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_user.h"
 #include "watch.h"
 
-static void m_watch(struct Client *, struct Client *, int, char *[]);
-
-struct Message watch_msgtab = {
-  "WATCH", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_watch, m_ignore, m_ignore, m_watch, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&watch_msgtab);
-  add_isupport("WATCH", NULL, ConfigFileEntry.max_watch);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&watch_msgtab);
-  delete_isupport("WATCH");
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * RPL_NOWON        - Online at the moment (Succesfully added to WATCH-list)
@@ -78,7 +52,7 @@ show_watch(struct Client *client_p, const char *name,
   if ((target_p = find_person(client_p, name)))
     sendto_one(client_p, form_str(rpl1), me.name, client_p->name,
                target_p->name, target_p->username,
-               target_p->host, target_p->lasttime);
+               target_p->host, target_p->tsinfo);
   else
     sendto_one(client_p, form_str(rpl2), me.name, client_p->name,
                name, "*", "*", 0);
@@ -264,3 +238,32 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc, char *parv[]
     /* Hmm.. unknown prefix character.. Ignore it. :-) */
   }
 }
+
+static struct Message watch_msgtab = {
+  "WATCH", 0, 0, 0, 1, MFLG_SLOW, 0,
+  { m_unregistered, m_watch, m_ignore, m_ignore, m_watch, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&watch_msgtab);
+  add_isupport("WATCH", NULL, ConfigFileEntry.max_watch);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&watch_msgtab);
+  delete_isupport("WATCH");
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

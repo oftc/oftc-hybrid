@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -32,53 +31,13 @@
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_user.h"
 
-static void m_list(struct Client *, struct Client *, int, char *[]);
-static void mo_list(struct Client *, struct Client *, int, char *[]);
-
-struct Message list_msgtab = {
-  "LIST", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_list, m_ignore, m_ignore, mo_list, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&list_msgtab);
-  add_isupport("ELIST", "CMNTU", -1);
-  add_isupport("SAFELIST", NULL, -1);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&list_msgtab);
-  delete_isupport("ELIST");
-  delete_isupport("SAFELIST");
-}
-
-const char *_version = "$Revision$";
-#endif
-
-static int
-has_wildcards(const char *s)
-{
-  char c;
-
-  while ((c = *s++))
-    if (IsMWildChar(c))
-      return 1;
-
-  return 0;
-}
 
 static void
 do_list(struct Client *source_p, int parc, char *parv[])
@@ -198,35 +157,44 @@ do_list(struct Client *source_p, int parc, char *parv[])
 }
 
 /*
-** m_list
-**      parv[0] = sender prefix
-**      parv[1] = channel
-*/
-static void
-m_list(struct Client *client_p, struct Client *source_p, 
-       int parc, char *parv[])
-{
-  static time_t last_used = 0;
-
-  if (((last_used + ConfigFileEntry.pace_wait) > CurrentTime))
-  {
-    sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0]);
-    return;
-  }
-
-  last_used = CurrentTime;
-
-  do_list(source_p, parc, parv);
-}
-
-/*
 ** mo_list
 **      parv[0] = sender prefix
 **      parv[1] = channel
 */
 static void
-mo_list(struct Client *client_p, struct Client *source_p,
+m_list(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   do_list(source_p, parc, parv);
 }
+
+static struct Message list_msgtab = {
+  "LIST", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_list, m_ignore, m_ignore, m_list, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&list_msgtab);
+  add_isupport("ELIST", "CMNTU", -1);
+  add_isupport("SAFELIST", NULL, -1);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&list_msgtab);
+  delete_isupport("ELIST");
+  delete_isupport("SAFELIST");
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

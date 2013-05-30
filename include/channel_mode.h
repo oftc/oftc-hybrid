@@ -36,8 +36,8 @@
 /* can_send results */
 #define CAN_SEND_ONLY_IF_REG -1
 #define CAN_SEND_NO	0
-#define CAN_SEND_NONOP  1
-#define CAN_SEND_OPV	2
+#define CAN_SEND_NONOP  -1
+#define CAN_SEND_OPV	-2
 
 /* Channel related flags */
 #define CHFL_CHANOP     0x0001 /* Channel operator   */
@@ -58,10 +58,11 @@
 #define MODE_NOPRIVMSGS 0x0020
 #define MODE_SSLONLY    0x0040
 #define MODE_OPERONLY   0x0080
-#define MODE_NOCOLOR    0x0100
-#define MODE_REGONLY    0x0200
-#define MODE_SPEAKIFREG 0x0400
-#define MODE_OPMOD      0x0800
+#define MODE_REGISTERED 0x0100 /* Channel has been registered with ChanServ */
+#define MODE_NOCOLOR    0x0200
+#define MODE_REGONLY    0x0400
+#define MODE_SPEAKIFREG 0x0800
+#define MODE_OPMOD      0x1000
 
 /* cache flags for silence on ban */
 #define CHFL_BAN_CHECKED  0x0080
@@ -106,6 +107,13 @@ struct ChCapCombo
   unsigned int cap_no;
 };
 
+struct mode_letter
+{
+  const unsigned int mode;
+  const unsigned char letter;
+};
+
+extern const struct mode_letter chan_modes[];
 extern int add_id(struct Client *, struct Channel *, char *, int);
 extern void set_channel_mode(struct Client *, struct Client *, struct Channel *,
                              struct Membership *, int, char **, char *);

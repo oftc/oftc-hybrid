@@ -24,12 +24,11 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "hash.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_misc.h"
 #include "s_user.h"
 #include "hash.h"
@@ -38,10 +37,8 @@
 #include "send.h"
 #include "channel.h"
 #include "resv.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "common.h"
 #include "packet.h"
 #include "irc_string.h"
 
@@ -75,7 +72,7 @@ static void ms_certfp(struct Client *source_p, struct Client *client_p, int parc
 
   base16_decode(target_p->certfp, SHA_DIGEST_LENGTH, parv[2], strlen(parv[2]));
 
-  sendto_server(client_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
+  sendto_server(client_p, NOCAPS, NOCAPS, NOFLAGS,
       ":%s CERTFP %s %s", parv[0], parv[1], parv[2]);
 }
 

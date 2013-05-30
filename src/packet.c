@@ -24,10 +24,9 @@
 #include "stdinc.h"
 #include "list.h"
 #include "s_bsd.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "client.h"
-#include "common.h"
 #include "ircd.h"
 #include "parse.h"
 #include "fdlist.h"
@@ -36,11 +35,11 @@
 #include "memory.h"
 #include "hook.h"
 #include "send.h"
+#include "s_misc.h"
 
 #define READBUF_SIZE 16384
 
 struct Callback *iorecv_cb = NULL;
-struct Callback *iorecvctrl_cb = NULL;
 
 static char readBuf[READBUF_SIZE];
 static void client_dopacket(struct Client *, char *, size_t);
@@ -166,7 +165,7 @@ parse_client_queued(struct Client *client_p)
   }
   else if (IsClient(client_p))
   {
-    if (ConfigFileEntry.no_oper_flood && (IsOper(client_p) || IsCanFlood(client_p)))
+    if (ConfigFileEntry.no_oper_flood && (HasUMode(client_p, UMODE_OPER) || IsCanFlood(client_p)))
     {
       if (ConfigFileEntry.true_no_oper_flood)
         checkflood = -1;
@@ -272,122 +271,6 @@ flood_recalc(fde_t *fd, void *data)
 }
 
 /*
- * read_ctrl_packet - Read a 'packet' of data from a servlink control
- *                    link and process it.
- */
-void
-read_ctrl_packet(fde_t *fd, void *data)
-{
-  struct Client *server = data;
-  struct LocalUser *lserver = server->localClient;
-  struct SlinkRpl *reply;
-  int length = 0;
-  unsigned char tmp[2];
-  unsigned char *len = tmp;
-  struct SlinkRplDef *replydef;
-
-  assert(lserver != NULL);
-    
-  reply = &lserver->slinkrpl;
-
-  if (IsDefunct(server))
-    return;
-
-  if (!reply->command)
-  {
-    reply->gotdatalen = 0;
-    reply->readdata = 0;
-    reply->data = NULL;
-
-    length = recv(fd->fd, tmp, 1, 0);
-
-    if (length <= 0)
-    {
-      if ((length == -1) && ignoreErrno(errno))
-        goto nodata;
-      dead_link_on_read(server, length);
-      return;
-    }
-    reply->command = tmp[0];
-  }
-
-  for (replydef = slinkrpltab; replydef->handler; replydef++)
-  {
-    if (replydef->replyid == (unsigned int)reply->command)
-      break;
-  }
-
-  /* we should be able to trust a local slink process...
-   * and if it sends an invalid command, that's a bug.. */
-  assert(replydef->handler);
-
-  if ((replydef->flags & SLINKRPL_FLAG_DATA) && (reply->gotdatalen < 2))
-  {
-    /* we need a datalen u16 which we don't have yet... */
-    length = recv(fd->fd, len, (2 - reply->gotdatalen), 0);
-    if (length <= 0)
-    {
-      if ((length == -1) && ignoreErrno(errno))
-        goto nodata;
-      dead_link_on_read(server, length);
-      return;
-    }
-
-    if (reply->gotdatalen == 0)
-    {
-      reply->datalen = *len << 8;
-      reply->gotdatalen++;
-      length--;
-      len++;
-    }
-    if (length && (reply->gotdatalen == 1))
-    {
-      reply->datalen |= *len;
-      reply->gotdatalen++;
-      if (reply->datalen > 0)
-        reply->data = MyMalloc(reply->datalen);
-    }
-
-    if (reply->gotdatalen < 2)
-      return; /* wait for more data */
-  }
-
-  if (reply->readdata < reply->datalen) /* try to get any remaining data */
-  {
-    length = recv(fd->fd, (reply->data + reply->readdata),
-                  (reply->datalen - reply->readdata), 0);
-    if (length <= 0)
-    {
-      if ((length == -1) && ignoreErrno(errno))
-        goto nodata;
-      dead_link_on_read(server, length);
-      return;
-    }
-
-    reply->readdata += length;
-    if (reply->readdata < reply->datalen)
-      return; /* wait for more data */
-  }
-
-  execute_callback(iorecvctrl_cb, server, reply->command);
-
-  /* we now have the command and any data, pass it off to the handler */
-  (*replydef->handler)(reply->command, reply->datalen, reply->data, server);
-
-  /* reset SlinkRpl */                      
-  if (reply->datalen > 0)
-    MyFree(reply->data);
-  reply->command = 0;
-
-  if (IsDead(server))
-    return;
-
-nodata:
-  /* If we get here, we need to register for another COMM_SELECT_READ */
-  comm_setselect(fd, COMM_SELECT_READ, read_ctrl_packet, server, 0);
-}
-
-/*
  * iorecv_default - append a packet to the recvq dbuf
  */
 void *
@@ -472,13 +355,13 @@ read_packet(fde_t *fd, void *data)
         strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&CurrentTime));
         sendto_realops_flags(UMODE_ALL, L_ALL, 
             "Finally received packets from %s again after %d seconds (at %s)",
-            get_client_name(client_p, SHOW_IP), CurrentTime - client_p->lasttime, timestamp);
+            get_client_name(client_p, SHOW_IP), CurrentTime - client_p->localClient->lasttime, timestamp);
     }
 
-    if (client_p->lasttime < CurrentTime)
-      client_p->lasttime = CurrentTime;
-    if (client_p->lasttime > client_p->since)
-      client_p->since = CurrentTime;
+    if (client_p->localClient->lasttime < CurrentTime)
+      client_p->localClient->lasttime = CurrentTime;
+    if (client_p->localClient->lasttime > client_p->localClient->since)
+      client_p->localClient->since = CurrentTime;
     ClearPingSent(client_p);
 
     /* Attempt to parse what we have */
@@ -488,12 +371,11 @@ read_packet(fde_t *fd, void *data)
       return;
 
     /* Check to make sure we're not flooding */
-    /* TBD - ConfigFileEntry.client_flood should be a size_t */
     if (!(IsServer(client_p) || IsHandshake(client_p) || IsConnecting(client_p))
         && (dbuf_length(&client_p->localClient->buf_recvq) >
-            (unsigned int)ConfigFileEntry.client_flood))
+            get_recvq(client_p)))
     {
-      if (!(ConfigFileEntry.no_oper_flood && IsOper(client_p)))
+      if (!(ConfigFileEntry.no_oper_flood && HasUMode(client_p, UMODE_OPER)))
       {
         exit_client(client_p, client_p, "Excess Flood");
         return;

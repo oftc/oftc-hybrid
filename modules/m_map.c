@@ -25,74 +25,18 @@
 #include "stdinc.h"
 #include "client.h"
 #include "modules.h"
-#include "handlers.h"
-#include "hash.h"
 #include "numeric.h"
 #include "send.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "ircd.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
+#include "parse.h"
+#include "hash.h"
 
 
 static char buf[IRCD_BUFSIZE];
-static void mo_map(struct Client *, struct Client *, int, char *[]);
-static void dump_map(struct Client *, const struct Client *, int, char *);
-
-struct Message map_msgtab = {
-  "MAP", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_map, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&map_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&map_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
 static int line_counter;
-
-/* mo_map()
- *      parv[0] = sender prefix
- */
-static void
-mo_map(struct Client *client_p, struct Client *source_p,
-       int parc, char *parv[])
-{
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-  dlink_node *ptr;
-
-  line_counter = 0;
-  dump_map(client_p, &me, 0, buf);
-  DLINK_FOREACH(ptr, server_items.head)
-  {
-    conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
-    if (aconf->status != CONF_SERVER)
-      continue;
-    if (strcmp(conf->name, me.name) == 0)
-      continue;
-    if (!find_server(conf->name))
-    {
-      char buffer[IRCD_BUFSIZE];
-      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
-      sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buffer);
-    }
-  }
-
-  sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
-}
 
 /* dump_map()
  *   dumps server map, called recursively.
@@ -118,7 +62,7 @@ dump_map(struct Client *client_p, const struct Client *root_p,
   line_counter++;
 
   /* IsOper isn't called *that* often. */
-  if (IsOper(client_p))
+  if (HasUMode(client_p, UMODE_OPER))
   {
     l = ircsprintf(pb, "[%s]", root_p->id);
     pb += l;
@@ -178,3 +122,62 @@ dump_map(struct Client *client_p, const struct Client *root_p,
     ++i;
   }
 }
+
+/* mo_map()
+ *      parv[0] = sender prefix
+ */
+static void
+mo_map(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
+{
+  struct ConfItem *conf;
+  struct AccessItem *aconf;
+  dlink_node *ptr;
+
+  line_counter = 0;
+  dump_map(client_p, &me, 0, buf);
+  DLINK_FOREACH(ptr, server_items.head)
+  {
+    conf = ptr->data;
+    aconf = (struct AccessItem *)map_to_conf(conf);
+    if (aconf->status != CONF_SERVER)
+      continue;
+    if (strcmp(conf->name, me.name) == 0)
+      continue;
+    if (!hash_find_server(conf->name))
+    {
+      char buffer[IRCD_BUFSIZE];
+      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
+      sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buffer);
+    }
+  }
+
+  sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
+}
+
+static struct Message map_msgtab = {
+  "MAP", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_map, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&map_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&map_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -27,25 +27,22 @@
 #include "send.h"
 #include "channel.h"
 #include "client.h"
-#include "common.h"
 #include "dbuf.h"
 #include "irc_string.h"
 #include "ircd.h"
-#include "handlers.h"
 #include "numeric.h"
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_serv.h"
 #include "sprintf_irc.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "memory.h"
 #include "hook.h"
 #include "packet.h"
 
 
 struct Callback *iosend_cb = NULL;
-struct Callback *iosendctrl_cb = NULL;
 static unsigned int current_serial = 0;
 
 
@@ -180,16 +177,16 @@ send_message_remote(struct Client *to, struct Client *from,
                          from->name, from->username, from->host,
                          to->from->name);
 
-    sendto_server(NULL, NULL, CAP_TS6, NOCAPS,
+    sendto_server(NULL, CAP_TS6, NOCAPS,
                   ":%s KILL %s :%s (%s[%s@%s] Ghosted %s)",
                   me.id, to->name, me.name, to->name,
                   to->username, to->host, to->from->name);
-    sendto_server(NULL, NULL, NOCAPS, CAP_TS6,
+    sendto_server(NULL, NOCAPS, CAP_TS6,
                   ":%s KILL %s :%s (%s[%s@%s] Ghosted %s)",
                   me.name, to->name, me.name, to->name,
                   to->username, to->host, to->from->name);
 
-    SetKilled(to);
+    AddFlag(to, FLAGS_KILLED);
 
     if (IsClient(from))
       sendto_one(from, form_str(ERR_GHOSTEDCLIENT),
@@ -221,17 +218,6 @@ sendq_unblocked(fde_t *fd, struct Client *client_p)
     read_packet(fd, client_p);
   }
 #endif
-}
-
-/*
- ** slinkq_unblocked
- **      Called when a server control socket is ready for writing.
- */
-static void
-slinkq_unblocked(fde_t *fd, struct Client *client_p)
-{
-  ClearSlinkqBlocked(client_p);
-  send_queued_slink_write(client_p);
 }
 
 /*
@@ -312,72 +298,6 @@ send_queued_write(struct Client *to)
   }
 }
 
-/*
- ** send_queued_slink_write
- **      This is called when there is a chance the some output would
- **      be possible. This attempts to empty the send queue as far as
- **      possible, and then if any data is left, a write is rescheduled.
- */
-void
-send_queued_slink_write(struct Client *to)
-{
-  int retlen;
-
-  /*
-   ** Once socket is marked dead, we cannot start writing to it,
-   ** even if the error is removed...
-   */
-  if (IsDead(to) || IsSlinkqBlocked(to))
-    return;  /* no use calling send() now */
-
-  /* Next, lets try to write some data */
-  if (to->localClient->slinkq != NULL)
-  {
-    retlen = send(to->localClient->ctrlfd.fd,
-                   to->localClient->slinkq + to->localClient->slinkq_ofs,
-                   to->localClient->slinkq_len, 0);
-    if (retlen < 0)
-    {
-      /* If we have a fatal error */
-      if (!ignoreErrno(errno))
-      {
-	dead_link_on_write(to, errno);
-	return;
-      }
-    }
-    else if (retlen == 0)
-    {
-      /* 0 bytes is an EOF .. */
-      dead_link_on_write(to, 0);
-      return;
-    }
-    else
-    {
-      execute_callback(iosendctrl_cb, to, retlen,
-        to->localClient->slinkq + to->localClient->slinkq_ofs);
-      to->localClient->slinkq_len -= retlen;
-
-      assert(to->localClient->slinkq_len >= 0);
-      if (to->localClient->slinkq_len)
-        to->localClient->slinkq_ofs += retlen;
-      else
-      {
-        to->localClient->slinkq_ofs = 0;
-        MyFree(to->localClient->slinkq);
-        to->localClient->slinkq = NULL;
-      }
-    }
-
-    /* Finally, if we have any more data, reschedule a write */
-    if (to->localClient->slinkq_len)
-    {
-      SetSlinkqBlocked(to);
-      comm_setselect(&to->localClient->ctrlfd, COMM_SELECT_WRITE,
-                     (PF *)slinkq_unblocked, (void *)to, 0);
-    }
-  }
-}
-
 /* send_queued_all()
  *
  * input        - NONE
@@ -448,7 +368,7 @@ sendto_one(struct Client *to, const char *pattern, ...)
  */
 void
 sendto_channel_butone(struct Client *one, struct Client *from,
-                      struct Channel *chptr, const char *command,
+                      struct Channel *chptr, unsigned int type,
                       const char *pattern, ...)
 {
   va_list alocal, aremote, auid;
@@ -459,16 +379,15 @@ sendto_channel_butone(struct Client *one, struct Client *from,
   dlink_node *ptr = NULL, *ptr_next = NULL;
 
   if (IsServer(from))
-    local_len = ircsprintf(local_buf, ":%s %s %s ",
-                           from->name, command, chptr->chname);
+    local_len = ircsprintf(local_buf, ":%s ",
+                           from->name);
   else
-    local_len = ircsprintf(local_buf, ":%s!%s@%s %s %s ",
-                           from->name, from->username, from->host,
-                           command, chptr->chname);
-  remote_len = ircsprintf(remote_buf, ":%s %s %s ",
-                          from->name, command, chptr->chname);
-  uid_len = ircsprintf(uid_buf, ":%s %s %s ",
-                       ID(from), command, chptr->chname);
+    local_len = ircsprintf(local_buf, ":%s!%s@%s ",
+                           from->name, from->username, from->host);
+  remote_len = ircsprintf(remote_buf, ":%s ",
+                          from->name);
+  uid_len = ircsprintf(uid_buf, ":%s ",
+                       ID(from));
 
   va_start(alocal, pattern);
   va_start(aremote, pattern);
@@ -487,11 +406,15 @@ sendto_channel_butone(struct Client *one, struct Client *from,
 
   DLINK_FOREACH_SAFE(ptr, ptr_next, chptr->members.head)
   {
-    struct Client *target_p = ((struct Membership *)ptr->data)->client_p;
+    struct Membership *ms = ptr->data;
+    struct Client *target_p = ms->client_p;
 
     assert(IsClient(target_p));
 
-    if (IsDefunct(target_p) || IsDeaf(target_p) || target_p->from == one)
+    if (IsDefunct(target_p) || HasUMode(target_p, UMODE_DEAF) || target_p->from == one)
+      continue;
+
+    if (type != 0 && (ms->flags & type) == 0)
       continue;
 
     if (MyConnect(target_p))
@@ -538,7 +461,7 @@ sendto_channel_butone(struct Client *one, struct Client *from,
  * -davidt
  */
 void 
-sendto_server(struct Client *one, const struct Channel *chptr,
+sendto_server(struct Client *one,
               const unsigned int caps,
               const unsigned int nocaps,
               const char *format, ...)
@@ -547,9 +470,6 @@ sendto_server(struct Client *one, const struct Channel *chptr,
   dlink_node *ptr = NULL;
   char buffer[IRCD_BUFSIZE];
   int len = 0;
-
-  if (chptr && chptr->chname[0] != '#')
-    return;
 
   va_start(args, format);
   len = send_format(buffer, IRCD_BUFSIZE, format, args);
@@ -663,7 +583,7 @@ sendto_channel_local(int type, int nodeaf, struct Channel *chptr,
       continue;
 
     if (!MyConnect(target_p) || IsDefunct(target_p) ||
-        (nodeaf && IsDeaf(target_p)))
+        (nodeaf && HasUMode(target_p, UMODE_DEAF)))
       continue;
 
     send_message(target_p, buffer, len);
@@ -706,7 +626,7 @@ sendto_channel_local_butone(struct Client *one, int type,
       continue;
 
     if (!MyConnect(target_p) || target_p == one ||
-        IsDefunct(target_p) || IsDeaf(target_p))
+        IsDefunct(target_p) || HasUMode(target_p, UMODE_DEAF))
       continue;
     send_message(target_p, buffer, len);
   }
@@ -972,13 +892,13 @@ sendto_realops_remote(struct Client *source_p, unsigned int flags, int level,
   DLINK_FOREACH(ptr, oper_list.head)
   {
     struct Client *client_p = ptr->data;
-    assert(client_p->umodes & UMODE_OPER);
+    assert(HasUMode(client_p, UMODE_OPER));
 
     /* If we're sending it to opers and theyre an admin, skip.
      * If we're sending it to admins, and theyre not, skip.
      */
-    if (((level == L_ADMIN) && !IsAdmin(client_p)) ||
-        ((level == L_OPER) && IsAdmin(client_p)))
+    if (((level == L_ADMIN) && !HasUMode(client_p, UMODE_ADMIN)) ||
+        ((level == L_OPER) && HasUMode(client_p, UMODE_ADMIN)))
       continue;
 
     if (client_p->umodes & flags)
@@ -1007,8 +927,37 @@ sendto_realops_flags(unsigned int flags, int level, const char *pattern, ...)
 
   sendto_realops_remote(&me, flags, level, nbuf);
 
-  sendto_server(NULL, NULL, CAP_ENCAP, NOCAPS, 
+  sendto_server(NULL, CAP_ENCAP, NOCAPS, 
       ":%s ENCAP * GNOTICE %d %d :%s", me.name, flags, level, nbuf);
+}
+
+void
+sendto_globops_flags(unsigned int flags, int level, const char *pattern, ...)
+{
+  dlink_node *ptr = NULL;
+  char nbuf[IRCD_BUFSIZE];
+  va_list args;
+
+  va_start(args, pattern);
+  vsnprintf(nbuf, IRCD_BUFSIZE, pattern, args);
+  va_end(args);
+
+  DLINK_FOREACH(ptr, oper_list.head)
+  {
+    struct Client *client_p = ptr->data;
+    assert(client_p->umodes & UMODE_OPER);
+
+    /* If we're sending it to opers and theyre an admin, skip.
+     * If we're sending it to admins, and theyre not, skip.
+     */
+    if (((level == L_ADMIN) && !HasUMode(client_p, UMODE_ADMIN)) ||
+        ((level == L_OPER) && HasUMode(client_p, UMODE_ADMIN)))
+      continue;
+
+    if (HasUMode(client_p, flags))
+      sendto_one(client_p, ":%s NOTICE %s :*** Global -- %s",
+                 me.name, client_p->name, nbuf);
+  }
 }
 
 /* sendto_wallops_flags()
@@ -1046,7 +995,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
           struct Client *client_p = ptr->data;
           assert(client_p->umodes & UMODE_OPER);
 
-          if ((client_p->umodes & flags) && !IsDefunct(client_p))
+          if (HasUMode(client_p, flags) && !IsDefunct(client_p))
             send_message(client_p, buffer, len);
         }
         break;
@@ -1054,7 +1003,8 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
         DLINK_FOREACH(ptr, local_client_list.head)
         {
             struct Client *client_p = ptr->data;
-            if((client_p->umodes & flags) && !IsDefunct(client_p))
+
+            if (HasUMode(client_p, flags) && !IsDefunct(client_p))
               send_message(client_p, buffer, len);
         }
         break;
@@ -1099,7 +1049,7 @@ ts_warn(const char *pattern, ...)
   va_end(args);
 
   sendto_realops_flags(UMODE_ALL, L_ALL, "%s", buffer);
-  ilog(L_CRIT, "%s", buffer);
+  ilog(LOG_TYPE_IRCD, "%s", buffer);
 }
 
 /* kill_client()

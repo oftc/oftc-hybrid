@@ -1,19 +1,17 @@
 # $Id$
 Help topics available to opers only:
 
-CAPAB           CBURST          CLIENT          CLOSE
+CAPAB           CLOSE
 CONNECT         CRYPTLINK       DIE             DLINE
 DROP            EOB             ETRACE          GLINE
-HASH            KILL            KLINE           KNOCKLL
-LLJOIN          LLNICK          LOCOPS          MODLIST
-MODLOAD         MODRESTART      MODUNLOAD       NBURST
-NOTICE          OMOTD           OPERWALL        POST
-PRIVMSG         REHASH          RESTART         RESV
-RKLINE          RXLINE          SERVER          SET
-SJOIN           SQUIT           STATS           SVINFO
-TESTGECOS       TESTLINE        TESTMASK        TRACE
-UHELP           UMODE           UNDLINE         UNGLINE
-UNKLINE         UNRESV          UNXLINE         WALLOPS
+HASH            KILL            KLINE           LOCOPS
+MODULE          NOTICE          OMOTD           OPERWALL
+POST            PRIVMSG         REHASH          RESTART
+RESV            SERVER          SET             SJOIN
+SQUIT           STATS           SVINFO          TESTGECOS
+TESTLINE        TESTMASK        TRACE           UHELP
+UMODE           UNDLINE         UNGLINE         UNKLINE
+UNRESV          UNXLINE         WALLOPS
 XLINE
 
 Help topics available to users:

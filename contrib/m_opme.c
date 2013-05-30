@@ -24,44 +24,19 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_log.h"
+#include "log.h"
 #include "s_serv.h"
 #include "send.h"
-#include "whowas.h"
 #include "irc_string.h"
 #include "hash.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
-static void mo_opme(struct Client *, struct Client *, int, char *[]);
-
-struct Message opme_msgtab = {
-  "OPME", 0, 0, 2, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_opme, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&opme_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&opme_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 static int
 chan_is_opless(const struct Channel *const chptr)
@@ -87,7 +62,7 @@ mo_opme(struct Client *client_p, struct Client *source_p,
   struct Channel *chptr = NULL;
   struct Membership *member = NULL;
 
-  if (!IsAdmin(source_p))
+  if (!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -117,39 +92,28 @@ mo_opme(struct Client *client_p, struct Client *source_p,
 
   AddMemberFlag(member, CHFL_CHANOP);
 
-  if (*parv[1] == '&')
-  {
-    sendto_wallops_flags(UMODE_LOCOPS, &me,
-                         "OPME called for [%s] by %s!%s@%s",
-                         chptr->chname, source_p->name, source_p->username,
-                         source_p->host);
-  }
-  else
-  {
-    sendto_wallops_flags(UMODE_WALLOP, &me,
-                         "OPME called for [%s] by %s!%s@%s",
-                         chptr->chname, source_p->name, source_p->username,
-                         source_p->host);
-    sendto_server(NULL, NULL, NOCAPS, NOCAPS,
-                  ":%s WALLOPS :OPME called for [%s] by %s!%s@%s",
-                  me.name, chptr->chname, source_p->name, source_p->username,
-                  source_p->host);
-  }
+  sendto_wallops_flags(UMODE_WALLOP, &me, "OPME called for [%s] by %s!%s@%s",
+                       chptr->chname, source_p->name, source_p->username,
+                       source_p->host);
+  sendto_server(NULL, NOCAPS, NOCAPS,
+                ":%s WALLOPS :OPME called for [%s] by %s!%s@%s",
+                me.name, chptr->chname, source_p->name, source_p->username,
+                source_p->host);
 
-  ilog(L_NOTICE, "OPME called for [%s] by %s!%s@%s",
+  ilog(LOG_TYPE_IRCD, "OPME called for [%s] by %s!%s@%s",
        chptr->chname, source_p->name, source_p->username,
        source_p->host);
 
-  sendto_server(NULL, chptr, CAP_TS6, NOCAPS,
+  sendto_server(NULL, CAP_TS6, NOCAPS,
                 ":%s PART %s", ID(source_p), chptr->chname);
-  sendto_server(NULL, chptr, NOCAPS, CAP_TS6,
+  sendto_server(NULL, NOCAPS, CAP_TS6,
                 ":%s PART %s", source_p->name, chptr->chname);
 
-  sendto_server(NULL, chptr, CAP_TS6, NOCAPS,
+  sendto_server(NULL, CAP_TS6, NOCAPS,
                 ":%s SJOIN %lu %s + :@%s",
                 me.id, (unsigned long)chptr->channelts,
                 chptr->chname, ID(source_p));
-  sendto_server(NULL, chptr, NOCAPS, CAP_TS6,
+  sendto_server(NULL, NOCAPS, CAP_TS6,
                 ":%s SJOIN %lu %s + :@%s",
                 me.name, (unsigned long)chptr->channelts,
                 chptr->chname, source_p->name);
@@ -157,3 +121,30 @@ mo_opme(struct Client *client_p, struct Client *source_p,
   sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +o %s",
                        me.name, chptr->chname, source_p->name);
 }
+
+static struct Message opme_msgtab = {
+  "OPME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_opme, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&opme_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&opme_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

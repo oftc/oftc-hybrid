@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -34,52 +33,13 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "s_user.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
 
-static void m_mode(struct Client *, struct Client *, int, char *[]);
-static void ms_tmode(struct Client *, struct Client *, int, char *[]);
-static void ms_bmask(struct Client *, struct Client *, int, char *[]);
-
-struct Message mode_msgtab = {
-  "MODE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_mode, m_mode, m_ignore, m_mode, m_ignore}
-};
-
-struct Message tmode_msgtab = { 
-  "TMODE", 0, 0, 4, 0, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_tmode, m_ignore, m_ignore, m_ignore}
-};
-
-struct Message bmask_msgtab = {
-  "BMASK", 0, 0, 5, 0, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_bmask, m_ignore, m_ignore, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&mode_msgtab);
-  mod_add_cmd(&tmode_msgtab);
-  mod_add_cmd(&bmask_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&mode_msgtab);
-  mod_del_cmd(&tmode_msgtab);
-  mod_del_cmd(&bmask_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * m_mode - MODE command handler
@@ -285,7 +245,7 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[
 
         sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s",
                              modebuf, parabuf);
-        sendto_server(client_p, chptr, needcap, CAP_TS6,
+        sendto_server(client_p, needcap, CAP_TS6,
                       "%s %s", modebuf, parabuf);
 
         mbuf = modebuf + mlen;
@@ -305,13 +265,54 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[
   {
     *mbuf = *(pbuf - 1) = '\0';
     sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s", modebuf, parabuf);
-    sendto_server(client_p, chptr, needcap, CAP_TS6,
+    sendto_server(client_p, needcap, CAP_TS6,
                   "%s %s", modebuf, parabuf);
   }
 
   /* assumption here is that since the server sent BMASK, they are TS6, so they have an ID */
-  sendto_server(client_p, chptr, CAP_TS6|needcap, NOCAPS,
+  sendto_server(client_p, CAP_TS6|needcap, NOCAPS,
                 ":%s BMASK %lu %s %s :%s",
                 source_p->id, (unsigned long)chptr->channelts, chptr->chname,
                 parv[3], parv[4]);
 }
+
+static struct Message mode_msgtab = {
+  "MODE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_mode, m_mode, m_ignore, m_mode, m_ignore}
+};
+
+static struct Message tmode_msgtab = {
+  "TMODE", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_tmode, m_ignore, m_ignore, m_ignore}
+};
+
+static struct Message bmask_msgtab = {
+  "BMASK", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_bmask, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&mode_msgtab);
+  mod_add_cmd(&tmode_msgtab);
+  mod_add_cmd(&bmask_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&mode_msgtab);
+  mod_del_cmd(&tmode_msgtab);
+  mod_del_cmd(&bmask_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

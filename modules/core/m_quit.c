@@ -23,41 +23,15 @@
  */
 
 #include "stdinc.h"
-#include "list.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "irc_string.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
+#include "conf.h"
 
-static void m_quit(struct Client *, struct Client *, int, char *[]);
-static void ms_quit(struct Client *, struct Client *, int, char *[]);
-
-struct Message quit_msgtab = {
-  "QUIT", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {m_quit, m_quit, ms_quit, m_ignore, m_quit, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&quit_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&quit_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
 ** m_quit
@@ -74,12 +48,10 @@ m_quit(struct Client *client_p, struct Client *source_p,
   if (msg_has_colors(comment))
     comment = strip_color(comment);
   
-  if (comment[0] && (IsOper(source_p) ||
-      (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
+  if (*comment && (HasUMode(source_p, UMODE_OPER) ||
+      (source_p->localClient->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
       < CurrentTime))
     strlcpy(reason+6, comment, sizeof(reason)-6);
-  else
-    reason[0] = 0;
 
   exit_client(source_p, source_p, reason);
 }
@@ -100,3 +72,30 @@ ms_quit(struct Client *client_p, struct Client *source_p,
 
   exit_client(source_p, source_p, comment);
 }
+
+static struct Message quit_msgtab = {
+  "QUIT", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_quit, m_quit, ms_quit, m_ignore, m_quit, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&quit_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&quit_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

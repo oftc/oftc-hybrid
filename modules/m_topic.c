@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -34,37 +33,12 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
-#include "s_conf.h"
 #include "s_serv.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
-#include "common.h"
-#include "s_log.h"
+#include "log.h"
 
-static void m_topic(struct Client *, struct Client *, int, char *[]);
-
-struct Message topic_msgtab = {
-  "TOPIC", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_topic, m_topic, m_ignore, m_topic, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&topic_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&topic_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /* m_topic()
  *  parv[0] = sender prefix
@@ -118,12 +92,12 @@ m_topic(struct Client *client_p, struct Client *source_p,
       return;
     }
     if ((chptr->mode.mode & MODE_TOPICLIMIT) == 0 ||
-        has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) || IsGod(source_p) ||
-        IsService(source_p))
+        has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) || HasUMode(source_p, UMODE_GOD) ||
+        HasUMode(source_p, UMODE_SERVICE))
     {
       char topic_info[USERHOST_REPLYLEN]; 
       if(!has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) && 
-          IsGod(source_p) && MyClient(source_p) &&
+          HasUMode(source_p, UMODE_GOD) && MyClient(source_p) &&
           (chptr->mode.mode & MODE_TOPICLIMIT) != 0)
       {              
         char tmp[IRCD_BUFSIZE];           
@@ -134,25 +108,24 @@ m_topic(struct Client *client_p, struct Client *source_p,
         oftc_log(tmp);
       }
 
-      ircsprintf(topic_info, "%s!%s@%s", source_p->name,
-            source_p->username, source_p->host);
+      snprintf(topic_info, sizeof(topic_info), "%s!%s@%s", source_p->name,
+               source_p->username, source_p->host);
       set_channel_topic(chptr, parv[2], topic_info, CurrentTime);
 
-      sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
+      sendto_server(client_p, CAP_TS6, NOCAPS,
                     ":%s TOPIC %s :%s",
                     ID(source_p), chptr->chname,
-                    chptr->topic == NULL ? "" : chptr->topic);
-      sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
+                    chptr->topic);
+      sendto_server(client_p, NOCAPS, CAP_TS6,
                     ":%s TOPIC %s :%s",
                     source_p->name, chptr->chname,
-                    chptr->topic == NULL ? "" : chptr->topic);
+                    chptr->topic);
       sendto_channel_local(ALL_MEMBERS, 0,
                            chptr, ":%s!%s@%s TOPIC %s :%s",
                            source_p->name,
                            source_p->username,
                            source_p->host,
-                           chptr->chname, chptr->topic == NULL ?
-                           "" : chptr->topic);
+                           chptr->chname, chptr->topic);
     }
     else
       sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
@@ -162,7 +135,7 @@ m_topic(struct Client *client_p, struct Client *source_p,
   {
     if (!SecretChannel(chptr) || IsMember(source_p, chptr))
     {
-      if (chptr->topic == NULL)
+      if (chptr->topic[0] == '\0')
         sendto_one(source_p, form_str(RPL_NOTOPIC),
                    from, to, chptr->chname);
       else
@@ -181,3 +154,30 @@ m_topic(struct Client *client_p, struct Client *source_p,
                  from, to, chptr->chname);
   }
 }
+
+static struct Message topic_msgtab = {
+  "TOPIC", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_topic, m_topic, m_ignore, m_topic, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&topic_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&topic_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

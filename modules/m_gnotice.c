@@ -23,22 +23,18 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "common.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "send.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "hash.h"
-#include "msg.h"
 #include "packet.h"
 #include "irc_string.h"
 
@@ -47,7 +43,7 @@ static void ms_gnotice(struct Client *, struct Client *, int, char **);
 static void me_gnotice(struct Client *, struct Client *, int, char **);
 
 struct Message gnotice_msgtab = {
-  "GNOTICE", 0, 0, 3, 0, MFLG_SLOW | MFLG_UNREG, 0L,
+  "GNOTICE", 0, 0, 3, 0, MFLG_SLOW, 0L,
   {m_ignore, m_ignore, ms_gnotice, me_gnotice, m_ignore, m_ignore}
 };
 

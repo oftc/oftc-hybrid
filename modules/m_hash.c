@@ -23,47 +23,18 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
-#include "channel.h"
-#include "channel_mode.h"
 #include "client.h"
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_conf.h"
-#include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_user.h"
 #include "resv.h"
 #include "userhost.h"
 
-static void mo_hash(struct Client *, struct Client *, int, char *[]);
-
-
-struct Message hash_msgtab = {
- "HASH", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_hash, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&hash_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&hash_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 static void
 mo_hash(struct Client *client_p, struct Client *source_p,
@@ -190,3 +161,30 @@ mo_hash(struct Client *client_p, struct Client *source_p,
              "max chain: %d", me.name, source_p->name, count, buckets,
              max_chain);
 }
+
+static struct Message hash_msgtab = {
+ "HASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_hash, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&hash_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&hash_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

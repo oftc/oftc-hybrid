@@ -35,13 +35,9 @@ struct Client;
 struct SetOptions
 {
   int autoconn;      /* autoconn enabled for all servers? */
-  int idletime;
   int floodcount;    /* Number of messages in 1 second    */
-  /* XXX for join flood catching - Dianora */
   int joinfloodtime;
   int joinfloodcount;
-  /* XXX */
-  int rejecttime;
   int ident_timeout; /* timeout for identd lookups        */
   int spam_num;
   int spam_time;
@@ -102,8 +98,6 @@ struct ServerState_t
 extern struct ServerState_t server_state;
 
 extern char **myargv;
-extern char ircd_platform[PLATFORMLEN];
-extern char *get_ircd_platform(char *);
 extern const char *infotext[];
 extern const char *serno;
 extern const char *ircd_version;
@@ -115,10 +109,6 @@ extern struct Counter Count;
 extern struct timeval SystemTime;
 #define CurrentTime SystemTime.tv_sec
 extern int default_server_capabs;
-#ifdef HAVE_LIBCRYPTO
-extern int bio_spare_fd;
-#endif /* HAVE_LIBCRYPTO */
-
 extern unsigned int splitmode;
 extern unsigned int splitchecking;
 extern unsigned int split_users;

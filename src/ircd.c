@@ -29,7 +29,6 @@
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"
 #include "event.h"
 #include "fdlist.h"
 #include "hash.h"
@@ -37,8 +36,6 @@
 #include "ircd_signal.h"
 #include "s_gline.h"
 #include "motd.h"
-#include "ircd_handler.h"
-#include "msg.h"         /* msgtab */
 #include "hostmask.h"
 #include "numeric.h"
 #include "packet.h"
@@ -47,8 +44,8 @@
 #include "restart.h"
 #include "s_auth.h"
 #include "s_bsd.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "s_misc.h"
 #include "s_serv.h"      /* try_connections */
 #include "send.h"
@@ -62,9 +59,6 @@
 #include "supported.h"
 #include "watch.h"
 
-/* Try and find the correct name to use with getrlimit() for setting the max.
- * number of files allowed to be open by this process.
- */
 
 /* /quote set variables */
 struct SetOptions GlobalSetOptions;
@@ -77,7 +71,7 @@ struct server_info ServerInfo;
 struct admin_info AdminInfo = { NULL, NULL, NULL };
 struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 struct ServerState_t server_state = { 0 };
-struct logging_entry ConfigLoggingEntry = { 1, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} }; 
+struct logging_entry ConfigLoggingEntry = { .use_logging = 1 };
 struct ServerStatistics ServerStats;
 struct timeval SystemTime;
 struct Client me;             /* That's me */
@@ -87,7 +81,6 @@ const char *logFileName = LPATH;
 const char *pidFileName = PPATH;
 
 char **myargv;
-char ircd_platform[PLATFORMLEN];
 
 int dorehash = 0;
 int doremotd = 0;
@@ -96,11 +89,6 @@ int doremotd = 0;
  * initialize_server_capabs
  */
 int default_server_capabs = 0;
-
-#ifdef HAVE_LIBCRYPTO
-int bio_spare_fd = -1;
-#endif
-
 unsigned int splitmode;
 unsigned int splitchecking;
 unsigned int split_users;
@@ -152,7 +140,7 @@ make_daemon(void)
 
 static int printVersion = 0;
 
-struct lgetopt myopts[] = {
+static struct lgetopt myopts[] = {
   {"dlinefile",  &ConfigFileEntry.dlinefile, 
    STRING, "File to use for dline.conf"},
   {"configfile", &ConfigFileEntry.configfile, 
@@ -183,7 +171,7 @@ set_time(void)
 
   if (gettimeofday(&newtime, NULL) == -1)
   {
-    ilog(L_ERROR, "Clock Failure (%s), TS can be corrupted",
+    ilog(LOG_TYPE_IRCD, "Clock Failure (%s), TS can be corrupted",
          strerror(errno));
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Clock Failure (%s), TS can be corrupted",
@@ -296,7 +284,6 @@ initialize_global_set_options(void)
   }
 
   GlobalSetOptions.ident_timeout = IDENT_TIMEOUT;
-  GlobalSetOptions.idletime = ConfigFileEntry.idletime;
   /* End of global set options */
 }
 
@@ -310,11 +297,9 @@ static void
 initialize_message_files(void)
 {
   init_message_file(USER_MOTD, MPATH, &ConfigFileEntry.motd);
-  init_message_file(OPER_MOTD, OPATH, &ConfigFileEntry.opermotd);
   init_message_file(USER_LINKS, LIPATH, &ConfigFileEntry.linksfile);
 
   read_message_file(&ConfigFileEntry.motd);
-  read_message_file(&ConfigFileEntry.opermotd);
   read_message_file(&ConfigFileEntry.linksfile);
 
   init_isupport();
@@ -331,8 +316,8 @@ initialize_server_capabs(void)
   add_capability("QS", CAP_QS, 1);
   add_capability("EOB", CAP_EOB, 1);
   add_capability("TS6", CAP_TS6, 0);
-  add_capability("ZIP", CAP_ZIP, 0);
   add_capability("CLUSTER", CAP_CLUSTER, 1);
+  add_capability("SVS", CAP_SVS, 1);
 #ifdef HALFOPS
   add_capability("HOPS", CAP_HOPS, 1);
 #endif
@@ -347,24 +332,24 @@ initialize_server_capabs(void)
 static void
 write_pidfile(const char *filename)
 {
-  FBFILE *fb;
+  FILE *fb;
 
-  if ((fb = fbopen(filename, "w")))
+  if ((fb = fopen(filename, "w")))
   {
     char buff[32];
     unsigned int pid = (unsigned int)getpid();
-    size_t nbytes = snprintf(buff, sizeof(buff), "%u\n", pid);
 
-    if ((fbputs(buff, fb, nbytes) == -1))
-      ilog(L_ERROR, "Error writing %u to pid file %s (%s)",
+    snprintf(buff, sizeof(buff), "%u\n", pid);
+
+    if ((fputs(buff, fb) == -1))
+      ilog(LOG_TYPE_IRCD, "Error writing %u to pid file %s (%s)",
            pid, filename, strerror(errno));
 
-    fbclose(fb);
-    return;
+    fclose(fb);
   }
   else
   {
-    ilog(L_ERROR, "Error opening pid file %s", filename);
+    ilog(LOG_TYPE_IRCD, "Error opening pid file %s", filename);
   }
 }
 
@@ -379,14 +364,14 @@ write_pidfile(const char *filename)
 static void
 check_pidfile(const char *filename)
 {
-  FBFILE *fb;
+  FILE *fb;
   char buff[32];
   pid_t pidfromfile;
 
   /* Don't do logging here, since we don't have log() initialised */
-  if ((fb = fbopen(filename, "r")))
+  if ((fb = fopen(filename, "r")))
   {
-    if (fbgets(buff, 20, fb) == NULL)
+    if (fgets(buff, 20, fb) == NULL)
     {
       /* log(L_ERROR, "Error reading from pid file %s (%s)", filename,
        * strerror(errno));
@@ -404,7 +389,7 @@ check_pidfile(const char *filename)
       }
     }
 
-    fbclose(fb);
+    fclose(fb);
   }
   else if (errno != ENOENT)
   {
@@ -459,16 +444,27 @@ init_ssl(void)
   {
     const char *s;
 
-    fprintf(stderr, "ERROR: Could not initialize the SSL context -- %s\n",
+    fprintf(stderr, "ERROR: Could not initialize the SSL Server context -- %s\n",
             s = ERR_lib_error_string(ERR_get_error()));
-    ilog(L_CRIT, "ERROR: Could not initialize the SSL context -- %s\n", s);
+    ilog(LOG_TYPE_IRCD, "ERROR: Could not initialize the SSL Server context -- %s\n", s);
   }
 
   SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv2);
   SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
   SSL_CTX_set_verify(ServerInfo.server_ctx, SSL_VERIFY_PEER, always_accept_verify_cb);
 
-  bio_spare_fd = save_spare_fd("SSL private key validation");
+  if ((ServerInfo.client_ctx = SSL_CTX_new(SSLv23_client_method())) == NULL)
+  {
+    const char *s;
+
+    fprintf(stderr, "ERROR: Could not initialize the SSL Client context -- %s\n",
+            s = ERR_lib_error_string(ERR_get_error()));
+    ilog(LOG_TYPE_IRCD, "ERROR: Could not initialize the SSL Client context -- %s\n", s);
+  }
+
+  SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv2);
+  SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
+  SSL_CTX_set_verify(ServerInfo.client_ctx, SSL_VERIFY_NONE, NULL);
 #endif /* HAVE_LIBCRYPTO */
 }
 
@@ -483,8 +479,6 @@ init_callbacks(void)
 {
   iorecv_cb = register_callback("iorecv", iorecv_default);
   iosend_cb = register_callback("iosend", iosend_default);
-  iorecvctrl_cb = register_callback("iorecvctrl", NULL);
-  iosendctrl_cb = register_callback("iosendctrl", NULL);
 }
 
 int
@@ -518,10 +512,7 @@ main(int argc, char *argv[])
   ConfigFileEntry.configfile = CPATH;  /* Server configuration file */
   ConfigFileEntry.klinefile  = KPATH;  /* Server kline file         */
   ConfigFileEntry.xlinefile  = XPATH;  /* Server xline file         */
-  ConfigFileEntry.rxlinefile = RXPATH; /* Server regex xline file   */
-  ConfigFileEntry.rklinefile = RKPATH; /* Server regex kline file   */
   ConfigFileEntry.dlinefile  = DLPATH; /* dline file                */
-  ConfigFileEntry.glinefile  = GPATH;  /* gline log file            */
   ConfigFileEntry.cresvfile  = CRESVPATH; /* channel resv file      */
   ConfigFileEntry.nresvfile  = NRESVPATH; /* nick resv file         */
   myargv = argv;
@@ -553,13 +544,11 @@ main(int argc, char *argv[])
 
   setup_signals();
 
-  get_ircd_platform(ircd_platform);
-
   /* Init the event subsystem */
   eventInit();
   /* We need this to initialise the fd array before anything else */
   fdlist_init();
-  init_log(logFileName);
+  log_add_file(LOG_TYPE_IRCD, 0, logFileName);
   check_can_use_v6();
   init_comm();         /* This needs to be setup early ! -- adrian */
   /* Check if there is pidfile and daemon already running */
@@ -573,13 +562,13 @@ main(int argc, char *argv[])
   init_hash();
   init_ip_hash_table();      /* client host ip hash table */
   init_host_hash();          /* Host-hashtable. */
-  clear_tree_parse();
   init_client();
   init_class();
-  init_whowas();
+  whowas_init();
   watch_init();
   init_auth();          /* Initialise the auth code */
   init_resolver();      /* Needs to be setup before the io loop */
+  modules_init();
   read_conf_files(1);   /* cold start init conf files */
   init_uid();
   initialize_server_capabs();   /* Set up default_server_capabs */
@@ -588,7 +577,7 @@ main(int argc, char *argv[])
 
   if (EmptyString(ServerInfo.sid))
   {
-    ilog(L_CRIT, "ERROR: No server id specified in serverinfo block.");
+    ilog(LOG_TYPE_IRCD, "ERROR: No server id specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
@@ -596,7 +585,7 @@ main(int argc, char *argv[])
 
   if (EmptyString(ServerInfo.name))
   {
-    ilog(L_CRIT, "ERROR: No server name specified in serverinfo block.");
+    ilog(LOG_TYPE_IRCD, "ERROR: No server name specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
@@ -605,15 +594,17 @@ main(int argc, char *argv[])
   /* serverinfo{} description must exist.  If not, error out.*/
   if (EmptyString(ServerInfo.description))
   {
-    ilog(L_CRIT, "ERROR: No server description specified in serverinfo block.");
+    ilog(LOG_TYPE_IRCD, "ERROR: No server description specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
   strlcpy(me.info, ServerInfo.description, sizeof(me.info));
 
-  me.from     = &me;
-  me.servptr  = &me;
-  me.lasttime = me.since = me.firsttime = CurrentTime;
+  me.from                   = &me;
+  me.servptr                = &me;
+  me.localClient->lasttime  = CurrentTime;
+  me.localClient->since     = CurrentTime;
+  me.localClient->firsttime = CurrentTime;
 
   SetMe(&me);
   make_server(&me);
@@ -627,7 +618,7 @@ main(int argc, char *argv[])
 #ifndef STATIC_MODULES
   if (chdir(MODPATH))
   {
-    ilog(L_CRIT, "Could not load core modules. Terminating!");
+    ilog(LOG_TYPE_IRCD, "Could not load core modules. Terminating!");
     exit(EXIT_FAILURE);
   }
 
@@ -652,7 +643,7 @@ main(int argc, char *argv[])
 
   write_pidfile(pidFileName);
 
-  ilog(L_NOTICE, "Server Ready");
+  ilog(LOG_TYPE_IRCD, "Server Ready");
 
   eventAddIsh("cleanup_glines", cleanup_glines, NULL, CLEANUP_GLINES_TIME);
   eventAddIsh("cleanup_tklines", cleanup_tklines, NULL, CLEANUP_TKLINES_TIME);
@@ -660,8 +651,6 @@ main(int argc, char *argv[])
   /* We want try_connections to be called as soon as possible now! -- adrian */
   /* No, 'cause after a restart it would cause all sorts of nick collides */
   eventAddIsh("try_connections", try_connections, NULL, STARTUP_CONNECTIONS_TIME);
-
-  eventAddIsh("collect_zipstats", collect_zipstats, NULL, ZIPSTATS_TIME);
 
   /* Setup the timeout check. I'll shift it later :)  -- adrian */
   eventAddIsh("comm_checktimeouts", comm_checktimeouts, NULL, 1);

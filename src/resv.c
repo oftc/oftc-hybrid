@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "common.h"
 #include "ircd.h"
 #include "send.h"
 #include "client.h"   
@@ -34,7 +33,7 @@
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd_defs.h"
-#include "s_conf.h"
+#include "conf.h"
 
 dlink_list resv_channel_list = { NULL, NULL, 0 };
 

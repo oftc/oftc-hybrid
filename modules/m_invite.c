@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -33,35 +32,12 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
 
-static void m_invite(struct Client *, struct Client *, int, char *[]);
-
-struct Message invite_msgtab = {
-  "INVITE", 0, 0, 3, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_invite, m_invite, m_ignore, m_invite, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&invite_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&invite_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
 ** m_invite
@@ -99,21 +75,6 @@ m_invite(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  /* Do not send local channel invites to users if they are not on the
-   * same server as the person sending the INVITE message. 
-   */
-  /* Possibly should be an error sent to source_p */
-  /* done .. there should be no problem because MyConnect(source_p) should
-   * always be true if parse() and such is working correctly --is
-   */
-  if (!MyConnect(target_p) && (*parv[2] == '&'))
-  {
-    if (ConfigServerHide.hide_servers == 0)
-      sendto_one(source_p, form_str(ERR_USERNOTONSERV),
-                 me.name, source_p->name, target_p->name);
-    return;
-  }
-
   if ((chptr = hash_find_channel(parv[2])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
@@ -130,23 +91,18 @@ m_invite(struct Client *client_p, struct Client *source_p,
 
   chop = has_member_flags(ms, CHFL_CHANOP);
 
-  if ((chptr->mode.mode & (MODE_INVITEONLY | MODE_PRIVATE)))
+  if (MyConnect(source_p) && !chop && !HasUMode(source_p, UMODE_GOD))
   {
-    if (MyConnect(source_p) && !chop && !IsGod(source_p))
-    {
-      sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-          me.name, parv[0], parv[2]);
-      return;
-    }
-    if(MyConnect(source_p) && !chop)
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-          "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
-          target_p->name);
+    sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
+        me.name, parv[0], parv[2]);
+    return;
   }
-  else
-      /* Don't save invite even if from an op otherwise... */
-    chop = 0;
-
+  if(MyConnect(source_p) && !chop)
+  {
+    sendto_realops_flags(UMODE_ALL, L_ALL, 
+        "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
+        target_p->name);
+  }
 
   if (IsMember(target_p, chptr))
   {
@@ -160,7 +116,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(RPL_INVITING), me.name,
                source_p->name, target_p->name, chptr->chname);
 
-    if (target_p->away)
+    if (target_p->away[0])
       sendto_one(source_p, form_str(RPL_AWAY),
                  me.name, source_p->name, target_p->name,
                  target_p->away);
@@ -178,20 +134,21 @@ m_invite(struct Client *client_p, struct Client *source_p,
 
     if (chptr->mode.mode & MODE_INVITEONLY)
     {
-      if (chptr->mode.mode & MODE_PRIVATE)
-      {
-        /* Only do this if channel is set +i AND +p */
-        sendto_channel_local(CHFL_CHANOP|CHFL_HALFOP, 0, chptr,
-                             ":%s NOTICE %s :%s is inviting %s to %s.",
-                             me.name, chptr->chname, source_p->name,
-                             target_p->name, chptr->chname);
-        sendto_channel_remote(source_p, client_p, CHFL_CHANOP|CHFL_HALFOP,
-                              NOCAPS, NOCAPS, chptr,
-                              ":%s NOTICE %s :%s is inviting %s to %s.",
-                              source_p->name, chptr->chname, source_p->name,
-                              target_p->name, chptr->chname);
-      }
+      sendto_channel_local(CHFL_CHANOP, 0, chptr,
+                           ":%s NOTICE @%s :%s is inviting %s to %s.",
+                           me.name, chptr->chname, source_p->name,
+                           target_p->name, chptr->chname);
 
+      sendto_channel_remote(source_p, client_p, CHFL_CHANOP,
+                            CAP_TS6, NOCAPS, chptr,
+                            ":%s NOTICE @%s :%s is inviting %s to %s.",
+                            ID(&me), chptr->chname, source_p->name,
+                            target_p->name, chptr->chname);
+      sendto_channel_remote(source_p, client_p, CHFL_CHANOP,
+                            NOCAPS, CAP_TS6, chptr,
+                            ":%s NOTICE @%s :%s is inviting %s to %s.",
+                            me.name, chptr->chname, source_p->name,
+                            target_p->name, chptr->chname);
       /* Add the invite if channel is +i */
       add_invite(chptr, target_p);
     }
@@ -202,3 +159,30 @@ m_invite(struct Client *client_p, struct Client *source_p,
                ID_or_name(target_p, target_p->from),
                chptr->chname, (unsigned long)chptr->channelts);
 }
+
+static struct Message invite_msgtab = {
+  "INVITE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_invite, m_invite, m_ignore, m_invite, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&invite_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&invite_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

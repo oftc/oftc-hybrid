@@ -31,7 +31,7 @@ RPL_TRACENEWTYPE:	 :%s 208 %s <newtype> 0 %s
 RPL_TRACECLASS:		 :%s 209 %s Class %s %d
 RPL_ENDOFSTATS:		 :%s 219 %s %c :End of /STATS report
 RPL_STATSUPTIME:	 :%s 242 %s :Server Up %d days, %d:%02d:%02d
-RPL_STATSCONN:		 :%s 250 %s :Highest connection count: %d (%d clients) (%d connections received)
+RPL_STATSCONN:		 :%s 250 %s :Highest connection count: %d (%d clients) (%llu connections received)
 RPL_LUSERCLIENT:	 :%s 251 %s :There are %d users and %d invisible on %d servers
 RPL_LUSEROP:		 :%s 252 %s %d :IRC Operators online
 RPL_LUSERUNKNOWN:	 :%s 253 %s %d :unknown connection(s)
@@ -129,14 +129,9 @@ RPL_KNOCKDLVR:		 :%s 711 %s %s :Your KNOCK has been delivered.
 ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Too many KNOCKs (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :Channel is open.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :You are already on that channel.
-ERR_KNOCKDISABLED:	 :%s 715 %s :KNOCKs are disabled.
 RPL_TARGUMODEG:		 :%s 716 %s %s :is in +g mode (server side ignore)
 RPL_TARGNOTIFY:		 :%s 717 %s %s :has been informed that you messaged them.
 RPL_UMODEGMSG:		 :%s 718 %s %s :is messaging you, and you are umode +g.
-RPL_OMOTDSTART:		 :%s 720 %s :Start of OPER MOTD.
-RPL_OMOTD:		 :%s 721 %s :%s
-RPL_ENDOFOMOTD:		 :%s 722 %s :End of OPER MOTD.
 ERR_NOPRIVS:		 :%s 723 %s %s :Insufficient oper privs.
-RPL_TESTMASK:		 :%s 724 %s %s@%s %d %d :Local/remote clients match.
-RPL_TESTLINE:		 :%s 725 %s %c %ld %s :%s | %s
+RPL_TESTMASK:		 :%s 724 %s %s!%s@%s %u %u :Local/remote clients match.
 RPL_NOTESTLINE:		 :%s 726 %s %s :No matches

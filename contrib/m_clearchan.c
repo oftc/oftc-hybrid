@@ -24,49 +24,26 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_log.h"
+#include "log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "hash.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
-#include "common.h"
+#include "conf.h"
 
-static void mo_clearchan(struct Client *, struct Client *, int, char *[]);
+
 static void kick_list(struct Client *, struct Channel *);
 static void remove_our_modes(struct Channel *);
 static void remove_a_mode(struct Channel *, int, char);
 
-struct Message clearchan_msgtab = {
-  "CLEARCHAN", 0, 0, 2, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_clearchan, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&clearchan_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&clearchan_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
 ** mo_clearchan
@@ -80,7 +57,7 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
   struct Channel *chptr = NULL;
 
   /* admins only */
-  if (!IsAdmin(source_p))
+  if (!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -103,11 +80,11 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
 
   sendto_wallops_flags(UMODE_WALLOP, &me, "CLEARCHAN called for [%s] by %s!%s@%s",
                        chptr->chname, source_p->name, source_p->username, source_p->host);
-  sendto_server(NULL, NULL, NOCAPS, NOCAPS,
+  sendto_server(NULL, NOCAPS, NOCAPS,
                 ":%s WALLOPS :CLEARCHAN called for [%s] by %s!%s@%s",
                 me.name, chptr->chname, source_p->name, source_p->username,
                 source_p->host);
-  ilog(L_NOTICE, "CLEARCHAN called for [%s] by %s!%s@%s",
+  ilog(LOG_TYPE_IRCD, "CLEARCHAN called for [%s] by %s!%s@%s",
        chptr->chname, source_p->name, source_p->username, source_p->host);
 
   /*
@@ -117,11 +94,11 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
   remove_our_modes(chptr);
 
   /* SJOIN the user to give them ops, and lock the channel */
-  sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
+  sendto_server(client_p, CAP_TS6, NOCAPS,
                 ":%s JOIN %lu %s +ntsi",
                 source_p->id, (unsigned long)(chptr->channelts - 1),
                 chptr->chname);
-  sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
+  sendto_server(client_p, NOCAPS, CAP_TS6,
                 ":%s SJOIN %lu %s +ntsi :@%s",
                 me.name, (unsigned long)(chptr->channelts - 1),
                 chptr->chname, source_p->name);
@@ -141,7 +118,8 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
 
   chptr->mode.mode = MODE_SECRET | MODE_TOPICLIMIT |
                      MODE_INVITEONLY | MODE_NOPRIVMSGS;
-  free_topic(chptr);
+
+  set_channel_topic(chptr, "", "", 0);
   chptr->mode.key[0] = '\0';
 
   /* Kick the users out and join the oper */
@@ -162,7 +140,7 @@ kick_list(struct Client *source_p, struct Channel *chptr)
                          ":%s!%s@%s KICK %s %s CLEARCHAN",
                          source_p->name, source_p->username,
                          source_p->host, chptr->chname, ms->client_p->name);
-    sendto_server(NULL, chptr, NOCAPS, NOCAPS,
+    sendto_server(NULL, NOCAPS, NOCAPS,
                   ":%s KICK %s %s :CLEARCHAN", source_p->name,
                   chptr->chname, ms->client_p->name);
   }
@@ -262,3 +240,30 @@ remove_a_mode(struct Channel *chptr, int mask, char flag)
                          lpara[1], lpara[2], lpara[3]);
   }
 }
+
+static struct Message clearchan_msgtab = {
+  "CLEARCHAN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_clearchan, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&clearchan_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&clearchan_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

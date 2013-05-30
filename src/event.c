@@ -56,7 +56,7 @@
 #include "client.h"
 #include "send.h"
 #include "memory.h"
-#include "s_log.h"
+#include "log.h"
 #include "numeric.h"
 
 static const char *last_event_ran = NULL;
@@ -96,7 +96,7 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
     }
   }
   /* XXX if reach here, its an error */
-  ilog(L_ERROR, "Event table is full! (%d)", i);
+  ilog(LOG_TYPE_IRCD, "Event table is full! (%d)", i);
 }
 
 /*

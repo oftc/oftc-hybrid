@@ -20,7 +20,7 @@ NO PARAMETERS:
      +s     - 'Secret'.  This will prevent the channel from being shown
               in a /whois, and in the channel list.
 
-     +p     - 'Paranoia'. Controls whether halfops may invite  users
+     +p     - 'Paranoia'. Controls whether halfops may invite users
               into a channel or whether they may kick other members of a
               channel.
 
@@ -30,6 +30,19 @@ NO PARAMETERS:
      +i     - 'Invite only'.  This will prevent anyone from joining your
               channel who hasn't received an /invite or whose host isn't in
               the +I list.
+
+     +r     - 'Registered'. Channel has been registered with ChanServ.
+              This mode can be set by servers only.
+
+     +O     - 'IRCOps only'. This will prevent anyone who hasn't obtained
+              IRCOp status from joining your channel. Can be set by an IRCOp
+              only.
+
+     +R     - 'Registered only'.- Only registered clients may join a channel
+              with that mode set
+
+     +S     - 'SSL only'. This will prevent anyone who isn't securely connected
+              via SSL/TLS from joining your channel.
 
 
 WITH PARAMETERS:
@@ -79,4 +92,3 @@ WITH PARAMETERS:
               invite-only (+i) channel, based on a nick!user@host match.
 
               PARAMS: /mode #channel +IIII n!u@h1b n!u@h2b n!u@h3b n!u@h4
-

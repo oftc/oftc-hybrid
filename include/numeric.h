@@ -78,7 +78,6 @@ extern const char *get_locale(void);
 #define RPL_TRACEOPERATOR    204
 #define RPL_TRACEUSER        205
 #define RPL_TRACESERVER      206
-#define RPL_TRACECAPTURED    207
 #define RPL_TRACENEWTYPE     208
 #define RPL_TRACECLASS       209
 
@@ -135,6 +134,7 @@ extern const char *get_locale(void);
 #define RPL_STATSHLINE       244
 /* 245 No longer used in ircd-hybrid */
 #define RPL_STATSSLINE       245
+#define RPL_STATSSERVICE     246
 #define RPL_STATSXLINE       247
 #define RPL_STATSULINE       248
 #define RPL_STATSDEBUG       249
@@ -202,8 +202,8 @@ extern const char *get_locale(void);
 #define RPL_TEXT             304
 #define RPL_UNAWAY           305
 #define RPL_NOWAWAY          306
-#define	RPL_USERIP	     307	/* Undernet extension */
-/*	RPL_WHOISREGNICK     307 	Numeric List: Dalnet */
+/*	RPL_USERIP	     307	Undernet extension */
+#define RPL_WHOISREGNICK     307
 /*	RPL_SUSERHOST	     307	austnet */
 /*      RPL_NOTIFYACTION     308         aircd */
 #define RPL_WHOISADMIN	     308	/* Numeric List: Dalnet */
@@ -378,7 +378,7 @@ extern const char *get_locale(void);
 #define ERR_ALREADYREGISTRED 462
 #define ERR_PASSWDMISMATCH   464
 #define ERR_YOUREBANNEDCREEP 465
-/* 	ERR_ONLYSERVERSCANCHANGE 468	   Dalnet,unreal */
+#define ERR_ONLYSERVERSCANCHANGE 468
 /*	ERR_LINKSET	     469	unreal */
 /*	ERR_LINKCHANNEL	     470	unreal */
 /*      ERR_KICKEDFROMCHAN   470         aircd */
@@ -388,7 +388,7 @@ extern const char *get_locale(void);
 #define ERR_INVITEONLYCHAN   473
 #define ERR_BANNEDFROMCHAN   474
 #define ERR_BADCHANNELKEY    475
-#define ERR_REGONLYCHAN      477
+#define ERR_NEEDREGGEDNICK   477
 #define ERR_BANLISTFULL      478        /* I stole the numeric from ircu -db */
 #define ERR_BADCHANNAME      479
 /* 	ERR_LINKFAIL	     479	unreal */
@@ -403,7 +403,7 @@ extern const char *get_locale(void);
 /*      ERR_UNIQOPRIVSNEEDED 485           IRCnet extension */
 /*	ERR_KILLDENY         485	   unreal */
 /*	ERR_CANTKICKADMIN    485	   PTlink */
-/*	ERR_HTMDISABLED      486	   unreal */
+#define ERR_NONONREG         486
 /*      ERR_CHANTOORECENT    487           IRCnet extension (?) */
 /*      ERR_TSLESSCHAN       488           IRCnet extension (?) */
 /*	ERR_VOICENEEDED      489           Undernet extension */
@@ -480,23 +480,16 @@ extern const char *get_locale(void);
 #define ERR_TOOMANYKNOCK     712
 #define ERR_CHANOPEN         713
 #define ERR_KNOCKONCHAN      714
-#define ERR_KNOCKDISABLED    715
 
 #define RPL_TARGUMODEG       716
 #define RPL_TARGNOTIFY       717
 #define RPL_UMODEGMSG        718
-
-#define RPL_OMOTDSTART	     720
-#define RPL_OMOTD	     721
-#define RPL_ENDOFOMOTD	     722
 
 #define ERR_NOPRIVS	     723
 
 #define RPL_TESTMASK	     724
 #define RPL_TESTLINE	     725
 #define RPL_NOTESTLINE	     726
-#define RPL_ISCAPTURED	     727
-#define RPL_ISUNCAPTURED     728
 
 #define ERR_LAST_ERR_MSG     999
 

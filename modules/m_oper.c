@@ -24,47 +24,41 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_bsd.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "s_user.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
 
-static struct ConfItem *find_password_conf(const char *, struct Client *);
-static void failed_oper_notice(struct Client *, const char *, const char *);
-static void m_oper(struct Client *, struct Client *, int, char *[]);
-static void mo_oper(struct Client *, struct Client *, int, char *[]);
 
-struct Message oper_msgtab = {
-  "OPER", 0, 0, 3, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_oper, m_ignore, m_ignore, mo_oper, m_ignore }
-};
 
-#ifndef STATIC_MODULES
-void
-_modinit(void)
+/* failed_oper_notice()
+ *
+ * inputs       - pointer to client doing /oper ...
+ *              - pointer to nick they tried to oper as
+ *              - pointer to reason they have failed
+ * output       - nothing
+ * side effects - notices all opers of the failed oper attempt if enabled
+ */
+static void
+failed_oper_notice(struct Client *source_p, const char *name,
+                   const char *reason)
 {
-  mod_add_cmd(&oper_msgtab);
-}
+  if (ConfigFileEntry.failed_oper_notice)
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Failed OPER attempt as %s "
+                         "by %s (%s@%s) - %s", name, source_p->name,
+                         source_p->username, source_p->host, reason);
 
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&oper_msgtab);
+  ilog(LOG_TYPE_OPER, "Failed OPER attempt as %s "
+       "by %s (%s@%s) - %s", name, source_p->name,
+       source_p->username, source_p->host, reason);
 }
-
-const char *_version = "$Revision$";
-#endif
 
 /*
 ** m_oper
@@ -84,7 +78,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
   if (EmptyString(password))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-	       me.name, source_p->name, "OPER");
+               me.name, source_p->name, "OPER");
     return;
   }
 
@@ -92,13 +86,12 @@ m_oper(struct Client *client_p, struct Client *source_p,
   if (!IsFloodDone(source_p))
     flood_endgrace(source_p);
 
-  if ((conf = find_password_conf(name, source_p)) == NULL)
+  if ((conf = find_exact_name_conf(OPER_TYPE, source_p, name, NULL, NULL)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
-    conf = find_exact_name_conf(OPER_TYPE, name, NULL, NULL, NULL);
+    conf = find_exact_name_conf(OPER_TYPE, NULL, name, NULL, NULL);
     failed_oper_notice(source_p, name, (conf != NULL) ?
                        "host mismatch" : "no oper {} block");
-    log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", name);
     return;
   }
 
@@ -111,21 +104,18 @@ m_oper(struct Client *client_p, struct Client *source_p,
       sendto_one(source_p, ":%s NOTICE %s :Can't attach conf!",
                  me.name, source_p->name);
       failed_oper_notice(source_p, name, "can't attach conf!");
-      log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", name);
       return;
     }
 
-    oper_up(source_p, name);
+    oper_up(source_p);
 
-    ilog(L_TRACE, "OPER %s by %s!%s@%s",
+    ilog(LOG_TYPE_OPER, "OPER %s by %s!%s@%s",
          name, source_p->name, source_p->username, source_p->host);
-    log_oper_action(LOG_OPER_TYPE, source_p, "%s\n", name);
   }
   else
   {
-    sendto_one(source_p, form_str(ERR_PASSWDMISMATCH), me.name, parv[0]);
+    sendto_one(source_p, form_str(ERR_PASSWDMISMATCH), me.name, source_p->name);
     failed_oper_notice(source_p, name, "password mismatch");
-    log_oper_action(LOG_FAILED_OPER_TYPE, source_p, "%s\n", name);
   }
 }
 
@@ -139,53 +129,33 @@ static void
 mo_oper(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
-  send_message_file(source_p, &ConfigFileEntry.opermotd);
+  sendto_one(source_p, form_str(RPL_YOUREOPER),
+             me.name, source_p->name);
 }
 
-/* find_password_conf()
- *
- * inputs       - name
- *		- pointer to source_p
- * output       - pointer to oper conf or NULL
- * side effects	- NONE
- */
-static struct ConfItem *
-find_password_conf(const char *name, struct Client *source_p)
-{
-  struct ConfItem *conf = NULL;
+static struct Message oper_msgtab = {
+  "OPER", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_oper, m_ignore, m_ignore, mo_oper, m_ignore }
+};
 
-  if ((conf = find_exact_name_conf(OPER_TYPE,
-          name, source_p->username, source_p->host, source_p->certfp)) 
-      != NULL)
-  {
-    return(conf);
-  }
-
-  if ((conf = find_exact_name_conf(OPER_TYPE,
-          name, source_p->username, source_p->sockhost, source_p->certfp)) 
-      != NULL)
-  {
-    return(conf);
-  }
-
-  return(NULL);
-}
-
-/* failed_oper_notice()
- *
- * inputs       - pointer to client doing /oper ...
- *              - pointer to nick they tried to oper as
- *              - pointer to reason they have failed
- * output       - nothing
- * side effects - notices all opers of the failed oper attempt if enabled
- */
 static void
-failed_oper_notice(struct Client *source_p, const char *name,
-                   const char *reason)
+module_init(void)
 {
-  if (ConfigFileEntry.failed_oper_notice)
-    sendto_realops_flags(UMODE_ALL, L_ALL, "Failed OPER attempt as %s "
-                         "by %s (%s@%s) - %s", name, source_p->name,
-                         source_p->username, source_p->host, reason);
+  mod_add_cmd(&oper_msgtab);
 }
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&oper_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

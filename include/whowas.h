@@ -28,26 +28,25 @@
 #include "ircd_defs.h"
 #include "client.h"
 
+
 struct Whowas
 {
   int hashv;
   time_t logoff;
-  char name[NICKLEN];
-  char username[USERLEN + 1]; 
+  char name[NICKLEN + 1];
+  char username[USERLEN + 1];
   char hostname[HOSTLEN + 1];
   char realname[REALLEN + 1];
   char servername[HOSTLEN + 1];
   struct Client *online; /* Pointer to new nickname for chasing or NULL */
-  struct Whowas *next;  /* for hash table... */
-  struct Whowas *prev;  /* for hash table... */
-  struct Whowas *cnext; /* for client struct linked list */
-  struct Whowas *cprev; /* for client struct linked list */
+  dlink_node tnode;      /* for hash table...                           */
+  dlink_node cnode;      /* for client struct linked list               */
 };
 
 /*
 ** initwhowas
 */
-extern void init_whowas(void);
+extern void whowas_init(void);
 
 /*
 ** add_history
@@ -78,7 +77,5 @@ extern struct Client *get_history(const char *, time_t);
 ** for debugging...counts related structures stored in whowas array.
 */
 extern void count_whowas_memory(unsigned int *, uint64_t *);
-
-/* XXX m_whowas.c in modules needs these */
-extern struct Whowas *WHOWASHASH[];
+extern dlink_list WHOWASHASH[];
 #endif /* INCLUDED_whowas_h */

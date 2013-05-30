@@ -25,22 +25,22 @@
 #ifndef INCLUDED_modules_h
 #define INCLUDED_modules_h
 
-#include "parse.h"
-
-#include "ircd_handler.h"
-#include "msg.h"
-#include "memory.h"
+#include "config.h"
 
 #ifndef STATIC_MODULES
+
+#define MODULE_FLAG_CORE     0x1
+#define MODULE_FLAG_NOUNLOAD 0x2
+
 struct module
 {
   dlink_node node;
   char *name;
   const char *version;
   void *handle;
-  void *address;
-  void (*modremove)(void);
-  int core;
+  void (*modinit)(void);
+  void (*modexit)(void);
+  unsigned int flags;
 };
 
 struct module_path
@@ -48,6 +48,8 @@ struct module_path
   dlink_node node;
   char path[PATH_MAX + 1];
 };
+
+extern dlink_list modules_list;
 
 /* add a path */
 extern void mod_add_path(const char *);
@@ -63,17 +65,14 @@ extern void load_core_modules(int);
 extern void add_conf_module(const char *);
 /* load all modules listed in conf */
 extern void load_conf_modules(void);
-
-extern void _modinit(void);
-extern void _moddeinit(void);
-
-extern int unload_one_module(char *, int);
-extern int load_one_module(char *, int);
-extern int load_a_module(char *, int, int);
-extern dlink_node *findmodule_byname(const char *);
 extern void modules_init(void);
 
-extern void dynlink_init();
+extern int unload_one_module(const char *, int);
+extern int modules_valid_suffix(const char *);
+extern int load_one_module(const char *);
+extern int load_a_module(const char *, int);
+extern struct module *findmodule_byname(const char *);
+extern void modules_init(void);
 
 #else /* STATIC_MODULES */
 

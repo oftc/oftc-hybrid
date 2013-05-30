@@ -26,7 +26,6 @@
 #include "list.h"
 #include "channel.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
@@ -34,25 +33,16 @@
 #include "numeric.h"
 #include "fdlist.h"
 #include "s_bsd.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "s_misc.h"
 #include "send.h"
 #include "hash.h"
-#include "handlers.h"
 #include "s_serv.h"
-#include "msg.h"
 #include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
 
-
-static void me_kline(struct Client *, struct Client *, int, char **);
-static void mo_kline(struct Client *, struct Client *, int, char **);
-static void ms_kline(struct Client *, struct Client *, int, char **);
-static void me_unkline(struct Client *, struct Client *, int, char **);
-static void mo_unkline(struct Client *, struct Client *, int, char **);
-static void ms_unkline(struct Client *, struct Client *, int, char **);
 
 static int already_placed_kline(struct Client *, const char *, const char *, int);
 static void apply_kline(struct Client *, struct ConfItem *, const char *, 
@@ -61,44 +51,8 @@ static void apply_kline(struct Client *, struct ConfItem *, const char *,
 
 
 static char buffer[IRCD_BUFSIZE];
-static int remove_tkline_match(const char *, const char *);
+static bool remove_tkline_match(const char *, const char *);
 
-struct Message kline_msgtab = {
-  "KLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, ms_kline, me_kline, mo_kline, m_ignore}
-};
-
-struct Message unkline_msgtab = {
-  "UNKLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, ms_unkline, me_unkline, mo_unkline, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&kline_msgtab);
-  mod_add_cmd(&unkline_msgtab);
-  add_capability("KLN", CAP_KLN, 1);
-  add_capability("UNKLN", CAP_UNKLN, 1);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&kline_msgtab);
-  mod_del_cmd(&unkline_msgtab);
-  delete_capability("UNKLN");
-  delete_capability("KLN");
-}
-
-const char *_version = "$Revision$";
-#endif
-
-/* Local function prototypes */
-static int already_placed_kline(struct Client *, const char *, const char *,
-    int);
-static char buffer[IRCD_BUFSIZE];
 
 /* mo_kline()
  *
@@ -111,7 +65,7 @@ static char buffer[IRCD_BUFSIZE];
  */
 static void
 mo_kline(struct Client *client_p, struct Client *source_p,
-         int parc, char **parv)
+         int parc, char *parv[])
 {
   char *reason = NULL;
   char *oper_reason;
@@ -125,7 +79,7 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   time_t tkline_time = 0;
   time_t cur_time;
 
-  if (!IsOperK(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_K))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "kline");
@@ -155,17 +109,17 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   {
     if (HasID(source_p))
     {
-      sendto_server(NULL, NULL, CAP_KLN|CAP_TS6, NOCAPS,
+      sendto_server(NULL, CAP_KLN|CAP_TS6, NOCAPS,
                     ":%s KLINE %s %lu %s %s :%s",
                     source_p->id, target_server, (unsigned long)tkline_time,
                     user, host, reason);
-      sendto_server(NULL, NULL, CAP_KLN, CAP_TS6,
+      sendto_server(NULL, CAP_KLN, CAP_TS6,
                     ":%s KLINE %s %lu %s %s :%s",
                     source_p->name, target_server, (unsigned long)tkline_time,
                     user, host, reason);
     }
     else
-      sendto_server(NULL, NULL, CAP_KLN, NOCAPS,
+      sendto_server(NULL, CAP_KLN, NOCAPS,
                     ":%s KLINE %s %lu %s %s :%s",
                     source_p->name, target_server, (unsigned long)tkline_time,
                     user, host, reason);
@@ -178,7 +132,7 @@ mo_kline(struct Client *client_p, struct Client *source_p,
     cluster_a_line(source_p, "KLINE", CAP_KLN, SHARED_KLINE,
                    "%d %s %s :%s", tkline_time, user, host, reason);
 
-  if (already_placed_kline(source_p, user, host, YES))
+  if (already_placed_kline(source_p, user, host, 1))
     return;
 
   /* Look for an oper reason */
@@ -230,12 +184,12 @@ me_kline(struct Client *client_p, struct Client *source_p,
   cur_time = CurrentTime;
   current_date = smalldate(cur_time);
 
-  if (find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
+  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
                               source_p->username, source_p->host,
                               SHARED_KLINE))
   {
     if (!IsClient(source_p) ||
-        already_placed_kline(source_p, kuser, khost, YES))
+        already_placed_kline(source_p, kuser, khost, 1))
       return;
 
     conf = make_conf_item(KLINE_TYPE);
@@ -243,7 +197,7 @@ me_kline(struct Client *client_p, struct Client *source_p,
     DupString(aconf->host, khost);
     DupString(aconf->user, kuser);
 
-    ircsprintf(buffer, "%s (%s)", kreason, current_date);
+    snprintf(buffer, sizeof(buffer), "%s (%s)", kreason, current_date);
     DupString(aconf->reason, buffer);
       
     if (oper_reason != NULL)
@@ -289,7 +243,7 @@ apply_kline(struct Client *source_p, struct ConfItem *conf,
     add_temp_line(conf);
   }
   else
-    add_conf_by_address(CONF_KILL, aconf);
+    add_conf_by_address(CONF_KLINE, aconf);
 
   write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
   rehashed_klines = 1;
@@ -329,7 +283,7 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
     piphost = NULL;
   }
 
-  if ((aconf = find_conf_by_address(lhost, piphost, CONF_KILL, t, luser, NULL, NULL)))
+  if ((aconf = find_conf_by_address(lhost, piphost, CONF_KLINE, t, luser, NULL, 0, NULL)))
   {
     if (warn)
     {
@@ -339,10 +293,11 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
                  me.name, source_p->name, luser, lhost, aconf->user,
                  aconf->host, reason);
     }
-    return(1);
+
+    return 1;
   }
 
-  return(0);
+  return 0;
 }
 
 /*
@@ -362,7 +317,7 @@ mo_unkline(struct Client *client_p,struct Client *source_p,
   char *target_server = NULL;
   char *user, *host;
 
-  if (!IsOperUnkline(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_UNKLINE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "unkline");
@@ -402,7 +357,7 @@ mo_unkline(struct Client *client_p,struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the temporary K-Line for: [%s@%s]",
                          get_oper_name(source_p), user, host);
-    ilog(L_NOTICE, "%s removed temporary K-Line for [%s@%s]",
+    ilog(LOG_TYPE_KLINE, "%s removed temporary K-Line for [%s@%s]",
          source_p->name, user, host);
     remove_conf_line(KLINE_TYPE, source_p, user, host);
     return;
@@ -415,7 +370,7 @@ mo_unkline(struct Client *client_p,struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the K-Line for: [%s@%s]",
                          get_oper_name(source_p), user, host);
-    ilog(L_NOTICE, "%s removed K-Line for [%s@%s]",
+    ilog(LOG_TYPE_KLINE, "%s removed K-Line for [%s@%s]",
          source_p->name, user, host);
   }
   else
@@ -448,7 +403,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
   if (!IsClient(source_p) || !match(parv[1], me.name))
     return;
 
-  if (find_matching_name_conf(ULINE_TYPE,
+  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE,
 				   source_p->servptr->name,
 				   source_p->username, source_p->host,
 				   SHARED_UNKLINE))
@@ -461,7 +416,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
       sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "%s has removed the temporary K-Line for: [%s@%s]",
                            get_oper_name(source_p), kuser, khost);
-      ilog(L_NOTICE, "%s removed temporary K-Line for [%s@%s]",
+      ilog(LOG_TYPE_KLINE, "%s removed temporary K-Line for [%s@%s]",
            source_p->name, kuser, khost);
       remove_conf_line(KLINE_TYPE, source_p, kuser, khost);
       return;
@@ -475,7 +430,7 @@ me_unkline(struct Client *client_p, struct Client *source_p,
                            "%s has removed the K-Line for: [%s@%s]",
                          get_oper_name(source_p), kuser, khost);
 
-      ilog(L_NOTICE, "%s removed K-Line for [%s@%s]",
+      ilog(LOG_TYPE_KLINE, "%s removed K-Line for [%s@%s]",
            source_p->name, kuser, khost);
     }
     else
@@ -504,33 +459,75 @@ ms_unkline(struct Client *client_p, struct Client *source_p,
  * Output: returns YES on success, NO if no tkline removed.
  * Side effects: Any matching tklines are removed.
  */
-static int
+static bool
 remove_tkline_match(const char *host, const char *user)
 {
-  struct AccessItem *tk_c;
-  dlink_node *tk_n;
-  struct irc_ssaddr addr, caddr;
-  int nm_t, cnm_t, bits, cbits;
-  nm_t = parse_netmask(host, &addr, &bits);
+  struct irc_ssaddr iphost, *piphost;
+  struct AccessItem *aconf;
+  int t;
 
-  DLINK_FOREACH(tk_n, temporary_klines.head)
+  if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
-    tk_c = map_to_conf(tk_n->data);
-    cnm_t = parse_netmask(tk_c->host, &caddr, &cbits);
-    if (cnm_t != nm_t || irccmp(user, tk_c->user))
-      continue;
-    if ((nm_t==HM_HOST && !irccmp(tk_c->host, host)) ||
-        (nm_t==HM_IPV4 && bits==cbits && match_ipv4(&addr, &caddr, bits))
 #ifdef IPV6
-        || (nm_t==HM_IPV6 && bits==cbits && match_ipv6(&addr, &caddr, bits))
+    if (t == HM_IPV6)
+      t = AF_INET6;
+    else
 #endif
-       )
+      t = AF_INET;
+    piphost = &iphost;
+  }
+  else
+  {
+    t = 0;
+    piphost = NULL;
+  }
+
+  if ((aconf = find_conf_by_address(host, piphost, CONF_KLINE, t, user, NULL, 0, NULL)))
+  {
+    if (IsConfTemporary(aconf))
     {
-      dlinkDelete(tk_n, &temporary_klines);
-      delete_one_address_conf(tk_c->host, tk_c);
-      return(YES);
+      delete_one_address_conf(host, aconf);
+      return true;
     }
   }
 
-  return(NO);
+  return false;
 }
+
+static struct Message kline_msgtab = {
+  "KLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+   {m_unregistered, m_not_oper, ms_kline, me_kline, mo_kline, m_ignore}
+};
+
+static struct Message unkline_msgtab = {
+  "UNKLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+   {m_unregistered, m_not_oper, ms_unkline, me_unkline, mo_unkline, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&kline_msgtab);
+  mod_add_cmd(&unkline_msgtab);
+  add_capability("KLN", CAP_KLN, 1);
+  add_capability("UNKLN", CAP_UNKLN, 1);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&kline_msgtab);
+  mod_del_cmd(&unkline_msgtab);
+  delete_capability("UNKLN");
+  delete_capability("KLN");
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

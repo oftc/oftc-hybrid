@@ -1,8 +1,8 @@
 /*
  *  ircd-hybrid: an advanced Internet Relay Chat Daemon(ircd).
- *  m_svsmode.c: Sets a user or channel mode.
  *
- *  Copyright (C) 2002 by the past and present ircd coders, and others.
+ *  Copyright (C) 1999 by the Bahamut Development Team.
+ *  Copyright (C) 2011 by the Hybrid Development Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,116 +18,191 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
- *
- *  $Id$
+ */
+
+/*! \file m_svsmode.c
+ * \brief Includes required functions for processing the SVSMODE command.
+ * \version $Id$
  */
 
 #include "stdinc.h"
-#include "list.h"
-#include "handlers.h"
-#include "channel.h"
-#include "channel_mode.h"
 #include "client.h"
-#include "hash.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_user.h"
-#include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
+#include "channel_mode.h"
 #include "parse.h"
 #include "modules.h"
-#include "packet.h"
-#include "common.h"
+#include "irc_string.h"
+#include "s_user.h"
+#include "conf.h"
+#include "hook.h"
 
-static void m_svsmode(struct Client*, struct Client*, int, char**);
 
-struct Message mode_msgtab = {
-  "SVSMODE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_ignore, m_svsmode, m_ignore, m_ignore}
-};
-#ifndef STATIC_MODULES
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&mode_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&mode_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-/*
- * m_svsmode - MODE command handler
- * parv[0] - sender
- * parv[1] - channel or user
- * parv[2] - modes
+/*! \brief SVSMODE command handler (called by services)
+ *
+ * \param client_p Pointer to allocated Client struct with physical connection
+ *                 to this server, i.e. with an open socket connected.
+ * \param source_p Pointer to allocated Client struct from which the message
+ *                 originally comes from.  This can be a local or remote client.
+ * \param parc     Integer holding the number of supplied arguments.
+ * \param parv     Argument vector where parv[0] .. parv[parc-1] are non-NULL
+ *                 pointers.
+ * \note Valid arguments for this command are:
+ *      - parv[0] = sender prefix
+ *      - parv[1] = nickname
+ *      - parv[2] = TS (or mode, depending on svs version)
+ *      - parv[3] = mode (or services id if old svs version)
+ *      - parv[4] = optional argument (services id)
  */
-static void m_svsmode(struct Client *client_p, struct Client *source_p,
-              int parc, char *parv[])
+static void
+ms_svsmode(struct Client *client_p, struct Client *source_p,
+           int parc, char *parv[])
 {
+  struct Client *target_p = NULL;
+  int what = MODE_ADD;
+  unsigned int flag = 0, setflags = 0;
+  char *m = NULL, *modes = NULL, *extarg = NULL;
+  time_t ts = 0;
 
-  struct Client *target_p;
-  int what;
-  char **p, *m;
-
-  what = MODE_ADD;
-  
-  /* Return quietly if this
-   * is a non service 
-   */
-
-  if (parc < 3)
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-        me.name, parv[0], "MODE");
+  if (!HasFlag(source_p, FLAGS_SERVICE))
     return;
+
+  if ((parc >= 4) && ((*parv[3] == '+') || (*parv[3] == '-')))
+  {
+    ts     = atol(parv[2]);
+    modes  = parv[3];
+    extarg = (parc > 4) ? parv[4] : NULL;
+  }
+  else
+  {
+    modes  = parv[2];
+    extarg = (parc > 3) ? parv[3] : NULL;
   }
 
   if ((target_p = find_person(client_p, parv[1])) == NULL)
-  {
-    if (MyConnect(source_p))
-      sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL), me.name, parv[0], 
-            parv[1]);
     return;
+
+  if (ts && (ts != target_p->tsinfo))
+    return;
+
+  setflags = target_p->umodes;
+
+  for (m = modes; *m; ++m)
+  {
+    switch (*m)
+    {
+      case '+':
+        what = MODE_ADD;
+        break;
+      case '-':
+        what = MODE_DEL;
+        break;
+
+      case 'd':
+        if (!EmptyString(extarg))
+          strlcpy(target_p->svid, extarg, sizeof(target_p->svid));
+        break;
+
+      case 'o':
+        if (what == MODE_DEL && HasUMode(target_p, UMODE_OPER))
+        {
+          ClearOper(target_p);
+          Count.oper--;
+
+          if (MyConnect(target_p))
+          {
+            dlink_node *dm = NULL;
+
+            detach_conf(target_p, OPER_TYPE);
+            ClrOFlag(target_p);
+            DelUMode(target_p, ConfigFileEntry.oper_only_umodes);
+ 
+           if ((dm = dlinkFindDelete(&oper_list, target_p)) != NULL)
+             free_dlink_node(dm);
+          }
+        }
+
+        break;
+
+      case 'i':
+        if (what == MODE_ADD && !HasUMode(target_p, UMODE_INVISIBLE))
+        {
+          AddUMode(target_p, UMODE_INVISIBLE);
+          ++Count.invisi;
+        }
+
+        if (what == MODE_DEL && HasUMode(target_p, UMODE_INVISIBLE))
+        {
+          DelUMode(target_p, UMODE_INVISIBLE);
+          --Count.invisi;
+        }
+
+        break;
+
+      case ' ':
+      case '\n':
+      case '\r':
+      case '\t':
+        break;
+      default:
+        if ((flag = user_modes[(unsigned char)*m]))
+          execute_callback(umode_cb, client_p, target_p, what, flag);
+        break;
+    }
   }
 
-  for(p = &parv[2]; p && *p; p++)
-    for(m = *p; *m; m++)
-      switch(*m)
-      {
-        case '+':
-          what = MODE_ADD;
-          break;
-        case '-':
-          what = MODE_DEL;
-          break;
-        case 'R':
-          if(what == MODE_ADD)
-          {
-            target_p->umodes |= UMODE_NICKSERVREG;
-            if(MyClient(target_p))
-              sendto_one(target_p, ":%s MODE %s :+R", target_p->name, 
-                    target_p->name);
-          }
-          else
-          {
-            target_p->umodes &= ~UMODE_NICKSERVREG;
-            if(MyClient(target_p))
-              sendto_one(target_p, ":%s MODE %s :-R", target_p->name, 
-                    target_p->name);
-          }
- 
-        break;
-       }
-  /* Propogate the SVSMODE to other servers */
-  sendto_server(client_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
-                 ":%s SVSMODE %s %s :%s", parv[0], parv[1],
-                  parv[2], (parc >= 4) ? parv[3] : "");
+  if (extarg)
+  {
+    sendto_server(client_p, CAP_TS6, NOCAPS,
+                  ":%s SVSMODE %s %lu %s %s", ID(source_p),
+                  ID(target_p), (unsigned long)target_p->tsinfo, modes, extarg);
+    sendto_server(client_p, NOCAPS, CAP_TS6,
+                  ":%s SVSMODE %s %lu %s %s", source_p->name,
+                  target_p->name, (unsigned long)target_p->tsinfo, modes, extarg);
+  }
+  else
+  {
+    sendto_server(client_p, CAP_TS6, NOCAPS,
+                  ":%s SVSMODE %s %lu %s", ID(source_p),
+                  ID(target_p), (unsigned long)target_p->tsinfo, modes);
+    sendto_server(client_p, NOCAPS, CAP_TS6,
+                  ":%s SVSMODE %s %lu %s", source_p->name,
+                  target_p->name, (unsigned long)target_p->tsinfo, modes);
+  }
+
+  if (MyConnect(target_p) && (setflags != target_p->umodes))
+  {
+    char modebuf[IRCD_BUFSIZE];
+
+    send_umode(target_p, target_p, setflags, 0xffffffff, modebuf);
+  }
 }
+
+static struct Message svsmode_msgtab = {
+  "SVSMODE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_svsmode, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&svsmode_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&svsmode_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -23,58 +23,15 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h" /* ConfigFileEntry */
 
-static void do_ison(struct Client *, struct Client *, int, char *[]);
-static void m_ison(struct Client *, struct Client *, int, char *[]);
-
-struct Message ison_msgtab = {
-  "ISON", 0, 0, 1, 1, MFLG_SLOW, 0,
-  {m_unregistered, m_ison, m_ignore, m_ignore, m_ison, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&ison_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&ison_msgtab);
-}
-const char *_version = "$Revision$";
-#endif
-
-
-
-/*
- * m_ison added by Darren Reed 13/8/91 to act as an efficent user indicator
- * with respect to cpu/bandwidth used. Implemented for NOTIFY feature in
- * clients. Designed to reduce number of whois requests. Can process
- * nicknames in batches as long as the maximum buffer length.
- *
- * format:
- * ISON :nicklist
- */
-static void
-m_ison(struct Client *client_p, struct Client *source_p,
-       int parc, char *parv[])
-{
-  do_ison(client_p, source_p, parc, parv);
-}
 
 static void
 do_ison(struct Client *client_p, struct Client *source_p,
@@ -89,7 +46,7 @@ do_ison(struct Client *client_p, struct Client *source_p,
   int i;
   int done = 0;
 
-  len = ircsprintf(buf, form_str(RPL_ISON), me.name, parv[0]);
+  len = snprintf(buf, sizeof(buf), form_str(RPL_ISON), me.name, source_p->name);
   current_insert_point = buf + len;
 
   /*
@@ -132,3 +89,46 @@ do_ison(struct Client *client_p, struct Client *source_p,
 
   sendto_one(source_p, "%s", buf);
 }
+
+/*
+ * m_ison added by Darren Reed 13/8/91 to act as an efficent user indicator
+ * with respect to cpu/bandwidth used. Implemented for NOTIFY feature in
+ * clients. Designed to reduce number of whois requests. Can process
+ * nicknames in batches as long as the maximum buffer length.
+ *
+ * format:
+ * ISON :nicklist
+ */
+static void
+m_ison(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
+{
+  do_ison(client_p, source_p, parc, parv);
+}
+
+static struct Message ison_msgtab = {
+  "ISON", 0, 0, 1, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_ison, m_ignore, m_ignore, m_ison, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&ison_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&ison_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

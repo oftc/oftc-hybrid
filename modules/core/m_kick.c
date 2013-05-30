@@ -24,7 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -32,38 +31,13 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
-#include "msg.h"
 #include "modules.h"
 #include "parse.h"
 #include "hash.h"
 #include "packet.h"
 #include "s_serv.h"
-#include "s_log.h"
+#include "log.h"
 #include "sprintf_irc.h"
-#include "common.h"
-
-static void m_kick(struct Client *, struct Client *, int, char *[]);
-
-struct Message kick_msgtab = {
-  "KICK", 0, 0, 3, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_kick, m_kick, m_ignore, m_kick, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&kick_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&kick_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /* m_kick()
  *  parv[0] = sender prefix
@@ -128,7 +102,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!IsServer(source_p))
+  if (!IsServer(source_p) && !HasFlag(source_p, FLAGS_SERVICE))
   {
     if ((ms = find_channel_link(source_p, chptr)) == NULL)
     {
@@ -145,8 +119,8 @@ m_kick(struct Client *client_p, struct Client *source_p,
     if (!has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP))
     {
     /* was a user, not a server, and user isn't seen as a chanop here */
-      if (IsGod(source_p) && MyConnect(source_p))
-        gmode_used = TRUE;
+      if (HasUMode(source_p, UMODE_GOD) && MyConnect(source_p))
+        gmode_used = true;
       else if (MyConnect(source_p))
       {
         /* user on _my_ server, with no chanops.. so go away */
@@ -155,7 +129,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
         return;
       }
 
-      if (chptr->channelts == 0 && !IsGod(source_p))
+      if (chptr->channelts == 0 && !HasUMode(source_p, UMODE_GOD))
       {
         /* If its a TS 0 channel, do it the old way */
         sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
@@ -201,7 +175,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
 
   if ((ms_target = find_channel_link(who, chptr)) != NULL)
   {
-    if (IsGod(who))
+    if (HasUMode(who, UMODE_GOD))
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: to evade KICK from %s: %s %s %s",
@@ -212,7 +186,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    if(IsService(who))
+    if(HasUMode(who, UMODE_SERVICE))
       return;
 
 #ifdef HALFOPS
@@ -244,10 +218,10 @@ m_kick(struct Client *client_p, struct Client *source_p,
                            source_p->name, source_p->username,
                            source_p->host, name, who->name, comment);
 
-    sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
+    sendto_server(client_p, CAP_TS6, NOCAPS,
                   ":%s KICK %s %s :%s",
                   ID(source_p), chptr->chname, ID(who), comment);
-    sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
+    sendto_server(client_p, NOCAPS, CAP_TS6,
                   ":%s KICK %s %s :%s", source_p->name, chptr->chname,
                   who->name, comment);
 
@@ -265,3 +239,30 @@ m_kick(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(ERR_USERNOTINCHANNEL),
                from, to, user, name);
 }
+
+static struct Message kick_msgtab = {
+  "KICK", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_kick, m_kick, m_ignore, m_kick, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&kick_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&kick_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

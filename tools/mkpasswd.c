@@ -11,6 +11,7 @@
 **
 ** $Id$
 */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -35,16 +36,16 @@ extern char *crypt();
 
 
 static char *make_sha256_salt(int);
-static char *make_sha256_salt_para(char *);
+static char *make_sha256_salt_para(const char *);
 static char *make_sha512_salt(int);
-static char *make_sha512_salt_para(char *);
+static char *make_sha512_salt_para(const char *);
 static char *make_des_salt(void);
 static char *make_ext_salt(int);
-static char *make_ext_salt_para(int, char *);
+static char *make_ext_salt_para(int, const char *);
 static char *make_md5_salt(int);
-static char *make_md5_salt_para(char *);
+static char *make_md5_salt_para(const char *);
 static char *make_bf_salt(int, int);
-static char *make_bf_salt_para(int, char *);
+static char *make_bf_salt_para(int, const char *);
 static char *int_to_base64(int);
 static char *generate_random_salt(char *, int);
 static char *generate_poor_salt(char *, int);
@@ -261,7 +262,7 @@ make_ext_salt(int rounds)
 }
 
 static char *
-make_ext_salt_para(int rounds, char *saltpara)
+make_ext_salt_para(int rounds, const char *saltpara)
 {
   static char salt[10];
 
@@ -270,14 +271,15 @@ make_ext_salt_para(int rounds, char *saltpara)
 }
 
 static char *
-make_sha256_salt_para(char *saltpara)
+make_sha256_salt_para(const char *saltpara)
 {
   static char salt[21];
 
   if (saltpara && (strlen(saltpara) <= 16))
   {
-    /* sprintf used because of portability requirements, the length
-     ** is checked above, so it should not be too much of a concern
+    /*
+     * sprintf used because of portability requirements, the length
+     * is checked above, so it should not be too much of a concern
      */
     sprintf(salt, "$5$%s$", saltpara);
     return salt;
@@ -304,7 +306,9 @@ make_sha256_salt(int length)
   salt[0] = '$';
   salt[1] = '5';
   salt[2] = '$';
+
   generate_random_salt(&salt[3], length);
+
   salt[length + 3] = '$';
   salt[length + 4] = '\0';
 
@@ -312,14 +316,15 @@ make_sha256_salt(int length)
 }
 
 static char *
-make_sha512_salt_para(char *saltpara)
+make_sha512_salt_para(const char *saltpara)
 {
   static char salt[21];
 
   if (saltpara && (strlen(saltpara) <= 16))
   {
-    /* sprintf used because of portability requirements, the length
-     ** is checked above, so it should not be too much of a concern
+    /*
+     * sprintf used because of portability requirements, the length
+     * is checked above, so it should not be too much of a concern
      */
     sprintf(salt, "$6$%s$", saltpara);
     return salt;
@@ -346,7 +351,9 @@ make_sha512_salt(int length)
   salt[0] = '$';
   salt[1] = '6';
   salt[2] = '$';
+
   generate_random_salt(&salt[3], length);
+
   salt[length + 3] = '$';
   salt[length + 4] = '\0';
 
@@ -354,15 +361,16 @@ make_sha512_salt(int length)
 }
 
 static char *
-make_md5_salt_para(char *saltpara)
+make_md5_salt_para(const char *saltpara)
 {
   static char salt[21];
 
   if (saltpara && (strlen(saltpara) <= 16))
   {
-    /* sprintf used because of portability requirements, the length
-    ** is checked above, so it should not be too much of a concern
-    */
+    /*
+     * sprintf used because of portability requirements, the length
+     * is checked above, so it should not be too much of a concern
+     */
     sprintf(salt, "$1$%s$", saltpara);
     return salt;
   }
@@ -388,24 +396,27 @@ make_md5_salt(int length)
   salt[0] = '$';
   salt[1] = '1';
   salt[2] = '$';
+
   generate_random_salt(&salt[3], length);
-  salt[length+3] = '$';
-  salt[length+4] = '\0';
+
+  salt[length + 3] = '$';
+  salt[length + 4] = '\0';
 
   return salt;
 }
 
 static char *
-make_bf_salt_para(int rounds, char *saltpara)
+make_bf_salt_para(int rounds, const char *saltpara)
 {
   static char salt[31];
   char tbuf[3];
 
   if (saltpara && (strlen(saltpara) <= 22))
   {
-    /* sprintf used because of portability requirements, the length
-    ** is checked above, so it should not be too much of a concern
-    */
+    /*
+     * sprintf used because of portability requirements, the length
+     * is checked above, so it should not be too much of a concern
+     */
     sprintf(tbuf, "%02d", rounds);
     sprintf(salt, "$2a$%s$%s$", tbuf, saltpara);
     return salt;
@@ -432,9 +443,11 @@ make_bf_salt(int rounds, int length)
 
   sprintf(tbuf, "%02d", rounds);
   sprintf(salt, "$2a$%s$", tbuf);
+
   generate_random_salt(&salt[7], length);
-  salt[length+7] = '$';
-  salt[length+8] = '\0';
+
+  salt[length + 7] = '$';
+  salt[length + 8] = '\0';
 
   return salt;
 }
@@ -465,13 +478,16 @@ generate_random_salt(char *salt, int length)
 
   if (read(fd, buf, length) != length)
   {
+    close(fd);
     free(buf);
+
     return generate_poor_salt(salt, length);
   }
 
   for (i = 0; i < length; i++)
     salt[i] = saltChars[abs(buf[i]) % 64];
 
+  close(fd);
   free(buf);
 
   return salt;
@@ -482,8 +498,8 @@ full_usage(void)
 {
   printf("mkpasswd [-5|-6|-m|-d|-b|-e] [-l saltlength] [-r rounds] [-s salt] [-p plaintext]\n");
   printf("         [-R rawsalt]\n");
-  printf("-5 Generate a SHA256 password\n");
-  printf("-6 Generate a SHA512 password\n");
+  printf("-5 Generate a SHA-256 password\n");
+  printf("-6 Generate a SHA-512 password\n");
   printf("-m Generate an MD5 password\n");
   printf("-d Generate a DES password\n");
   printf("-b Generate a BlowFish password\n");
@@ -506,8 +522,8 @@ brief_usage(void)
   printf("mkpasswd - password hash generator\n");
   printf("Standard DES:  mkpasswd [-d] [-s salt] [-p plaintext]\n");
   printf("Extended DES:  mkpasswd -e [-r rounds] [-s salt] [-p plaintext]\n");
-  printf("      SHA256:  mkpasswd -5 [-l saltlength] [-s salt] [-p plaintext]\n");
-  printf("      SHA512:  mkpasswd -6 [-l saltlength] [-s salt] [-p plaintext]\n");
+  printf("     SHA-256:  mkpasswd -5 [-l saltlength] [-s salt] [-p plaintext]\n");
+  printf("     SHA-512:  mkpasswd -6 [-l saltlength] [-s salt] [-p plaintext]\n");
   printf("         MD5:  mkpasswd -m [-l saltlength] [-s salt] [-p plaintext]\n");
   printf("    BlowFish:  mkpasswd -b [-r rounds] [-l saltlength] [-s salt]\n");
   printf("                           [-p plaintext]\n");

@@ -26,16 +26,13 @@
 #include "list.h"
 #include "channel.h"
 #include "client.h"
-#include "common.h"
 #include "ircd.h"
 #include "hostmask.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "hash.h"
-#include "handlers.h"
 #include "s_serv.h"
-#include "msg.h"
 #include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
@@ -159,7 +156,7 @@ void user_shedding_shed(void *unused)
 
       if (!MyClient(client_p)) /* It could be servers */
           continue;
-      if (IsOper(client_p) && !operstoo)
+      if (HasUMode(client_p, UMODE_OPER) && !operstoo)
           continue;
       exit_client(client_p, &me, "Server closed connection");
       break;

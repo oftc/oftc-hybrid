@@ -41,6 +41,10 @@
 #define USERLEN          10
 #define PORTNAMELEN 6  /* ":31337" */
 
+#define HOSTIPLEN       45 /* sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255") */
+#define PASSWDLEN       20
+#define IDLEN           12 /* this is the maximum length, not the actual
+                              generated length; DO NOT CHANGE! */
 #define REALLEN         50
 #define KILLLEN         90
 #define LOCAL_CHANNELLEN 50
@@ -48,20 +52,14 @@
 #define REASONLEN       120
 #define KICKLEN         160
 #define AWAYLEN         160
-
-/* 23+1 for \0 */
-#define KEYLEN          24
-#define OPERNICKLEN     NICKLEN*2 /* Length of OPERNICKs. */
+#define KEYLEN          23
 
 #define USERHOST_REPLYLEN       (NICKLEN+HOSTLEN+USERLEN+5)
 #define MAX_DATE_STRING 32      /* maximum string length for a date string */
-#define IRCD_MAXNS      2       /* Maximum number of nameservers in 
+#define IRCD_MAXNS      3       /* Maximum number of nameservers in 
                                    /etc/resolv.conf we care about */
 
 #define LOWEST_SAFE_FD  4	/* skip stdin, stdout, stderr, and profiler */
-
-#define PLATFORMLEN     200     /* platform string used in info response */
-
 
 /* This is to get around the fact that some implementations have ss_len and
  * others do not
@@ -72,7 +70,4 @@ struct irc_ssaddr
   unsigned char   ss_len;
   in_port_t       ss_port;
 };
-
-#define REJECT_HOLD_TIME GlobalSetOptions.rejecttime
-
 #endif /* INCLUDED_ircd_defs_h */

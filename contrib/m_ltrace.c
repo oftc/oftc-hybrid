@@ -24,8 +24,6 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
-#include "hook.h"
 #include "client.h"
 #include "hash.h"
 #include "irc_string.h"
@@ -34,38 +32,14 @@
 #include "fdlist.h"
 #include "s_bsd.h"
 #include "s_serv.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
 static void do_ltrace(struct Client *, int, char *[]);
-static void m_ltrace(struct Client *, struct Client *, int, char *[]);
-static void mo_ltrace(struct Client *, struct Client *, int, char *[]);
-
-struct Message ltrace_msgtab = {
-  "LTRACE", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_ltrace, mo_ltrace, m_ignore, mo_ltrace, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&ltrace_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&ltrace_msgtab);
-}
-#endif
-
 static void report_this_status(struct Client *, struct Client *, int);
+
 
 static void
 trace_get_dependent(int *const server,
@@ -90,14 +64,14 @@ static void
 m_ltrace(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  char *tname;
+  const char *tname = NULL;
 
   if (parc > 1)
     tname = parv[1];
   else
     tname = me.name;
   sendto_one(source_p, form_str(RPL_ENDOFTRACE),
-             me.name, parv[0], tname);
+             me.name, source_p->name, tname);
 }
 
 /*
@@ -119,7 +93,7 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
     {
       struct Client *ac2ptr = NULL;
 
-      if ((ac2ptr = find_client(tname)) == NULL)
+      if ((ac2ptr = hash_find_client(tname)) == NULL)
         DLINK_FOREACH(ptr, global_client_list.head)
         {
           ac2ptr = ptr->data;
@@ -159,27 +133,27 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
     const char* name;
     const char* class_name;
 
-    target_p = find_client(tname);
+    target_p = hash_find_client(tname);
 
     if (target_p && IsClient(target_p)) 
     {
       name = get_client_name(target_p, HIDE_IP);
       class_name = get_client_class(target_p);
 
-      if (IsOper(target_p))
+      if (HasUMode(target_p, UMODE_OPER))
       {
         if (ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, source_p->name, class_name, name, 
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                     CurrentTime - target_p->lasttime,
-                     CurrentTime - target_p->localClient->last);
+                     CurrentTime - target_p->localClient->lasttime,
+                     CurrentTime - target_p->localClient->last_privmsg);
         else
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, source_p->name, class_name, name,
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                     CurrentTime - target_p->lasttime,
-                     CurrentTime - target_p->localClient->last);
+                     CurrentTime - target_p->localClient->lasttime,
+                     CurrentTime - target_p->localClient->last_privmsg);
       }
     }
 
@@ -193,7 +167,7 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
   {
     target_p = ptr->data;
 
-    if (!IsOper(target_p))
+    if (!HasUMode(target_p, UMODE_OPER))
       continue;
 
     if (!doall && wilds && !match(tname, target_p->name))
@@ -230,7 +204,7 @@ static void
 mo_ltrace(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  if (!IsOper(source_p))
+  if (!HasUMode(source_p, UMODE_OPER))
   {
     sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name, parv[0],
                parc > 1 ? parv[1] : me.name);
@@ -271,46 +245,46 @@ report_this_status(struct Client *source_p, struct Client *target_p,
     case STAT_CONNECTING:
       sendto_one(source_p, form_str(RPL_TRACECONNECTING), me.name,
                  source_p->name, class_name, 
-                 IsAdmin(source_p) ? name : target_p->name);
+                 HasUMode(source_p, UMODE_ADMIN) ? name : target_p->name);
       break;
 
     case STAT_HANDSHAKE:
       sendto_one(source_p, form_str(RPL_TRACEHANDSHAKE), me.name,
                  source_p->name, class_name, 
-                 IsAdmin(source_p) ? name : target_p->name);
+                 HasUMode(source_p, UMODE_ADMIN) ? name : target_p->name);
       break;
 
     case STAT_CLIENT:
-      if (IsAdmin(target_p))
+      if (HasUMode(target_p, UMODE_ADMIN))
       {
         if (ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, source_p->name, class_name, name,
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                     CurrentTime - target_p->lasttime,
-                     CurrentTime - target_p->localClient->last);
+                     CurrentTime - target_p->localClient->lasttime,
+                     CurrentTime - target_p->localClient->last_privmsg);
         else
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, source_p->name, class_name, name,
-                     IsAdmin(source_p) ? target_p->sockhost :
+                     HasUMode(source_p, UMODE_ADMIN) ? target_p->sockhost :
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                     CurrentTime - target_p->lasttime,
-                     CurrentTime - target_p->localClient->last);
+                     CurrentTime - target_p->localClient->lasttime,
+                     CurrentTime - target_p->localClient->last_privmsg);
       }
-      else if (IsOper(target_p))
+      else if (HasUMode(target_p, UMODE_OPER))
       {
         if (ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, source_p->name, class_name, name,
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                     CurrentTime - target_p->lasttime,
-                     CurrentTime - target_p->localClient->last);
+                     CurrentTime - target_p->localClient->lasttime,
+                     CurrentTime - target_p->localClient->last_privmsg);
         else
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, source_p->name, class_name, name, 
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                     CurrentTime - target_p->lasttime,
-                     CurrentTime - target_p->localClient->last);
+                     CurrentTime - target_p->localClient->lasttime,
+                     CurrentTime - target_p->localClient->last_privmsg);
       }
       break;
 
@@ -321,14 +295,14 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 
       trace_get_dependent(&servers, &clients, target_p);
 
-      if (!IsAdmin(source_p))
+      if (!HasUMode(source_p, UMODE_ADMIN))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),
                  me.name, source_p->name, class_name, servers,
                  clients, name, *(target_p->serv->by) ?
                  target_p->serv->by : "*", "*",
-                 me.name, CurrentTime - target_p->lasttime);
+                 me.name, CurrentTime - target_p->localClient->lasttime);
       break;
     }
 
@@ -342,3 +316,30 @@ report_this_status(struct Client *source_p, struct Client *target_p,
       break;
   }
 }
+
+static struct Message ltrace_msgtab = {
+  "LTRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_ltrace, mo_ltrace, m_ignore, mo_ltrace, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&ltrace_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&ltrace_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

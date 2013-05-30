@@ -23,41 +23,15 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_user.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "listener.h"
-
-
-static void mr_user(struct Client *, struct Client *, int, char *[]);
-
-struct Message user_msgtab = {
-  "USER", 0, 0, 5, 0, MFLG_SLOW, 0L,
-  { mr_user, m_registered, m_ignore, m_ignore, m_registered, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&user_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&user_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 
 /* do_local_user()
@@ -131,3 +105,30 @@ mr_user(struct Client *client_p, struct Client *source_p,
                 parv[3], /* server   */
                 parv[4]	 /* users real name */ );
 }
+
+static struct Message user_msgtab = {
+  "USER", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
+  { mr_user, m_registered, m_ignore, m_ignore, m_registered, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&user_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&user_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

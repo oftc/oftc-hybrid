@@ -25,42 +25,17 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
 #include "list.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-
-static void m_accept(struct Client *, struct Client *, int, char *[]);
-
-struct Message accept_msgtab = {
-  "ACCEPT", 0, 0, 0, 0, MFLG_SLOW, 0, 
-  { m_unregistered, m_accept, m_ignore, m_ignore, m_accept, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&accept_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&accept_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 
 /*! \brief Creates and sends a list of nick!user\@host masks a Client
@@ -217,3 +192,30 @@ m_accept(struct Client *client_p, struct Client *source_p,
     }
   }
 }
+
+static struct Message accept_msgtab = {
+  "ACCEPT", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_accept, m_ignore, m_ignore, m_accept, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&accept_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&accept_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

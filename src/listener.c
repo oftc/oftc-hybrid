@@ -33,13 +33,9 @@
 #include "ircd_defs.h"
 #include "s_bsd.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "memory.h"
-#ifdef HAVE_LIBCRYPTO
-#include <openssl/bio.h>
-#endif
-
 
 static PF accept_connection;
 
@@ -68,7 +64,7 @@ free_listener(struct Listener *listener)
 
 /*
  * get_listener_name - return displayable listener name and port
- * returns "host.foo.org:6667" for a given listener
+ * returns "host.foo.org/6667" for a given listener
  */
 const char *
 get_listener_name(const struct Listener *const listener)
@@ -99,7 +95,7 @@ show_ports(struct Client *source_p)
     p = buf;
 
     if (listener->flags & LISTENER_HIDDEN) {
-      if (!IsAdmin(source_p))
+      if (!HasUMode(source_p, UMODE_ADMIN))
         continue;
       *p++ = 'H';
     }
@@ -111,7 +107,7 @@ show_ports(struct Client *source_p)
     *p = '\0';
     sendto_one(source_p, form_str(RPL_STATSPLINE),
                me.name, source_p->name, 'P', listener->port,
-               IsAdmin(source_p) ? listener->name : me.name,
+               HasUMode(source_p, UMODE_ADMIN) ? listener->name : me.name,
                listener->ref_count, buf,
                listener->active ? "active" : "disabled");
   }
@@ -153,10 +149,6 @@ inetport(struct Listener *listener)
     return 0;
   }
 
-  /*
-   * XXX - we don't want to do all this crap for a listener
-   * set_sock_opts(listener);
-   */
   if (setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
   {
     report_error(L_ALL, "setting SO_REUSEADDR for listener %s:%s",

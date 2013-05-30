@@ -24,59 +24,22 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"    /* m_server prototype */
 #include "client.h"      /* client struct */
-#include "common.h"      /* TRUE bleah */
 #include "event.h"
 #include "hash.h"        /* add_to_client_hash_table */
 #include "irc_string.h" 
 #include "ircd.h"        /* me */
 #include "numeric.h"     /* ERR_xxx */
-#include "s_conf.h"      /* struct AccessItem */
-#include "s_log.h"       /* log level defines */
+#include "conf.h"      /* struct AccessItem */
+#include "log.h"       /* log level defines */
 #include "s_serv.h"      /* server_estab, check_server */
 #include "s_user.h"
 #include "send.h"        /* sendto_one */
-#include "motd.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
 
-static void mr_server(struct Client *, struct Client *, int, char *[]);
-static void ms_server(struct Client *, struct Client *, int, char *[]);
-static void ms_sid(struct Client *, struct Client *, int, char *[]);
-
-static void set_server_gecos(struct Client *, char *);
-
-struct Message server_msgtab = {
-  "SERVER", 0, 0, 4, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_server, m_registered, ms_server, m_ignore, m_registered, m_ignore}
-};
-
-struct Message sid_msgtab = {
-  "SID", 0, 0, 5, 0, MFLG_SLOW, 0,
-  {rfc1459_command_send_error, m_ignore, ms_sid, m_ignore, m_ignore, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void 
-_modinit(void)
-{
-  mod_add_cmd(&server_msgtab);
-  mod_add_cmd(&sid_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&server_msgtab);
-  mod_del_cmd(&sid_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
+static void set_server_gecos(struct Client *, const char *);
 
 /* mr_server()
  *  parv[0] = sender prefix
@@ -88,12 +51,11 @@ static void
 mr_server(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  char info[REALLEN + 1];
   char *name;
   struct Client *target_p;
   int hop;
 
-  if (parc < 4 || EmptyString(parv[3]))
+  if (EmptyString(parv[3]))
   {
     sendto_one(client_p, "ERROR :No servername");
     exit_client(client_p, client_p, "Wrong number of args");
@@ -102,7 +64,6 @@ mr_server(struct Client *client_p, struct Client *source_p,
 
   name = parv[1];
   hop  = atoi(parv[2]);
-  strlcpy(info, parv[3], sizeof(info));
 
   /*
    * Reject a direct nonTS server connection if we're TS_ONLY -orabidoo
@@ -128,7 +89,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
   /* Now we just have to call check_server and everything should
    * be checked for us... -A1kmm.
    */
-  switch (check_server(name, client_p, CHECK_SERVER_NOCRYPTLINK))
+  switch (check_server(name, client_p))
   {
     case -1:
       if (ConfigFileEntry.warn_no_nline)
@@ -162,21 +123,10 @@ mr_server(struct Client *client_p, struct Client *source_p,
       return;
       /* NOT REACHED */
       break;
-
-    /* servername is > HOSTLEN */
-    case -4:
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-                           "Invalid servername %s from %s",
-			   name, get_client_name(client_p, SHOW_IP));
-
-      exit_client(client_p, client_p, "Invalid servername.");
-      return;
-      /* NOT REACHED */
-      break;
   }
 
   if ((client_p->id[0] && (target_p = hash_find_id(client_p->id)))
-      || (target_p = find_server(name)))
+      || (target_p = hash_find_server(name)))
   {
     /* This link is trying feed me a server that I already have
      * access through another path -- multiple paths not accepted
@@ -208,7 +158,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
    * connect{} block in client_p->name
    */
   strlcpy(client_p->name, name, sizeof(client_p->name));
-  set_server_gecos(client_p, info);
+  set_server_gecos(client_p, parv[3]);
   client_p->hopcount = hop;
   server_estab(client_p);
 }
@@ -223,22 +173,19 @@ static void
 ms_server(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  char info[REALLEN + 1];
   char *name;
   struct Client *target_p;
-  struct Client *bclient_p;
-  struct ConfItem *conf;
-  struct MatchItem *match_item;
+  struct AccessItem *aconf;
   int hop;
   int hlined = 0;
   int llined = 0;
-  dlink_node *ptr, *ptr_next;
+  dlink_node *ptr = NULL;
 
   /* Just to be sure -A1kmm. */
   if (!IsServer(source_p))
     return;
 
-  if (parc < 4 || EmptyString(parv[3]))
+  if (EmptyString(parv[3]))
   {
     sendto_one(client_p, "ERROR :No servername");
     return;
@@ -246,7 +193,6 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
   name = parv[1];
   hop  = atoi(parv[2]);
-  strlcpy(info, parv[3], sizeof(info));
 
   if (!valid_servname(name))
   {
@@ -258,7 +204,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((target_p = find_server(name)))
+  if ((target_p = hash_find_server(name)))
   {
     /* This link is trying feed me a server that I already have
      * access through another path -- multiple paths not accepted
@@ -277,13 +223,6 @@ ms_server(struct Client *client_p, struct Client *source_p,
      * doesnt exist, although ircd can handle it, its not a realistic
      * solution.. --fl_ 
      */
-    /* It is behind a host-masked server. Completely ignore the
-     * server message(don't propagate or we will delink from whoever
-     * we propagate to). -A1kmm
-     */
-    if (irccmp(target_p->name, name) && target_p->from == client_p)
-      return;
-
     sendto_one(client_p, "ERROR :Server %s already exists", name);
     sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "Link %s cancelled, server %s already exists",
@@ -300,34 +239,24 @@ ms_server(struct Client *client_p, struct Client *source_p,
     if (target_p != client_p)
       exit_client(target_p, &me, "Overridden");
 
+  aconf = map_to_conf(client_p->localClient->confs.head->data);
+
   /* See if the newly found server is behind a guaranteed
    * leaf. If so, close the link.
    */
-  DLINK_FOREACH(ptr, leaf_items.head)
-  {
-    conf = ptr->data;
-
-    if (match(conf->name, client_p->name))
+  DLINK_FOREACH(ptr, aconf->leaf_list.head)
+    if (match(ptr->data, name))
     {
-      match_item = map_to_conf(conf);
-
-      if (match(match_item->host, name))
-	llined++;
+      llined = 1;
+      break;
     }
-  }
 
-  DLINK_FOREACH(ptr, hub_items.head)
-  {
-    conf = ptr->data;
-
-    if (match(conf->name, client_p->name))
+  DLINK_FOREACH(ptr, aconf->hub_list.head)
+    if (match(ptr->data, name))
     {
-      match_item = map_to_conf(conf);
-
-      if (match(match_item->host, name))
-	hlined++;
+      hlined = 1;
+      break;
     }
-  }
 
   /* Ok, this way this works is
    *
@@ -387,8 +316,11 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
   strlcpy(target_p->name, name, sizeof(target_p->name));
 
-  set_server_gecos(target_p, info);
+  set_server_gecos(target_p, parv[3]);
   SetServer(target_p);
+
+  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
+    AddFlag(target_p, FLAGS_SERVICE);
 
   dlinkAdd(target_p, &target_p->node, &global_client_list);
   dlinkAdd(target_p, make_dlink_node(), &global_serv_list);
@@ -396,18 +328,9 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
   hash_add_client(target_p);
 
-  /* Old sendto_serv_but_one() call removed because we now
-   * need to send different names to different servers
-   * (domain name matching)
-   */
-  DLINK_FOREACH_SAFE(ptr, ptr_next, serv_list.head)
-  {
-    bclient_p = ptr->data;
-
-    if (bclient_p == client_p)
-      continue;
-  }
-
+  sendto_server(client_p, NOCAPS, NOCAPS, ":%s SERVER %s %d :%s%s",
+                source_p->name, target_p->name, hop + 1,
+                IsHidden(target_p) ? "(H) " : "", target_p->info);
   sendto_realops_flags(UMODE_EXTERNAL, L_ALL,
                        "Server %s being introduced by %s",
                        target_p->name, source_p->name);
@@ -424,28 +347,24 @@ static void
 ms_sid(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-  char info[REALLEN + 1];
   struct Client *target_p;
-  struct Client *bclient_p;
-  struct ConfItem *conf;
-  struct MatchItem *match_item;
+  struct AccessItem *aconf = NULL;
   int hlined = 0;
   int llined = 0;
-  dlink_node *ptr, *ptr_next;
+  dlink_node *ptr = NULL;
   int hop;
 
   /* Just to be sure -A1kmm. */
   if (!IsServer(source_p))
     return;
 
-  if (parc < 5 || EmptyString(parv[4]))
+  if (EmptyString(parv[4]))
   {
     sendto_one(client_p, "ERROR :No servername");
     return;
   }
 
   hop = atoi(parv[2]);
-  strlcpy(info, parv[4], sizeof(info));
 
   if (!valid_servname(parv[1]))
   {
@@ -474,12 +393,12 @@ ms_sid(struct Client *client_p, struct Client *source_p,
     sendto_realops_flags(UMODE_ALL, L_ALL, 
 			 "Link %s cancelled, SID %s already exists",
                          get_client_name(client_p, SHOW_IP), parv[3]);
-    exit_client(client_p, &me, "Server Exists");
+    exit_client(client_p, &me, "SID Exists");
     return;
   }
 
   /* collision on name? */
-  if ((target_p = find_server(parv[1])))
+  if ((target_p = hash_find_server(parv[1])))
   {
     sendto_one(client_p, "ERROR :Server %s already exists", parv[1]);
     sendto_realops_flags(UMODE_ALL, L_ALL, 
@@ -497,34 +416,25 @@ ms_sid(struct Client *client_p, struct Client *source_p,
     if (target_p != client_p)
       exit_client(target_p, &me, "Overridden");
 
+  aconf = map_to_conf(client_p->localClient->confs.head->data);
+
   /* See if the newly found server is behind a guaranteed
    * leaf. If so, close the link.
    */
-  DLINK_FOREACH(ptr, leaf_items.head)
-  {
-    conf = ptr->data;
-
-    if (match(conf->name, client_p->name))
+  DLINK_FOREACH(ptr, aconf->leaf_list.head)
+    if (match(ptr->data, parv[1]))
     {
-      match_item = map_to_conf(conf);
-
-      if (match(match_item->host, parv[1]))
-        llined++;
+      llined = 1;
+      break;
     }
-  }
 
-  DLINK_FOREACH(ptr, hub_items.head)
-  {
-    conf = ptr->data;
-
-    if (match(conf->name, client_p->name))
+  DLINK_FOREACH(ptr, aconf->hub_list.head)
+    if (match(ptr->data, parv[1]))
     {
-      match_item = map_to_conf(conf);
-
-      if (match(match_item->host, parv[1]))
-        hlined++;
+      hlined = 1;
+      break;
     }
-  }
+
 
   /* Ok, this way this works is
    *
@@ -578,8 +488,11 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   strlcpy(target_p->name, parv[1], sizeof(target_p->name));
   strlcpy(target_p->id, parv[3], sizeof(target_p->id));
 
-  set_server_gecos(target_p, info);
+  set_server_gecos(target_p, parv[4]);
   SetServer(target_p);
+
+  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
+    AddFlag(target_p, FLAGS_SERVICE);
 
   dlinkAdd(target_p, &target_p->node, &global_client_list);
   dlinkAdd(target_p, make_dlink_node(), &global_serv_list);
@@ -588,24 +501,12 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   hash_add_client(target_p);
   hash_add_id(target_p);
 
-  DLINK_FOREACH_SAFE(ptr, ptr_next, serv_list.head)
-  {
-    bclient_p = ptr->data;
-    
-    if (bclient_p == client_p)
-      continue;
-
-    if (IsCapable(bclient_p, CAP_TS6))
-      sendto_one(bclient_p, ":%s SID %s %d %s :%s%s",
-                 ID_or_name(source_p, client_p), target_p->name, hop + 1,
-                 parv[3], IsHidden(target_p) ? "(H) " : "",
-                 target_p->info);
-    else
-      sendto_one(bclient_p, ":%s SERVER %s %d :%s%s",
-                 source_p->name, target_p->name, hop + 1,
-                 IsHidden(target_p) ? "(H) " : "",
-                 target_p->info);
-  }
+  sendto_server(client_p, CAP_TS6, NOCAPS, ":%s SID %s %d %s :%s%s",
+                ID_or_name(source_p, client_p), target_p->name, hop + 1,
+                target_p->id, IsHidden(target_p) ? "(H) " : "", target_p->info);
+  sendto_server(client_p, NOCAPS, CAP_TS6, ":%s SERVER %s %d :%s%s",
+                source_p->name, target_p->name, hop + 1,
+                IsHidden(target_p) ? "(H) " : "", target_p->info);
 
   sendto_realops_flags(UMODE_EXTERNAL, L_ALL, 
                        "Server %s being introduced by %s",
@@ -619,65 +520,53 @@ ms_sid(struct Client *client_p, struct Client *source_p,
  * side effects - servers gecos field is set
  */
 static void
-set_server_gecos(struct Client *client_p, char *info)
+set_server_gecos(struct Client *client_p, const char *info)
 {
-  /* check the info for [IP] */
-  if (info[0])
+  const char *s = info;
+
+  /* check for (H) which is a hidden server */
+  if (!strncmp(s, "(H) ", 4))
   {
-    char *p;
-    char *s;
-    char *t;
-    
-    s = info;
-    
-    /* we should only check the first word for an ip */
-    if ((p = strchr(s, ' ')) != NULL)
-      *p = '\0';
-      
-    /* check for a ] which would symbolise an [IP] */
-    if ((t = strchr(s, ']')) != NULL)
-    {
-      /* set s to after the first space */
-      if (p)
-        s = ++p;
-      else
-        s = NULL;
-    }
-    /* no ], put the space back */
-    else if (p)
-      *p = ' ';
-
-    /* p may have been set to a trailing space, so check s exists and that
-     * it isnt \0 */
-    if (s && (*s != '\0'))
-    {
-      /* a space? if not (H) could be the last part of info.. */
-      if ((p = strchr(s, ' ')))
-        *p = '\0';
-      
-      /* check for (H) which is a hidden server */
-      if (!strcmp(s, "(H)"))
-      {
-        SetHidden(client_p);
-
-        /* if there was no space.. theres nothing to set info to */
-        if (p)
-	  s = ++p;
-	else
-	  s = NULL;
-      }
-      else if (p)
-        *p = ' ';
-
-      /* if there was a trailing space, s could point to \0, so check */
-      if (s && (*s != '\0'))
-        strlcpy(client_p->info, s, sizeof(client_p->info));
-      else
-        strlcpy(client_p->info, "(Unknown Location)", sizeof(client_p->info));
-    }
-    else
-      strlcpy(client_p->info, "(Unknown Location)", sizeof(client_p->info));
+    SetHidden(client_p);
+    s = s + 4;
   }
+
+  if (!EmptyString(s))
+    strlcpy(client_p->info, s, sizeof(client_p->info));
   else
     strlcpy(client_p->info, "(Unknown Location)", sizeof(client_p->info));
 }
+
+static struct Message server_msgtab = {
+  "SERVER", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
+  {mr_server, m_registered, ms_server, m_ignore, m_registered, m_ignore}
+};
+
+static struct Message sid_msgtab = {
+  "SID", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
+  {rfc1459_command_send_error, m_ignore, ms_sid, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&sid_msgtab);
+  mod_add_cmd(&server_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&sid_msgtab);
+  mod_del_cmd(&server_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

@@ -50,9 +50,7 @@ struct Callback;
 
 void *iorecv_default(va_list);
 extern struct Callback *iorecv_cb;
-extern struct Callback *iorecvctrl_cb;
 
-PF read_ctrl_packet;
 PF read_packet;
 PF flood_recalc;
 void flood_endgrace(struct Client *);

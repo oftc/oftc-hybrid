@@ -23,54 +23,20 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
-#include "ircd_handler.h"
-#include "msg.h"
 #include "numeric.h"
 #include "send.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
 #include "parse.h"
 #include "modules.h"
 #include "irc_string.h"
 
 #define HELPLEN 400
 
-static void m_help(struct Client *, struct Client *, int, char *[]);
-static void mo_help(struct Client *, struct Client *, int, char *[]);
-static void mo_uhelp(struct Client *, struct Client *, int, char *[]);
 static void dohelp(struct Client *, const char *, char *);
 static void sendhelpfile(struct Client *, const char *, const char *);
 
-struct Message help_msgtab = {
-  "HELP", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_help, m_ignore, m_ignore, mo_help, m_ignore}
-};
-
-struct Message uhelp_msgtab = {
-  "UHELP", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_help, m_ignore, m_ignore, mo_uhelp, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&help_msgtab);
-  mod_add_cmd(&uhelp_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&help_msgtab);
-  mod_del_cmd(&uhelp_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * m_help - HELP message handler
@@ -177,19 +143,19 @@ dohelp(struct Client *source_p, const char *hpath, char *topic)
 static void 
 sendhelpfile(struct Client *source_p, const char *path, const char *topic)
 {
-  FBFILE *file;
+  FILE *file;
   char line[HELPLEN];
   char started = 0;
   int type;
 
-  if ((file = fbopen(path, "r")) == NULL)
+  if ((file = fopen(path, "r")) == NULL)
   {
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
     return;
   }
 
-  if (fbgets(line, sizeof(line), file) == NULL)
+  if (fgets(line, sizeof(line), file) == NULL)
   {
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
@@ -203,7 +169,7 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
     started = 1;
   }
 
-  while (fbgets(line, sizeof(line), file))
+  while (fgets(line, sizeof(line), file))
   {
     line[strlen(line) - 1] = '\0';
     if (line[0] != '#')
@@ -221,9 +187,43 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
     }
   }
 
-  fbclose(file);
+  fclose(file);
   sendto_one(source_p, form_str(RPL_HELPTXT),
              me.name, source_p->name, topic, "");
   sendto_one(source_p, form_str(RPL_ENDOFHELP),
              me.name, source_p->name, topic);
 }
+
+static struct Message help_msgtab = {
+  "HELP", 0, 0, 0, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_help, m_ignore, m_ignore, mo_help, m_ignore}
+};
+
+static struct Message uhelp_msgtab = {
+  "UHELP", 0, 0, 0, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_help, m_ignore, m_ignore, mo_uhelp, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&help_msgtab);
+  mod_add_cmd(&uhelp_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&help_msgtab);
+  mod_del_cmd(&uhelp_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

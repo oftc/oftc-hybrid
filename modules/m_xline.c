@@ -26,7 +26,6 @@
 #include "list.h"
 #include "channel.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
@@ -34,24 +33,16 @@
 #include "numeric.h"
 #include "fdlist.h"
 #include "s_bsd.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "s_misc.h"
 #include "send.h"
 #include "hash.h"
-#include "handlers.h"
 #include "s_serv.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "resv.h"
 
-static void mo_xline(struct Client *, struct Client *, int, char *[]);
-static void ms_xline(struct Client *, struct Client *, int, char *[]);
-static void me_xline(struct Client *, struct Client *, int, char *[]);
-
-static void mo_unxline(struct Client *, struct Client *, int, char *[]);
-static void ms_unxline(struct Client *, struct Client *, int, char *[]);
 
 static int valid_xline(struct Client *, char *, char *, int);
 static void write_xline(struct Client *, char *, char *, time_t);
@@ -59,35 +50,6 @@ static void remove_xline(struct Client *, char *);
 static int remove_txline_match(const char *);
 
 static void relay_xline(struct Client *, char *[], int);
-
-struct Message xline_msgtab = {
-  "XLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, ms_xline, me_xline, mo_xline, m_ignore }
-};
-
-struct Message unxline_msgtab = {
-  "UNXLINE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, ms_unxline, m_ignore, mo_unxline, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&xline_msgtab);
-  mod_add_cmd(&unxline_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&xline_msgtab);
-  mod_del_cmd(&unxline_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
 
 /* mo_xline()
  *
@@ -110,7 +72,7 @@ mo_xline(struct Client *client_p, struct Client *source_p,
   char *target_server = NULL;
   time_t tkline_time = 0;
 
-  if (!IsOperX(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_X))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "xline");
@@ -189,7 +151,7 @@ ms_xline(struct Client *client_p, struct Client *source_p,
   if (!valid_xline(source_p, parv[2], parv[4], 0))
     return;
 
-  relay_xline(source_p, parv, NO);
+  relay_xline(source_p, parv, false);
 }
 
 /* me_xline()
@@ -215,7 +177,7 @@ me_xline(struct Client *client_p, struct Client *source_p,
   if (!IsClient(source_p) || parc != 5)
     return;
 
-  relay_xline(source_p, parv, YES);
+  relay_xline(source_p, parv, true);
 }
 
 static void
@@ -238,7 +200,7 @@ relay_xline(struct Client *source_p, char *parv[], int encap)
   if (!match(parv[1], me.name))
     return;
 
-  if (find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
+  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
                               source_p->username, source_p->host,
                               SHARED_XLINE))
   {
@@ -273,7 +235,7 @@ mo_unxline(struct Client *client_p, struct Client *source_p,
   char *gecos = NULL;
   char *target_server = NULL;
 
-  if (!IsOperX(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_X))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "unxline");
@@ -323,7 +285,7 @@ ms_unxline(struct Client *client_p, struct Client *source_p,
   if (!match(parv[1], me.name))
     return;
 
-  if (find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
+  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
                               source_p->username, source_p->host,
                               SHARED_UNXLINE))
     remove_xline(source_p, parv[2]);
@@ -399,7 +361,7 @@ write_xline(struct Client *source_p, char *gecos, char *reason,
     sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. X-Line [%s]",
 	       MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
 	       source_p->name, (int)tkline_time/60, conf->name);
-    ilog(L_TRACE, "%s added temporary %d min. X-Line for [%s] [%s]",
+    ilog(LOG_TYPE_KLINE, "%s added temporary %d min. X-Line for [%s] [%s]",
 	 source_p->name, (int)tkline_time/60,
 	 conf->name, match_item->reason);
     match_item->hold = CurrentTime + tkline_time;
@@ -422,7 +384,7 @@ remove_xline(struct Client *source_p, char *gecos)
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the temporary X-Line for: [%s]",
                          get_oper_name(source_p), gecos);
-    ilog(L_NOTICE, "%s removed temporary X-Line for [%s]",
+    ilog(LOG_TYPE_KLINE, "%s removed temporary X-Line for [%s]",
          source_p->name, gecos);
     remove_conf_line(XLINE_TYPE, source_p, gecos, NULL);
     return;
@@ -435,7 +397,7 @@ remove_xline(struct Client *source_p, char *gecos)
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has removed the X-Line for: [%s]",
                          get_oper_name(source_p), gecos);
-    ilog(L_NOTICE, "%s removed X-Line for [%s]",
+    ilog(LOG_TYPE_KLINE, "%s removed X-Line for [%s]",
          get_oper_name(source_p), gecos);
   }
   else
@@ -471,3 +433,37 @@ remove_txline_match(const char *gecos)
 
   return 0;
 }
+
+static struct Message xline_msgtab = {
+  "XLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, ms_xline, me_xline, mo_xline, m_ignore }
+};
+
+static struct Message unxline_msgtab = {
+  "UNXLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, ms_unxline, m_ignore, mo_unxline, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&xline_msgtab);
+  mod_add_cmd(&unxline_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&xline_msgtab);
+  mod_del_cmd(&unxline_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

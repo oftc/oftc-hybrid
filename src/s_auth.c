@@ -32,15 +32,15 @@
  *     any messages from it.
  *     --Bleep  Thomas Helvey <tomh@inxpress.net>
  */
+
 #include "stdinc.h"
 #include "list.h"
 #include "ircd_defs.h"
 #include "fdlist.h"
 #include "s_auth.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "balloc.h"
 #include "client.h"
-#include "common.h"
 #include "event.h"
 #include "hook.h"
 #include "irc_string.h"
@@ -48,7 +48,7 @@
 #include "packet.h"
 #include "irc_res.h"
 #include "s_bsd.h"
-#include "s_log.h"
+#include "log.h"
 #include "send.h"
 
 
@@ -141,7 +141,9 @@ release_auth_client(struct AuthRequest *auth)
 
   dlinkAdd(client, &client->node, &global_client_list);
 
-  client->since  = client->lasttime = client->firsttime = CurrentTime;
+  client->localClient->since     = CurrentTime;
+  client->localClient->lasttime  = CurrentTime;
+  client->localClient->firsttime = CurrentTime;
   client->flags |= FLAGS_FINISHED_AUTH;
 
   read_packet(&client->localClient->fd, client);
@@ -248,7 +250,7 @@ start_auth_query(struct AuthRequest *auth)
   {
     report_error(L_ALL, "creating auth stream socket %s:%s", 
         get_client_name(auth->client, SHOW_IP), errno);
-    ilog(L_ERROR, "Unable to create auth socket for %s",
+    ilog(LOG_TYPE_IRCD, "Unable to create auth socket for %s",
         get_client_name(auth->client, SHOW_IP));
     ++ServerStats.is_abad;
     return 0;
@@ -417,7 +419,7 @@ timeout_auth_queries_event(void *notused)
       sendheader(auth->client, REPORT_FAIL_DNS);
     }
 
-    ilog(L_INFO, "DNS/AUTH timeout %s",
+    ilog(LOG_TYPE_IRCD, "DNS/AUTH timeout %s",
          get_client_name(auth->client, SHOW_IP));
     release_auth_client(auth);
   }
@@ -461,7 +463,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
       getpeername(auth->client->localClient->fd.fd, (struct sockaddr *)&them,
       &tlen))
   {
-    ilog(L_INFO, "auth get{sock,peer}name error for %s",
+    ilog(LOG_TYPE_IRCD, "auth get{sock,peer}name error for %s",
         get_client_name(auth->client, SHOW_IP));
     auth_error(auth);
     return;

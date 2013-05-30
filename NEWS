@@ -105,164 +105,95 @@ o) +R - Cannot join channel unless regisitered with NickServ
 o) +M - Cannot talk on channel unless registered with NickServ
 o) +S - Cannot join channel unless using SSL
 
--- ircd-hybrid-7.3.0 Release Notes
-o) Added Bulgarian language file provided by Borislav Borisov
-o) Server hostmasking has been removed due to TS6 requirements
-o) Fixed broken IPv6 detection
-o) Minor code optimizations. Reduced memory consumption
-o) User IDs are now shown in client connection notices
-o) Increased maximum temporary kline time to 360 days
-o) Added back STATS/TRACE/MOTD/ADMIN request notices. Removed
-   spy_*_notice modules accordingly.
-o) Channelmode +O; channel can be joined by ircops only.
-o) Channelmode +S; only clients with a secure connection (ssl/tls)
-   can join this channel.
+-- ircd-hybrid-8.0.0 Release Notes
+o) Fixed an off-by-one with spoofs. Spoofs are now also checked for
+   invalid characters
+o) Removed general::use_whois_actually configuration directive. This is
+   now enabled by default
+o) Minor SQUIT handling fixes
+o) Fixed bancache not being updated on CHGHOST/CHGIDENT
 
 
--- ircd-hybrid-7.3-rc1 Release Notes
-o) Major 64-bit cleanups and portability fixes.
-o) Fixed bug where unregistered clients were not able to complete registration
-   process with /quote PONG <ping_cookie> in case the client was assigned a
-   zero value ping-cookie. This may only happen with general::ping_cookie
-   being enabled.
-o) "STATS z" now shows the actual amount of memory consumption being
-   used by channel bans/excepts/invites.
-o) Fixed archaic bug where bursting servers with missconfigured NICKLEN were
-   able to desync the network's nickname database.
-o) The PCRE library has been removed from the ircd sources. ./configure will
-   now automatically detect an already installed version of the PCRE library.
-o) Various resolver improvements and fixes
-o) Implemented GUNGLINE (global ungline)
-o) Completely rewrote build system. We're now using automake and libtool
-o) Added support for SHA-256/512 encrypted passwords to mkpasswd. Whether
-   passwords hashed using these algorithms will work depends on the system's
-   crypt() implementation. For example, SHA-256/512 is available in glibc since
-   version 2.7.
-o) Added ssl_server_protocol configuration option to servinfo{}.
-   Valid flags are 'sslv3' and 'tlsv1'
-o) Added new 'server' option to listener::flags. Listener with that flag
-   set may only accept server connections.
-o) Fixed occasional core when placing RESVs on channel names
-o) Fixed topic desynchronization which sometimes may
-   happen during netbursts
-o) WATCH support implemented. Known from other irc-daemons, such
-   as Dreamforge and Bahamut. The general::max_watch configuration directive
-   has been added in order to allow run-time configuration of how many
-   watch entries a single client may have on its watchlist.
-o) Fixed bug which would cause invalid invisible counts on oper-up in case
-   operator::umodes and/or general::oper_umodes contains 'invisible'
-o) Removed broken LazyLinks
-o) Removed --disable-gline-voting configure option
-o) Minor code optimizations and cleanups
-o) ACCEPT now supports nick!user@host masks
-o) Unregistered clients are no longer allowed to request the server's motd
-o) general::dot_in_ip6_addr configuration option is obsolete and no longer exists
-o) Dropped support for old style 'operflag = yes|no;' format
-
--- ircd-hybrid-7.2.3 Release Notes
-o) Added ircd-italian.lang language file
-o) Added -full to etrace
-o) Added +C for opers
-o) Fixed core in temp channel resv
-o) Fixed CHALLENGE to work with user=IP
-o) Misc fixes to TESTMASK and TESTLINE
-o) Added support for nick masks to TESTMASK
-o) Fixed /modlist to show up whether or not a module is resident
-o) Fixed command line arguments handling to allow more than one switch
-o) Fixed numeric delivery for mixed TS5 target on the other side of a TS6 server.
+-- ircd-hybrid-8rc1 Release Notes
+o) Removed general::client_flood configuration option and added the
+   new 'recvq' configuration directive to class{} blocks.
+   The max size of a receive queue can be seen in "STATS Y"
+   for each class
+o) Allow the '[' and ']' characters in server description
 
 
--- ircd-hybrid-7.2.2 Release Notes
-o) Added channel::disable_fake_channels config directive
-o) Fixed broken FORCEJOIN  (contrib)
-o) Added missing documentation for connect::vhost
-o) Fixed problem with G-Line voting
-o) Fixed "STATS ?" so it doesn't report negative traffic statistics
-o) Fixed core in m_mkpasswd.c  (contrib)
-o) Reduced memory usage for channel members
-o) Added general::stats_e_disabled which simply disables "STATS e"
-   for other operators and administrators
-o) Ignore signal SIGXFSZ to prevent the daemon from dying on missconfigured
-   file size limits
-o) Slight optimizations to the block allocator
-o) Fixed harmless bug that could result in incorrect bytes sent statistics
-   in "STATS t"
-o) "STATS y|Y" now shows whether a class is active or disabled
-o) Added ircd-brazilian_pt.lang language file
-o) Misc. ACCEPT fixes. E.g. don't remove an accept record if a client is
-   changing between equivalent nicknames like 'nick' and 'NiCk'.
-o) Minor resolv.conf parser fixes.  Added missing support for ';' comments
-o) Fixed core on MODRESTART
+-- ircd-hybrid-8beta3 Release Notes
+o) Fixed wrong syntax in several language files
+o) Removed &localchannels
+o) PRIVMSG to opers@some.server is no longer supported
+o) Fixed bug that could lead to topic desynchronization
+o) Removed serverhide::disable_hidden configuration option
+o) Dropped ircd-hybrid-6 GLINE compatibility mode
+o) Removed use_invex, use_except and use_knock configuration options.
+   These features are now enabled by default
+
+-- ircd-hybrid-8beta2 Release Notes
+o) channel::disable_fake_channels now also disables ascii 29 (mIRC italic)
+   when set to yes
+o) Added channel::max_chans_per_oper configuration directive. The old way
+   was to let operators join three times the amount of max_chans_per_user
+o) Replaced MODLOAD, MODUNLOAD, MODRELOAD, MODLIST and MODRESTART commands
+   with the new MODULE command which can be fed with the LOAD, UNLOAD, RELOAD
+   and LIST parameters.
+   MODRESTART has been entirely removed. Use "MODULE RELOAD *" to reload
+   all modules
+o) Added back server notice when a client tries to obtain a reserved nick name
+o) Removed OMOTD module
+o) Added 'set' to operator privilege flags. Gives access to the "SET" command
+o) Improved TS6 support
+o) Channel keys/passwords are now case sensitive
 
 
--- ircd-hybrid-7.2.1 Release Notes
-o) Fixed build on SRV4
-o) Fixed problem where ircd would disconnect all SSL connections
-o) Added initial CAP support.  Additional documentation can be found
-   in doc/technical
-o) Speeded up command parsing
-o) Fixed occasional core dump on UN*LINE
-o) Fixed bug where particular clients would always receive
-   "Load is temporarily too heavy" message
-o) Improved memory consumption, i.e. memory consumption has
-   been reduced for remote clients
-o) Fixed possible core in case default_cipher_preference directive isn't set
-o) Fixed "CHANSERV INVITE" bug with anope services
-o) Updated example configuration files to reflect new topicburst flags
-   directive in connect{} blocks
-o) Fixed core if using the operator::umodes directive
-o) Don't allow shared k-lines to be set without a valid reason
-o) Improved channel ban match processing.  This also fixes CIDR bans
-
-
--- ircd-hybrid-7.2.0 Release Notes
-o) Fixed broken operwall = yes;
-o) Added 'umode' directive to oper{}.  List of modes to get on /OPER.
-   This behaves exactly like H6's sixth O line field
-o) Fixed a WHOIS bug
-o) Fixed bug where we would increase Count.invisi even
-   if general::invisible_on_connect is turned off
-o) Removed invite_ops_only, controlled by paranoid (+p) now
-o) Better DDoS protection
-o) Fixed va_list bug on amd64
-o) Fixed /dev/poll
-
-
--- ircd-hybrid-7.2rc1 Release Notes
-o) ircd can dynamically change all its client/fd limits at runtime
-o) Added epoll as the primary I/O engine under Linux
-o) Local channels will not show up in remote /WHOIS
-o) Added hidden_name which allows customized hidden server names
-o) Added restrict_channels to define a static channel set
-o) Added --disable-gline-voting to disable G-Line votes
-   for small networks or people who don't want it.
-o) Allow accumulating more ip= entries in an exempt{} block
-o) Various improvements and bugfixes
-o) Make win32 build usable
-o) Fixed ban caching bug
-o) Cosmetical fixes to TIME
-o) Get "KLINE nick" to work with clients that have a spoof
-o) Fixed RESV/XLINE bug in conjunction with names that include escaped
-   characters such as \*, \?, \#.
-
--- ircd-hybrid-7.2beta1 Release Notes
-o) Usermode +G, like +g, but allow messaging from people on common channels
-o) Usermode +D - "deaf", don't receive channel messages
-o) RXLINE and RKLINE - commands for setting perl compatible regular expression
-   based K and X lines
-o) Join flood is now detected and reported to +b opers
-o) Re-added REJECT_HOLD - lock clients for a while before throwing away
-o) ping_warning, a class{} option to notify opers before "Ping timeout"
-o) New hooking system, modularized: usermodes, iauth, message filtering etc.
-o) Network I/O speedups
-o) Various cleanups and bugfixes
-o) Support for client SSL
-o) Support for services (contrib/m_services.c)
-o) IP cloaking module (contrib/ip_cloaking.c)
-o) Native win32 build
-o) The password set in auth::password can now be encrypted
-o) Introduced new listen::flags directive.  Currently available flags are
-   'ssl' and 'hidden'.  Please read example.conf for further details
+-- ircd-hybrid-8beta1 Release Notes
+o) Implemented full services support, including but not limited to the
+   following changes:
+   - Added SVSNICK, and SVSMODE command handlers
+   - Added service stamps to NICK/UID messages
+   - Added SVS to server capabilities (CAPAB). SVS capable servers can
+     deal with extended NICK/UID messages that contain service IDs/stamps.
+   - Changed rejected client notices to go to new usermode +j.  These
+     previously used usermode +r.
+   - Added usermode +r (registered nick) and channelmode +r (registered channel)
+   - Added usermode +R (only registered clients may send a private message)
+   - Added channelmode +R (only registered clients may join that channel)
+   - Various services shortcuts have been added (/NS, /CS, /NICKSERV, /CHANSERV, etc.)
+   - Added services{} block to ircd.conf
+   - Added services_name directive to general{} block
+   - Added GLOBOPS mainly for services compatibility, but can be used by operators, too
+o) Removed RKLINE and RXLINE commands. Regular expression based bans should
+   only be added via ircd.conf
+o) Added 'globops', 'restart', 'dline', 'undline' and 'module' operator
+   privilege flags. Read doc/example.conf for further explanation of what
+   these flags control
+o) Removed Idle-time klines
+o) Cleaned up modules API. Old modules won't work anymore
+o) Removed general::burst_away configuration directive. AWAY bursts are now
+   controlled via connect::flags explicitly
+o) Introduced new logging subsystem including log rotation based on
+   file sizes. Log timestamp format is ISO8601 now
+o) Added support for remote D-lines
+o) Added usermode +H which is basically a replacement for the hidden_admin and
+   hidden_oper operator flags. With usermode +H, irc operator status can now
+   be hidden even on remote servers
+o) Added CIDR support for operator{} blocks
+o) Removed the servlink program. ircd-hybrid can now make use of
+   SSL/TLS for inter-server communication.
+   NOTE: compressed server links are of course still available, but a SSL/TLS
+   connection is required, as compression is now handled via OpenSSL
+o) Removed 'ssl_server_protocol' configuration directive and
+   added 'ssl_client_method' and 'ssl_server_method' instead.
+   Both of these options can now be changed at runtime
+o) Oper login IDs are no longer limited to NICKLEN*2
+o) Removed channel::burst_topicwho configuration option. Topicsetters are
+   now sent by default
+o) "STATS Y|y" now reports CIDR limits as well
+o) Added m_webirc.c to contrib/
+o) Overall code cleanup and speed improvements
 
 --------------------------------------------------------------------------------
 

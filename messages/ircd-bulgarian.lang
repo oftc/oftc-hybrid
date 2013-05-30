@@ -12,7 +12,7 @@ RPL_MAPEND:              :%s 017 %s :Край на /MAP
 RPL_YOURID:              :%s 042 %s %s :вашият уникален ID
 RPL_ENDOFSTATS:          :%s 219 %s %c :Край на отчета /STATS
 RPL_STATSUPTIME:         :%s 242 %s :Сървъра работи %d дена, %d:%02d:%02d
-RPL_STATSCONN:           :%s 250 %s :Най голямо количество свързани: %d (%d клиенти) (%d входящи свързвания)
+RPL_STATSCONN:           :%s 250 %s :Най голямо количество свързани: %d (%d клиенти) (%llu входящи свързвания)
 RPL_LUSERCLIENT:         :%s 251 %s :В момента има %d потребителя %d невидими на %d сървъра
 RPL_LUSEROP:             :%s 252 %s %d :IRC Опъри на линия
 RPL_LUSERUNKNOWN:        :%s 253 %s %d :неизвестни свръзки
@@ -97,6 +97,3 @@ RPL_KNOCKDLVR:           :%s 711 %s %s :Вашия KNOCK е доставен.
 ERR_TOOMANYKNOCK:        :%s 712 %s %s :Твърде много KNOCKs (%s).
 ERR_CHANOPEN:            :%s 713 %s %s :Канала е отворен.
 ERR_KNOCKONCHAN:         :%s 714 %s %s :Вие вече сте в този канал.
-ERR_KNOCKDISABLED:       :%s 715 %s :KNOCKs недостъпен
-RPL_OMOTDSTART:          :%s 720 %s :Начало на OPER MOTD.
-RPL_ENDOFOMOTD:          :%s 722 %s :Край на OPER MOTD.

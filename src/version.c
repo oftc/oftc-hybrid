@@ -24,28 +24,16 @@
 #include "patchlevel.h"
 #include "serno.h"
 #include "ircd.h"
-#include <sys/utsname.h>
 
 const char *ircd_version = PATCHLEVEL;
 const char *serno = SERIALNUM;
-
-char *
-get_ircd_platform(char *str)
-{
-  struct utsname uts;
-
-  uname(&uts);
-  snprintf(str, PLATFORMLEN, "%s %s %s %s %s", uts.sysname, uts.nodename,
-           uts.release, uts.version, uts.machine);
-  return str;
-}
 
 const char *infotext[] =
 {
   "IRC --",
   "Based on the original code written by Jarkko Oikarinen",
   "Copyright 1988, 1989, 1990, 1991 University of Oulu, Computing Center",
-  "Copyright (c) 1997-2011 Hybrid Development Team",
+  "Copyright (c) 1997-2012 Hybrid Development Team",
   "",
   "This program is free software; you can redistribute it and/or",
   "modify it under the terms of the GNU General Public License as",
@@ -77,13 +65,13 @@ const char *infotext[] =
   "recent releases of Hybrid, in nick alphabetical order:",
   "",
   "A1kmm, Andrew Miller <a1kmm@mware.virtualave.net>",
-  "adx, Piotr Nizynski <adx@irc7.pl>",
+  "adx, Piotr Nizynski <nizynski@sysplex.pl>",
   "AndroSyn, Aaron Sethman <androsyn@ratbox.org>",
   "bane, Dragan Dosen <bane@idolnet.org>",
   "bysin, Ben Kittridge <bkittridge@cfl.rr.com>",
   "cosine, Patrick Alken <wnder@uwns.underworld.net>",
   "David-T, David Taylor <davidt@yadt.co.uk>",
-  "fgeek, Henri Salo <fgeek@fgeek.fi>",
+  "fgeek, Henri Salo <henri@nerv.fi>",
   "fl, Lee Hardy <lee@leeh.co.uk>",
   "Garion, Joost Vunderink <garion@efnet.nl>",
   "Habeeb, David Supuran <habeeb@cfl.rr.com>",

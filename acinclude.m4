@@ -22,12 +22,12 @@ AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
   dnl {{{ allow the user to specify desired mechanism
   desired_iopoll_mechanism="none"
   dnl FIXME need to handle arguments a bit better (see ac_arg_disable_block_alloc)
-  AC_ARG_ENABLE([kqueue], [AC_HELP_STRING([--enable-kqueue], [Force kqueue usage.])], [desired_iopoll_mechanism="kqueue"])
-  AC_ARG_ENABLE([epoll],  [AC_HELP_STRING([--enable-epoll],  [Force epoll usage.])],  [desired_iopoll_mechanism="epoll"])
-  AC_ARG_ENABLE([devpoll],[AC_HELP_STRING([--enable-devpoll],[Force devpoll usage.])],[desired_iopoll_mechanism="devpoll"])
-  AC_ARG_ENABLE([rtsigio],[AC_HELP_STRING([--enable-rtsigio],[Force rtsigio usage.])],[desired_iopoll_mechanism="rtsigio"])
-  AC_ARG_ENABLE([poll],   [AC_HELP_STRING([--enable-poll],   [Force poll usage.])],   [desired_iopoll_mechanism="poll"]) 
-  AC_ARG_ENABLE([select], [AC_HELP_STRING([--enable-select], [Force select usage.])], [desired_iopoll_mechanism="select"])
+  AC_ARG_ENABLE([kqueue], [AS_HELP_STRING([--enable-kqueue], [Force kqueue usage.])], [desired_iopoll_mechanism="kqueue"])
+  AC_ARG_ENABLE([epoll],  [AS_HELP_STRING([--enable-epoll],  [Force epoll usage.])],  [desired_iopoll_mechanism="epoll"])
+  AC_ARG_ENABLE([devpoll],[AS_HELP_STRING([--enable-devpoll],[Force devpoll usage.])],[desired_iopoll_mechanism="devpoll"])
+  AC_ARG_ENABLE([rtsigio],[AS_HELP_STRING([--enable-rtsigio],[Force rtsigio usage.])],[desired_iopoll_mechanism="rtsigio"])
+  AC_ARG_ENABLE([poll],   [AS_HELP_STRING([--enable-poll],   [Force poll usage.])],   [desired_iopoll_mechanism="poll"]) 
+  AC_ARG_ENABLE([select], [AS_HELP_STRING([--enable-select], [Force select usage.])], [desired_iopoll_mechanism="select"])
   dnl }}}
   dnl {{{ preamble
   AC_MSG_CHECKING([for optimal/desired iopoll mechanism])
@@ -171,35 +171,24 @@ AC_DEFUN([AX_ARG_DISABLE_SHARED_MODULES],[
 ])dnl }}}
 dnl {{{ ax_arg_with_topiclen
 AC_DEFUN([AX_ARG_WITH_TOPICLEN],[
-  AC_ARG_WITH([topiclen],[AC_HELP_STRING([--with-topiclen=<value>],[Set topic length (default 160).])],[topiclen="$withval"],[topiclen="160"])
+  AC_ARG_WITH([topiclen],[AS_HELP_STRING([--with-topiclen=<value>],[Set topic length (default 160).])],[topiclen="$withval"],[topiclen="160"])
   AC_DEFINE_UNQUOTED([TOPICLEN],[($topiclen)],[Length of topics.]) 
 ])dnl }}}
 dnl {{{ ax_arg_with_nicklen
 AC_DEFUN([AX_ARG_WITH_NICKLEN],[
-  AC_ARG_WITH([nicklen],[AC_HELP_STRING([--with-nicklen=<value>],[Set nickname length (default 9).])],[nicklen="$withval"],[nicklen="9"])
-  AC_DEFINE_UNQUOTED([NICKLEN],[($nicklen+1)],[Length of nicknames.]) 
-])dnl }}}
-dnl {{{ ax_arg_enable_efnet
-AC_DEFUN([AX_ARG_ENABLE_EFNET],[
-  AC_ARG_ENABLE([efnet],[AC_HELP_STRING([--enable-efnet],[For IRCDs running on EFnet.])],[efnet="$enableval"],[efnet="no"])
-  if test "$efnet" = "yes" ; then
-		use_efnet="yes"
-    AC_DEFINE([EFNET],[1],[Define to 1 if this server will be an EFnet server.])
-	else
-		use_efnet="no"
-  fi
-  AM_CONDITIONAL([EFNET],[test "$use_efnet" = "yes"])
+  AC_ARG_WITH([nicklen],[AS_HELP_STRING([--with-nicklen=<value>],[Set nickname length (default 9).])],[nicklen="$withval"],[nicklen="9"])
+  AC_DEFINE_UNQUOTED([NICKLEN],[($nicklen)],[Length of nicknames.]) 
 ])dnl }}}
 dnl {{{ ax_arg_enable_halfops
 AC_DEFUN([AX_ARG_ENABLE_HALFOPS],[
-  AC_ARG_ENABLE([halfops],[AC_HELP_STRING([--enable-halfops],[Enable halfops support.])],[halfops="$enableval"],[halfops="no"])
+  AC_ARG_ENABLE([halfops],[AS_HELP_STRING([--enable-halfops],[Enable halfops support.])],[halfops="$enableval"],[halfops="no"])
   if test "$halfops" = "yes" ; then
     AC_DEFINE([HALFOPS],[1],[Define to 1 if you want halfops support.])
   fi
 ])dnl }}}
 dnl {{{ ax_arg_enable_debugging
 AC_DEFUN([AX_ARG_ENABLE_DEBUGGING],[
-  AC_ARG_ENABLE([debugging],[AC_HELP_STRING([--enable-debugging],[Enable debugging.])],[debugging="$enableval"],[debugging="no"])
+  AC_ARG_ENABLE([debugging],[AS_HELP_STRING([--enable-debugging],[Enable debugging.])],[debugging="$enableval"],[debugging="no"])
   if test "$debugging" = "yes" ; then
     AC_DEFINE([DEBUG],[1],[Define to 1 to enable debugging.])
     CFLAGS="-Werror -Wall -g -O0"
@@ -209,7 +198,7 @@ AC_DEFUN([AX_ARG_ENABLE_DEBUGGING],[
 ])dnl }}}
 dnl {{{ ax_arg_enable_warnings
 AC_DEFUN([AX_ARG_ENABLE_WARNINGS],[
-  AC_ARG_ENABLE([warnings],[AC_HELP_STRING([--enable-warnings],[Enable compiler warnings.])],[warnings="$enableval"],[warnings="no"])
+  AC_ARG_ENABLE([warnings],[AS_HELP_STRING([--enable-warnings],[Enable compiler warnings.])],[warnings="$enableval"],[warnings="no"])
   if test "$warnings" = "yes" ; then
     CFLAGS="-Werror -Wall -Wextra -Wno-unused -Wcast-qual -Wcast-align -Wbad-function-cast -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wredundant-decls -Wshadow -Wwrite-strings -Wundef"
   fi
@@ -220,27 +209,6 @@ AC_DEFUN([AX_ARG_ENABLE_EFENCE],[
   if test "$efence" = "yes" ; then
     AC_SEARCH_LIBS([malloc],[efence],,[AC_MSG_ERROR([efence library not found])])
   fi
-])dnl }}}
-dnl {{{ ax_arg_enable_syslog
-AC_DEFUN([AX_ARG_ENABLE_SYSLOG],[
-  AC_CHECK_HEADERS([syslog.h sys/syslog.h])
-  AC_ARG_ENABLE([syslog],[AC_HELP_STRING([--enable-syslog="EVENTS"],[Enable syslog for events: users oper (space separated in quotes; default: disabled).])],[syslog="$enableval"],[syslog="no"])
-  if test "$enableval" != "no" ; then
-    for option in $enableval ; do
-      case "$option" in
-        users) AC_DEFINE([SYSLOG_USERS],[1],[Send user log stuff to syslog.]) ;;
-        oper) AC_DEFINE([SYSLOG_OPER],[1],[Send oper log stuff to syslog.]) ;;
-        yes) : ;;
-        *) AC_MSG_ERROR([invalid value for --enable-syslog: $option]) ;;
-      esac
-    done
-    AC_DEFINE([USE_SYSLOG],[1],[Define to 1 if you want to use syslog.])
-  fi
-])dnl }}}
-dnl {{{ ax_arg_with_syslog_facility
-AC_DEFUN([AX_ARG_WITH_SYSLOG],[
-  AC_ARG_WITH([syslog-facility],[AC_HELP_STRING([--with-syslog-facility=LOG],[Define the syslog facility to use (default: LOG_LOCAL4)])],[syslog_facility="$withval"],[syslog_facility="LOG_LOCAL4"])
-  AC_DEFINE_UNQUOTED([LOG_FACILITY],[$syslog_facility],[Set to syslog facility to use.])
 ])dnl }}}
 dnl {{{ ac_define_dir
 dnl http://autoconf-archive.cryp.to/ac_define_dir.html

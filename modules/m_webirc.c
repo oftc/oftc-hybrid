@@ -25,7 +25,7 @@
  */
 
 #include "stdinc.h"
-/* #include "list.h" */
+#include "list.h"
 #include "handlers.h"
 #include "client.h"
 #include "ircd.h"
@@ -38,29 +38,6 @@
 #include "modules.h"
 #include "s_conf.h"
 #include "hostmask.h"
-
-
-static void mr_webirc(struct Client *, struct Client *, int, char *[]);
-
-struct Message webirc_msgtab = {
-  "WEBIRC", 0, 0, 5, 0, MFLG_SLOW, 0,
-  { mr_webirc, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&webirc_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&webirc_msgtab);
-}
-
-const char *_version = "$Revision$";
-
 
 /*
  * Usage:
@@ -202,3 +179,30 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
                        "CGI:IRC host/IP set %s to %s (%s)", original_sockhost,
                        parv[3], parv[4]);
 }
+
+static struct Message webirc_msgtab = {
+  "WEBIRC", 0, 0, 5, 0, MFLG_SLOW, 0,
+  { mr_webirc, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&webirc_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&webirc_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

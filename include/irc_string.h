@@ -25,6 +25,10 @@
 #ifndef INCLUDED_irc_string_h
 #define INCLUDED_irc_string_h
 
+#include "config.h"
+
+
+extern int has_wildcards(const char *);
 extern int ircd_pcre_exec(const void *, const char *);
 extern void *ircd_pcre_compile(const char *, const char **);
 
@@ -69,10 +73,6 @@ extern size_t strlcpy(char *, const char *, size_t);
 
 #ifndef HAVE_STRLCAT
 extern size_t strlcat(char *, const char *, size_t);
-#endif
-
-#ifndef HAVE_BASENAME
-extern char *basename(char *);
 #endif
 
 /*

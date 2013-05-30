@@ -42,7 +42,7 @@ extern void send_umode(struct Client *, struct Client *,
 extern void send_umode_out(struct Client *, struct Client *, unsigned int);
 extern void show_lusers(struct Client *);
 extern void show_isupport(struct Client *);
-extern void oper_up(struct Client *, const char *);
+extern void oper_up(struct Client *);
 
 extern void register_local_user(struct Client *);
 extern void register_remote_user(struct Client *,
@@ -52,6 +52,7 @@ extern void init_uid(void);
 extern int valid_sid(const char *);
 extern int valid_hostname(const char *);
 extern int valid_username(const char *);
+extern int valid_nickname(const char *, const int);
 extern void add_isupport(const char *, const char *, int);
 extern void delete_isupport(const char *);
 extern void init_isupport(void);

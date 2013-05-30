@@ -21,8 +21,6 @@
  */
 
 #include "stdinc.h"
-#include "common.h"
-#include "handlers.h"
 #include "client.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -31,8 +29,7 @@
 #include "numeric.h"
 #include "s_serv.h"
 #include "send.h"
-#include "s_conf.h"
-#include "msg.h"
+#include "conf.h"
 #include "parse.h"
 #include "modules.h"
 #include "sprintf_irc.h"
@@ -64,18 +61,16 @@ _moddeinit(void)
 
 static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
-    FBFILE *logfile = NULL;
-    char buf[IRCD_BUFSIZE+NICKLEN];
+    FILE *logfile = NULL;
 
     if(parc < 2)
         return;
 
-    if (IsClient(source_p) && (logfile = fbopen(OFTCLOG, "a+")) != NULL)
+    if (IsClient(source_p) && ((logfile = fopen(OFTCLOG, "a+")) != NULL))
     {
-        ircsprintf(buf, "%s %s %s\n",
+        fprintf(logfile, "%s %s %s\n",
                 myctime(time(NULL)), source_p->name, parv[1]);
-        fbputs(buf, logfile, sizeof(buf));
-        fbclose(logfile);
+        fclose(logfile);
     }
     return;
 }

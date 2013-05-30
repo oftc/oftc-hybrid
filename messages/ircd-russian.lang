@@ -11,7 +11,7 @@ RPL_REDIR:               :%s 010 %s %s %d :Пожалуйста используйте этот сервер/по
 RPL_MAPEND:              :%s 017 %s :Завершение /MAP
 RPL_ENDOFSTATS:          :%s 219 %s %c :Завершение вывода отчета /STATS
 RPL_STATSUPTIME:         :%s 242 %s :Сервер работает %d дней, %d:%02d:%02d
-RPL_STATSCONN:           :%s 250 %s :Наибольшее количество соединений: %d (%d клиентов) (%d входящих соединений)
+RPL_STATSCONN:           :%s 250 %s :Наибольшее количество соединений: %d (%d клиентов) (%llu входящих соединений)
 RPL_LUSERCLIENT:         :%s 251 %s :Здесь %d пользователей и %d невидимых на %d серверах
 RPL_LUSEROP:             :%s 252 %s %d :IRC Операторов в нашей сети
 RPL_LUSERUNKNOWN:        :%s 253 %s %d :неизвестных соединений
@@ -91,4 +91,3 @@ RPL_KNOCKDLVR:           :%s 711 %s %s :Ваш KNOCK был доставлен.
 ERR_TOOMANYKNOCK:        :%s 712 %s %s :Слишком много KNOCKs (%s).
 ERR_CHANOPEN:            :%s 713 %s %s :Канал открыт.
 ERR_KNOCKONCHAN:         :%s 714 %s %s :Вы уже находитесь на этом канале.
-ERR_KNOCKDISABLED:       :%s 715 %s :KNOCKs недоступны

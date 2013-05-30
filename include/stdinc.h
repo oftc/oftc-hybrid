@@ -35,20 +35,15 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <errno.h>
 
 #ifdef HAVE_STRTOK_R
 # define strtoken(x, y, z) strtok_r(y, z, x)
 #endif
 
 #include <sys/types.h>
-
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#else
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-#endif
 
 #ifdef HAVE_CRYPT_H
 #include <crypt.h>
@@ -95,9 +90,4 @@
 #include <sys/param.h>
 #endif
 
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#else
-extern int errno;
-#endif
 #endif

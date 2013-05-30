@@ -23,37 +23,13 @@
  */
 
 #include "stdinc.h"
-#include "list.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "send.h"
-#include "msg.h"
 #include "modules.h"
-#include "s_log.h"
+#include "log.h"
+#include "parse.h"
 
-
-static void m_error(struct Client *, struct Client *, int, char *[]);
-static void ms_error(struct Client *, struct Client *, int, char *[]);
-
-struct Message error_msgtab = {
- "ERROR", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  { m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&error_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&error_msgtab);
-}
-
-const char *_version = "$Revision$";
 
 /*
  * Note: At least at protocol level ERROR has only one parameter.
@@ -62,7 +38,7 @@ const char *_version = "$Revision$";
  *      parv[0] = sender prefix
  *      parv[*] = parameters
  */
-void
+static void
 m_error(struct Client *client_p, struct Client *source_p, 
         int parc, char *parv[])
 {
@@ -70,7 +46,7 @@ m_error(struct Client *client_p, struct Client *source_p,
 
   para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
 
-  ilog(L_ERROR, "Received ERROR message from %s: %s",
+  ilog(LOG_TYPE_IRCD, "Received ERROR message from %s: %s",
        source_p->name, para);
 
   if (client_p == source_p)
@@ -92,7 +68,7 @@ m_error(struct Client *client_p, struct Client *source_p,
     exit_client(source_p, source_p, "ERROR");
 }
 
-void
+static void
 ms_error(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
@@ -100,7 +76,7 @@ ms_error(struct Client *client_p, struct Client *source_p,
 
   para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
 
-  ilog(L_ERROR, "Received ERROR message from %s: %s",
+  ilog(LOG_TYPE_IRCD, "Received ERROR message from %s: %s",
        source_p->name, para);
 
   if (client_p == source_p)
@@ -111,3 +87,30 @@ ms_error(struct Client *client_p, struct Client *source_p,
                          source_p->name,
                          get_client_name(client_p, MASK_IP), para);
 }
+
+static struct Message error_msgtab = {
+ "ERROR", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
+  { m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&error_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&error_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

@@ -28,8 +28,7 @@
 #include "ircd.h"
 #include "fdlist.h"
 #include "s_bsd.h"
-#include "fileio.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "numeric.h"
 #include "client.h"
@@ -105,26 +104,6 @@ send_message_file(struct Client *source_p, MessageFile *motdToPrint)
       }
       break;
 
-    case OPER_MOTD:
-      if (motdToPrint->contentsOfFile != NULL)
-      {
-	sendto_one(source_p, form_str(RPL_OMOTDSTART),
-		   me.name, source_p->name, me.name);
-
-	sendto_one(source_p, form_str(RPL_OMOTD),
-		   me.name, source_p->name, motdToPrint->lastChangedDate);
-
-	for (linePointer = motdToPrint->contentsOfFile; linePointer;
-	     linePointer = linePointer->next)
-	{
-	  sendto_one(source_p, form_str(RPL_OMOTD),
-		     me.name, source_p->name, linePointer->line);
-	}
-	sendto_one(source_p, form_str(RPL_ENDOFOMOTD),
-		   me.name, source_p->name);
-      }
-      break;
-
   case ISSUPPORT:
       if (motdToPrint->contentsOfFile != NULL)
       {
@@ -167,7 +146,7 @@ read_message_file(MessageFile *MessageFileptr)
 
   char buffer[MESSAGELINELEN];
   char *p;
-  FBFILE *file;
+  FILE *file;
 
   for (mptr = MessageFileptr->contentsOfFile; mptr; mptr = next_mptr)
   {
@@ -191,10 +170,10 @@ read_message_file(MessageFile *MessageFileptr)
                local_tm->tm_hour,
                local_tm->tm_min);
 
-  if ((file = fbopen(MessageFileptr->fileName, "r")) == NULL)
+  if ((file = fopen(MessageFileptr->fileName, "r")) == NULL)
     return(-1);
 
-  while (fbgets(buffer, sizeof(buffer), file))
+  while (fgets(buffer, sizeof(buffer), file))
   {
     if ((p = strchr(buffer, '\n')) != NULL)
       *p = '\0';
@@ -217,7 +196,7 @@ read_message_file(MessageFile *MessageFileptr)
     }
   }
 
-  fbclose(file);
+  fclose(file);
   return(0);
 }
 

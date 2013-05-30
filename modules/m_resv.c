@@ -23,7 +23,6 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "channel.h"
 #include "ircd.h"
@@ -31,50 +30,17 @@
 #include "numeric.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "resv.h"
 #include "hash.h"
 
-static void mo_resv(struct Client *, struct Client *, int, char *[]);
-static void me_resv(struct Client *, struct Client *, int, char *[]);
-static void ms_resv(struct Client *, struct Client *, int, char *[]);
-static void mo_unresv(struct Client *, struct Client *, int, char *[]);
-static void ms_unresv(struct Client *, struct Client *, int, char *[]);
 
 static void parse_resv(struct Client *, char *, int, char *);
 static void remove_resv(struct Client *, const char *);
 
-struct Message resv_msgtab = {
-  "RESV", 0, 0, 3, 0, MFLG_SLOW, 0,
-  { m_ignore, m_not_oper, ms_resv, me_resv, mo_resv, m_ignore }
-};
-
-struct Message unresv_msgtab = {
-  "UNRESV", 0, 0, 2, 0, MFLG_SLOW, 0,
-  { m_ignore, m_not_oper, ms_unresv, m_ignore, mo_unresv, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&resv_msgtab);
-  mod_add_cmd(&unresv_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&resv_msgtab);
-  mod_del_cmd(&unresv_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /* mo_resv()
  *   parv[0] = sender prefix
@@ -174,7 +140,7 @@ ms_resv(struct Client *client_p, struct Client *source_p,
   if (!IsClient(source_p) || !match(parv[1], me.name))
     return;
 
-  if (find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
+  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
                               source_p->username, source_p->host,
                               SHARED_RESV))
     parse_resv(source_p, parv[2], 0, parv[3]);
@@ -233,7 +199,7 @@ ms_unresv(struct Client *client_p, struct Client *source_p,
   if (!IsClient(source_p) || !match(parv[1], me.name))
     return;
 
-  if (find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
+  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
                               source_p->username, source_p->host,
                               SHARED_UNRESV))
     remove_resv(source_p, parv[2]);
@@ -275,14 +241,14 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
           tkline_time/60,
           (MyClient(source_p) ? "local" : "remote"), name);
       sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s has placed a %d minute %s RESV on channel: %s [%s]",
-          get_oper_name(source_p),
-          tkline_time/60,
-          (MyClient(source_p) ? "local" : "remote"),
-          resv_p->name, resv_p->reason);
-      ilog(L_TRACE, "%s added temporary %d min. RESV for [%s] [%s]",
-          source_p->name, (int)tkline_time/60,
-          resv_p->name, resv_p->reason);
+			   "%s has placed a %d minute %s RESV on channel: %s [%s]",
+			   get_oper_name(source_p),
+			   tkline_time/60,
+			   (MyClient(source_p) ? "local" : "remote"),
+			   resv_p->name, resv_p->reason);
+      ilog(LOG_TYPE_IRCD, "%s added temporary %d min. RESV for [%s] [%s]",
+	   source_p->name, (int)tkline_time/60,
+	   conf->name, resv_p->reason);
       resv_p->hold = CurrentTime + tkline_time;
       add_temp_line(conf);
       write_conf_line(source_p, conf, NULL /* not used */, 0 /* not used */, 
@@ -313,7 +279,7 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
       return;
     }
 
-    if (!IsAdmin(source_p) && strpbrk(name, "*?#"))
+    if (!HasUMode(source_p, UMODE_ADMIN) && strpbrk(name, "*?#"))
     {
       sendto_one(source_p, ":%s NOTICE %s :You must be an admin to perform a "
                  "wildcard RESV", me.name, source_p->name);
@@ -339,14 +305,14 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
           (MyClient(source_p) ? "local" : "remote"),
           conf->name, resv_p->reason);
       sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s has placed a %d minute %s RESV on nick %s : [%s]",
-          get_oper_name(source_p),
-          tkline_time/60,
-          (MyClient(source_p) ? "local" : "remote"),
-          conf->name, resv_p->reason);
-      ilog(L_TRACE, "%s added temporary %d min. RESV for [%s] [%s]",
-          source_p->name, (int)tkline_time/60,
-          conf->name, resv_p->reason);
+			   "%s has placed a %d minute %s RESV on nick %s : [%s]",
+			   get_oper_name(source_p),
+			   tkline_time/60,
+			   (MyClient(source_p) ? "local" : "remote"),
+			   conf->name, resv_p->reason);
+      ilog(LOG_TYPE_IRCD, "%s added temporary %d min. RESV for [%s] [%s]",
+	   source_p->name, (int)tkline_time/60,
+	   conf->name, resv_p->reason);
       resv_p->hold = CurrentTime + tkline_time;
       add_temp_line(conf);
       write_conf_line(source_p, conf, NULL /* not used */, 0 /* not used */,
@@ -409,7 +375,7 @@ remove_resv(struct Client *source_p, const char *name)
   {
     struct MatchItem *resv_p = NULL;
 
-    if ((conf = find_exact_name_conf(NRESV_TYPE, name, NULL, NULL, NULL)) == NULL)
+    if ((conf = find_exact_name_conf(NRESV_TYPE, NULL, name, NULL, NULL)) == NULL)
     {
       sendto_one(source_p, ":%s NOTICE %s :A RESV does not exist for nick: %s",
                  me.name, source_p->name, name);
@@ -436,3 +402,37 @@ remove_resv(struct Client *source_p, const char *name)
                          get_oper_name(source_p), name);
   }
 }
+
+static struct Message resv_msgtab = {
+  "RESV", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  { m_ignore, m_not_oper, ms_resv, me_resv, mo_resv, m_ignore }
+};
+
+static struct Message unresv_msgtab = {
+  "UNRESV", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_ignore, m_not_oper, ms_unresv, m_ignore, mo_unresv, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&resv_msgtab);
+  mod_add_cmd(&unresv_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&resv_msgtab);
+  mod_del_cmd(&unresv_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

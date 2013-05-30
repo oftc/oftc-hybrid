@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-
+#ifdef HAVE_LIBCRYPTO
 #include <openssl/pem.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
@@ -34,10 +34,8 @@
 
 #include "memory.h"
 #include "rsa.h"
-#include "s_conf.h"
-#include "s_log.h"
-#include "client.h" /* CIPHERKEYLEN .. eww */
-#include "ircd.h" /* bio_spare_fd */
+#include "conf.h"
+#include "log.h"
 
 
 /*
@@ -49,105 +47,12 @@ report_crypto_errors(void)
   unsigned long e   = 0;
   unsigned long cnt = 0;
 
-  ERR_load_crypto_strings();
-
   while ((cnt < 100) && (e = ERR_get_error()))
   {
-    ilog(L_CRIT, "SSL error: %s", ERR_error_string(e, 0));
+    ilog(LOG_TYPE_IRCD, "SSL error: %s", ERR_error_string(e, 0));
     cnt++;
   }
 }
-
-/*
- * verify_private_key - reread private key and verify against inmem key
- */
-int
-verify_private_key(void)
-{
-  BIO *file;
-  RSA *key;
-  RSA *mkey;
-
-  /* If the rsa_private_key directive isn't found, error out. */
-  if (ServerInfo.rsa_private_key == NULL)
-  {
-    ilog(L_NOTICE, "rsa_private_key in serverinfo{} is not defined.");
-    return -1;
-  }
-
-  /* If rsa_private_key_file isn't available, error out. */
-  if (ServerInfo.rsa_private_key_file == NULL)
-  {
-    ilog(L_NOTICE, "Internal error: rsa_private_key_file isn't defined.");
-    return -1;
-  }
-
-  if (bio_spare_fd > -1)
-    close(bio_spare_fd);
-
-  file = BIO_new_file(ServerInfo.rsa_private_key_file, "r");
-
-  /*
-   * If BIO_new_file returned NULL (according to OpenSSL docs), then
-   * an error occurred.
-   */
-  if (file == NULL)
-  {
-    bio_spare_fd = save_spare_fd("SSL private key validation");
-    ilog(L_NOTICE, "Failed to open private key file - can't validate it");
-    return -1;
-  }
-
-  key = PEM_read_bio_RSAPrivateKey(file, NULL, 0, NULL);
-
-  if (key == NULL)
-  {
-    ilog(L_NOTICE, "PEM_read_bio_RSAPrivateKey() failed; possibly not RSA?");
-    report_crypto_errors();
-    return -1;
-  }
-
-  (void)BIO_set_close(file, BIO_CLOSE);
-  BIO_free(file);
-  bio_spare_fd = save_spare_fd("SSL private key validation");
-
-  mkey = ServerInfo.rsa_private_key;
-
-  /*
-   * Compare the in-memory key to the key we just loaded above.  If
-   * any of the portions don't match, then logically we have a different
-   * in-memory key vs. the one we just loaded.  This is bad, mmmkay?
-   */
-  if (mkey->pad != key->pad)
-    ilog(L_CRIT, "Private key corrupted: pad %i != pad %i",
-                 mkey->pad, key->pad);
-  
-  if (mkey->version != key->version)
-    ilog(L_CRIT, "Private key corrupted: version %li != version %li",
-                 mkey->version, key->version);
-
-
-  if (BN_cmp(mkey->n, key->n))
-    ilog(L_CRIT, "Private key corrupted: n differs");
-  if (BN_cmp(mkey->e, key->e))
-    ilog(L_CRIT, "Private key corrupted: e differs");
-  if (BN_cmp(mkey->d, key->d))
-    ilog(L_CRIT, "Private key corrupted: d differs");
-  if (BN_cmp(mkey->p, key->p))
-    ilog(L_CRIT, "Private key corrupted: p differs");
-  if (BN_cmp(mkey->q, key->q))
-    ilog(L_CRIT, "Private key corrupted: q differs");
-  if (BN_cmp(mkey->dmp1, key->dmp1))
-    ilog(L_CRIT, "Private key corrupted: dmp1 differs");
-  if (BN_cmp(mkey->dmq1, key->dmq1))
-    ilog(L_CRIT, "Private key corrupted: dmq1 differs");
-  if (BN_cmp(mkey->iqmp, key->iqmp))
-    ilog(L_CRIT, "Private key corrupted: iqmp differs");
-
-  RSA_free(key);
-  return 0;
-}
-
 
 static void
 binary_to_hex(unsigned char *bin, char *hex, int length)
@@ -189,7 +94,8 @@ generate_challenge(char **r_challenge, char **r_response, RSA *rsa)
   int ret = -1;
 
   if (!rsa)
-  	return -1;
+    return -1;
+
   get_randomness(secret, 32);
   *r_response = MyMalloc(65);
   binary_to_hex(secret, *r_response, 32);
@@ -208,5 +114,7 @@ generate_challenge(char **r_challenge, char **r_response, RSA *rsa)
     report_crypto_errors();
     return -1;
   }
+
   return 0;
 }
+#endif

@@ -24,8 +24,7 @@
 
 
 #include "stdinc.h"
-#include "common.h"
-#include "handlers.h"
+#include "list.h"
 #include "client.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -35,39 +34,18 @@
 #include "hostmask.h"
 #include "s_serv.h"
 #include "send.h"
-#include "s_conf.h"
-#include "msg.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
+#include "conf.h"
 #include "parse.h"
 #include "modules.h"
 #include "irc_string.h"
-
-static void m_who(struct Client*, struct Client*, int, char**);
-
-struct Message who2_msgtab = {
-  "WHO", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_who, m_who, m_ignore, m_who, m_ignore}
-};
 
 struct flag_item
 {
   int mode;
   char letter;
 };
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&who2_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&who2_msgtab);
-}
-const char *_version = "$Revision$";
-#endif
 
 /* Internally defined stuffs */
 typedef struct SearchOptions
@@ -264,7 +242,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
         args++;
         break;
       case 'g':
-        if(parv[args] == NULL || !IsOper(source_p))
+        if(parv[args] == NULL || !HasUMode(source_p, UMODE_OPER))
         {
           sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
               source_p->name);
@@ -286,7 +264,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
         args++;
         break;
       case 'i':
-        if(parv[args] == NULL || !IsOper(source_p))
+        if(parv[args] == NULL || !HasUMode(source_p, UMODE_OPER))
         {
           sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
               source_p->name);
@@ -316,7 +294,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
           }
           s++;
         }
-        if(!IsOper(source_p)) /* only let users search for +/-oOaA */
+        if(!HasUMode(source_p, UMODE_OPER)) /* only let users search for +/-oOaA */
           wsopts.umodes = (wsopts.umodes&(UMODE_OPER|UMODE_ADMIN));
         wsopts.umode_plus = change;
         if(wsopts.umodes)
@@ -341,7 +319,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
               source_p->name);
           return 0;
         }
-        wsopts.server = find_server(parv[args]);
+        wsopts.server = hash_find_server(parv[args]);
         if(wsopts.server == NULL)
         {
           sendto_one(source_p, form_str(ERR_NOSUCHSERVER), me.name,
@@ -425,7 +403,7 @@ chk_who(struct Client *source_p, struct Client *target_p, int showall)
 {
   if(!IsClient(target_p))
     return 0;
-  if(source_p != target_p && IsInvisible(target_p) && !showall)
+  if(source_p != target_p && HasUMode(target_p, UMODE_INVISIBLE) && !showall)
     return 0;
   if(wsopts.check_umode)
   {
@@ -563,9 +541,9 @@ do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
     else
       status[i++] = 'G';
 
-    if (IsOper(target_p))
+    if (HasUMode(target_p, UMODE_OPER))
       status[i++] = '*';
-    else if(IsOper(source_p) && IsInvisible(target_p))
+    else if(HasUMode(source_p, UMODE_OPER) && HasUMode(target_p, UMODE_INVISIBLE))
       status[i++] = '%';
 
     if (ms->flags & CHFL_CHANOP)
@@ -589,7 +567,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
   struct Client *target_p;
   dlink_node *ptr;
-  int shown = 0, showall = IsOper(source_p);
+  int shown = 0, showall = HasUMode(source_p, UMODE_OPER);
   char status[4];
   static int last_used = 0;
 
@@ -604,9 +582,9 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   {
     if(IsMember(source_p,wsopts.channel))
       showall = 1;
-    else if(SecretChannel(wsopts.channel) && IsAdmin(source_p))
+    else if(SecretChannel(wsopts.channel) && HasUMode(source_p, UMODE_ADMIN))
       showall = 1;
-    else if(!SecretChannel(wsopts.channel) && IsOper(source_p))
+    else if(!SecretChannel(wsopts.channel) && HasUMode(source_p, UMODE_OPER))
       showall = 1;
     else
       showall = 0;
@@ -619,7 +597,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
     return;
   }
   /* if HTM, drop this too */
-  if((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime && !IsOper(source_p))
+  if((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime && !HasUMode(source_p, UMODE_OPER))
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name);
     return;
@@ -635,7 +613,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
     {
       m = ptr->data;
       chan_p = m->chptr;
-      if(shown >= MAXWHOREPLIES && !IsOper(source_p))
+      if(shown >= MAXWHOREPLIES && !HasUMode(source_p, UMODE_OPER))
       {
         sendto_one(source_p, form_str(ERR_WHOLIMEXCEED), me.name,
             source_p->name, MAXWHOREPLIES);
@@ -654,21 +632,21 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
         continue;
       /* wow, they passed it all, give them the reply...
        * IF they haven't reached the max, or they're an oper */
-      if(shown >= MAXWHOREPLIES && !IsOper(source_p))
+      if(shown >= MAXWHOREPLIES && !HasUMode(source_p, UMODE_OPER))
       {
         sendto_one(source_p, form_str(ERR_WHOLIMEXCEED), me.name, 
             source_p->name, MAXWHOREPLIES);
         break; /* break out of loop so we can send end of who */
       }
       status[0]=(target_p->away==NULL ? 'H' : 'G');
-      status[1]=(IsOper(target_p) ? '*' : (IsInvisible(target_p) && 
-            IsOper(source_p) ? '%' : 0));
+      status[1]=(HasUMode(target_p, UMODE_OPER) ? '*' : (HasUMode(target_p, UMODE_INVISIBLE) && 
+            HasUMode(source_p, UMODE_OPER) ? '%' : 0));
       status[2]=0;
       sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
           wsopts.show_chan ? first_visible_channel(target_p, source_p) :
           "*", target_p->username,
           wsopts.show_ip
-          ? ( (target_p->realhost[0] != '\0' && !IsOper(source_p)) || target_p->sockhost[0] == '\0'
+          ? ( (target_p->realhost[0] != '\0' && !HasUMode(source_p, UMODE_OPER)) || target_p->sockhost[0] == '\0'
             ? "255.255.255.255"
             : target_p->sockhost)
           : target_p->host,
@@ -686,3 +664,29 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   return;
 }
 
+static struct Message who_msgtab = {
+  "WHO", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_who, m_ignore, m_ignore, m_who, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&who_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&who_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

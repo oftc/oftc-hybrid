@@ -20,7 +20,7 @@ RPL_TRACENEWTYPE:	 :%s 208 %s <neuer Typ> 0 %s
 RPL_TRACECLASS:		 :%s 209 %s Klasse %s %d
 RPL_ENDOFSTATS:		 :%s 219 %s %c :Ende von /STATS.
 RPL_STATSUPTIME:	 :%s 242 %s :Server läuft seit %d Tagen, %d:%02d:%02d
-RPL_STATSCONN:		 :%s 250 %s :Rekord an gleichzeitigen Verbindungen: %d (davon %d Benutzer) (%d Verbindungen)
+RPL_STATSCONN:		 :%s 250 %s :Rekord an gleichzeitigen Verbindungen: %d (davon %d Benutzer) (%llu Verbindungen)
 RPL_LUSERCLIENT:	 :%s 251 %s :Hier gibt es %d Benutzer, davon %d unsichtbar, auf %d Servern.
 RPL_LUSEROP:		 :%s 252 %s %d :IRC Operatorn sind online.
 RPL_LUSERUNKNOWN:	 :%s 253 %s %d :Unbekannte Verbindungen.
@@ -115,15 +115,12 @@ RPL_ENDOFMODLIST:	 :%s 703 %s :Ende von /MODLIST.
 RPL_ENDOFHELP:		 :%s 706 %s %s :Ende von /HELP.
 RPL_KNOCK:		 :%s 710 %s %s %s!%s@%s :fragt nach einer Einladung.
 RPL_KNOCKDLVR:		 :%s 711 %s %s :Dein KNOCK wurde zugestellt.
-ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Zuviele KNOCK's (%s).
+ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Zuviele KNOCKs (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :Raum ist offen.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :Du bist bereits in diesem Raum.
-ERR_KNOCKDISABLED:	 :%s 715 %s :KNOCK's sind abgeschalten.
-RPL_TARGUMODEG:		 :%s 716 %s %s :ist im +g Modus (Serverseitiges ignoren)
+RPL_TARGUMODEG:		 :%s 716 %s %s :ist im +g Modus (Serverseitiges Ignorieren)
 RPL_TARGNOTIFY:		 :%s 717 %s %s :wurde über Deine Nachricht informiert.
 RPL_UMODEGMSG:		 :%s 718 %s %s :will Dir eine Nachricht schreiben, Du hast aber Benutzer-Modus +g gesetzt.
-RPL_OMOTDSTART:		 :%s 720 %s :Start der OPER MOTD.
-RPL_ENDOFOMOTD:		 :%s 722 %s :Ende der OPER MOTD.
 ERR_NOPRIVS:		 :%s 723 %s %s :Operator-Privilegien nicht ausreichend.
-RPL_TESTMASK:		 :%s 724 %s %s@%s %d %d :lokale/entfernte Benutzer stimmen überein.
+RPL_TESTMASK:		 :%s 724 %s %s!%s@%s %u %u :lokale/entfernte Benutzer stimmen überein.
 RPL_NOTESTLINE:		 :%s 726 %s %s :keine Übereinstimmungen gefunden.

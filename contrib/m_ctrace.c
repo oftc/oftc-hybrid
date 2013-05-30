@@ -24,46 +24,21 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
-#include "hook.h"
 #include "client.h"
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_bsd.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
 static void do_ctrace(struct Client *, int, char *[]);
-static void mo_ctrace(struct Client *, struct Client *, int, char *[]);
-
-struct Message ctrace_msgtab = {
-  "CTRACE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ctrace, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&ctrace_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&ctrace_msgtab);
-}
-#endif
-
 static void report_this_status(struct Client *, struct Client *);
+
 
 /*
 ** mo_ctrace
@@ -77,7 +52,7 @@ mo_ctrace(struct Client *client_p, struct Client *source_p,
   if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, parv[0], "CTRACE");
+               me.name, source_p->name, "CTRACE");
     return;
   }
 
@@ -94,8 +69,8 @@ mo_ctrace(struct Client *client_p, struct Client *source_p,
 static void
 do_ctrace(struct Client *source_p, int parc, char *parv[])
 {
-  char *class_looking_for;
-  const char *class_name = parv[1];
+  char *class_looking_for = parv[1];
+  const char *class_name = NULL;
   dlink_node *ptr;
 
   sendto_realops_flags(UMODE_SPY, L_ALL,
@@ -114,7 +89,7 @@ do_ctrace(struct Client *source_p, int parc, char *parv[])
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name,
-             parv[0], class_looking_for);
+             source_p->name, class_looking_for);
 }
 
 /*
@@ -138,30 +113,30 @@ report_this_status(struct Client *source_p, struct Client *target_p)
   {
     case STAT_CLIENT:
 
-      if ((IsOper(source_p) &&
-          (MyClient(source_p) || !IsInvisible(target_p)))
-          || IsOper(target_p))
+      if ((HasUMode(source_p, UMODE_OPER) &&
+          (MyClient(source_p) || !HasUMode(target_p, UMODE_INVISIBLE)))
+          || HasUMode(target_p, UMODE_OPER))
       {
-        if (IsAdmin(target_p) && !ConfigFileEntry.hide_spoof_ips)
+        if (HasUMode(target_p, UMODE_ADMIN) && !ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                        me.name, source_p->name, class_name, name,
-                       IsAdmin(source_p) ? target_p->sockhost : "255.255.255.255",
-                       CurrentTime - target_p->lasttime,
-                       CurrentTime - target_p->localClient->last);
-          else if (IsOper(target_p))
+                       HasUMode(source_p, UMODE_ADMIN) ? target_p->sockhost : "255.255.255.255",
+                       CurrentTime - target_p->localClient->lasttime,
+                       CurrentTime - target_p->localClient->last_privmsg);
+          else if (HasUMode(target_p, UMODE_OPER))
           {
             if (ConfigFileEntry.hide_spoof_ips)
 	      sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
 		         me.name, source_p->name, class_name, name, 
 		         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
-		         CurrentTime - target_p->lasttime,
-		         CurrentTime - target_p->localClient->last);
+		         CurrentTime - target_p->localClient->lasttime,
+		         CurrentTime - target_p->localClient->last_privmsg);
 	    else   
               sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                          me.name, source_p->name, class_name, name,
                          (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                         CurrentTime - target_p->lasttime,
-                         CurrentTime - target_p->localClient->last);
+                         CurrentTime - target_p->localClient->lasttime,
+                         CurrentTime - target_p->localClient->last_privmsg);
           }
 	  else
           {
@@ -169,26 +144,26 @@ report_this_status(struct Client *source_p, struct Client *target_p)
 	      sendto_one(source_p, form_str(RPL_TRACEUSER),
 		         me.name, source_p->name, class_name, name,
                          IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
-		         CurrentTime - target_p->lasttime,
-		         CurrentTime - target_p->localClient->last);
+		         CurrentTime - target_p->localClient->lasttime,
+		         CurrentTime - target_p->localClient->last_privmsg);
             else
               sendto_one(source_p, form_str(RPL_TRACEUSER),
                          me.name, source_p->name, class_name, name,
                          (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                         CurrentTime - target_p->lasttime,
-                         CurrentTime - target_p->localClient->last);
+                         CurrentTime - target_p->localClient->lasttime,
+                         CurrentTime - target_p->localClient->last_privmsg);
           }
         }
       break;
     case STAT_SERVER:
-      if (!IsAdmin(source_p))
+      if (!HasUMode(source_p, UMODE_ADMIN))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),
 		 me.name, source_p->name, class_name, 0,
 		 0, name, *(target_p->serv->by) ?
 		 target_p->serv->by : "*", "*",
-		 me.name, CurrentTime - target_p->lasttime);
+		 me.name, CurrentTime - target_p->localClient->lasttime);
       break;
       
     default: /* ...we actually shouldn't come here... --msa */
@@ -197,3 +172,30 @@ report_this_status(struct Client *source_p, struct Client *target_p)
       break;
   }
 }
+
+static struct Message ctrace_msgtab = {
+  "CTRACE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ctrace, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&ctrace_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&ctrace_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

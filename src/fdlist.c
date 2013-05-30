@@ -21,19 +21,20 @@
  *
  *  $Id$
  */
+
 #include "stdinc.h"
 #include "fdlist.h"
 #include "client.h"  /* struct Client */
-#include "common.h"
 #include "event.h"
 #include "ircd.h"    /* GlobalSetOptions */
 #include "irc_string.h"
-#include "rlimits.h"
 #include "s_bsd.h"   /* comm_setselect */
-#include "s_conf.h"  /* ServerInfo */
+#include "conf.h"  /* ServerInfo */
 #include "send.h"
 #include "memory.h"
 #include "numeric.h"
+#include "s_misc.h"
+#include "irc_res.h"
 
 fde_t *fd_hash[FD_HASH_SIZE];
 fde_t *fd_next_in_loop = NULL;
@@ -48,7 +49,7 @@ changing_fdlimit(va_list args)
 
   hard_fdlimit = va_arg(args, int);
 
-  if (ServerInfo.max_clients > MAXCLIENTS_MAX)
+  if (ServerInfo.max_clients > (unsigned int)MAXCLIENTS_MAX)
   {
     if (old_fdlimit != 0)
       sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -77,10 +78,10 @@ recalc_fdlimit(void *unused)
   int fdmax;
   struct rlimit limit;
 
-  if (!getrlimit(RLIMIT_FD_MAX, &limit))
+  if (!getrlimit(RLIMIT_NOFILE, &limit))
   {
     limit.rlim_cur = limit.rlim_max;
-    setrlimit(RLIMIT_FD_MAX, &limit);
+    setrlimit(RLIMIT_NOFILE, &limit);
   }
 
   fdmax = getdtablesize();
@@ -224,7 +225,7 @@ close_standard_fds(void)
   for (i = 0; i < LOWEST_SAFE_FD; i++)
   {
     close(i);
-    if (open(PATH_DEVNULL, O_RDWR) < 0)
+    if (open("/dev/null", O_RDWR) < 0)
       exit(-1); /* we're hosed if we can't even open /dev/null */
   }
 }

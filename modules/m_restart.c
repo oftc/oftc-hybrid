@@ -28,7 +28,7 @@
 #include "channel_mode.h"
 #include "client.h"
 #include "hash.h"
-#include "common.h"
+#include "client.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "ircd_defs.h"
@@ -36,20 +36,16 @@
 #include "numeric.h"
 #include "packet.h"
 #include "parse.h"
-#include "msg.h"
 #include "restart.h"
 #include "s_serv.h"
 #include "s_user.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "userhost.h"
 #include "irc_string.h"
-#include "s_log.h"
-#include "common.h"
-#include "handlers.h"
+#include "log.h"
 #include "sprintf_irc.h"
-
-static void mo_restart(struct Client *, struct Client *, int, char *[]);
+#include "modules.h"
 
 #ifdef HAVE_LIBCRYPTO
 #define CanForward(x)   (!IsDefunct(x) && !(x)->localClient->fd.ssl)
@@ -60,14 +56,11 @@ static void mo_restart(struct Client *, struct Client *, int, char *[]);
 struct SocketInfo
 {
   int fd;
-  int ctrlfd;
   int namelen;
   int pwdlen;
   int caplen;
   int recvqlen;
   int sendqlen;
-  int slinkqofs;
-  int slinkqlen;
   time_t first;
   time_t last;
 };
@@ -92,8 +85,6 @@ serverize(struct Client *client_p)
   
   conf_add_class_to_conf(sconf, NULL);
   attach_conf(client_p, sconf);
-  client_p->serv->sconf = find_conf_name(&client_p->localClient->confs, 
-      client_p->name, SERVER_TYPE);
 
   SetServer(client_p);
 }
@@ -177,18 +168,14 @@ introduce_socket(int transfd, struct Client *client_p)
     capabs = show_capabilities(client_p);
 
   si.fd = client_p->localClient->fd.fd;
-  si.ctrlfd = client_p->localClient->ctrlfd.flags.open ?
-    client_p->localClient->ctrlfd.fd : -1;
   si.namelen = strlen(client_p->name);
   si.pwdlen = EmptyString(client_p->localClient->passwd) ? 0 :
     strlen(client_p->localClient->passwd);
   si.caplen = strlen(capabs);
   si.recvqlen = dbuf_length(&client_p->localClient->buf_recvq);
   si.sendqlen = dbuf_length(&client_p->localClient->buf_sendq);
-  si.slinkqofs = client_p->localClient->slinkq_ofs;
-  si.slinkqlen = client_p->localClient->slinkq_len;
-  si.first = client_p->firsttime;
-  si.last = client_p->localClient->last;
+  si.first = client_p->localClient->firsttime;
+  si.last = client_p->localClient->lasttime;
 
   write(transfd, &si, sizeof(si));
   write(transfd, client_p->name, si.namelen);
@@ -199,8 +186,6 @@ introduce_socket(int transfd, struct Client *client_p)
 
   write_dbuf(transfd, &client_p->localClient->buf_recvq);
   write_dbuf(transfd, &client_p->localClient->buf_sendq);
-  if (si.slinkqlen > 0)
-    write(transfd, client_p->localClient->slinkq, si.slinkqlen);
 }
 
 /*
@@ -223,18 +208,18 @@ do_shutdown(const char *msg, int rboot)
 
   if (!rboot || socketpair(AF_UNIX, SOCK_STREAM, 0, transfd) < 0)
   {
-    server_die(buf, YES);
+    server_die(buf, true);
     return;
   }
 
   if (EmptyString(msg))
   {
-    ilog(L_CRIT, "Server Soft-Rebooting");
+    ilog(LOG_TYPE_IRCD, "Server Soft-Rebooting");
     sendto_realops_flags(UMODE_ALL, L_ALL, "Server Soft-Rebooting");
   }
   else
   {
-    ilog(L_CRIT, "Server Soft-Rebooting: %s", msg);
+    ilog(LOG_TYPE_IRCD, "Server Soft-Rebooting: %s", msg);
     sendto_realops_flags(UMODE_ALL, L_ALL, "Server Soft-Rebooting: %s", msg);
   }
 
@@ -271,7 +256,7 @@ do_shutdown(const char *msg, int rboot)
   switch (fork())
   {
     case -1:
-      ilog(L_CRIT, "Unable to fork(): %s", strerror(errno));
+      ilog(LOG_TYPE_IRCD, "Unable to fork(): %s", strerror(errno));
       exit(1);
 
     case 0:
@@ -292,7 +277,7 @@ do_shutdown(const char *msg, int rboot)
 
       printf("execing: %s %s %s\n", SPATH, argv[0], argv[1]);
       execv(SPATH, argv);
-      ilog(L_CRIT, "Unable to exec(): %s", strerror(errno));
+      ilog(LOG_TYPE_IRCD, "Unable to exec(): %s", strerror(errno));
       printf("hi\n");
       exit(1);
     }
@@ -304,7 +289,7 @@ do_shutdown(const char *msg, int rboot)
   burst_all(make_dummy(transfd[1]));
   send_queued_all();
 
-  snprintf(buf, sizeof(buf), "\001%jd\r\n", (intmax_t)me.since);
+  snprintf(buf, sizeof(buf), "\001%jd\r\n", (intmax_t)me.localClient->since);
   write(transfd[1], buf, strlen(buf));
 
   DLINK_FOREACH(ptr, local_client_list.head)
@@ -315,26 +300,7 @@ do_shutdown(const char *msg, int rboot)
 
   exit(0);
 }
-struct Message restart_msgtab = {
-  "RESTART", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_restart, m_ignore }
-};
 
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&restart_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&restart_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * mo_restart
@@ -346,7 +312,7 @@ mo_restart(struct Client *client_p, struct Client *source_p,
 {
   char buf[IRCD_BUFSIZE]; 
 
-  if (!IsOperDie(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_RESTART))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "restart");
@@ -369,5 +335,32 @@ mo_restart(struct Client *client_p, struct Client *source_p,
 
   snprintf(buf, sizeof(buf), "received RESTART command from %s",
              get_oper_name(source_p));
-  do_shutdown(buf, YES);
+  do_shutdown(buf, true);
 }
+
+static struct Message restart_msgtab = {
+  "RESTART", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_restart, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&restart_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&restart_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

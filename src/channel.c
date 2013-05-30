@@ -29,7 +29,6 @@
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"
 #include "hash.h"
 #include "hostmask.h"
 #include "irc_string.h"
@@ -39,7 +38,7 @@
 #include "s_serv.h"             /* captab */
 #include "s_user.h"
 #include "send.h"
-#include "s_conf.h"             /* ConfigFileEntry, ConfigChannel */
+#include "conf.h"             /* ConfigFileEntry, ConfigChannel */
 #include "event.h"
 #include "memory.h"
 #include "balloc.h"
@@ -48,7 +47,6 @@ struct config_channel_entry ConfigChannel;
 dlink_list global_channel_list = { NULL, NULL, 0 };
 BlockHeap *ban_heap;    /*! \todo ban_heap shouldn't be a global var */
 
-static BlockHeap *topic_heap = NULL;
 static BlockHeap *member_heap = NULL;
 static BlockHeap *channel_heap = NULL;
 
@@ -69,7 +67,6 @@ init_channels(void)
 
   channel_heap = BlockHeapCreate("channel", sizeof(struct Channel), CHANNEL_HEAP_SIZE);
   ban_heap = BlockHeapCreate("ban", sizeof(struct Ban), BAN_HEAP_SIZE);
-  topic_heap = BlockHeapCreate("topic", TOPICLEN+1 + USERHOST_REPLYLEN, TOPIC_HEAP_SIZE);
   member_heap = BlockHeapCreate("member", sizeof(struct Membership), CHANNEL_HEAP_SIZE*2);
 }
 
@@ -184,7 +181,7 @@ send_members(struct Client *client_p, struct Channel *chptr,
     /* space will be converted into CR, but we also need space for LF..
      * That's why we use '- 1' here
      * -adx */
-    if (t + tlen - buf > sizeof(buf) - 1)
+    if (t + tlen - buf > IRCD_BUFSIZE - 1)
     {
       *(t - 1) = '\0';  /* kill the space and terminate the string */
       sendto_one(client_p, "%s", buf);
@@ -290,9 +287,6 @@ send_mode_list(struct Client *client_p, struct Channel *chptr,
 void
 send_channel_modes(struct Client *client_p, struct Channel *chptr)
 {
-  if (chptr->chname[0] != '#')
-    return;
-
   *modebuf = *parabuf = '\0';
   channel_modes(chptr, client_p, modebuf, parabuf);
   send_members(client_p, chptr, modebuf, parabuf);
@@ -316,7 +310,7 @@ int
 check_channel_name(const char *name, int local)
 {
   const char *p = name;
-  int max_length = local ? LOCAL_CHANNELLEN : CHANNELLEN;
+  const int max_length = local ? LOCAL_CHANNELLEN : CHANNELLEN;
   assert(name != NULL);
 
   if (!IsChanPrefix(*p))
@@ -410,9 +404,6 @@ destroy_channel(struct Channel *chptr)
   free_channel_list(&chptr->exceptlist);
   free_channel_list(&chptr->invexlist);
 
-  /* Free the topic */
-  free_topic(chptr);
-
   dlinkDelete(&chptr->node, &global_channel_list);
   hash_del_channel(chptr);
 
@@ -452,7 +443,7 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
   int is_member = IsMember(source_p, chptr);
   int multi_prefix = HasCap(source_p, CAP_MULTI_PREFIX) != 0;
 
-  if (PubChannel(chptr) || is_member || IsGod(source_p))
+  if (PubChannel(chptr) || is_member || HasUMode(source_p, UMODE_GOD))
   {
     t = lbuf + ircsprintf(lbuf, form_str(RPL_NAMREPLY),
                           me.name, source_p->name,
@@ -465,7 +456,8 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
       ms       = ptr->data;
       target_p = ms->client_p;
 
-      if (IsInvisible(target_p) && !is_member && !IsGod(source_p))
+      if (HasUMode(target_p, UMODE_INVISIBLE) && !is_member &&
+          !HasUMode(target_p, UMODE_GOD))
         continue;
 
       tlen = strlen(target_p->name) + 1;  /* nick + space */
@@ -606,7 +598,7 @@ find_bmask(const struct Client *w, const dlink_list *const list)
 
   DLINK_FOREACH(ptr, list->head)
   {
-    struct Ban *bp = ptr->data;
+    const struct Ban *bp = ptr->data;
 
     if (match(bp->name, who->name) && match(bp->username, who->username))
     {
@@ -648,7 +640,7 @@ is_quiet(const struct Channel *chptr, const struct Client *who)
   assert(IsClient(who));
 
   if (find_bmask(who, &chptr->quietlist))
-    if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
+    if (!find_bmask(who, &chptr->exceptlist))
       return 1;
 
   return 0;
@@ -662,7 +654,7 @@ int
 is_banned(const struct Channel *chptr, const struct Client *who)
 {
   if (find_bmask(who, &chptr->banlist))
-    if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
+    if (!find_bmask(who, &chptr->exceptlist))
       return 1;
 
   return 0;
@@ -679,7 +671,7 @@ int
 can_join(struct Client *source_p, struct Channel *chptr, const char *key)
 {
 
-  if(IsService(source_p))
+  if(HasUMode(source_p, UMODE_SERVICE))
     return 0;
 
   if (is_banned(chptr, source_p))
@@ -690,23 +682,23 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
     return ERR_SSLONLYCHAN;
 #endif
 
-  if ((chptr->mode.mode & MODE_OPERONLY) && !IsOper(source_p))
+  if ((chptr->mode.mode & MODE_REGONLY) && !HasUMode(source_p, UMODE_REGISTERED))
+    return ERR_NEEDREGGEDNICK;
+
+  if ((chptr->mode.mode & MODE_OPERONLY) && !HasUMode(source_p, UMODE_OPER))
     return ERR_OPERONLYCHAN;
 
   if (chptr->mode.mode & MODE_INVITEONLY)
     if (!dlinkFind(&source_p->localClient->invited, chptr))
-      if (!ConfigChannel.use_invex || !find_bmask(source_p, &chptr->invexlist))
+      if (!find_bmask(source_p, &chptr->invexlist))
         return ERR_INVITEONLYCHAN;
 
-  if (chptr->mode.key[0] && (!key || irccmp(chptr->mode.key, key)))
+  if (chptr->mode.key[0] && (!key || strcmp(chptr->mode.key, key)))
     return ERR_BADCHANNELKEY;
 
   if (chptr->mode.limit && dlink_list_length(&chptr->members) >=
       chptr->mode.limit)
     return ERR_CHANNELISFULL;
-
-  if(RegOnlyChannel(chptr) && !IsNickServReg(source_p))
-    return(ERR_REGONLYCHAN);
 
   if (SSLonlyChannel(chptr))
   {
@@ -750,42 +742,46 @@ find_channel_link(struct Client *client_p, struct Channel *chptr)
  * \param ms       pointer to Membership struct (can be NULL)
  * \return CAN_SEND_OPV if op or voiced on channel\n
  *         CAN_SEND_NONOP if can send to channel but is not an op\n
- *         CAN_SEND_NO if they cannot send to channel\n
+ *         ERR_CANNOTSENDTOCHAN or ERR_NEEDREGGEDNICK if they cannot send to channel\n
  */
 int
 can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 {
-  if (IsServer(source_p) || IsGod(source_p) || IsService(source_p))
+  if (IsServer(source_p) || HasFlag(source_p, FLAGS_SERVICE) ||
+      HasUMode(source_p, UMODE_GOD))
     return CAN_SEND_OPV;
 
   if (MyClient(source_p) && !IsExemptResv(source_p))
-    if (!(IsOper(source_p) && ConfigFileEntry.oper_pass_resv))
+    if (!(HasUMode(source_p, UMODE_OPER) && ConfigFileEntry.oper_pass_resv))
       if (!hash_find_resv(chptr->chname) == ConfigChannel.restrict_channels)
-        return CAN_SEND_NO;
+        return ERR_CANNOTSENDTOCHAN;
 
   if (ms != NULL || (ms = find_channel_link(source_p, chptr)))
   {
     if (ms->flags & (CHFL_CHANOP|CHFL_HALFOP|CHFL_VOICE))
       return CAN_SEND_OPV;
 
-    if (ConfigChannel.use_quiet && MyClient(source_p))
+    if (MyClient(source_p))
     {
       if (is_quiet(chptr, source_p))
         return CAN_SEND_NO;
     }
+    if (chptr->mode.mode & MODE_REGONLY)
+      if (!HasUMode(source_p, UMODE_REGISTERED))
+        return ERR_NEEDREGGEDNICK;
 
     /* cache can send if quiet_on_ban and banned */
     if (ConfigChannel.quiet_on_ban && MyClient(source_p))
     {
       if (ms->flags & CHFL_BAN_SILENCED)
-        return CAN_SEND_NO;
+        return ERR_CANNOTSENDTOCHAN;
 
       if (!(ms->flags & CHFL_BAN_CHECKED))
       {
         if (is_banned(chptr, source_p))
         {
           ms->flags |= (CHFL_BAN_CHECKED|CHFL_BAN_SILENCED);
-          return CAN_SEND_NO;
+          return ERR_CANNOTSENDTOCHAN;
         }
 
         ms->flags |= CHFL_BAN_CHECKED;
@@ -793,14 +789,18 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
     }
   }
   else if (chptr->mode.mode & MODE_NOPRIVMSGS)
-    return CAN_SEND_NO;
+    return ERR_CANNOTSENDTOCHAN;
 
   if (chptr->mode.mode & MODE_MODERATED)
-    return CAN_SEND_NO;
+    return ERR_CANNOTSENDTOCHAN;
 
-  if(SpeakOnlyIfReg(chptr) && !IsNickServReg(source_p))
+  if(SpeakOnlyIfReg(chptr) && !HasUMode(source_p, UMODE_REGISTERED))
     return CAN_SEND_ONLY_IF_REG;
  
+  if (chptr->mode.mode & MODE_REGONLY)
+    if (!HasUMode(source_p, UMODE_REGISTERED))
+      return ERR_NEEDREGGEDNICK;
+
   return CAN_SEND_NONOP;
 }
 
@@ -899,46 +899,6 @@ check_splitmode(void *unused)
   }
 }
 
-/*! \brief Allocates a new topic
- * \param chptr Channel to allocate a new topic for
- */
-static void
-allocate_topic(struct Channel *chptr)
-{
-  void *ptr = NULL;
-
-  if (chptr == NULL)
-    return;
-
-  ptr = BlockHeapAlloc(topic_heap);  
-
-  /* Basically we allocate one large block for the topic and
-   * the topic info.  We then split it up into two and shove it
-   * in the chptr 
-   */
-  chptr->topic       = ptr;
-  chptr->topic_info  = (char *)ptr + TOPICLEN+1;
-  *chptr->topic      = '\0';
-  *chptr->topic_info = '\0';
-}
-
-void
-free_topic(struct Channel *chptr)
-{
-  void *ptr = NULL;
-  assert(chptr);
-  if (chptr->topic == NULL)
-    return;
-
-  /*
-   * If you change allocate_topic you MUST change this as well
-   */
-  ptr = chptr->topic; 
-  BlockHeapFree(topic_heap, ptr);    
-  chptr->topic      = NULL;
-  chptr->topic_info = NULL;
-}
-
 /*! \brief Sets the channel topic for chptr
  * \param chptr      Pointer to struct Channel
  * \param topic      The topic string
@@ -949,24 +909,9 @@ void
 set_channel_topic(struct Channel *chptr, const char *topic,
                   const char *topic_info, time_t topicts)
 {
-  if (!EmptyString(topic))
-  {
-    if (chptr->topic == NULL)
-      allocate_topic(chptr);
-
-    strlcpy(chptr->topic, topic, TOPICLEN+1);
-    strlcpy(chptr->topic_info, topic_info, USERHOST_REPLYLEN);
-    chptr->topic_time = topicts; 
-  }
-  else
-  {
-    /*
-     * Do not reset chptr->topic_time here, it's required for
-     * bursting topics properly.
-     */
-    if (chptr->topic != NULL)
-      free_topic(chptr);
-  }
+  strlcpy(chptr->topic, topic, sizeof(chptr->topic));
+  strlcpy(chptr->topic_info, topic_info, sizeof(chptr->topic_info));
+  chptr->topic_time = topicts; 
 }
 
 int 

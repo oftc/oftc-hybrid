@@ -23,16 +23,13 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "ircd_defs.h"
 #include "ircd.h"
 #include "restart.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
-#include "msg.h"
 #include "hostmask.h"
 #include "numeric.h"
 #include "parse.h"
@@ -40,36 +37,6 @@
 #include "hash.h"
 #include "modules.h"
 
-static void mo_testline(struct Client *, struct Client *, int, char *[]);
-static void mo_testgecos(struct Client *, struct Client *, int, char *[]);
-
-struct Message testline_msgtab = {
-  "TESTLINE", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testline, m_ignore }
-};
-
-struct Message testgecos_msgtab = {
-  "TESTGECOS", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testgecos, m_ignore }
-};
- 
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&testline_msgtab);
-  mod_add_cmd(&testgecos_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&testline_msgtab);
-  mod_del_cmd(&testgecos_msgtab);
-}
- 
-const char *_version = "$Revision$";
-#endif
 
 /* mo_testline()
  *
@@ -88,10 +55,10 @@ static void
 mo_testline(struct Client *client_p, struct Client *source_p,
             int parc, char *parv[])
 {
-  char *orig_parv1 = NULL;
   /* IRCD_BUFSIZE to allow things like *u*s*e*r*n*a*m*e* etc. */
   char given_name[IRCD_BUFSIZE];
   char given_host[IRCD_BUFSIZE];
+  char parv1_copy[IRCD_BUFSIZE];
   struct ConfItem *conf;
   struct AccessItem *aconf;
   struct irc_ssaddr ip;
@@ -121,7 +88,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     }
   }
 
-  DupString(orig_parv1,parv[1]);
+  strlcpy(parv1_copy, parv[1], sizeof(parv1_copy));
 
   nuh.nuhmask  = parv[1];
   nuh.nickptr  = NULL;
@@ -147,14 +114,13 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                             );
     if (aconf != NULL)
     {
-      conf = unmap_conf_item(aconf);
+      ++matches;
 
       if (aconf->status & CONF_EXEMPTDLINE)
       {
         sendto_one(source_p,
                    ":%s NOTICE %s :Exempt D-line host [%s] reason [%s]",
                    me.name, source_p->name, aconf->host, aconf->reason);
-        ++matches;
       }
       else
       {
@@ -163,28 +129,11 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                    IsConfTemporary(aconf) ? 'd' : 'D',
                    IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
                    : 0L,
-                   aconf->host, aconf->reason, aconf->oper_reason);
-        ++matches;
+                   aconf->host, aconf->reason,
+                   aconf->oper_reason ? aconf->oper_reason : "");
       }
     }
   }
-
-  aconf = find_kline_conf(given_host, given_name, 
-      parv[3] == NULL ? parv[2] : parv[3], &ip, t);
-  if ((aconf != NULL) && (aconf->status & CONF_KILL))
-  {
-    snprintf(userhost, sizeof(userhost), "%s@%s", aconf->user, aconf->host);
-    sendto_one(source_p, form_str(RPL_TESTLINE),
-               me.name, source_p->name,
-               IsConfTemporary(aconf) ? 'k' : 'K',
-               IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
-               : 0L,
-               userhost, 
-               aconf->passwd ? aconf->passwd : "No reason",
-               aconf->oper_reason ? aconf->oper_reason : "");
-    ++matches;
-  }
-
 
   if (t != HM_HOST)
     aconf = find_address_conf(given_host, given_name, &ip, 
@@ -200,8 +149,6 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                  
   if (aconf != NULL)
   {
-    conf = unmap_conf_item(aconf);
-
     snprintf(userhost, sizeof(userhost), "%s@%s", aconf->user, aconf->host);
 
     if (aconf->status & CONF_CLIENT)
@@ -212,7 +159,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                  aconf->class_ptr ? aconf->class_ptr->name : "<default>", "");
       ++matches;
     }
-    else if (aconf->status & CONF_KILL)
+    else if (aconf->status & CONF_KLINE)
     {
       sendto_one(source_p, form_str(RPL_TESTLINE),
                  me.name, source_p->name,
@@ -229,8 +176,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 
   if (conf != NULL)
   {
-    struct MatchItem *mconf;
-    mconf = (struct MatchItem *)map_to_conf(conf);
+    const struct MatchItem *mconf = map_to_conf(conf);
 
     sendto_one(source_p, form_str(RPL_TESTLINE),
                me.name, source_p->name,
@@ -243,9 +189,8 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 
   if (matches == 0)
     sendto_one(source_p, form_str(RPL_NOTESTLINE),
-               me.name, source_p->name, orig_parv1);
+               me.name, source_p->name, parv1_copy);
 
-  MyFree(orig_parv1);
 }
 
 /* mo_testgecos()
@@ -287,3 +232,37 @@ mo_testgecos(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(RPL_NOTESTLINE),
                me.name, source_p->name, parv[1]);
 }
+
+static struct Message testline_msgtab = {
+  "TESTLINE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testline, m_ignore }
+};
+
+struct Message testgecos_msgtab = {
+  "TESTGECOS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testgecos, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&testline_msgtab);
+  mod_add_cmd(&testgecos_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&testline_msgtab);
+  mod_del_cmd(&testgecos_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

@@ -24,45 +24,19 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"  
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_serv.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "packet.h"
-
-static void m_part(struct Client *, struct Client *, int, char *[]);
-
-struct Message part_msgtab = {
-  "PART", 0, 0, 2, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_part, m_part, m_ignore, m_part, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&part_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&part_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 
 /* part_one_client()
@@ -94,7 +68,7 @@ part_one_client(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (MyConnect(source_p) && !IsOper(source_p))
+  if (MyConnect(source_p) && !HasUMode(source_p, UMODE_OPER))
     check_spambot_warning(source_p, NULL);
 
   /*
@@ -106,26 +80,26 @@ part_one_client(struct Client *client_p, struct Client *source_p,
   
   if (reason[0] && (!MyConnect(source_p) ||
       ((can_send(chptr, source_p, ms) &&
-       (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
+       (source_p->localClient->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
         < CurrentTime))))
   {
-    sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
+    sendto_server(client_p, CAP_TS6, NOCAPS,
                   ":%s PART %s :%s", ID(source_p), chptr->chname,
                   reason);
-    sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
+    sendto_server(client_p, NOCAPS, CAP_TS6,
                   ":%s PART %s :%s", source_p->name, chptr->chname,
                   reason);
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s PART %s :%s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s PART %s :%s",
                          source_p->name, source_p->username,
                          source_p->host, chptr->chname, reason);
   }
   else
   {
-    sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
+    sendto_server(client_p, CAP_TS6, NOCAPS,
                   ":%s PART %s", ID(source_p), chptr->chname);
-    sendto_server(client_p, chptr, NOCAPS, CAP_TS6,
+    sendto_server(client_p, NOCAPS, CAP_TS6,
                   ":%s PART %s", source_p->name, chptr->chname);
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s PART %s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s PART %s",
                          source_p->name, source_p->username,
                          source_p->host, chptr->chname);
   }
@@ -167,3 +141,30 @@ m_part(struct Client *client_p, struct Client *source_p,
        name = strtoken(&p,    NULL, ","))
     part_one_client(client_p, source_p, name, reason);
 }
+
+static struct Message part_msgtab = {
+  "PART", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_part, m_part, m_ignore, m_part, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&part_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&part_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = MODULE_FLAG_CORE
+};

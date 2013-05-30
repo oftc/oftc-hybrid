@@ -22,15 +22,16 @@
  *  $Id$
  */
 
+#include "ltdl.h"
+
 #include "stdinc.h"
 #include "list.h"
 #include "modules.h"
-#include "s_log.h"
+#include "log.h"
 #include "ircd.h"
 #include "client.h"
 #include "send.h"
-#include "s_conf.h"
-#include "handlers.h"
+#include "conf.h"
 #include "numeric.h"
 #include "parse.h"
 #include "ircd_defs.h"
@@ -42,9 +43,9 @@
 #define SHARED_SUFFIX ".so"
 
 
-#ifndef STATIC_MODULES
+dlink_list modules_list = { NULL, NULL, 0 };
 
-dlink_list mod_list = { NULL, NULL, 0 };
+static const char *unknown_ver = "<unknown>";
 
 static const char *core_module_table[] =
 {
@@ -67,37 +68,103 @@ static const char *core_module_table[] =
 static dlink_list mod_paths = { NULL, NULL, 0 };
 static dlink_list conf_modules = { NULL, NULL, 0 };
 
-static void mo_modload(struct Client *, struct Client *, int, char *[]);
-static void mo_modlist(struct Client *, struct Client *, int, char *[]);
-static void mo_modreload(struct Client *, struct Client *, int, char *[]);
-static void mo_modunload(struct Client *, struct Client *, int, char *[]);
-static void mo_modrestart(struct Client *, struct Client *, int, char *[]);
+int
+modules_valid_suffix(const char *name)
+{
+  return ((name = strrchr(name, '.'))) && !strcmp(name, ".la");
+}
 
-struct Message modload_msgtab = {
- "MODLOAD", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_modload, m_ignore}
-};
+/* unload_one_module()
+ *
+ * inputs       - name of module to unload
+ *              - 1 to say modules unloaded, 0 to not
+ * output       - 0 if successful, -1 if error
+ * side effects - module is unloaded
+ */
+int
+unload_one_module(const char *name, int warn)
+{
+  struct module *modp = NULL;
 
-struct Message modunload_msgtab = {
- "MODUNLOAD", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_modunload, m_ignore}
-};
+  if ((modp = findmodule_byname(name)) == NULL)
+    return -1;
 
-struct Message modreload_msgtab = {
-  "MODRELOAD", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_modreload, m_ignore}
-};
+  if (modp->modexit)
+   modp->modexit();
 
-struct Message modlist_msgtab = {
- "MODLIST", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_modlist, m_ignore}
-};
+  assert(dlink_list_length(&modules_list) > 0);
+  dlinkDelete(&modp->node, &modules_list);
+  MyFree(modp->name);
 
-struct Message modrestart_msgtab = {
- "MODRESTART", 0, 0, 0, 0, MFLG_SLOW, 0,
- {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_modrestart, m_ignore}
-};
+  lt_dlclose(modp->handle);
 
+  if (warn == 1)
+  {
+    ilog(LOG_TYPE_IRCD, "Module %s unloaded", name);
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Module %s unloaded", name);
+  }
+
+  return 0;
+}
+
+/* load_a_module()
+ *
+ * inputs       - path name of module, int to notice, int of core
+ * output       - -1 if error 0 if success
+ * side effects - loads a module if successful
+ */
+int
+load_a_module(const char *path, int warn)
+{
+  lt_dlhandle tmpptr = NULL;
+  const char *mod_basename = NULL;
+  struct module *modp = NULL;
+
+  if (findmodule_byname((mod_basename = basename(path))))
+    return 1;
+
+  if (!(tmpptr = lt_dlopen(path))) {
+    const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
+
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Error loading module %s: %s",
+                         mod_basename, err);
+    ilog(LOG_TYPE_IRCD, "Error loading module %s: %s", mod_basename, err);
+    return -1;
+  }
+
+  if ((modp = lt_dlsym(tmpptr, "module_entry")) == NULL)
+  {
+    const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
+
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Error loading module %s: %s",
+                         mod_basename, err);
+    ilog(LOG_TYPE_IRCD, "Error loading module %s: %s", mod_basename, err);
+    lt_dlclose(tmpptr);
+    return -1;
+  }
+
+  modp->handle = tmpptr;
+
+  if (EmptyString(modp->version))
+    modp->version = unknown_ver;
+
+  DupString(modp->name, mod_basename);
+  dlinkAdd(modp, &modp->node, &modules_list);
+
+  if (modp->modinit)
+    modp->modinit();
+
+  if (warn == 1)
+  {
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Module %s [version: %s handle: %p] loaded.",
+                         modp->name, modp->version, tmpptr);
+    ilog(LOG_TYPE_IRCD, "Module %s [version: %s handle: %p] loaded.",
+         modp->name, modp->version, tmpptr);
+  }
+
+  return 0;
+}
 
 /*
  * modules_init
@@ -109,12 +176,12 @@ struct Message modrestart_msgtab = {
 void
 modules_init(void)
 {
-  dynlink_init();
-  mod_add_cmd(&modload_msgtab);
-  mod_add_cmd(&modunload_msgtab);
-  mod_add_cmd(&modreload_msgtab);
-  mod_add_cmd(&modlist_msgtab);
-  mod_add_cmd(&modrestart_msgtab);
+  if (lt_dlinit())
+  {
+    ilog(LOG_TYPE_IRCD, "Couldn't initialize the libltdl run time dynamic"
+         " link library. Exiting.");
+    exit(0);
+  }
 }
 
 /* mod_find_path()
@@ -127,11 +194,10 @@ static struct module_path *
 mod_find_path(const char *path)
 {
   dlink_node *ptr;
-  struct module_path *mpath;
 
   DLINK_FOREACH(ptr, mod_paths.head)
   {
-    mpath = ptr->data;
+    struct module_path *mpath = ptr->data;
 
     if (!strcmp(path, mpath->path))
       return mpath;
@@ -186,24 +252,18 @@ add_conf_module(const char *name)
 void
 mod_clear_paths(void)
 {
-  struct module_path *pathst;
-  dlink_node *ptr;
-  dlink_node *next_ptr;
+  dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, mod_paths.head)
   {
-    pathst = ptr->data;
-
-    dlinkDelete(&pathst->node, &mod_paths);
-    MyFree(pathst);
+    dlinkDelete(ptr, &mod_paths);
+    MyFree(ptr->data);
   }
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, conf_modules.head)
   {
-    pathst = ptr->data;
-
-    dlinkDelete(&pathst->node, &conf_modules);
-    MyFree(pathst);
+    dlinkDelete(ptr, &conf_modules);
+    MyFree(ptr->data);
   }
 }
 
@@ -213,18 +273,17 @@ mod_clear_paths(void)
  * output       - NULL if not found or pointer to module
  * side effects - NONE
  */
-dlink_node *
+struct module *
 findmodule_byname(const char *name)
 {
-  dlink_node *ptr;
-  struct module *modp;
+  dlink_node *ptr = NULL;
 
-  DLINK_FOREACH(ptr, mod_list.head)
+  DLINK_FOREACH(ptr, modules_list.head)
   {
-    modp = ptr->data;
+    struct module *modp = ptr->data;
 
     if (strcmp(modp->name, name) == 0)
-      return ptr;
+      return modp;
   }
 
   return NULL;
@@ -243,11 +302,9 @@ load_all_modules(int warn)
   struct dirent *ldirent = NULL;
   char module_fq_name[PATH_MAX + 1];
 
-  modules_init();
-
   if ((system_module_dir = opendir(AUTOMODPATH)) == NULL)
   {
-    ilog(L_WARN, "Could not load modules from %s: %s",
+    ilog(LOG_TYPE_IRCD, "Could not load modules from %s: %s",
          AUTOMODPATH, strerror(errno));
     return;
   }
@@ -260,7 +317,7 @@ load_all_modules(int warn)
     {
        snprintf(module_fq_name, sizeof(module_fq_name), "%s/%s",
                 AUTOMODPATH, ldirent->d_name);
-       load_a_module(module_fq_name, warn, 0);
+       load_a_module(module_fq_name, warn);
     }
   }
 
@@ -277,14 +334,13 @@ void
 load_conf_modules(void)
 {
   dlink_node *ptr = NULL;
-  struct module_path *mpath = NULL;
 
   DLINK_FOREACH(ptr, conf_modules.head)
   {
-    mpath = ptr->data;
+    struct module_path *mpath = ptr->data;
 
     if (findmodule_byname(mpath->path) == NULL)
-      load_one_module(mpath->path, 0);
+      load_one_module(mpath->path);
   }
 }
 
@@ -305,9 +361,9 @@ load_core_modules(int warn)
     snprintf(module_name, sizeof(module_name), "%s%s%s", MODPATH,
              core_module_table[i], SHARED_SUFFIX);
 
-    if (load_a_module(module_name, warn, 1) == -1)
+    if (load_a_module(module_name, warn) == -1)
     {
-      ilog(L_CRIT, "Error loading core module %s%s: terminating ircd",
+      ilog(LOG_TYPE_IRCD, "Error loading core module %s%s: terminating ircd",
            core_module_table[i], SHARED_SUFFIX);
       exit(EXIT_FAILURE);
     }
@@ -322,7 +378,7 @@ load_core_modules(int warn)
  * side effects - module is loaded if found.
  */
 int
-load_one_module(char *path, int coremodule)
+load_one_module(const char *path)
 {
   dlink_node *ptr = NULL;
   char modpath[PATH_MAX + 1];
@@ -336,370 +392,13 @@ load_one_module(char *path, int coremodule)
 
     if (strstr(modpath, "../") == NULL &&
         strstr(modpath, "/..") == NULL) 
-    {
       if (!stat(modpath, &statbuf))
-      {
-        if (S_ISREG(statbuf.st_mode))
-        {
-          /* Regular files only please */
-          return load_a_module(modpath, 1, coremodule);
-        }
-      }
-    }
+        if (S_ISREG(statbuf.st_mode))  /* Regular files only please */
+          return load_a_module(modpath, 1);
   }
 
   sendto_realops_flags(UMODE_ALL, L_ALL, 
                        "Cannot locate module %s", path);
-  ilog(L_WARN, "Cannot locate module %s", path);
+  ilog(LOG_TYPE_IRCD, "Cannot locate module %s", path);
   return -1;
 }
-
-/* load a module .. */
-static void
-mo_modload(struct Client *client_p, struct Client *source_p,
-           int parc, char *parv[])
-{
-  char *m_bn;
-
-  if (!IsAdmin(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
-    return;
-  }
-
-  m_bn = basename(parv[1]);
-
-  if (findmodule_byname(m_bn) != NULL)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :Module %s is already loaded",
-               me.name, source_p->name, m_bn);
-    return;
-  }
-
-  load_one_module(parv[1], 0);
-}
-
-/* unload a module .. */
-static void
-mo_modunload(struct Client *client_p, struct Client *source_p,
-             int parc, char *parv[])
-{
-  char *m_bn;
-  dlink_node *ptr;
-  struct module *modp;
-
-  if (!IsAdmin(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
-    return;
-  }
-
-  m_bn = basename(parv[1]);
-
-  if ((ptr = findmodule_byname(m_bn)) == NULL)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
-               me.name, source_p->name, m_bn);
-    return;
-  }
-
-  modp = ptr->data;
-
-  if (modp->core == 1)
-  {
-    sendto_one(source_p,
-               ":%s NOTICE %s :Module %s is a core module and may not be unloaded",
-	       me.name, source_p->name, m_bn);
-    return;
-  }
-
-  /* XXX might want to simply un dlink it here */
-
-  if (unload_one_module(m_bn, 1) == -1)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
-               me.name, source_p->name, m_bn);
-  }
-}
-
-/* unload and load in one! */
-static void
-mo_modreload(struct Client *client_p, struct Client *source_p,
-             int parc, char *parv[])
-{
-  char *m_bn;
-  dlink_node *ptr;
-  struct module *modp;
-  int check_core;
-
-  if (!IsAdmin(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
-    return;
-  }
-
-  m_bn = basename(parv[1]);
-
-  if ((ptr = findmodule_byname(m_bn)) == NULL)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
-               me.name, source_p->name, m_bn);
-    return;
-  }
-
-  modp = ptr->data;
-  check_core = modp->core;
-
-  if (unload_one_module(m_bn, 1) == -1)
-  {
-    sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
-               me.name, source_p->name, m_bn);
-    return;
-  }
-
-  if ((load_one_module(parv[1], check_core) == -1) && check_core)
-  {
-    sendto_realops_flags(UMODE_ALL, L_ALL, "Error reloading core "
-                         "module: %s: terminating ircd", parv[1]);
-    ilog(L_CRIT, "Error loading core module %s: terminating ircd", parv[1]);
-    exit(0);
-  }
-}
-
-/* list modules .. */
-static void
-mo_modlist(struct Client *client_p, struct Client *source_p,
-	   int parc, char *parv[])
-{
-  dlink_node *ptr;
-  struct module *modp;
-
-  if (!IsAdmin(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
-    return;
-  }
-
-  DLINK_FOREACH(ptr, mod_list.head)
-  {
-    modp = ptr->data;
-
-    if (parc > 1)
-    {
-      if (match(parv[1], modp->name))
-      {
-        sendto_one(source_p, form_str(RPL_MODLIST), me.name, parv[0],
-                   modp->name, modp->address,
-                   modp->version, modp->core?"(core)":"");
-      }
-    }
-    else
-    {
-      sendto_one(source_p, form_str(RPL_MODLIST), me.name, parv[0],
-                 modp->name, modp->address,
-                 modp->version, modp->core?"(core)":"");
-    }
-  }
-
-  sendto_one(source_p, form_str(RPL_ENDOFMODLIST),
-             me.name, source_p->name);
-}
-
-/* unload and reload all modules */
-static void
-mo_modrestart(struct Client *client_p, struct Client *source_p,
-              int parc, char *parv[])
-{
-  unsigned int modnum = 0;
-  dlink_node *ptr;
-  dlink_node *tptr;
-  struct module *modp;
-  
-  if (!IsAdmin(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
-               me.name, source_p->name);
-    return;
-  }
-
-  sendto_one(source_p, ":%s NOTICE %s :Reloading all modules",
-             me.name, source_p->name);
-
-  modnum = dlink_list_length(&mod_list);
-
-  DLINK_FOREACH_SAFE(ptr, tptr, mod_list.head)
-  {
-    modp = ptr->data;
-    unload_one_module(modp->name, 0);
-  }
-
-  load_all_modules(0);
-  load_conf_modules();
-  load_core_modules(0);
-
-  sendto_realops_flags(UMODE_ALL, L_ALL,
-              "Module Restart: %u modules unloaded, %u modules loaded",
-			modnum, dlink_list_length(&mod_list));
-  ilog(L_WARN, "Module Restart: %u modules unloaded, %u modules loaded",
-       modnum, dlink_list_length(&mod_list));
-}
-
-#else /* STATIC_MODULES */
-#include "s_serv.h"
-
-/* load_all_modules()
- *
- * input        - warn flag
- * output       - NONE
- * side effects - all the msgtabs are added for static modules
- */
-void
-load_all_modules(int warn)
-{
-  mod_add_cmd(&error_msgtab);
-  mod_add_cmd(&accept_msgtab);
-  mod_add_cmd(&admin_msgtab);
-  mod_add_cmd(&away_msgtab);
-  mod_add_cmd(&bmask_msgtab);
-  mod_add_cmd(&cap_msgtab);
-  mod_add_cmd(&capab_msgtab);
-  mod_add_cmd(&cburst_msgtab);
-  mod_add_cmd(&close_msgtab);
-  mod_add_cmd(&connect_msgtab);
-#ifdef HAVE_LIBCRYPTO
-  mod_add_cmd(&challenge_msgtab);
-  mod_add_cmd(&cryptlink_msgtab);
-#endif
-  mod_add_cmd(&die_msgtab);
-  mod_add_cmd(&drop_msgtab);
-  mod_add_cmd(&eob_msgtab);
-  mod_add_cmd(&etrace_msgtab);
-  mod_add_cmd(&gline_msgtab);
-  add_capability("GLN", CAP_GLN, 1);
-  mod_add_cmd(&hash_msgtab);
-  mod_add_cmd(&ungline_msgtab);
-  mod_add_cmd(&info_msgtab);
-  mod_add_cmd(&invite_msgtab);
-  mod_add_cmd(&ison_msgtab);
-  mod_add_cmd(&join_msgtab);
-  mod_add_cmd(&kick_msgtab);
-  mod_add_cmd(&kill_msgtab);
-  mod_add_cmd(&kline_msgtab);
-  add_capability("KLN", CAP_KLN, 1);
-  mod_add_cmd(&dline_msgtab);
-  mod_add_cmd(&unkline_msgtab);
-  mod_add_cmd(&undline_msgtab);
-  mod_add_cmd(&knock_msgtab);
-  add_capability("KNOCK", CAP_KNOCK, 1);
-  mod_add_cmd(&knockll_msgtab);
-  mod_add_cmd(&links_msgtab);
-  mod_add_cmd(&list_msgtab);
-  mod_add_cmd(&lljoin_msgtab);
-  mod_add_cmd(&llnick_msgtab);
-  mod_add_cmd(&locops_msgtab);
-  mod_add_cmd(&lusers_msgtab);
-  mod_add_cmd(&privmsg_msgtab);
-  mod_add_cmd(&notice_msgtab);
-  mod_add_cmd(&map_msgtab);
-  mod_add_cmd(&mode_msgtab);
-  mod_add_cmd(&motd_msgtab);
-  mod_add_cmd(&names_msgtab);
-  mod_add_cmd(&nburst_msgtab);
-  mod_add_cmd(&nick_msgtab);
-  mod_add_cmd(&omotd_msgtab);
-  mod_add_cmd(&oper_msgtab);
-  mod_add_cmd(&operwall_msgtab);
-  mod_add_cmd(&part_msgtab);
-  mod_add_cmd(&pass_msgtab);
-  mod_add_cmd(&ping_msgtab);
-  mod_add_cmd(&pong_msgtab);
-  mod_add_cmd(&post_msgtab);
-  mod_add_cmd(&get_msgtab);
-  mod_add_cmd(&put_msgtab);
-  mod_add_cmd(&quit_msgtab);
-  mod_add_cmd(&rehash_msgtab);
-  mod_add_cmd(&restart_msgtab);
-  mod_add_cmd(&resv_msgtab);
-  mod_add_cmd(&rkline_msgtab);
-  mod_add_cmd(&rxline_msgtab);
-  mod_add_cmd(&server_msgtab);
-  mod_add_cmd(&set_msgtab);
-  mod_add_cmd(&sid_msgtab);
-  mod_add_cmd(&sjoin_msgtab);
-  mod_add_cmd(&squit_msgtab);
-  mod_add_cmd(&stats_msgtab);
-  mod_add_cmd(&svinfo_msgtab);
-  mod_add_cmd(&tb_msgtab);
-  add_capability("TB", CAP_TB, 1);
-  mod_add_cmd(&tburst_msgtab);
-  add_capability("TBURST", CAP_TBURST, 1);
-  mod_add_cmd(&testline_msgtab);
-  mod_add_cmd(&testgecos_msgtab);
-  mod_add_cmd(&testmask_msgtab);
-  mod_add_cmd(&time_msgtab);
-  mod_add_cmd(&tmode_msgtab);
-  mod_add_cmd(&topic_msgtab);
-  mod_add_cmd(&trace_msgtab);
-  add_capability("UNKLN", CAP_UNKLN, 1);
-  mod_add_cmd(&uid_msgtab);
-  mod_add_cmd(&unresv_msgtab);
-  mod_add_cmd(&unxline_msgtab);
-  mod_add_cmd(&user_msgtab);
-  mod_add_cmd(&userhost_msgtab);
-  mod_add_cmd(&users_msgtab);
-  mod_add_cmd(&version_msgtab);
-  mod_add_cmd(&wallops_msgtab);
-  mod_add_cmd(&watch_msgtab);
-  mod_add_cmd(&who_msgtab);
-  mod_add_cmd(&whois_msgtab);
-  mod_add_cmd(&whowas_msgtab);
-  mod_add_cmd(&xline_msgtab);
-  mod_add_cmd(&help_msgtab);
-  mod_add_cmd(&uhelp_msgtab);
-#ifdef BUILD_CONTRIB
-  mod_add_cmd(&bs_msgtab);
-  mod_add_cmd(&botserv_msgtab);
-  mod_add_cmd(&capture_msgtab);
-  mod_add_cmd(&chanserv_msgtab);
-  mod_add_cmd(&chghost_msgtab);
-  mod_add_cmd(&chgident_msgtab);
-  mod_add_cmd(&chgname_msgtab);
-  mod_add_cmd(&classlist_msgtab);
-  mod_add_cmd(&clearchan_msgtab);
-  mod_add_cmd(&cs_msgtab);
-  mod_add_cmd(&ctrace_msgtab);
-  mod_add_cmd(&delspoof_msgtab);
-  mod_add_cmd(&flags_msgtab);
-  mod_add_cmd(&forcejoin_msgtab);
-  mod_add_cmd(&forcepart_msgtab);
-  mod_add_cmd(&global_msgtab);
-  mod_add_cmd(&help_msgtab);
-  mod_add_cmd(&uhelp_msgtab);
-  mod_add_cmd(&helpserv_msgtab);
-  mod_add_cmd(&hostserv_msgtab);
-  mod_add_cmd(&identify_msgtab);
-  mod_add_cmd(&jupe_msgtab);
-  mod_add_cmd(&killhost_msgtab);
-  mod_add_cmd(&ltrace_msgtab);
-  mod_add_cmd(&memoserv_msgtab);
-  mod_add_cmd(&mkpasswd_msgtab);
-  mod_add_cmd(&ms_msgtab);
-  mod_add_cmd(&nickserv_msgtab);
-  mod_add_cmd(&ns_msgtab);
-  mod_add_cmd(&ojoin_msgtab);
-  mod_add_cmd(&operserv_msgtab);
-  mod_add_cmd(&operspy_msgtab);
-  mod_add_cmd(&opme_msgtab);
-  mod_add_cmd(&os_msgtab);
-  mod_add_cmd(&seenserv_msgtab);
-  mod_add_cmd(&spoof_msgtab);
-  mod_add_cmd(&statserv_msgtab);
-  mod_add_cmd(&svsnick_msgtab);
-  mod_add_cmd(&uncapture_msgtab);
-#endif
-}
-#endif /* STATIC_MODULES */

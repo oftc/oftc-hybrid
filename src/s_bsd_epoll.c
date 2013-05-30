@@ -29,7 +29,7 @@
 #include "ircd.h"
 #include "memory.h"
 #include "s_bsd.h"
-#include "s_log.h"
+#include "log.h"
 #include <sys/epoll.h>
 #include <sys/syscall.h>
 
@@ -104,7 +104,7 @@ init_netio(void)
 
   if ((fd = epoll_create(hard_fdlimit)) < 0)
   {
-    ilog(L_CRIT, "init_netio: Couldn't open epoll fd - %d: %s",
+    ilog(LOG_TYPE_IRCD, "init_netio: Couldn't open epoll fd - %d: %s",
          errno, strerror(errno));
     exit(115); /* Whee! */
   }
@@ -161,7 +161,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 
     if (epoll_ctl(efd.fd, op, F->fd, &ep_event) != 0)
     {
-      ilog(L_CRIT, "comm_setselect: epoll_ctl() failed: %s", strerror(errno));
+      ilog(LOG_TYPE_IRCD, "comm_setselect: epoll_ctl() failed: %s", strerror(errno));
       abort();
     }
   }

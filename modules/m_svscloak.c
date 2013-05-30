@@ -19,8 +19,6 @@
  */
 
 #include "stdinc.h"
-#include "common.h"
-#include "handlers.h"
 #include "client.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -29,8 +27,7 @@
 #include "numeric.h"
 #include "s_serv.h"
 #include "send.h"
-#include "s_conf.h"
-#include "msg.h"
+#include "conf.h"
 #include "parse.h"
 #include "modules.h"
 #include "irc_string.h"
@@ -98,7 +95,7 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
     }
 
     /* Send to all Servers but the one WE got the SVSCLOAK from */
-    sendto_server(client_p, NULL, NOCAPS, NOCAPS, NOFLAGS, 
+    sendto_server(client_p, NOCAPS, NOCAPS, NOFLAGS, 
           ":%s SVSCLOAK %s :%s", parv[0], parv[1], parv[2]);
 
     /* locally modify the clients structure */

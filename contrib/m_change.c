@@ -22,65 +22,24 @@
  *  $Id$
  */
 
-/* List of ircd includes from ../include/ */
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"     /* FALSE bleah */
 #include "ircd.h"
 #include "irc_string.h"
 #include "numeric.h"
 #include "fdlist.h"
 #include "s_bsd.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_user.h"
 #include "hash.h"
 #include "userhost.h"
+#include "channel_mode.h"
 
-static void mo_chgident(struct Client *, struct Client *, int, char *[]);
-static void mo_chghost(struct Client *, struct Client *, int, char *[]);
-static void mo_chgname(struct Client *, struct Client *, int, char *[]);
-
-struct Message chgident_msgtab = {
-  "CHGIDENT", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_chgident, mo_chgident, mo_chgident, m_ignore}
-};
-
-struct Message chghost_msgtab = {
-  "CHGHOST", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_chghost, mo_chghost, mo_chghost, m_ignore}
-};
-
-struct Message chgname_msgtab = {
-  "CHGNAME", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_chgname, mo_chgname, mo_chgname, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&chgident_msgtab);
-  mod_add_cmd(&chghost_msgtab);
-  mod_add_cmd(&chgname_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&chgname_msgtab);
-  mod_del_cmd(&chghost_msgtab);
-  mod_del_cmd(&chgident_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 static void
 mo_chgident(struct Client *client_p, struct Client *source_p,
@@ -88,7 +47,7 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !IsOperAdmin(source_p))
+  if (MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "CHGIDENT");
@@ -104,7 +63,7 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
       return;
   }
   else {
-    target_p = find_client(parv[1]);
+    target_p = hash_find_client(parv[1]);
 
     if (target_p == NULL || !IsClient(target_p))
     {
@@ -131,16 +90,21 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
 
   if (MyClient(source_p))
   {
-    sendto_server(client_p, NULL, NOCAPS, NOCAPS, ":%s ENCAP * CHGIDENT %s %s",
+    sendto_server(client_p, NOCAPS, NOCAPS, ":%s ENCAP * CHGIDENT %s %s",
                   source_p->name, target_p->name, parv[2]);
     sendto_one(source_p, ":%s NOTICE %s :%s changed to %s@%s",
                me.name, source_p->name, target_p->name, target_p->username,
                target_p->host);
   }
 
-  if (MyConnect(target_p) && IsClient(source_p))
-    sendto_one(target_p, ":%s NOTICE %s :You are now %s@%s",
-               me.name, target_p->name, target_p->username, target_p->host);
+  if (MyClient(target_p))
+  {
+    if (IsClient(source_p))
+      sendto_one(target_p, ":%s NOTICE %s :You are now %s@%s",
+                 me.name, target_p->name, target_p->username, target_p->host);
+
+    clear_ban_cache_client(target_p);
+  }
 }
 
 static void
@@ -149,7 +113,7 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !IsOperAdmin(source_p))
+  if (MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "CHGHOST");
@@ -165,7 +129,7 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
       return;
   }
   else {
-    target_p = find_client(parv[1]);
+    target_p = hash_find_client(parv[1]);
 
     if (target_p == NULL || !IsClient(target_p))
     {
@@ -193,16 +157,20 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
 
   if (MyClient(source_p))
   {
-    sendto_server(client_p, NULL, NOCAPS, NOCAPS, ":%s ENCAP * CHGHOST %s %s",
+    sendto_server(client_p, NOCAPS, NOCAPS, ":%s ENCAP * CHGHOST %s %s",
                   source_p->name, target_p->name, parv[2]);
     sendto_one(source_p, ":%s NOTICE %s :%s changed to %s@%s",
                me.name, source_p->name, target_p->name, target_p->username,
                target_p->host);
   }
 
-  if (MyConnect(target_p) && IsClient(source_p))
-    sendto_one(target_p, ":%s NOTICE %s :You are now %s@%s",
-               me.name, target_p->name, target_p->username, target_p->host);
+  if (MyClient(target_p))
+  {
+    if (IsClient(source_p))
+      sendto_one(target_p, ":%s NOTICE %s :You are now %s@%s",
+                 me.name, target_p->name, target_p->username, target_p->host);
+    clear_ban_cache_client(target_p);
+  }
 }
 
 static void
@@ -211,7 +179,7 @@ mo_chgname(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !IsOperAdmin(source_p))
+  if (MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "CHGNAME");
@@ -223,7 +191,7 @@ mo_chgname(struct Client *client_p, struct Client *source_p,
     parv[2] = parv[1];
     target_p = source_p;
   }
-  else if ((target_p = find_client(parv[1])) == NULL)
+  else if ((target_p = hash_find_client(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                me.name, source_p->name, parv[1]);
@@ -246,7 +214,7 @@ mo_chgname(struct Client *client_p, struct Client *source_p,
 
   if (MyClient(source_p))
   {
-    sendto_server(client_p, NULL, NOCAPS, NOCAPS, ":%s ENCAP * CHGNAME %s :%s",
+    sendto_server(client_p, NOCAPS, NOCAPS, ":%s ENCAP * CHGNAME %s :%s",
                   source_p->name, target_p->name, parv[2]);
     sendto_one(source_p, ":%s NOTICE %s :%s realname changed to [%s]",
                me.name, source_p->name, target_p->name, target_p->info);
@@ -256,3 +224,44 @@ mo_chgname(struct Client *client_p, struct Client *source_p,
     sendto_one(target_p, ":%s NOTICE %s :Your realname is now [%s]",
                me.name, target_p->name, target_p->info);
 }
+
+static struct Message chgident_msgtab = {
+  "CHGIDENT", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, mo_chgident, mo_chgident, mo_chgident, m_ignore}
+};
+
+static struct Message chghost_msgtab = {
+  "CHGHOST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, mo_chghost, mo_chghost, mo_chghost, m_ignore}
+};
+
+static struct Message chgname_msgtab = {
+  "CHGNAME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, mo_chgname, mo_chgname, mo_chgname, m_ignore}
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&chgident_msgtab);
+  mod_add_cmd(&chghost_msgtab);
+  mod_add_cmd(&chgname_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&chgname_msgtab);
+  mod_del_cmd(&chghost_msgtab);
+  mod_del_cmd(&chgident_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

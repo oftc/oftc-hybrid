@@ -24,52 +24,22 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "m_info.h"
 #include "channel.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "ircd.h"
-#include "hook.h"
 #include "numeric.h"
-#include "s_log.h"
 #include "s_serv.h"
 #include "s_user.h"
 #include "send.h"
-#include "s_conf.h"
-#include "handlers.h"
-#include "msg.h"
+#include "conf.h"
 #include "parse.h"
 #include "modules.h"
+
 
 static void send_conf_options(struct Client *);
 static void send_birthdate_online_time(struct Client *);
 static void send_info_text(struct Client *);
-
-static void m_info(struct Client *, struct Client *, int, char *[]);
-static void ms_info(struct Client *, struct Client *, int, char *[]);
-static void mo_info(struct Client *, struct Client *, int, char *[]);
-
-struct Message info_msgtab = {
-  "INFO", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_info, ms_info, m_ignore, mo_info, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-const char *_version = "$Revision$";
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&info_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&info_msgtab);
-}
-#endif
 
 /*
  * jdc -- Structure for our configuration value table
@@ -93,6 +63,31 @@ struct InfoStruct
 static const struct InfoStruct info_table[] =
 {
   /* --[  START OF TABLE  ]-------------------------------------------- */
+
+  {
+    "CPATH",
+    OUTPUT_STRING,
+    &ConfigFileEntry.configfile,
+    "Path to Main Configuration File"
+  },
+  {
+    "DPATH",
+    OUTPUT_STRING,
+    &ConfigFileEntry.dpath,
+    "Directory Containing Configuration Files"
+  },
+  {
+    "DLPATH",
+    OUTPUT_STRING,
+    &ConfigFileEntry.dlinefile,
+    "Path to D-line File"
+  },
+  {
+    "KPATH",
+    OUTPUT_STRING,
+    &ConfigFileEntry.klinefile,
+    "Path to K-line File"
+  },
   {
     "network_name",
     OUTPUT_STRING,
@@ -118,70 +113,10 @@ static const struct InfoStruct info_table[] =
     "Enable logging"
   },
   {
-    "fuserlog",
-    OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.userlog,
-    "User log file"
-  },
-  {
-    "foperlog",
-    OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.operlog,
-    "Operator log file"
-  },
-  {
-    "fkilllog",
-    OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.killlog,
-    "Kill log file"
-  },
-  {
-    "fklinelog",
-    OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.klinelog,
-    "K-Line log file"
-  },
-  {
-    "fglinelog",
-    OUTPUT_STRING_PTR,
-    &ConfigLoggingEntry.glinelog,
-    "G-Line log file"
-  },
-  {
     "restrict_channels",
     OUTPUT_BOOLEAN_YN,
     &ConfigChannel.restrict_channels,
     "Only reserved channels are allowed"
-  },
-  {
-    "disable_local_channels",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.disable_local_channels,
-    "Prevent users from joining &channels"
-  },
- {
-    "use_invex",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_invex,
-    "Enable chanmode +I (invite exceptions)"
-  },
- {
-   "use_quiet",
-   OUTPUT_BOOLEAN_YN,
-   &ConfigChannel.use_quiet,
-   "Enable chanmode +q (Quiet users)"
- },
-  {
-    "use_except",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_except,
-    "Enable chanmode +e (ban exceptions)"
-  },
-  {
-    "use_knock",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.use_knock,
-    "Enable /KNOCK"
   },
   {
     "knock_delay",
@@ -200,6 +135,12 @@ static const struct InfoStruct info_table[] =
     OUTPUT_DECIMAL,
     &ConfigChannel.max_chans_per_user,
     "Maximum number of channels a user can join"
+  },
+  {
+    "max_chans_per_oper",
+    OUTPUT_DECIMAL,
+    &ConfigChannel.max_chans_per_oper,
+    "Maximum number of channels an oper can join"
   },
   {
     "quiet_on_ban",
@@ -238,12 +179,6 @@ static const struct InfoStruct info_table[] =
     "Disallow joining channels when split"
   },
   {
-    "burst_topicwho",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.burst_topicwho,
-    "Enable sending of who set topic on topicburst"
-  },
-  {
     "flatten_links",
     OUTPUT_BOOLEAN_YN,
     &ConfigServerHide.flatten_links,
@@ -260,12 +195,6 @@ static const struct InfoStruct info_table[] =
     OUTPUT_BOOLEAN_YN,
     &ConfigServerHide.hidden,
     "Hide this server from a flattened /links on remote servers"
-  },
-  {
-    "disable_hidden",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.disable_hidden,
-    "Prevent servers from hiding themselves from a flattened /links"
   },
   {
     "hide_servers",
@@ -302,18 +231,6 @@ static const struct InfoStruct info_table[] =
     OUTPUT_BOOLEAN_YN,
     &ConfigFileEntry.invisible_on_connect,
     "Automatically set mode +i on connecting users"
-  },
-  {
-    "burst_away",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.burst_away,
-    "Send /away string that users have set on the server burst"
-  },
-  {
-    "use_whois_actually",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.use_whois_actually,
-    "Show IP address on /WHOIS when possible"
   },
   {
     "kill_chase_time_limit",
@@ -424,18 +341,6 @@ static const struct InfoStruct info_table[] =
     "Maximum permitted TS delta from another server"
   },
   {
-    "kline_with_reason",
-    OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.kline_with_reason,
-    "Display K-line reason to client on disconnect"
-  },
-  {
-    "kline_reason",
-    OUTPUT_STRING,
-    &ConfigFileEntry.kline_reason,
-    "Reason given to K-lined clients on sign off"
-  },
-  {
     "warn_no_nline",
     OUTPUT_BOOLEAN,
     &ConfigFileEntry.warn_no_nline,
@@ -520,22 +425,10 @@ static const struct InfoStruct info_table[] =
     "Opers can over-ride RESVs"
   },
   {
-    "idletime",
-    OUTPUT_DECIMAL,
-    &ConfigFileEntry.idletime,
-    "Number of seconds before a client is considered idle"
-  },
-  {
     "max_targets",
     OUTPUT_DECIMAL,
     &ConfigFileEntry.max_targets,
     "The maximum number of PRIVMSG/NOTICE targets"
-  },
-  {
-    "client_flood",
-    OUTPUT_DECIMAL,
-    &ConfigFileEntry.client_flood,
-    "Maximum amount of data in a client's queue before they are disconnected"
   },
   {
     "throttle_time",
@@ -550,11 +443,19 @@ static const struct InfoStruct info_table[] =
     "G-line (network-wide K-line) support"
   },
   {
-    "duration",
+    "gline_duration",
     OUTPUT_DECIMAL,
     &ConfigFileEntry.gline_time,
     "Expiry time for G-lines"
   },
+
+  {
+    "gline_request_duration",
+    OUTPUT_DECIMAL,
+    &ConfigFileEntry.gline_request_time,
+    "Expiry time for pending G-lines"
+  },
+
   /* --[  END OF TABLE  ]---------------------------------------------- */
   {
     NULL,
@@ -662,7 +563,7 @@ send_info_text(struct Client *source_p)
                source, target, line);
   }
 
-  if (IsOper(source_p))
+  if (HasUMode(source_p, UMODE_OPER))
     send_conf_options(source_p);
 
   send_birthdate_online_time(source_p);
@@ -684,13 +585,13 @@ send_birthdate_online_time(struct Client *source_p)
   {
     sendto_one(source_p, ":%s %d %s :On-line since %s",
                me.id, RPL_INFO, source_p->id,
-               myctime(me.firsttime));
+               myctime(me.localClient->firsttime));
   }
   else
   {
     sendto_one(source_p, ":%s %d %s :On-line since %s",
                me.name, RPL_INFO, source_p->name,
-               myctime(me.firsttime));
+               myctime(me.localClient->firsttime));
   }
 }
 
@@ -703,7 +604,6 @@ send_birthdate_online_time(struct Client *source_p)
 static void
 send_conf_options(struct Client *source_p)
 {
-  Info *infoptr;
   const char *from, *to;
   const struct InfoStruct *iptr = NULL;
 
@@ -719,22 +619,6 @@ send_conf_options(struct Client *source_p)
   {
     from = me.name;
     to = source_p->name;
-  }
-
-  for (infoptr = MyInformation; infoptr->name; infoptr++)
-  {
-    if (infoptr->intvalue)
-    {
-      sendto_one(source_p, ":%s %d %s :%-30s %-5d [%-30s]",
-                 from, RPL_INFO, to, infoptr->name,
-                 infoptr->intvalue, infoptr->desc);
-    }
-    else
-    {
-      sendto_one(source_p, ":%s %d %s :%-30s %-5s [%-30s]",
-                 from, RPL_INFO, to, infoptr->name,
-                 infoptr->strvalue, infoptr->desc);
-    }
   }
 
   /*
@@ -817,15 +701,33 @@ send_conf_options(struct Client *source_p)
     }
   }
 
-  /* Don't send oper_only_umodes...it's a bit mask, we will have to decode it
-   * in order for it to show up properly to opers who issue INFO
-   */
-#ifndef EFNET
-  /* jdc -- Only send compile information to admins. */
-  if (IsAdmin(source_p))
-    sendto_one(source_p, ":%s %d %s :Running on [%s]",
-               from, RPL_INFO, to, ircd_platform); 
-#endif
   sendto_one(source_p, form_str(RPL_INFO),
              from, to, "");
 }
+
+static struct Message info_msgtab = {
+  "INFO", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_info, ms_info, m_ignore, mo_info, m_ignore }
+};
+
+static void
+module_init(void)
+{
+  mod_add_cmd(&info_msgtab);
+}
+
+static void
+module_exit(void)
+{
+  mod_del_cmd(&info_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

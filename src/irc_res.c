@@ -30,14 +30,13 @@
 #include "numeric.h"
 #include "restart.h"
 #include "fdlist.h"
-#include "fileio.h" /* for fbopen / fbclose / fbputs */
 #include "s_bsd.h"
-#include "s_log.h"
+#include "log.h"
+#include "s_misc.h"
 #include "send.h"
 #include "memory.h"
 #include "irc_res.h"
 #include "irc_reslib.h"
-#include "common.h"
 
 #if (CHAR_BIT != 8)
 #error this code needs to be able to address individual octets 
@@ -130,7 +129,7 @@ res_ourserver(const struct irc_ssaddr *inp)
   const struct sockaddr_in *v4in = (const struct sockaddr_in *)inp; 
   int ns;
 
-  for (ns = 0;  ns < irc_nscount;  ns++)
+  for (ns = 0; ns < irc_nscount; ++ns)
   {
     const struct irc_ssaddr *srv = &irc_nsaddr_list[ns];
 #ifdef IPV6
@@ -148,18 +147,15 @@ res_ourserver(const struct irc_ssaddr *inp)
       case AF_INET6:
         if (srv->ss.ss_family == inp->ss.ss_family)
           if (v6->sin6_port == v6in->sin6_port)
-            if ((memcmp(&v6->sin6_addr.s6_addr, &v6in->sin6_addr.s6_addr, 
-                    sizeof(struct in6_addr)) == 0) || 
-                (memcmp(&v6->sin6_addr.s6_addr, &in6addr_any, 
-                        sizeof(struct in6_addr)) == 0))
+            if (!memcmp(&v6->sin6_addr.s6_addr, &v6in->sin6_addr.s6_addr,
+                        sizeof(struct in6_addr)))
               return 1;
         break;
 #endif
       case AF_INET:
         if (srv->ss.ss_family == inp->ss.ss_family)
           if (v4->sin_port == v4in->sin_port)
-            if ((v4->sin_addr.s_addr == INADDR_ANY) || 
-                (v4->sin_addr.s_addr == v4in->sin_addr.s_addr))
+            if (v4->sin_addr.s_addr == v4in->sin_addr.s_addr)
               return 1;
         break;
       default:
@@ -233,7 +229,7 @@ start_resolver(void)
   {
     if(irc_nscount <= 0)
     {
-      ilog(L_ERROR, "Could not open resolver socket, no nameservers!");
+      ilog(LOG_TYPE_IRCD, "Could not open resolver socket, no nameservers!");
       return;
     }
 
@@ -697,7 +693,7 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
          * but its possible its just a broken nameserver with still
          * valid answers. But lets do some rudimentary logging for now...
          */
-        ilog(L_ERROR, "irc_res.c bogus type %d", type);
+        ilog(LOG_TYPE_IRCD, "irc_res.c bogus type %d", type);
         break;
     }
   }

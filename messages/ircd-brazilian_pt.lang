@@ -21,7 +21,7 @@ RPL_TRACENEWTYPE:	 :%s 208 %s <novo tipo> 0 %s
 RPL_TRACECLASS:		 :%s 209 %s Classe %s %d
 RPL_ENDOFSTATS:		 :%s 219 %s %c :Fim do relatório do /STATS
 RPL_STATSUPTIME:	 :%s 242 %s :Servidor ligado %d dias, %d:%02d:%02d
-RPL_STATSCONN:		 :%s 250 %s :Máximo de conexões: %d (%d clientes) (%d conexões recebidas)
+RPL_STATSCONN:		 :%s 250 %s :Máximo de conexões: %d (%d clientes) (%llu conexões recebidas)
 RPL_LUSERCLIENT:	 :%s 251 %s :Existem %d usuários e %d invisíveis em %d servidores
 RPL_LUSEROP:		 :%s 252 %s %d :Operadores do IRC conectados
 RPL_LUSERUNKNOWN:	 :%s 253 %s %d :conexão(ões) desconhecidas
@@ -119,14 +119,9 @@ RPL_KNOCKDLVR:		 :%s 711 %s %s :Seu KNOCK foi enviado.
 ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Muitos KNOCKs (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :Canal está aberto.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :Você já está no canal.
-ERR_KNOCKDISABLED:	 :%s 715 %s :KNOCKs estão desabilitados.
-ERR_TARGUMODEG:		 :%s 716 %s :%s está com o modo +g (lado do servidor ignora.)
+RPL_TARGUMODEG:		 :%s 716 %s :%s está com o modo +g (lado do servidor ignora.)
 RPL_TARGNOTIFY:		 :%s 717 %s :%s foram informados que você enviou uma mensagem para eles.
 RPL_UMODEGMSG:		 :%s 718 %s %s :está mandando uma mensagem para você, e você está com o modo +g.
-RPL_OMOTDSTART:		 :%s 720 %s :Início do OPER MOTD.
-RPL_OMOTD:		 :%s 721 %s :%s
-RPL_ENDOFOMOTD:		 :%s 722 %s :Fim do OPER MOTD.
 ERR_NOPRIVS:		 :%s 723 %s %s :Privilégios de oper insuficientes.
-RPL_TESTMASK:		 :%s 724 %s %s@%s %d %d :Clientes local/remote batem.
-RPL_TESTLINE:		 :%s 725 %s %c %ld %s :%s | %s
+RPL_TESTMASK:		 :%s 724 %s %s!%s@%s %u %u :Clientes local/remote batem.
 RPL_NOTESTLINE:		 :%s 726 %s %s :Não encontrado

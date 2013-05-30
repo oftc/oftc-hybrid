@@ -2,7 +2,7 @@
 
    $Id$
 
-   Copyright (c) 1997-2011 IRCD-Hybrid Development Team
+   Copyright (c) 1997-2012 IRCD-Hybrid Development Team
 
      ----------------------------------------------------------------------
 
@@ -16,13 +16,11 @@
    |   minimum. Try ./configure --help or read this file for more info on   |
    |   the possible options you can pass to configure.                      |
    |                                                                        |
-   | - Important: The old config format WILL NOT WORK. Please see point 7!  |
+   | - Important: The old config format WILL NOT WORK. Please see point 6!  |
    +------------------------------------------------------------------------+
 
    ***** EFNET NOTE *****
-   You should run ./configure with the option '--enable-efnet' to tweak
-   some options to be EFNet based. You must also use the example.efnet.conf
-   instead of example.conf.
+   You should use the example.efnet.conf instead of example.conf.
    **********************
 
      ----------------------------------------------------------------------
@@ -34,11 +32,11 @@
    ircd-hybrid.
    
    1.  Read the NEWS file to find out about the exciting new features in
-       this version. Other good reads are BUGS, etc/example.conf, and
+       this version. Other good reads are BUGS, doc/example.conf, and
        README.
 
    2.  Run the configure script. It will create config.h and the
-       Makefiles to match your system. In hybrid-7, the paths are now handled
+       Makefiles to match your system. The paths are now handled
        with the --prefix option to configure.
        /usr/local/ircd is the default if no prefix is specified.
 
@@ -73,10 +71,12 @@
           enable select(2) instead (bad idea), you must use --enable-select.
 
           * --enable-openssl - Enable the openssl dependent crypto functions.
-            This will allow CHALLENGE to work and encrypted links. On systems
-            where the configure script can automatically detect OpenSSL, this
-            option is not necessary. If configure cannot find OpenSSL, you
-            must specify a path with this option
+            Required for the SSL Challenge controlled OPER feature, compressed
+            and/or SSL/TLS server links, as well as SSL/TLS client connections.
+
+            On systems where the configure script can automatically detect
+            OpenSSL, this option is not necessary. If configure cannot find
+            OpenSSL, you must specify a path with this option
             (--enable-openssl=/path/to/openssl)
 
 
@@ -91,25 +91,11 @@
             may or may not kick/deop other halfops depending on if (+p) is
             set. Halfops may not set (+/-p).
 
-          * --enable-small-net - Tunes the server for smaller networks by
-            reducing the startup memory footprint. This should really only be
-            used for *small* networks, as this tends to be a performance hit
-            on larger networks.
-
-          * --enable-syslog=kill/squit/connect/users/oper, separated by
-            spaces, in quotes - Enables syslog logging, with events you specify
-            (none is okay too, and logs the most essential messages only.)
-
-          * --enable-syslog-facility=FACILITY - Check with your sysadmin to see
-            what this should be; by default it is LOG_LOCAL4. If you get it wrong
-            initially, no problem; just edit the value in include/setup.h.
-
           * --with-nicklen,
             --with-topiclen - Respectively, sets the maximum NICK length and
             maximum TOPIC length. Note that this must be consistent across your
             entire network. Defaults are 9 and 120, respectively.
 
-          * --disable-zlib - Build the ircd without ziplinks support.
 
           * --disable-gline-voting - This is good for small networks or where
             G-Line voting is not necessary. Please understand that by disabling
@@ -125,21 +111,7 @@
    5.  If you wish to install the contrib modules, run 'make install' in the
        contrib/ folder to compile and install the modules and help pages.
 
-   6.  If you wish to enable the user log, oper log, and failed oper log,
-       kill log, kline log and the gline log issue these commands at the
-       shell prompt (in the prefix directory).
-
-       $ touch logs/userlog
-       $ touch logs/operlog
-       $ touch logs/foperlog
-       $ touch logs/kill
-       $ touch logs/kline
-       $ touch logs/gline
-
-       Note: If you use different names in ircd.conf, you must 'touch'
-             their specific names.
-
-   7.  If you are upgrading from Hybrid 5 or Hybrid 6, the config files
+   6.  If you are upgrading from Hybrid 5 or Hybrid 6, the config files
        have changed drastically.
 
        By default, the kline file is named kline.conf, the dline file is 
@@ -147,8 +119,6 @@
 
        The nick resv file is named nresv.conf, channel resv file is named
        cresv.conf.
-
-       The oper motd file is named opers.motd.
 
      ----------------------------------------------------------------------
 
