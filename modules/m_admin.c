@@ -67,7 +67,6 @@ do_admin(struct Client *source_p)
     sendto_one(source_p, form_str(RPL_ADMINEMAIL),
                me_name, nick, AdminInfo.email);
 }
-#endif
 
 /*! \brief ADMIN command handler (called by unregistered,
  *         locally connected clients)

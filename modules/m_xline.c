@@ -151,7 +151,7 @@ ms_xline(struct Client *client_p, struct Client *source_p,
   if (!valid_xline(source_p, parv[2], parv[4], 0))
     return;
 
-  relay_xline(source_p, parv, NO);
+  relay_xline(source_p, parv, false);
 }
 
 /* me_xline()
@@ -177,7 +177,7 @@ me_xline(struct Client *client_p, struct Client *source_p,
   if (!IsClient(source_p) || parc != 5)
     return;
 
-  relay_xline(source_p, parv, YES);
+  relay_xline(source_p, parv, true);
 }
 
 static void

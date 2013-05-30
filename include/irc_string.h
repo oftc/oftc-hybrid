@@ -75,10 +75,6 @@ extern size_t strlcpy(char *, const char *, size_t);
 extern size_t strlcat(char *, const char *, size_t);
 #endif
 
-#ifndef HAVE_BASENAME
-extern char *basename(char *);
-#endif
-
 /*
  * clean_string - cleanup control and high ascii characters
  * -Dianora

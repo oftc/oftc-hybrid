@@ -154,7 +154,7 @@ free_client(struct Client *client_p)
   assert(client_p->channel.head == NULL);
   assert(dlink_list_length(&client_p->channel) == 0);
   assert(dlink_list_length(&client_p->whowas) == 0);
-  assert(!IsServer(client_p) || IsServer(client_p) && client_p->serv);
+  assert(!IsServer(client_p) || (IsServer(client_p) && client_p->serv));
 
   MyFree(client_p->away);
   MyFree(client_p->serv);
@@ -318,7 +318,7 @@ check_pings_list(dlink_list *list)
 	  SetPingWarning(client_p);
           sendto_realops_flags(UMODE_ALL, L_ALL, 
 	                       "Warning, no response from %s in %d seconds (at %s)",
-	                       get_client_name(client_p, SHOW_IP), (CurrentTime - client_p->lasttime - ping), timestamp);
+	                       get_client_name(client_p, SHOW_IP), (CurrentTime - client_p->localClient->lasttime - ping), timestamp);
           ilog(LOG_TYPE_IRCD, "No response from %s in %d seconds",
 	       get_client_name(client_p, HIDE_IP), pingwarn);
         }
@@ -754,7 +754,7 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
     if (!MyConnect(source_p))
     {
       aconf = find_conf_by_address(source_p->host, &source_p->ip, 
-          CONF_CLIENT, source_p->aftype, source_p->username, NULL, source_p->certfp);
+          CONF_CLIENT, source_p->aftype, source_p->username, NULL, 1, source_p->certfp);
 
       aclass = map_to_conf(aconf->class_ptr);
       assert(aclass != NULL);

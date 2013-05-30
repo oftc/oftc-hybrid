@@ -1663,7 +1663,7 @@ get_channel_access(struct Client *source_p, struct Membership *member)
     return CHACCESS_HALFOP;
 #endif
 
-  if(IsGod(source_p)) 
+  if(HasUMode(source_p, UMODE_GOD)) 
     return CHACCESS_CHANOP+1; 
 
   return CHACCESS_PEON;

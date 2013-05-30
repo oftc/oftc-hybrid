@@ -74,7 +74,7 @@ remove_tdline_match(const char *host)
     piphost = NULL;
   }
 
-  if ((aconf = find_conf_by_address(host, piphost, CONF_DLINE, t, NULL, NULL, 0)))
+  if ((aconf = find_conf_by_address(host, piphost, CONF_DLINE, t, NULL, NULL, 0, NULL)))
   {
     if (IsConfTemporary(aconf))
     {
@@ -305,8 +305,8 @@ ms_dline(struct Client *client_p, struct Client *source_p,
         return;
       }
 
-      getnameinfo((struct sockaddr *)&target_p->localClient->ip,
-                  target_p->localClient->ip.ss_len, hostip,
+      getnameinfo((struct sockaddr *)&target_p->ip,
+                  target_p->ip.ss_len, hostip,
                   sizeof(hostip), NULL, 0, NI_NUMERICHOST);
       dlhost = hostip;
       t = parse_netmask(dlhost, NULL, &bits);
@@ -360,22 +360,17 @@ ms_dline(struct Client *client_p, struct Client *source_p,
 
     if (tkline_time != 0)
     {
-      snprintf(buffer, sizeof(buffer), "Temporary D-line %d min. - %s (%s)",
-               (int)(tkline_time/60), reason, current_date);
-      DupString(aconf->reason, buffer);
-      if (oper_reason != NULL)
-        DupString(aconf->oper_reason, oper_reason);
-      apply_tdline(source_p, conf, current_date, tkline_time);
+      aconf->hold = CurrentTime + tkline_time;
+      add_temp_line(conf);
     }
     else
-    {
-      snprintf(buffer, sizeof(buffer), "%s (%s)", reason, current_date);
-      DupString(aconf->reason, buffer);
-      if (oper_reason != NULL)
-        DupString(aconf->oper_reason, oper_reason);
       add_conf_by_address(CONF_DLINE, aconf);
-      write_conf_line(source_p, conf, current_date, cur_time);
-    }
+
+    snprintf(buffer, sizeof(buffer), "%s (%s)", reason, current_date);
+    DupString(aconf->reason, buffer);
+    if (oper_reason != NULL)
+      DupString(aconf->oper_reason, oper_reason);
+    write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
 
     rehashed_klines = 1;
   }

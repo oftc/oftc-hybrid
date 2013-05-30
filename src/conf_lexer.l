@@ -268,7 +268,8 @@ rsa_private_key_file		{ return RSA_PRIVATE_KEY_FILE; }
 rsa_public_key_file		{ return RSA_PUBLIC_KEY_FILE; }
 ssl 				{ return T_SSL; }
 ssl_certificate_file        { return SSL_CERTIFICATE_FILE; }
-ssl_server_protocol       { return T_SSL_CONNECTION_METHOD; }
+ssl_client_method       { return T_SSL_CLIENT_METHOD; }
+ssl_server_method       { return T_SSL_SERVER_METHOD; }
 ssl_dh_param_file       { return SSL_DH_PARAM_FILE; }
 ssl_cipher_list         { return T_SSL_CIPHER_LIST; }
 sslv3		{ return T_SSLV3; }
@@ -369,7 +370,6 @@ softcallerid            { return T_SOFTCALLERID; }
 drone                   { return T_DRONE; }
 locops                  { return T_LOCOPS; }
 god                     { return T_GOD; }
-nickservreg             { return T_NICKSERVREG; }
 topicburst		{ return TOPICBURST; }
 
 weeks			{ return WEEKS; }

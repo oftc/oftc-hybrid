@@ -892,13 +892,13 @@ sendto_realops_remote(struct Client *source_p, unsigned int flags, int level,
   DLINK_FOREACH(ptr, oper_list.head)
   {
     struct Client *client_p = ptr->data;
-    assert(HasUmode(client_p, UMODE_OPER));
+    assert(HasUMode(client_p, UMODE_OPER));
 
     /* If we're sending it to opers and theyre an admin, skip.
      * If we're sending it to admins, and theyre not, skip.
      */
-    if (((level == L_ADMIN) && !HasUmode(client_p, UMODE_ADMIN)) ||
-        ((level == L_OPER) && HasUmode(client_p, UMODE_ADMIN)))
+    if (((level == L_ADMIN) && !HasUMode(client_p, UMODE_ADMIN)) ||
+        ((level == L_OPER) && HasUMode(client_p, UMODE_ADMIN)))
       continue;
 
     if (client_p->umodes & flags)
@@ -995,7 +995,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
           struct Client *client_p = ptr->data;
           assert(client_p->umodes & UMODE_OPER);
 
-          if ((HasUMode(client_p, flags) && !IsDefunct(client_p))
+          if (HasUMode(client_p, flags) && !IsDefunct(client_p))
             send_message(client_p, buffer, len);
         }
         break;
@@ -1004,7 +1004,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
         {
             struct Client *client_p = ptr->data;
 
-            if ((HasUMode(client_p, flags) && !IsDefunct(client_p))
+            if (HasUMode(client_p, flags) && !IsDefunct(client_p))
               send_message(client_p, buffer, len);
         }
         break;

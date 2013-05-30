@@ -94,14 +94,13 @@ m_challenge(struct Client *client_p, struct Client *source_p,
     {
       /* XXX: logging */
       sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
-          source_p->localClient->auth_oper);
       return;
     }
 
     if (attach_conf(source_p, conf) != 0)
     {
       sendto_one(source_p,":%s NOTICE %s :Can't attach conf!",
-     me.name, source_p->name);   
+                me.name, source_p->name);
       failed_challenge_notice(source_p, conf->name, "can't attach conf!");
       return;
     }
@@ -125,12 +124,12 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   source_p->localClient->auth_oper = NULL;
 
   if ((conf = find_conf_exact(OPER_TYPE,
-            parv[1], source_p->username, source_p->host
-            )) != NULL)
+                             parv[1], source_p->username, source_p->host
+                             )) != NULL)
     aconf = map_to_conf(conf);
   else if ((conf = find_conf_exact(OPER_TYPE,
-           parv[1], source_p->username,
-           source_p->sockhost)) != NULL)
+                                  parv[1], source_p->username,
+                                  source_p->sockhost)) != NULL)
     aconf = map_to_conf(conf);
 
   if (aconf == NULL)

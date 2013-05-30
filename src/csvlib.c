@@ -61,7 +61,7 @@ find_and_delete_temporary(const char *user, const char *host, int type)
     piphost = NULL;
   }
 
-  if ((aconf = find_conf_by_address(host, piphost, type, t, user, NULL, 0)))
+  if ((aconf = find_conf_by_address(host, piphost, type, t, user, NULL, 0, NULL)))
   {
     if (IsConfTemporary(aconf))
     {
@@ -129,7 +129,7 @@ parse_csv_file(FILE *file, ConfType conf_type)
         if (aconf->host != NULL)
         {
           if(duration_field == NULL)
-            add_conf_by_address(CONF_KILL, aconf);
+            add_conf_by_address(CONF_KLINE, aconf);
           else
             add_temp_line(conf);
         }
@@ -381,10 +381,8 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           get_oper_name(source_p), aconf->user, aconf->host, aconf->reason);
       sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
           from, to, aconf->user, aconf->host);
-      ilog(LOG_KLINE_TYPE, "%s added K-Line for [%s@%s] [%s]",
+      ilog(LOG_TYPE_KLINE, "%s added K-Line for [%s@%s] [%s]",
           source_p->name, aconf->user, aconf->host, aconf->reason);
-      log_oper_action(LOG_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-          aconf->user, aconf->host, aconf->reason);
       write_csv_line(out, "%s%s%s%s%s%s%d",
           aconf->user, aconf->host, aconf->reason, aconf->oper_reason, 
           current_date, get_oper_name(source_p), cur_time);
@@ -398,10 +396,8 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
       sendto_one(source_p,
           ":%s NOTICE %s :Added temporary %d min. K-Line [%s@%s]", from, to, 
           duration/60, aconf->user, aconf->host);
-      ilog(LOG_KLINE_TYPE, "%s added temporary %jd min. K-Line for [%s@%s] [%s]",
+      ilog(LOG_TYPE_KLINE, "%s added temporary %jd min. K-Line for [%s@%s] [%s]",
           source_p->name, (intmax_t)(duration/60), aconf->user, aconf->host, aconf->reason);
-      log_oper_action(LOG_TEMP_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-          aconf->user, aconf->host, aconf->reason);
       write_csv_line(out, "%s%s%s%s%s%s%d%d", aconf->user, aconf->host,
           aconf->reason, aconf->oper_reason, current_date,
           get_oper_name(source_p), cur_time, aconf->hold);
@@ -418,10 +414,8 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           aconf->user, aconf->host, aconf->reason);
       sendto_one(source_p, ":%s NOTICE %s :Added RK-Line [%s@%s]",
           from, to, aconf->user, aconf->host);
-      ilog(LOG_KLINE_TYPE, "%s added K-Line for [%s@%s] [%s]",
+      ilog(LOG_TYPE_KLINE, "%s added K-Line for [%s@%s] [%s]",
           source_p->name, aconf->user, aconf->host, aconf->reason);
-      log_oper_action(LOG_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-          aconf->user, aconf->host, aconf->reason);
       write_csv_line(out, "%s%s%s%s%s%s%d",
           aconf->user, aconf->host,
           aconf->reason, aconf->oper_reason, current_date,
@@ -439,8 +433,6 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
       ilog(LOG_TYPE_IRCD, "%s added temporary %jd min. RK-Line for [%s@%s] [%s]",
           source_p->name, (intmax_t)(duration/60),
           aconf->user, aconf->host, aconf->reason);
-      log_oper_action(LOG_TEMP_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-          aconf->user, aconf->host, aconf->reason);
       write_csv_line(out, "%s%s%s%s%s%s%d%d",
           aconf->user, aconf->host,
           aconf->reason, aconf->oper_reason, current_date,
@@ -457,10 +449,8 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           get_oper_name(source_p), aconf->host, aconf->reason);
       sendto_one(source_p, ":%s NOTICE %s :Added D-Line [%s] to %s",
           from, to, aconf->host, filename);
-      ilog(LOG_DLINE_TYPE, "%s added D-Line for [%s] [%s]",
+      ilog(LOG_TYPE_DLINE, "%s added D-Line for [%s] [%s]",
           get_oper_name(source_p), aconf->host, aconf->reason);
-      log_oper_action(LOG_DLINE_TYPE, source_p, "[%s] [%s]\n",
-          aconf->host, aconf->reason);
       write_csv_line(out, "%s%s%s%s%s%d",
           aconf->host, aconf->reason, aconf->oper_reason, 
           current_date,
@@ -474,10 +464,8 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
 
       sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. D-Line [%s]",
           from, to, duration/60, aconf->host);
-      ilog(LOG_DLINE_TYPE, "%s added temporary %d min. D-Line for [%s] [%s]",
+      ilog(LOG_TYPE_DLINE, "%s added temporary %d min. D-Line for [%s] [%s]",
           source_p->name, (int)duration/60, aconf->host, aconf->reason);
-      log_oper_action(LOG_TEMP_DLINE_TYPE, source_p, "[%s@%s] [%s]\n",
-          aconf->user, aconf->host, aconf->reason);
       write_csv_line(out, "%s%s%s%s%s%d%d",
           aconf->host, aconf->reason, aconf->oper_reason, 
           current_date, get_oper_name(source_p), cur_time, aconf->hold);

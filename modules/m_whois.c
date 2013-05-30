@@ -73,8 +73,8 @@ m_whois(struct Client *client_p, struct Client *source_p,
                  me.name, source_p->name);
       return;
     }
-    else
-      last_used = CurrentTime;
+    
+    last_used = CurrentTime;
 
     /* if we have serverhide enabled, they can either ask the clients
      * server, or our server.. I dont see why they would need to ask
@@ -246,8 +246,7 @@ global_whois(struct Client *source_p, const char *nick)
 static int
 single_whois(struct Client *source_p, struct Client *target_p)
 {
-  dlink_node *ptr;
-  struct Channel *chptr;
+  dlink_node *ptr = NULL;
 
   if (!HasUMode(target_p, UMODE_INVISIBLE) || target_p == source_p)
   {
@@ -259,7 +258,7 @@ single_whois(struct Client *source_p, struct Client *target_p)
   /* target_p is +i. Check if it is on any common channels with source_p */
   DLINK_FOREACH(ptr, target_p->channel.head)
   {
-    chptr = ((struct Membership *) ptr->data)->chptr;
+    struct Channel *chptr = ((struct Membership *) ptr->data)->chptr;
     if (IsMember(source_p, chptr))
     {
       whois_person(source_p, target_p);
@@ -297,7 +296,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
              me.name, source_p->name, target_p->name,
              target_p->username, target_p->host, target_p->info);
 
-  if(!IsService(target_p))
+  if(!HasUMode(target_p, UMODE_SERVICE))
     cur_len = mlen = snprintf(buf, sizeof(buf), form_str(RPL_WHOISCHANNELS),
         me.name, source_p->name, target_p->name, "");
   t = buf + mlen;
@@ -313,7 +312,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
       ms = lp->data;
       chptr = ms->chptr;
 
-      if (ShowChannel(source_p, chptr) || IsGod(source_p))
+      if (ShowChannel(source_p, chptr) || HasUMode(source_p, UMODE_GOD))
       {
         /* Don't show local channels if user is doing a remote whois */
         if (!MyConnect(source_p) && (chptr->chname[0] == '&'))
@@ -335,9 +334,9 @@ whois_person(struct Client *source_p, struct Client *target_p)
 
         t += tlen;
         cur_len += tlen;
-        reply_to_send = YES;
+        reply_to_send = true;
       }
-
+    }
 
     if (reply_to_send)
     {
@@ -379,11 +378,11 @@ whois_person(struct Client *source_p, struct Client *target_p)
     sendto_one(source_p, form_str(RPL_ISCAPTURED),
                me.name, source_p->name, target_p->name);
 
-  if(IsOper(source_p) && target_p->realhost[0] != '\0')
+  if(HasUMode(source_p, UMODE_OPER) && target_p->realhost[0] != '\0')
     sendto_one(source_p, form_str(RPL_WHOISREAL), me.name, source_p->name,
         target_p->name, target_p->realhost);
 
-  if(IsService(target_p))
+  if(HasUMode(target_p, UMODE_SERVICE))
     sendto_one(source_p, form_str(RPL_WHOISSERVICE), me.name, source_p->name,
         target_p->name);
 
@@ -415,7 +414,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
     {
       sendto_one(source_p, form_str(RPL_WHOISSECURE),
                  me.name, source_p->name, target_p->name);
-      if((target_p == source_p || IsOper(source_p)) && 
+      if((target_p == source_p || HasUMode(source_p, UMODE_OPER)) && 
           !EmptyString(target_p->certfp))
       {
         char buf[SHA_DIGEST_LENGTH*2+1];

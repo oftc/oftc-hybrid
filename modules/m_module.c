@@ -37,6 +37,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
+#include <libgen.h>
 
 
 
@@ -85,7 +86,7 @@ mo_module(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    if (findmodule_byname((m_bn = libio_basename(parv[2]))) != NULL)
+    if (findmodule_byname((m_bn = basename(parv[2]))) != NULL)
     {
       sendto_one(source_p, ":%s NOTICE %s :Module %s is already loaded",
                  me.name, source_p->name, m_bn);
@@ -105,7 +106,7 @@ mo_module(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    if ((modp = findmodule_byname((m_bn = libio_basename(parv[2])))) == NULL)
+    if ((modp = findmodule_byname((m_bn = basename(parv[2])))) == NULL)
     {
       sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
                  me.name, source_p->name, m_bn);
@@ -173,7 +174,7 @@ mo_module(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    if ((modp = findmodule_byname((m_bn = libio_basename(parv[2])))) == NULL)
+    if ((modp = findmodule_byname((m_bn = basename(parv[2])))) == NULL)
     {
       sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
                me.name, source_p->name, m_bn);

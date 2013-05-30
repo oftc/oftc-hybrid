@@ -37,7 +37,7 @@
 #include "conf.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_log.h"
+#include "log.h"
 
 
 static void do_join_0(struct Client *, struct Client *);
@@ -178,7 +178,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       /*
        * can_join checks for +i key, bans.
        */
-      if (((i = can_join(source_p, chptr, key))) && !IsGod(source_p))
+      if (((i = can_join(source_p, chptr, key))) && !HasUMode(source_p, UMODE_GOD))
       {
         sendto_one(source_p, form_str(i), me.name,
                    source_p->name, chptr->chname);
@@ -207,7 +207,7 @@ m_join(struct Client *client_p, struct Client *source_p,
       flags = CHFL_CHANOP;
       chptr = make_channel(chan);
       if(MyClient(source_p))
-        sendto_realops_flags(UMODE_SPY, L_ALL, 
+        sendto_realops_flags(UMODE_SPY, L_ALL,
             "Channel %s created by %s!%s@%s", chan, source_p->name,
             source_p->username, source_p->host);
     }
@@ -215,12 +215,12 @@ m_join(struct Client *client_p, struct Client *source_p,
     if (!HasUMode(source_p, UMODE_OPER))
       check_spambot_warning(source_p, chptr->chname);
 
-    if(i != 0 && IsGod(source_p) && MyClient(source_p))
+    if(i != 0 && HasUMode(source_p, UMODE_GOD) && MyClient(source_p))
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: JOIN %s", source_p->name,
           chptr->chname);
-      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, 
+      sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,
           tmp);
       oftc_log(tmp);
     }
@@ -324,7 +324,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
 
   if (!check_channel_name(parv[2], 0))
   {
-    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+    sendto_realops_flags(UMODE_DEBUG, L_ALL,
                          "*** Too long or invalid channel name from %s: %s",
                          client_p->name, parv[2]);
     return;
@@ -339,7 +339,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
     isnew = 1;
     chptr = make_channel(parv[2]);
     if(MyClient(source_p))
-      sendto_realops_flags(UMODE_SPY, L_ALL, 
+      sendto_realops_flags(UMODE_SPY, L_ALL,
           "Channel %s created by %s!%s@%s", parv[2], source_p->name,
           source_p->username, source_p->host);
   }
@@ -352,7 +352,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
   {
     if (newts < 800000000)
     {
-      sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+      sendto_realops_flags(UMODE_DEBUG, L_ALL,
                            "*** Bogus TS %lu on %s ignored from %s",
                            (unsigned long)newts, chptr->chname,
                            client_p->name);

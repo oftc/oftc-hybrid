@@ -39,14 +39,13 @@
 #include "restart.h"
 #include "s_serv.h"
 #include "s_user.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "userhost.h"
 #include "irc_string.h"
-#include "s_log.h"
-#include "common.h"
-#include "handlers.h"
+#include "log.h"
 #include "sprintf_irc.h"
+#include "modules.h"
 
 #ifdef HAVE_LIBCRYPTO
 #define CanForward(x)   (!IsDefunct(x) && !(x)->localClient->fd.ssl)
@@ -57,14 +56,11 @@
 struct SocketInfo
 {
   int fd;
-  int ctrlfd;
   int namelen;
   int pwdlen;
   int caplen;
   int recvqlen;
   int sendqlen;
-  int slinkqofs;
-  int slinkqlen;
   time_t first;
   time_t last;
 };
@@ -89,8 +85,6 @@ serverize(struct Client *client_p)
   
   conf_add_class_to_conf(sconf, NULL);
   attach_conf(client_p, sconf);
-  client_p->serv->sconf = find_conf_name(&client_p->localClient->confs, 
-      client_p->name, SERVER_TYPE);
 
   SetServer(client_p);
 }
@@ -174,18 +168,14 @@ introduce_socket(int transfd, struct Client *client_p)
     capabs = show_capabilities(client_p);
 
   si.fd = client_p->localClient->fd.fd;
-  si.ctrlfd = client_p->localClient->ctrlfd.flags.open ?
-    client_p->localClient->ctrlfd.fd : -1;
   si.namelen = strlen(client_p->name);
   si.pwdlen = EmptyString(client_p->localClient->passwd) ? 0 :
     strlen(client_p->localClient->passwd);
   si.caplen = strlen(capabs);
   si.recvqlen = dbuf_length(&client_p->localClient->buf_recvq);
   si.sendqlen = dbuf_length(&client_p->localClient->buf_sendq);
-  si.slinkqofs = client_p->localClient->slinkq_ofs;
-  si.slinkqlen = client_p->localClient->slinkq_len;
-  si.first = client_p->firsttime;
-  si.last = client_p->localClient->last;
+  si.first = client_p->localClient->firsttime;
+  si.last = client_p->localClient->lasttime;
 
   write(transfd, &si, sizeof(si));
   write(transfd, client_p->name, si.namelen);
@@ -196,8 +186,6 @@ introduce_socket(int transfd, struct Client *client_p)
 
   write_dbuf(transfd, &client_p->localClient->buf_recvq);
   write_dbuf(transfd, &client_p->localClient->buf_sendq);
-  if (si.slinkqlen > 0)
-    write(transfd, client_p->localClient->slinkq, si.slinkqlen);
 }
 
 /*
@@ -220,18 +208,18 @@ do_shutdown(const char *msg, int rboot)
 
   if (!rboot || socketpair(AF_UNIX, SOCK_STREAM, 0, transfd) < 0)
   {
-    server_die(buf, YES);
+    server_die(buf, true);
     return;
   }
 
   if (EmptyString(msg))
   {
-    ilog(L_CRIT, "Server Soft-Rebooting");
+    ilog(LOG_TYPE_IRCD, "Server Soft-Rebooting");
     sendto_realops_flags(UMODE_ALL, L_ALL, "Server Soft-Rebooting");
   }
   else
   {
-    ilog(L_CRIT, "Server Soft-Rebooting: %s", msg);
+    ilog(LOG_TYPE_IRCD, "Server Soft-Rebooting: %s", msg);
     sendto_realops_flags(UMODE_ALL, L_ALL, "Server Soft-Rebooting: %s", msg);
   }
 
@@ -268,7 +256,7 @@ do_shutdown(const char *msg, int rboot)
   switch (fork())
   {
     case -1:
-      ilog(L_CRIT, "Unable to fork(): %s", strerror(errno));
+      ilog(LOG_TYPE_IRCD, "Unable to fork(): %s", strerror(errno));
       exit(1);
 
     case 0:
@@ -289,7 +277,7 @@ do_shutdown(const char *msg, int rboot)
 
       printf("execing: %s %s %s\n", SPATH, argv[0], argv[1]);
       execv(SPATH, argv);
-      ilog(L_CRIT, "Unable to exec(): %s", strerror(errno));
+      ilog(LOG_TYPE_IRCD, "Unable to exec(): %s", strerror(errno));
       printf("hi\n");
       exit(1);
     }
@@ -301,7 +289,7 @@ do_shutdown(const char *msg, int rboot)
   burst_all(make_dummy(transfd[1]));
   send_queued_all();
 
-  snprintf(buf, sizeof(buf), "\001%jd\r\n", (intmax_t)me.since);
+  snprintf(buf, sizeof(buf), "\001%jd\r\n", (intmax_t)me.localClient->since);
   write(transfd[1], buf, strlen(buf));
 
   DLINK_FOREACH(ptr, local_client_list.head)
@@ -347,7 +335,7 @@ mo_restart(struct Client *client_p, struct Client *source_p,
 
   snprintf(buf, sizeof(buf), "received RESTART command from %s",
              get_oper_name(source_p));
-  do_shutdown(buf, YES);
+  do_shutdown(buf, true);
 }
 
 static struct Message restart_msgtab = {

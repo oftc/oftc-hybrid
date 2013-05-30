@@ -719,7 +719,6 @@ server_estab(struct Client *client_p)
   struct ConfItem *conf;
   struct AccessItem *aconf=NULL;
   char *host;
-  const char *inpath;
   static char inpath_ip[HOSTLEN * 2 + USERLEN + 6];
   dlink_node *ptr;
 #ifdef HAVE_LIBCRYPTO
@@ -730,7 +729,6 @@ server_estab(struct Client *client_p)
 
   strlcpy(inpath_ip, get_client_name(client_p, SHOW_IP), sizeof(inpath_ip));
 
-  inpath = get_client_name(client_p, MASK_IP); /* "refresh" inpath with host */
   host   = client_p->name;
 
   if ((conf = find_conf_name(&client_p->localClient->confs, host, SERVER_TYPE))
@@ -1092,7 +1090,7 @@ set_autoconn(struct Client *source_p, const char *name, int newval)
 
   if (name != NULL)
   {
-    conf = find_exact_name_conf(SERVER_TYPE, name, NULL, NULL, NULL);
+    conf = find_exact_name_conf(SERVER_TYPE, NULL, name, NULL, NULL);
     if (conf != NULL)
     {
       aconf = (struct AccessItem *)map_to_conf(conf);

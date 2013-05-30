@@ -298,7 +298,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if(!IsOper(source_p))
+  if(!HasUMode(source_p, UMODE_OPER))
   {
     struct Channel *chptr;
     dlink_node *cptr;

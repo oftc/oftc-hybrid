@@ -229,7 +229,7 @@ start_resolver(void)
   {
     if(irc_nscount <= 0)
     {
-      ilog(L_ERROR, "Could not open resolver socket, no nameservers!");
+      ilog(LOG_TYPE_IRCD, "Could not open resolver socket, no nameservers!");
       return;
     }
 

@@ -771,7 +771,7 @@ check_client(va_list args)
          source_p->name, source_p->sockhost);
 
   if(i < 0)
-    bad = TRUE;
+    bad = true;
 
   switch (i)
   {
@@ -783,10 +783,10 @@ check_client(va_list args)
     case MAX_IDENT:
       sendto_realops_flags(UMODE_FULL, L_ALL, 
           full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
-      ilog(L_INFO, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
+      ilog(LOG_TYPE_IRCD, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
       ServerStats.is_ref++;
       exit_client(source_p, &me, reject_reason);
-      bad = TRUE;
+      bad = true;
       break;
     case TOO_MANY:
       sendto_realops_flags(UMODE_FULL, L_ALL, 
@@ -996,7 +996,7 @@ attach_iline(struct Client *client_p, struct ConfItem *conf, char **reason)
    */
   if (aclass->max_total != 0 && aclass->curr_user_count >= aclass->max_total)
     a_limit_reached = MAX_TOTAL;
-  else if (aclass->max_per_ip != 0 && ip_found->count > aclass->max_per_ip)
+  else if (aclass->max_perip != 0 && ip_found->count > aclass->max_perip)
     a_limit_reached = MAX_IP;
   else if (aclass->max_local != 0 && local >= aclass->max_local)
     a_limit_reached = MAX_LOCAL;
@@ -1297,7 +1297,6 @@ detach_conf(struct Client *client_p, ConfType type)
   struct ClassItem *aclass;
   struct AccessItem *aconf;
   struct ConfItem *aclass_conf;
-  struct MatchItem *match_item;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->localClient->confs.head)
   {
@@ -1369,7 +1368,7 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
 
   if (conf->type == CLIENT_TYPE)
     if (cidr_limit_reached(IsConfExemptLimits(aconf),
-                           &client_p->localClient->ip, aclass))
+                           &client_p->ip, aclass))
       return TOO_MANY;    /* Already at maximum allowed */
 
   aclass->curr_user_count++;
@@ -1714,14 +1713,9 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
                 return conf;
               break;
             case HM_IPV4:
-              if (who->localClient->aftype == AF_INET)
+              if (who->aftype == AF_INET)
                 if (match_ipv4(&who->ip, &aconf->addr, aconf->bits))
                   return conf;
-                break;
-              case HM_IPV4:
-                if (who->localClient->aftype == AF_INET)
-                  if (match_ipv4(&who->ip, &aconf->ipnum, aconf->bits))
-                    return conf;
                 break;
 #ifdef IPV6
             case HM_IPV6:
@@ -2115,14 +2109,14 @@ find_kill(struct Client *client_p)
   if(*client_p->realhost)
   {
     aconf = find_conf_by_address(client_p->realhost, &client_p->ip,
-        CONF_KLINE, client_p->localClient->aftype,
+        CONF_KLINE, client_p->aftype,
         client_p->username, NULL, 1, client_p->certfp);
   }
   if(aconf == NULL)
   {
-    aconf = find_conf_by_address(client_p->host, &client_p->localClient->ip,
-        CONF_KLINE, client_p->localClient->aftype,
-        client_p->username, NULL, 1);
+    aconf = find_conf_by_address(client_p->host, &client_p->ip,
+        CONF_KLINE, client_p->aftype,
+        client_p->username, NULL, 1, client_p->certfp);
   }
   if (aconf == NULL)
     aconf = find_regexp_kline(uhi);
@@ -2137,9 +2131,9 @@ find_gline(struct Client *client_p)
 
   assert(client_p != NULL);
 
-  aconf = find_conf_by_address(client_p->host, &client_p->localClient->ip,
-                               CONF_GLINE, client_p->localClient->aftype,
-                               client_p->username, NULL, 1);
+  aconf = find_conf_by_address(client_p->host, &client_p->ip,
+                               CONF_GLINE, client_p->aftype,
+                               client_p->username, NULL, 1, client_p->certfp);
   return aconf;
 }
 
@@ -2195,7 +2189,7 @@ expire_tklines(dlink_list *tklist)
   struct MatchItem *xconf;
   struct MatchItem *nconf;
   struct ResvChannel *cconf;
-  int expired = FALSE;
+  int expired = false;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, tklist->head)
   {
@@ -2204,14 +2198,14 @@ expire_tklines(dlink_list *tklist)
         conf->type == KLINE_TYPE ||
         conf->type == DLINE_TYPE)
     {
-      aconf = (struct AccessItem *)map_to_conf(conf);
+      struct AccessItem *aconf = (struct AccessItem *)map_to_conf(conf);
       if (aconf->hold <= CurrentTime)
       {
         /* XXX - Do we want GLINE expiry notices?? */
         /* Alert opers that a TKline expired - Hwy */
         if (ConfigFileEntry.tkline_expire_notices)
         {
-          if (aconf->status & CONF_KILL)
+          if (aconf->status & CONF_KLINE)
           {
             sendto_realops_flags(UMODE_ALL, L_ALL,
                 "Temporary K-line for [%s@%s] expired",
@@ -2229,7 +2223,7 @@ expire_tklines(dlink_list *tklist)
         dlinkDelete(ptr, tklist);
         remove_conf_line(conf->type, &me, aconf->user, aconf->host);
         delete_one_address_conf(aconf->host, aconf);
-        expired = TRUE;
+        expired = true;
         break;
       }
     }
@@ -2247,7 +2241,7 @@ expire_tklines(dlink_list *tklist)
         free_dlink_node(ptr);
         remove_conf_line(conf->type, &me, conf->name, NULL);
         delete_conf_item(conf);
-        expired = TRUE;
+        expired = true;
         break;
       }
     }
@@ -2262,7 +2256,7 @@ expire_tklines(dlink_list *tklist)
         dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
         remove_conf_line(conf->type, &me, conf->name, NULL);
-        expired = TRUE;
+        expired = true;
         break;
       }
     }
@@ -2277,7 +2271,7 @@ expire_tklines(dlink_list *tklist)
         dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
         remove_conf_line(conf->type, &me, cconf->name, NULL);
-        expired = TRUE;
+        expired = true;
         break;
       }
     }
@@ -2373,7 +2367,8 @@ get_oper_name(const struct Client *client_p)
   return buffer;
 }
 
-static void
+#if 0
+  static void
 clear_temp_list(dlink_list *list)
 {
   dlink_node *ptr, *next_ptr;
@@ -2406,6 +2401,7 @@ clear_temp_list(dlink_list *list)
     }
  }
 }
+#endif
 
 /* read_conf_files()
  *
@@ -2451,13 +2447,13 @@ read_conf_files(int cold)
   if (!cold)
   {
     clear_out_old_conf();
-    clear_temp_list(&temporary_glines);
+    /*clear_temp_list(&temporary_glines);
     clear_temp_list(&temporary_klines);
     clear_temp_list(&temporary_dlines);
     clear_temp_list(&temporary_xlines);
     clear_temp_list(&temporary_rxlines);
     clear_temp_list(&temporary_rklines);
-    clear_temp_list(&temporary_resv);
+    clear_temp_list(&temporary_resv);*/
   }
 
   read_conf(conf_parser_ctx.conf_file);
@@ -2548,7 +2544,6 @@ clear_out_old_conf(void)
   struct ConfItem *conf;
   struct AccessItem *aconf;
   struct ClassItem *cltmp;
-  struct MatchItem *match_item;
   dlink_list *free_items [] = {
     &server_items,   &oconf_items,
      &uconf_items,   &xconf_items, &rxconf_items, &rkconf_items,

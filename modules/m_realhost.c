@@ -24,12 +24,11 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "hash.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_user.h"
 #include "hash.h"
 #include "whowas.h"
@@ -37,10 +36,8 @@
 #include "send.h"
 #include "channel.h"
 #include "resv.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "common.h"
 #include "packet.h"
 #include "irc_string.h"
 

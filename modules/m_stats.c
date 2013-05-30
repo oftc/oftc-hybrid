@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: m_stats.c 1459 2012-07-06 14:23:09Z michael $
  */
 
 #include "stdinc.h"
@@ -46,10 +46,6 @@
 #include "modules.h"
 #include "resv.h"  /* report_resv */
 #include "whowas.h"
-#include "list.h"
-#include "rlimits.h"     /* getrlimit() */
-#include "s_log.h"       /* ilog */
-#include "hash.h"
 #include "watch.h"
 #include "irc_res.h"
 
@@ -164,7 +160,6 @@ stats_memory(struct Client *source_p, int parc, char *parv[])
   uint64_t total_memory = 0;
   unsigned int topic_count = 0;
 
-  struct rlimit rlim;
   unsigned int watch_list_headers = 0;   /* watchlist headers     */
   unsigned int watch_list_entries = 0;   /* watchlist entries     */
   uint64_t watch_list_memory = 0; /* watchlist memory used */
@@ -379,64 +374,6 @@ stats_memory(struct Client *source_p, int parc, char *parv[])
              ":%s %d %s z :TOTAL: %llu",
              me.name, RPL_STATSDEBUG, source_p->name,
              total_memory);
-
-  if (getrlimit(RLIMIT_FD_MAX, &rlim) == 0) {
-    sendto_one(source_p,
-               ":%s %d %s z :rlimit_nofile: soft: %d; hard: %d",
-               me.name, RPL_STATSDEBUG, source_p->name,
-               (int)rlim.rlim_cur, (int)rlim.rlim_max);
-  } else {
-    ilog(L_NOTICE, "Unable to getrlimit(): %s", strerror(errno));
-    sendto_one(source_p,
-               ":%s %d %s z :rlimit_nofile: getrlimit() failed.  See log.",
-               me.name, RPL_STATSDEBUG, source_p->name);
-  }
-
-}
-
-static void
-dump_counters(struct Client *source_p)
-{
-  struct ClassItem *classitem;
-  struct ConfItem *conf;
-  struct CidrItem *cidr;
-  dlink_node *ptr, *ptr2;
-  char ipaddr[HOSTIPLEN];
-  int ret;
-
-  dump_userhosttable(source_p);
-  dump_ip_hash_table(source_p);
-  DLINK_FOREACH(ptr, class_items.head)
-  {
-    conf = ptr->data;
-    classitem = map_to_conf(conf);
-    DLINK_FOREACH(ptr2, classitem->list_ipv4.head)
-    {
-      cidr = ptr2->data;
-
-      ret = getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
-          ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
-      if (ret != 0)
-        continue;
-
-      sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name,
-          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr,
-          CidrBitlenIPV4(classitem), cidr->number_on_this_cidr);
-    }
-    DLINK_FOREACH(ptr2, classitem->list_ipv6.head)
-    {
-      cidr = ptr2->data;
-
-      ret = getnameinfo((struct sockaddr*)&cidr->mask, cidr->mask.ss_len,
-          ipaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
-      if (ret != 0)
-        continue;
-
-      sendto_one(source_p, ":%s %d %s n :cidr_table: %s: %s/%d %d", me.name,
-          RPL_STATSCCOUNT, source_p->name, conf->name, ipaddr,
-          CidrBitlenIPV6(classitem), cidr->number_on_this_cidr);
-    }
-  }
 }
 
 static void
@@ -460,7 +397,6 @@ stats_connect(struct Client *source_p, int parc, char *parv[])
 static void
 stats_deny(struct Client *source_p, int parc, char *parv[])
 {
-  struct ConfItem *conf;
   struct AccessItem *aconf;
   dlink_node *ptr = NULL;
   unsigned int i = 0;
@@ -481,8 +417,8 @@ stats_deny(struct Client *source_p, int parc, char *parv[])
           continue;
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
-            from, to, 'D', aconf->host, aconf->reason,
-            aconf->oper_reason);
+                   from, to, 'D', aconf->host, aconf->reason,
+		   aconf->oper_reason);
       }
     }
   }
@@ -497,7 +433,6 @@ stats_deny(struct Client *source_p, int parc, char *parv[])
 static void
 stats_tdeny(struct Client *source_p, int parc, char *parv[])
 {
-  struct ConfItem *conf;
   struct AccessItem *aconf;
   dlink_node *ptr = NULL;
   unsigned int i = 0;
@@ -517,10 +452,9 @@ stats_tdeny(struct Client *source_p, int parc, char *parv[])
         if (!(aconf->flags & CONF_FLAGS_TEMPORARY))
           continue;
 
-
         sendto_one(source_p, form_str(RPL_STATSDLINE),
-            from, to, 'd', aconf->host, aconf->reason,
-            aconf->oper_reason);
+                   from, to, 'd', aconf->host, aconf->reason,
+		   aconf->oper_reason);
       }
     }
   }
@@ -535,7 +469,6 @@ stats_tdeny(struct Client *source_p, int parc, char *parv[])
 static void
 stats_exempt(struct Client *source_p, int parc, char *parv[])
 {
-  struct ConfItem *conf;
   struct AccessItem *aconf;
   dlink_node *ptr = NULL;
   unsigned int i = 0;
@@ -559,8 +492,8 @@ stats_exempt(struct Client *source_p, int parc, char *parv[])
         aconf = arec->aconf;
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
-            from, to, 'e', aconf->host, 
-            aconf->reason, aconf->oper_reason);
+                   from, to, 'e', aconf->host, 
+		   aconf->reason, aconf->oper_reason);
       }
     }
   }
@@ -581,11 +514,10 @@ stats_events(struct Client *source_p, int parc, char *parv[])
 static void
 stats_pending_glines(struct Client *source_p, int parc, char *parv[])
 {
-#ifdef GLINE_VOTING
-  dlink_node *pending_node;
-  struct gline_pending *glp_ptr;
-  char timebuffer[MAX_DATE_STRING];
-  struct tm *tmptr;
+  const dlink_node *dn_ptr = NULL;
+  const struct gline_pending *glp_ptr = NULL;
+  char timebuffer[MAX_DATE_STRING] = { '\0' };
+  struct tm *tmptr = NULL;
 
   if (!ConfigFileEntry.glines)
   {
@@ -594,42 +526,72 @@ stats_pending_glines(struct Client *source_p, int parc, char *parv[])
     return;
   }
 
-  if (dlink_list_length(&pending_glines) > 0)
+  if (dlink_list_length(&pending_glines[GLINE_PENDING_ADD_TYPE]) > 0)
     sendto_one(source_p, ":%s NOTICE %s :Pending G-lines",
                from, to);
 
-  DLINK_FOREACH(pending_node, pending_glines.head)
+  DLINK_FOREACH(dn_ptr, pending_glines[GLINE_PENDING_ADD_TYPE].head)
   {
-    glp_ptr = pending_node->data;
-    tmptr   = localtime(&glp_ptr->time_request1);
+    glp_ptr = dn_ptr->data;
+    tmptr   = localtime(&glp_ptr->vote_1.time_request);
     strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
 
     sendto_one(source_p,
                ":%s NOTICE %s :1) %s!%s@%s on %s requested gline at %s for %s@%s [%s]",
-               from, to, glp_ptr->oper_nick1,
-               glp_ptr->oper_user1, glp_ptr->oper_host1,
-               glp_ptr->oper_server1, timebuffer,
-               glp_ptr->user, glp_ptr->host, glp_ptr->reason1);
+               from, to, glp_ptr->vote_1.oper_nick,
+               glp_ptr->vote_1.oper_user, glp_ptr->vote_1.oper_host,
+               glp_ptr->vote_1.oper_server, timebuffer,
+               glp_ptr->user, glp_ptr->host, glp_ptr->vote_1.reason);
 
-    if (glp_ptr->oper_nick2[0] != '\0')
+    if (glp_ptr->vote_2.oper_nick[0] != '\0')
     {
-      tmptr = localtime(&glp_ptr->time_request2);
+      tmptr = localtime(&glp_ptr->vote_2.time_request);
       strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
       sendto_one(source_p,
       ":%s NOTICE %s :2) %s!%s@%s on %s requested gline at %s for %s@%s [%s]",
-                 from, to, glp_ptr->oper_nick2,
-                 glp_ptr->oper_user2, glp_ptr->oper_host2,
-                 glp_ptr->oper_server2, timebuffer,
-                 glp_ptr->user, glp_ptr->host, glp_ptr->reason2);
+               from, to, glp_ptr->vote_2.oper_nick,
+               glp_ptr->vote_2.oper_user, glp_ptr->vote_2.oper_host,
+               glp_ptr->vote_2.oper_server, timebuffer,
+               glp_ptr->user, glp_ptr->host, glp_ptr->vote_2.reason);
     }
   }
 
   sendto_one(source_p, ":%s NOTICE %s :End of Pending G-lines",
              from, to);
-#else
-  sendto_one(source_p, ":%s NOTICE %s :This server does not support G-Line voting",
+
+  if (dlink_list_length(&pending_glines[GLINE_PENDING_DEL_TYPE]) > 0)
+    sendto_one(source_p, ":%s NOTICE %s :Pending UNG-lines",
+               from, to);
+
+  DLINK_FOREACH(dn_ptr, pending_glines[GLINE_PENDING_DEL_TYPE].head)
+  {
+    glp_ptr = dn_ptr->data;
+    tmptr   = localtime(&glp_ptr->vote_1.time_request);
+    strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
+
+    sendto_one(source_p,
+               ":%s NOTICE %s :1) %s!%s@%s on %s requested ungline at %s for %s@%s [%s]",
+               from, to, glp_ptr->vote_1.oper_nick,
+               glp_ptr->vote_1.oper_user, glp_ptr->vote_1.oper_host,
+               glp_ptr->vote_1.oper_server, timebuffer,
+               glp_ptr->user, glp_ptr->host, glp_ptr->vote_1.reason);
+
+    if (glp_ptr->vote_2.oper_nick[0] != '\0')
+    {
+      tmptr = localtime(&glp_ptr->vote_2.time_request);
+      strftime(timebuffer, MAX_DATE_STRING, "%Y/%m/%d %H:%M:%S", tmptr);
+      sendto_one(source_p,
+      ":%s NOTICE %s :2) %s!%s@%s on %s requested ungline at %s for %s@%s [%s]",
+               from, to, glp_ptr->vote_2.oper_nick,
+               glp_ptr->vote_2.oper_user, glp_ptr->vote_2.oper_host,
+               glp_ptr->vote_2.oper_server, timebuffer,
+               glp_ptr->user, glp_ptr->host, glp_ptr->vote_2.reason);
+
+    }
+  }
+
+  sendto_one(source_p, ":%s NOTICE %s :End of Pending UNG-lines",
              from, to);
-#endif /* GLINE VOTING */
 }
 
 /* stats_glines()
@@ -783,12 +745,15 @@ stats_auth(struct Client *source_p, int parc, char *parv[])
     struct AccessItem *aconf;
 
     if (MyConnect(source_p))
-      aconf = find_conf_by_address(source_p->host, &source_p->ip,
-          CONF_CLIENT, source_p->aftype, source_p->username,
-          source_p->localClient->passwd, 1, source_p->certfp);
+      aconf = find_conf_by_address(source_p->host,
+                                   &source_p->ip,
+				   CONF_CLIENT,
+				   source_p->aftype,
+				   source_p->username,
+                                   source_p->localClient->passwd, 1, source_p->certfp);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_CLIENT,
-          0, source_p->username, NULL, 1, source_p->certfp);
+                                   0, source_p->username, NULL, 1, source_p->certfp);
 
     if (aconf == NULL)
       return;
@@ -863,11 +828,14 @@ stats_tklines(struct Client *source_p, int parc, char *parv[])
     struct AccessItem *aconf;
 
     if (MyConnect(source_p))
-      aconf = find_conf_by_address(source_p->host, &source_p->ip,
-          CONF_KLINE, source_p->aftype, source_p->username, NULL, 1, NULL);
+      aconf = find_conf_by_address(source_p->host,
+                                   &source_p->ip,
+				   CONF_KLINE,
+				   source_p->aftype,
+				   source_p->username, NULL, 1, source_p->certfp);
     else
-      aconf = find_conf_by_address(source_p->host, NULL, CONF_KILL,
-          0, source_p->username, NULL, 1, NULL);
+      aconf = find_conf_by_address(source_p->host, NULL, CONF_KLINE,
+                                   0, source_p->username, NULL, 1, source_p->certfp);
 
     if (aconf == NULL)
       return;
@@ -900,11 +868,14 @@ stats_klines(struct Client *source_p, int parc, char *parv[])
 
     /* search for a kline */
     if (MyConnect(source_p))
-      aconf = find_conf_by_address(source_p->host, &source_p->ip,
-          CONF_KLINE, source_p->aftype, source_p->username, NULL, 0, NULL);
+      aconf = find_conf_by_address(source_p->host,
+                                   &source_p->ip,
+				   CONF_KLINE,
+				   source_p->aftype,
+				   source_p->username, NULL, 0, source_p->certfp);
     else
-      aconf = find_conf_by_address(source_p->host, NULL, CONF_KILL,
-          0, source_p->username, NULL, 0, NULL);
+      aconf = find_conf_by_address(source_p->host, NULL, CONF_KLINE,
+                                   0, source_p->username, NULL, 0, source_p->certfp);
 
     if (aconf == NULL)
       return;
@@ -950,9 +921,8 @@ static void
 stats_operedup(struct Client *source_p, int parc, char *parv[])
 {
   dlink_node *ptr;
-  int oper_count = 0;
 
-  DLINK_FOREACH(ptr, global_client_list.head)
+  DLINK_FOREACH(ptr, oper_list.head)
   {
     const struct Client *target_p = ptr->data;
 
@@ -975,7 +945,7 @@ stats_operedup(struct Client *source_p, int parc, char *parv[])
   }
 
   sendto_one(source_p, ":%s %d %s p :%lu OPER(s)",
-             from, RPL_STATSDEBUG, to, oper_count);
+             from, RPL_STATSDEBUG, to, dlink_list_length(&oper_list));
 }
 
 static void
@@ -1548,7 +1518,7 @@ module_exit(void)
 struct module module_entry = {
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
-  .version = "$Revision$",
+  .version = "$Revision: 1459 $",
   .handle  = NULL,
   .modinit = module_init,
   .modexit = module_exit,

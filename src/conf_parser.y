@@ -26,8 +26,8 @@
 
 #define YY_NO_UNPUT
 #include <sys/types.h>
-#include <libgen.h>
 #include <string.h>
+#include <libgen.h>
 
 #include "config.h"
 #include "stdinc.h"
@@ -259,7 +259,8 @@ free_collect_item(struct CollectItem *item)
 %token  RSA_PUBLIC_KEY_FILE
 %token  SSL_CERTIFICATE_FILE
 %token  SSL_DH_PARAM_FILE
-%token  T_SSL_CONNECTION_METHOD
+%token  T_SSL_CLIENT_METHOD
+%token  T_SSL_SERVER_METHOD
 %token  T_SSLV3
 %token  T_TLSV1
 %token  RESV
@@ -435,23 +436,14 @@ modules_item:   modules_module | modules_path | error ';' ;
 
 modules_module: MODULE '=' QSTRING ';'
 {
-#ifndef STATIC_MODULES /* NOOP in the static case */
   if (conf_parser_ctx.pass == 2)
-  {
-    /* I suppose we should just ignore it if it is already loaded(since
-     * otherwise we would flood the opers on rehash) -A1kmm.
-     */
-    add_conf_module(yylval.string);
-  }
-#endif
+    add_conf_module(basename(yylval.string));
 };
 
 modules_path: PATH '=' QSTRING ';'
 {
-#ifndef STATIC_MODULES
   if (conf_parser_ctx.pass == 2)
     mod_add_path(yylval.string);
-#endif
 };
 
 
@@ -464,48 +456,41 @@ serverinfo_item:        serverinfo_name | serverinfo_vhost |
                         serverinfo_max_clients | serverinfo_ssl_dh_param_file |
                         serverinfo_rsa_private_key_file | serverinfo_vhost6 |
                         serverinfo_sid | serverinfo_ssl_certificate_file |
-                        serverinfo_ssl_connection_method | serverinfo_ssl_cipher_list |
-			error ';' ;
+                        serverinfo_ssl_client_method | serverinfo_ssl_server_method |
+                        serverinfo_ssl_cipher_list |
+                        error ';' ;
 
 
-serverinfo_ssl_connection_method: T_SSL_CONNECTION_METHOD
+serverinfo_ssl_client_method: T_SSL_CLIENT_METHOD '=' client_method_types ';' ;
+serverinfo_ssl_server_method: T_SSL_SERVER_METHOD '=' server_method_types ';' ;
+
+client_method_types: client_method_types ',' client_method_type_item | client_method_type_item;
+client_method_type_item: T_SSLV3
 {
 #ifdef HAVE_LIBCRYPTO
-  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
-    ServerInfo.tls_version = 0;
-#endif
-} '=' method_types ';'
-{
-#ifdef HAVE_LIBCRYPTO
-  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
-  {
-    if (!(ServerInfo.tls_version & CONF_SERVER_INFO_TLS_VERSION_SSLV3))
-    {
-      SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv3);
-      SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv3);
-    }
-
-    if (!(ServerInfo.tls_version & CONF_SERVER_INFO_TLS_VERSION_TLSV1))
-    {
-      SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_TLSv1);
-      SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_TLSv1);
-    }
-  }
-#endif
-};
-
-method_types: method_types ',' method_type_item | method_type_item;
-method_type_item: T_SSLV3
-{
-#ifdef HAVE_LIBCRYPTO
-  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
-    ServerInfo.tls_version |= CONF_SERVER_INFO_TLS_VERSION_SSLV3;
+  if (conf_parser_ctx.pass == 2 && ServerInfo.client_ctx)
+    SSL_CTX_clear_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv3);
 #endif
 } | T_TLSV1
 {
 #ifdef HAVE_LIBCRYPTO
-  if (conf_parser_ctx.boot && conf_parser_ctx.pass == 2)
-    ServerInfo.tls_version |= CONF_SERVER_INFO_TLS_VERSION_TLSV1;
+  if (conf_parser_ctx.pass == 2 && ServerInfo.client_ctx)
+    SSL_CTX_clear_options(ServerInfo.client_ctx, SSL_OP_NO_TLSv1);
+#endif
+};
+
+server_method_types: server_method_types ',' server_method_type_item | server_method_type_item;
+server_method_type_item: T_SSLV3
+{
+#ifdef HAVE_LIBCRYPTO
+  if (conf_parser_ctx.pass == 2 && ServerInfo.server_ctx)
+    SSL_CTX_clear_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv3);
+#endif
+} | T_TLSV1
+{
+#ifdef HAVE_LIBCRYPTO
+  if (conf_parser_ctx.pass == 2 && ServerInfo.server_ctx)
+    SSL_CTX_clear_options(ServerInfo.server_ctx, SSL_OP_NO_TLSv1);
 #endif
 };
 
@@ -521,9 +506,9 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
     }
 
     if (SSL_CTX_use_certificate_chain_file(ServerInfo.server_ctx,
-      yylval.string) <= 0 ||
-        SSL_CTX_use_certificate_chain_file(ServerInfo.client_ctx, yylval.string,
-          SSL_FILETYPE_PEM) <= 0)
+          yylval.string) <= 0 ||
+        SSL_CTX_use_certificate_chain_file(ServerInfo.client_ctx, 
+          yylval.string) <= 0)
     {
       yyerror(ERR_lib_error_string(ERR_get_error()));
       break;
@@ -577,7 +562,7 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
 
     ServerInfo.rsa_private_key = PEM_read_bio_RSAPrivateKey(file, NULL, 0, NULL);
 
-    (void)BIO_set_close(file, BIO_CLOSE);
+    BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
 
     if (ServerInfo.rsa_private_key == NULL)
@@ -984,7 +969,7 @@ oper_entry: OPERATOR
         file = BIO_new_file(yy_aconf->rsa_public_key_file, "r");
         new_aconf->rsa_public_key = (RSA *)PEM_read_bio_RSA_PUBKEY(file, 
             NULL, 0, NULL);
-        (void)BIO_set_close(file, BIO_CLOSE);
+        BIO_set_close(file, BIO_CLOSE);
         BIO_free(file);
       }
 
@@ -1150,7 +1135,7 @@ oper_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
       break;
     }
 
-    (void)BIO_set_close(file, BIO_CLOSE);
+    BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
   }
 #endif /* HAVE_LIBCRYPTO */
@@ -2665,14 +2650,14 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_throttle_time | general_havent_read_conf |
                     general_ping_cookie |
                     general_disable_auth | 
-		    general_tkline_expire_notices | general_gline_enable |
+                    general_tkline_expire_notices | general_gline_enable |
                     general_gline_duration | general_gline_request_duration |
                     general_gline_min_cidr |
                     general_gline_min_cidr6 | general_use_whois_actually |
-		    general_reject_hold_time | general_stats_e_disabled | 
-        general_godmode_timeout |
-		    general_max_watch | general_service_name |
-		    error;
+                    general_reject_hold_time | general_stats_e_disabled | 
+                    general_godmode_timeout |
+                    general_max_watch | general_services_name |
+                    error;
 
 
 general_max_watch: MAX_WATCH '=' NUMBER ';'

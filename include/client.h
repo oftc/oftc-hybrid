@@ -210,6 +210,7 @@ struct Client
  
   char              realhost[HOSTLEN];
   char              certfp[SHA_DIGEST_LENGTH];
+  time_t            umodestime; /* Time client set umode +S */
 };
 
 /*
@@ -344,7 +345,7 @@ struct Client
 #define DelUMode(x, y) ((x)->umodes &= ~(y))
 
 #define SEND_UMODES  (UMODE_INVISIBLE | UMODE_OPER | UMODE_WALLOP | \
-                      UMODE_ADMIN | UMODE_GOD | UMODE_NICKSERVREG | UMODE_SPY | \
+                      UMODE_ADMIN | UMODE_GOD | UMODE_SPY | \
                       UMODE_SERVICE | UMODE_REGISTERED | UMODE_HIDDEN)
 
 

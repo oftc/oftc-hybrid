@@ -163,16 +163,6 @@ m_message(int p_or_n, const char *command, struct Client *client_p,
 
   /* Finish the flood grace period... */
   if (MyClient(source_p) && !IsFloodDone(source_p))
-#if 0
- &&
-        irccmp(source_p->name, parv[1]) != 0) /* some dumb clients msg/notice themself
-                                                 to determine lag to the server BEFORE
-                                                 sending JOIN commands, and then flood
-                                                 off because they left gracemode. -wiz */
-	/*
-	 * Not our problem if they do this.    -Michael
-         */
-#endif
     flood_endgrace(source_p);
 
   if (build_target_list(p_or_n, command, client_p, source_p, parv[1],
@@ -429,10 +419,6 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
       source_p->localClient->last_privmsg = CurrentTime;
   }
 
-#ifndef STATIC_MODULES
-  execute_callback(channel_message, source_p, chptr, text);
-#endif
-
   /* chanops and voiced can flood their own channel with impunity */
   if ((result = can_send(chptr, source_p, NULL)) < 0)
   {
@@ -442,6 +428,7 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
       if(chptr->mode.mode & MODE_NOCOLOR && msg_has_colors(text))
         text = strip_color(text);
       sendto_channel_butone(client_p, source_p, chptr, command, ":%s", text);
+    }
   }
   else
   {
@@ -556,10 +543,6 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
      */
     if ((p_or_n != NOTICE))
       source_p->localClient->last_privmsg = CurrentTime;
-
-#ifndef STATIC_MODULES
-  execute_callback(client_message, source_p, target_p, text);
-#endif
 
     if ((p_or_n != NOTICE) && target_p->away)
       sendto_one(source_p, form_str(RPL_AWAY), me.name,

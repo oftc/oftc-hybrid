@@ -51,7 +51,7 @@ static void apply_kline(struct Client *, struct ConfItem *, const char *,
 
 
 static char buffer[IRCD_BUFSIZE];
-static int remove_tkline_match(const char *, const char *);
+static bool remove_tkline_match(const char *, const char *);
 
 
 /* mo_kline()
@@ -243,7 +243,7 @@ apply_kline(struct Client *source_p, struct ConfItem *conf,
     add_temp_line(conf);
   }
   else
-    add_conf_by_address(CONF_KILL, aconf);
+    add_conf_by_address(CONF_KLINE, aconf);
 
   write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
   rehashed_klines = 1;
@@ -459,7 +459,7 @@ ms_unkline(struct Client *client_p, struct Client *source_p,
  * Output: returns YES on success, NO if no tkline removed.
  * Side effects: Any matching tklines are removed.
  */
-static int
+static bool
 remove_tkline_match(const char *host, const char *user)
 {
   struct irc_ssaddr iphost, *piphost;
@@ -469,7 +469,9 @@ remove_tkline_match(const char *host, const char *user)
   if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
 #ifdef IPV6
-        || (nm_t == HM_IPV6 && bits == cbits && match_ipv6(&addr, &caddr, bits))
+    if (t == HM_IPV6)
+      t = AF_INET6;
+    else
 #endif
       t = AF_INET;
     piphost = &iphost;
@@ -480,17 +482,16 @@ remove_tkline_match(const char *host, const char *user)
     piphost = NULL;
   }
 
-  if ((aconf = find_conf_by_address(host, piphost, CONF_KLINE, t, user, NULL, 0)))
+  if ((aconf = find_conf_by_address(host, piphost, CONF_KLINE, t, user, NULL, 0, NULL)))
   {
     if (IsConfTemporary(aconf))
     {
-      dlinkDelete(tk_n, &temporary_klines);
-      delete_one_address_conf(tk_c->host, tk_c);
-      return(YES);
+      delete_one_address_conf(host, aconf);
+      return true;
     }
   }
 
-  return(NO);
+  return false;
 }
 
 static struct Message kline_msgtab = {

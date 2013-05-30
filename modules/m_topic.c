@@ -37,8 +37,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
-#include "common.h"
-#include "s_log.h"
+#include "log.h"
 
 
 /* m_topic()
@@ -93,12 +92,12 @@ m_topic(struct Client *client_p, struct Client *source_p,
       return;
     }
     if ((chptr->mode.mode & MODE_TOPICLIMIT) == 0 ||
-        has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) || IsGod(source_p) ||
-        IsService(source_p))
+        has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) || HasUMode(source_p, UMODE_GOD) ||
+        HasUMode(source_p, UMODE_SERVICE))
     {
       char topic_info[USERHOST_REPLYLEN]; 
       if(!has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) && 
-          IsGod(source_p) && MyClient(source_p) &&
+          HasUMode(source_p, UMODE_GOD) && MyClient(source_p) &&
           (chptr->mode.mode & MODE_TOPICLIMIT) != 0)
       {              
         char tmp[IRCD_BUFSIZE];           

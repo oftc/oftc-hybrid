@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
+ *  $Id: s_gline.c 1459 2012-07-06 14:23:09Z michael $
  */
 
 #include "stdinc.h"
@@ -36,9 +36,10 @@
 #include "event.h"
 #include "memory.h"
 
-dlink_list pending_glines = { NULL, NULL, 0 };
+dlink_list pending_glines[GLINE_PENDING_ADD_TYPE + 1] = { { NULL, NULL, 0 },
+                                                          { NULL, NULL, 0 } };
 
-static void expire_pending_glines(void);
+static void expire_pending_glines(struct gline_pending *);
 
 
 struct AccessItem *
@@ -78,7 +79,7 @@ find_is_glined(const char *host, const char *user)
 void
 cleanup_glines(void *unused)
 {
-  expire_pending_glines();
+  expire_pending_glines(unused);
 }
 
 /* expire_pending_glines()
@@ -91,14 +92,16 @@ cleanup_glines(void *unused)
  * enough "votes" in the time period allowed
  */
 static void
-expire_pending_glines(void)
+expire_pending_glines(struct gline_pending *in)
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
   unsigned int idx = 0;
 
-  DLINK_FOREACH_SAFE(ptr, next_ptr, pending_glines.head)
+  for (; idx < GLINE_PENDING_ADD_TYPE + 1; ++idx)
   {
-    glp_ptr = ptr->data;
+    DLINK_FOREACH_SAFE(ptr, next_ptr, pending_glines[idx].head)
+    {
+      struct gline_pending *glp_ptr = ptr->data;
 
       if ((glp_ptr->last_gline_time + ConfigFileEntry.gline_request_time) <= CurrentTime ||
           glp_ptr == in)

@@ -23,22 +23,18 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "common.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "send.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "hash.h"
-#include "msg.h"
 #include "packet.h"
 #include "irc_string.h"
 

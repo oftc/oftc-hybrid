@@ -43,8 +43,6 @@
 #define SHARED_SUFFIX ".so"
 
 
-#ifndef STATIC_MODULES
-
 dlink_list modules_list = { NULL, NULL, 0 };
 
 static const char *unknown_ver = "<unknown>";
@@ -122,7 +120,7 @@ load_a_module(const char *path, int warn)
   const char *mod_basename = NULL;
   struct module *modp = NULL;
 
-  if (findmodule_byname((mod_basename = libio_basename(path))))
+  if (findmodule_byname((mod_basename = basename(path))))
     return 1;
 
   if (!(tmpptr = lt_dlopen(path))) {

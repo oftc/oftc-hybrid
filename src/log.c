@@ -91,6 +91,11 @@ log_write(enum log_type type, const char *message)
 }
 
 void
+oftc_log(char *fmt, ...)
+{
+}
+
+void
 ilog(enum log_type type, const char *fmt, ...)
 {
   char buf[LOG_BUFSIZE];

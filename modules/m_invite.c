@@ -108,7 +108,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
 
   if ((chptr->mode.mode & (MODE_INVITEONLY | MODE_PRIVATE)))
   {
-    if (MyConnect(source_p) && !chop && !IsGod(source_p))
+    if (MyConnect(source_p) && !chop && !HasUMode(source_p, UMODE_GOD))
     {
       sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
           me.name, parv[0], parv[2]);

@@ -355,7 +355,7 @@ read_packet(fde_t *fd, void *data)
         strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&CurrentTime));
         sendto_realops_flags(UMODE_ALL, L_ALL, 
             "Finally received packets from %s again after %d seconds (at %s)",
-            get_client_name(client_p, SHOW_IP), CurrentTime - client_p->lasttime, timestamp);
+            get_client_name(client_p, SHOW_IP), CurrentTime - client_p->localClient->lasttime, timestamp);
     }
 
     if (client_p->localClient->lasttime < CurrentTime)

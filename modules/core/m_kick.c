@@ -36,9 +36,8 @@
 #include "hash.h"
 #include "packet.h"
 #include "s_serv.h"
-#include "s_log.h"
+#include "log.h"
 #include "sprintf_irc.h"
-#include "common.h"
 
 /* m_kick()
  *  parv[0] = sender prefix
@@ -120,8 +119,8 @@ m_kick(struct Client *client_p, struct Client *source_p,
     if (!has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP))
     {
     /* was a user, not a server, and user isn't seen as a chanop here */
-      if (IsGod(source_p) && MyConnect(source_p))
-        gmode_used = TRUE;
+      if (HasUMode(source_p, UMODE_GOD) && MyConnect(source_p))
+        gmode_used = true;
       else if (MyConnect(source_p))
       {
         /* user on _my_ server, with no chanops.. so go away */
@@ -130,7 +129,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
         return;
       }
 
-      if (chptr->channelts == 0 && !IsGod(source_p))
+      if (chptr->channelts == 0 && !HasUMode(source_p, UMODE_GOD))
       {
         /* If its a TS 0 channel, do it the old way */
         sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
@@ -176,7 +175,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
 
   if ((ms_target = find_channel_link(who, chptr)) != NULL)
   {
-    if (IsGod(who))
+    if (HasUMode(who, UMODE_GOD))
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: to evade KICK from %s: %s %s %s",
@@ -187,7 +186,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    if(IsService(who))
+    if(HasUMode(who, UMODE_SERVICE))
       return;
 
 #ifdef HALFOPS

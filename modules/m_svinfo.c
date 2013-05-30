@@ -119,6 +119,7 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
                 (unsigned long) theirtime,
                 theirtimestamp,
                 (int) deltat);
+    }
 }
 
 static struct Message svinfo_msgtab = {

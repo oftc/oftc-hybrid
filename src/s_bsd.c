@@ -269,7 +269,7 @@ ssl_handshake(int fd, struct Client *client_p)
     }
     else
     {
-      ilog(L_WARN, "Client %s!%s@%s gave bad SSL client certificate: %d",
+      ilog(LOG_TYPE_IRCD, "Client %s!%s@%s gave bad SSL client certificate: %d",
           client_p->name, client_p->username, client_p->host, res);
     }
 
@@ -278,7 +278,7 @@ ssl_handshake(int fd, struct Client *client_p)
 
   if (ret <= 0)
   {
-    if((CurrentTime - client_p->firsttime) > 30)
+    if((CurrentTime - client_p->localClient->firsttime) > 30)
     {
       exit_client(client_p, client_p, "Timeout during SSL handshake");
       return;

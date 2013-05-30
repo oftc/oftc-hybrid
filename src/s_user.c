@@ -564,7 +564,7 @@ register_remote_user(struct Client *source_p,
   SetIpHash(source_p);
 
   aconf = find_conf_by_address(source_p->host, &source_p->ip,
-       CONF_CLIENT, source_p->aftype, source_p->username, NULL, source_p->certfp);
+       CONF_CLIENT, source_p->aftype, source_p->username, NULL, 1, source_p->certfp);
   aclass = map_to_conf(aconf->class_ptr);
 
   cidr_limit_reached(1, &source_p->ip, aclass);
@@ -1254,7 +1254,7 @@ check_xline(struct Client *source_p)
  *                This could also be used by rsa oper routines. 
  */
 void
-oper_up(struct Client *source_p, const char *name)
+oper_up(struct Client *source_p)
 {
   const unsigned int old = source_p->umodes;
   const struct AccessItem *oconf = NULL;
@@ -1560,10 +1560,10 @@ check_godmode(void *unused)
     
     old = oper_p->umodes;
 
-    if(IsGod(oper_p) && (CurrentTime - oper_p->umodestime) > 
+    if(HasUMode(oper_p, UMODE_GOD) && (CurrentTime - oper_p->umodestime) > 
         ConfigFileEntry.godmode_timeout)
     {
-      ClearGod(oper_p);
+      DelUMode(oper_p, UMODE_GOD);
       send_umode_out(oper_p, oper_p, old);
     }
   }

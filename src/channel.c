@@ -446,7 +446,7 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
   int is_member = IsMember(source_p, chptr);
   int multi_prefix = HasCap(source_p, CAP_MULTI_PREFIX) != 0;
 
-  if (PubChannel(chptr) || is_member || IsGod(source_p))
+  if (PubChannel(chptr) || is_member || HasUMode(source_p, UMODE_GOD))
   {
     t = lbuf + ircsprintf(lbuf, form_str(RPL_NAMREPLY),
                           me.name, source_p->name,
@@ -674,7 +674,7 @@ int
 can_join(struct Client *source_p, struct Channel *chptr, const char *key)
 {
 
-  if(IsService(source_p))
+  if(HasUMode(source_p, UMODE_SERVICE))
     return 0;
 
   if (is_banned(chptr, source_p))
@@ -702,9 +702,6 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
   if (chptr->mode.limit && dlink_list_length(&chptr->members) >=
       chptr->mode.limit)
     return ERR_CHANNELISFULL;
-
-  if(RegOnlyChannel(chptr) && !IsNickServReg(source_p))
-    return(ERR_REGONLYCHAN);
 
   if (SSLonlyChannel(chptr))
   {
@@ -800,7 +797,7 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
   if (chptr->mode.mode & MODE_MODERATED)
     return ERR_CANNOTSENDTOCHAN;
 
-  if(SpeakOnlyIfReg(chptr) && !IsNickServReg(source_p))
+  if(SpeakOnlyIfReg(chptr) && !HasUMode(source_p, UMODE_REGISTERED))
     return CAN_SEND_ONLY_IF_REG;
  
   if (chptr->mode.mode & MODE_REGONLY)

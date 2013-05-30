@@ -32,42 +32,11 @@
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "parse.h"
+#include "hash.h"
 
 
 static char buf[IRCD_BUFSIZE];
 static int line_counter;
-
-/* mo_map()
- *      parv[0] = sender prefix
- */
-static void
-mo_map(struct Client *client_p, struct Client *source_p,
-       int parc, char *parv[])
-{
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-  dlink_node *ptr;
-
-  line_counter = 0;
-  dump_map(client_p, &me, 0, buf);
-  DLINK_FOREACH(ptr, server_items.head)
-  {
-    conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
-    if (aconf->status != CONF_SERVER)
-      continue;
-    if (strcmp(conf->name, me.name) == 0)
-      continue;
-    if (!find_server(conf->name))
-    {
-      char buffer[IRCD_BUFSIZE];
-      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
-      sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buffer);
-    }
-  }
-
-  sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
-}
 
 /* dump_map()
  *   dumps server map, called recursively.
@@ -93,7 +62,7 @@ dump_map(struct Client *client_p, const struct Client *root_p,
   line_counter++;
 
   /* IsOper isn't called *that* often. */
-  if (IsOper(client_p))
+  if (HasUMode(client_p, UMODE_OPER))
   {
     l = ircsprintf(pb, "[%s]", root_p->id);
     pb += l;
@@ -152,6 +121,38 @@ dump_map(struct Client *client_p, const struct Client *root_p,
  
     ++i;
   }
+}
+
+/* mo_map()
+ *      parv[0] = sender prefix
+ */
+static void
+mo_map(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
+{
+  struct ConfItem *conf;
+  struct AccessItem *aconf;
+  dlink_node *ptr;
+
+  line_counter = 0;
+  dump_map(client_p, &me, 0, buf);
+  DLINK_FOREACH(ptr, server_items.head)
+  {
+    conf = ptr->data;
+    aconf = (struct AccessItem *)map_to_conf(conf);
+    if (aconf->status != CONF_SERVER)
+      continue;
+    if (strcmp(conf->name, me.name) == 0)
+      continue;
+    if (!hash_find_server(conf->name))
+    {
+      char buffer[IRCD_BUFSIZE];
+      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
+      sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buffer);
+    }
+  }
+
+  sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
 }
 
 static struct Message map_msgtab = {
