@@ -381,7 +381,6 @@ check_server(const char *name, struct Client *client_p)
   dlink_node *ptr;
   struct ConfItem *conf           = NULL;
   struct ConfItem *server_conf    = NULL;
-  struct AccessItem *server_aconf = NULL;
   struct AccessItem *aconf        = NULL;
   int error = -1;
 
@@ -416,8 +415,6 @@ check_server(const char *name, struct Client *client_p)
     return(error);
 
   attach_conf(client_p, server_conf);
-
-  server_aconf = map_to_conf(server_conf);
 
   if (aconf != NULL)
   {

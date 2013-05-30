@@ -131,6 +131,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                    : 0L,
                    aconf->host, aconf->reason,
                    aconf->oper_reason ? aconf->oper_reason : "");
+      }
     }
   }
 

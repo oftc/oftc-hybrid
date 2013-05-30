@@ -98,14 +98,11 @@ m_invite(struct Client *client_p, struct Client *source_p,
     return;
   }
   if(MyConnect(source_p) && !chop)
+  {
     sendto_realops_flags(UMODE_ALL, L_ALL, 
         "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
         target_p->name);
   }
-  else
-      /* Don't save invite even if from an op otherwise... */
-    chop = 0;
-
 
   if (IsMember(target_p, chptr))
   {

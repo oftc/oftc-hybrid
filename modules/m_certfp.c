@@ -72,7 +72,7 @@ static void ms_certfp(struct Client *source_p, struct Client *client_p, int parc
 
   base16_decode(target_p->certfp, SHA_DIGEST_LENGTH, parv[2], strlen(parv[2]));
 
-  sendto_server(client_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
+  sendto_server(client_p, NOCAPS, NOCAPS, NOFLAGS,
       ":%s CERTFP %s %s", parv[0], parv[1], parv[2]);
 }
 

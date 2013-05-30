@@ -927,7 +927,7 @@ sendto_realops_flags(unsigned int flags, int level, const char *pattern, ...)
 
   sendto_realops_remote(&me, flags, level, nbuf);
 
-  sendto_server(NULL, NULL, CAP_ENCAP, NOCAPS, 
+  sendto_server(NULL, CAP_ENCAP, NOCAPS, 
       ":%s ENCAP * GNOTICE %d %d :%s", me.name, flags, level, nbuf);
 }
 

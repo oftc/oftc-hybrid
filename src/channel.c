@@ -640,7 +640,7 @@ is_quiet(const struct Channel *chptr, const struct Client *who)
   assert(IsClient(who));
 
   if (find_bmask(who, &chptr->quietlist))
-    if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
+    if (!find_bmask(who, &chptr->exceptlist))
       return 1;
 
   return 0;
