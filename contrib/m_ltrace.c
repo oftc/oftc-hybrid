@@ -215,11 +215,7 @@ mo_ltrace(struct Client *client_p, struct Client *source_p,
     if (hunt_server(client_p, source_p, ":%s LTRACE %s :%s", 2, parc, parv))
       return;
 
-#ifdef STATIC_MODULES
   do_ltrace(source_p, parc, parv);
-#else
-  execute_callback(ltrace_cb, source_p, parc, parv);
-#endif
 }
 
 /*
