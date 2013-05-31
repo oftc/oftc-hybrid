@@ -615,7 +615,6 @@ main(int argc, char *argv[])
   /* add ourselves to global_serv_list */
   dlinkAdd(&me, make_dlink_node(), &global_serv_list);
 
-#ifndef STATIC_MODULES
   if (chdir(MODPATH))
   {
     ilog(LOG_TYPE_IRCD, "Could not load core modules. Terminating!");
@@ -632,9 +631,6 @@ main(int argc, char *argv[])
     perror("chdir");
     exit(EXIT_FAILURE);
   }
-#else
-  load_all_modules(1);
-#endif
   /*
    * assemble_umode_buffer() has to be called after
    * reading conf/loading modules.

@@ -1721,9 +1721,7 @@ rehash(int sig)
   if (ServerInfo.description != NULL)
     strlcpy(me.info, ServerInfo.description, sizeof(me.info));
 
-#ifndef STATIC_MODULES
   load_conf_modules();
-#endif
 
   flush_deleted_I_P();
 
