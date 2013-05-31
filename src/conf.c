@@ -1610,20 +1610,21 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
     case OPER_TYPE:
       DLINK_FOREACH(ptr, list_p->head)
       {
-        struct ClassItem *aclass = map_to_conf(aconf->class_ptr);
+        conf = ptr->data;
+        aconf = map_to_conf(conf);
 
-        if (!who)
-          return conf;
-        if (EmptyString(aconf->user) || EmptyString(aconf->host))
-          return NULL;
-        if (match(aconf->user, who->username))
+        if (EmptyString(conf->name))
+          continue;
+
+        if (!irccmp(conf->name, name))
         {
-          if(who == NULL)
+
+          struct ClassItem *aclass = map_to_conf(aconf->class_ptr);
+
+          if (!who)
             return conf;
-          
           if (EmptyString(aconf->user) || EmptyString(aconf->host))
-            return conf;
-          
+            return NULL;
           if (match(aconf->user, who->username))
           {
             switch (aconf->type)
