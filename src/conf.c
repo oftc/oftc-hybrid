@@ -2501,9 +2501,7 @@ clear_out_old_conf(void)
   clear_out_address_conf();
 
   /* clean out module paths */
-#ifndef STATIC_MODULES
   mod_clear_paths();
-#endif
 
   /* clean out ServerInfo */
   MyFree(ServerInfo.description);
@@ -2523,6 +2521,16 @@ clear_out_old_conf(void)
 
   MyFree(ServerInfo.rsa_private_key_file);
   ServerInfo.rsa_private_key_file = NULL;
+
+
+  if (ServerInfo.server_ctx)
+    SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv2|
+                                               SSL_OP_NO_SSLv3|
+                                               SSL_OP_NO_TLSv1);
+  if (ServerInfo.client_ctx)
+    SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv2|
+                                               SSL_OP_NO_SSLv3|
+                                               SSL_OP_NO_TLSv1);
 #endif
 
   /* clean out old resvs from the conf */
