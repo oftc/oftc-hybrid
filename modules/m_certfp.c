@@ -42,27 +42,6 @@
 #include "packet.h"
 #include "irc_string.h"
 
-
-static void ms_certfp(struct Client *, struct Client *, int, char**);
-
-struct Message certfp_msgtab = {
-      "CERTFP", 0, 0, 2, 0, MFLG_SLOW, 0,
-        {m_ignore, m_ignore, ms_certfp, m_ignore}
-};
-
-const char *_version = "$Revision 0.1$";
-
-void _modinit(void)
-{
-  mod_add_cmd(&certfp_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&certfp_msgtab);
-}
-
 static void ms_certfp(struct Client *source_p, struct Client *client_p, int parc, char **parv)
 {
   struct Client *target_p;
@@ -76,3 +55,28 @@ static void ms_certfp(struct Client *source_p, struct Client *client_p, int parc
       ":%s CERTFP %s %s", parv[0], parv[1], parv[2]);
 }
 
+struct Message certfp_msgtab = {
+      "CERTFP", 0, 0, 2, 0, MFLG_SLOW, 0,
+        {m_ignore, m_ignore, ms_certfp, m_ignore}
+};
+
+void module_init(void)
+{
+  mod_add_cmd(&certfp_msgtab);
+}
+
+void
+module_exit(void)
+{
+  mod_del_cmd(&certfp_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

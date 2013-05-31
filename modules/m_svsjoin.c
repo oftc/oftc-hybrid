@@ -25,7 +25,6 @@
  *  IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id$
  */
 
 #include "stdinc.h"
@@ -46,29 +45,6 @@
 #include "modules.h"
 #include "channel.h"
 #include "channel_mode.h"
-
-static void ms_svsjoin(struct Client *, struct Client *, int parc, char *[]);
-
-struct Message svsjoin_msgtab = {
-  "SVSJOIN", 0, 0, 3, 0, MFLG_SLOW, 0,
-  { m_ignore, m_ignore, ms_svsjoin, ms_svsjoin, m_ignore, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&svsjoin_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&svsjoin_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /* m_svsjoin()
  *  parv[0] = sender prefix
@@ -244,3 +220,30 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
     channel_member_names(target_p, chptr, 1);
   }
 }
+
+struct Message svsjoin_msgtab = {
+  "SVSJOIN", 0, 0, 3, 0, MFLG_SLOW, 0,
+  { m_ignore, m_ignore, ms_svsjoin, ms_svsjoin, m_ignore, m_ignore }
+};
+
+void
+module_init()
+{
+  mod_add_cmd(&svsjoin_msgtab);
+}
+
+void
+module_exit()
+{
+  mod_del_cmd(&svsjoin_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

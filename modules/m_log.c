@@ -35,42 +35,45 @@
 #include "sprintf_irc.h"
 #include "irc_string.h"
 
-/* $Id$ */
+static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+{
+  FILE *logfile = NULL;
 
-static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char **parv);
+  if(parc < 2)
+    return;
 
-const char* _version = "$Revision$";
+  if (IsClient(source_p) && ((logfile = fopen(OFTCLOG, "a+")) != NULL))
+  {
+    fprintf(logfile, "%s %s %s\n",
+        myctime(time(NULL)), source_p->name, parv[1]);
+    fclose(logfile);
+  }
+  return;
+}
 
 struct Message log_msgtab = {
   "LOG", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_log, m_ignore, mo_log, m_ignore}
-  };
-      
+  { m_ignore, m_ignore, mo_log, m_ignore, mo_log, m_ignore }
+};
 
-void _modinit(void)
+void 
+module_init(void)
 {
-          mod_add_cmd(&log_msgtab);
+  mod_add_cmd(&log_msgtab);
 }
 
 void
-_moddeinit(void)
+module_exit(void)
 {
-          mod_del_cmd(&log_msgtab);
+  mod_del_cmd(&log_msgtab);
 }
 
-
-static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
-{
-    FILE *logfile = NULL;
-
-    if(parc < 2)
-        return;
-
-    if (IsClient(source_p) && ((logfile = fopen(OFTCLOG, "a+")) != NULL))
-    {
-        fprintf(logfile, "%s %s %s\n",
-                myctime(time(NULL)), source_p->name, parv[1]);
-        fclose(logfile);
-    }
-    return;
-}
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

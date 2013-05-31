@@ -41,39 +41,13 @@
 
 #define SHED_RATE_MIN 5
 
-static void mo_shedding(struct Client *, struct Client *, int, char **);
 void user_shedding_main(void *rate);
 void user_shedding_shed(void *unused);
 
-struct Message shedding_msgtab = {
-  "shedding", 0, 0, 2, 0, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_shedding, m_ignore}
-};
+/* Local function prototypes */
 
 static int rate = 60;
 static int operstoo = 0;
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&shedding_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&shedding_msgtab);
-  eventDelete(user_shedding_main, NULL);
-  eventDelete(user_shedding_shed, NULL);
-}
-
-const char *_version = "$Revision$";
-#endif
-
-/* Local function prototypes */
-
-char buffer[IRCD_BUFSIZE];
 
 /*
  * mo_shedding
@@ -163,3 +137,33 @@ void user_shedding_shed(void *unused)
   }
   eventDelete(user_shedding_shed, NULL);
 }
+
+struct Message shedding_msgtab = {
+  "shedding", 0, 0, 2, 0, MFLG_SLOW, 0,
+   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_shedding, m_ignore }
+};
+
+void
+module_init()
+{
+  mod_add_cmd(&shedding_msgtab);
+}
+
+void
+module_exit()
+{
+  mod_del_cmd(&shedding_msgtab);
+  eventDelete(user_shedding_main, NULL);
+  eventDelete(user_shedding_shed, NULL);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};
+
