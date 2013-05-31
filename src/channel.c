@@ -675,9 +675,12 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
   if (is_banned(chptr, source_p))
     return ERR_BANNEDFROMCHAN;
 
+  if ((chptr->mode.mode & MODE_SSLONLY))
 #ifdef HAVE_LIBCRYPTO
-  if ((chptr->mode.mode & MODE_SSLONLY) && !source_p->localClient->fd.ssl)
-    return ERR_SSLONLYCHAN;
+    if (!(source_p->localClient->fd.ssl))
+        return (ERR_SSLONLYCHAN);
+#else
+    return (ERR_SSLONLYCHAN);  /* deny everyone on a non SSL-enabled server */
 #endif
 
   if ((chptr->mode.mode & MODE_REGONLY) && !HasUMode(source_p, UMODE_REGISTERED))
@@ -697,16 +700,6 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
   if (chptr->mode.limit && dlink_list_length(&chptr->members) >=
       chptr->mode.limit)
     return ERR_CHANNELISFULL;
-
-  if (SSLonlyChannel(chptr))
-  {
-#ifdef HAVE_LIBCRYPTO
-    if (MyClient(source_p) && !(source_p->localClient->fd.ssl))
-        return (ERR_SSLONLYCHAN);
-#else
-    return (ERR_SSLONLYCHAN);  /* deny everyone on a non SSL-enabled server */
-#endif
-  }
 
   return 0;
 }
@@ -764,7 +757,7 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
       if (is_quiet(chptr, source_p))
         return CAN_SEND_NO;
     }
-    if (chptr->mode.mode & MODE_REGONLY)
+    if (chptr->mode.mode & MODE_SPEAKIFREG)
       if (!HasUMode(source_p, UMODE_REGISTERED))
         return ERR_NEEDREGGEDNICK;
 
@@ -791,9 +784,6 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 
   if (chptr->mode.mode & MODE_MODERATED)
     return ERR_CANNOTSENDTOCHAN;
-
-  if ((chptr->mode.mode & MODE_REGONLY) && !HasUMode(source_p, UMODE_REGISTERED))
-    return ERR_NEEDREGGEDNICK;
 
   return CAN_SEND_NONOP;
 }
