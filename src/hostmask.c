@@ -436,6 +436,51 @@ get_mask_hash(const char *text)
   return hash_text(text);
 }
 
+struct AddressRec *
+find_conf_by_ip(int family, dlink_list *list, struct irc_ssaddr *addr, unsigned int type, 
+    const char *username, const char *password, bool do_match, bool ignore_user, const char *certfp)
+{
+  unsigned int hprecv = 0;
+  dlink_node *ptr = NULL;
+  struct AddressRec *arec, *ret;
+  int (*cmpfunc)(const char *, const char *) = do_match ? match : irccmp;
+  int masktype = family == AF_INET ? HM_IPV4 : HM_IPV6;
+
+  DLINK_FOREACH(ptr, list->head)
+  {
+    arec = ptr->data; 
+    if(ret == NULL)
+      ret = arec;
+
+    if (arec->type != type)
+      continue;
+
+    if(arec->precedence <= hprecv)
+      continue;
+
+    if(arec->masktype != masktype)
+      continue;
+
+    if(family == AF_INET && match_ipv4(addr, &arec->Mask.ipa.addr, arec->Mask.ipa.bits) != 0)
+      continue;
+
+    if(family == AF_INET6 && match_ipv6(addr, &arec->Mask.ipa.addr, arec->Mask.ipa.bits) != 0)
+      continue;
+
+    if(!ignore_user && cmpfunc(arec->username, username) != do_match)
+      continue;
+
+    if(arec->aconf->passwd != NULL && !IsNeedPassword(arec->aconf) &&
+        !match_conf_password(password, arec->aconf))
+      continue;
+
+    ret = arec;
+    hprecv = ret->precedence;
+  }
+
+  return ret;
+}
+
 /* struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
  *                                         int type, int fam, const char *username)
  * Input: The hostname, the address, the type of mask to find, the address
@@ -481,29 +526,11 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
     {
       for (b = 128; b >= 0; b -= 16)
       {
-        DLINK_FOREACH(ptr, atable[hash_ipv6(addr, b)].head)
+        arec = find_conf_by_ip(fam, &atable[hash_ipv6(addr, b)], addr, type, username, password, do_match,
+            ignore_user, certfp);
+
+        if(arec != NULL)
         {
-          arec = ptr->data; 
-
-          if (arec->type != type)
-            continue;
-
-          if(arec->precedence <= hprecv)
-            continue;
-
-          if(arec->masktype != HM_IPV6)
-            continue;
-
-          if(match_ipv6(addr, &arec->Mask.ipa.addr, arec->Mask.ipa.bits) != 0)
-            continue;
-
-          if(!ignore_user && cmpfunc(arec->username, username) != do_match)
-            continue;
-             
-          if(arec->aconf->passwd != NULL && !IsNeedPassword(arec->aconf) &&
-              !match_conf_password(password, arec->aconf))
-            continue;
-
           hprecv = arec->precedence;
           hprec = arec->aconf;
         }
@@ -515,29 +542,11 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
     {
       for (b = 32; b >= 0; b -= 8)
       {
-        DLINK_FOREACH(ptr, atable[hash_ipv4(addr, b)].head)
+        arec = find_conf_by_ip(fam, &atable[hash_ipv4(addr, b)], addr, type, username, password,
+            do_match, ignore_user, certfp);
+
+        if(arec != NULL)
         {
-          arec = ptr->data;
-
-          if(arec->type != type)
-            continue;
-
-          if(arec->precedence <= hprecv)
-            continue;
-
-          if(arec->masktype != HM_IPV4)
-            continue;
-
-          if(match_ipv4(addr, &arec->Mask.ipa.addr, arec->Mask.ipa.bits) != 0)
-              continue;
-
-          if(!ignore_user && cmpfunc(arec->username, username) != do_match)
-            continue;
-
-          if(arec->aconf->passwd != NULL && !IsNeedPassword(arec->aconf) &&
-              !match_conf_password(password, arec->aconf))
-            continue;
-
            hprecv = arec->precedence;
            hprec = arec->aconf;
         }
