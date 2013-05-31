@@ -457,6 +457,14 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
   struct AddressRec *arec;
   int b;
   int (*cmpfunc)(const char *, const char *) = do_match ? match : irccmp;
+  bool ignore_user = false;
+  bool keep_going = (name != NULL);
+  const char *p = name;
+
+  if((type & 0x1) == 0x1)
+    ignore_user = true;
+
+  type &= ~0x1;
 
   if (username == NULL)
     username = "";
@@ -464,7 +472,6 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
     password = "";
   if (certfp == NULL)
     certfp = "";
-
 
   if (addr)
   {
@@ -478,17 +485,27 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
         {
           arec = ptr->data; 
 
-          if (arec->type == (type & ~0x1) &&
-              arec->precedence > hprecv &&
-              arec->masktype == HM_IPV6 &&
-              match_ipv6(addr, &arec->Mask.ipa.addr, arec->Mask.ipa.bits) &&
-              (type & CONF_RESERVED || cmpfunc(arec->username, username) == do_match) &&
-              (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
-               match_conf_password(password, arec->aconf)))
-          {
-            hprecv = arec->precedence;
-            hprec = arec->aconf;
-          }
+          if (arec->type != type)
+            continue;
+
+          if(arec->precedence <= hprecv)
+            continue;
+
+          if(arec->masktype != HM_IPV6)
+            continue;
+
+          if(match_ipv6(addr, &arec->Mask.ipa.addr, arec->Mask.ipa.bits) != 0)
+            continue;
+
+          if(!ignore_user && cmpfunc(arec->username, username) != do_match)
+            continue;
+             
+          if(arec->aconf->passwd != NULL && !IsNeedPassword(arec->aconf) &&
+              !match_conf_password(password, arec->aconf))
+            continue;
+
+          hprecv = arec->precedence;
+          hprec = arec->aconf;
         }
       }
     }
@@ -502,71 +519,39 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
         {
           arec = ptr->data;
 
-          if (arec->type == (type & ~0x1) &&
-              arec->precedence > hprecv &&
-              arec->masktype == HM_IPV4 &&
-              match_ipv4(addr, &arec->Mask.ipa.addr,
-                         arec->Mask.ipa.bits) &&
-              (type & CONF_RESERVED || cmpfunc(arec->username, username) == do_match) &&
-              (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
-               match_conf_password(password, arec->aconf)))
-          {
-            hprecv = arec->precedence;
-            hprec = arec->aconf;
-          }
+          if(arec->type != type)
+            continue;
+
+          if(arec->precedence <= hprecv)
+            continue;
+
+          if(arec->masktype != HM_IPV4)
+            continue;
+
+          if(match_ipv4(addr, &arec->Mask.ipa.addr, arec->Mask.ipa.bits) != 0)
+              continue;
+
+          if(!ignore_user && cmpfunc(arec->username, username) != do_match)
+            continue;
+
+          if(arec->aconf->passwd != NULL && !IsNeedPassword(arec->aconf) &&
+              !match_conf_password(password, arec->aconf))
+            continue;
+
+           hprecv = arec->precedence;
+           hprec = arec->aconf;
         }
       }
     }
   }
-
-  if (name != NULL)
+    
+  while (keep_going)
   {
-    const char *p = name;
-
-    while (1)
-    {
-      DLINK_FOREACH(ptr, atable[hash_text(p)].head)
-      {
-        arec = ptr->data;
-
-        if (!(arec->type == (type & ~CONF_RESERVED)))
-          continue;
-
-        if(arec->precedence <= hprecv)
-          continue;
-        
-        if(arec->masktype == HM_HOST)
-        {
-          if(arec->aconf->certfp != NULL)
-          {
-            if(memcmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH) != 0)
-              continue;
-          }
-          else
-            if(cmpfunc(arec->Mask.hostname, name) == do_match)
-              continue;
-        }
-        else
-          continue;
-
-        if((type & CONF_RESERVED || match(arec->username, username)) &&
-            (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
-             match_conf_password(password, arec->aconf)))
-        {
-          hprecv = arec->precedence;
-          hprec = arec->aconf;
-        }
-      }
-      p = strchr(p, '.');
-      if (p == NULL)
-        break;
-      p++;
-    }
-    DLINK_FOREACH(ptr, atable[0].head)
+    DLINK_FOREACH(ptr, atable[hash_text(p)].head)
     {
       arec = ptr->data;
 
-      if (!(arec->type == (type & ~CONF_RESERVED)))
+      if (arec->type != type)
         continue;
 
       if(arec->precedence <= hprecv)
@@ -586,7 +571,47 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
       else
         continue;
 
-      if((type & CONF_RESERVED || match(arec->username, username)) &&
+      if((ignore_user || match(arec->username, username)) &&
+          (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
+           match_conf_password(password, arec->aconf)))
+      {
+        hprecv = arec->precedence;
+        hprec = arec->aconf;
+      }
+    }
+    p = strchr(p, '.');
+    if (p == NULL)
+      keep_going = false;
+    p++;
+  }
+
+  if(name != NULL)
+  {
+    DLINK_FOREACH(ptr, atable[0].head)
+    {
+      arec = ptr->data;
+
+      if (arec->type != type)
+        continue;
+
+      if(arec->precedence <= hprecv)
+        continue;
+
+      if(arec->masktype == HM_HOST)
+      {
+        if(arec->aconf->certfp != NULL)
+        {
+          if(memcmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH) != 0)
+            continue;
+        }
+        else
+          if(cmpfunc(arec->Mask.hostname, name) == do_match)
+            continue;
+      }
+      else
+        continue;
+
+      if((ignore_user || match(arec->username, username)) &&
           (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
            match_conf_password(password, arec->aconf)))
       {
