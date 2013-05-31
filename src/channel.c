@@ -792,9 +792,6 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
   if (chptr->mode.mode & MODE_MODERATED)
     return ERR_CANNOTSENDTOCHAN;
 
-  if(SpeakOnlyIfReg(chptr) && !HasUMode(source_p, UMODE_REGISTERED))
-    return CAN_SEND_ONLY_IF_REG;
- 
   if ((chptr->mode.mode & MODE_REGONLY) && !HasUMode(source_p, UMODE_REGISTERED))
     return ERR_NEEDREGGEDNICK;
 
