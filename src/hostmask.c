@@ -442,15 +442,13 @@ find_conf_by_ip(int family, dlink_list *list, struct irc_ssaddr *addr, unsigned 
 {
   unsigned int hprecv = 0;
   dlink_node *ptr = NULL;
-  struct AddressRec *arec, *ret;
+  struct AddressRec *arec, *ret = NULL;
   int (*cmpfunc)(const char *, const char *) = do_match ? match : irccmp;
   int masktype = family == AF_INET ? HM_IPV4 : HM_IPV6;
 
   DLINK_FOREACH(ptr, list->head)
   {
     arec = ptr->data; 
-    if(ret == NULL)
-      ret = arec;
 
     if (arec->type != type)
       continue;
@@ -574,7 +572,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
             continue;
         }
         else
-          if(cmpfunc(arec->Mask.hostname, name) == do_match)
+          if(cmpfunc(arec->Mask.hostname, name) != do_match)
             continue;
       }
       else
@@ -614,7 +612,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
             continue;
         }
         else
-          if(cmpfunc(arec->Mask.hostname, name) == do_match)
+          if(cmpfunc(arec->Mask.hostname, name) != do_match)
             continue;
       }
       else
