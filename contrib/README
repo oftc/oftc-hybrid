@@ -81,12 +81,6 @@ m_ltrace.c       --  This module will give a limited trace. This is similar to
                               LTRACE node.server.com
 
 
-m_mkpasswd.c     --  This module will generate a DES or MD5 encrypted password
-                     similar to the console version bundled with hybrid.
-
-                     Syntax: MKPASSWD <plaintext> [MD5|DES]
-
-
 m_ojoin.c        --  This module will add the ability to join any channel no
                      matter what modes or limits are set with an optional 
                      status (@%+) It should be noted that this command can be
