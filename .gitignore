@@ -32,9 +32,9 @@ include/config.h.in
 include/stamp-h1
 install-sh
 libltdl
-src/ircd_parser.c
-src/ircd_parser.h
-src/ircd_lexer.c
+src/conf_parser.c
+src/conf_parser.h
+src/conf_lexer.c
 m4/argz.m4
 m4/libtool.m4
 m4/ltdl.m4
