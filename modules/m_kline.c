@@ -45,10 +45,7 @@
 
 
 static int already_placed_kline(struct Client *, const char *, const char *, int);
-static void apply_kline(struct Client *, struct ConfItem *, const char *, 
-    time_t, time_t);
-
-
+static void apply_kline(struct Client *, struct ConfItem *, time_t);
 
 static char buffer[IRCD_BUFSIZE];
 static bool remove_tkline_match(const char *, const char *);
@@ -72,12 +69,10 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   char *user = NULL;
   char *host = NULL;
   char *p;
-  const char *current_date;
   char *target_server = NULL;
   struct ConfItem *conf;
   struct AccessItem *aconf;
   time_t tkline_time = 0;
-  time_t cur_time;
 
   if (!HasOFlag(source_p, OPER_FLAG_K))
   {
@@ -139,20 +134,18 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   if ((oper_reason = strchr(reason, '|')) != NULL)
     *oper_reason++ = '\0';
 
-  cur_time = CurrentTime;
-  current_date = smalldate(cur_time);
   conf = make_conf_item(KLINE_TYPE);
   aconf = map_to_conf(conf);
 
   DupString(aconf->host, host);
   DupString(aconf->user, user);
-  ircsprintf(buffer, "%s (%s)", reason, current_date);
+  ircsprintf(buffer, "%s (%s)", reason, smalldate(CurrentTime));
   DupString(aconf->reason, buffer);
     
   if (oper_reason != NULL)
     DupString(aconf->oper_reason, oper_reason);
 
-  apply_kline(source_p, conf, current_date, cur_time, tkline_time);
+  apply_kline(source_p, conf, tkline_time);
 }
 
 /* me_kline - handle remote kline. no propagation */
@@ -203,7 +196,7 @@ me_kline(struct Client *client_p, struct Client *source_p,
     if (oper_reason != NULL)
       DupString(aconf->oper_reason, oper_reason);
 
-    apply_kline(source_p, conf, current_date, cur_time, tkline_time);
+    apply_kline(source_p, conf, tkline_time);
   }
 }
 
@@ -231,10 +224,10 @@ ms_kline(struct Client *client_p, struct Client *source_p,
  *		  and conf file
  */
 static void 
-apply_kline(struct Client *source_p, struct ConfItem *conf,
-    const char *current_date, time_t cur_time, time_t tkline_time)
+apply_kline(struct Client *source_p, struct ConfItem *conf, time_t tkline_time)
 {
   struct AccessItem *aconf;
+  const char *current_date = smalldate(CurrentTime);
 
   aconf = (struct AccessItem *)map_to_conf(conf);
   if(tkline_time > 0)
@@ -245,7 +238,7 @@ apply_kline(struct Client *source_p, struct ConfItem *conf,
   else
     add_conf_by_address(CONF_KLINE, aconf);
 
-  write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
+  write_conf_line(source_p, conf, current_date, CurrentTime, tkline_time);
   rehashed_klines = 1;
 }
 
