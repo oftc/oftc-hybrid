@@ -2141,39 +2141,17 @@ get_oper_name(const struct Client *client_p)
   return buffer;
 }
 
-#if 0
-  static void
+static void
 clear_temp_list(dlink_list *list)
 {
   dlink_node *ptr, *next_ptr;
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, list->head)
   {
-    conf = ptr->data;
-    switch(conf->type)
-    {
-      case GLINE_TYPE:
-      case KLINE_TYPE:
-      case DLINE_TYPE:
-        aconf = (struct AccessItem *)map_to_conf(conf);
-
-        dlinkDelete(ptr, list);
-        delete_one_address_conf(aconf->host, aconf);
-        break;
-      case XLINE_TYPE:
-      case NRESV_TYPE:
-      case CRESV_TYPE:
-        dlinkDelete(ptr, list);
-        free_dlink_node(ptr);
-        break;
-      default:
-        break;
-    }
+    dlinkDelete(ptr, list);
+    free_dlink_node(ptr);
  }
 }
-#endif
 
 /* read_conf_files()
  *
@@ -2219,11 +2197,8 @@ read_conf_files(int cold)
   if (!cold)
   {
     clear_out_old_conf();
-    /*clear_temp_list(&temporary_glines);
-    clear_temp_list(&temporary_klines);
-    clear_temp_list(&temporary_dlines);
     clear_temp_list(&temporary_xlines);
-    clear_temp_list(&temporary_resv);*/
+    clear_temp_list(&temporary_resv);
   }
 
   read_conf(conf_parser_ctx.conf_file);
