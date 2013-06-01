@@ -518,5 +518,6 @@ extern void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
 
 extern void conf_error_report(const char *);
 
-void apply_conf_ban(struct Client *, struct ConfItem *, time_t);
+void apply_conf_ban(struct Client *, int, const char *, const char *,
+    const char *, const char *, time_t);
 #endif /* INCLUDED_s_conf_h */

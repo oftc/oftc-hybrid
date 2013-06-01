@@ -3614,19 +3614,34 @@ destroy_cidr_class(struct ClassItem *aclass)
 }
 
 void
-apply_conf_ban(struct Client *client, struct ConfItem *conf, time_t duration)
+apply_conf_ban(struct Client *client, int type, const char *user, 
+    const char *host, const char *reason, const char *oper_reason,
+    time_t duration)
 {
   struct AccessItem *aconf;
+  struct ConfItem *conf;
   const char *current_date = smalldate(CurrentTime);
+  char buffer[IRCD_BUFSIZE];
+
+  conf = make_conf_item(type);
+  aconf = map_to_conf(conf);
+
+  if(host != NULL)
+    DupString(aconf->host, host);
+  if(user != NULL)
+    DupString(aconf->user, user);
+
+  snprintf(buffer, sizeof(buffer), "%s (%s)", reason, current_date);
+  DupString(aconf->reason, buffer);
+
+  if (oper_reason != NULL)
+    DupString(aconf->oper_reason, oper_reason);
 
   aconf = (struct AccessItem *)map_to_conf(conf);
   if(duration > 0)
-  {
     aconf->hold = CurrentTime + duration;
-    add_temp_line(conf);
-  }
-  else
-    add_conf_by_address(aconf->type, aconf);
+
+  add_conf_by_address(aconf->type, aconf);
 
   write_conf_line(client, conf, current_date, CurrentTime, duration);
   rehashed_klines = 1;

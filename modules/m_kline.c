@@ -143,7 +143,8 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   if (oper_reason != NULL)
     DupString(aconf->oper_reason, oper_reason);
 
-  apply_conf_ban(source_p, conf, tkline_time);
+  apply_conf_ban(source_p, KLINE_TYPE, user, host, reason, oper_reason, 
+      tkline_time);
 }
 
 /* me_kline - handle remote kline. no propagation */
@@ -151,8 +152,6 @@ static void
 me_kline(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  struct ConfItem *conf=NULL;
-  struct AccessItem *aconf=NULL;
   int tkline_time;
   char *kuser, *khost, *kreason, *oper_reason;
 
@@ -178,18 +177,8 @@ me_kline(struct Client *client_p, struct Client *source_p,
         already_placed_kline(source_p, kuser, khost, 1))
       return;
 
-    conf = make_conf_item(KLINE_TYPE);
-    aconf = map_to_conf(conf);
-    DupString(aconf->host, khost);
-    DupString(aconf->user, kuser);
-
-    snprintf(buffer, sizeof(buffer), "%s (%s)", kreason, smalldate(CurrentTime));
-    DupString(aconf->reason, buffer);
-      
-    if (oper_reason != NULL)
-      DupString(aconf->oper_reason, oper_reason);
-
-    apply_conf_ban(source_p, conf, tkline_time);
+    apply_conf_ban(source_p, KLINE_TYPE, kuser, khost, kreason, oper_reason, 
+        tkline_time);
   }
 }
 
