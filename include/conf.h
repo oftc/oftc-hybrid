@@ -517,4 +517,6 @@ extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
 extern void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
 
 extern void conf_error_report(const char *);
+
+void apply_conf_ban(struct Client *, struct ConfItem *, time_t);
 #endif /* INCLUDED_s_conf_h */

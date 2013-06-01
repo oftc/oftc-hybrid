@@ -3637,3 +3637,22 @@ destroy_cidr_class(struct ClassItem *aclass)
   destroy_cidr_list(&aclass->list_ipv4);
   destroy_cidr_list(&aclass->list_ipv6);
 }
+
+void
+apply_conf_ban(struct Client *client, struct ConfItem *conf, time_t duration)
+{
+  struct AccessItem *aconf;
+  const char *current_date = smalldate(CurrentTime);
+
+  aconf = (struct AccessItem *)map_to_conf(conf);
+  if(duration > 0)
+  {
+    aconf->hold = CurrentTime + duration;
+    add_temp_line(conf);
+  }
+  else
+    add_conf_by_address(aconf->type, aconf);
+
+  write_conf_line(client, conf, current_date, CurrentTime, duration);
+  rehashed_klines = 1;
+}
