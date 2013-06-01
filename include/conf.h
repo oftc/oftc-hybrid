@@ -33,6 +33,8 @@
 #include "hook.h"
 
 
+#define CONF_NOREASON "<No reason supplied>"
+
 struct Client;
 
 extern struct Callback *client_check_cb;
@@ -151,6 +153,9 @@ struct ClassItem
   dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
   unsigned int max_sendq;
   unsigned int max_recvq;
+  unsigned int min_idle;
+  unsigned int max_idle;
+  unsigned int flags;
   int con_freq;
   int ping_freq;
   int ping_warning;
@@ -238,6 +243,9 @@ struct ip_entry
 #define CONF_FLAGS_TEMPORARY            0x00008000
 #define CONF_FLAGS_EXEMPTRESV           0x00010000
 #define CONF_FLAGS_SSL                  0x00020000
+#define CONF_FLAGS_RANDOM_IDLE          0x00040000
+#define CONF_FLAGS_HIDE_IDLE_FROM_OPERS 0x00080000
+#define CONF_FLAGS_FAKE_IDLE            0x00100000
 
 /* Macros for struct AccessItem */
 #define IsLimitIp(x)            ((x)->flags & CONF_FLAGS_LIMIT_IP)
@@ -394,6 +402,8 @@ struct server_info
   struct irc_ssaddr ip;
   struct irc_ssaddr ip6;
   unsigned int max_clients;
+  unsigned int max_nick_length;
+  unsigned int max_topic_length;
   int specific_ipv4_vhost;
   int specific_ipv6_vhost;
   struct sockaddr_in dns_host;
@@ -433,6 +443,7 @@ extern int valid_wild_card(struct Client *, int, int, ...);
 extern unsigned int get_sendq(struct Client *);
 extern unsigned int get_recvq(struct Client *);
 extern const char *get_client_class(struct Client *);
+struct ClassItem *get_client_class_ptr(struct Client *);
 extern int get_client_ping(struct Client *, int *);
 extern void check_class(void);
 extern void init_class(void);
@@ -450,7 +461,6 @@ extern int attach_connect_block(struct Client *, const char *, const char *);
 extern int detach_conf(struct Client *, ConfType);
 
 extern struct ConfItem *find_conf_name(dlink_list *, const char *, ConfType);
-extern struct ConfItem *find_conf_exact(ConfType, const char *, const char *, const char *);
 extern struct AccessItem *find_kill(struct Client *);
 extern struct AccessItem *find_gline(struct Client *);
 extern int conf_connect_allowed(struct irc_ssaddr *, int);
@@ -508,4 +518,5 @@ extern struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
 extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
 extern void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
 
+extern void conf_error_report(const char *);
 #endif /* INCLUDED_s_conf_h */

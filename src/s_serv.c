@@ -382,6 +382,7 @@ check_server(const char *name, struct Client *client_p)
   struct ConfItem *conf           = NULL;
   struct ConfItem *server_conf    = NULL;
   struct AccessItem *aconf        = NULL;
+  struct AccessItem *server_aconf = NULL;
   int error = -1;
 
   assert(client_p != NULL);
@@ -416,7 +417,9 @@ check_server(const char *name, struct Client *client_p)
 
   attach_conf(client_p, server_conf);
 
-  if (aconf != NULL)
+  server_aconf = map_to_conf(server_conf);
+
+  if (server_aconf != NULL)
   {
     struct sockaddr_in *v4;
 #ifdef IPV6
@@ -426,17 +429,17 @@ check_server(const char *name, struct Client *client_p)
     {
 #ifdef IPV6
       case AF_INET6: 
-        v6 = (struct sockaddr_in6 *)&aconf->addr;
+        v6 = (struct sockaddr_in6 *)&server_aconf->addr;
 
         if (IN6_IS_ADDR_UNSPECIFIED(&v6->sin6_addr))
-          memcpy(&aconf->addr, &client_p->ip, sizeof(struct irc_ssaddr));
+          memcpy(&server_aconf->addr, &client_p->ip, sizeof(struct irc_ssaddr));
         break;
 #endif
       case AF_INET:
-        v4 = (struct sockaddr_in *)&aconf->addr;
+        v4 = (struct sockaddr_in *)&server_aconf->addr;
 
         if (v4->sin_addr.s_addr == INADDR_NONE)
-          memcpy(&aconf->addr, &client_p->ip, sizeof(struct irc_ssaddr)); 
+          memcpy(&server_aconf->addr, &client_p->ip, sizeof(struct irc_ssaddr)); 
         break;
     }
   }

@@ -56,6 +56,7 @@
 #include <openssl/pem.h>
 #include <openssl/dh.h>
 #endif
+#include "rsa.h"
 
 int yylex(void);
 
@@ -191,13 +192,19 @@ free_collect_item(struct CollectItem *item)
 %token  MAX_IDENT
 %token  MAX_LOCAL
 %token  MAX_NICK_CHANGES
+%token  MAX_NICK_LENGTH
 %token  MAX_NICK_TIME
 %token  MAX_NUMBER
 %token  MAX_TARGETS
+%token  MAX_TOPIC_LENGTH
 %token  MAX_WATCH
 %token  MESSAGE_LOCALE
 %token  MIN_NONWILDCARD
 %token  MIN_NONWILDCARD_SIMPLE
+%token  MIN_IDLE
+%token  MAX_IDLE
+%token  RANDOM_IDLE
+%token  HIDE_IDLE_FROM_OPERS
 %token  MODULE
 %token  MODULES
 %token  NAME
@@ -250,7 +257,7 @@ free_collect_item(struct CollectItem *item)
 %token  T_TLSV1
 %token  RESV
 %token  RESV_EXEMPT
-%token  SECONDS MINUTES HOURS DAYS WEEKS
+%token  SECONDS MINUTES HOURS DAYS WEEKS MONTHS YEARS
 %token  SENDQ
 %token  SEND_PASSWORD
 %token  SERVERHIDE
@@ -387,6 +394,16 @@ timespec:	NUMBER timespec_
 		{
 			$$ = $1 * 60 * 60 * 24 * 7 + $3;
 		}
+                | NUMBER MONTHS timespec_
+                {
+                        $$ = $1 * 60 * 60 * 24 * 7 * 4 + $3;
+                }
+                | NUMBER YEARS timespec_
+                {
+                        $$ = $1 * 60 * 60 * 24 * 365 + $3;
+                }
+
+
 		;
 
 sizespec_:	{ $$ = 0; } | sizespec;
@@ -425,7 +442,9 @@ serverinfo_items:       serverinfo_items serverinfo_item | serverinfo_item ;
 serverinfo_item:        serverinfo_name | serverinfo_vhost |
                         serverinfo_hub | serverinfo_description |
                         serverinfo_network_name | serverinfo_network_desc |
-                        serverinfo_max_clients | serverinfo_ssl_dh_param_file |
+                        serverinfo_max_clients | serverinfo_max_nick_length |
+                        serverinfo_max_topic_length |
+                        serverinfo_ssl_dh_param_file |
                         serverinfo_rsa_private_key_file | serverinfo_vhost6 |
                         serverinfo_sid | serverinfo_ssl_certificate_file |
                         serverinfo_ssl_client_method | serverinfo_ssl_server_method |
@@ -473,7 +492,7 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
   {
     if (!ServerInfo.rsa_private_key_file)
     {
-      yyerror("No rsa_private_key_file specified, SSL disabled");
+      conf_error_report("No rsa_private_key_file specified, SSL disabled");
       break;
     }
 
@@ -482,7 +501,8 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
         SSL_CTX_use_certificate_chain_file(ServerInfo.client_ctx, 
           yylval.string) <= 0)
     {
-      yyerror(ERR_lib_error_string(ERR_get_error()));
+      conf_error_report("Could not open/read certificate file");
+      report_crypto_errors();
       break;
     }
 
@@ -491,14 +511,16 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
         SSL_CTX_use_PrivateKey_file(ServerInfo.client_ctx, ServerInfo.rsa_private_key_file,
                                     SSL_FILETYPE_PEM) <= 0)
     {
-      yyerror(ERR_lib_error_string(ERR_get_error()));
+      conf_error_report("Could not read RSA private key");
+      report_crypto_errors();
       break;
     }
 
     if (!SSL_CTX_check_private_key(ServerInfo.server_ctx) ||
         !SSL_CTX_check_private_key(ServerInfo.client_ctx))
     {
-      yyerror(ERR_lib_error_string(ERR_get_error()));
+      conf_error_report("Could not read RSA private key");
+      report_crypto_errors();
       break;
     }
   }
@@ -528,7 +550,7 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
 
     if ((file = BIO_new_file(yylval.string, "r")) == NULL)
     {
-      yyerror("File open failed, ignoring");
+      conf_error_report("File open failed, ignoring");
       break;
     }
 
@@ -539,7 +561,7 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
 
     if (ServerInfo.rsa_private_key == NULL)
     {
-      yyerror("Couldn't extract key, ignoring");
+      conf_error_report("Couldn't extract key, ignoring");
       break;
     }
 
@@ -548,7 +570,7 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
       RSA_free(ServerInfo.rsa_private_key);
       ServerInfo.rsa_private_key = NULL;
 
-      yyerror("Invalid key, ignoring");
+      conf_error_report("Invalid key, ignoring");
       break;
     }
 
@@ -558,7 +580,7 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
       RSA_free(ServerInfo.rsa_private_key);
       ServerInfo.rsa_private_key = NULL;
 
-      yyerror("Not a 2048 bit key, ignoring");
+      conf_error_report("Not a 2048 bit key, ignoring");
     }
   }
 #endif
@@ -581,7 +603,7 @@ serverinfo_ssl_dh_param_file: SSL_DH_PARAM_FILE '=' QSTRING ';'
       if (dh)
       {
         if (DH_size(dh) < 128)
-          ilog(LOG_TYPE_IRCD, "Ignoring serverinfo::ssl_dh_param_file -- need at least a 1024 bit DH prime size");
+          conf_error_report("Ignoring serverinfo::ssl_dh_param_file -- need at least a 1024 bit DH prime size");
         else
           SSL_CTX_set_tmp_dh(ServerInfo.server_ctx, dh);
 
@@ -611,7 +633,7 @@ serverinfo_name: NAME '=' QSTRING ';'
       DupString(ServerInfo.name, yylval.string);
     else
     {
-      ilog(LOG_TYPE_IRCD, "Ignoring serverinfo::name -- invalid name. Aborting.");
+      conf_error_report("Ignoring serverinfo::name -- invalid name. Aborting.");
       exit(0);
     }
   }
@@ -626,7 +648,7 @@ serverinfo_sid: IRCD_SID '=' QSTRING ';'
       DupString(ServerInfo.sid, yylval.string);
     else
     {
-      ilog(LOG_TYPE_IRCD, "Ignoring serverinfo::sid -- invalid SID. Aborting.");
+      conf_error_report("Ignoring serverinfo::sid -- invalid SID. Aborting.");
       exit(0);
     }
   }
@@ -726,22 +748,68 @@ serverinfo_max_clients: T_MAX_CLIENTS '=' NUMBER ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    recalc_fdlimit(NULL);
-
     if ($3 < MAXCLIENTS_MIN)
     {
       char buf[IRCD_BUFSIZE];
-      ircsprintf(buf, "MAXCLIENTS too low, setting to %d", MAXCLIENTS_MIN);
-      yyerror(buf);
+
+      snprintf(buf, sizeof(buf), "max_clients too low, setting to %d", MAXCLIENTS_MIN);
+      conf_error_report(buf);
+      ServerInfo.max_clients = MAXCLIENTS_MIN;
     }
     else if ($3 > MAXCLIENTS_MAX)
     {
       char buf[IRCD_BUFSIZE];
-      ircsprintf(buf, "MAXCLIENTS too high, setting to %d", MAXCLIENTS_MAX);
-      yyerror(buf);
+
+      snprintf(buf, sizeof(buf), "max_clients too high, setting to %d", MAXCLIENTS_MAX);
+      conf_error_report(buf);
+      ServerInfo.max_clients = MAXCLIENTS_MAX;
     }
     else
       ServerInfo.max_clients = $3;
+  }
+};
+
+serverinfo_max_nick_length: MAX_NICK_LENGTH '=' NUMBER ';'
+{
+  if (conf_parser_ctx.pass == 2)
+  {
+    if ($3 < 9)
+    {
+      conf_error_report("max_nick_length too low, setting to 9");
+      ServerInfo.max_nick_length = 9;
+    }
+    else if ($3 > NICKLEN)
+    {
+      char buf[IRCD_BUFSIZE];
+
+      snprintf(buf, sizeof(buf), "max_nick_length too high, setting to %d", NICKLEN);
+      conf_error_report(buf);
+      ServerInfo.max_nick_length = NICKLEN;
+    }
+    else
+      ServerInfo.max_nick_length = $3;
+  }
+};
+
+serverinfo_max_topic_length: MAX_TOPIC_LENGTH '=' NUMBER ';'
+{
+  if (conf_parser_ctx.pass == 2)
+  {
+    if ($3 < 80)
+    {
+      conf_error_report("max_topic_length too low, setting to 80");
+      ServerInfo.max_topic_length = 80;
+    }
+    else if ($3 > TOPICLEN)
+    {
+      char buf[IRCD_BUFSIZE];
+
+      snprintf(buf, sizeof(buf), "max_topic_length too high, setting to %d", TOPICLEN);
+      conf_error_report(buf);
+      ServerInfo.max_topic_length = TOPICLEN;
+    }
+    else
+      ServerInfo.max_topic_length = $3;
   }
 };
 
@@ -810,7 +878,7 @@ logging_file_entry:
 } T_FILE  '{' logging_file_items '}' ';'
 {
   if (conf_parser_ctx.pass == 2 && ltype > 0)
-    log_add_file(ltype, lsize, lfile);
+    log_set_file(ltype, lsize, lfile);
 };
 
 logging_file_items: logging_file_items logging_file_item |
@@ -1095,20 +1163,20 @@ oper_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
 
     if (file == NULL)
     {
-      yyerror("Ignoring rsa_public_key_file -- file doesn't exist");
+      conf_error_report("Ignoring rsa_public_key_file -- file doesn't exist");
       break;
     }
 
     yy_aconf->rsa_public_key = PEM_read_bio_RSA_PUBKEY(file, NULL, 0, NULL);
 
-    if (yy_aconf->rsa_public_key == NULL)
-    {
-      yyerror("Ignoring rsa_public_key_file -- Key invalid; check key syntax.");
-      break;
-    }
-
     BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
+
+    if (yy_aconf->rsa_public_key == NULL)
+    {
+      conf_error_report("Ignoring rsa_public_key_file -- Key invalid; check key syntax.");
+      break;
+    }
   }
 #endif /* HAVE_LIBCRYPTO */
 };
@@ -1324,6 +1392,13 @@ class_entry: CLASS
     {
       cconf = find_exact_name_conf(CLASS_TYPE, NULL, yy_class_name, NULL, NULL);
 
+      if (yy_class->min_idle > yy_class->max_idle)
+      {
+        yy_class->min_idle = 0;
+        yy_class->max_idle = 0;
+        yy_class->flags &= ~CONF_FLAGS_FAKE_IDLE;
+      }
+
       if (cconf != NULL)		/* The class existed already */
       {
         int user_count = 0;
@@ -1370,8 +1445,11 @@ class_item:     class_name |
     class_max_global |
     class_max_local |
     class_max_ident |
-    class_sendq | class_recvq
+    class_sendq | class_recvq |
     class_reject_message |
+                class_min_idle |
+                class_max_idle |
+                class_flags |
 		error ';' ;
 
 class_name: NAME '=' QSTRING ';' 
@@ -1471,6 +1549,41 @@ class_reject_message: REJECT_MESSAGE '=' QSTRING ';'
   }
 };
 
+class_min_idle: MIN_IDLE '=' timespec ';'
+{
+  if (conf_parser_ctx.pass == 1)
+  {
+    yy_class->min_idle = $3;
+    yy_class->flags |= CONF_FLAGS_FAKE_IDLE;
+  }
+};
+
+class_max_idle: MAX_IDLE '=' timespec ';'
+{
+  if (conf_parser_ctx.pass == 1)
+  {
+    yy_class->max_idle = $3;
+    yy_class->flags |= CONF_FLAGS_FAKE_IDLE;
+  }
+};
+
+class_flags: IRCD_FLAGS
+{
+  if (conf_parser_ctx.pass == 1)
+    yy_class->flags &= CONF_FLAGS_FAKE_IDLE;
+} '='  class_flags_items ';';
+
+class_flags_items: class_flags_items ',' class_flags_item | class_flags_item;
+class_flags_item: RANDOM_IDLE
+{
+  if (conf_parser_ctx.pass == 1)
+    yy_class->flags |= CONF_FLAGS_RANDOM_IDLE;
+} | HIDE_IDLE_FROM_OPERS
+{
+  if (conf_parser_ctx.pass == 1)
+    yy_class->flags |= CONF_FLAGS_HIDE_IDLE_FROM_OPERS;
+};
+
 /***************************************************************************
  *  section listen
  ***************************************************************************/
@@ -1528,7 +1641,7 @@ port_item: NUMBER
       if (!ServerInfo.server_ctx)
 #endif
       {
-        yyerror("SSL not available - port closed");
+        conf_error_report("SSL not available - port closed");
 	break;
       }
     add_listener($1, listener_address, listener_flags);
@@ -1544,7 +1657,7 @@ port_item: NUMBER
       if (!ServerInfo.server_ctx)
 #endif
       {
-        yyerror("SSL not available - port closed");
+        conf_error_report("SSL not available - port closed");
 	break;
       }
 
@@ -1860,7 +1973,7 @@ resv_channel: CHANNEL '=' QSTRING ';'
   {
     if (IsChanPrefix(*yylval.string))
     {
-      char def_reason[] = "No reason";
+      char def_reason[] = CONF_NOREASON;
 
       create_channel_resv(yylval.string, resv_reason != NULL ? resv_reason : def_reason, 1);
     }
@@ -1873,7 +1986,7 @@ resv_nick: NICK '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    char def_reason[] = "No reason";
+    char def_reason[] = CONF_NOREASON;
 
     create_nick_resv(yylval.string, resv_reason != NULL ? resv_reason : def_reason, 1);
   }
@@ -2111,9 +2224,9 @@ connect_entry: CONNECT
       if (yy_conf->name != NULL)
       {
         if (yy_aconf->host == NULL)
-          yyerror("Ignoring connect block -- missing host");
+          conf_error_report("Ignoring connect block -- missing host");
         else if (!yy_aconf->passwd || !yy_aconf->spasswd)
-          yyerror("Ignoring connect block -- missing password");
+          conf_error_report("Ignoring connect block -- missing password");
       }
 
       /* XXX
@@ -2190,10 +2303,11 @@ connect_send_password: SEND_PASSWORD '=' QSTRING ';'
   if (conf_parser_ctx.pass == 2)
   {
     if ($3[0] == ':')
-      yyerror("Server passwords cannot begin with a colon");
+      conf_error_report("Server passwords cannot begin with a colon");
     else if (strchr($3, ' ') != NULL)
-      yyerror("Server passwords cannot contain spaces");
-    else {
+      conf_error_report("Server passwords cannot contain spaces");
+    else
+    {
       if (yy_aconf->spasswd != NULL)
         memset(yy_aconf->spasswd, 0, strlen(yy_aconf->spasswd));
 
@@ -2208,10 +2322,11 @@ connect_accept_password: ACCEPT_PASSWORD '=' QSTRING ';'
   if (conf_parser_ctx.pass == 2)
   {
     if ($3[0] == ':')
-      yyerror("Server passwords cannot begin with a colon");
+      conf_error_report("Server passwords cannot begin with a colon");
     else if (strchr($3, ' ') != NULL)
-      yyerror("Server passwords cannot contain spaces");
-    else {
+      conf_error_report("Server passwords cannot contain spaces");
+    else
+    {
       if (yy_aconf->passwd != NULL)
         memset(yy_aconf->passwd, 0, strlen(yy_aconf->passwd));
 
@@ -2306,7 +2421,7 @@ connect_ssl_cipher_list: T_SSL_CIPHER_LIST '=' QSTRING ';'
   }
 #else
   if (conf_parser_ctx.pass == 2)
-    yyerror("Ignoring connect::ciphers -- no OpenSSL support");
+    conf_error_report("Ignoring connect::ciphers -- no OpenSSL support");
 #endif
 };
 
@@ -2352,7 +2467,7 @@ kill_entry: KILL
         if (reasonbuf[0])
           DupString(yy_aconf->reason, reasonbuf);
         else
-          DupString(yy_aconf->reason, "No reason");
+          DupString(yy_aconf->reason, CONF_NOREASON);
 #else
         ilog(LOG_TYPE_IRCD, "Failed to add regular expression based K-Line: no PCRE support");
         break;
@@ -2370,7 +2485,7 @@ kill_entry: KILL
         if (reasonbuf[0])
           DupString(yy_aconf->reason, reasonbuf);
         else
-          DupString(yy_aconf->reason, "No reason");
+          DupString(yy_aconf->reason, CONF_NOREASON);
         add_conf_by_address(CONF_KLINE, yy_aconf);
       }
     }
@@ -2431,7 +2546,7 @@ deny_entry: DENY
   {
     if (hostbuf[0] && parse_netmask(hostbuf, NULL, NULL) != HM_HOST)
     {
-      find_and_delete_temporary(NULL, hostbuf, CONF_DLINE);
+      find_and_delete_temporary(NULL, hostbuf, CONF_DLINE|1);
 
       yy_aconf = map_to_conf(make_conf_item(DLINE_TYPE));
       DupString(yy_aconf->host, hostbuf);
@@ -2439,7 +2554,7 @@ deny_entry: DENY
       if (reasonbuf[0])
         DupString(yy_aconf->reason, reasonbuf);
       else
-        DupString(yy_aconf->reason, "No reason");
+        DupString(yy_aconf->reason, CONF_NOREASON);
       add_conf_by_address(CONF_DLINE, yy_aconf);
       yy_aconf = NULL;
     }
@@ -2558,7 +2673,7 @@ gecos_entry: GECOS
       if (reasonbuf[0])
         DupString(yy_match_item->reason, reasonbuf);
       else
-        DupString(yy_match_item->reason, "No reason");
+        DupString(yy_match_item->reason, CONF_NOREASON);
     }
   }
 };
@@ -2621,9 +2736,9 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_disable_auth | 
                     general_tkline_expire_notices | general_gline_enable |
                     general_gline_duration | general_gline_request_duration |
-                    general_gline_min_cidr |
+                    general_gline_min_cidr | general_gline_min_cidr6 |
                     general_godmode_timeout |
-		    general_max_watch | general_services_name |
+		    general_max_watch | general_services_name | general_stats_e_disabled |
 		    error;
 
 

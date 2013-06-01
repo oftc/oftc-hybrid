@@ -34,29 +34,6 @@
 #include "whowas.h" /* off_history */
 #include "userhost.h"
 
-/* $Id$ */
-
-void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char *parv[]);
-
-struct Message map_msgtab = {
-  "SVSCLOAK", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_ignore, m_svscloak, m_ignore, m_ignore}
-};
-
-void _modinit(void)
-{
-  mod_add_cmd(&map_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&map_msgtab);
-}
-
-const char* _version = "$Revision$";
-
-
 /* m_svscloak - Cloaks a user - stu
  * parv[1] - Nick to cloak
  * parv[2] - Hostname to cloak to
@@ -119,3 +96,29 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
   return;
 }
 
+struct Message map_msgtab = {
+  "SVSCLOAK", 0, 0, 1, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_ignore, m_svscloak, m_ignore, m_ignore}
+};
+
+void 
+module_init()
+{
+  mod_add_cmd(&map_msgtab);
+}
+
+void
+module_exit()
+{
+  mod_del_cmd(&map_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

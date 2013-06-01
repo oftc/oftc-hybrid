@@ -90,7 +90,8 @@ AC_ARG_ENABLE(assert, AS_HELP_STRING([--enable-assert],
 AS_IF([test "$assert" = "no"],
   [AC_DEFINE(NDEBUG, 1, [Define to disable assert() statements.])])
 
-AC_DEFINE([NICKNAMEHISTORYLENGTH], 16384, [Size of the WHOWAS array.])
+
+AC_DEFINE([NICKNAMEHISTORYLENGTH], 32768, [Size of the WHOWAS array.])
 AC_DEFINE([CHANNEL_HEAP_SIZE], 1024, [Size of the channel heap.])
 AC_DEFINE([BAN_HEAP_SIZE], 1024, [Size of the ban heap.])
 AC_DEFINE([CLIENT_HEAP_SIZE], 1024, [Size of the client heap.])
@@ -103,9 +104,6 @@ AC_DEFINE([DNS_HEAP_SIZE], 256, [Size of the dns heap.])
 # Argument processing.
 AX_ARG_ENABLE_IOLOOP_MECHANISM
 AX_ARG_DISABLE_BLOCK_ALLOC
-AX_ARG_DISABLE_SHARED_MODULES
-AX_ARG_WITH_NICKLEN
-AX_ARG_WITH_TOPICLEN
 AX_ARG_ENABLE_HALFOPS
 AX_ARG_ENABLE_DEBUGGING
 AX_ARG_ENABLE_WARNINGS

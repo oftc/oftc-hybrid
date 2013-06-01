@@ -1393,64 +1393,6 @@ attach_connect_block(struct Client *client_p, const char *name,
   return 0;
 }
 
-/* find_conf_exact()
- *
- * inputs - type of ConfItem
- *    - pointer to name to find
- *    - pointer to username to find
- *    - pointer to host to find
- * output - NULL or pointer to conf found
- * side effects - find a conf entry which matches the hostname
- *      and has the same name.
- */
-struct ConfItem *
-find_conf_exact(ConfType type, const char *name, const char *user, 
-                const char *host)
-{
-  dlink_node *ptr;
-  dlink_list *list_p;
-  struct ConfItem *conf = NULL;
-  struct AccessItem *aconf;
-
-  /* Only valid for OPER_TYPE and ...? */
-  list_p = map_to_list(type);
-
-  DLINK_FOREACH(ptr, (*list_p).head)
-  {
-    conf = ptr->data;
-
-    if (conf->name == NULL)
-      continue;
-    aconf = (struct AccessItem *)map_to_conf(conf);
-    if (aconf->host == NULL)
-      continue;
-    if (irccmp(conf->name, name) != 0)
-      continue;
-
-    /*
-    ** Accept if the *real* hostname (usually sockethost)
-    ** socket host) matches *either* host or name field
-    ** of the configuration.
-    */
-    if (!match(aconf->host, host) || !match(aconf->user,user)
-        || irccmp(conf->name, name) )
-      continue;
-    if (type == OPER_TYPE)
-    {
-      struct ClassItem *aclass;
-
-      aclass = map_to_conf(aconf->class_ptr);
-      if (aconf->clients < aclass->max_total)
-        return conf;
-      else
-        continue;
-    }
-    else
-      return conf;
-  }
-  return NULL;
-}
-
 /* find_conf_name()
  *
  * inputs - pointer to conf link list to search
@@ -1632,8 +1574,8 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
                      const char *user, const char *host)
 {
   dlink_node *ptr = NULL;
-  struct AccessItem *aconf;
-  struct ConfItem *conf;
+  struct AccessItem *aconf = NULL;
+  struct ConfItem *conf = NULL;
   struct MatchItem *match_item;
   dlink_list *list_p;
 
@@ -1669,36 +1611,41 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
       DLINK_FOREACH(ptr, list_p->head)
       {
         conf = ptr->data;
-        aconf = (struct AccessItem *)map_to_conf(conf);
+        aconf = map_to_conf(conf);
+
         if (EmptyString(conf->name))
           continue;
 
-        if (irccmp(conf->name, name) == 0)
+        if (!irccmp(conf->name, name))
         {
-          if(who == NULL)
+
+          struct ClassItem *aclass = map_to_conf(aconf->class_ptr);
+
+          if (!who)
             return conf;
-          
           if (EmptyString(aconf->user) || EmptyString(aconf->host))
-            return conf;
-          
+            return NULL;
           if (match(aconf->user, who->username))
           {
             switch (aconf->type)
             {
             case HM_HOST:
               if (match(aconf->host, who->host) || match(aconf->host, who->sockhost))
-                return conf;
+                if (!aclass->max_total || aclass->curr_user_count < aclass->max_total)
+                  return conf;
               break;
             case HM_IPV4:
               if (who->aftype == AF_INET)
                 if (match_ipv4(&who->ip, &aconf->addr, aconf->bits))
-                  return conf;
-                break;
+                  if (!aclass->max_total || aclass->curr_user_count < aclass->max_total)
+                    return conf;
+              break;
 #ifdef IPV6
             case HM_IPV6:
               if (who->aftype == AF_INET6)
                 if (match_ipv6(&who->ip, &aconf->addr, aconf->bits))
-                  return conf;
+                  if (!aclass->max_total || aclass->curr_user_count < aclass->max_total)
+                    return conf;
               break;
 #endif
               default:
@@ -1775,16 +1722,11 @@ rehash(int sig)
   if (ServerInfo.description != NULL)
     strlcpy(me.info, ServerInfo.description, sizeof(me.info));
 
-#ifndef STATIC_MODULES
   load_conf_modules();
-#endif
 
   flush_deleted_I_P();
 
   rehashed_klines = 1;
-/* XXX */
-  if (ConfigLoggingEntry.use_logging)
-    log_close_all();
 
   return(0);
 }
@@ -1823,6 +1765,8 @@ set_default_conf(void)
   ServerInfo.specific_ipv6_vhost = 0;
 
   ServerInfo.max_clients = MAXCLIENTS_MAX;
+  ServerInfo.max_nick_length = 9;
+  ServerInfo.max_topic_length = 80;
 
   ServerInfo.hub = 0;
   ServerInfo.dns_host.sin_addr.s_addr = 0;
@@ -1831,7 +1775,7 @@ set_default_conf(void)
   AdminInfo.email = NULL;
   AdminInfo.description = NULL;
 
-  log_close_all();
+  log_del_all();
 
   ConfigLoggingEntry.use_logging = 1;
 
@@ -2061,11 +2005,6 @@ struct AccessItem *
 find_kill(struct Client *client_p)
 {
   struct AccessItem *aconf = NULL;
-  const char *uhi[3];
-
-  uhi[0] = client_p->username;
-  uhi[1] = client_p->host;
-  uhi[2] = client_p->sockhost;
 
   assert(client_p != NULL);
 
@@ -2081,19 +2020,6 @@ find_kill(struct Client *client_p)
         CONF_KLINE, client_p->aftype,
         client_p->username, NULL, 1, client_p->certfp);
   }
-  if (aconf == NULL)
-    aconf = find_regexp_kline(uhi);
-
-  return aconf;
-}
-
-struct AccessItem *
-find_gline(struct Client *client_p)
-{
-  struct AccessItem *aconf;
-
-  assert(client_p != NULL);
-
   aconf = find_conf_by_address(client_p->host, &client_p->ip,
                                CONF_GLINE, client_p->aftype,
                                client_p->username, NULL, 1, client_p->certfp);
@@ -2198,8 +2124,7 @@ expire_tklines(dlink_list *tklist)
       {
         if (ConfigFileEntry.tkline_expire_notices)
           sendto_realops_flags(UMODE_ALL, L_ALL,
-              "Temporary X-line for [%s] %sexpired", conf->name,
-              conf->type == RXLINE_TYPE ? "(REGEX) " : "");
+              "Temporary X-line for [%s] expired", conf->name);
         dlinkDelete(ptr, tklist);
         free_dlink_node(ptr);
         remove_conf_line(conf->type, &me, conf->name, NULL);
@@ -2422,6 +2347,10 @@ read_conf_files(int cold)
   read_conf(conf_parser_ctx.conf_file);
   fclose(conf_parser_ctx.conf_file);
 
+  log_reopen_all();
+
+  add_isupport("NICKLEN", NULL, ServerInfo.max_nick_length);
+
   add_isupport("NETWORK", ServerInfo.network_name, -1);
   snprintf(chanmodes, sizeof(chanmodes), "beI:%d",
            ConfigChannel.max_bans);
@@ -2436,6 +2365,7 @@ read_conf_files(int cold)
   snprintf(chanmodes, sizeof(chanmodes), "%s",
            "beqI,k,l,imnprstORS");
   add_isupport("CHANNELLEN", NULL, LOCAL_CHANNELLEN);
+  add_isupport("TOPICLEN", NULL, ServerInfo.max_topic_length);
 
   add_isupport("EXCEPTS", "e", -1);
   add_isupport("INVEX", "I", -1);
@@ -2570,9 +2500,7 @@ clear_out_old_conf(void)
   clear_out_address_conf();
 
   /* clean out module paths */
-#ifndef STATIC_MODULES
   mod_clear_paths();
-#endif
 
   /* clean out ServerInfo */
   MyFree(ServerInfo.description);
@@ -2592,6 +2520,16 @@ clear_out_old_conf(void)
 
   MyFree(ServerInfo.rsa_private_key_file);
   ServerInfo.rsa_private_key_file = NULL;
+
+
+  if (ServerInfo.server_ctx)
+    SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv2|
+                                               SSL_OP_NO_SSLv3|
+                                               SSL_OP_NO_TLSv1);
+  if (ServerInfo.client_ctx)
+    SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv2|
+                                               SSL_OP_NO_SSLv3|
+                                               SSL_OP_NO_TLSv1);
 #endif
 
   /* clean out old resvs from the conf */
@@ -2723,6 +2661,29 @@ get_conf_ping(struct ConfItem *conf, int *pingwarn)
   }
 
   return BAD_PING;
+}
+
+struct ClassItem *
+get_client_class_ptr(struct Client *target_p)
+{
+  dlink_node *cnode = NULL;
+  struct AccessItem *aconf = NULL;
+
+  assert(!IsMe(target_p));
+
+  if ((cnode = target_p->localClient->confs.head))
+  {
+    struct ConfItem *conf = cnode->data;
+
+    assert((conf->type == CLIENT_TYPE) || (conf->type == SERVER_TYPE) ||
+          (conf->type == OPER_TYPE));
+
+    aconf = map_to_conf(conf);
+    if (aconf->class_ptr != NULL)
+      return map_to_conf(aconf->class_ptr);
+  }
+
+  return NULL;
 }
 
 /* get_client_class()
@@ -3021,6 +2982,18 @@ yyerror(const char *msg)
        conffilebuf, lineno + 1, msg, newlinebuf);
 }
 
+void
+conf_error_report(const char *msg)
+{
+  char newlinebuf[IRCD_BUFSIZE];
+
+  strip_tabs(newlinebuf, linebuf, sizeof(newlinebuf));
+  sendto_realops_flags(UMODE_ALL, L_ALL, "\"%s\", line %u: %s: %s",
+                       conffilebuf, lineno + 1, msg, newlinebuf);
+  ilog(LOG_TYPE_IRCD, "\"%s\", line %u: %s: %s",
+       conffilebuf, lineno + 1, msg, newlinebuf);
+}
+
 /*
  * valid_tkline()
  * 
@@ -3168,7 +3141,7 @@ parse_aline(const char *cmd, struct Client *source_p,
       char **target_server, char **reason)
 {
   int found_tkline_time=0;
-  static char def_reason[] = "No Reason";
+  static char def_reason[] = CONF_NOREASON;
   static char user[USERLEN*4+1];
   static char host[HOSTLEN*4+1];
 

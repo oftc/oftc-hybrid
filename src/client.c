@@ -384,27 +384,6 @@ check_conf_klines(void)
       continue; /* and go examine next fd/client_p */
     }
 
-    if (ConfigFileEntry.glines && (aconf = find_gline(client_p)))
-    {
-      if (IsExemptKline(client_p) ||
-          IsExemptGline(client_p))
-      {
-        sendto_realops_flags(UMODE_ALL, L_ALL, 
-                             "GLINE over-ruled for %s, client is %sline_exempt",
-                             get_client_name(client_p, HIDE_IP), IsExemptKline(client_p) ? "k" : "g");
-        continue;
-      }
-
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-          "GLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
-          aconf->reason, get_client_name(client_p, SHOW_IP));
-
-      conf = unmap_conf_item(aconf);
-      ban_them(client_p, conf);
-      /* and go examine next fd/client_p */    
-      continue;
-    } 
-
     if ((aconf = find_kill(client_p)) != NULL) 
     {
 
@@ -1240,4 +1219,40 @@ del_all_accepts(struct Client *client_p)
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->localClient->acceptlist.head)
     del_accept(ptr->data, client_p);
+}
+
+unsigned int
+idle_time_get(struct Client *source_p, struct Client *target_p)
+{
+  unsigned int idle = 0;
+  unsigned int min_idle = 0;
+  unsigned int max_idle = 0;
+  const struct ClassItem *class = get_client_class_ptr(target_p);
+
+  if (!(class->flags & CONF_FLAGS_FAKE_IDLE) || target_p == source_p)
+    return CurrentTime - target_p->localClient->last_privmsg;
+  if (HasUMode(source_p, UMODE_OPER) &&
+      !(class->flags & CONF_FLAGS_HIDE_IDLE_FROM_OPERS))
+    return CurrentTime - target_p->localClient->last_privmsg;
+
+  min_idle = class->min_idle;
+  max_idle = class->max_idle;
+
+  if (min_idle == max_idle)
+    return min_idle;
+
+  if (class->flags & CONF_FLAGS_RANDOM_IDLE)
+    idle = rand();
+  else
+    idle = CurrentTime - target_p->localClient->last_privmsg;
+
+  if (max_idle == 0)
+    idle = 0;
+  else
+    idle %= max_idle;
+
+  if (idle < min_idle)
+    idle = min_idle + (idle % (max_idle - min_idle));
+
+  return idle;
 }

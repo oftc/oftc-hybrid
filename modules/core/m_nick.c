@@ -44,6 +44,7 @@
 #include "packet.h"
 #include "channel_mode.h"
 #include "watch.h"
+#include "s_misc.h"
 
 
 static void nick_from_server(struct Client *, struct Client *, int, char **,
@@ -58,7 +59,6 @@ static int check_clean_host(struct Client *client_p, char *nick, char *host,
 			    struct Client *server_p);
 
 static int clean_user_name(const char *);
-static int clean_host_name(const char *);
 static void perform_nick_collides(struct Client *, struct Client *, struct Client *,
 				  int, char **, time_t, const char *, char *, char *, char *);
 
@@ -195,6 +195,7 @@ mr_nick(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   struct Client *target_p = NULL;
+  struct ConfItem *conf = NULL;
   char nick[NICKLEN + 1];
   char *s = NULL;
 
@@ -210,7 +211,7 @@ mr_nick(struct Client *client_p, struct Client *source_p,
     *s = '\0';
 
   /* copy the nick and terminate it */
-  strlcpy(nick, parv[1], sizeof(nick));
+  strlcpy(nick, parv[1], IRCD_MIN(sizeof(nick), ServerInfo.max_nick_length + 1));
 
   /* check the nickname is ok */
   if (!valid_nickname(nick, 1))
@@ -221,12 +222,14 @@ mr_nick(struct Client *client_p, struct Client *source_p,
   }
 
   /* check if the nick is resv'd */
-  if (find_matching_name_conf(NRESV_TYPE, nick, NULL, NULL, 0) &&
-      !IsExemptResv(source_p))
+  if ((conf = find_matching_name_conf(NRESV_TYPE, nick, NULL, NULL, 0)))
   {
+    struct MatchItem *mi = map_to_conf(conf);
+    ++mi->count;
+
     sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME), me.name,
                source_p->name[0] ? source_p->name : "*", nick);
-    sendto_realops_flags(L_ALL, UMODE_REJ,
+    sendto_realops_flags(UMODE_REJ, L_ALL,
                          "Forbidding reserved nick [%s] from user %s",
                          nick, get_client_name(client_p, HIDE_IP));
     return;
@@ -261,6 +264,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
 {
   char nick[NICKLEN + 1];
   struct Client *target_p = NULL;
+  struct ConfItem *conf = NULL;
 
   assert(source_p == client_p);
 
@@ -276,7 +280,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
     flood_endgrace(source_p);
 
   /* terminate nick to NICKLEN */
-  strlcpy(nick, parv[1], sizeof(nick));
+  strlcpy(nick, parv[1], IRCD_MIN(sizeof(nick), ServerInfo.max_nick_length + 1));
 
   /* check the nickname is ok */
   if (!valid_nickname(nick, 1))
@@ -286,16 +290,20 @@ m_nick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (find_matching_name_conf(NRESV_TYPE, nick,
-			     NULL, NULL, 0) && !IsExemptResv(source_p) &&
-     !(HasUMode(source_p, UMODE_OPER) && ConfigFileEntry.oper_pass_resv))
+  if (!IsExemptResv(source_p) && !(HasUMode(source_p, UMODE_OPER) &&
+                                   ConfigFileEntry.oper_pass_resv))
   {
-    sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
-               me.name, source_p->name, nick);
-    sendto_realops_flags(L_ALL, UMODE_REJ,
-                         "Forbidding reserved nick [%s] from user %s",
-                         nick, get_client_name(client_p, HIDE_IP));
-    return;
+    if ((conf = find_matching_name_conf(NRESV_TYPE, nick, NULL, NULL, 0)))
+    {
+      struct MatchItem *mi = map_to_conf(conf);
+      ++mi->count;
+      sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
+                 me.name, source_p->name, nick);
+      sendto_realops_flags(UMODE_REJ, L_ALL,
+                           "Forbidding reserved nick [%s] from user %s",
+                           nick, get_client_name(client_p, HIDE_IP));
+      return;
+    }
   }
 
   if(!HasUMode(source_p, UMODE_OPER))
@@ -629,7 +637,7 @@ static int
 check_clean_host(struct Client *client_p, char *nick,
                  char *host, struct Client *server_p)
 {
-  if (!clean_host_name(host))
+  if (!valid_hostname(host))
   {
     ++ServerStats.is_kill;
     sendto_realops_flags(UMODE_DEBUG, L_ALL,
@@ -639,11 +647,6 @@ check_clean_host(struct Client *client_p, char *nick,
                me.name, nick, me.name);
     return 1;
   }
-
-  if (!clean_host_name(host))
-    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
-                         "Bad Hostname: %s Nickname: %s From: %s(via %s)",
-			 host, nick, server_p->name, client_p->name);
 
   return 0;
 }
@@ -666,25 +669,6 @@ clean_user_name(const char *user)
       return 0;
 
   return p - user <= USERLEN;
-}
-
-/* clean_host_name()
- * input	- hostname
- * output	- none
- * side effects - walks through the hostname, returning 0 if erroneous
- */
-static int
-clean_host_name(const char *host)
-{
-  const char *p = host;
-
-  assert(host && *host);
-
-  for (; *p; ++p)
-    if (!IsHostChar(*p))
-      return 0;
-
-  return p - host <= HOSTLEN;
 }
 
 /*

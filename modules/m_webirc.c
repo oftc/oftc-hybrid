@@ -26,17 +26,15 @@
 
 #include "stdinc.h"
 #include "list.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
 #include "irc_string.h"
 #include "hash.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "hostmask.h"
 
 /*
@@ -47,7 +45,7 @@
  *   password = "<password>"; # encryption possible
  *   spoof = "webirc."
  *   class = "users";
- *   encryption = yes; # [Using encryption is highly recommended]
+ *   encrypted = yes; # [Using encryption is highly recommended]
  * };
  *
  * Possible flags:
@@ -181,7 +179,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
 }
 
 static struct Message webirc_msgtab = {
-  "WEBIRC", 0, 0, 5, 0, MFLG_SLOW, 0,
+  "WEBIRC", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
   { mr_webirc, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore }
 };
 

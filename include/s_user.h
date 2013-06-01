@@ -59,4 +59,5 @@ extern void init_isupport(void);
 extern void rebuild_isupport_message_line(void);
 extern void check_godmode(void *);
 
+extern void user_set_hostmask(struct Client *, const char *);
 #endif

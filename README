@@ -5,9 +5,10 @@ Contact Information:
   * General Discussion and Support mailing list:
     - https://lists.ircd-hybrid.org/mailman/listinfo/hybrid
     - hybrid@lists.ircd-hybrid.org
+  * IRC contact:
+    - #ircd-coders on irc.ircd-hybrid.org
 
 ******************************* IMPORTANT *************************************
-
 
   ************ Note for those who don't bother reading docs ***************
   * - Reading INSTALL is now a must, as the old DPATH is now specified    *
@@ -48,25 +49,22 @@ Feature Specific Requirements:
 
 - Please read doc/index.txt to get an overview of the current documentation.
 
-- Known bugs are listed in the BUGS file
-
 - TESTED PLATFORMS:  The code has been tested on the following platforms, and
   is known to run properly.
   (FIXME: this list is out of date)
   CentOS 5.8
   Red Hat Linux 9
   Ubuntu 12.04
-
-- If you are wondering why config.h no longer exists, it's because most
-  things that were once in config.h are now specified in the 'general'
-  block of ircd.conf. Look at example.conf for more information about
-  these options.
+  FreeBSD 9.1
+  OpenBSD 5.2
+  Arch Linux 2012.12.01
+  Debian GNU/Hurd 0.3
 
 - /etc/resolv.conf must exist for the resolver to work.
 
 - Please read NEWS for information about what is in this release.
 
-- Other files recommended for reading: BUGS, INSTALL
+- Other files recommended for reading: INSTALL
 
 --------------------------------------------------------------------------------
 $Id$

@@ -383,7 +383,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
     sendto_one(source_p, form_str(RPL_WHOISSERVICE), me.name, source_p->name,
         target_p->name);
 
-  if (strcmp(target_p->sockhost, "0"))
+  if (target_p->sockhost[0] && strcmp(target_p->sockhost, "0"))
   {
     if (HasUMode(source_p, UMODE_ADMIN) || source_p == target_p)
       show_ip = 1;
@@ -417,7 +417,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
 #endif
     sendto_one(source_p, form_str(RPL_WHOISIDLE),
                me.name, source_p->name, target_p->name,
-               CurrentTime - target_p->localClient->last_privmsg,
+               idle_time_get(source_p, target_p),
                target_p->localClient->firsttime);
 
     if (HasUMode(target_p, UMODE_OPER) && target_p != source_p)

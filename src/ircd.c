@@ -449,7 +449,7 @@ init_ssl(void)
     ilog(LOG_TYPE_IRCD, "ERROR: Could not initialize the SSL Server context -- %s\n", s);
   }
 
-  SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv2);
+  SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TLSv1);
   SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
   SSL_CTX_set_verify(ServerInfo.server_ctx, SSL_VERIFY_PEER, always_accept_verify_cb);
 
@@ -462,7 +462,7 @@ init_ssl(void)
     ilog(LOG_TYPE_IRCD, "ERROR: Could not initialize the SSL Client context -- %s\n", s);
   }
 
-  SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv2);
+  SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TLSv1);
   SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
   SSL_CTX_set_verify(ServerInfo.client_ctx, SSL_VERIFY_NONE, NULL);
 #endif /* HAVE_LIBCRYPTO */
@@ -548,7 +548,7 @@ main(int argc, char *argv[])
   eventInit();
   /* We need this to initialise the fd array before anything else */
   fdlist_init();
-  log_add_file(LOG_TYPE_IRCD, 0, logFileName);
+  log_set_file(LOG_TYPE_IRCD, 0, logFileName);
   check_can_use_v6();
   init_comm();         /* This needs to be setup early ! -- adrian */
   /* Check if there is pidfile and daemon already running */
@@ -615,7 +615,6 @@ main(int argc, char *argv[])
   /* add ourselves to global_serv_list */
   dlinkAdd(&me, make_dlink_node(), &global_serv_list);
 
-#ifndef STATIC_MODULES
   if (chdir(MODPATH))
   {
     ilog(LOG_TYPE_IRCD, "Could not load core modules. Terminating!");
@@ -632,9 +631,6 @@ main(int argc, char *argv[])
     perror("chdir");
     exit(EXIT_FAILURE);
   }
-#else
-  load_all_modules(1);
-#endif
   /*
    * assemble_umode_buffer() has to be called after
    * reading conf/loading modules.

@@ -2,7 +2,7 @@
 
    $Id$
 
-   Copyright (c) 1997-2012 IRCD-Hybrid Development Team
+   Copyright (c) 1997-2013 IRCD-Hybrid Development Team
 
      ----------------------------------------------------------------------
 
@@ -32,8 +32,7 @@
    ircd-hybrid.
    
    1.  Read the NEWS file to find out about the exciting new features in
-       this version. Other good reads are BUGS, doc/example.conf, and
-       README.
+       this version. Other good reads are doc/example.conf, and README.
 
    2.  Run the configure script. It will create config.h and the
        Makefiles to match your system. The paths are now handled
@@ -57,10 +56,6 @@
           * --enable-epoll - Enables epoll(4) Signal I/O system. This is
             currently only available on 2.5.44 Linux kernel versions or
             later.
-
-          * --enable-rtsigio - Enable the superior Linux RealTime Signal I/O
-            system. This is currently only available on 2.4 Linux kernel
-            versions or later.
 
           * --enable-poll - Use POSIX poll(2).
 
@@ -90,11 +85,6 @@
             are similar to plain ops, but can't kick/deop plain ops. Halfops
             may or may not kick/deop other halfops depending on if (+p) is
             set. Halfops may not set (+/-p).
-
-          * --with-nicklen,
-            --with-topiclen - Respectively, sets the maximum NICK length and
-            maximum TOPIC length. Note that this must be consistent across your
-            entire network. Defaults are 9 and 120, respectively.
 
 
           * --disable-gline-voting - This is good for small networks or where

@@ -53,7 +53,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (parc > 1)
+  if (!EmptyString(parv[1]))
   {
     if (irccmp(parv[1], "DNS") == 0)
     {
@@ -62,15 +62,6 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
                            get_oper_name(source_p));
       restart_resolver();   /* re-read /etc/resolv.conf AGAIN?
                                and close/re-open res socket */
-      found = 1;
-    }
-    else if (irccmp(parv[1], "FDLIMIT") == 0)
-    {
-      sendto_one(source_p, form_str(RPL_REHASHING), me.name,
-                 source_p->name, "FDLIMIT");
-      sendto_realops_flags(UMODE_ALL, L_ALL, "%s is updating FDLIMIT",
-                           get_oper_name(source_p));
-      recalc_fdlimit(NULL);
       found = 1;
     }
     else if (irccmp(parv[1], "MOTD") == 0)
@@ -90,8 +81,9 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     }
     else
     {
-      sendto_one(source_p, ":%s NOTICE %s :rehash one of :DNS FDLIMIT "
-                 "MOTD", me.name, source_p->name);
+      sendto_one(source_p, ":%s NOTICE %s :%s is not a valid option. "
+                 "Choose from DNS, MOTD",
+                 me.name, source_p->name, parv[1]);
       return;
     }
   }

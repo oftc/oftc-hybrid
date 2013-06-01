@@ -107,10 +107,34 @@ static const struct InfoStruct info_table[] =
     "Server is a hub"
   },
   {
+    "max_clients",
+    OUTPUT_DECIMAL,
+    &ServerInfo.max_clients,
+    "Maximum number of clients permitted simultaneously on this server"
+  },
+  {
+    "max_nick_length",
+    OUTPUT_DECIMAL,
+    &ServerInfo.max_nick_length,
+    "Maximum nickname length"
+  },
+  {
+    "max_topic_length",
+    OUTPUT_DECIMAL,
+    &ServerInfo.max_topic_length,
+    "Maximum topic length"
+  },
+  {
     "use_logging",
     OUTPUT_BOOLEAN_YN,
     &ConfigLoggingEntry.use_logging,
     "Enable logging"
+  },
+  {
+    "disable_fake_channels",
+    OUTPUT_BOOLEAN_YN,
+    &ConfigChannel.disable_fake_channels,
+    "Forbids channels with special ASCII characters in their name"
   },
   {
     "restrict_channels",
@@ -345,6 +369,12 @@ static const struct InfoStruct info_table[] =
     OUTPUT_BOOLEAN,
     &ConfigFileEntry.warn_no_nline,
     "Display warning if connecting server lacks N-line"
+  },
+  {
+    "stats_e_disabled",
+    OUTPUT_BOOLEAN_YN,
+    &ConfigFileEntry.stats_e_disabled,
+    "Whether or not STATS e is disabled"
   },
   {
     "stats_o_oper_only",

@@ -56,11 +56,7 @@ mo_ctrace(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-#ifdef STATIC_MODULES
   do_ctrace(source_p, parc, parv);
-#else
-  execute_callback(ctrace_cb, source_p, parc, parv);
-#endif
 }
 
 /*
@@ -122,7 +118,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
                        me.name, source_p->name, class_name, name,
                        HasUMode(source_p, UMODE_ADMIN) ? target_p->sockhost : "255.255.255.255",
                        CurrentTime - target_p->localClient->lasttime,
-                       CurrentTime - target_p->localClient->last_privmsg);
+                       idle_time_get(source_p, target_p));
           else if (HasUMode(target_p, UMODE_OPER))
           {
             if (ConfigFileEntry.hide_spoof_ips)
@@ -130,13 +126,13 @@ report_this_status(struct Client *source_p, struct Client *target_p)
 		         me.name, source_p->name, class_name, name, 
 		         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
 		         CurrentTime - target_p->localClient->lasttime,
-		         CurrentTime - target_p->localClient->last_privmsg);
+		         idle_time_get(source_p, target_p));
 	    else   
               sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                          me.name, source_p->name, class_name, name,
                          (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                          CurrentTime - target_p->localClient->lasttime,
-                         CurrentTime - target_p->localClient->last_privmsg);
+                         idle_time_get(source_p, target_p));
           }
 	  else
           {
@@ -145,13 +141,13 @@ report_this_status(struct Client *source_p, struct Client *target_p)
 		         me.name, source_p->name, class_name, name,
                          IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
 		         CurrentTime - target_p->localClient->lasttime,
-		         CurrentTime - target_p->localClient->last_privmsg);
+		         idle_time_get(source_p, target_p));
             else
               sendto_one(source_p, form_str(RPL_TRACEUSER),
                          me.name, source_p->name, class_name, name,
                          (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                          CurrentTime - target_p->localClient->lasttime,
-                         CurrentTime - target_p->localClient->last_privmsg);
+                         idle_time_get(source_p, target_p));
           }
         }
       break;

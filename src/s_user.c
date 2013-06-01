@@ -120,7 +120,7 @@ unsigned int user_modes[256] =
   UMODE_BOTS,         /* b */
   UMODE_CCONN,        /* c */
   UMODE_DEBUG,        /* d */
-  0,                  /* e */
+  UMODE_EXTERNAL,     /* e */
   UMODE_FULL,         /* f */
   UMODE_CALLERID,     /* g */
   0,                  /* h */
@@ -139,7 +139,7 @@ unsigned int user_modes[256] =
   UMODE_UNAUTH,       /* u */
   0,                  /* v */
   UMODE_WALLOP,       /* w */
-  UMODE_EXTERNAL,     /* x */
+  0,                  /* x */
   UMODE_SPY,          /* y */
   UMODE_OPERWALL,     /* z      0x7A */
   0,0,0,0,0,          /* 0x7B - 0x7F */
@@ -214,21 +214,18 @@ show_lusers(struct Client *source_p)
     sendto_one(source_p, form_str(RPL_LUSERME),
                from, to, Count.local, Count.myserver);
     sendto_one(source_p, form_str(RPL_LOCALUSERS),
-               from, to, Count.local, Count.max_loc,
-               Count.local, Count.max_loc);
+               from, to, Count.local, Count.max_loc);
   }
   else
   {
     sendto_one(source_p, form_str(RPL_LUSERME),
                from, to, Count.total, 0);
     sendto_one(source_p, form_str(RPL_LOCALUSERS), 
-               from, to, Count.total, Count.max_tot,
-               Count.total, Count.max_tot);
+               from, to, Count.total, Count.max_tot);
   }
 
   sendto_one(source_p, form_str(RPL_GLOBALUSERS),
-             from, to, Count.total, Count.max_tot,
-             Count.total, Count.max_tot);
+             from, to, Count.total, Count.max_tot);
 
   if (!ConfigServerHide.hide_servers || HasUMode(source_p, UMODE_OPER))
     sendto_one(source_p, form_str(RPL_STATSCONN), from, to,
@@ -685,7 +682,7 @@ valid_hostname(const char *hostname)
     if (!IsHostChar(*p))
       return 0;
 
-  return 1;
+  return p - hostname <= HOSTLEN;
 }
 
 /* valid_username()
@@ -1130,6 +1127,25 @@ send_umode_out(struct Client *client_p, struct Client *source_p,
     send_umode(client_p, source_p, old, 0xffffffff, buf);
 }
 
+void
+user_set_hostmask(struct Client *target_p, const char *hostname)
+{
+  if (!valid_hostname(hostname))
+    return;
+
+  if (IsUserHostIp(target_p))
+    delete_user_host(target_p->username, target_p->host, !MyConnect(target_p));
+
+  strlcpy(target_p->host, hostname, sizeof(target_p->host));
+  SetIPSpoof(target_p);
+
+  add_user_host(target_p->username, target_p->host, !MyConnect(target_p));
+  SetUserHost(target_p);
+
+  if (MyClient(target_p))
+    clear_ban_cache_client(target_p);
+}
+
 /* user_welcome()
  *
  * inputs	- client pointer to client to welcome
@@ -1221,7 +1237,7 @@ check_xline(struct Client *source_p)
     if (reg->reason != NULL)
       reason = reg->reason;
     else
-      reason = "No Reason";
+      reason = CONF_NOREASON;
 
     sendto_realops_flags(UMODE_REJ, L_ALL, 
                          "X-line Rejecting [%s] [%s], user %s [%s]",
@@ -1394,7 +1410,6 @@ init_isupport(void)
   add_isupport("DEAF", "D", -1);
   add_isupport("KICKLEN", NULL, KICKLEN);
   add_isupport("MODES", NULL, MAXMODEPARAMS);
-  add_isupport("NICKLEN", NULL, NICKLEN);
 #ifdef HALFOPS
   add_isupport("PREFIX", "(ohv)@%+", -1);
   add_isupport("STATUSMSG", "@%+", -1);
@@ -1402,7 +1417,6 @@ init_isupport(void)
   add_isupport("PREFIX", "(ov)@+", -1);
   add_isupport("STATUSMSG", "@+", -1);
 #endif
-  add_isupport("TOPICLEN", NULL, TOPICLEN);
 }
 
 /*

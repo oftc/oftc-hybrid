@@ -38,6 +38,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "log.h"
+#include "resv.h"
 
 
 static void do_join_0(struct Client *, struct Client *);
@@ -98,6 +99,7 @@ m_join(struct Client *client_p, struct Client *source_p,
   char *chan_list = NULL;
   char *chan = NULL;
   struct Channel *chptr = NULL;
+  struct ResvChannel *resv_cp = NULL;
   int i = 0;
   unsigned int flags = 0;
 
@@ -135,8 +137,10 @@ m_join(struct Client *client_p, struct Client *source_p,
 
     if (!IsExemptResv(source_p) &&
         !(HasUMode(source_p, UMODE_OPER) && ConfigFileEntry.oper_pass_resv) &&
-        (!hash_find_resv(chan) == ConfigChannel.restrict_channels))
+        (!(resv_cp = hash_find_resv(chan)) == ConfigChannel.restrict_channels))
     {
+      if (resv_cp)
+        ++resv_cp->count;
       sendto_one(source_p, form_str(ERR_BADCHANNAME),
                  me.name, source_p->name, chan);
       sendto_realops_flags(UMODE_SPY, L_ALL,
@@ -401,7 +405,7 @@ ms_join(struct Client *client_p, struct Client *source_p,
 
     if (chptr->topic[0])
     {
-      set_channel_topic(chptr, "", "", 0);
+      set_channel_topic(chptr, "", "", 0, 0);
       sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :",
                            (IsHidden(source_p) ||
                            ConfigServerHide.hide_servers) ?

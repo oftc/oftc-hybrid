@@ -38,9 +38,9 @@ int base16_decode(char *, size_t, const char *, size_t);
 #define IRCD_MAX(a, b)  ((a) > (b) ? (a) : (b))
 #define IRCD_MIN(a, b)  ((a) < (b) ? (a) : (b))
 
-#define _1MEG     (1024.0)
-#define _1GIG     (1024.0*1024.0)
-#define _1TER     (1024.0*1024.0*1024.0)
+#define _1MEG     (1024.0f)
+#define _1GIG     (1024.0f*1024.0f)
+#define _1TER     (1024.0f*1024.0f*1024.0f)
 #define _GMKs(x)  (((x) > _1TER) ? "Terabytes" : (((x) > _1GIG) ? "Gigabytes" :\
                   (((x) > _1MEG) ? "Megabytes" : "Kilobytes")))
 #define _GMKv(x)  (((x) > _1TER) ? (float)((x)/_1TER) : (((x) > _1GIG) ? \

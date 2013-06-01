@@ -100,6 +100,11 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
         what = MODE_DEL;
         break;
 
+      case 'x':
+        if (what == MODE_ADD && extarg)
+          user_set_hostmask(target_p, extarg);
+        break;
+
       case 'd':
         if (!EmptyString(extarg))
           strlcpy(target_p->svid, extarg, sizeof(target_p->svid));

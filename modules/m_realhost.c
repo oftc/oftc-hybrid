@@ -19,8 +19,6 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
- *
  */
 
 #include "stdinc.h"
@@ -41,27 +39,6 @@
 #include "packet.h"
 #include "irc_string.h"
 
-
-static void ms_realhost(struct Client *, struct Client *, int, char**);
-
-struct Message realhost_msgtab = {
-      "REALHOST", 0, 0, 2, 0, MFLG_SLOW, 0,
-        {m_ignore, m_ignore, ms_realhost, m_ignore}
-};
-
-const char *_version = "$Revision 0.1$";
-
-void _modinit(void)
-{
-  mod_add_cmd(&realhost_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&realhost_msgtab);
-}
-
 static void ms_realhost(struct Client *source_p, struct Client *client_p, int parc, char **parv)
 {
   struct Client *target_p;
@@ -73,3 +50,29 @@ static void ms_realhost(struct Client *source_p, struct Client *client_p, int pa
       strlcpy(target_p->realhost, parv[2], HOSTLEN);
 }
 
+struct Message realhost_msgtab = {
+      "REALHOST", 0, 0, 2, 0, MFLG_SLOW, 0,
+        {m_ignore, m_ignore, ms_realhost, m_ignore}
+};
+
+void 
+module_init(void)
+{
+  mod_add_cmd(&realhost_msgtab);
+}
+
+void
+module_exit(void)
+{
+  mod_del_cmd(&realhost_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

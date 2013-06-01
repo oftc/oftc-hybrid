@@ -2,10 +2,9 @@ dnl Inspired by work Copyright (C) 2006 Luca Filipozzi
 dnl vim: set fdm=marker sw=2 ts=2 et si:
 dnl {{{ ax_check_lib_ipv4
 AC_DEFUN([AX_CHECK_LIB_IPV4],[
+  AC_CHECK_FUNC(getaddrinfo, [], AC_SEARCH_LIBS(getaddrinfo, nsl))
+  AC_CHECK_FUNC(getnameinfo, [], AC_SEARCH_LIBS(getnameinfo, nsl))
   AC_SEARCH_LIBS([socket],[socket],,[AC_MSG_ERROR([socket library not found])])
-  AC_SEARCH_LIBS([inet_ntoa], [nsl])
-  AC_SEARCH_LIBS([inet_aton], [resolv])
-  AC_CHECK_FUNCS([inet_aton inet_ntop inet_pton])
   AC_CHECK_TYPES([struct sockaddr_in, struct sockaddr_storage, struct addrinfo],,,[#include <sys/types.h>
    #include <sys/socket.h>
    #include <netdb.h>
@@ -25,7 +24,6 @@ AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
   AC_ARG_ENABLE([kqueue], [AS_HELP_STRING([--enable-kqueue], [Force kqueue usage.])], [desired_iopoll_mechanism="kqueue"])
   AC_ARG_ENABLE([epoll],  [AS_HELP_STRING([--enable-epoll],  [Force epoll usage.])],  [desired_iopoll_mechanism="epoll"])
   AC_ARG_ENABLE([devpoll],[AS_HELP_STRING([--enable-devpoll],[Force devpoll usage.])],[desired_iopoll_mechanism="devpoll"])
-  AC_ARG_ENABLE([rtsigio],[AS_HELP_STRING([--enable-rtsigio],[Force rtsigio usage.])],[desired_iopoll_mechanism="rtsigio"])
   AC_ARG_ENABLE([poll],   [AS_HELP_STRING([--enable-poll],   [Force poll usage.])],   [desired_iopoll_mechanism="poll"]) 
   AC_ARG_ENABLE([select], [AS_HELP_STRING([--enable-select], [Force select usage.])], [desired_iopoll_mechanism="select"])
   dnl }}}
@@ -86,33 +84,19 @@ _syscall1(int, epoll_create, int, size)
     AC_DEFINE([HAVE_SYS_DEVPOLL_H],[1],[Define to 1 if you have the <sys/devpoll.h> header file.])
   fi
   dnl }}}
-  dnl {{{ check for rtsigio mechanism support
-  iopoll_mechanism_rtsigio=4
-  AC_DEFINE_UNQUOTED([__IOPOLL_MECHANISM_RTSIGIO],[$iopoll_mechanism_rtsigio],[rtsigio mechanism])
-  AC_RUN_IFELSE([AC_LANG_PROGRAM([[
-#define _GNU_SOURCE
-#include <fcntl.h>
-static unsigned int have_f_setsig = 0;
-  ]], [[
-#ifdef F_SETSIG
-  have_f_setsig = 1;
-#endif
-  return have_f_setsig == 0;
-  ]])], [is_rtsigio_mechanism_available="yes"],[is_rtsigio_mechanism_available="no"])
-  dnl }}}
   dnl {{{ check for poll mechanism support
-  iopoll_mechanism_poll=5
+  iopoll_mechanism_poll=4
   AC_DEFINE_UNQUOTED([__IOPOLL_MECHANISM_POLL],[$iopoll_mechanism_poll],[poll mechanism])
   AC_LINK_IFELSE([AC_LANG_FUNC_LINK_TRY([poll])],[is_poll_mechanism_available="yes"],[is_poll_mechanism_available="no"])
   dnl }}}
   dnl {{{ check for select mechanism support
-  iopoll_mechanism_select=6
+  iopoll_mechanism_select=5
   AC_DEFINE_UNQUOTED([__IOPOLL_MECHANISM_SELECT],[$iopoll_mechanism_select],[select mechanism])
   AC_LINK_IFELSE([AC_LANG_SOURCE([AC_LANG_FUNC_LINK_TRY([select])])],[is_select_mechanism_available="yes"],[is_select_mechanism_available="no"])
   dnl }}}
   dnl {{{ determine the optimal mechanism
   optimal_iopoll_mechanism="none"
-  for mechanism in "kqueue" "epoll" "devpoll" "rtsigio" "poll" "select" ; do # order is important
+  for mechanism in "kqueue" "epoll" "devpoll" "poll" "select" ; do # order is important
     eval "is_optimal_iopoll_mechanism_available=\$is_${mechanism}_mechanism_available"
     if test "$is_optimal_iopoll_mechanism_available" = "yes" ; then
       optimal_iopoll_mechanism="$mechanism"
@@ -155,30 +139,6 @@ AC_DEFUN([AX_ARG_DISABLE_BLOCK_ALLOC],[
   fi
   AC_DEFINE_UNQUOTED([USE_BLOCK_ALLOC],[$use_block_alloc],[use block alloc])
 ])dnl }}}
-dnl {{{ ax_arg_disable_shared_modules (FIXME)
-AC_DEFUN([AX_ARG_DISABLE_SHARED_MODULES],[
-  AC_ARG_ENABLE([shared-modules],[AC_HELP_STRING([--disable-shared-modules],[Disable shared modules.])],[shared_modules="$enableval"],[shared_modules="yes"])
-  AC_CHECK_HEADERS([dlfcn.h link.h])
-  AC_CHECK_FUNCS([dlopen dlinfo])
-  if test "$shared_modules" = "yes" ; then
-    use_shared_modules="yes"
-    AC_DEFINE([USE_SHARED_MODULES],[1],[Define to 1 if you want to use shared modules.])
-  else
-    use_shared_modules="no"
-    AC_MSG_WARN([shared module support has been disabled per supplied configure option])
-  fi
-  AM_CONDITIONAL([USE_SHARED_MODULES],[test "$shared_modules" = "yes"])
-])dnl }}}
-dnl {{{ ax_arg_with_topiclen
-AC_DEFUN([AX_ARG_WITH_TOPICLEN],[
-  AC_ARG_WITH([topiclen],[AS_HELP_STRING([--with-topiclen=<value>],[Set topic length (default 160).])],[topiclen="$withval"],[topiclen="160"])
-  AC_DEFINE_UNQUOTED([TOPICLEN],[($topiclen)],[Length of topics.]) 
-])dnl }}}
-dnl {{{ ax_arg_with_nicklen
-AC_DEFUN([AX_ARG_WITH_NICKLEN],[
-  AC_ARG_WITH([nicklen],[AS_HELP_STRING([--with-nicklen=<value>],[Set nickname length (default 9).])],[nicklen="$withval"],[nicklen="9"])
-  AC_DEFINE_UNQUOTED([NICKLEN],[($nicklen)],[Length of nicknames.]) 
-])dnl }}}
 dnl {{{ ax_arg_enable_halfops
 AC_DEFUN([AX_ARG_ENABLE_HALFOPS],[
   AC_ARG_ENABLE([halfops],[AS_HELP_STRING([--enable-halfops],[Enable halfops support.])],[halfops="$enableval"],[halfops="no"])
@@ -190,10 +150,7 @@ dnl {{{ ax_arg_enable_debugging
 AC_DEFUN([AX_ARG_ENABLE_DEBUGGING],[
   AC_ARG_ENABLE([debugging],[AS_HELP_STRING([--enable-debugging],[Enable debugging.])],[debugging="$enableval"],[debugging="no"])
   if test "$debugging" = "yes" ; then
-    AC_DEFINE([DEBUG],[1],[Define to 1 to enable debugging.])
     CFLAGS="-Werror -Wall -g -O0"
-  else
-    AC_DEFINE([NDEBUG],[1],[Define to 1 to disable debugging.])
   fi
 ])dnl }}}
 dnl {{{ ax_arg_enable_warnings

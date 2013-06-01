@@ -19,7 +19,6 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
  */
 
 #include "stdinc.h"
@@ -37,32 +36,6 @@
 #include "hash.h"
 #include "packet.h"
 #include "irc_string.h"
-
-
-static void ms_gnotice(struct Client *, struct Client *, int, char **);
-static void me_gnotice(struct Client *, struct Client *, int, char **);
-
-struct Message gnotice_msgtab = {
-  "GNOTICE", 0, 0, 3, 0, MFLG_SLOW, 0L,
-  {m_ignore, m_ignore, ms_gnotice, me_gnotice, m_ignore, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&gnotice_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&gnotice_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 static void
 me_gnotice(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
@@ -97,3 +70,30 @@ ms_gnotice(struct Client *client_p, struct Client *source_p, int parc, char *par
     return;
   }
 }
+
+struct Message gnotice_msgtab = {
+  "GNOTICE", 0, 0, 3, 0, MFLG_SLOW, 0L,
+  { m_ignore, m_ignore, ms_gnotice, me_gnotice, m_ignore, m_ignore }
+};
+
+void
+module_init(void)
+{
+  mod_add_cmd(&gnotice_msgtab);
+}
+
+void
+module_exit(void)
+{
+  mod_del_cmd(&gnotice_msgtab);
+}
+
+struct module module_entry = {
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

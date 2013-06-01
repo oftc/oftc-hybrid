@@ -162,7 +162,9 @@ parse_csv_file(FILE *file, ConfType conf_type)
         if (name_field != NULL)
           DupString(conf->name, name_field);
         if (reason_field != NULL)
-          DupString(match_item->reason, reason_field);
+          DupString(aconf->reason, reason_field);
+        else
+          DupString(aconf->reason, CONF_NOREASON);
 
         if(duration_field != NULL)
         {

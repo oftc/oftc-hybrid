@@ -74,7 +74,7 @@ remove_tdline_match(const char *host)
     piphost = NULL;
   }
 
-  if ((aconf = find_conf_by_address(host, piphost, CONF_DLINE, t, NULL, NULL, 0, NULL)))
+  if ((aconf = find_conf_by_address(host, piphost, CONF_DLINE | 1, t, NULL, NULL, 0, NULL)))
   {
     if (IsConfTemporary(aconf))
     {
@@ -100,7 +100,7 @@ static void
 mo_dline(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  char def_reason[] = "<No reason specified>";
+  char def_reason[] = CONF_NOREASON;
   char *dlhost = NULL, *oper_reason = NULL, *reason = NULL;
   char *target_server = NULL;
   const char *creason;
@@ -248,7 +248,7 @@ static void
 ms_dline(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  char def_reason[] = "<No reason specified>";
+  char def_reason[] = CONF_NOREASON;
   char *dlhost, *oper_reason, *reason;
   const char *creason;
   const struct Client *target_p = NULL;
@@ -507,7 +507,7 @@ ms_undline(struct Client *client_p, struct Client *source_p,
     return;
 
   sendto_match_servs(source_p, parv[1], CAP_UNDLN,
-                     "UNDLINE %s %s %s",
+                     "UNDLINE %s %s",
                      parv[1], parv[2]);
 
   me_undline(client_p, source_p, parc, parv);
