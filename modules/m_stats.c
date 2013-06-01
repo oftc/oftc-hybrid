@@ -886,7 +886,6 @@ stats_klines(struct Client *source_p, int parc, char *parv[])
   /* Theyre opered, or allowed to see all klines */
   else {
     report_Klines(source_p, 0);
-    report_confitem_types(source_p, RKLINE_TYPE);
   }
 }
 
@@ -1084,7 +1083,6 @@ static void
 stats_gecos(struct Client *source_p, int parc, char *parv[])
 {
   report_confitem_types(source_p, XLINE_TYPE);
-  report_confitem_types(source_p, RXLINE_TYPE);
 }
 
 static void

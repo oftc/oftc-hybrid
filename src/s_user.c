@@ -1227,8 +1227,7 @@ check_xline(struct Client *source_p)
   struct ConfItem *conf = NULL;
   const char *reason = NULL;
 
-  if ((conf = find_matching_name_conf(XLINE_TYPE, source_p->info, NULL, NULL, 0)) ||
-      (conf = find_matching_name_conf(RXLINE_TYPE, source_p->info, NULL, NULL, 0)))
+  if ((conf = find_matching_name_conf(XLINE_TYPE, source_p->info, NULL, NULL, 0)))
   {
     struct MatchItem *reg = map_to_conf(conf);
 

@@ -73,12 +73,6 @@ AC_CHECK_HEADERS_ONCE(crypt.h        \
 
 AC_SEARCH_LIBS(crypt, crypt)
 
-AC_ARG_ENABLE(libpcre,
-  [AS_HELP_STRING([--disable-libpcre],[Disable PCRE support])], [],
-    [AC_CHECK_HEADER(pcre.h,
-      [AC_SEARCH_LIBS(pcre_study, pcre,
-        [AC_DEFINE(HAVE_LIBPCRE, 1, [Define to 1 if libpcre (-lpcre) is available.])])])], [])
-
 AH_TEMPLATE([HAVE_LIBCRYPTO], [If we support ssl])
 
 AM_CONDITIONAL(ENABLE_SSL, [test "$ac_cv_lib_ssl_SSL_connect" = yes])

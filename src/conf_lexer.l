@@ -251,7 +251,6 @@ random_idle     { return RANDOM_IDLE; }
 recvq           { return T_RECVQ; }
 redirport       { return REDIRPORT; }
 redirserv       { return REDIRSERV; }
-regex           { return REGEX_T; }
 rehash		{ return REHASH; }
 reject_message { return REJECT_MESSAGE; }
 remote		{ return REMOTE; }
