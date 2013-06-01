@@ -253,6 +253,7 @@ redirport       { return REDIRPORT; }
 redirserv       { return REDIRSERV; }
 regex           { return REGEX_T; }
 rehash		{ return REHASH; }
+reject_message { return REJECT_MESSAGE; }
 remote		{ return REMOTE; }
 remoteban	{ return REMOTEBAN; }
 restart         { return T_RESTART; }

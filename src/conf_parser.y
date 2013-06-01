@@ -1445,7 +1445,7 @@ class_item:     class_name |
     class_max_global |
     class_max_local |
     class_max_ident |
-    class_sendq | class_recvq
+    class_sendq | class_recvq |
     class_reject_message |
                 class_min_idle |
                 class_max_idle |
@@ -2736,9 +2736,9 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_disable_auth | 
                     general_tkline_expire_notices | general_gline_enable |
                     general_gline_duration | general_gline_request_duration |
-                    general_gline_min_cidr |
+                    general_gline_min_cidr | general_gline_min_cidr6 |
                     general_godmode_timeout |
-		    general_max_watch | general_services_name |
+		    general_max_watch | general_services_name | general_stats_e_disabled |
 		    error;
 
 
