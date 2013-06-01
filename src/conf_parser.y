@@ -69,7 +69,6 @@ static char *yy_class_name = NULL;
 
 static dlink_list col_conf_list  = { NULL, NULL, 0 };
 static unsigned int listener_flags = 0;
-static unsigned int regex_ban = 0;
 static char userbuf[IRCD_BUFSIZE];
 static char hostbuf[IRCD_BUFSIZE];
 static char reasonbuf[REASONLEN + 1];
@@ -241,7 +240,6 @@ free_collect_item(struct CollectItem *item)
 %token  REASON
 %token  REDIRPORT
 %token  REDIRSERV
-%token  REGEX_T
 %token  REHASH
 %token  REMOTE
 %token  REMOTEBAN
@@ -2434,7 +2432,6 @@ kill_entry: KILL
   if (conf_parser_ctx.pass == 2)
   {
     userbuf[0] = hostbuf[0] = reasonbuf[0] = '\0';
-    regex_ban = 0;
   }
 } '{' kill_items '}' ';'
 {
@@ -2442,71 +2439,26 @@ kill_entry: KILL
   {
     if (userbuf[0] && hostbuf[0])
     {
-      if (regex_ban)
-      {
-#ifdef HAVE_LIBPCRE
-        void *exp_user = NULL;
-        void *exp_host = NULL;
-        const char *errptr = NULL;
+      find_and_delete_temporary(userbuf, hostbuf, CONF_KLINE);
 
-        if (!(exp_user = ircd_pcre_compile(userbuf, &errptr)) ||
-            !(exp_host = ircd_pcre_compile(hostbuf, &errptr)))
-        {
-          ilog(LOG_TYPE_IRCD, "Failed to add regular expression based K-Line: %s",
-               errptr);
-          break;
-        }
+      yy_aconf = map_to_conf(make_conf_item(KLINE_TYPE));
 
-        yy_aconf = map_to_conf(make_conf_item(RKLINE_TYPE));
-        yy_aconf->regexuser = exp_user;
-        yy_aconf->regexhost = exp_host;
+      DupString(yy_aconf->user, userbuf);
+      DupString(yy_aconf->host, hostbuf);
 
-        DupString(yy_aconf->user, userbuf);
-        DupString(yy_aconf->host, hostbuf);
-
-        if (reasonbuf[0])
-          DupString(yy_aconf->reason, reasonbuf);
-        else
-          DupString(yy_aconf->reason, CONF_NOREASON);
-#else
-        ilog(LOG_TYPE_IRCD, "Failed to add regular expression based K-Line: no PCRE support");
-        break;
-#endif
-      }
+      if (reasonbuf[0])
+        DupString(yy_aconf->reason, reasonbuf);
       else
-      {
-        find_and_delete_temporary(userbuf, hostbuf, CONF_KLINE);
-
-        yy_aconf = map_to_conf(make_conf_item(KLINE_TYPE));
-
-        DupString(yy_aconf->user, userbuf);
-        DupString(yy_aconf->host, hostbuf);
-
-        if (reasonbuf[0])
-          DupString(yy_aconf->reason, reasonbuf);
-        else
-          DupString(yy_aconf->reason, CONF_NOREASON);
-        add_conf_by_address(CONF_KLINE, yy_aconf);
-      }
+        DupString(yy_aconf->reason, CONF_NOREASON);
+      add_conf_by_address(CONF_KLINE, yy_aconf);
     }
 
     yy_aconf = NULL;
   }
 }; 
 
-kill_type: TYPE
-{
-} '='  kill_type_items ';';
-
-kill_type_items: kill_type_items ',' kill_type_item | kill_type_item;
-kill_type_item: REGEX_T
-{
-  if (conf_parser_ctx.pass == 2)
-    regex_ban = 1;
-};
-
 kill_items:     kill_items kill_item | kill_item;
-kill_item:      kill_user | kill_reason | kill_type | error;
+kill_item:      kill_user | kill_reason | error;
 
 kill_user: USER '=' QSTRING ';'
 {
@@ -2635,7 +2587,6 @@ gecos_entry: GECOS
 {
   if (conf_parser_ctx.pass == 2)
   {
-    regex_ban = 0;
     reasonbuf[0] = gecos_name[0] = '\0';
   }
 } '{' gecos_items '}' ';'
@@ -2644,28 +2595,7 @@ gecos_entry: GECOS
   {
     if (gecos_name[0])
     {
-      if (regex_ban)
-      {
-#ifdef HAVE_LIBPCRE
-        void *exp_p = NULL;
-        const char *errptr = NULL;
-
-        if (!(exp_p = ircd_pcre_compile(gecos_name, &errptr)))
-        {
-          ilog(LOG_TYPE_IRCD, "Failed to add regular expression based X-Line: %s",
-               errptr);
-          break;
-        }
-
-        yy_conf = make_conf_item(RXLINE_TYPE);
-        yy_conf->regexpname = exp_p;
-#else
-        ilog(LOG_TYPE_IRCD, "Failed to add regular expression based X-Line: no PCRE support");
-        break;
-#endif
-      }
-      else
-        yy_conf = make_conf_item(XLINE_TYPE);
+      yy_conf = make_conf_item(XLINE_TYPE);
 
       yy_match_item = map_to_conf(yy_conf);
       DupString(yy_conf->name, gecos_name);
@@ -2678,19 +2608,8 @@ gecos_entry: GECOS
   }
 };
 
-gecos_flags: TYPE
-{
-} '='  gecos_flags_items ';';
-
-gecos_flags_items: gecos_flags_items ',' gecos_flags_item | gecos_flags_item;
-gecos_flags_item: REGEX_T
-{
-  if (conf_parser_ctx.pass == 2)
-    regex_ban = 1;
-};
-
 gecos_items: gecos_items gecos_item | gecos_item;
-gecos_item:  gecos_name | gecos_reason | gecos_flags | error;
+gecos_item:  gecos_name | gecos_reason | error;
 
 gecos_name: NAME '=' QSTRING ';' 
 {

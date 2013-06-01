@@ -45,7 +45,6 @@
 
 
 static int already_placed_kline(struct Client *, const char *, const char *, int);
-static void apply_kline(struct Client *, struct ConfItem *, time_t);
 
 static char buffer[IRCD_BUFSIZE];
 static bool remove_tkline_match(const char *, const char *);
@@ -99,7 +98,6 @@ mo_kline(struct Client *client_p, struct Client *source_p,
     }
   }
 
-
   if (target_server != NULL)
   {
     if (HasID(source_p))
@@ -145,7 +143,8 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   if (oper_reason != NULL)
     DupString(aconf->oper_reason, oper_reason);
 
-  apply_kline(source_p, conf, tkline_time);
+  apply_conf_ban(source_p, KLINE_TYPE, user, host, reason, oper_reason, 
+      tkline_time);
 }
 
 /* me_kline - handle remote kline. no propagation */
@@ -153,11 +152,7 @@ static void
 me_kline(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  struct ConfItem *conf=NULL;
-  struct AccessItem *aconf=NULL;
   int tkline_time;
-  const char* current_date;
-  time_t cur_time;
   char *kuser, *khost, *kreason, *oper_reason;
 
   if (parc != 6 || EmptyString(parv[5]))
@@ -174,9 +169,6 @@ me_kline(struct Client *client_p, struct Client *source_p,
   if ((oper_reason = strchr(kreason, '|')) != NULL)
     *oper_reason++ = '\0';
 
-  cur_time = CurrentTime;
-  current_date = smalldate(cur_time);
-
   if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
                               source_p->username, source_p->host,
                               SHARED_KLINE))
@@ -185,18 +177,8 @@ me_kline(struct Client *client_p, struct Client *source_p,
         already_placed_kline(source_p, kuser, khost, 1))
       return;
 
-    conf = make_conf_item(KLINE_TYPE);
-    aconf = map_to_conf(conf);
-    DupString(aconf->host, khost);
-    DupString(aconf->user, kuser);
-
-    snprintf(buffer, sizeof(buffer), "%s (%s)", kreason, current_date);
-    DupString(aconf->reason, buffer);
-      
-    if (oper_reason != NULL)
-      DupString(aconf->oper_reason, oper_reason);
-
-    apply_kline(source_p, conf, tkline_time);
+    apply_conf_ban(source_p, KLINE_TYPE, kuser, khost, kreason, oper_reason, 
+        tkline_time);
   }
 }
 
@@ -214,32 +196,6 @@ ms_kline(struct Client *client_p, struct Client *source_p,
                      parv[1], parv[2], parv[3], parv[4], parv[5]);
 
   me_kline(client_p, source_p, parc, parv);
-}
-
-/* apply_kline()
- *
- * inputs	-
- * output	- NONE
- * side effects	- kline as given, is added to the hashtable
- *		  and conf file
- */
-static void 
-apply_kline(struct Client *source_p, struct ConfItem *conf, time_t tkline_time)
-{
-  struct AccessItem *aconf;
-  const char *current_date = smalldate(CurrentTime);
-
-  aconf = (struct AccessItem *)map_to_conf(conf);
-  if(tkline_time > 0)
-  {
-    aconf->hold = CurrentTime + tkline_time;
-    add_temp_line(conf);
-  }
-  else
-    add_conf_by_address(CONF_KLINE, aconf);
-
-  write_conf_line(source_p, conf, current_date, CurrentTime, tkline_time);
-  rehashed_klines = 1;
 }
 
 /* already_placed_kline()

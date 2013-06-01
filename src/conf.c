@@ -85,7 +85,6 @@ dlink_list oconf_items   = { NULL, NULL, 0 };
 dlink_list uconf_items   = { NULL, NULL, 0 };
 dlink_list xconf_items   = { NULL, NULL, 0 };
 dlink_list rxconf_items  = { NULL, NULL, 0 };
-dlink_list rkconf_items  = { NULL, NULL, 0 };
 dlink_list nresv_items   = { NULL, NULL, 0 };
 dlink_list class_items   = { NULL, NULL, 0 };
 
@@ -110,7 +109,6 @@ static int verify_access(struct Client *, const char *, struct ConfItem *, char 
 static int attach_iline(struct Client *, struct ConfItem *, char **);
 static void parse_conf_file(int, int);
 static dlink_list *map_to_list(ConfType);
-static struct AccessItem *find_regexp_kline(const char *[]);
 static int find_user_host(struct Client *, char *, char *, char *, unsigned int);
 
 /*
@@ -270,21 +268,6 @@ make_conf_item(ConfType type)
                                        sizeof(struct MatchItem));
     dlinkAdd(conf, &conf->node, &xconf_items);
     break;
-#ifdef HAVE_LIBPCRE
-  case RXLINE_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct MatchItem));
-    dlinkAdd(conf, &conf->node, &rxconf_items);
-    break;
-
-  case RKLINE_TYPE:
-    conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem) +
-                                       sizeof(struct AccessItem));
-    aconf = map_to_conf(conf);
-    aconf->status = CONF_KLINE;
-    dlinkAdd(conf, &conf->node, &rkconf_items);
-    break;
-#endif
   case CLUSTER_TYPE:
     conf = (struct ConfItem *)MyMalloc(sizeof(struct ConfItem));
     dlinkAdd(conf, &conf->node, &cluster_items);
@@ -439,30 +422,6 @@ delete_conf_item(struct ConfItem *conf)
     dlinkDelete(&conf->node, &xconf_items);
     MyFree(conf);
     break;
-#ifdef HAVE_LIBPCRE
-  case RKLINE_TYPE:
-    aconf = map_to_conf(conf);
-    MyFree(aconf->regexuser);
-    MyFree(aconf->regexhost);
-    MyFree(aconf->user);
-    MyFree(aconf->host);
-    MyFree(aconf->reason);
-    MyFree(aconf->oper_reason);
-    dlinkDelete(&conf->node, &rkconf_items);
-    MyFree(conf);
-    break;
-
-  case RXLINE_TYPE:
-    MyFree(conf->regexpname);
-    match_item = map_to_conf(conf);
-    MyFree(match_item->user);
-    MyFree(match_item->host);
-    MyFree(match_item->reason);
-    MyFree(match_item->oper_reason);
-    dlinkDelete(&conf->node, &rxconf_items);
-    MyFree(conf);
-    break;
-#endif
   case NRESV_TYPE:
     match_item = map_to_conf(conf);
     MyFree(match_item->user);
@@ -558,32 +517,6 @@ report_confitem_types(struct Client *source_p, ConfType type)
      conf->name, matchitem->reason);
     }
     break;
-
-#ifdef HAVE_LIBPCRE
-  case RXLINE_TYPE:
-    DLINK_FOREACH(ptr, rxconf_items.head)
-    {
-      conf = ptr->data;
-      matchitem = map_to_conf(conf);
-
-      sendto_one(source_p, form_str(RPL_STATSXLINE),
-                 me.name, source_p->name,
-                 "XR", matchitem->count,
-                 conf->name, matchitem->reason);
-    }
-    break;
-
-  case RKLINE_TYPE:
-    DLINK_FOREACH(ptr, rkconf_items.head)
-    {
-      aconf = map_to_conf((conf = ptr->data));
-
-      sendto_one(source_p, form_str(RPL_STATSKLINE), me.name,
-                 source_p->name, "KR", aconf->host, aconf->user,
-                 aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");
-    }
-    break;
-#endif
 
   case ULINE_TYPE:
     DLINK_FOREACH(ptr, uconf_items.head)
@@ -855,10 +788,9 @@ static int
 verify_access(struct Client *client_p, const char *username, 
         struct ConfItem *retconf, char **reason)
 {
-  struct AccessItem *aconf = NULL, *rkconf = NULL;
+  struct AccessItem *aconf = NULL;
   struct ConfItem *conf = NULL;
   char non_ident[USERLEN + 1] = { '~', '\0' };
-  const char *uhi[3];
 
   if (IsGotId(client_p))
   {
@@ -873,15 +805,9 @@ verify_access(struct Client *client_p, const char *username,
         client_p->aftype, client_p->localClient->passwd, client_p->certfp);
   }
 
-  uhi[0] = IsGotId(client_p) ? client_p->username : non_ident;
-  uhi[1] = client_p->host;
-  uhi[2] = client_p->sockhost;
-
-  rkconf = find_regexp_kline(uhi);
-
   if (aconf != NULL)
   {
-    if (IsConfClient(aconf) && !rkconf)
+    if (IsConfClient(aconf))
     {
       struct ClassItem *aclass;
       struct ConfItem *tempconf;
@@ -921,10 +847,9 @@ verify_access(struct Client *client_p, const char *username,
 
       return(attach_iline(client_p, conf, reason));
     }
-    else if (rkconf || IsConfKill(aconf) || (ConfigFileEntry.glines && IsConfGline(aconf)))
+    else if (IsConfKill(aconf) || (ConfigFileEntry.glines && IsConfGline(aconf)))
     {
       /* XXX */
-      aconf = rkconf ? rkconf : aconf;
       if (IsConfGline(aconf))
         sendto_one(client_p, ":%s NOTICE %s :*** G-lined", me.name,
                    client_p->name);
@@ -1434,9 +1359,6 @@ map_to_list(ConfType type)
 {
   switch(type)
   {
-  case RXLINE_TYPE:
-    return(&rxconf_items);
-    break;
   case XLINE_TYPE:
     return(&xconf_items);
     break;
@@ -1493,18 +1415,6 @@ find_matching_name_conf(ConfType type, const char *name, const char *user,
 
   switch (type)
   {
-#ifdef HAVE_LIBPCRE
-  case RXLINE_TYPE:
-      DLINK_FOREACH(ptr, list_p->head)
-      {
-        conf = ptr->data;
-        assert(conf->regexpname);
-
-        if (!ircd_pcre_exec(conf->regexpname, name))
-          return conf;
-      }
-      break;
-#endif
   case SERVICE_TYPE:
     DLINK_FOREACH(ptr, list_p->head)
     {
@@ -1583,7 +1493,6 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
 
   switch(type)
   {
-    case RXLINE_TYPE:
     case XLINE_TYPE:
     case ULINE_TYPE:
     case NRESV_TYPE:
@@ -1972,28 +1881,6 @@ conf_connect_allowed(struct irc_ssaddr *addr, int aftype)
   return 0;
 }
 
-static struct AccessItem *
-find_regexp_kline(const char *uhi[])
-{
-#ifdef HAVE_LIBPCRE
-  const dlink_node *ptr = NULL;
-
-  DLINK_FOREACH(ptr, rkconf_items.head)
-  {
-    struct AccessItem *aptr = map_to_conf(ptr->data);
-
-    assert(aptr->regexuser);
-    assert(aptr->regexhost);
-
-    if (!ircd_pcre_exec(aptr->regexuser, uhi[0]) &&
-        (!ircd_pcre_exec(aptr->regexhost, uhi[1]) ||
-         !ircd_pcre_exec(aptr->regexhost, uhi[2])))
-      return aptr;
-  }
-#endif
-  return NULL;
-}
-
 /* find_kill()
  *
  * inputs - pointer to client structure
@@ -2116,8 +2003,7 @@ expire_tklines(dlink_list *tklist)
         break;
       }
     }
-    else if (conf->type == XLINE_TYPE ||
-        conf->type == RXLINE_TYPE)
+    else if (conf->type == XLINE_TYPE)
     {
       xconf = (struct MatchItem *)map_to_conf(conf);
       if (xconf->hold <= CurrentTime)
@@ -2255,41 +2141,17 @@ get_oper_name(const struct Client *client_p)
   return buffer;
 }
 
-#if 0
-  static void
+static void
 clear_temp_list(dlink_list *list)
 {
   dlink_node *ptr, *next_ptr;
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, list->head)
   {
-    conf = ptr->data;
-    switch(conf->type)
-    {
-      case GLINE_TYPE:
-      case KLINE_TYPE:
-      case DLINE_TYPE:
-        aconf = (struct AccessItem *)map_to_conf(conf);
-
-        dlinkDelete(ptr, list);
-        delete_one_address_conf(aconf->host, aconf);
-        break;
-      case XLINE_TYPE:
-      case RXLINE_TYPE:
-      case RKLINE_TYPE:
-      case NRESV_TYPE:
-      case CRESV_TYPE:
-        dlinkDelete(ptr, list);
-        free_dlink_node(ptr);
-        break;
-      default:
-        break;
-    }
+    dlinkDelete(ptr, list);
+    free_dlink_node(ptr);
  }
 }
-#endif
 
 /* read_conf_files()
  *
@@ -2335,13 +2197,8 @@ read_conf_files(int cold)
   if (!cold)
   {
     clear_out_old_conf();
-    /*clear_temp_list(&temporary_glines);
-    clear_temp_list(&temporary_klines);
-    clear_temp_list(&temporary_dlines);
     clear_temp_list(&temporary_xlines);
-    clear_temp_list(&temporary_rxlines);
-    clear_temp_list(&temporary_rklines);
-    clear_temp_list(&temporary_resv);*/
+    clear_temp_list(&temporary_resv);
   }
 
   read_conf(conf_parser_ctx.conf_file);
@@ -2428,7 +2285,7 @@ clear_out_old_conf(void)
   struct ClassItem *cltmp;
   dlink_list *free_items [] = {
     &server_items,   &oconf_items,
-     &uconf_items,   &xconf_items, &rxconf_items, &rkconf_items,
+     &uconf_items,   &xconf_items, &rxconf_items, 
      &nresv_items, &cluster_items,  &service_items, NULL
   };
 
@@ -2472,16 +2329,8 @@ clear_out_old_conf(void)
           delete_conf_item(conf);
         }
       }
-      else if (conf->type == XLINE_TYPE  ||
-          conf->type == RXLINE_TYPE ||
-          conf->type == RKLINE_TYPE)
-      {
-        delete_conf_item(conf);
-      }
       else
-      {
         delete_conf_item(conf);
-      }
     }
   }
 
@@ -2589,10 +2438,10 @@ flush_deleted_I_P(void)
 
       if (IsConfIllegal(aconf))
       {
-  dlinkDelete(ptr, *iterator);
+        dlinkDelete(ptr, *iterator);
 
-  if (aconf->clients == 0)
-    delete_conf_item(conf);
+        if (aconf->clients == 0)
+          delete_conf_item(conf);
       }
     }
   }
@@ -3762,4 +3611,41 @@ destroy_cidr_class(struct ClassItem *aclass)
 {
   destroy_cidr_list(&aclass->list_ipv4);
   destroy_cidr_list(&aclass->list_ipv6);
+}
+
+void
+apply_conf_ban(struct Client *client, int type, const char *user, 
+    const char *host, const char *reason, const char *oper_reason, 
+    time_t duration)
+{
+  struct AccessItem *aconf;
+  struct ConfItem *conf;
+  const char *current_date = smalldate(CurrentTime);
+  char buffer[IRCD_BUFSIZE];
+
+  conf = make_conf_item(type);
+  aconf = map_to_conf(conf);
+
+  if(host != NULL)
+    DupString(aconf->host, host);
+  if(user != NULL)
+    DupString(aconf->user, user);
+
+  snprintf(buffer, sizeof(buffer), "%s (%s)", reason, current_date);
+  DupString(aconf->reason, buffer);
+
+  if (oper_reason != NULL)
+    DupString(aconf->oper_reason, oper_reason);
+
+  aconf = (struct AccessItem *)map_to_conf(conf);
+  if(duration > 0)
+  {
+    aconf->hold = CurrentTime + duration;
+    SetConfTemporary(aconf);
+  }
+
+  add_conf_by_address(aconf->status, aconf);
+
+  write_conf_line(client, conf, current_date, CurrentTime, duration);
+  rehashed_klines = 1;
 }

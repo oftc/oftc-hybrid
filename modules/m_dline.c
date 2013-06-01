@@ -106,14 +106,10 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   const char *creason;
   const struct Client *target_p = NULL;
   struct irc_ssaddr daddr;
-  struct ConfItem *conf=NULL;
   struct AccessItem *aconf=NULL;
   time_t tkline_time=0;
   int bits, t;
-  const char *current_date = NULL;
-  time_t cur_time;
   char hostip[HOSTIPLEN + 1];
-  char buffer[IRCD_BUFSIZE];
 
   if (!HasOFlag(source_p, OPER_FLAG_DLINE))
   {
@@ -213,9 +209,6 @@ mo_dline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  cur_time = CurrentTime;
-  current_date = smalldate(cur_time);
-
   /* Look for an oper reason */
   if ((oper_reason = strchr(reason, '|')) != NULL)
     *oper_reason++ = '\0';
@@ -223,25 +216,8 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   if (!valid_comment(source_p, reason, 1))
     return;
 
-  conf = make_conf_item(DLINE_TYPE);
-  aconf = map_to_conf(conf);
-  DupString(aconf->host, dlhost);
-
-  if (tkline_time != 0)
-  {
-    aconf->hold = CurrentTime + tkline_time;
-    add_temp_line(conf);
-  }
-  else
-    add_conf_by_address(CONF_DLINE, aconf);
-
-  snprintf(buffer, sizeof(buffer), "%s (%s)", reason, current_date);
-  DupString(aconf->reason, buffer);
-  if (oper_reason != NULL)
-    DupString(aconf->oper_reason, oper_reason);
-  write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
-
-  rehashed_klines = 1;
+  apply_conf_ban(source_p, DLINE_TYPE, NULL, dlhost, reason, oper_reason, 
+      tkline_time);
 }
 
 static void
@@ -253,14 +229,10 @@ ms_dline(struct Client *client_p, struct Client *source_p,
   const char *creason;
   const struct Client *target_p = NULL;
   struct irc_ssaddr daddr;
-  struct ConfItem *conf=NULL;
   struct AccessItem *aconf=NULL;
   time_t tkline_time=0;
   int bits, t;
-  const char *current_date = NULL;
-  time_t cur_time;
   char hostip[HOSTIPLEN + 1];
-  char buffer[IRCD_BUFSIZE];
 
   if (parc != 5 || EmptyString(parv[4]))
     return;
@@ -344,9 +316,6 @@ ms_dline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    cur_time = CurrentTime;
-    current_date = smalldate(cur_time);
-
     /* Look for an oper reason */
     if ((oper_reason = strchr(reason, '|')) != NULL)
       *oper_reason++ = '\0';
@@ -354,25 +323,8 @@ ms_dline(struct Client *client_p, struct Client *source_p,
     if (!valid_comment(source_p, reason, 1))
       return;
 
-    conf = make_conf_item(DLINE_TYPE);
-    aconf = map_to_conf(conf);
-    DupString(aconf->host, dlhost);
-
-    if (tkline_time != 0)
-    {
-      aconf->hold = CurrentTime + tkline_time;
-      add_temp_line(conf);
-    }
-    else
-      add_conf_by_address(CONF_DLINE, aconf);
-
-    snprintf(buffer, sizeof(buffer), "%s (%s)", reason, current_date);
-    DupString(aconf->reason, buffer);
-    if (oper_reason != NULL)
-      DupString(aconf->oper_reason, oper_reason);
-    write_conf_line(source_p, conf, current_date, cur_time, tkline_time);
-
-    rehashed_klines = 1;
+    apply_conf_ban(source_p, DLINE_TYPE, NULL, dlhost, reason, oper_reason, 
+        tkline_time);
   }
 }
 

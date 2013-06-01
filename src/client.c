@@ -408,8 +408,6 @@ check_conf_klines(void)
 
     /* if there is a returned struct MatchItem then kill it */
     if ((conf = find_matching_name_conf(XLINE_TYPE,  client_p->info,
-                                        NULL, NULL, 0)) != NULL ||
-        (conf = find_matching_name_conf(RXLINE_TYPE, client_p->info,
                                         NULL, NULL, 0)) != NULL)
     {
       aconf = map_to_conf(conf);
@@ -460,7 +458,6 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
 
   switch (conf->type)
   {
-    case RKLINE_TYPE:
     case KLINE_TYPE:
       type_string = kline_string;
       aconf = map_to_conf(conf);
@@ -473,7 +470,6 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
       type_string = gline_string;
       aconf = map_to_conf(conf);
       break;
-    case RXLINE_TYPE:
     case XLINE_TYPE:
       type_string = xline_string;
       xconf = map_to_conf(conf);
