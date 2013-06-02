@@ -624,12 +624,7 @@ introduce_client(struct Client *source_p)
                    source_p->info);
 
       if(!EmptyString(source_p->certfp))
-      {
-        char buf[SHA_DIGEST_LENGTH*2+1];
-
-        base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
-        sendto_one(server, "CERTFP %s %s", source_p->name, buf);
-      }
+        sendto_one(server, "CERTFP %s %s", source_p->name, source_p->certfp);
     }
     else
     {
@@ -649,12 +644,7 @@ introduce_client(struct Client *source_p)
                    source_p->servptr->name, source_p->info);
 
       if(!EmptyString(source_p->certfp))
-      {
-        char buf[SHA_DIGEST_LENGTH*2+1];
-
-        base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
-        sendto_one(server, "CERTFP %s %s", source_p->name, buf);
-      }
+        sendto_one(server, "CERTFP %s %s", source_p->name, source_p->certfp);
     }
   }
 }

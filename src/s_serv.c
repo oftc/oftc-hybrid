@@ -626,12 +626,7 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
 
 #ifdef HAVE_LIBCRYPTO
   if(!EmptyString(target_p->certfp))
-  {
-    char buf[SHA_DIGEST_LENGTH*2+1];
-
-    base16_encode(buf, sizeof(buf), target_p->certfp, sizeof(target_p->certfp));
-    sendto_one(client_p, "CERTFP %s %s", target_p->name, buf);
-  }
+    sendto_one(client_p, "CERTFP %s %s", target_p->name, target_p->certfp);
 #endif
 
   if (target_p->away[0])
