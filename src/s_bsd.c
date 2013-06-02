@@ -258,6 +258,9 @@ ssl_handshake(int fd, struct Client *client_p)
   int ret = SSL_accept(client_p->localClient->fd.ssl);
   X509 *cert;
 
+  int err = SSL_get_error(client_p->localClient->fd.ssl, ret);
+  ilog(LOG_TYPE_IRCD, "SSL Error %d %s", err, ERR_error_string(err, NULL));
+
   if ((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
   {
     int res = SSL_get_verify_result(client_p->localClient->fd.ssl);
@@ -268,7 +271,6 @@ ssl_handshake(int fd, struct Client *client_p)
       /* The client sent a certificate which verified OK */
       base16_encode(client_p->certfp, sizeof(client_p->certfp),
           (const char*)cert->sha1_hash, sizeof(cert->sha1_hash));
-      memcpy(client_p->certfp, cert->sha1_hash, sizeof(client_p->certfp));
     }
     else
     {
