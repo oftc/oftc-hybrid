@@ -205,7 +205,7 @@ struct Client
   int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
  
   char              realhost[HOSTLEN];
-  char              certfp[SHA_DIGEST_LENGTH];
+  char              certfp[SHA_DIGEST_LENGTH * 2 + 1];
   time_t            umodestime; /* Time client set umode +S */
 };
 
