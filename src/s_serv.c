@@ -405,7 +405,8 @@ check_server(const char *name, struct Client *client_p)
     {
       error = -2;
 
-      if (!match_conf_password(client_p->localClient->passwd, aconf))
+      if (!match_conf_password(client_p->localClient->passwd, client_p->certfp, 
+            aconf))
         return -2;
 
       server_conf = conf;

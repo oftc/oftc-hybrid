@@ -3206,9 +3206,16 @@ valid_comment(struct Client *source_p, char *comment, int warn)
  * side effects - none
  */
 int
-match_conf_password(const char *password, const struct AccessItem *aconf)
+match_conf_password(const char *password, const char *certfp, 
+    const struct AccessItem *aconf)
 {
   const char *encr = NULL;
+
+  if(!EmptyString(certfp) && aconf->certfp != NULL)
+  {
+    if(strncmp(aconf->certfp, certfp, SHA_DIGEST_LENGTH) == 0)
+      return 1;
+  }
 
   if (EmptyString(password) || EmptyString(aconf->passwd))
     return 0;
