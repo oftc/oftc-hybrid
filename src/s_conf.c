@@ -1784,7 +1784,7 @@ find_exact_name_conf(ConfType type, const char *name,
             return conf;
           if(certfp != NULL && aconf->certfp != NULL)
           {
-            if(memcmp(aconf->certfp, certfp, SHA_DIGEST_LENGTH) == 0)
+            if(strncmp(aconf->certfp, certfp, SHA_DIGEST_LENGTH * 2) == 0)
               return conf;
           }
           if (EmptyString(aconf->user) || EmptyString(aconf->host))

@@ -656,14 +656,6 @@ introduce_client(struct Client *client_p, struct Client *source_p)
                  ubuf, source_p->username, source_p->host,
                  source_p->servptr->name, source_p->info);
     }
-
-    if(!EmptyString(source_p->certfp))
-    {
-      char buf[SHA_DIGEST_LENGTH*2+1];
-
-      base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
-      sendto_one(uplink, "CERTFP %s %s", source_p->name, buf);
-    }
   }
   else
   {
@@ -688,13 +680,9 @@ introduce_client(struct Client *client_p, struct Client *source_p)
                    (unsigned long)source_p->tsinfo,
                    ubuf, source_p->username, source_p->host,
                    source_p->servptr->name, source_p->info);
-      if(!EmptyString(source_p->certfp))
-      {
-        char buf[SHA_DIGEST_LENGTH*2+1];
 
-        base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
-        sendto_one(server, "CERTFP %s %s", source_p->name, buf);
-      }
+      if(!EmptyString(source_p->certfp))
+        sendto_one(server, "CERTFP %s %s", source_p->name, source_p->certfp);
     }
   }
 }
@@ -1234,13 +1222,9 @@ user_welcome(struct Client *source_p)
                ssl_get_cipher(source_p->localClient->fd.ssl));
     if(!EmptyString(source_p->certfp))
     {
-      char buf[SHA_DIGEST_LENGTH*2+1]; 
-
-      base16_encode(buf, SHA_DIGEST_LENGTH*2+1, source_p->certfp,
-          SHA_DIGEST_LENGTH);
       sendto_one(source_p, 
           ":%s NOTICE %s: *** Your client certificate fingerprint is %s",
-          me.name, source_p->name, buf);
+          me.name, source_p->name, source_p->certfp);
     }
   }
 #endif

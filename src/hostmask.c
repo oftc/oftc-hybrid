@@ -191,7 +191,7 @@ try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
     }
     else if (c == '*')
     {
-      if (*(p + 1) || n == 0 || *(p - 1) != '.')
+      if (*(p + 1) || n == 1 || *(p - 1) != '.')
         return HM_HOST;
       bits = (n - 1) * 8;
       break;
@@ -519,7 +519,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
         {
           if(arec->aconf->certfp != NULL)
           {
-            if(memcmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH) != 0)
+            if(strncmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH * 2) != 0)
               continue;
           }
           else
@@ -554,7 +554,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
       {
         if(arec->aconf->certfp != NULL)
         {
-          if(memcmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH) != 0)
+          if(strncmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH * 2) != 0)
             continue;
         }
         else
