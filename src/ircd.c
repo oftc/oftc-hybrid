@@ -34,7 +34,6 @@
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd_signal.h"
-#include "s_gline.h"
 #include "motd.h"
 #include "hostmask.h"
 #include "numeric.h"
@@ -641,7 +640,6 @@ main(int argc, char *argv[])
 
   ilog(LOG_TYPE_IRCD, "Server Ready");
 
-  eventAddIsh("cleanup_glines", cleanup_glines, NULL, CLEANUP_GLINES_TIME);
   eventAddIsh("cleanup_tklines", cleanup_tklines, NULL, CLEANUP_TKLINES_TIME);
 
   /* We want try_connections to be called as soon as possible now! -- adrian */

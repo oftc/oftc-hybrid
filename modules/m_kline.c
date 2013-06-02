@@ -39,7 +39,6 @@
 #include "send.h"
 #include "hash.h"
 #include "s_serv.h"
-#include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
 
@@ -87,8 +86,8 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   if ((p = strchr(host, '/')) != NULL)
   {
     int bitlen = strtol(++p, NULL, 10);
-    int min_bitlen = strchr(host, ':') ? ConfigFileEntry.gline_min_cidr6 :
-      ConfigFileEntry.gline_min_cidr;
+    int min_bitlen = strchr(host, ':') ? ConfigFileEntry.kline_min_cidr6 :
+      ConfigFileEntry.kline_min_cidr;
 
     if (bitlen < min_bitlen)
     {

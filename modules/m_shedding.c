@@ -33,7 +33,6 @@
 #include "send.h"
 #include "hash.h"
 #include "s_serv.h"
-#include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
 #include "event.h"

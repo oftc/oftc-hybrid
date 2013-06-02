@@ -172,13 +172,6 @@ flatten_links	{ return FLATTEN_LINKS; }
 client_certificate_hash { return CLIENTCERT_HASH; }
 gecos		{ return GECOS; }
 general		{ return GENERAL; }
-gline		{ return GLINE; }
-gline_enable    { return GLINE_ENABLE; }
-gline_exempt    { return GLINE_EXEMPT; }
-gline_duration  { return GLINE_DURATION; }
-gline_request_duration { return GLINE_REQUEST_DURATION; }
-gline_min_cidr  { return GLINE_MIN_CIDR; }
-gline_min_cidr6 { return GLINE_MIN_CIDR6; }
 globops         { return T_GLOBOPS; }
 global_kill	{ return GLOBAL_KILL; }
 godmode_timeout { return GODMODE_TIMEOUT; }
@@ -205,6 +198,8 @@ kill		{ return KILL; }
 kill_chase_time_limit { return KILL_CHASE_TIME_LIMIT; }
 kline		{ return KLINE; }
 kline_exempt	{ return KLINE_EXEMPT; }
+kline_min_cidr  { return KLINE_MIN_CIDR; }
+kline_min_cidr6 { return KLINE_MIN_CIDR6; }
 leaf_mask	{ return LEAF_MASK; }
 listen		{ return LISTEN; }
 log		{ return T_LOG; }

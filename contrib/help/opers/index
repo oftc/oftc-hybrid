@@ -6,19 +6,18 @@ CHGIDENT        CHGNAME         CLASSLIST       CLEARCHAN
 CLIENT          CLOSE           CONNECT         CRYPTLINK
 CTRACE          DELSPOOF        DIE             DLINE
 DROP            EOB             ETRACE          FORCEJOIN
-FORCEPART       GLINE           HASH            JUPE
-KILL            KLINE           KNOCKLL         LLJOIN
-LLNICK          LOCOPS          LTRACE          MKPASSWD
-MODLIST         MODLOAD         MODRESTART      MODUNLOAD
-NBURST          NOTICE          OJOIN           OMOTD
-OPERWALL        OPME            POST            PRIVMSG
-REHASH          RESTART         RESV            RKLINE
-RXLINE          SERVER          SET             SJOIN
-SPOOF           SQUIT           STATS           SVINFO
-SVSNICK         TESTGECOS       TESTLINE        TESTMASK
-TRACE           UHELP           UMODE           UNCAPTURE
-UNDLINE         UNGLINE         UNKLINE         UNRESV
-UNXLINE         WALLOPS         XLINE
+FORCEPART       HASH            JUPE            KILL
+KLINE           KNOCKLL         LOCOPS          LTRACE
+MKPASSWD        MODLIST         MODLOAD         MODRESTART
+MODUNLOAD       NBURST          NOTICE          OJOIN           
+OMOTD           OPERWALL        OPME            POST
+PRIVMSG         REHASH          RESTART         RESV
+SERVER          SET             SJOIN           SPOOF
+SQUIT           STATS           SVINFO          SVSNICK
+TESTGECOS       TESTLINE        TESTMASK        TRACE
+UHELP           UMODE           UNCAPTURE       UNDLINE
+UNKLINE         UNRESV          UNXLINE         WALLOPS
+XLINE
 
 Help topics available to users:
 

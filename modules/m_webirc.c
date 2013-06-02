@@ -50,7 +50,6 @@
  *
  * Possible flags:
  *   kline_exempt - k/g lines on the cgiirc ip are ignored
- *   gline_exempt - glines on the cgiirc ip are ignored
  *
  * dlines are checked on the cgiirc ip (of course).
  * k/d/g/x lines, auth blocks, user limits, etc are checked using the
@@ -162,7 +161,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   else
     strlcpy(source_p->host, source_p->sockhost, sizeof(source_p->host));
 
-  /* Check dlines now, k/glines will be checked on registration */
+  /* Check dlines now, klines will be checked on registration */
   if ((aconf = find_dline_conf(&client_p->ip,
                                 client_p->aftype)))
   {

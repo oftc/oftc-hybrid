@@ -63,8 +63,6 @@ confopts(struct Client *source_p)
 
   *p++ = 'e'; /* excepts */
 
-  if (ConfigFileEntry.glines)
-    *p++ = 'G';
   *p++ = 'g';
 
   /* might wanna hide this :P */

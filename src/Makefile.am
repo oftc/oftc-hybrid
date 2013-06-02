@@ -49,7 +49,6 @@ ircd_SOURCES = balloc.c          \
                rsa.c             \
                s_auth.c          \
                s_bsd.c           \
-               s_gline.c         \
                s_misc.c          \
                s_serv.c          \
                s_user.c          \

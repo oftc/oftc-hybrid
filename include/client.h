@@ -282,23 +282,22 @@ struct Client
 #define FLAGS_IPHASH        0x00000080 /**< iphashed this client */
 #define FLAGS_MARK          0x00000100 /**< marked client */
 #define FLAGS_CANFLOOD      0x00000200 /**< client has the ability to flood */
-#define FLAGS_EXEMPTGLINE   0x00000400 /**< client can't be G-lined */
-#define FLAGS_EXEMPTKLINE   0x00000800 /**< client is exempt from kline */
-#define FLAGS_NOLIMIT       0x00001000 /**< client is exempt from limits */
-#define FLAGS_PING_COOKIE   0x00002000 /**< PING Cookie */
-#define FLAGS_IP_SPOOFING   0x00004000 /**< client IP is spoofed */
-#define FLAGS_FLOODDONE     0x00008000 /**< Flood grace period has been ended. */
-#define FLAGS_EOB           0x00010000 /**< server has sent us an EOB */
-#define FLAGS_HIDDEN        0x00020000 /**< a hidden server. not shown in /links */
-#define FLAGS_BLOCKED       0x00040000 /**< must wait for COMM_SELECT_WRITE */
-#define FLAGS_USERHOST      0x00080000 /**< client is in userhost hash */
-#define FLAGS_BURSTED       0x00100000 /**< user was already bursted */
-#define FLAGS_EXEMPTRESV    0x00200000 /**< client is exempt from RESV */
-#define FLAGS_GOTUSER       0x00400000 /**< if we received a USER command */
-#define FLAGS_PINGWARNING   0x00800000 /**< unreplied ping warning already sent */
-#define FLAGS_FINISHED_AUTH 0x01000000 /**< Client has been released from auth */
-#define FLAGS_FLOOD_NOTICED 0x02000000 /**< Notice to opers about this flooder has been sent */
-#define FLAGS_SERVICE       0x04000000 /**< Client/server is a network service */
+#define FLAGS_EXEMPTKLINE   0x00000400 /**< client is exempt from kline */
+#define FLAGS_NOLIMIT       0x00000800 /**< client is exempt from limits */
+#define FLAGS_PING_COOKIE   0x00001000 /**< PING Cookie */
+#define FLAGS_IP_SPOOFING   0x00002000 /**< client IP is spoofed */
+#define FLAGS_FLOODDONE     0x00004000 /**< Flood grace period has been ended. */
+#define FLAGS_EOB           0x00008000 /**< server has sent us an EOB */
+#define FLAGS_HIDDEN        0x00010000 /**< a hidden server. not shown in /links */
+#define FLAGS_BLOCKED       0x00020000 /**< must wait for COMM_SELECT_WRITE */
+#define FLAGS_USERHOST      0x00040000 /**< client is in userhost hash */
+#define FLAGS_BURSTED       0x00080000 /**< user was already bursted */
+#define FLAGS_EXEMPTRESV    0x00100000 /**< client is exempt from RESV */
+#define FLAGS_GOTUSER       0x00200000 /**< if we received a USER command */
+#define FLAGS_PINGWARNING   0x00400000 /**< unreplied ping warning already sent */
+#define FLAGS_FINISHED_AUTH 0x00800000 /**< Client has been released from auth */
+#define FLAGS_FLOOD_NOTICED 0x01000000 /**< Notice to opers about this flooder has been sent */
+#define FLAGS_SERVICE       0x02000000 /**< Client/server is a network service */
 
 #define HasFlag(x, y) ((x)->flags &   (y))
 #define AddFlag(x, y) ((x)->flags |=  (y))
@@ -349,22 +348,21 @@ struct Client
 #define OPER_FLAG_GLOBAL_KILL  0x00000001 /**< Oper can global kill        */
 #define OPER_FLAG_REMOTE       0x00000002 /**> Oper can do squits/connects */
 #define OPER_FLAG_UNKLINE      0x00000004 /**< Oper can use unkline        */
-#define OPER_FLAG_GLINE        0x00000008 /**< Oper can use gline          */
-#define OPER_FLAG_N            0x00000010 /**< Oper can umode n            */
-#define OPER_FLAG_K            0x00000020 /**< Oper can kill/kline         */
-#define OPER_FLAG_X            0x00000040 /**< Oper can xline              */
-#define OPER_FLAG_DIE          0x00000080 /**< Oper can die                */
-#define OPER_FLAG_REHASH       0x00000100 /**< Oper can rehash             */
-#define OPER_FLAG_ADMIN        0x00000200 /**< Oper can set umode +a       */
-#define OPER_FLAG_OPERWALL     0x00000400 /**< Oper can use OPERWALL command */
-#define OPER_FLAG_OPER_SPY     0x00000800 /* */
-#define OPER_FLAG_REMOTEBAN    0x00001000 /**< Oper can set remote bans */
-#define OPER_FLAG_GLOBOPS      0x00002000 /**< Oper can use GLOBOPS command */
-#define OPER_FLAG_MODULE       0x00004000 /**< Oper can use MODULE commands */
-#define OPER_FLAG_RESTART      0x00008000 /**< Oper can use RESTART command */
-#define OPER_FLAG_DLINE        0x00010000 /**< Oper can use DLINE command   */
-#define OPER_FLAG_UNDLINE      0x00020000 /**< Oper can use UNDLINE command */
-#define OPER_FLAG_SET          0x00040000 /**< Oper can use SET command */
+#define OPER_FLAG_N            0x00000008 /**< Oper can umode n            */
+#define OPER_FLAG_K            0x00000010 /**< Oper can kill/kline         */
+#define OPER_FLAG_X            0x00000020 /**< Oper can xline              */
+#define OPER_FLAG_DIE          0x00000040 /**< Oper can die                */
+#define OPER_FLAG_REHASH       0x00000080 /**< Oper can rehash             */
+#define OPER_FLAG_ADMIN        0x00000100 /**< Oper can set umode +a       */
+#define OPER_FLAG_OPERWALL     0x00000200 /**< Oper can use OPERWALL command */
+#define OPER_FLAG_OPER_SPY     0x00000400 /* */
+#define OPER_FLAG_REMOTEBAN    0x00000800 /**< Oper can set remote bans */
+#define OPER_FLAG_GLOBOPS      0x00001000 /**< Oper can use GLOBOPS command */
+#define OPER_FLAG_MODULE       0x00002000 /**< Oper can use MODULE commands */
+#define OPER_FLAG_RESTART      0x00004000 /**< Oper can use RESTART command */
+#define OPER_FLAG_DLINE        0x00008000 /**< Oper can use DLINE command   */
+#define OPER_FLAG_UNDLINE      0x00010000 /**< Oper can use UNDLINE command */
+#define OPER_FLAG_SET          0x00020000 /**< Oper can use SET command */
 
 #define HasOFlag(x, y) (MyConnect(x) ? (x)->localClient->operflags & (y) : 0)
 #define AddOFlag(x, y) ((x)->localClient->operflags |=  (y))
@@ -423,8 +421,6 @@ struct Client
 #define SetExemptKline(x)       ((x)->flags |= FLAGS_EXEMPTKLINE)
 #define IsExemptLimits(x)       ((x)->flags & FLAGS_NOLIMIT)
 #define SetExemptLimits(x)      ((x)->flags |= FLAGS_NOLIMIT)
-#define IsExemptGline(x)        ((x)->flags & FLAGS_EXEMPTGLINE)
-#define SetExemptGline(x)       ((x)->flags |= FLAGS_EXEMPTGLINE)
 #define IsExemptResv(x)         ((x)->flags & FLAGS_EXEMPTRESV)
 #define SetExemptResv(x)        ((x)->flags |= FLAGS_EXEMPTRESV)
 #define SetIPSpoof(x)           ((x)->flags |= FLAGS_IP_SPOOFING)
