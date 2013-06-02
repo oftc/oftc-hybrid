@@ -1522,11 +1522,6 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
             return NULL;
           if (match(aconf->user, who->username))
           {
-            if(aconf->certfp && !EmptyString(who->certfp))
-            {
-              if(strncmp(aconf->certfp, who->certfp, SHA_DIGEST_LENGTH * 2) == 0)
-                return conf;
-            }
             switch (aconf->type)
             {
             case HM_HOST:
