@@ -1224,13 +1224,9 @@ user_welcome(struct Client *source_p)
                ssl_get_cipher(source_p->localClient->fd.ssl));
     if(!EmptyString(source_p->certfp))
     {
-      char buf[SHA_DIGEST_LENGTH*2+1]; 
-
-      base16_encode(buf, SHA_DIGEST_LENGTH*2+1, source_p->certfp,
-          SHA_DIGEST_LENGTH);
       sendto_one(source_p, 
           ":%s NOTICE %s: *** Your client certificate fingerprint is %s",
-          me.name, source_p->name, buf);
+          me.name, source_p->name, source_p->certfp);
     }
   }
 #endif
