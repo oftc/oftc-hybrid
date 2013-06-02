@@ -75,7 +75,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
   const char *name = parv[1];
   const char *password = parv[2];
 
-  if (EmptyString(password))
+  if (EmptyString(password) && EmptyString(source_p->certfp))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "OPER");
