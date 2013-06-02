@@ -46,7 +46,7 @@ extern void close_connection(struct Client *);
 extern void report_error(int, const char *, const char *, int);
 
 extern int get_sockerr(int);
-extern int ignoreErrno(int);
+extern bool ignoreErrno(int);
 
 extern void comm_settimeout(fde_t *, time_t, PF *, void *);
 extern void comm_setflush(fde_t *, time_t, PF *, void *);

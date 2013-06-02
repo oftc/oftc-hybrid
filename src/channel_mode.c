@@ -147,7 +147,7 @@ check_string(char *s)
  *   -is 8/9/00 
  */
 
-int
+bool
 add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
 {
   dlink_list *list = NULL;
@@ -171,7 +171,7 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
     {
       sendto_one(client_p, form_str(ERR_BANLISTFULL),
                  me.name, client_p->name, chptr->chname, banid);
-      return 0;
+      return false;
     }
 
     collapse(banid);
@@ -212,7 +212,7 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
       break;
     default:
       assert(0);
-      return 0;
+      return false;
   }
 
   DLINK_FOREACH(ban, list->head)
@@ -222,7 +222,7 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
         !irccmp(ban_p->username, user) &&
         !irccmp(ban_p->host, host))
     {
-      return 0;
+      return false;
     }
   }
 
@@ -249,17 +249,17 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
 
   dlinkAdd(ban_p, &ban_p->node, list);
 
-  return 1;
+  return true;
 }
 
 /*
  * inputs	- pointer to channel
  *		- pointer to ban id
  *		- type of ban, i.e. ban, exception, invex
- * output	- 0 for failure, 1 for success
+ * output	- false for failure, true for success
  * side effects	-
  */
-static int
+static bool
 del_id(struct Channel *chptr, char *banid, int type)
 {
   dlink_list *list;
@@ -271,7 +271,7 @@ del_id(struct Channel *chptr, char *banid, int type)
   struct split_nuh_item nuh;
 
   if (banid == NULL)
-    return 0;
+    return false;
 
   nuh.nuhmask  = check_string(banid);
   nuh.nickptr  = name;
@@ -309,7 +309,7 @@ del_id(struct Channel *chptr, char *banid, int type)
     default:
       sendto_realops_flags(UMODE_ALL, L_ALL, 
                            "del_id() called with unknown ban type %d!", type);
-      return 0;
+      return false;
   }
 
   DLINK_FOREACH(ban, list->head)
@@ -321,11 +321,11 @@ del_id(struct Channel *chptr, char *banid, int type)
         !irccmp(host, banptr->host))
     {
       remove_ban(banptr, list);
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 const struct mode_letter chan_modes[] = {

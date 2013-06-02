@@ -41,9 +41,9 @@
 
 
 static void do_whois(struct Client *, int, char *[]);
-static int single_whois(struct Client *, struct Client *);
+static bool single_whois(struct Client *, struct Client *);
 static void whois_person(struct Client *, struct Client *);
-static int global_whois(struct Client *, const char *);
+static bool global_whois(struct Client *, const char *);
 
 
 /*
@@ -136,7 +136,7 @@ do_whois(struct Client *source_p, int parc, char *parv[])
   struct Client *target_p;
   char *nick;
   char *p = NULL;
-  int found = 0;
+  bool found = false;
 
   nick = parv[1];
   while (*nick == ',')
@@ -198,12 +198,12 @@ do_whois(struct Client *source_p, int parc, char *parv[])
  * Side Effects	- do a single whois on given client
  * 		  writing results to source_p
  */
-static int
+static bool
 global_whois(struct Client *source_p, const char *nick)
 {
   dlink_node *ptr;
   struct Client *target_p;
-  int found = 0;
+  bool found = false;
 
   DLINK_FOREACH(ptr, global_client_list.head)
   {
@@ -229,7 +229,8 @@ global_whois(struct Client *source_p, const char *nick)
      *   the target user(s) are on;
      */
 
-    found |= single_whois(source_p, target_p);
+    if(single_whois(source_p, target_p))
+      found = true;
   }
 
   return found;
@@ -239,11 +240,11 @@ global_whois(struct Client *source_p, const char *nick)
  *
  * Inputs	- source_p client to report to
  *		- target_p client to report on
- * Output	- if found return 1
+ * Output	- if found return true
  * Side Effects	- do a single whois on given client
  * 		  writing results to source_p
  */
-static int
+static bool
 single_whois(struct Client *source_p, struct Client *target_p)
 {
   dlink_node *ptr = NULL;
@@ -252,7 +253,7 @@ single_whois(struct Client *source_p, struct Client *target_p)
   {
     /* always show user if they are visible (no +i) */
     whois_person(source_p, target_p);
-    return 1;
+    return true;
   }
 
   /* target_p is +i. Check if it is on any common channels with source_p */
@@ -262,11 +263,11 @@ single_whois(struct Client *source_p, struct Client *target_p)
     if (IsMember(source_p, chptr))
     {
       whois_person(source_p, target_p);
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 /* whois_person()

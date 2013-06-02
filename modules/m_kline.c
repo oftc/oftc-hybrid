@@ -43,7 +43,7 @@
 #include "modules.h"
 
 
-static int already_placed_kline(struct Client *, const char *, const char *, int);
+static bool already_placed_kline(struct Client *, const char *, const char *, int);
 
 static char buffer[IRCD_BUFSIZE];
 static bool remove_tkline_match(const char *, const char *);
@@ -79,8 +79,8 @@ mo_kline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (parse_aline("KLINE", source_p, parc, parv,
-		  AWILD, &user, &host, &tkline_time, &target_server, &reason) < 0)
+  if (!parse_aline("KLINE", source_p, parc, parv,
+		  AWILD, &user, &host, &tkline_time, &target_server, &reason))
     return;
     
   if ((p = strchr(host, '/')) != NULL)
@@ -207,7 +207,7 @@ ms_kline(struct Client *client_p, struct Client *source_p,
  *       existing K-line, but not the other way round. To do that we would
  *       have to walk the hash and check every existing K-line. -A1kmm.
  */
-static int
+static bool
 already_placed_kline(struct Client *source_p, const char *luser, const char *lhost, int warn)
 {
   const char *reason;
@@ -242,10 +242,10 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
                  aconf->host, reason);
     }
 
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /*
@@ -279,8 +279,8 @@ mo_unkline(struct Client *client_p,struct Client *source_p,
     return;
   }
 
-  if (parse_aline("UNKLINE", source_p, parc, parv, 0, &user,
-                  &host, NULL, &target_server, NULL) < 0)
+  if (!parse_aline("UNKLINE", source_p, parc, parv, 0, &user,
+                  &host, NULL, &target_server, NULL))
     return;
 
   if (target_server != NULL)

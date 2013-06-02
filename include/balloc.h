@@ -72,12 +72,12 @@ struct BlockHeap
 typedef struct BlockHeap BlockHeap;
 
 
-extern int         BlockHeapFree(BlockHeap *, void *);
-extern void *     BlockHeapAlloc(BlockHeap *);
+extern void BlockHeapFree(BlockHeap *, void *);
+extern void *BlockHeapAlloc(BlockHeap *);
 
 extern BlockHeap* BlockHeapCreate(const char *const, size_t, int);
-extern int        BlockHeapDestroy(BlockHeap *);
-extern void	  initBlockHeap(void);
+extern bool BlockHeapDestroy(BlockHeap *);
+extern void	initBlockHeap(void);
 extern void block_heap_report_stats(struct Client *);
 #else /* NOBALLOC */
 

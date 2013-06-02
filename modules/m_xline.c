@@ -44,7 +44,7 @@
 #include "resv.h"
 
 
-static int valid_xline(struct Client *, char *, char *, int);
+static bool valid_xline(struct Client *, char *, char *, int);
 static void write_xline(struct Client *, char *, char *, time_t);
 static void remove_xline(struct Client *, char *);
 static int remove_txline_match(const char *);
@@ -83,8 +83,8 @@ mo_xline(struct Client *client_p, struct Client *source_p,
    * XLINE <gecos> <time> ON <mask> :<reason>
    * XLINE <gecos> ON <mask> :<reason>
    */
-  if (parse_aline("XLINE", source_p, parc, parv, AWILD, &gecos, NULL,
-                  &tkline_time, &target_server, &reason) < 0)
+  if (!parse_aline("XLINE", source_p, parc, parv, AWILD, &gecos, NULL,
+                  &tkline_time, &target_server, &reason))
     return;
 
   if (target_server != NULL)
@@ -243,8 +243,8 @@ mo_unxline(struct Client *client_p, struct Client *source_p,
   }
 
   /* UNXLINE bill ON irc.server.com */
-  if (parse_aline("UNXLINE", source_p, parc, parv, 0, &gecos,
-                  NULL, NULL, &target_server, NULL) < 0)
+  if (!parse_aline("UNXLINE", source_p, parc, parv, 0, &gecos,
+                  NULL, NULL, &target_server, NULL))
     return;
 
   if (target_server != NULL)
@@ -294,10 +294,10 @@ ms_unxline(struct Client *client_p, struct Client *source_p,
 /* valid_xline()
  *
  * inputs	- client to complain to, gecos, reason, whether to complain
- * outputs	- 1 for valid, else 0
+ * outputs	- true for valid, else false
  * side effects	- complains to client, when warn != 0
  */
-static int
+static bool
 valid_xline(struct Client *source_p, char *gecos, char *reason, int warn)
 {
   if (EmptyString(reason))
@@ -305,14 +305,14 @@ valid_xline(struct Client *source_p, char *gecos, char *reason, int warn)
     if (warn)
       sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                  me.name, source_p->name, "XLINE");
-    return 0;
+    return false;
   }
 
   if (strchr(gecos, '"'))
   {
     sendto_one(source_p, ":%s NOTICE %s :Invalid character '\"'",
                me.name, source_p->name);
-    return 0;
+    return false;
   }
 
   if (!valid_wild_card_simple(gecos))
@@ -321,10 +321,10 @@ valid_xline(struct Client *source_p, char *gecos, char *reason, int warn)
       sendto_one(source_p, ":%s NOTICE %s :Please include at least %d non-wildcard characters with the xline",
                  me.name, source_p->name, ConfigFileEntry.min_nonwildcard_simple);
 
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 /* write_xline()
@@ -408,7 +408,7 @@ remove_xline(struct Client *source_p, char *gecos)
 /* static int remove_tkline_match(const char *host, const char *user)
  *
  * Inputs:	gecos
- * Output:	returns YES on success, NO if no tkline removed.
+ * Output:	returns true on success, false if no tkline removed.
  * Side effects: Any matching tklines are removed.
  */
 static int
@@ -427,11 +427,11 @@ remove_txline_match(const char *gecos)
       free_dlink_node(ptr);
       delete_conf_item(conf);
 
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 static struct Message xline_msgtab = {

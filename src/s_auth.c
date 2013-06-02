@@ -233,7 +233,7 @@ auth_error(struct AuthRequest *auth)
  * identifing process fail, it is aborted and the user is given a username
  * of "unknown".
  */
-static int
+static bool
 start_auth_query(struct AuthRequest *auth)
 {
   struct irc_ssaddr localaddr;
@@ -253,7 +253,7 @@ start_auth_query(struct AuthRequest *auth)
     ilog(LOG_TYPE_IRCD, "Unable to create auth socket for %s",
         get_client_name(auth->client, SHOW_IP));
     ++ServerStats.is_abad;
-    return 0;
+    return false;
   }
 
   sendheader(auth->client, REPORT_DO_ID);
@@ -284,7 +284,7 @@ start_auth_query(struct AuthRequest *auth)
       (struct sockaddr *)&localaddr, localaddr.ss_len, auth_connect_callback, 
       auth, auth->client->ip.ss.ss_family, 
       GlobalSetOptions.ident_timeout);
-  return 1; /* We suceed here for now */
+  return true; /* We suceed here for now */
 }
 
 /*
@@ -324,32 +324,32 @@ GetValidIdent(char *buf)
   remotePortString = buf;
   
   if ((colon1Ptr = strchr(remotePortString,':')) == NULL)
-    return 0;
+    return NULL;
   *colon1Ptr = '\0';
   colon1Ptr++;
 
   if ((colon2Ptr = strchr(colon1Ptr,':')) == NULL)
-    return 0;
+    return NULL;
   *colon2Ptr = '\0';
   colon2Ptr++;
   
   if ((commaPtr = strchr(remotePortString, ',')) == NULL)
-    return 0;
+    return NULL;
   *commaPtr = '\0';
   commaPtr++;
 
   if ((remp = atoi(remotePortString)) == 0)
-    return 0;
+    return NULL;
               
   if ((locp = atoi(commaPtr)) == 0)
-    return 0;
+    return NULL;
 
   /* look for USERID bordered by first pair of colons */
   if (strstr(colon1Ptr, "USERID") == NULL)
-    return 0;
+    return NULL;
 
   if ((colon3Ptr = strchr(colon2Ptr,':')) == NULL)
-    return 0;
+    return NULL;
   *colon3Ptr = '\0';
   colon3Ptr++;
   return (colon3Ptr);

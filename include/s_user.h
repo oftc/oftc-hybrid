@@ -49,10 +49,10 @@ extern void register_remote_user(struct Client *,
                                  const char *, const char *,
                                  const char *, const char *);
 extern void init_uid(void);
-extern int valid_sid(const char *);
-extern int valid_hostname(const char *);
-extern int valid_username(const char *);
-extern int valid_nickname(const char *, const int);
+extern bool valid_sid(const char *);
+extern bool valid_hostname(const char *);
+extern bool valid_username(const char *);
+extern bool valid_nickname(const char *, const int);
 extern void add_isupport(const char *, const char *, int);
 extern void delete_isupport(const char *);
 extern void init_isupport(void);

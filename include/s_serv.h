@@ -80,12 +80,12 @@ struct Capability
 #define HUNTED_ISME     0       /* if this server should execute the command */
 #define HUNTED_PASS     1       /* if message passed onwards successfully */
 
-extern int valid_servname(const char *);
+extern bool valid_servname(const char *);
 extern int check_server(const char *, struct Client *);
 extern int hunt_server(struct Client *, struct Client *,
                        const char *, int, int, char **);
 extern void add_capability(const char *, int, int);
-extern int delete_capability(const char *);
+extern void delete_capability(const char *);
 extern int find_capability(const char *);
 extern void send_capabilities(struct Client *, struct AccessItem *, int);
 extern void write_links_file(void *);

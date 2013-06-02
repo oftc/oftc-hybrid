@@ -78,7 +78,7 @@
 
 static BlockHeap *heap_list = NULL;
 
-static int BlockHeapGarbageCollect(BlockHeap *);
+static bool BlockHeapGarbageCollect(BlockHeap *);
 static void heap_garbage_collection(void *);
 
 /*! \brief Returns memory for the block back to either the malloc heap
@@ -153,9 +153,9 @@ heap_garbage_collection(void *arg)
 
 /*! \brief Allocates a new block for addition to a blockheap
  * \param bh Pointer to parent blockheap
- * \return 0 if successful, 1 if not
+ * \return true if successful, false if not
  */
-static int
+static bool
 newblock(BlockHeap *bh)
 {
   MemBlock *newblk = NULL;
@@ -165,7 +165,7 @@ newblock(BlockHeap *bh)
 
   /* Setup the initial data structure. */
   if ((b = calloc(1, sizeof(Block))) == NULL)
-    return 1;
+    return true;
 
   b->freeElems = bh->elemsPerBlock;
   b->next = bh->base;
@@ -173,7 +173,7 @@ newblock(BlockHeap *bh)
   b->elems = get_block(b->alloc_size);
 
   if (b->elems == NULL)
-    return 1;
+    return true;
 
   offset = b->elems;
 
@@ -194,7 +194,7 @@ newblock(BlockHeap *bh)
   bh->freeElems += bh->elemsPerBlock;
   bh->base = b;
 
-  return 0;
+  return false;
 }
 
 /*! \brief Creates a new blockheap
@@ -236,7 +236,7 @@ BlockHeapCreate(const char *const name, size_t elemsize, int elemsperblock)
   bh->elemsPerBlock = elemsperblock;
 
   /* Be sure our malloc was successful */
-  if (newblock(bh))
+  if (!newblock(bh))
   {
     if (bh != NULL)
       free(bh);
@@ -266,13 +266,12 @@ BlockHeapAlloc(BlockHeap *bh)
   if (bh->freeElems == 0)
   {   
     /* Allocate new block and assign */
-    /* newblock returns 1 if unsuccessful, 0 if not */
-    if (newblock(bh))
+    if (!newblock(bh))
     {
       /* That didn't work..try to garbage collect */
       BlockHeapGarbageCollect(bh);  
 
-      if (newblock(bh))
+      if (!newblock(bh))
         outofmemory(); /* Well that didn't work either...bail */
     }
   }
@@ -301,9 +300,8 @@ BlockHeapAlloc(BlockHeap *bh)
 /*! \brief Returns an element to the free pool, does not free()
  * \param bh  Pointer to BlockHeap containing element
  * \param ptr Pointer to element to be "freed"
- * \return 0 if successful, 1 if element not contained within BlockHeap
  */
-int
+void
 BlockHeapFree(BlockHeap *bh, void *ptr)
 {
   Block *block = NULL;
@@ -324,7 +322,6 @@ BlockHeapFree(BlockHeap *bh, void *ptr)
   mem_frob(ptr, bh->elemSize);
 
   dlinkAdd(ptr, &memblock->self, &block->free_list);
-  return 0;
 }
 
 /*! \brief Performs garbage collection on the block heap.
@@ -334,9 +331,9 @@ BlockHeapFree(BlockHeap *bh, void *ptr)
  * will \b never remove the root node of the heap.
  *
  * \param bh Pointer to the BlockHeap to be cleaned up
- * \return 0 if successful, 1 if bh == NULL
+ * \return true if successful, 0 if bh == NULL
  */
-static int
+static bool
 BlockHeapGarbageCollect(BlockHeap *bh)
 {
   Block *walker = NULL, *last = NULL;
@@ -346,7 +343,7 @@ BlockHeapGarbageCollect(BlockHeap *bh)
   if (bh->freeElems < bh->elemsPerBlock || bh->blocksAllocated == 1)
   {
     /* There couldn't possibly be an entire free block.  Return. */
-    return 0;
+    return false;
   }
 
   walker = bh->base;
@@ -384,20 +381,20 @@ BlockHeapGarbageCollect(BlockHeap *bh)
     }
   }
 
-  return 0;
+  return true;
 }
 
 /*! \brief Completely free()s a BlockHeap.  Use for cleanup.
  * \param bh Pointer to the BlockHeap to be destroyed
- * \return 0 if successful, 1 if bh == NULL
+ * \return true if successful, false if bh == NULL
  */
-int
+bool
 BlockHeapDestroy(BlockHeap *bh)
 {
   Block *walker = NULL, *next = NULL;
 
   if (bh == NULL)
-    return 1;
+    return false;
 
   for (walker = bh->base; walker != NULL; walker = next)
   {
@@ -419,7 +416,7 @@ BlockHeapDestroy(BlockHeap *bh)
   }
 
   free(bh);
-  return 0;
+  return true;
 }
 
 /*! \brief Returns the number of bytes being used

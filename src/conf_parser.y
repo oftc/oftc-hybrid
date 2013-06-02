@@ -2197,7 +2197,7 @@ connect_entry: CONNECT
   {
     if (yy_aconf->host && yy_aconf->passwd && yy_aconf->spasswd)
     {
-      if (conf_add_server(yy_conf, class_name) == -1)
+      if (!conf_add_server(yy_conf, class_name))
         delete_conf_item(yy_conf);
     }
     else

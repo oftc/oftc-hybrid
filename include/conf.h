@@ -427,7 +427,7 @@ extern struct config_channel_entry ConfigChannel;/* defined in channel.c*/
 extern struct config_server_hide ConfigServerHide; /* defined in s_conf.c */
 extern struct server_info ServerInfo;       /* defined in ircd.c */
 extern struct admin_info AdminInfo;        /* defined in ircd.c */
-extern int valid_wild_card(struct Client *, int, int, ...);
+extern bool valid_wild_card(struct Client *, int, int, ...);
 /* End GLOBAL section */
 
 extern unsigned int get_sendq(struct Client *);
@@ -446,9 +446,9 @@ extern struct ConfItem *make_conf_item(ConfType type);
 extern void free_access_item(struct AccessItem *);
 extern void read_conf_files(int);
 extern int attach_conf(struct Client *, struct ConfItem *);
-extern int attach_connect_block(struct Client *, const char *, const char *);
+extern bool attach_connect_block(struct Client *, const char *, const char *);
 
-extern int detach_conf(struct Client *, ConfType);
+extern void detach_conf(struct Client *, ConfType);
 
 extern struct ConfItem *find_conf_name(dlink_list *, const char *, ConfType);
 extern struct AccessItem *find_kill(struct Client *);
@@ -470,7 +470,7 @@ extern void add_temp_line(struct ConfItem *);
 extern void cleanup_tklines(void *);
 extern const char *get_conf_name(ConfType);
 extern int rehash(int);
-extern int conf_add_server(struct ConfItem *, const char *);
+extern bool conf_add_server(struct ConfItem *, const char *);
 extern void conf_add_class_to_conf(struct ConfItem *, const char *);
 
 /* XXX consider moving these into csvlib.h */
@@ -482,9 +482,9 @@ extern void *map_to_conf(struct ConfItem *);
 extern struct ConfItem *unmap_conf_item(void *);
 /* XXX should the parse_aline stuff go into another file ?? */
 #define AWILD 0x1		/* check wild cards */
-extern int parse_aline(const char *, struct Client *, int, char **,
+extern bool parse_aline(const char *, struct Client *, int, char **,
 		       int, char **, char **, time_t *, char **, char **);
-extern int valid_comment(struct Client *, char *, int);
+extern bool valid_comment(struct Client *, char *, bool);
 
 
 #define TK_SECONDS 0

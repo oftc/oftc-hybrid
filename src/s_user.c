@@ -61,7 +61,7 @@ static char umode_buffer[IRCD_BUFSIZE];
 
 static void user_welcome(struct Client *);
 static void report_and_set_user_flags(struct Client *, const struct AccessItem *);
-static int check_xline(struct Client *);
+static bool check_xline(struct Client *);
 static void introduce_client(struct Client *);
 static const char *uid_get(void);
 
@@ -668,7 +668,7 @@ introduce_client(struct Client *source_p)
  * NOTE: this doesn't allow a hostname to begin with a dot and
  * will not allow more dots than chars.
  */
-int
+bool
 valid_hostname(const char *hostname)
 {
   const char *p = hostname;
@@ -676,11 +676,11 @@ valid_hostname(const char *hostname)
   assert(p != NULL);
 
   if (*p == '.' || *p == ':')
-    return 0;
+    return false;
 
   for (; *p; ++p)
     if (!IsHostChar(*p))
-      return 0;
+      return false;
 
   return p - hostname <= HOSTLEN;
 }
@@ -696,7 +696,7 @@ valid_hostname(const char *hostname)
  * Allow '.' in username to allow for "first.last"
  * style of username
  */
-int
+bool
 valid_username(const char *username)
 {
   int dots      = 0;
@@ -712,22 +712,22 @@ valid_username(const char *username)
    * or "-hi-@somehost", "h-----@somehost" would still be accepted.
    */
   if (!IsAlNum(*p))
-    return 0;
+    return false;
 
   while (*++p)
   {
     if ((*p == '.') && ConfigFileEntry.dots_in_ident)
     {
       if (++dots > ConfigFileEntry.dots_in_ident)
-        return 0;
+        return false;
       if (!IsUserChar(*(p + 1)))
-        return 0;
+        return false;
     }
     else if (!IsUserChar(*p))
-      return 0;
+      return false;
   }
 
-  return 1;
+  return true;
 }
 
 /* clean_nick_name()
@@ -737,7 +737,7 @@ valid_username(const char *username)
  * output       - none
  * side effects - walks through the nickname, returning 0 if erroneous
  */
-int
+bool
 valid_nickname(const char *nickname, const int local)
 {
   const char *p = nickname;
@@ -746,11 +746,11 @@ valid_nickname(const char *nickname, const int local)
   /* nicks can't start with a digit or - or be 0 length */
   /* This closer duplicates behaviour of hybrid-6 */
   if (*p == '-' || (IsDigit(*p) && local) || *p == '\0')
-    return 0;
+    return false;
 
   for (; *p; ++p)
     if (!IsNickChar(*p))
-      return 0;
+      return false;
 
   return p - nickname <= NICKLEN;
 }
@@ -1215,7 +1215,7 @@ user_welcome(struct Client *source_p)
  * outupt       - 1 if exiting 0 if ok
  * side effects -
  */
-static int
+static bool
 check_xline(struct Client *source_p)
 {
   struct ConfItem *conf = NULL;
@@ -1240,10 +1240,10 @@ check_xline(struct Client *source_p)
 
     ++ServerStats.is_ref;
     exit_client(source_p, &me, "Bad user info");
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /* oper_up()
@@ -1294,15 +1294,19 @@ oper_up(struct Client *source_p)
 
 static char new_uid[TOTALSIDUID + 1];     /* allow for \0 */
 
-int
+bool
 valid_sid(const char *sid)
 {
-  if (strlen(sid) == IRC_MAXSID)
-    if (IsDigit(*sid))
-      if (IsAlNum(*(sid + 1)) && IsAlNum(*(sid + 2)))
-        return 1;
+  if (strlen(sid) != IRC_MAXSID)
+    return false;
 
-  return 0;
+  if (!IsDigit(*sid))
+    return false;
+
+  if (IsAlNum(*(sid + 1)) && IsAlNum(*(sid + 2)))
+    return true;
+
+  return false;
 }
 
 /*

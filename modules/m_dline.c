@@ -43,14 +43,12 @@
 #include "modules.h"
 
 
-static int remove_tdline_match(const char *);
-
-/* static int remove_tdline_match(const char *host, const char *user)
+/* static bool remove_tdline_match(const char *host, const char *user)
  * Input: An ip to undline.
  * Output: returns YES on success, NO if no tdline removed.
  * Side effects: Any matching tdlines are removed.
  */
-static int
+static bool
 remove_tdline_match(const char *host)
 {
   struct irc_ssaddr iphost, *piphost;
@@ -78,11 +76,11 @@ remove_tdline_match(const char *host)
     if (IsConfTemporary(aconf))
     {
       delete_one_address_conf(host, aconf);
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 /* mo_dline()
@@ -117,8 +115,8 @@ mo_dline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (parse_aline("DLINE", source_p,  parc, parv, AWILD, &dlhost,
-                  NULL, &tkline_time, &target_server, &reason) < 0)
+  if (!parse_aline("DLINE", source_p,  parc, parv, AWILD, &dlhost,
+                  NULL, &tkline_time, &target_server, &reason))
     return;
 
   if (target_server != NULL)
@@ -212,7 +210,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   if ((oper_reason = strchr(reason, '|')) != NULL)
     *oper_reason++ = '\0';
 
-  if (!valid_comment(source_p, reason, 1))
+  if (!valid_comment(source_p, reason, true))
     return;
 
   apply_conf_ban(source_p, DLINE_TYPE, NULL, dlhost, reason, oper_reason, 
@@ -319,7 +317,7 @@ ms_dline(struct Client *client_p, struct Client *source_p,
     if ((oper_reason = strchr(reason, '|')) != NULL)
       *oper_reason++ = '\0';
 
-    if (!valid_comment(source_p, reason, 1))
+    if (!valid_comment(source_p, reason, true))
       return;
 
     apply_conf_ban(source_p, DLINE_TYPE, NULL, dlhost, reason, oper_reason, 
@@ -357,8 +355,8 @@ mo_undline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (parse_aline("UNDLINE", source_p, parc, parv, 0, &user,
-                  &addr, NULL, &target_server, NULL) < 0)
+  if (!parse_aline("UNDLINE", source_p, parc, parv, 0, &user,
+                  &addr, NULL, &target_server, NULL))
     return;
 
   if (target_server != NULL)

@@ -58,8 +58,8 @@ mo_resv(struct Client *client_p, struct Client *source_p,
   /* RESV #channel ON irc.server.com :abuse
    * RESV kiddie ON irc.server.com :abuse
    */
-  if (parse_aline("RESV", source_p, parc, parv,
-		  AWILD, &resv, NULL, &tkline_time, &target_server, &reason) < 0)
+  if (!parse_aline("RESV", source_p, parc, parv,
+		  AWILD, &resv, NULL, &tkline_time, &target_server, &reason))
     return;
 
   if (target_server != NULL)
@@ -160,8 +160,8 @@ mo_unresv(struct Client *client_p, struct Client *source_p,
 
   /* UNRESV #channel ON irc.server.com */
   /* UNRESV kiddie ON irc.server.com */
-  if (parse_aline("UNRESV", source_p, parc, parv,
-		  0, &resv, NULL, NULL, &target_server, &reason) < 0)
+  if (!parse_aline("UNRESV", source_p, parc, parv,
+		  0, &resv, NULL, NULL, &target_server, &reason))
     return;
 
   if (target_server != NULL)

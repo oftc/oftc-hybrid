@@ -108,7 +108,7 @@ static int verify_access(struct Client *, const char *, struct ConfItem *, char 
 static int attach_iline(struct Client *, struct ConfItem *, char **);
 static void parse_conf_file(int, int);
 static dlink_list *map_to_list(ConfType);
-static int find_user_host(struct Client *, char *, char *, char *, unsigned int);
+static bool find_user_host(struct Client *, char *, char *, char *, unsigned int);
 
 /*
  * bit_len
@@ -1174,11 +1174,11 @@ garbage_collect_ip_entries(void)
  *
  * inputs - pointer to client to detach
  *    - type of conf to detach
- * output - 0 for success, -1 for failure
+ * output - true for success, false for failure
  * side effects - Disassociate configuration from the client.
  *      Also removes a class from the list if marked for deleting.
  */
-int
+void
 detach_conf(struct Client *client_p, ConfType type)
 {
   dlink_node *ptr, *next_ptr;
@@ -1226,11 +1226,9 @@ detach_conf(struct Client *client_p, ConfType type)
       }
 
       if (type != CONF_TYPE)
-        return 0;
+        return;
     }
   }
-
-  return -1;
 }
 
 /* attach_conf()
@@ -1273,10 +1271,10 @@ attach_conf(struct Client *client_p, struct ConfItem *conf)
  * inputs - pointer to server to attach
  *    - name of server
  *    - hostname of server
- * output - true (1) if both are found, otherwise return false (0)
+ * output - true if both are found, otherwise return false
  * side effects - find connect block and attach them to connecting client
  */
-int
+bool
 attach_connect_block(struct Client *client_p, const char *name,
                      const char *host)
 {
@@ -1288,7 +1286,7 @@ attach_connect_block(struct Client *client_p, const char *name,
   assert(host != NULL);
 
   if (client_p == NULL || host == NULL)
-    return 0;
+    return false;
 
   DLINK_FOREACH(ptr, server_items.head)
   {
@@ -1299,10 +1297,10 @@ attach_connect_block(struct Client *client_p, const char *name,
       continue;
 
     attach_conf(client_p, conf);
-    return -1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /* find_conf_name()
@@ -2762,7 +2760,7 @@ conf_add_class_to_conf(struct ConfItem *conf, const char *class_name)
  * output       - NONE
  * side effects - Add a connect block
  */
-int
+bool
 conf_add_server(struct ConfItem *conf, const char *class_name)
 {
   struct AccessItem *aconf = map_to_conf(conf);
@@ -2773,7 +2771,7 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Bad connect block");
     ilog(LOG_TYPE_IRCD, "Bad connect block");
-    return -1;
+    return false;
   }
 
   if (EmptyString(aconf->passwd))
@@ -2781,12 +2779,12 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
     sendto_realops_flags(UMODE_ALL, L_ALL, "Bad connect block, name %s",
                          conf->name);
     ilog(LOG_TYPE_IRCD, "Bad connect block, host %s", conf->name);
-    return -1;
+    return false;
   }
 
   lookup_confhost(conf);
 
-  return 0;
+  return true;
 }
 
 /* yyerror()
@@ -2871,10 +2869,10 @@ valid_tkline(const char *p, int minutes)
  * input        - pointer to client
  *    - int flag, 0 for no warning oper 1 for warning oper
  *    - count of following varargs to check
- * output       - 0 if not valid, 1 if valid
+ * output       - false if not valid, true if valid
  * side effects - NOTICE is given to source_p if warn is 1
  */
-int
+bool
 valid_wild_card(struct Client *source_p, int warn, int count, ...)
 {
   char *p;
@@ -2912,7 +2910,7 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
          * break - no point in searching further.
          */
         if (++nonwild >= ConfigFileEntry.min_nonwildcard)
-          return 1;
+          return true;
         else
           anywild = 1;
       }
@@ -2921,12 +2919,12 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
 
   /* There are no wild characters in the ban, allow it */
   if(!anywild)
-    return 1;
+    return true;
 
   if (warn)
     sendto_one(source_p, ":%s NOTICE %s :Please include at least %d non-wildcard characters with the mask",
                me.name, source_p->name, ConfigFileEntry.min_nonwildcard);
-  return 0;
+  return false;
 }
 
 /* XXX should this go into a separate file ? -Dianora */
@@ -2943,7 +2941,7 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
  *              - pointer to target_server to parse into if non NULL
  *              - pointer to reason to parse into
  *
- * output       - 1 if valid, -1 if not valid
+ * output       - true if valid, false if not valid
  * side effects - A generalised k/d/x etc. line parser,
  *               "ALINE [time] user@host|string [ON] target :reason"
  *                will parse returning a parsed user, host if
@@ -2959,7 +2957,7 @@ valid_wild_card(struct Client *source_p, int warn, int count, ...)
  *
  * - Dianora
  */
-int
+bool
 parse_aline(const char *cmd, struct Client *source_p,
       int parc, char **parv,
       int parse_flags, char **up_p, char **h_p, time_t *tkline_time, 
@@ -2986,7 +2984,7 @@ parse_aline(const char *cmd, struct Client *source_p,
     {
       sendto_one(source_p, ":%s NOTICE %s :temp_line not supported by %s",
      me.name, source_p->name, cmd);
-      return -1;
+      return false;
     }
   }
 
@@ -2994,7 +2992,7 @@ parse_aline(const char *cmd, struct Client *source_p,
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, cmd);
-    return -1;
+    return false;
   }
 
   if (h_p == NULL)
@@ -3002,7 +3000,7 @@ parse_aline(const char *cmd, struct Client *source_p,
   else
   {
     if (find_user_host(source_p, *parv, user, host, parse_flags) == 0)
-      return -1;
+      return false;
 
     *up_p = user;
     *h_p = host;
@@ -3022,21 +3020,21 @@ parse_aline(const char *cmd, struct Client *source_p,
       {
   sendto_one(source_p, ":%s NOTICE %s :ON server not supported by %s",
        me.name, source_p->name, cmd);
-  return -1;
+  return false;
       }
 
       if (!HasOFlag(source_p, OPER_FLAG_REMOTEBAN))
       {
         sendto_one(source_p, form_str(ERR_NOPRIVS),
                    me.name, source_p->name, "remoteban");
-        return -1;
+        return false;
       }
 
       if (parc == 0 || EmptyString(*parv))
       {
   sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
        me.name, source_p->name, cmd);
-  return -1;
+  return false;
       }
 
       *target_server = *parv;
@@ -3059,15 +3057,15 @@ parse_aline(const char *cmd, struct Client *source_p,
     {
       sendto_one(source_p, ":%s NOTICE %s :Invalid character '!' in kline",
                  me.name, source_p->name);
-      return -1;
+      return false;
     }
 
     if ((parse_flags & AWILD) && !valid_wild_card(source_p, 1, 2, *up_p, *h_p))
-      return -1;
+      return false;
   }
   else
     if ((parse_flags & AWILD) && !valid_wild_card(source_p, 1, 1, *up_p))
-      return -1;
+      return false;
 
   if (reason != NULL)
   {
@@ -3075,13 +3073,13 @@ parse_aline(const char *cmd, struct Client *source_p,
     {
       *reason = *parv;
       if (!valid_comment(source_p, *reason, 1))
-        return -1;
+        return false;
     }
     else
       *reason = def_reason;
   }
 
-  return 1;
+  return true;
 }
 
 /* find_user_host()
@@ -3090,10 +3088,10 @@ parse_aline(const char *cmd, struct Client *source_p,
  *              - pointer to user_host_or_nick
  *              - pointer to user buffer
  *              - pointer to host buffer
- * output - 0 if not ok to kline, 1 to kline i.e. if valid user host
+ * output - false if not ok to kline, true to kline i.e. if valid user host
  * side effects -
  */
-static int
+static bool
 find_user_host(struct Client *source_p, char *user_host_or_nick,
                char *luser, char *lhost, unsigned int flags)
 {
@@ -3103,7 +3101,7 @@ find_user_host(struct Client *source_p, char *user_host_or_nick,
   if (lhost == NULL)
   {
     strlcpy(luser, user_host_or_nick, USERLEN*4 + 1);
-    return 1;
+    return true;
   }
 
   if ((hostp = strchr(user_host_or_nick, '@')) || *user_host_or_nick == '*')
@@ -3129,7 +3127,7 @@ find_user_host(struct Client *source_p, char *user_host_or_nick,
       strlcpy(lhost, user_host_or_nick, HOSTLEN*4 + 1);
     }
     
-    return 1;
+    return true;
   }
   else
   {
@@ -3137,7 +3135,7 @@ find_user_host(struct Client *source_p, char *user_host_or_nick,
     /* Okay to use source_p as the first param, because source_p == client_p */
     if ((target_p = 
         find_chasing(source_p, source_p, user_host_or_nick, NULL)) == NULL)
-      return 0;
+      return false;
 
     if (IsExemptKline(target_p))
     {
@@ -3145,7 +3143,7 @@ find_user_host(struct Client *source_p, char *user_host_or_nick,
   sendto_one(source_p,
        ":%s NOTICE %s :%s is E-lined",
        me.name, source_p->name, target_p->name);
-      return 0;
+      return false;
     }
 
     /*
@@ -3162,35 +3160,35 @@ find_user_host(struct Client *source_p, char *user_host_or_nick,
       strlcpy(lhost, target_p->host, HOSTLEN*4 + 1);
     else
       strlcpy(lhost, target_p->sockhost, HOSTLEN*4 + 1);
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /* valid_comment()
  *
  * inputs - pointer to client
  *              - pointer to comment
- * output       - 0 if no valid comment,
- *              - 1 if valid
+ * output       - false if no valid comment,
+ *              - true if valid
  * side effects - truncates reason where necessary
  */
-int
-valid_comment(struct Client *source_p, char *comment, int warn)
+bool
+valid_comment(struct Client *source_p, char *comment, bool warn)
 {
   if (strchr(comment, '"'))
   {
     if (warn)
       sendto_one(source_p, ":%s NOTICE %s :Invalid character '\"' in comment",
                  me.name, source_p->name);
-    return 0;
+    return false;
   }
 
   if (strlen(comment) > REASONLEN)
     comment[REASONLEN-1] = '\0';
 
-  return 1;
+  return true;
 }
 
 /* match_conf_password()

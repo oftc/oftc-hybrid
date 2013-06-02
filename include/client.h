@@ -445,7 +445,7 @@ extern dlink_list global_client_list;
 extern int accept_message(struct Client *, struct Client *);
 extern unsigned int idle_time_get(struct Client *, struct Client *);
 extern struct split_nuh_item *find_accept(const char *, const char *,
-                                          const char *, struct Client *, int);
+                                          const char *, struct Client *, bool);
 extern void del_accept(struct split_nuh_item *, struct Client *);
 extern void del_all_accepts(struct Client *);
 extern void exit_client(struct Client *, struct Client *, const char *);

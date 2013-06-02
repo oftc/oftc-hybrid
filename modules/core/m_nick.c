@@ -51,14 +51,14 @@ static void nick_from_server(struct Client *, struct Client *, int, char **,
                              time_t, const char *, char *, char *);
 static void uid_from_server(struct Client *, struct Client *, int, char **,
                                time_t, const char *, char *, char *);
-static int check_clean_nick(struct Client *client_p, struct Client *source_p, 
+static bool check_clean_nick(struct Client *client_p, struct Client *source_p, 
                             char *nick, struct Client *server_p);
-static int check_clean_user(struct Client *client_p, char *nick, char *user,
+static bool check_clean_user(struct Client *client_p, char *nick, char *user,
 			    struct Client *server_p);
-static int check_clean_host(struct Client *client_p, char *nick, char *host,
+static bool check_clean_host(struct Client *client_p, char *nick, char *host,
 			    struct Client *server_p);
 
-static int clean_user_name(const char *);
+static bool clean_user_name(const char *);
 static void perform_nick_collides(struct Client *, struct Client *, struct Client *,
 				  int, char **, time_t, const char *, char *, char *, char *);
 
@@ -559,7 +559,7 @@ ms_uid(struct Client *client_p, struct Client *source_p,
  * side effects - if nickname is erroneous, or a different length to
  *                truncated nickname, return 1
  */
-static int
+static bool
 check_clean_nick(struct Client *client_p, struct Client *source_p, 
                  char *nick, struct Client *server_p)
 {
@@ -586,10 +586,10 @@ check_clean_nick(struct Client *client_p, struct Client *source_p,
       exit_client(source_p, &me, "Bad Nickname");
     }
 
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /* check_clean_user()
@@ -601,7 +601,7 @@ check_clean_nick(struct Client *client_p, struct Client *source_p,
  * output	- none
  * side effects - if username is erroneous, return 1
  */
-static int
+static bool
 check_clean_user(struct Client *client_p, char *nick, 
                  char *user, struct Client *server_p)
 {
@@ -613,7 +613,7 @@ check_clean_user(struct Client *client_p, char *nick,
                          user, nick, server_p->name, client_p->name);
     sendto_one(client_p, ":%s KILL %s :%s (Bad Username)",
                me.name, nick, me.name);
-    return 1;
+    return true;
   }
 
   if (!clean_user_name(user))
@@ -621,7 +621,7 @@ check_clean_user(struct Client *client_p, char *nick,
                          "Bad Username: %s Nickname: %s From: %s(via %s)",
 			 user, nick, server_p->name, client_p->name);
 			 
-  return 0;
+  return false;
 }
 
 /* check_clean_host()
@@ -633,7 +633,7 @@ check_clean_user(struct Client *client_p, char *nick,
  * output	- none
  * side effects - if hostname is erroneous, return 1
  */
-static int
+static bool
 check_clean_host(struct Client *client_p, char *nick,
                  char *host, struct Client *server_p)
 {
@@ -645,10 +645,10 @@ check_clean_host(struct Client *client_p, char *nick,
                          host, nick, server_p->name, client_p->name);
     sendto_one(client_p, ":%s KILL %s :%s (Bad Hostname)",
                me.name, nick, me.name);
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /* clean_user_name()
@@ -657,7 +657,7 @@ check_clean_host(struct Client *client_p, char *nick,
  * output	- none
  * side effects - walks through the username, returning 0 if erroneous
  */
-static int
+static bool
 clean_user_name(const char *user)
 {
   const char *p = user;
@@ -666,7 +666,7 @@ clean_user_name(const char *user)
 
   for (; *p; ++p)
     if (!IsUserChar(*p))
-      return 0;
+      return false;
 
   return p - user <= USERLEN;
 }

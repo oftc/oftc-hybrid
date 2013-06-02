@@ -1152,7 +1152,7 @@ del_accept(struct split_nuh_item *accept_p, struct Client *client_p)
 
 struct split_nuh_item *
 find_accept(const char *nick, const char *user,
-            const char *host, struct Client *client_p, int do_match)
+            const char *host, struct Client *client_p, bool do_match)
 {
   dlink_node *ptr = NULL;
   /* XXX We wouldn't need that if match() would return 0 on match */
@@ -1175,7 +1175,7 @@ find_accept(const char *nick, const char *user,
  *
  * inputs       - pointer to source client
  *              - pointer to target client
- * output       - 1 if accept this message 0 if not
+ * output       - true if accept this message false if not
  * side effects - See if source is on target's allow list
  */
 int
@@ -1185,15 +1185,15 @@ accept_message(struct Client *source,
   dlink_node *ptr = NULL;
 
   if (source == target || find_accept(source->name, source->username,
-                                      source->host, target, 1))
-    return 1;
+                                      source->host, target, true))
+    return true;
 
   if (HasUMode(target, UMODE_SOFTCALLERID))
     DLINK_FOREACH(ptr, target->channel.head)
       if (IsMember(source, ((struct Membership *)ptr->data)->chptr))
-        return 1;
+        return true;
 
-  return 0;
+  return false;
 }
 
 /* del_all_accepts()

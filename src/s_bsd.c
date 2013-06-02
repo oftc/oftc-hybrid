@@ -373,7 +373,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
  * generally useful for non-blocking network IO related errnos.
  *     -- adrian
  */
-int
+bool
 ignoreErrno(int ierrno)
 {
   switch (ierrno)
@@ -388,9 +388,9 @@ ignoreErrno(int ierrno)
 #ifdef ERESTART
     case ERESTART:
 #endif
-        return 1;
+        return true;
     default:
-        return 0;
+        return false;
   }
 }
 

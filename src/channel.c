@@ -302,9 +302,9 @@ send_channel_modes(struct Client *client_p, struct Channel *chptr)
 /*! \brief check channel name for invalid characters
  * \param name pointer to channel name string
  * \param local indicates whether it's a local or remote creation
- * \return 0 if invalid, 1 otherwise
+ * \return false if invalid, true otherwise
  */
-int
+bool
 check_channel_name(const char *name, int local)
 {
   const char *p = name;
@@ -312,19 +312,19 @@ check_channel_name(const char *name, int local)
   assert(name != NULL);
 
   if (!IsChanPrefix(*p))
-    return 0;
+    return false;
 
   if (!local || !ConfigChannel.disable_fake_channels)
   {
     while (*++p)
       if (!IsChanChar(*p))
-        return 0;
+        return false;
   }
   else
   {
     while (*++p)
       if (!IsVisibleChanChar(*p))
-        return 0;
+        return false;
   }
 
   return p - name <= max_length;
@@ -585,10 +585,10 @@ get_member_status(const struct Membership *ms, int combine)
 /*!
  * \param who  pointer to Client to check
  * \param list pointer to ban list to search
- * \return 1 if ban found for given n!u\@h mask, 0 otherwise
+ * \return true if ban found for given n!u\@h mask, false otherwise
  *
  */
-static int
+static bool
 find_bmask(const struct Client *w, const dlink_list *const list)
 {
   const dlink_node *ptr = NULL;
@@ -604,18 +604,18 @@ find_bmask(const struct Client *w, const dlink_list *const list)
       {
         case HM_HOST:
           if (match(bp->host, who->host) || match(bp->host, who->sockhost))
-            return 1;
+            return true;
           break;
         case HM_IPV4:
           if (who->aftype == AF_INET)
             if (match_ipv4(&who->ip, &bp->addr, bp->bits))
-              return 1;
+              return true;
           break;
 #ifdef IPV6
         case HM_IPV6:
           if (who->aftype == AF_INET6)
             if (match_ipv6(&who->ip, &bp->addr, bp->bits))
-              return 1;
+              return true;
           break;
 #endif
         default:
@@ -624,7 +624,7 @@ find_bmask(const struct Client *w, const dlink_list *const list)
     }
   }
 
-  return 0;
+  return false;
 }
 
 /*!
@@ -632,30 +632,30 @@ find_bmask(const struct Client *w, const dlink_list *const list)
  * \param who   pointer to client to check access fo
  * \return 0 if not quiet, 1 otherwise
  */
-int
+bool
 is_quiet(const struct Channel *chptr, const struct Client *who)
 {
   assert(IsClient(who));
 
   if (find_bmask(who, &chptr->quietlist))
     if (!find_bmask(who, &chptr->exceptlist))
-      return 1;
+      return true;
 
-  return 0;
+  return false;
 }
 /*!
  * \param chptr pointer to channel block
  * \param who   pointer to client to check access fo
- * \return 0 if not banned, 1 otherwise
+ * \return false if not banned, true otherwise
  */
-int
+bool
 is_banned(const struct Channel *chptr, const struct Client *who)
 {
   if (find_bmask(who, &chptr->banlist))
     if (!find_bmask(who, &chptr->exceptlist))
-      return 1;
+      return true;
 
-  return 0;
+  return false;
 }
 
 /*!
@@ -704,12 +704,12 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
   return 0;
 }
 
-int
+bool
 has_member_flags(struct Membership *ms, unsigned int flags)
 {
   if (ms != NULL)
-    return ms->flags & flags;
-  return 0;
+    return (ms->flags & flags) == flags;
+  return false;
 }
 
 struct Membership *
@@ -902,12 +902,13 @@ set_channel_topic(struct Channel *chptr, const char *topic,
   chptr->topic_time = topicts; 
 }
 
-int 
+bool 
 msg_has_colors(const char *msg)
 {
   const char *c;
   if (msg == NULL)
-    return 0;
+    return false;
+
   c = msg;
 
   while(*c)
@@ -919,8 +920,9 @@ msg_has_colors(const char *msg)
   }
 
   if(*c)
-    return 1;
-  return 0;
+    return true;
+
+  return false;
 }
 
 char *

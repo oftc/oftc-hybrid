@@ -354,7 +354,7 @@ try_connections(void *unused)
   }
 }
 
-int
+bool
 valid_servname(const char *name)
 {
   unsigned int length = 0;
@@ -364,7 +364,7 @@ valid_servname(const char *name)
   for (; *p; ++p)
   {
     if (!IsServChar(*p))
-      return 0;
+      return false;
 
     ++length;
 
@@ -475,7 +475,7 @@ add_capability(const char *capab_name, int cap_flag, int add_to_default)
  * output	- NONE
  * side effects	- delete given capability from ones known.
  */
-int
+void
 delete_capability(const char *capab_name)
 {
   dlink_node *ptr;
@@ -498,8 +498,6 @@ delete_capability(const char *capab_name)
       }
     }
   }
-
-  return 0;
 }
 
 /*
