@@ -469,7 +469,7 @@ find_conf_by_ip(int family, dlink_list *list, struct irc_ssaddr *addr, unsigned 
       continue;
 
     if(arec->aconf->passwd != NULL && !IsNeedPassword(arec->aconf) &&
-        !match_conf_password(password, arec->aconf))
+        !match_conf_password(password, certfp, arec->aconf))
       continue;
 
     ret = arec;
@@ -580,7 +580,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
 
       if((ignore_user || match(arec->username, username)) &&
           (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
-           match_conf_password(password, arec->aconf)))
+           match_conf_password(password, certfp, arec->aconf)))
       {
         hprecv = arec->precedence;
         hprec = arec->aconf;
@@ -620,7 +620,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
 
       if((ignore_user || match(arec->username, username)) &&
           (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
-           match_conf_password(password, arec->aconf)))
+           match_conf_password(password, certfp, arec->aconf)))
       {
         hprecv = arec->precedence;
         hprec = arec->aconf;

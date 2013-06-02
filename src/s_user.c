@@ -354,7 +354,7 @@ register_local_user(struct Client *source_p)
   {
     const char *pass = source_p->localClient->passwd;
 
-    if (!match_conf_password(pass, aconf))
+    if (!match_conf_password(pass, source_p->certfp, aconf))
     {
       ++ServerStats.is_ref;
       sendto_one(source_p, form_str(ERR_PASSWDMISMATCH),
