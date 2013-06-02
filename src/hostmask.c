@@ -662,13 +662,6 @@ find_address_conf(const char *host, const char *user,
   if (kconf != NULL)
     return kconf;
 
-  if (IsConfExemptGline(iconf))
-    return iconf;
-
-  kconf = find_conf_by_address(host, ip, CONF_GLINE, aftype, user, NULL, 1, NULL);
-  if (kconf != NULL)
-    return kconf;
-
   return iconf;
 }
 
@@ -845,9 +838,6 @@ hostmask_send_expiration(struct AddressRec *arec)
     case CONF_DLINE:
       ban_type = 'D';
       break;
-    case CONF_GLINE:
-      ban_type = 'G';
-      break;
   }
   
   sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -875,7 +865,6 @@ hostmask_expire_temporary(void)
       {
         case CONF_KLINE:
         case CONF_DLINE:
-        case CONF_GLINE:
           hostmask_send_expiration(arec);
 
           dlinkDelete(&arec->node, &atable[i]);

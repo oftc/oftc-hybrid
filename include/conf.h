@@ -63,7 +63,6 @@ typedef enum
   CLUSTER_TYPE,
   XLINE_TYPE,    
   ULINE_TYPE,
-  GLINE_TYPE,
   CRESV_TYPE,     
   NRESV_TYPE,
   SERVICE_TYPE
@@ -197,8 +196,7 @@ struct ip_entry
 #define CONF_XLINE              0x00000080
 #define CONF_ULINE              0x00000100
 #define CONF_EXEMPTDLINE        0x00000200
-#define CONF_GLINE              0x00000400
-#define CONF_SERVICE            0x00000800
+#define CONF_SERVICE            0x00000400
 
 #define CONF_SERVER_MASK       CONF_SERVER
 #define CONF_CLIENT_MASK       (CONF_CLIENT | CONF_OPERATOR | CONF_SERVER_MASK)
@@ -216,7 +214,6 @@ struct ip_entry
 #define IsConfClient(x)		((x)->status & CONF_CLIENT)
 #define IsConfUline(x)		((x)->status & CONF_ULINE)
 #define IsConfXline(x)		((x)->status & CONF_XLINE)
-#define IsConfGline(x)          ((x)->status == CONF_GLINE)
 
 /* AccessItem->flags */
 
@@ -232,9 +229,8 @@ struct ip_entry
 #define CONF_FLAGS_SPOOF_IP             0x00000080
 #define CONF_FLAGS_SPOOF_NOTICE         0x00000100
 #define CONF_FLAGS_REDIR                0x00000200
-#define CONF_FLAGS_EXEMPTGLINE          0x00000400
-#define CONF_FLAGS_CAN_FLOOD            0x00000800
-#define CONF_FLAGS_NEED_PASSWORD        0x00001000
+#define CONF_FLAGS_CAN_FLOOD            0x00000400
+#define CONF_FLAGS_NEED_PASSWORD        0x00000800
 /* server flags */
 #define CONF_FLAGS_ALLOW_AUTO_CONN      0x00002000
 #define CONF_FLAGS_ENCRYPTED            0x00004000
@@ -254,7 +250,6 @@ struct ip_entry
 #define IsNoMatchIp(x)          ((x)->flags & CONF_FLAGS_NOMATCH_IP)
 #define IsConfExemptKline(x)    ((x)->flags & CONF_FLAGS_EXEMPTKLINE)
 #define IsConfExemptLimits(x)   ((x)->flags & CONF_FLAGS_NOLIMIT)
-#define IsConfExemptGline(x)    ((x)->flags & CONF_FLAGS_EXEMPTGLINE)
 #define IsConfExemptResv(x)     ((x)->flags & CONF_FLAGS_EXEMPTRESV)
 #define IsConfDoIdentd(x)       ((x)->flags & CONF_FLAGS_DO_IDENTD)
 #define IsConfDoSpoofIp(x)      ((x)->flags & CONF_FLAGS_SPOOF_IP)
@@ -307,8 +302,8 @@ struct config_file_entry
   MessageFile motd;
   MessageFile linksfile;
 
-  int gline_min_cidr;
-  int gline_min_cidr6;
+  int kline_min_cidr;
+  int kline_min_cidr6;
   int dots_in_ident;
   int failed_oper_notice;
   int anti_spam_exit_message_time;
@@ -330,15 +325,12 @@ struct config_file_entry
   int no_oper_flood;
   int true_no_oper_flood;
   int oper_pass_resv;
-  int glines;
   int hide_spoof_ips;
   int tkline_expire_notices;
   int opers_bypass_callerid;
   int ignore_bogus_ts;
   int pace_wait;
   int pace_wait_simple;
-  int gline_time;
-  int gline_request_time;
   int oper_only_umodes;
   int oper_umodes;
   int max_targets;
@@ -460,7 +452,6 @@ extern int detach_conf(struct Client *, ConfType);
 
 extern struct ConfItem *find_conf_name(dlink_list *, const char *, ConfType);
 extern struct AccessItem *find_kill(struct Client *);
-extern struct AccessItem *find_gline(struct Client *);
 extern int conf_connect_allowed(struct irc_ssaddr *, int);
 extern char *oper_privs_as_string(const unsigned int);
 extern void split_nuh(struct split_nuh_item *);

@@ -87,12 +87,6 @@
             set. Halfops may not set (+/-p).
 
 
-          * --disable-gline-voting - This is good for small networks or where
-            G-Line voting is not necessary. Please understand that by disabling
-            this, it will allow any operator with G-Line permissions to G-Line
-            someone without requiring the approval of 2 other operators. However,
-            it is useful if you use proxy scanners or services that do G-Lines. 
-
    3.  Run 'make'; this should build the ircd.
 
    4.  Run 'make install'; this will install the server, modules, and tools

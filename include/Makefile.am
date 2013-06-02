@@ -35,7 +35,6 @@ noinst_HEADERS = balloc.h       \
                  rsa.h          \
                  s_auth.h       \
                  s_bsd.h        \
-                 s_gline.h      \
                  s_misc.h       \
                  s_serv.h       \
                  s_user.h       \

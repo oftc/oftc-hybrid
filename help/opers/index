@@ -3,14 +3,14 @@ Help topics available to opers only:
 
 CAPAB           CLOSE
 CONNECT         CRYPTLINK       DIE             DLINE
-DROP            EOB             ETRACE          GLINE
+DROP            EOB             ETRACE          
 HASH            KILL            KLINE           LOCOPS
 MODULE          NOTICE          OMOTD           OPERWALL
 POST            PRIVMSG         REHASH          RESTART
 RESV            SERVER          SET             SJOIN
 SQUIT           STATS           SVINFO          TESTGECOS
 TESTLINE        TESTMASK        TRACE           UHELP
-UMODE           UNDLINE         UNGLINE         UNKLINE
+UMODE           UNDLINE         UNKLINE
 UNRESV          UNXLINE         WALLOPS
 XLINE
 

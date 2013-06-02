@@ -149,13 +149,6 @@ free_collect_item(struct CollectItem *item)
 %token  FLATTEN_LINKS
 %token  GECOS
 %token  GENERAL
-%token  GLINE
-%token  GLINE_DURATION
-%token  GLINE_ENABLE
-%token  GLINE_EXEMPT
-%token  GLINE_REQUEST_DURATION
-%token  GLINE_MIN_CIDR
-%token  GLINE_MIN_CIDR6
 %token  GLOBAL_KILL
 %token  GODMODE_TIMEOUT
 %token  IRCD_AUTH
@@ -177,6 +170,8 @@ free_collect_item(struct CollectItem *item)
 %token	KILL_CHASE_TIME_LIMIT
 %token  KLINE
 %token  KLINE_EXEMPT
+%token  KLINE_MIN_CIDR
+%token  KLINE_MIN_CIDR6
 %token  KNOCK_DELAY
 %token  KNOCK_DELAY_CHANNEL
 %token  LEAF_MASK
@@ -913,10 +908,6 @@ logging_file_type_item:  USER
 {
   if (conf_parser_ctx.pass == 2)
     ltype = LOG_TYPE_OPER;
-} | GLINE
-{
-  if (conf_parser_ctx.pass == 2)
-    ltype = LOG_TYPE_GLINE;
 } | T_DLINE
 {
   if (conf_parser_ctx.pass == 2)
@@ -1316,10 +1307,6 @@ oper_flags_item: GLOBAL_KILL
 {
   if (conf_parser_ctx.pass == 2)
     yy_aconf->port |= OPER_FLAG_X;
-} | GLINE
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_aconf->port |= OPER_FLAG_GLINE;
 } | DIE
 {
   if (conf_parser_ctx.pass == 2)
@@ -1881,10 +1868,6 @@ auth_flags_item: SPOOF_NOTICE
 {
   if (conf_parser_ctx.pass == 2)
     yy_aconf->flags |= CONF_FLAGS_NO_TILDE;
-} | GLINE_EXEMPT
-{
-  if (conf_parser_ctx.pass == 2)
-    yy_aconf->flags |= CONF_FLAGS_EXEMPTGLINE;
 } | RESV_EXEMPT
 {
   if (conf_parser_ctx.pass == 2)
@@ -2653,9 +2636,8 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_throttle_time | general_havent_read_conf |
                     general_ping_cookie |
                     general_disable_auth | 
-                    general_tkline_expire_notices | general_gline_enable |
-                    general_gline_duration | general_gline_request_duration |
-                    general_gline_min_cidr | general_gline_min_cidr6 |
+                    general_tkline_expire_notices | 
+                    general_kline_min_cidr | general_kline_min_cidr6 |
                     general_godmode_timeout |
 		    general_max_watch | general_services_name | general_stats_e_disabled |
 		    error;
@@ -2666,32 +2648,14 @@ general_max_watch: MAX_WATCH '=' NUMBER ';'
   ConfigFileEntry.max_watch = $3;
 };
 
-general_gline_enable: GLINE_ENABLE '=' TBOOL ';'
+general_kline_min_cidr: KLINE_MIN_CIDR '=' NUMBER ';'
 {
-  if (conf_parser_ctx.pass == 2)
-    ConfigFileEntry.glines = yylval.number;
+  ConfigFileEntry.kline_min_cidr = $3;
 };
 
-general_gline_duration: GLINE_DURATION '=' timespec ';'
+general_kline_min_cidr6: KLINE_MIN_CIDR6 '=' NUMBER ';'
 {
-  if (conf_parser_ctx.pass == 2)
-    ConfigFileEntry.gline_time = $3;
-};
-
-general_gline_request_duration: GLINE_REQUEST_DURATION '=' timespec ';'
-{
-  if (conf_parser_ctx.pass == 2)
-    ConfigFileEntry.gline_request_time = $3;
-};
-
-general_gline_min_cidr: GLINE_MIN_CIDR '=' NUMBER ';'
-{
-  ConfigFileEntry.gline_min_cidr = $3;
-};
-
-general_gline_min_cidr6: GLINE_MIN_CIDR6 '=' NUMBER ';'
-{
-  ConfigFileEntry.gline_min_cidr6 = $3;
+  ConfigFileEntry.kline_min_cidr6 = $3;
 };
 
 general_tkline_expire_notices: TKLINE_EXPIRE_NOTICES '=' TBOOL ';'

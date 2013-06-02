@@ -31,7 +31,6 @@
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
-#include "s_gline.h"
 #include "numeric.h"
 #include "packet.h"
 #include "s_auth.h"
@@ -453,7 +452,6 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
   const char *type_string = NULL;
   const char dline_string[] = "D-line";
   const char kline_string[] = "K-line";
-  const char gline_string[] = "G-line";
   const char xline_string[] = "X-line";
 
   switch (conf->type)
@@ -464,10 +462,6 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
       break;
     case DLINE_TYPE:
       type_string = dline_string;
-      aconf = map_to_conf(conf);
-      break;
-    case GLINE_TYPE:
-      type_string = gline_string;
       aconf = map_to_conf(conf);
       break;
     case XLINE_TYPE:

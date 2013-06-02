@@ -44,7 +44,6 @@
 #include "fdlist.h"
 #include "log.h"
 #include "send.h"
-#include "s_gline.h"
 #include "memory.h"
 #include "irc_res.h"
 #include "userhost.h"
@@ -208,7 +207,6 @@ make_conf_item(ConfType type)
   {
   case DLINE_TYPE:
   case EXEMPTDLINE_TYPE:
-  case GLINE_TYPE:
   case KLINE_TYPE:
   case CLIENT_TYPE:
   case OPER_TYPE:
@@ -231,10 +229,6 @@ make_conf_item(ConfType type)
 
     case KLINE_TYPE:
       status = CONF_KLINE;
-      break;
-
-    case GLINE_TYPE:
-      status = CONF_GLINE;
       break;
 
     case CLIENT_TYPE:
@@ -331,7 +325,6 @@ delete_conf_item(struct ConfItem *conf)
   {
   case DLINE_TYPE:
   case EXEMPTDLINE_TYPE:
-  case GLINE_TYPE:
   case KLINE_TYPE:
   case CLIENT_TYPE:
   case OPER_TYPE:
@@ -365,7 +358,6 @@ delete_conf_item(struct ConfItem *conf)
     {
     case EXEMPTDLINE_TYPE:
     case DLINE_TYPE:
-    case GLINE_TYPE:
     case KLINE_TYPE:
     case CLIENT_TYPE:
       MyFree(conf);
@@ -664,7 +656,6 @@ report_confitem_types(struct Client *source_p, ConfType type)
     }
     break;
 
-  case GLINE_TYPE:
   case KLINE_TYPE:
   case DLINE_TYPE:
   case EXEMPTDLINE_TYPE:
@@ -847,12 +838,8 @@ verify_access(struct Client *client_p, const char *username,
 
       return(attach_iline(client_p, conf, reason));
     }
-    else if (IsConfKill(aconf) || (ConfigFileEntry.glines && IsConfGline(aconf)))
+    else if (IsConfKill(aconf))
     {
-      /* XXX */
-      if (IsConfGline(aconf))
-        sendto_one(client_p, ":%s NOTICE %s :*** G-lined", me.name,
-                   client_p->name);
       sendto_one(client_p, ":%s NOTICE %s :*** Banned: %s", 
                  me.name, client_p->name, aconf->reason);
       return(BANNED_CLIENT);
@@ -1384,7 +1371,6 @@ map_to_list(ConfType type)
     return(&cluster_items);
     break;
   case CONF_TYPE:
-  case GLINE_TYPE:
   case KLINE_TYPE:
   case DLINE_TYPE:
   case CRESV_TYPE:
@@ -1711,11 +1697,8 @@ set_default_conf(void)
   
   DupString(ConfigFileEntry.service_name, SERVICE_NAME_DEFAULT);
   ConfigFileEntry.max_watch = WATCHSIZE_DEFAULT;
-  ConfigFileEntry.glines = 0;
-  ConfigFileEntry.gline_time = 12 * 3600;
-  ConfigFileEntry.gline_request_time = GLINE_REQUEST_EXPIRE_DEFAULT;
-  ConfigFileEntry.gline_min_cidr = 16;
-  ConfigFileEntry.gline_min_cidr6 = 48;
+  ConfigFileEntry.kline_min_cidr = 16;
+  ConfigFileEntry.kline_min_cidr6 = 48;
   ConfigFileEntry.invisible_on_connect = 1;
   ConfigFileEntry.tkline_expire_notices = 1;
   ConfigFileEntry.hide_spoof_ips = 1;
@@ -1907,9 +1890,6 @@ find_kill(struct Client *client_p)
         CONF_KLINE, client_p->aftype,
         client_p->username, NULL, 1, client_p->certfp);
   }
-  aconf = find_conf_by_address(client_p->host, &client_p->ip,
-                               CONF_GLINE, client_p->aftype,
-                               client_p->username, NULL, 1, client_p->certfp);
   return aconf;
 }
 
@@ -1970,14 +1950,11 @@ expire_tklines(dlink_list *tklist)
   DLINK_FOREACH_SAFE(ptr, next_ptr, tklist->head)
   {
     conf = ptr->data;
-    if (conf->type == GLINE_TYPE ||
-        conf->type == KLINE_TYPE ||
-        conf->type == DLINE_TYPE)
+    if (conf->type == KLINE_TYPE || conf->type == DLINE_TYPE)
     {
       struct AccessItem *aconf = (struct AccessItem *)map_to_conf(conf);
       if (aconf->hold <= CurrentTime)
       {
-        /* XXX - Do we want GLINE expiry notices?? */
         /* Alert opers that a TKline expired - Hwy */
         if (ConfigFileEntry.tkline_expire_notices)
         {
@@ -2068,7 +2045,6 @@ static const struct oper_privs
   { OPER_FLAG_ADMIN,       'A' },
   { OPER_FLAG_REMOTEBAN,   'B' },
   { OPER_FLAG_DIE,         'D' },
-  { OPER_FLAG_GLINE,       'G' },
   { OPER_FLAG_REHASH,      'H' },
   { OPER_FLAG_K,           'K' },
   { OPER_FLAG_OPERWALL,    'L' },
