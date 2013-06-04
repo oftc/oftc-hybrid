@@ -246,10 +246,14 @@ stats_memory(struct Client *source_p, int parc, char *parv[])
       const struct Client *acptr = gptr->data;
 
       DLINK_FOREACH(dlink, acptr->localClient->list_task->show_mask.head)
-      safelist_memory += strlen(dlink->data);
+      {
+        safelist_memory += strlen(dlink->data);
+      }
 
       DLINK_FOREACH(dlink, acptr->localClient->list_task->hide_mask.head)
-      safelist_memory += strlen(dlink->data);
+      {
+        safelist_memory += strlen(dlink->data);
+      }
     }
   }
 

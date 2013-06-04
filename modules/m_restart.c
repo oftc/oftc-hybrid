@@ -300,10 +300,14 @@ do_shutdown(const char *msg, int rboot)
   write(transfd[1], buf, strlen(buf));
 
   DLINK_FOREACH(ptr, local_client_list.head)
-  introduce_socket(transfd[1], ptr->data);
+  {
+    introduce_socket(transfd[1], ptr->data);
+  }
 
   DLINK_FOREACH(ptr, serv_list.head)
-  introduce_socket(transfd[1], ptr->data);
+  {
+    introduce_socket(transfd[1], ptr->data);
+  }
 
   exit(0);
 }

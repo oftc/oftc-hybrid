@@ -53,8 +53,10 @@ names_all_visible_channels(struct Client *source_p)
    * First, do all visible channels (public and the one user self is)
    */
   DLINK_FOREACH(ptr, global_channel_list.head)
-  /* Find users on same channel (defined by chptr) */
-  channel_member_names(source_p, ptr->data, 0);
+  {
+    /* Find users on same channel (defined by chptr) */
+    channel_member_names(source_p, ptr->data, 0);
+  }
 }
 
 /* names_non_public_non_secret()
