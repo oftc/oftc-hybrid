@@ -166,8 +166,8 @@ strtoken(char** save, char* str, const char* fs)
 
 /* basename()
  *
- * input	- i.e. "/usr/local/ircd/modules/m_whois.so"
- * output	- i.e. "m_whois.so"
+ * input  - i.e. "/usr/local/ircd/modules/m_whois.so"
+ * output  - i.e. "m_whois.so"
  * side effects - this will be overwritten on subsequent calls
  */
 char *

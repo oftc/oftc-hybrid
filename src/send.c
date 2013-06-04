@@ -48,12 +48,12 @@ static unsigned int current_serial = 0;
 
 /* send_format()
  *
- * inputs	- buffer to format into
+ * inputs  - buffer to format into
  *              - size of the buffer
- *		- format pattern to use
- *		- var args
- * output	- number of bytes formatted output
- * side effects	- modifies sendbuf
+ *    - format pattern to use
+ *    - var args
+ * output  - number of bytes formatted output
+ * side effects  - modifies sendbuf
  */
 static inline int
 send_format(char *lsendbuf, int bufsize, const char *pattern, va_list args)
@@ -137,13 +137,13 @@ send_message(struct Client *to, char *buf, int len)
 
 /* send_message_remote()
  *
- * inputs	- pointer to client from message is being sent
- * 		- pointer to client to send to
- *		- pointer to preformatted buffer
- *		- length of input buffer
- * output	- none
- * side effects	- Despite the function name, this only sends to directly
- *		  connected clients.
+ * inputs  - pointer to client from message is being sent
+ *     - pointer to client to send to
+ *    - pointer to preformatted buffer
+ *    - length of input buffer
+ * output  - none
+ * side effects  - Despite the function name, this only sends to directly
+ *      connected clients.
  * 
  */
 static void
@@ -153,8 +153,8 @@ send_message_remote(struct Client *to, struct Client *from,
   if (!MyConnect(to))
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "server send message to %s [%s] dropped from %s(Not local server)",
-			 to->name, to->from->name, from->name);
+       "server send message to %s [%s] dropped from %s(Not local server)",
+       to->name, to->from->name, from->name);
     return;
   }
 
@@ -252,22 +252,22 @@ send_queued_write(struct Client *to)
         retlen = SSL_write(to->localClient->fd.ssl, first->data, first->size);
 
         /* translate openssl error codes, sigh */
-	if (retlen < 0)
-	  switch (SSL_get_error(to->localClient->fd.ssl, retlen))
-	  {
+  if (retlen < 0)
+    switch (SSL_get_error(to->localClient->fd.ssl, retlen))
+    {
             case SSL_ERROR_WANT_READ:
-	      return;  /* retry later, don't register for write events */
+        return;  /* retry later, don't register for write events */
 
-	    case SSL_ERROR_WANT_WRITE:
-	      errno = EWOULDBLOCK;
+      case SSL_ERROR_WANT_WRITE:
+        errno = EWOULDBLOCK;
             case SSL_ERROR_SYSCALL:
-	      break;
+        break;
             case SSL_ERROR_SSL:
               if (errno == EAGAIN)
                 break;
             default:
-	      retlen = errno = 0;  /* either an SSL-specific error or EOF */
-	  }
+        retlen = errno = 0;  /* either an SSL-specific error or EOF */
+    }
       }
       else
 #endif
@@ -331,10 +331,10 @@ send_queued_all(void)
 
 /* sendto_one()
  *
- * inputs	- pointer to destination client
- *		- var args message
- * output	- NONE
- * side effects	- send message to single client
+ * inputs  - pointer to destination client
+ *    - var args message
+ * output  - NONE
+ * side effects  - send message to single client
  */
 void
 sendto_one(struct Client *to, const char *pattern, ...)
@@ -357,12 +357,12 @@ sendto_one(struct Client *to, const char *pattern, ...)
 
 /* sendto_channel_butone()
  *
- * inputs	- pointer to client(server) to NOT send message to
- *		- pointer to client that is sending this message
- *		- pointer to channel being sent to
- *		- vargs message
- * output	- NONE
- * side effects	- message as given is sent to given channel members.
+ * inputs  - pointer to client(server) to NOT send message to
+ *    - pointer to client that is sending this message
+ *    - pointer to channel being sent to
+ *    - vargs message
+ * output  - NONE
+ * side effects  - message as given is sent to given channel members.
  *
  * WARNING - +D clients are ignored
  */
@@ -498,12 +498,12 @@ sendto_server(struct Client *one,
 
 /* sendto_common_channels_local()
  *
- * inputs	- pointer to client
- *		- pattern to send
- * output	- NONE
- * side effects	- Sends a message to all people on local server who are
- * 		  in same channel with user. 
- *		  used by m_nick.c and exit_one_client.
+ * inputs  - pointer to client
+ *    - pattern to send
+ * output  - NONE
+ * side effects  - Sends a message to all people on local server who are
+ *       in same channel with user. 
+ *      used by m_nick.c and exit_one_client.
  */
 void
 sendto_common_channels_local(struct Client *user, int touser,
@@ -551,13 +551,13 @@ sendto_common_channels_local(struct Client *user, int touser,
 
 /* sendto_channel_local()
  *
- * inputs	- member status mask, e.g. CHFL_CHANOP | CHFL_VOICE
+ * inputs  - member status mask, e.g. CHFL_CHANOP | CHFL_VOICE
  *              - whether to ignore +D clients (YES/NO)
  *              - pointer to channel to send to
  *              - var args pattern
- * output	- NONE
+ * output  - NONE
  * side effects - Send a message to all members of a channel that are
- *		  locally connected to this server.
+ *      locally connected to this server.
  */
 void
 sendto_channel_local(int type, int nodeaf, struct Channel *chptr,
@@ -604,7 +604,7 @@ sendto_channel_local(int type, int nodeaf, struct Channel *chptr,
  */
 void       
 sendto_channel_local_butone(struct Client *one, int type,
-			    struct Channel *chptr, const char *pattern, ...)
+          struct Channel *chptr, const char *pattern, ...)
 {
   va_list args;
   char buffer[IRCD_BUFSIZE];
@@ -635,14 +635,14 @@ sendto_channel_local_butone(struct Client *one, int type,
 
 /* sendto_channel_remote()
  *
- * inputs	- Client not to send towards
- *		- Client from whom message is from
- *		- member status mask, e.g. CHFL_CHANOP | CHFL_VOICE
+ * inputs  - Client not to send towards
+ *    - Client from whom message is from
+ *    - member status mask, e.g. CHFL_CHANOP | CHFL_VOICE
  *              - pointer to channel to send to
  *              - var args pattern
- * output	- NONE
+ * output  - NONE
  * side effects - Send a message to all members of a channel that are
- *		  remote to this server.
+ *      remote to this server.
  */
 void
 sendto_channel_remote(struct Client *one, struct Client *from, int type,
@@ -697,11 +697,11 @@ sendto_channel_remote(struct Client *one, struct Client *from, int type,
 
 /* match_it()
  *
- * inputs	- client pointer to match on
- *		- actual mask to match
- *		- what to match on, HOST or SERVER
- * output	- 1 or 0 if match or not
- * side effects	- NONE
+ * inputs  - client pointer to match on
+ *    - actual mask to match
+ *    - what to match on, HOST or SERVER
+ * output  - 1 or 0 if match or not
+ * side effects  - NONE
  */
 static int
 match_it(const struct Client *one, const char *mask, int what)
@@ -790,8 +790,8 @@ sendto_match_butone(struct Client *one, struct Client *from, char *mask,
  *              - mask to send to
  *              - capab needed
  *              - data
- * outputs	- none
- * side effects	- data sent to servers matching with capab
+ * outputs  - none
+ * side effects  - data sent to servers matching with capab
  */
 void
 sendto_match_servs(struct Client *source_p, const char *mask, int cap,
@@ -839,12 +839,12 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap,
 
 /* sendto_anywhere()
  *
- * inputs	- pointer to dest client
- * 		- pointer to from client
- * 		- varags
- * output	- NONE
- * side effects	- less efficient than sendto_remote and sendto_one
- * 		  but useful when one does not know where target "lives"
+ * inputs  - pointer to dest client
+ *     - pointer to from client
+ *     - varags
+ * output  - NONE
+ * side effects  - less efficient than sendto_remote and sendto_one
+ *       but useful when one does not know where target "lives"
  */
 void
 sendto_anywhere(struct Client *to, struct Client *from,
@@ -909,11 +909,11 @@ sendto_realops_remote(struct Client *source_p, unsigned int flags, int level,
 
 /* sendto_realops_flags()
  *
- * inputs	- flag types of messages to show to real opers
- *		- flag indicating opers/admins
- *		- var args input message
- * output	- NONE
- * side effects	- Send to *local* ops only but NOT +s nonopers.
+ * inputs  - flag types of messages to show to real opers
+ *    - flag indicating opers/admins
+ *    - var args input message
+ * output  - NONE
+ * side effects  - Send to *local* ops only but NOT +s nonopers.
  */
 void
 sendto_realops_flags(unsigned int flags, int level, const char *pattern, ...)
@@ -1013,10 +1013,10 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
 
 /* ts_warn()
  *
- * inputs	- var args message
- * output	- NONE
- * side effects	- Call sendto_realops_flags, with some flood checking
- *		  (at most 5 warnings every 5 seconds)
+ * inputs  - var args message
+ * output  - NONE
+ * side effects  - Call sendto_realops_flags, with some flood checking
+ *      (at most 5 warnings every 5 seconds)
  */
 void
 ts_warn(const char *pattern, ...)
@@ -1054,11 +1054,11 @@ ts_warn(const char *pattern, ...)
 
 /* kill_client()
  *
- * inputs	- client to send kill towards
- * 		- pointer to client to kill
- * 		- reason for kill
- * output	- NONE
- * side effects	- NONE
+ * inputs  - client to send kill towards
+ *     - pointer to client to kill
+ *     - reason for kill
+ * output  - NONE
+ * side effects  - NONE
  */
 void
 kill_client(struct Client *client_p, struct Client *diedie,
@@ -1085,13 +1085,13 @@ kill_client(struct Client *client_p, struct Client *diedie,
 
 /* kill_client_ll_serv_butone()
  *
- * inputs	- pointer to client to not send to
- *		- pointer to client to kill
- * output	- NONE
- * side effects	- Send a KILL for the given client
- *		  message to all connected servers
+ * inputs  - pointer to client to not send to
+ *    - pointer to client to kill
+ * output  - NONE
+ * side effects  - Send a KILL for the given client
+ *      message to all connected servers
  *                except the client 'one'. Also deal with
- *		  client being unknown to leaf, as in lazylink...
+ *      client being unknown to leaf, as in lazylink...
  */
 void
 kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,

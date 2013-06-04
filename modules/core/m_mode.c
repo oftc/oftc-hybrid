@@ -72,12 +72,12 @@ m_mode(struct Client *client_p, struct Client *source_p,
 
   if ((chptr = hash_find_channel(parv[1])) == NULL)
   {
-	  sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-		     ID_or_name(&me, source_p->from),
-		     ID_or_name(source_p, source_p->from),
-		     parv[1]);
-	  return;
-	}
+    sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
+         ID_or_name(&me, source_p->from),
+         ID_or_name(source_p, source_p->from),
+         parv[1]);
+    return;
+  }
 
   /* Now known the channel exists */
   if (parc < 3)
@@ -121,10 +121,10 @@ m_mode(struct Client *client_p, struct Client *source_p,
 /*
  * ms_tmode()
  *
- * inputs	- parv[0] = UID
- *		  parv[1] = TS
- *		  parv[2] = channel name
- *		  parv[3] = modestring
+ * inputs  - parv[0] = UID
+ *      parv[1] = TS
+ *      parv[2] = channel name
+ *      parv[3] = modestring
  */
 static void
 ms_tmode(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
@@ -159,15 +159,15 @@ ms_tmode(struct Client *client_p, struct Client *source_p, int parc, char *parv[
 /*
  * ms_bmask()
  *
- * inputs	- parv[0] = SID
- *		  parv[1] = TS
- *		  parv[2] = channel name
- *		  parv[3] = type of ban to add ('b' 'I' or 'e')
- *		  parv[4] = space delimited list of masks to add
- * outputs	- none
- * side effects	- propagates unchanged bmask line to CAP_TS6 servers,
- *		  sends plain modes to the others.  nothing is sent
- *		  to the server the issuing server is connected through
+ * inputs  - parv[0] = SID
+ *      parv[1] = TS
+ *      parv[2] = channel name
+ *      parv[3] = type of ban to add ('b' 'I' or 'e')
+ *      parv[4] = space delimited list of masks to add
+ * outputs  - none
+ * side effects  - propagates unchanged bmask line to CAP_TS6 servers,
+ *      sends plain modes to the others.  nothing is sent
+ *      to the server the issuing server is connected through
  */
 static void
 ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[])

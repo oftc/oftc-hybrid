@@ -225,7 +225,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   char portname[PORTNAMELEN + 1];
 #ifdef IPV6
   static short int pass = 0; /* if ipv6 and no address specified we need to
-				have two listeners; one for each protocol. */
+        have two listeners; one for each protocol. */
 #endif
 
   /*

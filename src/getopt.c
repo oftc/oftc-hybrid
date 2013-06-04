@@ -85,7 +85,7 @@ parseargs(int *argc, char ***argv, struct lgetopt *opts)
                       OPTCHAR, opts[i].opt);
               usage((*argv)[0], opts);
             }
-		  
+      
             *((int *)opts[i].argloc) = atoi((*argv)[1]);
             (*argc)--;
             (*argv)++;

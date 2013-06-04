@@ -191,9 +191,9 @@ remove_our_modes(struct Channel *chptr)
 
 /* remove_a_mode()
  *
- * inputs	-
- * output	- NONE
- * side effects	- remove ONE mode from a channel
+ * inputs  -
+ * output  - NONE
+ * side effects  - remove ONE mode from a channel
  */
 static void
 remove_a_mode(struct Channel *chptr, int mask, char flag)

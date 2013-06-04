@@ -103,7 +103,7 @@ mr_user(struct Client *client_p, struct Client *source_p,
                 parv[1], /* username */
                 parv[2], /* host     */
                 parv[3], /* server   */
-                parv[4]	 /* users real name */ );
+                parv[4]   /* users real name */ );
 }
 
 static struct Message user_msgtab = {

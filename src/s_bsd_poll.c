@@ -121,17 +121,17 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 
       if (pollmax == F->comm_index)
         while (pollmax >= 0 && pollfds[pollmax].fd == -1)
-	  pollmax--;
+    pollmax--;
     }
     else
     {
       if (F->evcache == 0)
       {
         F->comm_index = poll_findslot();
-	if (F->comm_index > pollmax)
-	  pollmax = F->comm_index;
+  if (F->comm_index > pollmax)
+    pollmax = F->comm_index;
 
-	pollfds[F->comm_index].fd = F->fd;
+  pollfds[F->comm_index].fd = F->fd;
       }
       pollfds[F->comm_index].events = new_events;
       pollfds[F->comm_index].revents = 0;
@@ -184,8 +184,8 @@ comm_select(void)
       {
         F->read_handler = NULL;
         hdl(F, F->read_data);
-	if (!F->flags.open)
-	  continue;
+  if (!F->flags.open)
+    continue;
       }
 
     if (revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR))
@@ -193,8 +193,8 @@ comm_select(void)
       {
         F->write_handler = NULL;
         hdl(F, F->write_data);
-	if (!F->flags.open)
-	  continue;
+  if (!F->flags.open)
+    continue;
       }
 
     comm_setselect(F, 0, NULL, NULL, 0);

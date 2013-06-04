@@ -136,7 +136,7 @@ map_to_conf(struct ConfItem *aconf)
 {
   void *conf;
   conf = (void *)((uintptr_t)aconf +
-		  (uintptr_t)sizeof(struct ConfItem));
+      (uintptr_t)sizeof(struct ConfItem));
   return(conf);
 }
 
@@ -146,7 +146,7 @@ unmap_conf_item(void *aconf)
   struct ConfItem *conf;
 
   conf = (struct ConfItem *)((uintptr_t)aconf -
-			     (uintptr_t)sizeof(struct ConfItem));
+           (uintptr_t)sizeof(struct ConfItem));
   return(conf);
 }
 
@@ -555,9 +555,9 @@ report_confitem_types(struct Client *source_p, ConfType type)
       /* Don't allow non opers to see oper privs */
       if (HasUMode(source_p, UMODE_OPER))
         sendto_one(source_p, form_str(RPL_STATSOLINE),
-		   me.name, source_p->name, 'O', aconf->user, aconf->host,
-		   conf->name, oper_privs_as_string(aconf->port),
-		   aconf->class_ptr ? aconf->class_ptr->name : "<default>");
+       me.name, source_p->name, 'O', aconf->user, aconf->host,
+       conf->name, oper_privs_as_string(aconf->port),
+       aconf->class_ptr ? aconf->class_ptr->name : "<default>");
       else
         sendto_one(source_p, form_str(RPL_STATSOLINE),
             me.name, source_p->name, 'O', aconf->user, aconf->host,
@@ -572,10 +572,10 @@ report_confitem_types(struct Client *source_p, ConfType type)
       conf = ptr->data;
       classitem = map_to_conf(conf);
       sendto_one(source_p, form_str(RPL_STATSYLINE),
-		 me.name, source_p->name, 'Y',
-		 conf->name, classitem->ping_freq,
-		 classitem->con_freq,
-		 classitem->max_total, classitem->max_sendq,
+     me.name, source_p->name, 'Y',
+     conf->name, classitem->ping_freq,
+     classitem->con_freq,
+     classitem->max_total, classitem->max_sendq,
                  classitem->max_recvq,
                  classitem->curr_user_count,
                  classitem->number_per_cidr, classitem->cidr_bitlen_ipv4,
@@ -740,16 +740,16 @@ check_client(va_list args)
       /* jdc - lists server name & port connections are on */
       /*       a purely cosmetical change */
       sendto_realops_flags(UMODE_UNAUTH, L_ALL,
-			   "Unauthorized client connection from %s [%s] on [%s/%u].",
-			   get_client_name(source_p, SHOW_IP),
-			   source_p->sockhost,
-			   source_p->localClient->listener->name,
-			   source_p->localClient->listener->port);
+         "Unauthorized client connection from %s [%s] on [%s/%u].",
+         get_client_name(source_p, SHOW_IP),
+         source_p->sockhost,
+         source_p->localClient->listener->name,
+         source_p->localClient->listener->port);
       ilog(LOG_TYPE_IRCD,
-	  "Unauthorized client connection from %s on [%s/%u].",
-	  get_client_name(source_p, SHOW_IP),
-	  source_p->localClient->listener->name,
-	  source_p->localClient->listener->port);
+    "Unauthorized client connection from %s on [%s/%u].",
+    get_client_name(source_p, SHOW_IP),
+    source_p->localClient->listener->name,
+    source_p->localClient->listener->port);
 
       exit_client(source_p, &me, "You are not authorized to use this server");
       break;
@@ -1766,7 +1766,7 @@ validate_conf(void)
  *
  * inputs       - file descriptor pointing to config file to use
  * output       - None
- * side effects	- Read configuration file.
+ * side effects  - Read configuration file.
  */
 static void
 read_conf(FILE *file)
@@ -1775,7 +1775,7 @@ read_conf(FILE *file)
 
   set_default_conf(); /* Set default values prior to conf parsing */
   conf_parser_ctx.pass = 1;
-  yyparse();	      /* pick up the classes first */
+  yyparse();        /* pick up the classes first */
 
   rewind(file);
 
@@ -2193,7 +2193,7 @@ read_conf_files(int cold)
   add_isupport("CHANTYPES", "#", -1);
 
   snprintf(chanlimit, sizeof(chanlimit), "#:%d",
-	   ConfigChannel.max_chans_per_user);
+     ConfigChannel.max_chans_per_user);
   add_isupport("CHANLIMIT", chanlimit, -1);
   snprintf(chanmodes, sizeof(chanmodes), "%s",
            "beqI,k,l,imnprstORS");
@@ -3226,14 +3226,14 @@ match_conf_password(const char *password, const char *certfp,
 /*
  * cluster_a_line
  *
- * inputs	- client sending the cluster
- *		- command name "KLINE" "XLINE" etc.
- *		- capab -- CAP_KLN etc. from s_serv.h
- *		- cluster type -- CLUSTER_KLINE etc. from conf.h
- *		- pattern and args to send along
- * output	- none
- * side effects	- Take source_p send the pattern with args given
- *		  along to all servers that match capab and cluster type
+ * inputs  - client sending the cluster
+ *    - command name "KLINE" "XLINE" etc.
+ *    - capab -- CAP_KLN etc. from s_serv.h
+ *    - cluster type -- CLUSTER_KLINE etc. from conf.h
+ *    - pattern and args to send along
+ * output  - none
+ * side effects  - Take source_p send the pattern with args given
+ *      along to all servers that match capab and cluster type
 */
 void
 cluster_a_line(struct Client *source_p, const char *command,

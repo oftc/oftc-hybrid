@@ -78,21 +78,21 @@ static void quote_jfloodcount(struct Client *, int);
 
 static const struct SetStruct set_cmd_table[] =
 {
-  /* name		function        string arg  int arg */
+  /* name    function        string arg  int arg */
   /* -------------------------------------------------------- */
-  { "AUTOCONN",		quote_autoconn,		1,	1 },
-  { "AUTOCONNALL",	quote_autoconnall,	0,	1 },
-  { "FLOODCOUNT",	quote_floodcount,	0,	1 },
-  { "IDENTTIMEOUT",	quote_identtimeout,	0,	1 },
-  { "MAX",		quote_max,		0,	1 },
-  { "MSGLOCALE",	quote_msglocale,	1,	0 },
-  { "SPAMNUM",		quote_spamnum,		0,	1 },
-  { "SPAMTIME",		quote_spamtime,		0,	1 },
-  { "SPLITMODE",	quote_splitmode,	1,	0 },
-  { "SPLITNUM",		quote_splitnum,		0,	1 },
-  { "SPLITUSERS",	quote_splitusers,	0,	1 },
-  { "JFLOODTIME",	quote_jfloodtime,	0,	1 },
-  { "JFLOODCOUNT",	quote_jfloodcount,	0,	1 },
+  { "AUTOCONN",    quote_autoconn,    1,  1 },
+  { "AUTOCONNALL",  quote_autoconnall,  0,  1 },
+  { "FLOODCOUNT",  quote_floodcount,  0,  1 },
+  { "IDENTTIMEOUT",  quote_identtimeout,  0,  1 },
+  { "MAX",    quote_max,    0,  1 },
+  { "MSGLOCALE",  quote_msglocale,  1,  0 },
+  { "SPAMNUM",    quote_spamnum,    0,  1 },
+  { "SPAMTIME",    quote_spamtime,    0,  1 },
+  { "SPLITMODE",  quote_splitmode,  1,  0 },
+  { "SPLITNUM",    quote_splitnum,    0,  1 },
+  { "SPLITUSERS",  quote_splitusers,  0,  1 },
+  { "JFLOODTIME",  quote_jfloodtime,  0,  1 },
+  { "JFLOODCOUNT",  quote_jfloodcount,  0,  1 },
   /* -------------------------------------------------------- */
   { NULL,               NULL,                   0,      0 }
 };

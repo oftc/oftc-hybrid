@@ -61,8 +61,8 @@ sigusr1_handler(int sig)
 
 /*
  * 
- * inputs	- nothing
- * output	- nothing
+ * inputs  - nothing
+ * output  - nothing
  * side effects - Reaps zombies periodically
  * -AndroSyn
  */

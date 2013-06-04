@@ -67,10 +67,10 @@ static void burst_members(struct Client *, struct Channel *);
 /*
  * write_links_file
  *
- * inputs	- void pointer which is not used
- * output	- NONE
- * side effects	- called from an event, write out list of linked servers
- *		  but in no particular order.
+ * inputs  - void pointer which is not used
+ * output  - NONE
+ * side effects  - called from an event, write out list of linked servers
+ *      but in no particular order.
  */
 void
 write_links_file(void* notused)
@@ -260,9 +260,9 @@ hunt_server(struct Client *client_p, struct Client *source_p, const char *comman
 
 /* try_connections()
  *
- * inputs	- void pointer which is not used
- * output	- NONE
- * side effects	-
+ * inputs  - void pointer which is not used
+ * output  - NONE
+ * side effects  -
  * scan through configuration and try new connections.
  * Returns the calendar time when the next call to this
  * function should be made latest. (No harm done if this
@@ -309,7 +309,7 @@ try_connections(void *unused)
     {
       confrq = cltmp->con_freq;
       if (confrq < MIN_CONN_FREQ)
-	confrq = MIN_CONN_FREQ;
+  confrq = MIN_CONN_FREQ;
     }
 
     aconf->hold = CurrentTime + confrq;
@@ -450,12 +450,12 @@ check_server(const char *name, struct Client *client_p)
 
 /* add_capability()
  *
- * inputs	- string name of CAPAB
- *		- int flag of capability
- * output	- NONE
- * side effects	- Adds given capability name and bit mask to
- *		  current supported capabilities. This allows
- *		  modules to dynamically add or subtract their capability.
+ * inputs  - string name of CAPAB
+ *    - int flag of capability
+ * output  - NONE
+ * side effects  - Adds given capability name and bit mask to
+ *      current supported capabilities. This allows
+ *      modules to dynamically add or subtract their capability.
  */
 void
 add_capability(const char *capab_name, int cap_flag, int add_to_default)
@@ -472,9 +472,9 @@ add_capability(const char *capab_name, int cap_flag, int add_to_default)
 
 /* delete_capability()
  *
- * inputs	- string name of CAPAB
- * output	- NONE
- * side effects	- delete given capability from ones known.
+ * inputs  - string name of CAPAB
+ * output  - NONE
+ * side effects  - delete given capability from ones known.
  */
 int
 delete_capability(const char *capab_name)
@@ -491,11 +491,11 @@ delete_capability(const char *capab_name)
     {
       if (irccmp(cap->name, capab_name) == 0)
       {
-	default_server_capabs &= ~(cap->cap);
-	dlinkDelete(ptr, &cap_list);
-	MyFree(cap->name);
-	cap->name = NULL;
-	MyFree(cap);
+  default_server_capabs &= ~(cap->cap);
+  dlinkDelete(ptr, &cap_list);
+  MyFree(cap->name);
+  cap->name = NULL;
+  MyFree(cap);
       }
     }
   }
@@ -506,9 +506,9 @@ delete_capability(const char *capab_name)
 /*
  * find_capability()
  *
- * inputs	- string name of capab to find
- * output	- 0 if not found CAPAB otherwise
- * side effects	- none
+ * inputs  - string name of capab to find
+ * output  - 0 if not found CAPAB otherwise
+ * side effects  - none
  */
 int
 find_capability(const char *capab)
@@ -528,11 +528,11 @@ find_capability(const char *capab)
 
 /* send_capabilities()
  *
- * inputs	- Client pointer to send to
- *		- Pointer to AccessItem (for crypt)
- *		- int flag of capabilities that this server can send
- * output	- NONE
- * side effects	- send the CAPAB line to a server  -orabidoo
+ * inputs  - Client pointer to send to
+ *    - Pointer to AccessItem (for crypt)
+ *    - int flag of capabilities that this server can send
+ * output  - NONE
+ * side effects  - send the CAPAB line to a server  -orabidoo
  *
  */
 void
@@ -564,10 +564,10 @@ send_capabilities(struct Client *client_p, struct AccessItem *aconf,
 
 /* sendnick_TS()
  * 
- * inputs	- client (server) to send nick towards
+ * inputs  - client (server) to send nick towards
  *          - client to send nick for
- * output	- NONE
- * side effects	- NICK message is sent towards given client_p
+ * output  - NONE
+ * side effects  - NICK message is sent towards given client_p
  */
 void
 sendnick_TS(struct Client *client_p, struct Client *target_p)
@@ -921,7 +921,7 @@ server_estab(struct Client *client_p)
  *              -
  * output       - none
  * side effects - send a server burst
- * bugs		- still too long
+ * bugs    - still too long
  */
 static void
 server_burst(struct Client *client_p)
@@ -945,8 +945,8 @@ server_burst(struct Client *client_p)
 
 /* burst_all()
  *
- * inputs	- pointer to server to send burst to 
- * output	- NONE
+ * inputs  - pointer to server to send burst to 
+ * output  - NONE
  * side effects - complete burst of channels/nicks is sent to client_p
  */
 void
@@ -964,7 +964,7 @@ burst_all(struct Client *client_p)
       send_channel_modes(client_p, chptr);
 
       if (IsCapable(client_p, CAP_TBURST))
-	send_tb(client_p, chptr);
+  send_tb(client_p, chptr);
     }
   }
 
@@ -1024,10 +1024,10 @@ send_tb(struct Client *client_p, struct Channel *chptr)
 
 /* burst_members()
  *
- * inputs	- pointer to server to send members to
- * 		- dlink_list pointer to membership list to send
- * output	- NONE
- * side effects	-
+ * inputs  - pointer to server to send members to
+ *     - dlink_list pointer to membership list to send
+ * output  - NONE
+ * side effects  -
  */
 static void
 burst_members(struct Client *client_p, struct Channel *chptr)
@@ -1075,16 +1075,16 @@ set_autoconn(struct Client *source_p, const char *name, int newval)
         ClearConfAllowAutoConn(aconf);
 
       sendto_realops_flags(UMODE_ALL, L_ALL,
-			   "%s has changed AUTOCONN for %s to %i",
-			   source_p->name, name, newval);
+         "%s has changed AUTOCONN for %s to %i",
+         source_p->name, name, newval);
       sendto_one(source_p,
-		 ":%s NOTICE %s :AUTOCONN for %s is now set to %i",
-		 me.name, source_p->name, name, newval);
+     ":%s NOTICE %s :AUTOCONN for %s is now set to %i",
+     me.name, source_p->name, name, newval);
     }
     else
     {
       sendto_one(source_p, ":%s NOTICE %s :Can't find %s",
-		 me.name, source_p->name, name);
+     me.name, source_p->name, name);
     }
   }
   else
@@ -1101,10 +1101,10 @@ set_autoconn(struct Client *source_p, const char *name, int newval)
 
 /* serv_connect() - initiate a server connection
  *
- * inputs	- pointer to conf 
- *		- pointer to client doing the connect
- * output	-
- * side effects	-
+ * inputs  - pointer to conf 
+ *    - pointer to client doing the connect
+ * output  -
+ * side effects  -
  *
  * This code initiates a connection to a server. It first checks to make
  * sure the given server exists. If this is the case, it creates a socket,
@@ -1159,15 +1159,15 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   if ((client_p = hash_find_server(conf->name)) != NULL)
   { 
     sendto_realops_flags(UMODE_ALL, L_ALL, 
-		         "Server %s already present from %s",
-		         conf->name, get_client_name(client_p, SHOW_IP));
+             "Server %s already present from %s",
+             conf->name, get_client_name(client_p, SHOW_IP));
  
 
 
     if (by && IsClient(by) && !MyClient(by))
       sendto_one(by, ":%s NOTICE %s :Server %s already present from %s",
-	         me.name, by->name, conf->name,
-	         get_client_name(client_p, MASK_IP));
+           me.name, by->name, conf->name,
+           get_client_name(client_p, MASK_IP));
     return (0);
   }
     
@@ -1187,7 +1187,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   {
     /* Eek, failure to create the socket */
     report_error(L_ALL,
-		 "opening stream socket to %s: %s", conf->name, errno);
+     "opening stream socket to %s: %s", conf->name, errno);
     SetDead(client_p);
     exit_client(client_p, &me, "Connection failed");
     return (0);
@@ -1202,11 +1202,11 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   if (!attach_connect_block(client_p, conf->name, aconf->host))
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, 
-		         "Host %s is not enabled for connecting:no C/N-line",
-			 conf->name);
+             "Host %s is not enabled for connecting:no C/N-line",
+       conf->name);
     if (by && IsClient(by) && !MyClient(by))  
       sendto_one(by, ":%s NOTICE %s :Connect to host %s failed.",
-	         me.name, by->name, client_p->name);
+           me.name, by->name, client_p->name);
     SetDead(client_p);
     exit_client(client_p, client_p, "Connection failed");
     return (0);
@@ -1245,10 +1245,10 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
         ipn.ss.ss_family = AF_INET;
         ipn.ss_port = 0;
         memcpy(&ipn, &aconf->bind, sizeof(struct irc_ssaddr));
-	comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
-			 (struct sockaddr *)&ipn, ipn.ss_len, 
-			 serv_connect_callback, client_p, aconf->aftype,
-			 CONNECTTIMEOUT);
+  comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
+       (struct sockaddr *)&ipn, ipn.ss_len, 
+       serv_connect_callback, client_p, aconf->aftype,
+       CONNECTTIMEOUT);
       }
       else if (ServerInfo.specific_ipv4_vhost)
       {
@@ -1260,7 +1260,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
         comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
                          (struct sockaddr *)&ipn, ipn.ss_len,
                          serv_connect_callback, client_p, aconf->aftype,
-			 CONNECTTIMEOUT);
+       CONNECTTIMEOUT);
       }
       else
         comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port, 
@@ -1270,42 +1270,42 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
 #ifdef IPV6
     case AF_INET6:
       {
-	struct irc_ssaddr ipn;
-	struct sockaddr_in6 *v6;
-	struct sockaddr_in6 *v6conf;
+  struct irc_ssaddr ipn;
+  struct sockaddr_in6 *v6;
+  struct sockaddr_in6 *v6conf;
 
-	memset(&ipn, 0, sizeof(struct irc_ssaddr));
-	v6conf = (struct sockaddr_in6 *)&aconf->bind;
-	v6 = (struct sockaddr_in6 *)&ipn;
+  memset(&ipn, 0, sizeof(struct irc_ssaddr));
+  v6conf = (struct sockaddr_in6 *)&aconf->bind;
+  v6 = (struct sockaddr_in6 *)&ipn;
 
-	if (memcmp(&v6conf->sin6_addr, &v6->sin6_addr,
-		   sizeof(struct in6_addr)) != 0)
-	{
-	  memcpy(&ipn, &aconf->bind, sizeof(struct irc_ssaddr));
-	  ipn.ss.ss_family = AF_INET6;
-	  ipn.ss_port = 0;
-	  comm_connect_tcp(&client_p->localClient->fd,
-			   aconf->host, aconf->port,
-			   (struct sockaddr *)&ipn, ipn.ss_len, 
-			   serv_connect_callback, client_p,
-			   aconf->aftype, CONNECTTIMEOUT);
-	}
-	else if (ServerInfo.specific_ipv6_vhost)
+  if (memcmp(&v6conf->sin6_addr, &v6->sin6_addr,
+       sizeof(struct in6_addr)) != 0)
+  {
+    memcpy(&ipn, &aconf->bind, sizeof(struct irc_ssaddr));
+    ipn.ss.ss_family = AF_INET6;
+    ipn.ss_port = 0;
+    comm_connect_tcp(&client_p->localClient->fd,
+         aconf->host, aconf->port,
+         (struct sockaddr *)&ipn, ipn.ss_len, 
+         serv_connect_callback, client_p,
+         aconf->aftype, CONNECTTIMEOUT);
+  }
+  else if (ServerInfo.specific_ipv6_vhost)
         {
-	  memcpy(&ipn, &ServerInfo.ip6, sizeof(struct irc_ssaddr));
-	  ipn.ss.ss_family = AF_INET6;
-	  ipn.ss_port = 0;
-	  comm_connect_tcp(&client_p->localClient->fd,
-			   aconf->host, aconf->port,
-			   (struct sockaddr *)&ipn, ipn.ss_len,
-			   serv_connect_callback, client_p,
-			   aconf->aftype, CONNECTTIMEOUT);
-	}
-	else
-	  comm_connect_tcp(&client_p->localClient->fd,
-			   aconf->host, aconf->port, 
-			   NULL, 0, serv_connect_callback, client_p,
-			   aconf->aftype, CONNECTTIMEOUT);
+    memcpy(&ipn, &ServerInfo.ip6, sizeof(struct irc_ssaddr));
+    ipn.ss.ss_family = AF_INET6;
+    ipn.ss_port = 0;
+    comm_connect_tcp(&client_p->localClient->fd,
+         aconf->host, aconf->port,
+         (struct sockaddr *)&ipn, ipn.ss_len,
+         serv_connect_callback, client_p,
+         aconf->aftype, CONNECTTIMEOUT);
+  }
+  else
+    comm_connect_tcp(&client_p->localClient->fd,
+         aconf->host, aconf->port, 
+         NULL, 0, serv_connect_callback, client_p,
+         aconf->aftype, CONNECTTIMEOUT);
       }
 #endif
   }
@@ -1481,11 +1481,11 @@ serv_connect_callback(fde_t *fd, int status, void *data)
                             client_p->name, comm_errstr(status));
      else
        sendto_realops_flags(UMODE_ALL, L_ADMIN, 
-	      		    "Error connecting to %s[%s]: %s", client_p->name,
-			    client_p->host, comm_errstr(status));
+                "Error connecting to %s[%s]: %s", client_p->name,
+          client_p->host, comm_errstr(status));
 
    
-	
+  
 
 
      /* If a fd goes bad, call dead_link() the socket is no
@@ -1498,11 +1498,11 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   /* COMM_OK, so continue the connection procedure */
   /* Get the C/N lines */
   conf = find_conf_name(&client_p->localClient->confs,
-			client_p->name, SERVER_TYPE); 
+      client_p->name, SERVER_TYPE); 
   if (conf == NULL)
   {
     sendto_realops_flags(UMODE_ALL, L_ADMIN, 
-	                 "Lost connect{} block for %s", get_client_name(client_p, HIDE_IP));
+                   "Lost connect{} block for %s", get_client_name(client_p, HIDE_IP));
 
     exit_client(client_p, &me, "Lost connect{} block");
     return;
@@ -1531,7 +1531,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 
   sendto_one(client_p, "SERVER %s 1 :%s%s",
              me.name, ConfigServerHide.hidden ? "(H) " : "", 
-	     me.info);
+       me.info);
 
   /* If we've been marked dead because a send failed, just exit
    * here now and save everyone the trouble of us ever existing.
@@ -1539,9 +1539,9 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   if (IsDead(client_p)) 
   {
       sendto_realops_flags(UMODE_ALL, L_ALL, 
-			   "%s[%s] went dead during handshake",
+         "%s[%s] went dead during handshake",
                            client_p->name,
-			   client_p->host);
+         client_p->host);
  
 
       return;

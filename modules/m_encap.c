@@ -35,9 +35,9 @@
 /*
  * ms_encap()
  *
- * inputs	- destination server, subcommand, parameters
- * output	- none
- * side effects	- propagates subcommand to locally connected servers
+ * inputs  - destination server, subcommand, parameters
+ * output  - none
+ * side effects  - propagates subcommand to locally connected servers
  */
 static void
 ms_encap(struct Client *client_p, struct Client *source_p,

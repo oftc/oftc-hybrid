@@ -23,7 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "list.h"	 /* dlink_node/dlink_list */
+#include "list.h"   /* dlink_node/dlink_list */
 #include "balloc.h"
 #include "client.h"      /* Client */
 #include "irc_string.h"  
@@ -38,7 +38,7 @@
 #include "s_misc.h"      /* serv_info */
 #include "s_serv.h"      /* hunt_server */
 #include "s_user.h"      /* show_opers */
-#include "event.h"	 /* events */
+#include "event.h"   /* events */
 #include "dbuf.h"
 #include "hook.h"
 #include "parse.h"
@@ -385,8 +385,8 @@ stats_connect(struct Client *source_p, int parc, char *parv[])
 
 /* stats_deny()
  *
- * input	- client to report to
- * output	- none
+ * input  - client to report to
+ * output  - none
  * side effects - client is given dline list.
  */
 static void
@@ -413,7 +413,7 @@ stats_deny(struct Client *source_p, int parc, char *parv[])
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'D', aconf->host, aconf->reason,
-		   aconf->oper_reason ? aconf->oper_reason : "");
+       aconf->oper_reason ? aconf->oper_reason : "");
       }
     }
   }
@@ -449,7 +449,7 @@ stats_tdeny(struct Client *source_p, int parc, char *parv[])
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'd', aconf->host, aconf->reason,
-		   aconf->oper_reason ? aconf->oper_reason : "");
+       aconf->oper_reason ? aconf->oper_reason : "");
       }
     }
   }
@@ -488,7 +488,7 @@ stats_exempt(struct Client *source_p, int parc, char *parv[])
 
         sendto_one(source_p, form_str(RPL_STATSDLINE),
                    from, to, 'e', aconf->host, 
-		   aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");
+       aconf->reason, aconf->oper_reason ? aconf->oper_reason : "");
       }
     }
   }
@@ -612,9 +612,9 @@ stats_auth(struct Client *source_p, int parc, char *parv[])
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host,
                                    &source_p->ip,
-				   CONF_CLIENT,
-				   source_p->aftype,
-				   source_p->username,
+           CONF_CLIENT,
+           source_p->aftype,
+           source_p->username,
                                    source_p->localClient->passwd, 1, source_p->certfp);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_CLIENT,
@@ -625,9 +625,9 @@ stats_auth(struct Client *source_p, int parc, char *parv[])
 
     sendto_one(source_p, form_str(RPL_STATSILINE), from,
                to, 'I',
-	       "*", show_iline_prefix(source_p, aconf, aconf->user), 
-	       aconf->host, aconf->port,
-	       aconf->class_ptr ? aconf->class_ptr->name : "<default>");
+         "*", show_iline_prefix(source_p, aconf, aconf->user), 
+         aconf->host, aconf->port,
+         aconf->class_ptr ? aconf->class_ptr->name : "<default>");
   }
   /* They are opered, or allowed to see all auth blocks */
   else
@@ -695,9 +695,9 @@ stats_tklines(struct Client *source_p, int parc, char *parv[])
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host,
                                    &source_p->ip,
-				   CONF_KLINE,
-				   source_p->aftype,
-				   source_p->username, NULL, 1, source_p->certfp);
+           CONF_KLINE,
+           source_p->aftype,
+           source_p->username, NULL, 1, source_p->certfp);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_KLINE,
                                    0, source_p->username, NULL, 1, source_p->certfp);
@@ -735,9 +735,9 @@ stats_klines(struct Client *source_p, int parc, char *parv[])
     if (MyConnect(source_p))
       aconf = find_conf_by_address(source_p->host,
                                    &source_p->ip,
-				   CONF_KLINE,
-				   source_p->aftype,
-				   source_p->username, NULL, 0, source_p->certfp);
+           CONF_KLINE,
+           source_p->aftype,
+           source_p->username, NULL, 0, source_p->certfp);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_KLINE,
                                    0, source_p->username, NULL, 0, source_p->certfp);
@@ -776,8 +776,8 @@ stats_oper(struct Client *source_p, int parc, char *parv[])
 
 /* stats_operedup()
  *
- * input	- client pointer
- * output	- none
+ * input  - client pointer
+ * output  - none
  * side effects - client is shown a list of active opers
  */
 static void
@@ -796,14 +796,14 @@ stats_operedup(struct Client *source_p, int parc, char *parv[])
       sendto_one(source_p, ":%s %d %s p :[%c][%s] %s (%s@%s) Idle: %u",
                  from, RPL_STATSDEBUG, to,
                  HasUMode(target_p, UMODE_ADMIN) ? 'A' : 'O',
-		 oper_privs_as_string(target_p->localClient->operflags),
-		 target_p->name, target_p->username, target_p->host,
+     oper_privs_as_string(target_p->localClient->operflags),
+     target_p->name, target_p->username, target_p->host,
                  idle_time_get(source_p, target_p));
     else
       sendto_one(source_p, ":%s %d %s p :[%c] %s (%s@%s) Idle: %u",
                  from, RPL_STATSDEBUG, to,
                  HasUMode(target_p, UMODE_ADMIN) ? 'A' : 'O',
-		 target_p->name, target_p->username, target_p->host,
+     target_p->name, target_p->username, target_p->host,
                  idle_time_get(source_p, target_p));
   }
 
@@ -925,8 +925,8 @@ stats_shared(struct Client *source_p, int parc, char *parv[])
 
 /* stats_servers()
  *
- * input	- client pointer
- * output	- none
+ * input  - client pointer
+ * output  - none
  * side effects - client is shown lists of who connected servers
  */
 static void

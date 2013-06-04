@@ -80,7 +80,7 @@ dump_map(struct Client *client_p, const struct Client *root_p,
   users = dlink_list_length(&root_p->serv->client_list);
 
   sprintf(pb, "%5d [%4.1f%%]", users,
-	  100 * (float)users / (float)Count.total);
+    100 * (float)users / (float)Count.total);
   if (print_dashes)  /* make the leading spaces of the usercount dashes too, if required */
       while(*(pb+1) == ' ') *pb++ = '-';
 

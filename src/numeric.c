@@ -37,9 +37,9 @@ static char used_locale[LOCALE_LENGTH] = "standard";
 /*
  * form_str
  *
- * inputs	- numeric
- * output	- corresponding string
- * side effects	- NONE
+ * inputs  - numeric
+ * output  - corresponding string
+ * side effects  - NONE
  */
 const char* form_str(int numeric)
 {
@@ -82,9 +82,9 @@ change_reply(const char *locale, int linecnt, int reply, char *new_reply)
         for (; *old; old++)
         {
           if (*old == '%')
-	  {
-	    if (!*++old) break;  /* shouldn't happen */
-	    if (*old != '%')
+    {
+      if (!*++old) break;  /* shouldn't happen */
+      if (*old != '%')
             {
               for (; *old >= '0' && *old <= '9'; old++); /* skip size prefix */
               if (*new != *old++)
@@ -96,7 +96,7 @@ change_reply(const char *locale, int linecnt, int reply, char *new_reply)
               found = 1;
               break;
             }
-	  }
+    }
         }
         if (!found)
         {
@@ -161,7 +161,7 @@ set_locale(const char *locale)
     /* skip spaces if there are any */
     for (ident = buffer; *ident == ' ' || *ident == '\t'; ident++)/* null */;
     if (*ident == '\0')
-      continue;		   /* empty line */
+      continue;       /* empty line */
 
     /* skip after the reply identificator */
     for (reply = ident; *reply != ' ' && *reply != '\t' && *reply != ':';
@@ -176,8 +176,8 @@ set_locale(const char *locale)
         error:
         ilog(LOG_TYPE_IRCD, "Invalid line in language file (%s.lang, %d)",
              locale, linecnt);
-	res = 0;
-	continue;
+  res = 0;
+  continue;
       }
     }
     else
@@ -205,7 +205,7 @@ set_locale(const char *locale)
     if (i != -1)
     {
       ilog(LOG_TYPE_IRCD,
-	   "Unknown numeric %s (%s.lang, %d)", ident, locale, linecnt);
+     "Unknown numeric %s (%s.lang, %d)", ident, locale, linecnt);
       res = 0;
     }
   }
@@ -215,7 +215,7 @@ set_locale(const char *locale)
   if (!res)
     sendto_realops_flags(UMODE_ALL, L_ADMIN, "Language file [%s] contains "
                          "errors, check server log file for more details",
-			 used_locale);
+       used_locale);
 }
 
 /* Returns the name of current locale. */

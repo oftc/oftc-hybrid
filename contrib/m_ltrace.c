@@ -57,8 +57,8 @@ trace_get_dependent(int *const server,
 /*
  * m_ltrace()
  *
- *	parv[0] = sender prefix
- *	parv[1] = target client/server to trace
+ *  parv[0] = sender prefix
+ *  parv[1] = target client/server to trace
  */
 static void
 m_ltrace(struct Client *client_p, struct Client *source_p,
@@ -221,9 +221,9 @@ mo_ltrace(struct Client *client_p, struct Client *source_p,
 /*
  * report_this_status
  *
- * inputs	- pointer to client to report to
- * 		- pointer to client to report about
- * output	- counter of number of hits
+ * inputs  - pointer to client to report to
+ *     - pointer to client to report about
+ * output  - counter of number of hits
  * side effects - NONE
  */
 static void

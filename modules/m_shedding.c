@@ -51,11 +51,11 @@ static int operstoo = 0;
 /*
  * mo_shedding
  *
- * inputs	- pointer to server
- *		- pointer to client
- *		- parameter count
- *		- parameter list
- * output	-
+ * inputs  - pointer to server
+ *    - pointer to client
+ *    - parameter count
+ *    - parameter list
+ * output  -
  * side effects - user shedding is enabled or disabled
  * 
  * SHEDDING OFF - disable shedding
@@ -66,7 +66,7 @@ static int operstoo = 0;
  */
 static void
 mo_shedding(struct Client *client_p, struct Client *source_p,
-	 int parc, char **parv)
+   int parc, char **parv)
 {
   if(irccmp(parv[1], "OFF") == 0)
   {

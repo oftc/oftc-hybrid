@@ -131,7 +131,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
     {
       if (highest_fd == F->fd)
         while (highest_fd >= 0 && (FD_ISSET(highest_fd, &select_readfds) ||
-	                           FD_ISSET(highest_fd, &select_writefds)))
+                             FD_ISSET(highest_fd, &select_writefds)))
           highest_fd--;
     }
     else if (F->evcache == 0)

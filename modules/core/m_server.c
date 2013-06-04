@@ -139,7 +139,7 @@ mr_server(struct Client *client_p, struct Client *source_p,
      * connect - A1kmm.
      */
     sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "Attempt to re-introduce server %s from %s",
+       "Attempt to re-introduce server %s from %s",
                          name, get_client_name(client_p, SHOW_IP));
     sendto_one(client_p, "ERROR :Server already exists.");
     exit_client(client_p, client_p, "Server ID Exists");
@@ -225,7 +225,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
      */
     sendto_one(client_p, "ERROR :Server %s already exists", name);
     sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "Link %s cancelled, server %s already exists",
+       "Link %s cancelled, server %s already exists",
                          get_client_name(client_p, SHOW_IP), name);
     exit_client(client_p, &me, "Server Exists");
     return;
@@ -274,8 +274,8 @@ ms_server(struct Client *client_p, struct Client *source_p,
    *
    * connect {
    *            name = "irc.somehub.fi";
-   *		hub_mask="*";
-   *		leaf_mask="*.edu";
+   *    hub_mask="*";
+   *    leaf_mask="*.edu";
    *...
    * Would allow this server in finland to hub anything but
    * .edu's
@@ -296,7 +296,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
   {
     /* OOOPs nope can't HUB this leaf */
     sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "Link %s introduced leafed server %s.",
+       "Link %s introduced leafed server %s.",
                          get_client_name(client_p, SHOW_IP), name);
     /* If it is new, we are probably misconfigured, so split the
      * non-hub server introducing this. Otherwise, split the new
@@ -391,7 +391,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   {
     sendto_one(client_p, "ERROR :SID %s already exists", parv[3]);
     sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "Link %s cancelled, SID %s already exists",
+       "Link %s cancelled, SID %s already exists",
                          get_client_name(client_p, SHOW_IP), parv[3]);
     exit_client(client_p, &me, "SID Exists");
     return;
@@ -452,8 +452,8 @@ ms_sid(struct Client *client_p, struct Client *source_p,
    *
    * connect {
    *            name = "irc.somehub.fi";
-   *		hub_mask="*";
-   *		leaf_mask="*.edu";
+   *    hub_mask="*";
+   *    leaf_mask="*.edu";
    *...
    * Would allow this server in finland to hub anything but
    * .edu's
@@ -474,7 +474,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   {
     /* OOOPs nope can't HUB this leaf */
     sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "Link %s introduced leafed server %s.",
+       "Link %s introduced leafed server %s.",
                          get_client_name(client_p, SHOW_IP), parv[1]);
     exit_client(client_p, &me, "Leafed Server.");
     return;
@@ -515,8 +515,8 @@ ms_sid(struct Client *client_p, struct Client *source_p,
 
 /* set_server_gecos()
  *
- * input	- pointer to client
- * output	- NONE
+ * input  - pointer to client
+ * output  - NONE
  * side effects - servers gecos field is set
  */
 static void

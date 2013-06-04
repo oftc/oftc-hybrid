@@ -89,7 +89,7 @@ static void send_mode_changes(struct Client *, struct Client *,
                               struct Channel *, char *);
 
 /* 10 is a magic number in hybrid 6 NFI where it comes from -db */
-#define BAN_FUDGE	10
+#define BAN_FUDGE  10
 #define NCHCAPS         (sizeof(channel_capabs)/sizeof(int))
 #define NCHCAP_COMBOS   (1 << NCHCAPS)
 
@@ -99,8 +99,8 @@ static char modebuf[IRCD_BUFSIZE];
 static char parabuf[MODEBUFLEN];
 static struct ChModeChange mode_changes[IRCD_BUFSIZE];
 static int mode_count;
-static int mode_limit;		/* number of modes set other than simple */
-static int simple_modes_mask;	/* bit mask of simple modes already set */
+static int mode_limit;    /* number of modes set other than simple */
+static int simple_modes_mask;  /* bit mask of simple modes already set */
 #ifdef HALFOPS
 static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_QUIET, CAP_TS6, CAP_HOPS };
 #else
@@ -253,11 +253,11 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
 }
 
 /*
- * inputs	- pointer to channel
- *		- pointer to ban id
- *		- type of ban, i.e. ban, exception, invex
- * output	- 0 for failure, 1 for success
- * side effects	-
+ * inputs  - pointer to channel
+ *    - pointer to ban id
+ *    - type of ban, i.e. ban, exception, invex
+ * output  - 0 for failure, 1 for success
+ * side effects  -
  */
 static int
 del_id(struct Channel *chptr, char *banid, int type)
@@ -464,9 +464,9 @@ fix_key_old(char *arg)
 
 /* void init_chcap_usage_counts(void)
  *
- * Inputs	- none
- * Output	- none
- * Side-effects	- Initialises the usage counts to zero. Fills in the
+ * Inputs  - none
+ * Output  - none
+ * Side-effects  - Initialises the usage counts to zero. Fills in the
  *                chcap_yes and chcap_no combination tables.
  */
 void
@@ -520,9 +520,9 @@ set_chcap_usage_counts(struct Client *serv_p)
 
 /* void set_chcap_usage_counts(struct Client *serv_p)
  *
- * Inputs	- serv_p; The client whose capabs to register.
- * Output	- none
- * Side-effects	- Decrements the usage counts for the correct capab
+ * Inputs  - serv_p; The client whose capabs to register.
+ * Output  - none
+ * Side-effects  - Decrements the usage counts for the correct capab
  *                combination.
  */
 void
@@ -809,7 +809,7 @@ chm_ban(struct Client *client_p, struct Client *source_p,
       sendto_one(client_p, form_str(RPL_BANLIST),
                  me.name, client_p->name, chname,
                  banptr->name, banptr->username, banptr->host,
-		 banptr->who, banptr->when);
+     banptr->who, banptr->when);
     }
 
     sendto_one(source_p, form_str(RPL_ENDOFBANLIST), me.name,
@@ -894,7 +894,7 @@ chm_except(struct Client *client_p, struct Client *source_p,
       sendto_one(client_p, form_str(RPL_EXCEPTLIST),
                  me.name, client_p->name, chname,
                  banptr->name, banptr->username, banptr->host,
-		 banptr->who, banptr->when);
+     banptr->who, banptr->when);
     }
 
     sendto_one(source_p, form_str(RPL_ENDOFEXCEPTLIST), me.name,
@@ -968,7 +968,7 @@ chm_invex(struct Client *client_p, struct Client *source_p,
       const struct Ban *banptr = ptr->data;
       sendto_one(client_p, form_str(RPL_INVITELIST), me.name,
                  client_p->name, chname,
-		 banptr->name, banptr->username, banptr->host,
+     banptr->name, banptr->username, banptr->host,
                  banptr->who, banptr->when);
     }
 
@@ -1038,7 +1038,7 @@ chm_quiet(struct Client *client_p, struct Client *source_p,
       const struct Ban *banptr = ptr->data;
       sendto_one(client_p, form_str(RPL_QUIETLIST), me.name,
                  client_p->name, chname,
-		 banptr->name, banptr->username, banptr->host,
+     banptr->name, banptr->username, banptr->host,
                  banptr->who, banptr->when);
     }
 
@@ -1094,9 +1094,9 @@ chm_quiet(struct Client *client_p, struct Client *source_p,
 }
 
 /*
- * inputs	- pointer to channel
- * output	- none
- * side effects	- clear ban cache
+ * inputs  - pointer to channel
+ * output  - none
+ * side effects  - clear ban cache
  */
 void
 clear_ban_cache(struct Channel *chptr)
@@ -1551,7 +1551,7 @@ static struct ChannelMode ModeTable[255] =
   {chm_nosuch, NULL},
   {chm_nosuch, NULL},
   {chm_nosuch, NULL},
-  {chm_nosuch, NULL},				  /* a */
+  {chm_nosuch, NULL},          /* a */
   {chm_ban, NULL},                                /* b */
   {chm_simple, (void *) MODE_NOCOLOR},            /* c */
   {chm_nosuch, NULL},                             /* d */
@@ -1561,7 +1561,7 @@ static struct ChannelMode ModeTable[255] =
 #ifdef HALFOPS
   {chm_hop, NULL},                                /* h */
 #else
-  {chm_nosuch, NULL},				  /* h */
+  {chm_nosuch, NULL},          /* h */
 #endif
   {chm_simple, (void *) MODE_INVITEONLY},         /* i */
   {chm_nosuch, NULL},                             /* j */
@@ -1701,7 +1701,7 @@ send_cap_mode_changes(struct Client *client_p, struct Client *source_p,
       if (nc != 0)
         sendto_server(client_p, cap, nocap,
                       "%s %s",
-		      modebuf, parabuf);
+          modebuf, parabuf);
       nc = 0;
       mc = 0;
 
@@ -1772,8 +1772,8 @@ send_mode_changes(struct Client *client_p, struct Client *source_p,
 
   if (IsServer(source_p))
     mbl = ircsprintf(modebuf, ":%s MODE %s ", (IsHidden(source_p) ||
-		     ConfigServerHide.hide_servers) ?
-		     me.name : source_p->name, chname);
+         ConfigServerHide.hide_servers) ?
+         me.name : source_p->name, chname);
   else
     mbl = ircsprintf(modebuf, ":%s!%s@%s MODE %s ", source_p->name,
                      source_p->username, source_p->host, chname);
@@ -1800,7 +1800,7 @@ send_mode_changes(struct Client *client_p, struct Client *source_p,
 
     if ((mc == MAXMODEPARAMS)  || 
         ((arglen + mbl + pbl + 2) > IRCD_BUFSIZE) ||
-	((arglen + pbl + BAN_FUDGE) >= MODEBUFLEN))
+  ((arglen + pbl + BAN_FUDGE) >= MODEBUFLEN))
     {
       if (mbl && modebuf[mbl - 1] == '-')
         modebuf[mbl - 1] = '\0';

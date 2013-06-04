@@ -292,17 +292,17 @@ ssl_handshake(int fd, struct Client *client_p)
     {
       case SSL_ERROR_WANT_WRITE:
         comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
-	               (PF *) ssl_handshake, client_p, 30);
+                 (PF *) ssl_handshake, client_p, 30);
         return;
 
       case SSL_ERROR_WANT_READ:
         comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
-	               (PF *) ssl_handshake, client_p, 30);
+                 (PF *) ssl_handshake, client_p, 30);
         return;
 
       default:
         exit_client(client_p, client_p, "Error during SSL handshake");
-	return;
+  return;
     }
   }
 
@@ -325,7 +325,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 
   fd_open(&new_client->localClient->fd, fd, 1,
           (listener->flags & LISTENER_SSL) ?
-	  "Incoming SSL connection" : "Incoming connection");
+    "Incoming SSL connection" : "Incoming connection");
 
   /*
    * copy address to 'sockhost' as a string, copy it to host too

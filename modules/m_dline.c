@@ -87,11 +87,11 @@ remove_tdline_match(const char *host)
 
 /* mo_dline()
  *
- * inputs	- pointer to server
- *		- pointer to client
- *		- parameter count
- *		- parameter list
- * output	-
+ * inputs  - pointer to server
+ *    - pointer to client
+ *    - parameter count
+ *    - parameter list
+ * output  -
  * side effects - D line is added
  *
  */
@@ -199,12 +199,12 @@ mo_dline(struct Client *client_p, struct Client *source_p,
     creason = aconf->reason ? aconf->reason : def_reason;
     if (IsConfExemptKline(aconf))
       sendto_one(source_p,
-		 ":%s NOTICE %s :[%s] is (E)d-lined by [%s] - %s",
-		 me.name, source_p->name, dlhost, aconf->host, creason);
+     ":%s NOTICE %s :[%s] is (E)d-lined by [%s] - %s",
+     me.name, source_p->name, dlhost, aconf->host, creason);
     else
       sendto_one(source_p,
-		 ":%s NOTICE %s :[%s] already D-lined by [%s] - %s",
-		 me.name, source_p->name, dlhost, aconf->host, creason);
+     ":%s NOTICE %s :[%s] already D-lined by [%s] - %s",
+     me.name, source_p->name, dlhost, aconf->host, creason);
     return;
   }
 
@@ -392,8 +392,8 @@ mo_undline(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, ":%s NOTICE %s :D-Line for [%s] is removed",
                me.name, source_p->name, addr);
     sendto_realops_flags(UMODE_ALL, L_ALL,
-			 "%s has removed the D-Line for: [%s]",
-			 get_oper_name(source_p), addr);
+       "%s has removed the D-Line for: [%s]",
+       get_oper_name(source_p), addr);
     ilog(LOG_TYPE_DLINE, "%s removed D-Line for [%s]",
          get_oper_name(source_p), addr);
   }

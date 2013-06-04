@@ -632,7 +632,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, unsigned int typ
 }
 
 /* struct AccessItem* find_address_conf(const char*, const char*,
- * 	                               struct irc_ssaddr*, int, char *, char *);
+ *                                  struct irc_ssaddr*, int, char *, char *);
  * Input: The hostname, username, address, address family.
  * Output: The applicable AccessItem.
  * Side-effects: None
@@ -667,8 +667,8 @@ find_address_conf(const char *host, const char *user,
 
 /* struct AccessItem* find_dline_conf(struct irc_ssaddr*, int)
  *
- * Input:	An address, an address family.
- * Output:	The best matching D-line or exempt line.
+ * Input:  An address, an address family.
+ * Output:  The best matching D-line or exempt line.
  * Side effects: None.
  */
 struct AccessItem *

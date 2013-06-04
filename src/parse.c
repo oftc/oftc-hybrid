@@ -52,7 +52,7 @@
  * 't' points -> [MessageTree *] 'r' -> [MessageTree *] -> 'i'
  *   -> [MessageTree *] -> [MessageTree *] -> 'e' and matches
  *
- *				 'i' -> [MessageTree *] -> 'e' and matches
+ *         'i' -> [MessageTree *] -> 'e' and matches
  *
  * BUGS (Limitations!)
  * 
@@ -70,28 +70,28 @@
  * Diane Bruce (Dianora), June 6 2003
  */
 
-#define MAXPTRLEN	32
+#define MAXPTRLEN  32
                                 /* Must be a power of 2, and
-				 * larger than 26 [a-z]|[A-Z]
-				 * its used to allocate the set
-				 * of pointers at each node of the tree
-				 * There are MAXPTRLEN pointers at each node.
-				 * Obviously, there have to be more pointers
-				 * Than ASCII letters. 32 is a nice number
-				 * since there is then no need to shift
-				 * 'A'/'a' to base 0 index, at the expense
-				 * of a few never used pointers. For a small
-				 * parser like this, this is a good compromise
-				 * and does make it somewhat faster.
-				 *
-				 * - Dianora
-				 */
+         * larger than 26 [a-z]|[A-Z]
+         * its used to allocate the set
+         * of pointers at each node of the tree
+         * There are MAXPTRLEN pointers at each node.
+         * Obviously, there have to be more pointers
+         * Than ASCII letters. 32 is a nice number
+         * since there is then no need to shift
+         * 'A'/'a' to base 0 index, at the expense
+         * of a few never used pointers. For a small
+         * parser like this, this is a good compromise
+         * and does make it somewhat faster.
+         *
+         * - Dianora
+         */
 
 struct MessageTree
 {
   int links; /* Count of all pointers (including msg) at this node 
-	      * used as reference count for deletion of _this_ node.
-	      */
+        * used as reference count for deletion of _this_ node.
+        */
   struct Message *msg;
   struct MessageTree *pointers[MAXPTRLEN];
 };
@@ -290,13 +290,13 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
 /* handle_command()
  *
- * inputs	- pointer to message block
- *		- pointer to client
- *		- pointer to client message is from
- *		- count of number of args
- *		- pointer to argv[] array
- * output	- -1 if error from server
- * side effects	-
+ * inputs  - pointer to message block
+ *    - pointer to client
+ *    - pointer to client message is from
+ *    - count of number of args
+ *    - pointer to argv[] array
+ * output  - -1 if error from server
+ * side effects  -
  */
 static void
 handle_command(struct Message *mptr, struct Client *client_p,
@@ -337,11 +337,11 @@ handle_command(struct Message *mptr, struct Client *client_p,
 
 /* add_msg_element()
  *
- * inputs	- pointer to MessageTree
- *		- pointer to Message to add for given command
- *		- pointer to current portion of command being added
- * output	- NONE
- * side effects	- recursively build the Message Tree ;-)
+ * inputs  - pointer to MessageTree
+ *    - pointer to Message to add for given command
+ *    - pointer to current portion of command being added
+ * output  - NONE
+ * side effects  - recursively build the Message Tree ;-)
  */
 /*
  * How this works.
@@ -388,10 +388,10 @@ add_msg_element(struct MessageTree *mtree_p, struct Message *msg_p,
 
 /* del_msg_element()
  *
- * inputs	- Pointer to MessageTree to delete from
- *		- pointer to command name to delete
- * output	- NONE
- * side effects	- recursively deletes a token from the Message Tree ;-)
+ * inputs  - Pointer to MessageTree to delete from
+ *    - pointer to command name to delete
+ * output  - NONE
+ * side effects  - recursively deletes a token from the Message Tree ;-)
  */
 /*
  * How this works.
@@ -442,10 +442,10 @@ del_msg_element(struct MessageTree *mtree_p, const char *cmd)
 
 /* msg_tree_parse()
  *
- * inputs	- Pointer to command to find
- *		- Pointer to MessageTree root
- * output	- Find given command returning Message * if found NULL if not
- * side effects	- none
+ * inputs  - Pointer to command to find
+ *    - Pointer to MessageTree root
+ * output  - Find given command returning Message * if found NULL if not
+ * side effects  - none
  */
 static struct Message *
 msg_tree_parse(const char *cmd)
@@ -462,11 +462,11 @@ msg_tree_parse(const char *cmd)
 
 /* mod_add_cmd()
  *
- * inputs	- pointer to struct Message
- * output	- none
+ * inputs  - pointer to struct Message
+ * output  - none
  * side effects - load this one command name
- *		  msg->count msg->bytes is modified in place, in
- *		  modules address space. Might not want to do that...
+ *      msg->count msg->bytes is modified in place, in
+ *      modules address space. Might not want to do that...
  */
 void
 mod_add_cmd(struct Message *msg)
@@ -483,8 +483,8 @@ mod_add_cmd(struct Message *msg)
 
 /* mod_del_cmd()
  *
- * inputs	- pointer to struct Message
- * output	- none
+ * inputs  - pointer to struct Message
+ * output  - none
  * side effects - unload this one command name
  */
 void
@@ -497,8 +497,8 @@ mod_del_cmd(struct Message *msg)
 
 /* find_command()
  *
- * inputs	- command name
- * output	- pointer to struct Message
+ * inputs  - command name
+ * output  - pointer to struct Message
  * side effects - none
  */
 struct Message *
@@ -525,9 +525,9 @@ recurse_report_messages(struct Client *source_p, const struct MessageTree *mtree
 
 /* report_messages()
  *
- * inputs	- pointer to client to report to
- * output	- NONE
- * side effects	- client is shown list of commands
+ * inputs  - pointer to client to report to
+ * output  - NONE
+ * side effects  - client is shown list of commands
  */
 void
 report_messages(struct Client *source_p)
@@ -542,9 +542,9 @@ report_messages(struct Client *source_p)
 
 /* cancel_clients()
  *
- * inputs	- 
- * output	- 
- * side effects	- 
+ * inputs  - 
+ * output  - 
+ * side effects  - 
  */
 static int
 cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
@@ -603,9 +603,9 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
 
 /* remove_unknown()
  *
- * inputs	- 
- * output	- 
- * side effects	- 
+ * inputs  - 
+ * output  - 
+ * side effects  - 
  */
 static void
 remove_unknown(struct Client *client_p, char *lsender, char *lbuffer)
@@ -758,9 +758,9 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
 }
 
 /* m_not_oper()
- * inputs	- 
- * output	-
- * side effects	- just returns a nastyogram to given user
+ * inputs  - 
+ * output  -
+ * side effects  - just returns a nastyogram to given user
  */
 void
 m_not_oper(struct Client *client_p, struct Client *source_p,

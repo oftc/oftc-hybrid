@@ -68,7 +68,7 @@ static int eventFind(EVH *func, void *arg);
  * void eventAdd(const char *name, EVH *func, void *arg, time_t when)
  *
  * Input: Name of event, function to call, arguments to pass, and frequency
- *	  of the event.
+ *    of the event.
  * Output: None
  * Side Effects: Adds the event to the event list.
  */
@@ -90,7 +90,7 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
       event_table[i].active = 1;
 
       if ((event_table[i].when < event_time_min) || (event_time_min == -1))
-	event_time_min = event_table[i].when;
+  event_time_min = event_table[i].when;
 
       return;
     }
@@ -124,10 +124,10 @@ eventDelete(EVH *func, void *arg)
  * void eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_isa)
  *
  * Input: Name of event, function to call, arguments to pass, and frequency
- *	  of the event.
+ *    of the event.
  * Output: None
  * Side Effects: Adds the event to the event list within +- 1/3 of the
- *	         specified frequency.
+ *           specified frequency.
  */
 void
 eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_ish)
@@ -263,7 +263,7 @@ show_events(struct Client *source_p)
       sendto_one(source_p, ":%s %d %s : %-28s %-4d seconds",
                  me.name, RPL_STATSDEBUG, source_p->name,
                  event_table[i].name,
-		 (int)(event_table[i].when - CurrentTime));
+     (int)(event_table[i].when - CurrentTime));
     }
 
   sendto_one(source_p, ":%s %d %s : ",

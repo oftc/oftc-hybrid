@@ -41,11 +41,11 @@
 
 /* part_one_client()
  *
- * inputs	- pointer to server
- * 		- pointer to source client to remove
- *		- char pointer of name of channel to remove from
- * output	- none
- * side effects	- remove ONE client given the channel name 
+ * inputs  - pointer to server
+ *     - pointer to source client to remove
+ *    - char pointer of name of channel to remove from
+ * output  - none
+ * side effects  - remove ONE client given the channel name 
  */
 static void
 part_one_client(struct Client *client_p, struct Client *source_p,

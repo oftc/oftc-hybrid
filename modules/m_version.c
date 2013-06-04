@@ -131,12 +131,12 @@ mo_version(struct Client *client_p, struct Client *source_p,
 {
   
   if (hunt_server(client_p, source_p, ":%s VERSION :%s", 
-		  1, parc, parv) != HUNTED_ISME)
+      1, parc, parv) != HUNTED_ISME)
     return;
 
   sendto_one(source_p, form_str(RPL_VERSION), me.name,
              source_p->name, ircd_version, 
-  	     serno, me.name, confopts(source_p), serveropts);
+         serno, me.name, confopts(source_p), serveropts);
 
   show_isupport(source_p);
 }

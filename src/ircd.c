@@ -502,8 +502,8 @@ main(int argc, char *argv[])
   srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
 
   me.localClient = &meLocalUser;
-  dlinkAdd(&me, &me.node, &global_client_list);	/* Pointer to beginning
-						   of Client list */
+  dlinkAdd(&me, &me.node, &global_client_list);  /* Pointer to beginning
+               of Client list */
   /* Initialise the channel capability usage counts... */
   init_chcap_usage_counts();
 

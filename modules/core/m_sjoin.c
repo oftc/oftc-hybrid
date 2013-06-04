@@ -87,17 +87,17 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
   int            len_uid = 0;
   int            isnew = 0;
   int            buflen = 0;
-  int	         slen;
+  int           slen;
   unsigned       int fl;
   char           *s;
-  char		 *sptr;
+  char     *sptr;
   char nick_buf[IRCD_BUFSIZE]; /* buffer for modes and prefix */
   char uid_buf[IRCD_BUFSIZE];  /* buffer for modes/prefixes for CAP_TS6 servers */
   char           *nick_ptr, *uid_ptr;      /* pointers used for making the two mode/prefix buffers */
   char           *p; /* pointer used making sjbuf */
   dlink_node     *m;
   const char *servername = (ConfigServerHide.hide_servers || IsHidden(source_p)) ?
-			    me.name : source_p->name;  
+          me.name : source_p->name;  
 
   if (IsClient(source_p) || parc < 5)
     return;
@@ -196,9 +196,9 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
     if (newts < 800000000)
     {
       sendto_realops_flags(UMODE_DEBUG, L_ALL, 
-			   "*** Bogus TS %lu on %s ignored from %s",
-			   (unsigned long)newts, chptr->chname,
-			   client_p->name);
+         "*** Bogus TS %lu on %s ignored from %s",
+         (unsigned long)newts, chptr->chname,
+         client_p->name);
 
       newts = (oldts == 0) ? 0 : 800000000;
     }
@@ -208,11 +208,11 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
     if (!newts && !isnew && oldts)
     {
       sendto_channel_local(ALL_MEMBERS, 0, chptr,
- 		  	   ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to 0",
-		  	   me.name, chptr->chname, chptr->chname, (unsigned long)oldts);
+            ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to 0",
+           me.name, chptr->chname, chptr->chname, (unsigned long)oldts);
       sendto_realops_flags(UMODE_ALL, L_ALL, 
-		           "Server %s changing TS on %s from %lu to 0",
-			   source_p->name, chptr->chname, (unsigned long)oldts);
+               "Server %s changing TS on %s from %lu to 0",
+         source_p->name, chptr->chname, (unsigned long)oldts);
     }
   }
 
@@ -261,9 +261,9 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
     }
 
     sendto_channel_local(ALL_MEMBERS, 0, chptr,
-   		         ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to %lu",
-	 		 me.name, chptr->chname, chptr->chname,
-			 (unsigned long)oldts, (unsigned long)newts);
+                ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to %lu",
+        me.name, chptr->chname, chptr->chname,
+       (unsigned long)oldts, (unsigned long)newts);
   }
 
   if (*modebuf != '\0')
@@ -271,7 +271,7 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
     /* This _SHOULD_ be to ALL_MEMBERS
      * It contains only +imnpstlk, etc */
     sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s %s %s",
-	                 servername, chptr->chname, modebuf, parabuf);
+                   servername, chptr->chname, modebuf, parabuf);
   }
 
   if (parv[3][0] != '0' && keep_new_modes)
@@ -285,8 +285,8 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
   }
 
   buflen = ircsprintf(nick_buf, ":%s SJOIN %lu %s %s %s:",
-		      source_p->name, (unsigned long)tstosend,
-		      chptr->chname, modebuf, parabuf);
+          source_p->name, (unsigned long)tstosend,
+          chptr->chname, modebuf, parabuf);
   nick_ptr = nick_buf + buflen;
 
   buflen = ircsprintf(uid_buf, ":%s SJOIN %lu %s %s %s:",
@@ -300,8 +300,8 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
   if (buflen >= (IRCD_BUFSIZE - IRCD_MAX(NICKLEN, IDLEN) - 2 - 3 - 1))
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "Long SJOIN from server: %s(via %s) (ignored)",
-			 source_p->name, client_p->name);
+       "Long SJOIN from server: %s(via %s) (ignored)",
+       source_p->name, client_p->name);
     return;
   }
 
@@ -332,22 +332,22 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
       switch (*s)
       {
       case '@':
-	fl |= CHFL_CHANOP;
-	s++;
-	break;
+  fl |= CHFL_CHANOP;
+  s++;
+  break;
 #ifdef HALFOPS
       case '%':
-	fl |= CHFL_HALFOP;
-	s++;
-	break;
+  fl |= CHFL_HALFOP;
+  s++;
+  break;
 #endif
       case '+':
         fl |= CHFL_VOICE;
         s++;
-	break;
+  break;
       default:
-	valid_mode = 0;
-	break;
+  valid_mode = 0;
+  break;
       }
     } while (valid_mode);
 
@@ -379,7 +379,7 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
         *np++ = '@';
         *up++  = '@';
         len_nick++;
-	len_uid++;
+  len_uid++;
       }
 #ifdef HALFOPS
       if (fl & CHFL_HALFOP)
@@ -387,7 +387,7 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
         *np++ = '%';
         *up++  = '%';
         len_nick++;
-	len_uid++;
+  len_uid++;
       }
 #endif
       if (fl & CHFL_VOICE)
@@ -395,7 +395,7 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
         *np++ = '+';
         *up++  = '+';
         len_nick++;
-	len_uid++;
+  len_uid++;
       }
     }
     else
@@ -430,7 +430,7 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
     }
 
     uid_ptr  += ircsprintf(uid_ptr,  "%s%s ", uid_prefix, ID(target_p));
-	
+  
     if (!IsMember(target_p, chptr))
     {
       add_user_to_channel(chptr, target_p, fl, !have_many_nicks);
@@ -446,21 +446,21 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
 
       if (pargs >= MAXMODEPARAMS)
       {
-	/*
-	 * Ok, the code is now going to "walk" through
-	 * sendbuf, filling in para strings. So, I will use sptr
-	 * to point into the sendbuf.
-	 * Notice, that ircsprintf() returns the number of chars
-	 * successfully inserted into string.
-	 * - Dianora
-	 */
+  /*
+   * Ok, the code is now going to "walk" through
+   * sendbuf, filling in para strings. So, I will use sptr
+   * to point into the sendbuf.
+   * Notice, that ircsprintf() returns the number of chars
+   * successfully inserted into string.
+   * - Dianora
+   */
 
-	sptr = sendbuf;
+  sptr = sendbuf;
         *mbuf = '\0';
         for(lcount = 0; lcount < MAXMODEPARAMS; lcount++)
         {
-          slen = ircsprintf(sptr, " %s", para[lcount]);	/* see? */
-	  sptr += slen;					/* ready for next */
+          slen = ircsprintf(sptr, " %s", para[lcount]);  /* see? */
+    sptr += slen;          /* ready for next */
         }
         sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s %s%s",
                             servername, chptr->chname, modebuf, sendbuf);
@@ -504,12 +504,12 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
 
       if (pargs >= MAXMODEPARAMS)
       {
-	sptr = sendbuf;
+  sptr = sendbuf;
         *mbuf = '\0';
         for (lcount = 0; lcount < MAXMODEPARAMS; lcount++)
         {
           slen = ircsprintf(sptr, " %s", para[lcount]);
-	  sptr += slen;
+    sptr += slen;
         }
         sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s %s%s",
                              servername, chptr->chname, modebuf, sendbuf);
@@ -615,13 +615,13 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
 
 /* set_final_mode
  *
- * inputs	- channel mode
- *		- old channel mode
- * output	- NONE
- * side effects	- walk through all the channel modes turning off modes
- *		  that were on in oldmode but aren't on in mode.
- *		  Then walk through turning on modes that are on in mode
- *		  but were not set in oldmode.
+ * inputs  - channel mode
+ *    - old channel mode
+ * output  - NONE
+ * side effects  - walk through all the channel modes turning off modes
+ *      that were on in oldmode but aren't on in mode.
+ *      Then walk through turning on modes that are on in mode
+ *      but were not set in oldmode.
  */
 static void
 set_final_mode(struct Mode *mode, struct Mode *oldmode)
@@ -685,11 +685,11 @@ set_final_mode(struct Mode *mode, struct Mode *oldmode)
 
 /* remove_our_modes()
  *
- * inputs	- pointer to channel to remove modes from
- *		- client pointer
- * output	- NONE
- * side effects	- Go through the local members, remove all their
- *		  chanop modes etc., this side lost the TS.
+ * inputs  - pointer to channel to remove modes from
+ *    - client pointer
+ * output  - NONE
+ * side effects  - Go through the local members, remove all their
+ *      chanop modes etc., this side lost the TS.
  */
 static void
 remove_our_modes(struct Channel *chptr, struct Client *source_p)
@@ -703,12 +703,12 @@ remove_our_modes(struct Channel *chptr, struct Client *source_p)
 
 /* remove_a_mode()
  *
- * inputs	- pointer to channel
- *		- server or client removing the mode
- *		- mask o/h/v mask to be removed
- *		- flag o/h/v to be removed
- * output	- NONE
- * side effects	- remove ONE mode from all members of a channel
+ * inputs  - pointer to channel
+ *    - server or client removing the mode
+ *    - mask o/h/v mask to be removed
+ *    - flag o/h/v to be removed
+ * output  - NONE
+ * side effects  - remove ONE mode from all members of a channel
  */
 static void
 remove_a_mode(struct Channel *chptr, struct Client *source_p,
@@ -745,16 +745,16 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
       for(i = 0; i < MAXMODEPARAMS; i++)
       {
         l = ircsprintf(sp, " %s", lpara[i]);
-	sp += l;
+  sp += l;
       }
 
       *mbuf = '\0';
       sendto_channel_local(ALL_MEMBERS, 0, chptr,
                            ":%s MODE %s %s%s",
-			   (IsHidden(source_p) ||
-			   ConfigServerHide.hide_servers) ?
-			   me.name : source_p->name,
-			   chptr->chname, lmodebuf, sendbuf);
+         (IsHidden(source_p) ||
+         ConfigServerHide.hide_servers) ?
+         me.name : source_p->name,
+         chptr->chname, lmodebuf, sendbuf);
       mbuf = lmodebuf;
       *mbuf++ = '-';
       count = 0;
@@ -772,19 +772,19 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
       sp += l;
     }
     sendto_channel_local(ALL_MEMBERS, 0, chptr,
-			 ":%s MODE %s %s%s",
-			 (IsHidden(source_p) || ConfigServerHide.hide_servers) ?
-			 me.name : source_p->name,
-			 chptr->chname, lmodebuf, sendbuf);
+       ":%s MODE %s %s%s",
+       (IsHidden(source_p) || ConfigServerHide.hide_servers) ?
+       me.name : source_p->name,
+       chptr->chname, lmodebuf, sendbuf);
   }
 }
 
 /* remove_ban_list()
  *
- * inputs	- channel, source, list to remove, char of mode, caps required
- * outputs	- none
- * side effects	- given ban list is removed, modes are sent to local clients and
- *		  non-ts6 servers linked through another uplink other than source_p
+ * inputs  - channel, source, list to remove, char of mode, caps required
+ * outputs  - none
+ * side effects  - given ban list is removed, modes are sent to local clients and
+ *      non-ts6 servers linked through another uplink other than source_p
  */
 static void
 remove_ban_list(struct Channel *chptr, struct Client *source_p,
@@ -818,7 +818,7 @@ remove_ban_list(struct Channel *chptr, struct Client *source_p,
       sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s",
                lmodebuf, lparabuf);
       sendto_server(source_p, cap, CAP_TS6,
-		    "%s %s", lmodebuf, lparabuf);
+        "%s %s", lmodebuf, lparabuf);
 
       cur_len = mlen;
       mbuf = lmodebuf + mlen;
@@ -829,7 +829,7 @@ remove_ban_list(struct Channel *chptr, struct Client *source_p,
     *mbuf++ = c;
     cur_len += plen;
     pbuf += ircsprintf(pbuf, "%s!%s@%s ", banptr->name, banptr->username,
-		       banptr->host);
+           banptr->host);
     ++count;
 
     remove_ban(banptr, list);
@@ -838,7 +838,7 @@ remove_ban_list(struct Channel *chptr, struct Client *source_p,
   *mbuf = *(pbuf - 1) = '\0';
   sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s", lmodebuf, lparabuf);
   sendto_server(source_p, cap, CAP_TS6,
-		"%s %s", lmodebuf, lparabuf);
+    "%s %s", lmodebuf, lparabuf);
 }
 
 static struct Message sjoin_msgtab = {

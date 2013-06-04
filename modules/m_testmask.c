@@ -83,17 +83,17 @@ mo_testmask(struct Client *client_p, struct Client *source_p,
       continue;
 
     if (match(given_user, target_p->username) &&
-	match(given_host, target_p->host))
+  match(given_host, target_p->host))
     {
       if (MyConnect(target_p))
-	local_count++;
+  local_count++;
       else
-	remote_count++;
+  remote_count++;
     }
   }
 
   sendto_one(source_p, form_str(RPL_TESTMASK), me.name, source_p->name,
-	     given_user, given_host, local_count, remote_count);
+       given_user, given_host, local_count, remote_count);
 }
 
 static struct Message testmask_msgtab = {

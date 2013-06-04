@@ -57,12 +57,12 @@ static struct capabilities
   size_t namelen;
 } capab_list[] = {
 #define _CAP(cap, flags, name)  \
-	{ (cap), (flags), (name), sizeof(name) - 1 }
+  { (cap), (flags), (name), sizeof(name) - 1 }
   _CAP(CAP_MULTI_PREFIX, 0, "multi-prefix")
 #undef _CAP
 };
 
-#define CAPAB_LIST_LEN	(sizeof(capab_list) / sizeof(struct capabilities))
+#define CAPAB_LIST_LEN  (sizeof(capab_list) / sizeof(struct capabilities))
 
 static int
 capab_sort(const struct capabilities *cap1, const struct capabilities *cap2)
@@ -125,7 +125,7 @@ find_cap(const char **caplist_p, int *neg_p)
     {
       /* Couldn't find the capability; advance to first whitespace character */
       while (*caplist && !IsSpace(*caplist))
-	++caplist;
+  ++caplist;
     }
     else
       caplist += cap->namelen; /* advance to end of capability name */
@@ -233,7 +233,7 @@ cap_req(struct Client *source_p, const char *caplist)
 
   while (cl) { /* walk through the capabilities list... */
     if (!(cap = find_cap(&cl, &neg)) /* look up capability... */
-	|| (!neg && (cap->flags & CAPFL_PROHIBIT)) /* is it prohibited? */
+  || (!neg && (cap->flags & CAPFL_PROHIBIT)) /* is it prohibited? */
         || (neg && (cap->flags & CAPFL_STICKY))) { /* is it sticky? */
       sendto_one(source_p, ":%s CAP %s NAK :%s", me.name,
                  source_p->name[0] ? source_p->name : "*", caplist);
@@ -286,7 +286,7 @@ cap_ack(struct Client *source_p, const char *caplist)
   {
     /* walk through the capabilities list... */
     if (!(cap = find_cap(&cl, &neg)) || /* look up capability... */
-	(neg ? (source_p->localClient->cap_active & cap->cap) :
+  (neg ? (source_p->localClient->cap_active & cap->cap) :
               !(source_p->localClient->cap_active & cap->cap))) /* uh... */
       continue;
 

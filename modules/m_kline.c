@@ -51,11 +51,11 @@ static bool remove_tkline_match(const char *, const char *);
 
 /* mo_kline()
  *
- * inputs	- pointer to server
- *		- pointer to client
- *		- parameter count
- *		- parameter list
- * output	-
+ * inputs  - pointer to server
+ *    - pointer to client
+ *    - parameter count
+ *    - parameter list
+ * output  -
  * side effects - k line is added
  */
 static void
@@ -80,7 +80,7 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   }
 
   if (parse_aline("KLINE", source_p, parc, parv,
-		  AWILD, &user, &host, &tkline_time, &target_server, &reason) < 0)
+      AWILD, &user, &host, &tkline_time, &target_server, &reason) < 0)
     return;
     
   if ((p = strchr(host, '/')) != NULL)
@@ -198,9 +198,9 @@ ms_kline(struct Client *client_p, struct Client *source_p,
 }
 
 /* already_placed_kline()
- * inputs	- user to complain to, username & host to check for
- * outputs	- returns 1 on existing K-line, 0 if doesn't exist
- * side effects	- notifies source_p if the K-line already exists
+ * inputs  - user to complain to, username & host to check for
+ * outputs  - returns 1 on existing K-line, 0 if doesn't exist
+ * side effects  - notifies source_p if the K-line already exists
  */
 /*
  * Note: This currently works if the new K-line is a special case of an
@@ -323,17 +323,17 @@ mo_unkline(struct Client *client_p,struct Client *source_p,
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :No K-Line for [%s@%s] found", 
-	       me.name, source_p->name, user, host);
+         me.name, source_p->name, user, host);
 }
 
 /* me_unkline()
  *
- * inputs	- server
- *		- client
- *		- parc
- *		- parv
- * outputs	- none
- * side effects	- if server is authorized, kline is removed
+ * inputs  - server
+ *    - client
+ *    - parc
+ *    - parv
+ * outputs  - none
+ * side effects  - if server is authorized, kline is removed
  *                does not propagate message
  */
 static void
@@ -352,9 +352,9 @@ me_unkline(struct Client *client_p, struct Client *source_p,
     return;
 
   if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE,
-				   source_p->servptr->name,
-				   source_p->username, source_p->host,
-				   SHARED_UNKLINE))
+           source_p->servptr->name,
+           source_p->username, source_p->host,
+           SHARED_UNKLINE))
   {
     if (remove_tkline_match(khost, kuser))
     {

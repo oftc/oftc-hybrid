@@ -123,10 +123,10 @@ mo_whois(struct Client *client_p, struct Client *source_p,
 
 /* do_whois()
  *
- * inputs	- pointer to /whois source
+ * inputs  - pointer to /whois source
  *              - number of parameters
  *              - pointer to parameters array
- * output	- pointer to void
+ * output  - pointer to void
  * side effects - Does whois
  */
 static void
@@ -183,7 +183,7 @@ do_whois(struct Client *source_p, int parc, char *parv[])
   {
     if (!IsDigit(*nick))
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
-		 me.name, source_p->name, nick);
+     me.name, source_p->name, nick);
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFWHOIS),
@@ -192,11 +192,11 @@ do_whois(struct Client *source_p, int parc, char *parv[])
 
 /* global_whois()
  *
- * Inputs	- source_p client to report to
- *		- target_p client to report on
- * Output	- if found return 1
- * Side Effects	- do a single whois on given client
- * 		  writing results to source_p
+ * Inputs  - source_p client to report to
+ *    - target_p client to report on
+ * Output  - if found return 1
+ * Side Effects  - do a single whois on given client
+ *       writing results to source_p
  */
 static int
 global_whois(struct Client *source_p, const char *nick)
@@ -237,11 +237,11 @@ global_whois(struct Client *source_p, const char *nick)
 
 /* single_whois()
  *
- * Inputs	- source_p client to report to
- *		- target_p client to report on
- * Output	- if found return 1
- * Side Effects	- do a single whois on given client
- * 		  writing results to source_p
+ * Inputs  - source_p client to report to
+ *    - target_p client to report on
+ * Output  - if found return 1
+ * Side Effects  - do a single whois on given client
+ *       writing results to source_p
  */
 static int
 single_whois(struct Client *source_p, struct Client *target_p)
@@ -271,10 +271,10 @@ single_whois(struct Client *source_p, struct Client *target_p)
 
 /* whois_person()
  *
- * inputs	- source_p client to report to
- *		- target_p client to report on
- * output	- NONE
- * side effects	- 
+ * inputs  - source_p client to report to
+ *    - target_p client to report on
+ * output  - NONE
+ * side effects  - 
  */
 static void
 whois_person(struct Client *source_p, struct Client *target_p)
@@ -352,9 +352,9 @@ whois_person(struct Client *source_p, struct Client *target_p)
                server_p->name, server_p->info);
   else
     sendto_one(source_p, form_str(RPL_WHOISSERVER),
-	       me.name, source_p->name, target_p->name,
+         me.name, source_p->name, target_p->name,
                ConfigServerHide.hidden_name,
-	       ServerInfo.network_desc);
+         ServerInfo.network_desc);
 
   if (HasUMode(target_p, UMODE_REGISTERED))
     sendto_one(source_p, form_str(RPL_WHOISREGNICK),

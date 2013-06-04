@@ -108,8 +108,8 @@ m_challenge(struct Client *client_p, struct Client *source_p,
     oper_up(source_p);
 
     ilog(LOG_TYPE_OPER, "OPER %s by %s!%s@%s",
-	 source_p->localClient->auth_oper, source_p->name, source_p->username,
-	 source_p->host);
+   source_p->localClient->auth_oper, source_p->name, source_p->username,
+   source_p->host);
 
     MyFree(source_p->localClient->response);
     MyFree(source_p->localClient->auth_oper);
@@ -140,8 +140,8 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   if (aconf->rsa_public_key == NULL)
   {
     sendto_one (source_p, ":%s NOTICE %s :I'm sorry, PK authentication "
-		"is not enabled for your oper{} block.", me.name,
-		source_p->name);
+    "is not enabled for your oper{} block.", me.name,
+    source_p->name);
     return;
   }
 

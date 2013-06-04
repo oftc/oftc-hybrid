@@ -91,9 +91,9 @@ do_ctrace(struct Client *source_p, int parc, char *parv[])
 /*
  * report_this_status
  *
- * inputs	- pointer to client to report to
- * 		- pointer to client to report about
- * output	- counter of number of hits
+ * inputs  - pointer to client to report to
+ *     - pointer to client to report about
+ * output  - counter of number of hits
  * side effects - NONE
  */
 static void
@@ -122,26 +122,26 @@ report_this_status(struct Client *source_p, struct Client *target_p)
           else if (HasUMode(target_p, UMODE_OPER))
           {
             if (ConfigFileEntry.hide_spoof_ips)
-	      sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
-		         me.name, source_p->name, class_name, name, 
-		         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
-		         CurrentTime - target_p->localClient->lasttime,
-		         idle_time_get(source_p, target_p));
-	    else   
+        sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
+             me.name, source_p->name, class_name, name, 
+             IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
+             CurrentTime - target_p->localClient->lasttime,
+             idle_time_get(source_p, target_p));
+      else   
               sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                          me.name, source_p->name, class_name, name,
                          (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                          CurrentTime - target_p->localClient->lasttime,
                          idle_time_get(source_p, target_p));
           }
-	  else
+    else
           {
             if (ConfigFileEntry.hide_spoof_ips)
-	      sendto_one(source_p, form_str(RPL_TRACEUSER),
-		         me.name, source_p->name, class_name, name,
+        sendto_one(source_p, form_str(RPL_TRACEUSER),
+             me.name, source_p->name, class_name, name,
                          IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
-		         CurrentTime - target_p->localClient->lasttime,
-		         idle_time_get(source_p, target_p));
+             CurrentTime - target_p->localClient->lasttime,
+             idle_time_get(source_p, target_p));
             else
               sendto_one(source_p, form_str(RPL_TRACEUSER),
                          me.name, source_p->name, class_name, name,
@@ -156,10 +156,10 @@ report_this_status(struct Client *source_p, struct Client *target_p)
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),
-		 me.name, source_p->name, class_name, 0,
-		 0, name, *(target_p->serv->by) ?
-		 target_p->serv->by : "*", "*",
-		 me.name, CurrentTime - target_p->localClient->lasttime);
+     me.name, source_p->name, class_name, 0,
+     0, name, *(target_p->serv->by) ?
+     target_p->serv->by : "*", "*",
+     me.name, CurrentTime - target_p->localClient->lasttime);
       break;
       
     default: /* ...we actually shouldn't come here... --msa */

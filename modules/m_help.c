@@ -163,7 +163,7 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
   }
   else if (line[0] != '#')
   {
-    line[strlen(line) - 1] = '\0';	  
+    line[strlen(line) - 1] = '\0';    
     sendto_one(source_p, form_str(RPL_HELPSTART),
              me.name, source_p->name, topic, line);
     started = 1;

@@ -98,7 +98,7 @@ free_block(void *ptr, size_t size)
 
 #ifdef HAVE_MMAP
 #ifndef MAP_ANON /* But we cannot mmap() anonymous pages */
-		 /* So we mmap() /dev/zero, which is just as good */
+     /* So we mmap() /dev/zero, which is just as good */
 static fde_t dpfd;
 #endif
 #endif

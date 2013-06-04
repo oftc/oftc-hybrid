@@ -72,10 +72,10 @@ find_and_delete_temporary(const char *user, const char *host, int type)
 
 /* parse_csv_file()
  *
- * inputs	- FILE pointer
- * 		- type of conf to parse
- * output	- none
- * side effects	-
+ * inputs  - FILE pointer
+ *     - type of conf to parse
+ * output  - none
+ * side effects  -
  */
 void
 parse_csv_file(FILE *file, ConfType conf_type)
@@ -214,8 +214,8 @@ parse_csv_file(FILE *file, ConfType conf_type)
 /*
  * parse_csv_line()
  *
- * inputs	- pointer to line to parse
- * output	-
+ * inputs  - pointer to line to parse
+ * output  -
  * side effects -
  */
 
@@ -243,7 +243,7 @@ parse_csv_line(char *line, ...)
 /* write_conf_line()
  *
  * inputs       - pointer to struct AccessItem
- *		- string current_date (small date)
+ *    - string current_date (small date)
  *              - time_t cur_time
  * output       - NONE
  * side effects - This function takes care of
@@ -256,7 +256,7 @@ parse_csv_line(char *line, ...)
  */
 void 
 write_conf_line(struct Client *source_p, struct ConfItem *conf,
-		const char *current_date, time_t cur_time, time_t duration)
+    const char *current_date, time_t cur_time, time_t duration)
 {
   FILE *out;
   const char *filename, *from, *to;
@@ -415,9 +415,9 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
 /*
  * write_csv_line()
  *
- * inputs	- pointer to FILE *
- *		- formatted string
- * output	-
+ * inputs  - pointer to FILE *
+ *    - formatted string
+ * output  -
  * side effects - single line is written to csv conf file
  */
 static int
@@ -442,73 +442,73 @@ write_csv_line(FILE *out, const char *format, ...)
       c = *format++;
       if (c == 's')
       {
-	const char *p1 = va_arg(args, const char *);
-	if (p1 == NULL)
-	  p1 = null_string;
-	*str++ = '\"';
-	++bytes;
-	while (*p1 != '\0')
-	{
-	  *str++ = *p1++;
-	  ++bytes;
+  const char *p1 = va_arg(args, const char *);
+  if (p1 == NULL)
+    p1 = null_string;
+  *str++ = '\"';
+  ++bytes;
+  while (*p1 != '\0')
+  {
+    *str++ = *p1++;
+    ++bytes;
         }
-	*str++ = '\"';
-	*str++ = ',';
-	  
-	bytes += 2;
-	continue;
+  *str++ = '\"';
+  *str++ = ',';
+    
+  bytes += 2;
+  continue;
       }
       if (c == 'c')
       {
-	*str++ = '\"';
-	++bytes;
-	*str++ = (char) va_arg(args, int);
-	++bytes;
-	*str++ = '\"';
-	*str++ = ',';
+  *str++ = '\"';
+  ++bytes;
+  *str++ = (char) va_arg(args, int);
+  ++bytes;
+  *str++ = '\"';
+  *str++ = ',';
 
-	bytes += 2;
-	continue;
+  bytes += 2;
+  continue;
       }
 
       if (c == 'd')
       {
-	int v = va_arg(args, int);
-	char t[40];
-	char *p=t;
+  int v = va_arg(args, int);
+  char t[40];
+  char *p=t;
 
-	while (v > 10)
+  while (v > 10)
         {
-	  *p++ = (v % 10) + '0';
-	  v = v/10;
-	}
-	*p++ = (v % 10) + '0';
+    *p++ = (v % 10) + '0';
+    v = v/10;
+  }
+  *p++ = (v % 10) + '0';
 
         *str++ = '\"';
         ++bytes;
-	while (p != t)
-	{
-	  *str++ = *--p;
-	  ++bytes;
-	}
+  while (p != t)
+  {
+    *str++ = *--p;
+    ++bytes;
+  }
 
         *str++ = '\"';
-	*str++ = ',';
-	bytes += 2;
-	continue;
+  *str++ = ',';
+  bytes += 2;
+  continue;
       }
       if (c != '%')
       {
-	int ret;
-	
-	format -= 2;
-	ret = vsprintf(str, format, args);
-	str += ret;
-	bytes += ret;
-	*str++ = ',';
+  int ret;
+  
+  format -= 2;
+  ret = vsprintf(str, format, args);
+  str += ret;
+  bytes += ret;
+  *str++ = ',';
 
-	++bytes;
-	break;
+  ++bytes;
+  break;
       }
     }
     *str++ = c;
@@ -537,9 +537,9 @@ write_csv_line(FILE *out, const char *format, ...)
 /*
  * getfield
  *
- * inputs	- input buffer
- * output	- next field
- * side effects	- field breakup for ircd.conf file.
+ * inputs  - input buffer
+ * output  - next field
+ * side effects  - field breakup for ircd.conf file.
  */
 static char *
 getfield(char *newline)
@@ -580,7 +580,7 @@ getfield(char *newline)
     {
       end++;
     }
-    else if (*end == '"')	/* found terminating " */
+    else if (*end == '"')  /* found terminating " */
     {
       *end++ = '\0';
       line = end;
@@ -595,11 +595,11 @@ getfield(char *newline)
 
 /* remove_conf_line()
  *
- * inputs	- type of kline to remove
- *		- pointer to oper removing
- *		- pat1 pat2 patterns to match
- * output	- -1 if unsuccessful 0 if no change 1 if change
- * side effects	-
+ * inputs  - type of kline to remove
+ *    - pointer to oper removing
+ *    - pat1 pat2 patterns to match
+ * output  - -1 if unsuccessful 0 if no change 1 if change
+ * side effects  -
  */
 int
 remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const char *pat2)
@@ -627,7 +627,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
   if ((out = fopen(temppath, "w")) == NULL)
   {
     sendto_one(source_p, ":%s NOTICE %s :Cannot open %s", me.name,
-	       source_p->name, temppath);
+         source_p->name, temppath);
     fclose(in);
     umask(oldumask);
     return -1;
@@ -728,7 +728,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
  * flush_write()
  *
  * inputs       - pointer to client structure of oper requesting unkline
- *		- in is the input file descriptor
+ *    - in is the input file descriptor
  *              - out is the output file descriptor
  *              - buf is the buffer to write
  *              - ntowrite is the expected number of character to be written
@@ -753,7 +753,7 @@ flush_write(struct Client *source_p, FILE *in, FILE* out,
   if (error_on_write)
   {
     sendto_one(source_p,":%s NOTICE %s :Unable to write to %s aborting",
-	       me.name, source_p->name, temppath);
+         me.name, source_p->name, temppath);
     if(temppath != NULL)
       (void)unlink(temppath);
     fclose(in);

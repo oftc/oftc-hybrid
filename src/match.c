@@ -145,8 +145,8 @@ match_esc(const char *mask, const char *name)
     if (*m != '?' && (*m != '#' || IsDigit(*n)))
     {
       if (*m == '\\')
-	if (!*++m)
-	  return 0;
+  if (!*++m)
+    return 0;
       if (ToLower(*m) != ToLower(*n))
       {
         if (!ma)

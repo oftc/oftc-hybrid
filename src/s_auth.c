@@ -196,7 +196,7 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
     if (good && strlen(name) <= HOSTLEN)
     {
       strlcpy(auth->client->host, name,
-	      sizeof(auth->client->host));
+        sizeof(auth->client->host));
       sendheader(auth->client, REPORT_FIN_DNS);
     }
     else if (strlen(name) > HOSTLEN)
@@ -358,9 +358,9 @@ GetValidIdent(char *buf)
 /*
  * start_auth 
  *
- * inputs	- pointer to client to auth
- * output	- NONE
- * side effects	- starts auth (identd) and dns queries for a client
+ * inputs  - pointer to client to auth
+ * output  - NONE
+ * side effects  - starts auth (identd) and dns queries for a client
  */
 static void *
 start_auth(va_list args)

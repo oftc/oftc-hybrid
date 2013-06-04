@@ -568,14 +568,14 @@ hash_find_userhost(const char *host)
 
 /* count_user_host()
  *
- * inputs	- user name
- *		- hostname
- *		- int flag 1 if global, 0 if local
- * 		- pointer to where global count should go
- *		- pointer to where local count should go
- *		- pointer to where identd count should go (local clients only)
- * output	- none
- * side effects	-
+ * inputs  - user name
+ *    - hostname
+ *    - int flag 1 if global, 0 if local
+ *     - pointer to where global count should go
+ *    - pointer to where local count should go
+ *    - pointer to where identd count should go (local clients only)
+ * output  - none
+ * side effects  -
  */
 void
 count_user_host(const char *user, const char *host, int *global_p,
@@ -628,11 +628,11 @@ find_or_add_userhost(const char *host)
 
 /* add_user_host()
  *
- * inputs	- user name
- *		- hostname
- *		- int flag 1 if global, 0 if local
- * output	- none
- * side effects	- add given user@host to hash tables
+ * inputs  - user name
+ *    - hostname
+ *    - int flag 1 if global, 0 if local
+ * output  - none
+ * side effects  - add given user@host to hash tables
  */
 void
 add_user_host(const char *user, const char *host, int global)
@@ -687,11 +687,11 @@ add_user_host(const char *user, const char *host, int global)
 
 /* delete_user_host()
  *
- * inputs	- user name
- *		- hostname
- *		- int flag 1 if global, 0 if local
- * output	- none
- * side effects	- delete given user@host to hash tables
+ * inputs  - user name
+ *    - hostname
+ *    - int flag 1 if global, 0 if local
+ * output  - none
+ * side effects  - delete given user@host to hash tables
  */
 void
 delete_user_host(const char *user, const char *host, int global)
@@ -759,8 +759,8 @@ delete_user_host(const char *user, const char *host, int global)
 /* exceeding_sendq()
  *
  * inputs       - pointer to client to check
- * output	- 1 if client is in danger of blowing its sendq
- *		  0 if it is not.
+ * output  - 1 if client is in danger of blowing its sendq
+ *      0 if it is not.
  * side effects -
  *
  * Sendq limit is fairly conservative at 1/2 (In original anyway)
@@ -829,7 +829,7 @@ list_allow_channel(const char *chname, struct ListTask *lt)
  * inputs       - client pointer to return result to
  *              - pointer to channel to list
  *              - pointer to ListTask structure
- * output	- none
+ * output  - none
  * side effects -
  */
 static void
@@ -857,9 +857,9 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
 
 /* safe_list_channels()
  *
- * inputs	- pointer to client requesting list
- * output	- 0/1
- * side effects	- safely list all channels to source_p
+ * inputs  - pointer to client requesting list
+ * output  - 0/1
+ * side effects  - safely list all channels to source_p
  *
  * Walk the channel buckets, ensure all pointers in a bucket are
  * traversed before blocking on a sendq. This means, no locking is needed.

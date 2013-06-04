@@ -242,7 +242,7 @@ show_lusers(struct Client *source_p)
  *
  * inputs       - pointer to client
  * output       - NONE
- * side effects	- display to client what we support (for them)
+ * side effects  - display to client what we support (for them)
  */
 void
 show_isupport(struct Client *source_p) 
@@ -430,10 +430,10 @@ register_local_user(struct Client *source_p)
                        source_p->name, source_p->username, source_p->host,
                        ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                        "255.255.255.255" : source_p->sockhost,
-		       get_client_class(source_p),
-		       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+           get_client_class(source_p),
+           ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                            "<hidden>" : source_p->localClient->client_host,
-		       ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
+           ConfigFileEntry.hide_spoof_ips && IsIPSpoof(source_p) ?
                            "<hidden>" : source_p->localClient->client_server,
                        source_p->info);
 
@@ -483,9 +483,9 @@ register_local_user(struct Client *source_p)
  *              - host name to register as
  *              - server name
  *              - realname (gecos)
- * output	- NONE
- * side effects	- This function is called when a remote client
- *		  is introduced by a server.
+ * output  - NONE
+ * side effects  - This function is called when a remote client
+ *      is introduced by a server.
  */
 void
 register_remote_user(struct Client *source_p,
@@ -571,11 +571,11 @@ register_remote_user(struct Client *source_p,
 
 /* introduce_client()
  *
- * inputs	- source_p
- * output	- NONE
+ * inputs  - source_p
+ * output  - NONE
  * side effects - This common function introduces a client to the rest
- *		  of the net, either from a local client connect or
- *		  from a remote connect.
+ *      of the net, either from a local client connect or
+ *      from a remote connect.
  */
 static void
 introduce_client(struct Client *source_p)
@@ -1018,12 +1018,12 @@ set_user_mode(struct Client *client_p, struct Client *source_p,
  * send the MODE string for user (user) to connection client_p
  * -avalon
  *
- * inputs	- client_p
- *		- source_p
- *		- int old
- *		- sendmask mask of modes to send
- * 		- suplied umode_buf
- * output	- NONE
+ * inputs  - client_p
+ *    - source_p
+ *    - int old
+ *    - sendmask mask of modes to send
+ *     - suplied umode_buf
+ * output  - NONE
  */
 void
 send_umode(struct Client *client_p, struct Client *source_p,
@@ -1081,8 +1081,8 @@ send_umode(struct Client *client_p, struct Client *source_p,
 
 /* send_umode_out()
  *
- * inputs	-
- * output	- NONE
+ * inputs  -
+ * output  - NONE
  * side effects - Only send ubuf out to servers that know about this client
  */
 void
@@ -1132,9 +1132,9 @@ user_set_hostmask(struct Client *target_p, const char *hostname)
 
 /* user_welcome()
  *
- * inputs	- client pointer to client to welcome
- * output	- NONE
- * side effects	-
+ * inputs  - client pointer to client to welcome
+ * output  - NONE
+ * side effects  -
  */
 static void
 user_welcome(struct Client *source_p)
@@ -1234,9 +1234,9 @@ check_xline(struct Client *source_p)
 
 /* oper_up()
  *
- * inputs	- pointer to given client to oper
- * output	- NONE
- * side effects	- Blindly opers up given source_p, using aconf info
+ * inputs  - pointer to given client to oper
+ * output  - NONE
+ * side effects  - Blindly opers up given source_p, using aconf info
  *                all checks on passwords have already been done.
  *                This could also be used by rsa oper routines. 
  */
@@ -1294,11 +1294,11 @@ valid_sid(const char *sid)
 /*
  * init_uid()
  * 
- * inputs	- NONE
- * output	- NONE
- * side effects	- new_uid is filled in with server id portion (sid)
- *		  (first 3 bytes) or defaulted to 'A'.
- *	          Rest is filled in with 'A'
+ * inputs  - NONE
+ * output  - NONE
+ * side effects  - new_uid is filled in with server id portion (sid)
+ *      (first 3 bytes) or defaulted to 'A'.
+ *            Rest is filled in with 'A'
  */
 void
 init_uid(void)
@@ -1328,10 +1328,10 @@ init_uid(void)
 /*
  * add_one_to_uid
  *
- * inputs	- index number into new_uid
- * output	- NONE
- * side effects	- new_uid is incremented by one
- *		  note this is a recursive function
+ * inputs  - index number into new_uid
+ * output  - NONE
+ * side effects  - new_uid is incremented by one
+ *      note this is a recursive function
  */
 static void
 add_one_to_uid(int i)
@@ -1375,9 +1375,9 @@ uid_get(void)
 /*
  * init_isupport()
  *
- * input	- NONE
- * output	- NONE
- * side effects	- Must be called before isupport is enabled
+ * input  - NONE
+ * output  - NONE
+ * side effects  - Must be called before isupport is enabled
  */
 void
 init_isupport(void)
@@ -1401,11 +1401,11 @@ init_isupport(void)
 /*
  * add_isupport()
  *
- * input	- name of supported function
- *		- options if any
- *		- number if any
- * output	- NONE
- * side effects	- Each supported item must call this when activated
+ * input  - name of supported function
+ *    - options if any
+ *    - number if any
+ * output  - NONE
+ * side effects  - Each supported item must call this when activated
  */
 void
 add_isupport(const char *name, const char *options, int n)
@@ -1441,9 +1441,9 @@ add_isupport(const char *name, const char *options, int n)
 /*
  * delete_isupport()
  *
- * input	- name of supported function
- * output	- NONE
- * side effects	- Each supported item must call this when deactivated
+ * input  - name of supported function
+ * output  - NONE
+ * side effects  - Each supported item must call this when deactivated
  */
 void
 delete_isupport(const char *name)
@@ -1470,9 +1470,9 @@ delete_isupport(const char *name)
 /*
  * rebuild_isupport_message_line
  *
- * input	- NONE
- * output	- NONE
- * side effects	- Destroy the isupport MessageFile lines, and rebuild.
+ * input  - NONE
+ * output  - NONE
+ * side effects  - Destroy the isupport MessageFile lines, and rebuild.
  */
 void
 rebuild_isupport_message_line(void)

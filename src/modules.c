@@ -169,9 +169,9 @@ load_a_module(const char *path, int warn)
 /*
  * modules_init
  *
- * input	- NONE
- * output	- NONE
- * side effects	- The basic module manipulation modules are loaded
+ * input  - NONE
+ * output  - NONE
+ * side effects  - The basic module manipulation modules are loaded
  */
 void
 modules_init(void)
@@ -186,8 +186,8 @@ modules_init(void)
 
 /* mod_find_path()
  *
- * input	- path
- * output	- none
+ * input  - path
+ * output  - none
  * side effects - returns a module path from path
  */
 static struct module_path *
@@ -208,8 +208,8 @@ mod_find_path(const char *path)
 
 /* mod_add_path()
  *
- * input	- path
- * output	- NONE
+ * input  - path
+ * output  - NONE
  * side effects - adds path to list
  */
 void
@@ -228,8 +228,8 @@ mod_add_path(const char *path)
 
 /* add_conf_module
  *
- * input	- module name
- * output	- NONE
+ * input  - module name
+ * output  - NONE
  * side effects - adds module to conf_mod
  */
 void
@@ -245,8 +245,8 @@ add_conf_module(const char *name)
 
 /* mod_clear_paths()
  *
- * input	- NONE
- * output	- NONE
+ * input  - NONE
+ * output  - NONE
  * side effects - clear the lists of paths and conf modules
  */
 void
@@ -373,7 +373,7 @@ load_core_modules(int warn)
 /* load_one_module()
  *
  * input        - pointer to path
- *		- flagged as core module or not
+ *    - flagged as core module or not
  * output       - -1 if error 
  * side effects - module is loaded if found.
  */

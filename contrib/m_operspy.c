@@ -129,8 +129,8 @@ ms_operspy(struct Client *client_p, struct Client *source_p,
 }
 
 /* mo_operspy()
- *	parv[1] = operspy command
- *	parv[2] = command parameter
+ *  parv[1] = operspy command
+ *  parv[2] = command parameter
  */
 static void
 mo_operspy(struct Client *client_p, struct Client *source_p,

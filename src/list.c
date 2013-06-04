@@ -45,7 +45,7 @@ init_dlink_nodes(void)
  *
  * inputs       - NONE
  * output       - pointer to new dlink_node
- * side effects	- NONE
+ * side effects  - NONE
  */
 dlink_node *
 make_dlink_node(void)
@@ -59,7 +59,7 @@ make_dlink_node(void)
  *
  * inputs       - pointer to dlink_node
  * output       - NONE
- * side effects	- free given dlink_node 
+ * side effects  - free given dlink_node 
  */
 void
 free_dlink_node(dlink_node *ptr)

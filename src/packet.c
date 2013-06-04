@@ -130,7 +130,7 @@ parse_client_queued(struct Client *client_p)
     for(;;)
     {
       if (IsDefunct(client_p))
-	return;
+  return;
 
       /* rate unknown clients at MAX_FLOOD per loop */
       if (i >= MAX_FLOOD)
@@ -138,7 +138,7 @@ parse_client_queued(struct Client *client_p)
 
       dolen = extract_one_line(&lclient_p->buf_recvq, readBuf);
       if (dolen == 0)
-	break;
+  break;
 
       client_dopacket(client_p, readBuf, dolen);
       i++;
@@ -181,7 +181,7 @@ parse_client_queued(struct Client *client_p)
     for (;;)
     {
       if (IsDefunct(client_p))
-	break;
+  break;
 
       /* This flood protection works as follows:
        *
@@ -310,23 +310,23 @@ read_packet(fde_t *fd, void *data)
       /* translate openssl error codes, sigh */
       if (length < 0)
         switch (SSL_get_error(fd->ssl, length))
-	{
+  {
           case SSL_ERROR_WANT_WRITE:
             fd->flags.pending_read = 1;
-	    SetSendqBlocked(client_p);
-	    comm_setselect(fd, COMM_SELECT_WRITE, (PF *) sendq_unblocked,
-	                   client_p, 0);
-	    return;
-	  case SSL_ERROR_WANT_READ:
-	    errno = EWOULDBLOCK;
+      SetSendqBlocked(client_p);
+      comm_setselect(fd, COMM_SELECT_WRITE, (PF *) sendq_unblocked,
+                     client_p, 0);
+      return;
+    case SSL_ERROR_WANT_READ:
+      errno = EWOULDBLOCK;
           case SSL_ERROR_SYSCALL:
-	    break;
+      break;
           case SSL_ERROR_SSL:
             if (errno == EAGAIN)
               break;
           default:
-	    length = errno = 0;
-	}
+      length = errno = 0;
+  }
     }
     else
 #endif

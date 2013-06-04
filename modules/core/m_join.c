@@ -286,16 +286,16 @@ m_join(struct Client *client_p, struct Client *source_p,
 
 /* ms_join()
  *
- * inputs	- parv[0] = uid
- *		  parv[1] = ts
- *		  parv[2] = channel name
- *		  parv[3] = modes (Deprecated)
- * output	- none
- * side effects	- handles remote JOIN's sent by servers. In TSora
- *		  remote clients are joined using SJOIN, hence a 
- *		  JOIN sent by a server on behalf of a client is an error.
- *		  here, the initial code is in to take an extra parameter
- *		  and use it for the TimeStamp on a new channel.
+ * inputs  - parv[0] = uid
+ *      parv[1] = ts
+ *      parv[2] = channel name
+ *      parv[3] = modes (Deprecated)
+ * output  - none
+ * side effects  - handles remote JOIN's sent by servers. In TSora
+ *      remote clients are joined using SJOIN, hence a 
+ *      JOIN sent by a server on behalf of a client is an error.
+ *      here, the initial code is in to take an extra parameter
+ *      and use it for the TimeStamp on a new channel.
  */
 static void 
 ms_join(struct Client *client_p, struct Client *source_p,
@@ -448,12 +448,12 @@ ms_join(struct Client *client_p, struct Client *source_p,
 
 /* do_join_0()
  *
- * inputs	- pointer to client doing join 0
- * output	- NONE
- * side effects	- Use has decided to join 0. This is legacy
- *		  from the days when channels were numbers not names. *sigh*
- *		  There is a bunch of evilness necessary here due to
- * 		  anti spambot code.
+ * inputs  - pointer to client doing join 0
+ * output  - NONE
+ * side effects  - Use has decided to join 0. This is legacy
+ *      from the days when channels were numbers not names. *sigh*
+ *      There is a bunch of evilness necessary here due to
+ *       anti spambot code.
  */
 static void
 do_join_0(struct Client *client_p, struct Client *source_p)

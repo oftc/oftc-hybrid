@@ -530,9 +530,9 @@ ms_info(struct Client *client_p, struct Client *source_p,
 
 /* send_info_text()
  *
- * inputs	- client pointer to send info text to
- * output	- NONE
- * side effects	- info text is sent to client
+ * inputs  - client pointer to send info text to
+ * output  - NONE
+ * side effects  - info text is sent to client
  */
 static void
 send_info_text(struct Client *source_p)
@@ -573,9 +573,9 @@ send_info_text(struct Client *source_p)
 
 /* send_birthdate_online_time()
  *
- * inputs	- client pointer to send to
- * output	- NONE
- * side effects	- birthdate and online time are sent
+ * inputs  - client pointer to send to
+ * output  - NONE
+ * side effects  - birthdate and online time are sent
  */
 static void
 send_birthdate_online_time(struct Client *source_p)
@@ -596,9 +596,9 @@ send_birthdate_online_time(struct Client *source_p)
 
 /* send_conf_options()
  *
- * inputs	- client pointer to send to
- * output	- NONE
- * side effects	- send config options to client
+ * inputs  - client pointer to send to
+ * output  - NONE
+ * side effects  - send config options to client
  */
 static void
 send_conf_options(struct Client *source_p)

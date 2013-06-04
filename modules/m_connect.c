@@ -83,7 +83,7 @@ mo_connect(struct Client *client_p, struct Client *source_p,
   if ((target_p = hash_find_server(parv[1])))
   {
     sendto_one(source_p,
-	       ":%s NOTICE %s :Connect: Server %s already exists from %s.",
+         ":%s NOTICE %s :Connect: Server %s already exists from %s.",
                me.name, source_p->name, parv[1], target_p->from->name);
     return;
   }
@@ -92,17 +92,17 @@ mo_connect(struct Client *client_p, struct Client *source_p,
    * try to find the name, then host, if both fail notify ops and bail
    */
   if ((conf = find_matching_name_conf(SERVER_TYPE,
-				      parv[1], NULL, NULL, 0)) != NULL)
+              parv[1], NULL, NULL, 0)) != NULL)
     aconf = (struct AccessItem *)map_to_conf(conf);
   else if ((conf = find_matching_name_conf(SERVER_TYPE,
-					   NULL, NULL, parv[1], 0)) != NULL)
+             NULL, NULL, parv[1], 0)) != NULL)
     aconf = (struct AccessItem *)map_to_conf(conf);
   
   if (conf == NULL || aconf == NULL)
   {
     sendto_one(source_p,
-	       ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
-	       me.name, source_p->name, parv[1]);
+         ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
+         me.name, source_p->name, parv[1]);
     return;
   }
 
@@ -203,7 +203,7 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   if ((target_p = hash_find_server(parv[1])))
   {
     sendto_one(source_p,
-	       ":%s NOTICE %s :Connect: Server %s already exists from %s.",
+         ":%s NOTICE %s :Connect: Server %s already exists from %s.",
                me.name, source_p->name, parv[1], target_p->from->name);
     return;
   }
@@ -212,17 +212,17 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    * try to find the name, then host, if both fail notify ops and bail
    */
   if ((conf = find_matching_name_conf(SERVER_TYPE,
-				      parv[1], NULL, NULL, 0)) != NULL)
+              parv[1], NULL, NULL, 0)) != NULL)
     aconf = map_to_conf(conf);
   else if ((conf = find_matching_name_conf(SERVER_TYPE,
-					   NULL, NULL, parv[1], 0)) != NULL)
+             NULL, NULL, parv[1], 0)) != NULL)
     aconf = map_to_conf(conf);
 
   if (conf == NULL || aconf == NULL)
   {
     sendto_one(source_p,
-	       ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
-	       me.name, source_p->name, parv[1]);
+         ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
+         me.name, source_p->name, parv[1]);
     return;
   }
 
