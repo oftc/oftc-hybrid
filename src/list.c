@@ -166,9 +166,10 @@ dlinkFind(dlink_list *list, void *data)
   dlink_node *ptr;
 
   DLINK_FOREACH(ptr, list->head)
-
-  if(ptr->data == data)
-    return ptr;
+  {
+    if(ptr->data == data)
+      return ptr;
+  }
 
   return NULL;
 }

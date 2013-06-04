@@ -367,7 +367,7 @@ check_conf_klines(void)
   dlink_node *ptr, *next_ptr;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, local_client_list.head)
-{
+  {
     client_p = ptr->data;
 
     /* If a client is already being exited
@@ -707,7 +707,9 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
                                  source_p->name, source_p->username,
                                  source_p->host, quitmsg);
     DLINK_FOREACH_SAFE(lp, next_lp, source_p->channel.head)
-    remove_user_from_channel(lp->data);
+    {
+      remove_user_from_channel(lp->data);
+    }
 
     add_history(source_p, 0);
     off_history(source_p);
@@ -727,7 +729,9 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
     {
       /* Clean up invitefield */
       DLINK_FOREACH_SAFE(lp, next_lp, source_p->localClient->invited.head)
-      del_invite(lp->data, source_p);
+      {
+        del_invite(lp->data, source_p);
+      }
 
       del_all_accepts(source_p);
     }
@@ -793,15 +797,19 @@ recurse_send_quits(struct Client *original_source_p, struct Client *source_p,
    * of dependents, just send the SQUIT
    */
   if(!IsCapable(to, CAP_QS))
-    DLINK_FOREACH_SAFE(ptr, next, source_p->serv->client_list.head)
   {
-    target_p = ptr->data;
-    sendto_one(to, ":%s QUIT :%s", target_p->name, splitstr);
+    DLINK_FOREACH_SAFE(ptr, next, source_p->serv->client_list.head)
+    {
+      target_p = ptr->data;
+      sendto_one(to, ":%s QUIT :%s", target_p->name, splitstr);
+    }
   }
 
   DLINK_FOREACH_SAFE(ptr, next, source_p->serv->server_list.head)
-  recurse_send_quits(original_source_p, ptr->data, from, to,
-                     comment, splitstr);
+  {
+    recurse_send_quits(original_source_p, ptr->data, from, to,
+                       comment, splitstr);
+  }
 
   if((source_p == original_source_p && to != from) ||
       !IsCapable(to, CAP_QS))
@@ -845,8 +853,10 @@ remove_dependents(struct Client *source_p, struct Client *from,
   dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, serv_list.head)
-  recurse_send_quits(source_p, source_p, from, ptr->data,
-                     comment, splitstr);
+  {
+    recurse_send_quits(source_p, source_p, from, ptr->data,
+                       comment, splitstr);
+  }
 
   recurse_remove_clients(source_p, splitstr);
 }
@@ -1209,9 +1219,13 @@ accept_message(struct Client *source,
     return 1;
 
   if(HasUMode(target, UMODE_SOFTCALLERID))
+  {
     DLINK_FOREACH(ptr, target->channel.head)
-    if(IsMember(source, ((struct Membership *)ptr->data)->chptr))
-      return 1;
+    {
+      if(IsMember(source, ((struct Membership *)ptr->data)->chptr))
+        return 1;
+    }
+  }
 
   return 0;
 }
@@ -1228,7 +1242,9 @@ del_all_accepts(struct Client *client_p)
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->localClient->acceptlist.head)
-  del_accept(ptr->data, client_p);
+  {
+    del_accept(ptr->data, client_p);
+  }
 }
 
 unsigned int

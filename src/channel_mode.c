@@ -828,6 +828,7 @@ chm_ban(struct Client *client_p, struct Client *source_p,
     DLINK_FOREACH(ptr, chptr->banlist.head)
     {
       const struct Ban *banptr = ptr->data;
+
       sendto_one(client_p, form_str(RPL_BANLIST),
                  me.name, client_p->name, chname,
                  banptr->name, banptr->username, banptr->host,
@@ -919,6 +920,7 @@ chm_except(struct Client *client_p, struct Client *source_p,
     DLINK_FOREACH(ptr, chptr->exceptlist.head)
     {
       const struct Ban *banptr = ptr->data;
+
       sendto_one(client_p, form_str(RPL_EXCEPTLIST),
                  me.name, client_p->name, chname,
                  banptr->name, banptr->username, banptr->host,
@@ -999,6 +1001,7 @@ chm_invex(struct Client *client_p, struct Client *source_p,
     DLINK_FOREACH(ptr, chptr->invexlist.head)
     {
       const struct Ban *banptr = ptr->data;
+
       sendto_one(client_p, form_str(RPL_INVITELIST), me.name,
                  client_p->name, chname,
                  banptr->name, banptr->username, banptr->host,
@@ -1073,6 +1076,7 @@ chm_quiet(struct Client *client_p, struct Client *source_p,
     DLINK_FOREACH(ptr, chptr->quietlist.head)
     {
       const struct Ban *banptr = ptr->data;
+
       sendto_one(client_p, form_str(RPL_QUIETLIST), me.name,
                  client_p->name, chname,
                  banptr->name, banptr->username, banptr->host,

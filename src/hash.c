@@ -830,14 +830,16 @@ list_allow_channel(const char *chname, struct ListTask *lt)
   dlink_node *dl = NULL;
 
   DLINK_FOREACH(dl, lt->show_mask.head)
-
-  if(!match_chan(dl->data, chname))
-    return 0;
+  {
+    if(!match_chan(dl->data, chname))
+      return 0;
+  }
 
   DLINK_FOREACH(dl, lt->hide_mask.head)
-
-  if(match_chan(dl->data, chname))
-    return 0;
+  {
+    if(match_chan(dl->data, chname))
+      return 0;
+  }
 
   return 1;
 }
@@ -916,9 +918,10 @@ safe_list_channels(struct Client *source_p, struct ListTask *list_task,
     dlink_node *dl;
 
     DLINK_FOREACH(dl, list_task->show_mask.head)
-
-    if((chptr = hash_find_channel(dl->data)) != NULL)
-      list_one_channel(source_p, chptr, list_task);
+    {
+      if((chptr = hash_find_channel(dl->data)) != NULL)
+        list_one_channel(source_p, chptr, list_task);
+    }
   }
 
   free_list_task(list_task, source_p);

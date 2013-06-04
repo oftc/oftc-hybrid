@@ -588,12 +588,11 @@ report_confitem_types(struct Client *source_p, ConfType type)
         sendto_one(source_p, form_str(RPL_STATSYLINE),
                    me.name, source_p->name, 'Y',
                    conf->name, classitem->ping_freq,
-                   classitem->con_freq,
-                   classitem->max_total, classitem->max_sendq,
-                   classitem->max_recvq,
-                   classitem->curr_user_count,
-                   classitem->number_per_cidr, classitem->cidr_bitlen_ipv4,
-                   classitem->number_per_cidr, classitem->cidr_bitlen_ipv6,
+                   classitem->con_freq, classitem->max_total, 
+                   classitem->max_sendq, classitem->max_recvq,
+                   classitem->curr_user_count, classitem->number_per_cidr, 
+                   classitem->cidr_bitlen_ipv4, classitem->number_per_cidr, 
+                   classitem->cidr_bitlen_ipv6,
                    classitem->active ? "active" : "disabled");
       }
       break;

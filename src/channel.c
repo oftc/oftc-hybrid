@@ -364,7 +364,9 @@ free_channel_list(dlink_list *list)
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, list->head)
-  remove_ban(ptr->data, list);
+  {
+    remove_ban(ptr->data, list);
+  }
 
   assert(list->tail == NULL && list->head == NULL);
 }
@@ -404,7 +406,9 @@ destroy_channel(struct Channel *chptr)
   dlink_node *ptr = NULL, *ptr_next = NULL;
 
   DLINK_FOREACH_SAFE(ptr, ptr_next, chptr->invites.head)
-  del_invite(chptr, ptr->data);
+  {
+    del_invite(chptr, ptr->data);
+  }
 
   /* free ban/exception/invex lists */
   free_channel_list(&chptr->banlist);
@@ -748,9 +752,10 @@ find_channel_link(struct Client *client_p, struct Channel *chptr)
     return NULL;
 
   DLINK_FOREACH(ptr, client_p->channel.head)
-
-  if(((struct Membership *)ptr->data)->chptr == chptr)
-    return ptr->data;
+  {
+    if(((struct Membership *)ptr->data)->chptr == chptr)
+      return ptr->data;
+  }
 
   return NULL;
 }

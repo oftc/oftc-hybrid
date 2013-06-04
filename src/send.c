@@ -324,13 +324,19 @@ send_queued_all(void)
    * a notice to opers, which is to be delivered by this function.
    */
   DLINK_FOREACH(ptr, serv_list.head)
-  send_queued_write((struct Client *) ptr->data);
+  {
+    send_queued_write((struct Client *) ptr->data);
+  }
 
   DLINK_FOREACH(ptr, unknown_list.head)
-  send_queued_write((struct Client *) ptr->data);
+  {
+    send_queued_write((struct Client *) ptr->data);
+  }
 
   DLINK_FOREACH(ptr, local_client_list.head)
-  send_queued_write((struct Client *) ptr->data);
+  {
+    send_queued_write((struct Client *) ptr->data);
+  }
 
   /* NOTE: This can still put clients on aborted_list; unfortunately,
    * exit_aborted_clients takes precedence over send_queued_all,

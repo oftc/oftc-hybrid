@@ -120,7 +120,9 @@ clear_conf_resv(void)
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, resv_channel_list.head)
-  delete_channel_resv(ptr->data);
+  {
+    delete_channel_resv(ptr->data);
+  }
 }
 
 /* delete_channel_resv()

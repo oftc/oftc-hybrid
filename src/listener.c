@@ -349,7 +349,9 @@ close_listeners(void)
 
   /* close all 'extra' listening ports we have */
   DLINK_FOREACH_SAFE(ptr, next_ptr, ListenerPollList.head)
-  close_listener(ptr->data);
+  {
+    close_listener(ptr->data);
+  }
 }
 
 #define TOOFAST_WARNING "ERROR :Trying to reconnect too fast.\r\n"
