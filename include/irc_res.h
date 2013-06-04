@@ -13,29 +13,27 @@
 struct Client; /* XXX */
 
 /* Here we define some values lifted from nameser.h */
-#define NS_NOTIFY_OP 4
-#define NS_INT16SZ 2
+#define NS_NOTIFY_OP    4
+#define NS_INT16SZ      2
 #define NS_IN6ADDRSZ    16
-#define NS_INADDRSZ   4
-#define NS_INT32SZ 4
+#define NS_INADDRSZ     4
+#define NS_INT32SZ      4
 #define NS_CMPRSFLGS    0xc0
-#define NS_MAXCDNAME 255
-#define QUERY 0
-#define IQUERY 1
-#define NO_ERRORS 0
-#define SERVFAIL 2
-#define NXDOMAIN 3
-#define T_A 1
-#define T_AAAA 28
-#define T_PTR 12
-#define T_CNAME 5
-#define T_NULL 10
-#define C_IN 1
-#define QFIXEDSZ 4
-#define RRFIXEDSZ 10
-#define HFIXEDSZ 12
-
-
+#define NS_MAXCDNAME    255
+#define QUERY           0
+#define IQUERY          1
+#define NO_ERRORS       0
+#define SERVFAIL        2
+#define NXDOMAIN        3
+#define T_A             1
+#define T_AAAA          28
+#define T_PTR           12
+#define T_CNAME         5
+#define T_NULL          10
+#define C_IN            1
+#define QFIXEDSZ        4
+#define RRFIXEDSZ       10
+#define HFIXEDSZ        12
 
 typedef struct
 {

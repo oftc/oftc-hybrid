@@ -31,8 +31,8 @@
 
 struct MessageFileLine
 {
-  struct MessageFileLine *next;
-  char line[MESSAGELINELEN + 1];
+  struct MessageFileLine  *next;
+  char                    line[MESSAGELINELEN + 1];
 };
 
 typedef struct MessageFileLine MessageFileLine;
@@ -47,9 +47,9 @@ typedef enum
 struct MessageFile
 {
   MessageFileLine *contentsOfFile;
-  MotdType motdType;
-  char fileName[HYB_PATH_MAX + 1];
-  char lastChangedDate[MAX_DATE_STRING + 1];
+  MotdType        motdType;
+  char            fileName[HYB_PATH_MAX + 1];
+  char            lastChangedDate[MAX_DATE_STRING + 1];
 };
 
 typedef struct MessageFile MessageFile;

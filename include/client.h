@@ -46,24 +46,24 @@ enum addr_mask_type
 /*! \brief Server structure */
 struct Server
 {
-  dlink_list server_list; /**< Servers on this server */
-  dlink_list client_list; /**< Clients on this server */
-  char by[NICKLEN + 1];   /**< who activated this connection */
+  dlink_list  server_list;      /**< Servers on this server */
+  dlink_list  client_list;      /**< Clients on this server */
+  char        by[NICKLEN + 1];  /**< who activated this connection */
 };
 
 /*! \brief ListTask structure */
 struct ListTask
 {
-  dlink_list show_mask; /**< show these channels.. */
-  dlink_list hide_mask; /**< ..and hide these ones */
+  dlink_list    show_mask; /**< show these channels.. */
+  dlink_list    hide_mask; /**< ..and hide these ones */
 
-  unsigned int hash_index; /**< the bucket we are currently in */
-  unsigned int users_min;
-  unsigned int users_max;
-  unsigned int created_min;
-  unsigned int created_max;
-  unsigned int topicts_min;
-  unsigned int topicts_max;
+  unsigned int  hash_index; /**< the bucket we are currently in */
+  unsigned int  users_min;
+  unsigned int  users_max;
+  unsigned int  created_min;
+  unsigned int  created_max;
+  unsigned int  topicts_min;
+  unsigned int  topicts_max;
 };
 
 /*! \brief LocalUser structure
@@ -79,32 +79,30 @@ struct LocalUser
   char         client_server[HOSTLEN + 1];
 
   unsigned int registration;
-  unsigned int cap_client;    /**< Client capabilities (from us) */
-  unsigned int cap_active;    /**< Active capabilities (to us) */
-  unsigned int       caps;       /**< capabilities bit-field */
+  unsigned int cap_client;      /**< Client capabilities (from us) */
+  unsigned int cap_active;      /**< Active capabilities (to us) */
+  unsigned int caps;            /**< capabilities bit-field */
 
-  unsigned int operflags;     /**< IRC Operator privilege flags */
-  unsigned int random_ping; /**< Holding a 32bit value used for PING cookies */
+  unsigned int operflags;       /**< IRC Operator privilege flags */
+  unsigned int random_ping;     /**< Holding a 32bit value used for PING cookies */
 
-  unsigned int serial;     /**< used to enforce 1 send per nick */
+  unsigned int serial;          /**< used to enforce 1 send per nick */
 
-  time_t       lasttime;   /**< ...should be only LOCAL clients? --msa */
-  time_t       firsttime;  /**< time client was created */
-  time_t       since;      /**< last time we parsed something */
-  time_t       last_knock;    /**< time of last knock */
-  time_t       last_join_time;   /**< when this client last
-                                    joined a channel */
-  time_t       last_leave_time;  /**< when this client last
-                                       * left a channel */
-  int          join_leave_count; /**< count of JOIN/LEAVE in less than
+  time_t       lasttime;
+  time_t       firsttime;             /**< time client was created */
+  time_t       since;                 /**< last time we parsed something */
+  time_t       last_knock;            /**< time of last knock */
+  time_t       last_join_time;        /**< when this client last joined a channel */
+  time_t       last_leave_time;       /**< when this client last left a channel */
+  int          join_leave_count;      /**< count of JOIN/LEAVE in less than
                                          MIN_JOIN_LEAVE_TIME seconds */
-  int          oper_warn_count_down; /**< warn opers of this possible
+  int          oper_warn_count_down;  /**< warn opers of this possible
                                           spambot every time this gets to 0 */
   time_t       last_caller_id_time;
   time_t       first_received_message_time;
   time_t       last_nick_change;
-  time_t       last_privmsg; /**< Last time we got a PRIVMSG */
-  time_t       last_away; /**< Away since... */
+  time_t       last_privmsg;          /**< Last time we got a PRIVMSG */
+  time_t       last_away;             /**< Away since... */
 
   int          received_number_of_privmsgs;
   unsigned int number_of_nick_changes;
@@ -116,45 +114,45 @@ struct LocalUser
 
   struct
   {
-    unsigned int messages;      /**< Statistics: protocol messages sent/received */
-    uint64_t bytes;             /**< Statistics: total bytes sent/received */
+    unsigned int  messages;      /**< Statistics: protocol messages sent/received */
+    uint64_t      bytes;             /**< Statistics: total bytes sent/received */
   } recv, send;
 
-  struct AuthRequest *auth;
-  struct Listener *listener;   /**< listener accepted from */
-  dlink_list        acceptlist; /**< clients I'll allow to talk to me */
-  dlink_list        watches;   /**< chain of Watch pointer blocks */
-  dlink_list        confs;     /**< Configuration record associated */
-  dlink_list        invited;   /**< chain of invite pointer blocks */
+  struct AuthRequest  *auth;
+  struct Listener     *listener;  /**< listener accepted from */
+  dlink_list          acceptlist; /**< clients I'll allow to talk to me */
+  dlink_list          watches;    /**< chain of Watch pointer blocks */
+  dlink_list          confs;      /**< Configuration record associated */
+  dlink_list          invited;    /**< chain of invite pointer blocks */
 
-  char              *passwd;
-  fde_t             fd;
-  fde_t             auth_fd;   /**< FD for authentication (ident lookup) */
+  char                *passwd;
+  fde_t               fd;
+  fde_t               auth_fd;    /**< FD for authentication (ident lookup) */
 
   /* Anti-flood stuff. We track how many messages were parsed and how
    * many we were allowed in the current second, and apply a simple
    * decay to avoid flooding.
    *   -- adrian
    */
-  int allow_read;       /**< how many we're allowed to read in this second */
-  int sent_parsed;      /**< how many messages we've parsed in this second */
+  int                 allow_read; /**< how many we're allowed to read in this second */
+  int                 sent_parsed;/**< how many messages we've parsed in this second */
 
-  char          *response;  /**< expected response from client */
-  char          *auth_oper; /**< Operator to become if they supply the response.*/
+  char                *response;  /**< expected response from client */
+  char                *auth_oper; /**< Operator to become if they supply the response.*/
 };
 
 /*! \brief Client structure */
 struct Client
 {
-  dlink_node node;
-  dlink_node lnode;             /**< Used for Server->servers/users */
+  dlink_node        node;
+  dlink_node        lnode;             /**< Used for Server->servers/users */
 
-  struct LocalUser *localClient;
-  struct Client    *hnext;      /**< For client hash table lookups by name */
-  struct Client    *idhnext;    /**< For SID hash table lookups by sid */
-  struct Server    *serv;       /**< ...defined, if this is a server */
-  struct Client    *servptr;    /**< Points to server this Client is on */
-  struct Client    *from;       /**< == self, if Local Client, *NEVER* NULL! */
+  struct LocalUser  *localClient;
+  struct Client     *hnext;      /**< For client hash table lookups by name */
+  struct Client     *idhnext;    /**< For SID hash table lookups by sid */
+  struct Server     *serv;       /**< ...defined, if this is a server */
+  struct Client     *servptr;    /**< Points to server this Client is on */
+  struct Client     *from;       /**< == self, if Local Client, *NEVER* NULL! */
 
   time_t            tsinfo;     /**< TS on the nick, SVINFO on server */
 
@@ -167,11 +165,11 @@ struct Client
   dlink_list        whowas;
   dlink_list        channel;   /**< chain of channel pointer blocks */
 
-  char away[AWAYLEN + 1]; /**< Client's AWAY message. Can be set/unset via AWAY command */
-  char name[HOSTLEN + 1]; /**< unique name for a client nick or host */
-  char svid[HOSTLEN + 1]; /**< Services ID. XXX: Going with HOSTLEN for now. NICKLEN might be too small
+  char              away[AWAYLEN + 1]; /**< Client's AWAY message. Can be set/unset via AWAY command */
+  char              name[HOSTLEN + 1]; /**< unique name for a client nick or host */
+  char              svid[HOSTLEN + 1]; /**< Services ID. XXX: Going with HOSTLEN for now. NICKLEN might be too small
                                 if dealing with timestamps */
-  char id[IDLEN + 1];       /**< client ID, unique ID per client */
+  char              id[IDLEN + 1];     /**< client ID, unique ID per client */
   /*
    * client->username is the username from ident or the USER message,
    * If the client is idented the USER message is ignored, otherwise
@@ -377,10 +375,10 @@ struct Client
 #define IsAuthFinished(x)       ((x)->flags & FLAGS_FINISHED_AUTH)
 #define IsDead(x)               ((x)->flags & FLAGS_DEADSOCKET)
 #define SetDead(x)              ((x)->flags |= FLAGS_DEADSOCKET)
-#define IsClosing(x)    ((x)->flags & FLAGS_CLOSING)
-#define SetClosing(x)    ((x)->flags |= FLAGS_CLOSING)
-#define SetCanFlood(x)    ((x)->flags |= FLAGS_CANFLOOD)
-#define IsCanFlood(x)    ((x)->flags & FLAGS_CANFLOOD)
+#define IsClosing(x)            ((x)->flags & FLAGS_CLOSING)
+#define SetClosing(x)           ((x)->flags |= FLAGS_CLOSING)
+#define SetCanFlood(x)          ((x)->flags |= FLAGS_CANFLOOD)
+#define IsCanFlood(x)           ((x)->flags & FLAGS_CANFLOOD)
 #define IsDefunct(x)            ((x)->flags & (FLAGS_DEADSOCKET|FLAGS_CLOSING| \
                                  FLAGS_KILLED))
 
@@ -394,8 +392,8 @@ struct Client
     if (!HasUMode(x, UMODE_OPER) && !IsServer((x))) \
       (x)->handler = CLIENT_HANDLER; }
 
-#define SetSendQExceeded(x)  ((x)->flags |= FLAGS_SENDQEX)
-#define IsSendQExceeded(x)  ((x)->flags &  FLAGS_SENDQEX)
+#define SetSendQExceeded(x)     ((x)->flags |= FLAGS_SENDQEX)
+#define IsSendQExceeded(x)      ((x)->flags &  FLAGS_SENDQEX)
 
 #define SetIpHash(x)            ((x)->flags |= FLAGS_IPHASH)
 #define ClearIpHash(x)          ((x)->flags &= ~FLAGS_IPHASH)
@@ -405,9 +403,9 @@ struct Client
 #define ClearUserHost(x)        ((x)->flags &= ~FLAGS_USERHOST)
 #define IsUserHostIp(x)         ((x)->flags & FLAGS_USERHOST)
 
-#define SetPingSent(x)    ((x)->flags |= FLAGS_PINGSENT)
-#define IsPingSent(x)    ((x)->flags & FLAGS_PINGSENT)
-#define ClearPingSent(x)  ((x)->flags &= ~FLAGS_PINGSENT)
+#define SetPingSent(x)          ((x)->flags |= FLAGS_PINGSENT)
+#define IsPingSent(x)           ((x)->flags & FLAGS_PINGSENT)
+#define ClearPingSent(x)        ((x)->flags &= ~FLAGS_PINGSENT)
 
 #define SetPingWarning(x)       ((x)->flags |= FLAGS_PINGWARNING)
 #define IsPingWarning(x)        ((x)->flags & FLAGS_PINGWARNING)
@@ -447,7 +445,7 @@ extern dlink_list global_client_list;
 extern int accept_message(struct Client *, struct Client *);
 extern unsigned int idle_time_get(struct Client *, struct Client *);
 extern struct split_nuh_item *find_accept(const char *, const char *,
-    const char *, struct Client *, int);
+                                          const char *, struct Client *, int);
 extern void del_accept(struct split_nuh_item *, struct Client *);
 extern void del_all_accepts(struct Client *);
 extern void exit_client(struct Client *, struct Client *, const char *);

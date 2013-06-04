@@ -36,13 +36,13 @@ struct Client;
 
 struct Listener
 {
-  dlink_node     listener_node;      /* list node pointer */
-  fde_t            fd;                 /* file descriptor */
-  int              port;               /* listener IP port */
-  int              ref_count;          /* number of connection references */
-  int              active;             /* current state of listener */
-  struct irc_ssaddr addr;              /* virtual address or INADDR_ANY */
-  char              name[HOSTLEN + 1]; /* virtual name of listener */
+  dlink_node        listener_node;      /* list node pointer */
+  fde_t             fd;                 /* file descriptor */
+  int               port;               /* listener IP port */
+  int               ref_count;          /* number of connection references */
+  int               active;             /* current state of listener */
+  struct irc_ssaddr addr;               /* virtual address or INADDR_ANY */
+  char              name[HOSTLEN + 1];  /* virtual name of listener */
   unsigned int      flags;
 };
 

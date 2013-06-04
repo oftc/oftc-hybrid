@@ -31,16 +31,16 @@
 
 struct Whowas
 {
-  int hashv;
-  time_t logoff;
-  char name[NICKLEN + 1];
-  char username[USERLEN + 1];
-  char hostname[HOSTLEN + 1];
-  char realname[REALLEN + 1];
-  char servername[HOSTLEN + 1];
+  int           hashv;
+  time_t        logoff;
+  char          name[NICKLEN + 1];
+  char          username[USERLEN + 1];
+  char          hostname[HOSTLEN + 1];
+  char          realname[REALLEN + 1];
+  char          servername[HOSTLEN + 1];
   struct Client *online; /* Pointer to new nickname for chasing or NULL */
-  dlink_node tnode;      /* for hash table...                           */
-  dlink_node cnode;      /* for client struct linked list               */
+  dlink_node    tnode;      /* for hash table...                           */
+  dlink_node    cnode;      /* for client struct linked list               */
 };
 
 /*

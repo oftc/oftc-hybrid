@@ -41,9 +41,9 @@ struct Channel;
 /* Capabilities */
 struct Capability
 {
-  dlink_node node;
-  char *name;       /* name of capability */
-  unsigned int cap; /* mask value         */
+  dlink_node    node;
+  char          *name;       /* name of capability */
+  unsigned int  cap; /* mask value         */
 };
 
 #define CAP_CAP         0x00000001 /* received a CAP to begin with        */

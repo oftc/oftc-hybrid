@@ -30,10 +30,10 @@
 
 /* Type of IO */
 #define  COMM_SELECT_READ    1
-#define  COMM_SELECT_WRITE    2
+#define  COMM_SELECT_WRITE   2
 
 /* How long can comm_select() wait for network events [milliseconds] */
-#define SELECT_DELAY    500
+#define SELECT_DELAY        500
 
 struct Client;
 struct AccessItem;

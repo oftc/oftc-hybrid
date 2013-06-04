@@ -31,11 +31,11 @@
 /*! \brief Watch structure */
 struct Watch
 {
-  dlink_node node; /**< Embedded dlink_node used to link into watchTable */
-  dlink_list watched_by; /**< list of clients that have this
+  dlink_node  node; /**< Embedded dlink_node used to link into watchTable */
+  dlink_list  watched_by; /**< list of clients that have this
                               entry on their watch list */
-  time_t lasttime; /**< last time the client was seen */
-  char nick[NICKLEN + 1]; /**< nick name of the client to watch */
+  time_t      lasttime; /**< last time the client was seen */
+  char        nick[NICKLEN + 1]; /**< nick name of the client to watch */
 };
 
 extern void watch_init(void);

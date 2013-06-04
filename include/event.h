@@ -31,18 +31,17 @@
  */
 #define  MAX_EVENTS  50
 
-
 typedef void EVH(void *);
 
 /* The list of event processes */
 struct ev_entry
 {
-  EVH *func;
-  void *arg;
-  const char *name;
-  time_t frequency;
-  time_t when;
-  int active;
+  EVH         *func;
+  void        *arg;
+  const char  *name;
+  time_t      frequency;
+  time_t      when;
+  int         active;
 };
 
 extern void eventAdd(const char *, EVH *, void *, time_t);

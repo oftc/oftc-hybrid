@@ -57,20 +57,20 @@ typedef struct _fde
    * Yes, this gives us only one pending read and one pending write per
    * filedescriptor. Think though: when do you think we'll need more?
    */
-  int fd;    /* So we can use the fde_t as a callback ptr */
-  int comm_index;  /* where in the poll list we live */
-  int evcache;          /* current fd events as set up by the underlying I/O */
-  char desc[FD_DESC_SZ];
-  PF *read_handler;
-  void *read_data;
-  PF *write_handler;
-  void *write_data;
-  PF *timeout_handler;
-  void *timeout_data;
-  time_t timeout;
-  PF *flush_handler;
-  void *flush_data;
-  time_t flush_timeout;
+  int     fd;    /* So we can use the fde_t as a callback ptr */
+  int     comm_index;  /* where in the poll list we live */
+  int     evcache;          /* current fd events as set up by the underlying I/O */
+  char    desc[FD_DESC_SZ];
+  PF      *read_handler;
+  void    *read_data;
+  PF      *write_handler;
+  void    *write_data;
+  PF      *timeout_handler;
+  void    *timeout_data;
+  time_t  timeout;
+  PF      *flush_handler;
+  void    *flush_data;
+  time_t  flush_timeout;
 
   struct
   {
@@ -86,12 +86,12 @@ typedef struct _fde
     /* We don't need the host here ? */
     struct irc_ssaddr S;
     struct irc_ssaddr hostaddr;
-    CNCB *callback;
-    void *data;
+    CNCB              *callback;
+    void              *data;
     /* We'd also add the retry count here when we get to that -- adrian */
   } connect;
 #ifdef HAVE_LIBCRYPTO
-  SSL *ssl;
+  SSL     *ssl;
 #endif
   struct _fde *hnext;
 } fde_t;

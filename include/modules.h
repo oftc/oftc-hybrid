@@ -32,19 +32,19 @@
 
 struct module
 {
-  dlink_node node;
-  char *name;
-  const char *version;
-  void *handle;
-  void (*modinit)(void);
-  void (*modexit)(void);
-  unsigned int flags;
+  dlink_node    node;
+  char          *name;
+  const char    *version;
+  void          *handle;
+  void          (*modinit)(void);
+  void          (*modexit)(void);
+  unsigned int  flags;
 };
 
 struct module_path
 {
-  dlink_node node;
-  char path[HYB_PATH_MAX + 1];
+  dlink_node  node;
+  char        path[HYB_PATH_MAX + 1];
 };
 
 extern dlink_list modules_list;

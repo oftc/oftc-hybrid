@@ -32,14 +32,14 @@
 
 struct dbuf_block
 {
-  size_t size;
-  char data[DBUF_BLOCK_SIZE];
+  size_t  size;
+  char    data[DBUF_BLOCK_SIZE];
 };
 
 struct dbuf_queue
 {
-  dlink_list blocks;
-  size_t total_size;
+  dlink_list  blocks;
+  size_t      total_size;
 };
 
 extern void dbuf_init(void);

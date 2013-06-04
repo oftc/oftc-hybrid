@@ -34,9 +34,9 @@
 #define MAXMODEPARAMS 4
 
 /* can_send results */
-#define CAN_SEND_NO  0
+#define CAN_SEND_NO     0
 #define CAN_SEND_NONOP  -1
-#define CAN_SEND_OPV  -2
+#define CAN_SEND_OPV    -2
 
 /* Channel related flags */
 #define CHFL_CHANOP     0x0001 /* Channel operator   */
@@ -89,26 +89,26 @@
 
 struct ChModeChange
 {
-  char letter;
-  const char *arg;
-  const char *id;
-  int dir;
-  unsigned int caps;
-  unsigned int nocaps;
-  int mems;
+  char          letter;
+  const char    *arg;
+  const char    *id;
+  int           dir;
+  unsigned int  caps;
+  unsigned int  nocaps;
+  int           mems;
   struct Client *client;
 };
 
 struct ChCapCombo
 {
-  int count;
-  unsigned int cap_yes;
-  unsigned int cap_no;
+  int           count;
+  unsigned int  cap_yes;
+  unsigned int  cap_no;
 };
 
 struct mode_letter
 {
-  const unsigned int mode;
+  const unsigned int  mode;
   const unsigned char letter;
 };
 

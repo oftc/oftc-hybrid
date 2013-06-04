@@ -58,22 +58,22 @@
 #define AUTOMODPATH MODPATH "/autoload/"
 #define ETCPATH     SYSCONFDIR
 
-#define  LOGPATH      LOCALSTATEDIR "/log"
-#define RUNPATH           LOCALSTATEDIR "/run"
+#define LOGPATH     LOCALSTATEDIR "/log"
+#define RUNPATH     LOCALSTATEDIR "/run"
 
 /* files */
-#define SPATH   SBINPATH "/ircd"                /* ircd executable */
-#define CPATH   ETCPATH "/ircd.conf"            /* ircd.conf file */
-#define KPATH   ETCPATH "/kline.conf"           /* kline file */
+#define SPATH       SBINPATH "/ircd"                /* ircd executable */
+#define CPATH       ETCPATH "/ircd.conf"            /* ircd.conf file */
+#define KPATH       ETCPATH "/kline.conf"           /* kline file */
 #define CRESVPATH   ETCPATH "/cresv.conf"       /* channel resvs file */
 #define NRESVPATH   ETCPATH "/nresv.conf"       /* nick resvs file */
-#define DLPATH  ETCPATH "/dline.conf"           /* dline file */
-#define XPATH   ETCPATH "/xline.conf"           /* xline file */
-#define MPATH   ETCPATH "/ircd.motd"            /* MOTD file */
-#define LPATH   LOGPATH "/ircd.log"             /* ircd logfile */
-#define OFTCLOG LOGPATH "/oftc.log"
-#define PPATH   RUNPATH "/ircd.pid"             /* pid file */
-#define LIPATH  ETCPATH "/links.txt"            /* cached links file */
+#define DLPATH      ETCPATH "/dline.conf"           /* dline file */
+#define XPATH       ETCPATH "/xline.conf"           /* xline file */
+#define MPATH       ETCPATH "/ircd.motd"            /* MOTD file */
+#define LPATH       LOGPATH "/ircd.log"             /* ircd logfile */
+#define OFTCLOG     LOGPATH "/oftc.log"
+#define PPATH       RUNPATH "/ircd.pid"             /* pid file */
+#define LIPATH      ETCPATH "/links.txt"            /* cached links file */
 
 /*
  * This file is included to supply default values for things which
@@ -81,7 +81,7 @@
  */
 
 #define HYBRID_SOMAXCONN 25
-#define MAX_TDKLINE_TIME  (24*60*360)
+#define MAX_TDKLINE_TIME (24*60*360)
 
 /* tests show that about 7 fds are not registered by fdlist.c, these
  * include std* descriptors + some others (by OpenSSL etc.). Note this is
@@ -94,44 +94,44 @@
 #define MAXCLIENTS_MIN   32
 
 /* class {} default values */
-#define DEFAULT_SENDQ 9000000           /* default max SendQ */
-#define DEFAULT_RECVQ 2560           /* default max RecvQ */
-#define PORTNUM 6667                    /* default outgoing portnum */
-#define DEFAULT_PINGFREQUENCY    120    /* Default ping frequency */
-#define DEFAULT_CONNECTFREQUENCY 600    /* Default connect frequency */
-#define CLIENT_FLOOD_MAX     8000
-#define CLIENT_FLOOD_MIN     512
+#define DEFAULT_SENDQ             9000000 /* default max SendQ */
+#define DEFAULT_RECVQ             2560    /* default max RecvQ */
+#define PORTNUM                   6667    /* default outgoing portnum */
+#define DEFAULT_PINGFREQUENCY     120     /* Default ping frequency */
+#define DEFAULT_CONNECTFREQUENCY  600     /* Default connect frequency */
+#define CLIENT_FLOOD_MAX          8000
+#define CLIENT_FLOOD_MIN          512
 
-#define WATCHSIZE_MIN 1
-#define WATCHSIZE_DEFAULT 32
-#define TS_MAX_DELTA_MIN      10        /* min value for ts_max_delta */
-#define TS_MAX_DELTA_DEFAULT  600       /* default for ts_max_delta */
-#define TS_WARN_DELTA_MIN     10        /* min value for ts_warn_delta */
-#define TS_WARN_DELTA_DEFAULT 30        /* default for ts_warn_delta */
+#define WATCHSIZE_MIN             1
+#define WATCHSIZE_DEFAULT         32
+#define TS_MAX_DELTA_MIN          10      /* min value for ts_max_delta */
+#define TS_MAX_DELTA_DEFAULT      600     /* default for ts_max_delta */
+#define TS_WARN_DELTA_MIN         10      /* min value for ts_warn_delta */
+#define TS_WARN_DELTA_DEFAULT     30      /* default for ts_warn_delta */
 
 /* ServerInfo default values */
-#define NETWORK_NAME_DEFAULT "EFnet"             /* default for network_name */
-#define NETWORK_DESC_DEFAULT "Eris Free Network" /* default for network_desc */
-#define SERVICE_NAME_DEFAULT "service.someserver"
+#define NETWORK_NAME_DEFAULT      "EFnet"             /* default for network_name */
+#define NETWORK_DESC_DEFAULT      "Eris Free Network" /* default for network_desc */
+#define SERVICE_NAME_DEFAULT      "service.someserver"
 
 /* General defaults */
-#define MAXIMUM_LINKS_DEFAULT 0         /* default for maximum_links */
+#define MAXIMUM_LINKS_DEFAULT         0         /* default for maximum_links */
 
-#define LINKS_DELAY_DEFAULT  300
+#define LINKS_DELAY_DEFAULT           300
 
-#define MAX_TARGETS_DEFAULT 4           /* default for max_targets */
+#define MAX_TARGETS_DEFAULT           4         /* default for max_targets */
 
-#define INIT_LOG_LEVEL L_NOTICE         /* default for log_level */
+#define INIT_LOG_LEVEL                L_NOTICE  /* default for log_level */
 
-#define CONNECTTIMEOUT  30      /* Recommended value: 30 */
-#define IDENT_TIMEOUT 10
+#define CONNECTTIMEOUT                30        /* Recommended value: 30 */
+#define IDENT_TIMEOUT                 10
 
-#define MIN_JOIN_LEAVE_TIME  60
-#define MAX_JOIN_LEAVE_COUNT  25
-#define OPER_SPAM_COUNTDOWN   5
-#define JOIN_LEAVE_COUNT_EXPIRE_TIME 120
+#define MIN_JOIN_LEAVE_TIME           60
+#define MAX_JOIN_LEAVE_COUNT          25
+#define OPER_SPAM_COUNTDOWN           5
+#define JOIN_LEAVE_COUNT_EXPIRE_TIME  120
 
-#define MIN_SPAM_NUM 5
-#define MIN_SPAM_TIME 60
+#define MIN_SPAM_NUM                  5
+#define MIN_SPAM_TIME                 60
 
 #endif /* INCLUDED_defaults_h */

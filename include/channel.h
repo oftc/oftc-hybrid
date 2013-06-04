@@ -34,65 +34,65 @@ struct Client;
 /*! \brief Mode structure for channels */
 struct Mode
 {
-  unsigned int mode;   /*!< simple modes */
-  unsigned int limit;  /*!< +l userlimit */
-  char key[KEYLEN + 1];    /*!< +k key */
+  unsigned int  mode;             /*!< simple modes */
+  unsigned int  limit;            /*!< +l userlimit */
+  char          key[KEYLEN + 1];  /*!< +k key */
 };
 
 /*! \brief Channel structure */
 struct Channel
 {
-  dlink_node node;
+  dlink_node      node;
 
-  struct Channel *hnextch;
-  struct Mode mode;
+  struct Channel  *hnextch;
+  struct Mode     mode;
 
-  char topic[TOPICLEN + 1];
-  char topic_info[USERHOST_REPLYLEN];
+  char            topic[TOPICLEN + 1];
+  char            topic_info[USERHOST_REPLYLEN];
 
-  time_t channelts;
-  time_t topic_time;
-  time_t last_knock; /*!< don't allow knock to flood */
-  time_t last_join_time;
-  time_t first_received_message_time; /*!< channel flood control */
-  unsigned int flags;
-  int received_number_of_privmsgs;
+  time_t          channelts;
+  time_t          topic_time;
+  time_t          last_knock;                   /*!< don't allow knock to flood */
+  time_t          last_join_time;
+  time_t          first_received_message_time;  /*!< channel flood control */
+  unsigned int    flags;
+  int             received_number_of_privmsgs;
 
-  dlink_list members;
-  dlink_list invites;
-  dlink_list banlist;
-  dlink_list exceptlist;
-  dlink_list invexlist;
-  dlink_list quietlist;
+  dlink_list      members;
+  dlink_list      invites;
+  dlink_list      banlist;
+  dlink_list      exceptlist;
+  dlink_list      invexlist;
+  dlink_list      quietlist;
 
-  float number_joined;
+  float           number_joined;
 
-  char chname[CHANNELLEN + 1];
+  char            chname[CHANNELLEN + 1];
 };
 
 /*! \brief Membership structure */
 struct Membership
 {
-  dlink_node channode;     /*!< link to chptr->members    */
-  dlink_node usernode;     /*!< link to source_p->channel */
-  struct Channel *chptr;   /*!< Channel pointer */
-  struct Client *client_p; /*!< Client pointer */
-  unsigned int flags;      /*!< user/channel flags, e.g. CHFL_CHANOP */
+  dlink_node      channode;     /*!< link to chptr->members    */
+  dlink_node      usernode;     /*!< link to source_p->channel */
+  struct Channel  *chptr;       /*!< Channel pointer */
+  struct Client   *client_p;    /*!< Client pointer */
+  unsigned int    flags;        /*!< user/channel flags, e.g. CHFL_CHANOP */
 };
 
 /*! \brief Ban structure.  Used for b/e/I n!u\@h masks */
 struct Ban
 {
-  dlink_node node;
-  char *name;
-  char *username;
-  char *host;
-  char *who;
-  size_t len;
-  time_t when;
+  dlink_node        node;
+  char              *name;
+  char              *username;
+  char              *host;
+  char              *who;
+  size_t            len;
+  time_t            when;
   struct irc_ssaddr addr;
-  int bits;
-  char type;
+  int               bits;
+  char              type;
 };
 
 extern dlink_list global_channel_list;
@@ -135,7 +135,7 @@ extern char *strip_color(const char *);
 #define AddMemberFlag(x, y) ((x)->flags |=  (y))
 #define DelMemberFlag(x, y) ((x)->flags &= ~(y))
 
-#define FLOOD_NOTICED    1
+#define FLOOD_NOTICED       1
 #define JOIN_FLOOD_NOTICED  2
 
 #define SetFloodNoticed(x)   ((x)->flags |= FLOOD_NOTICED)

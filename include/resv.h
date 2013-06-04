@@ -27,14 +27,14 @@
 
 struct ResvChannel
 {
-  dlink_node node;
-  struct ResvChannel *hnext;
-  time_t hold;          /* Hold action until this time (calendar time) */
+  dlink_node          node;
+  struct ResvChannel  *hnext;
+  time_t              hold;          /* Hold action until this time (calendar time) */
   /* +1 for \0 */
-  char name[CHANNELLEN + 1];
-  char *reason;
-  int  conf;    /* 1 if set from ircd.conf, 0 if from elsewhere */
-  int count; /* How many times this item has been matched */
+  char                name[CHANNELLEN + 1];
+  char                *reason;
+  int                 conf;    /* 1 if set from ircd.conf, 0 if from elsewhere */
+  int                 count; /* How many times this item has been matched */
 };
 
 extern dlink_list nresv_items;

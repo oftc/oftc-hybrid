@@ -76,16 +76,16 @@ extern struct ServerStatistics ServerStats;
 
 struct Counter
 {
-  uint64_t totalrestartcount; /* Total client count ever */
-  unsigned int myserver;      /* my servers          */
-  unsigned int oper;          /* Opers               */
-  unsigned int local;         /* Local Clients       */
-  unsigned int total;         /* total clients       */
-  unsigned int invisi;        /* invisible clients   */
-  unsigned int max_loc;       /* MAX local clients   */
-  unsigned int max_tot;       /* MAX global clients  */
-  unsigned int max_loc_con;   /* MAX local connection count (clients + server) */
-  unsigned int max_loc_cli;   /* XXX This is redundant - Max local client count */
+  uint64_t      totalrestartcount;  /* Total client count ever */
+  unsigned int  myserver;           /* my servers          */
+  unsigned int  oper;               /* Opers               */
+  unsigned int  local;              /* Local Clients       */
+  unsigned int  total;              /* total clients       */
+  unsigned int  invisi;             /* invisible clients   */
+  unsigned int  max_loc;            /* MAX local clients   */
+  unsigned int  max_tot;            /* MAX global clients  */
+  unsigned int  max_loc_con;        /* MAX local connection count (clients + server) */
+  unsigned int  max_loc_cli;        /* XXX This is redundant - Max local client count */
 };
 
 extern struct SetOptions GlobalSetOptions; /* defined in ircd.c */
