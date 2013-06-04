@@ -80,13 +80,13 @@ static struct Message time_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&time_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&time_msgtab);
 }

@@ -43,7 +43,7 @@ extern struct Callback *iosend_cb;
 
 extern void sendq_unblocked(fde_t *, struct Client *);
 extern void send_queued_write(struct Client *);
-extern void send_queued_all(void);
+extern void send_queued_all();
 extern void sendto_one(struct Client *, const char *, ...) AFP(2, 3);
 extern void sendto_channel_butone(struct Client *, struct Client *,
                                   struct Channel *, unsigned int,

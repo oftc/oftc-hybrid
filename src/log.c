@@ -50,7 +50,7 @@ log_set_file(enum log_type type, size_t size, const char *path)
 }
 
 void
-log_del_all(void)
+log_del_all()
 {
   unsigned int type = 0;
 
@@ -59,7 +59,7 @@ log_del_all(void)
 }
 
 void
-log_reopen_all(void)
+log_reopen_all()
 {
   unsigned int type = 0;
 

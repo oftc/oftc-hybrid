@@ -147,14 +147,14 @@ eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_ish)
 }
 
 /*
- * void eventRun(void)
+ * void eventRun()
  *
  * Input: None
  * Output: None
  * Side Effects: Runs pending events in the event list
  */
 void
-eventRun(void)
+eventRun()
 {
   int i;
 
@@ -171,14 +171,14 @@ eventRun(void)
 }
 
 /*
- * time_t eventNextTime(void)
+ * time_t eventNextTime()
  *
  * Input: None
  * Output: Specifies the next time eventRun() should be run
  * Side Effects: None
  */
 time_t
-eventNextTime(void)
+eventNextTime()
 {
   int i;
 
@@ -196,14 +196,14 @@ eventNextTime(void)
 }
 
 /*
- * void eventInit(void)
+ * void eventInit()
  *
  * Input: None
  * Output: None
  * Side Effects: Initializes the event system.
  */
 void
-eventInit(void)
+eventInit()
 {
   last_event_ran = NULL;
   memset(event_table, 0, sizeof(event_table));

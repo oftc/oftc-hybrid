@@ -64,7 +64,7 @@ static void report_and_set_user_flags(struct Client *,
                                       const struct AccessItem *);
 static int check_xline(struct Client *);
 static void introduce_client(struct Client *);
-static const char *uid_get(void);
+static const char *uid_get();
 
 /* Used for building up the isupport string,
  * used with init_isupport, add_isupport, delete_isupport
@@ -156,7 +156,7 @@ unsigned int user_modes[256] =
 };
 
 void
-assemble_umode_buffer(void)
+assemble_umode_buffer()
 {
   unsigned int idx = 0;
   char *umode_buffer_ptr = umode_buffer;
@@ -1321,7 +1321,7 @@ valid_sid(const char *sid)
  *            Rest is filled in with 'A'
  */
 void
-init_uid(void)
+init_uid()
 {
   int i;
 
@@ -1386,7 +1386,7 @@ add_one_to_uid(int i)
  * side effects - new_uid is incremented by one.
  */
 static const char *
-uid_get(void)
+uid_get()
 {
   add_one_to_uid(TOTALSIDUID - 1);    /* index from 0 */
   return new_uid;
@@ -1400,7 +1400,7 @@ uid_get(void)
  * side effects  - Must be called before isupport is enabled
  */
 void
-init_isupport(void)
+init_isupport()
 {
   isupportFile = init_MessageLine();
 
@@ -1499,7 +1499,7 @@ delete_isupport(const char *name)
  * side effects  - Destroy the isupport MessageFile lines, and rebuild.
  */
 void
-rebuild_isupport_message_line(void)
+rebuild_isupport_message_line()
 {
   char isupportbuffer[IRCD_BUFSIZE];
   char *p = isupportbuffer;

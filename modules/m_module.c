@@ -244,13 +244,13 @@ static struct Message module_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&module_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&module_msgtab);
 }

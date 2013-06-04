@@ -226,7 +226,7 @@ timeout_resolver(void *notused)
  * and initialize the resolver file descriptor if needed
  */
 static void
-start_resolver(void)
+start_resolver()
 {
   irc_res_init();
 
@@ -253,7 +253,7 @@ start_resolver(void)
  * init_resolver - initialize resolver and resolver library
  */
 void
-init_resolver(void)
+init_resolver()
 {
 #ifdef HAVE_SRAND48
   srand48(CurrentTime);
@@ -267,7 +267,7 @@ init_resolver(void)
  * restart_resolver - reread resolv.conf, reopen socket
  */
 void
-restart_resolver(void)
+restart_resolver()
 {
   fd_close(&ResolverFileDescriptor);
   eventDelete(timeout_resolver, NULL); /* -ddosen */

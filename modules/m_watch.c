@@ -247,14 +247,14 @@ static struct Message watch_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&watch_msgtab);
   add_isupport("WATCH", NULL, ConfigFileEntry.max_watch);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&watch_msgtab);
   delete_isupport("WATCH");

@@ -72,7 +72,7 @@ static dlink_list abort_list = { NULL, NULL, 0};
 static dlink_node *eac_next;  /* next aborted client to exit */
 
 static void check_pings_list(dlink_list *);
-static void check_unknowns_list(void);
+static void check_unknowns_list();
 static void ban_them(struct Client *, struct ConfItem *);
 
 
@@ -83,7 +83,7 @@ static void ban_them(struct Client *, struct ConfItem *);
  * side effects  - initialize client free memory
  */
 void
-init_client(void)
+init_client()
 {
   /* start off the check ping event ..  -- adrian
    * Every 30 seconds is plenty -- db
@@ -332,7 +332,7 @@ check_pings_list(dlink_list *list)
  * side effects - unknown clients get marked for termination after n seconds
  */
 static void
-check_unknowns_list(void)
+check_unknowns_list()
 {
   dlink_node *ptr, *next_ptr;
 
@@ -358,7 +358,7 @@ check_unknowns_list(void)
  *       client, exit the client if a kline matches.
  */
 void
-check_conf_klines(void)
+check_conf_klines()
 {
   struct Client *client_p =
         NULL;       /* current local client_p being examined */
@@ -665,7 +665,7 @@ get_client_name(const struct Client *client, enum addr_mask_type type)
 }
 
 void
-free_exited_clients(void)
+free_exited_clients()
 {
   dlink_node *ptr = NULL, *next = NULL;
 
@@ -1127,7 +1127,7 @@ dead_link_on_read(struct Client *client_p, int error)
 }
 
 void
-exit_aborted_clients(void)
+exit_aborted_clients()
 {
   dlink_node *ptr;
   struct Client *target_p;

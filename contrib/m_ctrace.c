@@ -179,13 +179,13 @@ static struct Message ctrace_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&ctrace_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&ctrace_msgtab);
 }

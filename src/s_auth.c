@@ -94,7 +94,7 @@ struct Callback *auth_cb = NULL;
  * Initialise the auth code
  */
 void
-init_auth(void)
+init_auth()
 {
   auth_heap = BlockHeapCreate("auth", sizeof(struct AuthRequest), AUTH_HEAP_SIZE);
   auth_cb = register_callback("start_auth", start_auth);

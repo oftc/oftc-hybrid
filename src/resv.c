@@ -115,7 +115,7 @@ create_nick_resv(char *name, char *reason, int in_conf)
  * side effects  - All resvs are cleared out
  */
 void
-clear_conf_resv(void)
+clear_conf_resv()
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
 

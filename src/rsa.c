@@ -42,7 +42,7 @@
  * report_crypto_errors - Dump crypto error list to log
  */
 void
-report_crypto_errors(void)
+report_crypto_errors()
 {
   unsigned long e = 0;
 

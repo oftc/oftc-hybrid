@@ -197,13 +197,13 @@ static struct Message svsmode_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&svsmode_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&svsmode_msgtab);
 }

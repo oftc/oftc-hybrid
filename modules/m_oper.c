@@ -141,13 +141,13 @@ static struct Message oper_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&oper_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&oper_msgtab);
 }

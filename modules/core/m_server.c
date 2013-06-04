@@ -556,14 +556,14 @@ static struct Message sid_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&sid_msgtab);
   mod_add_cmd(&server_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&sid_msgtab);
   mod_del_cmd(&server_msgtab);

@@ -317,14 +317,14 @@ static struct Message forcepart_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&forcejoin_msgtab);
   mod_add_cmd(&forcepart_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&forcejoin_msgtab);
   mod_del_cmd(&forcepart_msgtab);

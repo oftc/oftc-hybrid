@@ -408,7 +408,7 @@ h_set_user_mode(va_list args)
 }
 
 static void
-module_init(void)
+module_init()
 {
   if (!user_modes['h'])
   {
@@ -445,7 +445,7 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   if (umode_vhost)
   {

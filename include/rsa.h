@@ -25,7 +25,7 @@
 #define INCLUDED_rsa_h
 
 #ifdef HAVE_LIBCRYPTO
-extern void report_crypto_errors(void);
+extern void report_crypto_errors();
 extern int generate_challenge(char **, char **, RSA *);
 extern int get_randomness(unsigned char *, int);
 #endif

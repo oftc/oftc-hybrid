@@ -51,7 +51,7 @@ static int pollmax = -1;  /* highest FD number */
  * the network loop code.
  */
 void
-init_netio(void)
+init_netio()
 {
   int fd;
 
@@ -66,7 +66,7 @@ init_netio(void)
  *   -- adrian
  */
 static inline int
-poll_findslot(void)
+poll_findslot()
 {
   int i;
 
@@ -152,7 +152,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
  * events.
  */
 void
-comm_select(void)
+comm_select()
 {
   int num, ci, revents;
   PF *hdl;

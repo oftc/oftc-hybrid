@@ -39,7 +39,7 @@ struct NumericInfo
  */
 extern const char *form_str(int);
 extern void set_locale(const char *);
-extern const char *get_locale(void);
+extern const char *get_locale();
 
 /*
  * Reserve numerics 000-099 for server-client connections where the client

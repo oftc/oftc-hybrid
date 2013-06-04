@@ -1023,14 +1023,14 @@ static struct Message uid_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&uid_msgtab);
   mod_add_cmd(&nick_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&uid_msgtab);
   mod_del_cmd(&nick_msgtab);

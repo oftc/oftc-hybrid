@@ -56,7 +56,7 @@ struct AuthRequest
 
 extern struct Callback *auth_cb;
 
-extern void init_auth(void);
+extern void init_auth();
 extern void send_auth_query(struct AuthRequest *);
 extern void remove_auth_request(struct AuthRequest *);
 extern void delete_auth(struct AuthRequest *);

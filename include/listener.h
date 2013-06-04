@@ -47,7 +47,7 @@ struct Listener
 };
 
 extern void add_listener(int, const char *, unsigned int);
-extern void close_listeners(void);
+extern void close_listeners();
 extern const char *get_listener_name(const struct Listener *const);
 extern void show_ports(struct Client *);
 extern void free_listener(struct Listener *);

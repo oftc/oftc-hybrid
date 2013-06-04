@@ -356,13 +356,13 @@ static struct Message restart_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&restart_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&restart_msgtab);
 }

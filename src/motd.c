@@ -215,7 +215,7 @@ read_message_file(MessageFile *MessageFileptr)
  */
 
 MessageFile *
-init_MessageLine(void)
+init_MessageLine()
 {
   MessageFile *mf;
   MessageFileLine *mptr = NULL;

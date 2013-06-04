@@ -36,7 +36,7 @@ static BlockHeap *dnode_heap;
  * side effects - initializes the dnode BlockHeap
  */
 void
-init_dlink_nodes(void)
+init_dlink_nodes()
 {
   dnode_heap = BlockHeapCreate("dlink node", sizeof(dlink_node), DNODE_HEAP_SIZE);
 }
@@ -48,7 +48,7 @@ init_dlink_nodes(void)
  * side effects  - NONE
  */
 dlink_node *
-make_dlink_node(void)
+make_dlink_node()
 {
   dlink_node *lp = BlockHeapAlloc(dnode_heap);
 

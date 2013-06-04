@@ -181,7 +181,7 @@ add_nameserver(const char *arg)
  * side effects - fills in irc_nsaddr_list
  */
 static void
-parse_resvconf(void)
+parse_resvconf()
 {
   char *p;
   char *opt;
@@ -243,7 +243,7 @@ parse_resvconf(void)
 }
 
 void
-irc_res_init(void)
+irc_res_init()
 {
   irc_nscount = 0;
   memset(irc_nsaddr_list, 0, sizeof(irc_nsaddr_list));
@@ -475,7 +475,7 @@ irc_ns_name_ntop(const unsigned char *src, char *dst, size_t dstsiz)
       continue;
     }
 
-    for ((void)NULL; l > 0; l--)
+    for (; l > 0; l--)
     {
       c = *cp++;
 
@@ -981,8 +981,9 @@ irc_ns_name_pack(const unsigned char *src, unsigned char *dst, int dstsiz,
   {
     if ((msg = *dnptrs++) != NULL)
     {
-      for (cpp = dnptrs; *cpp != NULL; cpp++)
-        (void)NULL;
+      cpp = dnptrs;
+      while (*cpp != NULL)
+        cpp++;
 
       lpp = cpp;  /* end of list to search */
     }
@@ -1285,7 +1286,7 @@ irc_dn_find(const unsigned char *domain, const unsigned char *msg,
             if (n != *dn++)
               goto next;
 
-            for ((void)NULL; n > 0; n--)
+            for (; n > 0; n--)
               if (mklower(*dn++) !=
                   mklower(*cp++))
                 goto next;

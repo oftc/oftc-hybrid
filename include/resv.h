@@ -45,7 +45,7 @@ extern struct ConfItem *create_nick_resv(char *, char *, int);
 
 extern int delete_channel_resv(struct ResvChannel *);
 
-extern void clear_conf_resv(void);
+extern void clear_conf_resv();
 extern void report_resv(struct Client *);
 
 extern int valid_wild_card_simple(const char *);

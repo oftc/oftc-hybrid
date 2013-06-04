@@ -175,7 +175,7 @@ load_a_module(const char *path, int warn)
  * side effects  - The basic module manipulation modules are loaded
  */
 void
-modules_init(void)
+modules_init()
 {
   if (lt_dlinit())
   {
@@ -251,7 +251,7 @@ add_conf_module(const char *name)
  * side effects - clear the lists of paths and conf modules
  */
 void
-mod_clear_paths(void)
+mod_clear_paths()
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
@@ -332,7 +332,7 @@ load_all_modules(int warn)
  * side effects - load modules given in ircd.conf
  */
 void
-load_conf_modules(void)
+load_conf_modules()
 {
   dlink_node *ptr = NULL;
 

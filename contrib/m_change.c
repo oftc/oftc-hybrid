@@ -247,7 +247,7 @@ static struct Message chgname_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&chgident_msgtab);
   mod_add_cmd(&chghost_msgtab);
@@ -255,7 +255,7 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&chgname_msgtab);
   mod_del_cmd(&chghost_msgtab);

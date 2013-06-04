@@ -296,13 +296,13 @@ static struct Message connect_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&connect_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&connect_msgtab);
 }

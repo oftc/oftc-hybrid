@@ -130,13 +130,13 @@ static struct Message opme_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&opme_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&opme_msgtab);
 }

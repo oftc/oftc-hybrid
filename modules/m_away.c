@@ -122,14 +122,14 @@ static struct Message away_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&away_msgtab);
   add_isupport("AWAYLEN", NULL, AWAYLEN);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&away_msgtab);
   delete_isupport("AWAYLEN");

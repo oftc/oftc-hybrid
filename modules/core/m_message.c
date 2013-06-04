@@ -953,14 +953,14 @@ static struct Message notice_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&privmsg_msgtab);
   mod_add_cmd(&notice_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&privmsg_msgtab);
   mod_del_cmd(&notice_msgtab);

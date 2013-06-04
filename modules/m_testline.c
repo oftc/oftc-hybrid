@@ -247,14 +247,14 @@ struct Message testgecos_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&testline_msgtab);
   mod_add_cmd(&testgecos_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&testline_msgtab);
   mod_del_cmd(&testgecos_msgtab);

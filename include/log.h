@@ -41,8 +41,8 @@ enum log_type
 };
 
 extern void log_set_file(enum log_type, size_t, const char *);
-extern void log_del_all(void);
-extern void log_reopen_all(void);
+extern void log_del_all();
+extern void log_reopen_all();
 extern void ilog(enum log_type, const char *, ...) AFP(2, 3);
 
 #endif /* INCLUDED_s_log_h */

@@ -60,13 +60,13 @@ struct Message log_msgtab =
 };
 
 void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&log_msgtab);
 }
 
 void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&log_msgtab);
 }

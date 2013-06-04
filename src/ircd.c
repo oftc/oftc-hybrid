@@ -120,7 +120,7 @@ print_startup(int pid)
 }
 
 static void
-make_daemon(void)
+make_daemon()
 {
   int pid;
 
@@ -179,7 +179,7 @@ static struct lgetopt myopts[] =
 };
 
 void
-set_time(void)
+set_time()
 {
   static char to_send[200];
   struct timeval newtime;
@@ -210,7 +210,7 @@ set_time(void)
 }
 
 static void
-io_loop(void)
+io_loop()
 {
   while (1 == 1)
   {
@@ -274,7 +274,7 @@ io_loop(void)
  * side effects - This sets all global set options needed
  */
 static void
-initialize_global_set_options(void)
+initialize_global_set_options()
 {
   memset(&GlobalSetOptions, 0, sizeof(GlobalSetOptions));
 
@@ -312,7 +312,7 @@ initialize_global_set_options(void)
  * side effects - Set up all message files needed, motd etc.
  */
 static void
-initialize_message_files(void)
+initialize_message_files()
 {
   init_message_file(USER_MOTD, MPATH, &ConfigFileEntry.motd);
   init_message_file(USER_LINKS, LIPATH, &ConfigFileEntry.linksfile);
@@ -329,7 +329,7 @@ initialize_message_files(void)
  * output       - none
  */
 static void
-initialize_server_capabs(void)
+initialize_server_capabs()
 {
   add_capability("QS", CAP_QS, 1);
   add_capability("EOB", CAP_EOB, 1);
@@ -423,7 +423,7 @@ check_pidfile(const char *filename)
  * -kre
  */
 static void
-setup_corefile(void)
+setup_corefile()
 {
 #ifdef HAVE_SYS_RESOURCE_H
   struct rlimit rlim; /* resource limits */
@@ -453,7 +453,7 @@ always_accept_verify_cb(int preverify_ok, X509_STORE_CTX *x509_ctx)
  * side effects - setups SSL context.
  */
 static void
-init_ssl(void)
+init_ssl()
 {
 #ifdef HAVE_LIBCRYPTO
   SSL_load_error_strings();
@@ -501,7 +501,7 @@ init_ssl(void)
  * side effects - setups standard hook points
  */
 static void
-init_callbacks(void)
+init_callbacks()
 {
   iorecv_cb = register_callback("iorecv", iorecv_default);
   iosend_cb = register_callback("iosend", iosend_default);

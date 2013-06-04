@@ -95,13 +95,13 @@ static struct Message error_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&error_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&error_msgtab);
 }

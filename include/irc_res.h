@@ -75,8 +75,8 @@ typedef struct
 typedef void (*dns_callback_fnc)(void *, const struct irc_ssaddr *,
                                  const char *);
 
-extern void init_resolver(void);
-extern void restart_resolver(void);
+extern void init_resolver();
+extern void restart_resolver();
 extern void delete_resolver_queries(const void *);
 extern void report_dns_servers(struct Client *);
 extern void gethost_byname_type(dns_callback_fnc , void *, const char *, int);

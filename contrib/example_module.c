@@ -206,7 +206,7 @@ static struct Message test_msgtab =
 
 /* Here we tell it what to do when the module is loaded */
 static void
-module_init(void)
+module_init()
 {
   /* This will add the commands in test_msgtab (which is above) */
   mod_add_cmd(&test_msgtab);
@@ -214,7 +214,7 @@ module_init(void)
 
 /* here we tell it what to do when the module is unloaded */
 static void
-module_exit(void)
+module_exit()
 {
   /* This will remove the commands in test_msgtab (which is above) */
   mod_del_cmd(&test_msgtab);

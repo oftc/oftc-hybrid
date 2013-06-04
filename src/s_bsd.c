@@ -67,7 +67,7 @@ static PF comm_connect_tryconnect;
  *  Check if the system can open AF_INET6 sockets
  */
 void
-check_can_use_v6(void)
+check_can_use_v6()
 {
 #ifdef IPV6
   int v6;
@@ -167,7 +167,7 @@ setup_socket(va_list args)
  * Initializes comm subsystem.
  */
 void
-init_comm(void)
+init_comm()
 {
   setup_socket_cb = register_callback("setup_socket", setup_socket);
   init_netio();

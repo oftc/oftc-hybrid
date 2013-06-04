@@ -62,13 +62,13 @@ struct Message certfp_msgtab =
   {m_ignore, m_ignore, ms_certfp, m_ignore}
 };
 
-void module_init(void)
+void module_init()
 {
   mod_add_cmd(&certfp_msgtab);
 }
 
 void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&certfp_msgtab);
 }

@@ -302,7 +302,7 @@ static struct Message bmask_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&mode_msgtab);
   mod_add_cmd(&tmode_msgtab);
@@ -310,7 +310,7 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&mode_msgtab);
   mod_del_cmd(&tmode_msgtab);

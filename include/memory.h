@@ -29,7 +29,7 @@
 #include "balloc.h"
 #include "config.h"
 
-extern void outofmemory(void);
+extern void outofmemory();
 
 extern void *MyMalloc(size_t);
 extern void *MyRealloc(void *, size_t);

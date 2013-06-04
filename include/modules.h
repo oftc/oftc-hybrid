@@ -36,8 +36,8 @@ struct module
   char          *name;
   const char    *version;
   void          *handle;
-  void          (*modinit)(void);
-  void          (*modexit)(void);
+  void          (*modinit)();
+  void          (*modexit)();
   unsigned int  flags;
 };
 
@@ -51,7 +51,7 @@ extern dlink_list modules_list;
 
 /* add a path */
 extern void mod_add_path(const char *);
-extern void mod_clear_paths(void);
+extern void mod_clear_paths();
 
 /* load all modules */
 extern void load_all_modules(int);
@@ -62,14 +62,14 @@ extern void load_core_modules(int);
 /* Add this module to list of modules to be loaded from conf */
 extern void add_conf_module(const char *);
 /* load all modules listed in conf */
-extern void load_conf_modules(void);
-extern void modules_init(void);
+extern void load_conf_modules();
+extern void modules_init();
 
 extern int unload_one_module(const char *, int);
 extern int modules_valid_suffix(const char *);
 extern int load_one_module(const char *);
 extern int load_a_module(const char *, int);
 extern struct module *findmodule_byname(const char *);
-extern void modules_init(void);
+extern void modules_init();
 
 #endif /* INCLUDED_modules_h */

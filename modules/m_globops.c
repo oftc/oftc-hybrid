@@ -91,13 +91,13 @@ static struct Message globops_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&globops_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&globops_msgtab);
 }

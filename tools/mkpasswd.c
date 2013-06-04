@@ -39,7 +39,7 @@ static char *make_sha256_salt(int);
 static char *make_sha256_salt_para(const char *);
 static char *make_sha512_salt(int);
 static char *make_sha512_salt_para(const char *);
-static char *make_des_salt(void);
+static char *make_des_salt();
 static char *make_ext_salt(int);
 static char *make_ext_salt_para(int, const char *);
 static char *make_md5_salt(int);
@@ -49,8 +49,8 @@ static char *make_bf_salt_para(int, const char *);
 static char *int_to_base64(int);
 static char *generate_random_salt(char *, int);
 static char *generate_poor_salt(char *, int);
-static void full_usage(void);
-static void brief_usage(void);
+static void full_usage();
+static void brief_usage();
 
 static const char saltChars[] =
   "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -239,7 +239,7 @@ main(int argc, char *argv[])
 }
 
 static char *
-make_des_salt(void)
+make_des_salt()
 {
   static char salt[3];
 
@@ -511,7 +511,7 @@ generate_random_salt(char *salt, int length)
 }
 
 static void
-full_usage(void)
+full_usage()
 {
   printf("mkpasswd [-5|-6|-m|-d|-b|-e] [-l saltlength] [-r rounds] [-s salt] [-p plaintext]\n");
   printf("         [-R rawsalt]\n");
@@ -534,7 +534,7 @@ full_usage(void)
 }
 
 static void
-brief_usage(void)
+brief_usage()
 {
   printf("mkpasswd - password hash generator\n");
   printf("Standard DES:  mkpasswd [-d] [-s salt] [-p plaintext]\n");

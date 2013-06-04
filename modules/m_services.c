@@ -397,7 +397,7 @@ static struct Message identify_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&botserv_msgtab);
   mod_add_cmd(&chanserv_msgtab);
@@ -419,7 +419,7 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&botserv_msgtab);
   mod_del_cmd(&chanserv_msgtab);

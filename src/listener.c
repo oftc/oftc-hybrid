@@ -343,7 +343,7 @@ close_listener(struct Listener *listener)
  * close_listeners - close and free all listeners that are not being used
  */
 void
-close_listeners(void)
+close_listeners()
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
 

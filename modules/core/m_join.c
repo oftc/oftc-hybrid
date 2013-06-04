@@ -697,13 +697,13 @@ static struct Message join_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&join_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&join_msgtab);
 }

@@ -125,5 +125,5 @@ global_serv_list;   /* global servers on the network              */
 extern dlink_list
 oper_list;          /* our opers, duplicated in local_client_list */
 extern int rehashed_klines;
-extern void set_time(void);
+extern void set_time();
 #endif

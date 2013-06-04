@@ -420,14 +420,14 @@ static struct Message unresv_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&resv_msgtab);
   mod_add_cmd(&unresv_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&resv_msgtab);
   mod_del_cmd(&unresv_msgtab);

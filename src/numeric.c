@@ -238,7 +238,7 @@ error:
 
 /* Returns the name of current locale. */
 const char *
-get_locale(void)
+get_locale()
 {
   return used_locale;
 }

@@ -107,13 +107,13 @@ static struct Message rehash_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&rehash_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&rehash_msgtab);
 }

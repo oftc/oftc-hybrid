@@ -208,14 +208,14 @@ static struct Message uhelp_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&help_msgtab);
   mod_add_cmd(&uhelp_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&help_msgtab);
   mod_del_cmd(&uhelp_msgtab);

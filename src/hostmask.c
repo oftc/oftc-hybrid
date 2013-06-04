@@ -374,7 +374,7 @@ mask_addr(struct irc_ssaddr *ip, int bits)
 dlink_list atable[ATABLE_SIZE];
 
 void
-init_host_hash(void)
+init_host_hash()
 {
   memset(&atable, 0, sizeof(atable));
 }
@@ -833,7 +833,7 @@ delete_one_address_conf(const char *address, struct AccessItem *aconf)
   }
 }
 
-/* void clear_out_address_conf(void)
+/* void clear_out_address_conf()
  * Input: None
  * Output: None
  * Side effects: Clears out all address records in the hash table,
@@ -841,7 +841,7 @@ delete_one_address_conf(const char *address, struct AccessItem *aconf)
  *               them, otherwise sets them as illegal.
  */
 void
-clear_out_address_conf(void)
+clear_out_address_conf()
 {
   unsigned int i = 0;
   dlink_node *ptr = NULL, *ptr_next = NULL;
@@ -896,7 +896,7 @@ hostmask_send_expiration(struct AddressRec *arec)
 }
 
 void
-hostmask_expire_temporary(void)
+hostmask_expire_temporary()
 {
   unsigned int i = 0;
   dlink_node *ptr = NULL, *ptr_next = NULL;

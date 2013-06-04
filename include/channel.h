@@ -104,7 +104,7 @@ extern int can_join(struct Client *, struct Channel *, const char *);
 extern int has_member_flags(struct Membership *, unsigned int);
 
 extern void remove_ban(struct Ban *, dlink_list *);
-extern void init_channels(void);
+extern void init_channels();
 extern void add_user_to_channel(struct Channel *, struct Client *,
                                 unsigned int, int);
 extern void remove_user_from_channel(struct Membership *);

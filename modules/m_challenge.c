@@ -171,13 +171,13 @@ static struct Message challenge_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&challenge_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&challenge_msgtab);
 }
@@ -185,12 +185,12 @@ module_exit(void)
 #else
 
 static void
-module_init(void)
+module_init()
 {
 }
 
 static void
-module_exit(void)
+module_exit()
 {
 }
 #endif

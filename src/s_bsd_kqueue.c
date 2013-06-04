@@ -50,7 +50,7 @@
 static fde_t kqfd;
 static struct kevent kq_fdlist[KE_LENGTH];  /* kevent buffer */
 static int kqoff;      /* offset into the buffer */
-void init_netio(void);
+void init_netio();
 
 /*
  * init_netio
@@ -59,7 +59,7 @@ void init_netio(void);
  * the network loop code.
  */
 void
-init_netio(void)
+init_netio()
 {
   int fd;
 
@@ -146,7 +146,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
  * events.
  */
 void
-comm_select(void)
+comm_select()
 {
   int num, i;
   static struct kevent ke[KE_LENGTH];

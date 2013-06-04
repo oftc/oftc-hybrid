@@ -103,12 +103,12 @@ extern int hard_fdlimit;
 extern fde_t *fd_hash[];
 extern fde_t *fd_next_in_loop;
 
-extern void fdlist_init(void);
+extern void fdlist_init();
 extern fde_t *lookup_fd(int);
 extern void fd_open(fde_t *, int, int, const char *);
 extern void fd_close(fde_t *);
 extern void fd_dump(struct Client *);
 extern void fd_note(fde_t *, const char *, ...);
-extern void close_standard_fds(void);
+extern void close_standard_fds();
 extern void close_fds(fde_t *);
 #endif /* INCLUDED_fdlist_h */

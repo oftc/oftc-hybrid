@@ -181,13 +181,13 @@ static struct Message names_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&names_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&names_msgtab);
 }

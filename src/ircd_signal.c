@@ -88,7 +88,7 @@ sigint_handler(int sig)
  * setup_signals - initialize signal handlers for server
  */
 void
-setup_signals(void)
+setup_signals()
 {
   struct sigaction act;
 

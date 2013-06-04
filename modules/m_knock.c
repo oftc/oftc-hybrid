@@ -153,7 +153,7 @@ static struct Message knock_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&knock_msgtab);
   add_capability("KNOCK", CAP_KNOCK, 1);
@@ -161,7 +161,7 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&knock_msgtab);
   delete_capability("KNOCK");

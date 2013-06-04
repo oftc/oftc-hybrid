@@ -63,7 +63,7 @@ static struct Message put_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&post_msgtab);
   mod_add_cmd(&get_msgtab);
@@ -71,7 +71,7 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&post_msgtab);
   mod_del_cmd(&get_msgtab);

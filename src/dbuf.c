@@ -31,7 +31,7 @@
 static BlockHeap *dbuf_heap;
 
 void
-dbuf_init(void)
+dbuf_init()
 {
   dbuf_heap = BlockHeapCreate("dbuf", sizeof(struct dbuf_block), DBUF_HEAP_SIZE);
 }

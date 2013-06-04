@@ -59,12 +59,12 @@ extern int comm_open(fde_t *F, int family, int sock_type, int proto,
 extern int comm_accept(struct Listener *, struct irc_ssaddr *pn);
 
 /* These must be defined in the network IO loop code of your choice */
-extern void init_netio(void);
+extern void init_netio();
 extern void comm_setselect(fde_t *, unsigned int, PF *, void *, time_t);
-extern void init_comm(void);
+extern void init_comm();
 extern int read_message(time_t, unsigned char);
-extern void comm_select(void);
-extern void check_can_use_v6(void);
+extern void comm_select();
+extern void check_can_use_v6();
 #ifdef IPV6
 extern void remove_ipv6_mapping(struct irc_ssaddr *);
 #endif

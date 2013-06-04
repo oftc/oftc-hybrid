@@ -59,7 +59,7 @@ struct Client;
 extern void init_message_file(MotdType, const char *, struct MessageFile *);
 extern int send_message_file(struct Client *, struct MessageFile *);
 extern int read_message_file(MessageFile *);
-extern MessageFile *init_MessageLine(void);
+extern MessageFile *init_MessageLine();
 extern void addto_MessageLine(MessageFile *, const char *);
 extern void destroy_MessageLine(MessageFile *);
 

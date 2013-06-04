@@ -488,7 +488,7 @@ static struct Message undline_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&dline_msgtab);
   mod_add_cmd(&undline_msgtab);
@@ -497,7 +497,7 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&dline_msgtab);
   mod_del_cmd(&undline_msgtab);

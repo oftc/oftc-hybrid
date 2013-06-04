@@ -751,13 +751,13 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1,
   if (pairme == 0)
   {
     if (temppath != NULL)
-      (void)unlink(temppath);
+      unlink(temppath);
 
     return 0;
   }
   else
   {
-    (void)rename(temppath, filename);
+    rename(temppath, filename);
 
     /* XXX
      * This is a very inefficient way of removing a kline/xline etc.
@@ -806,7 +806,7 @@ flush_write(struct Client *source_p, FILE *in, FILE *out,
                me.name, source_p->name, temppath);
 
     if (temppath != NULL)
-      (void)unlink(temppath);
+      unlink(temppath);
 
     fclose(in);
     fclose(out);

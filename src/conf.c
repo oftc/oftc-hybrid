@@ -99,10 +99,10 @@ struct conf_parser_context conf_parser_ctx = { 0, 0, NULL };
 
 /* internally defined functions */
 static void read_conf(FILE *);
-static void clear_out_old_conf(void);
-static void flush_deleted_I_P(void);
+static void clear_out_old_conf();
+static void flush_deleted_I_P();
 static void expire_tklines(dlink_list *);
-static void garbage_collect_ip_entries(void);
+static void garbage_collect_ip_entries();
 static int hash_ip(struct irc_ssaddr *);
 static int verify_access(struct Client *, const char *, struct ConfItem *,
                          char **);
@@ -942,7 +942,7 @@ attach_iline(struct Client *client_p, struct ConfItem *conf, char **reason)
  *      - clear the ip hash table
  */
 void
-init_ip_hash_table(void)
+init_ip_hash_table()
 {
   ip_entry_heap = BlockHeapCreate("ip", sizeof(struct ip_entry),
                                   2 * hard_fdlimit);
@@ -1171,7 +1171,7 @@ dump_ip_hash_table(struct Client *source_p)
  * side effects - free up all ip entries with no connections
  */
 static void
-garbage_collect_ip_entries(void)
+garbage_collect_ip_entries()
 {
   struct ip_entry *ptr;
   struct ip_entry *last_ptr;
@@ -1701,7 +1701,7 @@ rehash(int sig)
  *      of values later, put them in validate_conf().
  */
 static void
-set_default_conf(void)
+set_default_conf()
 {
   /* verify init_class() ran, this should be an unnecessary check
    * but its not much work.
@@ -1807,7 +1807,7 @@ set_default_conf(void)
 }
 
 static void
-validate_conf(void)
+validate_conf()
 {
   if (ConfigFileEntry.ts_warn_delta < TS_WARN_DELTA_MIN)
     ConfigFileEntry.ts_warn_delta = TS_WARN_DELTA_DEFAULT;
@@ -2330,7 +2330,7 @@ parse_conf_file(int type, int cold)
  * side effects - Clear out the old configuration
  */
 static void
-clear_out_old_conf(void)
+clear_out_old_conf()
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
   struct ConfItem *conf;
@@ -2473,7 +2473,7 @@ clear_out_old_conf(void)
  * side effects - This function removes I/P conf items
  */
 static void
-flush_deleted_I_P(void)
+flush_deleted_I_P()
 {
   dlink_node *ptr;
   dlink_node *next_ptr;
@@ -2687,7 +2687,7 @@ find_class(const char *classname)
  * side effects -
  */
 void
-check_class(void)
+check_class()
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
@@ -2710,7 +2710,7 @@ check_class(void)
  * side effects -
  */
 void
-init_class(void)
+init_class()
 {
   struct ClassItem *aclass;
 

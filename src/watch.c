@@ -54,7 +54,7 @@ static BlockHeap *watch_heap = NULL;
 /*! \brief Initializes the watch table
  */
 void
-watch_init(void)
+watch_init()
 {
   watch_heap = BlockHeapCreate("watch", sizeof(struct Watch), WATCH_HEAP_SIZE);
 }

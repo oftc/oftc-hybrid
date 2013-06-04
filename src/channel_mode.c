@@ -476,7 +476,7 @@ fix_key_old(char *arg)
  * we do. -A1kmm
  */
 
-/* void init_chcap_usage_counts(void)
+/* void init_chcap_usage_counts()
  *
  * Inputs  - none
  * Output  - none
@@ -484,7 +484,7 @@ fix_key_old(char *arg)
  *                chcap_yes and chcap_no combination tables.
  */
 void
-init_chcap_usage_counts(void)
+init_chcap_usage_counts()
 {
   unsigned long m, c, y, n;
 

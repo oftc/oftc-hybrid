@@ -100,7 +100,7 @@ _syscall4(int, epoll_wait, int, epfd, struct epoll_event *, pevents, int,
  * the network loop code.
  */
 void
-init_netio(void)
+init_netio()
 {
   int fd;
 
@@ -178,7 +178,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
  * events.
  */
 void
-comm_select(void)
+comm_select()
 {
   struct epoll_event ep_fdlist[128];
   int num, i;

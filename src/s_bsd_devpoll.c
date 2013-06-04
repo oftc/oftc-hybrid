@@ -50,7 +50,7 @@ static fde_t dpfd;
  * the network loop code.
  */
 void
-init_netio(void)
+init_netio()
 {
   int fd;
 
@@ -139,7 +139,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
  * events.
  */
 void
-comm_select(void)
+comm_select()
 {
   int num, i;
   struct pollfd pollfds[128];

@@ -46,7 +46,7 @@ struct Whowas
 /*
 ** initwhowas
 */
-extern void whowas_init(void);
+extern void whowas_init();
 
 /*
 ** add_history

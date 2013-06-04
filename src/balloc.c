@@ -107,7 +107,7 @@ static fde_t dpfd;
  * future allocations.
  */
 void
-initBlockHeap(void)
+initBlockHeap()
 {
 #ifdef HAVE_MMAP
 #ifndef MAP_ANON

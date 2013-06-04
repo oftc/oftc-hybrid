@@ -155,13 +155,13 @@ static struct Message ojoin_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&ojoin_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&ojoin_msgtab);
 }

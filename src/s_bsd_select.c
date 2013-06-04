@@ -66,7 +66,7 @@ changing_fdlimit(va_list args)
  * the network loop code.
  */
 void
-init_netio(void)
+init_netio()
 {
   FD_ZERO(&select_readfds);
   FD_ZERO(&select_writefds);
@@ -151,7 +151,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
  * events.
  */
 void
-comm_select(void)
+comm_select()
 {
   struct timeval to;
   int num, fd;

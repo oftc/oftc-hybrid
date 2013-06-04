@@ -92,13 +92,13 @@ static struct Message lusers_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&lusers_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&lusers_msgtab);
 }

@@ -206,7 +206,7 @@ static struct Message list_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&list_msgtab);
   add_isupport("ELIST", "CMNTU", -1);
@@ -214,7 +214,7 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&list_msgtab);
   delete_isupport("ELIST");

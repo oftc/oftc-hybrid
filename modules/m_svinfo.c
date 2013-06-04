@@ -131,13 +131,13 @@ static struct Message svinfo_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&svinfo_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&svinfo_msgtab);
 }

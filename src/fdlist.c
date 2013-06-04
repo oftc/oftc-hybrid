@@ -42,7 +42,7 @@ int number_fd = LEAKED_FDS;
 int hard_fdlimit = 0;
 
 static int
-set_fdlimit(void)
+set_fdlimit()
 {
   int fdmax;
   struct rlimit limit;
@@ -67,7 +67,7 @@ set_fdlimit(void)
 }
 
 void
-fdlist_init(void)
+fdlist_init()
 {
   set_fdlimit();
 }
@@ -199,7 +199,7 @@ fd_note(fde_t *F, const char *format, ...)
  * always go somewhere harmless.  Use -foreground for profiling
  * or executing from gdb */
 void
-close_standard_fds(void)
+close_standard_fds()
 {
   int i;
 

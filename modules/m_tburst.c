@@ -117,14 +117,14 @@ static struct Message tburst_msgtab =
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&tburst_msgtab);
   add_capability("TBURST", CAP_TBURST, 1);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&tburst_msgtab);
   delete_capability("TBURST");

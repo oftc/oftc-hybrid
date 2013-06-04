@@ -58,13 +58,13 @@ struct Message realhost_msgtab =
 };
 
 void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&realhost_msgtab);
 }
 
 void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&realhost_msgtab);
 }

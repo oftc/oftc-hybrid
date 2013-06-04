@@ -449,12 +449,12 @@ extern struct split_nuh_item *find_accept(const char *, const char *,
 extern void del_accept(struct split_nuh_item *, struct Client *);
 extern void del_all_accepts(struct Client *);
 extern void exit_client(struct Client *, struct Client *, const char *);
-extern void check_conf_klines(void);
-extern void init_client(void);
+extern void check_conf_klines();
+extern void init_client();
 extern void dead_link_on_write(struct Client *, int);
 extern void dead_link_on_read(struct Client *, int);
-extern void exit_aborted_clients(void);
-extern void free_exited_clients(void);
+extern void exit_aborted_clients();
+extern void free_exited_clients();
 extern struct Client *make_client(struct Client *);
 extern struct Client *find_chasing(struct Client *, struct Client *,
                                    const char *, int *);
