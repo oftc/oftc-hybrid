@@ -88,6 +88,7 @@ struct ListTask
   dlink_list show_mask; /* show these channels..          */
   dlink_list hide_mask; /* ..and hide these ones          */
   unsigned int users_min, users_max;
+  fde_t             auth_fd;   /**< FD for authentication (ident lookup) */
   unsigned int created_min, created_max;
   unsigned int topicts_min, topicts_max;
 };
