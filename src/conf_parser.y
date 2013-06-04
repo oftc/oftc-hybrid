@@ -2185,7 +2185,7 @@ connect_entry: CONNECT
 {
   if (conf_parser_ctx.pass == 2)
   {
-    if (yy_aconf->host && yy_aconf->passwd && yy_aconf->spasswd)
+    if (yy_aconf->host && ((yy_aconf->passwd && yy_aconf->spasswd) || yy_aconf->certfp))
     {
       if (conf_add_server(yy_conf, class_name) == -1)
         delete_conf_item(yy_conf);
@@ -2196,8 +2196,8 @@ connect_entry: CONNECT
       {
         if (yy_aconf->host == NULL)
           conf_error_report("Ignoring connect block -- missing host");
-        else if (!yy_aconf->passwd || !yy_aconf->spasswd)
-          conf_error_report("Ignoring connect block -- missing password");
+        else if (!yy_aconf->passwd || !yy_aconf->spasswd || !yy_aconf->certfp)
+          conf_error_report("Ignoring connect block -- must supply either password or fingerprint");
       }
 
       /* XXX
@@ -2222,7 +2222,7 @@ connect_item:   connect_name | connect_host | connect_vhost |
 		connect_send_password | connect_accept_password |
 		connect_aftype | connect_port | connect_ssl_cipher_list |
 		connect_flags | connect_hub_mask | connect_leaf_mask |
-		connect_class | connect_encrypted | 
+		connect_class | connect_encrypted | connect_client_certificate_hash |
                 error ';' ;
 
 connect_name: NAME '=' QSTRING ';'
@@ -2394,6 +2394,23 @@ connect_ssl_cipher_list: T_SSL_CIPHER_LIST '=' QSTRING ';'
   if (conf_parser_ctx.pass == 2)
     conf_error_report("Ignoring connect::ciphers -- no OpenSSL support");
 #endif
+};
+
+connect_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
+{
+  if (conf_parser_ctx.pass == 2)
+  {
+    if(yy_aconf->certfp != NULL)
+      MyFree(yy_aconf->certfp);
+
+    if(strlen(yylval.string) != SHA_DIGEST_LENGTH * 2)
+    {
+      yyerror("Invalid client certificate fingerprint provided. Ignoring");
+      break;
+    }
+
+    DupString(yy_aconf->certfp, yylval.string);
+  }
 };
 
 
