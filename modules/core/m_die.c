@@ -43,21 +43,21 @@ mo_die(struct Client *client_p, struct Client *source_p,
 {
   char buf[IRCD_BUFSIZE];
 
-  if(!HasOFlag(source_p, OPER_FLAG_DIE))
+  if (!HasOFlag(source_p, OPER_FLAG_DIE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "die");
     return;
   }
 
-  if(parc < 2 || EmptyString(parv[1]))
+  if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, ":%s NOTICE %s :Need server name /die %s",
                me.name, source_p->name, me.name);
     return;
   }
 
-  if(irccmp(parv[1], me.name))
+  if (irccmp(parv[1], me.name))
   {
     sendto_one(source_p, ":%s NOTICE %s :Mismatch on /die %s",
                me.name, source_p->name, me.name);

@@ -44,7 +44,7 @@ m_users(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if(last_used + ConfigFileEntry.pace_wait_simple > CurrentTime)
+  if (last_used + ConfigFileEntry.pace_wait_simple > CurrentTime)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name);
     return;
@@ -52,9 +52,9 @@ m_users(struct Client *client_p, struct Client *source_p,
 
   last_used = CurrentTime;
 
-  if(!ConfigFileEntry.disable_remote)
-    if(hunt_server(client_p, source_p, ":%s USERS :%s", 1,
-                   parc, parv) != HUNTED_ISME)
+  if (!ConfigFileEntry.disable_remote)
+    if (hunt_server(client_p, source_p, ":%s USERS :%s", 1,
+                    parc, parv) != HUNTED_ISME)
       return;
 
   sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, source_p->name,
@@ -74,11 +74,11 @@ static void
 mo_users(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  if(hunt_server(client_p, source_p, ":%s USERS :%s", 1,
-                 parc, parv) != HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s USERS :%s", 1,
+                  parc, parv) != HUNTED_ISME)
     return;
 
-  if(!HasUMode(source_p, UMODE_OPER) && ConfigServerHide.hide_servers)
+  if (!HasUMode(source_p, UMODE_OPER) && ConfigServerHide.hide_servers)
     sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, source_p->name,
                Count.total, Count.max_tot);
   else

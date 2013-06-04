@@ -55,15 +55,15 @@ do_admin(struct Client *source_p)
   sendto_one(source_p, form_str(RPL_ADMINME),
              me_name, nick, me.name);
 
-  if(AdminInfo.name != NULL)
+  if (AdminInfo.name != NULL)
     sendto_one(source_p, form_str(RPL_ADMINLOC1),
                me_name, nick, AdminInfo.name);
 
-  if(AdminInfo.description != NULL)
+  if (AdminInfo.description != NULL)
     sendto_one(source_p, form_str(RPL_ADMINLOC2),
                me_name, nick, AdminInfo.description);
 
-  if(AdminInfo.email != NULL)
+  if (AdminInfo.email != NULL)
     sendto_one(source_p, form_str(RPL_ADMINEMAIL),
                me_name, nick, AdminInfo.email);
 }
@@ -88,7 +88,7 @@ m_admin(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, source_p->name);
@@ -97,9 +97,9 @@ m_admin(struct Client *client_p, struct Client *source_p,
 
   last_used = CurrentTime;
 
-  if(!ConfigFileEntry.disable_remote)
-    if(hunt_server(client_p, source_p, ":%s ADMIN :%s", 1,
-                   parc, parv) != HUNTED_ISME)
+  if (!ConfigFileEntry.disable_remote)
+    if (hunt_server(client_p, source_p, ":%s ADMIN :%s", 1,
+                    parc, parv) != HUNTED_ISME)
       return;
 
   do_admin(source_p);
@@ -123,11 +123,11 @@ static void
 ms_admin(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  if(hunt_server(client_p, source_p, ":%s ADMIN :%s", 1,
-                 parc, parv) != HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s ADMIN :%s", 1,
+                  parc, parv) != HUNTED_ISME)
     return;
 
-  if(IsClient(source_p))
+  if (IsClient(source_p))
     do_admin(source_p);
 }
 

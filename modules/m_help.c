@@ -49,7 +49,7 @@ m_help(struct Client *client_p, struct Client *source_p,
   static time_t last_used = 0;
 
   /* HELP is always local */
-  if((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
     sendto_one(source_p, form_str(RPL_LOAD2HI),
@@ -93,28 +93,28 @@ dohelp(struct Client *source_p, const char *hpath, char *topic)
   struct stat sb;
   int i;
 
-  if(topic != NULL)
+  if (topic != NULL)
   {
-    if(*topic == '\0')
+    if (*topic == '\0')
       topic = h_index;
     else
     {
       /* convert to lower case */
-      for(i = 0; topic[i] != '\0'; ++i)
+      for (i = 0; topic[i] != '\0'; ++i)
         topic[i] = ToLower(topic[i]);
     }
   }
   else
     topic = h_index;    /* list available help topics */
 
-  if(strpbrk(topic, "/\\"))
+  if (strpbrk(topic, "/\\"))
   {
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
     return;
   }
 
-  if(strlen(hpath) + strlen(topic) + 1 > HYB_PATH_MAX)
+  if (strlen(hpath) + strlen(topic) + 1 > HYB_PATH_MAX)
   {
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
@@ -123,14 +123,14 @@ dohelp(struct Client *source_p, const char *hpath, char *topic)
 
   snprintf(path, sizeof(path), "%s/%s", hpath, topic);
 
-  if(stat(path, &sb) < 0)
+  if (stat(path, &sb) < 0)
   {
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
     return;
   }
 
-  if(!S_ISREG(sb.st_mode))
+  if (!S_ISREG(sb.st_mode))
   {
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
@@ -148,20 +148,20 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
   char started = 0;
   int type;
 
-  if((file = fopen(path, "r")) == NULL)
+  if ((file = fopen(path, "r")) == NULL)
   {
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
     return;
   }
 
-  if(fgets(line, sizeof(line), file) == NULL)
+  if (fgets(line, sizeof(line), file) == NULL)
   {
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
     return;
   }
-  else if(line[0] != '#')
+  else if (line[0] != '#')
   {
     line[strlen(line) - 1] = '\0';
     sendto_one(source_p, form_str(RPL_HELPSTART),
@@ -169,13 +169,13 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
     started = 1;
   }
 
-  while(fgets(line, sizeof(line), file))
+  while (fgets(line, sizeof(line), file))
   {
     line[strlen(line) - 1] = '\0';
 
-    if(line[0] != '#')
+    if (line[0] != '#')
     {
-      if(!started)
+      if (!started)
       {
         type = RPL_HELPSTART;
         started = 1;

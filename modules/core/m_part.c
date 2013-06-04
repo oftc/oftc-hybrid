@@ -54,34 +54,34 @@ part_one_client(struct Client *client_p, struct Client *source_p,
   struct Channel *chptr = NULL;
   struct Membership *ms = NULL;
 
-  if((chptr = hash_find_channel(name)) == NULL)
+  if ((chptr = hash_find_channel(name)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                me.name, source_p->name, name);
     return;
   }
 
-  if((ms = find_channel_link(source_p, chptr)) == NULL)
+  if ((ms = find_channel_link(source_p, chptr)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOTONCHANNEL),
                me.name, source_p->name, name);
     return;
   }
 
-  if(MyConnect(source_p) && !HasUMode(source_p, UMODE_OPER))
+  if (MyConnect(source_p) && !HasUMode(source_p, UMODE_OPER))
     check_spambot_warning(source_p, NULL);
 
   /*
    *  Remove user from the old channel (if any)
    *  only allow /part reasons in -m chans
    */
-  if(msg_has_colors(reason) && (chptr->mode.mode & MODE_NOCOLOR))
+  if (msg_has_colors(reason) && (chptr->mode.mode & MODE_NOCOLOR))
     reason = strip_color(reason);
 
-  if(reason[0] && (!MyConnect(source_p) ||
-                   ((can_send(chptr, source_p, ms) &&
-                     (source_p->localClient->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
-                     < CurrentTime))))
+  if (reason[0] && (!MyConnect(source_p) ||
+                    ((can_send(chptr, source_p, ms) &&
+                      (source_p->localClient->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
+                      < CurrentTime))))
   {
     sendto_server(client_p, CAP_TS6, NOCAPS,
                   ":%s PART %s :%s", ID(source_p), chptr->chname,
@@ -120,25 +120,25 @@ m_part(struct Client *client_p, struct Client *source_p,
   char *p = NULL, *name = NULL;
   char reason[KICKLEN + 1] = { '\0' };
 
-  if(IsServer(source_p))
+  if (IsServer(source_p))
     return;
 
-  if(EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "PART");
     return;
   }
 
-  if(parc > 2)
+  if (parc > 2)
     strlcpy(reason, parv[2], sizeof(reason));
 
   /* Finish the flood grace period... */
-  if(MyClient(source_p) && !IsFloodDone(source_p))
+  if (MyClient(source_p) && !IsFloodDone(source_p))
     flood_endgrace(source_p);
 
-  for(name = strtoken(&p, parv[1], ","); name;
-      name = strtoken(&p,    NULL, ","))
+  for (name = strtoken(&p, parv[1], ","); name;
+       name = strtoken(&p,    NULL, ","))
     part_one_client(client_p, source_p, name, reason);
 }
 

@@ -62,25 +62,25 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
   char *newch = NULL;
   dlink_node *ptr = NULL;
 
-  if(!HasUMode(source_p, UMODE_ADMIN))
+  if (!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
     return;
   }
 
-  if((target_p = hash_find_client(parv[1])) == NULL || !IsClient(target_p))
+  if ((target_p = hash_find_client(parv[1])) == NULL || !IsClient(target_p))
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                me.name, source_p->name, parv[1]);
     return;
   }
 
-  if(!MyConnect(target_p))
+  if (!MyConnect(target_p))
   {
-    if(target_p->from != client_p)
+    if (target_p->from != client_p)
     {
-      if(IsCapable(target_p->from, CAP_ENCAP))
+      if (IsCapable(target_p->from, CAP_ENCAP))
         sendto_one(target_p, ":%s ENCAP %s FORCEJOIN %s %s",
                    source_p->name, target_p->from->name,
                    target_p->name, parv[2]);
@@ -93,7 +93,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
   }
 
   /* select our modes from parv[2] if they exist... (chanop)*/
-  switch(*parv[2])
+  switch (*parv[2])
   {
     case '@':
       type = CHFL_CHANOP;
@@ -124,9 +124,9 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
       break;
   }
 
-  if((chptr = hash_find_channel(parv[2])) != NULL)
+  if ((chptr = hash_find_channel(parv[2])) != NULL)
   {
-    if(IsMember(target_p, chptr))
+    if (IsMember(target_p, chptr))
     {
       sendto_one(source_p, ":%s NOTICE %s :*** Notice -- %s is already in %s",
                  me.name, source_p->name, target_p->name, chptr->chname);
@@ -139,19 +139,19 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
                          target_p->name, target_p->username,
                          target_p->host, chptr->chname);
 
-    if(sjmode)
+    if (sjmode)
       sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +%c %s",
                            me.name, chptr->chname, mode, target_p->name);
 
-    if(chptr->chname[0] == '#')
+    if (chptr->chname[0] == '#')
     {
-      if(sjmode)
+      if (sjmode)
       {
         DLINK_FOREACH(ptr, serv_list.head)
         {
           struct Client *serv_p = ptr->data;
 
-          if(serv_p == target_p->from || IsDead(serv_p))
+          if (serv_p == target_p->from || IsDead(serv_p))
             continue;
 
           sendto_one(serv_p, ":%s SJOIN %lu %s + :%c%s",
@@ -174,7 +174,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
       }
     }
 
-    if(chptr->topic[0])
+    if (chptr->topic[0])
     {
       sendto_one(target_p, form_str(RPL_TOPIC),
                  me.name, target_p->name,
@@ -191,7 +191,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
   {
     newch = parv[2];
 
-    if(!check_channel_name(newch, 1))
+    if (!check_channel_name(newch, 1))
     {
       sendto_one(source_p, form_str(ERR_BADCHANNAME),
                  me.name, source_p->name, newch);
@@ -200,7 +200,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
 
     chptr = make_channel(newch);
 
-    if(MyClient(target_p))
+    if (MyClient(target_p))
       sendto_realops_flags(UMODE_SPY, L_ALL, NULL,
                            "Channel %s created by %s!%s@%s", chname, target_p->name,
                            target_p->username, target_p->host);
@@ -245,7 +245,7 @@ mo_forcepart(struct Client *client_p, struct Client *source_p,
   struct Channel *chptr = NULL;
   struct Membership *member = NULL;
 
-  if(!HasUMode(source_p, UMODE_ADMIN))
+  if (!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -253,18 +253,18 @@ mo_forcepart(struct Client *client_p, struct Client *source_p,
   }
 
   /* if target_p == NULL then let the oper know */
-  if((target_p = hash_find_client(parv[1])) == NULL || !IsClient(target_p))
+  if ((target_p = hash_find_client(parv[1])) == NULL || !IsClient(target_p))
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                me.name, source_p->name, parv[1]);
     return;
   }
 
-  if(!MyConnect(target_p))
+  if (!MyConnect(target_p))
   {
-    if(target_p->from != client_p)
+    if (target_p->from != client_p)
     {
-      if(IsCapable(target_p->from, CAP_ENCAP))
+      if (IsCapable(target_p->from, CAP_ENCAP))
         sendto_one(target_p, ":%s ENCAP %s FORCEPART %s %s",
                    source_p->name, target_p->from->name,
                    target_p->name, parv[2]);
@@ -276,14 +276,14 @@ mo_forcepart(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if((chptr = hash_find_channel(parv[2])) == NULL)
+  if ((chptr = hash_find_channel(parv[2])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                me.name, source_p->name, parv[2]);
     return;
   }
 
-  if((member = find_channel_link(target_p, chptr)) == NULL)
+  if ((member = find_channel_link(target_p, chptr)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_USERNOTINCHANNEL),
                me.name, source_p->name, chptr->chname, target_p->name);

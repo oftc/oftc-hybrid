@@ -67,15 +67,15 @@ invalid_hostname(const char *hostname)
 
   assert(p != NULL);
 
-  if(*p == '.' || *p == ':')
+  if (*p == '.' || *p == ':')
     return 1;
 
-  for(; *p; ++p)
+  for (; *p; ++p)
   {
-    if(!IsHostChar(*p))
+    if (!IsHostChar(*p))
       return 1;
 
-    if(*p == '.' || *p == ':')
+    if (*p == '.' || *p == ':')
       ++has_sep;
   }
 
@@ -101,7 +101,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc,
 
   assert(source_p == client_p);
 
-  if(invalid_hostname(parv[4]))
+  if (invalid_hostname(parv[4]))
   {
     sendto_realops_flags(UMODE_UNAUTH, L_ALL, "CGI:IRC: Invalid IP");
     return;
@@ -113,26 +113,26 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc,
                             source_p->aftype, parv[1],
                             source_p->certfp);
 
-  if(aconf == NULL || !IsConfClient(aconf))
+  if (aconf == NULL || !IsConfClient(aconf))
     return;
 
   conf = unmap_conf_item(aconf);
 
-  if(!IsConfDoSpoofIp(aconf) || irccmp(conf->name, "webirc."))
+  if (!IsConfDoSpoofIp(aconf) || irccmp(conf->name, "webirc."))
   {
     sendto_realops_flags(UMODE_UNAUTH, L_ALL, "Not a CGI:IRC auth block: %s",
                          source_p->sockhost);
     return;
   }
 
-  if(EmptyString(aconf->passwd))
+  if (EmptyString(aconf->passwd))
   {
     sendto_realops_flags(UMODE_UNAUTH, L_ALL,
                          "CGI:IRC auth blocks must have a password");
     return;
   }
 
-  if(!match_conf_password(parv[1], NULL, aconf))
+  if (!match_conf_password(parv[1], NULL, aconf))
   {
     sendto_realops_flags(UMODE_UNAUTH, L_ALL, "CGI:IRC password incorrect");
     return;
@@ -144,7 +144,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc,
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
-  if(getaddrinfo(parv[4], NULL, &hints, &res))
+  if (getaddrinfo(parv[4], NULL, &hints, &res))
   {
     sendto_realops_flags(UMODE_UNAUTH, L_ALL, "Inavlid CGI:IRC IP %s", parv[4]);
     return;
@@ -161,16 +161,16 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc,
   strlcpy(original_sockhost, source_p->sockhost, sizeof(original_sockhost));
   strlcpy(source_p->sockhost, parv[4], sizeof(source_p->sockhost));
 
-  if(strlen(parv[3]) <= HOSTLEN)
+  if (strlen(parv[3]) <= HOSTLEN)
     strlcpy(source_p->host, parv[3], sizeof(source_p->host));
   else
     strlcpy(source_p->host, source_p->sockhost, sizeof(source_p->host));
 
   /* Check dlines now, klines will be checked on registration */
-  if((aconf = find_dline_conf(&client_p->ip,
-                              client_p->aftype)))
+  if ((aconf = find_dline_conf(&client_p->ip,
+                               client_p->aftype)))
   {
-    if(!(aconf->status & CONF_EXEMPTDLINE))
+    if (!(aconf->status & CONF_EXEMPTDLINE))
     {
       exit_client(client_p, &me, "D-lined");
       return;

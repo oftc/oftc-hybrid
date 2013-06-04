@@ -48,7 +48,7 @@ me_gnotice(struct Client *client_p, struct Client *source_p, int parc,
   level = atoi(parv[2]);
   flags = atoi(parv[1]);
 
-  if(EmptyString(message))
+  if (EmptyString(message))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, parv[0], "GNOTICE");
     return;
@@ -65,7 +65,7 @@ ms_gnotice(struct Client *client_p, struct Client *source_p, int parc,
 
   message = parv[3];
 
-  if(EmptyString(message) || EmptyString(parv[1]))
+  if (EmptyString(message) || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, parv[0], "GNOTICE");

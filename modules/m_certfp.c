@@ -47,7 +47,7 @@ static void ms_certfp(struct Client *source_p, struct Client *client_p,
 {
   struct Client *target_p;
 
-  if((target_p = find_person(client_p, parv[1])) == NULL)
+  if ((target_p = find_person(client_p, parv[1])) == NULL)
     return;
 
   strlcpy(target_p->certfp, parv[2], sizeof(target_p->certfp));

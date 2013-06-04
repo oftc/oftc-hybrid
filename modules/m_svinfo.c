@@ -51,16 +51,16 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
   char timestamp[IRCD_BUFSIZE / 2];
   char theirtimestamp[IRCD_BUFSIZE / 2];
 
-  if(MyConnect(source_p) && IsUnknown(source_p))
+  if (MyConnect(source_p) && IsUnknown(source_p))
   {
     exit_client(source_p, source_p, "Need SERVER before SVINFO");
     return;
   }
 
-  if(!IsServer(source_p) || !MyConnect(source_p) || parc < 5)
+  if (!IsServer(source_p) || !MyConnect(source_p) || parc < 5)
     return;
 
-  if(TS_CURRENT < atoi(parv[2]) || atoi(parv[1]) < TS_MIN)
+  if (TS_CURRENT < atoi(parv[2]) || atoi(parv[1]) < TS_MIN)
   {
     /*
      * a server with the wrong TS version connected; since we're
@@ -89,7 +89,7 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
   strftime(theirtimestamp, sizeof(theirtimestamp), "%Y-%m-%d %H:%M:%S Z",
            gmtime(&theirtime));
 
-  if(deltat > ConfigFileEntry.ts_max_delta)
+  if (deltat > ConfigFileEntry.ts_max_delta)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
@@ -111,7 +111,7 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if(deltat > ConfigFileEntry.ts_warn_delta)
+  if (deltat > ConfigFileEntry.ts_warn_delta)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Link %s notable TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",

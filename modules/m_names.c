@@ -87,7 +87,7 @@ names_non_public_non_secret(struct Client *source_p)
   {
     c2ptr = gc2ptr->data;
 
-    if(!IsClient(c2ptr) || HasUMode(c2ptr, UMODE_INVISIBLE))
+    if (!IsClient(c2ptr) || HasUMode(c2ptr, UMODE_INVISIBLE))
       continue;
 
     shown_already = 0;
@@ -98,19 +98,19 @@ names_non_public_non_secret(struct Client *source_p)
     {
       ch3ptr = ((struct Membership *) lp->data)->chptr;
 
-      if(IsMember(source_p, ch3ptr))
+      if (IsMember(source_p, ch3ptr))
       {
         shown_already = 1;
         break;
       }
     }
 
-    if(shown_already)
+    if (shown_already)
       continue;
 
     tlen = strlen(c2ptr->name);
 
-    if(cur_len + tlen + 1 > IRCD_BUFSIZE - 2)
+    if (cur_len + tlen + 1 > IRCD_BUFSIZE - 2)
     {
       sendto_one(source_p, "%s", buf);
       cur_len = mlen;
@@ -128,7 +128,7 @@ names_non_public_non_secret(struct Client *source_p)
     reply_to_send = 1;
   }
 
-  if(reply_to_send)
+  if (reply_to_send)
     sendto_one(source_p, "%s", buf);
 }
 
@@ -145,18 +145,18 @@ m_names(struct Client *client_p, struct Client *source_p,
   char *s;
   char *para = parc > 1 ? parv[1] : NULL;
 
-  if(!EmptyString(para))
+  if (!EmptyString(para))
   {
-    while(*para == ',')
+    while (*para == ',')
       ++para;
 
-    if((s = strchr(para, ',')) != NULL)
+    if ((s = strchr(para, ',')) != NULL)
       * s = '\0';
 
-    if(*para == '\0')
+    if (*para == '\0')
       return;
 
-    if((chptr = hash_find_channel(para)) != NULL)
+    if ((chptr = hash_find_channel(para)) != NULL)
       channel_member_names(source_p, chptr, 1);
     else
       sendto_one(source_p, form_str(RPL_ENDOFNAMES),
@@ -166,7 +166,7 @@ m_names(struct Client *client_p, struct Client *source_p,
   {
     names_all_visible_channels(source_p);
 
-    if(!HasUMode(source_p, UMODE_GOD))
+    if (!HasUMode(source_p, UMODE_GOD))
       names_non_public_non_secret(source_p);
 
     sendto_one(source_p, form_str(RPL_ENDOFNAMES),

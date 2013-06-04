@@ -78,9 +78,9 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
   int i;
 
   /* find first inactive index, or use next index */
-  for(i = 0; i < MAX_EVENTS; i++)
+  for (i = 0; i < MAX_EVENTS; i++)
   {
-    if(event_table[i].active == 0)
+    if (event_table[i].active == 0)
     {
       event_table[i].func = func;
       event_table[i].name = name;
@@ -89,7 +89,7 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
       event_table[i].frequency = when;
       event_table[i].active = 1;
 
-      if((event_table[i].when < event_time_min) || (event_time_min == -1))
+      if ((event_table[i].when < event_time_min) || (event_time_min == -1))
         event_time_min = event_table[i].when;
 
       return;
@@ -112,7 +112,7 @@ eventDelete(EVH *func, void *arg)
 {
   int i = eventFind(func, arg);
 
-  if(i == -1)
+  if (i == -1)
     return;
 
   event_table[i].name = NULL;
@@ -133,7 +133,7 @@ eventDelete(EVH *func, void *arg)
 void
 eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_ish)
 {
-  if(delta_ish >= 3.0)
+  if (delta_ish >= 3.0)
   {
     const time_t two_third = (2 * delta_ish) / 3;
     delta_ish = two_third + ((rand() % 1000) * two_third) / 1000;
@@ -158,9 +158,9 @@ eventRun(void)
 {
   int i;
 
-  for(i = 0; i < MAX_EVENTS; i++)
+  for (i = 0; i < MAX_EVENTS; i++)
   {
-    if(event_table[i].active && (event_table[i].when <= CurrentTime))
+    if (event_table[i].active && (event_table[i].when <= CurrentTime))
     {
       last_event_ran = event_table[i].name;
       event_table[i].func(event_table[i].arg);
@@ -182,17 +182,17 @@ eventNextTime(void)
 {
   int i;
 
-  if(event_time_min == -1)
+  if (event_time_min == -1)
   {
-    for(i = 0; i < MAX_EVENTS; i++)
+    for (i = 0; i < MAX_EVENTS; i++)
     {
-      if(event_table[i].active && ((event_table[i].when < event_time_min)
-                                   || (event_time_min == -1)))
+      if (event_table[i].active && ((event_table[i].when < event_time_min)
+                                    || (event_time_min == -1)))
         event_time_min = event_table[i].when;
     }
   }
 
-  return(event_time_min);
+  return (event_time_min);
 }
 
 /*
@@ -221,15 +221,15 @@ eventFind(EVH *func, void *arg)
 {
   int i;
 
-  for(i = 0; i < MAX_EVENTS; i++)
+  for (i = 0; i < MAX_EVENTS; i++)
   {
-    if((event_table[i].func == func) &&
+    if ((event_table[i].func == func) &&
         (event_table[i].arg == arg) &&
         event_table[i].active)
-      return(i);
+      return (i);
   }
 
-  return(-1);
+  return (-1);
 }
 
 /*
@@ -244,7 +244,7 @@ show_events(struct Client *source_p)
 {
   int i;
 
-  if(last_event_ran)
+  if (last_event_ran)
   {
     sendto_one(source_p, ":%s %d %s :Last event to run: %s",
                me.name, RPL_STATSDEBUG, source_p->name, last_event_ran);
@@ -259,8 +259,8 @@ show_events(struct Client *source_p)
              ":%s %d %s : -------------------------------------------",
              me.name, RPL_STATSDEBUG, source_p->name);
 
-  for(i = 0; i < MAX_EVENTS; i++)
-    if(event_table[i].active)
+  for (i = 0; i < MAX_EVENTS; i++)
+    if (event_table[i].active)
     {
       sendto_one(source_p, ":%s %d %s : %-28s %-4d seconds",
                  me.name, RPL_STATSDEBUG, source_p->name,
@@ -285,9 +285,9 @@ set_back_events(time_t by)
 
   event_time_min = -1;
 
-  for(i = 0; i < MAX_EVENTS; i++)
+  for (i = 0; i < MAX_EVENTS; i++)
   {
-    if(event_table[i].when > by)
+    if (event_table[i].when > by)
       event_table[i].when -= by;
     else
       event_table[i].when = 0;

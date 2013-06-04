@@ -46,7 +46,7 @@ mr_capab(struct Client *client_p, struct Client *source_p,
   char *p = NULL;
   char *s = NULL;
 
-  if(client_p->localClient->caps && !(IsCapable(client_p, CAP_TS6)))
+  if (client_p->localClient->caps && !(IsCapable(client_p, CAP_TS6)))
   {
     exit_client(client_p, client_p, "CAPAB received twice");
     return;
@@ -54,10 +54,10 @@ mr_capab(struct Client *client_p, struct Client *source_p,
 
   SetCapable(client_p, CAP_CAP);
 
-  for(i = 1; i < parc; ++i)
-    for(s = strtoken(&p, parv[i], " "); s;
-        s = strtoken(&p,    NULL, " "))
-      if((cap = find_capability(s)))
+  for (i = 1; i < parc; ++i)
+    for (s = strtoken(&p, parv[i], " "); s;
+         s = strtoken(&p,    NULL, " "))
+      if ((cap = find_capability(s)))
         SetCapable(client_p, cap);
 }
 

@@ -71,9 +71,9 @@ main(int argc, char *argv[])
                   ** parameter.
                   */
 
-  while((c = getopt(argc, argv, "56mdber:h?l:s:p:R:")) != -1)
+  while ((c = getopt(argc, argv, "56mdber:h?l:s:p:R:")) != -1)
   {
-    switch(c)
+    switch (c)
     {
       case '5':
         flag |= FLAG_SHA256;
@@ -142,52 +142,52 @@ main(int argc, char *argv[])
     }
   }
 
-  if(flag & FLAG_MD5)
+  if (flag & FLAG_MD5)
   {
-    if(length == 0)
+    if (length == 0)
       length = 8;
 
-    if(flag & FLAG_SALT)
+    if (flag & FLAG_SALT)
       salt = make_md5_salt_para(saltpara);
     else
       salt = make_md5_salt(length);
   }
-  else if(flag & FLAG_SHA256)
+  else if (flag & FLAG_SHA256)
   {
-    if(length == 0)
+    if (length == 0)
       length = 16;
 
-    if(flag & FLAG_SALT)
+    if (flag & FLAG_SALT)
       salt = make_sha256_salt_para(saltpara);
     else
       salt = make_sha256_salt(length);
   }
-  else if(flag & FLAG_SHA512)
+  else if (flag & FLAG_SHA512)
   {
-    if(length == 0)
+    if (length == 0)
       length = 16;
 
-    if(flag & FLAG_SALT)
+    if (flag & FLAG_SALT)
       salt = make_sha512_salt_para(saltpara);
     else
       salt = make_sha512_salt(length);
   }
-  else if(flag & FLAG_BLOWFISH)
+  else if (flag & FLAG_BLOWFISH)
   {
-    if(length == 0)
+    if (length == 0)
       length = 22;
 
-    if(flag & FLAG_SALT)
+    if (flag & FLAG_SALT)
       salt = make_bf_salt_para(rounds, saltpara);
     else
       salt = make_bf_salt(rounds, length);
   }
-  else if(flag & FLAG_EXT)
+  else if (flag & FLAG_EXT)
   {
     /* XXX - rounds needs to be done */
-    if(flag & FLAG_SALT)
+    if (flag & FLAG_SALT)
     {
-      if((strlen(saltpara) == 4))
+      if ((strlen(saltpara) == 4))
       {
         salt = make_ext_salt_para(rounds, saltpara);
       }
@@ -202,15 +202,15 @@ main(int argc, char *argv[])
       salt = make_ext_salt(rounds);
     }
   }
-  else if(flag & FLAG_RAW)
+  else if (flag & FLAG_RAW)
   {
     salt = saltpara;
   }
   else /* Default to DES */
   {
-    if(flag & FLAG_SALT)
+    if (flag & FLAG_SALT)
     {
-      if((strlen(saltpara) == 2))
+      if ((strlen(saltpara) == 2))
       {
         salt = saltpara;
       }
@@ -226,9 +226,9 @@ main(int argc, char *argv[])
     }
   }
 
-  if(flag & FLAG_PASS)
+  if (flag & FLAG_PASS)
   {
-    if(!plaintext)
+    if (!plaintext)
       printf("Please enter a valid password\n");
   }
   else
@@ -254,7 +254,7 @@ int_to_base64(int value)
   static char buf[5];
   int i;
 
-  for(i = 0; i < 4; i++)
+  for (i = 0; i < 4; i++)
   {
     buf[i] = saltChars[value & 63];
     value >>= 6;  /* Right shifting 6 places is the same as dividing by 64 */
@@ -292,7 +292,7 @@ make_sha256_salt_para(const char *saltpara)
 {
   static char salt[21];
 
-  if(saltpara && (strlen(saltpara) <= 16))
+  if (saltpara && (strlen(saltpara) <= 16))
   {
     /*
      * sprintf used because of portability requirements, the length
@@ -314,7 +314,7 @@ make_sha256_salt(int length)
 {
   static char salt[21];
 
-  if(length > 16)
+  if (length > 16)
   {
     printf("SHA256 salt length too long\n");
     exit(0);
@@ -337,7 +337,7 @@ make_sha512_salt_para(const char *saltpara)
 {
   static char salt[21];
 
-  if(saltpara && (strlen(saltpara) <= 16))
+  if (saltpara && (strlen(saltpara) <= 16))
   {
     /*
      * sprintf used because of portability requirements, the length
@@ -359,7 +359,7 @@ make_sha512_salt(int length)
 {
   static char salt[21];
 
-  if(length > 16)
+  if (length > 16)
   {
     printf("SHA512 salt length too long\n");
     exit(0);
@@ -382,7 +382,7 @@ make_md5_salt_para(const char *saltpara)
 {
   static char salt[21];
 
-  if(saltpara && (strlen(saltpara) <= 16))
+  if (saltpara && (strlen(saltpara) <= 16))
   {
     /*
      * sprintf used because of portability requirements, the length
@@ -404,7 +404,7 @@ make_md5_salt(int length)
 {
   static char salt[21];
 
-  if(length > 16)
+  if (length > 16)
   {
     printf("MD5 salt length too long\n");
     exit(0);
@@ -428,7 +428,7 @@ make_bf_salt_para(int rounds, const char *saltpara)
   static char salt[31];
   char tbuf[3];
 
-  if(saltpara && (strlen(saltpara) <= 22))
+  if (saltpara && (strlen(saltpara) <= 22))
   {
     /*
      * sprintf used because of portability requirements, the length
@@ -452,7 +452,7 @@ make_bf_salt(int rounds, int length)
   static char salt[31];
   char tbuf[3];
 
-  if(length > 22)
+  if (length > 22)
   {
     printf("BlowFish salt length too long\n");
     exit(0);
@@ -476,7 +476,7 @@ generate_poor_salt(char *salt, int length)
 
   srandom(time(NULL));
 
-  for(i = 0; i < length; i++)
+  for (i = 0; i < length; i++)
     salt[i] = saltChars[random() % 64];
 
   return salt;
@@ -488,12 +488,12 @@ generate_random_salt(char *salt, int length)
   char *buf;
   int fd, i;
 
-  if((fd = open("/dev/random", O_RDONLY)) < 0)
+  if ((fd = open("/dev/random", O_RDONLY)) < 0)
     return generate_poor_salt(salt, length);
 
   buf = calloc(1, length);
 
-  if(read(fd, buf, length) != length)
+  if (read(fd, buf, length) != length)
   {
     close(fd);
     free(buf);
@@ -501,7 +501,7 @@ generate_random_salt(char *salt, int length)
     return generate_poor_salt(salt, length);
   }
 
-  for(i = 0; i < length; i++)
+  for (i = 0; i < length; i++)
     salt[i] = saltChars[abs(buf[i]) % 64];
 
   close(fd);

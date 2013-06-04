@@ -59,28 +59,28 @@ mo_connect(struct Client *client_p, struct Client *source_p,
   struct AccessItem *aconf = NULL;
   const struct Client *target_p = NULL;
 
-  if(EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "CONNECT");
     return;
   }
 
-  if(parc > 3)
+  if (parc > 3)
   {
-    if(!HasOFlag(source_p, OPER_FLAG_REMOTE))
+    if (!HasOFlag(source_p, OPER_FLAG_REMOTE))
     {
       sendto_one(source_p, form_str(ERR_NOPRIVS),
                  me.name, source_p->name, "connect");
       return;
     }
 
-    if(hunt_server(client_p, source_p, ":%s CONNECT %s %s :%s", 3,
-                   parc, parv) != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s CONNECT %s %s :%s", 3,
+                    parc, parv) != HUNTED_ISME)
       return;
   }
 
-  if((target_p = hash_find_server(parv[1])))
+  if ((target_p = hash_find_server(parv[1])))
   {
     sendto_one(source_p,
                ":%s NOTICE %s :Connect: Server %s already exists from %s.",
@@ -91,14 +91,14 @@ mo_connect(struct Client *client_p, struct Client *source_p,
   /*
    * try to find the name, then host, if both fail notify ops and bail
    */
-  if((conf = find_matching_name_conf(SERVER_TYPE,
-                                     parv[1], NULL, NULL, 0)) != NULL)
+  if ((conf = find_matching_name_conf(SERVER_TYPE,
+                                      parv[1], NULL, NULL, 0)) != NULL)
     aconf = (struct AccessItem *)map_to_conf(conf);
-  else if((conf = find_matching_name_conf(SERVER_TYPE,
-                                          NULL, NULL, parv[1], 0)) != NULL)
+  else if ((conf = find_matching_name_conf(SERVER_TYPE,
+                   NULL, NULL, parv[1], 0)) != NULL)
     aconf = (struct AccessItem *)map_to_conf(conf);
 
-  if(conf == NULL || aconf == NULL)
+  if (conf == NULL || aconf == NULL)
   {
     sendto_one(source_p,
                ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
@@ -112,23 +112,23 @@ mo_connect(struct Client *client_p, struct Client *source_p,
    */
   tmpport = port = aconf->port;
 
-  if(parc > 2 && !EmptyString(parv[2]))
+  if (parc > 2 && !EmptyString(parv[2]))
   {
-    if((port = atoi(parv[2])) <= 0)
+    if ((port = atoi(parv[2])) <= 0)
     {
       sendto_one(source_p, ":%s NOTICE %s :Connect: Illegal port number",
                  me.name, source_p->name);
       return;
     }
   }
-  else if(port <= 0 && (port = PORTNUM) <= 0)
+  else if (port <= 0 && (port = PORTNUM) <= 0)
   {
     sendto_one(source_p, ":%s NOTICE %s :Connect: missing port number",
                me.name, source_p->name);
     return;
   }
 
-  if(find_servconn_in_progress(conf->name))
+  if (find_servconn_in_progress(conf->name))
   {
     sendto_one(source_p, ":%s NOTICE %s :Connect: a connection to %s "
                "is already in progress.", me.name, source_p->name, conf->name);
@@ -146,9 +146,9 @@ mo_connect(struct Client *client_p, struct Client *source_p,
   /* at this point we should be calling connect_server with a valid
    * C:line and a valid port in the C:line
    */
-  if(serv_connect(aconf, source_p))
+  if (serv_connect(aconf, source_p))
   {
-    if(!ConfigServerHide.hide_server_ips && HasUMode(source_p, UMODE_ADMIN))
+    if (!ConfigServerHide.hide_server_ips && HasUMode(source_p, UMODE_ADMIN))
       sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s[%s].%d",
                  me.name, source_p->name, aconf->host,
                  conf->name, aconf->port);
@@ -189,18 +189,18 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   struct AccessItem *aconf = NULL;
   const struct Client *target_p = NULL;
 
-  if(hunt_server(client_p, source_p,
-                 ":%s CONNECT %s %s :%s", 3, parc, parv) != HUNTED_ISME)
+  if (hunt_server(client_p, source_p,
+                  ":%s CONNECT %s %s :%s", 3, parc, parv) != HUNTED_ISME)
     return;
 
-  if(EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "CONNECT");
     return;
   }
 
-  if((target_p = hash_find_server(parv[1])))
+  if ((target_p = hash_find_server(parv[1])))
   {
     sendto_one(source_p,
                ":%s NOTICE %s :Connect: Server %s already exists from %s.",
@@ -211,14 +211,14 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   /*
    * try to find the name, then host, if both fail notify ops and bail
    */
-  if((conf = find_matching_name_conf(SERVER_TYPE,
-                                     parv[1], NULL, NULL, 0)) != NULL)
+  if ((conf = find_matching_name_conf(SERVER_TYPE,
+                                      parv[1], NULL, NULL, 0)) != NULL)
     aconf = map_to_conf(conf);
-  else if((conf = find_matching_name_conf(SERVER_TYPE,
-                                          NULL, NULL, parv[1], 0)) != NULL)
+  else if ((conf = find_matching_name_conf(SERVER_TYPE,
+                   NULL, NULL, parv[1], 0)) != NULL)
     aconf = map_to_conf(conf);
 
-  if(conf == NULL || aconf == NULL)
+  if (conf == NULL || aconf == NULL)
   {
     sendto_one(source_p,
                ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
@@ -232,28 +232,28 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    */
   tmpport = port = aconf->port;
 
-  if(parc > 2 && !EmptyString(parv[2]))
+  if (parc > 2 && !EmptyString(parv[2]))
   {
     port = atoi(parv[2]);
 
     /* if someone sends port 0, and we have a config port.. use it */
-    if(port == 0 && aconf->port)
+    if (port == 0 && aconf->port)
       port = aconf->port;
-    else if(port <= 0)
+    else if (port <= 0)
     {
       sendto_one(source_p, ":%s NOTICE %s :Connect: Illegal port number",
                  me.name, source_p->name);
       return;
     }
   }
-  else if(port <= 0 && (port = PORTNUM) <= 0)
+  else if (port <= 0 && (port = PORTNUM) <= 0)
   {
     sendto_one(source_p, ":%s NOTICE %s :Connect: missing port number",
                me.name, source_p->name);
     return;
   }
 
-  if(find_servconn_in_progress(conf->name))
+  if (find_servconn_in_progress(conf->name))
   {
     sendto_one(source_p, ":%s NOTICE %s :Connect: a connection to %s "
                "is already in progress.", me.name, source_p->name, conf->name);
@@ -275,7 +275,7 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    * At this point we should be calling connect_server with a valid
    * C:line and a valid port in the C:line
    */
-  if(serv_connect(aconf, source_p))
+  if (serv_connect(aconf, source_p))
     sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s.%d",
                me.name, source_p->name, conf->name, aconf->port);
   else

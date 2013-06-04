@@ -77,24 +77,24 @@ extract_one_line(struct dbuf_queue *qptr, char *buffer)
   {
     block = ptr->data;
 
-    for(idx = 0; idx < block->size; idx++)
+    for (idx = 0; idx < block->size; idx++)
     {
       c = block->data[idx];
 
-      if(IsEol(c) || (c == ' ' && phase != 1))
+      if (IsEol(c) || (c == ' ' && phase != 1))
       {
         empty_bytes++;
 
-        if(phase == 1)
+        if (phase == 1)
           phase = 2;
       }
-      else switch(phase)
+      else switch (phase)
         {
           case 0:
             phase = 1;
 
           case 1:
-            if(line_bytes++ < IRCD_BUFSIZE - 2)
+            if (line_bytes++ < IRCD_BUFSIZE - 2)
               *buffer++ = c;
 
             break;
@@ -111,7 +111,7 @@ extract_one_line(struct dbuf_queue *qptr, char *buffer)
    * Now, if we haven't reached phase 2, ignore all line bytes
    * that we have read, since this is a partial line case.
    */
-  if(phase != 2)
+  if (phase != 2)
     line_bytes = 0;
   else
     *buffer = '\0';
@@ -131,22 +131,22 @@ parse_client_queued(struct Client *client_p)
   int checkflood = 1;
   struct LocalUser *lclient_p = client_p->localClient;
 
-  if(IsUnknown(client_p))
+  if (IsUnknown(client_p))
   {
     int i = 0;
 
-    for(;;)
+    for (;;)
     {
-      if(IsDefunct(client_p))
+      if (IsDefunct(client_p))
         return;
 
       /* rate unknown clients at MAX_FLOOD per loop */
-      if(i >= MAX_FLOOD)
+      if (i >= MAX_FLOOD)
         break;
 
       dolen = extract_one_line(&lclient_p->buf_recvq, readBuf);
 
-      if(dolen == 0)
+      if (dolen == 0)
         break;
 
       client_dopacket(client_p, readBuf, dolen);
@@ -155,31 +155,31 @@ parse_client_queued(struct Client *client_p)
       /* if they've dropped out of the unknown state, break and move
        * to the parsing for their appropriate status.  --fl
        */
-      if(!IsUnknown(client_p))
+      if (!IsUnknown(client_p))
         break;
     }
   }
 
-  if(IsServer(client_p) || IsConnecting(client_p) || IsHandshake(client_p))
+  if (IsServer(client_p) || IsConnecting(client_p) || IsHandshake(client_p))
   {
-    while(1)
+    while (1)
     {
-      if(IsDefunct(client_p))
+      if (IsDefunct(client_p))
         return;
 
-      if((dolen = extract_one_line(&lclient_p->buf_recvq,
-                                   readBuf)) == 0)
+      if ((dolen = extract_one_line(&lclient_p->buf_recvq,
+                                    readBuf)) == 0)
         break;
 
       client_dopacket(client_p, readBuf, dolen);
     }
   }
-  else if(IsClient(client_p))
+  else if (IsClient(client_p))
   {
-    if(ConfigFileEntry.no_oper_flood && (HasUMode(client_p, UMODE_OPER)
-                                         || IsCanFlood(client_p)))
+    if (ConfigFileEntry.no_oper_flood && (HasUMode(client_p, UMODE_OPER)
+                                          || IsCanFlood(client_p)))
     {
-      if(ConfigFileEntry.true_no_oper_flood)
+      if (ConfigFileEntry.true_no_oper_flood)
         checkflood = -1;
       else
         checkflood = 0;
@@ -190,9 +190,9 @@ parse_client_queued(struct Client *client_p)
      * messages in this loop, we simply drop out of the loop prematurely.
      *   -- adrian
      */
-    for(;;)
+    for (;;)
     {
-      if(IsDefunct(client_p))
+      if (IsDefunct(client_p))
         break;
 
       /* This flood protection works as follows:
@@ -208,22 +208,22 @@ parse_client_queued(struct Client *client_p)
        * as sent_parsed will always hover around the allow_read limit
        * and no 'bursts' will be permitted.
        */
-      if(checkflood > 0)
+      if (checkflood > 0)
       {
-        if(lclient_p->sent_parsed >= lclient_p->allow_read)
+        if (lclient_p->sent_parsed >= lclient_p->allow_read)
           break;
       }
 
       /* allow opers 4 times the amount of messages as users. why 4?
        * why not. :) --fl_
        */
-      else if(lclient_p->sent_parsed >= (4 * lclient_p->allow_read) &&
-              checkflood != -1)
+      else if (lclient_p->sent_parsed >= (4 * lclient_p->allow_read) &&
+               checkflood != -1)
         break;
 
       dolen = extract_one_line(&lclient_p->buf_recvq, readBuf);
 
-      if(dolen == 0)
+      if (dolen == 0)
         break;
 
       client_dopacket(client_p, readBuf, dolen);
@@ -265,18 +265,18 @@ flood_recalc(fde_t *fd, void *data)
   /* allow a bursting client their allocation per second, allow
    * a client whos flooding an extra 2 per second
    */
-  if(IsFloodDone(client_p))
+  if (IsFloodDone(client_p))
     lclient_p->sent_parsed -= 2;
   else
     lclient_p->sent_parsed = 0;
 
-  if(lclient_p->sent_parsed < 0)
+  if (lclient_p->sent_parsed < 0)
     lclient_p->sent_parsed = 0;
 
   parse_client_queued(client_p);
 
   /* And now, try flushing .. */
-  if(!IsDead(client_p))
+  if (!IsDead(client_p))
   {
     /* and finally, reset the flood check */
     comm_setflush(fd, 1000, flood_recalc, client_p);
@@ -306,7 +306,7 @@ read_packet(fde_t *fd, void *data)
   struct Client *client_p = data;
   int length = 0;
 
-  if(IsDefunct(client_p))
+  if (IsDefunct(client_p))
     return;
 
   /*
@@ -318,13 +318,13 @@ read_packet(fde_t *fd, void *data)
   {
 #ifdef HAVE_LIBCRYPTO
 
-    if(fd->ssl)
+    if (fd->ssl)
     {
       length = SSL_read(fd->ssl, readBuf, READBUF_SIZE);
 
       /* translate openssl error codes, sigh */
-      if(length < 0)
-        switch(SSL_get_error(fd->ssl, length))
+      if (length < 0)
+        switch (SSL_get_error(fd->ssl, length))
         {
           case SSL_ERROR_WANT_WRITE:
             fd->flags.pending_read = 1;
@@ -340,7 +340,7 @@ read_packet(fde_t *fd, void *data)
             break;
 
           case SSL_ERROR_SSL:
-            if(errno == EAGAIN)
+            if (errno == EAGAIN)
               break;
 
           default:
@@ -353,13 +353,13 @@ read_packet(fde_t *fd, void *data)
       length = recv(fd->fd, readBuf, READBUF_SIZE, 0);
     }
 
-    if(length <= 0)
+    if (length <= 0)
     {
       /*
        * If true, then we can recover from this error.  Just jump out of
        * the loop and re-register a new io-request.
        */
-      if(length < 0 && ignoreErrno(errno))
+      if (length < 0 && ignoreErrno(errno))
         break;
 
       dead_link_on_read(client_p, length);
@@ -368,7 +368,7 @@ read_packet(fde_t *fd, void *data)
 
     execute_callback(iorecv_cb, client_p, length, readBuf);
 
-    if(IsServer(client_p) && IsPingSent(client_p) && IsPingWarning(client_p))
+    if (IsServer(client_p) && IsPingSent(client_p) && IsPingWarning(client_p))
     {
       char timestamp[200];
       strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z",
@@ -379,10 +379,10 @@ read_packet(fde_t *fd, void *data)
                            CurrentTime - client_p->localClient->lasttime, timestamp);
     }
 
-    if(client_p->localClient->lasttime < CurrentTime)
+    if (client_p->localClient->lasttime < CurrentTime)
       client_p->localClient->lasttime = CurrentTime;
 
-    if(client_p->localClient->lasttime > client_p->localClient->since)
+    if (client_p->localClient->lasttime > client_p->localClient->since)
       client_p->localClient->since = CurrentTime;
 
     ClearPingSent(client_p);
@@ -390,15 +390,15 @@ read_packet(fde_t *fd, void *data)
     /* Attempt to parse what we have */
     parse_client_queued(client_p);
 
-    if(IsDefunct(client_p))
+    if (IsDefunct(client_p))
       return;
 
     /* Check to make sure we're not flooding */
-    if(!(IsServer(client_p) || IsHandshake(client_p) || IsConnecting(client_p))
+    if (!(IsServer(client_p) || IsHandshake(client_p) || IsConnecting(client_p))
         && (dbuf_length(&client_p->localClient->buf_recvq) >
             get_recvq(client_p)))
     {
-      if(!(ConfigFileEntry.no_oper_flood && HasUMode(client_p, UMODE_OPER)))
+      if (!(ConfigFileEntry.no_oper_flood && HasUMode(client_p, UMODE_OPER)))
       {
         exit_client(client_p, client_p, "Excess Flood");
         return;
@@ -408,11 +408,11 @@ read_packet(fde_t *fd, void *data)
 
 #ifdef HAVE_LIBCRYPTO
 
-  while(length == sizeof(readBuf) || fd->ssl);
+  while (length == sizeof(readBuf) || fd->ssl);
 
 #else
 
-  while(length == sizeof(readBuf));
+  while (length == sizeof(readBuf));
 
 #endif
 

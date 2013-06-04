@@ -64,10 +64,10 @@ do_local_user(struct Client *source_p,
   strlcpy(source_p->localClient->client_server, server,
           sizeof(source_p->localClient->client_server));
 
-  if(!IsGotId(source_p))
+  if (!IsGotId(source_p))
     strlcpy(source_p->username, username, sizeof(source_p->username));
 
-  if(!source_p->localClient->registration)
+  if (!source_p->localClient->registration)
     register_local_user(source_p);
 }
 
@@ -85,16 +85,16 @@ mr_user(struct Client *client_p, struct Client *source_p,
 {
   char *p = NULL;
 
-  if(source_p->localClient->listener->flags & LISTENER_SERVER)
+  if (source_p->localClient->listener->flags & LISTENER_SERVER)
   {
     exit_client(source_p, &me, "Use a different port");
     return;
   }
 
-  if((p = strchr(parv[1], '@')) != NULL)
+  if ((p = strchr(parv[1], '@')) != NULL)
     * p = '\0';
 
-  if(EmptyString(parv[4]))
+  if (EmptyString(parv[4]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name,
                source_p->name[0] ? source_p->name : "*", "USER");

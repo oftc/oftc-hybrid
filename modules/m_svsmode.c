@@ -66,10 +66,10 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
   char *m = NULL, *modes = NULL, *extarg = NULL;
   time_t ts = 0;
 
-  if(!HasFlag(source_p, FLAGS_SERVICE))
+  if (!HasFlag(source_p, FLAGS_SERVICE))
     return;
 
-  if((parc >= 4) && ((*parv[3] == '+') || (*parv[3] == '-')))
+  if ((parc >= 4) && ((*parv[3] == '+') || (*parv[3] == '-')))
   {
     ts     = atol(parv[2]);
     modes  = parv[3];
@@ -81,17 +81,17 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
     extarg = (parc > 3) ? parv[3] : NULL;
   }
 
-  if((target_p = find_person(client_p, parv[1])) == NULL)
+  if ((target_p = find_person(client_p, parv[1])) == NULL)
     return;
 
-  if(ts && (ts != target_p->tsinfo))
+  if (ts && (ts != target_p->tsinfo))
     return;
 
   setflags = target_p->umodes;
 
-  for(m = modes; *m; ++m)
+  for (m = modes; *m; ++m)
   {
-    switch(*m)
+    switch (*m)
     {
       case '+':
         what = MODE_ADD;
@@ -102,24 +102,24 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
         break;
 
       case 'x':
-        if(what == MODE_ADD && extarg)
+        if (what == MODE_ADD && extarg)
           user_set_hostmask(target_p, extarg);
 
         break;
 
       case 'd':
-        if(!EmptyString(extarg))
+        if (!EmptyString(extarg))
           strlcpy(target_p->svid, extarg, sizeof(target_p->svid));
 
         break;
 
       case 'o':
-        if(what == MODE_DEL && HasUMode(target_p, UMODE_OPER))
+        if (what == MODE_DEL && HasUMode(target_p, UMODE_OPER))
         {
           ClearOper(target_p);
           Count.oper--;
 
-          if(MyConnect(target_p))
+          if (MyConnect(target_p))
           {
             dlink_node *dm = NULL;
 
@@ -127,7 +127,7 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
             ClrOFlag(target_p);
             DelUMode(target_p, ConfigFileEntry.oper_only_umodes);
 
-            if((dm = dlinkFindDelete(&oper_list, target_p)) != NULL)
+            if ((dm = dlinkFindDelete(&oper_list, target_p)) != NULL)
               free_dlink_node(dm);
           }
         }
@@ -135,13 +135,13 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
         break;
 
       case 'i':
-        if(what == MODE_ADD && !HasUMode(target_p, UMODE_INVISIBLE))
+        if (what == MODE_ADD && !HasUMode(target_p, UMODE_INVISIBLE))
         {
           AddUMode(target_p, UMODE_INVISIBLE);
           ++Count.invisi;
         }
 
-        if(what == MODE_DEL && HasUMode(target_p, UMODE_INVISIBLE))
+        if (what == MODE_DEL && HasUMode(target_p, UMODE_INVISIBLE))
         {
           DelUMode(target_p, UMODE_INVISIBLE);
           --Count.invisi;
@@ -156,14 +156,14 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
         break;
 
       default:
-        if((flag = user_modes[(unsigned char) * m]))
+        if ((flag = user_modes[(unsigned char) * m]))
           execute_callback(umode_cb, client_p, target_p, what, flag);
 
         break;
     }
   }
 
-  if(extarg)
+  if (extarg)
   {
     sendto_server(client_p, CAP_TS6, NOCAPS,
                   ":%s SVSMODE %s %lu %s %s", ID(source_p),
@@ -182,7 +182,7 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
                   target_p->name, (unsigned long)target_p->tsinfo, modes);
   }
 
-  if(MyConnect(target_p) && (setflags != target_p->umodes))
+  if (MyConnect(target_p) && (setflags != target_p->umodes))
   {
     char modebuf[IRCD_BUFSIZE];
 

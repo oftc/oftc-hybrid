@@ -67,7 +67,7 @@ confopts(struct Client *source_p)
   *p++ = 'g';
 
   /* might wanna hide this :P */
-  if(ServerInfo.hub &&
+  if (ServerInfo.hub &&
       (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER)))
   {
     *p++ = 'H';
@@ -78,7 +78,7 @@ confopts(struct Client *source_p)
   *p++ = 'q'; /* quiet */
   *p++ = 'M';
 
-  if(ConfigFileEntry.ignore_bogus_ts)
+  if (ConfigFileEntry.ignore_bogus_ts)
     *p++ = 'T';
 
   *p++ = '6';
@@ -99,7 +99,7 @@ m_version(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
     sendto_one(source_p, form_str(RPL_LOAD2HI),
@@ -109,10 +109,10 @@ m_version(struct Client *client_p, struct Client *source_p,
   else
     last_used = CurrentTime;
 
-  if(!ConfigFileEntry.disable_remote)
+  if (!ConfigFileEntry.disable_remote)
   {
-    if(hunt_server(client_p, source_p, ":%s VERSION :%s",
-                   1, parc, parv) != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s VERSION :%s",
+                    1, parc, parv) != HUNTED_ISME)
       return;
   }
 
@@ -132,8 +132,8 @@ mo_version(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
 
-  if(hunt_server(client_p, source_p, ":%s VERSION :%s",
-                 1, parc, parv) != HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s VERSION :%s",
+                  1, parc, parv) != HUNTED_ISME)
     return;
 
   sendto_one(source_p, form_str(RPL_VERSION), me.name,
@@ -152,8 +152,8 @@ static void
 ms_version(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
-  if(hunt_server(client_p, source_p, ":%s VERSION :%s",
-                 1, parc, parv) == HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s VERSION :%s",
+                  1, parc, parv) == HUNTED_ISME)
   {
     sendto_one(source_p, form_str(RPL_VERSION),
                ID_or_name(&me, client_p),

@@ -40,10 +40,10 @@ static void mo_log(struct Client *client_p, struct Client *source_p, int parc,
 {
   FILE *logfile = NULL;
 
-  if(parc < 2)
+  if (parc < 2)
     return;
 
-  if(IsClient(source_p) && ((logfile = fopen(OFTCLOG, "a+")) != NULL))
+  if (IsClient(source_p) && ((logfile = fopen(OFTCLOG, "a+")) != NULL))
   {
     fprintf(logfile, "%s %s %s\n",
             myctime(time(NULL)), source_p->name, parv[1]);

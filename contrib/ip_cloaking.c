@@ -189,7 +189,7 @@ crc32(const char *s, unsigned int len)
   unsigned int i;
   unsigned long crc32val = 0;
 
-  for(i = 0; i < len; i++)
+  for (i = 0; i < len; i++)
     crc32val = crc32_tab[(crc32val ^ s[i]) & 0xff] ^ (crc32val >> 8);
 
   return crc32val;
@@ -212,7 +212,7 @@ str2arr(char **pparv, char *string, const char *delim)
   int pparc = 0;
 
   /* Diane had suggested to use this method rather than while() -- knight */
-  for(tok = strtok(string, delim); tok != NULL; tok = strtok(NULL, delim))
+  for (tok = strtok(string, delim); tok != NULL; tok = strtok(NULL, delim))
   {
     pparv[pparc++] = tok;
   }
@@ -241,7 +241,7 @@ make_virthost(char *curr, char *host, char *new)
   parc  = str2arr(parv, s, ".");
   parc2 = str2arr(parv2, s2, ".");
 
-  if(!parc2)
+  if (!parc2)
     return;
 
   hash[0] = ((crc32(parv[3], strlen(parv[3])) + KEY) ^ KEY2) ^ KEY3;
@@ -267,11 +267,11 @@ make_virthost(char *curr, char *host, char *new)
   hash[3] &= 0x7FFFFFFF;
 
   /* IPv4 */
-  if(parc2 == 4 || parc2 < 2)
+  if (parc2 == 4 || parc2 < 2)
   {
     len = strlen(parv2[3]);
 
-    if(strchr("0123456789", parv2[3][len - 1]) || parc2 < 2)
+    if (strchr("0123456789", parv2[3][len - 1]) || parc2 < 2)
     {
       ircsprintf(mask, "%s.%s.%s.%lx",
                  parv2[parc2 - 4], parv2[parc2 - 3],
@@ -286,7 +286,7 @@ make_virthost(char *curr, char *host, char *new)
   }
   else
   {
-    if(parc2 >= 4)
+    if (parc2 >= 4)
     {
       /* isp.sub.tld or district.isp.tld */
       ircsprintf(mask, "%lx-%lx.%s.%s.%s",
@@ -300,7 +300,7 @@ make_virthost(char *curr, char *host, char *new)
                  hash[0], hash[3], parv2[parc2 - 2], parv2[parc2 - 1]);
     }
 
-    if(parc2 >= 5)
+    if (parc2 >= 5)
     {
       /* zone.district.isp.tld or district.isp.sub.tld */
       ircsprintf(mask, "%lx-%lx.%s.%s.%s.%s",
@@ -331,7 +331,7 @@ set_vhost(struct Client *client_p, struct Client *source_p,
 {
   target_p->umodes |= umode_vhost;
 
-  if(IsUserHostIp(target_p))
+  if (IsUserHostIp(target_p))
     delete_user_host(target_p->username, target_p->host, !MyConnect(target_p));
 
   SetIPSpoof(target_p);
@@ -342,7 +342,7 @@ set_vhost(struct Client *client_p, struct Client *source_p,
 
   clear_ban_cache_client(target_p);
 
-  if(IsClient(target_p))
+  if (IsClient(target_p))
     sendto_server(client_p, CAP_ENCAP, NOCAPS,
                   ":%s ENCAP * CHGHOST %s %s",
                   me.name, target_p->name, target_p->host);
@@ -370,15 +370,15 @@ h_set_user_mode(va_list args)
   int what = va_arg(args, int);
   unsigned int flag = va_arg(args, unsigned int);
 
-  if(flag == umode_vhost)
+  if (flag == umode_vhost)
   {
-    if(what == MODE_ADD)
+    if (what == MODE_ADD)
     {
       /* Automatically break if any of these conditions are met. -- knight- */
-      if(!MyConnect(target_p))
+      if (!MyConnect(target_p))
         return NULL;
 
-      if(IsIPSpoof(target_p))
+      if (IsIPSpoof(target_p))
         return NULL;
 
       /*
@@ -387,9 +387,9 @@ h_set_user_mode(va_list args)
        */
 #ifdef IPV6
 
-      if(target_p->localClient->aftype == AF_INET6)
+      if (target_p->localClient->aftype == AF_INET6)
       {
-        if(!vhost_ipv6_err)
+        if (!vhost_ipv6_err)
         {
           sendto_one(target_p, ":%s NOTICE %s :*** Sorry, IP cloaking "
                      "does not support IPv6 users!", me.name, target_p->name);
@@ -410,17 +410,17 @@ h_set_user_mode(va_list args)
 static void
 module_init(void)
 {
-  if(!user_modes['h'])
+  if (!user_modes['h'])
   {
     unsigned int all_umodes = 0, i;
 
-    for(i = 0; i < 128; i++)
+    for (i = 0; i < 128; i++)
       all_umodes |= user_modes[i];
 
-    for(umode_vhost = 1; umode_vhost && (all_umodes & umode_vhost);
-        umode_vhost <<= 1);
+    for (umode_vhost = 1; umode_vhost && (all_umodes & umode_vhost);
+         umode_vhost <<= 1);
 
-    if(!umode_vhost)
+    if (!umode_vhost)
     {
       ilog(LOG_TYPE_IRCD, "You have more than 32 usermodes, "
            "IP cloaking not installed");
@@ -447,7 +447,7 @@ module_init(void)
 static void
 module_exit(void)
 {
-  if(umode_vhost)
+  if (umode_vhost)
   {
     dlink_node *ptr;
 

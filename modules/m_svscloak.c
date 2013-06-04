@@ -53,7 +53,7 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc,
   struct Client *target_p;
   char *hostname, *target;
 
-  if(parc < 3 || EmptyString(parv[2]))
+  if (parc < 3 || EmptyString(parv[2]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, parv[0]);
     return;
@@ -62,9 +62,9 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc,
   target = parv[1];
   hostname = parv[2];
 
-  if((target_p = find_person(client_p, target)))
+  if ((target_p = find_person(client_p, target)))
   {
-    if(MyClient(target_p) && irccmp(target_p->host, hostname) != 0)
+    if (MyClient(target_p) && irccmp(target_p->host, hostname) != 0)
     {
       sendto_one(target_p, ":%s NOTICE %s :Activating Cloak: %s",
                  me.name, target_p->name, hostname);
@@ -78,10 +78,10 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc,
                   ":%s SVSCLOAK %s :%s", parv[0], parv[1], parv[2]);
 
     /* locally modify the clients structure */
-    if(target_p->realhost[0] == '\0')
+    if (target_p->realhost[0] == '\0')
       strncpy(target_p->realhost, target_p->host, HOSTLEN);
 
-    if(IsUserHostIp(target_p))
+    if (IsUserHostIp(target_p))
     {
       delete_user_host(target_p->username, target_p->host, !MyConnect(target_p));
       add_user_host(target_p->username, hostname, !MyConnect(target_p));

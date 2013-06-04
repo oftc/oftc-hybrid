@@ -72,7 +72,7 @@ check_can_use_v6(void)
 #ifdef IPV6
   int v6;
 
-  if((v6 = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
+  if ((v6 = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
     ServerInfo.can_use_v6 = 0;
   else
   {
@@ -99,9 +99,9 @@ get_sockerr(int fd)
   int err = 0;
   socklen_t len = sizeof(err);
 
-  if(-1 < fd && !getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len))
+  if (-1 < fd && !getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len))
   {
-    if(err)
+    if (err)
       errtmp = err;
   }
 
@@ -187,7 +187,7 @@ close_connection(struct Client *client_p)
 
   assert(client_p);
 
-  if(!IsDead(client_p))
+  if (!IsDead(client_p))
   {
     /* attempt to flush any pending dbufs. Evil, but .. -- adrian */
     /* there is still a chance that we might send data to this socket
@@ -198,14 +198,14 @@ close_connection(struct Client *client_p)
     send_queued_write(client_p);
   }
 
-  if(IsClient(client_p))
+  if (IsClient(client_p))
   {
     ++ServerStats.is_cl;
     ServerStats.is_cbs += client_p->localClient->send.bytes;
     ServerStats.is_cbr += client_p->localClient->recv.bytes;
     ServerStats.is_cti += CurrentTime - client_p->localClient->firsttime;
   }
-  else if(IsServer(client_p))
+  else if (IsServer(client_p))
   {
     ++ServerStats.is_sv;
     ServerStats.is_sbs += client_p->localClient->send.bytes;
@@ -216,7 +216,7 @@ close_connection(struct Client *client_p)
     {
       struct ConfItem *conf = ptr->data;
 
-      if(irccmp(conf->name, client_p->name))
+      if (irccmp(conf->name, client_p->name))
         continue;
 
       /*
@@ -233,17 +233,17 @@ close_connection(struct Client *client_p)
 
 #ifdef HAVE_LIBCRYPTO
 
-  if(client_p->localClient->fd.ssl)
+  if (client_p->localClient->fd.ssl)
   {
     SSL_set_shutdown(client_p->localClient->fd.ssl, SSL_RECEIVED_SHUTDOWN);
 
-    if(!SSL_shutdown(client_p->localClient->fd.ssl))
+    if (!SSL_shutdown(client_p->localClient->fd.ssl))
       SSL_shutdown(client_p->localClient->fd.ssl);
   }
 
 #endif
 
-  if(client_p->localClient->fd.flags.open)
+  if (client_p->localClient->fd.flags.open)
     fd_close(&client_p->localClient->fd);
 
   dbuf_clear(&client_p->localClient->buf_sendq);
@@ -268,11 +268,11 @@ ssl_handshake(int fd, struct Client *client_p)
   int err = SSL_get_error(client_p->localClient->fd.ssl, ret);
   ilog(LOG_TYPE_IRCD, "SSL Error %d %s", err, ERR_error_string(err, NULL));
 
-  if((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
+  if ((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
   {
     int res = SSL_get_verify_result(client_p->localClient->fd.ssl);
 
-    if(res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
+    if (res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
         res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
         res == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
     {
@@ -289,15 +289,15 @@ ssl_handshake(int fd, struct Client *client_p)
     X509_free(cert);
   }
 
-  if(ret <= 0)
+  if (ret <= 0)
   {
-    if((CurrentTime - client_p->localClient->firsttime) > 30)
+    if ((CurrentTime - client_p->localClient->firsttime) > 30)
     {
       exit_client(client_p, client_p, "Timeout during SSL handshake");
       return;
     }
 
-    switch(SSL_get_error(client_p->localClient->fd.ssl, ret))
+    switch (SSL_get_error(client_p->localClient->fd.ssl, ret))
     {
       case SSL_ERROR_WANT_WRITE:
         comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
@@ -347,7 +347,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
               sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
   new_client->aftype = new_client->ip.ss.ss_family;
 
-  if(new_client->sockhost[0] == ':' && new_client->sockhost[1] == ':')
+  if (new_client->sockhost[0] == ':' && new_client->sockhost[1] == ':')
   {
     strlcpy(new_client->host, "0", sizeof(new_client->host));
     strlcpy(new_client->host + 1, new_client->sockhost,
@@ -364,9 +364,9 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 
 #ifdef HAVE_LIBCRYPTO
 
-  if(listener->flags & LISTENER_SSL)
+  if (listener->flags & LISTENER_SSL)
   {
-    if((new_client->localClient->fd.ssl = SSL_new(ServerInfo.server_ctx)) == NULL)
+    if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.server_ctx)) == NULL)
     {
       ilog(LOG_TYPE_IRCD, "SSL_new() ERROR! -- %s",
            ERR_error_string(ERR_get_error(), NULL));
@@ -393,7 +393,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 int
 ignoreErrno(int ierrno)
 {
-  switch(ierrno)
+  switch (ierrno)
   {
     case EINPROGRESS:
     case EWOULDBLOCK:
@@ -464,14 +464,14 @@ comm_checktimeouts(void *notused)
   PF *hdl;
   void *data;
 
-  for(i = 0; i < FD_HASH_SIZE; i++)
-    for(F = fd_hash[i]; F != NULL; F = fd_next_in_loop)
+  for (i = 0; i < FD_HASH_SIZE; i++)
+    for (F = fd_hash[i]; F != NULL; F = fd_next_in_loop)
     {
       assert(F->flags.open);
       fd_next_in_loop = F->hnext;
 
       /* check flush functions */
-      if(F->flush_handler && F->flush_timeout > 0 &&
+      if (F->flush_handler && F->flush_timeout > 0 &&
           F->flush_timeout < CurrentTime)
       {
         hdl = F->flush_handler;
@@ -481,7 +481,7 @@ comm_checktimeouts(void *notused)
       }
 
       /* check timeouts */
-      if(F->timeout_handler && F->timeout > 0 &&
+      if (F->timeout_handler && F->timeout > 0 &&
           F->timeout < CurrentTime)
       {
         /* Call timeout handler */
@@ -528,7 +528,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
    * virtual host IP, for completeness.
    *   -- adrian
    */
-  if((clocal != NULL) && (bind(fd->fd, clocal, socklen) < 0))
+  if ((clocal != NULL) && (bind(fd->fd, clocal, socklen) < 0))
   {
     /* Failure, call the callback with COMM_ERR_BIND */
     comm_connect_callback(fd, COMM_ERR_BIND);
@@ -546,10 +546,10 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
 
   snprintf(portname, sizeof(portname), "%d", port);
 
-  if(getaddrinfo(host, portname, &hints, &res))
+  if (getaddrinfo(host, portname, &hints, &res))
   {
     /* Send the DNS request, for the next level */
-    if(aftype == AF_INET6)
+    if (aftype == AF_INET6)
       gethost_byname_type(comm_connect_dns_callback, fd, host, T_AAAA);
     else
       gethost_byname_type(comm_connect_dns_callback, fd, host, T_A);
@@ -577,7 +577,7 @@ comm_connect_callback(fde_t *fd, int status)
   CNCB *hdl;
 
   /* This check is gross..but probably necessary */
-  if(fd->connect.callback == NULL)
+  if (fd->connect.callback == NULL)
     return;
 
   /* Clear the connect flag + handler */
@@ -615,7 +615,7 @@ comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr,
 {
   fde_t *F = vptr;
 
-  if(name == NULL)
+  if (name == NULL)
   {
     comm_connect_callback(F, COMM_ERR_DNS);
     return;
@@ -654,7 +654,7 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
   int retval;
 
   /* This check is needed or re-entrant s_bsd_* like sigio break it. */
-  if(fd->connect.callback == NULL)
+  if (fd->connect.callback == NULL)
     return;
 
   /* Try the connect() */
@@ -662,16 +662,16 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
                    fd->connect.hostaddr.ss_len);
 
   /* Error? */
-  if(retval < 0)
+  if (retval < 0)
   {
     /*
      * If we get EISCONN, then we've already connect()ed the socket,
      * which is a good thing.
      *   -- adrian
      */
-    if(errno == EISCONN)
+    if (errno == EISCONN)
       comm_connect_callback(fd, COMM_OK);
-    else if(ignoreErrno(errno))
+    else if (ignoreErrno(errno))
       /* Ignore error? Reschedule */
       comm_setselect(fd, COMM_SELECT_WRITE, comm_connect_tryconnect,
                      NULL, 0);
@@ -692,7 +692,7 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
 const char *
 comm_errstr(int error)
 {
-  if(error < 0 || error >= COMM_ERR_MAX)
+  if (error < 0 || error >= COMM_ERR_MAX)
     return "Invalid error number!";
 
   return comm_err_str[error];
@@ -711,7 +711,7 @@ comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
   int fd;
 
   /* First, make sure we aren't going to run out of file descriptors */
-  if(number_fd >= hard_fdlimit)
+  if (number_fd >= hard_fdlimit)
   {
     errno = ENFILE;
     return -1;
@@ -724,7 +724,7 @@ comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
    */
   fd = socket(family, sock_type, proto);
 
-  if(fd < 0)
+  if (fd < 0)
     return -1; /* errno will be passed through, yay.. */
 
   execute_callback(setup_socket_cb, fd);
@@ -747,7 +747,7 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
   int newfd;
   socklen_t addrlen = sizeof(struct irc_ssaddr);
 
-  if(number_fd >= hard_fdlimit)
+  if (number_fd >= hard_fdlimit)
   {
     errno = ENFILE;
     return -1;
@@ -760,7 +760,7 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
    */
   newfd = accept(lptr->fd.fd, (struct sockaddr *)pn, &addrlen);
 
-  if(newfd < 0)
+  if (newfd < 0)
     return -1;
 
 #ifdef IPV6
@@ -785,9 +785,9 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
 void
 remove_ipv6_mapping(struct irc_ssaddr *addr)
 {
-  if(addr->ss.ss_family == AF_INET6)
+  if (addr->ss.ss_family == AF_INET6)
   {
-    if(IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)addr)->sin6_addr))
+    if (IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)addr)->sin6_addr))
     {
       struct sockaddr_in6 v6;
       struct sockaddr_in *v4 = (struct sockaddr_in *)addr;

@@ -34,8 +34,8 @@ has_wildcards(const char *s)
 {
   char c;
 
-  while((c = *s++))
-    if(IsMWildChar(c))
+  while ((c = *s++))
+    if (IsMWildChar(c))
       return 1;
 
   return 0;
@@ -61,7 +61,7 @@ myctime(time_t value)
 
   strlcpy(buf, ctime(&value), sizeof(buf));
 
-  if((p = strchr(buf, '\n')) != NULL)
+  if ((p = strchr(buf, '\n')) != NULL)
     * p = '\0';
 
   return buf;
@@ -81,16 +81,16 @@ clean_string(char *dest, const unsigned char *src, ssize_t len)
   assert(0 != dest);
   assert(0 != src);
 
-  if(dest == NULL || src == NULL)
+  if (dest == NULL || src == NULL)
     return NULL;
 
   len -= 3;  /* allow for worst case, '^A\0' */
 
-  while(*src && (len > 0))
+  while (*src && (len > 0))
   {
-    if(*src & 0x80)              /* if high bit is set */
+    if (*src & 0x80)             /* if high bit is set */
       *d++ = '.';
-    else if(!IsPrint(*src))        /* if NOT printable */
+    else if (!IsPrint(*src))       /* if NOT printable */
     {
       *d++ = '^';
       --len;
@@ -121,7 +121,7 @@ strip_tabs(char *dest, const char *src, size_t len)
   assert(src  != NULL);
   assert(len > 0);
 
-  for(; --len && *src; ++src)
+  for (; --len && *src; ++src)
     *d++ = *src == '\t' ? ' ' : *src;
 
   *d = '\0'; /* NUL terminate, thanks and goodbye */
@@ -140,21 +140,21 @@ strtoken(char **save, char *str, const char *fs)
   char *pos = *save;  /* keep last position across calls */
   char *tmp;
 
-  if(str)
+  if (str)
     pos = str;    /* new string scan */
 
-  while(pos && *pos && strchr(fs, *pos) != NULL)
+  while (pos && *pos && strchr(fs, *pos) != NULL)
     ++pos;        /* skip leading separators */
 
-  if(!pos || !*pos)
+  if (!pos || !*pos)
     return (pos = *save = NULL);   /* string contains only sep's */
 
   tmp = pos;       /* now, keep position of the token */
 
-  while(*pos && strchr(fs, *pos) == NULL)
+  while (*pos && strchr(fs, *pos) == NULL)
     ++pos;       /* skip content of the token */
 
-  if(*pos)
+  if (*pos)
     *pos++ = '\0';    /* remove first sep after the token */
   else
     pos = NULL;    /* end of string */
@@ -177,7 +177,7 @@ basename(char *path)
 {
   char *s;
 
-  if((s = strrchr(path, '/')) == NULL)
+  if ((s = strrchr(path, '/')) == NULL)
     s = path;
   else
     s++;
@@ -226,18 +226,18 @@ strlcat(char *dst, const char *src, size_t siz)
   const char *s = src;
   size_t n = siz, dlen;
 
-  while(n-- != 0 && *d != '\0')
+  while (n-- != 0 && *d != '\0')
     d++;
 
   dlen = d - dst;
   n    = siz - dlen;
 
-  if(n == 0)
+  if (n == 0)
     return dlen + strlen(s);
 
-  while(*s != '\0')
+  while (*s != '\0')
   {
-    if(n != 1)
+    if (n != 1)
     {
       *d++ = *s;
       n--;
@@ -260,23 +260,23 @@ strlcpy(char *dst, const char *src, size_t siz)
   size_t n = siz;
 
   /* Copy as many bytes as will fit */
-  if(n != 0 && --n != 0)
+  if (n != 0 && --n != 0)
   {
     do
     {
-      if((*d++ = *s++) == 0)
+      if ((*d++ = *s++) == 0)
         break;
     }
-    while(--n != 0);
+    while (--n != 0);
   }
 
   /* Not enough room in dst, add NUL and traverse rest of src */
-  if(n == 0)
+  if (n == 0)
   {
-    if(siz != 0)
+    if (siz != 0)
       *d = '\0'; /* NUL-terminate dst */
 
-    while(*s++)
+    while (*s++)
       ;
   }
 

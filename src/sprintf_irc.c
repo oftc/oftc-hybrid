@@ -270,28 +270,28 @@ vsprintf_irc(char *str, const char *format, va_list args)
   char c;
   int bytes = 0;
 
-  while((c = *format++))
+  while ((c = *format++))
   {
-    if(c == '%')
+    if (c == '%')
     {
       c = *format++; /* May never be '\0' ! */
 
-      if(c == 's')
+      if (c == 's')
       {
         const char *p1 = va_arg(args, const char *);
 
-        if((*str = *p1))
+        if ((*str = *p1))
         {
           ++bytes;
 
-          while((*++str = *++p1))
+          while ((*++str = *++p1))
             ++bytes;
         }
 
         continue;
       }
 
-      if(c == 'c')
+      if (c == 'c')
       {
         *str++ = (char) va_arg(args, int);
         ++bytes;
@@ -304,7 +304,7 @@ vsprintf_irc(char *str, const char *format, va_list args)
        * [ 100000000 , 4294967295 ]
        * Actually prints like "%09lu"
        */
-      if(c == 'l' && *format == 'u')
+      if (c == 'l' && *format == 'u')
       {
         unsigned long v1, v2;
         const char *ap;
@@ -312,14 +312,14 @@ vsprintf_irc(char *str, const char *format, va_list args)
         ++format;
         v1 = va_arg(args, unsigned long);
 
-        if(v1 == 0)
+        if (v1 == 0)
         {
           *str++ = '0';
           ++bytes;
           continue;
         }
 
-        if(v1 > 999999999L)
+        if (v1 > 999999999L)
         {
           v2 = v1 / 1000000000;
           v1 -= v2 * 1000000000;
@@ -349,7 +349,7 @@ vsprintf_irc(char *str, const char *format, va_list args)
         continue;
       }
 
-      if(c == 't')
+      if (c == 't')
       {
         unsigned int v1;
 
@@ -363,7 +363,7 @@ vsprintf_irc(char *str, const char *format, va_list args)
         continue;
       }
 
-      if(c == 'd')
+      if (c == 'd')
       {
         unsigned int v1, v2;
         const char *ap;
@@ -371,9 +371,9 @@ vsprintf_irc(char *str, const char *format, va_list args)
 
         v1 = va_arg(args, int);
 
-        if((int)v1 <= 0)
+        if ((int)v1 <= 0)
         {
-          if(v1 == 0)
+          if (v1 == 0)
           {
             *str++ = '0';
             ++bytes;
@@ -393,20 +393,20 @@ vsprintf_irc(char *str, const char *format, va_list args)
           *s-- = *ap--;
           *s-- = *ap;
         }
-        while((v1 = v2) > 0);
+        while ((v1 = v2) > 0);
 
-        while('0' == *++s);
+        while ('0' == *++s);
 
         *str = *s;
         ++bytes;
 
-        while((*++str = *++s))
+        while ((*++str = *++s))
           ++bytes;
 
         continue;
       }
 
-      if(c == 'u')
+      if (c == 'u')
       {
         unsigned int v1, v2;
         const char *ap;
@@ -414,7 +414,7 @@ vsprintf_irc(char *str, const char *format, va_list args)
 
         v1 = va_arg(args, unsigned int);
 
-        if(v1 == 0)
+        if (v1 == 0)
         {
           *str++ = '0';
           ++bytes;
@@ -429,20 +429,20 @@ vsprintf_irc(char *str, const char *format, va_list args)
           *s-- = *ap--;
           *s-- = *ap;
         }
-        while((v1 = v2) > 0);
+        while ((v1 = v2) > 0);
 
-        while('0' == *++s);
+        while ('0' == *++s);
 
         *str = *s;
         ++bytes;
 
-        while((*++str = *++s))
+        while ((*++str = *++s))
           ++bytes;
 
         continue;
       }
 
-      if(c != '%')
+      if (c != '%')
       {
         int ret;
 
@@ -461,7 +461,7 @@ vsprintf_irc(char *str, const char *format, va_list args)
 
   *str = '\0';
 
-  return(bytes);
+  return (bytes);
 } /* vsprintf_irc() */
 
 int
@@ -476,6 +476,6 @@ ircsprintf(char *str, const char *format, ...)
 
   va_end(args);
 
-  return(bytes);
+  return (bytes);
 } /* ircsprintf() */
 

@@ -49,7 +49,7 @@ m_error(struct Client *client_p, struct Client *source_p,
   ilog(LOG_TYPE_IRCD, "Received ERROR message from %s: %s",
        source_p->name, para);
 
-  if(client_p == source_p)
+  if (client_p == source_p)
   {
     sendto_realops_flags(UMODE_ALL, L_ADMIN, "ERROR :from %s -- %s",
                          get_client_name(client_p, HIDE_IP), para);
@@ -64,7 +64,7 @@ m_error(struct Client *client_p, struct Client *source_p,
                          source_p->name, get_client_name(client_p, HIDE_IP), para);
   }
 
-  if(MyClient(source_p))
+  if (MyClient(source_p))
     exit_client(source_p, source_p, "ERROR");
 }
 
@@ -79,7 +79,7 @@ ms_error(struct Client *client_p, struct Client *source_p,
   ilog(LOG_TYPE_IRCD, "Received ERROR message from %s: %s",
        source_p->name, para);
 
-  if(client_p == source_p)
+  if (client_p == source_p)
     sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s -- %s",
                          get_client_name(client_p, MASK_IP), para);
   else

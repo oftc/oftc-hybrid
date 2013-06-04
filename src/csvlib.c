@@ -42,11 +42,11 @@ find_and_delete_temporary(const char *user, const char *host, int type)
   struct AccessItem *aconf;
   int t;
 
-  if((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
+  if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
 #ifdef IPV6
 
-    if(t == HM_IPV6)
+    if (t == HM_IPV6)
       t = AF_INET6;
     else
 #endif
@@ -60,9 +60,9 @@ find_and_delete_temporary(const char *user, const char *host, int type)
     piphost = NULL;
   }
 
-  if((aconf = find_conf_by_address(host, piphost, type, t, user, NULL, 0, NULL)))
+  if ((aconf = find_conf_by_address(host, piphost, type, t, user, NULL, 0, NULL)))
   {
-    if(IsConfTemporary(aconf))
+    if (IsConfTemporary(aconf))
     {
       delete_one_address_conf(host, aconf);
       return 1;
@@ -97,17 +97,17 @@ parse_csv_file(FILE *file, ConfType conf_type)
   char  line[IRCD_BUFSIZE];
   char  *p;
 
-  while(fgets(line, sizeof(line), file) != NULL)
+  while (fgets(line, sizeof(line), file) != NULL)
   {
     duration_field = NULL;
 
-    if((p = strchr(line, '\n')) != NULL)
+    if ((p = strchr(line, '\n')) != NULL)
       * p = '\0';
 
-    if((line[0] == '\0') || (line[0] == '#'))
+    if ((line[0] == '\0') || (line[0] == '#'))
       continue;
 
-    switch(conf_type)
+    switch (conf_type)
     {
       case KLINE_TYPE:
         parse_csv_line(line, &user_field, &host_field, &reason_field,
@@ -115,24 +115,24 @@ parse_csv_file(FILE *file, ConfType conf_type)
         conf = make_conf_item(KLINE_TYPE);
         aconf = map_to_conf(conf);
 
-        if(host_field != NULL)
+        if (host_field != NULL)
           DupString(aconf->host, host_field);
 
-        if(reason_field != NULL)
+        if (reason_field != NULL)
           DupString(aconf->reason, reason_field);
 
-        if(oper_reason != NULL)
+        if (oper_reason != NULL)
           DupString(aconf->oper_reason, oper_reason);
 
-        if(user_field != NULL)
+        if (user_field != NULL)
           DupString(aconf->user, user_field);
 
-        if(duration_field != NULL)
+        if (duration_field != NULL)
           aconf->hold = atoi(duration_field);
 
-        if(aconf->host != NULL)
+        if (aconf->host != NULL)
         {
-          if(duration_field == NULL)
+          if (duration_field == NULL)
             add_conf_by_address(CONF_KLINE, aconf);
           else
             add_temp_line(conf);
@@ -144,16 +144,16 @@ parse_csv_file(FILE *file, ConfType conf_type)
         parse_csv_line(line, &host_field, &reason_field, &temp, &temp, &temp,
                        &temp, &duration_field, NULL);
 
-        if(host_field != NULL && parse_netmask(host_field, NULL, NULL) != HM_HOST)
+        if (host_field != NULL && parse_netmask(host_field, NULL, NULL) != HM_HOST)
         {
           conf = make_conf_item(DLINE_TYPE);
           aconf = map_to_conf(conf);
           DupString(aconf->host, host_field);
 
-          if(reason_field != NULL)
+          if (reason_field != NULL)
             DupString(aconf->reason, reason_field);
 
-          if(duration_field != NULL)
+          if (duration_field != NULL)
           {
             aconf->hold = atoi(duration_field);
             add_temp_line(conf);
@@ -170,15 +170,15 @@ parse_csv_file(FILE *file, ConfType conf_type)
         conf = make_conf_item(XLINE_TYPE);
         match_item = (struct MatchItem *)map_to_conf(conf);
 
-        if(name_field != NULL)
+        if (name_field != NULL)
           DupString(conf->name, name_field);
 
-        if(reason_field != NULL)
+        if (reason_field != NULL)
           DupString(aconf->reason, reason_field);
         else
           DupString(aconf->reason, CONF_NOREASON);
 
-        if(duration_field != NULL)
+        if (duration_field != NULL)
         {
           match_item->hold = atoi(duration_field);
           add_temp_line(conf);
@@ -190,7 +190,7 @@ parse_csv_file(FILE *file, ConfType conf_type)
         parse_csv_line(line, &name_field, &reason_field, &duration_field, NULL);
         conf = create_channel_resv(name_field, reason_field, 0);
 
-        if(duration_field != NULL)
+        if (duration_field != NULL)
         {
           cresv = map_to_conf(conf);
           cresv->hold = atoi(duration_field);
@@ -203,7 +203,7 @@ parse_csv_file(FILE *file, ConfType conf_type)
         parse_csv_line(line, &name_field, &reason_field, &duration_field, NULL);
         conf = create_nick_resv(name_field, reason_field, 0);
 
-        if(duration_field != NULL)
+        if (duration_field != NULL)
         {
           nresv = map_to_conf(conf);
           nresv->hold = atoi(duration_field);
@@ -245,11 +245,11 @@ parse_csv_line(char *line, ...)
 
   va_start(args, line);
 
-  for(; ;)
+  for (; ;)
   {
     dest = va_arg(args, char **);
 
-    if((dest == NULL) || ((field = getfield(field ? NULL : line)) == NULL))
+    if ((dest == NULL) || ((field = getfield(field ? NULL : line)) == NULL))
     {
       va_end(args);
       return;
@@ -288,7 +288,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
   type = conf->type;
   filename = get_conf_name(type);
 
-  if(!MyConnect(source_p) && IsCapable(source_p->from, CAP_TS6)
+  if (!MyConnect(source_p) && IsCapable(source_p->from, CAP_TS6)
       && HasID(source_p))
   {
     from = me.id;
@@ -300,19 +300,19 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     to = source_p->name;
   }
 
-  if((out = fopen(filename, "a")) == NULL)
+  if ((out = fopen(filename, "a")) == NULL)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "*** Problem opening %s ", filename);
     return;
   }
 
-  switch(type)
+  switch (type)
   {
     case KLINE_TYPE:
       aconf = (struct AccessItem *)map_to_conf(conf);
 
-      if(duration == 0)
+      if (duration == 0)
       {
         sendto_realops_flags(UMODE_ALL, L_ALL,
                              "%s added K-Line for [%s@%s] [%s]",
@@ -347,7 +347,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     case DLINE_TYPE:
       aconf = (struct AccessItem *)map_to_conf(conf);
 
-      if(duration == 0)
+      if (duration == 0)
       {
         sendto_realops_flags(UMODE_ALL, L_ALL,
                              "%s added D-Line for [%s] [%s]",
@@ -381,7 +381,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     case XLINE_TYPE:
       xconf = (struct MatchItem *)map_to_conf(conf);
 
-      if(duration == 0)
+      if (duration == 0)
       {
         sendto_realops_flags(UMODE_ALL, L_ALL,
                              "%s added X-Line for [%s] [%s]",
@@ -420,7 +420,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     case CRESV_TYPE:
       cresv_p = (struct ResvChannel *)map_to_conf(conf);
 
-      if(duration == 0)
+      if (duration == 0)
         write_csv_line(out, "%s%s", cresv_p->name, cresv_p->reason);
       else
         write_csv_line(out, "%s%s%d", cresv_p->name, cresv_p->reason, cresv_p->hold);
@@ -430,7 +430,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     case NRESV_TYPE:
       nresv_p = (struct MatchItem *)map_to_conf(conf);
 
-      if(duration == 0)
+      if (duration == 0)
         write_csv_line(out, "%s%s", conf->name, nresv_p->reason);
       else
         write_csv_line(out, "%s%s%d", conf->name, nresv_p->reason, nresv_p->hold);
@@ -463,28 +463,28 @@ write_csv_line(FILE *out, const char *format, ...)
   char *str = tmp;
   const char *null_string = "";
 
-  if(out == NULL)
-    return(0);
+  if (out == NULL)
+    return (0);
 
   va_start(args, format);
 
-  while((c = *format++))
+  while ((c = *format++))
   {
-    if(c == '%')
+    if (c == '%')
     {
       c = *format++;
 
-      if(c == 's')
+      if (c == 's')
       {
         const char *p1 = va_arg(args, const char *);
 
-        if(p1 == NULL)
+        if (p1 == NULL)
           p1 = null_string;
 
         *str++ = '\"';
         ++bytes;
 
-        while(*p1 != '\0')
+        while (*p1 != '\0')
         {
           *str++ = *p1++;
           ++bytes;
@@ -497,7 +497,7 @@ write_csv_line(FILE *out, const char *format, ...)
         continue;
       }
 
-      if(c == 'c')
+      if (c == 'c')
       {
         *str++ = '\"';
         ++bytes;
@@ -510,13 +510,13 @@ write_csv_line(FILE *out, const char *format, ...)
         continue;
       }
 
-      if(c == 'd')
+      if (c == 'd')
       {
         int v = va_arg(args, int);
         char t[40];
         char *p = t;
 
-        while(v > 10)
+        while (v > 10)
         {
           *p++ = (v % 10) + '0';
           v = v / 10;
@@ -527,7 +527,7 @@ write_csv_line(FILE *out, const char *format, ...)
         *str++ = '\"';
         ++bytes;
 
-        while(p != t)
+        while (p != t)
         {
           *str++ = *--p;
           ++bytes;
@@ -539,7 +539,7 @@ write_csv_line(FILE *out, const char *format, ...)
         continue;
       }
 
-      if(c != '%')
+      if (c != '%')
       {
         int ret;
 
@@ -558,7 +558,7 @@ write_csv_line(FILE *out, const char *format, ...)
     ++bytes;
   }
 
-  if(*(str - 1) == ',')
+  if (*(str - 1) == ',')
   {
     *(str - 1) = '\n';
     *str = '\0';
@@ -574,7 +574,7 @@ write_csv_line(FILE *out, const char *format, ...)
   str = tmp;
   fputs(str, out);
 
-  return(bytes);
+  return (bytes);
 }
 
 /*
@@ -590,20 +590,20 @@ getfield(char *newline)
   static char *line = NULL;
   char *end, *field;
 
-  if(newline != NULL)
+  if (newline != NULL)
     line = newline;
 
-  if(line == NULL)
-    return(NULL);
+  if (line == NULL)
+    return (NULL);
 
   field = line;
 
   /* skip everything that's not a starting quote */
-  for(;;)
+  for (;;)
   {
-    if(*field == '\0')
-      return(NULL);
-    else if(*field == '"')
+    if (*field == '\0')
+      return (NULL);
+    else if (*field == '"')
       break;
 
     ++field;
@@ -612,23 +612,23 @@ getfield(char *newline)
   /* skip over the beginning " */
   end = ++field;
 
-  for(;;)
+  for (;;)
   {
     /* At end of string, mark it as end and return */
-    if((*end == '\0') || (*end == '\n'))
+    if ((*end == '\0') || (*end == '\n'))
     {
       line = NULL;
-      return(NULL);
+      return (NULL);
     }
-    else if(*end == '\\')       /* found escape character ? */
+    else if (*end == '\\')      /* found escape character ? */
     {
       end++;
     }
-    else if(*end == '"')   /* found terminating " */
+    else if (*end == '"')  /* found terminating " */
     {
       *end++ = '\0';
       line = end;
-      return(field);
+      return (field);
     }
 
     end++;
@@ -659,7 +659,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1,
 
   filename = get_conf_name(type);
 
-  if((in = fopen(filename, "r")) == NULL)
+  if ((in = fopen(filename, "r")) == NULL)
   {
     sendto_one(source_p, ":%s NOTICE %s :Cannot open %s", me.name,
                source_p->name, filename);
@@ -669,7 +669,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1,
   ircsprintf(temppath, "%s.tmp", filename);
   oldumask = umask(0);
 
-  if((out = fopen(temppath, "w")) == NULL)
+  if ((out = fopen(temppath, "w")) == NULL)
   {
     sendto_one(source_p, ":%s NOTICE %s :Cannot open %s", me.name,
                source_p->name, temppath);
@@ -681,43 +681,43 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1,
   umask(oldumask);
   oldumask = umask(0);
 
-  while(fgets(buf, sizeof(buf), in) != NULL)
+  while (fgets(buf, sizeof(buf), in) != NULL)
   {
-    if((*buf == '\0') || (*buf == '#'))
+    if ((*buf == '\0') || (*buf == '#'))
     {
-      if(flush_write(source_p, in, out, buf, temppath) < 0)
+      if (flush_write(source_p, in, out, buf, temppath) < 0)
         return -1;
     }
 
     /* Keep copy of original line, getfield trashes line as it goes */
     strlcpy(buff, buf, sizeof(buff));
 
-    if((found1 = getfield(buff)) == NULL)
+    if ((found1 = getfield(buff)) == NULL)
     {
-      if(flush_write(source_p, in, out, buf, temppath) < 0)
+      if (flush_write(source_p, in, out, buf, temppath) < 0)
         return -1;
 
       continue;
     }
 
-    if(pat2 != NULL)
+    if (pat2 != NULL)
     {
-      if((found2 = getfield(NULL)) == NULL)
+      if ((found2 = getfield(NULL)) == NULL)
       {
-        if(flush_write(source_p, in, out, buf, temppath) < 0)
+        if (flush_write(source_p, in, out, buf, temppath) < 0)
           return -1;
 
         continue;
       }
 
-      if(!irccmp(pat1, found1) && !irccmp(pat2, found2))
+      if (!irccmp(pat1, found1) && !irccmp(pat2, found2))
       {
         pairme = 1;
         continue;
       }
       else
       {
-        if(flush_write(source_p, in, out, buf, temppath) < 0)
+        if (flush_write(source_p, in, out, buf, temppath) < 0)
           return -1;
 
         continue;
@@ -725,14 +725,14 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1,
     }
     else
     {
-      if(!irccmp(pat1, found1))
+      if (!irccmp(pat1, found1))
       {
         pairme = 1;
         continue;
       }
       else
       {
-        if(flush_write(source_p, in, out, buf, temppath) < 0)
+        if (flush_write(source_p, in, out, buf, temppath) < 0)
           return -1;
 
         continue;
@@ -748,9 +748,9 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1,
    * and I am not going to trash the original kline /conf file
    */
 
-  if(pairme == 0)
+  if (pairme == 0)
   {
-    if(temppath != NULL)
+    if (temppath != NULL)
       (void)unlink(temppath);
 
     return 0;
@@ -800,12 +800,12 @@ flush_write(struct Client *source_p, FILE *in, FILE *out,
 {
   int error_on_write = fputs(buf, out) < 0 ? (-1) : (0);
 
-  if(error_on_write)
+  if (error_on_write)
   {
     sendto_one(source_p, ":%s NOTICE %s :Unable to write to %s aborting",
                me.name, source_p->name, temppath);
 
-    if(temppath != NULL)
+    if (temppath != NULL)
       (void)unlink(temppath);
 
     fclose(in);

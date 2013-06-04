@@ -52,45 +52,45 @@ match(const char *mask, const char *name)
   assert(mask != NULL);
   assert(name != NULL);
 
-  while(1)
+  while (1)
   {
-    if(*m == '*')
+    if (*m == '*')
     {
-      while(*m == '*')
+      while (*m == '*')
         m++;
 
       ma = m;
       na = n;
     }
 
-    if(!*m)
+    if (!*m)
     {
-      if(!*n)
+      if (!*n)
         return 1;
 
-      if(!ma)
+      if (!ma)
         return 0;
 
-      for(m--; (m > (const unsigned char *)mask) && (*m == '?'); m--)
+      for (m--; (m > (const unsigned char *)mask) && (*m == '?'); m--)
         ;
 
-      if(*m == '*')
+      if (*m == '*')
         return 1;
 
       m = ma;
       n = ++na;
     }
-    else if(!*n)
+    else if (!*n)
     {
-      while(*m == '*')
+      while (*m == '*')
         m++;
 
       return *m == 0;
     }
 
-    if(ToLower(*m) != ToLower(*n) && *m != '?' && (*m != '#' || !IsDigit(*n)))
+    if (ToLower(*m) != ToLower(*n) && *m != '?' && (*m != '#' || !IsDigit(*n)))
     {
-      if(!ma)
+      if (!ma)
         return 0;
 
       m = ma;
@@ -119,51 +119,51 @@ match_esc(const char *mask, const char *name)
   assert(mask != NULL);
   assert(name != NULL);
 
-  while(1)
+  while (1)
   {
-    if(*m == '*')
+    if (*m == '*')
     {
-      while(*m == '*')
+      while (*m == '*')
         m++;
 
       ma = m;
       na = n;
     }
 
-    if(!*m)
+    if (!*m)
     {
-      if(!*n)
+      if (!*n)
         return 1;
 
-      if(!ma)
+      if (!ma)
         return 0;
 
-      for(m--; (m > (const unsigned char *)mask) && (*m == '?'); m--)
+      for (m--; (m > (const unsigned char *)mask) && (*m == '?'); m--)
         ;
 
-      if(*m == '*')
+      if (*m == '*')
         return 1;
 
       m = ma;
       n = ++na;
     }
-    else if(!*n)
+    else if (!*n)
     {
-      while(*m == '*')
+      while (*m == '*')
         m++;
 
       return *m == 0;
     }
 
-    if(*m != '?' && (*m != '#' || IsDigit(*n)))
+    if (*m != '?' && (*m != '#' || IsDigit(*n)))
     {
-      if(*m == '\\')
-        if(!*++m)
+      if (*m == '\\')
+        if (!*++m)
           return 0;
 
-      if(ToLower(*m) != ToLower(*n))
+      if (ToLower(*m) != ToLower(*n))
       {
-        if(!ma)
+        if (!ma)
           return 0;
 
         m = ma;
@@ -187,9 +187,9 @@ match_esc(const char *mask, const char *name)
 int
 match_chan(const char *mask, const char *name)
 {
-  if(*mask == '#')
+  if (*mask == '#')
   {
-    if(*name != '#')
+    if (*name != '#')
       return 0;
 
     ++name, ++mask;
@@ -208,14 +208,14 @@ collapse(char *pattern)
   char *p = pattern, *po = pattern;
   char c;
 
-  if(p == NULL)
+  if (p == NULL)
     return NULL;
 
-  while((c = *p++))
+  while ((c = *p++))
   {
-    if(c != '*')
+    if (c != '*')
       *po++ = c;
-    else if(*p != '*')
+    else if (*p != '*')
       *po++ = '*';
   }
 
@@ -234,19 +234,19 @@ collapse_esc(char *pattern)
   char *p = pattern, *po = pattern;
   char c;
 
-  if(p == NULL)
+  if (p == NULL)
     return NULL;
 
-  while((c = *p++))
+  while ((c = *p++))
   {
-    if(c != '*')
+    if (c != '*')
     {
       *po++ = c;
 
-      if(c == '\\' && *p)
+      if (c == '\\' && *p)
         *po++ = *p++;
     }
-    else if(*p != '*')
+    else if (*p != '*')
       *po++ = '*';
   }
 
@@ -270,8 +270,8 @@ irccmp(const char *s1, const char *s2)
   assert(s1 != NULL);
   assert(s2 != NULL);
 
-  for(; ToUpper(*str1) == ToUpper(*str2); ++str1, ++str2)
-    if(*str1 == '\0')
+  for (; ToUpper(*str1) == ToUpper(*str2); ++str1, ++str2)
+    if (*str1 == '\0')
       return 0;
 
   return 1;
@@ -287,11 +287,11 @@ ircncmp(const char *s1, const char *s2, size_t n)
   assert(s2 != NULL);
   assert(n > 0);
 
-  if(n == 0)
+  if (n == 0)
     return 0;
 
-  for(; ToUpper(*str1) == ToUpper(*str2); ++str1, ++str2)
-    if(--n == 0 || *str1 == '\0')
+  for (; ToUpper(*str1) == ToUpper(*str2); ++str1, ++str2)
+    if (--n == 0 || *str1 == '\0')
       return 0;
 
   return 1;

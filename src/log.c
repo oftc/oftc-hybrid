@@ -45,7 +45,7 @@ log_set_file(enum log_type type, size_t size, const char *path)
   strlcpy(log_type_table[type].path, path, sizeof(log_type_table[type].path));
   log_type_table[type].size = size;
 
-  if(type == LOG_TYPE_IRCD)
+  if (type == LOG_TYPE_IRCD)
     log_type_table[type].file = fopen(log_type_table[type].path, "a");
 }
 
@@ -54,7 +54,7 @@ log_del_all(void)
 {
   unsigned int type = 0;
 
-  while(++type < LOG_TYPE_LAST)
+  while (++type < LOG_TYPE_LAST)
     log_type_table[type].path[0] = '\0';
 }
 
@@ -63,15 +63,15 @@ log_reopen_all(void)
 {
   unsigned int type = 0;
 
-  while(++type < LOG_TYPE_LAST)
+  while (++type < LOG_TYPE_LAST)
   {
-    if(log_type_table[type].file)
+    if (log_type_table[type].file)
     {
       fclose(log_type_table[type].file);
       log_type_table[type].file = NULL;
     }
 
-    if(log_type_table[type].path[0])
+    if (log_type_table[type].path[0])
       log_type_table[type].file = fopen(log_type_table[type].path, "a");
   }
 }
@@ -81,10 +81,10 @@ log_exceed_size(unsigned int type)
 {
   struct stat sb;
 
-  if(!log_type_table[type].size)
+  if (!log_type_table[type].size)
     return 0;
 
-  if(stat(log_type_table[type].path, &sb) < 0)
+  if (stat(log_type_table[type].path, &sb) < 0)
     return -1;
 
   return (size_t)sb.st_size > log_type_table[type].size;
@@ -112,7 +112,7 @@ ilog(enum log_type type, const char *fmt, ...)
   char buf[LOG_BUFSIZE];
   va_list args;
 
-  if(!log_type_table[type].file || !ConfigLoggingEntry.use_logging)
+  if (!log_type_table[type].file || !ConfigLoggingEntry.use_logging)
     return;
 
   va_start(args, fmt);
@@ -121,7 +121,7 @@ ilog(enum log_type type, const char *fmt, ...)
 
   log_write(type, buf);
 
-  if(log_exceed_size(type) <= 0)
+  if (log_exceed_size(type) <= 0)
     return;
 
   snprintf(buf, sizeof(buf), "Rotating logfile %s",

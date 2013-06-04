@@ -115,7 +115,7 @@ make_client(struct Client *from)
 {
   struct Client *client_p = BlockHeapAlloc(client_heap);
 
-  if(from == NULL)
+  if (from == NULL)
   {
     client_p->from                      =
       client_p; /* 'from' of local client is self! */
@@ -161,7 +161,7 @@ free_client(struct Client *client_p)
 
   MyFree(client_p->serv);
 
-  if(MyConnect(client_p))
+  if (MyConnect(client_p))
   {
     assert(client_p->localClient->invited.head == NULL);
     assert(dlink_list_length(&client_p->localClient->invited) == 0);
@@ -174,11 +174,11 @@ free_client(struct Client *client_p)
     /*
      * clean up extra sockets from P-lines which have been discarded.
      */
-    if(client_p->localClient->listener)
+    if (client_p->localClient->listener)
     {
       assert(0 < client_p->localClient->listener->ref_count);
 
-      if(0 == --client_p->localClient->listener->ref_count &&
+      if (0 == --client_p->localClient->listener->ref_count &&
           !client_p->localClient->listener->active)
         free_listener(client_p->localClient->listener);
     }
@@ -248,20 +248,20 @@ check_pings_list(dlink_list *list)
     ** Note: No need to notify opers here. It's
     ** already done when "FLAGS_DEADSOCKET" is set.
     */
-    if(IsDead(client_p))
+    if (IsDead(client_p))
     {
       /* Ignore it, its been exited already */
       continue;
     }
 
-    if(!IsRegistered(client_p))
+    if (!IsRegistered(client_p))
       ping = CONNECTTIMEOUT, pingwarn = 0;
     else
       ping = get_client_ping(client_p, &pingwarn);
 
-    if(ping < CurrentTime - client_p->localClient->lasttime)
+    if (ping < CurrentTime - client_p->localClient->lasttime)
     {
-      if(!IsPingSent(client_p))
+      if (!IsPingSent(client_p))
       {
         /*
          * if we havent PINGed the connection and we havent
@@ -275,13 +275,13 @@ check_pings_list(dlink_list *list)
       }
       else
       {
-        if(CurrentTime - client_p->localClient->lasttime >= 2 * ping)
+        if (CurrentTime - client_p->localClient->lasttime >= 2 * ping)
         {
           /*
            * If the client/server hasn't talked to us in 2*ping seconds
            * and it has a ping time, then close its connection.
            */
-          if(IsServer(client_p) || IsHandshake(client_p))
+          if (IsServer(client_p) || IsHandshake(client_p))
           {
             sendto_realops_flags(UMODE_ALL, L_ALL,
                                  "No response from %s, closing link",
@@ -301,9 +301,9 @@ check_pings_list(dlink_list *list)
         /* We want to hear about missing ping replies every 5 (or whatever
          * it is) seconds, not just once and then be uncertain about the
          * link until it splits. */
-        else if(pingwarn > 0 &&
-                (IsServer(client_p) || IsHandshake(client_p)) &&
-                CurrentTime - client_p->localClient->lasttime >= ping + pingwarn)
+        else if (pingwarn > 0 &&
+                 (IsServer(client_p) || IsHandshake(client_p)) &&
+                 CurrentTime - client_p->localClient->lasttime >= ping + pingwarn)
         {
           char timestamp[200];
           strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z",
@@ -344,7 +344,7 @@ check_unknowns_list(void)
      * Check UNKNOWN connections - if they have been in this state
      * for > 30s, close them.
      */
-    if(IsAuthFinished(client_p)
+    if (IsAuthFinished(client_p)
         && (CurrentTime - client_p->localClient->firsttime) > 30)
       exit_client(client_p, &me, "Registration timed out");
   }
@@ -367,19 +367,19 @@ check_conf_klines(void)
   dlink_node *ptr, *next_ptr;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, local_client_list.head)
-  {
+{
     client_p = ptr->data;
 
     /* If a client is already being exited
      */
-    if(IsDead(client_p) || !IsClient(client_p))
+    if (IsDead(client_p) || !IsClient(client_p))
       continue;
 
     /* if there is a returned struct ConfItem then kill it */
-    if((aconf = find_dline_conf(&client_p->ip,
-                                client_p->aftype)) != NULL)
+    if ((aconf = find_dline_conf(&client_p->ip,
+                                 client_p->aftype)) != NULL)
     {
-      if(aconf->status & CONF_EXEMPTDLINE)
+      if (aconf->status & CONF_EXEMPTDLINE)
         continue;
 
       sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -391,11 +391,11 @@ check_conf_klines(void)
       continue; /* and go examine next fd/client_p */
     }
 
-    if((aconf = find_kill(client_p)) != NULL)
+    if ((aconf = find_kill(client_p)) != NULL)
     {
 
       /* if there is a returned struct AccessItem.. then kill it */
-      if(IsExemptKline(client_p))
+      if (IsExemptKline(client_p))
       {
         sendto_realops_flags(UMODE_ALL, L_ALL,
                              "KLINE over-ruled for %s, client is kline_exempt",
@@ -414,8 +414,8 @@ check_conf_klines(void)
     }
 
     /* if there is a returned struct MatchItem then kill it */
-    if((conf = find_matching_name_conf(XLINE_TYPE,  client_p->info,
-                                       NULL, NULL, 0)) != NULL)
+    if ((conf = find_matching_name_conf(XLINE_TYPE,  client_p->info,
+                                        NULL, NULL, 0)) != NULL)
     {
       aconf = map_to_conf(conf);
       sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -432,10 +432,10 @@ check_conf_klines(void)
   {
     client_p = ptr->data;
 
-    if((aconf = find_dline_conf(&client_p->ip,
-                                client_p->aftype)))
+    if ((aconf = find_dline_conf(&client_p->ip,
+                                 client_p->aftype)))
     {
-      if(aconf->status & CONF_EXEMPTDLINE)
+      if (aconf->status & CONF_EXEMPTDLINE)
         continue;
 
       exit_client(client_p, &me, "D-lined");
@@ -462,7 +462,7 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
   const char kline_string[] = "K-line";
   const char xline_string[] = "X-line";
 
-  switch(conf->type)
+  switch (conf->type)
   {
     case KLINE_TYPE:
       type_string = kline_string;
@@ -485,16 +485,16 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
       break;
   }
 
-  if(aconf != NULL)
+  if (aconf != NULL)
     user_reason = aconf->reason ? aconf->reason : type_string;
 
-  if(xconf != NULL)
+  if (xconf != NULL)
     user_reason = xconf->reason ? xconf->reason : type_string;
 
   sendto_realops_flags(UMODE_ALL, L_ALL, "%s active for %s",
                        type_string, get_client_name(client_p, HIDE_IP));
 
-  if(IsClient(client_p))
+  if (IsClient(client_p))
     sendto_one(client_p, form_str(ERR_YOUREBANNEDCREEP),
                me.name, client_p->name, user_reason);
 
@@ -510,22 +510,22 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
 static void
 update_client_exit_stats(struct Client *client_p)
 {
-  if(IsClient(client_p))
+  if (IsClient(client_p))
   {
     assert(Count.total > 0);
     --Count.total;
 
-    if(HasUMode(client_p, UMODE_OPER))
+    if (HasUMode(client_p, UMODE_OPER))
       --Count.oper;
 
-    if(HasUMode(client_p, UMODE_INVISIBLE))
+    if (HasUMode(client_p, UMODE_INVISIBLE))
       --Count.invisi;
   }
-  else if(IsServer(client_p))
+  else if (IsServer(client_p))
     sendto_realops_flags(UMODE_EXTERNAL, L_ALL, "Server %s split from %s",
                          client_p->name, client_p->servptr->name);
 
-  if(splitchecking && !splitmode)
+  if (splitchecking && !splitmode)
     check_splitmode(NULL);
 }
 
@@ -540,13 +540,13 @@ find_person(const struct Client *client_p, const char *name)
 {
   struct Client *c2ptr = NULL;
 
-  if(IsDigit(*name))
+  if (IsDigit(*name))
   {
-    if((c2ptr = hash_find_id(name)) != NULL)
+    if ((c2ptr = hash_find_id(name)) != NULL)
     {
       /* invisible users shall not be found by UID guessing */
-      if(HasUMode(c2ptr, UMODE_INVISIBLE))
-        if(!IsServer(client_p) && !HasFlag(client_p, FLAGS_SERVICE))
+      if (HasUMode(c2ptr, UMODE_INVISIBLE))
+        if (!IsServer(client_p) && !HasFlag(client_p, FLAGS_SERVICE))
           c2ptr = NULL;
     }
   }
@@ -568,17 +568,17 @@ find_chasing(struct Client *client_p, struct Client *source_p, const char *user,
 {
   struct Client *who = find_person(client_p, user);
 
-  if(chasing)
+  if (chasing)
     *chasing = 0;
 
-  if(who)
+  if (who)
     return who;
 
-  if(IsDigit(*user))
+  if (IsDigit(*user))
     return NULL;
 
-  if((who = get_history(user,
-                        (time_t)ConfigFileEntry.kill_chase_time_limit))
+  if ((who = get_history(user,
+                         (time_t)ConfigFileEntry.kill_chase_time_limit))
       == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
@@ -586,7 +586,7 @@ find_chasing(struct Client *client_p, struct Client *source_p, const char *user,
     return NULL;
   }
 
-  if(chasing)
+  if (chasing)
     *chasing = 1;
 
   return who;
@@ -617,26 +617,26 @@ get_client_name(const struct Client *client, enum addr_mask_type type)
 
   assert(client != NULL);
 
-  if(!MyConnect(client))
+  if (!MyConnect(client))
     return client->name;
 
-  if(IsServer(client) || IsConnecting(client) || IsHandshake(client))
+  if (IsServer(client) || IsConnecting(client) || IsHandshake(client))
   {
-    if(!irccmp(client->name, client->host))
+    if (!irccmp(client->name, client->host))
       return client->name;
-    else if(ConfigServerHide.hide_server_ips)
+    else if (ConfigServerHide.hide_server_ips)
       type = MASK_IP;
   }
 
-  if(ConfigFileEntry.hide_spoof_ips)
-    if(type == SHOW_IP && IsIPSpoof(client))
+  if (ConfigFileEntry.hide_spoof_ips)
+    if (type == SHOW_IP && IsIPSpoof(client))
       type = MASK_IP;
 
   /* And finally, let's get the host information, ip or name */
-  switch(type)
+  switch (type)
   {
     case SHOW_IP:
-      if(*client->sockhost != '\0')
+      if (*client->sockhost != '\0')
         snprintf(nbuf, sizeof(nbuf), "%s[%s@%s]", client->name, client->username,
                  client->sockhost);
       else
@@ -646,7 +646,7 @@ get_client_name(const struct Client *client, enum addr_mask_type type)
       break;
 
     case MASK_IP:
-      if(client->aftype == AF_INET)
+      if (client->aftype == AF_INET)
         snprintf(nbuf, sizeof(nbuf), "%s[%s@255.255.255.255]",
                  client->name, client->username);
       else
@@ -692,9 +692,9 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
 
   assert(!IsMe(source_p));
 
-  if(IsClient(source_p))
+  if (IsClient(source_p))
   {
-    if(source_p->servptr->serv != NULL)
+    if (source_p->servptr->serv != NULL)
       dlinkDelete(&source_p->lnode, &source_p->servptr->serv->client_list);
 
     /*
@@ -716,7 +716,7 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
 
     watch_check_hash(source_p, RPL_LOGOFF);
 
-    if(!MyConnect(source_p))
+    if (!MyConnect(source_p))
     {
       aconf = find_conf_by_address(source_p->host, &source_p->ip,
                                    CONF_CLIENT, source_p->aftype, source_p->username, NULL, 1, source_p->certfp);
@@ -736,32 +736,32 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
       del_all_accepts(source_p);
     }
   }
-  else if(IsServer(source_p))
+  else if (IsServer(source_p))
   {
     dlinkDelete(&source_p->lnode, &source_p->servptr->serv->server_list);
 
-    if((lp = dlinkFindDelete(&global_serv_list, source_p)) != NULL)
+    if ((lp = dlinkFindDelete(&global_serv_list, source_p)) != NULL)
       free_dlink_node(lp);
   }
 
   /* Remove source_p from the client lists */
-  if(HasID(source_p))
+  if (HasID(source_p))
     hash_del_id(source_p);
 
-  if(source_p->name[0])
+  if (source_p->name[0])
     hash_del_client(source_p);
 
-  if(IsUserHostIp(source_p))
+  if (IsUserHostIp(source_p))
     delete_user_host(source_p->username, source_p->host, !MyConnect(source_p));
 
-  if(IsIpHash(source_p))
+  if (IsIpHash(source_p))
     remove_one_ip(&source_p->ip);
 
   /* remove from global client list
    * NOTE: source_p->node.next cannot be NULL if the client is added
    *       to global_client_list (there is always &me at its end)
    */
-  if(source_p != NULL && source_p->node.next != NULL)
+  if (source_p != NULL && source_p->node.next != NULL)
     dlinkDelete(&source_p->node, &global_client_list);
 
   update_client_exit_stats(source_p);
@@ -796,7 +796,7 @@ recurse_send_quits(struct Client *original_source_p, struct Client *source_p,
   /* If this server can handle quit storm (QS) removal
    * of dependents, just send the SQUIT
    */
-  if(!IsCapable(to, CAP_QS))
+  if (!IsCapable(to, CAP_QS))
   {
     DLINK_FOREACH_SAFE(ptr, next, source_p->serv->client_list.head)
     {
@@ -811,7 +811,7 @@ recurse_send_quits(struct Client *original_source_p, struct Client *source_p,
                        comment, splitstr);
   }
 
-  if((source_p == original_source_p && to != from) ||
+  if ((source_p == original_source_p && to != from) ||
       !IsCapable(to, CAP_QS))
   {
     /* don't use a prefix here - we have to be 100% sure the message
@@ -884,20 +884,20 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
 {
   dlink_node *m = NULL;
 
-  if(MyConnect(source_p))
+  if (MyConnect(source_p))
   {
     /* DO NOT REMOVE. exit_client can be called twice after a failed
      * read/write.
      */
-    if(IsClosing(source_p))
+    if (IsClosing(source_p))
       return;
 
     SetClosing(source_p);
 
-    if(IsIpHash(source_p))
+    if (IsIpHash(source_p))
       remove_one_ip(&source_p->ip);
 
-    if(source_p->localClient->auth)
+    if (source_p->localClient->auth)
     {
       delete_auth(source_p->localClient->auth);
       source_p->localClient->auth = NULL;
@@ -910,26 +910,26 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
      *
      * In all above cases IsRegistered() will not be true.
      */
-    if(!IsRegistered(source_p))
+    if (!IsRegistered(source_p))
     {
       assert(dlinkFind(&unknown_list, source_p));
 
       dlinkDelete(&source_p->localClient->lclient_node, &unknown_list);
     }
-    else if(IsClient(source_p))
+    else if (IsClient(source_p))
     {
       time_t on_for = CurrentTime - source_p->localClient->firsttime;
       assert(Count.local > 0);
       Count.local--;
 
-      if(HasUMode(source_p, UMODE_OPER))
-        if((m = dlinkFindDelete(&oper_list, source_p)) != NULL)
+      if (HasUMode(source_p, UMODE_OPER))
+        if ((m = dlinkFindDelete(&oper_list, source_p)) != NULL)
           free_dlink_node(m);
 
       assert(dlinkFind(&local_client_list, source_p));
       dlinkDelete(&source_p->localClient->lclient_node, &local_client_list);
 
-      if(source_p->localClient->list_task != NULL)
+      if (source_p->localClient->list_task != NULL)
         free_list_task(source_p->localClient->list_task, source_p);
 
       watch_del_watch_list(source_p);
@@ -951,7 +951,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
            source_p->localClient->send.bytes >> 10,
            source_p->localClient->recv.bytes >> 10);
     }
-    else if(IsServer(source_p))
+    else if (IsServer(source_p))
     {
       assert(Count.myserver > 0);
       --Count.myserver;
@@ -961,9 +961,9 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
       unset_chcap_usage_counts(source_p);
     }
 
-    if(!IsDead(source_p))
+    if (!IsDead(source_p))
     {
-      if(IsServer(source_p))
+      if (IsServer(source_p))
       {
         /* for them, we are exiting the network */
         sendto_one(source_p, ":%s SQUIT %s :%s",
@@ -988,14 +988,14 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
     close_connection(source_p);
   }
 
-  if(IsServer(source_p))
+  if (IsServer(source_p))
   {
     char splitstr[HOSTLEN + HOSTLEN + 2];
 
     /* This shouldn't ever happen */
     assert(source_p->serv != NULL && source_p->servptr != NULL);
 
-    if(ConfigServerHide.hide_servers)
+    if (ConfigServerHide.hide_servers)
       /*
        * Set netsplit message to "*.net *.split" to still show
        * that its a split, but hide the servers splitting
@@ -1007,7 +1007,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
 
     remove_dependents(source_p, from->from, comment, splitstr);
 
-    if(source_p->servptr == &me)
+    if (source_p->servptr == &me)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s was connected for %d seconds.  %llu/%llu sendK/recvK.",
@@ -1020,7 +1020,7 @@ exit_client(struct Client *source_p, struct Client *from, const char *comment)
            source_p->localClient->recv.bytes >> 10);
     }
   }
-  else if(IsClient(source_p) && !HasFlag(source_p, FLAGS_KILLED))
+  else if (IsClient(source_p) && !HasFlag(source_p, FLAGS_KILLED))
   {
     sendto_server(from->from, CAP_TS6, NOCAPS,
                   ":%s QUIT :%s", ID(source_p), comment);
@@ -1046,7 +1046,7 @@ dead_link_on_write(struct Client *client_p, int ierrno)
 {
   dlink_node *ptr;
 
-  if(IsDefunct(client_p))
+  if (IsDefunct(client_p))
     return;
 
   dbuf_clear(&client_p->localClient->buf_recvq);
@@ -1057,7 +1057,7 @@ dead_link_on_write(struct Client *client_p, int ierrno)
   /* don't let exit_aborted_clients() finish yet */
   dlinkAddTail(client_p, ptr, &abort_list);
 
-  if(eac_next == NULL)
+  if (eac_next == NULL)
     eac_next = ptr;
 
   SetDead(client_p); /* You are dead my friend */
@@ -1073,7 +1073,7 @@ dead_link_on_read(struct Client *client_p, int error)
   char errmsg[255];
   int current_error;
 
-  if(IsDefunct(client_p))
+  if (IsDefunct(client_p))
     return;
 
   dbuf_clear(&client_p->localClient->buf_recvq);
@@ -1081,11 +1081,11 @@ dead_link_on_read(struct Client *client_p, int error)
 
   current_error = get_sockerr(client_p->localClient->fd.fd);
 
-  if(IsServer(client_p) || IsHandshake(client_p))
+  if (IsServer(client_p) || IsHandshake(client_p))
   {
     int connected = CurrentTime - client_p->localClient->firsttime;
 
-    if(error == 0)
+    if (error == 0)
     {
       /* Admins get the real IP */
       sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -1116,7 +1116,7 @@ dead_link_on_read(struct Client *client_p, int error)
                          connected % 60);
   }
 
-  if(error == 0)
+  if (error == 0)
     strlcpy(errmsg, "Remote host closed the connection",
             sizeof(errmsg));
   else
@@ -1138,7 +1138,7 @@ exit_aborted_clients(void)
     target_p = ptr->data;
     eac_next = ptr->next;
 
-    if(target_p == NULL)
+    if (target_p == NULL)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
                            "Warning: null client on abort_list!");
@@ -1149,7 +1149,7 @@ exit_aborted_clients(void)
 
     dlinkDelete(ptr, &abort_list);
 
-    if(IsSendQExceeded(target_p))
+    if (IsSendQExceeded(target_p))
       notice = "Max SendQ exceeded";
     else
       notice = "Write error: connection closed";
@@ -1192,7 +1192,7 @@ find_accept(const char *nick, const char *user,
   {
     struct split_nuh_item *accept_p = ptr->data;
 
-    if(cmpfunc(accept_p->nickptr, nick) == do_match &&
+    if (cmpfunc(accept_p->nickptr, nick) == do_match &&
         cmpfunc(accept_p->userptr, user) == do_match &&
         cmpfunc(accept_p->hostptr, host) == do_match)
       return accept_p;
@@ -1214,15 +1214,15 @@ accept_message(struct Client *source,
 {
   dlink_node *ptr = NULL;
 
-  if(source == target || find_accept(source->name, source->username,
-                                     source->host, target, 1))
+  if (source == target || find_accept(source->name, source->username,
+                                      source->host, target, 1))
     return 1;
 
-  if(HasUMode(target, UMODE_SOFTCALLERID))
+  if (HasUMode(target, UMODE_SOFTCALLERID))
   {
     DLINK_FOREACH(ptr, target->channel.head)
     {
-      if(IsMember(source, ((struct Membership *)ptr->data)->chptr))
+      if (IsMember(source, ((struct Membership *)ptr->data)->chptr))
         return 1;
     }
   }
@@ -1255,30 +1255,30 @@ idle_time_get(struct Client *source_p, struct Client *target_p)
   unsigned int max_idle = 0;
   const struct ClassItem *class = get_client_class_ptr(target_p);
 
-  if(!(class->flags & CONF_FLAGS_FAKE_IDLE) || target_p == source_p)
+  if (!(class->flags & CONF_FLAGS_FAKE_IDLE) || target_p == source_p)
     return CurrentTime - target_p->localClient->last_privmsg;
 
-  if(HasUMode(source_p, UMODE_OPER) &&
+  if (HasUMode(source_p, UMODE_OPER) &&
       !(class->flags & CONF_FLAGS_HIDE_IDLE_FROM_OPERS))
     return CurrentTime - target_p->localClient->last_privmsg;
 
   min_idle = class->min_idle;
   max_idle = class->max_idle;
 
-  if(min_idle == max_idle)
+  if (min_idle == max_idle)
     return min_idle;
 
-  if(class->flags & CONF_FLAGS_RANDOM_IDLE)
+  if (class->flags & CONF_FLAGS_RANDOM_IDLE)
     idle = rand();
   else
     idle = CurrentTime - target_p->localClient->last_privmsg;
 
-  if(max_idle == 0)
+  if (max_idle == 0)
     idle = 0;
   else
     idle %= max_idle;
 
-  if(idle < min_idle)
+  if (idle < min_idle)
     idle = min_idle + (idle % (max_idle - min_idle));
 
   return idle;

@@ -48,42 +48,42 @@ whowas_do(struct Client *client_p, struct Client *source_p,
   char *p = NULL, *nick = NULL;
   const dlink_node *ptr = NULL;
 
-  if(parc > 2)
+  if (parc > 2)
   {
     max = atoi(parv[2]);
 
-    if(!MyConnect(source_p) && max > 20)
+    if (!MyConnect(source_p) && max > 20)
       max = 20;
   }
 
-  if(parc > 3)
-    if(hunt_server(client_p, source_p, ":%s WHOWAS %s %s :%s", 3,
-                   parc, parv) != HUNTED_ISME)
+  if (parc > 3)
+    if (hunt_server(client_p, source_p, ":%s WHOWAS %s %s :%s", 3,
+                    parc, parv) != HUNTED_ISME)
       return;
 
   nick = parv[1];
 
-  while(*nick == ',')
+  while (*nick == ',')
     nick++;
 
-  if((p = strchr(nick, ',')) != NULL)
+  if ((p = strchr(nick, ',')) != NULL)
     * p = '\0';
 
-  if(*nick == '\0')
+  if (*nick == '\0')
     return;
 
   DLINK_FOREACH(ptr, WHOWASHASH[strhash(nick)].head)
   {
     const struct Whowas *temp = ptr->data;
 
-    if(!irccmp(nick, temp->name))
+    if (!irccmp(nick, temp->name))
     {
       sendto_one(source_p, form_str(RPL_WHOWASUSER),
                  me.name, source_p->name, temp->name,
                  temp->username, temp->hostname,
                  temp->realname);
 
-      if(ConfigServerHide.hide_servers && !HasUMode(source_p, UMODE_OPER))
+      if (ConfigServerHide.hide_servers && !HasUMode(source_p, UMODE_OPER))
         sendto_one(source_p, form_str(RPL_WHOISSERVER),
                    me.name, source_p->name, temp->name,
                    ServerInfo.network_name, myctime(temp->logoff));
@@ -95,11 +95,11 @@ whowas_do(struct Client *client_p, struct Client *source_p,
       ++cur;
     }
 
-    if(max > 0 && cur >= max)
+    if (max > 0 && cur >= max)
       break;
   }
 
-  if(!cur)
+  if (!cur)
     sendto_one(source_p, form_str(ERR_WASNOSUCHNICK),
                me.name, source_p->name, nick);
 
@@ -118,14 +118,14 @@ m_whowas(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if(parc < 2 || EmptyString(parv[1]))
+  if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
                me.name, source_p->name);
     return;
   }
 
-  if((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, source_p->name);
@@ -141,7 +141,7 @@ static void
 mo_whowas(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  if(parc < 2 || EmptyString(parv[1]))
+  if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
                me.name, source_p->name);

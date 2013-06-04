@@ -68,18 +68,18 @@ mo_testline(struct Client *client_p, struct Client *source_p,
   char userhost[HOSTLEN + USERLEN + 2];
   struct split_nuh_item nuh;
 
-  if(EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, ":%s NOTICE %s :usage: user@host|ip [password]",
                me.name, source_p->name);
     return;
   }
 
-  if(IsChanPrefix(*parv[1]))     /* Might be channel resv */
+  if (IsChanPrefix(*parv[1]))    /* Might be channel resv */
   {
     const struct ResvChannel *chptr = NULL;
 
-    if((chptr = match_find_resv(parv[1])))
+    if ((chptr = match_find_resv(parv[1])))
     {
       sendto_one(source_p, form_str(RPL_TESTLINE),
                  me.name, source_p->name, 'Q', 0, chptr->name,
@@ -103,7 +103,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 
   t = parse_netmask(given_host, &ip, &host_mask);
 
-  if(t != HM_HOST)
+  if (t != HM_HOST)
   {
     aconf = find_dline_conf(&ip,
 #ifdef IPV6
@@ -113,11 +113,11 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 #endif
                            );
 
-    if(aconf != NULL)
+    if (aconf != NULL)
     {
       ++matches;
 
-      if(aconf->status & CONF_EXEMPTDLINE)
+      if (aconf->status & CONF_EXEMPTDLINE)
       {
         sendto_one(source_p,
                    ":%s NOTICE %s :Exempt D-line host [%s] reason [%s]",
@@ -136,7 +136,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     }
   }
 
-  if(t != HM_HOST)
+  if (t != HM_HOST)
     aconf = find_address_conf(given_host, given_name, &ip,
 #ifdef IPV6
                               (t == HM_IPV6) ? AF_INET6 : AF_INET,
@@ -148,11 +148,11 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     aconf = find_address_conf(given_host, given_name, NULL, 0, parv[2],
                               parv[3] == NULL ? parv[2] : parv[3]);
 
-  if(aconf != NULL)
+  if (aconf != NULL)
   {
     snprintf(userhost, sizeof(userhost), "%s@%s", aconf->user, aconf->host);
 
-    if(aconf->status & CONF_CLIENT)
+    if (aconf->status & CONF_CLIENT)
     {
       sendto_one(source_p, form_str(RPL_TESTLINE),
                  me.name, source_p->name,
@@ -160,7 +160,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                  aconf->class_ptr ? aconf->class_ptr->name : "<default>", "");
       ++matches;
     }
-    else if(aconf->status & CONF_KLINE)
+    else if (aconf->status & CONF_KLINE)
     {
       sendto_one(source_p, form_str(RPL_TESTLINE),
                  me.name, source_p->name,
@@ -175,7 +175,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 
   conf = find_matching_name_conf(NRESV_TYPE, given_name, NULL, NULL, 0);
 
-  if(conf != NULL)
+  if (conf != NULL)
   {
     const struct MatchItem *mconf = map_to_conf(conf);
 
@@ -188,7 +188,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     ++matches;
   }
 
-  if(matches == 0)
+  if (matches == 0)
     sendto_one(source_p, form_str(RPL_NOTESTLINE),
                me.name, source_p->name, parv1_copy);
 
@@ -214,14 +214,14 @@ mo_testgecos(struct Client *client_p, struct Client *source_p,
   struct ConfItem *conf = NULL;
   struct MatchItem *xconf = NULL;
 
-  if(EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, ":%s NOTICE %s :usage: gecos",
                me.name, source_p->name);
     return;
   }
 
-  if((conf = find_matching_name_conf(XLINE_TYPE, parv[1], NULL, NULL, 0)))
+  if ((conf = find_matching_name_conf(XLINE_TYPE, parv[1], NULL, NULL, 0)))
   {
     xconf = map_to_conf(conf);
     sendto_one(source_p, form_str(RPL_TESTLINE),

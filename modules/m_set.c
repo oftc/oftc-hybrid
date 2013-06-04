@@ -111,11 +111,11 @@ list_quote_commands(struct Client *source_p)
   sendto_one(source_p, ":%s NOTICE %s :Available QUOTE SET commands:",
              me.name, source_p->name);
 
-  for(; tab->handler; ++tab)
+  for (; tab->handler; ++tab)
   {
     names[j++] = tab->name;
 
-    if(j > 3)
+    if (j > 3)
     {
       sendto_one(source_p, ":%s NOTICE %s :%s %s %s %s",
                  me.name, source_p->name,
@@ -127,7 +127,7 @@ list_quote_commands(struct Client *source_p)
 
   }
 
-  if(j)
+  if (j)
     sendto_one(source_p, ":%s NOTICE %s :%s %s %s %s",
                me.name, source_p->name,
                names[0], names[1],
@@ -140,16 +140,16 @@ quote_autoconn(struct Client *source_p, const char *arg, int newval)
 {
   struct AccessItem *aconf;
 
-  if(arg != NULL)
+  if (arg != NULL)
   {
     struct ConfItem *conf = find_exact_name_conf(SERVER_TYPE, NULL, arg, NULL,
                             NULL);
 
-    if(conf != NULL)
+    if (conf != NULL)
     {
       aconf = map_to_conf(conf);
 
-      if(newval)
+      if (newval)
         SetConfAllowAutoConn(aconf);
       else
         ClearConfAllowAutoConn(aconf);
@@ -178,7 +178,7 @@ quote_autoconn(struct Client *source_p, const char *arg, int newval)
 static void
 quote_autoconnall(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "%s has changed AUTOCONNALL to %i",
                          get_oper_name(source_p), newval);
@@ -196,7 +196,7 @@ quote_autoconnall(struct Client *source_p, int newval)
 static void
 quote_floodcount(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
     GlobalSetOptions.floodcount = newval;
     sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -214,14 +214,14 @@ quote_floodcount(struct Client *source_p, int newval)
 static void
 quote_identtimeout(struct Client *source_p, int newval)
 {
-  if(!HasUMode(source_p, UMODE_ADMIN))
+  if (!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "set");
     return;
   }
 
-  if(newval > 0)
+  if (newval > 0)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed IDENTTIMEOUT to %d",
@@ -237,9 +237,9 @@ quote_identtimeout(struct Client *source_p, int newval)
 static void
 quote_max(struct Client *source_p, int newval)
 {
-  if(newval > 0)
+  if (newval > 0)
   {
-    if(newval > MAXCLIENTS_MAX)
+    if (newval > MAXCLIENTS_MAX)
     {
       sendto_one(source_p,
                  ":%s NOTICE %s :You cannot set MAXCLIENTS to > %d, restoring to %d",
@@ -247,7 +247,7 @@ quote_max(struct Client *source_p, int newval)
       return;
     }
 
-    if(newval < MAXCLIENTS_MIN)
+    if (newval < MAXCLIENTS_MIN)
     {
       sendto_one(source_p,
                  ":%s NOTICE %s :You cannot set MAXCLIENTS to < %d, restoring to %d",
@@ -270,7 +270,7 @@ quote_max(struct Client *source_p, int newval)
 static void
 quote_msglocale(struct Client *source_p, char *locale)
 {
-  if(locale != NULL)
+  if (locale != NULL)
   {
     set_locale(locale);
     rebuild_isupport_message_line();
@@ -286,9 +286,9 @@ quote_msglocale(struct Client *source_p, char *locale)
 static void
 quote_spamnum(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
-    if(newval == 0)
+    if (newval == 0)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s has disabled ANTI_SPAMBOT", source_p->name);
@@ -309,7 +309,7 @@ quote_spamnum(struct Client *source_p, int newval)
 static void
 quote_spamtime(struct Client *source_p, int newval)
 {
-  if(newval > 0)
+  if (newval > 0)
   {
     GlobalSetOptions.spam_time = IRCD_MAX(newval, MIN_SPAM_TIME);
     sendto_realops_flags(UMODE_ALL, L_ALL, "%s has changed SPAMTIME to %i",
@@ -343,16 +343,16 @@ static const char *splitmode_status[] =
 static void
 quote_splitmode(struct Client *source_p, char *charval)
 {
-  if(charval)
+  if (charval)
   {
     int newval;
 
-    for(newval = 0; splitmode_values[newval]; ++newval)
-      if(irccmp(splitmode_values[newval], charval) == 0)
+    for (newval = 0; splitmode_values[newval]; ++newval)
+      if (irccmp(splitmode_values[newval], charval) == 0)
         break;
 
     /* OFF */
-    if(newval == 0)
+    if (newval == 0)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s is disabling splitmode",
@@ -364,7 +364,7 @@ quote_splitmode(struct Client *source_p, char *charval)
       eventDelete(check_splitmode, NULL);
     }
     /* ON */
-    else if(newval == 1)
+    else if (newval == 1)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s is enabling and activating splitmode",
@@ -377,7 +377,7 @@ quote_splitmode(struct Client *source_p, char *charval)
       eventDelete(check_splitmode, NULL);
     }
     /* AUTO */
-    else if(newval == 2)
+    else if (newval == 2)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s is enabling automatic splitmode",
@@ -401,14 +401,14 @@ quote_splitmode(struct Client *source_p, char *charval)
 static void
 quote_splitnum(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed SPLITNUM to %i",
                          get_oper_name(source_p), newval);
     split_servers = newval;
 
-    if(splitchecking)
+    if (splitchecking)
       check_splitmode(NULL);
   }
   else
@@ -420,14 +420,14 @@ quote_splitnum(struct Client *source_p, int newval)
 static void
 quote_splitusers(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed SPLITUSERS to %i",
                          get_oper_name(source_p), newval);
     split_users = newval;
 
-    if(splitchecking)
+    if (splitchecking)
       check_splitmode(NULL);
   }
   else
@@ -439,7 +439,7 @@ quote_splitusers(struct Client *source_p, int newval)
 static void
 quote_jfloodtime(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed JFLOODTIME to %i",
@@ -455,7 +455,7 @@ quote_jfloodtime(struct Client *source_p, int newval)
 static void
 quote_jfloodcount(struct Client *source_p, int newval)
 {
-  if(newval >= 0)
+  if (newval >= 0)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s has changed JFLOODCOUNT to %i",
@@ -481,37 +481,37 @@ mo_set(struct Client *client_p, struct Client *source_p,
   const char *intarg = NULL;
   const struct SetStruct *tab = set_cmd_table;
 
-  if(!HasOFlag(source_p, OPER_FLAG_SET))
+  if (!HasOFlag(source_p, OPER_FLAG_SET))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "set");
     return;
   }
 
-  if(parc > 1)
+  if (parc > 1)
   {
     /*
      * Go through all the commands in set_cmd_table, until one is
      * matched.
      */
-    for(; tab->handler; ++tab)
+    for (; tab->handler; ++tab)
     {
-      if(!irccmp(tab->name, parv[1]))
+      if (!irccmp(tab->name, parv[1]))
       {
         /*
          * Command found; now execute the code
          */
         n = 2;
 
-        if(tab->wants_char)
+        if (tab->wants_char)
           arg = parv[n++];
 
-        if(tab->wants_int)
+        if (tab->wants_int)
           intarg = parv[n++];
 
-        if((n - 1) > parc)
+        if ((n - 1) > parc)
         {
-          if(parc > 2)
+          if (parc > 2)
             sendto_one(source_p,
                        ":%s NOTICE %s :SET %s expects (\"%s%s\") args",
                        me.name, source_p->name, tab->name,
@@ -519,26 +519,26 @@ mo_set(struct Client *client_p, struct Client *source_p,
                        (tab->wants_char ? "int" : ""));
         }
 
-        if(parc <= 2)
+        if (parc <= 2)
         {
           arg = NULL;
           intarg = NULL;
         }
 
-        if(!strcmp(tab->name, "AUTOCONN") && (parc < 4))
+        if (!strcmp(tab->name, "AUTOCONN") && (parc < 4))
         {
           sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                      me.name, source_p->name, "SET");
           return;
         }
 
-        if(tab->wants_int && (parc > 2))
+        if (tab->wants_int && (parc > 2))
         {
-          if(intarg)
+          if (intarg)
           {
-            if(irccmp(intarg, "yes") == 0 || irccmp(intarg, "on") == 0)
+            if (irccmp(intarg, "yes") == 0 || irccmp(intarg, "on") == 0)
               newval = 1;
-            else if(irccmp(intarg, "no") == 0 || irccmp(intarg, "off") == 0)
+            else if (irccmp(intarg, "no") == 0 || irccmp(intarg, "off") == 0)
               newval = 0;
             else
               newval = atoi(intarg);
@@ -546,7 +546,7 @@ mo_set(struct Client *client_p, struct Client *source_p,
           else
             newval = -1;
 
-          if(newval < 0)
+          if (newval < 0)
           {
             sendto_one(source_p,
                        ":%s NOTICE %s :Value less than 0 illegal for %s",
@@ -559,9 +559,9 @@ mo_set(struct Client *client_p, struct Client *source_p,
         else
           newval = -1;
 
-        if(tab->wants_char)
+        if (tab->wants_char)
         {
-          if(tab->wants_int)
+          if (tab->wants_int)
             tab->handler(source_p, arg, newval);
           else
             tab->handler(source_p, arg);
@@ -570,7 +570,7 @@ mo_set(struct Client *client_p, struct Client *source_p,
         }
         else
         {
-          if(tab->wants_int)
+          if (tab->wants_int)
             tab->handler(source_p, newval);
           else
             /* Just in case someone actually wants a

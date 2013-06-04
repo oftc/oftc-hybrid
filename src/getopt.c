@@ -36,7 +36,7 @@ usage(const char *name, const struct lgetopt *opts)
   fprintf(stderr, "Usage: %s [options]\n", name);
   fprintf(stderr, "Where valid options are:\n");
 
-  for(i = 0; opts[i].opt; ++i)
+  for (i = 0; opts[i].opt; ++i)
     fprintf(stderr, "\t%c%-10s %-20s%s\n", OPTCHAR, opts[i].opt,
             (opts[i].argtype == YESNO || opts[i].argtype == USAGE) ? "" :
             opts[i].argtype == INTEGER ? "<number>" : "<string>",
@@ -52,34 +52,34 @@ parseargs(int *argc, char ***argv, struct lgetopt *opts)
   const char *progname = (*argv)[0];
 
   /* loop through each argument */
-  while(1)
+  while (1)
   {
     int found = 0;
 
     (*argc)--;
     (*argv)++;
 
-    if(*argc < 1 || (*argv)[0][0] != OPTCHAR)
+    if (*argc < 1 || (*argv)[0][0] != OPTCHAR)
       return;
 
     (*argv)[0]++;
 
     /* search through our argument list, and see if it matches */
-    for(i = 0; opts[i].opt; i++)
+    for (i = 0; opts[i].opt; i++)
     {
-      if(!strcmp(opts[i].opt, (*argv)[0]))
+      if (!strcmp(opts[i].opt, (*argv)[0]))
       {
         /* found our argument */
         found = 1;
 
-        switch(opts[i].argtype)
+        switch (opts[i].argtype)
         {
           case YESNO:
             *((int *)opts[i].argloc) = 1;
             break;
 
           case INTEGER:
-            if(*argc < 2)
+            if (*argc < 2)
             {
               fprintf(stderr, "Error: option '%c%s' requires an argument\n",
                       OPTCHAR, opts[i].opt);
@@ -92,7 +92,7 @@ parseargs(int *argc, char ***argv, struct lgetopt *opts)
             break;
 
           case STRING:
-            if(*argc < 2)
+            if (*argc < 2)
             {
               fprintf(stderr, "error: option '%c%s' requires an argument\n",
                       OPTCHAR, opts[i].opt);
@@ -117,7 +117,7 @@ parseargs(int *argc, char ***argv, struct lgetopt *opts)
       }
     }
 
-    if(!found)
+    if (!found)
     {
       fprintf(stderr, "error: unknown argument '%c%s'\n",
               OPTCHAR, (*argv)[0]);

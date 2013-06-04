@@ -49,7 +49,7 @@ static void
 failed_challenge_notice(struct Client *source_p, const char *name,
                         const char *reason)
 {
-  if(ConfigFileEntry.failed_oper_notice)
+  if (ConfigFileEntry.failed_oper_notice)
     sendto_realops_flags(UMODE_ALL, L_ALL, "Failed CHALLENGE attempt as %s "
                          "by %s (%s@%s) - %s", name, source_p->name,
                          source_p->username, source_p->host, reason);
@@ -73,13 +73,13 @@ m_challenge(struct Client *client_p, struct Client *source_p,
   struct ConfItem *conf = NULL;
   struct AccessItem *aconf = NULL;
 
-  if(*parv[1] == '+')
+  if (*parv[1] == '+')
   {
     /* Ignore it if we aren't expecting this... -A1kmm */
-    if(source_p->localClient->response == NULL)
+    if (source_p->localClient->response == NULL)
       return;
 
-    if(irccmp(source_p->localClient->response, ++parv[1]))
+    if (irccmp(source_p->localClient->response, ++parv[1]))
     {
       sendto_one(source_p, form_str(ERR_PASSWDMISMATCH), me.name,
                  source_p->name);
@@ -91,14 +91,14 @@ m_challenge(struct Client *client_p, struct Client *source_p,
     conf = find_exact_name_conf(OPER_TYPE, source_p,
                                 source_p->localClient->auth_oper, NULL, NULL);
 
-    if(conf == NULL)
+    if (conf == NULL)
     {
       /* XXX: logging */
       sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
       return;
     }
 
-    if(attach_conf(source_p, conf) != 0)
+    if (attach_conf(source_p, conf) != 0)
     {
       sendto_one(source_p, ":%s NOTICE %s :Can't attach conf!",
                  me.name, source_p->name);
@@ -127,10 +127,10 @@ m_challenge(struct Client *client_p, struct Client *source_p,
 
   conf = find_exact_name_conf(OPER_TYPE, source_p, parv[1], NULL, NULL);
 
-  if(conf)
+  if (conf)
     aconf = map_to_conf(conf);
 
-  if(aconf == NULL)
+  if (aconf == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
     conf = find_exact_name_conf(OPER_TYPE, NULL, parv[1], NULL, NULL);
@@ -139,7 +139,7 @@ m_challenge(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if(aconf->rsa_public_key == NULL)
+  if (aconf->rsa_public_key == NULL)
   {
     sendto_one(source_p, ":%s NOTICE %s :I'm sorry, PK authentication "
                "is not enabled for your oper{} block.", me.name,
@@ -147,8 +147,8 @@ m_challenge(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if(!generate_challenge(&challenge, &(source_p->localClient->response),
-                         aconf->rsa_public_key))
+  if (!generate_challenge(&challenge, &(source_p->localClient->response),
+                          aconf->rsa_public_key))
     sendto_one(source_p, form_str(RPL_RSACHALLENGE),
                me.name, source_p->name, challenge);
 

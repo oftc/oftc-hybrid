@@ -42,7 +42,7 @@ ms_pong(struct Client *client_p, struct Client *source_p,
   struct Client *target_p;
   const char *origin, *destination;
 
-  if(parc < 2 || *parv[1] == '\0')
+  if (parc < 2 || *parv[1] == '\0')
   {
     sendto_one(source_p, form_str(ERR_NOORIGIN),
                me.name, source_p->name);
@@ -58,10 +58,10 @@ ms_pong(struct Client *client_p, struct Client *source_p,
    * That being the case, we will route, but only for registered clients (a
    * case can be made to allow them only from servers). -Shadowfax
    */
-  if(!EmptyString(destination) && !match(destination, me.name) &&
+  if (!EmptyString(destination) && !match(destination, me.name) &&
       irccmp(destination, me.id))
   {
-    if((target_p = hash_find_client(destination)) ||
+    if ((target_p = hash_find_client(destination)) ||
         (target_p = hash_find_server(destination)))
       sendto_one(target_p, ":%s PONG %s %s",
                  source_p->name, origin, destination);
@@ -80,15 +80,15 @@ mr_pong(struct Client *client_p, struct Client *source_p,
 {
   assert(source_p == client_p);
 
-  if(parc == 2 && *parv[1] != '\0')
+  if (parc == 2 && *parv[1] != '\0')
   {
-    if(ConfigFileEntry.ping_cookie && !source_p->localClient->registration)
+    if (ConfigFileEntry.ping_cookie && !source_p->localClient->registration)
     {
       unsigned long incoming_ping = strtoul(parv[1], NULL, 10);
 
-      if(incoming_ping)
+      if (incoming_ping)
       {
-        if(source_p->localClient->random_ping == incoming_ping)
+        if (source_p->localClient->random_ping == incoming_ping)
         {
           SetPingCookie(source_p);
           register_local_user(source_p);

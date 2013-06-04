@@ -74,7 +74,7 @@ static void
 mr_test(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  if(parc == 1)
+  if (parc == 1)
     sendto_one(source_p,
                ":%s NOTICE %s :You are unregistered and sent no parameters",
                me.name, source_p->name);
@@ -93,7 +93,7 @@ static void
 m_test(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
-  if(parc == 1)
+  if (parc == 1)
     sendto_one(source_p,
                ":%s NOTICE %s :You are a normal user, and sent no parameters",
                me.name, source_p->name);
@@ -112,9 +112,9 @@ static void
 ms_test(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  if(parc == 1)
+  if (parc == 1)
   {
-    if(IsServer(source_p))
+    if (IsServer(source_p))
       sendto_one(source_p, ":%s NOTICE %s :You are a server, and sent no parameters",
                  me.name, source_p->name);
     else
@@ -124,7 +124,7 @@ ms_test(struct Client *client_p, struct Client *source_p,
   }
   else
   {
-    if(IsServer(source_p))
+    if (IsServer(source_p))
       sendto_one(source_p, ":%s NOTICE %s :You are a server, and sent parameters: %s",
                  me.name, source_p->name, parv[1]);
     else
@@ -143,7 +143,7 @@ static void
 mo_test(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  if(parc == 1)
+  if (parc == 1)
     sendto_one(source_p,
                ":%s NOTICE %s :You are an operator, and sent no parameters",
                me.name, source_p->name);

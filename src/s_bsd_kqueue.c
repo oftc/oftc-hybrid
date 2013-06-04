@@ -63,7 +63,7 @@ init_netio(void)
 {
   int fd;
 
-  if((fd = kqueue()) < 0)
+  if ((fd = kqueue()) < 0)
   {
     ilog(LOG_TYPE_IRCD, "init_netio: Couldn't open kqueue fd!");
     exit(115); /* Whee! */
@@ -83,7 +83,7 @@ kq_update_events(int fd, int filter, int what)
 
   EV_SET(kep, (uintptr_t) fd, (short) filter, what, 0, 0, NULL);
 
-  if(++kqoff == KE_LENGTH)
+  if (++kqoff == KE_LENGTH)
   {
     kevent(kqfd.fd, kq_fdlist, kqoff, NULL, 0, &zero_timespec);
     kqoff = 0;
@@ -102,13 +102,13 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 {
   int new_events, diff;
 
-  if((type & COMM_SELECT_READ))
+  if ((type & COMM_SELECT_READ))
   {
     F->read_handler = handler;
     F->read_data = client_data;
   }
 
-  if((type & COMM_SELECT_WRITE))
+  if ((type & COMM_SELECT_WRITE))
   {
     F->write_handler = handler;
     F->write_data = client_data;
@@ -117,7 +117,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   new_events = (F->read_handler ? COMM_SELECT_READ : 0) |
                (F->write_handler ? COMM_SELECT_WRITE : 0);
 
-  if(timeout != 0)
+  if (timeout != 0)
   {
     F->timeout = CurrentTime + (timeout / 1000);
     F->timeout_handler = handler;
@@ -126,11 +126,11 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 
   diff = new_events ^ F->evcache;
 
-  if((diff & COMM_SELECT_READ))
+  if ((diff & COMM_SELECT_READ))
     kq_update_events(F->fd, EVFILT_READ,
                      (new_events & COMM_SELECT_READ) ? EV_ADD : EV_DELETE);
 
-  if((diff & COMM_SELECT_WRITE))
+  if ((diff & COMM_SELECT_WRITE))
     kq_update_events(F->fd, EVFILT_WRITE,
                      (new_events & COMM_SELECT_WRITE) ? EV_ADD : EV_DELETE);
 
@@ -166,7 +166,7 @@ comm_select(void)
 
   set_time();
 
-  if(num < 0)
+  if (num < 0)
   {
 #ifdef HAVE_USLEEP
     usleep(50000);  /* avoid 99% CPU in comm_select */
@@ -174,30 +174,30 @@ comm_select(void)
     return;
   }
 
-  for(i = 0; i < num; i++)
+  for (i = 0; i < num; i++)
   {
     F = lookup_fd(ke[i].ident);
 
-    if(F == NULL || !F->flags.open || (ke[i].flags & EV_ERROR))
+    if (F == NULL || !F->flags.open || (ke[i].flags & EV_ERROR))
       continue;
 
-    if(ke[i].filter == EVFILT_READ)
-      if((hdl = F->read_handler) != NULL)
+    if (ke[i].filter == EVFILT_READ)
+      if ((hdl = F->read_handler) != NULL)
       {
         F->read_handler = NULL;
         hdl(F, F->read_data);
 
-        if(!F->flags.open)
+        if (!F->flags.open)
           continue;
       }
 
-    if(ke[i].filter == EVFILT_WRITE)
-      if((hdl = F->write_handler) != NULL)
+    if (ke[i].filter == EVFILT_WRITE)
+      if ((hdl = F->write_handler) != NULL)
       {
         F->write_handler = NULL;
         hdl(F, F->write_data);
 
-        if(!F->flags.open)
+        if (!F->flags.open)
           continue;
       }
 

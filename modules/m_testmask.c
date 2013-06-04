@@ -66,7 +66,7 @@ mo_testmask(struct Client *client_p, struct Client *source_p,
   dlink_node *ptr, *next_ptr;
   struct Client *target_p;
 
-  if(parc < 2 || ((given_host = strchr(given_user, '@')) == NULL))
+  if (parc < 2 || ((given_host = strchr(given_user, '@')) == NULL))
   {
     sendto_one(source_p, ":%s NOTICE %s :usage: user@host",
                me.name, source_p->name);
@@ -79,13 +79,13 @@ mo_testmask(struct Client *client_p, struct Client *source_p,
   {
     target_p = ptr->data;
 
-    if(IsDead(target_p) || !IsClient(target_p))
+    if (IsDead(target_p) || !IsClient(target_p))
       continue;
 
-    if(match(given_user, target_p->username) &&
+    if (match(given_user, target_p->username) &&
         match(given_host, target_p->host))
     {
-      if(MyConnect(target_p))
+      if (MyConnect(target_p))
         local_count++;
       else
         remote_count++;

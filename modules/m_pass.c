@@ -51,7 +51,7 @@ mr_pass(struct Client *client_p, struct Client *source_p,
 
   assert(client_p == source_p);
 
-  if(EmptyString(password))
+  if (EmptyString(password))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name,
                source_p->name[0] ? source_p->name : "*", "PASS");
@@ -60,12 +60,12 @@ mr_pass(struct Client *client_p, struct Client *source_p,
 
   MyFree(source_p->localClient->passwd);
 
-  if(strlen(password) > PASSWDLEN)
+  if (strlen(password) > PASSWDLEN)
     password[PASSWDLEN] = '\0';
 
   DupString(source_p->localClient->passwd, password);
 
-  if(parc > 2)
+  if (parc > 2)
   {
     /* It looks to me as if orabidoo wanted to have more
      * than one set of option strings possible here...
@@ -74,14 +74,14 @@ mr_pass(struct Client *client_p, struct Client *source_p,
      * safely assume if there is a ":TS" then its a TS server
      * -Dianora
      */
-    if(!irccmp(parv[2], "TS") && source_p->tsinfo == 0)
+    if (!irccmp(parv[2], "TS") && source_p->tsinfo == 0)
       source_p->tsinfo = TS_DOESTS;
   }
 
   /* only do this stuff if we are doing ts6 */
-  if(parc > 4)
+  if (parc > 4)
   {
-    if(atoi(parv[3]) >= 6 && valid_sid(parv[4]))
+    if (atoi(parv[3]) >= 6 && valid_sid(parv[4]))
     {
       strlcpy(source_p->id, parv[4], sizeof(source_p->id));
       SetCapable(source_p, CAP_TS6);

@@ -126,7 +126,7 @@ release_auth_client(struct AuthRequest *auth)
 {
   struct Client *client = auth->client;
 
-  if(IsDoingAuth(auth) || IsDNSPending(auth))
+  if (IsDoingAuth(auth) || IsDNSPending(auth))
     return;
 
   client->localClient->auth = NULL;
@@ -165,7 +165,7 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 
   ClearDNSPending(auth);
 
-  if(name != NULL)
+  if (name != NULL)
   {
     const struct sockaddr_in *v4, *v4dns;
 #ifdef IPV6
@@ -175,12 +175,12 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 
 #ifdef IPV6
 
-    if(auth->client->ip.ss.ss_family == AF_INET6)
+    if (auth->client->ip.ss.ss_family == AF_INET6)
     {
       v6 = (const struct sockaddr_in6 *)&auth->client->ip;
       v6dns = (const struct sockaddr_in6 *)addr;
 
-      if(memcmp(&v6->sin6_addr, &v6dns->sin6_addr, sizeof(struct in6_addr)) != 0)
+      if (memcmp(&v6->sin6_addr, &v6dns->sin6_addr, sizeof(struct in6_addr)) != 0)
       {
         sendheader(auth->client, REPORT_IP_MISMATCH);
         good = 0;
@@ -192,20 +192,20 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
       v4 = (const struct sockaddr_in *)&auth->client->ip;
       v4dns = (const struct sockaddr_in *)addr;
 
-      if(v4->sin_addr.s_addr != v4dns->sin_addr.s_addr)
+      if (v4->sin_addr.s_addr != v4dns->sin_addr.s_addr)
       {
         sendheader(auth->client, REPORT_IP_MISMATCH);
         good = 0;
       }
     }
 
-    if(good && strlen(name) <= HOSTLEN)
+    if (good && strlen(name) <= HOSTLEN)
     {
       strlcpy(auth->client->host, name,
               sizeof(auth->client->host));
       sendheader(auth->client, REPORT_FIN_DNS);
     }
-    else if(strlen(name) > HOSTLEN)
+    else if (strlen(name) > HOSTLEN)
       sendheader(auth->client, REPORT_HOST_TOOLONG);
   }
   else
@@ -251,8 +251,9 @@ start_auth_query(struct AuthRequest *auth)
 #endif
 
   /* open a socket of the same type as the client socket */
-  if(comm_open(&auth->client->localClient->auth_fd, auth->client->ip.ss.ss_family,
-               SOCK_STREAM, 0, "ident") == -1)
+  if (comm_open(&auth->client->localClient->auth_fd,
+                auth->client->ip.ss.ss_family,
+                SOCK_STREAM, 0, "ident") == -1)
   {
     report_error(L_ALL, "creating auth stream socket %s:%s",
                  get_client_name(auth->client, SHOW_IP), errno);
@@ -330,35 +331,35 @@ GetValidIdent(char *buf)
   /* All this to get rid of a sscanf() fun. */
   remotePortString = buf;
 
-  if((colon1Ptr = strchr(remotePortString, ':')) == NULL)
+  if ((colon1Ptr = strchr(remotePortString, ':')) == NULL)
     return 0;
 
   *colon1Ptr = '\0';
   colon1Ptr++;
 
-  if((colon2Ptr = strchr(colon1Ptr, ':')) == NULL)
+  if ((colon2Ptr = strchr(colon1Ptr, ':')) == NULL)
     return 0;
 
   *colon2Ptr = '\0';
   colon2Ptr++;
 
-  if((commaPtr = strchr(remotePortString, ',')) == NULL)
+  if ((commaPtr = strchr(remotePortString, ',')) == NULL)
     return 0;
 
   *commaPtr = '\0';
   commaPtr++;
 
-  if((remp = atoi(remotePortString)) == 0)
+  if ((remp = atoi(remotePortString)) == 0)
     return 0;
 
-  if((locp = atoi(commaPtr)) == 0)
+  if ((locp = atoi(commaPtr)) == 0)
     return 0;
 
   /* look for USERID bordered by first pair of colons */
-  if(strstr(colon1Ptr, "USERID") == NULL)
+  if (strstr(colon1Ptr, "USERID") == NULL)
     return 0;
 
-  if((colon3Ptr = strchr(colon2Ptr, ':')) == NULL)
+  if ((colon3Ptr = strchr(colon2Ptr, ':')) == NULL)
     return 0;
 
   *colon3Ptr = '\0';
@@ -388,7 +389,7 @@ start_auth(va_list args)
 
   SetDNSPending(auth);
 
-  if(ConfigFileEntry.disable_auth == 0)
+  if (ConfigFileEntry.disable_auth == 0)
   {
     SetDoingAuth(auth);
     start_auth_query(auth);
@@ -412,10 +413,10 @@ timeout_auth_queries_event(void *notused)
   {
     struct AuthRequest *auth = ptr->data;
 
-    if(auth->timeout > CurrentTime)
+    if (auth->timeout > CurrentTime)
       continue;
 
-    if(IsDoingAuth(auth))
+    if (IsDoingAuth(auth))
     {
       ++ServerStats.is_abad;
       fd_close(&auth->client->localClient->auth_fd);
@@ -423,7 +424,7 @@ timeout_auth_queries_event(void *notused)
       sendheader(auth->client, REPORT_FAIL_ID);
     }
 
-    if(IsDNSPending(auth))
+    if (IsDNSPending(auth))
     {
       delete_resolver_queries(auth);
       ClearDNSPending(auth);
@@ -463,14 +464,14 @@ auth_connect_callback(fde_t *fd, int error, void *data)
   struct sockaddr_in *v4;
 #endif
 
-  if(error != COMM_OK)
+  if (error != COMM_OK)
   {
     auth_error(auth);
     return;
   }
 
-  if(getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&us,
-                 &ulen) ||
+  if (getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&us,
+                  &ulen) ||
       getpeername(auth->client->localClient->fd.fd, (struct sockaddr *)&them,
                   &tlen))
   {
@@ -498,7 +499,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
 
   snprintf(authbuf, sizeof(authbuf), "%u , %u\r\n", tport, uport);
 
-  if(send(fd->fd, authbuf, strlen(authbuf), 0) == -1)
+  if (send(fd->fd, authbuf, strlen(authbuf), 0) == -1)
   {
     auth_error(auth);
     return;
@@ -538,9 +539,9 @@ read_auth_reply(fde_t *fd, void *data)
    */
   len = read(fd->fd, buf, AUTH_BUFSIZ);
 
-  if(len < 0)
+  if (len < 0)
   {
-    if(ignoreErrno(errno))
+    if (ignoreErrno(errno))
       comm_setselect(fd, COMM_SELECT_READ, read_auth_reply, auth, 0);
     else
       auth_error(auth);
@@ -548,23 +549,23 @@ read_auth_reply(fde_t *fd, void *data)
     return;
   }
 
-  if(len > 0)
+  if (len > 0)
   {
     buf[len] = '\0';
 
-    if((s = GetValidIdent(buf)))
+    if ((s = GetValidIdent(buf)))
     {
       t = auth->client->username;
 
-      while(*s == '~' || *s == '^')
+      while (*s == '~' || *s == '^')
         s++;
 
-      for(count = USERLEN; *s && count; s++)
+      for (count = USERLEN; *s && count; s++)
       {
-        if(*s == '@')
+        if (*s == '@')
           break;
 
-        if(!IsSpace(*s) && *s != ':' && *s != '[')
+        if (!IsSpace(*s) && *s != ':' && *s != '[')
         {
           *t++ = *s;
           count--;
@@ -579,7 +580,7 @@ read_auth_reply(fde_t *fd, void *data)
 
   ClearAuth(auth);
 
-  if(s == NULL)
+  if (s == NULL)
   {
     sendheader(auth->client, REPORT_FAIL_ID);
     ++ServerStats.is_abad;
@@ -600,10 +601,10 @@ read_auth_reply(fde_t *fd, void *data)
 void
 delete_auth(struct AuthRequest *auth)
 {
-  if(IsDNSPending(auth))
+  if (IsDNSPending(auth))
     delete_resolver_queries(auth);
 
-  if(IsDoingAuth(auth))
+  if (IsDoingAuth(auth))
     fd_close(&auth->client->localClient->auth_fd);
 
   dlinkDelete(&auth->node, &auth_doing_list);

@@ -66,7 +66,7 @@ m_ltrace(struct Client *client_p, struct Client *source_p,
 {
   const char *tname = NULL;
 
-  if(parc > 1)
+  if (parc > 1)
     tname = parv[1];
   else
     tname = me.name;
@@ -88,24 +88,24 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
   char *looking_for = parv[0];
   char *tname = parc > 1 ? parv[1] : me.name;
 
-  switch(hunt_server(source_p->from, source_p, ":%s LTRACE :%s", 1, parc, parv))
+  switch (hunt_server(source_p->from, source_p, ":%s LTRACE :%s", 1, parc, parv))
   {
     case HUNTED_PASS: /* note: gets here only if parv[1] exists */
     {
       struct Client *ac2ptr = NULL;
 
-      if((ac2ptr = hash_find_client(tname)) == NULL)
+      if ((ac2ptr = hash_find_client(tname)) == NULL)
         DLINK_FOREACH(ptr, global_client_list.head)
       {
         ac2ptr = ptr->data;
 
-        if(match(tname, ac2ptr->name) || match(ac2ptr->name, tname))
+        if (match(tname, ac2ptr->name) || match(ac2ptr->name, tname))
           break;
         else
           ac2ptr = NULL;
       }
 
-      if(ac2ptr != NULL)
+      if (ac2ptr != NULL)
         sendto_one(source_p, form_str(RPL_TRACELINK), me.name, looking_for,
                    ircd_version, tname, ac2ptr->from->name);
       else
@@ -132,21 +132,21 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
   dow = wilds || doall;
 
   /* lusers cant issue ltrace.. */
-  if(!dow)
+  if (!dow)
   {
     const char *name;
     const char *class_name;
 
     target_p = hash_find_client(tname);
 
-    if(target_p && IsClient(target_p))
+    if (target_p && IsClient(target_p))
     {
       name = get_client_name(target_p, HIDE_IP);
       class_name = get_client_class(target_p);
 
-      if(HasUMode(target_p, UMODE_OPER))
+      if (HasUMode(target_p, UMODE_OPER))
       {
-        if(ConfigFileEntry.hide_spoof_ips)
+        if (ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, source_p->name, class_name, name,
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
@@ -171,13 +171,13 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
   {
     target_p = ptr->data;
 
-    if(!HasUMode(target_p, UMODE_OPER))
+    if (!HasUMode(target_p, UMODE_OPER))
       continue;
 
-    if(!doall && wilds && !match(tname, target_p->name))
+    if (!doall && wilds && !match(tname, target_p->name))
       continue;
 
-    if(!dow && irccmp(tname, target_p->name))
+    if (!dow && irccmp(tname, target_p->name))
       continue;
 
     report_this_status(source_p, target_p, dow);
@@ -188,10 +188,10 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
   {
     target_p = ptr->data;
 
-    if(!doall && wilds && !match(tname, target_p->name))
+    if (!doall && wilds && !match(tname, target_p->name))
       continue;
 
-    if(!dow && irccmp(tname, target_p->name))
+    if (!dow && irccmp(tname, target_p->name))
       continue;
 
     report_this_status(source_p, target_p, dow);
@@ -209,15 +209,15 @@ static void
 mo_ltrace(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  if(!HasUMode(source_p, UMODE_OPER))
+  if (!HasUMode(source_p, UMODE_OPER))
   {
     sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name, parv[0],
                parc > 1 ? parv[1] : me.name);
     return;
   }
 
-  if(parc > 2)
-    if(hunt_server(client_p, source_p, ":%s LTRACE %s :%s", 2, parc, parv))
+  if (parc > 2)
+    if (hunt_server(client_p, source_p, ":%s LTRACE %s :%s", 2, parc, parv))
       return;
 
   do_ltrace(source_p, parc, parv);
@@ -241,7 +241,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
   name = get_client_name(target_p, HIDE_IP);
   class_name = get_client_class(target_p);
 
-  switch(target_p->status)
+  switch (target_p->status)
   {
     case STAT_CONNECTING:
       sendto_one(source_p, form_str(RPL_TRACECONNECTING), me.name,
@@ -256,9 +256,9 @@ report_this_status(struct Client *source_p, struct Client *target_p,
       break;
 
     case STAT_CLIENT:
-      if(HasUMode(target_p, UMODE_ADMIN))
+      if (HasUMode(target_p, UMODE_ADMIN))
       {
-        if(ConfigFileEntry.hide_spoof_ips)
+        if (ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, source_p->name, class_name, name,
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
@@ -272,9 +272,9 @@ report_this_status(struct Client *source_p, struct Client *target_p,
                      CurrentTime - target_p->localClient->lasttime,
                      idle_time_get(source_p, target_p));
       }
-      else if(HasUMode(target_p, UMODE_OPER))
+      else if (HasUMode(target_p, UMODE_OPER))
       {
-        if(ConfigFileEntry.hide_spoof_ips)
+        if (ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, source_p->name, class_name, name,
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
@@ -297,7 +297,7 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 
       trace_get_dependent(&servers, &clients, target_p);
 
-      if(!HasUMode(source_p, UMODE_ADMIN))
+      if (!HasUMode(source_p, UMODE_ADMIN))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),

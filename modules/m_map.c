@@ -62,7 +62,7 @@ dump_map(struct Client *client_p, const struct Client *root_p,
   line_counter++;
 
   /* IsOper isn't called *that* often. */
-  if(HasUMode(client_p, UMODE_OPER))
+  if (HasUMode(client_p, UMODE_OPER))
   {
     l = ircsprintf(pb, "[%s]", root_p->id);
     pb += l;
@@ -73,7 +73,7 @@ dump_map(struct Client *client_p, const struct Client *root_p,
   len++;
   dashes = 46 - len;
 
-  for(i = 0; i < dashes; i++)
+  for (i = 0; i < dashes; i++)
   {
     *pb++ = print_dashes ? '-' : ' ';
   }
@@ -83,22 +83,22 @@ dump_map(struct Client *client_p, const struct Client *root_p,
   sprintf(pb, "%5d [%4.1f%%]", users,
           100 * (float)users / (float)Count.total);
 
-  if(print_dashes)   /* make the leading spaces of the usercount dashes too, if required */
-    while(*(pb + 1) == ' ') *pb++ = '-';
+  if (print_dashes)  /* make the leading spaces of the usercount dashes too, if required */
+    while (*(pb + 1) == ' ') *pb++ = '-';
 
   sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buf);
 
-  if(root_p->serv->server_list.head)
+  if (root_p->serv->server_list.head)
   {
     cnt += dlink_list_length(&root_p->serv->server_list);
 
-    if(cnt)
+    if (cnt)
     {
-      if(pbuf > buf + 3)
+      if (pbuf > buf + 3)
       {
         pbuf[-2] = ' ';
 
-        if(pbuf[-3] == '`')
+        if (pbuf[-3] == '`')
           pbuf[-3] = ' ';
       }
     }
@@ -112,7 +112,7 @@ dump_map(struct Client *client_p, const struct Client *root_p,
 
     *pbuf = ' ';
 
-    if(i < cnt)
+    if (i < cnt)
       *(pbuf + 1) = '|';
     else
       *(pbuf + 1) = '`';
@@ -143,13 +143,13 @@ mo_map(struct Client *client_p, struct Client *source_p,
     conf = ptr->data;
     aconf = (struct AccessItem *)map_to_conf(conf);
 
-    if(aconf->status != CONF_SERVER)
+    if (aconf->status != CONF_SERVER)
       continue;
 
-    if(strcmp(conf->name, me.name) == 0)
+    if (strcmp(conf->name, me.name) == 0)
       continue;
 
-    if(!hash_find_server(conf->name))
+    if (!hash_find_server(conf->name))
     {
       char buffer[IRCD_BUFSIZE];
       ircsprintf(buffer, "** %s (Not Connected)", conf->name);

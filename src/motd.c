@@ -63,26 +63,26 @@ send_message_file(struct Client *source_p, MessageFile *motdToPrint)
   MotdType motdType;
   const char *from, *to;
 
-  if(motdToPrint == NULL)
-    return(-1);
+  if (motdToPrint == NULL)
+    return (-1);
 
   motdType = motdToPrint->motdType;
 
   from = ID_or_name(&me, source_p->from);
   to = ID_or_name(source_p, source_p->from);
 
-  switch(motdType)
+  switch (motdType)
   {
     case USER_MOTD:
-      if(motdToPrint->contentsOfFile == NULL)
+      if (motdToPrint->contentsOfFile == NULL)
         sendto_one(source_p, form_str(ERR_NOMOTD), from, to);
       else
       {
         sendto_one(source_p, form_str(RPL_MOTDSTART),
                    from, to, me.name);
 
-        for(linePointer = motdToPrint->contentsOfFile; linePointer;
-            linePointer = linePointer->next)
+        for (linePointer = motdToPrint->contentsOfFile; linePointer;
+             linePointer = linePointer->next)
         {
           sendto_one(source_p, form_str(RPL_MOTD),
                      from, to, linePointer->line);
@@ -94,10 +94,10 @@ send_message_file(struct Client *source_p, MessageFile *motdToPrint)
       break;
 
     case USER_LINKS:
-      if(motdToPrint->contentsOfFile != NULL)
+      if (motdToPrint->contentsOfFile != NULL)
       {
-        for(linePointer = motdToPrint->contentsOfFile; linePointer;
-            linePointer = linePointer->next)
+        for (linePointer = motdToPrint->contentsOfFile; linePointer;
+             linePointer = linePointer->next)
         {
           sendto_one(source_p, ":%s 364 %s %s", /* XXX */
                      from, to, linePointer->line);
@@ -107,10 +107,10 @@ send_message_file(struct Client *source_p, MessageFile *motdToPrint)
       break;
 
     case ISSUPPORT:
-      if(motdToPrint->contentsOfFile != NULL)
+      if (motdToPrint->contentsOfFile != NULL)
       {
-        for(linePointer = motdToPrint->contentsOfFile; linePointer;
-            linePointer = linePointer->next)
+        for (linePointer = motdToPrint->contentsOfFile; linePointer;
+             linePointer = linePointer->next)
         {
           sendto_one(source_p, form_str(RPL_ISUPPORT),
                      me.name, source_p->name, linePointer->line);
@@ -123,7 +123,7 @@ send_message_file(struct Client *source_p, MessageFile *motdToPrint)
       break;
   }
 
-  return(0);
+  return (0);
 }
 
 /*
@@ -151,7 +151,7 @@ read_message_file(MessageFile *MessageFileptr)
   char *p;
   FILE *file;
 
-  for(mptr = MessageFileptr->contentsOfFile; mptr; mptr = next_mptr)
+  for (mptr = MessageFileptr->contentsOfFile; mptr; mptr = next_mptr)
   {
     next_mptr = mptr->next;
     MyFree(mptr);
@@ -159,12 +159,12 @@ read_message_file(MessageFile *MessageFileptr)
 
   MessageFileptr->contentsOfFile = NULL;
 
-  if(stat(MessageFileptr->fileName, &sb) < 0)
-    return(-1);
+  if (stat(MessageFileptr->fileName, &sb) < 0)
+    return (-1);
 
   local_tm = localtime(&sb.st_mtime);
 
-  if(local_tm)
+  if (local_tm)
     ircsprintf(MessageFileptr->lastChangedDate,
                "%d/%d/%d %d:%02d",
                local_tm->tm_mday,
@@ -173,21 +173,21 @@ read_message_file(MessageFile *MessageFileptr)
                local_tm->tm_hour,
                local_tm->tm_min);
 
-  if((file = fopen(MessageFileptr->fileName, "r")) == NULL)
-    return(-1);
+  if ((file = fopen(MessageFileptr->fileName, "r")) == NULL)
+    return (-1);
 
-  while(fgets(buffer, sizeof(buffer), file))
+  while (fgets(buffer, sizeof(buffer), file))
   {
-    if((p = strchr(buffer, '\n')) != NULL)
+    if ((p = strchr(buffer, '\n')) != NULL)
       * p = '\0';
 
     newMessageLine = (MessageFileLine *)MyMalloc(sizeof(MessageFileLine));
     strlcpy(newMessageLine->line, buffer, sizeof(newMessageLine->line));
     newMessageLine->next = NULL;
 
-    if(MessageFileptr->contentsOfFile != NULL)
+    if (MessageFileptr->contentsOfFile != NULL)
     {
-      if(currentMessageLine)
+      if (currentMessageLine)
         currentMessageLine->next = newMessageLine;
 
       currentMessageLine = newMessageLine;
@@ -200,7 +200,7 @@ read_message_file(MessageFile *MessageFileptr)
   }
 
   fclose(file);
-  return(0);
+  return (0);
 }
 
 /*
@@ -224,7 +224,7 @@ init_MessageLine(void)
   mf->motdType = ISSUPPORT;  /* XXX maybe pass it alone in args? */
   mptr = MyMalloc(sizeof(MessageFileLine));
   mf->contentsOfFile = mptr;
-  return(mf);
+  return (mf);
 }
 
 /*
@@ -244,7 +244,7 @@ addto_MessageLine(MessageFile *mf, const char *str)
   MessageFileLine *mptr = mf->contentsOfFile;
   MessageFileLine *nmptr = NULL;
 
-  if(mptr == NULL)
+  if (mptr == NULL)
   {
     mptr = MyMalloc(sizeof(MessageFileLine));
     strcpy(mptr->line, str);
@@ -252,7 +252,7 @@ addto_MessageLine(MessageFile *mf, const char *str)
   }
   else
   {
-    while(mptr->next != NULL)
+    while (mptr->next != NULL)
       mptr = mptr->next;
 
     nmptr = MyMalloc(sizeof(MessageFileLine));
@@ -275,10 +275,10 @@ destroy_MessageLine(MessageFile *mf)
   MessageFileLine *mptr = mf->contentsOfFile;
   MessageFileLine *nmptr = NULL;
 
-  if(mptr == NULL)
+  if (mptr == NULL)
     return;
 
-  for(mptr = mf->contentsOfFile; mptr != NULL; mptr = nmptr)
+  for (mptr = mf->contentsOfFile; mptr != NULL; mptr = nmptr)
   {
     nmptr = mptr->next;
     MyFree(mptr);

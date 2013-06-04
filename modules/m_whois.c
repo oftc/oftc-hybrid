@@ -57,17 +57,17 @@ m_whois(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if(parc < 2 || EmptyString(parv[1]))
+  if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
                me.name, source_p->name);
     return;
   }
 
-  if(parc > 2 && !EmptyString(parv[2]))
+  if (parc > 2 && !EmptyString(parv[2]))
   {
     /* seeing as this is going across servers, we should limit it */
-    if((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+    if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
     {
       sendto_one(source_p, form_str(RPL_LOAD2HI),
                  me.name, source_p->name);
@@ -80,11 +80,11 @@ m_whois(struct Client *client_p, struct Client *source_p,
      * server, or our server.. I dont see why they would need to ask
      * anything else for info about the client.. --fl_
      */
-    if(ConfigFileEntry.disable_remote)
+    if (ConfigFileEntry.disable_remote)
       parv[1] = parv[2];
 
-    if(hunt_server(client_p, source_p, ":%s WHOIS %s :%s", 1,
-                   parc, parv) != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s WHOIS %s :%s", 1,
+                    parc, parv) != HUNTED_ISME)
       return;
 
     parv[1] = parv[2];
@@ -102,17 +102,17 @@ static void
 mo_whois(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  if(parc < 2 || EmptyString(parv[1]))
+  if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NONICKNAMEGIVEN),
                me.name, source_p->name);
     return;
   }
 
-  if(parc > 2 && !EmptyString(parv[2]))
+  if (parc > 2 && !EmptyString(parv[2]))
   {
-    if(hunt_server(client_p, source_p, ":%s WHOIS %s :%s", 1,
-                   parc, parv) != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s WHOIS %s :%s", 1,
+                    parc, parv) != HUNTED_ISME)
       return;
 
     parv[1] = parv[2];
@@ -140,22 +140,22 @@ do_whois(struct Client *source_p, int parc, char *parv[])
 
   nick = parv[1];
 
-  while(*nick == ',')
+  while (*nick == ',')
     nick++;
 
-  if((p = strchr(nick, ',')) != NULL)
+  if ((p = strchr(nick, ',')) != NULL)
     * p = '\0';
 
-  if(*nick == '\0')
+  if (*nick == '\0')
     return;
 
   collapse(nick);
 
-  if(strpbrk(nick, "?#*") == NULL)
+  if (strpbrk(nick, "?#*") == NULL)
   {
-    if((target_p = hash_find_client(nick)) != NULL)
+    if ((target_p = hash_find_client(nick)) != NULL)
     {
-      if(IsClient(target_p))
+      if (IsClient(target_p))
       {
         whois_person(source_p, target_p);
         found = 1;
@@ -164,9 +164,9 @@ do_whois(struct Client *source_p, int parc, char *parv[])
   }
   else /* wilds is true */
   {
-    if(!HasUMode(source_p, UMODE_OPER))
+    if (!HasUMode(source_p, UMODE_OPER))
     {
-      if((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+      if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
       {
         sendto_one(source_p, form_str(RPL_LOAD2HI),
                    me.name, source_p->name);
@@ -177,13 +177,13 @@ do_whois(struct Client *source_p, int parc, char *parv[])
     }
 
     /* Oh-oh wilds is true so have to do it the hard expensive way */
-    if(MyClient(source_p))
+    if (MyClient(source_p))
       found = global_whois(source_p, nick);
   }
 
-  if(!found)
+  if (!found)
   {
-    if(!IsDigit(*nick))
+    if (!IsDigit(*nick))
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                  me.name, source_p->name, nick);
   }
@@ -211,10 +211,10 @@ global_whois(struct Client *source_p, const char *nick)
   {
     target_p = ptr->data;
 
-    if(!IsClient(target_p))
+    if (!IsClient(target_p))
       continue;
 
-    if(!match(nick, target_p->name))
+    if (!match(nick, target_p->name))
       continue;
 
     assert(target_p->servptr != NULL);
@@ -250,7 +250,7 @@ single_whois(struct Client *source_p, struct Client *target_p)
 {
   dlink_node *ptr = NULL;
 
-  if(!HasUMode(target_p, UMODE_INVISIBLE) || target_p == source_p)
+  if (!HasUMode(target_p, UMODE_INVISIBLE) || target_p == source_p)
   {
     /* always show user if they are visible (no +i) */
     whois_person(source_p, target_p);
@@ -262,7 +262,7 @@ single_whois(struct Client *source_p, struct Client *target_p)
   {
     struct Channel *chptr = ((struct Membership *) ptr->data)->chptr;
 
-    if(IsMember(source_p, chptr))
+    if (IsMember(source_p, chptr))
     {
       whois_person(source_p, target_p);
       return 1;
@@ -300,7 +300,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
              me.name, source_p->name, target_p->name,
              target_p->username, target_p->host, target_p->info);
 
-  if(!HasUMode(target_p, UMODE_SERVICE))
+  if (!HasUMode(target_p, UMODE_SERVICE))
     cur_len = mlen = snprintf(buf, sizeof(buf), form_str(RPL_WHOISCHANNELS),
                               me.name, source_p->name, target_p->name, "");
 
@@ -317,13 +317,13 @@ whois_person(struct Client *source_p, struct Client *target_p)
       ms = lp->data;
       chptr = ms->chptr;
 
-      if(ShowChannel(source_p, chptr) || HasUMode(source_p, UMODE_GOD))
+      if (ShowChannel(source_p, chptr) || HasUMode(source_p, UMODE_GOD))
       {
         /* Don't show local channels if user is doing a remote whois */
-        if(!MyConnect(source_p) && (chptr->chname[0] == '&'))
+        if (!MyConnect(source_p) && (chptr->chname[0] == '&'))
           continue;
 
-        if((cur_len + 3 + strlen(chptr->chname) + 1) > (IRCD_BUFSIZE - 2))
+        if ((cur_len + 3 + strlen(chptr->chname) + 1) > (IRCD_BUFSIZE - 2))
         {
           *(t - 1) = '\0';
           sendto_one(source_p, "%s", buf);
@@ -332,7 +332,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
         }
 
         /* We should tell opers when we display hidden channels */
-        if(!ShowChannel(source_p, chptr))
+        if (!ShowChannel(source_p, chptr))
           tlen = ircsprintf(t, "%s%%%s ", get_member_status(ms, 1), chptr->chname);
         else
           tlen = ircsprintf(t, "%s%s ", get_member_status(ms, 1), chptr->chname);
@@ -343,14 +343,14 @@ whois_person(struct Client *source_p, struct Client *target_p)
       }
     }
 
-    if(reply_to_send)
+    if (reply_to_send)
     {
       *(t - 1) = '\0';
       sendto_one(source_p, "%s", buf);
     }
   }
 
-  if(HasUMode(source_p, UMODE_OPER) || !ConfigServerHide.hide_servers
+  if (HasUMode(source_p, UMODE_OPER) || !ConfigServerHide.hide_servers
       || target_p == source_p)
     sendto_one(source_p, form_str(RPL_WHOISSERVER),
                me.name, source_p->name, target_p->name,
@@ -361,39 +361,39 @@ whois_person(struct Client *source_p, struct Client *target_p)
                ConfigServerHide.hidden_name,
                ServerInfo.network_desc);
 
-  if(HasUMode(target_p, UMODE_REGISTERED))
+  if (HasUMode(target_p, UMODE_REGISTERED))
     sendto_one(source_p, form_str(RPL_WHOISREGNICK),
                me.name, source_p->name, target_p->name);
 
-  if(target_p->away[0])
+  if (target_p->away[0])
     sendto_one(source_p, form_str(RPL_AWAY),
                me.name, source_p->name, target_p->name,
                target_p->away);
 
-  if(HasUMode(target_p, UMODE_CALLERID)
+  if (HasUMode(target_p, UMODE_CALLERID)
       && !HasUMode(target_p, UMODE_SOFTCALLERID))
     sendto_one(source_p, form_str(RPL_TARGUMODEG),
                me.name, source_p->name, target_p->name);
 
-  if(HasUMode(target_p, UMODE_OPER))
-    if(!HasUMode(target_p, UMODE_HIDDEN) || HasUMode(source_p, UMODE_OPER))
+  if (HasUMode(target_p, UMODE_OPER))
+    if (!HasUMode(target_p, UMODE_HIDDEN) || HasUMode(source_p, UMODE_OPER))
       sendto_one(source_p, form_str(HasUMode(target_p, UMODE_ADMIN) ? RPL_WHOISADMIN :
                                     RPL_WHOISOPERATOR),
                  me.name, source_p->name, target_p->name);
 
-  if(HasUMode(source_p, UMODE_OPER) && target_p->realhost[0] != '\0')
+  if (HasUMode(source_p, UMODE_OPER) && target_p->realhost[0] != '\0')
     sendto_one(source_p, form_str(RPL_WHOISREAL), me.name, source_p->name,
                target_p->name, target_p->realhost);
 
-  if(HasUMode(target_p, UMODE_SERVICE))
+  if (HasUMode(target_p, UMODE_SERVICE))
     sendto_one(source_p, form_str(RPL_WHOISSERVICE), me.name, source_p->name,
                target_p->name);
 
-  if(target_p->sockhost[0] && strcmp(target_p->sockhost, "0"))
+  if (target_p->sockhost[0] && strcmp(target_p->sockhost, "0"))
   {
-    if(HasUMode(source_p, UMODE_ADMIN) || source_p == target_p)
+    if (HasUMode(source_p, UMODE_ADMIN) || source_p == target_p)
       show_ip = 1;
-    else if(IsIPSpoof(target_p))
+    else if (IsIPSpoof(target_p))
       show_ip = (HasUMode(source_p, UMODE_OPER) && !ConfigFileEntry.hide_spoof_ips);
     else
       show_ip = 1;
@@ -403,16 +403,16 @@ whois_person(struct Client *source_p, struct Client *target_p)
                show_ip ? target_p->sockhost : "255.255.255.255");
   }
 
-  if(MyConnect(target_p))  /* Can't do any of this if not local! db */
+  if (MyConnect(target_p)) /* Can't do any of this if not local! db */
   {
 #ifdef HAVE_LIBCRYPTO
 
-    if(target_p->localClient->fd.ssl)
+    if (target_p->localClient->fd.ssl)
     {
       sendto_one(source_p, form_str(RPL_WHOISSECURE),
                  me.name, source_p->name, target_p->name);
 
-      if((target_p == source_p || HasUMode(source_p, UMODE_OPER)) &&
+      if ((target_p == source_p || HasUMode(source_p, UMODE_OPER)) &&
           !EmptyString(target_p->certfp))
       {
         sendto_one(source_p, form_str(RPL_WHOISCERTFP),
@@ -426,8 +426,8 @@ whois_person(struct Client *source_p, struct Client *target_p)
                idle_time_get(source_p, target_p),
                target_p->localClient->firsttime);
 
-    if(HasUMode(target_p, UMODE_OPER) && target_p != source_p)
-      if(HasUMode(target_p, UMODE_SPY))
+    if (HasUMode(target_p, UMODE_OPER) && target_p != source_p)
+      if (HasUMode(target_p, UMODE_SPY))
         sendto_one(target_p, ":%s NOTICE %s :*** Notice -- %s (%s@%s) [%s] is doing "
                    "a whois on you", me.name, target_p->name, source_p->name,
                    source_p->username, source_p->host, source_p->servptr->name);

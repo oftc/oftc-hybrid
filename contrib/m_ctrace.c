@@ -49,7 +49,7 @@ static void
 mo_ctrace(struct Client *client_p, struct Client *source_p,
           int parc, char *parv[])
 {
-  if(EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "CTRACE");
@@ -81,7 +81,7 @@ do_ctrace(struct Client *source_p, int parc, char *parv[])
 
     class_name = get_client_class(target_p);
 
-    if((class_name != NULL) && match(class_looking_for, class_name))
+    if ((class_name != NULL) && match(class_looking_for, class_name))
       report_this_status(source_p, target_p);
   }
 
@@ -106,23 +106,23 @@ report_this_status(struct Client *source_p, struct Client *target_p)
   name = get_client_name(target_p, HIDE_IP);
   class_name = get_client_class(target_p);
 
-  switch(target_p->status)
+  switch (target_p->status)
   {
     case STAT_CLIENT:
 
-      if((HasUMode(source_p, UMODE_OPER) &&
-          (MyClient(source_p) || !HasUMode(target_p, UMODE_INVISIBLE)))
+      if ((HasUMode(source_p, UMODE_OPER) &&
+           (MyClient(source_p) || !HasUMode(target_p, UMODE_INVISIBLE)))
           || HasUMode(target_p, UMODE_OPER))
       {
-        if(HasUMode(target_p, UMODE_ADMIN) && !ConfigFileEntry.hide_spoof_ips)
+        if (HasUMode(target_p, UMODE_ADMIN) && !ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                      me.name, source_p->name, class_name, name,
                      HasUMode(source_p, UMODE_ADMIN) ? target_p->sockhost : "255.255.255.255",
                      CurrentTime - target_p->localClient->lasttime,
                      idle_time_get(source_p, target_p));
-        else if(HasUMode(target_p, UMODE_OPER))
+        else if (HasUMode(target_p, UMODE_OPER))
         {
-          if(ConfigFileEntry.hide_spoof_ips)
+          if (ConfigFileEntry.hide_spoof_ips)
             sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                        me.name, source_p->name, class_name, name,
                        IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
@@ -137,7 +137,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
         }
         else
         {
-          if(ConfigFileEntry.hide_spoof_ips)
+          if (ConfigFileEntry.hide_spoof_ips)
             sendto_one(source_p, form_str(RPL_TRACEUSER),
                        me.name, source_p->name, class_name, name,
                        IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
@@ -155,7 +155,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
       break;
 
     case STAT_SERVER:
-      if(!HasUMode(source_p, UMODE_ADMIN))
+      if (!HasUMode(source_p, UMODE_ADMIN))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),

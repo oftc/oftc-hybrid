@@ -55,10 +55,10 @@ m_userhost(struct Client *client_p, struct Client *source_p,
                      source_p->name, "");
   t = buf + cur_len;
 
-  for(nick = strtoken(&p, parv[1], " "); nick && i++ < 5;
-      nick = strtoken(&p,    NULL, " "))
+  for (nick = strtoken(&p, parv[1], " "); nick && i++ < 5;
+       nick = strtoken(&p,    NULL, " "))
   {
-    if((target_p = find_person(client_p, nick)) != NULL)
+    if ((target_p = find_person(client_p, nick)) != NULL)
     {
       /*
        * Show real IP for USERHOST on yourself.
@@ -66,7 +66,7 @@ m_userhost(struct Client *client_p, struct Client *source_p,
        * lookup (USERHOST) to figure out what the clients' local IP
        * is.  Useful for things like NAT, and dynamic dial-up users.
        */
-      if(MyClient(target_p) && (target_p == source_p))
+      if (MyClient(target_p) && (target_p == source_p))
       {
         rl = ircsprintf(response, "%s%s=%c%s@%s ",
                         target_p->name,
@@ -86,7 +86,7 @@ m_userhost(struct Client *client_p, struct Client *source_p,
                         target_p->host);
       }
 
-      if((rl + cur_len) < (IRCD_BUFSIZE - 10))
+      if ((rl + cur_len) < (IRCD_BUFSIZE - 10))
       {
         ircsprintf(t, "%s", response);
         t += rl;

@@ -44,7 +44,7 @@ do_links(struct Client *source_p, int parc, char *parv[])
                        source_p->username, source_p->host,
                        source_p->servptr->name);
 
-  if(HasUMode(source_p, UMODE_OPER) || !ConfigServerHide.flatten_links)
+  if (HasUMode(source_p, UMODE_OPER) || !ConfigServerHide.flatten_links)
   {
     const char *mask = (parc > 2 ? parv[2] : parv[1]);
     const char *me_name, *nick, *p;
@@ -58,12 +58,12 @@ do_links(struct Client *source_p, int parc, char *parv[])
     {
       target_p = ptr->data;
 
-      if(!EmptyString(mask) && !match(mask, target_p->name))
+      if (!EmptyString(mask) && !match(mask, target_p->name))
         continue;
 
-      if(target_p->info[0])
+      if (target_p->info[0])
       {
-        if((p = strchr(target_p->info, ']')))
+        if ((p = strchr(target_p->info, ']')))
           p += 2; /* skip the nasty [IP] part */
         else
           p = target_p->info;
@@ -105,10 +105,10 @@ static void
 mo_links(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  if(parc > 2)
-    if(!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER))
-      if(hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1,
-                     parc, parv) != HUNTED_ISME)
+  if (parc > 2)
+    if (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER))
+      if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1,
+                      parc, parv) != HUNTED_ISME)
         return;
 
   do_links(source_p, parc, parv);
@@ -129,7 +129,7 @@ m_links(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, source_p->name);
@@ -138,7 +138,7 @@ m_links(struct Client *client_p, struct Client *source_p,
 
   last_used = CurrentTime;
 
-  if(!ConfigServerHide.flatten_links)
+  if (!ConfigServerHide.flatten_links)
   {
     mo_links(client_p, source_p, parc, parv);
     return;
@@ -160,11 +160,11 @@ static void
 ms_links(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  if(hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1,
-                 parc, parv) != HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1,
+                  parc, parv) != HUNTED_ISME)
     return;
 
-  if(IsClient(source_p))
+  if (IsClient(source_p))
     m_links(client_p, source_p, parc, parv);
 }
 

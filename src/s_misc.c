@@ -59,7 +59,7 @@ date(time_t lclock)
   struct tm gmbuf;
   int minswest;
 
-  if(!lclock)
+  if (!lclock)
     lclock = CurrentTime;
 
   gm = gmtime(&lclock);
@@ -73,9 +73,9 @@ date(time_t lclock)
    */
   minswest = (gm->tm_hour - lt->tm_hour) * 60 + (gm->tm_min - lt->tm_min);
 
-  if(lt->tm_yday != gm->tm_yday)
+  if (lt->tm_yday != gm->tm_yday)
   {
-    if((lt->tm_yday > gm->tm_yday && lt->tm_year == gm->tm_year) ||
+    if ((lt->tm_yday > gm->tm_yday && lt->tm_year == gm->tm_year) ||
         (lt->tm_yday < gm->tm_yday && lt->tm_year != gm->tm_year))
       minswest -= 24 * 60;
     else
@@ -84,7 +84,7 @@ date(time_t lclock)
 
   plus = (minswest > 0) ? '-' : '+';
 
-  if(minswest < 0)
+  if (minswest < 0)
     minswest = -minswest;
 
   snprintf(buf, sizeof(buf), "%s %s %d %d -- %02u:%02u:%02u %c%02u:%02u",
@@ -101,7 +101,7 @@ smalldate(time_t lclock)
   struct tm *lt, *gm;
   struct tm gmbuf;
 
-  if(!lclock)
+  if (!lclock)
     lclock = CurrentTime;
 
   gm = gmtime(&lclock);
@@ -181,7 +181,7 @@ base16_encode(char *dest, size_t destlen, const char *src, size_t srclen)
   cp = dest;
   end = src + srclen;
 
-  while(src < end)
+  while (src < end)
   {
     *cp++ = "0123456789ABCDEF"[(*(const uint8_t *)src) >> 4 ];
     *cp++ = "0123456789ABCDEF"[(*(const uint8_t *)src) & 0xf ];
@@ -195,7 +195,7 @@ base16_encode(char *dest, size_t destlen, const char *src, size_t srclen)
 static int
 hex_decode_digit(char c)
 {
-  switch(c)
+  switch (c)
   {
     case '0':
       return 0;
@@ -266,20 +266,20 @@ base16_decode(char *dest, size_t destlen, const char *src, size_t srclen)
 
   int v1, v2;
 
-  if((srclen % 2) != 0)
+  if ((srclen % 2) != 0)
     return -1;
 
-  if(destlen < srclen / 2 || destlen > SIZE_T_CEILING)
+  if (destlen < srclen / 2 || destlen > SIZE_T_CEILING)
     return -1;
 
   end = src + srclen;
 
-  while(src < end)
+  while (src < end)
   {
     v1 = hex_decode_digit(*src);
     v2 = hex_decode_digit(*(src + 1));
 
-    if(v1 < 0 || v2 < 0)
+    if (v1 < 0 || v2 < 0)
       return -1;
 
     *(uint8_t *)dest = (v1 << 4) | v2;

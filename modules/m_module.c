@@ -63,30 +63,30 @@ mo_module(struct Client *client_p, struct Client *source_p,
   struct module *modp = NULL;
   int check_core;
 
-  if(!HasOFlag(source_p, OPER_FLAG_MODULE))
+  if (!HasOFlag(source_p, OPER_FLAG_MODULE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
     return;
   }
 
-  if(EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "MODULE");
     return;
   }
 
-  if(!irccmp(parv[1], "LOAD"))
+  if (!irccmp(parv[1], "LOAD"))
   {
-    if(EmptyString(parv[2]))
+    if (EmptyString(parv[2]))
     {
       sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                  me.name, source_p->name, "MODULE");
       return;
     }
 
-    if(findmodule_byname((m_bn = basename(parv[2]))) != NULL)
+    if (findmodule_byname((m_bn = basename(parv[2]))) != NULL)
     {
       sendto_one(source_p, ":%s NOTICE %s :Module %s is already loaded",
                  me.name, source_p->name, m_bn);
@@ -97,23 +97,23 @@ mo_module(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if(!irccmp(parv[1], "UNLOAD"))
+  if (!irccmp(parv[1], "UNLOAD"))
   {
-    if(EmptyString(parv[2]))
+    if (EmptyString(parv[2]))
     {
       sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                  me.name, source_p->name, "MODULE");
       return;
     }
 
-    if((modp = findmodule_byname((m_bn = basename(parv[2])))) == NULL)
+    if ((modp = findmodule_byname((m_bn = basename(parv[2])))) == NULL)
     {
       sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
                  me.name, source_p->name, m_bn);
       return;
     }
 
-    if(modp->flags & MODULE_FLAG_CORE)
+    if (modp->flags & MODULE_FLAG_CORE)
     {
       sendto_one(source_p,
                  ":%s NOTICE %s :Module %s is a core module and may not be unloaded",
@@ -121,7 +121,7 @@ mo_module(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    if(modp->flags & MODULE_FLAG_NOUNLOAD)
+    if (modp->flags & MODULE_FLAG_NOUNLOAD)
     {
       sendto_one(source_p,
                  ":%s NOTICE %s :Module %s is a resident module and may not be unloaded",
@@ -129,23 +129,23 @@ mo_module(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    if(unload_one_module(m_bn, 1) == -1)
+    if (unload_one_module(m_bn, 1) == -1)
       sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
                  me.name, source_p->name, m_bn);
 
     return;
   }
 
-  if(!irccmp(parv[1], "RELOAD"))
+  if (!irccmp(parv[1], "RELOAD"))
   {
-    if(EmptyString(parv[2]))
+    if (EmptyString(parv[2]))
     {
       sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                  me.name, source_p->name, "MODULE");
       return;
     }
 
-    if(!strcmp(parv[2], "*"))
+    if (!strcmp(parv[2], "*"))
     {
       unsigned int modnum = 0;
       dlink_node *ptr = NULL, *ptr_next = NULL;
@@ -159,7 +159,7 @@ mo_module(struct Client *client_p, struct Client *source_p,
       {
         modp = ptr->data;
 
-        if(!(modp->flags & MODULE_FLAG_NOUNLOAD))
+        if (!(modp->flags & MODULE_FLAG_NOUNLOAD))
           unload_one_module(modp->name, 0);
       }
 
@@ -175,14 +175,14 @@ mo_module(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    if((modp = findmodule_byname((m_bn = basename(parv[2])))) == NULL)
+    if ((modp = findmodule_byname((m_bn = basename(parv[2])))) == NULL)
     {
       sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
                  me.name, source_p->name, m_bn);
       return;
     }
 
-    if(modp->flags & MODULE_FLAG_NOUNLOAD)
+    if (modp->flags & MODULE_FLAG_NOUNLOAD)
     {
       sendto_one(source_p,
                  ":%s NOTICE %s :Module %s is a resident module and may not be unloaded",
@@ -192,14 +192,14 @@ mo_module(struct Client *client_p, struct Client *source_p,
 
     check_core = (modp->flags & MODULE_FLAG_CORE) != 0;
 
-    if(unload_one_module(m_bn, 1) == -1)
+    if (unload_one_module(m_bn, 1) == -1)
     {
       sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
                  me.name, source_p->name, m_bn);
       return;
     }
 
-    if((load_one_module(parv[2]) == -1) && check_core)
+    if ((load_one_module(parv[2]) == -1) && check_core)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL, "Error reloading core "
                            "module: %s: terminating ircd", parv[2]);
@@ -210,7 +210,7 @@ mo_module(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if(!irccmp(parv[1], "LIST"))
+  if (!irccmp(parv[1], "LIST"))
   {
     const dlink_node *ptr = NULL;
 
@@ -218,7 +218,7 @@ mo_module(struct Client *client_p, struct Client *source_p,
     {
       modp = ptr->data;
 
-      if(parc > 2 && !match(parv[2], modp->name))
+      if (parc > 2 && !match(parv[2], modp->name))
         continue;
 
       sendto_one(source_p, form_str(RPL_MODLIST), me.name, source_p->name,

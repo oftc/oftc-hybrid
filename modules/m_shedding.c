@@ -68,7 +68,7 @@ static void
 mo_shedding(struct Client *client_p, struct Client *source_p,
             int parc, char **parv)
 {
-  if(irccmp(parv[1], "OFF") == 0)
+  if (irccmp(parv[1], "OFF") == 0)
   {
     eventDelete(user_shedding_main, NULL);
     eventDelete(user_shedding_shed, NULL);
@@ -83,17 +83,17 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
   rate = 60;
   operstoo = 0;
 
-  if(parc < 2)
+  if (parc < 2)
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "SHEDDING");
     return;
   }
 
-  if(parc > 2)
+  if (parc > 2)
     rate = atoi(parv[1]);
 
-  if(parc > 3)
+  if (parc > 3)
     operstoo = !!atoi(parv[2]);
 
   sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -101,7 +101,7 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
                        source_p->name, parv[parc - 1], rate, operstoo ? "Yes" : "No");
 
   /* Set a minimum because we need to do a bit of variance */
-  if(rate < SHED_RATE_MIN)
+  if (rate < SHED_RATE_MIN)
     rate = SHED_RATE_MIN;
 
   rate -= (rate / 5);
@@ -130,10 +130,10 @@ void user_shedding_shed(void *unused)
   {
     client_p = ptr->data;
 
-    if(!MyClient(client_p))  /* It could be servers */
+    if (!MyClient(client_p)) /* It could be servers */
       continue;
 
-    if(HasUMode(client_p, UMODE_OPER) && !operstoo)
+    if (HasUMode(client_p, UMODE_OPER) && !operstoo)
       continue;
 
     exit_client(client_p, &me, "Server closed connection");

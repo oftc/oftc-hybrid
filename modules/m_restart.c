@@ -136,7 +136,7 @@ make_dummy(int transfd)
 static void
 write_dbuf(int transfd, struct dbuf_queue *dbuf)
 {
-  while(dbuf_length(dbuf) > 0)
+  while (dbuf_length(dbuf) > 0)
   {
     struct dbuf_block *first = dbuf->blocks.head->data;
 
@@ -161,10 +161,10 @@ introduce_socket(int transfd, struct Client *client_p)
   struct SocketInfo si;
   const char *capabs = "";
 
-  if(!CanForward(client_p) || client_p->localClient->fd.fd == transfd)
+  if (!CanForward(client_p) || client_p->localClient->fd.fd == transfd)
     return;
 
-  if(IsServer(client_p))
+  if (IsServer(client_p))
     capabs = show_capabilities(client_p);
 
   si.fd = client_p->localClient->fd.fd;
@@ -180,10 +180,10 @@ introduce_socket(int transfd, struct Client *client_p)
   write(transfd, &si, sizeof(si));
   write(transfd, client_p->name, si.namelen);
 
-  if(si.pwdlen > 0)
+  if (si.pwdlen > 0)
     write(transfd, client_p->localClient->passwd, si.pwdlen);
 
-  if(si.caplen > 0)
+  if (si.caplen > 0)
     write(transfd, capabs, si.caplen);
 
   write_dbuf(transfd, &client_p->localClient->buf_recvq);
@@ -208,13 +208,13 @@ do_shutdown(const char *msg, int rboot)
   int transfd[2];
   char buf[24];
 
-  if(!rboot || socketpair(AF_UNIX, SOCK_STREAM, 0, transfd) < 0)
+  if (!rboot || socketpair(AF_UNIX, SOCK_STREAM, 0, transfd) < 0)
   {
     server_die(buf, true);
     return;
   }
 
-  if(EmptyString(msg))
+  if (EmptyString(msg))
   {
     ilog(LOG_TYPE_IRCD, "Server Soft-Rebooting");
     sendto_realops_flags(UMODE_ALL, L_ALL, "Server Soft-Rebooting");
@@ -235,11 +235,11 @@ do_shutdown(const char *msg, int rboot)
   {
     client_p = ptr->data;
 
-    if(CanForward(client_p))
+    if (CanForward(client_p))
     {
       fcntl(client_p->localClient->fd.fd, F_SETFD, 0);
 
-      if(client_p->localClient->list_task != NULL)
+      if (client_p->localClient->list_task != NULL)
         sendto_one(client_p, form_str(RPL_LISTEND), me.name, client_p->name);
     }
   }
@@ -248,7 +248,7 @@ do_shutdown(const char *msg, int rboot)
   {
     client_p = ptr->data;
 
-    if(CanForward(client_p))
+    if (CanForward(client_p))
       fcntl(client_p->localClient->fd.fd, F_SETFD, 0);
   }
 
@@ -258,7 +258,7 @@ do_shutdown(const char *msg, int rboot)
   //
   // Start the new ircd.
   //
-  switch(fork())
+  switch (fork())
   {
     case -1:
       ilog(LOG_TYPE_IRCD, "Unable to fork(): %s", strerror(errno));
@@ -272,11 +272,11 @@ do_shutdown(const char *msg, int rboot)
       close(transfd[1]);
       snprintf(buf, sizeof(buf), "softboot_%d", transfd[0]);
 
-      for(i = 0; myargv[i] != NULL; i++);
+      for (i = 0; myargv[i] != NULL; i++);
 
       argv = MyMalloc((i + 2) * sizeof(char *));
 
-      for(i = 0; myargv[i] != NULL; i++)
+      for (i = 0; myargv[i] != NULL; i++)
         argv[i] = myargv[i];
 
       argv[i++] = buf;
@@ -323,21 +323,21 @@ mo_restart(struct Client *client_p, struct Client *source_p,
 {
   char buf[IRCD_BUFSIZE];
 
-  if(!HasOFlag(source_p, OPER_FLAG_RESTART))
+  if (!HasOFlag(source_p, OPER_FLAG_RESTART))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "restart");
     return;
   }
 
-  if(EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, ":%s NOTICE %s :Need server name /restart %s",
                me.name, source_p->name, me.name);
     return;
   }
 
-  if(irccmp(parv[1], me.name))
+  if (irccmp(parv[1], me.name))
   {
     sendto_one(source_p, ":%s NOTICE %s :Mismatch on /restart %s",
                me.name, source_p->name, me.name);

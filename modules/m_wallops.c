@@ -45,7 +45,7 @@ mo_wallops(struct Client *client_p, struct Client *source_p,
 {
   const char *message = parv[1];
 
-  if(EmptyString(message))
+  if (EmptyString(message))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "WALLOPS");
@@ -70,10 +70,10 @@ ms_wallops(struct Client *client_p, struct Client *source_p,
 {
   const char *message = parv[1];
 
-  if(EmptyString(message))
+  if (EmptyString(message))
     return;
 
-  if(IsClient(source_p))
+  if (IsClient(source_p))
     sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message);
   else
     sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message);

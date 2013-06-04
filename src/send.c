@@ -74,7 +74,7 @@ send_format(char *lsendbuf, int bufsize, const char *pattern, va_list args)
    */
   len = vsnprintf(lsendbuf, bufsize - 1, pattern, args);
 
-  if(len > bufsize - 2)
+  if (len > bufsize - 2)
     len = bufsize - 2;  /* required by some versions of vsnprintf */
 
   lsendbuf[len++] = '\r';
@@ -107,16 +107,16 @@ send_message(struct Client *to, char *buf, int len)
   assert(!IsMe(to));
   assert(to != &me);
 
-  if(dbuf_length(&to->localClient->buf_sendq) + len > get_sendq(to))
+  if (dbuf_length(&to->localClient->buf_sendq) + len > get_sendq(to))
   {
-    if(IsServer(to))
+    if (IsServer(to))
       sendto_realops_flags(UMODE_ALL, L_ALL,
                            "Max SendQ limit exceeded for %s: %lu > %u",
                            get_client_name(to, SHOW_IP),
                            (unsigned long)(dbuf_length(&to->localClient->buf_sendq) + len),
                            get_sendq(to));
 
-    if(IsClient(to))
+    if (IsClient(to))
       SetSendQExceeded(to);
 
     dead_link_on_write(to, 0);
@@ -133,7 +133,7 @@ send_message(struct Client *to, char *buf, int len)
   ++to->localClient->send.messages;
   ++me.localClient->send.messages;
 
-  if(dbuf_length(&to->localClient->buf_sendq) >
+  if (dbuf_length(&to->localClient->buf_sendq) >
       (IsServer(to) ? (unsigned int) 1024 : (unsigned int) 4096))
     send_queued_write(to);
 }
@@ -153,7 +153,7 @@ static void
 send_message_remote(struct Client *to, struct Client *from,
                     char *buf, int len)
 {
-  if(!MyConnect(to))
+  if (!MyConnect(to))
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "server send message to %s [%s] dropped from %s(Not local server)",
@@ -164,9 +164,9 @@ send_message_remote(struct Client *to, struct Client *from,
   /* Optimize by checking if (from && to) before everything */
   /* we set to->from up there.. */
 
-  if(!MyClient(from) && IsClient(to) && (to == from->from))
+  if (!MyClient(from) && IsClient(to) && (to == from->from))
   {
-    if(IsServer(from))
+    if (IsServer(from))
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
                            "Send message to %s [%s] dropped from %s(Fake Dir)",
@@ -191,7 +191,7 @@ send_message_remote(struct Client *to, struct Client *from,
 
     AddFlag(to, FLAGS_KILLED);
 
-    if(IsClient(from))
+    if (IsClient(from))
       sendto_one(from, form_str(ERR_GHOSTEDCLIENT),
                  me.name, from->name, to->name, to->username,
                  to->host, to->from);
@@ -216,7 +216,7 @@ sendq_unblocked(fde_t *fd, struct Client *client_p)
 
 #ifdef HAVE_LIBCRYPTO
 
-  if(fd->flags.pending_read)
+  if (fd->flags.pending_read)
   {
     fd->flags.pending_read = 0;
     read_packet(fd, client_p);
@@ -241,12 +241,12 @@ send_queued_write(struct Client *to)
    ** Once socket is marked dead, we cannot start writing to it,
    ** even if the error is removed...
    */
-  if(IsDead(to) || IsSendqBlocked(to))
+  if (IsDead(to) || IsSendqBlocked(to))
     return;  /* no use calling send() now */
 
   /* Next, lets try to write some data */
 
-  if(dbuf_length(&to->localClient->buf_sendq))
+  if (dbuf_length(&to->localClient->buf_sendq))
   {
     do
     {
@@ -254,13 +254,13 @@ send_queued_write(struct Client *to)
 
 #ifdef HAVE_LIBCRYPTO
 
-      if(to->localClient->fd.ssl)
+      if (to->localClient->fd.ssl)
       {
         retlen = SSL_write(to->localClient->fd.ssl, first->data, first->size);
 
         /* translate openssl error codes, sigh */
-        if(retlen < 0)
-          switch(SSL_get_error(to->localClient->fd.ssl, retlen))
+        if (retlen < 0)
+          switch (SSL_get_error(to->localClient->fd.ssl, retlen))
           {
             case SSL_ERROR_WANT_READ:
               return;  /* retry later, don't register for write events */
@@ -272,7 +272,7 @@ send_queued_write(struct Client *to)
               break;
 
             case SSL_ERROR_SSL:
-              if(errno == EAGAIN)
+              if (errno == EAGAIN)
                 break;
 
             default:
@@ -283,7 +283,7 @@ send_queued_write(struct Client *to)
 #endif
         retlen = send(to->localClient->fd.fd, first->data, first->size, 0);
 
-      if(retlen <= 0)
+      if (retlen <= 0)
         break;
 
       dbuf_delete(&to->localClient->buf_sendq, retlen);
@@ -292,16 +292,16 @@ send_queued_write(struct Client *to)
       to->localClient->send.bytes += retlen;
       me.localClient->send.bytes += retlen;
     }
-    while(dbuf_length(&to->localClient->buf_sendq));
+    while (dbuf_length(&to->localClient->buf_sendq));
 
-    if((retlen < 0) && (ignoreErrno(errno)))
+    if ((retlen < 0) && (ignoreErrno(errno)))
     {
       /* we have a non-fatal error, reschedule a write */
       SetSendqBlocked(to);
       comm_setselect(&to->localClient->fd, COMM_SELECT_WRITE,
                      (PF *)sendq_unblocked, (void *)to, 0);
     }
-    else if(retlen <= 0)
+    else if (retlen <= 0)
     {
       dead_link_on_write(to, errno);
       return;
@@ -360,10 +360,10 @@ sendto_one(struct Client *to, const char *pattern, ...)
   char buffer[IRCD_BUFSIZE];
   int len;
 
-  if(to->from != NULL)
+  if (to->from != NULL)
     to = to->from;
 
-  if(IsDead(to))
+  if (IsDead(to))
     return; /* This socket has already been marked as dead */
 
   va_start(args, pattern);
@@ -396,7 +396,7 @@ sendto_channel_butone(struct Client *one, struct Client *from,
   int local_len, remote_len, uid_len;
   dlink_node *ptr = NULL, *ptr_next = NULL;
 
-  if(IsServer(from))
+  if (IsServer(from))
     local_len = ircsprintf(local_buf, ":%s ",
                            from->name);
   else
@@ -430,16 +430,16 @@ sendto_channel_butone(struct Client *one, struct Client *from,
 
     assert(IsClient(target_p));
 
-    if(IsDefunct(target_p) || HasUMode(target_p, UMODE_DEAF)
+    if (IsDefunct(target_p) || HasUMode(target_p, UMODE_DEAF)
         || target_p->from == one)
       continue;
 
-    if(type != 0 && (ms->flags & type) == 0)
+    if (type != 0 && (ms->flags & type) == 0)
       continue;
 
-    if(MyConnect(target_p))
+    if (MyConnect(target_p))
     {
-      if(target_p->localClient->serial != current_serial)
+      if (target_p->localClient->serial != current_serial)
       {
         send_message(target_p, local_buf, local_len);
         target_p->localClient->serial = current_serial;
@@ -450,9 +450,9 @@ sendto_channel_butone(struct Client *one, struct Client *from,
       /* Now check whether a message has been sent to this
        * remote link already
        */
-      if(target_p->from->localClient->serial != current_serial)
+      if (target_p->from->localClient->serial != current_serial)
       {
-        if(IsCapable(target_p->from, CAP_TS6))
+        if (IsCapable(target_p->from, CAP_TS6))
           send_message_remote(target_p->from, from, uid_buf, uid_len);
         else
           send_message_remote(target_p->from, from, remote_buf, remote_len);
@@ -501,19 +501,19 @@ sendto_server(struct Client *one,
     struct Client *client_p = ptr->data;
 
     /* If dead already skip */
-    if(IsDead(client_p))
+    if (IsDead(client_p))
       continue;
 
     /* check against 'one' */
-    if(one != NULL && (client_p == one->from))
+    if (one != NULL && (client_p == one->from))
       continue;
 
     /* check we have required capabs */
-    if((client_p->localClient->caps & caps) != caps)
+    if ((client_p->localClient->caps & caps) != caps)
       continue;
 
     /* check we don't have any forbidden capabs */
-    if((client_p->localClient->caps & nocaps) != 0)
+    if ((client_p->localClient->caps & nocaps) != 0)
       continue;
 
     send_message(client_p, buffer, len);
@@ -559,7 +559,7 @@ sendto_common_channels_local(struct Client *user, int touser,
       target_p = ms->client_p;
       assert(target_p != NULL);
 
-      if(!MyConnect(target_p) || target_p == user || IsDefunct(target_p) ||
+      if (!MyConnect(target_p) || target_p == user || IsDefunct(target_p) ||
           target_p->localClient->serial == current_serial)
         continue;
 
@@ -568,7 +568,7 @@ sendto_common_channels_local(struct Client *user, int touser,
     }
   }
 
-  if(touser && MyConnect(user) && !IsDead(user) &&
+  if (touser && MyConnect(user) && !IsDead(user) &&
       user->localClient->serial != current_serial)
     send_message(user, buffer, len);
 }
@@ -603,10 +603,10 @@ sendto_channel_local(int type, int nodeaf, struct Channel *chptr,
     ms = ptr->data;
     target_p = ms->client_p;
 
-    if(type != 0 && (ms->flags & type) == 0)
+    if (type != 0 && (ms->flags & type) == 0)
       continue;
 
-    if(!MyConnect(target_p) || IsDefunct(target_p) ||
+    if (!MyConnect(target_p) || IsDefunct(target_p) ||
         (nodeaf && HasUMode(target_p, UMODE_DEAF)))
       continue;
 
@@ -646,10 +646,10 @@ sendto_channel_local_butone(struct Client *one, int type,
     ms = ptr->data;
     target_p = ms->client_p;
 
-    if(type != 0 && (ms->flags & type) == 0)
+    if (type != 0 && (ms->flags & type) == 0)
       continue;
 
-    if(!MyConnect(target_p) || target_p == one ||
+    if (!MyConnect(target_p) || target_p == one ||
         IsDefunct(target_p) || HasUMode(target_p, UMODE_DEAF))
       continue;
 
@@ -692,20 +692,20 @@ sendto_channel_remote(struct Client *one, struct Client *from, int type,
     ms = ptr->data;
     target_p = ms->client_p;
 
-    if(type != 0 && (ms->flags & type) == 0)
+    if (type != 0 && (ms->flags & type) == 0)
       continue;
 
-    if(MyConnect(target_p))
+    if (MyConnect(target_p))
       continue;
 
     target_p = target_p->from;
 
-    if(target_p == one->from ||
+    if (target_p == one->from ||
         ((target_p->from->localClient->caps & caps) != caps) ||
         ((target_p->from->localClient->caps & nocaps) != 0))
       continue;
 
-    if(target_p->from->localClient->serial != current_serial)
+    if (target_p->from->localClient->serial != current_serial)
     {
       send_message(target_p, buffer, len);
       target_p->from->localClient->serial = current_serial;
@@ -733,7 +733,7 @@ sendto_channel_remote(struct Client *one, struct Client *from, int type,
 static int
 match_it(const struct Client *one, const char *mask, int what)
 {
-  if(what == MATCH_HOST)
+  if (what == MATCH_HOST)
     return match(mask, one->host);
 
   return match(mask, one->servptr->name);
@@ -772,7 +772,7 @@ sendto_match_butone(struct Client *one, struct Client *from, char *mask,
   {
     client_p = ptr->data;
 
-    if(client_p != one && !IsDefunct(client_p) &&
+    if (client_p != one && !IsDefunct(client_p) &&
         match_it(client_p, mask, what))
       send_message(client_p, local_buf, local_len);
   }
@@ -806,7 +806,7 @@ sendto_match_butone(struct Client *one, struct Client *from, char *mask,
      * server deal with it.
      * -wnder
      */
-    if(client_p != one && !IsDefunct(client_p))
+    if (client_p != one && !IsDefunct(client_p))
       send_message_remote(client_p, from, remote_buf, remote_len);
   }
 }
@@ -841,13 +841,13 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap,
     target_p = ptr->data;
 
     /* Do not attempt to send to ourselves, or the source */
-    if(IsMe(target_p) || target_p->from == source_p->from)
+    if (IsMe(target_p) || target_p->from == source_p->from)
       continue;
 
-    if(target_p->from->localClient->serial == current_serial)
+    if (target_p->from->localClient->serial == current_serial)
       continue;
 
-    if(match(mask, target_p->name))
+    if (match(mask, target_p->name))
     {
       /*
        * if we set the serial here, then we'll never do a
@@ -856,7 +856,7 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap,
       target_p->from->localClient->serial = current_serial;
       found++;
 
-      if(!IsCapable(target_p->from, cap))
+      if (!IsCapable(target_p->from, cap))
         continue;
 
       sendto_anywhere(target_p, source_p, "%s", buffer);
@@ -882,14 +882,14 @@ sendto_anywhere(struct Client *to, struct Client *from,
   int len;
   struct Client *send_to = (to->from != NULL ? to->from : to);
 
-  if(IsDead(send_to))
+  if (IsDead(send_to))
     return;
 
-  if(MyClient(to))
+  if (MyClient(to))
   {
-    if(IsServer(from))
+    if (IsServer(from))
     {
-      if(IsCapable(to, CAP_TS6) && HasID(from))
+      if (IsCapable(to, CAP_TS6) && HasID(from))
         len = ircsprintf(buffer, ":%s ", from->id);
       else
         len = ircsprintf(buffer, ":%s ", from->name);
@@ -904,7 +904,7 @@ sendto_anywhere(struct Client *to, struct Client *from,
   len += send_format(&buffer[len], IRCD_BUFSIZE - len, pattern, args);
   va_end(args);
 
-  if(MyClient(to))
+  if (MyClient(to))
     send_message(send_to, buffer, len);
   else
     send_message_remote(send_to, from, buffer, len);
@@ -924,11 +924,11 @@ sendto_realops_remote(struct Client *source_p, unsigned int flags, int level,
     /* If we're sending it to opers and theyre an admin, skip.
      * If we're sending it to admins, and theyre not, skip.
      */
-    if(((level == L_ADMIN) && !HasUMode(client_p, UMODE_ADMIN)) ||
+    if (((level == L_ADMIN) && !HasUMode(client_p, UMODE_ADMIN)) ||
         ((level == L_OPER) && HasUMode(client_p, UMODE_ADMIN)))
       continue;
 
-    if(client_p->umodes & flags)
+    if (client_p->umodes & flags)
       sendto_one(client_p, ":%s NOTICE %s :%s",
                  source_p->name, client_p->name, message);
   }
@@ -977,11 +977,11 @@ sendto_globops_flags(unsigned int flags, int level, const char *pattern, ...)
     /* If we're sending it to opers and theyre an admin, skip.
      * If we're sending it to admins, and theyre not, skip.
      */
-    if(((level == L_ADMIN) && !HasUMode(client_p, UMODE_ADMIN)) ||
+    if (((level == L_ADMIN) && !HasUMode(client_p, UMODE_ADMIN)) ||
         ((level == L_OPER) && HasUMode(client_p, UMODE_ADMIN)))
       continue;
 
-    if(HasUMode(client_p, flags))
+    if (HasUMode(client_p, flags))
       sendto_one(client_p, ":%s NOTICE %s :*** Global -- %s",
                  me.name, client_p->name, nbuf);
   }
@@ -1004,7 +1004,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
   char buffer[IRCD_BUFSIZE];
   int len;
 
-  if(IsClient(source_p))
+  if (IsClient(source_p))
     len = ircsprintf(buffer, ":%s!%s@%s WALLOPS :",
                      source_p->name, source_p->username, source_p->host);
   else
@@ -1014,7 +1014,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
   len += send_format(&buffer[len], IRCD_BUFSIZE - len, pattern, args);
   va_end(args);
 
-  switch(flags)
+  switch (flags)
   {
     case UMODE_OPERWALL:
       DLINK_FOREACH(ptr, oper_list.head)
@@ -1022,7 +1022,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
         struct Client *client_p = ptr->data;
         assert(client_p->umodes & UMODE_OPER);
 
-        if(HasUMode(client_p, flags) && !IsDefunct(client_p))
+        if (HasUMode(client_p, flags) && !IsDefunct(client_p))
           send_message(client_p, buffer, len);
       }
       break;
@@ -1032,7 +1032,7 @@ sendto_wallops_flags(unsigned int flags, struct Client *source_p,
       {
         struct Client *client_p = ptr->data;
 
-        if(HasUMode(client_p, flags) && !IsDefunct(client_p))
+        if (HasUMode(client_p, flags) && !IsDefunct(client_p))
           send_message(client_p, buffer, len);
       }
       break;
@@ -1061,9 +1061,9 @@ ts_warn(const char *pattern, ...)
    ** more than 5 every 5 seconds.  -orabidoo
    */
 
-  if(CurrentTime - last < 5)
+  if (CurrentTime - last < 5)
   {
-    if(++warnings > 5)
+    if (++warnings > 5)
       return;
   }
   else
@@ -1096,10 +1096,10 @@ kill_client(struct Client *client_p, struct Client *diedie,
   char buffer[IRCD_BUFSIZE];
   int len;
 
-  if(client_p->from != NULL)
+  if (client_p->from != NULL)
     client_p = client_p->from;
 
-  if(IsDead(client_p))
+  if (IsDead(client_p))
     return;
 
   len = ircsprintf(buffer, ":%s KILL %s :", ID_or_name(&me, client_p->from),
@@ -1132,7 +1132,7 @@ kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,
   char buf_uid[IRCD_BUFSIZE], buf_nick[IRCD_BUFSIZE];
   int len_uid = 0, len_nick = 0;
 
-  if(HasID(source_p))
+  if (HasID(source_p))
   {
     have_uid = 1;
     va_start(args, pattern);
@@ -1152,13 +1152,13 @@ kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,
   {
     struct Client *client_p = ptr->data;
 
-    if(one != NULL && (client_p == one->from))
+    if (one != NULL && (client_p == one->from))
       continue;
 
-    if(IsDefunct(client_p))
+    if (IsDefunct(client_p))
       continue;
 
-    if(have_uid && IsCapable(client_p, CAP_TS6))
+    if (have_uid && IsCapable(client_p, CAP_TS6))
       send_message(client_p, buf_uid, len_uid);
     else
       send_message(client_p, buf_nick, len_nick);

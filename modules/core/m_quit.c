@@ -45,12 +45,12 @@ m_quit(struct Client *client_p, struct Client *source_p,
   char reason[KICKLEN + 1] = "Quit: ";
   char *comment = reason;
 
-  if(!EmptyString(parv[1]) && (HasUMode(source_p, UMODE_OPER) ||
-                               (source_p->localClient->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
-                               < CurrentTime))
+  if (!EmptyString(parv[1]) && (HasUMode(source_p, UMODE_OPER) ||
+                                (source_p->localClient->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
+                                < CurrentTime))
     strlcpy(reason + 6, parv[1], sizeof(reason) - 6);
 
-  if(msg_has_colors(comment))
+  if (msg_has_colors(comment))
     comment = strip_color(comment);
 
   exit_client(source_p, source_p, reason);
@@ -67,7 +67,7 @@ ms_quit(struct Client *client_p, struct Client *source_p,
 {
   char reason[KICKLEN + 1] = { '\0' };
 
-  if(!EmptyString(parv[1]))
+  if (!EmptyString(parv[1]))
     strlcpy(reason, parv[1], sizeof(reason));
   else
     strlcpy(reason, client_p->name, sizeof(reason));

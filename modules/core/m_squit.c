@@ -53,7 +53,7 @@ mo_squit(struct Client *client_p, struct Client *source_p,
   const char *server;
   char def_reason[] = CONF_NOREASON;
 
-  if(parc < 2 || EmptyString(parv[1]))
+  if (parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "SQUIT");
@@ -69,9 +69,9 @@ mo_squit(struct Client *client_p, struct Client *source_p,
   {
     p = ptr->data;
 
-    if(IsServer(p) || IsMe(p))
+    if (IsServer(p) || IsMe(p))
     {
-      if(match(server, p->name))
+      if (match(server, p->name))
       {
         target_p = p;
         break;
@@ -79,14 +79,14 @@ mo_squit(struct Client *client_p, struct Client *source_p,
     }
   }
 
-  if((target_p == NULL) || IsMe(target_p))
+  if ((target_p == NULL) || IsMe(target_p))
   {
     sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
                me.name, source_p->name, server);
     return;
   }
 
-  if(!MyConnect(target_p) && !HasOFlag(source_p, OPER_FLAG_REMOTE))
+  if (!MyConnect(target_p) && !HasOFlag(source_p, OPER_FLAG_REMOTE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -95,10 +95,10 @@ mo_squit(struct Client *client_p, struct Client *source_p,
 
   comment = (parc > 2 && parv[2]) ? parv[2] : def_reason;
 
-  if(strlen(comment) > (size_t)REASONLEN)
+  if (strlen(comment) > (size_t)REASONLEN)
     comment[REASONLEN] = '\0';
 
-  if(MyConnect(target_p))
+  if (MyConnect(target_p))
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Received SQUIT %s from %s (%s)",
                          target_p->name, get_client_name(source_p, HIDE_IP), comment);
@@ -125,21 +125,21 @@ ms_squit(struct Client *client_p, struct Client *source_p,
   struct Client *target_p = NULL;
   const char *comment = NULL;
 
-  if(parc < 2 || EmptyString(parv[parc - 1]))
+  if (parc < 2 || EmptyString(parv[parc - 1]))
     return;
 
-  if((target_p = hash_find_server(parv[1])) == NULL)
+  if ((target_p = hash_find_server(parv[1])) == NULL)
     return;
 
-  if(!IsServer(target_p) && !IsMe(target_p))
+  if (!IsServer(target_p) && !IsMe(target_p))
     return;
 
-  if(IsMe(target_p))
+  if (IsMe(target_p))
     target_p = client_p;
 
   comment = (parc > 2 && parv[parc - 1]) ? parv[parc - 1] : client_p->name;
 
-  if(MyConnect(target_p))
+  if (MyConnect(target_p))
   {
     sendto_realops_flags(UMODE_CCONN, L_ALL, "Remote SQUIT %s from %s (%s)",
                          target_p->name, source_p->name, comment);

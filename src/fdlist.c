@@ -47,7 +47,7 @@ set_fdlimit(void)
   int fdmax;
   struct rlimit limit;
 
-  if(!getrlimit(RLIMIT_NOFILE, &limit))
+  if (!getrlimit(RLIMIT_NOFILE, &limit))
   {
     limit.rlim_cur = limit.rlim_max;
     setrlimit(RLIMIT_NOFILE, &limit);
@@ -83,9 +83,9 @@ lookup_fd(int fd)
 {
   fde_t *F = fd_hash[hash_fd(fd)];
 
-  while(F)
+  while (F)
   {
-    if(F->fd == fd)
+    if (F->fd == fd)
       return (F);
 
     F = F->hnext;
@@ -104,7 +104,7 @@ fd_open(fde_t *F, int fd, int is_socket, const char *desc)
   F->fd = fd;
   F->comm_index = -1;
 
-  if(desc)
+  if (desc)
     strlcpy(F->desc, desc, sizeof(F->desc));
 
   /* Note: normally we'd have to clear the other flags,
@@ -123,29 +123,29 @@ fd_close(fde_t *F)
 {
   unsigned int hashv = hash_fd(F->fd);
 
-  if(F == fd_next_in_loop)
+  if (F == fd_next_in_loop)
     fd_next_in_loop = F->hnext;
 
-  if(F->flags.is_socket)
+  if (F->flags.is_socket)
     comm_setselect(F, COMM_SELECT_WRITE | COMM_SELECT_READ, NULL, NULL, 0);
 
   delete_resolver_queries(F);
 
 #ifdef HAVE_LIBCRYPTO
 
-  if(F->ssl)
+  if (F->ssl)
     SSL_free(F->ssl);
 
 #endif
 
-  if(fd_hash[hashv] == F)
+  if (fd_hash[hashv] == F)
     fd_hash[hashv] = F->hnext;
   else
   {
     fde_t *prev;
 
     /* let it core if not found */
-    for(prev = fd_hash[hashv]; prev->hnext != F; prev = prev->hnext)
+    for (prev = fd_hash[hashv]; prev->hnext != F; prev = prev->hnext)
       ;
 
     prev->hnext = F->hnext;
@@ -167,8 +167,8 @@ fd_dump(struct Client *source_p)
   int i;
   fde_t *F;
 
-  for(i = 0; i < FD_HASH_SIZE; i++)
-    for(F = fd_hash[i]; F != NULL; F = F->hnext)
+  for (i = 0; i < FD_HASH_SIZE; i++)
+    for (F = fd_hash[i]; F != NULL; F = F->hnext)
       sendto_one(source_p, ":%s %d %s :fd %-5d desc '%s'",
                  me.name, RPL_STATSDEBUG, source_p->name,
                  F->fd, F->desc);
@@ -185,7 +185,7 @@ fd_note(fde_t *F, const char *format, ...)
 {
   va_list args;
 
-  if(format != NULL)
+  if (format != NULL)
   {
     va_start(args, format);
     vsnprintf(F->desc, sizeof(F->desc), format, args);
@@ -203,11 +203,11 @@ close_standard_fds(void)
 {
   int i;
 
-  for(i = 0; i < LOWEST_SAFE_FD; i++)
+  for (i = 0; i < LOWEST_SAFE_FD; i++)
   {
     close(i);
 
-    if(open("/dev/null", O_RDWR) < 0)
+    if (open("/dev/null", O_RDWR) < 0)
       exit(-1); /* we're hosed if we can't even open /dev/null */
   }
 }
@@ -218,8 +218,8 @@ close_fds(fde_t *one)
   int i;
   fde_t *F;
 
-  for(i = 0; i < FD_HASH_SIZE; i++)
-    for(F = fd_hash[i]; F != NULL; F = F->hnext)
-      if(F != one)
+  for (i = 0; i < FD_HASH_SIZE; i++)
+    for (F = fd_hash[i]; F != NULL; F = F->hnext)
+      if (F != one)
         close(F->fd);
 }

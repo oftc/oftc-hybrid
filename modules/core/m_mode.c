@@ -55,7 +55,7 @@ m_mode(struct Client *client_p, struct Client *source_p,
   static char modebuf[MODEBUFLEN];
   static char parabuf[MODEBUFLEN];
 
-  if(EmptyString(parv[1]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "MODE");
@@ -63,14 +63,14 @@ m_mode(struct Client *client_p, struct Client *source_p,
   }
 
   /* Now, try to find the channel in question */
-  if(!IsChanPrefix(*parv[1]))
+  if (!IsChanPrefix(*parv[1]))
   {
     /* if here, it has to be a non-channel name */
     set_user_mode(client_p, source_p, parc, parv);
     return;
   }
 
-  if((chptr = hash_find_channel(parv[1])) == NULL)
+  if ((chptr = hash_find_channel(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                ID_or_name(&me, source_p->from),
@@ -80,7 +80,7 @@ m_mode(struct Client *client_p, struct Client *source_p,
   }
 
   /* Now known the channel exists */
-  if(parc < 3)
+  if (parc < 3)
   {
     channel_modes(chptr, source_p, modebuf, parabuf);
     sendto_one(source_p, form_str(RPL_CHANNELMODEIS),
@@ -94,7 +94,7 @@ m_mode(struct Client *client_p, struct Client *source_p,
    *
    * XXX Is it worth the bother to make an ms_mode() ? - Dianora
    */
-  else if(IsServer(source_p))
+  else if (IsServer(source_p))
   {
     set_channel_mode(client_p, source_p, chptr, NULL, parc - 2, parv + 2,
                      chptr->chname);
@@ -103,12 +103,12 @@ m_mode(struct Client *client_p, struct Client *source_p,
   {
     member = find_channel_link(source_p, chptr);
 
-    if(!has_member_flags(member, CHFL_DEOPPED))
+    if (!has_member_flags(member, CHFL_DEOPPED))
     {
       /* Finish the flood grace period... */
-      if(MyClient(source_p) && !IsFloodDone(source_p))
+      if (MyClient(source_p) && !IsFloodDone(source_p))
       {
-        if(!((parc == 3) && (parv[2][0] == 'b') && (parv[2][1] == '\0')))
+        if (!((parc == 3) && (parv[2][0] == 'b') && (parv[2][1] == '\0')))
           flood_endgrace(source_p);
       }
 
@@ -133,17 +133,17 @@ ms_tmode(struct Client *client_p, struct Client *source_p, int parc,
   struct Channel *chptr = NULL;
   struct Membership *member = NULL;
 
-  if((chptr = hash_find_channel(parv[2])) == NULL)
+  if ((chptr = hash_find_channel(parv[2])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                ID_or_name(&me, client_p), ID_or_name(source_p, client_p), parv[2]);
     return;
   }
 
-  if(atol(parv[1]) > chptr->channelts)
+  if (atol(parv[1]) > chptr->channelts)
     return;
 
-  if(IsServer(source_p))
+  if (IsServer(source_p))
     set_channel_mode(client_p, source_p, chptr, NULL, parc - 3, parv + 3,
                      chptr->chname);
   else
@@ -151,7 +151,7 @@ ms_tmode(struct Client *client_p, struct Client *source_p, int parc,
     member = find_channel_link(source_p, chptr);
 
     /* XXX are we sure we just want to bail here? */
-    if(has_member_flags(member, CHFL_DEOPPED))
+    if (has_member_flags(member, CHFL_DEOPPED))
       return;
 
     set_channel_mode(client_p, source_p, chptr, member, parc - 3, parv + 3,
@@ -186,14 +186,14 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc,
   int modecount = 0;
   int needcap = NOCAPS;
 
-  if((chptr = hash_find_channel(parv[2])) == NULL)
+  if ((chptr = hash_find_channel(parv[2])) == NULL)
     return;
 
   /* TS is higher, drop it. */
-  if(atol(parv[1]) > chptr->channelts)
+  if (atol(parv[1]) > chptr->channelts)
     return;
 
-  switch(*parv[3])
+  switch (*parv[3])
   {
     case 'b':
       mode_type = CHFL_BAN;
@@ -231,19 +231,19 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc,
 
   do
   {
-    if((t = strchr(s, ' ')) != NULL)
+    if ((t = strchr(s, ' ')) != NULL)
       * t++ = '\0';
 
     tlen = strlen(s);
 
     /* I dont even want to begin parsing this.. */
-    if(tlen > MODEBUFLEN)
+    if (tlen > MODEBUFLEN)
       break;
 
-    if(tlen && *s != ':' && add_id(source_p, chptr, s, mode_type))
+    if (tlen && *s != ':' && add_id(source_p, chptr, s, mode_type))
     {
       /* this new one wont fit.. */
-      if(mbuf - modebuf + 2 + pbuf - parabuf + tlen > IRCD_BUFSIZE - 2 ||
+      if (mbuf - modebuf + 2 + pbuf - parabuf + tlen > IRCD_BUFSIZE - 2 ||
           modecount >= MAXMODEPARAMS)
       {
         *mbuf = '\0';
@@ -266,9 +266,9 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc,
 
     s = t;
   }
-  while(s != NULL);
+  while (s != NULL);
 
-  if(modecount)
+  if (modecount)
   {
     *mbuf = *(pbuf - 1) = '\0';
     sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s", modebuf, parabuf);

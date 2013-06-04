@@ -63,14 +63,14 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
   char *newch = NULL;
   dlink_node *ptr = NULL;
 
-  if((target_p = find_person(source_p, parv[1])) == NULL)
+  if ((target_p = find_person(source_p, parv[1])) == NULL)
     return;
 
-  if(!MyConnect(target_p))
+  if (!MyConnect(target_p))
   {
-    if(target_p->from != client_p)
+    if (target_p->from != client_p)
     {
-      if(IsCapable(target_p->from, CAP_ENCAP))
+      if (IsCapable(target_p->from, CAP_ENCAP))
         sendto_one(target_p, ":%s ENCAP %s SVSJOIN %s %s",
                    source_p->name, target_p->from->name,
                    target_p->name, parv[2]);
@@ -83,7 +83,7 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
   }
 
   /* select our modes from parv[2] if they exist... (chanop)*/
-  switch(*parv[2])
+  switch (*parv[2])
   {
     case '@':
       type = CHFL_CHANOP;
@@ -114,9 +114,9 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
       break;
   }
 
-  if((chptr = hash_find_channel(parv[2])) != NULL)
+  if ((chptr = hash_find_channel(parv[2])) != NULL)
   {
-    if(IsMember(target_p, chptr))
+    if (IsMember(target_p, chptr))
       return;
 
     add_user_to_channel(chptr, target_p, type, NO);
@@ -125,19 +125,19 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
                          target_p->name, target_p->username,
                          target_p->host, chptr->chname);
 
-    if(sjmode)
+    if (sjmode)
       sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +%c %s",
                            me.name, chptr->chname, mode, target_p->name);
 
-    if(chptr->chname[0] == '#')
+    if (chptr->chname[0] == '#')
     {
-      if(sjmode)
+      if (sjmode)
       {
         DLINK_FOREACH(ptr, serv_list.head)
         {
           struct Client *serv_p = ptr->data;
 
-          if(serv_p == target_p->from || IsDead(serv_p))
+          if (serv_p == target_p->from || IsDead(serv_p))
             continue;
 
           sendto_one(serv_p, ":%s SJOIN %lu %s + :%c%s",
@@ -160,7 +160,7 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
       }
     }
 
-    if(chptr->topic != NULL)
+    if (chptr->topic != NULL)
     {
       sendto_one(target_p, form_str(RPL_TOPIC),
                  me.name, target_p->name,
@@ -177,7 +177,7 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
   {
     newch = parv[2];
 
-    if(!check_channel_name(newch, 1))
+    if (!check_channel_name(newch, 1))
       return;
 
     /*
@@ -187,12 +187,12 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
      * local channels... but...
      * I don't want to break anything - scuzzy
      */
-    if(ConfigChannel.disable_local_channels && (*newch == '&'))
+    if (ConfigChannel.disable_local_channels && (*newch == '&'))
       return;
 
     chptr = make_channel(newch);
 
-    if(MyClient(target_p))
+    if (MyClient(target_p))
       sendto_realops_flags(UMODE_SPY, L_ALL,
                            "Channel %s created by %s!%s@%s", chptr->chname, target_p->name,
                            target_p->username, target_p->host);
@@ -200,7 +200,7 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
     add_user_to_channel(chptr, target_p, CHFL_CHANOP, NO);
 
     /* send out a join, make target_p join chptr */
-    if(chptr->chname[0] == '#')
+    if (chptr->chname[0] == '#')
     {
       sendto_server(target_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
                     ":%s SJOIN %lu %s +nt :@%s",

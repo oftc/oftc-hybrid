@@ -48,7 +48,7 @@ m_ping(struct Client *client_p, struct Client *source_p,
   struct Client *target_p;
   char  *origin, *destination;
 
-  if(parc < 2 || *parv[1] == '\0')
+  if (parc < 2 || *parv[1] == '\0')
   {
     sendto_one(source_p, form_str(ERR_NOORIGIN),
                me.name, source_p->name);
@@ -58,19 +58,19 @@ m_ping(struct Client *client_p, struct Client *source_p,
   origin = parv[1];
   destination = parv[2]; /* Will get NULL or pointer (parc >= 2!!) */
 
-  if(ConfigFileEntry.disable_remote && !HasUMode(source_p, UMODE_OPER))
+  if (ConfigFileEntry.disable_remote && !HasUMode(source_p, UMODE_OPER))
   {
     sendto_one(source_p, ":%s PONG %s :%s", me.name,
                (destination) ? destination : me.name, origin);
     return;
   }
 
-  if(!EmptyString(destination) && irccmp(destination, me.name) != 0)
+  if (!EmptyString(destination) && irccmp(destination, me.name) != 0)
   {
     /* We're sending it across servers.. origin == client_p->name --fl_ */
     origin = client_p->name;
 
-    if((target_p = hash_find_server(destination)) != NULL)
+    if ((target_p = hash_find_server(destination)) != NULL)
     {
       sendto_one(target_p, ":%s PING %s :%s", source_p->name,
                  origin, destination);
@@ -94,7 +94,7 @@ ms_ping(struct Client *client_p, struct Client *source_p,
   struct Client *target_p;
   const char *origin, *destination;
 
-  if(parc < 2 || *parv[1] == '\0')
+  if (parc < 2 || *parv[1] == '\0')
   {
     sendto_one(source_p, form_str(ERR_NOORIGIN),
                me.name, source_p->name);
@@ -104,10 +104,10 @@ ms_ping(struct Client *client_p, struct Client *source_p,
   origin = source_p->name;
   destination = parv[2]; /* Will get NULL or pointer (parc >= 2!!) */
 
-  if(!EmptyString(destination) && irccmp(destination, me.name) != 0
+  if (!EmptyString(destination) && irccmp(destination, me.name) != 0
       && irccmp(destination, me.id) != 0)
   {
-    if((target_p = hash_find_server(destination)))
+    if ((target_p = hash_find_server(destination)))
       sendto_one(target_p, ":%s PING %s :%s", source_p->name,
                  origin, destination);
     else

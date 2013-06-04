@@ -145,20 +145,20 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 
   /* if we got no extra arguments, send them the help. yeech. */
   /* if it's /who ?, send them the help */
-  if(parc < 1 || parv[0][0] == '?')
+  if (parc < 1 || parv[0][0] == '?')
   {
     char **ptr = who_help;
 
-    for(; *ptr; ptr++)
+    for (; *ptr; ptr++)
       sendto_one(source_p, form_str(RPL_WHOHELP), me.name, source_p->name, *ptr);
 
     sendto_one(source_p, form_str(RPL_ENDOFWHO), me.name, source_p->name, "?");
     return 0;
   }
   /* backwards compatibility */
-  else if(parv[0][0] == '0' && parv[0][1] == 0)
+  else if (parv[0][0] == '0' && parv[0][1] == 0)
   {
-    if(parc > 1 && *parv[1] == 'o')
+    if (parc > 1 && *parv[1] == 'o')
     {
       wsopts.check_umode = 1;
       wsopts.umode_plus = 1;
@@ -170,13 +170,13 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
     return 1;
   }
   /* if the first argument isn't a list of stuff */
-  else if(parv[0][0] != '+' && parv[0][0] != '-')
+  else if (parv[0][0] != '+' && parv[0][0] != '-')
   {
-    if(parv[0][0] == '#' || parv[0][0] == '&')
+    if (parv[0][0] == '#' || parv[0][0] == '&')
     {
       wsopts.channel = hash_find_channel(parv[0]);
 
-      if(wsopts.channel == NULL)
+      if (wsopts.channel == NULL)
       {
         sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL), me.name,
                    source_p->name, parv[0]);
@@ -187,7 +187,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
     {
       /* If the arguement has a . in it, treat it as an
        * address. Otherwise treat it as a nick. -Rak */
-      if(strchr(parv[0], '.'))
+      if (strchr(parv[0], '.'))
       {
         wsopts.host_plus = 1;
         wsopts.host = parv[0];
@@ -206,9 +206,9 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
    * as appropriate. */
   flags = parv[0];
 
-  while(*flags)
+  while (*flags)
   {
-    switch(*flags)
+    switch (*flags)
     {
       case '+':
       case '-':
@@ -216,7 +216,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
         break;
 
       case 'a':
-        if(change)
+        if (change)
           wsopts.away_plus = 1; /* they want here people */
         else
           wsopts.away_plus = 0;
@@ -237,7 +237,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
         break;
 
       case 'c':
-        if(parv[args] == NULL || !change)
+        if (parv[args] == NULL || !change)
         {
           sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
                      source_p->name);
@@ -246,7 +246,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 
         wsopts.channel = hash_find_channel(parv[args]);
 
-        if(wsopts.channel == NULL)
+        if (wsopts.channel == NULL)
         {
           sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL), me.name,
                      source_p->name, parv[args]);
@@ -258,7 +258,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
         break;
 
       case 'g':
-        if(parv[args] == NULL || !HasUMode(source_p, UMODE_OPER))
+        if (parv[args] == NULL || !HasUMode(source_p, UMODE_OPER))
         {
           sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
                      source_p->name);
@@ -271,7 +271,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
         break;
 
       case 'h':
-        if(parv[args] == NULL)
+        if (parv[args] == NULL)
         {
           sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
                      source_p->name);
@@ -284,7 +284,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
         break;
 
       case 'i':
-        if(parv[args] == NULL || !HasUMode(source_p, UMODE_OPER))
+        if (parv[args] == NULL || !HasUMode(source_p, UMODE_OPER))
         {
           sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
                      source_p->name);
@@ -297,7 +297,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
         break;
 
       case 'm':
-        if(parv[args] == NULL)
+        if (parv[args] == NULL)
         {
           sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
                      source_p->name);
@@ -306,11 +306,11 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 
         s = parv[args];
 
-        while(*s)
+        while (*s)
         {
-          for(i = 0; who_user_modes[i].mode != 0; i++)
+          for (i = 0; who_user_modes[i].mode != 0; i++)
           {
-            if(*s == (char)who_user_modes[i].letter)
+            if (*s == (char)who_user_modes[i].letter)
             {
               wsopts.umodes |= who_user_modes[i].mode;
               break;
@@ -320,19 +320,19 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
           s++;
         }
 
-        if(!HasUMode(source_p, UMODE_OPER)) /* only let users search for +/-oOaA */
+        if (!HasUMode(source_p, UMODE_OPER)) /* only let users search for +/-oOaA */
           wsopts.umodes = (wsopts.umodes & (UMODE_OPER | UMODE_ADMIN));
 
         wsopts.umode_plus = change;
 
-        if(wsopts.umodes)
+        if (wsopts.umodes)
           wsopts.check_umode = 1;
 
         args++;
         break;
 
       case 'n':
-        if(parv[args] == NULL)
+        if (parv[args] == NULL)
         {
           sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
                      source_p->name);
@@ -345,7 +345,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
         break;
 
       case 's':
-        if(parv[args] == NULL || !change)
+        if (parv[args] == NULL || !change)
         {
           sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
                      source_p->name);
@@ -354,7 +354,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 
         wsopts.server = hash_find_server(parv[args]);
 
-        if(wsopts.server == NULL)
+        if (wsopts.server == NULL)
         {
           sendto_one(source_p, form_str(ERR_NOSUCHSERVER), me.name,
                      source_p->name, parv[args]);
@@ -366,7 +366,7 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
         break;
 
       case 'u':
-        if(parv[args] == NULL)
+        if (parv[args] == NULL)
         {
           sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name,
                      source_p->name);
@@ -387,17 +387,17 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
    * sense either, as does specifying a nick.
    */
 
-  if(wsopts.search_chan && !(wsopts.check_away || wsopts.gcos || wsopts.host ||
-                             wsopts.check_umode || wsopts.server || wsopts.user))
+  if (wsopts.search_chan && !(wsopts.check_away || wsopts.gcos || wsopts.host ||
+                              wsopts.check_umode || wsopts.server || wsopts.user))
   {
-    if(parv[args] == NULL || wsopts.channel || wsopts.nick ||
+    if (parv[args] == NULL || wsopts.channel || wsopts.nick ||
         parv[args][0] == '#' || parv[args][0] == '&')
     {
       sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name, source_p->name);
       return 0;
     }
 
-    if(strchr(parv[args], '.'))
+    if (strchr(parv[args], '.'))
     {
       wsopts.host_plus = 1;
       wsopts.host = parv[args];
@@ -409,18 +409,18 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
     }
   }
   else /* can't show_chan if nothing else is set! */
-    if(wsopts.show_chan && !(wsopts.check_away || wsopts.gcos ||
-                             wsopts.host || wsopts.check_umode ||
-                             wsopts.server || wsopts.user || wsopts.nick ||
-                             wsopts.ip || wsopts.channel))
+    if (wsopts.show_chan && !(wsopts.check_away || wsopts.gcos ||
+                              wsopts.host || wsopts.check_umode ||
+                              wsopts.server || wsopts.user || wsopts.nick ||
+                              wsopts.ip || wsopts.channel))
     {
-      if(parv[args] == NULL)
+      if (parv[args] == NULL)
       {
         sendto_one(source_p, form_str(ERR_WHOSYNTAX), me.name, source_p->name);
         return 0;
       }
 
-      if(strchr(parv[args], '.'))
+      if (strchr(parv[args], '.'))
       {
         wsopts.host_plus = 1;
         wsopts.host = parv[args];
@@ -439,62 +439,62 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
 int
 chk_who(struct Client *source_p, struct Client *target_p, int showall)
 {
-  if(!IsClient(target_p))
+  if (!IsClient(target_p))
     return 0;
 
-  if(source_p != target_p && HasUMode(target_p, UMODE_INVISIBLE) && !showall)
+  if (source_p != target_p && HasUMode(target_p, UMODE_INVISIBLE) && !showall)
     return 0;
 
-  if(wsopts.check_umode)
+  if (wsopts.check_umode)
   {
-    if(wsopts.umode_plus)
+    if (wsopts.umode_plus)
     {
-      if(!(target_p->umodes & wsopts.umodes))
+      if (!(target_p->umodes & wsopts.umodes))
         return 0;
     }
     else
     {
-      if(target_p->umodes & wsopts.umodes)
+      if (target_p->umodes & wsopts.umodes)
         return 0;
     }
   }
 
-  if(wsopts.check_away)
-    if((wsopts.away_plus && target_p->away == NULL) ||
+  if (wsopts.check_away)
+    if ((wsopts.away_plus && target_p->away == NULL) ||
         (!wsopts.away_plus && target_p->away != NULL))
       return 0;
 
-  if(wsopts.serv_plus)
-    if(wsopts.server != target_p->servptr)
+  if (wsopts.serv_plus)
+    if (wsopts.server != target_p->servptr)
       return 0;
 
   /* we only call match once, since if the first condition
    * isn't true, most (all?) compilers will never try the
    * second...phew :) */
-  if(wsopts.user != NULL)
+  if (wsopts.user != NULL)
   {
-    if((wsopts.user_plus && !match(wsopts.user, target_p->username)) ||
+    if ((wsopts.user_plus && !match(wsopts.user, target_p->username)) ||
         (!wsopts.user_plus && match(wsopts.user, target_p->username)))
       return 0;
   }
 
-  if(wsopts.nick != NULL)
+  if (wsopts.nick != NULL)
   {
-    if((wsopts.nick_plus && !match(wsopts.nick, target_p->name)) ||
+    if ((wsopts.nick_plus && !match(wsopts.nick, target_p->name)) ||
         (!wsopts.nick_plus && match(wsopts.nick, target_p->name)))
       return 0;
   }
 
-  if(wsopts.host != NULL)
+  if (wsopts.host != NULL)
   {
-    if((wsopts.host_plus && !match(wsopts.host, target_p->host)) ||
+    if ((wsopts.host_plus && !match(wsopts.host, target_p->host)) ||
         (!wsopts.host_plus && match(wsopts.host, target_p->host)))
       return 0;
   }
 
-  if(wsopts.ip != NULL && target_p->sockhost[0] != '\0')
+  if (wsopts.ip != NULL && target_p->sockhost[0] != '\0')
   {
-    if(strchr(wsopts.ip, '/'))
+    if (strchr(wsopts.ip, '/'))
     {
       int type;
       struct irc_ssaddr addr;
@@ -502,34 +502,34 @@ chk_who(struct Client *source_p, struct Client *target_p, int showall)
 
       type = parse_netmask(wsopts.ip, &addr, &bits);
 
-      switch(type)
+      switch (type)
       {
         case HM_IPV4:
-          if(target_p->ip.ss.ss_family == AF_INET)
-            if(match_ipv4(&target_p->ip, &addr, bits))
+          if (target_p->ip.ss.ss_family == AF_INET)
+            if (match_ipv4(&target_p->ip, &addr, bits))
               return 1;
 
           return 0;
 
         case HM_IPV6:
-          if(target_p->ip.ss.ss_family == AF_INET6)
-            if(match_ipv6(&target_p->ip, &addr, bits))
+          if (target_p->ip.ss.ss_family == AF_INET6)
+            if (match_ipv6(&target_p->ip, &addr, bits))
               return 1;
 
           return 0;
       }
     }
 
-    if((wsopts.ip_plus && !match(wsopts.ip, target_p->sockhost)) ||
+    if ((wsopts.ip_plus && !match(wsopts.ip, target_p->sockhost)) ||
         (!wsopts.ip_plus && match(wsopts.ip, target_p->sockhost)))
       return 0;
   }
-  else if(wsopts.ip != NULL)
+  else if (wsopts.ip != NULL)
     return 0;
 
-  if(wsopts.gcos != NULL)
+  if (wsopts.gcos != NULL)
   {
-    if((wsopts.gcos_plus && !match(wsopts.gcos, target_p->info)) ||
+    if ((wsopts.gcos_plus && !match(wsopts.gcos, target_p->info)) ||
         (!wsopts.gcos_plus && match(wsopts.gcos, target_p->info)))
       return 0;
   }
@@ -550,11 +550,11 @@ first_visible_channel(struct Client *client_p, struct Client *source_p)
     mb = ptr->data;
     chptr = mb->chptr;
 
-    if(ShowChannel(source_p, chptr))
+    if (ShowChannel(source_p, chptr))
       break;
   }
 
-  if(chptr != NULL)
+  if (chptr != NULL)
     return chptr->chname;
 
   return "*";
@@ -579,26 +579,26 @@ do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
     target_p = ms->client_p;
     i = 0;
 
-    if(!chk_who(source_p, target_p, showall))
+    if (!chk_who(source_p, target_p, showall))
       continue;
 
     /* Whomever wrote the original code here is an incompetent
      * nincompoop the original was donkey doo doo, and you can
      * quote me on that. sheesh - Dianora
      */
-    if(target_p->away == NULL)
+    if (target_p->away == NULL)
       status[i++] = 'H';
     else
       status[i++] = 'G';
 
-    if(HasUMode(target_p, UMODE_OPER))
+    if (HasUMode(target_p, UMODE_OPER))
       status[i++] = '*';
-    else if(HasUMode(source_p, UMODE_OPER) && HasUMode(target_p, UMODE_INVISIBLE))
+    else if (HasUMode(source_p, UMODE_OPER) && HasUMode(target_p, UMODE_INVISIBLE))
       status[i++] = '%';
 
-    if(ms->flags & CHFL_CHANOP)
+    if (ms->flags & CHFL_CHANOP)
       status[i++] = '@';
-    else if(ms->flags & CHFL_VOICE)
+    else if (ms->flags & CHFL_VOICE)
       status[i++] = '+';
 
     status[i] = '\0';
@@ -622,24 +622,24 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   static int last_used = 0;
 
   /* drop nonlocal clients */
-  if(!MyClient(source_p))
+  if (!MyClient(source_p))
     return;
 
-  if(!build_searchopts(source_p, parc - 1, parv + 1))
+  if (!build_searchopts(source_p, parc - 1, parv + 1))
     return; /* /who was no good */
 
-  if(wsopts.channel != NULL)
+  if (wsopts.channel != NULL)
   {
-    if(IsMember(source_p, wsopts.channel))
+    if (IsMember(source_p, wsopts.channel))
       showall = 1;
-    else if(SecretChannel(wsopts.channel) && HasUMode(source_p, UMODE_ADMIN))
+    else if (SecretChannel(wsopts.channel) && HasUMode(source_p, UMODE_ADMIN))
       showall = 1;
-    else if(!SecretChannel(wsopts.channel) && HasUMode(source_p, UMODE_OPER))
+    else if (!SecretChannel(wsopts.channel) && HasUMode(source_p, UMODE_OPER))
       showall = 1;
     else
       showall = 0;
 
-    if(showall || !SecretChannel(wsopts.channel))
+    if (showall || !SecretChannel(wsopts.channel))
     {
       do_who_channel(source_p, wsopts.channel, showall);
     }
@@ -650,14 +650,14 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   }
 
   /* if HTM, drop this too */
-  if((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime
+  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime
       && !HasUMode(source_p, UMODE_OPER))
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name);
     return;
   }
 
-  if(wsopts.search_chan)
+  if (wsopts.search_chan)
   {
     dlink_node *ptr;
     struct Membership *m;
@@ -668,7 +668,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
       m = ptr->data;
       chan_p = m->chptr;
 
-      if(shown >= MAXWHOREPLIES && !HasUMode(source_p, UMODE_OPER))
+      if (shown >= MAXWHOREPLIES && !HasUMode(source_p, UMODE_OPER))
       {
         sendto_one(source_p, form_str(ERR_WHOLIMEXCEED), me.name,
                    source_p->name, MAXWHOREPLIES);
@@ -684,12 +684,12 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
     {
       target_p = ptr->data;
 
-      if(!chk_who(source_p, target_p, showall))
+      if (!chk_who(source_p, target_p, showall))
         continue;
 
       /* wow, they passed it all, give them the reply...
        * IF they haven't reached the max, or they're an oper */
-      if(shown >= MAXWHOREPLIES && !HasUMode(source_p, UMODE_OPER))
+      if (shown >= MAXWHOREPLIES && !HasUMode(source_p, UMODE_OPER))
       {
         sendto_one(source_p, form_str(ERR_WHOLIMEXCEED), me.name,
                    source_p->name, MAXWHOREPLIES);

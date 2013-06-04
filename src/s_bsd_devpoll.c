@@ -54,7 +54,7 @@ init_netio(void)
 {
   int fd;
 
-  if((fd = open("/dev/poll", O_RDWR)) < 0)
+  if ((fd = open("/dev/poll", O_RDWR)) < 0)
   {
     ilog(LOG_TYPE_IRCD, "init_netio: Couldn't open /dev/poll - %d: %s",
          errno, strerror(errno));
@@ -81,7 +81,7 @@ devpoll_write_update(int fd, int events)
   pfd.events = events;
 
   /* Write the thing to our poll fd */
-  if(write(dpfd.fd, &pfd, sizeof(pfd)) != sizeof(pfd))
+  if (write(dpfd.fd, &pfd, sizeof(pfd)) != sizeof(pfd))
     ilog(LOG_TYPE_IRCD, "devpoll_write_update: dpfd write failed %d: %s",
          errno, strerror(errno));
 }
@@ -98,13 +98,13 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 {
   int new_events;
 
-  if((type & COMM_SELECT_READ))
+  if ((type & COMM_SELECT_READ))
   {
     F->read_handler = handler;
     F->read_data = client_data;
   }
 
-  if((type & COMM_SELECT_WRITE))
+  if ((type & COMM_SELECT_WRITE))
   {
     F->write_handler = handler;
     F->write_data = client_data;
@@ -113,7 +113,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   new_events = (F->read_handler ? POLLIN : 0) |
                (F->write_handler ? POLLOUT : 0);
 
-  if(timeout != 0)
+  if (timeout != 0)
   {
     F->timeout = CurrentTime + (timeout / 1000);
     F->timeout_handler = handler;
@@ -121,11 +121,11 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   }
 
 
-  if(new_events != F->evcache)
+  if (new_events != F->evcache)
   {
     devpoll_write_update(F->fd, POLLREMOVE);
 
-    if((F->evcache = new_events))
+    if ((F->evcache = new_events))
       devpoll_write_update(F->fd, new_events);
   }
 }
@@ -154,7 +154,7 @@ comm_select(void)
 
   set_time();
 
-  if(num < 0)
+  if (num < 0)
   {
 #ifdef HAVE_USLEEP
     usleep(50000);  /* avoid 99% CPU in comm_select */
@@ -162,30 +162,30 @@ comm_select(void)
     return;
   }
 
-  for(i = 0; i < num; i++)
+  for (i = 0; i < num; i++)
   {
     F = lookup_fd(dopoll.dp_fds[i].fd);
 
-    if(F == NULL || !F->flags.open)
+    if (F == NULL || !F->flags.open)
       continue;
 
-    if((dopoll.dp_fds[i].revents & POLLIN))
-      if((hdl = F->read_handler) != NULL)
+    if ((dopoll.dp_fds[i].revents & POLLIN))
+      if ((hdl = F->read_handler) != NULL)
       {
         F->read_handler = NULL;
         hdl(F, F->read_data);
 
-        if(!F->flags.open)
+        if (!F->flags.open)
           continue;
       }
 
-    if((dopoll.dp_fds[i].revents & POLLOUT))
-      if((hdl = F->write_handler) != NULL)
+    if ((dopoll.dp_fds[i].revents & POLLOUT))
+      if ((hdl = F->write_handler) != NULL)
       {
         F->write_handler = NULL;
         hdl(F, F->write_data);
 
-        if(!F->flags.open)
+        if (!F->flags.open)
           continue;
       }
 

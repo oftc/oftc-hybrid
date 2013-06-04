@@ -94,10 +94,10 @@ strhash(const char *name)
   const unsigned char *p = (const unsigned char *)name;
   unsigned int hval = FNV1_32_INIT;
 
-  if(*p == '\0')
+  if (*p == '\0')
     return 0;
 
-  for(; *p != '\0'; ++p)
+  for (; *p != '\0'; ++p)
   {
     hval += (hval << 1) + (hval <<  4) + (hval << 7) +
             (hval << 8) + (hval << 24);
@@ -193,17 +193,17 @@ hash_del_id(struct Client *client_p)
   unsigned int hashv = strhash(client_p->id);
   struct Client *tmp = idTable[hashv];
 
-  if(tmp != NULL)
+  if (tmp != NULL)
   {
-    if(tmp == client_p)
+    if (tmp == client_p)
     {
       idTable[hashv] = client_p->idhnext;
       client_p->idhnext = client_p;
     }
     else
     {
-      while(tmp->idhnext != client_p)
-        if((tmp = tmp->idhnext) == NULL)
+      while (tmp->idhnext != client_p)
+        if ((tmp = tmp->idhnext) == NULL)
           return;
 
       tmp->idhnext = tmp->idhnext->idhnext;
@@ -224,17 +224,17 @@ hash_del_client(struct Client *client_p)
   unsigned int hashv = strhash(client_p->name);
   struct Client *tmp = clientTable[hashv];
 
-  if(tmp != NULL)
+  if (tmp != NULL)
   {
-    if(tmp == client_p)
+    if (tmp == client_p)
     {
       clientTable[hashv] = client_p->hnext;
       client_p->hnext = client_p;
     }
     else
     {
-      while(tmp->hnext != client_p)
-        if((tmp = tmp->hnext) == NULL)
+      while (tmp->hnext != client_p)
+        if ((tmp = tmp->hnext) == NULL)
           return;
 
       tmp->hnext = tmp->hnext->hnext;
@@ -255,17 +255,17 @@ hash_del_userhost(struct UserHost *userhost)
   unsigned int hashv = strhash(userhost->host);
   struct UserHost *tmp = userhostTable[hashv];
 
-  if(tmp != NULL)
+  if (tmp != NULL)
   {
-    if(tmp == userhost)
+    if (tmp == userhost)
     {
       userhostTable[hashv] = userhost->next;
       userhost->next = userhost;
     }
     else
     {
-      while(tmp->next != userhost)
-        if((tmp = tmp->next) == NULL)
+      while (tmp->next != userhost)
+        if ((tmp = tmp->next) == NULL)
           return;
 
       tmp->next = tmp->next->next;
@@ -287,17 +287,17 @@ hash_del_channel(struct Channel *chptr)
   unsigned int hashv = strhash(chptr->chname);
   struct Channel *tmp = channelTable[hashv];
 
-  if(tmp != NULL)
+  if (tmp != NULL)
   {
-    if(tmp == chptr)
+    if (tmp == chptr)
     {
       channelTable[hashv] = chptr->hnextch;
       chptr->hnextch = chptr;
     }
     else
     {
-      while(tmp->hnextch != chptr)
-        if((tmp = tmp->hnextch) == NULL)
+      while (tmp->hnextch != chptr)
+        if ((tmp = tmp->hnextch) == NULL)
           return;
 
       tmp->hnextch = tmp->hnextch->hnextch;
@@ -312,17 +312,17 @@ hash_del_resv(struct ResvChannel *chptr)
   unsigned int hashv = strhash(chptr->name);
   struct ResvChannel *tmp = resvchannelTable[hashv];
 
-  if(tmp != NULL)
+  if (tmp != NULL)
   {
-    if(tmp == chptr)
+    if (tmp == chptr)
     {
       resvchannelTable[hashv] = chptr->hnext;
       chptr->hnext = chptr;
     }
     else
     {
-      while(tmp->hnext != chptr)
-        if((tmp = tmp->hnext) == NULL)
+      while (tmp->hnext != chptr)
+        if ((tmp = tmp->hnext) == NULL)
           return;
 
       tmp->hnext = tmp->hnext->hnext;
@@ -345,15 +345,15 @@ hash_find_client(const char *name)
   unsigned int hashv = strhash(name);
   struct Client *client_p;
 
-  if((client_p = clientTable[hashv]) != NULL)
+  if ((client_p = clientTable[hashv]) != NULL)
   {
-    if(irccmp(name, client_p->name))
+    if (irccmp(name, client_p->name))
     {
       struct Client *prev;
 
-      while(prev = client_p, (client_p = client_p->hnext) != NULL)
+      while (prev = client_p, (client_p = client_p->hnext) != NULL)
       {
-        if(!irccmp(name, client_p->name))
+        if (!irccmp(name, client_p->name))
         {
           prev->hnext = client_p->hnext;
           client_p->hnext = clientTable[hashv];
@@ -373,15 +373,15 @@ hash_find_id(const char *name)
   unsigned int hashv = strhash(name);
   struct Client *client_p;
 
-  if((client_p = idTable[hashv]) != NULL)
+  if ((client_p = idTable[hashv]) != NULL)
   {
-    if(strcmp(name, client_p->id))
+    if (strcmp(name, client_p->id))
     {
       struct Client *prev;
 
-      while(prev = client_p, (client_p = client_p->idhnext) != NULL)
+      while (prev = client_p, (client_p = client_p->idhnext) != NULL)
       {
-        if(!strcmp(name, client_p->id))
+        if (!strcmp(name, client_p->id))
         {
           prev->idhnext = client_p->idhnext;
           client_p->idhnext = idTable[hashv];
@@ -401,19 +401,19 @@ hash_find_server(const char *name)
   unsigned int hashv = strhash(name);
   struct Client *client_p = NULL;
 
-  if(IsDigit(*name) && strlen(name) == IRC_MAXSID)
+  if (IsDigit(*name) && strlen(name) == IRC_MAXSID)
     return hash_find_id(name);
 
-  if((client_p = clientTable[hashv]) != NULL)
+  if ((client_p = clientTable[hashv]) != NULL)
   {
-    if((!IsServer(client_p) && !IsMe(client_p)) ||
+    if ((!IsServer(client_p) && !IsMe(client_p)) ||
         irccmp(name, client_p->name))
     {
       struct Client *prev;
 
-      while(prev = client_p, (client_p = client_p->hnext) != NULL)
+      while (prev = client_p, (client_p = client_p->hnext) != NULL)
       {
-        if((IsServer(client_p) || IsMe(client_p)) &&
+        if ((IsServer(client_p) || IsMe(client_p)) &&
             !irccmp(name, client_p->name))
         {
           prev->hnext = client_p->hnext;
@@ -442,15 +442,15 @@ hash_find_channel(const char *name)
   unsigned int hashv = strhash(name);
   struct Channel *chptr = NULL;
 
-  if((chptr = channelTable[hashv]) != NULL)
+  if ((chptr = channelTable[hashv]) != NULL)
   {
-    if(irccmp(name, chptr->chname))
+    if (irccmp(name, chptr->chname))
     {
       struct Channel *prev;
 
-      while(prev = chptr, (chptr = chptr->hnextch) != NULL)
+      while (prev = chptr, (chptr = chptr->hnextch) != NULL)
       {
-        if(!irccmp(name, chptr->chname))
+        if (!irccmp(name, chptr->chname))
         {
           prev->hnextch = chptr->hnextch;
           chptr->hnextch = channelTable[hashv];
@@ -479,10 +479,10 @@ hash_get_bucket(int type, unsigned int hashv)
 {
   assert(hashv < HASHSIZE);
 
-  if(hashv >= HASHSIZE)
+  if (hashv >= HASHSIZE)
     return NULL;
 
-  switch(type)
+  switch (type)
   {
     case HASH_TYPE_ID:
       return idTable[hashv];
@@ -525,15 +525,15 @@ hash_find_resv(const char *name)
   unsigned int hashv = strhash(name);
   struct ResvChannel *chptr;
 
-  if((chptr = resvchannelTable[hashv]) != NULL)
+  if ((chptr = resvchannelTable[hashv]) != NULL)
   {
-    if(irccmp(name, chptr->name))
+    if (irccmp(name, chptr->name))
     {
       struct ResvChannel *prev;
 
-      while(prev = chptr, (chptr = chptr->hnext) != NULL)
+      while (prev = chptr, (chptr = chptr->hnext) != NULL)
       {
-        if(!irccmp(name, chptr->name))
+        if (!irccmp(name, chptr->name))
         {
           prev->hnext = chptr->hnext;
           chptr->hnext = resvchannelTable[hashv];
@@ -553,15 +553,15 @@ hash_find_userhost(const char *host)
   unsigned int hashv = strhash(host);
   struct UserHost *userhost;
 
-  if((userhost = userhostTable[hashv]))
+  if ((userhost = userhostTable[hashv]))
   {
-    if(irccmp(host, userhost->host))
+    if (irccmp(host, userhost->host))
     {
       struct UserHost *prev;
 
-      while(prev = userhost, (userhost = userhost->next) != NULL)
+      while (prev = userhost, (userhost = userhost->next) != NULL)
       {
-        if(!irccmp(host, userhost->host))
+        if (!irccmp(host, userhost->host))
         {
           prev->next = userhost->next;
           userhost->next = userhostTable[hashv];
@@ -594,22 +594,22 @@ count_user_host(const char *user, const char *host, int *global_p,
   struct UserHost *found_userhost;
   struct NameHost *nameh;
 
-  if((found_userhost = hash_find_userhost(host)) == NULL)
+  if ((found_userhost = hash_find_userhost(host)) == NULL)
     return;
 
   DLINK_FOREACH(ptr, found_userhost->list.head)
   {
     nameh = ptr->data;
 
-    if(!irccmp(user, nameh->name))
+    if (!irccmp(user, nameh->name))
     {
-      if(global_p != NULL)
+      if (global_p != NULL)
         *global_p = nameh->gcount;
 
-      if(local_p != NULL)
+      if (local_p != NULL)
         *local_p  = nameh->lcount;
 
-      if(icount_p != NULL)
+      if (icount_p != NULL)
         *icount_p = nameh->icount;
 
       return;
@@ -628,7 +628,7 @@ find_or_add_userhost(const char *host)
 {
   struct UserHost *userhost;
 
-  if((userhost = hash_find_userhost(host)) != NULL)
+  if ((userhost = hash_find_userhost(host)) != NULL)
     return userhost;
 
   userhost = BlockHeapAlloc(userhost_heap);
@@ -654,26 +654,26 @@ add_user_host(const char *user, const char *host, int global)
   struct NameHost *nameh;
   int hasident = 1;
 
-  if(*user == '~')
+  if (*user == '~')
   {
     hasident = 0;
     ++user;
   }
 
-  if((found_userhost = find_or_add_userhost(host)) == NULL)
+  if ((found_userhost = find_or_add_userhost(host)) == NULL)
     return;
 
   DLINK_FOREACH(ptr, found_userhost->list.head)
   {
     nameh = ptr->data;
 
-    if(!irccmp(user, nameh->name))
+    if (!irccmp(user, nameh->name))
     {
       nameh->gcount++;
 
-      if(!global)
+      if (!global)
       {
-        if(hasident)
+        if (hasident)
           nameh->icount++;
 
         nameh->lcount++;
@@ -688,9 +688,9 @@ add_user_host(const char *user, const char *host, int global)
 
   nameh->gcount = 1;
 
-  if(!global)
+  if (!global)
   {
-    if(hasident)
+    if (hasident)
       nameh->icount = 1;
 
     nameh->lcount = 1;
@@ -715,40 +715,40 @@ delete_user_host(const char *user, const char *host, int global)
   struct NameHost *nameh;
   int hasident = 1;
 
-  if(*user == '~')
+  if (*user == '~')
   {
     hasident = 0;
     ++user;
   }
 
-  if((found_userhost = hash_find_userhost(host)) == NULL)
+  if ((found_userhost = hash_find_userhost(host)) == NULL)
     return;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, found_userhost->list.head)
   {
     nameh = ptr->data;
 
-    if(!irccmp(user, nameh->name))
+    if (!irccmp(user, nameh->name))
     {
-      if(nameh->gcount > 0)
+      if (nameh->gcount > 0)
         nameh->gcount--;
 
-      if(!global)
+      if (!global)
       {
-        if(nameh->lcount > 0)
+        if (nameh->lcount > 0)
           nameh->lcount--;
 
-        if(hasident && nameh->icount > 0)
+        if (hasident && nameh->icount > 0)
           nameh->icount--;
       }
 
-      if(nameh->gcount == 0 && nameh->lcount == 0)
+      if (nameh->gcount == 0 && nameh->lcount == 0)
       {
         dlinkDelete(&nameh->node, &found_userhost->list);
         BlockHeapFree(namehost_heap, nameh);
       }
 
-      if(dlink_list_length(&found_userhost->list) == 0)
+      if (dlink_list_length(&found_userhost->list) == 0)
       {
         hash_del_userhost(found_userhost);
         BlockHeapFree(userhost_heap, found_userhost);
@@ -784,7 +784,7 @@ delete_user_host(const char *user, const char *host, int global)
 static int
 exceeding_sendq(struct Client *to)
 {
-  if(dbuf_length(&to->localClient->buf_sendq) > (get_sendq(to) / 2))
+  if (dbuf_length(&to->localClient->buf_sendq) > (get_sendq(to) / 2))
     return 1;
   else
     return 0;
@@ -795,7 +795,7 @@ free_list_task(struct ListTask *lt, struct Client *source_p)
 {
   dlink_node *dl, *dln;
 
-  if((dl = dlinkFindDelete(&listing_client_list, source_p)) != NULL)
+  if ((dl = dlinkFindDelete(&listing_client_list, source_p)) != NULL)
     free_dlink_node(dl);
 
   DLINK_FOREACH_SAFE(dl, dln, lt->show_mask.head)
@@ -812,7 +812,7 @@ free_list_task(struct ListTask *lt, struct Client *source_p)
 
   MyFree(lt);
 
-  if(MyConnect(source_p))
+  if (MyConnect(source_p))
     source_p->localClient->list_task = NULL;
 }
 
@@ -831,13 +831,13 @@ list_allow_channel(const char *chname, struct ListTask *lt)
 
   DLINK_FOREACH(dl, lt->show_mask.head)
   {
-    if(!match_chan(dl->data, chname))
+    if (!match_chan(dl->data, chname))
       return 0;
   }
 
   DLINK_FOREACH(dl, lt->hide_mask.head)
   {
-    if(match_chan(dl->data, chname))
+    if (match_chan(dl->data, chname))
       return 0;
   }
 
@@ -856,10 +856,10 @@ static void
 list_one_channel(struct Client *source_p, struct Channel *chptr,
                  struct ListTask *list_task)
 {
-  if(SecretChannel(chptr) && !IsMember(source_p, chptr))
+  if (SecretChannel(chptr) && !IsMember(source_p, chptr))
     return;
 
-  if(dlink_list_length(&chptr->members) < list_task->users_min ||
+  if (dlink_list_length(&chptr->members) < list_task->users_min ||
       dlink_list_length(&chptr->members) > list_task->users_max ||
       (chptr->channelts != 0 &&
        ((unsigned int)chptr->channelts < list_task->created_min ||
@@ -869,7 +869,7 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
       list_task->topicts_max)
     return;
 
-  if(!list_allow_channel(chptr->chname, list_task))
+  if (!list_allow_channel(chptr->chname, list_task))
     return;
 
   sendto_one(source_p, form_str(RPL_LIST), me.name, source_p->name,
@@ -897,19 +897,19 @@ safe_list_channels(struct Client *source_p, struct ListTask *list_task,
 {
   struct Channel *chptr = NULL;
 
-  if(!only_unmasked_channels)
+  if (!only_unmasked_channels)
   {
     unsigned int i;
 
-    for(i = list_task->hash_index; i < HASHSIZE; ++i)
+    for (i = list_task->hash_index; i < HASHSIZE; ++i)
     {
-      if(exceeding_sendq(source_p->from))
+      if (exceeding_sendq(source_p->from))
       {
         list_task->hash_index = i;
         return;    /* still more to do */
       }
 
-      for(chptr = channelTable[i]; chptr; chptr = chptr->hnextch)
+      for (chptr = channelTable[i]; chptr; chptr = chptr->hnextch)
         list_one_channel(source_p, chptr, list_task);
     }
   }
@@ -919,7 +919,7 @@ safe_list_channels(struct Client *source_p, struct ListTask *list_task,
 
     DLINK_FOREACH(dl, list_task->show_mask.head)
     {
-      if((chptr = hash_find_channel(dl->data)) != NULL)
+      if ((chptr = hash_find_channel(dl->data)) != NULL)
         list_one_channel(source_p, chptr, list_task);
     }
   }

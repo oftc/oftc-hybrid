@@ -53,7 +53,7 @@ dbuf_put(struct dbuf_queue *qptr, char *data, size_t count)
 
   assert(count > 0);
 
-  if(qptr->blocks.tail == NULL)
+  if (qptr->blocks.tail == NULL)
     dbuf_alloc(qptr);
 
   do
@@ -62,13 +62,13 @@ dbuf_put(struct dbuf_queue *qptr, char *data, size_t count)
 
     amount = DBUF_BLOCK_SIZE - last->size;
 
-    if(!amount)
+    if (!amount)
     {
       last = dbuf_alloc(qptr);
       amount = DBUF_BLOCK_SIZE;
     }
 
-    if(amount > count)
+    if (amount > count)
       amount = count;
 
     memcpy((void *) &last->data[last->size], data, amount);
@@ -79,7 +79,7 @@ dbuf_put(struct dbuf_queue *qptr, char *data, size_t count)
     data += amount;
 
   }
-  while(count > 0);
+  while (count > 0);
 }
 
 void
@@ -90,19 +90,19 @@ dbuf_delete(struct dbuf_queue *qptr, size_t count)
 
   assert(qptr->total_size >= count);
 
-  if(count == 0)
+  if (count == 0)
     return;
 
   /* free whole blocks first.. */
-  while(1)
+  while (1)
   {
-    if(!count)
+    if (!count)
       return;
 
     ptr = qptr->blocks.head;
     first = ptr->data;
 
-    if(count < first->size)
+    if (count < first->size)
       break;
 
     qptr->total_size -= first->size;

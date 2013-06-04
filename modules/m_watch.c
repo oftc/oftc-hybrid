@@ -49,7 +49,7 @@ show_watch(struct Client *client_p, const char *name,
 {
   const struct Client *target_p = NULL;
 
-  if((target_p = find_person(client_p, name)))
+  if ((target_p = find_person(client_p, name)))
     sendto_one(client_p, form_str(rpl1), me.name, client_p->name,
                target_p->name, target_p->username,
                target_p->host, target_p->tsinfo);
@@ -78,24 +78,24 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc,
   /*
    * Default to 'l' - list who's currently online
    */
-  if(parc < 2)
+  if (parc < 2)
     parv[1] = def;
 
-  for(s = strtoken(&p, parv[1], ", "); s;
-      s = strtoken(&p,    NULL, ", "))
+  for (s = strtoken(&p, parv[1], ", "); s;
+       s = strtoken(&p,    NULL, ", "))
   {
-    if((user = strchr(s, '!')))
+    if ((user = strchr(s, '!')))
       * user++ = '\0'; /* Not used */
 
     /*
      * Prefix of "+", they want to add a name to their WATCH
      * list.
      */
-    if(*s == '+')
+    if (*s == '+')
     {
-      if(*(s + 1) != '\0')
+      if (*(s + 1) != '\0')
       {
-        if(dlink_list_length(&source_p->localClient->watches) >=
+        if (dlink_list_length(&source_p->localClient->watches) >=
             ConfigFileEntry.max_watch)
         {
           sendto_one(source_p, form_str(ERR_TOOMANYWATCH), me.name,
@@ -114,7 +114,7 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc,
      * Prefix of "-", coward wants to remove somebody from their
      * WATCH list.  So do it. :-)
      */
-    if(*s == '-')
+    if (*s == '-')
     {
       watch_del_from_hash_table(s + 1, source_p);
       show_watch(source_p, s + 1, RPL_WATCHOFF, RPL_WATCHOFF);
@@ -125,7 +125,7 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc,
      * Fancy "C" or "c", they want to nuke their WATCH list and start
      * over, so be it.
      */
-    if(*s == 'C' || *s == 'c')
+    if (*s == 'C' || *s == 'c')
     {
       watch_del_watch_list(source_p);
       continue;
@@ -136,13 +136,13 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc,
      * their WATCH list.  I imagine this could be CPU intensive if
      * it's done alot, perhaps an auto-lag on this?
      */
-    if(*s == 'S' || *s == 's')
+    if (*s == 'S' || *s == 's')
     {
       char buf[IRCD_BUFSIZE] = { '\0' };
       const struct Watch *anptr = NULL;
       unsigned int count = 0;
 
-      if(list_requested & 0x1)
+      if (list_requested & 0x1)
         continue;
 
       list_requested |= 0x1;
@@ -151,7 +151,7 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc,
        * Send a list of how many users they have on their WATCH list
        * and how many WATCH lists they are on.
        */
-      if((anptr = watch_find_hash(source_p->name)))
+      if ((anptr = watch_find_hash(source_p->name)))
         count = dlink_list_length(&anptr->watched_by);
 
       sendto_one(source_p, form_str(RPL_WATCHSTAT),
@@ -162,7 +162,7 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc,
        * Send a list of everybody in their WATCH list.  Be careful
        * not to buffer overflow.
        */
-      if((ptr = source_p->localClient->watches.head) == NULL)
+      if ((ptr = source_p->localClient->watches.head) == NULL)
       {
         sendto_one(source_p, form_str(RPL_ENDOFWATCHLIST),
                    me.name, source_p->name, *s);
@@ -175,11 +175,11 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc,
       count = strlen(source_p->name) + strlen(me.name) + 10 +
               strlen(buf);
 
-      while((ptr = ptr->next))
+      while ((ptr = ptr->next))
       {
         anptr = ptr->data;
 
-        if(count + strlen(anptr->nick) + 1 > IRCD_BUFSIZE - 2)
+        if (count + strlen(anptr->nick) + 1 > IRCD_BUFSIZE - 2)
         {
           sendto_one(source_p, form_str(RPL_WATCHLIST),
                      me.name, source_p->name, buf);
@@ -204,11 +204,11 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc,
      * their WATCH list AND if they are online or offline? Sheesh,
      * greedy aren't we?
      */
-    if(*s == 'L' || *s == 'l')
+    if (*s == 'L' || *s == 'l')
     {
       const struct Client *target_p = NULL;
 
-      if(list_requested & 0x2)
+      if (list_requested & 0x2)
         continue;
 
       list_requested |= 0x2;
@@ -217,7 +217,7 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc,
       {
         const struct Watch *anptr = ptr->data;
 
-        if((target_p = find_person(source_p, anptr->nick)))
+        if ((target_p = find_person(source_p, anptr->nick)))
           sendto_one(source_p, form_str(RPL_NOWON), me.name, source_p->name,
                      target_p->name, target_p->username,
                      target_p->host, target_p->tsinfo);
@@ -225,7 +225,7 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc,
          * But actually, only show them offline if it's a capital
          * 'L' (full list wanted).
          */
-        else if(*s == 'L')
+        else if (*s == 'L')
           sendto_one(source_p, form_str(RPL_NOWOFF), me.name,
                      source_p->name, anptr->nick,
                      "*", "*", anptr->lasttime);

@@ -104,7 +104,7 @@ init_netio(void)
 {
   int fd;
 
-  if((fd = epoll_create(hard_fdlimit)) < 0)
+  if ((fd = epoll_create(hard_fdlimit)) < 0)
   {
     ilog(LOG_TYPE_IRCD, "init_netio: Couldn't open epoll fd - %d: %s",
          errno, strerror(errno));
@@ -127,13 +127,13 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   int new_events, op;
   struct epoll_event ep_event = { 0, { 0 } };
 
-  if((type & COMM_SELECT_READ))
+  if ((type & COMM_SELECT_READ))
   {
     F->read_handler = handler;
     F->read_data = client_data;
   }
 
-  if((type & COMM_SELECT_WRITE))
+  if ((type & COMM_SELECT_WRITE))
   {
     F->write_handler = handler;
     F->write_data = client_data;
@@ -142,18 +142,18 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   new_events = (F->read_handler ? EPOLLIN : 0) |
                (F->write_handler ? EPOLLOUT : 0);
 
-  if(timeout != 0)
+  if (timeout != 0)
   {
     F->timeout = CurrentTime + (timeout / 1000);
     F->timeout_handler = handler;
     F->timeout_data = client_data;
   }
 
-  if(new_events != F->evcache)
+  if (new_events != F->evcache)
   {
-    if(new_events == 0)
+    if (new_events == 0)
       op = EPOLL_CTL_DEL;
-    else if(F->evcache == 0)
+    else if (F->evcache == 0)
       op = EPOLL_CTL_ADD;
     else
       op = EPOLL_CTL_MOD;
@@ -161,7 +161,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
     ep_event.events = F->evcache = new_events;
     ep_event.data.fd = F->fd;
 
-    if(epoll_ctl(efd.fd, op, F->fd, &ep_event) != 0)
+    if (epoll_ctl(efd.fd, op, F->fd, &ep_event) != 0)
     {
       ilog(LOG_TYPE_IRCD, "comm_setselect: epoll_ctl() failed: %s", strerror(errno));
       abort();
@@ -189,7 +189,7 @@ comm_select(void)
 
   set_time();
 
-  if(num < 0)
+  if (num < 0)
   {
 #ifdef HAVE_USLEEP
     usleep(50000);  /* avoid 99% CPU in comm_select */
@@ -197,30 +197,30 @@ comm_select(void)
     return;
   }
 
-  for(i = 0; i < num; i++)
+  for (i = 0; i < num; i++)
   {
     F = lookup_fd(ep_fdlist[i].data.fd);
 
-    if(F == NULL || !F->flags.open)
+    if (F == NULL || !F->flags.open)
       continue;
 
-    if((ep_fdlist[i].events & (EPOLLIN | EPOLLHUP | EPOLLERR)))
-      if((hdl = F->read_handler) != NULL)
+    if ((ep_fdlist[i].events & (EPOLLIN | EPOLLHUP | EPOLLERR)))
+      if ((hdl = F->read_handler) != NULL)
       {
         F->read_handler = NULL;
         hdl(F, F->read_data);
 
-        if(!F->flags.open)
+        if (!F->flags.open)
           continue;
       }
 
-    if((ep_fdlist[i].events & (EPOLLOUT | EPOLLHUP | EPOLLERR)))
-      if((hdl = F->write_handler) != NULL)
+    if ((ep_fdlist[i].events & (EPOLLOUT | EPOLLHUP | EPOLLERR)))
+      if ((hdl = F->write_handler) != NULL)
       {
         F->write_handler = NULL;
         hdl(F, F->write_data);
 
-        if(!F->flags.open)
+        if (!F->flags.open)
           continue;
       }
 

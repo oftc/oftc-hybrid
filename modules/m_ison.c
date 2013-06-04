@@ -53,16 +53,16 @@ do_ison(struct Client *client_p, struct Client *source_p,
    * rfc1459 is ambigious about how to handle ISON
    * this should handle both interpretations.
    */
-  for(i = 1; i < parc; i++)
+  for (i = 1; i < parc; i++)
   {
-    for(nick = strtoken(&p, parv[i], " "); nick;
-        nick = strtoken(&p,    NULL, " "))
+    for (nick = strtoken(&p, parv[i], " "); nick;
+         nick = strtoken(&p,    NULL, " "))
     {
-      if((target_p = find_person(client_p, nick)))
+      if ((target_p = find_person(client_p, nick)))
       {
         len = strlen(target_p->name);
 
-        if((current_insert_point + (len + 5)) < (buf + sizeof(buf)))
+        if ((current_insert_point + (len + 5)) < (buf + sizeof(buf)))
         {
           memcpy(current_insert_point, target_p->name, len);
           current_insert_point += len;
@@ -76,7 +76,7 @@ do_ison(struct Client *client_p, struct Client *source_p,
       }
     }
 
-    if(done)
+    if (done)
       break;
   }
 
