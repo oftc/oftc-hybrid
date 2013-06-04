@@ -1003,10 +1003,7 @@ oper_entry: OPERATOR
       }
 
       if (yy_aconf->certfp != NULL)
-      {
-        new_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
-        memcpy(new_aconf->certfp, yy_aconf->certfp, SHA_DIGEST_LENGTH);
-      }
+        DupString(new_aconf->certfp, yy_aconf->certfp);
 #endif
 
 #ifdef HAVE_LIBCRYPTO
@@ -1090,18 +1087,16 @@ oper_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    char tmp[SHA_DIGEST_LENGTH];
-    
     if(yy_aconf->certfp != NULL)
       MyFree(yy_aconf->certfp);
 
-    if(base16_decode(tmp, SHA_DIGEST_LENGTH, yylval.string, strlen(yylval.string)) != 0)
+    if(strlen(yylval.string) != SHA_DIGEST_LENGTH * 2)
     {
       yyerror("Invalid client certificate fingerprint provided. Ignoring");
       break;
     }
-    yy_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
-    memcpy(yy_aconf->certfp, tmp, SHA_DIGEST_LENGTH);
+
+    DupString(yy_aconf->certfp, yylval.string);
   }
 };
 
@@ -1729,10 +1724,7 @@ auth_entry: IRCD_AUTH
       collapse(new_aconf->host);
 
       if (yy_aconf->certfp != NULL)
-      {
-        new_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
-        memcpy(new_aconf->certfp, yy_aconf->certfp, SHA_DIGEST_LENGTH);
-      }
+        DupString(new_aconf->certfp, yy_aconf->certfp);
 
       conf_add_class_to_conf(new_conf, class_name);
       add_conf_by_address(CONF_CLIENT, new_aconf);
@@ -1804,18 +1796,16 @@ auth_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    char tmp[SHA_DIGEST_LENGTH];
-
     if(yy_aconf->certfp != NULL)
       MyFree(yy_aconf->certfp);
 
-    if(base16_decode(tmp, SHA_DIGEST_LENGTH, yylval.string, strlen(yylval.string)) != 0)
+    if(strlen(yylval.string) != SHA_DIGEST_LENGTH * 2)
     {
       yyerror("Invalid client certificate fingerprint provided. Ignoring");
       break;
     }
-    yy_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
-    memcpy(yy_aconf->certfp, tmp, SHA_DIGEST_LENGTH);
+
+    DupString(yy_aconf->certfp, yylval.string);
   }
 };
 
@@ -2195,7 +2185,7 @@ connect_entry: CONNECT
 {
   if (conf_parser_ctx.pass == 2)
   {
-    if (yy_aconf->host && yy_aconf->passwd && yy_aconf->spasswd)
+    if (yy_aconf->host && ((yy_aconf->passwd && yy_aconf->spasswd) || yy_aconf->certfp))
     {
       if (conf_add_server(yy_conf, class_name) == -1)
         delete_conf_item(yy_conf);
@@ -2206,8 +2196,8 @@ connect_entry: CONNECT
       {
         if (yy_aconf->host == NULL)
           conf_error_report("Ignoring connect block -- missing host");
-        else if (!yy_aconf->passwd || !yy_aconf->spasswd)
-          conf_error_report("Ignoring connect block -- missing password");
+        else if (!yy_aconf->passwd || !yy_aconf->spasswd || !yy_aconf->certfp)
+          conf_error_report("Ignoring connect block -- must supply either password or fingerprint");
       }
 
       /* XXX
@@ -2232,7 +2222,7 @@ connect_item:   connect_name | connect_host | connect_vhost |
 		connect_send_password | connect_accept_password |
 		connect_aftype | connect_port | connect_ssl_cipher_list |
 		connect_flags | connect_hub_mask | connect_leaf_mask |
-		connect_class | connect_encrypted | 
+		connect_class | connect_encrypted | connect_client_certificate_hash |
                 error ';' ;
 
 connect_name: NAME '=' QSTRING ';'
@@ -2406,6 +2396,23 @@ connect_ssl_cipher_list: T_SSL_CIPHER_LIST '=' QSTRING ';'
 #endif
 };
 
+connect_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
+{
+  if (conf_parser_ctx.pass == 2)
+  {
+    if(yy_aconf->certfp != NULL)
+      MyFree(yy_aconf->certfp);
+
+    if(strlen(yylval.string) != SHA_DIGEST_LENGTH * 2)
+    {
+      yyerror("Invalid client certificate fingerprint provided. Ignoring");
+      break;
+    }
+
+    DupString(yy_aconf->certfp, yylval.string);
+  }
+};
+
 
 /***************************************************************************
  *  section kill
@@ -2538,21 +2545,17 @@ exempt_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    char tmp[SHA_DIGEST_LENGTH];
-
     yy_conf = make_conf_item(EXEMPTDLINE_TYPE);
     yy_aconf = map_to_conf(yy_conf);
   
-    if(base16_decode(tmp, SHA_DIGEST_LENGTH, yylval.string, strlen(yylval.string)) != 0)
+    if(strlen(yylval.string) != SHA_DIGEST_LENGTH * 2)
     {
       yyerror("Invalid client certificate fingerprint provided. Ignoring");
       break;
     }
  
-    yy_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
-    yy_aconf->host = MyMalloc(SHA_DIGEST_LENGTH);
-    memcpy(yy_aconf->certfp, tmp, SHA_DIGEST_LENGTH);
-    memcpy(yy_aconf->host, tmp, SHA_DIGEST_LENGTH);
+    DupString(yy_aconf->certfp, yylval.string);
+    DupString(yy_aconf->host, yylval.string);
  
     add_conf_by_address(CONF_EXEMPTDLINE, yy_aconf);
 

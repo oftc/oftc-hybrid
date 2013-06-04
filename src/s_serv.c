@@ -405,7 +405,8 @@ check_server(const char *name, struct Client *client_p)
     {
       error = -2;
 
-      if (!match_conf_password(client_p->localClient->passwd, aconf))
+      if (!match_conf_password(client_p->localClient->passwd, client_p->certfp, 
+            aconf))
         return -2;
 
       server_conf = conf;
@@ -626,12 +627,7 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
 
 #ifdef HAVE_LIBCRYPTO
   if(!EmptyString(target_p->certfp))
-  {
-    char buf[SHA_DIGEST_LENGTH*2+1];
-
-    base16_encode(buf, sizeof(buf), target_p->certfp, sizeof(target_p->certfp));
-    sendto_one(client_p, "CERTFP %s %s", target_p->name, buf);
-  }
+    sendto_one(client_p, "CERTFP %s %s", target_p->name, target_p->certfp);
 #endif
 
   if (target_p->away[0])
@@ -749,6 +745,8 @@ server_estab(struct Client *client_p)
     if (!EmptyString(aconf->spasswd))
       sendto_one(client_p, "PASS %s TS %d %s",
                  aconf->spasswd, TS_CURRENT, me.id);
+    else if(!EmptyString(aconf->certfp))
+      sendto_one(client_p, "PASS certificate_auth TS %d %s", TS_CURRENT, me.id);
 
     /* Pass my info to the new server
      *
@@ -1340,6 +1338,8 @@ finish_ssl_server_handshake(struct Client *client_p)
   if (!EmptyString(aconf->spasswd))
     sendto_one(client_p, "PASS %s TS %d %s",
                aconf->spasswd, TS_CURRENT, me.id);
+  else if(!EmptyString(aconf->certfp))
+    sendto_one(client_p, "PASS certificate_auth TS %d %s", TS_CURRENT, me.id);
 
   send_capabilities(client_p, aconf, 0);
 
@@ -1396,6 +1396,31 @@ ssl_server_handshake(fde_t *fd, struct Client *client_p)
         return;
       }
     }
+  }
+
+  X509 *cert;
+
+  err = SSL_get_error(client_p->localClient->fd.ssl, ret);
+  ilog(LOG_TYPE_IRCD, "SSL Error %d %s", err, ERR_error_string(err, NULL));
+
+  if ((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
+  {
+    int res = SSL_get_verify_result(client_p->localClient->fd.ssl);
+    if (res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
+        res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
+        res == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
+    {
+      /* The client sent a certificate which verified OK */
+      base16_encode(client_p->certfp, sizeof(client_p->certfp),
+          (const char*)cert->sha1_hash, sizeof(cert->sha1_hash));
+    }
+    else
+    {
+      ilog(LOG_TYPE_IRCD, "Server %s!%s@%s gave bad SSL client certificate: %d",
+          client_p->name, client_p->username, client_p->host, res);
+    }
+
+    X509_free(cert);
   }
 
   finish_ssl_server_handshake(client_p);
@@ -1499,6 +1524,8 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   if (!EmptyString(aconf->spasswd))
     sendto_one(client_p, "PASS %s TS %d %s",
                aconf->spasswd, TS_CURRENT, me.id);
+  else if(!EmptyString(aconf->certfp))
+    sendto_one(client_p, "PASS certificate_auth TS %d %s", TS_CURRENT, me.id);
 
   send_capabilities(client_p, aconf, 0);
 

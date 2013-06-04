@@ -354,7 +354,7 @@ register_local_user(struct Client *source_p)
   {
     const char *pass = source_p->localClient->passwd;
 
-    if (!match_conf_password(pass, aconf))
+    if (!match_conf_password(pass, source_p->certfp, aconf))
     {
       ++ServerStats.is_ref;
       sendto_one(source_p, form_str(ERR_PASSWDMISMATCH),
@@ -624,12 +624,7 @@ introduce_client(struct Client *source_p)
                    source_p->info);
 
       if(!EmptyString(source_p->certfp))
-      {
-        char buf[SHA_DIGEST_LENGTH*2+1];
-
-        base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
-        sendto_one(server, "CERTFP %s %s", source_p->name, buf);
-      }
+        sendto_one(server, "CERTFP %s %s", source_p->name, source_p->certfp);
     }
     else
     {
@@ -649,12 +644,7 @@ introduce_client(struct Client *source_p)
                    source_p->servptr->name, source_p->info);
 
       if(!EmptyString(source_p->certfp))
-      {
-        char buf[SHA_DIGEST_LENGTH*2+1];
-
-        base16_encode(buf, sizeof(buf), source_p->certfp, sizeof(source_p->certfp));
-        sendto_one(server, "CERTFP %s %s", source_p->name, buf);
-      }
+        sendto_one(server, "CERTFP %s %s", source_p->name, source_p->certfp);
     }
   }
 }
@@ -1163,13 +1153,9 @@ user_welcome(struct Client *source_p)
                ssl_get_cipher(source_p->localClient->fd.ssl));
     if(!EmptyString(source_p->certfp))
     {
-      char buf[SHA_DIGEST_LENGTH*2+1]; 
-
-      base16_encode(buf, SHA_DIGEST_LENGTH*2+1, source_p->certfp,
-          SHA_DIGEST_LENGTH);
       sendto_one(source_p, 
           ":%s NOTICE %s: *** Your client certificate fingerprint is %s",
-          me.name, source_p->name, buf);
+          me.name, source_p->name, source_p->certfp);
     }
   }
 #endif

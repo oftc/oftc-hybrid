@@ -2776,7 +2776,7 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
     return -1;
   }
 
-  if (EmptyString(aconf->passwd))
+  if (EmptyString(aconf->passwd) && EmptyString(aconf->certfp))
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Bad connect block, name %s",
                          conf->name);
@@ -3201,9 +3201,16 @@ valid_comment(struct Client *source_p, char *comment, int warn)
  * side effects - none
  */
 int
-match_conf_password(const char *password, const struct AccessItem *aconf)
+match_conf_password(const char *password, const char *certfp, 
+    const struct AccessItem *aconf)
 {
   const char *encr = NULL;
+
+  if(!EmptyString(certfp) && aconf->certfp != NULL)
+  {
+    if(strncmp(aconf->certfp, certfp, SHA_DIGEST_LENGTH) == 0)
+      return 1;
+  }
 
   if (EmptyString(password) || EmptyString(aconf->passwd))
     return 0;

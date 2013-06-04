@@ -127,7 +127,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
     return;
   }
 
-  if (!match_conf_password(parv[1], aconf))
+  if (!match_conf_password(parv[1], NULL, aconf))
   {
     sendto_realops_flags(UMODE_UNAUTH, L_ALL, "CGI:IRC password incorrect");
     return;

@@ -407,11 +407,8 @@ whois_person(struct Client *source_p, struct Client *target_p)
       if((target_p == source_p || HasUMode(source_p, UMODE_OPER)) && 
           !EmptyString(target_p->certfp))
       {
-        char buf[SHA_DIGEST_LENGTH*2+1];
-
-        base16_encode(buf, sizeof(buf), target_p->certfp, sizeof(target_p->certfp));
         sendto_one(source_p, form_str(RPL_WHOISCERTFP),
-                me.name, source_p->name, target_p->name, buf);
+                me.name, source_p->name, target_p->name, target_p->certfp);
       }
     }
 #endif
