@@ -2776,7 +2776,7 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
     return -1;
   }
 
-  if (EmptyString(aconf->passwd))
+  if (EmptyString(aconf->passwd) && EmptyString(aconf->certfp))
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Bad connect block, name %s",
                          conf->name);

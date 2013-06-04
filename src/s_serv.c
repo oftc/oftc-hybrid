@@ -745,6 +745,8 @@ server_estab(struct Client *client_p)
     if (!EmptyString(aconf->spasswd))
       sendto_one(client_p, "PASS %s TS %d %s",
                  aconf->spasswd, TS_CURRENT, me.id);
+    else if(!EmptyString(aconf->certfp))
+      sendto_one(client_p, "PASS certificate_auth TS %d %s", TS_CURRENT, me.id);
 
     /* Pass my info to the new server
      *
@@ -1336,6 +1338,8 @@ finish_ssl_server_handshake(struct Client *client_p)
   if (!EmptyString(aconf->spasswd))
     sendto_one(client_p, "PASS %s TS %d %s",
                aconf->spasswd, TS_CURRENT, me.id);
+  else if(!EmptyString(aconf->certfp))
+    sendto_one(client_p, "PASS certificate_auth TS %d %s", TS_CURRENT, me.id);
 
   send_capabilities(client_p, aconf, 0);
 
@@ -1520,6 +1524,8 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   if (!EmptyString(aconf->spasswd))
     sendto_one(client_p, "PASS %s TS %d %s",
                aconf->spasswd, TS_CURRENT, me.id);
+  else if(!EmptyString(aconf->certfp))
+    sendto_one(client_p, "PASS certificate_auth TS %d %s", TS_CURRENT, me.id);
 
   send_capabilities(client_p, aconf, 0);
 
