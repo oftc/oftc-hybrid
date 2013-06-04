@@ -128,6 +128,7 @@ struct LocalUser
 
   char              *passwd;
   fde_t             fd;
+  fde_t             auth_fd;   /**< FD for authentication (ident lookup) */
 
   /* Anti-flood stuff. We track how many messages were parsed and how
    * many we were allowed in the current second, and apply a simple

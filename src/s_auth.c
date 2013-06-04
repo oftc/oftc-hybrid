@@ -216,7 +216,7 @@ auth_error(struct AuthRequest *auth)
 {
   ++ServerStats.is_abad;
 
-  fd_close(&auth->fd);
+  fd_close(&auth->client->localClient->auth_fd);
 
   ClearAuth(auth);
 
@@ -245,7 +245,7 @@ start_auth_query(struct AuthRequest *auth)
 #endif
 
   /* open a socket of the same type as the client socket */
-  if (comm_open(&auth->fd, auth->client->ip.ss.ss_family,
+  if (comm_open(&auth->client->localClient->auth_fd, auth->client->ip.ss.ss_family,
                 SOCK_STREAM, 0, "ident") == -1)
   {
     report_error(L_ALL, "creating auth stream socket %s:%s", 
@@ -280,7 +280,7 @@ start_auth_query(struct AuthRequest *auth)
 #endif
   localaddr.ss_port = htons(0);
 
-  comm_connect_tcp(&auth->fd, auth->client->sockhost, 113, 
+  comm_connect_tcp(&auth->client->localClient->auth_fd, auth->client->sockhost, 113, 
       (struct sockaddr *)&localaddr, localaddr.ss_len, auth_connect_callback, 
       auth, auth->client->ip.ss.ss_family, 
       GlobalSetOptions.ident_timeout);
@@ -407,7 +407,7 @@ timeout_auth_queries_event(void *notused)
     if (IsDoingAuth(auth))
     {  
       ++ServerStats.is_abad;
-      fd_close(&auth->fd);
+      fd_close(&auth->client->localClient->auth_fd);
       ClearAuth(auth);
       sendheader(auth->client, REPORT_FAIL_ID);
     }
@@ -493,7 +493,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
     return;
   }
 
-  read_auth_reply(&auth->fd, auth);
+  read_auth_reply(&auth->client->localClient->auth_fd, auth);
 }
 
 /*
@@ -591,7 +591,7 @@ delete_auth(struct AuthRequest *auth)
     delete_resolver_queries(auth);
 
   if (IsDoingAuth(auth))
-    fd_close(&auth->fd);
+    fd_close(&auth->client->localClient->auth_fd);
 
   dlinkDelete(&auth->node, &auth_doing_list);
   BlockHeapFree(auth_heap, auth);
