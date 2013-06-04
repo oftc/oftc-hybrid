@@ -45,5 +45,5 @@ int base16_decode(char *, size_t, const char *, size_t);
                   (((x) > _1MEG) ? "Megabytes" : "Kilobytes")))
 #define _GMKv(x)  (((x) > _1TER) ? (float)((x)/_1TER) : (((x) > _1GIG) ? \
                    (float)((x)/_1GIG) : (((x) > _1MEG) ? (float)((x)/_1MEG) : \
-		   (float)(x))))
+       (float)(x))))
 #endif

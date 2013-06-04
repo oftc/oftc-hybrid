@@ -10,39 +10,39 @@
  * Inline versions of get/put short/long.  Pointer is advanced.
  */
 #define IRC_NS_GET16(s, cp) { \
-	const unsigned char *t_cp = (const unsigned char *)(cp); \
-	(s) = ((uint16_t)t_cp[0] << 8) \
-	    | ((uint16_t)t_cp[1]) \
-	    ; \
-	(cp) += NS_INT16SZ; \
+  const unsigned char *t_cp = (const unsigned char *)(cp); \
+  (s) = ((uint16_t)t_cp[0] << 8) \
+      | ((uint16_t)t_cp[1]) \
+      ; \
+  (cp) += NS_INT16SZ; \
 }
 
 #define IRC_NS_GET32(l, cp) { \
-	const unsigned char *t_cp = (const unsigned char *)(cp); \
-	(l) = ((uint32_t)t_cp[0] << 24) \
-	    | ((uint32_t)t_cp[1] << 16) \
-	    | ((uint32_t)t_cp[2] << 8) \
-	    | ((uint32_t)t_cp[3]) \
-	    ; \
-	(cp) += NS_INT32SZ; \
+  const unsigned char *t_cp = (const unsigned char *)(cp); \
+  (l) = ((uint32_t)t_cp[0] << 24) \
+      | ((uint32_t)t_cp[1] << 16) \
+      | ((uint32_t)t_cp[2] << 8) \
+      | ((uint32_t)t_cp[3]) \
+      ; \
+  (cp) += NS_INT32SZ; \
 }
 
 #define IRC_NS_PUT16(s, cp) { \
-	uint16_t t_s = (uint16_t)(s); \
-	unsigned char *t_cp = (unsigned char *)(cp); \
-	*t_cp++ = t_s >> 8; \
-	*t_cp   = t_s; \
-	(cp) += NS_INT16SZ; \
+  uint16_t t_s = (uint16_t)(s); \
+  unsigned char *t_cp = (unsigned char *)(cp); \
+  *t_cp++ = t_s >> 8; \
+  *t_cp   = t_s; \
+  (cp) += NS_INT16SZ; \
 }
 
 #define IRC_NS_PUT32(l, cp) { \
-	uint32_t t_l = (uint32_t)(l); \
-	unsigned char *t_cp = (unsigned char *)(cp); \
-	*t_cp++ = t_l >> 24; \
-	*t_cp++ = t_l >> 16; \
-	*t_cp++ = t_l >> 8; \
-	*t_cp   = t_l; \
-	(cp) += NS_INT32SZ; \
+  uint32_t t_l = (uint32_t)(l); \
+  unsigned char *t_cp = (unsigned char *)(cp); \
+  *t_cp++ = t_l >> 24; \
+  *t_cp++ = t_l >> 16; \
+  *t_cp++ = t_l >> 8; \
+  *t_cp   = t_l; \
+  (cp) += NS_INT32SZ; \
 }
 
 extern struct irc_ssaddr irc_nsaddr_list[];

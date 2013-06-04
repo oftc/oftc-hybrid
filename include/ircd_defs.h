@@ -61,7 +61,7 @@
 #define IRCD_MAXNS      3       /* Maximum number of nameservers in 
                                    /etc/resolv.conf we care about */
 
-#define LOWEST_SAFE_FD  4	/* skip stdin, stdout, stderr, and profiler */
+#define LOWEST_SAFE_FD  4  /* skip stdin, stdout, stderr, and profiler */
 
 /* This is to get around the fact that some implementations have ss_len and
  * others do not

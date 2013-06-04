@@ -134,8 +134,8 @@ extern char *strip_color(const char *);
 #define AddMemberFlag(x, y) ((x)->flags |=  (y))
 #define DelMemberFlag(x, y) ((x)->flags &= ~(y))
 
-#define FLOOD_NOTICED		1
-#define JOIN_FLOOD_NOTICED	2
+#define FLOOD_NOTICED    1
+#define JOIN_FLOOD_NOTICED  2
 
 #define SetFloodNoticed(x)   ((x)->flags |= FLOOD_NOTICED)
 #define IsSetFloodNoticed(x) ((x)->flags & FLOOD_NOTICED)

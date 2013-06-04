@@ -34,9 +34,9 @@
 #define MAXMODEPARAMS 4
 
 /* can_send results */
-#define CAN_SEND_NO	0
+#define CAN_SEND_NO  0
 #define CAN_SEND_NONOP  -1
-#define CAN_SEND_OPV	-2
+#define CAN_SEND_OPV  -2
 
 /* Channel related flags */
 #define CHFL_CHANOP     0x0001 /* Channel operator   */

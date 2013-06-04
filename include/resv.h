@@ -33,7 +33,7 @@ struct ResvChannel
   /* +1 for \0 */
   char name[CHANNELLEN + 1];
   char *reason;
-  int	conf;		/* 1 if set from ircd.conf, 0 if from elsewhere */
+  int  conf;    /* 1 if set from ircd.conf, 0 if from elsewhere */
   int count; /* How many times this item has been matched */
 };
 

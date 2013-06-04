@@ -85,9 +85,9 @@ extern void kill_client_ll_serv_butone(struct Client *, struct Client *,
 #define ONLY_CHANOPS 3
 #define ONLY_SERVERS 4 /* for channel_mode.c */
 
-#define L_ALL 	0
-#define L_OPER 	1
-#define L_ADMIN	2
+#define L_ALL   0
+#define L_OPER   1
+#define L_ADMIN  2
 
 #define NOCAPS          0               /* no caps */
 #define NOFLAGS         0               /* no flags */

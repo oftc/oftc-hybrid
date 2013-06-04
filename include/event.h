@@ -29,7 +29,7 @@
  * How many event entries we need to allocate at a time in the block
  * allocator. 16 should be plenty at a time.
  */
-#define	MAX_EVENTS	50
+#define  MAX_EVENTS  50
 
 
 typedef void EVH(void *);

@@ -86,7 +86,7 @@ struct ConfItem
 {
   dlink_node node;      /* link into known ConfItems of this type */
 
-  char *name;		/* Primary key */
+  char *name;    /* Primary key */
   void *regexpname;
   unsigned int flags;
   ConfType type;
@@ -97,14 +97,14 @@ struct ConfItem
  */
 struct MatchItem
 {
-  char *user;		/* Used for ULINE only */
-  char *host;		/* Used for ULINE only */
+  char *user;    /* Used for ULINE only */
+  char *host;    /* Used for ULINE only */
   char *reason;
   char *oper_reason;
-  int action;		/* used for uline */
-  int count;		/* How many times this matchitem has been matched */
-  int ref_count;	/* How many times is this matchitem in use */
-  int illegal;		/* Should it be deleted when possible? */
+  int action;    /* used for uline */
+  int count;    /* How many times this matchitem has been matched */
+  int ref_count;  /* How many times is this matchitem in use */
+  int illegal;    /* Should it be deleted when possible? */
   time_t           hold;     /* Hold action until this time (calendar time) */
 };
 
@@ -125,8 +125,8 @@ struct AccessItem
   char *           host;     /* host part of user@host */
   char *           passwd;
   char *           spasswd;  /* Password to send. */
-  char *	   reason;
-  char *	   oper_reason;
+  char *     reason;
+  char *     oper_reason;
   char *           user;     /* user part of user@host */
   time_t           hold;     /* Hold action until this time (calendar time) */
   struct ConfItem *class_ptr;  /* Class of connection */
@@ -202,18 +202,18 @@ struct ip_entry
 #define CONF_CLIENT_MASK       (CONF_CLIENT | CONF_OPERATOR | CONF_SERVER_MASK)
 
 /* XXX temporary hack */
-#define CONF_CRESV	        0x80000001
-#define CONF_NRESV	        0x80000002
+#define CONF_CRESV          0x80000001
+#define CONF_NRESV          0x80000002
 
-#define IsConfIllegal(x)	((x)->status & CONF_ILLEGAL)
-#define SetConfIllegal(x)	((x)->status |= CONF_ILLEGAL)
-#define IsConfServer(x)		((x)->status == CONF_SERVER)
-#define SetConfServer(x)	((x)->status = CONF_SERVER)
-#define IsConfOperator(x)	((x)->status & CONF_OPERATOR)
-#define IsConfKill(x)		((x)->status == CONF_KLINE)
-#define IsConfClient(x)		((x)->status & CONF_CLIENT)
-#define IsConfUline(x)		((x)->status & CONF_ULINE)
-#define IsConfXline(x)		((x)->status & CONF_XLINE)
+#define IsConfIllegal(x)  ((x)->status & CONF_ILLEGAL)
+#define SetConfIllegal(x)  ((x)->status |= CONF_ILLEGAL)
+#define IsConfServer(x)    ((x)->status == CONF_SERVER)
+#define SetConfServer(x)  ((x)->status = CONF_SERVER)
+#define IsConfOperator(x)  ((x)->status & CONF_OPERATOR)
+#define IsConfKill(x)    ((x)->status == CONF_KLINE)
+#define IsConfClient(x)    ((x)->status & CONF_CLIENT)
+#define IsConfUline(x)    ((x)->status & CONF_ULINE)
+#define IsConfXline(x)    ((x)->status & CONF_XLINE)
 
 /* AccessItem->flags */
 
@@ -255,10 +255,10 @@ struct ip_entry
 #define IsConfDoSpoofIp(x)      ((x)->flags & CONF_FLAGS_SPOOF_IP)
 #define IsConfSpoofNotice(x)    ((x)->flags & CONF_FLAGS_SPOOF_NOTICE)
 #define IsConfEncrypted(x)      ((x)->flags & CONF_FLAGS_ENCRYPTED)
-#define SetConfEncrypted(x)	((x)->flags |= CONF_FLAGS_ENCRYPTED)
-#define ClearConfEncrypted(x)	((x)->flags &= ~CONF_FLAGS_ENCRYPTED)
+#define SetConfEncrypted(x)  ((x)->flags |= CONF_FLAGS_ENCRYPTED)
+#define ClearConfEncrypted(x)  ((x)->flags &= ~CONF_FLAGS_ENCRYPTED)
 #define IsConfAllowAutoConn(x)  ((x)->flags & CONF_FLAGS_ALLOW_AUTO_CONN)
-#define SetConfAllowAutoConn(x)	((x)->flags |= CONF_FLAGS_ALLOW_AUTO_CONN)
+#define SetConfAllowAutoConn(x)  ((x)->flags |= CONF_FLAGS_ALLOW_AUTO_CONN)
 #define ClearConfAllowAutoConn(x) ((x)->flags &= ~CONF_FLAGS_ALLOW_AUTO_CONN)
 #define IsConfTemporary(x)      ((x)->flags & CONF_FLAGS_TEMPORARY)
 #define SetConfTemporary(x)     ((x)->flags |= CONF_FLAGS_TEMPORARY)
@@ -270,18 +270,18 @@ struct ip_entry
 /* shared/cluster server entry types 
  * These defines are used for both shared and cluster.
  */
-#define SHARED_KLINE		0x0001
-#define SHARED_UNKLINE		0x0002
-#define SHARED_XLINE		0x0004
-#define SHARED_UNXLINE		0x0008
-#define SHARED_RESV		0x0010
-#define SHARED_UNRESV		0x0020
+#define SHARED_KLINE    0x0001
+#define SHARED_UNKLINE    0x0002
+#define SHARED_XLINE    0x0004
+#define SHARED_UNXLINE    0x0008
+#define SHARED_RESV    0x0010
+#define SHARED_UNRESV    0x0020
 #define SHARED_LOCOPS           0x0040
 #define SHARED_DLINE            0x0080
 #define SHARED_UNDLINE          0x0100
-#define SHARED_ALL		(SHARED_KLINE | SHARED_UNKLINE |\
-				 SHARED_XLINE | SHARED_UNXLINE |\
-				 SHARED_RESV | SHARED_UNRESV |\
+#define SHARED_ALL    (SHARED_KLINE | SHARED_UNKLINE |\
+         SHARED_XLINE | SHARED_UNXLINE |\
+         SHARED_RESV | SHARED_UNRESV |\
                                  SHARED_LOCOPS | SHARED_DLINE | SHARED_UNDLINE)
 
 #define DEFAULT_CLASS_REJECT_MESSAGE "No more connections permitted from your host"
@@ -481,9 +481,9 @@ extern const char *get_oper_name(const struct Client *);
 extern void *map_to_conf(struct ConfItem *);
 extern struct ConfItem *unmap_conf_item(void *);
 /* XXX should the parse_aline stuff go into another file ?? */
-#define AWILD 0x1		/* check wild cards */
+#define AWILD 0x1    /* check wild cards */
 extern int parse_aline(const char *, struct Client *, int, char **,
-		       int, char **, char **, time_t *, char **, char **);
+           int, char **, char **, time_t *, char **, char **);
 extern int valid_comment(struct Client *, char *, int);
 
 
@@ -502,7 +502,7 @@ extern int match_conf_password(const char *, const char *,
 #define CLEANUP_TKLINES_TIME 60
 
 extern void cluster_a_line(struct Client *,
-			   const char *, int, int, const char *,...);
+         const char *, int, int, const char *,...);
 extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
 extern struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
 extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
