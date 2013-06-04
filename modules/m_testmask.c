@@ -10,12 +10,12 @@
  *  met:
  *
  *  1.Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer. 
+ *    this list of conditions and the following disclaimer.
  *  2.Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution. 
+ *    documentation and/or other materials provided with the distribution.
  *  3.The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission. 
+ *    derived from this software without specific prior written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  *  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -51,7 +51,7 @@
  * inputs       - pointer to physical connection request is coming from
  *              - pointer to source connection request is coming from
  *              - parc arg count
- *              - parv actual arguments   
+ *              - parv actual arguments
  * output       - NONE
  * side effects - count up clients matching mask
  * i.e. /quote testmask user@host
@@ -83,37 +83,39 @@ mo_testmask(struct Client *client_p, struct Client *source_p,
       continue;
 
     if (match(given_user, target_p->username) &&
-	match(given_host, target_p->host))
+        match(given_host, target_p->host))
     {
       if (MyConnect(target_p))
-	local_count++;
+        local_count++;
       else
-	remote_count++;
+        remote_count++;
     }
   }
 
   sendto_one(source_p, form_str(RPL_TESTMASK), me.name, source_p->name,
-	     given_user, given_host, local_count, remote_count);
+             given_user, given_host, local_count, remote_count);
 }
 
-static struct Message testmask_msgtab = {
+static struct Message testmask_msgtab =
+{
   "TESTMASK", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testmask, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&testmask_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&testmask_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

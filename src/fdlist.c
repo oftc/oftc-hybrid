@@ -42,7 +42,7 @@ int number_fd = LEAKED_FDS;
 int hard_fdlimit = 0;
 
 static int
-set_fdlimit(void)
+set_fdlimit()
 {
   int fdmax;
   struct rlimit limit;
@@ -67,7 +67,7 @@ set_fdlimit(void)
 }
 
 void
-fdlist_init(void)
+fdlist_init()
 {
   set_fdlimit();
 }
@@ -87,6 +87,7 @@ lookup_fd(int fd)
   {
     if (F->fd == fd)
       return (F);
+
     F = F->hnext;
   }
 
@@ -102,8 +103,10 @@ fd_open(fde_t *F, int fd, int is_socket, const char *desc)
 
   F->fd = fd;
   F->comm_index = -1;
+
   if (desc)
     strlcpy(F->desc, desc, sizeof(F->desc));
+
   /* Note: normally we'd have to clear the other flags,
    * but currently F is always cleared before calling us.. */
   F->flags.open = 1;
@@ -129,18 +132,22 @@ fd_close(fde_t *F)
   delete_resolver_queries(F);
 
 #ifdef HAVE_LIBCRYPTO
+
   if (F->ssl)
     SSL_free(F->ssl);
+
 #endif
 
   if (fd_hash[hashv] == F)
     fd_hash[hashv] = F->hnext;
-  else {
+  else
+  {
     fde_t *prev;
 
     /* let it core if not found */
     for (prev = fd_hash[hashv]; prev->hnext != F; prev = prev->hnext)
       ;
+
     prev->hnext = F->hnext;
   }
 
@@ -192,13 +199,14 @@ fd_note(fde_t *F, const char *format, ...)
  * always go somewhere harmless.  Use -foreground for profiling
  * or executing from gdb */
 void
-close_standard_fds(void)
+close_standard_fds()
 {
   int i;
 
   for (i = 0; i < LOWEST_SAFE_FD; i++)
   {
     close(i);
+
     if (open("/dev/null", O_RDWR) < 0)
       exit(-1); /* we're hosed if we can't even open /dev/null */
   }

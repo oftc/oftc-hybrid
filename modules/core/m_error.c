@@ -39,7 +39,7 @@
  *      parv[*] = parameters
  */
 static void
-m_error(struct Client *client_p, struct Client *source_p, 
+m_error(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   const char *para;
@@ -88,24 +88,26 @@ ms_error(struct Client *client_p, struct Client *source_p,
                          get_client_name(client_p, MASK_IP), para);
 }
 
-static struct Message error_msgtab = {
- "ERROR", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
+static struct Message error_msgtab =
+{
+  "ERROR", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
   { m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&error_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&error_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

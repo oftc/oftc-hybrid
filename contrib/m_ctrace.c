@@ -80,6 +80,7 @@ do_ctrace(struct Client *source_p, int parc, char *parv[])
     struct Client *target_p = ptr->data;
 
     class_name = get_client_class(target_p);
+
     if ((class_name != NULL) && match(class_looking_for, class_name))
       report_this_status(source_p, target_p);
   }
@@ -91,9 +92,9 @@ do_ctrace(struct Client *source_p, int parc, char *parv[])
 /*
  * report_this_status
  *
- * inputs	- pointer to client to report to
- * 		- pointer to client to report about
- * output	- counter of number of hits
+ * inputs  - pointer to client to report to
+ *     - pointer to client to report about
+ * output  - counter of number of hits
  * side effects - NONE
  */
 static void
@@ -105,63 +106,65 @@ report_this_status(struct Client *source_p, struct Client *target_p)
   name = get_client_name(target_p, HIDE_IP);
   class_name = get_client_class(target_p);
 
-  switch(target_p->status)
+  switch (target_p->status)
   {
     case STAT_CLIENT:
 
       if ((HasUMode(source_p, UMODE_OPER) &&
-          (MyClient(source_p) || !HasUMode(target_p, UMODE_INVISIBLE)))
+           (MyClient(source_p) || !HasUMode(target_p, UMODE_INVISIBLE)))
           || HasUMode(target_p, UMODE_OPER))
       {
         if (HasUMode(target_p, UMODE_ADMIN) && !ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
+                     me.name, source_p->name, class_name, name,
+                     HasUMode(source_p, UMODE_ADMIN) ? target_p->sockhost : "255.255.255.255",
+                     CurrentTime - target_p->localClient->lasttime,
+                     idle_time_get(source_p, target_p));
+        else if (HasUMode(target_p, UMODE_OPER))
+        {
+          if (ConfigFileEntry.hide_spoof_ips)
+            sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
                        me.name, source_p->name, class_name, name,
-                       HasUMode(source_p, UMODE_ADMIN) ? target_p->sockhost : "255.255.255.255",
+                       IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
                        CurrentTime - target_p->localClient->lasttime,
                        idle_time_get(source_p, target_p));
-          else if (HasUMode(target_p, UMODE_OPER))
-          {
-            if (ConfigFileEntry.hide_spoof_ips)
-	      sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
-		         me.name, source_p->name, class_name, name, 
-		         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
-		         CurrentTime - target_p->localClient->lasttime,
-		         idle_time_get(source_p, target_p));
-	    else   
-              sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
-                         me.name, source_p->name, class_name, name,
-                         (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                         CurrentTime - target_p->localClient->lasttime,
-                         idle_time_get(source_p, target_p));
-          }
-	  else
-          {
-            if (ConfigFileEntry.hide_spoof_ips)
-	      sendto_one(source_p, form_str(RPL_TRACEUSER),
-		         me.name, source_p->name, class_name, name,
-                         IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
-		         CurrentTime - target_p->localClient->lasttime,
-		         idle_time_get(source_p, target_p));
-            else
-              sendto_one(source_p, form_str(RPL_TRACEUSER),
-                         me.name, source_p->name, class_name, name,
-                         (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
-                         CurrentTime - target_p->localClient->lasttime,
-                         idle_time_get(source_p, target_p));
-          }
+          else
+            sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
+                       me.name, source_p->name, class_name, name,
+                       (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
+                       CurrentTime - target_p->localClient->lasttime,
+                       idle_time_get(source_p, target_p));
         }
+        else
+        {
+          if (ConfigFileEntry.hide_spoof_ips)
+            sendto_one(source_p, form_str(RPL_TRACEUSER),
+                       me.name, source_p->name, class_name, name,
+                       IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
+                       CurrentTime - target_p->localClient->lasttime,
+                       idle_time_get(source_p, target_p));
+          else
+            sendto_one(source_p, form_str(RPL_TRACEUSER),
+                       me.name, source_p->name, class_name, name,
+                       (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
+                       CurrentTime - target_p->localClient->lasttime,
+                       idle_time_get(source_p, target_p));
+        }
+      }
+
       break;
+
     case STAT_SERVER:
       if (!HasUMode(source_p, UMODE_ADMIN))
         name = get_client_name(target_p, MASK_IP);
 
       sendto_one(source_p, form_str(RPL_TRACESERVER),
-		 me.name, source_p->name, class_name, 0,
-		 0, name, *(target_p->serv->by) ?
-		 target_p->serv->by : "*", "*",
-		 me.name, CurrentTime - target_p->localClient->lasttime);
+                 me.name, source_p->name, class_name, 0,
+                 0, name, *(target_p->serv->by) ?
+                 target_p->serv->by : "*", "*",
+                 me.name, CurrentTime - target_p->localClient->lasttime);
       break;
-      
+
     default: /* ...we actually shouldn't come here... --msa */
       sendto_one(source_p, form_str(RPL_TRACENEWTYPE), me.name,
                  source_p->name, name);
@@ -169,24 +172,26 @@ report_this_status(struct Client *source_p, struct Client *target_p)
   }
 }
 
-static struct Message ctrace_msgtab = {
+static struct Message ctrace_msgtab =
+{
   "CTRACE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ctrace, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&ctrace_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&ctrace_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -486,7 +486,7 @@ m_info(struct Client *client_p, struct Client *source_p,
     last_used = CurrentTime;
 
   if (!ConfigFileEntry.disable_remote)
-    if (hunt_server(client_p,source_p, ":%s INFO :%s", 1,
+    if (hunt_server(client_p, source_p, ":%s INFO :%s", 1,
                     parc, parv) != HUNTED_ISME)
       return;
 
@@ -519,7 +519,7 @@ ms_info(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   if (!IsClient(source_p))
-      return;
+    return;
 
   if (hunt_server(client_p, source_p, ":%s INFO :%s", 1,
                   parc, parv) != HUNTED_ISME)
@@ -530,9 +530,9 @@ ms_info(struct Client *client_p, struct Client *source_p,
 
 /* send_info_text()
  *
- * inputs	- client pointer to send info text to
- * output	- NONE
- * side effects	- info text is sent to client
+ * inputs  - client pointer to send info text to
+ * output  - NONE
+ * side effects  - info text is sent to client
  */
 static void
 send_info_text(struct Client *source_p)
@@ -573,14 +573,15 @@ send_info_text(struct Client *source_p)
 
 /* send_birthdate_online_time()
  *
- * inputs	- client pointer to send to
- * output	- NONE
- * side effects	- birthdate and online time are sent
+ * inputs  - client pointer to send to
+ * output  - NONE
+ * side effects  - birthdate and online time are sent
  */
 static void
 send_birthdate_online_time(struct Client *source_p)
 {
-  if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
+  if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6)
+      && HasID(source_p))
   {
     sendto_one(source_p, ":%s %d %s :On-line since %s",
                me.id, RPL_INFO, source_p->id,
@@ -596,9 +597,9 @@ send_birthdate_online_time(struct Client *source_p)
 
 /* send_conf_options()
  *
- * inputs	- client pointer to send to
- * output	- NONE
- * side effects	- send config options to client
+ * inputs  - client pointer to send to
+ * output  - NONE
+ * side effects  - send config options to client
  */
 static void
 send_conf_options(struct Client *source_p)
@@ -609,7 +610,8 @@ send_conf_options(struct Client *source_p)
   /* Now send them a list of all our configuration options
    * (mostly from defaults.h and setup.h)
    */
-  if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
+  if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6)
+      && HasID(source_p))
   {
     from = me.id;
     to = source_p->id;
@@ -627,7 +629,7 @@ send_conf_options(struct Client *source_p)
   {
     switch (iptr->output_type)
     {
-      /* For "char *" references */
+        /* For "char *" references */
       case OUTPUT_STRING:
       {
         const char *option = *((char **)iptr->option);
@@ -694,7 +696,7 @@ send_conf_options(struct Client *source_p)
         sendto_one(source_p, ":%s %d %s :%-30s %-5s [%-30s]",
                    from, RPL_INFO, to,
                    iptr->name, option ? ((option == 1) ? "MASK" : "YES") : "NO",
-                   iptr->desc ? iptr->desc : "<none>");
+                     iptr->desc ? iptr->desc : "<none>");
         break;
       }
     }
@@ -704,24 +706,26 @@ send_conf_options(struct Client *source_p)
              from, to, "");
 }
 
-static struct Message info_msgtab = {
+static struct Message info_msgtab =
+{
   "INFO", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_info, ms_info, m_ignore, mo_info, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&info_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&info_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

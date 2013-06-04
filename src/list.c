@@ -36,7 +36,7 @@ static BlockHeap *dnode_heap;
  * side effects - initializes the dnode BlockHeap
  */
 void
-init_dlink_nodes(void)
+init_dlink_nodes()
 {
   dnode_heap = BlockHeapCreate("dlink node", sizeof(dlink_node), DNODE_HEAP_SIZE);
 }
@@ -45,10 +45,10 @@ init_dlink_nodes(void)
  *
  * inputs       - NONE
  * output       - pointer to new dlink_node
- * side effects	- NONE
+ * side effects  - NONE
  */
 dlink_node *
-make_dlink_node(void)
+make_dlink_node()
 {
   dlink_node *lp = BlockHeapAlloc(dnode_heap);
 
@@ -59,7 +59,7 @@ make_dlink_node(void)
  *
  * inputs       - pointer to dlink_node
  * output       - NONE
- * side effects	- free given dlink_node 
+ * side effects  - free given dlink_node
  */
 void
 free_dlink_node(dlink_node *ptr)
@@ -166,8 +166,10 @@ dlinkFind(dlink_list *list, void *data)
   dlink_node *ptr;
 
   DLINK_FOREACH(ptr, list->head)
+  {
     if (ptr->data == data)
       return ptr;
+  }
 
   return NULL;
 }
@@ -256,6 +258,7 @@ dlinkFindDelete(dlink_list *list, void *data)
         assert(list->tail == m);
         list->tail = m->prev;
       }
+
       if (m->prev)
         m->prev->next = m->next;
       else
@@ -263,6 +266,7 @@ dlinkFindDelete(dlink_list *list, void *data)
         assert(list->head == m);
         list->head = m->next;
       }
+
       /* Set this to NULL does matter */
       m->next = m->prev = NULL;
       list->length--;

@@ -51,7 +51,7 @@ dump_map(struct Client *client_p, const struct Client *root_p,
   char *pb;
   int print_dashes;
 
-  *pbuf= '\0';
+  *pbuf = '\0';
   pb = pbuf;
 
   l = ircsprintf(pb, "%s", root_p->name);
@@ -72,7 +72,8 @@ dump_map(struct Client *client_p, const struct Client *root_p,
   *pb++ = ' ';
   len++;
   dashes = 46 - len;
-  for(i = 0; i < dashes; i++)
+
+  for (i = 0; i < dashes; i++)
   {
     *pb++ = print_dashes ? '-' : ' ';
   }
@@ -80,9 +81,10 @@ dump_map(struct Client *client_p, const struct Client *root_p,
   users = dlink_list_length(&root_p->serv->client_list);
 
   sprintf(pb, "%5d [%4.1f%%]", users,
-	  100 * (float)users / (float)Count.total);
+          100 * (float)users / (float)Count.total);
+
   if (print_dashes)  /* make the leading spaces of the usercount dashes too, if required */
-      while(*(pb+1) == ' ') *pb++ = '-';
+    while (*(pb + 1) == ' ') *pb++ = '-';
 
   sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buf);
 
@@ -118,7 +120,7 @@ dump_map(struct Client *client_p, const struct Client *root_p,
     *(pbuf + 2) = '-';
     *(pbuf + 3) = ' ';
     dump_map(client_p, server_p, start_len + 4, pbuf + 4);
- 
+
     ++i;
   }
 }
@@ -140,10 +142,13 @@ mo_map(struct Client *client_p, struct Client *source_p,
   {
     conf = ptr->data;
     aconf = (struct AccessItem *)map_to_conf(conf);
+
     if (aconf->status != CONF_SERVER)
       continue;
+
     if (strcmp(conf->name, me.name) == 0)
       continue;
+
     if (!hash_find_server(conf->name))
     {
       char buffer[IRCD_BUFSIZE];
@@ -155,24 +160,26 @@ mo_map(struct Client *client_p, struct Client *source_p,
   sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
 }
 
-static struct Message map_msgtab = {
+static struct Message map_msgtab =
+{
   "MAP", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_map, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&map_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&map_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

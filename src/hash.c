@@ -49,7 +49,7 @@ static unsigned int ircd_random_key = 0;
 
 /* The actual hash tables, They MUST be of the same HASHSIZE, variable
  * size tables could be supported but the rehash routine should also
- * rebuild the transformation maps, I kept the tables of equal size 
+ * rebuild the transformation maps, I kept the tables of equal size
  * so that I can use one hash function.
  */
 static struct Client *idTable[HASHSIZE];
@@ -67,14 +67,16 @@ static struct ResvChannel *resvchannelTable[HASHSIZE];
  *                functions and clear the tables
  */
 void
-init_hash(void)
+init_hash()
 {
   /* Default the userhost/namehost sizes to CLIENT_HEAP_SIZE for now,
    * should be a good close approximation anyway
    * - Dianora
    */
-  userhost_heap = BlockHeapCreate("userhost", sizeof(struct UserHost), CLIENT_HEAP_SIZE);
-  namehost_heap = BlockHeapCreate("namehost", sizeof(struct NameHost), CLIENT_HEAP_SIZE);
+  userhost_heap = BlockHeapCreate("userhost", sizeof(struct UserHost),
+                                  CLIENT_HEAP_SIZE);
+  namehost_heap = BlockHeapCreate("namehost", sizeof(struct NameHost),
+                                  CLIENT_HEAP_SIZE);
 
   ircd_random_key = rand() % 256;  /* better than nothing --adx */
 }
@@ -94,6 +96,7 @@ strhash(const char *name)
 
   if (*p == '\0')
     return 0;
+
   for (; *p != '\0'; ++p)
   {
     hval += (hval << 1) + (hval <<  4) + (hval << 7) +
@@ -101,7 +104,7 @@ strhash(const char *name)
     hval ^= (ToLower(*p) ^ ircd_random_key);
   }
 
-  return (hval >> FNV1_32_BITS) ^ (hval & ((1 << FNV1_32_BITS) -1));
+  return (hval >> FNV1_32_BITS) ^ (hval & ((1 << FNV1_32_BITS) - 1));
 }
 
 /************************** Externally visible functions ********************/
@@ -429,7 +432,7 @@ hash_find_server(const char *name)
  *
  * inputs       - pointer to name
  * output       - NONE
- * side effects - New semantics: finds a channel whose name is 'name', 
+ * side effects - New semantics: finds a channel whose name is 'name',
  *                if can't find one returns NULL, if can find it moves
  *                it to the top of the list and returns it.
  */
@@ -475,26 +478,32 @@ void *
 hash_get_bucket(int type, unsigned int hashv)
 {
   assert(hashv < HASHSIZE);
+
   if (hashv >= HASHSIZE)
-      return NULL;
+    return NULL;
 
   switch (type)
   {
     case HASH_TYPE_ID:
       return idTable[hashv];
       break;
+
     case HASH_TYPE_CHANNEL:
       return channelTable[hashv];
       break;
+
     case HASH_TYPE_CLIENT:
       return clientTable[hashv];
       break;
+
     case HASH_TYPE_USERHOST:
       return userhostTable[hashv];
       break;
+
     case HASH_TYPE_RESERVED:
       return resvchannelTable[hashv];
       break;
+
     default:
       assert(0);
   }
@@ -568,14 +577,14 @@ hash_find_userhost(const char *host)
 
 /* count_user_host()
  *
- * inputs	- user name
- *		- hostname
- *		- int flag 1 if global, 0 if local
- * 		- pointer to where global count should go
- *		- pointer to where local count should go
- *		- pointer to where identd count should go (local clients only)
- * output	- none
- * side effects	-
+ * inputs  - user name
+ *    - hostname
+ *    - int flag 1 if global, 0 if local
+ *     - pointer to where global count should go
+ *    - pointer to where local count should go
+ *    - pointer to where identd count should go (local clients only)
+ * output  - none
+ * side effects  -
  */
 void
 count_user_host(const char *user, const char *host, int *global_p,
@@ -596,10 +605,13 @@ count_user_host(const char *user, const char *host, int *global_p,
     {
       if (global_p != NULL)
         *global_p = nameh->gcount;
+
       if (local_p != NULL)
         *local_p  = nameh->lcount;
+
       if (icount_p != NULL)
         *icount_p = nameh->icount;
+
       return;
     }
   }
@@ -628,11 +640,11 @@ find_or_add_userhost(const char *host)
 
 /* add_user_host()
  *
- * inputs	- user name
- *		- hostname
- *		- int flag 1 if global, 0 if local
- * output	- none
- * side effects	- add given user@host to hash tables
+ * inputs  - user name
+ *    - hostname
+ *    - int flag 1 if global, 0 if local
+ * output  - none
+ * side effects  - add given user@host to hash tables
  */
 void
 add_user_host(const char *user, const char *host, int global)
@@ -663,6 +675,7 @@ add_user_host(const char *user, const char *host, int global)
       {
         if (hasident)
           nameh->icount++;
+
         nameh->lcount++;
       }
 
@@ -679,6 +692,7 @@ add_user_host(const char *user, const char *host, int global)
   {
     if (hasident)
       nameh->icount = 1;
+
     nameh->lcount = 1;
   }
 
@@ -687,11 +701,11 @@ add_user_host(const char *user, const char *host, int global)
 
 /* delete_user_host()
  *
- * inputs	- user name
- *		- hostname
- *		- int flag 1 if global, 0 if local
- * output	- none
- * side effects	- delete given user@host to hash tables
+ * inputs  - user name
+ *    - hostname
+ *    - int flag 1 if global, 0 if local
+ * output  - none
+ * side effects  - delete given user@host to hash tables
  */
 void
 delete_user_host(const char *user, const char *host, int global)
@@ -718,10 +732,12 @@ delete_user_host(const char *user, const char *host, int global)
     {
       if (nameh->gcount > 0)
         nameh->gcount--;
+
       if (!global)
       {
         if (nameh->lcount > 0)
           nameh->lcount--;
+
         if (hasident && nameh->icount > 0)
           nameh->icount--;
       }
@@ -759,8 +775,8 @@ delete_user_host(const char *user, const char *host, int global)
 /* exceeding_sendq()
  *
  * inputs       - pointer to client to check
- * output	- 1 if client is in danger of blowing its sendq
- *		  0 if it is not.
+ * output  - 1 if client is in danger of blowing its sendq
+ *      0 if it is not.
  * side effects -
  *
  * Sendq limit is fairly conservative at 1/2 (In original anyway)
@@ -814,12 +830,16 @@ list_allow_channel(const char *chname, struct ListTask *lt)
   dlink_node *dl = NULL;
 
   DLINK_FOREACH(dl, lt->show_mask.head)
+  {
     if (!match_chan(dl->data, chname))
       return 0;
+  }
 
   DLINK_FOREACH(dl, lt->hide_mask.head)
+  {
     if (match_chan(dl->data, chname))
       return 0;
+  }
 
   return 1;
 }
@@ -829,7 +849,7 @@ list_allow_channel(const char *chname, struct ListTask *lt)
  * inputs       - client pointer to return result to
  *              - pointer to channel to list
  *              - pointer to ListTask structure
- * output	- none
+ * output  - none
  * side effects -
  */
 static void
@@ -838,6 +858,7 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
 {
   if (SecretChannel(chptr) && !IsMember(source_p, chptr))
     return;
+
   if (dlink_list_length(&chptr->members) < list_task->users_min ||
       dlink_list_length(&chptr->members) > list_task->users_max ||
       (chptr->channelts != 0 &&
@@ -850,6 +871,7 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
 
   if (!list_allow_channel(chptr->chname, list_task))
     return;
+
   sendto_one(source_p, form_str(RPL_LIST), me.name, source_p->name,
              chptr->chname, dlink_list_length(&chptr->members),
              chptr->topic);
@@ -857,9 +879,9 @@ list_one_channel(struct Client *source_p, struct Channel *chptr,
 
 /* safe_list_channels()
  *
- * inputs	- pointer to client requesting list
- * output	- 0/1
- * side effects	- safely list all channels to source_p
+ * inputs  - pointer to client requesting list
+ * output  - 0/1
+ * side effects  - safely list all channels to source_p
  *
  * Walk the channel buckets, ensure all pointers in a bucket are
  * traversed before blocking on a sendq. This means, no locking is needed.
@@ -896,8 +918,10 @@ safe_list_channels(struct Client *source_p, struct ListTask *list_task,
     dlink_node *dl;
 
     DLINK_FOREACH(dl, list_task->show_mask.head)
+    {
       if ((chptr = hash_find_channel(dl->data)) != NULL)
         list_one_channel(source_p, chptr, list_task);
+    }
   }
 
   free_list_task(list_task, source_p);

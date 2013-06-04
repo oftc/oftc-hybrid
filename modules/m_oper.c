@@ -71,7 +71,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
   struct ConfItem *conf;
-  struct AccessItem *aconf=NULL;
+  struct AccessItem *aconf = NULL;
   const char *name = parv[1];
   const char *password = parv[2];
 
@@ -86,7 +86,8 @@ m_oper(struct Client *client_p, struct Client *source_p,
   if (!IsFloodDone(source_p))
     flood_endgrace(source_p);
 
-  if ((conf = find_exact_name_conf(OPER_TYPE, source_p, name, NULL, NULL)) == NULL)
+  if ((conf = find_exact_name_conf(OPER_TYPE, source_p, name, NULL,
+                                   NULL)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
     conf = find_exact_name_conf(OPER_TYPE, NULL, name, NULL, NULL);
@@ -133,24 +134,26 @@ mo_oper(struct Client *client_p, struct Client *source_p,
              me.name, source_p->name);
 }
 
-static struct Message oper_msgtab = {
+static struct Message oper_msgtab =
+{
   "OPER", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_oper, m_ignore, m_ignore, mo_oper, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&oper_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&oper_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

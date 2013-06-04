@@ -31,7 +31,8 @@
 #include "s_misc.h"
 
 
-static struct {
+static struct
+{
   char path[HYB_PATH_MAX + 1];
   size_t size;
   FILE *file;
@@ -49,7 +50,7 @@ log_set_file(enum log_type type, size_t size, const char *path)
 }
 
 void
-log_del_all(void)
+log_del_all()
 {
   unsigned int type = 0;
 
@@ -58,7 +59,7 @@ log_del_all(void)
 }
 
 void
-log_reopen_all(void)
+log_reopen_all()
 {
   unsigned int type = 0;
 
@@ -89,7 +90,7 @@ log_exceed_size(unsigned int type)
   return (size_t)sb.st_size > log_type_table[type].size;
 }
 
-static void 
+static void
 log_write(enum log_type type, const char *message)
 {
   char buf[IRCD_BUFSIZE];

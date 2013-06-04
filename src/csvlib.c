@@ -31,7 +31,7 @@
 
 static void parse_csv_line(char *, ...);
 static int write_csv_line(FILE *, const char *, ...);
-static int flush_write(struct Client *, FILE *, FILE *, 
+static int flush_write(struct Client *, FILE *, FILE *,
                        const char *, const char *);
 static char *getfield(char *);
 
@@ -45,11 +45,13 @@ find_and_delete_temporary(const char *user, const char *host, int type)
   if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
 #ifdef IPV6
+
     if (t == HM_IPV6)
       t = AF_INET6;
     else
 #endif
       t = AF_INET;
+
     piphost = &iphost;
   }
   else
@@ -72,10 +74,10 @@ find_and_delete_temporary(const char *user, const char *host, int type)
 
 /* parse_csv_file()
  *
- * inputs	- FILE pointer
- * 		- type of conf to parse
- * output	- none
- * side effects	-
+ * inputs  - FILE pointer
+ *     - type of conf to parse
+ * output  - none
+ * side effects  -
  */
 void
 parse_csv_file(FILE *file, ConfType conf_type)
@@ -85,13 +87,13 @@ parse_csv_file(FILE *file, ConfType conf_type)
   struct MatchItem *match_item;
   struct MatchItem *nresv;
   struct ResvChannel *cresv;
-  char  *name_field=NULL;
-  char  *user_field=NULL;
-  char  *reason_field=NULL;
-  char  *oper_reason=NULL;
-  char  *host_field=NULL;
-  char  *duration_field=NULL;
-  char  *temp=NULL;
+  char  *name_field = NULL;
+  char  *user_field = NULL;
+  char  *reason_field = NULL;
+  char  *oper_reason = NULL;
+  char  *host_field = NULL;
+  char  *duration_field = NULL;
+  char  *temp = NULL;
   char  line[IRCD_BUFSIZE];
   char  *p;
 
@@ -100,41 +102,48 @@ parse_csv_file(FILE *file, ConfType conf_type)
     duration_field = NULL;
 
     if ((p = strchr(line, '\n')) != NULL)
-      *p = '\0';
+      * p = '\0';
 
     if ((line[0] == '\0') || (line[0] == '#'))
       continue;
 
-    switch(conf_type)
+    switch (conf_type)
     {
       case KLINE_TYPE:
         parse_csv_line(line, &user_field, &host_field, &reason_field,
-            &oper_reason, &temp, &temp, &temp, &duration_field, NULL);
+                       &oper_reason, &temp, &temp, &temp, &duration_field, NULL);
         conf = make_conf_item(KLINE_TYPE);
         aconf = map_to_conf(conf);
 
         if (host_field != NULL)
           DupString(aconf->host, host_field);
+
         if (reason_field != NULL)
           DupString(aconf->reason, reason_field);
+
         if (oper_reason != NULL)
           DupString(aconf->oper_reason, oper_reason);
+
         if (user_field != NULL)
           DupString(aconf->user, user_field);
+
         if (duration_field != NULL)
           aconf->hold = atoi(duration_field);
+
         if (aconf->host != NULL)
         {
-          if(duration_field == NULL)
+          if (duration_field == NULL)
             add_conf_by_address(CONF_KLINE, aconf);
           else
             add_temp_line(conf);
         }
+
         break;
 
       case DLINE_TYPE:
-        parse_csv_line(line, &host_field, &reason_field, &temp, &temp, &temp, 
-            &temp, &duration_field, NULL);
+        parse_csv_line(line, &host_field, &reason_field, &temp, &temp, &temp,
+                       &temp, &duration_field, NULL);
+
         if (host_field != NULL && parse_netmask(host_field, NULL, NULL) != HM_HOST)
         {
           conf = make_conf_item(DLINE_TYPE);
@@ -143,7 +152,8 @@ parse_csv_file(FILE *file, ConfType conf_type)
 
           if (reason_field != NULL)
             DupString(aconf->reason, reason_field);
-          if(duration_field != NULL)
+
+          if (duration_field != NULL)
           {
             aconf->hold = atoi(duration_field);
             add_temp_line(conf);
@@ -156,57 +166,64 @@ parse_csv_file(FILE *file, ConfType conf_type)
 
       case XLINE_TYPE:
         parse_csv_line(line, &name_field, &reason_field, &oper_reason, &temp,
-            &temp, &temp, &temp, &duration_field, NULL);
+                       &temp, &temp, &temp, &duration_field, NULL);
         conf = make_conf_item(XLINE_TYPE);
         match_item = (struct MatchItem *)map_to_conf(conf);
+
         if (name_field != NULL)
           DupString(conf->name, name_field);
+
         if (reason_field != NULL)
           DupString(aconf->reason, reason_field);
         else
           DupString(aconf->reason, CONF_NOREASON);
 
-        if(duration_field != NULL)
+        if (duration_field != NULL)
         {
           match_item->hold = atoi(duration_field);
           add_temp_line(conf);
         }
+
         break;
 
       case CRESV_TYPE:
         parse_csv_line(line, &name_field, &reason_field, &duration_field, NULL);
         conf = create_channel_resv(name_field, reason_field, 0);
-        if(duration_field != NULL)
+
+        if (duration_field != NULL)
         {
           cresv = map_to_conf(conf);
           cresv->hold = atoi(duration_field);
           add_temp_line(conf);
         }
+
         break;
 
       case NRESV_TYPE:
         parse_csv_line(line, &name_field, &reason_field, &duration_field, NULL);
         conf = create_nick_resv(name_field, reason_field, 0);
-        if(duration_field != NULL)
+
+        if (duration_field != NULL)
         {
           nresv = map_to_conf(conf);
           nresv->hold = atoi(duration_field);
           add_temp_line(conf);
         }
+
         break;
 
-    case CONF_TYPE:
-    case OPER_TYPE:
-    case CLIENT_TYPE:
-    case SERVER_TYPE:
-    case CLUSTER_TYPE:
-    case HUB_TYPE:
-    case LEAF_TYPE:
-    case ULINE_TYPE:
-    case EXEMPTDLINE_TYPE:
-    case CLASS_TYPE:
-    default:
-      break;
+      case CONF_TYPE:
+      case OPER_TYPE:
+      case CLIENT_TYPE:
+      case SERVER_TYPE:
+      case CLUSTER_TYPE:
+      case HUB_TYPE:
+      case LEAF_TYPE:
+      case ULINE_TYPE:
+      case EXEMPTDLINE_TYPE:
+      case CLASS_TYPE:
+      default:
+        break;
     }
   }
 }
@@ -214,8 +231,8 @@ parse_csv_file(FILE *file, ConfType conf_type)
 /*
  * parse_csv_line()
  *
- * inputs	- pointer to line to parse
- * output	-
+ * inputs  - pointer to line to parse
+ * output  -
  * side effects -
  */
 
@@ -231,11 +248,13 @@ parse_csv_line(char *line, ...)
   for (; ;)
   {
     dest = va_arg(args, char **);
+
     if ((dest == NULL) || ((field = getfield(field ? NULL : line)) == NULL))
     {
       va_end(args);
       return;
     }
+
     *dest = field;
   }
 }
@@ -243,33 +262,34 @@ parse_csv_line(char *line, ...)
 /* write_conf_line()
  *
  * inputs       - pointer to struct AccessItem
- *		- string current_date (small date)
+ *    - string current_date (small date)
  *              - time_t cur_time
  * output       - NONE
  * side effects - This function takes care of
  *                finding right conf file, writing
- *                the right lines to this file, 
+ *                the right lines to this file,
  *                notifying the oper that their kline/dline etc. is in place
  *                notifying the opers on the server about the k/d etc. line
- *                
+ *
  * - Dianora
  */
-void 
+void
 write_conf_line(struct Client *source_p, struct ConfItem *conf,
-		const char *current_date, time_t cur_time, time_t duration)
+                const char *current_date, time_t cur_time, time_t duration)
 {
   FILE *out;
   const char *filename, *from, *to;
   struct AccessItem *aconf;
   struct MatchItem *xconf;
-  struct ResvChannel *cresv_p=NULL;
-  struct MatchItem *nresv_p=NULL;
+  struct ResvChannel *cresv_p = NULL;
+  struct MatchItem *nresv_p = NULL;
   ConfType type;
 
   type = conf->type;
   filename = get_conf_name(type);
 
-  if (!MyConnect(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
+  if (!MyConnect(source_p) && IsCapable(source_p->from, CAP_TS6)
+      && HasID(source_p))
   {
     from = me.id;
     to = source_p->id;
@@ -287,126 +307,139 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     return;
   }
 
-  switch(type)
+  switch (type)
   {
-  case KLINE_TYPE:
-    aconf = (struct AccessItem *)map_to_conf(conf);
-    if(duration == 0)
-    {
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s added K-Line for [%s@%s] [%s]",
-          get_oper_name(source_p), aconf->user, aconf->host, aconf->reason);
-      sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
-          from, to, aconf->user, aconf->host);
-      ilog(LOG_TYPE_KLINE, "%s added K-Line for [%s@%s] [%s]",
-          source_p->name, aconf->user, aconf->host, aconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%s%d",
-          aconf->user, aconf->host, aconf->reason, aconf->oper_reason, 
-          current_date, get_oper_name(source_p), cur_time);
-    }
-    else
-    {
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s added temporary %d min. K-Line for [%s@%s] [%s]",
-          get_oper_name(source_p), duration/60, aconf->user, aconf->host, 
-          aconf->reason);
-      sendto_one(source_p,
-          ":%s NOTICE %s :Added temporary %d min. K-Line [%s@%s]", from, to, 
-          duration/60, aconf->user, aconf->host);
-      ilog(LOG_TYPE_KLINE, "%s added temporary %jd min. K-Line for [%s@%s] [%s]",
-          source_p->name, (intmax_t)(duration/60), aconf->user, aconf->host, aconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%s%d%d", aconf->user, aconf->host,
-          aconf->reason, aconf->oper_reason, current_date,
-          get_oper_name(source_p), cur_time, aconf->hold);
-    }
-    break;
-  case DLINE_TYPE:
-    aconf = (struct AccessItem *)map_to_conf(conf);
-    if(duration == 0)
-    {
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s added D-Line for [%s] [%s]",
-          get_oper_name(source_p), aconf->host, aconf->reason);
-      sendto_one(source_p, ":%s NOTICE %s :Added D-Line [%s] to %s",
-          from, to, aconf->host, filename);
-      ilog(LOG_TYPE_DLINE, "%s added D-Line for [%s] [%s]",
-          get_oper_name(source_p), aconf->host, aconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%d",
-          aconf->host, aconf->reason, aconf->oper_reason, 
-          current_date,
-          get_oper_name(source_p), cur_time);
-    }
-    else
-    {
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s added temporary %d min. D-Line for [%s] [%s]",
-          get_oper_name(source_p), duration/60, aconf->host, aconf->reason);
+    case KLINE_TYPE:
+      aconf = (struct AccessItem *)map_to_conf(conf);
 
-      sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. D-Line [%s]",
-          from, to, duration/60, aconf->host);
-      ilog(LOG_TYPE_DLINE, "%s added temporary %d min. D-Line for [%s] [%s]",
-          source_p->name, (int)duration/60, aconf->host, aconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%d%d",
-          aconf->host, aconf->reason, aconf->oper_reason, 
-          current_date, get_oper_name(source_p), cur_time, aconf->hold);
-    }
-    break;
+      if (duration == 0)
+      {
+        sendto_realops_flags(UMODE_ALL, L_ALL,
+                             "%s added K-Line for [%s@%s] [%s]",
+                             get_oper_name(source_p), aconf->user, aconf->host, aconf->reason);
+        sendto_one(source_p, ":%s NOTICE %s :Added K-Line [%s@%s]",
+                   from, to, aconf->user, aconf->host);
+        ilog(LOG_TYPE_KLINE, "%s added K-Line for [%s@%s] [%s]",
+             source_p->name, aconf->user, aconf->host, aconf->reason);
+        write_csv_line(out, "%s%s%s%s%s%s%d",
+                       aconf->user, aconf->host, aconf->reason, aconf->oper_reason,
+                       current_date, get_oper_name(source_p), cur_time);
+      }
+      else
+      {
+        sendto_realops_flags(UMODE_ALL, L_ALL,
+                             "%s added temporary %d min. K-Line for [%s@%s] [%s]",
+                             get_oper_name(source_p), duration / 60, aconf->user, aconf->host,
+                             aconf->reason);
+        sendto_one(source_p,
+                   ":%s NOTICE %s :Added temporary %d min. K-Line [%s@%s]", from, to,
+                   duration / 60, aconf->user, aconf->host);
+        ilog(LOG_TYPE_KLINE, "%s added temporary %jd min. K-Line for [%s@%s] [%s]",
+             source_p->name, (intmax_t)(duration / 60), aconf->user, aconf->host,
+             aconf->reason);
+        write_csv_line(out, "%s%s%s%s%s%s%d%d", aconf->user, aconf->host,
+                       aconf->reason, aconf->oper_reason, current_date,
+                       get_oper_name(source_p), cur_time, aconf->hold);
+      }
 
-  case XLINE_TYPE:
-    xconf = (struct MatchItem *)map_to_conf(conf);
-    if(duration == 0)
-    {
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s added X-Line for [%s] [%s]",
-          get_oper_name(source_p), conf->name,
-          xconf->reason);
-      sendto_one(source_p,
-          ":%s NOTICE %s :Added X-Line [%s] [%d] [%s] to %s",
-          from, to, conf->name, 
-          xconf->action, xconf->reason, filename);
-      ilog(LOG_TYPE_IRCD, "%s added X-Line for [%s] [%s]",
-          get_oper_name(source_p), conf->name, xconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%d",
-          conf->name, xconf->reason, xconf->oper_reason,
-          current_date, get_oper_name(source_p), cur_time);
-    }
-    else
-    {
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s added temporary %d min. X-Line for [%s] [%s]",
-          get_oper_name(source_p), (int)duration/60,
-          conf->name, xconf->reason);
-      sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. X-Line [%s]",
-          MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
-          source_p->name, (int)duration/60, conf->name);
-      ilog(LOG_TYPE_IRCD, "%s added temporary %d min. X-Line for [%s] [%s]",
-          source_p->name, (int)duration/60,
-          conf->name, xconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%d%d",
-          conf->name, xconf->reason, xconf->oper_reason,
-          current_date, get_oper_name(source_p), cur_time, xconf->hold);
- 
-    }
-    break;
-  case CRESV_TYPE:
-    cresv_p = (struct ResvChannel *)map_to_conf(conf);
-    if(duration == 0)
-      write_csv_line(out, "%s%s", cresv_p->name, cresv_p->reason);
-    else
-      write_csv_line(out, "%s%s%d", cresv_p->name, cresv_p->reason, cresv_p->hold);
-    break;
+      break;
 
-  case NRESV_TYPE:
-    nresv_p = (struct MatchItem *)map_to_conf(conf);
-    if(duration == 0)
-      write_csv_line(out, "%s%s", conf->name, nresv_p->reason);
-    else
-      write_csv_line(out, "%s%s%d", conf->name, nresv_p->reason, nresv_p->hold);
-    break;
+    case DLINE_TYPE:
+      aconf = (struct AccessItem *)map_to_conf(conf);
 
-  default:
-    fclose(out);
-    return;
+      if (duration == 0)
+      {
+        sendto_realops_flags(UMODE_ALL, L_ALL,
+                             "%s added D-Line for [%s] [%s]",
+                             get_oper_name(source_p), aconf->host, aconf->reason);
+        sendto_one(source_p, ":%s NOTICE %s :Added D-Line [%s] to %s",
+                   from, to, aconf->host, filename);
+        ilog(LOG_TYPE_DLINE, "%s added D-Line for [%s] [%s]",
+             get_oper_name(source_p), aconf->host, aconf->reason);
+        write_csv_line(out, "%s%s%s%s%s%d",
+                       aconf->host, aconf->reason, aconf->oper_reason,
+                       current_date,
+                       get_oper_name(source_p), cur_time);
+      }
+      else
+      {
+        sendto_realops_flags(UMODE_ALL, L_ALL,
+                             "%s added temporary %d min. D-Line for [%s] [%s]",
+                             get_oper_name(source_p), duration / 60, aconf->host, aconf->reason);
+
+        sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. D-Line [%s]",
+                   from, to, duration / 60, aconf->host);
+        ilog(LOG_TYPE_DLINE, "%s added temporary %d min. D-Line for [%s] [%s]",
+             source_p->name, (int)duration / 60, aconf->host, aconf->reason);
+        write_csv_line(out, "%s%s%s%s%s%d%d",
+                       aconf->host, aconf->reason, aconf->oper_reason,
+                       current_date, get_oper_name(source_p), cur_time, aconf->hold);
+      }
+
+      break;
+
+    case XLINE_TYPE:
+      xconf = (struct MatchItem *)map_to_conf(conf);
+
+      if (duration == 0)
+      {
+        sendto_realops_flags(UMODE_ALL, L_ALL,
+                             "%s added X-Line for [%s] [%s]",
+                             get_oper_name(source_p), conf->name,
+                             xconf->reason);
+        sendto_one(source_p,
+                   ":%s NOTICE %s :Added X-Line [%s] [%d] [%s] to %s",
+                   from, to, conf->name,
+                   xconf->action, xconf->reason, filename);
+        ilog(LOG_TYPE_IRCD, "%s added X-Line for [%s] [%s]",
+             get_oper_name(source_p), conf->name, xconf->reason);
+        write_csv_line(out, "%s%s%s%s%s%d",
+                       conf->name, xconf->reason, xconf->oper_reason,
+                       current_date, get_oper_name(source_p), cur_time);
+      }
+      else
+      {
+        sendto_realops_flags(UMODE_ALL, L_ALL,
+                             "%s added temporary %d min. X-Line for [%s] [%s]",
+                             get_oper_name(source_p), (int)duration / 60,
+                             conf->name, xconf->reason);
+        sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. X-Line [%s]",
+                   MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
+                   source_p->name, (int)duration / 60, conf->name);
+        ilog(LOG_TYPE_IRCD, "%s added temporary %d min. X-Line for [%s] [%s]",
+             source_p->name, (int)duration / 60,
+             conf->name, xconf->reason);
+        write_csv_line(out, "%s%s%s%s%s%d%d",
+                       conf->name, xconf->reason, xconf->oper_reason,
+                       current_date, get_oper_name(source_p), cur_time, xconf->hold);
+
+      }
+
+      break;
+
+    case CRESV_TYPE:
+      cresv_p = (struct ResvChannel *)map_to_conf(conf);
+
+      if (duration == 0)
+        write_csv_line(out, "%s%s", cresv_p->name, cresv_p->reason);
+      else
+        write_csv_line(out, "%s%s%d", cresv_p->name, cresv_p->reason, cresv_p->hold);
+
+      break;
+
+    case NRESV_TYPE:
+      nresv_p = (struct MatchItem *)map_to_conf(conf);
+
+      if (duration == 0)
+        write_csv_line(out, "%s%s", conf->name, nresv_p->reason);
+      else
+        write_csv_line(out, "%s%s%d", conf->name, nresv_p->reason, nresv_p->hold);
+
+      break;
+
+    default:
+      fclose(out);
+      return;
   }
 
   fclose(out);
@@ -415,9 +448,9 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
 /*
  * write_csv_line()
  *
- * inputs	- pointer to FILE *
- *		- formatted string
- * output	-
+ * inputs  - pointer to FILE *
+ *    - formatted string
+ * output  -
  * side effects - single line is written to csv conf file
  */
 static int
@@ -431,7 +464,7 @@ write_csv_line(FILE *out, const char *format, ...)
   const char *null_string = "";
 
   if (out == NULL)
-    return(0);
+    return (0);
 
   va_start(args, format);
 
@@ -440,84 +473,94 @@ write_csv_line(FILE *out, const char *format, ...)
     if (c == '%')
     {
       c = *format++;
+
       if (c == 's')
       {
-	const char *p1 = va_arg(args, const char *);
-	if (p1 == NULL)
-	  p1 = null_string;
-	*str++ = '\"';
-	++bytes;
-	while (*p1 != '\0')
-	{
-	  *str++ = *p1++;
-	  ++bytes;
+        const char *p1 = va_arg(args, const char *);
+
+        if (p1 == NULL)
+          p1 = null_string;
+
+        *str++ = '\"';
+        ++bytes;
+
+        while (*p1 != '\0')
+        {
+          *str++ = *p1++;
+          ++bytes;
         }
-	*str++ = '\"';
-	*str++ = ',';
-	  
-	bytes += 2;
-	continue;
+
+        *str++ = '\"';
+        *str++ = ',';
+
+        bytes += 2;
+        continue;
       }
+
       if (c == 'c')
       {
-	*str++ = '\"';
-	++bytes;
-	*str++ = (char) va_arg(args, int);
-	++bytes;
-	*str++ = '\"';
-	*str++ = ',';
+        *str++ = '\"';
+        ++bytes;
+        *str++ = (char) va_arg(args, int);
+        ++bytes;
+        *str++ = '\"';
+        *str++ = ',';
 
-	bytes += 2;
-	continue;
+        bytes += 2;
+        continue;
       }
 
       if (c == 'd')
       {
-	int v = va_arg(args, int);
-	char t[40];
-	char *p=t;
+        int v = va_arg(args, int);
+        char t[40];
+        char *p = t;
 
-	while (v > 10)
+        while (v > 10)
         {
-	  *p++ = (v % 10) + '0';
-	  v = v/10;
-	}
-	*p++ = (v % 10) + '0';
+          *p++ = (v % 10) + '0';
+          v = v / 10;
+        }
+
+        *p++ = (v % 10) + '0';
 
         *str++ = '\"';
         ++bytes;
-	while (p != t)
-	{
-	  *str++ = *--p;
-	  ++bytes;
-	}
+
+        while (p != t)
+        {
+          *str++ = *--p;
+          ++bytes;
+        }
 
         *str++ = '\"';
-	*str++ = ',';
-	bytes += 2;
-	continue;
+        *str++ = ',';
+        bytes += 2;
+        continue;
       }
+
       if (c != '%')
       {
-	int ret;
-	
-	format -= 2;
-	ret = vsprintf(str, format, args);
-	str += ret;
-	bytes += ret;
-	*str++ = ',';
+        int ret;
 
-	++bytes;
-	break;
+        format -= 2;
+        ret = vsprintf(str, format, args);
+        str += ret;
+        bytes += ret;
+        *str++ = ',';
+
+        ++bytes;
+        break;
       }
     }
+
     *str++ = c;
     ++bytes;
   }
 
-  if (*(str-1) == ',')
+  if (*(str - 1) == ',')
   {
-    *(str-1) = '\n';
+    *(str - 1) = '\n';
     *str = '\0';
   }
   else
@@ -531,60 +574,61 @@ write_csv_line(FILE *out, const char *format, ...)
   str = tmp;
   fputs(str, out);
 
-  return(bytes);
+  return (bytes);
 }
 
 /*
  * getfield
  *
- * inputs	- input buffer
- * output	- next field
- * side effects	- field breakup for ircd.conf file.
+ * inputs  - input buffer
+ * output  - next field
+ * side effects  - field breakup for ircd.conf file.
  */
 static char *
 getfield(char *newline)
 {
   static char *line = NULL;
   char *end, *field;
-        
+
   if (newline != NULL)
     line = newline;
 
   if (line == NULL)
-    return(NULL);
+    return (NULL);
 
   field = line;
 
   /* skip everything that's not a starting quote */
-  for(;;)
+  for (;;)
   {
     if (*field == '\0')
-      return(NULL);
+      return (NULL);
     else if (*field == '"')
       break;
+
     ++field;
   }
 
   /* skip over the beginning " */
   end = ++field;
-  
+
   for (;;)
   {
     /* At end of string, mark it as end and return */
     if ((*end == '\0') || (*end == '\n'))
     {
       line = NULL;
-      return(NULL);
+      return (NULL);
     }
     else if (*end == '\\')      /* found escape character ? */
     {
       end++;
     }
-    else if (*end == '"')	/* found terminating " */
+    else if (*end == '"')  /* found terminating " */
     {
       *end++ = '\0';
       line = end;
-      return(field);
+      return (field);
     }
 
     end++;
@@ -595,18 +639,19 @@ getfield(char *newline)
 
 /* remove_conf_line()
  *
- * inputs	- type of kline to remove
- *		- pointer to oper removing
- *		- pat1 pat2 patterns to match
- * output	- -1 if unsuccessful 0 if no change 1 if change
- * side effects	-
+ * inputs  - type of kline to remove
+ *    - pointer to oper removing
+ *    - pat1 pat2 patterns to match
+ * output  - -1 if unsuccessful 0 if no change 1 if change
+ * side effects  -
  */
 int
-remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const char *pat2)
+remove_conf_line(ConfType type, struct Client *source_p, const char *pat1,
+                 const char *pat2)
 {
   const char *filename;
   FILE *in, *out;
-  int pairme=0;
+  int pairme = 0;
   char buf[IRCD_BUFSIZE], buff[IRCD_BUFSIZE], temppath[IRCD_BUFSIZE];
   char *found1;
   char *found2;
@@ -627,7 +672,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
   if ((out = fopen(temppath, "w")) == NULL)
   {
     sendto_one(source_p, ":%s NOTICE %s :Cannot open %s", me.name,
-	       source_p->name, temppath);
+               source_p->name, temppath);
     fclose(in);
     umask(oldumask);
     return -1;
@@ -636,14 +681,14 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
   umask(oldumask);
   oldumask = umask(0);
 
-  while (fgets(buf, sizeof(buf), in) != NULL) 
+  while (fgets(buf, sizeof(buf), in) != NULL)
   {
     if ((*buf == '\0') || (*buf == '#'))
     {
       if (flush_write(source_p, in, out, buf, temppath) < 0)
         return -1;
     }
-    
+
     /* Keep copy of original line, getfield trashes line as it goes */
     strlcpy(buff, buf, sizeof(buff));
 
@@ -651,6 +696,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
     {
       if (flush_write(source_p, in, out, buf, temppath) < 0)
         return -1;
+
       continue;
     }
 
@@ -660,6 +706,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
       {
         if (flush_write(source_p, in, out, buf, temppath) < 0)
           return -1;
+
         continue;
       }
 
@@ -670,8 +717,9 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
       }
       else
       {
-        if(flush_write(source_p, in, out, buf, temppath) < 0)
+        if (flush_write(source_p, in, out, buf, temppath) < 0)
           return -1;
+
         continue;
       }
     }
@@ -684,8 +732,9 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
       }
       else
       {
-        if(flush_write(source_p, in, out, buf, temppath) < 0)
+        if (flush_write(source_p, in, out, buf, temppath) < 0)
           return -1;
+
         continue;
       }
     }
@@ -694,20 +743,21 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
   fclose(in);
   fclose(out);
 
-/* The result of the rename should be checked too... oh well */
-/* If there was an error on a write above, then its been reported
- * and I am not going to trash the original kline /conf file
- */
+  /* The result of the rename should be checked too... oh well */
+  /* If there was an error on a write above, then its been reported
+   * and I am not going to trash the original kline /conf file
+   */
 
   if (pairme == 0)
   {
-    if(temppath != NULL)
-      (void)unlink(temppath);
+    if (temppath != NULL)
+      unlink(temppath);
+
     return 0;
   }
   else
   {
-    (void)rename(temppath, filename);
+    rename(temppath, filename);
 
     /* XXX
      * This is a very inefficient way of removing a kline/xline etc.
@@ -728,7 +778,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
  * flush_write()
  *
  * inputs       - pointer to client structure of oper requesting unkline
- *		- in is the input file descriptor
+ *    - in is the input file descriptor
  *              - out is the output file descriptor
  *              - buf is the buffer to write
  *              - ntowrite is the expected number of character to be written
@@ -739,23 +789,25 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
  *                if a write failure happesn, and the file pointed to
  *                by temppath, if its non NULL, is removed.
  *
- * The idea here is, to be as robust as possible when writing to the 
+ * The idea here is, to be as robust as possible when writing to the
  * kline file.
  *
  * -Dianora
  */
 static int
-flush_write(struct Client *source_p, FILE *in, FILE* out, 
+flush_write(struct Client *source_p, FILE *in, FILE *out,
             const char *buf, const char *temppath)
 {
   int error_on_write = fputs(buf, out) < 0 ? (-1) : (0);
 
   if (error_on_write)
   {
-    sendto_one(source_p,":%s NOTICE %s :Unable to write to %s aborting",
-	       me.name, source_p->name, temppath);
-    if(temppath != NULL)
-      (void)unlink(temppath);
+    sendto_one(source_p, ":%s NOTICE %s :Unable to write to %s aborting",
+               me.name, source_p->name, temppath);
+
+    if (temppath != NULL)
+      unlink(temppath);
+
     fclose(in);
     fclose(out);
   }

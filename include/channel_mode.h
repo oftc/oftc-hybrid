@@ -34,9 +34,9 @@
 #define MAXMODEPARAMS 4
 
 /* can_send results */
-#define CAN_SEND_NO	0
+#define CAN_SEND_NO     0
 #define CAN_SEND_NONOP  -1
-#define CAN_SEND_OPV	-2
+#define CAN_SEND_OPV    -2
 
 /* Channel related flags */
 #define CHFL_CHANOP     0x0001 /* Channel operator   */
@@ -85,30 +85,30 @@
 #define RegOnlyChannel(x)       ((x) && ((x)->mode.mode & MODE_REGONLY))
 #define SpeakOnlyIfReg(x)       ((x) && ((x)->mode.mode & MODE_SPEAKIFREG))
 #define SSLonlyChannel(x)       ((x) && ((x)->mode.mode & MODE_SSLONLY))
-    
+
 
 struct ChModeChange
 {
-  char letter;
-  const char *arg;
-  const char *id;
-  int dir;
-  unsigned int caps;
-  unsigned int nocaps;
-  int mems;
+  char          letter;
+  const char    *arg;
+  const char    *id;
+  int           dir;
+  unsigned int  caps;
+  unsigned int  nocaps;
+  int           mems;
   struct Client *client;
 };
 
 struct ChCapCombo
 {
-  int count;
-  unsigned int cap_yes;
-  unsigned int cap_no;
+  int           count;
+  unsigned int  cap_yes;
+  unsigned int  cap_no;
 };
 
 struct mode_letter
 {
-  const unsigned int mode;
+  const unsigned int  mode;
   const unsigned char letter;
 };
 
@@ -118,7 +118,7 @@ extern void set_channel_mode(struct Client *, struct Client *, struct Channel *,
                              struct Membership *, int, char **, char *);
 extern void clear_ban_cache(struct Channel *);
 extern void clear_ban_cache_client(struct Client *);
-extern void init_chcap_usage_counts(void);
+extern void init_chcap_usage_counts();
 extern void set_chcap_usage_counts(struct Client *);
 extern void unset_chcap_usage_counts(struct Client *);
 #endif /* INCLUDED_channel_mode_h */

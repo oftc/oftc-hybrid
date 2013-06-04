@@ -102,24 +102,26 @@ mo_motd(struct Client *client_p, struct Client *source_p,
   do_motd(source_p);
 }
 
-static struct Message motd_msgtab = {
+static struct Message motd_msgtab =
+{
   "MOTD", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_motd, mo_motd, m_ignore, mo_motd, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&motd_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&motd_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

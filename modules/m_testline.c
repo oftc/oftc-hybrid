@@ -43,11 +43,11 @@
  * inputs       - pointer to physical connection request is coming from
  *              - pointer to source connection request is coming from
  *              - parc arg count
- *              - parv actual arguments   
- *   
+ *              - parv actual arguments
+ *
  * output       - NONE
  * side effects - command to test I/K lines on server
- *   
+ *
  * i.e. /quote testline user@host,ip [password] [certfp]
  *
  */
@@ -82,7 +82,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     if ((chptr = match_find_resv(parv[1])))
     {
       sendto_one(source_p, form_str(RPL_TESTLINE),
-                 me.name, source_p->name, 'Q', 0, chptr->name, 
+                 me.name, source_p->name, 'Q', 0, chptr->name,
                  chptr->reason ? chptr->reason : CONF_NOREASON, "");
       return;
     }
@@ -105,13 +105,14 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 
   if (t != HM_HOST)
   {
-    aconf = find_dline_conf(&ip, 
-#ifdef IPV6 
+    aconf = find_dline_conf(&ip,
+#ifdef IPV6
                             (t == HM_IPV6) ? AF_INET6 : AF_INET
 #else
                             AF_INET
 #endif
-                            );
+                           );
+
     if (aconf != NULL)
     {
       ++matches;
@@ -136,7 +137,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
   }
 
   if (t != HM_HOST)
-    aconf = find_address_conf(given_host, given_name, &ip, 
+    aconf = find_address_conf(given_host, given_name, &ip,
 #ifdef IPV6
                               (t == HM_IPV6) ? AF_INET6 : AF_INET,
 #else
@@ -144,9 +145,9 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 #endif
                               parv[2], parv[3] == NULL ? parv[2] : parv[3]);
   else
-    aconf = find_address_conf(given_host, given_name, NULL, 0, parv[2], 
-        parv[3] == NULL ? parv[2] : parv[3]);
-                 
+    aconf = find_address_conf(given_host, given_name, NULL, 0, parv[2],
+                              parv[3] == NULL ? parv[2] : parv[3]);
+
   if (aconf != NULL)
   {
     snprintf(userhost, sizeof(userhost), "%s@%s", aconf->user, aconf->host);
@@ -166,7 +167,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
                  IsConfTemporary(aconf) ? 'k' : 'K',
                  IsConfTemporary(aconf) ? ((aconf->hold - CurrentTime) / 60)
                  : 0L,
-                 userhost, aconf->reason? aconf->reason : CONF_NOREASON,
+                 userhost, aconf->reason ? aconf->reason : CONF_NOREASON,
                  aconf->oper_reason ? aconf->oper_reason : "");
       ++matches;
     }
@@ -181,7 +182,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     sendto_one(source_p, form_str(RPL_TESTLINE),
                me.name, source_p->name,
                'Q', 0L,
-               conf->name, 
+               conf->name,
                mconf->reason ? mconf->reason : CONF_NOREASON,
                mconf->oper_reason ? mconf->oper_reason : "");
     ++matches;
@@ -198,17 +199,17 @@ mo_testline(struct Client *client_p, struct Client *source_p,
  * inputs       - pointer to physical connection request is coming from
  *              - pointer to source connection request is coming from
  *              - parc arg count
- *              - parv actual arguments   
- *   
+ *              - parv actual arguments
+ *
  * output       - always 0
  * side effects - command to test X lines on server
- *   
+ *
  * i.e. /quote testgecos gecos
  *
  */
 static void
 mo_testgecos(struct Client *client_p, struct Client *source_p,
-            int parc, char *parv[])
+             int parc, char *parv[])
 {
   struct ConfItem *conf = NULL;
   struct MatchItem *xconf = NULL;
@@ -233,31 +234,34 @@ mo_testgecos(struct Client *client_p, struct Client *source_p,
                me.name, source_p->name, parv[1]);
 }
 
-static struct Message testline_msgtab = {
+static struct Message testline_msgtab =
+{
   "TESTLINE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testline, m_ignore }
 };
 
-struct Message testgecos_msgtab = {
+struct Message testgecos_msgtab =
+{
   "TESTGECOS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testgecos, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&testline_msgtab);
   mod_add_cmd(&testgecos_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&testline_msgtab);
   mod_del_cmd(&testgecos_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

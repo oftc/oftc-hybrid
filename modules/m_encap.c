@@ -35,9 +35,9 @@
 /*
  * ms_encap()
  *
- * inputs	- destination server, subcommand, parameters
- * output	- none
- * side effects	- propagates subcommand to locally connected servers
+ * inputs  - destination server, subcommand, parameters
+ * output  - none
+ * side effects  - propagates subcommand to locally connected servers
  */
 static void
 ms_encap(struct Client *client_p, struct Client *source_p,
@@ -66,7 +66,7 @@ ms_encap(struct Client *client_p, struct Client *source_p,
   len = strlen(parv[i]);
 
   /*
-   * if the final parameter crosses our buffer size, should we bail, 
+   * if the final parameter crosses our buffer size, should we bail,
    * like the rest, or should we truncate?  ratbox seems to think truncate,
    * so i'll do that for now until i can talk to lee.  -bill
    */
@@ -108,26 +108,28 @@ ms_encap(struct Client *client_p, struct Client *source_p,
     (*handler)(client_p, source_p, parc, parv);
 }
 
-static struct Message encap_msgtab = {
+static struct Message encap_msgtab =
+{
   "ENCAP", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_encap, m_ignore, m_ignore, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&encap_msgtab);
   add_capability("ENCAP", CAP_ENCAP, 1);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&encap_msgtab);
   delete_capability("ENCAP");
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

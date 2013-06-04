@@ -109,24 +109,26 @@ me_operwall(struct Client *client_p, struct Client *source_p,
   sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }
 
-static struct Message operwall_msgtab = {
+static struct Message operwall_msgtab =
+{
   "OPERWALL", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, ms_operwall, me_operwall, mo_operwall, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&operwall_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&operwall_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

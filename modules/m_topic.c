@@ -79,20 +79,23 @@ m_topic(struct Client *client_p, struct Client *source_p,
                  source_p->name, parv[1]);
       return;
     }
+
     if ((chptr->mode.mode & MODE_TOPICLIMIT) == 0 ||
-        has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) || HasUMode(source_p, UMODE_GOD) ||
+        has_member_flags(ms, CHFL_CHANOP | CHFL_HALFOP)
+        || HasUMode(source_p, UMODE_GOD) ||
         HasUMode(source_p, UMODE_SERVICE))
     {
-      char topic_info[USERHOST_REPLYLEN]; 
-      if(!has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) && 
+      char topic_info[USERHOST_REPLYLEN];
+
+      if (!has_member_flags(ms, CHFL_CHANOP | CHFL_HALFOP) &&
           HasUMode(source_p, UMODE_GOD) && MyClient(source_p) &&
           (chptr->mode.mode & MODE_TOPICLIMIT) != 0)
-      {              
-        char tmp[IRCD_BUFSIZE];           
-        ircsprintf(tmp, "%s is using God mode: TOPIC %s %s", source_p->name, 
-            chptr->chname, parv[2]);              
-        sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, 
-            tmp);
+      {
+        char tmp[IRCD_BUFSIZE];
+        ircsprintf(tmp, "%s is using God mode: TOPIC %s %s", source_p->name,
+                   chptr->chname, parv[2]);
+        sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,
+                             tmp);
         oftc_log(tmp);
       }
 
@@ -181,6 +184,7 @@ ms_topic(struct Client *client_p, struct Client *source_p,
   else
     snprintf(topic_info, sizeof(topic_info), "%s!%s@%s", source_p->name,
              source_p->username, source_p->host);
+
   set_channel_topic(chptr, parv[2], topic_info, CurrentTime, 0);
 
   sendto_server(client_p, CAP_TS6, NOCAPS, ":%s TOPIC %s :%s",
@@ -204,24 +208,26 @@ ms_topic(struct Client *client_p, struct Client *source_p,
 }
 
 
-static struct Message topic_msgtab = {
+static struct Message topic_msgtab =
+{
   "TOPIC", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_topic, ms_topic, m_ignore, m_topic, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&topic_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&topic_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

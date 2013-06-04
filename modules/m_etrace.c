@@ -37,7 +37,7 @@
 #include "modules.h"
 #include "conf.h"
 
-#define FORM_STR_RPL_ETRACE	 ":%s 709 %s %s %s %s %s %s :%s"
+#define FORM_STR_RPL_ETRACE   ":%s 709 %s %s %s %s %s %s :%s"
 #define FORM_STR_RPL_ETRACE_FULL ":%s 708 %s %s %s %s %s %s %s %s :%s"
 
 static void report_this_status(struct Client *, struct Client *, int);
@@ -94,8 +94,8 @@ do_etrace(struct Client *source_p, int parc, char *parv[])
 
     if (target_p && MyClient(target_p))
       report_this_status(source_p, target_p, full_etrace);
-      
-    sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name, 
+
+    sendto_one(source_p, form_str(RPL_ENDOFTRACE), me.name,
                source_p->name, tname);
     return;
   }
@@ -130,10 +130,10 @@ mo_etrace(struct Client *client_p, struct Client *source_p,
 
 /* report_this_status()
  *
- * inputs	- pointer to client to report to
- * 		- pointer to client to report about
- *		- flag full etrace or not
- * output	- NONE
+ * inputs  - pointer to client to report to
+ *     - pointer to client to report about
+ *    - flag full etrace or not
+ * output  - NONE
  * side effects - NONE
  */
 static void
@@ -151,78 +151,80 @@ report_this_status(struct Client *source_p, struct Client *target_p,
     if (full_etrace)
     {
       if (ConfigFileEntry.hide_spoof_ips)
-	sendto_one(source_p, form_str(RPL_ETRACE_FULL),
-		   me.name,
-		   source_p->name,
-		   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User",
-		   class_name,
-		   target_p->name,
-		   target_p->username,
-		   target_p->host,
-		   IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
-		   IsIPSpoof(target_p) ? "<hidden>" : target_p->localClient->client_host,
-		   IsIPSpoof(target_p) ? "<hidden>" : target_p->localClient->client_server,
-		   target_p->info);
+        sendto_one(source_p, form_str(RPL_ETRACE_FULL),
+                   me.name,
+                   source_p->name,
+                   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User",
+                   class_name,
+                   target_p->name,
+                   target_p->username,
+                   target_p->host,
+                   IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
+                   IsIPSpoof(target_p) ? "<hidden>" : target_p->localClient->client_host,
+                   IsIPSpoof(target_p) ? "<hidden>" : target_p->localClient->client_server,
+                   target_p->info);
       else
         sendto_one(source_p, form_str(RPL_ETRACE_FULL),
-		   me.name,
-		   source_p->name, 
-		   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User", 
-		   class_name,
-		   target_p->name,
-		   target_p->username,
-		   target_p->host,
-		   target_p->sockhost,
-		   target_p->localClient->client_host,
-		   target_p->localClient->client_server,
-		   target_p->info);
+                   me.name,
+                   source_p->name,
+                   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User",
+                   class_name,
+                   target_p->name,
+                   target_p->username,
+                   target_p->host,
+                   target_p->sockhost,
+                   target_p->localClient->client_host,
+                   target_p->localClient->client_server,
+                   target_p->info);
     }
     else
     {
       if (ConfigFileEntry.hide_spoof_ips)
-	sendto_one(source_p, form_str(RPL_ETRACE),
-		   me.name,
-		   source_p->name,
-		   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User",
-		   class_name,
-		   target_p->name,
-		   target_p->username,
-		   target_p->host,
-		   IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
-		   target_p->info);
+        sendto_one(source_p, form_str(RPL_ETRACE),
+                   me.name,
+                   source_p->name,
+                   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User",
+                   class_name,
+                   target_p->name,
+                   target_p->username,
+                   target_p->host,
+                   IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost,
+                   target_p->info);
       else
-	sendto_one(source_p, form_str(RPL_ETRACE),
-		   me.name,
-		   source_p->name, 
-		   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User", 
-		   class_name,
-		   target_p->name,
-		   target_p->username,
-		   target_p->host,
-		   target_p->sockhost,
-		   target_p->info);
+        sendto_one(source_p, form_str(RPL_ETRACE),
+                   me.name,
+                   source_p->name,
+                   HasUMode(target_p, UMODE_OPER) ? "Oper" : "User",
+                   class_name,
+                   target_p->name,
+                   target_p->username,
+                   target_p->host,
+                   target_p->sockhost,
+                   target_p->info);
     }
   }
 }
 
-static struct Message etrace_msgtab = {
+static struct Message etrace_msgtab =
+{
   "ETRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_etrace, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&etrace_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&etrace_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

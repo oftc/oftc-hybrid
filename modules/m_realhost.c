@@ -39,35 +39,38 @@
 #include "packet.h"
 #include "irc_string.h"
 
-static void ms_realhost(struct Client *source_p, struct Client *client_p, int parc, char **parv)
+static void ms_realhost(struct Client *source_p, struct Client *client_p,
+                        int parc, char **parv)
 {
   struct Client *target_p;
-  
+
   if ((target_p = find_person(client_p, parv[1])) == NULL)
     return;
 
-  if(target_p->realhost[0] == '\0')
-      strlcpy(target_p->realhost, parv[2], HOSTLEN);
+  if (target_p->realhost[0] == '\0')
+    strlcpy(target_p->realhost, parv[2], HOSTLEN);
 }
 
-struct Message realhost_msgtab = {
-      "REALHOST", 0, 0, 2, 0, MFLG_SLOW, 0,
-        {m_ignore, m_ignore, ms_realhost, m_ignore}
+struct Message realhost_msgtab =
+{
+  "REALHOST", 0, 0, 2, 0, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_realhost, m_ignore}
 };
 
-void 
-module_init(void)
+void
+module_init()
 {
   mod_add_cmd(&realhost_msgtab);
 }
 
 void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&realhost_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -122,7 +122,7 @@ m_join(struct Client *client_p, struct Client *source_p,
 
     /* If we have any more keys, take the first for this channel. */
     if (!EmptyString(key_list) && (key_list = strchr(key = key_list, ',')))
-      *key_list++ = '\0';
+      * key_list++ = '\0';
 
     /* Empty keys are the same as no keys. */
     if (key && *key == '\0')
@@ -141,6 +141,7 @@ m_join(struct Client *client_p, struct Client *source_p,
     {
       if (resv_cp)
         ++resv_cp->count;
+
       sendto_one(source_p, form_str(ERR_BADCHANNAME),
                  me.name, source_p->name, chan);
       sendto_realops_flags(UMODE_SPY, L_ALL,
@@ -203,22 +204,23 @@ m_join(struct Client *client_p, struct Client *source_p,
 
       flags = CHFL_CHANOP;
       chptr = make_channel(chan);
-      if(MyClient(source_p))
+
+      if (MyClient(source_p))
         sendto_realops_flags(UMODE_SPY, L_ALL,
-            "Channel %s created by %s!%s@%s", chan, source_p->name,
-            source_p->username, source_p->host);
+                             "Channel %s created by %s!%s@%s", chan, source_p->name,
+                             source_p->username, source_p->host);
     }
 
     if (!HasUMode(source_p, UMODE_OPER))
       check_spambot_warning(source_p, chptr->chname);
 
-    if(i != 0 && HasUMode(source_p, UMODE_GOD) && MyClient(source_p))
+    if (i != 0 && HasUMode(source_p, UMODE_GOD) && MyClient(source_p))
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: JOIN %s", source_p->name,
-          chptr->chname);
+                 chptr->chname);
       sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,
-          tmp);
+                           tmp);
       oftc_log(tmp);
     }
 
@@ -286,18 +288,18 @@ m_join(struct Client *client_p, struct Client *source_p,
 
 /* ms_join()
  *
- * inputs	- parv[0] = uid
- *		  parv[1] = ts
- *		  parv[2] = channel name
- *		  parv[3] = modes (Deprecated)
- * output	- none
- * side effects	- handles remote JOIN's sent by servers. In TSora
- *		  remote clients are joined using SJOIN, hence a 
- *		  JOIN sent by a server on behalf of a client is an error.
- *		  here, the initial code is in to take an extra parameter
- *		  and use it for the TimeStamp on a new channel.
+ * inputs  - parv[0] = uid
+ *      parv[1] = ts
+ *      parv[2] = channel name
+ *      parv[3] = modes (Deprecated)
+ * output  - none
+ * side effects  - handles remote JOIN's sent by servers. In TSora
+ *      remote clients are joined using SJOIN, hence a
+ *      JOIN sent by a server on behalf of a client is an error.
+ *      here, the initial code is in to take an extra parameter
+ *      and use it for the TimeStamp on a new channel.
  */
-static void 
+static void
 ms_join(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
@@ -335,10 +337,11 @@ ms_join(struct Client *client_p, struct Client *source_p,
   {
     isnew = 1;
     chptr = make_channel(parv[2]);
-    if(MyClient(source_p))
+
+    if (MyClient(source_p))
       sendto_realops_flags(UMODE_SPY, L_ALL,
-          "Channel %s created by %s!%s@%s", parv[2], source_p->name,
-          source_p->username, source_p->host);
+                           "Channel %s created by %s!%s@%s", parv[2], source_p->name,
+                           source_p->username, source_p->host);
   }
 
   newts   = atol(parv[1]);
@@ -389,8 +392,10 @@ ms_join(struct Client *client_p, struct Client *source_p,
   else if (keep_our_modes)
   {
     mode.mode |= oldmode->mode;
+
     if (oldmode->limit > mode.limit)
       mode.limit = oldmode->limit;
+
     if (strcmp(mode.key, oldmode->key) < 0)
       strcpy(mode.key, oldmode->key);
   }
@@ -408,20 +413,20 @@ ms_join(struct Client *client_p, struct Client *source_p,
       set_channel_topic(chptr, "", "", 0, 0);
       sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :",
                            (IsHidden(source_p) ||
-                           ConfigServerHide.hide_servers) ?
+                            ConfigServerHide.hide_servers) ?
                            me.name : source_p->name, chptr->chname);
     }
 
     sendto_channel_local(ALL_MEMBERS, 0, chptr,
                          ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to %lu",
-                          me.name, chptr->chname, chptr->chname,
+                         me.name, chptr->chname, chptr->chname,
                          (unsigned long)oldts, (unsigned long)newts);
   }
-   
+
   if (*modebuf != '\0')
   {
     servername = (ConfigServerHide.hide_servers || IsHidden(source_p)) ?
-                  me.name : source_p->name;
+                 me.name : source_p->name;
 
     /* This _SHOULD_ be to ALL_MEMBERS
      * It contains only +imnpstlk, etc */
@@ -448,12 +453,12 @@ ms_join(struct Client *client_p, struct Client *source_p,
 
 /* do_join_0()
  *
- * inputs	- pointer to client doing join 0
- * output	- NONE
- * side effects	- Use has decided to join 0. This is legacy
- *		  from the days when channels were numbers not names. *sigh*
- *		  There is a bunch of evilness necessary here due to
- * 		  anti spambot code.
+ * inputs  - pointer to client doing join 0
+ * output  - NONE
+ * side effects  - Use has decided to join 0. This is legacy
+ *      from the days when channels were numbers not names. *sigh*
+ *      There is a bunch of evilness necessary here due to
+ *       anti spambot code.
  */
 static void
 do_join_0(struct Client *client_p, struct Client *source_p)
@@ -509,6 +514,7 @@ set_final_mode(struct Mode *mode, struct Mode *oldmode)
         *mbuf++ = '+';
         what = 1;
       }
+
       *mbuf++ = tab->letter;
     }
   }
@@ -523,6 +529,7 @@ set_final_mode(struct Mode *mode, struct Mode *oldmode)
         *mbuf++ = '-';
         what = -1;
       }
+
       *mbuf++ = tab->letter;
     }
   }
@@ -534,6 +541,7 @@ set_final_mode(struct Mode *mode, struct Mode *oldmode)
       *mbuf++ = '-';
       what = -1;
     }
+
     *mbuf++ = 'l';
   }
 
@@ -544,6 +552,7 @@ set_final_mode(struct Mode *mode, struct Mode *oldmode)
       *mbuf++ = '-';
       what = -1;
     }
+
     *mbuf++ = 'k';
     len = ircsprintf(pbuf, "%s ", oldmode->key);
     pbuf += len;
@@ -556,6 +565,7 @@ set_final_mode(struct Mode *mode, struct Mode *oldmode)
       *mbuf++ = '+';
       what = 1;
     }
+
     *mbuf++ = 'l';
     len = ircsprintf(pbuf, "%d ", mode->limit);
     pbuf += len;
@@ -568,10 +578,12 @@ set_final_mode(struct Mode *mode, struct Mode *oldmode)
       *mbuf++ = '+';
       what = 1;
     }
+
     *mbuf++ = 'k';
     len = ircsprintf(pbuf, "%s ", mode->key);
     pbuf += len;
   }
+
   *mbuf = '\0';
 }
 
@@ -615,6 +627,7 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
 
   for (lcount = 0; lcount < MAXMODEPARAMS; lcount++)
     lpara[lcount] = "";
+
   sendbuf[0] = '\0';
 
   DLINK_FOREACH(ptr, chptr->members.head)
@@ -646,7 +659,7 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
       sendto_channel_local(ALL_MEMBERS, 0, chptr,
                            ":%s MODE %s %s%s",
                            (IsHidden(source_p) ||
-                           ConfigServerHide.hide_servers) ?
+                            ConfigServerHide.hide_servers) ?
                            me.name : source_p->name,
                            chptr->chname, lmodebuf, sendbuf);
       mbuf = lmodebuf;
@@ -659,6 +672,7 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
   if (count != 0)
   {
     *mbuf = '\0';
+
     for (lcount = 0; lcount < MAXMODEPARAMS; lcount++)
     {
       if (*lpara[lcount] == '\0')
@@ -667,6 +681,7 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
       strlcat(sendbuf, " ", sizeof(sendbuf));
       strlcat(sendbuf, lpara[lcount], sizeof(sendbuf));
     }
+
     sendto_channel_local(ALL_MEMBERS, 0, chptr,
                          ":%s MODE %s %s%s",
                          (IsHidden(source_p) || ConfigServerHide.hide_servers) ?
@@ -675,24 +690,26 @@ remove_a_mode(struct Channel *chptr, struct Client *source_p,
   }
 }
 
-static struct Message join_msgtab = {
+static struct Message join_msgtab =
+{
   "JOIN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_join, ms_join, m_ignore, m_join, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&join_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&join_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

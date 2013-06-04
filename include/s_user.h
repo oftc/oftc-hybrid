@@ -35,7 +35,7 @@ extern struct Callback *entering_umode_cb;
 extern struct Callback *umode_cb;
 extern unsigned int user_modes[];
 
-extern void assemble_umode_buffer(void);
+extern void assemble_umode_buffer();
 extern void set_user_mode(struct Client *, struct Client *, int, char **);
 extern void send_umode(struct Client *, struct Client *,
                        unsigned int, unsigned int, char *);
@@ -48,15 +48,15 @@ extern void register_local_user(struct Client *);
 extern void register_remote_user(struct Client *,
                                  const char *, const char *,
                                  const char *, const char *);
-extern void init_uid(void);
+extern void init_uid();
 extern int valid_sid(const char *);
 extern int valid_hostname(const char *);
 extern int valid_username(const char *);
 extern int valid_nickname(const char *, const int);
 extern void add_isupport(const char *, const char *, int);
 extern void delete_isupport(const char *);
-extern void init_isupport(void);
-extern void rebuild_isupport_message_line(void);
+extern void init_isupport();
+extern void rebuild_isupport_message_line();
 extern void check_godmode(void *);
 
 extern void user_set_hostmask(struct Client *, const char *);

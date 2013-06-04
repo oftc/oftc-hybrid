@@ -31,11 +31,11 @@ typedef void *CBFUNC(va_list);
 
 struct Callback
 {
-  char *name;
-  dlink_list chain;
-  dlink_node node;
-  unsigned int called;
-  time_t last;
+  char          *name;
+  dlink_list    chain;
+  dlink_node    node;
+  unsigned int  called;
+  time_t        last;
 };
 
 struct Client;

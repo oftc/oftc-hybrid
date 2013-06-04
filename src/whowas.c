@@ -101,8 +101,10 @@ get_history(const char *nick, time_t timelimit)
 
     if (temp->logoff < timelimit)
       continue;
+
     if (irccmp(nick, temp->name))
       continue;
+
     return temp->online;
   }
 
@@ -133,7 +135,7 @@ count_whowas_memory(unsigned int *wwu, uint64_t *wwum)
 }
 
 void
-whowas_init(void)
+whowas_init()
 {
   unsigned int idx;
 

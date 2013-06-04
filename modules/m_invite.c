@@ -94,14 +94,15 @@ m_invite(struct Client *client_p, struct Client *source_p,
   if (MyConnect(source_p) && !chop && !HasUMode(source_p, UMODE_GOD))
   {
     sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-        me.name, parv[0], parv[2]);
+               me.name, parv[0], parv[2]);
     return;
   }
-  if(MyConnect(source_p) && !chop)
+
+  if (MyConnect(source_p) && !chop)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-        "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
-        target_p->name);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
+                         target_p->name);
   }
 
   if (IsMember(target_p, chptr))
@@ -150,24 +151,26 @@ m_invite(struct Client *client_p, struct Client *source_p,
                chptr->chname, (unsigned long)chptr->channelts);
 }
 
-static struct Message invite_msgtab = {
+static struct Message invite_msgtab =
+{
   "INVITE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_invite, m_invite, m_ignore, m_invite, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&invite_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&invite_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -51,7 +51,7 @@ has_wildcards(const char *s)
  *   might break things in other places...)
  *
  *
- * Thu Nov 24 18:22:48 1986 
+ * Thu Nov 24 18:22:48 1986
  */
 const char *
 myctime(time_t value)
@@ -62,27 +62,28 @@ myctime(time_t value)
   strlcpy(buf, ctime(&value), sizeof(buf));
 
   if ((p = strchr(buf, '\n')) != NULL)
-    *p = '\0';
+    * p = '\0';
+
   return buf;
 }
 
 /*
  * clean_string - clean up a string possibly containing garbage
  *
- * *sigh* Before the kiddies find this new and exciting way of 
+ * *sigh* Before the kiddies find this new and exciting way of
  * annoying opers, lets clean up what is sent to local opers
  * -Dianora
  */
 char *
-clean_string(char* dest, const unsigned char* src, ssize_t len)
+clean_string(char *dest, const unsigned char *src, ssize_t len)
 {
-  char* d    = dest; 
+  char *d    = dest;
   assert(0 != dest);
   assert(0 != src);
 
-  if(dest == NULL || src == NULL)
+  if (dest == NULL || src == NULL)
     return NULL;
-    
+
   len -= 3;  /* allow for worst case, '^A\0' */
 
   while (*src && (len > 0))
@@ -100,6 +101,7 @@ clean_string(char* dest, const unsigned char* src, ssize_t len)
 
     ++src, --len;
   }
+
   *d = '\0';
   return dest;
 }
@@ -133,10 +135,10 @@ strip_tabs(char *dest, const char *src, size_t len)
 #ifndef HAVE_STRTOK_R
 
 char *
-strtoken(char** save, char* str, const char* fs)
+strtoken(char **save, char *str, const char *fs)
 {
-  char* pos = *save;  /* keep last position across calls */
-  char* tmp;
+  char *pos = *save;  /* keep last position across calls */
+  char *tmp;
 
   if (str)
     pos = str;    /* new string scan */
@@ -166,8 +168,8 @@ strtoken(char** save, char* str, const char* fs)
 
 /* basename()
  *
- * input	- i.e. "/usr/local/ircd/modules/m_whois.so"
- * output	- i.e. "m_whois.so"
+ * input  - i.e. "/usr/local/ircd/modules/m_whois.so"
+ * output  - i.e. "m_whois.so"
  * side effects - this will be overwritten on subsequent calls
  */
 char *
@@ -187,7 +189,7 @@ basename(char *path)
 
 /*
  * strlcat and strlcpy were ripped from openssh 2.5.1p2
- * They had the following Copyright info: 
+ * They had the following Copyright info:
  *
  *
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
@@ -198,9 +200,9 @@ basename(char *path)
  * are met:
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright    
- *    notice, this list of conditions and the following disclaimer in the  
- *    documentation and/or other materials provided with the distribution. 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
  *    derived from this software without specific prior written permission.
  *
@@ -215,7 +217,7 @@ basename(char *path)
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #ifndef HAVE_STRLCAT
 size_t
 strlcat(char *dst, const char *src, size_t siz)
@@ -264,7 +266,8 @@ strlcpy(char *dst, const char *src, size_t siz)
     {
       if ((*d++ = *s++) == 0)
         break;
-    } while (--n != 0);
+    }
+    while (--n != 0);
   }
 
   /* Not enough room in dst, add NUL and traverse rest of src */
@@ -272,6 +275,7 @@ strlcpy(char *dst, const char *src, size_t siz)
   {
     if (siz != 0)
       *d = '\0'; /* NUL-terminate dst */
+
     while (*s++)
       ;
   }

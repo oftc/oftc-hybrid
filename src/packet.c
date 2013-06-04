@@ -80,22 +80,30 @@ extract_one_line(struct dbuf_queue *qptr, char *buffer)
     for (idx = 0; idx < block->size; idx++)
     {
       c = block->data[idx];
+
       if (IsEol(c) || (c == ' ' && phase != 1))
       {
         empty_bytes++;
+
         if (phase == 1)
           phase = 2;
       }
       else switch (phase)
-      {
-        case 0: phase = 1;
-        case 1: if (line_bytes++ < IRCD_BUFSIZE - 2)
-                  *buffer++ = c;
-                break;
-        case 2: *buffer = '\0';
-                dbuf_delete(qptr, line_bytes + empty_bytes);
-                return IRCD_MIN(line_bytes, IRCD_BUFSIZE - 2);
-      }
+        {
+          case 0:
+            phase = 1;
+
+          case 1:
+            if (line_bytes++ < IRCD_BUFSIZE - 2)
+              *buffer++ = c;
+
+            break;
+
+          case 2:
+            *buffer = '\0';
+            dbuf_delete(qptr, line_bytes + empty_bytes);
+            return IRCD_MIN(line_bytes, IRCD_BUFSIZE - 2);
+        }
     }
   }
 
@@ -118,7 +126,7 @@ extract_one_line(struct dbuf_queue *qptr, char *buffer)
  */
 static void
 parse_client_queued(struct Client *client_p)
-{ 
+{
   int dolen = 0;
   int checkflood = 1;
   struct LocalUser *lclient_p = client_p->localClient;
@@ -127,18 +135,19 @@ parse_client_queued(struct Client *client_p)
   {
     int i = 0;
 
-    for(;;)
+    for (;;)
     {
       if (IsDefunct(client_p))
-	return;
+        return;
 
       /* rate unknown clients at MAX_FLOOD per loop */
       if (i >= MAX_FLOOD)
         break;
 
       dolen = extract_one_line(&lclient_p->buf_recvq, readBuf);
+
       if (dolen == 0)
-	break;
+        break;
 
       client_dopacket(client_p, readBuf, dolen);
       i++;
@@ -146,7 +155,7 @@ parse_client_queued(struct Client *client_p)
       /* if they've dropped out of the unknown state, break and move
        * to the parsing for their appropriate status.  --fl
        */
-      if(!IsUnknown(client_p))
+      if (!IsUnknown(client_p))
         break;
     }
   }
@@ -157,15 +166,18 @@ parse_client_queued(struct Client *client_p)
     {
       if (IsDefunct(client_p))
         return;
+
       if ((dolen = extract_one_line(&lclient_p->buf_recvq,
                                     readBuf)) == 0)
         break;
+
       client_dopacket(client_p, readBuf, dolen);
     }
   }
   else if (IsClient(client_p))
   {
-    if (ConfigFileEntry.no_oper_flood && (HasUMode(client_p, UMODE_OPER) || IsCanFlood(client_p)))
+    if (ConfigFileEntry.no_oper_flood && (HasUMode(client_p, UMODE_OPER)
+                                          || IsCanFlood(client_p)))
     {
       if (ConfigFileEntry.true_no_oper_flood)
         checkflood = -1;
@@ -181,7 +193,7 @@ parse_client_queued(struct Client *client_p)
     for (;;)
     {
       if (IsDefunct(client_p))
-	break;
+        break;
 
       /* This flood protection works as follows:
        *
@@ -198,10 +210,10 @@ parse_client_queued(struct Client *client_p)
        */
       if (checkflood > 0)
       {
-        if(lclient_p->sent_parsed >= lclient_p->allow_read)
+        if (lclient_p->sent_parsed >= lclient_p->allow_read)
           break;
       }
-      
+
       /* allow opers 4 times the amount of messages as users. why 4?
        * why not. :) --fl_
        */
@@ -210,6 +222,7 @@ parse_client_queued(struct Client *client_p)
         break;
 
       dolen = extract_one_line(&lclient_p->buf_recvq, readBuf);
+
       if (dolen == 0)
         break;
 
@@ -248,7 +261,7 @@ flood_recalc(fde_t *fd, void *data)
 {
   struct Client *client_p = data;
   struct LocalUser *lclient_p = client_p->localClient;
- 
+
   /* allow a bursting client their allocation per second, allow
    * a client whos flooding an extra 2 per second
    */
@@ -256,12 +269,12 @@ flood_recalc(fde_t *fd, void *data)
     lclient_p->sent_parsed -= 2;
   else
     lclient_p->sent_parsed = 0;
-  
+
   if (lclient_p->sent_parsed < 0)
     lclient_p->sent_parsed = 0;
-  
+
   parse_client_queued(client_p);
-  
+
   /* And now, try flushing .. */
   if (!IsDead(client_p))
   {
@@ -301,8 +314,10 @@ read_packet(fde_t *fd, void *data)
    * I personally think it makes the code too hairy to make sane.
    *     -- adrian
    */
-  do {
+  do
+  {
 #ifdef HAVE_LIBCRYPTO
+
     if (fd->ssl)
     {
       length = SSL_read(fd->ssl, readBuf, READBUF_SIZE);
@@ -310,23 +325,27 @@ read_packet(fde_t *fd, void *data)
       /* translate openssl error codes, sigh */
       if (length < 0)
         switch (SSL_get_error(fd->ssl, length))
-	{
+        {
           case SSL_ERROR_WANT_WRITE:
             fd->flags.pending_read = 1;
-	    SetSendqBlocked(client_p);
-	    comm_setselect(fd, COMM_SELECT_WRITE, (PF *) sendq_unblocked,
-	                   client_p, 0);
-	    return;
-	  case SSL_ERROR_WANT_READ:
-	    errno = EWOULDBLOCK;
+            SetSendqBlocked(client_p);
+            comm_setselect(fd, COMM_SELECT_WRITE, (PF *) sendq_unblocked,
+                           client_p, 0);
+            return;
+
+          case SSL_ERROR_WANT_READ:
+            errno = EWOULDBLOCK;
+
           case SSL_ERROR_SYSCALL:
-	    break;
+            break;
+
           case SSL_ERROR_SSL:
             if (errno == EAGAIN)
               break;
+
           default:
-	    length = errno = 0;
-	}
+            length = errno = 0;
+        }
     }
     else
 #endif
@@ -351,17 +370,21 @@ read_packet(fde_t *fd, void *data)
 
     if (IsServer(client_p) && IsPingSent(client_p) && IsPingWarning(client_p))
     {
-        char timestamp[200];
-        strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&CurrentTime));
-        sendto_realops_flags(UMODE_ALL, L_ALL, 
-            "Finally received packets from %s again after %d seconds (at %s)",
-            get_client_name(client_p, SHOW_IP), CurrentTime - client_p->localClient->lasttime, timestamp);
+      char timestamp[200];
+      strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z",
+               gmtime(&CurrentTime));
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+                           "Finally received packets from %s again after %d seconds (at %s)",
+                           get_client_name(client_p, SHOW_IP),
+                           CurrentTime - client_p->localClient->lasttime, timestamp);
     }
 
     if (client_p->localClient->lasttime < CurrentTime)
       client_p->localClient->lasttime = CurrentTime;
+
     if (client_p->localClient->lasttime > client_p->localClient->since)
       client_p->localClient->since = CurrentTime;
+
     ClearPingSent(client_p);
 
     /* Attempt to parse what we have */
@@ -382,10 +405,15 @@ read_packet(fde_t *fd, void *data)
       }
     }
   }
+
 #ifdef HAVE_LIBCRYPTO
+
   while (length == sizeof(readBuf) || fd->ssl);
+
 #else
+
   while (length == sizeof(readBuf));
+
 #endif
 
   /* If we get here, we need to register for another COMM_SELECT_READ */
@@ -407,13 +435,13 @@ read_packet(fde_t *fd, void *data)
 static void
 client_dopacket(struct Client *client_p, char *buffer, size_t length)
 {
-  /* 
+  /*
    * Update messages received
    */
   ++me.localClient->recv.messages;
   ++client_p->localClient->recv.messages;
 
-  /* 
+  /*
    * Update bytes received
    */
   client_p->localClient->recv.bytes += length;

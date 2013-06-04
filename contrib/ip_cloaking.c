@@ -84,15 +84,15 @@ static void *h_set_user_mode(va_list);
  * knight-
  */
 
-/* ============================================================= 
+/* =============================================================
  * COPYRIGHT (C) 1986 Gary S. Brown. You may use this program, or
  * code or tables extracted from it, as desired without restriction.
  *
  * First, the polynomial itself and its stable of feedback terms. The
  * polynomial is:
- * 
+ *
  * X^32+X^26+X^23+X^22+X^16+X^12+X^11+X^10+X^8+X^7+X^5+X^4+X^2+X^1+X^0
- * 
+ *
  * Note that we take it "backwards" and put the highest-order term in
  * the lowest-order bit. The X^32 term is "implied"; the LSB is the
  * X^31 term, etc. The X^0 term (usually shown as "+1") results in
@@ -114,7 +114,7 @@ static void *h_set_user_mode(va_list);
  *
  * The table can be generated at runtime if desired; code to do so
  * is shown later. It might not be obvious, but the feedback terms
- * simply represent the results of eight shift/xor operations for 
+ * simply represent the results of eight shift/xor operations for
  * all combinations of data and CRC register values.
  *
  * The values must be right shifted by eight bits by the "updcrc"
@@ -127,7 +127,8 @@ static void *h_set_user_mode(va_list);
  * --------------------------------------------------------------------
  */
 
-static unsigned long crc32_tab[] = {
+static unsigned long crc32_tab[] =
+{
   0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL, 0x076dc419L,
   0x706af48fL, 0xe963a535L, 0x9e6495a3L, 0x0edb8832L, 0x79dcb8a4L,
   0xe0d5e91eL, 0x97d2d988L, 0x09b64c2bL, 0x7eb17cbdL, 0xe7b82d07L,
@@ -215,7 +216,7 @@ str2arr(char **pparv, char *string, const char *delim)
   {
     pparv[pparc++] = tok;
   }
-    
+
   return pparc;
 }
 
@@ -243,11 +244,11 @@ make_virthost(char *curr, char *host, char *new)
   if (!parc2)
     return;
 
-  hash[0] = ((crc32 (parv[3], strlen (parv[3])) + KEY) ^ KEY2) ^ KEY3;
-  hash[1] = ((KEY2 ^ crc32 (parv[2], strlen (parv[2]))) + KEY3) ^ KEY;
-  hash[2] = ((crc32 (parv[1], strlen (parv[1])) + KEY3) ^ KEY) ^ KEY2;
-  hash[3] = ((KEY3 ^ crc32 (parv[0], strlen (parv[0]))) + KEY2) ^ KEY;
-  
+  hash[0] = ((crc32(parv[3], strlen(parv[3])) + KEY) ^ KEY2) ^ KEY3;
+  hash[1] = ((KEY2 ^ crc32(parv[2], strlen(parv[2]))) + KEY3) ^ KEY;
+  hash[2] = ((crc32(parv[1], strlen(parv[1])) + KEY3) ^ KEY) ^ KEY2;
+  hash[3] = ((KEY3 ^ crc32(parv[0], strlen(parv[0]))) + KEY2) ^ KEY;
+
   hash[0] <<= 2;
   hash[0] >>= 2;
   hash[0] &= 0x3FFFFFFF;
@@ -264,11 +265,11 @@ make_virthost(char *curr, char *host, char *new)
   hash[3] >>= 2;
   hash[3] &= 0x3FFFFFFF;
   hash[3] &= 0x7FFFFFFF;
-  
+
   /* IPv4 */
   if (parc2 == 4 || parc2 < 2)
   {
-    len = strlen (parv2[3]);
+    len = strlen(parv2[3]);
 
     if (strchr("0123456789", parv2[3][len - 1]) || parc2 < 2)
     {
@@ -289,28 +290,28 @@ make_virthost(char *curr, char *host, char *new)
     {
       /* isp.sub.tld or district.isp.tld */
       ircsprintf(mask, "%lx-%lx.%s.%s.%s",
-            hash[3], hash[1], parv2[parc2 - 3], parv2[parc2 - 2],
-            parv2[parc2 - 1]);
+                 hash[3], hash[1], parv2[parc2 - 3], parv2[parc2 - 2],
+                 parv2[parc2 - 1]);
     }
     else
     {
       /* isp.tld */
       ircsprintf(mask, "%lx-%lx.%s.%s",
-            hash[0], hash[3], parv2[parc2 - 2], parv2[parc2 - 1]);
+                 hash[0], hash[3], parv2[parc2 - 2], parv2[parc2 - 1]);
     }
-    
+
     if (parc2 >= 5)
     {
       /* zone.district.isp.tld or district.isp.sub.tld */
       ircsprintf(mask, "%lx-%lx.%s.%s.%s.%s",
-            hash[1], hash[0], parv2[parc2 - 4], parv2[parc2 - 3],
-            parv2[parc2 - 2], parv2[parc2 - 1]);
+                 hash[1], hash[0], parv2[parc2 - 4], parv2[parc2 - 3],
+                 parv2[parc2 - 2], parv2[parc2 - 1]);
     }
     else
-    { 
+    {
       /* isp.tld */
       ircsprintf(mask, "%lx-%lx.%s.%s",
-            hash[0], hash[3], parv2[parc2 - 2], parv2[parc2 - 1]);
+                 hash[0], hash[3], parv2[parc2 - 2], parv2[parc2 - 1]);
     }
   }
 
@@ -319,7 +320,7 @@ make_virthost(char *curr, char *host, char *new)
 
 /*
  * set_vhost()
- * 
+ *
  * inputs - pointer to given client to set IP cloak.
  * outputs - NONE
  * side effects - NONE
@@ -385,6 +386,7 @@ h_set_user_mode(va_list args)
        * so we need to check and break before that happens. -- knight-
        */
 #ifdef IPV6
+
       if (target_p->localClient->aftype == AF_INET6)
       {
         if (!vhost_ipv6_err)
@@ -406,7 +408,7 @@ h_set_user_mode(va_list args)
 }
 
 static void
-module_init(void)
+module_init()
 {
   if (!user_modes['h'])
   {
@@ -443,7 +445,7 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   if (umode_vhost)
   {
@@ -463,7 +465,8 @@ module_exit(void)
   }
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -5,8 +5,8 @@
 ** md5 patch by W. Campbell <wcampbel@botbay.net>
 ** Modernization, getopt, etc for the Hybrid IRCD team
 ** by W. Campbell
-** 
-** /dev/random for salt generation added by 
+**
+** /dev/random for salt generation added by
 ** Aaron Sethman <androsyn@ratbox.org>
 **
 ** $Id$
@@ -39,7 +39,7 @@ static char *make_sha256_salt(int);
 static char *make_sha256_salt_para(const char *);
 static char *make_sha512_salt(int);
 static char *make_sha512_salt_para(const char *);
-static char *make_des_salt(void);
+static char *make_des_salt();
 static char *make_ext_salt(int);
 static char *make_ext_salt_para(int, const char *);
 static char *make_md5_salt(int);
@@ -49,12 +49,12 @@ static char *make_bf_salt_para(int, const char *);
 static char *int_to_base64(int);
 static char *generate_random_salt(char *, int);
 static char *generate_poor_salt(char *, int);
-static void full_usage(void);
-static void brief_usage(void);
+static void full_usage();
+static void brief_usage();
 
 static const char saltChars[] =
-       "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-       /* 0 .. 63, ascii - 64 */
+  "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+/* 0 .. 63, ascii - 64 */
 
 int
 main(int argc, char *argv[])
@@ -78,51 +78,64 @@ main(int argc, char *argv[])
       case '5':
         flag |= FLAG_SHA256;
         break;
+
       case '6':
         flag |= FLAG_SHA512;
         break;
+
       case 'm':
         flag |= FLAG_MD5;
         break;
+
       case 'd':
         flag |= FLAG_DES;
         break;
+
       case 'b':
         flag |= FLAG_BLOWFISH;
         rounds = 4;
         break;
+
       case 'e':
         flag |= FLAG_EXT;
         rounds = 25;
         break;
+
       case 'l':
         flag |= FLAG_LENGTH;
         length = atoi(optarg);
         break;
+
       case 'r':
         flag |= FLAG_ROUNDS;
         rounds = atoi(optarg);
         break;
+
       case 's':
         flag |= FLAG_SALT;
         saltpara = optarg;
         break;
+
       case 'p':
         flag |= FLAG_PASS;
         plaintext = optarg;
         break;
+
       case 'R':
         flag |= FLAG_RAW;
         saltpara = optarg;
         break;
+
       case 'h':
         full_usage();
         /* NOT REACHED */
         break;
+
       case '?':
         brief_usage();
         /* NOT REACHED */
         break;
+
       default:
         printf("Invalid Option: -%c\n", c);
         break;
@@ -133,6 +146,7 @@ main(int argc, char *argv[])
   {
     if (length == 0)
       length = 8;
+
     if (flag & FLAG_SALT)
       salt = make_md5_salt_para(saltpara);
     else
@@ -142,6 +156,7 @@ main(int argc, char *argv[])
   {
     if (length == 0)
       length = 16;
+
     if (flag & FLAG_SALT)
       salt = make_sha256_salt_para(saltpara);
     else
@@ -151,6 +166,7 @@ main(int argc, char *argv[])
   {
     if (length == 0)
       length = 16;
+
     if (flag & FLAG_SALT)
       salt = make_sha512_salt_para(saltpara);
     else
@@ -160,6 +176,7 @@ main(int argc, char *argv[])
   {
     if (length == 0)
       length = 22;
+
     if (flag & FLAG_SALT)
       salt = make_bf_salt_para(rounds, saltpara);
     else
@@ -222,7 +239,7 @@ main(int argc, char *argv[])
 }
 
 static char *
-make_des_salt(void)
+make_des_salt()
 {
   static char salt[3];
 
@@ -494,7 +511,7 @@ generate_random_salt(char *salt, int length)
 }
 
 static void
-full_usage(void)
+full_usage()
 {
   printf("mkpasswd [-5|-6|-m|-d|-b|-e] [-l saltlength] [-r rounds] [-s salt] [-p plaintext]\n");
   printf("         [-R rawsalt]\n");
@@ -517,7 +534,7 @@ full_usage(void)
 }
 
 static void
-brief_usage(void)
+brief_usage()
 {
   printf("mkpasswd - password hash generator\n");
   printf("Standard DES:  mkpasswd [-d] [-s salt] [-p plaintext]\n");

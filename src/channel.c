@@ -60,16 +60,18 @@ static char parabuf[MODEBUFLEN];
 /*! \brief Initializes the channel blockheap, adds known channel CAPAB
  */
 void
-init_channels(void)
+init_channels()
 {
   add_capability("EX", CAP_EX, 1);
   add_capability("IE", CAP_IE, 1);
   add_capability("CHW", CAP_CHW, 1);
   add_capability("QUIET", CAP_QUIET, 1);
 
-  channel_heap = BlockHeapCreate("channel", sizeof(struct Channel), CHANNEL_HEAP_SIZE);
+  channel_heap = BlockHeapCreate("channel", sizeof(struct Channel),
+                                 CHANNEL_HEAP_SIZE);
   ban_heap = BlockHeapCreate("ban", sizeof(struct Ban), BAN_HEAP_SIZE);
-  member_heap = BlockHeapCreate("member", sizeof(struct Membership), CHANNEL_HEAP_SIZE*2);
+  member_heap = BlockHeapCreate("member", sizeof(struct Membership),
+                                CHANNEL_HEAP_SIZE * 2);
 }
 
 /*! \brief adds a user to a channel by adding another link to the
@@ -91,8 +93,8 @@ add_user_to_channel(struct Channel *chptr, struct Client *who,
       chptr->number_joined++;
 
     chptr->number_joined -= (CurrentTime - chptr->last_join_time) *
-      (((float)GlobalSetOptions.joinfloodcount) /
-       (float)GlobalSetOptions.joinfloodtime);
+                            (((float)GlobalSetOptions.joinfloodcount) /
+                             (float)GlobalSetOptions.joinfloodtime);
 
     if (chptr->number_joined <= 0)
     {
@@ -106,7 +108,7 @@ add_user_to_channel(struct Channel *chptr, struct Client *who,
       if (!IsSetJoinFloodNoticed(chptr))
       {
         SetJoinFloodNoticed(chptr);
-        sendto_realops_flags(UMODE_BOTS, L_ALL, 
+        sendto_realops_flags(UMODE_BOTS, L_ALL,
                              "Possible Join Flooder %s on %s target: %s",
                              get_client_name(who, HIDE_IP),
                              who->servptr->name, chptr->chname);
@@ -169,14 +171,17 @@ send_members(struct Client *client_p, struct Channel *chptr,
     ms = ptr->data;
 
     tlen = strlen(IsCapable(client_p, CAP_TS6) ?
-      ID(ms->client_p) : ms->client_p->name) + 1;  /* nick + space */
+                  ID(ms->client_p) : ms->client_p->name) + 1;  /* nick + space */
 
     if (ms->flags & CHFL_CHANOP)
       tlen++;
+
 #ifdef HALFOPS
     else if (ms->flags & CHFL_HALFOP)
       tlen++;
+
 #endif
+
     if (ms->flags & CHFL_VOICE)
       tlen++;
 
@@ -192,7 +197,8 @@ send_members(struct Client *client_p, struct Channel *chptr,
 
     if ((ms->flags & (CHFL_CHANOP | CHFL_HALFOP)))
       *t++ = (!(ms->flags & CHFL_CHANOP) && IsCapable(client_p, CAP_HOPS)) ?
-        '%' : '@';
+             '%' : '@';
+
     if ((ms->flags & CHFL_VOICE))
       *t++ = '+';
 
@@ -200,6 +206,7 @@ send_members(struct Client *client_p, struct Channel *chptr,
       strcpy(t, ID(ms->client_p));
     else
       strcpy(t, ms->client_p->name);
+
     t += strlen(t);
     *t++ = ' ';
   }
@@ -207,6 +214,7 @@ send_members(struct Client *client_p, struct Channel *chptr,
   /* should always be non-NULL unless we have a kind of persistent channels */
   if (chptr->members.head != NULL)
     t--;  /* take the space out */
+
   *t = '\0';
   sendto_one(client_p, "%s", buf);
 }
@@ -267,6 +275,7 @@ send_mode_list(struct Client *client_p, struct Channel *chptr,
     }
 
     count++;
+
     if (ts5)
     {
       *mp++ = flag;
@@ -355,7 +364,9 @@ free_channel_list(dlink_list *list)
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, list->head)
+  {
     remove_ban(ptr->data, list);
+  }
 
   assert(list->tail == NULL && list->head == NULL);
 }
@@ -395,7 +406,9 @@ destroy_channel(struct Channel *chptr)
   dlink_node *ptr = NULL, *ptr_next = NULL;
 
   DLINK_FOREACH_SAFE(ptr, ptr_next, chptr->invites.head)
+  {
     del_invite(chptr, ptr->data);
+  }
 
   /* free ban/exception/invex lists */
   free_channel_list(&chptr->banlist);
@@ -417,8 +430,10 @@ channel_pub_or_secret(const struct Channel *chptr)
 {
   if (SecretChannel(chptr))
     return "@";
+
   if (PrivateChannel(chptr))
     return "*";
+
   return "=";
 }
 
@@ -469,8 +484,10 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
       {
         if (ms->flags & CHFL_CHANOP)
           ++tlen;
+
         if (ms->flags & CHFL_HALFOP)
           ++tlen;
+
         if (ms->flags & CHFL_VOICE)
           ++tlen;
       }
@@ -557,26 +574,32 @@ get_member_status(const struct Membership *ms, int combine)
 
   if (ms == NULL)
     return "";
+
   p = buffer;
 
   if (ms->flags & CHFL_CHANOP)
   {
     if (!combine)
       return "@";
+
     *p++ = '@';
   }
 
 #ifdef HALFOPS
+
   if (ms->flags & CHFL_HALFOP)
   {
     if (!combine)
       return "%";
+
     *p++ = '%';
   }
+
 #endif
 
   if (ms->flags & CHFL_VOICE)
     *p++ = '+';
+
   *p = '\0';
 
   return buffer;
@@ -605,19 +628,25 @@ find_bmask(const struct Client *w, const dlink_list *const list)
         case HM_HOST:
           if (match(bp->host, who->host) || match(bp->host, who->sockhost))
             return 1;
+
           break;
+
         case HM_IPV4:
           if (who->aftype == AF_INET)
             if (match_ipv4(&who->ip, &bp->addr, bp->bits))
               return 1;
+
           break;
 #ifdef IPV6
+
         case HM_IPV6:
           if (who->aftype == AF_INET6)
             if (match_ipv6(&who->ip, &bp->addr, bp->bits))
               return 1;
+
           break;
 #endif
+
         default:
           assert(0);
       }
@@ -660,7 +689,7 @@ is_banned(const struct Channel *chptr, const struct Client *who)
 
 /*!
  * \param source_p pointer to client attempting to join
- * \param chptr    pointer to channel 
+ * \param chptr    pointer to channel
  * \param key      key sent by client attempting to join if present
  * \return ERR_BANNEDFROMCHAN, ERR_INVITEONLYCHAN, ERR_CHANNELISFULL
  *         or 0 if allowed to join.
@@ -669,7 +698,7 @@ int
 can_join(struct Client *source_p, struct Channel *chptr, const char *key)
 {
 
-  if(HasUMode(source_p, UMODE_SERVICE))
+  if (HasUMode(source_p, UMODE_SERVICE))
     return 0;
 
   if (is_banned(chptr, source_p))
@@ -678,7 +707,8 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
   if ((chptr->mode.mode & MODE_SSLONLY))
 #ifdef HAVE_LIBCRYPTO
     if (!(source_p->localClient->fd.ssl))
-        return (ERR_SSLONLYCHAN);
+      return (ERR_SSLONLYCHAN);
+
 #else
     return (ERR_SSLONLYCHAN);  /* deny everyone on a non SSL-enabled server */
 #endif
@@ -709,6 +739,7 @@ has_member_flags(struct Membership *ms, unsigned int flags)
 {
   if (ms != NULL)
     return ms->flags & flags;
+
   return 0;
 }
 
@@ -721,8 +752,10 @@ find_channel_link(struct Client *client_p, struct Channel *chptr)
     return NULL;
 
   DLINK_FOREACH(ptr, client_p->channel.head)
+  {
     if (((struct Membership *)ptr->data)->chptr == chptr)
       return ptr->data;
+  }
 
   return NULL;
 }
@@ -749,7 +782,7 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 
   if (ms != NULL || (ms = find_channel_link(source_p, chptr)))
   {
-    if (ms->flags & (CHFL_CHANOP|CHFL_HALFOP|CHFL_VOICE))
+    if (ms->flags & (CHFL_CHANOP | CHFL_HALFOP | CHFL_VOICE))
       return CAN_SEND_OPV;
 
     if (MyClient(source_p))
@@ -757,6 +790,7 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
       if (is_quiet(chptr, source_p))
         return CAN_SEND_NO;
     }
+
     if (chptr->mode.mode & MODE_SPEAKIFREG)
       if (!HasUMode(source_p, UMODE_REGISTERED))
         return ERR_NEEDREGGEDNICK;
@@ -771,7 +805,7 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
       {
         if (is_banned(chptr, source_p))
         {
-          ms->flags |= (CHFL_BAN_CHECKED|CHFL_BAN_SILENCED);
+          ms->flags |= (CHFL_BAN_CHECKED | CHFL_BAN_SILENCED);
           return ERR_CANNOTSENDTOCHAN;
         }
 
@@ -813,24 +847,26 @@ check_spambot_warning(struct Client *source_p, const char *name)
     {
       /* Its already known as a possible spambot */
       if (name != NULL)
-        sendto_realops_flags(UMODE_BOTS, L_ALL, 
+        sendto_realops_flags(UMODE_BOTS, L_ALL,
                              "User %s (%s@%s) trying to join %s is a possible spambot",
                              source_p->name, source_p->username,
                              source_p->host, name);
       else
-        sendto_realops_flags(UMODE_BOTS, L_ALL, 
+        sendto_realops_flags(UMODE_BOTS, L_ALL,
                              "User %s (%s@%s) is a possible spambot",
                              source_p->name, source_p->username,
                              source_p->host);
+
       source_p->localClient->oper_warn_count_down = OPER_SPAM_COUNTDOWN;
     }
   }
   else
   {
     if ((t_delta = (CurrentTime - source_p->localClient->last_leave_time)) >
-         JOIN_LEAVE_COUNT_EXPIRE_TIME)
+        JOIN_LEAVE_COUNT_EXPIRE_TIME)
     {
       decrement_count = (t_delta / JOIN_LEAVE_COUNT_EXPIRE_TIME);
+
       if (decrement_count > source_p->localClient->join_leave_count)
         source_p->localClient->join_leave_count = 0;
       else
@@ -876,7 +912,7 @@ check_splitmode(void *unused)
     {
       splitmode = 0;
 
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
+      sendto_realops_flags(UMODE_ALL, L_ALL,
                            "Network rejoined, deactivating splitmode");
       eventDelete(check_splitmode, NULL);
     }
@@ -894,70 +930,89 @@ set_channel_topic(struct Channel *chptr, const char *topic,
                   const char *topic_info, time_t topicts, int local)
 {
   if (local)
-    strlcpy(chptr->topic, topic, IRCD_MIN(sizeof(chptr->topic), ServerInfo.max_topic_length + 1));
+    strlcpy(chptr->topic, topic, IRCD_MIN(sizeof(chptr->topic),
+                                          ServerInfo.max_topic_length + 1));
   else
     strlcpy(chptr->topic, topic, sizeof(chptr->topic));
 
   strlcpy(chptr->topic_info, topic_info, sizeof(chptr->topic_info));
-  chptr->topic_time = topicts; 
+  chptr->topic_time = topicts;
 }
 
-int 
+int
 msg_has_colors(const char *msg)
 {
   const char *c;
+
   if (msg == NULL)
     return 0;
+
   c = msg;
 
-  while(*c)
+  while (*c)
   {
-    if(*c == '\003' || *c == '\033')
+    if (*c == '\003' || *c == '\033')
       break;
     else
       c++;
   }
 
-  if(*c)
+  if (*c)
     return 1;
+
   return 0;
 }
 
 char *
-strip_color(const char* string)
+strip_color(const char *string)
 {
   const char *source = string;
   char *dest = (char *)string;
   char *last_non_space = NULL;
 
   for (; source && *source; source++)
-    switch(*source)
+    switch (*source)
     {
       case 3:
         if (isdigit(source[1]))
         {
           source++;
+
           if (isdigit(source[1]))
             source++;
+
           if (source[1] == ',' && isdigit(source[2]))
           {
-            source+=2;
+            source += 2;
+
             if (isdigit(source[1]))
               source++;
           }
         }
+
         break;
-      case 2: case 6: case 7: case 22: case 23: case 27: case 31:
+
+      case 2:
+      case 6:
+      case 7:
+      case 22:
+      case 23:
+      case 27:
+      case 31:
         break;
+
       case 32:
         *dest++ = *source;
         break;
+
       default:
         *dest++ = *source;
         last_non_space = dest;
         break;
     }
+
   *dest = '\0';
+
   if (last_non_space)
     *last_non_space = '\0';
 

@@ -96,6 +96,7 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
       case '+':
         what = MODE_ADD;
         break;
+
       case '-':
         what = MODE_DEL;
         break;
@@ -103,11 +104,13 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
       case 'x':
         if (what == MODE_ADD && extarg)
           user_set_hostmask(target_p, extarg);
+
         break;
 
       case 'd':
         if (!EmptyString(extarg))
           strlcpy(target_p->svid, extarg, sizeof(target_p->svid));
+
         break;
 
       case 'o':
@@ -123,9 +126,9 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
             detach_conf(target_p, OPER_TYPE);
             ClrOFlag(target_p);
             DelUMode(target_p, ConfigFileEntry.oper_only_umodes);
- 
-           if ((dm = dlinkFindDelete(&oper_list, target_p)) != NULL)
-             free_dlink_node(dm);
+
+            if ((dm = dlinkFindDelete(&oper_list, target_p)) != NULL)
+              free_dlink_node(dm);
           }
         }
 
@@ -151,9 +154,11 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
       case '\r':
       case '\t':
         break;
+
       default:
-        if ((flag = user_modes[(unsigned char)*m]))
+        if ((flag = user_modes[(unsigned char) * m]))
           execute_callback(umode_cb, client_p, target_p, what, flag);
+
         break;
     }
   }
@@ -185,24 +190,26 @@ ms_svsmode(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message svsmode_msgtab = {
+static struct Message svsmode_msgtab =
+{
   "SVSMODE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_svsmode, m_ignore, m_ignore, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&svsmode_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&svsmode_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

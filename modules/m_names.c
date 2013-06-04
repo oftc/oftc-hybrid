@@ -49,12 +49,14 @@ names_all_visible_channels(struct Client *source_p)
 {
   dlink_node *ptr = NULL;
 
-  /* 
+  /*
    * First, do all visible channels (public and the one user self is)
    */
   DLINK_FOREACH(ptr, global_channel_list.head)
+  {
     /* Find users on same channel (defined by chptr) */
     channel_member_names(source_p, ptr->data, 0);
+  }
 }
 
 /* names_non_public_non_secret()
@@ -107,6 +109,7 @@ names_non_public_non_secret(struct Client *source_p)
       continue;
 
     tlen = strlen(c2ptr->name);
+
     if (cur_len + tlen + 1 > IRCD_BUFSIZE - 2)
     {
       sendto_one(source_p, "%s", buf);
@@ -148,7 +151,7 @@ m_names(struct Client *client_p, struct Client *source_p,
       ++para;
 
     if ((s = strchr(para, ',')) != NULL)
-      *s = '\0';
+      * s = '\0';
 
     if (*para == '\0')
       return;
@@ -162,31 +165,35 @@ m_names(struct Client *client_p, struct Client *source_p,
   else
   {
     names_all_visible_channels(source_p);
-    if(!HasUMode(source_p, UMODE_GOD))
+
+    if (!HasUMode(source_p, UMODE_GOD))
       names_non_public_non_secret(source_p);
+
     sendto_one(source_p, form_str(RPL_ENDOFNAMES),
                me.name, source_p->name, "*");
   }
 }
 
-static struct Message names_msgtab = {
+static struct Message names_msgtab =
+{
   "NAMES", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_names, m_ignore, m_ignore, m_names, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&names_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&names_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

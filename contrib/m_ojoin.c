@@ -73,6 +73,7 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
         ++name;
         break;
 #ifdef HALFOPS
+
       case '%':
         prefix = "%";
         flags = CHFL_HALFOP;
@@ -80,12 +81,14 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
         ++name;
         break;
 #endif
+
       case '+':
         prefix = "+";
         flags = CHFL_VOICE;
         modeletter = 'v';
         ++name;
         break;
+
       case '#':
         prefix = "";
         flags = 0;
@@ -145,24 +148,26 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message ojoin_msgtab = {
+static struct Message ojoin_msgtab =
+{
   "OJOIN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ojoin, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&ojoin_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&ojoin_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -145,29 +145,31 @@ ms_squit(struct Client *client_p, struct Client *source_p,
                          target_p->name, source_p->name, comment);
     ilog(LOG_TYPE_IRCD, "SQUIT From %s : %s (%s)", source_p->name,
          target_p->name, comment);
-   }
+  }
 
-   exit_client(target_p, source_p, comment);
+  exit_client(target_p, source_p, comment);
 }
 
-static struct Message squit_msgtab = {
+static struct Message squit_msgtab =
+{
   "SQUIT", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, ms_squit, m_ignore, mo_squit, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&squit_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&squit_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

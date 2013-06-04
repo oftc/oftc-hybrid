@@ -51,14 +51,14 @@ trace_get_dependent(int *const server,
   (*client) += dlink_list_length(&target_p->serv->client_list);
 
   DLINK_FOREACH(ptr, target_p->serv->server_list.head)
-    trace_get_dependent(server, client, ptr->data);
+  trace_get_dependent(server, client, ptr->data);
 }
 
 /*
  * m_ltrace()
  *
- *	parv[0] = sender prefix
- *	parv[1] = target client/server to trace
+ *  parv[0] = sender prefix
+ *  parv[1] = target client/server to trace
  */
 static void
 m_ltrace(struct Client *client_p, struct Client *source_p,
@@ -70,6 +70,7 @@ m_ltrace(struct Client *client_p, struct Client *source_p,
     tname = parv[1];
   else
     tname = me.name;
+
   sendto_one(source_p, form_str(RPL_ENDOFTRACE),
              me.name, source_p->name, tname);
 }
@@ -87,7 +88,7 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
   char *looking_for = parv[0];
   char *tname = parc > 1 ? parv[1] : me.name;
 
-  switch (hunt_server(source_p->from, source_p, ":%s LTRACE :%s", 1,parc,parv))
+  switch (hunt_server(source_p->from, source_p, ":%s LTRACE :%s", 1, parc, parv))
   {
     case HUNTED_PASS: /* note: gets here only if parv[1] exists */
     {
@@ -95,14 +96,14 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
 
       if ((ac2ptr = hash_find_client(tname)) == NULL)
         DLINK_FOREACH(ptr, global_client_list.head)
-        {
-          ac2ptr = ptr->data;
+      {
+        ac2ptr = ptr->data;
 
-          if (match(tname, ac2ptr->name) || match(ac2ptr->name, tname))
-            break;
-          else
-            ac2ptr = NULL;
-        }
+        if (match(tname, ac2ptr->name) || match(ac2ptr->name, tname))
+          break;
+        else
+          ac2ptr = NULL;
+      }
 
       if (ac2ptr != NULL)
         sendto_one(source_p, form_str(RPL_TRACELINK), me.name, looking_for,
@@ -110,10 +111,13 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
       else
         sendto_one(source_p, form_str(RPL_TRACELINK), me.name, looking_for,
                    ircd_version, tname, "ac2ptr_is_NULL!!");
+
       return;
     }
+
     case HUNTED_ISME:
       break;
+
     default:
       return;
   }
@@ -126,16 +130,16 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
   doall = (parv[1] && (parc > 1)) ? match(tname, me.name) : 1;
   wilds = !parv[1] || strchr(tname, '*') || strchr(tname, '?');
   dow = wilds || doall;
-  
+
   /* lusers cant issue ltrace.. */
   if (!dow)
   {
-    const char* name;
-    const char* class_name;
+    const char *name;
+    const char *class_name;
 
     target_p = hash_find_client(tname);
 
-    if (target_p && IsClient(target_p)) 
+    if (target_p && IsClient(target_p))
     {
       name = get_client_name(target_p, HIDE_IP);
       class_name = get_client_class(target_p);
@@ -144,7 +148,7 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
       {
         if (ConfigFileEntry.hide_spoof_ips)
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
-                     me.name, source_p->name, class_name, name, 
+                     me.name, source_p->name, class_name, name,
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                      CurrentTime - target_p->localClient->lasttime,
                      idle_time_get(source_p, target_p));
@@ -186,6 +190,7 @@ do_ltrace(struct Client *source_p, int parc, char *parv[])
 
     if (!doall && wilds && !match(tname, target_p->name))
       continue;
+
     if (!dow && irccmp(tname, target_p->name))
       continue;
 
@@ -221,9 +226,9 @@ mo_ltrace(struct Client *client_p, struct Client *source_p,
 /*
  * report_this_status
  *
- * inputs	- pointer to client to report to
- * 		- pointer to client to report about
- * output	- counter of number of hits
+ * inputs  - pointer to client to report to
+ *     - pointer to client to report about
+ * output  - counter of number of hits
  * side effects - NONE
  */
 static void
@@ -240,13 +245,13 @@ report_this_status(struct Client *source_p, struct Client *target_p,
   {
     case STAT_CONNECTING:
       sendto_one(source_p, form_str(RPL_TRACECONNECTING), me.name,
-                 source_p->name, class_name, 
+                 source_p->name, class_name,
                  HasUMode(source_p, UMODE_ADMIN) ? name : target_p->name);
       break;
 
     case STAT_HANDSHAKE:
       sendto_one(source_p, form_str(RPL_TRACEHANDSHAKE), me.name,
-                 source_p->name, class_name, 
+                 source_p->name, class_name,
                  HasUMode(source_p, UMODE_ADMIN) ? name : target_p->name);
       break;
 
@@ -277,11 +282,12 @@ report_this_status(struct Client *source_p, struct Client *target_p,
                      idle_time_get(source_p, target_p));
         else
           sendto_one(source_p, form_str(RPL_TRACEOPERATOR),
-                     me.name, source_p->name, class_name, name, 
+                     me.name, source_p->name, class_name, name,
                      (IsIPSpoof(target_p) ? "255.255.255.255" : target_p->sockhost),
                      CurrentTime - target_p->localClient->lasttime,
                      idle_time_get(source_p, target_p));
       }
+
       break;
 
     case STAT_SERVER:
@@ -313,24 +319,26 @@ report_this_status(struct Client *source_p, struct Client *target_p,
   }
 }
 
-static struct Message ltrace_msgtab = {
+static struct Message ltrace_msgtab =
+{
   "LTRACE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_ltrace, mo_ltrace, m_ignore, mo_ltrace, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&ltrace_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&ltrace_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

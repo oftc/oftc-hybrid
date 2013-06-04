@@ -66,7 +66,8 @@ m_away(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if ((CurrentTime - source_p->localClient->last_away) < ConfigFileEntry.pace_wait)
+  if ((CurrentTime - source_p->localClient->last_away) <
+      ConfigFileEntry.pace_wait)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, source_p->name);
@@ -114,26 +115,28 @@ ms_away(struct Client *client_p, struct Client *source_p,
                 ":%s AWAY :%s", source_p->name, source_p->away);
 }
 
-static struct Message away_msgtab = {
+static struct Message away_msgtab =
+{
   "AWAY", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_away, ms_away, m_ignore, m_away, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&away_msgtab);
   add_isupport("AWAYLEN", NULL, AWAYLEN);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&away_msgtab);
   delete_isupport("AWAYLEN");
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

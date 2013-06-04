@@ -6,7 +6,7 @@
  *
  *  File:   balloc.c
  *  Owner:  Wohali (Joan Touzet)
- *  
+ *
  *  Modified 2001/11/29 for mmap() support by Aaron Sethman <androsyn@ratbox.org>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@
 /*! \file balloc.c
  * \brief A block allocator
  * \version $Id$
- * 
+ *
  * About the block allocator
  *
  * Basically we have three ways of getting memory off of the operating
@@ -39,7 +39,7 @@
  * 3. malloc()\n
  *
  * The advantages of 1 and 2 are this.  We can munmap() the pages which will
- * return the pages back to the operating system, thus reducing the size 
+ * return the pages back to the operating system, thus reducing the size
  * of the process as the memory is unused.  malloc() on many systems just keeps
  * a heap of memory to itself, which never gets given back to the OS, except on
  * exit.  This of course is bad, if say we have an event that causes us to allocate
@@ -98,7 +98,7 @@ free_block(void *ptr, size_t size)
 
 #ifdef HAVE_MMAP
 #ifndef MAP_ANON /* But we cannot mmap() anonymous pages */
-		 /* So we mmap() /dev/zero, which is just as good */
+/* So we mmap() /dev/zero, which is just as good */
 static fde_t dpfd;
 #endif
 #endif
@@ -107,7 +107,7 @@ static fde_t dpfd;
  * future allocations.
  */
 void
-initBlockHeap(void)
+initBlockHeap()
 {
 #ifdef HAVE_MMAP
 #ifndef MAP_ANON
@@ -115,6 +115,7 @@ initBlockHeap(void)
 
   if (zero_fd < 0)
     outofmemory();
+
   fd_open(&dpfd, zero_fd, 0, "Anonymous mmap()");
 #endif
   eventAdd("heap_garbage_collection", &heap_garbage_collection, NULL, 119);
@@ -241,7 +242,7 @@ BlockHeapCreate(const char *const name, size_t elemsize, int elemsperblock)
     if (bh != NULL)
       free(bh);
 
-     outofmemory();    /* die.. out of memory */
+    outofmemory();    /* die.. out of memory */
   }
 
   bh->next = heap_list;
@@ -264,19 +265,19 @@ BlockHeapAlloc(BlockHeap *bh)
   assert(bh != NULL);
 
   if (bh->freeElems == 0)
-  {   
+  {
     /* Allocate new block and assign */
     /* newblock returns 1 if unsuccessful, 0 if not */
     if (newblock(bh))
     {
       /* That didn't work..try to garbage collect */
-      BlockHeapGarbageCollect(bh);  
+      BlockHeapGarbageCollect(bh);
 
       if (newblock(bh))
         outofmemory(); /* Well that didn't work either...bail */
     }
   }
-      
+
   for (walker = bh->base; walker != NULL; walker = walker->next)
   {
     if (walker->freeElems > 0)
@@ -308,7 +309,7 @@ BlockHeapFree(BlockHeap *bh, void *ptr)
 {
   Block *block = NULL;
   struct MemBlock *memblock = NULL;
-    
+
   assert(bh != NULL);
   assert(ptr != NULL);
 
@@ -363,6 +364,7 @@ BlockHeapGarbageCollect(BlockHeap *bh)
 
         if (walker != NULL)
           free(walker);
+
         walker = last->next;
       }
       else
@@ -371,6 +373,7 @@ BlockHeapGarbageCollect(BlockHeap *bh)
 
         if (walker != NULL)
           free(walker);
+
         walker = bh->base;
       }
 
@@ -410,11 +413,13 @@ BlockHeapDestroy(BlockHeap *bh)
 
   if (heap_list == bh)
     heap_list = bh->next;
-  else {
+  else
+  {
     BlockHeap *prev;
 
     for (prev = heap_list; prev->next != bh; prev = prev->next)
       /* nothing */ ;
+
     prev->next = bh->next;
   }
 
@@ -429,8 +434,8 @@ BlockHeapDestroy(BlockHeap *bh)
 static size_t
 block_heap_get_used_mem(const BlockHeap *const bh)
 {
-  return(((bh->blocksAllocated *
-           bh->elemsPerBlock)-bh->freeElems) *
+  return (((bh->blocksAllocated *
+            bh->elemsPerBlock) - bh->freeElems) *
           (bh->elemSize + sizeof(MemBlock)));
 }
 
@@ -441,7 +446,7 @@ block_heap_get_used_mem(const BlockHeap *const bh)
 static size_t
 block_heap_get_free_mem(const BlockHeap *const bh)
 {
-  return(bh->freeElems * (bh->elemSize + sizeof(MemBlock)));
+  return (bh->freeElems * (bh->elemSize + sizeof(MemBlock)));
 }
 
 /*! \brief Returns the total number of bytes of memory belonging to a heap
@@ -451,8 +456,8 @@ block_heap_get_free_mem(const BlockHeap *const bh)
 static size_t
 block_heap_get_size_mem(const BlockHeap *const bh)
 {
-  return(((bh->blocksAllocated *
-           bh->elemsPerBlock)) *
+  return (((bh->blocksAllocated *
+            bh->elemsPerBlock)) *
           (bh->elemSize + sizeof(MemBlock)));
 }
 
@@ -463,8 +468,8 @@ block_heap_get_size_mem(const BlockHeap *const bh)
 static unsigned int
 block_heap_get_used_elm(const BlockHeap *const bh)
 {
-  return((bh->blocksAllocated *
-          bh->elemsPerBlock)-bh->freeElems);
+  return ((bh->blocksAllocated *
+           bh->elemsPerBlock) - bh->freeElems);
 }
 
 /*! \brief Returns the number of elements being free for further allocations.
@@ -474,7 +479,7 @@ block_heap_get_used_elm(const BlockHeap *const bh)
 static unsigned int
 block_heap_get_free_elm(const BlockHeap *const bh)
 {
-  return(bh->freeElems);
+  return (bh->freeElems);
 }
 
 /*! \brief Returns the number of total elements belonging to a heap.
@@ -485,7 +490,7 @@ block_heap_get_free_elm(const BlockHeap *const bh)
 static unsigned int
 block_heap_get_size_elm(const BlockHeap *const bh)
 {
-  return(bh->blocksAllocated * bh->elemsPerBlock);
+  return (bh->blocksAllocated * bh->elemsPerBlock);
 }
 
 void
@@ -494,7 +499,8 @@ block_heap_report_stats(struct Client *client_p)
   const BlockHeap *bh = NULL;
 
   for (bh = heap_list; bh != NULL; bh = bh->next)
-    sendto_one(client_p, ":%s %d %s z :%s mempool: used %u/%u free %u/%u (size %u/%u)",
+    sendto_one(client_p,
+               ":%s %d %s z :%s mempool: used %u/%u free %u/%u (size %u/%u)",
                me.name, RPL_STATSDEBUG, client_p->name, bh->name,
                block_heap_get_used_elm(bh),
                block_heap_get_used_mem(bh),

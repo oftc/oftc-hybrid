@@ -42,36 +42,39 @@
 #include "packet.h"
 #include "irc_string.h"
 
-static void ms_certfp(struct Client *source_p, struct Client *client_p, int parc, char **parv)
+static void ms_certfp(struct Client *source_p, struct Client *client_p,
+                      int parc, char **parv)
 {
   struct Client *target_p;
-  
+
   if ((target_p = find_person(client_p, parv[1])) == NULL)
     return;
 
   strlcpy(target_p->certfp, parv[2], sizeof(target_p->certfp));
 
   sendto_server(client_p, NOCAPS, NOCAPS, NOFLAGS,
-      ":%s CERTFP %s %s", parv[0], parv[1], parv[2]);
+                ":%s CERTFP %s %s", parv[0], parv[1], parv[2]);
 }
 
-struct Message certfp_msgtab = {
-      "CERTFP", 0, 0, 2, 0, MFLG_SLOW, 0,
-        {m_ignore, m_ignore, ms_certfp, m_ignore}
+struct Message certfp_msgtab =
+{
+  "CERTFP", 0, 0, 2, 0, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_certfp, m_ignore}
 };
 
-void module_init(void)
+void module_init()
 {
   mod_add_cmd(&certfp_msgtab);
 }
 
 void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&certfp_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

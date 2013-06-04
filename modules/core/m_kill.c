@@ -93,7 +93,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!HasOFlag(source_p, OPER_FLAG_GLOBAL_KILL|OPER_FLAG_K))
+  if (!HasOFlag(source_p, OPER_FLAG_GLOBAL_KILL | OPER_FLAG_K))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -115,9 +115,9 @@ mo_kill(struct Client *client_p, struct Client *source_p,
      * rewrite the KILL for this new nickname--this keeps
      * servers in synch when nick change and kill collide
      */
-    if ((target_p = get_history(user, 
+    if ((target_p = get_history(user,
                                 (time_t)ConfigFileEntry.kill_chase_time_limit))
-                                == NULL)
+        == NULL)
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                  me.name, source_p->name, user);
@@ -143,7 +143,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
   }
 
   if (MyConnect(target_p))
-    sendto_one(target_p, ":%s!%s@%s KILL %s :%s", 
+    sendto_one(target_p, ":%s!%s@%s KILL %s :%s",
                source_p->name, source_p->username, source_p->host,
                target_p->name, reason);
 
@@ -152,7 +152,7 @@ mo_kill(struct Client *client_p, struct Client *source_p,
    * that have been around for ever, for no reason..
    */
   sendto_realops_flags(UMODE_ALL, L_ALL,
-                       "Received KILL message for %s. From %s Path: %s (%s)", 
+                       "Received KILL message for %s. From %s Path: %s (%s)",
                        target_p->name, source_p->name, me.name, reason);
 
   ilog(LOG_TYPE_KILL, "KILL From %s For %s Path %s (%s)",
@@ -167,11 +167,11 @@ mo_kill(struct Client *client_p, struct Client *source_p,
   if (!MyConnect(target_p))
   {
     relay_kill(client_p, source_p, target_p, inpath, reason);
-      /*
-       * Set FLAGS_KILLED. This prevents exit_one_client from sending
-       * the unnecessary QUIT for this. (This flag should never be
-       * set in any other place)
-       */
+    /*
+     * Set FLAGS_KILLED. This prevents exit_one_client from sending
+     * the unnecessary QUIT for this. (This flag should never be
+     * set in any other place)
+     */
     AddFlag(target_p, FLAGS_KILLED);
   }
 
@@ -225,22 +225,23 @@ ms_kill(struct Client *client_p, struct Client *source_p,
   if ((target_p = find_person(client_p, user)) == NULL)
   {
     /*
-     * If the user has recently changed nick, but only if its 
+     * If the user has recently changed nick, but only if its
      * not an uid, automatically rewrite the KILL for this new nickname.
      * --this keeps servers in synch when nick change and kill collide
      */
     if (IsDigit(*user))   /* Somehow an uid was not found in the hash ! */
       return;
+
     if ((target_p = get_history(user,
                                 (time_t)ConfigFileEntry.kill_chase_time_limit))
-       == NULL)
+        == NULL)
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                  me.name, source_p->name, user);
       return;
     }
 
-    sendto_one(source_p,":%s NOTICE %s :KILL changed from %s to %s",
+    sendto_one(source_p, ":%s NOTICE %s :KILL changed from %s to %s",
                me.name, source_p->name, user, target_p->name);
   }
 
@@ -256,7 +257,8 @@ ms_kill(struct Client *client_p, struct Client *source_p,
     if (IsServer(source_p))
     {
       /* dont send clients kills from a hidden server */
-      if ((IsHidden(source_p) || ConfigServerHide.hide_servers) && !HasUMode(target_p, UMODE_OPER))
+      if ((IsHidden(source_p) || ConfigServerHide.hide_servers)
+          && !HasUMode(target_p, UMODE_OPER))
         sendto_one(target_p, ":%s KILL %s :%s",
                    me.name, target_p->name, reason);
       else
@@ -280,7 +282,7 @@ ms_kill(struct Client *client_p, struct Client *source_p,
   if (HasUMode(source_p, UMODE_OPER)) /* send it normally */
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Received KILL message for %s. From %s Path: %s!%s!%s!%s %s",
-                         target_p->name, source_p->name, source_p->servptr->name, 
+                         target_p->name, source_p->name, source_p->servptr->name,
                          source_p->host, source_p->username, source_p->name, reason);
   else
     sendto_realops_flags(UMODE_SKILL, L_ALL,
@@ -303,24 +305,26 @@ ms_kill(struct Client *client_p, struct Client *source_p,
 }
 
 
-static struct Message kill_msgtab = {
+static struct Message kill_msgtab =
+{
   "KILL", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, ms_kill, m_ignore, mo_kill, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&kill_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&kill_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -59,8 +59,10 @@ do_local_user(struct Client *source_p,
   strlcpy(source_p->info, realname, sizeof(source_p->info));
 
   /* stash for later */
-  strlcpy(source_p->localClient->client_host, host, sizeof(source_p->localClient->client_host));
-  strlcpy(source_p->localClient->client_server, server, sizeof(source_p->localClient->client_server));
+  strlcpy(source_p->localClient->client_host, host,
+          sizeof(source_p->localClient->client_host));
+  strlcpy(source_p->localClient->client_server, server,
+          sizeof(source_p->localClient->client_server));
 
   if (!IsGotId(source_p))
     strlcpy(source_p->username, username, sizeof(source_p->username));
@@ -90,7 +92,7 @@ mr_user(struct Client *client_p, struct Client *source_p,
   }
 
   if ((p = strchr(parv[1], '@')) != NULL)
-    *p = '\0'; 
+    * p = '\0';
 
   if (EmptyString(parv[4]))
   {
@@ -103,27 +105,29 @@ mr_user(struct Client *client_p, struct Client *source_p,
                 parv[1], /* username */
                 parv[2], /* host     */
                 parv[3], /* server   */
-                parv[4]	 /* users real name */ );
+                parv[4]   /* users real name */);
 }
 
-static struct Message user_msgtab = {
+static struct Message user_msgtab =
+{
   "USER", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
   { mr_user, m_registered, m_ignore, m_ignore, m_registered, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&user_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&user_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

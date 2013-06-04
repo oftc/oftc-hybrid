@@ -63,7 +63,7 @@
 struct SetOptions GlobalSetOptions;
 
 /* configuration set from ircd.conf */
-struct config_file_entry ConfigFileEntry; 
+struct config_file_entry ConfigFileEntry;
 /* server info set from ircd.conf */
 struct server_info ServerInfo;
 /* admin info set from ircd.conf */
@@ -114,12 +114,13 @@ print_startup(int pid)
 {
   printf("ircd: version %s\n", ircd_version);
   printf("ircd: pid %d\n", pid);
-  printf("ircd: running in %s mode from %s\n", !server_state.foreground ? "background"
+  printf("ircd: running in %s mode from %s\n",
+         !server_state.foreground ? "background"
          : "foreground", ConfigFileEntry.dpath);
 }
 
 static void
-make_daemon(void)
+make_daemon()
 {
   int pid;
 
@@ -139,29 +140,46 @@ make_daemon(void)
 
 static int printVersion = 0;
 
-static struct lgetopt myopts[] = {
-  {"dlinefile",  &ConfigFileEntry.dlinefile, 
-   STRING, "File to use for dline.conf"},
-  {"configfile", &ConfigFileEntry.configfile, 
-   STRING, "File to use for ircd.conf"},
-  {"klinefile",  &ConfigFileEntry.klinefile, 
-   STRING, "File to use for kline.conf"},
-  {"xlinefile",  &ConfigFileEntry.xlinefile, 
-   STRING, "File to use for xline.conf"},
-  {"logfile",    &logFileName, 
-   STRING, "File to use for ircd.log"},
-  {"pidfile",    &pidFileName,
-   STRING, "File to use for process ID"},
-  {"foreground", &server_state.foreground, 
-   YESNO, "Run in foreground (don't detach)"},
-  {"version",    &printVersion, 
-   YESNO, "Print version and exit"},
+static struct lgetopt myopts[] =
+{
+  {
+    "dlinefile",  &ConfigFileEntry.dlinefile,
+    STRING, "File to use for dline.conf"
+  },
+  {
+    "configfile", &ConfigFileEntry.configfile,
+    STRING, "File to use for ircd.conf"
+  },
+  {
+    "klinefile",  &ConfigFileEntry.klinefile,
+    STRING, "File to use for kline.conf"
+  },
+  {
+    "xlinefile",  &ConfigFileEntry.xlinefile,
+    STRING, "File to use for xline.conf"
+  },
+  {
+    "logfile",    &logFileName,
+    STRING, "File to use for ircd.log"
+  },
+  {
+    "pidfile",    &pidFileName,
+    STRING, "File to use for process ID"
+  },
+  {
+    "foreground", &server_state.foreground,
+    YESNO, "Run in foreground (don't detach)"
+  },
+  {
+    "version",    &printVersion,
+    YESNO, "Print version and exit"
+  },
   {"help", NULL, USAGE, "Print this text"},
   {NULL, NULL, STRING, NULL},
 };
 
 void
-set_time(void)
+set_time()
 {
   static char to_send[200];
   struct timeval newtime;
@@ -192,13 +210,13 @@ set_time(void)
 }
 
 static void
-io_loop(void)
+io_loop()
 {
   while (1 == 1)
   {
     /*
      * Maybe we want a flags word?
-     * ie. if (REHASHED_KLINES(global_flags)) 
+     * ie. if (REHASHED_KLINES(global_flags))
      * SET_REHASHED_KLINES(global_flags)
      * CLEAR_REHASHED_KLINES(global_flags)
      *
@@ -238,6 +256,7 @@ io_loop(void)
       rehash(1);
       dorehash = 0;
     }
+
     if (doremotd)
     {
       read_message_file(&ConfigFileEntry.motd);
@@ -252,10 +271,10 @@ io_loop(void)
  *
  * inputs       - none
  * output       - none
- * side effects - This sets all global set options needed 
+ * side effects - This sets all global set options needed
  */
 static void
-initialize_global_set_options(void)
+initialize_global_set_options()
 {
   memset(&GlobalSetOptions, 0, sizeof(GlobalSetOptions));
 
@@ -293,7 +312,7 @@ initialize_global_set_options(void)
  * side effects - Set up all message files needed, motd etc.
  */
 static void
-initialize_message_files(void)
+initialize_message_files()
 {
   init_message_file(USER_MOTD, MPATH, &ConfigFileEntry.motd);
   init_message_file(USER_LINKS, LIPATH, &ConfigFileEntry.linksfile);
@@ -310,7 +329,7 @@ initialize_message_files(void)
  * output       - none
  */
 static void
-initialize_server_capabs(void)
+initialize_server_capabs()
 {
   add_capability("QS", CAP_QS, 1);
   add_capability("EOB", CAP_EOB, 1);
@@ -404,7 +423,7 @@ check_pidfile(const char *filename)
  * -kre
  */
 static void
-setup_corefile(void)
+setup_corefile()
 {
 #ifdef HAVE_SYS_RESOURCE_H
   struct rlimit rlim; /* resource limits */
@@ -415,6 +434,7 @@ setup_corefile(void)
     rlim.rlim_cur = rlim.rlim_max;
     setrlimit(RLIMIT_CORE, &rlim);
   }
+
 #endif
 }
 
@@ -433,7 +453,7 @@ always_accept_verify_cb(int preverify_ok, X509_STORE_CTX *x509_ctx)
  * side effects - setups SSL context.
  */
 static void
-init_ssl(void)
+init_ssl()
 {
 #ifdef HAVE_LIBCRYPTO
   SSL_load_error_strings();
@@ -445,12 +465,16 @@ init_ssl(void)
 
     fprintf(stderr, "ERROR: Could not initialize the SSL Server context -- %s\n",
             s = ERR_lib_error_string(ERR_get_error()));
-    ilog(LOG_TYPE_IRCD, "ERROR: Could not initialize the SSL Server context -- %s\n", s);
+    ilog(LOG_TYPE_IRCD,
+         "ERROR: Could not initialize the SSL Server context -- %s\n", s);
   }
 
-  SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TLSv1);
-  SSL_CTX_set_options(ServerInfo.server_ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
-  SSL_CTX_set_verify(ServerInfo.server_ctx, SSL_VERIFY_PEER, always_accept_verify_cb);
+  SSL_CTX_set_options(ServerInfo.server_ctx,
+                      SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1);
+  SSL_CTX_set_options(ServerInfo.server_ctx,
+                      SSL_OP_TLS_ROLLBACK_BUG | SSL_OP_ALL);
+  SSL_CTX_set_verify(ServerInfo.server_ctx, SSL_VERIFY_PEER,
+                     always_accept_verify_cb);
 
   if ((ServerInfo.client_ctx = SSL_CTX_new(SSLv23_client_method())) == NULL)
   {
@@ -458,11 +482,14 @@ init_ssl(void)
 
     fprintf(stderr, "ERROR: Could not initialize the SSL Client context -- %s\n",
             s = ERR_lib_error_string(ERR_get_error()));
-    ilog(LOG_TYPE_IRCD, "ERROR: Could not initialize the SSL Client context -- %s\n", s);
+    ilog(LOG_TYPE_IRCD,
+         "ERROR: Could not initialize the SSL Client context -- %s\n", s);
   }
 
-  SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TLSv1);
-  SSL_CTX_set_options(ServerInfo.client_ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
+  SSL_CTX_set_options(ServerInfo.client_ctx,
+                      SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1);
+  SSL_CTX_set_options(ServerInfo.client_ctx,
+                      SSL_OP_TLS_ROLLBACK_BUG | SSL_OP_ALL);
   SSL_CTX_set_verify(ServerInfo.client_ctx, SSL_VERIFY_NONE, NULL);
 #endif /* HAVE_LIBCRYPTO */
 }
@@ -474,7 +501,7 @@ init_ssl(void)
  * side effects - setups standard hook points
  */
 static void
-init_callbacks(void)
+init_callbacks()
 {
   iorecv_cb = register_callback("iorecv", iorecv_default);
   iosend_cb = register_callback("iosend", iosend_default);
@@ -489,7 +516,7 @@ main(int argc, char *argv[])
   if (geteuid() == 0)
   {
     fprintf(stderr, "Don't run ircd as root!!!\n");
-    return(-1);
+    return (-1);
   }
 
   /* Setup corefile size immediately after boot -kre */
@@ -498,12 +525,12 @@ main(int argc, char *argv[])
   /* save server boot time right away, so getrusage works correctly */
   set_time();
 
-    /* It ain't random, but it ought to be a little harder to guess */
+  /* It ain't random, but it ought to be a little harder to guess */
   srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
 
   me.localClient = &meLocalUser;
-  dlinkAdd(&me, &me.node, &global_client_list);	/* Pointer to beginning
-						   of Client list */
+  dlinkAdd(&me, &me.node, &global_client_list);  /* Pointer to beginning
+               of Client list */
   /* Initialise the channel capability usage counts... */
   init_chcap_usage_counts();
 
@@ -593,7 +620,8 @@ main(int argc, char *argv[])
   /* serverinfo{} description must exist.  If not, error out.*/
   if (EmptyString(ServerInfo.description))
   {
-    ilog(LOG_TYPE_IRCD, "ERROR: No server description specified in serverinfo block.");
+    ilog(LOG_TYPE_IRCD,
+         "ERROR: No server description specified in serverinfo block.");
     exit(EXIT_FAILURE);
   }
 
@@ -610,7 +638,7 @@ main(int argc, char *argv[])
 
   hash_add_id(&me);
   hash_add_client(&me);
-  
+
   /* add ourselves to global_serv_list */
   dlinkAdd(&me, make_dlink_node(), &global_serv_list);
 
@@ -630,6 +658,7 @@ main(int argc, char *argv[])
     perror("chdir");
     exit(EXIT_FAILURE);
   }
+
   /*
    * assemble_umode_buffer() has to be called after
    * reading conf/loading modules.
@@ -650,7 +679,8 @@ main(int argc, char *argv[])
   eventAddIsh("comm_checktimeouts", comm_checktimeouts, NULL, 1);
 
   if (ConfigServerHide.links_delay > 0)
-    eventAddIsh("write_links_file", write_links_file, NULL, ConfigServerHide.links_delay);
+    eventAddIsh("write_links_file", write_links_file, NULL,
+                ConfigServerHide.links_delay);
   else
     ConfigServerHide.links_disabled = 1;
 

@@ -87,20 +87,21 @@ m_challenge(struct Client *client_p, struct Client *source_p,
                               "challenge failed");
       return;
     }
-    
+
     conf = find_exact_name_conf(OPER_TYPE, source_p,
                                 source_p->localClient->auth_oper, NULL, NULL);
+
     if (conf == NULL)
     {
       /* XXX: logging */
-      sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
+      sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
       return;
     }
 
     if (attach_conf(source_p, conf) != 0)
     {
-      sendto_one(source_p,":%s NOTICE %s :Can't attach conf!",
-                me.name, source_p->name);
+      sendto_one(source_p, ":%s NOTICE %s :Can't attach conf!",
+                 me.name, source_p->name);
       failed_challenge_notice(source_p, conf->name, "can't attach conf!");
       return;
     }
@@ -108,8 +109,8 @@ m_challenge(struct Client *client_p, struct Client *source_p,
     oper_up(source_p);
 
     ilog(LOG_TYPE_OPER, "OPER %s by %s!%s@%s",
-	 source_p->localClient->auth_oper, source_p->name, source_p->username,
-	 source_p->host);
+         source_p->localClient->auth_oper, source_p->name, source_p->username,
+         source_p->host);
 
     MyFree(source_p->localClient->response);
     MyFree(source_p->localClient->auth_oper);
@@ -125,12 +126,13 @@ m_challenge(struct Client *client_p, struct Client *source_p,
 
 
   conf = find_exact_name_conf(OPER_TYPE, source_p, parv[1], NULL, NULL);
+
   if (conf)
     aconf = map_to_conf(conf);
 
   if (aconf == NULL)
   {
-    sendto_one (source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
+    sendto_one(source_p, form_str(ERR_NOOPERHOST), me.name, source_p->name);
     conf = find_exact_name_conf(OPER_TYPE, NULL, parv[1], NULL, NULL);
     failed_challenge_notice(source_p, parv[1], (conf != NULL)
                             ? "host mismatch" : "no oper {} block");
@@ -139,9 +141,9 @@ m_challenge(struct Client *client_p, struct Client *source_p,
 
   if (aconf->rsa_public_key == NULL)
   {
-    sendto_one (source_p, ":%s NOTICE %s :I'm sorry, PK authentication "
-		"is not enabled for your oper{} block.", me.name,
-		source_p->name);
+    sendto_one(source_p, ":%s NOTICE %s :I'm sorry, PK authentication "
+               "is not enabled for your oper{} block.", me.name,
+               source_p->name);
     return;
   }
 
@@ -162,19 +164,20 @@ mo_challenge(struct Client *client_p, struct Client *source_p,
              me.name, source_p->name);
 }
 
-static struct Message challenge_msgtab = {
+static struct Message challenge_msgtab =
+{
   "CHALLENGE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_challenge, m_ignore, m_ignore, mo_challenge, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&challenge_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&challenge_msgtab);
 }
@@ -182,17 +185,18 @@ module_exit(void)
 #else
 
 static void
-module_init(void)
+module_init()
 {
 }
 
 static void
-module_exit(void)
+module_exit()
 {
 }
 #endif
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

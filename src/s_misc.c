@@ -42,7 +42,7 @@ static const char *months[] =
 {
   "January",   "February", "March",   "April",
   "May",       "June",     "July",    "August",
-  "September", "October",  "November","December"
+  "September", "October",  "November", "December"
 };
 
 static const char *weekdays[] =
@@ -52,15 +52,16 @@ static const char *weekdays[] =
 };
 
 char *
-date(time_t lclock) 
+date(time_t lclock)
 {
   static char buf[80], plus;
   struct tm *lt, *gm;
   struct tm gmbuf;
   int minswest;
 
-  if (!lclock) 
+  if (!lclock)
     lclock = CurrentTime;
+
   gm = gmtime(&lclock);
   memcpy(&gmbuf, gm, sizeof(gmbuf));
   gm = &gmbuf;
@@ -82,13 +83,14 @@ date(time_t lclock)
   }
 
   plus = (minswest > 0) ? '-' : '+';
+
   if (minswest < 0)
     minswest = -minswest;
 
   snprintf(buf, sizeof(buf), "%s %s %d %d -- %02u:%02u:%02u %c%02u:%02u",
-           weekdays[lt->tm_wday], months[lt->tm_mon],lt->tm_mday,
+           weekdays[lt->tm_wday], months[lt->tm_mon], lt->tm_mday,
            lt->tm_year + 1900, lt->tm_hour, lt->tm_min, lt->tm_sec,
-           plus, minswest/60, minswest%60);
+           plus, minswest / 60, minswest % 60);
   return buf;
 }
 
@@ -104,12 +106,12 @@ smalldate(time_t lclock)
 
   gm = gmtime(&lclock);
   memcpy(&gmbuf, gm, sizeof(gmbuf));
-  gm = &gmbuf; 
+  gm = &gmbuf;
   lt = localtime(&lclock);
-  
+
   snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-             lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
-             lt->tm_hour, lt->tm_min, lt->tm_sec);
+           lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
+           lt->tm_hour, lt->tm_min, lt->tm_sec);
 
   return buf;
 }
@@ -125,7 +127,7 @@ ssl_get_cipher(const SSL *ssl)
 
   snprintf(buffer, sizeof(buffer), "%s %s-%d", SSL_get_version(ssl),
            SSL_get_cipher(ssl), bits);
-  
+
   return buffer;
 }
 #endif
@@ -174,16 +176,18 @@ base16_encode(char *dest, size_t destlen, const char *src, size_t srclen)
   const char *end;
   char *cp;
 
-  assert(destlen >= srclen*2+1);
+  assert(destlen >= srclen * 2 + 1);
 
   cp = dest;
-  end = src+srclen;
-  while (src<end)
+  end = src + srclen;
+
+  while (src < end)
   {
-    *cp++ = "0123456789ABCDEF"[ (*(const uint8_t*)src) >> 4 ];
-    *cp++ = "0123456789ABCDEF"[ (*(const uint8_t*)src) & 0xf ];
+    *cp++ = "0123456789ABCDEF"[(*(const uint8_t *)src) >> 4 ];
+    *cp++ = "0123456789ABCDEF"[(*(const uint8_t *)src) & 0xf ];
     ++src;
   }
+
   *cp = '\0';
 }
 
@@ -191,23 +195,62 @@ base16_encode(char *dest, size_t destlen, const char *src, size_t srclen)
 static int
 hex_decode_digit(char c)
 {
-  switch (c) {
-    case '0': return 0;
-    case '1': return 1;
-    case '2': return 2;
-    case '3': return 3;
-    case '4': return 4;
-    case '5': return 5;
-    case '6': return 6;
-    case '7': return 7;
-    case '8': return 8;
-    case '9': return 9;
-    case 'A': case 'a': return 10;
-    case 'B': case 'b': return 11;
-    case 'C': case 'c': return 12;
-    case 'D': case 'd': return 13;
-    case 'E': case 'e': return 14;
-    case 'F': case 'f': return 15;
+  switch (c)
+  {
+    case '0':
+      return 0;
+
+    case '1':
+      return 1;
+
+    case '2':
+      return 2;
+
+    case '3':
+      return 3;
+
+    case '4':
+      return 4;
+
+    case '5':
+      return 5;
+
+    case '6':
+      return 6;
+
+    case '7':
+      return 7;
+
+    case '8':
+      return 8;
+
+    case '9':
+      return 9;
+
+    case 'A':
+    case 'a':
+      return 10;
+
+    case 'B':
+    case 'b':
+      return 11;
+
+    case 'C':
+    case 'c':
+      return 12;
+
+    case 'D':
+    case 'd':
+      return 13;
+
+    case 'E':
+    case 'e':
+      return 14;
+
+    case 'F':
+    case 'f':
+      return 15;
+
     default:
       return -1;
   }
@@ -221,21 +264,29 @@ base16_decode(char *dest, size_t destlen, const char *src, size_t srclen)
 {
   const char *end;
 
-  int v1,v2;
+  int v1, v2;
+
   if ((srclen % 2) != 0)
     return -1;
-  if (destlen < srclen/2 || destlen > SIZE_T_CEILING)
+
+  if (destlen < srclen / 2 || destlen > SIZE_T_CEILING)
     return -1;
-  end = src+srclen;
-  while (src<end) {
+
+  end = src + srclen;
+
+  while (src < end)
+  {
     v1 = hex_decode_digit(*src);
-    v2 = hex_decode_digit(*(src+1));
-    if (v1<0||v2<0)
+    v2 = hex_decode_digit(*(src + 1));
+
+    if (v1 < 0 || v2 < 0)
       return -1;
-    *(uint8_t*)dest = (v1<<4)|v2;
+
+    *(uint8_t *)dest = (v1 << 4) | v2;
     ++dest;
-    src+=2;
+    src += 2;
   }
+
   return 0;
 }
 

@@ -84,24 +84,26 @@ ms_globops(struct Client *client_p, struct Client *source_p,
                        source_p->name, parv[1]);
 }
 
-static struct Message globops_msgtab = {
+static struct Message globops_msgtab =
+{
   "GLOBOPS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, ms_globops, m_ignore, mo_globops, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&globops_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&globops_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

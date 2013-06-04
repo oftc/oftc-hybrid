@@ -52,7 +52,7 @@ m_help(struct Client *client_p, struct Client *source_p,
   if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
-    sendto_one(source_p,form_str(RPL_LOAD2HI),
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, source_p->name);
     return;
   }
@@ -80,7 +80,7 @@ mo_help(struct Client *client_p, struct Client *source_p,
  */
 static void
 mo_uhelp(struct Client *client_p, struct Client *source_p,
-            int parc, char *parv[])
+         int parc, char *parv[])
 {
   dohelp(source_p, UHPATH, parv[1]);
 }
@@ -140,7 +140,7 @@ dohelp(struct Client *source_p, const char *hpath, char *topic)
   sendhelpfile(source_p, path, topic);
 }
 
-static void 
+static void
 sendhelpfile(struct Client *source_p, const char *path, const char *topic)
 {
   FILE *file;
@@ -163,15 +163,16 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
   }
   else if (line[0] != '#')
   {
-    line[strlen(line) - 1] = '\0';	  
+    line[strlen(line) - 1] = '\0';
     sendto_one(source_p, form_str(RPL_HELPSTART),
-             me.name, source_p->name, topic, line);
+               me.name, source_p->name, topic, line);
     started = 1;
   }
 
   while (fgets(line, sizeof(line), file))
   {
     line[strlen(line) - 1] = '\0';
+
     if (line[0] != '#')
     {
       if (!started)
@@ -181,7 +182,7 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
       }
       else
         type = RPL_HELPTXT;
-      
+
       sendto_one(source_p, form_str(type),
                  me.name, source_p->name, topic, line);
     }
@@ -194,31 +195,34 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
              me.name, source_p->name, topic);
 }
 
-static struct Message help_msgtab = {
+static struct Message help_msgtab =
+{
   "HELP", 0, 0, 0, 0, MFLG_SLOW, 0,
   {m_unregistered, m_help, m_ignore, m_ignore, mo_help, m_ignore}
 };
 
-static struct Message uhelp_msgtab = {
+static struct Message uhelp_msgtab =
+{
   "UHELP", 0, 0, 0, 0, MFLG_SLOW, 0,
   {m_unregistered, m_help, m_ignore, m_ignore, mo_uhelp, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&help_msgtab);
   mod_add_cmd(&uhelp_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&help_msgtab);
   mod_del_cmd(&uhelp_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

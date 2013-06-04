@@ -56,16 +56,16 @@ typedef struct _dlink_list dlink_list;
 
 struct _dlink_node
 {
-  void *data;
-  dlink_node *prev;
-  dlink_node *next;
+  void        *data;
+  dlink_node  *prev;
+  dlink_node  *next;
 };
 
 struct _dlink_list
 {
-  dlink_node *head;
-  dlink_node *tail;
-  unsigned int length;
+  dlink_node    *head;
+  dlink_node    *tail;
+  unsigned int  length;
 };
 
 extern void dlinkAdd(void *, dlink_node *, dlink_list *);
@@ -77,7 +77,7 @@ extern void dlink_move_node(dlink_node *, dlink_list *, dlink_list *);
 extern dlink_node *dlinkFind(dlink_list *, void *);
 extern dlink_node *dlinkFindDelete(dlink_list *, void *);
 
-extern void init_dlink_nodes(void);
+extern void init_dlink_nodes();
 extern void free_dlink_node(dlink_node *);
-extern dlink_node *make_dlink_node(void);
+extern dlink_node *make_dlink_node();
 #endif

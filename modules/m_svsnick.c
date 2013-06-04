@@ -120,24 +120,26 @@ ms_svsnick(struct Client *client_p, struct Client *source_p,
   fd_note(&target_p->localClient->fd, "Nick: %s", parv[2]);
 }
 
-static struct Message svsnick_msgtab = {
+static struct Message svsnick_msgtab =
+{
   "SVSNICK", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_svsnick, m_ignore, m_ignore, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&svsnick_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&svsnick_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

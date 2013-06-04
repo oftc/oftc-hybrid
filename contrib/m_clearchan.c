@@ -90,7 +90,7 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
   /*
    * Kill all the modes we have about the channel..
    * making everyone a peon
-   */  
+   */
   remove_our_modes(chptr);
 
   /* SJOIN the user to give them ops, and lock the channel */
@@ -191,9 +191,9 @@ remove_our_modes(struct Channel *chptr)
 
 /* remove_a_mode()
  *
- * inputs	-
- * output	- NONE
- * side effects	- remove ONE mode from a channel
+ * inputs  -
+ * output  - NONE
+ * side effects  - remove ONE mode from a channel
  */
 static void
 remove_a_mode(struct Channel *chptr, int mask, char flag)
@@ -209,6 +209,7 @@ remove_a_mode(struct Channel *chptr, int mask, char flag)
   DLINK_FOREACH(ptr, chptr->members.head)
   {
     struct Membership *ms = ptr->data;
+
     if ((ms->flags & mask) == 0)
       continue;
 
@@ -241,24 +242,26 @@ remove_a_mode(struct Channel *chptr, int mask, char flag)
   }
 }
 
-static struct Message clearchan_msgtab = {
+static struct Message clearchan_msgtab =
+{
   "CLEARCHAN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_clearchan, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&clearchan_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&clearchan_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

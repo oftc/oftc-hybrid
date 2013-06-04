@@ -73,7 +73,7 @@ m_whois(struct Client *client_p, struct Client *source_p,
                  me.name, source_p->name);
       return;
     }
-    
+
     last_used = CurrentTime;
 
     /* if we have serverhide enabled, they can either ask the clients
@@ -123,10 +123,10 @@ mo_whois(struct Client *client_p, struct Client *source_p,
 
 /* do_whois()
  *
- * inputs	- pointer to /whois source
+ * inputs  - pointer to /whois source
  *              - number of parameters
  *              - pointer to parameters array
- * output	- pointer to void
+ * output  - pointer to void
  * side effects - Does whois
  */
 static void
@@ -139,10 +139,12 @@ do_whois(struct Client *source_p, int parc, char *parv[])
   int found = 0;
 
   nick = parv[1];
+
   while (*nick == ',')
     nick++;
-  if ((p = strchr(nick,',')) != NULL)
-    *p = '\0';
+
+  if ((p = strchr(nick, ',')) != NULL)
+    * p = '\0';
 
   if (*nick == '\0')
     return;
@@ -172,7 +174,7 @@ do_whois(struct Client *source_p, int parc, char *parv[])
       }
       else
         last_used = CurrentTime;
-  }
+    }
 
     /* Oh-oh wilds is true so have to do it the hard expensive way */
     if (MyClient(source_p))
@@ -183,7 +185,7 @@ do_whois(struct Client *source_p, int parc, char *parv[])
   {
     if (!IsDigit(*nick))
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
-		 me.name, source_p->name, nick);
+                 me.name, source_p->name, nick);
   }
 
   sendto_one(source_p, form_str(RPL_ENDOFWHOIS),
@@ -192,11 +194,11 @@ do_whois(struct Client *source_p, int parc, char *parv[])
 
 /* global_whois()
  *
- * Inputs	- source_p client to report to
- *		- target_p client to report on
- * Output	- if found return 1
- * Side Effects	- do a single whois on given client
- * 		  writing results to source_p
+ * Inputs  - source_p client to report to
+ *    - target_p client to report on
+ * Output  - if found return 1
+ * Side Effects  - do a single whois on given client
+ *       writing results to source_p
  */
 static int
 global_whois(struct Client *source_p, const char *nick)
@@ -237,11 +239,11 @@ global_whois(struct Client *source_p, const char *nick)
 
 /* single_whois()
  *
- * Inputs	- source_p client to report to
- *		- target_p client to report on
- * Output	- if found return 1
- * Side Effects	- do a single whois on given client
- * 		  writing results to source_p
+ * Inputs  - source_p client to report to
+ *    - target_p client to report on
+ * Output  - if found return 1
+ * Side Effects  - do a single whois on given client
+ *       writing results to source_p
  */
 static int
 single_whois(struct Client *source_p, struct Client *target_p)
@@ -259,6 +261,7 @@ single_whois(struct Client *source_p, struct Client *target_p)
   DLINK_FOREACH(ptr, target_p->channel.head)
   {
     struct Channel *chptr = ((struct Membership *) ptr->data)->chptr;
+
     if (IsMember(source_p, chptr))
     {
       whois_person(source_p, target_p);
@@ -271,10 +274,10 @@ single_whois(struct Client *source_p, struct Client *target_p)
 
 /* whois_person()
  *
- * inputs	- source_p client to report to
- *		- target_p client to report on
- * output	- NONE
- * side effects	- 
+ * inputs  - source_p client to report to
+ *    - target_p client to report on
+ * output  - NONE
+ * side effects  -
  */
 static void
 whois_person(struct Client *source_p, struct Client *target_p)
@@ -297,15 +300,16 @@ whois_person(struct Client *source_p, struct Client *target_p)
              me.name, source_p->name, target_p->name,
              target_p->username, target_p->host, target_p->info);
 
-  if(!HasUMode(target_p, UMODE_SERVICE))
+  if (!HasUMode(target_p, UMODE_SERVICE))
     cur_len = mlen = snprintf(buf, sizeof(buf), form_str(RPL_WHOISCHANNELS),
-        me.name, source_p->name, target_p->name, "");
+                              me.name, source_p->name, target_p->name, "");
+
   t = buf + mlen;
 
   DLINK_FOREACH(lp, target_p->channel.head)
   {
     cur_len = mlen = snprintf(buf, sizeof(buf), form_str(RPL_WHOISCHANNELS),
-        me.name, source_p->name, target_p->name, "");
+                              me.name, source_p->name, target_p->name, "");
     t = buf + mlen;
 
     DLINK_FOREACH(lp, target_p->channel.head)
@@ -328,7 +332,7 @@ whois_person(struct Client *source_p, struct Client *target_p)
         }
 
         /* We should tell opers when we display hidden channels */
-        if(!ShowChannel(source_p, chptr))
+        if (!ShowChannel(source_p, chptr))
           tlen = ircsprintf(t, "%s%%%s ", get_member_status(ms, 1), chptr->chname);
         else
           tlen = ircsprintf(t, "%s%s ", get_member_status(ms, 1), chptr->chname);
@@ -346,15 +350,16 @@ whois_person(struct Client *source_p, struct Client *target_p)
     }
   }
 
-  if (HasUMode(source_p, UMODE_OPER) || !ConfigServerHide.hide_servers || target_p == source_p)
+  if (HasUMode(source_p, UMODE_OPER) || !ConfigServerHide.hide_servers
+      || target_p == source_p)
     sendto_one(source_p, form_str(RPL_WHOISSERVER),
-        me.name, source_p->name, target_p->name,
+               me.name, source_p->name, target_p->name,
                server_p->name, server_p->info);
   else
     sendto_one(source_p, form_str(RPL_WHOISSERVER),
-	       me.name, source_p->name, target_p->name,
+               me.name, source_p->name, target_p->name,
                ConfigServerHide.hidden_name,
-	       ServerInfo.network_desc);
+               ServerInfo.network_desc);
 
   if (HasUMode(target_p, UMODE_REGISTERED))
     sendto_one(source_p, form_str(RPL_WHOISREGNICK),
@@ -365,23 +370,24 @@ whois_person(struct Client *source_p, struct Client *target_p)
                me.name, source_p->name, target_p->name,
                target_p->away);
 
-  if (HasUMode(target_p, UMODE_CALLERID) && !HasUMode(target_p, UMODE_SOFTCALLERID))
+  if (HasUMode(target_p, UMODE_CALLERID)
+      && !HasUMode(target_p, UMODE_SOFTCALLERID))
     sendto_one(source_p, form_str(RPL_TARGUMODEG),
                me.name, source_p->name, target_p->name);
 
   if (HasUMode(target_p, UMODE_OPER))
     if (!HasUMode(target_p, UMODE_HIDDEN) || HasUMode(source_p, UMODE_OPER))
       sendto_one(source_p, form_str(HasUMode(target_p, UMODE_ADMIN) ? RPL_WHOISADMIN :
-                 RPL_WHOISOPERATOR),
+                                    RPL_WHOISOPERATOR),
                  me.name, source_p->name, target_p->name);
 
-  if(HasUMode(source_p, UMODE_OPER) && target_p->realhost[0] != '\0')
+  if (HasUMode(source_p, UMODE_OPER) && target_p->realhost[0] != '\0')
     sendto_one(source_p, form_str(RPL_WHOISREAL), me.name, source_p->name,
-        target_p->name, target_p->realhost);
+               target_p->name, target_p->realhost);
 
-  if(HasUMode(target_p, UMODE_SERVICE))
+  if (HasUMode(target_p, UMODE_SERVICE))
     sendto_one(source_p, form_str(RPL_WHOISSERVICE), me.name, source_p->name,
-        target_p->name);
+               target_p->name);
 
   if (target_p->sockhost[0] && strcmp(target_p->sockhost, "0"))
   {
@@ -400,17 +406,20 @@ whois_person(struct Client *source_p, struct Client *target_p)
   if (MyConnect(target_p)) /* Can't do any of this if not local! db */
   {
 #ifdef HAVE_LIBCRYPTO
+
     if (target_p->localClient->fd.ssl)
     {
       sendto_one(source_p, form_str(RPL_WHOISSECURE),
                  me.name, source_p->name, target_p->name);
-      if((target_p == source_p || HasUMode(source_p, UMODE_OPER)) && 
+
+      if ((target_p == source_p || HasUMode(source_p, UMODE_OPER)) &&
           !EmptyString(target_p->certfp))
       {
         sendto_one(source_p, form_str(RPL_WHOISCERTFP),
-                me.name, source_p->name, target_p->name, target_p->certfp);
+                   me.name, source_p->name, target_p->name, target_p->certfp);
       }
     }
+
 #endif
     sendto_one(source_p, form_str(RPL_WHOISIDLE),
                me.name, source_p->name, target_p->name,
@@ -425,24 +434,26 @@ whois_person(struct Client *source_p, struct Client *target_p)
   }
 }
 
-static struct Message whois_msgtab = {
+static struct Message whois_msgtab =
+{
   "WHOIS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_whois, mo_whois, m_ignore, mo_whois, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&whois_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&whois_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

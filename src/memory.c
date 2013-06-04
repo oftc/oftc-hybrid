@@ -81,7 +81,7 @@ _DupString(char **x, const char *y)
  *                Abort if it was called more than once
  */
 void
-outofmemory(void)
+outofmemory()
 {
   static int was_here = 0;
 

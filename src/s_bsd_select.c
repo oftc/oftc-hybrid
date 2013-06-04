@@ -66,7 +66,7 @@ changing_fdlimit(va_list args)
  * the network loop code.
  */
 void
-init_netio(void)
+init_netio()
 {
   FD_ZERO(&select_readfds);
   FD_ZERO(&select_writefds);
@@ -99,7 +99,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   }
 
   new_events = (F->read_handler ? COMM_SELECT_READ : 0) |
-    (F->write_handler ? COMM_SELECT_WRITE : 0);
+               (F->write_handler ? COMM_SELECT_WRITE : 0);
 
   if (timeout != 0)
   {
@@ -131,7 +131,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
     {
       if (highest_fd == F->fd)
         while (highest_fd >= 0 && (FD_ISSET(highest_fd, &select_readfds) ||
-	                           FD_ISSET(highest_fd, &select_writefds)))
+                                   FD_ISSET(highest_fd, &select_writefds)))
           highest_fd--;
     }
     else if (F->evcache == 0)
@@ -151,7 +151,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
  * events.
  */
 void
-comm_select(void)
+comm_select()
 {
   struct timeval to;
   int num, fd;
@@ -182,6 +182,7 @@ comm_select(void)
       num--;
 
       F = lookup_fd(fd);
+
       if (F == NULL || !F->flags.open)
         continue;
 
@@ -190,6 +191,7 @@ comm_select(void)
         {
           F->read_handler = NULL;
           hdl(F, F->read_data);
+
           if (!F->flags.open)
             continue;
         }
@@ -199,6 +201,7 @@ comm_select(void)
         {
           F->write_handler = NULL;
           hdl(F, F->write_data);
+
           if (!F->flags.open)
             continue;
         }

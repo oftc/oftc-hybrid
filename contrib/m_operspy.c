@@ -94,10 +94,12 @@ static void operspy_log(struct Client *, const char *, const char *);
 #endif
 
 
-static const struct operspy_s {
+static const struct operspy_s
+{
   const char *const cmd;
   void (*const func_p)(struct Client *, int, char *[]);
-} operspy_table[] = {
+} operspy_table[] =
+{
 #ifdef OPERSPY_LIST
   { "LIST", operspy_list },
 #endif
@@ -129,8 +131,8 @@ ms_operspy(struct Client *client_p, struct Client *source_p,
 }
 
 /* mo_operspy()
- *	parv[1] = operspy command
- *	parv[2] = command parameter
+ *  parv[1] = operspy command
+ *  parv[2] = command parameter
  */
 static void
 mo_operspy(struct Client *client_p, struct Client *source_p,
@@ -161,8 +163,9 @@ mo_operspy(struct Client *client_p, struct Client *source_p,
   for (optr = operspy_table; optr->cmd; ++optr)
   {
     /* str*cat is slow and sucks */
-    bcnt += strlcpy(cmdbuf+bcnt, optr->cmd, sizeof(cmdbuf)-bcnt);
-    if ((optr + 1)->cmd != NULL && bcnt < (sizeof(cmdbuf)-2))
+    bcnt += strlcpy(cmdbuf + bcnt, optr->cmd, sizeof(cmdbuf) - bcnt);
+
+    if ((optr + 1)->cmd != NULL && bcnt < (sizeof(cmdbuf) - 2))
     {
       cmdbuf[bcnt++] = ',';
       cmdbuf[bcnt++] = ' ';
@@ -218,7 +221,7 @@ operspy_mode(struct Client *client_p, int parc, char *parv[])
      * according to m_mode.c, the channel *could* exist on the uplink still,
      * but I don't see how.  Even if it does, we won't be able to spy without
      * info.
-     */ 
+     */
     sendto_one(client_p, form_str(ERR_NOSUCHCHANNEL),
                me.name, client_p->name, parv[2]);
     return;
@@ -228,7 +231,7 @@ operspy_mode(struct Client *client_p, int parc, char *parv[])
   operspy_log(client_p, "MODE", parv[2]);
 #endif
 
-  /* 
+  /*
    * XXX - this is a dirty nasty kludge to trick channel_modes()
    * into giving us the key
    */
@@ -267,7 +270,7 @@ operspy_names(struct Client *client_p, int parc, char *parv[])
    * we can also list +i users.  an unfortunate side-effect of this
    * is that your nickname shows up in the list.  for now, there is
    * no easy way around it.
-   */ 
+   */
   if (IsMember(client_p, chptr_names))
     channel_member_names(client_p, chptr_names, 1);
   else
@@ -457,9 +460,9 @@ operspy_whois(struct Client *client_p, int parc, char *parv[])
     }
 
     tlen = ircsprintf(t, "%s%s%s ",
-                     ShowChannel(client_p, chptr_whois) ? "" : "%",
-                     get_member_status((struct Membership *)lp->data, 1),
-                     chptr_whois->chname);
+                      ShowChannel(client_p, chptr_whois) ? "" : "%",
+                      get_member_status((struct Membership *)lp->data, 1),
+                      chptr_whois->chname);
     t += tlen;
     cur_len += tlen;
     reply_to_send = 1;
@@ -474,13 +477,14 @@ operspy_whois(struct Client *client_p, int parc, char *parv[])
 
   if (HasUMode(target_p, UMODE_OPER))
     sendto_one(client_p, form_str(HasUMode(target_p, UMODE_ADMIN) ? RPL_WHOISADMIN :
-               RPL_WHOISOPERATOR), me.name, client_p->name, target_p->name);
+                                  RPL_WHOISOPERATOR), me.name, client_p->name, target_p->name);
 
   if (MyConnect(target_p))
     sendto_one(client_p, form_str(RPL_WHOISIDLE), me.name,
                client_p->name, target_p->name,
                idle_time_get(client_p, target_p),
                target_p->localClient->firsttime);
+
   sendto_one(client_p, form_str(RPL_ENDOFWHOIS),
              me.name, client_p->name, parv[2]);
 }
@@ -507,7 +511,7 @@ who_global(struct Client *source_p, char *mask, int server_oper)
   struct Client *target_p;
   dlink_node *lp;
   int maxmatches = 500;
-                        
+
   /* list all matching visible clients */
   DLINK_FOREACH(lp, global_client_list.head)
   {
@@ -577,6 +581,7 @@ operspy_log(struct Client *source_p, const char *command, const char *target)
   assert(source_p != NULL);
 
 #ifdef OPERSPY_LOGFILE
+
   if (HasUMode(source_p, UMODE_OPER) && MyClient(source_p))
   {
     DLINK_FOREACH(cnode, source_p->localClient->confs.head)
@@ -591,6 +596,7 @@ operspy_log(struct Client *source_p, const char *command, const char *target)
     opername = "remote";
 
   snprintf(logfile, sizeof(logfile), "%s/operspy.%s.log", LOGPATH, opername);
+
   if ((operspy_fb = fopen(logfile, "a")) == NULL)
     return;
 
@@ -613,24 +619,26 @@ operspy_log(struct Client *source_p, const char *command, const char *target)
 }
 #endif /* OPERSPY_LOG */
 
-static struct Message operspy_msgtab = {
+static struct Message operspy_msgtab =
+{
   "OPERSPY", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_not_oper, ms_operspy, ms_operspy, mo_operspy, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&operspy_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&operspy_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

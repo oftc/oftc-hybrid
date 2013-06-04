@@ -62,7 +62,8 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
     if (!IsClient(target_p))
       return;
   }
-  else {
+  else
+  {
     target_p = hash_find_client(parv[1]);
 
     if (target_p == NULL || !IsClient(target_p))
@@ -128,7 +129,8 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
     if (!IsClient(target_p))
       return;
   }
-  else {
+  else
+  {
     target_p = hash_find_client(parv[1]);
 
     if (target_p == NULL || !IsClient(target_p))
@@ -169,13 +171,14 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
     if (IsClient(source_p))
       sendto_one(target_p, ":%s NOTICE %s :You are now %s@%s",
                  me.name, target_p->name, target_p->username, target_p->host);
+
     clear_ban_cache_client(target_p);
   }
 }
 
 static void
 mo_chgname(struct Client *client_p, struct Client *source_p,
-          int parc, char *parv[])
+           int parc, char *parv[])
 {
   struct Client *target_p = NULL;
 
@@ -225,23 +228,26 @@ mo_chgname(struct Client *client_p, struct Client *source_p,
                me.name, target_p->name, target_p->info);
 }
 
-static struct Message chgident_msgtab = {
+static struct Message chgident_msgtab =
+{
   "CHGIDENT", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, mo_chgident, mo_chgident, mo_chgident, m_ignore}
 };
 
-static struct Message chghost_msgtab = {
+static struct Message chghost_msgtab =
+{
   "CHGHOST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, mo_chghost, mo_chghost, mo_chghost, m_ignore}
 };
 
-static struct Message chgname_msgtab = {
+static struct Message chgname_msgtab =
+{
   "CHGNAME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, mo_chgname, mo_chgname, mo_chgname, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&chgident_msgtab);
   mod_add_cmd(&chghost_msgtab);
@@ -249,14 +255,15 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&chgname_msgtab);
   mod_del_cmd(&chghost_msgtab);
   mod_del_cmd(&chgident_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

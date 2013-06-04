@@ -41,11 +41,11 @@
 
 /* part_one_client()
  *
- * inputs	- pointer to server
- * 		- pointer to source client to remove
- *		- char pointer of name of channel to remove from
- * output	- none
- * side effects	- remove ONE client given the channel name 
+ * inputs  - pointer to server
+ *     - pointer to source client to remove
+ *    - char pointer of name of channel to remove from
+ * output  - none
+ * side effects  - remove ONE client given the channel name
  */
 static void
 part_one_client(struct Client *client_p, struct Client *source_p,
@@ -75,13 +75,13 @@ part_one_client(struct Client *client_p, struct Client *source_p,
    *  Remove user from the old channel (if any)
    *  only allow /part reasons in -m chans
    */
-  if(msg_has_colors(reason) && (chptr->mode.mode & MODE_NOCOLOR)) 
-    reason = strip_color(reason); 
-  
+  if (msg_has_colors(reason) && (chptr->mode.mode & MODE_NOCOLOR))
+    reason = strip_color(reason);
+
   if (reason[0] && (!MyConnect(source_p) ||
-      ((can_send(chptr, source_p, ms) &&
-       (source_p->localClient->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
-        < CurrentTime))))
+                    ((can_send(chptr, source_p, ms) &&
+                      (source_p->localClient->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
+                      < CurrentTime))))
   {
     sendto_server(client_p, CAP_TS6, NOCAPS,
                   ":%s PART %s :%s", ID(source_p), chptr->chname,
@@ -142,24 +142,26 @@ m_part(struct Client *client_p, struct Client *source_p,
     part_one_client(client_p, source_p, name, reason);
 }
 
-static struct Message part_msgtab = {
+static struct Message part_msgtab =
+{
   "PART", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_part, m_part, m_ignore, m_part, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&part_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&part_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

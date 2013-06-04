@@ -61,7 +61,7 @@ m_ping(struct Client *client_p, struct Client *source_p,
   if (ConfigFileEntry.disable_remote && !HasUMode(source_p, UMODE_OPER))
   {
     sendto_one(source_p, ":%s PONG %s :%s", me.name,
-              (destination) ? destination : me.name, origin);
+               (destination) ? destination : me.name, origin);
     return;
   }
 
@@ -104,11 +104,12 @@ ms_ping(struct Client *client_p, struct Client *source_p,
   origin = source_p->name;
   destination = parv[2]; /* Will get NULL or pointer (parc >= 2!!) */
 
-  if (!EmptyString(destination) && irccmp(destination, me.name) != 0 && irccmp(destination, me.id) != 0)
+  if (!EmptyString(destination) && irccmp(destination, me.name) != 0
+      && irccmp(destination, me.id) != 0)
   {
     if ((target_p = hash_find_server(destination)))
       sendto_one(target_p, ":%s PING %s :%s", source_p->name,
-		 origin, destination);
+                 origin, destination);
     else
     {
       sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
@@ -121,24 +122,26 @@ ms_ping(struct Client *client_p, struct Client *source_p,
                ID_or_name(&me, client_p), (destination) ? destination : me.name, origin);
 }
 
-static struct Message ping_msgtab = {
+static struct Message ping_msgtab =
+{
   "PING", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_ping, ms_ping, m_ignore, m_ping, m_ping}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&ping_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&ping_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

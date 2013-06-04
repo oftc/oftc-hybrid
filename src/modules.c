@@ -90,7 +90,7 @@ unload_one_module(const char *name, int warn)
     return -1;
 
   if (modp->modexit)
-   modp->modexit();
+    modp->modexit();
 
   assert(dlink_list_length(&modules_list) > 0);
   dlinkDelete(&modp->node, &modules_list);
@@ -123,7 +123,8 @@ load_a_module(const char *path, int warn)
   if (findmodule_byname((mod_basename = basename(path))))
     return 1;
 
-  if (!(tmpptr = lt_dlopen(path))) {
+  if (!(tmpptr = lt_dlopen(path)))
+  {
     const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
 
     sendto_realops_flags(UMODE_ALL, L_ALL, "Error loading module %s: %s",
@@ -169,12 +170,12 @@ load_a_module(const char *path, int warn)
 /*
  * modules_init
  *
- * input	- NONE
- * output	- NONE
- * side effects	- The basic module manipulation modules are loaded
+ * input  - NONE
+ * output  - NONE
+ * side effects  - The basic module manipulation modules are loaded
  */
 void
-modules_init(void)
+modules_init()
 {
   if (lt_dlinit())
   {
@@ -186,8 +187,8 @@ modules_init(void)
 
 /* mod_find_path()
  *
- * input	- path
- * output	- none
+ * input  - path
+ * output  - none
  * side effects - returns a module path from path
  */
 static struct module_path *
@@ -208,8 +209,8 @@ mod_find_path(const char *path)
 
 /* mod_add_path()
  *
- * input	- path
- * output	- NONE
+ * input  - path
+ * output  - NONE
  * side effects - adds path to list
  */
 void
@@ -228,8 +229,8 @@ mod_add_path(const char *path)
 
 /* add_conf_module
  *
- * input	- module name
- * output	- NONE
+ * input  - module name
+ * output  - NONE
  * side effects - adds module to conf_mod
  */
 void
@@ -245,12 +246,12 @@ add_conf_module(const char *name)
 
 /* mod_clear_paths()
  *
- * input	- NONE
- * output	- NONE
+ * input  - NONE
+ * output  - NONE
  * side effects - clear the lists of paths and conf modules
  */
 void
-mod_clear_paths(void)
+mod_clear_paths()
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
@@ -315,9 +316,9 @@ load_all_modules(int warn)
 
     if (offset && !strcmp(offset, SHARED_SUFFIX))
     {
-       snprintf(module_fq_name, sizeof(module_fq_name), "%s/%s",
-                AUTOMODPATH, ldirent->d_name);
-       load_a_module(module_fq_name, warn);
+      snprintf(module_fq_name, sizeof(module_fq_name), "%s/%s",
+               AUTOMODPATH, ldirent->d_name);
+      load_a_module(module_fq_name, warn);
     }
   }
 
@@ -331,7 +332,7 @@ load_all_modules(int warn)
  * side effects - load modules given in ircd.conf
  */
 void
-load_conf_modules(void)
+load_conf_modules()
 {
   dlink_node *ptr = NULL;
 
@@ -373,8 +374,8 @@ load_core_modules(int warn)
 /* load_one_module()
  *
  * input        - pointer to path
- *		- flagged as core module or not
- * output       - -1 if error 
+ *    - flagged as core module or not
+ * output       - -1 if error
  * side effects - module is loaded if found.
  */
 int
@@ -391,13 +392,13 @@ load_one_module(const char *path)
     snprintf(modpath, sizeof(modpath), "%s/%s", mpath->path, path);
 
     if (strstr(modpath, "../") == NULL &&
-        strstr(modpath, "/..") == NULL) 
+        strstr(modpath, "/..") == NULL)
       if (!stat(modpath, &statbuf))
         if (S_ISREG(statbuf.st_mode))  /* Regular files only please */
           return load_a_module(modpath, 1);
   }
 
-  sendto_realops_flags(UMODE_ALL, L_ALL, 
+  sendto_realops_flags(UMODE_ALL, L_ALL,
                        "Cannot locate module %s", path);
   ilog(LOG_TYPE_IRCD, "Cannot locate module %s", path);
   return -1;

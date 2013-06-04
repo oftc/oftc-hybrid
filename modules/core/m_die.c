@@ -69,24 +69,26 @@ mo_die(struct Client *client_p, struct Client *source_p,
   server_die(buf, 0);
 }
 
-static struct Message die_msgtab = {
+static struct Message die_msgtab =
+{
   "DIE", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_die, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&die_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&die_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

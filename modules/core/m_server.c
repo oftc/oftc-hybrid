@@ -27,7 +27,7 @@
 #include "client.h"      /* client struct */
 #include "event.h"
 #include "hash.h"        /* add_to_client_hash_table */
-#include "irc_string.h" 
+#include "irc_string.h"
 #include "ircd.h"        /* me */
 #include "numeric.h"     /* ERR_xxx */
 #include "conf.h"      /* struct AccessItem */
@@ -70,9 +70,9 @@ mr_server(struct Client *client_p, struct Client *source_p,
    */
   if (!DoesTS(client_p))
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-          "Unauthorized server connection attempt from %s: Non-TS server "
-          "for server %s", get_client_name(client_p, SHOW_IP), name);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Unauthorized server connection attempt from %s: Non-TS server "
+                         "for server %s", get_client_name(client_p, SHOW_IP), name);
     exit_client(client_p, client_p, "Non-TS server");
     return;
   }
@@ -80,8 +80,8 @@ mr_server(struct Client *client_p, struct Client *source_p,
   if (!valid_servname(name))
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
-          "Unauthorized server connection attempt from %s: Bogus server name "
-          "for server %s", get_client_name(client_p, SHOW_IP), name);
+                         "Unauthorized server connection attempt from %s: Bogus server name "
+                         "for server %s", get_client_name(client_p, SHOW_IP), name);
     exit_client(client_p, client_p, "Bogus server name");
     return;
   }
@@ -94,9 +94,9 @@ mr_server(struct Client *client_p, struct Client *source_p,
     case -1:
       if (ConfigFileEntry.warn_no_nline)
       {
-        sendto_realops_flags(UMODE_ALL, L_ALL, 
-           "Unauthorized server connection attempt from %s: No entry for "
-           "servername %s", get_client_name(client_p, SHOW_IP), name);
+        sendto_realops_flags(UMODE_ALL, L_ALL,
+                             "Unauthorized server connection attempt from %s: No entry for "
+                             "servername %s", get_client_name(client_p, SHOW_IP), name);
       }
 
       exit_client(client_p, client_p, "Invalid servername.");
@@ -105,9 +105,9 @@ mr_server(struct Client *client_p, struct Client *source_p,
       break;
 
     case -2:
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-           "Unauthorized server connection attempt from %s: Bad password "
-           "for server %s", get_client_name(client_p, SHOW_IP), name);
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+                           "Unauthorized server connection attempt from %s: Bad password "
+                           "for server %s", get_client_name(client_p, SHOW_IP), name);
 
       exit_client(client_p, client_p, "Invalid password.");
       return;
@@ -115,9 +115,9 @@ mr_server(struct Client *client_p, struct Client *source_p,
       break;
 
     case -3:
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-           "Unauthorized server connection attempt from %s: Invalid host "
-           "for server %s", get_client_name(client_p, SHOW_IP), name);
+      sendto_realops_flags(UMODE_ALL, L_ALL,
+                           "Unauthorized server connection attempt from %s: Invalid host "
+                           "for server %s", get_client_name(client_p, SHOW_IP), name);
 
       exit_client(client_p, client_p, "Invalid host.");
       return;
@@ -138,8 +138,8 @@ mr_server(struct Client *client_p, struct Client *source_p,
      * Definitely don't do that here. This is from an unregistered
      * connect - A1kmm.
      */
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "Attempt to re-introduce server %s from %s",
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Attempt to re-introduce server %s from %s",
                          name, get_client_name(client_p, SHOW_IP));
     sendto_one(client_p, "ERROR :Server already exists.");
     exit_client(client_p, client_p, "Server ID Exists");
@@ -221,11 +221,11 @@ ms_server(struct Client *client_p, struct Client *source_p,
      * that already exists, then sends you a client burst, you squit the
      * server, but you keep getting the burst of clients on a server that
      * doesnt exist, although ircd can handle it, its not a realistic
-     * solution.. --fl_ 
+     * solution.. --fl_
      */
     sendto_one(client_p, "ERROR :Server %s already exists", name);
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "Link %s cancelled, server %s already exists",
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Link %s cancelled, server %s already exists",
                          get_client_name(client_p, SHOW_IP), name);
     exit_client(client_p, &me, "Server Exists");
     return;
@@ -245,18 +245,20 @@ ms_server(struct Client *client_p, struct Client *source_p,
    * leaf. If so, close the link.
    */
   DLINK_FOREACH(ptr, aconf->leaf_list.head)
-    if (match(ptr->data, name))
-    {
-      llined = 1;
-      break;
-    }
+
+  if (match(ptr->data, name))
+  {
+    llined = 1;
+    break;
+  }
 
   DLINK_FOREACH(ptr, aconf->hub_list.head)
-    if (match(ptr->data, name))
-    {
-      hlined = 1;
-      break;
-    }
+
+  if (match(ptr->data, name))
+  {
+    hlined = 1;
+    break;
+  }
 
   /* Ok, this way this works is
    *
@@ -267,15 +269,15 @@ ms_server(struct Client *client_p, struct Client *source_p,
    *            name = "irc.bighub.net";
    *            hub_mask="*";
    *            ...
-   * 
+   *
    * That would allow "irc.bighub.net" to introduce anything it wanted..
    *
    * However
    *
    * connect {
    *            name = "irc.somehub.fi";
-   *		hub_mask="*";
-   *		leaf_mask="*.edu";
+   *    hub_mask="*";
+   *    leaf_mask="*.edu";
    *...
    * Would allow this server in finland to hub anything but
    * .edu's
@@ -295,8 +297,8 @@ ms_server(struct Client *client_p, struct Client *source_p,
   if (llined)
   {
     /* OOOPs nope can't HUB this leaf */
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "Link %s introduced leafed server %s.",
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Link %s introduced leafed server %s.",
                          get_client_name(client_p, SHOW_IP), name);
     /* If it is new, we are probably misconfigured, so split the
      * non-hub server introducing this. Otherwise, split the new
@@ -319,7 +321,8 @@ ms_server(struct Client *client_p, struct Client *source_p,
   set_server_gecos(target_p, parv[3]);
   SetServer(target_p);
 
-  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
+  if (HasFlag(source_p, FLAGS_SERVICE)
+      || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
     AddFlag(target_p, FLAGS_SERVICE);
 
   dlinkAdd(target_p, &target_p->node, &global_client_list);
@@ -390,8 +393,8 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   if ((target_p = hash_find_id(parv[3])))
   {
     sendto_one(client_p, "ERROR :SID %s already exists", parv[3]);
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "Link %s cancelled, SID %s already exists",
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Link %s cancelled, SID %s already exists",
                          get_client_name(client_p, SHOW_IP), parv[3]);
     exit_client(client_p, &me, "SID Exists");
     return;
@@ -401,9 +404,9 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   if ((target_p = hash_find_server(parv[1])))
   {
     sendto_one(client_p, "ERROR :Server %s already exists", parv[1]);
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-        "Link %s cancelled, server %s already exists",   
-        get_client_name(client_p, SHOW_IP), parv[1]);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Link %s cancelled, server %s already exists",
+                         get_client_name(client_p, SHOW_IP), parv[1]);
     exit_client(client_p, &me, "Server Exists");
     return;
   }
@@ -422,18 +425,20 @@ ms_sid(struct Client *client_p, struct Client *source_p,
    * leaf. If so, close the link.
    */
   DLINK_FOREACH(ptr, aconf->leaf_list.head)
-    if (match(ptr->data, parv[1]))
-    {
-      llined = 1;
-      break;
-    }
+
+  if (match(ptr->data, parv[1]))
+  {
+    llined = 1;
+    break;
+  }
 
   DLINK_FOREACH(ptr, aconf->hub_list.head)
-    if (match(ptr->data, parv[1]))
-    {
-      hlined = 1;
-      break;
-    }
+
+  if (match(ptr->data, parv[1]))
+  {
+    hlined = 1;
+    break;
+  }
 
 
   /* Ok, this way this works is
@@ -445,15 +450,15 @@ ms_sid(struct Client *client_p, struct Client *source_p,
    *            name = "irc.bighub.net";
    *            hub_mask="*";
    *            ...
-   * 
+   *
    * That would allow "irc.bighub.net" to introduce anything it wanted..
    *
    * However
    *
    * connect {
    *            name = "irc.somehub.fi";
-   *		hub_mask="*";
-   *		leaf_mask="*.edu";
+   *    hub_mask="*";
+   *    leaf_mask="*.edu";
    *...
    * Would allow this server in finland to hub anything but
    * .edu's
@@ -473,8 +478,8 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   if (llined)
   {
     /* OOOPs nope can't HUB this leaf */
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-			 "Link %s introduced leafed server %s.",
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Link %s introduced leafed server %s.",
                          get_client_name(client_p, SHOW_IP), parv[1]);
     exit_client(client_p, &me, "Leafed Server.");
     return;
@@ -491,7 +496,8 @@ ms_sid(struct Client *client_p, struct Client *source_p,
   set_server_gecos(target_p, parv[4]);
   SetServer(target_p);
 
-  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
+  if (HasFlag(source_p, FLAGS_SERVICE)
+      || find_matching_name_conf(SERVICE_TYPE, target_p->name, NULL, NULL, 0))
     AddFlag(target_p, FLAGS_SERVICE);
 
   dlinkAdd(target_p, &target_p->node, &global_client_list);
@@ -508,15 +514,15 @@ ms_sid(struct Client *client_p, struct Client *source_p,
                 source_p->name, target_p->name, hop + 1,
                 IsHidden(target_p) ? "(H) " : "", target_p->info);
 
-  sendto_realops_flags(UMODE_EXTERNAL, L_ALL, 
+  sendto_realops_flags(UMODE_EXTERNAL, L_ALL,
                        "Server %s being introduced by %s",
                        target_p->name, source_p->name);
 }
 
 /* set_server_gecos()
  *
- * input	- pointer to client
- * output	- NONE
+ * input  - pointer to client
+ * output  - NONE
  * side effects - servers gecos field is set
  */
 static void
@@ -537,31 +543,34 @@ set_server_gecos(struct Client *client_p, const char *info)
     strlcpy(client_p->info, "(Unknown Location)", sizeof(client_p->info));
 }
 
-static struct Message server_msgtab = {
+static struct Message server_msgtab =
+{
   "SERVER", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
   {mr_server, m_registered, ms_server, m_ignore, m_registered, m_ignore}
 };
 
-static struct Message sid_msgtab = {
+static struct Message sid_msgtab =
+{
   "SID", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
   {rfc1459_command_send_error, m_ignore, ms_sid, m_ignore, m_ignore, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&sid_msgtab);
   mod_add_cmd(&server_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&sid_msgtab);
   mod_del_cmd(&server_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

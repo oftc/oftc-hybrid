@@ -42,7 +42,7 @@
  * report_crypto_errors - Dump crypto error list to log
  */
 void
-report_crypto_errors(void)
+report_crypto_errors()
 {
   unsigned long e = 0;
 
@@ -68,13 +68,13 @@ binary_to_hex(unsigned char *bin, char *hex, int length)
 int
 get_randomness(unsigned char *buf, int length)
 {
-    /* Seed OpenSSL PRNG with EGD enthropy pool -kre */
-    if (ConfigFileEntry.use_egd &&
-        (ConfigFileEntry.egdpool_path != NULL))
-    {
-      if (RAND_egd(ConfigFileEntry.egdpool_path) == -1)
-            return -1;
-    }
+  /* Seed OpenSSL PRNG with EGD enthropy pool -kre */
+  if (ConfigFileEntry.use_egd &&
+      (ConfigFileEntry.egdpool_path != NULL))
+  {
+    if (RAND_egd(ConfigFileEntry.egdpool_path) == -1)
+      return -1;
+  }
 
   if (RAND_status())
     return (RAND_bytes(buf, length));
@@ -101,8 +101,8 @@ generate_challenge(char **r_challenge, char **r_response, RSA *rsa)
   ret = RSA_public_encrypt(32, secret, tmp, rsa, RSA_PKCS1_PADDING);
 
   *r_challenge = MyMalloc((length << 1) + 1);
-  binary_to_hex( tmp, *r_challenge, length);
-  (*r_challenge)[length<<1] = 0;
+  binary_to_hex(tmp, *r_challenge, length);
+  (*r_challenge)[length << 1] = 0;
   MyFree(tmp);
 
   if (ret < 0)

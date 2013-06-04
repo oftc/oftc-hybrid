@@ -45,7 +45,7 @@
  *  parv[2] = client to kick
  *  parv[3] = kick comment
  */
-static void 
+static void
 m_kick(struct Client *client_p, struct Client *source_p,
        int parc, char *parv[])
 {
@@ -61,7 +61,8 @@ m_kick(struct Client *client_p, struct Client *source_p,
   struct Membership *ms = NULL;
   struct Membership *ms_target;
 
-  if (!MyConnect(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
+  if (!MyConnect(source_p) && IsCapable(source_p->from, CAP_TS6)
+      && HasID(source_p))
   {
     from = me.id;
     to = source_p->id;
@@ -83,15 +84,18 @@ m_kick(struct Client *client_p, struct Client *source_p,
     flood_endgrace(source_p);
 
   comment = (EmptyString(parv[3])) ? source_p->name : parv[3];
+
   if (strlen(comment) > (size_t)KICKLEN)
     comment[KICKLEN] = '\0';
 
   name = parv[1];
+
   while (*name == ',')
     name++;
 
-  if ((p = strchr(name,',')) != NULL)
-    *p = '\0';
+  if ((p = strchr(name, ',')) != NULL)
+    * p = '\0';
+
   if (*name == '\0')
     return;
 
@@ -109,23 +113,24 @@ m_kick(struct Client *client_p, struct Client *source_p,
       if (MyConnect(source_p))
       {
         sendto_one(source_p, form_str(ERR_NOTONCHANNEL),
-                  me.name, source_p->name, name);
+                   me.name, source_p->name, name);
         return;
       }
     }
 
-    if(chptr->mode.mode & MODE_NOCOLOR && msg_has_colors(comment))
-        comment = strip_color(comment);
-    if (!has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP))
+    if (chptr->mode.mode & MODE_NOCOLOR && msg_has_colors(comment))
+      comment = strip_color(comment);
+
+    if (!has_member_flags(ms, CHFL_CHANOP | CHFL_HALFOP))
     {
-    /* was a user, not a server, and user isn't seen as a chanop here */
+      /* was a user, not a server, and user isn't seen as a chanop here */
       if (HasUMode(source_p, UMODE_GOD) && MyConnect(source_p))
         gmode_used = true;
       else if (MyConnect(source_p))
       {
         /* user on _my_ server, with no chanops.. so go away */
         sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-            me.name, source_p->name, name);
+                   me.name, source_p->name, name);
         return;
       }
 
@@ -133,20 +138,21 @@ m_kick(struct Client *client_p, struct Client *source_p,
       {
         /* If its a TS 0 channel, do it the old way */
         sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-              me.name, source_p->name, name);
+                   me.name, source_p->name, name);
         return;
       }
+
       /* Its a user doing a kick, but is not showing as chanop locally
        * its also not a user ON -my- server, and the channel has a TS.
        * There are two cases we can get to this point then...
        *
        *     1) connect burst is happening, and for some reason a legit
-       *        op has sent a KICK, but the SJOIN hasn't happened yet or 
+       *        op has sent a KICK, but the SJOIN hasn't happened yet or
        *        been seen. (who knows.. due to lag...)
        *
        *     2) The channel is desynced. That can STILL happen with TS
-       *        
-       *     Now, the old code roger wrote, would allow the KICK to 
+       *
+       *     Now, the old code roger wrote, would allow the KICK to
        *     go through. Thats quite legit, but lets weird things like
        *     KICKS by users who appear not to be chanopped happen,
        *     or even neater, they appear not to be on the channel.
@@ -165,7 +171,7 @@ m_kick(struct Client *client_p, struct Client *source_p,
     user++;
 
   if ((p = strchr(user, ',')) != NULL)
-    *p = '\0';
+    * p = '\0';
 
   if (*user == '\0')
     return;
@@ -179,28 +185,30 @@ m_kick(struct Client *client_p, struct Client *source_p,
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: to evade KICK from %s: %s %s %s",
-          who->name, source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
+                 who->name, source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
       sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, "%s", tmp);
       oftc_log(tmp);
 
       return;
     }
 
-    if(HasUMode(who, UMODE_SERVICE))
+    if (HasUMode(who, UMODE_SERVICE))
       return;
 
 #ifdef HALFOPS
+
     /* half ops cannot kick other halfops on private channels */
     if (has_member_flags(ms, CHFL_HALFOP) && !has_member_flags(ms, CHFL_CHANOP))
     {
       if (((chptr->mode.mode & MODE_PRIVATE) && has_member_flags(ms_target,
-        CHFL_CHANOP|CHFL_HALFOP)) || has_member_flags(ms_target, CHFL_CHANOP))
+           CHFL_CHANOP | CHFL_HALFOP)) || has_member_flags(ms_target, CHFL_CHANOP))
       {
         sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
                    me.name, source_p->name, name);
         return;
       }
     }
+
 #endif
 
     /* jdc
@@ -226,11 +234,12 @@ m_kick(struct Client *client_p, struct Client *source_p,
                   who->name, comment);
 
     remove_user_from_channel(ms_target);
-    if(gmode_used)
+
+    if (gmode_used)
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is using God mode: KICK %s %s %s",
-          source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
+                 source_p->name, chptr->chname, parv[2], parv[3] ? parv[3] : "");
       sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, "%s", tmp);
       oftc_log(tmp);
     }
@@ -240,24 +249,26 @@ m_kick(struct Client *client_p, struct Client *source_p,
                from, to, user, name);
 }
 
-static struct Message kick_msgtab = {
+static struct Message kick_msgtab =
+{
   "KICK", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_kick, m_kick, m_ignore, m_kick, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&kick_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&kick_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

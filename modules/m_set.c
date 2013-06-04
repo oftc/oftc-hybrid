@@ -68,7 +68,7 @@ static void list_quote_commands(struct Client *);
 static void quote_jfloodtime(struct Client *, int);
 static void quote_jfloodcount(struct Client *, int);
 
-/* 
+/*
  * If this ever needs to be expanded to more than one arg of each
  * type, want_char/want_int could be the count of the arguments,
  * instead of just a boolean flag...
@@ -78,21 +78,21 @@ static void quote_jfloodcount(struct Client *, int);
 
 static const struct SetStruct set_cmd_table[] =
 {
-  /* name		function        string arg  int arg */
+  /* name    function        string arg  int arg */
   /* -------------------------------------------------------- */
-  { "AUTOCONN",		quote_autoconn,		1,	1 },
-  { "AUTOCONNALL",	quote_autoconnall,	0,	1 },
-  { "FLOODCOUNT",	quote_floodcount,	0,	1 },
-  { "IDENTTIMEOUT",	quote_identtimeout,	0,	1 },
-  { "MAX",		quote_max,		0,	1 },
-  { "MSGLOCALE",	quote_msglocale,	1,	0 },
-  { "SPAMNUM",		quote_spamnum,		0,	1 },
-  { "SPAMTIME",		quote_spamtime,		0,	1 },
-  { "SPLITMODE",	quote_splitmode,	1,	0 },
-  { "SPLITNUM",		quote_splitnum,		0,	1 },
-  { "SPLITUSERS",	quote_splitusers,	0,	1 },
-  { "JFLOODTIME",	quote_jfloodtime,	0,	1 },
-  { "JFLOODCOUNT",	quote_jfloodcount,	0,	1 },
+  { "AUTOCONN",    quote_autoconn,    1,  1 },
+  { "AUTOCONNALL",  quote_autoconnall,  0,  1 },
+  { "FLOODCOUNT",  quote_floodcount,  0,  1 },
+  { "IDENTTIMEOUT",  quote_identtimeout,  0,  1 },
+  { "MAX",    quote_max,    0,  1 },
+  { "MSGLOCALE",  quote_msglocale,  1,  0 },
+  { "SPAMNUM",    quote_spamnum,    0,  1 },
+  { "SPAMTIME",    quote_spamtime,    0,  1 },
+  { "SPLITMODE",  quote_splitmode,  1,  0 },
+  { "SPLITNUM",    quote_splitnum,    0,  1 },
+  { "SPLITUSERS",  quote_splitusers,  0,  1 },
+  { "JFLOODTIME",  quote_jfloodtime,  0,  1 },
+  { "JFLOODCOUNT",  quote_jfloodcount,  0,  1 },
   /* -------------------------------------------------------- */
   { NULL,               NULL,                   0,      0 }
 };
@@ -119,7 +119,7 @@ list_quote_commands(struct Client *source_p)
     {
       sendto_one(source_p, ":%s NOTICE %s :%s %s %s %s",
                  me.name, source_p->name,
-                 names[0], names[1], 
+                 names[0], names[1],
                  names[2], names[3]);
       j = 0;
       names[0] = names[1] = names[2] = names[3] = "";
@@ -130,7 +130,7 @@ list_quote_commands(struct Client *source_p)
   if (j)
     sendto_one(source_p, ":%s NOTICE %s :%s %s %s %s",
                me.name, source_p->name,
-               names[0], names[1], 
+               names[0], names[1],
                names[2], names[3]);
 }
 
@@ -142,11 +142,13 @@ quote_autoconn(struct Client *source_p, const char *arg, int newval)
 
   if (arg != NULL)
   {
-    struct ConfItem *conf = find_exact_name_conf(SERVER_TYPE, NULL, arg, NULL, NULL);
+    struct ConfItem *conf = find_exact_name_conf(SERVER_TYPE, NULL, arg, NULL,
+                            NULL);
 
     if (conf != NULL)
     {
       aconf = map_to_conf(conf);
+
       if (newval)
         SetConfAllowAutoConn(aconf);
       else
@@ -240,24 +242,24 @@ quote_max(struct Client *source_p, int newval)
     if (newval > MAXCLIENTS_MAX)
     {
       sendto_one(source_p,
-        ":%s NOTICE %s :You cannot set MAXCLIENTS to > %d, restoring to %d",
-        me.name, source_p->name, MAXCLIENTS_MAX, ServerInfo.max_clients);
+                 ":%s NOTICE %s :You cannot set MAXCLIENTS to > %d, restoring to %d",
+                 me.name, source_p->name, MAXCLIENTS_MAX, ServerInfo.max_clients);
       return;
     }
 
     if (newval < MAXCLIENTS_MIN)
     {
       sendto_one(source_p,
-        ":%s NOTICE %s :You cannot set MAXCLIENTS to < %d, restoring to %d",
-        me.name, source_p->name, MAXCLIENTS_MIN, ServerInfo.max_clients);
+                 ":%s NOTICE %s :You cannot set MAXCLIENTS to < %d, restoring to %d",
+                 me.name, source_p->name, MAXCLIENTS_MIN, ServerInfo.max_clients);
       return;
     }
 
     ServerInfo.max_clients = newval;
 
     sendto_realops_flags(UMODE_ALL, L_ALL,
-        "%s set new MAXCLIENTS to %d (%d current)",
-        get_oper_name(source_p), ServerInfo.max_clients, Count.local);
+                         "%s set new MAXCLIENTS to %d (%d current)",
+                         get_oper_name(source_p), ServerInfo.max_clients, Count.local);
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :Current MAXCLIENTS = %d (%d)",
@@ -288,7 +290,7 @@ quote_spamnum(struct Client *source_p, int newval)
   {
     if (newval == 0)
     {
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
+      sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s has disabled ANTI_SPAMBOT", source_p->name);
       GlobalSetOptions.spam_num = newval;
       return;
@@ -352,7 +354,7 @@ quote_splitmode(struct Client *source_p, char *charval)
     /* OFF */
     if (newval == 0)
     {
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
+      sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s is disabling splitmode",
                            get_oper_name(source_p));
 
@@ -364,7 +366,7 @@ quote_splitmode(struct Client *source_p, char *charval)
     /* ON */
     else if (newval == 1)
     {
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
+      sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s is enabling and activating splitmode",
                            get_oper_name(source_p));
 
@@ -377,7 +379,7 @@ quote_splitmode(struct Client *source_p, char *charval)
     /* AUTO */
     else if (newval == 2)
     {
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
+      sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s is enabling automatic splitmode",
                            get_oper_name(source_p));
 
@@ -386,12 +388,12 @@ quote_splitmode(struct Client *source_p, char *charval)
     }
   }
   else
-    /* if we add splitchecking to splitmode*2 we get a unique table to 
+    /* if we add splitchecking to splitmode*2 we get a unique table to
      * pull values back out of, splitmode can be four states - but you can
      * only set to three, which means we cant use the same table --fl_
      */
-    sendto_one(source_p, ":%s NOTICE %s :SPLITMODE is currently %s", 
-               me.name, source_p->name, 
+    sendto_one(source_p, ":%s NOTICE %s :SPLITMODE is currently %s",
+               me.name, source_p->name,
                splitmode_status[(splitchecking + (splitmode * 2))]);
 }
 
@@ -401,8 +403,8 @@ quote_splitnum(struct Client *source_p, int newval)
 {
   if (newval >= 0)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-                         "%s has changed SPLITNUM to %i", 
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "%s has changed SPLITNUM to %i",
                          get_oper_name(source_p), newval);
     split_servers = newval;
 
@@ -410,7 +412,7 @@ quote_splitnum(struct Client *source_p, int newval)
       check_splitmode(NULL);
   }
   else
-    sendto_one(source_p, ":%s NOTICE %s :SPLITNUM is currently %i", 
+    sendto_one(source_p, ":%s NOTICE %s :SPLITNUM is currently %i",
                me.name, source_p->name, split_servers);
 }
 
@@ -420,8 +422,8 @@ quote_splitusers(struct Client *source_p, int newval)
 {
   if (newval >= 0)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-                         "%s has changed SPLITUSERS to %i", 
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "%s has changed SPLITUSERS to %i",
                          get_oper_name(source_p), newval);
     split_users = newval;
 
@@ -429,7 +431,7 @@ quote_splitusers(struct Client *source_p, int newval)
       check_splitmode(NULL);
   }
   else
-    sendto_one(source_p, ":%s NOTICE %s :SPLITUSERS is currently %i", 
+    sendto_one(source_p, ":%s NOTICE %s :SPLITUSERS is currently %i",
                me.name, source_p->name, split_users);
 }
 
@@ -440,12 +442,12 @@ quote_jfloodtime(struct Client *source_p, int newval)
   if (newval >= 0)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "%s has changed JFLOODTIME to %i", 
+                         "%s has changed JFLOODTIME to %i",
                          get_oper_name(source_p), newval);
     GlobalSetOptions.joinfloodtime = newval;
   }
   else
-    sendto_one(source_p, ":%s NOTICE %s :JFLOODTIME is currently %i", 
+    sendto_one(source_p, ":%s NOTICE %s :JFLOODTIME is currently %i",
                me.name, source_p->name, GlobalSetOptions.joinfloodtime);
 }
 
@@ -456,12 +458,12 @@ quote_jfloodcount(struct Client *source_p, int newval)
   if (newval >= 0)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "%s has changed JFLOODCOUNT to %i", 
+                         "%s has changed JFLOODCOUNT to %i",
                          get_oper_name(source_p), newval);
     GlobalSetOptions.joinfloodcount = newval;
   }
   else
-    sendto_one(source_p, ":%s NOTICE %s :JFLOODCOUNT is currently %i", 
+    sendto_one(source_p, ":%s NOTICE %s :JFLOODCOUNT is currently %i",
                me.name, source_p->name, GlobalSetOptions.joinfloodcount);
 }
 
@@ -536,7 +538,7 @@ mo_set(struct Client *client_p, struct Client *source_p,
           {
             if (irccmp(intarg, "yes") == 0 || irccmp(intarg, "on") == 0)
               newval = 1;
-            else if (irccmp(intarg, "no") == 0|| irccmp(intarg, "off") == 0)
+            else if (irccmp(intarg, "no") == 0 || irccmp(intarg, "off") == 0)
               newval = 0;
             else
               newval = atoi(intarg);
@@ -563,6 +565,7 @@ mo_set(struct Client *client_p, struct Client *source_p,
             tab->handler(source_p, arg, newval);
           else
             tab->handler(source_p, arg);
+
           return;
         }
         else
@@ -573,6 +576,7 @@ mo_set(struct Client *client_p, struct Client *source_p,
             /* Just in case someone actually wants a
              * set function that takes no args.. *shrug* */
             tab->handler(source_p);
+
           return;
         }
       }
@@ -590,24 +594,26 @@ mo_set(struct Client *client_p, struct Client *source_p,
   list_quote_commands(source_p);
 }
 
-static struct Message set_msgtab = {
+static struct Message set_msgtab =
+{
   "SET", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, rfc1459_command_send_error, m_ignore, mo_set, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&set_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&set_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

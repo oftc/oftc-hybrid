@@ -38,19 +38,19 @@
  */
 struct Block
 {
-  int		freeElems;	/*!< Number of available elems */
-  size_t	alloc_size;	/*!< Size of data space for each block */
-  struct Block*	next;		/*!< Next in our chain of blocks */
-  void*		elems;		/*!< Points to allocated memory */
-  dlink_list	free_list;	/*!< Chain of free memory blocks */
+  int         freeElems;      /*!< Number of available elems */
+  size_t      alloc_size;     /*!< Size of data space for each block */
+  struct      Block  *next;   /*!< Next in our chain of blocks */
+  void        *elems;         /*!< Points to allocated memory */
+  dlink_list  free_list;      /*!< Chain of free memory blocks */
 };
 
 typedef struct Block Block;
 
 struct MemBlock
 {
-  dlink_node self;		/*!< Node for linking into free_list */
-  Block *block;			/*!< Which block we belong to */
+  dlink_node self;    /*!< Node for linking into free_list */
+  Block *block;       /*!< Which block we belong to */
 };
 
 typedef struct MemBlock MemBlock;
@@ -60,24 +60,25 @@ typedef struct MemBlock MemBlock;
  */
 struct BlockHeap
 {
-   size_t  elemSize;            /*!< Size of each element to be stored */
-   int     elemsPerBlock;       /*!< Number of elements per block */
-   int     blocksAllocated;     /*!< Number of blocks allocated */
-   int     freeElems;           /*!< Number of free elements */
-   Block*  base;                /*!< Pointer to first block */
-   const char *name;		/*!< Name of the heap */
-   struct BlockHeap *next;      /*!< Pointer to next heap */
+  size_t            elemSize;       /*!< Size of each element to be stored */
+  int               elemsPerBlock;  /*!< Number of elements per block */
+  int               blocksAllocated;/*!< Number of blocks allocated */
+  int               freeElems;      /*!< Number of free elements */
+  Block             *base;          /*!< Pointer to first block */
+  const char        *name;          /*!< Name of the heap */
+  struct BlockHeap  *next;          /*!< Pointer to next heap */
 };
 
 typedef struct BlockHeap BlockHeap;
 
 
-extern int         BlockHeapFree(BlockHeap *, void *);
-extern void *     BlockHeapAlloc(BlockHeap *);
+extern int  BlockHeapFree(BlockHeap *, void *);
+extern void *BlockHeapAlloc(BlockHeap *);
 
-extern BlockHeap* BlockHeapCreate(const char *const, size_t, int);
-extern int        BlockHeapDestroy(BlockHeap *);
-extern void	  initBlockHeap(void);
+extern BlockHeap *BlockHeapCreate(const char *const, size_t, int);
+extern int       BlockHeapDestroy(BlockHeap *);
+
+extern void initBlockHeap();
 extern void block_heap_report_stats(struct Client *);
 #else /* NOBALLOC */
 

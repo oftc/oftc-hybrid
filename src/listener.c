@@ -82,7 +82,7 @@ get_listener_name(const struct Listener *const listener)
  * output       - none
  * side effects - send port listing to a client
  */
-void 
+void
 show_ports(struct Client *source_p)
 {
   char buf[6];
@@ -94,16 +94,20 @@ show_ports(struct Client *source_p)
     const struct Listener *listener = ptr->data;
     p = buf;
 
-    if (listener->flags & LISTENER_HIDDEN) {
+    if (listener->flags & LISTENER_HIDDEN)
+    {
       if (!HasUMode(source_p, UMODE_ADMIN))
         continue;
+
       *p++ = 'H';
     }
 
     if (listener->flags & LISTENER_SERVER)
       *p++ = 'S';
+
     if (listener->flags & LISTENER_SSL)
       *p++ = 's';
+
     *p = '\0';
     sendto_one(source_p, form_str(RPL_STATSPLINE),
                me.name, source_p->name, 'P', listener->port,
@@ -126,7 +130,7 @@ show_ports(struct Client *source_p)
 #define HYBRID_SOMAXCONN SOMAXCONN
 #endif
 
-static int 
+static int
 inetport(struct Listener *listener)
 {
   struct irc_ssaddr lsin;
@@ -216,7 +220,7 @@ find_listener(int port, struct irc_ssaddr *addr)
  * vhost_ip - if non-null must contain a valid IP address string in
  * the format "255.255.255.255"
  */
-void 
+void
 add_listener(int port, const char *vhost_ip, unsigned int flags)
 {
   struct Listener *listener;
@@ -225,7 +229,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   char portname[PORTNAMELEN + 1];
 #ifdef IPV6
   static short int pass = 0; /* if ipv6 and no address specified we need to
-				have two listeners; one for each protocol. */
+        have two listeners; one for each protocol. */
 #endif
 
   /*
@@ -244,6 +248,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
 #ifdef IPV6
+
   if (ServerInfo.can_use_v6)
   {
     snprintf(portname, sizeof(portname), "%d", port);
@@ -251,7 +256,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     vaddr.ss.ss_family = AF_INET6;
     assert(res != NULL);
 
-    memcpy((struct sockaddr*)&vaddr, res->ai_addr, res->ai_addrlen);
+    memcpy((struct sockaddr *)&vaddr, res->ai_addr, res->ai_addrlen);
     vaddr.ss_port = port;
     vaddr.ss_len = res->ai_addrlen;
     freeaddrinfo(res);
@@ -259,7 +264,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   else
 #endif
   {
-    struct sockaddr_in *v4 = (struct sockaddr_in*) &vaddr;
+    struct sockaddr_in *v4 = (struct sockaddr_in *) &vaddr;
     v4->sin_addr.s_addr = INADDR_ANY;
     vaddr.ss.ss_family = AF_INET;
     vaddr.ss_len = sizeof(struct sockaddr_in);
@@ -275,11 +280,12 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
 
     assert(res != NULL);
 
-    memcpy((struct sockaddr*)&vaddr, res->ai_addr, res->ai_addrlen);
+    memcpy((struct sockaddr *)&vaddr, res->ai_addr, res->ai_addrlen);
     vaddr.ss_port = port;
     vaddr.ss_len = res->ai_addrlen;
     freeaddrinfo(res);
   }
+
 #ifdef IPV6
   else if (pass == 0 && ServerInfo.can_use_v6)
   {
@@ -287,12 +293,14 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     pass = 1;
     add_listener(port, "0.0.0.0", flags);
   }
+
   pass = 0;
 #endif
 
   if ((listener = find_listener(port, &vaddr)))
   {
     listener->flags = flags;
+
     if (listener->fd.flags.open)
       return;
   }
@@ -334,20 +342,22 @@ close_listener(struct Listener *listener)
 /*
  * close_listeners - close and free all listeners that are not being used
  */
-void 
-close_listeners(void)
+void
+close_listeners()
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
   /* close all 'extra' listening ports we have */
   DLINK_FOREACH_SAFE(ptr, next_ptr, ListenerPollList.head)
+  {
     close_listener(ptr->data);
+  }
 }
 
 #define TOOFAST_WARNING "ERROR :Trying to reconnect too fast.\r\n"
 #define DLINE_WARNING "ERROR :You have been D-lined.\r\n"
 
-static void 
+static void
 accept_connection(fde_t *pfd, void *data)
 {
   static time_t last_oper_notice = 0;
@@ -408,10 +418,11 @@ accept_connection(fde_t *pfd, void *data)
         switch (pe)
         {
           case BANNED_CLIENT:
-            send(fd, DLINE_WARNING, sizeof(DLINE_WARNING)-1, 0);
+            send(fd, DLINE_WARNING, sizeof(DLINE_WARNING) - 1, 0);
             break;
+
           case TOO_FAST:
-            send(fd, TOOFAST_WARNING, sizeof(TOOFAST_WARNING)-1, 0);
+            send(fd, TOOFAST_WARNING, sizeof(TOOFAST_WARNING) - 1, 0);
             break;
         }
 

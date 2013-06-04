@@ -52,10 +52,10 @@
  * 't' points -> [MessageTree *] 'r' -> [MessageTree *] -> 'i'
  *   -> [MessageTree *] -> [MessageTree *] -> 'e' and matches
  *
- *				 'i' -> [MessageTree *] -> 'e' and matches
+ *         'i' -> [MessageTree *] -> 'e' and matches
  *
  * BUGS (Limitations!)
- * 
+ *
  * I designed this trie to parse ircd commands. Hence it currently
  * casefolds. This is trivial to fix by increasing MAXPTRLEN.
  * This trie also "folds" '{' etc. down. This means, the input to this
@@ -65,33 +65,33 @@
  * MAXPTRLEN 128.
  *
  * This is also not a patricia trie. On short ircd tokens, this is
- * not likely going to matter. 
+ * not likely going to matter.
  *
  * Diane Bruce (Dianora), June 6 2003
  */
 
-#define MAXPTRLEN	32
-                                /* Must be a power of 2, and
-				 * larger than 26 [a-z]|[A-Z]
-				 * its used to allocate the set
-				 * of pointers at each node of the tree
-				 * There are MAXPTRLEN pointers at each node.
-				 * Obviously, there have to be more pointers
-				 * Than ASCII letters. 32 is a nice number
-				 * since there is then no need to shift
-				 * 'A'/'a' to base 0 index, at the expense
-				 * of a few never used pointers. For a small
-				 * parser like this, this is a good compromise
-				 * and does make it somewhat faster.
-				 *
-				 * - Dianora
-				 */
+#define MAXPTRLEN  32
+/* Must be a power of 2, and
+* larger than 26 [a-z]|[A-Z]
+* its used to allocate the set
+* of pointers at each node of the tree
+* There are MAXPTRLEN pointers at each node.
+* Obviously, there have to be more pointers
+* Than ASCII letters. 32 is a nice number
+* since there is then no need to shift
+* 'A'/'a' to base 0 index, at the expense
+* of a few never used pointers. For a small
+* parser like this, this is a good compromise
+* and does make it somewhat faster.
+*
+* - Dianora
+*/
 
 struct MessageTree
 {
-  int links; /* Count of all pointers (including msg) at this node 
-	      * used as reference count for deletion of _this_ node.
-	      */
+  int links; /* Count of all pointers (including msg) at this node
+        * used as reference count for deletion of _this_ node.
+        */
   struct Message *msg;
   struct MessageTree *pointers[MAXPTRLEN];
 };
@@ -107,8 +107,10 @@ static char buffer[1024];
 
 static int cancel_clients(struct Client *, struct Client *, char *);
 static void remove_unknown(struct Client *, char *, char *);
-static void handle_numeric(char[], struct Client *, struct Client *, int, char *[]);
-static void handle_command(struct Message *, struct Client *, struct Client *, unsigned int, char *[]);
+static void handle_numeric(char[], struct Client *, struct Client *, int,
+                           char *[]);
+static void handle_command(struct Message *, struct Client *, struct Client *,
+                           unsigned int, char *[]);
 
 
 /*
@@ -203,11 +205,11 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
     *s++ = '\0'; /* blow away the ' ', and point s to next part */
   }
   else
-  { 
+  {
     unsigned int ii = 0;
 
     if ((s = strchr(ch, ' ')) != NULL)
-      *s++ = '\0';
+      * s++ = '\0';
 
     if ((msg_ptr = find_command(ch)) == NULL)
     {
@@ -257,26 +259,26 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
     while (1)
     {
-       while (*s == ' ')
-         *s++ = '\0';
+      while (*s == ' ')
+        *s++ = '\0';
 
-       if (*s == '\0')
-         break;
+      if (*s == '\0')
+        break;
 
-       if (*s == ':')
-       {
-         /* The rest is a single parameter */
-         para[++parc] = s + 1;
-         break;
-       }
+      if (*s == ':')
+      {
+        /* The rest is a single parameter */
+        para[++parc] = s + 1;
+        break;
+      }
 
-       para[++parc] = s;
+      para[++parc] = s;
 
-       if (parc >= paramcount)
-         break;
+      if (parc >= paramcount)
+        break;
 
-       while (*s && *s != ' ')
-         ++s;
+      while (*s && *s != ' ')
+        ++s;
     }
   }
 
@@ -290,13 +292,13 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
 /* handle_command()
  *
- * inputs	- pointer to message block
- *		- pointer to client
- *		- pointer to client message is from
- *		- count of number of args
- *		- pointer to argv[] array
- * output	- -1 if error from server
- * side effects	-
+ * inputs  - pointer to message block
+ *    - pointer to client
+ *    - pointer to client message is from
+ *    - count of number of args
+ *    - pointer to argv[] array
+ * output  - -1 if error from server
+ * side effects  -
  */
 static void
 handle_command(struct Message *mptr, struct Client *client_p,
@@ -321,7 +323,7 @@ handle_command(struct Message *mptr, struct Client *client_p,
     }
     else
     {
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
+      sendto_realops_flags(UMODE_ALL, L_ALL,
                            "Dropping server %s due to (invalid) command '%s' "
                            "with only %d arguments (expecting %d).",
                            client_p->name, mptr->cmd, i, mptr->args_min);
@@ -337,11 +339,11 @@ handle_command(struct Message *mptr, struct Client *client_p,
 
 /* add_msg_element()
  *
- * inputs	- pointer to MessageTree
- *		- pointer to Message to add for given command
- *		- pointer to current portion of command being added
- * output	- NONE
- * side effects	- recursively build the Message Tree ;-)
+ * inputs  - pointer to MessageTree
+ *    - pointer to Message to add for given command
+ *    - pointer to current portion of command being added
+ * output  - NONE
+ * side effects  - recursively build the Message Tree ;-)
  */
 /*
  * How this works.
@@ -368,7 +370,7 @@ add_msg_element(struct MessageTree *mtree_p, struct Message *msg_p,
   }
   else
   {
-    /* *cmd & (MAXPTRLEN-1) 
+    /* *cmd & (MAXPTRLEN-1)
      * convert the char pointed to at *cmd from ASCII to an integer
      * between 0 and MAXPTRLEN.
      * Thus 'A' -> 0x1 'B' -> 0x2 'c' -> 0x3 etc.
@@ -388,10 +390,10 @@ add_msg_element(struct MessageTree *mtree_p, struct Message *msg_p,
 
 /* del_msg_element()
  *
- * inputs	- Pointer to MessageTree to delete from
- *		- pointer to command name to delete
- * output	- NONE
- * side effects	- recursively deletes a token from the Message Tree ;-)
+ * inputs  - Pointer to MessageTree to delete from
+ *    - pointer to command name to delete
+ * output  - NONE
+ * side effects  - recursively deletes a token from the Message Tree ;-)
  */
 /*
  * How this works.
@@ -442,10 +444,10 @@ del_msg_element(struct MessageTree *mtree_p, const char *cmd)
 
 /* msg_tree_parse()
  *
- * inputs	- Pointer to command to find
- *		- Pointer to MessageTree root
- * output	- Find given command returning Message * if found NULL if not
- * side effects	- none
+ * inputs  - Pointer to command to find
+ *    - Pointer to MessageTree root
+ * output  - Find given command returning Message * if found NULL if not
+ * side effects  - none
  */
 static struct Message *
 msg_tree_parse(const char *cmd)
@@ -462,11 +464,11 @@ msg_tree_parse(const char *cmd)
 
 /* mod_add_cmd()
  *
- * inputs	- pointer to struct Message
- * output	- none
+ * inputs  - pointer to struct Message
+ * output  - none
  * side effects - load this one command name
- *		  msg->count msg->bytes is modified in place, in
- *		  modules address space. Might not want to do that...
+ *      msg->count msg->bytes is modified in place, in
+ *      modules address space. Might not want to do that...
  */
 void
 mod_add_cmd(struct Message *msg)
@@ -483,8 +485,8 @@ mod_add_cmd(struct Message *msg)
 
 /* mod_del_cmd()
  *
- * inputs	- pointer to struct Message
- * output	- none
+ * inputs  - pointer to struct Message
+ * output  - none
  * side effects - unload this one command name
  */
 void
@@ -497,8 +499,8 @@ mod_del_cmd(struct Message *msg)
 
 /* find_command()
  *
- * inputs	- command name
- * output	- pointer to struct Message
+ * inputs  - command name
+ * output  - pointer to struct Message
  * side effects - none
  */
 struct Message *
@@ -508,7 +510,8 @@ find_command(const char *cmd)
 }
 
 static void
-recurse_report_messages(struct Client *source_p, const struct MessageTree *mtree)
+recurse_report_messages(struct Client *source_p,
+                        const struct MessageTree *mtree)
 {
   unsigned int i;
 
@@ -525,9 +528,9 @@ recurse_report_messages(struct Client *source_p, const struct MessageTree *mtree
 
 /* report_messages()
  *
- * inputs	- pointer to client to report to
- * output	- NONE
- * side effects	- client is shown list of commands
+ * inputs  - pointer to client to report to
+ * output  - NONE
+ * side effects  - client is shown list of commands
  */
 void
 report_messages(struct Client *source_p)
@@ -542,9 +545,9 @@ report_messages(struct Client *source_p)
 
 /* cancel_clients()
  *
- * inputs	- 
- * output	- 
- * side effects	- 
+ * inputs  -
+ * output  -
+ * side effects  -
  */
 static int
 cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
@@ -577,7 +580,7 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
     sendto_realops_flags(UMODE_DEBUG, L_ALL, "Message for %s[%s] from %s",
                          source_p->name, source_p->from->name,
                          get_client_name(client_p, SHOW_IP));
-    sendto_realops_flags(UMODE_DEBUG, L_ALL, 
+    sendto_realops_flags(UMODE_DEBUG, L_ALL,
                          "Not dropping server %s (%s) for Fake Direction",
                          client_p->name, source_p->name);
     return -1;
@@ -593,7 +596,7 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
    *
    * all servers must be TS these days --is
    */
-  sendto_realops_flags(UMODE_DEBUG, L_ADMIN, 
+  sendto_realops_flags(UMODE_DEBUG, L_ADMIN,
                        "Message for %s[%s@%s!%s] from %s (TS, ignored)",
                        source_p->name, source_p->username, source_p->host,
                        source_p->from->name, get_client_name(client_p, SHOW_IP));
@@ -603,9 +606,9 @@ cancel_clients(struct Client *client_p, struct Client *source_p, char *cmd)
 
 /* remove_unknown()
  *
- * inputs	- 
- * output	- 
- * side effects	- 
+ * inputs  -
+ * output  -
+ * side effects  -
  */
 static void
 remove_unknown(struct Client *client_p, char *lsender, char *lbuffer)
@@ -621,10 +624,10 @@ remove_unknown(struct Client *client_p, char *lsender, char *lbuffer)
   if ((IsDigit(*lsender) && strlen(lsender) <= IRC_MAXSID) ||
       strchr(lsender, '.') != NULL)
   {
-    sendto_realops_flags(UMODE_DEBUG, L_ADMIN, 
+    sendto_realops_flags(UMODE_DEBUG, L_ADMIN,
                          "Unknown prefix (%s) from %s, Squitting %s",
                          lbuffer, get_client_name(client_p, SHOW_IP), lsender);
-    sendto_realops_flags(UMODE_DEBUG, L_OPER, 
+    sendto_realops_flags(UMODE_DEBUG, L_OPER,
                          "Unknown prefix (%s) from %s, Squitting %s",
                          lbuffer, client_p->name, lsender);
     sendto_one(client_p, ":%s SQUIT %s :(Unknown prefix (%s) from %s)",
@@ -671,18 +674,19 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
    * assumptions--bets are off, if these are changed --msa)
    */
   t = buffer;
+
   for (i = 2; i < (parc - 1); i++)
   {
     tl = ircsprintf(t, " %s", parv[i]);
     t += tl;
   }
 
-  ircsprintf(t, " :%s", parv[parc-1]);
+  ircsprintf(t, " :%s", parv[parc - 1]);
 
   if (((target_p = find_person(client_p, parv[1])) != NULL) ||
       ((target_p = hash_find_server(parv[1])) != NULL))
   {
-    if (IsMe(target_p)) 
+    if (IsMe(target_p))
     {
       int num;
 
@@ -697,7 +701,7 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
        * because it will have been already killed by the local server.
        *
        * unfortunately, as we cant guarantee other servers will do the
-       * "right thing" on a nick collision, we have to keep both kills.  
+       * "right thing" on a nick collision, we have to keep both kills.
        * ergo we need to ignore ERR_NOSUCHNICK. --fl_
        */
       /* quick comment. This _was_ tried. i.e. assume the other servers
@@ -728,9 +732,10 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
         sendto_realops_flags(UMODE_ALL, L_ADMIN,
                              "*** %s(via %s) sent a %s numeric to me: %s",
                              source_p->name, client_p->name, numeric, buffer);
+
       return;
     }
-    else if (target_p->from == client_p) 
+    else if (target_p->from == client_p)
     {
       /* This message changed direction (nick collision?)
        * ignore it.
@@ -741,7 +746,7 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
     /* csircd will send out unknown umode flag for +a (admin), drop it here. */
     if ((atoi(numeric) == ERR_UMODEUNKNOWNFLAG) && MyClient(target_p))
       return;
-    
+
     /* Fake it for server hiding, if its our client */
     if (ConfigServerHide.hide_servers &&
         MyClient(target_p) && !HasUMode(target_p, UMODE_OPER))
@@ -749,6 +754,7 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
     else
       sendto_one(target_p, ":%s %s %s%s", ID_or_name(source_p, target_p->from),
                  numeric, ID_or_name(target_p, target_p->from), buffer);
+
     return;
   }
   else if ((chptr = hash_find_channel(parv[1])) != NULL)
@@ -758,9 +764,9 @@ handle_numeric(char numeric[], struct Client *client_p, struct Client *source_p,
 }
 
 /* m_not_oper()
- * inputs	- 
- * output	-
- * side effects	- just returns a nastyogram to given user
+ * inputs  -
+ * output  -
+ * side effects  - just returns a nastyogram to given user
  */
 void
 m_not_oper(struct Client *client_p, struct Client *source_p,
@@ -782,7 +788,7 @@ void
 m_registered(struct Client *client_p, struct Client *source_p,
              int parc, char *parv[])
 {
-  sendto_one(source_p, form_str(ERR_ALREADYREGISTRED),   
+  sendto_one(source_p, form_str(ERR_ALREADYREGISTRED),
              me.name, source_p->name);
 }
 

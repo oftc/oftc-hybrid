@@ -57,10 +57,13 @@ mo_hash(struct Client *client_p, struct Client *source_p,
       int len = 0;
 
       ++buckets;
+
       for (; cl != NULL; cl = cl->hnext)
         ++len;
+
       if (len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -80,10 +83,13 @@ mo_hash(struct Client *client_p, struct Client *source_p,
       int len = 0;
 
       ++buckets;
+
       for (; ch != NULL; ch = ch->hnextch)
         ++len;
+
       if (len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -103,10 +109,13 @@ mo_hash(struct Client *client_p, struct Client *source_p,
       int len = 0;
 
       ++buckets;
+
       for (; rch != NULL; rch = rch->hnext)
         ++len;
+
       if (len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -126,10 +135,13 @@ mo_hash(struct Client *client_p, struct Client *source_p,
       int len = 0;
 
       ++buckets;
+
       for (; icl != NULL; icl = icl->idhnext)
         ++len;
+
       if (len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -149,10 +161,13 @@ mo_hash(struct Client *client_p, struct Client *source_p,
       int len = 0;
 
       ++buckets;
+
       for (; ush != NULL; ush = ush->next)
         ++len;
+
       if (len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -162,24 +177,26 @@ mo_hash(struct Client *client_p, struct Client *source_p,
              max_chain);
 }
 
-static struct Message hash_msgtab = {
- "HASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+static struct Message hash_msgtab =
+{
+  "HASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_hash, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&hash_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&hash_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

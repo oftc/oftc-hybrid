@@ -62,10 +62,13 @@ whowas_do(struct Client *client_p, struct Client *source_p,
       return;
 
   nick = parv[1];
+
   while (*nick == ',')
     nick++;
-  if ((p = strchr(nick,',')) != NULL)
-    *p = '\0';
+
+  if ((p = strchr(nick, ',')) != NULL)
+    * p = '\0';
+
   if (*nick == '\0')
     return;
 
@@ -88,6 +91,7 @@ whowas_do(struct Client *client_p, struct Client *source_p,
         sendto_one(source_p, form_str(RPL_WHOISSERVER),
                    me.name, source_p->name, temp->name,
                    temp->servername, myctime(temp->logoff));
+
       ++cur;
     }
 
@@ -123,7 +127,7 @@ m_whowas(struct Client *client_p, struct Client *source_p,
 
   if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
   {
-    sendto_one(source_p,form_str(RPL_LOAD2HI),
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, source_p->name);
     return;
   }
@@ -147,24 +151,26 @@ mo_whowas(struct Client *client_p, struct Client *source_p,
   whowas_do(client_p, source_p, parc, parv);
 }
 
-static struct Message whowas_msgtab = {
+static struct Message whowas_msgtab =
+{
   "WHOWAS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_whowas, mo_whowas, m_ignore, mo_whowas, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&whowas_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&whowas_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

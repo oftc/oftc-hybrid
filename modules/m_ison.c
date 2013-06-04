@@ -106,24 +106,26 @@ m_ison(struct Client *client_p, struct Client *source_p,
   do_ison(client_p, source_p, parc, parv);
 }
 
-static struct Message ison_msgtab = {
+static struct Message ison_msgtab =
+{
   "ISON", 0, 0, 2, 1, MFLG_SLOW, 0,
   {m_unregistered, m_ison, m_ignore, m_ignore, m_ison, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&ison_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&ison_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

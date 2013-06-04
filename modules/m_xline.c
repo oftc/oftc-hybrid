@@ -53,11 +53,11 @@ static void relay_xline(struct Client *, char *[], int);
 
 /* mo_xline()
  *
- * inputs	- pointer to server
- *		- pointer to client
- *		- parameter count
- *		- parameter list
- * output	-
+ * inputs  - pointer to server
+ *    - pointer to client
+ *    - parameter count
+ *    - parameter list
+ * output  -
  * side effects - x line is added
  *
  */
@@ -92,25 +92,25 @@ mo_xline(struct Client *client_p, struct Client *source_p,
     /* if a given expire time is given, ENCAP it */
     if (tkline_time != 0)
       sendto_match_servs(source_p, target_server, CAP_ENCAP,
-			 "ENCAP %s XLINE %s %s %d :%s",
-			 target_server, target_server, gecos, (int)tkline_time, reason);
+                         "ENCAP %s XLINE %s %s %d :%s",
+                         target_server, target_server, gecos, (int)tkline_time, reason);
     else
       sendto_match_servs(source_p, target_server, CAP_CLUSTER,
-			 "XLINE %s %s %d :%s",
-			 target_server, gecos, (int)tkline_time, reason);
+                         "XLINE %s %s %d :%s",
+                         target_server, gecos, (int)tkline_time, reason);
 
     /* Allow ON to apply local xline as well if it matches */
     if (!match(target_server, me.name))
       return;
   }
-  else 
+  else
   {
     if (tkline_time != 0)
       cluster_a_line(source_p, "ENCAP", CAP_ENCAP, SHARED_XLINE,
-		     "XLINE %s %d :%s", gecos, (int)tkline_time, reason);
+                     "XLINE %s %d :%s", gecos, (int)tkline_time, reason);
     else
       cluster_a_line(source_p, "XLINE", CAP_KLN, SHARED_XLINE,
-		     "%s 0 :%s", gecos, reason);
+                     "%s 0 :%s", gecos, reason);
   }
 
   if (!valid_xline(source_p, gecos, reason, 0))
@@ -132,11 +132,11 @@ mo_xline(struct Client *client_p, struct Client *source_p,
 
 /* ms_xline()
  *
- * inputs	- oper, target server, xline, {type}, reason
- *		  deprecate {type} reserve for temp xlines later? XXX
+ * inputs  - oper, target server, xline, {type}, reason
+ *      deprecate {type} reserve for temp xlines later? XXX
  *
- * outputs	- none
- * side effects	- propagates xline, applies it if we are a target
+ * outputs  - none
+ * side effects  - propagates xline, applies it if we are a target
  */
 static void
 ms_xline(struct Client *client_p, struct Client *source_p,
@@ -156,10 +156,10 @@ ms_xline(struct Client *client_p, struct Client *source_p,
 
 /* me_xline()
  *
- * inputs	- server
- *		- client (oper)
- *		- parc number of arguments
- *		- parv list of arguments
+ * inputs  - server
+ *    - client (oper)
+ *    - parc number of arguments
+ *    - parv list of arguments
  * via parv[]
  * parv[1] = target
  * parv[2] = server
@@ -167,8 +167,8 @@ ms_xline(struct Client *client_p, struct Client *source_p,
  * parv[4] = time
  * parv[5] = reason
  *
- * outputs	- none
- * side effects	- 
+ * outputs  - none
+ * side effects  -
  */
 static void
 me_xline(struct Client *client_p, struct Client *source_p,
@@ -188,24 +188,26 @@ relay_xline(struct Client *source_p, char *parv[], int encap)
   int t_sec;
 
   t_sec = atoi(parv[3]);
+
   /* XXX kludge! */
   if (t_sec < 3)
     t_sec = 0;
 
-  if(!encap)
+  if (!encap)
     sendto_match_servs(source_p, parv[1], CAP_CLUSTER,
-        "XLINE %s %s %s :%s",
-        parv[1], parv[2], parv[3], parv[4]);
+                       "XLINE %s %s %s :%s",
+                       parv[1], parv[2], parv[3], parv[4]);
 
   if (!match(parv[1], me.name))
     return;
 
-  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
-                              source_p->username, source_p->host,
-                              SHARED_XLINE))
+  if (HasFlag(source_p, FLAGS_SERVICE)
+      || find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
+                                 source_p->username, source_p->host,
+                                 SHARED_XLINE))
   {
     if ((conf = find_matching_name_conf(XLINE_TYPE, parv[2],
-					NULL, NULL, 0)) != NULL)
+                                        NULL, NULL, 0)) != NULL)
     {
       match_item = map_to_conf(conf);
       sendto_one(source_p, ":%s NOTICE %s :[%s] already X-Lined by [%s] - %s",
@@ -221,11 +223,11 @@ relay_xline(struct Client *source_p, char *parv[], int encap)
 
 /* mo_unxline()
  *
- * inputs	- pointer to server
- *		- pointer to client
- *		- parameter count
- *		- parameter list
- * output	-
+ * inputs  - pointer to server
+ *    - pointer to client
+ *    - parameter count
+ *    - parameter list
+ * output  -
  * side effects - removes a xline
  */
 static void
@@ -258,16 +260,16 @@ mo_unxline(struct Client *client_p, struct Client *source_p,
   }
   else
     cluster_a_line(source_p, "UNXLINE", CAP_CLUSTER, SHARED_UNXLINE,
-		   "%s", gecos);
+                   "%s", gecos);
 
   remove_xline(source_p, gecos);
 }
 
 /* ms_unxline()
  *
- * inputs	- oper, target server, gecos
- * outputs	- none
- * side effects	- propagates unxline, applies it if we are a target
+ * inputs  - oper, target server, gecos
+ * outputs  - none
+ * side effects  - propagates unxline, applies it if we are a target
  */
 static void
 ms_unxline(struct Client *client_p, struct Client *source_p,
@@ -285,17 +287,18 @@ ms_unxline(struct Client *client_p, struct Client *source_p,
   if (!match(parv[1], me.name))
     return;
 
-  if (HasFlag(source_p, FLAGS_SERVICE) || find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
-                              source_p->username, source_p->host,
-                              SHARED_UNXLINE))
+  if (HasFlag(source_p, FLAGS_SERVICE)
+      || find_matching_name_conf(ULINE_TYPE, source_p->servptr->name,
+                                 source_p->username, source_p->host,
+                                 SHARED_UNXLINE))
     remove_xline(source_p, parv[2]);
 }
 
 /* valid_xline()
  *
- * inputs	- client to complain to, gecos, reason, whether to complain
- * outputs	- 1 for valid, else 0
- * side effects	- complains to client, when warn != 0
+ * inputs  - client to complain to, gecos, reason, whether to complain
+ * outputs  - 1 for valid, else 0
+ * side effects  - complains to client, when warn != 0
  */
 static int
 valid_xline(struct Client *source_p, char *gecos, char *reason, int warn)
@@ -305,6 +308,7 @@ valid_xline(struct Client *source_p, char *gecos, char *reason, int warn)
     if (warn)
       sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                  me.name, source_p->name, "XLINE");
+
     return 0;
   }
 
@@ -318,7 +322,8 @@ valid_xline(struct Client *source_p, char *gecos, char *reason, int warn)
   if (!valid_wild_card_simple(gecos))
   {
     if (warn)
-      sendto_one(source_p, ":%s NOTICE %s :Please include at least %d non-wildcard characters with the xline",
+      sendto_one(source_p,
+                 ":%s NOTICE %s :Please include at least %d non-wildcard characters with the xline",
                  me.name, source_p->name, ConfigFileEntry.min_nonwildcard_simple);
 
     return 0;
@@ -329,13 +334,13 @@ valid_xline(struct Client *source_p, char *gecos, char *reason, int warn)
 
 /* write_xline()
  *
- * inputs	- client taking credit for xline, gecos, reason, xline type
- * outputs	- none
- * side effects	- when successful, adds an xline to the conf
+ * inputs  - client taking credit for xline, gecos, reason, xline type
+ * outputs  - none
+ * side effects  - when successful, adds an xline to the conf
  */
 static void
 write_xline(struct Client *source_p, char *gecos, char *reason,
-	    time_t tkline_time)
+            time_t tkline_time)
 {
   struct ConfItem *conf;
   struct MatchItem *match_item;
@@ -348,27 +353,28 @@ write_xline(struct Client *source_p, char *gecos, char *reason,
   collapse(gecos);
   DupString(conf->name, gecos);
   DupString(match_item->reason, reason);
-  DupString(match_item->oper_reason, "");	/* XXX */
+  DupString(match_item->oper_reason, "");  /* XXX */
   cur_time = CurrentTime;
   current_date = smalldate(cur_time);
 
   if (tkline_time != 0)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
-			 "%s added temporary %d min. X-Line for [%s] [%s]",
-			 get_oper_name(source_p), (int)tkline_time/60,
-			 conf->name, match_item->reason);
+                         "%s added temporary %d min. X-Line for [%s] [%s]",
+                         get_oper_name(source_p), (int)tkline_time / 60,
+                         conf->name, match_item->reason);
     sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. X-Line [%s]",
-	       MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
-	       source_p->name, (int)tkline_time/60, conf->name);
+               MyConnect(source_p) ? me.name : ID_or_name(&me, source_p->from),
+               source_p->name, (int)tkline_time / 60, conf->name);
     ilog(LOG_TYPE_KLINE, "%s added temporary %d min. X-Line for [%s] [%s]",
-	 source_p->name, (int)tkline_time/60,
-	 conf->name, match_item->reason);
+         source_p->name, (int)tkline_time / 60,
+         conf->name, match_item->reason);
     match_item->hold = CurrentTime + tkline_time;
     add_temp_line(conf);
   }
   else
     write_conf_line(source_p, conf, current_date, cur_time, 0);
+
   rehashed_klines = 1;
 }
 
@@ -407,8 +413,8 @@ remove_xline(struct Client *source_p, char *gecos)
 
 /* static int remove_tkline_match(const char *host, const char *user)
  *
- * Inputs:	gecos
- * Output:	returns YES on success, NO if no tkline removed.
+ * Inputs:  gecos
+ * Output:  returns YES on success, NO if no tkline removed.
  * Side effects: Any matching tklines are removed.
  */
 static int
@@ -434,31 +440,34 @@ remove_txline_match(const char *gecos)
   return 0;
 }
 
-static struct Message xline_msgtab = {
+static struct Message xline_msgtab =
+{
   "XLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, ms_xline, me_xline, mo_xline, m_ignore }
 };
 
-static struct Message unxline_msgtab = {
+static struct Message unxline_msgtab =
+{
   "UNXLINE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, ms_unxline, m_ignore, mo_unxline, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&xline_msgtab);
   mod_add_cmd(&unxline_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&xline_msgtab);
   mod_del_cmd(&unxline_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

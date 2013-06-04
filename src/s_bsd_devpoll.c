@@ -50,7 +50,7 @@ static fde_t dpfd;
  * the network loop code.
  */
 void
-init_netio(void)
+init_netio()
 {
   int fd;
 
@@ -111,7 +111,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   }
 
   new_events = (F->read_handler ? POLLIN : 0) |
-    (F->write_handler ? POLLOUT : 0);
+               (F->write_handler ? POLLOUT : 0);
 
   if (timeout != 0)
   {
@@ -124,6 +124,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   if (new_events != F->evcache)
   {
     devpoll_write_update(F->fd, POLLREMOVE);
+
     if ((F->evcache = new_events))
       devpoll_write_update(F->fd, new_events);
   }
@@ -138,7 +139,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
  * events.
  */
 void
-comm_select(void)
+comm_select()
 {
   int num, i;
   struct pollfd pollfds[128];
@@ -164,6 +165,7 @@ comm_select(void)
   for (i = 0; i < num; i++)
   {
     F = lookup_fd(dopoll.dp_fds[i].fd);
+
     if (F == NULL || !F->flags.open)
       continue;
 
@@ -172,15 +174,17 @@ comm_select(void)
       {
         F->read_handler = NULL;
         hdl(F, F->read_data);
+
         if (!F->flags.open)
           continue;
       }
 
     if ((dopoll.dp_fds[i].revents & POLLOUT))
-      if ((hdl = F->write_handler) != NULL) 
+      if ((hdl = F->write_handler) != NULL)
       {
         F->write_handler = NULL;
         hdl(F, F->write_data);
+
         if (!F->flags.open)
           continue;
       }

@@ -236,7 +236,7 @@ m_botserv(struct Client *client_p, struct Client *source_p,
 
 static void
 m_groupserv(struct Client *client_p, struct Client *source_p,
-          int parc, char *parv[])
+            int parc, char *parv[])
 {
   struct Client *target_p = NULL;
 
@@ -294,93 +294,110 @@ m_identify(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message gs_msgtab = {
+static struct Message gs_msgtab =
+{
   "GS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
 };
 
-static struct Message ms_msgtab = {
+static struct Message ms_msgtab =
+{
   "MS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
 };
 
-static struct Message ns_msgtab = {
+static struct Message ns_msgtab =
+{
   "NS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
 };
 
-static struct Message os_msgtab = {
+static struct Message os_msgtab =
+{
   "OS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
 };
 
-static struct Message bs_msgtab = {
+static struct Message bs_msgtab =
+{
   "BS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
 };
 
-static struct Message cs_msgtab = {
+static struct Message cs_msgtab =
+{
   "CS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
 };
 
-static struct Message ss_msgtab = {
+static struct Message ss_msgtab =
+{
   "SS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_statserv, m_ignore, m_ignore, m_statserv, m_ignore}
 };
 
-static struct Message hs_msgtab = {
+static struct Message hs_msgtab =
+{
   "HS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
 };
 
-static struct Message botserv_msgtab = {
+static struct Message botserv_msgtab =
+{
   "BOTSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
 };
 
-static struct Message chanserv_msgtab = {
+static struct Message chanserv_msgtab =
+{
   "CHANSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
 };
 
-static struct Message groupserv_msgtab = {
+static struct Message groupserv_msgtab =
+{
   "GROUPSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
 };
 
-static struct Message memoserv_msgtab = {
+static struct Message memoserv_msgtab =
+{
   "MEMOSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
 };
 
-static struct Message nickserv_msgtab = {
+static struct Message nickserv_msgtab =
+{
   "NICKSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
 };
 
-static struct Message operserv_msgtab = {
+static struct Message operserv_msgtab =
+{
   "OPERSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
 };
 
-static struct Message statserv_msgtab = {
+static struct Message statserv_msgtab =
+{
   "STATSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_statserv, m_ignore, m_ignore, m_statserv, m_ignore}
 };
 
-static struct Message helpserv_msgtab = {
+static struct Message helpserv_msgtab =
+{
   "HELPSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
 };
 
-static struct Message identify_msgtab = {
+static struct Message identify_msgtab =
+{
   "IDENTIFY", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_identify, m_ignore, m_ignore, m_identify, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&botserv_msgtab);
   mod_add_cmd(&chanserv_msgtab);
@@ -402,7 +419,7 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&botserv_msgtab);
   mod_del_cmd(&chanserv_msgtab);
@@ -422,7 +439,8 @@ module_exit(void)
   mod_del_cmd(&hs_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

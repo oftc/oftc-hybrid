@@ -25,7 +25,7 @@
 
 #ifndef STDINC_H /* prevent multiple #includes */
 #define STDINC_H
- 
+
 #ifndef IN_AUTOCONF
 #include "config.h"
 #endif

@@ -44,8 +44,9 @@ chan_is_opless(const struct Channel *const chptr)
   const dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, chptr->members.head)
-    if (((struct Membership *)ptr->data)->flags & CHFL_CHANOP)
-      return 0;
+
+  if (((struct Membership *)ptr->data)->flags & CHFL_CHANOP)
+    return 0;
 
   return 1;
 }
@@ -122,24 +123,26 @@ mo_opme(struct Client *client_p, struct Client *source_p,
                        me.name, chptr->chname, source_p->name);
 }
 
-static struct Message opme_msgtab = {
+static struct Message opme_msgtab =
+{
   "OPME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_opme, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&opme_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&opme_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

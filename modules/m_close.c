@@ -62,24 +62,26 @@ mo_close(struct Client *client_p, struct Client *source_p,
              me.name, source_p->name, closed);
 }
 
-static struct Message close_msgtab = {
+static struct Message close_msgtab =
+{
   "CLOSE", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_close, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&close_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&close_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -76,16 +76,16 @@ extern struct ServerStatistics ServerStats;
 
 struct Counter
 {
-  uint64_t totalrestartcount; /* Total client count ever */
-  unsigned int myserver;      /* my servers          */
-  unsigned int oper;          /* Opers               */
-  unsigned int local;         /* Local Clients       */
-  unsigned int total;         /* total clients       */
-  unsigned int invisi;        /* invisible clients   */
-  unsigned int max_loc;       /* MAX local clients   */
-  unsigned int max_tot;       /* MAX global clients  */
-  unsigned int max_loc_con;   /* MAX local connection count (clients + server) */
-  unsigned int max_loc_cli;   /* XXX This is redundant - Max local client count */
+  uint64_t      totalrestartcount;  /* Total client count ever */
+  unsigned int  myserver;           /* my servers          */
+  unsigned int  oper;               /* Opers               */
+  unsigned int  local;              /* Local Clients       */
+  unsigned int  total;              /* total clients       */
+  unsigned int  invisi;             /* invisible clients   */
+  unsigned int  max_loc;            /* MAX local clients   */
+  unsigned int  max_tot;            /* MAX global clients  */
+  unsigned int  max_loc_con;        /* MAX local connection count (clients + server) */
+  unsigned int  max_loc_cli;        /* XXX This is redundant - Max local client count */
 };
 
 extern struct SetOptions GlobalSetOptions; /* defined in ircd.c */
@@ -114,11 +114,16 @@ extern unsigned int splitchecking;
 extern unsigned int split_users;
 extern unsigned int split_servers;
 
-extern dlink_list unknown_list;       /* unknown clients ON this server only        */
-extern dlink_list local_client_list;  /* local clients only ON this server          */
-extern dlink_list serv_list;          /* local servers to this server ONLY          */
-extern dlink_list global_serv_list;   /* global servers on the network              */
-extern dlink_list oper_list;          /* our opers, duplicated in local_client_list */
+extern dlink_list
+unknown_list;       /* unknown clients ON this server only        */
+extern dlink_list
+local_client_list;  /* local clients only ON this server          */
+extern dlink_list
+serv_list;          /* local servers to this server ONLY          */
+extern dlink_list
+global_serv_list;   /* global servers on the network              */
+extern dlink_list
+oper_list;          /* our opers, duplicated in local_client_list */
 extern int rehashed_klines;
-extern void set_time(void);
+extern void set_time();
 #endif

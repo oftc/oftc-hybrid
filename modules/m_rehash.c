@@ -66,7 +66,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
     }
     else if (irccmp(parv[1], "MOTD") == 0)
     {
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
+      sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s is forcing re-reading of MOTD file",
                            get_oper_name(source_p));
       read_message_file(&ConfigFileEntry.motd);
@@ -91,7 +91,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
   {
     sendto_one(source_p, form_str(RPL_REHASHING),
                me.name, source_p->name, ConfigFileEntry.configfile);
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
+    sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s is rehashing server config file",
                          get_oper_name(source_p));
     ilog(LOG_TYPE_IRCD, "REHASH From %s[%s]",
@@ -100,24 +100,26 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message rehash_msgtab = {
+static struct Message rehash_msgtab =
+{
   "REHASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_rehash, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&rehash_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&rehash_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

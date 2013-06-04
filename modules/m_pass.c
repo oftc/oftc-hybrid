@@ -24,7 +24,7 @@
 
 #include "stdinc.h"
 #include "client.h"      /* client struct */
-#include "irc_string.h" 
+#include "irc_string.h"
 #include "send.h"        /* sendto_one */
 #include "numeric.h"     /* ERR_xxx */
 #include "ircd.h"        /* me */
@@ -59,8 +59,10 @@ mr_pass(struct Client *client_p, struct Client *source_p,
   }
 
   MyFree(source_p->localClient->passwd);
+
   if (strlen(password) > PASSWDLEN)
     password[PASSWDLEN] = '\0';
+
   DupString(source_p->localClient->passwd, password);
 
   if (parc > 2)
@@ -87,24 +89,26 @@ mr_pass(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message pass_msgtab = {
+static struct Message pass_msgtab =
+{
   "PASS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { mr_pass, m_registered, m_ignore, m_ignore, m_registered, mr_pass }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&pass_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&pass_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

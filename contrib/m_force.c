@@ -102,6 +102,7 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
       parv[2]++;
       break;
 #ifdef HALFOPS
+
     case '%':
       type = CHFL_HALFOP;
       mode = 'h';
@@ -109,12 +110,14 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
       parv[2]++;
       break;
 #endif
+
     case '+':
       type = CHFL_VOICE;
       mode = 'v';
       sjmode = '+';
       parv[2]++;
       break;
+
     default:
       type = 0;
       mode = sjmode = '\0'; /* make sure sjmode is 0. sjoin depends on it */
@@ -144,16 +147,17 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
     {
       if (sjmode)
       {
-        DLINK_FOREACH (ptr, serv_list.head)
+        DLINK_FOREACH(ptr, serv_list.head)
         {
           struct Client *serv_p = ptr->data;
+
           if (serv_p == target_p->from || IsDead(serv_p))
             continue;
 
           sendto_one(serv_p, ":%s SJOIN %lu %s + :%c%s",
                      ID_or_name(&me, serv_p), (unsigned long)chptr->channelts,
                      chptr->chname, (sjmode == '%' &&
-                     !IsCapable(serv_p, CAP_HOPS)) ? '@' : sjmode,
+                                     !IsCapable(serv_p, CAP_HOPS)) ? '@' : sjmode,
                      ID_or_name(target_p, serv_p));
         }
       }
@@ -195,10 +199,11 @@ mo_forcejoin(struct Client *client_p, struct Client *source_p,
     }
 
     chptr = make_channel(newch);
-    if(MyClient(target_p))
+
+    if (MyClient(target_p))
       sendto_realops_flags(UMODE_SPY, L_ALL, NULL,
-          "Channel %s created by %s!%s@%s", chname, target_p->name,
-          target_p->username, target_p->host);
+                           "Channel %s created by %s!%s@%s", chname, target_p->name,
+                           target_p->username, target_p->host);
 
     add_user_to_channel(chptr, target_p, CHFL_CHANOP, 0);
 
@@ -299,31 +304,34 @@ mo_forcepart(struct Client *client_p, struct Client *source_p,
   remove_user_from_channel(member);
 }
 
-static struct Message forcejoin_msgtab = {
+static struct Message forcejoin_msgtab =
+{
   "FORCEJOIN", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_not_oper, mo_forcejoin, mo_forcejoin, mo_forcejoin, m_ignore }
 };
 
-static struct Message forcepart_msgtab = {
+static struct Message forcepart_msgtab =
+{
   "FORCEPART", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_not_oper, mo_forcepart, mo_forcepart, mo_forcepart, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&forcejoin_msgtab);
   mod_add_cmd(&forcepart_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&forcejoin_msgtab);
   mod_del_cmd(&forcepart_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

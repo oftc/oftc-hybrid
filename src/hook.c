@@ -63,11 +63,13 @@ register_callback(const char *name, CBFUNC *func)
     {
       if (func != NULL)
         dlinkAdd(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
+
       return (NULL);
     }
   }
 
   cb = MyMalloc(sizeof(struct Callback));
+
   if (func != NULL)
     dlinkAdd(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
 
@@ -201,13 +203,13 @@ stats_hooks(struct Client *source_p)
 
     if (cb->last != 0)
       snprintf(lastused, sizeof(lastused), "%d seconds ago",
-               (int) (CurrentTime - cb->last));
+               (int)(CurrentTime - cb->last));
     else
       strcpy(lastused, "NEVER");
 
     sendto_one(source_p, ":%s %d %s : %-20s %-20s %-8u %d", me.name,
                RPL_STATSDEBUG, source_p->name, cb->name, lastused, cb->called,
-	       dlink_list_length(&cb->chain));
+               dlink_list_length(&cb->chain));
   }
 
   sendto_one(source_p, ":%s %d %s : ", me.name, RPL_STATSDEBUG,

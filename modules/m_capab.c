@@ -57,28 +57,30 @@ mr_capab(struct Client *client_p, struct Client *source_p,
   for (i = 1; i < parc; ++i)
     for (s = strtoken(&p, parv[i], " "); s;
          s = strtoken(&p,    NULL, " "))
-        if ((cap = find_capability(s)))
-          SetCapable(client_p, cap);
+      if ((cap = find_capability(s)))
+        SetCapable(client_p, cap);
 }
 
-static struct Message capab_msgtab = {
+static struct Message capab_msgtab =
+{
   "CAPAB", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { mr_capab, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&capab_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&capab_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

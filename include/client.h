@@ -46,24 +46,24 @@ enum addr_mask_type
 /*! \brief Server structure */
 struct Server
 {
-  dlink_list server_list; /**< Servers on this server */
-  dlink_list client_list; /**< Clients on this server */
-  char by[NICKLEN + 1];   /**< who activated this connection */
+  dlink_list  server_list;      /**< Servers on this server */
+  dlink_list  client_list;      /**< Clients on this server */
+  char        by[NICKLEN + 1];  /**< who activated this connection */
 };
 
 /*! \brief ListTask structure */
 struct ListTask
 {
-  dlink_list show_mask; /**< show these channels.. */
-  dlink_list hide_mask; /**< ..and hide these ones */
+  dlink_list    show_mask; /**< show these channels.. */
+  dlink_list    hide_mask; /**< ..and hide these ones */
 
-  unsigned int hash_index; /**< the bucket we are currently in */
-  unsigned int users_min;
-  unsigned int users_max;
-  unsigned int created_min;
-  unsigned int created_max;
-  unsigned int topicts_min;
-  unsigned int topicts_max;
+  unsigned int  hash_index; /**< the bucket we are currently in */
+  unsigned int  users_min;
+  unsigned int  users_max;
+  unsigned int  created_min;
+  unsigned int  created_max;
+  unsigned int  topicts_min;
+  unsigned int  topicts_max;
 };
 
 /*! \brief LocalUser structure
@@ -79,32 +79,30 @@ struct LocalUser
   char         client_server[HOSTLEN + 1];
 
   unsigned int registration;
-  unsigned int cap_client;    /**< Client capabilities (from us) */
-  unsigned int cap_active;    /**< Active capabilities (to us) */
-  unsigned int       caps;       /**< capabilities bit-field */
+  unsigned int cap_client;      /**< Client capabilities (from us) */
+  unsigned int cap_active;      /**< Active capabilities (to us) */
+  unsigned int caps;            /**< capabilities bit-field */
 
-  unsigned int operflags;     /**< IRC Operator privilege flags */
-  unsigned int random_ping; /**< Holding a 32bit value used for PING cookies */
+  unsigned int operflags;       /**< IRC Operator privilege flags */
+  unsigned int random_ping;     /**< Holding a 32bit value used for PING cookies */
 
-  unsigned int serial;     /**< used to enforce 1 send per nick */
+  unsigned int serial;          /**< used to enforce 1 send per nick */
 
-  time_t       lasttime;   /**< ...should be only LOCAL clients? --msa */
-  time_t       firsttime;  /**< time client was created */
-  time_t       since;      /**< last time we parsed something */
-  time_t       last_knock;    /**< time of last knock */
-  time_t       last_join_time;   /**< when this client last 
-                                    joined a channel */
-  time_t       last_leave_time;  /**< when this client last 
-                                       * left a channel */
-  int          join_leave_count; /**< count of JOIN/LEAVE in less than 
+  time_t       lasttime;
+  time_t       firsttime;             /**< time client was created */
+  time_t       since;                 /**< last time we parsed something */
+  time_t       last_knock;            /**< time of last knock */
+  time_t       last_join_time;        /**< when this client last joined a channel */
+  time_t       last_leave_time;       /**< when this client last left a channel */
+  int          join_leave_count;      /**< count of JOIN/LEAVE in less than
                                          MIN_JOIN_LEAVE_TIME seconds */
-  int          oper_warn_count_down; /**< warn opers of this possible 
+  int          oper_warn_count_down;  /**< warn opers of this possible
                                           spambot every time this gets to 0 */
   time_t       last_caller_id_time;
   time_t       first_received_message_time;
   time_t       last_nick_change;
-  time_t       last_privmsg; /**< Last time we got a PRIVMSG */
-  time_t       last_away; /**< Away since... */
+  time_t       last_privmsg;          /**< Last time we got a PRIVMSG */
+  time_t       last_away;             /**< Away since... */
 
   int          received_number_of_privmsgs;
   unsigned int number_of_nick_changes;
@@ -114,46 +112,47 @@ struct LocalUser
   struct dbuf_queue buf_sendq;
   struct dbuf_queue buf_recvq;
 
-  struct {
-    unsigned int messages;      /**< Statistics: protocol messages sent/received */
-    uint64_t bytes;             /**< Statistics: total bytes sent/received */
+  struct
+  {
+    unsigned int  messages;      /**< Statistics: protocol messages sent/received */
+    uint64_t      bytes;             /**< Statistics: total bytes sent/received */
   } recv, send;
 
-  struct AuthRequest *auth;
-  struct Listener *listener;   /**< listener accepted from */
-  dlink_list        acceptlist; /**< clients I'll allow to talk to me */
-  dlink_list        watches;   /**< chain of Watch pointer blocks */
-  dlink_list        confs;     /**< Configuration record associated */
-  dlink_list        invited;   /**< chain of invite pointer blocks */
+  struct AuthRequest  *auth;
+  struct Listener     *listener;  /**< listener accepted from */
+  dlink_list          acceptlist; /**< clients I'll allow to talk to me */
+  dlink_list          watches;    /**< chain of Watch pointer blocks */
+  dlink_list          confs;      /**< Configuration record associated */
+  dlink_list          invited;    /**< chain of invite pointer blocks */
 
-  char              *passwd;
-  fde_t             fd;
-  fde_t             auth_fd;   /**< FD for authentication (ident lookup) */
+  char                *passwd;
+  fde_t               fd;
+  fde_t               auth_fd;    /**< FD for authentication (ident lookup) */
 
   /* Anti-flood stuff. We track how many messages were parsed and how
    * many we were allowed in the current second, and apply a simple
    * decay to avoid flooding.
    *   -- adrian
    */
-  int allow_read;       /**< how many we're allowed to read in this second */
-  int sent_parsed;      /**< how many messages we've parsed in this second */
+  int                 allow_read; /**< how many we're allowed to read in this second */
+  int                 sent_parsed;/**< how many messages we've parsed in this second */
 
-  char*          response;  /**< expected response from client */
-  char*          auth_oper; /**< Operator to become if they supply the response.*/
+  char                *response;  /**< expected response from client */
+  char                *auth_oper; /**< Operator to become if they supply the response.*/
 };
 
 /*! \brief Client structure */
 struct Client
 {
-  dlink_node node;
-  dlink_node lnode;             /**< Used for Server->servers/users */
+  dlink_node        node;
+  dlink_node        lnode;             /**< Used for Server->servers/users */
 
-  struct LocalUser *localClient;
-  struct Client    *hnext;      /**< For client hash table lookups by name */
-  struct Client    *idhnext;    /**< For SID hash table lookups by sid */
-  struct Server    *serv;       /**< ...defined, if this is a server */
-  struct Client    *servptr;    /**< Points to server this Client is on */
-  struct Client    *from;       /**< == self, if Local Client, *NEVER* NULL! */
+  struct LocalUser  *localClient;
+  struct Client     *hnext;      /**< For client hash table lookups by name */
+  struct Client     *idhnext;    /**< For SID hash table lookups by sid */
+  struct Server     *serv;       /**< ...defined, if this is a server */
+  struct Client     *servptr;    /**< Points to server this Client is on */
+  struct Client     *from;       /**< == self, if Local Client, *NEVER* NULL! */
 
   time_t            tsinfo;     /**< TS on the nick, SVINFO on server */
 
@@ -166,18 +165,18 @@ struct Client
   dlink_list        whowas;
   dlink_list        channel;   /**< chain of channel pointer blocks */
 
-  char away[AWAYLEN + 1]; /**< Client's AWAY message. Can be set/unset via AWAY command */
-  char name[HOSTLEN + 1]; /**< unique name for a client nick or host */
-  char svid[HOSTLEN + 1]; /**< Services ID. XXX: Going with HOSTLEN for now. NICKLEN might be too small
+  char              away[AWAYLEN + 1]; /**< Client's AWAY message. Can be set/unset via AWAY command */
+  char              name[HOSTLEN + 1]; /**< unique name for a client nick or host */
+  char              svid[HOSTLEN + 1]; /**< Services ID. XXX: Going with HOSTLEN for now. NICKLEN might be too small
                                 if dealing with timestamps */
-  char id[IDLEN + 1];       /**< client ID, unique ID per client */
-  /* 
-   * client->username is the username from ident or the USER message, 
-   * If the client is idented the USER message is ignored, otherwise 
-   * the username part of the USER message is put here prefixed with a 
+  char              id[IDLEN + 1];     /**< client ID, unique ID per client */
+  /*
+   * client->username is the username from ident or the USER message,
+   * If the client is idented the USER message is ignored, otherwise
+   * the username part of the USER message is put here prefixed with a
    * tilde depending on the auth{} block. Once a client has registered,
    * this field should be considered read-only.
-   */ 
+   */
   char              username[USERLEN + 1]; /* client's username */
 
   /*
@@ -189,7 +188,7 @@ struct Client
   char              host[HOSTLEN + 1];     /* client's hostname */
 
   /*
-   * client->info for unix clients will normally contain the info from the 
+   * client->info for unix clients will normally contain the info from the
    * gcos field in /etc/passwd but anything can go here.
    */
   char              info[REALLEN + 1]; /* Free form additional client info */
@@ -199,11 +198,11 @@ struct Client
    * string, this field should be considered read-only once the connection
    * has been made. (set in s_bsd.c only)
    */
-  char              sockhost[HOSTIPLEN + 1]; /* This is the host name from the 
+  char              sockhost[HOSTIPLEN + 1]; /* This is the host name from the
                                                 socket ip address as string */
   struct irc_ssaddr ip;
-  int 		    aftype;	/* Makes life easier for DNS res in IPV6 */
- 
+  int         aftype;  /* Makes life easier for DNS res in IPV6 */
+
   char              realhost[HOSTLEN];
   char              certfp[SHA_DIGEST_LENGTH * 2 + 1];
   time_t            umodestime; /* Time client set umode +S */
@@ -224,9 +223,9 @@ struct Client
 #define REG_NEED_CAP  0x4
 #define REG_INIT (REG_NEED_USER|REG_NEED_NICK)
 
-#define HasID(x)		((x)->id[0] != '\0')
-#define ID(x)			(HasID(x) ? (x)->id : (x)->name)
-#define ID_or_name(x,client_p)	((IsCapable(client_p, CAP_TS6) && HasID(x)) ? (x)->id : (x)->name)
+#define HasID(x)    ((x)->id[0] != '\0')
+#define ID(x)      (HasID(x) ? (x)->id : (x)->name)
+#define ID_or_name(x,client_p)  ((IsCapable(client_p, CAP_TS6) && HasID(x)) ? (x)->id : (x)->name)
 
 #define IsRegistered(x)         ((x)->status  > STAT_UNKNOWN)
 #define IsConnecting(x)         ((x)->status == STAT_CONNECTING)
@@ -237,23 +236,23 @@ struct Client
 #define IsClient(x)             ((x)->status == STAT_CLIENT)
 
 #define SetConnecting(x)        {(x)->status = STAT_CONNECTING; \
-				 (x)->handler = UNREGISTERED_HANDLER; }
+    (x)->handler = UNREGISTERED_HANDLER; }
 
 #define SetHandshake(x)         {(x)->status = STAT_HANDSHAKE; \
-				 (x)->handler = UNREGISTERED_HANDLER; }
+    (x)->handler = UNREGISTERED_HANDLER; }
 
 #define SetMe(x)                {(x)->status = STAT_ME; \
-				 (x)->handler = UNREGISTERED_HANDLER; }
+    (x)->handler = UNREGISTERED_HANDLER; }
 
 #define SetUnknown(x)           {(x)->status = STAT_UNKNOWN; \
-				 (x)->handler = UNREGISTERED_HANDLER; }
+    (x)->handler = UNREGISTERED_HANDLER; }
 
 #define SetServer(x)            {(x)->status = STAT_SERVER; \
-				 (x)->handler = SERVER_HANDLER; }
+    (x)->handler = SERVER_HANDLER; }
 
 #define SetClient(x)            {(x)->status = STAT_CLIENT; \
-				 (x)->handler = HasUMode(x, UMODE_OPER) ? \
-					OPER_HANDLER : CLIENT_HANDLER; }
+    (x)->handler = HasUMode(x, UMODE_OPER) ? \
+                   OPER_HANDLER : CLIENT_HANDLER; }
 
 #define MyConnect(x)            ((x)->localClient != NULL)
 #define MyClient(x)             (MyConnect(x) && IsClient(x))
@@ -330,7 +329,7 @@ struct Client
 #define UMODE_REGONLY      0x00100000 /**< Only registered nicks may PM */
 #define UMODE_HIDDEN       0x00200000 /**< Operator status is hidden */
 #define UMODE_OPER         0x00400000 /**< Operator */
-#define UMODE_ADMIN        0x00800000 /**< Admin on server */ 
+#define UMODE_ADMIN        0x00800000 /**< Admin on server */
 #define UMODE_SERVICE      0x01000000 /**< User is actually a services psuedo client */
 #define UMODE_GOD          0x02000000 /**<Operator is God */
 #define UMODE_ALL          UMODE_SERVNOTICE
@@ -376,25 +375,25 @@ struct Client
 #define IsAuthFinished(x)       ((x)->flags & FLAGS_FINISHED_AUTH)
 #define IsDead(x)               ((x)->flags & FLAGS_DEADSOCKET)
 #define SetDead(x)              ((x)->flags |= FLAGS_DEADSOCKET)
-#define IsClosing(x)		((x)->flags & FLAGS_CLOSING)
-#define SetClosing(x)		((x)->flags |= FLAGS_CLOSING)
-#define SetCanFlood(x)		((x)->flags |= FLAGS_CANFLOOD)
-#define IsCanFlood(x)		((x)->flags & FLAGS_CANFLOOD)
+#define IsClosing(x)            ((x)->flags & FLAGS_CLOSING)
+#define SetClosing(x)           ((x)->flags |= FLAGS_CLOSING)
+#define SetCanFlood(x)          ((x)->flags |= FLAGS_CANFLOOD)
+#define IsCanFlood(x)           ((x)->flags & FLAGS_CANFLOOD)
 #define IsDefunct(x)            ((x)->flags & (FLAGS_DEADSOCKET|FLAGS_CLOSING| \
-					       FLAGS_KILLED))
+                                 FLAGS_KILLED))
 
 /* oper flags */
 #define MyOper(x)               (MyConnect(x) && HasUMode(x, UMODE_OPER))
 
 #define SetOper(x)              {(x)->umodes |= UMODE_OPER; \
-				 if (!IsServer((x))) (x)->handler = OPER_HANDLER;}
+    if (!IsServer((x))) (x)->handler = OPER_HANDLER;}
 
 #define ClearOper(x)            {(x)->umodes &= ~(UMODE_OPER|UMODE_ADMIN); \
-				 if (!HasUMode(x, UMODE_OPER) && !IsServer((x))) \
-				  (x)->handler = CLIENT_HANDLER; }
+    if (!HasUMode(x, UMODE_OPER) && !IsServer((x))) \
+      (x)->handler = CLIENT_HANDLER; }
 
-#define SetSendQExceeded(x)	((x)->flags |= FLAGS_SENDQEX)
-#define IsSendQExceeded(x)	((x)->flags &  FLAGS_SENDQEX)
+#define SetSendQExceeded(x)     ((x)->flags |= FLAGS_SENDQEX)
+#define IsSendQExceeded(x)      ((x)->flags &  FLAGS_SENDQEX)
 
 #define SetIpHash(x)            ((x)->flags |= FLAGS_IPHASH)
 #define ClearIpHash(x)          ((x)->flags &= ~FLAGS_IPHASH)
@@ -404,9 +403,9 @@ struct Client
 #define ClearUserHost(x)        ((x)->flags &= ~FLAGS_USERHOST)
 #define IsUserHostIp(x)         ((x)->flags & FLAGS_USERHOST)
 
-#define SetPingSent(x)		((x)->flags |= FLAGS_PINGSENT)
-#define IsPingSent(x)		((x)->flags & FLAGS_PINGSENT)
-#define ClearPingSent(x)	((x)->flags &= ~FLAGS_PINGSENT)
+#define SetPingSent(x)          ((x)->flags |= FLAGS_PINGSENT)
+#define IsPingSent(x)           ((x)->flags & FLAGS_PINGSENT)
+#define ClearPingSent(x)        ((x)->flags &= ~FLAGS_PINGSENT)
 
 #define SetPingWarning(x)       ((x)->flags |= FLAGS_PINGWARNING)
 #define IsPingWarning(x)        ((x)->flags & FLAGS_PINGWARNING)
@@ -450,14 +449,15 @@ extern struct split_nuh_item *find_accept(const char *, const char *,
 extern void del_accept(struct split_nuh_item *, struct Client *);
 extern void del_all_accepts(struct Client *);
 extern void exit_client(struct Client *, struct Client *, const char *);
-extern void check_conf_klines(void);
-extern void init_client(void);
+extern void check_conf_klines();
+extern void init_client();
 extern void dead_link_on_write(struct Client *, int);
 extern void dead_link_on_read(struct Client *, int);
-extern void exit_aborted_clients(void);
-extern void free_exited_clients(void);
+extern void exit_aborted_clients();
+extern void free_exited_clients();
 extern struct Client *make_client(struct Client *);
-extern struct Client *find_chasing(struct Client *, struct Client *, const char *, int *);
+extern struct Client *find_chasing(struct Client *, struct Client *,
+                                   const char *, int *);
 extern struct Client *find_person(const struct Client *const, const char *);
 extern const char *get_client_name(const struct Client *, enum addr_mask_type);
 

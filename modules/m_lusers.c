@@ -38,7 +38,7 @@
  * parv[0] = sender
  * parv[1] = host/server mask.
  * parv[2] = server to query
- * 
+ *
  * 199970918 JRL hacked to ignore parv[1] completely and require parc > 3
  * to cause a force
  *
@@ -79,30 +79,32 @@ ms_lusers(struct Client *client_p, struct Client *source_p,
   if (parc > 2)
     if (hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2,
                     parc, parv) != HUNTED_ISME)
-        return;
+      return;
 
   if (IsClient(source_p))
     show_lusers(source_p);
 }
 
-static struct Message lusers_msgtab = {
+static struct Message lusers_msgtab =
+{
   "LUSERS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_lusers, ms_lusers, m_ignore, ms_lusers, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&lusers_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&lusers_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -53,7 +53,7 @@
  */
 static void
 ms_svsjoin(struct Client *client_p, struct Client *source_p,
-             int parc, char *parv[])
+           int parc, char *parv[])
 {
   struct Client *target_p = NULL;
   struct Channel *chptr = NULL;
@@ -92,6 +92,7 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
       parv[2]++;
       break;
 #ifdef HALFOPS
+
     case '%':
       type = CHFL_HALFOP;
       mode = 'h';
@@ -99,12 +100,14 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
       parv[2]++;
       break;
 #endif
+
     case '+':
       type = CHFL_VOICE;
       mode = 'v';
       sjmode = '+';
       parv[2]++;
       break;
+
     default:
       type = 0;
       mode = sjmode = '\0'; /* make sure sjmode is 0. sjoin depends on it */
@@ -130,16 +133,17 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
     {
       if (sjmode)
       {
-        DLINK_FOREACH (ptr, serv_list.head)
+        DLINK_FOREACH(ptr, serv_list.head)
         {
           struct Client *serv_p = ptr->data;
+
           if (serv_p == target_p->from || IsDead(serv_p))
             continue;
 
           sendto_one(serv_p, ":%s SJOIN %lu %s + :%c%s",
                      ID_or_name(&me, serv_p), (unsigned long)chptr->channelts,
                      chptr->chname, (sjmode == '%' &&
-                     !IsCapable(serv_p, CAP_HOPS)) ? '@' : sjmode,
+                                     !IsCapable(serv_p, CAP_HOPS)) ? '@' : sjmode,
                      ID_or_name(target_p, serv_p));
         }
       }
@@ -187,10 +191,11 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
       return;
 
     chptr = make_channel(newch);
-    if(MyClient(target_p))
-      sendto_realops_flags(UMODE_SPY, L_ALL, 
-          "Channel %s created by %s!%s@%s", chptr->chname, target_p->name,
-          target_p->username, target_p->host);
+
+    if (MyClient(target_p))
+      sendto_realops_flags(UMODE_SPY, L_ALL,
+                           "Channel %s created by %s!%s@%s", chptr->chname, target_p->name,
+                           target_p->username, target_p->host);
 
     add_user_to_channel(chptr, target_p, CHFL_CHANOP, NO);
 
@@ -221,7 +226,8 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
   }
 }
 
-struct Message svsjoin_msgtab = {
+struct Message svsjoin_msgtab =
+{
   "SVSJOIN", 0, 0, 3, 0, MFLG_SLOW, 0,
   { m_ignore, m_ignore, ms_svsjoin, ms_svsjoin, m_ignore, m_ignore }
 };
@@ -238,7 +244,8 @@ module_exit()
   mod_del_cmd(&svsjoin_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

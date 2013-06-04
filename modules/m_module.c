@@ -132,6 +132,7 @@ mo_module(struct Client *client_p, struct Client *source_p,
     if (unload_one_module(m_bn, 1) == -1)
       sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
                  me.name, source_p->name, m_bn);
+
     return;
   }
 
@@ -177,7 +178,7 @@ mo_module(struct Client *client_p, struct Client *source_p,
     if ((modp = findmodule_byname((m_bn = basename(parv[2])))) == NULL)
     {
       sendto_one(source_p, ":%s NOTICE %s :Module %s is not loaded",
-               me.name, source_p->name, m_bn);
+                 me.name, source_p->name, m_bn);
       return;
     }
 
@@ -222,7 +223,7 @@ mo_module(struct Client *client_p, struct Client *source_p,
 
       sendto_one(source_p, form_str(RPL_MODLIST), me.name, source_p->name,
                  modp->name, modp->handle,
-                 modp->version, (modp->flags & MODULE_FLAG_CORE) ?"(core)":"");
+                 modp->version, (modp->flags & MODULE_FLAG_CORE) ? "(core)" : "");
     }
 
     sendto_one(source_p, form_str(RPL_ENDOFMODLIST),
@@ -236,24 +237,26 @@ mo_module(struct Client *client_p, struct Client *source_p,
 }
 
 
-static struct Message module_msgtab = {
- "MODULE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+static struct Message module_msgtab =
+{
+  "MODULE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_module, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&module_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&module_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

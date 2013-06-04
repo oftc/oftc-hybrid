@@ -54,7 +54,7 @@ static BlockHeap *watch_heap = NULL;
 /*! \brief Initializes the watch table
  */
 void
-watch_init(void)
+watch_init()
 {
   watch_heap = BlockHeapCreate("watch", sizeof(struct Watch), WATCH_HEAP_SIZE);
 }
@@ -96,6 +96,7 @@ watch_check_hash(struct Client *client_p, int reply)
   struct Watch *anptr = NULL;
   dlink_node *ptr = NULL;
   assert(IsClient(client_p));
+
   if ((anptr = watch_find_hash(client_p->name)) == NULL)
     return;    /* This nick isn't on watch */
 
@@ -214,6 +215,7 @@ watch_del_watch_list(struct Client *client_p)
     assert(anptr);
 
     assert(dlinkFind(&anptr->watched_by, client_p) != NULL);
+
     if ((tmp = dlinkFindDelete(&anptr->watched_by, client_p)))
       free_dlink_node(tmp);
 

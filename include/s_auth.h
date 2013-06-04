@@ -33,10 +33,10 @@ struct Client;
 
 struct AuthRequest
 {
-  dlink_node	      node;	 /* auth_doing_list */
-  int 		      flags;
-  struct Client*      client;    /* pointer to client struct for request */
-  time_t              timeout;   /* time when query expires */
+  dlink_node      node;   /* auth_doing_list */
+  int             flags;
+  struct Client   *client;    /* pointer to client struct for request */
+  time_t          timeout;   /* time when query expires */
 };
 
 /*
@@ -56,7 +56,7 @@ struct AuthRequest
 
 extern struct Callback *auth_cb;
 
-extern void init_auth(void);
+extern void init_auth();
 extern void send_auth_query(struct AuthRequest *);
 extern void remove_auth_request(struct AuthRequest *);
 extern void delete_auth(struct AuthRequest *);

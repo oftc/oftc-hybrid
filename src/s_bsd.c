@@ -50,14 +50,16 @@
 #include "s_misc.h"
 
 static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
-  "Error during DNS lookup", "connect timeout", "Error during connect()",
-  "Comm Error" };
+                                      "Error during DNS lookup", "connect timeout", "Error during connect()",
+                                      "Comm Error"
+                                    };
 
 struct Callback *setup_socket_cb = NULL;
 
 static void comm_connect_callback(fde_t *, int);
 static PF comm_connect_timeout;
-static void comm_connect_dns_callback(void *, const struct irc_ssaddr *, const char *);
+static void comm_connect_dns_callback(void *, const struct irc_ssaddr *,
+                                      const char *);
 static PF comm_connect_tryconnect;
 
 
@@ -65,7 +67,7 @@ static PF comm_connect_tryconnect;
  *  Check if the system can open AF_INET6 sockets
  */
 void
-check_can_use_v6(void)
+check_can_use_v6()
 {
 #ifdef IPV6
   int v6;
@@ -77,6 +79,7 @@ check_can_use_v6(void)
     ServerInfo.can_use_v6 = 1;
     close(v6);
   }
+
 #else
   ServerInfo.can_use_v6 = 0;
 #endif
@@ -101,13 +104,14 @@ get_sockerr(int fd)
     if (err)
       errtmp = err;
   }
+
   errno = errtmp;
 #endif
   return errtmp;
 }
 
 /*
- * report_error - report an error from an errno. 
+ * report_error - report an error from an errno.
  * Record error to log and also send a copy to all *LOCAL* opers online.
  *
  *        text        is a *format* string for outputing error. It must
@@ -121,12 +125,12 @@ get_sockerr(int fd)
  * Cannot use perror() within daemon. stderr is closed in
  * ircd and cannot be used. And, worse yet, it might have
  * been reassigned to a normal connection...
- * 
+ *
  * Actually stderr is still there IFF ircd was run with -s --Rodder
  */
 
 void
-report_error(int level, const char* text, const char* who, int error) 
+report_error(int level, const char *text, const char *who, int error)
 {
   who = (who) ? who : "";
 
@@ -163,7 +167,7 @@ setup_socket(va_list args)
  * Initializes comm subsystem.
  */
 void
-init_comm(void)
+init_comm()
 {
   setup_socket_cb = register_callback("setup_socket", setup_socket);
   init_netio();
@@ -228,6 +232,7 @@ close_connection(struct Client *client_p)
     ++ServerStats.is_ni;
 
 #ifdef HAVE_LIBCRYPTO
+
   if (client_p->localClient->fd.ssl)
   {
     SSL_set_shutdown(client_p->localClient->fd.ssl, SSL_RECEIVED_SHUTDOWN);
@@ -235,13 +240,15 @@ close_connection(struct Client *client_p)
     if (!SSL_shutdown(client_p->localClient->fd.ssl))
       SSL_shutdown(client_p->localClient->fd.ssl);
   }
+
 #endif
+
   if (client_p->localClient->fd.flags.open)
     fd_close(&client_p->localClient->fd);
 
   dbuf_clear(&client_p->localClient->buf_sendq);
   dbuf_clear(&client_p->localClient->buf_recvq);
-  
+
   MyFree(client_p->localClient->passwd);
   detach_conf(client_p, CONF_TYPE);
   client_p->from = NULL; /* ...this should catch them! >:) --msa */
@@ -264,18 +271,19 @@ ssl_handshake(int fd, struct Client *client_p)
   if ((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
   {
     int res = SSL_get_verify_result(client_p->localClient->fd.ssl);
+
     if (res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
         res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
         res == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
     {
       /* The client sent a certificate which verified OK */
       base16_encode(client_p->certfp, sizeof(client_p->certfp),
-          (const char*)cert->sha1_hash, sizeof(cert->sha1_hash));
+                    (const char *)cert->sha1_hash, sizeof(cert->sha1_hash));
     }
     else
     {
       ilog(LOG_TYPE_IRCD, "Client %s!%s@%s gave bad SSL client certificate: %d",
-          client_p->name, client_p->username, client_p->host, res);
+           client_p->name, client_p->username, client_p->host, res);
     }
 
     X509_free(cert);
@@ -283,26 +291,27 @@ ssl_handshake(int fd, struct Client *client_p)
 
   if (ret <= 0)
   {
-    if((CurrentTime - client_p->localClient->firsttime) > 30)
+    if ((CurrentTime - client_p->localClient->firsttime) > 30)
     {
       exit_client(client_p, client_p, "Timeout during SSL handshake");
       return;
     }
+
     switch (SSL_get_error(client_p->localClient->fd.ssl, ret))
     {
       case SSL_ERROR_WANT_WRITE:
         comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
-	               (PF *) ssl_handshake, client_p, 30);
+                       (PF *) ssl_handshake, client_p, 30);
         return;
 
       case SSL_ERROR_WANT_READ:
         comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
-	               (PF *) ssl_handshake, client_p, 30);
+                       (PF *) ssl_handshake, client_p, 30);
         return;
 
       default:
         exit_client(client_p, client_p, "Error during SSL handshake");
-	return;
+        return;
     }
   }
 
@@ -312,7 +321,7 @@ ssl_handshake(int fd, struct Client *client_p)
 #endif
 
 /*
- * add_connection - creates a client which has just connected to us on 
+ * add_connection - creates a client which has just connected to us on
  * the given fd. The sockhost field is initialized with the ip# of the host.
  * An unique id is calculated now, in case it is needed for auth.
  * The client is sent to the auth module for verification, and not put in
@@ -325,7 +334,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 
   fd_open(&new_client->localClient->fd, fd, 1,
           (listener->flags & LISTENER_SSL) ?
-	  "Incoming SSL connection" : "Incoming connection");
+          "Incoming SSL connection" : "Incoming connection");
 
   /*
    * copy address to 'sockhost' as a string, copy it to host too
@@ -333,16 +342,18 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
    */
   memcpy(&new_client->ip, irn, sizeof(struct irc_ssaddr));
 
-  getnameinfo((struct sockaddr*)&new_client->ip,
-        new_client->ip.ss_len, new_client->sockhost, 
-        sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
+  getnameinfo((struct sockaddr *)&new_client->ip,
+              new_client->ip.ss_len, new_client->sockhost,
+              sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
   new_client->aftype = new_client->ip.ss.ss_family;
 
   if (new_client->sockhost[0] == ':' && new_client->sockhost[1] == ':')
   {
     strlcpy(new_client->host, "0", sizeof(new_client->host));
-    strlcpy(new_client->host+1, new_client->sockhost, sizeof(new_client->host)-1);
-    memmove(new_client->sockhost+1, new_client->sockhost, sizeof(new_client->sockhost)-1);
+    strlcpy(new_client->host + 1, new_client->sockhost,
+            sizeof(new_client->host) - 1);
+    memmove(new_client->sockhost + 1, new_client->sockhost,
+            sizeof(new_client->sockhost) - 1);
     new_client->sockhost[0] = '0';
   }
   else
@@ -352,6 +363,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
   ++listener->ref_count;
 
 #ifdef HAVE_LIBCRYPTO
+
   if (listener->flags & LISTENER_SSL)
   {
     if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.server_ctx)) == NULL)
@@ -393,9 +405,10 @@ ignoreErrno(int ierrno)
 #ifdef ERESTART
     case ERESTART:
 #endif
-        return 1;
+      return 1;
+
     default:
-        return 0;
+      return 0;
   }
 }
 
@@ -424,7 +437,7 @@ comm_settimeout(fde_t *fd, time_t timeout, PF *callback, void *cbdata)
  * flush functions, and when comm_close() is implemented correctly
  * with close functions, we _actually_ don't call comm_close() here ..
  * -- originally Adrian's notes
- * comm_close() is replaced with fd_close() in fdlist.c 
+ * comm_close() is replaced with fd_close() in fdlist.c
  */
 void
 comm_setflush(fde_t *fd, time_t timeout, PF *callback, void *cbdata)
@@ -516,7 +529,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
    *   -- adrian
    */
   if ((clocal != NULL) && (bind(fd->fd, clocal, socklen) < 0))
-  { 
+  {
     /* Failure, call the callback with COMM_ERR_BIND */
     comm_connect_callback(fd, COMM_ERR_BIND);
     /* ... and quit */
@@ -550,7 +563,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     fd->connect.hostaddr.ss_len = res->ai_addrlen;
     fd->connect.hostaddr.ss.ss_family = res->ai_family;
     freeaddrinfo(res);
-    comm_settimeout(fd, timeout*1000, comm_connect_timeout, NULL);
+    comm_settimeout(fd, timeout * 1000, comm_connect_timeout, NULL);
     comm_connect_tryconnect(fd, NULL);
   }
 }
@@ -597,7 +610,8 @@ comm_connect_timeout(fde_t *fd, void *notused)
  * otherwise we initiate the connect()
  */
 static void
-comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
+comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr,
+                          const char *name)
 {
   fde_t *F = vptr;
 
@@ -608,12 +622,12 @@ comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char 
   }
 
   /* No error, set a 10 second timeout */
-  comm_settimeout(F, 30*1000, comm_connect_timeout, NULL);
+  comm_settimeout(F, 30 * 1000, comm_connect_timeout, NULL);
 
   /* Copy over the DNS reply info so we can use it in the connect() */
   /*
    * Note we don't fudge the refcount here, because we aren't keeping
-   * the DNS record around, and the DNS cache is gone anyway.. 
+   * the DNS record around, and the DNS cache is gone anyway..
    *     -- adrian
    */
   memcpy(&F->connect.hostaddr, addr, addr->ss_len);
@@ -644,8 +658,8 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
     return;
 
   /* Try the connect() */
-  retval = connect(fd->fd, (struct sockaddr *) &fd->connect.hostaddr, 
-    fd->connect.hostaddr.ss_len);
+  retval = connect(fd->fd, (struct sockaddr *) &fd->connect.hostaddr,
+                   fd->connect.hostaddr.ss_len);
 
   /* Error? */
   if (retval < 0)
@@ -664,6 +678,7 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
     else
       /* Error? Fail with COMM_ERR_CONNECT */
       comm_connect_callback(fd, COMM_ERR_CONNECT);
+
     return;
   }
 
@@ -679,6 +694,7 @@ comm_errstr(int error)
 {
   if (error < 0 || error >= COMM_ERR_MAX)
     return "Invalid error number!";
+
   return comm_err_str[error];
 }
 
@@ -707,6 +723,7 @@ comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
    * XXX !!! -- adrian
    */
   fd = socket(family, sock_type, proto);
+
   if (fd < 0)
     return -1; /* errno will be passed through, yay.. */
 
@@ -742,6 +759,7 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
    * also does it. XXX -- adrian
    */
   newfd = accept(lptr->fd.fd, (struct sockaddr *)pn, &addrlen);
+
   if (newfd < 0)
     return -1;
 
@@ -757,11 +775,11 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
   return newfd;
 }
 
-/* 
+/*
  * remove_ipv6_mapping() - Removes IPv4-In-IPv6 mapping from an address
  * OSes with IPv6 mapping listening on both
  * AF_INET and AF_INET6 map AF_INET connections inside AF_INET6 structures
- * 
+ *
  */
 #ifdef IPV6
 void
@@ -771,7 +789,7 @@ remove_ipv6_mapping(struct irc_ssaddr *addr)
   {
     if (IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)addr)->sin6_addr))
     {
-      struct sockaddr_in6 v6; 
+      struct sockaddr_in6 v6;
       struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
 
       memcpy(&v6, addr, sizeof(v6));
@@ -781,10 +799,10 @@ remove_ipv6_mapping(struct irc_ssaddr *addr)
       addr->ss.ss_family = AF_INET;
       addr->ss_len = sizeof(struct sockaddr_in);
     }
-    else 
+    else
       addr->ss_len = sizeof(struct sockaddr_in6);
   }
   else
     addr->ss_len = sizeof(struct sockaddr_in);
-} 
+}
 #endif

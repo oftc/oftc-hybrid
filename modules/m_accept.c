@@ -193,24 +193,26 @@ m_accept(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message accept_msgtab = {
+static struct Message accept_msgtab =
+{
   "ACCEPT", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_accept, m_ignore, m_ignore, m_accept, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&accept_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&accept_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

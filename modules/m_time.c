@@ -50,7 +50,8 @@ m_time(struct Client *client_p, struct Client *source_p,
 
   /* This is safe enough to use during non hidden server mode */
   if (!ConfigFileEntry.disable_remote)
-    if (hunt_server(client_p, source_p, ":%s TIME :%s", 1, parc, parv) != HUNTED_ISME)
+    if (hunt_server(client_p, source_p, ":%s TIME :%s", 1, parc,
+                    parv) != HUNTED_ISME)
       return;
 
   sendto_one(source_p, form_str(RPL_TIME), me.name,
@@ -66,29 +67,32 @@ static void
 mo_time(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  if (hunt_server(client_p, source_p, ":%s TIME :%s", 1, parc, parv) == HUNTED_ISME)
+  if (hunt_server(client_p, source_p, ":%s TIME :%s", 1, parc,
+                  parv) == HUNTED_ISME)
     sendto_one(source_p, form_str(RPL_TIME), me.name,
                source_p->name, me.name, date(0));
 }
 
-static struct Message time_msgtab = {
+static struct Message time_msgtab =
+{
   "TIME", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_time, mo_time, m_ignore, mo_time, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&time_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&time_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

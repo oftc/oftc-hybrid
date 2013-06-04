@@ -45,13 +45,14 @@ m_userhost(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p;
   char buf[IRCD_BUFSIZE];
-  char response[NICKLEN*2+USERLEN+HOSTLEN+30];
+  char response[NICKLEN * 2 + USERLEN + HOSTLEN + 30];
   char *t = NULL, *p = NULL, *nick = NULL;
   int i = 0;               /* loop counter */
   int cur_len;
   int rl;
 
-  cur_len = snprintf(buf, sizeof(buf), form_str(RPL_USERHOST), me.name, source_p->name, "");
+  cur_len = snprintf(buf, sizeof(buf), form_str(RPL_USERHOST), me.name,
+                     source_p->name, "");
   t = buf + cur_len;
 
   for (nick = strtoken(&p, parv[1], " "); nick && i++ < 5;
@@ -79,7 +80,7 @@ m_userhost(struct Client *client_p, struct Client *source_p,
         rl = ircsprintf(response, "%s%s=%c%s@%s ",
                         target_p->name, (HasUMode(target_p, UMODE_OPER) &&
                                          (!HasUMode(target_p, UMODE_HIDDEN) ||
-                                           HasUMode(source_p, UMODE_OPER))) ? "*" : "",
+                                          HasUMode(source_p, UMODE_OPER))) ? "*" : "",
                         (target_p->away[0]) ? '-' : '+',
                         target_p->username,
                         target_p->host);
@@ -99,24 +100,26 @@ m_userhost(struct Client *client_p, struct Client *source_p,
   sendto_one(source_p, "%s", buf);
 }
 
-static struct Message userhost_msgtab = {
+static struct Message userhost_msgtab =
+{
   "USERHOST", 0, 0, 2, 1, MFLG_SLOW, 0,
   {m_unregistered, m_userhost, m_userhost, m_ignore, m_userhost, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&userhost_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&userhost_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

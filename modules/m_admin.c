@@ -58,9 +58,11 @@ do_admin(struct Client *source_p)
   if (AdminInfo.name != NULL)
     sendto_one(source_p, form_str(RPL_ADMINLOC1),
                me_name, nick, AdminInfo.name);
+
   if (AdminInfo.description != NULL)
     sendto_one(source_p, form_str(RPL_ADMINLOC2),
                me_name, nick, AdminInfo.description);
+
   if (AdminInfo.email != NULL)
     sendto_one(source_p, form_str(RPL_ADMINEMAIL),
                me_name, nick, AdminInfo.email);
@@ -88,7 +90,7 @@ m_admin(struct Client *client_p, struct Client *source_p,
 
   if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
-    sendto_one(source_p,form_str(RPL_LOAD2HI),
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, source_p->name);
     return;
   }
@@ -129,24 +131,26 @@ ms_admin(struct Client *client_p, struct Client *source_p,
     do_admin(source_p);
 }
 
-static struct Message admin_msgtab = {
+static struct Message admin_msgtab =
+{
   "ADMIN", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_admin, ms_admin, m_ignore, ms_admin, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&admin_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&admin_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

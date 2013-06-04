@@ -26,7 +26,7 @@
 #include "list.h"
 #include "ircd.h"
 #include "send.h"
-#include "client.h"   
+#include "client.h"
 #include "memory.h"
 #include "numeric.h"
 #include "resv.h"
@@ -40,11 +40,11 @@ dlink_list resv_channel_list = { NULL, NULL, 0 };
 
 /* create_channel_resv()
  *
- * inputs	- name of channel to create resv for
- *		- reason for resv
- *		- flag, 1 for from ircd.conf 0 from elsehwere
- * output	- pointer to struct ResvChannel
- * side effects	-
+ * inputs  - name of channel to create resv for
+ *    - reason for resv
+ *    - flag, 1 for from ircd.conf 0 from elsehwere
+ * output  - pointer to struct ResvChannel
+ * side effects  -
  */
 struct ConfItem *
 create_channel_resv(char *name, char *reason, int in_conf)
@@ -77,11 +77,11 @@ create_channel_resv(char *name, char *reason, int in_conf)
 
 /* create_nick_resv()
  *
- * inputs	- name of nick to create resv for
- *		- reason for resv
- *		- 1 if from ircd.conf, 0 if from elsewhere
- * output	- pointer to struct ResvNick
- * side effects	-
+ * inputs  - name of nick to create resv for
+ *    - reason for resv
+ *    - 1 if from ircd.conf, 0 if from elsewhere
+ * output  - pointer to struct ResvNick
+ * side effects  -
  */
 struct ConfItem *
 create_nick_resv(char *name, char *reason, int in_conf)
@@ -110,24 +110,26 @@ create_nick_resv(char *name, char *reason, int in_conf)
 
 /* clear_conf_resv()
  *
- * inputs	- none
- * output	- none
- * side effects	- All resvs are cleared out
+ * inputs  - none
+ * output  - none
+ * side effects  - All resvs are cleared out
  */
 void
-clear_conf_resv(void)
+clear_conf_resv()
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, resv_channel_list.head)
+  {
     delete_channel_resv(ptr->data);
+  }
 }
 
 /* delete_channel_resv()
  *
- * inputs	- pointer to channel resv to delete
- * output	- none
- * side effects	- given struct ResvChannel * is removed
+ * inputs  - pointer to channel resv to delete
+ * output  - none
+ * side effects  - given struct ResvChannel * is removed
  */
 int
 delete_channel_resv(struct ResvChannel *resv_p)
@@ -172,9 +174,9 @@ match_find_resv(const char *name)
 
 /* report_resv()
  *
- * inputs	- pointer to client pointer to report to.
- * output	- NONE
- * side effects	- report all resvs to client.
+ * inputs  - pointer to client pointer to report to.
+ * output  - NONE
+ * side effects  - report all resvs to client.
  */
 void
 report_resv(struct Client *source_p)
@@ -189,8 +191,8 @@ report_resv(struct Client *source_p)
     resv_cp = ptr->data;
     sendto_one(source_p, form_str(RPL_STATSQLINE),
                me.name, source_p->name,
-	       resv_cp->conf ? 'Q' : 'q', resv_cp->count,
-	       resv_cp->name, resv_cp->reason);
+               resv_cp->conf ? 'Q' : 'q', resv_cp->count,
+               resv_cp->name, resv_cp->reason);
   }
 
   DLINK_FOREACH(ptr, nresv_items.head)
@@ -200,16 +202,16 @@ report_resv(struct Client *source_p)
 
     sendto_one(source_p, form_str(RPL_STATSQLINE),
                me.name, source_p->name,
-	       resv_np->action ? 'Q' : 'q', resv_np->count,
-	       conf->name, resv_np->reason);
+               resv_np->action ? 'Q' : 'q', resv_np->count,
+               conf->name, resv_np->reason);
   }
 }
 
 /* valid_wild_card_simple()
  *
- * inputs	- data to check for sufficient non-wildcard characters
- * outputs	- 1 if valid, else 0
- * side effects	- none
+ * inputs  - data to check for sufficient non-wildcard characters
+ * outputs  - 1 if valid, else 0
+ * side effects  - none
  */
 int
 valid_wild_card_simple(const char *data)
@@ -222,6 +224,7 @@ valid_wild_card_simple(const char *data)
     if ((*p == '\\' && *++p) || (*p && !IsMWildChar(*p)))
       if (++nonwild == ConfigFileEntry.min_nonwildcard_simple)
         return 1;
+
     if (*p != '\0')
       ++p;
   }

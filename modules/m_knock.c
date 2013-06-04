@@ -140,19 +140,20 @@ m_knock(struct Client *client_p, struct Client *source_p,
                        source_p->username,
                        source_p->host);
 
-  sendto_server(client_p, CAP_KNOCK|CAP_TS6, NOCAPS,
+  sendto_server(client_p, CAP_KNOCK | CAP_TS6, NOCAPS,
                 ":%s KNOCK %s", ID(source_p), chptr->chname);
   sendto_server(client_p, CAP_KNOCK, CAP_TS6,
                 ":%s KNOCK %s", source_p->name, chptr->chname);
 }
 
-static struct Message knock_msgtab = {
+static struct Message knock_msgtab =
+{
   "KNOCK", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_knock, m_knock, m_ignore, m_knock, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&knock_msgtab);
   add_capability("KNOCK", CAP_KNOCK, 1);
@@ -160,14 +161,15 @@ module_init(void)
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&knock_msgtab);
   delete_capability("KNOCK");
   delete_isupport("KNOCK");
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

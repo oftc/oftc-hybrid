@@ -51,7 +51,7 @@ static int pollmax = -1;  /* highest FD number */
  * the network loop code.
  */
 void
-init_netio(void)
+init_netio()
 {
   int fd;
 
@@ -66,7 +66,7 @@ init_netio(void)
  *   -- adrian
  */
 static inline int
-poll_findslot(void)
+poll_findslot()
 {
   int i;
 
@@ -91,7 +91,7 @@ poll_findslot(void)
 void
 comm_setselect(fde_t *F, unsigned int type, PF *handler,
                void *client_data, time_t timeout)
-{  
+{
   int new_events;
 
   if ((type & COMM_SELECT_READ))
@@ -107,7 +107,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   }
 
   new_events = (F->read_handler ? POLLRDNORM : 0) |
-    (F->write_handler ? POLLWRNORM : 0);
+               (F->write_handler ? POLLWRNORM : 0);
 
   if (timeout != 0)
     F->timeout = CurrentTime + (timeout / 1000);
@@ -121,18 +121,20 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 
       if (pollmax == F->comm_index)
         while (pollmax >= 0 && pollfds[pollmax].fd == -1)
-	  pollmax--;
+          pollmax--;
     }
     else
     {
       if (F->evcache == 0)
       {
         F->comm_index = poll_findslot();
-	if (F->comm_index > pollmax)
-	  pollmax = F->comm_index;
 
-	pollfds[F->comm_index].fd = F->fd;
+        if (F->comm_index > pollmax)
+          pollmax = F->comm_index;
+
+        pollfds[F->comm_index].fd = F->fd;
       }
+
       pollfds[F->comm_index].events = new_events;
       pollfds[F->comm_index].revents = 0;
     }
@@ -140,7 +142,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
     F->evcache = new_events;
   }
 }
- 
+
 /*
  * comm_select
  *
@@ -150,7 +152,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
  * events.
  */
 void
-comm_select(void)
+comm_select()
 {
   int num, ci, revents;
   PF *hdl;
@@ -173,9 +175,11 @@ comm_select(void)
   {
     if ((revents = pollfds[ci].revents) == 0 || pollfds[ci].fd == -1)
       continue;
+
     num--;
 
     F = lookup_fd(pollfds[ci].fd);
+
     if (F == NULL || !F->flags.open)
       continue;
 
@@ -184,8 +188,9 @@ comm_select(void)
       {
         F->read_handler = NULL;
         hdl(F, F->read_data);
-	if (!F->flags.open)
-	  continue;
+
+        if (!F->flags.open)
+          continue;
       }
 
     if (revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR))
@@ -193,8 +198,9 @@ comm_select(void)
       {
         F->write_handler = NULL;
         hdl(F, F->write_data);
-	if (!F->flags.open)
-	  continue;
+
+        if (!F->flags.open)
+          continue;
       }
 
     comm_setselect(F, 0, NULL, NULL, 0);

@@ -72,14 +72,14 @@ do_links(struct Client *source_p, int parc, char *parv[])
         p = "(Unknown Location)";
 
       /* We just send the reply, as if they are here there's either no SHIDE,
-       * or they're an oper..  
+       * or they're an oper..
        */
       sendto_one(source_p, form_str(RPL_LINKS),
                  me_name, nick,
                  target_p->name, target_p->servptr->name,
                  target_p->hopcount, p);
     }
-  
+
     sendto_one(source_p, form_str(RPL_ENDOFLINKS),
                me_name, nick,
                EmptyString(mask) ? "*" : mask);
@@ -120,7 +120,7 @@ mo_links(struct Client *client_p, struct Client *source_p,
  *      parv[1] = servername mask
  * or
  *      parv[0] = sender prefix
- *      parv[1] = server to query 
+ *      parv[1] = server to query
  *      parv[2] = servername mask
  */
 static void
@@ -135,7 +135,7 @@ m_links(struct Client *client_p, struct Client *source_p,
                me.name, source_p->name);
     return;
   }
-  
+
   last_used = CurrentTime;
 
   if (!ConfigServerHide.flatten_links)
@@ -153,7 +153,7 @@ m_links(struct Client *client_p, struct Client *source_p,
  *      parv[1] = servername mask
  * or
  *      parv[0] = sender prefix
- *      parv[1] = server to query 
+ *      parv[1] = server to query
  *      parv[2] = servername mask
  */
 static void
@@ -168,24 +168,26 @@ ms_links(struct Client *client_p, struct Client *source_p,
     m_links(client_p, source_p, parc, parv);
 }
 
-static struct Message links_msgtab = {
+static struct Message links_msgtab =
+{
   "LINKS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_links, ms_links, m_ignore, mo_links, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&links_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&links_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

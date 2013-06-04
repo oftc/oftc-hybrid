@@ -55,14 +55,15 @@ static struct capabilities
   unsigned int flags;
   const char *name;
   size_t namelen;
-} capab_list[] = {
+} capab_list[] =
+{
 #define _CAP(cap, flags, name)  \
-	{ (cap), (flags), (name), sizeof(name) - 1 }
+  { (cap), (flags), (name), sizeof(name) - 1 }
   _CAP(CAP_MULTI_PREFIX, 0, "multi-prefix")
 #undef _CAP
 };
 
-#define CAPAB_LIST_LEN	(sizeof(capab_list) / sizeof(struct capabilities))
+#define CAPAB_LIST_LEN  (sizeof(capab_list) / sizeof(struct capabilities))
 
 static int
 capab_sort(const struct capabilities *cap1, const struct capabilities *cap2)
@@ -101,7 +102,8 @@ find_cap(const char **caplist_p, int *neg_p)
   if (!inited)
   {
     /* First, let's sort the array... */
-    qsort(capab_list, CAPAB_LIST_LEN, sizeof(struct capabilities), (bqcmp)capab_sort);
+    qsort(capab_list, CAPAB_LIST_LEN, sizeof(struct capabilities),
+          (bqcmp)capab_sort);
     ++inited;
   }
 
@@ -125,7 +127,7 @@ find_cap(const char **caplist_p, int *neg_p)
     {
       /* Couldn't find the capability; advance to first whitespace character */
       while (*caplist && !IsSpace(*caplist))
-	++caplist;
+        ++caplist;
     }
     else
       caplist += cap->namelen; /* advance to end of capability name */
@@ -171,7 +173,7 @@ send_caplist(struct Client *source_p, unsigned int set,
      */
     if (!(rem && (rem & capab_list[i].cap)) &&
         !(set && (set & capab_list[i].cap)) &&
-         (rem || set || (flags & CAPFL_HIDDEN)))
+        (rem || set || (flags & CAPFL_HIDDEN)))
       continue;
 
     /* Build the prefix (space separator and any modifiers needed). */
@@ -179,12 +181,14 @@ send_caplist(struct Client *source_p, unsigned int set,
 
     if (loc)
       pfx[pfx_len++] = ' ';
+
     if (rem && (rem & capab_list[i].cap))
       pfx[pfx_len++] = '-';
     else
     {
       if (flags & CAPFL_PROTO)
         pfx[pfx_len++] = '~';
+
       if (flags & CAPFL_STICKY)
         pfx[pfx_len++] = '=';
     }
@@ -231,10 +235,12 @@ cap_req(struct Client *source_p, const char *caplist)
   if (IsUnknown(source_p)) /* registration hasn't completed; suspend it... */
     source_p->localClient->registration |= REG_NEED_CAP;
 
-  while (cl) { /* walk through the capabilities list... */
+  while (cl)   /* walk through the capabilities list... */
+  {
     if (!(cap = find_cap(&cl, &neg)) /* look up capability... */
-	|| (!neg && (cap->flags & CAPFL_PROHIBIT)) /* is it prohibited? */
-        || (neg && (cap->flags & CAPFL_STICKY))) { /* is it sticky? */
+        || (!neg && (cap->flags & CAPFL_PROHIBIT)) /* is it prohibited? */
+        || (neg && (cap->flags & CAPFL_STICKY)))   /* is it sticky? */
+    {
       sendto_one(source_p, ":%s CAP %s NAK :%s", me.name,
                  source_p->name[0] ? source_p->name : "*", caplist);
       return 0; /* can't complete requested op... */
@@ -286,8 +292,8 @@ cap_ack(struct Client *source_p, const char *caplist)
   {
     /* walk through the capabilities list... */
     if (!(cap = find_cap(&cl, &neg)) || /* look up capability... */
-	(neg ? (source_p->localClient->cap_active & cap->cap) :
-              !(source_p->localClient->cap_active & cap->cap))) /* uh... */
+        (neg ? (source_p->localClient->cap_active & cap->cap) :
+         !(source_p->localClient->cap_active & cap->cap))) /* uh... */
       continue;
 
     if (neg)    /* set or clear the active capability... */
@@ -311,7 +317,8 @@ cap_clear(struct Client *source_p, const char *caplist)
     cap = &capab_list[ii];
 
     /* Only clear active non-sticky capabilities. */
-    if (!(source_p->localClient->cap_active & cap->cap) || (cap->flags & CAPFL_STICKY))
+    if (!(source_p->localClient->cap_active & cap->cap)
+        || (cap->flags & CAPFL_STICKY))
       continue;
 
     cleared |= cap->cap;
@@ -354,7 +361,8 @@ static struct subcmd
 {
   const char *cmd;
   int (*proc)(struct Client *, const char *);
-} cmdlist[] = {
+} cmdlist[] =
+{
   { "ACK",   cap_ack   },
   { "CLEAR", cap_clear },
   { "END",   cap_end   },
@@ -405,24 +413,26 @@ m_cap(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
     (cmd->proc)(source_p, caplist);
 }
 
-static struct Message cap_msgtab = {
+static struct Message cap_msgtab =
+{
   "CAP", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_cap, m_cap, m_ignore, m_ignore, m_cap, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&cap_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&cap_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -38,19 +38,19 @@
 
 #ifndef EV_SET
 #define EV_SET(kevp, a, b, c, d, e, f) do {     \
-        (kevp)->ident = (a);                    \
-        (kevp)->filter = (b);                   \
-        (kevp)->flags = (c);                    \
-        (kevp)->fflags = (d);                   \
-        (kevp)->data = (e);                     \
-        (kevp)->udata = (f);                    \
-} while(0)
+    (kevp)->ident = (a);                    \
+    (kevp)->filter = (b);                   \
+    (kevp)->flags = (c);                    \
+    (kevp)->fflags = (d);                   \
+    (kevp)->data = (e);                     \
+    (kevp)->udata = (f);                    \
+  } while(0)
 #endif
 
 static fde_t kqfd;
 static struct kevent kq_fdlist[KE_LENGTH];  /* kevent buffer */
 static int kqoff;      /* offset into the buffer */
-void init_netio(void);
+void init_netio();
 
 /*
  * init_netio
@@ -59,7 +59,7 @@ void init_netio(void);
  * the network loop code.
  */
 void
-init_netio(void)
+init_netio()
 {
   int fd;
 
@@ -115,7 +115,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   }
 
   new_events = (F->read_handler ? COMM_SELECT_READ : 0) |
-   (F->write_handler ? COMM_SELECT_WRITE : 0);
+               (F->write_handler ? COMM_SELECT_WRITE : 0);
 
   if (timeout != 0)
   {
@@ -128,10 +128,11 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 
   if ((diff & COMM_SELECT_READ))
     kq_update_events(F->fd, EVFILT_READ,
-      (new_events & COMM_SELECT_READ) ? EV_ADD : EV_DELETE);
+                     (new_events & COMM_SELECT_READ) ? EV_ADD : EV_DELETE);
+
   if ((diff & COMM_SELECT_WRITE))
     kq_update_events(F->fd, EVFILT_WRITE,
-      (new_events & COMM_SELECT_WRITE) ? EV_ADD : EV_DELETE);
+                     (new_events & COMM_SELECT_WRITE) ? EV_ADD : EV_DELETE);
 
   F->evcache = new_events;
 }
@@ -145,7 +146,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
  * events.
  */
 void
-comm_select(void)
+comm_select()
 {
   int num, i;
   static struct kevent ke[KE_LENGTH];
@@ -176,6 +177,7 @@ comm_select(void)
   for (i = 0; i < num; i++)
   {
     F = lookup_fd(ke[i].ident);
+
     if (F == NULL || !F->flags.open || (ke[i].flags & EV_ERROR))
       continue;
 
@@ -184,8 +186,9 @@ comm_select(void)
       {
         F->read_handler = NULL;
         hdl(F, F->read_data);
-	if (!F->flags.open)
-	  continue;
+
+        if (!F->flags.open)
+          continue;
       }
 
     if (ke[i].filter == EVFILT_WRITE)
@@ -193,8 +196,9 @@ comm_select(void)
       {
         F->write_handler = NULL;
         hdl(F, F->write_data);
-	if (!F->flags.open)
-	  continue;
+
+        if (!F->flags.open)
+          continue;
       }
 
     comm_setselect(F, 0, NULL, NULL, 0);

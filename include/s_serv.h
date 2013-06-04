@@ -30,7 +30,7 @@ struct ConfItem;
 /*
  * number of seconds to wait after server starts up, before
  * starting try_connections()
- * TOO SOON and you can nick collide like crazy. 
+ * TOO SOON and you can nick collide like crazy.
  */
 #define STARTUP_CONNECTIONS_TIME 20
 
@@ -41,9 +41,9 @@ struct Channel;
 /* Capabilities */
 struct Capability
 {
-  dlink_node node;
-  char *name;       /* name of capability */
-  unsigned int cap; /* mask value         */
+  dlink_node    node;
+  char          *name;       /* name of capability */
+  unsigned int  cap; /* mask value         */
 };
 
 #define CAP_CAP         0x00000001 /* received a CAP to begin with        */
@@ -74,7 +74,7 @@ struct Capability
 
 
 /*
- * return values for hunt_server() 
+ * return values for hunt_server()
  */
 #define HUNTED_NOSUCH   (-1)    /* if the hunted server is not found */
 #define HUNTED_ISME     0       /* if this server should execute the command */

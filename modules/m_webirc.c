@@ -74,6 +74,7 @@ invalid_hostname(const char *hostname)
   {
     if (!IsHostChar(*p))
       return 1;
+
     if (*p == '.' || *p == ':')
       ++has_sep;
   }
@@ -86,11 +87,12 @@ invalid_hostname(const char *hostname)
  *      parv[0] = sender prefix
  *      parv[1] = password
  *      parv[2] = fake username (we ignore this)
- *      parv[3] = fake hostname 
+ *      parv[3] = fake hostname
  *      parv[4] = fake ip
  */
 static void
-mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+mr_webirc(struct Client *client_p, struct Client *source_p, int parc,
+          char *parv[])
 {
   struct AccessItem *aconf = NULL;
   struct ConfItem *conf = NULL;
@@ -110,6 +112,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
                             &source_p->ip,
                             source_p->aftype, parv[1],
                             source_p->certfp);
+
   if (aconf == NULL || !IsConfClient(aconf))
     return;
 
@@ -117,13 +120,15 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
 
   if (!IsConfDoSpoofIp(aconf) || irccmp(conf->name, "webirc."))
   {
-    sendto_realops_flags(UMODE_UNAUTH, L_ALL, "Not a CGI:IRC auth block: %s", source_p->sockhost);
+    sendto_realops_flags(UMODE_UNAUTH, L_ALL, "Not a CGI:IRC auth block: %s",
+                         source_p->sockhost);
     return;
   }
 
   if (EmptyString(aconf->passwd))
   {
-    sendto_realops_flags(UMODE_UNAUTH, L_ALL, "CGI:IRC auth blocks must have a password");
+    sendto_realops_flags(UMODE_UNAUTH, L_ALL,
+                         "CGI:IRC auth blocks must have a password");
     return;
   }
 
@@ -163,7 +168,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
 
   /* Check dlines now, klines will be checked on registration */
   if ((aconf = find_dline_conf(&client_p->ip,
-                                client_p->aftype)))
+                               client_p->aftype)))
   {
     if (!(aconf->status & CONF_EXEMPTDLINE))
     {
@@ -172,29 +177,31 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
     }
   }
 
-  sendto_realops_flags(UMODE_CCONN, L_ALL, 
+  sendto_realops_flags(UMODE_CCONN, L_ALL,
                        "CGI:IRC host/IP set %s to %s (%s)", original_sockhost,
                        parv[3], parv[4]);
 }
 
-static struct Message webirc_msgtab = {
+static struct Message webirc_msgtab =
+{
   "WEBIRC", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
   { mr_webirc, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&webirc_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&webirc_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

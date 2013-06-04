@@ -65,7 +65,8 @@ show_watch(struct Client *client_p, const char *name,
  * parv[1] = watch options
  */
 static void
-m_watch(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+m_watch(struct Client *client_p, struct Client *source_p, int parc,
+        char *parv[])
 {
   dlink_node *ptr = NULL;
   char *s = NULL;
@@ -84,7 +85,7 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc, char *parv[]
        s = strtoken(&p,    NULL, ", "))
   {
     if ((user = strchr(s, '!')))
-      *user++ = '\0'; /* Not used */
+      * user++ = '\0'; /* Not used */
 
     /*
      * Prefix of "+", they want to add a name to their WATCH
@@ -239,26 +240,28 @@ m_watch(struct Client *client_p, struct Client *source_p, int parc, char *parv[]
   }
 }
 
-static struct Message watch_msgtab = {
+static struct Message watch_msgtab =
+{
   "WATCH", 0, 0, 0, 1, MFLG_SLOW, 0,
   { m_unregistered, m_watch, m_ignore, m_ignore, m_watch, m_ignore }
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&watch_msgtab);
   add_isupport("WATCH", NULL, ConfigFileEntry.max_watch);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&watch_msgtab);
   delete_isupport("WATCH");
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

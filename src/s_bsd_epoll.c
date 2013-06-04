@@ -86,8 +86,10 @@ static fde_t efd;
 #endif /* !defined(__NR_epoll_create) */
 
 _syscall1(int, epoll_create, int, size)
-_syscall4(int, epoll_ctl, int, epfd, int, op, int, fd, struct epoll_event *, event)
-_syscall4(int, epoll_wait, int, epfd, struct epoll_event *, pevents, int, maxevents, int, timeout)
+_syscall4(int, epoll_ctl, int, epfd, int, op, int, fd, struct epoll_event *,
+          event)
+_syscall4(int, epoll_wait, int, epfd, struct epoll_event *, pevents, int,
+          maxevents, int, timeout)
 
 #endif /* epoll_create defined as stub */
 
@@ -98,7 +100,7 @@ _syscall4(int, epoll_wait, int, epfd, struct epoll_event *, pevents, int, maxeve
  * the network loop code.
  */
 void
-init_netio(void)
+init_netio()
 {
   int fd;
 
@@ -138,7 +140,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   }
 
   new_events = (F->read_handler ? EPOLLIN : 0) |
-    (F->write_handler ? EPOLLOUT : 0);
+               (F->write_handler ? EPOLLOUT : 0);
 
   if (timeout != 0)
   {
@@ -176,7 +178,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
  * events.
  */
 void
-comm_select(void)
+comm_select()
 {
   struct epoll_event ep_fdlist[128];
   int num, i;
@@ -198,6 +200,7 @@ comm_select(void)
   for (i = 0; i < num; i++)
   {
     F = lookup_fd(ep_fdlist[i].data.fd);
+
     if (F == NULL || !F->flags.open)
       continue;
 
@@ -206,8 +209,9 @@ comm_select(void)
       {
         F->read_handler = NULL;
         hdl(F, F->read_data);
-	if (!F->flags.open)
-	  continue;
+
+        if (!F->flags.open)
+          continue;
       }
 
     if ((ep_fdlist[i].events & (EPOLLOUT | EPOLLHUP | EPOLLERR)))
@@ -215,8 +219,9 @@ comm_select(void)
       {
         F->write_handler = NULL;
         hdl(F, F->write_data);
-	if (!F->flags.open)
-	  continue;
+
+        if (!F->flags.open)
+          continue;
       }
 
     comm_setselect(F, 0, NULL, NULL, 0);

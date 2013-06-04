@@ -107,24 +107,26 @@ mr_pong(struct Client *client_p, struct Client *source_p,
                me.name, source_p->name);
 }
 
-static struct Message pong_msgtab = {
+static struct Message pong_msgtab =
+{
   "PONG", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
   {mr_pong, m_ignore, ms_pong, m_ignore, m_ignore, m_ignore}
 };
 
 static void
-module_init(void)
+module_init()
 {
   mod_add_cmd(&pong_msgtab);
 }
 
 static void
-module_exit(void)
+module_exit()
 {
   mod_del_cmd(&pong_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -68,7 +68,7 @@ static int eventFind(EVH *func, void *arg);
  * void eventAdd(const char *name, EVH *func, void *arg, time_t when)
  *
  * Input: Name of event, function to call, arguments to pass, and frequency
- *	  of the event.
+ *    of the event.
  * Output: None
  * Side Effects: Adds the event to the event list.
  */
@@ -76,7 +76,7 @@ void
 eventAdd(const char *name, EVH *func, void *arg, time_t when)
 {
   int i;
-  
+
   /* find first inactive index, or use next index */
   for (i = 0; i < MAX_EVENTS; i++)
   {
@@ -86,15 +86,16 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
       event_table[i].name = name;
       event_table[i].arg = arg;
       event_table[i].when = CurrentTime + when;
-      event_table[i].frequency = when; 
+      event_table[i].frequency = when;
       event_table[i].active = 1;
 
       if ((event_table[i].when < event_time_min) || (event_time_min == -1))
-	event_time_min = event_table[i].when;
+        event_time_min = event_table[i].when;
 
       return;
     }
   }
+
   /* XXX if reach here, its an error */
   ilog(LOG_TYPE_IRCD, "Event table is full! (%d)", i);
 }
@@ -120,14 +121,14 @@ eventDelete(EVH *func, void *arg)
   event_table[i].active = 0;
 }
 
-/* 
+/*
  * void eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_isa)
  *
  * Input: Name of event, function to call, arguments to pass, and frequency
- *	  of the event.
+ *    of the event.
  * Output: None
  * Side Effects: Adds the event to the event list within +- 1/3 of the
- *	         specified frequency.
+ *           specified frequency.
  */
 void
 eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_ish)
@@ -136,24 +137,24 @@ eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_ish)
   {
     const time_t two_third = (2 * delta_ish) / 3;
     delta_ish = two_third + ((rand() % 1000) * two_third) / 1000;
-      /*
-       * XXX I hate the above magic, I don't even know if its right.
-       * Grr. -- adrian
-       */
+    /*
+     * XXX I hate the above magic, I don't even know if its right.
+     * Grr. -- adrian
+     */
   }
 
   eventAdd(name, func, arg, delta_ish);
 }
 
 /*
- * void eventRun(void)
+ * void eventRun()
  *
  * Input: None
  * Output: None
  * Side Effects: Runs pending events in the event list
  */
 void
-eventRun(void)
+eventRun()
 {
   int i;
 
@@ -170,14 +171,14 @@ eventRun(void)
 }
 
 /*
- * time_t eventNextTime(void)
- * 
+ * time_t eventNextTime()
+ *
  * Input: None
  * Output: Specifies the next time eventRun() should be run
  * Side Effects: None
  */
 time_t
-eventNextTime(void)
+eventNextTime()
 {
   int i;
 
@@ -185,23 +186,24 @@ eventNextTime(void)
   {
     for (i = 0; i < MAX_EVENTS; i++)
     {
-      if (event_table[i].active && ((event_table[i].when < event_time_min) || (event_time_min == -1)))
+      if (event_table[i].active && ((event_table[i].when < event_time_min)
+                                    || (event_time_min == -1)))
         event_time_min = event_table[i].when;
     }
   }
 
-  return(event_time_min);
+  return (event_time_min);
 }
 
 /*
- * void eventInit(void)
+ * void eventInit()
  *
  * Input: None
  * Output: None
- * Side Effects: Initializes the event system. 
+ * Side Effects: Initializes the event system.
  */
 void
-eventInit(void)
+eventInit()
 {
   last_event_ran = NULL;
   memset(event_table, 0, sizeof(event_table));
@@ -223,11 +225,11 @@ eventFind(EVH *func, void *arg)
   {
     if ((event_table[i].func == func) &&
         (event_table[i].arg == arg) &&
-         event_table[i].active)
-      return(i);
+        event_table[i].active)
+      return (i);
   }
 
-  return(-1);
+  return (-1);
 }
 
 /*
@@ -247,15 +249,15 @@ show_events(struct Client *source_p)
     sendto_one(source_p, ":%s %d %s :Last event to run: %s",
                me.name, RPL_STATSDEBUG, source_p->name, last_event_ran);
     sendto_one(source_p, ":%s %d %s : ",
-      me.name, RPL_STATSDEBUG, source_p->name);
+               me.name, RPL_STATSDEBUG, source_p->name);
   }
 
   sendto_one(source_p,
-    ":%s %d %s : Operation                    Next Execution",
-    me.name, RPL_STATSDEBUG, source_p->name);
+             ":%s %d %s : Operation                    Next Execution",
+             me.name, RPL_STATSDEBUG, source_p->name);
   sendto_one(source_p,
-    ":%s %d %s : -------------------------------------------",
-    me.name, RPL_STATSDEBUG, source_p->name);
+             ":%s %d %s : -------------------------------------------",
+             me.name, RPL_STATSDEBUG, source_p->name);
 
   for (i = 0; i < MAX_EVENTS; i++)
     if (event_table[i].active)
@@ -263,11 +265,11 @@ show_events(struct Client *source_p)
       sendto_one(source_p, ":%s %d %s : %-28s %-4d seconds",
                  me.name, RPL_STATSDEBUG, source_p->name,
                  event_table[i].name,
-		 (int)(event_table[i].when - CurrentTime));
+                 (int)(event_table[i].when - CurrentTime));
     }
 
   sendto_one(source_p, ":%s %d %s : ",
-    me.name, RPL_STATSDEBUG, source_p->name);
+             me.name, RPL_STATSDEBUG, source_p->name);
 }
 
 /*
