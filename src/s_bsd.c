@@ -50,14 +50,16 @@
 #include "s_misc.h"
 
 static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
-  "Error during DNS lookup", "connect timeout", "Error during connect()",
-  "Comm Error" };
+                                      "Error during DNS lookup", "connect timeout", "Error during connect()",
+                                      "Comm Error"
+                                    };
 
 struct Callback *setup_socket_cb = NULL;
 
 static void comm_connect_callback(fde_t *, int);
 static PF comm_connect_timeout;
-static void comm_connect_dns_callback(void *, const struct irc_ssaddr *, const char *);
+static void comm_connect_dns_callback(void *, const struct irc_ssaddr *,
+                                      const char *);
 static PF comm_connect_tryconnect;
 
 
@@ -70,13 +72,14 @@ check_can_use_v6(void)
 #ifdef IPV6
   int v6;
 
-  if ((v6 = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
+  if((v6 = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
     ServerInfo.can_use_v6 = 0;
   else
   {
     ServerInfo.can_use_v6 = 1;
     close(v6);
   }
+
 #else
   ServerInfo.can_use_v6 = 0;
 #endif
@@ -96,18 +99,19 @@ get_sockerr(int fd)
   int err = 0;
   socklen_t len = sizeof(err);
 
-  if (-1 < fd && !getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len))
+  if(-1 < fd && !getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len))
   {
-    if (err)
+    if(err)
       errtmp = err;
   }
+
   errno = errtmp;
 #endif
   return errtmp;
 }
 
 /*
- * report_error - report an error from an errno. 
+ * report_error - report an error from an errno.
  * Record error to log and also send a copy to all *LOCAL* opers online.
  *
  *        text        is a *format* string for outputing error. It must
@@ -121,12 +125,12 @@ get_sockerr(int fd)
  * Cannot use perror() within daemon. stderr is closed in
  * ircd and cannot be used. And, worse yet, it might have
  * been reassigned to a normal connection...
- * 
+ *
  * Actually stderr is still there IFF ircd was run with -s --Rodder
  */
 
 void
-report_error(int level, const char* text, const char* who, int error) 
+report_error(int level, const char *text, const char *who, int error)
 {
   who = (who) ? who : "";
 
@@ -183,7 +187,7 @@ close_connection(struct Client *client_p)
 
   assert(client_p);
 
-  if (!IsDead(client_p))
+  if(!IsDead(client_p))
   {
     /* attempt to flush any pending dbufs. Evil, but .. -- adrian */
     /* there is still a chance that we might send data to this socket
@@ -194,14 +198,14 @@ close_connection(struct Client *client_p)
     send_queued_write(client_p);
   }
 
-  if (IsClient(client_p))
+  if(IsClient(client_p))
   {
     ++ServerStats.is_cl;
     ServerStats.is_cbs += client_p->localClient->send.bytes;
     ServerStats.is_cbr += client_p->localClient->recv.bytes;
     ServerStats.is_cti += CurrentTime - client_p->localClient->firsttime;
   }
-  else if (IsServer(client_p))
+  else if(IsServer(client_p))
   {
     ++ServerStats.is_sv;
     ServerStats.is_sbs += client_p->localClient->send.bytes;
@@ -212,7 +216,7 @@ close_connection(struct Client *client_p)
     {
       struct ConfItem *conf = ptr->data;
 
-      if (irccmp(conf->name, client_p->name))
+      if(irccmp(conf->name, client_p->name))
         continue;
 
       /*
@@ -228,20 +232,23 @@ close_connection(struct Client *client_p)
     ++ServerStats.is_ni;
 
 #ifdef HAVE_LIBCRYPTO
-  if (client_p->localClient->fd.ssl)
+
+  if(client_p->localClient->fd.ssl)
   {
     SSL_set_shutdown(client_p->localClient->fd.ssl, SSL_RECEIVED_SHUTDOWN);
 
-    if (!SSL_shutdown(client_p->localClient->fd.ssl))
+    if(!SSL_shutdown(client_p->localClient->fd.ssl))
       SSL_shutdown(client_p->localClient->fd.ssl);
   }
+
 #endif
-  if (client_p->localClient->fd.flags.open)
+
+  if(client_p->localClient->fd.flags.open)
     fd_close(&client_p->localClient->fd);
 
   dbuf_clear(&client_p->localClient->buf_sendq);
   dbuf_clear(&client_p->localClient->buf_recvq);
-  
+
   MyFree(client_p->localClient->passwd);
   detach_conf(client_p, CONF_TYPE);
   client_p->from = NULL; /* ...this should catch them! >:) --msa */
@@ -261,48 +268,50 @@ ssl_handshake(int fd, struct Client *client_p)
   int err = SSL_get_error(client_p->localClient->fd.ssl, ret);
   ilog(LOG_TYPE_IRCD, "SSL Error %d %s", err, ERR_error_string(err, NULL));
 
-  if ((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
+  if((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
   {
     int res = SSL_get_verify_result(client_p->localClient->fd.ssl);
-    if (res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
+
+    if(res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
         res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
         res == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
     {
       /* The client sent a certificate which verified OK */
       base16_encode(client_p->certfp, sizeof(client_p->certfp),
-          (const char*)cert->sha1_hash, sizeof(cert->sha1_hash));
+                    (const char *)cert->sha1_hash, sizeof(cert->sha1_hash));
     }
     else
     {
       ilog(LOG_TYPE_IRCD, "Client %s!%s@%s gave bad SSL client certificate: %d",
-          client_p->name, client_p->username, client_p->host, res);
+           client_p->name, client_p->username, client_p->host, res);
     }
 
     X509_free(cert);
   }
 
-  if (ret <= 0)
+  if(ret <= 0)
   {
     if((CurrentTime - client_p->localClient->firsttime) > 30)
     {
       exit_client(client_p, client_p, "Timeout during SSL handshake");
       return;
     }
-    switch (SSL_get_error(client_p->localClient->fd.ssl, ret))
+
+    switch(SSL_get_error(client_p->localClient->fd.ssl, ret))
     {
       case SSL_ERROR_WANT_WRITE:
         comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
-                 (PF *) ssl_handshake, client_p, 30);
+                       (PF *) ssl_handshake, client_p, 30);
         return;
 
       case SSL_ERROR_WANT_READ:
         comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
-                 (PF *) ssl_handshake, client_p, 30);
+                       (PF *) ssl_handshake, client_p, 30);
         return;
 
       default:
         exit_client(client_p, client_p, "Error during SSL handshake");
-  return;
+        return;
     }
   }
 
@@ -312,7 +321,7 @@ ssl_handshake(int fd, struct Client *client_p)
 #endif
 
 /*
- * add_connection - creates a client which has just connected to us on 
+ * add_connection - creates a client which has just connected to us on
  * the given fd. The sockhost field is initialized with the ip# of the host.
  * An unique id is calculated now, in case it is needed for auth.
  * The client is sent to the auth module for verification, and not put in
@@ -325,7 +334,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 
   fd_open(&new_client->localClient->fd, fd, 1,
           (listener->flags & LISTENER_SSL) ?
-    "Incoming SSL connection" : "Incoming connection");
+          "Incoming SSL connection" : "Incoming connection");
 
   /*
    * copy address to 'sockhost' as a string, copy it to host too
@@ -333,16 +342,18 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
    */
   memcpy(&new_client->ip, irn, sizeof(struct irc_ssaddr));
 
-  getnameinfo((struct sockaddr*)&new_client->ip,
-        new_client->ip.ss_len, new_client->sockhost, 
-        sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
+  getnameinfo((struct sockaddr *)&new_client->ip,
+              new_client->ip.ss_len, new_client->sockhost,
+              sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
   new_client->aftype = new_client->ip.ss.ss_family;
 
-  if (new_client->sockhost[0] == ':' && new_client->sockhost[1] == ':')
+  if(new_client->sockhost[0] == ':' && new_client->sockhost[1] == ':')
   {
     strlcpy(new_client->host, "0", sizeof(new_client->host));
-    strlcpy(new_client->host+1, new_client->sockhost, sizeof(new_client->host)-1);
-    memmove(new_client->sockhost+1, new_client->sockhost, sizeof(new_client->sockhost)-1);
+    strlcpy(new_client->host + 1, new_client->sockhost,
+            sizeof(new_client->host) - 1);
+    memmove(new_client->sockhost + 1, new_client->sockhost,
+            sizeof(new_client->sockhost) - 1);
     new_client->sockhost[0] = '0';
   }
   else
@@ -352,9 +363,10 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
   ++listener->ref_count;
 
 #ifdef HAVE_LIBCRYPTO
-  if (listener->flags & LISTENER_SSL)
+
+  if(listener->flags & LISTENER_SSL)
   {
-    if ((new_client->localClient->fd.ssl = SSL_new(ServerInfo.server_ctx)) == NULL)
+    if((new_client->localClient->fd.ssl = SSL_new(ServerInfo.server_ctx)) == NULL)
     {
       ilog(LOG_TYPE_IRCD, "SSL_new() ERROR! -- %s",
            ERR_error_string(ERR_get_error(), NULL));
@@ -381,7 +393,7 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
 int
 ignoreErrno(int ierrno)
 {
-  switch (ierrno)
+  switch(ierrno)
   {
     case EINPROGRESS:
     case EWOULDBLOCK:
@@ -393,9 +405,10 @@ ignoreErrno(int ierrno)
 #ifdef ERESTART
     case ERESTART:
 #endif
-        return 1;
+      return 1;
+
     default:
-        return 0;
+      return 0;
   }
 }
 
@@ -424,7 +437,7 @@ comm_settimeout(fde_t *fd, time_t timeout, PF *callback, void *cbdata)
  * flush functions, and when comm_close() is implemented correctly
  * with close functions, we _actually_ don't call comm_close() here ..
  * -- originally Adrian's notes
- * comm_close() is replaced with fd_close() in fdlist.c 
+ * comm_close() is replaced with fd_close() in fdlist.c
  */
 void
 comm_setflush(fde_t *fd, time_t timeout, PF *callback, void *cbdata)
@@ -451,14 +464,14 @@ comm_checktimeouts(void *notused)
   PF *hdl;
   void *data;
 
-  for (i = 0; i < FD_HASH_SIZE; i++)
-    for (F = fd_hash[i]; F != NULL; F = fd_next_in_loop)
+  for(i = 0; i < FD_HASH_SIZE; i++)
+    for(F = fd_hash[i]; F != NULL; F = fd_next_in_loop)
     {
       assert(F->flags.open);
       fd_next_in_loop = F->hnext;
 
       /* check flush functions */
-      if (F->flush_handler && F->flush_timeout > 0 &&
+      if(F->flush_handler && F->flush_timeout > 0 &&
           F->flush_timeout < CurrentTime)
       {
         hdl = F->flush_handler;
@@ -468,7 +481,7 @@ comm_checktimeouts(void *notused)
       }
 
       /* check timeouts */
-      if (F->timeout_handler && F->timeout > 0 &&
+      if(F->timeout_handler && F->timeout > 0 &&
           F->timeout < CurrentTime)
       {
         /* Call timeout handler */
@@ -515,8 +528,8 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
    * virtual host IP, for completeness.
    *   -- adrian
    */
-  if ((clocal != NULL) && (bind(fd->fd, clocal, socklen) < 0))
-  { 
+  if((clocal != NULL) && (bind(fd->fd, clocal, socklen) < 0))
+  {
     /* Failure, call the callback with COMM_ERR_BIND */
     comm_connect_callback(fd, COMM_ERR_BIND);
     /* ... and quit */
@@ -533,10 +546,10 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
 
   snprintf(portname, sizeof(portname), "%d", port);
 
-  if (getaddrinfo(host, portname, &hints, &res))
+  if(getaddrinfo(host, portname, &hints, &res))
   {
     /* Send the DNS request, for the next level */
-    if (aftype == AF_INET6)
+    if(aftype == AF_INET6)
       gethost_byname_type(comm_connect_dns_callback, fd, host, T_AAAA);
     else
       gethost_byname_type(comm_connect_dns_callback, fd, host, T_A);
@@ -550,7 +563,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     fd->connect.hostaddr.ss_len = res->ai_addrlen;
     fd->connect.hostaddr.ss.ss_family = res->ai_family;
     freeaddrinfo(res);
-    comm_settimeout(fd, timeout*1000, comm_connect_timeout, NULL);
+    comm_settimeout(fd, timeout * 1000, comm_connect_timeout, NULL);
     comm_connect_tryconnect(fd, NULL);
   }
 }
@@ -564,7 +577,7 @@ comm_connect_callback(fde_t *fd, int status)
   CNCB *hdl;
 
   /* This check is gross..but probably necessary */
-  if (fd->connect.callback == NULL)
+  if(fd->connect.callback == NULL)
     return;
 
   /* Clear the connect flag + handler */
@@ -597,23 +610,24 @@ comm_connect_timeout(fde_t *fd, void *notused)
  * otherwise we initiate the connect()
  */
 static void
-comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
+comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr,
+                          const char *name)
 {
   fde_t *F = vptr;
 
-  if (name == NULL)
+  if(name == NULL)
   {
     comm_connect_callback(F, COMM_ERR_DNS);
     return;
   }
 
   /* No error, set a 10 second timeout */
-  comm_settimeout(F, 30*1000, comm_connect_timeout, NULL);
+  comm_settimeout(F, 30 * 1000, comm_connect_timeout, NULL);
 
   /* Copy over the DNS reply info so we can use it in the connect() */
   /*
    * Note we don't fudge the refcount here, because we aren't keeping
-   * the DNS record around, and the DNS cache is gone anyway.. 
+   * the DNS record around, and the DNS cache is gone anyway..
    *     -- adrian
    */
   memcpy(&F->connect.hostaddr, addr, addr->ss_len);
@@ -640,30 +654,31 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
   int retval;
 
   /* This check is needed or re-entrant s_bsd_* like sigio break it. */
-  if (fd->connect.callback == NULL)
+  if(fd->connect.callback == NULL)
     return;
 
   /* Try the connect() */
-  retval = connect(fd->fd, (struct sockaddr *) &fd->connect.hostaddr, 
-    fd->connect.hostaddr.ss_len);
+  retval = connect(fd->fd, (struct sockaddr *) &fd->connect.hostaddr,
+                   fd->connect.hostaddr.ss_len);
 
   /* Error? */
-  if (retval < 0)
+  if(retval < 0)
   {
     /*
      * If we get EISCONN, then we've already connect()ed the socket,
      * which is a good thing.
      *   -- adrian
      */
-    if (errno == EISCONN)
+    if(errno == EISCONN)
       comm_connect_callback(fd, COMM_OK);
-    else if (ignoreErrno(errno))
+    else if(ignoreErrno(errno))
       /* Ignore error? Reschedule */
       comm_setselect(fd, COMM_SELECT_WRITE, comm_connect_tryconnect,
                      NULL, 0);
     else
       /* Error? Fail with COMM_ERR_CONNECT */
       comm_connect_callback(fd, COMM_ERR_CONNECT);
+
     return;
   }
 
@@ -677,8 +692,9 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
 const char *
 comm_errstr(int error)
 {
-  if (error < 0 || error >= COMM_ERR_MAX)
+  if(error < 0 || error >= COMM_ERR_MAX)
     return "Invalid error number!";
+
   return comm_err_str[error];
 }
 
@@ -695,7 +711,7 @@ comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
   int fd;
 
   /* First, make sure we aren't going to run out of file descriptors */
-  if (number_fd >= hard_fdlimit)
+  if(number_fd >= hard_fdlimit)
   {
     errno = ENFILE;
     return -1;
@@ -707,7 +723,8 @@ comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
    * XXX !!! -- adrian
    */
   fd = socket(family, sock_type, proto);
-  if (fd < 0)
+
+  if(fd < 0)
     return -1; /* errno will be passed through, yay.. */
 
   execute_callback(setup_socket_cb, fd);
@@ -730,7 +747,7 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
   int newfd;
   socklen_t addrlen = sizeof(struct irc_ssaddr);
 
-  if (number_fd >= hard_fdlimit)
+  if(number_fd >= hard_fdlimit)
   {
     errno = ENFILE;
     return -1;
@@ -742,7 +759,8 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
    * also does it. XXX -- adrian
    */
   newfd = accept(lptr->fd.fd, (struct sockaddr *)pn, &addrlen);
-  if (newfd < 0)
+
+  if(newfd < 0)
     return -1;
 
 #ifdef IPV6
@@ -757,21 +775,21 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
   return newfd;
 }
 
-/* 
+/*
  * remove_ipv6_mapping() - Removes IPv4-In-IPv6 mapping from an address
  * OSes with IPv6 mapping listening on both
  * AF_INET and AF_INET6 map AF_INET connections inside AF_INET6 structures
- * 
+ *
  */
 #ifdef IPV6
 void
 remove_ipv6_mapping(struct irc_ssaddr *addr)
 {
-  if (addr->ss.ss_family == AF_INET6)
+  if(addr->ss.ss_family == AF_INET6)
   {
-    if (IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)addr)->sin6_addr))
+    if(IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)addr)->sin6_addr))
     {
-      struct sockaddr_in6 v6; 
+      struct sockaddr_in6 v6;
       struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
 
       memcpy(&v6, addr, sizeof(v6));
@@ -781,10 +799,10 @@ remove_ipv6_mapping(struct irc_ssaddr *addr)
       addr->ss.ss_family = AF_INET;
       addr->ss_len = sizeof(struct sockaddr_in);
     }
-    else 
+    else
       addr->ss_len = sizeof(struct sockaddr_in6);
   }
   else
     addr->ss_len = sizeof(struct sockaddr_in);
-} 
+}
 #endif

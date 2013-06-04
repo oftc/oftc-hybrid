@@ -38,7 +38,7 @@ restart(const char *mesg)
 {
   static int was_here = 0; /* redundant due to restarting flag below */
 
-  if (was_here++)
+  if(was_here++)
     abort();
 
   server_die(mesg, 1);
@@ -52,10 +52,10 @@ server_die(const char *mesg, int rboot)
   struct Client *target_p = NULL;
   static int was_here = 0;
 
-  if (rboot && was_here++)
+  if(rboot && was_here++)
     abort();
 
-  if (EmptyString(mesg))
+  if(EmptyString(mesg))
     snprintf(buffer, sizeof(buffer), "Server %s",
              rboot ? "Restarting" : "Terminating");
   else
@@ -84,7 +84,7 @@ server_die(const char *mesg, int rboot)
 
   unlink(pidFileName);
 
-  if (rboot)
+  if(rboot)
   {
     execv(SPATH, myargv);
     exit(1);

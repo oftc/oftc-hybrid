@@ -48,19 +48,19 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
 {
   time_t deltat;
   time_t theirtime;
-  char timestamp[IRCD_BUFSIZE/2];
-  char theirtimestamp[IRCD_BUFSIZE/2];
+  char timestamp[IRCD_BUFSIZE / 2];
+  char theirtimestamp[IRCD_BUFSIZE / 2];
 
-  if (MyConnect(source_p) && IsUnknown(source_p))
+  if(MyConnect(source_p) && IsUnknown(source_p))
   {
     exit_client(source_p, source_p, "Need SERVER before SVINFO");
     return;
   }
 
-  if (!IsServer(source_p) || !MyConnect(source_p) || parc < 5)
+  if(!IsServer(source_p) || !MyConnect(source_p) || parc < 5)
     return;
 
-  if (TS_CURRENT < atoi(parv[2]) || atoi(parv[1]) < TS_MIN)
+  if(TS_CURRENT < atoi(parv[2]) || atoi(parv[1]) < TS_MIN)
   {
     /*
      * a server with the wrong TS version connected; since we're
@@ -68,11 +68,11 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
      * we drop the link  -orabidoo
      */
     sendto_realops_flags(UMODE_ALL, L_ADMIN,
-            "Link %s dropped, wrong TS protocol version (%s,%s)",
-            get_client_name(source_p, SHOW_IP), parv[1], parv[2]);
+                         "Link %s dropped, wrong TS protocol version (%s,%s)",
+                         get_client_name(source_p, SHOW_IP), parv[1], parv[2]);
     sendto_realops_flags(UMODE_ALL, L_OPER,
-                 "Link %s dropped, wrong TS protocol version (%s,%s)",
-                 get_client_name(source_p, MASK_IP), parv[1], parv[2]);
+                         "Link %s dropped, wrong TS protocol version (%s,%s)",
+                         get_client_name(source_p, MASK_IP), parv[1], parv[2]);
     exit_client(source_p, source_p, "Incompatible TS version");
     return;
   }
@@ -80,49 +80,52 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
   /*
    * since we're here, might as well set CurrentTime while we're at it
    */
-  set_time(); 
+  set_time();
   theirtime = atol(parv[4]);
   deltat = abs(theirtime - CurrentTime);
 
-  strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&CurrentTime));
-  strftime(theirtimestamp, sizeof(theirtimestamp), "%Y-%m-%d %H:%M:%S Z", gmtime(&theirtime));
+  strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z",
+           gmtime(&CurrentTime));
+  strftime(theirtimestamp, sizeof(theirtimestamp), "%Y-%m-%d %H:%M:%S Z",
+           gmtime(&theirtime));
 
-  if (deltat > ConfigFileEntry.ts_max_delta)
+  if(deltat > ConfigFileEntry.ts_max_delta)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-        "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
-        get_client_name(source_p, SHOW_IP),
-        (unsigned long) CurrentTime,
-        timestamp,
-        (unsigned long) theirtime,
-        theirtimestamp,
-        (int) deltat);
-      ilog(LOG_TYPE_IRCD,
-          "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
-          get_client_name(source_p, SHOW_IP),
-          (unsigned long) CurrentTime,
-          timestamp,
-          (unsigned long) theirtime,
-          theirtimestamp,
-          (int) deltat);
-      exit_client(source_p, source_p, "Excessive TS delta");
-      return;
-    }
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
+                         get_client_name(source_p, SHOW_IP),
+                         (unsigned long) CurrentTime,
+                         timestamp,
+                         (unsigned long) theirtime,
+                         theirtimestamp,
+                         (int) deltat);
+    ilog(LOG_TYPE_IRCD,
+         "Link %s dropped, excessive TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
+         get_client_name(source_p, SHOW_IP),
+         (unsigned long) CurrentTime,
+         timestamp,
+         (unsigned long) theirtime,
+         theirtimestamp,
+         (int) deltat);
+    exit_client(source_p, source_p, "Excessive TS delta");
+    return;
+  }
 
-  if (deltat > ConfigFileEntry.ts_warn_delta)
-    { 
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
-                "Link %s notable TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
-                source_p->name,
-                (unsigned long) CurrentTime,
-                timestamp,
-                (unsigned long) theirtime,
-                theirtimestamp,
-                (int) deltat);
-    }
+  if(deltat > ConfigFileEntry.ts_warn_delta)
+  {
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Link %s notable TS delta (my TS=%lu (%s), their TS=%lu (%s), delta=%d)",
+                         source_p->name,
+                         (unsigned long) CurrentTime,
+                         timestamp,
+                         (unsigned long) theirtime,
+                         theirtimestamp,
+                         (int) deltat);
+  }
 }
 
-static struct Message svinfo_msgtab = {
+static struct Message svinfo_msgtab =
+{
   "SVINFO", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_ignore, ms_svinfo, m_ignore, m_ignore, m_ignore}
 };
@@ -139,7 +142,8 @@ module_exit(void)
   mod_del_cmd(&svinfo_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

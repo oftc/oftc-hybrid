@@ -45,14 +45,14 @@ mo_globops(struct Client *client_p, struct Client *source_p,
 {
   const char *message = parv[1];
 
-  if (!HasOFlag(source_p, OPER_FLAG_GLOBOPS))
+  if(!HasOFlag(source_p, OPER_FLAG_GLOBOPS))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "globops");
     return;
   }
 
-  if (EmptyString(message))
+  if(EmptyString(message))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "GLOBOPS");
@@ -72,7 +72,7 @@ static void
 ms_globops(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
     return;
 
   sendto_server(client_p, CAP_TS6, NOCAPS, ":%s GLOBOPS :%s",
@@ -84,7 +84,8 @@ ms_globops(struct Client *client_p, struct Client *source_p,
                        source_p->name, parv[1]);
 }
 
-static struct Message globops_msgtab = {
+static struct Message globops_msgtab =
+{
   "GLOBOPS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, ms_globops, m_ignore, mo_globops, m_ignore }
 };
@@ -101,7 +102,8 @@ module_exit(void)
   mod_del_cmd(&globops_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

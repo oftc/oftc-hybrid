@@ -45,7 +45,7 @@ do_list(struct Client *source_p, int parc, char *parv[])
   struct ListTask *lt;
   int no_masked_channels;
 
-  if (source_p->localClient->list_task != NULL)
+  if(source_p->localClient->list_task != NULL)
   {
     free_list_task(source_p->localClient->list_task, source_p);
     sendto_one(source_p, form_str(RPL_LISTEND), me.name, source_p->name);
@@ -60,85 +60,116 @@ do_list(struct Client *source_p, int parc, char *parv[])
 
   no_masked_channels = 1;
 
-  if (parc > 1)
+  if(parc > 1)
   {
     char *opt, *save = NULL;
     dlink_list *list;
     int i, errors = 0;
 
-    for (opt = strtoken(&save, parv[1], ","); opt != NULL;
-         opt = strtoken(&save, NULL, ","))
-      switch (*opt)
+    for(opt = strtoken(&save, parv[1], ","); opt != NULL;
+        opt = strtoken(&save, NULL, ","))
+      switch(*opt)
       {
-        case '<': if ((i = atoi(opt + 1)) > 0)
-        lt->users_max = (unsigned int) i - 1;
-                  else
-        errors = 1;
-      break;
-        case '>': if ((i = atoi(opt + 1)) >= 0)
-        lt->users_min = (unsigned int) i + 1;
-      else
-        errors = 1;
-      break;
-        case '-': break;
-        case 'C':
-  case 'c': switch (*++opt)
-            {
-        case '<': if ((i = atoi(opt + 1)) >= 0)
-                    lt->created_max = (unsigned int) (CurrentTime
-                          - 60 * i);
-            else
-              errors = 1;
-            break;
-        case '>': if ((i = atoi(opt + 1)) >= 0)
-                    lt->created_min = (unsigned int) (CurrentTime
-                          - 60 * i);
-            else
-              errors = 1;
-            break;
-        default: errors = 1;
-      }
-      break;
-  case 'T':
-  case 't': switch (*++opt)
-            {
-        case '<': if ((i = atoi(opt + 1)) >= 0)
-                    lt->topicts_min = (unsigned int) (CurrentTime
-                          - 60 * i);
-            else
-              errors = 1;
-            break;
-        case '>': if ((i = atoi(opt + 1)) >= 0)
-                    lt->topicts_max = (unsigned int) (CurrentTime
-                          - 60 * i);
-            else
-              errors = 1;
-            break;
-        default: errors = 1;
-      }
-      break;
-        default: if (*opt == '!')
-           {
-       list = &lt->hide_mask;
-       opt++;
-     }
-     else list = &lt->show_mask;
+        case '<':
+          if((i = atoi(opt + 1)) > 0)
+            lt->users_max = (unsigned int) i - 1;
+          else
+            errors = 1;
 
-     if (has_wildcards(opt + !!IsChanPrefix(*opt)))
-     {
-       if (list == &lt->show_mask)
-         no_masked_channels = 0;
-     }
-     else if (!IsChanPrefix(*opt))
-       errors = 1;
-     if (!errors)
-     {
-                   char *s;
-       DupString(s, opt);
-       dlinkAdd(s, make_dlink_node(), list);
-     }
+          break;
+
+        case '>':
+          if((i = atoi(opt + 1)) >= 0)
+            lt->users_min = (unsigned int) i + 1;
+          else
+            errors = 1;
+
+          break;
+
+        case '-':
+          break;
+
+        case 'C':
+        case 'c':
+          switch(*++opt)
+          {
+            case '<':
+              if((i = atoi(opt + 1)) >= 0)
+                lt->created_max = (unsigned int)(CurrentTime
+                                                 - 60 * i);
+              else
+                errors = 1;
+
+              break;
+
+            case '>':
+              if((i = atoi(opt + 1)) >= 0)
+                lt->created_min = (unsigned int)(CurrentTime
+                                                 - 60 * i);
+              else
+                errors = 1;
+
+              break;
+
+            default:
+              errors = 1;
+          }
+
+          break;
+
+        case 'T':
+        case 't':
+          switch(*++opt)
+          {
+            case '<':
+              if((i = atoi(opt + 1)) >= 0)
+                lt->topicts_min = (unsigned int)(CurrentTime
+                                                 - 60 * i);
+              else
+                errors = 1;
+
+              break;
+
+            case '>':
+              if((i = atoi(opt + 1)) >= 0)
+                lt->topicts_max = (unsigned int)(CurrentTime
+                                                 - 60 * i);
+              else
+                errors = 1;
+
+              break;
+
+            default:
+              errors = 1;
+          }
+
+          break;
+
+        default:
+          if(*opt == '!')
+          {
+            list = &lt->hide_mask;
+            opt++;
+          }
+          else list = &lt->show_mask;
+
+          if(has_wildcards(opt + !!IsChanPrefix(*opt)))
+          {
+            if(list == &lt->show_mask)
+              no_masked_channels = 0;
+          }
+          else if(!IsChanPrefix(*opt))
+            errors = 1;
+
+          if(!errors)
+          {
+            char *s;
+            DupString(s, opt);
+            dlinkAdd(s, make_dlink_node(), list);
+          }
       }
-    if (errors)
+
+    if(errors)
     {
       free_list_task(lt, source_p);
       sendto_one(source_p, form_str(ERR_LISTSYNTAX),
@@ -163,12 +194,13 @@ do_list(struct Client *source_p, int parc, char *parv[])
 */
 static void
 m_list(struct Client *client_p, struct Client *source_p,
-        int parc, char *parv[])
+       int parc, char *parv[])
 {
   do_list(source_p, parc, parv);
 }
 
-static struct Message list_msgtab = {
+static struct Message list_msgtab =
+{
   "LIST", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_list, m_ignore, m_ignore, m_list, m_ignore }
 };
@@ -189,7 +221,8 @@ module_exit(void)
   delete_isupport("SAFELIST");
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

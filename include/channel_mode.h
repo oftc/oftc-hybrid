@@ -85,7 +85,7 @@
 #define RegOnlyChannel(x)       ((x) && ((x)->mode.mode & MODE_REGONLY))
 #define SpeakOnlyIfReg(x)       ((x) && ((x)->mode.mode & MODE_SPEAKIFREG))
 #define SSLonlyChannel(x)       ((x) && ((x)->mode.mode & MODE_SSLONLY))
-    
+
 
 struct ChModeChange
 {

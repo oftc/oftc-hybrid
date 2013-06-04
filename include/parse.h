@@ -90,7 +90,8 @@ struct Client;
 /*
  * MessageHandler
  */
-typedef enum HandlerType {
+typedef enum HandlerType
+{
   UNREGISTERED_HANDLER,
   CLIENT_HANDLER,
   SERVER_HANDLER,
@@ -110,8 +111,8 @@ typedef enum HandlerType {
  */
 typedef void (*MessageHandler)(struct Client *, struct Client *, int, char *[]);
 
-/* 
- * Message table structure 
+/*
+ * Message table structure
  */
 struct Message
 {
@@ -119,8 +120,8 @@ struct Message
   unsigned int count;      /* number of times command used */
   unsigned int rcount;     /* number of times command used by server */
   unsigned int args_min; /* at least this many args must be passed
-                             * or an error will be sent to the user 
-                             * before the m_func is even called 
+                             * or an error will be sent to the user
+                             * before the m_func is even called
                              */
   unsigned int args_max;    /* maximum permitted parameters */
   unsigned int flags;      /* bit 0 set means that this command is allowed
@@ -156,7 +157,8 @@ extern struct Message *find_command(const char *);
 extern void report_messages(struct Client *);
 
 /* generic handlers */
-extern void rfc1459_command_send_error(struct Client *, struct Client *,int, char *[]);
+extern void rfc1459_command_send_error(struct Client *, struct Client *, int,
+                                       char *[]);
 extern void m_ignore(struct Client *, struct Client *, int, char *[]);
 extern void m_not_oper(struct Client *, struct Client *, int, char *[]);
 extern void m_registered(struct Client *, struct Client *, int, char *[]);

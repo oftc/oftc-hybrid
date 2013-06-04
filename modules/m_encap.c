@@ -51,11 +51,11 @@ ms_encap(struct Client *client_p, struct Client *source_p,
   struct Message *mptr = NULL;
   MessageHandler handler = 0;
 
-  for (i = 1; i < (unsigned int)parc - 1; i++)
+  for(i = 1; i < (unsigned int)parc - 1; i++)
   {
     len = strlen(parv[i]) + 1;
 
-    if ((cur_len + len) >= sizeof(buffer))
+    if((cur_len + len) >= sizeof(buffer))
       return;
 
     snprintf(ptr, sizeof(buffer) - cur_len, "%s ", parv[i]);
@@ -66,26 +66,26 @@ ms_encap(struct Client *client_p, struct Client *source_p,
   len = strlen(parv[i]);
 
   /*
-   * if the final parameter crosses our buffer size, should we bail, 
+   * if the final parameter crosses our buffer size, should we bail,
    * like the rest, or should we truncate?  ratbox seems to think truncate,
    * so i'll do that for now until i can talk to lee.  -bill
    */
 
-  if (parc == 3)
+  if(parc == 3)
     snprintf(ptr, sizeof(buffer) - cur_len, "%s", parv[2]);
   else
     snprintf(ptr, sizeof(buffer) - cur_len, ":%s", parv[parc - 1]);
 
-  if ((cur_len + len) >= sizeof(buffer))
+  if((cur_len + len) >= sizeof(buffer))
     buffer[sizeof(buffer) - 1] = '\0';
 
   sendto_match_servs(source_p, parv[1], CAP_ENCAP,
                      "ENCAP %s", buffer);
 
-  if (!match(parv[1], me.name))
+  if(!match(parv[1], me.name))
     return;
 
-  if ((mptr = find_command(parv[2])) == NULL)
+  if((mptr = find_command(parv[2])) == NULL)
     return;
 
 #ifdef NOT_USED_YET
@@ -104,11 +104,12 @@ ms_encap(struct Client *client_p, struct Client *source_p,
   parc -= 2;
   parv[0] = ptr;
 
-  if ((handler = mptr->handlers[ENCAP_HANDLER]))
+  if((handler = mptr->handlers[ENCAP_HANDLER]))
     (*handler)(client_p, source_p, parc, parv);
 }
 
-static struct Message encap_msgtab = {
+static struct Message encap_msgtab =
+{
   "ENCAP", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_encap, m_ignore, m_ignore, m_ignore}
 };
@@ -127,7 +128,8 @@ module_exit(void)
   delete_capability("ENCAP");
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

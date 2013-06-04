@@ -47,25 +47,26 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
+  if(MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "CHGIDENT");
     return;
   }
 
-  if (EmptyString(parv[2]))
+  if(EmptyString(parv[2]))
   {
     parv[2] = parv[1];
     target_p = source_p;
 
-    if (!IsClient(target_p))
+    if(!IsClient(target_p))
       return;
   }
-  else {
+  else
+  {
     target_p = hash_find_client(parv[1]);
 
-    if (target_p == NULL || !IsClient(target_p))
+    if(target_p == NULL || !IsClient(target_p))
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                  me.name, source_p->name, parv[1]);
@@ -73,14 +74,14 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
     }
   }
 
-  if (strlen(parv[2]) > USERLEN || !*parv[2] || !valid_username(parv[2]))
+  if(strlen(parv[2]) > USERLEN || !*parv[2] || !valid_username(parv[2]))
   {
     sendto_one(source_p, ":%s NOTICE %s :Invalid username",
                me.name, source_p->name);
     return;
   }
 
-  if (IsUserHostIp(target_p))
+  if(IsUserHostIp(target_p))
     delete_user_host(target_p->username, target_p->host, !MyConnect(target_p));
 
   strlcpy(target_p->username, parv[2], sizeof(target_p->username));
@@ -88,7 +89,7 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
   add_user_host(target_p->username, target_p->host, !MyConnect(target_p));
   SetUserHost(target_p);
 
-  if (MyClient(source_p))
+  if(MyClient(source_p))
   {
     sendto_server(client_p, NOCAPS, NOCAPS, ":%s ENCAP * CHGIDENT %s %s",
                   source_p->name, target_p->name, parv[2]);
@@ -97,9 +98,9 @@ mo_chgident(struct Client *client_p, struct Client *source_p,
                target_p->host);
   }
 
-  if (MyClient(target_p))
+  if(MyClient(target_p))
   {
-    if (IsClient(source_p))
+    if(IsClient(source_p))
       sendto_one(target_p, ":%s NOTICE %s :You are now %s@%s",
                  me.name, target_p->name, target_p->username, target_p->host);
 
@@ -113,25 +114,26 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
+  if(MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "CHGHOST");
     return;
   }
 
-  if (EmptyString(parv[2]))
+  if(EmptyString(parv[2]))
   {
     parv[2] = parv[1];
     target_p = source_p;
 
-    if (!IsClient(target_p))
+    if(!IsClient(target_p))
       return;
   }
-  else {
+  else
+  {
     target_p = hash_find_client(parv[1]);
 
-    if (target_p == NULL || !IsClient(target_p))
+    if(target_p == NULL || !IsClient(target_p))
     {
       sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                  me.name, source_p->name, parv[1]);
@@ -139,14 +141,14 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
     }
   }
 
-  if (strlen(parv[2]) > HOSTLEN || !*parv[2] || !valid_hostname(parv[2]))
+  if(strlen(parv[2]) > HOSTLEN || !*parv[2] || !valid_hostname(parv[2]))
   {
     sendto_one(source_p, ":%s NOTICE %s :Invalid hostname",
                me.name, source_p->name);
     return;
   }
 
-  if (IsUserHostIp(target_p))
+  if(IsUserHostIp(target_p))
     delete_user_host(target_p->username, target_p->host, !MyConnect(target_p));
 
   strlcpy(target_p->host, parv[2], sizeof(target_p->host));
@@ -155,7 +157,7 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
   add_user_host(target_p->username, target_p->host, !MyConnect(target_p));
   SetUserHost(target_p);
 
-  if (MyClient(source_p))
+  if(MyClient(source_p))
   {
     sendto_server(client_p, NOCAPS, NOCAPS, ":%s ENCAP * CHGHOST %s %s",
                   source_p->name, target_p->name, parv[2]);
@@ -164,55 +166,56 @@ mo_chghost(struct Client *client_p, struct Client *source_p,
                target_p->host);
   }
 
-  if (MyClient(target_p))
+  if(MyClient(target_p))
   {
-    if (IsClient(source_p))
+    if(IsClient(source_p))
       sendto_one(target_p, ":%s NOTICE %s :You are now %s@%s",
                  me.name, target_p->name, target_p->username, target_p->host);
+
     clear_ban_cache_client(target_p);
   }
 }
 
 static void
 mo_chgname(struct Client *client_p, struct Client *source_p,
-          int parc, char *parv[])
+           int parc, char *parv[])
 {
   struct Client *target_p = NULL;
 
-  if (MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
+  if(MyClient(source_p) && !HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "CHGNAME");
     return;
   }
 
-  if (EmptyString(parv[2]))
+  if(EmptyString(parv[2]))
   {
     parv[2] = parv[1];
     target_p = source_p;
   }
-  else if ((target_p = hash_find_client(parv[1])) == NULL)
+  else if((target_p = hash_find_client(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                me.name, source_p->name, parv[1]);
     return;
   }
 
-  if (strlen(parv[2]) > REALLEN || !*parv[2])
+  if(strlen(parv[2]) > REALLEN || !*parv[2])
   {
     sendto_one(source_p, ":%s NOTICE %s :Invalid realname",
                me.name, source_p->name);
     return;
   }
 
-  if (parc > 3 && MyClient(source_p))
+  if(parc > 3 && MyClient(source_p))
     sendto_one(source_p, ":%s NOTICE %s :Warning -- too many parameters "
                "for CHGNAME. You are probably missing a : before the new "
                "IRC name.", me.name, source_p->name);
 
   strlcpy(target_p->info, parv[2], sizeof(target_p->info));
 
-  if (MyClient(source_p))
+  if(MyClient(source_p))
   {
     sendto_server(client_p, NOCAPS, NOCAPS, ":%s ENCAP * CHGNAME %s :%s",
                   source_p->name, target_p->name, parv[2]);
@@ -220,22 +223,25 @@ mo_chgname(struct Client *client_p, struct Client *source_p,
                me.name, source_p->name, target_p->name, target_p->info);
   }
 
-  if (MyClient(target_p) && IsClient(source_p))
+  if(MyClient(target_p) && IsClient(source_p))
     sendto_one(target_p, ":%s NOTICE %s :Your realname is now [%s]",
                me.name, target_p->name, target_p->info);
 }
 
-static struct Message chgident_msgtab = {
+static struct Message chgident_msgtab =
+{
   "CHGIDENT", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, mo_chgident, mo_chgident, mo_chgident, m_ignore}
 };
 
-static struct Message chghost_msgtab = {
+static struct Message chghost_msgtab =
+{
   "CHGHOST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, mo_chghost, mo_chghost, mo_chghost, m_ignore}
 };
 
-static struct Message chgname_msgtab = {
+static struct Message chgname_msgtab =
+{
   "CHGNAME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, mo_chgname, mo_chgname, mo_chgname, m_ignore}
 };
@@ -256,7 +262,8 @@ module_exit(void)
   mod_del_cmd(&chgident_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

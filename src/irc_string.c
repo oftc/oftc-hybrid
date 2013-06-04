@@ -34,8 +34,8 @@ has_wildcards(const char *s)
 {
   char c;
 
-  while ((c = *s++))
-    if (IsMWildChar(c))
+  while((c = *s++))
+    if(IsMWildChar(c))
       return 1;
 
   return 0;
@@ -51,7 +51,7 @@ has_wildcards(const char *s)
  *   might break things in other places...)
  *
  *
- * Thu Nov 24 18:22:48 1986 
+ * Thu Nov 24 18:22:48 1986
  */
 const char *
 myctime(time_t value)
@@ -61,35 +61,36 @@ myctime(time_t value)
 
   strlcpy(buf, ctime(&value), sizeof(buf));
 
-  if ((p = strchr(buf, '\n')) != NULL)
-    *p = '\0';
+  if((p = strchr(buf, '\n')) != NULL)
+    * p = '\0';
+
   return buf;
 }
 
 /*
  * clean_string - clean up a string possibly containing garbage
  *
- * *sigh* Before the kiddies find this new and exciting way of 
+ * *sigh* Before the kiddies find this new and exciting way of
  * annoying opers, lets clean up what is sent to local opers
  * -Dianora
  */
 char *
-clean_string(char* dest, const unsigned char* src, ssize_t len)
+clean_string(char *dest, const unsigned char *src, ssize_t len)
 {
-  char* d    = dest; 
+  char *d    = dest;
   assert(0 != dest);
   assert(0 != src);
 
   if(dest == NULL || src == NULL)
     return NULL;
-    
+
   len -= 3;  /* allow for worst case, '^A\0' */
 
-  while (*src && (len > 0))
+  while(*src && (len > 0))
   {
-    if (*src & 0x80)             /* if high bit is set */
+    if(*src & 0x80)              /* if high bit is set */
       *d++ = '.';
-    else if (!IsPrint(*src))       /* if NOT printable */
+    else if(!IsPrint(*src))        /* if NOT printable */
     {
       *d++ = '^';
       --len;
@@ -100,6 +101,7 @@ clean_string(char* dest, const unsigned char* src, ssize_t len)
 
     ++src, --len;
   }
+
   *d = '\0';
   return dest;
 }
@@ -119,7 +121,7 @@ strip_tabs(char *dest, const char *src, size_t len)
   assert(src  != NULL);
   assert(len > 0);
 
-  for (; --len && *src; ++src)
+  for(; --len && *src; ++src)
     *d++ = *src == '\t' ? ' ' : *src;
 
   *d = '\0'; /* NUL terminate, thanks and goodbye */
@@ -133,26 +135,26 @@ strip_tabs(char *dest, const char *src, size_t len)
 #ifndef HAVE_STRTOK_R
 
 char *
-strtoken(char** save, char* str, const char* fs)
+strtoken(char **save, char *str, const char *fs)
 {
-  char* pos = *save;  /* keep last position across calls */
-  char* tmp;
+  char *pos = *save;  /* keep last position across calls */
+  char *tmp;
 
-  if (str)
+  if(str)
     pos = str;    /* new string scan */
 
-  while (pos && *pos && strchr(fs, *pos) != NULL)
+  while(pos && *pos && strchr(fs, *pos) != NULL)
     ++pos;        /* skip leading separators */
 
-  if (!pos || !*pos)
+  if(!pos || !*pos)
     return (pos = *save = NULL);   /* string contains only sep's */
 
   tmp = pos;       /* now, keep position of the token */
 
-  while (*pos && strchr(fs, *pos) == NULL)
+  while(*pos && strchr(fs, *pos) == NULL)
     ++pos;       /* skip content of the token */
 
-  if (*pos)
+  if(*pos)
     *pos++ = '\0';    /* remove first sep after the token */
   else
     pos = NULL;    /* end of string */
@@ -175,7 +177,7 @@ basename(char *path)
 {
   char *s;
 
-  if ((s = strrchr(path, '/')) == NULL)
+  if((s = strrchr(path, '/')) == NULL)
     s = path;
   else
     s++;
@@ -187,7 +189,7 @@ basename(char *path)
 
 /*
  * strlcat and strlcpy were ripped from openssh 2.5.1p2
- * They had the following Copyright info: 
+ * They had the following Copyright info:
  *
  *
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
@@ -198,9 +200,9 @@ basename(char *path)
  * are met:
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright    
- *    notice, this list of conditions and the following disclaimer in the  
- *    documentation and/or other materials provided with the distribution. 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
  *    derived from this software without specific prior written permission.
  *
@@ -215,7 +217,7 @@ basename(char *path)
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #ifndef HAVE_STRLCAT
 size_t
 strlcat(char *dst, const char *src, size_t siz)
@@ -224,18 +226,18 @@ strlcat(char *dst, const char *src, size_t siz)
   const char *s = src;
   size_t n = siz, dlen;
 
-  while (n-- != 0 && *d != '\0')
+  while(n-- != 0 && *d != '\0')
     d++;
 
   dlen = d - dst;
   n    = siz - dlen;
 
-  if (n == 0)
+  if(n == 0)
     return dlen + strlen(s);
 
-  while (*s != '\0')
+  while(*s != '\0')
   {
-    if (n != 1)
+    if(n != 1)
     {
       *d++ = *s;
       n--;
@@ -258,21 +260,23 @@ strlcpy(char *dst, const char *src, size_t siz)
   size_t n = siz;
 
   /* Copy as many bytes as will fit */
-  if (n != 0 && --n != 0)
+  if(n != 0 && --n != 0)
   {
     do
     {
-      if ((*d++ = *s++) == 0)
+      if((*d++ = *s++) == 0)
         break;
-    } while (--n != 0);
+    }
+    while(--n != 0);
   }
 
   /* Not enough room in dst, add NUL and traverse rest of src */
-  if (n == 0)
+  if(n == 0)
   {
-    if (siz != 0)
+    if(siz != 0)
       *d = '\0'; /* NUL-terminate dst */
-    while (*s++)
+
+    while(*s++)
       ;
   }
 

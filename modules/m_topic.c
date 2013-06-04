@@ -51,17 +51,17 @@ m_topic(struct Client *client_p, struct Client *source_p,
 {
   struct Channel *chptr = NULL;
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "TOPIC");
     return;
   }
 
-  if (!IsFloodDone(source_p))
+  if(!IsFloodDone(source_p))
     flood_endgrace(source_p);
 
-  if ((chptr = hash_find_channel(parv[1])) == NULL)
+  if((chptr = hash_find_channel(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                me.name, source_p->name, parv[1]);
@@ -69,30 +69,33 @@ m_topic(struct Client *client_p, struct Client *source_p,
   }
 
   /* setting topic */
-  if (parc > 2)
+  if(parc > 2)
   {
     struct Membership *ms;
 
-    if ((ms = find_channel_link(source_p, chptr)) == NULL)
+    if((ms = find_channel_link(source_p, chptr)) == NULL)
     {
       sendto_one(source_p, form_str(ERR_NOTONCHANNEL), me.name,
                  source_p->name, parv[1]);
       return;
     }
-    if ((chptr->mode.mode & MODE_TOPICLIMIT) == 0 ||
-        has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) || HasUMode(source_p, UMODE_GOD) ||
+
+    if((chptr->mode.mode & MODE_TOPICLIMIT) == 0 ||
+        has_member_flags(ms, CHFL_CHANOP | CHFL_HALFOP)
+        || HasUMode(source_p, UMODE_GOD) ||
         HasUMode(source_p, UMODE_SERVICE))
     {
-      char topic_info[USERHOST_REPLYLEN]; 
-      if(!has_member_flags(ms, CHFL_CHANOP|CHFL_HALFOP) && 
+      char topic_info[USERHOST_REPLYLEN];
+
+      if(!has_member_flags(ms, CHFL_CHANOP | CHFL_HALFOP) &&
           HasUMode(source_p, UMODE_GOD) && MyClient(source_p) &&
           (chptr->mode.mode & MODE_TOPICLIMIT) != 0)
-      {              
-        char tmp[IRCD_BUFSIZE];           
-        ircsprintf(tmp, "%s is using God mode: TOPIC %s %s", source_p->name, 
-            chptr->chname, parv[2]);              
-        sendto_realops_flags(UMODE_SERVNOTICE, L_ALL, 
-            tmp);
+      {
+        char tmp[IRCD_BUFSIZE];
+        ircsprintf(tmp, "%s is using God mode: TOPIC %s %s", source_p->name,
+                   chptr->chname, parv[2]);
+        sendto_realops_flags(UMODE_SERVNOTICE, L_ALL,
+                             tmp);
         oftc_log(tmp);
       }
 
@@ -121,9 +124,9 @@ m_topic(struct Client *client_p, struct Client *source_p,
   }
   else /* only asking for topic */
   {
-    if (!SecretChannel(chptr) || IsMember(source_p, chptr))
+    if(!SecretChannel(chptr) || IsMember(source_p, chptr))
     {
-      if (chptr->topic[0] == '\0')
+      if(chptr->topic[0] == '\0')
         sendto_one(source_p, form_str(RPL_NOTOPIC),
                    me.name, source_p->name, chptr->chname);
       else
@@ -151,7 +154,7 @@ ms_topic(struct Client *client_p, struct Client *source_p,
   const char *from, *to;
   char topic_info[USERHOST_REPLYLEN];
 
-  if (IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
+  if(IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
   {
     from = me.id;
     to = source_p->id;
@@ -162,25 +165,26 @@ ms_topic(struct Client *client_p, struct Client *source_p,
     to = source_p->name;
   }
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                from, to, "TOPIC");
     return;
   }
 
-  if ((chptr = hash_find_channel(parv[1])) == NULL)
+  if((chptr = hash_find_channel(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                from, to, parv[1]);
     return;
   }
 
-  if (!IsClient(source_p))
+  if(!IsClient(source_p))
     strlcpy(topic_info, source_p->name, sizeof(topic_info));
   else
     snprintf(topic_info, sizeof(topic_info), "%s!%s@%s", source_p->name,
              source_p->username, source_p->host);
+
   set_channel_topic(chptr, parv[2], topic_info, CurrentTime, 0);
 
   sendto_server(client_p, CAP_TS6, NOCAPS, ":%s TOPIC %s :%s",
@@ -190,7 +194,7 @@ ms_topic(struct Client *client_p, struct Client *source_p,
                 source_p->name, chptr->chname,
                 chptr->topic);
 
-  if (!IsClient(source_p))
+  if(!IsClient(source_p))
     sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :%s",
                          source_p->name,
                          chptr->chname, chptr->topic);
@@ -204,7 +208,8 @@ ms_topic(struct Client *client_p, struct Client *source_p,
 }
 
 
-static struct Message topic_msgtab = {
+static struct Message topic_msgtab =
+{
   "TOPIC", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_topic, ms_topic, m_ignore, m_topic, m_ignore}
 };
@@ -221,7 +226,8 @@ module_exit(void)
   mod_del_cmd(&topic_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

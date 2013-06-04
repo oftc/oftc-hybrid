@@ -54,14 +54,14 @@ m_nickserv(struct Client *client_p, struct Client *source_p,
   assert(client_p && source_p);
   assert(client_p == source_p);
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
                me.name, source_p->name);
     return;
   }
 
-  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  if((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG NickServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -81,14 +81,14 @@ m_chanserv(struct Client *client_p, struct Client *source_p,
   assert(client_p && source_p);
   assert(client_p == source_p);
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
                me.name, source_p->name);
     return;
   }
 
-  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  if((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG ChanServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -108,14 +108,14 @@ m_memoserv(struct Client *client_p, struct Client *source_p,
   assert(client_p && source_p);
   assert(client_p == source_p);
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
                me.name, source_p->name);
     return;
   }
 
-  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  if((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG MemoServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -135,14 +135,14 @@ m_operserv(struct Client *client_p, struct Client *source_p,
   assert(client_p && source_p);
   assert(client_p == source_p);
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
                me.name, source_p->name);
     return;
   }
 
-  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  if((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG OperServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -162,14 +162,14 @@ m_statserv(struct Client *client_p, struct Client *source_p,
   assert(client_p && source_p);
   assert(client_p == source_p);
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
                me.name, source_p->name);
     return;
   }
 
-  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  if((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG StatServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -189,14 +189,14 @@ m_helpserv(struct Client *client_p, struct Client *source_p,
   assert(client_p && source_p);
   assert(client_p == source_p);
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
                me.name, source_p->name);
     return;
   }
 
-  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  if((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG HelpServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -216,14 +216,14 @@ m_botserv(struct Client *client_p, struct Client *source_p,
   assert(client_p && source_p);
   assert(client_p == source_p);
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
                me.name, source_p->name);
     return;
   }
 
-  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  if((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG BotServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -236,21 +236,21 @@ m_botserv(struct Client *client_p, struct Client *source_p,
 
 static void
 m_groupserv(struct Client *client_p, struct Client *source_p,
-          int parc, char *parv[])
+            int parc, char *parv[])
 {
   struct Client *target_p = NULL;
 
   assert(client_p && source_p);
   assert(client_p == source_p);
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
                me.name, source_p->name);
     return;
   }
 
-  if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+  if((target_p = hash_find_server(ConfigFileEntry.service_name)))
   {
     sendto_one(target_p, ":%s PRIVMSG GroupServ@%s :%s",
                source_p->name, ConfigFileEntry.service_name, parv[1]);
@@ -267,16 +267,16 @@ m_identify(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL;
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NOTEXTTOSEND),
                me.name, source_p->name);
     return;
   }
 
-  if (IsChanPrefix(*parv[1]))
+  if(IsChanPrefix(*parv[1]))
   {
-    if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+    if((target_p = hash_find_server(ConfigFileEntry.service_name)))
       sendto_one(target_p, ":%s PRIVMSG ChanServ@%s :IDENTIFY %s",
                  source_p->name, ConfigFileEntry.service_name, parv[1]);
     else
@@ -285,7 +285,7 @@ m_identify(struct Client *client_p, struct Client *source_p,
   }
   else
   {
-    if ((target_p = hash_find_server(ConfigFileEntry.service_name)))
+    if((target_p = hash_find_server(ConfigFileEntry.service_name)))
       sendto_one(target_p, ":%s PRIVMSG NickServ@%s :IDENTIFY %s",
                  source_p->name, ConfigFileEntry.service_name, parv[1]);
     else
@@ -294,87 +294,104 @@ m_identify(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message gs_msgtab = {
+static struct Message gs_msgtab =
+{
   "GS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
 };
 
-static struct Message ms_msgtab = {
+static struct Message ms_msgtab =
+{
   "MS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
 };
 
-static struct Message ns_msgtab = {
+static struct Message ns_msgtab =
+{
   "NS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
 };
 
-static struct Message os_msgtab = {
+static struct Message os_msgtab =
+{
   "OS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
 };
 
-static struct Message bs_msgtab = {
+static struct Message bs_msgtab =
+{
   "BS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
 };
 
-static struct Message cs_msgtab = {
+static struct Message cs_msgtab =
+{
   "CS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
 };
 
-static struct Message ss_msgtab = {
+static struct Message ss_msgtab =
+{
   "SS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_statserv, m_ignore, m_ignore, m_statserv, m_ignore}
 };
 
-static struct Message hs_msgtab = {
+static struct Message hs_msgtab =
+{
   "HS", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
 };
 
-static struct Message botserv_msgtab = {
+static struct Message botserv_msgtab =
+{
   "BOTSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_botserv, m_ignore, m_ignore, m_botserv, m_ignore}
 };
 
-static struct Message chanserv_msgtab = {
+static struct Message chanserv_msgtab =
+{
   "CHANSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_chanserv, m_ignore, m_ignore, m_chanserv, m_ignore}
 };
 
-static struct Message groupserv_msgtab = {
+static struct Message groupserv_msgtab =
+{
   "GROUPSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_groupserv, m_ignore, m_ignore, m_groupserv, m_ignore}
 };
 
-static struct Message memoserv_msgtab = {
+static struct Message memoserv_msgtab =
+{
   "MEMOSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_memoserv, m_ignore, m_ignore, m_memoserv, m_ignore}
 };
 
-static struct Message nickserv_msgtab = {
+static struct Message nickserv_msgtab =
+{
   "NICKSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_nickserv, m_ignore, m_ignore, m_nickserv, m_ignore}
 };
 
-static struct Message operserv_msgtab = {
+static struct Message operserv_msgtab =
+{
   "OPERSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_operserv, m_ignore, m_ignore, m_operserv, m_ignore}
 };
 
-static struct Message statserv_msgtab = {
+static struct Message statserv_msgtab =
+{
   "STATSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_statserv, m_ignore, m_ignore, m_statserv, m_ignore}
 };
 
-static struct Message helpserv_msgtab = {
+static struct Message helpserv_msgtab =
+{
   "HELPSERV", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_helpserv, m_ignore, m_ignore, m_helpserv, m_ignore}
 };
 
-static struct Message identify_msgtab = {
+static struct Message identify_msgtab =
+{
   "IDENTIFY", 0, 0, 0, 1, MFLG_SLOW, 0,
   {m_unregistered, m_identify, m_ignore, m_ignore, m_identify, m_ignore}
 };
@@ -422,7 +439,8 @@ module_exit(void)
   mod_del_cmd(&hs_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

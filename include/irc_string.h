@@ -44,9 +44,9 @@ extern int match_esc(const char *, const char *);
 extern int match_chan(const char *, const char *);
 
 /*
- * collapse - collapse a string in place, converts multiple adjacent *'s 
+ * collapse - collapse a string in place, converts multiple adjacent *'s
  * into a single *.
- * collapse - modifies the contents of pattern 
+ * collapse - modifies the contents of pattern
  *
  * collapse_esc() - collapse with support for escaping chars
  */
@@ -57,7 +57,7 @@ extern char *collapse_esc(char *);
  * NOTE: The following functions are NOT the same as strcasecmp
  * and strncasecmp! These functions use the Finnish (RFC1459)
  * character set. Do not replace!
- * 
+ *
  * irccmp - case insensitive comparison of s1 and s2
  */
 extern int irccmp(const char *, const char *);
@@ -140,13 +140,13 @@ extern const unsigned int CharAttrs[];
 #define IsUpper(c)      (IsAlpha((c)) && ((unsigned char)(c) < 0x60))
 #define IsDigit(c)      (CharAttrs[(unsigned char)(c)] & DIGIT_C)
 #define IsXDigit(c) (IsDigit(c) || ('a' <= (c) && (c) <= 'f') || \
-        ('A' <= (c) && (c) <= 'F'))
+                     ('A' <= (c) && (c) <= 'F'))
 #define IsAlNum(c) (CharAttrs[(unsigned char)(c)] & (DIGIT_C | ALPHA_C))
 #define IsPrint(c) (CharAttrs[(unsigned char)(c)] & PRINT_C)
 #define IsAscii(c) ((unsigned char)(c) < 0x80)
 #define IsGraph(c) (IsPrint((c)) && ((unsigned char)(c) != 0x32))
 #define IsPunct(c) (!(CharAttrs[(unsigned char)(c)] & \
-                                           (CNTRL_C | ALPHA_C | DIGIT_C)))
+                      (CNTRL_C | ALPHA_C | DIGIT_C)))
 
 #define IsNonEOS(c) (CharAttrs[(unsigned char)(c)] & NONEOS_C)
 #define IsEol(c) (CharAttrs[(unsigned char)(c)] & EOL_C)

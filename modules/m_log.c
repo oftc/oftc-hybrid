@@ -1,7 +1,7 @@
 /* log.c - oftc specific server logging
 
  *   Copyright (C) 2002 Stuart Walsh
- *                      
+ *
  *   See file AUTHORS in IRC package for additional names of
  *   the programmers.
  *
@@ -35,28 +35,31 @@
 #include "sprintf_irc.h"
 #include "irc_string.h"
 
-static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+static void mo_log(struct Client *client_p, struct Client *source_p, int parc,
+                   char *parv[])
 {
   FILE *logfile = NULL;
 
   if(parc < 2)
     return;
 
-  if (IsClient(source_p) && ((logfile = fopen(OFTCLOG, "a+")) != NULL))
+  if(IsClient(source_p) && ((logfile = fopen(OFTCLOG, "a+")) != NULL))
   {
     fprintf(logfile, "%s %s %s\n",
-        myctime(time(NULL)), source_p->name, parv[1]);
+            myctime(time(NULL)), source_p->name, parv[1]);
     fclose(logfile);
   }
+
   return;
 }
 
-struct Message log_msgtab = {
+struct Message log_msgtab =
+{
   "LOG", 0, 0, 2, 0, MFLG_SLOW, 0,
   { m_ignore, m_ignore, mo_log, m_ignore, mo_log, m_ignore }
 };
 
-void 
+void
 module_init(void)
 {
   mod_add_cmd(&log_msgtab);
@@ -68,7 +71,8 @@ module_exit(void)
   mod_del_cmd(&log_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -50,17 +50,20 @@ mo_hash(struct Client *client_p, struct Client *source_p,
   struct UserHost *ush;
   struct ResvChannel *rch;
 
-  for (i = 0; i < HASHSIZE; ++i)
+  for(i = 0; i < HASHSIZE; ++i)
   {
-    if ((cl = hash_get_bucket(HASH_TYPE_CLIENT, i)) != NULL)
+    if((cl = hash_get_bucket(HASH_TYPE_CLIENT, i)) != NULL)
     {
       int len = 0;
 
       ++buckets;
-      for (; cl != NULL; cl = cl->hnext)
+
+      for(; cl != NULL; cl = cl->hnext)
         ++len;
-      if (len > max_chain)
+
+      if(len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -73,17 +76,20 @@ mo_hash(struct Client *client_p, struct Client *source_p,
   buckets   = 0;
   max_chain = 0;
 
-  for (i = 0; i < HASHSIZE; ++i)
+  for(i = 0; i < HASHSIZE; ++i)
   {
-    if ((ch = hash_get_bucket(HASH_TYPE_CHANNEL, i)) != NULL)
+    if((ch = hash_get_bucket(HASH_TYPE_CHANNEL, i)) != NULL)
     {
       int len = 0;
 
       ++buckets;
-      for (; ch != NULL; ch = ch->hnextch)
+
+      for(; ch != NULL; ch = ch->hnextch)
         ++len;
-      if (len > max_chain)
+
+      if(len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -96,17 +102,20 @@ mo_hash(struct Client *client_p, struct Client *source_p,
   buckets   = 0;
   max_chain = 0;
 
-  for (i = 0; i < HASHSIZE; ++i)
+  for(i = 0; i < HASHSIZE; ++i)
   {
-    if ((rch = hash_get_bucket(HASH_TYPE_RESERVED, i)) != NULL)
+    if((rch = hash_get_bucket(HASH_TYPE_RESERVED, i)) != NULL)
     {
       int len = 0;
 
       ++buckets;
-      for (; rch != NULL; rch = rch->hnext)
+
+      for(; rch != NULL; rch = rch->hnext)
         ++len;
-      if (len > max_chain)
+
+      if(len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -119,17 +128,20 @@ mo_hash(struct Client *client_p, struct Client *source_p,
   buckets   = 0;
   max_chain = 0;
 
-  for (i = 0; i < HASHSIZE; ++i)
+  for(i = 0; i < HASHSIZE; ++i)
   {
-    if ((icl = hash_get_bucket(HASH_TYPE_ID, i)) != NULL)
+    if((icl = hash_get_bucket(HASH_TYPE_ID, i)) != NULL)
     {
       int len = 0;
 
       ++buckets;
-      for (; icl != NULL; icl = icl->idhnext)
+
+      for(; icl != NULL; icl = icl->idhnext)
         ++len;
-      if (len > max_chain)
+
+      if(len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -142,17 +154,20 @@ mo_hash(struct Client *client_p, struct Client *source_p,
   buckets   = 0;
   max_chain = 0;
 
-  for (i = 0; i < HASHSIZE; ++i)
+  for(i = 0; i < HASHSIZE; ++i)
   {
-    if ((ush = hash_get_bucket(HASH_TYPE_USERHOST, i)) != NULL)
+    if((ush = hash_get_bucket(HASH_TYPE_USERHOST, i)) != NULL)
     {
       int len = 0;
 
       ++buckets;
-      for (; ush != NULL; ush = ush->next)
+
+      for(; ush != NULL; ush = ush->next)
         ++len;
-      if (len > max_chain)
+
+      if(len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -162,8 +177,9 @@ mo_hash(struct Client *client_p, struct Client *source_p,
              max_chain);
 }
 
-static struct Message hash_msgtab = {
- "HASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+static struct Message hash_msgtab =
+{
+  "HASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_hash, m_ignore }
 };
 
@@ -179,7 +195,8 @@ module_exit(void)
   mod_del_cmd(&hash_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

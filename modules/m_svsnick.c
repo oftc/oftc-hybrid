@@ -62,21 +62,21 @@ ms_svsnick(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p = NULL, *exists_p = NULL;
 
-  if (!HasFlag(source_p, FLAGS_SERVICE) || !valid_nickname(parv[2], 1))
+  if(!HasFlag(source_p, FLAGS_SERVICE) || !valid_nickname(parv[2], 1))
     return;
 
-  if (hunt_server(client_p, source_p, ":%s SVSNICK %s %s :%s",
-                  1, parc, parv) != HUNTED_ISME)
+  if(hunt_server(client_p, source_p, ":%s SVSNICK %s %s :%s",
+                 1, parc, parv) != HUNTED_ISME)
     return;
 
-  if ((target_p = find_person(client_p, parv[1])) == NULL)
+  if((target_p = find_person(client_p, parv[1])) == NULL)
     return;
 
   assert(MyClient(target_p));
 
-  if ((exists_p = hash_find_client(parv[2])))
+  if((exists_p = hash_find_client(parv[2])))
   {
-    if (IsUnknown(exists_p))
+    if(IsUnknown(exists_p))
       exit_client(exists_p, &me, "SVSNICK Override");
     else
     {
@@ -89,7 +89,7 @@ ms_svsnick(struct Client *client_p, struct Client *source_p,
   clear_ban_cache_client(target_p);
   watch_check_hash(target_p, RPL_LOGOFF);
 
-  if (HasUMode(target_p, UMODE_REGISTERED))
+  if(HasUMode(target_p, UMODE_REGISTERED))
   {
     unsigned int oldmodes = target_p->umodes;
     char modebuf[IRCD_BUFSIZE] = { '\0' };
@@ -120,7 +120,8 @@ ms_svsnick(struct Client *client_p, struct Client *source_p,
   fd_note(&target_p->localClient->fd, "Nick: %s", parv[2]);
 }
 
-static struct Message svsnick_msgtab = {
+static struct Message svsnick_msgtab =
+{
   "SVSNICK", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_svsnick, m_ignore, m_ignore, m_ignore}
 };
@@ -137,7 +138,8 @@ module_exit(void)
   mod_del_cmd(&svsnick_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

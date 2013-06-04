@@ -41,11 +41,11 @@
  */
 static void
 mo_wallops(struct Client *client_p, struct Client *source_p,
-     int parc, char *parv[])
-{ 
+           int parc, char *parv[])
+{
   const char *message = parv[1];
 
-  if (EmptyString(message))
+  if(EmptyString(message))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "WALLOPS");
@@ -67,16 +67,16 @@ mo_wallops(struct Client *client_p, struct Client *source_p,
 static void
 ms_wallops(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
-{ 
+{
   const char *message = parv[1];
 
-  if (EmptyString(message))
+  if(EmptyString(message))
     return;
 
-  if (IsClient(source_p))
+  if(IsClient(source_p))
     sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message);
   else
-    sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message); 
+    sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message);
 
   sendto_server(client_p, CAP_TS6, NOCAPS,
                 ":%s WALLOPS :%s", ID(source_p), message);
@@ -84,7 +84,8 @@ ms_wallops(struct Client *client_p, struct Client *source_p,
                 ":%s WALLOPS :%s", source_p->name, message);
 }
 
-static struct Message wallops_msgtab = {
+static struct Message wallops_msgtab =
+{
   "WALLOPS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, ms_wallops, m_ignore, mo_wallops, m_ignore}
 };
@@ -101,7 +102,8 @@ module_exit(void)
   mod_del_cmd(&wallops_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

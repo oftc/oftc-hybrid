@@ -57,7 +57,7 @@ init_netio(void)
 
   pollfds = MyMalloc(sizeof(struct pollfd) * hard_fdlimit);
 
-  for (fd = 0; fd < hard_fdlimit; fd++)
+  for(fd = 0; fd < hard_fdlimit; fd++)
     pollfds[fd].fd = -1;
 }
 
@@ -70,8 +70,8 @@ poll_findslot(void)
 {
   int i;
 
-  for (i = 0; i < hard_fdlimit; i++)
-    if (pollfds[i].fd == -1)
+  for(i = 0; i < hard_fdlimit; i++)
+    if(pollfds[i].fd == -1)
     {
       /* MATCH!!#$*&$ */
       return i;
@@ -91,48 +91,50 @@ poll_findslot(void)
 void
 comm_setselect(fde_t *F, unsigned int type, PF *handler,
                void *client_data, time_t timeout)
-{  
+{
   int new_events;
 
-  if ((type & COMM_SELECT_READ))
+  if((type & COMM_SELECT_READ))
   {
     F->read_handler = handler;
     F->read_data = client_data;
   }
 
-  if ((type & COMM_SELECT_WRITE))
+  if((type & COMM_SELECT_WRITE))
   {
     F->write_handler = handler;
     F->write_data = client_data;
   }
 
   new_events = (F->read_handler ? POLLRDNORM : 0) |
-    (F->write_handler ? POLLWRNORM : 0);
+               (F->write_handler ? POLLWRNORM : 0);
 
-  if (timeout != 0)
+  if(timeout != 0)
     F->timeout = CurrentTime + (timeout / 1000);
 
-  if (new_events != F->evcache)
+  if(new_events != F->evcache)
   {
-    if (new_events == 0)
+    if(new_events == 0)
     {
       pollfds[F->comm_index].fd = -1;
       pollfds[F->comm_index].revents = 0;
 
-      if (pollmax == F->comm_index)
-        while (pollmax >= 0 && pollfds[pollmax].fd == -1)
-    pollmax--;
+      if(pollmax == F->comm_index)
+        while(pollmax >= 0 && pollfds[pollmax].fd == -1)
+          pollmax--;
     }
     else
     {
-      if (F->evcache == 0)
+      if(F->evcache == 0)
       {
         F->comm_index = poll_findslot();
-  if (F->comm_index > pollmax)
-    pollmax = F->comm_index;
 
-  pollfds[F->comm_index].fd = F->fd;
+        if(F->comm_index > pollmax)
+          pollmax = F->comm_index;
+
+        pollfds[F->comm_index].fd = F->fd;
       }
+
       pollfds[F->comm_index].events = new_events;
       pollfds[F->comm_index].revents = 0;
     }
@@ -140,7 +142,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
     F->evcache = new_events;
   }
 }
- 
+
 /*
  * comm_select
  *
@@ -161,7 +163,7 @@ comm_select(void)
 
   set_time();
 
-  if (num < 0)
+  if(num < 0)
   {
 #ifdef HAVE_USLEEP
     usleep(50000);  /* avoid 99% CPU in comm_select */
@@ -169,32 +171,36 @@ comm_select(void)
     return;
   }
 
-  for (ci = 0; ci <= pollmax && num > 0; ci++)
+  for(ci = 0; ci <= pollmax && num > 0; ci++)
   {
-    if ((revents = pollfds[ci].revents) == 0 || pollfds[ci].fd == -1)
+    if((revents = pollfds[ci].revents) == 0 || pollfds[ci].fd == -1)
       continue;
+
     num--;
 
     F = lookup_fd(pollfds[ci].fd);
-    if (F == NULL || !F->flags.open)
+
+    if(F == NULL || !F->flags.open)
       continue;
 
-    if (revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR))
-      if ((hdl = F->read_handler) != NULL)
+    if(revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR))
+      if((hdl = F->read_handler) != NULL)
       {
         F->read_handler = NULL;
         hdl(F, F->read_data);
-  if (!F->flags.open)
-    continue;
+
+        if(!F->flags.open)
+          continue;
       }
 
-    if (revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR))
-      if ((hdl = F->write_handler) != NULL)
+    if(revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR))
+      if((hdl = F->write_handler) != NULL)
       {
         F->write_handler = NULL;
         hdl(F, F->write_data);
-  if (!F->flags.open)
-    continue;
+
+        if(!F->flags.open)
+          continue;
       }
 
     comm_setselect(F, 0, NULL, NULL, 0);

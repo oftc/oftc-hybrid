@@ -55,7 +55,8 @@ static struct capabilities
   unsigned int flags;
   const char *name;
   size_t namelen;
-} capab_list[] = {
+} capab_list[] =
+{
 #define _CAP(cap, flags, name)  \
   { (cap), (flags), (name), sizeof(name) - 1 }
   _CAP(CAP_MULTI_PREFIX, 0, "multi-prefix")
@@ -75,8 +76,8 @@ capab_search(const char *key, const struct capabilities *cap)
 {
   const char *rb = cap->name;
 
-  while (ToLower(*key) == ToLower(*rb)) /* walk equivalent part of strings */
-    if (*key++ == '\0')    /* hit the end, all right... */
+  while(ToLower(*key) == ToLower(*rb))  /* walk equivalent part of strings */
+    if(*key++ == '\0')     /* hit the end, all right... */
       return 0;
     else    /* OK, let's move on... */
       rb++;
@@ -98,34 +99,35 @@ find_cap(const char **caplist_p, int *neg_p)
 
   *neg_p = 0;    /* clear negative flag... */
 
-  if (!inited)
+  if(!inited)
   {
     /* First, let's sort the array... */
-    qsort(capab_list, CAPAB_LIST_LEN, sizeof(struct capabilities), (bqcmp)capab_sort);
+    qsort(capab_list, CAPAB_LIST_LEN, sizeof(struct capabilities),
+          (bqcmp)capab_sort);
     ++inited;
   }
 
   /* Next, find first non-whitespace character... */
-  while (*caplist && IsSpace(*caplist))
+  while(*caplist && IsSpace(*caplist))
     ++caplist;
 
   /* We are now at the beginning of an element of the list; is it negative? */
-  if (*caplist == '-')
+  if(*caplist == '-')
   {
     ++caplist;    /* yes; step past the flag... */
     *neg_p = 1;    /* remember that it is negative... */
   }
 
   /* OK, now see if we can look up the capability... */
-  if (*caplist)
+  if(*caplist)
   {
-    if (!(cap = bsearch(caplist, capab_list, CAPAB_LIST_LEN,
-                        sizeof(struct capabilities),
-                        (bqcmp)capab_search)))
+    if(!(cap = bsearch(caplist, capab_list, CAPAB_LIST_LEN,
+                       sizeof(struct capabilities),
+                       (bqcmp)capab_search)))
     {
       /* Couldn't find the capability; advance to first whitespace character */
-      while (*caplist && !IsSpace(*caplist))
-  ++caplist;
+      while(*caplist && !IsSpace(*caplist))
+        ++caplist;
     }
     else
       caplist += cap->namelen; /* advance to end of capability name */
@@ -159,7 +161,7 @@ send_caplist(struct Client *source_p, unsigned int set,
   clen = snprintf(cmdbuf, sizeof(capbuf), ":%s CAP %s %s ", me.name,
                   source_p->name[0] ? source_p->name : "*", subcmd);
 
-  for (i = 0, loc = 0; i < CAPAB_LIST_LEN; ++i)
+  for(i = 0, loc = 0; i < CAPAB_LIST_LEN; ++i)
   {
     flags = capab_list[i].flags;
 
@@ -169,23 +171,25 @@ send_caplist(struct Client *source_p, unsigned int set,
      * capability if (and only if) it is set in \a rem or \a set, or
      * if both are null and the capability is hidden.
      */
-    if (!(rem && (rem & capab_list[i].cap)) &&
+    if(!(rem && (rem & capab_list[i].cap)) &&
         !(set && (set & capab_list[i].cap)) &&
-         (rem || set || (flags & CAPFL_HIDDEN)))
+        (rem || set || (flags & CAPFL_HIDDEN)))
       continue;
 
     /* Build the prefix (space separator and any modifiers needed). */
     pfx_len = 0;
 
-    if (loc)
+    if(loc)
       pfx[pfx_len++] = ' ';
-    if (rem && (rem & capab_list[i].cap))
+
+    if(rem && (rem & capab_list[i].cap))
       pfx[pfx_len++] = '-';
     else
     {
-      if (flags & CAPFL_PROTO)
+      if(flags & CAPFL_PROTO)
         pfx[pfx_len++] = '~';
-      if (flags & CAPFL_STICKY)
+
+      if(flags & CAPFL_STICKY)
         pfx[pfx_len++] = '=';
     }
 
@@ -193,7 +197,7 @@ send_caplist(struct Client *source_p, unsigned int set,
 
     len = capab_list[i].namelen + pfx_len;    /* how much we'd add... */
 
-    if (sizeof(capbuf) < (clen + loc + len + 15))
+    if(sizeof(capbuf) < (clen + loc + len + 15))
     {
       /* would add too much; must flush */
       sendto_one(source_p, "%s* :%s", cmdbuf, capbuf);
@@ -212,7 +216,7 @@ send_caplist(struct Client *source_p, unsigned int set,
 static int
 cap_ls(struct Client *source_p, const char *caplist)
 {
-  if (IsUnknown(source_p)) /* registration hasn't completed; suspend it... */
+  if(IsUnknown(source_p))  /* registration hasn't completed; suspend it... */
     source_p->localClient->registration |= REG_NEED_CAP;
 
   return send_caplist(source_p, 0, 0, "LS"); /* send list of capabilities */
@@ -228,26 +232,28 @@ cap_req(struct Client *source_p, const char *caplist)
   unsigned int as = source_p->localClient->cap_active; /* active set */
   int neg = 0;
 
-  if (IsUnknown(source_p)) /* registration hasn't completed; suspend it... */
+  if(IsUnknown(source_p))  /* registration hasn't completed; suspend it... */
     source_p->localClient->registration |= REG_NEED_CAP;
 
-  while (cl) { /* walk through the capabilities list... */
-    if (!(cap = find_cap(&cl, &neg)) /* look up capability... */
-  || (!neg && (cap->flags & CAPFL_PROHIBIT)) /* is it prohibited? */
-        || (neg && (cap->flags & CAPFL_STICKY))) { /* is it sticky? */
+  while(cl)    /* walk through the capabilities list... */
+  {
+    if(!(cap = find_cap(&cl, &neg))  /* look up capability... */
+        || (!neg && (cap->flags & CAPFL_PROHIBIT)) /* is it prohibited? */
+        || (neg && (cap->flags & CAPFL_STICKY)))   /* is it sticky? */
+    {
       sendto_one(source_p, ":%s CAP %s NAK :%s", me.name,
                  source_p->name[0] ? source_p->name : "*", caplist);
       return 0; /* can't complete requested op... */
     }
 
-    if (neg)
+    if(neg)
     {
       /* set or clear the capability... */
       rem |=  cap->cap;
       set &= ~cap->cap;
       cs  &= ~cap->cap;
 
-      if (!(cap->flags & CAPFL_PROTO))
+      if(!(cap->flags & CAPFL_PROTO))
         as &= ~cap->cap;
     }
     else
@@ -256,7 +262,7 @@ cap_req(struct Client *source_p, const char *caplist)
       set |=  cap->cap;
       cs  |=  cap->cap;
 
-      if (!(cap->flags & CAPFL_PROTO))
+      if(!(cap->flags & CAPFL_PROTO))
         as |= cap->cap;
     }
   }
@@ -282,15 +288,15 @@ cap_ack(struct Client *source_p, const char *caplist)
    * is using a new backwards-incompatible protocol feature.  As such,
    * it does not require further response from the server.
    */
-  while (cl)
+  while(cl)
   {
     /* walk through the capabilities list... */
-    if (!(cap = find_cap(&cl, &neg)) || /* look up capability... */
-  (neg ? (source_p->localClient->cap_active & cap->cap) :
-              !(source_p->localClient->cap_active & cap->cap))) /* uh... */
+    if(!(cap = find_cap(&cl, &neg)) ||  /* look up capability... */
+        (neg ? (source_p->localClient->cap_active & cap->cap) :
+         !(source_p->localClient->cap_active & cap->cap))) /* uh... */
       continue;
 
-    if (neg)    /* set or clear the active capability... */
+    if(neg)     /* set or clear the active capability... */
       source_p->localClient->cap_active &= ~cap->cap;
     else
       source_p->localClient->cap_active |=  cap->cap;
@@ -306,18 +312,19 @@ cap_clear(struct Client *source_p, const char *caplist)
   unsigned int ii;
   unsigned int cleared = 0;
 
-  for (ii = 0; ii < CAPAB_LIST_LEN; ++ii)
+  for(ii = 0; ii < CAPAB_LIST_LEN; ++ii)
   {
     cap = &capab_list[ii];
 
     /* Only clear active non-sticky capabilities. */
-    if (!(source_p->localClient->cap_active & cap->cap) || (cap->flags & CAPFL_STICKY))
+    if(!(source_p->localClient->cap_active & cap->cap)
+        || (cap->flags & CAPFL_STICKY))
       continue;
 
     cleared |= cap->cap;
     source_p->localClient->cap_client &= ~cap->cap;
 
-    if (!(cap->flags & CAPFL_PROTO))
+    if(!(cap->flags & CAPFL_PROTO))
       source_p->localClient->cap_active &= ~cap->cap;
   }
 
@@ -327,14 +334,14 @@ cap_clear(struct Client *source_p, const char *caplist)
 static int
 cap_end(struct Client *source_p, const char *caplist)
 {
-  if (!IsUnknown(source_p))    /* registration has completed... */
+  if(!IsUnknown(source_p))     /* registration has completed... */
     return 0;    /* so just ignore the message... */
 
   /* capability negotiation is now done... */
   source_p->localClient->registration &= ~REG_NEED_CAP;
 
   /* if client is now done... */
-  if (!source_p->localClient->registration)
+  if(!source_p->localClient->registration)
   {
     register_local_user(source_p);
     return 0;
@@ -354,7 +361,8 @@ static struct subcmd
 {
   const char *cmd;
   int (*proc)(struct Client *, const char *);
-} cmdlist[] = {
+} cmdlist[] =
+{
   { "ACK",   cap_ack   },
   { "CLEAR", cap_clear },
   { "END",   cap_end   },
@@ -382,18 +390,18 @@ m_cap(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   const char *subcmd = NULL, *caplist = NULL;
   struct subcmd *cmd = NULL;
 
-  if (EmptyString(parv[1]))    /* a subcommand is required */
+  if(EmptyString(parv[1]))     /* a subcommand is required */
     return;
 
   subcmd = parv[1];
 
-  if (parc > 2)    /* a capability list was provided */
+  if(parc > 2)     /* a capability list was provided */
     caplist = parv[2];
 
   /* find the subcommand handler */
-  if (!(cmd = bsearch(subcmd, cmdlist,
-                      sizeof(cmdlist) / sizeof(struct subcmd),
-                      sizeof(struct subcmd), (bqcmp)subcmd_search)))
+  if(!(cmd = bsearch(subcmd, cmdlist,
+                     sizeof(cmdlist) / sizeof(struct subcmd),
+                     sizeof(struct subcmd), (bqcmp)subcmd_search)))
   {
     sendto_one(source_p, form_str(ERR_INVALIDCAPCMD), me.name,
                source_p->name[0] ? source_p->name : "*", subcmd);
@@ -401,11 +409,12 @@ m_cap(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   }
 
   /* then execute it... */
-  if (cmd->proc)
+  if(cmd->proc)
     (cmd->proc)(source_p, caplist);
 }
 
-static struct Message cap_msgtab = {
+static struct Message cap_msgtab =
+{
   "CAP", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_cap, m_cap, m_ignore, m_ignore, m_cap, m_ignore }
 };
@@ -422,7 +431,8 @@ module_exit(void)
   mod_del_cmd(&cap_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

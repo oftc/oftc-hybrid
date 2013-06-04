@@ -39,7 +39,7 @@
  *      parv[*] = parameters
  */
 static void
-m_error(struct Client *client_p, struct Client *source_p, 
+m_error(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
   const char *para;
@@ -49,7 +49,7 @@ m_error(struct Client *client_p, struct Client *source_p,
   ilog(LOG_TYPE_IRCD, "Received ERROR message from %s: %s",
        source_p->name, para);
 
-  if (client_p == source_p)
+  if(client_p == source_p)
   {
     sendto_realops_flags(UMODE_ALL, L_ADMIN, "ERROR :from %s -- %s",
                          get_client_name(client_p, HIDE_IP), para);
@@ -64,7 +64,7 @@ m_error(struct Client *client_p, struct Client *source_p,
                          source_p->name, get_client_name(client_p, HIDE_IP), para);
   }
 
-  if (MyClient(source_p))
+  if(MyClient(source_p))
     exit_client(source_p, source_p, "ERROR");
 }
 
@@ -79,7 +79,7 @@ ms_error(struct Client *client_p, struct Client *source_p,
   ilog(LOG_TYPE_IRCD, "Received ERROR message from %s: %s",
        source_p->name, para);
 
-  if (client_p == source_p)
+  if(client_p == source_p)
     sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s -- %s",
                          get_client_name(client_p, MASK_IP), para);
   else
@@ -88,8 +88,9 @@ ms_error(struct Client *client_p, struct Client *source_p,
                          get_client_name(client_p, MASK_IP), para);
 }
 
-static struct Message error_msgtab = {
- "ERROR", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
+static struct Message error_msgtab =
+{
+  "ERROR", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
   { m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore }
 };
 
@@ -105,7 +106,8 @@ module_exit(void)
   mod_del_cmd(&error_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

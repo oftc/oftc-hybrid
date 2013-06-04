@@ -117,7 +117,8 @@ extern void check_spambot_warning(struct Client *, const char *);
 extern void check_splitmode(void *);
 extern void free_channel_list(dlink_list *);
 extern void destroy_channel(struct Channel *);
-extern void set_channel_topic(struct Channel *, const char *, const char *, time_t, int);
+extern void set_channel_topic(struct Channel *, const char *, const char *,
+                              time_t, int);
 
 extern const char *get_member_status(const struct Membership *, int);
 

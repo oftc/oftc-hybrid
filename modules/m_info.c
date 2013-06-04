@@ -475,7 +475,7 @@ m_info(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
     sendto_one(source_p, form_str(RPL_LOAD2HI),
@@ -485,9 +485,9 @@ m_info(struct Client *client_p, struct Client *source_p,
   else
     last_used = CurrentTime;
 
-  if (!ConfigFileEntry.disable_remote)
-    if (hunt_server(client_p,source_p, ":%s INFO :%s", 1,
-                    parc, parv) != HUNTED_ISME)
+  if(!ConfigFileEntry.disable_remote)
+    if(hunt_server(client_p, source_p, ":%s INFO :%s", 1,
+                   parc, parv) != HUNTED_ISME)
       return;
 
   send_info_text(source_p);
@@ -502,8 +502,8 @@ static void
 mo_info(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  if (hunt_server(client_p, source_p, ":%s INFO :%s", 1,
-                  parc, parv) != HUNTED_ISME)
+  if(hunt_server(client_p, source_p, ":%s INFO :%s", 1,
+                 parc, parv) != HUNTED_ISME)
     return;
 
   send_info_text(source_p);
@@ -518,11 +518,11 @@ static void
 ms_info(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  if (!IsClient(source_p))
-      return;
+  if(!IsClient(source_p))
+    return;
 
-  if (hunt_server(client_p, source_p, ":%s INFO :%s", 1,
-                  parc, parv) != HUNTED_ISME)
+  if(hunt_server(client_p, source_p, ":%s INFO :%s", 1,
+                 parc, parv) != HUNTED_ISME)
     return;
 
   send_info_text(source_p);
@@ -545,24 +545,24 @@ send_info_text(struct Client *source_p)
                        source_p->name, source_p->username,
                        source_p->host, source_p->servptr->name);
 
-  if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) &&
+  if(!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) &&
       HasID(source_p))
     source = me.id, target = source_p->id;
   else
     source = me.name, target = source_p->name;
 
-  while (*text)
+  while(*text)
   {
     const char *line = *text++;
 
-    if (*line == '\0')
+    if(*line == '\0')
       line = " ";
 
     sendto_one(source_p, form_str(RPL_INFO),
                source, target, line);
   }
 
-  if (HasUMode(source_p, UMODE_OPER))
+  if(HasUMode(source_p, UMODE_OPER))
     send_conf_options(source_p);
 
   send_birthdate_online_time(source_p);
@@ -580,7 +580,7 @@ send_info_text(struct Client *source_p)
 static void
 send_birthdate_online_time(struct Client *source_p)
 {
-  if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
+  if(!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
   {
     sendto_one(source_p, ":%s %d %s :On-line since %s",
                me.id, RPL_INFO, source_p->id,
@@ -609,7 +609,7 @@ send_conf_options(struct Client *source_p)
   /* Now send them a list of all our configuration options
    * (mostly from defaults.h and setup.h)
    */
-  if (!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
+  if(!MyClient(source_p) && IsCapable(source_p->from, CAP_TS6) && HasID(source_p))
   {
     from = me.id;
     to = source_p->id;
@@ -623,11 +623,11 @@ send_conf_options(struct Client *source_p)
   /*
    * Parse the info_table[] and do the magic.
    */
-  for (iptr = info_table; iptr->name; ++iptr)
+  for(iptr = info_table; iptr->name; ++iptr)
   {
-    switch (iptr->output_type)
+    switch(iptr->output_type)
     {
-      /* For "char *" references */
+        /* For "char *" references */
       case OUTPUT_STRING:
       {
         const char *option = *((char **)iptr->option);
@@ -694,7 +694,7 @@ send_conf_options(struct Client *source_p)
         sendto_one(source_p, ":%s %d %s :%-30s %-5s [%-30s]",
                    from, RPL_INFO, to,
                    iptr->name, option ? ((option == 1) ? "MASK" : "YES") : "NO",
-                   iptr->desc ? iptr->desc : "<none>");
+                     iptr->desc ? iptr->desc : "<none>");
         break;
       }
     }
@@ -704,7 +704,8 @@ send_conf_options(struct Client *source_p)
              from, to, "");
 }
 
-static struct Message info_msgtab = {
+static struct Message info_msgtab =
+{
   "INFO", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_info, ms_info, m_ignore, mo_info, m_ignore }
 };
@@ -721,7 +722,8 @@ module_exit(void)
   mod_del_cmd(&info_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

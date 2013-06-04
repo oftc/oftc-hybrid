@@ -35,16 +35,16 @@
 /*
  * sigterm_handler - exit the server
  */
-static void 
-sigterm_handler(int sig)  
+static void
+sigterm_handler(int sig)
 {
   server_die("received signal SIGTERM", 0);
 }
 
-/* 
+/*
  * sighup_handler - reread the server configuration
  */
-static void 
+static void
 sighup_handler(int sig)
 {
   dorehash = 1;
@@ -60,7 +60,7 @@ sigusr1_handler(int sig)
 }
 
 /*
- * 
+ *
  * inputs  - nothing
  * output  - nothing
  * side effects - Reaps zombies periodically
@@ -70,6 +70,7 @@ static void
 sigchld_handler(int sig)
 {
   int status;
+
   while(waitpid(-1, &status, WNOHANG) > 0)
     ;
 }
@@ -77,7 +78,7 @@ sigchld_handler(int sig)
 /*
  * sigint_handler - restart the server
  */
-static void 
+static void
 sigint_handler(int sig)
 {
   server_die("SIGINT received", !server_state.foreground);
@@ -86,7 +87,7 @@ sigint_handler(int sig)
 /*
  * setup_signals - initialize signal handlers for server
  */
-void 
+void
 setup_signals(void)
 {
   struct sigaction act;

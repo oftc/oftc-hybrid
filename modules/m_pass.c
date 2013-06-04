@@ -24,7 +24,7 @@
 
 #include "stdinc.h"
 #include "client.h"      /* client struct */
-#include "irc_string.h" 
+#include "irc_string.h"
 #include "send.h"        /* sendto_one */
 #include "numeric.h"     /* ERR_xxx */
 #include "ircd.h"        /* me */
@@ -51,7 +51,7 @@ mr_pass(struct Client *client_p, struct Client *source_p,
 
   assert(client_p == source_p);
 
-  if (EmptyString(password))
+  if(EmptyString(password))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name,
                source_p->name[0] ? source_p->name : "*", "PASS");
@@ -59,11 +59,13 @@ mr_pass(struct Client *client_p, struct Client *source_p,
   }
 
   MyFree(source_p->localClient->passwd);
-  if (strlen(password) > PASSWDLEN)
+
+  if(strlen(password) > PASSWDLEN)
     password[PASSWDLEN] = '\0';
+
   DupString(source_p->localClient->passwd, password);
 
-  if (parc > 2)
+  if(parc > 2)
   {
     /* It looks to me as if orabidoo wanted to have more
      * than one set of option strings possible here...
@@ -72,14 +74,14 @@ mr_pass(struct Client *client_p, struct Client *source_p,
      * safely assume if there is a ":TS" then its a TS server
      * -Dianora
      */
-    if (!irccmp(parv[2], "TS") && source_p->tsinfo == 0)
+    if(!irccmp(parv[2], "TS") && source_p->tsinfo == 0)
       source_p->tsinfo = TS_DOESTS;
   }
 
   /* only do this stuff if we are doing ts6 */
-  if (parc > 4)
+  if(parc > 4)
   {
-    if (atoi(parv[3]) >= 6 && valid_sid(parv[4]))
+    if(atoi(parv[3]) >= 6 && valid_sid(parv[4]))
     {
       strlcpy(source_p->id, parv[4], sizeof(source_p->id));
       SetCapable(source_p, CAP_TS6);
@@ -87,7 +89,8 @@ mr_pass(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message pass_msgtab = {
+static struct Message pass_msgtab =
+{
   "PASS", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { mr_pass, m_registered, m_ignore, m_ignore, m_registered, mr_pass }
 };
@@ -104,7 +107,8 @@ module_exit(void)
   mod_del_cmd(&pass_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

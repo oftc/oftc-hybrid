@@ -29,14 +29,15 @@
 #include "ircd_defs.h"
 #define FD_DESC_SZ 128  /* hostlen + comment */
 
-enum {
-    COMM_OK,
-    COMM_ERR_BIND,
-    COMM_ERR_DNS,
-    COMM_ERR_TIMEOUT,
-    COMM_ERR_CONNECT,
-    COMM_ERROR,
-    COMM_ERR_MAX
+enum
+{
+  COMM_OK,
+  COMM_ERR_BIND,
+  COMM_ERR_DNS,
+  COMM_ERR_TIMEOUT,
+  COMM_ERR_CONNECT,
+  COMM_ERROR,
+  COMM_ERR_MAX
 };
 
 struct _fde;
@@ -49,7 +50,8 @@ typedef void PF(struct _fde *, void *);
 /* int fd, int status, void * */
 typedef void CNCB(struct _fde *, int, void *);
 
-typedef struct _fde {
+typedef struct _fde
+{
   /* New-school stuff, again pretty much ripped from squid */
   /*
    * Yes, this gives us only one pending read and one pending write per
@@ -70,15 +72,17 @@ typedef struct _fde {
   void *flush_data;
   time_t flush_timeout;
 
-  struct {
-    unsigned int open:1;
-    unsigned int is_socket:1;
+  struct
+  {
+    unsigned int open: 1;
+    unsigned int is_socket: 1;
 #ifdef HAVE_LIBCRYPTO
-    unsigned int pending_read:1;
+    unsigned int pending_read: 1;
 #endif
   } flags;
 
-  struct {
+  struct
+  {
     /* We don't need the host here ? */
     struct irc_ssaddr S;
     struct irc_ssaddr hostaddr;

@@ -28,7 +28,7 @@
 /* Here are some default paths. Most except DPATH are
  * configurable at runtime. */
 
-/* 
+/*
  * Directory paths and filenames for UNIX systems.
  * PREFIX is set using ./configure --prefix, see INSTALL.
  * The other defaults should be fine.
@@ -71,7 +71,7 @@
 #define XPATH   ETCPATH "/xline.conf"           /* xline file */
 #define MPATH   ETCPATH "/ircd.motd"            /* MOTD file */
 #define LPATH   LOGPATH "/ircd.log"             /* ircd logfile */
-#define OFTCLOG LOGPATH "/oftc.log" 
+#define OFTCLOG LOGPATH "/oftc.log"
 #define PPATH   RUNPATH "/ircd.pid"             /* pid file */
 #define LIPATH  ETCPATH "/links.txt"            /* cached links file */
 
@@ -128,7 +128,7 @@
 
 #define MIN_JOIN_LEAVE_TIME  60
 #define MAX_JOIN_LEAVE_COUNT  25
-#define OPER_SPAM_COUNTDOWN   5 
+#define OPER_SPAM_COUNTDOWN   5
 #define JOIN_LEAVE_COUNT_EXPIRE_TIME 120
 
 #define MIN_SPAM_NUM 5

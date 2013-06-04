@@ -33,75 +33,93 @@ static char *pass_param = NULL;
 static int pass_cb(char *buf, int size, int rwflag, void *u)
 {
   int len;
-        char *tmp;
+  char *tmp;
 
-  if (insecure_mode != 0)
+  if(insecure_mode != 0)
   {
-    if (pass_param == NULL)
+    if(pass_param == NULL)
       return 0;
+
     len = strlen(pass_param);
-    if (len <= 0)  /* This SHOULDN'T happen */
+
+    if(len <= 0)   /* This SHOULDN'T happen */
       return 0;
-    if (len > size)
+
+    if(len > size)
       len = size;
+
     memcpy(buf, pass_param, len);
     return len;
   }
 
   tmp = getpass("Enter passphrase for challenge: ");
-  if (!tmp)
-        {
+
+  if(!tmp)
+  {
     puts("Couldn't read passphrase from stdin!");
     exit(-1);
   }
-        len = strlen(tmp);
-        if (len <= 0) 
+
+  len = strlen(tmp);
+
+  if(len <= 0)
     return 0;
-        if (len > size)
-          len = size;
-        memcpy(buf, tmp, len);
-        return len;
+
+  if(len > size)
+    len = size;
+
+  memcpy(buf, tmp, len);
+  return len;
 }
 
 static void
-binary_to_hex( unsigned char * bin, char * hex, int length )
+binary_to_hex(unsigned char *bin, char *hex, int length)
 {
   static const char trans[] = "0123456789ABCDEF";
   int i;
 
-  for( i = 0; i < length; i++ )
+  for(i = 0; i < length; i++)
   {
-    hex[i<<1]     = trans[bin[i] >> 4];
-    hex[(i<<1)+1] = trans[bin[i] & 0xf];
+    hex[i << 1]     = trans[bin[i] >> 4];
+    hex[(i << 1) + 1] = trans[bin[i] & 0xf];
   }
-  hex[i<<1] = '\0';
+
+  hex[i << 1] = '\0';
 }
 
 static int
 hex_to_binary(const char *from, char *to, int len)
 {
-  char a, b=1;
-  int p=0;
+  char a, b = 1;
+  int p = 0;
   const char *ptr = from;
-  while (-1)
+
+  while(-1)
   {
     a = *ptr++;
-    if (!a)
+
+    if(!a)
       break;
+
     b = *ptr++;
-    
+
     /* If this happens, we got bad input. */
-    if (!b)
+    if(!b)
       break;
-    if (p >= len)
+
+    if(p >= len)
       break;
-    if (!((a >= '0' && a <= '9') || (a >= 'A' && a <= 'F')))
+
+    if(!((a >= '0' && a <= '9') || (a >= 'A' && a <= 'F')))
       break;
-    if (!((b >= '0' && b <= '9') || (b >= 'A' && b <= 'F')))
+
+    if(!((b >= '0' && b <= '9') || (b >= 'A' && b <= 'F')))
       break;
-    to[p++] = ((a <= '9') ? (a - '0') : (a - 'A' + 0xA))<<4 |
-      ((b <= '9') ? (b - '0') : (b - 'A' + 0xA));
+
+    to[p++] = ((a <= '9') ? (a - '0') : (a - 'A' + 0xA)) << 4 |
+              ((b <= '9') ? (b - '0') : (b - 'A' + 0xA));
   }
+
   return p;
 }
 
@@ -111,14 +129,15 @@ main(int argc, char **argv)
   FILE *kfile;
   RSA *rsa = NULL;
   char ndata[257], ddata[257];
+
   /* respond privatefile challenge */
-  if (argc < 3)
+  if(argc < 3)
   {
     puts("Usage: respond privatefile challenge [passphrase]");
     return 0;
   }
 
-  if (argc == 4)
+  if(argc == 4)
   {
     /* This is TOTALLY insecure and not recommended, but for
     ** interfacing with irc client scripts, it's either this
@@ -132,35 +151,37 @@ main(int argc, char **argv)
     pass_param = argv[3];
   }
 
-  if (!(kfile = fopen(argv[1], "r")))
+  if(!(kfile = fopen(argv[1], "r")))
   {
     puts("Could not open the private keyfile.");
     return 0;
   }
-  
+
   SSLeay_add_all_ciphers();
-  rsa = PEM_read_RSAPrivateKey(kfile, NULL,pass_cb, NULL);
-  
+  rsa = PEM_read_RSAPrivateKey(kfile, NULL, pass_cb, NULL);
+
   if(!rsa)
   {
     puts("Unable to read your private key, is the passphrase wrong?");
     return 0;
   }
 
-   fclose(kfile);
-  if (hex_to_binary(argv[2], ndata, 128) != 128)
+  fclose(kfile);
+
+  if(hex_to_binary(argv[2], ndata, 128) != 128)
   {
     puts("Bad challenge.");
     return -1;
   }
 
-  if (RSA_private_decrypt(128, (unsigned char*)ndata,
-    (unsigned char*)ddata, rsa, RSA_PKCS1_PADDING) == -1)
+  if(RSA_private_decrypt(128, (unsigned char *)ndata,
+                         (unsigned char *)ddata, rsa, RSA_PKCS1_PADDING) == -1)
   {
     puts("Decryption error.");
     return -1;
   }
-  binary_to_hex((unsigned char*)ddata, ndata, 32);
+
+  binary_to_hex((unsigned char *)ddata, ndata, 32);
   puts(ndata);
   return 0;
 }

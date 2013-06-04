@@ -68,8 +68,10 @@ struct AddressRec
 
 extern dlink_list atable[ATABLE_SIZE];
 extern int parse_netmask(const char *, struct irc_ssaddr *, int *);
-extern int match_ipv6(const struct irc_ssaddr *, const struct irc_ssaddr *, int);
-extern int match_ipv4(const struct irc_ssaddr *, const struct irc_ssaddr *, int);
+extern int match_ipv6(const struct irc_ssaddr *, const struct irc_ssaddr *,
+                      int);
+extern int match_ipv4(const struct irc_ssaddr *, const struct irc_ssaddr *,
+                      int);
 
 extern void mask_addr(struct irc_ssaddr *, int);
 extern void init_host_hash(void);
@@ -79,8 +81,9 @@ extern void clear_out_address_conf(void);
 extern void hostmask_expire_temporary(void);
 
 extern struct AccessItem *find_address_conf(const char *, const char *,
-                                            struct irc_ssaddr *, int, char *, char *);
+    struct irc_ssaddr *, int, char *, char *);
 extern struct AccessItem *find_dline_conf(struct irc_ssaddr *, int);
-extern struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
-                                               unsigned int, int, const char *, const char *, int, const char *);
+extern struct AccessItem *find_conf_by_address(const char *,
+    struct irc_ssaddr *,
+    unsigned int, int, const char *, const char *, int, const char *);
 #endif /* INCLUDE_hostmask_h */

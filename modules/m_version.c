@@ -35,15 +35,16 @@
 
 
 /* Option string. */
-static const char serveropts[] = {
+static const char serveropts[] =
+{
   ' ',
   'T',
   'S',
 #ifdef TS_CURRENT
   '0' + TS_CURRENT,
 #endif
-/* ONLY do TS */
-/* ALWAYS do TS_WARNINGS */
+  /* ONLY do TS */
+  /* ALWAYS do TS_WARNINGS */
   'o',
   'w',
   '\0'
@@ -66,7 +67,7 @@ confopts(struct Client *source_p)
   *p++ = 'g';
 
   /* might wanna hide this :P */
-  if (ServerInfo.hub &&
+  if(ServerInfo.hub &&
       (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER)))
   {
     *p++ = 'H';
@@ -77,8 +78,9 @@ confopts(struct Client *source_p)
   *p++ = 'q'; /* quiet */
   *p++ = 'M';
 
-  if (ConfigFileEntry.ignore_bogus_ts)
+  if(ConfigFileEntry.ignore_bogus_ts)
     *p++ = 'T';
+
   *p++ = '6';
 
   *p = '\0';
@@ -97,7 +99,7 @@ m_version(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+  if((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
   {
     /* safe enough to give this on a local connect only */
     sendto_one(source_p, form_str(RPL_LOAD2HI),
@@ -107,10 +109,10 @@ m_version(struct Client *client_p, struct Client *source_p,
   else
     last_used = CurrentTime;
 
-  if (!ConfigFileEntry.disable_remote)
+  if(!ConfigFileEntry.disable_remote)
   {
-    if (hunt_server(client_p, source_p, ":%s VERSION :%s",
-                    1, parc, parv) != HUNTED_ISME)
+    if(hunt_server(client_p, source_p, ":%s VERSION :%s",
+                   1, parc, parv) != HUNTED_ISME)
       return;
   }
 
@@ -129,14 +131,14 @@ static void
 mo_version(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
-  
-  if (hunt_server(client_p, source_p, ":%s VERSION :%s", 
-      1, parc, parv) != HUNTED_ISME)
+
+  if(hunt_server(client_p, source_p, ":%s VERSION :%s",
+                 1, parc, parv) != HUNTED_ISME)
     return;
 
   sendto_one(source_p, form_str(RPL_VERSION), me.name,
-             source_p->name, ircd_version, 
-         serno, me.name, confopts(source_p), serveropts);
+             source_p->name, ircd_version,
+             serno, me.name, confopts(source_p), serveropts);
 
   show_isupport(source_p);
 }
@@ -150,8 +152,8 @@ static void
 ms_version(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
-  if (hunt_server(client_p, source_p, ":%s VERSION :%s", 
-                  1, parc, parv) == HUNTED_ISME)
+  if(hunt_server(client_p, source_p, ":%s VERSION :%s",
+                 1, parc, parv) == HUNTED_ISME)
   {
     sendto_one(source_p, form_str(RPL_VERSION),
                ID_or_name(&me, client_p),
@@ -162,7 +164,8 @@ ms_version(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message version_msgtab = {
+static struct Message version_msgtab =
+{
   "VERSION", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_version, ms_version, m_ignore, mo_version, m_ignore }
 };
@@ -179,7 +182,8 @@ module_exit(void)
   mod_del_cmd(&version_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

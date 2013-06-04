@@ -60,14 +60,14 @@ m_knock(struct Client *client_p, struct Client *source_p,
 {
   struct Channel *chptr = NULL;
 
-  if (EmptyString(parv[1]))
+  if(EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "KNOCK");
     return;
   }
 
-  if ((chptr = hash_find_channel(parv[1])) == NULL)
+  if((chptr = hash_find_channel(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                me.name, source_p->name, parv[1]);
@@ -75,28 +75,28 @@ m_knock(struct Client *client_p, struct Client *source_p,
   }
 
   /* Normal channel, just be sure they aren't on it */
-  if (IsMember(source_p, chptr))
+  if(IsMember(source_p, chptr))
   {
     sendto_one(source_p, form_str(ERR_KNOCKONCHAN), me.name,
                source_p->name, chptr->chname);
     return;
   }
 
-  if (!((chptr->mode.mode & MODE_INVITEONLY) || (*chptr->mode.key) ||
-        (chptr->mode.limit && dlink_list_length(&chptr->members) >=
-         chptr->mode.limit)))
+  if(!((chptr->mode.mode & MODE_INVITEONLY) || (*chptr->mode.key) ||
+       (chptr->mode.limit && dlink_list_length(&chptr->members) >=
+        chptr->mode.limit)))
   {
     sendto_one(source_p, form_str(ERR_CHANOPEN), me.name,
                source_p->name, chptr->chname);
     return;
   }
 
-  if (MyClient(source_p))
+  if(MyClient(source_p))
   {
     /*
      * Don't allow a knock if the user is banned, or the channel is private
      */
-    if (PrivateChannel(chptr) || is_banned(chptr, source_p))
+    if(PrivateChannel(chptr) || is_banned(chptr, source_p))
     {
       sendto_one(source_p, form_str(ERR_CANNOTSENDTOCHAN),
                  me.name, source_p->name, chptr->chname);
@@ -110,7 +110,7 @@ m_knock(struct Client *client_p, struct Client *source_p,
      *
      * we only limit local requests..
      */
-    if ((source_p->localClient->last_knock + ConfigChannel.knock_delay) >
+    if((source_p->localClient->last_knock + ConfigChannel.knock_delay) >
         CurrentTime)
     {
       sendto_one(source_p, form_str(ERR_TOOMANYKNOCK), me.name,
@@ -118,7 +118,7 @@ m_knock(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    if ((chptr->last_knock + ConfigChannel.knock_delay_channel) > CurrentTime)
+    if((chptr->last_knock + ConfigChannel.knock_delay_channel) > CurrentTime)
     {
       sendto_one(source_p, form_str(ERR_TOOMANYKNOCK), me.name,
                  source_p->name, chptr->chname, "channel");
@@ -140,13 +140,14 @@ m_knock(struct Client *client_p, struct Client *source_p,
                        source_p->username,
                        source_p->host);
 
-  sendto_server(client_p, CAP_KNOCK|CAP_TS6, NOCAPS,
+  sendto_server(client_p, CAP_KNOCK | CAP_TS6, NOCAPS,
                 ":%s KNOCK %s", ID(source_p), chptr->chname);
   sendto_server(client_p, CAP_KNOCK, CAP_TS6,
                 ":%s KNOCK %s", source_p->name, chptr->chname);
 }
 
-static struct Message knock_msgtab = {
+static struct Message knock_msgtab =
+{
   "KNOCK", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_knock, m_knock, m_ignore, m_knock, m_ignore }
 };
@@ -167,7 +168,8 @@ module_exit(void)
   delete_isupport("KNOCK");
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

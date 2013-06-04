@@ -45,19 +45,20 @@ m_userhost(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p;
   char buf[IRCD_BUFSIZE];
-  char response[NICKLEN*2+USERLEN+HOSTLEN+30];
+  char response[NICKLEN * 2 + USERLEN + HOSTLEN + 30];
   char *t = NULL, *p = NULL, *nick = NULL;
   int i = 0;               /* loop counter */
   int cur_len;
   int rl;
 
-  cur_len = snprintf(buf, sizeof(buf), form_str(RPL_USERHOST), me.name, source_p->name, "");
+  cur_len = snprintf(buf, sizeof(buf), form_str(RPL_USERHOST), me.name,
+                     source_p->name, "");
   t = buf + cur_len;
 
-  for (nick = strtoken(&p, parv[1], " "); nick && i++ < 5;
-       nick = strtoken(&p,    NULL, " "))
+  for(nick = strtoken(&p, parv[1], " "); nick && i++ < 5;
+      nick = strtoken(&p,    NULL, " "))
   {
-    if ((target_p = find_person(client_p, nick)) != NULL)
+    if((target_p = find_person(client_p, nick)) != NULL)
     {
       /*
        * Show real IP for USERHOST on yourself.
@@ -65,7 +66,7 @@ m_userhost(struct Client *client_p, struct Client *source_p,
        * lookup (USERHOST) to figure out what the clients' local IP
        * is.  Useful for things like NAT, and dynamic dial-up users.
        */
-      if (MyClient(target_p) && (target_p == source_p))
+      if(MyClient(target_p) && (target_p == source_p))
       {
         rl = ircsprintf(response, "%s%s=%c%s@%s ",
                         target_p->name,
@@ -79,13 +80,13 @@ m_userhost(struct Client *client_p, struct Client *source_p,
         rl = ircsprintf(response, "%s%s=%c%s@%s ",
                         target_p->name, (HasUMode(target_p, UMODE_OPER) &&
                                          (!HasUMode(target_p, UMODE_HIDDEN) ||
-                                           HasUMode(source_p, UMODE_OPER))) ? "*" : "",
+                                          HasUMode(source_p, UMODE_OPER))) ? "*" : "",
                         (target_p->away[0]) ? '-' : '+',
                         target_p->username,
                         target_p->host);
       }
 
-      if ((rl + cur_len) < (IRCD_BUFSIZE - 10))
+      if((rl + cur_len) < (IRCD_BUFSIZE - 10))
       {
         ircsprintf(t, "%s", response);
         t += rl;
@@ -99,7 +100,8 @@ m_userhost(struct Client *client_p, struct Client *source_p,
   sendto_one(source_p, "%s", buf);
 }
 
-static struct Message userhost_msgtab = {
+static struct Message userhost_msgtab =
+{
   "USERHOST", 0, 0, 2, 1, MFLG_SLOW, 0,
   {m_unregistered, m_userhost, m_userhost, m_ignore, m_userhost, m_ignore}
 };
@@ -116,7 +118,8 @@ module_exit(void)
   mod_del_cmd(&userhost_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

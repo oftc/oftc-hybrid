@@ -49,8 +49,8 @@ struct conf_parser_context
 extern struct conf_parser_context conf_parser_ctx;
 
 typedef enum
-{  
-  CONF_TYPE, 
+{
+  CONF_TYPE,
   CLASS_TYPE,
   OPER_TYPE,
   CLIENT_TYPE,
@@ -61,9 +61,9 @@ typedef enum
   DLINE_TYPE,
   EXEMPTDLINE_TYPE,
   CLUSTER_TYPE,
-  XLINE_TYPE,    
+  XLINE_TYPE,
   ULINE_TYPE,
-  CRESV_TYPE,     
+  CRESV_TYPE,
   NRESV_TYPE,
   SERVICE_TYPE
 } ConfType;
@@ -122,20 +122,20 @@ struct AccessItem
   int              type;
   struct irc_ssaddr bind;  /* ip to bind to for outgoing connect */
   struct irc_ssaddr addr;  /* ip to connect to */
-  char *           host;     /* host part of user@host */
-  char *           passwd;
-  char *           spasswd;  /* Password to send. */
-  char *     reason;
-  char *     oper_reason;
-  char *           user;     /* user part of user@host */
+  char            *host;     /* host part of user@host */
+  char            *passwd;
+  char            *spasswd;  /* Password to send. */
+  char      *reason;
+  char      *oper_reason;
+  char            *user;     /* user part of user@host */
   time_t           hold;     /* Hold action until this time (calendar time) */
   struct ConfItem *class_ptr;  /* Class of connection */
   int              aftype;
 #ifdef HAVE_LIBCRYPTO
   /* certs */
   char *cipher_list;
-  char *           rsa_public_key_file;
-  RSA *            rsa_public_key;
+  char            *rsa_public_key_file;
+  RSA             *rsa_public_key;
   char *certfp;
 #endif
   void *regexuser;
@@ -267,7 +267,7 @@ struct ip_entry
 #define SetConfSSL(x)     ((x)->flags |= CONF_FLAGS_SSL)
 #define ClearConfSSL(x)   ((x)->flags &= ~CONF_FLAGS_SSL)
 
-/* shared/cluster server entry types 
+/* shared/cluster server entry types
  * These defines are used for both shared and cluster.
  */
 #define SHARED_KLINE    0x0001
@@ -280,9 +280,9 @@ struct ip_entry
 #define SHARED_DLINE            0x0080
 #define SHARED_UNDLINE          0x0100
 #define SHARED_ALL    (SHARED_KLINE | SHARED_UNKLINE |\
-         SHARED_XLINE | SHARED_UNXLINE |\
-         SHARED_RESV | SHARED_UNRESV |\
-                                 SHARED_LOCOPS | SHARED_DLINE | SHARED_UNDLINE)
+                       SHARED_XLINE | SHARED_UNXLINE |\
+                       SHARED_RESV | SHARED_UNRESV |\
+                       SHARED_LOCOPS | SHARED_DLINE | SHARED_UNDLINE)
 
 #define DEFAULT_CLASS_REJECT_MESSAGE "No more connections permitted from your host"
 
@@ -345,7 +345,7 @@ struct config_file_entry
   int ping_cookie;
   int disable_auth;
   int disable_remote;
-  int godmode_timeout; 
+  int godmode_timeout;
 };
 
 struct config_channel_entry
@@ -456,9 +456,10 @@ extern int conf_connect_allowed(struct irc_ssaddr *, int);
 extern char *oper_privs_as_string(const unsigned int);
 extern void split_nuh(struct split_nuh_item *);
 extern struct ConfItem *find_matching_name_conf(ConfType, const char *,
-                                                const char *, const char *, int);
-extern struct ConfItem *find_exact_name_conf(ConfType, const struct Client *, const char *,
-                                             const char *, const char *);
+    const char *, const char *, int);
+extern struct ConfItem *find_exact_name_conf(ConfType, const struct Client *,
+    const char *,
+    const char *, const char *);
 extern void delete_conf_item(struct ConfItem *);
 extern void report_confitem_types(struct Client *, ConfType);
 extern void yyerror(const char *);
@@ -483,15 +484,15 @@ extern struct ConfItem *unmap_conf_item(void *);
 /* XXX should the parse_aline stuff go into another file ?? */
 #define AWILD 0x1    /* check wild cards */
 extern int parse_aline(const char *, struct Client *, int, char **,
-           int, char **, char **, time_t *, char **, char **);
+                       int, char **, char **, time_t *, char **, char **);
 extern int valid_comment(struct Client *, char *, int);
 
 
 #define TK_SECONDS 0
 #define TK_MINUTES 1
 extern time_t valid_tkline(const char *, int);
-extern int match_conf_password(const char *, const char *, 
-    const struct AccessItem *);
+extern int match_conf_password(const char *, const char *,
+                               const struct AccessItem *);
 
 #define NOT_AUTHORIZED    (-1)
 #define I_LINE_FULL       (-2)
@@ -502,7 +503,7 @@ extern int match_conf_password(const char *, const char *,
 #define CLEANUP_TKLINES_TIME 60
 
 extern void cluster_a_line(struct Client *,
-         const char *, int, int, const char *,...);
+                           const char *, int, int, const char *, ...);
 extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
 extern struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
 extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
@@ -511,5 +512,5 @@ extern void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
 extern void conf_error_report(const char *);
 
 void apply_conf_ban(struct Client *, int, const char *, const char *,
-    const char *, const char *, time_t);
+                    const char *, const char *, time_t);
 #endif /* INCLUDED_s_conf_h */

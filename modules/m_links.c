@@ -44,7 +44,7 @@ do_links(struct Client *source_p, int parc, char *parv[])
                        source_p->username, source_p->host,
                        source_p->servptr->name);
 
-  if (HasUMode(source_p, UMODE_OPER) || !ConfigServerHide.flatten_links)
+  if(HasUMode(source_p, UMODE_OPER) || !ConfigServerHide.flatten_links)
   {
     const char *mask = (parc > 2 ? parv[2] : parv[1]);
     const char *me_name, *nick, *p;
@@ -58,12 +58,12 @@ do_links(struct Client *source_p, int parc, char *parv[])
     {
       target_p = ptr->data;
 
-      if (!EmptyString(mask) && !match(mask, target_p->name))
+      if(!EmptyString(mask) && !match(mask, target_p->name))
         continue;
 
-      if (target_p->info[0])
+      if(target_p->info[0])
       {
-        if ((p = strchr(target_p->info, ']')))
+        if((p = strchr(target_p->info, ']')))
           p += 2; /* skip the nasty [IP] part */
         else
           p = target_p->info;
@@ -72,14 +72,14 @@ do_links(struct Client *source_p, int parc, char *parv[])
         p = "(Unknown Location)";
 
       /* We just send the reply, as if they are here there's either no SHIDE,
-       * or they're an oper..  
+       * or they're an oper..
        */
       sendto_one(source_p, form_str(RPL_LINKS),
                  me_name, nick,
                  target_p->name, target_p->servptr->name,
                  target_p->hopcount, p);
     }
-  
+
     sendto_one(source_p, form_str(RPL_ENDOFLINKS),
                me_name, nick,
                EmptyString(mask) ? "*" : mask);
@@ -105,10 +105,10 @@ static void
 mo_links(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  if (parc > 2)
-    if (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER))
-      if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1,
-                      parc, parv) != HUNTED_ISME)
+  if(parc > 2)
+    if(!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER))
+      if(hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1,
+                     parc, parv) != HUNTED_ISME)
         return;
 
   do_links(source_p, parc, parv);
@@ -120,7 +120,7 @@ mo_links(struct Client *client_p, struct Client *source_p,
  *      parv[1] = servername mask
  * or
  *      parv[0] = sender prefix
- *      parv[1] = server to query 
+ *      parv[1] = server to query
  *      parv[2] = servername mask
  */
 static void
@@ -129,16 +129,16 @@ m_links(struct Client *client_p, struct Client *source_p,
 {
   static time_t last_used = 0;
 
-  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  if((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI),
                me.name, source_p->name);
     return;
   }
-  
+
   last_used = CurrentTime;
 
-  if (!ConfigServerHide.flatten_links)
+  if(!ConfigServerHide.flatten_links)
   {
     mo_links(client_p, source_p, parc, parv);
     return;
@@ -153,22 +153,23 @@ m_links(struct Client *client_p, struct Client *source_p,
  *      parv[1] = servername mask
  * or
  *      parv[0] = sender prefix
- *      parv[1] = server to query 
+ *      parv[1] = server to query
  *      parv[2] = servername mask
  */
 static void
 ms_links(struct Client *client_p, struct Client *source_p,
          int parc, char *parv[])
 {
-  if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1,
-                  parc, parv) != HUNTED_ISME)
+  if(hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1,
+                 parc, parv) != HUNTED_ISME)
     return;
 
-  if (IsClient(source_p))
+  if(IsClient(source_p))
     m_links(client_p, source_p, parc, parv);
 }
 
-static struct Message links_msgtab = {
+static struct Message links_msgtab =
+{
   "LINKS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_links, ms_links, m_ignore, mo_links, m_ignore}
 };
@@ -185,7 +186,8 @@ module_exit(void)
   mod_del_cmd(&links_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

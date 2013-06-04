@@ -30,7 +30,7 @@ struct ConfItem;
 /*
  * number of seconds to wait after server starts up, before
  * starting try_connections()
- * TOO SOON and you can nick collide like crazy. 
+ * TOO SOON and you can nick collide like crazy.
  */
 #define STARTUP_CONNECTIONS_TIME 20
 
@@ -74,7 +74,7 @@ struct Capability
 
 
 /*
- * return values for hunt_server() 
+ * return values for hunt_server()
  */
 #define HUNTED_NOSUCH   (-1)    /* if the hunted server is not found */
 #define HUNTED_ISME     0       /* if this server should execute the command */

@@ -86,11 +86,11 @@ unload_one_module(const char *name, int warn)
 {
   struct module *modp = NULL;
 
-  if ((modp = findmodule_byname(name)) == NULL)
+  if((modp = findmodule_byname(name)) == NULL)
     return -1;
 
-  if (modp->modexit)
-   modp->modexit();
+  if(modp->modexit)
+    modp->modexit();
 
   assert(dlink_list_length(&modules_list) > 0);
   dlinkDelete(&modp->node, &modules_list);
@@ -98,7 +98,7 @@ unload_one_module(const char *name, int warn)
 
   lt_dlclose(modp->handle);
 
-  if (warn == 1)
+  if(warn == 1)
   {
     ilog(LOG_TYPE_IRCD, "Module %s unloaded", name);
     sendto_realops_flags(UMODE_ALL, L_ALL, "Module %s unloaded", name);
@@ -120,10 +120,11 @@ load_a_module(const char *path, int warn)
   const char *mod_basename = NULL;
   struct module *modp = NULL;
 
-  if (findmodule_byname((mod_basename = basename(path))))
+  if(findmodule_byname((mod_basename = basename(path))))
     return 1;
 
-  if (!(tmpptr = lt_dlopen(path))) {
+  if(!(tmpptr = lt_dlopen(path)))
+  {
     const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
 
     sendto_realops_flags(UMODE_ALL, L_ALL, "Error loading module %s: %s",
@@ -132,7 +133,7 @@ load_a_module(const char *path, int warn)
     return -1;
   }
 
-  if ((modp = lt_dlsym(tmpptr, "module_entry")) == NULL)
+  if((modp = lt_dlsym(tmpptr, "module_entry")) == NULL)
   {
     const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
 
@@ -145,16 +146,16 @@ load_a_module(const char *path, int warn)
 
   modp->handle = tmpptr;
 
-  if (EmptyString(modp->version))
+  if(EmptyString(modp->version))
     modp->version = unknown_ver;
 
   DupString(modp->name, mod_basename);
   dlinkAdd(modp, &modp->node, &modules_list);
 
-  if (modp->modinit)
+  if(modp->modinit)
     modp->modinit();
 
-  if (warn == 1)
+  if(warn == 1)
   {
     sendto_realops_flags(UMODE_ALL, L_ALL,
                          "Module %s [version: %s handle: %p] loaded.",
@@ -176,7 +177,7 @@ load_a_module(const char *path, int warn)
 void
 modules_init(void)
 {
-  if (lt_dlinit())
+  if(lt_dlinit())
   {
     ilog(LOG_TYPE_IRCD, "Couldn't initialize the libltdl run time dynamic"
          " link library. Exiting.");
@@ -199,7 +200,7 @@ mod_find_path(const char *path)
   {
     struct module_path *mpath = ptr->data;
 
-    if (!strcmp(path, mpath->path))
+    if(!strcmp(path, mpath->path))
       return mpath;
   }
 
@@ -217,7 +218,7 @@ mod_add_path(const char *path)
 {
   struct module_path *pathst;
 
-  if (mod_find_path(path))
+  if(mod_find_path(path))
     return;
 
   pathst = MyMalloc(sizeof(struct module_path));
@@ -282,7 +283,7 @@ findmodule_byname(const char *name)
   {
     struct module *modp = ptr->data;
 
-    if (strcmp(modp->name, name) == 0)
+    if(strcmp(modp->name, name) == 0)
       return modp;
   }
 
@@ -302,22 +303,22 @@ load_all_modules(int warn)
   struct dirent *ldirent = NULL;
   char module_fq_name[HYB_PATH_MAX + 1];
 
-  if ((system_module_dir = opendir(AUTOMODPATH)) == NULL)
+  if((system_module_dir = opendir(AUTOMODPATH)) == NULL)
   {
     ilog(LOG_TYPE_IRCD, "Could not load modules from %s: %s",
          AUTOMODPATH, strerror(errno));
     return;
   }
 
-  while ((ldirent = readdir(system_module_dir)) != NULL)
+  while((ldirent = readdir(system_module_dir)) != NULL)
   {
     const char *offset = strrchr(ldirent->d_name, '.');
 
-    if (offset && !strcmp(offset, SHARED_SUFFIX))
+    if(offset && !strcmp(offset, SHARED_SUFFIX))
     {
-       snprintf(module_fq_name, sizeof(module_fq_name), "%s/%s",
-                AUTOMODPATH, ldirent->d_name);
-       load_a_module(module_fq_name, warn);
+      snprintf(module_fq_name, sizeof(module_fq_name), "%s/%s",
+               AUTOMODPATH, ldirent->d_name);
+      load_a_module(module_fq_name, warn);
     }
   }
 
@@ -339,7 +340,7 @@ load_conf_modules(void)
   {
     struct module_path *mpath = ptr->data;
 
-    if (findmodule_byname(mpath->path) == NULL)
+    if(findmodule_byname(mpath->path) == NULL)
       load_one_module(mpath->path);
   }
 }
@@ -356,12 +357,12 @@ load_core_modules(int warn)
   char module_name[HYB_PATH_MAX + 1];
   int i = 0;
 
-  for (; core_module_table[i]; ++i)
+  for(; core_module_table[i]; ++i)
   {
     snprintf(module_name, sizeof(module_name), "%s%s%s", MODPATH,
              core_module_table[i], SHARED_SUFFIX);
 
-    if (load_a_module(module_name, warn) == -1)
+    if(load_a_module(module_name, warn) == -1)
     {
       ilog(LOG_TYPE_IRCD, "Error loading core module %s%s: terminating ircd",
            core_module_table[i], SHARED_SUFFIX);
@@ -374,7 +375,7 @@ load_core_modules(int warn)
  *
  * input        - pointer to path
  *    - flagged as core module or not
- * output       - -1 if error 
+ * output       - -1 if error
  * side effects - module is loaded if found.
  */
 int
@@ -390,14 +391,14 @@ load_one_module(const char *path)
 
     snprintf(modpath, sizeof(modpath), "%s/%s", mpath->path, path);
 
-    if (strstr(modpath, "../") == NULL &&
-        strstr(modpath, "/..") == NULL) 
-      if (!stat(modpath, &statbuf))
-        if (S_ISREG(statbuf.st_mode))  /* Regular files only please */
+    if(strstr(modpath, "../") == NULL &&
+        strstr(modpath, "/..") == NULL)
+      if(!stat(modpath, &statbuf))
+        if(S_ISREG(statbuf.st_mode))   /* Regular files only please */
           return load_a_module(modpath, 1);
   }
 
-  sendto_realops_flags(UMODE_ALL, L_ALL, 
+  sendto_realops_flags(UMODE_ALL, L_ALL,
                        "Cannot locate module %s", path);
   ilog(LOG_TYPE_IRCD, "Cannot locate module %s", path);
   return -1;

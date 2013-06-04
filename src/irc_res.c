@@ -14,7 +14,7 @@
  *     --Bleep (Thomas Helvey <tomh@inxpress.net>)
  *
  * This was all needlessly complicated for irc. Simplified. No more hostent
- * All we really care about is the IP -> hostname mappings. Thats all. 
+ * All we really care about is the IP -> hostname mappings. Thats all.
  *
  * Apr 28, 2003 --cryogen and Dianora
  */
@@ -39,7 +39,7 @@
 #include "irc_reslib.h"
 
 #if (CHAR_BIT != 8)
-#error this code needs to be able to address individual octets 
+#error this code needs to be able to address individual octets
 #endif
 
 static PF res_readreply;
@@ -59,7 +59,7 @@ static PF res_readreply;
 #define RDLENGTH_SIZE     (size_t)2
 #define ANSWER_FIXED_SIZE (TYPE_SIZE + CLASS_SIZE + TTL_SIZE + RDLENGTH_SIZE)
 
-typedef enum 
+typedef enum
 {
   REQ_IDLE,  /* We're doing not much at all */
   REQ_PTR,   /* Looking up a PTR */
@@ -70,7 +70,7 @@ typedef enum
   REQ_CNAME, /* We got a CNAME in response, we better get a real answer next */
 } request_state;
 
-struct reslist 
+struct reslist
 {
   dlink_node node;
   int id;
@@ -119,17 +119,17 @@ static struct reslist *find_id(int);
  *      revised for ircd, cryogen(stu) may03
  */
 static int
-res_ourserver(const struct irc_ssaddr *inp) 
+res_ourserver(const struct irc_ssaddr *inp)
 {
 #ifdef IPV6
   const struct sockaddr_in6 *v6;
   const struct sockaddr_in6 *v6in = (const struct sockaddr_in6 *)inp;
 #endif
   const struct sockaddr_in *v4;
-  const struct sockaddr_in *v4in = (const struct sockaddr_in *)inp; 
+  const struct sockaddr_in *v4in = (const struct sockaddr_in *)inp;
   int ns;
 
-  for (ns = 0; ns < irc_nscount; ++ns)
+  for(ns = 0; ns < irc_nscount; ++ns)
   {
     const struct irc_ssaddr *srv = &irc_nsaddr_list[ns];
 #ifdef IPV6
@@ -141,23 +141,28 @@ res_ourserver(const struct irc_ssaddr *inp)
      * but we'll air on the side of caution - stu
      *
      */
-    switch (srv->ss.ss_family)
+    switch(srv->ss.ss_family)
     {
 #ifdef IPV6
+
       case AF_INET6:
-        if (srv->ss.ss_family == inp->ss.ss_family)
-          if (v6->sin6_port == v6in->sin6_port)
-            if (!memcmp(&v6->sin6_addr.s6_addr, &v6in->sin6_addr.s6_addr,
-                        sizeof(struct in6_addr)))
+        if(srv->ss.ss_family == inp->ss.ss_family)
+          if(v6->sin6_port == v6in->sin6_port)
+            if(!memcmp(&v6->sin6_addr.s6_addr, &v6in->sin6_addr.s6_addr,
+                       sizeof(struct in6_addr)))
               return 1;
+
         break;
 #endif
+
       case AF_INET:
-        if (srv->ss.ss_family == inp->ss.ss_family)
-          if (v4->sin_port == v4in->sin_port)
-            if (v4->sin_addr.s_addr == v4in->sin_addr.s_addr)
+        if(srv->ss.ss_family == inp->ss.ss_family)
+          if(v4->sin_port == v4in->sin_port)
+            if(v4->sin_addr.s_addr == v4in->sin_addr.s_addr)
               return 1;
+
         break;
+
       default:
         break;
     }
@@ -167,7 +172,7 @@ res_ourserver(const struct irc_ssaddr *inp)
 }
 
 /*
- * timeout_query_list - Remove queries from the list which have been 
+ * timeout_query_list - Remove queries from the list which have been
  * there too long without being resolved.
  */
 static time_t
@@ -184,9 +189,9 @@ timeout_query_list(time_t now)
     request = ptr->data;
     timeout = request->sentat + request->timeout;
 
-    if (now >= timeout)
+    if(now >= timeout)
     {
-      if (--request->retries <= 0)
+      if(--request->retries <= 0)
       {
         (*request->callback)(request->callback_ctx, NULL, NULL);
         rem_request(request);
@@ -200,7 +205,7 @@ timeout_query_list(time_t now)
       }
     }
 
-    if ((next_time == 0) || timeout < next_time)
+    if((next_time == 0) || timeout < next_time)
       next_time = timeout;
   }
 
@@ -225,7 +230,7 @@ start_resolver(void)
 {
   irc_res_init();
 
-  if (!ResolverFileDescriptor.flags.open)
+  if(!ResolverFileDescriptor.flags.open)
   {
     if(irc_nscount <= 0)
     {
@@ -233,13 +238,13 @@ start_resolver(void)
       return;
     }
 
-    if (comm_open(&ResolverFileDescriptor, irc_nsaddr_list[0].ss.ss_family,
-                  SOCK_DGRAM, 0, "Resolver socket") == -1)
+    if(comm_open(&ResolverFileDescriptor, irc_nsaddr_list[0].ss.ss_family,
+                 SOCK_DGRAM, 0, "Resolver socket") == -1)
       return;
 
     /* At the moment, the resolver FD data is global .. */
     comm_setselect(&ResolverFileDescriptor, COMM_SELECT_READ,
-        res_readreply, NULL, 0);
+                   res_readreply, NULL, 0);
     eventAdd("timeout_resolver", timeout_resolver, NULL, 1);
   }
 }
@@ -270,8 +275,8 @@ restart_resolver(void)
 }
 
 /*
- * rem_request - remove a request from the list. 
- * This must also free any memory that has been allocated for 
+ * rem_request - remove a request from the list.
+ * This must also free any memory that has been allocated for
  * temporary storage of DNS results.
  */
 static void
@@ -304,7 +309,7 @@ make_request(dns_callback_fnc callback, void *ctx)
 }
 
 /*
- * delete_resolver_queries - cleanup outstanding queries 
+ * delete_resolver_queries - cleanup outstanding queries
  * for which there no longer exist clients or conf lines.
  */
 void
@@ -316,7 +321,7 @@ delete_resolver_queries(const void *vptr)
   {
     struct reslist *request = ptr->data;
 
-    if (request->callback_ctx == vptr)
+    if(request->callback_ctx == vptr)
       rem_request(request);
   }
 }
@@ -325,7 +330,7 @@ delete_resolver_queries(const void *vptr)
  * send_res_msg - sends msg to all nameservers found in the "_res" structure.
  * This should reflect /etc/resolv.conf. We will get responses
  * which arent needed but is easier than checking to see if nameserver
- * isnt present. Returns number of messages successfully sent to 
+ * isnt present. Returns number of messages successfully sent to
  * nameservers or -1 if no successful sends.
  */
 static int
@@ -338,14 +343,14 @@ send_res_msg(const char *msg, int len, int rcount)
   /* RES_PRIMARY option is not implemented
    * if (res.options & RES_PRIMARY || 0 == max_queries)
    */
-  if (max_queries == 0)
+  if(max_queries == 0)
     max_queries = 1;
 
-  for (i = 0; i < max_queries; i++)
+  for(i = 0; i < max_queries; i++)
   {
-    if (sendto(ResolverFileDescriptor.fd, msg, len, 0, 
-        (struct sockaddr*)&(irc_nsaddr_list[i]), 
-        irc_nsaddr_list[i].ss_len) == len) 
+    if(sendto(ResolverFileDescriptor.fd, msg, len, 0,
+              (struct sockaddr *) & (irc_nsaddr_list[i]),
+              irc_nsaddr_list[i].ss_len) == len)
       ++sent;
   }
 
@@ -364,19 +369,20 @@ find_id(int id)
   {
     struct reslist *request = ptr->data;
 
-    if (request->id == id)
+    if(request->id == id)
       return request;
   }
 
   return NULL;
 }
 
-/* 
+/*
  * gethost_byname_type - get host address from name
  *
  */
 void
-gethost_byname_type(dns_callback_fnc callback, void *ctx, const char *name, int type)
+gethost_byname_type(dns_callback_fnc callback, void *ctx, const char *name,
+                    int type)
 {
   assert(name != NULL);
   do_query_name(callback, ctx, name, NULL, type);
@@ -399,7 +405,8 @@ gethost_byname(dns_callback_fnc callback, void *ctx, const char *name)
  * gethost_byaddr - get host name from address
  */
 void
-gethost_byaddr(dns_callback_fnc callback, void *ctx, const struct irc_ssaddr *addr)
+gethost_byaddr(dns_callback_fnc callback, void *ctx,
+               const struct irc_ssaddr *addr)
 {
   do_query_number(callback, ctx, addr, NULL);
 }
@@ -415,17 +422,19 @@ do_query_name(dns_callback_fnc callback, void *ctx, const char *name,
 
   strlcpy(host_name, name, sizeof(host_name));
 
-  if (request == NULL)
+  if(request == NULL)
   {
     request       = make_request(callback, ctx);
     request->name = MyMalloc(strlen(host_name) + 1);
     request->type = type;
     strcpy(request->name, host_name);
 #ifdef IPV6
-    if (type == T_A)
+
+    if(type == T_A)
       request->state = REQ_A;
     else if(type == T_AAAA)
       request->state = REQ_AAAA;
+
 #else
     request->state = REQ_A;
 #endif
@@ -445,7 +454,8 @@ do_query_number(dns_callback_fnc callback, void *ctx,
 {
   char ipbuf[128];
   const unsigned char *cp;
-  if (addr->ss.ss_family == AF_INET)
+
+  if(addr->ss.ss_family == AF_INET)
   {
     const struct sockaddr_in *v4 = (const struct sockaddr_in *)addr;
     cp = (const unsigned char *)&v4->sin_addr.s_addr;
@@ -454,34 +464,37 @@ do_query_number(dns_callback_fnc callback, void *ctx,
              (unsigned int)(cp[3]), (unsigned int)(cp[2]),
              (unsigned int)(cp[1]), (unsigned int)(cp[0]));
   }
+
 #ifdef IPV6
-  else if (addr->ss.ss_family == AF_INET6)
+  else if(addr->ss.ss_family == AF_INET6)
   {
     const struct sockaddr_in6 *v6 = (const struct sockaddr_in6 *)addr;
     cp = (const unsigned char *)&v6->sin6_addr.s6_addr;
 
-    snprintf(ipbuf, sizeof(ipbuf), 
-        "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x."
-        "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.ip6.arpa.",
-        (unsigned int)(cp[15]&0xf), (unsigned int)(cp[15]>>4),
-        (unsigned int)(cp[14]&0xf), (unsigned int)(cp[14]>>4),
-        (unsigned int)(cp[13]&0xf), (unsigned int)(cp[13]>>4),
-        (unsigned int)(cp[12]&0xf), (unsigned int)(cp[12]>>4),
-        (unsigned int)(cp[11]&0xf), (unsigned int)(cp[11]>>4),
-        (unsigned int)(cp[10]&0xf), (unsigned int)(cp[10]>>4),
-        (unsigned int)(cp[9]&0xf), (unsigned int)(cp[9]>>4),
-        (unsigned int)(cp[8]&0xf), (unsigned int)(cp[8]>>4),
-        (unsigned int)(cp[7]&0xf), (unsigned int)(cp[7]>>4),
-        (unsigned int)(cp[6]&0xf), (unsigned int)(cp[6]>>4),
-        (unsigned int)(cp[5]&0xf), (unsigned int)(cp[5]>>4),
-        (unsigned int)(cp[4]&0xf), (unsigned int)(cp[4]>>4),
-        (unsigned int)(cp[3]&0xf), (unsigned int)(cp[3]>>4),
-        (unsigned int)(cp[2]&0xf), (unsigned int)(cp[2]>>4),
-        (unsigned int)(cp[1]&0xf), (unsigned int)(cp[1]>>4),
-        (unsigned int)(cp[0]&0xf), (unsigned int)(cp[0]>>4));
+    snprintf(ipbuf, sizeof(ipbuf),
+             "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x."
+             "%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.ip6.arpa.",
+             (unsigned int)(cp[15] & 0xf), (unsigned int)(cp[15] >> 4),
+             (unsigned int)(cp[14] & 0xf), (unsigned int)(cp[14] >> 4),
+             (unsigned int)(cp[13] & 0xf), (unsigned int)(cp[13] >> 4),
+             (unsigned int)(cp[12] & 0xf), (unsigned int)(cp[12] >> 4),
+             (unsigned int)(cp[11] & 0xf), (unsigned int)(cp[11] >> 4),
+             (unsigned int)(cp[10] & 0xf), (unsigned int)(cp[10] >> 4),
+             (unsigned int)(cp[9] & 0xf), (unsigned int)(cp[9] >> 4),
+             (unsigned int)(cp[8] & 0xf), (unsigned int)(cp[8] >> 4),
+             (unsigned int)(cp[7] & 0xf), (unsigned int)(cp[7] >> 4),
+             (unsigned int)(cp[6] & 0xf), (unsigned int)(cp[6] >> 4),
+             (unsigned int)(cp[5] & 0xf), (unsigned int)(cp[5] >> 4),
+             (unsigned int)(cp[4] & 0xf), (unsigned int)(cp[4] >> 4),
+             (unsigned int)(cp[3] & 0xf), (unsigned int)(cp[3] >> 4),
+             (unsigned int)(cp[2] & 0xf), (unsigned int)(cp[2] >> 4),
+             (unsigned int)(cp[1] & 0xf), (unsigned int)(cp[1] >> 4),
+             (unsigned int)(cp[0] & 0xf), (unsigned int)(cp[0] >> 4));
   }
+
 #endif
-  if (request == NULL)
+
+  if(request == NULL)
   {
     request       = make_request(callback, ctx);
     request->type = T_PTR;
@@ -504,8 +517,8 @@ query_name(const char *name, int query_class, int type,
 
   memset(buf, 0, sizeof(buf));
 
-  if ((request_len = irc_res_mkquery(name, query_class, type, 
-      (unsigned char *)buf, sizeof(buf))) > 0)
+  if((request_len = irc_res_mkquery(name, query_class, type,
+                                    (unsigned char *)buf, sizeof(buf))) > 0)
   {
     HEADER *header = (HEADER *)buf;
 #ifndef HAVE_LRAND48
@@ -519,17 +532,23 @@ query_name(const char *name, int query_class, int type,
      * and returns it unchanged
      */
 #ifdef HAVE_LRAND48
+
     do
     {
       header->id = (header->id + lrand48()) & 0xffff;
-    } while (find_id(header->id));
+    }
+    while(find_id(header->id));
+
 #else
     gettimeofday(&tv, NULL);
+
     do
     {
       header->id = (header->id + k + tv.tv_usec) & 0xffff;
       k++;
-    } while (find_id(header->id));
+    }
+    while(find_id(header->id));
+
 #endif /* HAVE_LRAND48 */
     request->id = header->id;
     ++request->sends;
@@ -541,7 +560,7 @@ query_name(const char *name, int query_class, int type,
 static void
 resend_query(struct reslist *request)
 {
-  if (request->resend == 0)
+  if(request->resend == 0)
     return;
 
   switch(request->type)
@@ -549,12 +568,15 @@ resend_query(struct reslist *request)
     case T_PTR:
       do_query_number(NULL, NULL, &request->addr, request);
       break;
+
     case T_A:
- #ifdef IPV6
+#ifdef IPV6
     case T_AAAA:
 #endif
-      do_query_name(NULL, request->callback_ctx, request->name, request, request->type);
+      do_query_name(NULL, request->callback_ctx, request->name, request,
+                    request->type);
       break;
+
     default:
       break;
   }
@@ -577,9 +599,9 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
 #endif
   current = (unsigned char *)buf + sizeof(HEADER);
 
-  for (; header->qdcount > 0; --header->qdcount)
+  for(; header->qdcount > 0; --header->qdcount)
   {
-    if ((n = irc_dn_skipname(current, (unsigned char *)eob)) < 0)
+    if((n = irc_dn_skipname(current, (unsigned char *)eob)) < 0)
       break;
 
     current += (size_t)n + QFIXEDSZ;
@@ -588,14 +610,14 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
   /*
    * process each answer sent to us blech.
    */
-  while (header->ancount > 0 && (char *)current < eob)
+  while(header->ancount > 0 && (char *)current < eob)
   {
     header->ancount--;
 
     n = irc_dn_expand((unsigned char *)buf, (unsigned char *)eob, current,
-        hostbuf, sizeof(hostbuf));
+                      hostbuf, sizeof(hostbuf));
 
-    if (n < 0 /* broken message */ || n == 0 /* no more answers left */)
+    if(n < 0 /* broken message */ || n == 0 /* no more answers left */)
       return 0;
 
     hostbuf[HOSTLEN] = '\0';
@@ -606,7 +628,7 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
      */
     current += (size_t) n;
 
-    if (!(((char *)current + ANSWER_FIXED_SIZE) < eob))
+    if(!(((char *)current + ANSWER_FIXED_SIZE) < eob))
       break;
 
     type = irc_ns_get16(current);
@@ -621,19 +643,19 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
     rd_length = irc_ns_get16(current);
     current += RDLENGTH_SIZE;
 
-    /* 
-     * Wait to set request->type until we verify this structure 
+    /*
+     * Wait to set request->type until we verify this structure
      */
-    switch (type)
+    switch(type)
     {
       case T_A:
-        if (request->type != T_A)
+        if(request->type != T_A)
           return 0;
 
         /*
          * check for invalid rd_length or too many addresses
          */
-        if (rd_length != sizeof(struct in_addr))
+        if(rd_length != sizeof(struct in_addr))
           return 0;
 
         v4 = (struct sockaddr_in *)&request->addr;
@@ -643,11 +665,12 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
         return 1;
         break;
 #ifdef IPV6
+
       case T_AAAA:
-        if (request->type != T_AAAA)
+        if(request->type != T_AAAA)
           return 0;
 
-        if (rd_length != sizeof(struct in6_addr))
+        if(rd_length != sizeof(struct in6_addr))
           return 0;
 
         request->addr.ss_len = sizeof(struct sockaddr_in6);
@@ -657,37 +680,41 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
         return 1;
         break;
 #endif
+
       case T_PTR:
-        if (request->type != T_PTR)
+        if(request->type != T_PTR)
           return 0;
 
         n = irc_dn_expand((unsigned char *)buf, (unsigned char *)eob,
-            current, hostbuf, sizeof(hostbuf));
-        if (n < 0 /* broken message */ || n == 0 /* no more answers left */)
+                          current, hostbuf, sizeof(hostbuf));
+
+        if(n < 0 /* broken message */ || n == 0 /* no more answers left */)
           return 0;
 
         strlcpy(request->name, hostbuf, HOSTLEN + 1);
         return 1;
         break;
-      case T_CNAME: /* first check we already havent started looking 
+
+      case T_CNAME: /* first check we already havent started looking
                        into a cname */
-        if (request->type != T_PTR) 
+        if(request->type != T_PTR)
           return 0;
 
-        if (request->state == REQ_CNAME)
+        if(request->state == REQ_CNAME)
         {
           n = irc_dn_expand((unsigned char *)buf, (unsigned char *)eob,
                             current, hostbuf, sizeof(hostbuf));
 
-          if (n < 0)
+          if(n < 0)
             return 0;
+
           return 1;
         }
 
         request->state = REQ_CNAME;
         current += rd_length;
         break;
-        
+
       default:
         /* XXX I'd rather just throw away the entire bogus thing
          * but its possible its just a broken nameserver with still
@@ -708,14 +735,14 @@ static void
 res_readreply(fde_t *fd, void *data)
 {
   char buf[sizeof(HEADER) + MAXPACKET]
-  /* Sparc and alpha need 16bit-alignment for accessing header->id 
-   * (which is uint16_t). Because of the header = (HEADER*) buf; 
+  /* Sparc and alpha need 16bit-alignment for accessing header->id
+   * (which is uint16_t). Because of the header = (HEADER*) buf;
    * lateron, this is neeeded. --FaUl
    */
-#if defined(__sparc__) || defined(__alpha__)  
-    __attribute__((aligned (16)))
-#endif 
-    ;
+#if defined(__sparc__) || defined(__alpha__)
+  __attribute__((aligned(16)))
+#endif
+  ;
   HEADER *header;
   struct reslist *request = NULL;
   int rc;
@@ -728,8 +755,9 @@ res_readreply(fde_t *fd, void *data)
    * interest where it'll instantly be ready for read :-) -- adrian
    */
   comm_setselect(fd, COMM_SELECT_READ, res_readreply, NULL, 0);
+
   /* Better to cast the sizeof instead of rc */
-  if (rc <= (int)(sizeof(HEADER)))
+  if(rc <= (int)(sizeof(HEADER)))
     return;
 
   /*
@@ -744,31 +772,32 @@ res_readreply(fde_t *fd, void *data)
   /*
    * check against possibly fake replies
    */
-  if (!res_ourserver(&lsin))
+  if(!res_ourserver(&lsin))
     return;
 
   /*
    * response for an id which we have already received an answer for
    * just ignore this response.
    */
-  if (!(request = find_id(header->id)))
+  if(!(request = find_id(header->id)))
     return;
 
-  if ((header->rcode != NO_ERRORS) || (header->ancount == 0))
+  if((header->rcode != NO_ERRORS) || (header->ancount == 0))
   {
     (*request->callback)(request->callback_ctx, NULL, NULL);
     rem_request(request);
     return;
   }
+
   /*
-   * If this fails there was an error decoding the received packet, 
+   * If this fails there was an error decoding the received packet,
    * try it again and hope it works the next time.
    */
-  if (proc_answer(request, header, buf, buf + rc))
+  if(proc_answer(request, header, buf, buf + rc))
   {
-    if (request->type == T_PTR)
+    if(request->type == T_PTR)
     {
-      if (request->name == NULL)
+      if(request->name == NULL)
       {
         /*
          * got a PTR response with no name, something bogus is happening
@@ -781,15 +810,19 @@ res_readreply(fde_t *fd, void *data)
 
       /*
        * Lookup the 'authoritative' name that we were given for the
-       * ip#. 
+       * ip#.
        *
        */
 #ifdef IPV6
-      if (request->addr.ss.ss_family == AF_INET6)
-        gethost_byname_type(request->callback, request->callback_ctx, request->name, T_AAAA);
+
+      if(request->addr.ss.ss_family == AF_INET6)
+        gethost_byname_type(request->callback, request->callback_ctx, request->name,
+                            T_AAAA);
       else
 #endif
-      gethost_byname_type(request->callback, request->callback_ctx, request->name, T_A);
+        gethost_byname_type(request->callback, request->callback_ctx, request->name,
+                            T_A);
+
       rem_request(request);
     }
     else
@@ -801,7 +834,7 @@ res_readreply(fde_t *fd, void *data)
       rem_request(request);
     }
   }
-  else if (!request->sent)
+  else if(!request->sent)
   {
     /* XXX - we got a response for a query we didn't send with a valid id?
      * this should never happen, bail here and leave the client unresolved
@@ -819,12 +852,12 @@ report_dns_servers(struct Client *source_p)
   int i;
   char ipaddr[HOSTIPLEN + 1];
 
-  for (i = 0; i < irc_nscount; i++)
+  for(i = 0; i < irc_nscount; i++)
   {
-    getnameinfo((struct sockaddr *)&(irc_nsaddr_list[i]),
+    getnameinfo((struct sockaddr *) & (irc_nsaddr_list[i]),
                 irc_nsaddr_list[i].ss_len, ipaddr,
                 sizeof(ipaddr), NULL, 0, NI_NUMERICHOST);
     sendto_one(source_p, form_str(RPL_STATSALINE),
-               me.name, source_p->name, ipaddr); 
+               me.name, source_p->name, ipaddr);
   }
 }

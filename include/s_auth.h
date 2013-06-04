@@ -35,7 +35,7 @@ struct AuthRequest
 {
   dlink_node        node;   /* auth_doing_list */
   int           flags;
-  struct Client*      client;    /* pointer to client struct for request */
+  struct Client      *client;    /* pointer to client struct for request */
   time_t              timeout;   /* time when query expires */
 };
 

@@ -32,8 +32,8 @@
 
 /*
  * ms_eob - EOB command handler
- *      parv[0] = sender prefix   
- *      parv[1] = servername   
+ *      parv[0] = sender prefix
+ *      parv[1] = servername
  */
 static void
 ms_eob(struct Client *client_p, struct Client *source_p,
@@ -48,7 +48,8 @@ ms_eob(struct Client *client_p, struct Client *source_p,
   AddFlag(source_p, FLAGS_EOB);
 }
 
-static struct Message eob_msgtab = {
+static struct Message eob_msgtab =
+{
   "EOB", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_ignore, ms_eob, m_ignore, m_ignore, m_ignore}
 };
@@ -65,7 +66,8 @@ module_exit(void)
   mod_del_cmd(&eob_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

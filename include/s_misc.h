@@ -42,8 +42,8 @@ int base16_decode(char *, size_t, const char *, size_t);
 #define _1GIG     (1024.0f*1024.0f)
 #define _1TER     (1024.0f*1024.0f*1024.0f)
 #define _GMKs(x)  (((x) > _1TER) ? "Terabytes" : (((x) > _1GIG) ? "Gigabytes" :\
-                  (((x) > _1MEG) ? "Megabytes" : "Kilobytes")))
+                   (((x) > _1MEG) ? "Megabytes" : "Kilobytes")))
 #define _GMKv(x)  (((x) > _1TER) ? (float)((x)/_1TER) : (((x) > _1GIG) ? \
                    (float)((x)/_1GIG) : (((x) > _1MEG) ? (float)((x)/_1MEG) : \
-       (float)(x))))
+                       (float)(x))))
 #endif

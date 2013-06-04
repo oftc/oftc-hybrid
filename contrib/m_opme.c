@@ -44,8 +44,9 @@ chan_is_opless(const struct Channel *const chptr)
   const dlink_node *ptr = NULL;
 
   DLINK_FOREACH(ptr, chptr->members.head)
-    if (((struct Membership *)ptr->data)->flags & CHFL_CHANOP)
-      return 0;
+
+  if(((struct Membership *)ptr->data)->flags & CHFL_CHANOP)
+    return 0;
 
   return 1;
 }
@@ -62,28 +63,28 @@ mo_opme(struct Client *client_p, struct Client *source_p,
   struct Channel *chptr = NULL;
   struct Membership *member = NULL;
 
-  if (!HasUMode(source_p, UMODE_ADMIN))
+  if(!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
     return;
   }
 
-  if ((chptr = hash_find_channel(parv[1])) == NULL)
+  if((chptr = hash_find_channel(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                me.name, source_p->name, parv[1]);
     return;
   }
 
-  if ((member = find_channel_link(source_p, chptr)) == NULL)
+  if((member = find_channel_link(source_p, chptr)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOTONCHANNEL),
                me.name, source_p->name, chptr->chname);
     return;
   }
 
-  if (!chan_is_opless(chptr))
+  if(!chan_is_opless(chptr))
   {
     sendto_one(source_p, ":%s NOTICE %s :%s Channel is not opless",
                me.name, source_p->name, chptr->chname);
@@ -122,7 +123,8 @@ mo_opme(struct Client *client_p, struct Client *source_p,
                        me.name, chptr->chname, source_p->name);
 }
 
-static struct Message opme_msgtab = {
+static struct Message opme_msgtab =
+{
   "OPME", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_opme, m_ignore }
 };
@@ -139,7 +141,8 @@ module_exit(void)
   mod_del_cmd(&opme_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -53,7 +53,7 @@ changing_fdlimit(va_list args)
 {
   int fdmax = va_arg(args, int);
 
-  if (fdmax > FD_SETSIZE)
+  if(fdmax > FD_SETSIZE)
     fdmax = FD_SETSIZE;
 
   return pass_callback(hookptr, fdmax);
@@ -86,22 +86,22 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 {
   int new_events;
 
-  if ((type & COMM_SELECT_READ))
+  if((type & COMM_SELECT_READ))
   {
     F->read_handler = handler;
     F->read_data = client_data;
   }
 
-  if ((type & COMM_SELECT_WRITE))
+  if((type & COMM_SELECT_WRITE))
   {
     F->write_handler = handler;
     F->write_data = client_data;
   }
 
   new_events = (F->read_handler ? COMM_SELECT_READ : 0) |
-    (F->write_handler ? COMM_SELECT_WRITE : 0);
+               (F->write_handler ? COMM_SELECT_WRITE : 0);
 
-  if (timeout != 0)
+  if(timeout != 0)
   {
     F->timeout = CurrentTime + (timeout / 1000);
     F->timeout_handler = handler;
@@ -109,9 +109,9 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
   }
 
 
-  if (new_events != F->evcache)
+  if(new_events != F->evcache)
   {
-    if ((new_events & COMM_SELECT_READ))
+    if((new_events & COMM_SELECT_READ))
       FD_SET(F->fd, &select_readfds);
     else
     {
@@ -119,7 +119,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
       FD_CLR(F->fd, &tmpreadfds);
     }
 
-    if ((new_events & COMM_SELECT_WRITE))
+    if((new_events & COMM_SELECT_WRITE))
       FD_SET(F->fd, &select_writefds);
     else
     {
@@ -127,15 +127,15 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
       FD_CLR(F->fd, &tmpwritefds);
     }
 
-    if (new_events == 0)
+    if(new_events == 0)
     {
-      if (highest_fd == F->fd)
-        while (highest_fd >= 0 && (FD_ISSET(highest_fd, &select_readfds) ||
-                             FD_ISSET(highest_fd, &select_writefds)))
+      if(highest_fd == F->fd)
+        while(highest_fd >= 0 && (FD_ISSET(highest_fd, &select_readfds) ||
+                                  FD_ISSET(highest_fd, &select_writefds)))
           highest_fd--;
     }
-    else if (F->evcache == 0)
-      if (F->fd > highest_fd)
+    else if(F->evcache == 0)
+      if(F->fd > highest_fd)
         highest_fd = F->fd;
 
     F->evcache = new_events;
@@ -168,7 +168,7 @@ comm_select(void)
 
   set_time();
 
-  if (num < 0)
+  if(num < 0)
   {
 #ifdef HAVE_USLEEP
     usleep(50000);
@@ -176,30 +176,33 @@ comm_select(void)
     return;
   }
 
-  for (fd = 0; fd <= highest_fd && num > 0; fd++)
-    if (FD_ISSET(fd, &tmpreadfds) || FD_ISSET(fd, &tmpwritefds))
+  for(fd = 0; fd <= highest_fd && num > 0; fd++)
+    if(FD_ISSET(fd, &tmpreadfds) || FD_ISSET(fd, &tmpwritefds))
     {
       num--;
 
       F = lookup_fd(fd);
-      if (F == NULL || !F->flags.open)
+
+      if(F == NULL || !F->flags.open)
         continue;
 
-      if (FD_ISSET(fd, &tmpreadfds))
-        if ((hdl = F->read_handler) != NULL)
+      if(FD_ISSET(fd, &tmpreadfds))
+        if((hdl = F->read_handler) != NULL)
         {
           F->read_handler = NULL;
           hdl(F, F->read_data);
-          if (!F->flags.open)
+
+          if(!F->flags.open)
             continue;
         }
 
-      if (FD_ISSET(fd, &tmpwritefds))
-        if ((hdl = F->write_handler) != NULL)
+      if(FD_ISSET(fd, &tmpwritefds))
+        if((hdl = F->write_handler) != NULL)
         {
           F->write_handler = NULL;
           hdl(F, F->write_data);
-          if (!F->flags.open)
+
+          if(!F->flags.open)
             continue;
         }
 

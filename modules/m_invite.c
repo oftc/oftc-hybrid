@@ -55,34 +55,34 @@ m_invite(struct Client *client_p, struct Client *source_p,
   struct Membership *ms = NULL;
   int chop;
 
-  if (IsServer(source_p))
+  if(IsServer(source_p))
     return;
 
-  if (EmptyString(parv[2]))
+  if(EmptyString(parv[2]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "INVITE");
     return;
   }
 
-  if (MyClient(source_p) && !IsFloodDone(source_p))
+  if(MyClient(source_p) && !IsFloodDone(source_p))
     flood_endgrace(source_p);
 
-  if ((target_p = find_person(client_p, parv[1])) == NULL)
+  if((target_p = find_person(client_p, parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                me.name, source_p->name, parv[1]);
     return;
   }
 
-  if ((chptr = hash_find_channel(parv[2])) == NULL)
+  if((chptr = hash_find_channel(parv[2])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                me.name, source_p->name, parv[2]);
     return;
   }
 
-  if (MyConnect(source_p) && (ms = find_channel_link(source_p, chptr)) == NULL)
+  if(MyConnect(source_p) && (ms = find_channel_link(source_p, chptr)) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOTONCHANNEL),
                me.name, source_p->name, chptr->chname);
@@ -91,48 +91,49 @@ m_invite(struct Client *client_p, struct Client *source_p,
 
   chop = has_member_flags(ms, CHFL_CHANOP);
 
-  if (MyConnect(source_p) && !chop && !HasUMode(source_p, UMODE_GOD))
+  if(MyConnect(source_p) && !chop && !HasUMode(source_p, UMODE_GOD))
   {
     sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-        me.name, parv[0], parv[2]);
+               me.name, parv[0], parv[2]);
     return;
   }
+
   if(MyConnect(source_p) && !chop)
   {
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
-        "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
-        target_p->name);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "%s is using God mode: INVITE %s %s", source_p->name, chptr->chname,
+                         target_p->name);
   }
 
-  if (IsMember(target_p, chptr))
+  if(IsMember(target_p, chptr))
   {
     sendto_one(source_p, form_str(ERR_USERONCHANNEL),
                me.name, source_p->name, target_p->name, chptr->chname);
     return;
   }
 
-  if (MyConnect(source_p))
+  if(MyConnect(source_p))
   {
     sendto_one(source_p, form_str(RPL_INVITING), me.name,
                source_p->name, target_p->name, chptr->chname);
 
-    if (target_p->away[0])
+    if(target_p->away[0])
       sendto_one(source_p, form_str(RPL_AWAY),
                  me.name, source_p->name, target_p->name,
                  target_p->away);
   }
-  else if (parc > 3 && IsDigit(*parv[3]))
-    if (atoi(parv[3]) > chptr->channelts)
+  else if(parc > 3 && IsDigit(*parv[3]))
+    if(atoi(parv[3]) > chptr->channelts)
       return;
 
-  if (MyConnect(target_p))
+  if(MyConnect(target_p))
   {
     sendto_one(target_p, ":%s!%s@%s INVITE %s :%s",
                source_p->name, source_p->username,
                source_p->host,
                target_p->name, chptr->chname);
 
-    if (chptr->mode.mode & MODE_INVITEONLY)
+    if(chptr->mode.mode & MODE_INVITEONLY)
     {
       sendto_channel_butone(NULL, &me, chptr, CHFL_CHANOP,
                             "NOTICE @%s :%s is inviting %s to %s.",
@@ -143,14 +144,15 @@ m_invite(struct Client *client_p, struct Client *source_p,
       add_invite(chptr, target_p);
     }
   }
-  else if (target_p->from != client_p)
+  else if(target_p->from != client_p)
     sendto_one(target_p, ":%s INVITE %s %s %lu",
                ID_or_name(source_p, target_p->from),
                ID_or_name(target_p, target_p->from),
                chptr->chname, (unsigned long)chptr->channelts);
 }
 
-static struct Message invite_msgtab = {
+static struct Message invite_msgtab =
+{
   "INVITE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_invite, m_invite, m_ignore, m_invite, m_ignore }
 };
@@ -167,7 +169,8 @@ module_exit(void)
   mod_del_cmd(&invite_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

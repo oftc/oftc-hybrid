@@ -52,7 +52,8 @@
 #include "send.h"
 
 
-static const char *HeaderMessages[] = {
+static const char *HeaderMessages[] =
+{
   ":%s NOTICE AUTH :*** Looking up your hostname...",
   ":%s NOTICE AUTH :*** Found your hostname",
   ":%s NOTICE AUTH :*** Couldn't look up your hostname",
@@ -63,7 +64,8 @@ static const char *HeaderMessages[] = {
   ":%s NOTICE AUTH :*** Your hostname is too long, ignoring hostname"
 };
 
-enum {
+enum
+{
   REPORT_DO_DNS,
   REPORT_FIN_DNS,
   REPORT_FAIL_DNS,
@@ -124,7 +126,7 @@ release_auth_client(struct AuthRequest *auth)
 {
   struct Client *client = auth->client;
 
-  if (IsDoingAuth(auth) || IsDNSPending(auth))
+  if(IsDoingAuth(auth) || IsDNSPending(auth))
     return;
 
   client->localClient->auth = NULL;
@@ -148,7 +150,7 @@ release_auth_client(struct AuthRequest *auth)
 
   read_packet(&client->localClient->fd, client);
 }
- 
+
 /*
  * auth_dns_callback - called when resolver query finishes
  * if the query resulted in a successful search, name will contain
@@ -163,7 +165,7 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 
   ClearDNSPending(auth);
 
-  if (name != NULL)
+  if(name != NULL)
   {
     const struct sockaddr_in *v4, *v4dns;
 #ifdef IPV6
@@ -172,11 +174,13 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
     int good = 1;
 
 #ifdef IPV6
-    if (auth->client->ip.ss.ss_family == AF_INET6)
+
+    if(auth->client->ip.ss.ss_family == AF_INET6)
     {
       v6 = (const struct sockaddr_in6 *)&auth->client->ip;
       v6dns = (const struct sockaddr_in6 *)addr;
-      if (memcmp(&v6->sin6_addr, &v6dns->sin6_addr, sizeof(struct in6_addr)) != 0)
+
+      if(memcmp(&v6->sin6_addr, &v6dns->sin6_addr, sizeof(struct in6_addr)) != 0)
       {
         sendheader(auth->client, REPORT_IP_MISMATCH);
         good = 0;
@@ -187,19 +191,21 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
     {
       v4 = (const struct sockaddr_in *)&auth->client->ip;
       v4dns = (const struct sockaddr_in *)addr;
+
       if(v4->sin_addr.s_addr != v4dns->sin_addr.s_addr)
       {
         sendheader(auth->client, REPORT_IP_MISMATCH);
         good = 0;
       }
     }
-    if (good && strlen(name) <= HOSTLEN)
+
+    if(good && strlen(name) <= HOSTLEN)
     {
       strlcpy(auth->client->host, name,
-        sizeof(auth->client->host));
+              sizeof(auth->client->host));
       sendheader(auth->client, REPORT_FIN_DNS);
     }
-    else if (strlen(name) > HOSTLEN)
+    else if(strlen(name) > HOSTLEN)
       sendheader(auth->client, REPORT_HOST_TOOLONG);
   }
   else
@@ -226,7 +232,7 @@ auth_error(struct AuthRequest *auth)
 }
 
 /*
- * start_auth_query - Flag the client to show that an attempt to 
+ * start_auth_query - Flag the client to show that an attempt to
  * contact the ident server on
  * the client's host.  The connect and subsequently the socket are all put
  * into 'non-blocking' mode.  Should the connect or any later phase of the
@@ -245,20 +251,20 @@ start_auth_query(struct AuthRequest *auth)
 #endif
 
   /* open a socket of the same type as the client socket */
-  if (comm_open(&auth->client->localClient->auth_fd, auth->client->ip.ss.ss_family,
-                SOCK_STREAM, 0, "ident") == -1)
+  if(comm_open(&auth->client->localClient->auth_fd, auth->client->ip.ss.ss_family,
+               SOCK_STREAM, 0, "ident") == -1)
   {
-    report_error(L_ALL, "creating auth stream socket %s:%s", 
-        get_client_name(auth->client, SHOW_IP), errno);
+    report_error(L_ALL, "creating auth stream socket %s:%s",
+                 get_client_name(auth->client, SHOW_IP), errno);
     ilog(LOG_TYPE_IRCD, "Unable to create auth socket for %s",
-        get_client_name(auth->client, SHOW_IP));
+         get_client_name(auth->client, SHOW_IP));
     ++ServerStats.is_abad;
     return 0;
   }
 
   sendheader(auth->client, REPORT_DO_ID);
 
-  /* 
+  /*
    * get the local address of the client and bind to that to
    * make the auth request.  This used to be done only for
    * ifdef VIRTUAL_HOST, but needs to be done for all clients
@@ -266,8 +272,8 @@ start_auth_query(struct AuthRequest *auth)
    * and machines with multiple IP addresses are common now
    */
   memset(&localaddr, 0, locallen);
-  getsockname(auth->client->localClient->fd.fd, (struct sockaddr*)&localaddr,
-      &locallen);
+  getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&localaddr,
+              &locallen);
 
 #ifdef IPV6
   remove_ipv6_mapping(&localaddr);
@@ -280,16 +286,17 @@ start_auth_query(struct AuthRequest *auth)
 #endif
   localaddr.ss_port = htons(0);
 
-  comm_connect_tcp(&auth->client->localClient->auth_fd, auth->client->sockhost, 113, 
-      (struct sockaddr *)&localaddr, localaddr.ss_len, auth_connect_callback, 
-      auth, auth->client->ip.ss.ss_family, 
-      GlobalSetOptions.ident_timeout);
+  comm_connect_tcp(&auth->client->localClient->auth_fd, auth->client->sockhost,
+                   113,
+                   (struct sockaddr *)&localaddr, localaddr.ss_len, auth_connect_callback,
+                   auth, auth->client->ip.ss.ss_family,
+                   GlobalSetOptions.ident_timeout);
   return 1; /* We suceed here for now */
 }
 
 /*
  * GetValidIdent - parse ident query reply from identd server
- * 
+ *
  * Inputs        - pointer to ident buf
  * Output        - NULL if no valid ident found, otherwise pointer to name
  * Side effects  -
@@ -314,49 +321,53 @@ GetValidIdent(char *buf)
 {
   int   remp = 0;
   int   locp = 0;
-  char* colon1Ptr;
-  char* colon2Ptr;
-  char* colon3Ptr;
-  char* commaPtr;
-  char* remotePortString;
+  char *colon1Ptr;
+  char *colon2Ptr;
+  char *colon3Ptr;
+  char *commaPtr;
+  char *remotePortString;
 
   /* All this to get rid of a sscanf() fun. */
   remotePortString = buf;
-  
-  if ((colon1Ptr = strchr(remotePortString,':')) == NULL)
+
+  if((colon1Ptr = strchr(remotePortString, ':')) == NULL)
     return 0;
+
   *colon1Ptr = '\0';
   colon1Ptr++;
 
-  if ((colon2Ptr = strchr(colon1Ptr,':')) == NULL)
+  if((colon2Ptr = strchr(colon1Ptr, ':')) == NULL)
     return 0;
+
   *colon2Ptr = '\0';
   colon2Ptr++;
-  
-  if ((commaPtr = strchr(remotePortString, ',')) == NULL)
+
+  if((commaPtr = strchr(remotePortString, ',')) == NULL)
     return 0;
+
   *commaPtr = '\0';
   commaPtr++;
 
-  if ((remp = atoi(remotePortString)) == 0)
+  if((remp = atoi(remotePortString)) == 0)
     return 0;
-              
-  if ((locp = atoi(commaPtr)) == 0)
+
+  if((locp = atoi(commaPtr)) == 0)
     return 0;
 
   /* look for USERID bordered by first pair of colons */
-  if (strstr(colon1Ptr, "USERID") == NULL)
+  if(strstr(colon1Ptr, "USERID") == NULL)
     return 0;
 
-  if ((colon3Ptr = strchr(colon2Ptr,':')) == NULL)
+  if((colon3Ptr = strchr(colon2Ptr, ':')) == NULL)
     return 0;
+
   *colon3Ptr = '\0';
   colon3Ptr++;
   return (colon3Ptr);
 }
 
 /*
- * start_auth 
+ * start_auth
  *
  * inputs  - pointer to client to auth
  * output  - NONE
@@ -377,7 +388,7 @@ start_auth(va_list args)
 
   SetDNSPending(auth);
 
-  if (ConfigFileEntry.disable_auth == 0)
+  if(ConfigFileEntry.disable_auth == 0)
   {
     SetDoingAuth(auth);
     start_auth_query(auth);
@@ -401,18 +412,18 @@ timeout_auth_queries_event(void *notused)
   {
     struct AuthRequest *auth = ptr->data;
 
-    if (auth->timeout > CurrentTime)
+    if(auth->timeout > CurrentTime)
       continue;
 
-    if (IsDoingAuth(auth))
-    {  
+    if(IsDoingAuth(auth))
+    {
       ++ServerStats.is_abad;
       fd_close(&auth->client->localClient->auth_fd);
       ClearAuth(auth);
       sendheader(auth->client, REPORT_FAIL_ID);
     }
 
-    if (IsDNSPending(auth))
+    if(IsDNSPending(auth))
     {
       delete_resolver_queries(auth);
       ClearDNSPending(auth);
@@ -452,19 +463,19 @@ auth_connect_callback(fde_t *fd, int error, void *data)
   struct sockaddr_in *v4;
 #endif
 
-  if (error != COMM_OK)
+  if(error != COMM_OK)
   {
     auth_error(auth);
     return;
   }
 
-  if (getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&us,
-      &ulen) ||
+  if(getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&us,
+                 &ulen) ||
       getpeername(auth->client->localClient->fd.fd, (struct sockaddr *)&them,
-      &tlen))
+                  &tlen))
   {
     ilog(LOG_TYPE_IRCD, "auth get{sock,peer}name error for %s",
-        get_client_name(auth->client, SHOW_IP));
+         get_client_name(auth->client, SHOW_IP));
     auth_error(auth);
     return;
   }
@@ -484,10 +495,10 @@ auth_connect_callback(fde_t *fd, int error, void *data)
   us.ss_len = ulen;
   them.ss_len = tlen;
 #endif
-  
+
   snprintf(authbuf, sizeof(authbuf), "%u , %u\r\n", tport, uport);
 
-  if (send(fd->fd, authbuf, strlen(authbuf), 0) == -1)
+  if(send(fd->fd, authbuf, strlen(authbuf), 0) == -1)
   {
     auth_error(auth);
     return;
@@ -497,7 +508,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
 }
 
 /*
- * read_auth_reply - read the reply (if any) from the ident server 
+ * read_auth_reply - read the reply (if any) from the ident server
  * we connected to.
  * We only give it one shot, if the reply isn't good the first time
  * fail the authentication entirely. --Bleep
@@ -527,31 +538,33 @@ read_auth_reply(fde_t *fd, void *data)
    */
   len = read(fd->fd, buf, AUTH_BUFSIZ);
 
-  if (len < 0)
+  if(len < 0)
   {
-    if (ignoreErrno(errno))
+    if(ignoreErrno(errno))
       comm_setselect(fd, COMM_SELECT_READ, read_auth_reply, auth, 0);
     else
       auth_error(auth);
+
     return;
   }
 
-  if (len > 0)
+  if(len > 0)
   {
     buf[len] = '\0';
 
-    if ((s = GetValidIdent(buf)))
+    if((s = GetValidIdent(buf)))
     {
       t = auth->client->username;
 
-      while (*s == '~' || *s == '^')
+      while(*s == '~' || *s == '^')
         s++;
 
-      for (count = USERLEN; *s && count; s++)
+      for(count = USERLEN; *s && count; s++)
       {
-        if (*s == '@')
+        if(*s == '@')
           break;
-        if (!IsSpace(*s) && *s != ':' && *s != '[')
+
+        if(!IsSpace(*s) && *s != ':' && *s != '[')
         {
           *t++ = *s;
           count--;
@@ -566,7 +579,7 @@ read_auth_reply(fde_t *fd, void *data)
 
   ClearAuth(auth);
 
-  if (s == NULL)
+  if(s == NULL)
   {
     sendheader(auth->client, REPORT_FAIL_ID);
     ++ServerStats.is_abad;
@@ -584,13 +597,13 @@ read_auth_reply(fde_t *fd, void *data)
 /*
  * delete_auth()
  */
-void 
+void
 delete_auth(struct AuthRequest *auth)
 {
-  if (IsDNSPending(auth))
+  if(IsDNSPending(auth))
     delete_resolver_queries(auth);
 
-  if (IsDoingAuth(auth))
+  if(IsDoingAuth(auth))
     fd_close(&auth->client->localClient->auth_fd);
 
   dlinkDelete(&auth->node, &auth_doing_list);

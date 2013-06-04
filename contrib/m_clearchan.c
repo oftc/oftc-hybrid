@@ -57,21 +57,21 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
   struct Channel *chptr = NULL;
 
   /* admins only */
-  if (!HasUMode(source_p, UMODE_ADMIN))
+  if(!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
     return;
   }
 
-  if ((chptr = hash_find_channel(parv[1])) == NULL)
+  if((chptr = hash_find_channel(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                me.name, source_p->name, parv[1]);
     return;
   }
 
-  if (IsMember(source_p, chptr))
+  if(IsMember(source_p, chptr))
   {
     sendto_one(source_p, ":%s NOTICE %s :*** Please part %s before using CLEARCHAN",
                me.name, source_p->name, chptr->chname);
@@ -90,7 +90,7 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
   /*
    * Kill all the modes we have about the channel..
    * making everyone a peon
-   */  
+   */
   remove_our_modes(chptr);
 
   /* SJOIN the user to give them ops, and lock the channel */
@@ -113,7 +113,7 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
    * Take the TS down by 1, so we don't see the channel taken over
    * again.
    */
-  if (chptr->channelts)
+  if(chptr->channelts)
     --chptr->channelts;
 
   chptr->mode.mode = MODE_SECRET | MODE_TOPICLIMIT |
@@ -151,7 +151,7 @@ kick_list(struct Client *source_p, struct Channel *chptr)
   {
     ms = ptr->data;
 
-    if (ms->client_p != source_p)
+    if(ms->client_p != source_p)
       remove_user_from_channel(ms);
   }
 
@@ -209,7 +209,8 @@ remove_a_mode(struct Channel *chptr, int mask, char flag)
   DLINK_FOREACH(ptr, chptr->members.head)
   {
     struct Membership *ms = ptr->data;
-    if ((ms->flags & mask) == 0)
+
+    if((ms->flags & mask) == 0)
       continue;
 
     ms->flags &= ~mask;
@@ -218,7 +219,7 @@ remove_a_mode(struct Channel *chptr, int mask, char flag)
 
     *mbuf++ = flag;
 
-    if (count == 4)
+    if(count == 4)
     {
       *mbuf = '\0';
       sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s %s %s %s %s %s",
@@ -232,7 +233,7 @@ remove_a_mode(struct Channel *chptr, int mask, char flag)
     }
   }
 
-  if (count != 0)
+  if(count != 0)
   {
     *mbuf = '\0';
     sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s %s %s %s %s %s",
@@ -241,7 +242,8 @@ remove_a_mode(struct Channel *chptr, int mask, char flag)
   }
 }
 
-static struct Message clearchan_msgtab = {
+static struct Message clearchan_msgtab =
+{
   "CLEARCHAN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_clearchan, m_ignore }
 };
@@ -258,7 +260,8 @@ module_exit(void)
   mod_del_cmd(&clearchan_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -41,20 +41,21 @@ static char used_locale[LOCALE_LENGTH] = "standard";
  * output  - corresponding string
  * side effects  - NONE
  */
-const char* form_str(int numeric)
+const char *form_str(int numeric)
 {
   assert(-1 < numeric);
   assert(numeric < ERR_LAST_ERR_MSG);
 
-  if (numeric > ERR_LAST_ERR_MSG)
+  if(numeric > ERR_LAST_ERR_MSG)
     numeric = ERR_LAST_ERR_MSG;
-  if (numeric < 0)
+
+  if(numeric < 0)
     numeric = ERR_LAST_ERR_MSG;
 
   assert(replies[numeric].standard != NULL);
 
   return (replies[numeric].translated != NULL ? replies[numeric].translated :
-                                                replies[numeric].standard);
+          replies[numeric].standard);
 }
 
 /* Attempts to change a numeric with index "reply" to "new_reply".
@@ -67,38 +68,45 @@ change_reply(const char *locale, int linecnt, int reply, char *new_reply)
   char *new = new_reply;
   const char *old = replies[reply].standard;
 
-  for (; *new; new++)
+  for(; *new; new++)
   {
-    if (*new == '%')
+    if(*new == '%')
     {
-      if (!*++new) break;
-      if (*new != '%')
+      if(!*++new) break;
+
+      if(*new != '%')
       {
         /* We've just found a format symbol. Check if it is the next format
          * symbol in the original reply.
          */
-        for (; *new >= '0' && *new <= '9'; new++); /* skip size prefix */
+        for(; *new >= '0' && *new <= '9'; new++);  /* skip size prefix */
+
         found = 0;
-        for (; *old; old++)
+
+        for(; *old; old++)
         {
-          if (*old == '%')
-    {
-      if (!*++old) break;  /* shouldn't happen */
-      if (*old != '%')
+          if(*old == '%')
+          {
+            if(!*++old) break;   /* shouldn't happen */
+
+            if(*old != '%')
             {
-              for (; *old >= '0' && *old <= '9'; old++); /* skip size prefix */
-              if (*new != *old++)
+              for(; *old >= '0' && *old <= '9'; old++);  /* skip size prefix */
+
+              if(*new != *old++)
               {
                 ilog(LOG_TYPE_IRCD, "Incompatible format symbols (%s.lang, %d)",
                      locale, linecnt);
                 return 0;
               }
+
               found = 1;
               break;
             }
-    }
+          }
         }
-        if (!found)
+
+        if(!found)
         {
           ilog(LOG_TYPE_IRCD, "Too many format symbols (%s.lang, %d)", locale, linecnt);
           return(0);
@@ -122,16 +130,16 @@ set_locale(const char *locale)
   FILE *f;
 
   /* Restore standard replies */
-  for (i = 0; i <= ERR_LAST_ERR_MSG; i++)   /* 0 isn't a magic number! ;> */
+  for(i = 0; i <= ERR_LAST_ERR_MSG; i++)    /* 0 isn't a magic number! ;> */
   {
-    if (replies[i].translated != NULL)
+    if(replies[i].translated != NULL)
     {
       MyFree(replies[i].translated);
       replies[i].translated = NULL;
     }
   }
 
-  if (strchr(locale, '/') != NULL)
+  if(strchr(locale, '/') != NULL)
   {
     strlcpy(used_locale, "standard", sizeof(used_locale));  /* XXX paranoid */
     return;
@@ -142,80 +150,90 @@ set_locale(const char *locale)
    * of MSGPATH.
    */
   snprintf(buffer, sizeof(buffer), "%s/%s.lang", MSGPATH, locale);
-  if ((f = fopen(buffer, "r")) == NULL)
+
+  if((f = fopen(buffer, "r")) == NULL)
   {
     strlcpy(used_locale, "standard", sizeof(used_locale));  /* XXX */
     return;
   }
 
   /* Process the language file */
-  while (fgets(buffer, sizeof(buffer), f))
+  while(fgets(buffer, sizeof(buffer), f))
   {
     ++linecnt;
-    if (buffer[0] == ';')
+
+    if(buffer[0] == ';')
       continue;   /* that's a comment */
 
-    if ((ident = strpbrk(buffer, "\r\n")) != NULL)
-      *ident = '\0';
+    if((ident = strpbrk(buffer, "\r\n")) != NULL)
+      * ident = '\0';
 
     /* skip spaces if there are any */
-    for (ident = buffer; *ident == ' ' || *ident == '\t'; ident++)/* null */;
-    if (*ident == '\0')
+    for(ident = buffer; *ident == ' ' || *ident == '\t'; ident++)/* null */;
+
+    if(*ident == '\0')
       continue;       /* empty line */
 
     /* skip after the reply identificator */
-    for (reply = ident; *reply != ' ' && *reply != '\t' && *reply != ':';
-      reply++)
-      if (*reply == '\0') goto error;
+    for(reply = ident; *reply != ' ' && *reply != '\t' && *reply != ':';
+        reply++)
+      if(*reply == '\0') goto error;
 
-    if (*reply == ' ' || *reply == '\t')
+    if(*reply == ' ' || *reply == '\t')
     {
-      for (*reply++ = '\0'; *reply == ' ' || *reply == '\t'; reply++);
-      if (*reply != ':')
+      for(*reply++ = '\0'; *reply == ' ' || *reply == '\t'; reply++);
+
+      if(*reply != ':')
       {
-        error:
+error:
         ilog(LOG_TYPE_IRCD, "Invalid line in language file (%s.lang, %d)",
              locale, linecnt);
-  res = 0;
-  continue;
+        res = 0;
+        continue;
       }
     }
     else
       *reply++ = '\0';
-    if (*ident == '\0')
+
+    if(*ident == '\0')
       goto error;
 
     /* skip to the beginning of reply */
-    while (*reply == ' ' || *reply == '\t') reply++;
-    if (*reply == '\0')
+    while(*reply == ' ' || *reply == '\t') reply++;
+
+    if(*reply == '\0')
       goto error;
 
-    for (i = 0; i <= ERR_LAST_ERR_MSG; i++)
+    for(i = 0; i <= ERR_LAST_ERR_MSG; i++)
     {
-      if (replies[i].name != NULL)
+      if(replies[i].name != NULL)
       {
-        if (irccmp(replies[i].name, ident) == 0)
+        if(irccmp(replies[i].name, ident) == 0)
         {
-          if (!change_reply(locale, linecnt, i, reply)) res = 0;
+          if(!change_reply(locale, linecnt, i, reply)) res = 0;
+
           i = -1;
           break;
         }
       }
     }
-    if (i != -1)
+
+    if(i != -1)
     {
       ilog(LOG_TYPE_IRCD,
-     "Unknown numeric %s (%s.lang, %d)", ident, locale, linecnt);
+           "Unknown numeric %s (%s.lang, %d)", ident, locale, linecnt);
       res = 0;
     }
   }
+
   fclose(f);
 
   strlcpy(used_locale, locale, sizeof(used_locale));
-  if (!res)
+
+  if(!res)
     sendto_realops_flags(UMODE_ALL, L_ADMIN, "Language file [%s] contains "
                          "errors, check server log file for more details",
-       used_locale);
+                         used_locale);
 }
 
 /* Returns the name of current locale. */

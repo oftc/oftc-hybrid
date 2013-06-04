@@ -46,16 +46,16 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
 {
   int found = 0;
 
-  if (!HasOFlag(source_p, OPER_FLAG_REHASH))
+  if(!HasOFlag(source_p, OPER_FLAG_REHASH))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "rehash");
     return;
   }
 
-  if (!EmptyString(parv[1]))
+  if(!EmptyString(parv[1]))
   {
-    if (irccmp(parv[1], "DNS") == 0)
+    if(irccmp(parv[1], "DNS") == 0)
     {
       sendto_one(source_p, form_str(RPL_REHASHING), me.name, source_p->name, "DNS");
       sendto_realops_flags(UMODE_ALL, L_ALL, "%s is rehashing DNS",
@@ -64,16 +64,16 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
                                and close/re-open res socket */
       found = 1;
     }
-    else if (irccmp(parv[1], "MOTD") == 0)
+    else if(irccmp(parv[1], "MOTD") == 0)
     {
-      sendto_realops_flags(UMODE_ALL, L_ALL, 
+      sendto_realops_flags(UMODE_ALL, L_ALL,
                            "%s is forcing re-reading of MOTD file",
                            get_oper_name(source_p));
       read_message_file(&ConfigFileEntry.motd);
       found = 1;
     }
 
-    if (found)
+    if(found)
     {
       ilog(LOG_TYPE_IRCD, "REHASH %s From %s",
            parv[1], get_client_name(source_p, HIDE_IP));
@@ -91,7 +91,7 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
   {
     sendto_one(source_p, form_str(RPL_REHASHING),
                me.name, source_p->name, ConfigFileEntry.configfile);
-    sendto_realops_flags(UMODE_ALL, L_ALL, 
+    sendto_realops_flags(UMODE_ALL, L_ALL,
                          "%s is rehashing server config file",
                          get_oper_name(source_p));
     ilog(LOG_TYPE_IRCD, "REHASH From %s[%s]",
@@ -100,7 +100,8 @@ mo_rehash(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message rehash_msgtab = {
+static struct Message rehash_msgtab =
+{
   "REHASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_rehash, m_ignore}
 };
@@ -117,7 +118,8 @@ module_exit(void)
   mod_del_cmd(&rehash_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

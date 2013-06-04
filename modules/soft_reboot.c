@@ -86,7 +86,7 @@ serverize(struct Client *client_p)
   conf_add_class_to_conf(sconf, NULL);
   attach_conf(client_p, sconf);
   client_p->serv->sconf = find_conf_name(&client_p->localClient->confs,
-      client_p->name, SERVER_TYPE);
+                                         client_p->name, SERVER_TYPE);
 
   SetServer(client_p);
 }
@@ -138,7 +138,7 @@ make_dummy(int transfd)
 static void
 write_dbuf(int transfd, struct dbuf_queue *dbuf)
 {
-  while (dbuf_length(dbuf) > 0)
+  while(dbuf_length(dbuf) > 0)
   {
     struct dbuf_block *first = dbuf->blocks.head->data;
 
@@ -163,18 +163,18 @@ introduce_socket(int transfd, struct Client *client_p)
   struct SocketInfo si;
   const char *capabs = "";
 
-  if (!CanForward(client_p) || client_p->localClient->fd.fd == transfd)
+  if(!CanForward(client_p) || client_p->localClient->fd.fd == transfd)
     return;
 
-  if (IsServer(client_p))
+  if(IsServer(client_p))
     capabs = show_capabilities(client_p);
 
   si.fd = client_p->localClient->fd.fd;
   si.ctrlfd = client_p->localClient->ctrlfd.flags.open ?
-    client_p->localClient->ctrlfd.fd : -1;
+              client_p->localClient->ctrlfd.fd : -1;
   si.namelen = strlen(client_p->name);
   si.pwdlen = EmptyString(client_p->localClient->passwd) ? 0 :
-    strlen(client_p->localClient->passwd);
+              strlen(client_p->localClient->passwd);
   si.caplen = strlen(capabs);
   si.recvqlen = dbuf_length(&client_p->localClient->buf_recvq);
   si.sendqlen = dbuf_length(&client_p->localClient->buf_sendq);
@@ -185,14 +185,17 @@ introduce_socket(int transfd, struct Client *client_p)
 
   write(transfd, &si, sizeof(si));
   write(transfd, client_p->name, si.namelen);
-  if (si.pwdlen > 0)
+
+  if(si.pwdlen > 0)
     write(transfd, client_p->localClient->passwd, si.pwdlen);
-  if (si.caplen > 0)
+
+  if(si.caplen > 0)
     write(transfd, capabs, si.caplen);
 
   write_dbuf(transfd, &client_p->localClient->buf_recvq);
   write_dbuf(transfd, &client_p->localClient->buf_sendq);
-  if (si.slinkqlen > 0)
+
+  if(si.slinkqlen > 0)
     write(transfd, client_p->localClient->slinkq, si.slinkqlen);
 }
 
@@ -216,10 +219,10 @@ do_shutdown(va_list args)
   int transfd[2];
   char buf[24];
 
-  if (!rboot || socketpair(AF_UNIX, SOCK_STREAM, 0, transfd) < 0)
+  if(!rboot || socketpair(AF_UNIX, SOCK_STREAM, 0, transfd) < 0)
     return pass_callback(h_shutdown, msg, rboot);
 
-  if (EmptyString(msg))
+  if(EmptyString(msg))
   {
     ilog(L_CRIT, "Server Soft-Rebooting");
     sendto_realops_flags(UMODE_ALL, L_ALL, "Server Soft-Rebooting");
@@ -239,10 +242,12 @@ do_shutdown(va_list args)
   DLINK_FOREACH(ptr, local_client_list.head)
   {
     client_p = ptr->data;
-    if (CanForward(client_p))
+
+    if(CanForward(client_p))
     {
       fcntl(client_p->localClient->fd.fd, F_SETFD, 0);
-      if (client_p->localClient->list_task != NULL)
+
+      if(client_p->localClient->list_task != NULL)
         sendto_one(client_p, form_str(RPL_LISTEND), me.name, client_p->name);
     }
   }
@@ -250,7 +255,8 @@ do_shutdown(va_list args)
   DLINK_FOREACH(ptr, serv_list.head)
   {
     client_p = ptr->data;
-    if (CanForward(client_p))
+
+    if(CanForward(client_p))
       fcntl(client_p->localClient->fd.fd, F_SETFD, 0);
   }
 
@@ -260,7 +266,7 @@ do_shutdown(va_list args)
   //
   // Start the new ircd.
   //
-  switch (fork())
+  switch(fork())
   {
     case -1:
       ilog(L_CRIT, "Unable to fork(): %s", strerror(errno));
@@ -274,11 +280,13 @@ do_shutdown(va_list args)
       close(transfd[1]);
       snprintf(buf, sizeof(buf), "softboot_%d", transfd[0]);
 
-      for (i = 0; myargv[i] != NULL; i++);
+      for(i = 0; myargv[i] != NULL; i++);
+
       argv = MyMalloc((i + 2) * sizeof(char *));
 
-      for (i = 0; myargv[i] != NULL; i++)
+      for(i = 0; myargv[i] != NULL; i++)
         argv[i] = myargv[i];
+
       argv[i++] = buf;
       argv[i] = NULL;
 
@@ -298,10 +306,10 @@ do_shutdown(va_list args)
   write(transfd[1], buf, strlen(buf));
 
   DLINK_FOREACH(ptr, local_client_list.head)
-    introduce_socket(transfd[1], ptr->data);
+  introduce_socket(transfd[1], ptr->data);
 
   DLINK_FOREACH(ptr, serv_list.head)
-    introduce_socket(transfd[1], ptr->data);
+  introduce_socket(transfd[1], ptr->data);
 
   exit(0);
 }
@@ -323,7 +331,7 @@ static void
 restore_socket(struct Client *client_p, int fd, int ctrlfd,
                time_t first, time_t last)
 {
-  char buf[HOSTLEN+16];
+  char buf[HOSTLEN + 16];
   struct irc_ssaddr addr;
   int family, port;
 
@@ -332,11 +340,12 @@ restore_socket(struct Client *client_p, int fd, int ctrlfd,
            client_p->name);
 
   client_p->localClient = BlockHeapAlloc(lclient_heap);
-//  attach_conf(client_p, default_class);
+  //  attach_conf(client_p, default_class);
 
   fd_open(&client_p->localClient->fd, fd, 1, buf);
   fcntl(fd, F_SETFD, FD_CLOEXEC);
-  if (ctrlfd >= 0)
+
+  if(ctrlfd >= 0)
   {
     snprintf(buf, sizeof(buf), "slink ctrl: %s", client_p->name);
     fd_open(&client_p->localClient->ctrlfd, ctrlfd, 1, buf);
@@ -346,7 +355,8 @@ restore_socket(struct Client *client_p, int fd, int ctrlfd,
   getsockname(fd, (struct sockaddr *) &addr, &addr.ss_len);
   family = addr.ss.sin_family;
   port = ntohs(addr.ss.sin_port);
-  if (!(client_p->localClient->listener = find_listener(port, &addr)))
+
+  if(!(client_p->localClient->listener = find_listener(port, &addr)))
   {
     memset(&addr.ss, 0, sizeof(addr.ss));
     addr.ss.sin_family = family;
@@ -390,19 +400,21 @@ restore_socket(struct Client *client_p, int fd, int ctrlfd,
 static void
 restore_client(struct Client *client_p, char *capabs)
 {
-  char userbuf[USERLEN+1];
+  char userbuf[USERLEN + 1];
   struct Class *cptr;
 
-  if (client_p->username[0] != '~')
+  if(client_p->username[0] != '~')
     SetGotId(client_p);
+
   strlcpy(userbuf, client_p->username + !IsGotId(client_p),
           sizeof(userbuf));
 
-  if ((cptr = execute_callback(client_check_cb, client_p, userbuf)))
+  if((cptr = execute_callback(client_check_cb, client_p, userbuf)))
     attach_conf(client_p, cptr);
 
   Count.local++, Count.totalrestartcount++;
-  if (Count.local > Count.max_loc)
+
+  if(Count.local > Count.max_loc)
     Count.max_loc = Count.local;
 
   delete_user_host(client_p->username, client_p->host, 1);
@@ -411,7 +423,8 @@ restore_client(struct Client *client_p, char *capabs)
 
   dlinkAdd(client_p, &client_p->localClient->lclient_node, &local_client_list);
   dlinkAdd(client_p, &client_p->lnode, &me.serv->client_list);
-  if (IsOper(client_p))
+
+  if(IsOper(client_p))
     dlinkAdd(client_p, make_dlink_node(), &oper_list);
 }
 
@@ -423,11 +436,11 @@ restore_server(struct Client *client_p, char *capabs)
 
   SetGotId(client_p);
 
-  for (s = strtoken(&p, capabs, " "); s; s = strtoken(&p, NULL, " "))
-    if ((cap = find_capability(s)) != 0)
+  for(s = strtoken(&p, capabs, " "); s; s = strtoken(&p, NULL, " "))
+    if((cap = find_capability(s)) != 0)
       SetCapable(client_p, cap);
 
-  if (check_server(client_p->name, client_p, NO) != 0)
+  if(check_server(client_p->name, client_p, NO) != 0)
     serverize(client_p);
 
   set_chcap_usage_counts(client_p);
@@ -465,12 +478,13 @@ discover_from(struct Client *client_p)
 static void
 restore_dbuf(FILE *f, struct dbuf_queue *dbuf, int cnt)
 {
-  while (cnt > 0)
+  while(cnt > 0)
   {
     int nread = fread(readBuf, 1, LIBIO_MIN(sizeof(readBuf), cnt), f);
 
-    if (dbuf != NULL)
+    if(dbuf != NULL)
       dbuf_put(dbuf, readBuf, nread);
+
     cnt -= nread;
   }
 }
@@ -487,7 +501,7 @@ static void
 load_state(int transfd)
 {
   FILE *f = fdopen(transfd, "r");
-  char buf[IRCD_BUFSIZE+1], *p, *parv[4] = {NULL, NULL, "-o", NULL};
+  char buf[IRCD_BUFSIZE + 1], *p, *parv[4] = {NULL, NULL, "-o", NULL};
   struct Client *client_p;
   struct SocketInfo si;
   dlink_node *ptr, *ptr_next;
@@ -498,15 +512,17 @@ load_state(int transfd)
   fd_open(&me.localClient->fd, transfd, 1, "Softboot");
   serverize(&me);
 
-  while (fgets(buf, sizeof(buf), f))
+  while(fgets(buf, sizeof(buf), f))
   {
-    if ((p = strpbrk(buf, "\r\n")) != NULL)
-      *p = 0;
-    if (buf[0] == '\001')
+    if((p = strpbrk(buf, "\r\n")) != NULL)
+      * p = 0;
+
+    if(buf[0] == '\001')
     {
       me.since = atoi(buf + 1);
       break;
     }
+
     parse(&me, buf, buf + strlen(buf));
   }
 
@@ -517,9 +533,9 @@ load_state(int transfd)
   //
   // Read local client information
   //
-  while (fread(&si, sizeof(si), 1, f) == 1)
+  while(fread(&si, sizeof(si), 1, f) == 1)
   {
-    if (si.fd == -1)
+    if(si.fd == -1)
       break;
 
     assert(si.namelen < IRCD_BUFSIZE);
@@ -528,13 +544,14 @@ load_state(int transfd)
     fread(buf, 1, si.namelen, f);
     buf[si.namelen] = 0;
 
-    if ((client_p = find_client(buf)) != NULL)
+    if((client_p = find_client(buf)) != NULL)
       restore_socket(client_p, si.fd, si.ctrlfd, si.first, si.last);
     else
       close(si.fd);
 
     fread(buf, 1, si.pwdlen, f);
-    if (client_p != NULL && si.pwdlen > 0)
+
+    if(client_p != NULL && si.pwdlen > 0)
     {
       buf[si.pwdlen] = 0;
       DupString(client_p->localClient->passwd, buf);
@@ -543,15 +560,15 @@ load_state(int transfd)
     fread(buf, 1, si.caplen, f);
     buf[si.caplen] = 0;
 
-    if (client_p != NULL)
-      (IsServer(client_p) ? restore_server : restore_client) (client_p, buf);
+    if(client_p != NULL)
+      (IsServer(client_p) ? restore_server : restore_client)(client_p, buf);
 
     restore_dbuf(f, client_p ? &client_p->localClient->buf_recvq : NULL,
                  si.recvqlen);
     restore_dbuf(f, client_p ? &client_p->localClient->buf_sendq : NULL,
                  si.sendqlen);
 
-    if (si.slinkqlen > 0)
+    if(si.slinkqlen > 0)
     {
       client_p->localClient->slinkq = MyMalloc(si.slinkqlen);
       fread(client_p->localClient->slinkq, 1, si.slinkqlen, f);
@@ -567,7 +584,8 @@ load_state(int transfd)
   {
     client_p = ptr->data;
     client_p->from = discover_from(client_p);
-    if (client_p->from == client_p && !client_p->localClient)
+
+    if(client_p->from == client_p && !client_p->localClient)
     {
       SetDead(client_p);
       client_p->localClient = BlockHeapAlloc(lclient_heap);
@@ -575,7 +593,7 @@ load_state(int transfd)
     }
   }
 
-  while (oper_list.head != NULL)
+  while(oper_list.head != NULL)
   {
     client_p = oper_list.head->data;
     parv[0] = parv[1] = client_p->name;
@@ -600,12 +618,12 @@ do_verify_conf(va_list args)
 {
   pass_callback(h_verify);
 
-  if (conf_cold)
+  if(conf_cold)
   {
     int i;
 
-    for (i = 0; myargv[i] != NULL; i++)
-      if (!ircncmp(myargv[i], "softboot_", 9))
+    for(i = 0; myargv[i] != NULL; i++)
+      if(!ircncmp(myargv[i], "softboot_", 9))
       {
         load_state(atoi(myargv[i] + 9));
         myargv[i] = NULL;

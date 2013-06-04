@@ -43,21 +43,21 @@ mo_die(struct Client *client_p, struct Client *source_p,
 {
   char buf[IRCD_BUFSIZE];
 
-  if (!HasOFlag(source_p, OPER_FLAG_DIE))
+  if(!HasOFlag(source_p, OPER_FLAG_DIE))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "die");
     return;
   }
 
-  if (parc < 2 || EmptyString(parv[1]))
+  if(parc < 2 || EmptyString(parv[1]))
   {
     sendto_one(source_p, ":%s NOTICE %s :Need server name /die %s",
                me.name, source_p->name, me.name);
     return;
   }
 
-  if (irccmp(parv[1], me.name))
+  if(irccmp(parv[1], me.name))
   {
     sendto_one(source_p, ":%s NOTICE %s :Mismatch on /die %s",
                me.name, source_p->name, me.name);
@@ -69,7 +69,8 @@ mo_die(struct Client *client_p, struct Client *source_p,
   server_die(buf, 0);
 }
 
-static struct Message die_msgtab = {
+static struct Message die_msgtab =
+{
   "DIE", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_die, m_ignore}
 };
@@ -86,7 +87,8 @@ module_exit(void)
   mod_del_cmd(&die_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

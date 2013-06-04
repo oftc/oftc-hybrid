@@ -46,14 +46,14 @@ mo_operwall(struct Client *client_p, struct Client *source_p,
 {
   const char *message = parv[1];
 
-  if (!HasOFlag(source_p, OPER_FLAG_OPERWALL))
+  if(!HasOFlag(source_p, OPER_FLAG_OPERWALL))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "operwall");
     return;
   }
 
-  if (EmptyString(message))
+  if(EmptyString(message))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "OPERWALL");
@@ -79,7 +79,7 @@ ms_operwall(struct Client *client_p, struct Client *source_p,
 {
   const char *message = parv[1];
 
-  if (EmptyString(message))
+  if(EmptyString(message))
     return;
 
   sendto_server(client_p, CAP_TS6, NOCAPS, ":%s OPERWALL :%s",
@@ -103,13 +103,14 @@ me_operwall(struct Client *client_p, struct Client *source_p,
 {
   const char *message = parv[1];
 
-  if (EmptyString(message))
+  if(EmptyString(message))
     return;
 
   sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }
 
-static struct Message operwall_msgtab = {
+static struct Message operwall_msgtab =
+{
   "OPERWALL", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_not_oper, ms_operwall, me_operwall, mo_operwall, m_ignore}
 };
@@ -126,7 +127,8 @@ module_exit(void)
   mod_del_cmd(&operwall_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

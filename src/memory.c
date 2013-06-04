@@ -39,7 +39,7 @@ MyMalloc(size_t size)
 {
   void *ret = calloc(1, size);
 
-  if (ret == NULL)
+  if(ret == NULL)
     outofmemory();
 
   return ret;
@@ -53,7 +53,7 @@ MyRealloc(void *x, size_t y)
 {
   void *ret = realloc(x, y);
 
-  if (ret == NULL)
+  if(ret == NULL)
     outofmemory();
 
   return ret;
@@ -62,7 +62,7 @@ MyRealloc(void *x, size_t y)
 inline void
 MyFree(void *x)
 {
-  if (x)
+  if(x)
     free(x);
 }
 
@@ -85,7 +85,7 @@ outofmemory(void)
 {
   static int was_here = 0;
 
-  if (was_here++)
+  if(was_here++)
     abort();
 
   ilog(LOG_TYPE_IRCD, "Out of memory: restarting server...");
@@ -105,7 +105,7 @@ mem_frob(void *data, int len)
   int i;
   char *cdata = data;
 
-  for (i = 0; i < len; i++)
+  for(i = 0; i < len; i++)
   {
     *cdata = b[i % 4];
     cdata++;

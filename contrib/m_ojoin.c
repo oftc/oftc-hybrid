@@ -54,17 +54,17 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
   dlink_node *ptr;
 
   /* admins only */
-  if (!HasUMode(source_p, UMODE_ADMIN))
+  if(!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
     return;
   }
 
-  for (name = strtoken(&t, name, ","); name;
-       name = strtoken(&t, NULL, ","))
+  for(name = strtoken(&t, name, ","); name;
+      name = strtoken(&t, NULL, ","))
   {
-    switch (*name)
+    switch(*name)
     {
       case '@':
         prefix = "@";
@@ -73,6 +73,7 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
         ++name;
         break;
 #ifdef HALFOPS
+
       case '%':
         prefix = "%";
         flags = CHFL_HALFOP;
@@ -80,12 +81,14 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
         ++name;
         break;
 #endif
+
       case '+':
         prefix = "+";
         flags = CHFL_VOICE;
         modeletter = 'v';
         ++name;
         break;
+
       case '#':
         prefix = "";
         flags = 0;
@@ -99,10 +102,10 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
     }
 
     /* Error checking here */
-    if ((chptr = hash_find_channel(name)) == NULL)
+    if((chptr = hash_find_channel(name)) == NULL)
       sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                  me.name, source_p->name, name);
-    else if (IsMember(source_p, chptr))
+    else if(IsMember(source_p, chptr))
       sendto_one(source_p, ":%s NOTICE %s :Please part %s before using OJOIN",
                  me.name, source_p->name, name);
     else
@@ -124,12 +127,12 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
                            source_p->host,
                            chptr->chname);
 
-      if (modeletter != '\0')
+      if(modeletter != '\0')
         sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +%c %s",
                              me.name, chptr->chname, modeletter, source_p->name);
 
       /* send the topic... */
-      if (chptr->topic[0])
+      if(chptr->topic[0])
       {
         sendto_one(source_p, form_str(RPL_TOPIC),
                    me.name, source_p->name, chptr->chname,
@@ -145,7 +148,8 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message ojoin_msgtab = {
+static struct Message ojoin_msgtab =
+{
   "OJOIN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ojoin, m_ignore }
 };
@@ -162,7 +166,8 @@ module_exit(void)
   mod_del_cmd(&ojoin_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

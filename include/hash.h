@@ -35,7 +35,8 @@ struct Channel;
 struct ResvChannel;
 struct UserHost;
 
-enum {
+enum
+{
   HASH_TYPE_ID,
   HASH_TYPE_CLIENT,
   HASH_TYPE_CHANNEL,

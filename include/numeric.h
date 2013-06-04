@@ -51,7 +51,7 @@ extern const char *get_locale(void);
 #define RPL_CREATED          003
 #define RPL_MYINFO           004
 #define RPL_ISUPPORT         005
-     /* RPL_BOUNCE                         IRCnet extension */
+/* RPL_BOUNCE                         IRCnet extension */
 /*  RPL_MAP           6  unreal */
 /*  RPL_MAPEND         7  unreal */
 /*  RPL_SNOMASK            8        Undernet extension */
@@ -83,7 +83,7 @@ extern const char *get_locale(void);
 
 /*      RPL_STATS            210 aircd extension, used instead of having
                                  multiple stats numerics */
-/*      RPL_TRACERECONNECT   210 IRCnet extension */                                 
+/*      RPL_TRACERECONNECT   210 IRCnet extension */
 
 #define RPL_STATSLINKINFO    211
 #define RPL_STATSCOMMANDS    212
@@ -96,7 +96,7 @@ extern const char *get_locale(void);
 #define RPL_STATSYLINE       218
 #define RPL_ENDOFSTATS       219
 /* note ircu uses 217 for STATSPLINE frip. conflict
- * as RPL_STATSQLINE was used in old 2.8 for Q line 
+ * as RPL_STATSQLINE was used in old 2.8 for Q line
  * I'm going to steal 220 for now *sigh*
  * -Dianora
  */
@@ -114,7 +114,7 @@ extern const char *get_locale(void);
    RPL_STATSELINE       225     unreal
    RPL_STATSCOUNT       226     Dalnet
   RPL_STATSNLINE       226     unreal
-  RPL_STATSGLINE       227     Dalnet 
+  RPL_STATSGLINE       227     Dalnet
   RPL_STATSVLINE       227     unreal */
 
 #define RPL_STATSFLINE       224
@@ -304,7 +304,7 @@ extern const char *get_locale(void);
 /*  RPL_QLIST       386  unreal */
 /*  RPL_ENDOFQLIST       387  unreal */
 /*  RPL_ALIST       388  unreal */
-/*  RPL_ENDOFALIST       389  unreal */ 
+/*  RPL_ENDOFALIST       389  unreal */
 
 #define RPL_TIME             391
 #define RPL_USERSSTART       392
@@ -347,7 +347,7 @@ extern const char *get_locale(void);
 /*      ERR_SERVICENAMEINUSE 434 ? */
 /*  ERR_NORULES       434   unreal */
 /*      ERR_SERVICECONFUSED  435 ? */
-#define ERR_NONICKWHILEBAN   434 
+#define ERR_NONICKWHILEBAN   434
 /*      ERR_NICKONBAN        435 dalnet */
 
 #define ERR_NICKCOLLISION    436
@@ -418,7 +418,7 @@ extern const char *get_locale(void);
 
 #define ERR_USERNOTONSERV    504
 
-/* #define ERR_LAST_ERR_MSG 505 
+/* #define ERR_LAST_ERR_MSG 505
  * moved to 999
  */
 
@@ -452,12 +452,12 @@ extern const char *get_locale(void);
 /*  RPL_MAPMORE          610  unreal
 
   RPL_MAPMORE          615  PTlink
-  
+
   RPL_DCCSTATUS        617  dalnet
   RPL_DCCLIST          618  dalnet
   RPL_ENDOFDCCLIST     619  dalnet
   RPL_DCCINFO          620  dalnet
-  
+
   RPL_DUMPING       640  unreal
   RPL_DUMPRPL       641  unreal
   RPL_EODUMP       642  unreal

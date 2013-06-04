@@ -26,7 +26,7 @@
 #include "list.h"
 #include "ircd.h"
 #include "send.h"
-#include "client.h"   
+#include "client.h"
 #include "memory.h"
 #include "numeric.h"
 #include "resv.h"
@@ -52,13 +52,13 @@ create_channel_resv(char *name, char *reason, int in_conf)
   struct ConfItem *conf = NULL;
   struct ResvChannel *resv_p = NULL;
 
-  if (name == NULL || reason == NULL)
+  if(name == NULL || reason == NULL)
     return NULL;
 
-  if (hash_find_resv(name))
+  if(hash_find_resv(name))
     return NULL;
 
-  if (strlen(reason) > REASONLEN)
+  if(strlen(reason) > REASONLEN)
     reason[REASONLEN] = '\0';
 
   conf = make_conf_item(CRESV_TYPE);
@@ -89,13 +89,13 @@ create_nick_resv(char *name, char *reason, int in_conf)
   struct ConfItem *conf = NULL;
   struct MatchItem *resv_p = NULL;
 
-  if (name == NULL || reason == NULL)
+  if(name == NULL || reason == NULL)
     return NULL;
 
-  if (find_matching_name_conf(NRESV_TYPE, name, NULL, NULL, 0))
+  if(find_matching_name_conf(NRESV_TYPE, name, NULL, NULL, 0))
     return NULL;
 
-  if (strlen(reason) > REASONLEN)
+  if(strlen(reason) > REASONLEN)
     reason[REASONLEN] = '\0';
 
   conf = make_conf_item(NRESV_TYPE);
@@ -120,7 +120,7 @@ clear_conf_resv(void)
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
   DLINK_FOREACH_SAFE(ptr, next_ptr, resv_channel_list.head)
-    delete_channel_resv(ptr->data);
+  delete_channel_resv(ptr->data);
 }
 
 /* delete_channel_resv()
@@ -156,14 +156,14 @@ match_find_resv(const char *name)
 {
   dlink_node *ptr = NULL;
 
-  if (EmptyString(name))
+  if(EmptyString(name))
     return NULL;
 
   DLINK_FOREACH(ptr, resv_channel_list.head)
   {
     struct ResvChannel *chptr = ptr->data;
 
-    if (match_chan(name, chptr->name))
+    if(match_chan(name, chptr->name))
       return chptr;
   }
 
@@ -189,8 +189,8 @@ report_resv(struct Client *source_p)
     resv_cp = ptr->data;
     sendto_one(source_p, form_str(RPL_STATSQLINE),
                me.name, source_p->name,
-         resv_cp->conf ? 'Q' : 'q', resv_cp->count,
-         resv_cp->name, resv_cp->reason);
+               resv_cp->conf ? 'Q' : 'q', resv_cp->count,
+               resv_cp->name, resv_cp->reason);
   }
 
   DLINK_FOREACH(ptr, nresv_items.head)
@@ -200,8 +200,8 @@ report_resv(struct Client *source_p)
 
     sendto_one(source_p, form_str(RPL_STATSQLINE),
                me.name, source_p->name,
-         resv_np->action ? 'Q' : 'q', resv_np->count,
-         conf->name, resv_np->reason);
+               resv_np->action ? 'Q' : 'q', resv_np->count,
+               conf->name, resv_np->reason);
   }
 }
 
@@ -217,12 +217,13 @@ valid_wild_card_simple(const char *data)
   const unsigned char *p = (const unsigned char *)data;
   int nonwild = 0;
 
-  while (*p != '\0')
+  while(*p != '\0')
   {
-    if ((*p == '\\' && *++p) || (*p && !IsMWildChar(*p)))
-      if (++nonwild == ConfigFileEntry.min_nonwildcard_simple)
+    if((*p == '\\' && *++p) || (*p && !IsMWildChar(*p)))
+      if(++nonwild == ConfigFileEntry.min_nonwildcard_simple)
         return 1;
-    if (*p != '\0')
+
+    if(*p != '\0')
       ++p;
   }
 

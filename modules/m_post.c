@@ -44,17 +44,20 @@ mr_dumb_proxy(struct Client *client_p, struct Client *source_p,
   exit_client(source_p, source_p, "Client Exit");
 }
 
-static struct Message post_msgtab = {
+static struct Message post_msgtab =
+{
   "POST", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
 };
 
-static struct Message get_msgtab = {
+static struct Message get_msgtab =
+{
   "GET", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
 };
 
-static struct Message put_msgtab = {
+static struct Message put_msgtab =
+{
   "PUT", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
 };
@@ -75,7 +78,8 @@ module_exit(void)
   mod_del_cmd(&put_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

@@ -60,7 +60,7 @@ list_accepts(struct Client *source_p)
                      strlen(accept_p->userptr) +
                      strlen(accept_p->hostptr) + 2 /* !@ */ ;
 
-    if ((t - nicks) + masklen + len  > IRCD_BUFSIZE)
+    if((t - nicks) + masklen + len  > IRCD_BUFSIZE)
     {
       *(t - 1) = '\0';
       sendto_one(source_p, form_str(RPL_ACCEPTLIST),
@@ -73,7 +73,7 @@ list_accepts(struct Client *source_p)
                     accept_p->userptr, accept_p->hostptr);
   }
 
-  if (nicks[0] != '\0')
+  if(nicks[0] != '\0')
   {
     *(t - 1) = '\0';
     sendto_one(source_p, form_str(RPL_ACCEPTLIST),
@@ -129,16 +129,16 @@ m_accept(struct Client *client_p, struct Client *source_p,
   struct split_nuh_item nuh;
   struct split_nuh_item *accept_p = NULL;
 
-  if (EmptyString(parv[1]) || !irccmp(parv[1], "*"))
+  if(EmptyString(parv[1]) || !irccmp(parv[1], "*"))
   {
     list_accepts(source_p);
     return;
   }
 
-  for (mask = strtoken(&p, parv[1], ","); mask != NULL;
-       mask = strtoken(&p,    NULL, ","))
+  for(mask = strtoken(&p, parv[1], ","); mask != NULL;
+      mask = strtoken(&p,    NULL, ","))
   {
-    if (*mask == '-' && *++mask != '\0')
+    if(*mask == '-' && *++mask != '\0')
     {
       nuh.nuhmask  = mask;
       nuh.nickptr  = nick;
@@ -151,7 +151,7 @@ m_accept(struct Client *client_p, struct Client *source_p,
 
       split_nuh(&nuh);
 
-      if ((accept_p = find_accept(nick, user, host, source_p, 0)) == NULL)
+      if((accept_p = find_accept(nick, user, host, source_p, 0)) == NULL)
       {
         sendto_one(source_p, form_str(ERR_ACCEPTNOT),
                    me.name, source_p->name, nick, user, host);
@@ -160,9 +160,9 @@ m_accept(struct Client *client_p, struct Client *source_p,
 
       del_accept(accept_p, source_p);
     }
-    else if (*mask != '\0')
+    else if(*mask != '\0')
     {
-      if (dlink_list_length(&source_p->localClient->acceptlist) >=
+      if(dlink_list_length(&source_p->localClient->acceptlist) >=
           ConfigFileEntry.max_accept)
       {
         sendto_one(source_p, form_str(ERR_ACCEPTFULL),
@@ -181,7 +181,7 @@ m_accept(struct Client *client_p, struct Client *source_p,
 
       split_nuh(&nuh);
 
-      if ((accept_p = find_accept(nick, user, host, source_p, 0)) != NULL)
+      if((accept_p = find_accept(nick, user, host, source_p, 0)) != NULL)
       {
         sendto_one(source_p, form_str(ERR_ACCEPTEXIST),
                    me.name, source_p->name, nick, user, host);
@@ -193,7 +193,8 @@ m_accept(struct Client *client_p, struct Client *source_p,
   }
 }
 
-static struct Message accept_msgtab = {
+static struct Message accept_msgtab =
+{
   "ACCEPT", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_accept, m_ignore, m_ignore, m_accept, m_ignore }
 };
@@ -210,7 +211,8 @@ module_exit(void)
   mod_del_cmd(&accept_msgtab);
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",

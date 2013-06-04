@@ -82,7 +82,7 @@ get_listener_name(const struct Listener *const listener)
  * output       - none
  * side effects - send port listing to a client
  */
-void 
+void
 show_ports(struct Client *source_p)
 {
   char buf[6];
@@ -94,16 +94,20 @@ show_ports(struct Client *source_p)
     const struct Listener *listener = ptr->data;
     p = buf;
 
-    if (listener->flags & LISTENER_HIDDEN) {
-      if (!HasUMode(source_p, UMODE_ADMIN))
+    if(listener->flags & LISTENER_HIDDEN)
+    {
+      if(!HasUMode(source_p, UMODE_ADMIN))
         continue;
+
       *p++ = 'H';
     }
 
-    if (listener->flags & LISTENER_SERVER)
+    if(listener->flags & LISTENER_SERVER)
       *p++ = 'S';
-    if (listener->flags & LISTENER_SSL)
+
+    if(listener->flags & LISTENER_SSL)
       *p++ = 's';
+
     *p = '\0';
     sendto_one(source_p, form_str(RPL_STATSPLINE),
                me.name, source_p->name, 'P', listener->port,
@@ -126,7 +130,7 @@ show_ports(struct Client *source_p)
 #define HYBRID_SOMAXCONN SOMAXCONN
 #endif
 
-static int 
+static int
 inetport(struct Listener *listener)
 {
   struct irc_ssaddr lsin;
@@ -141,15 +145,15 @@ inetport(struct Listener *listener)
   /*
    * At first, open a new socket
    */
-  if (comm_open(&listener->fd, listener->addr.ss.ss_family, SOCK_STREAM, 0,
-                "Listener socket") == -1)
+  if(comm_open(&listener->fd, listener->addr.ss.ss_family, SOCK_STREAM, 0,
+               "Listener socket") == -1)
   {
     report_error(L_ALL, "opening listener socket %s:%s",
                  get_listener_name(listener), errno);
     return 0;
   }
 
-  if (setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
+  if(setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
   {
     report_error(L_ALL, "setting SO_REUSEADDR for listener %s:%s",
                  get_listener_name(listener), errno);
@@ -163,7 +167,7 @@ inetport(struct Listener *listener)
    */
   lsin.ss_port = htons(listener->port);
 
-  if (bind(listener->fd.fd, (struct sockaddr *)&lsin, lsin.ss_len))
+  if(bind(listener->fd.fd, (struct sockaddr *)&lsin, lsin.ss_len))
   {
     report_error(L_ALL, "binding listener socket %s:%s",
                  get_listener_name(listener), errno);
@@ -171,7 +175,7 @@ inetport(struct Listener *listener)
     return 0;
   }
 
-  if (listen(listener->fd.fd, HYBRID_SOMAXCONN))
+  if(listen(listener->fd.fd, HYBRID_SOMAXCONN))
   {
     report_error(L_ALL, "listen failed for %s:%s",
                  get_listener_name(listener), errno);
@@ -196,11 +200,11 @@ find_listener(int port, struct irc_ssaddr *addr)
   {
     listener = ptr->data;
 
-    if ((port == listener->port) &&
+    if((port == listener->port) &&
         (!memcmp(addr, &listener->addr, sizeof(struct irc_ssaddr))))
     {
       /* Try to return an open listener, otherwise reuse a closed one */
-      if (!listener->fd.flags.open)
+      if(!listener->fd.flags.open)
         last_closed = listener;
       else
         return (listener);
@@ -216,7 +220,7 @@ find_listener(int port, struct irc_ssaddr *addr)
  * vhost_ip - if non-null must contain a valid IP address string in
  * the format "255.255.255.255"
  */
-void 
+void
 add_listener(int port, const char *vhost_ip, unsigned int flags)
 {
   struct Listener *listener;
@@ -231,7 +235,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   /*
    * if no or invalid port in conf line, don't bother
    */
-  if (!(port > 0 && port <= 0xFFFF))
+  if(!(port > 0 && port <= 0xFFFF))
     return;
 
   memset(&vaddr, 0, sizeof(vaddr));
@@ -244,14 +248,15 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
 #ifdef IPV6
-  if (ServerInfo.can_use_v6)
+
+  if(ServerInfo.can_use_v6)
   {
     snprintf(portname, sizeof(portname), "%d", port);
     getaddrinfo("::", portname, &hints, &res);
     vaddr.ss.ss_family = AF_INET6;
     assert(res != NULL);
 
-    memcpy((struct sockaddr*)&vaddr, res->ai_addr, res->ai_addrlen);
+    memcpy((struct sockaddr *)&vaddr, res->ai_addr, res->ai_addrlen);
     vaddr.ss_port = port;
     vaddr.ss_len = res->ai_addrlen;
     freeaddrinfo(res);
@@ -259,7 +264,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
   else
 #endif
   {
-    struct sockaddr_in *v4 = (struct sockaddr_in*) &vaddr;
+    struct sockaddr_in *v4 = (struct sockaddr_in *) &vaddr;
     v4->sin_addr.s_addr = INADDR_ANY;
     vaddr.ss.ss_family = AF_INET;
     vaddr.ss_len = sizeof(struct sockaddr_in);
@@ -268,32 +273,35 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
 
   snprintf(portname, PORTNAMELEN, "%d", port);
 
-  if (vhost_ip)
+  if(vhost_ip)
   {
-    if (getaddrinfo(vhost_ip, portname, &hints, &res))
+    if(getaddrinfo(vhost_ip, portname, &hints, &res))
       return;
 
     assert(res != NULL);
 
-    memcpy((struct sockaddr*)&vaddr, res->ai_addr, res->ai_addrlen);
+    memcpy((struct sockaddr *)&vaddr, res->ai_addr, res->ai_addrlen);
     vaddr.ss_port = port;
     vaddr.ss_len = res->ai_addrlen;
     freeaddrinfo(res);
   }
+
 #ifdef IPV6
-  else if (pass == 0 && ServerInfo.can_use_v6)
+  else if(pass == 0 && ServerInfo.can_use_v6)
   {
     /* add the ipv4 listener if we havent already */
     pass = 1;
     add_listener(port, "0.0.0.0", flags);
   }
+
   pass = 0;
 #endif
 
-  if ((listener = find_listener(port, &vaddr)))
+  if((listener = find_listener(port, &vaddr)))
   {
     listener->flags = flags;
-    if (listener->fd.flags.open)
+
+    if(listener->fd.flags.open)
       return;
   }
   else
@@ -303,7 +311,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     listener->flags = flags;
   }
 
-  if (inetport(listener))
+  if(inetport(listener))
     listener->active = 1;
   else
     close_listener(listener);
@@ -317,15 +325,15 @@ close_listener(struct Listener *listener)
 {
   assert(listener != NULL);
 
-  if (listener == NULL)
+  if(listener == NULL)
     return;
 
-  if (listener->fd.flags.open)
+  if(listener->fd.flags.open)
     fd_close(&listener->fd);
 
   listener->active = 0;
 
-  if (listener->ref_count)
+  if(listener->ref_count)
     return;
 
   free_listener(listener);
@@ -334,20 +342,20 @@ close_listener(struct Listener *listener)
 /*
  * close_listeners - close and free all listeners that are not being used
  */
-void 
+void
 close_listeners(void)
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
   /* close all 'extra' listening ports we have */
   DLINK_FOREACH_SAFE(ptr, next_ptr, ListenerPollList.head)
-    close_listener(ptr->data);
+  close_listener(ptr->data);
 }
 
 #define TOOFAST_WARNING "ERROR :Trying to reconnect too fast.\r\n"
 #define DLINE_WARNING "ERROR :You have been D-lined.\r\n"
 
-static void 
+static void
 accept_connection(fde_t *pfd, void *data)
 {
   static time_t last_oper_notice = 0;
@@ -370,26 +378,26 @@ accept_connection(fde_t *pfd, void *data)
    * point, just assume that connections cannot
    * be accepted until some old is closed first.
    */
-  while ((fd = comm_accept(listener, &addr)) != -1)
+  while((fd = comm_accept(listener, &addr)) != -1)
   {
     /*
      * check for connection limit
      */
-    if (number_fd > hard_fdlimit - 10)
+    if(number_fd > hard_fdlimit - 10)
     {
       ++ServerStats.is_ref;
 
       /*
        * slow down the whining to opers bit
        */
-      if ((last_oper_notice + 20) <= CurrentTime)
+      if((last_oper_notice + 20) <= CurrentTime)
       {
         sendto_realops_flags(UMODE_ALL, L_ALL, "All connections in use. (%s)",
                              get_listener_name(listener));
         last_oper_notice = CurrentTime;
       }
 
-      if (!(listener->flags & LISTENER_SSL))
+      if(!(listener->flags & LISTENER_SSL))
         send(fd, "ERROR :All connections in use\r\n", 32, 0);
 
       close(fd);
@@ -400,18 +408,19 @@ accept_connection(fde_t *pfd, void *data)
      * Do an initial check we aren't connecting too fast or with too many
      * from this IP...
      */
-    if ((pe = conf_connect_allowed(&addr, addr.ss.ss_family)) != 0)
+    if((pe = conf_connect_allowed(&addr, addr.ss.ss_family)) != 0)
     {
       ++ServerStats.is_ref;
 
-      if (!(listener->flags & LISTENER_SSL))
-        switch (pe)
+      if(!(listener->flags & LISTENER_SSL))
+        switch(pe)
         {
           case BANNED_CLIENT:
-            send(fd, DLINE_WARNING, sizeof(DLINE_WARNING)-1, 0);
+            send(fd, DLINE_WARNING, sizeof(DLINE_WARNING) - 1, 0);
             break;
+
           case TOO_FAST:
-            send(fd, TOOFAST_WARNING, sizeof(TOOFAST_WARNING)-1, 0);
+            send(fd, TOOFAST_WARNING, sizeof(TOOFAST_WARNING) - 1, 0);
             break;
         }
 

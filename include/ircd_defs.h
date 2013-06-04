@@ -24,13 +24,13 @@
 
 /*
  * NOTE: NICKLEN and TOPICLEN do not live here anymore. Set it with configure
- * Otherwise there are no user servicable part here. 
+ * Otherwise there are no user servicable part here.
  *
  */
- /* ircd_defs.h - Global size definitions for record entries used
- * througout ircd. Please think 3 times before adding anything to this
- * file.
- */
+/* ircd_defs.h - Global size definitions for record entries used
+* througout ircd. Please think 3 times before adding anything to this
+* file.
+*/
 #ifndef INCLUDED_ircd_defs_h
 #define INCLUDED_ircd_defs_h
 #include "stdinc.h"

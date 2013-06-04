@@ -67,7 +67,7 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
    */
 
 
-  if ((chptr = hash_find_channel(parv[2])) == NULL)
+  if((chptr = hash_find_channel(parv[2])) == NULL)
     return;
 
   /*
@@ -81,36 +81,37 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
    *        The TS of the remote channel is equal to ours AND
    *        the TS of the remote topic is newer than ours
    */
-  if (HasFlag(source_p, FLAGS_SERVICE))
+  if(HasFlag(source_p, FLAGS_SERVICE))
     accept_remote = 1;
-  else if (remote_channel_ts < chptr->channelts)
+  else if(remote_channel_ts < chptr->channelts)
     accept_remote = 1;
-  else if (remote_channel_ts == chptr->channelts)
-    if (remote_topic_ts > chptr->topic_time)
+  else if(remote_channel_ts == chptr->channelts)
+    if(remote_topic_ts > chptr->topic_time)
       accept_remote = 1;
 
-  if (accept_remote)
+  if(accept_remote)
   {
     int topic_differs = strncmp(chptr->topic, topic, sizeof(chptr->topic) - 1);
     int hidden_server = (ConfigServerHide.hide_servers || IsHidden(source_p));
 
     set_channel_topic(chptr, topic, setby, remote_topic_ts, !!MyClient(source_p));
 
-    sendto_server(source_p, CAP_TBURST|CAP_TS6, NOCAPS,
+    sendto_server(source_p, CAP_TBURST | CAP_TS6, NOCAPS,
                   ":%s TBURST %s %s %s %s :%s",
                   ID(source_p), parv[1], parv[2], parv[3], setby, topic);
     sendto_server(source_p, CAP_TBURST, CAP_TS6,
                   ":%s TBURST %s %s %s %s :%s",
                   source_p->name, parv[1], parv[2], parv[3], setby, topic);
 
-    if (topic_differs)
+    if(topic_differs)
       sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :%s",
                            hidden_server ? me.name : source_p->name,
                            chptr->chname, chptr->topic);
   }
 }
 
-static struct Message tburst_msgtab = {
+static struct Message tburst_msgtab =
+{
   "TBURST", 0, 0, 6, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore }
 };
@@ -129,7 +130,8 @@ module_exit(void)
   delete_capability("TBURST");
 }
 
-struct module module_entry = {
+struct module module_entry =
+{
   .node    = { NULL, NULL, NULL },
   .name    = NULL,
   .version = "$Revision$",
