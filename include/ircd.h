@@ -25,6 +25,7 @@
 #ifndef INCLUDED_ircd_h
 #define INCLUDED_ircd_h
 
+#include <uv.h>
 #include "ircd_defs.h"
 #include "config.h"
 #include "memory.h"
@@ -92,7 +93,8 @@ extern struct SetOptions GlobalSetOptions; /* defined in ircd.c */
 
 struct ServerState_t
 {
-  int foreground;
+  int       foreground;
+  uv_loop_t *event_loop;
 };
 
 extern struct ServerState_t server_state;

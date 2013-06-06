@@ -58,7 +58,6 @@
 #include "supported.h"
 #include "watch.h"
 
-
 /* /quote set variables */
 struct SetOptions GlobalSetOptions;
 
@@ -557,6 +556,8 @@ main(int argc, char *argv[])
     perror("chdir");
     exit(EXIT_FAILURE);
   }
+
+  server_state.event_loop = uv_default_loop();
 
   init_ssl();
 

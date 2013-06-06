@@ -51,6 +51,9 @@ AX_CHECK_LIB_IPV6
 AC_C_VOLATILE
 AC_C_BIGENDIAN
 
+LIBUV_LDFLAGS=`$MAKE -C libuv -s ldflags`
+AC_SUBST([LIBUV_LDFLAGS])
+
 AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for library functions.
