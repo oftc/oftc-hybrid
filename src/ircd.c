@@ -244,7 +244,7 @@ io_loop()
     while (eventNextTime() <= CurrentTime)
       eventRun();
 
-    comm_select();
+    uv_run(server_state.event_loop, UV_RUN_NOWAIT);
     exit_aborted_clients();
     free_exited_clients();
     send_queued_all();
