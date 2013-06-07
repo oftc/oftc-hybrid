@@ -69,7 +69,6 @@ static PF comm_connect_tryconnect;
 void
 check_can_use_v6()
 {
-#ifdef IPV6
   int v6;
 
   if ((v6 = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
@@ -79,10 +78,6 @@ check_can_use_v6()
     ServerInfo.can_use_v6 = 1;
     close(v6);
   }
-
-#else
-  ServerInfo.can_use_v6 = 0;
-#endif
 }
 
 /* get_sockerr - get the error value from the socket or the current errno
@@ -763,11 +758,7 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
   if (newfd < 0)
     return -1;
 
-#ifdef IPV6
   remove_ipv6_mapping(pn);
-#else
-  pn->ss_len = addrlen;
-#endif
 
   execute_callback(setup_socket_cb, newfd);
 
@@ -781,7 +772,6 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
  * AF_INET and AF_INET6 map AF_INET connections inside AF_INET6 structures
  *
  */
-#ifdef IPV6
 void
 remove_ipv6_mapping(struct irc_ssaddr *addr)
 {
@@ -805,4 +795,3 @@ remove_ipv6_mapping(struct irc_ssaddr *addr)
   else
     addr->ss_len = sizeof(struct sockaddr_in);
 }
-#endif

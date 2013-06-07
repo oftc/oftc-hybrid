@@ -964,14 +964,10 @@ find_or_add_ip(struct irc_ssaddr *ip_in)
   struct ip_entry *ptr, *newptr;
   int hash_index = hash_ip(ip_in), res;
   struct sockaddr_in *v4 = (struct sockaddr_in *)ip_in, *ptr_v4;
-#ifdef IPV6
   struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)ip_in, *ptr_v6;
-#endif
 
   for (ptr = ip_hash_table[hash_index]; ptr; ptr = ptr->next)
   {
-#ifdef IPV6
-
     if (ptr->ip.ss.ss_family != ip_in->ss.ss_family)
       continue;
 
@@ -981,7 +977,6 @@ find_or_add_ip(struct irc_ssaddr *ip_in)
       res = memcmp(&v6->sin6_addr, &ptr_v6->sin6_addr, sizeof(struct in6_addr));
     }
     else
-#endif
     {
       ptr_v4 = (struct sockaddr_in *)&ptr->ip;
       res = memcmp(&v4->sin_addr, &ptr_v4->sin_addr, sizeof(struct in_addr));
@@ -1023,14 +1018,10 @@ remove_one_ip(struct irc_ssaddr *ip_in)
   struct ip_entry *last_ptr = NULL;
   int hash_index = hash_ip(ip_in), res;
   struct sockaddr_in *v4 = (struct sockaddr_in *)ip_in, *ptr_v4;
-#ifdef IPV6
   struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)ip_in, *ptr_v6;
-#endif
 
   for (ptr = ip_hash_table[hash_index]; ptr; ptr = ptr->next)
   {
-#ifdef IPV6
-
     if (ptr->ip.ss.ss_family != ip_in->ss.ss_family)
       continue;
 
@@ -1040,7 +1031,6 @@ remove_one_ip(struct irc_ssaddr *ip_in)
       res = memcmp(&v6->sin6_addr, &ptr_v6->sin6_addr, sizeof(struct in6_addr));
     }
     else
-#endif
     {
       ptr_v4 = (struct sockaddr_in *)&ptr->ip;
       res = memcmp(&v4->sin_addr, &ptr_v4->sin_addr, sizeof(struct in_addr));
@@ -1088,8 +1078,6 @@ hash_ip(struct irc_ssaddr *addr)
     hash = ((ip >> 12) + ip) & (IP_HASH_SIZE - 1);
     return hash;
   }
-
-#ifdef IPV6
   else
   {
     int hash;
@@ -1102,10 +1090,6 @@ hash_ip(struct irc_ssaddr *addr)
     hash  = hash & (IP_HASH_SIZE - 1);
     return hash;
   }
-
-#else
-  return 0;
-#endif
 }
 
 /* count_ip_hash()
@@ -1585,7 +1569,6 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
                     return conf;
 
                 break;
-
               case HM_IPV4:
                 if (who->aftype == AF_INET)
                   if (match_ipv4(&who->ip, &aconf->addr, aconf->bits))
@@ -1593,8 +1576,6 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
                       return conf;
 
                 break;
-#ifdef IPV6
-
               case HM_IPV6:
                 if (who->aftype == AF_INET6)
                   if (match_ipv6(&who->ip, &aconf->addr, aconf->bits))
@@ -1602,8 +1583,6 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
                       return conf;
 
                 break;
-#endif
-
               default:
                 assert(0);
             }
@@ -3523,8 +3502,6 @@ cidr_limit_reached(int over_rule,
     mask_addr(&cidr->mask, aclass->cidr_bitlen_ipv4);
     dlinkAdd(cidr, &cidr->node, &aclass->list_ipv4);
   }
-
-#ifdef IPV6
   else if (aclass->cidr_bitlen_ipv6 > 0)
   {
     DLINK_FOREACH(ptr, aclass->list_ipv6.head)
@@ -3546,8 +3523,6 @@ cidr_limit_reached(int over_rule,
     mask_addr(&cidr->mask, aclass->cidr_bitlen_ipv6);
     dlinkAdd(cidr, &cidr->node, &aclass->list_ipv6);
   }
-
-#endif
   return 0;
 }
 
@@ -3591,8 +3566,6 @@ remove_from_cidr_check(struct irc_ssaddr *ip, struct ClassItem *aclass)
       }
     }
   }
-
-#ifdef IPV6
   else if (aclass->cidr_bitlen_ipv6 > 0)
   {
     DLINK_FOREACH_SAFE(ptr, next_ptr, aclass->list_ipv6.head)
@@ -3612,8 +3585,6 @@ remove_from_cidr_check(struct irc_ssaddr *ip, struct ClassItem *aclass)
       }
     }
   }
-
-#endif
 }
 
 static void
@@ -3675,14 +3646,10 @@ rebuild_cidr_class(struct ConfItem *conf, struct ClassItem *new_class)
                         &old_class->list_ipv4, &new_class->list_ipv4,
                         old_class->cidr_bitlen_ipv4 != new_class->cidr_bitlen_ipv4);
 
-#ifdef IPV6
-
     if (old_class->cidr_bitlen_ipv6 > 0 && new_class->cidr_bitlen_ipv6 > 0)
       rebuild_cidr_list(AF_INET6, conf, new_class,
                         &old_class->list_ipv6, &new_class->list_ipv6,
                         old_class->cidr_bitlen_ipv6 != new_class->cidr_bitlen_ipv6);
-
-#endif
   }
 
   destroy_cidr_class(old_class);

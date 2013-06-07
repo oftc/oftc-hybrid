@@ -709,7 +709,6 @@ serverinfo_vhost: VHOST '=' QSTRING ';'
 
 serverinfo_vhost6: VHOST6 '=' QSTRING ';'
 {
-#ifdef IPV6
   if (conf_parser_ctx.pass == 2 && *yylval.string != '*')
   {
     struct addrinfo hints, *res;
@@ -734,7 +733,6 @@ serverinfo_vhost6: VHOST6 '=' QSTRING ';'
       ServerInfo.specific_ipv6_vhost = 1;
     }
   }
-#endif
 };
 
 serverinfo_max_clients: T_MAX_CLIENTS '=' NUMBER ';'
@@ -2319,10 +2317,8 @@ connect_aftype: AFTYPE '=' T_IPV4 ';'
     yy_aconf->aftype = AF_INET;
 } | AFTYPE '=' T_IPV6 ';'
 {
-#ifdef IPV6
   if (conf_parser_ctx.pass == 2)
     yy_aconf->aftype = AF_INET6;
-#endif
 };
 
 connect_flags: IRCD_FLAGS

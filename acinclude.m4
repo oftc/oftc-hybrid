@@ -12,10 +12,6 @@ AC_DEFUN([AX_CHECK_LIB_IPV4],[
   AC_CHECK_MEMBERS([struct sockaddr_in.sin_len],,,[#include <sys/types.h>
   <sys/socket.h>])
 ])dnl }}}
-dnl {{{ ax_check_lib_ipv6
-AC_DEFUN([AX_CHECK_LIB_IPV6],[
-  AC_CHECK_TYPE([struct sockaddr_in6],[AC_DEFINE([IPV6],[1],[Define to 1 if you have IPv6 support.])],,[#include <netinet/in.h>])
-])dnl }}}
 dnl {{{ ax_arg_disable_block_alloc
 AC_DEFUN([AX_ARG_DISABLE_BLOCK_ALLOC],[
   AC_ARG_ENABLE([block-alloc],[AC_HELP_STRING([--disable-block-alloc],[Disable block alloc.])],[block_alloc="$enableval"],[block_alloc="yes"])

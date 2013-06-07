@@ -220,12 +220,9 @@ already_placed_kline(struct Client *source_p, const char *luser,
 
   if ((t = parse_netmask(lhost, &iphost, &t)) != HM_HOST)
   {
-#ifdef IPV6
-
     if (t == HM_IPV6)
       t = AF_INET6;
     else
-#endif
       t = AF_INET;
 
     piphost = &iphost;
@@ -422,12 +419,9 @@ remove_tkline_match(const char *host, const char *user)
 
   if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
-#ifdef IPV6
-
     if (t == HM_IPV6)
       t = AF_INET6;
     else
-#endif
       t = AF_INET;
 
     piphost = &iphost;

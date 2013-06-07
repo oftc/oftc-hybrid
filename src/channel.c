@@ -630,23 +630,18 @@ find_bmask(const struct Client *w, const dlink_list *const list)
             return 1;
 
           break;
-
         case HM_IPV4:
           if (who->aftype == AF_INET)
             if (match_ipv4(&who->ip, &bp->addr, bp->bits))
               return 1;
 
           break;
-#ifdef IPV6
-
         case HM_IPV6:
           if (who->aftype == AF_INET6)
             if (match_ipv6(&who->ip, &bp->addr, bp->bits))
               return 1;
 
           break;
-#endif
-
         default:
           assert(0);
       }

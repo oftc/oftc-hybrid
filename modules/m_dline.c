@@ -59,12 +59,9 @@ remove_tdline_match(const char *host)
 
   if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
-#ifdef IPV6
-
     if (t == HM_IPV6)
       t = AF_INET6;
     else
-#endif
       t = AF_INET;
 
     piphost = &iphost;
@@ -188,12 +185,9 @@ mo_dline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-#ifdef IPV6
-
   if (t == HM_IPV6)
     t = AF_INET6;
   else
-#endif
     t = AF_INET;
 
   parse_netmask(dlhost, &daddr, NULL);
@@ -300,12 +294,9 @@ ms_dline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-#ifdef IPV6
-
     if (t == HM_IPV6)
       t = AF_INET6;
     else
-#endif
       t = AF_INET;
 
     parse_netmask(dlhost, &daddr, NULL);

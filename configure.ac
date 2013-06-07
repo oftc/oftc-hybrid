@@ -45,7 +45,6 @@ AX_CHECK_OPENSSL([AC_CHECK_LIB(crypto, RSA_free)
                           EVP_des_cfb)])], [AC_MSG_RESULT(no - OpenSSL support disabled)
   cf_enable_openssl="no"])
 AX_CHECK_LIB_IPV4
-AX_CHECK_LIB_IPV6
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_VOLATILE

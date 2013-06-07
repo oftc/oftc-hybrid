@@ -44,12 +44,9 @@ find_and_delete_temporary(const char *user, const char *host, int type)
 
   if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
-#ifdef IPV6
-
     if (t == HM_IPV6)
       t = AF_INET6;
     else
-#endif
       t = AF_INET;
 
     piphost = &iphost;
