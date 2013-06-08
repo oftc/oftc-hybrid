@@ -2260,8 +2260,7 @@ connect_vhost: VHOST '=' QSTRING ';'
       assert(res != NULL);
 
       memcpy(&yy_aconf->bind, res->ai_addr, res->ai_addrlen);
-      yy_aconf->bind.ss.ss_family = res->ai_family;
-      yy_aconf->bind.ss_len = res->ai_addrlen;
+      yy_aconf->bind.ss_family = res->ai_family;
       freeaddrinfo(res);
     }
   }

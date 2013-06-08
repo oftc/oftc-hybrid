@@ -83,16 +83,16 @@ struct Membership
 /*! \brief Ban structure.  Used for b/e/I n!u\@h masks */
 struct Ban
 {
-  dlink_node        node;
-  char              *name;
-  char              *username;
-  char              *host;
-  char              *who;
-  size_t            len;
-  time_t            when;
-  struct irc_ssaddr addr;
-  int               bits;
-  char              type;
+  dlink_node              node;
+  char                    *name;
+  char                    *username;
+  char                    *host;
+  char                    *who;
+  size_t                  len;
+  time_t                  when;
+  struct sockaddr_storage addr;
+  int                     bits;
+  char                    type;
 };
 
 extern dlink_list global_channel_list;

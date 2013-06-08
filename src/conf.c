@@ -103,7 +103,7 @@ static void clear_out_old_conf();
 static void flush_deleted_I_P();
 static void expire_tklines(dlink_list *);
 static void garbage_collect_ip_entries();
-static int hash_ip(struct irc_ssaddr *);
+static int hash_ip(struct sockaddr_storage *);
 static int verify_access(struct Client *, const char *, struct ConfItem *,
                          char **);
 static int attach_iline(struct Client *, struct ConfItem *, char **);
@@ -804,14 +804,15 @@ verify_access(struct Client *client_p, const char *username,
   if (IsGotId(client_p))
   {
     aconf = find_address_conf(client_p->host, client_p->username,
-                              &client_p->ip, client_p->aftype, client_p->localClient->passwd,
-                              client_p->certfp);
+                              &client_p->ip, client_p->ip.ss_family, 
+                              client_p->localClient->passwd, client_p->certfp);
   }
   else
   {
     strlcpy(non_ident + 1, username, sizeof(non_ident) - 1);
     aconf = find_address_conf(client_p->host, non_ident, &client_p->ip,
-                              client_p->aftype, client_p->localClient->passwd, client_p->certfp);
+                              client_p->ip.ss_family, 
+                              client_p->localClient->passwd, client_p->certfp);
   }
 
   if (aconf != NULL)
@@ -959,7 +960,7 @@ init_ip_hash_table()
  * count set to 0.
  */
 struct ip_entry *
-find_or_add_ip(struct irc_ssaddr *ip_in)
+find_or_add_ip(struct sockaddr_storage *ip_in)
 {
   struct ip_entry *ptr, *newptr;
   int hash_index = hash_ip(ip_in), res;
@@ -968,10 +969,10 @@ find_or_add_ip(struct irc_ssaddr *ip_in)
 
   for (ptr = ip_hash_table[hash_index]; ptr; ptr = ptr->next)
   {
-    if (ptr->ip.ss.ss_family != ip_in->ss.ss_family)
+    if (ptr->ip.ss_family != ip_in->ss_family)
       continue;
 
-    if (ip_in->ss.ss_family == AF_INET6)
+    if (ip_in->ss_family == AF_INET6)
     {
       ptr_v6 = (struct sockaddr_in6 *)&ptr->ip;
       res = memcmp(&v6->sin6_addr, &ptr_v6->sin6_addr, sizeof(struct in6_addr));
@@ -1012,7 +1013,7 @@ find_or_add_ip(struct irc_ssaddr *ip_in)
  *       the struct ip_entry is returned to the ip_entry_heap
  */
 void
-remove_one_ip(struct irc_ssaddr *ip_in)
+remove_one_ip(struct sockaddr_storage *ip_in)
 {
   struct ip_entry *ptr;
   struct ip_entry *last_ptr = NULL;
@@ -1022,10 +1023,10 @@ remove_one_ip(struct irc_ssaddr *ip_in)
 
   for (ptr = ip_hash_table[hash_index]; ptr; ptr = ptr->next)
   {
-    if (ptr->ip.ss.ss_family != ip_in->ss.ss_family)
+    if (ptr->ip.ss_family != ip_in->ss_family)
       continue;
 
-    if (ip_in->ss.ss_family == AF_INET6)
+    if (ip_in->ss_family == AF_INET6)
     {
       ptr_v6 = (struct sockaddr_in6 *)&ptr->ip;
       res = memcmp(&v6->sin6_addr, &ptr_v6->sin6_addr, sizeof(struct in6_addr));
@@ -1066,9 +1067,9 @@ remove_one_ip(struct irc_ssaddr *ip_in)
  * side effects - hopefully, none
  */
 static int
-hash_ip(struct irc_ssaddr *addr)
+hash_ip(struct sockaddr_storage *addr)
 {
-  if (addr->ss.ss_family == AF_INET)
+  if (addr->ss_family == AF_INET)
   {
     struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
     int hash;
@@ -1570,14 +1571,14 @@ find_exact_name_conf(ConfType type, const struct Client *who, const char *name,
 
                 break;
               case HM_IPV4:
-                if (who->aftype == AF_INET)
+                if (who->ip.ss_family == AF_INET)
                   if (match_ipv4(&who->ip, &aconf->addr, aconf->bits))
                     if (!aclass->max_total || aclass->curr_user_count < aclass->max_total)
                       return conf;
 
                 break;
               case HM_IPV6:
-                if (who->aftype == AF_INET6)
+                if (who->ip.ss_family == AF_INET6)
                   if (match_ipv6(&who->ip, &aconf->addr, aconf->bits))
                     if (!aclass->max_total || aclass->curr_user_count < aclass->max_total)
                       return conf;
@@ -1870,8 +1871,7 @@ lookup_confhost(struct ConfItem *conf)
   assert(res != NULL);
 
   memcpy(&aconf->addr, res->ai_addr, res->ai_addrlen);
-  aconf->addr.ss_len = res->ai_addrlen;
-  aconf->addr.ss.ss_family = res->ai_family;
+  aconf->addr.ss_family = res->ai_family;
   freeaddrinfo(res);
 }
 
@@ -1883,10 +1883,10 @@ lookup_confhost(struct ConfItem *conf)
  * side effects - none
  */
 int
-conf_connect_allowed(struct irc_ssaddr *addr, int aftype)
+conf_connect_allowed(struct sockaddr_storage *addr, int family)
 {
   struct ip_entry *ip_found;
-  struct AccessItem *aconf = find_dline_conf(addr, aftype);
+  struct AccessItem *aconf = find_dline_conf(addr, family);
 
   /* DLINE exempt also gets you out of static limits/pacing... */
   if (aconf && (aconf->status & CONF_EXEMPTDLINE))
@@ -1925,14 +1925,14 @@ find_kill(struct Client *client_p)
   if (*client_p->realhost)
   {
     aconf = find_conf_by_address(client_p->realhost, &client_p->ip,
-                                 CONF_KLINE, client_p->aftype,
+                                 CONF_KLINE, client_p->ip.ss_family,
                                  client_p->username, NULL, 1, client_p->certfp);
   }
 
   if (aconf == NULL)
   {
     aconf = find_conf_by_address(client_p->host, &client_p->ip,
-                                 CONF_KLINE, client_p->aftype,
+                                 CONF_KLINE, client_p->ip.ss_family,
                                  client_p->username, NULL, 1, client_p->certfp);
   }
 
@@ -3469,8 +3469,8 @@ flags_to_ascii(unsigned int flags, const unsigned int bit_table[], char *p,
  * side effects -
  */
 int
-cidr_limit_reached(int over_rule,
-                   struct irc_ssaddr *ip, struct ClassItem *aclass)
+cidr_limit_reached(int over_rule, struct sockaddr_storage *ip, 
+                   struct ClassItem *aclass)
 {
   dlink_node *ptr = NULL;
   struct CidrItem *cidr;
@@ -3478,7 +3478,7 @@ cidr_limit_reached(int over_rule,
   if (aclass->number_per_cidr <= 0)
     return 0;
 
-  if (ip->ss.ss_family == AF_INET)
+  if (ip->ss_family == AF_INET)
   {
     if (aclass->cidr_bitlen_ipv4 <= 0)
       return 0;
@@ -3535,7 +3535,7 @@ cidr_limit_reached(int over_rule,
  * side effects -
  */
 void
-remove_from_cidr_check(struct irc_ssaddr *ip, struct ClassItem *aclass)
+remove_from_cidr_check(struct sockaddr_storage *ip, struct ClassItem *aclass)
 {
   dlink_node *ptr = NULL;
   dlink_node *next_ptr = NULL;
@@ -3544,7 +3544,7 @@ remove_from_cidr_check(struct irc_ssaddr *ip, struct ClassItem *aclass)
   if (aclass->number_per_cidr == 0)
     return;
 
-  if (ip->ss.ss_family == AF_INET)
+  if (ip->ss_family == AF_INET)
   {
     if (aclass->cidr_bitlen_ipv4 <= 0)
       return;
@@ -3608,7 +3608,7 @@ rebuild_cidr_list(int aftype, struct ConfItem *oldcl, struct ClassItem *newcl,
   {
     client_p = ptr->data;
 
-    if (client_p->aftype != aftype)
+    if (client_p->ip.ss_family != aftype)
       continue;
 
     if (dlink_list_length(&client_p->localClient->confs) == 0)

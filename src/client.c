@@ -377,7 +377,7 @@ check_conf_klines()
 
     /* if there is a returned struct ConfItem then kill it */
     if ((aconf = find_dline_conf(&client_p->ip,
-                                 client_p->aftype)) != NULL)
+                                 client_p->ip.ss_family)) != NULL)
     {
       if (aconf->status & CONF_EXEMPTDLINE)
         continue;
@@ -433,7 +433,7 @@ check_conf_klines()
     client_p = ptr->data;
 
     if ((aconf = find_dline_conf(&client_p->ip,
-                                 client_p->aftype)))
+                                 client_p->ip.ss_family)))
     {
       if (aconf->status & CONF_EXEMPTDLINE)
         continue;
@@ -646,7 +646,7 @@ get_client_name(const struct Client *client, enum addr_mask_type type)
       break;
 
     case MASK_IP:
-      if (client->aftype == AF_INET)
+      if (client->ip.ss_family == AF_INET)
         snprintf(nbuf, sizeof(nbuf), "%s[%s@255.255.255.255]",
                  client->name, client->username);
       else
@@ -719,7 +719,9 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
     if (!MyConnect(source_p))
     {
       aconf = find_conf_by_address(source_p->host, &source_p->ip,
-                                   CONF_CLIENT, source_p->aftype, source_p->username, NULL, 1, source_p->certfp);
+                                   CONF_CLIENT, source_p->ip.ss_family,
+                                   source_p->username, NULL, 1, 
+                                   source_p->certfp);
 
       aclass = map_to_conf(aconf->class_ptr);
       assert(aclass != NULL);
@@ -1079,7 +1081,8 @@ dead_link_on_read(struct Client *client_p, int error)
   dbuf_clear(&client_p->localClient->buf_recvq);
   dbuf_clear(&client_p->localClient->buf_sendq);
 
-  current_error = get_sockerr(client_p->localClient->fd.fd);
+//  current_error = get_sockerr(client_p->localClient->fd.fd);
+  current_error =0;
 
   if (IsServer(client_p) || IsHandshake(client_p))
   {

@@ -158,6 +158,7 @@ release_auth_client(struct AuthRequest *auth)
  * set the client on it's way to a connection completion, regardless
  * of success of failure
  */
+#if 0
 static void
 auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 {
@@ -208,6 +209,7 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 
   release_auth_client(auth);
 }
+#endif
 
 /*
  * authsenderr - handle auth send errors
@@ -237,14 +239,14 @@ auth_error(struct AuthRequest *auth)
 static int
 start_auth_query(struct AuthRequest *auth)
 {
-  struct irc_ssaddr localaddr;
+  struct sockaddr_storage localaddr;
   socklen_t locallen = sizeof(struct irc_ssaddr);
   struct sockaddr_in6 *v6;
 
   /* open a socket of the same type as the client socket */
   if (comm_open(&auth->client->localClient->auth_fd,
-                auth->client->ip.ss.ss_family,
-                SOCK_STREAM, 0, "ident") == -1)
+                auth->client->ip.ss_family,
+                SOCK_STREAM, "ident") == -1)
   {
     report_error(L_ALL, "creating auth stream socket %s:%s",
                  get_client_name(auth->client, SHOW_IP), errno);
@@ -264,18 +266,17 @@ start_auth_query(struct AuthRequest *auth)
    * and machines with multiple IP addresses are common now
    */
   memset(&localaddr, 0, locallen);
-  getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&localaddr,
-              &locallen);
+//  getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&localaddr,
+  //            &locallen);
 
   remove_ipv6_mapping(&localaddr);
   v6 = (struct sockaddr_in6 *)&localaddr;
   v6->sin6_port = htons(0);
-  localaddr.ss_port = htons(0);
 
   comm_connect_tcp(&auth->client->localClient->auth_fd, auth->client->sockhost,
                    113,
                    (struct sockaddr *)&localaddr, localaddr.ss_len, auth_connect_callback,
-                   auth, auth->client->ip.ss.ss_family,
+                   auth, auth->client->ip.ss_family,
                    GlobalSetOptions.ident_timeout);
   return 1; /* We suceed here for now */
 }
@@ -380,7 +381,7 @@ start_auth(va_list args)
     start_auth_query(auth);
   }
 
-  gethost_byaddr(auth_dns_callback, auth, &client->ip);
+//  gethost_byaddr(auth_dns_callback, auth, &client->ip);
 
   return NULL;
 }
@@ -437,11 +438,11 @@ static void
 auth_connect_callback(fde_t *fd, int error, void *data)
 {
   struct AuthRequest *auth = data;
-  struct irc_ssaddr us;
-  struct irc_ssaddr them;
+  struct sockaddr_storage us;
+  struct sockaddr_storage them;
   char authbuf[32];
-  socklen_t ulen = sizeof(struct irc_ssaddr);
-  socklen_t tlen = sizeof(struct irc_ssaddr);
+  //socklen_t ulen = sizeof(struct irc_ssaddr);
+  //socklen_t tlen = sizeof(struct irc_ssaddr);
   uint16_t uport, tport;
   struct sockaddr_in6 *v6;
 
@@ -451,7 +452,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
     return;
   }
 
-  if (getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&us,
+  /*if (getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&us,
                   &ulen) ||
       getpeername(auth->client->localClient->fd.fd, (struct sockaddr *)&them,
                   &tlen))
@@ -460,7 +461,7 @@ auth_connect_callback(fde_t *fd, int error, void *data)
          get_client_name(auth->client, SHOW_IP));
     auth_error(auth);
     return;
-  }
+  }*/
 
   v6 = (struct sockaddr_in6 *)&us;
   uport = ntohs(v6->sin6_port);
@@ -471,11 +472,11 @@ auth_connect_callback(fde_t *fd, int error, void *data)
 
   snprintf(authbuf, sizeof(authbuf), "%u , %u\r\n", tport, uport);
 
-  if (send(fd->fd, authbuf, strlen(authbuf), 0) == -1)
+  /*if (send(fd->fd, authbuf, strlen(authbuf), 0) == -1)
   {
     auth_error(auth);
     return;
-  }
+  }*/
 
   read_auth_reply(&auth->client->localClient->auth_fd, auth);
 }
@@ -509,12 +510,13 @@ read_auth_reply(fde_t *fd, void *data)
    *
    *    --nenolod
    */
-  len = read(fd->fd, buf, AUTH_BUFSIZ);
+  //len = read(fd->fd, buf, AUTH_BUFSIZ);
+  len = 0;
 
   if (len < 0)
   {
     if (ignoreErrno(errno))
-      comm_setselect(fd, COMM_SELECT_READ, read_auth_reply, auth, 0);
+      ;//comm_setselect(fd, COMM_SELECT_READ, read_auth_reply, auth, 0);
     else
       auth_error(auth);
 

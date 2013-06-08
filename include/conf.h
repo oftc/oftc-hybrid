@@ -109,38 +109,38 @@ struct MatchItem
 
 struct AccessItem
 {
-  dlink_node        node;
-  unsigned int      dns_failed;
-  unsigned int      dns_pending;
-  unsigned int      status;       /* If CONF_ILLEGAL, delete when no clients */
-  unsigned int      flags;
-  unsigned int      modes;
-  unsigned int      port;
-  int               clients;      /* Number of *LOCAL* clients using this */
-  int               bits;
-  int               type;
-  struct irc_ssaddr bind;         /* ip to bind to for outgoing connect */
-  struct irc_ssaddr addr;         /* ip to connect to */
-  char              *host;        /* host part of user@host */
-  char              *passwd;
-  char              *spasswd;     /* Password to send. */
-  char              *reason;
-  char              *oper_reason;
-  char              *user;        /* user part of user@host */
-  time_t            hold;         /* Hold action until this time (calendar time) */
-  struct ConfItem   *class_ptr;   /* Class of connection */
-  int               aftype;
+  dlink_node              node;
+  unsigned int            dns_failed;
+  unsigned int            dns_pending;
+  unsigned int            status;       /* If CONF_ILLEGAL, delete when no clients */
+  unsigned int            flags;
+  unsigned int            modes;
+  unsigned int            port;
+  int                     clients;      /* Number of *LOCAL* clients using this */
+  int                     bits;
+  int                     type;
+  struct sockaddr_storage bind;         /* ip to bind to for outgoing connect */
+  struct sockaddr_storage addr;         /* ip to connect to */
+  char                    *host;        /* host part of user@host */
+  char                    *passwd;
+  char                    *spasswd;     /* Password to send. */
+  char                    *reason;
+  char                    *oper_reason;
+  char                    *user;        /* user part of user@host */
+  time_t                  hold;         /* Hold action until this time (calendar time) */
+  struct ConfItem         *class_ptr;   /* Class of connection */
+  int                     aftype;
 #ifdef HAVE_LIBCRYPTO
   /* certs */
-  char              *cipher_list;
-  char              *rsa_public_key_file;
-  RSA               *rsa_public_key;
-  char              *certfp;
+  char                    *cipher_list;
+  char                    *rsa_public_key_file;
+  RSA                     *rsa_public_key;
+  char                    *certfp;
 #endif
-  void              *regexuser;
-  void              *regexhost;
-  dlink_list        leaf_list;
-  dlink_list        hub_list;
+  void                    *regexuser;
+  void                    *regexhost;
+  dlink_list              leaf_list;
+  dlink_list              hub_list;
 };
 
 struct ClassItem
@@ -170,17 +170,17 @@ struct ClassItem
 
 struct CidrItem
 {
-  dlink_node        node;
-  struct irc_ssaddr mask;
-  int               number_on_this_cidr;
+  dlink_node              node;
+  struct sockaddr_storage mask;
+  int                     number_on_this_cidr;
 };
 
 struct ip_entry
 {
-  struct irc_ssaddr ip;
-  int               count;
-  time_t            last_attempt;
-  struct ip_entry   *next;
+  struct sockaddr_storage ip;
+  int                     count;
+  time_t                  last_attempt;
+  struct ip_entry         *next;
 };
 
 
@@ -440,7 +440,7 @@ extern struct ConfItem *find_class(const char *);
 extern void init_ip_hash_table();
 extern void dump_ip_hash_table(struct Client *);
 extern void count_ip_hash(unsigned int *, uint64_t *);
-extern void remove_one_ip(struct irc_ssaddr *);
+extern void remove_one_ip(struct sockaddr_storage *);
 extern struct ConfItem *make_conf_item(ConfType type);
 extern void free_access_item(struct AccessItem *);
 extern void read_conf_files(int);
@@ -451,7 +451,7 @@ extern int detach_conf(struct Client *, ConfType);
 
 extern struct ConfItem *find_conf_name(dlink_list *, const char *, ConfType);
 extern struct AccessItem *find_kill(struct Client *);
-extern int conf_connect_allowed(struct irc_ssaddr *, int);
+extern int conf_connect_allowed(struct sockaddr_storage *, int);
 extern char *oper_privs_as_string(const unsigned int);
 extern void split_nuh(struct split_nuh_item *);
 extern struct ConfItem *find_matching_name_conf(ConfType, const char *,
@@ -505,9 +505,11 @@ extern int match_conf_password(const char *, const char *,
 extern void cluster_a_line(struct Client *,
                            const char *, int, int, const char *, ...);
 extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
-extern struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
-extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);
-extern void remove_from_cidr_check(struct irc_ssaddr *, struct ClassItem *);
+extern struct ip_entry *find_or_add_ip(struct sockaddr_storage *);
+extern int cidr_limit_reached(int, struct sockaddr_storage *, 
+                              struct ClassItem *);
+extern void remove_from_cidr_check(struct sockaddr_storage *, 
+                                   struct ClassItem *);
 
 extern void conf_error_report(const char *);
 

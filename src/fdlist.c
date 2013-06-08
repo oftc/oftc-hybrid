@@ -78,39 +78,21 @@ hash_fd(int fd)
   return (((unsigned) fd) % FD_HASH_SIZE);
 }
 
-fde_t *
-lookup_fd(int fd)
-{
-  fde_t *F = fd_hash[hash_fd(fd)];
-
-  while (F)
-  {
-    if (F->fd == fd)
-      return (F);
-
-    F = F->hnext;
-  }
-
-  return (NULL);
-}
-
 /* Called to open a given filedescriptor */
 void
-fd_open(fde_t *F, int fd, int is_socket, const char *desc)
+fd_open(fde_t *F, uv_stream_t *handle, const char *desc)
 {
-  unsigned int hashv = hash_fd(fd);
-  assert(fd >= 0);
+  unsigned int hashv = hash_fd(handle->io_watcher.fd);
 
-  F->fd = fd;
+  memcpy(&F->handle, handle, sizeof(F->handle));
   F->comm_index = -1;
 
-  if (desc)
+  if (desc != NULL)
     strlcpy(F->desc, desc, sizeof(F->desc));
 
   /* Note: normally we'd have to clear the other flags,
    * but currently F is always cleared before calling us.. */
   F->flags.open = 1;
-  F->flags.is_socket = is_socket;
   F->hnext = fd_hash[hashv];
   fd_hash[hashv] = F;
 
@@ -121,14 +103,14 @@ fd_open(fde_t *F, int fd, int is_socket, const char *desc)
 void
 fd_close(fde_t *F)
 {
-  unsigned int hashv = hash_fd(F->fd);
+  unsigned int hashv = hash_fd(F->handle.io_watcher.fd);
 
   if (F == fd_next_in_loop)
     fd_next_in_loop = F->hnext;
 
-  if (F->flags.is_socket)
+ /* if (F->flags.is_socket)
     comm_setselect(F, COMM_SELECT_WRITE | COMM_SELECT_READ, NULL, NULL, 0);
-
+*/
   delete_resolver_queries(F);
 
 #ifdef HAVE_LIBCRYPTO
@@ -152,7 +134,7 @@ fd_close(fde_t *F)
   }
 
   /* Unlike squid, we're actually closing the FD here! -- adrian */
-  close(F->fd);
+  uv_close((uv_handle_t*)&F->handle, NULL);
   number_fd--;
 
   memset(F, 0, sizeof(fde_t));
@@ -171,7 +153,7 @@ fd_dump(struct Client *source_p)
     for (F = fd_hash[i]; F != NULL; F = F->hnext)
       sendto_one(source_p, ":%s %d %s :fd %-5d desc '%s'",
                  me.name, RPL_STATSDEBUG, source_p->name,
-                 F->fd, F->desc);
+                 F->handle.io_watcher.fd, F->desc);
 }
 
 /*
@@ -221,5 +203,5 @@ close_fds(fde_t *one)
   for (i = 0; i < FD_HASH_SIZE; i++)
     for (F = fd_hash[i]; F != NULL; F = F->hnext)
       if (F != one)
-        close(F->fd);
+        uv_close((uv_handle_t *)&F->handle, NULL);
 }

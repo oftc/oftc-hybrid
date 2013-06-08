@@ -42,7 +42,7 @@
 #error this code needs to be able to address individual octets
 #endif
 
-static PF res_readreply;
+//static PF res_readreply;
 
 #define MAXPACKET      1024  /* rfc sez 512 but we expand names so ... */
 #define RES_MAXALIASES 35    /* maximum aliases allowed */
@@ -101,10 +101,11 @@ static void do_query_number(dns_callback_fnc, void *,
 static void query_name(const char *, int, int, struct reslist *);
 static int send_res_msg(const char *, int, int);
 static void resend_query(struct reslist *);
-static int proc_answer(struct reslist *, HEADER *, char *, char *);
+//static int proc_answer(struct reslist *, HEADER *, char *, char *);
 static struct reslist *find_id(int);
 
 
+#if 0
 /*
  * int
  * res_ourserver(inp)
@@ -160,6 +161,8 @@ res_ourserver(const struct irc_ssaddr *inp)
 
   return 0;
 }
+
+#endif
 
 /*
  * timeout_query_list - Remove queries from the list which have been
@@ -228,13 +231,13 @@ start_resolver()
       return;
     }
 
-    if (comm_open(&ResolverFileDescriptor, irc_nsaddr_list[0].ss.ss_family,
+/*    if (comm_open(&ResolverFileDescriptor, irc_nsaddr_list[0].ss.ss_family,
                   SOCK_DGRAM, 0, "Resolver socket") == -1)
-      return;
+      return;*/
 
     /* At the moment, the resolver FD data is global .. */
-    comm_setselect(&ResolverFileDescriptor, COMM_SELECT_READ,
-                   res_readreply, NULL, 0);
+    /*comm_setselect(&ResolverFileDescriptor, COMM_SELECT_READ,
+                   res_readreply, NULL, 0);*/
     eventAdd("timeout_resolver", timeout_resolver, NULL, 1);
   }
 }
@@ -338,9 +341,11 @@ send_res_msg(const char *msg, int len, int rcount)
 
   for (i = 0; i < max_queries; i++)
   {
+#if 0
     if (sendto(ResolverFileDescriptor.fd, msg, len, 0,
                (struct sockaddr *) & (irc_nsaddr_list[i]),
                irc_nsaddr_list[i].ss_len) == len)
+#endif
       ++sent;
   }
 
@@ -557,6 +562,7 @@ resend_query(struct reslist *request)
   }
 }
 
+#if 0
 /*
  * proc_answer - process name server reply
  */
@@ -697,7 +703,9 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
 
   return 1;
 }
+#endif
 
+#if 0
 /*
  * res_readreply - read a dns reply from the nameserver and process it.
  */
@@ -724,7 +732,7 @@ res_readreply(fde_t *fd, void *data)
   /* Re-schedule a read *after* recvfrom, or we'll be registering
    * interest where it'll instantly be ready for read :-) -- adrian
    */
-  comm_setselect(fd, COMM_SELECT_READ, res_readreply, NULL, 0);
+//  comm_setselect(fd, COMM_SELECT_READ, res_readreply, NULL, 0);
 
   /* Better to cast the sizeof instead of rc */
   if (rc <= (int)(sizeof(HEADER)))
@@ -812,6 +820,7 @@ res_readreply(fde_t *fd, void *data)
     rem_request(request);
   }
 }
+#endif
 
 void
 report_dns_servers(struct Client *source_p)

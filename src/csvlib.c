@@ -38,7 +38,7 @@ static char *getfield(char *);
 int
 find_and_delete_temporary(const char *user, const char *host, int type)
 {
-  struct irc_ssaddr iphost, *piphost;
+  struct sockaddr_storage iphost, *piphost;
   struct AccessItem *aconf;
   int t;
 

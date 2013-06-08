@@ -214,7 +214,7 @@ already_placed_kline(struct Client *source_p, const char *luser,
                      const char *lhost, int warn)
 {
   const char *reason;
-  struct irc_ssaddr iphost, *piphost;
+  struct sockaddr_storage iphost, *piphost;
   struct AccessItem *aconf;
   int t;
 
@@ -413,7 +413,7 @@ ms_unkline(struct Client *client_p, struct Client *source_p,
 static bool
 remove_tkline_match(const char *host, const char *user)
 {
-  struct irc_ssaddr iphost, *piphost;
+  struct sockaddr_storage iphost, *piphost;
   struct AccessItem *aconf;
   int t;
 

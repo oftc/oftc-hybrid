@@ -36,14 +36,14 @@ struct Client;
 
 struct Listener
 {
-  dlink_node        listener_node;      /* list node pointer */
-  fde_t             fd;                 /* file descriptor */
-  int               port;               /* listener IP port */
-  int               ref_count;          /* number of connection references */
-  int               active;             /* current state of listener */
-  struct irc_ssaddr addr;               /* virtual address or INADDR_ANY */
-  char              name[HOSTLEN + 1];  /* virtual name of listener */
-  unsigned int      flags;
+  dlink_node              listener_node;      /* list node pointer */
+  fde_t                   fd;                 /* file descriptor */
+  int                     port;               /* listener IP port */
+  int                     ref_count;          /* number of connection references */
+  int                     active;             /* current state of listener */
+  struct sockaddr_storage addr;               /* virtual address or INADDR_ANY */
+  char                    name[HOSTLEN + 1];  /* virtual name of listener */
+  unsigned int            flags;
 };
 
 extern void add_listener(int, const char *, unsigned int);
@@ -51,5 +51,5 @@ extern void close_listeners();
 extern const char *get_listener_name(const struct Listener *const);
 extern void show_ports(struct Client *);
 extern void free_listener(struct Listener *);
-struct Listener *find_listener(int port, struct irc_ssaddr *addr);
+struct Listener *find_listener(int port, struct sockaddr_storage *addr);
 #endif /* INCLUDED_listener_h */

@@ -329,8 +329,8 @@ read_packet(fde_t *fd, void *data)
           case SSL_ERROR_WANT_WRITE:
             fd->flags.pending_read = 1;
             SetSendqBlocked(client_p);
-            comm_setselect(fd, COMM_SELECT_WRITE, (PF *) sendq_unblocked,
-                           client_p, 0);
+            //comm_setselect(fd, COMM_SELECT_WRITE, (PF *) sendq_unblocked,
+          //               client_p, 0);
             return;
 
           case SSL_ERROR_WANT_READ:
@@ -350,7 +350,9 @@ read_packet(fde_t *fd, void *data)
     else
 #endif
     {
+#if 0
       length = recv(fd->fd, readBuf, READBUF_SIZE, 0);
+#endif
     }
 
     if (length <= 0)
@@ -417,7 +419,7 @@ read_packet(fde_t *fd, void *data)
 #endif
 
   /* If we get here, we need to register for another COMM_SELECT_READ */
-  comm_setselect(fd, COMM_SELECT_READ, read_packet, client_p, 0);
+//  comm_setselect(fd, COMM_SELECT_READ, read_packet, client_p, 0);
 }
 
 /*

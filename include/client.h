@@ -200,8 +200,7 @@ struct Client
    */
   char              sockhost[HOSTIPLEN + 1]; /* This is the host name from the
                                                 socket ip address as string */
-  struct irc_ssaddr ip;
-  int         aftype;  /* Makes life easier for DNS res in IPV6 */
+  struct sockaddr_storage ip;
 
   char              realhost[HOSTLEN];
   char              certfp[SHA_DIGEST_LENGTH * 2 + 1];

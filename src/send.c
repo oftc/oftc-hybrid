@@ -281,7 +281,8 @@ send_queued_write(struct Client *to)
       }
       else
 #endif
-        retlen = send(to->localClient->fd.fd, first->data, first->size, 0);
+        //retlen = send(to->localClient->fd.fd, first->data, first->size, 0);
+        retlen =0;
 
       if (retlen <= 0)
         break;
@@ -298,8 +299,8 @@ send_queued_write(struct Client *to)
     {
       /* we have a non-fatal error, reschedule a write */
       SetSendqBlocked(to);
-      comm_setselect(&to->localClient->fd, COMM_SELECT_WRITE,
-                     (PF *)sendq_unblocked, (void *)to, 0);
+//      comm_setselect(&to->localClient->fd, COMM_SELECT_WRITE,
+  //                   (PF *)sendq_unblocked, (void *)to, 0);
     }
     else if (retlen <= 0)
     {

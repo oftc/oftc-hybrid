@@ -37,18 +37,18 @@
 #include "send.h"
 #include "memory.h"
 
-static PF accept_connection;
+static void accept_connection(uv_stream_t *, int);
 
 static dlink_list ListenerPollList = { NULL, NULL, 0 };
 static void close_listener(struct Listener *listener);
 
 static struct Listener *
-make_listener(int port, struct irc_ssaddr *addr)
+make_listener(int port, struct sockaddr_storage *addr)
 {
   struct Listener *listener = MyMalloc(sizeof(struct Listener));
 
   listener->port = port;
-  memcpy(&listener->addr, addr, sizeof(struct irc_ssaddr));
+  memcpy(&listener->addr, addr, sizeof(struct sockaddr_storage));
 
   return listener;
 }
@@ -133,19 +133,12 @@ show_ports(struct Client *source_p)
 static int
 inetport(struct Listener *listener)
 {
-  struct irc_ssaddr lsin;
-  socklen_t opt = 1;
-
-  memset(&lsin, 0, sizeof(lsin));
-  memcpy(&lsin, &listener->addr, sizeof(lsin));
-
-  getnameinfo((struct sockaddr *)&lsin, lsin.ss_len, listener->name,
-              sizeof(listener->name), NULL, 0, NI_NUMERICHOST);
+  int ret;
 
   /*
    * At first, open a new socket
    */
-  if (comm_open(&listener->fd, listener->addr.ss.ss_family, SOCK_STREAM, 0,
+  if (comm_open(&listener->fd, listener->addr.ss_family, SOCK_STREAM, 
                 "Listener socket") == -1)
   {
     report_error(L_ALL, "opening listener socket %s:%s",
@@ -153,21 +146,22 @@ inetport(struct Listener *listener)
     return 0;
   }
 
-  if (setsockopt(listener->fd.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
-  {
-    report_error(L_ALL, "setting SO_REUSEADDR for listener %s:%s",
-                 get_listener_name(listener), errno);
-    fd_close(&listener->fd);
-    return 0;
-  }
-
   /*
    * Bind a port to listen for new connections if port is non-null,
    * else assume it is already open and try get something from it.
    */
-  lsin.ss_port = htons(listener->port);
-
-  if (bind(listener->fd.fd, (struct sockaddr *)&lsin, lsin.ss_len))
+  switch(listener->addr.ss_family)
+  {
+    case AF_INET:
+      ret = uv_tcp_bind((uv_tcp_t *)&listener->fd.handle, 
+                        *(struct sockaddr_in *)&listener->addr);
+      break;
+    case AF_INET6:
+      ret = uv_tcp_bind6((uv_tcp_t *)&listener->fd.handle,
+                         *(struct sockaddr_in6 *)&listener->addr);
+      break;
+  }
+  if (ret != 0)
   {
     report_error(L_ALL, "binding listener socket %s:%s",
                  get_listener_name(listener), errno);
@@ -175,7 +169,7 @@ inetport(struct Listener *listener)
     return 0;
   }
 
-  if (listen(listener->fd.fd, HYBRID_SOMAXCONN))
+  if (uv_listen(&listener->fd.handle, HYBRID_SOMAXCONN, accept_connection) != 0)
   {
     report_error(L_ALL, "listen failed for %s:%s",
                  get_listener_name(listener), errno);
@@ -183,14 +177,13 @@ inetport(struct Listener *listener)
     return 0;
   }
 
-  /* Listen completion events are READ events .. */
+  listener->fd.handle.data = listener;
 
-  accept_connection(&listener->fd, listener);
   return 1;
 }
 
 struct Listener *
-find_listener(int port, struct irc_ssaddr *addr)
+find_listener(int port, struct sockaddr_storage *addr)
 {
   dlink_node *ptr;
   struct Listener *listener    = NULL;
@@ -201,7 +194,7 @@ find_listener(int port, struct irc_ssaddr *addr)
     listener = ptr->data;
 
     if ((port == listener->port) &&
-        (!memcmp(addr, &listener->addr, sizeof(struct irc_ssaddr))))
+        (!memcmp(addr, &listener->addr, sizeof(struct sockaddr_storage))))
     {
       /* Try to return an open listener, otherwise reuse a closed one */
       if (!listener->fd.flags.open)
@@ -224,11 +217,9 @@ void
 add_listener(int port, const char *vhost_ip, unsigned int flags)
 {
   struct Listener *listener;
-  struct irc_ssaddr vaddr;
-  struct addrinfo hints, *res;
-  char portname[PORTNAMELEN + 1];
+  struct sockaddr_storage vaddr;
   static short int pass = 0; /* if ipv6 and no address specified we need to
-        have two listeners; one for each protocol. */
+                                have two listeners; one for each protocol. */
 
   /*
    * if no or invalid port in conf line, don't bother
@@ -238,56 +229,24 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
 
   memset(&vaddr, 0, sizeof(vaddr));
 
-  /* Set up the hints structure */
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
-  /* Get us ready for a bind() and don't bother doing dns lookup */
-  hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
-
-  if (ServerInfo.can_use_v6)
+  if (EmptyString(vhost_ip) && pass == 0)
   {
-    snprintf(portname, sizeof(portname), "%d", port);
-    getaddrinfo("::", portname, &hints, &res);
-    vaddr.ss.ss_family = AF_INET6;
-    assert(res != NULL);
+    pass = 1;
+    add_listener(port, "0.0.0.0", flags);
+    pass = 0;
+    vhost_ip = "::";
+  }
 
-    memcpy((struct sockaddr *)&vaddr, res->ai_addr, res->ai_addrlen);
-    vaddr.ss_port = port;
-    vaddr.ss_len = res->ai_addrlen;
-    freeaddrinfo(res);
+  if(strchr(vhost_ip, ':') != NULL)
+  {
+    struct sockaddr_in6 v6addr = uv_ip6_addr(vhost_ip, port);
+    memcpy(&vaddr, &v6addr, sizeof(v6addr));
   }
   else
   {
-    struct sockaddr_in *v4 = (struct sockaddr_in *) &vaddr;
-    v4->sin_addr.s_addr = INADDR_ANY;
-    vaddr.ss.ss_family = AF_INET;
-    vaddr.ss_len = sizeof(struct sockaddr_in);
-    v4->sin_port = htons(port);
+    struct sockaddr_in v4addr = uv_ip4_addr(vhost_ip, port);
+    memcpy(&vaddr, &v4addr, sizeof(v4addr));
   }
-
-  snprintf(portname, PORTNAMELEN, "%d", port);
-
-  if (vhost_ip)
-  {
-    if (getaddrinfo(vhost_ip, portname, &hints, &res))
-      return;
-
-    assert(res != NULL);
-
-    memcpy((struct sockaddr *)&vaddr, res->ai_addr, res->ai_addrlen);
-    vaddr.ss_port = port;
-    vaddr.ss_len = res->ai_addrlen;
-    freeaddrinfo(res);
-  }
-  else if (pass == 0 && ServerInfo.can_use_v6)
-  {
-    /* add the ipv4 listener if we havent already */
-    pass = 1;
-    add_listener(port, "0.0.0.0", flags);
-  }
-
-  pass = 0;
 
   if ((listener = find_listener(port, &vaddr)))
   {
@@ -346,17 +305,30 @@ close_listeners()
   }
 }
 
+static void listener_send(struct Listener *listener, const char *buffer,
+                          size_t len)
+{
+  if ((listener->flags & LISTENER_SSL) == LISTENER_SSL)
+    return;
+
+  uv_buf_t buf = uv_buf_init((char *)buffer, len);
+  uv_write_t req;
+
+  uv_write(&req, &listener->fd.handle, &buf, 1, NULL);
+}
+
 #define TOOFAST_WARNING "ERROR :Trying to reconnect too fast.\r\n"
 #define DLINE_WARNING "ERROR :You have been D-lined.\r\n"
+#define ALLINUSE_WARNING "ERROR :All connections in use\r\n"
 
 static void
-accept_connection(fde_t *pfd, void *data)
+accept_connection(uv_stream_t *server, int status)
 {
   static time_t last_oper_notice = 0;
-  struct irc_ssaddr addr;
-  int fd;
+  struct sockaddr_storage addr;
   int pe;
-  struct Listener *listener = data;
+  struct Listener *listener = server->data;
+  uv_tcp_t handle;
 
   memset(&addr, 0, sizeof(addr));
 
@@ -372,61 +344,54 @@ accept_connection(fde_t *pfd, void *data)
    * point, just assume that connections cannot
    * be accepted until some old is closed first.
    */
-  while ((fd = comm_accept(listener, &addr)) != -1)
+
+  if(!comm_accept(listener, &handle, &addr))
+    return;
+  /*
+   * check for connection limit
+   */
+  if (number_fd > hard_fdlimit - 10)
   {
-    /*
-     * check for connection limit
-     */
-    if (number_fd > hard_fdlimit - 10)
-    {
-      ++ServerStats.is_ref;
-
-      /*
-       * slow down the whining to opers bit
-       */
-      if ((last_oper_notice + 20) <= CurrentTime)
-      {
-        sendto_realops_flags(UMODE_ALL, L_ALL, "All connections in use. (%s)",
-                             get_listener_name(listener));
-        last_oper_notice = CurrentTime;
-      }
-
-      if (!(listener->flags & LISTENER_SSL))
-        send(fd, "ERROR :All connections in use\r\n", 32, 0);
-
-      close(fd);
-      break;    /* jump out and re-register a new io request */
-    }
+    ++ServerStats.is_ref;
 
     /*
-     * Do an initial check we aren't connecting too fast or with too many
-     * from this IP...
+     * slow down the whining to opers bit
      */
-    if ((pe = conf_connect_allowed(&addr, addr.ss.ss_family)) != 0)
+    if ((last_oper_notice + 20) <= CurrentTime)
     {
-      ++ServerStats.is_ref;
-
-      if (!(listener->flags & LISTENER_SSL))
-        switch (pe)
-        {
-          case BANNED_CLIENT:
-            send(fd, DLINE_WARNING, sizeof(DLINE_WARNING) - 1, 0);
-            break;
-
-          case TOO_FAST:
-            send(fd, TOOFAST_WARNING, sizeof(TOOFAST_WARNING) - 1, 0);
-            break;
-        }
-
-      close(fd);
-      continue;    /* drop the one and keep on clearing the queue */
+      sendto_realops_flags(UMODE_ALL, L_ALL, "All connections in use. (%s)",
+                           get_listener_name(listener));
+      last_oper_notice = CurrentTime;
     }
 
-    ++ServerStats.is_ac;
-    add_connection(listener, &addr, fd);
+    listener_send(listener, ALLINUSE_WARNING, sizeof(ALLINUSE_WARNING) - 1);
+
+    uv_close((uv_handle_t *)&listener->fd.handle, NULL);
+    return;
   }
 
-  /* Re-register a new IO request for the next accept .. */
-  comm_setselect(&listener->fd, COMM_SELECT_READ, accept_connection,
-                 listener, 0);
+  /*
+   * Do an initial check we aren't connecting too fast or with too many
+   * from this IP...
+   */
+  if ((pe = conf_connect_allowed(&addr, addr.ss_family)) != 0)
+  {
+    ++ServerStats.is_ref;
+
+    switch (pe)
+    {
+      case BANNED_CLIENT:
+        listener_send(listener, DLINE_WARNING, sizeof(DLINE_WARNING) - 1);
+        break;
+
+      case TOO_FAST:
+        listener_send(listener, TOOFAST_WARNING, sizeof(TOOFAST_WARNING) - 1);
+        break;
+    }
+
+    uv_close((uv_handle_t *)&listener->fd.handle, NULL);
+  }
+
+  ++ServerStats.is_ac;
+  add_connection(listener, &addr, &handle);
 }

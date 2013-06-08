@@ -53,7 +53,7 @@ static int remove_tdline_match(const char *);
 static int
 remove_tdline_match(const char *host)
 {
-  struct irc_ssaddr iphost, *piphost;
+  struct sockaddr_storage iphost, *piphost;
   struct AccessItem *aconf;
   int t;
 
@@ -104,7 +104,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   char *target_server = NULL;
   const char *creason;
   const struct Client *target_p = NULL;
-  struct irc_ssaddr daddr;
+  struct sockaddr_storage daddr;
   struct AccessItem *aconf = NULL;
   time_t tkline_time = 0;
   int bits, t;
@@ -227,7 +227,7 @@ ms_dline(struct Client *client_p, struct Client *source_p,
   char *dlhost, *oper_reason, *reason;
   const char *creason;
   const struct Client *target_p = NULL;
-  struct irc_ssaddr daddr;
+  struct sockaddr_storage daddr;
   struct AccessItem *aconf = NULL;
   time_t tkline_time = 0;
   int bits, t;

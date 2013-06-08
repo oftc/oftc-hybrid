@@ -497,7 +497,7 @@ chk_who(struct Client *source_p, struct Client *target_p, int showall)
     if (strchr(wsopts.ip, '/'))
     {
       int type;
-      struct irc_ssaddr addr;
+      struct sockaddr_storage addr;
       int bits;
 
       type = parse_netmask(wsopts.ip, &addr, &bits);
@@ -505,14 +505,14 @@ chk_who(struct Client *source_p, struct Client *target_p, int showall)
       switch (type)
       {
         case HM_IPV4:
-          if (target_p->ip.ss.ss_family == AF_INET)
+          if (target_p->ip.ss_family == AF_INET)
             if (match_ipv4(&target_p->ip, &addr, bits))
               return 1;
 
           return 0;
 
         case HM_IPV6:
-          if (target_p->ip.ss.ss_family == AF_INET6)
+          if (target_p->ip.ss_family == AF_INET6)
             if (match_ipv6(&target_p->ip, &addr, bits))
               return 1;
 

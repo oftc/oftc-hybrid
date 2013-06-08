@@ -1192,8 +1192,8 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   strlcpy(client_p->sockhost, buf, sizeof(client_p->sockhost));
 
   /* create a socket for the server connection */
-  if (comm_open(&client_p->localClient->fd, aconf->addr.ss.ss_family,
-                SOCK_STREAM, 0, NULL) < 0)
+  if (comm_open(&client_p->localClient->fd, aconf->addr.ss_family,
+                SOCK_STREAM, NULL) < 0)
   {
     /* Eek, failure to create the socket */
     report_error(L_ALL,
@@ -1240,7 +1240,6 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   SetConnecting(client_p);
   dlinkAdd(client_p, &client_p->node, &global_client_list);
   /* from def_fam */
-  client_p->aftype = aconf->aftype;
 
   /* Now, initiate the connection */
   /* XXX assume that a non 0 type means a specific bind address
@@ -1325,6 +1324,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   return (1);
 }
 
+#if 0
 #ifdef HAVE_LIBCRYPTO
 static void
 finish_ssl_server_handshake(struct Client *client_p)
@@ -1377,10 +1377,12 @@ finish_ssl_server_handshake(struct Client *client_p)
 
   /* don't move to serv_list yet -- we haven't sent a burst! */
   /* If we get here, we're ok, so lets start reading some data */
-  comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ, read_packet,
-                 client_p, 0);
+//  comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ, read_packet,
+//                 client_p, 0);
 }
+#endif
 
+#if 0
 static void
 ssl_server_handshake(fde_t *fd, struct Client *client_p)
 {
@@ -1394,13 +1396,13 @@ ssl_server_handshake(fde_t *fd, struct Client *client_p)
     switch ((err = SSL_get_error(client_p->localClient->fd.ssl, ret)))
     {
       case SSL_ERROR_WANT_WRITE:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
-                       (PF *)ssl_server_handshake, client_p, 0);
+//        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
+  //                     (PF *)ssl_server_handshake, client_p, 0);
         return;
 
       case SSL_ERROR_WANT_READ:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
-                       (PF *)ssl_server_handshake, client_p, 0);
+//        comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
+  //                     (PF *)ssl_server_handshake, client_p, 0);
         return;
 
       default:
@@ -1443,6 +1445,8 @@ ssl_server_handshake(fde_t *fd, struct Client *client_p)
 
   finish_ssl_server_handshake(client_p);
 }
+#endif
+#endif
 
 static void
 ssl_connect_init(struct Client *client_p, struct AccessItem *aconf, fde_t *fd)
@@ -1456,14 +1460,13 @@ ssl_connect_init(struct Client *client_p, struct AccessItem *aconf, fde_t *fd)
     return;
   }
 
-  SSL_set_fd(fd->ssl, fd->fd);
+/*  SSL_set_fd(fd->ssl, fd->fd);
 
   if (!EmptyString(aconf->cipher_list))
     SSL_set_cipher_list(client_p->localClient->fd.ssl, aconf->cipher_list);
 
-  ssl_server_handshake(NULL, client_p);
+  ssl_server_handshake(NULL, client_p);*/
 }
-#endif
 
 /* serv_connect_callback() - complete a server connection.
  *
@@ -1571,7 +1574,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 
   /* don't move to serv_list yet -- we haven't sent a burst! */
   /* If we get here, we're ok, so lets start reading some data */
-  comm_setselect(fd, COMM_SELECT_READ, read_packet, client_p, 0);
+//  comm_setselect(fd, COMM_SELECT_READ, read_packet, client_p, 0);
 }
 
 struct Client *

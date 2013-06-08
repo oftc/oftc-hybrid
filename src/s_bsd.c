@@ -56,11 +56,11 @@ static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
 
 struct Callback *setup_socket_cb = NULL;
 
-static void comm_connect_callback(fde_t *, int);
-static PF comm_connect_timeout;
-static void comm_connect_dns_callback(void *, const struct irc_ssaddr *,
-                                      const char *);
-static PF comm_connect_tryconnect;
+//static void comm_connect_callback(fde_t *, int);
+//static PF comm_connect_timeout;
+//static void comm_connect_dns_callback(void *, const struct irc_ssaddr *,
+                                      //const char *);
+//static PF comm_connect_tryconnect;
 
 
 /* check_can_use_v6()
@@ -165,7 +165,7 @@ void
 init_comm()
 {
   setup_socket_cb = register_callback("setup_socket", setup_socket);
-  init_netio();
+  //init_netio();
 }
 
 /*
@@ -249,6 +249,7 @@ close_connection(struct Client *client_p)
   client_p->from = NULL; /* ...this should catch them! >:) --msa */
 }
 
+#if 0
 #ifdef HAVE_LIBCRYPTO
 /*
  * ssl_handshake - let OpenSSL initialize the protocol. Register for
@@ -295,13 +296,13 @@ ssl_handshake(int fd, struct Client *client_p)
     switch (SSL_get_error(client_p->localClient->fd.ssl, ret))
     {
       case SSL_ERROR_WANT_WRITE:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
-                       (PF *) ssl_handshake, client_p, 30);
+//        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
+  //                     (PF *) ssl_handshake, client_p, 30);
         return;
 
       case SSL_ERROR_WANT_READ:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
-                       (PF *) ssl_handshake, client_p, 30);
+    //    comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
+      //                 (PF *) ssl_handshake, client_p, 30);
         return;
 
       default:
@@ -314,7 +315,7 @@ ssl_handshake(int fd, struct Client *client_p)
   execute_callback(auth_cb, client_p);
 }
 #endif
-
+#endif
 /*
  * add_connection - creates a client which has just connected to us on
  * the given fd. The sockhost field is initialized with the ip# of the host.
@@ -323,11 +324,13 @@ ssl_handshake(int fd, struct Client *client_p)
  * any client list yet.
  */
 void
-add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
+add_connection(struct Listener *listener, struct sockaddr_storage *irn, 
+               uv_tcp_t *handle)
 {
   struct Client *new_client = make_client(NULL);
+  int ret;
 
-  fd_open(&new_client->localClient->fd, fd, 1,
+  fd_open(&new_client->localClient->fd, (uv_stream_t *)handle, 
           (listener->flags & LISTENER_SSL) ?
           "Incoming SSL connection" : "Incoming connection");
 
@@ -335,12 +338,27 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
    * copy address to 'sockhost' as a string, copy it to host too
    * so we have something valid to put into error messages...
    */
-  memcpy(&new_client->ip, irn, sizeof(struct irc_ssaddr));
+  memcpy(&new_client->ip, irn, sizeof(new_client->ip));
 
-  getnameinfo((struct sockaddr *)&new_client->ip,
-              new_client->ip.ss_len, new_client->sockhost,
-              sizeof(new_client->sockhost), NULL, 0, NI_NUMERICHOST);
-  new_client->aftype = new_client->ip.ss.ss_family;
+  switch(new_client->ip.ss_family)
+  {
+    case AF_INET:
+      ret = uv_ip4_name((struct sockaddr_in *)&new_client->ip,
+                        new_client->sockhost, sizeof(new_client->sockhost));
+      break;
+    case AF_INET6:
+      ret = uv_ip6_name((struct sockaddr_in6 *)&new_client->ip,
+                        new_client->sockhost, sizeof(new_client->sockhost));
+      break;
+  }
+
+  if(ret != 0)
+  {
+    ilog(LOG_TYPE_IRCD, "uv_ip*_name failed!");
+    SetDead(new_client);
+    exit_client(new_client, new_client, "uv_ip*_name failed!");
+    return;
+  }
 
   if (new_client->sockhost[0] == ':' && new_client->sockhost[1] == ':')
   {
@@ -371,8 +389,8 @@ add_connection(struct Listener *listener, struct irc_ssaddr *irn, int fd)
       return;
     }
 
-    SSL_set_fd(new_client->localClient->fd.ssl, fd);
-    ssl_handshake(0, new_client);
+/*    SSL_set_fd(new_client->localClient->fd.ssl, fd);
+    ssl_handshake(0, new_client);*/
   }
   else
 #endif
@@ -506,6 +524,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
                  struct sockaddr *clocal, int socklen, CNCB *callback,
                  void *data, int aftype, int timeout)
 {
+#if 0
   struct addrinfo hints, *res;
   char portname[PORTNAMELEN + 1];
 
@@ -561,8 +580,10 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     comm_settimeout(fd, timeout * 1000, comm_connect_timeout, NULL);
     comm_connect_tryconnect(fd, NULL);
   }
+#endif
 }
 
+#if 0
 /*
  * comm_connect_callback() - call the callback, and continue with life
  */
@@ -597,6 +618,7 @@ comm_connect_timeout(fde_t *fd, void *notused)
   /* error! */
   comm_connect_callback(fd, COMM_ERR_TIMEOUT);
 }
+#endif
 
 /*
  * comm_connect_dns_callback() - called at the completion of the DNS request
@@ -604,6 +626,7 @@ comm_connect_timeout(fde_t *fd, void *notused)
  * The DNS request has completed, so if we've got an error, return it,
  * otherwise we initiate the connect()
  */
+#if 0
 static void
 comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr,
                           const char *name)
@@ -634,7 +657,7 @@ comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr,
   /* Now, call the tryconnect() routine to try a connect() */
   comm_connect_tryconnect(F, NULL);
 }
-
+#endif
 /* static void comm_connect_tryconnect(int fd, void *notused)
  * Input: The fd, the handler data(unused).
  * Output: None.
@@ -643,6 +666,7 @@ comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr,
  *               Otherwise, it is still blocking or something, so register
  *               to select for a write event on this FD.
  */
+#if 0
 static void
 comm_connect_tryconnect(fde_t *fd, void *notused)
 {
@@ -667,9 +691,10 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
     if (errno == EISCONN)
       comm_connect_callback(fd, COMM_OK);
     else if (ignoreErrno(errno))
+      ;
       /* Ignore error? Reschedule */
-      comm_setselect(fd, COMM_SELECT_WRITE, comm_connect_tryconnect,
-                     NULL, 0);
+//      comm_setselect(fd, COMM_SELECT_WRITE, comm_connect_tryconnect,
+  //                   NULL, 0);
     else
       /* Error? Fail with COMM_ERR_CONNECT */
       comm_connect_callback(fd, COMM_ERR_CONNECT);
@@ -680,6 +705,7 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
   /* If we get here, we've suceeded, so call with COMM_OK */
   comm_connect_callback(fd, COMM_OK);
 }
+#endif
 
 /*
  * comm_errorstr() - return an error string for the given error condition
@@ -701,9 +727,12 @@ comm_errstr(int error)
  * to run out of file descriptors.
  */
 int
-comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
+comm_open(fde_t *F, int family, int sock_type, const char *note)
 {
-  int fd;
+  uv_tcp_t tcp_handle;
+  uv_udp_t udp_handle;
+  uv_stream_t *handle;
+  int ret;
 
   /* First, make sure we aren't going to run out of file descriptors */
   if (number_fd >= hard_fdlimit)
@@ -712,20 +741,25 @@ comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
     return -1;
   }
 
-  /*
-   * Next, we try to open the socket. We *should* drop the reserved FD
-   * limit if/when we get an error, but we can deal with that later.
-   * XXX !!! -- adrian
-   */
-  fd = socket(family, sock_type, proto);
+  switch(sock_type)
+  {
+    case SOCK_STREAM:
+      ret = uv_tcp_init(server_state.event_loop, (uv_tcp_t *)&tcp_handle);
+      handle = (uv_stream_t *)&tcp_handle;
+      break;
+    case SOCK_DGRAM:
+      ret = uv_udp_init(server_state.event_loop, (uv_udp_t *)&handle);
+      handle = (uv_stream_t *)&udp_handle;
+      break;
+  }
 
-  if (fd < 0)
+  if (ret != 0)
     return -1; /* errno will be passed through, yay.. */
 
-  execute_callback(setup_socket_cb, fd);
+  execute_callback(setup_socket_cb, handle);
 
   /* update things in our fd tracking */
-  fd_open(F, fd, 1, note);
+  fd_open(F, handle, note);
   return 0;
 }
 
@@ -736,34 +770,29 @@ comm_open(fde_t *F, int family, int sock_type, int proto, const char *note)
  * comm_open() does. Returned fd must be either closed or tagged with
  * fd_open (this function no longer does it).
  */
-int
-comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
+bool
+comm_accept(struct Listener *lptr, uv_tcp_t *handle, 
+            struct sockaddr_storage *addr)
 {
-  int newfd;
-  socklen_t addrlen = sizeof(struct irc_ssaddr);
+  int len = sizeof(struct sockaddr_storage);
 
   if (number_fd >= hard_fdlimit)
   {
     errno = ENFILE;
-    return -1;
+    return false;
   }
 
-  /*
-   * Next, do the accept(). if we get an error, we should drop the
-   * reserved fd limit, but we can deal with that when comm_open()
-   * also does it. XXX -- adrian
-   */
-  newfd = accept(lptr->fd.fd, (struct sockaddr *)pn, &addrlen);
+  if(uv_accept(&lptr->fd.handle, (uv_stream_t *)handle) != 0)
+    return false;
 
-  if (newfd < 0)
-    return -1;
+  if(uv_tcp_getpeername(handle, (struct sockaddr *)addr, &len) != 0)
+    return false;
 
-  remove_ipv6_mapping(pn);
+  remove_ipv6_mapping(addr);
 
-  execute_callback(setup_socket_cb, newfd);
+  execute_callback(setup_socket_cb, handle);
 
-  /* .. and return */
-  return newfd;
+  return true;
 }
 
 /*
@@ -773,9 +802,9 @@ comm_accept(struct Listener *lptr, struct irc_ssaddr *pn)
  *
  */
 void
-remove_ipv6_mapping(struct irc_ssaddr *addr)
+remove_ipv6_mapping(struct sockaddr_storage *addr)
 {
-  if (addr->ss.ss_family == AF_INET6)
+  if (addr->ss_family == AF_INET6)
   {
     if (IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)addr)->sin6_addr))
     {
@@ -786,7 +815,7 @@ remove_ipv6_mapping(struct irc_ssaddr *addr)
       memset(v4, 0, sizeof(struct sockaddr_in));
       memcpy(&v4->sin_addr, &v6.sin6_addr.s6_addr[12], sizeof(v4->sin_addr));
 
-      addr->ss.ss_family = AF_INET;
+      addr->ss_family = AF_INET;
       addr->ss_len = sizeof(struct sockaddr_in);
     }
     else

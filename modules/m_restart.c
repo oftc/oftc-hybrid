@@ -65,6 +65,7 @@ struct SocketInfo
   time_t last;
 };
 
+#if 0
 /*
  * serverize()
  *
@@ -88,7 +89,8 @@ serverize(struct Client *client_p)
 
   SetServer(client_p);
 }
-
+#endif
+#if 0
 /*
  * make_dummy()
  *
@@ -144,7 +146,8 @@ write_dbuf(int transfd, struct dbuf_queue *dbuf)
     dbuf_delete(dbuf, first->size);
   }
 }
-
+#endif
+#if 0
 /*
  * introduce_socket()
  *
@@ -189,6 +192,7 @@ introduce_socket(int transfd, struct Client *client_p)
   write_dbuf(transfd, &client_p->localClient->buf_recvq);
   write_dbuf(transfd, &client_p->localClient->buf_sendq);
 }
+#endif
 
 /*
  * do_shutdown()
@@ -203,6 +207,7 @@ introduce_socket(int transfd, struct Client *client_p)
 static void
 do_shutdown(const char *msg, int rboot)
 {
+#if 0
   struct Client *client_p;
   dlink_node *ptr;
   int transfd[2];
@@ -310,6 +315,7 @@ do_shutdown(const char *msg, int rboot)
   }
 
   exit(0);
+#endif
 }
 
 

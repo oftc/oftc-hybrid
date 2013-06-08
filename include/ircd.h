@@ -25,7 +25,6 @@
 #ifndef INCLUDED_ircd_h
 #define INCLUDED_ircd_h
 
-#include <uv.h>
 #include "ircd_defs.h"
 #include "config.h"
 #include "memory.h"

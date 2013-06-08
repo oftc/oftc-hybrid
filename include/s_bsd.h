@@ -41,7 +41,8 @@ struct Listener;
 
 extern struct Callback *setup_socket_cb;
 
-extern void add_connection(struct Listener *, struct irc_ssaddr *, int);
+extern void add_connection(struct Listener *, struct sockaddr_storage *, 
+                           uv_tcp_t *);
 extern void close_connection(struct Client *);
 extern void report_error(int, const char *, const char *, int);
 
@@ -53,10 +54,10 @@ extern void comm_setflush(fde_t *, time_t, PF *, void *);
 extern void comm_checktimeouts(void *);
 extern void comm_connect_tcp(fde_t *, const char *, u_short,
                              struct sockaddr *, int, CNCB *, void *, int, int);
-extern const char *comm_errstr(int status);
-extern int comm_open(fde_t *F, int family, int sock_type, int proto,
-                     const char *note);
-extern int comm_accept(struct Listener *, struct irc_ssaddr *pn);
+extern const char *comm_errstr(int);
+extern int comm_open(fde_t *, int, int, const char *);
+extern bool comm_accept(struct Listener *, uv_tcp_t *, 
+                        struct sockaddr_storage *);
 
 /* These must be defined in the network IO loop code of your choice */
 extern void init_netio();
@@ -65,6 +66,6 @@ extern void init_comm();
 extern int read_message(time_t, unsigned char);
 extern void comm_select();
 extern void check_can_use_v6();
-extern void remove_ipv6_mapping(struct irc_ssaddr *);
+extern void remove_ipv6_mapping(struct sockaddr_storage *);
 
 #endif /* INCLUDED_s_bsd_h */

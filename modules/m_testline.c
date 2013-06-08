@@ -61,7 +61,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
   char parv1_copy[IRCD_BUFSIZE];
   struct ConfItem *conf;
   struct AccessItem *aconf;
-  struct irc_ssaddr ip;
+  struct sockaddr_storage ip;
   int host_mask;
   int t;
   int matches = 0;
