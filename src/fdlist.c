@@ -84,7 +84,7 @@ fd_open(fde_t *F, uv_stream_t *handle, const char *desc)
 {
   unsigned int hashv = hash_fd(handle->io_watcher.fd);
 
-  memcpy(&F->handle, handle, sizeof(F->handle));
+  F->handle = handle;
   F->comm_index = -1;
 
   if (desc != NULL)
@@ -103,7 +103,7 @@ fd_open(fde_t *F, uv_stream_t *handle, const char *desc)
 void
 fd_close(fde_t *F)
 {
-  unsigned int hashv = hash_fd(F->handle.io_watcher.fd);
+  unsigned int hashv = hash_fd(F->handle->io_watcher.fd);
 
   if (F == fd_next_in_loop)
     fd_next_in_loop = F->hnext;
@@ -133,9 +133,10 @@ fd_close(fde_t *F)
     prev->hnext = F->hnext;
   }
 
-  /* Unlike squid, we're actually closing the FD here! -- adrian */
-  uv_close((uv_handle_t*)&F->handle, NULL);
+  uv_close((uv_handle_t*)F->handle, NULL);
   number_fd--;
+
+  MyFree(F->handle);
 
   memset(F, 0, sizeof(fde_t));
 }
@@ -153,7 +154,7 @@ fd_dump(struct Client *source_p)
     for (F = fd_hash[i]; F != NULL; F = F->hnext)
       sendto_one(source_p, ":%s %d %s :fd %-5d desc '%s'",
                  me.name, RPL_STATSDEBUG, source_p->name,
-                 F->handle.io_watcher.fd, F->desc);
+                 F->handle->io_watcher.fd, F->desc);
 }
 
 /*

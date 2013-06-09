@@ -153,11 +153,11 @@ inetport(struct Listener *listener)
   switch(listener->addr.ss_family)
   {
     case AF_INET:
-      ret = uv_tcp_bind((uv_tcp_t *)&listener->fd.handle, 
+      ret = uv_tcp_bind((uv_tcp_t *)listener->fd.handle, 
                         *(struct sockaddr_in *)&listener->addr);
       break;
     case AF_INET6:
-      ret = uv_tcp_bind6((uv_tcp_t *)&listener->fd.handle,
+      ret = uv_tcp_bind6((uv_tcp_t *)listener->fd.handle,
                          *(struct sockaddr_in6 *)&listener->addr);
       break;
   }
@@ -169,7 +169,7 @@ inetport(struct Listener *listener)
     return 0;
   }
 
-  if (uv_listen(&listener->fd.handle, HYBRID_SOMAXCONN, accept_connection) != 0)
+  if (uv_listen(listener->fd.handle, HYBRID_SOMAXCONN, accept_connection) != 0)
   {
     report_error(L_ALL, "listen failed for %s:%s",
                  get_listener_name(listener), errno);
@@ -177,7 +177,7 @@ inetport(struct Listener *listener)
     return 0;
   }
 
-  listener->fd.handle.data = listener;
+  listener->fd.handle->data = listener;
 
   return 1;
 }
@@ -314,7 +314,7 @@ static void listener_send(struct Listener *listener, const char *buffer,
   uv_buf_t buf = uv_buf_init((char *)buffer, len);
   uv_write_t req;
 
-  uv_write(&req, &listener->fd.handle, &buf, 1, NULL);
+  uv_write(&req, listener->fd.handle, &buf, 1, NULL);
 }
 
 #define TOOFAST_WARNING "ERROR :Trying to reconnect too fast.\r\n"

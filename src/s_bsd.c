@@ -729,8 +729,6 @@ comm_errstr(int error)
 int
 comm_open(fde_t *F, int family, int sock_type, const char *note)
 {
-  uv_tcp_t tcp_handle;
-  uv_udp_t udp_handle;
   uv_stream_t *handle;
   int ret;
 
@@ -744,12 +742,12 @@ comm_open(fde_t *F, int family, int sock_type, const char *note)
   switch(sock_type)
   {
     case SOCK_STREAM:
-      ret = uv_tcp_init(server_state.event_loop, (uv_tcp_t *)&tcp_handle);
-      handle = (uv_stream_t *)&tcp_handle;
+      handle = MyMalloc(sizeof(uv_tcp_t));
+      ret = uv_tcp_init(server_state.event_loop, (uv_tcp_t *)handle);
       break;
     case SOCK_DGRAM:
-      ret = uv_udp_init(server_state.event_loop, (uv_udp_t *)&handle);
-      handle = (uv_stream_t *)&udp_handle;
+      handle = MyMalloc(sizeof(uv_udp_t));
+      ret = uv_udp_init(server_state.event_loop, (uv_udp_t *)handle);
       break;
   }
 
@@ -782,7 +780,7 @@ comm_accept(struct Listener *lptr, uv_tcp_t *handle,
     return false;
   }
 
-  if(uv_accept(&lptr->fd.handle, (uv_stream_t *)handle) != 0)
+  if(uv_accept(lptr->fd.handle, (uv_stream_t *)handle) != 0)
     return false;
 
   if(uv_tcp_getpeername(handle, (struct sockaddr *)addr, &len) != 0)

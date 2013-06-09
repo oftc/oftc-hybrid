@@ -52,7 +52,7 @@ typedef void CNCB(struct _fde *, int, void *);
 
 typedef struct _fde
 {
-  uv_stream_t handle;           /* So we can use the fde_t as a callback ptr */
+  uv_stream_t *handle;           /* So we can use the fde_t as a callback ptr */
   int         comm_index;       /* where in the poll list we live */
   int         evcache;          /* current fd events as set up by the underlying I/O */
   char        desc[FD_DESC_SZ];
