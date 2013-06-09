@@ -557,8 +557,6 @@ main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  server_state.event_loop = uv_default_loop();
-
   init_ssl();
 
   if (!server_state.foreground)
@@ -570,6 +568,7 @@ main(int argc, char *argv[])
     print_startup(getpid());
 
   setup_signals();
+  server_state.event_loop = uv_default_loop();
 
   /* Init the event subsystem */
   eventInit();
