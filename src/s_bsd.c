@@ -56,11 +56,11 @@ static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
 
 struct Callback *setup_socket_cb = NULL;
 
-//static void comm_connect_callback(fde_t *, int);
-//static PF comm_connect_timeout;
+static void comm_connect_callback(uv_connect_t *, int);
+static PF comm_connect_timeout;
 //static void comm_connect_dns_callback(void *, const struct irc_ssaddr *,
                                       //const char *);
-//static PF comm_connect_tryconnect;
+static PF comm_connect_tryconnect;
 
 
 /* check_can_use_v6()
@@ -524,16 +524,11 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
                  struct sockaddr *clocal, int socklen, CNCB *callback,
                  void *data, int aftype, int timeout)
 {
-#if 0
-  struct addrinfo hints, *res;
-  char portname[PORTNAMELEN + 1];
-
   assert(callback);
   fd->connect.callback = callback;
   fd->connect.data = data;
 
-  fd->connect.hostaddr.ss.ss_family = aftype;
-  fd->connect.hostaddr.ss_port = htons(port);
+  fd->connect.hostaddr.ss_family = aftype;
 
   /* Note that we're using a passed sockaddr here. This is because
    * generally you'll be bind()ing to a sockaddr grabbed from
@@ -542,24 +537,51 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
    * virtual host IP, for completeness.
    *   -- adrian
    */
-  if ((clocal != NULL) && (bind(fd->fd, clocal, socklen) < 0))
+  if ((clocal != NULL))
   {
-    /* Failure, call the callback with COMM_ERR_BIND */
-    comm_connect_callback(fd, COMM_ERR_BIND);
-    /* ... and quit */
-    return;
+    int ret;
+
+    switch(aftype)
+    {
+      case AF_INET:
+        ret = uv_tcp_bind((uv_tcp_t *)fd->handle, 
+                          *(struct sockaddr_in *)clocal);
+        break;
+      case AF_INET6:
+        ret = uv_tcp_bind6((uv_tcp_t *)fd->handle, 
+                           *(struct sockaddr_in6 *)clocal);
+        break;
+    }
+
+    if(ret != 0)
+    {
+      /* Failure, call the callback with COMM_ERR_BIND */
+      comm_connect_callback(&fd->connect.handle, COMM_ERR_BIND);
+      /* ... and quit */
+      return;
+    }
   }
 
   /* Next, if we have been given an IP, get the addr and skip the
    * DNS check (and head direct to comm_connect_tryconnect().
    */
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
-  snprintf(portname, sizeof(portname), "%d", port);
-
+  switch(aftype)
+  {
+    case AF_INET:
+      {
+        struct sockaddr_in addr4 = uv_ip4_addr(host, port);
+        memcpy(&fd->connect.hostaddr, &addr4, sizeof(addr4));
+      }
+      break;
+    case AF_INET6:
+      {
+        struct sockaddr_in6 addr6 = uv_ip6_addr(host, port);
+        memcpy(&fd->connect.hostaddr, &addr6, sizeof(addr6));
+      }
+      break;
+  }
+#if 0
   if (getaddrinfo(host, portname, &hints, &res))
   {
     /* Send the DNS request, for the next level */
@@ -569,28 +591,23 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
       gethost_byname_type(comm_connect_dns_callback, fd, host, T_A);
   }
   else
+#endif
   {
     /* We have a valid IP, so we just call tryconnect */
     /* Make sure we actually set the timeout here .. */
-    assert(res != NULL);
-    memcpy(&fd->connect.hostaddr, res->ai_addr, res->ai_addrlen);
-    fd->connect.hostaddr.ss_len = res->ai_addrlen;
-    fd->connect.hostaddr.ss.ss_family = res->ai_family;
-    freeaddrinfo(res);
     comm_settimeout(fd, timeout * 1000, comm_connect_timeout, NULL);
     comm_connect_tryconnect(fd, NULL);
   }
-#endif
 }
 
-#if 0
 /*
  * comm_connect_callback() - call the callback, and continue with life
  */
 static void
-comm_connect_callback(fde_t *fd, int status)
+comm_connect_callback(uv_connect_t *request, int status)
 {
   CNCB *hdl;
+  fde_t *fd = request->data;
 
   /* This check is gross..but probably necessary */
   if (fd->connect.callback == NULL)
@@ -616,9 +633,8 @@ static void
 comm_connect_timeout(fde_t *fd, void *notused)
 {
   /* error! */
-  comm_connect_callback(fd, COMM_ERR_TIMEOUT);
+  comm_connect_callback(&fd->connect.handle, COMM_ERR_TIMEOUT);
 }
-#endif
 
 /*
  * comm_connect_dns_callback() - called at the completion of the DNS request
@@ -666,7 +682,6 @@ comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr,
  *               Otherwise, it is still blocking or something, so register
  *               to select for a write event on this FD.
  */
-#if 0
 static void
 comm_connect_tryconnect(fde_t *fd, void *notused)
 {
@@ -676,36 +691,30 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
   if (fd->connect.callback == NULL)
     return;
 
-  /* Try the connect() */
-  retval = connect(fd->fd, (struct sockaddr *) &fd->connect.hostaddr,
-                   fd->connect.hostaddr.ss_len);
+  fd->connect.handle.data = fd;
+
+  switch(fd->connect.hostaddr.ss_family)
+  {
+    case AF_INET:
+      retval = uv_tcp_connect(&fd->connect.handle, (uv_tcp_t *)fd->handle, 
+                              *(struct sockaddr_in *)&fd->connect.hostaddr,
+                              comm_connect_callback);
+      break;
+    case AF_INET6:
+      retval = uv_tcp_connect6(&fd->connect.handle, (uv_tcp_t *)fd->handle,
+                               *(struct sockaddr_in6 *)&fd->connect.hostaddr,
+                               comm_connect_callback);
+  }
 
   /* Error? */
-  if (retval < 0)
+  if (retval != 0)
   {
-    /*
-     * If we get EISCONN, then we've already connect()ed the socket,
-     * which is a good thing.
-     *   -- adrian
-     */
-    if (errno == EISCONN)
-      comm_connect_callback(fd, COMM_OK);
-    else if (ignoreErrno(errno))
-      ;
-      /* Ignore error? Reschedule */
-//      comm_setselect(fd, COMM_SELECT_WRITE, comm_connect_tryconnect,
-  //                   NULL, 0);
-    else
-      /* Error? Fail with COMM_ERR_CONNECT */
-      comm_connect_callback(fd, COMM_ERR_CONNECT);
+    /* Error? Fail with COMM_ERR_CONNECT */
+    comm_connect_callback(&fd->connect.handle, COMM_ERR_CONNECT);
 
     return;
   }
-
-  /* If we get here, we've suceeded, so call with COMM_OK */
-  comm_connect_callback(fd, COMM_OK);
 }
-#endif
 
 /*
  * comm_errorstr() - return an error string for the given error condition

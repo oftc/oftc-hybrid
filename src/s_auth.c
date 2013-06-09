@@ -240,7 +240,7 @@ static int
 start_auth_query(struct AuthRequest *auth)
 {
   struct sockaddr_storage localaddr;
-  socklen_t locallen = sizeof(struct irc_ssaddr);
+  int locallen = sizeof(localaddr);
   struct sockaddr_in6 *v6;
 
   /* open a socket of the same type as the client socket */
@@ -265,9 +265,9 @@ start_auth_query(struct AuthRequest *auth)
    * since the ident request must originate from that same address--
    * and machines with multiple IP addresses are common now
    */
-  memset(&localaddr, 0, locallen);
-//  getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&localaddr,
-  //            &locallen);
+  memset(&localaddr, 0, sizeof(localaddr));
+  uv_tcp_getsockname((uv_tcp_t *)auth->client->localClient->fd.handle, 
+                     (struct sockaddr *)&localaddr, &locallen);
 
   remove_ipv6_mapping(&localaddr);
   v6 = (struct sockaddr_in6 *)&localaddr;

@@ -78,11 +78,12 @@ typedef struct _fde
 
   struct
   {
+    uv_connect_t handle;
     /* We don't need the host here ? */
-    struct irc_ssaddr S;
-    struct irc_ssaddr hostaddr;
-    CNCB              *callback;
-    void              *data;
+    struct sockaddr_storage S;
+    struct sockaddr_storage hostaddr;
+    CNCB                    *callback;
+    void                    *data;
     /* We'd also add the retry count here when we get to that -- adrian */
   } connect;
 #ifdef HAVE_LIBCRYPTO
