@@ -328,11 +328,14 @@ accept_connection(uv_stream_t *server, int status)
   struct sockaddr_storage addr;
   int pe;
   struct Listener *listener = server->data;
-  uv_tcp_t handle;
+  uv_tcp_t *handle;
 
   memset(&addr, 0, sizeof(addr));
 
   assert(listener != NULL);
+
+  if(status != 0)
+    return;
 
   /* There may be many reasons for error return, but
    * in otherwise correctly working environment the
@@ -345,8 +348,20 @@ accept_connection(uv_stream_t *server, int status)
    * be accepted until some old is closed first.
    */
 
-  if(!comm_accept(listener, &handle, &addr))
+  handle = MyMalloc(sizeof(uv_tcp_t));
+
+  if(uv_tcp_init(server_state.event_loop, handle) != 0)
+  {
+    MyFree(handle);
     return;
+  }
+
+  if(!comm_accept(listener, handle, &addr))
+  {
+    MyFree(handle);
+    return;
+  }
+
   /*
    * check for connection limit
    */
@@ -366,7 +381,8 @@ accept_connection(uv_stream_t *server, int status)
 
     listener_send(listener, ALLINUSE_WARNING, sizeof(ALLINUSE_WARNING) - 1);
 
-    uv_close((uv_handle_t *)&listener->fd.handle, NULL);
+    uv_close((uv_handle_t *)handle, NULL);
+    MyFree(handle);
     return;
   }
 
@@ -389,9 +405,10 @@ accept_connection(uv_stream_t *server, int status)
         break;
     }
 
-    uv_close((uv_handle_t *)&listener->fd.handle, NULL);
+    uv_close((uv_handle_t *)handle, NULL);
+    MyFree(handle);
   }
 
   ++ServerStats.is_ac;
-  add_connection(listener, &addr, &handle);
+  add_connection(listener, &addr, handle);
 }
