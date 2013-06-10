@@ -225,6 +225,17 @@ sendq_unblocked(fde_t *fd, struct Client *client_p)
 #endif
 }
 
+static void
+write_callback(uv_write_t *req, int status)
+{
+  struct Client *client_p = req->data;
+
+  if(status != 0)
+    dead_link_on_write(client_p, uv_last_error(server_state.event_loop).code);
+
+  MyFree(req);
+}
+
 /*
  ** send_queued_write
  **      This is called when there is a chance that some output would
@@ -234,8 +245,10 @@ sendq_unblocked(fde_t *fd, struct Client *client_p)
 void
 send_queued_write(struct Client *to)
 {
-  int retlen;
+  int retlen = 0;
   struct dbuf_block *first;
+  uv_buf_t buf;
+  uv_write_t *req = MyMalloc(sizeof(uv_write_t));
 
   /*
    ** Once socket is marked dead, we cannot start writing to it,
@@ -280,12 +293,15 @@ send_queued_write(struct Client *to)
           }
       }
       else
+      {
 #endif
-        //retlen = send(to->localClient->fd.fd, first->data, first->size, 0);
-        retlen =0;
-
-      if (retlen <= 0)
-        break;
+        buf = uv_buf_init(first->data, first->size);
+        req->data = to;
+        uv_write(req, to->localClient->fd.handle, &buf, 1, write_callback);
+        retlen = first->size;
+#ifdef HAVE_LIBCRYPTO
+      }
+#endif
 
       dbuf_delete(&to->localClient->buf_sendq, retlen);
 
@@ -294,19 +310,6 @@ send_queued_write(struct Client *to)
       me.localClient->send.bytes += retlen;
     }
     while (dbuf_length(&to->localClient->buf_sendq));
-
-    if ((retlen < 0) && (ignoreErrno(errno)))
-    {
-      /* we have a non-fatal error, reschedule a write */
-      SetSendqBlocked(to);
-//      comm_setselect(&to->localClient->fd, COMM_SELECT_WRITE,
-  //                   (PF *)sendq_unblocked, (void *)to, 0);
-    }
-    else if (retlen <= 0)
-    {
-      dead_link_on_write(to, errno);
-      return;
-    }
   }
 }
 
