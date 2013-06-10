@@ -472,38 +472,37 @@ comm_setflush(fde_t *fd, time_t timeout, PF *callback, void *cbdata)
 void
 comm_checktimeouts(void *notused)
 {
-  int i;
   fde_t *F;
   PF *hdl;
   void *data;
+  dlink_node *ptr;
 
-  for (i = 0; i < FD_HASH_SIZE; i++)
-    for (F = fd_hash[i]; F != NULL; F = fd_next_in_loop)
+  DLINK_FOREACH(ptr, fd_list.head)
+  {
+    F = ptr->data;
+    assert(F->flags.open);
+
+    /* check flush functions */
+    if (F->flush_handler && F->flush_timeout > 0 &&
+        F->flush_timeout < CurrentTime)
     {
-      assert(F->flags.open);
-      fd_next_in_loop = F->hnext;
-
-      /* check flush functions */
-      if (F->flush_handler && F->flush_timeout > 0 &&
-          F->flush_timeout < CurrentTime)
-      {
-        hdl = F->flush_handler;
-        data = F->flush_data;
-        comm_setflush(F, 0, NULL, NULL);
-        hdl(F, data);
-      }
-
-      /* check timeouts */
-      if (F->timeout_handler && F->timeout > 0 &&
-          F->timeout < CurrentTime)
-      {
-        /* Call timeout handler */
-        hdl = F->timeout_handler;
-        data = F->timeout_data;
-        comm_settimeout(F, 0, NULL, NULL);
-        hdl(F, data);
-      }
+      hdl = F->flush_handler;
+      data = F->flush_data;
+      comm_setflush(F, 0, NULL, NULL);
+      hdl(F, data);
     }
+
+    /* check timeouts */
+    if (F->timeout_handler && F->timeout > 0 &&
+        F->timeout < CurrentTime)
+    {
+      /* Call timeout handler */
+      hdl = F->timeout_handler;
+      data = F->timeout_data;
+      comm_settimeout(F, 0, NULL, NULL);
+      hdl(F, data);
+    }
+  }
 }
 
 /*
@@ -526,6 +525,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
 {
   assert(callback);
   fd->connect.callback = callback;
+  fd->connect.handle.data = fd;
   fd->connect.data = data;
 
   fd->connect.hostaddr.ss_family = aftype;
@@ -690,8 +690,6 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
   /* This check is needed or re-entrant s_bsd_* like sigio break it. */
   if (fd->connect.callback == NULL)
     return;
-
-  fd->connect.handle.data = fd;
 
   switch(fd->connect.hostaddr.ss_family)
   {

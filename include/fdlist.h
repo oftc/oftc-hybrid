@@ -87,17 +87,17 @@ typedef struct _fde
     /* We'd also add the retry count here when we get to that -- adrian */
   } connect;
 #ifdef HAVE_LIBCRYPTO
-  SSL     *ssl;
+  SSL         *ssl;
 #endif
-  struct _fde *hnext;
+  dlink_node  fnode;
 } fde_t;
 
 #define FD_HASH_SIZE CLIENT_HEAP_SIZE
 
 extern int number_fd;
 extern int hard_fdlimit;
-extern fde_t *fd_hash[];
-extern fde_t *fd_next_in_loop;
+
+extern dlink_list fd_list;
 
 extern void fdlist_init();
 extern fde_t *lookup_fd(int);

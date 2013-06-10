@@ -23,6 +23,7 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "fdlist.h"
 #include "client.h"  /* struct Client */
 #include "event.h"
@@ -35,9 +36,9 @@
 #include "numeric.h"
 #include "s_misc.h"
 #include "irc_res.h"
+#include "log.h"
 
-fde_t *fd_hash[FD_HASH_SIZE];
-fde_t *fd_next_in_loop = NULL;
+dlink_list fd_list = { 0 };
 int number_fd = LEAKED_FDS;
 int hard_fdlimit = 0;
 
@@ -72,17 +73,11 @@ fdlist_init()
   set_fdlimit();
 }
 
-static inline unsigned int
-hash_fd(int fd)
-{
-  return (((unsigned) fd) % FD_HASH_SIZE);
-}
-
 /* Called to open a given filedescriptor */
 void
 fd_open(fde_t *F, uv_stream_t *handle, const char *desc)
 {
-  unsigned int hashv = hash_fd(handle->io_watcher.fd);
+  ilog(LOG_TYPE_IRCD, "fd_open %p %d", handle, handle->io_watcher.fd);
 
   F->handle = handle;
   F->comm_index = -1;
@@ -93,8 +88,8 @@ fd_open(fde_t *F, uv_stream_t *handle, const char *desc)
   /* Note: normally we'd have to clear the other flags,
    * but currently F is always cleared before calling us.. */
   F->flags.open = 1;
-  F->hnext = fd_hash[hashv];
-  fd_hash[hashv] = F;
+
+  dlinkAdd(F, &F->fnode, &fd_list);
 
   number_fd++;
 }
@@ -103,14 +98,8 @@ fd_open(fde_t *F, uv_stream_t *handle, const char *desc)
 void
 fd_close(fde_t *F)
 {
-  unsigned int hashv = hash_fd(F->handle->io_watcher.fd);
+  ilog(LOG_TYPE_IRCD, "fd_close %p %d", F->handle, F->handle->io_watcher.fd);
 
-  if (F == fd_next_in_loop)
-    fd_next_in_loop = F->hnext;
-
- /* if (F->flags.is_socket)
-    comm_setselect(F, COMM_SELECT_WRITE | COMM_SELECT_READ, NULL, NULL, 0);
-*/
   delete_resolver_queries(F);
 
 #ifdef HAVE_LIBCRYPTO
@@ -120,18 +109,7 @@ fd_close(fde_t *F)
 
 #endif
 
-  if (fd_hash[hashv] == F)
-    fd_hash[hashv] = F->hnext;
-  else
-  {
-    fde_t *prev;
-
-    /* let it core if not found */
-    for (prev = fd_hash[hashv]; prev->hnext != F; prev = prev->hnext)
-      ;
-
-    prev->hnext = F->hnext;
-  }
+  dlinkDelete(&F->fnode, &fd_list);
 
   uv_close((uv_handle_t*)F->handle, NULL);
   number_fd--;
@@ -147,14 +125,16 @@ fd_close(fde_t *F)
 void
 fd_dump(struct Client *source_p)
 {
-  int i;
   fde_t *F;
+  dlink_node *ptr;
 
-  for (i = 0; i < FD_HASH_SIZE; i++)
-    for (F = fd_hash[i]; F != NULL; F = F->hnext)
-      sendto_one(source_p, ":%s %d %s :fd %-5d desc '%s'",
-                 me.name, RPL_STATSDEBUG, source_p->name,
-                 F->handle->io_watcher.fd, F->desc);
+  DLINK_FOREACH(ptr, fd_list.head)
+  {
+    F = ptr->data;
+    sendto_one(source_p, ":%s %d %s :fd %-5d desc '%s'",
+               me.name, RPL_STATSDEBUG, source_p->name,
+               F->handle->io_watcher.fd, F->desc);
+  }
 }
 
 /*
@@ -198,11 +178,13 @@ close_standard_fds()
 void
 close_fds(fde_t *one)
 {
-  int i;
   fde_t *F;
+  dlink_node *ptr;
 
-  for (i = 0; i < FD_HASH_SIZE; i++)
-    for (F = fd_hash[i]; F != NULL; F = F->hnext)
-      if (F != one)
-        uv_close((uv_handle_t *)&F->handle, NULL);
+  DLINK_FOREACH(ptr, fd_list.head)
+  {
+    F = ptr->data;
+    if (F != one)
+      uv_close((uv_handle_t *)&F->handle, NULL);
+  }
 }
