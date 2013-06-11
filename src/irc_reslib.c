@@ -156,16 +156,8 @@ add_nameserver(const char *arg)
   if (irc_nscount >= IRCD_MAXNS)
     return;
 
-  if(strchr(arg, ':') != NULL)
-  {
-    struct sockaddr_in6 v6 = uv_ip6_addr(arg, 53);
-    memcpy(&irc_nsaddr_list[irc_nscount], &v6, sizeof(v6));
-  }
-  else
-  {
-    struct sockaddr_in v4 = uv_ip4_addr(arg, 53);
-    memcpy(&irc_nsaddr_list[irc_nscount], &v4, sizeof(v4));
-  }
+  int aftype = strchr(arg, ':') == NULL ? AF_INET : AF_INET6;
+  uv_inet_pton(aftype, arg, &irc_nsaddr_list[irc_nscount]);
   irc_nscount++;
 }
 

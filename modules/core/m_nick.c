@@ -794,16 +794,8 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
   strlcpy(source_p->sockhost, parv[7], sizeof(source_p->sockhost));
   strlcpy(source_p->info, ugecos, sizeof(source_p->info));
 
-  if(strchr(parv[7], ':') == NULL)
-  {
-    struct sockaddr_in v4 = uv_ip4_addr(parv[7], 0);
-    memcpy(&source_p->ip, &v4, sizeof(v4));
-  }
-  else
-  {
-    struct sockaddr_in6 v6 = uv_ip6_addr(parv[7], 0);
-    memcpy(&source_p->ip, &v6, sizeof(v6));
-  }
+  int aftype = strchr(parv[7], ':') == NULL ? AF_INET : AF_INET6;
+  uv_inet_pton(aftype, parv[7], &source_p->ip);
 
   hash_add_client(source_p);
   hash_add_id(source_p);

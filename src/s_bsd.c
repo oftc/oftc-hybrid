@@ -62,7 +62,6 @@ static void comm_connect_dns_callback(void *, const struct sockaddr_storage*,
                                       const char *);
 static PF comm_connect_tryconnect;
 
-
 /* check_can_use_v6()
  *  Check if the system can open AF_INET6 sockets
  */

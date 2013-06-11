@@ -237,16 +237,8 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     vhost_ip = "::";
   }
 
-  if(strchr(vhost_ip, ':') != NULL)
-  {
-    struct sockaddr_in6 v6addr = uv_ip6_addr(vhost_ip, port);
-    memcpy(&vaddr, &v6addr, sizeof(v6addr));
-  }
-  else
-  {
-    struct sockaddr_in v4addr = uv_ip4_addr(vhost_ip, port);
-    memcpy(&vaddr, &v4addr, sizeof(v4addr));
-  }
+  int aftype = strchr(vhost_ip, ':') == NULL ? AF_INET : AF_INET6;
+  uv_inet_pton(aftype, vhost_ip, &vaddr);
 
   if ((listener = find_listener(port, &vaddr)))
   {
