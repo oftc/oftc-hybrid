@@ -41,7 +41,6 @@
 
 struct Callback *iorecv_cb = NULL;
 
-static char readBuf[READBUF_SIZE];
 static void client_dopacket(struct Client *, char *, size_t);
 
 /* extract_one_line()
@@ -52,7 +51,7 @@ static void client_dopacket(struct Client *, char *, size_t);
  * side effects - one line is copied and removed from the dbuf
  */
 static int
-extract_one_line(struct dbuf_queue *qptr, char *buffer)
+extract_one_line(struct dbuf_queue *qptr, uv_buf_t *buf)
 {
   struct dbuf_block *block;
   int line_bytes = 0, empty_bytes = 0, phase = 0;
@@ -60,6 +59,7 @@ extract_one_line(struct dbuf_queue *qptr, char *buffer)
 
   char c;
   dlink_node *ptr;
+  char *buffer = buf->base;
 
   /*
    * Phase 0: "empty" characters before the line
@@ -125,7 +125,7 @@ extract_one_line(struct dbuf_queue *qptr, char *buffer)
  * parse_client_queued - parse client queued messages
  */
 static void
-parse_client_queued(struct Client *client_p)
+parse_client_queued(struct Client *client_p, uv_buf_t *buf)
 {
   int dolen = 0;
   int checkflood = 1;
@@ -144,12 +144,12 @@ parse_client_queued(struct Client *client_p)
       if (i >= MAX_FLOOD)
         break;
 
-      dolen = extract_one_line(&lclient_p->buf_recvq, readBuf);
+      dolen = extract_one_line(&lclient_p->buf_recvq, buf);
 
       if (dolen == 0)
         break;
 
-      client_dopacket(client_p, readBuf, dolen);
+      client_dopacket(client_p, buf->base, dolen);
       i++;
 
       /* if they've dropped out of the unknown state, break and move
@@ -167,11 +167,10 @@ parse_client_queued(struct Client *client_p)
       if (IsDefunct(client_p))
         return;
 
-      if ((dolen = extract_one_line(&lclient_p->buf_recvq,
-                                    readBuf)) == 0)
+      if ((dolen = extract_one_line(&lclient_p->buf_recvq, buf)) == 0)
         break;
 
-      client_dopacket(client_p, readBuf, dolen);
+      client_dopacket(client_p, buf->base, dolen);
     }
   }
   else if (IsClient(client_p))
@@ -221,12 +220,12 @@ parse_client_queued(struct Client *client_p)
                checkflood != -1)
         break;
 
-      dolen = extract_one_line(&lclient_p->buf_recvq, readBuf);
+      dolen = extract_one_line(&lclient_p->buf_recvq, buf);
 
       if (dolen == 0)
         break;
 
-      client_dopacket(client_p, readBuf, dolen);
+      client_dopacket(client_p, buf->base, dolen);
       lclient_p->sent_parsed++;
     }
   }
@@ -273,7 +272,7 @@ flood_recalc(fde_t *fd, void *data)
   if (lclient_p->sent_parsed < 0)
     lclient_p->sent_parsed = 0;
 
-  parse_client_queued(client_p);
+  //parse_client_queued(client_p);
 
   /* And now, try flushing .. */
   if (!IsDead(client_p))
@@ -301,10 +300,9 @@ iorecv_default(va_list args)
  * read_packet - Read a 'packet' of data from a connection and process it.
  */
 void
-read_packet(fde_t *fd, void *data)
+read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 {
-  struct Client *client_p = data;
-  int length = 0;
+  struct Client *client_p = stream->data;
 
   if (IsDefunct(client_p))
     return;
@@ -314,112 +312,83 @@ read_packet(fde_t *fd, void *data)
    * I personally think it makes the code too hairy to make sane.
    *     -- adrian
    */
-  do
-  {
 #ifdef HAVE_LIBCRYPTO
+  if (client_p->localClient->fd.ssl)
+  {
+    //length = SSL_read(client_p->localClient->fd.ssl, readBuf, READBUF_SIZE);
 
-    if (fd->ssl)
-    {
-      length = SSL_read(fd->ssl, readBuf, READBUF_SIZE);
-
-      /* translate openssl error codes, sigh */
-      if (length < 0)
-        switch (SSL_get_error(fd->ssl, length))
-        {
-          case SSL_ERROR_WANT_WRITE:
-            fd->flags.pending_read = 1;
-            SetSendqBlocked(client_p);
-            //comm_setselect(fd, COMM_SELECT_WRITE, (PF *) sendq_unblocked,
+    /* translate openssl error codes, sigh */
+    if (nread < 0)
+      switch (SSL_get_error(client_p->localClient->fd.ssl, nread))
+      {
+        case SSL_ERROR_WANT_WRITE:
+          client_p->localClient->fd.flags.pending_read = 1;
+          SetSendqBlocked(client_p);
+          //comm_setselect(fd, COMM_SELECT_WRITE, (PF *) sendq_unblocked,
           //               client_p, 0);
-            return;
+          return;
 
-          case SSL_ERROR_WANT_READ:
-            errno = EWOULDBLOCK;
+        case SSL_ERROR_WANT_READ:
+          errno = EWOULDBLOCK;
 
-          case SSL_ERROR_SYSCALL:
+        case SSL_ERROR_SYSCALL:
+          break;
+
+        case SSL_ERROR_SSL:
+          if (errno == EAGAIN)
             break;
 
-          case SSL_ERROR_SSL:
-            if (errno == EAGAIN)
-              break;
-
-          default:
-            length = errno = 0;
-        }
-    }
-    else
-#endif
-    {
-#if 0
-      length = recv(fd->fd, readBuf, READBUF_SIZE, 0);
-#endif
-    }
-
-    if (length <= 0)
-    {
-      /*
-       * If true, then we can recover from this error.  Just jump out of
-       * the loop and re-register a new io-request.
-       */
-      if (length < 0 && ignoreErrno(errno))
-        break;
-
-      dead_link_on_read(client_p, length);
-      return;
-    }
-
-    execute_callback(iorecv_cb, client_p, length, readBuf);
-
-    if (IsServer(client_p) && IsPingSent(client_p) && IsPingWarning(client_p))
-    {
-      char timestamp[200];
-      strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z",
-               gmtime(&CurrentTime));
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-                           "Finally received packets from %s again after %d seconds (at %s)",
-                           get_client_name(client_p, SHOW_IP),
-                           CurrentTime - client_p->localClient->lasttime, timestamp);
-    }
-
-    if (client_p->localClient->lasttime < CurrentTime)
-      client_p->localClient->lasttime = CurrentTime;
-
-    if (client_p->localClient->lasttime > client_p->localClient->since)
-      client_p->localClient->since = CurrentTime;
-
-    ClearPingSent(client_p);
-
-    /* Attempt to parse what we have */
-    parse_client_queued(client_p);
-
-    if (IsDefunct(client_p))
-      return;
-
-    /* Check to make sure we're not flooding */
-    if (!(IsServer(client_p) || IsHandshake(client_p) || IsConnecting(client_p))
-        && (dbuf_length(&client_p->localClient->buf_recvq) >
-            get_recvq(client_p)))
-    {
-      if (!(ConfigFileEntry.no_oper_flood && HasUMode(client_p, UMODE_OPER)))
-      {
-        exit_client(client_p, client_p, "Excess Flood");
-        return;
+        default:
+          nread = errno = 0;
       }
-    }
+  }
+  else
+#endif
+
+  if (nread <= 0)
+  {
+    dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
+    return;
   }
 
-#ifdef HAVE_LIBCRYPTO
+  execute_callback(iorecv_cb, client_p, nread, buf.base);
 
-  while (length == sizeof(readBuf) || fd->ssl);
+  if (IsServer(client_p) && IsPingSent(client_p) && IsPingWarning(client_p))
+  {
+    char timestamp[200];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z",
+             gmtime(&CurrentTime));
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Finally received packets from %s again after %d seconds (at %s)",
+                         get_client_name(client_p, SHOW_IP),
+                         CurrentTime - client_p->localClient->lasttime, timestamp);
+  }
 
-#else
+  if (client_p->localClient->lasttime < CurrentTime)
+    client_p->localClient->lasttime = CurrentTime;
 
-  while (length == sizeof(readBuf));
+  if (client_p->localClient->lasttime > client_p->localClient->since)
+    client_p->localClient->since = CurrentTime;
 
-#endif
+  ClearPingSent(client_p);
 
-  /* If we get here, we need to register for another COMM_SELECT_READ */
-//  comm_setselect(fd, COMM_SELECT_READ, read_packet, client_p, 0);
+  /* Attempt to parse what we have */
+  parse_client_queued(client_p, &buf);
+
+  if (IsDefunct(client_p))
+    return;
+
+  /* Check to make sure we're not flooding */
+  if (!(IsServer(client_p) || IsHandshake(client_p) || IsConnecting(client_p))
+      && (dbuf_length(&client_p->localClient->buf_recvq) >
+          get_recvq(client_p)))
+  {
+    if (!(ConfigFileEntry.no_oper_flood && HasUMode(client_p, UMODE_OPER)))
+    {
+      exit_client(client_p, client_p, "Excess Flood");
+      return;
+    }
+  }
 }
 
 /*

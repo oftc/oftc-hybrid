@@ -163,7 +163,8 @@ unmap_conf_item(void *aconf)
  * if successful save hp in the conf item it was called with
  */
 static void
-conf_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
+conf_dns_callback(void *vptr, const struct sockaddr_storage *addr, 
+                  const char *name)
 {
   struct AccessItem *aconf = vptr;
 

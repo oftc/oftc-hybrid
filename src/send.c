@@ -211,6 +211,7 @@ send_message_remote(struct Client *to, struct Client *from,
 void
 sendq_unblocked(fde_t *fd, struct Client *client_p)
 {
+#if 0
   ClearSendqBlocked(client_p);
   /* let send_queued_write be executed by send_queued_all */
 
@@ -222,6 +223,7 @@ sendq_unblocked(fde_t *fd, struct Client *client_p)
     read_packet(fd, client_p);
   }
 
+#endif
 #endif
 }
 

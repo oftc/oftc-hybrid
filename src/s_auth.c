@@ -101,6 +101,13 @@ init_auth()
   eventAddIsh("timeout_auth_queries_event", timeout_auth_queries_event, NULL, 1);
 }
 
+static uv_buf_t
+alloc_buffer(uv_handle_t *handle, size_t suggested_size)
+{
+  return uv_buf_init(MyMalloc(suggested_size), suggested_size);
+}
+
+
 /*
  * make_auth_request - allocate a new auth request
  */
@@ -148,7 +155,12 @@ release_auth_client(struct AuthRequest *auth)
   client->localClient->firsttime = CurrentTime;
   client->flags |= FLAGS_FINISHED_AUTH;
 
-  read_packet(&client->localClient->fd, client);
+  if(uv_read_start((uv_stream_t*)client->localClient->fd.handle, alloc_buffer,
+                   read_packet) < 0)
+  {
+    dead_link_on_read(client, uv_last_error(server_state.event_loop).code);
+    return;
+  }
 }
 
 /*
@@ -158,9 +170,8 @@ release_auth_client(struct AuthRequest *auth)
  * set the client on it's way to a connection completion, regardless
  * of success of failure
  */
-#if 0
 static void
-auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
+auth_dns_callback(void *vptr, const struct sockaddr_storage *addr, const char *name)
 {
   struct AuthRequest *auth = vptr;
 
@@ -172,12 +183,13 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
     const struct sockaddr_in6 *v6, *v6dns;
     int good = 1;
 
-    if (auth->client->ip.ss.ss_family == AF_INET6)
+    if (auth->client->ip.ss_family == AF_INET6)
     {
       v6 = (const struct sockaddr_in6 *)&auth->client->ip;
       v6dns = (const struct sockaddr_in6 *)addr;
 
-      if (memcmp(&v6->sin6_addr, &v6dns->sin6_addr, sizeof(struct in6_addr)) != 0)
+      if (memcmp(&v6->sin6_addr, &v6dns->sin6_addr, 
+                 sizeof(struct in6_addr)) != 0)
       {
         sendheader(auth->client, REPORT_IP_MISMATCH);
         good = 0;
@@ -209,7 +221,6 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
 
   release_auth_client(auth);
 }
-#endif
 
 /*
  * authsenderr - handle auth send errors
@@ -381,7 +392,7 @@ start_auth(va_list args)
     start_auth_query(auth);
   }
 
-//  gethost_byaddr(auth_dns_callback, auth, &client->ip);
+  gethost_byaddr(auth_dns_callback, auth, &client->ip);
 
   return NULL;
 }

@@ -332,6 +332,8 @@ add_connection(struct Listener *listener, struct sockaddr_storage *irn,
           (listener->flags & LISTENER_SSL) ?
           "Incoming SSL connection" : "Incoming connection");
 
+  new_client->localClient->fd.handle->data = new_client;
+
   /*
    * copy address to 'sockhost' as a string, copy it to host too
    * so we have something valid to put into error messages...
