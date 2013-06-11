@@ -816,17 +816,8 @@ report_dns_servers(struct Client *source_p)
 
   for (i = 0; i < irc_nscount; i++)
   {
-    switch(irc_nsaddr_list[i].ss_family)
-    {
-      case AF_INET:
-        uv_ip4_name((struct sockaddr_in *)&(irc_nsaddr_list[i]), ipaddr, 
-                    sizeof(ipaddr));
-        break;
-      case AF_INET6:
-        uv_ip6_name((struct sockaddr_in6 *)&(irc_nsaddr_list[i]), ipaddr, 
-                    sizeof(ipaddr));
-        break;
-    }
+    uv_inet_ntop(irc_nsaddr_list[i].ss_family, &(irc_nsaddr_list[i]), ipaddr, 
+                 sizeof(ipaddr));
 
     sendto_one(source_p, form_str(RPL_STATSALINE), me.name, source_p->name, 
                ipaddr);

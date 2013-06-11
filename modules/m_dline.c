@@ -169,17 +169,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    switch(target_p->ip.ss_family)
-    {
-      case AF_INET:
-        uv_ip4_name((struct sockaddr_in *)&target_p->ip, hostip, 
-                    sizeof(hostip));
-        break;
-      case AF_INET6:
-        uv_ip6_name((struct sockaddr_in6 *)&target_p->ip, hostip,
-                    sizeof(hostip));
-        break;
-    }
+    uv_inet_ntop(target_p->ip.ss_family, &target_p->ip, hostip, sizeof(hostip));
     dlhost = hostip;
     t = parse_netmask(dlhost, NULL, &bits);
     assert(t == HM_IPV4 || t == HM_IPV6);
@@ -286,17 +276,8 @@ ms_dline(struct Client *client_p, struct Client *source_p,
         return;
       }
 
-      switch(target_p->ip.ss_family)
-      {
-        case AF_INET:
-          uv_ip4_name((struct sockaddr_in *)&target_p->ip, hostip, 
-                      sizeof(hostip));
-          break;
-        case AF_INET6:
-          uv_ip6_name((struct sockaddr_in6 *)&target_p->ip, hostip,
-                      sizeof(hostip));
-          break;
-      }
+      uv_inet_ntop(target_p->ip.ss_family, &target_p->ip, hostip, 
+                   sizeof(hostip));
 
       dlhost = hostip;
       t = parse_netmask(dlhost, NULL, &bits);

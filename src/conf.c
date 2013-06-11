@@ -1139,21 +1139,13 @@ dump_ip_hash_table(struct Client *source_p)
   {
     for (ptr = ip_hash_table[i]; ptr != NULL; ptr = ptr->next)
     {
-      int ret;
+      uv_err_t ret;
       
-      switch(ptr->ip.ss_family)
-      {
-        case AF_INET:
-          ret = uv_ip4_name((struct sockaddr_in *)&ptr->ip, numaddr, HOSTIPLEN);
-          break;
-        case AF_INET6:
-          ret = uv_ip6_name((struct sockaddr_in6 *)&ptr->ip, numaddr,
-                            HOSTIPLEN);
-      }
+      ret = uv_inet_ntop(ptr->ip.ss_family, &ptr->ip, numaddr, HOSTIPLEN);
 
       sendto_one(source_p, ":%s %d %s n :ip_hash_table: %s %d", me.name,
                  RPL_STATSCCOUNT, source_p->name,
-                 (ret == 0) ? numaddr : "unknown",
+                 (ret.code == UV_OK) ? numaddr : "unknown",
                  ptr->count);
     }
   }

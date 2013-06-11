@@ -325,7 +325,7 @@ add_connection(struct Listener *listener, struct sockaddr_storage *irn,
                uv_tcp_t *handle)
 {
   struct Client *new_client = make_client(NULL);
-  int ret;
+  uv_err_t ret;
 
   fd_open(&new_client->localClient->fd, (uv_stream_t *)handle, 
           (listener->flags & LISTENER_SSL) ?
@@ -339,19 +339,10 @@ add_connection(struct Listener *listener, struct sockaddr_storage *irn,
    */
   memcpy(&new_client->ip, irn, sizeof(new_client->ip));
 
-  switch(new_client->ip.ss_family)
-  {
-    case AF_INET:
-      ret = uv_ip4_name((struct sockaddr_in *)&new_client->ip,
-                        new_client->sockhost, sizeof(new_client->sockhost));
-      break;
-    case AF_INET6:
-      ret = uv_ip6_name((struct sockaddr_in6 *)&new_client->ip,
-                        new_client->sockhost, sizeof(new_client->sockhost));
-      break;
-  }
+  ret = uv_inet_ntop(new_client->ip.ss_family, &new_client->ip, 
+                     new_client->sockhost, sizeof(new_client->sockhost));
 
-  if(ret != 0)
+  if(ret.code != UV_OK)
   {
     ilog(LOG_TYPE_IRCD, "uv_ip*_name failed!");
     SetDead(new_client);

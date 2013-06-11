@@ -1140,15 +1140,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   conf = unmap_conf_item(aconf);
 
   /* log */
-  switch(aconf->addr.ss_family)
-  {
-    case AF_INET:
-      uv_ip4_name((struct sockaddr_in *)&aconf->addr, buf, sizeof(buf));
-      break;
-    case AF_INET6:
-      uv_ip6_name((struct sockaddr_in6 *)&aconf->addr, buf, sizeof(buf));
-      break;
-  }
+  uv_inet_ntop(aconf->addr.ss_family, &aconf->addr, buf, sizeof(buf));
 
   ilog(LOG_TYPE_IRCD, "Connect to %s[%s] @%s", conf->name, aconf->host,
        buf);
