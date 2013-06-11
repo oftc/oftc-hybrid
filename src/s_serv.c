@@ -435,14 +435,16 @@ check_server(const char *name, struct Client *client_p)
         v6 = (struct sockaddr_in6 *)&server_aconf->addr;
 
         if (IN6_IS_ADDR_UNSPECIFIED(&v6->sin6_addr))
-          memcpy(&server_aconf->addr, &client_p->ip, sizeof(struct irc_ssaddr));
+          memcpy(&server_aconf->addr, &client_p->ip, 
+                 sizeof(server_aconf->addr));
 
         break;
       case AF_INET:
         v4 = (struct sockaddr_in *)&server_aconf->addr;
 
         if (v4->sin_addr.s_addr == INADDR_NONE)
-          memcpy(&server_aconf->addr, &client_p->ip, sizeof(struct irc_ssaddr));
+          memcpy(&server_aconf->addr, &client_p->ip, 
+                 sizeof(server_aconf->addr));
 
         break;
     }
@@ -1131,8 +1133,6 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   struct Client *client_p;
   char buf[HOSTIPLEN + 1];
 
-  /* conversion structs */
-  struct sockaddr_in *v4;
   /* Make sure aconf is useful */
   assert(aconf != NULL);
 
@@ -1140,8 +1140,16 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   conf = unmap_conf_item(aconf);
 
   /* log */
-  getnameinfo((struct sockaddr *)&aconf->addr, aconf->addr.ss_len,
-              buf, sizeof(buf), NULL, 0, NI_NUMERICHOST);
+  switch(aconf->addr.ss_family)
+  {
+    case AF_INET:
+      uv_ip4_name((struct sockaddr_in *)&aconf->addr, buf, sizeof(buf));
+      break;
+    case AF_INET6:
+      uv_ip6_name((struct sockaddr_in6 *)&aconf->addr, buf, sizeof(buf));
+      break;
+  }
+
   ilog(LOG_TYPE_IRCD, "Connect to %s[%s] @%s", conf->name, aconf->host,
        buf);
 
@@ -1248,70 +1256,43 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   switch (aconf->aftype)
   {
     case AF_INET:
-      v4 = (struct sockaddr_in *)&aconf->bind;
-
-      if (v4->sin_addr.s_addr != 0)
+      if (((struct sockaddr_in *)&aconf->bind)->sin_addr.s_addr != 0)
       {
-        struct irc_ssaddr ipn;
-        memset(&ipn, 0, sizeof(struct irc_ssaddr));
-        ipn.ss.ss_family = AF_INET;
-        ipn.ss_port = 0;
-        memcpy(&ipn, &aconf->bind, sizeof(struct irc_ssaddr));
         comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
-                         (struct sockaddr *)&ipn, ipn.ss_len,
-                         serv_connect_callback, client_p, aconf->aftype,
-                         CONNECTTIMEOUT);
+                         (struct sockaddr *)&aconf->bind, 
+                         sizeof(struct sockaddr_in), serv_connect_callback, 
+                         client_p, aconf->aftype, CONNECTTIMEOUT);
       }
       else if (ServerInfo.specific_ipv4_vhost)
       {
-        struct irc_ssaddr ipn;
-        memset(&ipn, 0, sizeof(struct irc_ssaddr));
-        ipn.ss.ss_family = AF_INET;
-        ipn.ss_port = 0;
-        memcpy(&ipn, &ServerInfo.ip, sizeof(struct irc_ssaddr));
         comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
-                         (struct sockaddr *)&ipn, ipn.ss_len,
-                         serv_connect_callback, client_p, aconf->aftype,
-                         CONNECTTIMEOUT);
+                         (struct sockaddr *)&ServerInfo.ip, 
+                         sizeof(struct sockaddr_in), serv_connect_callback, 
+                         client_p, aconf->aftype, CONNECTTIMEOUT);
       }
       else
         comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
-                         NULL, 0, serv_connect_callback, client_p, aconf->aftype,
-                         CONNECTTIMEOUT);
-
+                         NULL, 0, serv_connect_callback, client_p, 
+                         aconf->aftype, CONNECTTIMEOUT);
       break;
     case AF_INET6:
     {
-      struct irc_ssaddr ipn;
-      struct sockaddr_in6 *v6;
-      struct sockaddr_in6 *v6conf;
-
-      memset(&ipn, 0, sizeof(struct irc_ssaddr));
-      v6conf = (struct sockaddr_in6 *)&aconf->bind;
-      v6 = (struct sockaddr_in6 *)&ipn;
-
-      if (memcmp(&v6conf->sin6_addr, &v6->sin6_addr,
-                 sizeof(struct in6_addr)) != 0)
+      struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)&aconf->bind;
+      if(IN6_IS_ADDR_UNSPECIFIED(&v6->sin6_addr))
       {
-        memcpy(&ipn, &aconf->bind, sizeof(struct irc_ssaddr));
-        ipn.ss.ss_family = AF_INET6;
-        ipn.ss_port = 0;
         comm_connect_tcp(&client_p->localClient->fd,
                          aconf->host, aconf->port,
-                         (struct sockaddr *)&ipn, ipn.ss_len,
-                         serv_connect_callback, client_p,
-                         aconf->aftype, CONNECTTIMEOUT);
+                         (struct sockaddr *)&aconf->bind, 
+                         sizeof(struct sockaddr_in6), serv_connect_callback, 
+                         client_p, aconf->aftype, CONNECTTIMEOUT);
       }
       else if (ServerInfo.specific_ipv6_vhost)
       {
-        memcpy(&ipn, &ServerInfo.ip6, sizeof(struct irc_ssaddr));
-        ipn.ss.ss_family = AF_INET6;
-        ipn.ss_port = 0;
         comm_connect_tcp(&client_p->localClient->fd,
                          aconf->host, aconf->port,
-                         (struct sockaddr *)&ipn, ipn.ss_len,
-                         serv_connect_callback, client_p,
-                         aconf->aftype, CONNECTTIMEOUT);
+                         (struct sockaddr *)&ServerInfo.ip, 
+                         sizeof(struct sockaddr_in6), serv_connect_callback, 
+                         client_p, aconf->aftype, CONNECTTIMEOUT);
       }
       else
         comm_connect_tcp(&client_p->localClient->fd,
@@ -1488,8 +1469,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   assert(&client_p->localClient->fd == fd);
 
   /* Next, for backward purposes, record the ip of the server */
-  memcpy(&client_p->ip, &fd->connect.hostaddr,
-         sizeof(struct irc_ssaddr));
+  memcpy(&client_p->ip, &fd->connect.hostaddr, sizeof(&client_p->ip));
 
   /* Check the status */
   if (status != COMM_OK)

@@ -96,7 +96,6 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc,
 {
   struct AccessItem *aconf = NULL;
   struct ConfItem *conf = NULL;
-  struct addrinfo hints, *res;
   char original_sockhost[HOSTIPLEN + 1];
 
   assert(source_p == client_p);
@@ -138,27 +137,16 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc,
     return;
   }
 
-  memset(&hints, 0, sizeof(hints));
-
-  hints.ai_family   = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
-
-  if (getaddrinfo(parv[4], NULL, &hints, &res))
+  if(strchr(parv[4], ':') == NULL)
   {
-    sendto_realops_flags(UMODE_UNAUTH, L_ALL, "Inavlid CGI:IRC IP %s", parv[4]);
-    return;
+    struct sockaddr_in v4 = uv_ip4_addr(parv[4], 0);
+    memcpy(&source_p->ip, &v4, sizeof(v4));
   }
-
-  assert(res != NULL);
-
-#if 0
-  memcpy(&source_p->ip, res->ai_addr, res->ai_addrlen);
-  source_p->ip.ss_len = res->ai_addrlen;
-  source_p->ip.ss.ss_family = res->ai_family;
-  source_p->aftype = res->ai_family;
-  freeaddrinfo(res);
-#endif
+  else
+  {
+    struct sockaddr_in6 v6 = uv_ip6_addr(parv[4], 0);
+    memcpy(&source_p->ip, &v6, sizeof(v6));
+  }
 
   strlcpy(original_sockhost, source_p->sockhost, sizeof(original_sockhost));
   strlcpy(source_p->sockhost, parv[4], sizeof(source_p->sockhost));

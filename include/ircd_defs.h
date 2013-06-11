@@ -63,13 +63,4 @@
 
 #define LOWEST_SAFE_FD    4  /* skip stdin, stdout, stderr, and profiler */
 
-/* This is to get around the fact that some implementations have ss_len and
- * others do not
- */
-struct irc_ssaddr
-{
-  struct sockaddr_storage ss;
-  unsigned char           ss_len;
-  in_port_t               ss_port;
-};
 #endif /* INCLUDED_ircd_defs_h */

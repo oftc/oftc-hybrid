@@ -996,7 +996,7 @@ find_or_add_ip(struct sockaddr_storage *ip_in)
 
   newptr = BlockHeapAlloc(ip_entry_heap);
   ip_entries_count++;
-  memcpy(&newptr->ip, ip_in, sizeof(struct irc_ssaddr));
+  memcpy(&newptr->ip, ip_in, sizeof(newptr->ip));
 
   newptr->next = ip_hash_table[hash_index];
   ip_hash_table[hash_index] = newptr;
@@ -1139,8 +1139,17 @@ dump_ip_hash_table(struct Client *source_p)
   {
     for (ptr = ip_hash_table[i]; ptr != NULL; ptr = ptr->next)
     {
-      int ret = getnameinfo((struct sockaddr *)&ptr->ip, ptr->ip.ss_len,
-                            numaddr, HOSTIPLEN, NULL, 0, NI_NUMERICHOST);
+      int ret;
+      
+      switch(ptr->ip.ss_family)
+      {
+        case AF_INET:
+          ret = uv_ip4_name((struct sockaddr_in *)&ptr->ip, numaddr, HOSTIPLEN);
+          break;
+        case AF_INET6:
+          ret = uv_ip6_name((struct sockaddr_in6 *)&ptr->ip, numaddr,
+                            HOSTIPLEN);
+      }
 
       sendto_one(source_p, ":%s %d %s n :ip_hash_table: %s %d", me.name,
                  RPL_STATSCCOUNT, source_p->name,

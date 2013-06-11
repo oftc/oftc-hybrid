@@ -388,8 +388,8 @@ struct server_info
   SSL_CTX             *client_ctx;
 #endif
   int hub;
-  struct irc_ssaddr   ip;
-  struct irc_ssaddr   ip6;
+  struct sockaddr_in  ip;
+  struct sockaddr_in6 ip6;
   unsigned int        max_clients;
   unsigned int        max_nick_length;
   unsigned int        max_topic_length;

@@ -58,8 +58,8 @@ struct Callback *setup_socket_cb = NULL;
 
 static void comm_connect_callback(uv_connect_t *, int);
 static PF comm_connect_timeout;
-//static void comm_connect_dns_callback(void *, const struct irc_ssaddr *,
-                                      //const char *);
+static void comm_connect_dns_callback(void *, const struct sockaddr_storage*,
+                                      const char *);
 static PF comm_connect_tryconnect;
 
 
@@ -581,8 +581,8 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
       }
       break;
   }
-#if 0
-  if (getaddrinfo(host, portname, &hints, &res))
+  uv_err_t err = uv_inet_pton(aftype, host, &fd->connect.hostaddr);
+  if(err.code != UV_OK)
   {
     /* Send the DNS request, for the next level */
     if (aftype == AF_INET6)
@@ -591,7 +591,6 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
       gethost_byname_type(comm_connect_dns_callback, fd, host, T_A);
   }
   else
-#endif
   {
     /* We have a valid IP, so we just call tryconnect */
     /* Make sure we actually set the timeout here .. */
@@ -642,16 +641,15 @@ comm_connect_timeout(fde_t *fd, void *notused)
  * The DNS request has completed, so if we've got an error, return it,
  * otherwise we initiate the connect()
  */
-#if 0
 static void
-comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr,
+comm_connect_dns_callback(void *vptr, const struct sockaddr_storage *addr,
                           const char *name)
 {
   fde_t *F = vptr;
 
   if (name == NULL)
   {
-    comm_connect_callback(F, COMM_ERR_DNS);
+    comm_connect_callback(&F->connect.handle, COMM_ERR_DNS);
     return;
   }
 
@@ -664,16 +662,11 @@ comm_connect_dns_callback(void *vptr, const struct irc_ssaddr *addr,
    * the DNS record around, and the DNS cache is gone anyway..
    *     -- adrian
    */
-  memcpy(&F->connect.hostaddr, addr, addr->ss_len);
-  /* The cast is hacky, but safe - port offset is same on v4 and v6 */
-  ((struct sockaddr_in *) &F->connect.hostaddr)->sin_port =
-    F->connect.hostaddr.ss_port;
-  F->connect.hostaddr.ss_len = addr->ss_len;
+  memcpy(&F->connect.hostaddr, addr, sizeof(F->connect.hostaddr));
 
   /* Now, call the tryconnect() routine to try a connect() */
   comm_connect_tryconnect(F, NULL);
 }
-#endif
 /* static void comm_connect_tryconnect(int fd, void *notused)
  * Input: The fd, the handler data(unused).
  * Output: None.
@@ -821,11 +814,6 @@ remove_ipv6_mapping(struct sockaddr_storage *addr)
       memcpy(&v4->sin_addr, &v6.sin6_addr.s6_addr[12], sizeof(v4->sin_addr));
 
       addr->ss_family = AF_INET;
-      addr->ss_len = sizeof(struct sockaddr_in);
     }
-    else
-      addr->ss_len = sizeof(struct sockaddr_in6);
   }
-  else
-    addr->ss_len = sizeof(struct sockaddr_in);
 }

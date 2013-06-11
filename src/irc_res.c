@@ -126,43 +126,16 @@ alloc_buffer(uv_handle_t *handle, size_t suggested_size)
 static int
 res_ourserver(const struct sockaddr_storage *inp)
 {
-  const struct sockaddr_in6 *v6;
-  const struct sockaddr_in6 *v6in = (const struct sockaddr_in6 *)inp;
-  const struct sockaddr_in *v4;
-  const struct sockaddr_in *v4in = (const struct sockaddr_in *)inp;
   int ns;
 
   for (ns = 0; ns < irc_nscount; ++ns)
   {
     const struct sockaddr_storage *srv = &irc_nsaddr_list[ns];
-    v6 = (const struct sockaddr_in6 *)srv;
-    v4 = (const struct sockaddr_in *)srv;
+    int len = (srv->ss_family == AF_INET) ? sizeof(struct sockaddr_in) :
+                                           sizeof(struct sockaddr_in6);
 
-    /* could probably just memcmp(srv, inp, srv.ss_len) here
-     * but we'll air on the side of caution - stu
-     *
-     */
-    switch (srv->ss_family)
-    {
-      case AF_INET6:
-        if (srv->ss_family == inp->ss_family)
-          if (v6->sin6_port == v6in->sin6_port)
-            if (!memcmp(&v6->sin6_addr.s6_addr, &v6in->sin6_addr.s6_addr,
-                        sizeof(struct in6_addr)))
-              return 1;
-
-        break;
-      case AF_INET:
-        if (srv->ss_family == inp->ss_family)
-          if (v4->sin_port == v4in->sin_port)
-            if (v4->sin_addr.s_addr == v4in->sin_addr.s_addr)
-              return 1;
-
-        break;
-
-      default:
-        break;
-    }
+    if(memcmp(srv, inp, len) == 0)
+      return 1;
   }
 
   return 0;
@@ -668,7 +641,6 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
           return 0;
 
         v4 = (struct sockaddr_in *)&request->addr;
-        request->addr.ss_len = sizeof(struct sockaddr_in);
         v4->sin_family = AF_INET;
         memcpy(&v4->sin_addr, current, sizeof(struct in_addr));
         return 1;
@@ -680,7 +652,6 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
         if (rd_length != sizeof(struct in6_addr))
           return 0;
 
-        request->addr.ss_len = sizeof(struct sockaddr_in6);
         v6 = (struct sockaddr_in6 *)&request->addr;
         v6->sin6_family = AF_INET6;
         memcpy(&v6->sin6_addr, current, sizeof(struct in6_addr));
@@ -845,10 +816,19 @@ report_dns_servers(struct Client *source_p)
 
   for (i = 0; i < irc_nscount; i++)
   {
-    getnameinfo((struct sockaddr *) & (irc_nsaddr_list[i]),
-                irc_nsaddr_list[i].ss_len, ipaddr,
-                sizeof(ipaddr), NULL, 0, NI_NUMERICHOST);
-    sendto_one(source_p, form_str(RPL_STATSALINE),
-               me.name, source_p->name, ipaddr);
+    switch(irc_nsaddr_list[i].ss_family)
+    {
+      case AF_INET:
+        uv_ip4_name((struct sockaddr_in *)&(irc_nsaddr_list[i]), ipaddr, 
+                    sizeof(ipaddr));
+        break;
+      case AF_INET6:
+        uv_ip6_name((struct sockaddr_in6 *)&(irc_nsaddr_list[i]), ipaddr, 
+                    sizeof(ipaddr));
+        break;
+    }
+
+    sendto_one(source_p, form_str(RPL_STATSALINE), me.name, source_p->name, 
+               ipaddr);
   }
 }

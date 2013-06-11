@@ -780,7 +780,6 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
 {
   const char *m = NULL;
   const char *servername = source_p->name;
-  struct addrinfo hints, *res;
 
   source_p = make_client(client_p);
   dlinkAdd(source_p, &source_p->node, &global_client_list);
@@ -795,17 +794,15 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
   strlcpy(source_p->sockhost, parv[7], sizeof(source_p->sockhost));
   strlcpy(source_p->info, ugecos, sizeof(source_p->info));
 
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
-
-  getaddrinfo(parv[7], 0, &hints, &res);
-
-  if (res != NULL)
+  if(strchr(parv[7], ':') == NULL)
   {
-    memcpy(&source_p->ip, res->ai_addr, res->ai_addrlen);
-    source_p->ip.ss_len = res->ai_addrlen;
-    freeaddrinfo(res);
+    struct sockaddr_in v4 = uv_ip4_addr(parv[7], 0);
+    memcpy(&source_p->ip, &v4, sizeof(v4));
+  }
+  else
+  {
+    struct sockaddr_in6 v6 = uv_ip6_addr(parv[7], 0);
+    memcpy(&source_p->ip, &v6, sizeof(v6));
   }
 
   hash_add_client(source_p);

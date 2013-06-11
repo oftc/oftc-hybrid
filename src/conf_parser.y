@@ -683,27 +683,8 @@ serverinfo_vhost: VHOST '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2 && *yylval.string != '*')
   {
-    struct addrinfo hints, *res;
-
-    memset(&hints, 0, sizeof(hints));
-
-    hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
-
-    if (getaddrinfo(yylval.string, NULL, &hints, &res))
-      ilog(LOG_TYPE_IRCD, "Invalid netmask for server vhost(%s)", yylval.string);
-    else
-    {
-      assert(res != NULL);
-
-      memcpy(&ServerInfo.ip, res->ai_addr, res->ai_addrlen);
-      ServerInfo.ip.ss.ss_family = res->ai_family;
-      ServerInfo.ip.ss_len = res->ai_addrlen;
-      freeaddrinfo(res);
-
-      ServerInfo.specific_ipv4_vhost = 1;
-    }
+    ServerInfo.ip = uv_ip4_addr(yylval.string, 0);
+    ServerInfo.specific_ipv4_vhost = 1;
   }
 };
 
@@ -711,27 +692,8 @@ serverinfo_vhost6: VHOST6 '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2 && *yylval.string != '*')
   {
-    struct addrinfo hints, *res;
-
-    memset(&hints, 0, sizeof(hints));
-
-    hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
-
-    if (getaddrinfo(yylval.string, NULL, &hints, &res))
-      ilog(LOG_TYPE_IRCD, "Invalid netmask for server vhost6(%s)", yylval.string);
-    else
-    {
-      assert(res != NULL);
-
-      memcpy(&ServerInfo.ip6, res->ai_addr, res->ai_addrlen);
-      ServerInfo.ip6.ss.ss_family = res->ai_family;
-      ServerInfo.ip6.ss_len = res->ai_addrlen;
-      freeaddrinfo(res);
-
-      ServerInfo.specific_ipv6_vhost = 1;
-    }
+    ServerInfo.ip6 = uv_ip6_addr(yylval.string, 0);
+    ServerInfo.specific_ipv6_vhost = 1;
   }
 };
 
