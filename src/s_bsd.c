@@ -270,14 +270,58 @@ close_connection(struct Client *client_p)
   client_p->from = NULL; /* ...this should catch them! >:) --msa */
 }
 
-#if 0
+static void ssl_handshake(struct Client *);
+
+uv_buf_t 
+ssl_alloc_buffer(uv_handle_t *handle, size_t suggested_size)
+{
+  return uv_buf_init(MyMalloc(suggested_size), suggested_size);
+}
+
+void 
+ssl_write_callback(uv_write_t *req, int status)
+{
+  MyFree(req);
+}
+
+void
+ssl_read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
+{
+  struct Client *client_p = stream->data;
+  int pending;
+
+  if(nread <= 0)
+    ; // XXX DO SOMETHING
+
+  BIO_write(client_p->localClient->fd.read_bio, buf.base, nread);
+
+  uv_read_stop(stream);
+
+  ssl_handshake(client_p);
+
+  while((pending = BIO_pending(client_p->localClient->fd.write_bio)) > 0)
+  {
+    char *buffer = MyMalloc(pending);
+    uv_write_t *req = MyMalloc(sizeof(uv_write_t));
+    uv_buf_t buf;
+
+    int len = BIO_read(client_p->localClient->fd.write_bio, buffer, pending);
+
+    buf.base = buffer;
+    buf.len = len;
+
+    uv_write(req, client_p->localClient->fd.handle, &buf, 1, 
+             ssl_write_callback);
+  }
+}
+
 #ifdef HAVE_LIBCRYPTO
 /*
  * ssl_handshake - let OpenSSL initialize the protocol. Register for
  * read/write events if necessary.
  */
 static void
-ssl_handshake(int fd, struct Client *client_p)
+ssl_handshake(struct Client *client_p)
 {
   int ret = SSL_accept(client_p->localClient->fd.ssl);
   X509 *cert;
@@ -317,11 +361,17 @@ ssl_handshake(int fd, struct Client *client_p)
     switch (SSL_get_error(client_p->localClient->fd.ssl, ret))
     {
       case SSL_ERROR_WANT_WRITE:
+        {
+        int i = 0;
+        i++;
+        }
 //        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
   //                     (PF *) ssl_handshake, client_p, 30);
         return;
 
       case SSL_ERROR_WANT_READ:
+        uv_read_start(client_p->localClient->fd.handle, ssl_alloc_buffer,
+                      ssl_read_callback);
     //    comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
       //                 (PF *) ssl_handshake, client_p, 30);
         return;
@@ -335,7 +385,6 @@ ssl_handshake(int fd, struct Client *client_p)
   comm_settimeout(&client_p->localClient->fd, 0, NULL, NULL);
   execute_callback(auth_cb, client_p);
 }
-#endif
 #endif
 /*
  * add_connection - creates a client which has just connected to us on
@@ -412,8 +461,7 @@ add_connection(struct Listener *listener, struct sockaddr_storage *irn,
 
     SSL_set_accept_state(new_client->localClient->fd.ssl);
 
-/*    SSL_set_fd(new_client->localClient->fd.ssl, fd);
-    ssl_handshake(0, new_client);*/
+    ssl_handshake(new_client);
   }
   else
 #endif

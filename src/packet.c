@@ -303,6 +303,7 @@ void
 read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 {
   struct Client *client_p = stream->data;
+  int length;
 
   if (IsDefunct(client_p))
     return;
@@ -315,10 +316,21 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 #ifdef HAVE_LIBCRYPTO
   if (client_p->localClient->fd.ssl)
   {
-    //length = SSL_read(client_p->localClient->fd.ssl, readBuf, READBUF_SIZE);
+    BIO_write(client_p->localClient->fd.read_bio, buf.base, nread);
+
+    int offset = 0;
+    int len;
+    while(BIO_pending(client_p->localClient->fd.read_bio) ||
+          BIO_pending(client_p->localClient->fd.write_bio))
+    {
+      len = SSL_read(client_p->localClient->fd.ssl, buf.base + offset, 
+                        nread - offset);
+      offset += len;
+      length += len;
+    }
 
     /* translate openssl error codes, sigh */
-    if (nread < 0)
+    if (length < 0)
       switch (SSL_get_error(client_p->localClient->fd.ssl, nread))
       {
         case SSL_ERROR_WANT_WRITE:
@@ -343,15 +355,19 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
       }
   }
   else
+  {
+    length = nread;
+#endif
+    if (length <= 0)
+    {
+      dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
+      return;
+    }
+#ifdef HAVE_LIBCRYPTO
+  }
 #endif
 
-  if (nread <= 0)
-  {
-    dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
-    return;
-  }
-
-  execute_callback(iorecv_cb, client_p, nread, buf.base);
+  execute_callback(iorecv_cb, client_p, length, buf.base);
 
   if (IsServer(client_p) && IsPingSent(client_p) && IsPingWarning(client_p))
   {
