@@ -245,6 +245,7 @@ io_loop()
       eventRun();
 
     uv_run(server_state.event_loop, UV_RUN_NOWAIT);
+    set_time();
     exit_aborted_clients();
     free_exited_clients();
     send_queued_all();

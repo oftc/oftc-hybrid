@@ -403,6 +403,15 @@ add_connection(struct Listener *listener, struct sockaddr_storage *irn,
       return;
     }
 
+    new_client->localClient->fd.read_bio = BIO_new(BIO_s_mem());
+    new_client->localClient->fd.write_bio = BIO_new(BIO_s_mem());
+
+    SSL_set_bio(new_client->localClient->fd.ssl, 
+                new_client->localClient->fd.read_bio, 
+                new_client->localClient->fd.write_bio);
+
+    SSL_set_accept_state(new_client->localClient->fd.ssl);
+
 /*    SSL_set_fd(new_client->localClient->fd.ssl, fd);
     ssl_handshake(0, new_client);*/
   }

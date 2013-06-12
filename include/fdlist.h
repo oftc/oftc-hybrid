@@ -88,6 +88,8 @@ typedef struct _fde
   } connect;
 #ifdef HAVE_LIBCRYPTO
   SSL         *ssl;
+  BIO         *read_bio;
+  BIO         *write_bio;
 #endif
   dlink_node  fnode;
 } fde_t;
