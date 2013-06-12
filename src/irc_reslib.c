@@ -157,7 +157,7 @@ add_nameserver(const char *arg)
   if (irc_nscount >= IRCD_MAXNS)
     return;
 
-  string_to_ip(arg, 0, &irc_nsaddr_list[irc_nscount]);
+  string_to_ip(arg, 53, &irc_nsaddr_list[irc_nscount]);
   irc_nscount++;
 }
 

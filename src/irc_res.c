@@ -213,6 +213,9 @@ start_resolver()
       return;
 
     /* At the moment, the resolver FD data is global .. */
+    uv_udp_recv_start((uv_udp_t *)ResolverFileDescriptor.handle, alloc_buffer,
+                      res_readreply);
+
 
     eventAdd("timeout_resolver", timeout_resolver, NULL, 1);
   }
@@ -351,9 +354,6 @@ send_res_msg(const char *msg, int len, int rcount)
     if(ret == 0)
       ++sent;
   }
-
-  uv_udp_recv_start((uv_udp_t *)ResolverFileDescriptor.handle, alloc_buffer,
-                    res_readreply);
 
   return sent;
 }
