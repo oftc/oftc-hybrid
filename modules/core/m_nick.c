@@ -45,6 +45,7 @@
 #include "channel_mode.h"
 #include "watch.h"
 #include "s_misc.h"
+#include "s_bsd.h"
 
 
 static void nick_from_server(struct Client *, struct Client *, int, char **,
