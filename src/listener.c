@@ -241,8 +241,7 @@ add_listener(int port, const char *vhost_ip, unsigned int flags)
     vhost_ip = "::";
   }
 
-  int aftype = strchr(vhost_ip, ':') == NULL ? AF_INET : AF_INET6;
-  uv_inet_pton(aftype, vhost_ip, &vaddr);
+  string_to_ip(vhost_ip, port, &vaddr);
 
   if ((listener = find_listener(port, &vaddr)))
   {

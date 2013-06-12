@@ -68,4 +68,6 @@ extern void comm_select();
 extern void check_can_use_v6();
 extern void remove_ipv6_mapping(struct sockaddr_storage *);
 
+extern void string_to_ip(const char *, unsigned int, struct sockaddr_storage *);
+
 #endif /* INCLUDED_s_bsd_h */

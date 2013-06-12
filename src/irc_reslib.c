@@ -87,6 +87,7 @@
 #include "irc_reslib.h"
 #include "irc_string.h"
 #include "log.h"
+#include "s_bsd.h"
 
 #define NS_TYPE_ELT             0x40 /* EDNS0 extended label type */
 #define DNS_LABELTYPE_BITSTRING 0x41
@@ -156,8 +157,7 @@ add_nameserver(const char *arg)
   if (irc_nscount >= IRCD_MAXNS)
     return;
 
-  int aftype = strchr(arg, ':') == NULL ? AF_INET : AF_INET6;
-  uv_inet_pton(aftype, arg, &irc_nsaddr_list[irc_nscount]);
+  string_to_ip(arg, 0, &irc_nsaddr_list[irc_nscount]);
   irc_nscount++;
 }
 

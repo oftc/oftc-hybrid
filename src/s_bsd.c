@@ -62,6 +62,30 @@ static void comm_connect_dns_callback(void *, const struct sockaddr_storage*,
                                       const char *);
 static PF comm_connect_tryconnect;
 
+void
+string_to_ip(const char *ipstr, unsigned int port, 
+             struct sockaddr_storage *addr)
+{
+  struct sockaddr_in v4;
+  struct sockaddr_in6 v6;
+
+  memset(addr, 0, sizeof(struct sockaddr_storage));
+
+  if(EmptyString(ipstr))
+    ipstr = "::";
+
+  if(strchr(ipstr, ':') == NULL)
+  {
+    v4 = uv_ip4_addr(ipstr, port);
+    memcpy(addr, &v4, sizeof(v4));
+  }
+  else
+  {
+    v6 = uv_ip6_addr(ipstr, port);
+    memcpy(addr, &v6, sizeof(v6));
+  }
+}
+
 /* check_can_use_v6()
  *  Check if the system can open AF_INET6 sockets
  */
@@ -559,25 +583,8 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
    * DNS check (and head direct to comm_connect_tryconnect().
    */
 
-  switch(aftype)
-  {
-    case AF_INET:
-      {
-        struct sockaddr_in addr4 = uv_ip4_addr(host, port);
-        memcpy(&fd->connect.hostaddr, &addr4, sizeof(addr4));
-      }
-      break;
-    case AF_INET6:
-      {
-        struct sockaddr_in6 addr6 = uv_ip6_addr(host, port);
-        memcpy(&fd->connect.hostaddr, &addr6, sizeof(addr6));
-      }
-      break;
-    default:
-      assert(0);
-      return;
-  }
-  uv_err_t err = uv_inet_pton(aftype, host, &fd->connect.hostaddr);
+  struct in6_addr tmp;
+  uv_err_t err = uv_inet_pton(aftype, host, &tmp);
   if(err.code != UV_OK)
   {
     /* Send the DNS request, for the next level */
@@ -590,6 +597,8 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
   {
     /* We have a valid IP, so we just call tryconnect */
     /* Make sure we actually set the timeout here .. */
+
+    string_to_ip(host, 0, &fd->connect.hostaddr);
     comm_settimeout(fd, timeout * 1000, comm_connect_timeout, NULL);
     comm_connect_tryconnect(fd, NULL);
   }
