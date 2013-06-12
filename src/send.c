@@ -230,8 +230,6 @@ sendq_unblocked(fde_t *fd, struct Client *client_p)
 static void
 write_callback(uv_write_t *req, int status)
 {
-  ilog(LOG_TYPE_IRCD, "freeing %p", req);
-
   struct Client *client_p = req->data;
 
   if(status != 0)
@@ -270,7 +268,6 @@ send_queued_write(struct Client *to)
       first = to->localClient->buf_sendq.blocks.head->data;
 
       req = MyMalloc(sizeof(uv_write_t));
-  ilog(LOG_TYPE_IRCD, "Alloc %p", req);
 #ifdef HAVE_LIBCRYPTO
 
       if (to->localClient->fd.ssl)
