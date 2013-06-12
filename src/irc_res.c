@@ -131,11 +131,33 @@ res_ourserver(const struct sockaddr_storage *inp)
   for (ns = 0; ns < irc_nscount; ++ns)
   {
     const struct sockaddr_storage *srv = &irc_nsaddr_list[ns];
-    int len = (srv->ss_family == AF_INET) ? sizeof(struct sockaddr_in) :
-                                           sizeof(struct sockaddr_in6);
+    struct sockaddr_in *in4, *srv4;
+    struct sockaddr_in6 *in6, *srv6;
 
-    if(memcmp(srv, inp, len) == 0)
-      return 1;
+    if(srv->ss_family != inp->ss_family)
+      continue;
+
+    in4 = (struct sockaddr_in *)inp;
+    srv4 = (struct sockaddr_in *)srv;
+
+    if(in4->sin_port != srv4->sin_port)
+      continue;
+
+    switch(srv->ss_family)
+    {
+      case AF_INET:
+        if(memcmp(&in4->sin_addr, &srv4->sin_addr, sizeof(struct in_addr)) == 0)
+           return 1;
+        break;
+      case AF_INET6:
+        in6 = (struct sockaddr_in6 *)inp;
+        srv6 = (struct sockaddr_in6 *)srv;
+
+        if(memcmp(&in6->sin6_addr, &srv6->sin6_addr, 
+                  sizeof(struct in6_addr)) == 0)
+          return 1;
+        break;
+    }
   }
 
   return 0;
