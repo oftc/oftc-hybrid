@@ -541,6 +541,9 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
         ret = uv_tcp_bind6((uv_tcp_t *)fd->handle, 
                            *(struct sockaddr_in6 *)clocal);
         break;
+      default:
+        assert(0);
+        ret = -1;
     }
 
     if(ret != 0)
@@ -570,6 +573,9 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
         memcpy(&fd->connect.hostaddr, &addr6, sizeof(addr6));
       }
       break;
+    default:
+      assert(0);
+      return;
   }
   uv_err_t err = uv_inet_pton(aftype, host, &fd->connect.hostaddr);
   if(err.code != UV_OK)
@@ -685,6 +691,9 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
       retval = uv_tcp_connect6(&fd->connect.handle, (uv_tcp_t *)fd->handle,
                                *(struct sockaddr_in6 *)&fd->connect.hostaddr,
                                comm_connect_callback);
+    default:
+      assert(0);
+      retval = -1;
   }
 
   /* Error? */

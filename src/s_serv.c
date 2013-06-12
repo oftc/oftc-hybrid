@@ -447,6 +447,9 @@ check_server(const char *name, struct Client *client_p)
                  sizeof(server_aconf->addr));
 
         break;
+      default:
+        assert(0);
+        return -1;
     }
   }
 
@@ -1292,6 +1295,9 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
                          NULL, 0, serv_connect_callback, client_p,
                          aconf->aftype, CONNECTTIMEOUT);
     }
+    default:
+      assert(0);
+      return 0;
   }
 
   return (1);

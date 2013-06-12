@@ -343,6 +343,9 @@ send_res_msg(const char *msg, int len, int rcount)
                            *(struct sockaddr_in6 *) &(irc_nsaddr_list[i]), 
                            dns_send_callback);
         break;
+      default:
+        assert(0);
+        ret = -1;
     }
 
     if(ret == 0)

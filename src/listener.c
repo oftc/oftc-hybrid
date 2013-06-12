@@ -160,7 +160,11 @@ inetport(struct Listener *listener)
       ret = uv_tcp_bind6((uv_tcp_t *)listener->fd.handle,
                          *(struct sockaddr_in6 *)&listener->addr);
       break;
+    default:
+      assert(0);
+      ret = -1;
   }
+
   if (ret != 0)
   {
     report_error(L_ALL, "binding listener socket %s:%s",
