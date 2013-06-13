@@ -339,7 +339,6 @@ send_res_msg(const char *msg, int len, int rcount)
   int i;
   int sent = 0;
   int max_queries = IRCD_MIN(irc_nscount, rcount);
-  uv_udp_send_t *req = MyMalloc(sizeof(uv_udp_send_t *));
   uv_buf_t buf;
 
   /* RES_PRIMARY option is not implemented
@@ -354,6 +353,7 @@ send_res_msg(const char *msg, int len, int rcount)
   for (i = 0; i < max_queries; i++)
   {
     int ret;
+    uv_udp_send_t *req = MyMalloc(sizeof(uv_udp_send_t));
 
     switch(irc_nsaddr_list[i].ss_family)
     {
