@@ -262,61 +262,61 @@ send_queued_write(struct Client *to)
 
   /* Next, lets try to write some data */
 
-  if (dbuf_length(&to->localClient->buf_sendq))
+  if (dbuf_length(&to->localClient->buf_sendq) == 0)
+    return;
+
+  do
   {
-    do
+    first = to->localClient->buf_sendq.blocks.head->data;
+
+    req = MyMalloc(sizeof(uv_write_t));
+#ifdef HAVE_LIBCRYPTO
+
+    if (to->localClient->fd.ssl)
     {
-      first = to->localClient->buf_sendq.blocks.head->data;
+      retlen = SSL_write(to->localClient->fd.ssl, first->data, first->size);
 
-      req = MyMalloc(sizeof(uv_write_t));
-#ifdef HAVE_LIBCRYPTO
-
-      if (to->localClient->fd.ssl)
+      /* translate openssl error codes, sigh */
+      if (retlen < 0)
       {
-        retlen = SSL_write(to->localClient->fd.ssl, first->data, first->size);
-
-        /* translate openssl error codes, sigh */
-        if (retlen < 0)
+        switch (SSL_get_error(to->localClient->fd.ssl, retlen))
         {
-          switch (SSL_get_error(to->localClient->fd.ssl, retlen))
-          {
-            case SSL_ERROR_WANT_READ:
-            case SSL_ERROR_WANT_WRITE:
-              // No probs, get you next time
-              break;
+          case SSL_ERROR_WANT_READ:
+          case SSL_ERROR_WANT_WRITE:
+            // No probs, get you next time
+            break;
 
-            default:
-              error = true;
-              break;
-          }
+          default:
+            error = true;
+            break;
         }
-        ssl_flush_write(to);
       }
-      else
-      {
-#endif
-        buf = uv_buf_init(first->data, first->size);
-        req->data = to;
-        if(uv_write(req, to->localClient->fd.handle, &buf, 1, 
-                    write_callback) != 0)
-          error = true;
-        retlen = first->size;
-#ifdef HAVE_LIBCRYPTO
-      }
-#endif
-      if(error)
-        break;
-      dbuf_delete(&to->localClient->buf_sendq, retlen);
-
-      /* We have some data written .. update counters */
-      to->localClient->send.bytes += retlen;
-      me.localClient->send.bytes += retlen;
+      ssl_flush_write(to);
     }
-    while (dbuf_length(&to->localClient->buf_sendq));
-
+    else
+    {
+#endif
+      buf = uv_buf_init(first->data, first->size);
+      req->data = to;
+      if(uv_write(req, to->localClient->fd.handle, &buf, 1, 
+                  write_callback) != 0)
+        error = true;
+      retlen = first->size;
+#ifdef HAVE_LIBCRYPTO
+    }
+#endif
     if(error)
-      dead_link_on_write(to, errno);
+      break;
+    dbuf_delete(&to->localClient->buf_sendq, retlen);
+
+    /* We have some data written .. update counters */
+    to->localClient->send.bytes += retlen;
+    me.localClient->send.bytes += retlen;
   }
+  while (dbuf_length(&to->localClient->buf_sendq));
+
+  if(error)
+    dead_link_on_write(to, errno);
 }
 
 /* send_queued_all()
