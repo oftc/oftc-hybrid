@@ -331,30 +331,6 @@ ssl_handshake(struct Client *client_p)
   int ret = SSL_accept(client_p->localClient->fd.ssl);
   X509 *cert;
 
-  int err = SSL_get_error(client_p->localClient->fd.ssl, ret);
-  ilog(LOG_TYPE_IRCD, "SSL Error %d %s", err, ERR_error_string(err, NULL));
-
-  if ((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
-  {
-    int res = SSL_get_verify_result(client_p->localClient->fd.ssl);
-
-    if (res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
-        res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
-        res == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
-    {
-      /* The client sent a certificate which verified OK */
-      base16_encode(client_p->certfp, sizeof(client_p->certfp),
-                    (const char *)cert->sha1_hash, sizeof(cert->sha1_hash));
-    }
-    else
-    {
-      ilog(LOG_TYPE_IRCD, "Client %s!%s@%s gave bad SSL client certificate: %d",
-           client_p->name, client_p->username, client_p->host, res);
-    }
-
-    X509_free(cert);
-  }
-
   if (ret <= 0)
   {
     if ((CurrentTime - client_p->localClient->firsttime) > 30)
@@ -380,6 +356,27 @@ ssl_handshake(struct Client *client_p)
         exit_client(client_p, client_p, "Error during SSL handshake");
         return;
     }
+  }
+
+  if ((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
+  {
+    int res = SSL_get_verify_result(client_p->localClient->fd.ssl);
+
+    if (res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
+        res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
+        res == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
+    {
+      /* The client sent a certificate which verified OK */
+      base16_encode(client_p->certfp, sizeof(client_p->certfp),
+                    (const char *)cert->sha1_hash, sizeof(cert->sha1_hash));
+    }
+    else
+    {
+      ilog(LOG_TYPE_IRCD, "Client %s!%s@%s gave bad SSL client certificate: %d",
+           client_p->name, client_p->username, client_p->host, res);
+    }
+
+    X509_free(cert);
   }
 
   comm_settimeout(&client_p->localClient->fd, 0, NULL, NULL);
