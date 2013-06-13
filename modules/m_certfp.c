@@ -58,7 +58,7 @@ static void ms_certfp(struct Client *source_p, struct Client *client_p,
 
 struct Message certfp_msgtab =
 {
-  "CERTFP", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "CERTFP", 0, 0, 3, 0, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_certfp, m_ignore}
 };
 
