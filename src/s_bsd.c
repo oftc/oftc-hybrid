@@ -270,8 +270,6 @@ close_connection(struct Client *client_p)
   client_p->from = NULL; /* ...this should catch them! >:) --msa */
 }
 
-static void ssl_handshake(struct Client *);
-
 uv_buf_t 
 ssl_alloc_buffer(uv_handle_t *handle, size_t suggested_size)
 {
@@ -309,6 +307,7 @@ void
 ssl_read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 {
   struct Client *client_p = stream->data;
+  bool outgoing = SSL_in_connect_init(client_p->localClient->fd.ssl);
 
   if(nread <= 0)
     ; // XXX DO SOMETHING
@@ -317,18 +316,25 @@ ssl_read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 
   uv_read_stop(stream);
 
-  ssl_handshake(client_p);
+  ssl_handshake(client_p, outgoing);
 }
 
 #ifdef HAVE_LIBCRYPTO
 /*
- * ssl_handshake - let OpenSSL initialize the protocol. Register for
- * read/write events if necessary.
+ * ssl_handshake - let OpenSSL initialize the protocol. 
+ * read/write as necessary but only ssl init date no irc stuff yet
+ * works for incoming and outgoing connections
  */
-static void
-ssl_handshake(struct Client *client_p)
+void
+ssl_handshake(struct Client *client_p, bool outgoing)
 {
-  int ret = SSL_accept(client_p->localClient->fd.ssl);
+  int ret;
+
+  if(outgoing)
+    ret = SSL_connect(client_p->localClient->fd.ssl);
+  else
+    ret = SSL_accept(client_p->localClient->fd.ssl);
+
   X509 *cert;
 
   if (ret <= 0)
@@ -379,8 +385,13 @@ ssl_handshake(struct Client *client_p)
     X509_free(cert);
   }
 
-  comm_settimeout(&client_p->localClient->fd, 0, NULL, NULL);
-  execute_callback(auth_cb, client_p);
+  if(outgoing)
+    finish_ssl_server_handshake(client_p);
+  else
+  {
+    comm_settimeout(&client_p->localClient->fd, 0, NULL, NULL);
+    execute_callback(auth_cb, client_p);
+  }
 }
 #endif
 /*
@@ -458,7 +469,7 @@ add_connection(struct Listener *listener, struct sockaddr_storage *irn,
 
     SSL_set_accept_state(new_client->localClient->fd.ssl);
 
-    ssl_handshake(new_client);
+    ssl_handshake(new_client, false);
   }
   else
 #endif

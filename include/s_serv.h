@@ -98,4 +98,7 @@ extern int serv_connect(struct AccessItem *, struct Client *);
 extern struct Client *find_servconn_in_progress(const char *);
 extern struct Server *make_server(struct Client *);
 extern void burst_all(struct Client *client_p);
+
+extern void finish_ssl_server_handshake(struct Client *client_p);
+
 #endif /* INCLUDED_s_serv_h */

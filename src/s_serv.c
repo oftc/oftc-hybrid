@@ -64,6 +64,12 @@ static CNCB serv_connect_callback;
 
 static void burst_members(struct Client *, struct Channel *);
 
+static uv_buf_t
+alloc_buffer(uv_handle_t *handle, size_t suggested_size)
+{
+  return uv_buf_init(MyMalloc(suggested_size), suggested_size);
+}
+
 /*
  * write_links_file
  *
@@ -1303,9 +1309,8 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   return (1);
 }
 
-#if 0
 #ifdef HAVE_LIBCRYPTO
-static void
+void
 finish_ssl_server_handshake(struct Client *client_p)
 {
   struct ConfItem *conf = NULL;
@@ -1354,77 +1359,10 @@ finish_ssl_server_handshake(struct Client *client_p)
     return;
   }
 
-  /* don't move to serv_list yet -- we haven't sent a burst! */
-  /* If we get here, we're ok, so lets start reading some data */
-//  comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ, read_packet,
-//                 client_p, 0);
+  if(uv_read_start((uv_stream_t*)client_p->localClient->fd.handle, alloc_buffer,
+                   read_packet) < 0)
+    dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
 }
-#endif
-
-#if 0
-static void
-ssl_server_handshake(fde_t *fd, struct Client *client_p)
-{
-  int ret;
-  int err;
-
-  ret = SSL_connect(client_p->localClient->fd.ssl);
-
-  if (ret <= 0)
-  {
-    switch ((err = SSL_get_error(client_p->localClient->fd.ssl, ret)))
-    {
-      case SSL_ERROR_WANT_WRITE:
-//        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
-  //                     (PF *)ssl_server_handshake, client_p, 0);
-        return;
-
-      case SSL_ERROR_WANT_READ:
-//        comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
-  //                     (PF *)ssl_server_handshake, client_p, 0);
-        return;
-
-      default:
-      {
-        const char *sslerr = ERR_error_string(ERR_get_error(), NULL);
-        sendto_realops_flags(UMODE_ALL, L_ALL,
-                             "Error connecting to %s: %s", client_p->name,
-                             sslerr ? sslerr : "unknown SSL error");
-        exit_client(client_p, client_p, "Error during SSL handshake");
-        return;
-      }
-    }
-  }
-
-  X509 *cert;
-
-  err = SSL_get_error(client_p->localClient->fd.ssl, ret);
-  ilog(LOG_TYPE_IRCD, "SSL Error %d %s", err, ERR_error_string(err, NULL));
-
-  if ((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
-  {
-    int res = SSL_get_verify_result(client_p->localClient->fd.ssl);
-
-    if (res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
-        res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
-        res == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
-    {
-      /* The client sent a certificate which verified OK */
-      base16_encode(client_p->certfp, sizeof(client_p->certfp),
-                    (const char *)cert->sha1_hash, sizeof(cert->sha1_hash));
-    }
-    else
-    {
-      ilog(LOG_TYPE_IRCD, "Server %s!%s@%s gave bad SSL client certificate: %d",
-           client_p->name, client_p->username, client_p->host, res);
-    }
-
-    X509_free(cert);
-  }
-
-  finish_ssl_server_handshake(client_p);
-}
-#endif
 #endif
 
 static void
@@ -1439,12 +1377,20 @@ ssl_connect_init(struct Client *client_p, struct AccessItem *aconf, fde_t *fd)
     return;
   }
 
-/*  SSL_set_fd(fd->ssl, fd->fd);
+  client_p->localClient->fd.read_bio = BIO_new(BIO_s_mem());
+  client_p->localClient->fd.write_bio = BIO_new(BIO_s_mem());
+
+  SSL_set_bio(client_p->localClient->fd.ssl,
+              client_p->localClient->fd.read_bio,
+              client_p->localClient->fd.write_bio);
+
 
   if (!EmptyString(aconf->cipher_list))
     SSL_set_cipher_list(client_p->localClient->fd.ssl, aconf->cipher_list);
 
-  ssl_server_handshake(NULL, client_p);*/
+  SSL_set_connect_state(client_p->localClient->fd.ssl);
+
+  ssl_handshake(client_p, true);
 }
 
 /* serv_connect_callback() - complete a server connection.
