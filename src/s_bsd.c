@@ -318,8 +318,6 @@ ssl_read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
   uv_read_stop(stream);
 
   ssl_handshake(client_p);
-
-  ssl_flush_write(client_p);
 }
 
 #ifdef HAVE_LIBCRYPTO
@@ -365,22 +363,17 @@ ssl_handshake(struct Client *client_p)
       return;
     }
 
+    // We called SSL_accept, which could have queued up some data to send
+    ssl_flush_write(client_p);
+
     switch (SSL_get_error(client_p->localClient->fd.ssl, ret))
     {
       case SSL_ERROR_WANT_WRITE:
-        {
-        int i = 0;
-        i++;
-        }
-//        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
-  //                     (PF *) ssl_handshake, client_p, 30);
         return;
 
       case SSL_ERROR_WANT_READ:
         uv_read_start(client_p->localClient->fd.handle, ssl_alloc_buffer,
                       ssl_read_callback);
-    //    comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
-      //                 (PF *) ssl_handshake, client_p, 30);
         return;
 
       default:

@@ -319,11 +319,15 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
     BIO_write(client_p->localClient->fd.read_bio, buf.base, nread);
 
     int offset = 0;
-    int len;
     while(BIO_pending(client_p->localClient->fd.read_bio))
     {
-      len = SSL_read(client_p->localClient->fd.ssl, buf.base + offset, 
+      int len = SSL_read(client_p->localClient->fd.ssl, buf.base + offset, 
                         nread - offset);
+      int err = SSL_get_error(client_p->localClient->fd.ssl, len);
+
+      switch(err)
+      {
+      }
 
       if(len == -1)
         ssl_flush_write(client_p);

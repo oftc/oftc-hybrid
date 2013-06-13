@@ -251,6 +251,7 @@ send_queued_write(struct Client *to)
   struct dbuf_block *first;
   uv_buf_t buf;
   uv_write_t *req;
+  bool error = false;
 
   /*
    ** Once socket is marked dead, we cannot start writing to it,
@@ -280,20 +281,13 @@ send_queued_write(struct Client *to)
           switch (SSL_get_error(to->localClient->fd.ssl, retlen))
           {
             case SSL_ERROR_WANT_READ:
-              return;  /* retry later, don't register for write events */
-
             case SSL_ERROR_WANT_WRITE:
-              errno = EWOULDBLOCK;
-
-            case SSL_ERROR_SYSCALL:
+              // No probs, get you next time
               break;
 
-            case SSL_ERROR_SSL:
-              if (errno == EAGAIN)
-                break;
-
             default:
-              retlen = errno = 0;  /* either an SSL-specific error or EOF */
+              error = true;
+              break;
           }
         }
         ssl_flush_write(to);
@@ -303,12 +297,15 @@ send_queued_write(struct Client *to)
 #endif
         buf = uv_buf_init(first->data, first->size);
         req->data = to;
-        uv_write(req, to->localClient->fd.handle, &buf, 1, write_callback);
+        if(uv_write(req, to->localClient->fd.handle, &buf, 1, 
+                    write_callback) != 0)
+          error = true;
         retlen = first->size;
 #ifdef HAVE_LIBCRYPTO
       }
 #endif
-
+      if(error)
+        break;
       dbuf_delete(&to->localClient->buf_sendq, retlen);
 
       /* We have some data written .. update counters */
@@ -316,6 +313,9 @@ send_queued_write(struct Client *to)
       me.localClient->send.bytes += retlen;
     }
     while (dbuf_length(&to->localClient->buf_sendq));
+
+    if(error)
+      dead_link_on_write(to, errno);
   }
 }
 
