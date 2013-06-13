@@ -305,7 +305,7 @@ send_queued_write(struct Client *to)
 #ifdef HAVE_LIBCRYPTO
     }
 #endif
-    if(error)
+    if(error || retlen == -1)
       break;
     dbuf_delete(&to->localClient->buf_sendq, retlen);
 
