@@ -285,19 +285,9 @@ ssl_write_callback(uv_write_t *req, int status)
 }
 
 void
-ssl_read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
+ssl_flush_write(struct Client *client_p)
 {
-  struct Client *client_p = stream->data;
   int pending;
-
-  if(nread <= 0)
-    ; // XXX DO SOMETHING
-
-  BIO_write(client_p->localClient->fd.read_bio, buf.base, nread);
-
-  uv_read_stop(stream);
-
-  ssl_handshake(client_p);
 
   while((pending = BIO_pending(client_p->localClient->fd.write_bio)) > 0)
   {
@@ -313,6 +303,23 @@ ssl_read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
     uv_write(req, client_p->localClient->fd.handle, &buf, 1, 
              ssl_write_callback);
   }
+}
+
+void
+ssl_read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
+{
+  struct Client *client_p = stream->data;
+
+  if(nread <= 0)
+    ; // XXX DO SOMETHING
+
+  BIO_write(client_p->localClient->fd.read_bio, buf.base, nread);
+
+  uv_read_stop(stream);
+
+  ssl_handshake(client_p);
+
+  ssl_flush_write(client_p);
 }
 
 #ifdef HAVE_LIBCRYPTO

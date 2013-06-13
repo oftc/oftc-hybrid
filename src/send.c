@@ -276,6 +276,7 @@ send_queued_write(struct Client *to)
 
         /* translate openssl error codes, sigh */
         if (retlen < 0)
+        {
           switch (SSL_get_error(to->localClient->fd.ssl, retlen))
           {
             case SSL_ERROR_WANT_READ:
@@ -294,6 +295,8 @@ send_queued_write(struct Client *to)
             default:
               retlen = errno = 0;  /* either an SSL-specific error or EOF */
           }
+        }
+        ssl_flush_write(to);
       }
       else
       {

@@ -320,52 +320,30 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 
     int offset = 0;
     int len;
-    while(BIO_pending(client_p->localClient->fd.read_bio) ||
-          BIO_pending(client_p->localClient->fd.write_bio))
+    while(BIO_pending(client_p->localClient->fd.read_bio))
     {
       len = SSL_read(client_p->localClient->fd.ssl, buf.base + offset, 
                         nread - offset);
-      offset += len;
-      length += len;
-    }
 
-    /* translate openssl error codes, sigh */
-    if (length < 0)
-      switch (SSL_get_error(client_p->localClient->fd.ssl, nread))
+      if(len == -1)
+        ssl_flush_write(client_p);
+      else
       {
-        case SSL_ERROR_WANT_WRITE:
-          client_p->localClient->fd.flags.pending_read = 1;
-          SetSendqBlocked(client_p);
-          //comm_setselect(fd, COMM_SELECT_WRITE, (PF *) sendq_unblocked,
-          //               client_p, 0);
-          return;
-
-        case SSL_ERROR_WANT_READ:
-          errno = EWOULDBLOCK;
-
-        case SSL_ERROR_SYSCALL:
-          break;
-
-        case SSL_ERROR_SSL:
-          if (errno == EAGAIN)
-            break;
-
-        default:
-          nread = errno = 0;
+        offset += len;
+        length += len;
       }
+    }
   }
   else
   {
     length = nread;
-#endif
-    if (length <= 0)
-    {
-      dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
-      return;
-    }
-#ifdef HAVE_LIBCRYPTO
   }
 #endif
+  if (length <= 0)
+  {
+    dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
+    return;
+  }
 
   execute_callback(iorecv_cb, client_p, length, buf.base);
 
