@@ -244,7 +244,7 @@ io_loop()
     while (eventNextTime() <= CurrentTime)
       eventRun();
 
-    uv_run(server_state.event_loop, UV_RUN_NOWAIT);
+    uv_run(server_state.event_loop, UV_RUN_ONCE);
     set_time();
     exit_aborted_clients();
     free_exited_clients();
