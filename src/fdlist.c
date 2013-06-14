@@ -77,8 +77,6 @@ fdlist_init()
 void
 fd_open(fde_t *F, uv_stream_t *handle, const char *desc)
 {
-  ilog(LOG_TYPE_IRCD, "fd_open %p %d", handle, handle->io_watcher.fd);
-
   F->handle = handle;
   F->comm_index = -1;
 
@@ -98,8 +96,6 @@ fd_open(fde_t *F, uv_stream_t *handle, const char *desc)
 void
 fd_close(fde_t *F)
 {
-  ilog(LOG_TYPE_IRCD, "fd_close %p %d", F->handle, F->handle->io_watcher.fd);
-
   delete_resolver_queries(F);
 
 #ifdef HAVE_LIBCRYPTO

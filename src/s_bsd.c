@@ -164,7 +164,7 @@ report_error(int level, const char *text, const char *who, int error)
 static void *
 setup_socket(va_list args)
 {
-  uv_tcp_t *fd = va_arg(args, uv_tcp_t *);
+  uv_tcp_t *fd = (uv_tcp_t *)va_arg(args, uv_stream_t *);
   int opt;
 
   uv_tcp_nodelay(fd, 1);
@@ -261,7 +261,7 @@ close_connection(struct Client *client_p)
 
   if (client_p->localClient->fd.flags.open)
     fd_close(&client_p->localClient->fd);
-
+  }
   dbuf_clear(&client_p->localClient->buf_sendq);
   dbuf_clear(&client_p->localClient->buf_recvq);
 
@@ -827,7 +827,8 @@ comm_open(fde_t *F, int family, int sock_type, const char *note)
   if (ret != 0)
     return -1; /* errno will be passed through, yay.. */
 
-  execute_callback(setup_socket_cb, handle);
+  if(sock_type == SOCK_STREAM)
+    execute_callback(setup_socket_cb, handle);
 
   /* update things in our fd tracking */
   fd_open(F, handle, note);

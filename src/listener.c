@@ -300,8 +300,8 @@ close_listeners()
   }
 }
 
-static void listener_send(struct Listener *listener, const char *buffer,
-                          size_t len)
+static void listener_send(struct Listener *listener, uv_tcp_t *handle,
+                          const char *buffer, size_t len)
 {
   if ((listener->flags & LISTENER_SSL) == LISTENER_SSL)
     return;
@@ -309,7 +309,7 @@ static void listener_send(struct Listener *listener, const char *buffer,
   uv_buf_t buf = uv_buf_init((char *)buffer, len);
   uv_write_t req;
 
-  uv_write(&req, listener->fd.handle, &buf, 1, NULL);
+  uv_write(&req, (uv_stream_t *)handle, &buf, 1, NULL);
 }
 
 #define TOOFAST_WARNING "ERROR :Trying to reconnect too fast.\r\n"
@@ -374,7 +374,8 @@ accept_connection(uv_stream_t *server, int status)
       last_oper_notice = CurrentTime;
     }
 
-    listener_send(listener, ALLINUSE_WARNING, sizeof(ALLINUSE_WARNING) - 1);
+    listener_send(listener, handle, ALLINUSE_WARNING, 
+                  sizeof(ALLINUSE_WARNING) - 1);
 
     uv_close((uv_handle_t *)handle, NULL);
     MyFree(handle);
@@ -392,16 +393,19 @@ accept_connection(uv_stream_t *server, int status)
     switch (pe)
     {
       case BANNED_CLIENT:
-        listener_send(listener, DLINE_WARNING, sizeof(DLINE_WARNING) - 1);
+        listener_send(listener, handle, DLINE_WARNING, 
+                      sizeof(DLINE_WARNING) - 1);
         break;
 
       case TOO_FAST:
-        listener_send(listener, TOOFAST_WARNING, sizeof(TOOFAST_WARNING) - 1);
+        listener_send(listener, handle, TOOFAST_WARNING, 
+                      sizeof(TOOFAST_WARNING) - 1);
         break;
     }
 
     uv_close((uv_handle_t *)handle, NULL);
     MyFree(handle);
+    return;
   }
 
   ++ServerStats.is_ac;
