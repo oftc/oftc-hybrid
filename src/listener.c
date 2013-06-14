@@ -42,6 +42,18 @@ static void accept_connection(uv_stream_t *, int);
 static dlink_list ListenerPollList = { NULL, NULL, 0 };
 static void close_listener(struct Listener *listener);
 
+static void
+listener_close_callback(uv_handle_t *handle)
+{
+  MyFree(handle);
+}
+
+static void
+listener_send_callback(uv_write_t *req, int status)
+{
+  MyFree(req);
+}
+
 static struct Listener *
 make_listener(int port, struct sockaddr_storage *addr)
 {
@@ -300,16 +312,17 @@ close_listeners()
   }
 }
 
-static void listener_send(struct Listener *listener, uv_tcp_t *handle,
+static void 
+listener_send(struct Listener *listener, uv_tcp_t *handle,
                           const char *buffer, size_t len)
 {
   if ((listener->flags & LISTENER_SSL) == LISTENER_SSL)
     return;
 
   uv_buf_t buf = uv_buf_init((char *)buffer, len);
-  uv_write_t req;
+  uv_write_t *req = MyMalloc(sizeof(uv_write_t));
 
-  uv_write(&req, (uv_stream_t *)handle, &buf, 1, NULL);
+  uv_write(req, (uv_stream_t *)handle, &buf, 1, listener_send_callback);
 }
 
 #define TOOFAST_WARNING "ERROR :Trying to reconnect too fast.\r\n"
@@ -377,8 +390,7 @@ accept_connection(uv_stream_t *server, int status)
     listener_send(listener, handle, ALLINUSE_WARNING, 
                   sizeof(ALLINUSE_WARNING) - 1);
 
-    uv_close((uv_handle_t *)handle, NULL);
-    MyFree(handle);
+    uv_close((uv_handle_t *)handle, listener_close_callback);
     return;
   }
 
@@ -403,8 +415,7 @@ accept_connection(uv_stream_t *server, int status)
         break;
     }
 
-    uv_close((uv_handle_t *)handle, NULL);
-    MyFree(handle);
+    uv_close((uv_handle_t *)handle, listener_close_callback);
     return;
   }
 
