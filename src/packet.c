@@ -358,10 +358,15 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
     is_ssl = false;
   }
 
-  execute_callback(iorecv_cb, client_p, length, buffer);
+  if(length != 0)
+    execute_callback(iorecv_cb, client_p, length, buffer);
 
   if(is_ssl)
     MyFree(buffer);
+
+  // This could happen if we have some ssl data but not enough to decrypt
+  if(length == 0)
+    return;
 
   if (IsServer(client_p) && IsPingSent(client_p) && IsPingWarning(client_p))
   {
