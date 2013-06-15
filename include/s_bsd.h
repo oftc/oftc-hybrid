@@ -44,9 +44,8 @@ extern struct Callback *setup_socket_cb;
 extern void add_connection(struct Listener *, struct sockaddr_storage *, 
                            uv_tcp_t *);
 extern void close_connection(struct Client *);
-extern void report_error(int, const char *, const char *, int);
+extern void report_error(int, const char *, const char *, uv_err_t);
 
-extern int get_sockerr(int);
 extern int ignoreErrno(int);
 
 extern void comm_settimeout(fde_t *, time_t, PF *, void *);

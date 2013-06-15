@@ -154,7 +154,8 @@ inetport(struct Listener *listener)
                 "Listener socket") == -1)
   {
     report_error(L_ALL, "opening listener socket %s:%s",
-                 get_listener_name(listener), errno);
+                 get_listener_name(listener), 
+                 uv_last_error(server_state.event_loop));
     return 0;
   }
 
@@ -180,7 +181,8 @@ inetport(struct Listener *listener)
   if (ret != 0)
   {
     report_error(L_ALL, "binding listener socket %s:%s",
-                 get_listener_name(listener), errno);
+                 get_listener_name(listener),
+                 uv_last_error(server_state.event_loop));
     fd_close(&listener->fd);
     return 0;
   }
@@ -188,7 +190,8 @@ inetport(struct Listener *listener)
   if (uv_listen(listener->fd.handle, HYBRID_SOMAXCONN, accept_connection) != 0)
   {
     report_error(L_ALL, "listen failed for %s:%s",
-                 get_listener_name(listener), errno);
+                 get_listener_name(listener), 
+                 uv_last_error(server_state.event_loop));
     fd_close(&listener->fd);
     return 0;
   }

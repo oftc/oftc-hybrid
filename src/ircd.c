@@ -200,7 +200,8 @@ set_time()
     snprintf(to_send, sizeof(to_send),
              "System clock is running backwards - (%lu < %lu)",
              (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
-    report_error(L_ALL, to_send, me.name, 0);
+
+    sendto_realops_flags(UMODE_ALL, L_ALL, to_send);
     set_back_events(CurrentTime - newtime.tv_sec);
   }
 

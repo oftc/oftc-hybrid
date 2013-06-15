@@ -1073,7 +1073,7 @@ void
 dead_link_on_read(struct Client *client_p, int error)
 {
   char errmsg[255];
-  int current_error;
+  uv_err_t current_error;
 
   if (IsDefunct(client_p))
     return;
@@ -1081,8 +1081,7 @@ dead_link_on_read(struct Client *client_p, int error)
   dbuf_clear(&client_p->localClient->buf_recvq);
   dbuf_clear(&client_p->localClient->buf_sendq);
 
-//  current_error = get_sockerr(client_p->localClient->fd.fd);
-  current_error =0;
+  current_error = uv_last_error(server_state.event_loop);
 
   if (IsServer(client_p) || IsHandshake(client_p))
   {
@@ -1095,11 +1094,6 @@ dead_link_on_read(struct Client *client_p, int error)
                            "Server %s closed the connection",
                            get_client_name(client_p, SHOW_IP));
 
-
-
-
-
-
       ilog(LOG_TYPE_IRCD, "Server %s closed the connection",
            get_client_name(client_p, SHOW_IP));
     }
@@ -1107,8 +1101,6 @@ dead_link_on_read(struct Client *client_p, int error)
     {
       report_error(L_ADMIN, "Lost connection to %s: %s",
                    get_client_name(client_p, SHOW_IP), current_error);
-      report_error(L_OPER, "Lost connection to %s: %s",
-                   get_client_name(client_p, MASK_IP), current_error);
     }
 
     sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -1124,7 +1116,7 @@ dead_link_on_read(struct Client *client_p, int error)
             sizeof(errmsg));
   else
     snprintf(errmsg, sizeof(errmsg), "Read error: %s",
-             strerror(current_error));
+             uv_strerror(current_error));
 
   exit_client(client_p, &me, errmsg);
 }

@@ -124,57 +124,19 @@ check_can_use_v6()
   }
 }
 
-/* get_sockerr - get the error value from the socket or the current errno
- *
- * Get the *real* error from the socket (well try to anyway..).
- * This may only work when SO_DEBUG is enabled but its worth the
- * gamble anyway.
- */
-int
-get_sockerr(int fd)
-{
-  int errtmp = errno;
-#ifdef SO_ERROR
-  int err = 0;
-  socklen_t len = sizeof(err);
-
-  if (-1 < fd && !getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len))
-  {
-    if (err)
-      errtmp = err;
-  }
-
-  errno = errtmp;
-#endif
-  return errtmp;
-}
-
 /*
- * report_error - report an error from an errno.
- * Record error to log and also send a copy to all *LOCAL* opers online.
+ * report_error - report an error from a uv error
+ * Record error to log and also send a copy to all opers online.
  *
- *        text        is a *format* string for outputing error. It must
- *                contain only two '%s', the first will be replaced
- *                by the sockhost from the client_p, and the latter will
- *                be taken from sys_errlist[errno].
- *
- *        client_p        if not NULL, is the *LOCAL* client associated with
- *                the error.
- *
- * Cannot use perror() within daemon. stderr is closed in
- * ircd and cannot be used. And, worse yet, it might have
- * been reassigned to a normal connection...
- *
- * Actually stderr is still there IFF ircd was run with -s --Rodder
  */
 
 void
-report_error(int level, const char *text, const char *who, int error)
+report_error(int level, const char *text, const char *who, uv_err_t error)
 {
   who = (who) ? who : "";
 
-  sendto_realops_flags(UMODE_DEBUG, level, text, who, strerror(error));
-  ilog(LOG_TYPE_IRCD, text, who, strerror(error));
+  sendto_realops_flags(UMODE_DEBUG, level, text, who, uv_strerror(error));
+  ilog(LOG_TYPE_IRCD, text, who, uv_strerror(error));
 }
 
 /*

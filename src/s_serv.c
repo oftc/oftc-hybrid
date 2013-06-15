@@ -1205,8 +1205,8 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
                 SOCK_STREAM, NULL) < 0)
   {
     /* Eek, failure to create the socket */
-    report_error(L_ALL,
-                 "opening stream socket to %s: %s", conf->name, errno);
+    report_error(L_ALL, "opening stream socket to %s: %s", conf->name, 
+                 uv_last_error(server_state.event_loop));
     SetDead(client_p);
     exit_client(client_p, &me, "Connection failed");
     return (0);
