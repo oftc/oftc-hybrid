@@ -2208,24 +2208,7 @@ connect_vhost: VHOST '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    struct addrinfo hints, *res;
-
-    memset(&hints, 0, sizeof(hints));
-
-    hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
-
-    if (getaddrinfo(yylval.string, NULL, &hints, &res))
-      ilog(LOG_TYPE_IRCD, "Invalid netmask for server vhost(%s)", yylval.string);
-    else
-    {
-      assert(res != NULL);
-
-      memcpy(&yy_aconf->bind, res->ai_addr, res->ai_addrlen);
-      yy_aconf->bind.ss_family = res->ai_family;
-      freeaddrinfo(res);
-    }
+    string_to_ip(yylval.string, 0, &yy_aconf->bind);
   }
 };
  
