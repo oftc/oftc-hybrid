@@ -1132,20 +1132,17 @@ void
 dump_ip_hash_table(struct Client *source_p)
 {
   struct ip_entry *ptr;
-  char numaddr[HOSTIPLEN];
+  char numaddr[HOSTIPLEN + 1];
   int i;
 
   for (i = 0; i < IP_HASH_SIZE; i++)
   {
     for (ptr = ip_hash_table[i]; ptr != NULL; ptr = ptr->next)
     {
-      uv_err_t ret;
-      
-      ret = uv_inet_ntop(ptr->ip.ss_family, &ptr->ip, numaddr, HOSTIPLEN);
+      bool ret = ip_to_string(&ptr->ip, numaddr, sizeof(numaddr));
 
       sendto_one(source_p, ":%s %d %s n :ip_hash_table: %s %d", me.name,
-                 RPL_STATSCCOUNT, source_p->name,
-                 (ret.code == UV_OK) ? numaddr : "unknown",
+                 RPL_STATSCCOUNT, source_p->name, ret ? numaddr : "unknown",
                  ptr->count);
     }
   }

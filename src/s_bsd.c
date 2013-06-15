@@ -86,6 +86,27 @@ string_to_ip(const char *ipstr, unsigned int port,
   }
 }
 
+bool
+ip_to_string(const struct sockaddr_storage *ip, char *ipstr, size_t len)
+{
+  int ret;
+
+  switch(ip->ss_family)
+  {
+    case AF_INET:
+      ret = uv_ip4_name((struct sockaddr_in *)ip, ipstr, len);
+      break;
+    case AF_INET6:
+      ret = uv_ip6_name((struct sockaddr_in6 *)ip, ipstr, len);
+      break;
+    default:
+      assert(0);
+      return false;
+  }
+
+  return ret == 0;
+}
+
 /* check_can_use_v6()
  *  Check if the system can open AF_INET6 sockets
  */
@@ -406,7 +427,7 @@ add_connection(struct Listener *listener, struct sockaddr_storage *irn,
                uv_tcp_t *handle)
 {
   struct Client *new_client = make_client(NULL);
-  uv_err_t ret;
+  bool ret;
 
   fd_open(&new_client->localClient->fd, (uv_stream_t *)handle, 
           (listener->flags & LISTENER_SSL) ?
@@ -420,14 +441,14 @@ add_connection(struct Listener *listener, struct sockaddr_storage *irn,
    */
   memcpy(&new_client->ip, irn, sizeof(new_client->ip));
 
-  ret = uv_inet_ntop(new_client->ip.ss_family, &new_client->ip, 
-                     new_client->sockhost, sizeof(new_client->sockhost));
+  ret = ip_to_string(&new_client->ip, new_client->sockhost, 
+                     sizeof(new_client->sockhost));
 
-  if(ret.code != UV_OK)
+  if(!ret)
   {
-    ilog(LOG_TYPE_IRCD, "uv_ip*_name failed!");
+    ilog(LOG_TYPE_IRCD, "ip_to_string failed!");
     SetDead(new_client);
-    exit_client(new_client, new_client, "uv_ip*_name failed!");
+    exit_client(new_client, new_client, "Failed to process your IP address");
     return;
   }
 

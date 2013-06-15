@@ -69,6 +69,7 @@ extern void check_can_use_v6();
 extern void remove_ipv6_mapping(struct sockaddr_storage *);
 
 extern void string_to_ip(const char *, unsigned int, struct sockaddr_storage *);
+extern bool ip_to_string(const struct sockaddr_storage *, char *, size_t);
 
 extern void ssl_handshake(struct Client *, bool);
 extern void ssl_flush_write(struct Client *);

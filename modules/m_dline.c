@@ -169,7 +169,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    uv_inet_ntop(target_p->ip.ss_family, &target_p->ip, hostip, sizeof(hostip));
+    ip_to_string(&target_p->ip, hostip, sizeof(hostip));
     dlhost = hostip;
     t = parse_netmask(dlhost, NULL, &bits);
     assert(t == HM_IPV4 || t == HM_IPV6);
@@ -276,8 +276,7 @@ ms_dline(struct Client *client_p, struct Client *source_p,
         return;
       }
 
-      uv_inet_ntop(target_p->ip.ss_family, &target_p->ip, hostip, 
-                   sizeof(hostip));
+      ip_to_string(&target_p->ip, hostip, sizeof(hostip));
 
       dlhost = hostip;
       t = parse_netmask(dlhost, NULL, &bits);

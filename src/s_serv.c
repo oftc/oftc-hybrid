@@ -1149,7 +1149,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   conf = unmap_conf_item(aconf);
 
   /* log */
-  uv_inet_ntop(aconf->addr.ss_family, &aconf->addr, buf, sizeof(buf));
+  ip_to_string(&aconf->addr, buf, sizeof(buf));
 
   ilog(LOG_TYPE_IRCD, "Connect to %s[%s] @%s", conf->name, aconf->host,
        buf);

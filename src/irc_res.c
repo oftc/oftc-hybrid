@@ -841,8 +841,7 @@ report_dns_servers(struct Client *source_p)
 
   for (i = 0; i < irc_nscount; i++)
   {
-    uv_inet_ntop(irc_nsaddr_list[i].ss_family, &(irc_nsaddr_list[i]), ipaddr, 
-                 sizeof(ipaddr));
+    ip_to_string(&(irc_nsaddr_list[i]), ipaddr, sizeof(ipaddr));
 
     sendto_one(source_p, form_str(RPL_STATSALINE), me.name, source_p->name, 
                ipaddr);
