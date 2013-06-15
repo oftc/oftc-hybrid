@@ -27,6 +27,7 @@
 
 #include "fdlist.h"
 #include "hook.h"
+#include "balloc.h"
 
 /* Type of IO */
 #define  COMM_SELECT_READ    1
@@ -40,6 +41,7 @@ struct AccessItem;
 struct Listener;
 
 extern struct Callback *setup_socket_cb;
+extern BlockHeap *write_req_heap;
 
 extern void add_connection(struct Listener *, struct sockaddr_storage *, 
                            uv_tcp_t *);
@@ -72,5 +74,7 @@ extern bool ip_to_string(const struct sockaddr_storage *, char *, size_t);
 
 extern void ssl_handshake(struct Client *, bool);
 extern void ssl_flush_write(struct Client *);
+extern uv_buf_t allocate_uv_buffer(uv_handle_t *, size_t);
+extern void write_callback(uv_write_t *, int);
 
 #endif /* INCLUDED_s_bsd_h */

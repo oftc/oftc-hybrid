@@ -64,12 +64,6 @@ static CNCB serv_connect_callback;
 
 static void burst_members(struct Client *, struct Channel *);
 
-static uv_buf_t
-alloc_buffer(uv_handle_t *handle, size_t suggested_size)
-{
-  return uv_buf_init(MyMalloc(suggested_size), suggested_size);
-}
-
 /*
  * write_links_file
  *
@@ -1359,8 +1353,8 @@ finish_ssl_server_handshake(struct Client *client_p)
     return;
   }
 
-  if(uv_read_start((uv_stream_t*)client_p->localClient->fd.handle, alloc_buffer,
-                   read_packet) < 0)
+  if(uv_read_start((uv_stream_t*)client_p->localClient->fd.handle, 
+                   allocate_uv_buffer, read_packet) < 0)
     dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
 }
 #endif
@@ -1500,8 +1494,8 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 
   /* don't move to serv_list yet -- we haven't sent a burst! */
   /* If we get here, we're ok, so lets start reading some data */
-  if(uv_read_start((uv_stream_t*)client_p->localClient->fd.handle, alloc_buffer,
-                   read_packet) < 0)
+  if(uv_read_start((uv_stream_t*)client_p->localClient->fd.handle, 
+                   allocate_uv_buffer, read_packet) < 0)
     dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
 }
 

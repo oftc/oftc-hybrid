@@ -48,12 +48,6 @@ listener_close_callback(uv_handle_t *handle)
   MyFree(handle);
 }
 
-static void
-listener_send_callback(uv_write_t *req, int status)
-{
-  MyFree(req);
-}
-
 static struct Listener *
 make_listener(int port, struct sockaddr_storage *addr)
 {
@@ -323,9 +317,9 @@ listener_send(struct Listener *listener, uv_tcp_t *handle,
     return;
 
   uv_buf_t buf = uv_buf_init((char *)buffer, len);
-  uv_write_t *req = MyMalloc(sizeof(uv_write_t));
+  uv_write_t *req = BlockHeapAlloc(write_req_heap);
 
-  uv_write(req, (uv_stream_t *)handle, &buf, 1, listener_send_callback);
+  uv_write(req, (uv_stream_t *)handle, &buf, 1, write_callback);
 }
 
 #define TOOFAST_WARNING "ERROR :Trying to reconnect too fast.\r\n"

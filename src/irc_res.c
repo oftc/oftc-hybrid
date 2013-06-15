@@ -105,13 +105,6 @@ static void resend_query(struct reslist *);
 static int proc_answer(struct reslist *, HEADER *, char *, char *);
 static struct reslist *find_id(int);
 
-
-static uv_buf_t
-alloc_buffer(uv_handle_t *handle, size_t suggested_size)
-{
-  return uv_buf_init(MyMalloc(suggested_size), suggested_size);
-}
-
 /*
  * int
  * res_ourserver(inp)
@@ -235,9 +228,8 @@ start_resolver()
       return;
 
     /* At the moment, the resolver FD data is global .. */
-    uv_udp_recv_start((uv_udp_t *)ResolverFileDescriptor.handle, alloc_buffer,
-                      res_readreply);
-
+    uv_udp_recv_start((uv_udp_t *)ResolverFileDescriptor.handle, 
+                      allocate_uv_buffer, res_readreply);
 
     eventAdd("timeout_resolver", timeout_resolver, NULL, 1);
   }

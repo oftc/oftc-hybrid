@@ -89,18 +89,6 @@ static CBFUNC start_auth;
 
 struct Callback *auth_cb = NULL;
 
-static uv_buf_t
-auth_alloc(uv_handle_t *handle, size_t suggested_size)
-{
-  return uv_buf_init(MyMalloc(suggested_size), suggested_size);
-}
-
-static void
-auth_send_callback(uv_write_t *req, int status)
-{
-  MyFree(req);
-}
-
 /* init_auth()
  *
  * Initialise the auth code
@@ -112,13 +100,6 @@ init_auth()
   auth_cb = register_callback("start_auth", start_auth);
   eventAddIsh("timeout_auth_queries_event", timeout_auth_queries_event, NULL, 1);
 }
-
-static uv_buf_t
-alloc_buffer(uv_handle_t *handle, size_t suggested_size)
-{
-  return uv_buf_init(MyMalloc(suggested_size), suggested_size);
-}
-
 
 /*
  * make_auth_request - allocate a new auth request
@@ -167,8 +148,8 @@ release_auth_client(struct AuthRequest *auth)
   client->localClient->firsttime = CurrentTime;
   client->flags |= FLAGS_FINISHED_AUTH;
 
-  if(uv_read_start((uv_stream_t*)client->localClient->fd.handle, alloc_buffer,
-                   read_packet) < 0)
+  if(uv_read_start((uv_stream_t*)client->localClient->fd.handle, 
+                   allocate_uv_buffer, read_packet) < 0)
   {
     dead_link_on_read(client, uv_last_error(server_state.event_loop).code);
     return;
@@ -500,19 +481,19 @@ auth_connect_callback(fde_t *fd, int error, void *data)
 
   snprintf(authbuf, sizeof(authbuf), "%u , %u\r\n", tport, uport);
 
-  req = MyMalloc(sizeof(uv_write_t));
+  req = BlockHeapAlloc(write_req_heap);
 
   buf = uv_buf_init(authbuf, sizeof(authbuf));
 
   if(uv_write(req, auth->client->localClient->auth_fd.handle, &buf, 1, 
-              auth_send_callback) != 0)
+              write_callback) != 0)
   {
     auth_error(auth);
     return;
   }
 
   if(uv_read_start(auth->client->localClient->auth_fd.handle,
-                    auth_alloc, read_auth_reply) != 0)
+                    allocate_uv_buffer, read_auth_reply) != 0)
   {
     auth_error(auth);
     return;

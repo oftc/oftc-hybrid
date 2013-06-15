@@ -62,6 +62,20 @@ static void comm_connect_dns_callback(void *, const struct sockaddr_storage*,
                                       const char *);
 static PF comm_connect_tryconnect;
 
+BlockHeap *write_req_heap = NULL;
+
+uv_buf_t 
+allocate_uv_buffer(uv_handle_t *handle, size_t suggested_size)
+{
+  return uv_buf_init(MyMalloc(suggested_size), suggested_size);
+}
+
+void
+write_callback(uv_write_t *req, int status)
+{
+  BlockHeapFree(write_req_heap, req);
+}
+
 void
 string_to_ip(const char *ipstr, unsigned int port, 
              struct sockaddr_storage *addr)
@@ -169,6 +183,8 @@ void
 init_comm()
 {
   setup_socket_cb = register_callback("setup_socket", setup_socket);
+  write_req_heap = BlockHeapCreate("write_request", sizeof(uv_write_t),
+                                   WRITE_REQ_HEAP_SIZE);
 }
 
 /*
@@ -252,18 +268,6 @@ close_connection(struct Client *client_p)
   client_p->from = NULL; /* ...this should catch them! >:) --msa */
 }
 
-uv_buf_t 
-ssl_alloc_buffer(uv_handle_t *handle, size_t suggested_size)
-{
-  return uv_buf_init(MyMalloc(suggested_size), suggested_size);
-}
-
-void 
-ssl_write_callback(uv_write_t *req, int status)
-{
-  MyFree(req);
-}
-
 void
 ssl_flush_write(struct Client *client_p)
 {
@@ -272,16 +276,15 @@ ssl_flush_write(struct Client *client_p)
   while((pending = BIO_pending(client_p->localClient->fd.write_bio)) > 0)
   {
     char *buffer = MyMalloc(pending);
-    uv_write_t *req = MyMalloc(sizeof(uv_write_t));
+    uv_write_t *req = BlockHeapAlloc(write_req_heap);
     uv_buf_t buf;
 
     int len = BIO_read(client_p->localClient->fd.write_bio, buffer, pending);
 
-    buf.base = buffer;
-    buf.len = len;
+    buf = uv_buf_init(buffer, len);
 
     uv_write(req, client_p->localClient->fd.handle, &buf, 1, 
-             ssl_write_callback);
+             write_callback);
   }
 }
 
@@ -339,7 +342,7 @@ ssl_handshake(struct Client *client_p, bool outgoing)
         return;
 
       case SSL_ERROR_WANT_READ:
-        uv_read_start(client_p->localClient->fd.handle, ssl_alloc_buffer,
+        uv_read_start(client_p->localClient->fd.handle, allocate_uv_buffer,
                       ssl_read_callback);
         return;
 

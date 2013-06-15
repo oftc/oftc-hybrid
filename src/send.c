@@ -205,14 +205,14 @@ send_message_remote(struct Client *to, struct Client *from,
 }
 
 static void
-write_callback(uv_write_t *req, int status)
+send_callback(uv_write_t *req, int status)
 {
   struct Client *client_p = req->data;
 
   if(status != 0)
     dead_link_on_write(client_p, uv_last_error(server_state.event_loop).code);
 
-  MyFree(req);
+  BlockHeapFree(write_req_heap, req);
 }
 
 /*
@@ -246,7 +246,7 @@ send_queued_write(struct Client *to)
   {
     first = to->localClient->buf_sendq.blocks.head->data;
 
-    req = MyMalloc(sizeof(uv_write_t));
+    req = BlockHeapAlloc(write_req_heap);
 #ifdef HAVE_LIBCRYPTO
 
     if (to->localClient->fd.ssl)
@@ -276,7 +276,7 @@ send_queued_write(struct Client *to)
       buf = uv_buf_init(first->data, first->size);
       req->data = to;
       if(uv_write(req, to->localClient->fd.handle, &buf, 1, 
-                  write_callback) != 0)
+                  send_callback) != 0)
         error = true;
       retlen = first->size;
 #ifdef HAVE_LIBCRYPTO
