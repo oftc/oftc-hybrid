@@ -42,6 +42,12 @@ dlink_list fd_list = { 0 };
 int number_fd = LEAKED_FDS;
 int hard_fdlimit = 0;
 
+static void
+close_callback(uv_handle_t *handle)
+{
+  MyFree(handle);
+}
+
 static int
 set_fdlimit()
 {
@@ -107,10 +113,8 @@ fd_close(fde_t *F)
 
   dlinkDelete(&F->fnode, &fd_list);
 
-  uv_close((uv_handle_t*)F->handle, NULL);
+  uv_close((uv_handle_t*)F->handle, close_callback);
   number_fd--;
-
-  MyFree(F->handle);
 
   memset(F, 0, sizeof(fde_t));
 }
@@ -181,6 +185,6 @@ close_fds(fde_t *one)
   {
     F = ptr->data;
     if (F != one)
-      uv_close((uv_handle_t *)&F->handle, NULL);
+      uv_close((uv_handle_t *)&F->handle, close_callback);
   }
 }
