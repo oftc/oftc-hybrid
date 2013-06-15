@@ -42,6 +42,7 @@ struct Listener;
 
 extern struct Callback *setup_socket_cb;
 extern BlockHeap *write_req_heap;
+extern BlockHeap *tcp_handle_heap;
 
 extern void add_connection(struct Listener *, struct sockaddr_storage *, 
                            uv_tcp_t *);

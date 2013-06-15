@@ -63,6 +63,7 @@ static void comm_connect_dns_callback(void *, const struct sockaddr_storage*,
 static PF comm_connect_tryconnect;
 
 BlockHeap *write_req_heap = NULL;
+BlockHeap *tcp_handle_heap = NULL;
 
 uv_buf_t 
 allocate_uv_buffer(uv_handle_t *handle, size_t suggested_size)
@@ -185,6 +186,8 @@ init_comm()
   setup_socket_cb = register_callback("setup_socket", setup_socket);
   write_req_heap = BlockHeapCreate("write_request", sizeof(uv_write_t),
                                    WRITE_REQ_HEAP_SIZE);
+  tcp_handle_heap = BlockHeapCreate("tcp_handle", sizeof(uv_tcp_t),
+                                    TCP_HANDLE_HEAP_SIZE);
 }
 
 /*
@@ -803,7 +806,7 @@ comm_open(fde_t *F, int family, int sock_type, const char *note)
   switch(sock_type)
   {
     case SOCK_STREAM:
-      handle = MyMalloc(sizeof(uv_tcp_t));
+      handle = BlockHeapAlloc(tcp_handle_heap);
       ret = uv_tcp_init(server_state.event_loop, (uv_tcp_t *)handle);
       break;
     case SOCK_DGRAM:

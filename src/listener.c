@@ -353,7 +353,7 @@ accept_connection(uv_stream_t *server, int status)
    * be accepted until some old is closed first.
    */
 
-  handle = MyMalloc(sizeof(uv_tcp_t));
+  handle = BlockHeapAlloc(tcp_handle_heap); 
 
   if(uv_tcp_init(server_state.event_loop, handle) != 0)
   {
