@@ -36,6 +36,7 @@
 #include "modules.h"
 #include "conf.h"
 #include "hostmask.h"
+#include "s_bsd.h"
 
 /*
  * Usage:
@@ -137,16 +138,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc,
     return;
   }
 
-  if(strchr(parv[4], ':') == NULL)
-  {
-    struct sockaddr_in v4 = uv_ip4_addr(parv[4], 0);
-    memcpy(&source_p->ip, &v4, sizeof(v4));
-  }
-  else
-  {
-    struct sockaddr_in6 v6 = uv_ip6_addr(parv[4], 0);
-    memcpy(&source_p->ip, &v6, sizeof(v6));
-  }
+  string_to_ip(parv[4], 0, &source_p->ip);
 
   strlcpy(original_sockhost, source_p->sockhost, sizeof(original_sockhost));
   strlcpy(source_p->sockhost, parv[4], sizeof(source_p->sockhost));
