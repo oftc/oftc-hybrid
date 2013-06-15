@@ -648,7 +648,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     /* We have a valid IP, so we just call tryconnect */
     /* Make sure we actually set the timeout here .. */
 
-    string_to_ip(host, 0, &fd->connect.hostaddr);
+    string_to_ip(host, port, &fd->connect.hostaddr);
     comm_settimeout(fd, timeout * 1000, comm_connect_timeout, NULL);
     comm_connect_tryconnect(fd, NULL);
   }
