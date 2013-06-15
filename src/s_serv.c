@@ -79,7 +79,7 @@ alloc_buffer(uv_handle_t *handle, size_t suggested_size)
  *      but in no particular order.
  */
 void
-write_links_file(void *notused)
+write_links_file(uv_timer_t *handle, int status)
 {
   MessageFileLine *next_mptr = NULL;
   MessageFileLine *mptr = NULL;
@@ -278,7 +278,7 @@ hunt_server(struct Client *client_p, struct Client *source_p,
  * is called earlier or later...)
  */
 void
-try_connections(void *unused)
+try_connections(uv_timer_t *handle, int status)
 {
   dlink_node *ptr;
   struct ConfItem *conf;

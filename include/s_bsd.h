@@ -51,7 +51,7 @@ extern int ignoreErrno(int);
 
 extern void comm_settimeout(fde_t *, time_t, PF *, void *);
 extern void comm_setflush(fde_t *, time_t, PF *, void *);
-extern void comm_checktimeouts(void *);
+extern void comm_checktimeouts(uv_timer_t *, int);
 extern void comm_connect_tcp(fde_t *, const char *, u_short,
                              struct sockaddr *, int, CNCB *, void *, int, int);
 extern const char *comm_errstr(int);

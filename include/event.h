@@ -31,12 +31,11 @@
  */
 #define  MAX_EVENTS  50
 
-typedef void EVH(void *);
-
 /* The list of event processes */
 struct ev_entry
 {
-  EVH         *func;
+  uv_timer_cb func;
+  uv_timer_t  handle;
   void        *arg;
   const char  *name;
   time_t      frequency;
@@ -44,12 +43,12 @@ struct ev_entry
   int         active;
 };
 
-extern void eventAdd(const char *, EVH *, void *, time_t);
-extern void eventAddIsh(const char *, EVH *, void *, time_t);
+extern void eventAdd(const char *, uv_timer_cb, void *, time_t);
+extern void eventAddIsh(const char *, uv_timer_cb, void *, time_t);
 extern void eventRun();
 extern time_t eventNextTime();
 extern void eventInit();
-extern void eventDelete(EVH *, void *);
+extern void eventDelete(uv_timer_cb, void *);
 extern void set_back_events(time_t);
 extern void show_events(struct Client *);
 

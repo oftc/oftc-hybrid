@@ -468,7 +468,7 @@ extern void write_conf_line(struct Client *, struct ConfItem *,
 extern int remove_conf_line(ConfType, struct Client *, const char *,
                             const char *);
 extern void add_temp_line(struct ConfItem *);
-extern void cleanup_tklines(void *);
+extern void cleanup_tklines(uv_timer_t *, int);
 extern const char *get_conf_name(ConfType);
 extern int rehash(int);
 extern int conf_add_server(struct ConfItem *, const char *);

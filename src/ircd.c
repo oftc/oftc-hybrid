@@ -238,12 +238,6 @@ io_loop()
       }
     }
 
-    /* Run pending events, then get the number of seconds to the next
-     * event
-     */
-    while (eventNextTime() <= CurrentTime)
-      eventRun();
-
     uv_run(server_state.event_loop, UV_RUN_ONCE);
     set_time();
     exit_aborted_clients();

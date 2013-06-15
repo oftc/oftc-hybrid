@@ -384,7 +384,7 @@ quote_splitmode(struct Client *source_p, char *charval)
                            get_oper_name(source_p));
 
       splitchecking = 1;
-      check_splitmode(NULL);
+      check_splitmode(NULL, 0);
     }
   }
   else
@@ -409,7 +409,7 @@ quote_splitnum(struct Client *source_p, int newval)
     split_servers = newval;
 
     if (splitchecking)
-      check_splitmode(NULL);
+      check_splitmode(NULL, 0);
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :SPLITNUM is currently %i",
@@ -428,7 +428,7 @@ quote_splitusers(struct Client *source_p, int newval)
     split_users = newval;
 
     if (splitchecking)
-      check_splitmode(NULL);
+      check_splitmode(NULL, 0);
   }
   else
     sendto_one(source_p, ":%s NOTICE %s :SPLITUSERS is currently %i",

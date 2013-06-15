@@ -81,7 +81,7 @@ enum
 static BlockHeap *auth_heap = NULL;
 static dlink_list auth_doing_list = { NULL, NULL, 0 };
 
-static EVH timeout_auth_queries_event;
+static void timeout_auth_queries_event(uv_timer_t *, int);
 
 static PF read_auth_reply;
 static CNCB auth_connect_callback;
@@ -402,7 +402,7 @@ start_auth(va_list args)
  * allow clients through if requests failed
  */
 static void
-timeout_auth_queries_event(void *notused)
+timeout_auth_queries_event(uv_timer_t *handle, int status)
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
 

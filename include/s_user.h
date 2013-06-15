@@ -57,7 +57,7 @@ extern void add_isupport(const char *, const char *, int);
 extern void delete_isupport(const char *);
 extern void init_isupport();
 extern void rebuild_isupport_message_line();
-extern void check_godmode(void *);
+extern void check_godmode(uv_timer_t *, int);
 
 extern void user_set_hostmask(struct Client *, const char *);
 #endif

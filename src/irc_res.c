@@ -208,7 +208,7 @@ timeout_query_list(time_t now)
  * timeout_resolver - check request list
  */
 static void
-timeout_resolver(void *notused)
+timeout_resolver(uv_timer_t *handle, int status)
 {
   timeout_query_list(CurrentTime);
 }

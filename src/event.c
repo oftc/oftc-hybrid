@@ -62,7 +62,7 @@
 static const char *last_event_ran = NULL;
 static struct ev_entry event_table[MAX_EVENTS];
 static time_t event_time_min = -1;
-static int eventFind(EVH *func, void *arg);
+static int eventFind(uv_timer_cb func, void *arg);
 
 /*
  * void eventAdd(const char *name, EVH *func, void *arg, time_t when)
@@ -73,7 +73,7 @@ static int eventFind(EVH *func, void *arg);
  * Side Effects: Adds the event to the event list.
  */
 void
-eventAdd(const char *name, EVH *func, void *arg, time_t when)
+eventAdd(const char *name, uv_timer_cb func, void *arg, time_t when)
 {
   int i;
 
@@ -88,9 +88,13 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
       event_table[i].when = CurrentTime + when;
       event_table[i].frequency = when;
       event_table[i].active = 1;
+      uv_timer_init(server_state.event_loop, &event_table[i].handle);
+      event_table[i].handle.data = arg;
 
       if ((event_table[i].when < event_time_min) || (event_time_min == -1))
         event_time_min = event_table[i].when;
+
+      uv_timer_start(&event_table[i].handle, func, when, when);
 
       return;
     }
@@ -108,13 +112,14 @@ eventAdd(const char *name, EVH *func, void *arg, time_t when)
  * Side Effects: Removes the event from the event list
  */
 void
-eventDelete(EVH *func, void *arg)
+eventDelete(uv_timer_cb func, void *arg)
 {
   int i = eventFind(func, arg);
 
   if (i == -1)
     return;
 
+  uv_timer_stop(&event_table[i].handle);
   event_table[i].name = NULL;
   event_table[i].func = NULL;
   event_table[i].arg = NULL;
@@ -131,7 +136,7 @@ eventDelete(EVH *func, void *arg)
  *           specified frequency.
  */
 void
-eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_ish)
+eventAddIsh(const char *name, uv_timer_cb func, void *arg, time_t delta_ish)
 {
   if (delta_ish >= 3.0)
   {
@@ -144,55 +149,6 @@ eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_ish)
   }
 
   eventAdd(name, func, arg, delta_ish);
-}
-
-/*
- * void eventRun()
- *
- * Input: None
- * Output: None
- * Side Effects: Runs pending events in the event list
- */
-void
-eventRun()
-{
-  int i;
-
-  for (i = 0; i < MAX_EVENTS; i++)
-  {
-    if (event_table[i].active && (event_table[i].when <= CurrentTime))
-    {
-      last_event_ran = event_table[i].name;
-      event_table[i].func(event_table[i].arg);
-      event_table[i].when = CurrentTime + event_table[i].frequency;
-      event_time_min = -1;
-    }
-  }
-}
-
-/*
- * time_t eventNextTime()
- *
- * Input: None
- * Output: Specifies the next time eventRun() should be run
- * Side Effects: None
- */
-time_t
-eventNextTime()
-{
-  int i;
-
-  if (event_time_min == -1)
-  {
-    for (i = 0; i < MAX_EVENTS; i++)
-    {
-      if (event_table[i].active && ((event_table[i].when < event_time_min)
-                                    || (event_time_min == -1)))
-        event_time_min = event_table[i].when;
-    }
-  }
-
-  return (event_time_min);
 }
 
 /*
@@ -217,7 +173,7 @@ eventInit()
  * Side Effects: None
  */
 static int
-eventFind(EVH *func, void *arg)
+eventFind(uv_timer_cb func, void *arg)
 {
   int i;
 

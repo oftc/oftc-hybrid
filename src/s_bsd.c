@@ -549,7 +549,7 @@ comm_setflush(fde_t *fd, time_t timeout, PF *callback, void *cbdata)
  * this will happen.
  */
 void
-comm_checktimeouts(void *notused)
+comm_checktimeouts(uv_timer_t *handle, int status)
 {
   fde_t *F;
   PF *hdl;

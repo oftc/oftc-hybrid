@@ -1558,7 +1558,7 @@ rebuild_isupport_message_line()
 }
 
 void
-check_godmode(void *unused)
+check_godmode(uv_timer_t *handle, int status)
 {
   dlink_node *ptr;
   unsigned int old;

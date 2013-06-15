@@ -1971,7 +1971,7 @@ add_temp_line(struct ConfItem *conf)
  *                This is an event started off in ircd.c
  */
 void
-cleanup_tklines(void *notused)
+cleanup_tklines(uv_timer_t *handle, int status)
 {
   hostmask_expire_temporary();
   expire_tklines(&temporary_xlines);

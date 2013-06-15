@@ -114,7 +114,7 @@ extern void del_invite(struct Channel *, struct Client *);
 extern void send_channel_modes(struct Client *, struct Channel *);
 extern void channel_modes(struct Channel *, struct Client *, char *, char *);
 extern void check_spambot_warning(struct Client *, const char *);
-extern void check_splitmode(void *);
+extern void check_splitmode(uv_timer_t *, int);
 extern void free_channel_list(dlink_list *);
 extern void destroy_channel(struct Channel *);
 extern void set_channel_topic(struct Channel *, const char *, const char *,

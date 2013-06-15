@@ -889,7 +889,7 @@ check_spambot_warning(struct Client *source_p, const char *name)
  * \param unused Unused address pointer
  */
 void
-check_splitmode(void *unused)
+check_splitmode(uv_timer_t *handle, int status)
 {
   if (splitchecking && (ConfigChannel.no_join_on_split ||
                         ConfigChannel.no_create_on_split))

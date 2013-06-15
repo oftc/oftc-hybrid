@@ -40,8 +40,8 @@
 
 #define SHED_RATE_MIN 5
 
-void user_shedding_main(void *rate);
-void user_shedding_shed(void *unused);
+void user_shedding_main(uv_timer_t *, int);
+void user_shedding_shed(uv_timer_t *, int);
 
 /* Local function prototypes */
 
@@ -113,7 +113,8 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
   eventAdd("user shedding main event", user_shedding_main, NULL, rate);
 }
 
-void user_shedding_main(void *unused)
+void 
+user_shedding_main(uv_timer_t *handle, int status)
 {
   int deviation = (rate / (3 + (int)(7.0f * rand() / (RAND_MAX + 1.0f))));
 
@@ -121,7 +122,8 @@ void user_shedding_main(void *unused)
               rate + deviation);
 }
 
-void user_shedding_shed(void *unused)
+void 
+user_shedding_shed(uv_timer_t *handle, int status)
 {
   dlink_node *ptr;
   struct Client *client_p;

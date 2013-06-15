@@ -61,7 +61,7 @@ dlink_list serv_list = {NULL, NULL, 0};
 dlink_list global_serv_list = {NULL, NULL, 0};
 dlink_list oper_list = {NULL, NULL, 0};
 
-static EVH check_pings;
+static void check_pings(uv_timer_t *, int);
 
 static BlockHeap *client_heap  = NULL;
 BlockHeap *lclient_heap = NULL;
@@ -219,7 +219,7 @@ free_client(struct Client *client_p)
  */
 
 static void
-check_pings(void *notused)
+check_pings(uv_timer_t *handle, int status)
 {
   check_pings_list(&local_client_list);
   check_pings_list(&serv_list);
@@ -526,7 +526,7 @@ update_client_exit_stats(struct Client *client_p)
                          client_p->name, client_p->servptr->name);
 
   if (splitchecking && !splitmode)
-    check_splitmode(NULL);
+    check_splitmode(NULL, 0);
 }
 
 /* find_person()
