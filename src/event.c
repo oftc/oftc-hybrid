@@ -94,7 +94,7 @@ eventAdd(const char *name, uv_timer_cb func, void *arg, time_t when)
       if ((event_table[i].when < event_time_min) || (event_time_min == -1))
         event_time_min = event_table[i].when;
 
-      uv_timer_start(&event_table[i].handle, func, when, when);
+      uv_timer_start(&event_table[i].handle, func, when / 1000, when / 1000);
 
       return;
     }
