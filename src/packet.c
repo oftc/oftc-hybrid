@@ -301,26 +301,33 @@ void
 read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 {
   struct Client *client_p = stream->data;
-  int length;
+  char *buffer;
+  int length = 0;
+  bool is_ssl;
 
   if (IsDefunct(client_p))
     return;
 
-  /*
-   * Read some data. We *used to* do anti-flood protection here, but
-   * I personally think it makes the code too hairy to make sane.
-   *     -- adrian
-   */
+  if(nread <= 0)
+  {
+    dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
+    return;
+  }
+
 #ifdef HAVE_LIBCRYPTO
-  if (client_p->localClient->fd.ssl)
+  is_ssl = client_p->localClient->fd.ssl != NULL;
+  if (is_ssl)
   {
     BIO_write(client_p->localClient->fd.read_bio, buf.base, nread);
 
+    int pending = BIO_pending(client_p->localClient->fd.read_bio);
     int offset = 0;
-    while(BIO_pending(client_p->localClient->fd.read_bio))
+    buffer = MyMalloc(pending);
+
+    while(BIO_pending(client_p->localClient->fd.read_bio) != 0)
     {
-      int len = SSL_read(client_p->localClient->fd.ssl, buf.base + offset, 
-                        nread - offset);
+      int len = SSL_read(client_p->localClient->fd.ssl, buffer + offset, 
+                        pending - offset);
       if(len == -1)
       {
         int err = SSL_get_error(client_p->localClient->fd.ssl, len);
@@ -344,17 +351,17 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
     }
   }
   else
+#endif
   {
     length = nread;
-  }
-#endif
-  if (length <= 0)
-  {
-    dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
-    return;
+    buffer = buf.base;
+    is_ssl = false;
   }
 
-  execute_callback(iorecv_cb, client_p, length, buf.base);
+  execute_callback(iorecv_cb, client_p, length, buffer);
+
+  if(is_ssl)
+    MyFree(buffer);
 
   if (IsServer(client_p) && IsPingSent(client_p) && IsPingWarning(client_p))
   {
