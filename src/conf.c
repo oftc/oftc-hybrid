@@ -1703,7 +1703,6 @@ set_default_conf()
 
   memset(&ServerInfo.ip, 0, sizeof(ServerInfo.ip));
   ServerInfo.specific_ipv4_vhost = 0;
-  memset(&ServerInfo.ip6, 0, sizeof(ServerInfo.ip6));
   ServerInfo.specific_ipv6_vhost = 0;
 
   ServerInfo.max_clients = MAXCLIENTS_MAX;

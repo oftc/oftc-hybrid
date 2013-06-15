@@ -49,6 +49,7 @@
 #include "numeric.h"
 #include "s_user.h"
 #include "s_misc.h"
+#include "s_bsd.h"
 
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/rsa.h>
@@ -683,7 +684,7 @@ serverinfo_vhost: VHOST '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2 && *yylval.string != '*')
   {
-    ServerInfo.ip = uv_ip4_addr(yylval.string, 0);
+    string_to_ip(yylval.string, 0, &ServerInfo.ip);
     ServerInfo.specific_ipv4_vhost = 1;
   }
 };
@@ -692,7 +693,7 @@ serverinfo_vhost6: VHOST6 '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2 && *yylval.string != '*')
   {
-    ServerInfo.ip6 = uv_ip6_addr(yylval.string, 0);
+    string_to_ip(yylval.string, 0, &ServerInfo.ip);
     ServerInfo.specific_ipv6_vhost = 1;
   }
 };

@@ -388,15 +388,14 @@ struct server_info
   SSL_CTX             *client_ctx;
 #endif
   int hub;
-  struct sockaddr_in  ip;
-  struct sockaddr_in6 ip6;
-  unsigned int        max_clients;
-  unsigned int        max_nick_length;
-  unsigned int        max_topic_length;
-  int                 specific_ipv4_vhost;
-  int                 specific_ipv6_vhost;
-  struct sockaddr_in  dns_host;
-  int                 can_use_v6;
+  struct sockaddr_storage ip;
+  unsigned int            max_clients;
+  unsigned int            max_nick_length;
+  unsigned int            max_topic_length;
+  int                     specific_ipv4_vhost;
+  int                     specific_ipv6_vhost;
+  struct sockaddr_in      dns_host;
+  int                     can_use_v6;
 };
 
 struct admin_info
