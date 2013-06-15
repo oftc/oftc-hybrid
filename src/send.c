@@ -204,29 +204,6 @@ send_message_remote(struct Client *to, struct Client *from,
   send_message(to, buf, len);
 }
 
-/*
- ** sendq_unblocked
- **      Called when a socket is ready for writing.
- */
-void
-sendq_unblocked(fde_t *fd, struct Client *client_p)
-{
-#if 0
-  ClearSendqBlocked(client_p);
-  /* let send_queued_write be executed by send_queued_all */
-
-#ifdef HAVE_LIBCRYPTO
-
-  if (fd->flags.pending_read)
-  {
-    fd->flags.pending_read = 0;
-    read_packet(fd, client_p);
-  }
-
-#endif
-#endif
-}
-
 static void
 write_callback(uv_write_t *req, int status)
 {

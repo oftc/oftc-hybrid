@@ -41,7 +41,6 @@ extern struct Callback *iosend_cb;
 
 /* send.c prototypes */
 
-extern void sendq_unblocked(fde_t *, struct Client *);
 extern void send_queued_write(struct Client *);
 extern void send_queued_all();
 extern void sendto_one(struct Client *, const char *, ...) AFP(2, 3);

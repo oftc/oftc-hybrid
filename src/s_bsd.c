@@ -169,7 +169,6 @@ void
 init_comm()
 {
   setup_socket_cb = register_callback("setup_socket", setup_socket);
-  //init_netio();
 }
 
 /*
@@ -293,7 +292,10 @@ ssl_read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
   bool outgoing = SSL_in_connect_init(client_p->localClient->fd.ssl);
 
   if(nread <= 0)
-    ; // XXX DO SOMETHING
+  {
+    dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
+    return;
+  }
 
   BIO_write(client_p->localClient->fd.read_bio, buf.base, nread);
 
