@@ -37,8 +37,6 @@
 #include "send.h"
 #include "s_misc.h"
 
-#define READBUF_SIZE 16384
-
 struct Callback *iorecv_cb = NULL;
 
 static void client_dopacket(struct Client *, char *, size_t);
@@ -323,14 +321,21 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
     {
       int len = SSL_read(client_p->localClient->fd.ssl, buf.base + offset, 
                         nread - offset);
-      int err = SSL_get_error(client_p->localClient->fd.ssl, len);
-
-      switch(err)
-      {
-      }
-
       if(len == -1)
-        ssl_flush_write(client_p);
+      {
+        int err = SSL_get_error(client_p->localClient->fd.ssl, len);
+
+        switch(err)
+        {
+          case SSL_ERROR_WANT_READ:
+          case SSL_ERROR_WANT_WRITE:
+            ssl_flush_write(client_p);
+            break;
+
+          default:
+            break;
+        }
+      }
       else
       {
         offset += len;

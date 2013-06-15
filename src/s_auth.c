@@ -83,11 +83,23 @@ static dlink_list auth_doing_list = { NULL, NULL, 0 };
 
 static void timeout_auth_queries_event(uv_timer_t *, int);
 
-static PF read_auth_reply;
+static void read_auth_reply(uv_stream_t *, ssize_t, uv_buf_t);
 static CNCB auth_connect_callback;
 static CBFUNC start_auth;
 
 struct Callback *auth_cb = NULL;
+
+static uv_buf_t
+auth_alloc(uv_handle_t *handle, size_t suggested_size)
+{
+  return uv_buf_init(MyMalloc(suggested_size), suggested_size);
+}
+
+static void
+auth_send_callback(uv_write_t *req, int status)
+{
+  MyFree(req);
+}
 
 /* init_auth()
  *
@@ -267,6 +279,8 @@ start_auth_query(struct AuthRequest *auth)
     ++ServerStats.is_abad;
     return 0;
   }
+
+  auth->client->localClient->auth_fd.handle->data = auth;
 
   sendheader(auth->client, REPORT_DO_ID);
 
@@ -453,10 +467,12 @@ auth_connect_callback(fde_t *fd, int error, void *data)
   struct sockaddr_storage us;
   struct sockaddr_storage them;
   char authbuf[32];
-  //socklen_t ulen = sizeof(struct irc_ssaddr);
-  //socklen_t tlen = sizeof(struct irc_ssaddr);
+  int ulen = sizeof(struct sockaddr_storage);
+  int tlen = sizeof(struct sockaddr_storage);
   uint16_t uport, tport;
   struct sockaddr_in6 *v6;
+  uv_write_t *req;
+  uv_buf_t buf;
 
   if (error != COMM_OK)
   {
@@ -464,16 +480,16 @@ auth_connect_callback(fde_t *fd, int error, void *data)
     return;
   }
 
-  /*if (getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&us,
-                  &ulen) ||
-      getpeername(auth->client->localClient->fd.fd, (struct sockaddr *)&them,
-                  &tlen))
+  if (uv_tcp_getsockname((uv_tcp_t *)auth->client->localClient->fd.handle, 
+                         (struct sockaddr *)&us, &ulen) != 0 ||
+      uv_tcp_getpeername((uv_tcp_t *)auth->client->localClient->fd.handle, 
+                         (struct sockaddr *)&them, &tlen) != 0)
   {
     ilog(LOG_TYPE_IRCD, "auth get{sock,peer}name error for %s",
          get_client_name(auth->client, SHOW_IP));
     auth_error(auth);
     return;
-  }*/
+  }
 
   v6 = (struct sockaddr_in6 *)&us;
   uport = ntohs(v6->sin6_port);
@@ -484,13 +500,23 @@ auth_connect_callback(fde_t *fd, int error, void *data)
 
   snprintf(authbuf, sizeof(authbuf), "%u , %u\r\n", tport, uport);
 
-  /*if (send(fd->fd, authbuf, strlen(authbuf), 0) == -1)
+  req = MyMalloc(sizeof(uv_write_t));
+
+  buf = uv_buf_init(authbuf, sizeof(authbuf));
+
+  if(uv_write(req, auth->client->localClient->auth_fd.handle, &buf, 1, 
+              auth_send_callback) != 0)
   {
     auth_error(auth);
     return;
-  }*/
+  }
 
-  read_auth_reply(&auth->client->localClient->auth_fd, auth);
+  if(uv_read_start(auth->client->localClient->auth_fd.handle,
+                    auth_alloc, read_auth_reply) != 0)
+  {
+    auth_error(auth);
+    return;
+  }
 }
 
 /*
@@ -502,67 +528,44 @@ auth_connect_callback(fde_t *fd, int error, void *data)
 #define AUTH_BUFSIZ 128
 
 static void
-read_auth_reply(fde_t *fd, void *data)
+read_auth_reply(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 {
-  struct AuthRequest *auth = data;
+  struct AuthRequest *auth = stream->data;
   char *s = NULL;
   char *t = NULL;
-  int len;
   int count;
-  char buf[AUTH_BUFSIZ + 1]; /* buffer to read auth reply into */
 
-  /* Why?
-   * Well, recv() on many POSIX systems is a per-packet operation,
-   * and we do not necessarily want this, because on lowspec machines,
-   * the ident response may come back fragmented, thus resulting in an
-   * invalid ident response, even if the ident response was really OK.
-   *
-   * So PLEASE do not change this code to recv without being aware of the
-   * consequences.
-   *
-   *    --nenolod
-   */
-  //len = read(fd->fd, buf, AUTH_BUFSIZ);
-  len = 0;
-
-  if (len < 0)
+  if (nread <= 0)
   {
-    if (ignoreErrno(errno))
-      ;//comm_setselect(fd, COMM_SELECT_READ, read_auth_reply, auth, 0);
-    else
-      auth_error(auth);
-
+    auth_error(auth);
     return;
   }
 
-  if (len > 0)
+  buf.base[nread] = '\0';
+
+  if ((s = GetValidIdent(buf.base)))
   {
-    buf[len] = '\0';
+    t = auth->client->username;
 
-    if ((s = GetValidIdent(buf)))
+    while (*s == '~' || *s == '^')
+      s++;
+
+    for (count = USERLEN; *s && count; s++)
     {
-      t = auth->client->username;
+      if (*s == '@')
+        break;
 
-      while (*s == '~' || *s == '^')
-        s++;
-
-      for (count = USERLEN; *s && count; s++)
+      if (!IsSpace(*s) && *s != ':' && *s != '[')
       {
-        if (*s == '@')
-          break;
-
-        if (!IsSpace(*s) && *s != ':' && *s != '[')
-        {
-          *t++ = *s;
-          count--;
-        }
+        *t++ = *s;
+        count--;
       }
-
-      *t = '\0';
     }
+
+    *t = '\0';
   }
 
-  fd_close(fd);
+  fd_close(&auth->client->localClient->auth_fd);
 
   ClearAuth(auth);
 
