@@ -29,7 +29,6 @@
 
 %{
 
-#define IN_LEXER 1
 #include "stdinc.h"
 #include "irc_string.h"
 #include "conf.h"
@@ -37,7 +36,6 @@
 #include "memory.h"
 #include "hostmask.h"
 #include "log.h"
-#undef IN_LEXER
 
 #undef YY_INPUT
 #define YY_FATAL_ERROR(msg) conf_yy_fatal_error(msg)
