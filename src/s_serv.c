@@ -1412,6 +1412,8 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   assert(client_p != NULL);
   assert(&client_p->localClient->fd == fd);
 
+  fd->handle->data = client_p;
+
   /* Next, for backward purposes, record the ip of the server */
   memcpy(&client_p->ip, &fd->connect.hostaddr, sizeof(&client_p->ip));
 
