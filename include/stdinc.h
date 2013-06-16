@@ -42,6 +42,7 @@
 typedef int bool;
 #define true 1
 #define false 0
+#define snprintf _snprintf
 #endif
 
 #include <stddef.h>
