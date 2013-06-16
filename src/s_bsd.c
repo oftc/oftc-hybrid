@@ -81,6 +81,23 @@ write_callback(uv_write_t *req, int status)
 }
 
 void
+close_callback(uv_handle_t *handle)
+{
+  switch(handle->type)
+  {
+    case UV_TCP:
+      BlockHeapFree(tcp_handle_heap, handle);
+      break;
+    case UV_UDP:
+      BlockHeapFree(udp_handle_heap, handle);
+      break;
+    default:
+      MyFree(handle);
+      break;
+  }
+}
+
+void
 string_to_ip(const char *ipstr, unsigned int port, 
              struct sockaddr_storage *addr)
 {

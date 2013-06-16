@@ -42,12 +42,6 @@ static void accept_connection(uv_stream_t *, int);
 static dlink_list ListenerPollList = { NULL, NULL, 0 };
 static void close_listener(struct Listener *listener);
 
-static void
-listener_close_callback(uv_handle_t *handle)
-{
-  MyFree(handle);
-}
-
 static struct Listener *
 make_listener(int port, struct sockaddr_storage *addr)
 {
@@ -387,7 +381,7 @@ accept_connection(uv_stream_t *server, int status)
     listener_send(listener, handle, ALLINUSE_WARNING, 
                   sizeof(ALLINUSE_WARNING) - 1);
 
-    uv_close((uv_handle_t *)handle, listener_close_callback);
+    uv_close((uv_handle_t *)handle, close_callback);
     return;
   }
 
@@ -412,7 +406,7 @@ accept_connection(uv_stream_t *server, int status)
         break;
     }
 
-    uv_close((uv_handle_t *)handle, listener_close_callback);
+    uv_close((uv_handle_t *)handle, close_callback);
     return;
   }
 

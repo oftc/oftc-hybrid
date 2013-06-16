@@ -42,23 +42,6 @@ dlink_list fd_list = { 0 };
 int number_fd = LEAKED_FDS;
 int hard_fdlimit = 0;
 
-static void
-close_callback(uv_handle_t *handle)
-{
-  switch(handle->type)
-  {
-    case UV_TCP:
-      BlockHeapFree(tcp_handle_heap, handle);
-      break;
-    case UV_UDP:
-      BlockHeapFree(udp_handle_heap, handle);
-      break;
-    default:
-      MyFree(handle);
-      break;
-  }
-}
-
 static int
 set_fdlimit()
 {

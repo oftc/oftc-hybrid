@@ -83,5 +83,6 @@ extern void ssl_handshake(struct Client *, bool);
 extern void ssl_flush_write(struct Client *);
 extern uv_buf_t allocate_uv_buffer(uv_handle_t *, size_t);
 extern void write_callback(uv_write_t *, int);
+extern void close_callback(uv_handle_t *);
 
 #endif /* INCLUDED_s_bsd_h */
