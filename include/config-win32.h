@@ -16,7 +16,7 @@
 #define CLIENT_HEAP_SIZE 1024
 
 /* Set to datadir. */
-#define DDIR "/home/stu/ircd/share"
+#define DDIR "c:/ircdshare"
 
 /* Size of the dbuf heap. */
 #define DBUF_HEAP_SIZE 512
@@ -105,10 +105,10 @@
 #define LCLIENT_HEAP_SIZE 512
 
 /* Set to libdir. */
-#define LIBDIR "/home/stu/ircd/lib"
+#define LIBDIR "C:/ircd/lib"
 
 /* Set to localstatedir. */
-#define LOCALSTATEDIR "/home/stu/ircd/var"
+#define LOCALSTATEDIR "c:/ircd/var"
 
 /* Define to the system default library search path. */
 #define LT_DLSEARCH_PATH "/lib:/usr/lib"
@@ -167,13 +167,13 @@
 #define PACKAGE_VERSION "1.7.0-alpha1"
 
 /* Set to prefix. */
-#define PREFIX "/home/stu/ircd"
+#define PREFIX "C:/ircd"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
 /* Set to sysconfdir. */
-#define SYSCONFDIR "/home/stu/ircd/etc"
+#define SYSCONFDIR "c:/ircd/etc"
 
 /* Size of the TCP handle heap. */
 #define TCP_HANDLE_HEAP_SIZE 64
