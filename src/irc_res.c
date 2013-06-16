@@ -315,7 +315,7 @@ delete_resolver_queries(const void *vptr)
 static void
 dns_send_callback(uv_udp_send_t *req, int status)
 {
-  MyFree(req);
+  BlockHeapFree(udp_send_handle_heap, req);
 }
 
 /*
@@ -345,7 +345,7 @@ send_res_msg(const char *msg, int len, int rcount)
   for (i = 0; i < max_queries; i++)
   {
     int ret;
-    uv_udp_send_t *req = MyMalloc(sizeof(uv_udp_send_t));
+    uv_udp_send_t *req = BlockHeapAlloc(udp_send_handle_heap);
 
     switch(irc_nsaddr_list[i].ss_family)
     {

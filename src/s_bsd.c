@@ -64,11 +64,14 @@ static PF comm_connect_tryconnect;
 
 BlockHeap *write_req_heap = NULL;
 BlockHeap *tcp_handle_heap = NULL;
+BlockHeap *udp_handle_heap = NULL;
+BlockHeap *udp_send_handle_heap = NULL;
+BlockHeap *buffer_heap = NULL;
 
 uv_buf_t 
 allocate_uv_buffer(uv_handle_t *handle, size_t suggested_size)
 {
-  return uv_buf_init(MyMalloc(suggested_size), suggested_size);
+  return uv_buf_init(BlockHeapAlloc(buffer_heap), READBUF_SIZE);
 }
 
 void
@@ -188,6 +191,11 @@ init_comm()
                                    WRITE_REQ_HEAP_SIZE);
   tcp_handle_heap = BlockHeapCreate("tcp_handle", sizeof(uv_tcp_t),
                                     TCP_HANDLE_HEAP_SIZE);
+  udp_handle_heap = BlockHeapCreate("udp_handle", sizeof(uv_udp_t),
+                                    UDP_HANDLE_HEAP_SIZE);
+  udp_send_handle_heap = BlockHeapCreate("udp_send_handle", sizeof(uv_udp_send_t),
+                                    UDP_SEND_HANDLE_HEAP_SIZE);
+  buffer_heap = BlockHeapCreate("buffer_handle", READBUF_SIZE, BUFFER_HEAP_SIZE);
 }
 
 /*
@@ -276,7 +284,7 @@ ssl_flush_write(struct Client *client_p)
 {
   while(BIO_pending(client_p->localClient->fd.write_bio) > 0)
   {
-    char buffer[16384];
+    char buffer[READBUF_SIZE];
     uv_write_t *req = BlockHeapAlloc(write_req_heap);
     uv_buf_t buf;
 
@@ -298,6 +306,7 @@ ssl_read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 
   if(nread <= 0)
   {
+    BlockHeapFree(buffer_heap, buf.base);
     dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
     return;
   }
@@ -307,6 +316,8 @@ ssl_read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
   uv_read_stop(stream);
 
   ssl_handshake(client_p, outgoing);
+
+  BlockHeapFree(buffer_heap, buf.base);
 }
 
 #ifdef HAVE_LIBCRYPTO
@@ -809,7 +820,7 @@ comm_open(fde_t *F, int family, int sock_type, const char *note)
       ret = uv_tcp_init(server_state.event_loop, (uv_tcp_t *)handle);
       break;
     case SOCK_DGRAM:
-      handle = MyMalloc(sizeof(uv_udp_t));
+      handle = BlockHeapAlloc(udp_handle_heap);
       ret = uv_udp_init(server_state.event_loop, (uv_udp_t *)handle);
       break;
   }

@@ -36,13 +36,19 @@
 /* How long can comm_select() wait for network events [milliseconds] */
 #define SELECT_DELAY        500
 
+#define READBUF_SIZE 16384
+
 struct Client;
 struct AccessItem;
 struct Listener;
 
 extern struct Callback *setup_socket_cb;
+
 extern BlockHeap *write_req_heap;
 extern BlockHeap *tcp_handle_heap;
+extern BlockHeap *udp_handle_heap;
+extern BlockHeap *udp_send_handle_heap;
+extern BlockHeap *buffer_heap;
 
 extern void add_connection(struct Listener *, struct sockaddr_storage *, 
                            uv_tcp_t *);

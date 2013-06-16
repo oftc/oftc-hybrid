@@ -37,8 +37,6 @@
 #include "send.h"
 #include "s_misc.h"
 
-#define READBUF_SIZE 16384
-
 struct Callback *iorecv_cb = NULL;
 
 static void client_dopacket(struct Client *, char *, size_t);
@@ -271,11 +269,15 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
   char *buffer;
 
   if (IsDefunct(client_p))
+  {
+    BlockHeapFree(buffer_heap, buf.base);
     return;
+  }
 
   if(nread <= 0)
   {
     dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
+    BlockHeapFree(buffer_heap, buf.base);
     return;
   }
 
@@ -326,6 +328,8 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 
   if(length != 0)
     execute_callback(iorecv_cb, client_p, length, buffer);
+
+  BlockHeapFree(buffer_heap, buf.base);
 
   // This could happen if we have some ssl data but not enough to decrypt
   if(length == 0)
