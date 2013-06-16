@@ -733,9 +733,8 @@ res_readreply(uv_udp_t *handle, ssize_t nread, uv_buf_t buf,
    * lateron, this is neeeded. --FaUl
    */
 #if defined(__sparc__) || defined(__alpha__)
-  __attribute__((aligned(16)))
+  __attribute__((aligned(16)));
 #endif
-  ;
   HEADER *header;
   struct reslist *request = NULL;
 

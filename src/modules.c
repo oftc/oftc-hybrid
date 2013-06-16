@@ -22,8 +22,6 @@
  *  $Id$
  */
 
-#include "ltdl.h"
-
 #include "stdinc.h"
 #include "list.h"
 #include "modules.h"
@@ -38,10 +36,13 @@
 #include "irc_string.h"
 #include "memory.h"
 #include "list.h"
+#ifndef _WIN32
 #include <libgen.h>
 
 #define SHARED_SUFFIX ".so"
-
+#else
+#define SHARED_SUFFIC ".dll"
+#endif
 
 dlink_list modules_list = { NULL, NULL, 0 };
 

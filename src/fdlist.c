@@ -127,7 +127,12 @@ fd_dump(struct Client *source_p)
     F = ptr->data;
     sendto_one(source_p, ":%s %d %s :fd %-5d desc '%s'",
                me.name, RPL_STATSDEBUG, source_p->name,
+// XXX If uv had a way to get the fd this wouldn't be necessary
+#ifdef _WIN32
+               ((uv_tcp_t *)F->handle)->socket, F->desc);
+#else
                F->handle->io_watcher.fd, F->desc);
+#endif
   }
 }
 

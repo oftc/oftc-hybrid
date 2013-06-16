@@ -69,7 +69,7 @@ struct server_info ServerInfo;
 struct admin_info AdminInfo = { NULL, NULL, NULL };
 struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 struct ServerState_t server_state = { 0 };
-struct logging_entry ConfigLoggingEntry = { .use_logging = 1 };
+struct logging_entry ConfigLoggingEntry = { 1 };
 struct ServerStatistics ServerStats;
 struct timeval SystemTime;
 struct Client me;             /* That's me */
