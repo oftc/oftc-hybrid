@@ -46,6 +46,7 @@ static int
 set_fdlimit()
 {
   int fdmax;
+#ifndef _WIN32
   struct rlimit limit;
 
   if (!getrlimit(RLIMIT_NOFILE, &limit))
@@ -55,6 +56,7 @@ set_fdlimit()
   }
 
   fdmax = getdtablesize();
+#endif
 
   /* allow MAXCLIENTS_MIN clients even at the cost of MAX_BUFFER and
    * some not really LEAKED_FDS */

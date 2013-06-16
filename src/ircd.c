@@ -378,7 +378,7 @@ check_pidfile(const char *filename)
 {
   FILE *fb;
   char buff[32];
-  pid_t pidfromfile;
+  int pidfromfile;
 
   /* Don't do logging here, since we don't have log() initialised */
   if ((fb = fopen(filename, "r")))
@@ -391,9 +391,12 @@ check_pidfile(const char *filename)
     }
     else
     {
+      uv_err_t err;
+
       pidfromfile = atoi(buff);
 
-      if (!kill(pidfromfile, 0))
+      err = uv_kill(pidfromfile, 0);
+      if (err.code == 0)
       {
         /* log(L_ERROR, "Server is already running"); */
         printf("ircd: daemon is already running\n");

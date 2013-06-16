@@ -41,7 +41,7 @@
 
 #define SHARED_SUFFIX ".so"
 #else
-#define SHARED_SUFFIC ".dll"
+#define SHARED_SUFFIX ".dll"
 #endif
 
 dlink_list modules_list = { NULL, NULL, 0 };

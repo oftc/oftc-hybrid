@@ -71,10 +71,12 @@ sigusr1_handler(int sig)
 static void
 sigchld_handler(int sig)
 {
+#ifndef _WIN32
   int status;
 
   while (waitpid(-1, &status, WNOHANG) > 0)
     ;
+#endif
 }
 
 /*
@@ -92,6 +94,7 @@ sigint_handler(int sig)
 void
 setup_signals()
 {
+#ifndef _WIN32
   struct sigaction act;
 
   act.sa_flags = 0;
@@ -138,4 +141,5 @@ setup_signals()
   act.sa_handler = sigchld_handler;
   sigaddset(&act.sa_mask, SIGCHLD);
   sigaction(SIGCHLD, &act, 0);
+#endif
 }

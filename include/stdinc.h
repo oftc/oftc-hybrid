@@ -63,6 +63,9 @@ typedef int bool;
 #include <crypt.h>
 #endif
 
+#include <uv.h>
+#undef ECHO // this is pulled in from uv, bleh
+
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -108,9 +111,6 @@ typedef int bool;
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
-
-#include <uv.h>
-#undef ECHO // this is pulled in from uv, bleh
 
 #ifdef PATH_MAX
 #define HYB_PATH_MAX PATH_MAX
