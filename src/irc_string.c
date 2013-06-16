@@ -164,29 +164,6 @@ strtoken(char **save, char *str, const char *fs)
 }
 #endif /* !HAVE_STRTOK_R */
 
-#ifndef HAVE_BASENAME
-
-/* basename()
- *
- * input  - i.e. "/usr/local/ircd/modules/m_whois.so"
- * output  - i.e. "m_whois.so"
- * side effects - this will be overwritten on subsequent calls
- */
-char *
-basename(char *path)
-{
-  char *s;
-
-  if ((s = strrchr(path, '/')) == NULL)
-    s = path;
-  else
-    s++;
-
-  return s;
-}
-
-#endif /* !HAVE_BASENAME */
-
 /*
  * strlcat and strlcpy were ripped from openssh 2.5.1p2
  * They had the following Copyright info:

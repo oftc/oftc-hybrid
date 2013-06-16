@@ -120,7 +120,7 @@ load_a_module(const char *path, int warn)
   const char *mod_basename = NULL;
   struct module *modp = NULL;
 
-  if (findmodule_byname((mod_basename = basename(path))))
+  if (findmodule_byname((mod_basename = basename((char *)path))))
     return 1;
 
   if (!(tmpptr = lt_dlopen(path)))
