@@ -53,7 +53,7 @@ static void ms_realhost(struct Client *source_p, struct Client *client_p,
 
 struct Message realhost_msgtab =
 {
-  "REALHOST", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "REALHOST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_ignore, m_ignore, ms_realhost, m_ignore}
 };
 

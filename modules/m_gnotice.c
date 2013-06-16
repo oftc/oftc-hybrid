@@ -65,7 +65,7 @@ ms_gnotice(struct Client *client_p, struct Client *source_p, int parc,
 
 struct Message gnotice_msgtab =
 {
-  "GNOTICE", 0, 0, 3, 0, MFLG_SLOW, 0L,
+  "GNOTICE", 0, 0, 3, MAXPARA, MFLG_SLOW, 0L,
   { m_ignore, m_ignore, ms_gnotice, m_ignore, m_ignore, m_ignore }
 };
 

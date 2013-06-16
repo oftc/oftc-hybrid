@@ -146,7 +146,7 @@ user_shedding_shed(uv_timer_t *handle, int status)
 
 struct Message shedding_msgtab =
 {
-  "shedding", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "SHEDDING", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_shedding, m_ignore }
 };
 

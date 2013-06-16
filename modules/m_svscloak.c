@@ -86,7 +86,7 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc,
 
 struct Message map_msgtab =
 {
-  "SVSCLOAK", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "SVSCLOAK", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   {m_unregistered, m_ignore, m_svscloak, m_ignore, m_ignore}
 };
 

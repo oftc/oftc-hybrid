@@ -55,7 +55,7 @@ static void mo_log(struct Client *client_p, struct Client *source_p, int parc,
 
 struct Message log_msgtab =
 {
-  "LOG", 0, 0, 2, 0, MFLG_SLOW, 0,
+  "LOG", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_ignore, mo_log, m_ignore, mo_log, m_ignore }
 };
 
