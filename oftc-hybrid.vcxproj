@@ -82,6 +82,7 @@
     <ClInclude Include="include\irc_res.h" />
     <ClInclude Include="include\irc_reslib.h" />
     <ClInclude Include="include\irc_string.h" />
+    <ClInclude Include="include\libgen.h" />
     <ClInclude Include="include\list.h" />
     <ClInclude Include="include\listener.h" />
     <ClInclude Include="include\log.h" />
@@ -111,6 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\balloc.c" />
+    <ClCompile Include="src\basename.c" />
     <ClCompile Include="src\channel.c" />
     <ClCompile Include="src\channel_mode.c" />
     <ClCompile Include="src\client.c" />
