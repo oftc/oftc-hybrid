@@ -37,6 +37,8 @@
 #include "send.h"
 #include "s_misc.h"
 
+#define READBUF_SIZE 16384
+
 struct Callback *iorecv_cb = NULL;
 
 static void client_dopacket(struct Client *, char *, size_t);
@@ -264,9 +266,9 @@ void
 read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 {
   struct Client *client_p = stream->data;
-  char *buffer;
   int length = 0;
   bool is_ssl;
+  char *buffer;
 
   if (IsDefunct(client_p))
     return;
@@ -278,19 +280,20 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
   }
 
 #ifdef HAVE_LIBCRYPTO
-  is_ssl = client_p->localClient->fd.ssl != NULL;
-  if (is_ssl)
+  if (client_p->localClient->fd.ssl != NULL)
   {
+    char ssl_buffer[READBUF_SIZE] = { 0 };
+
+    buffer = ssl_buffer;
+
     BIO_write(client_p->localClient->fd.read_bio, buf.base, nread);
 
-    int pending = BIO_pending(client_p->localClient->fd.read_bio);
     int offset = 0;
-    buffer = MyMalloc(pending);
 
     while(BIO_pending(client_p->localClient->fd.read_bio) != 0)
     {
-      int len = SSL_read(client_p->localClient->fd.ssl, buffer + offset, 
-                        pending - offset);
+      int len = SSL_read(client_p->localClient->fd.ssl, ssl_buffer + offset, 
+                        READBUF_SIZE - offset);
       if(len == -1)
       {
         int err = SSL_get_error(client_p->localClient->fd.ssl, len);
@@ -323,9 +326,6 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 
   if(length != 0)
     execute_callback(iorecv_cb, client_p, length, buffer);
-
-  if(is_ssl)
-    MyFree(buffer);
 
   // This could happen if we have some ssl data but not enough to decrypt
   if(length == 0)
