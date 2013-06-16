@@ -527,12 +527,14 @@ main(int argc, char *argv[])
 
   init_ssl();
 
+#ifndef _WIN32
   if (!server_state.foreground)
   {
     make_daemon();
     close_standard_fds(); /* this needs to be before init_netio()! */
   }
   else
+#endif
     print_startup(getpid());
 
   setup_signals();

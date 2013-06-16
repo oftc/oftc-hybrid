@@ -157,7 +157,11 @@ check_can_use_v6()
   else
   {
     ServerInfo.can_use_v6 = 1;
+#ifndef _WIN32
     close(v6);
+#else
+    closesocket(v6);
+#endif
   }
 }
 
