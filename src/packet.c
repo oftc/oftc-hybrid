@@ -49,7 +49,7 @@ static void client_dopacket(struct Client *, char *, size_t);
  * side effects - one line is copied and removed from the dbuf
  */
 static int
-extract_one_line(struct dbuf_queue *qptr, uv_buf_t *buf)
+extract_one_line(struct dbuf_queue *qptr, char *buffer)
 {
   struct dbuf_block *block;
   int line_bytes = 0, empty_bytes = 0, phase = 0;
@@ -57,7 +57,6 @@ extract_one_line(struct dbuf_queue *qptr, uv_buf_t *buf)
 
   char c;
   dlink_node *ptr;
-  char *buffer = buf->base;
 
   /*
    * Phase 0: "empty" characters before the line
@@ -123,11 +122,12 @@ extract_one_line(struct dbuf_queue *qptr, uv_buf_t *buf)
  * parse_client_queued - parse client queued messages
  */
 static void
-parse_client_queued(struct Client *client_p, uv_buf_t *buf)
+parse_client_queued(struct Client *client_p)
 {
   int dolen = 0;
   int checkflood = 1;
   struct LocalUser *lclient_p = client_p->localClient;
+  char buffer[IRCD_BUFSIZE + 1] = { '\0' };
 
   if (IsUnknown(client_p))
   {
@@ -142,12 +142,12 @@ parse_client_queued(struct Client *client_p, uv_buf_t *buf)
       if (i >= MAX_FLOOD)
         break;
 
-      dolen = extract_one_line(&lclient_p->buf_recvq, buf);
+      dolen = extract_one_line(&lclient_p->buf_recvq, buffer);
 
       if (dolen == 0)
         break;
 
-      client_dopacket(client_p, buf->base, dolen);
+      client_dopacket(client_p, buffer, dolen);
       i++;
 
       /* if they've dropped out of the unknown state, break and move
@@ -165,10 +165,10 @@ parse_client_queued(struct Client *client_p, uv_buf_t *buf)
       if (IsDefunct(client_p))
         return;
 
-      if ((dolen = extract_one_line(&lclient_p->buf_recvq, buf)) == 0)
+      if ((dolen = extract_one_line(&lclient_p->buf_recvq, buffer)) == 0)
         break;
 
-      client_dopacket(client_p, buf->base, dolen);
+      client_dopacket(client_p, buffer, dolen);
     }
   }
   else if (IsClient(client_p))
@@ -218,12 +218,12 @@ parse_client_queued(struct Client *client_p, uv_buf_t *buf)
                checkflood != -1)
         break;
 
-      dolen = extract_one_line(&lclient_p->buf_recvq, buf);
+      dolen = extract_one_line(&lclient_p->buf_recvq, buffer);
 
       if (dolen == 0)
         break;
 
-      client_dopacket(client_p, buf->base, dolen);
+      client_dopacket(client_p, buffer, dolen);
       lclient_p->sent_parsed++;
     }
   }
@@ -270,7 +270,7 @@ flood_recalc(fde_t *fd, void *data)
   if (lclient_p->sent_parsed < 0)
     lclient_p->sent_parsed = 0;
 
-  //parse_client_queued(client_p);
+  parse_client_queued(client_p);
 
   /* And now, try flushing .. */
   if (!IsDead(client_p))
@@ -388,7 +388,7 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
   ClearPingSent(client_p);
 
   /* Attempt to parse what we have */
-  parse_client_queued(client_p, &buf);
+  parse_client_queued(client_p);
 
   if (IsDefunct(client_p))
     return;
