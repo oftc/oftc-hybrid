@@ -522,7 +522,10 @@ read_auth_reply(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
     return;
   }
 
-  buf.base[nread] = '\0';
+  if(nread == buf.len)
+    buf.base[nread - 1] = '\0';
+  else
+    buf.base[nread] = '\0';
 
   if ((s = GetValidIdent(buf.base)))
   {
