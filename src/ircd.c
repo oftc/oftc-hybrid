@@ -202,7 +202,6 @@ set_time()
              (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
 
     sendto_realops_flags(UMODE_ALL, L_ALL, to_send);
-    set_back_events(CurrentTime - newtime.tv_sec);
   }
 
   SystemTime.tv_sec  = newtime.tv_sec;

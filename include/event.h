@@ -25,31 +25,17 @@
 #ifndef INCLUDED_event_h
 #define INCLUDED_event_h
 
-/*
- * How many event entries we need to allocate at a time in the block
- * allocator. 16 should be plenty at a time.
- */
-#define  MAX_EVENTS  50
-
 /* The list of event processes */
 struct ev_entry
 {
   uv_timer_cb func;
   uv_timer_t  handle;
-  void        *arg;
-  const char  *name;
-  time_t      frequency;
-  time_t      when;
-  int         active;
+  dlink_node  node;
 };
 
 extern void eventAdd(const char *, uv_timer_cb, void *, time_t);
 extern void eventAddIsh(const char *, uv_timer_cb, void *, time_t);
-extern void eventRun();
-extern time_t eventNextTime();
 extern void eventInit();
 extern void eventDelete(uv_timer_cb, void *);
-extern void set_back_events(time_t);
-extern void show_events(struct Client *);
 
 #endif /* INCLUDED_event_h */

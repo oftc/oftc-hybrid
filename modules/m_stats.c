@@ -502,12 +502,6 @@ stats_exempt(struct Client *source_p, int parc, char *parv[])
 }
 
 static void
-stats_events(struct Client *source_p, int parc, char *parv[])
-{
-  show_events(source_p);
-}
-
-static void
 stats_hubleaf(struct Client *source_p, int parc, char *parv[])
 {
   report_confitem_types(source_p, HUB_TYPE);
@@ -1220,7 +1214,6 @@ static const struct StatsStruct
   { 'd',        stats_tdeny,            1,      0       },
   { 'D',        stats_deny,             1,      0       },
   { 'e',        stats_exempt,           1,      0       },
-  { 'E',        stats_events,           1,      1       },
   { 'f',        fd_dump,                1,      1       },
   { 'F',        fd_dump,                1,      1       },
   { 'h',        stats_hooks,            1,      1       },

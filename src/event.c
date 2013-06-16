@@ -5,24 +5,6 @@
  *  Copyright (C) 1998-2000 Regents of the University of California
  *  Copyright (C) 2001-2002 Hybrid Development Team
  *
- *  Code borrowed from the squid web cache by Adrian Chadd.
- *  Original header:
- *
- *  DEBUG: section 41   Event Processing
- *  AUTHOR: Henrik Nordstrom
- *
- *  SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
- *  ----------------------------------------------------------
- *
- *  Squid is the result of efforts by numerous individuals from the
- *  Internet community.  Development is led by Duane Wessels of the
- *  National Laboratory for Applied Network Research and funded by the
- *  National Science Foundation.  Squid is Copyrighted (C) 1998 by
- *  the Regents of the University of California.  Please see the
- *  COPYRIGHT file for full details.  Squid incorporates software
- *  developed and/or copyrighted by other sources.  Please see the
- *  CREDITS file for full details.
- *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -41,14 +23,6 @@
  *  $Id$
  */
 
-/*
- * How it's used:
- *
- * Should be pretty self-explanatory. Events are added to the static
- * array event_table with a frequency time telling eventRun how often
- * to execute it.
- */
-
 #include "stdinc.h"
 #include "list.h"
 #include "ircd.h"
@@ -59,13 +33,11 @@
 #include "log.h"
 #include "numeric.h"
 
-static const char *last_event_ran = NULL;
-static struct ev_entry event_table[MAX_EVENTS];
-static time_t event_time_min = -1;
-static int eventFind(uv_timer_cb func, void *arg);
+static dlink_list events = { 0 };
+static struct ev_entry *eventFind(uv_timer_cb, void *);
 
 /*
- * void eventAdd(const char *name, EVH *func, void *arg, time_t when)
+ * void eventAdd(const char *name, uv_timer_cb func, void *arg, time_t when)
  *
  * Input: Name of event, function to call, arguments to pass, and frequency
  *    of the event.
@@ -75,37 +47,19 @@ static int eventFind(uv_timer_cb func, void *arg);
 void
 eventAdd(const char *name, uv_timer_cb func, void *arg, time_t when)
 {
-  int i;
+  struct ev_entry *event = MyMalloc(sizeof(struct ev_entry));
 
-  /* find first inactive index, or use next index */
-  for (i = 0; i < MAX_EVENTS; i++)
-  {
-    if (event_table[i].active == 0)
-    {
-      event_table[i].func = func;
-      event_table[i].name = name;
-      event_table[i].arg = arg;
-      event_table[i].when = CurrentTime + when;
-      event_table[i].frequency = when;
-      event_table[i].active = 1;
-      uv_timer_init(server_state.event_loop, &event_table[i].handle);
-      event_table[i].handle.data = arg;
+  uv_timer_init(server_state.event_loop, &event->handle);
+  event->handle.data = arg;
+  event->func = func;
 
-      if ((event_table[i].when < event_time_min) || (event_time_min == -1))
-        event_time_min = event_table[i].when;
+  dlinkAdd(event, &event->node, &events);
 
-      uv_timer_start(&event_table[i].handle, func, when * 1000, when * 1000);
-
-      return;
-    }
-  }
-
-  /* XXX if reach here, its an error */
-  ilog(LOG_TYPE_IRCD, "Event table is full! (%d)", i);
+  uv_timer_start(&event->handle, func, when * 1000, when * 1000);
 }
 
 /*
- * void eventDelete(EVH *func, void *arg)
+ * void eventDelete(uv_timer_cb func, void *arg)
  *
  * Input: Function handler, argument that was passed.
  * Output: None
@@ -114,20 +68,18 @@ eventAdd(const char *name, uv_timer_cb func, void *arg, time_t when)
 void
 eventDelete(uv_timer_cb func, void *arg)
 {
-  int i = eventFind(func, arg);
+  struct ev_entry *event = eventFind(func, arg);
 
-  if (i == -1)
+  if (event == NULL)
     return;
 
-  uv_timer_stop(&event_table[i].handle);
-  event_table[i].name = NULL;
-  event_table[i].func = NULL;
-  event_table[i].arg = NULL;
-  event_table[i].active = 0;
+  uv_timer_stop(&event->handle);
+  dlinkDelete(&event->node, &events);
+  MyFree(event);
 }
 
 /*
- * void eventAddIsh(const char *name, EVH *func, void *arg, time_t delta_isa)
+ * void eventAddIsh(const char *name, uv_timer_cb func, void *arg, time_t delta_isa)
  *
  * Input: Name of event, function to call, arguments to pass, and frequency
  *    of the event.
@@ -161,92 +113,27 @@ eventAddIsh(const char *name, uv_timer_cb func, void *arg, time_t delta_ish)
 void
 eventInit()
 {
-  last_event_ran = NULL;
-  memset(event_table, 0, sizeof(event_table));
 }
 
 /*
- * int eventFind(EVH *func, void *arg)
+ * int eventFind(uv_timer_cb func, void *arg)
  *
  * Input: Event function and the argument passed to it
  * Output: Index to the slow in the event_table
  * Side Effects: None
  */
-static int
+static struct ev_entry *
 eventFind(uv_timer_cb func, void *arg)
 {
-  int i;
+  dlink_node *ptr;
 
-  for (i = 0; i < MAX_EVENTS; i++)
+  DLINK_FOREACH(ptr, events.head)
   {
-    if ((event_table[i].func == func) &&
-        (event_table[i].arg == arg) &&
-        event_table[i].active)
-      return (i);
+    struct ev_entry *event;
+
+    if(event->func == func && event->handle.data == arg)
+      return event;
   }
 
-  return (-1);
+  return NULL;
 }
-
-/*
- * void show_events(struct Client *source_p)
- *
- * Input: Client requesting the event
- * Output: List of events
- * Side Effects: None
- */
-void
-show_events(struct Client *source_p)
-{
-  int i;
-
-  if (last_event_ran)
-  {
-    sendto_one(source_p, ":%s %d %s :Last event to run: %s",
-               me.name, RPL_STATSDEBUG, source_p->name, last_event_ran);
-    sendto_one(source_p, ":%s %d %s : ",
-               me.name, RPL_STATSDEBUG, source_p->name);
-  }
-
-  sendto_one(source_p,
-             ":%s %d %s : Operation                    Next Execution",
-             me.name, RPL_STATSDEBUG, source_p->name);
-  sendto_one(source_p,
-             ":%s %d %s : -------------------------------------------",
-             me.name, RPL_STATSDEBUG, source_p->name);
-
-  for (i = 0; i < MAX_EVENTS; i++)
-    if (event_table[i].active)
-    {
-      sendto_one(source_p, ":%s %d %s : %-28s %-4d seconds",
-                 me.name, RPL_STATSDEBUG, source_p->name,
-                 event_table[i].name,
-                 (int)(event_table[i].when - CurrentTime));
-    }
-
-  sendto_one(source_p, ":%s %d %s : ",
-             me.name, RPL_STATSDEBUG, source_p->name);
-}
-
-/*
- * void set_back_events(time_t by)
- * Input: Time to set back events by.
- * Output: None.
- * Side-effects: Sets back all events by "by" seconds.
- */
-void
-set_back_events(time_t by)
-{
-  int i;
-
-  event_time_min = -1;
-
-  for (i = 0; i < MAX_EVENTS; i++)
-  {
-    if (event_table[i].when > by)
-      event_table[i].when -= by;
-    else
-      event_table[i].when = 0;
-  }
-}
-
