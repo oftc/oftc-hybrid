@@ -45,7 +45,7 @@ int hard_fdlimit = 0;
 static int
 set_fdlimit()
 {
-  int fdmax;
+  int fdmax = 0;
 #ifndef _WIN32
   struct rlimit limit;
 
