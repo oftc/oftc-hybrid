@@ -34,9 +34,8 @@
 #include "whowas.h" /* off_history */
 #include "userhost.h"
 
-/* m_svscloak - Cloaks a user - stu
- * parv[1] - Nick to cloak
- * parv[2] - Hostname to cloak to
+/* m_svscloak - Cloaks a user
+ * parv[1] - Hostname to cloak to
  *
  * We receive the Message that a client will be cloaked
  * 1) check message for correctness
@@ -50,60 +49,44 @@
 void m_svscloak(struct Client *client_p, struct Client *source_p, int parc,
                 char *parv[])
 {
-  struct Client *target_p;
-  char *hostname, *target;
-
-  if (parc < 3 || EmptyString(parv[2]))
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, parv[0]);
     return;
   }
 
-  target = parv[1];
-  hostname = parv[2];
-
-  if ((target_p = find_person(client_p, target)))
+  if (MyClient(source_p) && irccmp(source_p->host, parv[1]) != 0)
   {
-    if (MyClient(target_p) && irccmp(target_p->host, hostname) != 0)
-    {
-      sendto_one(target_p, ":%s NOTICE %s :Activating Cloak: %s",
-                 me.name, target_p->name, hostname);
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-                           "Activating Cloak: %s -> %s for %s", target_p->host, hostname,
-                           target_p->name);
-    }
-
-    /* Send to all Servers but the one WE got the SVSCLOAK from */
-    sendto_server(client_p, NOCAPS, NOCAPS, ":%s SVSCLOAK %s :%s", parv[0], 
-                  parv[1], parv[2]);
-
-    /* locally modify the clients structure */
-    if (target_p->realhost[0] == '\0')
-      strncpy(target_p->realhost, target_p->host, HOSTLEN);
-
-    if (IsUserHostIp(target_p))
-    {
-      delete_user_host(target_p->username, target_p->host, !MyConnect(target_p));
-      add_user_host(target_p->username, hostname, !MyConnect(target_p));
-    }
-
-    strncpy(target_p->host, hostname, HOSTLEN);
-    off_history(target_p);
-
-    rehashed_klines = 1;
-  }
-  else
-  {
-    sendto_one(source_p, form_str(ERR_NOSUCHNICK), me.name, source_p->name, target);
-    return;
+    sendto_one(source_p, ":%s NOTICE %s :Activating Cloak: %s",
+               me.name, source_p->name, parv[1]);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Activating Cloak: %s -> %s for %s", source_p->host, 
+                         parv[1], source_p->name);
   }
 
-  return;
+  sendto_server(client_p, CAP_TS6, NOCAPS, ":%s SVSCLOAK :%s", ID(source_p), 
+                parv[1]);
+  sendto_server(client_p, NOCAPS, CAP_TS6, ":%s SVSCLOAK :%s", source_p->name,
+                parv[1]);
+
+  if (source_p->realhost[0] == '\0')
+    strncpy(source_p->realhost, source_p->host, sizeof(source_p->realhost));
+
+  if (IsUserHostIp(source_p))
+  {
+    delete_user_host(source_p->username, source_p->host, !MyConnect(source_p));
+    add_user_host(source_p->username, parv[1], !MyConnect(source_p));
+  }
+
+  strlcpy(source_p->host, parv[1], sizeof(source_p->host));
+  off_history(source_p);
+
+  rehashed_klines = 1;
 }
 
 struct Message map_msgtab =
 {
-  "SVSCLOAK", 0, 0, 1, 0, MFLG_SLOW, 0,
+  "SVSCLOAK", 0, 0, 2, 0, MFLG_SLOW, 0,
   {m_unregistered, m_ignore, m_svscloak, m_ignore, m_ignore}
 };
 
