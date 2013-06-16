@@ -45,7 +45,10 @@ int hard_fdlimit = 0;
 static void
 close_callback(uv_handle_t *handle)
 {
-  MyFree(handle);
+  if(handle->type == UV_TCP)
+    BlockHeapFree(tcp_handle_heap, handle);
+  else
+    MyFree(handle);
 }
 
 static int
