@@ -27,16 +27,30 @@
 #define STDINC_H
 
 #ifndef IN_AUTOCONF
+#ifdef _WIN32
+#include "config-win32.h"
+#else
 #include "config.h"
+#endif
 #endif
 
 #include "defaults.h"
+
+#ifdef _WIN32
+#define inline
+#define _WINSOCKAPI_
+typedef int bool;
+#define true 1
+#define false 0
+#endif
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#ifndef _WIN32
 #include <stdbool.h>
+#endif
 #include <errno.h>
 
 #ifdef HAVE_STRTOK_R
@@ -63,13 +77,18 @@
 #include <signal.h>
 #include <ctype.h>
 
+#ifdef HAVE_DIRENT_H
 #include <dirent.h>
+#endif
+
+#ifndef _WIN32
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
 #include <sys/file.h>
+#endif
 
 #include <limits.h>
 

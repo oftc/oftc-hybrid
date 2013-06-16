@@ -22,8 +22,6 @@
  *  $Id$
  */
 
-#include "config.h"
-
 #include "stdinc.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"

@@ -8,7 +8,6 @@
 #define INCLUDED_irc_res_h
 
 #include "listener.h"
-#include "config.h"
 
 struct Client; /* XXX */
 

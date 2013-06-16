@@ -27,7 +27,6 @@
 
 #include "ircd_defs.h"
 #include "balloc.h"
-#include "config.h"
 
 extern void outofmemory();
 

@@ -47,14 +47,18 @@
  * AUTOMODPATH = directory for autoloaded modules
  */
 
+#ifndef _WIN32
+#define DDIR DATADIR
+#endif
+
 /* dirs */
 #define DPATH       PREFIX
 #define SBINPATH    PREFIX "/sbin/"
 #define BINPATH     PREFIX "/bin/"
-#define MSGPATH     DATADIR "/" PACKAGE "/messages"
+#define MSGPATH     DDIR "/" PACKAGE "/messages"
 #define MODPATH     LIBDIR "/" PACKAGE "/modules/"
-#define HPATH       DATADIR "/" PACKAGE "/help/opers"
-#define UHPATH      DATADIR "/" PACKAGE "/help/users"
+#define HPATH       DDIR "/" PACKAGE "/help/opers"
+#define UHPATH      DDIR "/" PACKAGE "/help/users"
 #define AUTOMODPATH MODPATH "/autoload/"
 #define ETCPATH     SYSCONFDIR
 

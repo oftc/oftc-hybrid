@@ -30,7 +30,9 @@
 #include "memory.h"
 #include "s_bsd.h"
 
+#ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
+#endif
 
 /*
  * sigterm_handler - exit the server
