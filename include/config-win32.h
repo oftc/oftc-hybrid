@@ -83,9 +83,6 @@
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
 
-/* Define to 1 if you have the `strtok_r' function. */
-#define HAVE_STRTOK_R 1
-
 /* Define to 1 if the system has the type `struct addrinfo'. */
 #define HAVE_STRUCT_ADDRINFO 1
 
