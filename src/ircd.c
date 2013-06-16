@@ -71,7 +71,6 @@ struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 struct ServerState_t server_state = { 0 };
 struct logging_entry ConfigLoggingEntry = { 1 };
 struct ServerStatistics ServerStats;
-struct timeval SystemTime;
 struct Client me;             /* That's me */
 struct LocalUser meLocalUser; /* That's also part of me */
 
@@ -494,7 +493,7 @@ main(int argc, char *argv[])
   setup_corefile();
 
   /* It ain't random, but it ought to be a little harder to guess */
-  srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
+  srand(time(NULL) ^ (time(NULL) | (getpid() << 20)));
 
   me.localClient = &meLocalUser;
   dlinkAdd(&me, &me.node, &global_client_list);  /* Pointer to beginning
