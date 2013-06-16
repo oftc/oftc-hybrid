@@ -274,15 +274,14 @@ close_connection(struct Client *client_p)
 void
 ssl_flush_write(struct Client *client_p)
 {
-  int pending;
-
-  while((pending = BIO_pending(client_p->localClient->fd.write_bio)) > 0)
+  while(BIO_pending(client_p->localClient->fd.write_bio) > 0)
   {
-    char *buffer = MyMalloc(pending);
+    char buffer[16384];
     uv_write_t *req = BlockHeapAlloc(write_req_heap);
     uv_buf_t buf;
 
-    int len = BIO_read(client_p->localClient->fd.write_bio, buffer, pending);
+    int len = BIO_read(client_p->localClient->fd.write_bio, buffer, 
+                       sizeof(buffer));
 
     buf = uv_buf_init(buffer, len);
 
