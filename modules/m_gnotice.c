@@ -38,7 +38,7 @@
 #include "irc_string.h"
 
 static void
-me_gnotice(struct Client *client_p, struct Client *source_p, int parc,
+ms_gnotice(struct Client *client_p, struct Client *source_p, int parc,
            char *parv[])
 {
   char *message;
@@ -50,33 +50,23 @@ me_gnotice(struct Client *client_p, struct Client *source_p, int parc,
 
   if (EmptyString(message))
   {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, parv[0], "GNOTICE");
-    return;
-  }
-
-  sendto_realops_remote(source_p, flags, level, message);
-}
-
-static void
-ms_gnotice(struct Client *client_p, struct Client *source_p, int parc,
-           char *parv[])
-{
-  char *message;
-
-  message = parv[3];
-
-  if (EmptyString(message) || EmptyString(parv[1]))
-  {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, parv[0], "GNOTICE");
     return;
   }
+  
+  sendto_realops_remote(source_p, flags, level, message);
+
+  sendto_server(client_p, CAP_TS6, NOCAPS, NOFLAGS,
+                ":%s GNOTICE %d %d :%s", ID(source_p), flags, level, message);
+  sendto_server(client_p, NOCAPS, CAP_TS6, NOFLAGS,
+                ":%s GNOTICE %d %d :%s", source_p->name, flags, level, message);
 }
 
 struct Message gnotice_msgtab =
 {
   "GNOTICE", 0, 0, 3, 0, MFLG_SLOW, 0L,
-  { m_ignore, m_ignore, ms_gnotice, me_gnotice, m_ignore, m_ignore }
+  { m_ignore, m_ignore, ms_gnotice, m_ignore, m_ignore, m_ignore }
 };
 
 void
