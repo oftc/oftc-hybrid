@@ -630,7 +630,8 @@ introduce_client(struct Client *source_p)
                    source_p->info);
 
       if (!EmptyString(source_p->certfp))
-        sendto_one(server, "CERTFP %s %s", source_p->name, source_p->certfp);
+        sendto_one(server, ":%s CERTFP :%s", ID_or_name(source_p, server), 
+                   source_p->certfp);
     }
     else
     {
@@ -650,7 +651,8 @@ introduce_client(struct Client *source_p)
                    source_p->servptr->name, source_p->info);
 
       if (!EmptyString(source_p->certfp))
-        sendto_one(server, "CERTFP %s %s", source_p->name, source_p->certfp);
+        sendto_one(server, ":%s CERTFP :%s", ID_or_name(source_p, server), 
+                   source_p->certfp);
     }
   }
 }
