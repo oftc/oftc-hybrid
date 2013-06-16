@@ -288,21 +288,18 @@ struct Client
 #define FLAGS_FLOODDONE     0x00004000 /**< Flood grace period has been ended. */
 #define FLAGS_EOB           0x00008000 /**< server has sent us an EOB */
 #define FLAGS_HIDDEN        0x00010000 /**< a hidden server. not shown in /links */
-#define FLAGS_BLOCKED       0x00020000 /**< must wait for COMM_SELECT_WRITE */
-#define FLAGS_USERHOST      0x00040000 /**< client is in userhost hash */
-#define FLAGS_BURSTED       0x00080000 /**< user was already bursted */
-#define FLAGS_EXEMPTRESV    0x00100000 /**< client is exempt from RESV */
-#define FLAGS_GOTUSER       0x00200000 /**< if we received a USER command */
-#define FLAGS_PINGWARNING   0x00400000 /**< unreplied ping warning already sent */
-#define FLAGS_FINISHED_AUTH 0x00800000 /**< Client has been released from auth */
-#define FLAGS_FLOOD_NOTICED 0x01000000 /**< Notice to opers about this flooder has been sent */
-#define FLAGS_SERVICE       0x02000000 /**< Client/server is a network service */
+#define FLAGS_USERHOST      0x00020000 /**< client is in userhost hash */
+#define FLAGS_BURSTED       0x00040000 /**< user was already bursted */
+#define FLAGS_EXEMPTRESV    0x00080000 /**< client is exempt from RESV */
+#define FLAGS_GOTUSER       0x00100000 /**< if we received a USER command */
+#define FLAGS_PINGWARNING   0x00200000 /**< unreplied ping warning already sent */
+#define FLAGS_FINISHED_AUTH 0x00400000 /**< Client has been released from auth */
+#define FLAGS_FLOOD_NOTICED 0x00800000 /**< Notice to opers about this flooder has been sent */
+#define FLAGS_SERVICE       0x01000000 /**< Client/server is a network service */
 
 #define HasFlag(x, y) ((x)->flags &   (y))
 #define AddFlag(x, y) ((x)->flags |=  (y))
 #define DelFlag(x, y) ((x)->flags &= ~(y))
-
-
 
 /* umodes, settable flags */
 #define UMODE_SERVNOTICE   0x00000001 /**< server notices such as kill */
@@ -431,10 +428,6 @@ struct Client
 #define SetPingCookie(x)        ((x)->flags |= FLAGS_PING_COOKIE)
 #define IsHidden(x)             ((x)->flags &  FLAGS_HIDDEN)
 #define SetHidden(x)            ((x)->flags |= FLAGS_HIDDEN)
-
-#define IsSendqBlocked(x)       ((x)->flags &  FLAGS_BLOCKED)
-#define SetSendqBlocked(x)      ((x)->flags |= FLAGS_BLOCKED)
-#define ClearSendqBlocked(x)    ((x)->flags &= ~FLAGS_BLOCKED)
 
 
 extern struct Client me;
