@@ -228,7 +228,7 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
 
 struct Message svsjoin_msgtab =
 {
-  "SVSJOIN", 0, 0, 3, 0, MFLG_SLOW, 0,
+  "SVSJOIN", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
   { m_ignore, m_ignore, ms_svsjoin, ms_svsjoin, m_ignore, m_ignore }
 };
 
