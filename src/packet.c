@@ -128,70 +128,30 @@ parse_client_queued(struct Client *client_p)
   int checkflood = 1;
   struct LocalUser *lclient_p = client_p->localClient;
   char buffer[IRCD_BUFSIZE + 1] = { '\0' };
+  bool keep_going = true;
+  int i = 0;
 
-  if (IsUnknown(client_p))
+  while(keep_going)
   {
-    int i = 0;
+    if (IsDefunct(client_p))
+      return;
 
-    for (;;)
+    /* rate unknown clients at MAX_FLOOD per loop */
+    if (IsUnknown(client_p))
     {
-      if (IsDefunct(client_p))
-        return;
-
-      /* rate unknown clients at MAX_FLOOD per loop */
       if (i >= MAX_FLOOD)
         break;
-
-      dolen = extract_one_line(&lclient_p->buf_recvq, buffer);
-
-      if (dolen == 0)
-        break;
-
-      client_dopacket(client_p, buffer, dolen);
-      i++;
-
-      /* if they've dropped out of the unknown state, break and move
-       * to the parsing for their appropriate status.  --fl
-       */
-      if (!IsUnknown(client_p))
-        break;
     }
-  }
-
-  if (IsServer(client_p) || IsConnecting(client_p) || IsHandshake(client_p))
-  {
-    while (1)
+    else if (IsClient(client_p))
     {
-      if (IsDefunct(client_p))
-        return;
-
-      if ((dolen = extract_one_line(&lclient_p->buf_recvq, buffer)) == 0)
-        break;
-
-      client_dopacket(client_p, buffer, dolen);
-    }
-  }
-  else if (IsClient(client_p))
-  {
-    if (ConfigFileEntry.no_oper_flood && (HasUMode(client_p, UMODE_OPER)
-                                          || IsCanFlood(client_p)))
-    {
-      if (ConfigFileEntry.true_no_oper_flood)
-        checkflood = -1;
-      else
-        checkflood = 0;
-    }
-
-    /*
-     * Handle flood protection here - if we exceed our flood limit on
-     * messages in this loop, we simply drop out of the loop prematurely.
-     *   -- adrian
-     */
-    for (;;)
-    {
-      if (IsDefunct(client_p))
-        break;
-
+      if (ConfigFileEntry.no_oper_flood && (HasUMode(client_p, UMODE_OPER)
+                                            || IsCanFlood(client_p)))
+      {
+        if (ConfigFileEntry.true_no_oper_flood)
+          checkflood = -1;
+        else
+          checkflood = 0;
+      }
       /* This flood protection works as follows:
        *
        * A client is given allow_read lines to send to the server.  Every
@@ -218,14 +178,17 @@ parse_client_queued(struct Client *client_p)
                checkflood != -1)
         break;
 
-      dolen = extract_one_line(&lclient_p->buf_recvq, buffer);
-
-      if (dolen == 0)
-        break;
-
-      client_dopacket(client_p, buffer, dolen);
-      lclient_p->sent_parsed++;
     }
+
+    dolen = extract_one_line(&lclient_p->buf_recvq, buffer);
+
+    if (dolen == 0)
+      break;
+
+    client_dopacket(client_p, buffer, dolen);
+    if(IsClient(client_p))
+      lclient_p->sent_parsed++;
+    i++;
   }
 }
 
