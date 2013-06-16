@@ -129,7 +129,7 @@ eventFind(uv_timer_cb func, void *arg)
 
   DLINK_FOREACH(ptr, events.head)
   {
-    struct ev_entry *event;
+    struct ev_entry *event = ptr->data;
 
     if(event->func == func && event->handle.data == arg)
       return event;
