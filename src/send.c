@@ -941,10 +941,10 @@ sendto_realops_flags(unsigned int flags, int level, const char *pattern, ...)
 
   sendto_realops_remote(&me, flags, level, nbuf);
 
-  sendto_server(NULL, CAP_TS6, NOCAPS, NOFLAGS,
-                ":%s GNOTICE %d %d :%s", ID(&me), flags, level, nbuf);
-  sendto_server(NULL, NOCAPS, CAP_TS6, NOFLAGS,
-                ":%s GNOTICE %d %d :%s", me.name, flags, level, nbuf);
+  sendto_server(NULL, CAP_TS6, NOCAPS, ":%s GNOTICE %d %d :%s", ID(&me), flags, 
+                level, nbuf);
+  sendto_server(NULL, NOCAPS, CAP_TS6, ":%s GNOTICE %d %d :%s", me.name, flags, 
+                level, nbuf);
 }
 
 void

@@ -90,7 +90,6 @@ extern void kill_client_ll_serv_butone(struct Client *, struct Client *,
 #define L_ADMIN   2
 
 #define NOCAPS    0               /* no caps */
-#define NOFLAGS   0               /* no flags */
 
 /* used when sending to #mask or $mask */
 #define MATCH_SERVER  1

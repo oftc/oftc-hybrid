@@ -47,10 +47,10 @@ static void ms_certfp(struct Client *source_p, struct Client *client_p,
 {
   strlcpy(source_p->certfp, parv[1], sizeof(source_p->certfp));
 
-  sendto_server(client_p, CAP_TS6, NOCAPS, NOFLAGS,
-                ":%s CERTFP :%s", ID(source_p), parv[1]);
-  sendto_server(client_p, NOCAPS, CAP_TS6, NOFLAGS,
-                ":%s CERTFP :%s", source_p->name, parv[1]);
+  sendto_server(client_p, CAP_TS6, NOCAPS, ":%s CERTFP :%s", ID(source_p), 
+                parv[1]);
+  sendto_server(client_p, NOCAPS, CAP_TS6, ":%s CERTFP :%s", source_p->name, 
+                parv[1]);
 }
 
 struct Message certfp_msgtab =

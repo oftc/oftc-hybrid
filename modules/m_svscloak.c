@@ -74,8 +74,8 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc,
     }
 
     /* Send to all Servers but the one WE got the SVSCLOAK from */
-    sendto_server(client_p, NOCAPS, NOCAPS, NOFLAGS,
-                  ":%s SVSCLOAK %s :%s", parv[0], parv[1], parv[2]);
+    sendto_server(client_p, NOCAPS, NOCAPS, ":%s SVSCLOAK %s :%s", parv[0], 
+                  parv[1], parv[2]);
 
     /* locally modify the clients structure */
     if (target_p->realhost[0] == '\0')

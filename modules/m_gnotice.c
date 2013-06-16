@@ -57,10 +57,10 @@ ms_gnotice(struct Client *client_p, struct Client *source_p, int parc,
   
   sendto_realops_remote(source_p, flags, level, message);
 
-  sendto_server(client_p, CAP_TS6, NOCAPS, NOFLAGS,
-                ":%s GNOTICE %d %d :%s", ID(source_p), flags, level, message);
-  sendto_server(client_p, NOCAPS, CAP_TS6, NOFLAGS,
-                ":%s GNOTICE %d %d :%s", source_p->name, flags, level, message);
+  sendto_server(client_p, CAP_TS6, NOCAPS, ":%s GNOTICE %d %d :%s", ID(source_p), 
+                flags, level, message);
+  sendto_server(client_p, NOCAPS, CAP_TS6, ":%s GNOTICE %d %d :%s", 
+                source_p->name, flags, level, message);
 }
 
 struct Message gnotice_msgtab =
