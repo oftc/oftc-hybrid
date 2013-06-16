@@ -153,6 +153,9 @@
     <ClInclude Include="include\config-win32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\dirent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\balloc.c">
@@ -276,6 +279,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\whowas.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dirent.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

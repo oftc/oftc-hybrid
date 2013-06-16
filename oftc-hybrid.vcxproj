@@ -69,6 +69,7 @@
     <ClInclude Include="include\config-win32.h" />
     <ClInclude Include="include\dbuf.h" />
     <ClInclude Include="include\defaults.h" />
+    <ClInclude Include="include\dirent.h" />
     <ClInclude Include="include\event.h" />
     <ClInclude Include="include\fdlist.h" />
     <ClInclude Include="include\hash.h" />
@@ -116,6 +117,7 @@
     <ClCompile Include="src\conf.c" />
     <ClCompile Include="src\csvlib.c" />
     <ClCompile Include="src\dbuf.c" />
+    <ClCompile Include="src\dirent.c" />
     <ClCompile Include="src\event.c" />
     <ClCompile Include="src\fdlist.c" />
     <ClCompile Include="src\getopt.c" />
