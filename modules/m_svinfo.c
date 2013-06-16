@@ -77,10 +77,6 @@ ms_svinfo(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  /*
-   * since we're here, might as well set CurrentTime while we're at it
-   */
-  set_time();
   theirtime = atol(parv[4]);
   deltat = abs(theirtime - CurrentTime);
 

@@ -134,7 +134,7 @@ load_a_module(const char *path, int warn)
     return -1;
   }
 
-  if (uv_dlsym(tmpptr, "module_entry", &modp) != 0)
+  if (uv_dlsym(tmpptr, "module_entry", (void **)&modp) != 0)
   {
     const char *err = ((err = uv_dlerror(tmpptr))) ? err : "<unknown>";
 

@@ -144,8 +144,6 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 
   class_name = get_client_class(target_p);
 
-  set_time();
-
   if (target_p->status == STAT_CLIENT)
   {
     if (full_etrace)
