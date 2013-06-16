@@ -42,13 +42,13 @@
 static void ms_realhost(struct Client *source_p, struct Client *client_p,
                         int parc, char **parv)
 {
-  struct Client *target_p;
+  if (source_p->realhost[0] == '\0')
+    strlcpy(source_p->realhost, parv[1], sizeof(source_p->realhost));
 
-  if ((target_p = find_person(client_p, parv[1])) == NULL)
-    return;
-
-  if (target_p->realhost[0] == '\0')
-    strlcpy(target_p->realhost, parv[2], HOSTLEN);
+  sendto_server(client_p, CAP_TS6, NOCAPS, NOFLAGS,
+                ":%s REALHOST :%s", ID(source_p), parv[1]);
+  sendto_server(client_p, NOCAPS, CAP_TS6, NOFLAGS,
+                ":%s REALHOST :%s", source_p->name, parv[1]);
 }
 
 struct Message realhost_msgtab =
