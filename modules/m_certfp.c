@@ -45,17 +45,12 @@
 static void ms_certfp(struct Client *source_p, struct Client *client_p,
                       int parc, char **parv)
 {
-  struct Client *target_p;
-
-  if ((target_p = find_person(client_p, parv[1])) == NULL)
-    return;
-
-  strlcpy(target_p->certfp, parv[1], sizeof(target_p->certfp));
+  strlcpy(source_p->certfp, parv[1], sizeof(source_p->certfp));
 
   sendto_server(client_p, CAP_TS6, NOCAPS, NOFLAGS,
-                ":%s CERTFP %s %s", ID(source_p), parv[1]);
+                ":%s CERTFP :%s", ID(source_p), parv[1]);
   sendto_server(client_p, NOCAPS, CAP_TS6, NOFLAGS,
-                ":%s CERTFP %s %s", source_p->name, parv[1]);
+                ":%s CERTFP :%s", source_p->name, parv[1]);
 }
 
 struct Message certfp_msgtab =
