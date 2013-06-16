@@ -49,6 +49,8 @@ typedef int bool;
 #define extern __declspec(dllexport)
 #endif
 #define export __declspec(dllexport)
+#else
+#define export
 #endif
 
 #include <stddef.h>
