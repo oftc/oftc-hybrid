@@ -73,7 +73,7 @@ static void burst_members(struct Client *, struct Channel *);
  *      but in no particular order.
  */
 void
-write_links_file(void *notused)
+write_links_file(uv_timer_t *handle, int status)
 {
   MessageFileLine *next_mptr = NULL;
   MessageFileLine *mptr = NULL;
@@ -272,7 +272,7 @@ hunt_server(struct Client *client_p, struct Client *source_p,
  * is called earlier or later...)
  */
 void
-try_connections(void *unused)
+try_connections(uv_timer_t *handle, int status)
 {
   dlink_node *ptr;
   struct ConfItem *conf;
@@ -427,30 +427,29 @@ check_server(const char *name, struct Client *client_p)
   if (server_aconf != NULL)
   {
     struct sockaddr_in *v4;
-#ifdef IPV6
     struct sockaddr_in6 *v6;
-#endif
 
     switch (aconf->aftype)
     {
-#ifdef IPV6
-
       case AF_INET6:
         v6 = (struct sockaddr_in6 *)&server_aconf->addr;
 
         if (IN6_IS_ADDR_UNSPECIFIED(&v6->sin6_addr))
-          memcpy(&server_aconf->addr, &client_p->ip, sizeof(struct irc_ssaddr));
+          memcpy(&server_aconf->addr, &client_p->ip, 
+                 sizeof(server_aconf->addr));
 
         break;
-#endif
-
       case AF_INET:
         v4 = (struct sockaddr_in *)&server_aconf->addr;
 
         if (v4->sin_addr.s_addr == INADDR_NONE)
-          memcpy(&server_aconf->addr, &client_p->ip, sizeof(struct irc_ssaddr));
+          memcpy(&server_aconf->addr, &client_p->ip, 
+                 sizeof(server_aconf->addr));
 
         break;
+      default:
+        assert(0);
+        return -1;
     }
   }
 
@@ -1137,8 +1136,6 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   struct Client *client_p;
   char buf[HOSTIPLEN + 1];
 
-  /* conversion structs */
-  struct sockaddr_in *v4;
   /* Make sure aconf is useful */
   assert(aconf != NULL);
 
@@ -1146,8 +1143,8 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   conf = unmap_conf_item(aconf);
 
   /* log */
-  getnameinfo((struct sockaddr *)&aconf->addr, aconf->addr.ss_len,
-              buf, sizeof(buf), NULL, 0, NI_NUMERICHOST);
+  ip_to_string(&aconf->addr, buf, sizeof(buf));
+
   ilog(LOG_TYPE_IRCD, "Connect to %s[%s] @%s", conf->name, aconf->host,
        buf);
 
@@ -1198,12 +1195,12 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   strlcpy(client_p->sockhost, buf, sizeof(client_p->sockhost));
 
   /* create a socket for the server connection */
-  if (comm_open(&client_p->localClient->fd, aconf->addr.ss.ss_family,
-                SOCK_STREAM, 0, NULL) < 0)
+  if (comm_open(&client_p->localClient->fd, aconf->addr.ss_family,
+                SOCK_STREAM, NULL) < 0)
   {
     /* Eek, failure to create the socket */
-    report_error(L_ALL,
-                 "opening stream socket to %s: %s", conf->name, errno);
+    report_error(L_ALL, "opening stream socket to %s: %s", conf->name, 
+                 uv_last_error(server_state.event_loop));
     SetDead(client_p);
     exit_client(client_p, &me, "Connection failed");
     return (0);
@@ -1246,7 +1243,6 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   SetConnecting(client_p);
   dlinkAdd(client_p, &client_p->node, &global_client_list);
   /* from def_fam */
-  client_p->aftype = aconf->aftype;
 
   /* Now, initiate the connection */
   /* XXX assume that a non 0 type means a specific bind address
@@ -1255,72 +1251,43 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   switch (aconf->aftype)
   {
     case AF_INET:
-      v4 = (struct sockaddr_in *)&aconf->bind;
-
-      if (v4->sin_addr.s_addr != 0)
+      if (((struct sockaddr_in *)&aconf->bind)->sin_addr.s_addr != 0)
       {
-        struct irc_ssaddr ipn;
-        memset(&ipn, 0, sizeof(struct irc_ssaddr));
-        ipn.ss.ss_family = AF_INET;
-        ipn.ss_port = 0;
-        memcpy(&ipn, &aconf->bind, sizeof(struct irc_ssaddr));
         comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
-                         (struct sockaddr *)&ipn, ipn.ss_len,
-                         serv_connect_callback, client_p, aconf->aftype,
-                         CONNECTTIMEOUT);
+                         (struct sockaddr *)&aconf->bind, 
+                         sizeof(struct sockaddr_in), serv_connect_callback, 
+                         client_p, aconf->aftype, CONNECTTIMEOUT);
       }
       else if (ServerInfo.specific_ipv4_vhost)
       {
-        struct irc_ssaddr ipn;
-        memset(&ipn, 0, sizeof(struct irc_ssaddr));
-        ipn.ss.ss_family = AF_INET;
-        ipn.ss_port = 0;
-        memcpy(&ipn, &ServerInfo.ip, sizeof(struct irc_ssaddr));
         comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
-                         (struct sockaddr *)&ipn, ipn.ss_len,
-                         serv_connect_callback, client_p, aconf->aftype,
-                         CONNECTTIMEOUT);
+                         (struct sockaddr *)&ServerInfo.ip, 
+                         sizeof(struct sockaddr_in), serv_connect_callback, 
+                         client_p, aconf->aftype, CONNECTTIMEOUT);
       }
       else
         comm_connect_tcp(&client_p->localClient->fd, aconf->host, aconf->port,
-                         NULL, 0, serv_connect_callback, client_p, aconf->aftype,
-                         CONNECTTIMEOUT);
-
+                         NULL, 0, serv_connect_callback, client_p, 
+                         aconf->aftype, CONNECTTIMEOUT);
       break;
-#ifdef IPV6
-
     case AF_INET6:
     {
-      struct irc_ssaddr ipn;
-      struct sockaddr_in6 *v6;
-      struct sockaddr_in6 *v6conf;
-
-      memset(&ipn, 0, sizeof(struct irc_ssaddr));
-      v6conf = (struct sockaddr_in6 *)&aconf->bind;
-      v6 = (struct sockaddr_in6 *)&ipn;
-
-      if (memcmp(&v6conf->sin6_addr, &v6->sin6_addr,
-                 sizeof(struct in6_addr)) != 0)
+      struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)&aconf->bind;
+      if(IN6_IS_ADDR_UNSPECIFIED(&v6->sin6_addr))
       {
-        memcpy(&ipn, &aconf->bind, sizeof(struct irc_ssaddr));
-        ipn.ss.ss_family = AF_INET6;
-        ipn.ss_port = 0;
         comm_connect_tcp(&client_p->localClient->fd,
                          aconf->host, aconf->port,
-                         (struct sockaddr *)&ipn, ipn.ss_len,
-                         serv_connect_callback, client_p,
-                         aconf->aftype, CONNECTTIMEOUT);
+                         (struct sockaddr *)&aconf->bind, 
+                         sizeof(struct sockaddr_in6), serv_connect_callback, 
+                         client_p, aconf->aftype, CONNECTTIMEOUT);
       }
       else if (ServerInfo.specific_ipv6_vhost)
       {
-        memcpy(&ipn, &ServerInfo.ip6, sizeof(struct irc_ssaddr));
-        ipn.ss.ss_family = AF_INET6;
-        ipn.ss_port = 0;
         comm_connect_tcp(&client_p->localClient->fd,
                          aconf->host, aconf->port,
-                         (struct sockaddr *)&ipn, ipn.ss_len,
-                         serv_connect_callback, client_p,
-                         aconf->aftype, CONNECTTIMEOUT);
+                         (struct sockaddr *)&ServerInfo.ip, 
+                         sizeof(struct sockaddr_in6), serv_connect_callback, 
+                         client_p, aconf->aftype, CONNECTTIMEOUT);
       }
       else
         comm_connect_tcp(&client_p->localClient->fd,
@@ -1328,15 +1295,16 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
                          NULL, 0, serv_connect_callback, client_p,
                          aconf->aftype, CONNECTTIMEOUT);
     }
-
-#endif
+    default:
+      assert(0);
+      return 0;
   }
 
   return (1);
 }
 
 #ifdef HAVE_LIBCRYPTO
-static void
+void
 finish_ssl_server_handshake(struct Client *client_p)
 {
   struct ConfItem *conf = NULL;
@@ -1385,74 +1353,11 @@ finish_ssl_server_handshake(struct Client *client_p)
     return;
   }
 
-  /* don't move to serv_list yet -- we haven't sent a burst! */
-  /* If we get here, we're ok, so lets start reading some data */
-  comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ, read_packet,
-                 client_p, 0);
+  if(uv_read_start((uv_stream_t*)client_p->localClient->fd.handle, 
+                   allocate_uv_buffer, read_packet) < 0)
+    dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
 }
-
-static void
-ssl_server_handshake(fde_t *fd, struct Client *client_p)
-{
-  int ret;
-  int err;
-
-  ret = SSL_connect(client_p->localClient->fd.ssl);
-
-  if (ret <= 0)
-  {
-    switch ((err = SSL_get_error(client_p->localClient->fd.ssl, ret)))
-    {
-      case SSL_ERROR_WANT_WRITE:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_WRITE,
-                       (PF *)ssl_server_handshake, client_p, 0);
-        return;
-
-      case SSL_ERROR_WANT_READ:
-        comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ,
-                       (PF *)ssl_server_handshake, client_p, 0);
-        return;
-
-      default:
-      {
-        const char *sslerr = ERR_error_string(ERR_get_error(), NULL);
-        sendto_realops_flags(UMODE_ALL, L_ALL,
-                             "Error connecting to %s: %s", client_p->name,
-                             sslerr ? sslerr : "unknown SSL error");
-        exit_client(client_p, client_p, "Error during SSL handshake");
-        return;
-      }
-    }
-  }
-
-  X509 *cert;
-
-  err = SSL_get_error(client_p->localClient->fd.ssl, ret);
-  ilog(LOG_TYPE_IRCD, "SSL Error %d %s", err, ERR_error_string(err, NULL));
-
-  if ((cert = SSL_get_peer_certificate(client_p->localClient->fd.ssl)) != NULL)
-  {
-    int res = SSL_get_verify_result(client_p->localClient->fd.ssl);
-
-    if (res == X509_V_OK || res == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
-        res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
-        res == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
-    {
-      /* The client sent a certificate which verified OK */
-      base16_encode(client_p->certfp, sizeof(client_p->certfp),
-                    (const char *)cert->sha1_hash, sizeof(cert->sha1_hash));
-    }
-    else
-    {
-      ilog(LOG_TYPE_IRCD, "Server %s!%s@%s gave bad SSL client certificate: %d",
-           client_p->name, client_p->username, client_p->host, res);
-    }
-
-    X509_free(cert);
-  }
-
-  finish_ssl_server_handshake(client_p);
-}
+#endif
 
 static void
 ssl_connect_init(struct Client *client_p, struct AccessItem *aconf, fde_t *fd)
@@ -1466,14 +1371,21 @@ ssl_connect_init(struct Client *client_p, struct AccessItem *aconf, fde_t *fd)
     return;
   }
 
-  SSL_set_fd(fd->ssl, fd->fd);
+  client_p->localClient->fd.read_bio = BIO_new(BIO_s_mem());
+  client_p->localClient->fd.write_bio = BIO_new(BIO_s_mem());
+
+  SSL_set_bio(client_p->localClient->fd.ssl,
+              client_p->localClient->fd.read_bio,
+              client_p->localClient->fd.write_bio);
+
 
   if (!EmptyString(aconf->cipher_list))
     SSL_set_cipher_list(client_p->localClient->fd.ssl, aconf->cipher_list);
 
-  ssl_server_handshake(NULL, client_p);
+  SSL_set_connect_state(client_p->localClient->fd.ssl);
+
+  ssl_handshake(client_p, true);
 }
-#endif
 
 /* serv_connect_callback() - complete a server connection.
  *
@@ -1494,9 +1406,10 @@ serv_connect_callback(fde_t *fd, int status, void *data)
   assert(client_p != NULL);
   assert(&client_p->localClient->fd == fd);
 
+  fd->handle->data = client_p;
+
   /* Next, for backward purposes, record the ip of the server */
-  memcpy(&client_p->ip, &fd->connect.hostaddr,
-         sizeof(struct irc_ssaddr));
+  memcpy(&client_p->ip, &fd->connect.hostaddr, sizeof(&client_p->ip));
 
   /* Check the status */
   if (status != COMM_OK)
@@ -1581,7 +1494,9 @@ serv_connect_callback(fde_t *fd, int status, void *data)
 
   /* don't move to serv_list yet -- we haven't sent a burst! */
   /* If we get here, we're ok, so lets start reading some data */
-  comm_setselect(fd, COMM_SELECT_READ, read_packet, client_p, 0);
+  if(uv_read_start((uv_stream_t*)client_p->localClient->fd.handle, 
+                   allocate_uv_buffer, read_packet) < 0)
+    dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
 }
 
 struct Client *

@@ -42,7 +42,8 @@
 #error this code needs to be able to address individual octets
 #endif
 
-static PF res_readreply;
+static void res_readreply(uv_udp_t *, ssize_t, uv_buf_t, struct sockaddr *,
+                          unsigned);
 
 #define MAXPACKET      1024  /* rfc sez 512 but we expand names so ... */
 #define RES_MAXALIASES 35    /* maximum aliases allowed */
@@ -64,9 +65,7 @@ typedef enum
   REQ_IDLE,  /* We're doing not much at all */
   REQ_PTR,   /* Looking up a PTR */
   REQ_A,     /* Looking up an A */
-#ifdef IPV6
   REQ_AAAA,  /* Looking up an AAAA */
-#endif
   REQ_CNAME, /* We got a CNAME in response, we better get a real answer next */
 } request_state;
 
@@ -83,7 +82,7 @@ struct reslist
   char resend;             /* send flag. 0 == dont resend */
   time_t sentat;
   time_t timeout;
-  struct irc_ssaddr addr;
+  struct sockaddr_storage addr;
   char *name;
   dns_callback_fnc callback;
   void *callback_ctx;
@@ -98,14 +97,13 @@ static struct reslist *make_request(dns_callback_fnc, void *);
 static void do_query_name(dns_callback_fnc, void *,
                           const char *, struct reslist *, int);
 static void do_query_number(dns_callback_fnc, void *,
-                            const struct irc_ssaddr *,
+                            const struct sockaddr_storage *,
                             struct reslist *);
 static void query_name(const char *, int, int, struct reslist *);
 static int send_res_msg(const char *, int, int);
 static void resend_query(struct reslist *);
 static int proc_answer(struct reslist *, HEADER *, char *, char *);
 static struct reslist *find_id(int);
-
 
 /*
  * int
@@ -119,51 +117,38 @@ static struct reslist *find_id(int);
  *      revised for ircd, cryogen(stu) may03
  */
 static int
-res_ourserver(const struct irc_ssaddr *inp)
+res_ourserver(const struct sockaddr_storage *inp)
 {
-#ifdef IPV6
-  const struct sockaddr_in6 *v6;
-  const struct sockaddr_in6 *v6in = (const struct sockaddr_in6 *)inp;
-#endif
-  const struct sockaddr_in *v4;
-  const struct sockaddr_in *v4in = (const struct sockaddr_in *)inp;
   int ns;
 
   for (ns = 0; ns < irc_nscount; ++ns)
   {
-    const struct irc_ssaddr *srv = &irc_nsaddr_list[ns];
-#ifdef IPV6
-    v6 = (const struct sockaddr_in6 *)srv;
-#endif
-    v4 = (const struct sockaddr_in *)srv;
+    const struct sockaddr_storage *srv = &irc_nsaddr_list[ns];
+    struct sockaddr_in *in4, *srv4;
+    struct sockaddr_in6 *in6, *srv6;
 
-    /* could probably just memcmp(srv, inp, srv.ss_len) here
-     * but we'll air on the side of caution - stu
-     *
-     */
-    switch (srv->ss.ss_family)
+    if(srv->ss_family != inp->ss_family)
+      continue;
+
+    in4 = (struct sockaddr_in *)inp;
+    srv4 = (struct sockaddr_in *)srv;
+
+    if(in4->sin_port != srv4->sin_port)
+      continue;
+
+    switch(srv->ss_family)
     {
-#ifdef IPV6
-
-      case AF_INET6:
-        if (srv->ss.ss_family == inp->ss.ss_family)
-          if (v6->sin6_port == v6in->sin6_port)
-            if (!memcmp(&v6->sin6_addr.s6_addr, &v6in->sin6_addr.s6_addr,
-                        sizeof(struct in6_addr)))
-              return 1;
-
-        break;
-#endif
-
       case AF_INET:
-        if (srv->ss.ss_family == inp->ss.ss_family)
-          if (v4->sin_port == v4in->sin_port)
-            if (v4->sin_addr.s_addr == v4in->sin_addr.s_addr)
-              return 1;
-
+        if(memcmp(&in4->sin_addr, &srv4->sin_addr, sizeof(struct in_addr)) == 0)
+           return 1;
         break;
+      case AF_INET6:
+        in6 = (struct sockaddr_in6 *)inp;
+        srv6 = (struct sockaddr_in6 *)srv;
 
-      default:
+        if(memcmp(&in6->sin6_addr, &srv6->sin6_addr, 
+                  sizeof(struct in6_addr)) == 0)
+          return 1;
         break;
     }
   }
@@ -216,7 +201,7 @@ timeout_query_list(time_t now)
  * timeout_resolver - check request list
  */
 static void
-timeout_resolver(void *notused)
+timeout_resolver(uv_timer_t *handle, int status)
 {
   timeout_query_list(CurrentTime);
 }
@@ -238,13 +223,14 @@ start_resolver()
       return;
     }
 
-    if (comm_open(&ResolverFileDescriptor, irc_nsaddr_list[0].ss.ss_family,
-                  SOCK_DGRAM, 0, "Resolver socket") == -1)
+    if (comm_open(&ResolverFileDescriptor, irc_nsaddr_list[0].ss_family,
+                  SOCK_DGRAM, "Resolver socket") != 0)
       return;
 
     /* At the moment, the resolver FD data is global .. */
-    comm_setselect(&ResolverFileDescriptor, COMM_SELECT_READ,
-                   res_readreply, NULL, 0);
+    uv_udp_recv_start((uv_udp_t *)ResolverFileDescriptor.handle, 
+                      allocate_uv_buffer, res_readreply);
+
     eventAdd("timeout_resolver", timeout_resolver, NULL, 1);
   }
 }
@@ -326,6 +312,12 @@ delete_resolver_queries(const void *vptr)
   }
 }
 
+static void
+dns_send_callback(uv_udp_send_t *req, int status)
+{
+  BlockHeapFree(udp_send_handle_heap, req);
+}
+
 /*
  * send_res_msg - sends msg to all nameservers found in the "_res" structure.
  * This should reflect /etc/resolv.conf. We will get responses
@@ -339,6 +331,7 @@ send_res_msg(const char *msg, int len, int rcount)
   int i;
   int sent = 0;
   int max_queries = IRCD_MIN(irc_nscount, rcount);
+  uv_buf_t buf;
 
   /* RES_PRIMARY option is not implemented
    * if (res.options & RES_PRIMARY || 0 == max_queries)
@@ -346,11 +339,33 @@ send_res_msg(const char *msg, int len, int rcount)
   if (max_queries == 0)
     max_queries = 1;
 
+  buf.base = (char *)msg;
+  buf.len = len;
+
   for (i = 0; i < max_queries; i++)
   {
-    if (sendto(ResolverFileDescriptor.fd, msg, len, 0,
-               (struct sockaddr *) & (irc_nsaddr_list[i]),
-               irc_nsaddr_list[i].ss_len) == len)
+    int ret;
+    uv_udp_send_t *req = BlockHeapAlloc(udp_send_handle_heap);
+
+    switch(irc_nsaddr_list[i].ss_family)
+    {
+      case AF_INET:
+        ret = uv_udp_send(req, (uv_udp_t *)ResolverFileDescriptor.handle, &buf, 1,
+                          *(struct sockaddr_in *) &(irc_nsaddr_list[i]), 
+                          dns_send_callback);
+        break;
+      case AF_INET6:
+        ret = uv_udp_send6(req, (uv_udp_t *)ResolverFileDescriptor.handle, 
+                           &buf, 1, 
+                           *(struct sockaddr_in6 *) &(irc_nsaddr_list[i]), 
+                           dns_send_callback);
+        break;
+      default:
+        assert(0);
+        ret = -1;
+    }
+
+    if(ret == 0)
       ++sent;
   }
 
@@ -394,11 +409,7 @@ gethost_byname_type(dns_callback_fnc callback, void *ctx, const char *name,
 void
 gethost_byname(dns_callback_fnc callback, void *ctx, const char *name)
 {
-#ifdef IPV6
   gethost_byname_type(callback, ctx, name, T_AAAA);
-#else
-  gethost_byname_type(callback, ctx, name, T_A);
-#endif
 }
 
 /*
@@ -406,7 +417,7 @@ gethost_byname(dns_callback_fnc callback, void *ctx, const char *name)
  */
 void
 gethost_byaddr(dns_callback_fnc callback, void *ctx,
-               const struct irc_ssaddr *addr)
+               const struct sockaddr_storage *addr)
 {
   do_query_number(callback, ctx, addr, NULL);
 }
@@ -428,16 +439,11 @@ do_query_name(dns_callback_fnc callback, void *ctx, const char *name,
     request->name = MyMalloc(strlen(host_name) + 1);
     request->type = type;
     strcpy(request->name, host_name);
-#ifdef IPV6
 
     if (type == T_A)
       request->state = REQ_A;
     else if (type == T_AAAA)
       request->state = REQ_AAAA;
-
-#else
-    request->state = REQ_A;
-#endif
   }
 
   request->type = type;
@@ -449,13 +455,13 @@ do_query_name(dns_callback_fnc callback, void *ctx, const char *name,
  */
 static void
 do_query_number(dns_callback_fnc callback, void *ctx,
-                const struct irc_ssaddr *addr,
+                const struct sockaddr_storage *addr,
                 struct reslist *request)
 {
   char ipbuf[128];
   const unsigned char *cp;
 
-  if (addr->ss.ss_family == AF_INET)
+  if (addr->ss_family == AF_INET)
   {
     const struct sockaddr_in *v4 = (const struct sockaddr_in *)addr;
     cp = (const unsigned char *)&v4->sin_addr.s_addr;
@@ -464,9 +470,7 @@ do_query_number(dns_callback_fnc callback, void *ctx,
              (unsigned int)(cp[3]), (unsigned int)(cp[2]),
              (unsigned int)(cp[1]), (unsigned int)(cp[0]));
   }
-
-#ifdef IPV6
-  else if (addr->ss.ss_family == AF_INET6)
+  else if (addr->ss_family == AF_INET6)
   {
     const struct sockaddr_in6 *v6 = (const struct sockaddr_in6 *)addr;
     cp = (const unsigned char *)&v6->sin6_addr.s6_addr;
@@ -492,13 +496,11 @@ do_query_number(dns_callback_fnc callback, void *ctx,
              (unsigned int)(cp[0] & 0xf), (unsigned int)(cp[0] >> 4));
   }
 
-#endif
-
   if (request == NULL)
   {
     request       = make_request(callback, ctx);
     request->type = T_PTR;
-    memcpy(&request->addr, addr, sizeof(struct irc_ssaddr));
+    memcpy(&request->addr, addr, sizeof(request->addr));
     request->name = MyMalloc(HOSTLEN + 1);
   }
 
@@ -570,9 +572,7 @@ resend_query(struct reslist *request)
       break;
 
     case T_A:
-#ifdef IPV6
     case T_AAAA:
-#endif
       do_query_name(NULL, request->callback_ctx, request->name, request,
                     request->type);
       break;
@@ -594,9 +594,8 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
   int n;                       /* temp count */
   int rd_length;
   struct sockaddr_in *v4;      /* conversion */
-#ifdef IPV6
   struct sockaddr_in6 *v6;
-#endif
+
   current = (unsigned char *)buf + sizeof(HEADER);
 
   for (; header->qdcount > 0; --header->qdcount)
@@ -659,13 +658,10 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
           return 0;
 
         v4 = (struct sockaddr_in *)&request->addr;
-        request->addr.ss_len = sizeof(struct sockaddr_in);
         v4->sin_family = AF_INET;
         memcpy(&v4->sin_addr, current, sizeof(struct in_addr));
         return 1;
         break;
-#ifdef IPV6
-
       case T_AAAA:
         if (request->type != T_AAAA)
           return 0;
@@ -673,14 +669,11 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
         if (rd_length != sizeof(struct in6_addr))
           return 0;
 
-        request->addr.ss_len = sizeof(struct sockaddr_in6);
         v6 = (struct sockaddr_in6 *)&request->addr;
         v6->sin6_family = AF_INET6;
         memcpy(&v6->sin6_addr, current, sizeof(struct in6_addr));
         return 1;
         break;
-#endif
-
       case T_PTR:
         if (request->type != T_PTR)
           return 0;
@@ -732,9 +725,9 @@ proc_answer(struct reslist *request, HEADER *header, char *buf, char *eob)
  * res_readreply - read a dns reply from the nameserver and process it.
  */
 static void
-res_readreply(fde_t *fd, void *data)
+res_readreply(uv_udp_t *handle, ssize_t nread, uv_buf_t buf,
+              struct sockaddr *addr, unsigned flags)
 {
-  char buf[sizeof(HEADER) + MAXPACKET]
   /* Sparc and alpha need 16bit-alignment for accessing header->id
    * (which is uint16_t). Because of the header = (HEADER*) buf;
    * lateron, this is neeeded. --FaUl
@@ -745,25 +738,14 @@ res_readreply(fde_t *fd, void *data)
   ;
   HEADER *header;
   struct reslist *request = NULL;
-  int rc;
-  socklen_t len = sizeof(struct irc_ssaddr);
-  struct irc_ssaddr lsin;
 
-  rc = recvfrom(fd->fd, buf, sizeof(buf), 0, (struct sockaddr *)&lsin, &len);
-
-  /* Re-schedule a read *after* recvfrom, or we'll be registering
-   * interest where it'll instantly be ready for read :-) -- adrian
-   */
-  comm_setselect(fd, COMM_SELECT_READ, res_readreply, NULL, 0);
-
-  /* Better to cast the sizeof instead of rc */
-  if (rc <= (int)(sizeof(HEADER)))
+  if (nread <= (int)(sizeof(HEADER)))
     return;
 
   /*
    * convert DNS reply reader from Network byte order to CPU byte order.
    */
-  header = (HEADER *)buf;
+  header = (HEADER *)buf.base;
   header->ancount = ntohs(header->ancount);
   header->qdcount = ntohs(header->qdcount);
   header->nscount = ntohs(header->nscount);
@@ -772,7 +754,7 @@ res_readreply(fde_t *fd, void *data)
   /*
    * check against possibly fake replies
    */
-  if (!res_ourserver(&lsin))
+  if (!res_ourserver((struct sockaddr_storage *)addr))
     return;
 
   /*
@@ -793,7 +775,7 @@ res_readreply(fde_t *fd, void *data)
    * If this fails there was an error decoding the received packet,
    * try it again and hope it works the next time.
    */
-  if (proc_answer(request, header, buf, buf + rc))
+  if (proc_answer(request, header, buf.base, buf.base + nread))
   {
     if (request->type == T_PTR)
     {
@@ -813,13 +795,10 @@ res_readreply(fde_t *fd, void *data)
        * ip#.
        *
        */
-#ifdef IPV6
-
-      if (request->addr.ss.ss_family == AF_INET6)
+      if (request->addr.ss_family == AF_INET6)
         gethost_byname_type(request->callback, request->callback_ctx, request->name,
                             T_AAAA);
       else
-#endif
         gethost_byname_type(request->callback, request->callback_ctx, request->name,
                             T_A);
 
@@ -854,10 +833,9 @@ report_dns_servers(struct Client *source_p)
 
   for (i = 0; i < irc_nscount; i++)
   {
-    getnameinfo((struct sockaddr *) & (irc_nsaddr_list[i]),
-                irc_nsaddr_list[i].ss_len, ipaddr,
-                sizeof(ipaddr), NULL, 0, NI_NUMERICHOST);
-    sendto_one(source_p, form_str(RPL_STATSALINE),
-               me.name, source_p->name, ipaddr);
+    ip_to_string(&(irc_nsaddr_list[i]), ipaddr, sizeof(ipaddr));
+
+    sendto_one(source_p, form_str(RPL_STATSALINE), me.name, source_p->name, 
+               ipaddr);
   }
 }

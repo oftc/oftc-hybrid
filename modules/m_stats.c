@@ -502,12 +502,6 @@ stats_exempt(struct Client *source_p, int parc, char *parv[])
 }
 
 static void
-stats_events(struct Client *source_p, int parc, char *parv[])
-{
-  show_events(source_p);
-}
-
-static void
 stats_hubleaf(struct Client *source_p, int parc, char *parv[])
 {
   report_confitem_types(source_p, HUB_TYPE);
@@ -631,12 +625,14 @@ stats_auth(struct Client *source_p, int parc, char *parv[])
       aconf = find_conf_by_address(source_p->host,
                                    &source_p->ip,
                                    CONF_CLIENT,
-                                   source_p->aftype,
+                                   source_p->ip.ss_family,
                                    source_p->username,
-                                   source_p->localClient->passwd, 1, source_p->certfp);
+                                   source_p->localClient->passwd, 1, 
+                                   source_p->certfp);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_CLIENT,
-                                   0, source_p->username, NULL, 1, source_p->certfp);
+                                   0, source_p->username, NULL, 1, 
+                                   source_p->certfp);
 
     if (aconf == NULL)
       return;
@@ -715,7 +711,7 @@ stats_tklines(struct Client *source_p, int parc, char *parv[])
       aconf = find_conf_by_address(source_p->host,
                                    &source_p->ip,
                                    CONF_KLINE,
-                                   source_p->aftype,
+                                   source_p->ip.ss_family,
                                    source_p->username, NULL, 1, source_p->certfp);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_KLINE,
@@ -757,7 +753,7 @@ stats_klines(struct Client *source_p, int parc, char *parv[])
       aconf = find_conf_by_address(source_p->host,
                                    &source_p->ip,
                                    CONF_KLINE,
-                                   source_p->aftype,
+                                   source_p->ip.ss_family,
                                    source_p->username, NULL, 0, source_p->certfp);
     else
       aconf = find_conf_by_address(source_p->host, NULL, CONF_KLINE,
@@ -1218,7 +1214,6 @@ static const struct StatsStruct
   { 'd',        stats_tdeny,            1,      0       },
   { 'D',        stats_deny,             1,      0       },
   { 'e',        stats_exempt,           1,      0       },
-  { 'E',        stats_events,           1,      1       },
   { 'f',        fd_dump,                1,      1       },
   { 'F',        fd_dump,                1,      1       },
   { 'h',        stats_hooks,            1,      1       },

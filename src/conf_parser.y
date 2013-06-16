@@ -49,6 +49,7 @@
 #include "numeric.h"
 #include "s_user.h"
 #include "s_misc.h"
+#include "s_bsd.h"
 
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/rsa.h>
@@ -683,58 +684,18 @@ serverinfo_vhost: VHOST '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2 && *yylval.string != '*')
   {
-    struct addrinfo hints, *res;
-
-    memset(&hints, 0, sizeof(hints));
-
-    hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
-
-    if (getaddrinfo(yylval.string, NULL, &hints, &res))
-      ilog(LOG_TYPE_IRCD, "Invalid netmask for server vhost(%s)", yylval.string);
-    else
-    {
-      assert(res != NULL);
-
-      memcpy(&ServerInfo.ip, res->ai_addr, res->ai_addrlen);
-      ServerInfo.ip.ss.ss_family = res->ai_family;
-      ServerInfo.ip.ss_len = res->ai_addrlen;
-      freeaddrinfo(res);
-
-      ServerInfo.specific_ipv4_vhost = 1;
-    }
+    string_to_ip(yylval.string, 0, &ServerInfo.ip);
+    ServerInfo.specific_ipv4_vhost = 1;
   }
 };
 
 serverinfo_vhost6: VHOST6 '=' QSTRING ';'
 {
-#ifdef IPV6
   if (conf_parser_ctx.pass == 2 && *yylval.string != '*')
   {
-    struct addrinfo hints, *res;
-
-    memset(&hints, 0, sizeof(hints));
-
-    hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
-
-    if (getaddrinfo(yylval.string, NULL, &hints, &res))
-      ilog(LOG_TYPE_IRCD, "Invalid netmask for server vhost6(%s)", yylval.string);
-    else
-    {
-      assert(res != NULL);
-
-      memcpy(&ServerInfo.ip6, res->ai_addr, res->ai_addrlen);
-      ServerInfo.ip6.ss.ss_family = res->ai_family;
-      ServerInfo.ip6.ss_len = res->ai_addrlen;
-      freeaddrinfo(res);
-
-      ServerInfo.specific_ipv6_vhost = 1;
-    }
+    string_to_ip(yylval.string, 0, &ServerInfo.ip);
+    ServerInfo.specific_ipv6_vhost = 1;
   }
-#endif
 };
 
 serverinfo_max_clients: T_MAX_CLIENTS '=' NUMBER ';'
@@ -2247,25 +2208,7 @@ connect_vhost: VHOST '=' QSTRING ';'
 {
   if (conf_parser_ctx.pass == 2)
   {
-    struct addrinfo hints, *res;
-
-    memset(&hints, 0, sizeof(hints));
-
-    hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
-
-    if (getaddrinfo(yylval.string, NULL, &hints, &res))
-      ilog(LOG_TYPE_IRCD, "Invalid netmask for server vhost(%s)", yylval.string);
-    else
-    {
-      assert(res != NULL);
-
-      memcpy(&yy_aconf->bind, res->ai_addr, res->ai_addrlen);
-      yy_aconf->bind.ss.ss_family = res->ai_family;
-      yy_aconf->bind.ss_len = res->ai_addrlen;
-      freeaddrinfo(res);
-    }
+    string_to_ip(yylval.string, 0, &yy_aconf->bind);
   }
 };
  
@@ -2319,10 +2262,8 @@ connect_aftype: AFTYPE '=' T_IPV4 ';'
     yy_aconf->aftype = AF_INET;
 } | AFTYPE '=' T_IPV6 ';'
 {
-#ifdef IPV6
   if (conf_parser_ctx.pass == 2)
     yy_aconf->aftype = AF_INET6;
-#endif
 };
 
 connect_flags: IRCD_FLAGS

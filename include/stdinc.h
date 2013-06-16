@@ -90,6 +90,9 @@
 #include <sys/param.h>
 #endif
 
+#include <uv.h>
+#undef ECHO // this is pulled in from uv, bleh
+
 #ifdef PATH_MAX
 #define HYB_PATH_MAX PATH_MAX
 #else

@@ -81,9 +81,9 @@ enum
 static BlockHeap *auth_heap = NULL;
 static dlink_list auth_doing_list = { NULL, NULL, 0 };
 
-static EVH timeout_auth_queries_event;
+static void timeout_auth_queries_event(uv_timer_t *, int);
 
-static PF read_auth_reply;
+static void read_auth_reply(uv_stream_t *, ssize_t, uv_buf_t);
 static CNCB auth_connect_callback;
 static CBFUNC start_auth;
 
@@ -148,7 +148,12 @@ release_auth_client(struct AuthRequest *auth)
   client->localClient->firsttime = CurrentTime;
   client->flags |= FLAGS_FINISHED_AUTH;
 
-  read_packet(&client->localClient->fd, client);
+  if(uv_read_start((uv_stream_t*)client->localClient->fd.handle, 
+                   allocate_uv_buffer, read_packet) < 0)
+  {
+    dead_link_on_read(client, uv_last_error(server_state.event_loop).code);
+    return;
+  }
 }
 
 /*
@@ -159,7 +164,7 @@ release_auth_client(struct AuthRequest *auth)
  * of success of failure
  */
 static void
-auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
+auth_dns_callback(void *vptr, const struct sockaddr_storage *addr, const char *name)
 {
   struct AuthRequest *auth = vptr;
 
@@ -168,26 +173,22 @@ auth_dns_callback(void *vptr, const struct irc_ssaddr *addr, const char *name)
   if (name != NULL)
   {
     const struct sockaddr_in *v4, *v4dns;
-#ifdef IPV6
     const struct sockaddr_in6 *v6, *v6dns;
-#endif
     int good = 1;
 
-#ifdef IPV6
-
-    if (auth->client->ip.ss.ss_family == AF_INET6)
+    if (auth->client->ip.ss_family == AF_INET6)
     {
       v6 = (const struct sockaddr_in6 *)&auth->client->ip;
       v6dns = (const struct sockaddr_in6 *)addr;
 
-      if (memcmp(&v6->sin6_addr, &v6dns->sin6_addr, sizeof(struct in6_addr)) != 0)
+      if (memcmp(&v6->sin6_addr, &v6dns->sin6_addr, 
+                 sizeof(struct in6_addr)) != 0)
       {
         sendheader(auth->client, REPORT_IP_MISMATCH);
         good = 0;
       }
     }
     else
-#endif
     {
       v4 = (const struct sockaddr_in *)&auth->client->ip;
       v4dns = (const struct sockaddr_in *)addr;
@@ -242,26 +243,25 @@ auth_error(struct AuthRequest *auth)
 static int
 start_auth_query(struct AuthRequest *auth)
 {
-  struct irc_ssaddr localaddr;
-  socklen_t locallen = sizeof(struct irc_ssaddr);
-#ifdef IPV6
+  struct sockaddr_storage localaddr;
+  int locallen = sizeof(localaddr);
   struct sockaddr_in6 *v6;
-#else
-  struct sockaddr_in *v4;
-#endif
 
   /* open a socket of the same type as the client socket */
   if (comm_open(&auth->client->localClient->auth_fd,
-                auth->client->ip.ss.ss_family,
-                SOCK_STREAM, 0, "ident") == -1)
+                auth->client->ip.ss_family,
+                SOCK_STREAM, "ident") == -1)
   {
     report_error(L_ALL, "creating auth stream socket %s:%s",
-                 get_client_name(auth->client, SHOW_IP), errno);
+                 get_client_name(auth->client, SHOW_IP), 
+                 uv_last_error(server_state.event_loop));
     ilog(LOG_TYPE_IRCD, "Unable to create auth socket for %s",
          get_client_name(auth->client, SHOW_IP));
     ++ServerStats.is_abad;
     return 0;
   }
+
+  auth->client->localClient->auth_fd.handle->data = auth;
 
   sendheader(auth->client, REPORT_DO_ID);
 
@@ -272,25 +272,18 @@ start_auth_query(struct AuthRequest *auth)
    * since the ident request must originate from that same address--
    * and machines with multiple IP addresses are common now
    */
-  memset(&localaddr, 0, locallen);
-  getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&localaddr,
-              &locallen);
+  memset(&localaddr, 0, sizeof(localaddr));
+  uv_tcp_getsockname((uv_tcp_t *)auth->client->localClient->fd.handle, 
+                     (struct sockaddr *)&localaddr, &locallen);
 
-#ifdef IPV6
   remove_ipv6_mapping(&localaddr);
   v6 = (struct sockaddr_in6 *)&localaddr;
   v6->sin6_port = htons(0);
-#else
-  localaddr.ss_len = locallen;
-  v4 = (struct sockaddr_in *)&localaddr;
-  v4->sin_port = htons(0);
-#endif
-  localaddr.ss_port = htons(0);
 
   comm_connect_tcp(&auth->client->localClient->auth_fd, auth->client->sockhost,
                    113,
-                   (struct sockaddr *)&localaddr, localaddr.ss_len, auth_connect_callback,
-                   auth, auth->client->ip.ss.ss_family,
+                   (struct sockaddr *)&localaddr, locallen, 
+                   auth_connect_callback, auth, auth->client->ip.ss_family,
                    GlobalSetOptions.ident_timeout);
   return 1; /* We suceed here for now */
 }
@@ -405,7 +398,7 @@ start_auth(va_list args)
  * allow clients through if requests failed
  */
 static void
-timeout_auth_queries_event(void *notused)
+timeout_auth_queries_event(uv_timer_t *handle, int status)
 {
   dlink_node *ptr = NULL, *next_ptr = NULL;
 
@@ -452,17 +445,15 @@ static void
 auth_connect_callback(fde_t *fd, int error, void *data)
 {
   struct AuthRequest *auth = data;
-  struct irc_ssaddr us;
-  struct irc_ssaddr them;
+  struct sockaddr_storage us;
+  struct sockaddr_storage them;
   char authbuf[32];
-  socklen_t ulen = sizeof(struct irc_ssaddr);
-  socklen_t tlen = sizeof(struct irc_ssaddr);
+  int ulen = sizeof(struct sockaddr_storage);
+  int tlen = sizeof(struct sockaddr_storage);
   uint16_t uport, tport;
-#ifdef IPV6
   struct sockaddr_in6 *v6;
-#else
-  struct sockaddr_in *v4;
-#endif
+  uv_write_t *req;
+  uv_buf_t buf;
 
   if (error != COMM_OK)
   {
@@ -470,10 +461,10 @@ auth_connect_callback(fde_t *fd, int error, void *data)
     return;
   }
 
-  if (getsockname(auth->client->localClient->fd.fd, (struct sockaddr *)&us,
-                  &ulen) ||
-      getpeername(auth->client->localClient->fd.fd, (struct sockaddr *)&them,
-                  &tlen))
+  if (uv_tcp_getsockname((uv_tcp_t *)auth->client->localClient->fd.handle, 
+                         (struct sockaddr *)&us, &ulen) != 0 ||
+      uv_tcp_getpeername((uv_tcp_t *)auth->client->localClient->fd.handle, 
+                         (struct sockaddr *)&them, &tlen) != 0)
   {
     ilog(LOG_TYPE_IRCD, "auth get{sock,peer}name error for %s",
          get_client_name(auth->client, SHOW_IP));
@@ -481,31 +472,32 @@ auth_connect_callback(fde_t *fd, int error, void *data)
     return;
   }
 
-#ifdef IPV6
   v6 = (struct sockaddr_in6 *)&us;
   uport = ntohs(v6->sin6_port);
   v6 = (struct sockaddr_in6 *)&them;
   tport = ntohs(v6->sin6_port);
   remove_ipv6_mapping(&us);
   remove_ipv6_mapping(&them);
-#else
-  v4 = (struct sockaddr_in *)&us;
-  uport = ntohs(v4->sin_port);
-  v4 = (struct sockaddr_in *)&them;
-  tport = ntohs(v4->sin_port);
-  us.ss_len = ulen;
-  them.ss_len = tlen;
-#endif
 
   snprintf(authbuf, sizeof(authbuf), "%u , %u\r\n", tport, uport);
 
-  if (send(fd->fd, authbuf, strlen(authbuf), 0) == -1)
+  req = BlockHeapAlloc(write_req_heap);
+
+  buf = uv_buf_init(authbuf, sizeof(authbuf));
+
+  if(uv_write(req, auth->client->localClient->auth_fd.handle, &buf, 1, 
+              write_callback) != 0)
   {
     auth_error(auth);
     return;
   }
 
-  read_auth_reply(&auth->client->localClient->auth_fd, auth);
+  if(uv_read_start(auth->client->localClient->auth_fd.handle,
+                    allocate_uv_buffer, read_auth_reply) != 0)
+  {
+    auth_error(auth);
+    return;
+  }
 }
 
 /*
@@ -517,66 +509,44 @@ auth_connect_callback(fde_t *fd, int error, void *data)
 #define AUTH_BUFSIZ 128
 
 static void
-read_auth_reply(fde_t *fd, void *data)
+read_auth_reply(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 {
-  struct AuthRequest *auth = data;
+  struct AuthRequest *auth = stream->data;
   char *s = NULL;
   char *t = NULL;
-  int len;
   int count;
-  char buf[AUTH_BUFSIZ + 1]; /* buffer to read auth reply into */
 
-  /* Why?
-   * Well, recv() on many POSIX systems is a per-packet operation,
-   * and we do not necessarily want this, because on lowspec machines,
-   * the ident response may come back fragmented, thus resulting in an
-   * invalid ident response, even if the ident response was really OK.
-   *
-   * So PLEASE do not change this code to recv without being aware of the
-   * consequences.
-   *
-   *    --nenolod
-   */
-  len = read(fd->fd, buf, AUTH_BUFSIZ);
-
-  if (len < 0)
+  if (nread <= 0)
   {
-    if (ignoreErrno(errno))
-      comm_setselect(fd, COMM_SELECT_READ, read_auth_reply, auth, 0);
-    else
-      auth_error(auth);
-
+    auth_error(auth);
     return;
   }
 
-  if (len > 0)
+  buf.base[nread] = '\0';
+
+  if ((s = GetValidIdent(buf.base)))
   {
-    buf[len] = '\0';
+    t = auth->client->username;
 
-    if ((s = GetValidIdent(buf)))
+    while (*s == '~' || *s == '^')
+      s++;
+
+    for (count = USERLEN; *s && count; s++)
     {
-      t = auth->client->username;
+      if (*s == '@')
+        break;
 
-      while (*s == '~' || *s == '^')
-        s++;
-
-      for (count = USERLEN; *s && count; s++)
+      if (!IsSpace(*s) && *s != ':' && *s != '[')
       {
-        if (*s == '@')
-          break;
-
-        if (!IsSpace(*s) && *s != ':' && *s != '[')
-        {
-          *t++ = *s;
-          count--;
-        }
+        *t++ = *s;
+        count--;
       }
-
-      *t = '\0';
     }
+
+    *t = '\0';
   }
 
-  fd_close(fd);
+  fd_close(&auth->client->localClient->auth_fd);
 
   ClearAuth(auth);
 

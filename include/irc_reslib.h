@@ -45,7 +45,7 @@
     (cp) += NS_INT32SZ; \
   }
 
-extern struct irc_ssaddr irc_nsaddr_list[];
+extern struct sockaddr_storage irc_nsaddr_list[];
 extern int irc_nscount;
 extern void irc_res_init();
 extern int irc_dn_expand(const unsigned char *msg, const unsigned char *eom,

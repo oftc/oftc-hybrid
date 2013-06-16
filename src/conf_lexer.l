@@ -28,6 +28,7 @@
 %option never-interactive
 
 %{
+
 #include "stdinc.h"
 #include "irc_string.h"
 #include "conf.h"

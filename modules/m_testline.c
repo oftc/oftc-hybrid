@@ -61,7 +61,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
   char parv1_copy[IRCD_BUFSIZE];
   struct ConfItem *conf;
   struct AccessItem *aconf;
-  struct irc_ssaddr ip;
+  struct sockaddr_storage ip;
   int host_mask;
   int t;
   int matches = 0;
@@ -105,13 +105,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 
   if (t != HM_HOST)
   {
-    aconf = find_dline_conf(&ip,
-#ifdef IPV6
-                            (t == HM_IPV6) ? AF_INET6 : AF_INET
-#else
-                            AF_INET
-#endif
-                           );
+    aconf = find_dline_conf(&ip, (t == HM_IPV6) ? AF_INET6 : AF_INET);
 
     if (aconf != NULL)
     {
@@ -138,11 +132,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
 
   if (t != HM_HOST)
     aconf = find_address_conf(given_host, given_name, &ip,
-#ifdef IPV6
                               (t == HM_IPV6) ? AF_INET6 : AF_INET,
-#else
-                              AF_INET,
-#endif
                               parv[2], parv[3] == NULL ? parv[2] : parv[3]);
   else
     aconf = find_address_conf(given_host, given_name, NULL, 0, parv[2],

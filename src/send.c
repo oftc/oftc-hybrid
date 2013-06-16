@@ -204,25 +204,15 @@ send_message_remote(struct Client *to, struct Client *from,
   send_message(to, buf, len);
 }
 
-/*
- ** sendq_unblocked
- **      Called when a socket is ready for writing.
- */
-void
-sendq_unblocked(fde_t *fd, struct Client *client_p)
+static void
+send_callback(uv_write_t *req, int status)
 {
-  ClearSendqBlocked(client_p);
-  /* let send_queued_write be executed by send_queued_all */
+  struct Client *client_p = req->data;
 
-#ifdef HAVE_LIBCRYPTO
+  if(status != 0)
+    dead_link_on_write(client_p, uv_last_error(server_state.event_loop).code);
 
-  if (fd->flags.pending_read)
-  {
-    fd->flags.pending_read = 0;
-    read_packet(fd, client_p);
-  }
-
-#endif
+  BlockHeapFree(write_req_heap, req);
 }
 
 /*
@@ -234,79 +224,76 @@ sendq_unblocked(fde_t *fd, struct Client *client_p)
 void
 send_queued_write(struct Client *to)
 {
-  int retlen;
+  int retlen = 0;
   struct dbuf_block *first;
+  uv_buf_t buf;
+  uv_write_t *req;
+  bool error = false;
 
   /*
    ** Once socket is marked dead, we cannot start writing to it,
    ** even if the error is removed...
    */
-  if (IsDead(to) || IsSendqBlocked(to))
+  if (IsDead(to))
     return;  /* no use calling send() now */
 
   /* Next, lets try to write some data */
 
-  if (dbuf_length(&to->localClient->buf_sendq))
-  {
-    do
-    {
-      first = to->localClient->buf_sendq.blocks.head->data;
+  if (dbuf_length(&to->localClient->buf_sendq) == 0)
+    return;
 
+  do
+  {
+    first = to->localClient->buf_sendq.blocks.head->data;
+
+    req = BlockHeapAlloc(write_req_heap);
 #ifdef HAVE_LIBCRYPTO
 
-      if (to->localClient->fd.ssl)
+    if (to->localClient->fd.ssl)
+    {
+      retlen = SSL_write(to->localClient->fd.ssl, first->data, first->size);
+
+      /* translate openssl error codes, sigh */
+      if (retlen < 0)
       {
-        retlen = SSL_write(to->localClient->fd.ssl, first->data, first->size);
+        switch (SSL_get_error(to->localClient->fd.ssl, retlen))
+        {
+          case SSL_ERROR_WANT_READ:
+          case SSL_ERROR_WANT_WRITE:
+            // No probs, get you next time
+            break;
 
-        /* translate openssl error codes, sigh */
-        if (retlen < 0)
-          switch (SSL_get_error(to->localClient->fd.ssl, retlen))
-          {
-            case SSL_ERROR_WANT_READ:
-              return;  /* retry later, don't register for write events */
-
-            case SSL_ERROR_WANT_WRITE:
-              errno = EWOULDBLOCK;
-
-            case SSL_ERROR_SYSCALL:
-              break;
-
-            case SSL_ERROR_SSL:
-              if (errno == EAGAIN)
-                break;
-
-            default:
-              retlen = errno = 0;  /* either an SSL-specific error or EOF */
-          }
+          default:
+            error = true;
+            break;
+        }
       }
-      else
+      ssl_flush_write(to);
+    }
+    else
+    {
 #endif
-        retlen = send(to->localClient->fd.fd, first->data, first->size, 0);
-
-      if (retlen <= 0)
-        break;
-
-      dbuf_delete(&to->localClient->buf_sendq, retlen);
-
-      /* We have some data written .. update counters */
-      to->localClient->send.bytes += retlen;
-      me.localClient->send.bytes += retlen;
+      buf = uv_buf_init(first->data, first->size);
+      req->data = to;
+      if(uv_write(req, to->localClient->fd.handle, &buf, 1, 
+                  send_callback) != 0)
+        error = true;
+      retlen = first->size;
+#ifdef HAVE_LIBCRYPTO
     }
-    while (dbuf_length(&to->localClient->buf_sendq));
+#endif
+    if(error || retlen == -1)
+      break;
+    dbuf_delete(&to->localClient->buf_sendq, retlen);
 
-    if ((retlen < 0) && (ignoreErrno(errno)))
-    {
-      /* we have a non-fatal error, reschedule a write */
-      SetSendqBlocked(to);
-      comm_setselect(&to->localClient->fd, COMM_SELECT_WRITE,
-                     (PF *)sendq_unblocked, (void *)to, 0);
-    }
-    else if (retlen <= 0)
-    {
-      dead_link_on_write(to, errno);
-      return;
-    }
+    /* We have some data written .. update counters */
+    to->localClient->send.bytes += retlen;
+    me.localClient->send.bytes += retlen;
   }
+  while (dbuf_length(&to->localClient->buf_sendq));
+
+  if(error)
+    dead_link_on_write(to, errno);
 }
 
 /* send_queued_all()

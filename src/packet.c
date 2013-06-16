@@ -37,11 +37,8 @@
 #include "send.h"
 #include "s_misc.h"
 
-#define READBUF_SIZE 16384
-
 struct Callback *iorecv_cb = NULL;
 
-static char readBuf[READBUF_SIZE];
 static void client_dopacket(struct Client *, char *, size_t);
 
 /* extract_one_line()
@@ -130,71 +127,31 @@ parse_client_queued(struct Client *client_p)
   int dolen = 0;
   int checkflood = 1;
   struct LocalUser *lclient_p = client_p->localClient;
+  char buffer[IRCD_BUFSIZE + 1] = { '\0' };
+  bool keep_going = true;
+  int i = 0;
 
-  if (IsUnknown(client_p))
+  while(keep_going)
   {
-    int i = 0;
+    if (IsDefunct(client_p))
+      return;
 
-    for (;;)
+    /* rate unknown clients at MAX_FLOOD per loop */
+    if (IsUnknown(client_p))
     {
-      if (IsDefunct(client_p))
-        return;
-
-      /* rate unknown clients at MAX_FLOOD per loop */
       if (i >= MAX_FLOOD)
         break;
-
-      dolen = extract_one_line(&lclient_p->buf_recvq, readBuf);
-
-      if (dolen == 0)
-        break;
-
-      client_dopacket(client_p, readBuf, dolen);
-      i++;
-
-      /* if they've dropped out of the unknown state, break and move
-       * to the parsing for their appropriate status.  --fl
-       */
-      if (!IsUnknown(client_p))
-        break;
     }
-  }
-
-  if (IsServer(client_p) || IsConnecting(client_p) || IsHandshake(client_p))
-  {
-    while (1)
+    else if (IsClient(client_p))
     {
-      if (IsDefunct(client_p))
-        return;
-
-      if ((dolen = extract_one_line(&lclient_p->buf_recvq,
-                                    readBuf)) == 0)
-        break;
-
-      client_dopacket(client_p, readBuf, dolen);
-    }
-  }
-  else if (IsClient(client_p))
-  {
-    if (ConfigFileEntry.no_oper_flood && (HasUMode(client_p, UMODE_OPER)
-                                          || IsCanFlood(client_p)))
-    {
-      if (ConfigFileEntry.true_no_oper_flood)
-        checkflood = -1;
-      else
-        checkflood = 0;
-    }
-
-    /*
-     * Handle flood protection here - if we exceed our flood limit on
-     * messages in this loop, we simply drop out of the loop prematurely.
-     *   -- adrian
-     */
-    for (;;)
-    {
-      if (IsDefunct(client_p))
-        break;
-
+      if (ConfigFileEntry.no_oper_flood && (HasUMode(client_p, UMODE_OPER)
+                                            || IsCanFlood(client_p)))
+      {
+        if (ConfigFileEntry.true_no_oper_flood)
+          checkflood = -1;
+        else
+          checkflood = 0;
+      }
       /* This flood protection works as follows:
        *
        * A client is given allow_read lines to send to the server.  Every
@@ -221,14 +178,17 @@ parse_client_queued(struct Client *client_p)
                checkflood != -1)
         break;
 
-      dolen = extract_one_line(&lclient_p->buf_recvq, readBuf);
-
-      if (dolen == 0)
-        break;
-
-      client_dopacket(client_p, readBuf, dolen);
-      lclient_p->sent_parsed++;
     }
+
+    dolen = extract_one_line(&lclient_p->buf_recvq, buffer);
+
+    if (dolen == 0)
+      break;
+
+    client_dopacket(client_p, buffer, dolen);
+    if(IsClient(client_p))
+      lclient_p->sent_parsed++;
+    i++;
   }
 }
 
@@ -301,123 +261,116 @@ iorecv_default(va_list args)
  * read_packet - Read a 'packet' of data from a connection and process it.
  */
 void
-read_packet(fde_t *fd, void *data)
+read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 {
-  struct Client *client_p = data;
+  struct Client *client_p = stream->data;
   int length = 0;
+  bool is_ssl;
+  char *buffer;
+
+  if (IsDefunct(client_p))
+  {
+    BlockHeapFree(buffer_heap, buf.base);
+    return;
+  }
+
+  if(nread <= 0)
+  {
+    dead_link_on_read(client_p, uv_last_error(server_state.event_loop).code);
+    BlockHeapFree(buffer_heap, buf.base);
+    return;
+  }
+
+#ifdef HAVE_LIBCRYPTO
+  if (client_p->localClient->fd.ssl != NULL)
+  {
+    char ssl_buffer[READBUF_SIZE] = { 0 };
+
+    buffer = ssl_buffer;
+
+    BIO_write(client_p->localClient->fd.read_bio, buf.base, nread);
+
+    int offset = 0;
+
+    while(BIO_pending(client_p->localClient->fd.read_bio) != 0)
+    {
+      int len = SSL_read(client_p->localClient->fd.ssl, ssl_buffer + offset, 
+                        READBUF_SIZE - offset);
+      if(len == -1)
+      {
+        int err = SSL_get_error(client_p->localClient->fd.ssl, len);
+
+        switch(err)
+        {
+          case SSL_ERROR_WANT_READ:
+          case SSL_ERROR_WANT_WRITE:
+            ssl_flush_write(client_p);
+            break;
+
+          default:
+            break;
+        }
+      }
+      else
+      {
+        offset += len;
+        length += len;
+      }
+    }
+  }
+  else
+#endif
+  {
+    length = nread;
+    buffer = buf.base;
+    is_ssl = false;
+  }
+
+  if(length != 0)
+    execute_callback(iorecv_cb, client_p, length, buffer);
+
+  BlockHeapFree(buffer_heap, buf.base);
+
+  // This could happen if we have some ssl data but not enough to decrypt
+  if(length == 0)
+    return;
+
+  if (IsServer(client_p) && IsPingSent(client_p) && IsPingWarning(client_p))
+  {
+    char timestamp[200];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z",
+             gmtime(&CurrentTime));
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Finally received packets from %s again after %d seconds (at %s)",
+                         get_client_name(client_p, SHOW_IP),
+                         CurrentTime - client_p->localClient->lasttime, timestamp);
+  }
+
+  if (client_p->localClient->lasttime < CurrentTime)
+    client_p->localClient->lasttime = CurrentTime;
+
+  if (client_p->localClient->lasttime > client_p->localClient->since)
+    client_p->localClient->since = CurrentTime;
+
+  ClearPingSent(client_p);
+
+  /* Attempt to parse what we have */
+  parse_client_queued(client_p);
 
   if (IsDefunct(client_p))
     return;
 
-  /*
-   * Read some data. We *used to* do anti-flood protection here, but
-   * I personally think it makes the code too hairy to make sane.
-   *     -- adrian
-   */
-  do
+  /* Check to make sure we're not flooding */
+  if (!(IsServer(client_p) || IsHandshake(client_p) || IsConnecting(client_p))
+      && (dbuf_length(&client_p->localClient->buf_recvq) >
+          get_recvq(client_p)))
   {
-#ifdef HAVE_LIBCRYPTO
-
-    if (fd->ssl)
+    if (!(ConfigFileEntry.no_oper_flood && HasUMode(client_p, UMODE_OPER)))
     {
-      length = SSL_read(fd->ssl, readBuf, READBUF_SIZE);
-
-      /* translate openssl error codes, sigh */
-      if (length < 0)
-        switch (SSL_get_error(fd->ssl, length))
-        {
-          case SSL_ERROR_WANT_WRITE:
-            fd->flags.pending_read = 1;
-            SetSendqBlocked(client_p);
-            comm_setselect(fd, COMM_SELECT_WRITE, (PF *) sendq_unblocked,
-                           client_p, 0);
-            return;
-
-          case SSL_ERROR_WANT_READ:
-            errno = EWOULDBLOCK;
-
-          case SSL_ERROR_SYSCALL:
-            break;
-
-          case SSL_ERROR_SSL:
-            if (errno == EAGAIN)
-              break;
-
-          default:
-            length = errno = 0;
-        }
-    }
-    else
-#endif
-    {
-      length = recv(fd->fd, readBuf, READBUF_SIZE, 0);
-    }
-
-    if (length <= 0)
-    {
-      /*
-       * If true, then we can recover from this error.  Just jump out of
-       * the loop and re-register a new io-request.
-       */
-      if (length < 0 && ignoreErrno(errno))
-        break;
-
-      dead_link_on_read(client_p, length);
+      exit_client(client_p, client_p, "Excess Flood");
       return;
-    }
-
-    execute_callback(iorecv_cb, client_p, length, readBuf);
-
-    if (IsServer(client_p) && IsPingSent(client_p) && IsPingWarning(client_p))
-    {
-      char timestamp[200];
-      strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S Z",
-               gmtime(&CurrentTime));
-      sendto_realops_flags(UMODE_ALL, L_ALL,
-                           "Finally received packets from %s again after %d seconds (at %s)",
-                           get_client_name(client_p, SHOW_IP),
-                           CurrentTime - client_p->localClient->lasttime, timestamp);
-    }
-
-    if (client_p->localClient->lasttime < CurrentTime)
-      client_p->localClient->lasttime = CurrentTime;
-
-    if (client_p->localClient->lasttime > client_p->localClient->since)
-      client_p->localClient->since = CurrentTime;
-
-    ClearPingSent(client_p);
-
-    /* Attempt to parse what we have */
-    parse_client_queued(client_p);
-
-    if (IsDefunct(client_p))
-      return;
-
-    /* Check to make sure we're not flooding */
-    if (!(IsServer(client_p) || IsHandshake(client_p) || IsConnecting(client_p))
-        && (dbuf_length(&client_p->localClient->buf_recvq) >
-            get_recvq(client_p)))
-    {
-      if (!(ConfigFileEntry.no_oper_flood && HasUMode(client_p, UMODE_OPER)))
-      {
-        exit_client(client_p, client_p, "Excess Flood");
-        return;
-      }
     }
   }
-
-#ifdef HAVE_LIBCRYPTO
-
-  while (length == sizeof(readBuf) || fd->ssl);
-
-#else
-
-  while (length == sizeof(readBuf));
-
-#endif
-
-  /* If we get here, we need to register for another COMM_SELECT_READ */
-  comm_setselect(fd, COMM_SELECT_READ, read_packet, client_p, 0);
 }
 
 /*

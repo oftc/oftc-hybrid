@@ -4,9 +4,9 @@ sbin_PROGRAMS = ircd
 
 AM_YFLAGS = -d
 
-AM_CPPFLAGS = $(LTDLINCL) -I$(top_srcdir)/include $(OPENSSL_INCLUDES)
-ircd_LDFLAGS = -export-dynamic $(OPENSSL_LDFLAGS)
-ircd_LDADD = $(LIBLTDL) $(OPENSSL_LIBS)
+AM_CPPFLAGS = $(LTDLINCL) -I$(top_srcdir)/include $(OPENSSL_INCLUDES) -I$(top_srcdir)/libuv/include
+ircd_LDFLAGS = -export-dynamic $(OPENSSL_LDFLAGS) `sh ../libuv-ldflags.sh $(MAKE)`
+ircd_LDADD = $(LIBLTDL) $(OPENSSL_LIBS) ../libuv/libuv.a
 ircd_DEPENDENCIES = $(LTDLDEPS)
 
 ircd_SOURCES = balloc.c          \
@@ -39,11 +39,6 @@ ircd_SOURCES = balloc.c          \
                numeric.c         \
                packet.c          \
                parse.c           \
-               s_bsd_epoll.c     \
-               s_bsd_poll.c      \
-               s_bsd_devpoll.c   \
-               s_bsd_kqueue.c    \
-               s_bsd_select.c    \
                restart.c         \
                resv.c            \
                rsa.c             \

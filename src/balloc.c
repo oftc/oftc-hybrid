@@ -79,7 +79,7 @@
 static BlockHeap *heap_list = NULL;
 
 static int BlockHeapGarbageCollect(BlockHeap *);
-static void heap_garbage_collection(void *);
+static void heap_garbage_collection(uv_timer_t *, int);
 
 /*! \brief Returns memory for the block back to either the malloc heap
  *         in case of !HAVE_MMAP, or back to the OS otherwise.
@@ -118,7 +118,7 @@ initBlockHeap()
 
   fd_open(&dpfd, zero_fd, 0, "Anonymous mmap()");
 #endif
-  eventAdd("heap_garbage_collection", &heap_garbage_collection, NULL, 119);
+  eventAdd("heap_garbage_collection", heap_garbage_collection, NULL, 119);
 #endif
 }
 
@@ -144,7 +144,7 @@ get_block(size_t size)
 }
 
 static void
-heap_garbage_collection(void *arg)
+heap_garbage_collection(uv_timer_t *handle, int status)
 {
   BlockHeap *bh;
 

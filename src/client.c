@@ -61,7 +61,7 @@ dlink_list serv_list = {NULL, NULL, 0};
 dlink_list global_serv_list = {NULL, NULL, 0};
 dlink_list oper_list = {NULL, NULL, 0};
 
-static EVH check_pings;
+static void check_pings(uv_timer_t *, int);
 
 static BlockHeap *client_heap  = NULL;
 BlockHeap *lclient_heap = NULL;
@@ -219,7 +219,7 @@ free_client(struct Client *client_p)
  */
 
 static void
-check_pings(void *notused)
+check_pings(uv_timer_t *handle, int status)
 {
   check_pings_list(&local_client_list);
   check_pings_list(&serv_list);
@@ -377,7 +377,7 @@ check_conf_klines()
 
     /* if there is a returned struct ConfItem then kill it */
     if ((aconf = find_dline_conf(&client_p->ip,
-                                 client_p->aftype)) != NULL)
+                                 client_p->ip.ss_family)) != NULL)
     {
       if (aconf->status & CONF_EXEMPTDLINE)
         continue;
@@ -433,7 +433,7 @@ check_conf_klines()
     client_p = ptr->data;
 
     if ((aconf = find_dline_conf(&client_p->ip,
-                                 client_p->aftype)))
+                                 client_p->ip.ss_family)))
     {
       if (aconf->status & CONF_EXEMPTDLINE)
         continue;
@@ -526,7 +526,7 @@ update_client_exit_stats(struct Client *client_p)
                          client_p->name, client_p->servptr->name);
 
   if (splitchecking && !splitmode)
-    check_splitmode(NULL);
+    check_splitmode(NULL, 0);
 }
 
 /* find_person()
@@ -646,7 +646,7 @@ get_client_name(const struct Client *client, enum addr_mask_type type)
       break;
 
     case MASK_IP:
-      if (client->aftype == AF_INET)
+      if (client->ip.ss_family == AF_INET)
         snprintf(nbuf, sizeof(nbuf), "%s[%s@255.255.255.255]",
                  client->name, client->username);
       else
@@ -719,7 +719,9 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
     if (!MyConnect(source_p))
     {
       aconf = find_conf_by_address(source_p->host, &source_p->ip,
-                                   CONF_CLIENT, source_p->aftype, source_p->username, NULL, 1, source_p->certfp);
+                                   CONF_CLIENT, source_p->ip.ss_family,
+                                   source_p->username, NULL, 1, 
+                                   source_p->certfp);
 
       aclass = map_to_conf(aconf->class_ptr);
       assert(aclass != NULL);
@@ -1071,7 +1073,7 @@ void
 dead_link_on_read(struct Client *client_p, int error)
 {
   char errmsg[255];
-  int current_error;
+  uv_err_t current_error;
 
   if (IsDefunct(client_p))
     return;
@@ -1079,7 +1081,7 @@ dead_link_on_read(struct Client *client_p, int error)
   dbuf_clear(&client_p->localClient->buf_recvq);
   dbuf_clear(&client_p->localClient->buf_sendq);
 
-  current_error = get_sockerr(client_p->localClient->fd.fd);
+  current_error = uv_last_error(server_state.event_loop);
 
   if (IsServer(client_p) || IsHandshake(client_p))
   {
@@ -1092,11 +1094,6 @@ dead_link_on_read(struct Client *client_p, int error)
                            "Server %s closed the connection",
                            get_client_name(client_p, SHOW_IP));
 
-
-
-
-
-
       ilog(LOG_TYPE_IRCD, "Server %s closed the connection",
            get_client_name(client_p, SHOW_IP));
     }
@@ -1104,8 +1101,6 @@ dead_link_on_read(struct Client *client_p, int error)
     {
       report_error(L_ADMIN, "Lost connection to %s: %s",
                    get_client_name(client_p, SHOW_IP), current_error);
-      report_error(L_OPER, "Lost connection to %s: %s",
-                   get_client_name(client_p, MASK_IP), current_error);
     }
 
     sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -1121,7 +1116,7 @@ dead_link_on_read(struct Client *client_p, int error)
             sizeof(errmsg));
   else
     snprintf(errmsg, sizeof(errmsg), "Read error: %s",
-             strerror(current_error));
+             uv_strerror(current_error));
 
   exit_client(client_p, &me, errmsg);
 }

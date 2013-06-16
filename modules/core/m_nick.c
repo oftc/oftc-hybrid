@@ -45,6 +45,7 @@
 #include "channel_mode.h"
 #include "watch.h"
 #include "s_misc.h"
+#include "s_bsd.h"
 
 
 static void nick_from_server(struct Client *, struct Client *, int, char **,
@@ -780,7 +781,6 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
 {
   const char *m = NULL;
   const char *servername = source_p->name;
-  struct addrinfo hints, *res;
 
   source_p = make_client(client_p);
   dlinkAdd(source_p, &source_p->node, &global_client_list);
@@ -795,18 +795,7 @@ uid_from_server(struct Client *client_p, struct Client *source_p, int parc,
   strlcpy(source_p->sockhost, parv[7], sizeof(source_p->sockhost));
   strlcpy(source_p->info, ugecos, sizeof(source_p->info));
 
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
-
-  getaddrinfo(parv[7], 0, &hints, &res);
-
-  if (res != NULL)
-  {
-    memcpy(&source_p->ip, res->ai_addr, res->ai_addrlen);
-    source_p->ip.ss_len = res->ai_addrlen;
-    freeaddrinfo(res);
-  }
+  string_to_ip(parv[7], 0, &source_p->ip);
 
   hash_add_client(source_p);
   hash_add_id(source_p);

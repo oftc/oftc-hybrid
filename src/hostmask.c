@@ -44,7 +44,7 @@
 
 /* The mask parser/type determination code... */
 
-/* int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
+/* int try_parse_v6_netmask(const char *, struct sockaddr_storage *, int *);
  * Input: A possible IPV6 address as a string.
  * Output: An integer describing whether it is an IPV6 or hostmask,
  *         an address(if it is IPV6), a bitlength(if it is IPV6).
@@ -55,9 +55,8 @@
    Also a bug in DigitParse above.
    -Gozem 2002-07-19 gozem@linux.nu
 */
-#ifdef IPV6
 static int
-try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
+try_parse_v6_netmask(const char *text, struct sockaddr_storage *addr, int *b)
 {
   const char *p;
   char c;
@@ -167,9 +166,8 @@ try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
 
   return HM_IPV6;
 }
-#endif
 
-/* int try_parse_v4_netmask(const char *, struct irc_ssaddr *, int *);
+/* int try_parse_v4_netmask(const char *, struct sockaddr_storage *, int *);
  * Input: A possible IPV4 address as a string.
  * Output: An integer describing whether it is an IPV4 or hostmask,
  *         an address(if it is IPV4), a bitlength(if it is IPV4).
@@ -177,7 +175,7 @@ try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
  * Comments: Called from parse_netmask
  */
 static int
-try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
+try_parse_v4_netmask(const char *text, struct sockaddr_storage *addr, int *b)
 {
   const char *p;
   const char *digits[4];
@@ -252,7 +250,7 @@ try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
   return HM_IPV4;
 }
 
-/* int parse_netmask(const char *, struct irc_ssaddr *, int *);
+/* int parse_netmask(const char *, struct sockaddr_storage *, int *);
  * Input: A hostmask, or an IPV4/6 address.
  * Output: An integer describing whether it is an IPV4, IPV6 address or a
  *         hostmask, an address(if it is an IP mask),
@@ -260,14 +258,10 @@ try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
  * Side effects: None
  */
 int
-parse_netmask(const char *text, struct irc_ssaddr *addr, int *b)
+parse_netmask(const char *text, struct sockaddr_storage *addr, int *b)
 {
-#ifdef IPV6
-
   if (strchr(text, ':'))
     return try_parse_v6_netmask(text, addr, b);
-
-#endif
 
   if (strchr(text, '.'))
     return try_parse_v4_netmask(text, addr, b);
@@ -276,14 +270,13 @@ parse_netmask(const char *text, struct irc_ssaddr *addr, int *b)
 }
 
 /* The address matching stuff... */
-/* int match_ipv6(struct irc_ssaddr *, struct irc_ssaddr *, int)
+/* int match_ipv6(struct sockaddr_storage *, struct sockaddr_storage *, int)
  * Input: An IP address, an IP mask, the number of bits in the mask.
  * Output: if match, -1 else 0
  * Side effects: None
  */
-#ifdef IPV6
 int
-match_ipv6(const struct irc_ssaddr *addr, const struct irc_ssaddr *mask,
+match_ipv6(const struct sockaddr_storage *addr, const struct sockaddr_storage *mask,
            int bits)
 {
   int i, m, n = bits / 8;
@@ -303,15 +296,14 @@ match_ipv6(const struct irc_ssaddr *addr, const struct irc_ssaddr *mask,
 
   return 0;
 }
-#endif
 
-/* int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int)
+/* int match_ipv4(struct sockaddr_storage *, struct sockaddr_storage *, int)
  * Input: An IP address, an IP mask, the number of bits in the mask.
  * Output: if match, -1 else 0
  * Side Effects: None
  */
 int
-match_ipv4(const struct irc_ssaddr *addr, const struct irc_ssaddr *mask,
+match_ipv4(const struct sockaddr_storage *addr, const struct sockaddr_storage *mask,
            int bits)
 {
   const struct sockaddr_in *v4 = (const struct sockaddr_in *)addr;
@@ -333,27 +325,20 @@ match_ipv4(const struct irc_ssaddr *addr, const struct irc_ssaddr *mask,
  * side effects -
  */
 void
-mask_addr(struct irc_ssaddr *ip, int bits)
+mask_addr(struct sockaddr_storage *ip, int bits)
 {
   int mask;
-#ifdef IPV6
   struct sockaddr_in6 *v6_base_ip;
   int i, m, n;
-#endif
   struct sockaddr_in *v4_base_ip;
 
-#ifdef IPV6
-
-  if (ip->ss.ss_family != AF_INET6)
-#endif
+  if (ip->ss_family != AF_INET6)
   {
     v4_base_ip = (struct sockaddr_in *)ip;
 
     mask = ~((1 << (32 - bits)) - 1);
     v4_base_ip->sin_addr.s_addr = htonl(ntohl(v4_base_ip->sin_addr.s_addr) & mask);
   }
-
-#ifdef IPV6
   else
   {
     n = bits / 8;
@@ -366,8 +351,6 @@ mask_addr(struct irc_ssaddr *ip, int bits)
     for (i = n + 1; i < 16; i++)
       v6_base_ip->sin6_addr.s6_addr[i] = 0;
   }
-
-#endif
 }
 
 /* Hashtable stuff...now external as its used in m_stats.c */
@@ -379,13 +362,13 @@ init_host_hash()
   memset(&atable, 0, sizeof(atable));
 }
 
-/* unsigned long hash_ipv4(struct irc_ssaddr*)
+/* unsigned long hash_ipv4(struct sockaddr_storage*)
  * Input: An IP address.
  * Output: A hash value of the IP address.
  * Side effects: None
  */
 static uint32_t
-hash_ipv4(struct irc_ssaddr *addr, int bits)
+hash_ipv4(struct sockaddr_storage *addr, int bits)
 {
   if (bits != 0)
   {
@@ -398,14 +381,13 @@ hash_ipv4(struct irc_ssaddr *addr, int bits)
   return 0;
 }
 
-/* unsigned long hash_ipv6(struct irc_ssaddr*)
+/* unsigned long hash_ipv6(struct sockaddr_storage*)
  * Input: An IP address.
  * Output: A hash value of the IP address.
  * Side effects: None
  */
-#ifdef IPV6
 static uint32_t
-hash_ipv6(struct irc_ssaddr *addr, int bits)
+hash_ipv6(struct sockaddr_storage *addr, int bits)
 {
   uint32_t v = 0, n;
   struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)addr;
@@ -428,7 +410,6 @@ hash_ipv6(struct irc_ssaddr *addr, int bits)
 
   return v & (ATABLE_SIZE - 1);
 }
-#endif
 
 /* int hash_text(const char *start)
  * Input: The start of the text to hash.
@@ -468,7 +449,7 @@ get_mask_hash(const char *text)
 }
 
 struct AddressRec *
-find_conf_by_ip(int family, dlink_list *list, struct irc_ssaddr *addr,
+find_conf_by_ip(int family, dlink_list *list, struct sockaddr_storage *addr,
                 unsigned int type,
                 const char *username, const char *password, bool do_match, bool ignore_user,
                 const char *certfp)
@@ -514,7 +495,7 @@ find_conf_by_ip(int family, dlink_list *list, struct irc_ssaddr *addr,
   return ret;
 }
 
-/* struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
+/* struct AccessItem *find_conf_by_address(const char *, struct sockaddr_storage *,
  *                                         int type, int fam, const char *username)
  * Input: The hostname, the address, the type of mask to find, the address
  *        family, the username.
@@ -525,7 +506,7 @@ find_conf_by_ip(int family, dlink_list *list, struct irc_ssaddr *addr,
  * should always be true (i.e. aconf->flags & CONF_FLAGS_NEED_PASSWORD == 0)
  */
 struct AccessItem *
-find_conf_by_address(const char *name, struct irc_ssaddr *addr,
+find_conf_by_address(const char *name, struct sockaddr_storage *addr,
                      unsigned int type,
                      int fam, const char *username, const char *password, int do_match,
                      const char *certfp)
@@ -557,7 +538,6 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr,
   if (addr)
   {
     /* Check for IPV6 matches... */
-#ifdef IPV6
     if (fam == AF_INET6)
     {
       for (b = 128; b >= 0; b -= 16)
@@ -574,7 +554,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr,
       }
     }
     else
-#endif
+    {
       if (fam == AF_INET)
       {
         for (b = 32; b >= 0; b -= 8)
@@ -590,6 +570,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr,
           }
         }
       }
+    }
   }
 
   while (keep_going)
@@ -672,14 +653,14 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr,
 }
 
 /* struct AccessItem* find_address_conf(const char*, const char*,
- *                                  struct irc_ssaddr*, int, char *, char *);
+ *                                  struct sockaddr_storage*, int, char *, char *);
  * Input: The hostname, username, address, address family.
  * Output: The applicable AccessItem.
  * Side-effects: None
  */
 struct AccessItem *
 find_address_conf(const char *host, const char *user,
-                  struct irc_ssaddr *ip, int aftype, char *password, char *certfp)
+                  struct sockaddr_storage *ip, int aftype, char *password, char *certfp)
 {
   struct AccessItem *iconf, *kconf;
 
@@ -705,14 +686,14 @@ find_address_conf(const char *host, const char *user,
   return iconf;
 }
 
-/* struct AccessItem* find_dline_conf(struct irc_ssaddr*, int)
+/* struct AccessItem* find_dline_conf(struct sockaddr_storage*, int)
  *
  * Input:  An address, an address family.
  * Output:  The best matching D-line or exempt line.
  * Side effects: None.
  */
 struct AccessItem *
-find_dline_conf(struct irc_ssaddr *addr, int aftype)
+find_dline_conf(struct sockaddr_storage *addr, int aftype)
 {
   struct AccessItem *eline;
 
@@ -764,15 +745,11 @@ add_conf_by_address(const unsigned int type, struct AccessItem *aconf)
       bits -= bits % 8;
       dlinkAdd(arec, &arec->node, &atable[hash_ipv4(&arec->Mask.ipa.addr, bits)]);
       break;
-#ifdef IPV6
-
     case HM_IPV6:
       /* We have to do this, since we do not re-hash for every bit -A1kmm. */
       bits -= bits % 16;
       dlinkAdd(arec, &arec->node, &atable[hash_ipv6(&arec->Mask.ipa.addr, bits)]);
       break;
-#endif
-
     default: /* HM_HOST */
       arec->Mask.hostname = address;
       dlinkAdd(arec, &arec->node, &atable[get_mask_hash(address)]);
@@ -792,7 +769,7 @@ delete_one_address_conf(const char *address, struct AccessItem *aconf)
   int bits = 0;
   uint32_t hv = 0;
   dlink_node *ptr = NULL, *ptr_next = NULL;
-  struct irc_ssaddr addr;
+  struct sockaddr_storage addr;
 
   switch (parse_netmask(address, &addr, &bits))
   {
@@ -801,15 +778,11 @@ delete_one_address_conf(const char *address, struct AccessItem *aconf)
       bits -= bits % 8;
       hv = hash_ipv4(&addr, bits);
       break;
-#ifdef IPV6
-
     case HM_IPV6:
       /* We have to do this, since we do not re-hash for every bit -A1kmm. */
       bits -= bits % 16;
       hv = hash_ipv6(&addr, bits);
       break;
-#endif
-
     default: /* HM_HOST */
       hv = get_mask_hash(address);
       break;

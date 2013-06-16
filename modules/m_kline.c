@@ -214,18 +214,15 @@ already_placed_kline(struct Client *source_p, const char *luser,
                      const char *lhost, int warn)
 {
   const char *reason;
-  struct irc_ssaddr iphost, *piphost;
+  struct sockaddr_storage iphost, *piphost;
   struct AccessItem *aconf;
   int t;
 
   if ((t = parse_netmask(lhost, &iphost, &t)) != HM_HOST)
   {
-#ifdef IPV6
-
     if (t == HM_IPV6)
       t = AF_INET6;
     else
-#endif
       t = AF_INET;
 
     piphost = &iphost;
@@ -416,18 +413,15 @@ ms_unkline(struct Client *client_p, struct Client *source_p,
 static bool
 remove_tkline_match(const char *host, const char *user)
 {
-  struct irc_ssaddr iphost, *piphost;
+  struct sockaddr_storage iphost, *piphost;
   struct AccessItem *aconf;
   int t;
 
   if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
-#ifdef IPV6
-
     if (t == HM_IPV6)
       t = AF_INET6;
     else
-#endif
       t = AF_INET;
 
     piphost = &iphost;

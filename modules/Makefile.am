@@ -2,7 +2,7 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_LDFLAGS = -no-undefined -module -avoid-version $(OPENSSL_LDFLAGS)
 SUBDIRS = core
 
-AM_CPPFLAGS = -I$(top_srcdir)/include $(OPENSSL_INCLUDES)
+AM_CPPFLAGS = -I$(top_srcdir)/include $(OPENSSL_INCLUDES) -I$(top_srcdir)/libuv/include
 modulesdir = $(pkglibdir)/modules/autoload
 
 modules_LTLIBRARIES = m_accept.la    \

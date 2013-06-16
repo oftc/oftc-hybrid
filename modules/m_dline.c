@@ -53,18 +53,15 @@ static int remove_tdline_match(const char *);
 static int
 remove_tdline_match(const char *host)
 {
-  struct irc_ssaddr iphost, *piphost;
+  struct sockaddr_storage iphost, *piphost;
   struct AccessItem *aconf;
   int t;
 
   if ((t = parse_netmask(host, &iphost, NULL)) != HM_HOST)
   {
-#ifdef IPV6
-
     if (t == HM_IPV6)
       t = AF_INET6;
     else
-#endif
       t = AF_INET;
 
     piphost = &iphost;
@@ -107,7 +104,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
   char *target_server = NULL;
   const char *creason;
   const struct Client *target_p = NULL;
-  struct irc_ssaddr daddr;
+  struct sockaddr_storage daddr;
   struct AccessItem *aconf = NULL;
   time_t tkline_time = 0;
   int bits, t;
@@ -172,9 +169,7 @@ mo_dline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-    getnameinfo((struct sockaddr *)&target_p->ip,
-                target_p->ip.ss_len, hostip,
-                sizeof(hostip), NULL, 0, NI_NUMERICHOST);
+    ip_to_string(&target_p->ip, hostip, sizeof(hostip));
     dlhost = hostip;
     t = parse_netmask(dlhost, NULL, &bits);
     assert(t == HM_IPV4 || t == HM_IPV6);
@@ -188,12 +183,9 @@ mo_dline(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-#ifdef IPV6
-
   if (t == HM_IPV6)
     t = AF_INET6;
   else
-#endif
     t = AF_INET;
 
   parse_netmask(dlhost, &daddr, NULL);
@@ -233,7 +225,7 @@ ms_dline(struct Client *client_p, struct Client *source_p,
   char *dlhost, *oper_reason, *reason;
   const char *creason;
   const struct Client *target_p = NULL;
-  struct irc_ssaddr daddr;
+  struct sockaddr_storage daddr;
   struct AccessItem *aconf = NULL;
   time_t tkline_time = 0;
   int bits, t;
@@ -284,9 +276,8 @@ ms_dline(struct Client *client_p, struct Client *source_p,
         return;
       }
 
-      getnameinfo((struct sockaddr *)&target_p->ip,
-                  target_p->ip.ss_len, hostip,
-                  sizeof(hostip), NULL, 0, NI_NUMERICHOST);
+      ip_to_string(&target_p->ip, hostip, sizeof(hostip));
+
       dlhost = hostip;
       t = parse_netmask(dlhost, NULL, &bits);
       assert(t == HM_IPV4 || t == HM_IPV6);
@@ -300,12 +291,9 @@ ms_dline(struct Client *client_p, struct Client *source_p,
       return;
     }
 
-#ifdef IPV6
-
     if (t == HM_IPV6)
       t = AF_INET6;
     else
-#endif
       t = AF_INET;
 
     parse_netmask(dlhost, &daddr, NULL);

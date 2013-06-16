@@ -92,7 +92,8 @@ extern struct SetOptions GlobalSetOptions; /* defined in ircd.c */
 
 struct ServerState_t
 {
-  int foreground;
+  int       foreground;
+  uv_loop_t *event_loop;
 };
 
 extern struct ServerState_t server_state;

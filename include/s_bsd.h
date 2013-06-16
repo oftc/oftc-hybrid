@@ -27,6 +27,7 @@
 
 #include "fdlist.h"
 #include "hook.h"
+#include "balloc.h"
 
 /* Type of IO */
 #define  COMM_SELECT_READ    1
@@ -35,28 +36,36 @@
 /* How long can comm_select() wait for network events [milliseconds] */
 #define SELECT_DELAY        500
 
+#define READBUF_SIZE 16384
+
 struct Client;
 struct AccessItem;
 struct Listener;
 
 extern struct Callback *setup_socket_cb;
 
-extern void add_connection(struct Listener *, struct irc_ssaddr *, int);
-extern void close_connection(struct Client *);
-extern void report_error(int, const char *, const char *, int);
+extern BlockHeap *write_req_heap;
+extern BlockHeap *tcp_handle_heap;
+extern BlockHeap *udp_handle_heap;
+extern BlockHeap *udp_send_handle_heap;
+extern BlockHeap *buffer_heap;
 
-extern int get_sockerr(int);
+extern void add_connection(struct Listener *, struct sockaddr_storage *, 
+                           uv_tcp_t *);
+extern void close_connection(struct Client *);
+extern void report_error(int, const char *, const char *, uv_err_t);
+
 extern int ignoreErrno(int);
 
 extern void comm_settimeout(fde_t *, time_t, PF *, void *);
 extern void comm_setflush(fde_t *, time_t, PF *, void *);
-extern void comm_checktimeouts(void *);
+extern void comm_checktimeouts(uv_timer_t *, int);
 extern void comm_connect_tcp(fde_t *, const char *, u_short,
                              struct sockaddr *, int, CNCB *, void *, int, int);
-extern const char *comm_errstr(int status);
-extern int comm_open(fde_t *F, int family, int sock_type, int proto,
-                     const char *note);
-extern int comm_accept(struct Listener *, struct irc_ssaddr *pn);
+extern const char *comm_errstr(int);
+extern int comm_open(fde_t *, int, int, const char *);
+extern bool comm_accept(struct Listener *, uv_tcp_t *, 
+                        struct sockaddr_storage *);
 
 /* These must be defined in the network IO loop code of your choice */
 extern void init_netio();
@@ -65,8 +74,15 @@ extern void init_comm();
 extern int read_message(time_t, unsigned char);
 extern void comm_select();
 extern void check_can_use_v6();
-#ifdef IPV6
-extern void remove_ipv6_mapping(struct irc_ssaddr *);
-#endif
+extern void remove_ipv6_mapping(struct sockaddr_storage *);
+
+extern void string_to_ip(const char *, unsigned int, struct sockaddr_storage *);
+extern bool ip_to_string(const struct sockaddr_storage *, char *, size_t);
+
+extern void ssl_handshake(struct Client *, bool);
+extern void ssl_flush_write(struct Client *);
+extern uv_buf_t allocate_uv_buffer(uv_handle_t *, size_t);
+extern void write_callback(uv_write_t *, int);
+extern void close_callback(uv_handle_t *);
 
 #endif /* INCLUDED_s_bsd_h */

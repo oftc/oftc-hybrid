@@ -45,7 +45,6 @@ AX_CHECK_OPENSSL([AC_CHECK_LIB(crypto, RSA_free)
                           EVP_des_cfb)])], [AC_MSG_RESULT(no - OpenSSL support disabled)
   cf_enable_openssl="no"])
 AX_CHECK_LIB_IPV4
-AX_CHECK_LIB_IPV6
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_VOLATILE
@@ -94,9 +93,13 @@ AC_DEFINE([DNODE_HEAP_SIZE], 1024, [Size of the dlink_node heap.])
 AC_DEFINE([DBUF_HEAP_SIZE], 512, [Size of the dbuf heap.])
 AC_DEFINE([AUTH_HEAP_SIZE], 256, [Size of the auth heap.])
 AC_DEFINE([DNS_HEAP_SIZE], 256, [Size of the dns heap.])
+AC_DEFINE([WRITE_REQ_HEAP_SIZE], 64, [Size of the write request heap.])
+AC_DEFINE([TCP_HANDLE_HEAP_SIZE], 64, [Size of the TCP handle heap.])
+AC_DEFINE([UDP_HANDLE_HEAP_SIZE], 64, [Size of the UDP handle heap.])
+AC_DEFINE([UDP_SEND_HANDLE_HEAP_SIZE], 64, [Size of the UDP send handle heap.])
+AC_DEFINE([BUFFER_HEAP_SIZE], 64, [Size of the read buffer heap.])
 
 # Argument processing.
-AX_ARG_ENABLE_IOLOOP_MECHANISM
 AX_ARG_DISABLE_BLOCK_ALLOC
 AX_ARG_ENABLE_HALFOPS
 AX_ARG_ENABLE_DEBUGGING

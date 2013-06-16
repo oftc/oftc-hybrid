@@ -58,7 +58,6 @@
 #include "supported.h"
 #include "watch.h"
 
-
 /* /quote set variables */
 struct SetOptions GlobalSetOptions;
 
@@ -201,8 +200,8 @@ set_time()
     snprintf(to_send, sizeof(to_send),
              "System clock is running backwards - (%lu < %lu)",
              (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
-    report_error(L_ALL, to_send, me.name, 0);
-    set_back_events(CurrentTime - newtime.tv_sec);
+
+    sendto_realops_flags(UMODE_ALL, L_ALL, to_send);
   }
 
   SystemTime.tv_sec  = newtime.tv_sec;
@@ -239,13 +238,8 @@ io_loop()
       }
     }
 
-    /* Run pending events, then get the number of seconds to the next
-     * event
-     */
-    while (eventNextTime() <= CurrentTime)
-      eventRun();
-
-    comm_select();
+    uv_run(server_state.event_loop, UV_RUN_ONCE);
+    set_time();
     exit_aborted_clients();
     free_exited_clients();
     send_queued_all();
@@ -569,6 +563,7 @@ main(int argc, char *argv[])
     print_startup(getpid());
 
   setup_signals();
+  server_state.event_loop = uv_default_loop();
 
   /* Init the event subsystem */
   eventInit();
