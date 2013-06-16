@@ -43,6 +43,12 @@ typedef int bool;
 #define true 1
 #define false 0
 #define snprintf _snprintf
+#ifdef IN_MODULE
+#define extern __declspec(dllimport)
+#else
+#define extern __declspec(dllexport)
+#endif
+#define export __declspec(dllexport)
 #endif
 
 #include <stddef.h>

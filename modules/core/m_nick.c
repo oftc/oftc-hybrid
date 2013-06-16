@@ -22,6 +22,8 @@
  *  $Id$
  */
 
+#define IN_MODULE
+
 #include "stdinc.h"
 #include "list.h"
 #include "client.h"
@@ -1025,13 +1027,13 @@ module_exit()
   mod_del_cmd(&nick_msgtab);
 }
 
-struct module module_entry =
+export struct module module_entry =
 {
-  .node    = { NULL, NULL, NULL },
-  .name    = NULL,
-  .version = "$Revision$",
-  .handle  = NULL,
-  .modinit = module_init,
-  .modexit = module_exit,
-  .flags   = MODULE_FLAG_CORE
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  MODULE_FLAG_CORE
 };
