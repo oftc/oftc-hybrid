@@ -41,10 +41,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\dev\oftc-hybrid\include;C:\OpenSSL\include;C:\dev\oftc-hybrid\libuv\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\OpenSSL\include;libuv\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>libuv\Debug\lib;C:\OpenSSL\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libuv.lib;ws2_32.lib;ssleay32.lib;libeay32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

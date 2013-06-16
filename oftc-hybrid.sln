@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "oftc-hybrid", "oftc-hybrid.vcxproj", "{D1B921E3-85BB-411B-83BC-97CD59769AD7}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libuv", "libuv\libuv.vcxproj", "{33066374-88CB-CB8D-15DA-61032886329A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -13,6 +15,10 @@ Global
 		{D1B921E3-85BB-411B-83BC-97CD59769AD7}.Debug|Win32.Build.0 = Debug|Win32
 		{D1B921E3-85BB-411B-83BC-97CD59769AD7}.Release|Win32.ActiveCfg = Release|Win32
 		{D1B921E3-85BB-411B-83BC-97CD59769AD7}.Release|Win32.Build.0 = Release|Win32
+		{33066374-88CB-CB8D-15DA-61032886329A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{33066374-88CB-CB8D-15DA-61032886329A}.Debug|Win32.Build.0 = Debug|Win32
+		{33066374-88CB-CB8D-15DA-61032886329A}.Release|Win32.ActiveCfg = Release|Win32
+		{33066374-88CB-CB8D-15DA-61032886329A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
