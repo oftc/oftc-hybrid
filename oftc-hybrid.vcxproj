@@ -119,6 +119,8 @@
     <ClCompile Include="src\channel_mode.c" />
     <ClCompile Include="src\client.c" />
     <ClCompile Include="src\conf.c" />
+    <ClCompile Include="src\conf_lexer.c" />
+    <ClCompile Include="src\conf_parser.c" />
     <ClCompile Include="src\csvlib.c" />
     <ClCompile Include="src\dbuf.c" />
     <ClCompile Include="src\dirent.c" />
@@ -159,7 +161,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="src\conf_lexer.l" />
-    <None Include="src\conf_parser.y" />
+    <CustomBuild Include="src\conf_parser.y">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"C:\Program Files (x86)\GnuWin32\bin\bison" -y -d src/conf_parser.y</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">conf_parser.c</Outputs>
+    </CustomBuild>
     <None Include="src\messages.tab" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

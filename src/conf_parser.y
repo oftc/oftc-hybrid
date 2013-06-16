@@ -29,7 +29,6 @@
 #include <string.h>
 #include <libgen.h>
 
-#include "config.h"
 #include "stdinc.h"
 #include "ircd.h"
 #include "list.h"

@@ -290,16 +290,24 @@
     <ClCompile Include="src\basename.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\conf_parser.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\conf_lexer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\conf_lexer.l">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="src\conf_parser.y">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="src\messages.tab">
       <Filter>Source Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="src\conf_parser.y">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>
