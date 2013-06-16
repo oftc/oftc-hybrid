@@ -525,7 +525,6 @@ query_name(const char *name, int query_class, int type,
     HEADER *header = (HEADER *)buf;
 #ifndef HAVE_LRAND48
     int k = 0;
-    struct timeval tv;
 #endif
     /*
      * generate an unique id
@@ -542,11 +541,9 @@ query_name(const char *name, int query_class, int type,
     while (find_id(header->id));
 
 #else
-    gettimeofday(&tv, NULL);
-
     do
     {
-      header->id = (header->id + k + tv.tv_usec) & 0xffff;
+      header->id = (header->id + k + uv_now(server_state.event_loop)) & 0xffff;
       k++;
     }
     while (find_id(header->id));

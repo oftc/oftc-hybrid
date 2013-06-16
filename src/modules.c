@@ -389,7 +389,9 @@ load_one_module(const char *path)
     if (strstr(modpath, "../") == NULL &&
         strstr(modpath, "/..") == NULL)
       if (!stat(modpath, &statbuf))
+#ifndef _WIN32
         if (S_ISREG(statbuf.st_mode))  /* Regular files only please */
+#endif
           return load_a_module(modpath, 1);
   }
 

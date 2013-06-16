@@ -59,9 +59,6 @@
 /* If we support ssl */
 #define HAVE_LIBCRYPTO 1
 
-/* Define to 1 if you have the `lrand48' function. */
-#define HAVE_LRAND48 1
-
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
@@ -73,9 +70,6 @@
 
 /* Define to 1 if you have the `readdir' function. */
 #define HAVE_READDIR 1
-
-/* Define to 1 if you have the `srand48' function. */
-#define HAVE_SRAND48 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1

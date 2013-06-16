@@ -296,6 +296,9 @@
     <ClCompile Include="src\conf_lexer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\crypt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\conf_lexer.l">

@@ -107,7 +107,7 @@ extern int dorehash;
 extern int doremotd;
 extern struct Counter Count;
 extern struct timeval SystemTime;
-#define CurrentTime SystemTime.tv_sec
+extern time_t CurrentTime;
 extern int default_server_capabs;
 extern unsigned int splitmode;
 extern unsigned int splitchecking;
@@ -125,5 +125,4 @@ global_serv_list;   /* global servers on the network              */
 extern dlink_list
 oper_list;          /* our opers, duplicated in local_client_list */
 extern int rehashed_klines;
-extern void set_time();
 #endif

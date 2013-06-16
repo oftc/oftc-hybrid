@@ -122,6 +122,7 @@
     <ClCompile Include="src\conf.c" />
     <ClCompile Include="src\conf_lexer.c" />
     <ClCompile Include="src\conf_parser.c" />
+    <ClCompile Include="src\crypt.c" />
     <ClCompile Include="src\csvlib.c" />
     <ClCompile Include="src\dbuf.c" />
     <ClCompile Include="src\dirent.c" />
