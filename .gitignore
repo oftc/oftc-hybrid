@@ -50,3 +50,4 @@ tools/mkpasswd
 Debug
 Release
 *.ipch
+_ReSharper*
