@@ -38,6 +38,8 @@
 #include "list.h"
 #ifndef _WIN32
 #include <libgen.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #define SHARED_SUFFIX ".so"
 #else
