@@ -37,7 +37,9 @@
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
+#ifndef HAVE_BASENAME
 #include "libgen.h"
+#endif
 
 /*! \brief MODULE command handler (called by operators)
  *
