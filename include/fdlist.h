@@ -96,17 +96,17 @@ typedef struct _fde
 
 #define FD_HASH_SIZE CLIENT_HEAP_SIZE
 
-extern int number_fd;
-extern int hard_fdlimit;
+IRCD_EXTERN int number_fd;
+IRCD_EXTERN int hard_fdlimit;
 
-extern dlink_list fd_list;
+IRCD_EXTERN dlink_list fd_list;
 
-extern void fdlist_init();
-extern fde_t *lookup_fd(int);
-extern void fd_open(fde_t *, uv_stream_t *, const char *);
-extern void fd_close(fde_t *);
-extern void fd_dump(struct Client *);
-extern void fd_note(fde_t *, const char *, ...);
-extern void close_standard_fds();
-extern void close_fds(fde_t *);
+IRCD_EXTERN void fdlist_init();
+IRCD_EXTERN fde_t *lookup_fd(int);
+IRCD_EXTERN void fd_open(fde_t *, uv_stream_t *, const char *);
+IRCD_EXTERN void fd_close(fde_t *);
+IRCD_EXTERN void fd_dump(struct Client *);
+IRCD_EXTERN void fd_note(fde_t *, const char *, ...);
+IRCD_EXTERN void close_standard_fds();
+IRCD_EXTERN void close_fds(fde_t *);
 #endif /* INCLUDED_fdlist_h */

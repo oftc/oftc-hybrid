@@ -43,14 +43,16 @@ typedef int bool;
 #define true 1
 #define false 0
 #define snprintf _snprintf
+#define strcasecmp stricmp
 #ifdef IN_MODULE
-#define extern __declspec(dllimport)
+#define IRCD_EXTERN __declspec(dllimport)
 #else
-#define extern __declspec(dllexport)
+#define IRCD_EXTERN __declspec(dllexport)
 #endif
-#define export __declspec(dllexport)
+#define IRCD_EXPORT __declspec(dllexport)
 #else
-#define export
+#define IRCD_EXTERN extern
+#define IRCD_EXPORT
 #endif
 
 #include <stddef.h>

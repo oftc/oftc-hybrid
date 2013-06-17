@@ -27,7 +27,7 @@
 
 #define LOG_BUFSIZE 1024
 
-extern void oftc_log(char *, ...);
+IRCD_EXTERN void oftc_log(char *, ...);
 enum log_type
 {
   LOG_TYPE_IRCD,
@@ -40,9 +40,9 @@ enum log_type
   LOG_TYPE_LAST
 };
 
-extern void log_set_file(enum log_type, size_t, const char *);
-extern void log_del_all();
-extern void log_reopen_all();
-extern void ilog(enum log_type, const char *, ...) AFP(2, 3);
+IRCD_EXTERN void log_set_file(enum log_type, size_t, const char *);
+IRCD_EXTERN void log_del_all();
+IRCD_EXTERN void log_reopen_all();
+IRCD_EXTERN void ilog(enum log_type, const char *, ...) AFP(2, 3);
 
 #endif /* INCLUDED_s_log_h */

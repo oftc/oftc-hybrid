@@ -150,18 +150,18 @@ struct Message
                                          */
 #define MAXPARA    15
 
-extern void parse(struct Client *, char *, char *);
-extern void mod_add_cmd(struct Message *);
-extern void mod_del_cmd(struct Message *);
-extern struct Message *find_command(const char *);
-extern void report_messages(struct Client *);
+IRCD_EXTERN void parse(struct Client *, char *, char *);
+IRCD_EXTERN void mod_add_cmd(struct Message *);
+IRCD_EXTERN void mod_del_cmd(struct Message *);
+IRCD_EXTERN struct Message *find_command(const char *);
+IRCD_EXTERN void report_messages(struct Client *);
 
 /* generic handlers */
-extern void rfc1459_command_send_error(struct Client *, struct Client *, int,
+IRCD_EXTERN void rfc1459_command_send_error(struct Client *, struct Client *, int,
                                        char *[]);
-extern void m_ignore(struct Client *, struct Client *, int, char *[]);
-extern void m_not_oper(struct Client *, struct Client *, int, char *[]);
-extern void m_registered(struct Client *, struct Client *, int, char *[]);
-extern void m_unregistered(struct Client *, struct Client *, int, char *[]);
+IRCD_EXTERN void m_ignore(struct Client *, struct Client *, int, char *[]);
+IRCD_EXTERN void m_not_oper(struct Client *, struct Client *, int, char *[]);
+IRCD_EXTERN void m_registered(struct Client *, struct Client *, int, char *[]);
+IRCD_EXTERN void m_unregistered(struct Client *, struct Client *, int, char *[]);
 
 #endif /* INCLUDED_parse_h */

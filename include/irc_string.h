@@ -25,9 +25,9 @@
 #ifndef INCLUDED_irc_string_h
 #define INCLUDED_irc_string_h
 
-extern int has_wildcards(const char *);
-extern int ircd_pcre_exec(const void *, const char *);
-extern void *ircd_pcre_compile(const char *, const char **);
+IRCD_EXTERN int has_wildcards(const char *);
+IRCD_EXTERN int ircd_pcre_exec(const void *, const char *);
+IRCD_EXTERN void *ircd_pcre_compile(const char *, const char **);
 
 /*
  * match - compare name with mask, mask may contain * and ? as wildcards
@@ -36,9 +36,9 @@ extern void *ircd_pcre_compile(const char *, const char **);
  * match_esc - compare with support for escaping chars
  * match_chan - like match_esc with first character auto-escaped
  */
-extern int match(const char *, const char *);
-extern int match_esc(const char *, const char *);
-extern int match_chan(const char *, const char *);
+IRCD_EXTERN int match(const char *, const char *);
+IRCD_EXTERN int match_esc(const char *, const char *);
+IRCD_EXTERN int match_chan(const char *, const char *);
 
 /*
  * collapse - collapse a string in place, converts multiple adjacent *'s
@@ -47,8 +47,8 @@ extern int match_chan(const char *, const char *);
  *
  * collapse_esc() - collapse with support for escaping chars
  */
-extern char *collapse(char *);
-extern char *collapse_esc(char *);
+IRCD_EXTERN char *collapse(char *);
+IRCD_EXTERN char *collapse_esc(char *);
 
 /*
  * NOTE: The following functions are NOT the same as strcasecmp
@@ -57,51 +57,51 @@ extern char *collapse_esc(char *);
  *
  * irccmp - case insensitive comparison of s1 and s2
  */
-extern int irccmp(const char *, const char *);
+IRCD_EXTERN int irccmp(const char *, const char *);
 
 /*
  * ircncmp - counted case insensitive comparison of s1 and s2
  */
-extern int ircncmp(const char *, const char *, size_t);
+IRCD_EXTERN int ircncmp(const char *, const char *, size_t);
 
 #ifndef HAVE_STRLCPY
-extern size_t strlcpy(char *, const char *, size_t);
+IRCD_EXTERN size_t strlcpy(char *, const char *, size_t);
 #endif
 
 #ifndef HAVE_STRLCAT
-extern size_t strlcat(char *, const char *, size_t);
+IRCD_EXTERN size_t strlcat(char *, const char *, size_t);
 #endif
 
 /*
  * clean_string - cleanup control and high ascii characters
  * -Dianora
  */
-extern char *clean_string(char *, const unsigned char *, ssize_t);
+IRCD_EXTERN char *clean_string(char *, const unsigned char *, ssize_t);
 
 /*
  * strip_tabs - convert tabs to spaces
  * - jdc
  */
-extern void strip_tabs(char *, const char *, size_t);
+IRCD_EXTERN void strip_tabs(char *, const char *, size_t);
 
-const char *myctime(time_t);
+IRCD_EXTERN const char *myctime(time_t);
 
 #define EmptyString(x) (!(x) || (*(x) == '\0'))
 
 #ifndef HAVE_STRTOK_R
-extern char *strtoken(char **, char *, const char *);
+IRCD_EXTERN char *strtoken(char **, char *, const char *);
 #endif
 
 /*
  * character macros
  */
-extern const unsigned char ToLowerTab[];
+IRCD_EXTERN const unsigned char ToLowerTab[];
 #define ToLower(c) (ToLowerTab[(unsigned char)(c)])
 
-extern const unsigned char ToUpperTab[];
+IRCD_EXTERN const unsigned char ToUpperTab[];
 #define ToUpper(c) (ToUpperTab[(unsigned char)(c)])
 
-extern const unsigned int CharAttrs[];
+IRCD_EXTERN const unsigned int CharAttrs[];
 
 #define PRINT_C   0x00001
 #define CNTRL_C   0x00002

@@ -80,25 +80,25 @@ struct Capability
 #define HUNTED_ISME     0       /* if this server should execute the command */
 #define HUNTED_PASS     1       /* if message passed onwards successfully */
 
-extern int valid_servname(const char *);
-extern int check_server(const char *, struct Client *);
-extern int hunt_server(struct Client *, struct Client *,
+IRCD_EXTERN int valid_servname(const char *);
+IRCD_EXTERN int check_server(const char *, struct Client *);
+IRCD_EXTERN int hunt_server(struct Client *, struct Client *,
                        const char *, int, int, char **);
-extern void add_capability(const char *, int, int);
-extern int delete_capability(const char *);
-extern int find_capability(const char *);
-extern void send_capabilities(struct Client *, struct AccessItem *, int);
-extern void write_links_file(uv_timer_t *, int);
-extern void server_estab(struct Client *);
-extern const char *show_capabilities(struct Client *);
-extern void try_connections(uv_timer_t *, int);
-extern void burst_channel(struct Client *client_p, struct Channel *);
-extern void sendnick_TS(struct Client *, struct Client *);
-extern int serv_connect(struct AccessItem *, struct Client *);
-extern struct Client *find_servconn_in_progress(const char *);
-extern struct Server *make_server(struct Client *);
-extern void burst_all(struct Client *client_p);
+IRCD_EXTERN void add_capability(const char *, int, int);
+IRCD_EXTERN int delete_capability(const char *);
+IRCD_EXTERN int find_capability(const char *);
+IRCD_EXTERN void send_capabilities(struct Client *, struct AccessItem *, int);
+IRCD_EXTERN void write_links_file(uv_timer_t *, int);
+IRCD_EXTERN void server_estab(struct Client *);
+IRCD_EXTERN const char *show_capabilities(struct Client *);
+IRCD_EXTERN void try_connections(uv_timer_t *, int);
+IRCD_EXTERN void burst_channel(struct Client *client_p, struct Channel *);
+IRCD_EXTERN void sendnick_TS(struct Client *, struct Client *);
+IRCD_EXTERN int serv_connect(struct AccessItem *, struct Client *);
+IRCD_EXTERN struct Client *find_servconn_in_progress(const char *);
+IRCD_EXTERN struct Server *make_server(struct Client *);
+IRCD_EXTERN void burst_all(struct Client *client_p);
 
-extern void finish_ssl_server_handshake(struct Client *client_p);
+IRCD_EXTERN void finish_ssl_server_handshake(struct Client *client_p);
 
 #endif /* INCLUDED_s_serv_h */

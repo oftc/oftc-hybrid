@@ -42,7 +42,7 @@ struct dbuf_queue
   size_t      total_size;
 };
 
-extern void dbuf_init();
-extern void dbuf_put(struct dbuf_queue *, char *, size_t);
-extern void dbuf_delete(struct dbuf_queue *, size_t);
+IRCD_EXTERN void dbuf_init();
+IRCD_EXTERN void dbuf_put(struct dbuf_queue *, char *, size_t);
+IRCD_EXTERN void dbuf_delete(struct dbuf_queue *, size_t);
 #endif

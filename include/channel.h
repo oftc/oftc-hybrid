@@ -95,38 +95,38 @@ struct Ban
   char                    type;
 };
 
-extern dlink_list global_channel_list;
+IRCD_EXTERN dlink_list global_channel_list;
 
-extern int check_channel_name(const char *, int);
-extern int can_send(struct Channel *, struct Client *, struct Membership *);
-extern int is_banned(const struct Channel *, const struct Client *);
-extern int can_join(struct Client *, struct Channel *, const char *);
-extern int has_member_flags(struct Membership *, unsigned int);
+IRCD_EXTERN int check_channel_name(const char *, int);
+IRCD_EXTERN int can_send(struct Channel *, struct Client *, struct Membership *);
+IRCD_EXTERN int is_banned(const struct Channel *, const struct Client *);
+IRCD_EXTERN int can_join(struct Client *, struct Channel *, const char *);
+IRCD_EXTERN int has_member_flags(struct Membership *, unsigned int);
 
-extern void remove_ban(struct Ban *, dlink_list *);
-extern void init_channels();
-extern void add_user_to_channel(struct Channel *, struct Client *,
+IRCD_EXTERN void remove_ban(struct Ban *, dlink_list *);
+IRCD_EXTERN void init_channels();
+IRCD_EXTERN void add_user_to_channel(struct Channel *, struct Client *,
                                 unsigned int, int);
-extern void remove_user_from_channel(struct Membership *);
-extern void channel_member_names(struct Client *, struct Channel *, int);
-extern void add_invite(struct Channel *, struct Client *);
-extern void del_invite(struct Channel *, struct Client *);
-extern void send_channel_modes(struct Client *, struct Channel *);
-extern void channel_modes(struct Channel *, struct Client *, char *, char *);
-extern void check_spambot_warning(struct Client *, const char *);
-extern void check_splitmode(uv_timer_t *, int);
-extern void free_channel_list(dlink_list *);
-extern void destroy_channel(struct Channel *);
-extern void set_channel_topic(struct Channel *, const char *, const char *,
+IRCD_EXTERN void remove_user_from_channel(struct Membership *);
+IRCD_EXTERN void channel_member_names(struct Client *, struct Channel *, int);
+IRCD_EXTERN void add_invite(struct Channel *, struct Client *);
+IRCD_EXTERN void del_invite(struct Channel *, struct Client *);
+IRCD_EXTERN void send_channel_modes(struct Client *, struct Channel *);
+IRCD_EXTERN void channel_modes(struct Channel *, struct Client *, char *, char *);
+IRCD_EXTERN void check_spambot_warning(struct Client *, const char *);
+IRCD_EXTERN void check_splitmode(uv_timer_t *, int);
+IRCD_EXTERN void free_channel_list(dlink_list *);
+IRCD_EXTERN void destroy_channel(struct Channel *);
+IRCD_EXTERN void set_channel_topic(struct Channel *, const char *, const char *,
                               time_t, int);
 
-extern const char *get_member_status(const struct Membership *, int);
+IRCD_EXTERN const char *get_member_status(const struct Membership *, int);
 
-extern struct Channel *make_channel(const char *);
-extern struct Membership *find_channel_link(struct Client *, struct Channel *);
+IRCD_EXTERN struct Channel *make_channel(const char *);
+IRCD_EXTERN struct Membership *find_channel_link(struct Client *, struct Channel *);
 
-extern int msg_has_colors(const char *);
-extern char *strip_color(const char *);
+IRCD_EXTERN int msg_has_colors(const char *);
+IRCD_EXTERN char *strip_color(const char *);
 
 /* channel visible */
 #define ShowChannel(v,c)        (PubChannel(c) || IsMember((v),(c)))

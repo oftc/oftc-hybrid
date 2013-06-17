@@ -30,10 +30,10 @@
  * Proto types
  */
 
-extern int vsprintf_irc(char *, const char *, va_list);
+IRCD_EXTERN int vsprintf_irc(char *, const char *, va_list);
 
 /*
  * ircsprintf - optimized sprintf
  */
-extern int ircsprintf(char *, const char *, ...);
+IRCD_EXTERN int ircsprintf(char *, const char *, ...);
 #endif /* SPRINTF_IRC */

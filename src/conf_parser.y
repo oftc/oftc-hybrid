@@ -27,9 +27,9 @@
 #define YY_NO_UNPUT
 #include <sys/types.h>
 #include <string.h>
-#include <libgen.h>
 
 #include "stdinc.h"
+#include <libgen.h>
 #include "ircd.h"
 #include "list.h"
 #include "conf.h"

@@ -33,9 +33,9 @@ struct ev_entry
   dlink_node  node;
 };
 
-extern void eventAdd(const char *, uv_timer_cb, void *, time_t);
-extern void eventAddIsh(const char *, uv_timer_cb, void *, time_t);
-extern void eventInit();
-extern void eventDelete(uv_timer_cb, void *);
+IRCD_EXTERN void eventAdd(const char *, uv_timer_cb, void *, time_t);
+IRCD_EXTERN void eventAddIsh(const char *, uv_timer_cb, void *, time_t);
+IRCD_EXTERN void eventInit();
+IRCD_EXTERN void eventDelete(uv_timer_cb, void *);
 
 #endif /* INCLUDED_event_h */

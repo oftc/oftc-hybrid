@@ -3,7 +3,56 @@
   {
   },
   'targets': 
-  [{
+  [
+  {
+	'target_name': 'm_die',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_die.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
+	'target_name': 'm_error',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'sources':
+	[
+		'modules/core/m_error.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
     'target_name': 'ircd',
     'dependencies': 
     [

@@ -68,16 +68,16 @@ struct _dlink_list
   unsigned int  length;
 };
 
-extern void dlinkAdd(void *, dlink_node *, dlink_list *);
-extern void dlinkAddBefore(dlink_node *, void *, dlink_node *, dlink_list *);
-extern void dlinkAddTail(void *, dlink_node *, dlink_list *);
-extern void dlinkDelete(dlink_node *, dlink_list *);
-extern void dlinkMoveList(dlink_list *, dlink_list *);
-extern void dlink_move_node(dlink_node *, dlink_list *, dlink_list *);
-extern dlink_node *dlinkFind(dlink_list *, void *);
-extern dlink_node *dlinkFindDelete(dlink_list *, void *);
+IRCD_EXTERN void dlinkAdd(void *, dlink_node *, dlink_list *);
+IRCD_EXTERN void dlinkAddBefore(dlink_node *, void *, dlink_node *, dlink_list *);
+IRCD_EXTERN void dlinkAddTail(void *, dlink_node *, dlink_list *);
+IRCD_EXTERN void dlinkDelete(dlink_node *, dlink_list *);
+IRCD_EXTERN void dlinkMoveList(dlink_list *, dlink_list *);
+IRCD_EXTERN void dlink_move_node(dlink_node *, dlink_list *, dlink_list *);
+IRCD_EXTERN dlink_node *dlinkFind(dlink_list *, void *);
+IRCD_EXTERN dlink_node *dlinkFindDelete(dlink_list *, void *);
 
-extern void init_dlink_nodes();
-extern void free_dlink_node(dlink_node *);
-extern dlink_node *make_dlink_node();
+IRCD_EXTERN void init_dlink_nodes();
+IRCD_EXTERN void free_dlink_node(dlink_node *);
+IRCD_EXTERN dlink_node *make_dlink_node();
 #endif

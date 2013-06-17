@@ -38,11 +38,11 @@ struct Watch
   char        nick[NICKLEN + 1]; /**< nick name of the client to watch */
 };
 
-extern void watch_init();
-extern void watch_add_to_hash_table(const char *, struct Client *);
-extern void watch_del_from_hash_table(const char *, struct Client *);
-extern void watch_check_hash(struct Client *, int);
-extern void watch_del_watch_list(struct Client *);
-extern void watch_count_memory(unsigned int *const, uint64_t *const);
-extern struct Watch *watch_find_hash(const char *);
+IRCD_EXTERN void watch_init();
+IRCD_EXTERN void watch_add_to_hash_table(const char *, struct Client *);
+IRCD_EXTERN void watch_del_from_hash_table(const char *, struct Client *);
+IRCD_EXTERN void watch_check_hash(struct Client *, int);
+IRCD_EXTERN void watch_del_watch_list(struct Client *);
+IRCD_EXTERN void watch_count_memory(unsigned int *const, uint64_t *const);
+IRCD_EXTERN struct Watch *watch_find_hash(const char *);
 #endif

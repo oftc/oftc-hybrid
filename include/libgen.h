@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-extern char *basename (char *);
+IRCD_EXTERN char *basename (char *);
 
 #ifdef __cplusplus
 }

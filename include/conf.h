@@ -36,7 +36,7 @@
 
 struct Client;
 
-extern struct Callback *client_check_cb;
+IRCD_EXTERN struct Callback *client_check_cb;
 
 struct conf_parser_context
 {
@@ -45,7 +45,7 @@ struct conf_parser_context
   FILE *conf_file;
 };
 
-extern struct conf_parser_context conf_parser_ctx;
+IRCD_EXTERN struct conf_parser_context conf_parser_ctx;
 
 typedef enum
 {
@@ -410,87 +410,87 @@ struct logging_entry
   unsigned int use_logging;
 };
 
-extern dlink_list class_items;
-extern dlink_list server_items;
-extern dlink_list cluster_items;
-extern dlink_list hub_items;
-extern dlink_list rxconf_items;
-extern dlink_list rkconf_items;
-extern dlink_list leaf_items;
-extern dlink_list service_items;
-extern dlink_list temporary_xlines;
-extern struct logging_entry ConfigLoggingEntry;
-extern struct config_file_entry ConfigFileEntry;/* defined in ircd.c*/
-extern struct config_channel_entry ConfigChannel;/* defined in channel.c*/
-extern struct config_server_hide ConfigServerHide; /* defined in s_conf.c */
-extern struct server_info ServerInfo;       /* defined in ircd.c */
-extern struct admin_info AdminInfo;        /* defined in ircd.c */
-extern int valid_wild_card(struct Client *, int, int, ...);
+IRCD_EXTERN dlink_list class_items;
+IRCD_EXTERN dlink_list server_items;
+IRCD_EXTERN dlink_list cluster_items;
+IRCD_EXTERN dlink_list hub_items;
+IRCD_EXTERN dlink_list rxconf_items;
+IRCD_EXTERN dlink_list rkconf_items;
+IRCD_EXTERN dlink_list leaf_items;
+IRCD_EXTERN dlink_list service_items;
+IRCD_EXTERN dlink_list temporary_xlines;
+IRCD_EXTERN struct logging_entry ConfigLoggingEntry;
+IRCD_EXTERN struct config_file_entry ConfigFileEntry;/* defined in ircd.c*/
+IRCD_EXTERN struct config_channel_entry ConfigChannel;/* defined in channel.c*/
+IRCD_EXTERN struct config_server_hide ConfigServerHide; /* defined in s_conf.c */
+IRCD_EXTERN struct server_info ServerInfo;       /* defined in ircd.c */
+IRCD_EXTERN struct admin_info AdminInfo;        /* defined in ircd.c */
+IRCD_EXTERN int valid_wild_card(struct Client *, int, int, ...);
 /* End GLOBAL section */
 
-extern unsigned int get_sendq(struct Client *);
-extern unsigned int get_recvq(struct Client *);
-extern const char *get_client_class(struct Client *);
+IRCD_EXTERN unsigned int get_sendq(struct Client *);
+IRCD_EXTERN unsigned int get_recvq(struct Client *);
+IRCD_EXTERN const char *get_client_class(struct Client *);
 struct ClassItem *get_client_class_ptr(struct Client *);
-extern int get_client_ping(struct Client *, int *);
-extern void check_class();
-extern void init_class();
-extern struct ConfItem *find_class(const char *);
-extern void init_ip_hash_table();
-extern void dump_ip_hash_table(struct Client *);
-extern void count_ip_hash(unsigned int *, uint64_t *);
-extern void remove_one_ip(struct sockaddr_storage *);
-extern struct ConfItem *make_conf_item(ConfType type);
-extern void free_access_item(struct AccessItem *);
-extern void read_conf_files(int);
-extern int attach_conf(struct Client *, struct ConfItem *);
-extern int attach_connect_block(struct Client *, const char *, const char *);
+IRCD_EXTERN int get_client_ping(struct Client *, int *);
+IRCD_EXTERN void check_class();
+IRCD_EXTERN void init_class();
+IRCD_EXTERN struct ConfItem *find_class(const char *);
+IRCD_EXTERN void init_ip_hash_table();
+IRCD_EXTERN void dump_ip_hash_table(struct Client *);
+IRCD_EXTERN void count_ip_hash(unsigned int *, uint64_t *);
+IRCD_EXTERN void remove_one_ip(struct sockaddr_storage *);
+IRCD_EXTERN struct ConfItem *make_conf_item(ConfType type);
+IRCD_EXTERN void free_access_item(struct AccessItem *);
+IRCD_EXTERN void read_conf_files(int);
+IRCD_EXTERN int attach_conf(struct Client *, struct ConfItem *);
+IRCD_EXTERN int attach_connect_block(struct Client *, const char *, const char *);
 
-extern int detach_conf(struct Client *, ConfType);
+IRCD_EXTERN int detach_conf(struct Client *, ConfType);
 
-extern struct ConfItem *find_conf_name(dlink_list *, const char *, ConfType);
-extern struct AccessItem *find_kill(struct Client *);
-extern int conf_connect_allowed(struct sockaddr_storage *, int);
-extern char *oper_privs_as_string(const unsigned int);
-extern void split_nuh(struct split_nuh_item *);
-extern struct ConfItem *find_matching_name_conf(ConfType, const char *,
+IRCD_EXTERN struct ConfItem *find_conf_name(dlink_list *, const char *, ConfType);
+IRCD_EXTERN struct AccessItem *find_kill(struct Client *);
+IRCD_EXTERN int conf_connect_allowed(struct sockaddr_storage *, int);
+IRCD_EXTERN char *oper_privs_as_string(const unsigned int);
+IRCD_EXTERN void split_nuh(struct split_nuh_item *);
+IRCD_EXTERN struct ConfItem *find_matching_name_conf(ConfType, const char *,
                                                 const char *, const char *, 
                                                 int);
-extern struct ConfItem *find_exact_name_conf(ConfType, const struct Client *,
+IRCD_EXTERN struct ConfItem *find_exact_name_conf(ConfType, const struct Client *,
                                              const char *, const char *, 
                                              const char *);
-extern void delete_conf_item(struct ConfItem *);
-extern void report_confitem_types(struct Client *, ConfType);
-extern void yyerror(const char *);
-extern void write_conf_line(struct Client *, struct ConfItem *,
+IRCD_EXTERN void delete_conf_item(struct ConfItem *);
+IRCD_EXTERN void report_confitem_types(struct Client *, ConfType);
+IRCD_EXTERN void yyerror(const char *);
+IRCD_EXTERN void write_conf_line(struct Client *, struct ConfItem *,
                             const char *, time_t, time_t);
-extern int remove_conf_line(ConfType, struct Client *, const char *,
+IRCD_EXTERN int remove_conf_line(ConfType, struct Client *, const char *,
                             const char *);
-extern void add_temp_line(struct ConfItem *);
-extern void cleanup_tklines(uv_timer_t *, int);
-extern const char *get_conf_name(ConfType);
-extern int rehash(int);
-extern int conf_add_server(struct ConfItem *, const char *);
-extern void conf_add_class_to_conf(struct ConfItem *, const char *);
+IRCD_EXTERN void add_temp_line(struct ConfItem *);
+IRCD_EXTERN void cleanup_tklines(uv_timer_t *, int);
+IRCD_EXTERN const char *get_conf_name(ConfType);
+IRCD_EXTERN int rehash(int);
+IRCD_EXTERN int conf_add_server(struct ConfItem *, const char *);
+IRCD_EXTERN void conf_add_class_to_conf(struct ConfItem *, const char *);
 
 /* XXX consider moving these into csvlib.h */
-extern void parse_csv_file(FILE *, ConfType);
-extern int find_and_delete_temporary(const char *, const char *, int);
-extern const char *get_oper_name(const struct Client *);
+IRCD_EXTERN void parse_csv_file(FILE *, ConfType);
+IRCD_EXTERN int find_and_delete_temporary(const char *, const char *, int);
+IRCD_EXTERN const char *get_oper_name(const struct Client *);
 
-extern void *map_to_conf(struct ConfItem *);
-extern struct ConfItem *unmap_conf_item(void *);
+IRCD_EXTERN void *map_to_conf(struct ConfItem *);
+IRCD_EXTERN struct ConfItem *unmap_conf_item(void *);
 /* XXX should the parse_aline stuff go into another file ?? */
 #define AWILD 0x1    /* check wild cards */
-extern int parse_aline(const char *, struct Client *, int, char **,
+IRCD_EXTERN int parse_aline(const char *, struct Client *, int, char **,
                        int, char **, char **, time_t *, char **, char **);
-extern int valid_comment(struct Client *, char *, int);
+IRCD_EXTERN int valid_comment(struct Client *, char *, int);
 
 
 #define TK_SECONDS 0
 #define TK_MINUTES 1
-extern time_t valid_tkline(const char *, int);
-extern int match_conf_password(const char *, const char *,
+IRCD_EXTERN time_t valid_tkline(const char *, int);
+IRCD_EXTERN int match_conf_password(const char *, const char *,
                                const struct AccessItem *);
 
 #define NOT_AUTHORIZED    (-1)
@@ -501,17 +501,17 @@ extern int match_conf_password(const char *, const char *,
 
 #define CLEANUP_TKLINES_TIME 60
 
-extern void cluster_a_line(struct Client *,
+IRCD_EXTERN void cluster_a_line(struct Client *,
                            const char *, int, int, const char *, ...);
-extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
-extern struct ip_entry *find_or_add_ip(struct sockaddr_storage *);
-extern int cidr_limit_reached(int, struct sockaddr_storage *, 
+IRCD_EXTERN void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
+IRCD_EXTERN struct ip_entry *find_or_add_ip(struct sockaddr_storage *);
+IRCD_EXTERN int cidr_limit_reached(int, struct sockaddr_storage *, 
                               struct ClassItem *);
-extern void remove_from_cidr_check(struct sockaddr_storage *, 
+IRCD_EXTERN void remove_from_cidr_check(struct sockaddr_storage *, 
                                    struct ClassItem *);
 
-extern void conf_error_report(const char *);
+IRCD_EXTERN void conf_error_report(const char *);
 
-void apply_conf_ban(struct Client *, int, const char *, const char *,
+IRCD_EXTERN void apply_conf_ban(struct Client *, int, const char *, const char *,
                     const char *, const char *, time_t);
 #endif /* INCLUDED_s_conf_h */
