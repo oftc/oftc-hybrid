@@ -130,12 +130,14 @@ dohelp(struct Client *source_p, const char *hpath, char *topic)
     return;
   }
 
+#ifndef _WIN32
   if (!S_ISREG(sb.st_mode))
   {
     sendto_one(source_p, form_str(ERR_HELPNOTFOUND),
                me.name, source_p->name, topic);
     return;
   }
+#endif
 
   sendhelpfile(source_p, path, topic);
 }
@@ -221,13 +223,13 @@ module_exit()
   mod_del_cmd(&uhelp_msgtab);
 }
 
-struct module module_entry =
+IRCD_EXPORT struct module module_entry =
 {
-  .node    = { NULL, NULL, NULL },
-  .name    = NULL,
-  .version = "$Revision$",
-  .handle  = NULL,
-  .modinit = module_init,
-  .modexit = module_exit,
-  .flags   = 0
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
 };

@@ -120,13 +120,13 @@ module_exit()
   mod_del_cmd(&motd_msgtab);
 }
 
-struct module module_entry =
+IRCD_EXPORT struct module module_entry =
 {
-  .node    = { NULL, NULL, NULL },
-  .name    = NULL,
-  .version = "$Revision$",
-  .handle  = NULL,
-  .modinit = module_init,
-  .modexit = module_exit,
-  .flags   = 0
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
 };

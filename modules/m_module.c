@@ -37,9 +37,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
-#include <libgen.h>
-
-
+#include "libgen.h"
 
 /*! \brief MODULE command handler (called by operators)
  *
@@ -255,13 +253,13 @@ module_exit()
   mod_del_cmd(&module_msgtab);
 }
 
-struct module module_entry =
+IRCD_EXPORT struct module module_entry =
 {
-  .node    = { NULL, NULL, NULL },
-  .name    = NULL,
-  .version = "$Revision$",
-  .handle  = NULL,
-  .modinit = module_init,
-  .modexit = module_exit,
-  .flags   = MODULE_FLAG_NOUNLOAD
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  MODULE_FLAG_NOUNLOAD
 };
