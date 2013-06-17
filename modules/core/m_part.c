@@ -38,8 +38,6 @@
 #include "conf.h"
 #include "packet.h"
 
-#define IN_MODULE
-
 /* part_one_client()
  *
  * inputs  - pointer to server

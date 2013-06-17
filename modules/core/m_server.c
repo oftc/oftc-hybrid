@@ -22,8 +22,6 @@
  *  $Id$
  */
 
-#define IN_MODULE
-
 #include "stdinc.h"
 #include "list.h"
 #include "client.h"      /* client struct */
