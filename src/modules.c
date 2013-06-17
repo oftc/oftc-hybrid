@@ -37,7 +37,7 @@
 #include "memory.h"
 #include "list.h"
 #ifndef _WIN32
-#ifndef HAVE_BASENAME
+#ifdef HAVE_BASENAME
 #include <libgen.h>
 #endif
 #include <sys/types.h>
