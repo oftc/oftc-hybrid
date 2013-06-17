@@ -43,9 +43,299 @@
 		'ircd',
 	    'libuv/uv.gyp:libuv',
 	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
 	'sources':
 	[
 		'modules/core/m_error.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
+	'target_name': 'm_join',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_join.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
+	'target_name': 'm_kick',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_kick.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
+	'target_name': 'm_kill',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_kill.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
+	'target_name': 'm_message',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_message.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
+	'target_name': 'm_mode',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_mode.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
+	'target_name': 'm_nick',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_nick.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },  
+  {
+	'target_name': 'm_part',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_part.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
+	'target_name': 'm_quit',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_quit.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
+	'target_name': 'm_server',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_server.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
+	'target_name': 'm_sjoin',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_sjoin.c',
+	],
+	'libraries':
+	[
+		'$(OutputPath)ircd.lib',
+	],
+  },
+  {
+	'target_name': 'm_squit',
+	'type': 'shared_library',
+    'include_dirs': 
+    [
+      'include',
+      'c:\openssl\include',
+    ],
+	'dependencies':
+	[
+		'ircd',
+	    'libuv/uv.gyp:libuv',
+	],
+	'defines':
+	[
+		'IN_MODULE',
+	],
+	'sources':
+	[
+		'modules/core/m_squit.c',
 	],
 	'libraries':
 	[

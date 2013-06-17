@@ -22,8 +22,6 @@
  *  $Id$
  */
 
-#define IN_MODULE
-
 #include "stdinc.h"
 #include "list.h"
 #include "channel.h"
@@ -319,7 +317,7 @@ module_exit()
   mod_del_cmd(&bmask_msgtab);
 }
 
-export struct module module_entry =
+IRCD_EXPORT struct module module_entry =
 {
   { NULL, NULL, NULL },
   NULL,

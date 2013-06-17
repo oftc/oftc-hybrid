@@ -571,7 +571,7 @@ module_exit()
   mod_del_cmd(&server_msgtab);
 }
 
-export struct module module_entry =
+IRCD_EXPORT struct module module_entry =
 {
   { NULL, NULL, NULL },
   NULL,
