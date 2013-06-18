@@ -10,10 +10,6 @@ AM_MAINTAINER_MODE
 AC_USE_SYSTEM_EXTENSIONS
 
 
-#ltdl stuff
-LT_CONFIG_LTDL_DIR([libltdl])
-LT_INIT([dlopen])
-LTDL_INIT([convenience])
 AC_LIBTOOL_DLOPEN
 AM_ENABLE_SHARED
 
@@ -53,7 +49,8 @@ AC_C_BIGENDIAN
 AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for library functions.
-AC_CHECK_FUNCS_ONCE(lrand48     \
+AC_CHECK_FUNCS_ONCE(basename    \
+										lrand48     \
                     srand48     \
                     mmap        \
                     strtok_r    \

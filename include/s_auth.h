@@ -54,12 +54,12 @@ struct AuthRequest
 #define ClearAuth(x)         ((x)->flags &= ~AM_DOING_AUTH)
 #define IsDoingAuth(x)       ((x)->flags &  AM_DOING_AUTH)
 
-extern struct Callback *auth_cb;
+IRCD_EXTERN struct Callback *auth_cb;
 
-extern void init_auth();
-extern void send_auth_query(struct AuthRequest *);
-extern void remove_auth_request(struct AuthRequest *);
-extern void delete_auth(struct AuthRequest *);
-extern void release_auth_client(struct AuthRequest *);
+IRCD_EXTERN void init_auth();
+IRCD_EXTERN void send_auth_query(struct AuthRequest *);
+IRCD_EXTERN void remove_auth_request(struct AuthRequest *);
+IRCD_EXTERN void delete_auth(struct AuthRequest *);
+IRCD_EXTERN void release_auth_client(struct AuthRequest *);
 
 #endif /* INCLUDED_s_auth_h */

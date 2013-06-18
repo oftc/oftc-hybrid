@@ -69,9 +69,8 @@ struct server_info ServerInfo;
 struct admin_info AdminInfo = { NULL, NULL, NULL };
 struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 struct ServerState_t server_state = { 0 };
-struct logging_entry ConfigLoggingEntry = { .use_logging = 1 };
+struct logging_entry ConfigLoggingEntry = { 1 };
 struct ServerStatistics ServerStats;
-struct timeval SystemTime;
 struct Client me;             /* That's me */
 struct LocalUser meLocalUser; /* That's also part of me */
 
@@ -104,6 +103,7 @@ unsigned int split_servers;
 
 int rehashed_klines = 0;
 
+time_t CurrentTime;
 
 /*
  * print_startup - print startup information
@@ -121,6 +121,7 @@ print_startup(int pid)
 static void
 make_daemon()
 {
+#ifndef _WIN32
   int pid;
 
   if ((pid = fork()) < 0)
@@ -135,6 +136,7 @@ make_daemon()
   }
 
   setsid();
+#endif
 }
 
 static int printVersion = 0;
@@ -177,37 +179,6 @@ static struct lgetopt myopts[] =
   {NULL, NULL, STRING, NULL},
 };
 
-void
-set_time()
-{
-  static char to_send[200];
-  struct timeval newtime;
-  newtime.tv_sec  = 0;
-  newtime.tv_usec = 0;
-
-  if (gettimeofday(&newtime, NULL) == -1)
-  {
-    ilog(LOG_TYPE_IRCD, "Clock Failure (%s), TS can be corrupted",
-         strerror(errno));
-    sendto_realops_flags(UMODE_ALL, L_ALL,
-                         "Clock Failure (%s), TS can be corrupted",
-                         strerror(errno));
-    restart("Clock Failure");
-  }
-
-  if (newtime.tv_sec < CurrentTime)
-  {
-    snprintf(to_send, sizeof(to_send),
-             "System clock is running backwards - (%lu < %lu)",
-             (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
-
-    sendto_realops_flags(UMODE_ALL, L_ALL, to_send);
-  }
-
-  SystemTime.tv_sec  = newtime.tv_sec;
-  SystemTime.tv_usec = newtime.tv_usec;
-}
-
 static void
 io_loop()
 {
@@ -238,8 +209,8 @@ io_loop()
       }
     }
 
+    CurrentTime = uv_now(server_state.event_loop) / 1000;
     uv_run(server_state.event_loop, UV_RUN_ONCE);
-    set_time();
     exit_aborted_clients();
     free_exited_clients();
     send_queued_all();
@@ -378,7 +349,7 @@ check_pidfile(const char *filename)
 {
   FILE *fb;
   char buff[32];
-  pid_t pidfromfile;
+  int pidfromfile;
 
   /* Don't do logging here, since we don't have log() initialised */
   if ((fb = fopen(filename, "r")))
@@ -391,9 +362,12 @@ check_pidfile(const char *filename)
     }
     else
     {
+      uv_err_t err;
+
       pidfromfile = atoi(buff);
 
-      if (!kill(pidfromfile, 0))
+      err = uv_kill(pidfromfile, 0);
+      if (err.code == 0)
       {
         /* log(L_ERROR, "Server is already running"); */
         printf("ircd: daemon is already running\n");
@@ -504,6 +478,7 @@ init_callbacks()
 int
 main(int argc, char *argv[])
 {
+#ifndef _WIN32
   /* Check to see if the user is running
    * us as root, which is a nono
    */
@@ -512,15 +487,13 @@ main(int argc, char *argv[])
     fprintf(stderr, "Don't run ircd as root!!!\n");
     return (-1);
   }
+#endif
 
   /* Setup corefile size immediately after boot -kre */
   setup_corefile();
 
-  /* save server boot time right away, so getrusage works correctly */
-  set_time();
-
   /* It ain't random, but it ought to be a little harder to guess */
-  srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
+  srand(time(NULL) ^ (time(NULL) | (getpid() << 20)));
 
   me.localClient = &meLocalUser;
   dlinkAdd(&me, &me.node, &global_client_list);  /* Pointer to beginning
@@ -554,12 +527,14 @@ main(int argc, char *argv[])
 
   init_ssl();
 
+#ifndef _WIN32
   if (!server_state.foreground)
   {
     make_daemon();
     close_standard_fds(); /* this needs to be before init_netio()! */
   }
   else
+#endif
     print_startup(getpid());
 
   setup_signals();

@@ -42,47 +42,47 @@ struct Client;
 struct AccessItem;
 struct Listener;
 
-extern struct Callback *setup_socket_cb;
+IRCD_EXTERN struct Callback *setup_socket_cb;
 
-extern BlockHeap *write_req_heap;
-extern BlockHeap *tcp_handle_heap;
-extern BlockHeap *udp_handle_heap;
-extern BlockHeap *udp_send_handle_heap;
-extern BlockHeap *buffer_heap;
+IRCD_EXTERN BlockHeap *write_req_heap;
+IRCD_EXTERN BlockHeap *tcp_handle_heap;
+IRCD_EXTERN BlockHeap *udp_handle_heap;
+IRCD_EXTERN BlockHeap *udp_send_handle_heap;
+IRCD_EXTERN BlockHeap *buffer_heap;
 
-extern void add_connection(struct Listener *, struct sockaddr_storage *, 
+IRCD_EXTERN void add_connection(struct Listener *, struct sockaddr_storage *, 
                            uv_tcp_t *);
-extern void close_connection(struct Client *);
-extern void report_error(int, const char *, const char *, uv_err_t);
+IRCD_EXTERN void close_connection(struct Client *);
+IRCD_EXTERN void report_error(int, const char *, const char *, uv_err_t);
 
-extern int ignoreErrno(int);
+IRCD_EXTERN int ignoreErrno(int);
 
-extern void comm_settimeout(fde_t *, time_t, PF *, void *);
-extern void comm_setflush(fde_t *, time_t, PF *, void *);
-extern void comm_checktimeouts(uv_timer_t *, int);
-extern void comm_connect_tcp(fde_t *, const char *, u_short,
+IRCD_EXTERN void comm_settimeout(fde_t *, time_t, PF *, void *);
+IRCD_EXTERN void comm_setflush(fde_t *, time_t, PF *, void *);
+IRCD_EXTERN void comm_checktimeouts(uv_timer_t *, int);
+IRCD_EXTERN void comm_connect_tcp(fde_t *, const char *, u_short,
                              struct sockaddr *, int, CNCB *, void *, int, int);
-extern const char *comm_errstr(int);
-extern int comm_open(fde_t *, int, int, const char *);
-extern bool comm_accept(struct Listener *, uv_tcp_t *, 
+IRCD_EXTERN const char *comm_errstr(int);
+IRCD_EXTERN int comm_open(fde_t *, int, int, const char *);
+IRCD_EXTERN bool comm_accept(struct Listener *, uv_tcp_t *, 
                         struct sockaddr_storage *);
 
 /* These must be defined in the network IO loop code of your choice */
-extern void init_netio();
-extern void comm_setselect(fde_t *, unsigned int, PF *, void *, time_t);
-extern void init_comm();
-extern int read_message(time_t, unsigned char);
-extern void comm_select();
-extern void check_can_use_v6();
-extern void remove_ipv6_mapping(struct sockaddr_storage *);
+IRCD_EXTERN void init_netio();
+IRCD_EXTERN void comm_setselect(fde_t *, unsigned int, PF *, void *, time_t);
+IRCD_EXTERN void init_comm();
+IRCD_EXTERN int read_message(time_t, unsigned char);
+IRCD_EXTERN void comm_select();
+IRCD_EXTERN void check_can_use_v6();
+IRCD_EXTERN void remove_ipv6_mapping(struct sockaddr_storage *);
 
-extern void string_to_ip(const char *, unsigned int, struct sockaddr_storage *);
-extern bool ip_to_string(const struct sockaddr_storage *, char *, size_t);
+IRCD_EXTERN void string_to_ip(const char *, unsigned int, struct sockaddr_storage *);
+IRCD_EXTERN bool ip_to_string(const struct sockaddr_storage *, char *, size_t);
 
-extern void ssl_handshake(struct Client *, bool);
-extern void ssl_flush_write(struct Client *);
-extern uv_buf_t allocate_uv_buffer(uv_handle_t *, size_t);
-extern void write_callback(uv_write_t *, int);
-extern void close_callback(uv_handle_t *);
+IRCD_EXTERN void ssl_handshake(struct Client *, bool);
+IRCD_EXTERN void ssl_flush_write(struct Client *);
+IRCD_EXTERN uv_buf_t allocate_uv_buffer(uv_handle_t *, size_t);
+IRCD_EXTERN void write_callback(uv_write_t *, int);
+IRCD_EXTERN void close_callback(uv_handle_t *);
 
 #endif /* INCLUDED_s_bsd_h */

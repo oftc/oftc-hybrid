@@ -22,8 +22,6 @@
  *  $Id$
  */
 
-#include "ltdl.h"
-
 #include "stdinc.h"
 #include "list.h"
 #include "modules.h"
@@ -38,10 +36,17 @@
 #include "irc_string.h"
 #include "memory.h"
 #include "list.h"
+#ifndef _WIN32
+#ifdef HAVE_BASENAME
 #include <libgen.h>
+#endif
+#include <sys/types.h>
+#include <dirent.h>
 
 #define SHARED_SUFFIX ".so"
-
+#else
+#define SHARED_SUFFIX ".dll"
+#endif
 
 dlink_list modules_list = { NULL, NULL, 0 };
 
@@ -96,7 +101,7 @@ unload_one_module(const char *name, int warn)
   dlinkDelete(&modp->node, &modules_list);
   MyFree(modp->name);
 
-  lt_dlclose(modp->handle);
+  uv_dlclose(modp->handle);
 
   if (warn == 1)
   {
@@ -116,16 +121,16 @@ unload_one_module(const char *name, int warn)
 int
 load_a_module(const char *path, int warn)
 {
-  lt_dlhandle tmpptr = NULL;
+  uv_lib_t *tmpptr = MyMalloc(sizeof(uv_lib_t));
   const char *mod_basename = NULL;
   struct module *modp = NULL;
 
   if (findmodule_byname((mod_basename = basename((char *)path))))
     return 1;
 
-  if (!(tmpptr = lt_dlopen(path)))
+  if (uv_dlopen(path, tmpptr) != 0)
   {
-    const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
+    const char *err = ((err = uv_dlerror(tmpptr))) ? err : "<unknown>";
 
     sendto_realops_flags(UMODE_ALL, L_ALL, "Error loading module %s: %s",
                          mod_basename, err);
@@ -133,14 +138,14 @@ load_a_module(const char *path, int warn)
     return -1;
   }
 
-  if ((modp = lt_dlsym(tmpptr, "module_entry")) == NULL)
+  if (uv_dlsym(tmpptr, "module_entry", (void **)&modp) != 0)
   {
-    const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
+    const char *err = ((err = uv_dlerror(tmpptr))) ? err : "<unknown>";
 
     sendto_realops_flags(UMODE_ALL, L_ALL, "Error loading module %s: %s",
                          mod_basename, err);
     ilog(LOG_TYPE_IRCD, "Error loading module %s: %s", mod_basename, err);
-    lt_dlclose(tmpptr);
+    uv_dlclose(tmpptr);
     return -1;
   }
 
@@ -177,12 +182,6 @@ load_a_module(const char *path, int warn)
 void
 modules_init()
 {
-  if (lt_dlinit())
-  {
-    ilog(LOG_TYPE_IRCD, "Couldn't initialize the libltdl run time dynamic"
-         " link library. Exiting.");
-    exit(0);
-  }
 }
 
 /* mod_find_path()
@@ -394,7 +393,9 @@ load_one_module(const char *path)
     if (strstr(modpath, "../") == NULL &&
         strstr(modpath, "/..") == NULL)
       if (!stat(modpath, &statbuf))
+#ifndef _WIN32
         if (S_ISREG(statbuf.st_mode))  /* Regular files only please */
+#endif
           return load_a_module(modpath, 1);
   }
 

@@ -66,25 +66,25 @@ struct AddressRec
   dlink_node node;
 };
 
-extern dlink_list atable[ATABLE_SIZE];
-extern int parse_netmask(const char *, struct sockaddr_storage *, int *);
-extern int match_ipv6(const struct sockaddr_storage *, 
+IRCD_EXTERN dlink_list atable[ATABLE_SIZE];
+IRCD_EXTERN int parse_netmask(const char *, struct sockaddr_storage *, int *);
+IRCD_EXTERN int match_ipv6(const struct sockaddr_storage *, 
                       const struct sockaddr_storage *, int);
-extern int match_ipv4(const struct sockaddr_storage *, 
+IRCD_EXTERN int match_ipv4(const struct sockaddr_storage *, 
                       const struct sockaddr_storage *, int);
 
-extern void mask_addr(struct sockaddr_storage *, int);
-extern void init_host_hash();
-extern void add_conf_by_address(const unsigned int, struct AccessItem *);
-extern void delete_one_address_conf(const char *, struct AccessItem *);
-extern void clear_out_address_conf();
-extern void hostmask_expire_temporary();
+IRCD_EXTERN void mask_addr(struct sockaddr_storage *, int);
+IRCD_EXTERN void init_host_hash();
+IRCD_EXTERN void add_conf_by_address(const unsigned int, struct AccessItem *);
+IRCD_EXTERN void delete_one_address_conf(const char *, struct AccessItem *);
+IRCD_EXTERN void clear_out_address_conf();
+IRCD_EXTERN void hostmask_expire_temporary();
 
-extern struct AccessItem *find_address_conf(const char *, const char *,
+IRCD_EXTERN struct AccessItem *find_address_conf(const char *, const char *,
                                             struct sockaddr_storage *, int, char *, 
                                             char *);
-extern struct AccessItem *find_dline_conf(struct sockaddr_storage *, int);
-extern struct AccessItem *find_conf_by_address(const char *,
+IRCD_EXTERN struct AccessItem *find_dline_conf(struct sockaddr_storage *, int);
+IRCD_EXTERN struct AccessItem *find_conf_by_address(const char *,
                                                struct sockaddr_storage *,
                                                unsigned int, int, 
                                                const char *, const char *, 

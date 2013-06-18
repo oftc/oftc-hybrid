@@ -40,13 +40,13 @@ struct Callback
 
 struct Client;
 
-extern struct Callback *register_callback(const char *, CBFUNC *);
-extern void *execute_callback(struct Callback *, ...);
-extern struct Callback *find_callback(const char *);
-extern dlink_node *install_hook(struct Callback *, CBFUNC *);
-extern void uninstall_hook(struct Callback *, CBFUNC *);
-extern void *pass_callback(dlink_node *, ...);
-extern void stats_hooks(struct Client *);
+IRCD_EXTERN struct Callback *register_callback(const char *, CBFUNC *);
+IRCD_EXTERN void *execute_callback(struct Callback *, ...);
+IRCD_EXTERN struct Callback *find_callback(const char *);
+IRCD_EXTERN dlink_node *install_hook(struct Callback *, CBFUNC *);
+IRCD_EXTERN void uninstall_hook(struct Callback *, CBFUNC *);
+IRCD_EXTERN void *pass_callback(dlink_node *, ...);
+IRCD_EXTERN void stats_hooks(struct Client *);
 
 #define is_callback_present(c) (!!dlink_list_length(&c->chain))
 

@@ -27,16 +27,42 @@
 #define STDINC_H
 
 #ifndef IN_AUTOCONF
+#ifdef _WIN32
+#include "config-win32.h"
+#else
 #include "config.h"
+#endif
 #endif
 
 #include "defaults.h"
+
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#define inline
+#define _WINSOCKAPI_
+typedef int bool;
+#define true 1
+#define false 0
+#define snprintf _snprintf
+#define strcasecmp stricmp
+#ifdef IN_MODULE
+#define IRCD_EXTERN __declspec(dllimport)
+#else
+#define IRCD_EXTERN __declspec(dllexport)
+#endif
+#define IRCD_EXPORT __declspec(dllexport)
+#else
+#define IRCD_EXTERN extern
+#define IRCD_EXPORT
+#endif
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#ifndef _WIN32
 #include <stdbool.h>
+#endif
 #include <errno.h>
 
 #ifdef HAVE_STRTOK_R
@@ -48,6 +74,9 @@
 #ifdef HAVE_CRYPT_H
 #include <crypt.h>
 #endif
+
+#include <uv.h>
+#undef ECHO // this is pulled in from uv, bleh
 
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/ssl.h>
@@ -63,13 +92,20 @@
 #include <signal.h>
 #include <ctype.h>
 
+#ifdef HAVE_DIRENT_H
 #include <dirent.h>
+#endif
+
+#ifndef _WIN32
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
 #include <sys/file.h>
+#else
+#include "wdirent.h"
+#endif
 
 #include <limits.h>
 
@@ -89,9 +125,6 @@
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
-
-#include <uv.h>
-#undef ECHO // this is pulled in from uv, bleh
 
 #ifdef PATH_MAX
 #define HYB_PATH_MAX PATH_MAX

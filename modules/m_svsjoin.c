@@ -28,19 +28,16 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"     /* FALSE bleah */
 #include "ircd.h"
 #include "irc_string.h"
 #include "numeric.h"
 #include "fdlist.h"
 #include "hash.h"
 #include "s_bsd.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "channel.h"
@@ -119,14 +116,14 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
     if (IsMember(target_p, chptr))
       return;
 
-    add_user_to_channel(chptr, target_p, type, NO);
+    add_user_to_channel(chptr, target_p, type, 0);
 
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s JOIN :%s",
                          target_p->name, target_p->username,
                          target_p->host, chptr->chname);
 
     if (sjmode)
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +%c %s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +%c %s",
                            me.name, chptr->chname, mode, target_p->name);
 
     if (chptr->chname[0] == '#')
@@ -149,11 +146,11 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
       }
       else
       {
-        sendto_server(target_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+        sendto_server(target_p,  CAP_TS6, NOCAPS,
                       ":%s SJOIN %lu %s + :%s",
                       me.id, (unsigned long)chptr->channelts,
                       chptr->chname, target_p->id);
-        sendto_server(target_p, NULL, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+        sendto_server(target_p, NOCAPS, CAP_TS6,
                       ":%s SJOIN %lu %s + :%s",
                       me.name, (unsigned long)chptr->channelts,
                       chptr->chname, target_p->name);
@@ -180,16 +177,6 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
     if (!check_channel_name(newch, 1))
       return;
 
-    /*
-     * it would be interesting here to allow an oper
-     * to force target_p into a channel that doesn't exist
-     * even more so, into a local channel when we disable
-     * local channels... but...
-     * I don't want to break anything - scuzzy
-     */
-    if (ConfigChannel.disable_local_channels && (*newch == '&'))
-      return;
-
     chptr = make_channel(newch);
 
     if (MyClient(target_p))
@@ -197,28 +184,28 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
                            "Channel %s created by %s!%s@%s", chptr->chname, target_p->name,
                            target_p->username, target_p->host);
 
-    add_user_to_channel(chptr, target_p, CHFL_CHANOP, NO);
+    add_user_to_channel(chptr, target_p, CHFL_CHANOP, 0);
 
     /* send out a join, make target_p join chptr */
     if (chptr->chname[0] == '#')
     {
-      sendto_server(target_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+      sendto_server(target_p, CAP_TS6, NOCAPS,
                     ":%s SJOIN %lu %s +nt :@%s",
                     me.id, (unsigned long)chptr->channelts,
                     chptr->chname, ID(target_p));
-      sendto_server(target_p, NULL, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+      sendto_server(target_p, NOCAPS, CAP_TS6,
                     ":%s SJOIN %lu %s +nt :@%s",
                     me.name, (unsigned long)chptr->channelts,
                     chptr->chname, target_p->name);
     }
 
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s JOIN :%s",
                          target_p->name, target_p->username,
                          target_p->host, chptr->chname);
 
     chptr->mode.mode |= MODE_TOPICLIMIT | MODE_NOPRIVMSGS;
 
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +nt",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +nt",
                          me.name, chptr->chname);
 
     target_p->localClient->last_join_time = CurrentTime;
@@ -244,13 +231,13 @@ module_exit()
   mod_del_cmd(&svsjoin_msgtab);
 }
 
-struct module module_entry =
+IRCD_EXPORT struct module module_entry =
 {
-  .node    = { NULL, NULL, NULL },
-  .name    = NULL,
-  .version = "$Revision$",
-  .handle  = NULL,
-  .modinit = module_init,
-  .modexit = module_exit,
-  .flags   = 0
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
 };

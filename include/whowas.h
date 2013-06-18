@@ -46,7 +46,7 @@ struct Whowas
 /*
 ** initwhowas
 */
-extern void whowas_init();
+IRCD_EXTERN void whowas_init();
 
 /*
 ** add_history
@@ -54,7 +54,7 @@ extern void whowas_init();
 **      usually called before changing to a new name (nick).
 **      Client must be a fully registered user.
 */
-extern void add_history(struct Client *, int);
+IRCD_EXTERN void add_history(struct Client *, int);
 
 /*
 ** off_history
@@ -63,7 +63,7 @@ extern void add_history(struct Client *, int);
 **      structures and it must know when they cease to exist. This
 **      also implicitly calls AddHistory.
 */
-extern void off_history(struct Client *);
+IRCD_EXTERN void off_history(struct Client *);
 
 /*
 ** get_history
@@ -71,11 +71,11 @@ extern void off_history(struct Client *);
 **      nickname within the timelimit. Returns NULL, if no
 **      one found...
 */
-extern struct Client *get_history(const char *, time_t);
+IRCD_EXTERN struct Client *get_history(const char *, time_t);
 
 /*
 ** for debugging...counts related structures stored in whowas array.
 */
-extern void count_whowas_memory(unsigned int *, uint64_t *);
-extern dlink_list WHOWASHASH[];
+IRCD_EXTERN void count_whowas_memory(unsigned int *, uint64_t *);
+IRCD_EXTERN dlink_list WHOWASHASH[];
 #endif /* INCLUDED_whowas_h */

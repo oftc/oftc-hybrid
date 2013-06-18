@@ -94,8 +94,13 @@ static void
 log_write(enum log_type type, const char *message)
 {
   char buf[IRCD_BUFSIZE];
+  time_t rawtime;
+  struct tm * timeinfo;
+  
+  time(&rawtime);
+  timeinfo = localtime(&rawtime);
 
-  strftime(buf, sizeof(buf), "[%FT%H:%M:%S%z]", localtime(&CurrentTime));
+  strftime(buf, sizeof(buf), "[%Y-%m-%dT%H:%M:%S%z]", timeinfo);
 
   fprintf(log_type_table[type].file, "%s %s\n", buf, message);
   fflush(log_type_table[type].file);

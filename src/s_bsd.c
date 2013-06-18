@@ -23,9 +23,11 @@
  */
 
 #include "stdinc.h"
+#ifndef _WIN32
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
+#endif
 #include "list.h"
 #include "fdlist.h"
 #include "s_bsd.h"
@@ -155,7 +157,11 @@ check_can_use_v6()
   else
   {
     ServerInfo.can_use_v6 = 1;
+#ifndef _WIN32
     close(v6);
+#else
+    closesocket(v6);
+#endif
   }
 }
 
@@ -346,13 +352,12 @@ void
 ssl_handshake(struct Client *client_p, bool outgoing)
 {
   int ret;
+  X509 *cert;
 
   if(outgoing)
     ret = SSL_connect(client_p->localClient->fd.ssl);
   else
     ret = SSL_accept(client_p->localClient->fd.ssl);
-
-  X509 *cert;
 
   if (ret <= 0)
   {
@@ -619,6 +624,8 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
                  struct sockaddr *clocal, int socklen, CNCB *callback,
                  void *data, int aftype, int timeout)
 {
+  struct in6_addr tmp;
+  uv_err_t err;
   assert(callback);
   fd->connect.callback = callback;
   fd->connect.handle.data = fd;
@@ -665,8 +672,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
    * DNS check (and head direct to comm_connect_tryconnect().
    */
 
-  struct in6_addr tmp;
-  uv_err_t err = uv_inet_pton(aftype, host, &tmp);
+  err = uv_inet_pton(aftype, host, &tmp);
   if(err.code != UV_OK)
   {
     /* Send the DNS request, for the next level */

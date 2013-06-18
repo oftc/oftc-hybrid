@@ -45,7 +45,8 @@ int hard_fdlimit = 0;
 static int
 set_fdlimit()
 {
-  int fdmax;
+  int fdmax = 0;
+#ifndef _WIN32
   struct rlimit limit;
 
   if (!getrlimit(RLIMIT_NOFILE, &limit))
@@ -55,6 +56,7 @@ set_fdlimit()
   }
 
   fdmax = getdtablesize();
+#endif
 
   /* allow MAXCLIENTS_MIN clients even at the cost of MAX_BUFFER and
    * some not really LEAKED_FDS */
@@ -127,7 +129,12 @@ fd_dump(struct Client *source_p)
     F = ptr->data;
     sendto_one(source_p, ":%s %d %s :fd %-5d desc '%s'",
                me.name, RPL_STATSDEBUG, source_p->name,
+// XXX If uv had a way to get the fd this wouldn't be necessary
+#ifdef _WIN32
+               ((uv_tcp_t *)F->handle)->socket, F->desc);
+#else
                F->handle->io_watcher.fd, F->desc);
+#endif
   }
 }
 

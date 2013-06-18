@@ -208,8 +208,6 @@ do_actual_trace(struct Client *source_p, int parc, char *parv[])
   wilds = !parv[1] || has_wildcards(tname);
   dow = wilds || doall;
 
-  set_time();
-
   if (!HasUMode(source_p, UMODE_OPER)
       || !dow)  /* non-oper traces must be full nicks */
     /* lets also do this for opers tracing nicks */
@@ -335,8 +333,6 @@ report_this_status(struct Client *source_p, struct Client *target_p, int dow)
   name = get_client_name(target_p, HIDE_IP);
   class_name = get_client_class(target_p);
 
-  set_time();
-
   switch (target_p->status)
   {
     case STAT_CONNECTING:
@@ -458,13 +454,13 @@ module_exit()
   mod_del_cmd(&trace_msgtab);
 }
 
-struct module module_entry =
+IRCD_EXPORT struct module module_entry =
 {
-  .node    = { NULL, NULL, NULL },
-  .name    = NULL,
-  .version = "$Revision$",
-  .handle  = NULL,
-  .modinit = module_init,
-  .modexit = module_exit,
-  .flags   = 0
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
 };

@@ -112,13 +112,13 @@ struct mode_letter
   const unsigned char letter;
 };
 
-extern const struct mode_letter chan_modes[];
-extern int add_id(struct Client *, struct Channel *, char *, int);
-extern void set_channel_mode(struct Client *, struct Client *, struct Channel *,
+IRCD_EXTERN const struct mode_letter chan_modes[];
+IRCD_EXTERN int add_id(struct Client *, struct Channel *, char *, int);
+IRCD_EXTERN void set_channel_mode(struct Client *, struct Client *, struct Channel *,
                              struct Membership *, int, char **, char *);
-extern void clear_ban_cache(struct Channel *);
-extern void clear_ban_cache_client(struct Client *);
-extern void init_chcap_usage_counts();
-extern void set_chcap_usage_counts(struct Client *);
-extern void unset_chcap_usage_counts(struct Client *);
+IRCD_EXTERN void clear_ban_cache(struct Channel *);
+IRCD_EXTERN void clear_ban_cache_client(struct Client *);
+IRCD_EXTERN void init_chcap_usage_counts();
+IRCD_EXTERN void set_chcap_usage_counts(struct Client *);
+IRCD_EXTERN void unset_chcap_usage_counts(struct Client *);
 #endif /* INCLUDED_channel_mode_h */

@@ -307,11 +307,14 @@ static void
 listener_send(struct Listener *listener, uv_tcp_t *handle,
                           const char *buffer, size_t len)
 {
+  uv_buf_t buf;
+  uv_write_t *req;
+
   if ((listener->flags & LISTENER_SSL) == LISTENER_SSL)
     return;
 
-  uv_buf_t buf = uv_buf_init((char *)buffer, len);
-  uv_write_t *req = BlockHeapAlloc(write_req_heap);
+  buf = uv_buf_init((char *)buffer, len);
+  req = BlockHeapAlloc(write_req_heap);
 
   uv_write(req, (uv_stream_t *)handle, &buf, 1, write_callback);
 }

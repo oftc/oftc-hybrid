@@ -8,7 +8,6 @@
 #define INCLUDED_irc_res_h
 
 #include "listener.h"
-#include "config.h"
 
 struct Client; /* XXX */
 
@@ -75,12 +74,12 @@ typedef struct
 typedef void (*dns_callback_fnc)(void *, const struct sockaddr_storage*,
                                  const char *);
 
-extern void init_resolver();
-extern void restart_resolver();
-extern void delete_resolver_queries(const void *);
-extern void report_dns_servers(struct Client *);
-extern void gethost_byname_type(dns_callback_fnc , void *, const char *, int);
-extern void gethost_byname(dns_callback_fnc, void *, const char *);
-extern void gethost_byaddr(dns_callback_fnc, void *, 
+IRCD_EXTERN void init_resolver();
+IRCD_EXTERN void restart_resolver();
+IRCD_EXTERN void delete_resolver_queries(const void *);
+IRCD_EXTERN void report_dns_servers(struct Client *);
+IRCD_EXTERN void gethost_byname_type(dns_callback_fnc , void *, const char *, int);
+IRCD_EXTERN void gethost_byname(dns_callback_fnc, void *, const char *);
+IRCD_EXTERN void gethost_byaddr(dns_callback_fnc, void *, 
                            const struct sockaddr_storage *);
 #endif

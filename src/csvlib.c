@@ -9,7 +9,6 @@
  *  $Id$
  */
 
-#include "config.h"
 #include "stdinc.h"
 #include "list.h"
 #include "log.h"

@@ -37,9 +37,9 @@ struct NumericInfo
 /* form_str - return a format string for a message number
  * messages are defined below
  */
-extern const char *form_str(int);
-extern void set_locale(const char *);
-extern const char *get_locale();
+IRCD_EXTERN const char *form_str(int);
+IRCD_EXTERN void set_locale(const char *);
+IRCD_EXTERN const char *get_locale();
 
 /*
  * Reserve numerics 000-099 for server-client connections where the client

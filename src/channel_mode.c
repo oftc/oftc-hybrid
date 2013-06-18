@@ -107,7 +107,7 @@ static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_QUIET, CAP_TS6, CAP_HOPS };
 static int channel_capabs[] = { CAP_EX, CAP_IE, CAP_QUIET, CAP_TS6 };
 #endif
 static struct ChCapCombo chcap_combos[NCHCAP_COMBOS];
-extern BlockHeap *ban_heap;
+IRCD_EXTERN BlockHeap *ban_heap;
 
 
 /* check_string()

@@ -430,27 +430,27 @@ struct Client
 #define SetHidden(x)            ((x)->flags |= FLAGS_HIDDEN)
 
 
-extern struct Client me;
-extern dlink_list listing_client_list;
-extern dlink_list global_client_list;
+IRCD_EXTERN struct Client me;
+IRCD_EXTERN dlink_list listing_client_list;
+IRCD_EXTERN dlink_list global_client_list;
 
-extern int accept_message(struct Client *, struct Client *);
-extern unsigned int idle_time_get(struct Client *, struct Client *);
-extern struct split_nuh_item *find_accept(const char *, const char *,
+IRCD_EXTERN int accept_message(struct Client *, struct Client *);
+IRCD_EXTERN unsigned int idle_time_get(struct Client *, struct Client *);
+IRCD_EXTERN struct split_nuh_item *find_accept(const char *, const char *,
                                           const char *, struct Client *, int);
-extern void del_accept(struct split_nuh_item *, struct Client *);
-extern void del_all_accepts(struct Client *);
-extern void exit_client(struct Client *, struct Client *, const char *);
-extern void check_conf_klines();
-extern void init_client();
-extern void dead_link_on_write(struct Client *, int);
-extern void dead_link_on_read(struct Client *, int);
-extern void exit_aborted_clients();
-extern void free_exited_clients();
-extern struct Client *make_client(struct Client *);
-extern struct Client *find_chasing(struct Client *, struct Client *,
+IRCD_EXTERN void del_accept(struct split_nuh_item *, struct Client *);
+IRCD_EXTERN void del_all_accepts(struct Client *);
+IRCD_EXTERN void exit_client(struct Client *, struct Client *, const char *);
+IRCD_EXTERN void check_conf_klines();
+IRCD_EXTERN void init_client();
+IRCD_EXTERN void dead_link_on_write(struct Client *, int);
+IRCD_EXTERN void dead_link_on_read(struct Client *, int);
+IRCD_EXTERN void exit_aborted_clients();
+IRCD_EXTERN void free_exited_clients();
+IRCD_EXTERN struct Client *make_client(struct Client *);
+IRCD_EXTERN struct Client *find_chasing(struct Client *, struct Client *,
                                    const char *, int *);
-extern struct Client *find_person(const struct Client *const, const char *);
-extern const char *get_client_name(const struct Client *, enum addr_mask_type);
+IRCD_EXTERN struct Client *find_person(const struct Client *const, const char *);
+IRCD_EXTERN const char *get_client_name(const struct Client *, enum addr_mask_type);
 
 #endif /* INCLUDED_client_h */

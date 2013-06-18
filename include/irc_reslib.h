@@ -45,17 +45,17 @@
     (cp) += NS_INT32SZ; \
   }
 
-extern struct sockaddr_storage irc_nsaddr_list[];
-extern int irc_nscount;
-extern void irc_res_init();
-extern int irc_dn_expand(const unsigned char *msg, const unsigned char *eom,
+IRCD_EXTERN struct sockaddr_storage irc_nsaddr_list[];
+IRCD_EXTERN int irc_nscount;
+IRCD_EXTERN void irc_res_init();
+IRCD_EXTERN int irc_dn_expand(const unsigned char *msg, const unsigned char *eom,
                          const unsigned char *src, char *dst, int dstsiz);
-extern int irc_dn_skipname(const unsigned char *ptr, const unsigned char *eom);
-extern unsigned int irc_ns_get16(const unsigned char *src);
-extern unsigned long irc_ns_get32(const unsigned char *src);
-extern void irc_ns_put16(unsigned int src, unsigned char *dst);
-extern void irc_ns_put32(unsigned long src, unsigned char *dst);
-extern int irc_res_mkquery(const char *dname, int class, int type,
+IRCD_EXTERN int irc_dn_skipname(const unsigned char *ptr, const unsigned char *eom);
+IRCD_EXTERN unsigned int irc_ns_get16(const unsigned char *src);
+IRCD_EXTERN unsigned long irc_ns_get32(const unsigned char *src);
+IRCD_EXTERN void irc_ns_put16(unsigned int src, unsigned char *dst);
+IRCD_EXTERN void irc_ns_put32(unsigned long src, unsigned char *dst);
+IRCD_EXTERN int irc_res_mkquery(const char *dname, int class, int type,
                            unsigned char *buf, int buflen);
 #endif /* INCLUDED_res_h */
 

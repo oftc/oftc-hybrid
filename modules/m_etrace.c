@@ -144,8 +144,6 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 
   class_name = get_client_class(target_p);
 
-  set_time();
-
   if (target_p->status == STAT_CLIENT)
   {
     if (full_etrace)
@@ -223,13 +221,13 @@ module_exit()
   mod_del_cmd(&etrace_msgtab);
 }
 
-struct module module_entry =
+IRCD_EXPORT struct module module_entry =
 {
-  .node    = { NULL, NULL, NULL },
-  .name    = NULL,
-  .version = "$Revision$",
-  .handle  = NULL,
-  .modinit = module_init,
-  .modexit = module_exit,
-  .flags   = 0
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
 };

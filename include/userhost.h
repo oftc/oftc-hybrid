@@ -41,7 +41,7 @@ struct UserHost
   char            host[HOSTLEN + 1];
 };
 
-extern void count_user_host(const char *, const char *, int *, int *, int *);
-extern void add_user_host(const char *, const char *, int);
-extern void delete_user_host(const char *, const char *, int global);
+IRCD_EXTERN void count_user_host(const char *, const char *, int *, int *, int *);
+IRCD_EXTERN void add_user_host(const char *, const char *, int);
+IRCD_EXTERN void delete_user_host(const char *, const char *, int global);
 #endif  /* INCLUDED_userhost_h */

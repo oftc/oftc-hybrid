@@ -284,13 +284,13 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 #ifdef HAVE_LIBCRYPTO
   if (client_p->localClient->fd.ssl != NULL)
   {
+    int offset = 0;
+
     char ssl_buffer[READBUF_SIZE] = { 0 };
 
     buffer = ssl_buffer;
 
     BIO_write(client_p->localClient->fd.read_bio, buf.base, nread);
-
-    int offset = 0;
 
     while(BIO_pending(client_p->localClient->fd.read_bio) != 0)
     {

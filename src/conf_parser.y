@@ -27,10 +27,13 @@
 #define YY_NO_UNPUT
 #include <sys/types.h>
 #include <string.h>
-#include <libgen.h>
 
-#include "config.h"
 #include "stdinc.h"
+#ifdef _WIN32
+#include "wlibgen.h"
+#else
+#include <libgen.h>
+#endif
 #include "ircd.h"
 #include "list.h"
 #include "conf.h"

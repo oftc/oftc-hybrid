@@ -26,7 +26,6 @@
 #define INCLUDED_ircd_h
 
 #include "ircd_defs.h"
-#include "config.h"
 #include "memory.h"
 #include "list.h"
 
@@ -71,7 +70,7 @@ struct ServerStatistics
   unsigned int    is_abad; /* bad auth requests */
 };
 
-extern struct ServerStatistics ServerStats;
+IRCD_EXTERN struct ServerStatistics ServerStats;
 
 
 struct Counter
@@ -88,7 +87,7 @@ struct Counter
   unsigned int  max_loc_cli;        /* XXX This is redundant - Max local client count */
 };
 
-extern struct SetOptions GlobalSetOptions; /* defined in ircd.c */
+IRCD_EXTERN struct SetOptions GlobalSetOptions; /* defined in ircd.c */
 
 struct ServerState_t
 {
@@ -96,35 +95,34 @@ struct ServerState_t
   uv_loop_t *event_loop;
 };
 
-extern struct ServerState_t server_state;
+IRCD_EXTERN struct ServerState_t server_state;
 
-extern char **myargv;
-extern const char *infotext[];
-extern const char *serno;
-extern const char *ircd_version;
-extern const char *logFileName;
-extern const char *pidFileName;
-extern int dorehash;
-extern int doremotd;
-extern struct Counter Count;
-extern struct timeval SystemTime;
-#define CurrentTime SystemTime.tv_sec
-extern int default_server_capabs;
-extern unsigned int splitmode;
-extern unsigned int splitchecking;
-extern unsigned int split_users;
-extern unsigned int split_servers;
+IRCD_EXTERN char **myargv;
+IRCD_EXTERN const char *infotext[];
+IRCD_EXTERN const char *serno;
+IRCD_EXTERN const char *ircd_version;
+IRCD_EXTERN const char *logFileName;
+IRCD_EXTERN const char *pidFileName;
+IRCD_EXTERN int dorehash;
+IRCD_EXTERN int doremotd;
+IRCD_EXTERN struct Counter Count;
+IRCD_EXTERN struct timeval SystemTime;
+IRCD_EXTERN time_t CurrentTime;
+IRCD_EXTERN int default_server_capabs;
+IRCD_EXTERN unsigned int splitmode;
+IRCD_EXTERN unsigned int splitchecking;
+IRCD_EXTERN unsigned int split_users;
+IRCD_EXTERN unsigned int split_servers;
 
-extern dlink_list
+IRCD_EXTERN dlink_list
 unknown_list;       /* unknown clients ON this server only        */
-extern dlink_list
+IRCD_EXTERN dlink_list
 local_client_list;  /* local clients only ON this server          */
-extern dlink_list
+IRCD_EXTERN dlink_list
 serv_list;          /* local servers to this server ONLY          */
-extern dlink_list
+IRCD_EXTERN dlink_list
 global_serv_list;   /* global servers on the network              */
-extern dlink_list
+IRCD_EXTERN dlink_list
 oper_list;          /* our opers, duplicated in local_client_list */
-extern int rehashed_klines;
-extern void set_time();
+IRCD_EXTERN int rehashed_klines;
 #endif

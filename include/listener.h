@@ -46,10 +46,10 @@ struct Listener
   unsigned int            flags;
 };
 
-extern void add_listener(int, const char *, unsigned int);
-extern void close_listeners();
-extern const char *get_listener_name(const struct Listener *const);
-extern void show_ports(struct Client *);
-extern void free_listener(struct Listener *);
+IRCD_EXTERN void add_listener(int, const char *, unsigned int);
+IRCD_EXTERN void close_listeners();
+IRCD_EXTERN const char *get_listener_name(const struct Listener *const);
+IRCD_EXTERN void show_ports(struct Client *);
+IRCD_EXTERN void free_listener(struct Listener *);
 struct Listener *find_listener(int port, struct sockaddr_storage *addr);
 #endif /* INCLUDED_listener_h */

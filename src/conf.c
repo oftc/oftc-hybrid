@@ -90,10 +90,10 @@ dlink_list class_items   = { NULL, NULL, 0 };
 dlink_list temporary_xlines  = { NULL, NULL, 0 };
 dlink_list temporary_resv = { NULL, NULL, 0 };
 
-extern unsigned int lineno;
-extern char linebuf[];
-extern char conffilebuf[IRCD_BUFSIZE];
-extern int yyparse(); /* defined in y.tab.c */
+IRCD_EXTERN unsigned int lineno;
+IRCD_EXTERN char linebuf[];
+IRCD_EXTERN char conffilebuf[IRCD_BUFSIZE];
+IRCD_EXTERN int yyparse(); /* defined in y.tab.c */
 
 struct conf_parser_context conf_parser_ctx = { 0, 0, NULL };
 

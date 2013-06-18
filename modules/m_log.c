@@ -45,8 +45,8 @@ static void mo_log(struct Client *client_p, struct Client *source_p, int parc,
 
   if (IsClient(source_p) && ((logfile = fopen(OFTCLOG, "a+")) != NULL))
   {
-    fprintf(logfile, "%s %s %s\n",
-            myctime(time(NULL)), source_p->name, parv[1]);
+  //  fprintf(logfile, "%s %s %s\n",
+  //          myctime(time(NULL)), source_p->name, parv[1]);
     fclose(logfile);
   }
 
@@ -71,13 +71,13 @@ module_exit()
   mod_del_cmd(&log_msgtab);
 }
 
-struct module module_entry =
+IRCD_EXPORT struct module module_entry =
 {
-  .node    = { NULL, NULL, NULL },
-  .name    = NULL,
-  .version = "$Revision$",
-  .handle  = NULL,
-  .modinit = module_init,
-  .modexit = module_exit,
-  .flags   = 0
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
 };

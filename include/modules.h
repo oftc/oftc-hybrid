@@ -25,8 +25,6 @@
 #ifndef INCLUDED_modules_h
 #define INCLUDED_modules_h
 
-#include "config.h"
-
 #define MODULE_FLAG_CORE     0x1
 #define MODULE_FLAG_NOUNLOAD 0x2
 
@@ -47,29 +45,29 @@ struct module_path
   char        path[HYB_PATH_MAX + 1];
 };
 
-extern dlink_list modules_list;
+IRCD_EXTERN dlink_list modules_list;
 
 /* add a path */
-extern void mod_add_path(const char *);
-extern void mod_clear_paths();
+IRCD_EXTERN void mod_add_path(const char *);
+IRCD_EXTERN void mod_clear_paths();
 
 /* load all modules */
-extern void load_all_modules(int);
+IRCD_EXTERN void load_all_modules(int);
 
 /* load core modules */
-extern void load_core_modules(int);
+IRCD_EXTERN void load_core_modules(int);
 
 /* Add this module to list of modules to be loaded from conf */
-extern void add_conf_module(const char *);
+IRCD_EXTERN void add_conf_module(const char *);
 /* load all modules listed in conf */
-extern void load_conf_modules();
-extern void modules_init();
+IRCD_EXTERN void load_conf_modules();
+IRCD_EXTERN void modules_init();
 
-extern int unload_one_module(const char *, int);
-extern int modules_valid_suffix(const char *);
-extern int load_one_module(const char *);
-extern int load_a_module(const char *, int);
-extern struct module *findmodule_byname(const char *);
-extern void modules_init();
+IRCD_EXTERN int unload_one_module(const char *, int);
+IRCD_EXTERN int modules_valid_suffix(const char *);
+IRCD_EXTERN int load_one_module(const char *);
+IRCD_EXTERN int load_a_module(const char *, int);
+IRCD_EXTERN struct module *findmodule_byname(const char *);
+IRCD_EXTERN void modules_init();
 
 #endif /* INCLUDED_modules_h */

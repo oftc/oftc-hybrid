@@ -60,398 +60,398 @@ struct InfoStruct
 #define OUTPUT_BOOLEAN_YN 0x0010 /* Output option as "YES" or "NO"      */
 #define OUTPUT_BOOLEAN2   0x0020 /* Output option as "YES/NO/MASKED"    */
 
-static const struct InfoStruct info_table[] =
+static struct InfoStruct info_table[] =
 {
   /* --[  START OF TABLE  ]-------------------------------------------- */
 
   {
     "CPATH",
     OUTPUT_STRING,
-    &ConfigFileEntry.configfile,
+    NULL,
     "Path to Main Configuration File"
   },
   {
     "DPATH",
     OUTPUT_STRING,
-    &ConfigFileEntry.dpath,
+    NULL,
     "Directory Containing Configuration Files"
   },
   {
     "DLPATH",
     OUTPUT_STRING,
-    &ConfigFileEntry.dlinefile,
+    NULL,
     "Path to D-line File"
   },
   {
     "KPATH",
     OUTPUT_STRING,
-    &ConfigFileEntry.klinefile,
+    NULL,
     "Path to K-line File"
   },
   {
     "network_name",
     OUTPUT_STRING,
-    &ServerInfo.network_name,
+    NULL,
     "Network name"
   },
   {
     "network_desc",
     OUTPUT_STRING,
-    &ServerInfo.network_desc,
+    NULL,
     "Network description"
   },
   {
     "hub",
     OUTPUT_BOOLEAN_YN,
-    &ServerInfo.hub,
+    NULL,
     "Server is a hub"
   },
   {
     "max_clients",
     OUTPUT_DECIMAL,
-    &ServerInfo.max_clients,
+    NULL,
     "Maximum number of clients permitted simultaneously on this server"
   },
   {
     "max_nick_length",
     OUTPUT_DECIMAL,
-    &ServerInfo.max_nick_length,
+    NULL,
     "Maximum nickname length"
   },
   {
     "max_topic_length",
     OUTPUT_DECIMAL,
-    &ServerInfo.max_topic_length,
+    NULL,
     "Maximum topic length"
   },
   {
     "use_logging",
     OUTPUT_BOOLEAN_YN,
-    &ConfigLoggingEntry.use_logging,
+    NULL,
     "Enable logging"
   },
   {
     "disable_fake_channels",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.disable_fake_channels,
+    NULL,
     "Forbids channels with special ASCII characters in their name"
   },
   {
     "restrict_channels",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.restrict_channels,
+    NULL,
     "Only reserved channels are allowed"
   },
   {
     "knock_delay",
     OUTPUT_DECIMAL,
-    &ConfigChannel.knock_delay,
+    NULL,
     "Delay between a users KNOCK attempts"
   },
   {
     "knock_delay_channel",
     OUTPUT_DECIMAL,
-    &ConfigChannel.knock_delay_channel,
+    NULL,
     "Delay between KNOCK attempts to a channel"
   },
   {
     "max_chans_per_user",
     OUTPUT_DECIMAL,
-    &ConfigChannel.max_chans_per_user,
+    NULL,
     "Maximum number of channels a user can join"
   },
   {
     "max_chans_per_oper",
     OUTPUT_DECIMAL,
-    &ConfigChannel.max_chans_per_oper,
+    NULL,
     "Maximum number of channels an oper can join"
   },
   {
     "quiet_on_ban",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.quiet_on_ban,
+    NULL,
     "Banned users may not send text to a channel"
   },
   {
     "max_bans",
     OUTPUT_DECIMAL,
-    &ConfigChannel.max_bans,
+    NULL,
     "Total +b/e/I modes allowed in a channel"
   },
   {
     "default_split_user_count",
     OUTPUT_DECIMAL,
-    &ConfigChannel.default_split_user_count,
+    NULL,
     "Startup value of SPLITUSERS"
   },
   {
     "default_split_server_count",
     OUTPUT_DECIMAL,
-    &ConfigChannel.default_split_server_count,
+    NULL,
     "Startup value of SPLITNUM"
   },
   {
     "no_create_on_split",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.no_create_on_split,
+    NULL,
     "Disallow creation of channels when split"
   },
   {
     "no_join_on_split",
     OUTPUT_BOOLEAN_YN,
-    &ConfigChannel.no_join_on_split,
+    NULL,
     "Disallow joining channels when split"
   },
   {
     "flatten_links",
     OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.flatten_links,
+    NULL,
     "Flatten /links list"
   },
   {
     "links_delay",
     OUTPUT_DECIMAL,
-    &ConfigServerHide.links_delay,
+    NULL,
     "Links rehash delay"
   },
   {
     "hidden",
     OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.hidden,
+    NULL,
     "Hide this server from a flattened /links on remote servers"
   },
   {
     "hide_servers",
     OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.hide_servers,
+    NULL,
     "Hide servernames from users"
   },
   {
     "hidden_name",
     OUTPUT_STRING,
-    &ConfigServerHide.hidden_name,
+    NULL,
     "Server name users see if hide_servers = yes"
   },
   {
     "hide_server_ips",
     OUTPUT_BOOLEAN_YN,
-    &ConfigServerHide.hide_server_ips,
+    NULL,
     "Prevent people from seeing server IPs"
   },
   {
     "invisible_on_connect",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.invisible_on_connect,
+    NULL,
     "Automatically set mode +i on connecting users"
   },
   {
     "kill_chase_time_limit",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.kill_chase_time_limit,
+    NULL,
     "Nick Change Tracker for KILL"
   },
   {
     "hide_spoof_ips",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.hide_spoof_ips,
+    NULL,
     "Hide spoofed IP's"
   },
   {
     "ignore_bogus_ts",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.ignore_bogus_ts,
+    NULL,
     "Ignore bogus timestamps from other servers"
   },
   {
     "disable_auth",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.disable_auth,
+    NULL,
     "Completely disable ident lookups"
   },
   {
     "disable_remote_commands",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.disable_remote,
+    NULL,
     "Prevent users issuing commands on remote servers"
   },
   {
     "tkline_expire_notices",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.tkline_expire_notices,
+    NULL,
     "Show temporary kline/xline expire notices"
   },
   {
     "default_floodcount",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.default_floodcount,
+    NULL,
     "Startup value of FLOODCOUNT"
   },
   {
     "failed_oper_notice",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.failed_oper_notice,
+    NULL,
     "Inform opers if someone /oper's with the wrong password"
   },
   {
     "dots_in_ident",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.dots_in_ident,
+    NULL,
     "Number of permissable dots in an ident"
   },
   {
     "min_nonwildcard",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.min_nonwildcard,
+    NULL,
     "Minimum non-wildcard chars in K/G lines"
   },
   {
     "min_nonwildcard_simple",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.min_nonwildcard_simple,
+    NULL,
     "Minimum non-wildcards in gecos bans"
   },
   {
     "max_accept",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.max_accept,
+    NULL,
     "Maximum nicknames on accept list"
   },
   {
     "anti_nick_flood",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.anti_nick_flood,
+    NULL,
     "NICK flood protection"
   },
   {
     "max_nick_time",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.max_nick_time,
+    NULL,
     "NICK flood protection time interval"
   },
   {
     "max_nick_changes",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.max_nick_changes,
+    NULL,
     "NICK change threshhold setting"
   },
   {
     "anti_spam_exit_message_time",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.anti_spam_exit_message_time,
+    NULL,
     "Duration a client must be connected for to have an exit message"
   },
   {
     "ts_warn_delta",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.ts_warn_delta,
+    NULL,
     "Maximum permitted TS delta before displaying a warning"
   },
   {
     "ts_max_delta",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.ts_max_delta,
+    NULL,
     "Maximum permitted TS delta from another server"
   },
   {
     "warn_no_nline",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.warn_no_nline,
+    NULL,
     "Display warning if connecting server lacks N-line"
   },
   {
     "stats_e_disabled",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.stats_e_disabled,
+    NULL,
     "Whether or not STATS e is disabled"
   },
   {
     "stats_o_oper_only",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.stats_o_oper_only,
+    NULL,
     "STATS O output is only shown to operators"
   },
   {
     "stats_P_oper_only",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.stats_P_oper_only,
+    NULL,
     "STATS P is only shown to operators"
   },
   {
     "stats_i_oper_only",
     OUTPUT_BOOLEAN2,
-    &ConfigFileEntry.stats_i_oper_only,
+    NULL,
     "STATS I output is only shown to operators"
   },
   {
     "stats_k_oper_only",
     OUTPUT_BOOLEAN2,
-    &ConfigFileEntry.stats_k_oper_only,
+    NULL,
     "STATS K output is only shown to operators"
   },
   {
     "caller_id_wait",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.caller_id_wait,
+    NULL,
     "Minimum delay between notifying UMODE +g users of messages"
   },
   {
     "opers_bypass_callerid",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.opers_bypass_callerid,
+    NULL,
     "Allows IRC operators to message users who are +g (callerid)"
   },
   {
     "pace_wait_simple",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.pace_wait_simple,
+    NULL,
     "Minimum delay between less intensive commands"
   },
   {
     "pace_wait",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.pace_wait,
+    NULL,
     "Minimum delay between uses of certain commands"
   },
   {
     "short_motd",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.short_motd,
+    NULL,
     "Do not show MOTD; only tell clients they should read it"
   },
   {
     "ping_cookie",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.ping_cookie,
+    NULL,
     "Require ping cookies to connect"
   },
   {
     "no_oper_flood",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.no_oper_flood,
+    NULL,
     "Reduce flood control for operators"
   },
   {
     "true_no_oper_flood",
     OUTPUT_BOOLEAN,
-    &ConfigFileEntry.true_no_oper_flood,
+    NULL,
     "Completely disable flood control for operators"
   },
   {
     "oper_pass_resv",
     OUTPUT_BOOLEAN_YN,
-    &ConfigFileEntry.oper_pass_resv,
+    NULL,
     "Opers can over-ride RESVs"
   },
   {
     "max_targets",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.max_targets,
+    NULL,
     "The maximum number of PRIVMSG/NOTICE targets"
   },
   {
     "throttle_time",
     OUTPUT_DECIMAL,
-    &ConfigFileEntry.throttle_time,
+    NULL,
     "Minimum time between client reconnects"
   },
 
@@ -716,6 +716,71 @@ static void
 module_init()
 {
   mod_add_cmd(&info_msgtab);
+  info_table[0].option = &ConfigFileEntry.configfile;
+  info_table[1].option = &ConfigFileEntry.dpath;
+  info_table[2].option = &ConfigFileEntry.dlinefile;
+  info_table[3].option = &ConfigFileEntry.klinefile;
+  info_table[4].option = &ServerInfo.network_name;
+  info_table[5].option = &ServerInfo.network_desc;
+  info_table[6].option = &ServerInfo.hub;
+  info_table[7].option = &ServerInfo.max_clients;
+  info_table[8].option = &ServerInfo.max_nick_length;
+  info_table[9].option = &ServerInfo.max_topic_length;
+  info_table[10].option = &ConfigLoggingEntry.use_logging;
+  info_table[11].option = &ConfigChannel.disable_fake_channels;
+  info_table[12].option = &ConfigChannel.restrict_channels;
+  info_table[13].option = &ConfigChannel.knock_delay;
+  info_table[14].option = &ConfigChannel.knock_delay_channel;
+  info_table[15].option = &ConfigChannel.max_chans_per_user;
+  info_table[16].option = &ConfigChannel.max_chans_per_oper;
+  info_table[17].option = &ConfigChannel.quiet_on_ban;
+  info_table[18].option = &ConfigChannel.max_bans;
+  info_table[19].option = &ConfigChannel.default_split_user_count;
+  info_table[20].option = &ConfigChannel.default_split_server_count;
+  info_table[21].option = &ConfigChannel.no_create_on_split;
+  info_table[22].option = &ConfigChannel.no_join_on_split;
+  info_table[23].option = &ConfigServerHide.flatten_links;
+  info_table[24].option = &ConfigServerHide.links_delay;
+  info_table[25].option = &ConfigServerHide.hidden;
+  info_table[26].option = &ConfigServerHide.hide_servers;
+  info_table[27].option = &ConfigServerHide.hidden_name;
+  info_table[28].option = &ConfigServerHide.hide_server_ips;
+  info_table[29].option = &ConfigFileEntry.invisible_on_connect;
+  info_table[30].option = &ConfigFileEntry.kill_chase_time_limit;
+  info_table[31].option = &ConfigFileEntry.hide_spoof_ips;
+  info_table[32].option = &ConfigFileEntry.ignore_bogus_ts;
+  info_table[33].option = &ConfigFileEntry.disable_auth;
+  info_table[34].option = &ConfigFileEntry.disable_remote;
+  info_table[35].option = &ConfigFileEntry.tkline_expire_notices;
+  info_table[36].option = &ConfigFileEntry.default_floodcount;
+  info_table[37].option = &ConfigFileEntry.failed_oper_notice;
+  info_table[38].option = &ConfigFileEntry.dots_in_ident;
+  info_table[39].option = &ConfigFileEntry.min_nonwildcard;
+  info_table[40].option = &ConfigFileEntry.min_nonwildcard_simple;
+  info_table[41].option = &ConfigFileEntry.max_accept;
+  info_table[42].option = &ConfigFileEntry.anti_nick_flood;
+  info_table[43].option = &ConfigFileEntry.max_nick_time;
+  info_table[44].option = &ConfigFileEntry.max_nick_changes;
+  info_table[45].option = &ConfigFileEntry.anti_spam_exit_message_time;
+  info_table[46].option = &ConfigFileEntry.ts_warn_delta;
+  info_table[47].option = &ConfigFileEntry.ts_max_delta;
+  info_table[48].option = &ConfigFileEntry.warn_no_nline;
+  info_table[49].option = &ConfigFileEntry.stats_e_disabled;
+  info_table[50].option = &ConfigFileEntry.stats_o_oper_only;
+  info_table[51].option = &ConfigFileEntry.stats_P_oper_only;
+  info_table[52].option = &ConfigFileEntry.stats_i_oper_only;
+  info_table[53].option = &ConfigFileEntry.stats_k_oper_only;
+  info_table[54].option = &ConfigFileEntry.caller_id_wait;
+  info_table[55].option = &ConfigFileEntry.opers_bypass_callerid;
+  info_table[56].option = &ConfigFileEntry.pace_wait_simple;
+  info_table[57].option = &ConfigFileEntry.pace_wait;
+  info_table[58].option = &ConfigFileEntry.short_motd;
+  info_table[59].option = &ConfigFileEntry.ping_cookie;
+  info_table[60].option = &ConfigFileEntry.no_oper_flood;
+  info_table[61].option = &ConfigFileEntry.true_no_oper_flood;
+  info_table[62].option = &ConfigFileEntry.oper_pass_resv;
+  info_table[63].option = &ConfigFileEntry.max_targets;
+  info_table[64].option = &ConfigFileEntry.throttle_time;
 }
 
 static void
@@ -724,13 +789,13 @@ module_exit()
   mod_del_cmd(&info_msgtab);
 }
 
-struct module module_entry =
+IRCD_EXPORT struct module module_entry =
 {
-  .node    = { NULL, NULL, NULL },
-  .name    = NULL,
-  .version = "$Revision$",
-  .handle  = NULL,
-  .modinit = module_init,
-  .modexit = module_exit,
-  .flags   = 0
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
 };

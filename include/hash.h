@@ -44,29 +44,29 @@ enum
   HASH_TYPE_RESERVED
 };
 
-extern void init_hash();
-extern void hash_add_client(struct Client *);
-extern void hash_del_client(struct Client *);
-extern void hash_add_channel(struct Channel *);
-extern void hash_del_channel(struct Channel *);
-extern void hash_add_resv(struct ResvChannel *);
-extern void hash_del_resv(struct ResvChannel *);
-extern void hash_add_id(struct Client *);
-extern void hash_del_id(struct Client *);
-extern void hash_add_userhost(struct UserHost *);
-extern void hash_del_userhost(struct UserHost *);
-extern void dump_userhosttable(struct Client *);
+IRCD_EXTERN void init_hash();
+IRCD_EXTERN void hash_add_client(struct Client *);
+IRCD_EXTERN void hash_del_client(struct Client *);
+IRCD_EXTERN void hash_add_channel(struct Channel *);
+IRCD_EXTERN void hash_del_channel(struct Channel *);
+IRCD_EXTERN void hash_add_resv(struct ResvChannel *);
+IRCD_EXTERN void hash_del_resv(struct ResvChannel *);
+IRCD_EXTERN void hash_add_id(struct Client *);
+IRCD_EXTERN void hash_del_id(struct Client *);
+IRCD_EXTERN void hash_add_userhost(struct UserHost *);
+IRCD_EXTERN void hash_del_userhost(struct UserHost *);
+IRCD_EXTERN void dump_userhosttable(struct Client *);
 
-extern struct UserHost *hash_find_userhost(const char *);
-extern struct Client *hash_find_id(const char *);
-extern struct Client *hash_find_client(const char *);
-extern struct Client *hash_find_server(const char *);
-extern struct Channel *hash_find_channel(const char *);
-extern void *hash_get_bucket(int, unsigned int);
-extern struct ResvChannel *hash_find_resv(const char *);
+IRCD_EXTERN struct UserHost *hash_find_userhost(const char *);
+IRCD_EXTERN struct Client *hash_find_id(const char *);
+IRCD_EXTERN struct Client *hash_find_client(const char *);
+IRCD_EXTERN struct Client *hash_find_server(const char *);
+IRCD_EXTERN struct Channel *hash_find_channel(const char *);
+IRCD_EXTERN void *hash_get_bucket(int, unsigned int);
+IRCD_EXTERN struct ResvChannel *hash_find_resv(const char *);
 
-extern void free_list_task(struct ListTask *, struct Client *);
-extern void safe_list_channels(struct Client *, struct ListTask *, int);
+IRCD_EXTERN void free_list_task(struct ListTask *, struct Client *);
+IRCD_EXTERN void safe_list_channels(struct Client *, struct ListTask *, int);
 
-extern unsigned int strhash(const char *);
+IRCD_EXTERN unsigned int strhash(const char *);
 #endif  /* INCLUDED_hash_h */

@@ -27,19 +27,18 @@
 
 #include "ircd_defs.h"
 #include "balloc.h"
-#include "config.h"
 
-extern void outofmemory();
+IRCD_EXTERN void outofmemory();
 
-extern void *MyMalloc(size_t);
-extern void *MyRealloc(void *, size_t);
-extern void MyFree(void *);
-extern void _DupString(char **, const char *);
+IRCD_EXTERN void *MyMalloc(size_t);
+IRCD_EXTERN void *MyRealloc(void *, size_t);
+IRCD_EXTERN void MyFree(void *);
+IRCD_EXTERN void _DupString(char **, const char *);
 
 #define DupString(x,y) _DupString(&x, y)
 
 #ifndef NDEBUG
-extern void mem_frob(void *, int);
+IRCD_EXTERN void mem_frob(void *, int);
 #else
 #define mem_frob(x, y)
 #endif
