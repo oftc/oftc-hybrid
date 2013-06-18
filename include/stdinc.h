@@ -37,6 +37,7 @@
 #include "defaults.h"
 
 #ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
 #define inline
 #define _WINSOCKAPI_
 typedef int bool;
@@ -102,6 +103,8 @@ typedef int bool;
 #include <arpa/inet.h>
 #include <sys/time.h>
 #include <sys/file.h>
+#else
+#include "wdirent.h"
 #endif
 
 #include <limits.h>

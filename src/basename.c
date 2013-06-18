@@ -20,7 +20,7 @@
 */
 
 #include "stdinc.h"
-#include <libgen.h>
+#include <wlibgen.h>
 #include <locale.h>
 
 char *basename( char *path )

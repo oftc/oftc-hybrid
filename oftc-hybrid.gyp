@@ -2175,8 +2175,8 @@
 		'sources':
 		[
 			'include/config-win32.h',
-			'include/dirent.h',
-			'include/libgen.h',
+			'include/wdirent.h',
+			'include/wlibgen.h',
 			'src/basename.c',
 			'src/crypt.c',
 			'src/dirent.c',

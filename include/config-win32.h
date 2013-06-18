@@ -54,8 +54,6 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
-#define HAVE_DIRENT_H 1
-
 /* If we support ssl */
 #define HAVE_LIBCRYPTO 1
 

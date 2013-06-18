@@ -29,7 +29,11 @@
 #include <string.h>
 
 #include "stdinc.h"
+#ifdef _WIN32
+#include "wlibgen.h"
+#else
 #include <libgen.h>
+#endif
 #include "ircd.h"
 #include "list.h"
 #include "conf.h"
