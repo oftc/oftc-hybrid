@@ -107,7 +107,7 @@ IRCD_EXTERN int dorehash;
 IRCD_EXTERN int doremotd;
 IRCD_EXTERN struct Counter Count;
 IRCD_EXTERN struct timeval SystemTime;
-IRCD_EXTERN time_t CurrentTime;
+#define CurrentTime SystemTime.tv_sec
 IRCD_EXTERN int default_server_capabs;
 IRCD_EXTERN unsigned int splitmode;
 IRCD_EXTERN unsigned int splitchecking;
