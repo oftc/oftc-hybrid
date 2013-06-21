@@ -71,6 +71,7 @@ struct Counter Count = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 struct ServerState_t server_state = { 0 };
 struct logging_entry ConfigLoggingEntry = { 1 };
 struct ServerStatistics ServerStats;
+struct timeval SystemTime;
 struct Client me;             /* That's me */
 struct LocalUser meLocalUser; /* That's also part of me */
 
@@ -102,8 +103,6 @@ unsigned int split_servers;
  */
 
 int rehashed_klines = 0;
-
-time_t CurrentTime;
 
 /*
  * print_startup - print startup information
@@ -179,6 +178,37 @@ static struct lgetopt myopts[] =
   {NULL, NULL, STRING, NULL},
 };
 
+void
+set_time()
+{
+  static char to_send[200];
+  struct timeval newtime;
+  newtime.tv_sec  = 0;
+  newtime.tv_usec = 0;
+
+  if (gettimeofday(&newtime, NULL) == -1)
+  {
+    ilog(LOG_TYPE_IRCD, "Clock Failure (%s), TS can be corrupted",
+         strerror(errno));
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "Clock Failure (%s), TS can be corrupted",
+                         strerror(errno));
+    restart("Clock Failure");
+  }
+
+  if (newtime.tv_sec < CurrentTime)
+  {
+    snprintf(to_send, sizeof(to_send),
+             "System clock is running backwards - (%lu < %lu)",
+             (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
+
+    sendto_realops_flags(UMODE_ALL, L_ALL, to_send);
+  }
+
+  SystemTime.tv_sec  = newtime.tv_sec;
+  SystemTime.tv_usec = newtime.tv_usec;
+}
+
 static void
 io_loop()
 {
@@ -209,8 +239,8 @@ io_loop()
       }
     }
 
-    CurrentTime = uv_now(server_state.event_loop) / 1000;
     uv_run(server_state.event_loop, UV_RUN_ONCE);
+    set_time();
     exit_aborted_clients();
     free_exited_clients();
     send_queued_all();
@@ -493,7 +523,7 @@ main(int argc, char *argv[])
   setup_corefile();
 
   /* It ain't random, but it ought to be a little harder to guess */
-  srand(time(NULL) ^ (time(NULL) | (getpid() << 20)));
+  srand(SystemTime.tv_sec ^ (SystemTime.tv_usec | (getpid() << 20)));
 
   me.localClient = &meLocalUser;
   dlinkAdd(&me, &me.node, &global_client_list);  /* Pointer to beginning
