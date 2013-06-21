@@ -186,6 +186,6 @@ close_fds(fde_t *one)
   {
     F = ptr->data;
     if (F != one)
-      uv_close((uv_handle_t *)&F->handle, close_callback);
+      uv_close((uv_handle_t *)F->handle, close_callback);
   }
 }
