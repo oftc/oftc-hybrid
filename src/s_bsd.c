@@ -66,6 +66,7 @@ static PF comm_connect_tryconnect;
 
 BlockHeap *write_req_heap = NULL;
 BlockHeap *tcp_handle_heap = NULL;
+BlockHeap *connect_handle_heap = NULL;
 BlockHeap *udp_handle_heap = NULL;
 BlockHeap *udp_send_handle_heap = NULL;
 BlockHeap *buffer_heap = NULL;
@@ -88,6 +89,7 @@ close_callback(uv_handle_t *handle)
   switch(handle->type)
   {
     case UV_TCP:
+      BlockHeapFree(connect_handle_heap, ((uv_tcp_t*)handle)->connect_req);
       BlockHeapFree(tcp_handle_heap, handle);
       break;
     case UV_UDP:
@@ -214,6 +216,9 @@ init_comm()
                                    WRITE_REQ_HEAP_SIZE);
   tcp_handle_heap = BlockHeapCreate("tcp_handle", sizeof(uv_tcp_t),
                                     TCP_HANDLE_HEAP_SIZE);
+  connect_handle_heap = BlockHeapCreate("connect_handle", 
+                                            sizeof(uv_connect_t),
+                                            CONNECT_HANDLE_HEAP_SIZE);
   udp_handle_heap = BlockHeapCreate("udp_handle", sizeof(uv_udp_t),
                                     UDP_HANDLE_HEAP_SIZE);
   udp_send_handle_heap = BlockHeapCreate("udp_send_handle", sizeof(uv_udp_send_t),
@@ -628,7 +633,8 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
   uv_err_t err;
   assert(callback);
   fd->connect.callback = callback;
-  fd->connect.handle.data = fd;
+  fd->connect.handle = BlockHeapAlloc(connect_handle_heap);
+  fd->connect.handle->data = fd;
   fd->connect.data = data;
 
   fd->connect.hostaddr.ss_family = aftype;
@@ -662,7 +668,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     if(ret != 0)
     {
       /* Failure, call the callback with COMM_ERR_BIND */
-      comm_connect_callback(&fd->connect.handle, COMM_ERR_BIND);
+      comm_connect_callback(fd->connect.handle, COMM_ERR_BIND);
       /* ... and quit */
       return;
     }
@@ -725,7 +731,7 @@ static void
 comm_connect_timeout(fde_t *fd, void *notused)
 {
   /* error! */
-  comm_connect_callback(&fd->connect.handle, COMM_ERR_TIMEOUT);
+  comm_connect_callback(fd->connect.handle, COMM_ERR_TIMEOUT);
 }
 
 /*
@@ -742,7 +748,7 @@ comm_connect_dns_callback(void *vptr, const struct sockaddr_storage *addr,
 
   if (name == NULL)
   {
-    comm_connect_callback(&F->connect.handle, COMM_ERR_DNS);
+    comm_connect_callback(F->connect.handle, COMM_ERR_DNS);
     return;
   }
 
@@ -780,12 +786,12 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
   switch(fd->connect.hostaddr.ss_family)
   {
     case AF_INET:
-      retval = uv_tcp_connect(&fd->connect.handle, (uv_tcp_t *)fd->handle, 
+      retval = uv_tcp_connect(fd->connect.handle, (uv_tcp_t *)fd->handle, 
                               *(struct sockaddr_in *)&fd->connect.hostaddr,
                               comm_connect_callback);
       break;
     case AF_INET6:
-      retval = uv_tcp_connect6(&fd->connect.handle, (uv_tcp_t *)fd->handle,
+      retval = uv_tcp_connect6(fd->connect.handle, (uv_tcp_t *)fd->handle,
                                *(struct sockaddr_in6 *)&fd->connect.hostaddr,
                                comm_connect_callback);
     default:
@@ -797,7 +803,7 @@ comm_connect_tryconnect(fde_t *fd, void *notused)
   if (retval != 0)
   {
     /* Error? Fail with COMM_ERR_CONNECT */
-    comm_connect_callback(&fd->connect.handle, COMM_ERR_CONNECT);
+    comm_connect_callback(fd->connect.handle, COMM_ERR_CONNECT);
 
     return;
   }

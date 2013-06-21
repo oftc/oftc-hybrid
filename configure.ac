@@ -94,6 +94,7 @@ AC_DEFINE([WRITE_REQ_HEAP_SIZE], 64, [Size of the write request heap.])
 AC_DEFINE([TCP_HANDLE_HEAP_SIZE], 64, [Size of the TCP handle heap.])
 AC_DEFINE([UDP_HANDLE_HEAP_SIZE], 64, [Size of the UDP handle heap.])
 AC_DEFINE([UDP_SEND_HANDLE_HEAP_SIZE], 64, [Size of the UDP send handle heap.])
+AC_DEFINE([CONNECT_HANDLE_HEAP_SIZE], 64, [Size of the TCP connect handle heap.])
 AC_DEFINE([BUFFER_HEAP_SIZE], 64, [Size of the read buffer heap.])
 
 # Argument processing.

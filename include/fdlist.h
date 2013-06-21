@@ -78,7 +78,7 @@ typedef struct _fde
 
   struct
   {
-    uv_connect_t handle;
+    uv_connect_t *handle;
     /* We don't need the host here ? */
     struct sockaddr_storage S;
     struct sockaddr_storage hostaddr;
