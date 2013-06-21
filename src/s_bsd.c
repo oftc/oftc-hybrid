@@ -86,10 +86,13 @@ write_callback(uv_write_t *req, int status)
 void
 close_callback(uv_handle_t *handle)
 {
+  uv_tcp_t *tcp_handle = (uv_tcp_t*)handle;
+
   switch(handle->type)
   {
     case UV_TCP:
-      BlockHeapFree(connect_handle_heap, ((uv_tcp_t*)handle)->connect_req);
+      if(tcp_handle->connect_req != NULL)
+        BlockHeapFree(connect_handle_heap, tcp_handle->connect_req);
       BlockHeapFree(tcp_handle_heap, handle);
       break;
     case UV_UDP:
