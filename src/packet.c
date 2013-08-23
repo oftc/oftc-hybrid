@@ -265,7 +265,6 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 {
   struct Client *client_p = stream->data;
   int length = 0;
-  bool is_ssl;
   char *buffer;
 
   if (IsDefunct(client_p))
@@ -323,7 +322,6 @@ read_packet(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
   {
     length = nread;
     buffer = buf.base;
-    is_ssl = false;
   }
 
   if(length != 0)

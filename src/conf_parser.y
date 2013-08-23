@@ -125,6 +125,7 @@ free_collect_item(struct CollectItem *item)
 %token  ANTI_SPAM_EXIT_MESSAGE_TIME
 %token  AUTOCONN
 %token  BYTES KBYTES MBYTES
+%token  CA
 %token  CALLER_ID_WAIT
 %token  CAN_FLOOD
 %token  CHANNEL
@@ -361,6 +362,7 @@ conf_item:        admin_entry
 		| general_entry
                 | gecos_entry
                 | modules_entry
+                | ca_entry
                 | error ';'
                 | error '}'
         ;
@@ -553,7 +555,7 @@ serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
 
     ServerInfo.rsa_private_key = PEM_read_bio_RSAPrivateKey(file, NULL, 0, NULL);
 
-    BIO_set_close(file, BIO_CLOSE);
+    (void)BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
 
     if (ServerInfo.rsa_private_key == NULL)
@@ -962,7 +964,7 @@ oper_entry: OPERATOR
         file = BIO_new_file(yy_aconf->rsa_public_key_file, "r");
         new_aconf->rsa_public_key = PEM_read_bio_RSA_PUBKEY(file, 
 							   NULL, 0, NULL);
-        BIO_set_close(file, BIO_CLOSE);
+        (void)BIO_set_close(file, BIO_CLOSE);
         BIO_free(file);
       }
 
@@ -1117,7 +1119,7 @@ oper_rsa_public_key_file: RSA_PUBLIC_KEY_FILE '=' QSTRING ';'
 
     yy_aconf->rsa_public_key = PEM_read_bio_RSA_PUBKEY(file, NULL, 0, NULL);
 
-    BIO_set_close(file, BIO_CLOSE);
+    (void)BIO_set_close(file, BIO_CLOSE);
     BIO_free(file);
 
     if (yy_aconf->rsa_public_key == NULL)
@@ -3130,4 +3132,21 @@ serverhide_hide_server_ips: HIDE_SERVER_IPS '=' TBOOL ';'
 {
   if (conf_parser_ctx.pass == 2)
     ConfigServerHide.hide_server_ips = yylval.number;
+};
+
+/***************************************************************************
+ *  section ca 
+ ***************************************************************************/
+ca_entry: CA
+  '{' ca_items '}' ';';
+
+ca_items:  ca_items ca_item | ca_item;
+ca_item:   ca_name | ca_file | error ';' ;
+
+ca_name: NAME '=' QSTRING ';'
+{
+};
+
+ca_file: T_FILE '=' QSTRING ';'
+{
 };

@@ -141,6 +141,7 @@ aftype		{ return AFTYPE; }
 all		{ return T_ALL; }
 auth		{ return IRCD_AUTH; }
 autoconn	{ return AUTOCONN; }
+ca { return CA; }
 can_flood	{ return CAN_FLOOD; }
 caller_id_wait	{ return CALLER_ID_WAIT; }
 opers_bypass_callerid  { return OPERS_BYPASS_CALLERID; }
@@ -167,7 +168,6 @@ email		{ return EMAIL; }
 encrypted       { return ENCRYPTED; }
 exceed_limit    { return EXCEED_LIMIT; }
 exempt		{ return EXEMPT; }
-file            { return T_FILE; }
 flags           { return IRCD_FLAGS; }
 flatten_links	{ return FLATTEN_LINKS; }
 client_certificate_hash { return CLIENTCERT_HASH; }
