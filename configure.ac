@@ -545,15 +545,27 @@ if test "$cf_enable_openssl" != no; then
 			cf_openssl_ciphers=''
 			AC_CHECK_FUNCS(EVP_bf_cfb,
 			cf_openssl_ciphers="${cf_openssl_ciphers}BF/168 BF/128 ")
+			AC_CHECK_FUNCS(EVP_bf_cfb64,
+			cf_openssl_ciphers="${cf_openssl_ciphers}BF/168 BF/128 ")
 			AC_CHECK_FUNCS(EVP_cast5_cfb,
+			cf_openssl_ciphers="${cf_openssl_ciphers}CAST/128 ")
+			AC_CHECK_FUNCS(EVP_cast5_cfb64,
 			cf_openssl_ciphers="${cf_openssl_ciphers}CAST/128 ")
 			AC_CHECK_FUNCS(EVP_idea_cfb,
 			cf_openssl_ciphers="${cf_openssl_ciphers}IDEA/128 ")
+			AC_CHECK_FUNCS(EVP_idea_cfb64,
+			cf_openssl_ciphers="${cf_openssl_ciphers}IDEA/128 ")
 			AC_CHECK_FUNCS(EVP_rc5_32_12_16_cfb,
+			cf_openssl_ciphers="${cf_openssl_ciphers}RC5.16/128 RC5.12/128 RC5.8/128 ")
+			AC_CHECK_FUNCS(EVP_rc5_32_12_16_cfb64,
 			cf_openssl_ciphers="${cf_openssl_ciphers}RC5.16/128 RC5.12/128 RC5.8/128 ")
 			AC_CHECK_FUNCS(EVP_des_ede3_cfb,
 			cf_openssl_ciphers="${cf_openssl_ciphers}3DES/168 ")
+			AC_CHECK_FUNCS(EVP_des_ede3_cfb64,
+			cf_openssl_ciphers="${cf_openssl_ciphers}3DES/168 ")
 			AC_CHECK_FUNCS(EVP_des_cfb,
+			cf_openssl_ciphers="${cf_openssl_ciphers}DES/56 ")
+			AC_CHECK_FUNCS(EVP_des_cfb64,
 			cf_openssl_ciphers="${cf_openssl_ciphers}DES/56 ")
 		fi
 		SSL_LIBS="$SSL_LIBS -lssl -lcrypto"
