@@ -25,42 +25,18 @@
  */
 
 #include "stdinc.h"
-/* #include "list.h" */
-#include "handlers.h"
+#include "list.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
 #include "irc_string.h"
 #include "hash.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "hostmask.h"
-
-
-static void mr_webirc(struct Client *, struct Client *, int, char *[]);
-
-struct Message webirc_msgtab = {
-  "WEBIRC", 0, 0, 5, 0, MFLG_SLOW, 0,
-  { mr_webirc, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore }
-};
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&webirc_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&webirc_msgtab);
-}
-
-const char *_version = "$Revision$";
-
+#include "s_bsd.h"
 
 /*
  * Usage:
@@ -70,12 +46,11 @@ const char *_version = "$Revision$";
  *   password = "<password>"; # encryption possible
  *   spoof = "webirc."
  *   class = "users";
- *   encryption = yes; # [Using encryption is highly recommended]
+ *   encrypted = yes; # [Using encryption is highly recommended]
  * };
  *
  * Possible flags:
  *   kline_exempt - k/g lines on the cgiirc ip are ignored
- *   gline_exempt - glines on the cgiirc ip are ignored
  *
  * dlines are checked on the cgiirc ip (of course).
  * k/d/g/x lines, auth blocks, user limits, etc are checked using the
@@ -100,6 +75,7 @@ invalid_hostname(const char *hostname)
   {
     if (!IsHostChar(*p))
       return 1;
+
     if (*p == '.' || *p == ':')
       ++has_sep;
   }
@@ -112,15 +88,15 @@ invalid_hostname(const char *hostname)
  *      parv[0] = sender prefix
  *      parv[1] = password
  *      parv[2] = fake username (we ignore this)
- *      parv[3] = fake hostname 
+ *      parv[3] = fake hostname
  *      parv[4] = fake ip
  */
 static void
-mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+mr_webirc(struct Client *client_p, struct Client *source_p, int parc,
+          char *parv[])
 {
   struct AccessItem *aconf = NULL;
   struct ConfItem *conf = NULL;
-  struct addrinfo hints, *res;
   char original_sockhost[HOSTIPLEN + 1];
 
   assert(source_p == client_p);
@@ -131,8 +107,9 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   aconf = find_address_conf(source_p->host,
                             IsGotId(source_p) ? source_p->username : "webirc",
                             &source_p->ip,
-                            source_p->aftype, parv[1],
+                            source_p->ip.ss_family, parv[1],
                             source_p->certfp);
+
   if (aconf == NULL || !IsConfClient(aconf))
     return;
 
@@ -140,41 +117,25 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
 
   if (!IsConfDoSpoofIp(aconf) || irccmp(conf->name, "webirc."))
   {
-    sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL, "Not a CGI:IRC auth block: %s", source_p->sockhost);
+    sendto_realops_flags(UMODE_UNAUTH, L_ALL, "Not a CGI:IRC auth block: %s",
+                         source_p->sockhost);
     return;
   }
 
   if (EmptyString(aconf->passwd))
   {
-    sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL, "CGI:IRC auth blocks must have a password");
+    sendto_realops_flags(UMODE_UNAUTH, L_ALL,
+                         "CGI:IRC auth blocks must have a password");
     return;
   }
 
-  if (!match_conf_password(parv[1], aconf))
+  if (!match_conf_password(parv[1], NULL, aconf))
   {
-    sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL, "CGI:IRC password incorrect");
+    sendto_realops_flags(UMODE_UNAUTH, L_ALL, "CGI:IRC password incorrect");
     return;
   }
 
-  memset(&hints, 0, sizeof(hints));
-
-  hints.ai_family   = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
-
-  if (getaddrinfo(parv[4], NULL, &hints, &res))
-  {
-    sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL, "Inavlid CGI:IRC IP %s", parv[4]);
-    return;
-  }
-
-  assert(res != NULL);
-
-  memcpy(&source_p->ip, res->ai_addr, res->ai_addrlen);
-  source_p->ip.ss_len = res->ai_addrlen;
-  source_p->ip.ss.ss_family = res->ai_family;
-  source_p->aftype = res->ai_family;
-  freeaddrinfo(res);
+  string_to_ip(parv[4], 0, &source_p->ip);
 
   strlcpy(original_sockhost, source_p->sockhost, sizeof(original_sockhost));
   strlcpy(source_p->sockhost, parv[4], sizeof(source_p->sockhost));
@@ -184,9 +145,9 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   else
     strlcpy(source_p->host, source_p->sockhost, sizeof(source_p->host));
 
-  /* Check dlines now, k/glines will be checked on registration */
+  /* Check dlines now, klines will be checked on registration */
   if ((aconf = find_dline_conf(&client_p->ip,
-                                client_p->aftype)))
+                               client_p->ip.ss_family)))
   {
     if (!(aconf->status & CONF_EXEMPTDLINE))
     {
@@ -195,7 +156,36 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
     }
   }
 
-  sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL,
+  sendto_realops_flags(UMODE_CCONN, L_ALL,
                        "CGI:IRC host/IP set %s to %s (%s)", original_sockhost,
                        parv[3], parv[4]);
 }
+
+static struct Message webirc_msgtab =
+{
+  "WEBIRC", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
+  { mr_webirc, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore }
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&webirc_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&webirc_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

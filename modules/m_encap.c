@@ -23,9 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "msg.h"
 #include "parse.h"
 #include "sprintf_irc.h"
 #include "s_serv.h"
@@ -33,36 +31,13 @@
 #include "modules.h"
 #include "irc_string.h"
 
-static void ms_encap(struct Client *, struct Client *, int, char *[]);
-
-struct Message encap_msgtab = {
-  "ENCAP", 0, 0, 3, 0, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_encap, m_ignore, m_ignore, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&encap_msgtab);
-  add_capability("ENCAP", CAP_ENCAP, 1);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&encap_msgtab);
-  delete_capability("ENCAP");
-}
-const char *_version = "$Revision$";
-#endif
 
 /*
  * ms_encap()
  *
- * inputs	- destination server, subcommand, parameters
- * output	- none
- * side effects	- propagates subcommand to locally connected servers
+ * inputs  - destination server, subcommand, parameters
+ * output  - none
+ * side effects  - propagates subcommand to locally connected servers
  */
 static void
 ms_encap(struct Client *client_p, struct Client *source_p,
@@ -70,7 +45,9 @@ ms_encap(struct Client *client_p, struct Client *source_p,
 {
   char buffer[IRCD_BUFSIZE], *ptr = buffer;
   unsigned int cur_len = 0, len, i;
+#ifdef NOT_USED_YET
   int paramcount, mpara = 0;
+#endif
   struct Message *mptr = NULL;
   MessageHandler handler = 0;
 
@@ -81,7 +58,7 @@ ms_encap(struct Client *client_p, struct Client *source_p,
     if ((cur_len + len) >= sizeof(buffer))
       return;
 
-    ircsprintf(ptr, "%s ", parv[i]);
+    snprintf(ptr, sizeof(buffer) - cur_len, "%s ", parv[i]);
     cur_len += len;
     ptr += len;
   }
@@ -89,18 +66,18 @@ ms_encap(struct Client *client_p, struct Client *source_p,
   len = strlen(parv[i]);
 
   /*
-   * if the final parameter crosses our buffer size, should we bail, 
+   * if the final parameter crosses our buffer size, should we bail,
    * like the rest, or should we truncate?  ratbox seems to think truncate,
    * so i'll do that for now until i can talk to lee.  -bill
    */
 
   if (parc == 3)
-    ircsprintf(ptr, "%s", parv[2]);
+    snprintf(ptr, sizeof(buffer) - cur_len, "%s", parv[2]);
   else
-    ircsprintf(ptr, ":%s", parv[parc-1]);
+    snprintf(ptr, sizeof(buffer) - cur_len, ":%s", parv[parc - 1]);
 
   if ((cur_len + len) >= sizeof(buffer))
-    buffer[sizeof(buffer)-1] = '\0';
+    buffer[sizeof(buffer) - 1] = '\0';
 
   sendto_match_servs(source_p, parv[1], CAP_ENCAP,
                      "ENCAP %s", buffer);
@@ -111,9 +88,10 @@ ms_encap(struct Client *client_p, struct Client *source_p,
   if ((mptr = find_command(parv[2])) == NULL)
     return;
 
+#ifdef NOT_USED_YET
   paramcount = mptr->parameters;
   mpara      = mptr->maxpara;
-
+#endif
   mptr->bytes += strlen(buffer);
 
   /*
@@ -126,8 +104,37 @@ ms_encap(struct Client *client_p, struct Client *source_p,
   parc -= 2;
   parv[0] = ptr;
 
-  if ((handler = mptr->handlers[ENCAP_HANDLER]) == NULL)
-    return;
-
-  (*handler)(client_p, source_p, parc, parv);
+  if ((handler = mptr->handlers[ENCAP_HANDLER]))
+    (*handler)(client_p, source_p, parc, parv);
 }
+
+static struct Message encap_msgtab =
+{
+  "ENCAP", 0, 0, 3, MAXPARA, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_encap, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&encap_msgtab);
+  add_capability("ENCAP", CAP_ENCAP, 1);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&encap_msgtab);
+  delete_capability("ENCAP");
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

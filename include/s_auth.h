@@ -28,33 +28,23 @@
 #include "irc_res.h"
 #include "hook.h"
 
-/* How many auth allocations to allocate in a block. I'm guessing that
- * a good number here is 64, because these are temporary and don't live
- * as long as clients do.
- *     -- adrian
- */
-#define	AUTH_BLOCK_SIZE 64
 
 struct Client;
 
 struct AuthRequest
 {
-  dlink_node	      dns_node;	 /* auth_doing_dns_list */
-  dlink_node	      ident_node; /* auth_doing_ident_list */
-  int 		      flags;
-  struct Client*      client;    /* pointer to client struct for request */
-  fde_t               fd;        /* file descriptor for auth queries */
-  time_t              timeout;   /* time when query expires */
-  unsigned int	      ip6_int;
+  dlink_node      node;   /* auth_doing_list */
+  int             flags;
+  struct Client   *client;    /* pointer to client struct for request */
+  time_t          timeout;   /* time when query expires */
 };
 
 /*
  * flag values for AuthRequest
  * NAMESPACE: AM_xxx - Authentication Module
  */
-#define AM_DOING_AUTH        1
-#define AM_DNS_PENDING       2
-#define CRIT_REGION	     4
+#define AM_DOING_AUTH        0x1
+#define AM_DNS_PENDING       0x2
 
 #define SetDNSPending(x)     ((x)->flags |= AM_DNS_PENDING)
 #define ClearDNSPending(x)   ((x)->flags &= ~AM_DNS_PENDING)
@@ -64,17 +54,12 @@ struct AuthRequest
 #define ClearAuth(x)         ((x)->flags &= ~AM_DOING_AUTH)
 #define IsDoingAuth(x)       ((x)->flags &  AM_DOING_AUTH)
 
-#define IsCrit(x)	     ((x)->flags & CRIT_REGION)
-#define SetCrit(x)	     ((x)->flags |= CRIT_REGION)
-#define ClearCrit(x)	     ((x)->flags &= ~CRIT_REGION)
+IRCD_EXTERN struct Callback *auth_cb;
 
-extern struct Callback *auth_cb;
-
-extern void send_auth_query(struct AuthRequest *);
-extern void remove_auth_request(struct AuthRequest *);
-extern struct AuthRequest *FindAuthClient(long);
-extern void init_auth(void);
-extern void delete_auth(struct Client *);
-extern void release_auth_client(struct Client *);
+IRCD_EXTERN void init_auth();
+IRCD_EXTERN void send_auth_query(struct AuthRequest *);
+IRCD_EXTERN void remove_auth_request(struct AuthRequest *);
+IRCD_EXTERN void delete_auth(struct AuthRequest *);
+IRCD_EXTERN void release_auth_client(struct AuthRequest *);
 
 #endif /* INCLUDED_s_auth_h */

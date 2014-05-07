@@ -10,12 +10,12 @@
  *  met:
  *
  *  1.Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer. 
+ *    this list of conditions and the following disclaimer.
  *  2.Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution. 
+ *    documentation and/or other materials provided with the distribution.
  *  3.The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission. 
+ *    derived from this software without specific prior written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  *  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -33,50 +33,25 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"
 #include "irc_string.h"
 #include "ircd_defs.h"
 #include "ircd.h"
 #include "restart.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
-#include "msg.h"
 #include "hostmask.h"
 #include "numeric.h"
 #include "parse.h"
 #include "modules.h"
 
-static void mo_testmask(struct Client *, struct Client *, int, char *[]);
-
-struct Message testmask_msgtab = {
-  "TESTMASK", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testmask, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&testmask_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&testmask_msgtab);
-}
- 
-const char *_version = "$Revision$";
-#endif
 
 /* mo_testmask()
  *
  * inputs       - pointer to physical connection request is coming from
  *              - pointer to source connection request is coming from
  *              - parc arg count
- *              - parv actual arguments   
+ *              - parv actual arguments
  * output       - NONE
  * side effects - count up clients matching mask
  * i.e. /quote testmask user@host
@@ -108,15 +83,44 @@ mo_testmask(struct Client *client_p, struct Client *source_p,
       continue;
 
     if (match(given_user, target_p->username) &&
-	match(given_host, target_p->host))
+        match(given_host, target_p->host))
     {
       if (MyConnect(target_p))
-	local_count++;
+        local_count++;
       else
-	remote_count++;
+        remote_count++;
     }
   }
 
   sendto_one(source_p, form_str(RPL_TESTMASK), me.name, source_p->name,
-	     given_user, given_host, local_count, remote_count);
+             given_user, given_host, local_count, remote_count);
 }
+
+static struct Message testmask_msgtab =
+{
+  "TESTMASK", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_testmask, m_ignore}
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&testmask_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&testmask_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

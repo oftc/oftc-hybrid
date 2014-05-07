@@ -28,16 +28,16 @@
 /* Here are some default paths. Most except DPATH are
  * configurable at runtime. */
 
-/* 
+/*
  * Directory paths and filenames for UNIX systems.
- * IRCD_PREFIX is set using ./configure --prefix, see INSTALL.
+ * PREFIX is set using ./configure --prefix, see INSTALL.
  * The other defaults should be fine.
  *
  * NOTE: CHANGING THESE WILL NOT ALTER THE DIRECTORY THAT FILES WILL
  *       BE INSTALLED TO.  IF YOU CHANGE THESE, DO NOT USE MAKE INSTALL,
  *       BUT COPY THE FILES MANUALLY TO WHERE YOU WANT THEM.
  *
- * IRCD_PREFIX = prefix for all directories
+ * PREFIX = prefix for all directories
  * DPATH       = root directory of installation
  * BINPATH     = directory for binary files
  * MSGPATH     = directory for language files
@@ -47,42 +47,45 @@
  * AUTOMODPATH = directory for autoloaded modules
  */
 
+#ifndef _WIN32
+#define DDIR DATADIR
+#endif
+
 /* dirs */
-#define DPATH       IRCD_PREFIX                                                     
-#define BINPATH     IRCD_PREFIX "/bin/"
-#define MSGPATH     IRCD_PREFIX "/messages/"
-#define ETCPATH     IRCD_PREFIX "/etc"
-#define LOGPATH     IRCD_PREFIX "/logs"
-#define MODPATH     IRCD_PREFIX "/modules/"
-#define AUTOMODPATH IRCD_PREFIX "/modules/autoload/"
-#define OFTCLOG LOGPATH "/oftc.log" 
+#define DPATH       PREFIX
+#define SBINPATH    PREFIX "/sbin/"
+#define BINPATH     PREFIX "/bin/"
+#define MSGPATH     DDIR "/" PACKAGE "/messages"
+#define MODPATH     LIBDIR "/" PACKAGE "/modules/"
+#define HPATH       DDIR "/" PACKAGE "/help/opers"
+#define UHPATH      DDIR "/" PACKAGE "/help/users"
+#define AUTOMODPATH MODPATH "/autoload/"
+#define ETCPATH     SYSCONFDIR
+
+#define LOGPATH     LOCALSTATEDIR "/log"
+#define RUNPATH     LOCALSTATEDIR "/run"
 
 /* files */
-#define SPATH   BINPATH "/ircd"                 /* ircd executable */
-#define SLPATH  BINPATH "/servlink"             /* servlink executable */
-#define CPATH   ETCPATH "/ircd.conf"            /* ircd.conf file */
-#define KPATH   ETCPATH "/kline.conf"           /* kline file */
+#define SPATH       SBINPATH "/ircd"                /* ircd executable */
+#define CPATH       ETCPATH "/ircd.conf"            /* ircd.conf file */
+#define KPATH       ETCPATH "/kline.conf"           /* kline file */
 #define CRESVPATH   ETCPATH "/cresv.conf"       /* channel resvs file */
 #define NRESVPATH   ETCPATH "/nresv.conf"       /* nick resvs file */
-#define DLPATH  ETCPATH "/dline.conf"           /* dline file */
-#define GPATH   ETCPATH "/gline.conf"           /* gline conffile */
-#define XPATH   ETCPATH "/xline.conf"           /* xline file */
-#define RXPATH  ETCPATH "/rxline.conf"
-#define RKPATH  ETCPATH "/rkline.conf"
-#define MPATH   ETCPATH "/ircd.motd"            /* MOTD file */
-#define LPATH   LOGPATH "/ircd.log"             /* ircd logfile */
-#define PPATH   ETCPATH "/ircd.pid"             /* pid file */
-#define OPATH   ETCPATH "/opers.motd"           /* oper MOTD file */
-#define LIPATH  ETCPATH "/links.txt"            /* cached links file */
+#define DLPATH      ETCPATH "/dline.conf"           /* dline file */
+#define XPATH       ETCPATH "/xline.conf"           /* xline file */
+#define MPATH       ETCPATH "/ircd.motd"            /* MOTD file */
+#define LPATH       LOGPATH "/ircd.log"             /* ircd logfile */
+#define OFTCLOG     LOGPATH "/oftc.log"
+#define PPATH       RUNPATH "/ircd.pid"             /* pid file */
+#define LIPATH      ETCPATH "/links.txt"            /* cached links file */
 
-/* this file is included to supply default
- * values for things which are now configurable at runtime.
+/*
+ * This file is included to supply default values for things which
+ * are now configurable at runtime.
  */
 
-#define HANGONRETRYDELAY 60     /* Recommended value: 30-60 seconds */
 #define HYBRID_SOMAXCONN 25
-#define MAX_TDKLINE_TIME	(24*60*30)
-#define HANGONGOODLINK 3600     /* Recommended value: 30-60 minutes */
+#define MAX_TDKLINE_TIME (24*60*360)
 
 /* tests show that about 7 fds are not registered by fdlist.c, these
  * include std* descriptors + some others (by OpenSSL etc.). Note this is
@@ -95,42 +98,44 @@
 #define MAXCLIENTS_MIN   32
 
 /* class {} default values */
-#define DEFAULT_SENDQ 9000000           /* default max SendQ */
-#define PORTNUM 6667                    /* default outgoing portnum */
-#define DEFAULT_PINGFREQUENCY    120    /* Default ping frequency */
-#define DEFAULT_CONNECTFREQUENCY 600    /* Default connect frequency */
+#define DEFAULT_SENDQ             9000000 /* default max SendQ */
+#define DEFAULT_RECVQ             2560    /* default max RecvQ */
+#define PORTNUM                   6667    /* default outgoing portnum */
+#define DEFAULT_PINGFREQUENCY     120     /* Default ping frequency */
+#define DEFAULT_CONNECTFREQUENCY  600     /* Default connect frequency */
+#define CLIENT_FLOOD_MAX          8000
+#define CLIENT_FLOOD_MIN          512
 
-#define TS_MAX_DELTA_MIN      10        /* min value for ts_max_delta */
-#define TS_MAX_DELTA_DEFAULT  600       /* default for ts_max_delta */
-#define TS_WARN_DELTA_MIN     10        /* min value for ts_warn_delta */
-#define TS_WARN_DELTA_DEFAULT 30        /* default for ts_warn_delta */
+#define WATCHSIZE_MIN             1
+#define WATCHSIZE_DEFAULT         32
+#define TS_MAX_DELTA_MIN          10      /* min value for ts_max_delta */
+#define TS_MAX_DELTA_DEFAULT      600     /* default for ts_max_delta */
+#define TS_WARN_DELTA_MIN         10      /* min value for ts_warn_delta */
+#define TS_WARN_DELTA_DEFAULT     30      /* default for ts_warn_delta */
 
 /* ServerInfo default values */
-#define NETWORK_NAME_DEFAULT "EFnet"             /* default for network_name */
-#define NETWORK_DESC_DEFAULT "Eris Free Network" /* default for network_desc */
+#define NETWORK_NAME_DEFAULT      "EFnet"             /* default for network_name */
+#define NETWORK_DESC_DEFAULT      "Eris Free Network" /* default for network_desc */
+#define SERVICE_NAME_DEFAULT      "service.someserver"
 
 /* General defaults */
-#define MAXIMUM_LINKS_DEFAULT 0         /* default for maximum_links */
+#define MAXIMUM_LINKS_DEFAULT         0         /* default for maximum_links */
 
-#define CLIENT_FLOOD_DEFAULT 2560       /* default for client_flood */
-#define CLIENT_FLOOD_MAX     8000
-#define CLIENT_FLOOD_MIN     512
+#define LINKS_DELAY_DEFAULT           300
 
-#define LINKS_DELAY_DEFAULT  300
+#define MAX_TARGETS_DEFAULT           4         /* default for max_targets */
 
-#define MAX_TARGETS_DEFAULT 4           /* default for max_targets */
+#define INIT_LOG_LEVEL                L_NOTICE  /* default for log_level */
 
-#define INIT_LOG_LEVEL L_NOTICE         /* default for log_level */
+#define CONNECTTIMEOUT                30        /* Recommended value: 30 */
+#define IDENT_TIMEOUT                 10
 
-#define CONNECTTIMEOUT  30      /* Recommended value: 30 */
-#define IDENT_TIMEOUT 10
+#define MIN_JOIN_LEAVE_TIME           60
+#define MAX_JOIN_LEAVE_COUNT          25
+#define OPER_SPAM_COUNTDOWN           5
+#define JOIN_LEAVE_COUNT_EXPIRE_TIME  120
 
-#define MIN_JOIN_LEAVE_TIME  60
-#define MAX_JOIN_LEAVE_COUNT  25
-#define OPER_SPAM_COUNTDOWN   5 
-#define JOIN_LEAVE_COUNT_EXPIRE_TIME 120
-
-#define MIN_SPAM_NUM 5
-#define MIN_SPAM_TIME 60
+#define MIN_SPAM_NUM                  5
+#define MIN_SPAM_TIME                 60
 
 #endif /* INCLUDED_defaults_h */

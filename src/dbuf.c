@@ -19,21 +19,19 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: dbuf.c 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #include "stdinc.h"
-#include "balloc.h"
-#include "common.h"
-#include "dbuf.h"
 #include "list.h"
-#include "tools.h"
+#include "balloc.h"
+#include "dbuf.h"
 #include "memory.h"
 
 static BlockHeap *dbuf_heap;
 
 void
-dbuf_init(void)
+dbuf_init()
 {
   dbuf_heap = BlockHeapCreate("dbuf", sizeof(struct dbuf_block), DBUF_HEAP_SIZE);
 }
@@ -54,18 +52,22 @@ dbuf_put(struct dbuf_queue *qptr, char *data, size_t count)
   size_t amount;
 
   assert(count > 0);
+
   if (qptr->blocks.tail == NULL)
     dbuf_alloc(qptr);
 
-  do {
+  do
+  {
     last = qptr->blocks.tail->data;
 
     amount = DBUF_BLOCK_SIZE - last->size;
+
     if (!amount)
     {
       last = dbuf_alloc(qptr);
       amount = DBUF_BLOCK_SIZE;
     }
+
     if (amount > count)
       amount = count;
 
@@ -76,7 +78,8 @@ dbuf_put(struct dbuf_queue *qptr, char *data, size_t count)
 
     data += amount;
 
-  } while (count > 0);
+  }
+  while (count > 0);
 }
 
 void
@@ -86,6 +89,7 @@ dbuf_delete(struct dbuf_queue *qptr, size_t count)
   struct dbuf_block *first;
 
   assert(qptr->total_size >= count);
+
   if (count == 0)
     return;
 
@@ -94,8 +98,10 @@ dbuf_delete(struct dbuf_queue *qptr, size_t count)
   {
     if (!count)
       return;
+
     ptr = qptr->blocks.head;
     first = ptr->data;
+
     if (count < first->size)
       break;
 

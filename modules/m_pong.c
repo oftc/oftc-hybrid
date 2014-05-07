@@ -24,41 +24,16 @@
 
 #include "stdinc.h"
 #include "ircd.h"
-#include "handlers.h"
 #include "s_user.h"
 #include "client.h"
 #include "hash.h"       /* for find_client() */
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "irc_string.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
-static void mr_pong(struct Client *, struct Client *, int, char **);
-static void ms_pong(struct Client *, struct Client *, int, char **);
-
-struct Message pong_msgtab = {
-  "PONG", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_pong, m_ignore, ms_pong, m_ignore, m_ignore, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&pong_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&pong_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 static void
 ms_pong(struct Client *client_p, struct Client *source_p,
@@ -70,7 +45,7 @@ ms_pong(struct Client *client_p, struct Client *source_p,
   if (parc < 2 || *parv[1] == '\0')
   {
     sendto_one(source_p, form_str(ERR_NOORIGIN),
-               me.name, parv[0]);
+               me.name, source_p->name);
     return;
   }
 
@@ -86,16 +61,16 @@ ms_pong(struct Client *client_p, struct Client *source_p,
   if (!EmptyString(destination) && !match(destination, me.name) &&
       irccmp(destination, me.id))
   {
-      if ((target_p = find_client(destination)) ||
-          (target_p = find_server(destination)))
-        sendto_one(target_p,":%s PONG %s %s",
-                   parv[0], origin, destination);
-      else
-        {
-          sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
-                     me.name, parv[0], destination);
-          return;
-        }
+    if ((target_p = hash_find_client(destination)) ||
+        (target_p = hash_find_server(destination)))
+      sendto_one(target_p, ":%s PONG %s %s",
+                 source_p->name, origin, destination);
+    else
+    {
+      sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
+                 me.name, source_p->name, destination);
+      return;
+    }
   }
 }
 
@@ -115,11 +90,8 @@ mr_pong(struct Client *client_p, struct Client *source_p,
       {
         if (source_p->localClient->random_ping == incoming_ping)
         {
-          char buf[USERLEN + 1];
-
-          strlcpy(buf, source_p->username, sizeof(buf));
           SetPingCookie(source_p);
-          register_local_user(client_p, source_p, source_p->name, buf);
+          register_local_user(source_p);
         }
         else
         {
@@ -131,6 +103,35 @@ mr_pong(struct Client *client_p, struct Client *source_p,
     }
   }
   else
-    sendto_one(source_p, form_str(ERR_NOORIGIN), me.name, parv[0]);
+    sendto_one(source_p, form_str(ERR_NOORIGIN),
+               me.name, source_p->name);
 }
 
+static struct Message pong_msgtab =
+{
+  "PONG", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
+  {mr_pong, m_ignore, ms_pong, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&pong_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&pong_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

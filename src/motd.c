@@ -23,13 +23,12 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
+#include "list.h"
 #include "motd.h"
 #include "ircd.h"
 #include "fdlist.h"
 #include "s_bsd.h"
-#include "fileio.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "numeric.h"
 #include "client.h"
@@ -65,7 +64,7 @@ send_message_file(struct Client *source_p, MessageFile *motdToPrint)
   const char *from, *to;
 
   if (motdToPrint == NULL)
-    return(-1);
+    return (-1);
 
   motdType = motdToPrint->motdType;
 
@@ -79,77 +78,60 @@ send_message_file(struct Client *source_p, MessageFile *motdToPrint)
         sendto_one(source_p, form_str(ERR_NOMOTD), from, to);
       else
       {
-	sendto_one(source_p, form_str(RPL_MOTDSTART),
-		   from, to, me.name);
+        sendto_one(source_p, form_str(RPL_MOTDSTART),
+                   from, to, me.name);
 
-	for (linePointer = motdToPrint->contentsOfFile; linePointer;
-	     linePointer = linePointer->next)
-	{
-	  sendto_one(source_p, form_str(RPL_MOTD),
-		     from, to, linePointer->line);
-	}
+        for (linePointer = motdToPrint->contentsOfFile; linePointer;
+             linePointer = linePointer->next)
+        {
+          sendto_one(source_p, form_str(RPL_MOTD),
+                     from, to, linePointer->line);
+        }
 
-	sendto_one(source_p, form_str(RPL_ENDOFMOTD), from, to);
+        sendto_one(source_p, form_str(RPL_ENDOFMOTD), from, to);
       }
+
       break;
 
     case USER_LINKS:
       if (motdToPrint->contentsOfFile != NULL)
       {
-	for (linePointer = motdToPrint->contentsOfFile; linePointer;
-	     linePointer = linePointer->next)
-	{
-	  sendto_one(source_p, ":%s 364 %s %s", /* XXX */
-		     from, to, linePointer->line);
-	}
+        for (linePointer = motdToPrint->contentsOfFile; linePointer;
+             linePointer = linePointer->next)
+        {
+          sendto_one(source_p, ":%s 364 %s %s", /* XXX */
+                     from, to, linePointer->line);
+        }
       }
+
       break;
 
-    case OPER_MOTD:
+    case ISSUPPORT:
       if (motdToPrint->contentsOfFile != NULL)
       {
-	sendto_one(source_p, form_str(RPL_OMOTDSTART),
-		   me.name, source_p->name, me.name);
-
-	sendto_one(source_p, form_str(RPL_OMOTD),
-		   me.name, source_p->name, motdToPrint->lastChangedDate);
-
-	for (linePointer = motdToPrint->contentsOfFile; linePointer;
-	     linePointer = linePointer->next)
-	{
-	  sendto_one(source_p, form_str(RPL_OMOTD),
-		     me.name, source_p->name, linePointer->line);
-	}
-	sendto_one(source_p, form_str(RPL_ENDOFOMOTD),
-		   me.name, source_p->name);
+        for (linePointer = motdToPrint->contentsOfFile; linePointer;
+             linePointer = linePointer->next)
+        {
+          sendto_one(source_p, form_str(RPL_ISUPPORT),
+                     me.name, source_p->name, linePointer->line);
+        }
       }
+
       break;
-
-  case ISSUPPORT:
-      if (motdToPrint->contentsOfFile != NULL)
-      {
-	for (linePointer = motdToPrint->contentsOfFile; linePointer;
-	     linePointer = linePointer->next)
-	{
-	  sendto_one(source_p, form_str(RPL_ISUPPORT),
-		     me.name, source_p->name, linePointer->line);
-	}
-      }
-    break;
 
     default:
       break;
   }
 
-  return(0);
+  return (0);
 }
 
 /*
  * read_message_file() - original From CoMSTuD, added Aug 29, 1996
  *
- * inputs	- pointer to MessageFileptr
- * output	-
- * side effects	-
+ * inputs  - pointer to MessageFileptr
+ * output  -
+ * side effects  -
  */
 int
 read_message_file(MessageFile *MessageFileptr)
@@ -167,7 +149,7 @@ read_message_file(MessageFile *MessageFileptr)
 
   char buffer[MESSAGELINELEN];
   char *p;
-  FBFILE *file;
+  FILE *file;
 
   for (mptr = MessageFileptr->contentsOfFile; mptr; mptr = next_mptr)
   {
@@ -178,7 +160,7 @@ read_message_file(MessageFile *MessageFileptr)
   MessageFileptr->contentsOfFile = NULL;
 
   if (stat(MessageFileptr->fileName, &sb) < 0)
-    return(-1);
+    return (-1);
 
   local_tm = localtime(&sb.st_mtime);
 
@@ -191,13 +173,13 @@ read_message_file(MessageFile *MessageFileptr)
                local_tm->tm_hour,
                local_tm->tm_min);
 
-  if ((file = fbopen(MessageFileptr->fileName, "r")) == NULL)
-    return(-1);
+  if ((file = fopen(MessageFileptr->fileName, "r")) == NULL)
+    return (-1);
 
-  while (fbgets(buffer, sizeof(buffer), file))
+  while (fgets(buffer, sizeof(buffer), file))
   {
     if ((p = strchr(buffer, '\n')) != NULL)
-      *p = '\0';
+      * p = '\0';
 
     newMessageLine = (MessageFileLine *)MyMalloc(sizeof(MessageFileLine));
     strlcpy(newMessageLine->line, buffer, sizeof(newMessageLine->line));
@@ -217,43 +199,43 @@ read_message_file(MessageFile *MessageFileptr)
     }
   }
 
-  fbclose(file);
-  return(0);
+  fclose(file);
+  return (0);
 }
 
 /*
  * init_MessageLine
  *
- * inputs	- NONE
- * output	- pointer to new MessageFile
- * side effects	- Use this when an internal Message File is wanted
- *		  without reading an actual file. The MessageFile 
- *		  is init'ed, but must have content added to it through
- *		  addto_MessageLine()
+ * inputs  - NONE
+ * output  - pointer to new MessageFile
+ * side effects  - Use this when an internal Message File is wanted
+ *      without reading an actual file. The MessageFile
+ *      is init'ed, but must have content added to it through
+ *      addto_MessageLine()
  */
 
 MessageFile *
-init_MessageLine(void)
+init_MessageLine()
 {
   MessageFile *mf;
   MessageFileLine *mptr = NULL;
 
   mf = MyMalloc(sizeof(MessageFile));
-  mf->motdType = ISSUPPORT;	/* XXX maybe pass it alone in args? */
+  mf->motdType = ISSUPPORT;  /* XXX maybe pass it alone in args? */
   mptr = MyMalloc(sizeof(MessageFileLine));
   mf->contentsOfFile = mptr;
-  return(mf);
+  return (mf);
 }
 
 /*
  * addto_MessageLine
  *
- * inputs	- Pointer to existing MessageFile
- *		- New string to add to this MessageFile
- * output	- NONE
- * side effects	- Use this when an internal MessageFile is wanted
- *		  without reading an actual file. Content is added
- *		  to this MessageFile through this function.
+ * inputs  - Pointer to existing MessageFile
+ *    - New string to add to this MessageFile
+ * output  - NONE
+ * side effects  - Use this when an internal MessageFile is wanted
+ *      without reading an actual file. Content is added
+ *      to this MessageFile through this function.
  */
 
 void
@@ -272,6 +254,7 @@ addto_MessageLine(MessageFile *mf, const char *str)
   {
     while (mptr->next != NULL)
       mptr = mptr->next;
+
     nmptr = MyMalloc(sizeof(MessageFileLine));
     strcpy(nmptr->line, str);
     mptr->next = nmptr;
@@ -281,10 +264,10 @@ addto_MessageLine(MessageFile *mf, const char *str)
 /*
  * destroy_MessageLine(MessageFile *mf)
  *
- * inputs	- pointer to the MessageFile to destroy
- * output	- NONE
- * side effects	- All the MessageLines attached to the given mf
- *		  Are freed then one MessageLine is recreated
+ * inputs  - pointer to the MessageFile to destroy
+ * output  - NONE
+ * side effects  - All the MessageLines attached to the given mf
+ *      Are freed then one MessageLine is recreated
  */
 void
 destroy_MessageLine(MessageFile *mf)
@@ -299,6 +282,7 @@ destroy_MessageLine(MessageFile *mf)
   {
     nmptr = mptr->next;
     MyFree(mptr);
-  } 
+  }
+
   mf->contentsOfFile = NULL;
 }

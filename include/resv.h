@@ -27,26 +27,27 @@
 
 struct ResvChannel
 {
-  dlink_node node;
-  struct ResvChannel *hnext;
-  time_t hold;          /* Hold action until this time (calendar time) */
+  dlink_node          node;
+  struct ResvChannel  *hnext;
+  time_t              hold;          /* Hold action until this time (calendar time) */
   /* +1 for \0 */
-  char name[CHANNELLEN + 1];
-  char *reason;
-  int	conf;		/* 1 if set from ircd.conf, 0 if from elsewhere */
+  char                name[CHANNELLEN + 1];
+  char                *reason;
+  int                 conf;    /* 1 if set from ircd.conf, 0 if from elsewhere */
+  int                 count; /* How many times this item has been matched */
 };
 
-extern dlink_list nresv_items;
-extern dlink_list resv_channel_list;
+IRCD_EXTERN dlink_list nresv_items;
+IRCD_EXTERN dlink_list resv_channel_list;
 
-extern struct ConfItem *create_channel_resv(char *, char *, int);
-extern struct ConfItem *create_nick_resv(char *, char *, int);
+IRCD_EXTERN struct ConfItem *create_channel_resv(char *, char *, int);
+IRCD_EXTERN struct ConfItem *create_nick_resv(char *, char *, int);
 
-extern int delete_channel_resv(struct ResvChannel *);
+IRCD_EXTERN int delete_channel_resv(struct ResvChannel *);
 
-extern void clear_conf_resv(void);
-extern void report_resv(struct Client *);
+IRCD_EXTERN void clear_conf_resv();
+IRCD_EXTERN void report_resv(struct Client *);
 
-extern int valid_wild_card_simple(const char *);
-extern struct ResvChannel *match_find_resv(const char *);
+IRCD_EXTERN int valid_wild_card_simple(const char *);
+IRCD_EXTERN struct ResvChannel *match_find_resv(const char *);
 #endif  /* INCLUDED_resv_h */

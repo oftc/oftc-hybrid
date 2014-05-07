@@ -25,61 +25,19 @@
  *  IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id: m_tb.c 122 2005-10-13 10:57:26Z adx $
+ *  $Id$
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"
 #include "ircd.h"
 #include "send.h"
-#include "msg.h"
 #include "modules.h"
 #include "hash.h"
 #include "s_serv.h"
-#include "s_conf.h"
+#include "conf.h"
+#include "parse.h"
 
-static void ms_tb(struct Client *, struct Client *, int, char *[]);
-static void ms_tburst(struct Client *, struct Client *, int, char *[]);
-static void set_topic(struct Client *, struct Channel *, time_t,
-                      const char *, const char *);
-
-struct Message tburst_msgtab = {
-  "TBURST", 0, 0, 5, 0, MFLG_SLOW, 0,
-  { m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore }
-};
-
-struct Message tb_msgtab = {
-  "TB", 0, 0, 4, 0, MFLG_SLOW, 0,
-  { m_ignore, m_ignore, ms_tb, m_ignore, m_ignore, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-
-void
-_modinit(void)
-{
-  mod_add_cmd(&tb_msgtab);
-  add_capability("TB", CAP_TB, 1);
-
-  mod_add_cmd(&tburst_msgtab);
-  add_capability("TBURST", CAP_TBURST, 1);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&tb_msgtab);
-  delete_capability("TB");
-
-  mod_del_cmd(&tburst_msgtab);
-  delete_capability("TBURST");
-}
-
-const char *_version = "$Revision: 122 $";
-
-#endif /* !STATIC_MODULES */
 
 /* ms_tburst()
  *
@@ -98,8 +56,8 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
   int accept_remote = 0;
   time_t remote_channel_ts = atol(parv[1]);
   time_t remote_topic_ts = atol(parv[3]);
-  const char *topic = "";
-  const char *setby = "";
+  const char *topic = parv[5];
+  const char *setby = parv[4];
 
   /*
    * Do NOT test parv[5] for an empty string and return if true!
@@ -112,12 +70,6 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
   if ((chptr = hash_find_channel(parv[2])) == NULL)
     return;
 
-  if (parc == 6)
-  {
-    topic = parv[5];
-    setby = parv[4];
-  }
-
   /*
    * The logic for accepting and rejecting channel topics was
    * always a bit hairy, so now we got exactly 2 cases where
@@ -129,7 +81,9 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
    *        The TS of the remote channel is equal to ours AND
    *        the TS of the remote topic is newer than ours
    */
-  if (remote_channel_ts < chptr->channelts)
+  if (HasFlag(source_p, FLAGS_SERVICE))
+    accept_remote = 1;
+  else if (remote_channel_ts < chptr->channelts)
     accept_remote = 1;
   else if (remote_channel_ts == chptr->channelts)
     if (remote_topic_ts > chptr->topic_time)
@@ -137,101 +91,52 @@ ms_tburst(struct Client *client_p, struct Client *source_p,
 
   if (accept_remote)
   {
-    int topic_differs = strcmp(chptr->topic ? chptr->topic : "", topic);
+    int topic_differs = strncmp(chptr->topic, topic, sizeof(chptr->topic) - 1);
+    int hidden_server = (ConfigServerHide.hide_servers || IsHidden(source_p));
 
-    set_channel_topic(chptr, topic, setby, remote_topic_ts);
+    set_channel_topic(chptr, topic, setby, remote_topic_ts, !!MyClient(source_p));
+
+    sendto_server(source_p, CAP_TBURST | CAP_TS6, NOCAPS,
+                  ":%s TBURST %s %s %s %s :%s",
+                  ID(source_p), parv[1], parv[2], parv[3], setby, topic);
+    sendto_server(source_p, CAP_TBURST, CAP_TS6,
+                  ":%s TBURST %s %s %s %s :%s",
+                  source_p->name, parv[1], parv[2], parv[3], setby, topic);
 
     if (topic_differs)
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
-                           ConfigServerHide.hide_servers ? me.name : source_p->name,
-                           chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s TOPIC %s :%s",
+                           hidden_server ? me.name : source_p->name,
+                           chptr->chname, chptr->topic);
   }
-
-  /*
-   * Always propagate what we have received, not only if we accept the topic.
-   * This will keep other servers in sync.
-   */
-  sendto_server(source_p, NULL, chptr, CAP_TBURST, NOCAPS, NOFLAGS,
-                ":%s TBURST %s %s %s %s :%s",
-                source_p->name, parv[1], parv[2], parv[3], setby, topic);
-  if (parc > 5 && *topic != '\0') /* unsetting a topic is not supported by TB */
-    sendto_server(source_p, NULL, chptr, CAP_TB, CAP_TBURST, NOFLAGS,
-                  ":%s TB %s %s %s :%s",
-                  source_p->name, parv[1], parv[2], setby, topic);
 }
 
-/* ms_tb()
- * 
- *      parv[0] = sender prefix
- *      parv[1] = channel name
- *      parv[2] = topic timestamp
- *      parv[3] = topic setter OR topic itself if parc == 4
- *      parv[4] = topic itself if parc == 5
- */
-#define tb_channel      parv[1]
-#define tb_topicts_str  parv[2]
+static struct Message tburst_msgtab =
+{
+  "TBURST", 0, 0, 6, MAXPARA, MFLG_SLOW, 0,
+  { m_ignore, m_ignore, ms_tburst, m_ignore, m_ignore, m_ignore }
+};
 
 static void
-ms_tb(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+module_init()
 {
-  struct Channel *chptr;
-  time_t tb_topicts = atol(tb_topicts_str);
-  char *tb_whoset = NULL;
-  char *tb_topic = NULL;
-
-  if ((chptr = hash_find_channel(tb_channel)) == NULL)
-    return;
-
-  if (parc == 5)
-  {
-    tb_whoset = parv[3];
-    tb_topic = parv[4];
-  }
-  else
-  {
-    tb_whoset = source_p->name;
-    tb_topic = parv[3];
-  }
-
-  set_topic(source_p, chptr, tb_topicts, tb_whoset, tb_topic);
+  mod_add_cmd(&tburst_msgtab);
+  add_capability("TBURST", CAP_TBURST, 1);
 }
 
-/*
- * set_topic
- *
- * inputs	- source_p pointer
- *		- channel pointer
- *		- topicts to set
- *		- who to set as who doing the topic
- *		- topic
- * output	- none
- * Side effects	- simply propagates topic as needed
- * little helper function, could be removed
- */
 static void
-set_topic(struct Client *source_p, struct Channel *chptr, time_t topicts,
-          const char *topicwho, const char *topic)
+module_exit()
 {
-  int new_topic = strcmp(chptr->topic ? chptr->topic : "", topic);
-
-  set_channel_topic(chptr, topic, topicwho, topicts);
-
-  /* Only send TOPIC to channel if it's different */
-  if (new_topic)
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s TOPIC %s :%s",
-                         ConfigServerHide.hide_servers ? me.name : source_p->name,
-                         chptr->chname, chptr->topic == NULL ? "" : chptr->topic);
-
-  sendto_server(source_p, NULL, chptr, CAP_TBURST, NOCAPS, NOFLAGS,
-                ":%s TBURST %lu %s %lu %s :%s",
-                me.name, (unsigned long)chptr->channelts, chptr->chname,
-                (unsigned long)chptr->topic_time,
-                chptr->topic_info == NULL ? "" : chptr->topic_info,
-                chptr->topic == NULL ? "" : chptr->topic);
-  sendto_server(source_p, NULL, chptr, CAP_TB, CAP_TBURST, NOFLAGS,
-                ":%s TB %s %lu %s :%s",
-                me.name, chptr->chname,
-                (unsigned long)chptr->topic_time, 
-                chptr->topic_info == NULL ? "" : chptr->topic_info,
-                chptr->topic == NULL ? "" : chptr->topic);
+  mod_del_cmd(&tburst_msgtab);
+  delete_capability("TBURST");
 }
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

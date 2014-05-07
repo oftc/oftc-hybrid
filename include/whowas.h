@@ -27,28 +27,26 @@
 
 #include "ircd_defs.h"
 #include "client.h"
-#include "setup.h"
+
 
 struct Whowas
 {
-  int hashv;
-  time_t logoff;
-  char name[NICKLEN];
-  char username[USERLEN + 1]; 
-  char hostname[HOSTLEN + 1];
-  char realname[REALLEN + 1];
-  char servername[HOSTLEN + 1];
+  int           hashv;
+  time_t        logoff;
+  char          name[NICKLEN + 1];
+  char          username[USERLEN + 1];
+  char          hostname[HOSTLEN + 1];
+  char          realname[REALLEN + 1];
+  char          servername[HOSTLEN + 1];
   struct Client *online; /* Pointer to new nickname for chasing or NULL */
-  struct Whowas *next;  /* for hash table... */
-  struct Whowas *prev;  /* for hash table... */
-  struct Whowas *cnext; /* for client struct linked list */
-  struct Whowas *cprev; /* for client struct linked list */
+  dlink_node    tnode;      /* for hash table...                           */
+  dlink_node    cnode;      /* for client struct linked list               */
 };
 
 /*
 ** initwhowas
 */
-extern void init_whowas(void);
+IRCD_EXTERN void whowas_init();
 
 /*
 ** add_history
@@ -56,7 +54,7 @@ extern void init_whowas(void);
 **      usually called before changing to a new name (nick).
 **      Client must be a fully registered user.
 */
-extern void add_history(struct Client *, int);
+IRCD_EXTERN void add_history(struct Client *, int);
 
 /*
 ** off_history
@@ -65,7 +63,7 @@ extern void add_history(struct Client *, int);
 **      structures and it must know when they cease to exist. This
 **      also implicitly calls AddHistory.
 */
-extern void off_history(struct Client *);
+IRCD_EXTERN void off_history(struct Client *);
 
 /*
 ** get_history
@@ -73,13 +71,11 @@ extern void off_history(struct Client *);
 **      nickname within the timelimit. Returns NULL, if no
 **      one found...
 */
-extern struct Client *get_history(const char *, time_t);
+IRCD_EXTERN struct Client *get_history(const char *, time_t);
 
 /*
 ** for debugging...counts related structures stored in whowas array.
 */
-extern void count_whowas_memory(int *, unsigned long *);
-
-/* XXX m_whowas.c in modules needs these */
-extern struct Whowas *WHOWASHASH[];
+IRCD_EXTERN void count_whowas_memory(unsigned int *, uint64_t *);
+IRCD_EXTERN dlink_list WHOWASHASH[];
 #endif /* INCLUDED_whowas_h */

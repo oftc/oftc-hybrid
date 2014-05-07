@@ -25,63 +25,27 @@
 #ifndef INCLUDE_hostmask_h
 #define INCLUDE_hostmask_h 1
 
-enum
+#define ATABLE_SIZE 0x1000
+
+
+enum hostmask_type
 {
   HM_HOST,
   HM_IPV4,
   HM_IPV6
 };
 
-struct HostMaskEntry
-{
-  int type, subtype;
-  unsigned long precedence;
-  char *hostmask;
-  void *data;
-  struct HostMaskEntry *next, *nexthash;
-};
-
-extern int match_ipv6(struct irc_ssaddr *, struct irc_ssaddr *, int);
-extern int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int);
-extern void mask_addr(struct irc_ssaddr *, int);
-extern int parse_netmask(const char *, struct irc_ssaddr *, int *);
-
-extern void add_conf_by_address(int, struct AccessItem *);
-extern void delete_one_address_conf(const char *, struct AccessItem *);
-extern void clear_out_address_conf(void);
-extern void init_host_hash(void);
-extern void report_Klines(struct Client *, int);
-extern void report_auth(struct Client *);
-
-extern char *show_iline_prefix(struct Client *, struct AccessItem *, const char *);
-extern struct AccessItem *find_address_conf(const char *, const char *,
-                                            struct irc_ssaddr *, int, char *,
-                                            char *);
-extern struct AccessItem *find_kline_conf(const char *, const char *, const char *,
-                                          struct irc_ssaddr *, int);
-extern struct AccessItem *find_gline_conf(const char *, const char *,
-                                          struct irc_ssaddr *, int);
-extern struct AccessItem *find_dline_conf(struct irc_ssaddr *, int);
-extern struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
-                                               int, int, const char *, const char *,
-                                               const char *);
-
-/* Hashtable stuff... */
-#define ATABLE_SIZE 0x1000
-
-extern struct AddressRec *atable[ATABLE_SIZE];
-
 struct AddressRec
 {
   /* masktype: HM_HOST, HM_IPV4, HM_IPV6 -A1kmm */
-  int masktype;
+  enum hostmask_type masktype;
 
   union
   {
     struct
     {
       /* Pointer into AccessItem... -A1kmm */
-      struct irc_ssaddr addr;
+      struct sockaddr_storage addr;
       int bits;
     } ipa;
 
@@ -89,17 +53,40 @@ struct AddressRec
     const char *hostname;
   } Mask;
 
-  /* type: CONF_CLIENT, CONF_DLINE, CONF_KILL etc... -A1kmm */
-  int type;
+  /* type: CONF_CLIENT, CONF_DLINE, CONF_KLINE etc... -A1kmm */
+  unsigned int type;
 
   /* Higher precedences overrule lower ones... */
-  unsigned long precedence;
+  unsigned int precedence;
 
   /* Only checked if !(type & 1)... */
   const char *username;
   struct AccessItem *aconf;
 
-  /* The next record in this hash bucket. */
-  struct AddressRec *next;
+  dlink_node node;
 };
+
+IRCD_EXTERN dlink_list atable[ATABLE_SIZE];
+IRCD_EXTERN int parse_netmask(const char *, struct sockaddr_storage *, int *);
+IRCD_EXTERN int match_ipv6(const struct sockaddr_storage *, 
+                      const struct sockaddr_storage *, int);
+IRCD_EXTERN int match_ipv4(const struct sockaddr_storage *, 
+                      const struct sockaddr_storage *, int);
+
+IRCD_EXTERN void mask_addr(struct sockaddr_storage *, int);
+IRCD_EXTERN void init_host_hash();
+IRCD_EXTERN void add_conf_by_address(const unsigned int, struct AccessItem *);
+IRCD_EXTERN void delete_one_address_conf(const char *, struct AccessItem *);
+IRCD_EXTERN void clear_out_address_conf();
+IRCD_EXTERN void hostmask_expire_temporary();
+
+IRCD_EXTERN struct AccessItem *find_address_conf(const char *, const char *,
+                                            struct sockaddr_storage *, int, char *, 
+                                            char *);
+IRCD_EXTERN struct AccessItem *find_dline_conf(struct sockaddr_storage *, int);
+IRCD_EXTERN struct AccessItem *find_conf_by_address(const char *,
+                                               struct sockaddr_storage *,
+                                               unsigned int, int, 
+                                               const char *, const char *, 
+                                               int, const char *);
 #endif /* INCLUDE_hostmask_h */

@@ -19,27 +19,31 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_misc.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef INCLUDED_s_misc_h
 #define INCLUDED_s_misc_h
 
-extern char *date(time_t);
-extern char *small_file_date(time_t);
-extern const char *smalldate(time_t);
+IRCD_EXTERN char *date(time_t);
+IRCD_EXTERN const char *smalldate(time_t);
 #ifdef HAVE_LIBCRYPTO
-extern char *ssl_get_cipher(SSL *);
+IRCD_EXTERN char *ssl_get_cipher(const SSL *);
 #endif
 void base16_encode(char *, size_t, const char *, size_t);
 int base16_decode(char *, size_t, const char *, size_t);
 
-#define _1MEG     (1024.0)
-#define _1GIG     (1024.0*1024.0)
-#define _1TER     (1024.0*1024.0*1024.0)
+/* Just blindly define our own MIN/MAX macro */
+
+#define IRCD_MAX(a, b)  ((a) > (b) ? (a) : (b))
+#define IRCD_MIN(a, b)  ((a) < (b) ? (a) : (b))
+
+#define _1MEG     (1024.0f)
+#define _1GIG     (1024.0f*1024.0f)
+#define _1TER     (1024.0f*1024.0f*1024.0f)
 #define _GMKs(x)  (((x) > _1TER) ? "Terabytes" : (((x) > _1GIG) ? "Gigabytes" :\
-                  (((x) > _1MEG) ? "Megabytes" : "Kilobytes")))
+                   (((x) > _1MEG) ? "Megabytes" : "Kilobytes")))
 #define _GMKv(x)  (((x) > _1TER) ? (float)((x)/_1TER) : (((x) > _1GIG) ? \
                    (float)((x)/_1GIG) : (((x) > _1MEG) ? (float)((x)/_1MEG) : \
-		   (float)(x))))
+                       (float)(x))))
 #endif

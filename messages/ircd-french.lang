@@ -17,14 +17,14 @@ RPL_REDIR:		 :%s 010 %s %s %d :Veuillez utiliser ce serveur
 RPL_MAPEND:		 :%s 017 %s :Fin de /MAP
 RPL_TRACELINK:		 :%s 200 %s Lien %s %s %s
 RPL_TRACECONNECTING:	 :%s 201 %s Essai. %s %s
-RPL_TRACEOPERATOR:	 :%s 204 %s Opér %s %s (%s) %lu %lu
-RPL_TRACEUSER:		 :%s 205 %s Client %s %s (%s) %lu %lu
+RPL_TRACEOPERATOR:	 :%s 204 %s Opér %s %s (%s) %lu %u
+RPL_TRACEUSER:		 :%s 205 %s Client %s %s (%s) %lu %u
 RPL_TRACESERVER:	 :%s 206 %s Serv. %s %dS %dC %s %s!%s@%s %lu
 RPL_TRACENEWTYPE:	 :%s 208 %s <nouvelletype> 0 %s
 RPL_TRACECLASS:		 :%s 209 %s Classe %s %d
 RPL_ENDOFSTATS:		 :%s 219 %s %c :Fin de reportage /STATS
 RPL_STATSUPTIME:	 :%s 242 %s :Le serveur fonctionne depuis %d jours, %dh %dm %ds
-RPL_STATSCONN:		 :%s 250 %s :Plus grand nombre de connexions simultanées: %d (%d clients) (%d connexions reçues)
+RPL_STATSCONN:		 :%s 250 %s :Plus grand nombre de connexions simultanées: %d (%d clients) (%llu connexions reçues)
 RPL_LUSERCLIENT:	 :%s 251 %s :Il y a %d clients et %d invisibles sur %d serveurs
 RPL_LUSERUNKNOWN:	 :%s 253 %s %d :connexion(s) inconnue(s)
 RPL_LUSERCHANNELS:	 :%s 254 %s %d :chaînes crées
@@ -110,4 +110,3 @@ RPL_KNOCKDLVR:		 :%s 711 %s %s :Votre KNOCK a été envoyé.
 ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Trop de KNOCKs (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :La chaîne est ouverte.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :Vous êtes déjà sur cette chaîne.
-ERR_KNOCKDISABLED:	 :%s 715 %s :Les KNOCKs sont désactivés ici.

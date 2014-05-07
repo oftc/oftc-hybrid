@@ -23,51 +23,27 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
-#include "handlers.h"
+#include "list.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_log.h"
+#include "log.h"
 #include "s_serv.h"
 #include "send.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "hash.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "list.h"
-#include "s_conf.h"
-#include "common.h"
+#include "conf.h"
 
-static void mo_clearchan(struct Client *, struct Client *, int, char *[]);
+
 static void kick_list(struct Client *, struct Channel *);
 static void remove_our_modes(struct Channel *);
 static void remove_a_mode(struct Channel *, int, char);
 
-struct Message clearchan_msgtab = {
-  "CLEARCHAN", 0, 0, 2, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_clearchan, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&clearchan_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&clearchan_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
 ** mo_clearchan
@@ -81,15 +57,13 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
   struct Channel *chptr = NULL;
 
   /* admins only */
-  if (!IsAdmin(source_p))
+  if (!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
     return;
   }
 
-  /* XXX - we might not have CBURSTed this channel if we are a lazylink
-   * yet. */
   if ((chptr = hash_find_channel(parv[1])) == NULL)
   {
     sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
@@ -106,42 +80,46 @@ mo_clearchan(struct Client *client_p, struct Client *source_p,
 
   sendto_wallops_flags(UMODE_WALLOP, &me, "CLEARCHAN called for [%s] by %s!%s@%s",
                        chptr->chname, source_p->name, source_p->username, source_p->host);
-  sendto_server(NULL, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
+  sendto_server(NULL, NOCAPS, NOCAPS,
                 ":%s WALLOPS :CLEARCHAN called for [%s] by %s!%s@%s",
                 me.name, chptr->chname, source_p->name, source_p->username,
                 source_p->host);
-  ilog(L_NOTICE, "CLEARCHAN called for [%s] by %s!%s@%s",
+  ilog(LOG_TYPE_IRCD, "CLEARCHAN called for [%s] by %s!%s@%s",
        chptr->chname, source_p->name, source_p->username, source_p->host);
 
-  /* Kill all the modes we have about the channel..
+  /*
+   * Kill all the modes we have about the channel..
    * making everyone a peon
-   */  
+   */
   remove_our_modes(chptr);
 
   /* SJOIN the user to give them ops, and lock the channel */
-  sendto_server(client_p, source_p, chptr, CAP_TS6, NOCAPS, LL_ICLIENT,
+  sendto_server(client_p, CAP_TS6, NOCAPS,
                 ":%s JOIN %lu %s +ntsi",
                 source_p->id, (unsigned long)(chptr->channelts - 1),
                 chptr->chname);
-  sendto_server(client_p, source_p, chptr, NOCAPS, CAP_TS6,
-                LL_ICLIENT, ":%s SJOIN %lu %s +ntsi :@%s",
+  sendto_server(client_p, NOCAPS, CAP_TS6,
+                ":%s SJOIN %lu %s +ntsi :@%s",
                 me.name, (unsigned long)(chptr->channelts - 1),
                 chptr->chname, source_p->name);
-  sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN %s",
+  sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s JOIN %s",
                        source_p->name, source_p->username,
                        source_p->host, chptr->chname);
-  sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +o %s",
+  sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +o %s",
                        me.name, chptr->chname, source_p->name);
 
 
-  /* Take the TS down by 1, so we don't see the channel taken over
-   * again. */
+  /*
+   * Take the TS down by 1, so we don't see the channel taken over
+   * again.
+   */
   if (chptr->channelts)
     --chptr->channelts;
 
   chptr->mode.mode = MODE_SECRET | MODE_TOPICLIMIT |
                      MODE_INVITEONLY | MODE_NOPRIVMSGS;
-  free_topic(chptr);
+
+  set_channel_topic(chptr, "", "", 0, 0);
   chptr->mode.key[0] = '\0';
 
   /* Kick the users out and join the oper */
@@ -158,16 +136,16 @@ kick_list(struct Client *source_p, struct Channel *chptr)
   {
     ms = ptr->data;
 
-    sendto_channel_local(ALL_MEMBERS, NO, chptr,
+    sendto_channel_local(ALL_MEMBERS, 0, chptr,
                          ":%s!%s@%s KICK %s %s CLEARCHAN",
                          source_p->name, source_p->username,
                          source_p->host, chptr->chname, ms->client_p->name);
-    sendto_server(NULL, source_p, chptr, NOCAPS, NOCAPS, LL_ICLIENT,
+    sendto_server(NULL, NOCAPS, NOCAPS,
                   ":%s KICK %s %s :CLEARCHAN", source_p->name,
                   chptr->chname, ms->client_p->name);
   }
 
-  add_user_to_channel(chptr, source_p, CHFL_CHANOP, NO);
+  add_user_to_channel(chptr, source_p, CHFL_CHANOP, 0);
 
   DLINK_FOREACH_SAFE(ptr, ptr_next, chptr->members.head)
   {
@@ -213,9 +191,9 @@ remove_our_modes(struct Channel *chptr)
 
 /* remove_a_mode()
  *
- * inputs	-
- * output	- NONE
- * side effects	- remove ONE mode from a channel
+ * inputs  -
+ * output  - NONE
+ * side effects  - remove ONE mode from a channel
  */
 static void
 remove_a_mode(struct Channel *chptr, int mask, char flag)
@@ -231,6 +209,7 @@ remove_a_mode(struct Channel *chptr, int mask, char flag)
   DLINK_FOREACH(ptr, chptr->members.head)
   {
     struct Membership *ms = ptr->data;
+
     if ((ms->flags & mask) == 0)
       continue;
 
@@ -243,7 +222,7 @@ remove_a_mode(struct Channel *chptr, int mask, char flag)
     if (count == 4)
     {
       *mbuf = '\0';
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s %s %s %s %s %s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s %s %s %s %s %s",
                            me.name, chptr->chname, lmodebuf, lpara[0],
                            lpara[1], lpara[2], lpara[3]);
 
@@ -257,8 +236,37 @@ remove_a_mode(struct Channel *chptr, int mask, char flag)
   if (count != 0)
   {
     *mbuf = '\0';
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s %s %s %s %s %s",
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s %s %s %s %s %s",
                          me.name, chptr->chname, lmodebuf, lpara[0],
                          lpara[1], lpara[2], lpara[3]);
   }
 }
+
+static struct Message clearchan_msgtab =
+{
+  "CLEARCHAN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_clearchan, m_ignore }
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&clearchan_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&clearchan_msgtab);
+}
+
+struct module module_entry =
+{
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

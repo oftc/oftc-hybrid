@@ -23,41 +23,53 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_user.h"
 #include "send.h"
-#include "s_conf.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "listener.h"
 
 
-static void mr_user(struct Client*, struct Client*, int, char**);
-
-struct Message user_msgtab = {
-  "USER", 0, 0, 5, 0, MFLG_SLOW, 0L,
-  {mr_user, m_registered, m_ignore, m_ignore, m_registered, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
+/* do_local_user()
+ *
+ * inputs       -
+ * output       - NONE
+ * side effects -
+ */
+static void
+do_local_user(struct Client *source_p,
+              const char *username, const char *host, const char *server,
+              const char *realname)
 {
-  mod_add_cmd(&user_msgtab);
-}
+  assert(source_p != NULL);
+  assert(source_p->username != username);
+  assert(IsUnknown(source_p));
 
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&user_msgtab);
-}
+  source_p->localClient->registration &= ~REG_NEED_USER;
 
-const char *_version = "$Revision$";
-#endif
+  /*
+   * don't take the clients word for it, ever
+   */
+  source_p->servptr = &me;
+
+  strlcpy(source_p->info, realname, sizeof(source_p->info));
+
+  /* stash for later */
+  strlcpy(source_p->localClient->client_host, host,
+          sizeof(source_p->localClient->client_host));
+  strlcpy(source_p->localClient->client_server, server,
+          sizeof(source_p->localClient->client_server));
+
+  if (!IsGotId(source_p))
+    strlcpy(source_p->username, username, sizeof(source_p->username));
+
+  if (!source_p->localClient->registration)
+    register_local_user(source_p);
+}
 
 /*
 ** mr_user
@@ -71,21 +83,56 @@ static void
 mr_user(struct Client *client_p, struct Client *source_p,
         int parc, char *parv[])
 {
-  char *p;
+  char *p = NULL;
 
-  if ((p = strchr(parv[1],'@')) != NULL)
-    *p = '\0'; 
-
-  if (*parv[4] == '\0')
+  if (source_p->localClient->listener->flags & LISTENER_SERVER)
   {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, EmptyString(parv[0]) ? "*" : parv[0], "USER");
+    exit_client(source_p, &me, "Use a different port");
     return;
   }
 
-  do_local_user(parv[0], client_p, source_p,
+  if ((p = strchr(parv[1], '@')) != NULL)
+    * p = '\0';
+
+  if (EmptyString(parv[4]))
+  {
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name,
+               source_p->name[0] ? source_p->name : "*", "USER");
+    return;
+  }
+
+  do_local_user(source_p,
                 parv[1], /* username */
                 parv[2], /* host     */
                 parv[3], /* server   */
-                parv[4]	 /* users real name */ );
+                parv[4]   /* users real name */);
 }
+
+static struct Message user_msgtab =
+{
+  "USER", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
+  { mr_user, m_registered, m_ignore, m_ignore, m_registered, m_ignore }
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&user_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&user_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

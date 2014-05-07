@@ -23,27 +23,30 @@
  */
 
 #include "stdinc.h"
-#include "common.h"
+#include "list.h"
 #include "ircd_signal.h"
 #include "ircd.h"         /* dorehash */
 #include "restart.h"      /* server_die */
-#include "s_log.h"
 #include "memory.h"
 #include "s_bsd.h"
+
+#ifdef HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
 
 /*
  * sigterm_handler - exit the server
  */
-static void 
-sigterm_handler(int sig)  
+static void
+sigterm_handler(int sig)
 {
-  server_die("received signal SIGTERM", NO);
+  server_die("received signal SIGTERM", 0);
 }
 
-/* 
+/*
  * sighup_handler - reread the server configuration
  */
-static void 
+static void
 sighup_handler(int sig)
 {
   dorehash = 1;
@@ -59,24 +62,27 @@ sigusr1_handler(int sig)
 }
 
 /*
- * 
- * inputs	- nothing
- * output	- nothing
+ *
+ * inputs  - nothing
+ * output  - nothing
  * side effects - Reaps zombies periodically
  * -AndroSyn
  */
 static void
 sigchld_handler(int sig)
 {
+#ifndef _WIN32
   int status;
-  while(waitpid(-1, &status, WNOHANG) > 0)
+
+  while (waitpid(-1, &status, WNOHANG) > 0)
     ;
+#endif
 }
 
 /*
  * sigint_handler - restart the server
  */
-static void 
+static void
 sigint_handler(int sig)
 {
   server_die("SIGINT received", !server_state.foreground);
@@ -85,9 +91,10 @@ sigint_handler(int sig)
 /*
  * setup_signals - initialize signal handlers for server
  */
-void 
-setup_signals(void)
+void
+setup_signals()
 {
+#ifndef _WIN32
   struct sigaction act;
 
   act.sa_flags = 0;
@@ -134,4 +141,5 @@ setup_signals(void)
   act.sa_handler = sigchld_handler;
   sigaddset(&act.sa_mask, SIGCHLD);
   sigaction(SIGCHLD, &act, 0);
+#endif
 }

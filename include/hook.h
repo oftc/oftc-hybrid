@@ -19,37 +19,34 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: hook.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef __HOOK_H_INCLUDED
 #define __HOOK_H_INCLUDED
 
-#include "tools.h"
 #define HOOK_V2
 
 typedef void *CBFUNC(va_list);
 
 struct Callback
 {
-  char *name;
-  dlink_list chain;
-  dlink_node node;
-  unsigned int called;
-  time_t last;
+  char          *name;
+  dlink_list    chain;
+  dlink_node    node;
+  unsigned int  called;
+  time_t        last;
 };
 
 struct Client;
 
-extern dlink_list callback_list;  /* listing/debugging purposes */
-
-extern struct Callback *register_callback(const char *, CBFUNC *);
-extern void *execute_callback(struct Callback *, ...);
-extern struct Callback *find_callback(const char *);
-extern dlink_node *install_hook(struct Callback *, CBFUNC *);
-extern void uninstall_hook(struct Callback *, CBFUNC *);
-extern void *pass_callback(dlink_node *, ...);
-extern void stats_hooks(struct Client *);
+IRCD_EXTERN struct Callback *register_callback(const char *, CBFUNC *);
+IRCD_EXTERN void *execute_callback(struct Callback *, ...);
+IRCD_EXTERN struct Callback *find_callback(const char *);
+IRCD_EXTERN dlink_node *install_hook(struct Callback *, CBFUNC *);
+IRCD_EXTERN void uninstall_hook(struct Callback *, CBFUNC *);
+IRCD_EXTERN void *pass_callback(dlink_node *, ...);
+IRCD_EXTERN void stats_hooks(struct Client *);
 
 #define is_callback_present(c) (!!dlink_list_length(&c->chain))
 

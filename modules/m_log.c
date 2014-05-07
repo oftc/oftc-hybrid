@@ -1,7 +1,7 @@
 /* log.c - oftc specific server logging
 
  *   Copyright (C) 2002 Stuart Walsh
- *                      
+ *
  *   See file AUTHORS in IRC package for additional names of
  *   the programmers.
  *
@@ -21,8 +21,6 @@
  */
 
 #include "stdinc.h"
-#include "common.h"
-#include "handlers.h"
 #include "client.h"
 #include "channel.h"
 #include "channel_mode.h"
@@ -31,51 +29,55 @@
 #include "numeric.h"
 #include "s_serv.h"
 #include "send.h"
-#include "s_conf.h"
-#include "msg.h"
+#include "conf.h"
 #include "parse.h"
 #include "modules.h"
 #include "sprintf_irc.h"
 #include "irc_string.h"
 
-/* $Id$ */
-
-static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char **parv);
-
-const char* _version = "$Revision: 301 $";
-
-struct Message log_msgtab = {
-  "LOG", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_log, m_ignore, mo_log, m_ignore}
-  };
-      
-
-void _modinit(void)
+static void mo_log(struct Client *client_p, struct Client *source_p, int parc,
+                   char *parv[])
 {
-          mod_add_cmd(&log_msgtab);
+  FILE *logfile = NULL;
+
+  if (parc < 2)
+    return;
+
+  if (IsClient(source_p) && ((logfile = fopen(OFTCLOG, "a+")) != NULL))
+  {
+  //  fprintf(logfile, "%s %s %s\n",
+  //          myctime(time(NULL)), source_p->name, parv[1]);
+    fclose(logfile);
+  }
+
+  return;
+}
+
+struct Message log_msgtab =
+{
+  "LOG", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_ignore, m_ignore, mo_log, m_ignore, mo_log, m_ignore }
+};
+
+void
+module_init()
+{
+  mod_add_cmd(&log_msgtab);
 }
 
 void
-_moddeinit(void)
+module_exit()
 {
-          mod_del_cmd(&log_msgtab);
+  mod_del_cmd(&log_msgtab);
 }
 
-
-static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+IRCD_EXPORT struct module module_entry =
 {
-    FBFILE *logfile = NULL;
-    char buf[IRCD_BUFSIZE+NICKLEN];
-
-    if(parc < 2)
-        return;
-
-    if (IsClient(source_p) && (logfile = fbopen(OFTCLOG, "a+")) != NULL)
-    {
-        ircsprintf(buf, "%s %s %s\n",
-                myctime(time(NULL)), source_p->name, parv[1]);
-        fbputs(buf, logfile, sizeof(buf));
-        fbclose(logfile);
-    }
-    return;
-}
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

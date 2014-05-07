@@ -31,7 +31,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
  * USA
  *
- * $Id: ip_cloaking.c 75 2005-10-04 19:35:11Z knight $
+ * $Id$
  */
 
 /*
@@ -52,7 +52,6 @@
 #include "whowas.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"
 #include "hash.h"
 #include "hook.h"
 #include "irc_string.h"
@@ -62,77 +61,19 @@
 #include "s_serv.h"
 #include "s_user.h"
 #include "send.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "modules.h"
 #include "memory.h"
-#include "s_log.h"
+#include "log.h"
 #include "sprintf_irc.h"
+#include "userhost.h"
 
 static unsigned int umode_vhost = 0;
 static int vhost_ipv6_err;
 static dlink_node *prev_enter_umode;
 static dlink_node *prev_umode;
-
-const char *_version = "$Revision: 33 $";
-
 static void *reset_ipv6err_flag(va_list);
 static void *h_set_user_mode(va_list);
-
-void _modinit(void)
-{
-  if (!user_modes['h'])
-  {
-    unsigned int all_umodes = 0, i;
-
-    for (i = 0; i < 128; i++)
-      all_umodes |= user_modes[i];
-
-    for (umode_vhost = 1; umode_vhost && (all_umodes & umode_vhost);
-         umode_vhost <<= 1);
-
-    if (!umode_vhost)
-    {
-      ilog(L_ERROR, "You have more than 32 usermodes, "
-           "IP cloaking not installed");
-      sendto_realops_flags(UMODE_ALL, L_ALL, "You have more than "
-                           "32 usermodes, IP cloaking not installed");
-      return;
-    }
-
-    user_modes['h'] = umode_vhost;
-    assemble_umode_buffer();
-  }
-  else
-  {
-    ilog(L_ERROR, "Usermode +h already in use, IP cloaking not installed");
-    sendto_realops_flags(UMODE_ALL, L_ALL, "Usermode +h already in use, "
-                         "IP cloaking not installed");
-    return;
-  }
-
-  prev_enter_umode = install_hook(entering_umode_cb, reset_ipv6err_flag);
-  prev_umode = install_hook(umode_cb, h_set_user_mode);
-}
-
-void _moddeinit(void)
-{
-  if (umode_vhost)
-  {
-    dlink_node *ptr;
-
-    DLINK_FOREACH(ptr, local_client_list.head)
-    {
-      struct Client *cptr = ptr->data;
-      cptr->umodes &= ~umode_vhost;
-    }
-
-    user_modes['h'] = 0;
-    assemble_umode_buffer();
-
-    uninstall_hook(entering_umode_cb, reset_ipv6err_flag);
-    uninstall_hook(umode_cb, h_set_user_mode);
-  }
-}
 
 /*
  * The implementation originally comes from Gary S. Brown. The tables
@@ -143,15 +84,15 @@ void _moddeinit(void)
  * knight-
  */
 
-/* ============================================================= 
+/* =============================================================
  * COPYRIGHT (C) 1986 Gary S. Brown. You may use this program, or
  * code or tables extracted from it, as desired without restriction.
  *
  * First, the polynomial itself and its stable of feedback terms. The
  * polynomial is:
- * 
+ *
  * X^32+X^26+X^23+X^22+X^16+X^12+X^11+X^10+X^8+X^7+X^5+X^4+X^2+X^1+X^0
- * 
+ *
  * Note that we take it "backwards" and put the highest-order term in
  * the lowest-order bit. The X^32 term is "implied"; the LSB is the
  * X^31 term, etc. The X^0 term (usually shown as "+1") results in
@@ -173,7 +114,7 @@ void _moddeinit(void)
  *
  * The table can be generated at runtime if desired; code to do so
  * is shown later. It might not be obvious, but the feedback terms
- * simply represent the results of eight shift/xor operations for 
+ * simply represent the results of eight shift/xor operations for
  * all combinations of data and CRC register values.
  *
  * The values must be right shifted by eight bits by the "updcrc"
@@ -186,7 +127,8 @@ void _moddeinit(void)
  * --------------------------------------------------------------------
  */
 
-static unsigned long crc32_tab[] = {
+static unsigned long crc32_tab[] =
+{
   0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL, 0x076dc419L,
   0x706af48fL, 0xe963a535L, 0x9e6495a3L, 0x0edb8832L, 0x79dcb8a4L,
   0xe0d5e91eL, 0x97d2d988L, 0x09b64c2bL, 0x7eb17cbdL, 0xe7b82d07L,
@@ -242,16 +184,14 @@ static unsigned long crc32_tab[] = {
 };
 
 static unsigned long
-crc32 (const unsigned char *s, unsigned int len)
+crc32(const char *s, unsigned int len)
 {
   unsigned int i;
-  unsigned long crc32val;
+  unsigned long crc32val = 0;
 
-  crc32val = 0;
   for (i = 0; i < len; i++)
-  {
     crc32val = crc32_tab[(crc32val ^ s[i]) & 0xff] ^ (crc32val >> 8);
-  }
+
   return crc32val;
 }
 
@@ -266,17 +206,17 @@ crc32 (const unsigned char *s, unsigned int len)
  * side effects - not IPv6 friendly
  */
 static int
-str2arr (char **pparv, char *string, char *delim)
+str2arr(char **pparv, char *string, const char *delim)
 {
   char *tok;
   int pparc = 0;
 
   /* Diane had suggested to use this method rather than while() -- knight */
-  for (tok = strtok (string, delim); tok != NULL; tok = strtok (NULL, delim))
+  for (tok = strtok(string, delim); tok != NULL; tok = strtok(NULL, delim))
   {
     pparv[pparc++] = tok;
   }
-    
+
   return pparc;
 }
 
@@ -288,9 +228,9 @@ str2arr (char **pparv, char *string, char *delim)
  * new = encrypted hostname/ip
  */
 static void
-make_virthost (char *curr, char *host, char *new)
+make_virthost(char *curr, char *host, char *new)
 {
-  static char mask[HOSTLEN + 1];
+  char mask[HOSTLEN + 1];
   char *parv[HOSTLEN + 1], *parv2[HOSTLEN + 1], s[HOSTLEN + 1], s2[HOSTLEN + 1];
   int parc = 0, parc2 = 0, len = 0;
   unsigned long hash[8];
@@ -304,11 +244,11 @@ make_virthost (char *curr, char *host, char *new)
   if (!parc2)
     return;
 
-  hash[0] = ((crc32 (parv[3], strlen (parv[3])) + KEY) ^ KEY2) ^ KEY3;
-  hash[1] = ((KEY2 ^ crc32 (parv[2], strlen (parv[2]))) + KEY3) ^ KEY;
-  hash[2] = ((crc32 (parv[1], strlen (parv[1])) + KEY3) ^ KEY) ^ KEY2;
-  hash[3] = ((KEY3 ^ crc32 (parv[0], strlen (parv[0]))) + KEY2) ^ KEY;
-  
+  hash[0] = ((crc32(parv[3], strlen(parv[3])) + KEY) ^ KEY2) ^ KEY3;
+  hash[1] = ((KEY2 ^ crc32(parv[2], strlen(parv[2]))) + KEY3) ^ KEY;
+  hash[2] = ((crc32(parv[1], strlen(parv[1])) + KEY3) ^ KEY) ^ KEY2;
+  hash[3] = ((KEY3 ^ crc32(parv[0], strlen(parv[0]))) + KEY2) ^ KEY;
+
   hash[0] <<= 2;
   hash[0] >>= 2;
   hash[0] &= 0x3FFFFFFF;
@@ -325,11 +265,11 @@ make_virthost (char *curr, char *host, char *new)
   hash[3] >>= 2;
   hash[3] &= 0x3FFFFFFF;
   hash[3] &= 0x7FFFFFFF;
-  
+
   /* IPv4 */
   if (parc2 == 4 || parc2 < 2)
   {
-    len = strlen (parv2[3]);
+    len = strlen(parv2[3]);
 
     if (strchr("0123456789", parv2[3][len - 1]) || parc2 < 2)
     {
@@ -350,28 +290,28 @@ make_virthost (char *curr, char *host, char *new)
     {
       /* isp.sub.tld or district.isp.tld */
       ircsprintf(mask, "%lx-%lx.%s.%s.%s",
-            hash[3], hash[1], parv2[parc2 - 3], parv2[parc2 - 2],
-            parv2[parc2 - 1]);
+                 hash[3], hash[1], parv2[parc2 - 3], parv2[parc2 - 2],
+                 parv2[parc2 - 1]);
     }
     else
     {
       /* isp.tld */
       ircsprintf(mask, "%lx-%lx.%s.%s",
-            hash[0], hash[3], parv2[parc2 - 2], parv2[parc2 - 1]);
+                 hash[0], hash[3], parv2[parc2 - 2], parv2[parc2 - 1]);
     }
-    
+
     if (parc2 >= 5)
     {
       /* zone.district.isp.tld or district.isp.sub.tld */
       ircsprintf(mask, "%lx-%lx.%s.%s.%s.%s",
-            hash[1], hash[0], parv2[parc2 - 4], parv2[parc2 - 3],
-            parv2[parc2 - 2], parv2[parc2 - 1]);
+                 hash[1], hash[0], parv2[parc2 - 4], parv2[parc2 - 3],
+                 parv2[parc2 - 2], parv2[parc2 - 1]);
     }
     else
-    { 
+    {
       /* isp.tld */
       ircsprintf(mask, "%lx-%lx.%s.%s",
-            hash[0], hash[3], parv2[parc2 - 2], parv2[parc2 - 1]);
+                 hash[0], hash[3], parv2[parc2 - 2], parv2[parc2 - 1]);
     }
   }
 
@@ -380,7 +320,7 @@ make_virthost (char *curr, char *host, char *new)
 
 /*
  * set_vhost()
- * 
+ *
  * inputs - pointer to given client to set IP cloak.
  * outputs - NONE
  * side effects - NONE
@@ -390,16 +330,25 @@ set_vhost(struct Client *client_p, struct Client *source_p,
           struct Client *target_p)
 {
   target_p->umodes |= umode_vhost;
+
+  if (IsUserHostIp(target_p))
+    delete_user_host(target_p->username, target_p->host, !MyConnect(target_p));
+
   SetIPSpoof(target_p);
   make_virthost(target_p->host, target_p->sockhost, target_p->host);
 
+  add_user_host(target_p->username, target_p->host, !MyConnect(target_p));
+  SetUserHost(target_p);
+
+  clear_ban_cache_client(target_p);
+
   if (IsClient(target_p))
-    sendto_server(client_p, source_p, NULL, CAP_ENCAP, NOCAPS, LL_ICLIENT,
+    sendto_server(client_p, CAP_ENCAP, NOCAPS,
                   ":%s ENCAP * CHGHOST %s %s",
                   me.name, target_p->name, target_p->host);
 
-    sendto_one(target_p, form_str(RPL_HOSTHIDDEN),
-               me.name, target_p->name, target_p->host);
+  sendto_one(target_p, form_str(RPL_HOSTHIDDEN),
+             me.name, target_p->name, target_p->host);
 }
 
 static void *
@@ -408,7 +357,7 @@ reset_ipv6err_flag(va_list args)
   struct Client *client_p = va_arg(args, struct Client *);
   struct Client *source_p = va_arg(args, struct Client *);
 
-  vhost_ipv6_err = NO;
+  vhost_ipv6_err = 0;
 
   return pass_callback(prev_enter_umode, client_p, source_p);
 }
@@ -436,18 +385,16 @@ h_set_user_mode(va_list args)
        * IPv6 could potentially core the server if a user connected via IPv6 sets +h
        * so we need to check and break before that happens. -- knight-
        */
-#ifdef IPV6
       if (target_p->localClient->aftype == AF_INET6)
       {
         if (!vhost_ipv6_err)
         {
           sendto_one(target_p, ":%s NOTICE %s :*** Sorry, IP cloaking "
                      "does not support IPv6 users!", me.name, target_p->name);
-          vhost_ipv6_err = YES;
+          vhost_ipv6_err = 1;
         }
       }
       else
-#endif
         set_vhost(client_p, target_p, target_p);
     }
 
@@ -456,3 +403,72 @@ h_set_user_mode(va_list args)
 
   return pass_callback(prev_umode, client_p, target_p, what, flag);
 }
+
+static void
+module_init()
+{
+  if (!user_modes['h'])
+  {
+    unsigned int all_umodes = 0, i;
+
+    for (i = 0; i < 128; i++)
+      all_umodes |= user_modes[i];
+
+    for (umode_vhost = 1; umode_vhost && (all_umodes & umode_vhost);
+         umode_vhost <<= 1);
+
+    if (!umode_vhost)
+    {
+      ilog(LOG_TYPE_IRCD, "You have more than 32 usermodes, "
+           "IP cloaking not installed");
+      sendto_realops_flags(UMODE_ALL, L_ALL, "You have more than "
+                           "32 usermodes, IP cloaking not installed");
+      return;
+    }
+
+    user_modes['h'] = umode_vhost;
+    assemble_umode_buffer();
+  }
+  else
+  {
+    ilog(LOG_TYPE_IRCD, "Usermode +h already in use, IP cloaking not installed");
+    sendto_realops_flags(UMODE_ALL, L_ALL, "Usermode +h already in use, "
+                         "IP cloaking not installed");
+    return;
+  }
+
+  prev_enter_umode = install_hook(entering_umode_cb, reset_ipv6err_flag);
+  prev_umode = install_hook(umode_cb, h_set_user_mode);
+}
+
+static void
+module_exit()
+{
+  if (umode_vhost)
+  {
+    dlink_node *ptr;
+
+    DLINK_FOREACH(ptr, local_client_list.head)
+    {
+      struct Client *cptr = ptr->data;
+      cptr->umodes &= ~umode_vhost;
+    }
+
+    user_modes['h'] = 0;
+    assemble_umode_buffer();
+
+    uninstall_hook(entering_umode_cb, reset_ipv6err_flag);
+    uninstall_hook(umode_cb, h_set_user_mode);
+  }
+}
+
+struct module module_entry =
+{
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

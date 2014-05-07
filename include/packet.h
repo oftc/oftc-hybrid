@@ -36,7 +36,7 @@
  * the network..
  *   -- adrian
  */
-/* MAX_FLOOD is the amount of lines in a 'burst' we allow from a client, 
+/* MAX_FLOOD is the amount of lines in a 'burst' we allow from a client,
  * anything beyond MAX_FLOOD is limited to about one line per second.
  *
  * MAX_FLOOD_CONN is the amount of lines we allow from a client who has
@@ -49,12 +49,11 @@
 struct Callback;
 
 void *iorecv_default(va_list);
-extern struct Callback *iorecv_cb;
-extern struct Callback *iorecvctrl_cb;
+IRCD_EXTERN struct Callback *iorecv_cb;
 
-PF read_ctrl_packet;
-PF read_packet;
+void read_packet(uv_stream_t *, ssize_t, uv_buf_t);
+
 PF flood_recalc;
-void flood_endgrace(struct Client *);
+IRCD_EXTERN void flood_endgrace(struct Client *);
 
 #endif /* INCLUDED_packet_h */

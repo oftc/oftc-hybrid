@@ -23,8 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
-#include "handlers.h"
+#include "list.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
@@ -34,53 +33,13 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "s_user.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "packet.h"
-#include "common.h"
 
-static void m_mode(struct Client *, struct Client *, int, char *[]);
-static void ms_tmode(struct Client *, struct Client *, int, char *[]);
-static void ms_bmask(struct Client *, struct Client *, int, char *[]);
-
-struct Message mode_msgtab = {
-  "MODE", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_mode, m_mode, m_ignore, m_mode, m_ignore}
-};
-
-struct Message tmode_msgtab = { 
-  "TMODE", 0, 0, 4, 0, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_tmode, m_ignore, m_ignore, m_ignore}
-};
-
-struct Message bmask_msgtab = {
-  "BMASK", 0, 0, 5, 0, MFLG_SLOW, 0,
-  {m_ignore, m_ignore, ms_bmask, m_ignore, m_ignore, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&mode_msgtab);
-  mod_add_cmd(&tmode_msgtab);
-  mod_add_cmd(&bmask_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&mode_msgtab);
-  mod_del_cmd(&tmode_msgtab);
-  mod_del_cmd(&bmask_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * m_mode - MODE command handler
@@ -96,7 +55,7 @@ m_mode(struct Client *client_p, struct Client *source_p,
   static char modebuf[MODEBUFLEN];
   static char parabuf[MODEBUFLEN];
 
-  if (*parv[1] == '\0')
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "MODE");
@@ -111,49 +70,14 @@ m_mode(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (!check_channel_name(parv[1], !!MyConnect(source_p)))
-  { 
-    sendto_one(source_p, form_str(ERR_BADCHANNAME),
-               me.name, source_p->name, parv[1]);
+  if ((chptr = hash_find_channel(parv[1])) == NULL)
+  {
+    sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
+               ID_or_name(&me, source_p->from),
+               ID_or_name(source_p, source_p->from),
+               parv[1]);
     return;
   }
-
-  chptr = hash_find_channel(parv[1]);
-
-  if (chptr == NULL)
-  {
-      /* if chptr isn't found locally, it =could= exist
-       * on the uplink. So ask.
-       */
-      
-      /* LazyLinks */
-      /* only send a mode upstream if a local client sent this request
-       * -davidt
-       */
-      if (MyClient(source_p) && !ServerInfo.hub && uplink &&
-	   IsCapable(uplink, CAP_LL))
-	{
-#if 0
-	  /* cache the channel if it exists on uplink */
-	  /* Lets not for now -db */
-
-	  sendto_one(uplink, ":%s CBURST %s",
-                     me.name, chptr->chname);
-#endif
-	  sendto_one(uplink, ":%s MODE %s %s",
-                     ID_or_name(source_p, uplink),
-		     chptr->chname, (parv[2] ? parv[2] : ""));
-	  return;
-	}
-      else
-	{
-	  sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
-		     ID_or_name(&me, source_p->from),
-		     ID_or_name(source_p, source_p->from),
-		     parv[1]);
-	  return;
-	}
-    }
 
   /* Now known the channel exists */
   if (parc < 3)
@@ -197,13 +121,14 @@ m_mode(struct Client *client_p, struct Client *source_p,
 /*
  * ms_tmode()
  *
- * inputs	- parv[0] = UID
- *		  parv[1] = TS
- *		  parv[2] = channel name
- *		  parv[3] = modestring
+ * inputs  - parv[0] = UID
+ *      parv[1] = TS
+ *      parv[2] = channel name
+ *      parv[3] = modestring
  */
 static void
-ms_tmode(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+ms_tmode(struct Client *client_p, struct Client *source_p, int parc,
+         char *parv[])
 {
   struct Channel *chptr = NULL;
   struct Membership *member = NULL;
@@ -219,7 +144,8 @@ ms_tmode(struct Client *client_p, struct Client *source_p, int parc, char *parv[
     return;
 
   if (IsServer(source_p))
-    set_channel_mode(client_p, source_p, chptr, NULL, parc - 3, parv + 3, chptr->chname);
+    set_channel_mode(client_p, source_p, chptr, NULL, parc - 3, parv + 3,
+                     chptr->chname);
   else
   {
     member = find_channel_link(source_p, chptr);
@@ -228,25 +154,27 @@ ms_tmode(struct Client *client_p, struct Client *source_p, int parc, char *parv[
     if (has_member_flags(member, CHFL_DEOPPED))
       return;
 
-    set_channel_mode(client_p, source_p, chptr, member, parc - 3, parv + 3, chptr->chname);
+    set_channel_mode(client_p, source_p, chptr, member, parc - 3, parv + 3,
+                     chptr->chname);
   }
 }
 
 /*
  * ms_bmask()
  *
- * inputs	- parv[0] = SID
- *		  parv[1] = TS
- *		  parv[2] = channel name
- *		  parv[3] = type of ban to add ('b' 'I' or 'e')
- *		  parv[4] = space delimited list of masks to add
- * outputs	- none
- * side effects	- propagates unchanged bmask line to CAP_TS6 servers,
- *		  sends plain modes to the others.  nothing is sent
- *		  to the server the issuing server is connected through
+ * inputs  - parv[0] = SID
+ *      parv[1] = TS
+ *      parv[2] = channel name
+ *      parv[3] = type of ban to add ('b' 'I' or 'e')
+ *      parv[4] = space delimited list of masks to add
+ * outputs  - none
+ * side effects  - propagates unchanged bmask line to CAP_TS6 servers,
+ *      sends plain modes to the others.  nothing is sent
+ *      to the server the issuing server is connected through
  */
 static void
-ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+ms_bmask(struct Client *client_p, struct Client *source_p, int parc,
+         char *parv[])
 {
   static char modebuf[IRCD_BUFSIZE];
   static char parabuf[IRCD_BUFSIZE];
@@ -286,9 +214,9 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[
       needcap = CAP_QUIET;
       break;
 
-    /* maybe we should just blindly propagate this? */
+      /* maybe we should just blindly propagate this? */
     default:
-      return; 
+      return;
   }
 
   parabuf[0] = '\0';
@@ -301,9 +229,11 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[
   mbuf = modebuf + mlen;
   pbuf = parabuf;
 
-  do {
+  do
+  {
     if ((t = strchr(s, ' ')) != NULL)
-      *t++ = '\0';
+      * t++ = '\0';
+
     tlen = strlen(s);
 
     /* I dont even want to begin parsing this.. */
@@ -319,9 +249,9 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[
         *mbuf = '\0';
         *(pbuf - 1) = '\0';
 
-        sendto_channel_local(ALL_MEMBERS, NO, chptr, "%s %s",
+        sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s",
                              modebuf, parabuf);
-        sendto_server(client_p, NULL, chptr, needcap, CAP_TS6, NOFLAGS,
+        sendto_server(client_p, needcap, CAP_TS6,
                       "%s %s", modebuf, parabuf);
 
         mbuf = modebuf + mlen;
@@ -335,19 +265,65 @@ ms_bmask(struct Client *client_p, struct Client *source_p, int parc, char *parv[
     }
 
     s = t;
-  } while (s != NULL);
+  }
+  while (s != NULL);
 
   if (modecount)
   {
     *mbuf = *(pbuf - 1) = '\0';
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, "%s %s", modebuf, parabuf);
-    sendto_server(client_p, NULL, chptr, needcap, CAP_TS6, NOFLAGS,
+    sendto_channel_local(ALL_MEMBERS, 0, chptr, "%s %s", modebuf, parabuf);
+    sendto_server(client_p, needcap, CAP_TS6,
                   "%s %s", modebuf, parabuf);
   }
 
   /* assumption here is that since the server sent BMASK, they are TS6, so they have an ID */
-  sendto_server(client_p, NULL, chptr, CAP_TS6|needcap, NOCAPS, NOFLAGS,
+  sendto_server(client_p, CAP_TS6 | needcap, NOCAPS,
                 ":%s BMASK %lu %s %s :%s",
                 source_p->id, (unsigned long)chptr->channelts, chptr->chname,
                 parv[3], parv[4]);
 }
+
+static struct Message mode_msgtab =
+{
+  "MODE", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_mode, m_mode, m_ignore, m_mode, m_ignore}
+};
+
+static struct Message tmode_msgtab =
+{
+  "TMODE", 0, 0, 4, MAXPARA, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_tmode, m_ignore, m_ignore, m_ignore}
+};
+
+static struct Message bmask_msgtab =
+{
+  "BMASK", 0, 0, 5, MAXPARA, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_bmask, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&mode_msgtab);
+  mod_add_cmd(&tmode_msgtab);
+  mod_add_cmd(&bmask_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&mode_msgtab);
+  mod_del_cmd(&tmode_msgtab);
+  mod_del_cmd(&bmask_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  MODULE_FLAG_CORE
+};

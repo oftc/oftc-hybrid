@@ -23,40 +23,15 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "s_serv.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
-static void m_users(struct Client *, struct Client *, int, char *[]);
-static void mo_users(struct Client *, struct Client *, int, char *[]);
-
-struct Message users_msgtab = {
-  "USERS", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_users, mo_users, m_ignore, mo_users, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&users_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&users_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * m_users
@@ -84,12 +59,10 @@ m_users(struct Client *client_p, struct Client *source_p,
 
   sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, source_p->name,
              ConfigServerHide.hide_servers ? Count.total : Count.local,
-             ConfigServerHide.hide_servers ? Count.max_tot : Count.max_loc,
-             ConfigServerHide.hide_servers ? Count.total : Count.local,
              ConfigServerHide.hide_servers ? Count.max_tot : Count.max_loc);
 
   sendto_one(source_p, form_str(RPL_GLOBALUSERS), me.name, source_p->name,
-             Count.total, Count.max_tot, Count.total, Count.max_tot);
+             Count.total, Count.max_tot);
 }
 
 /*
@@ -105,13 +78,42 @@ mo_users(struct Client *client_p, struct Client *source_p,
                   parc, parv) != HUNTED_ISME)
     return;
 
-  if (!IsOper(source_p) && ConfigServerHide.hide_servers)
+  if (!HasUMode(source_p, UMODE_OPER) && ConfigServerHide.hide_servers)
     sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, source_p->name,
-               Count.total, Count.max_tot, Count.total, Count.max_tot);
+               Count.total, Count.max_tot);
   else
     sendto_one(source_p, form_str(RPL_LOCALUSERS), me.name, source_p->name,
-               Count.local, Count.max_loc, Count.local, Count.max_loc);
+               Count.local, Count.max_loc);
 
   sendto_one(source_p, form_str(RPL_GLOBALUSERS), me.name, source_p->name,
-             Count.total, Count.max_tot, Count.total, Count.max_tot);
+             Count.total, Count.max_tot);
 }
+
+static struct Message users_msgtab =
+{
+  "USERS", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_users, mo_users, m_ignore, mo_users, m_ignore }
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&users_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&users_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

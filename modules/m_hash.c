@@ -22,49 +22,19 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
-#include "handlers.h"
-#include "channel.h"
-#include "channel_mode.h"
+#include "list.h"
 #include "client.h"
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_conf.h"
-#include "s_serv.h"
 #include "send.h"
-#include "list.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_user.h"
 #include "resv.h"
 #include "userhost.h"
 
-static void mo_hash(struct Client *, struct Client *, int, char *[]);
-
-
-struct Message hash_msgtab = {
- "HASH", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_hash, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&hash_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&hash_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 static void
 mo_hash(struct Client *client_p, struct Client *source_p,
@@ -87,10 +57,13 @@ mo_hash(struct Client *client_p, struct Client *source_p,
       int len = 0;
 
       ++buckets;
+
       for (; cl != NULL; cl = cl->hnext)
         ++len;
+
       if (len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -110,10 +83,13 @@ mo_hash(struct Client *client_p, struct Client *source_p,
       int len = 0;
 
       ++buckets;
+
       for (; ch != NULL; ch = ch->hnextch)
         ++len;
+
       if (len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -133,10 +109,13 @@ mo_hash(struct Client *client_p, struct Client *source_p,
       int len = 0;
 
       ++buckets;
+
       for (; rch != NULL; rch = rch->hnext)
         ++len;
+
       if (len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -156,10 +135,13 @@ mo_hash(struct Client *client_p, struct Client *source_p,
       int len = 0;
 
       ++buckets;
+
       for (; icl != NULL; icl = icl->idhnext)
         ++len;
+
       if (len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -179,10 +161,13 @@ mo_hash(struct Client *client_p, struct Client *source_p,
       int len = 0;
 
       ++buckets;
+
       for (; ush != NULL; ush = ush->next)
         ++len;
+
       if (len > max_chain)
         max_chain = len;
+
       count += len;
     }
   }
@@ -191,3 +176,32 @@ mo_hash(struct Client *client_p, struct Client *source_p,
              "max chain: %d", me.name, source_p->name, count, buckets,
              max_chain);
 }
+
+static struct Message hash_msgtab =
+{
+  "HASH", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_hash, m_ignore }
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&hash_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&hash_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

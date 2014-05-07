@@ -23,42 +23,17 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
 #include "irc_string.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "hash.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 
-static void m_ping(struct Client*, struct Client*, int, char**);
-static void ms_ping(struct Client*, struct Client*, int, char**);
-
-struct Message ping_msgtab = {
-  "PING", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_ping, ms_ping, m_ignore, m_ping, m_ping}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&ping_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&ping_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
 ** m_ping
@@ -75,17 +50,18 @@ m_ping(struct Client *client_p, struct Client *source_p,
 
   if (parc < 2 || *parv[1] == '\0')
   {
-    sendto_one(source_p, form_str(ERR_NOORIGIN), me.name, parv[0]);
+    sendto_one(source_p, form_str(ERR_NOORIGIN),
+               me.name, source_p->name);
     return;
   }
 
   origin = parv[1];
   destination = parv[2]; /* Will get NULL or pointer (parc >= 2!!) */
 
-  if (ConfigFileEntry.disable_remote && !IsOper(source_p))
+  if (ConfigFileEntry.disable_remote && !HasUMode(source_p, UMODE_OPER))
   {
-    sendto_one(source_p,":%s PONG %s :%s", me.name,
-              (destination) ? destination : me.name, origin);
+    sendto_one(source_p, ":%s PONG %s :%s", me.name,
+               (destination) ? destination : me.name, origin);
     return;
   }
 
@@ -94,32 +70,20 @@ m_ping(struct Client *client_p, struct Client *source_p,
     /* We're sending it across servers.. origin == client_p->name --fl_ */
     origin = client_p->name;
 
-    /* XXX - sendto_server() ? --fl_ */
-    if ((target_p = find_server(destination)) != NULL)
+    if ((target_p = hash_find_server(destination)) != NULL)
     {
-      struct Client *ll_p;
-
-      /* use the direct link for LL checking */
-      ll_p = target_p->from;
-
-      if(ServerInfo.hub && IsCapable(ll_p, CAP_LL))
-      {
-        if((ll_p->lazyLinkClientExists & target_p->localClient->serverMask) == 0)
-          client_burst_if_needed(target_p, ll_p);
-      }
-
-      sendto_one(target_p,":%s PING %s :%s", parv[0],
+      sendto_one(target_p, ":%s PING %s :%s", source_p->name,
                  origin, destination);
     }
     else
     {
       sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
-                 me.name, parv[0], destination);
+                 me.name, source_p->name, destination);
       return;
     }
   }
   else
-    sendto_one(source_p,":%s PONG %s :%s", me.name,
+    sendto_one(source_p, ":%s PONG %s :%s", me.name,
                (destination) ? destination : me.name, origin);
 }
 
@@ -132,26 +96,57 @@ ms_ping(struct Client *client_p, struct Client *source_p,
 
   if (parc < 2 || *parv[1] == '\0')
   {
-    sendto_one(source_p, form_str(ERR_NOORIGIN), me.name, parv[0]);
+    sendto_one(source_p, form_str(ERR_NOORIGIN),
+               me.name, source_p->name);
     return;
   }
 
   origin = source_p->name;
   destination = parv[2]; /* Will get NULL or pointer (parc >= 2!!) */
 
-  if (!EmptyString(destination) && irccmp(destination, me.name) != 0 && irccmp(destination, me.id) != 0)
+  if (!EmptyString(destination) && irccmp(destination, me.name) != 0
+      && irccmp(destination, me.id) != 0)
   {
-    if ((target_p = find_server(destination)))
-      sendto_one(target_p,":%s PING %s :%s", parv[0],
-		 origin, destination);
+    if ((target_p = hash_find_server(destination)))
+      sendto_one(target_p, ":%s PING %s :%s", source_p->name,
+                 origin, destination);
     else
     {
       sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
-                 ID_or_name(&me, client_p), parv[0], destination);
+                 ID_or_name(&me, client_p), source_p->name, destination);
       return;
     }
   }
   else
-    sendto_one(source_p,":%s PONG %s :%s",
+    sendto_one(source_p, ":%s PONG %s :%s",
                ID_or_name(&me, client_p), (destination) ? destination : me.name, origin);
 }
+
+static struct Message ping_msgtab =
+{
+  "PING", 0, 0, 1, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_ping, ms_ping, m_ignore, m_ping, m_ping}
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&ping_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&ping_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

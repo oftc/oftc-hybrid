@@ -1,4 +1,4 @@
-# $Id: kline 33 2005-10-02 20:50:00Z knight $
+# $Id$
 KLINE [time] <nick|user@host> :[reason] [| oper reason]
 
 [time] if present, gives number of minutes for KLINE

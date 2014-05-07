@@ -2,7 +2,7 @@
 
    $Id$
 
-   Copyright (c) 2001-2005 by ircd-hybrid team
+   Copyright (c) 2001-2013 by ircd-hybrid team
 
      ----------------------------------------------------------------------
 
@@ -17,7 +17,7 @@
 
                                   Requirements
 
-   The ircd must be compiled with the --enable-openssl option to configure .
+   The ircd must be compiled with the --enable-openssl option to configure.
    If configure detects a working openssl library, --enable-openssl is
    implicitly enabled.
 
@@ -26,7 +26,7 @@
    use both challenge and normal passwords, but this would defeat the purpose
    of the challenge system.
 
-   m_challenge.so must be loaded.
+   m_challenge.la must be loaded.
 
    The oper has their private key file and an implementation of the RSA
    Respond tool available to be run.
@@ -36,8 +36,7 @@
                                     Process
 
    Each oper should have a private key file and a public key file. The keys
-   can be generated with the mkkeypair utility provided in tools/. The keys
-   are compatible with cryptlink keys.
+   can be generated with the mkkeypair utility provided in tools/.
 
    The oper keeps their private key file in a safe place, and gives their
    public key file to their admin(s).
@@ -82,7 +81,7 @@
                           Using CHALLENGE and respond
 
      Note: All examples assume the use of the stock respond client included
-     with the Hybrid 7 source, run on a UNIX(c) platform.
+     with the ircd-hybrid-8 source, run on a UNIX(c) platform.
 
    The administrator of the server you oper on should remove the password in
    your oper {} block and replace it with an entry for your public key, so
@@ -154,14 +153,8 @@
    the respond command, and to copy and paste data to and from the IRC
    client.
 
-   The respond source code is included with the Hybrid 7 source, in the
-   tools/rsa_respond directory. A distributable tar file can easily be
-   created by issuing make rsa_respond in the root of the source tree. The
-   file rsa_respond.tar.gz will be created in the root of the source tree.
-
-   rsa_respond.tar.gz should compile with little or no modifications[1] on
-   most UNIX(c) and UNIX-like platforms[2]. The README in the tar archive
-   gives more information.
+   The respond source code is included with the ircd-hybrid source, in the
+   tools/rsa_respond directory.
 
    A copy of the source tar file is available on
    http://www.wohmart.com/ircd/pub/irc_tools/rsa/rsa_respond-src-hyb7.tar.gz
@@ -203,26 +196,13 @@
 
      ----------------------------------------------------------------------
 
-                                  B. Scripting
-
-   The following script is for EPIC 4 only. It was written by Greg Prosser,
-   xyst <gregp@blackened.net>.
-
-   Please note that passphrase protected keys cannot be used in conjunction
-   with this script.
-
-   The script is called challange.irc and sits in contrib/. Please review
-   it for more details.
-
-     ----------------------------------------------------------------------
-
                                        Notes
 
-   [1] Some platforms may require Makefile changes in order to link in the    
-       OpenSSL library. This may change in the future.                        
-   [2] Platforms known to function include: Linux, FreeBSD, Solaris, and      
-       Cygwin.                                                                
-   [3] A screenshot of the program is available on                            
-       http://www.wohmart.com/ircd/pub/irc_tools/rsa/winrespond.png .                               
-   [4] The winrespond source depends on a working, up to date, Cygwin         
+   [1] Some platforms may require Makefile changes in order to link in the
+       OpenSSL library. This may change in the future.
+   [2] Platforms known to function include: Linux, FreeBSD, Solaris, and
+       Cygwin.
+   [3] A screenshot of the program is available on
+       http://www.wohmart.com/ircd/pub/irc_tools/rsa/winrespond.png .
+   [4] The winrespond source depends on a working, up to date, Cygwin
        installation.

@@ -23,49 +23,24 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "irc_string.h"
 #include "numeric.h"
 #include "fdlist.h"
 #include "s_bsd.h"
-#include "s_conf.h"
-#include "s_log.h"
+#include "conf.h"
+#include "log.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "hash.h"
 #include "modules.h"
 
-static void mo_connect(struct Client *, struct Client *, int, char **);
-static void ms_connect(struct Client *, struct Client *, int, char **);
-
-struct Message connect_msgtab = {
-  "CONNECT", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_connect, m_ignore, mo_connect, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&connect_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&connect_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * mo_connect - CONNECT command handler
- * 
+ *
  * Added by Jto 11 Feb 1989
  *
  * m_connect
@@ -75,38 +50,40 @@ const char *_version = "$Revision$";
  *      parv[3] = remote server
  */
 static void
-mo_connect(struct Client* client_p, struct Client* source_p,
-           int parc, char* parv[])
+mo_connect(struct Client *client_p, struct Client *source_p,
+           int parc, char *parv[])
 {
   int port;
   int tmpport;
   struct ConfItem *conf = NULL;
   struct AccessItem *aconf = NULL;
-  struct Client *target_p;
+  const struct Client *target_p = NULL;
 
-  /* always privileged with handlers */
-  if (MyConnect(source_p) && !IsOperRemote(source_p) && parc > 3)
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVS),
-               me.name, source_p->name, "connect");
-    return;
-  }
-
-  if (hunt_server(client_p, source_p,
-                  ":%s CONNECT %s %s :%s", 3, parc, parv) != HUNTED_ISME)
-    return;
-
-  if (*parv[1] == '\0')
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "CONNECT");
     return;
   }
 
-  if ((target_p = find_server(parv[1])))
+  if (parc > 3)
+  {
+    if (!HasOFlag(source_p, OPER_FLAG_REMOTE))
+    {
+      sendto_one(source_p, form_str(ERR_NOPRIVS),
+                 me.name, source_p->name, "connect");
+      return;
+    }
+
+    if (hunt_server(client_p, source_p, ":%s CONNECT %s %s :%s", 3,
+                    parc, parv) != HUNTED_ISME)
+      return;
+  }
+
+  if ((target_p = hash_find_server(parv[1])))
   {
     sendto_one(source_p,
-	       ":%s NOTICE %s :Connect: Server %s already exists from %s.",
+               ":%s NOTICE %s :Connect: Server %s already exists from %s.",
                me.name, source_p->name, parv[1], target_p->from->name);
     return;
   }
@@ -115,20 +92,20 @@ mo_connect(struct Client* client_p, struct Client* source_p,
    * try to find the name, then host, if both fail notify ops and bail
    */
   if ((conf = find_matching_name_conf(SERVER_TYPE,
-				      parv[1], NULL, NULL, 0)) != NULL)
+                                      parv[1], NULL, NULL, 0)) != NULL)
     aconf = (struct AccessItem *)map_to_conf(conf);
   else if ((conf = find_matching_name_conf(SERVER_TYPE,
-					   NULL, NULL, parv[1], 0)) != NULL)
+                   NULL, NULL, parv[1], 0)) != NULL)
     aconf = (struct AccessItem *)map_to_conf(conf);
-  
-  if (conf == NULL)
+
+  if (conf == NULL || aconf == NULL)
   {
     sendto_one(source_p,
-	       ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
-	       me.name, source_p->name, parv[1]);
+               ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
+               me.name, source_p->name, parv[1]);
     return;
   }
-    
+
   /* Get port number from user, if given. If not specified,
    * use the default form configuration structure. If missing
    * from there, then use the precompiled default.
@@ -161,7 +138,7 @@ mo_connect(struct Client* client_p, struct Client* source_p,
   /*
    * Notify all operators about remote connect requests
    */
-  ilog(L_TRACE, "CONNECT From %s : %s %s", 
+  ilog(LOG_TYPE_IRCD, "CONNECT From %s : %s %s",
        source_p->name, parv[1], parv[2] ? parv[2] : "");
 
   aconf->port = port;
@@ -171,7 +148,7 @@ mo_connect(struct Client* client_p, struct Client* source_p,
    */
   if (serv_connect(aconf, source_p))
   {
-    if (!ConfigServerHide.hide_server_ips && IsAdmin(source_p))
+    if (!ConfigServerHide.hide_server_ips && HasUMode(source_p, UMODE_ADMIN))
       sendto_one(source_p, ":%s NOTICE %s :*** Connecting to %s[%s].%d",
                  me.name, source_p->name, aconf->host,
                  conf->name, aconf->port);
@@ -193,7 +170,7 @@ mo_connect(struct Client* client_p, struct Client* source_p,
 
 /*
  * ms_connect - CONNECT command handler
- * 
+ *
  * Added by Jto 11 Feb 1989
  *
  * m_connect
@@ -210,23 +187,23 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   int tmpport;
   struct ConfItem *conf = NULL;
   struct AccessItem *aconf = NULL;
-  struct Client *target_p;
+  const struct Client *target_p = NULL;
 
   if (hunt_server(client_p, source_p,
                   ":%s CONNECT %s %s :%s", 3, parc, parv) != HUNTED_ISME)
     return;
 
-  if (*parv[1] == '\0')
+  if (EmptyString(parv[1]))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
                me.name, source_p->name, "CONNECT");
     return;
   }
 
-  if ((target_p = find_server(parv[1])))
+  if ((target_p = hash_find_server(parv[1])))
   {
     sendto_one(source_p,
-	       ":%s NOTICE %s :Connect: Server %s already exists from %s.",
+               ":%s NOTICE %s :Connect: Server %s already exists from %s.",
                me.name, source_p->name, parv[1], target_p->from->name);
     return;
   }
@@ -235,21 +212,19 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    * try to find the name, then host, if both fail notify ops and bail
    */
   if ((conf = find_matching_name_conf(SERVER_TYPE,
-				      parv[1], NULL, NULL, 0)) != NULL)
-    aconf = (struct AccessItem *)map_to_conf(conf);
+                                      parv[1], NULL, NULL, 0)) != NULL)
+    aconf = map_to_conf(conf);
   else if ((conf = find_matching_name_conf(SERVER_TYPE,
-					   NULL, NULL, parv[1], 0)) != NULL)
-    aconf = (struct AccessItem *)map_to_conf(conf);
+                   NULL, NULL, parv[1], 0)) != NULL)
+    aconf = map_to_conf(conf);
 
-  if (aconf == NULL)
+  if (conf == NULL || aconf == NULL)
   {
     sendto_one(source_p,
-	       ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
-	       me.name, source_p->name, parv[1]);
+               ":%s NOTICE %s :Connect: Host %s not listed in ircd.conf",
+               me.name, source_p->name, parv[1]);
     return;
   }
-
-  assert(aconf != NULL);
 
   /* Get port number from user, if given. If not specified,
    * use the default form configuration structure. If missing
@@ -281,22 +256,23 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   if (find_servconn_in_progress(conf->name))
   {
     sendto_one(source_p, ":%s NOTICE %s :Connect: a connection to %s "
-        "is already in progress.", me.name, source_p->name, conf->name);
+               "is already in progress.", me.name, source_p->name, conf->name);
     return;
   }
-  
-/*
-   * Notify all operators about remote connect requests
-   */
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Remote CONNECT %s %d from %s",
+
+  /*
+     * Notify all operators about remote connect requests
+     */
+  sendto_realops_flags(UMODE_ALL, L_ALL, NULL, "Remote CONNECT %s %d from %s",
                        parv[1], port, get_client_name(source_p, SHOW_IP));
 
-  ilog(L_TRACE, "CONNECT From %s : %s %d", 
+  ilog(LOG_TYPE_IRCD, "CONNECT From %s : %s %d",
        source_p->name, parv[1], port);
 
   aconf->port = port;
 
-  /* at this point we should be calling connect_server with a valid
+  /*
+   * At this point we should be calling connect_server with a valid
    * C:line and a valid port in the C:line
    */
   if (serv_connect(aconf, source_p))
@@ -305,9 +281,39 @@ ms_connect(struct Client *client_p, struct Client *source_p,
   else
     sendto_one(source_p, ":%s NOTICE %s :*** Couldn't connect to %s.%d",
                me.name, source_p->name, conf->name, aconf->port);
-  /* client is either connecting with all the data it needs or has been
+
+  /*
+   * Client is either connecting with all the data it needs or has been
    * destroyed
    */
   aconf->port = tmpport;
 }
 
+static struct Message connect_msgtab =
+{
+  "CONNECT", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, ms_connect, m_ignore, mo_connect, m_ignore }
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&connect_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&connect_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

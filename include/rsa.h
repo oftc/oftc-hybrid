@@ -24,14 +24,10 @@
 #ifndef INCLUDED_rsa_h
 #define INCLUDED_rsa_h
 
-#include "setup.h"
-
 #ifdef HAVE_LIBCRYPTO
-extern void report_crypto_errors(void);
-extern int verify_private_key(void);
-extern int generate_challenge(char **, char **, RSA *);
-extern int get_randomness(unsigned char *, int);
+IRCD_EXTERN void report_crypto_errors();
+IRCD_EXTERN int generate_challenge(char **, char **, RSA *);
+IRCD_EXTERN int get_randomness(unsigned char *, int);
 #endif
-
 #endif /* INCLUDED_rsa_h */
 

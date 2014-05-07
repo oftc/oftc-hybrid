@@ -23,19 +23,16 @@
  */
 
 #include "stdinc.h"
+#include "list.h"
 #include "channel.h"
 #include "client.h"
-#include "common.h"
 #include "ircd.h"
 #include "hostmask.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "send.h"
 #include "hash.h"
-#include "handlers.h"
 #include "s_serv.h"
-#include "msg.h"
-#include "s_gline.h"
 #include "parse.h"
 #include "modules.h"
 #include "event.h"
@@ -43,67 +40,41 @@
 
 #define SHED_RATE_MIN 5
 
-static void mo_shedding(struct Client *, struct Client *, int, char **);
-void user_shedding_main(void *rate);
-void user_shedding_shed(void *unused);
+void user_shedding_main(uv_timer_t *, int);
+void user_shedding_shed(uv_timer_t *, int);
 
-struct Message shedding_msgtab = {
-  "shedding", 0, 0, 2, 0, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_shedding, m_ignore}
-};
+/* Local function prototypes */
 
 static int rate = 60;
 static int operstoo = 0;
 
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&shedding_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&shedding_msgtab);
-  eventDelete(user_shedding_main, NULL);
-  eventDelete(user_shedding_shed, NULL);
-}
-
-const char *_version = "$Revision: 472 $";
-#endif
-
-/* Local function prototypes */
-
-char buffer[IRCD_BUFSIZE];
-
 /*
  * mo_shedding
  *
- * inputs	- pointer to server
- *		- pointer to client
- *		- parameter count
- *		- parameter list
- * output	-
+ * inputs  - pointer to server
+ *    - pointer to client
+ *    - parameter count
+ *    - parameter list
+ * output  -
  * side effects - user shedding is enabled or disabled
- * 
+ *
  * SHEDDING OFF - disable shedding
  * SHEDDING :reason
  * SHEDDING approx_seconds_per_userdrop :reason
  * SHEDDING approx_seconds_per_userdrop opers_too?[0|1] :reason
- * 
+ *
  */
 static void
 mo_shedding(struct Client *client_p, struct Client *source_p,
-	 int parc, char **parv)
+            int parc, char **parv)
 {
-  if(irccmp(parv[1], "OFF") == 0)
+  if (irccmp(parv[1], "OFF") == 0)
   {
-      eventDelete(user_shedding_main, NULL);
-      eventDelete(user_shedding_shed, NULL);
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-              "User shedding DISABLED by %s", source_p->name);
-      return;
+    eventDelete(user_shedding_main, NULL);
+    eventDelete(user_shedding_shed, NULL);
+    sendto_realops_flags(UMODE_ALL, L_ALL,
+                         "User shedding DISABLED by %s", source_p->name);
+    return;
   }
 
   /* we better re-initialize defaults, else sheddings made in serial
@@ -112,26 +83,28 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
   rate = 60;
   operstoo = 0;
 
-  if(parc < 2) 
+  if (parc < 2)
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-        me.name, source_p->name, "SHEDDING");
+               me.name, source_p->name, "SHEDDING");
     return;
   }
 
-  if (parc > 2) 
+  if (parc > 2)
     rate = atoi(parv[1]);
-    
+
   if (parc > 3)
     operstoo = !!atoi(parv[2]);
-    
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, 
-          "User shedding ENABLED by %s (%s). Shedding interval: %d seconds (Opers too: %s)", 
-          source_p->name, parv[parc-1], rate, operstoo ? "Yes" : "No");
+
+  sendto_realops_flags(UMODE_ALL, L_ALL,
+                       "User shedding ENABLED by %s (%s). Shedding interval: %d seconds (Opers too: %s)",
+                       source_p->name, parv[parc - 1], rate, operstoo ? "Yes" : "No");
+
   /* Set a minimum because we need to do a bit of variance */
-  if(rate < SHED_RATE_MIN)
+  if (rate < SHED_RATE_MIN)
     rate = SHED_RATE_MIN;
-  rate -= (rate/5);
+
+  rate -= (rate / 5);
 
   /* Lets not start more than one main thread in case someone tweaks the
    * paramters
@@ -140,28 +113,65 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
   eventAdd("user shedding main event", user_shedding_main, NULL, rate);
 }
 
-void user_shedding_main(void *unused)
+void 
+user_shedding_main(uv_timer_t *handle, int status)
 {
-  int deviation = (rate / (3+(int) (7.0f*rand()/(RAND_MAX+1.0f))));
+  int deviation = (rate / (3 + (int)(7.0f * rand() / (RAND_MAX + 1.0f))));
 
-  eventAddIsh("user shedding shed event", user_shedding_shed, NULL, rate+deviation);
+  eventAddIsh("user shedding shed event", user_shedding_shed, NULL,
+              rate + deviation);
 }
 
-void user_shedding_shed(void *unused)
+void 
+user_shedding_shed(uv_timer_t *handle, int status)
 {
   dlink_node *ptr;
   struct Client *client_p;
-  
+
   DLINK_FOREACH_PREV(ptr, local_client_list.tail)
   {
-      client_p = ptr->data;
+    client_p = ptr->data;
 
-      if (!MyClient(client_p)) /* It could be servers */
-          continue;
-      if (IsOper(client_p) && !operstoo)
-          continue;
-      exit_client(client_p, &me, "Server closed connection");
-      break;
+    if (!MyClient(client_p)) /* It could be servers */
+      continue;
+
+    if (HasUMode(client_p, UMODE_OPER) && !operstoo)
+      continue;
+
+    exit_client(client_p, &me, "Server closed connection");
+    break;
   }
   eventDelete(user_shedding_shed, NULL);
 }
+
+struct Message shedding_msgtab =
+{
+  "SHEDDING", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_shedding, m_ignore }
+};
+
+void
+module_init()
+{
+  mod_add_cmd(&shedding_msgtab);
+}
+
+void
+module_exit()
+{
+  mod_del_cmd(&shedding_msgtab);
+  eventDelete(user_shedding_main, NULL);
+  eventDelete(user_shedding_shed, NULL);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};
+

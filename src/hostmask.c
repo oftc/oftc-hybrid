@@ -25,47 +25,38 @@
 #include "stdinc.h"
 #include "memory.h"
 #include "ircd_defs.h"
-#include "tools.h"
-#include "s_conf.h"
+#include "list.h"
+#include "conf.h"
 #include "hostmask.h"
-#include "numeric.h"
 #include "send.h"
 #include "irc_string.h"
-#include "sprintf_irc.h"
-#include "s_misc.h"
+#include "ircd.h"
 
-#ifdef IPV6
-static int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
-static unsigned long hash_ipv6(struct irc_ssaddr *, int);
-#endif
-static int try_parse_v4_netmask(const char *, struct irc_ssaddr *, int *);
-static unsigned long hash_ipv4(struct irc_ssaddr *, int);
 
 #define DigitParse(ch) do { \
-                       if (ch >= '0' && ch <= '9') \
-                         ch = ch - '0'; \
-                       else if (ch >= 'A' && ch <= 'F') \
-                         ch = ch - 'A' + 10; \
-                       else if (ch >= 'a' && ch <= 'f') \
-                         ch = ch - 'a' + 10; \
-                       } while(0);
+    if (ch >= '0' && ch <= '9') \
+      ch = ch - '0'; \
+    else if (ch >= 'A' && ch <= 'F') \
+      ch = ch - 'A' + 10; \
+    else if (ch >= 'a' && ch <= 'f') \
+      ch = ch - 'a' + 10; \
+  } while (0);
 
 /* The mask parser/type determination code... */
 
-/* int try_parse_v6_netmask(const char *, struct irc_ssaddr *, int *);
+/* int try_parse_v6_netmask(const char *, struct sockaddr_storage *, int *);
  * Input: A possible IPV6 address as a string.
  * Output: An integer describing whether it is an IPV6 or hostmask,
  *         an address(if it is IPV6), a bitlength(if it is IPV6).
  * Side effects: None
  * Comments: Called from parse_netmask
  */
-/* Fixed so ::/0 (any IPv6 address) is valid 
+/* Fixed so ::/0 (any IPv6 address) is valid
    Also a bug in DigitParse above.
    -Gozem 2002-07-19 gozem@linux.nu
 */
-#ifdef IPV6
 static int
-try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
+try_parse_v6_netmask(const char *text, struct sockaddr_storage *addr, int *b)
 {
   const char *p;
   char c;
@@ -76,13 +67,14 @@ try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
   int bits = 128;
   int deficit = 0;
   short dc[8];
-  struct sockaddr_in6 *v6 = (struct sockaddr_in6*) addr;
+  struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)addr;
 
   for (p = text; (c = *p); p++)
     if (IsXDigit(c))
     {
       if (nyble == 0)
         return HM_HOST;
+
       DigitParse(c);
       d[dp] |= c << (4 * --nyble);
     }
@@ -92,6 +84,7 @@ try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
       {
         if (finsert >= 0)
           return HM_HOST;
+
         finsert = dp;
       }
       else
@@ -100,6 +93,7 @@ try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
          * so we don't interpret it as ABC0 -A1kmm */
         d[dp] = d[dp] >> 4 * nyble;
         nyble = 4;
+
         if (++dp >= 8)
           return HM_HOST;
       }
@@ -109,6 +103,7 @@ try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
       /* * must be last, and * is ambiguous if there is a ::... -A1kmm */
       if (finsert >= 0 || *(p + 1) || dp == 0 || *(p - 1) != ':')
         return HM_HOST;
+
       bits = dp * 16;
     }
     else if (c == '/')
@@ -118,22 +113,29 @@ try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
       d[dp] = d[dp] >> 4 * nyble;
       dp++;
       bits = strtoul(p + 1, &after, 10);
+
       if (bits < 0 || *after)
         return HM_HOST;
+
       if (bits > dp * 4 && !(finsert >= 0 && bits <= 128))
         return HM_HOST;
+
       break;
     }
     else
       return HM_HOST;
 
   d[dp] = d[dp] >> 4 * nyble;
+
   if (c == 0)
     dp++;
+
   if (finsert < 0 && bits == 0)
     bits = dp * 16;
+
   /* How many words are missing? -A1kmm */
   deficit = bits / 16 + ((bits % 16) ? 1 : 0) - dp;
+
   /* Now fill in the gaps(from ::) in the copied table... -A1kmm */
   for (dp = 0, nyble = 0; dp < 8; dp++)
   {
@@ -145,23 +147,27 @@ try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
     else
       dc[dp] = d[nyble++];
   }
+
   /* Set unused bits to 0... -A1kmm */
   if (bits < 128 && (bits % 16 != 0))
     dc[bits / 16] &= ~((1 << (15 - bits % 16)) - 1);
+
   for (dp = bits / 16 + (bits % 16 ? 1 : 0); dp < 8; dp++)
     dc[dp] = 0;
+
   /* And assign... -A1kmm */
   if (addr)
     for (dp = 0; dp < 8; dp++)
       /* The cast is a kludge to make netbsd work. */
       ((unsigned short *)&v6->sin6_addr)[dp] = htons(dc[dp]);
+
   if (b != NULL)
     *b = bits;
+
   return HM_IPV6;
 }
-#endif
 
-/* int try_parse_v4_netmask(const char *, struct irc_ssaddr *, int *);
+/* int try_parse_v4_netmask(const char *, struct sockaddr_storage *, int *);
  * Input: A possible IPV4 address as a string.
  * Output: An integer describing whether it is an IPV4 or hostmask,
  *         an address(if it is IPV4), a bitlength(if it is IPV4).
@@ -169,14 +175,14 @@ try_parse_v6_netmask(const char *text, struct irc_ssaddr *addr, int *b)
  * Comments: Called from parse_netmask
  */
 static int
-try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
+try_parse_v4_netmask(const char *text, struct sockaddr_storage *addr, int *b)
 {
   const char *p;
   const char *digits[4];
   unsigned char addb[4];
   int n = 0, bits = 0;
   char c;
-  struct sockaddr_in *v4 = (struct sockaddr_in*) addr;
+  struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
 
   digits[n++] = text;
 
@@ -187,12 +193,14 @@ try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
     {
       if (n >= 4)
         return HM_HOST;
+
       digits[n++] = p + 1;
     }
     else if (c == '*')
     {
       if (*(p + 1) || n == 0 || *(p - 1) != '.')
         return HM_HOST;
+
       bits = (n - 1) * 8;
       break;
     }
@@ -200,10 +208,13 @@ try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
     {
       char *after;
       bits = strtoul(p + 1, &after, 10);
-      if(bits < 0 || *after != '\0')
+
+      if (bits < 0 || *after != '\0')
         return HM_HOST;
+
       if (bits > n * 8)
         return HM_HOST;
+
       break;
     }
     else
@@ -211,27 +222,35 @@ try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
 
   if (n < 4 && bits == 0)
     bits = n * 8;
+
   if (bits)
     while (n < 4)
       digits[n++] = "0";
+
   for (n = 0; n < 4; n++)
     addb[n] = strtoul(digits[n], NULL, 10);
+
   if (bits == 0)
     bits = 32;
+
   /* Set unused bits to 0... -A1kmm */
   if (bits < 32 && bits % 8)
     addb[bits / 8] &= ~((1 << (8 - bits % 8)) - 1);
+
   for (n = bits / 8 + (bits % 8 ? 1 : 0); n < 4; n++)
     addb[n] = 0;
+
   if (addr)
     v4->sin_addr.s_addr =
       htonl(addb[0] << 24 | addb[1] << 16 | addb[2] << 8 | addb[3]);
+
   if (b != NULL)
     *b = bits;
+
   return HM_IPV4;
 }
 
-/* int parse_netmask(const char *, struct irc_ssaddr *, int *);
+/* int parse_netmask(const char *, struct sockaddr_storage *, int *);
  * Input: A hostmask, or an IPV4/6 address.
  * Output: An integer describing whether it is an IPV4, IPV6 address or a
  *         hostmask, an address(if it is an IP mask),
@@ -239,55 +258,61 @@ try_parse_v4_netmask(const char *text, struct irc_ssaddr *addr, int *b)
  * Side effects: None
  */
 int
-parse_netmask(const char *text, struct irc_ssaddr *addr, int *b)
+parse_netmask(const char *text, struct sockaddr_storage *addr, int *b)
 {
-#ifdef IPV6
-    if (strchr(text, ':'))
+  if (strchr(text, ':'))
     return try_parse_v6_netmask(text, addr, b);
-#endif
+
   if (strchr(text, '.'))
     return try_parse_v4_netmask(text, addr, b);
+
   return HM_HOST;
 }
 
 /* The address matching stuff... */
-/* int match_ipv6(struct irc_ssaddr *, struct irc_ssaddr *, int)
+/* int match_ipv6(struct sockaddr_storage *, struct sockaddr_storage *, int)
  * Input: An IP address, an IP mask, the number of bits in the mask.
  * Output: if match, -1 else 0
  * Side effects: None
  */
-#ifdef IPV6
 int
-match_ipv6(struct irc_ssaddr *addr, struct irc_ssaddr *mask, int bits)
+match_ipv6(const struct sockaddr_storage *addr, const struct sockaddr_storage *mask,
+           int bits)
 {
   int i, m, n = bits / 8;
-  struct sockaddr_in6 *v6 = (struct sockaddr_in6*)addr;
-  struct sockaddr_in6 *v6mask = (struct sockaddr_in6*)mask;
+  const struct sockaddr_in6 *v6 = (const struct sockaddr_in6 *)addr;
+  const struct sockaddr_in6 *v6mask = (const struct sockaddr_in6 *)mask;
 
   for (i = 0; i < n; i++)
     if (v6->sin6_addr.s6_addr[i] != v6mask->sin6_addr.s6_addr[i])
       return 0;
+
   if ((m = bits % 8) == 0)
     return -1;
+
   if ((v6->sin6_addr.s6_addr[n] & ~((1 << (8 - m)) - 1)) ==
       v6mask->sin6_addr.s6_addr[n])
     return -1;
+
   return 0;
 }
-#endif
-/* int match_ipv4(struct irc_ssaddr *, struct irc_ssaddr *, int)
+
+/* int match_ipv4(struct sockaddr_storage *, struct sockaddr_storage *, int)
  * Input: An IP address, an IP mask, the number of bits in the mask.
  * Output: if match, -1 else 0
  * Side Effects: None
  */
 int
-match_ipv4(struct irc_ssaddr *addr, struct irc_ssaddr *mask, int bits)
+match_ipv4(const struct sockaddr_storage *addr, const struct sockaddr_storage *mask,
+           int bits)
 {
-  struct sockaddr_in *v4 = (struct sockaddr_in*) addr;
-  struct sockaddr_in *v4mask = (struct sockaddr_in*) mask;
+  const struct sockaddr_in *v4 = (const struct sockaddr_in *)addr;
+  const struct sockaddr_in *v4mask = (const struct sockaddr_in *)mask;
+
   if ((ntohl(v4->sin_addr.s_addr) & ~((1 << (32 - bits)) - 1)) !=
       ntohl(v4mask->sin_addr.s_addr))
     return 0;
+
   return -1;
 }
 
@@ -300,78 +325,73 @@ match_ipv4(struct irc_ssaddr *addr, struct irc_ssaddr *mask, int bits)
  * side effects -
  */
 void
-mask_addr(struct irc_ssaddr *ip, int bits)
+mask_addr(struct sockaddr_storage *ip, int bits)
 {
   int mask;
-#ifdef IPV6
   struct sockaddr_in6 *v6_base_ip;
   int i, m, n;
-#endif
   struct sockaddr_in *v4_base_ip;
 
-#ifdef IPV6
-  if (ip->ss.ss_family != AF_INET6)
-#endif
+  if (ip->ss_family != AF_INET6)
   {
-    v4_base_ip = (struct sockaddr_in*)ip;
+    v4_base_ip = (struct sockaddr_in *)ip;
+
     mask = ~((1 << (32 - bits)) - 1);
-    v4_base_ip->sin_addr.s_addr =
-      htonl(ntohl(v4_base_ip->sin_addr.s_addr) & mask);
+    v4_base_ip->sin_addr.s_addr = htonl(ntohl(v4_base_ip->sin_addr.s_addr) & mask);
   }
-#ifdef IPV6
   else
   {
     n = bits / 8;
     m = bits % 8;
-    v6_base_ip = (struct sockaddr_in6*)ip;
+    v6_base_ip = (struct sockaddr_in6 *)ip;
 
-    mask = ~((1 << (8 - m)) -1 );
+    mask = ~((1 << (8 - m)) - 1);
     v6_base_ip->sin6_addr.s6_addr[n] = v6_base_ip->sin6_addr.s6_addr[n] & mask;
+
     for (i = n + 1; i < 16; i++)
       v6_base_ip->sin6_addr.s6_addr[i] = 0;
   }
-#endif
 }
 
 /* Hashtable stuff...now external as its used in m_stats.c */
-struct AddressRec *atable[ATABLE_SIZE];
+dlink_list atable[ATABLE_SIZE];
 
 void
-init_host_hash(void)
+init_host_hash()
 {
   memset(&atable, 0, sizeof(atable));
 }
 
-/* unsigned long hash_ipv4(struct irc_ssaddr*)
+/* unsigned long hash_ipv4(struct sockaddr_storage*)
  * Input: An IP address.
  * Output: A hash value of the IP address.
  * Side effects: None
  */
-static unsigned long
-hash_ipv4(struct irc_ssaddr *addr, int bits)
+static uint32_t
+hash_ipv4(struct sockaddr_storage *addr, int bits)
 {
   if (bits != 0)
   {
     struct sockaddr_in *v4 = (struct sockaddr_in *)addr;
-    unsigned long av = ntohl(v4->sin_addr.s_addr) & ~((1 << (32 - bits)) - 1);
-    return((av ^ (av >> 12) ^ (av >> 24)) & (ATABLE_SIZE - 1));
+    uint32_t av = ntohl(v4->sin_addr.s_addr) & ~((1 << (32 - bits)) - 1);
+
+    return (av ^ (av >> 12) ^ (av >> 24)) & (ATABLE_SIZE - 1);
   }
 
-  return(0);
+  return 0;
 }
 
-/* unsigned long hash_ipv6(struct irc_ssaddr*)
+/* unsigned long hash_ipv6(struct sockaddr_storage*)
  * Input: An IP address.
  * Output: A hash value of the IP address.
  * Side effects: None
  */
-#ifdef IPV6
-static unsigned long
-hash_ipv6(struct irc_ssaddr *addr, int bits)
+static uint32_t
+hash_ipv6(struct sockaddr_storage *addr, int bits)
 {
-  unsigned long v = 0, n;
-  struct sockaddr_in6 *v6 = (struct sockaddr_in6*) addr;
-  
+  uint32_t v = 0, n;
+  struct sockaddr_in6 *v6 = (struct sockaddr_in6 *)addr;
+
   for (n = 0; n < 16; n++)
   {
     if (bits >= 8)
@@ -387,26 +407,25 @@ hash_ipv6(struct irc_ssaddr *addr, int bits)
     else
       return v & (ATABLE_SIZE - 1);
   }
+
   return v & (ATABLE_SIZE - 1);
 }
-#endif
 
 /* int hash_text(const char *start)
  * Input: The start of the text to hash.
  * Output: The hash of the string between 1 and (TH_MAX-1)
  * Side-effects: None.
  */
-static int
+static uint32_t
 hash_text(const char *start)
 {
   const char *p = start;
-  unsigned long h = 0;
+  uint32_t h = 0;
 
-  while (*p)
-  {
-    h = (h << 4) - (h + (unsigned char)ToLower(*p++));
-  }
-  return (h & (ATABLE_SIZE - 1));
+  for (; *p; ++p)
+    h = (h << 4) - (h + (unsigned char)ToLower(*p));
+
+  return h & (ATABLE_SIZE - 1);
 }
 
 /* unsigned long get_hash_mask(const char *)
@@ -415,7 +434,7 @@ hash_text(const char *start)
  *         wildcard in the string.
  * Side-effects: None.
  */
-static unsigned long
+static uint32_t
 get_mask_hash(const char *text)
 {
   const char *hp = "", *p;
@@ -425,10 +444,58 @@ get_mask_hash(const char *text)
       return hash_text(hp);
     else if (*p == '.')
       hp = p + 1;
+
   return hash_text(text);
 }
 
-/* struct AccessItem *find_conf_by_address(const char *, struct irc_ssaddr *,
+struct AddressRec *
+find_conf_by_ip(int family, dlink_list *list, struct sockaddr_storage *addr,
+                unsigned int type,
+                const char *username, const char *password, bool do_match, bool ignore_user,
+                const char *certfp)
+{
+  unsigned int hprecv = 0;
+  dlink_node *ptr = NULL;
+  struct AddressRec *arec, *ret = NULL;
+  int (*cmpfunc)(const char *, const char *) = do_match ? match : irccmp;
+  int masktype = family == AF_INET ? HM_IPV4 : HM_IPV6;
+
+  DLINK_FOREACH(ptr, list->head)
+  {
+    arec = ptr->data;
+
+    if (arec->type != type)
+      continue;
+
+    if (arec->precedence <= hprecv)
+      continue;
+
+    if (arec->masktype != masktype)
+      continue;
+
+    if (family == AF_INET
+        && match_ipv4(addr, &arec->Mask.ipa.addr, arec->Mask.ipa.bits) != 0)
+      continue;
+
+    if (family == AF_INET6
+        && match_ipv6(addr, &arec->Mask.ipa.addr, arec->Mask.ipa.bits) != 0)
+      continue;
+
+    if (!ignore_user && cmpfunc(arec->username, username) != do_match)
+      continue;
+
+    if (arec->aconf->passwd != NULL && !IsNeedPassword(arec->aconf) &&
+        !match_conf_password(password, certfp, arec->aconf))
+      continue;
+
+    ret = arec;
+    hprecv = ret->precedence;
+  }
+
+  return ret;
+}
+
+/* struct AccessItem *find_conf_by_address(const char *, struct sockaddr_storage *,
  *                                         int type, int fam, const char *username)
  * Input: The hostname, the address, the type of mask to find, the address
  *        family, the username.
@@ -439,134 +506,142 @@ get_mask_hash(const char *text)
  * should always be true (i.e. aconf->flags & CONF_FLAGS_NEED_PASSWORD == 0)
  */
 struct AccessItem *
-find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
-                     int fam, const char *username, const char *password,
+find_conf_by_address(const char *name, struct sockaddr_storage *addr,
+                     unsigned int type,
+                     int fam, const char *username, const char *password, int do_match,
                      const char *certfp)
 {
-  unsigned long hprecv = 0;
+  unsigned int hprecv = 0;
+  dlink_node *ptr = NULL;
   struct AccessItem *hprec = NULL;
   struct AddressRec *arec;
   int b;
+  int (*cmpfunc)(const char *, const char *) = do_match ? match : irccmp;
+  bool ignore_user = false;
+  bool keep_going = (name != NULL);
+  const char *p = name;
+
+  if ((type & 0x1) == 0x1)
+    ignore_user = true;
+
+  type &= ~0x1;
 
   if (username == NULL)
     username = "";
+
   if (password == NULL)
     password = "";
+
   if (certfp == NULL)
     certfp = "";
-
 
   if (addr)
   {
     /* Check for IPV6 matches... */
-#ifdef IPV6
     if (fam == AF_INET6)
     {
       for (b = 128; b >= 0; b -= 16)
       {
-        for (arec = atable[hash_ipv6(addr, b)]; arec; arec = arec->next)
-          if (arec->type == (type & ~CONF_RESERVED) &&
-              arec->precedence > hprecv &&
-              arec->masktype == HM_IPV6 &&
-              match_ipv6(addr, &arec->Mask.ipa.addr, arec->Mask.ipa.bits) &&
-              (type & CONF_RESERVED || match(arec->username, username)) &&
-              (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
-               match_conf_password(password, arec->aconf)))
-          {
-            hprecv = arec->precedence;
-            hprec = arec->aconf;
-          }
-      }
-    }
-    else
-#endif
-    if (fam == AF_INET)
-    {
-      for (b = 32; b >= 0; b -= 8)
-      {
-        for (arec = atable[hash_ipv4(addr, b)]; arec; arec = arec->next)
-          if (arec->type == (type & ~CONF_RESERVED) &&
-              arec->precedence > hprecv &&
-              arec->masktype == HM_IPV4 &&
-              match_ipv4(addr, &arec->Mask.ipa.addr,
-                         arec->Mask.ipa.bits) &&
-              (type & CONF_RESERVED || match(arec->username, username)) &&
-              (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
-               match_conf_password(password, arec->aconf)))
-          {
-            hprecv = arec->precedence;
-            hprec = arec->aconf;
-          }
-      }
-    }
-  }
+        arec = find_conf_by_ip(fam, &atable[hash_ipv6(addr, b)], addr, type, username,
+                               password, do_match,
+                               ignore_user, certfp);
 
-  if (name != NULL)
-  {
-    const char *p = name;
-
-    while (1)
-    {
-      for (arec = atable[hash_text(p)]; arec != NULL; arec = arec->next)
-      {
-        if (!(arec->type == (type & ~CONF_RESERVED)))
-          continue;
-
-        if(arec->precedence <= hprecv)
-          continue;
-        
-        if(arec->masktype == HM_HOST)
-        {
-          if(arec->aconf->certfp != NULL)
-          {
-            if(memcmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH) != 0)
-              continue;
-          }
-          else
-            if(!match(arec->Mask.hostname, name))
-              continue;
-        }
-        else
-          continue;
-
-        if((type & CONF_RESERVED || match(arec->username, username)) &&
-            (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
-             match_conf_password(password, arec->aconf)))
+        if (arec != NULL)
         {
           hprecv = arec->precedence;
           hprec = arec->aconf;
         }
       }
-      p = strchr(p, '.');
-      if (p == NULL)
-        break;
-      p++;
     }
-    for (arec = atable[0]; arec; arec = arec->next)
+    else
     {
-      if (!(arec->type == (type & ~CONF_RESERVED)))
-        continue;
-
-      if(arec->precedence <= hprecv)
-        continue;
-
-      if(arec->masktype == HM_HOST)
+      if (fam == AF_INET)
       {
-        if(arec->aconf->certfp != NULL)
+        for (b = 32; b >= 0; b -= 8)
         {
-          if(memcmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH) != 0)
+          arec = find_conf_by_ip(fam, &atable[hash_ipv4(addr, b)], addr, type, username,
+                                 password,
+                                 do_match, ignore_user, certfp);
+
+          if (arec != NULL)
+          {
+            hprecv = arec->precedence;
+            hprec = arec->aconf;
+          }
+        }
+      }
+    }
+  }
+
+  while (keep_going)
+  {
+    DLINK_FOREACH(ptr, atable[hash_text(p)].head)
+    {
+      arec = ptr->data;
+
+      if (arec->type != type)
+        continue;
+
+      if (arec->precedence <= hprecv)
+        continue;
+
+      if (arec->masktype == HM_HOST)
+      {
+        if (arec->aconf->certfp != NULL)
+        {
+          if (strncmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH * 2) != 0)
             continue;
         }
-        else
-          if(!match(arec->Mask.hostname, name))
-            continue;
+        else if (cmpfunc(arec->Mask.hostname, name) != do_match)
+          continue;
       }
       else
         continue;
 
-      if((type & CONF_RESERVED || match(arec->username, username)) &&
+      if ((ignore_user || match(arec->username, username)) &&
           (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
-           match_conf_password(password, arec->aconf)))
+           match_conf_password(password, certfp, arec->aconf)))
+      {
+        hprecv = arec->precedence;
+        hprec = arec->aconf;
+      }
+    }
+    p = strchr(p, '.');
+
+    if (p == NULL)
+      keep_going = false;
+
+    p++;
+  }
+
+  if (name != NULL)
+  {
+    DLINK_FOREACH(ptr, atable[0].head)
+    {
+      arec = ptr->data;
+
+      if (arec->type != type)
+        continue;
+
+      if (arec->precedence <= hprecv)
+        continue;
+
+      if (arec->masktype == HM_HOST)
+      {
+        if (arec->aconf->certfp != NULL)
+        {
+          if (strncmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH * 2) != 0)
+            continue;
+        }
+        else if (cmpfunc(arec->Mask.hostname, name) != do_match)
+          continue;
+      }
+      else
+        continue;
+
+      if ((ignore_user || match(arec->username, username)) &&
+          (IsNeedPassword(arec->aconf) || arec->aconf->passwd == NULL ||
+           match_conf_password(password, certfp, arec->aconf)))
       {
         hprecv = arec->precedence;
         hprec = arec->aconf;
@@ -578,153 +653,108 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
 }
 
 /* struct AccessItem* find_address_conf(const char*, const char*,
- * 	                               struct irc_ssaddr*, int, char *, char *);
+ *                                  struct sockaddr_storage*, int, char *, char *);
  * Input: The hostname, username, address, address family.
  * Output: The applicable AccessItem.
  * Side-effects: None
  */
 struct AccessItem *
 find_address_conf(const char *host, const char *user,
-                  struct irc_ssaddr *ip, int aftype, char *password, char *certfp)
+                  struct sockaddr_storage *ip, int aftype, char *password, char *certfp)
 {
   struct AccessItem *iconf, *kconf;
 
-  /* Find the best I-line... If none, return NULL -A1kmm */
+  /* Find the best auth{} block... If none, return NULL -A1kmm */
   if ((iconf = find_conf_by_address(host, ip, CONF_CLIENT, aftype, user,
-                                    password, certfp)) == NULL)
-    return(NULL);
+                                    password, 1, certfp)) == NULL)
+    return NULL;
 
-  /* If they are exempt from K-lines, return the best I-line. -A1kmm */
+  /* If they are exempt from K-lines, return the best auth{} block. -A1kmm */
   if (IsConfExemptKline(iconf))
-    return(iconf);
+    return iconf;
 
   /* Find the best K-line... -A1kmm */
-  kconf = find_conf_by_address(host, ip, CONF_KILL, aftype, user, NULL, NULL);
+  kconf = find_conf_by_address(host, ip, CONF_KLINE, aftype, user, NULL, 1, NULL);
 
-  /* If they are K-lined, return the K-line. Otherwise, return the
-   * I-line. -A1kmm */
+  /*
+   * If they are K-lined, return the K-line. Otherwise, return the
+   * auth{} block. -A1kmm
+   */
   if (kconf != NULL)
-    return(kconf);
+    return kconf;
 
-  kconf = find_conf_by_address(host, ip, CONF_GLINE, aftype, user, NULL, NULL);
-  if (kconf != NULL && !IsConfExemptGline(iconf))
-    return(kconf);
-
-  return(iconf);
+  return iconf;
 }
 
-struct AccessItem *
-find_gline_conf(const char *host, const char *user,
-                struct irc_ssaddr *ip, int aftype)
-{
-  struct AccessItem *eline;
-
-  eline = find_conf_by_address(host, ip, CONF_EXEMPTKLINE, aftype,
-                               user, NULL, NULL);
-  if (eline != NULL)
-    return(eline);
-
-  return(find_conf_by_address(host, ip, CONF_GLINE, aftype, user, NULL, NULL));
-}
-
-/* find_kline_conf
+/* struct AccessItem* find_dline_conf(struct sockaddr_storage*, int)
  *
- * inputs	- pointer to hostname
- *		- pointer to username
- *		- incoming IP and type (IPv4 vs. IPv6)
- * outut	- pointer to kline conf if found NULL if not
- * side effects	-
- */
-struct AccessItem *
-find_kline_conf(const char *host, const char *user, const char *certfp,
-		struct irc_ssaddr *ip, int aftype)
-{
-  struct AccessItem *eline;
-
-  eline = find_conf_by_address(host, ip, CONF_EXEMPTKLINE, aftype,
-                               user, NULL, certfp);
-  if (eline != NULL)
-    return(eline);
-
-  return(find_conf_by_address(host, ip, CONF_KILL, aftype, user, NULL, NULL));
-}
-
-/* struct AccessItem* find_dline_conf(struct irc_ssaddr*, int)
- *
- * Input:	An address, an address family.
- * Output:	The best matching D-line or exempt line.
+ * Input:  An address, an address family.
+ * Output:  The best matching D-line or exempt line.
  * Side effects: None.
  */
 struct AccessItem *
-find_dline_conf(struct irc_ssaddr *addr, int aftype)
+find_dline_conf(struct sockaddr_storage *addr, int aftype)
 {
   struct AccessItem *eline;
 
   eline = find_conf_by_address(NULL, addr, CONF_EXEMPTDLINE | 1, aftype,
-                               NULL, NULL, NULL);
+                               NULL, NULL, 1, NULL);
+
   if (eline != NULL)
-    return(eline);
-  return(find_conf_by_address(NULL, addr, CONF_DLINE | 1, aftype, NULL, NULL, NULL));
+    return eline;
+
+  return find_conf_by_address(NULL, addr, CONF_DLINE | 1, aftype, NULL, NULL, 1,
+                              NULL);
 }
 
 /* void add_conf_by_address(int, struct AccessItem *aconf)
- * Input: 
+ * Input:
  * Output: None
  * Side-effects: Adds this entry to the hash table.
  */
 void
-add_conf_by_address(int type, struct AccessItem *aconf)
+add_conf_by_address(const unsigned int type, struct AccessItem *aconf)
 {
   const char *address;
   const char *username;
-  static unsigned long prec_value = 0xFFFFFFFF;
-  int masktype, bits;
-  unsigned long hv;
+  static unsigned int prec_value = 0xFFFFFFFF;
+  int bits = 0;
   struct AddressRec *arec;
 
   address = aconf->host;
   username = aconf->user;
 
-  assert(type != 0); 
+  assert(type != 0);
   assert(aconf != NULL);
 
   if (EmptyString(address))
     address = "/NOMATCH!/";
 
   arec = MyMalloc(sizeof(struct AddressRec));
-  masktype = parse_netmask(address, &arec->Mask.ipa.addr, &bits);
+  arec->masktype = parse_netmask(address, &arec->Mask.ipa.addr, &bits);
   arec->Mask.ipa.bits = bits;
-  arec->masktype = masktype;
-#ifdef IPV6
-  if (masktype == HM_IPV6)
-  {
-    /* We have to do this, since we do not re-hash for every bit -A1kmm. */
-    bits -= bits % 16;
-    arec->next = atable[(hv = hash_ipv6(&arec->Mask.ipa.addr, bits))];
-    atable[hv] = arec;
-  }
-  else 
-#endif
-  if (masktype == HM_IPV4)
-  {
-    /* We have to do this, since we do not re-hash for every bit -A1kmm. */
-    bits -= bits % 8;
-    arec->next = atable[(hv = hash_ipv4(&arec->Mask.ipa.addr, bits))];
-    atable[hv] = arec;
-  }
-  else
-  {
-    arec->Mask.hostname = address;
-    if(aconf->certfp != NULL)
-      arec->next = atable[(hv = get_mask_hash("*"))];
-    else
-      arec->next = atable[(hv = get_mask_hash(address))];
-    atable[hv] = arec;
-  }
   arec->username = username;
   arec->aconf = aconf;
   arec->precedence = prec_value--;
   arec->type = type;
+
+  switch (arec->masktype)
+  {
+    case HM_IPV4:
+      /* We have to do this, since we do not re-hash for every bit -A1kmm. */
+      bits -= bits % 8;
+      dlinkAdd(arec, &arec->node, &atable[hash_ipv4(&arec->Mask.ipa.addr, bits)]);
+      break;
+    case HM_IPV6:
+      /* We have to do this, since we do not re-hash for every bit -A1kmm. */
+      bits -= bits % 16;
+      dlinkAdd(arec, &arec->node, &atable[hash_ipv6(&arec->Mask.ipa.addr, bits)]);
+      break;
+    default: /* HM_HOST */
+      arec->Mask.hostname = address;
+      dlinkAdd(arec, &arec->node, &atable[get_mask_hash(address)]);
+      break;
+  }
 }
 
 /* void delete_one_address(const char*, struct AccessItem*)
@@ -736,243 +766,133 @@ add_conf_by_address(int type, struct AccessItem *aconf)
 void
 delete_one_address_conf(const char *address, struct AccessItem *aconf)
 {
-  int masktype, bits;
-  unsigned long hv;
-  struct AddressRec *arec, *arecl = NULL;
-  struct irc_ssaddr addr;
-  masktype = parse_netmask(address, &addr, &bits);
+  int bits = 0;
+  uint32_t hv = 0;
+  dlink_node *ptr = NULL, *ptr_next = NULL;
+  struct sockaddr_storage addr;
 
-#ifdef IPV6
-  if (masktype == HM_IPV6)
+  switch (parse_netmask(address, &addr, &bits))
   {
-    /* We have to do this, since we do not re-hash for every bit -A1kmm. */
-    bits -= bits % 16;
-    hv = hash_ipv6(&addr, bits);
+    case HM_IPV4:
+      /* We have to do this, since we do not re-hash for every bit -A1kmm. */
+      bits -= bits % 8;
+      hv = hash_ipv4(&addr, bits);
+      break;
+    case HM_IPV6:
+      /* We have to do this, since we do not re-hash for every bit -A1kmm. */
+      bits -= bits % 16;
+      hv = hash_ipv6(&addr, bits);
+      break;
+    default: /* HM_HOST */
+      hv = get_mask_hash(address);
+      break;
   }
-  else
-#endif
-  if (masktype == HM_IPV4)
+
+  DLINK_FOREACH_SAFE(ptr, ptr_next, atable[hv].head)
   {
-    /* We have to do this, since we do not re-hash for every bit -A1kmm. */
-    bits -= bits % 8;
-    hv = hash_ipv4(&addr, bits);
-  }
-  else
-    hv = get_mask_hash(address);
-  for (arec = atable[hv]; arec; arec = arec->next)
-  {
+    struct AddressRec *arec = ptr->data;
+
     if (arec->aconf == aconf)
     {
-      if (arecl)
-        arecl->next = arec->next;
-      else
-        atable[hv] = arec->next;
+      dlinkDelete(&arec->node, &atable[hv]);
       aconf->status |= CONF_ILLEGAL;
-      if (aconf->clients == 0)
+
+      if (!aconf->clients)
         free_access_item(aconf);
+
       MyFree(arec);
       return;
     }
-    arecl = arec;
   }
 }
 
-/* void clear_out_address_conf(void)
+/* void clear_out_address_conf()
  * Input: None
  * Output: None
  * Side effects: Clears out all address records in the hash table,
  *               frees them, and frees the AccessItems if nothing references
- *               them, otherwise sets them as illegal.   
+ *               them, otherwise sets them as illegal.
  */
 void
-clear_out_address_conf(void)
+clear_out_address_conf()
 {
-  int i;
-  struct AddressRec *arec;
-  struct AddressRec *last_arec;
-  struct AddressRec *next_arec;
- 
-  for (i = 0; i < ATABLE_SIZE; i++)
+  unsigned int i = 0;
+  dlink_node *ptr = NULL, *ptr_next = NULL;
+
+  for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    last_arec = NULL;
-    for (arec = atable[i]; arec; arec = next_arec)
+    DLINK_FOREACH_SAFE(ptr, ptr_next, atable[i].head)
     {
+      struct AddressRec *arec = ptr->data;
+
       /* We keep the temporary K-lines and destroy the
        * permanent ones, just to be confusing :) -A1kmm
-       */  
-      next_arec = arec->next;
-
-      if (arec->aconf->flags & CONF_FLAGS_TEMPORARY)
+       */
+      if (!(arec->aconf->flags & CONF_FLAGS_TEMPORARY))
       {
-        last_arec = arec;
-      }
-      else   
-      {
+        dlinkDelete(&arec->node, &atable[i]);
         /* unlink it from link list - Dianora */
-  
-        if (last_arec == NULL)
-        {
-          atable[i] = next_arec;
-        }
-        else
-        {
-          last_arec->next = next_arec;
-        }
-
         arec->aconf->status |= CONF_ILLEGAL;
-        if (arec->aconf->clients == 0)
+
+        if (!arec->aconf->clients)
           free_access_item(arec->aconf);
+
         MyFree(arec);
       }
     }
   }
 }
 
-/*
- * show_iline_prefix()
- *
- * inputs       - pointer to struct Client requesting output
- *              - pointer to struct AccessItem 
- *              - name to which iline prefix will be prefixed to
- * output       - pointer to static string with prefixes listed in ascii form
- * side effects - NONE
- */
-char *
-show_iline_prefix(struct Client *sptr, struct AccessItem *aconf, const char *name)
+static void
+hostmask_send_expiration(struct AddressRec *arec)
 {
-  static char prefix_of_host[USERLEN + 14];
-  char *prefix_ptr;
+  char ban_type = '\0';
 
-  prefix_ptr = prefix_of_host;
-  if (IsNoTilde(aconf))
-    *prefix_ptr++ = '-';
-  if (IsLimitIp(aconf))
-    *prefix_ptr++ = '!';
-  if (IsNeedIdentd(aconf))
-    *prefix_ptr++ = '+';
-  if (!IsNeedPassword(aconf))
-    *prefix_ptr++ = '&';
-  if (IsConfExemptResv(aconf))
-    *prefix_ptr++ = '$';
-  if (IsNoMatchIp(aconf))
-    *prefix_ptr++ = '%';
-  if (IsConfDoSpoofIp(aconf))
-    *prefix_ptr++ = '=';
-  if (MyOper(sptr) && IsConfExemptKline(aconf))
-    *prefix_ptr++ = '^';
-  if (MyOper(sptr) && IsConfExemptGline(aconf))
-    *prefix_ptr++ = '_';
-  if (MyOper(sptr) && IsConfExemptLimits(aconf))
-    *prefix_ptr++ = '>';
-  if (MyOper(sptr) && IsConfIdlelined(aconf))
-    *prefix_ptr++ = '<';
-  if (IsConfCanFlood(aconf))
-    *prefix_ptr++ = '|';
-  strlcpy(prefix_ptr, name, USERLEN);
+  if (!ConfigFileEntry.tkline_expire_notices)
+    return;
 
-  return(prefix_of_host);
-}
-
-/* report_auth()
- *
- * Inputs: pointer to client to report to
- * Output: None
- * Side effects: Reports configured auth{} blocks to client_p
- */
-void
-report_auth(struct Client *client_p)
-{
-  struct AddressRec *arec;
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-  int i;
-
-  for (i = 0; i < ATABLE_SIZE; i++)
+  switch (arec->type)
   {
-    for (arec = atable[i]; arec; arec = arec->next)
-    {
-      if (arec->type == CONF_CLIENT)
-      {
-        aconf = arec->aconf;
+    case CONF_KLINE:
+      ban_type = 'K';
+      break;
 
-        if (!MyOper(client_p) && IsConfDoSpoofIp(aconf))
-          continue;
-
-	conf = unmap_conf_item(aconf);
-
-        /* We are doing a partial list, based on what matches the u@h of the
-         * sender, so prepare the strings for comparing --fl_
-	 */
-        if (ConfigFileEntry.hide_spoof_ips)
-          sendto_one(client_p, form_str(RPL_STATSILINE), me.name,
-                     client_p->name, 'I',
-		     conf->name == NULL ? "*" : conf->name,
-		     show_iline_prefix(client_p, aconf, aconf->user),
-                     IsConfDoSpoofIp(aconf) ? "255.255.255.255" :
-                     aconf->host, aconf->port,
-		     aconf->class_ptr ? aconf->class_ptr->name : "<default>");
-		     
-        else
-          sendto_one(client_p, form_str(RPL_STATSILINE), me.name,
-                     client_p->name, 'I',
-		     conf->name == NULL ? "*" : conf->name,
-		     show_iline_prefix(client_p, aconf, aconf->user),
-                     aconf->host, aconf->port,
-		     aconf->class_ptr ? aconf->class_ptr->name : "<default>");
-      }
-    }
+    case CONF_DLINE:
+      ban_type = 'D';
+      break;
   }
+
+  sendto_realops_flags(UMODE_ALL, L_ALL,
+                       "Temporary %c-line for [%s@%s] expired", ban_type,
+                       (arec->aconf->user) ? arec->aconf->user : "*",
+                       (arec->aconf->host) ? arec->aconf->host : "*");
 }
 
-/* report_Klines()
- * Inputs: Client to report to,
- *	   type(==0 for perm, !=0 for temporary)
- *	   mask 
- * Output: None
- * Side effects: Reports configured K(or k)-lines to client_p.
- */
 void
-report_Klines(struct Client *client_p, int tkline)
+hostmask_expire_temporary()
 {
-  struct AddressRec *arec = NULL;
-  struct AccessItem *aconf = NULL;
-  int i;
-  const char *p = NULL;
-  char buf[IRCD_BUFSIZE+1] = {'\0'};
+  unsigned int i = 0;
+  dlink_node *ptr = NULL, *ptr_next = NULL;
 
-  if (tkline)
-    p = "k";
-  else
-    p = "K";
-
-  for (i = 0; i < ATABLE_SIZE; i++)
+  for (i = 0; i < ATABLE_SIZE; ++i)
   {
-    for (arec = atable[i]; arec; arec = arec->next)
+    DLINK_FOREACH_SAFE(ptr, ptr_next, atable[i].head)
     {
-      if (arec->type == CONF_KILL)
+      struct AddressRec *arec = ptr->data;
+
+      if (!IsConfTemporary(arec->aconf) || arec->aconf->hold > CurrentTime)
+        continue;
+
+      switch (arec->type)
       {
-        if ((tkline && !((aconf = arec->aconf)->flags & CONF_FLAGS_TEMPORARY)) ||
-            (!tkline && ((aconf = arec->aconf)->flags & CONF_FLAGS_TEMPORARY)))
-          continue;
+        case CONF_KLINE:
+        case CONF_DLINE:
+          hostmask_send_expiration(arec);
 
-        if (IsOper(client_p))
-        {
-          if(aconf->hold != 0)
-            ircsprintf(buf, "%s Expires (%s)", 
-                aconf->oper_reason ? aconf->oper_reason : "", 
-                smalldate(aconf->hold));
-          else
-            ircsprintf(buf, "%s",
-                aconf->oper_reason ? aconf->oper_reason : "");
-
-          sendto_one(client_p, form_str(RPL_STATSKLINE), me.name,
-              client_p->name, p, aconf->host, aconf->user,
-              aconf->reason, *buf == '\0' ? "" : buf);
-        }
-        else
-          sendto_one(client_p, form_str(RPL_STATSKLINE), me.name,
-              client_p->name, p, aconf->host, aconf->user,
-              aconf->reason, "");
+          dlinkDelete(&arec->node, &atable[i]);
+          free_access_item(arec->aconf);
+          MyFree(arec);
+          break;
       }
     }
   }

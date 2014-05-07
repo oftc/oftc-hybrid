@@ -23,42 +23,15 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "irc_string.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_user.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 #include "s_serv.h"
-
-static void mo_operwall(struct Client *, struct Client *, int, char **);
-static void ms_operwall(struct Client *, struct Client *, int, char **);
-static void me_operwall(struct Client *, struct Client *, int, char **);
-
-struct Message operwall_msgtab = {
-  "OPERWALL", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_operwall, me_operwall, mo_operwall, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&operwall_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&operwall_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 
 /*
@@ -73,7 +46,7 @@ mo_operwall(struct Client *client_p, struct Client *source_p,
 {
   const char *message = parv[1];
 
-  if (!IsOperWall(source_p))
+  if (!HasOFlag(source_p, OPER_FLAG_OPERWALL))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVS),
                me.name, source_p->name, "operwall");
@@ -87,9 +60,9 @@ mo_operwall(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  sendto_server(NULL, source_p, NULL, CAP_TS6, NOCAPS, LL_ICLIENT,
+  sendto_server(NULL, CAP_TS6, NOCAPS,
                 ":%s OPERWALL :%s", ID(source_p), message);
-  sendto_server(NULL, source_p, NULL, NOCAPS, CAP_TS6, LL_ICLIENT,
+  sendto_server(NULL, NOCAPS, CAP_TS6,
                 ":%s OPERWALL :%s", source_p->name, message);
   sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }
@@ -109,8 +82,10 @@ ms_operwall(struct Client *client_p, struct Client *source_p,
   if (EmptyString(message))
     return;
 
-  sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, LL_ICLIENT,
-                ":%s OPERWALL :%s", parv[0], message);
+  sendto_server(client_p, CAP_TS6, NOCAPS, ":%s OPERWALL :%s",
+                ID(source_p), message);
+  sendto_server(client_p, NOCAPS, CAP_TS6, ":%s OPERWALL :%s",
+                source_p->name, message);
   sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }
 
@@ -133,3 +108,32 @@ me_operwall(struct Client *client_p, struct Client *source_p,
 
   sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }
+
+static struct Message operwall_msgtab =
+{
+  "OPERWALL", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, ms_operwall, me_operwall, mo_operwall, m_ignore}
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&operwall_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&operwall_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

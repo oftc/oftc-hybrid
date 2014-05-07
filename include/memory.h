@@ -19,74 +19,27 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: memory.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef _I_MEMORY_H
 #define _I_MEMORY_H
 
 #include "ircd_defs.h"
-#include "setup.h"
 #include "balloc.h"
 
-/* Needed to use uintptr_t for some pointer manipulation. */
+IRCD_EXTERN void outofmemory();
 
-#ifdef HAVE_INTTYPES_H
-# include <inttypes.h>
-#else /* No inttypes.h */
-# ifndef HAVE_UINTPTR_T
-typedef unsigned long uintptr_t;
-# endif
-#endif
-
-extern void outofmemory(void);
-
-extern void *MyMalloc(size_t size);
-extern void *MyRealloc(void *x, size_t y);
-extern void MyFree(void *x);
-extern void _DupString(char **x, const char *y);
-
-/* forte (and maybe others) don't like double declarations, 
- * so we don't declare the inlines unless GNUC
- */
-#ifdef __GNUC__
-extern inline void *
-MyMalloc(size_t size)
-{
-  void *ret = calloc(1, size);
-
-  if (ret == NULL)
-    outofmemory();
-  return(ret);
-}
-
-extern inline void *
-MyRealloc(void *x, size_t y)
-{
-  void *ret = realloc(x, y);
-
-  if (ret == NULL)
-    outofmemory();
-  return(ret);    
-}
-
-extern inline void
-MyFree(void *x)
-{
-  if (x != NULL)
-    free(x);
-}
-
-extern inline void
-_DupString(char **x, const char *y)
-{
-  (*x) = malloc(strlen(y) + 1);
-
-  if (x == NULL)
-    outofmemory();
-  strcpy((*x), y); 
-}
-#endif /* __GNUC__ */
+IRCD_EXTERN void *MyMalloc(size_t);
+IRCD_EXTERN void *MyRealloc(void *, size_t);
+IRCD_EXTERN void MyFree(void *);
+IRCD_EXTERN void _DupString(char **, const char *);
 
 #define DupString(x,y) _DupString(&x, y)
+
+#ifndef NDEBUG
+IRCD_EXTERN void mem_frob(void *, int);
+#else
+#define mem_frob(x, y)
+#endif
 #endif /* _I_MEMORY_H */

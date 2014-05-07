@@ -23,8 +23,7 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
-#include "handlers.h"
+#include "list.h"
 #include "channel.h"
 #include "client.h"
 #include "ircd.h"
@@ -32,35 +31,11 @@
 #include "send.h"
 #include "irc_string.h"
 #include "hash.h"
-#include "msg.h"
 #include "s_serv.h"
 #include "modules.h"
-#include "list.h"
 #include "channel_mode.h"
-#include "common.h"
+#include "parse.h"
 
-static void mo_ojoin(struct Client *, struct Client *, int, char *[]);
-
-struct Message ojoin_msgtab = {
-  "OJOIN", 0, 0, 2, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ojoin, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&ojoin_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&ojoin_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /* mo_ojoin()
  *      parv[0] = sender prefix
@@ -79,7 +54,7 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
   dlink_node *ptr;
 
   /* admins only */
-  if (!IsAdmin(source_p))
+  if (!HasUMode(source_p, UMODE_ADMIN))
   {
     sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
                me.name, source_p->name);
@@ -98,6 +73,7 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
         ++name;
         break;
 #ifdef HALFOPS
+
       case '%':
         prefix = "%";
         flags = CHFL_HALFOP;
@@ -105,14 +81,15 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
         ++name;
         break;
 #endif
+
       case '+':
         prefix = "+";
         flags = CHFL_VOICE;
         modeletter = 'v';
         ++name;
         break;
+
       case '#':
-      case '&':
         prefix = "";
         flags = 0;
         modeletter = '\0';
@@ -126,41 +103,36 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
 
     /* Error checking here */
     if ((chptr = hash_find_channel(name)) == NULL)
-    {
       sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                  me.name, source_p->name, name);
-    }
     else if (IsMember(source_p, chptr))
-    {
       sendto_one(source_p, ":%s NOTICE %s :Please part %s before using OJOIN",
                  me.name, source_p->name, name);
-    }
     else
     {
-      add_user_to_channel(chptr, source_p, flags, NO);
+      add_user_to_channel(chptr, source_p, flags, 0);
 
-      if (chptr->chname[0] == '#')
-        DLINK_FOREACH(ptr, serv_list.head)
-        {
-          struct Client *serv_p = ptr->data;
+      DLINK_FOREACH(ptr, serv_list.head)
+      {
+        struct Client *serv_p = ptr->data;
 
-          sendto_one(serv_p, ":%s SJOIN %lu %s + :%s%s", ID_or_name(&me, serv_p),
-                     (unsigned long)chptr->channelts, chptr->chname,
-                     (*prefix == '%' && !IsCapable(serv_p, CAP_HOPS)) ?
-                     "@" : prefix, ID_or_name(source_p, serv_p));
-        }
+        sendto_one(serv_p, ":%s SJOIN %lu %s + :%s%s", ID_or_name(&me, serv_p),
+                   (unsigned long)chptr->channelts, chptr->chname,
+                   (*prefix == '%' && !IsCapable(serv_p, CAP_HOPS)) ?
+                   "@" : prefix, ID_or_name(source_p, serv_p));
+      }
 
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN %s",
+      sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s!%s@%s JOIN %s",
                            source_p->name, source_p->username,
                            source_p->host,
                            chptr->chname);
 
       if (modeletter != '\0')
-        sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +%c %s",
+        sendto_channel_local(ALL_MEMBERS, 0, chptr, ":%s MODE %s +%c %s",
                              me.name, chptr->chname, modeletter, source_p->name);
 
       /* send the topic... */
-      if (chptr->topic != NULL)
+      if (chptr->topic[0])
       {
         sendto_one(source_p, form_str(RPL_TOPIC),
                    me.name, source_p->name, chptr->chname,
@@ -175,3 +147,32 @@ mo_ojoin(struct Client *client_p, struct Client *source_p,
     }
   }
 }
+
+static struct Message ojoin_msgtab =
+{
+  "OJOIN", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_not_oper, m_ignore, m_ignore, mo_ojoin, m_ignore }
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&ojoin_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&ojoin_msgtab);
+}
+
+struct module module_entry =
+{
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};

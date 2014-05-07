@@ -23,58 +23,70 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_conf.h"
+#include "conf.h"
 #include "s_serv.h"
 #include "s_user.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
-static char *confopts(struct Client *);
-static void m_version(struct Client *, struct Client *, int, char *[]);
-static void ms_version(struct Client *, struct Client *, int, char *[]);
-static void mo_version(struct Client *, struct Client *, int, char *[]);
 
 /* Option string. */
-static const char serveropts[] = {
+static const char serveropts[] =
+{
   ' ',
   'T',
   'S',
 #ifdef TS_CURRENT
   '0' + TS_CURRENT,
 #endif
-/* ONLY do TS */
-/* ALWAYS do TS_WARNINGS */
+  /* ONLY do TS */
+  /* ALWAYS do TS_WARNINGS */
   'o',
   'w',
   '\0'
 };
 
-struct Message version_msgtab = {
-  "VERSION", 0, 0, 0, 0, MFLG_SLOW, 0,
-  { m_unregistered, m_version, ms_version, m_ignore, mo_version, m_ignore }
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
+/* confopts()
+ *
+ * input  - client pointer
+ * output - ircd.conf option string
+ * side effects - none
+ */
+static char *
+confopts(struct Client *source_p)
 {
-  mod_add_cmd(&version_msgtab);
-}
+  static char result[12];
+  char *p = result;
 
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&version_msgtab);
-}
+  *p++ = 'e'; /* excepts */
 
-const char *_version = "$Revision$";
-#endif
+  *p++ = 'g';
+
+  /* might wanna hide this :P */
+  if (ServerInfo.hub &&
+      (!ConfigFileEntry.disable_remote || HasUMode(source_p, UMODE_OPER)))
+  {
+    *p++ = 'H';
+  }
+
+  *p++ = 'I'; /* invex */
+  *p++ = 'K'; /* knock */
+  *p++ = 'q'; /* quiet */
+  *p++ = 'M';
+
+  if (ConfigFileEntry.ignore_bogus_ts)
+    *p++ = 'T';
+
+  *p++ = '6';
+
+  *p = '\0';
+
+  return result;
+}
 
 /*
  * m_version - VERSION command handler
@@ -119,13 +131,14 @@ static void
 mo_version(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
-  
-  if (hunt_server(client_p, source_p, ":%s VERSION :%s", 
-		  1, parc, parv) != HUNTED_ISME)
+
+  if (hunt_server(client_p, source_p, ":%s VERSION :%s",
+                  1, parc, parv) != HUNTED_ISME)
     return;
 
-  sendto_one(source_p, form_str(RPL_VERSION), me.name, parv[0], ircd_version, 
-  	     serno, me.name, confopts(source_p), serveropts);
+  sendto_one(source_p, form_str(RPL_VERSION), me.name,
+             source_p->name, ircd_version,
+             serno, me.name, confopts(source_p), serveropts);
 
   show_isupport(source_p);
 }
@@ -139,7 +152,7 @@ static void
 ms_version(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
-  if (hunt_server(client_p, source_p, ":%s VERSION :%s", 
+  if (hunt_server(client_p, source_p, ":%s VERSION :%s",
                   1, parc, parv) == HUNTED_ISME)
   {
     sendto_one(source_p, form_str(RPL_VERSION),
@@ -151,50 +164,31 @@ ms_version(struct Client *client_p, struct Client *source_p,
   }
 }
 
-/* confopts()
- *
- * input  - client pointer
- * output - ircd.conf option string
- * side effects - none
- */
-static char *
-confopts(struct Client *source_p)
+static struct Message version_msgtab =
 {
-  static char result[12];
-  char *p = result;
+  "VERSION", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  { m_unregistered, m_version, ms_version, m_ignore, mo_version, m_ignore }
+};
 
-  if (ConfigChannel.use_except)
-    *p++ = 'e';
-  if (ConfigFileEntry.glines)
-    *p++ = 'G';
-  *p++ = 'g';
-
-  /* might wanna hide this :P */
-  if (ServerInfo.hub && 
-      (!ConfigFileEntry.disable_remote || IsOper(source_p)))
-  {
-    *p++ = 'H';
-  }
-
-  if (ConfigChannel.use_invex)
-    *p++ = 'I';
-  if (ConfigChannel.use_quiet)
-    *p++ = 'q';
-  if (ConfigChannel.use_knock)
-    *p++ = 'K';
-  *p++ = 'M';
-
-  if (ConfigFileEntry.ignore_bogus_ts)
-    *p++ = 'T';
-#ifdef USE_SYSLOG
-  *p++ = 'Y';
-#endif
-#ifdef HAVE_LIBZ
-  *p++ = 'Z';
-#endif
-  *p++ = '6';
-
-  *p = '\0';
-
-  return result;
+static void
+module_init()
+{
+  mod_add_cmd(&version_msgtab);
 }
+
+static void
+module_exit()
+{
+  mod_del_cmd(&version_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

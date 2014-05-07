@@ -27,30 +27,29 @@
 
 #define LISTENER_SSL    0x1
 #define LISTENER_HIDDEN 0x2
+#define LISTENER_SERVER 0x4
 
-#include "ircd_defs.h"  
-#include "tools.h"
+#include "ircd_defs.h"
 #include "fdlist.h"
 
 struct Client;
 
 struct Listener
 {
-  dlink_node	   listener_node;      /* list node pointer */
-  const char*      name;               /* listener name */
-  fde_t            fd;                 /* file descriptor */
-  int              port;               /* listener IP port */
-  int              ref_count;          /* number of connection references */
-  int              active;             /* current state of listener */
-  struct irc_ssaddr addr;              /* virtual address or INADDR_ANY */
-  char              vhost[HOSTLEN + 1]; /* virtual name of listener */
-  unsigned int      flags;
+  dlink_node              listener_node;      /* list node pointer */
+  fde_t                   fd;                 /* file descriptor */
+  int                     port;               /* listener IP port */
+  int                     ref_count;          /* number of connection references */
+  int                     active;             /* current state of listener */
+  struct sockaddr_storage addr;               /* virtual address or INADDR_ANY */
+  char                    name[HOSTLEN + 1];  /* virtual name of listener */
+  unsigned int            flags;
 };
 
-extern void add_listener(int, const char *, unsigned int);
-extern void close_listeners(void);
-extern const char *get_listener_name(const struct Listener *);
-extern void show_ports(struct Client *);
-extern void free_listener(struct Listener *);
-struct Listener *find_listener(int port, struct irc_ssaddr *addr);
+IRCD_EXTERN void add_listener(int, const char *, unsigned int);
+IRCD_EXTERN void close_listeners();
+IRCD_EXTERN const char *get_listener_name(const struct Listener *const);
+IRCD_EXTERN void show_ports(struct Client *);
+IRCD_EXTERN void free_listener(struct Listener *);
+struct Listener *find_listener(int port, struct sockaddr_storage *addr);
 #endif /* INCLUDED_listener_h */

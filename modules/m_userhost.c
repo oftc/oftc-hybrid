@@ -23,7 +23,6 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
 #include "numeric.h"
@@ -31,34 +30,9 @@
 #include "send.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
 
-
-static void m_userhost(struct Client *, struct Client *, int, char *[]);
-
-struct Message userhost_msgtab = {
-  "USERHOST", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_userhost, m_userhost, m_ignore, m_userhost, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&userhost_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&userhost_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
  * m_userhost added by Darren Reed 13/8/91 to aid clients and reduce
@@ -71,81 +45,86 @@ m_userhost(struct Client *client_p, struct Client *source_p,
 {
   struct Client *target_p;
   char buf[IRCD_BUFSIZE];
-  char response[NICKLEN*2+USERLEN+HOSTLEN+30];
-  char *t;
-  int i, n;               /* loop counter */
+  char response[NICKLEN * 2 + USERLEN + HOSTLEN + 30];
+  char *t = NULL, *p = NULL, *nick = NULL;
+  int i = 0;               /* loop counter */
   int cur_len;
   int rl;
 
-  cur_len = ircsprintf(buf,form_str(RPL_USERHOST),me.name, parv[0], "");
+  cur_len = snprintf(buf, sizeof(buf), form_str(RPL_USERHOST), me.name,
+                     source_p->name, "");
   t = buf + cur_len;
 
-  for (i = 0; i < 5; i++)
+  for (nick = strtoken(&p, parv[1], " "); nick && i++ < 5;
+       nick = strtoken(&p,    NULL, " "))
   {
-    if (parv[i+1] == NULL)
-      break;
-
-    if ((target_p = find_person(client_p, parv[i+1])) != NULL)
+    if ((target_p = find_person(client_p, nick)) != NULL)
     {
-	  /*
-	   * Show real IP for USERHOST on yourself.
-	   * This is needed for things like mIRC, which do a server-based
-	   * lookup (USERHOST) to figure out what the clients' local IP
-	   * is.  Useful for things like NAT, and dynamic dial-up users.
-	   */
       /*
-       * If a lazyleaf relayed us this request, we don't know
-       * the clients real IP.
-       * So, if you're on a lazyleaf, and you send a userhost
-       * including your nick and the nick of someone not known to
-       * the leaf, you'll get your spoofed IP.  tough.
+       * Show real IP for USERHOST on yourself.
+       * This is needed for things like mIRC, which do a server-based
+       * lookup (USERHOST) to figure out what the clients' local IP
+       * is.  Useful for things like NAT, and dynamic dial-up users.
        */
-	  if (MyClient(target_p) && (target_p == source_p))
-	  {
-            rl = ircsprintf(response, "%s%s=%c%s@%s ",
-			    target_p->name,
-			    IsOper(target_p) ? "*" : "",
-			    (target_p->away) ? '-' : '+',
-			    target_p->username,
-			    target_p->sockhost);
-	  }
-      else
-	  {
-            rl = ircsprintf(response, "%s%s=%c%s@%s ",
-			    target_p->name,
-			    IsOper(target_p) ? "*" : "",
-			    (target_p->away) ? '-' : '+',
-			    target_p->username,
-			    target_p->host);
-	  }
-
-	  if ((rl + cur_len) < (IRCD_BUFSIZE-10))
+      if (MyClient(target_p) && (target_p == source_p))
       {
-        ircsprintf(t,"%s",response);
+        rl = ircsprintf(response, "%s%s=%c%s@%s ",
+                        target_p->name,
+                        HasUMode(target_p, UMODE_OPER) ? "*" : "",
+                        (target_p->away[0]) ? '-' : '+',
+                        target_p->username,
+                        target_p->sockhost);
+      }
+      else
+      {
+        rl = ircsprintf(response, "%s%s=%c%s@%s ",
+                        target_p->name, (HasUMode(target_p, UMODE_OPER) &&
+                                         (!HasUMode(target_p, UMODE_HIDDEN) ||
+                                          HasUMode(source_p, UMODE_OPER))) ? "*" : "",
+                        (target_p->away[0]) ? '-' : '+',
+                        target_p->username,
+                        target_p->host);
+      }
+
+      if ((rl + cur_len) < (IRCD_BUFSIZE - 10))
+      {
+        ircsprintf(t, "%s", response);
         t += rl;
         cur_len += rl;
       }
-	  else
-	    break;
-	}
-    else if ( !ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL) )
-    {
-      t = buf;
-      for ( n = 0; n < 5; n++ )
-      {
-        if( parv[n+1] )
-        {
-          rl = ircsprintf(t, "%s ", parv[n+1]);
-          t += rl;
-        }
-        else
-          break;
-      }
-      /* Relay upstream, and let hub reply */
-      sendto_one(uplink, ":%s USERHOST %s", parv[0], buf );
-      return;
+      else
+        break;
     }
   }
 
   sendto_one(source_p, "%s", buf);
 }
+
+static struct Message userhost_msgtab =
+{
+  "USERHOST", 0, 0, 2, 1, MFLG_SLOW, 0,
+  {m_unregistered, m_userhost, m_userhost, m_ignore, m_userhost, m_ignore}
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&userhost_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&userhost_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

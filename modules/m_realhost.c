@@ -19,18 +19,14 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id$
- *
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "hash.h"
 #include "ircd.h"
 #include "numeric.h"
-#include "s_conf.h"
-#include "s_stats.h"
+#include "conf.h"
 #include "s_user.h"
 #include "hash.h"
 #include "whowas.h"
@@ -38,42 +34,48 @@
 #include "send.h"
 #include "channel.h"
 #include "resv.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "common.h"
 #include "packet.h"
 #include "irc_string.h"
 
+static void ms_realhost(struct Client *source_p, struct Client *client_p,
+                        int parc, char **parv)
+{
+  if (source_p->realhost[0] == '\0')
+    strlcpy(source_p->realhost, parv[1], sizeof(source_p->realhost));
 
-static void ms_realhost(struct Client *, struct Client *, int, char**);
+  sendto_server(client_p, CAP_TS6, NOCAPS, ":%s REALHOST :%s", ID(source_p), 
+                parv[1]);
+  sendto_server(client_p, NOCAPS, CAP_TS6, ":%s REALHOST :%s", source_p->name, 
+                parv[1]);
+}
 
-struct Message realhost_msgtab = {
-      "REALHOST", 0, 0, 2, 0, MFLG_SLOW, 0,
-        {m_ignore, m_ignore, ms_realhost, m_ignore}
+struct Message realhost_msgtab =
+{
+  "REALHOST", 0, 0, 2, MAXPARA, MFLG_SLOW, 0,
+  {m_ignore, m_ignore, ms_realhost, m_ignore}
 };
 
-const char *_version = "$Revision 0.1$";
-
-void _modinit(void)
+void
+module_init()
 {
   mod_add_cmd(&realhost_msgtab);
 }
 
 void
-_moddeinit(void)
+module_exit()
 {
   mod_del_cmd(&realhost_msgtab);
 }
 
-static void ms_realhost(struct Client *source_p, struct Client *client_p, int parc, char **parv)
+IRCD_EXPORT struct module module_entry =
 {
-  struct Client *target_p;
-  
-  if ((target_p = find_person(client_p, parv[1])) == NULL)
-    return;
-
-  if(target_p->realhost[0] == '\0')
-      strlcpy(target_p->realhost, parv[2], HOSTLEN);
-}
-
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

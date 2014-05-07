@@ -1,4 +1,4 @@
-# $Id: stats 67 2005-10-03 23:50:49Z adx $
+# $Id$
 STATS <letter> [server|nick]
 
 Queries server [server] (or your own server if no

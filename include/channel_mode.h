@@ -34,10 +34,9 @@
 #define MAXMODEPARAMS 4
 
 /* can_send results */
-#define CAN_SEND_ONLY_IF_REG -1
-#define CAN_SEND_NO	0
-#define CAN_SEND_NONOP  1
-#define CAN_SEND_OPV	2
+#define CAN_SEND_NO     0
+#define CAN_SEND_NONOP  -1
+#define CAN_SEND_OPV    -2
 
 /* Channel related flags */
 #define CHFL_CHANOP     0x0001 /* Channel operator   */
@@ -50,21 +49,23 @@
 #define CHFL_QUIET      0x0080 /* quiet mask +q */
 
 /* channel modes ONLY */
-#define MODE_PRIVATE        0x0001
-#define MODE_SECRET         0x0002
-#define MODE_MODERATED      0x0004
-#define MODE_TOPICLIMIT     0x0008
-#define MODE_INVITEONLY     0x0010
-#define MODE_NOPRIVMSGS     0x0020
-#define MODE_NOCOLOR        0x0040
-#define MODE_REGONLY        0x0080
-#define MODE_SPEAKONLYIFREG 0x0100
-#define MODE_SSLONLY        0x0200
-#define MODE_OPMODERATED    0x0400
+#define MODE_PRIVATE    0x0001
+#define MODE_SECRET     0x0002
+#define MODE_MODERATED  0x0004
+#define MODE_TOPICLIMIT 0x0008
+#define MODE_INVITEONLY 0x0010
+#define MODE_NOPRIVMSGS 0x0020
+#define MODE_SSLONLY    0x0040
+#define MODE_OPERONLY   0x0080
+#define MODE_REGISTERED 0x0100 /* Channel has been registered with ChanServ */
+#define MODE_REGONLY    0x0200
+#define MODE_NOCOLOR    0x0400
+#define MODE_SPEAKIFREG 0x0800
+#define MODE_OPMOD      0x1000
 
-#define CHFL_BAN_CHECKED  0x0400
-#define CHFL_BAN_SILENCED 0x0800
- 
+/* cache flags for silence on ban */
+#define CHFL_BAN_CHECKED  0x0080
+#define CHFL_BAN_SILENCED 0x0100
 
 #define MODE_QUERY  0
 #define MODE_ADD    1
@@ -82,34 +83,42 @@
  * +pi means paranoid and will generate notices on each invite */
 #define PrivateChannel(x)       (((x)->mode.mode & MODE_PRIVATE))
 #define RegOnlyChannel(x)       ((x) && ((x)->mode.mode & MODE_REGONLY))
-#define SpeakOnlyIfReg(x)       ((x) && ((x)->mode.mode & MODE_SPEAKONLYIFREG))
+#define SpeakOnlyIfReg(x)       ((x) && ((x)->mode.mode & MODE_SPEAKIFREG))
 #define SSLonlyChannel(x)       ((x) && ((x)->mode.mode & MODE_SSLONLY))
-    
+
 
 struct ChModeChange
 {
-  char letter;
-  const char *arg;
-  const char *id;
-  int dir;
-  int caps;
-  int nocaps;
-  int mems;
+  char          letter;
+  const char    *arg;
+  const char    *id;
+  int           dir;
+  unsigned int  caps;
+  unsigned int  nocaps;
+  int           mems;
   struct Client *client;
 };
 
 struct ChCapCombo
 {
-  int count;
-  int cap_yes;
-  int cap_no;
+  int           count;
+  unsigned int  cap_yes;
+  unsigned int  cap_no;
 };
 
-extern int add_id(struct Client *, struct Channel *, char *, int);
-extern void set_channel_mode(struct Client *, struct Client *, struct Channel *,
+struct mode_letter
+{
+  const unsigned int  mode;
+  const unsigned char letter;
+};
+
+IRCD_EXTERN const struct mode_letter chan_modes[];
+IRCD_EXTERN int add_id(struct Client *, struct Channel *, char *, int);
+IRCD_EXTERN void set_channel_mode(struct Client *, struct Client *, struct Channel *,
                              struct Membership *, int, char **, char *);
-extern void clear_ban_cache(struct Channel *);
-extern void init_chcap_usage_counts(void);
-extern void set_chcap_usage_counts(struct Client *);
-extern void unset_chcap_usage_counts(struct Client *);
+IRCD_EXTERN void clear_ban_cache(struct Channel *);
+IRCD_EXTERN void clear_ban_cache_client(struct Client *);
+IRCD_EXTERN void init_chcap_usage_counts();
+IRCD_EXTERN void set_chcap_usage_counts(struct Client *);
+IRCD_EXTERN void unset_chcap_usage_counts(struct Client *);
 #endif /* INCLUDED_channel_mode_h */

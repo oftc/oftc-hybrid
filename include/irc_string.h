@@ -19,17 +19,15 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: irc_string.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef INCLUDED_irc_string_h
 #define INCLUDED_irc_string_h
 
-#include "setup.h"
-#include "pcre.h"
-
-extern int ircd_pcre_exec(const pcre *, const char *);
-extern pcre *ircd_pcre_compile(const char *, const char **);
+IRCD_EXTERN int has_wildcards(const char *);
+IRCD_EXTERN int ircd_pcre_exec(const void *, const char *);
+IRCD_EXTERN void *ircd_pcre_compile(const char *, const char **);
 
 /*
  * match - compare name with mask, mask may contain * and ? as wildcards
@@ -38,96 +36,72 @@ extern pcre *ircd_pcre_compile(const char *, const char **);
  * match_esc - compare with support for escaping chars
  * match_chan - like match_esc with first character auto-escaped
  */
-extern int match(const char *, const char *);
-extern int match_esc(const char *, const char *);
-extern int match_chan(const char *, const char *);
+IRCD_EXTERN int match(const char *, const char *);
+IRCD_EXTERN int match_esc(const char *, const char *);
+IRCD_EXTERN int match_chan(const char *, const char *);
 
 /*
- * collapse - collapse a string in place, converts multiple adjacent *'s 
+ * collapse - collapse a string in place, converts multiple adjacent *'s
  * into a single *.
- * collapse - modifies the contents of pattern 
+ * collapse - modifies the contents of pattern
  *
  * collapse_esc() - collapse with support for escaping chars
  */
-extern char *collapse(char *);
-extern char *collapse_esc(char *);
+IRCD_EXTERN char *collapse(char *);
+IRCD_EXTERN char *collapse_esc(char *);
 
 /*
  * NOTE: The following functions are NOT the same as strcasecmp
  * and strncasecmp! These functions use the Finnish (RFC1459)
  * character set. Do not replace!
- * 
+ *
  * irccmp - case insensitive comparison of s1 and s2
  */
-extern int irccmp(const char *, const char *);
+IRCD_EXTERN int irccmp(const char *, const char *);
 
 /*
  * ircncmp - counted case insensitive comparison of s1 and s2
  */
-extern int ircncmp(const char *, const char *, size_t);
+IRCD_EXTERN int ircncmp(const char *, const char *, size_t);
 
-/*
- * inetntoa - optimized inet_ntoa
- */
-extern const char *inetntoa(const char *);
-
-/* XXX
- * inetntop() 
- * portable interface for inet_ntop(), kludge; please use inet_ntop if possible
- * since inet_misc has a more conformant one
- */
-extern const char *inetntop(int, const void *, char *, unsigned int);
-   
 #ifndef HAVE_STRLCPY
-extern size_t strlcpy(char *, const char *, size_t);
+IRCD_EXTERN size_t strlcpy(char *, const char *, size_t);
 #endif
 
 #ifndef HAVE_STRLCAT
-extern size_t strlcat(char *, const char *, size_t);
-#endif
-
-#ifndef HAVE_SNPRINTF
-extern int snprintf(char *, size_t, const char *,...);
-#endif
-
-#ifndef HAVE_VSNPRINTF
-extern int vsnprintf(char *, size_t, const char *, va_list);
-#endif
-
-#ifndef HAVE_BASENAME
-extern char *basename(char *);
+IRCD_EXTERN size_t strlcat(char *, const char *, size_t);
 #endif
 
 /*
  * clean_string - cleanup control and high ascii characters
  * -Dianora
  */
-extern char *clean_string(char *, const unsigned char *, ssize_t);
+IRCD_EXTERN char *clean_string(char *, const unsigned char *, ssize_t);
 
 /*
  * strip_tabs - convert tabs to spaces
  * - jdc
  */
-extern void strip_tabs(char *, const char *, size_t);
+IRCD_EXTERN void strip_tabs(char *, const char *, size_t);
 
-const char *myctime(time_t);
+IRCD_EXTERN const char *myctime(time_t);
 
 #define EmptyString(x) (!(x) || (*(x) == '\0'))
 
 #ifndef HAVE_STRTOK_R
-extern char *strtoken(char **, char *, const char *);
+IRCD_EXTERN char *strtoken(char **, char *, const char *);
 #endif
 
 /*
  * character macros
  */
-extern const unsigned char ToLowerTab[];
+IRCD_EXTERN const unsigned char ToLowerTab[];
 #define ToLower(c) (ToLowerTab[(unsigned char)(c)])
 
-extern const unsigned char ToUpperTab[];
+IRCD_EXTERN const unsigned char ToUpperTab[];
 #define ToUpper(c) (ToUpperTab[(unsigned char)(c)])
 
-extern const unsigned int CharAttrs[];
+IRCD_EXTERN const unsigned int CharAttrs[];
 
 #define PRINT_C   0x00001
 #define CNTRL_C   0x00002
@@ -147,31 +121,31 @@ extern const unsigned int CharAttrs[];
 #define MWILD_C   0x08000
 #define VCHAN_C   0x10000
 
-#define IsVisibleChanChar(c)   (CharAttrs[(unsigned char)(c)] & VCHAN_C)
-#define IsHostChar(c)   (CharAttrs[(unsigned char)(c)] & HOST_C)
-#define IsUserChar(c)   (CharAttrs[(unsigned char)(c)] & USER_C)
-#define IsChanPrefix(c) (CharAttrs[(unsigned char)(c)] & CHANPFX_C)
-#define IsChanChar(c)   (CharAttrs[(unsigned char)(c)] & CHAN_C)
-#define IsKWildChar(c)  (CharAttrs[(unsigned char)(c)] & KWILD_C)
-#define IsMWildChar(c)  (CharAttrs[(unsigned char)(c)] & MWILD_C)
-#define IsNickChar(c)   (CharAttrs[(unsigned char)(c)] & NICK_C)
-#define IsServChar(c)   (CharAttrs[(unsigned char)(c)] & (NICK_C | SERV_C))
-#define IsCntrl(c)      (CharAttrs[(unsigned char)(c)] & CNTRL_C)
-#define IsAlpha(c)      (CharAttrs[(unsigned char)(c)] & ALPHA_C)
-#define IsSpace(c)      (CharAttrs[(unsigned char)(c)] & SPACE_C)
-#define IsLower(c)      (IsAlpha((c)) && ((unsigned char)(c) > 0x5f))
-#define IsUpper(c)      (IsAlpha((c)) && ((unsigned char)(c) < 0x60))
-#define IsDigit(c)      (CharAttrs[(unsigned char)(c)] & DIGIT_C)
-#define IsXDigit(c) (IsDigit(c) || ('a' <= (c) && (c) <= 'f') || \
-        ('A' <= (c) && (c) <= 'F'))
-#define IsAlNum(c) (CharAttrs[(unsigned char)(c)] & (DIGIT_C | ALPHA_C))
-#define IsPrint(c) (CharAttrs[(unsigned char)(c)] & PRINT_C)
-#define IsAscii(c) ((unsigned char)(c) < 0x80)
-#define IsGraph(c) (IsPrint((c)) && ((unsigned char)(c) != 0x32))
-#define IsPunct(c) (!(CharAttrs[(unsigned char)(c)] & \
-                                           (CNTRL_C | ALPHA_C | DIGIT_C)))
+#define IsVisibleChanChar(c)  (CharAttrs[(unsigned char)(c)] & VCHAN_C)
+#define IsHostChar(c)         (CharAttrs[(unsigned char)(c)] & HOST_C)
+#define IsUserChar(c)         (CharAttrs[(unsigned char)(c)] & USER_C)
+#define IsChanPrefix(c)       (CharAttrs[(unsigned char)(c)] & CHANPFX_C)
+#define IsChanChar(c)         (CharAttrs[(unsigned char)(c)] & CHAN_C)
+#define IsKWildChar(c)        (CharAttrs[(unsigned char)(c)] & KWILD_C)
+#define IsMWildChar(c)        (CharAttrs[(unsigned char)(c)] & MWILD_C)
+#define IsNickChar(c)         (CharAttrs[(unsigned char)(c)] & NICK_C)
+#define IsServChar(c)         (CharAttrs[(unsigned char)(c)] & (NICK_C | SERV_C))
+#define IsCntrl(c)            (CharAttrs[(unsigned char)(c)] & CNTRL_C)
+#define IsAlpha(c)            (CharAttrs[(unsigned char)(c)] & ALPHA_C)
+#define IsSpace(c)            (CharAttrs[(unsigned char)(c)] & SPACE_C)
+#define IsLower(c)            (IsAlpha((c)) && ((unsigned char)(c) > 0x5f))
+#define IsUpper(c)            (IsAlpha((c)) && ((unsigned char)(c) < 0x60))
+#define IsDigit(c)            (CharAttrs[(unsigned char)(c)] & DIGIT_C)
+#define IsXDigit(c)           (IsDigit(c) || ('a' <= (c) && (c) <= 'f') || \
+                               ('A' <= (c) && (c) <= 'F'))
+#define IsAlNum(c)            (CharAttrs[(unsigned char)(c)] & (DIGIT_C | ALPHA_C))
+#define IsPrint(c)            (CharAttrs[(unsigned char)(c)] & PRINT_C)
+#define IsAscii(c)            ((unsigned char)(c) < 0x80)
+#define IsGraph(c)            (IsPrint((c)) && ((unsigned char)(c) != 0x32))
+#define IsPunct(c)            (!(CharAttrs[(unsigned char)(c)] & \
+                                 (CNTRL_C | ALPHA_C | DIGIT_C)))
 
-#define IsNonEOS(c) (CharAttrs[(unsigned char)(c)] & NONEOS_C)
-#define IsEol(c) (CharAttrs[(unsigned char)(c)] & EOL_C)
+#define IsNonEOS(c)           (CharAttrs[(unsigned char)(c)] & NONEOS_C)
+#define IsEol(c)              (CharAttrs[(unsigned char)(c)] & EOL_C)
 
 #endif /* INCLUDED_irc_string_h */

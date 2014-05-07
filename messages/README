@@ -17,6 +17,7 @@ spanish - maintained by ermak - anonymous <ermak@cyberdude.com>
 dutch - maintained by Riedel - Dennis Vink <vink@vuurwerk.nl>
 polish - maintained by adx - Piotr Nizynski <adx@irc7.pl>
 russian - maintained by Ilya - Ilya Shtift <ishtift@tagil.svrw.ru>
+romanian - maintained by Bogdan Mintoi <bogdomania@yahoo.com>
 
 All of the files are installed into the prefix directory, under messages.
 Each is installed into a different directory, prefixed by ircd-.

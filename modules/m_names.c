@@ -23,97 +23,20 @@
  */
 
 #include "stdinc.h"
-#include "tools.h"
-#include "handlers.h"
+#include "list.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
-#include "common.h"   /* bleah */
 #include "hash.h"
 #include "irc_string.h"
 #include "sprintf_irc.h"
 #include "ircd.h"
-#include "list.h"
 #include "numeric.h"
 #include "send.h"
 #include "s_serv.h"
-#include "s_conf.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
 
-
-static void names_all_visible_channels(struct Client *);
-static void names_non_public_non_secret(struct Client *);
-
-static void m_names(struct Client *, struct Client *, int, char *[]);
-static void ms_names(struct Client *, struct Client *, int, char *[]);
-
-struct Message names_msgtab = {
-  "NAMES", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_names, ms_names, m_ignore, m_names, m_ignore}
-};
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&names_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&names_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
-
-/************************************************************************
- * m_names() - Added by Jto 27 Apr 1989
- ************************************************************************/
-
-/*
-** m_names
-**      parv[0] = sender prefix
-**      parv[1] = channel
-*/
-static void
-m_names(struct Client *client_p, struct Client *source_p,
-        int parc, char *parv[])
-{ 
-  struct Channel *chptr = NULL;
-  char *s;
-  char *para = parc > 1 ? parv[1] : NULL;
-
-  if (!EmptyString(para))
-  {
-    while (*para == ',')
-      ++para;
-
-    if ((s = strchr(para, ',')) != NULL)
-      *s = '\0';
-
-    if (*para == '\0')
-      return;
-
-    if ((chptr = hash_find_channel(para)) != NULL)
-      channel_member_names(source_p, chptr, 1);
-    else
-      sendto_one(source_p, form_str(RPL_ENDOFNAMES),
-                 me.name, source_p->name, para);
-  }
-  else
-  {
-    names_all_visible_channels(source_p);
-    if(!IsGod(source_p))
-      /* God mode will have all shown up above */
-      names_non_public_non_secret(source_p);
-    sendto_one(source_p, form_str(RPL_ENDOFNAMES),
-               me.name, source_p->name, "*");
-  }
-}
 
 /* names_all_visible_channels()
  *
@@ -124,18 +47,15 @@ m_names(struct Client *client_p, struct Client *source_p,
 static void
 names_all_visible_channels(struct Client *source_p)
 {
-  dlink_node *ptr;
-  struct Channel *chptr;
+  dlink_node *ptr = NULL;
 
-  /* 
+  /*
    * First, do all visible channels (public and the one user self is)
    */
   DLINK_FOREACH(ptr, global_channel_list.head)
   {
-    chptr = ptr->data;
-
     /* Find users on same channel (defined by chptr) */
-    channel_member_names(source_p, chptr, 0);
+    channel_member_names(source_p, ptr->data, 0);
   }
 }
 
@@ -149,7 +69,7 @@ static void
 names_non_public_non_secret(struct Client *source_p)
 {
   int mlen, tlen, cur_len;
-  int reply_to_send = NO;
+  int reply_to_send = 0;
   int shown_already;
   dlink_node *gc2ptr, *lp;
   struct Client *c2ptr;
@@ -157,8 +77,8 @@ names_non_public_non_secret(struct Client *source_p)
   char buf[IRCD_BUFSIZE];
   char *t;
 
-  mlen = ircsprintf(buf,form_str(RPL_NAMREPLY),
-                    me.name, source_p->name, "*", "*");
+  mlen = snprintf(buf, sizeof(buf), form_str(RPL_NAMREPLY),
+                  me.name, source_p->name, "*", "*");
   cur_len = mlen;
   t = buf + mlen;
 
@@ -167,10 +87,10 @@ names_non_public_non_secret(struct Client *source_p)
   {
     c2ptr = gc2ptr->data;
 
-    if (!IsClient(c2ptr) || IsInvisible(c2ptr))
+    if (!IsClient(c2ptr) || HasUMode(c2ptr, UMODE_INVISIBLE))
       continue;
 
-    shown_already = NO;
+    shown_already = 0;
 
     /* We already know the user is not +i. If they are on no common
      * channels with source_p, they have not been shown yet. */
@@ -180,7 +100,7 @@ names_non_public_non_secret(struct Client *source_p)
 
       if (IsMember(source_p, ch3ptr))
       {
-        shown_already = YES;
+        shown_already = 1;
         break;
       }
     }
@@ -189,6 +109,7 @@ names_non_public_non_secret(struct Client *source_p)
       continue;
 
     tlen = strlen(c2ptr->name);
+
     if (cur_len + tlen + 1 > IRCD_BUFSIZE - 2)
     {
       sendto_one(source_p, "%s", buf);
@@ -204,27 +125,80 @@ names_non_public_non_secret(struct Client *source_p)
 
     cur_len += tlen + 1;
 
-    reply_to_send = YES;
+    reply_to_send = 1;
   }
 
   if (reply_to_send)
     sendto_one(source_p, "%s", buf);
 }
 
+/*
+** m_names
+**      parv[0] = sender prefix
+**      parv[1] = channel
+*/
 static void
-ms_names(struct Client *client_p, struct Client *source_p,
-         int parc, char *parv[])
+m_names(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
 {
-  /* If its running as a hub, and linked with lazy links
-   * then allow leaf to use normal client m_names()
-   * other wise, ignore it.
-   */
-  if (ServerInfo.hub)
-  {
-    if (!IsCapable(client_p->from, CAP_LL))
-      return;
-  }
+  struct Channel *chptr = NULL;
+  char *s;
+  char *para = parc > 1 ? parv[1] : NULL;
 
-  if (IsClient(source_p))
-    m_names(client_p, source_p, parc, parv);
+  if (!EmptyString(para))
+  {
+    while (*para == ',')
+      ++para;
+
+    if ((s = strchr(para, ',')) != NULL)
+      * s = '\0';
+
+    if (*para == '\0')
+      return;
+
+    if ((chptr = hash_find_channel(para)) != NULL)
+      channel_member_names(source_p, chptr, 1);
+    else
+      sendto_one(source_p, form_str(RPL_ENDOFNAMES),
+                 me.name, source_p->name, para);
+  }
+  else
+  {
+    names_all_visible_channels(source_p);
+
+    if (!HasUMode(source_p, UMODE_GOD))
+      names_non_public_non_secret(source_p);
+
+    sendto_one(source_p, form_str(RPL_ENDOFNAMES),
+               me.name, source_p->name, "*");
+  }
 }
+
+static struct Message names_msgtab =
+{
+  "NAMES", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {m_unregistered, m_names, m_ignore, m_ignore, m_names, m_ignore}
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&names_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&names_msgtab);
+}
+
+IRCD_EXPORT struct module module_entry =
+{
+  { NULL, NULL, NULL },
+  NULL,
+  "$Revision$",
+  NULL,
+  module_init,
+  module_exit,
+  0
+};

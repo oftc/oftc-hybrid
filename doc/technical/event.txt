@@ -46,7 +46,7 @@ static int initialised = 0;
 
 * You would then add the event in your initialization function:
 
-void foo_init(void)
+void foo_init()
 {
     if (!initialised) {
         eventAdd("foo_periodic_event", foo_periodic_event, NULL, 0, 0);

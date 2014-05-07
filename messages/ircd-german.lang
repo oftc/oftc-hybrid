@@ -4,7 +4,7 @@
 ; Markus R. <mxr@chatjunkies.org>, 2005. 
 ; $Id$
 
-RPL_WELCOME:		 :%s 001 %s :Wilkommen im %s Internet Relay Chat Netz, %s!
+RPL_WELCOME:		 :%s 001 %s :Wilkommen im %s Internet Relay Chat Netzwerk, %s!
 RPL_YOURHOST:		 :%s 002 %s :Du bist verbunden mit %s, version %s
 RPL_CREATED:		 :%s 003 %s :Dieser Server wurde erstellt: %s
 RPL_ISUPPORT:		 :%s 005 %s %s :werden von diesem Server unterstützt.
@@ -13,14 +13,14 @@ RPL_MAPEND:		 :%s 017 %s :Ende von /MAP.
 RPL_YOURID:		 :%s 042 %s %s :deine eindeutige ID
 RPL_TRACELINK:		 :%s 200 %s verbunden %s %s %s
 RPL_TRACECONNECTING:	 :%s 201 %s Versuche. %s %s
-RPL_TRACEOPERATOR:	 :%s 204 %s Operator %s %s (%s) %lu %lu
-RPL_TRACEUSER:		 :%s 205 %s Benutzer %s %s (%s) %lu %lu
+RPL_TRACEOPERATOR:	 :%s 204 %s Operator %s %s (%s) %lu %u
+RPL_TRACEUSER:		 :%s 205 %s Benutzer %s %s (%s) %lu %u
 RPL_TRACESERVER:	 :%s 206 %s Server %s %dS %dC %s %s!%s@%s %lu
 RPL_TRACENEWTYPE:	 :%s 208 %s <neuer Typ> 0 %s
 RPL_TRACECLASS:		 :%s 209 %s Klasse %s %d
 RPL_ENDOFSTATS:		 :%s 219 %s %c :Ende von /STATS.
 RPL_STATSUPTIME:	 :%s 242 %s :Server läuft seit %d Tagen, %d:%02d:%02d
-RPL_STATSCONN:		 :%s 250 %s :Rekord an gleichzeitigen Verbindungen: %d (davon %d Benutzer) (%d Verbindungen)
+RPL_STATSCONN:		 :%s 250 %s :Rekord an gleichzeitigen Verbindungen: %d (davon %d Benutzer) (%llu Verbindungen)
 RPL_LUSERCLIENT:	 :%s 251 %s :Hier gibt es %d Benutzer, davon %d unsichtbar, auf %d Servern.
 RPL_LUSEROP:		 :%s 252 %s %d :IRC Operatorn sind online.
 RPL_LUSERUNKNOWN:	 :%s 253 %s %d :Unbekannte Verbindungen.
@@ -31,12 +31,11 @@ RPL_ENDOFTRACE:		 :%s 262 %s %s :Ende von TRACE.
 RPL_LOAD2HI:		 :%s 263 %s :Zur Zeit kann Ihre Anfrage nicht bearbeitet werden. Der Server ist überlastet.
 RPL_LOCALUSERS:		 :%s 265 %s :Anzahl der lokalen User, zur Zeit: %d  Maximum: %d
 RPL_GLOBALUSERS:	 :%s 266 %s :Anzahl der globalen User, zur Zeit: %d  Maximum: %d
-RPL_WHOISSSL:            :%s 275 %s %s :ist über SSL verbunden (verschlüsselt).
 RPL_ENDOFACCEPT:	 :%s 282 %s :Ende der /ACCEPT-Liste.
 RPL_UNAWAY:		 :%s 305 %s :Du bist nun nicht mehr abwesend (away).
 RPL_NOWAWAY:		 :%s 306 %s :Du bist nun abwesend (away).
-RPL_WHOISADMIN:          :%s 313 %s %s :ist ein Server Administrator.
-RPL_WHOISOPERATOR:       :%s 313 %s %s :ist ein IRC Operator.
+RPL_WHOISADMIN:		 :%s 313 %s %s :ist ein Server Administrator.
+RPL_WHOISOPERATOR:	 :%s 313 %s %s :ist ein IRC Operator.
 RPL_ENDOFWHO:		 :%s 315 %s %s :Ende der /WHO-Liste.
 RPL_WHOISIDLE:		 :%s 317 %s %s %d %d :Sekunden inaktiv
 RPL_ENDOFWHOIS:		 :%s 318 %s %s :Ende der /WHOIS-Liste.
@@ -58,7 +57,7 @@ RPL_MOTDSTART:		 :%s 375 %s :- %s Nachricht des Tages -
 RPL_ENDOFMOTD:		 :%s 376 %s :Ende von /MOTD.
 RPL_YOUREOPER:		 :%s 381 %s :ich mag starke Persönlichkeiten.. besorgs mir!
 RPL_REHASHING:		 :%s 382 %s %s :Konfiguration wurde erneut eingelesen
-RPL_HOSTHIDDEN:          :%s 396 %s :ist nun dein sichtbarer Host
+RPL_HOSTHIDDEN:		 :%s 396 %s :ist nun dein sichtbarer Host
 ERR_NOSUCHNICK:		 :%s 401 %s %s :Dieser Benutzer/Raum existiert nicht
 ERR_NOSUCHSERVER:	 :%s 402 %s %s :Dieser Server existiert nicht
 ERR_NOSUCHCHANNEL:	 :%s 403 %s %s :Dieser Raum existiert nicht
@@ -111,19 +110,17 @@ ERR_USERNOTONSERV:	 :%s 504 %s %s :Benutzer ist nicht auf diesem Server.
 ERR_WRONGPONG:		 :%s 513 %s :Um den Verbindungsaufbau abzuschliessen, gib ein: /QUOTE PONG %lu
 ERR_LISTSYNTAX:		 :%s 521 %s :falscher LIST-Syntax.
 ERR_HELPNOTFOUND:	 :%s 524 %s %s :keine Hilfe verfügbar.
+RPL_WHOISSECURE:	 :%s 671 %s %s :ist über SSL verbunden (verschlüsselt).
 RPL_ENDOFMODLIST:	 :%s 703 %s :Ende von /MODLIST.
 RPL_ENDOFHELP:		 :%s 706 %s %s :Ende von /HELP.
 RPL_KNOCK:		 :%s 710 %s %s %s!%s@%s :fragt nach einer Einladung.
 RPL_KNOCKDLVR:		 :%s 711 %s %s :Dein KNOCK wurde zugestellt.
-ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Zuviele KNOCK's (%s).
+ERR_TOOMANYKNOCK:	 :%s 712 %s %s :Zuviele KNOCKs (%s).
 ERR_CHANOPEN:		 :%s 713 %s %s :Raum ist offen.
 ERR_KNOCKONCHAN:	 :%s 714 %s %s :Du bist bereits in diesem Raum.
-ERR_KNOCKDISABLED:	 :%s 715 %s :KNOCK's sind abgeschalten.
-RPL_TARGUMODEG:		 :%s 716 %s %s :ist im +g Modus (Serverseitiges ignoren)
+RPL_TARGUMODEG:		 :%s 716 %s %s :ist im +g Modus (Serverseitiges Ignorieren)
 RPL_TARGNOTIFY:		 :%s 717 %s %s :wurde über Deine Nachricht informiert.
 RPL_UMODEGMSG:		 :%s 718 %s %s :will Dir eine Nachricht schreiben, Du hast aber Benutzer-Modus +g gesetzt.
-RPL_OMOTDSTART:		 :%s 720 %s :Start der OPER MOTD.
-RPL_ENDOFOMOTD:		 :%s 722 %s :Ende der OPER MOTD.
 ERR_NOPRIVS:		 :%s 723 %s %s :Operator-Privilegien nicht ausreichend.
-RPL_TESTMASK:		 :%s 724 %s %s@%s %d %d :lokale/entfernte Benutzer stimmen überein.
+RPL_TESTMASK:		 :%s 724 %s %s!%s@%s %u %u :lokale/entfernte Benutzer stimmen überein.
 RPL_NOTESTLINE:		 :%s 726 %s %s :keine Übereinstimmungen gefunden.

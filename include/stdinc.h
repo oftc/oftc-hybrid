@@ -25,28 +25,45 @@
 
 #ifndef STDINC_H /* prevent multiple #includes */
 #define STDINC_H
- 
+
 #ifndef IN_AUTOCONF
-#include "setup.h"
+#ifdef _WIN32
+#include "config-win32.h"
+#else
+#include "config.h"
+#endif
 #endif
 
 #include "defaults.h"
 
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef STRING_WITH_STRINGS
-# include <string.h>
-# include <strings.h>
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#define inline
+#define _WINSOCKAPI_
+typedef int bool;
+#define true 1
+#define false 0
+#define snprintf _snprintf
+#define strcasecmp stricmp
+#ifdef IN_MODULE
+#define IRCD_EXTERN __declspec(dllimport)
 #else
-# ifdef HAVE_STRING_H
-#  include <string.h>
-# else
-#  ifdef HAVE_STRINGS_H
-#   include <strings.h>
-#  endif
-# endif 
-#endif  
+#define IRCD_EXTERN __declspec(dllexport)
+#endif
+#define IRCD_EXPORT __declspec(dllexport)
+#else
+#define IRCD_EXTERN extern
+#define IRCD_EXPORT
+#endif
+
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#ifndef _WIN32
+#include <stdbool.h>
+#endif
+#include <errno.h>
 
 #ifdef HAVE_STRTOK_R
 # define strtoken(x, y, z) strtok_r(y, z, x)
@@ -54,28 +71,12 @@
 
 #include <sys/types.h>
 
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#else
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-#endif
-
-#ifdef HAVE_STDDEF_H
-# include <stddef.h>
-#else /* This is basically what stddef.h provides on most systems */
-# ifndef NULL
-#  define NULL ((void*)0)
-# endif
-# ifndef offsetof
-#  define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
-# endif
-#endif
-
 #ifdef HAVE_CRYPT_H
 #include <crypt.h>
 #endif
+
+#include <uv.h>
+#undef ECHO // this is pulled in from uv, bleh
 
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/ssl.h>
@@ -87,27 +88,23 @@
 #include <time.h>
 #include <fcntl.h>
 
-#ifdef HAVE_LIBGEN_H
-#include <libgen.h>
-#endif
-
 #include <stdarg.h>
 #include <signal.h>
 #include <ctype.h>
 
-#ifdef _WIN32
-#define PATH_MAX (MAX_PATH - 1)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <winsock.h>
-#else
+#ifdef HAVE_DIRENT_H
 #include <dirent.h>
+#endif
+
+#ifndef _WIN32
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
 #include <sys/file.h>
+#else
+#include "wdirent.h"
 #endif
 
 #include <limits.h>
@@ -129,17 +126,16 @@
 #include <sys/param.h>
 #endif
 
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
+#ifdef PATH_MAX
+#define HYB_PATH_MAX PATH_MAX
 #else
-extern int errno;
+#define HYB_PATH_MAX 4096
 #endif
 
-#include "inet_misc.h"
-
-#ifdef _WIN32
-#undef strcasecmp
-#define strcasecmp stricmp
+#if 0 && __GNUC__
+#define AFP(a,b) __attribute__((format (printf, a, b)))
+#else
+#define AFP(a,b)
 #endif
 
 #endif

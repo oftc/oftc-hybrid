@@ -19,7 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: fdlist.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef INCLUDED_fdlist_h
@@ -29,19 +29,19 @@
 #include "ircd_defs.h"
 #define FD_DESC_SZ 128  /* hostlen + comment */
 
-enum {
-    COMM_OK,
-    COMM_ERR_BIND,
-    COMM_ERR_DNS,
-    COMM_ERR_TIMEOUT,
-    COMM_ERR_CONNECT,
-    COMM_ERROR,
-    COMM_ERR_MAX
+enum
+{
+  COMM_OK,
+  COMM_ERR_BIND,
+  COMM_ERR_DNS,
+  COMM_ERR_TIMEOUT,
+  COMM_ERR_CONNECT,
+  COMM_ERROR,
+  COMM_ERR_MAX
 };
 
 struct _fde;
 struct Client;
-struct DNSQuery;
 
 /* Callback for completed IO events */
 typedef void PF(struct _fde *, void *);
@@ -50,70 +50,63 @@ typedef void PF(struct _fde *, void *);
 /* int fd, int status, void * */
 typedef void CNCB(struct _fde *, int, void *);
 
-typedef struct _fde {
-  /* New-school stuff, again pretty much ripped from squid */
-  /*
-   * Yes, this gives us only one pending read and one pending write per
-   * filedescriptor. Think though: when do you think we'll need more?
-   */
-  int fd;		/* So we can use the fde_t as a callback ptr */
-  int comm_index;	/* where in the poll list we live */
-  int evcache;          /* current fd events as set up by the underlying I/O */
-  char desc[FD_DESC_SZ];
-  PF *read_handler;
-  void *read_data;
-  PF *write_handler;
-  void *write_data;
-  PF *timeout_handler;
-  void *timeout_data;
-  time_t timeout;
-  PF *flush_handler;
-  void *flush_data;
-  time_t flush_timeout;
-  struct DNSQuery *dns_query;
-  struct {
-    unsigned int open:1;
-    unsigned int is_socket:1;
+typedef struct _fde
+{
+  uv_stream_t *handle;           /* So we can use the fde_t as a callback ptr */
+  int         comm_index;       /* where in the poll list we live */
+  int         evcache;          /* current fd events as set up by the underlying I/O */
+  char        desc[FD_DESC_SZ];
+  PF          *read_handler;
+  void        *read_data;
+  PF          *write_handler;
+  void        *write_data;
+  PF          *timeout_handler;
+  void        *timeout_data;
+  time_t      timeout;
+  PF          *flush_handler;
+  void        *flush_data;
+  time_t      flush_timeout;
+
+  struct
+  {
+    unsigned int open: 1;
+    unsigned int is_socket: 1;
 #ifdef HAVE_LIBCRYPTO
-    unsigned int pending_read:1;
+    unsigned int pending_read: 1;
 #endif
   } flags;
 
-  struct {
+  struct
+  {
+    uv_connect_t *handle;
     /* We don't need the host here ? */
-    struct irc_ssaddr S;
-    struct irc_ssaddr hostaddr;
-    CNCB *callback;
-    void *data;
+    struct sockaddr_storage S;
+    struct sockaddr_storage hostaddr;
+    CNCB                    *callback;
+    void                    *data;
     /* We'd also add the retry count here when we get to that -- adrian */
   } connect;
 #ifdef HAVE_LIBCRYPTO
-  SSL *ssl;
+  SSL         *ssl;
+  BIO         *read_bio;
+  BIO         *write_bio;
 #endif
-  struct _fde *hnext;
+  dlink_node  fnode;
 } fde_t;
 
 #define FD_HASH_SIZE CLIENT_HEAP_SIZE
 
-extern int number_fd;
-extern int hard_fdlimit;
-extern fde_t *fd_hash[];
-extern fde_t *fd_next_in_loop;
-extern struct Callback *fdlimit_cb;
+IRCD_EXTERN int number_fd;
+IRCD_EXTERN int hard_fdlimit;
 
-extern void fdlist_init(void);
-extern fde_t *lookup_fd(int);
-extern void fd_open(fde_t *, int, int, const char *);
-extern void fd_close(fde_t *);
-extern void fd_dump(struct Client *);
-#ifndef __GNUC__
-extern void fd_note(fde_t *, const char *format, ...);
-#else
-extern void  fd_note(fde_t *, const char *format, ...)
-  __attribute__((format (printf, 2, 3)));
-#endif
-extern void close_standard_fds(void);
-extern void close_fds(fde_t *);
-extern void recalc_fdlimit(void *);
+IRCD_EXTERN dlink_list fd_list;
 
+IRCD_EXTERN void fdlist_init();
+IRCD_EXTERN fde_t *lookup_fd(int);
+IRCD_EXTERN void fd_open(fde_t *, uv_stream_t *, const char *);
+IRCD_EXTERN void fd_close(fde_t *);
+IRCD_EXTERN void fd_dump(struct Client *);
+IRCD_EXTERN void fd_note(fde_t *, const char *, ...);
+IRCD_EXTERN void close_standard_fds();
+IRCD_EXTERN void close_fds(fde_t *);
 #endif /* INCLUDED_fdlist_h */

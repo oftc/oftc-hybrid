@@ -1,4 +1,4 @@
-# $Id: undline 33 2005-10-02 20:50:00Z knight $
+# $Id$
 UNDLINE <ip>
 
 Will attempt to undline the given <ip>

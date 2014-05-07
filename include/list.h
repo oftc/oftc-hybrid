@@ -19,14 +19,65 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: list.h 33 2005-10-02 20:50:00Z knight $
+ *  $Id$
  */
 
 #ifndef INCLUDED_list_h
 #define INCLUDED_list_h
 
-extern void init_dlink_nodes(void);
-extern void free_dlink_node(dlink_node *);
-extern dlink_node *make_dlink_node(void);
+/* These macros are basically swiped from the linux kernel
+ * they are simple yet effective
+ */
 
+/*
+ * Walks forward of a list.
+ * pos is your node
+ * head is your list head
+ */
+#define DLINK_FOREACH(pos, head) for (pos = (head); pos != NULL; pos = pos->next)
+
+/*
+ * Walks forward of a list safely while removing nodes
+ * pos is your node
+ * n is another list head for temporary storage
+ * head is your list head
+ */
+#define DLINK_FOREACH_SAFE(pos, n, head) for (pos = (head), n = pos ? pos->next : NULL; pos != NULL; pos = n, n = pos ? pos->next : NULL)
+#define DLINK_FOREACH_PREV(pos, head) for (pos = (head); pos != NULL; pos = pos->prev)
+
+/* Returns the list length */
+#define dlink_list_length(list) (list)->length
+
+/*
+ * double-linked-list stuff
+ */
+typedef struct _dlink_node dlink_node;
+typedef struct _dlink_list dlink_list;
+
+struct _dlink_node
+{
+  void        *data;
+  dlink_node  *prev;
+  dlink_node  *next;
+};
+
+struct _dlink_list
+{
+  dlink_node    *head;
+  dlink_node    *tail;
+  unsigned int  length;
+};
+
+IRCD_EXTERN void dlinkAdd(void *, dlink_node *, dlink_list *);
+IRCD_EXTERN void dlinkAddBefore(dlink_node *, void *, dlink_node *, dlink_list *);
+IRCD_EXTERN void dlinkAddTail(void *, dlink_node *, dlink_list *);
+IRCD_EXTERN void dlinkDelete(dlink_node *, dlink_list *);
+IRCD_EXTERN void dlinkMoveList(dlink_list *, dlink_list *);
+IRCD_EXTERN void dlink_move_node(dlink_node *, dlink_list *, dlink_list *);
+IRCD_EXTERN dlink_node *dlinkFind(dlink_list *, void *);
+IRCD_EXTERN dlink_node *dlinkFindDelete(dlink_list *, void *);
+
+IRCD_EXTERN void init_dlink_nodes();
+IRCD_EXTERN void free_dlink_node(dlink_node *);
+IRCD_EXTERN dlink_node *make_dlink_node();
 #endif

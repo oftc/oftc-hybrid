@@ -2,7 +2,7 @@
 
    $Id$
 
-   Copyright (c) 2005 by ircd-hybrid team
+   Copyright (c) 2005-2013 by ircd-hybrid team
 
      ----------------------------------------------------------------------
 
@@ -15,12 +15,10 @@
 
                     Using Provided or Pre-made Message Files
 
-   There are a number of message files provided with Hybrid 7. These can be
-   found in the source tree in messages/.
+   There are a number of message files provided with ircd-hybrid. These can
+   be found in the source tree in messages/.
 
-   These files are NOT installed by default; run `make install' within the
-   messages directory to install them and they will automatically be used
-   unless the paths in defaults.h were not adhered to.
+   These files are automatically installed by `make install'.
 
    These message files can be used in ircd once they are installed. Try the
    installed message file with /quote SET MSGLOCALE <locale> first. The

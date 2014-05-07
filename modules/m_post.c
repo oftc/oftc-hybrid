@@ -23,54 +23,11 @@
  */
 
 #include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
 #include "ircd.h"
-#include "numeric.h"
-#include "s_serv.h"
 #include "send.h"
-#include "msg.h"
 #include "parse.h"
 #include "modules.h"
-#include "s_conf.h"
-
-static void mr_dumb_proxy(struct Client*, struct Client*, int, char**);
-
-struct Message post_msgtab = {
-  "POST", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
-};
-
-struct Message get_msgtab = {
-  "GET", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
-};
-
-struct Message put_msgtab = {
-  "PUT", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
-};
-
-
-#ifndef STATIC_MODULES
-void
-_modinit(void)
-{
-  mod_add_cmd(&post_msgtab);
-  mod_add_cmd(&get_msgtab);
-  mod_add_cmd(&put_msgtab);
-}
-
-void
-_moddeinit(void)
-{
-  mod_del_cmd(&post_msgtab);
-  mod_del_cmd(&get_msgtab);
-  mod_del_cmd(&put_msgtab);
-}
-
-const char *_version = "$Revision$";
-#endif
 
 /*
 ** mr_dumb_proxy
@@ -86,3 +43,48 @@ mr_dumb_proxy(struct Client *client_p, struct Client *source_p,
                        client_p->username, client_p->host);
   exit_client(source_p, source_p, "Client Exit");
 }
+
+static struct Message post_msgtab =
+{
+  "POST", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
+};
+
+static struct Message get_msgtab =
+{
+  "GET", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
+};
+
+static struct Message put_msgtab =
+{
+  "PUT", 0, 0, 0, MAXPARA, MFLG_SLOW, 0,
+  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
+};
+
+static void
+module_init()
+{
+  mod_add_cmd(&post_msgtab);
+  mod_add_cmd(&get_msgtab);
+  mod_add_cmd(&put_msgtab);
+}
+
+static void
+module_exit()
+{
+  mod_del_cmd(&post_msgtab);
+  mod_del_cmd(&get_msgtab);
+  mod_del_cmd(&put_msgtab);
+}
+
+struct module module_entry =
+{
+  .node    = { NULL, NULL, NULL },
+  .name    = NULL,
+  .version = "$Revision$",
+  .handle  = NULL,
+  .modinit = module_init,
+  .modexit = module_exit,
+  .flags   = 0
+};
