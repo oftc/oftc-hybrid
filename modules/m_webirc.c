@@ -102,10 +102,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc,
   assert(source_p == client_p);
 
   if (invalid_hostname(parv[4]))
-  {
-    sendto_realops_flags(UMODE_UNAUTH, L_ALL, "CGI:IRC: Invalid IP");
     return;
-  }
 
   aconf = find_address_conf(source_p->host,
                             IsGotId(source_p) ? source_p->username : "webirc",
