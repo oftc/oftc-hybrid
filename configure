@@ -5991,13 +5991,14 @@ else
 
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <string.h>
-	#include <strings.h>
+
+	#include <string.h>
+	#include <strings.h>,
+	gcc_cv_header_string=yes,
+	gcc_cv_header_string=no
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  gcc_cv_header_string=yes
-else
-  gcc_cv_header_string=no
+
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
@@ -6597,7 +6598,8 @@ $as_echo_n "checking for OpenSSL 0.9.6 or above... " >&6; }
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <openssl/opensslv.h>
+
+		#include <openssl/opensslv.h>
 		#include <stdlib.h>
 int
 main ()
