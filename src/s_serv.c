@@ -83,25 +83,25 @@ static SlinkRplHnd slink_zipstats;
 #ifdef HAVE_LIBCRYPTO
 struct EncCapability CipherTable[] =
 {
-#ifdef HAVE_EVP_BF_CFB
+#if HAVE_EVP_BF_CFB || HAVE_EVP_BF_CFB64
   { "BF/168",     CAP_ENC_BF_168,     24, CIPHER_BF     },
   { "BF/128",     CAP_ENC_BF_128,     16, CIPHER_BF     },
 #endif
-#ifdef HAVE_EVP_CAST5_CFB
+#if HAVE_EVP_CAST5_CFB || HAVE_EVP_CAST5_CFB64
   { "CAST/128",   CAP_ENC_CAST_128,   16, CIPHER_CAST   },
 #endif
-#ifdef HAVE_EVP_IDEA_CFB
+#if HAVE_EVP_IDEA_CFB || HAVE_EVP_IDEA_CFB64
   { "IDEA/128",   CAP_ENC_IDEA_128,   16, CIPHER_IDEA   },
 #endif
-#ifdef HAVE_EVP_RC5_32_12_16_CFB
+#if HAVE_EVP_RC5_32_12_16_CFB || HAVE_EVP_RC5_32_12_16_CFB64
   { "RC5.16/128", CAP_ENC_RC5_16_128, 16, CIPHER_RC5_16 },
   { "RC5.12/128", CAP_ENC_RC5_12_128, 16, CIPHER_RC5_12 },
   { "RC5.8/128",  CAP_ENC_RC5_8_128,  16, CIPHER_RC5_8  },
 #endif
-#ifdef HAVE_EVP_DES_EDE3_CFB
+#if HAVE_EVP_DES_EDE3_CFB || HAVE_EVP_DES_EDE3_CFB64
   { "3DES/168",   CAP_ENC_3DES_168,   24, CIPHER_3DES   },
 #endif
-#ifdef HAVE_EVP_DES_CFB
+#if HAVE_EVP_DES_CFB || HAVE_EVP_DES_CFB
   { "DES/56",     CAP_ENC_DES_56,      8, CIPHER_DES    },
 #endif
   { 0,            0,                   0, 0             }
