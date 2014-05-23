@@ -263,32 +263,32 @@ cmd_set_crypt_out_cipher(struct ctrl_command *cmd)
 
   switch (cipher)
   {
-#ifdef HAVE_EVP_BF_CFB
+#if HAVE_EVP_BF_CFB || HAVE_EVP_BF_CFB64
     case CIPHER_BF:
       out_state.crypt_state.cipher = EVP_bf_cfb();
       break;
 #endif
-#ifdef HAVE_EVP_CAST5_CFB
+#if HAVE_EVP_CAST5_CFB || HAVE_EVP_CAST5_CFB64
     case CIPHER_CAST:
       out_state.crypt_state.cipher = EVP_cast5_cfb();
       break;
 #endif
-#ifdef HAVE_EVP_DES_CFB
+#if HAVE_EVP_DES_CFB || HAVE_EVP_DES_CFB64
     case CIPHER_DES:
       out_state.crypt_state.cipher = EVP_des_cfb();
       break;
 #endif
-#ifdef HAVE_EVP_DES_EDE3_CFB
+#if HAVE_EVP_DES_EDE3_CFB || HAVE_EVP_DES_EDE3_CFB64
     case CIPHER_3DES:
       out_state.crypt_state.cipher = EVP_des_ede3_cfb();
       break;
 #endif
-#ifdef HAVE_EVP_IDEA_CFB
+#if HAVE_EVP_IDEA_CFB || HAVE_EVP_IDEA_CFB64
     case CIPHER_IDEA:
       out_state.crypt_state.cipher = EVP_idea_cfb();
       break;
 #endif
-#ifdef HAVE_EVP_RC5_32_12_16_CFB
+#if HAVE_EVP_RC5_32_12_16_CFB || HAVE_EVP_RC5_32_12_16_CFB64
     case CIPHER_RC5_8:
       out_state.crypt_state.cipher = EVP_rc5_32_12_16_cfb();
       out_state.crypt_state.rounds = 8;
