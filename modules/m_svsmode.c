@@ -74,7 +74,7 @@ static void m_svsmode(struct Client *client_p, struct Client *source_p,
 
   struct Client *target_p;
   int what;
-  char **p, *m;
+  char *p;
 
   what = MODE_ADD;
   
@@ -97,9 +97,8 @@ static void m_svsmode(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  for(p = &parv[2]; p && *p; p++)
-    for(m = *p; *m; m++)
-      switch(*m)
+  for (p = parv[2]; *p; ++p)
+      switch(*p)
       {
         case '+':
           what = MODE_ADD;
