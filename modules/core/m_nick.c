@@ -912,7 +912,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
         /* if it came from a LL server, itd have been source_p,
 	 * so we dont need to mark target_p as known
 	 */
-	kill_client_ll_serv_butone(source_p, target_p,
+	kill_client_ll_serv_butone(HasID(client_p) && HasID(target_p) ? NULL : source_p, target_p,
 	                           "%s (Nick collision (new))",
 				   me.name);
 
@@ -983,7 +983,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
         ServerStats->is_kill++;
 
 	/* this won't go back to the incoming link, so LL doesnt matter */
-        kill_client_ll_serv_butone(client_p, source_p,
+        kill_client_ll_serv_butone(HasID(client_p) && HasID(source_p) ? NULL : client_p, source_p,
 	                           "%s (Nick change collision)",
 				   me.name);
 
@@ -1008,7 +1008,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
 			      target_p->name, target_p->from->name,
 			      client_p->name);
   			      
-       kill_client_ll_serv_butone(source_p, target_p,
+       kill_client_ll_serv_butone(HasID(client_p) && HasID(target_p) ? NULL : source_p, target_p,
                                  "%s (Nick collision)",
 				 me.name);
 
