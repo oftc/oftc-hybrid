@@ -607,7 +607,7 @@ static void
 introduce_client(struct Client *client_p, struct Client *source_p)
 {
   dlink_node *server_node = NULL;
-  static char ubuf[12];
+  char ubuf[IRCD_BUFSIZE];
 
   if (MyClient(source_p))
     send_umode(source_p, source_p, 0, SEND_UMODES, ubuf);
