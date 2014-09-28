@@ -110,6 +110,7 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
       add_user_host(target_p->username, hostname, !MyConnect(target_p));
     }
     strncpy(target_p->host, hostname, HOSTLEN);
+    clear_ban_cache_client(target_p);
     off_history(target_p);
 
     rehashed_klines = 1;
