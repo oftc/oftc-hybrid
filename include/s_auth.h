@@ -41,6 +41,7 @@ struct AuthRequest
 {
   dlink_node	      dns_node;	 /* auth_doing_dns_list */
   dlink_node	      ident_node; /* auth_doing_ident_list */
+  dlink_node	      dead_node;  /* dead_auth_list */
   int 		      flags;
   struct Client*      client;    /* pointer to client struct for request */
   fde_t               fd;        /* file descriptor for auth queries */
@@ -75,6 +76,5 @@ extern void remove_auth_request(struct AuthRequest *);
 extern struct AuthRequest *FindAuthClient(long);
 extern void init_auth(void);
 extern void delete_auth(struct Client *);
-extern void release_auth_client(struct Client *);
 
 #endif /* INCLUDED_s_auth_h */
