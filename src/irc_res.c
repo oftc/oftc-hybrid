@@ -50,6 +50,7 @@ static PF res_readreply;
 #define RES_MAXALIASES 35    /* maximum aliases allowed */
 #define RES_MAXADDRS   35    /* maximum addresses allowed */
 #define AR_TTL         600   /* TTL in seconds for dns cache entries */
+#define MAX_ID         (1 << 16)
 
 /* RFC 1104/1105 wasn't very helpful about what these fields
  * should be named, so for now, we'll just name them this way.
@@ -549,6 +550,10 @@ query_name(const char *name, int query_class, int type,
   int request_len = 0;
 
   memset(buf, 0, sizeof(buf));
+
+  /* instead we'll just let this timeout, or try again later */
+  if (dlink_list_length(&request_list) == MAX_ID)
+    return;
 
   if ((request_len = irc_res_mkquery(name, query_class, type, 
       (unsigned char *)buf, sizeof(buf))) > 0)
