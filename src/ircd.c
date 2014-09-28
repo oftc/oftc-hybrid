@@ -507,6 +507,8 @@ static void
 init_ssl(void)
 {
 #ifdef HAVE_LIBCRYPTO
+  const unsigned char session_id[] = "ircd-hybrid";
+
   SSL_load_error_strings();
   SSLeay_add_ssl_algorithms();
 
@@ -523,6 +525,7 @@ init_ssl(void)
   SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_NO_SSLv2);
   SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
   SSL_CTX_set_verify(ServerInfo.ctx, SSL_VERIFY_PEER, always_accept_verify_cb);
+  SSL_CTX_set_session_id_context(ServerInfo.ctx, session_id, sizeof(session_id) - 1);
 
   bio_spare_fd = save_spare_fd("SSL private key validation");
 #endif /* HAVE_LIBCRYPTO */
