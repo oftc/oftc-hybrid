@@ -91,7 +91,7 @@ void mem_frob(void *data, int len);
 /* forte (and maybe others) dont like these being declared twice,
  * so we dont declare the inlines unless GNUC.
  */
-#ifdef __GNUC__
+#if __GNUC__ && !__clang__
 
 /* 
  * dlink_ routines are stolen from squid, except for dlinkAddBefore,

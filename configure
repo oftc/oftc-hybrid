@@ -4389,6 +4389,20 @@ $as_echo "no" >&6; }
 esac
 
 if test "$ac_cv_c_compiler_gnu" = yes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC is clang" >&5
+$as_echo_n "checking if $CC is clang... " >&6; }
+
+  if expr "`$CC -v 2>&1`" : ".*clang.*" >/dev/null; then
+    ClangGCC=yes
+  else
+    ClangGCC=no
+  fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ClangGCC" >&5
+$as_echo "$ClangGCC" >&6; }
+fi
+
+if test "$ac_cv_c_compiler_gnu" = yes; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC is Apple GCC" >&5
 $as_echo_n "checking if $CC is Apple GCC... " >&6; }
 
@@ -7789,6 +7803,10 @@ $as_echo "SVR4 SGS interfaces: -KPIC -DPIC -G" >&6; }
 $as_echo "Darwin Mach-O bundles: -fno-common -bundle -flat_namespace -undefined suppress" >&6; }
 		PICFLAGS="-fno-common -bundle -flat_namespace -undefined suppress"
 	fi
+
+  if test "$ClangGCC" = "yes"; then
+    PICFLAGS="-Wl,-undefined -Wl,dynamic_lookup -shared -fPIC -DPIC"
+  fi
 								if test "$HPUX" = "yes" -a "$ac_cv_c_compiler_gnu" = no; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: HP-UX cc: +z -r -q -n" >&5
 $as_echo "HP-UX cc: +z -r -q -n" >&6; }

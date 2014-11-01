@@ -107,6 +107,18 @@ case `uname -s` in
 esac
 
 if test "$ac_cv_c_compiler_gnu" = yes; then
+  AC_MSG_CHECKING(if $CC is clang)
+
+  if expr "`$CC -v 2>&1`" : ".*clang.*" >/dev/null; then
+    ClangGCC=yes
+  else
+    ClangGCC=no
+  fi
+
+  AC_MSG_RESULT($ClangGCC)
+fi
+
+if test "$ac_cv_c_compiler_gnu" = yes; then
 	AC_MSG_CHECKING(if $CC is Apple GCC)
 	
 	if expr "`$CC -v 2>&1 | tail -1`" : ".*Apple" >/dev/null; then
@@ -1049,6 +1061,10 @@ if test "$shared_modules" = yes; then
 		AC_MSG_RESULT([Darwin Mach-O bundles: -fno-common -bundle -flat_namespace -undefined suppress])
 		PICFLAGS="-fno-common -bundle -flat_namespace -undefined suppress"
 	fi
+
+  if test "$ClangGCC" = "yes"; then
+    PICFLAGS="-Wl,-undefined -Wl,dynamic_lookup -shared -fPIC -DPIC"
+  fi
 	dnl Please note, that on HPUX two different stages of module compilation occurs, since
 	dnl while compiling modules, the compiler does not allow you to give arguments
 	dnl to the linker. (I did not design this) 

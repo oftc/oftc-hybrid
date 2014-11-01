@@ -39,6 +39,7 @@
 /*
  * MyMalloc - allocate memory, call outofmemory on failure
  */
+
 void *
 MyMalloc(size_t size)
 {

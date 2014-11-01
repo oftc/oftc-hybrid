@@ -49,7 +49,7 @@ extern void _DupString(char **x, const char *y);
 /* forte (and maybe others) don't like double declarations, 
  * so we don't declare the inlines unless GNUC
  */
-#ifdef __GNUC__
+#if __GNUC__ && !__clang__
 extern inline void *
 MyMalloc(size_t size)
 {
