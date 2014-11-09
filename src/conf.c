@@ -2250,7 +2250,7 @@ read_conf_files(int cold)
            ConfigChannel.max_chans_per_user);
   add_isupport("CHANLIMIT", chanlimit, -1);
   snprintf(chanmodes, sizeof(chanmodes), "%s",
-           "beqI,k,l,imnprstORS");
+           "beqI,k,l,cimnprstzMORS");
   add_isupport("CHANNELLEN", NULL, LOCAL_CHANNELLEN);
   add_isupport("TOPICLEN", NULL, ServerInfo.max_topic_length);
 
