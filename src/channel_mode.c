@@ -160,12 +160,13 @@ add_id(struct Client *client_p, struct Channel *chptr, char *banid, int type)
   char host[HOSTLEN + 1];
   struct split_nuh_item nuh;
 
-  /* dont let local clients overflow the b/e/I lists */
+  /* dont let local clients overflow the b/e/I/q lists */
   if (MyClient(client_p))
   {
     num_mask = dlink_list_length(&chptr->banlist) +
                dlink_list_length(&chptr->exceptlist) +
-               dlink_list_length(&chptr->invexlist);
+               dlink_list_length(&chptr->invexlist) +
+               dlink_list_length(&chptr->quietlist);
 
     if (num_mask >= ConfigChannel.max_bans)
     {
