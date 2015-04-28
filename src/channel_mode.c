@@ -1039,6 +1039,18 @@ clear_ban_cache(struct Channel *chptr)
   }
 }
 
+void
+clear_ban_cache_client(struct Client *client_p)
+{
+  dlink_node *ptr;
+
+  DLINK_FOREACH(ptr, client_p->channel.head)
+  {
+    struct Membership *ms = ptr->data;
+    ms->flags &= ~(CHFL_BAN_SILENCED | CHFL_BAN_CHECKED);
+  }
+}
+
 static void
 chm_op(struct Client *client_p, struct Client *source_p,
        struct Channel *chptr, int parc, int *parn,
