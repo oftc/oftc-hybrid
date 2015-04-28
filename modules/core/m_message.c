@@ -901,11 +901,7 @@ handle_special(int p_or_n, const char *command, struct Client *client_p,
 
 	if (count == 1)
 	{
-	  sendto_one(target_p, ":%s!%s@%s %s %s :%s",
-		     source_p->name, source_p->username, source_p->host,
-                     command, nick, text);
-	  if ((p_or_n != NOTICE) && MyClient(source_p))
-	    source_p->localClient->last = CurrentTime;
+		msg_client(p_or_n, command, source_p, target_p, text);
 	}
 	else
 	  sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),

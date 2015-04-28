@@ -52,11 +52,16 @@ static void *
 changing_fdlimit(va_list args)
 {
   int old_fdlimit = hard_fdlimit;
+  int i;
 
   pass_callback(hookptr, va_arg(args, int));
 
   if (hard_fdlimit != old_fdlimit)
+  {
     pollfds = MyRealloc(pollfds, sizeof(struct pollfd) * hard_fdlimit);
+    for (i = old_fdlimit; i < hard_fdlimit; ++i)
+      pollfds[i].fd = -1;
+  }
 
   return NULL;
 }
