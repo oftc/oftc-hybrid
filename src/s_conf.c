@@ -2620,7 +2620,7 @@ read_conf_files(int cold)
   add_isupport("CHANLIMIT", chanlimit, -1);
   ircsprintf(chanmodes, "%s%s%s%s", ConfigChannel.use_except ? "e" : "",
        ConfigChannel.use_invex ? "I" : "", ConfigChannel.use_quiet ? "q" : "",
-       "b,k,l,imnpstMRS");
+       "b,k,l,cimnpstzMRS");
   add_isupport("CHANNELLEN", NULL, LOCAL_CHANNELLEN);
   if (ConfigChannel.use_except)
     add_isupport("EXCEPTS", "e", -1);
