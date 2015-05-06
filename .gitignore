@@ -35,3 +35,5 @@ include/config.h.in
 include/stamp-h1
 libuv/
 modules/core/Makefile.in
+tools/encspeed
+tools/mkpasswd
