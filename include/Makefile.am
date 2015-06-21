@@ -55,4 +55,5 @@ noinst_HEADERS= balloc.h          \
                 hash.h            \
                 irc_reslib.h      \
                 patchlevel.h      \
+                s_stats.h         \
                 s_log.h
