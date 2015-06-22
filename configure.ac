@@ -22,7 +22,8 @@ AM_ENABLE_SHARED
 CFLAGS="-g -Wall -Wextra -Wno-missing-braces -Wno-padded -Wno-unused-parameter \
         -Wno-documentation -Wno-gnu -Wno-used-but-marked-unused \
         -Wno-missing-field-initializers -Wno-static-in-inline \
-        -Wno-missing-variable-declarations -Wno-error=deprecated-declarations"
+        -Wno-missing-variable-declarations -Wno-error=deprecated-declarations \
+        -Wno-unused-result"
 
 AX_ARG_ENABLE_DEBUGGING
 AX_ARG_ENABLE_PROFILING
