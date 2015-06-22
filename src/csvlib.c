@@ -116,7 +116,8 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
             break;
           }
 
-          aconf = map_to_conf(make_conf_item(RKLINE_TYPE));
+          conf = make_conf_item(RKLINE_TYPE);
+          aconf = map_to_conf(conf);
 
           aconf->regexuser = exp_user;
           aconf->regexhost = exp_host;

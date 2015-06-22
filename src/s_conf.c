@@ -838,7 +838,7 @@ check_client(va_list args)
   struct Client *source_p = va_arg(args, struct Client *);
   const char *username = va_arg(args, const char *);
   int i, bad = 0;
-  char *reject_reason;
+  char *reject_reason = { 0 };
   struct ConfItem conf;
  
   /* I'm already in big trouble if source_p->localClient is NULL -db */
@@ -870,7 +870,7 @@ check_client(va_list args)
          get_client_name(source_p, SHOW_IP),
          source_p->sockhost);
       ilog(L_INFO,"Too many connections on IP from %s.",
-     get_client_name(source_p, SHOW_IP));
+           get_client_name(source_p, SHOW_IP));
       ServerStats->is_ref++;
       exit_client(source_p, &me, reject_reason);
       break;
@@ -878,13 +878,14 @@ check_client(va_list args)
     case I_LINE_FULL:
       sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
                            "I-line is full for %s (%s).",
-         get_client_name(source_p, SHOW_IP),
-         source_p->sockhost);
+                           get_client_name(source_p, SHOW_IP),
+                           source_p->sockhost);
       ilog(L_INFO,"Too many connections from %s.",
-     get_client_name(source_p, SHOW_IP));
-       ServerStats->is_ref++;
+           get_client_name(source_p, SHOW_IP));
+
+      ServerStats->is_ref++;
       exit_client(source_p, &me, 
-    "No more connections allowed in your connection class");
+                  "No more connections allowed in your connection class");
       break;
 
     case NOT_AUTHORIZED:
