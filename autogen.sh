@@ -28,11 +28,10 @@ if test x$LIBTOOLIZE = x; then
   fi
 fi
 
-## suse has aclocal and aclocal-1.9
 if test x$ACLOCAL = x; then
-  if test \! x`which aclocal-1.9` = x; then
-    ACLOCAL=aclocal-1.9
-    AUTOMAKE=automake-1.9
+  if test \! x`which aclocal-1.14` = x; then
+    ACLOCAL=aclocal-1.14
+    AUTOMAKE=automake-1.14
   elif test \! x`which aclocal` = x; then
     ACLOCAL=aclocal
     AUTOMAKE=automake
@@ -40,8 +39,8 @@ if test x$ACLOCAL = x; then
 fi
 
 if test x$AUTOMAKE = x; then
-  if test \! x`which automake-1.9` = x; then
-    AUTOMAKE=automake-1.9
+  if test \! x`which automake-1.14` = x; then
+    AUTOMAKE=automake-1.14
   elif test \! x`which automake` = x; then
     AUTOMAKE=automake
   fi
