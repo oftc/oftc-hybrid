@@ -23,12 +23,13 @@ CFLAGS="-g -Wall -Wextra -Wno-missing-braces -Wno-padded -Wno-unused-parameter \
         -Wno-documentation -Wno-gnu -Wno-used-but-marked-unused \
         -Wno-missing-field-initializers -Wno-static-in-inline \
         -Wno-missing-variable-declarations -Wno-error=deprecated-declarations \
-        -Wno-unused-result -Wno-maybe-uninitialized"
+        -Wno-unused-result"
 
 AX_ARG_ENABLE_DEBUGGING
 AX_ARG_ENABLE_PROFILING
 
 C_FLAGS_CHECK([-Weverything])
+C_FLAGS_CHECK([-Wno-maybe-uninitialized])
 
 AC_PROG_INSTALL
 AC_GNU_SOURCE
