@@ -76,6 +76,7 @@ module_LTLIBRARIES= m_accept.la       \
                     m_whois.la        \
                     m_whowas.la       \
                     m_xline.la        \
+                    m_webirc.la       \
                     #soft_reboot.la
 else
 AM_LDFLAGS=-static
@@ -149,6 +150,7 @@ noinst_LTLIBRARIES= m_accept.la       \
                     m_whois.la        \
                     m_whowas.la       \
                     m_xline.la        \
+                    m_webirc.la       \
                     #soft_reboot.la
 
 endif
