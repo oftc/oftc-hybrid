@@ -38,7 +38,7 @@
 #include "modules.h"
 #include "s_conf.h"
 #include "hostmask.h"
-
+#include "s_user.h"
 
 static void mr_webirc(struct Client *, struct Client *, int, char *[]);
 
@@ -85,35 +85,13 @@ const char *_version = "$Revision$";
  * cgiirc.config
  */
 
-static int
-invalid_hostname(const char *hostname)
-{
-  const char *p = hostname;
-  unsigned int has_sep = 0;
-
-  assert(p != NULL);
-
-  if (*p == '.' || *p == ':')
-    return 1;
-
-  for (; *p; ++p)
-  {
-    if (!IsHostChar(*p))
-      return 1;
-    if (*p == '.' || *p == ':')
-      ++has_sep;
-  }
-
-  return !has_sep;
-}
-
 /*
  * mr_webirc
  *      parv[0] = sender prefix
  *      parv[1] = password
- *      parv[2] = cloak
+ *      parv[2] = sockhost / ip
  *      parv[3] = realhost
- *      parv[4] = sockhost / ip
+ *      parv[4] = cloak
  */
 static void
 mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
@@ -122,11 +100,9 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   struct ConfItem *conf = NULL;
   struct addrinfo hints, *res;
   char original_sockhost[HOSTIPLEN + 1];
+  char *host;
 
   assert(source_p == client_p);
-
-  if (invalid_hostname(parv[4]))
-    return;
 
   aconf = find_address_conf(source_p->host,
                             IsGotId(source_p) ? source_p->username : "webirc",
@@ -165,10 +141,10 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags    = AI_PASSIVE | AI_NUMERICHOST;
 
-  if (getaddrinfo(parv[4], NULL, &hints, &res))
+  if (getaddrinfo(parv[2], NULL, &hints, &res))
   {
     sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL, 
-                         "Inavlid CGI:IRC IP %s", parv[4]);
+                         "Inavlid CGI:IRC IP %s", parv[2]);
     return;
   }
 
@@ -181,22 +157,21 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   freeaddrinfo(res);
 
   strlcpy(original_sockhost, source_p->sockhost, sizeof(original_sockhost));
-  strlcpy(source_p->sockhost, parv[4], sizeof(source_p->sockhost));
+  strlcpy(source_p->sockhost, parv[2], sizeof(source_p->sockhost));
 
   host = parv[3];
 
-  if(!EmptyString(parv[2]))
+  if(parc == 5)
   {
-    host = parv[2];
-    strlcpy(source_p->realhost, parv[3], sizeof(source_p->realhost));
+    if(valid_hostname(parv[3]) == 0)
+      strlcpy(source_p->realhost, source_p->sockhost, sizeof(source_p->realhost));
+    else
+      strlcpy(source_p->realhost, parv[3], sizeof(source_p->realhost));
+
+    host = parv[4];
   }
 
-  if(EmptyString(host))
-    host = parv[4];
-
-  if (strlen(host) <= HOSTLEN)
-    strlcpy(source_p->host, host, sizeof(source_p->host));
-  else
+  if(valid_hostname(host) == 0)
     strlcpy(source_p->host, source_p->sockhost, sizeof(source_p->host));
 
   /* Check dlines now, k/glines will be checked on registration */
@@ -211,6 +186,6 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   }
 
   sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL,
-                       "CGI:IRC host/IP set %s to %s (%s) [%s]", 
-                       original_sockhost, parv[3], parv[4], parv[2]);
+                       "CGI:IRC host/IP set %s to %s", 
+                       original_sockhost, host);
 }
