@@ -43,7 +43,7 @@
 static void mr_webirc(struct Client *, struct Client *, int, char *[]);
 
 struct Message webirc_msgtab = {
-  "WEBIRC", 0, 0, 5, 0, MFLG_SLOW, 0,
+  "WEBIRC", 0, 0, 3, 0, MFLG_SLOW, 0,
   { mr_webirc, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore }
 };
 
@@ -159,7 +159,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   strlcpy(original_sockhost, source_p->sockhost, sizeof(original_sockhost));
   strlcpy(source_p->sockhost, parv[2], sizeof(source_p->sockhost));
 
-  host = parv[3];
+  host = parv[2];
 
   if(parc == 5)
   {
@@ -170,9 +170,13 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
 
     host = parv[4];
   }
+  else if(parc == 4)
+    host = parv[3];
 
   if(valid_hostname(host) == 0)
     strlcpy(source_p->host, source_p->sockhost, sizeof(source_p->host));
+  else
+    strlcpy(source_p->host, host, sizeof(source_p->host));
 
   /* Check dlines now, k/glines will be checked on registration */
   if ((aconf = find_dline_conf(&client_p->ip,
