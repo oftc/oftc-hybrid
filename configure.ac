@@ -5,6 +5,7 @@ AC_PREREQ(2.59)
 AC_INIT([oftc-hybrid],[1.7.0])
 
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR([libltdl/config])
 
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -13,6 +14,7 @@ AM_SILENT_RULES([yes])
 LT_INIT([dlopen])
 AC_CONFIG_HEADERS([include/setup.h])
 AM_MAINTAINER_MODE
+LT_CONFIG_LTDL_DIR([libltdl])
 LTDL_INIT([convenience])
 AC_LIBTOOL_DLOPEN
 AM_ENABLE_SHARED
@@ -36,7 +38,6 @@ AC_GNU_SOURCE
 AC_PROG_CC_C99
   AS_IF([test "$ac_cv_prog_cc_c99" = "no"],
     [AC_MSG_ERROR([no C99 compiler found. Aborting.])])
-AC_PROG_RANLIB
 AC_PROG_LIBTOOL
 LIBTOOL="$LIBTOOL --silent"
 AM_PROG_LEX
@@ -81,6 +82,7 @@ AX_CHECK_OPENSSL([AC_CHECK_LIB(crypto, RSA_free)
 AX_CHECK_LIB_IPV4
 AX_CHECK_LIB_IPV6
 AX_CHECK_LIB_CRYPT
+AX_CHECK_LIB_Z
 
 # Checks for header files.
 AC_CHECK_HEADERS([sys/resource.h]) # ick
@@ -90,8 +92,6 @@ AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
 AC_C_BIGENDIAN
-
-AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for library functions.
 AC_CHECK_FUNC([snprintf],[AC_DEFINE([HAVE_SNPRINTF],[1],[Define to 1 if you have the snprintf() function.])])
