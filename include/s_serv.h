@@ -117,7 +117,7 @@ struct EncCapability
 
 
 /* */
-#if HAVE_EVP_BF_CFB || HAVE_EVP_BF_CFB64
+#ifdef HAVE_EVP_BF_CFB
 #define USE_CIPHER_BF       1
 /* Check for bug handling variable length blowfish keys */
 #if defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x00000000L
@@ -130,31 +130,31 @@ struct EncCapability
 #define USE_CIPHER_BF       0
 #endif
 /* Cast */
-#if HAVE_EVP_CAST5_CFB || HAVE_EVP_CAST5_CFB64
+#ifdef HAVE_EVP_CAST5_CFB
 #define USE_CIPHER_CAST     1
 #else
 #define USE_CIPHER_CAST     0
 #endif
 /* DES */
-#if HAVE_EVP_DES_CFB || HAVE_EVP_DES_CFB64
+#ifdef HAVE_EVP_DES_CFB
 #define USE_CIPHER_DES      1
 #else
 #define USE_CIPHER_DES      0
 #endif
 /* 3DES */
-#if HAVE_EVP_DES_EDE3_CFB || HAVE_EVP_DES_EDE3_CFB64
+#ifdef HAVE_EVP_DES_EDE3_CFB
 #define USE_CIPHER_3DES     1
 #else
 #define USE_CIPHER_3DES     0
 #endif
 /* IDEA */
-#if HAVE_EVP_IDEA_CFB || HAVE_EVP_IDEA_CFB64
+#ifdef HAVE_EVP_IDEA_CFB
 #define USE_CIPHER_IDEA     1
 #else
 #define USE_CIPHER_IDEA     0
 #endif
 /* RC5 */
-#if HAVE_EVP_RC5_32_12_16_CFB || HAVE_EVP_RC5_32_12_16_CFB64
+#ifdef HAVE_EVP_RC5_32_12_16_CFB
 #define USE_CIPHER_RC5      1
 #else
 #define USE_CIPHER_RC5      0

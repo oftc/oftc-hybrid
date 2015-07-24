@@ -48,14 +48,36 @@ AM_PROG_CC_C_O
 
 # Checks for libraries.
 AX_CHECK_OPENSSL([AC_CHECK_LIB(crypto, RSA_free)
-        AS_IF([test "$ac_cv_lib_crypto_RSA_free" = "yes"],
-          [AC_CHECK_FUNCS(EVP_bf_cfb           \
-                          EVP_cast5_cfb        \
-                          EVP_idea_cfb         \
-                          EVP_rc5_32_12_16_cfb \
-                          EVP_des_ede3_cfb     \
-                          EVP_des_cfb)])], [AC_MSG_RESULT(no - OpenSSL support disabled)
-  cf_enable_openssl="no"])
+  AS_IF([test "$ac_cv_lib_crypto_RSA_free" = "yes"],
+    [AC_CHECK_FUNC([EVP_bf_cfb], [AC_DEFINE([HAVE_EVP_BF_CFB], [1],
+      [Define if EVP_bf_cfb exists.])])]
+    [AC_CHECK_FUNC([EVP_bf_cfb64], [AC_DEFINE([HAVE_EVP_BF_CFB], [1],
+      [Define if EVP_bf_cfb64 exists.])])]
+    [AC_CHECK_FUNC([EVP_cast5_cfb], [AC_DEFINE([HAVE_EVP_CAST5_CFB], [1],
+      [Define if EVP_cast5_cfb exists.])])]
+    [AC_CHECK_FUNC([EVP_cast5_cfb64], [AC_DEFINE([HAVE_EVP_CAST5_CFB], [1],
+      [Define if EVP_cast5_cfb64 exists.])])]
+    [AC_CHECK_FUNC([EVP_idea_cfb], [AC_DEFINE([HAVE_EVP_IDEA_CFB], [1],
+      [Define if EVP_idea_cfb exists.])])]
+    [AC_CHECK_FUNC([EVP_idea_cfb64], [AC_DEFINE([HAVE_EVP_IDEA_CFB], [1],
+      [Define if EVP_idea_cfb64 exists.])])]
+    [AC_CHECK_FUNC([EVP_rc5_32_12_16_cfb], [AC_DEFINE([HAVE_EVP_RC5_32_12_16_CFB], [1],
+      [Define if EVP_rc5_32_12_16_cfb exists.])])]
+    [AC_CHECK_FUNC([EVP_rc5_32_12_16_cfb64], [AC_DEFINE([HAVE_EVP_RC5_32_12_16_CFB], [1],
+      [Define if EVP_rc5_32_12_16_cfb64 exists.])])]
+    [AC_CHECK_FUNC([EVP_des_ede3_cfb], [AC_DEFINE([HAVE_EVP_DES_EDE3_CFB], [1],
+      [Define if EVP_des_ede3_cfb exists.])])]
+    [AC_CHECK_FUNC([EVP_des_ede3_cfb64], [AC_DEFINE([HAVE_EVP_DES_EDE3_CFB], [1],
+      [Define if EVP_des_ede3_cfb64 exists.])])]
+    [AC_CHECK_FUNC([EVP_des_cfb], [AC_DEFINE([HAVE_EVP_DES_CFB], [1],
+      [Define if EVP_des_ede3_cfb exists.])])]
+    [AC_CHECK_FUNC([EVP_des_cfb64], [AC_DEFINE([HAVE_EVP_DES_CFB], [1],
+      [Define if EVP_des_ede3_cfb exists.])])]
+  )], 
+  [AC_MSG_RESULT(no - OpenSSL support disabled) 
+    cf_enable_openssl="no"]
+)
+
 AX_CHECK_LIB_IPV4
 AX_CHECK_LIB_IPV6
 AX_CHECK_LIB_CRYPT
@@ -111,18 +133,6 @@ AX_ARG_ENABLE_DEBUGGING
 AX_ARG_ENABLE_WARNINGS
 AX_ARG_ENABLE_EFENCE
 AX_ARG_ENABLE_SYSLOG
-AC_CHECK_FUNCS(EVP_bf_cfb64,
-               cf_openssl_ciphers="${cf_openssl_ciphers}BF/168 BF/128 ")
-AC_CHECK_FUNCS(EVP_cast5_cfb64,
-               cf_openssl_ciphers="${cf_openssl_ciphers}CAST/128 ")
-AC_CHECK_FUNCS(EVP_idea_cfb64,
-               cf_openssl_ciphers="${cf_openssl_ciphers}IDEA/128 ")
-AC_CHECK_FUNCS(EVP_rc5_32_12_16_cfb64,
-               cf_openssl_ciphers="${cf_openssl_ciphers}RC5.16/128 RC5.12/128 RC5.8/128 ")
-AC_CHECK_FUNCS(EVP_des_ede3_cfb64,
-               cf_openssl_ciphers="${cf_openssl_ciphers}3DES/168 ")
-AC_CHECK_FUNCS(EVP_des_cfb64,
-               cf_openssl_ciphers="${cf_openssl_ciphers}DES/56 ")
 
 dnl Only put werror on here because configure checks can fail otherwise
 CFLAGS="-Werror $CFLAGS"
@@ -134,22 +144,22 @@ AC_DEFINE_DIR([MODULEDIR],[moduledir],[Set to moduledir.])
 AC_DEFINE_DIR([DATADIR],[datadir],[Set to datadir.])
 AC_DEFINE_DIR([LOCALSTATEDIR],[localstatedir],[Set to localstatedir.])
 
-AC_CONFIG_FILES(               \
-       Makefile                \
-       etc/Makefile            \
-       servlink/Makefile       \
-       contrib/Makefile        \
-       contrib/help/Makefile   \
-       src/Makefile            \
-       messages/Makefile       \
-       modules/Makefile        \
-			 modules/core/Makefile	 \
-       doc/Makefile            \
-       help/Makefile           \
-			 help/opers/Makefile		 \
-			 help/users/Makefile     \
-			 include/Makefile        \
-       lib/Makefile            \
+AC_CONFIG_FILES(                
+       Makefile                 \
+       etc/Makefile             \
+       servlink/Makefile        \
+       contrib/Makefile         \
+       contrib/help/Makefile    \
+       src/Makefile             \
+       messages/Makefile        \
+       modules/Makefile         \
+       modules/core/Makefile    \
+       doc/Makefile             \
+       help/Makefile            \
+       help/opers/Makefile      \
+       help/users/Makefile      \
+       include/Makefile         \
+       lib/Makefile             \
        lib/pcre/Makefile
 )
 
