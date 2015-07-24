@@ -22,7 +22,7 @@ AC_DEFUN([AX_CHECK_LIB_CRYPT],[
 ])dnl }}}
 dnl {{{ ax_check_zlib
 AC_DEFUN([AX_CHECK_LIB_Z],[
-    AC_SEARCH_LIBS(zlibVersion, [z], [AC_DEFINE([HAVE_ZLIB],[1],[Define to 1 if you have the zlib library])],)
+    AC_SEARCH_LIBS(zlibVersion, [z], [AC_DEFINE([HAVE_LIBZ],[1],[Define to 1 if you have the zlib library])],)
 ])dnl }}}
 dnl {{{ ax_arg_enable_ioloop_mechanism (FIXME)
 AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
