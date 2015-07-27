@@ -304,7 +304,6 @@ ssl_handshake(int fd, struct Client *client_p)
       /* The client sent a certificate which verified OK */
       base16_encode(client_p->certfp, sizeof(client_p->certfp),
           (const char*)cert->sha1_hash, sizeof(cert->sha1_hash));
-      memcpy(client_p->certfp, cert->sha1_hash, sizeof(client_p->certfp));
     }
     else
     {
