@@ -669,7 +669,7 @@ delete_auth(struct Client *target_p)
 
     if (auth->client == target_p)
     {
-    fd_close(&auth->client->localClient->auth_fd);
+      fd_close(&auth->client->localClient->auth_fd);
 
       dlinkDelete(&auth->ident_node, &auth_doing_ident_list);
       MyFree(auth);
