@@ -70,13 +70,12 @@ _moddeinit(void)
 static void ms_certfp(struct Client *source_p, struct Client *client_p, int parc, char **parv)
 {
   struct Client *target_p;
-  
+
   if ((target_p = find_person(client_p, parv[1])) == NULL)
     return;
 
-  base16_decode(target_p->certfp, SHA_DIGEST_LENGTH, parv[2], strlen(parv[2]));
+  strlcpy(target_p->certfp, parv[2], sizeof(target_p->certfp));
 
   sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
       ":%s CERTFP %s %s", parv[0], parv[1], parv[2]);
 }
-

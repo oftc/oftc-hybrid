@@ -179,7 +179,7 @@ struct Client
   struct LocalUser *localClient;
   struct irc_ssaddr ip;
   int 		          aftype;	/* Makes life easier for DNS res in IPV6 */
-  char              certfp[SHA_DIGEST_LENGTH];
+  char              certfp[SHA_DIGEST_LENGTH * 2 + 1];
 };
 
 struct LocalUser

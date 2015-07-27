@@ -54,6 +54,7 @@
 #include "memory.h"
 #include "s_user.h"
 #include "hook.h"
+#include "s_misc.h"
 
 static const char *comm_err_str[] = { "Comm OK", "Error during bind()",
   "Error during DNS lookup", "connect timeout", "Error during connect()",
@@ -301,6 +302,8 @@ ssl_handshake(int fd, struct Client *client_p)
         res == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
     {
       /* The client sent a certificate which verified OK */
+      base16_encode(client_p->certfp, sizeof(client_p->certfp),
+          (const char*)cert->sha1_hash, sizeof(cert->sha1_hash));
       memcpy(client_p->certfp, cert->sha1_hash, sizeof(client_p->certfp));
     }
     else

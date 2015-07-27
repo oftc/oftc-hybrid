@@ -554,7 +554,7 @@ find_conf_by_address(const char *name, struct irc_ssaddr *addr, int type,
       {
         if(arec->aconf->certfp != NULL)
         {
-          if(memcmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH) != 0)
+          if(strncmp(arec->aconf->certfp, certfp, SHA_DIGEST_LENGTH * 2) != 0)
             continue;
         }
         else
