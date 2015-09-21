@@ -289,6 +289,7 @@ rsa_private_key_file		{ return RSA_PRIVATE_KEY_FILE; }
 rsa_public_key_file		{ return RSA_PUBLIC_KEY_FILE; }
 ssl 				{ return T_SSL; }
 ssl_certificate_file        { return SSL_CERTIFICATE_FILE; }
+dh_params_file		{ return DH_PARAMS_FILE; }
 send_password	{ return SEND_PASSWORD; }
 sendq		{ return SENDQ; }
 server          { return T_SERVER; }
