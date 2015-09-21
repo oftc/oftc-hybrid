@@ -303,6 +303,7 @@ unhook_hub_leaf_confs(void)
 %token  RSA_PRIVATE_KEY_FILE
 %token  RSA_PUBLIC_KEY_FILE
 %token  SSL_CERTIFICATE_FILE
+%token  DH_PARAMS_FILE
 %token  RESV
 %token  RESV_EXEMPT
 %token  SECONDS MINUTES HOURS DAYS WEEKS
@@ -511,6 +512,7 @@ serverinfo_item:        serverinfo_name | serverinfo_vhost |
                         serverinfo_max_clients | 
                         serverinfo_rsa_private_key_file | serverinfo_vhost6 |
                         serverinfo_sid | serverinfo_ssl_certificate_file |
+                        serverinfo_dh_params_file |
 			error ';' ;
 
 serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
@@ -541,6 +543,107 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
     if (!SSL_CTX_check_private_key(ServerInfo.ctx))
     {
       yyerror("RSA private key does not match the SSL certificate public key!");
+      break;
+    }
+
+    if (ServerInfo.dh_params != NULL &&
+      !SSL_CTX_set_tmp_dh(ServerInfo.ctx, ServerInfo.dh_params))
+    {
+      yyerror(ERR_lib_error_string(ERR_get_error()));
+    }
+  }
+#endif
+};
+
+serverinfo_dh_params_file: DH_PARAMS_FILE '=' QSTRING ';'
+{
+#ifdef HAVE_LIBCRYPTO
+  if (ypass == 1)
+  {
+    BIO *file;
+    int codes;
+
+    if (ServerInfo.dh_params != NULL)
+    {
+      DH_free(ServerInfo.dh_params);
+      ServerInfo.dh_params = NULL;
+    }
+
+    if (ServerInfo.dh_params_file != NULL)
+    {
+      MyFree(ServerInfo.dh_params_file);
+      ServerInfo.dh_params_file = NULL;
+    }
+
+    DupString(ServerInfo.dh_params_file, yylval.string);
+
+    if ((file = BIO_new_file(yylval.string, "r")) == NULL)
+    {
+      yyerror("File open failed, ignoring");
+      break;
+    }
+
+    ServerInfo.dh_params = PEM_read_bio_DHparams(file, NULL,
+      NULL, NULL);
+
+    (void)BIO_set_close(file, BIO_CLOSE);
+    BIO_free(file);
+
+    if (ServerInfo.dh_params == NULL)
+    {
+      yyerror("Couldn't extract DH params, ignoring");
+      break;
+    }
+
+    if (!DH_check(ServerInfo.dh_params, &codes))
+    {
+      DH_free(ServerInfo.dh_params);
+      ServerInfo.dh_params = NULL;
+
+      yyerror("Unsafe DH params, ignoring");
+      break;
+    }
+
+    if (BN_is_word(ServerInfo.dh_params->g, DH_GENERATOR_2))
+    {
+      long residue = BN_mod_word(ServerInfo.dh_params->p, 24);
+      if (residue == 11 || residue == 23)
+      {
+        codes &= ~DH_NOT_SUITABLE_GENERATOR;
+      }
+    }
+
+    if (codes & DH_UNABLE_TO_CHECK_GENERATOR)
+    {
+      yyerror("Unable to test generator");
+      break;
+    }
+
+    if (codes & DH_NOT_SUITABLE_GENERATOR)
+    {
+      yyerror("Not a suitable generator");
+      break;
+    }
+
+    if (codes & DH_CHECK_P_NOT_PRIME)
+    {
+      yyerror("P is not a prime");
+      break;
+    }
+
+    if (codes & DH_CHECK_P_NOT_SAFE_PRIME)
+    {
+      yyerror("P is not a safe prime");
+      break;
+    }
+
+    /* require 2048 bit (256 byte) key */
+    if (DH_size(ServerInfo.dh_params) != 256)
+    {
+      DH_free(ServerInfo.dh_params);
+      ServerInfo.dh_params = NULL;
+
+      yyerror("Not a 2048 bit DH file, ignoring");
       break;
     }
   }

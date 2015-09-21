@@ -1892,6 +1892,8 @@ set_default_conf(void)
 #ifdef HAVE_LIBCRYPTO
   ServerInfo.rsa_private_key = NULL;
   ServerInfo.rsa_private_key_file = NULL;
+  ServerInfo.dh_params = NULL;
+  ServerInfo.dh_params_file = NULL;
 #endif
 
   /* ServerInfo.name is not rehashable */
@@ -2807,6 +2809,15 @@ clear_out_old_conf(void)
 
   MyFree(ServerInfo.rsa_private_key_file);
   ServerInfo.rsa_private_key_file = NULL;
+
+  if (ServerInfo.dh_params != NULL)
+  {
+    DH_free(ServerInfo.dh_params);
+    ServerInfo.dh_params = NULL;
+  }
+
+  MyFree(ServerInfo.dh_params_file);
+  ServerInfo.dh_params_file = NULL;
 #endif
 
   /* clean out old resvs from the conf */
