@@ -452,6 +452,8 @@ struct server_info
 #ifdef HAVE_LIBCRYPTO
   char *rsa_private_key_file;
   RSA *rsa_private_key;
+  char *dh_params_file;
+  DH *dh_params;
   SSL_CTX *ctx;
 #endif
   char *sid;
