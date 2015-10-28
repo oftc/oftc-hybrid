@@ -277,6 +277,10 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
 
     clear_invites_channel(chptr);
 
+    /* update channel name to be the correct case */
+    if (!isnew)
+      strlcpy(chptr->chname, parv[2], sizeof(chptr->chname));
+
     sendto_channel_local(ALL_MEMBERS, NO, chptr,
    		         ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to %lu",
 	 		 me.name, chptr->chname, chptr->chname,
