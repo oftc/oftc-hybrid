@@ -274,6 +274,9 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
   if (!keep_our_modes)
   {
     remove_our_modes(chptr, source_p);
+
+    clear_invites_channel(chptr);
+
     sendto_channel_local(ALL_MEMBERS, NO, chptr,
    		         ":%s NOTICE %s :*** Notice -- TS for %s changed from %lu to %lu",
 	 		 me.name, chptr->chname, chptr->chname,
