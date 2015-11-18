@@ -48,8 +48,8 @@ void user_shedding_main(void *rate);
 void user_shedding_shed(void *unused);
 
 struct Message shedding_msgtab = {
-  "shedding", 0, 0, 2, 0, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_shedding, m_ignore}
+  "shedding", 0, 0, 3, 5, MFLG_SLOW, 0,
+   {m_unregistered, m_not_oper, mo_shedding, m_ignore, mo_shedding, m_ignore}
 };
 
 static int rate = 60;
@@ -80,59 +80,68 @@ char buffer[IRCD_BUFSIZE];
 /*
  * mo_shedding
  *
- * inputs	- pointer to server
- *		- pointer to client
- *		- parameter count
- *		- parameter list
- * output	-
+ * inputs - pointer to server
+ *    - pointer to client
+ *    - parameter count
+ *    - parameter list
+ * output -
  * side effects - user shedding is enabled or disabled
- * 
- * SHEDDING OFF - disable shedding
- * SHEDDING :reason
- * SHEDDING approx_seconds_per_userdrop :reason
- * SHEDDING approx_seconds_per_userdrop opers_too?[0|1] :reason
- * 
+ *
+ * SHEDDING <server> OFF - disable shedding
+ * SHEDDING <server> <approx_seconds_per_userdrop> <opers_too?[0|1]> :<reason>
+ * (parv[#] 1        2                             3                  4)
+ *
  */
 static void
 mo_shedding(struct Client *client_p, struct Client *source_p,
-	 int parc, char **parv)
+   int parc, char **parv)
 {
-  if(irccmp(parv[1], "OFF") == 0)
-  {
-      eventDelete(user_shedding_main, NULL);
-      eventDelete(user_shedding_shed, NULL);
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-              "User shedding DISABLED by %s", source_p->name);
-      return;
-  }
 
-  /* we better re-initialize defaults, else sheddings made in serial
-   * will re-use the settings of the previous one
+  /* We need either 5 parameters, or 3 parameters for when disabling shedding.
+   * This check needs to be done before hunt_server as the remote always
+   * receives 5 arguments due to the interpolation
    */
-  rate = 60;
-  operstoo = 0;
-
-  if(parc < 2) 
+  if (parc != 5 && !(parc == 3 && irccmp(parv[2], "OFF") == 0))
   {
     sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-        me.name, source_p->name, "SHEDDING");
+               me.name, source_p->name, "SHEDDING");
     return;
   }
 
-  if (parc > 2) 
-    rate = atoi(parv[1]);
-    
-  if (parc > 3)
-    operstoo = !!atoi(parv[2]);
-    
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, 
-          "User shedding ENABLED by %s (%s). Shedding interval: %d seconds (Opers too: %s)", 
-          source_p->name, parv[parc-1], rate, operstoo ? "Yes" : "No");
+  /* Only proceed if we are the intended server,
+   * otherwise look for the target and send if found*/
+  if (hunt_server(client_p, source_p, ":%s SHEDDING %s %s %s :%s", 1,
+                  parc, parv) != HUNTED_ISME)
+    return;
+
+  if (irccmp(parv[2], "OFF") == 0)
+  {
+      eventDelete(user_shedding_main, NULL);
+      eventDelete(user_shedding_shed, NULL);
+
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                           "User shedding DISABLED by %s (%s@%s) [%s]",
+                           source_p->name, source_p->username, source_p->host,
+                           source_p->servptr->name);
+
+      return;
+  }
+
+  rate = atoi(parv[2]);
+  operstoo = !!atoi(parv[(3)]);
+
   /* Set a minimum because we need to do a bit of variance */
   if(rate < SHED_RATE_MIN)
     rate = SHED_RATE_MIN;
-  rate -= (rate/5);
 
+  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                       "User shedding ENABLED by %s (%s@%s); interval: %d seconds,"
+                       " opers: %s, reason: \"%s\" [%s]",
+                       source_p->name, source_p->username, source_p->host,
+                       rate, operstoo ? "yes" : "no", parv[4],
+                       source_p->servptr->name);
+
+  rate -= (rate/5);
   /* Lets not start more than one main thread in case someone tweaks the
    * paramters
    */
@@ -151,7 +160,7 @@ void user_shedding_shed(void *unused)
 {
   dlink_node *ptr;
   struct Client *client_p;
-  
+
   DLINK_FOREACH_PREV(ptr, local_client_list.tail)
   {
       client_p = ptr->data;
