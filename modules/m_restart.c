@@ -308,7 +308,7 @@ do_shutdown(const char *msg, int rboot)
   burst_all(make_dummy(transfd[1]));
   send_queued_all();
 
-  snprintf(buf, sizeof(buf), "\001%zd\r\n", me.since);
+  snprintf(buf, sizeof(buf), "\001%ld\r\n", me.since);
   if (write(transfd[1], buf, strlen(buf)) < 0)
   {
     ilog(L_CRIT, "Failed to write to socket");
