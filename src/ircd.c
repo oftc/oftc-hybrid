@@ -527,6 +527,7 @@ init_ssl(void)
   SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
   SSL_CTX_set_verify(ServerInfo.ctx, SSL_VERIFY_PEER, always_accept_verify_cb);
   SSL_CTX_set_session_cache_mode(ServerInfo.ctx, SSL_SESS_CACHE_OFF);
+  SSL_CTX_set_cipher_list(ServerInfo.ctx, "kEECDH+HIGH:kEDH+HIGH:HIGH:!RC4:!aNULL");
 
   bio_spare_fd = save_spare_fd("SSL private key validation");
 #endif /* HAVE_LIBCRYPTO */
