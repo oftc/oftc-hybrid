@@ -529,6 +529,10 @@ init_ssl(void)
   SSL_CTX_set_session_cache_mode(ServerInfo.ctx, SSL_SESS_CACHE_OFF);
   SSL_CTX_set_cipher_list(ServerInfo.ctx, "kEECDH+HIGH:kEDH+HIGH:HIGH:!RC4:!aNULL");
 
+#ifdef SSL_OP_SINGLE_ECDH_USE
+  SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_SINGLE_ECDH_USE);
+#endif
+
   bio_spare_fd = save_spare_fd("SSL private key validation");
 #endif /* HAVE_LIBCRYPTO */
 }
