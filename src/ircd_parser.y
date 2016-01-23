@@ -305,6 +305,7 @@ unhook_hub_leaf_confs(void)
 %token  RSA_PUBLIC_KEY_FILE
 %token  SSL_CERTIFICATE_FILE
 %token  DH_PARAMS_FILE
+%token  ECDH_CURVE
 %token  RESV
 %token  RESV_EXEMPT
 %token  SECONDS MINUTES HOURS DAYS WEEKS
@@ -511,7 +512,7 @@ serverinfo_item:        serverinfo_name | serverinfo_vhost |
                         serverinfo_max_clients | 
                         serverinfo_rsa_private_key_file | serverinfo_vhost6 |
                         serverinfo_sid | serverinfo_ssl_certificate_file |
-                        serverinfo_dh_params_file |
+                        serverinfo_dh_params_file | serverinfo_ecdh_curve |
 			error ';' ;
 
 serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
@@ -549,6 +550,24 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
       !SSL_CTX_set_tmp_dh(ServerInfo.ctx, ServerInfo.dh_params))
     {
       yyerror(ERR_lib_error_string(ERR_get_error()));
+      break;
+    }
+
+    if (ServerInfo.ecdh_curve != NULL)
+    {
+      ServerInfo.ecdh_key = EC_KEY_new_by_curve_name(OBJ_sn2nid(ServerInfo.ecdh_curve));
+
+      if (ServerInfo.ecdh_key == NULL)
+      {
+        yyerror(ERR_lib_error_string(ERR_get_error()));
+        break;
+      }
+
+      if (!SSL_CTX_set_tmp_ecdh(ServerInfo.ctx, ServerInfo.ecdh_key))
+      {
+        yyerror(ERR_lib_error_string(ERR_get_error()));
+        break;
+      }
     }
   }
 #endif
@@ -648,6 +667,28 @@ serverinfo_dh_params_file: DH_PARAMS_FILE '=' QSTRING ';'
   }
 #endif
 };
+
+serverinfo_ecdh_curve: ECDH_CURVE '=' QSTRING ';'
+{
+#ifdef HAVE_LIBCRYPTO
+  if (ypass == 1)
+  {
+    if (ServerInfo.ecdh_curve != NULL)
+    {
+      MyFree(ServerInfo.ecdh_curve);
+      ServerInfo.ecdh_curve = NULL;
+    }
+
+    if (ServerInfo.ecdh_key != NULL)
+    {
+      EC_KEY_free(ServerInfo.ecdh_key);
+      ServerInfo.ecdh_key = NULL;
+    }
+
+    DupString(ServerInfo.ecdh_curve, yylval.string);
+  }
+#endif
+}
 
 serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
 {

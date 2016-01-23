@@ -458,6 +458,8 @@ struct server_info
   RSA *rsa_private_key;
   char *dh_params_file;
   DH *dh_params;
+  char *ecdh_curve;
+  EC_KEY *ecdh_key;
   SSL_CTX *ctx;
 #endif
   char *sid;

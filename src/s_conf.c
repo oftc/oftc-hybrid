@@ -1897,6 +1897,8 @@ set_default_conf(void)
   ServerInfo.rsa_private_key_file = NULL;
   ServerInfo.dh_params = NULL;
   ServerInfo.dh_params_file = NULL;
+  ServerInfo.ecdh_curve = NULL;
+  ServerInfo.ecdh_key = NULL;
 #endif
 
   /* ServerInfo.name is not rehashable */
@@ -2821,6 +2823,15 @@ clear_out_old_conf(void)
 
   MyFree(ServerInfo.dh_params_file);
   ServerInfo.dh_params_file = NULL;
+
+  if (ServerInfo.ecdh_key != NULL)
+  {
+    EC_KEY_free(ServerInfo.ecdh_key);
+    ServerInfo.ecdh_key = NULL;
+  }
+
+  MyFree(ServerInfo.ecdh_curve);
+  ServerInfo.ecdh_curve = NULL;
 #endif
 
   /* clean out old resvs from the conf */
