@@ -1,5 +1,5 @@
 MAINTAINERCLEANFILES=Makefile.in
-sbin_PROGRAMS=ircd
+bin_PROGRAMS=ircd
 ircd_SOURCES= balloc.c          \
               channel.c         \
               channel_mode.c    \
