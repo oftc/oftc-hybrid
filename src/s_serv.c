@@ -2297,6 +2297,7 @@ ssllink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
   struct AccessItem *aconf;
   X509 *cert;
   RSA *pubkey;
+  if ((fd->ssl = SSL_new(ServerInfo.ctx)) == NULL)
   {
     ilog(L_CRIT, "SSL_new() ERROR! -- %s",
         ERR_error_string(ERR_get_error(), NULL));
