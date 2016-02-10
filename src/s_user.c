@@ -1223,7 +1223,7 @@ user_welcome(struct Client *source_p)
     if(!EmptyString(source_p->certfp))
     {
       sendto_one(source_p, 
-          ":%s NOTICE %s: *** Your client certificate fingerprint is %s",
+          ":%s NOTICE %s :*** Your client certificate fingerprint is %s",
           me.name, source_p->name, source_p->certfp);
     }
   }
