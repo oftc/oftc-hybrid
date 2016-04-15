@@ -626,7 +626,8 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
             ret = SSL_get_verify_result(client_p->localClient->fd.ssl);
             if (ret == X509_V_OK || ret == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN ||
                 ret == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
-                ret == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
+                ret == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT ||
+                ret == X509_V_ERR_CERT_UNTRUSTED)
             {
               EVP_PKEY *cert_key;
               RSA *cert_rsa;
