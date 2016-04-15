@@ -648,7 +648,6 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
             }
             else
               return -2;
-
           }
         }
       }
@@ -1095,7 +1094,13 @@ server_estab(struct Client *client_p)
     /* jdc -- 1.  Use EmptyString(), not [0] index reference.
      *        2.  Check aconf->spasswd, not aconf->passwd.
      */
-    if (!EmptyString(aconf->spasswd))
+
+    if (IsConfSSLLink(aconf))
+    {
+      if (me.id[0] != '\0')
+        sendto_one(client_p, "PASS . TS %d %s", TS_CURRENT, me.id);
+    }
+    else if (!EmptyString(aconf->spasswd))
     {
       /* only send ts6 format PASS if we have ts6 enabled */
     if (me.id[0] != '\0')		/* Send TS 6 form only if id */
@@ -2288,6 +2293,7 @@ ssl_server_handshake(int fd, struct Client *client_p)
         return;
     }
   }
+
   comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ, read_packet, client_p, 0); 
 }
 
@@ -2343,6 +2349,7 @@ ssllink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
       return;
   }
 }
+
 /*
  * sends a CRYPTLINK SERV command.
  */
