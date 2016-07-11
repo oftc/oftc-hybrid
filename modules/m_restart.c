@@ -147,7 +147,8 @@ write_dbuf(int transfd, struct dbuf_queue *dbuf)
   {
     struct dbuf_block *first = dbuf->blocks.head->data;
 
-    write(transfd, first->data, first->size);
+    if(write(transfd, first->data, first->size) < 0)
+      return;
     dbuf_delete(dbuf, first->size);
   }
 }
@@ -188,17 +189,22 @@ introduce_socket(int transfd, struct Client *client_p)
   si.first = client_p->firsttime;
   si.last = client_p->localClient->last;
 
-  write(transfd, &si, sizeof(si));
-  write(transfd, client_p->name, si.namelen);
+  if(write(transfd, &si, sizeof(si)) < 0)
+    return;
+  if(write(transfd, client_p->name, si.namelen) < 0)
+    return;
   if (si.pwdlen > 0)
-    write(transfd, client_p->localClient->passwd, si.pwdlen);
+    if(write(transfd, client_p->localClient->passwd, si.pwdlen) < 0)
+      return;
   if (si.caplen > 0)
-    write(transfd, capabs, si.caplen);
+    if(write(transfd, capabs, si.caplen) < 0)
+      return;
 
   write_dbuf(transfd, &client_p->localClient->buf_recvq);
   write_dbuf(transfd, &client_p->localClient->buf_sendq);
   if (si.slinkqlen > 0)
-    write(transfd, client_p->localClient->slinkq, si.slinkqlen);
+    if(write(transfd, client_p->localClient->slinkq, si.slinkqlen) < 0)
+      return;
 }
 
 /*
@@ -303,7 +309,11 @@ do_shutdown(const char *msg, int rboot)
   send_queued_all();
 
   snprintf(buf, sizeof(buf), "\001%ld\r\n", me.since);
-  write(transfd[1], buf, strlen(buf));
+  if (write(transfd[1], buf, strlen(buf)) < 0)
+  {
+    ilog(L_CRIT, "Failed to write to socket");
+    exit(1);
+  }
 
   DLINK_FOREACH(ptr, local_client_list.head)
     introduce_socket(transfd[1], ptr->data);

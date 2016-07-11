@@ -46,6 +46,8 @@
 #include "modules.h"
 #include "channel.h"
 #include "channel_mode.h"
+#include "sprintf_irc.h"
+#include "s_log.h"
 
 static void ms_svsjoin(struct Client *, struct Client *, int parc, char *[]);
 
@@ -74,6 +76,7 @@ const char *_version = "$Revision: 989 $";
  *  parv[0] = sender prefix
  *  parv[1] = user to force
  *  parv[2] = channel to force them into
+ *  parv[3] = key for the channel
  */
 static void
 ms_svsjoin(struct Client *client_p, struct Client *source_p,
@@ -86,6 +89,7 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
   char sjmode = '\0';
   char *newch = NULL;
   dlink_node *ptr = NULL;
+  int i;
 
   if ((target_p = find_person(source_p, parv[1])) == NULL)
     return;
@@ -139,6 +143,23 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
   {
     if (IsMember(target_p, chptr))
       return;
+
+    if (((i = can_join(target_p, chptr, parv[3])) && !IsGod(target_p)))
+    {
+        sendto_one(target_p, form_str(i), me.name, target_p->name, 
+                   chptr->chname);
+        return;
+    }
+
+    if(i != 0 && IsGod(target_p) && MyClient(target_p))
+    {
+        char tmp[IRCD_BUFSIZE];
+        ircsprintf(tmp, "%s is using God mode: SVSJOIN %s", target_p->name,
+                   chptr->chname);
+        sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL,
+                             tmp);
+        oftc_log(tmp);
+    }
 
     add_user_to_channel(chptr, target_p, type, NO);
 

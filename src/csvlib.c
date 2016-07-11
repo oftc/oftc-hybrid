@@ -116,7 +116,8 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
             break;
           }
 
-          aconf = map_to_conf(make_conf_item(RKLINE_TYPE));
+          conf = make_conf_item(RKLINE_TYPE);
+          aconf = map_to_conf(conf);
 
           aconf->regexuser = exp_user;
           aconf->regexhost = exp_host;
@@ -832,8 +833,7 @@ remove_conf_line(ConfType type, struct Client *source_p, const char *pat1, const
 
   if (pairme == 0)
   {
-    if(temppath != NULL)
-      (void)unlink(temppath);
+    (void)unlink(temppath);
     return 0;
   }
   else

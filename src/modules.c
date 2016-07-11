@@ -37,6 +37,9 @@
 #include "irc_string.h"
 #include "memory.h"
 #include "list.h"
+#include <libgen.h>
+
+#define SHARED_SUFFIX ".la"
 
 /* -TimeMr14C:
  * I have moved the dl* function definitions and
@@ -130,6 +133,7 @@ extern struct Message error_msgtab;
 void
 modules_init(void)
 {
+  dynlink_init();
   mod_add_cmd(&modload_msgtab);
   mod_add_cmd(&modunload_msgtab);
   mod_add_cmd(&modreload_msgtab);

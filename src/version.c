@@ -107,7 +107,7 @@ const char *infotext[] =
   "toot, Toby Verrall <to7@antipope.fsnet.co.uk>",
   "vx0, Mark Miller <mark@oc768.net>",
   "wiz, Jason Dambrosio <jason@wiz.cx>",
-  "Xride, Søren Straarup <xride@x12.dk>",
+  "Xride, Soeren Straarup <xride@x12.dk>",
   "zb^3, Alfred Perlstein <alfred@freebsd.org>",
   "",
   "Others are welcome. Always. And if we left anyone off the above list,",

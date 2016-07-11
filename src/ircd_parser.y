@@ -26,6 +26,7 @@
 
 #define YY_NO_UNPUT
 #include <sys/types.h>
+#include <libgen.h>
 
 #include "stdinc.h"
 #include "ircd.h"
@@ -303,6 +304,8 @@ unhook_hub_leaf_confs(void)
 %token  RSA_PRIVATE_KEY_FILE
 %token  RSA_PUBLIC_KEY_FILE
 %token  SSL_CERTIFICATE_FILE
+%token  DH_PARAMS_FILE
+%token  ECDH_CURVE
 %token  RESV
 %token  RESV_EXEMPT
 %token  SECONDS MINUTES HOURS DAYS WEEKS
@@ -311,6 +314,7 @@ unhook_hub_leaf_confs(void)
 %token  SERVERHIDE
 %token  SERVERINFO
 %token  SERVLINK_PATH
+%token  SSLLINK
 %token  IRCD_SID
 %token	TKLINE_EXPIRE_NOTICES
 %token  T_SHARED
@@ -359,6 +363,7 @@ unhook_hub_leaf_confs(void)
 %token  T_NCHANGE
 %token  T_OPERWALL
 %token  T_REJ
+%token  T_SERVER
 %token  T_SERVNOTICE
 %token  T_SKILL
 %token  T_SPY
@@ -477,10 +482,6 @@ modules_module: MODULE '=' QSTRING ';'
 #ifndef STATIC_MODULES /* NOOP in the static case */
   if (ypass == 2)
   {
-    char *m_bn;
-
-    m_bn = basename(yylval.string);
-
     /* I suppose we should just ignore it if it is already loaded(since
      * otherwise we would flood the opers on rehash) -A1kmm.
      */
@@ -511,6 +512,7 @@ serverinfo_item:        serverinfo_name | serverinfo_vhost |
                         serverinfo_max_clients | 
                         serverinfo_rsa_private_key_file | serverinfo_vhost6 |
                         serverinfo_sid | serverinfo_ssl_certificate_file |
+                        serverinfo_dh_params_file | serverinfo_ecdh_curve |
 			error ';' ;
 
 serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
@@ -543,9 +545,150 @@ serverinfo_ssl_certificate_file: SSL_CERTIFICATE_FILE '=' QSTRING ';'
       yyerror("RSA private key does not match the SSL certificate public key!");
       break;
     }
+
+    if (ServerInfo.dh_params != NULL &&
+      !SSL_CTX_set_tmp_dh(ServerInfo.ctx, ServerInfo.dh_params))
+    {
+      yyerror(ERR_lib_error_string(ERR_get_error()));
+      break;
+    }
+
+    if (ServerInfo.ecdh_curve != NULL)
+    {
+      ServerInfo.ecdh_key = EC_KEY_new_by_curve_name(OBJ_sn2nid(ServerInfo.ecdh_curve));
+
+      if (ServerInfo.ecdh_key == NULL)
+      {
+        yyerror(ERR_lib_error_string(ERR_get_error()));
+        break;
+      }
+
+      if (!SSL_CTX_set_tmp_ecdh(ServerInfo.ctx, ServerInfo.ecdh_key))
+      {
+        yyerror(ERR_lib_error_string(ERR_get_error()));
+        break;
+      }
+    }
   }
 #endif
 };
+
+serverinfo_dh_params_file: DH_PARAMS_FILE '=' QSTRING ';'
+{
+#ifdef HAVE_LIBCRYPTO
+  if (ypass == 1)
+  {
+    BIO *file;
+    int codes;
+
+    if (ServerInfo.dh_params != NULL)
+    {
+      DH_free(ServerInfo.dh_params);
+      ServerInfo.dh_params = NULL;
+    }
+
+    if (ServerInfo.dh_params_file != NULL)
+    {
+      MyFree(ServerInfo.dh_params_file);
+      ServerInfo.dh_params_file = NULL;
+    }
+
+    DupString(ServerInfo.dh_params_file, yylval.string);
+
+    if ((file = BIO_new_file(yylval.string, "r")) == NULL)
+    {
+      yyerror("File open failed, ignoring");
+      break;
+    }
+
+    ServerInfo.dh_params = PEM_read_bio_DHparams(file, NULL,
+      NULL, NULL);
+
+    (void)BIO_set_close(file, BIO_CLOSE);
+    BIO_free(file);
+
+    if (ServerInfo.dh_params == NULL)
+    {
+      yyerror("Couldn't extract DH params, ignoring");
+      break;
+    }
+
+    if (!DH_check(ServerInfo.dh_params, &codes))
+    {
+      DH_free(ServerInfo.dh_params);
+      ServerInfo.dh_params = NULL;
+
+      yyerror("Unsafe DH params, ignoring");
+      break;
+    }
+
+    if (BN_is_word(ServerInfo.dh_params->g, DH_GENERATOR_2))
+    {
+      long residue = BN_mod_word(ServerInfo.dh_params->p, 24);
+      if (residue == 11 || residue == 23)
+      {
+        codes &= ~DH_NOT_SUITABLE_GENERATOR;
+      }
+    }
+
+    if (codes & DH_UNABLE_TO_CHECK_GENERATOR)
+    {
+      yyerror("Unable to test generator");
+      break;
+    }
+
+    if (codes & DH_NOT_SUITABLE_GENERATOR)
+    {
+      yyerror("Not a suitable generator");
+      break;
+    }
+
+    if (codes & DH_CHECK_P_NOT_PRIME)
+    {
+      yyerror("P is not a prime");
+      break;
+    }
+
+    if (codes & DH_CHECK_P_NOT_SAFE_PRIME)
+    {
+      yyerror("P is not a safe prime");
+      break;
+    }
+
+    /* require 2048 bit (256 byte) key */
+    if (DH_size(ServerInfo.dh_params) != 256)
+    {
+      DH_free(ServerInfo.dh_params);
+      ServerInfo.dh_params = NULL;
+
+      yyerror("Not a 2048 bit DH file, ignoring");
+      break;
+    }
+  }
+#endif
+};
+
+serverinfo_ecdh_curve: ECDH_CURVE '=' QSTRING ';'
+{
+#ifdef HAVE_LIBCRYPTO
+  if (ypass == 1)
+  {
+    if (ServerInfo.ecdh_curve != NULL)
+    {
+      MyFree(ServerInfo.ecdh_curve);
+      ServerInfo.ecdh_curve = NULL;
+    }
+
+    if (ServerInfo.ecdh_key != NULL)
+    {
+      EC_KEY_free(ServerInfo.ecdh_key);
+      ServerInfo.ecdh_key = NULL;
+    }
+
+    DupString(ServerInfo.ecdh_curve, yylval.string);
+  }
+#endif
+}
 
 serverinfo_rsa_private_key_file: RSA_PRIVATE_KEY_FILE '=' QSTRING ';'
 {
@@ -652,7 +795,7 @@ serverinfo_network_name: NETWORK_NAME '=' QSTRING ';'
     char *p;
 
     if ((p = strchr(yylval.string, ' ')) != NULL)
-      p = '\0';
+      *p = '\0';
 
     MyFree(ServerInfo.network_name);
     DupString(ServerInfo.network_name, yylval.string);
@@ -1022,10 +1165,7 @@ oper_entry: OPERATOR
       }
 
       if (yy_aconf->certfp != NULL)
-      {
-        new_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
-        memcpy(new_aconf->certfp, yy_aconf->certfp, SHA_DIGEST_LENGTH);
-      }
+        DupString(new_aconf->certfp, yy_aconf->certfp);
 #endif
 
 #ifdef HAVE_LIBCRYPTO
@@ -1126,18 +1266,16 @@ oper_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
 {
   if (ypass == 2)
   {
-    char tmp[SHA_DIGEST_LENGTH];
-    
     if(yy_aconf->certfp != NULL)
       MyFree(yy_aconf->certfp);
 
-    if(base16_decode(tmp, SHA_DIGEST_LENGTH, yylval.string, strlen(yylval.string)) != 0)
+    if(strlen(yylval.string) != SHA_DIGEST_LENGTH * 2)
     {
       yyerror("Invalid client certificate fingerprint provided. Ignoring");
       break;
     }
-    yy_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
-    memcpy(yy_aconf->certfp, tmp, SHA_DIGEST_LENGTH);
+
+    DupString(yy_aconf->certfp, yylval.string);
   }
 };
 
@@ -1788,7 +1926,13 @@ listen_flags_item: T_SSL
 {
   if (ypass == 2)
     listener_flags |= LISTENER_HIDDEN;
+} | T_SERVER
+{
+  if (ypass == 2)
+    listener_flags |= LISTENER_SERVER;
 };
+
+
 
 listen_items:   listen_items listen_item | listen_item;
 listen_item:    listen_port | listen_flags | listen_address | listen_host | error ';';
@@ -1909,10 +2053,7 @@ auth_entry: IRCD_AUTH
       collapse(new_aconf->host);
 
       if (yy_aconf->certfp != NULL)
-      {
-        new_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
-        memcpy(new_aconf->certfp, yy_aconf->certfp, SHA_DIGEST_LENGTH);
-      }
+        DupString(new_aconf->certfp, yy_aconf->certfp);
 
       conf_add_class_to_conf(new_conf, class_name);
       add_conf_by_address(CONF_CLIENT, new_aconf);
@@ -1989,18 +2130,16 @@ auth_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
 {
   if (ypass == 2)
   {
-    char tmp[SHA_DIGEST_LENGTH];
-
     if(yy_aconf->certfp != NULL)
       MyFree(yy_aconf->certfp);
 
-    if(base16_decode(tmp, SHA_DIGEST_LENGTH, yylval.string, strlen(yylval.string)) != 0)
+    if(strlen(yylval.string) != SHA_DIGEST_LENGTH * 2)
     {
       yyerror("Invalid client certificate fingerprint provided. Ignoring");
       break;
     }
-    yy_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
-    memcpy(yy_aconf->certfp, tmp, SHA_DIGEST_LENGTH);
+
+    DupString(yy_aconf->certfp, yylval.string);
   }
 };
 
@@ -2510,7 +2649,7 @@ connect_entry: CONNECT
 #ifdef HAVE_LIBCRYPTO
     if (yy_aconf->host &&
 	((yy_aconf->passwd && yy_aconf->spasswd) ||
-	 (yy_aconf->rsa_public_key && IsConfCryptLink(yy_aconf))))
+	 (yy_aconf->rsa_public_key && (IsConfCryptLink(yy_aconf) || IsConfSSLLink(yy_aconf)))))
 #else /* !HAVE_LIBCRYPTO */
       if (yy_aconf->host && !IsConfCryptLink(yy_aconf) && 
 	  yy_aconf->passwd && yy_aconf->spasswd)
@@ -2533,10 +2672,11 @@ connect_entry: CONNECT
 	  if (yy_conf->name != NULL)
 	  {
 #ifndef HAVE_LIBCRYPTO
-	    if (IsConfCryptLink(yy_aconf))
+	    if (IsConfCryptLink(yy_aconf) || IsConfSSLLink(yy_aconf))
 	      yyerror("Ignoring connect block -- no OpenSSL support");
 #else
-	    if (IsConfCryptLink(yy_aconf) && !yy_aconf->rsa_public_key)
+	    if ((IsConfCryptLink(yy_aconf) || IsConfSSLLink(yy_aconf)) && 
+          !yy_aconf->rsa_public_key)
 	      yyerror("Ignoring connect block -- missing key");
 #endif
 	    if (yy_aconf->host == NULL)
@@ -2635,7 +2775,7 @@ connect_item:   connect_name | connect_host | connect_vhost |
  		connect_fakename | connect_flags | connect_hub_mask | 
 		connect_leaf_mask | connect_class | connect_auto |
 		connect_encrypted | connect_compressed | connect_cryptlink |
-		connect_rsa_public_key_file | connect_cipher_preference |
+		connect_ssllink | connect_rsa_public_key_file | connect_cipher_preference |
                 connect_topicburst | error ';' ;
 
 connect_name: NAME '=' QSTRING ';'
@@ -2793,6 +2933,15 @@ connect_flags_item_atom: LAZYLINK
     if (not_atom)ClearConfCryptLink(yy_aconf);
     else SetConfCryptLink(yy_aconf);
   }
+} | SSLLINK
+{
+  if (ypass == 2)
+  {
+    if(not_atom)
+      ClearConfSSLLink(yy_aconf);
+    else
+      SetConfSSLLink(yy_aconf);
+  }
 } | AUTOCONN
 {
   if (ypass == 2)
@@ -2877,6 +3026,17 @@ connect_cryptlink: CRYPTLINK '=' TBOOL ';'
       yy_aconf->flags |= CONF_FLAGS_CRYPTLINK;
     else
       yy_aconf->flags &= ~CONF_FLAGS_CRYPTLINK;
+  }
+};
+
+connect_ssllink: SSLLINK '='  TBOOL ';'
+{
+  if(ypass == 2)
+  {
+    if(yylval.number)
+      yy_aconf->flags |= CONF_FLAGS_SSLLINK;
+    else
+      yy_aconf->flags &= ~CONF_FLAGS_SSLLINK;
   }
 };
 
@@ -3166,21 +3326,17 @@ exempt_client_certificate_hash: CLIENTCERT_HASH '=' QSTRING ';'
 {
   if (ypass == 2)
   {
-    char tmp[SHA_DIGEST_LENGTH];
-
     yy_conf = make_conf_item(EXEMPTDLINE_TYPE);
     yy_aconf = map_to_conf(yy_conf);
   
-    if(base16_decode(tmp, SHA_DIGEST_LENGTH, yylval.string, strlen(yylval.string)) != 0)
+    if(strlen(yylval.string) != SHA_DIGEST_LENGTH * 2)
     {
       yyerror("Invalid client certificate fingerprint provided. Ignoring");
       break;
     }
  
-    yy_aconf->certfp = MyMalloc(SHA_DIGEST_LENGTH);
-    yy_aconf->host = MyMalloc(SHA_DIGEST_LENGTH);
-    memcpy(yy_aconf->certfp, tmp, SHA_DIGEST_LENGTH);
-    memcpy(yy_aconf->host, tmp, SHA_DIGEST_LENGTH);
+    DupString(yy_aconf->certfp, yylval.string);
+    DupString(yy_aconf->host, yylval.string);
  
     add_conf_by_address(CONF_EXEMPTDLINE, yy_aconf);
 

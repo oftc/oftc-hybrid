@@ -43,7 +43,6 @@ struct AuthRequest
   dlink_node	      ident_node; /* auth_doing_ident_list */
   int 		      flags;
   struct Client*      client;    /* pointer to client struct for request */
-  fde_t               fd;        /* file descriptor for auth queries */
   time_t              timeout;   /* time when query expires */
   unsigned int	      ip6_int;
 };

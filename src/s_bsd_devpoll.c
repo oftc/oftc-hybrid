@@ -20,10 +20,11 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  *  USA
  *
- *  $Id: s_bsd_devpoll.c 282 2005-11-24 10:31:22Z adx $
+ *  $Id: s_bsd_devpoll.c 908 2007-11-04 23:21:51Z stu $
  */
 
 #include "stdinc.h"
+#if USE_IOPOLL_MECHANISM == __IOPOLL_MECHANISM_DEVPOLL
 #include <sys/ioctl.h>
 /* HPUX uses devpoll.h and not sys/devpoll.h */
 #ifdef HAVE_DEVPOLL_H
@@ -187,3 +188,4 @@ comm_select(void)
     comm_setselect(F, 0, NULL, NULL, 0);
   }
 }
+#endif

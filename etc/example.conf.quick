@@ -48,6 +48,8 @@ serverinfo {
 	max_clients = 512;
 	#rsa_private_key_file = "/usr/local/ircd/etc/rsa.key";
 	#ssl_certificate_file = "/usr/local/ircd/etc/cert.pem";
+	#dh_params_file = "/usr/local/ircd/etc/dhparam.pem";
+	#ecdh_curve = "prime256v1";
 };
 
 /* admin {}: contains admin information about the server. (OLD A:) */

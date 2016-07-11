@@ -54,7 +54,7 @@ mem_frob(void *data, int len)
  * which is mine.
  *   -- adrian
  */
-void
+inline void
 dlinkAdd(void *data, dlink_node * m, dlink_list * list)
 {
  m->data = data;
@@ -71,7 +71,7 @@ dlinkAdd(void *data, dlink_node * m, dlink_list * list)
  list->length++;
 }
 
-void
+inline void
 dlinkAddBefore(dlink_node *b, void *data, dlink_node *m, dlink_list *list)
 {
     /* Shortcut - if its the first one, call dlinkAdd only */
@@ -90,7 +90,7 @@ dlinkAddBefore(dlink_node *b, void *data, dlink_node *m, dlink_list *list)
     }
 }
 
-void
+inline void
 dlinkAddTail(void *data, dlink_node *m, dlink_list *list)
 {
   m->data = data;
@@ -109,7 +109,7 @@ dlinkAddTail(void *data, dlink_node *m, dlink_list *list)
 /* Execution profiles show that this function is called the most
  * often of all non-spontaneous functions. So it had better be
  * efficient. */
-void
+inline void
 dlinkDelete(dlink_node *m, dlink_list *list)
 {
  /* Assumption: If m->next == NULL, then list->tail == m
@@ -141,7 +141,7 @@ dlinkDelete(dlink_node *m, dlink_list *list)
  * output	- pointer to link or NULL if not found
  * side effects	- Look for ptr in the linked listed pointed to by link.
  */
-dlink_node *
+inline dlink_node *
 dlinkFind(dlink_list *list, void *data)
 {
   dlink_node *ptr;
@@ -155,7 +155,7 @@ dlinkFind(dlink_list *list, void *data)
   return(NULL);
 }
 
-void
+inline void
 dlinkMoveList(dlink_list *from, dlink_list *to)
 {
   /* There are three cases */
@@ -188,7 +188,7 @@ dlinkMoveList(dlink_list *from, dlink_list *to)
   /* I think I got that right */
 }
 
-dlink_node *
+inline dlink_node *
 dlinkFindDelete(dlink_list *list, void *data)
 {
   dlink_node *m;

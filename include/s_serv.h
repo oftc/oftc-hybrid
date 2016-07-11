@@ -50,27 +50,28 @@ struct Capability
   unsigned int cap; /* mask value         */
 };
 
-#define CAP_CAP		0x00000001 /* received a CAP to begin with        */
-#define CAP_QS		0x00000002 /* Can handle quit storm removal       */
-#define CAP_EX		0x00000004 /* Can do channel +e exemptions        */
-#define CAP_CHW		0x00000008 /* Can do channel wall @#              */
-#define CAP_LL		0x00000010 /* Can do lazy links                   */
-#define CAP_IE		0x00000020 /* Can do invite exceptions            */
-#define CAP_EOB		0x00000040 /* Can do EOB message                  */
-#define CAP_KLN		0x00000080 /* Can do KLINE message                */
-#define CAP_GLN		0x00000100 /* Can do GLINE message                */
-#define CAP_HUB		0x00000200 /* This server is a HUB                */
-#define CAP_TS6		0x00000400 /* Can do TS6                          */
-#define CAP_ZIP		0x00000800 /* Can do ZIPlinks                     */
-#define CAP_ENC		0x00001000 /* Can do ENCrypted links              */
-#define CAP_KNOCK	0x00002000 /* supports KNOCK                      */
-#define CAP_TB	        0x00004000 /* supports TB                         */
-#define CAP_UNKLN	0x00008000 /* Can do UNKLINE message		  */
+#define CAP_CAP		  0x00000001 /* received a CAP to begin with        */
+#define CAP_QS		  0x00000002 /* Can handle quit storm removal       */
+#define CAP_EX		  0x00000004 /* Can do channel +e exemptions        */
+#define CAP_CHW		  0x00000008 /* Can do channel wall @#              */
+#define CAP_LL		  0x00000010 /* Can do lazy links                   */
+#define CAP_IE		  0x00000020 /* Can do invite exceptions            */
+#define CAP_EOB		  0x00000040 /* Can do EOB message                  */
+#define CAP_KLN		  0x00000080 /* Can do KLINE message                */
+#define CAP_GLN		  0x00000100 /* Can do GLINE message                */
+#define CAP_HUB		  0x00000200 /* This server is a HUB                */
+#define CAP_TS6		  0x00000400 /* Can do TS6                          */
+#define CAP_ZIP		  0x00000800 /* Can do ZIPlinks                     */
+#define CAP_ENC		  0x00001000 /* Can do ENCrypted links              */
+#define CAP_KNOCK	  0x00002000 /* supports KNOCK                      */
+#define CAP_TB	    0x00004000 /* supports TB                         */
+#define CAP_UNKLN	  0x00008000 /* Can do UNKLINE message		  */
 #define CAP_CLUSTER	0x00010000 /* supports server clustering	  */
-#define CAP_ENCAP	0x00020000 /* supports ENCAP message		  */
-#define CAP_HOPS	0x00040000 /* supports HALFOPS			  */
-#define CAP_TBURST      0x00080000 /* supports TBURST                     */
-#define CAP_QUIET 0x00100000 /* supports quiet cmode +q */
+#define CAP_ENCAP	  0x00020000 /* supports ENCAP message		  */
+#define CAP_HOPS	  0x00040000 /* supports HALFOPS			  */
+#define CAP_TBURST  0x00080000 /* supports TBURST                     */
+#define CAP_QUIET   0x00100000 /* supports quiet cmode +q */
+#define CAP_SSL     0x00200000 /* Supports SSL Server links */
 
 #ifdef HAVE_LIBZ
 #define CAP_ZIP_SUPPORTED CAP_ZIP
@@ -116,7 +117,7 @@ struct EncCapability
 
 
 /* */
-#if HAVE_EVP_BF_CFB || HAVE_EVP_BF_CFB64
+#ifdef HAVE_EVP_BF_CFB
 #define USE_CIPHER_BF       1
 /* Check for bug handling variable length blowfish keys */
 #if defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x00000000L
@@ -129,31 +130,31 @@ struct EncCapability
 #define USE_CIPHER_BF       0
 #endif
 /* Cast */
-#if HAVE_EVP_CAST5_CFB || HAVE_EVP_CAST5_CFB64
+#ifdef HAVE_EVP_CAST5_CFB
 #define USE_CIPHER_CAST     1
 #else
 #define USE_CIPHER_CAST     0
 #endif
 /* DES */
-#if HAVE_EVP_DES_CFB || HAVE_EVP_DES_CFB64
+#ifdef HAVE_EVP_DES_CFB
 #define USE_CIPHER_DES      1
 #else
 #define USE_CIPHER_DES      0
 #endif
 /* 3DES */
-#if HAVE_EVP_DES_EDE3_CFB || HAVE_EVP_DES_EDE3_CFB64
+#ifdef HAVE_EVP_DES_EDE3_CFB
 #define USE_CIPHER_3DES     1
 #else
 #define USE_CIPHER_3DES     0
 #endif
 /* IDEA */
-#if HAVE_EVP_IDEA_CFB || HAVE_EVP_IDEA_CFB64
+#ifdef HAVE_EVP_IDEA_CFB
 #define USE_CIPHER_IDEA     1
 #else
 #define USE_CIPHER_IDEA     0
 #endif
 /* RC5 */
-#if HAVE_EVP_RC5_32_12_16_CFB || HAVE_EVP_RC5_32_12_16_CFB64
+#ifdef HAVE_EVP_RC5_32_12_16_CFB
 #define USE_CIPHER_RC5      1
 #else
 #define USE_CIPHER_RC5      0
@@ -263,6 +264,7 @@ extern void cryptlink_error(struct Client *, const char *,
                             const char *, const char *);
 extern void remove_lazylink_flags(unsigned long);
 extern void client_burst_if_needed(struct Client *, struct Client *);
+extern void ssllink_init(struct Client *, struct ConfItem *, fde_t *);
 extern struct EncCapability *check_cipher(struct Client *, struct AccessItem *);
 extern void add_lazylinkclient(struct Client *, struct Client *);
 

@@ -185,8 +185,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
   char *s;
   char *numeric = 0;
   unsigned int i = 0;
-  int paramcount;
-  int mpara = 0;
   struct Message *mptr = NULL;
 
   if (IsDefunct(client_p))
@@ -283,7 +281,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
   {
     mptr = NULL;
     numeric = ch;
-    paramcount = MAXPARA;
     ServerStats->is_num++;
     s = ch + 3;  /* I know this is ' ' from above if            */
     *s++ = '\0'; /* blow away the ' ', and point s to next part */
@@ -319,9 +316,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
     }
 
     assert(mptr->cmd != NULL);
-
-    paramcount = mptr->parameters;
-    mpara      = mptr->maxpara;
 
     ii = bufend - ((s) ? s : ch);
     mptr->bytes += ii;

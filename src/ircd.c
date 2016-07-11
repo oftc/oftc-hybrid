@@ -389,6 +389,9 @@ initialize_server_capabs(void)
 #ifdef HALFOPS
   add_capability("HOPS", CAP_HOPS, 1);
 #endif
+#ifdef HAVE_LIBCRYPTO
+  add_capability("SSL", CAP_SSL, 1);
+#endif
 }
 
 /* write_pidfile()
@@ -510,7 +513,7 @@ init_ssl(void)
   SSL_load_error_strings();
   SSLeay_add_ssl_algorithms();
 
-  ServerInfo.ctx = SSL_CTX_new(SSLv23_server_method());
+  ServerInfo.ctx = SSL_CTX_new(SSLv23_method());
   if (!ServerInfo.ctx)
   {
     const char *s;
@@ -524,6 +527,11 @@ init_ssl(void)
   SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_TLS_ROLLBACK_BUG|SSL_OP_ALL);
   SSL_CTX_set_verify(ServerInfo.ctx, SSL_VERIFY_PEER, always_accept_verify_cb);
   SSL_CTX_set_session_cache_mode(ServerInfo.ctx, SSL_SESS_CACHE_OFF);
+  SSL_CTX_set_cipher_list(ServerInfo.ctx, "kEECDH+HIGH:kEDH+HIGH:HIGH:!RC4:!aNULL");
+
+#ifdef SSL_OP_SINGLE_ECDH_USE
+  SSL_CTX_set_options(ServerInfo.ctx, SSL_OP_SINGLE_ECDH_USE);
+#endif
 
   bio_spare_fd = save_spare_fd("SSL private key validation");
 #endif /* HAVE_LIBCRYPTO */

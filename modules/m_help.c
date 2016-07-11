@@ -36,8 +36,6 @@
 #include "modules.h"
 #include "irc_string.h"
 
-#define HPATH  IRCD_PREFIX "/help/opers"
-#define UHPATH IRCD_PREFIX "/help/users"
 #define HELPLEN 400
 
 static void m_help(struct Client *, struct Client *, int, char *[]);
@@ -201,7 +199,6 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
                me.name, source_p->name, topic);
     return;
   }
-
   else if (line[0] != '#')
   {
     line[strlen(line) - 1] = '\0';	  
@@ -218,12 +215,12 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
       if (!started)
       {
         type = RPL_HELPSTART;
-	started = 1;
+        started = 1;
       }
       else
         type = RPL_HELPTXT;
       
-      sendto_one(source_p, form_str(RPL_HELPTXT),
+      sendto_one(source_p, form_str(type),
                  me.name, source_p->name, topic, line);
     }
   }

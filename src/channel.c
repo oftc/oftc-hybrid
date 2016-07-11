@@ -159,7 +159,7 @@ send_members(struct Client *client_p, struct Channel *chptr,
 {
   struct Membership *ms;
   dlink_node *ptr;
-  int tlen;              /* length of text to append */
+  unsigned int tlen;              /* length of text to append */
   char *t, *start;       /* temp char pointer */
 
   start = t = buf + ircsprintf(buf, ":%s SJOIN %lu %s %s %s:",
@@ -186,7 +186,7 @@ send_members(struct Client *client_p, struct Channel *chptr,
     /* space will be converted into CR, but we also need space for LF..
      * That's why we use '- 1' here
      * -adx */
-    if (t + tlen - buf > sizeof(buf) - 1)
+    if ((unsigned long)(t + tlen - buf) > sizeof(buf) - 1)
     {
       *(t - 1) = '\0';  /* kill the space and terminate the string */
       sendto_one(client_p, "%s", buf);
@@ -759,7 +759,7 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 
   if (MyClient(source_p) && !IsExemptResv(source_p))
     if (!(IsOper(source_p) && ConfigFileEntry.oper_pass_resv))
-      if (!hash_find_resv(chptr->chname) == ConfigChannel.restrict_channels)
+      if ((!hash_find_resv(chptr->chname)) == ConfigChannel.restrict_channels)
         return CAN_SEND_NO;
 
   if (ms != NULL || (ms = find_channel_link(source_p, chptr)))

@@ -756,19 +756,21 @@ report_confitem_types(struct Client *source_p, ConfType type, int temp)
       buf[0] = '\0';
 
       if (IsConfAllowAutoConn(aconf))
-  *p++ = 'A';
+        *p++ = 'A';
       if (IsConfCryptLink(aconf))
-  *p++ = 'C';
+        *p++ = 'C';
       if (IsConfLazyLink(aconf))
-  *p++ = 'L';
+        *p++ = 'L';
+      if (IsConfSSLLink(aconf))
+        *p++ = 'S';
       if (aconf->fakename)
-  *p++ = 'M';
+        *p++ = 'M';
       if (IsConfTopicBurst(aconf))
         *p++ = 'T';
       if (IsConfCompressed(aconf))
         *p++ = 'Z';
       if (buf[0] == '\0')
-  *p++ = '*';
+        *p++ = '*';
 
       *p = '\0';
 
@@ -838,7 +840,7 @@ check_client(va_list args)
   struct Client *source_p = va_arg(args, struct Client *);
   const char *username = va_arg(args, const char *);
   int i, bad = 0;
-  char *reject_reason;
+  char *reject_reason = { 0 };
   struct ConfItem conf;
  
   /* I'm already in big trouble if source_p->localClient is NULL -db */
@@ -870,7 +872,7 @@ check_client(va_list args)
          get_client_name(source_p, SHOW_IP),
          source_p->sockhost);
       ilog(L_INFO,"Too many connections on IP from %s.",
-     get_client_name(source_p, SHOW_IP));
+           get_client_name(source_p, SHOW_IP));
       ServerStats->is_ref++;
       exit_client(source_p, &me, reject_reason);
       break;
@@ -878,13 +880,14 @@ check_client(va_list args)
     case I_LINE_FULL:
       sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
                            "I-line is full for %s (%s).",
-         get_client_name(source_p, SHOW_IP),
-         source_p->sockhost);
+                           get_client_name(source_p, SHOW_IP),
+                           source_p->sockhost);
       ilog(L_INFO,"Too many connections from %s.",
-     get_client_name(source_p, SHOW_IP));
-       ServerStats->is_ref++;
+           get_client_name(source_p, SHOW_IP));
+
+      ServerStats->is_ref++;
       exit_client(source_p, &me, 
-    "No more connections allowed in your connection class");
+                  "No more connections allowed in your connection class");
       break;
 
     case NOT_AUTHORIZED:
@@ -1781,7 +1784,7 @@ find_exact_name_conf(ConfType type, const char *name,
             return conf;
           if(certfp != NULL && aconf->certfp != NULL)
           {
-            if(memcmp(aconf->certfp, certfp, SHA_DIGEST_LENGTH) == 0)
+            if(strncmp(aconf->certfp, certfp, SHA_DIGEST_LENGTH * 2) == 0)
               return conf;
           }
           if (EmptyString(aconf->user) || EmptyString(aconf->host))
@@ -1892,6 +1895,10 @@ set_default_conf(void)
 #ifdef HAVE_LIBCRYPTO
   ServerInfo.rsa_private_key = NULL;
   ServerInfo.rsa_private_key_file = NULL;
+  ServerInfo.dh_params = NULL;
+  ServerInfo.dh_params_file = NULL;
+  ServerInfo.ecdh_curve = NULL;
+  ServerInfo.ecdh_key = NULL;
 #endif
 
   /* ServerInfo.name is not rehashable */
@@ -2807,6 +2814,24 @@ clear_out_old_conf(void)
 
   MyFree(ServerInfo.rsa_private_key_file);
   ServerInfo.rsa_private_key_file = NULL;
+
+  if (ServerInfo.dh_params != NULL)
+  {
+    DH_free(ServerInfo.dh_params);
+    ServerInfo.dh_params = NULL;
+  }
+
+  MyFree(ServerInfo.dh_params_file);
+  ServerInfo.dh_params_file = NULL;
+
+  if (ServerInfo.ecdh_key != NULL)
+  {
+    EC_KEY_free(ServerInfo.ecdh_key);
+    ServerInfo.ecdh_key = NULL;
+  }
+
+  MyFree(ServerInfo.ecdh_curve);
+  ServerInfo.ecdh_curve = NULL;
 #endif
 
   /* clean out old resvs from the conf */
@@ -3192,7 +3217,7 @@ conf_add_server(struct ConfItem *conf, const char *class_name)
     return -1;
   }
 
-  if (EmptyString(aconf->passwd) && !IsConfCryptLink(aconf))
+  if (EmptyString(aconf->passwd) && !IsConfCryptLink(aconf) && !IsConfSSLLink(aconf))
   {
     sendto_realops_flags(UMODE_ALL, L_ALL, "Bad connect block, name %s",
                          conf->name);
