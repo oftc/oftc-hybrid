@@ -69,7 +69,7 @@
         char *parv[]) \
 { deliver_services_msg(b, c, client_p, source_p, parc, parv); }
 
-static void m_svsnick(struct Client *, struct Client *, int, char *[]);
+static void ms_svsnick(struct Client *, struct Client *, int, char *[]);
 
 static void m_groupserv(struct Client *, struct Client *, int, char *[]);
 static void m_chanserv(struct Client *, struct Client *, int, char *[]);
@@ -91,7 +91,7 @@ static void deliver_services_msg(const char *, const char *, struct Client *,
 /* SVS commands */
 struct Message svsnick_msgtab = {
   "SVSNICK", 0, 0, 3, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_ignore, m_svsnick, m_svsnick, m_ignore, m_ignore}
+  {m_unregistered, m_ignore, ms_svsnick, m_ignore, m_ignore, m_ignore}
 };
 
 /* Services */
@@ -225,14 +225,14 @@ const char *_version = "$Revision: 606 $";
 #endif
 
 /*
- * m_svsnick()
+ * ms_svsnick()
  *
  * parv[0] = sender prefix
  * parv[1] = user to force
  * parv[2] = nick to force them to
  */
 static void
-m_svsnick(struct Client *client_p, struct Client *source_p,
+ms_svsnick(struct Client *client_p, struct Client *source_p,
            int parc, char *parv[])
 {
   char newnick[NICKLEN];
@@ -245,6 +245,14 @@ m_svsnick(struct Client *client_p, struct Client *source_p,
   {
     sendto_one(source_p, form_str(ERR_NOSUCHNICK),
                me.name, parv[0], parv[1]);
+    return;
+  }
+
+  if(!MyClient(target_p))
+  {
+    if(target_p->from != client_p)
+      sendto_one(target_p, ":%s SVSNICK %s %s",
+                 ID_or_name(source_p, target_p->from), ID_or_name(target_p, target_p->from), parv[2]);
     return;
   }
 
@@ -267,14 +275,8 @@ m_svsnick(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  if (MyConnect(target_p))
-  {
-    target_p->localClient->number_of_nick_changes = 0;
-    change_local_nick(&me, target_p, newnick);
-  }
-  else
-    sendto_one(target_p, ":%s ENCAP %s SVSNICK %s %s",
-               me.name, target_p->servptr->name, ID(target_p), newnick);
+  target_p->localClient->number_of_nick_changes = 0;
+  change_local_nick(&me, target_p, newnick);
 }
 
 /*

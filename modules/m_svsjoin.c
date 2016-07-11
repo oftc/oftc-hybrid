@@ -53,7 +53,7 @@ static void ms_svsjoin(struct Client *, struct Client *, int parc, char *[]);
 
 struct Message svsjoin_msgtab = {
   "SVSJOIN", 0, 0, 3, 0, MFLG_SLOW, 0,
-  { m_ignore, m_ignore, ms_svsjoin, ms_svsjoin, m_ignore, m_ignore }
+  { m_ignore, m_ignore, ms_svsjoin, m_ignore, m_ignore, m_ignore }
 };
 
 #ifndef STATIC_MODULES
@@ -91,20 +91,19 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
   dlink_node *ptr = NULL;
   int i;
 
-  if ((target_p = find_person(source_p, parv[1])) == NULL)
+  if ((target_p = find_person(client_p, parv[1])) == NULL)
     return;
 
   if (!MyConnect(target_p))
   {
     if (target_p->from != client_p)
     {
-      if (IsCapable(target_p->from, CAP_ENCAP))
-        sendto_one(target_p, ":%s ENCAP %s SVSJOIN %s %s",
-                   source_p->name, target_p->from->name,
-                   target_p->name, parv[2]);
-      else
-        sendto_one(target_p, ":%s SVSJOIN %s %s",
-                   source_p->name, target_p->name, parv[2]);
+        if (parv[3] != NULL)
+          sendto_one(target_p, ":%s SVSJOIN %s %s %s",
+                     ID_or_name(source_p, target_p->from), ID_or_name(target_p, target_p->from), parv[2], parv[3]);
+        else
+          sendto_one(target_p, ":%s SVSJOIN %s %s",
+                     ID_or_name(source_p, target_p->from), ID_or_name(target_p, target_p->from), parv[2]);
     }
 
     return;
