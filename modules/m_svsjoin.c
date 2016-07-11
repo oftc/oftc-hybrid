@@ -98,8 +98,12 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
   {
     if (target_p->from != client_p)
     {
-      sendto_one(target_p, ":%s SVSJOIN %s %s",
-                 ID_or_name(source_p, target_p->from), ID_or_name(target_p, target_p->from), parv[2]);
+        if (parv[3] != NULL)
+          sendto_one(target_p, ":%s SVSJOIN %s %s %s",
+                     ID_or_name(source_p, target_p->from), ID_or_name(target_p, target_p->from), parv[2], parv[3]);
+        else
+          sendto_one(target_p, ":%s SVSJOIN %s %s",
+                     ID_or_name(source_p, target_p->from), ID_or_name(target_p, target_p->from), parv[2]);
     }
 
     return;
