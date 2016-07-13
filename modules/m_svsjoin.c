@@ -98,13 +98,27 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
   {
     if (target_p->from != client_p)
     {
-      if (IsCapable(target_p->from, CAP_ENCAP))
-        sendto_one(target_p, ":%s ENCAP %s SVSJOIN %s %s",
-                   source_p->name, target_p->from->name,
-                   target_p->name, parv[2]);
+      char *key; 
+      char *seperator;
+
+      if(parv[3] == NULL)
+      {
+          key = "";
+          seperator = "";
+      }
       else
-        sendto_one(target_p, ":%s SVSJOIN %s %s",
-                   source_p->name, target_p->name, parv[2]);
+      {
+          key = parv[3];
+          seperator = " ";
+      }
+
+      if (IsCapable(target_p->from, CAP_ENCAP))
+        sendto_one(target_p, ":%s ENCAP %s SVSJOIN %s %s%s%s",
+                   source_p->name, target_p->from->name,
+                   target_p->name, parv[2], seperator, key);
+      else
+        sendto_one(target_p, ":%s SVSJOIN %s %s%s%s",
+                   source_p->name, target_p->name, parv[2], seperator, key);
     }
 
     return;
