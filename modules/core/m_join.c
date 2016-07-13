@@ -179,15 +179,6 @@ m_join(struct Client *client_p, struct Client *source_p,
       continue;
     }
 
-    if ((dlink_list_length(&source_p->channel) >= ConfigChannel.max_chans_per_user) &&
-        (!IsOper(source_p) || (dlink_list_length(&source_p->channel) >=
-                               ConfigChannel.max_chans_per_user * 3)))
-    {
-      sendto_one(source_p, form_str(ERR_TOOMANYCHANNELS),
-                 me.name, source_p->name, chan);
-      break;
-    }
-
     if ((chptr = hash_find_channel(chan)) != NULL)
     {
       if (IsMember(source_p, chptr))
@@ -238,7 +229,10 @@ m_join(struct Client *client_p, struct Client *source_p,
     {
       sendto_one(source_p, form_str(i), me.name,
                  source_p->name, chptr->chname);
-      continue;
+      if(i == ERR_TOOMANYCHANNELS)
+          break;
+      else
+          continue;
     }
 
     if(i != 0 && IsGod(source_p) && MyClient(source_p))

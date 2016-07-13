@@ -689,6 +689,12 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
   if(IsService(source_p))
     return 0;
 
+  if ((dlink_list_length(&source_p->channel) >= ConfigChannel.max_chans_per_user) &&
+       (!IsOper(source_p) || (dlink_list_length(&source_p->channel) >=
+                              ConfigChannel.max_chans_per_user * 3)))
+      return ERR_TOOMANYCHANNELS;
+
+
   if (is_banned(chptr, source_p))
     return ERR_BANNEDFROMCHAN;
 
