@@ -49,7 +49,7 @@ void user_shedding_shed(void *unused);
 
 struct Message shedding_msgtab = {
   "shedding", 0, 0, 3, 5, MFLG_SLOW, 0,
-   {m_unregistered, m_not_oper, mo_shedding, m_ignore, mo_shedding, m_ignore}
+   { m_unregistered, m_not_oper, mo_shedding, m_ignore, mo_shedding, m_ignore }
 };
 
 static int rate = 60;
@@ -172,5 +172,6 @@ void user_shedding_shed(void *unused)
       exit_client(client_p, &me, "Server closed connection");
       break;
   }
+    
   eventDelete(user_shedding_shed, NULL);
 }
