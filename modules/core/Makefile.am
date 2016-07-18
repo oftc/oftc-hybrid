@@ -1,5 +1,5 @@
 MAINTAINERCLEANFILES=Makefile.in
-AM_CPPFLAGS=-I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre
+AM_CPPFLAGS=-I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre $(OPENSSL_INCLUDES)
 if USE_SHARED_MODULES
 AM_LDFLAGS= -module
 pkglib_LTLIBRARIES= m_die.la      \

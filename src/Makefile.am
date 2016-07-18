@@ -71,7 +71,7 @@ if USE_SHARED_MODULES
 ircd_LDADD=$(LIBLTDL)
 ircd_DEPENDENCIES=$(LTDLDEPS)
 else
-ircd_LDADD=$(top_srcdir)/modules/libmodules.la
+ircd_LDADD=$(top_builddir)/modules/libmodules.la
 endif
-ircd_LDADD+=$(top_srcdir)/lib/pcre/libpcre.a $(OPENSSL_LIBS)
+ircd_LDADD+=$(top_builddir)/lib/pcre/libpcre.a $(OPENSSL_LIBS)
 AM_YFLAGS=-d

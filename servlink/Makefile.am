@@ -1,6 +1,6 @@
 MAINTAINERCLEANFILES=Makefile.in
 
-AM_CPPFLAGS=$(OPENSSL_INCLUDES)
+AM_CPPFLAGS=$(OPENSSL_INCLUDES) -I$(top_srcdir)/include
 
 bin_PROGRAMS=servlink
 

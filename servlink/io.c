@@ -479,8 +479,8 @@ read_data(void)
 
       out_state.zip_state.stream.next_out = buf;
       out_state.zip_state.stream.avail_out = BUFLEN;
-      if(!(ret2 = deflate(&out_state.zip_state.stream,
-                          Z_PARTIAL_FLUSH)) == Z_OK)
+      if((ret2 = deflate(&out_state.zip_state.stream,
+                          Z_PARTIAL_FLUSH)) != Z_OK)
         send_error("error compressing outgoing data - deflate returned %d (%s)",
                    ret2, zError(ret2));
 

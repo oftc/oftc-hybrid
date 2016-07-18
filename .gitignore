@@ -64,3 +64,4 @@ include/config.h.in
 include/stamp-h1
 .dirstamp
 */*.dSYM
+build
