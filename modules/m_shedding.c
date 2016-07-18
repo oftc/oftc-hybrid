@@ -149,14 +149,16 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
   eventAdd("user shedding main event", user_shedding_main, NULL, rate);
 }
 
-void user_shedding_main(void *unused)
+void
+user_shedding_main(void *unused)
 {
   int deviation = (rate / (3+(int) (7.0f*rand()/(RAND_MAX+1.0f))));
 
   eventAddIsh("user shedding shed event", user_shedding_shed, NULL, rate+deviation);
 }
 
-void user_shedding_shed(void *unused)
+void
+user_shedding_shed(void *unused)
 {
   dlink_node *ptr;
   struct Client *client_p;
