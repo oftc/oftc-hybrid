@@ -76,6 +76,6 @@ static void ms_certfp(struct Client *source_p, struct Client *client_p, int parc
 
   strlcpy(target_p->certfp, parv[2], sizeof(target_p->certfp));
 
-  sendto_server(client_p, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
+  sendto_server(client_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
       ":%s CERTFP %s %s", parv[0], parv[1], parv[2]);
 }

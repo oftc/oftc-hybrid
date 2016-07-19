@@ -76,8 +76,6 @@ static void set_final_mode(struct Mode *, struct Mode *);
 static void remove_our_modes(struct Channel *, struct Client *);
 static void remove_a_mode(struct Channel *, struct Client *, int, char);
 static void remove_ban_list(struct Channel *, struct Client *, dlink_list *, char, int);
-static void introduce_lazy_link_clients(struct Client *,struct Client *,
-					struct Channel *);
 
 /* ms_sjoin()
  *
@@ -423,7 +421,7 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
 
     if ((nick_ptr - nick_buf + len_nick) > (IRCD_BUFSIZE  - 2))
     {
-      sendto_server(client_p, NULL, chptr, 0, CAP_TS6, 0, "%s", nick_buf);
+      sendto_server(client_p, chptr, 0, CAP_TS6, 0, "%s", nick_buf);
       
       buflen = ircsprintf(nick_buf, ":%s SJOIN %lu %s %s %s:",
                           source_p->name, (unsigned long)tstosend,
@@ -434,7 +432,7 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
     
     if ((uid_ptr - uid_buf + len_uid) > (IRCD_BUFSIZE - 2))
     {
-      sendto_server(client_p, NULL, chptr, CAP_TS6, 0, 0, "%s", uid_buf);
+      sendto_server(client_p, chptr, CAP_TS6, 0, 0, "%s", uid_buf);
       
       buflen = ircsprintf(uid_buf, ":%s SJOIN %lu %s %s %s:",
                           ID(source_p), (unsigned long)tstosend,
@@ -443,10 +441,6 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
     }
 
     uid_ptr  += ircsprintf(uid_ptr,  "%s%s ", uid_prefix, ID(target_p));
-	
-    /* LazyLinks - Introduce unknown clients before sending the sjoin */
-    if (ServerInfo.hub)
-      introduce_lazy_link_clients(client_p, target_p, chptr);
 
     if (!IsMember(target_p, chptr))
     {
@@ -853,7 +847,7 @@ remove_ban_list(struct Channel *chptr, struct Client *source_p,
       *mbuf = *(pbuf - 1) = '\0';
       sendto_channel_local(ALL_MEMBERS, NO, chptr, "%s %s",
                lmodebuf, lparabuf);
-      sendto_server(source_p, NULL, chptr, cap, CAP_TS6, NOFLAGS,
+      sendto_server(source_p, chptr, cap, CAP_TS6, NOFLAGS,
 		    "%s %s", lmodebuf, lparabuf);
 
       cur_len = mlen;
@@ -873,50 +867,6 @@ remove_ban_list(struct Channel *chptr, struct Client *source_p,
 
   *mbuf = *(pbuf - 1) = '\0';
   sendto_channel_local(ALL_MEMBERS, NO, chptr, "%s %s", lmodebuf, lparabuf);
-  sendto_server(source_p, NULL, chptr, cap, CAP_TS6, NOFLAGS,
-		"%s %s", lmodebuf, lparabuf);
-}
-
-/*
- * introduce_lazy_link_clients
- *
- * inputs	- pointer to client 
- *		- pointer to server having clients introduce -to-
- *		- pointer to channel being introduced
- * output	- NONE
- * side effects	-
- */
-static void
-introduce_lazy_link_clients(struct Client *client_p, 
-			    struct Client *target_p, struct Channel *chptr)
-{
-  struct Client  *lclient_p;
-  dlink_node     *m;
-
-  DLINK_FOREACH(m, serv_list.head)
-  {
-    lclient_p = m->data;
-    
-    /* Hopefully, the server knows about it's own clients. */
-    if (client_p == lclient_p)
-      continue;
-
-    /* Ignore non lazylinks */
-    if (!IsCapable(lclient_p,CAP_LL))
-      continue;
-
-    /* Ignore servers we won't tell anyway */
-    if (!(chptr->lazyLinkChannelExists & (lclient_p->localClient->serverMask)))
-      continue;
-
-    /* Ignore servers that already know target_p */
-    if (!(target_p->lazyLinkClientExists &
-	  lclient_p->localClient->serverMask))
-    {
-      /* Tell LazyLink Leaf about client_p,
-       * as the leaf is about to get a SJOIN */
-      sendnick_TS(lclient_p, target_p);
-      add_lazylinkclient(lclient_p,target_p);
-    }
-  }
+  sendto_server(source_p, chptr, cap, CAP_TS6, NOFLAGS,
+                "%s %s", lmodebuf, lparabuf);
 }

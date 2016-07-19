@@ -35,8 +35,6 @@
 #include "parse.h"
 #include "modules.h"
 
-/* XXX LazyLinks ? */
-
 static void m_lusers(struct Client*, struct Client*, int, char**);
 static void ms_lusers(struct Client*, struct Client*, int, char**);
 
