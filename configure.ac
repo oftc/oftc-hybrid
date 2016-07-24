@@ -143,6 +143,8 @@ AC_DEFINE_DIR([LIBDIR],[libdir],[Set to libdir.])
 AC_DEFINE_DIR([MODULEDIR],[moduledir],[Set to moduledir.])
 AC_DEFINE_DIR([DATADIR],[datadir],[Set to datadir.])
 AC_DEFINE_DIR([LOCALSTATEDIR],[localstatedir],[Set to localstatedir.])
+AC_DEFINE_DIR([UHELPDIR], [uhelpdir],[Set to uhelpdir.])
+AC_DEFINE_DIR([OHELPDIR], [ohelpdir],[Set to ohelpdir.])
 
 AC_CONFIG_FILES(                
        Makefile                 \
