@@ -22,15 +22,14 @@
  *  $Id: list.c 33 2005-10-02 20:50:00Z knight $
  */
 
+#include "list.h"
+#include "balloc.h"
+#include "client.h"
+#include "memory.h"
 #include "stdinc.h"
 #include "tools.h"
-#include "client.h"
-#include "list.h"
-#include "memory.h"
-#include "balloc.h"
 
 static BlockHeap *dnode_heap;
-
 
 /* init_dlink_nodes()
  *
@@ -41,7 +40,8 @@ static BlockHeap *dnode_heap;
 void
 init_dlink_nodes(void)
 {
-  dnode_heap = BlockHeapCreate("dlink node", sizeof(dlink_node), DNODE_HEAP_SIZE);
+    dnode_heap =
+        BlockHeapCreate("dlink node", sizeof(dlink_node), DNODE_HEAP_SIZE);
 }
 
 /* make_dlink_node()
@@ -53,19 +53,19 @@ init_dlink_nodes(void)
 dlink_node *
 make_dlink_node(void)
 {
-  dlink_node *lp = BlockHeapAlloc(dnode_heap);
+    dlink_node *lp = BlockHeapAlloc(dnode_heap);
 
-  return(lp);
+    return (lp);
 }
 
 /* free_dlink_node()
  *
  * inputs       - pointer to dlink_node
  * output       - NONE
- * side effects	- free given dlink_node 
+ * side effects	- free given dlink_node
  */
 void
 free_dlink_node(dlink_node *ptr)
 {
-  BlockHeapFree(dnode_heap, ptr);
+    BlockHeapFree(dnode_heap, ptr);
 }

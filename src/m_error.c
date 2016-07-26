@@ -22,20 +22,21 @@
  *  $Id$
  */
 
-#include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "common.h"   /* FALSE */
+#include "common.h" /* FALSE */
+#include "handlers.h"
 #include "ircd.h"
-#include "send.h"
-#include "msg.h"
 #include "memory.h"
+#include "msg.h"
 #include "s_log.h"
+#include "send.h"
+#include "stdinc.h"
 
 struct Message error_msgtab = {
- "ERROR", 0, 0, 1, 0, MFLG_SLOW | MFLG_UNREG, 0,
-  { m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore }
-};
+    "ERROR", 0,
+    0,       1,
+    0,       MFLG_SLOW | MFLG_UNREG,
+    0,       {m_error, m_ignore, ms_error, m_ignore, m_ignore, m_ignore}};
 
 /*
  * Note: At least at protocol level ERROR has only one parameter,
@@ -46,47 +47,46 @@ struct Message error_msgtab = {
  *      parv[*] = parameters
  */
 void
-m_error(struct Client *client_p, struct Client *source_p, 
-        int parc, char *parv[])
+m_error(struct Client *client_p, struct Client *source_p, int parc,
+        char *parv[])
 {
-  const char *para;
+    const char *para;
 
-  para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
+    para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
 
-  ilog(L_ERROR, "Received ERROR message from %s: %s",
-       source_p->name, para);
+    ilog(L_ERROR, "Received ERROR message from %s: %s", source_p->name, para);
 
-  if (client_p == source_p)
-  {
-    sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s -- %s",
-                         get_client_name(client_p, SHOW_IP), para);
-  }
-  else
-  {
-    sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s via %s -- %s",
-                         source_p->name, get_client_name(client_p, SHOW_IP), para);
-  }
+    if(client_p == source_p)
+    {
+        sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s -- %s",
+                             get_client_name(client_p, SHOW_IP), para);
+    }
+    else
+    {
+        sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s via %s -- %s",
+                             source_p->name, get_client_name(client_p, SHOW_IP),
+                             para);
+    }
 
-  if (MyClient(source_p))
-    exit_client(source_p, source_p, "ERROR");
+    if(MyClient(source_p))
+        exit_client(source_p, source_p, "ERROR");
 }
 
 void
-ms_error(struct Client *client_p, struct Client *source_p,
-         int parc, char *parv[])
+ms_error(struct Client *client_p, struct Client *source_p, int parc,
+         char *parv[])
 {
-  const char *para;
+    const char *para;
 
-  para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
+    para = (parc > 1 && *parv[1] != '\0') ? parv[1] : "<>";
 
-  ilog(L_ERROR, "Received ERROR message from %s: %s",
-       source_p->name, para);
+    ilog(L_ERROR, "Received ERROR message from %s: %s", source_p->name, para);
 
-  if (client_p == source_p)
-    sendto_realops_flags(UMODE_ALL, L_ALL,"ERROR :from %s -- %s",
-                         get_client_name(client_p, SHOW_IP), para);
-  else
-    sendto_realops_flags(UMODE_ALL, L_ALL,"ERROR :from %s via %s -- %s", source_p->name,
-                         get_client_name(client_p, SHOW_IP), para);
+    if(client_p == source_p)
+        sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s -- %s",
+                             get_client_name(client_p, SHOW_IP), para);
+    else
+        sendto_realops_flags(UMODE_ALL, L_ALL, "ERROR :from %s via %s -- %s",
+                             source_p->name, get_client_name(client_p, SHOW_IP),
+                             para);
 }
-

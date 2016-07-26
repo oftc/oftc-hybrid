@@ -22,41 +22,46 @@
  *  $Id$
  */
 
-#include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "ircd.h"
+#include "handlers.h"
 #include "irc_string.h"
-#include "numeric.h"
-#include "send.h"
-#include "s_user.h"
-#include "s_conf.h"
-#include "msg.h"
-#include "parse.h"
+#include "ircd.h"
 #include "modules.h"
+#include "msg.h"
+#include "numeric.h"
+#include "parse.h"
+#include "s_conf.h"
 #include "s_serv.h"
+#include "s_user.h"
+#include "send.h"
+#include "stdinc.h"
 
 static void ms_wallops(struct Client *, struct Client *, int, char **);
 static void mo_wallops(struct Client *, struct Client *, int, char **);
 
 struct Message wallops_msgtab = {
-  "WALLOPS", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_wallops, m_ignore, mo_wallops, m_ignore}
-};
+    "WALLOPS",
+    0,
+    0,
+    2,
+    0,
+    MFLG_SLOW,
+    0,
+    {m_unregistered, m_not_oper, ms_wallops, m_ignore, mo_wallops, m_ignore}};
 
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
-  mod_add_cmd(&wallops_msgtab);
+    mod_add_cmd(&wallops_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-  mod_del_cmd(&wallops_msgtab);
+    mod_del_cmd(&wallops_msgtab);
 }
- 
+
 const char *_version = "$Revision$";
 #endif
 
@@ -66,23 +71,23 @@ const char *_version = "$Revision$";
  *      parv[1] = message text
  */
 static void
-mo_wallops(struct Client *client_p, struct Client *source_p,
-	   int parc, char *parv[])
-{ 
-  const char *message = parv[1];
+mo_wallops(struct Client *client_p, struct Client *source_p, int parc,
+           char *parv[])
+{
+    const char *message = parv[1];
 
-  if (EmptyString(message))
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, source_p->name, "WALLOPS");
-    return;
-  }
+    if(EmptyString(message))
+    {
+        sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name,
+                   source_p->name, "WALLOPS");
+        return;
+    }
 
-  sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message);
-  sendto_server(NULL, NULL, CAP_TS6, NOCAPS,
-                ":%s WALLOPS :%s", ID(source_p), message);
-  sendto_server(NULL, NULL, NOCAPS, CAP_TS6,
-                ":%s WALLOPS :%s", source_p->name, message);
+    sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message);
+    sendto_server(NULL, NULL, CAP_TS6, NOCAPS, ":%s WALLOPS :%s", ID(source_p),
+                  message);
+    sendto_server(NULL, NULL, NOCAPS, CAP_TS6, ":%s WALLOPS :%s",
+                  source_p->name, message);
 }
 
 /*
@@ -91,22 +96,21 @@ mo_wallops(struct Client *client_p, struct Client *source_p,
  *      parv[1] = message text
  */
 static void
-ms_wallops(struct Client *client_p, struct Client *source_p,
-	   int parc, char *parv[])
-{ 
-  const char *message = parv[1];
+ms_wallops(struct Client *client_p, struct Client *source_p, int parc,
+           char *parv[])
+{
+    const char *message = parv[1];
 
-  if (EmptyString(message))
-    return;
+    if(EmptyString(message))
+        return;
 
-  if (IsClient(source_p))
-    sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message);
-  else
-    sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message); 
+    if(IsClient(source_p))
+        sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message);
+    else
+        sendto_wallops_flags(UMODE_WALLOP, source_p, "%s", message);
 
-  sendto_server(client_p, NULL, CAP_TS6, NOCAPS,
-                ":%s WALLOPS :%s", ID(source_p), message);
-  sendto_server(client_p, NULL, NOCAPS, CAP_TS6,
-                ":%s WALLOPS :%s", source_p->name, message);
+    sendto_server(client_p, NULL, CAP_TS6, NOCAPS, ":%s WALLOPS :%s",
+                  ID(source_p), message);
+    sendto_server(client_p, NULL, NOCAPS, CAP_TS6, ":%s WALLOPS :%s",
+                  source_p->name, message);
 }
-

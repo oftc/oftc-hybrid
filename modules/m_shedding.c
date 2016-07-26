@@ -22,24 +22,24 @@
  *  $Id$
  */
 
-#include "stdinc.h"
 #include "channel.h"
 #include "client.h"
 #include "common.h"
-#include "ircd.h"
-#include "hostmask.h"
-#include "numeric.h"
-#include "s_conf.h"
-#include "send.h"
-#include "hash.h"
-#include "handlers.h"
-#include "s_serv.h"
-#include "msg.h"
-#include "s_gline.h"
-#include "parse.h"
-#include "modules.h"
 #include "event.h"
+#include "handlers.h"
+#include "hash.h"
+#include "hostmask.h"
 #include "irc_string.h"
+#include "ircd.h"
+#include "modules.h"
+#include "msg.h"
+#include "numeric.h"
+#include "parse.h"
+#include "s_conf.h"
+#include "s_gline.h"
+#include "s_serv.h"
+#include "send.h"
+#include "stdinc.h"
 
 #define SHED_RATE_MIN 5
 
@@ -48,26 +48,31 @@ void user_shedding_main(void *rate);
 void user_shedding_shed(void *unused);
 
 struct Message shedding_msgtab = {
-  "shedding", 0, 0, 3, 5, MFLG_SLOW, 0,
-   { m_unregistered, m_not_oper, mo_shedding, m_ignore, mo_shedding, m_ignore }
-};
+    "shedding",
+    0,
+    0,
+    3,
+    5,
+    MFLG_SLOW,
+    0,
+    {m_unregistered, m_not_oper, mo_shedding, m_ignore, mo_shedding, m_ignore}};
 
-static int rate = 60;
+static int rate     = 60;
 static int operstoo = 0;
 
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
-  mod_add_cmd(&shedding_msgtab);
+    mod_add_cmd(&shedding_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-  mod_del_cmd(&shedding_msgtab);
-  eventDelete(user_shedding_main, NULL);
-  eventDelete(user_shedding_shed, NULL);
+    mod_del_cmd(&shedding_msgtab);
+    eventDelete(user_shedding_main, NULL);
+    eventDelete(user_shedding_shed, NULL);
 }
 
 const char *_version = "$Revision: 472 $";
@@ -93,87 +98,88 @@ char buffer[IRCD_BUFSIZE];
  *
  */
 static void
-mo_shedding(struct Client *client_p, struct Client *source_p,
-   int parc, char **parv)
+mo_shedding(struct Client *client_p, struct Client *source_p, int parc,
+            char **parv)
 {
 
-  /* We need either 5 parameters, or 3 parameters for when disabling shedding.
-   * This check needs to be done before hunt_server as the remote always
-   * receives 5 arguments due to the interpolation
-   */
-  if (parc != 5 && !(parc == 3 && irccmp(parv[2], "OFF") == 0))
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, source_p->name, "SHEDDING");
-    return;
-  }
+    /* We need either 5 parameters, or 3 parameters for when disabling shedding.
+     * This check needs to be done before hunt_server as the remote always
+     * receives 5 arguments due to the interpolation
+     */
+    if(parc != 5 && !(parc == 3 && irccmp(parv[2], "OFF") == 0))
+    {
+        sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name,
+                   source_p->name, "SHEDDING");
+        return;
+    }
 
-  /* Only proceed if we are the intended server,
-   * otherwise look for the target and send if found*/
-  if (hunt_server(client_p, source_p, ":%s SHEDDING %s %s %s :%s", 1,
-                  parc, parv) != HUNTED_ISME)
-    return;
+    /* Only proceed if we are the intended server,
+     * otherwise look for the target and send if found*/
+    if(hunt_server(client_p, source_p, ":%s SHEDDING %s %s %s :%s", 1, parc,
+                   parv) != HUNTED_ISME)
+        return;
 
-  if (irccmp(parv[2], "OFF") == 0)
-  {
-      eventDelete(user_shedding_main, NULL);
-      eventDelete(user_shedding_shed, NULL);
+    if(irccmp(parv[2], "OFF") == 0)
+    {
+        eventDelete(user_shedding_main, NULL);
+        eventDelete(user_shedding_shed, NULL);
 
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                           "User shedding DISABLED by %s (%s@%s) [%s]",
-                           source_p->name, source_p->username, source_p->host,
-                           source_p->servptr->name);
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                             "User shedding DISABLED by %s (%s@%s) [%s]",
+                             source_p->name, source_p->username, source_p->host,
+                             source_p->servptr->name);
 
-      return;
-  }
+        return;
+    }
 
-  rate = atoi(parv[2]);
-  operstoo = !!atoi(parv[(3)]);
+    rate     = atoi(parv[2]);
+    operstoo = !!atoi(parv[(3)]);
 
-  /* Set a minimum because we need to do a bit of variance */
-  if(rate < SHED_RATE_MIN)
-    rate = SHED_RATE_MIN;
+    /* Set a minimum because we need to do a bit of variance */
+    if(rate < SHED_RATE_MIN)
+        rate = SHED_RATE_MIN;
 
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                       "User shedding ENABLED by %s (%s@%s); interval: %d seconds,"
-                       " opers: %s, reason: \"%s\" [%s]",
-                       source_p->name, source_p->username, source_p->host,
-                       rate, operstoo ? "yes" : "no", parv[4],
-                       source_p->servptr->name);
+    sendto_gnotice_flags(
+        UMODE_ALL, L_ALL, me.name, &me, NULL,
+        "User shedding ENABLED by %s (%s@%s); interval: %d seconds,"
+        " opers: %s, reason: \"%s\" [%s]",
+        source_p->name, source_p->username, source_p->host, rate,
+        operstoo ? "yes" : "no", parv[4], source_p->servptr->name);
 
-  rate -= (rate/5);
-  /* Lets not start more than one main thread in case someone tweaks the
-   * paramters
-   */
-  eventDelete(user_shedding_main, NULL);
-  eventAdd("user shedding main event", user_shedding_main, NULL, rate);
+    rate -= (rate / 5);
+    /* Lets not start more than one main thread in case someone tweaks the
+     * paramters
+     */
+    eventDelete(user_shedding_main, NULL);
+    eventAdd("user shedding main event", user_shedding_main, NULL, rate);
 }
 
 void
 user_shedding_main(void *unused)
 {
-  int deviation = (rate / (3+(int) (7.0f*rand()/(RAND_MAX+1.0f))));
+    int deviation = (rate / (3 + (int)(7.0f * rand() / (RAND_MAX + 1.0f))));
 
-  eventAddIsh("user shedding shed event", user_shedding_shed, NULL, rate+deviation);
+    eventAddIsh("user shedding shed event", user_shedding_shed, NULL,
+                rate + deviation);
 }
 
 void
 user_shedding_shed(void *unused)
 {
-  dlink_node *ptr;
-  struct Client *client_p;
+    dlink_node *ptr;
+    struct Client *client_p;
 
-  DLINK_FOREACH_PREV(ptr, local_client_list.tail)
-  {
-      client_p = ptr->data;
+    DLINK_FOREACH_PREV(ptr, local_client_list.tail)
+    {
+        client_p = ptr->data;
 
-      if (!MyClient(client_p)) /* It could be servers */
-          continue;
-      if (IsOper(client_p) && !operstoo)
-          continue;
-      exit_client(client_p, &me, "Server closed connection");
-      break;
-  }
-    
-  eventDelete(user_shedding_shed, NULL);
+        if(!MyClient(client_p)) /* It could be servers */
+            continue;
+        if(IsOper(client_p) && !operstoo)
+            continue;
+        exit_client(client_p, &me, "Server closed connection");
+        break;
+    }
+
+    eventDelete(user_shedding_shed, NULL);
 }

@@ -22,35 +22,38 @@
  *  $Id$
  */
 
-#include "stdinc.h"
 #include "client.h"
-#include "modules.h"
 #include "handlers.h"
 #include "hash.h"
-#include "numeric.h"
-#include "send.h"
-#include "s_conf.h"
-#include "ircd.h"
 #include "irc_string.h"
+#include "ircd.h"
+#include "modules.h"
+#include "numeric.h"
+#include "s_conf.h"
+#include "send.h"
 #include "sprintf_irc.h"
+#include "stdinc.h"
 
 static void mo_map(struct Client *, struct Client *, int, char *[]);
 static void dump_map(struct Client *, struct Client *, int, char *);
 
 struct Message map_msgtab = {
-  "MAP", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_map, m_ignore}
-};
+    "MAP", 0,
+    0,     0,
+    0,     MFLG_SLOW,
+    0,     {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_map, m_ignore}};
 
 #ifndef STATIC_MODULES
-void _modinit(void)
+void
+_modinit(void)
 {
-  mod_add_cmd(&map_msgtab);
+    mod_add_cmd(&map_msgtab);
 }
 
-void _moddeinit(void)
+void
+_moddeinit(void)
 {
-  mod_del_cmd(&map_msgtab);
+    mod_del_cmd(&map_msgtab);
 }
 
 const char *_version = "$Revision$";
@@ -63,32 +66,32 @@ static int line_counter;
  *      parv[0] = sender prefix
  */
 static void
-mo_map(struct Client *client_p, struct Client *source_p,
-       int parc, char *parv[])
+mo_map(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
-  struct ConfItem *conf;
-  struct AccessItem *aconf;
-  dlink_node *ptr;
+    struct ConfItem *conf;
+    struct AccessItem *aconf;
+    dlink_node *ptr;
 
-  line_counter = 0;
-  dump_map(client_p, &me, 0, buf);
-  DLINK_FOREACH(ptr, server_items.head)
-  {
-    conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
-    if (aconf->status != CONF_SERVER)
-      continue;
-    if (strcmp(conf->name, me.name) == 0)
-      continue;
-    if (!find_server(conf->name))
+    line_counter = 0;
+    dump_map(client_p, &me, 0, buf);
+    DLINK_FOREACH(ptr, server_items.head)
     {
-      char buffer[IRCD_BUFSIZE];
-      ircsprintf(buffer, "** %s (Not Connected)", conf->name);
-      sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buffer);
+        conf  = ptr->data;
+        aconf = (struct AccessItem *)map_to_conf(conf);
+        if(aconf->status != CONF_SERVER)
+            continue;
+        if(strcmp(conf->name, me.name) == 0)
+            continue;
+        if(!find_server(conf->name))
+        {
+            char buffer[IRCD_BUFSIZE];
+            ircsprintf(buffer, "** %s (Not Connected)", conf->name);
+            sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name,
+                       buffer);
+        }
     }
-  }
 
-  sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
+    sendto_one(client_p, form_str(RPL_MAPEND), me.name, client_p->name);
 }
 
 /* dump_map()
@@ -96,85 +99,87 @@ mo_map(struct Client *client_p, struct Client *source_p,
  */
 static void
 dump_map(struct Client *client_p, struct Client *root_p, int start_len,
-	 char *pbuf)
+         char *pbuf)
 {
-  int cnt = 0, i = 0, l = 0, len = start_len;
-  int users, dashes;
-  dlink_node *ptr;
-  struct Client *server_p;
-  char *pb;
-  int print_dashes;
+    int cnt = 0, i = 0, l = 0, len = start_len;
+    int users, dashes;
+    dlink_node *ptr;
+    struct Client *server_p;
+    char *pb;
+    int print_dashes;
 
-  *pbuf= '\0';
-  pb = pbuf;
+    *pbuf = '\0';
+    pb    = pbuf;
 
-  l = ircsprintf(pb, "%s", root_p->name);
-  pb += l;
-  len += l;
+    l = ircsprintf(pb, "%s", root_p->name);
+    pb += l;
+    len += l;
 
-  print_dashes = ((line_counter - 1) % 3 == 0);
-  line_counter++;
+    print_dashes = ((line_counter - 1) % 3 == 0);
+    line_counter++;
 
-  /* IsOper isn't called *that* often. */
-  if (IsOper(client_p))
-  {
-    if (root_p->id[0] != '\0')
+    /* IsOper isn't called *that* often. */
+    if(IsOper(client_p))
     {
-      l = ircsprintf(pb, "[%s]", root_p->id);
-      pb += l;
-      len += l;
+        if(root_p->id[0] != '\0')
+        {
+            l = ircsprintf(pb, "[%s]", root_p->id);
+            pb += l;
+            len += l;
+        }
     }
-  }
 
-  *pb++ = ' ';
-  len++;
-  dashes = 46 - len;
-  for(i = 0; i < dashes; i++)
-  {
-    *pb++ = print_dashes ? '-' : ' ';
-  }
-
-  users = dlink_list_length(&root_p->serv->users);
-
-  sprintf(pb, "%5d [%4.1f%%]", users,
-	  100 * (float)users / (float)Count.total);
-  if (print_dashes)  /* make the leading spaces of the usercount dashes too, if required */
-      while(*(pb+1) == ' ') *pb++ = '-';
-
-  sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buf);
-        
-  if (root_p->serv->servers.head)
-  {
-    cnt += dlink_list_length(&root_p->serv->servers);
-
-    if (cnt)
+    *pb++ = ' ';
+    len++;
+    dashes = 46 - len;
+    for(i = 0; i < dashes; i++)
     {
-      if (pbuf > buf + 3)
-      {
-        pbuf[-2] = ' ';
-
-        if (pbuf[-3] == '`')
-          pbuf[-3] = ' ';
-      }
+        *pb++ = print_dashes ? '-' : ' ';
     }
-  }
 
-  i = 1;
+    users = dlink_list_length(&root_p->serv->users);
 
-  DLINK_FOREACH(ptr, root_p->serv->servers.head)
-  {
-    server_p = ptr->data;
+    sprintf(pb, "%5d [%4.1f%%]", users,
+            100 * (float)users / (float)Count.total);
+    if(print_dashes) /* make the leading spaces of the usercount dashes too, if
+                        required */
+        while(*(pb + 1) == ' ')
+            *pb++ = '-';
 
-    *pbuf = ' ';
-    if (i < cnt)
-      *(pbuf + 1) = '|';
-    else
-      *(pbuf + 1) = '`';
-      
-    *(pbuf + 2) = '-';
-    *(pbuf + 3) = ' ';
-    dump_map(client_p, server_p, start_len+4, pbuf+4);
- 
-    ++i;
-  }
+    sendto_one(client_p, form_str(RPL_MAP), me.name, client_p->name, buf);
+
+    if(root_p->serv->servers.head)
+    {
+        cnt += dlink_list_length(&root_p->serv->servers);
+
+        if(cnt)
+        {
+            if(pbuf > buf + 3)
+            {
+                pbuf[-2] = ' ';
+
+                if(pbuf[-3] == '`')
+                    pbuf[-3] = ' ';
+            }
+        }
+    }
+
+    i = 1;
+
+    DLINK_FOREACH(ptr, root_p->serv->servers.head)
+    {
+        server_p = ptr->data;
+
+        *pbuf = ' ';
+        if(i < cnt)
+            *(pbuf + 1) = '|';
+        else
+            *(pbuf + 1) = '`';
+
+        *(pbuf + 2) = '-';
+        *(pbuf + 3) = ' ';
+        dump_map(client_p, server_p, start_len + 4, pbuf + 4);
+
+        ++i;
+    }
 }

@@ -22,44 +22,44 @@
  *  $Id$
  */
 
-#include "stdinc.h"
-#include "tools.h"
-#include "handlers.h"
 #include "client.h"
 #include "common.h"
-#include "ircd.h"
-#include "irc_string.h"
-#include "numeric.h"
 #include "fdlist.h"
-#include "s_bsd.h"
-#include "s_log.h"
-#include "s_conf.h"
-#include "send.h"
-#include "msg.h"
-#include "parse.h"
+#include "handlers.h"
+#include "irc_string.h"
+#include "ircd.h"
 #include "modules.h"
+#include "msg.h"
+#include "numeric.h"
+#include "parse.h"
 #include "restart.h"
+#include "s_bsd.h"
+#include "s_conf.h"
+#include "s_log.h"
+#include "send.h"
 #include "sprintf_irc.h"
-
+#include "stdinc.h"
+#include "tools.h"
 
 static void mo_die(struct Client *, struct Client *, int, char *[]);
 
 struct Message die_msgtab = {
-  "DIE", 0, 0, 1, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_die, m_ignore}
-};
+    "DIE", 0,
+    0,     1,
+    0,     MFLG_SLOW,
+    0,     {m_unregistered, m_not_oper, m_ignore, m_ignore, mo_die, m_ignore}};
 
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
-  mod_add_cmd(&die_msgtab);
+    mod_add_cmd(&die_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-  mod_del_cmd(&die_msgtab);
+    mod_del_cmd(&die_msgtab);
 }
 
 const char *_version = "$Revision$";
@@ -69,33 +69,31 @@ const char *_version = "$Revision$";
  * mo_die - DIE command handler
  */
 static void
-mo_die(struct Client *client_p, struct Client *source_p,
-       int parc, char *parv[])
+mo_die(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
-  char buf[IRCD_BUFSIZE];
+    char buf[IRCD_BUFSIZE];
 
-  if (!IsOperDie(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVS),
-               me.name, source_p->name, "die");
-    return;
-  }
+    if(!IsOperDie(source_p))
+    {
+        sendto_one(source_p, form_str(ERR_NOPRIVS), me.name, source_p->name,
+                   "die");
+        return;
+    }
 
-  if (parc < 2 || EmptyString(parv[1]))
-  {
-    sendto_one(source_p,":%s NOTICE %s :Need server name /die %s",
-               me.name, source_p->name, me.name);
-    return;
-  }
+    if(parc < 2 || EmptyString(parv[1]))
+    {
+        sendto_one(source_p, ":%s NOTICE %s :Need server name /die %s", me.name,
+                   source_p->name, me.name);
+        return;
+    }
 
-  if (irccmp(parv[1], me.name))
-  {
-    sendto_one(source_p,":%s NOTICE %s :Mismatch on /die %s",
-               me.name,source_p->name, me.name);
-    return;
-  }
+    if(irccmp(parv[1], me.name))
+    {
+        sendto_one(source_p, ":%s NOTICE %s :Mismatch on /die %s", me.name,
+                   source_p->name, me.name);
+        return;
+    }
 
-  ircsprintf(buf, "received DIE command from %s",
-             get_oper_name(source_p));
-  server_die(buf, NO);
+    ircsprintf(buf, "received DIE command from %s", get_oper_name(source_p));
+    server_die(buf, NO);
 }

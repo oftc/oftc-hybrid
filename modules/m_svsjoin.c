@@ -28,45 +28,50 @@
  * $Id: m_force.c 989 2007-11-06 14:37:58Z swalsh $
  */
 
-#include "stdinc.h"
-#include "handlers.h"
-#include "client.h"
-#include "common.h"     /* FALSE bleah */
-#include "ircd.h"
-#include "irc_string.h"
-#include "numeric.h"
-#include "fdlist.h"
-#include "hash.h"
-#include "s_bsd.h"
-#include "s_conf.h"
-#include "s_serv.h"
-#include "send.h"
-#include "msg.h"
-#include "parse.h"
-#include "modules.h"
 #include "channel.h"
 #include "channel_mode.h"
-#include "sprintf_irc.h"
+#include "client.h"
+#include "common.h" /* FALSE bleah */
+#include "fdlist.h"
+#include "handlers.h"
+#include "hash.h"
+#include "irc_string.h"
+#include "ircd.h"
+#include "modules.h"
+#include "msg.h"
+#include "numeric.h"
+#include "parse.h"
+#include "s_bsd.h"
+#include "s_conf.h"
 #include "s_log.h"
+#include "s_serv.h"
+#include "send.h"
+#include "sprintf_irc.h"
+#include "stdinc.h"
 
 static void ms_svsjoin(struct Client *, struct Client *, int parc, char *[]);
 
 struct Message svsjoin_msgtab = {
-  "SVSJOIN", 0, 0, 3, 0, MFLG_SLOW, 0,
-  { m_ignore, m_ignore, ms_svsjoin, ms_svsjoin, m_ignore, m_ignore }
-};
+    "SVSJOIN",
+    0,
+    0,
+    3,
+    0,
+    MFLG_SLOW,
+    0,
+    {m_ignore, m_ignore, ms_svsjoin, ms_svsjoin, m_ignore, m_ignore}};
 
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
-  mod_add_cmd(&svsjoin_msgtab);
+    mod_add_cmd(&svsjoin_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-  mod_del_cmd(&svsjoin_msgtab);
+    mod_del_cmd(&svsjoin_msgtab);
 }
 
 const char *_version = "$Revision: 989 $";
@@ -79,203 +84,205 @@ const char *_version = "$Revision: 989 $";
  *  parv[3] = key for the channel
  */
 static void
-ms_svsjoin(struct Client *client_p, struct Client *source_p,
-             int parc, char *parv[])
+ms_svsjoin(struct Client *client_p, struct Client *source_p, int parc,
+           char *parv[])
 {
-  struct Client *target_p = NULL;
-  struct Channel *chptr = NULL;
-  unsigned int type = 0;
-  char mode = '\0';
-  char sjmode = '\0';
-  char *newch = NULL;
-  dlink_node *ptr = NULL;
-  int i;
+    struct Client *target_p = NULL;
+    struct Channel *chptr   = NULL;
+    unsigned int type       = 0;
+    char mode               = '\0';
+    char sjmode             = '\0';
+    char *newch             = NULL;
+    dlink_node *ptr         = NULL;
+    int i;
 
-  if ((target_p = find_person(source_p, parv[1])) == NULL)
-    return;
+    if((target_p = find_person(source_p, parv[1])) == NULL)
+        return;
 
-  if (!MyConnect(target_p))
-  {
-    if (target_p->from != client_p)
+    if(!MyConnect(target_p))
     {
-      char *key; 
-      char *seperator;
+        if(target_p->from != client_p)
+        {
+            char *key;
+            char *seperator;
 
-      if(parv[3] == NULL)
-      {
-          key = "";
-          seperator = "";
-      }
-      else
-      {
-          key = parv[3];
-          seperator = " ";
-      }
+            if(parv[3] == NULL)
+            {
+                key       = "";
+                seperator = "";
+            }
+            else
+            {
+                key       = parv[3];
+                seperator = " ";
+            }
 
-      if (IsCapable(target_p->from, CAP_ENCAP))
-        sendto_one(target_p, ":%s ENCAP %s SVSJOIN %s %s%s%s",
-                   source_p->name, target_p->from->name,
-                   target_p->name, parv[2], seperator, key);
-      else
-        sendto_one(target_p, ":%s SVSJOIN %s %s%s%s",
-                   source_p->name, target_p->name, parv[2], seperator, key);
-    }
+            if(IsCapable(target_p->from, CAP_ENCAP))
+                sendto_one(target_p, ":%s ENCAP %s SVSJOIN %s %s%s%s",
+                           source_p->name, target_p->from->name, target_p->name,
+                           parv[2], seperator, key);
+            else
+                sendto_one(target_p, ":%s SVSJOIN %s %s%s%s", source_p->name,
+                           target_p->name, parv[2], seperator, key);
+        }
 
-    return;
-  }
-
-  /* select our modes from parv[2] if they exist... (chanop)*/
-  switch (*parv[2])
-  {
-    case '@':
-      type = CHFL_CHANOP;
-      mode = 'o';
-      sjmode = '@';
-      parv[2]++;
-      break;
-#ifdef HALFOPS
-    case '%':
-      type = CHFL_HALFOP;
-      mode = 'h';
-      sjmode = '%';
-      parv[2]++;
-      break;
-#endif
-    case '+':
-      type = CHFL_VOICE;
-      mode = 'v';
-      sjmode = '+';
-      parv[2]++;
-      break;
-    default:
-      type = 0;
-      mode = sjmode = '\0'; /* make sure sjmode is 0. sjoin depends on it */
-      break;
-  }
-
-  if ((chptr = hash_find_channel(parv[2])) != NULL)
-  {
-    if (IsMember(target_p, chptr))
-      return;
-
-    if (((i = can_join(target_p, chptr, parv[3])) && !IsGod(target_p)))
-    {
-        sendto_one(target_p, form_str(i), me.name, target_p->name, 
-                   chptr->chname);
         return;
     }
 
-    if(i != 0 && IsGod(target_p) && MyClient(target_p))
+    /* select our modes from parv[2] if they exist... (chanop)*/
+    switch(*parv[2])
     {
-        char tmp[IRCD_BUFSIZE];
-        ircsprintf(tmp, "%s is using God mode: SVSJOIN %s", target_p->name,
-                   chptr->chname);
-        sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL,
-                             tmp);
-        oftc_log(tmp);
+    case '@':
+        type   = CHFL_CHANOP;
+        mode   = 'o';
+        sjmode = '@';
+        parv[2]++;
+        break;
+#ifdef HALFOPS
+    case '%':
+        type   = CHFL_HALFOP;
+        mode   = 'h';
+        sjmode = '%';
+        parv[2]++;
+        break;
+#endif
+    case '+':
+        type   = CHFL_VOICE;
+        mode   = 'v';
+        sjmode = '+';
+        parv[2]++;
+        break;
+    default:
+        type = 0;
+        mode = sjmode = '\0'; /* make sure sjmode is 0. sjoin depends on it */
+        break;
     }
 
-    add_user_to_channel(chptr, target_p, type, NO);
-
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
-                         target_p->name, target_p->username,
-                         target_p->host, chptr->chname);
-
-    if (sjmode)
-      sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +%c %s",
-                           me.name, chptr->chname, mode, target_p->name);
-
-    if (chptr->chname[0] == '#')
+    if((chptr = hash_find_channel(parv[2])) != NULL)
     {
-      if (sjmode)
-      {
-        DLINK_FOREACH (ptr, serv_list.head)
+        if(IsMember(target_p, chptr))
+            return;
+
+        if(((i = can_join(target_p, chptr, parv[3])) && !IsGod(target_p)))
         {
-          struct Client *serv_p = ptr->data;
-          if (serv_p == target_p->from || IsDead(serv_p))
-            continue;
-
-          sendto_one(serv_p, ":%s SJOIN %lu %s + :%c%s",
-                     ID_or_name(&me, serv_p), (unsigned long)chptr->channelts,
-                     chptr->chname, (sjmode == '%' &&
-                     !IsCapable(serv_p, CAP_HOPS)) ? '@' : sjmode,
-                     ID_or_name(target_p, serv_p));
+            sendto_one(target_p, form_str(i), me.name, target_p->name,
+                       chptr->chname);
+            return;
         }
-      }
-      else
-      {
-        sendto_server(target_p, chptr, CAP_TS6, NOCAPS, NOFLAGS,
-                      ":%s SJOIN %lu %s + :%s",
-                      me.id, (unsigned long)chptr->channelts,
-                      chptr->chname, target_p->id);
-        sendto_server(target_p, chptr, NOCAPS, CAP_TS6, NOFLAGS,
-                      ":%s SJOIN %lu %s + :%s",
-                      me.name, (unsigned long)chptr->channelts,
-                      chptr->chname, target_p->name);
-      }
-    }
 
-    if (chptr->topic != NULL)
+        if(i != 0 && IsGod(target_p) && MyClient(target_p))
+        {
+            char tmp[IRCD_BUFSIZE];
+            ircsprintf(tmp, "%s is using God mode: SVSJOIN %s", target_p->name,
+                       chptr->chname);
+            sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL,
+                                 tmp);
+            oftc_log(tmp);
+        }
+
+        add_user_to_channel(chptr, target_p, type, NO);
+
+        sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
+                             target_p->name, target_p->username, target_p->host,
+                             chptr->chname);
+
+        if(sjmode)
+            sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +%c %s",
+                                 me.name, chptr->chname, mode, target_p->name);
+
+        if(chptr->chname[0] == '#')
+        {
+            if(sjmode)
+            {
+                DLINK_FOREACH(ptr, serv_list.head)
+                {
+                    struct Client *serv_p = ptr->data;
+                    if(serv_p == target_p->from || IsDead(serv_p))
+                        continue;
+
+                    sendto_one(serv_p, ":%s SJOIN %lu %s + :%c%s",
+                               ID_or_name(&me, serv_p),
+                               (unsigned long)chptr->channelts, chptr->chname,
+                               (sjmode == '%' && !IsCapable(serv_p, CAP_HOPS))
+                                   ? '@'
+                                   : sjmode,
+                               ID_or_name(target_p, serv_p));
+                }
+            }
+            else
+            {
+                sendto_server(target_p, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+                              ":%s SJOIN %lu %s + :%s", me.id,
+                              (unsigned long)chptr->channelts, chptr->chname,
+                              target_p->id);
+                sendto_server(target_p, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+                              ":%s SJOIN %lu %s + :%s", me.name,
+                              (unsigned long)chptr->channelts, chptr->chname,
+                              target_p->name);
+            }
+        }
+
+        if(chptr->topic != NULL)
+        {
+            sendto_one(target_p, form_str(RPL_TOPIC), me.name, target_p->name,
+                       chptr->chname, chptr->topic);
+            sendto_one(target_p, form_str(RPL_TOPICWHOTIME), me.name,
+                       target_p->name, chptr->chname, chptr->topic_info,
+                       chptr->topic_time);
+        }
+
+        target_p->localClient->last_join_time = CurrentTime;
+        channel_member_names(target_p, chptr, 1);
+    }
+    else
     {
-      sendto_one(target_p, form_str(RPL_TOPIC),
-                 me.name, target_p->name,
-                 chptr->chname, chptr->topic);
-      sendto_one(target_p, form_str(RPL_TOPICWHOTIME),
-                 me.name, target_p->name, chptr->chname,
-                 chptr->topic_info, chptr->topic_time);
+        newch = parv[2];
+
+        if(!check_channel_name(newch, 1))
+            return;
+
+        /*
+         * it would be interesting here to allow an oper
+         * to force target_p into a channel that doesn't exist
+         * even more so, into a local channel when we disable
+         * local channels... but...
+         * I don't want to break anything - scuzzy
+         */
+        if(ConfigChannel.disable_local_channels && (*newch == '&'))
+            return;
+
+        chptr = make_channel(newch);
+        if(MyClient(target_p))
+            sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+                                 "Channel %s created by %s!%s@%s",
+                                 chptr->chname, target_p->name,
+                                 target_p->username, target_p->host);
+
+        add_user_to_channel(chptr, target_p, CHFL_CHANOP, NO);
+
+        /* send out a join, make target_p join chptr */
+        if(chptr->chname[0] == '#')
+        {
+            sendto_server(target_p, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+                          ":%s SJOIN %lu %s +nt :@%s", me.id,
+                          (unsigned long)chptr->channelts, chptr->chname,
+                          ID(target_p));
+            sendto_server(target_p, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+                          ":%s SJOIN %lu %s +nt :@%s", me.name,
+                          (unsigned long)chptr->channelts, chptr->chname,
+                          target_p->name);
+        }
+
+        sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
+                             target_p->name, target_p->username, target_p->host,
+                             chptr->chname);
+
+        chptr->mode.mode |= MODE_TOPICLIMIT | MODE_NOPRIVMSGS;
+
+        sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +nt", me.name,
+                             chptr->chname);
+
+        target_p->localClient->last_join_time = CurrentTime;
+        channel_member_names(target_p, chptr, 1);
     }
-
-    target_p->localClient->last_join_time = CurrentTime;
-    channel_member_names(target_p, chptr, 1);
-  }
-  else
-  {
-    newch = parv[2];
-
-    if (!check_channel_name(newch, 1))
-      return;
-
-    /*
-     * it would be interesting here to allow an oper
-     * to force target_p into a channel that doesn't exist
-     * even more so, into a local channel when we disable
-     * local channels... but...
-     * I don't want to break anything - scuzzy
-     */
-    if (ConfigChannel.disable_local_channels && (*newch == '&'))
-      return;
-
-    chptr = make_channel(newch);
-    if(MyClient(target_p))
-      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
-          "Channel %s created by %s!%s@%s", chptr->chname, target_p->name,
-          target_p->username, target_p->host);
-
-    add_user_to_channel(chptr, target_p, CHFL_CHANOP, NO);
-
-    /* send out a join, make target_p join chptr */
-    if (chptr->chname[0] == '#')
-    {
-      sendto_server(target_p, chptr, CAP_TS6, NOCAPS, NOFLAGS,
-                    ":%s SJOIN %lu %s +nt :@%s",
-                    me.id, (unsigned long)chptr->channelts,
-                    chptr->chname, ID(target_p));
-      sendto_server(target_p, chptr, NOCAPS, CAP_TS6, NOFLAGS,
-                    ":%s SJOIN %lu %s +nt :@%s",
-                    me.name, (unsigned long)chptr->channelts,
-                    chptr->chname, target_p->name);
-    }
-
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s JOIN :%s",
-                         target_p->name, target_p->username,
-                         target_p->host, chptr->chname);
-
-    chptr->mode.mode |= MODE_TOPICLIMIT | MODE_NOPRIVMSGS;
-
-    sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s MODE %s +nt",
-                         me.name, chptr->chname);
-
-    target_p->localClient->last_join_time = CurrentTime;
-    channel_member_names(target_p, chptr, 1);
-  }
 }

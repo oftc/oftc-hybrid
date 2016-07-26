@@ -23,13 +23,13 @@
  */
 #include "stdinc.h"
 #ifndef STATIC_MODULES
-#include "tools.h"
-#include "modules.h"
+#include "client.h"
 #include "hash.h"
 #include "hook.h"
-#include "client.h"
 #include "ircd.h"
+#include "modules.h"
 #include "send.h"
+#include "tools.h"
 
 static struct Callback *whois_cb = NULL;
 static dlink_node *prev_hook;
@@ -39,15 +39,15 @@ static void *show_notice(va_list);
 void
 _modinit(void)
 {
-  if ((whois_cb = find_callback("doing_whois")))
-    prev_hook = install_hook(whois_cb, show_notice);
+    if((whois_cb = find_callback("doing_whois")))
+        prev_hook = install_hook(whois_cb, show_notice);
 }
 
 void
 _moddeinit(void)
 {
-  if (whois_cb)
-    uninstall_hook(whois_cb, show_notice);
+    if(whois_cb)
+        uninstall_hook(whois_cb, show_notice);
 }
 
 const char *_version = "$Revision: 33 $";
@@ -61,21 +61,23 @@ const char *_version = "$Revision: 33 $";
 void *
 show_notice(va_list args)
 {
-  struct Client *source_p = va_arg(args, struct Client *);
-  int parc = va_arg(args, int);
-  char **parv = va_arg(args, char **);
-  struct Client *target_p;
+    struct Client *source_p = va_arg(args, struct Client *);
+    int parc                = va_arg(args, int);
+    char **parv             = va_arg(args, char **);
+    struct Client *target_p;
 
-  target_p = parv[1] ? find_client(parv[1]) : NULL;
+    target_p = parv[1] ? find_client(parv[1]) : NULL;
 
-  if (target_p != NULL && target_p != source_p)
-    if (IsOper(target_p) && (target_p->umodes & UMODE_SPY))
-    {
-      sendto_one(target_p, ":%s NOTICE %s :*** Notice -- %s (%s@%s) is doing "
-                 "a whois on you", me.name, target_p->name, source_p->name,
-		 source_p->username, source_p->host);
-    }
+    if(target_p != NULL && target_p != source_p)
+        if(IsOper(target_p) && (target_p->umodes & UMODE_SPY))
+        {
+            sendto_one(target_p,
+                       ":%s NOTICE %s :*** Notice -- %s (%s@%s) is doing "
+                       "a whois on you",
+                       me.name, target_p->name, source_p->name,
+                       source_p->username, source_p->host);
+        }
 
-  return pass_callback(prev_hook, source_p, parc, parv);
+    return pass_callback(prev_hook, source_p, parc, parv);
 }
 #endif

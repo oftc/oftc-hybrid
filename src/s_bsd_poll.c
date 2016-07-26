@@ -25,12 +25,12 @@
 
 #include "stdinc.h"
 #if USE_IOPOLL_MECHANISM == __IOPOLL_MECHANISM_POLL
-#include <sys/poll.h>
 #include "fdlist.h"
 #include "hook.h"
 #include "ircd.h"
 #include "s_bsd.h"
 #include "s_log.h"
+#include <sys/poll.h>
 
 /* I hate linux -- adrian */
 #ifndef POLLRDNORM
@@ -41,7 +41,7 @@
 #endif
 
 static struct pollfd *pollfds;
-static int pollmax = -1;  /* highest FD number */
+static int pollmax = -1; /* highest FD number */
 static dlink_node *hookptr;
 
 /*
@@ -52,19 +52,19 @@ static dlink_node *hookptr;
 static void *
 changing_fdlimit(va_list args)
 {
-  int old_fdlimit = hard_fdlimit;
-  int i;
+    int old_fdlimit = hard_fdlimit;
+    int i;
 
-  pass_callback(hookptr, va_arg(args, int));
+    pass_callback(hookptr, va_arg(args, int));
 
-  if (hard_fdlimit != old_fdlimit)
-  {
-    pollfds = MyRealloc(pollfds, sizeof(struct pollfd) * hard_fdlimit);
-    for (i = old_fdlimit; i < hard_fdlimit; ++i)
-      pollfds[i].fd = -1;
-  }
+    if(hard_fdlimit != old_fdlimit)
+    {
+        pollfds = MyRealloc(pollfds, sizeof(struct pollfd) * hard_fdlimit);
+        for(i             = old_fdlimit; i < hard_fdlimit; ++i)
+            pollfds[i].fd = -1;
+    }
 
-  return NULL;
+    return NULL;
 }
 
 /*
@@ -76,14 +76,14 @@ changing_fdlimit(va_list args)
 void
 init_netio(void)
 {
-  int fd;
+    int fd;
 
-  pollfds = MyMalloc(sizeof(struct pollfd) * hard_fdlimit);
+    pollfds = MyMalloc(sizeof(struct pollfd) * hard_fdlimit);
 
-  for (fd = 0; fd < hard_fdlimit; fd++)
-    pollfds[fd].fd = -1;
+    for(fd             = 0; fd < hard_fdlimit; fd++)
+        pollfds[fd].fd = -1;
 
-  hookptr = install_hook(fdlimit_cb, changing_fdlimit);
+    hookptr = install_hook(fdlimit_cb, changing_fdlimit);
 }
 
 /*
@@ -93,18 +93,18 @@ init_netio(void)
 static inline int
 poll_findslot(void)
 {
-  int i;
+    int i;
 
-  for (i = 0; i < hard_fdlimit; i++)
-    if (pollfds[i].fd == -1)
-    {
-      /* MATCH!!#$*&$ */
-      return i;
-    }
+    for(i = 0; i < hard_fdlimit; i++)
+        if(pollfds[i].fd == -1)
+        {
+            /* MATCH!!#$*&$ */
+            return i;
+        }
 
-  assert(1 == 0);
-  /* NOTREACHED */
-  return -1;
+    assert(1 == 0);
+    /* NOTREACHED */
+    return -1;
 }
 
 /*
@@ -114,58 +114,58 @@ poll_findslot(void)
  * and deregister interest in a pending IO state for a given FD.
  */
 void
-comm_setselect(fde_t *F, unsigned int type, PF *handler,
-               void *client_data, time_t timeout)
-{  
-  int new_events;
+comm_setselect(fde_t *F, unsigned int type, PF *handler, void *client_data,
+               time_t timeout)
+{
+    int new_events;
 
-  if ((type & COMM_SELECT_READ))
-  {
-    F->read_handler = handler;
-    F->read_data = client_data;
-  }
-
-  if ((type & COMM_SELECT_WRITE))
-  {
-    F->write_handler = handler;
-    F->write_data = client_data;
-  }
-
-  new_events = (F->read_handler ? POLLRDNORM : 0) |
-    (F->write_handler ? POLLWRNORM : 0);
-
-  if (timeout != 0)
-    F->timeout = CurrentTime + (timeout / 1000);
-
-  if (new_events != F->evcache)
-  {
-    if (new_events == 0)
+    if((type & COMM_SELECT_READ))
     {
-      pollfds[F->comm_index].fd = -1;
-      pollfds[F->comm_index].revents = 0;
-
-      if (pollmax == F->comm_index)
-        while (pollmax >= 0 && pollfds[pollmax].fd == -1)
-	  pollmax--;
-    }
-    else
-    {
-      if (F->evcache == 0)
-      {
-        F->comm_index = poll_findslot();
-	if (F->comm_index > pollmax)
-	  pollmax = F->comm_index;
-
-	pollfds[F->comm_index].fd = F->fd;
-      }
-      pollfds[F->comm_index].events = new_events;
-      pollfds[F->comm_index].revents = 0;
+        F->read_handler = handler;
+        F->read_data    = client_data;
     }
 
-    F->evcache = new_events;
-  }
+    if((type & COMM_SELECT_WRITE))
+    {
+        F->write_handler = handler;
+        F->write_data    = client_data;
+    }
+
+    new_events = (F->read_handler ? POLLRDNORM : 0) |
+                 (F->write_handler ? POLLWRNORM : 0);
+
+    if(timeout != 0)
+        F->timeout = CurrentTime + (timeout / 1000);
+
+    if(new_events != F->evcache)
+    {
+        if(new_events == 0)
+        {
+            pollfds[F->comm_index].fd      = -1;
+            pollfds[F->comm_index].revents = 0;
+
+            if(pollmax == F->comm_index)
+                while(pollmax >= 0 && pollfds[pollmax].fd == -1)
+                    pollmax--;
+        }
+        else
+        {
+            if(F->evcache == 0)
+            {
+                F->comm_index = poll_findslot();
+                if(F->comm_index > pollmax)
+                    pollmax = F->comm_index;
+
+                pollfds[F->comm_index].fd = F->fd;
+            }
+            pollfds[F->comm_index].events  = new_events;
+            pollfds[F->comm_index].revents = 0;
+        }
+
+        F->evcache = new_events;
+    }
 }
- 
+
 /*
  * comm_select
  *
@@ -177,52 +177,52 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 void
 comm_select(void)
 {
-  int num, ci, revents;
-  PF *hdl;
-  fde_t *F;
+    int num, ci, revents;
+    PF *hdl;
+    fde_t *F;
 
-  /* XXX kill that +1 later ! -- adrian */
-  num = poll(pollfds, pollmax + 1, SELECT_DELAY);
+    /* XXX kill that +1 later ! -- adrian */
+    num = poll(pollfds, pollmax + 1, SELECT_DELAY);
 
-  set_time();
+    set_time();
 
-  if (num < 0)
-  {
+    if(num < 0)
+    {
 #ifdef HAVE_USLEEP
-    usleep(50000);  /* avoid 99% CPU in comm_select */
+        usleep(50000); /* avoid 99% CPU in comm_select */
 #endif
-    return;
-  }
+        return;
+    }
 
-  for (ci = 0; ci <= pollmax && num > 0; ci++)
-  {
-    if ((revents = pollfds[ci].revents) == 0 || pollfds[ci].fd == -1)
-      continue;
-    num--;
+    for(ci = 0; ci <= pollmax && num > 0; ci++)
+    {
+        if((revents = pollfds[ci].revents) == 0 || pollfds[ci].fd == -1)
+            continue;
+        num--;
 
-    F = lookup_fd(pollfds[ci].fd);
-    if (F == NULL || !F->flags.open)
-      continue;
+        F = lookup_fd(pollfds[ci].fd);
+        if(F == NULL || !F->flags.open)
+            continue;
 
-    if (revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR))
-      if ((hdl = F->read_handler) != NULL)
-      {
-        F->read_handler = NULL;
-        hdl(F, F->read_data);
-	if (!F->flags.open)
-	  continue;
-      }
+        if(revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR))
+            if((hdl = F->read_handler) != NULL)
+            {
+                F->read_handler = NULL;
+                hdl(F, F->read_data);
+                if(!F->flags.open)
+                    continue;
+            }
 
-    if (revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR))
-      if ((hdl = F->write_handler) != NULL)
-      {
-        F->write_handler = NULL;
-        hdl(F, F->write_data);
-	if (!F->flags.open)
-	  continue;
-      }
+        if(revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR))
+            if((hdl = F->write_handler) != NULL)
+            {
+                F->write_handler = NULL;
+                hdl(F, F->write_data);
+                if(!F->flags.open)
+                    continue;
+            }
 
-    comm_setselect(F, 0, NULL, NULL, 0);
-  }
+        comm_setselect(F, 0, NULL, NULL, 0);
+    }
 }
 #endif

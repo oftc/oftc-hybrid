@@ -22,93 +22,94 @@
  *  $Id: dbuf.c 33 2005-10-02 20:50:00Z knight $
  */
 
-#include "stdinc.h"
+#include "dbuf.h"
 #include "balloc.h"
 #include "common.h"
-#include "dbuf.h"
 #include "list.h"
-#include "tools.h"
 #include "memory.h"
+#include "stdinc.h"
+#include "tools.h"
 
 static BlockHeap *dbuf_heap;
 
 void
 dbuf_init(void)
 {
-  dbuf_heap = BlockHeapCreate("dbuf", sizeof(struct dbuf_block), DBUF_HEAP_SIZE);
+    dbuf_heap =
+        BlockHeapCreate("dbuf", sizeof(struct dbuf_block), DBUF_HEAP_SIZE);
 }
 
 static struct dbuf_block *
 dbuf_alloc(struct dbuf_queue *qptr)
 {
-  struct dbuf_block *block = BlockHeapAlloc(dbuf_heap);
+    struct dbuf_block *block = BlockHeapAlloc(dbuf_heap);
 
-  dlinkAddTail(block, make_dlink_node(), &qptr->blocks);
-  return block;
+    dlinkAddTail(block, make_dlink_node(), &qptr->blocks);
+    return block;
 }
 
 void
 dbuf_put(struct dbuf_queue *qptr, char *data, size_t count)
 {
-  struct dbuf_block *last;
-  size_t amount;
+    struct dbuf_block *last;
+    size_t amount;
 
-  assert(count > 0);
-  if (qptr->blocks.tail == NULL)
-    dbuf_alloc(qptr);
+    assert(count > 0);
+    if(qptr->blocks.tail == NULL)
+        dbuf_alloc(qptr);
 
-  do {
-    last = qptr->blocks.tail->data;
-
-    amount = DBUF_BLOCK_SIZE - last->size;
-    if (!amount)
+    do
     {
-      last = dbuf_alloc(qptr);
-      amount = DBUF_BLOCK_SIZE;
-    }
-    if (amount > count)
-      amount = count;
+        last = qptr->blocks.tail->data;
 
-    memcpy((void *) &last->data[last->size], data, amount);
-    count -= amount;
-    last->size += amount;
-    qptr->total_size += amount;
+        amount = DBUF_BLOCK_SIZE - last->size;
+        if(!amount)
+        {
+            last   = dbuf_alloc(qptr);
+            amount = DBUF_BLOCK_SIZE;
+        }
+        if(amount > count)
+            amount = count;
 
-    data += amount;
+        memcpy((void *)&last->data[last->size], data, amount);
+        count -= amount;
+        last->size += amount;
+        qptr->total_size += amount;
 
-  } while (count > 0);
+        data += amount;
+
+    } while(count > 0);
 }
 
 void
 dbuf_delete(struct dbuf_queue *qptr, size_t count)
 {
-  dlink_node *ptr;
-  struct dbuf_block *first;
+    dlink_node *ptr;
+    struct dbuf_block *first;
 
-  assert(qptr->total_size >= count);
-  if (count == 0)
-    return;
+    assert(qptr->total_size >= count);
+    if(count == 0)
+        return;
 
-  /* free whole blocks first.. */
-  while (1)
-  {
-    if (!count)
-      return;
-    ptr = qptr->blocks.head;
-    first = ptr->data;
-    if (count < first->size)
-      break;
+    /* free whole blocks first.. */
+    while(1)
+    {
+        if(!count)
+            return;
+        ptr   = qptr->blocks.head;
+        first = ptr->data;
+        if(count < first->size)
+            break;
 
-    qptr->total_size -= first->size;
-    count -= first->size;
-    dlinkDelete(ptr, &qptr->blocks);
-    free_dlink_node(ptr);
-    BlockHeapFree(dbuf_heap, first);
-  }
+        qptr->total_size -= first->size;
+        count -= first->size;
+        dlinkDelete(ptr, &qptr->blocks);
+        free_dlink_node(ptr);
+        BlockHeapFree(dbuf_heap, first);
+    }
 
-  /* ..then remove data from the beginning of the queue */
-  first->size -= count;
-  qptr->total_size -= count;
-  memmove((void *) &first->data, (void *) &first->data[count], first->size);
+    /* ..then remove data from the beginning of the queue */
+    first->size -= count;
+    qptr->total_size -= count;
+    memmove((void *)&first->data, (void *)&first->data[count], first->size);
 }
-

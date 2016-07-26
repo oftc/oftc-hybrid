@@ -22,33 +22,33 @@
  *  $Id$
  */
 
-#include "stdinc.h"
-#include "common.h"
 #include "ircd_signal.h"
-#include "ircd.h"         /* dorehash */
-#include "restart.h"      /* server_die */
-#include "s_log.h"
+#include "common.h"
+#include "ircd.h" /* dorehash */
 #include "memory.h"
+#include "restart.h" /* server_die */
 #include "s_bsd.h"
+#include "s_log.h"
+#include "stdinc.h"
 
 #include <sys/wait.h>
 
 /*
  * sigterm_handler - exit the server
  */
-static void 
-sigterm_handler(int sig)  
+static void
+sigterm_handler(int sig)
 {
-  server_die("received signal SIGTERM", NO);
+    server_die("received signal SIGTERM", NO);
 }
 
-/* 
+/*
  * sighup_handler - reread the server configuration
  */
-static void 
+static void
 sighup_handler(int sig)
 {
-  dorehash = 1;
+    dorehash = 1;
 }
 
 /*
@@ -57,11 +57,11 @@ sighup_handler(int sig)
 static void
 sigusr1_handler(int sig)
 {
-  doremotd = 1;
+    doremotd = 1;
 }
 
 /*
- * 
+ *
  * inputs	- nothing
  * output	- nothing
  * side effects - Reaps zombies periodically
@@ -70,70 +70,70 @@ sigusr1_handler(int sig)
 static void
 sigchld_handler(int sig)
 {
-  int status;
-  while(waitpid(-1, &status, WNOHANG) > 0)
-    ;
+    int status;
+    while(waitpid(-1, &status, WNOHANG) > 0)
+        ;
 }
 
 /*
  * sigint_handler - restart the server
  */
-static void 
+static void
 sigint_handler(int sig)
 {
-  server_die("SIGINT received", !server_state.foreground);
+    server_die("SIGINT received", !server_state.foreground);
 }
 
 /*
  * setup_signals - initialize signal handlers for server
  */
-void 
+void
 setup_signals(void)
 {
-  struct sigaction act;
+    struct sigaction act;
 
-  act.sa_flags = 0;
-  act.sa_handler = SIG_IGN;
+    act.sa_flags   = 0;
+    act.sa_handler = SIG_IGN;
 
-  sigemptyset(&act.sa_mask);
-  sigaddset(&act.sa_mask, SIGPIPE);
-  sigaddset(&act.sa_mask, SIGALRM);
-  sigaction(SIGALRM, &act, 0);
+    sigemptyset(&act.sa_mask);
+    sigaddset(&act.sa_mask, SIGPIPE);
+    sigaddset(&act.sa_mask, SIGALRM);
+    sigaction(SIGALRM, &act, 0);
 #ifdef SIGTRAP
-  sigaddset(&act.sa_mask, SIGTRAP);
+    sigaddset(&act.sa_mask, SIGTRAP);
 #endif
 #ifdef SIGXFSZ
-  sigaddset(&act.sa_mask, SIGXFSZ);
-  sigaction(SIGXFSZ, &act, 0);
+    sigaddset(&act.sa_mask, SIGXFSZ);
+    sigaction(SIGXFSZ, &act, 0);
 #endif
 
 #ifdef SIGWINCH
-  sigaddset(&act.sa_mask, SIGWINCH);
-  sigaction(SIGWINCH, &act, 0);
+    sigaddset(&act.sa_mask, SIGWINCH);
+    sigaction(SIGWINCH, &act, 0);
 #endif
-  sigaction(SIGPIPE, &act, 0);
+    sigaction(SIGPIPE, &act, 0);
 #ifdef SIGTRAP
-  sigaction(SIGTRAP, &act, 0);
+    sigaction(SIGTRAP, &act, 0);
 #endif
 
-  act.sa_handler = sighup_handler;
-  sigemptyset(&act.sa_mask);
-  sigaddset(&act.sa_mask, SIGHUP);
-  sigaction(SIGHUP, &act, 0);
+    act.sa_handler = sighup_handler;
+    sigemptyset(&act.sa_mask);
+    sigaddset(&act.sa_mask, SIGHUP);
+    sigaction(SIGHUP, &act, 0);
 
-  act.sa_handler = sigint_handler;
-  sigaddset(&act.sa_mask, SIGINT);
-  sigaction(SIGINT, &act, 0);
+    act.sa_handler = sigint_handler;
+    sigaddset(&act.sa_mask, SIGINT);
+    sigaction(SIGINT, &act, 0);
 
-  act.sa_handler = sigterm_handler;
-  sigaddset(&act.sa_mask, SIGTERM);
-  sigaction(SIGTERM, &act, 0);
+    act.sa_handler = sigterm_handler;
+    sigaddset(&act.sa_mask, SIGTERM);
+    sigaction(SIGTERM, &act, 0);
 
-  act.sa_handler = sigusr1_handler;
-  sigaddset(&act.sa_mask, SIGUSR1);
-  sigaction(SIGUSR1, &act, 0);
+    act.sa_handler = sigusr1_handler;
+    sigaddset(&act.sa_mask, SIGUSR1);
+    sigaction(SIGUSR1, &act, 0);
 
-  act.sa_handler = sigchld_handler;
-  sigaddset(&act.sa_mask, SIGCHLD);
-  sigaction(SIGCHLD, &act, 0);
+    act.sa_handler = sigchld_handler;
+    sigaddset(&act.sa_mask, SIGCHLD);
+    sigaction(SIGCHLD, &act, 0);
 }

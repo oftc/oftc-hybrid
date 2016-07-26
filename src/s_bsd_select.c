@@ -50,12 +50,12 @@ static dlink_node *hookptr;
 static void *
 changing_fdlimit(va_list args)
 {
-  int fdmax = va_arg(args, int);
+    int fdmax = va_arg(args, int);
 
-  if (fdmax > FD_SETSIZE)
-    fdmax = FD_SETSIZE;
+    if(fdmax > FD_SETSIZE)
+        fdmax = FD_SETSIZE;
 
-  return pass_callback(hookptr, fdmax);
+    return pass_callback(hookptr, fdmax);
 }
 
 /*
@@ -67,10 +67,10 @@ changing_fdlimit(va_list args)
 void
 init_netio(void)
 {
-  FD_ZERO(&select_readfds);
-  FD_ZERO(&select_writefds);
+    FD_ZERO(&select_readfds);
+    FD_ZERO(&select_writefds);
 
-  hookptr = install_hook(fdlimit_cb, changing_fdlimit);
+    hookptr = install_hook(fdlimit_cb, changing_fdlimit);
 }
 
 /*
@@ -80,65 +80,65 @@ init_netio(void)
  * and deregister interest in a pending IO state for a given FD.
  */
 void
-comm_setselect(fde_t *F, unsigned int type, PF *handler,
-               void *client_data, time_t timeout)
+comm_setselect(fde_t *F, unsigned int type, PF *handler, void *client_data,
+               time_t timeout)
 {
-  int new_events;
+    int new_events;
 
-  if ((type & COMM_SELECT_READ))
-  {
-    F->read_handler = handler;
-    F->read_data = client_data;
-  }
-
-  if ((type & COMM_SELECT_WRITE))
-  {
-    F->write_handler = handler;
-    F->write_data = client_data;
-  }
-
-  new_events = (F->read_handler ? COMM_SELECT_READ : 0) |
-    (F->write_handler ? COMM_SELECT_WRITE : 0);
-
-  if (timeout != 0)
-  {
-    F->timeout = CurrentTime + (timeout / 1000);
-    F->timeout_handler = handler;
-    F->timeout_data = client_data;
-  }
-
-
-  if (new_events != F->evcache)
-  {
-    if ((new_events & COMM_SELECT_READ))
-      FD_SET(F->fd, &select_readfds);
-    else
+    if((type & COMM_SELECT_READ))
     {
-      FD_CLR(F->fd, &select_readfds);
-      FD_CLR(F->fd, &tmpreadfds);
+        F->read_handler = handler;
+        F->read_data    = client_data;
     }
 
-    if ((new_events & COMM_SELECT_WRITE))
-      FD_SET(F->fd, &select_writefds);
-    else
+    if((type & COMM_SELECT_WRITE))
     {
-      FD_CLR(F->fd, &select_writefds);
-      FD_CLR(F->fd, &tmpwritefds);
+        F->write_handler = handler;
+        F->write_data    = client_data;
     }
 
-    if (new_events == 0)
-    {
-      if (highest_fd == F->fd)
-        while (highest_fd >= 0 && (FD_ISSET(highest_fd, &select_readfds) ||
-	                           FD_ISSET(highest_fd, &select_writefds)))
-          highest_fd--;
-    }
-    else if (F->evcache == 0)
-      if (F->fd > highest_fd)
-        highest_fd = F->fd;
+    new_events = (F->read_handler ? COMM_SELECT_READ : 0) |
+                 (F->write_handler ? COMM_SELECT_WRITE : 0);
 
-    F->evcache = new_events;
-  }
+    if(timeout != 0)
+    {
+        F->timeout         = CurrentTime + (timeout / 1000);
+        F->timeout_handler = handler;
+        F->timeout_data    = client_data;
+    }
+
+    if(new_events != F->evcache)
+    {
+        if((new_events & COMM_SELECT_READ))
+            FD_SET(F->fd, &select_readfds);
+        else
+        {
+            FD_CLR(F->fd, &select_readfds);
+            FD_CLR(F->fd, &tmpreadfds);
+        }
+
+        if((new_events & COMM_SELECT_WRITE))
+            FD_SET(F->fd, &select_writefds);
+        else
+        {
+            FD_CLR(F->fd, &select_writefds);
+            FD_CLR(F->fd, &tmpwritefds);
+        }
+
+        if(new_events == 0)
+        {
+            if(highest_fd == F->fd)
+                while(highest_fd >= 0 &&
+                      (FD_ISSET(highest_fd, &select_readfds) ||
+                       FD_ISSET(highest_fd, &select_writefds)))
+                    highest_fd--;
+        }
+        else if(F->evcache == 0)
+            if(F->fd > highest_fd)
+                highest_fd = F->fd;
+
+        F->evcache = new_events;
+    }
 }
 
 /*
@@ -152,57 +152,57 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 void
 comm_select(void)
 {
-  struct timeval to;
-  int num, fd;
-  fde_t *F;
-  PF *hdl;
+    struct timeval to;
+    int num, fd;
+    fde_t *F;
+    PF *hdl;
 
-  /* Copy over the read/write sets so we don't have to rebuild em */
-  memcpy(&tmpreadfds, &select_readfds, sizeof(fd_set));
-  memcpy(&tmpwritefds, &select_writefds, sizeof(fd_set));
+    /* Copy over the read/write sets so we don't have to rebuild em */
+    memcpy(&tmpreadfds, &select_readfds, sizeof(fd_set));
+    memcpy(&tmpwritefds, &select_writefds, sizeof(fd_set));
 
-  to.tv_sec = 0;
-  to.tv_usec = SELECT_DELAY * 1000;
-  num = select(highest_fd + 1, &tmpreadfds, &tmpwritefds, NULL, &to);
+    to.tv_sec  = 0;
+    to.tv_usec = SELECT_DELAY * 1000;
+    num        = select(highest_fd + 1, &tmpreadfds, &tmpwritefds, NULL, &to);
 
-  set_time();
+    set_time();
 
-  if (num < 0)
-  {
-#ifdef HAVE_USLEEP
-    usleep(50000);
-#endif
-    return;
-  }
-
-  for (fd = 0; fd <= highest_fd && num > 0; fd++)
-    if (FD_ISSET(fd, &tmpreadfds) || FD_ISSET(fd, &tmpwritefds))
+    if(num < 0)
     {
-      num--;
-
-      F = lookup_fd(fd);
-      if (F == NULL || !F->flags.open)
-        continue;
-
-      if (FD_ISSET(fd, &tmpreadfds))
-        if ((hdl = F->read_handler) != NULL)
-        {
-          F->read_handler = NULL;
-          hdl(F, F->read_data);
-          if (!F->flags.open)
-            continue;
-        }
-
-      if (FD_ISSET(fd, &tmpwritefds))
-        if ((hdl = F->write_handler) != NULL)
-        {
-          F->write_handler = NULL;
-          hdl(F, F->write_data);
-          if (!F->flags.open)
-            continue;
-        }
-
-      comm_setselect(F, 0, NULL, NULL, 0);
+#ifdef HAVE_USLEEP
+        usleep(50000);
+#endif
+        return;
     }
+
+    for(fd = 0; fd <= highest_fd && num > 0; fd++)
+        if(FD_ISSET(fd, &tmpreadfds) || FD_ISSET(fd, &tmpwritefds))
+        {
+            num--;
+
+            F = lookup_fd(fd);
+            if(F == NULL || !F->flags.open)
+                continue;
+
+            if(FD_ISSET(fd, &tmpreadfds))
+                if((hdl = F->read_handler) != NULL)
+                {
+                    F->read_handler = NULL;
+                    hdl(F, F->read_data);
+                    if(!F->flags.open)
+                        continue;
+                }
+
+            if(FD_ISSET(fd, &tmpwritefds))
+                if((hdl = F->write_handler) != NULL)
+                {
+                    F->write_handler = NULL;
+                    hdl(F, F->write_data);
+                    if(!F->flags.open)
+                        continue;
+                }
+
+            comm_setselect(F, 0, NULL, NULL, 0);
+        }
 }
 #endif

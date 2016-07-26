@@ -22,14 +22,14 @@
  * $Id$
  *
  */
-#include "ltdl.h"
-#include "stdinc.h"
-#include "tools.h"
+#include "client.h"
 #include "irc_string.h"
+#include "ltdl.h"
 #include "modules.h"
 #include "s_log.h"
-#include "client.h"
 #include "send.h"
+#include "stdinc.h"
+#include "tools.h"
 #include <libgen.h>
 
 #if USE_SHARED_MODULES
@@ -45,11 +45,12 @@ static char unknown_ver[] = "<unknown>";
 void
 dynlink_init()
 {
-  if(lt_dlinit())
-  {
-    ilog(L_ERROR, "Couldn't initialize the libltdl runtime dynamic link library.  Exiting");
-    exit(0);
-  }
+    if(lt_dlinit())
+    {
+        ilog(L_ERROR, "Couldn't initialize the libltdl runtime dynamic link "
+                      "library.  Exiting");
+        exit(0);
+    }
 }
 
 /* unload_one_module()
@@ -62,31 +63,32 @@ dynlink_init()
 int
 unload_one_module(char *name, int warn)
 {
-  dlink_node *ptr = NULL;
-  struct module *modp = NULL;
+    dlink_node *ptr     = NULL;
+    struct module *modp = NULL;
 
-  if ((ptr = findmodule_byname(name)) == NULL) 
-    return -1;
+    if((ptr = findmodule_byname(name)) == NULL)
+        return -1;
 
-  modp = ptr->data;
+    modp = ptr->data;
 
-  if (modp->modremove)
-    (*modp->modremove)();
+    if(modp->modremove)
+        (*modp->modremove)();
 
-  lt_dlclose(modp->handle);
+    lt_dlclose(modp->handle);
 
-  assert(dlink_list_length(&mod_list) > 0);
-  dlinkDelete(ptr, &mod_list);
-  MyFree(modp->name);
-  MyFree(modp);
+    assert(dlink_list_length(&mod_list) > 0);
+    dlinkDelete(ptr, &mod_list);
+    MyFree(modp->name);
+    MyFree(modp);
 
-  if (warn == 1)
-  {
-    ilog(L_INFO, "Module %s unloaded", name);
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s unloaded", name);
-  }
+    if(warn == 1)
+    {
+        ilog(L_INFO, "Module %s unloaded", name);
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                             "Module %s unloaded", name);
+    }
 
-  return 0;
+    return 0;
 }
 
 /* load_a_module()
@@ -98,84 +100,87 @@ unload_one_module(char *name, int warn)
 int
 load_a_module(char *path, int warn, int core)
 {
-  lt_dlhandle tmpptr = NULL;
-  void *addr = NULL;
-  char *mod_basename;
-  void (*initfunc)(void) = NULL;
-  void (*mod_deinit)(void) = NULL;
-  char **verp;
-  char *ver;
-  struct module *modp;
+    lt_dlhandle tmpptr = NULL;
+    void *addr         = NULL;
+    char *mod_basename;
+    void (*initfunc)(void)   = NULL;
+    void (*mod_deinit)(void) = NULL;
+    char **verp;
+    char *ver;
+    struct module *modp;
 
-  mod_basename = basename(path);
+    mod_basename = basename(path);
 
-  if (findmodule_byname(mod_basename) != NULL)
-    return 1;
+    if(findmodule_byname(mod_basename) != NULL)
+        return 1;
 
-  if(!(tmpptr = lt_dlopen(path)))
-  {
-    const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
+    if(!(tmpptr = lt_dlopen(path)))
+    {
+        const char *err = ((err = lt_dlerror())) ? err : "<unknown>";
 
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Error loading module %s: %s",
-                         mod_basename, err);
-    ilog(L_WARN, "Error loading module %s: %s", mod_basename, err);
-    
-    return -1;
-  }
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                             "Error loading module %s: %s", mod_basename, err);
+        ilog(L_WARN, "Error loading module %s: %s", mod_basename, err);
 
-  if ((initfunc = lt_dlsym(tmpptr, "_modinit")) == NULL &&
-      /* Only for compatibility, because some systems have underscore
-       * prepended symbol names */
-      (initfunc = lt_dlsym(tmpptr, "__modinit")) == NULL)
-  {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s has no _modinit() function",
-                         mod_basename);
-    ilog(L_WARN, "Module %s has no _modinit() function", mod_basename);
-    lt_dlclose(tmpptr);
-    return -1;
-  }
+        return -1;
+    }
 
-  mod_deinit = lt_dlsym(tmpptr, "_moddeinit");
+    if((initfunc = lt_dlsym(tmpptr, "_modinit")) == NULL &&
+       /* Only for compatibility, because some systems have underscore
+        * prepended symbol names */
+       (initfunc = lt_dlsym(tmpptr, "__modinit")) == NULL)
+    {
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                             "Module %s has no _modinit() function",
+                             mod_basename);
+        ilog(L_WARN, "Module %s has no _modinit() function", mod_basename);
+        lt_dlclose(tmpptr);
+        return -1;
+    }
 
-  if (mod_deinit == NULL && (mod_deinit = lt_dlsym(tmpptr, "__moddeinit")) == NULL)
-  {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Module %s has no _moddeinit() function",
-                         mod_basename);
-    ilog(L_WARN, "Module %s has no _moddeinit() function", mod_basename);
-    /* blah blah soft error, see above. */
-    mod_deinit = NULL;
-  }
+    mod_deinit = lt_dlsym(tmpptr, "_moddeinit");
 
-  verp = (char **)lt_dlsym(tmpptr, "_version");
+    if(mod_deinit == NULL &&
+       (mod_deinit = lt_dlsym(tmpptr, "__moddeinit")) == NULL)
+    {
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                             "Module %s has no _moddeinit() function",
+                             mod_basename);
+        ilog(L_WARN, "Module %s has no _moddeinit() function", mod_basename);
+        /* blah blah soft error, see above. */
+        mod_deinit = NULL;
+    }
 
-  if (verp == NULL && (verp = (char **)lt_dlsym(tmpptr, "__version")) == NULL)
-    ver = unknown_ver;
-  else
-    ver = *verp;
+    verp = (char **)lt_dlsym(tmpptr, "_version");
 
-  modp            = MyMalloc(sizeof(struct module));
-  addr = tmpptr;
+    if(verp == NULL && (verp = (char **)lt_dlsym(tmpptr, "__version")) == NULL)
+        ver = unknown_ver;
+    else
+        ver = *verp;
 
-  modp->handle    = tmpptr;
-  modp->address   = addr;
-  modp->version   = ver;
-  modp->core      = core;
-  modp->modremove = mod_deinit;
+    modp = MyMalloc(sizeof(struct module));
+    addr = tmpptr;
 
-  DupString(modp->name, mod_basename);
-  dlinkAdd(modp, &modp->node, &mod_list);
+    modp->handle    = tmpptr;
+    modp->address   = addr;
+    modp->version   = ver;
+    modp->core      = core;
+    modp->modremove = mod_deinit;
 
-  initfunc();
+    DupString(modp->name, mod_basename);
+    dlinkAdd(modp, &modp->node, &mod_list);
 
-  if (warn == 1)
-  {
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                         "Module %s [version: %s] loaded at %p",
-                         mod_basename, ver, addr);
-    ilog(L_WARN, "Module %s [version: %s] loaded at %p",
-         mod_basename, ver, addr);
-  }
+    initfunc();
 
-  return 0;
+    if(warn == 1)
+    {
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                             "Module %s [version: %s] loaded at %p",
+                             mod_basename, ver, addr);
+        ilog(L_WARN, "Module %s [version: %s] loaded at %p", mod_basename, ver,
+             addr);
+    }
+
+    return 0;
 }
 #endif

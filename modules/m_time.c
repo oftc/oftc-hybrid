@@ -22,39 +22,40 @@
  *  $Id$
  */
 
-#include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
+#include "handlers.h"
 #include "ircd.h"
+#include "modules.h"
+#include "msg.h"
 #include "numeric.h"
-#include "s_misc.h"
+#include "packet.h"
+#include "parse.h"
 #include "s_conf.h"
+#include "s_misc.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
-#include "parse.h"
-#include "modules.h"
-#include "packet.h"
+#include "stdinc.h"
 
-static void m_time(struct Client*, struct Client*, int, char**);
-static void mo_time(struct Client*, struct Client*, int, char**);
+static void m_time(struct Client *, struct Client *, int, char **);
+static void mo_time(struct Client *, struct Client *, int, char **);
 
 struct Message time_msgtab = {
-  "TIME", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_time, mo_time, m_ignore, mo_time, m_ignore}
-};
+    "TIME", 0,
+    0,      0,
+    0,      MFLG_SLOW,
+    0,      {m_unregistered, m_time, mo_time, m_ignore, mo_time, m_ignore}};
 
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
-  mod_add_cmd(&time_msgtab);
+    mod_add_cmd(&time_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-  mod_del_cmd(&time_msgtab);
+    mod_del_cmd(&time_msgtab);
 }
 
 const char *_version = "$Revision$";
@@ -65,22 +66,22 @@ const char *_version = "$Revision$";
  *      parv[1] = servername
  */
 static void
-m_time(struct Client *client_p, struct Client *source_p,
-       int parc, char *parv[])
+m_time(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
-  /* this is not rate limited, so end the grace period */
-  if(MyClient(source_p) && !IsFloodDone(source_p))
-    flood_endgrace(source_p);
+    /* this is not rate limited, so end the grace period */
+    if(MyClient(source_p) && !IsFloodDone(source_p))
+        flood_endgrace(source_p);
 
-  /* This is safe enough to use during non hidden server mode */
-  if(!ConfigFileEntry.disable_remote)
+    /* This is safe enough to use during non hidden server mode */
+    if(!ConfigFileEntry.disable_remote)
     {
-      if (hunt_server(client_p,source_p,":%s TIME :%s",1,parc,parv) != HUNTED_ISME)
-        return;
+        if(hunt_server(client_p, source_p, ":%s TIME :%s", 1, parc, parv) !=
+           HUNTED_ISME)
+            return;
     }
 
-  sendto_one(source_p, form_str(RPL_TIME), me.name,
-             parv[0], me.name, date(0));
+    sendto_one(source_p, form_str(RPL_TIME), me.name, parv[0], me.name,
+               date(0));
 }
 
 /*
@@ -89,10 +90,11 @@ m_time(struct Client *client_p, struct Client *source_p,
  *      parv[1] = servername
  */
 static void
-mo_time(struct Client *client_p, struct Client *source_p,
-	int parc, char *parv[])
+mo_time(struct Client *client_p, struct Client *source_p, int parc,
+        char *parv[])
 {
-  if (hunt_server(client_p,source_p,":%s TIME :%s",1,parc,parv) == HUNTED_ISME)
-    sendto_one(source_p, form_str(RPL_TIME), me.name,
-               parv[0], me.name, date(0));
+    if(hunt_server(client_p, source_p, ":%s TIME :%s", 1, parc, parv) ==
+       HUNTED_ISME)
+        sendto_one(source_p, form_str(RPL_TIME), me.name, parv[0], me.name,
+                   date(0));
 }

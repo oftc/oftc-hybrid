@@ -22,44 +22,48 @@
  *  $Id$
  */
 
-#include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "ircd.h"
+#include "handlers.h"
 #include "irc_string.h"
-#include "numeric.h"
-#include "send.h"
-#include "s_user.h"
-#include "msg.h"
-#include "parse.h"
+#include "ircd.h"
 #include "modules.h"
+#include "msg.h"
+#include "numeric.h"
+#include "parse.h"
 #include "s_serv.h"
+#include "s_user.h"
+#include "send.h"
+#include "stdinc.h"
 
 static void mo_operwall(struct Client *, struct Client *, int, char **);
 static void ms_operwall(struct Client *, struct Client *, int, char **);
 static void me_operwall(struct Client *, struct Client *, int, char **);
 
-struct Message operwall_msgtab = {
-  "OPERWALL", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, ms_operwall, me_operwall, mo_operwall, m_ignore}
-};
+struct Message operwall_msgtab = {"OPERWALL",
+                                  0,
+                                  0,
+                                  2,
+                                  0,
+                                  MFLG_SLOW,
+                                  0,
+                                  {m_unregistered, m_not_oper, ms_operwall,
+                                   me_operwall, mo_operwall, m_ignore}};
 
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
-  mod_add_cmd(&operwall_msgtab);
+    mod_add_cmd(&operwall_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-  mod_del_cmd(&operwall_msgtab);
+    mod_del_cmd(&operwall_msgtab);
 }
 
 const char *_version = "$Revision$";
 #endif
-
 
 /*
  * mo_operwall - OPERWALL message handler
@@ -68,30 +72,30 @@ const char *_version = "$Revision$";
  *      parv[1] = message text
  */
 static void
-mo_operwall(struct Client *client_p, struct Client *source_p,
-            int parc, char *parv[])
+mo_operwall(struct Client *client_p, struct Client *source_p, int parc,
+            char *parv[])
 {
-  const char *message = parv[1];
+    const char *message = parv[1];
 
-  if (!IsOperWall(source_p))
-  {
-    sendto_one(source_p, form_str(ERR_NOPRIVS),
-               me.name, source_p->name, "operwall");
-    return;
-  }
+    if(!IsOperWall(source_p))
+    {
+        sendto_one(source_p, form_str(ERR_NOPRIVS), me.name, source_p->name,
+                   "operwall");
+        return;
+    }
 
-  if (EmptyString(message))
-  {
-    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-               me.name, source_p->name, "OPERWALL");
-    return;
-  }
+    if(EmptyString(message))
+    {
+        sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name,
+                   source_p->name, "OPERWALL");
+        return;
+    }
 
-  sendto_server(NULL, NULL, CAP_TS6, NOCAPS,
-                ":%s OPERWALL :%s", ID(source_p), message);
-  sendto_server(NULL, NULL, NOCAPS, CAP_TS6,
-                ":%s OPERWALL :%s", source_p->name, message);
-  sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
+    sendto_server(NULL, NULL, CAP_TS6, NOCAPS, ":%s OPERWALL :%s", ID(source_p),
+                  message);
+    sendto_server(NULL, NULL, NOCAPS, CAP_TS6, ":%s OPERWALL :%s",
+                  source_p->name, message);
+    sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }
 
 /*
@@ -101,17 +105,17 @@ mo_operwall(struct Client *client_p, struct Client *source_p,
  *      parv[1] = message text
  */
 static void
-ms_operwall(struct Client *client_p, struct Client *source_p,
-            int parc, char *parv[])
+ms_operwall(struct Client *client_p, struct Client *source_p, int parc,
+            char *parv[])
 {
-  const char *message = parv[1];
+    const char *message = parv[1];
 
-  if (EmptyString(message))
-    return;
+    if(EmptyString(message))
+        return;
 
-  sendto_server(client_p, NULL, NOCAPS, NOCAPS,
-                ":%s OPERWALL :%s", parv[0], message);
-  sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
+    sendto_server(client_p, NULL, NOCAPS, NOCAPS, ":%s OPERWALL :%s", parv[0],
+                  message);
+    sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }
 
 /*
@@ -123,13 +127,13 @@ ms_operwall(struct Client *client_p, struct Client *source_p,
  * Lets ms_encap handle propagation.
  */
 static void
-me_operwall(struct Client *client_p, struct Client *source_p,
-            int parc, char *parv[])
+me_operwall(struct Client *client_p, struct Client *source_p, int parc,
+            char *parv[])
 {
-  const char *message = parv[1];
+    const char *message = parv[1];
 
-  if (EmptyString(message))
-    return;
+    if(EmptyString(message))
+        return;
 
-  sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
+    sendto_wallops_flags(UMODE_OPERWALL, source_p, "OPERWALL - %s", message);
 }

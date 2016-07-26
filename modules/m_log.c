@@ -1,7 +1,7 @@
 /* log.c - oftc specific server logging
 
  *   Copyright (C) 2002 Stuart Walsh
- *                      
+ *
  *   See file AUTHORS in IRC package for additional names of
  *   the programmers.
  *
@@ -20,60 +20,62 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "stdinc.h"
-#include "common.h"
-#include "handlers.h"
-#include "client.h"
 #include "channel.h"
 #include "channel_mode.h"
+#include "client.h"
+#include "common.h"
+#include "handlers.h"
 #include "hash.h"
+#include "irc_string.h"
 #include "ircd.h"
+#include "modules.h"
+#include "msg.h"
 #include "numeric.h"
+#include "parse.h"
+#include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "s_conf.h"
-#include "msg.h"
-#include "parse.h"
-#include "modules.h"
 #include "sprintf_irc.h"
-#include "irc_string.h"
+#include "stdinc.h"
 
 /* $Id$ */
 
-static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char **parv);
+static void mo_log(struct Client *client_p, struct Client *source_p, int parc,
+                   char **parv);
 
-const char* _version = "$Revision: 301 $";
+const char *_version = "$Revision: 301 $";
 
 struct Message log_msgtab = {
-  "LOG", 0, 0, 2, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_not_oper, mo_log, m_ignore, mo_log, m_ignore}
-  };
-      
+    "LOG", 0,
+    0,     2,
+    0,     MFLG_SLOW,
+    0,     {m_unregistered, m_not_oper, mo_log, m_ignore, mo_log, m_ignore}};
 
-void _modinit(void)
+void
+_modinit(void)
 {
-          mod_add_cmd(&log_msgtab);
+    mod_add_cmd(&log_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-          mod_del_cmd(&log_msgtab);
+    mod_del_cmd(&log_msgtab);
 }
 
-
-static void mo_log(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+static void
+mo_log(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 {
     FBFILE *logfile = NULL;
-    char buf[IRCD_BUFSIZE+NICKLEN];
+    char buf[IRCD_BUFSIZE + NICKLEN];
 
     if(parc < 2)
         return;
 
-    if (IsClient(source_p) && (logfile = fbopen(OFTCLOG, "a+")) != NULL)
+    if(IsClient(source_p) && (logfile = fbopen(OFTCLOG, "a+")) != NULL)
     {
-        ircsprintf(buf, "%s %s %s\n",
-                myctime(time(NULL)), source_p->name, parv[1]);
+        ircsprintf(buf, "%s %s %s\n", myctime(time(NULL)), source_p->name,
+                   parv[1]);
         fbputs(buf, logfile, sizeof(buf));
         fbclose(logfile);
     }

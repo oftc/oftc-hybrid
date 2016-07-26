@@ -22,64 +22,66 @@
  *  $Id$
  */
 
-#include "stdinc.h"
-#include "handlers.h"
 #include "client.h"
-#include "ircd.h"
-#include "numeric.h"
 #include "common.h"
+#include "handlers.h"
+#include "ircd.h"
+#include "modules.h"
+#include "msg.h"
+#include "numeric.h"
+#include "parse.h"
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "msg.h"
-#include "parse.h"
-#include "modules.h"
+#include "stdinc.h"
 
 #include "channel.h"
 #include "channel_mode.h"
 #include "hash.h"
+#include "irc_string.h"
 #include "msg.h"
 #include "packet.h"
-#include "irc_string.h"
-
 
 static void ms_gnotice(struct Client *, struct Client *, int, char **);
 
 struct Message gnotice_msgtab = {
-  "GNOTICE", 0, 0, 3, 0, MFLG_SLOW | MFLG_UNREG, 0L,
-  {m_ignore, m_ignore, ms_gnotice, m_ignore, m_ignore, m_ignore}
-};
+    "GNOTICE", 0,
+    0,         3,
+    0,         MFLG_SLOW | MFLG_UNREG,
+    0L,        {m_ignore, m_ignore, ms_gnotice, m_ignore, m_ignore, m_ignore}};
 
 #ifndef STATIC_MODULES
 
 void
 _modinit(void)
 {
-  mod_add_cmd(&gnotice_msgtab);
+    mod_add_cmd(&gnotice_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-  mod_del_cmd(&gnotice_msgtab);
+    mod_del_cmd(&gnotice_msgtab);
 }
 
 const char *_version = "$Revision: 334 $";
 #endif
 
-static void ms_gnotice(struct Client *client_p, 
-          struct Client *source_p, int parc, char *parv[])
+static void
+ms_gnotice(struct Client *client_p, struct Client *source_p, int parc,
+           char *parv[])
 {
-  char* message;
-  
-  message = parv[3];
-  
-  if (EmptyString(message) || EmptyString(parv[1]))
-    { 
-      sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
-                 me.name, parv[0], "GNOTICE");
-      return;
+    char *message;
+
+    message = parv[3];
+
+    if(EmptyString(message) || EmptyString(parv[1]))
+    {
+        sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, parv[0],
+                   "GNOTICE");
+        return;
     }
-  
-  sendto_gnotice_flags(atoi(parv[2]), L_ALL, parv[1], source_p, client_p, "%s", message);
+
+    sendto_gnotice_flags(atoi(parv[2]), L_ALL, parv[1], source_p, client_p,
+                         "%s", message);
 }

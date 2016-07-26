@@ -28,13 +28,14 @@
 #include <sys/ioctl.h>
 /* HPUX uses devpoll.h and not sys/devpoll.h */
 #ifdef HAVE_DEVPOLL_H
-# include <devpoll.h>
+#include <devpoll.h>
 #else
-# ifdef HAVE_SYS_DEVPOLL_H
-#  include <sys/devpoll.h>
-# else
-#  error "No devpoll.h found! Try ./configuring and letting the script choose for you."
-# endif
+#ifdef HAVE_SYS_DEVPOLL_H
+#include <sys/devpoll.h>
+#else
+#error                                                                         \
+    "No devpoll.h found! Try ./configuring and letting the script choose for you."
+#endif
 #endif
 #include "fdlist.h"
 #include "ircd.h"
@@ -52,16 +53,16 @@ static fde_t dpfd;
 void
 init_netio(void)
 {
-  int fd;
+    int fd;
 
-  if ((fd = open("/dev/poll", O_RDWR)) < 0)
-  {
-    ilog(L_CRIT, "init_netio: Couldn't open /dev/poll - %d: %s",
-         errno, strerror(errno));
-    exit(115); /* Whee! */
-  }
+    if((fd = open("/dev/poll", O_RDWR)) < 0)
+    {
+        ilog(L_CRIT, "init_netio: Couldn't open /dev/poll - %d: %s", errno,
+             strerror(errno));
+        exit(115); /* Whee! */
+    }
 
-  fd_open(&dpfd, fd, 0, "/dev/poll file descriptor");
+    fd_open(&dpfd, fd, 0, "/dev/poll file descriptor");
 }
 
 /*
@@ -73,17 +74,17 @@ init_netio(void)
 static void
 devpoll_write_update(int fd, int events)
 {
-  struct pollfd pfd;
+    struct pollfd pfd;
 
-  /* Build the pollfd entry */
-  pfd.revents = 0;
-  pfd.fd = fd;
-  pfd.events = events;
+    /* Build the pollfd entry */
+    pfd.revents = 0;
+    pfd.fd      = fd;
+    pfd.events  = events;
 
-  /* Write the thing to our poll fd */
-  if (write(dpfd.fd, &pfd, sizeof(pfd)) != sizeof(pfd))
-    ilog(L_NOTICE, "devpoll_write_update: dpfd write failed %d: %s",
-         errno, strerror(errno));
+    /* Write the thing to our poll fd */
+    if(write(dpfd.fd, &pfd, sizeof(pfd)) != sizeof(pfd))
+        ilog(L_NOTICE, "devpoll_write_update: dpfd write failed %d: %s", errno,
+             strerror(errno));
 }
 
 /*
@@ -93,40 +94,39 @@ devpoll_write_update(int fd, int events)
  * and deregister interest in a pending IO state for a given FD.
  */
 void
-comm_setselect(fde_t *F, unsigned int type, PF *handler,
-               void *client_data, time_t timeout)
+comm_setselect(fde_t *F, unsigned int type, PF *handler, void *client_data,
+               time_t timeout)
 {
-  int new_events;
+    int new_events;
 
-  if ((type & COMM_SELECT_READ))
-  {
-    F->read_handler = handler;
-    F->read_data = client_data;
-  }
+    if((type & COMM_SELECT_READ))
+    {
+        F->read_handler = handler;
+        F->read_data    = client_data;
+    }
 
-  if ((type & COMM_SELECT_WRITE))
-  {
-    F->write_handler = handler;
-    F->write_data = client_data;
-  }
+    if((type & COMM_SELECT_WRITE))
+    {
+        F->write_handler = handler;
+        F->write_data    = client_data;
+    }
 
-  new_events = (F->read_handler ? POLLIN : 0) |
-    (F->write_handler ? POLLOUT : 0);
+    new_events =
+        (F->read_handler ? POLLIN : 0) | (F->write_handler ? POLLOUT : 0);
 
-  if (timeout != 0)
-  {
-    F->timeout = CurrentTime + (timeout / 1000);
-    F->timeout_handler = handler;
-    F->timeout_data = client_data;
-  }
+    if(timeout != 0)
+    {
+        F->timeout         = CurrentTime + (timeout / 1000);
+        F->timeout_handler = handler;
+        F->timeout_data    = client_data;
+    }
 
-
-  if (new_events != F->evcache)
-  {
-    devpoll_write_update(F->fd, POLLREMOVE);
-    if ((F->evcache = new_events))
-      devpoll_write_update(F->fd, new_events);
-  }
+    if(new_events != F->evcache)
+    {
+        devpoll_write_update(F->fd, POLLREMOVE);
+        if((F->evcache = new_events))
+            devpoll_write_update(F->fd, new_events);
+    }
 }
 
 /*
@@ -140,52 +140,52 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 void
 comm_select(void)
 {
-  int num, i;
-  struct pollfd pollfds[128];
-  struct dvpoll dopoll;
-  PF *hdl;
-  fde_t *F;
+    int num, i;
+    struct pollfd pollfds[128];
+    struct dvpoll dopoll;
+    PF *hdl;
+    fde_t *F;
 
-  dopoll.dp_timeout = SELECT_DELAY;
-  dopoll.dp_nfds = 128;
-  dopoll.dp_fds = &pollfds[0];
-  num = ioctl(dpfd.fd, DP_POLL, &dopoll);
+    dopoll.dp_timeout = SELECT_DELAY;
+    dopoll.dp_nfds    = 128;
+    dopoll.dp_fds     = &pollfds[0];
+    num               = ioctl(dpfd.fd, DP_POLL, &dopoll);
 
-  set_time();
+    set_time();
 
-  if (num < 0)
-  {
+    if(num < 0)
+    {
 #ifdef HAVE_USLEEP
-    usleep(50000);  /* avoid 99% CPU in comm_select */
+        usleep(50000); /* avoid 99% CPU in comm_select */
 #endif
-    return;
-  }
+        return;
+    }
 
-  for (i = 0; i < num; i++)
-  {
-    F = lookup_fd(dopoll.dp_fds[i].fd);
-    if (F == NULL || !F->flags.open)
-      continue;
+    for(i = 0; i < num; i++)
+    {
+        F = lookup_fd(dopoll.dp_fds[i].fd);
+        if(F == NULL || !F->flags.open)
+            continue;
 
-    if ((dopoll.dp_fds[i].revents & POLLIN))
-      if ((hdl = F->read_handler) != NULL)
-      {
-        F->read_handler = NULL;
-        hdl(F, F->read_data);
-        if (!F->flags.open)
-          continue;
-      }
+        if((dopoll.dp_fds[i].revents & POLLIN))
+            if((hdl = F->read_handler) != NULL)
+            {
+                F->read_handler = NULL;
+                hdl(F, F->read_data);
+                if(!F->flags.open)
+                    continue;
+            }
 
-    if ((dopoll.dp_fds[i].revents & POLLOUT))
-      if ((hdl = F->write_handler) != NULL) 
-      {
-        F->write_handler = NULL;
-        hdl(F, F->write_data);
-        if (!F->flags.open)
-          continue;
-      }
+        if((dopoll.dp_fds[i].revents & POLLOUT))
+            if((hdl = F->write_handler) != NULL)
+            {
+                F->write_handler = NULL;
+                hdl(F, F->write_data);
+                if(!F->flags.open)
+                    continue;
+            }
 
-    comm_setselect(F, 0, NULL, NULL, 0);
-  }
+        comm_setselect(F, 0, NULL, NULL, 0);
+    }
 }
 #endif

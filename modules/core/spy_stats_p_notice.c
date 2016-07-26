@@ -24,12 +24,12 @@
 
 #include "stdinc.h"
 #ifndef STATIC_MODULES
-#include "tools.h"
-#include "modules.h"
-#include "hook.h"
 #include "client.h"
+#include "hook.h"
 #include "ircd.h"
+#include "modules.h"
 #include "send.h"
+#include "tools.h"
 
 static struct Callback *stats_cb = NULL;
 static dlink_node *prev_hook;
@@ -39,15 +39,15 @@ static void *show_stats_p(va_list args);
 void
 _modinit(void)
 {
-  if ((stats_cb = find_callback("doing_stats")))
-    prev_hook = install_hook(stats_cb, show_stats_p);
+    if((stats_cb = find_callback("doing_stats")))
+        prev_hook = install_hook(stats_cb, show_stats_p);
 }
 
 void
 _moddeinit(void)
 {
-  if (stats_cb)
-    uninstall_hook(stats_cb, show_stats_p);
+    if(stats_cb)
+        uninstall_hook(stats_cb, show_stats_p);
 }
 
 const char *_version = "$Revision: 33 $";
@@ -55,19 +55,19 @@ const char *_version = "$Revision: 33 $";
 static void *
 show_stats_p(va_list args)
 {
-  struct Client *source_p = va_arg(args, struct Client *);
-  int parc = va_arg(args, int);
-  char **parv = va_arg(args, char **);
+    struct Client *source_p = va_arg(args, struct Client *);
+    int parc                = va_arg(args, int);
+    char **parv             = va_arg(args, char **);
 
-  if (parc < 2)
-    return NULL;  /* shouldn't happen */
+    if(parc < 2)
+        return NULL; /* shouldn't happen */
 
-  if (parv[1][0] == 'p')
-    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
-                         "STATS p requested by %s (%s@%s) [%s]",
-                         source_p->name, source_p->username,
-                         source_p->host, source_p->servptr->name);
+    if(parv[1][0] == 'p')
+        sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+                             "STATS p requested by %s (%s@%s) [%s]",
+                             source_p->name, source_p->username, source_p->host,
+                             source_p->servptr->name);
 
-  return pass_callback(prev_hook, source_p, parc, parv);
+    return pass_callback(prev_hook, source_p, parc, parv);
 }
 #endif
