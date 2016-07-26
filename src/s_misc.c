@@ -22,7 +22,6 @@
  *  $Id: s_misc.c 33 2005-10-02 20:50:00Z knight $
  */
 
-#include "s_misc.h"
 #include "client.h"
 #include "common.h"
 #include "fdlist.h"
@@ -35,6 +34,7 @@
 #include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
+#include "s_misc.h"
 #include "sprintf_irc.h"
 #include "stdinc.h"
 

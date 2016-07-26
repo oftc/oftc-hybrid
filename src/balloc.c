@@ -462,7 +462,7 @@ BlockHeapDestroy(BlockHeap *bh)
 static size_t
 block_heap_get_used_mem(const BlockHeap *const bh)
 {
-    return (bh->blocksAllocated * bh->elemsPerBlock) - bh->freeElems) *
+    return ((bh->blocksAllocated * bh->elemsPerBlock) - bh->freeElems) *
             (bh->elemSize + sizeof(MemBlock));
 }
 

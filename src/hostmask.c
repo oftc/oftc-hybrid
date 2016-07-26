@@ -22,16 +22,16 @@
  *  $Id$
  */
 
-#include "hostmask.h"
+#include "stdinc.h"
 #include "irc_string.h"
 #include "ircd_defs.h"
 #include "memory.h"
 #include "numeric.h"
 #include "s_conf.h"
+#include "hostmask.h"
 #include "s_misc.h"
 #include "send.h"
 #include "sprintf_irc.h"
-#include "stdinc.h"
 #include "tools.h"
 
 #ifdef IPV6

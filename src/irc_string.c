@@ -22,13 +22,13 @@
  *  $Id: irc_string.c 593 2006-05-12 05:47:32Z michael $
  */
 
+#include "stdinc.h"
 #include "irc_string.h"
 #include "client.h"
 #include "list.h"
 #include "memory.h"
 #include "pcre.h"
 #include "sprintf_irc.h"
-#include "stdinc.h"
 #include "tools.h"
 
 #ifndef INADDRSZ

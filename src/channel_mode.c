@@ -22,9 +22,9 @@
  *  $Id$
  */
 
-#include "channel_mode.h"
 #include "balloc.h"
 #include "channel.h"
+#include "channel_mode.h"
 #include "client.h"
 #include "common.h"
 #include "event.h"

@@ -22,7 +22,7 @@
  *  $Id$
  */
 
-#include "resv.h"
+#include "stdinc.h"
 #include "client.h"
 #include "common.h"
 #include "fdlist.h"
@@ -34,7 +34,7 @@
 #include "numeric.h"
 #include "s_conf.h"
 #include "send.h"
-#include "stdinc.h"
+#include "resv.h"
 #include "tools.h"
 
 dlink_list resv_channel_list = {NULL, NULL, 0};

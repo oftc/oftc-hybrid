@@ -22,7 +22,6 @@
  *  $Id$
  */
 
-#include "s_gline.h"
 #include "client.h"
 #include "common.h"
 #include "event.h"
@@ -37,6 +36,7 @@
 #include "msg.h"
 #include "s_bsd.h"
 #include "s_conf.h"
+#include "s_gline.h"
 #include "s_misc.h"
 #include "s_serv.h"
 #include "send.h"

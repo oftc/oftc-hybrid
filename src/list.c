@@ -22,11 +22,11 @@
  *  $Id: list.c 33 2005-10-02 20:50:00Z knight $
  */
 
+#include "stdinc.h"
+#include "memory.h"
 #include "list.h"
 #include "balloc.h"
 #include "client.h"
-#include "memory.h"
-#include "stdinc.h"
 #include "tools.h"
 
 static BlockHeap *dnode_heap;

@@ -22,9 +22,9 @@
  *  $Id: sprintf_irc.c 33 2005-10-02 20:50:00Z knight $
  */
 
-#include "sprintf_irc.h"
-#include "irc_string.h"
 #include "stdinc.h"
+#include "irc_string.h"
+#include "sprintf_irc.h"
 
 static const char atoi_tab[4000] = {
     '0', '0', '0', 0, '0', '0', '1', 0, '0', '0', '2', 0, '0', '0', '3', 0,
