@@ -59,6 +59,7 @@ ohelp_DATA= accept \
                 rxline \
                 server \
                 set \
+                shedding \
                 sjoin \
                 squit \
                 stats \
