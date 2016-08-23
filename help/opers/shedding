@@ -1,0 +1,4 @@
+SHEDDING <server> <approx_seconds_per_userdrop> <opers_too?[0|1]> :<reason>
+SHEDDING <server> OFF
+
+SHEDDING enables and disables shedding on the named server.
