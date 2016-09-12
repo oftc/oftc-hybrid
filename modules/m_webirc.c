@@ -145,7 +145,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   if (getaddrinfo(parv[2], NULL, &hints, &res))
   {
     sendto_gnotice_flags(UMODE_UNAUTH, L_ALL, me.name, &me, NULL, 
-                         "Inavlid CGI:IRC IP %s", parv[2]);
+                         "Invalid CGI:IRC IP %s", parv[2]);
     return;
   }
 
