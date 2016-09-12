@@ -29,8 +29,8 @@
 #include "fileio.h"
 #include "irc_string.h"
 #include "memory.h"
-#include "numeric.h"
 #include "messages.tab"
+#include "numeric.h"
 #include "s_log.h"
 #include "send.h"
 

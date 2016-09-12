@@ -22,13 +22,13 @@
  *  $Id$
  */
 
+#include "hash.h"
 #include "channel.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"
 #include "dbuf.h"
 #include "handlers.h"
-#include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
 #include "list.h"

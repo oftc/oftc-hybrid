@@ -22,6 +22,7 @@
  *  $Id$
  */
 
+#include "s_stats.h"
 #include "client.h"
 #include "irc_string.h"
 #include "ircd.h"
@@ -30,7 +31,6 @@
 #include "s_bsd.h"
 #include "send.h"
 #include "stdinc.h"
-#include "s_stats.h"
 
 /* stats stuff */
 static struct ServerStatistics ircst;
