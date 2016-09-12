@@ -110,10 +110,10 @@ part_one_client(struct Client *client_p, struct Client *source_p,
        (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
         < CurrentTime))))
   {
-    sendto_server(client_p, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(client_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
                   ":%s PART %s :%s", ID(source_p), chptr->chname,
                   reason);
-    sendto_server(client_p, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_TS6, NOFLAGS,
                   ":%s PART %s :%s", source_p->name, chptr->chname,
                   reason);
     sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s PART %s :%s",
@@ -122,9 +122,9 @@ part_one_client(struct Client *client_p, struct Client *source_p,
   }
   else
   {
-    sendto_server(client_p, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(client_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
                   ":%s PART %s", ID(source_p), chptr->chname);
-    sendto_server(client_p, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(client_p, NULL, chptr, NOCAPS, CAP_TS6, NOFLAGS,
                   ":%s PART %s", source_p->name, chptr->chname);
     sendto_channel_local(ALL_MEMBERS, NO, chptr, ":%s!%s@%s PART %s",
                          source_p->name, source_p->username,

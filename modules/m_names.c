@@ -47,10 +47,11 @@ static void names_all_visible_channels(struct Client *);
 static void names_non_public_non_secret(struct Client *);
 
 static void m_names(struct Client *, struct Client *, int, char *[]);
+static void ms_names(struct Client *, struct Client *, int, char *[]);
 
 struct Message names_msgtab = {
   "NAMES", 0, 0, 0, 0, MFLG_SLOW, 0,
-  {m_unregistered, m_names, m_ignore, m_ignore, m_names, m_ignore}
+  {m_unregistered, m_names, ms_names, m_ignore, m_names, m_ignore}
 };
 
 #ifndef STATIC_MODULES
@@ -208,4 +209,22 @@ names_non_public_non_secret(struct Client *source_p)
 
   if (reply_to_send)
     sendto_one(source_p, "%s", buf);
+}
+
+static void
+ms_names(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
+{
+  /* If its running as a hub, and linked with lazy links
+   * then allow leaf to use normal client m_names()
+   * other wise, ignore it.
+   */
+  if (ServerInfo.hub)
+  {
+    if (!IsCapable(client_p->from, CAP_LL))
+      return;
+  }
+
+  if (IsClient(source_p))
+    m_names(client_p, source_p, parc, parv);
 }

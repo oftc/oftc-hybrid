@@ -11,11 +11,13 @@ module_LTLIBRARIES= m_accept.la       \
                     m_away.la         \
                     m_capab.la        \
                     m_cap.la          \
+                    m_cburst.la       \
                     m_certfp.la       \
                     m_challenge.la    \
                     m_close.la        \
                     m_connect.la      \
                     m_cryptlink.la    \
+                    m_drop.la         \
                     m_encap.la        \
                     m_eob.la          \
                     m_etrace.la       \
@@ -30,12 +32,15 @@ module_LTLIBRARIES= m_accept.la       \
                     m_knock.la        \
                     m_links.la        \
                     m_list.la         \
+                    m_lljoin.la       \
+                    m_llnick.la       \
                     m_locops.la       \
                     m_log.la          \
                     m_lusers.la       \
                     m_map.la          \
                     m_motd.la         \
                     m_names.la        \
+                    m_nburst.la       \
                     m_omotd.la        \
                     m_oper.la         \
                     m_operwall.la     \

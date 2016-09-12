@@ -204,11 +204,11 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
       }
       else
       {
-        sendto_server(target_p, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+        sendto_server(target_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
                       ":%s SJOIN %lu %s + :%s",
                       me.id, (unsigned long)chptr->channelts,
                       chptr->chname, target_p->id);
-        sendto_server(target_p, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+        sendto_server(target_p, NULL, chptr, NOCAPS, CAP_TS6, NOFLAGS,
                       ":%s SJOIN %lu %s + :%s",
                       me.name, (unsigned long)chptr->channelts,
                       chptr->chname, target_p->name);
@@ -256,11 +256,11 @@ ms_svsjoin(struct Client *client_p, struct Client *source_p,
     /* send out a join, make target_p join chptr */
     if (chptr->chname[0] == '#')
     {
-      sendto_server(target_p, chptr, CAP_TS6, NOCAPS, NOFLAGS,
+      sendto_server(target_p, NULL, chptr, CAP_TS6, NOCAPS, NOFLAGS,
                     ":%s SJOIN %lu %s +nt :@%s",
                     me.id, (unsigned long)chptr->channelts,
                     chptr->chname, ID(target_p));
-      sendto_server(target_p, chptr, NOCAPS, CAP_TS6, NOFLAGS,
+      sendto_server(target_p, NULL, chptr, NOCAPS, CAP_TS6, NOFLAGS,
                     ":%s SJOIN %lu %s +nt :@%s",
                     me.name, (unsigned long)chptr->channelts,
                     chptr->chname, target_p->name);

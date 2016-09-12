@@ -54,6 +54,7 @@ struct Capability
 #define CAP_QS		  0x00000002 /* Can handle quit storm removal       */
 #define CAP_EX		  0x00000004 /* Can do channel +e exemptions        */
 #define CAP_CHW		  0x00000008 /* Can do channel wall @#              */
+#define CAP_LL		  0x00000010 /* Can do lazy links                   */
 #define CAP_IE		  0x00000020 /* Can do invite exceptions            */
 #define CAP_EOB		  0x00000040 /* Can do EOB message                  */
 #define CAP_KLN		  0x00000080 /* Can do KLINE message                */
@@ -228,6 +229,8 @@ extern struct Capability captab[];
 extern struct EncCapability CipherTable[];
 #endif
 
+extern struct Client *uplink; /* NON NULL if leaf and is this servers uplink */
+
 /*
  * return values for hunt_server() 
  */
@@ -259,8 +262,11 @@ extern void cryptlink_init(struct Client *, struct ConfItem *, fde_t *);
 extern void cryptlink_regen_key(void *);
 extern void cryptlink_error(struct Client *, const char *,
                             const char *, const char *);
+extern void remove_lazylink_flags(unsigned long);
+extern void client_burst_if_needed(struct Client *, struct Client *);
 extern void ssllink_init(struct Client *, struct ConfItem *, fde_t *);
 extern struct EncCapability *check_cipher(struct Client *, struct AccessItem *);
+extern void add_lazylinkclient(struct Client *, struct Client *);
 
 extern struct Server *make_server(struct Client *);
 

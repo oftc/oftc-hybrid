@@ -167,6 +167,13 @@ send_message_remote(struct Client *to, struct Client *from,
     return;
   }
 
+  if (ServerInfo.hub && IsCapable(to, CAP_LL))
+  {
+    if (((from->lazyLinkClientExists &
+          to->localClient->serverMask) == 0))
+      client_burst_if_needed(to, from);
+  }
+
   /* Optimize by checking if (from && to) before everything */
   /* we set to->from up there.. */
 
@@ -186,11 +193,11 @@ send_message_remote(struct Client *to, struct Client *from,
                          from->name, from->username, from->host,
                          to->from->name);
 
-    sendto_server(NULL, NULL, CAP_TS6, NOCAPS, NOFLAGS,
+    sendto_server(NULL, to, NULL, CAP_TS6, NOCAPS, NOFLAGS,
                   ":%s KILL %s :%s (%s[%s@%s] Ghosted %s)",
                   me.id, to->name, me.name, to->name,
                   to->username, to->host, to->from->name);
-    sendto_server(NULL, NULL, NOCAPS, CAP_TS6, NOFLAGS,
+    sendto_server(NULL, to, NULL, NOCAPS, CAP_TS6, NOFLAGS,
                   ":%s KILL %s :%s (%s[%s@%s] Ghosted %s)",
                   me.name, to->name, me.name, to->name,
                   to->username, to->host, to->from->name);
@@ -538,21 +545,31 @@ sendto_channel_butone(struct Client *one, struct Client *from,
  *              - pointer to channel required by LL (if any)
  *              - caps or'd together which must ALL be present
  *              - caps or'd together which must ALL NOT be present
+ *              - LL flags: LL_ICLIENT | LL_ICHAN
  *              - printf style format string
  *              - args to format string
  * output       - NONE
  * side effects - Send a message to all connected servers, except the
  *                client 'one' (if non-NULL), as long as the servers
  *                support ALL capabs in 'caps', and NO capabs in 'nocaps'.
- *
+ *                If the server is a lazylink client, then it must know
+ *                about source_p if non-NULL (unless LL_ICLIENT is specified,
+ *                when source_p will be introduced where required) and
+ *                chptr if non-NULL (unless LL_ICHANNEL is specified, when
+ *                chptr will be introduced where required).
+ *                Note: nothing will be introduced to a LazyLeaf unless
+ *                the message is actually sent.
+ *            
  * This function was written in an attempt to merge together the other
  * billion sendto_*serv*() functions, which sprung up with capabs,
- * uids, etc.
+ * lazylinks, uids, etc.
  * -davidt
  */
 void 
-sendto_server(struct Client *one, struct Channel *chptr, unsigned long caps,
-              unsigned long nocaps, const char *format, ...)
+sendto_server(struct Client *one, struct Client *source_p,
+              struct Channel *chptr, unsigned long caps,
+              unsigned long nocaps, unsigned long llflags,
+              const char *format, ...)
 {
   va_list args;
   struct Client *client_p;
@@ -587,6 +604,35 @@ sendto_server(struct Client *one, struct Channel *chptr, unsigned long caps,
     if ((client_p->localClient->caps & nocaps) != 0)
       continue;
 
+    if (ServerInfo.hub && IsCapable(client_p, CAP_LL))
+    {
+      /* check LL channel */
+      if (chptr != NULL &&
+          ((chptr->lazyLinkChannelExists &
+            client_p->localClient->serverMask) == 0))
+      {
+        /* Only introduce the channel if we really will send this message */
+        if (!(llflags & LL_ICLIENT) && source_p &&
+            ((source_p->lazyLinkClientExists &
+              client_p->localClient->serverMask) == 0))
+          continue; /* we can't introduce the unknown source_p, skip */
+
+        if (llflags & LL_ICHAN)
+          burst_channel(client_p, chptr);
+        else
+          continue; /* we can't introduce the unknown chptr, skip */
+      }
+      /* check LL client */
+      if (source_p &&
+          ((source_p->lazyLinkClientExists &
+            client_p->localClient->serverMask) == 0))
+      {
+        if (llflags & LL_ICLIENT)
+          client_burst_if_needed(client_p,source_p);
+        else
+          continue; /* we can't introduce the unknown source_p, skip */
+      }
+    }
     send_message(client_p, buffer, len);
   }
 }
@@ -1098,7 +1144,7 @@ sendto_gnotice_flags(int flags, int level, char *origin,
       sendto_one(target_p, ":%s NOTICE %s :%s", origin, target_p->name, nbuf);
     }
   }
-  sendto_server(client_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
+  sendto_server(client_p, source_p, NULL, NOCAPS, NOCAPS, NOFLAGS,
     ":%s GNOTICE %s %d :%s", me.name, origin, flags, nbuf);
 }
 
@@ -1177,12 +1223,13 @@ kill_client(struct Client *client_p, struct Client *diedie,
 
 /* kill_client_ll_serv_butone()
  *
- * inputs   - pointer to client to not send to
- *          - pointer to client to kill
- * output   - NONE
- * side effects	-   Send a KILL for the given client
- *                  message to all connected servers
- *                  except the client 'one'.
+ * inputs	- pointer to client to not send to
+ *		- pointer to client to kill
+ * output	- NONE
+ * side effects	- Send a KILL for the given client
+ *		  message to all connected servers
+ *                except the client 'one'. Also deal with
+ *		  client being unknown to leaf, as in lazylink...
  */
 void
 kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,
@@ -1221,7 +1268,9 @@ kill_client_ll_serv_butone(struct Client *one, struct Client *source_p,
       continue;
 
     /* XXX perhaps IsCapable should test for localClient itself ? -db */
-    if (client_p->localClient == NULL || !ServerInfo.hub )
+    if (client_p->localClient == NULL || !IsCapable(client_p, CAP_LL) ||
+        !ServerInfo.hub ||
+        (source_p->lazyLinkClientExists & client_p->localClient->serverMask))
     {
       if (have_uid && IsCapable(client_p, CAP_TS6))
         send_message(client_p, buf_uid, len_uid);

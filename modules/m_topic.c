@@ -109,9 +109,22 @@ m_topic(struct Client *client_p, struct Client *source_p,
   {
     if ((chptr = hash_find_channel(parv[1])) == NULL)
     {
+      /* if chptr isn't found locally, it =could= exist
+       * on the uplink. so forward reqeuest
+       */
+      if (!ServerInfo.hub && uplink && IsCapable(uplink, CAP_LL))
+      {
+        sendto_one(uplink, ":%s TOPIC %s %s",
+                   ID_or_name(source_p, uplink), chptr->chname,
+                   ((parc > 2) ? parv[2] : ""));
+        return;
+      }
+      else
+      {
         sendto_one(source_p, form_str(ERR_NOSUCHCHANNEL),
                    from, to, parv[1]);
         return;
+      }
     }
 
     /* setting topic */
@@ -143,7 +156,7 @@ m_topic(struct Client *client_p, struct Client *source_p,
                    source_p->name, source_p->username, source_p->host);
         set_channel_topic(chptr, parv[2], topic_info, CurrentTime);
 	      
-        sendto_server(client_p, chptr, NOCAPS, NOCAPS, NOFLAGS,
+        sendto_server(client_p, NULL, chptr, NOCAPS, NOCAPS, NOFLAGS,
                       ":%s TOPIC %s :%s",
                       parv[0], chptr->chname,
                       chptr->topic == NULL ? "" : chptr->topic);
@@ -172,10 +185,24 @@ m_topic(struct Client *client_p, struct Client *source_p,
                      from, to,
                      chptr->chname, chptr->topic);
 
+          /* client on LL needing the topic - if we have serverhide, say
+           * its the actual LL server that set the topic, not us the
+           * uplink -- fl_
+           */
+          if (ConfigServerHide.hide_servers && !MyClient(source_p)
+              && IsCapable(client_p, CAP_LL) && ServerInfo.hub)
+          {
+            sendto_one(source_p, form_str(RPL_TOPICWHOTIME),
+  	               from, to, chptr->chname,
+                       client_p->name, chptr->topic_time);
+          }
+          else
+          {
             sendto_one(source_p, form_str(RPL_TOPICWHOTIME),
                        from, to, chptr->chname,
                        chptr->topic_info,
                        chptr->topic_time);
+          }
         }
       }
       else

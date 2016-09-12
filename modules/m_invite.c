@@ -171,6 +171,18 @@ m_invite(struct Client *client_p, struct Client *source_p,
     if (atoi(parv[3]) > chptr->channelts)
       return;
 
+  if (!MyConnect(target_p) && ServerInfo.hub &&
+      IsCapable(target_p->from, CAP_LL))
+  {
+    /* target_p is connected to a LL leaf, connected to us */
+    if (IsClient(source_p))
+      client_burst_if_needed(target_p->from, source_p);
+
+    if ((chptr->lazyLinkChannelExists &
+         target_p->from->localClient->serverMask) == 0)
+      burst_channel(target_p->from, chptr);
+  }
+
   if (MyConnect(target_p))
   {
     sendto_one(target_p, ":%s!%s@%s INVITE %s :%s",

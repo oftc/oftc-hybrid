@@ -59,16 +59,22 @@
 
 #define MIN_CONN_FREQ 300
 
+struct Client *uplink  = NULL;
+
+
 static dlink_list cap_list = { NULL, NULL, 0 };
 static unsigned long freeMask;
 static void server_burst(struct Client *);
 static int fork_server(struct Client *);
+static void cjoin_all(struct Client *);
 static void send_tb(struct Client *client_p, struct Channel *chptr);
 
 static CNCB serv_connect_callback;
 
 static void start_io(struct Client *);
 static void burst_members(struct Client *, struct Channel *);
+static void burst_ll_members(struct Client *, struct Channel *);
+static void add_lazylinkchannel(struct Client *, struct Channel *);
 
 static SlinkRplHnd slink_error;
 static SlinkRplHnd slink_zipstats;
@@ -452,6 +458,9 @@ hunt_server(struct Client *client_p, struct Client *source_p, const char *comman
     if (!match(target_p->name, parv[server]))
       parv[server] = target_p->name;
 
+    /* Deal with lazylinks */
+    client_burst_if_needed(target_p, source_p);
+
     /* This is a little kludgy but should work... */
     if (IsClient(source_p) &&
         ((MyConnect(target_p) && IsCapable(target_p, CAP_TS6)) ||
@@ -696,6 +705,8 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
 
   server_aconf = (struct AccessItem *)map_to_conf(server_conf);
 
+  if (!IsConfLazyLink(server_aconf))
+    ClearCap(client_p, CAP_LL);
 #ifdef HAVE_LIBZ /* otherwise, clear it unconditionally */
   if (!IsConfCompressed(server_aconf))
 #endif
@@ -944,6 +955,30 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
 
 }
 
+/* client_burst_if_needed()
+ *
+ * inputs	- pointer to server
+ * 		- pointer to client to add
+ * output	- NONE
+ * side effects - If this client is not known by this lazyleaf, send it
+ */
+void
+client_burst_if_needed(struct Client *client_p, struct Client *target_p)
+{
+  if (!ServerInfo.hub)
+    return;
+  if (!MyConnect(client_p))
+    return;
+  if (!IsCapable(client_p,CAP_LL))
+    return;
+
+  if ((target_p->lazyLinkClientExists & client_p->localClient->serverMask) == 0)
+  {
+    sendnick_TS(client_p, target_p);
+    add_lazylinkclient(client_p,target_p);
+  }
+}
+
 /*
  * show_capabilities - show current server capabilities
  *
@@ -1087,6 +1122,7 @@ server_estab(struct Client *client_p)
      */
 
     send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+      | (IsConfLazyLink(aconf) ? CAP_LL : 0)
       | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
       | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
@@ -1275,6 +1311,9 @@ server_estab(struct Client *client_p)
                  target_p->servptr->name, target_p->name, target_p->hopcount+1,
                  IsHidden(target_p) ? "(H) " : "", target_p->info);
   }
+
+  if ((ServerInfo.hub == 0) && MyConnect(client_p))
+    uplink = client_p;
 
   server_burst(client_p);
 }
@@ -1473,7 +1512,24 @@ server_burst(struct Client *client_p)
   ** -orabidoo
   */
 
-  burst_all(client_p);
+  /* On a "lazy link" hubs send nothing.
+   * Leafs always have to send nicks plus channels
+   */
+  if (IsCapable(client_p, CAP_LL))
+  {
+    if (!ServerInfo.hub)
+    {
+      /* burst all our info */
+      burst_all(client_p);
+
+      /* Now, ask for channel info on all our current channels */
+      cjoin_all(client_p);
+    }
+  }
+  else
+  {
+    burst_all(client_p);
+  }
 
   /* EOB stuff is now in burst_all */
   /* Always send a PING after connect burst is done */
@@ -1579,6 +1635,25 @@ send_tb(struct Client *client_p, struct Channel *chptr)
   }
 }
 
+/* cjoin_all()
+ *
+ * inputs       - server to ask for channel info from
+ * output       - NONE
+ * side effects	- CJOINS for all the leafs known channels is sent
+ */
+static void
+cjoin_all(struct Client *client_p)
+{
+  const dlink_node *gptr = NULL;
+
+  DLINK_FOREACH(gptr, global_channel_list.head)
+  {
+    const struct Channel *chptr = gptr->data;
+    sendto_one(client_p, ":%s CBURST %s",
+               me.name, chptr->chname);
+  }
+}
+
 /* burst_channel()
  *
  * inputs	- pointer to server to send sjoins to
@@ -1592,7 +1667,10 @@ send_tb(struct Client *client_p, struct Channel *chptr)
 void
 burst_channel(struct Client *client_p, struct Channel *chptr)
 {
+  burst_ll_members(client_p, chptr);
+
   send_channel_modes(client_p, chptr);
+  add_lazylinkchannel(client_p,chptr);
 
   if (chptr->topic != NULL && chptr->topic_info != NULL)
   {
@@ -1602,6 +1680,101 @@ burst_channel(struct Client *client_p, struct Channel *chptr)
   }
 }
 
+/* add_lazlinkchannel()
+ *
+ * inputs	- pointer to directly connected leaf server
+ *		  being introduced to this hub
+ *		- pointer to channel structure being introduced
+ * output	- NONE
+ * side effects	- The channel pointed to by chptr is now known
+ *		  to be on lazyleaf server given by local_server_p.
+ *		  mark that in the bit map and add to the list
+ *		  of channels to examine after this newly introduced
+ *		  server is squit off.
+ */
+static void
+add_lazylinkchannel(struct Client *local_server_p, struct Channel *chptr)
+{
+  assert(MyConnect(local_server_p));
+
+  chptr->lazyLinkChannelExists |= local_server_p->localClient->serverMask;
+  dlinkAdd(chptr, make_dlink_node(), &lazylink_channels);
+}
+
+/* add_lazylinkclient()
+ *
+ * inputs       - pointer to directly connected leaf server
+ *		  being introduced to this hub
+ *              - pointer to client being introduced
+ * output       - NONE
+ * side effects - The client pointed to by client_p is now known
+ *                to be on lazyleaf server given by local_server_p.
+ *                mark that in the bit map and add to the list
+ *                of clients to examine after this newly introduced
+ *                server is squit off.
+ */
+void
+add_lazylinkclient(struct Client *local_server_p, struct Client *client_p)
+{
+  assert(MyConnect(local_server_p));
+  client_p->lazyLinkClientExists |= local_server_p->localClient->serverMask;
+}
+
+/* remove_lazylink_flags()
+ *
+ * inputs	- pointer to server quitting
+ * output	- NONE
+ * side effects	- All the channels on the lazylink channel list are examined
+ *		  If they hold a bit corresponding to the servermask
+ *		  attached to client_p, clear that bit. If this bitmask
+ *		  goes to 0, then the channel is no longer known to
+ *		  be on any lazylink server, and can be removed from the 
+ *		  link list.
+ *
+ *		  Similar is done for lazylink clients
+ *
+ *		  This function must be run by the HUB on any exiting
+ *		  lazylink leaf server, while the pointer is still valid.
+ *		  Hence must be run from client.c in exit_one_client()
+ *
+ *		  The old code scanned all channels, this code only
+ *		  scans channels/clients on the lazylink_channels
+ *		  lazylink_clients lists.
+ */
+void
+remove_lazylink_flags(unsigned long mask)
+{
+  dlink_node *ptr;
+  dlink_node *next_ptr;
+  struct Channel *chptr;
+  struct Client *target_p;
+  unsigned long clear_mask;
+
+  if (!mask) /* On 0 mask, don't do anything */
+   return;
+
+  clear_mask = ~mask;
+  freeMask |= mask;
+
+  DLINK_FOREACH_SAFE(ptr, next_ptr, lazylink_channels.head)
+  {
+    chptr = ptr->data;
+
+    chptr->lazyLinkChannelExists &= clear_mask;
+
+    if (chptr->lazyLinkChannelExists == 0)
+    {
+      dlinkDelete(ptr, &lazylink_channels);
+      free_dlink_node(ptr);
+    }
+  }
+
+  DLINK_FOREACH(ptr, global_client_list.head)
+  {
+    target_p = ptr->data;
+    target_p->lazyLinkClientExists &= clear_mask;
+  }
+}
 
 /* burst_members()
  *
@@ -1628,6 +1801,36 @@ burst_members(struct Client *client_p, struct Channel *chptr)
 
       if (target_p->from != client_p)
         sendnick_TS(client_p, target_p);
+    }
+  }
+}
+
+/* burst_ll_members()
+ *
+ * inputs	- pointer to server to send members to
+ * 		- dlink_list pointer to membership list to send
+ * output	- NONE
+ * side effects	- This version also has to check the bitmap for lazylink
+ */
+static void
+burst_ll_members(struct Client *client_p, struct Channel *chptr)
+{
+  struct Client *target_p;
+  struct Membership *ms;
+  dlink_node *ptr;
+
+  DLINK_FOREACH(ptr, chptr->members.head)
+  {
+    ms       = ptr->data;
+    target_p = ms->client_p;
+
+    if ((target_p->lazyLinkClientExists & client_p->localClient->serverMask) == 0)
+    {
+      if (target_p->from != client_p)
+      {
+        add_lazylinkclient(client_p,target_p);
+        sendnick_TS(client_p, target_p);
+      }
     }
   }
 }
@@ -2013,6 +2216,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
    * - Dianora
    */
   send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+                    | (IsConfLazyLink(aconf) ? CAP_LL : 0)
                     | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
                     | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), 0);
 
@@ -2211,6 +2415,7 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
   }
 
   send_capabilities(client_p, aconf, (ServerInfo.hub ? CAP_HUB : 0)
+                    | (IsConfLazyLink(aconf) ? CAP_LL : 0)
                     | (IsConfCompressed(aconf) ? CAP_ZIP : 0)
                     | (IsConfTopicBurst(aconf) ? CAP_TBURST|CAP_TB : 0), CAP_ENC_MASK);
 

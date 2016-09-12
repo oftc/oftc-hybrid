@@ -309,7 +309,27 @@ relay_kill(struct Client *one, struct Client *source_p,
 {
   dlink_node *ptr;
   struct Client *client_p;
+  int introduce_killed_client;
   const char *from, *to;
+
+  /* LazyLinks:
+   * Check if each lazylink knows about target_p.
+   *   If it does, send the kill, introducing source_p if required.
+   *   If it doesn't either:
+   *     a) don't send the kill (risk ghosts)
+   *     b) introduce the client (and source_p, if required)
+   *        [rather redundant]
+   *
+   * Use a) if IsServer(source_p), but if an oper kills someone,
+   * ensure we blow away any ghosts.
+   *
+   * -davidt
+   */
+
+  if (IsServer(source_p))
+    introduce_killed_client = 0;
+  else
+    introduce_killed_client = 1;
 
   DLINK_FOREACH(ptr, serv_list.head)
   {
@@ -317,6 +337,26 @@ relay_kill(struct Client *one, struct Client *source_p,
 
     if (client_p == NULL || client_p == one)
       continue;
+
+    if (!introduce_killed_client)
+    {
+      if (ServerInfo.hub && IsCapable(client_p, CAP_LL))
+      {
+        if ((client_p->localClient->serverMask &
+             target_p->lazyLinkClientExists) == 0)
+        {
+          /* target isn't known to lazy leaf, skip it */
+          continue;
+        }
+      }
+    }
+    /* force introduction of killed client but check that
+     * its not on the server we're bursting too.. */
+    else if (strcmp(target_p->servptr->name, client_p->name))
+      client_burst_if_needed(client_p, target_p);
+
+    /* introduce source of kill */
+    client_burst_if_needed(client_p, source_p);
 
     /* use UID if possible */
     from = ID_or_name(source_p, client_p);
