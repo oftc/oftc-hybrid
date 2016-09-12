@@ -25,8 +25,9 @@
  * as well!!!
  */
 
-#include "tools.h"
 #include "stdinc.h"
+#include "tools.h"
+
 
 #ifndef NDEBUG
 /*
@@ -36,11 +37,11 @@
 void
 mem_frob(void *data, int len)
 {
-    /* correct for Intel only! little endian */
-    unsigned char b[4] = {0xef, 0xbe, 0xad, 0xde};
+  /* correct for Intel only! little endian */
+    unsigned char b[4] = { 0xef, 0xbe, 0xad, 0xde };
     int i;
     char *cdata = data;
-    for(i = 0; i < len; i++)
+    for (i = 0; i < len; i++)
     {
         *cdata = b[i % 4];
         cdata++;
@@ -48,61 +49,61 @@ mem_frob(void *data, int len)
 }
 #endif
 
-/*
+/* 
  * dlink_ routines are stolen from squid, except for dlinkAddBefore,
  * which is mine.
  *   -- adrian
  */
 inline void
-dlinkAdd(void *data, dlink_node *m, dlink_list *list)
+dlinkAdd(void *data, dlink_node * m, dlink_list * list)
 {
-    m->data = data;
-    m->prev = NULL;
-    m->next = list->head;
+ m->data = data;
+ m->prev = NULL;
+ m->next = list->head;
 
-    /* Assumption: If list->tail != NULL, list->head != NULL */
-    if(list->head != NULL)
-        list->head->prev = m;
-    else /* if (list->tail == NULL) */
-        list->tail = m;
+ /* Assumption: If list->tail != NULL, list->head != NULL */
+ if (list->head != NULL)
+   list->head->prev = m;
+ else /* if (list->tail == NULL) */
+   list->tail = m;
 
-    list->head = m;
-    list->length++;
+ list->head = m;
+ list->length++;
 }
 
 inline void
 dlinkAddBefore(dlink_node *b, void *data, dlink_node *m, dlink_list *list)
 {
     /* Shortcut - if its the first one, call dlinkAdd only */
-    if(b == list->head)
+    if (b == list->head)
     {
         dlinkAdd(data, m, list);
     }
     else
     {
-        m->data       = data;
-        b->prev->next = m;
-        m->prev       = b->prev;
-        b->prev       = m;
-        m->next       = b;
-        list->length++;
+      m->data = data;
+      b->prev->next = m;
+      m->prev = b->prev;
+      b->prev = m; 
+      m->next = b;
+      list->length++;
     }
 }
 
 inline void
 dlinkAddTail(void *data, dlink_node *m, dlink_list *list)
 {
-    m->data = data;
-    m->next = NULL;
-    m->prev = list->tail;
-    /* Assumption: If list->tail != NULL, list->head != NULL */
-    if(list->tail != NULL)
-        list->tail->next = m;
-    else /* if (list->head == NULL) */
-        list->head = m;
-
-    list->tail = m;
-    list->length++;
+  m->data = data;
+  m->next = NULL;
+  m->prev = list->tail;
+  /* Assumption: If list->tail != NULL, list->head != NULL */
+  if (list->tail != NULL)
+    list->tail->next = m;
+  else /* if (list->head == NULL) */
+    list->head = m;
+ 
+  list->tail = m;
+  list->length++;
 }
 
 /* Execution profiles show that this function is called the most
@@ -111,32 +112,31 @@ dlinkAddTail(void *data, dlink_node *m, dlink_list *list)
 inline void
 dlinkDelete(dlink_node *m, dlink_list *list)
 {
-    /* Assumption: If m->next == NULL, then list->tail == m
-     *      and:   If m->prev == NULL, then list->head == m
-     */
-    if(m->next)
-        m->next->prev = m->prev;
-    else
-    {
-        assert(list->tail == m);
-        list->tail = m->prev;
-    }
-    if(m->prev)
-        m->prev->next = m->next;
-    else
-    {
-        assert(list->head == m);
-        list->head = m->next;
-    }
+ /* Assumption: If m->next == NULL, then list->tail == m
+  *      and:   If m->prev == NULL, then list->head == m
+  */
+  if (m->next)
+    m->next->prev = m->prev;
+  else {
+    assert(list->tail == m);
+    list->tail = m->prev;
+  }
+  if (m->prev)
+    m->prev->next = m->next;
+  else {
+    assert(list->head == m);
+    list->head = m->next;
+  }
 
-    /* Set this to NULL does matter */
-    m->next = m->prev = NULL;
-    list->length--;
+  /* Set this to NULL does matter */
+  m->next = m->prev = NULL;
+  list->length--;
 }
+
 
 /*
  * dlinkFind
- * inputs	- list to search
+ * inputs	- list to search 
  *		- data
  * output	- pointer to link or NULL if not found
  * side effects	- Look for ptr in the linked listed pointed to by link.
@@ -144,80 +144,80 @@ dlinkDelete(dlink_node *m, dlink_list *list)
 inline dlink_node *
 dlinkFind(dlink_list *list, void *data)
 {
-    dlink_node *ptr;
+  dlink_node *ptr;
 
-    DLINK_FOREACH(ptr, list->head)
-    {
-        if(ptr->data == data)
-            return (ptr);
-    }
+  DLINK_FOREACH(ptr, list->head)
+  {
+    if (ptr->data == data)
+      return(ptr);
+  }
 
-    return (NULL);
+  return(NULL);
 }
 
 inline void
 dlinkMoveList(dlink_list *from, dlink_list *to)
 {
-    /* There are three cases */
-    /* case one, nothing in from list */
-    if(from->head == NULL)
-        return;
+  /* There are three cases */
+  /* case one, nothing in from list */
+  if(from->head == NULL)
+    return;
 
-    /* case two, nothing in to list */
-    /* actually if to->head is NULL and to->tail isn't, thats a bug */
+  /* case two, nothing in to list */
+  /* actually if to->head is NULL and to->tail isn't, thats a bug */
 
-    if(to->head == NULL)
-    {
-        to->head   = from->head;
-        to->tail   = from->tail;
-        from->head = from->tail = NULL;
-        to->length              = from->length;
-        from->length            = 0;
-        return;
+   if(to->head == NULL)
+   {
+      to->head = from->head;
+      to->tail = from->tail;
+      from->head = from->tail = NULL;
+      to->length = from->length;
+      from->length = 0;
+      return;
     }
 
-    /* third case play with the links */
+  /* third case play with the links */
 
-    from->tail->next = to->head;
-    from->head->prev = to->head->prev;
-    to->head->prev   = from->tail;
-    to->head         = from->head;
-    from->head = from->tail = NULL;
-    to->length += from->length;
-    from->length = 0;
-    /* I think I got that right */
+   from->tail->next = to->head;
+   from->head->prev = to->head->prev;
+   to->head->prev = from->tail;
+   to->head = from->head;
+   from->head = from->tail = NULL;
+   to->length += from->length;
+   from->length = 0;
+  /* I think I got that right */
 }
 
 inline dlink_node *
 dlinkFindDelete(dlink_list *list, void *data)
 {
-    dlink_node *m;
+  dlink_node *m;
 
-    DLINK_FOREACH(m, list->head)
+  DLINK_FOREACH(m, list->head)
+  {
+    if (m->data == data)
     {
-        if(m->data == data)
-        {
-            if(m->next)
-                m->next->prev = m->prev;
-            else
-            {
-                assert(list->tail == m);
-                list->tail = m->prev;
-            }
-            if(m->prev)
-                m->prev->next = m->next;
-            else
-            {
-                assert(list->head == m);
-                list->head = m->next;
-            }
-            /* Set this to NULL does matter */
-            m->next = m->prev = NULL;
-            list->length--;
+      if (m->next)
+        m->next->prev = m->prev;
+      else
+      {
+        assert(list->tail == m);
+        list->tail = m->prev;
+      }
+      if (m->prev)
+        m->prev->next = m->next;
+      else
+      {
+        assert(list->head == m);
+        list->head = m->next;
+      }
+      /* Set this to NULL does matter */
+      m->next = m->prev = NULL;
+      list->length--;
 
-            return (m);
-        }
+      return(m);
     }
+  }
 
-    return (NULL);
+  return(NULL);
 }

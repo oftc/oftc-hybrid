@@ -22,22 +22,23 @@
  *  $Id$
  */
 
-#include "resv.h"
-#include "client.h"
-#include "common.h"
-#include "fdlist.h"
-#include "hash.h"
-#include "irc_string.h"
-#include "ircd.h"
-#include "ircd_defs.h"
-#include "memory.h"
-#include "numeric.h"
-#include "s_conf.h"
-#include "send.h"
 #include "stdinc.h"
 #include "tools.h"
+#include "common.h"
+#include "fdlist.h"
+#include "ircd.h"
+#include "send.h"
+#include "client.h"   
+#include "memory.h"
+#include "numeric.h"
+#include "resv.h"
+#include "hash.h"
+#include "irc_string.h"
+#include "ircd_defs.h"
+#include "s_conf.h"
 
-dlink_list resv_channel_list = {NULL, NULL, 0};
+dlink_list resv_channel_list = { NULL, NULL, 0 };
+
 
 /* create_channel_resv()
  *
@@ -50,29 +51,29 @@ dlink_list resv_channel_list = {NULL, NULL, 0};
 struct ConfItem *
 create_channel_resv(char *name, char *reason, int in_conf)
 {
-    struct ConfItem *conf;
-    struct ResvChannel *resv_p;
+  struct ConfItem *conf;
+  struct ResvChannel *resv_p;
 
-    if(name == NULL || reason == NULL)
-        return NULL;
+  if (name == NULL || reason == NULL)
+    return NULL;
 
-    if(hash_find_resv(name))
-        return NULL;
+  if (hash_find_resv(name))
+    return NULL;
 
-    if(strlen(reason) > REASONLEN)
-        reason[REASONLEN] = '\0';
+  if (strlen(reason) > REASONLEN)
+    reason[REASONLEN] = '\0';
 
-    conf   = make_conf_item(CRESV_TYPE);
-    resv_p = map_to_conf(conf);
+  conf = make_conf_item(CRESV_TYPE);
+  resv_p = map_to_conf(conf);
 
-    strlcpy(resv_p->name, name, sizeof(resv_p->name));
-    DupString(resv_p->reason, reason);
-    resv_p->conf = in_conf;
+  strlcpy(resv_p->name, name, sizeof(resv_p->name));
+  DupString(resv_p->reason, reason);
+  resv_p->conf = in_conf;
 
-    dlinkAdd(resv_p, &resv_p->node, &resv_channel_list);
-    hash_add_resv(resv_p);
+  dlinkAdd(resv_p, &resv_p->node, &resv_channel_list);
+  hash_add_resv(resv_p);
 
-    return conf;
+  return conf;
 }
 
 /* create_nick_resv()
@@ -86,26 +87,26 @@ create_channel_resv(char *name, char *reason, int in_conf)
 struct ConfItem *
 create_nick_resv(char *name, char *reason, int in_conf)
 {
-    struct ConfItem *conf;
-    struct MatchItem *resv_p;
+  struct ConfItem *conf;
+  struct MatchItem *resv_p;
 
-    if(name == NULL || reason == NULL)
-        return NULL;
+  if (name == NULL || reason == NULL)
+    return NULL;
 
-    if(find_matching_name_conf(NRESV_TYPE, name, NULL, NULL, 0))
-        return NULL;
+  if (find_matching_name_conf(NRESV_TYPE, name, NULL, NULL, 0))
+    return NULL;
 
-    if(strlen(reason) > REASONLEN)
-        reason[REASONLEN] = '\0';
+  if (strlen(reason) > REASONLEN)
+    reason[REASONLEN] = '\0';
 
-    conf   = make_conf_item(NRESV_TYPE);
-    resv_p = map_to_conf(conf);
+  conf = make_conf_item(NRESV_TYPE);
+  resv_p = map_to_conf(conf);
 
-    DupString(conf->name, name);
-    DupString(resv_p->reason, reason);
-    resv_p->action = in_conf;
+  DupString(conf->name, name);
+  DupString(resv_p->reason, reason);
+  resv_p->action = in_conf;
 
-    return conf;
+  return conf;
 }
 
 /* clear_conf_resv()
@@ -117,15 +118,15 @@ create_nick_resv(char *name, char *reason, int in_conf)
 void
 clear_conf_resv(void)
 {
-    dlink_node *ptr;
-    dlink_node *next_ptr;
-    struct ResvChannel *resv_cp;
+  dlink_node *ptr;
+  dlink_node *next_ptr;
+  struct ResvChannel *resv_cp;
 
-    DLINK_FOREACH_SAFE(ptr, next_ptr, resv_channel_list.head)
-    {
-        resv_cp = ptr->data;
-        delete_channel_resv(resv_cp);
-    }
+  DLINK_FOREACH_SAFE(ptr, next_ptr, resv_channel_list.head)
+  {
+    resv_cp = ptr->data;
+    delete_channel_resv(resv_cp);
+  }
 }
 
 /* delete_channel_resv()
@@ -137,16 +138,16 @@ clear_conf_resv(void)
 int
 delete_channel_resv(struct ResvChannel *resv_p)
 {
-    struct ConfItem *conf;
-    assert(resv_p != NULL);
+  struct ConfItem *conf;
+  assert(resv_p != NULL);
 
-    hash_del_resv(resv_p);
-    dlinkDelete(&resv_p->node, &resv_channel_list);
-    MyFree(resv_p->reason);
-    conf = unmap_conf_item(resv_p);
-    delete_conf_item(conf);
+  hash_del_resv(resv_p);
+  dlinkDelete(&resv_p->node, &resv_channel_list);
+  MyFree(resv_p->reason);
+  conf = unmap_conf_item(resv_p);
+  delete_conf_item(conf);
 
-    return 1;
+  return 1;
 }
 
 /* match_find_resv()
@@ -159,20 +160,20 @@ delete_channel_resv(struct ResvChannel *resv_p)
 struct ResvChannel *
 match_find_resv(const char *name)
 {
-    dlink_node *ptr = NULL;
+  dlink_node *ptr = NULL;
 
-    if(EmptyString(name))
-        return NULL;
-
-    DLINK_FOREACH(ptr, resv_channel_list.head)
-    {
-        struct ResvChannel *chptr = ptr->data;
-
-        if(match_chan(name, chptr->name))
-            return chptr;
-    }
-
+  if (EmptyString(name))
     return NULL;
+
+  DLINK_FOREACH(ptr, resv_channel_list.head)
+  {
+    struct ResvChannel *chptr = ptr->data;
+
+    if (match_chan(name, chptr->name))
+      return chptr;
+  }
+
+  return NULL;
 }
 
 /* report_resv()
@@ -184,26 +185,30 @@ match_find_resv(const char *name)
 void
 report_resv(struct Client *source_p)
 {
-    dlink_node *ptr;
-    struct ConfItem *conf;
-    struct ResvChannel *resv_cp;
-    struct MatchItem *resv_np;
+  dlink_node *ptr;
+  struct ConfItem *conf;
+  struct ResvChannel *resv_cp;
+  struct MatchItem *resv_np;
 
-    DLINK_FOREACH(ptr, resv_channel_list.head)
-    {
-        resv_cp = ptr->data;
-        sendto_one(source_p, form_str(RPL_STATSQLINE), me.name, source_p->name,
-                   resv_cp->conf ? 'Q' : 'q', resv_cp->name, resv_cp->reason);
-    }
+  DLINK_FOREACH(ptr, resv_channel_list.head)
+  {
+    resv_cp = ptr->data;
+    sendto_one(source_p, form_str(RPL_STATSQLINE),
+               me.name, source_p->name,
+	       resv_cp->conf ? 'Q' : 'q',
+	       resv_cp->name, resv_cp->reason);
+  }
 
-    DLINK_FOREACH(ptr, nresv_items.head)
-    {
-        conf    = ptr->data;
-        resv_np = map_to_conf(conf);
+  DLINK_FOREACH(ptr, nresv_items.head)
+  {
+    conf = ptr->data;
+    resv_np = map_to_conf(conf);
 
-        sendto_one(source_p, form_str(RPL_STATSQLINE), me.name, source_p->name,
-                   resv_np->action ? 'Q' : 'q', conf->name, resv_np->reason);
-    }
+    sendto_one(source_p, form_str(RPL_STATSQLINE),
+               me.name, source_p->name,
+	       resv_np->action ? 'Q' : 'q',
+	       conf->name, resv_np->reason);
+  }
 }
 
 /* valid_wild_card_simple()
@@ -215,17 +220,17 @@ report_resv(struct Client *source_p)
 int
 valid_wild_card_simple(const char *data)
 {
-    const unsigned char *p = (const unsigned char *)data;
-    int nonwild            = 0;
+  const unsigned char *p = (const unsigned char *)data;
+  int nonwild = 0;
 
-    while(*p != '\0')
-    {
-        if((*p == '\\' && *++p) || (*p && !IsMWildChar(*p)))
-            if(++nonwild == ConfigFileEntry.min_nonwildcard_simple)
-                return 1;
-        if(*p != '\0')
-            ++p;
-    }
+  while (*p != '\0')
+  {
+    if ((*p == '\\' && *++p) || (*p && !IsMWildChar(*p)))
+      if (++nonwild == ConfigFileEntry.min_nonwildcard_simple)
+        return 1;
+    if (*p != '\0')
+      ++p;
+  }
 
-    return 0;
+  return 0;
 }

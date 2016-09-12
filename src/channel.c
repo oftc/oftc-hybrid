@@ -24,56 +24,54 @@
  * \version $Id$
  */
 
+#include "stdinc.h"
+#include "tools.h"
 #include "channel.h"
-#include "balloc.h"
 #include "channel_mode.h"
 #include "client.h"
 #include "common.h"
-#include "event.h"
 #include "hash.h"
 #include "hostmask.h"
 #include "irc_string.h"
+#include "sprintf_irc.h"
 #include "ircd.h"
 #include "list.h"
-#include "memory.h"
 #include "numeric.h"
-#include "s_conf.h" /* ConfigFileEntry, ConfigChannel */
-#include "s_serv.h" /* captab */
+#include "s_serv.h"             /* captab */
 #include "s_user.h"
 #include "send.h"
-#include "sprintf_irc.h"
-#include "stdinc.h"
-#include "tools.h"
+#include "s_conf.h"             /* ConfigFileEntry, ConfigChannel */
+#include "event.h"
+#include "memory.h"
+#include "balloc.h"
 
 struct config_channel_entry ConfigChannel;
-dlink_list global_channel_list = {NULL, NULL, 0};
-BlockHeap *ban_heap; /*! \todo ban_heap shouldn't be a global var */
+dlink_list global_channel_list = { NULL, NULL, 0 };
+BlockHeap *ban_heap;    /*! \todo ban_heap shouldn't be a global var */
 
-static BlockHeap *topic_heap   = NULL;
-static BlockHeap *member_heap  = NULL;
+static BlockHeap *topic_heap = NULL;
+static BlockHeap *member_heap = NULL;
 static BlockHeap *channel_heap = NULL;
 
 static char buf[IRCD_BUFSIZE];
 static char modebuf[MODEBUFLEN];
 static char parabuf[MODEBUFLEN];
 
+
 /*! \brief Initializes the channel blockheap, adds known channel CAPAB
  */
 void
 init_channels(void)
 {
-    add_capability("EX", CAP_EX, 1);
-    add_capability("IE", CAP_IE, 1);
-    add_capability("CHW", CAP_CHW, 1);
-    add_capability("QUIET", CAP_QUIET, 1);
+  add_capability("EX", CAP_EX, 1);
+  add_capability("IE", CAP_IE, 1);
+  add_capability("CHW", CAP_CHW, 1);
+  add_capability("QUIET", CAP_QUIET, 1);
 
-    channel_heap =
-        BlockHeapCreate("channel", sizeof(struct Channel), CHANNEL_HEAP_SIZE);
-    ban_heap   = BlockHeapCreate("ban", sizeof(struct Ban), BAN_HEAP_SIZE);
-    topic_heap = BlockHeapCreate("topic", TOPICLEN + 1 + USERHOST_REPLYLEN,
-                                 TOPIC_HEAP_SIZE);
-    member_heap = BlockHeapCreate("member", sizeof(struct Membership),
-                                  CHANNEL_HEAP_SIZE * 2);
+  channel_heap = BlockHeapCreate("channel", sizeof(struct Channel), CHANNEL_HEAP_SIZE);
+  ban_heap = BlockHeapCreate("ban", sizeof(struct Ban), BAN_HEAP_SIZE);
+  topic_heap = BlockHeapCreate("topic", TOPICLEN+1 + USERHOST_REPLYLEN, TOPIC_HEAP_SIZE);
+  member_heap = BlockHeapCreate("member", sizeof(struct Membership), CHANNEL_HEAP_SIZE*2);
 }
 
 /*! \brief adds a user to a channel by adding another link to the
@@ -87,49 +85,46 @@ void
 add_user_to_channel(struct Channel *chptr, struct Client *who,
                     unsigned int flags, int flood_ctrl)
 {
-    struct Membership *ms = NULL;
+  struct Membership *ms = NULL;
 
-    if(GlobalSetOptions.joinfloodtime > 0)
+  if (GlobalSetOptions.joinfloodtime > 0)
+  {
+    if (flood_ctrl)
+      chptr->number_joined++;
+
+    chptr->number_joined -= (CurrentTime - chptr->last_join_time) *
+      (((float)GlobalSetOptions.joinfloodcount) /
+       (float)GlobalSetOptions.joinfloodtime);
+
+    if (chptr->number_joined <= 0)
     {
-        if(flood_ctrl)
-        {
-            chptr->number_joined++;
-        }
+      chptr->number_joined = 0;
+      ClearJoinFloodNoticed(chptr);
+    }
+    else if (chptr->number_joined >= GlobalSetOptions.joinfloodcount)
+    {
+      chptr->number_joined = GlobalSetOptions.joinfloodcount;
 
-        chptr->number_joined -= (CurrentTime - chptr->last_join_time) *
-                                (((float)GlobalSetOptions.joinfloodcount) /
-                                 (float)GlobalSetOptions.joinfloodtime);
-
-        if(chptr->number_joined <= 0)
-        {
-            chptr->number_joined = 0;
-            ClearJoinFloodNoticed(chptr);
-        }
-        else if(chptr->number_joined >= GlobalSetOptions.joinfloodcount)
-        {
-            chptr->number_joined = GlobalSetOptions.joinfloodcount;
-
-            if(!IsSetJoinFloodNoticed(chptr))
-            {
-                SetJoinFloodNoticed(chptr);
-                sendto_gnotice_flags(
-                    UMODE_BOTS, L_ALL, me.name, &me, NULL,
-                    "Possible Join Flooder %s on %s target: %s",
-                    get_client_name(who, HIDE_IP), who->servptr->name,
-                    chptr->chname);
-            }
-        }
-
-        chptr->last_join_time = CurrentTime;
+      if (!IsSetJoinFloodNoticed(chptr))
+      {
+        SetJoinFloodNoticed(chptr);
+        sendto_gnotice_flags(UMODE_BOTS, L_ALL, me.name, &me, NULL,
+                             "Possible Join Flooder %s on %s target: %s",
+                             get_client_name(who, HIDE_IP),
+                             who->servptr->name, chptr->chname);
+      }
     }
 
-    ms           = BlockHeapAlloc(member_heap);
-    ms->client_p = who;
-    ms->chptr    = chptr;
-    ms->flags    = flags;
+    chptr->last_join_time = CurrentTime;
+  }
 
-    dlinkAdd(ms, &ms->channode, &chptr->members);
-    dlinkAdd(ms, &ms->usernode, &who->channel);
+  ms = BlockHeapAlloc(member_heap);
+  ms->client_p = who;
+  ms->chptr = chptr;
+  ms->flags = flags;
+
+  dlinkAdd(ms, &ms->channode, &chptr->members);
+  dlinkAdd(ms, &ms->usernode, &who->channel);
 }
 
 /*! \brief deletes an user from a channel by removing a link in the
@@ -139,18 +134,16 @@ add_user_to_channel(struct Channel *chptr, struct Client *who,
 void
 remove_user_from_channel(struct Membership *member)
 {
-    struct Client *client_p = member->client_p;
-    struct Channel *chptr   = member->chptr;
+  struct Client *client_p = member->client_p;
+  struct Channel *chptr = member->chptr;
 
-    dlinkDelete(&member->channode, &chptr->members);
-    dlinkDelete(&member->usernode, &client_p->channel);
+  dlinkDelete(&member->channode, &chptr->members);
+  dlinkDelete(&member->usernode, &client_p->channel);
 
-    BlockHeapFree(member_heap, member);
+  BlockHeapFree(member_heap, member);
 
-    if(dlink_list_length(&chptr->members) == 0)
-    {
-        destroy_channel(chptr);
-    }
+  if (dlink_list_length(&chptr->members) == 0)
+    destroy_channel(chptr);
 }
 
 /* send_members()
@@ -160,163 +153,135 @@ remove_user_from_channel(struct Membership *member)
  * side effects -
  */
 static void
-send_members(struct Client *client_p, struct Channel *chptr, char *lmodebuf,
-             char *lparabuf)
+send_members(struct Client *client_p, struct Channel *chptr,
+             char *lmodebuf, char *lparabuf)
 {
-    struct Membership *ms;
-    dlink_node *ptr;
-    unsigned int tlen; /* length of text to append */
-    char *t, *start;   /* temp char pointer */
+  struct Membership *ms;
+  dlink_node *ptr;
+  unsigned int tlen;              /* length of text to append */
+  char *t, *start;       /* temp char pointer */
 
-    start = t = buf + ircsprintf(buf, ":%s SJOIN %lu %s %s %s:",
-                                 ID_or_name(&me, client_p),
-                                 (unsigned long)chptr->channelts, chptr->chname,
-                                 lmodebuf, lparabuf);
+  start = t = buf + ircsprintf(buf, ":%s SJOIN %lu %s %s %s:",
+                               ID_or_name(&me, client_p),
+                               (unsigned long)chptr->channelts,
+                               chptr->chname, lmodebuf, lparabuf);
 
-    DLINK_FOREACH(ptr, chptr->members.head)
-    {
-        ms = ptr->data;
+  DLINK_FOREACH(ptr, chptr->members.head)
+  {
+    ms = ptr->data;
 
-        tlen = strlen(IsCapable(client_p, CAP_TS6) ? ID(ms->client_p)
-                                                   : ms->client_p->name) +
-               1; /* nick + space */
+    tlen = strlen(IsCapable(client_p, CAP_TS6) ?
+      ID(ms->client_p) : ms->client_p->name) + 1;  /* nick + space */
 
-        if(ms->flags & CHFL_CHANOP)
-        {
-            tlen++;
-        }
+    if (ms->flags & CHFL_CHANOP)
+      tlen++;
 #ifdef HALFOPS
-        else if(ms->flags & CHFL_HALFOP)
-        {
-            tlen++;
-        }
+    else if (ms->flags & CHFL_HALFOP)
+      tlen++;
 #endif
-        if(ms->flags & CHFL_VOICE)
-        {
-            tlen++;
-        }
+    if (ms->flags & CHFL_VOICE)
+      tlen++;
 
-        /* space will be converted into CR, but we also need space for LF..
-         * That's why we use '- 1' here
-         * -adx */
-        if((unsigned long)(t + tlen - buf) > sizeof(buf) - 1)
-        {
-            *(t - 1) = '\0'; /* kill the space and terminate the string */
-            sendto_one(client_p, "%s", buf);
-            t = start;
-        }
-
-        if((ms->flags & (CHFL_CHANOP | CHFL_HALFOP)))
-        {
-            *t++ = (!(ms->flags & CHFL_CHANOP) && IsCapable(client_p, CAP_HOPS))
-                       ? '%'
-                       : '@';
-        }
-
-        if((ms->flags & CHFL_VOICE))
-        {
-            *t++ = '+';
-        }
-
-        if(IsCapable(client_p, CAP_TS6))
-        {
-            strcpy(t, ID(ms->client_p));
-        }
-        else
-        {
-            strcpy(t, ms->client_p->name);
-        }
-
-        t += strlen(t);
-        *t++ = ' ';
-    }
-
-    /* should always be non-NULL unless we have a kind of persistent channels */
-    if(chptr->members.head != NULL)
+    /* space will be converted into CR, but we also need space for LF..
+     * That's why we use '- 1' here
+     * -adx */
+    if ((unsigned long)(t + tlen - buf) > sizeof(buf) - 1)
     {
-        t--; /* take the space out */
+      *(t - 1) = '\0';  /* kill the space and terminate the string */
+      sendto_one(client_p, "%s", buf);
+      t = start;
     }
 
-    *t = '\0';
-    sendto_one(client_p, "%s", buf);
+    if ((ms->flags & (CHFL_CHANOP | CHFL_HALFOP)))
+      *t++ = (!(ms->flags & CHFL_CHANOP) && IsCapable(client_p, CAP_HOPS)) ?
+        '%' : '@';
+    if ((ms->flags & CHFL_VOICE))
+      *t++ = '+';
+
+    if (IsCapable(client_p, CAP_TS6))
+      strcpy(t, ID(ms->client_p));
+    else
+      strcpy(t, ms->client_p->name);
+    t += strlen(t);
+    *t++ = ' ';
+  }
+
+  /* should always be non-NULL unless we have a kind of persistent channels */
+  if (chptr->members.head != NULL)
+    t--;  /* take the space out */
+  *t = '\0';
+  sendto_one(client_p, "%s", buf);
 }
 
 /*! \brief sends +b/+e/+I
  * \param client_p client pointer to server
  * \param chptr    pointer to channel
  * \param top      pointer to top of mode link list to send
- * \param flag     char flag flagging type of mode. Currently this can be 'b',
- * e' or 'I'
+ * \param flag     char flag flagging type of mode. Currently this can be 'b', e' or 'I'
  */
 static void
-send_mode_list(struct Client *client_p, struct Channel *chptr, dlink_list *top,
-               char flag)
+send_mode_list(struct Client *client_p, struct Channel *chptr,
+               dlink_list *top, char flag)
 {
-    int ts5 = !IsCapable(client_p, CAP_TS6);
-    dlink_node *lp;
-    struct Ban *banptr;
-    char pbuf[IRCD_BUFSIZE];
-    int tlen, mlen, cur_len, count = 0;
-    char *mp = NULL, *pp = pbuf;
+  int ts5 = !IsCapable(client_p, CAP_TS6);
+  dlink_node *lp;
+  struct Ban *banptr;
+  char pbuf[IRCD_BUFSIZE];
+  int tlen, mlen, cur_len, count = 0;
+  char *mp = NULL, *pp = pbuf;
 
-    if(top == NULL || top->length == 0)
+  if (top == NULL || top->length == 0)
+    return;
+
+  if (ts5)
+    mlen = ircsprintf(buf, ":%s MODE %s +", me.name, chptr->chname);
+  else
+    mlen = ircsprintf(buf, ":%s BMASK %lu %s %c :", me.id,
+                      (unsigned long)chptr->channelts, chptr->chname, flag);
+
+  /* MODE needs additional one byte for space between buf and pbuf */
+  cur_len = mlen + ts5;
+  mp = buf + mlen;
+
+  DLINK_FOREACH(lp, top->head)
+  {
+    banptr = lp->data;
+
+    /* must add another b/e/I letter if we use MODE */
+    tlen = banptr->len + 3 + ts5;
+
+    /*
+     * send buffer and start over if we cannot fit another ban,
+     * or if the target is non-ts6 and we have too many modes in
+     * in this line.
+     */
+    if (cur_len + (tlen - 1) > IRCD_BUFSIZE - 2 ||
+        (!IsCapable(client_p, CAP_TS6) &&
+         (count >= MAXMODEPARAMS || pp - pbuf >= MODEBUFLEN)))
     {
-        return;
+      *(pp - 1) = '\0';  /* get rid of trailing space on buffer */
+      sendto_one(client_p, "%s%s%s", buf, ts5 ? " " : "", pbuf);
+
+      cur_len = mlen + ts5;
+      mp = buf + mlen;
+      pp = pbuf;
+      count = 0;
     }
 
-    if(ts5)
+    count++;
+    if (ts5)
     {
-        mlen = ircsprintf(buf, ":%s MODE %s +", me.name, chptr->chname);
-    }
-    else
-    {
-        mlen = ircsprintf(buf, ":%s BMASK %lu %s %c :", me.id,
-                          (unsigned long)chptr->channelts, chptr->chname, flag);
+      *mp++ = flag;
+      *mp = '\0';
     }
 
-    /* MODE needs additional one byte for space between buf and pbuf */
-    cur_len = mlen + ts5;
-    mp      = buf + mlen;
+    pp += ircsprintf(pp, "%s!%s@%s ", banptr->name, banptr->username,
+                     banptr->host);
+    cur_len += tlen;
+  }
 
-    DLINK_FOREACH(lp, top->head)
-    {
-        banptr = lp->data;
-
-        /* must add another b/e/I letter if we use MODE */
-        tlen = banptr->len + 3 + ts5;
-
-        /*
-         * send buffer and start over if we cannot fit another ban,
-         * or if the target is non-ts6 and we have too many modes in
-         * in this line.
-         */
-        if(cur_len + (tlen - 1) > IRCD_BUFSIZE - 2 ||
-           (!IsCapable(client_p, CAP_TS6) &&
-            (count >= MAXMODEPARAMS || pp - pbuf >= MODEBUFLEN)))
-        {
-            *(pp - 1) = '\0'; /* get rid of trailing space on buffer */
-            sendto_one(client_p, "%s%s%s", buf, ts5 ? " " : "", pbuf);
-
-            cur_len = mlen + ts5;
-            mp      = buf + mlen;
-            pp      = pbuf;
-            count   = 0;
-        }
-
-        count++;
-        if(ts5)
-        {
-            *mp++ = flag;
-            *mp   = '\0';
-        }
-
-        pp += ircsprintf(pp, "%s!%s@%s ", banptr->name, banptr->username,
-                         banptr->host);
-        cur_len += tlen;
-    }
-
-    *(pp - 1) = '\0'; /* get rid of trailing space on buffer */
-    sendto_one(client_p, "%s%s%s", buf, ts5 ? " " : "", pbuf);
+  *(pp - 1) = '\0';  /* get rid of trailing space on buffer */
+  sendto_one(client_p, "%s%s%s", buf, ts5 ? " " : "", pbuf);
 }
 
 /*! \brief send "client_p" a full list of the modes for channel chptr
@@ -326,29 +291,21 @@ send_mode_list(struct Client *client_p, struct Channel *chptr, dlink_list *top,
 void
 send_channel_modes(struct Client *client_p, struct Channel *chptr)
 {
-    if(chptr->chname[0] != '#')
-        return;
+  if (chptr->chname[0] != '#')
+    return;
 
-    *modebuf = *parabuf = '\0';
-    channel_modes(chptr, client_p, modebuf, parabuf);
-    send_members(client_p, chptr, modebuf, parabuf);
+  *modebuf = *parabuf = '\0';
+  channel_modes(chptr, client_p, modebuf, parabuf);
+  send_members(client_p, chptr, modebuf, parabuf);
 
-    send_mode_list(client_p, chptr, &chptr->banlist, 'b');
+  send_mode_list(client_p, chptr, &chptr->banlist, 'b');
 
-    if(IsCapable(client_p, CAP_EX))
-    {
-        send_mode_list(client_p, chptr, &chptr->exceptlist, 'e');
-    }
-
-    if(IsCapable(client_p, CAP_IE))
-    {
-        send_mode_list(client_p, chptr, &chptr->invexlist, 'I');
-    }
-
-    if(IsCapable(client_p, CAP_QUIET))
-    {
-        send_mode_list(client_p, chptr, &chptr->quietlist, 'q');
-    }
+  if (IsCapable(client_p, CAP_EX))
+    send_mode_list(client_p, chptr, &chptr->exceptlist, 'e');
+  if (IsCapable(client_p, CAP_IE))
+    send_mode_list(client_p, chptr, &chptr->invexlist, 'I');
+  if (IsCapable(client_p, CAP_QUIET))
+    send_mode_list(client_p, chptr, &chptr->quietlist, 'q');
 }
 
 /*! \brief check channel name for invalid characters
@@ -359,50 +316,40 @@ send_channel_modes(struct Client *client_p, struct Channel *chptr)
 int
 check_channel_name(const char *name, int local)
 {
-    const char *p  = name;
-    int max_length = local ? LOCAL_CHANNELLEN : CHANNELLEN;
-    assert(name != NULL);
+  const char *p = name;
+  int max_length = local ? LOCAL_CHANNELLEN : CHANNELLEN;
+  assert(name != NULL);
 
-    if(!IsChanPrefix(*p))
-    {
+  if (!IsChanPrefix(*p))
+    return 0;
+
+  if (!local || !ConfigChannel.disable_fake_channels)
+  {
+    while (*++p)
+      if (!IsChanChar(*p))
         return 0;
-    }
+  }
+  else
+  {
+    while (*++p)
+      if (!IsVisibleChanChar(*p))
+        return 0;
+  }
 
-    if(!local || !ConfigChannel.disable_fake_channels)
-    {
-        while(*++p)
-        {
-            if(!IsChanChar(*p))
-            {
-                return 0;
-            }
-        }
-    }
-    else
-    {
-        while(*++p)
-        {
-            if(!IsVisibleChanChar(*p))
-            {
-                return 0;
-            }
-        }
-    }
-
-    return p - name <= max_length;
+  return p - name <= max_length;
 }
 
 void
 remove_ban(struct Ban *bptr, dlink_list *list)
 {
-    dlinkDelete(&bptr->node, list);
+  dlinkDelete(&bptr->node, list);
 
-    MyFree(bptr->name);
-    MyFree(bptr->username);
-    MyFree(bptr->host);
-    MyFree(bptr->who);
+  MyFree(bptr->name);
+  MyFree(bptr->username);
+  MyFree(bptr->host);
+  MyFree(bptr->who);
 
-    BlockHeapFree(ban_heap, bptr);
+  BlockHeapFree(ban_heap, bptr);
 }
 
 /* free_channel_list()
@@ -414,12 +361,12 @@ remove_ban(struct Ban *bptr, dlink_list *list)
 void
 free_channel_list(dlink_list *list)
 {
-    dlink_node *ptr = NULL, *next_ptr = NULL;
+  dlink_node *ptr = NULL, *next_ptr = NULL;
 
-    DLINK_FOREACH_SAFE(ptr, next_ptr, list->head)
+  DLINK_FOREACH_SAFE(ptr, next_ptr, list->head)
     remove_ban(ptr->data, list);
 
-    assert(list->tail == NULL && list->head == NULL);
+  assert(list->tail == NULL && list->head == NULL);
 }
 
 /*! \brief Get Channel block for chname (and allocate a new channel
@@ -430,22 +377,22 @@ free_channel_list(dlink_list *list)
 struct Channel *
 make_channel(const char *chname)
 {
-    struct Channel *chptr = NULL;
+  struct Channel *chptr = NULL;
 
-    assert(!EmptyString(chname));
+  assert(!EmptyString(chname));
 
-    chptr = BlockHeapAlloc(channel_heap);
+  chptr = BlockHeapAlloc(channel_heap);
 
-    /* doesn't hurt to set it here */
-    chptr->channelts      = CurrentTime;
-    chptr->last_join_time = CurrentTime;
+  /* doesn't hurt to set it here */
+  chptr->channelts = CurrentTime;
+  chptr->last_join_time = CurrentTime;
 
-    strlcpy(chptr->chname, chname, sizeof(chptr->chname));
-    dlinkAdd(chptr, &chptr->node, &global_channel_list);
+  strlcpy(chptr->chname, chname, sizeof(chptr->chname));
+  dlinkAdd(chptr, &chptr->node, &global_channel_list);
 
-    hash_add_channel(chptr);
+  hash_add_channel(chptr);
 
-    return chptr;
+  return chptr;
 }
 
 /*! \brief walk through this channel, and destroy it.
@@ -454,24 +401,24 @@ make_channel(const char *chname)
 void
 destroy_channel(struct Channel *chptr)
 {
-    dlink_node *ptr = NULL, *ptr_next = NULL;
+  dlink_node *ptr = NULL, *ptr_next = NULL;
 
-    DLINK_FOREACH_SAFE(ptr, ptr_next, chptr->invites.head)
+  DLINK_FOREACH_SAFE(ptr, ptr_next, chptr->invites.head)
     del_invite(chptr, ptr->data);
 
-    /* free ban/exception/invex lists */
-    free_channel_list(&chptr->banlist);
-    free_channel_list(&chptr->exceptlist);
-    free_channel_list(&chptr->invexlist);
-    free_channel_list(&chptr->quietlist);
+  /* free ban/exception/invex lists */
+  free_channel_list(&chptr->banlist);
+  free_channel_list(&chptr->exceptlist);
+  free_channel_list(&chptr->invexlist);
+  free_channel_list(&chptr->quietlist);
 
-    /* Free the topic */
-    free_topic(chptr);
+  /* Free the topic */
+  free_topic(chptr);
 
-    dlinkDelete(&chptr->node, &global_channel_list);
-    hash_del_channel(chptr);
+  dlinkDelete(&chptr->node, &global_channel_list);
+  hash_del_channel(chptr);
 
-    BlockHeapFree(channel_heap, chptr);
+  BlockHeapFree(channel_heap, chptr);
 }
 
 /*!
@@ -481,17 +428,11 @@ destroy_channel(struct Channel *chptr)
 static const char *
 channel_pub_or_secret(struct Channel *chptr)
 {
-    if(SecretChannel(chptr))
-    {
-        return "@";
-    }
-
-    if(PrivateChannel(chptr))
-    {
-        return "*";
-    }
-
-    return "=";
+  if (SecretChannel(chptr))
+    return "@";
+  if (PrivateChannel(chptr))
+    return "*";
+  return "=";
 }
 
 /*! \brief lists all names on given channel
@@ -504,83 +445,69 @@ void
 channel_member_names(struct Client *source_p, struct Channel *chptr,
                      int show_eon)
 {
-    struct Client *target_p = NULL;
-    struct Membership *ms   = NULL;
-    dlink_node *ptr         = NULL;
-    char lbuf[IRCD_BUFSIZE + 1];
-    char *t = NULL, *start = NULL;
-    int tlen      = 0;
-    int is_member = IsMember(source_p, chptr);
-    int multi_prefix =
-        (source_p->localClient->cap_active & CAP_MULTI_PREFIX) != 0;
+  struct Client *target_p = NULL;
+  struct Membership *ms = NULL;
+  dlink_node *ptr = NULL;
+  char lbuf[IRCD_BUFSIZE + 1];
+  char *t = NULL, *start = NULL;
+  int tlen = 0;
+  int is_member = IsMember(source_p, chptr);
+  int multi_prefix = (source_p->localClient->cap_active & CAP_MULTI_PREFIX) != 0;
 
-    if(PubChannel(chptr) || is_member || IsGod(source_p))
+  if (PubChannel(chptr) || is_member || IsGod(source_p))
+  {
+    t = lbuf + ircsprintf(lbuf, form_str(RPL_NAMREPLY),
+                          me.name, source_p->name,
+                          channel_pub_or_secret(chptr),
+                          chptr->chname);
+    start = t;
+
+    DLINK_FOREACH(ptr, chptr->members.head)
     {
-        t = lbuf + ircsprintf(lbuf, form_str(RPL_NAMREPLY), me.name,
-                              source_p->name, channel_pub_or_secret(chptr),
-                              chptr->chname);
-        start = t;
+      ms       = ptr->data;
+      target_p = ms->client_p;
 
-        DLINK_FOREACH(ptr, chptr->members.head)
-        {
-            ms       = ptr->data;
-            target_p = ms->client_p;
+      if (IsInvisible(target_p) && !is_member && !IsGod(source_p))
+        continue;
 
-            if(IsInvisible(target_p) && !is_member && !IsGod(source_p))
-            {
-                continue;
-            }
+      tlen = strlen(target_p->name) + 1;  /* nick + space */
 
-            tlen = strlen(target_p->name) + 1; /* nick + space */
+      if (!multi_prefix)
+      {
+        if (ms->flags & (CHFL_CHANOP | CHFL_HALFOP | CHFL_VOICE))
+          ++tlen;
+      }
+      else
+      {
+        if (ms->flags & CHFL_CHANOP)
+          ++tlen;
+        if (ms->flags & CHFL_HALFOP)
+          ++tlen;
+        if (ms->flags & CHFL_VOICE)
+          ++tlen;
+      }
 
-            if(!multi_prefix)
-            {
-                if(ms->flags & (CHFL_CHANOP | CHFL_HALFOP | CHFL_VOICE))
-                {
-                    ++tlen;
-                }
-            }
-            else
-            {
-                if(ms->flags & CHFL_CHANOP)
-                {
-                    ++tlen;
-                }
+      if (t + tlen - lbuf > IRCD_BUFSIZE - 2)
+      {
+        *(t - 1) = '\0';
+        sendto_one(source_p, "%s", lbuf);
+        t = start;
+      }
 
-                if(ms->flags & CHFL_HALFOP)
-                {
-                    ++tlen;
-                }
-
-                if(ms->flags & CHFL_VOICE)
-                {
-                    ++tlen;
-                }
-            }
-
-            if(t + tlen - lbuf > IRCD_BUFSIZE - 2)
-            {
-                *(t - 1) = '\0';
-                sendto_one(source_p, "%s", lbuf);
-                t = start;
-            }
-
-            t += ircsprintf(t, "%s%s ", get_member_status(ms, multi_prefix),
-                            target_p->name);
-        }
-
-        if(tlen != 0)
-        {
-            *(t - 1) = '\0';
-            sendto_one(source_p, "%s", lbuf);
-        }
+      t += ircsprintf(t, "%s%s ", get_member_status(ms, multi_prefix),
+                      target_p->name);
     }
 
-    if(show_eon)
+    if (tlen != 0)
     {
-        sendto_one(source_p, form_str(RPL_ENDOFNAMES), me.name, source_p->name,
-                   chptr->chname);
+      *(t - 1) = '\0';
+      sendto_one(source_p, "%s", lbuf);
     }
+  }
+
+  if (show_eon)
+    sendto_one(source_p, form_str(RPL_ENDOFNAMES),
+               me.name, source_p->name, chptr->chname);
 }
 
 /*! \brief adds client to invite list
@@ -590,22 +517,20 @@ channel_member_names(struct Client *source_p, struct Channel *chptr,
 void
 add_invite(struct Channel *chptr, struct Client *who)
 {
-    del_invite(chptr, who);
+  del_invite(chptr, who);
 
-    /*
-     * delete last link in chain if the list is max length
-     */
-    if(dlink_list_length(&who->localClient->invited) >=
-       ConfigChannel.max_chans_per_user)
-    {
-        del_invite(who->localClient->invited.tail->data, who);
-    }
+  /*
+   * delete last link in chain if the list is max length
+   */
+  if (dlink_list_length(&who->localClient->invited) >=
+      ConfigChannel.max_chans_per_user)
+    del_invite(who->localClient->invited.tail->data, who);
 
-    /* add client to channel invite list */
-    dlinkAdd(who, make_dlink_node(), &chptr->invites);
+  /* add client to channel invite list */
+  dlinkAdd(who, make_dlink_node(), &chptr->invites);
 
-    /* add channel to the end of the client invite list */
-    dlinkAdd(chptr, make_dlink_node(), &who->localClient->invited);
+  /* add channel to the end of the client invite list */
+  dlinkAdd(chptr, make_dlink_node(), &who->localClient->invited);
 }
 
 /*! \brief Delete Invite block from channel invite list
@@ -616,17 +541,13 @@ add_invite(struct Channel *chptr, struct Client *who)
 void
 del_invite(struct Channel *chptr, struct Client *who)
 {
-    dlink_node *ptr = NULL;
+  dlink_node *ptr = NULL;
 
-    if((ptr = dlinkFindDelete(&who->localClient->invited, chptr)))
-    {
-        free_dlink_node(ptr);
-    }
+  if ((ptr = dlinkFindDelete(&who->localClient->invited, chptr)))
+    free_dlink_node(ptr);
 
-    if((ptr = dlinkFindDelete(&chptr->invites, who)))
-    {
-        free_dlink_node(ptr);
-    }
+  if ((ptr = dlinkFindDelete(&chptr->invites, who)))
+    free_dlink_node(ptr);
 }
 
 /* get_member_status()
@@ -643,43 +564,34 @@ del_invite(struct Channel *chptr, struct Client *who)
 const char *
 get_member_status(const struct Membership *ms, int combine)
 {
-    static char buffer[4];
-    char *p = NULL;
+  static char buffer[4];
+  char *p = NULL;
 
-    if(ms == NULL)
-        return "";
-    p = buffer;
+  if (ms == NULL)
+    return "";
+  p = buffer;
 
-    if(ms->flags & CHFL_CHANOP)
-    {
-        if(!combine)
-        {
-            return "@";
-        }
-
-        *p++ = '@';
-    }
+  if (ms->flags & CHFL_CHANOP)
+  {
+    if (!combine)
+      return "@";
+    *p++ = '@';
+  }
 
 #ifdef HALFOPS
-    if(ms->flags & CHFL_HALFOP)
-    {
-        if(!combine)
-        {
-            return "%";
-        }
-
-        *p++ = '%';
-    }
+  if (ms->flags & CHFL_HALFOP)
+  {
+    if (!combine)
+      return "%";
+    *p++ = '%';
+  }
 #endif
 
-    if(ms->flags & CHFL_VOICE)
-    {
-        *p++ = '+';
-    }
+  if (ms->flags & CHFL_VOICE)
+    *p++ = '+';
+  *p = '\0';
 
-    *p = '\0';
-
-    return buffer;
+  return buffer;
 }
 
 /*!
@@ -691,50 +603,40 @@ get_member_status(const struct Membership *ms, int combine)
 static int
 find_bmask(const struct Client *w, const dlink_list *const list)
 {
-    const dlink_node *ptr = NULL;
-    struct Client *who    = (struct Client *)w;
+  const dlink_node *ptr = NULL;
+  struct Client *who = (struct Client *)w;
 
-    DLINK_FOREACH(ptr, list->head)
+  DLINK_FOREACH(ptr, list->head)
+  {
+    struct Ban *bp = ptr->data;
+
+    if (match(bp->name, who->name) && match(bp->username, who->username))
     {
-        struct Ban *bp = ptr->data;
-
-        if(match(bp->name, who->name) && match(bp->username, who->username))
-        {
-            switch(bp->type)
-            {
-            case HM_HOST:
-                if(match(bp->host, who->host) || match(bp->host, who->sockhost))
-                {
-                    return 1;
-                }
-                break;
-            case HM_IPV4:
-                if(who->aftype == AF_INET)
-                {
-                    if(match_ipv4(&who->ip, &bp->addr, bp->bits))
-                    {
-                        return 1;
-                    }
-                }
-                break;
+      switch (bp->type)
+      {
+        case HM_HOST:
+          if (match(bp->host, who->host) || match(bp->host, who->sockhost))
+            return 1;
+          break;
+        case HM_IPV4:
+          if (who->aftype == AF_INET)
+            if (match_ipv4(&who->ip, &bp->addr, bp->bits))
+              return 1;
+          break;
 #ifdef IPV6
-            case HM_IPV6:
-                if(who->aftype == AF_INET6)
-                {
-                    if(match_ipv6(&who->ip, &bp->addr, bp->bits))
-                    {
-                        return 1;
-                    }
-                }
-                break;
+        case HM_IPV6:
+          if (who->aftype == AF_INET6)
+            if (match_ipv6(&who->ip, &bp->addr, bp->bits))
+              return 1;
+          break;
 #endif
-            default:
-                assert(0);
-            }
-        }
+        default:
+          assert(0);
+      }
     }
+  }
 
-    return 0;
+  return 0;
 }
 
 /*!
@@ -745,17 +647,13 @@ find_bmask(const struct Client *w, const dlink_list *const list)
 int
 is_quiet(const struct Channel *chptr, const struct Client *who)
 {
-    assert(IsClient(who));
+  assert(IsClient(who));
 
-    if(find_bmask(who, &chptr->quietlist))
-    {
-        if(!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
-        {
-            return 1;
-        }
-    }
+  if (find_bmask(who, &chptr->quietlist))
+    if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
+      return 1;
 
-    return 0;
+  return 0;
 }
 /*!
  * \param chptr pointer to channel block
@@ -765,20 +663,16 @@ is_quiet(const struct Channel *chptr, const struct Client *who)
 int
 is_banned(struct Channel *chptr, struct Client *who)
 {
-    if(find_bmask(who, &chptr->banlist))
-    {
-        if(!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
-        {
-            return 1;
-        }
-    }
+  if (find_bmask(who, &chptr->banlist))
+    if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
+      return 1;
 
-    return 0;
+  return 0;
 }
 
 /*!
  * \param source_p pointer to client attempting to join
- * \param chptr    pointer to channel
+ * \param chptr    pointer to channel 
  * \param key      key sent by client attempting to join if present
  * \return ERR_BANNEDFROMCHAN, ERR_INVITEONLYCHAN, ERR_CHANNELISFULL
  *         or 0 if allowed to join.
@@ -787,96 +681,67 @@ int
 can_join(struct Client *source_p, struct Channel *chptr, const char *key)
 {
 
-    if(IsService(source_p))
-    {
-        return 0;
-    }
+  if(IsService(source_p))
+    return 0;
 
-    if((dlink_list_length(&source_p->channel) >=
-        ConfigChannel.max_chans_per_user) &&
+  if ((dlink_list_length(&source_p->channel) >= ConfigChannel.max_chans_per_user) &&
        (!IsOper(source_p) || (dlink_list_length(&source_p->channel) >=
                               ConfigChannel.max_chans_per_user * 3)))
-    {
-        return ERR_TOOMANYCHANNELS;
-    }
+      return ERR_TOOMANYCHANNELS;
 
-    if(is_banned(chptr, source_p))
-    {
-        return ERR_BANNEDFROMCHAN;
-    }
 
-    if(chptr->mode.mode & MODE_INVITEONLY)
-    {
-        if(!dlinkFind(&source_p->localClient->invited, chptr))
-        {
-            if(!ConfigChannel.use_invex ||
-               !find_bmask(source_p, &chptr->invexlist))
-            {
-                return ERR_INVITEONLYCHAN;
-            }
-        }
-    }
+  if (is_banned(chptr, source_p))
+    return ERR_BANNEDFROMCHAN;
 
-    if(chptr->mode.key[0] && (!key || irccmp(chptr->mode.key, key)))
-    {
-        return ERR_BADCHANNELKEY;
-    }
+  if (chptr->mode.mode & MODE_INVITEONLY)
+    if (!dlinkFind(&source_p->localClient->invited, chptr))
+      if (!ConfigChannel.use_invex || !find_bmask(source_p, &chptr->invexlist))
+        return ERR_INVITEONLYCHAN;
 
-    if(chptr->mode.limit &&
-       dlink_list_length(&chptr->members) >= chptr->mode.limit)
-    {
-        return ERR_CHANNELISFULL;
-    }
+  if (chptr->mode.key[0] && (!key || irccmp(chptr->mode.key, key)))
+    return ERR_BADCHANNELKEY;
 
-    if(RegOnlyChannel(chptr) && !IsNickServReg(source_p))
-    {
-        return (ERR_REGONLYCHAN);
-    }
+  if (chptr->mode.limit && dlink_list_length(&chptr->members) >=
+      chptr->mode.limit)
+    return ERR_CHANNELISFULL;
 
-    if(SSLonlyChannel(chptr))
-    {
+  if(RegOnlyChannel(chptr) && !IsNickServReg(source_p))
+    return(ERR_REGONLYCHAN);
+
+  if (SSLonlyChannel(chptr))
+  {
 #ifdef HAVE_LIBCRYPTO
-        if(MyClient(source_p) && !(source_p->localClient->fd.ssl))
-        {
-            return (ERR_SSLONLYCHAN);
-        }
+    if (MyClient(source_p) && !(source_p->localClient->fd.ssl))
+        return (ERR_SSLONLYCHAN);
 #else
-        return (
-            ERR_SSLONLYCHAN); /* deny everyone on a non SSL-enabled server */
+    return (ERR_SSLONLYCHAN);  /* deny everyone on a non SSL-enabled server */
 #endif
-    }
+  }
 
-    return 0;
+  return 0;
 }
 
 int
 has_member_flags(struct Membership *ms, unsigned int flags)
 {
-    if(ms != NULL)
-    {
-        return ms->flags & flags;
-    }
-
-    return 0;
+  if (ms != NULL)
+    return ms->flags & flags;
+  return 0;
 }
 
 struct Membership *
 find_channel_link(struct Client *client_p, struct Channel *chptr)
 {
-    dlink_node *ptr = NULL;
+  dlink_node *ptr = NULL;
 
-    if(!IsClient(client_p))
-    {
-        return NULL;
-    }
-
-    DLINK_FOREACH(ptr, client_p->channel.head)
-    if(((struct Membership *)ptr->data)->chptr == chptr)
-    {
-        return (struct Membership *)ptr->data;
-    }
-
+  if (!IsClient(client_p))
     return NULL;
+
+  DLINK_FOREACH(ptr, client_p->channel.head)
+    if (((struct Membership *)ptr->data)->chptr == chptr)
+      return (struct Membership *)ptr->data;
+
+  return NULL;
 }
 
 /*!
@@ -890,72 +755,53 @@ find_channel_link(struct Client *client_p, struct Channel *chptr)
 int
 can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 {
-    if(IsServer(source_p) || IsGod(source_p) || IsService(source_p))
+  if (IsServer(source_p) || IsGod(source_p) || IsService(source_p))
+    return CAN_SEND_OPV;
+
+  if (MyClient(source_p) && !IsExemptResv(source_p))
+    if (!(IsOper(source_p) && ConfigFileEntry.oper_pass_resv))
+      if ((!hash_find_resv(chptr->chname)) == ConfigChannel.restrict_channels)
+        return CAN_SEND_NO;
+
+  if (ms != NULL || (ms = find_channel_link(source_p, chptr)))
+  {
+    if (ms->flags & (CHFL_CHANOP|CHFL_HALFOP|CHFL_VOICE))
+      return CAN_SEND_OPV;
+
+    if (ConfigChannel.use_quiet && MyClient(source_p))
     {
-        return CAN_SEND_OPV;
-    }
-
-    if(MyClient(source_p) && !IsExemptResv(source_p))
-    {
-        if(!(IsOper(source_p) && ConfigFileEntry.oper_pass_resv))
-        {
-            if((!hash_find_resv(chptr->chname)) ==
-               ConfigChannel.restrict_channels)
-            {
-                return CAN_SEND_NO;
-            }
-        }
-    }
-
-    if(ms != NULL || (ms = find_channel_link(source_p, chptr)))
-    {
-        if(ms->flags & (CHFL_CHANOP | CHFL_HALFOP | CHFL_VOICE))
-        {
-            return CAN_SEND_OPV;
-        }
-
-        if(ConfigChannel.use_quiet && MyClient(source_p))
-        {
-            if(is_quiet(chptr, source_p))
-                return CAN_SEND_NO;
-        }
-
-        /* cache can send if quiet_on_ban and banned */
-        if(ConfigChannel.quiet_on_ban && MyClient(source_p))
-        {
-            if(ms->flags & CHFL_BAN_SILENCED)
-            {
-                return CAN_SEND_NO;
-            }
-
-            if(!(ms->flags & CHFL_BAN_CHECKED))
-            {
-                if(is_banned(chptr, source_p))
-                {
-                    ms->flags |= (CHFL_BAN_CHECKED | CHFL_BAN_SILENCED);
-                    return CAN_SEND_NO;
-                }
-
-                ms->flags |= CHFL_BAN_CHECKED;
-            }
-        }
-    }
-    else if(chptr->mode.mode & MODE_NOPRIVMSGS)
-    {
+      if (is_quiet(chptr, source_p))
         return CAN_SEND_NO;
     }
 
-    if(chptr->mode.mode & MODE_MODERATED)
+    /* cache can send if quiet_on_ban and banned */
+    if (ConfigChannel.quiet_on_ban && MyClient(source_p))
     {
+      if (ms->flags & CHFL_BAN_SILENCED)
         return CAN_SEND_NO;
-    }
 
-    if(SpeakOnlyIfReg(chptr) && !IsNickServReg(source_p))
-    {
-        return CAN_SEND_ONLY_IF_REG;
-    }
+      if (!(ms->flags & CHFL_BAN_CHECKED))
+      {
+        if (is_banned(chptr, source_p))
+        {
+          ms->flags |= (CHFL_BAN_CHECKED|CHFL_BAN_SILENCED);
+          return CAN_SEND_NO;
+        }
 
-    return CAN_SEND_NONOP;
+        ms->flags |= CHFL_BAN_CHECKED;
+      }
+    }
+  }
+  else if (chptr->mode.mode & MODE_NOPRIVMSGS)
+    return CAN_SEND_NO;
+
+  if (chptr->mode.mode & MODE_MODERATED)
+    return CAN_SEND_NO;
+
+  if(SpeakOnlyIfReg(chptr) && !IsNickServReg(source_p))
+    return CAN_SEND_ONLY_IF_REG;
+ 
+  return CAN_SEND_NONOP;
 }
 
 /*! \brief Updates the client's oper_warn_count_down, warns the
@@ -967,76 +813,60 @@ can_send(struct Channel *chptr, struct Client *source_p, struct Membership *ms)
 void
 check_spambot_warning(struct Client *source_p, const char *name)
 {
-    int t_delta         = 0;
-    int decrement_count = 0;
+  int t_delta = 0;
+  int decrement_count = 0;
 
-    if((GlobalSetOptions.spam_num &&
-        (source_p->localClient->join_leave_count >= GlobalSetOptions.spam_num)))
+  if ((GlobalSetOptions.spam_num &&
+       (source_p->localClient->join_leave_count >=
+        GlobalSetOptions.spam_num)))
+  {
+    if (source_p->localClient->oper_warn_count_down > 0)
+      source_p->localClient->oper_warn_count_down--;
+    else
+      source_p->localClient->oper_warn_count_down = 0;
+
+    if (source_p->localClient->oper_warn_count_down == 0)
     {
-        if(source_p->localClient->oper_warn_count_down > 0)
-        {
-            source_p->localClient->oper_warn_count_down--;
-        }
-        else
-        {
-            source_p->localClient->oper_warn_count_down = 0;
-        }
-
-        if(source_p->localClient->oper_warn_count_down == 0)
-        {
-            /* Its already known as a possible spambot */
-            if(name != NULL)
-            {
-                sendto_gnotice_flags(
-                    UMODE_BOTS, L_ALL, me.name, &me, NULL,
-                    "User %s (%s@%s) trying to join %s is a possible spambot",
-                    source_p->name, source_p->username, source_p->host, name);
-            }
-            else
-            {
-                sendto_gnotice_flags(UMODE_BOTS, L_ALL, me.name, &me, NULL,
-                                     "User %s (%s@%s) is a possible spambot",
-                                     source_p->name, source_p->username,
-                                     source_p->host);
-            }
-
-            source_p->localClient->oper_warn_count_down = OPER_SPAM_COUNTDOWN;
-        }
+      /* Its already known as a possible spambot */
+      if (name != NULL)
+        sendto_gnotice_flags(UMODE_BOTS, L_ALL, me.name, &me, NULL,
+                             "User %s (%s@%s) trying to join %s is a possible spambot",
+                             source_p->name, source_p->username,
+                             source_p->host, name);
+      else
+        sendto_gnotice_flags(UMODE_BOTS, L_ALL, me.name, &me, NULL,
+                             "User %s (%s@%s) is a possible spambot",
+                             source_p->name, source_p->username,
+                             source_p->host);
+      source_p->localClient->oper_warn_count_down = OPER_SPAM_COUNTDOWN;
+    }
+  }
+  else
+  {
+    if ((t_delta = (CurrentTime - source_p->localClient->last_leave_time)) >
+         JOIN_LEAVE_COUNT_EXPIRE_TIME)
+    {
+      decrement_count = (t_delta / JOIN_LEAVE_COUNT_EXPIRE_TIME);
+      if (decrement_count > source_p->localClient->join_leave_count)
+        source_p->localClient->join_leave_count = 0;
+      else
+        source_p->localClient->join_leave_count -= decrement_count;
     }
     else
     {
-        if((t_delta = (CurrentTime - source_p->localClient->last_leave_time)) >
-           JOIN_LEAVE_COUNT_EXPIRE_TIME)
-        {
-            decrement_count = (t_delta / JOIN_LEAVE_COUNT_EXPIRE_TIME);
-            if(decrement_count > source_p->localClient->join_leave_count)
-            {
-                source_p->localClient->join_leave_count = 0;
-            }
-            else
-            {
-                source_p->localClient->join_leave_count -= decrement_count;
-            }
-        }
-        else
-        {
-            if((CurrentTime - (source_p->localClient->last_join_time)) <
-               GlobalSetOptions.spam_time)
-            {
-                /* oh, its a possible spambot */
-                source_p->localClient->join_leave_count++;
-            }
-        }
-
-        if(name != NULL)
-        {
-            source_p->localClient->last_join_time = CurrentTime;
-        }
-        else
-        {
-            source_p->localClient->last_leave_time = CurrentTime;
-        }
+      if ((CurrentTime - (source_p->localClient->last_join_time)) <
+          GlobalSetOptions.spam_time)
+      {
+        /* oh, its a possible spambot */
+        source_p->localClient->join_leave_count++;
+      }
     }
+
+    if (name != NULL)
+      source_p->localClient->last_join_time = CurrentTime;
+    else
+      source_p->localClient->last_leave_time = CurrentTime;
+  }
 }
 
 /*! \brief compares usercount and servercount against their split
@@ -1046,30 +876,28 @@ check_spambot_warning(struct Client *source_p, const char *name)
 void
 check_splitmode(void *unused)
 {
-    if(splitchecking &&
-       (ConfigChannel.no_join_on_split || ConfigChannel.no_create_on_split))
+  if (splitchecking && (ConfigChannel.no_join_on_split ||
+                        ConfigChannel.no_create_on_split))
+  {
+    const unsigned int server = dlink_list_length(&global_serv_list);
+
+    if (!splitmode && ((server < split_servers) || (Count.total < split_users)))
     {
-        const unsigned int server = dlink_list_length(&global_serv_list);
+      splitmode = 1;
 
-        if(!splitmode &&
-           ((server < split_servers) || (Count.total < split_users)))
-        {
-            splitmode = 1;
-
-            sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                                 "Network split, activating splitmode");
-            eventAddIsh("check_splitmode", check_splitmode, NULL, 10);
-        }
-        else if(splitmode && (server > split_servers) &&
-                (Count.total > split_users))
-        {
-            splitmode = 0;
-
-            sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                                 "Network rejoined, deactivating splitmode");
-            eventDelete(check_splitmode, NULL);
-        }
+      sendto_gnotice_flags(UMODE_ALL,L_ALL, me.name, &me, NULL,
+                           "Network split, activating splitmode");
+      eventAddIsh("check_splitmode", check_splitmode, NULL, 10);
     }
+    else if (splitmode && (server > split_servers) && (Count.total > split_users))
+    {
+      splitmode = 0;
+
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                           "Network rejoined, deactivating splitmode");
+      eventDelete(check_splitmode, NULL);
+    }
+  }
 }
 
 /*! \brief Allocates a new topic
@@ -1078,42 +906,38 @@ check_splitmode(void *unused)
 static void
 allocate_topic(struct Channel *chptr)
 {
-    void *ptr = NULL;
+  void *ptr = NULL;
 
-    if(chptr == NULL)
-    {
-        return;
-    }
+  if (chptr == NULL)
+    return;
 
-    ptr = BlockHeapAlloc(topic_heap);
+  ptr = BlockHeapAlloc(topic_heap);  
 
-    /* Basically we allocate one large block for the topic and
-     * the topic info.  We then split it up into two and shove it
-     * in the chptr
-     */
-    chptr->topic       = ptr;
-    chptr->topic_info  = (char *)ptr + TOPICLEN + 1;
-    *chptr->topic      = '\0';
-    *chptr->topic_info = '\0';
+  /* Basically we allocate one large block for the topic and
+   * the topic info.  We then split it up into two and shove it
+   * in the chptr 
+   */
+  chptr->topic       = ptr;
+  chptr->topic_info  = (char *)ptr + TOPICLEN+1;
+  *chptr->topic      = '\0';
+  *chptr->topic_info = '\0';
 }
 
 void
 free_topic(struct Channel *chptr)
 {
-    void *ptr = NULL;
-    assert(chptr);
-    if(chptr->topic == NULL)
-    {
-        return;
-    }
+  void *ptr = NULL;
+  assert(chptr);
+  if (chptr->topic == NULL)
+    return;
 
-    /*
-     * If you change allocate_topic you MUST change this as well
-     */
-    ptr = chptr->topic;
-    BlockHeapFree(topic_heap, ptr);
-    chptr->topic      = NULL;
-    chptr->topic_info = NULL;
+  /*
+   * If you change allocate_topic you MUST change this as well
+   */
+  ptr = chptr->topic; 
+  BlockHeapFree(topic_heap, ptr);    
+  chptr->topic      = NULL;
+  chptr->topic_info = NULL;
 }
 
 /*! \brief Sets the channel topic for chptr
@@ -1126,114 +950,85 @@ void
 set_channel_topic(struct Channel *chptr, const char *topic,
                   const char *topic_info, time_t topicts)
 {
-    if(!EmptyString(topic))
-    {
-        if(chptr->topic == NULL)
-        {
-            allocate_topic(chptr);
-        }
+  if (!EmptyString(topic))
+  {
+    if (chptr->topic == NULL)
+      allocate_topic(chptr);
 
-        strlcpy(chptr->topic, topic, TOPICLEN + 1);
-        strlcpy(chptr->topic_info, topic_info, USERHOST_REPLYLEN);
-        chptr->topic_time = topicts;
-    }
-    else
-    {
-        /*
-         * Do not reset chptr->topic_time here, it's required for
-         * bursting topics properly.
-         */
-        if(chptr->topic != NULL)
-        {
-            free_topic(chptr);
-        }
-    }
+    strlcpy(chptr->topic, topic, TOPICLEN+1);
+    strlcpy(chptr->topic_info, topic_info, USERHOST_REPLYLEN);
+    chptr->topic_time = topicts; 
+  }
+  else
+  {
+    /*
+     * Do not reset chptr->topic_time here, it's required for
+     * bursting topics properly.
+     */
+    if (chptr->topic != NULL)
+      free_topic(chptr);
+  }
 }
 
-int
+int 
 msg_has_colors(char *msg)
 {
 
-    char *c;
-    if(msg == NULL)
-    {
-        return 0;
-    }
-
-    c = msg;
-
-    while(*c)
-    {
-        if(*c == '\003' || *c == '\033')
-        {
-            break;
-        }
-        else
-        {
-            c++;
-        }
-    }
-
-    if(*c)
-    {
-        return 1;
-    }
-
+  char *c;
+  if (msg == NULL)
     return 0;
+  c = msg;
+
+  while(*c)
+  {
+    if(*c == '\003' || *c == '\033')
+      break;
+    else
+      c++;
+  }
+
+  if(*c)
+    return 1;
+  return 0;
 }
 
 char *
-strip_color(char *string)
+strip_color(char* string)
 {
-    char *source         = string;
-    char *dest           = string;
-    char *last_non_space = NULL;
+  char *source = string;
+  char *dest = string;
+  char *last_non_space = NULL;
 
-    for(; source && *source; source++)
+  for (; source && *source; source++)
+    switch(*source)
     {
-        switch(*source)
+      case 3:
+        if (isdigit(source[1]))
         {
-        case 3:
-            if(isdigit(source[1]))
-            {
-                source++;
-                if(isdigit(source[1]))
-                {
-                    source++;
-                }
-                if(source[1] == ',' && isdigit(source[2]))
-                {
-                    source += 2;
-                    if(isdigit(source[1]))
-                    {
-                        source++;
-                    }
-                }
-            }
-            break;
-        case 2:
-        case 6:
-        case 7:
-        case 22:
-        case 23:
-        case 27:
-        case 31:
-            break;
-        case 32:
-            *dest++ = *source;
-            break;
-        default:
-            *dest++        = *source;
-            last_non_space = dest;
-            break;
+          source++;
+          if (isdigit(source[1]))
+            source++;
+          if (source[1] == ',' && isdigit(source[2]))
+          {
+            source+=2;
+            if (isdigit(source[1]))
+              source++;
+          }
         }
+        break;
+      case 2: case 6: case 7: case 22: case 23: case 27: case 31:
+        break;
+      case 32:
+        *dest++ = *source;
+        break;
+      default:
+        *dest++ = *source;
+        last_non_space = dest;
+        break;
     }
-
-    *dest = '\0';
-    if(last_non_space)
-    {
-        *last_non_space = '\0';
-    }
-
-    return string;
+  *dest = '\0';
+  if (last_non_space)
+    *last_non_space = '\0';
+  return string;
 }
+

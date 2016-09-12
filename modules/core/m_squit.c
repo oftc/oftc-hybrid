@@ -22,46 +22,42 @@
  *  $Id$
  */
 
-#include "client.h"
-#include "common.h" /* FALSE bleah */
+#include "stdinc.h"
 #include "handlers.h"
+#include "client.h"
+#include "common.h"      /* FALSE bleah */
 #include "hash.h"
 #include "irc_string.h"
 #include "ircd.h"
-#include "modules.h"
-#include "msg.h"
 #include "numeric.h"
-#include "parse.h"
 #include "s_conf.h"
 #include "s_log.h"
 #include "s_serv.h"
 #include "send.h"
-#include "stdinc.h"
+#include "msg.h"
+#include "parse.h"
+#include "modules.h"
+
 
 static void ms_squit(struct Client *, struct Client *, int, char *[]);
 static void mo_squit(struct Client *, struct Client *, int, char *[]);
 
 struct Message squit_msgtab = {
-    "SQUIT",
-    0,
-    0,
-    1,
-    0,
-    MFLG_SLOW,
-    0,
-    {m_unregistered, m_not_oper, ms_squit, m_ignore, mo_squit, m_ignore}};
+  "SQUIT", 0, 0, 1, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_not_oper, ms_squit, m_ignore, mo_squit, m_ignore}
+};
 
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
-    mod_add_cmd(&squit_msgtab);
+  mod_add_cmd(&squit_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-    mod_del_cmd(&squit_msgtab);
+  mod_del_cmd(&squit_msgtab);
 }
 
 const char *_version = "$Revision$";
@@ -73,71 +69,70 @@ const char *_version = "$Revision$";
  *  parv[2] = comment
  */
 static void
-mo_squit(struct Client *client_p, struct Client *source_p, int parc,
-         char *parv[])
+mo_squit(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
 {
-    struct Client *target_p = NULL;
-    struct Client *p;
-    dlink_node *ptr;
-    char *comment;
-    const char *server;
-    char def_reason[] = "No reason";
+  struct Client *target_p = NULL;
+  struct Client *p;
+  dlink_node *ptr;
+  char *comment;
+  const char *server;
+  char def_reason[] = "No reason";
 
-    if(parc < 2 || EmptyString(parv[1]))
+  if (parc < 2 || EmptyString(parv[1]))
+  {
+    sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
+               me.name, source_p->name, "SQUIT");
+    return;
+  }
+
+  server = parv[1];
+
+  /* The following allows wild cards in SQUIT. Only
+   * useful when the command is issued by an oper.
+   */
+  DLINK_FOREACH(ptr, global_serv_list.head)
+  {
+    p = ptr->data;
+
+    if (IsServer(p) || IsMe(p))
     {
-        sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name,
-                   source_p->name, "SQUIT");
-        return;
+      if (match(server, p->name))
+      {
+        target_p = p;
+        break;
+      }
     }
+  }
 
-    server = parv[1];
+  if ((target_p == NULL) || IsMe(target_p))
+  {
+    sendto_one(source_p, form_str(ERR_NOSUCHSERVER),
+               me.name, source_p->name, server);
+    return;
+  }
 
-    /* The following allows wild cards in SQUIT. Only
-     * useful when the command is issued by an oper.
-     */
-    DLINK_FOREACH(ptr, global_serv_list.head)
-    {
-        p = ptr->data;
+  if (!MyConnect(target_p) && !IsOperRemote(source_p))
+  {
+    sendto_one(source_p, form_str(ERR_NOPRIVILEGES),
+               me.name, source_p->name);
+    return;
+  }
 
-        if(IsServer(p) || IsMe(p))
-        {
-            if(match(server, p->name))
-            {
-                target_p = p;
-                break;
-            }
-        }
-    }
+  comment = (parc > 2 && parv[2]) ? parv[2] : def_reason;
 
-    if((target_p == NULL) || IsMe(target_p))
-    {
-        sendto_one(source_p, form_str(ERR_NOSUCHSERVER), me.name,
-                   source_p->name, server);
-        return;
-    }
+  if (strlen(comment) > (size_t)REASONLEN)
+    comment[REASONLEN] = '\0';
 
-    if(!MyConnect(target_p) && !IsOperRemote(source_p))
-    {
-        sendto_one(source_p, form_str(ERR_NOPRIVILEGES), me.name,
-                   source_p->name);
-        return;
-    }
+  if (MyConnect(target_p))
+  {
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "Received SQUIT %s from %s (%s)",
+                         target_p->name, get_client_name(source_p, HIDE_IP), comment);
+    ilog(L_NOTICE, "Received SQUIT %s from %s (%s)",
+         target_p->name, get_client_name(source_p, HIDE_IP), comment);
+  }
 
-    comment = (parc > 2 && parv[2]) ? parv[2] : def_reason;
-
-    if(strlen(comment) > (size_t)REASONLEN)
-        comment[REASONLEN] = '\0';
-
-    if(MyConnect(target_p))
-    {
-        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                             "Received SQUIT %s from %s (%s)", target_p->name,
-                             get_client_name(source_p, HIDE_IP), comment);
-        ilog(L_NOTICE, "Received SQUIT %s from %s (%s)", target_p->name,
-             get_client_name(source_p, HIDE_IP), comment);
-    }
-
-    exit_client(target_p, source_p, comment);
+  exit_client(target_p, source_p, comment);
 }
 
 /** NOTE: I removed wildcard lookups here, because a wildcarded
@@ -150,38 +145,39 @@ mo_squit(struct Client *client_p, struct Client *source_p, int parc,
  *  parv[2] = comment
  */
 static void
-ms_squit(struct Client *client_p, struct Client *source_p, int parc,
-         char *parv[])
+ms_squit(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
 {
-    struct Client *target_p = NULL;
-    char *comment;
-    const char *server;
-    char def_reason[] = "No reason";
+  struct Client *target_p = NULL;
+  char *comment;
+  const char *server;
+  char def_reason[] = "No reason";
 
-    if(parc < 2 || EmptyString(parv[1]))
-        return;
+  if (parc < 2 || EmptyString(parv[1]))
+    return;
 
-    server = parv[1];
+  server = parv[1];
 
-    if((target_p = find_server(server)) == NULL)
-        return;
+  if ((target_p = find_server(server)) == NULL)
+    return;
 
-    if(!IsServer(target_p) || IsMe(target_p))
-        return;
+  if (!IsServer(target_p) || IsMe(target_p))
+    return;
 
-    comment = (parc > 2 && parv[2]) ? parv[2] : def_reason;
+  comment = (parc > 2 && parv[2]) ? parv[2] : def_reason;
 
-    if(strlen(comment) > (size_t)REASONLEN)
-        comment[REASONLEN] = '\0';
+  if (strlen(comment) > (size_t)REASONLEN)
+    comment[REASONLEN] = '\0';
 
-    if(MyConnect(target_p))
-    {
-        sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL,
-                             "Remote SQUIT %s from %s (%s)", target_p->name,
-                             source_p->name, comment);
-        ilog(L_TRACE, "SQUIT From %s : %s (%s)", parv[0], target_p->name,
-             comment);
-    }
+  if (MyConnect(target_p))
+  {
+    sendto_gnotice_flags(UMODE_CCONN, L_ALL, me.name, &me, NULL, "Remote SQUIT %s from %s (%s)",
+                         target_p->name, source_p->name, comment);
+    ilog(L_TRACE, "SQUIT From %s : %s (%s)", parv[0],
+         target_p->name, comment);
 
-    exit_client(target_p, source_p, comment);
+   }
+
+   exit_client(target_p, source_p, comment);
 }
+

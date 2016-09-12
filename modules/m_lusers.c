@@ -22,43 +22,38 @@
  *  $Id$
  */
 
-#include "client.h"
-#include "handlers.h"
-#include "ircd.h"
-#include "modules.h"
-#include "msg.h"
-#include "numeric.h"
-#include "parse.h"
-#include "s_conf.h"
-#include "s_serv.h" /* hunt_server */
-#include "s_user.h" /* show_lusers */
-#include "send.h"
 #include "stdinc.h"
+#include "handlers.h"
+#include "client.h"
+#include "ircd.h"
+#include "numeric.h"
+#include "s_serv.h"    /* hunt_server */
+#include "s_user.h"    /* show_lusers */
+#include "send.h"
+#include "s_conf.h"
+#include "msg.h"
+#include "parse.h"
+#include "modules.h"
 
-static void m_lusers(struct Client *, struct Client *, int, char **);
-static void ms_lusers(struct Client *, struct Client *, int, char **);
+static void m_lusers(struct Client*, struct Client*, int, char**);
+static void ms_lusers(struct Client*, struct Client*, int, char**);
 
 struct Message lusers_msgtab = {
-    "LUSERS",
-    0,
-    0,
-    0,
-    0,
-    MFLG_SLOW,
-    0,
-    {m_unregistered, m_lusers, ms_lusers, m_ignore, ms_lusers, m_ignore}};
+  "LUSERS", 0, 0, 0, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_lusers, ms_lusers, m_ignore, ms_lusers, m_ignore}
+};
 #ifndef STATIC_MODULES
 
 void
 _modinit(void)
 {
-    mod_add_cmd(&lusers_msgtab);
+  mod_add_cmd(&lusers_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-    mod_del_cmd(&lusers_msgtab);
+  mod_del_cmd(&lusers_msgtab);
 }
 
 const char *_version = "$Revision$";
@@ -67,36 +62,35 @@ const char *_version = "$Revision$";
  * parv[0] = sender
  * parv[1] = host/server mask.
  * parv[2] = server to query
- *
+ * 
  * 199970918 JRL hacked to ignore parv[1] completely and require parc > 3
  * to cause a force
  *
  * 2003 hacked parv[1] back in, by request of efnet admins/opers -Dianora
  */
 static void
-m_lusers(struct Client *client_p, struct Client *source_p, int parc,
-         char *parv[])
+m_lusers(struct Client *client_p, struct Client *source_p,
+	 int parc, char *parv[])
 {
-    static time_t last_used = 0;
+  static time_t last_used = 0;
 
-    if((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
-    {
-        /* safe enough to give this on a local connect only */
-        if(MyClient(source_p))
-            sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0]);
-        return;
-    }
-    else
-        last_used = CurrentTime;
+  if ((last_used + ConfigFileEntry.pace_wait_simple) > CurrentTime)
+  {
+    /* safe enough to give this on a local connect only */
+    if (MyClient(source_p))
+      sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0]);
+    return;
+  }
+  else
+    last_used = CurrentTime;
 
-    if(parc > 2 && !ConfigFileEntry.disable_remote)
-    {
-        if(hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc,
-                       parv) != HUNTED_ISME)
-            return;
-    }
+  if (parc > 2 && !ConfigFileEntry.disable_remote)
+  {   
+    if (hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc, parv) != HUNTED_ISME)
+      return;
+  }
 
-    show_lusers(source_p);
+  show_lusers(source_p);
 }
 
 /* ms_lusers - LUSERS message handler for servers and opers
@@ -105,16 +99,16 @@ m_lusers(struct Client *client_p, struct Client *source_p, int parc,
  * parv[2] = server to query
  */
 static void
-ms_lusers(struct Client *client_p, struct Client *source_p, int parc,
-          char *parv[])
+ms_lusers(struct Client *client_p, struct Client *source_p,
+	  int parc, char *parv[])
 {
-    if(parc > 2)
-    {
-        if(hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc,
-                       parv) != HUNTED_ISME)
-            return;
-    }
+  if (parc > 2)
+  {
+    if(hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc, parv)
+     != HUNTED_ISME)
+        return;
+  }
 
-    if(IsClient(source_p))
-        show_lusers(source_p);
+  if (IsClient(source_p))
+    show_lusers(source_p);
 }

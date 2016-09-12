@@ -28,38 +28,38 @@
 %option never-interactive
 
 %{
-    #include "stdinc.h"
-    #include "tools.h"
-    #include "irc_string.h"
-    #include "common.h"
-    #include "s_conf.h"
-    #include "memory.h"
-    #include "hostmask.h"
-    #include "s_log.h"
+#include "stdinc.h"
+#include "tools.h"
+#include "irc_string.h"
+#include "common.h"
+#include "s_conf.h"
+#include "memory.h"
+#include "hostmask.h"
+#include "s_log.h"
 
-    #include "ircd_parser.h"
+#include "ircd_parser.h"
 
-    #undef YY_INPUT
-    #define YY_FATAL_ERROR(msg) conf_yy_fatal_error(msg)
-    #define YY_INPUT(buf,result,max_size) \
-    if (!(result = conf_fbgets(buf, max_size, conf_fbfile_in))) \
-    YY_FATAL_ERROR("input in flex scanner failed");
-    #define MAX_INCLUDE_DEPTH 10
+#undef YY_INPUT
+#define YY_FATAL_ERROR(msg) conf_yy_fatal_error(msg)
+#define YY_INPUT(buf,result,max_size) \
+  if (!(result = conf_fbgets(buf, max_size, conf_fbfile_in))) \
+    YY_FATAL_ERROR("input in flex scanner failed"); 
+#define MAX_INCLUDE_DEPTH 10
 
 
-    unsigned int lineno = 1;
-    char linebuf[IRCD_BUFSIZE];
-    char conffilebuf[IRCD_BUFSIZE];
+unsigned int lineno = 1;
+char linebuf[IRCD_BUFSIZE];
+char conffilebuf[IRCD_BUFSIZE];
 
-    static int include_stack_ptr = 0;
-    static YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
-    static unsigned int lineno_stack[MAX_INCLUDE_DEPTH];
-    static FBFILE *inc_fbfile_in[MAX_INCLUDE_DEPTH];
-    static char conffile_stack[MAX_INCLUDE_DEPTH][IRCD_BUFSIZE];
-    static void ccomment(void);
-    static void cinclude(void);
-    static int ieof(void);
-    %}
+static int include_stack_ptr = 0;
+static YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
+static unsigned int lineno_stack[MAX_INCLUDE_DEPTH];
+static FBFILE *inc_fbfile_in[MAX_INCLUDE_DEPTH];
+static char conffile_stack[MAX_INCLUDE_DEPTH][IRCD_BUFSIZE];
+static void ccomment(void);
+static void cinclude(void);
+static int ieof(void);
+%}
 
 WS        [[:blank:]]*
 DIGIT     [[:digit:]]+
@@ -79,49 +79,49 @@ include   \.include{WS}(\<.*\>|\".*\")
 {DIGIT}         { yylval.number = atoi(yytext); return NUMBER; }
 
 {qstring}	{ if (yytext[yyleng-2] == '\\')
-    {
+		    {
 		      yyless(yyleng-1); /* return last quote */
-              yymore();		/* append next string */
-    }
+		      yymore();		/* append next string */
+		    }
 		  else
-          {
-              yylval.string = yytext+1;
-              if(yylval.string[yyleng-2] != '"')
-              ilog(L_ERROR, "Unterminated character string");
-              else
-              {
-                  int i,j;
+		    {
+		      yylval.string = yytext+1;
+		      if(yylval.string[yyleng-2] != '"')
+			ilog(L_ERROR, "Unterminated character string");
+		      else
+			{
+			  int i,j;
 
-                  yylval.string[yyleng-2] = '\0'; /* remove close
-                                                   *  quote
-                                                   */
-
-                  for (j=i=0 ;yylval.string[i] != '\0'; i++,j++)
-                  {
-                      if (yylval.string[i] != '\\')
-                      {
-                          yylval.string[j] = yylval.string[i];
-                      }
-                      else
-                      {
-                          i++;
-                          if (yylval.string[i] == '\0') /* XXX
-                                                         * should not
-                                                         * happen
-                                                         */
-                          {
-                              ilog(L_ERROR,
-                              "Unterminated character string");
-                              break;
-                          }
-                          yylval.string[j] = yylval.string[i];
-                      }
-                  }
-                  yylval.string[j] = '\0';
-                  return QSTRING;
-              }
-          }
-}
+			  yylval.string[yyleng-2] = '\0'; /* remove close
+							   *  quote 
+							   */
+			  
+			  for (j=i=0 ;yylval.string[i] != '\0'; i++,j++)
+			    {
+			      if (yylval.string[i] != '\\')
+				{
+				  yylval.string[j] = yylval.string[i];
+				}
+			      else
+				{
+				  i++;
+				  if (yylval.string[i] == '\0') /* XXX 
+								 * should not
+								 * happen
+								 */
+				    {
+				      ilog(L_ERROR,
+					   "Unterminated character string");
+				      break;
+				    }
+				  yylval.string[j] = yylval.string[i];
+				}
+			    }
+			  yylval.string[j] = '\0';
+			  return QSTRING;
+			}
+		    }
+		}
 
 ~		{ return NOT; }
 accept_password { return ACCEPT_PASSWORD; }
@@ -316,10 +316,10 @@ use_knock	{ return USE_KNOCK; }
 use_logging	{ return USE_LOGGING; }
 use_whois_actually { return USE_WHOIS_ACTUALLY; }
 throttle_time { return THROTTLE_TIME; }
-user		{ return USER; }
-tkline		{ return TKLINE; }
-txline		{ return TXLINE; }
-tresv		{ return TRESV; }
+user		{ return USER; } 
+tkline		{ return TKLINE; } 
+txline		{ return TXLINE; } 
+tresv		{ return TRESV; } 
 vhost	{ return VHOST; }
 vhost6	{ return VHOST6; }
 warn		{ return WARN; }
@@ -428,37 +428,37 @@ tb			{ return TBYTES; }
 static void
 ccomment(void)
 {
-    int c = 0;
+  int c = 0;
 
-    /* log(L_NOTICE, "got comment"); */
-    while (1)
-    {
-        while ((c = input()) != '*' && c != EOF)
-        if (c == '\n')
+  /* log(L_NOTICE, "got comment"); */
+  while (1)
+  {
+    while ((c = input()) != '*' && c != EOF)
+      if (c == '\n')
         ++lineno;
 
-        if (c == '*')
-        {
-            while ((c = input()) == '*')
-            /* Nothing */ ;
-            if (c == '/')
-            break;
-            else if (c == '\n')
-            ++lineno;
-        }
-
-        if (c == EOF)
-        {
-            YY_FATAL_ERROR("EOF in comment");
-            /* XXX hack alert this disables
-             * the stupid unused function warning
-             * gcc generates
-             */
-            if (1 == 0)
-            yy_fatal_error("EOF in comment");
-            break;
-        }
+    if (c == '*')
+    {
+      while ((c = input()) == '*')
+        /* Nothing */ ;
+      if (c == '/')
+        break;
+      else if (c == '\n')
+        ++lineno;
     }
+
+    if (c == EOF)
+    {
+      YY_FATAL_ERROR("EOF in comment");
+      /* XXX hack alert this disables
+       * the stupid unused function warning
+       * gcc generates 
+       */
+      if (1 == 0)
+        yy_fatal_error("EOF in comment");
+      break;
+    }
+  }
 }
 
 /* C-style .includes. This function will properly swap input conf buffers,
@@ -466,46 +466,46 @@ ccomment(void)
 static void
 cinclude(void)
 {
-    char *p = NULL;
+  char *p = NULL;
 
-    if ((p = strchr(yytext, '<')) == NULL)
+  if ((p = strchr(yytext, '<')) == NULL)
     *strchr(p = strchr(yytext, '"') + 1, '"') = '\0';
-    else
+  else
     *strchr(++p, '>') = '\0';
 
-    /* log(L_NOTICE, "got include %s!", c); */
+  /* log(L_NOTICE, "got include %s!", c); */
 
-    /* do stacking and co. */
-    if (include_stack_ptr >= MAX_INCLUDE_DEPTH)
+  /* do stacking and co. */ 
+  if (include_stack_ptr >= MAX_INCLUDE_DEPTH)
     ilog(L_ERROR, "Includes nested too deep in %s", p);
+  else
+  {
+    FBFILE *tmp_fbfile_in = NULL;
+    char filenamebuf[IRCD_BUFSIZE];
+
+    if (*p == '/')  /* if it is an absolute path */
+      snprintf(filenamebuf, sizeof(filenamebuf), "%s", p);
     else
+      snprintf(filenamebuf, sizeof(filenamebuf), "%s/%s", ETCPATH, p);
+
+    tmp_fbfile_in = fbopen(filenamebuf, "r");
+    
+    if (tmp_fbfile_in == NULL)
     {
-        FBFILE *tmp_fbfile_in = NULL;
-        char filenamebuf[IRCD_BUFSIZE];
-
-        if (*p == '/')  /* if it is an absolute path */
-        snprintf(filenamebuf, sizeof(filenamebuf), "%s", p);
-        else
-        snprintf(filenamebuf, sizeof(filenamebuf), "%s/%s", ETCPATH, p);
-
-        tmp_fbfile_in = fbopen(filenamebuf, "r");
-
-        if (tmp_fbfile_in == NULL)
-        {
-            ilog(L_ERROR, "Unable to read configuration file '%s': %s",
-            filenamebuf, strerror(errno));
-            return;
-        }
-
-        lineno_stack[include_stack_ptr] = lineno;
-        lineno = 1;
-        inc_fbfile_in[include_stack_ptr] = conf_fbfile_in;
-        strlcpy(conffile_stack[include_stack_ptr], conffilebuf, IRCD_BUFSIZE);
-        include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
-        conf_fbfile_in = tmp_fbfile_in;
-        snprintf(conffilebuf, sizeof(conffilebuf), "%s", p);
-        yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
+      ilog(L_ERROR, "Unable to read configuration file '%s': %s",
+           filenamebuf, strerror(errno));
+      return;
     }
+
+    lineno_stack[include_stack_ptr] = lineno;
+    lineno = 1;
+    inc_fbfile_in[include_stack_ptr] = conf_fbfile_in;
+    strlcpy(conffile_stack[include_stack_ptr], conffilebuf, IRCD_BUFSIZE);
+    include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
+    conf_fbfile_in = tmp_fbfile_in;
+    snprintf(conffilebuf, sizeof(conffilebuf), "%s", p);
+    yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
+  }
 }
 
 /* This is function that will be called on EOF in conf file. It will
@@ -514,26 +514,26 @@ cinclude(void)
 static int
 ieof(void)
 {
-    /* log(L_NOTICE, "return from include stack!"); */
-    if (include_stack_ptr)
+  /* log(L_NOTICE, "return from include stack!"); */
+  if (include_stack_ptr)
     fbclose(conf_fbfile_in);
-    if (--include_stack_ptr < 0)
-    {
-        /* log(L_NOTICE, "terminating lexer"); */
-        /* We will now exit the lexer - restore init values if we get /rehash
-         * later and reenter lexer -kre */
-        include_stack_ptr = 0;
-        lineno = 1;
-        return 1;
-    }
-    
-    /* switch buffer */
-    /* log(L_NOTICE, "deleting include_stack_ptr=%d", include_stack_ptr); */
-    yy_delete_buffer(YY_CURRENT_BUFFER);
-    lineno = lineno_stack[include_stack_ptr];
-    conf_fbfile_in = inc_fbfile_in[include_stack_ptr];
-    strlcpy(conffilebuf, conffile_stack[include_stack_ptr], sizeof(conffilebuf)); 
-    yy_switch_to_buffer(include_stack[include_stack_ptr]);
-    
-    return 0;
+  if (--include_stack_ptr < 0)
+  {
+    /* log(L_NOTICE, "terminating lexer"); */
+    /* We will now exit the lexer - restore init values if we get /rehash
+     * later and reenter lexer -kre */
+    include_stack_ptr = 0;
+    lineno = 1;
+    return 1;
+  }
+
+  /* switch buffer */
+  /* log(L_NOTICE, "deleting include_stack_ptr=%d", include_stack_ptr); */
+  yy_delete_buffer(YY_CURRENT_BUFFER);
+  lineno = lineno_stack[include_stack_ptr];
+  conf_fbfile_in = inc_fbfile_in[include_stack_ptr];
+  strlcpy(conffilebuf, conffile_stack[include_stack_ptr], sizeof(conffilebuf)); 
+  yy_switch_to_buffer(include_stack[include_stack_ptr]);
+
+  return 0;
 }

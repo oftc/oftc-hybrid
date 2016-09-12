@@ -22,8 +22,8 @@
  *  $Id$
  */
 
-#include "ircd_getopt.h"
 #include "stdinc.h"
+#include "ircd_getopt.h"
 
 #define OPTCHAR '-'
 
@@ -32,104 +32,100 @@ static void usage(const char *name);
 void
 parseargs(int *argc, char ***argv, struct lgetopt *opts)
 {
-    int i;
-    char *progname = (*argv)[0];
+  int i;
+  char *progname = (*argv)[0];
 
-    /* loop through each argument */
-    for(;;)
+  /* loop through each argument */
+  for (;;)
     {
-        int found = 0;
+      int found = 0;
 
-        (*argc)--;
-        (*argv)++;
+      (*argc)--;
+      (*argv)++;
+      
+      if (*argc < 1)
+	{
+	  return;
+	}
+      
+      /* check if it *is* an arg.. */
+      if ((*argv)[0][0] != OPTCHAR)
+	{
+	  return;
+	}
+      
+      (*argv)[0]++;
 
-        if(*argc < 1)
-        {
-            return;
-        }
+      /* search through our argument list, and see if it matches */
+      for (i = 0; opts[i].opt; i++) 
+	{
+	  if (!strcmp(opts[i].opt, (*argv)[0]))
+	    {
+	      /* found our argument */
+	      found = 1;
 
-        /* check if it *is* an arg.. */
-        if((*argv)[0][0] != OPTCHAR)
-        {
-            return;
-        }
+	      switch (opts[i].argtype)
+		{
+		case YESNO:
+		  *((int *)opts[i].argloc) = 1;
+		  break;
+		case INTEGER:
+		  if (*argc < 2)
+		    {
+		      fprintf(stderr, "Error: option '%c%s' requires an argument\n",
+			      OPTCHAR, opts[i].opt);
+		      usage((*argv)[0]);
+		    }
+		  
+		  *((int *)opts[i].argloc) = atoi((*argv)[1]);
+		  break;
+		case STRING:
+		  if (*argc < 2)
+		    {
+		      fprintf(stderr, "error: option '%c%s' requires an argument\n",
+			      OPTCHAR, opts[i].opt);
+		      usage(progname);
+		    }
+		  
+		  *((char**)opts[i].argloc) = malloc(strlen((*argv)[1]) + 1);
+		  strcpy(*((char**)opts[i].argloc), (*argv)[1]);
+		  break;
 
-        (*argv)[0]++;
+		case USAGE:
+		  usage(progname);
+		  /*NOTREACHED*/
 
-        /* search through our argument list, and see if it matches */
-        for(i = 0; opts[i].opt; i++)
-        {
-            if(!strcmp(opts[i].opt, (*argv)[0]))
-            {
-                /* found our argument */
-                found = 1;
-
-                switch(opts[i].argtype)
-                {
-                case YESNO:
-                    *((int *)opts[i].argloc) = 1;
-                    break;
-                case INTEGER:
-                    if(*argc < 2)
-                    {
-                        fprintf(stderr,
-                                "Error: option '%c%s' requires an argument\n",
-                                OPTCHAR, opts[i].opt);
-                        usage((*argv)[0]);
-                    }
-
-                    *((int *)opts[i].argloc) = atoi((*argv)[1]);
-                    break;
-                case STRING:
-                    if(*argc < 2)
-                    {
-                        fprintf(stderr,
-                                "error: option '%c%s' requires an argument\n",
-                                OPTCHAR, opts[i].opt);
-                        usage(progname);
-                    }
-
-                    *((char **)opts[i].argloc) = malloc(strlen((*argv)[1]) + 1);
-                    strcpy(*((char **)opts[i].argloc), (*argv)[1]);
-                    break;
-
-                case USAGE:
-                    usage(progname);
-                /*NOTREACHED*/
-
-                default:
-                    fprintf(stderr,
-                            "Error: internal error in parseargs() at %s:%d\n",
-                            __FILE__, __LINE__);
-                    exit(EXIT_FAILURE);
-                }
-            }
-        }
-        if(!found)
-        {
-            fprintf(stderr, "error: unknown argument '%c%s'\n", OPTCHAR,
-                    (*argv)[0]);
-            usage(progname);
-        }
+		default:
+		  fprintf(stderr, "Error: internal error in parseargs() at %s:%d\n",
+			  __FILE__, __LINE__);
+		  exit(EXIT_FAILURE);
+		}
+	    }
+	}
+	if (!found)
+	  {
+	    fprintf(stderr, "error: unknown argument '%c%s'\n", OPTCHAR, (*argv)[0]);
+	    usage(progname);
+	  }
     }
 }
 
-static void
+static void 
 usage(const char *name)
 {
-    int i;
+  int i;
+  
+  fprintf(stderr, "Usage: %s [options]\n", name);
+  fprintf(stderr, "Where valid options are:\n");
+  
+  for (i = 0; myopts[i].opt; i++)
+  {
+    fprintf(stderr, "\t%c%-10s %-20s%s\n", OPTCHAR, myopts[i].opt, 
+            (myopts[i].argtype == YESNO || myopts[i].argtype == USAGE) ? "" : 
+            myopts[i].argtype == INTEGER ? "<number>" : "<string>",
+            myopts[i].desc);
+  }
 
-    fprintf(stderr, "Usage: %s [options]\n", name);
-    fprintf(stderr, "Where valid options are:\n");
-
-    for(i = 0; myopts[i].opt; i++)
-    {
-        fprintf(stderr, "\t%c%-10s %-20s%s\n", OPTCHAR, myopts[i].opt,
-                (myopts[i].argtype == YESNO || myopts[i].argtype == USAGE)
-                    ? ""
-                    : myopts[i].argtype == INTEGER ? "<number>" : "<string>",
-                myopts[i].desc);
-    }
-
-    exit(EXIT_FAILURE);
+  exit(EXIT_FAILURE);
 }
+

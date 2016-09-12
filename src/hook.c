@@ -23,15 +23,15 @@
  *  $Id: hook.c 157 2005-10-18 06:33:24Z adx $
  */
 
+#include "stdinc.h"
 #include "hook.h"
-#include "irc_string.h"
 #include "ircd.h"
 #include "list.h"
 #include "memory.h"
 #include "numeric.h"
-#include "send.h"
-#include "stdinc.h"
 #include "tools.h"
+#include "irc_string.h"
+#include "send.h"
 
 dlink_list callback_list = {NULL, NULL, 0};
 
@@ -57,25 +57,25 @@ dlink_list callback_list = {NULL, NULL, 0};
 struct Callback *
 register_callback(const char *name, CBFUNC *func)
 {
-    struct Callback *cb;
+  struct Callback *cb;
 
-    if(name != NULL)
-        if((cb = find_callback(name)) != NULL)
-        {
-            if(func != NULL)
-                dlinkAdd(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
-            return (NULL);
-        }
-
-    cb = MyMalloc(sizeof(struct Callback));
-    if(func != NULL)
-        dlinkAdd(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
-    if(name != NULL)
+  if (name != NULL)
+    if ((cb = find_callback(name)) != NULL)
     {
-        DupString(cb->name, name);
-        dlinkAdd(cb, &cb->node, &callback_list);
+      if (func != NULL)
+        dlinkAdd(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
+      return (NULL);
     }
-    return (cb);
+
+  cb = MyMalloc(sizeof(struct Callback));
+  if (func != NULL)
+    dlinkAdd(func, MyMalloc(sizeof(dlink_node)), &cb->chain);
+  if (name != NULL)
+  {
+    DupString(cb->name, name);
+    dlinkAdd(cb, &cb->node, &callback_list);
+  }
+  return (cb);
 }
 
 /*
@@ -91,19 +91,19 @@ register_callback(const char *name, CBFUNC *func)
 void *
 execute_callback(struct Callback *cb, ...)
 {
-    void *res;
-    va_list args;
+  void *res;
+  va_list args;
 
-    cb->called++;
-    cb->last = CurrentTime;
+  cb->called++;
+  cb->last = CurrentTime;
 
-    if(!is_callback_present(cb))
-        return (NULL);
+  if (!is_callback_present(cb))
+    return (NULL);
 
-    va_start(args, cb);
-    res = ((CBFUNC *)cb->chain.head->data)(args);
-    va_end(args);
-    return (res);
+  va_start(args, cb);
+  res = ((CBFUNC *) cb->chain.head->data)(args);
+  va_end(args);
+  return (res);
 }
 
 /*
@@ -120,16 +120,16 @@ execute_callback(struct Callback *cb, ...)
 void *
 pass_callback(dlink_node *this_hook, ...)
 {
-    void *res;
-    va_list args;
+  void *res;
+  va_list args;
 
-    if(this_hook->next == NULL)
-        return (NULL); /* reached the last one */
+  if (this_hook->next == NULL)
+    return (NULL);  /* reached the last one */
 
-    va_start(args, this_hook);
-    res = ((CBFUNC *)this_hook->next->data)(args);
-    va_end(args);
-    return (res);
+  va_start(args, this_hook);
+  res = ((CBFUNC *) this_hook->next->data)(args);
+  va_end(args);
+  return (res);
 }
 
 /*
@@ -144,17 +144,17 @@ pass_callback(dlink_node *this_hook, ...)
 struct Callback *
 find_callback(const char *name)
 {
-    struct Callback *cb;
-    dlink_node *ptr;
+  struct Callback *cb;
+  dlink_node *ptr;
 
-    DLINK_FOREACH(ptr, callback_list.head)
-    {
-        cb = ptr->data;
-        if(!irccmp(cb->name, name))
-            return (cb);
-    }
+  DLINK_FOREACH(ptr, callback_list.head)
+  {
+    cb = ptr->data;
+    if (!irccmp(cb->name, name))
+      return (cb);
+  }
 
-    return (NULL);
+  return (NULL);
 }
 
 /*
@@ -175,10 +175,10 @@ find_callback(const char *name)
 dlink_node *
 install_hook(struct Callback *cb, CBFUNC *hook)
 {
-    dlink_node *node = MyMalloc(sizeof(dlink_node));
+  dlink_node *node = MyMalloc(sizeof(dlink_node));
 
-    dlinkAdd(hook, node, &cb->chain);
-    return (node);
+  dlinkAdd(hook, node, &cb->chain);
+  return (node);
 }
 
 /*
@@ -194,11 +194,11 @@ install_hook(struct Callback *cb, CBFUNC *hook)
 void
 uninstall_hook(struct Callback *cb, CBFUNC *hook)
 {
-    /* let it core if not found */
-    dlink_node *ptr = dlinkFind(&cb->chain, hook);
+  /* let it core if not found */
+  dlink_node *ptr = dlinkFind(&cb->chain, hook);
 
-    dlinkDelete(ptr, &cb->chain);
-    MyFree(ptr);
+  dlinkDelete(ptr, &cb->chain);
+  MyFree(ptr);
 }
 
 /*
@@ -214,31 +214,30 @@ uninstall_hook(struct Callback *cb, CBFUNC *hook)
 void
 stats_hooks(struct Client *source_p)
 {
-    dlink_node *ptr;
-    struct Callback *cb;
-    char lastused[32];
+  dlink_node *ptr;
+  struct Callback *cb;
+  char lastused[32];
 
-    sendto_one(source_p, ":%s %d %s : %-20s %-20s Used     Hooks", me.name,
-               RPL_STATSDEBUG, source_p->name, "Callback", "Last Execution");
-    sendto_one(source_p, ":%s %d %s : ------------------------------------"
-                         "--------------------",
-               me.name, RPL_STATSDEBUG, source_p->name);
+  sendto_one(source_p, ":%s %d %s : %-20s %-20s Used     Hooks", me.name,
+             RPL_STATSDEBUG, source_p->name, "Callback", "Last Execution");
+  sendto_one(source_p, ":%s %d %s : ------------------------------------"
+             "--------------------", me.name, RPL_STATSDEBUG, source_p->name);
 
-    DLINK_FOREACH(ptr, callback_list.head)
-    {
-        cb = ptr->data;
+  DLINK_FOREACH(ptr, callback_list.head)
+  {
+    cb = ptr->data;
 
-        if(cb->last != 0)
-            snprintf(lastused, sizeof(lastused), "%d seconds ago",
-                     (int)(CurrentTime - cb->last));
-        else
-            strcpy(lastused, "NEVER");
+    if (cb->last != 0)
+      snprintf(lastused, sizeof(lastused), "%d seconds ago",
+               (int) (CurrentTime - cb->last));
+    else
+      strcpy(lastused, "NEVER");
 
-        sendto_one(source_p, ":%s %d %s : %-20s %-20s %-8u %d", me.name,
-                   RPL_STATSDEBUG, source_p->name, cb->name, lastused,
-                   cb->called, dlink_list_length(&cb->chain));
-    }
+    sendto_one(source_p, ":%s %d %s : %-20s %-20s %-8u %d", me.name,
+               RPL_STATSDEBUG, source_p->name, cb->name, lastused, cb->called,
+	       dlink_list_length(&cb->chain));
+  }
 
-    sendto_one(source_p, ":%s %d %s : ", me.name, RPL_STATSDEBUG,
-               source_p->name);
+  sendto_one(source_p, ":%s %d %s : ", me.name, RPL_STATSDEBUG,
+             source_p->name);
 }

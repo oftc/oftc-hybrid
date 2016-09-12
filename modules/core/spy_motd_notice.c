@@ -23,12 +23,12 @@
  */
 #include "stdinc.h"
 #ifndef STATIC_MODULES
-#include "client.h"
-#include "hook.h"
-#include "ircd.h"
-#include "modules.h"
-#include "send.h"
 #include "tools.h"
+#include "modules.h"
+#include "hook.h"
+#include "client.h"
+#include "ircd.h"
+#include "send.h"
 
 static struct Callback *motd_cb = NULL;
 static dlink_node *prev_hook;
@@ -38,15 +38,15 @@ static void *show_motd(va_list);
 void
 _modinit(void)
 {
-    if((motd_cb = find_callback("doing_motd")))
-        prev_hook = install_hook(motd_cb, show_motd);
+  if ((motd_cb = find_callback("doing_motd")))
+    prev_hook = install_hook(motd_cb, show_motd);
 }
 
 void
 _moddeinit(void)
 {
-    if(motd_cb)
-        uninstall_hook(motd_cb, show_motd);
+  if (motd_cb)
+    uninstall_hook(motd_cb, show_motd);
 }
 
 const char *_version = "$Revision: 33 $";
@@ -54,16 +54,16 @@ const char *_version = "$Revision: 33 $";
 static void *
 show_motd(va_list args)
 {
-    struct Client *source_p = va_arg(args, struct Client *);
-    int parc                = va_arg(args, int);
-    char **parv             = va_arg(args, char **);
+  struct Client *source_p = va_arg(args, struct Client *);
+  int parc = va_arg(args, int);
+  char **parv = va_arg(args, char **);
 
-    if(IsClient(source_p))
-        sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
-                             "motd requested by %s (%s@%s) [%s]",
-                             source_p->name, source_p->username, source_p->host,
-                             source_p->servptr->name);
+  if (IsClient(source_p))
+    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+                         "motd requested by %s (%s@%s) [%s]",
+                         source_p->name, source_p->username,
+                         source_p->host, source_p->servptr->name);
 
-    return pass_callback(prev_hook, source_p, parc, parv);
+  return pass_callback(prev_hook, source_p, parc, parv);
 }
 #endif

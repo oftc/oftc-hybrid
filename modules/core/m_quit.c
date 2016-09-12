@@ -22,38 +22,37 @@
  *  $Id$
  */
 
-#include "client.h"
+#include "stdinc.h"
 #include "handlers.h"
-#include "irc_string.h"
+#include "client.h"
 #include "ircd.h"
-#include "modules.h"
-#include "msg.h"
-#include "parse.h"
-#include "s_conf.h"
+#include "irc_string.h"
 #include "s_serv.h"
 #include "send.h"
-#include "stdinc.h"
+#include "msg.h"
+#include "parse.h"
+#include "modules.h"
+#include "s_conf.h"
 
 static void m_quit(struct Client *, struct Client *, int, char *[]);
 static void ms_quit(struct Client *, struct Client *, int, char *[]);
 
 struct Message quit_msgtab = {
-    "QUIT", 0,
-    0,      0,
-    0,      MFLG_SLOW | MFLG_UNREG,
-    0,      {m_quit, m_quit, ms_quit, m_ignore, m_quit, m_ignore}};
+  "QUIT", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
+  {m_quit, m_quit, ms_quit, m_ignore, m_quit, m_ignore}
+};
 
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
-    mod_add_cmd(&quit_msgtab);
+  mod_add_cmd(&quit_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-    mod_del_cmd(&quit_msgtab);
+  mod_del_cmd(&quit_msgtab);
 }
 
 const char *_version = "$Revision$";
@@ -65,23 +64,23 @@ const char *_version = "$Revision$";
 **      parv[1] = comment
 */
 static void
-m_quit(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
+m_quit(struct Client *client_p, struct Client *source_p,
+       int parc, char *parv[])
 {
-    char *comment            = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
-    char reason[KICKLEN + 1] = "Quit: ";
+  char *comment = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
+  char reason[KICKLEN + 1] = "Quit: ";
 
-    if(msg_has_colors(comment))
-        comment = strip_color(comment);
+  if (msg_has_colors(comment))
+    comment = strip_color(comment);
+  
+  if (comment[0] && (IsOper(source_p) ||
+      (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
+      < CurrentTime))
+    strlcpy(reason+6, comment, sizeof(reason)-6);
+  else
+    reason[0] = 0;
 
-    if(comment[0] &&
-       (IsOper(source_p) ||
-        (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time) <
-            CurrentTime))
-        strlcpy(reason + 6, comment, sizeof(reason) - 6);
-    else
-        reason[0] = 0;
-
-    exit_client(source_p, source_p, reason);
+  exit_client(source_p, source_p, reason);
 }
 
 /*
@@ -90,13 +89,13 @@ m_quit(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
 **      parv[1] = comment
 */
 static void
-ms_quit(struct Client *client_p, struct Client *source_p, int parc,
-        char *parv[])
+ms_quit(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
 {
-    char *comment = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
+  char *comment = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
 
-    if(strlen(comment) > (size_t)KICKLEN)
-        comment[KICKLEN] = '\0';
+  if (strlen(comment) > (size_t)KICKLEN)
+    comment[KICKLEN] = '\0';
 
-    exit_client(source_p, source_p, comment);
+  exit_client(source_p, source_p, comment);
 }

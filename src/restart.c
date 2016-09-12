@@ -22,75 +22,75 @@
  *  $Id$
  */
 
-#include "restart.h"
-#include "client.h" /* for UMODE_ALL */
-#include "common.h"
-#include "fdlist.h"
-#include "irc_string.h"
-#include "ircd.h"
-#include "memory.h"
-#include "s_log.h"
-#include "send.h"
 #include "stdinc.h"
 #include "tools.h"
+#include "restart.h"
+#include "common.h"
+#include "fdlist.h"
+#include "ircd.h"
+#include "irc_string.h"
+#include "send.h"
+#include "s_log.h"
+#include "client.h" /* for UMODE_ALL */
+#include "memory.h"
 
 void
 restart(const char *mesg)
 {
-    static int was_here = 0; /* redundant due to restarting flag below */
+  static int was_here = 0; /* redundant due to restarting flag below */
 
-    if(was_here)
-        abort();
-    was_here = 1;
+  if (was_here)
+    abort();
+  was_here = 1;
 
-    server_die(mesg, YES);
+  server_die(mesg, YES);
 }
 
 void
 server_die(const char *mesg, int rboot)
 {
-    char buffer[IRCD_BUFSIZE];
-    dlink_node *ptr         = NULL;
-    struct Client *target_p = NULL;
-    static int was_here     = 0;
+  char buffer[IRCD_BUFSIZE];
+  dlink_node *ptr = NULL;
+  struct Client *target_p = NULL;
+  static int was_here = 0;
 
-    if(rboot && was_here++)
-        abort();
+  if (rboot && was_here++)
+    abort();
 
-    if(EmptyString(mesg))
-        snprintf(buffer, sizeof(buffer), "Server %s",
-                 rboot ? "Restarting" : "Terminating");
-    else
-        snprintf(buffer, sizeof(buffer), "Server %s: %s",
-                 rboot ? "Restarting" : "Terminating", mesg);
+  if (EmptyString(mesg))
+    snprintf(buffer, sizeof(buffer), "Server %s",
+             rboot ? "Restarting" : "Terminating");
+  else
+    snprintf(buffer, sizeof(buffer), "Server %s: %s",
+             rboot ? "Restarting" : "Terminating", mesg);
 
-    DLINK_FOREACH(ptr, local_client_list.head)
-    {
-        target_p = ptr->data;
+  DLINK_FOREACH(ptr, local_client_list.head)
+  {
+    target_p = ptr->data;
 
-        sendto_one(target_p, ":%s NOTICE %s :%s", me.name, target_p->name,
-                   buffer);
-    }
+    sendto_one(target_p, ":%s NOTICE %s :%s",
+               me.name, target_p->name, buffer);
+  }
 
-    DLINK_FOREACH(ptr, serv_list.head)
-    {
-        target_p = ptr->data;
+  DLINK_FOREACH(ptr, serv_list.head)
+  {
+    target_p = ptr->data;
 
-        sendto_one(target_p, ":%s ERROR :%s", me.name, buffer);
-    }
+    sendto_one(target_p, ":%s ERROR :%s", me.name, buffer);
+  }
 
-    ilog(L_NOTICE, "%s", buffer);
+  ilog(L_NOTICE, "%s", buffer);
 
-    send_queued_all();
-    close_fds(NULL);
+  send_queued_all();
+  close_fds(NULL);
 
-    unlink(pidFileName);
+  unlink(pidFileName);
 
-    if(rboot)
-    {
-        execv(SPATH, myargv);
-        exit(1);
-    }
-    else
-        exit(0);
+  if (rboot)
+  {
+    execv(SPATH, myargv);
+    exit(1);
+  }
+  else
+    exit(0);
 }

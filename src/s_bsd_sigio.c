@@ -25,24 +25,24 @@
  */
 
 #ifndef _GNU_SOURCE
-#define _GNU_SOURCE 1 /* Needed for F_SETSIG */
+#define _GNU_SOURCE 1           /* Needed for F_SETSIG */
 #endif
 
 #include "stdinc.h"
 #if USE_IOPOLL_MECHANISM == __IOPOLL_MECHANISM_RTSIGIO
+#include <sys/poll.h>
 #include "fdlist.h"
 #include "hook.h"
 #include "ircd.h"
 #include "s_bsd.h"
 #include "s_log.h"
-#include <sys/poll.h>
 
 #define SIGIO_SIGNAL SIGRTMIN
 
 static pid_t my_pid;
 static sigset_t our_sigset;
 static struct pollfd *pollfds;
-static int pollmax = -1; /* highest FD number */
+static int pollmax = -1;  /* highest FD number */
 static dlink_node *fdlim_hook, *setupfd_hook;
 
 /*
@@ -55,15 +55,15 @@ static dlink_node *fdlim_hook, *setupfd_hook;
 static void
 mask_our_signal()
 {
-    sigemptyset(&our_sigset);
-    sigaddset(&our_sigset, SIGIO_SIGNAL);
-    sigaddset(&our_sigset, SIGIO);
-    sigprocmask(SIG_BLOCK, &our_sigset, NULL);
+  sigemptyset(&our_sigset);
+  sigaddset(&our_sigset, SIGIO_SIGNAL);
+  sigaddset(&our_sigset, SIGIO);
+  sigprocmask(SIG_BLOCK, &our_sigset, NULL);
 }
 
 /*
  * void setup_sigio_fd(int fd)
- *
+ * 
  * Input: File descriptor
  * Output: None
  * Side Effect: Sets the FD up for SIGIO
@@ -71,13 +71,13 @@ mask_our_signal()
 static void *
 setup_sigio_fd(va_list args)
 {
-    int fd = va_arg(args, int);
+  int fd = va_arg(args, int);
 
-    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_ASYNC);
-    fcntl(fd, F_SETSIG, SIGIO_SIGNAL);
-    fcntl(fd, F_SETOWN, my_pid);
+  fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_ASYNC);
+  fcntl(fd, F_SETSIG, SIGIO_SIGNAL);
+  fcntl(fd, F_SETOWN, my_pid);
 
-    return pass_callback(setupfd_hook, fd);
+  return pass_callback(setupfd_hook, fd);
 }
 
 /*
@@ -88,14 +88,14 @@ setup_sigio_fd(va_list args)
 static void *
 changing_fdlimit(va_list args)
 {
-    int old_fdlimit = hard_fdlimit;
+  int old_fdlimit = hard_fdlimit;
 
-    pass_callback(fdlim_hook, va_arg(args, int));
+  pass_callback(fdlim_hook, va_arg(args, int));
 
-    if(hard_fdlimit != old_fdlimit)
-        pollfds = MyRealloc(pollfds, sizeof(struct pollfd) * hard_fdlimit);
+  if (hard_fdlimit != old_fdlimit)
+    pollfds = MyRealloc(pollfds, sizeof(struct pollfd) * hard_fdlimit);
 
-    return NULL;
+  return NULL;
 }
 
 /*
@@ -103,24 +103,24 @@ changing_fdlimit(va_list args)
  *
  * Input: None
  * Output: None
- * Side Effects: This is a needed exported function which will
+ * Side Effects: This is a needed exported function which will 
  *		 be called to initialise the network loop code.
  */
 void
 init_netio(void)
 {
-    int fd;
+  int fd;
 
-    pollfds = MyMalloc(sizeof(struct pollfd) * hard_fdlimit);
+  pollfds = MyMalloc(sizeof(struct pollfd) * hard_fdlimit);
 
-    for(fd             = 0; fd < hard_fdlimit; fd++)
-        pollfds[fd].fd = -1;
+  for (fd = 0; fd < hard_fdlimit; fd++)
+    pollfds[fd].fd = -1;
 
-    setupfd_hook = install_hook(setup_socket_cb, setup_sigio_fd);
-    fdlim_hook   = install_hook(fdlimit_cb, changing_fdlimit);
+  setupfd_hook = install_hook(setup_socket_cb, setup_sigio_fd);
+  fdlim_hook = install_hook(fdlimit_cb, changing_fdlimit);
 
-    my_pid = getpid();
-    mask_our_signal(SIGIO_SIGNAL);
+  my_pid = getpid();
+  mask_our_signal(SIGIO_SIGNAL);
 }
 
 /*
@@ -130,20 +130,20 @@ init_netio(void)
 static inline int
 poll_findslot(void)
 {
-    int i;
+  int i;
 
-    for(i = 0; i < hard_fdlimit; i++)
+  for (i = 0; i < hard_fdlimit; i++)
+  {
+    if (pollfds[i].fd == -1)
     {
-        if(pollfds[i].fd == -1)
-        {
-            /* MATCH!!#$*&$ */
-            return i;
-        }
+      /* MATCH!!#$*&$ */
+      return i;
     }
+  }
 
-    assert(1 == 0);
-    /* NOTREACHED */
-    return -1;
+  assert(1 == 0);
+  /* NOTREACHED */
+  return -1;
 }
 
 /*
@@ -153,60 +153,60 @@ poll_findslot(void)
  * and deregister interest in a pending IO state for a given FD.
  */
 void
-comm_setselect(fde_t *F, unsigned int type, PF *handler, void *client_data,
-               time_t timeout)
+comm_setselect(fde_t *F, unsigned int type, PF *handler,
+               void *client_data, time_t timeout)
 {
-    int new_events;
+  int new_events;
 
-    if((type & COMM_SELECT_READ))
+  if ((type & COMM_SELECT_READ))
+  {
+    F->read_handler = handler;
+    F->read_data = client_data;
+  }
+
+  if ((type & COMM_SELECT_WRITE))
+  {
+    F->write_handler = handler;
+    F->write_data = client_data;
+  }
+
+  new_events = (F->read_handler ? POLLRDNORM : 0) |
+    (F->write_handler ? POLLWRNORM : 0);
+
+  if (timeout != 0)
+  {
+    F->timeout = CurrentTime + (timeout / 1000);
+    F->timeout_handler = handler;
+    F->timeout_data = client_data;
+  }
+
+  if (new_events != F->evcache)
+  {
+    if (new_events == 0)
     {
-        F->read_handler = handler;
-        F->read_data    = client_data;
+      pollfds[F->comm_index].fd = -1;
+      pollfds[F->comm_index].revents = 0;
+
+      if (pollmax == F->comm_index)
+        while (pollmax >= 0 && pollfds[pollmax].fd == -1)
+          pollmax--;
+    }
+    else
+    {
+      if (F->evcache == 0)
+      {
+        F->comm_index = poll_findslot();
+        if (F->comm_index > pollmax)
+          pollmax = F->comm_index;
+
+        pollfds[F->comm_index].fd = F->fd;
+      }
+      pollfds[F->comm_index].events = new_events;
+      pollfds[F->comm_index].revents = 0;
     }
 
-    if((type & COMM_SELECT_WRITE))
-    {
-        F->write_handler = handler;
-        F->write_data    = client_data;
-    }
-
-    new_events = (F->read_handler ? POLLRDNORM : 0) |
-                 (F->write_handler ? POLLWRNORM : 0);
-
-    if(timeout != 0)
-    {
-        F->timeout         = CurrentTime + (timeout / 1000);
-        F->timeout_handler = handler;
-        F->timeout_data    = client_data;
-    }
-
-    if(new_events != F->evcache)
-    {
-        if(new_events == 0)
-        {
-            pollfds[F->comm_index].fd      = -1;
-            pollfds[F->comm_index].revents = 0;
-
-            if(pollmax == F->comm_index)
-                while(pollmax >= 0 && pollfds[pollmax].fd == -1)
-                    pollmax--;
-        }
-        else
-        {
-            if(F->evcache == 0)
-            {
-                F->comm_index = poll_findslot();
-                if(F->comm_index > pollmax)
-                    pollmax = F->comm_index;
-
-                pollfds[F->comm_index].fd = F->fd;
-            }
-            pollfds[F->comm_index].events  = new_events;
-            pollfds[F->comm_index].revents = 0;
-        }
-
-        F->evcache = new_events;
-    }
+    F->evcache = new_events;
+  }
 }
 
 /*
@@ -220,102 +220,102 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler, void *client_data,
 void
 comm_select(void)
 {
-    static time_t last_rtsigqo_warning = 0;
-    struct timespec timeout;
-    struct siginfo si;
-    int i, revents, num;
-    fde_t *F;
-    PF *hdl;
+  static time_t last_rtsigqo_warning = 0;
+  struct timespec timeout;
+  struct siginfo si;
+  int i, revents, num;
+  fde_t *F;
+  PF *hdl;
 
-    timeout.tv_sec  = 0;
-    timeout.tv_nsec = 1000000 * SELECT_DELAY;
-    i               = sigtimedwait(&our_sigset, &si, &timeout);
+  timeout.tv_sec = 0;
+  timeout.tv_nsec = 1000000 * SELECT_DELAY;
+  i = sigtimedwait(&our_sigset, &si, &timeout);
 
-    set_time();
+  set_time();
 
-    if(i != SIGIO)
+  if (i != SIGIO)
+  {
+    if (i > 0)
     {
-        if(i > 0)
+      F = lookup_fd(si.si_fd);
+      if (F == NULL || !F->flags.open)
+        return;
+
+      if (si.si_band & (POLLRDNORM | POLLIN | POLLHUP | POLLERR))
+        if ((hdl = F->read_handler) != NULL)
         {
-            F = lookup_fd(si.si_fd);
-            if(F == NULL || !F->flags.open)
-                return;
-
-            if(si.si_band & (POLLRDNORM | POLLIN | POLLHUP | POLLERR))
-                if((hdl = F->read_handler) != NULL)
-                {
-                    F->read_handler = NULL;
-                    hdl(F, F->read_data);
-                    if(!F->flags.open)
-                        return;
-                }
-
-            if(si.si_band & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR))
-                if((hdl = F->write_handler) != NULL)
-                {
-                    F->write_handler = NULL;
-                    hdl(F, F->write_data);
-                    if(!F->flags.open)
-                        return;
-                }
-
-            comm_setselect(F, 0, NULL, NULL, 0);
+          F->read_handler = NULL;
+          hdl(F, F->read_data);
+	  if (!F->flags.open)
+	    return;
         }
 
-        return;
+      if (si.si_band & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR))
+        if ((hdl = F->write_handler) != NULL)
+        {
+          F->write_handler = NULL;
+          hdl(F, F->write_data);
+	  if (!F->flags.open)
+	    return;
+        }
+
+      comm_setselect(F, 0, NULL, NULL, 0);
     }
 
-    /* RT signal queue overflowed.. */
+    return;
+  }
 
-    if(CurrentTime - last_rtsigqo_warning >= 30)
-    {
-        ilog(L_WARN, "Kernel RT Signal queue overflowed.  "
-                     "Is /proc/sys/kernel/rtsig-max too small?");
-        last_rtsigqo_warning = CurrentTime;
-    }
+  /* RT signal queue overflowed.. */
 
-    signal(SIGIO_SIGNAL, SIG_IGN);
-    signal(SIGIO_SIGNAL, SIG_DFL);
+  if (CurrentTime - last_rtsigqo_warning >= 30)
+  {
+    ilog(L_WARN, "Kernel RT Signal queue overflowed.  "
+                 "Is /proc/sys/kernel/rtsig-max too small?");
+    last_rtsigqo_warning = CurrentTime;
+  }
 
-    /* ..try polling instead */
+  signal(SIGIO_SIGNAL, SIG_IGN);
+  signal(SIGIO_SIGNAL, SIG_DFL);
 
-    while((num = poll(pollfds, pollmax + 1, 0)) < 0 && ignoreErrno(errno))
-        ;
+  /* ..try polling instead */
 
-    /* update current time again, eww.. */
-    set_time();
+  while ((num = poll(pollfds, pollmax + 1, 0)) < 0 && ignoreErrno(errno))
+    ;
 
-    for(i = 0; i <= pollmax && num > 0; i++)
-    {
-        if((revents = pollfds[i].revents) == 0 || pollfds[i].fd == -1)
-            continue;
-        num--;
+  /* update current time again, eww.. */
+  set_time();
 
-        F = lookup_fd(pollfds[i].fd);
-        if(F == NULL || !F->flags.open)
-            continue;
+  for (i = 0; i <= pollmax && num > 0; i++)
+  {
+    if ((revents = pollfds[i].revents) == 0 || pollfds[i].fd == -1)
+      continue;
+    num--;
 
-        if(revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR))
-            if((hdl = F->read_handler) != NULL)
-            {
-                F->read_handler = NULL;
-                hdl(F, F->read_data);
-                if(!F->flags.open)
-                    continue;
-            }
+    F = lookup_fd(pollfds[i].fd);
+    if (F == NULL || !F->flags.open)
+      continue;
 
-        if(revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR))
-            if((hdl = F->write_handler) != NULL)
-            {
-                F->write_handler = NULL;
-                hdl(F, F->write_data);
-                if(!F->flags.open)
-                    continue;
-            }
+    if (revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR))
+      if ((hdl = F->read_handler) != NULL)
+      {
+        F->read_handler = NULL;
+        hdl(F, F->read_data);
+	if (!F->flags.open)
+	  continue;
+      }
 
-        comm_setselect(F, 0, NULL, NULL, 0);
-    }
+    if (revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR))
+      if ((hdl = F->write_handler) != NULL)
+      {
+        F->write_handler = NULL;
+        hdl(F, F->write_data);
+	if (!F->flags.open)
+	  continue;
+      }
 
-    mask_our_signal(SIGIO_SIGNAL);
+    comm_setselect(F, 0, NULL, NULL, 0);
+  }
+
+  mask_our_signal(SIGIO_SIGNAL);
 }
 #endif

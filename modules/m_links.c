@@ -22,31 +22,30 @@
  *  $Id$
  */
 
-#include "client.h"
+#include "stdinc.h"
 #include "handlers.h"
-#include "hook.h"
+#include "client.h"
 #include "irc_string.h"
 #include "ircd.h"
-#include "modules.h"
-#include "motd.h"
-#include "msg.h"
 #include "numeric.h"
-#include "parse.h"
-#include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "stdinc.h"
+#include "s_conf.h"
+#include "msg.h"
+#include "motd.h"
+#include "parse.h"
+#include "modules.h"
+#include "hook.h"
 
 static void do_links(struct Client *, int, char **);
-static void m_links(struct Client *, struct Client *, int, char **);
-static void mo_links(struct Client *, struct Client *, int, char **);
-static void ms_links(struct Client *, struct Client *, int, char **);
+static void m_links(struct Client*, struct Client*, int, char**);
+static void mo_links(struct Client*, struct Client*, int, char**);
+static void ms_links(struct Client*, struct Client*, int, char**);
 
 struct Message links_msgtab = {
-    "LINKS", 0,
-    0,       0,
-    0,       MFLG_SLOW,
-    0,       {m_unregistered, m_links, ms_links, m_ignore, mo_links, m_ignore}};
+  "LINKS", 0, 0, 0, 0, MFLG_SLOW, 0,
+  {m_unregistered, m_links, ms_links, m_ignore, mo_links, m_ignore}
+};
 
 #ifndef STATIC_MODULES
 const char *_version = "$Revision$";
@@ -55,26 +54,26 @@ static struct Callback *links_cb;
 static void *
 va_links(va_list args)
 {
-    struct Client *source_p = va_arg(args, struct Client *);
-    int parc                = va_arg(args, int);
-    char **parv             = va_arg(args, char **);
+  struct Client *source_p = va_arg(args, struct Client *);
+  int parc = va_arg(args, int);
+  char **parv = va_arg(args, char **);
 
-    do_links(source_p, parc, parv);
-    return NULL;
+  do_links(source_p, parc, parv);
+  return NULL;
 }
 
 void
 _modinit(void)
 {
-    links_cb = register_callback("doing_links", va_links);
-    mod_add_cmd(&links_msgtab);
+  links_cb = register_callback("doing_links", va_links);
+  mod_add_cmd(&links_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-    mod_del_cmd(&links_msgtab);
-    uninstall_hook(links_cb, va_links);
+  mod_del_cmd(&links_msgtab);
+  uninstall_hook(links_cb, va_links);
 }
 
 #endif
@@ -82,64 +81,64 @@ _moddeinit(void)
 static void
 do_links(struct Client *source_p, int parc, char **parv)
 {
-    if(IsOper(source_p) || !ConfigServerHide.flatten_links)
+  if (IsOper(source_p) || !ConfigServerHide.flatten_links)
+  {
+    char *mask = (parc > 2 ? parv[2] : parv[1]);
+    const char *me_name, *nick, *p;
+    struct Client *target_p;
+    char clean_mask[2 * HOSTLEN + 4];
+    dlink_node *ptr;
+
+    if (!EmptyString(mask))    /* only necessary if there is a mask */
+      mask = collapse(clean_string(clean_mask, (const unsigned char*) mask, 2 * HOSTLEN));
+
+    me_name = ID_or_name(&me, source_p->from);
+    nick = ID_or_name(source_p, source_p->from);
+
+    DLINK_FOREACH(ptr, global_serv_list.head)
     {
-        char *mask = (parc > 2 ? parv[2] : parv[1]);
-        const char *me_name, *nick, *p;
-        struct Client *target_p;
-        char clean_mask[2 * HOSTLEN + 4];
-        dlink_node *ptr;
+      target_p = ptr->data;
 
-        if(!EmptyString(mask)) /* only necessary if there is a mask */
-            mask = collapse(clean_string(
-                clean_mask, (const unsigned char *)mask, 2 * HOSTLEN));
+      if (!EmptyString(mask) && !match(mask, target_p->name))
+        continue;
 
-        me_name = ID_or_name(&me, source_p->from);
-        nick    = ID_or_name(source_p, source_p->from);
+      if (target_p->info[0])
+      {
+        if ((p = strchr(target_p->info, ']')))
+          p += 2; /* skip the nasty [IP] part */
+        else
+          p = target_p->info;
+      } 
+      else
+        p = "(Unknown Location)";
 
-        DLINK_FOREACH(ptr, global_serv_list.head)
-        {
-            target_p = ptr->data;
-
-            if(!EmptyString(mask) && !match(mask, target_p->name))
-                continue;
-
-            if(target_p->info[0])
-            {
-                if((p = strchr(target_p->info, ']')))
-                    p += 2; /* skip the nasty [IP] part */
-                else
-                    p = target_p->info;
-            }
-            else
-                p = "(Unknown Location)";
-
-            /* We just send the reply, as if they are here there's either no
-             * SHIDE,
-             * or they're an oper..
-             */
-            sendto_one(source_p, form_str(RPL_LINKS), me_name, nick,
-                       target_p->name, target_p->servptr->name,
-                       target_p->hopcount, p);
-        }
-
-        sendto_one(source_p, form_str(RPL_ENDOFLINKS), me_name, nick,
-                   EmptyString(mask) ? "*" : mask);
+      /* We just send the reply, as if they are here there's either no SHIDE,
+       * or they're an oper..  
+       */
+      sendto_one(source_p, form_str(RPL_LINKS),
+                 me_name, nick,
+		 target_p->name, target_p->servptr->name,
+                 target_p->hopcount, p);
     }
-    else
-    {
-        /*
-         * Print our own info so at least it looks like a normal links
-         * then print out the file (which may or may not be empty)
-         */
-        sendto_one(
-            source_p, form_str(RPL_LINKS), ID_or_name(&me, source_p->from),
-            ID_or_name(source_p, source_p->from), me.name, me.name, 0, me.info);
-        send_message_file(source_p, &ConfigFileEntry.linksfile);
-        sendto_one(source_p, form_str(RPL_ENDOFLINKS),
-                   ID_or_name(&me, source_p->from),
-                   ID_or_name(source_p, source_p->from), "*");
-    }
+  
+    sendto_one(source_p, form_str(RPL_ENDOFLINKS),
+               me_name, nick,
+               EmptyString(mask) ? "*" : mask);
+  }
+  else {
+    /*
+     * Print our own info so at least it looks like a normal links
+     * then print out the file (which may or may not be empty)
+     */
+    sendto_one(source_p, form_str(RPL_LINKS),
+               ID_or_name(&me, source_p->from),
+               ID_or_name(source_p, source_p->from),
+               me.name, me.name, 0, me.info);
+    send_message_file(source_p, &ConfigFileEntry.linksfile);
+    sendto_one(source_p, form_str(RPL_ENDOFLINKS),
+               ID_or_name(&me, source_p->from),
+               ID_or_name(source_p, source_p->from), "*");
+  }
 }
 
 /*
@@ -148,52 +147,53 @@ do_links(struct Client *source_p, int parc, char **parv)
  *      parv[1] = servername mask
  * or
  *      parv[0] = sender prefix
- *      parv[1] = server to query
+ *      parv[1] = server to query 
  *      parv[2] = servername mask
  */
 static void
-m_links(struct Client *client_p, struct Client *source_p, int parc,
-        char *parv[])
+m_links(struct Client *client_p, struct Client *source_p,
+        int parc, char *parv[])
 {
-    static time_t last_used = 0;
+  static time_t last_used = 0;
 
-    if((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
-    {
-        sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name);
-        return;
-    }
-    else
-        last_used = CurrentTime;
+  if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
+  {
+    sendto_one(source_p, form_str(RPL_LOAD2HI),
+               me.name, source_p->name);
+    return;
+  }
+  else
+    last_used = CurrentTime;
 
-    if(!ConfigServerHide.flatten_links)
-    {
-        mo_links(client_p, source_p, parc, parv);
-        return;
-    }
+  if (!ConfigServerHide.flatten_links)
+  {
+    mo_links(client_p, source_p, parc, parv);
+    return;
+  }
 
 #ifdef STATIC_MODULES
-    do_links(source_p, parc, parv);
+  do_links(source_p, parc, parv);
 #else
-    execute_callback(links_cb, source_p, parc, parv);
+  execute_callback(links_cb, source_p, parc, parv);
 #endif
 }
 
 static void
-mo_links(struct Client *client_p, struct Client *source_p, int parc,
-         char *parv[])
+mo_links(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
 {
-    if(parc > 2)
-        if(!ConfigFileEntry.disable_remote || IsOper(source_p))
-        {
-            if(hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1, parc,
-                           parv) != HUNTED_ISME)
-                return;
-        }
+  if (parc > 2) 
+    if (!ConfigFileEntry.disable_remote || IsOper(source_p))
+    {
+        if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1, parc, parv)
+            != HUNTED_ISME)
+        return;
+    }
 
 #ifdef STATIC_MODULES
-    do_links(source_p, parc, parv);
+  do_links(source_p, parc, parv);
 #else
-    execute_callback(links_cb, source_p, parc, parv);
+  execute_callback(links_cb, source_p, parc, parv);
 #endif
 }
 
@@ -203,17 +203,17 @@ mo_links(struct Client *client_p, struct Client *source_p, int parc,
  *      parv[1] = servername mask
  * or
  *      parv[0] = sender prefix
- *      parv[1] = server to query
+ *      parv[1] = server to query 
  *      parv[2] = servername mask
  */
 static void
-ms_links(struct Client *client_p, struct Client *source_p, int parc,
-         char *parv[])
+ms_links(struct Client *client_p, struct Client *source_p,
+         int parc, char *parv[])
 {
-    if(hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1, parc, parv) !=
-       HUNTED_ISME)
-        return;
+  if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1, parc, parv)
+      != HUNTED_ISME)
+    return;
 
-    if(IsClient(source_p))
-        m_links(client_p, source_p, parc, parv);
+  if (IsClient(source_p))
+    m_links(client_p, source_p, parc, parv);
 }

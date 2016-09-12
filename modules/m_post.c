@@ -22,53 +22,51 @@
  *  $Id$
  */
 
-#include "client.h"
+#include "stdinc.h"
 #include "handlers.h"
+#include "client.h"
 #include "ircd.h"
-#include "modules.h"
-#include "msg.h"
 #include "numeric.h"
-#include "parse.h"
-#include "s_conf.h"
 #include "s_serv.h"
 #include "send.h"
-#include "stdinc.h"
+#include "msg.h"
+#include "parse.h"
+#include "modules.h"
+#include "s_conf.h"
 
-static void mr_dumb_proxy(struct Client *, struct Client *, int, char **);
+static void mr_dumb_proxy(struct Client*, struct Client*, int, char**);
 
 struct Message post_msgtab = {
-    "POST", 0,
-    0,      0,
-    0,      MFLG_SLOW | MFLG_UNREG,
-    0,      {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}};
+  "POST", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
+  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
+};
 
 struct Message get_msgtab = {
-    "GET", 0,
-    0,     0,
-    0,     MFLG_SLOW | MFLG_UNREG,
-    0,     {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}};
+  "GET", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
+  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
+};
 
 struct Message put_msgtab = {
-    "PUT", 0,
-    0,     0,
-    0,     MFLG_SLOW | MFLG_UNREG,
-    0,     {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}};
+  "PUT", 0, 0, 0, 0, MFLG_SLOW | MFLG_UNREG, 0,
+  {mr_dumb_proxy, m_ignore, m_ignore, m_ignore, m_ignore, m_ignore}
+};
+
 
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
-    mod_add_cmd(&post_msgtab);
-    mod_add_cmd(&get_msgtab);
-    mod_add_cmd(&put_msgtab);
+  mod_add_cmd(&post_msgtab);
+  mod_add_cmd(&get_msgtab);
+  mod_add_cmd(&put_msgtab);
 }
 
 void
 _moddeinit(void)
 {
-    mod_del_cmd(&post_msgtab);
-    mod_del_cmd(&get_msgtab);
-    mod_del_cmd(&put_msgtab);
+  mod_del_cmd(&post_msgtab);
+  mod_del_cmd(&get_msgtab);
+  mod_del_cmd(&put_msgtab);
 }
 
 const char *_version = "$Revision$";
@@ -80,10 +78,11 @@ const char *_version = "$Revision$";
 **      parv[1] = comment
 */
 static void
-mr_dumb_proxy(struct Client *client_p, struct Client *source_p, int parc,
-              char *parv[])
+mr_dumb_proxy(struct Client *client_p, struct Client *source_p,
+              int parc, char *parv[])
 {
-    sendto_realops_flags(UMODE_REJ, L_ALL, "HTTP Proxy disconnected: [%s@%s]",
-                         client_p->username, client_p->host);
-    exit_client(source_p, source_p, "Client Exit");
+  sendto_realops_flags(UMODE_REJ, L_ALL,
+                       "HTTP Proxy disconnected: [%s@%s]",
+                       client_p->username, client_p->host);
+  exit_client(source_p, source_p, "Client Exit");
 }

@@ -24,12 +24,12 @@
 
 #include "stdinc.h"
 #ifndef STATIC_MODULES
-#include "client.h"
-#include "hook.h"
-#include "ircd.h"
-#include "modules.h"
-#include "send.h"
 #include "tools.h"
+#include "modules.h"
+#include "hook.h"
+#include "client.h"
+#include "ircd.h"
+#include "send.h"
 
 static struct Callback *stats_cb = NULL;
 static dlink_node *prev_hook;
@@ -39,15 +39,15 @@ static void *show_stats(va_list);
 void
 _modinit(void)
 {
-    if((stats_cb = find_callback("doing_stats")))
-        prev_hook = install_hook(stats_cb, show_stats);
+  if ((stats_cb = find_callback("doing_stats")))
+    prev_hook = install_hook(stats_cb, show_stats);
 }
 
 void
 _moddeinit(void)
 {
-    if(stats_cb)
-        uninstall_hook(stats_cb, show_stats);
+  if (stats_cb)
+    uninstall_hook(stats_cb, show_stats);
 }
 
 const char *_version = "$Revision: 33 $";
@@ -56,35 +56,34 @@ const char *_version = "$Revision: 33 $";
 static void *
 show_stats(va_list args)
 {
-    struct Client *source_p = va_arg(args, struct Client *);
-    int parc                = va_arg(args, int);
-    char **parv             = va_arg(args, char **);
-    char statchar;
+  struct Client *source_p = va_arg(args, struct Client *);
+  int parc = va_arg(args, int);
+  char **parv = va_arg(args, char **);
+  char statchar;
 
-    if(parc < 2)
-        return NULL; /* shouldn't happen */
+  if (parc < 2)
+    return NULL;  /* shouldn't happen */
 
-    statchar = parv[1][0];
-    if(statchar == 'L' || statchar == 'l')
-    {
-        if(parc > 2 && *parv[2])
-            sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
-                                 "STATS %c requested by %s (%s@%s) [%s] on %s",
-                                 statchar, source_p->name, source_p->username,
-                                 source_p->host, source_p->servptr->name,
-                                 parv[2]);
-        else
-            sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
-                                 "STATS %c requested by %s (%s@%s) [%s]",
-                                 statchar, source_p->name, source_p->username,
-                                 source_p->host, source_p->servptr->name);
-    }
-    else if(statchar != 'p')
-        sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
-                             "STATS %c requested by %s (%s@%s) [%s]", statchar,
-                             source_p->name, source_p->username, source_p->host,
-                             source_p->servptr->name);
+  statchar = parv[1][0];
+  if (statchar == 'L' || statchar == 'l')
+  {
+    if (parc > 2 && *parv[2])
+      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+                           "STATS %c requested by %s (%s@%s) [%s] on %s",
+			   statchar, source_p->name, source_p->username,
+			   source_p->host, source_p->servptr->name, parv[2]);
+    else
+      sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+                           "STATS %c requested by %s (%s@%s) [%s]",
+                           statchar, source_p->name, source_p->username,
+			   source_p->host, source_p->servptr->name);
+  }
+  else if (statchar != 'p')
+    sendto_gnotice_flags(UMODE_SPY, L_ALL, me.name, &me, NULL,
+                         "STATS %c requested by %s (%s@%s) [%s]",
+                         statchar, source_p->name, source_p->username,
+                         source_p->host, source_p->servptr->name);
 
-    return pass_callback(prev_hook, source_p, parc, parv);
+  return pass_callback(prev_hook, source_p, parc, parv);
 }
 #endif
