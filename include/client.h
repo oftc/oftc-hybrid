@@ -267,6 +267,8 @@ struct LocalUser
   char*          response;  /* expected response from client */
   char*          auth_oper; /* Operator to become if they supply the response.*/
   fde_t             auth_fd;   /**< FD for authentication (ident lookup) */
+
+  X509*          cert;
 };
 
 /*

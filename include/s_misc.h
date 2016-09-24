@@ -36,6 +36,8 @@ create_certificate(RSA *, RSA *, const char *, const char *, unsigned int);
 void base16_encode(char *, size_t, const char *, size_t);
 int base16_decode(char *, size_t, const char *, size_t);
 int get_rsa_fingerprint(RSA *, char *);
+extern int check_x509store(X509_STORE *store, X509 *cert, const char **error);
+extern const char *get_x509_cn(X509 *cert);
 
 #define _1MEG     (1024.0)
 #define _1GIG     (1024.0*1024.0)

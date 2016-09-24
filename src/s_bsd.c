@@ -304,14 +304,18 @@ ssl_handshake(int fd, struct Client *client_p)
       /* The client sent a certificate which verified OK */
       base16_encode(client_p->certfp, sizeof(client_p->certfp),
           (const char*)cert->sha1_hash, sizeof(cert->sha1_hash));
+
+      if (client_p->localClient->cert)
+        X509_free(client_p->localClient->cert);
+      client_p->localClient->cert = cert;
     }
     else
     {
       ilog(L_WARN, "Client %s!%s@%s gave bad SSL client certificate: %d",
           client_p->name, client_p->username, client_p->host, res);
-    }
 
-    X509_free(cert);
+      X509_free(cert);
+    }
   }
 
   if (ret <= 0)

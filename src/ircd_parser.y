@@ -154,6 +154,7 @@ unhook_hub_leaf_confs(void)
 %token  CAN_FLOOD
 %token  CAN_IDLE
 %token  CHANNEL
+%token  CLOAKING_CA
 %token	CIDR_BITLEN_IPV4
 %token	CIDR_BITLEN_IPV6
 %token  CIPHER_PREFERENCE
@@ -428,6 +429,7 @@ conf_item:        admin_entry
 		| gline_entry
                 | gecos_entry
                 | modules_entry
+                | cloaking_ca_entry
                 | error ';'
                 | error '}'
         ;
@@ -496,6 +498,36 @@ modules_path: PATH '=' QSTRING ';'
   if (ypass == 2)
     mod_add_path(yylval.string);
 #endif
+};
+
+/***************************************************************************
+ *  section cloaking_ca
+ ***************************************************************************/
+cloaking_ca_entry: CLOAKING_CA
+  '{' cloaking_ca_items '}' ';';
+
+cloaking_ca_items:  cloaking_ca_items cloaking_ca_item | cloaking_ca_item;
+cloaking_ca_item:   cloaking_ca_path | error ';' ;
+
+cloaking_ca_path: PATH '=' QSTRING ';'
+{
+  if (ypass == 2)
+  {
+    X509_STORE *store = X509_STORE_new();
+    int ret = X509_STORE_load_locations(store, yylval.string, NULL);
+    if (ret != 1)
+    {
+      X509_STORE_free(store);
+      ilog(L_ERROR, "Unable to load X509 store %s, ignoring", yylval.string);
+      break;
+    }
+
+    struct cloaking_ca *c = MyMalloc(sizeof(struct cloaking_ca));
+    strlcpy(c->file, yylval.string, sizeof(c->file));
+    c->x509 = store;
+
+    dlinkAdd(c, &c->node, &cloaking_ca_list);
+  }
 };
 
 /***************************************************************************

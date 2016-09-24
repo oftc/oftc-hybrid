@@ -164,6 +164,9 @@ free_client(struct Client *client_p)
     MyFree(client_p->localClient->response);
     MyFree(client_p->localClient->auth_oper);
 
+    if (client_p->localClient->cert)
+      X509_free(client_p->localClient->cert);
+
     /*
      * clean up extra sockets from P-lines which have been discarded.
      */

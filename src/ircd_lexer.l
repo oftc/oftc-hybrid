@@ -146,6 +146,7 @@ cidr_bitlen_ipv6	{ return CIDR_BITLEN_IPV6; }
 cipher_preference { return CIPHER_PREFERENCE; }
 class		{ return CLASS; }
 client_flood	{ return T_CLIENT_FLOOD; }
+cloaking_ca     { return CLOAKING_CA; }
 cluster		{ return T_CLUSTER; }
 compressed	{ return COMPRESSED; }
 compression_level { return COMPRESSION_LEVEL; }

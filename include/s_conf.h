@@ -493,6 +493,13 @@ struct logging_entry
   char failed_operlog[PATH_MAX + 1];
 };
 
+struct cloaking_ca
+{
+  char file[PATH_MAX];
+  X509_STORE *x509;
+  dlink_node node;
+};
+
 extern int ypass;
 extern dlink_list class_items;
 extern dlink_list server_items;
@@ -507,6 +514,7 @@ extern dlink_list temporary_glines;
 extern dlink_list temporary_xlines;
 extern dlink_list temporary_rxlines;
 extern dlink_list temporary_rklines;
+extern dlink_list cloaking_ca_list;
 extern struct logging_entry ConfigLoggingEntry;
 extern struct config_file_entry ConfigFileEntry;/* defined in ircd.c*/
 extern struct config_channel_entry ConfigChannel;/* defined in channel.c*/

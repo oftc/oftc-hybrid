@@ -57,6 +57,7 @@
 #include "userhost.h"
 #include "s_user.h"
 #include "channel_mode.h"
+#include "s_misc.h"
 
 enum FullCause
 {
@@ -104,6 +105,8 @@ dlink_list temporary_glines  = { NULL, NULL, 0 };
 dlink_list temporary_rxlines = { NULL, NULL, 0 };
 dlink_list temporary_resv = { NULL, NULL, 0 };
 
+dlink_list cloaking_ca_list = { NULL, NULL, 0 };
+
 extern unsigned int lineno;
 extern char linebuf[];
 extern char conffilebuf[IRCD_BUFSIZE];
@@ -127,6 +130,7 @@ static void parse_conf_file(int, int);
 static dlink_list *map_to_list(ConfType);
 static struct AccessItem *find_regexp_kline(const char *[]);
 static int find_user_host(struct Client *, char *, char *, char *, unsigned int);
+static struct cloaking_ca *find_cloaking_ca(X509 *x509);
 
 /*
  * bit_len
@@ -1024,6 +1028,18 @@ verify_access(struct Client *client_p, const char *username,
                                client_p->name, client_p->host, conf->name);
         strlcpy(client_p->host, conf->name, sizeof(client_p->host));
         SetIPSpoof(client_p);
+      }
+
+      struct cloaking_ca *ca = find_cloaking_ca(client_p->localClient->cert);
+      if (ca != NULL)
+      {
+        const char *cn = get_x509_cn(client_p->localClient->cert);
+        if (cn != NULL && valid_hostname(cn) != 0)
+        {
+          if (!*client_p->realhost)
+            strlcpy(client_p->realhost, client_p->host, sizeof(client_p->realhost));
+          strlcpy(client_p->host, cn, sizeof(client_p->host));
+        }
       }
 
       return(attach_iline(client_p, conf, reason));
@@ -2608,6 +2624,16 @@ read_conf_files(int cold)
     clear_temp_list(&temporary_rxlines);
     clear_temp_list(&temporary_rklines);
     clear_temp_list(&temporary_resv);
+
+    /* clear old cloaking_ca */
+    dlink_node *ptr, *next;
+    DLINK_FOREACH_SAFE(ptr, next, cloaking_ca_list.head)
+    {
+      struct cloaking_ca *ca = (struct cloaking_ca *) ptr->data;
+
+      dlinkDelete(&ca->node, &cloaking_ca_list);
+      MyFree(ca);
+    }
   }
 
   read_conf(conf_fbfile_in);
@@ -4097,4 +4123,26 @@ destroy_cidr_class(struct ClassItem *aclass)
 {
   destroy_cidr_list(&aclass->list_ipv4);
   destroy_cidr_list(&aclass->list_ipv6);
+}
+
+static struct cloaking_ca *
+find_cloaking_ca(X509 *x509)
+{
+  dlink_node *ptr;
+
+  if (x509 == NULL)
+    return NULL;
+
+  DLINK_FOREACH(ptr, cloaking_ca_list.head)
+  {
+    struct cloaking_ca *ca = ptr->data;
+    const char *error;
+
+    if (check_x509store(ca->x509, x509, &error) != 1)
+      continue;
+
+    return ca;
+  }
+
+  return NULL;
 }
