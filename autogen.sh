@@ -2,7 +2,7 @@
 # Run this to generate all the initial makefiles, etc.
 # Shamelessly stolen from lighttpd - which is licensed under the GPL
 
-LIBTOOLIZE_FLAGS="--automake --ltdl"
+LIBTOOLIZE_FLAGS="--automake --ltdl --copy --force"
 AUTOMAKE_FLAGS="--add-missing"
 ACLOCAL_FLAGS="-I m4 --install"
 
