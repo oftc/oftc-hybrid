@@ -2,7 +2,7 @@
 # vim: set fdm=marker ts=2 sw=2 et:
 
 AC_PREREQ(2.59)
-AC_INIT([oftc-hybrid],[1.7.1])
+AC_INIT([oftc-hybrid],[1.7.2])
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([libltdl/config])
