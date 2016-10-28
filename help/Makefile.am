@@ -9,7 +9,8 @@ SYMLINKS=topic accept cmode admin names links away whowas \
 	challenge map pass error knock ping pong
 
 install-exec-hook:
-	@for link in $(SYMLINKS); do \
+	chmod u+w $(uhelpdir) # work around write-protected directory in "make distcheck"
+	@set -e; for link in $(SYMLINKS); do \
 		rm -f $(uhelpdir)/$$link; \
 		ln -s $(ohelpdir)/$$link $(uhelpdir); \
 	done
