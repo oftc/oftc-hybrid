@@ -1,6 +1,6 @@
 MAINTAINERCLEANFILES=Makefile.in
 ohelpdir=$(datadir)/@PACKAGE@/help/opers
-ohelp_DATA= accept \
+dist_ohelp_DATA= accept \
                 admin \
                 away \
                 capab \
