@@ -917,7 +917,13 @@ change_simple_umode(va_list args)
   else
   {
     if(flag == UMODE_GOD && IsGod(source_p))
+    {
+      char tmp[IRCD_BUFSIZE];
+      ircsprintf(tmp, "%s is removing God mode", source_p->name);
+      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
+      oftc_log(tmp);
       source_p->umodestime = 0;
+    }
     source_p->umodes &= ~flag;
   }
 
@@ -1637,6 +1643,10 @@ check_godmode(void *unused)
     if(IsGod(oper_p) && (CurrentTime - oper_p->umodestime) > 
         ConfigFileEntry.godmode_timeout)
     {
+      char tmp[IRCD_BUFSIZE];
+      ircsprintf(tmp, "%s is losing God mode due to timeout", oper_p->name);
+      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
+      oftc_log(tmp);
       ClearGod(oper_p);
       send_umode_out(oper_p, oper_p, old);
     }
