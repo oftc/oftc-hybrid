@@ -1644,7 +1644,7 @@ check_godmode(void *unused)
         ConfigFileEntry.godmode_timeout)
     {
       char tmp[IRCD_BUFSIZE];
-      ircsprintf(tmp, "%s is losing God mode due to timeout", source_p->name);
+      ircsprintf(tmp, "%s is losing God mode due to timeout", oper_p->name);
       sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
       oftc_log(tmp);
       ClearGod(oper_p);
