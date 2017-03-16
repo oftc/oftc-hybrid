@@ -916,7 +916,7 @@ change_simple_umode(va_list args)
   }
   else
   {
-    if(flag == UMODE_GOD && IsGod(source_p))
+    if(flag == UMODE_GOD && IsGod(source_p) && MyConnect(source_p))
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is removing God mode", source_p->name);
