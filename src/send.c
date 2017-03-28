@@ -112,7 +112,7 @@ iosend_default(va_list args)
 static void
 send_message(struct Client *to, char *buf, int len)
 {
-	size_t buf_sendq_len;
+  size_t buf_sendq_len;
   unsigned long sendq;
 
   assert(!IsMe(to));
