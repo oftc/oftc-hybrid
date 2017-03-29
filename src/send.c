@@ -118,7 +118,7 @@ send_message(struct Client *to, char *buf, int len)
   if (dbuf_length(&to->localClient->buf_sendq) + len > get_sendq(to))
   {
     if (IsServer(to))
-      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, to,
                            "Max SendQ limit exceeded for %s: %lu > %lu",
                            get_client_name(to, HIDE_IP),
                            (unsigned long)(dbuf_length(&to->localClient->buf_sendq) + len),
