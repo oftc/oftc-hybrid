@@ -112,28 +112,20 @@ iosend_default(va_list args)
 static void
 send_message(struct Client *to, char *buf, int len)
 {
-  size_t buf_sendq_len;
-  unsigned long sendq;
-
   assert(!IsMe(to));
   assert(to != &me);
 
-  /* save these so that we can set the link dead first */
-  buf_sendq_len = dbuf_length(&to->localClient->buf_sendq);
-  sendq = get_sendq(to);
-
-  if (buf_sendq_len + len > sendq)
+  if (dbuf_length(&to->localClient->buf_sendq) + len > get_sendq(to))
   {
-    /* set the link dead first, so the gnotice won't trigger infinite recursion */
-    dead_link_on_write(to, 0);
     if (IsServer(to))
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                            "Max SendQ limit exceeded for %s: %lu > %lu",
                            get_client_name(to, HIDE_IP),
-                           (unsigned long)(buf_sendq_len + len),
-                           sendq);
+                           (unsigned long)(dbuf_length(&to->localClient->buf_sendq) + len),
+                           get_sendq(to));
     if (IsClient(to))
       SetSendQExceeded(to);
+    dead_link_on_write(to, 0);
     return;
   }
 
