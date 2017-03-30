@@ -1269,6 +1269,11 @@ accept_message(struct Client *source, struct Client *target)
       return (1);
   }
 
+  if (IsRegCallerId(target) && IsNickServReg(source))
+  {
+    return (1);
+  }
+
   if (IsSoftCallerId(target))
   {
     DLINK_FOREACH(ptr, target->channel.head)

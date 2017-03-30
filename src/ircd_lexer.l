@@ -379,6 +379,7 @@ invisible               { return T_INVISIBLE; }
 wallop                  { return T_WALLOP; }
 callerid                { return T_CALLERID; }
 softcallerid            { return T_SOFTCALLERID; }
+regcallerid             { return T_REGCALLERID; }
 drone                   { return T_DRONE; }
 locops                  { return T_LOCOPS; }
 god                     { return T_GOD; }

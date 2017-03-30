@@ -392,6 +392,7 @@ struct LocalUser
 #define UMODE_LOCOPS       0x00010000 /* show locops */
 #define UMODE_DEAF         0x00020000 /* don't receive channel messages */
 #define UMODE_CCONN_FULL   0x00040000 /* add unused fields to connection monitoring */
+#define UMODE_REGCALLERID  0x00080000 /* block unless sender is registered */
 
 /* user information flags, only settable by remote mode or local oper */
 #define UMODE_OPER         0x40000000 /* Operator */
@@ -479,8 +480,9 @@ struct LocalUser
 #define IsInvisible(x)          ((x)->umodes & UMODE_INVISIBLE)
 #define SendWallops(x)          ((x)->umodes & UMODE_WALLOP)
 #define IsSetCallerId(x)        ((x)->umodes & \
-                                     (UMODE_CALLERID|UMODE_SOFTCALLERID))
+                                     (UMODE_CALLERID|UMODE_SOFTCALLERID|UMODE_REGCALLERID))
 #define IsSoftCallerId(x)       ((x)->umodes & UMODE_SOFTCALLERID)
+#define IsRegCallerId(x)        ((x)->umodes & UMODE_REGCALLERID)
 #define IsDeaf(x)               ((x)->umodes & UMODE_DEAF)
 
 
