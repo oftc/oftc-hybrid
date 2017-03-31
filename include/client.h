@@ -481,6 +481,7 @@ struct LocalUser
 #define SendWallops(x)          ((x)->umodes & UMODE_WALLOP)
 #define IsSetCallerId(x)        ((x)->umodes & \
                                      (UMODE_CALLERID|UMODE_SOFTCALLERID|UMODE_REGCALLERID))
+#define IsHardCallerId(x)       ((x)->umodes & UMODE_CALLERID)
 #define IsSoftCallerId(x)       ((x)->umodes & UMODE_SOFTCALLERID)
 #define IsRegCallerId(x)        ((x)->umodes & UMODE_REGCALLERID)
 #define IsDeaf(x)               ((x)->umodes & UMODE_DEAF)
