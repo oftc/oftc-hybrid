@@ -46,6 +46,7 @@
 
 static void m_join(struct Client *, struct Client *, int, char **);
 static void ms_join(struct Client *, struct Client *, int, char **);
+static void ms_svsjoin(struct Client *, struct Client *, int, char **);
 static void do_join_0(struct Client *client_p, struct Client *source_p);
 
 static void set_final_mode(struct Mode *, struct Mode *);
@@ -62,16 +63,23 @@ struct Message join_msgtab = {
   {m_unregistered, m_join, ms_join, m_ignore, m_join, m_ignore}
 };
 
+struct Message svsjoin_msgtab = {
+  "SVSJOIN", 0, 0, 3, 0, MFLG_SLOW, 0,
+  { m_ignore, m_ignore, ms_svsjoin, ms_svsjoin, m_ignore, m_ignore }
+};
+
 #ifndef STATIC_MODULES
 void
 _modinit(void)
 {
   mod_add_cmd(&join_msgtab);
+  mod_add_cmd(&svsjoin_msgtab);
 }
 
 void
 _moddeinit(void)
 {
+  mod_del_cmd(&svsjoin_msgtab);
   mod_del_cmd(&join_msgtab);
 }
 
@@ -457,6 +465,56 @@ ms_join(struct Client *client_p, struct Client *source_p,
                 ":%s SJOIN %lu %s + :%s",
                 source_p->servptr->name, (unsigned long)chptr->channelts,
                 chptr->chname, source_p->name);
+}
+
+/* m_svsjoin()
+ *  parv[0] = sender prefix
+ *  parv[1] = user to force
+ *  parv[2] = channel to force them into
+ *  parv[3] = key for the channel
+ */
+static void
+ms_svsjoin(struct Client *client_p, struct Client *source_p,
+           int parc, char *parv[])
+{
+  struct Client *target_p = NULL;
+  char *newparv[] = { NULL, parv[2], parv[3], NULL};
+
+  if ((target_p = find_person(source_p, parv[1])) == NULL)
+    return;
+
+  if (!MyConnect(target_p))
+  {
+    if (target_p->from != client_p)
+    {
+      char *key;
+      char *seperator;
+
+      if(parv[3] == NULL)
+      {
+          key = "";
+          seperator = "";
+      }
+      else
+      {
+          key = parv[3];
+          seperator = " ";
+      }
+
+      if (IsCapable(target_p->from, CAP_ENCAP))
+        sendto_one(target_p, ":%s ENCAP %s SVSJOIN %s %s%s%s",
+                   source_p->name, target_p->from->name,
+                   target_p->name, parv[2], seperator, key);
+      else
+        sendto_one(target_p, ":%s SVSJOIN %s %s%s%s",
+                   source_p->name, target_p->name, parv[2], seperator, key);
+    }
+
+    return;
+  }
+
+  /* Fake call to m_join as if the user did it */
+  m_join(target_p, target_p, parc - 1, newparv);
 }
 
 /* do_join_0()
