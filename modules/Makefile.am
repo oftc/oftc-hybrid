@@ -61,7 +61,6 @@ module_LTLIBRARIES= m_accept.la       \
                     m_services.la     \
                     m_svinfo.la       \
                     m_svscloak.la     \
-                    m_svsjoin.la      \
                     m_svsmode.la      \
                     m_tburst.la       \
                     m_testline.la     \
