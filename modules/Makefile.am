@@ -11,6 +11,7 @@ module_LTLIBRARIES= m_accept.la       \
                     m_away.la         \
                     m_capab.la        \
                     m_cap.la          \
+                    m_capture.la      \
                     m_cburst.la       \
                     m_certfp.la       \
                     m_challenge.la    \
@@ -86,6 +87,7 @@ noinst_LTLIBRARIES= m_accept.la       \
                     m_away.la         \
                     m_capab.la        \
                     m_cap.la          \
+                    m_capture.la      \
                     m_cburst.la       \
                     m_certfp.la       \
                     m_challenge.la    \

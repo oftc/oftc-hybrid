@@ -32,7 +32,6 @@ CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
 
 SRCS = \
   ip_cloaking.c \
-  m_capture.c   \
   m_change.c    \
   m_clearchan.c \
   m_classlist.c \
