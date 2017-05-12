@@ -7,11 +7,10 @@ AUTOMAKE_FLAGS="--add-missing"
 ACLOCAL_FLAGS="-I m4 --install"
 
 ARGV0=$0
-ARGS="$@"
 
 run() {
-	echo "$ARGV0: running \`$@' $ARGS"
-	$@ $ARGS
+	echo "$ARGV0: running \`$@'"
+	"$@"
 }
 
 ## jump out if one of the programs returns 'false'
@@ -70,4 +69,4 @@ run $ACLOCAL $ACLOCAL_FLAGS
 run $AUTOHEADER
 run $AUTOMAKE $AUTOMAKE_FLAGS
 run $AUTOCONF
-test "$ARGS" = "" && echo "Now type './configure ...' and 'make' to compile."
+run ./oftc-configure.sh "$@"
