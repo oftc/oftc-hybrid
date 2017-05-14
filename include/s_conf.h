@@ -593,7 +593,7 @@ extern int match_conf_password(const char *, const struct AccessItem *);
 #define CLEANUP_TKLINES_TIME 60
 
 extern void cluster_a_line(struct Client *,
-			   const char *, int, int, const char *,...);
+			   const char *, int, int, const char *,...) __attribute__((format(printf, 5, 6)));
 extern void rebuild_cidr_class(struct ConfItem *, struct ClassItem *);
 extern struct ip_entry *find_or_add_ip(struct irc_ssaddr *);
 extern int cidr_limit_reached(int, struct irc_ssaddr *, struct ClassItem *);

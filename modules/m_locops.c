@@ -83,7 +83,7 @@ m_locops(struct Client *client_p, struct Client *source_p,
   sendto_wallops_flags(UMODE_LOCOPS, source_p, "LOCOPS - %s",
                        message);
 
-  cluster_a_line(source_p, "LOCOPS", 0, SHARED_LOCOPS, message);
+  cluster_a_line(source_p, "LOCOPS", 0, SHARED_LOCOPS, "%s", message);
 }
 
 static void

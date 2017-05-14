@@ -30,7 +30,7 @@
 /* For those unfamiliar with GNU format attributes, a is the 1 based
  * argument number of the format string, and b is the 1 based argument
  * number of the variadic ... */
-#if 0 /* __GNUC__ */
+#if 1 /* __GNUC__ */
 #define AFP(a,b) __attribute__((format (printf, a, b)))
 #else
 #define AFP(a,b)
@@ -88,7 +88,7 @@ extern void kill_client(struct Client *, struct Client *,
 extern void kill_client_ll_serv_butone(struct Client *, struct Client *,
                                        const char *, ...) AFP(3, 4);
 
-extern  void sendto_gnotice_flags(int, int, char *, struct Client *, struct Client *, const char *, ...);
+extern  void sendto_gnotice_flags(int, int, char *, struct Client *, struct Client *, const char *, ...) AFP(6, 7);
 
 #define ALL_MEMBERS  0
 #define NON_CHANOPS  1

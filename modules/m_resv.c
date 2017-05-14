@@ -209,7 +209,7 @@ mo_unresv(struct Client *client_p, struct Client *source_p,
       return;
   }
   else 
-    cluster_a_line(source_p, "UNRESV", CAP_KLN, SHARED_UNRESV, resv);
+    cluster_a_line(source_p, "UNRESV", CAP_KLN, SHARED_UNRESV, "%s", resv);
 
   remove_resv(source_p, resv);
 }

@@ -574,8 +574,8 @@ god_mode_check(struct Client *source_p, char *chname, int alev, int parc,
   for(i = 1; i < parc; i++)
     ircsprintf(tmp, "%s %s", tmp, parv[i]);
 
-  sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-  oftc_log(tmp);
+  sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, "%s", tmp);
+  oftc_log("%s", tmp);
 }
 
 /* Mode functions handle mode changes for a particular mode... */

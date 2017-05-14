@@ -42,7 +42,7 @@ extern int vsnprintf_irc(char *, int, const char*, va_list);
 /*
  * ircsprintf - optimized sprintf
  */
-#ifdef __GNUC__
+#if 1
 extern int ircsprintf(char*, const char*, ...)
                __attribute__ ((format(printf, 2, 3)));
 #else

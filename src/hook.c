@@ -233,7 +233,7 @@ stats_hooks(struct Client *source_p)
     else
       strcpy(lastused, "NEVER");
 
-    sendto_one(source_p, ":%s %d %s : %-20s %-20s %-8u %d", me.name,
+    sendto_one(source_p, ":%s %d %s : %-20s %-20s %-8u %lu", me.name,
                RPL_STATSDEBUG, source_p->name, cb->name, lastused, cb->called,
 	       dlink_list_length(&cb->chain));
   }

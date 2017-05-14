@@ -349,11 +349,11 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     else
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s added temporary %d min. K-Line for [%s@%s] [%s]",
+          "%s added temporary %ld min. K-Line for [%s@%s] [%s]",
           get_oper_name(source_p), duration/60, aconf->user, aconf->host, 
           aconf->reason);
       sendto_one(source_p,
-          ":%s NOTICE %s :Added temporary %d min. K-Line [%s@%s]", from, to, 
+          ":%s NOTICE %s :Added temporary %ld min. K-Line [%s@%s]", from, to,
           duration/60, aconf->user, aconf->host);
       ilog(L_TRACE, "%s added temporary %ld min. K-Line for [%s@%s] [%s]",
           source_p->name, duration/60, aconf->user, aconf->host, aconf->reason);
@@ -387,11 +387,11 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     else
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s added temporary %d min. RK-Line for [%s@%s] [%s]",
+          "%s added temporary %ld min. RK-Line for [%s@%s] [%s]",
           get_oper_name(source_p), duration/60, aconf->user, aconf->host,
           aconf->reason);
       sendto_one(source_p, 
-          ":%s NOTICE %s :Added temporary %d min. RK-Line [%s@%s]", from, to, 
+          ":%s NOTICE %s :Added temporary %ld min. RK-Line [%s@%s]", from, to,
           duration/60, aconf->user, aconf->host);
       ilog(L_TRACE, "%s added temporary %ld min. RK-Line for [%s@%s] [%s]",
           source_p->name, duration/60,
@@ -426,13 +426,13 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     else
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
-          "%s added temporary %d min. D-Line for [%s] [%s]",
+          "%s added temporary %ld min. D-Line for [%s] [%s]",
           get_oper_name(source_p), duration/60, aconf->host, aconf->reason);
 
-      sendto_one(source_p, ":%s NOTICE %s :Added temporary %d min. D-Line [%s]",
+      sendto_one(source_p, ":%s NOTICE %s :Added temporary %ld min. D-Line [%s]",
           from, to, duration/60, aconf->host);
-      ilog(L_TRACE, "%s added temporary %d min. D-Line for [%s] [%s]",
-          source_p->name, (int)duration/60, aconf->host, aconf->reason);
+      ilog(L_TRACE, "%s added temporary %ld min. D-Line for [%s] [%s]",
+          source_p->name, duration/60, aconf->host, aconf->reason);
       log_oper_action(LOG_TEMP_DLINE_TYPE, source_p, "[%s@%s] [%s]\n",
           aconf->user, aconf->host, aconf->reason);
       write_csv_line(out, "%s%s%s%s%s%d%d",

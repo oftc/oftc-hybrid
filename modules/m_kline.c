@@ -192,7 +192,7 @@ mo_kline(struct Client *client_p, struct Client *source_p,
   }
   else
     cluster_a_line(source_p, "KLINE", CAP_KLN, SHARED_KLINE,
-		   "%d %s %s :%s", tkline_time, user, host, reason);
+		   "%ld %s %s :%s", tkline_time, user, host, reason);
 
   if (already_placed_kline(source_p, user, host, YES))
     return;

@@ -254,7 +254,7 @@ m_svsnick(struct Client *client_p, struct Client *source_p,
   if (!clean_nick_name(newnick, 1))
   {
     if (IsClient(source_p))
-      sendto_one(source_p, ":%s NOTICE %s :*** Notice -- Invalid new ",
+      sendto_one(source_p, ":%s NOTICE %s :*** Notice -- Invalid new "
                  "nickname: %s", me.name, parv[0], newnick);
     return;
   }

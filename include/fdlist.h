@@ -106,7 +106,7 @@ extern fde_t *lookup_fd(int);
 extern void fd_open(fde_t *, int, int, const char *);
 extern void fd_close(fde_t *);
 extern void fd_dump(struct Client *);
-#ifndef __GNUC__
+#if 0
 extern void fd_note(fde_t *, const char *format, ...);
 #else
 extern void  fd_note(fde_t *, const char *format, ...)

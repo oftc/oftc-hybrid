@@ -249,8 +249,8 @@ m_join(struct Client *client_p, struct Client *source_p,
       ircsprintf(tmp, "%s is using God mode: JOIN %s", source_p->name,
           chptr->chname);
       sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL,
-          tmp);
-      oftc_log(tmp);
+          "%s", tmp);
+      oftc_log("%s", tmp);
     }
 
     add_user_to_channel(chptr, source_p, flags, YES);

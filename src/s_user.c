@@ -908,8 +908,8 @@ change_simple_umode(va_list args)
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is setting God mode", source_p->name);
-      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-      oftc_log(tmp);
+      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, "%s", tmp);
+      oftc_log("%s", tmp);
       source_p->umodestime = CurrentTime;
     }
     source_p->umodes |= flag;
@@ -920,8 +920,8 @@ change_simple_umode(va_list args)
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is removing God mode", source_p->name);
-      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-      oftc_log(tmp);
+      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, "%s", tmp);
+      oftc_log("%s", tmp);
       source_p->umodestime = 0;
     }
     source_p->umodes &= ~flag;
@@ -1645,8 +1645,8 @@ check_godmode(void *unused)
     {
       char tmp[IRCD_BUFSIZE];
       ircsprintf(tmp, "%s is losing God mode due to timeout", oper_p->name);
-      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, tmp);
-      oftc_log(tmp);
+      sendto_gnotice_flags(UMODE_SERVNOTICE, L_ALL, me.name, &me, NULL, "%s", tmp);
+      oftc_log("%s", tmp);
       ClearGod(oper_p);
       send_umode_out(oper_p, oper_p, old);
     }

@@ -583,15 +583,15 @@ count_memory(struct Client *source_p)
              channel_memory, topic_count, topic_count *
              (TOPICLEN + 1 + USERHOST_REPLYLEN));
 
-  sendto_one(source_p, ":%s %d %s z :Bans %u(%u)",
+  sendto_one(source_p, ":%s %d %s z :Bans %u(%lu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              channel_bans, channel_ban_memory);
 
-  sendto_one(source_p, ":%s %d %s z :Exceptions %u(%u)",
+  sendto_one(source_p, ":%s %d %s z :Exceptions %u(%lu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              channel_except, channel_except_memory);
 
-  sendto_one(source_p, ":%s %d %s z :Invex %u(%u)",
+  sendto_one(source_p, ":%s %d %s z :Invex %u(%lu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              channel_invex, channel_invex_memory);
 
@@ -605,7 +605,7 @@ count_memory(struct Client *source_p)
                          channel_users * sizeof(struct Membership) +
                          channel_invites * sizeof(dlink_node);
 
-  sendto_one(source_p, ":%s %d %s z :Safelist %u(%u)",
+  sendto_one(source_p, ":%s %d %s z :Safelist %u(%lu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              safelist_count, safelist_memory);
 
@@ -1154,7 +1154,7 @@ stats_operedup(struct Client *source_p)
     }
   }
 
-  sendto_one(source_p, ":%s %d %s p :%lu OPER(s)",
+  sendto_one(source_p, ":%s %d %s p :%d OPER(s)",
              from, RPL_STATSDEBUG, to, oper_count);
 }
 
@@ -1330,7 +1330,7 @@ stats_servlinks(struct Client *source_p)
   sendB >>= 10;
   recvB >>= 10;
 
-  sendto_one(source_p, ":%s %d %s ? :%u total server(s)",
+  sendto_one(source_p, ":%s %d %s ? :%lu total server(s)",
              from, RPL_STATSDEBUG, to, dlink_list_length(&serv_list));
   sendto_one(source_p, ":%s %d %s ? :Sent total : %7.2f %s",
              from, RPL_STATSDEBUG, to,
