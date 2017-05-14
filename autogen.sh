@@ -69,4 +69,15 @@ run $ACLOCAL $ACLOCAL_FLAGS
 run $AUTOHEADER
 run $AUTOMAKE $AUTOMAKE_FLAGS
 run $AUTOCONF
+
+# update include/serno.h
+if [ -d .git ]; then
+	REVISION=$(git describe --tags)
+	echo "#define SERIALNUM \"$REVISION\"" > include/serno.h.new
+	if ! diff include/serno.h.new include/serno.h > /dev/null; then
+		mv include/serno.h.new include/serno.h
+	fi
+	rm -f include/serno.h.new
+fi
+
 run ./oftc-configure.sh "$@"
