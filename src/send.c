@@ -206,8 +206,7 @@ send_message_remote(struct Client *to, struct Client *from,
 
     if (IsClient(from))
       sendto_one(from, form_str(ERR_GHOSTEDCLIENT),
-                 me.name, from->name, to->name, to->username,
-                 to->host, to->from);
+                 me.name, from->name, to->name);
 
     exit_client(to, &me, "Ghosted client");
 

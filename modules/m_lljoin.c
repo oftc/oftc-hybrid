@@ -160,8 +160,22 @@ ms_lljoin(struct Client *client_p, struct Client *source_p,
 
   if ((i = can_join(target_p, chptr, key)))
   {
-    sendto_one(target_p, form_str(i),
-               me.name, nick, chptr->chname);
+    switch (i)
+    {
+#define NORMAL_NUMERIC(i)                          \
+      case i:                                      \
+        sendto_one(target_p, form_str(i), me.name, \
+                   nick, chptr->chname);           \
+        break
+
+      NORMAL_NUMERIC(ERR_TOOMANYCHANNELS);
+      NORMAL_NUMERIC(ERR_BANNEDFROMCHAN);
+      NORMAL_NUMERIC(ERR_INVITEONLYCHAN);
+      NORMAL_NUMERIC(ERR_BADCHANNELKEY);
+      NORMAL_NUMERIC(ERR_CHANNELISFULL);
+      NORMAL_NUMERIC(ERR_REGONLYCHAN);
+      NORMAL_NUMERIC(ERR_SSLONLYCHAN);
+    }
     return;
   }
 

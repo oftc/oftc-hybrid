@@ -201,7 +201,7 @@ show_lusers(struct Client *source_p)
                Count.invisi, dlink_list_length(&global_serv_list));
   else
     sendto_one(source_p, form_str(RPL_LUSERCLIENT), from, to,
-               (Count.total-Count.invisi), Count.invisi, 1);
+               (Count.total-Count.invisi), Count.invisi, 1UL);
 
   if (Count.oper > 0)
     sendto_one(source_p, form_str(RPL_LUSEROP),
@@ -220,21 +220,18 @@ show_lusers(struct Client *source_p)
     sendto_one(source_p, form_str(RPL_LUSERME),
                from, to, Count.local, Count.myserver);
     sendto_one(source_p, form_str(RPL_LOCALUSERS),
-               from, to, Count.local, Count.max_loc,
-               Count.local, Count.max_loc);
+               from, to, Count.local, Count.max_loc);
   }
   else
   {
     sendto_one(source_p, form_str(RPL_LUSERME),
                from, to, Count.total, 0);
     sendto_one(source_p, form_str(RPL_LOCALUSERS), 
-               from, to, Count.total, Count.max_tot,
-               Count.total, Count.max_tot);
+               from, to, Count.total, Count.max_tot);
   }
 
   sendto_one(source_p, form_str(RPL_GLOBALUSERS),
-             from, to, Count.total, Count.max_tot,
-             Count.total, Count.max_tot);
+             from, to, Count.total, Count.max_tot);
 
   if (!ConfigServerHide.hide_servers || IsOper(source_p))
     sendto_one(source_p, form_str(RPL_STATSCONN), from, to,

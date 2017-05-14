@@ -3443,7 +3443,7 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_pace_wait_simple | general_stats_P_oper_only |
                     general_short_motd | general_no_oper_flood |
                     general_true_no_oper_flood | general_oper_pass_resv |
-                    general_idletime | general_message_locale |
+                    general_idletime |
                     general_oper_only_umodes | general_max_targets |
                     general_use_egd | general_egdpool_path |
                     general_oper_umodes | general_caller_id_wait |
@@ -3663,17 +3663,6 @@ general_true_no_oper_flood: TRUE_NO_OPER_FLOOD '=' TBOOL ';'
 general_oper_pass_resv: OPER_PASS_RESV '=' TBOOL ';'
 {
   ConfigFileEntry.oper_pass_resv = yylval.number;
-};
-
-general_message_locale: MESSAGE_LOCALE '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    if (strlen(yylval.string) > LOCALE_LENGTH-2)
-      yylval.string[LOCALE_LENGTH-1] = '\0';
-
-    set_locale(yylval.string);
-  }
 };
 
 general_idletime: IDLETIME '=' timespec ';'

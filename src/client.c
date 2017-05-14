@@ -1175,9 +1175,9 @@ dead_link_on_read(struct Client *client_p, int error)
     else
     {
       report_error(L_ADMIN, "Lost connection to %s: %s",
-		   get_client_name(client_p, SHOW_IP), current_error);
+		   get_client_name(client_p, SHOW_IP), strerror(current_error));
       report_error(L_OPER, "Lost connection to %s: %s",
-		   get_client_name(client_p, MASK_IP), current_error);
+		   get_client_name(client_p, MASK_IP), strerror(current_error));
     }
 
     sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,

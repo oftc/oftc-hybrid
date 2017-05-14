@@ -156,7 +156,7 @@ inetport(struct Listener *listener)
                 "Listener socket") == -1)
   {
     report_error(L_ALL, "opening listener socket %s:%s",
-                 get_listener_name(listener), errno);
+                 get_listener_name(listener), strerror(errno));
     return 0;
   }
 
@@ -177,7 +177,7 @@ inetport(struct Listener *listener)
     errno = WSAGetLastError();
 #endif
     report_error(L_ALL, "setting SO_REUSEADDR for listener %s:%s",
-                 get_listener_name(listener), errno);
+                 get_listener_name(listener), strerror(errno));
     fd_close(&listener->fd);
     return 0;
   }
@@ -194,7 +194,7 @@ inetport(struct Listener *listener)
     errno = WSAGetLastError();
 #endif
     report_error(L_ALL, "binding listener socket %s:%s",
-                 get_listener_name(listener), errno);
+                 get_listener_name(listener), strerror(errno));
     fd_close(&listener->fd);
     return 0;
   }
@@ -205,7 +205,7 @@ inetport(struct Listener *listener)
     errno = WSAGetLastError();
 #endif
     report_error(L_ALL, "listen failed for %s:%s",
-                 get_listener_name(listener), errno);
+                 get_listener_name(listener), strerror(errno));
     fd_close(&listener->fd);
     return 0;
   }

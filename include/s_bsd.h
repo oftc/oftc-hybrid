@@ -47,7 +47,7 @@ extern void add_connection(struct Listener *, struct irc_ssaddr *, int);
 extern void close_connection(struct Client *);
 extern int  connect_server(struct AccessItem *, struct Client *,
                            struct DNSReply *);
-extern void report_error(int, const char *, const char *, int);
+extern void report_error(int, const char *, ...) __attribute__((format (printf, 2, 3)));
 
 extern int get_sockerr(int);
 extern int ignoreErrno(int);

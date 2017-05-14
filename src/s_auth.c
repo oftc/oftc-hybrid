@@ -55,14 +55,14 @@
 #include "memory.h"
 
 static const char *HeaderMessages[] = {
-  ":%s NOTICE AUTH :*** Looking up your hostname...",
-  ":%s NOTICE AUTH :*** Found your hostname",
-  ":%s NOTICE AUTH :*** Couldn't look up your hostname",
-  ":%s NOTICE AUTH :*** Checking Ident",
-  ":%s NOTICE AUTH :*** Got Ident response",
-  ":%s NOTICE AUTH :*** No Ident response",
-  ":%s NOTICE AUTH :*** Your forward and reverse DNS do not match, ignoring hostname.",
-  ":%s NOTICE AUTH :*** Your hostname is too long, ignoring hostname"
+  "*** Looking up your hostname...",
+  "*** Found your hostname",
+  "*** Couldn't look up your hostname",
+  "*** Checking Ident",
+  "*** Got Ident response",
+  "*** No Ident response",
+  "*** Your forward and reverse DNS do not match, ignoring hostname.",
+  "*** Your hostname is too long, ignoring hostname"
 };
 
 enum {
@@ -76,7 +76,7 @@ enum {
   REPORT_HOST_TOOLONG
 };
 
-#define sendheader(c, i) sendto_one((c), HeaderMessages[(i)], me.name)
+#define sendheader(c, i) sendto_one((c), ":%s NOTICE AUTH :%s", me.name, HeaderMessages[(i)])
 
 /*
  * Ok, the original was confusing.
@@ -268,7 +268,7 @@ start_auth_query(struct AuthRequest *auth)
                 SOCK_STREAM, 0, "ident") == -1)
   {
     report_error(L_ALL, "creating auth stream socket %s:%s", 
-        get_client_name(auth->client, SHOW_IP), errno);
+        get_client_name(auth->client, SHOW_IP), strerror(errno));
     ilog(L_ERROR, "Unable to create auth socket for %s",
         get_client_name(auth->client, SHOW_IP));
     ++ServerStats->is_abad;

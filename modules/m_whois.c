@@ -432,9 +432,9 @@ whois_person(struct Client *source_p, struct Client *target_p)
                me.name, source_p->name, target_p->name);
 
   if (IsOper(target_p) && !IsService(target_p))
-    sendto_one(source_p, form_str((IsAdmin(target_p) &&
-               !IsOperHiddenAdmin(target_p)) ? RPL_WHOISADMIN :
-               RPL_WHOISOPERATOR), me.name, source_p->name, target_p->name);
+    sendto_one(source_p, (IsAdmin(target_p) &&
+               !IsOperHiddenAdmin(target_p)) ? form_str(RPL_WHOISADMIN) :
+               form_str(RPL_WHOISOPERATOR), me.name, source_p->name, target_p->name);
 
   if (IsOper(source_p) && IsCaptured(target_p))
     sendto_one(source_p, form_str(RPL_ISCAPTURED),

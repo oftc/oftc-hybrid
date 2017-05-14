@@ -235,8 +235,22 @@ m_join(struct Client *client_p, struct Client *source_p,
      */
     if (((i = can_join(source_p, chptr, key)) && !IsGod(source_p)))
     {
-      sendto_one(source_p, form_str(i), me.name,
-                 source_p->name, chptr->chname);
+      switch (i)
+      {
+#define NORMAL_NUMERIC(i)                            \
+        case i:                                      \
+          sendto_one(source_p, form_str(i), me.name, \
+                     source_p->name, chptr->chname); \
+          break
+
+        NORMAL_NUMERIC(ERR_TOOMANYCHANNELS);
+        NORMAL_NUMERIC(ERR_BANNEDFROMCHAN);
+        NORMAL_NUMERIC(ERR_INVITEONLYCHAN);
+        NORMAL_NUMERIC(ERR_BADCHANNELKEY);
+        NORMAL_NUMERIC(ERR_CHANNELISFULL);
+        NORMAL_NUMERIC(ERR_REGONLYCHAN);
+        NORMAL_NUMERIC(ERR_SSLONLYCHAN);
+      }
       if(i == ERR_TOOMANYCHANNELS)
           break;
       else

@@ -1997,7 +1997,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
   {
     /* Eek, failure to create the socket */
     report_error(L_ALL,
-		 "opening stream socket to %s: %s", conf->name, errno);
+		 "opening stream socket to %s: %s", conf->name, strerror(errno));
     SetDead(client_p);
     exit_client(client_p, &me, "Connection failed");
     return (0);

@@ -426,20 +426,16 @@ report_this_status(struct Client *source_p, struct Client *target_p,
 	  }		       
 	  else
           {
-	    const char *format_str=NULL;
-	    if (IsOper(source_p) && IsCaptured(target_p))
-	      format_str = form_str(RPL_TRACECAPTURED);
-	    else
-	      format_str = form_str(RPL_TRACEUSER);
-
             if (ConfigFileEntry.hide_spoof_ips)
-	      sendto_one(source_p, format_str,
+	      sendto_one(source_p, (IsOper(source_p) && IsCaptured(target_p)) ?
+                         form_str(RPL_TRACECAPTURED) : form_str(RPL_TRACEUSER),
 		         from, to, class_name, name,
                          IsIPSpoof(target_p) ? "255.255.255.255" : ip,
 		         CurrentTime - target_p->lasttime,
 		         CurrentTime - target_p->localClient->last);
 	    else
-              sendto_one(source_p, format_str,
+              sendto_one(source_p, (IsOper(source_p) && IsCaptured(target_p)) ?
+                         form_str(RPL_TRACECAPTURED) : form_str(RPL_TRACEUSER),
                          from, to, class_name, name,
                          MyOper(source_p) ? ip :
                          (IsIPSpoof(target_p) ? "255.255.255.255" : ip),

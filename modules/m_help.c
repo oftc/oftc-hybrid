@@ -184,7 +184,6 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
   FBFILE *file;
   char line[HELPLEN];
   char started = 0;
-  int type;
 
   if ((file = fbopen(path, "r")) == NULL)
   {
@@ -214,14 +213,14 @@ sendhelpfile(struct Client *source_p, const char *path, const char *topic)
     {
       if (!started)
       {
-        type = RPL_HELPSTART;
+        sendto_one(source_p, form_str(RPL_HELPSTART),
+                   me.name, source_p->name, topic, line);
         started = 1;
       }
       else
-        type = RPL_HELPTXT;
+        sendto_one(source_p, form_str(RPL_HELPTXT),
+                   me.name, source_p->name, topic, line);
       
-      sendto_one(source_p, form_str(type),
-                 me.name, source_p->name, topic, line);
     }
   }
 

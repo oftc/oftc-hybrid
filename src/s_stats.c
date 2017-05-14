@@ -107,10 +107,10 @@ tstats(struct Client *source_p)
              me.name, RPL_STATSDEBUG, source_p->name, 
 	     (unsigned int)sp->is_cl,
              (unsigned int)sp->is_sv);
-  sendto_one(source_p, ":%s %d %s T :bytes sent %llu %llu",
+  sendto_one(source_p, ":%s %d %s T :bytes sent %" PRIu64 " %" PRIu64,
              me.name, RPL_STATSDEBUG, source_p->name,
              sp->is_cbs, sp->is_sbs);
-  sendto_one(source_p, ":%s %d %s T :bytes recv %llu %llu",
+  sendto_one(source_p, ":%s %d %s T :bytes recv %" PRIu64 " %" PRIu64,
              me.name, RPL_STATSDEBUG, source_p->name,
              sp->is_cbr, sp->is_sbr);
   sendto_one(source_p, ":%s %d %s T :time connected %u %u",

@@ -39,7 +39,7 @@ extern void write_ctrl(void);
 extern void read_ctrl(void);
 extern void write_net(void);
 extern void read_net(void);
-extern void send_error(const char *, ...);
+extern void send_error(const char *, ...) __attribute__((format (printf, 1, 2)));
 extern void send_data_blocking(int fd, unsigned char *data, int datalen);
 extern cmd_handler process_recvq;
 extern cmd_handler process_sendq;

@@ -115,7 +115,7 @@ mo_testline(struct Client *client_p, struct Client *source_p,
     if ((chptr = match_find_resv(parv[1])))
     {
       sendto_one(source_p, form_str(RPL_TESTLINE),
-                 me.name, source_p->name, 'Q', 0, chptr->name, 
+                 me.name, source_p->name, 'Q', 0L, chptr->name,
                  chptr->reason ? chptr->reason : "No reason", "");
       return;
     }

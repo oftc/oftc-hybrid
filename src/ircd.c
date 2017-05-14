@@ -215,7 +215,6 @@ struct lgetopt myopts[] = {
 void
 set_time(void)
 {
-  static char to_send[200];
   struct timeval newtime;
 #ifdef _WIN32
   FILETIME ft;
@@ -245,9 +244,8 @@ set_time(void)
 
   if (newtime.tv_sec < CurrentTime)
   {
-    ircsprintf(to_send, "System clock is running backwards - (%lu < %lu)",
-               (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
-    report_error(L_ALL, to_send, me.name, 0);
+    report_error(L_ALL, "System clock is running backwards - (%lu < %lu)",
+                 (unsigned long)newtime.tv_sec, (unsigned long)CurrentTime);
     set_back_events(CurrentTime - newtime.tv_sec);
   }
 

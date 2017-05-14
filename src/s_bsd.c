@@ -126,14 +126,6 @@ get_sockerr(int fd)
  * report_error - report an error from an errno. 
  * Record error to log and also send a copy to all *LOCAL* opers online.
  *
- *        text        is a *format* string for outputing error. It must
- *                contain only two '%s', the first will be replaced
- *                by the sockhost from the client_p, and the latter will
- *                be taken from sys_errlist[errno].
- *
- *        client_p        if not NULL, is the *LOCAL* client associated with
- *                the error.
- *
  * Cannot use perror() within daemon. stderr is closed in
  * ircd and cannot be used. And, worse yet, it might have
  * been reassigned to a normal connection...
@@ -142,13 +134,18 @@ get_sockerr(int fd)
  */
 
 void
-report_error(int level, const char* text, const char* who, int error) 
+report_error(int level, const char* format, ...)
 {
-  who = (who) ? who : "";
+  va_list args;
+  char buffer[IRCD_BUFSIZE];
 
-  sendto_realops_flags(UMODE_DEBUG, level, text, who, strerror(error));
-  log_oper_action(LOG_IOERR_TYPE, NULL, "%s %s %s\n", who, text, strerror(error));
-  ilog(L_ERROR, text, who, strerror(error));
+  va_start(args, format);
+  vsnprintf(buffer, IRCD_BUFSIZE, format, args);
+  va_end(args);
+
+  sendto_realops_flags(UMODE_DEBUG, level, "%s", buffer);
+  log_oper_action(LOG_IOERR_TYPE, NULL, "%s\n", buffer);
+  ilog(L_ERROR, "%s", buffer);
 }
 
 /*

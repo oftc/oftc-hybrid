@@ -71,12 +71,12 @@ enum FullCause
 char *full_reasons[] =
 {
   "",
-  "Too many connections (max_total) %s [%s] {%s}",
-  "Too many local user@host connections (max_local) %s [%s] {%s}",
-  "Too many global user@host connections (max_global) %s [%s] {%s}",
-  "Too many connections from IP (number_per_ip) %s [%s] {%s}",
-  "Too many connections from CIDR block (number_per_cidr) %s [%s] {%s}",
-  "Too many connections from ident (max_ident) %s [%s] {%s}"
+  "Too many connections (max_total)",
+  "Too many local user@host connections (max_local)",
+  "Too many global user@host connections (max_global)",
+  "Too many connections from IP (number_per_ip)",
+  "Too many connections from CIDR block (number_per_cidr)",
+  "Too many connections from ident (max_ident)"
 };
 
 struct Callback *client_check_cb = NULL;
@@ -860,8 +860,8 @@ check_client(va_list args)
     case MAX_CIDR:
     case MAX_IDENT:
       sendto_gnotice_flags(UMODE_FULL, L_ALL, me.name, &me, NULL,
-          full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
-      ilog(L_INFO, full_reasons[i],  get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
+          "%s %s [%s] {%s}", full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
+      ilog(L_INFO, "%s %s [%s] {%s}", full_reasons[i], get_client_name(source_p, SHOW_IP), source_p->sockhost, conf.name);
       ServerStats->is_ref++;
       exit_client(source_p, &me, reject_reason);
       bad = TRUE;

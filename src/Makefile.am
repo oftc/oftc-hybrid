@@ -28,7 +28,6 @@ ircd_SOURCES= balloc.c          \
               memory.c          \
               modules.c         \
               motd.c            \
-              numeric.c         \
               packet.c          \
               parse.c           \
               s_conf.c          \
@@ -61,8 +60,6 @@ ircd_SOURCES= balloc.c          \
 if HAVE_CRYPT
 ircd_SOURCES+=crypt.c
 endif
-
-noinst_HEADERS = messages.tab
 
 ircd_LDFLAGS=-export-dynamic $(OPENSSL_LDFLAGS)
 AM_CPPFLAGS=$(LTDLINCL) -I$(top_srcdir)/include -I$(top_srcdir)/lib/pcre $(OPENSSL_INCLUDES)
