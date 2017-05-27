@@ -504,7 +504,7 @@ static struct NumericInfo replies[] = {
 /* 477 */  {"ERR_REGONLYCHAN", ":%s 477 %s %s :Cannot join channel (Need to be identified and verified to join this channel, '/msg NickServ help' to learn how to register and verify.)", NULL},
 /* 478 */  {"ERR_BANLISTFULL", ":%s 478 %s %s %s :Channel ban list is full", NULL},
 /* 479 */  {"ERR_BADCHANNAME", ":%s 479 %s %s :Illegal channel name", NULL},
-/* 480 */  {"ERR_SSLONLYCHAN", ":%s 480 %s %s :Cannot join channel (+S)", NULL},
+/* 480 */  {"ERR_SSLONLYCHAN", ":%s 480 %s %s :You must connect via SSL to join this channel (+S)", NULL},
 /* 481 */  {"ERR_NOPRIVILEGES", ":%s 481 %s :Permission Denied - You're not an IRC operator", NULL},
 /* 482 */  {"ERR_CHANOPRIVSNEEDED", ":%s 482 %s %s :You're not channel operator", NULL},
 /* 483 */  {"ERR_CANTKILLSERVER", ":%s 483 %s :You can't kill a server!", NULL},
