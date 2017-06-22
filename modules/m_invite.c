@@ -185,10 +185,32 @@ m_invite(struct Client *client_p, struct Client *source_p,
 
   if (MyConnect(target_p))
   {
-    sendto_one(target_p, ":%s!%s@%s INVITE %s :%s",
-               source_p->name, source_p->username,
-               source_p->host,
-               target_p->name, chptr->chname);
+    if (!IsSetCallerId(target_p) || accept_message(source_p, target_p) ||
+        (IsOper(source_p) && (ConfigFileEntry.opers_bypass_callerid == 1)))
+    {
+      sendto_one(target_p, ":%s!%s@%s INVITE %s :%s",
+                 source_p->name, source_p->username,
+                 source_p->host,
+                 target_p->name, chptr->chname);
+    }
+    else
+    {
+      sendto_one(source_p, form_str(RPL_TARGUMODEG),
+                 me.name, source_p->name, target_p->name);
+
+      if ((target_p->localClient->last_caller_id_time +
+           ConfigFileEntry.caller_id_wait) < CurrentTime)
+      {
+        sendto_one(source_p, form_str(RPL_TARGNOTIFY),
+                   ID_or_name(&me, source_p->from),
+                   ID_or_name(source_p, source_p->from), target_p->name);
+        sendto_one(target_p, form_str(RPL_UMODEGMSG),
+                   me.name, target_p->name,
+                   get_client_name(source_p, HIDE_IP));
+
+        target_p->localClient->last_caller_id_time = CurrentTime;
+      }
+    }
 
     if (chptr->mode.mode & MODE_INVITEONLY)
     {
