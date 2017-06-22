@@ -160,6 +160,12 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   strlcpy(original_sockhost, source_p->sockhost, sizeof(original_sockhost));
   strlcpy(source_p->sockhost, parv[2], sizeof(source_p->sockhost));
 
+  if (source_p->sockhost[0] == ':')
+  {
+    memmove(source_p->sockhost + 1, source_p->sockhost, sizeof(source_p->sockhost) - 1);
+    source_p->sockhost[0] = '0';
+  }
+
   host = parv[3];
 
   if(strncmp(parv[3], parv[4], sizeof(source_p->realhost)) != 0)
