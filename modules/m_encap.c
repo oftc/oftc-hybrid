@@ -85,21 +85,16 @@ ms_encap(struct Client *client_p, struct Client *source_p,
     ptr += len;
   }
 
-  len = strlen(parv[i]);
+  len = strlen(parv[i]) + 1; /* For the ':' */
 
-  /*
-   * if the final parameter crosses our buffer size, should we bail, 
-   * like the rest, or should we truncate?  ratbox seems to think truncate,
-   * so i'll do that for now until i can talk to lee.  -bill
-   */
+  /* Drop the whole command if the last parameter would be truncated */
+  if ((cur_len + len) >= sizeof(buffer))
+    return;
 
   if (parc == 3)
     ircsprintf(ptr, "%s", parv[2]);
   else
     ircsprintf(ptr, ":%s", parv[parc-1]);
-
-  if ((cur_len + len) >= sizeof(buffer))
-    buffer[sizeof(buffer)-1] = '\0';
 
   sendto_match_servs(source_p, parv[1], CAP_ENCAP,
                      "ENCAP %s", buffer);
