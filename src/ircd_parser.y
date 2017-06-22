@@ -337,6 +337,7 @@ unhook_hub_leaf_confs(void)
 %token  TWODOTS
 %token  T_ALL
 %token  T_BOTS
+%token  T_REGCALLERID
 %token  T_SOFTCALLERID
 %token  T_CALLERID
 %token  T_CCONN
@@ -1424,6 +1425,10 @@ oper_umodes_item:  T_BOTS
 {
   if (ypass == 2)
     yy_aconf->modes |= UMODE_WALLOP;
+} | T_REGCALLERID
+{
+  if (ypass == 2)
+    yy_aconf->modes |= UMODE_REGCALLERID;
 } | T_SOFTCALLERID
 {
   if (ypass == 2)
@@ -3828,6 +3833,9 @@ umode_oitem:     T_BOTS
 } | T_WALLOP
 {
   ConfigFileEntry.oper_umodes |= UMODE_WALLOP;
+} | T_REGCALLERID
+{
+  ConfigFileEntry.oper_umodes |= UMODE_REGCALLERID;
 } | T_SOFTCALLERID
 {
   ConfigFileEntry.oper_umodes |= UMODE_SOFTCALLERID;
@@ -3896,6 +3904,9 @@ umode_item:	T_BOTS
 } | T_WALLOP
 {
   ConfigFileEntry.oper_only_umodes |= UMODE_WALLOP;
+} | T_REGCALLERID
+{
+  ConfigFileEntry.oper_only_umodes |= UMODE_REGCALLERID;
 } | T_SOFTCALLERID
 {
   ConfigFileEntry.oper_only_umodes |= UMODE_SOFTCALLERID;

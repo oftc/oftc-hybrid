@@ -794,10 +794,12 @@ flood_attack_channel(int p_or_n, struct Client *source_p,
         chptr->received_number_of_privmsgs += 2;
       }
       if (MyClient(source_p) && (p_or_n != NOTICE))
+      {
         sendto_one(source_p,
                    ":%s NOTICE %s :*** Message to %s throttled due to flooding",
                    me.name, source_p->name, chname);
-      return(1);
+        return(1);
+      }
     }
     else
       chptr->received_number_of_privmsgs++;

@@ -11,6 +11,7 @@ module_LTLIBRARIES= m_accept.la       \
                     m_away.la         \
                     m_capab.la        \
                     m_cap.la          \
+                    m_capture.la      \
                     m_cburst.la       \
                     m_certfp.la       \
                     m_challenge.la    \
@@ -60,7 +61,6 @@ module_LTLIBRARIES= m_accept.la       \
                     m_services.la     \
                     m_svinfo.la       \
                     m_svscloak.la     \
-                    m_svsjoin.la      \
                     m_svsmode.la      \
                     m_tburst.la       \
                     m_testline.la     \
@@ -86,6 +86,7 @@ noinst_LTLIBRARIES= m_accept.la       \
                     m_away.la         \
                     m_capab.la        \
                     m_cap.la          \
+                    m_capture.la      \
                     m_cburst.la       \
                     m_certfp.la       \
                     m_challenge.la    \
