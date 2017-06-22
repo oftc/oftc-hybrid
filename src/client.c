@@ -1261,6 +1261,7 @@ accept_message(struct Client *source, struct Client *target)
 {
   dlink_node *ptr;
 
+  /* The /allow list is always checked first */
   DLINK_FOREACH(ptr, target->allow_list.head)
   {
     struct Client *target_p = ptr->data;
@@ -1269,6 +1270,32 @@ accept_message(struct Client *source, struct Client *target)
       return (1);
   }
 
+  /* If UMODE_CALLERID is set, return early; it has priority */
+  if (IsHardCallerId(target))
+  {
+    return (0);
+  }
+
+  /*
+   * If UMODE_REGCALLERID is set, check if source is registered and return
+   * early if possible
+   */
+  if (IsRegCallerId(target))
+  {
+    if (IsNickServReg(source))
+    {
+      if (!IsSoftCallerId(target))
+      {
+        return (1);
+      }
+    }
+    else
+    {
+      return (0);
+    }
+  }
+
+  /* If UMODE_SOFTCALLERID is set, check for a common channel */
   if (IsSoftCallerId(target))
   {
     DLINK_FOREACH(ptr, target->channel.head)
