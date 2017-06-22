@@ -510,7 +510,7 @@
 #define NUMERIC_STR_207 ":%s 207 %s Capt %s %s (%s) %lu %lu"
 #define NUMERIC_STR_208 ":%s 208 %s <newtype> 0 %s"
 #define NUMERIC_STR_209 ":%s 209 %s Class %s %d"
-#define NUMERIC_STR_211 ":%s 211 %s %s %lu %u %" PRIu64 " %u %" PRIu64 " :%u %u %s"
+#define NUMERIC_STR_211 ":%s 211 %s %s %zu %u %" PRIu64 " %u %" PRIu64 " :%u %u %s"
 #define NUMERIC_STR_212 ":%s 212 %s %s %u %lu :%u"
 #define NUMERIC_STR_213 ":%s 213 %s %c %s %s %s %d %s"
 #define NUMERIC_STR_214 ":%s 214 %s %c %s * %s %d %s"

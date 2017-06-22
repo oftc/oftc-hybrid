@@ -583,15 +583,15 @@ count_memory(struct Client *source_p)
              channel_memory, topic_count, topic_count *
              (TOPICLEN + 1 + USERHOST_REPLYLEN));
 
-  sendto_one(source_p, ":%s %d %s z :Bans %u(%lu)",
+  sendto_one(source_p, ":%s %d %s z :Bans %u(%zu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              channel_bans, channel_ban_memory);
 
-  sendto_one(source_p, ":%s %d %s z :Exceptions %u(%lu)",
+  sendto_one(source_p, ":%s %d %s z :Exceptions %u(%zu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              channel_except, channel_except_memory);
 
-  sendto_one(source_p, ":%s %d %s z :Invex %u(%lu)",
+  sendto_one(source_p, ":%s %d %s z :Invex %u(%zu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              channel_invex, channel_invex_memory);
 
@@ -605,7 +605,7 @@ count_memory(struct Client *source_p)
                          channel_users * sizeof(struct Membership) +
                          channel_invites * sizeof(dlink_node);
 
-  sendto_one(source_p, ":%s %d %s z :Safelist %u(%lu)",
+  sendto_one(source_p, ":%s %d %s z :Safelist %u(%zu)",
              me.name, RPL_STATSDEBUG, source_p->name,
              safelist_count, safelist_memory);
 

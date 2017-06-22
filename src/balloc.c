@@ -496,7 +496,7 @@ block_heap_report_stats(struct Client *client_p)
   const BlockHeap *bh = NULL;
 
   for (bh = heap_list; bh != NULL; bh = bh->next)
-    sendto_one(client_p, ":%s %d %s z :%s mempool: used %u/%lu free %u/%lu (size %u/%lu)",
+    sendto_one(client_p, ":%s %d %s z :%s mempool: used %u/%zu free %u/%zu (size %u/%zu)",
                me.name, RPL_STATSDEBUG, client_p->name, bh->name,
                block_heap_get_used_elm(bh),
                block_heap_get_used_mem(bh),
