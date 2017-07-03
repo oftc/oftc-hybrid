@@ -40,18 +40,13 @@
 #include "parse.h"
 #include "modules.h"
 #include "irc_string.h"
+#include "s_user.h"
 
 static void m_who(struct Client*, struct Client*, int, char**);
 
 struct Message who2_msgtab = {
   "WHO", 0, 0, 2, 0, MFLG_SLOW, 0,
   {m_unregistered, m_who, m_who, m_ignore, m_who, m_ignore}
-};
-
-struct flag_item
-{
-  int mode;
-  char letter;
 };
 
 #ifndef STATIC_MODULES
@@ -101,31 +96,6 @@ typedef struct SearchOptions
 SOpts wsopts;
 int build_searchopts(struct Client *, int, char **);
 int chk_who(struct Client *, struct Client *, int);
-
-/* Externally defined stuffs */
-static struct flag_item who_user_modes[] = 
-{
-  {UMODE_ADMIN, 'a'},
-  {UMODE_BOTS,  'b'},
-  {UMODE_CCONN, 'c'},
-  {UMODE_DEBUG, 'd'},
-  {UMODE_FULL,  'f'},
-  {UMODE_CALLERID, 'g'},
-  {UMODE_INVISIBLE, 'i'},
-  {UMODE_SKILL, 'k'},
-  {UMODE_LOCOPS, 'l'},
-  {UMODE_NCHANGE, 'n'},
-  {UMODE_OPER, 'o'},
-  {UMODE_REJ, 'r'},
-  {UMODE_SERVNOTICE, 's'},
-  {UMODE_UNAUTH, 'u'},
-  {UMODE_WALLOP, 'w'},
-  {UMODE_EXTERNAL, 'x'},
-  {UMODE_SPY, 'y'},
-  {UMODE_OPERWALL, 'z'},
-  {UMODE_GOD, 'S'},
-  {0, 0}
-};
 
 int
 build_searchopts(struct Client *source_p, int parc, char *parv[])
@@ -303,18 +273,9 @@ build_searchopts(struct Client *source_p, int parc, char *parv[])
               source_p->name);
           return 0;
         }
-        s = parv[args];
-        while(*s)
+        for(s = parv[args], i = *s; *s; s++, i = *s)
         {
-          for(i = 0; who_user_modes[i].mode != 0; i++)
-          {
-            if(*s == (char)who_user_modes[i].letter)
-            {
-              wsopts.umodes |= who_user_modes[i].mode;
-              break;
-            }
-          }
-          s++;
+          wsopts.umodes |= user_modes[i];
         }
         if(!IsOper(source_p)) /* only let users search for +/-oOaA */
           wsopts.umodes = (wsopts.umodes&(UMODE_OPER|UMODE_ADMIN));
