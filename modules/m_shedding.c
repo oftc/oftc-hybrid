@@ -120,9 +120,8 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
       eventDelete(user_shedding_shed, NULL);
 
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                           "User shedding DISABLED by %s (%s@%s) [%s]",
-                           source_p->name, source_p->username, source_p->host,
-                           source_p->servptr->name);
+                           "User shedding DISABLED by %s (%s@%s)",
+                           source_p->name, source_p->username, source_p->host);
 
       return;
   }
@@ -136,14 +135,13 @@ mo_shedding(struct Client *client_p, struct Client *source_p,
 
   sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                        "User shedding ENABLED by %s (%s@%s); interval: %d seconds,"
-                       " opers: %s, reason: \"%s\" [%s]",
+                       " opers: %s, reason: \"%s\"",
                        source_p->name, source_p->username, source_p->host,
-                       rate, operstoo ? "yes" : "no", parv[4],
-                       source_p->servptr->name);
+                       rate, operstoo ? "yes" : "no", parv[4]);
 
   rate -= (rate/5);
   /* Lets not start more than one main thread in case someone tweaks the
-   * paramters
+   * parameters
    */
   eventDelete(user_shedding_main, NULL);
   eventAdd("user shedding main event", user_shedding_main, NULL, rate);
