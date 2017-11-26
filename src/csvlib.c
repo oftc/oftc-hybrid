@@ -342,7 +342,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           source_p->name, aconf->user, aconf->host, aconf->reason);
       log_oper_action(LOG_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
           aconf->user, aconf->host, aconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%s%ld",
+      write_csv_line(out, "%s%s%s%s%s%s\"%ld\"",
           aconf->user, aconf->host, aconf->reason, aconf->oper_reason, 
           current_date, get_oper_name(source_p), cur_time);
     }
@@ -359,7 +359,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           source_p->name, duration/60, aconf->user, aconf->host, aconf->reason);
       log_oper_action(LOG_TEMP_KLINE_TYPE, source_p, "[%s@%s] [%s]\n",
           aconf->user, aconf->host, aconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%s%ld,%ld", aconf->user, aconf->host,
+      write_csv_line(out, "%s%s%s%s%s%s\"%ld\",\"%ld\"", aconf->user, aconf->host,
           aconf->reason, aconf->oper_reason, current_date,
           get_oper_name(source_p), cur_time, aconf->hold);
     }
@@ -379,7 +379,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           source_p->name, aconf->user, aconf->host, aconf->reason);
       log_oper_action(LOG_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",
           aconf->user, aconf->host, aconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%s%ld",
+      write_csv_line(out, "%s%s%s%s%s%s\"%ld\"",
           aconf->user, aconf->host,
           aconf->reason, aconf->oper_reason, current_date,
           get_oper_name(source_p), cur_time);
@@ -398,7 +398,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           aconf->user, aconf->host, aconf->reason);
       log_oper_action(LOG_TEMP_RKLINE_TYPE, source_p, "[%s@%s] [%s]\n",
           aconf->user, aconf->host, aconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%s%ld,%ld",
+      write_csv_line(out, "%s%s%s%s%s%s\"%ld\",\"%ld\"",
           aconf->user, aconf->host,
           aconf->reason, aconf->oper_reason, current_date,
           get_oper_name(source_p), cur_time, aconf->hold);
@@ -418,7 +418,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           get_oper_name(source_p), aconf->host, aconf->reason);
       log_oper_action(LOG_DLINE_TYPE, source_p, "[%s] [%s]\n",
           aconf->host, aconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%ld",
+      write_csv_line(out, "%s%s%s%s%s\"%ld\"",
           aconf->host, aconf->reason, aconf->oper_reason, 
           current_date,
           get_oper_name(source_p), cur_time);
@@ -435,7 +435,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           source_p->name, duration/60, aconf->host, aconf->reason);
       log_oper_action(LOG_TEMP_DLINE_TYPE, source_p, "[%s@%s] [%s]\n",
           aconf->user, aconf->host, aconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%ld,%ld",
+      write_csv_line(out, "%s%s%s%s%s\"%ld\",\"%ld\"",
           aconf->host, aconf->reason, aconf->oper_reason, 
           current_date, get_oper_name(source_p), cur_time, aconf->hold);
     }
@@ -455,7 +455,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           xconf->action, xconf->reason, filename);
       ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
           get_oper_name(source_p), conf->name, xconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%ld",
+      write_csv_line(out, "%s%s%s%s%s\"%ld\"",
           conf->name, xconf->reason, xconf->oper_reason,
           current_date, get_oper_name(source_p), cur_time);
     }
@@ -471,7 +471,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
       ilog(L_TRACE, "%s added temporary %d min. X-Line for [%s] [%s]",
           source_p->name, (int)duration/60,
           conf->name, xconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%ld,%ld",
+      write_csv_line(out, "%s%s%s%s%s\"%ld\",\"%ld\"",
           conf->name, xconf->reason, xconf->oper_reason,
           current_date, get_oper_name(source_p), cur_time, xconf->hold);
  
@@ -492,7 +492,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
           xconf->reason, filename);
       ilog(L_TRACE, "%s added X-Line for [%s] [%s]",
           get_oper_name(source_p), conf->name, xconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%ld",
+      write_csv_line(out, "%s%s%s%s%s\"%ld\"",
           conf->name, xconf->reason, xconf->oper_reason,
           current_date, get_oper_name(source_p), cur_time);
     }
@@ -507,7 +507,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
       ilog(L_TRACE, "%s added temporary %d min. RX-Line for [%s] [%s]",
           source_p->name, (int)duration/60,
           conf->name, xconf->reason);
-      write_csv_line(out, "%s%s%s%s%s%ld,%ld",
+      write_csv_line(out, "%s%s%s%s%s\"%ld\",\"%ld\"",
           conf->name, xconf->reason, xconf->oper_reason,
           current_date, get_oper_name(source_p), cur_time, xconf->hold);
     }
@@ -518,7 +518,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     if(duration == 0)
       write_csv_line(out, "%s%s", cresv_p->name, cresv_p->reason);
     else
-      write_csv_line(out, "%s%s%ld", cresv_p->name, cresv_p->reason, cresv_p->hold);
+      write_csv_line(out, "%s%s\"%ld\"", cresv_p->name, cresv_p->reason, cresv_p->hold);
     break;
 
   case NRESV_TYPE:
@@ -526,7 +526,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     if(duration == 0)
       write_csv_line(out, "%s%s", conf->name, nresv_p->reason);
     else
-      write_csv_line(out, "%s%s%ld", conf->name, nresv_p->reason, nresv_p->hold);
+      write_csv_line(out, "%s%s\"%ld\"", conf->name, nresv_p->reason, nresv_p->hold);
     break;
 
   default:
