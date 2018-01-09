@@ -49,7 +49,7 @@
    command.
 
    The server will print out a long hexadecimal string, that needs to be fed
-   to the respond utility provided in tools/rsa_respond.
+   to the rsa_respond utility.
 
    The respond program will generate an answer that is fed back to the
    CHALLENGE command.
@@ -154,10 +154,8 @@
    the respond command, and to copy and paste data to and from the IRC
    client.
 
-   The respond source code is included with the Hybrid 7 source, in the
-   tools/rsa_respond directory. A distributable tar file can easily be
-   created by issuing make rsa_respond in the root of the source tree. The
-   file rsa_respond.tar.gz will be created in the root of the source tree.
+   The respond source code is located at
+   https://github.com/oftc/oftc-hybrid-respond
 
    rsa_respond.tar.gz should compile with little or no modifications[1] on
    most UNIX(c) and UNIX-like platforms[2]. The README in the tar archive
