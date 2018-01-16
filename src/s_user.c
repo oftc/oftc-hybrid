@@ -1352,7 +1352,7 @@ oper_up(struct Client *source_p, const char *name)
     source_p->umodes |= UMODE_ADMIN;
   if (!IsOperN(source_p))
     source_p->umodes &= ~UMODE_NCHANGE;
-  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s (%s@%s) is now an operator(%s)",
+  sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL, "%s (%s@%s) is now an operator (%s)",
                        source_p->name, source_p->username, source_p->host, name);
   send_umode_out(source_p, source_p, old);
   sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
