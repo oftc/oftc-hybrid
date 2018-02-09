@@ -1,4 +1,4 @@
-# $Id: cmode 33 2005-10-02 20:50:00Z knight $
+# $Id: cmode 33 2018-02-09 12:08:00Z knight $
 MODE <channel> <+|-><modes> [parameters]
 
 =-=-=-=-=-=-=-=-=-=-=
@@ -10,6 +10,8 @@ MODE <channel> <+|-><modes> [parameters]
 
 NO PARAMETERS:
 --------------
+
+     +c     - 'No color'. No color messages allowed.
 
      +n     - 'No external messages'.  This will prevent any user who
               isn't in the channel from sending messages to the channel.
@@ -30,6 +32,17 @@ NO PARAMETERS:
      +i     - 'Invite only'.  This will prevent anyone from joining your
               channel who hasn't received an /invite or whose host isn't in
               the +I list.
+
+     +z     - 'Op moderated'. Messages of clients not voiced or op’d
+              go to channel operators.
+
+     +M     - 'Speak only if registered'. Client may speak only when registered and
+              identified to NickServ.
+
+     +R     - 'Registered only'. Client may join only when registered and 
+              identified to NickServ.
+
+     +S     - 'SSL only'. Client may join only when using SSL Connection.
 
 
 WITH PARAMETERS:
