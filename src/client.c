@@ -1486,6 +1486,8 @@ change_local_nick(struct Client *client_p, struct Client *source_p, const char *
     {
       ClearNickServReg(source_p);
       sendto_one(source_p, ":%s MODE %s :-R", nick, nick);
+      sendto_server(NULL, NULL, NULL, NOCAPS, NOCAPS, NOFLAGS,
+		    ":%s SVSMODE %s -R :", me.id, ID(source_p));
     }
 
     /*
