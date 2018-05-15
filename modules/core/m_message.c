@@ -381,7 +381,8 @@ build_target_list(int p_or_n, const char *command, struct Client *client_p,
 
       if ((chptr = hash_find_channel(nick)) != NULL)
       {
-        if (!has_member_flags(find_channel_link(source_p, chptr),
+        if (MyClient(source_p) &&
+            !has_member_flags(find_channel_link(source_p, chptr),
                               CHFL_CHANOP|CHFL_HALFOP|CHFL_VOICE))
         {
           sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
