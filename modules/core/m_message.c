@@ -506,18 +506,22 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
   {
     if (p_or_n != NOTICE)
     {
-      sendto_one(source_p, form_str(ERR_CANNOTSENDTOCHAN),
-                 ID_or_name(&me, client_p),
-                 ID_or_name(source_p, client_p), chptr->chname);
-      if(result == CAN_SEND_ONLY_IF_REG)
-        sendto_one(source_p, form_str(ERR_CANTSENDREGONLY),
-            ID_or_name(&me, client_p),
-            ID_or_name(source_p, client_p), chptr->chname);
-
       if(chptr->mode.mode & MODE_OPMODERATED)
       {
         msg_channel_flags(p_or_n, command, client_p, source_p, chptr, CHFL_CHANOP,
             text);
+      }
+      else if(result == CAN_SEND_ONLY_IF_REG)
+      {
+        sendto_one(source_p, form_str(ERR_CANTSENDREGONLY),
+            ID_or_name(&me, client_p),
+            ID_or_name(source_p, client_p), chptr->chname);
+      }
+      else
+      {
+        sendto_one(source_p, form_str(ERR_CANNOTSENDTOCHAN),
+                 ID_or_name(&me, client_p),
+                 ID_or_name(source_p, client_p), chptr->chname);
       }
     }
   }
