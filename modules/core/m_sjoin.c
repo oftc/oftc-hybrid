@@ -656,6 +656,7 @@ static const struct mode_letter
   { MODE_MODERATED,      'm' },
   { MODE_INVITEONLY,     'i' },
   { MODE_PRIVATE,        'p' },
+  { MODE_OPMODERATED,    'z' },
   { MODE_SPEAKONLYIFREG, 'M' },
   { MODE_REGONLY,        'R' },
   { MODE_SSLONLY,        'S' },
