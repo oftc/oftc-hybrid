@@ -174,6 +174,9 @@ ms_sjoin(struct Client *client_p, struct Client *source_p,
       case 'c':
         mode.mode |= MODE_NOCOLOR;
         break;
+      case 'z':
+        mode.mode |= MODE_OPMODERATED;
+        break;
       case 'M':
         mode.mode |= MODE_SPEAKONLYIFREG;
         break;
