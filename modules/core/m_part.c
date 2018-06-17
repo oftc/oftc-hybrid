@@ -106,7 +106,7 @@ part_one_client(struct Client *client_p, struct Client *source_p,
     reason = strip_color(reason); 
   
   if (reason[0] && (!MyConnect(source_p) ||
-      ((can_send(chptr, source_p, ms) &&
+      ((can_send(chptr, source_p, ms) > 0 &&
        (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
         < CurrentTime))))
   {
