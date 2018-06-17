@@ -243,7 +243,7 @@ m_nick(struct Client *client_p, struct Client *source_p,
     {
       chptr = ((struct Membership *) cptr->data)->chptr;
 
-      if(can_send(chptr, source_p, cptr->data) == CAN_SEND_NO)
+      if(can_send(chptr, source_p, cptr->data) <= 0)
       {
         sendto_one(source_p, form_str(ERR_NONICKWHILEBAN), me.name, parv[0],
             chptr->chname);
