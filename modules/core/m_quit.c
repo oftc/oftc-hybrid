@@ -70,6 +70,23 @@ m_quit(struct Client *client_p, struct Client *source_p,
   char *comment = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
   char reason[KICKLEN + 1] = "Quit: ";
 
+  if(!IsOper(source_p))
+  {
+    struct Channel *chptr;
+    dlink_node *cptr;
+
+    DLINK_FOREACH(cptr, source_p->channel.head)
+    {
+      chptr = ((struct Membership *) cptr->data)->chptr;
+
+      if(can_send(chptr, source_p, cptr->data) <= 0)
+      {
+        comment[0] = 0;
+        break;
+      }
+    }
+  }
+
   if (msg_has_colors(comment))
     comment = strip_color(comment);
   
