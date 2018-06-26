@@ -55,7 +55,7 @@ _moddeinit(void)
   mod_del_cmd(&quit_msgtab);
 }
 
-const char *_version = "$Revision$";
+const char *_version = "$Revision: 1 $";
 #endif
 
 /*
@@ -70,6 +70,16 @@ m_quit(struct Client *client_p, struct Client *source_p,
   char *comment = (parc > 1 && parv[1]) ? parv[1] : client_p->name;
   char reason[KICKLEN + 1] = "Quit: ";
 
+  if (msg_has_colors(comment))
+    comment = strip_color(comment);
+  
+  if (comment[0] && (IsOper(source_p) ||
+      (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
+      < CurrentTime))
+    strlcpy(reason+6, comment, sizeof(reason)-6);
+  else
+    reason[0] = 0;
+
   if(!IsOper(source_p))
   {
     struct Channel *chptr;
@@ -81,21 +91,11 @@ m_quit(struct Client *client_p, struct Client *source_p,
 
       if(can_send(chptr, source_p, cptr->data) <= 0)
       {
-        comment[0] = 0;
+        reason[0] = 0;
         break;
       }
     }
   }
-
-  if (msg_has_colors(comment))
-    comment = strip_color(comment);
-  
-  if (comment[0] && (IsOper(source_p) ||
-      (source_p->firsttime + ConfigFileEntry.anti_spam_exit_message_time)
-      < CurrentTime))
-    strlcpy(reason+6, comment, sizeof(reason)-6);
-  else
-    reason[0] = 0;
 
   exit_client(source_p, source_p, reason);
 }
