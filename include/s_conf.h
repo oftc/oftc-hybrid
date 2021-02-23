@@ -349,7 +349,6 @@ struct config_file_entry
   char *operlog;
 
   char *servlink_path;
-  char *egdpool_path;
 
   MessageFile motd;
   MessageFile opermotd;
@@ -404,7 +403,6 @@ struct config_file_entry
   int client_flood;
   /* 0 == don't use throttle... */
   int throttle_time;
-  int use_egd;
   int ping_cookie;
   int disable_auth;
   int disable_remote;

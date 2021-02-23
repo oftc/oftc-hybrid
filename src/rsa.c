@@ -68,7 +68,6 @@ verify_private_key(void)
 {
   BIO *file;
   RSA *key;
-  RSA *mkey;
 
   /* If the rsa_private_key directive isn't found, error out. */
   if (ServerInfo.rsa_private_key == NULL)
@@ -124,46 +123,6 @@ verify_private_key(void)
   BIO_free(file);
   bio_spare_fd = save_spare_fd("SSL private key validation");
 
-  mkey = ServerInfo.rsa_private_key;
-
-  /*
-   * Compare the in-memory key to the key we just loaded above.  If
-   * any of the portions don't match, then logically we have a different
-   * in-memory key vs. the one we just loaded.  This is bad, mmmkay?
-   */
-  if (mkey->pad != key->pad)
-    ilog(L_CRIT, "Private key corrupted: pad %i != pad %i",
-                 mkey->pad, key->pad);
-  
-  if (mkey->version != key->version)
-  {
-#if (OPENSSL_VERSION_NUMBER) >= 0x00907000
-    ilog(L_CRIT, "Private key corrupted: version %li != version %li",
-                 mkey->version, key->version);
-#else
-    ilog(L_CRIT, "Private key corrupted: version %i != version %i",
-                 mkey->version, key->version);
-#endif
-  }    
-
-
-  if (BN_cmp(mkey->n, key->n))
-    ilog(L_CRIT, "Private key corrupted: n differs");
-  if (BN_cmp(mkey->e, key->e))
-    ilog(L_CRIT, "Private key corrupted: e differs");
-  if (BN_cmp(mkey->d, key->d))
-    ilog(L_CRIT, "Private key corrupted: d differs");
-  if (BN_cmp(mkey->p, key->p))
-    ilog(L_CRIT, "Private key corrupted: p differs");
-  if (BN_cmp(mkey->q, key->q))
-    ilog(L_CRIT, "Private key corrupted: q differs");
-  if (BN_cmp(mkey->dmp1, key->dmp1))
-    ilog(L_CRIT, "Private key corrupted: dmp1 differs");
-  if (BN_cmp(mkey->dmq1, key->dmq1))
-    ilog(L_CRIT, "Private key corrupted: dmq1 differs");
-  if (BN_cmp(mkey->iqmp, key->iqmp))
-    ilog(L_CRIT, "Private key corrupted: iqmp differs");
-
   RSA_free(key);
   return 0;
 }
@@ -187,14 +146,6 @@ binary_to_hex(unsigned char *bin, char *hex, int length)
 int
 get_randomness(unsigned char *buf, int length)
 {
-    /* Seed OpenSSL PRNG with EGD enthropy pool -kre */
-    if (ConfigFileEntry.use_egd &&
-        (ConfigFileEntry.egdpool_path != NULL))
-    {
-      if (RAND_egd(ConfigFileEntry.egdpool_path) == -1)
-            return -1;
-    }
-
   if (RAND_status())
     return (RAND_bytes(buf, length));
   else /* XXX - abort? */

@@ -2265,7 +2265,7 @@ find_servconn_in_progress(const char *name)
 #ifdef HAVE_LIBCRYPTO
 
 static void
-ssl_server_handshake(int fd, struct Client *client_p)
+ssl_server_handshake(fde_t *fd, struct Client *client_p)
 {
   int ret;
   int err;

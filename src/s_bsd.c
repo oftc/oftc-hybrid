@@ -286,7 +286,7 @@ close_connection(struct Client *client_p)
  * read/write events if necessary.
  */
 static void
-ssl_handshake(int fd, struct Client *client_p)
+ssl_handshake(fde_t *fd, struct Client *client_p)
 {
   int ret = SSL_accept(client_p->localClient->fd.ssl);
   X509 *cert;
@@ -298,9 +298,15 @@ ssl_handshake(int fd, struct Client *client_p)
         res == X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE ||
         res == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)
     {
-      /* The client sent a certificate which verified OK */
-      base16_encode(client_p->certfp, sizeof(client_p->certfp),
-          (const char*)cert->sha1_hash, sizeof(cert->sha1_hash));
+      unsigned char md[EVP_MAX_MD_SIZE];
+      unsigned int n = sizeof(md);
+
+      if (X509_digest(cert, EVP_sha1(), md, &n))
+      {
+        /* The client sent a certificate which verified OK */
+        base16_encode(client_p->certfp, sizeof(client_p->certfp),
+          (char *) md, n);
+      }
     }
     else
     {

@@ -2017,8 +2017,6 @@ set_default_conf(void)
    */
   ConfigFileEntry.default_cipher_preference = &CipherTable[1];
 #endif
-  ConfigFileEntry.use_egd = NO;
-  ConfigFileEntry.egdpool_path = NULL;
 #ifdef HAVE_LIBZ
   ConfigFileEntry.compression_level = 0;
 #endif
@@ -2803,8 +2801,6 @@ clear_out_old_conf(void)
   ServerInfo.network_name = NULL;
   MyFree(ServerInfo.network_desc);
   ServerInfo.network_desc = NULL;
-  MyFree(ConfigFileEntry.egdpool_path);
-  ConfigFileEntry.egdpool_path = NULL;
 #ifdef HAVE_LIBCRYPTO
   if (ServerInfo.rsa_private_key != NULL)
   {

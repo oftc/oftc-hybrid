@@ -167,7 +167,6 @@ disable_remote_commands	{ return DISABLE_REMOTE_COMMANDS; }
 dot_in_ip6_addr { return DOT_IN_IP6_ADDR; }
 dots_in_ident   { return DOTS_IN_IDENT; }
 duration	{ return DURATION; }
-egdpool_path        { return EGDPOOL_PATH; }
 email		{ return EMAIL; }
 enable		{ return ENABLE; }
 encrypted       { return ENCRYPTED; }
@@ -309,7 +308,6 @@ type		{ return TYPE; }
 true_no_oper_flood { return TRUE_NO_OPER_FLOOD; }
 umodes          { return T_UMODES; }
 unkline		{ return UNKLINE; }
-use_egd 	{ return USE_EGD; }
 use_except	{ return USE_EXCEPT; }
 use_invex	{ return USE_INVEX; }
 use_quiet { return USE_QUIET; }

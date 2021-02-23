@@ -103,13 +103,13 @@ void m_svscloak(struct Client *client_p, struct Client *source_p, int parc, char
 
     /* locally modify the clients structure */
     if(target_p->realhost[0] == '\0')
-        strncpy(target_p->realhost, target_p->host, HOSTLEN);
+        strlcpy(target_p->realhost, target_p->host, HOSTLEN);
     if(IsUserHostIp(target_p))
     {
       delete_user_host(target_p->username, target_p->host, !MyConnect(target_p));
       add_user_host(target_p->username, hostname, !MyConnect(target_p));
     }
-    strncpy(target_p->host, hostname, HOSTLEN);
+    strlcpy(target_p->host, hostname, HOSTLEN);
     clear_ban_cache_client(target_p);
     off_history(target_p);
 

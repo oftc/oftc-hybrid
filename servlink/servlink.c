@@ -60,6 +60,15 @@ static void usage(void)
   exit(1);
 }
 
+static void setup_crypto()
+{
+  in_state.crypt_state.ctx = EVP_CIPHER_CTX_new();
+  EVP_CIPHER_CTX_init(in_state.crypt_state.ctx);
+
+  out_state.crypt_state.ctx = EVP_CIPHER_CTX_new();
+  EVP_CIPHER_CTX_init(out_state.crypt_state.ctx);
+}
+
 int main(int argc, char *argv[])
 {
   int max_fd = 0;
@@ -99,6 +108,8 @@ int main(int argc, char *argv[])
   {
     fcntl(fds[i].fd, F_SETFL, O_NONBLOCK);
   }
+
+  setup_crypto();
 
   /* enter io loop */
   io_loop(max_fd + 1);

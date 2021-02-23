@@ -215,25 +215,25 @@ cmd_start_crypt_in(struct ctrl_command *cmd)
     send_error("can't start decryption - no key set!");
 
   in_state.crypt = 1;
-  if (!EVP_DecryptInit(&in_state.crypt_state.ctx,
+  if (!EVP_DecryptInit(in_state.crypt_state.ctx,
                        in_state.crypt_state.cipher, NULL, NULL))
     send_error("can't start decryption - DecryptInit (1) failed: %s!",
                ERR_error_string(ERR_get_error(), NULL));
 
-  if (!EVP_CIPHER_CTX_set_key_length(&in_state.crypt_state.ctx,
+  if (!EVP_CIPHER_CTX_set_key_length(in_state.crypt_state.ctx,
                                      in_state.crypt_state.keylen))
     send_error("can't start decryption - set_key_length failed: %s!",
                ERR_error_string(ERR_get_error(), NULL));
 
   in_state.crypt_state.ivlen =
-    EVP_CIPHER_CTX_iv_length(&in_state.crypt_state.ctx);
+    EVP_CIPHER_CTX_iv_length(in_state.crypt_state.ctx);
 
   if (in_state.crypt_state.ivlen)
     in_state.crypt_state.iv = calloc(in_state.crypt_state.ivlen, 1);
 
   if (in_state.crypt_state.rounds)
   {
-    if (!EVP_CIPHER_CTX_ctrl(&in_state.crypt_state.ctx,
+    if (!EVP_CIPHER_CTX_ctrl(in_state.crypt_state.ctx,
                              EVP_CTRL_SET_RC5_ROUNDS,
                              in_state.crypt_state.rounds,
                              NULL))
@@ -241,7 +241,7 @@ cmd_start_crypt_in(struct ctrl_command *cmd)
                  ERR_error_string(ERR_get_error(), NULL));
   }
 
-  if (!EVP_DecryptInit(&in_state.crypt_state.ctx,
+  if (!EVP_DecryptInit(in_state.crypt_state.ctx,
                        NULL,
                        in_state.crypt_state.key,
                        in_state.crypt_state.iv))
@@ -341,32 +341,32 @@ cmd_start_crypt_out(struct ctrl_command *cmd)
     send_error("can't start encryption - no key set!");
 
   out_state.crypt = 1;
-  if (!EVP_EncryptInit(&out_state.crypt_state.ctx,
+  if (!EVP_EncryptInit(out_state.crypt_state.ctx,
                        out_state.crypt_state.cipher, NULL, NULL))
     send_error("can't start encryption - EncryptInit (1) failed: %s!",
                ERR_error_string(ERR_get_error(), NULL));
 
-  if (!EVP_CIPHER_CTX_set_key_length(&out_state.crypt_state.ctx,
+  if (!EVP_CIPHER_CTX_set_key_length(out_state.crypt_state.ctx,
                                      out_state.crypt_state.keylen))
     send_error("can't start encryption - set_key_length failed: %s!",
                ERR_error_string(ERR_get_error(), NULL));
 
   out_state.crypt_state.ivlen =
-    EVP_CIPHER_CTX_iv_length(&out_state.crypt_state.ctx);   
+    EVP_CIPHER_CTX_iv_length(out_state.crypt_state.ctx);
 
   if (out_state.crypt_state.ivlen)
     out_state.crypt_state.iv = calloc(out_state.crypt_state.ivlen, 1);
 
   if (out_state.crypt_state.rounds)
   {
-    if (!EVP_CIPHER_CTX_ctrl(&out_state.crypt_state.ctx,
+    if (!EVP_CIPHER_CTX_ctrl(out_state.crypt_state.ctx,
                              EVP_CTRL_SET_RC5_ROUNDS,
                              out_state.crypt_state.rounds, NULL))
       send_error("can't start encryption - SET_RC5_ROUNDS failed: %s!",
                  ERR_error_string(ERR_get_error(), NULL));
   }
 
-  if (!EVP_EncryptInit(&out_state.crypt_state.ctx,
+  if (!EVP_EncryptInit(out_state.crypt_state.ctx,
                        NULL,
                        out_state.crypt_state.key,
                        out_state.crypt_state.iv))

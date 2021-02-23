@@ -178,7 +178,6 @@ unhook_hub_leaf_confs(void)
 %token  DOT_IN_IP6_ADDR
 %token  DOTS_IN_IDENT
 %token	DURATION
-%token  EGDPOOL_PATH
 %token  EMAIL
 %token	ENABLE
 %token  ENCRYPTED
@@ -384,7 +383,6 @@ unhook_hub_leaf_confs(void)
 %token  TRESV
 %token  UNKLINE
 %token  USER
-%token  USE_EGD
 %token  USE_EXCEPT
 %token  USE_INVEX
 %token  USE_QUIET
@@ -623,46 +621,13 @@ serverinfo_dh_params_file: DH_PARAMS_FILE '=' QSTRING ';'
       break;
     }
 
-    if (BN_is_word(ServerInfo.dh_params->g, DH_GENERATOR_2))
-    {
-      long residue = BN_mod_word(ServerInfo.dh_params->p, 24);
-      if (residue == 11 || residue == 23)
-      {
-        codes &= ~DH_NOT_SUITABLE_GENERATOR;
-      }
-    }
-
-    if (codes & DH_UNABLE_TO_CHECK_GENERATOR)
-    {
-      yyerror("Unable to test generator");
-      break;
-    }
-
-    if (codes & DH_NOT_SUITABLE_GENERATOR)
-    {
-      yyerror("Not a suitable generator");
-      break;
-    }
-
-    if (codes & DH_CHECK_P_NOT_PRIME)
-    {
-      yyerror("P is not a prime");
-      break;
-    }
-
-    if (codes & DH_CHECK_P_NOT_SAFE_PRIME)
-    {
-      yyerror("P is not a safe prime");
-      break;
-    }
-
-    /* require 2048 bit (256 byte) key */
-    if (DH_size(ServerInfo.dh_params) != 256)
+    /* require at least a 2048 bit (256 byte) key */
+    if (DH_size(ServerInfo.dh_params) < 256)
     {
       DH_free(ServerInfo.dh_params);
       ServerInfo.dh_params = NULL;
 
-      yyerror("Not a 2048 bit DH file, ignoring");
+      yyerror("DH file must be at least 2048 bits");
       break;
     }
   }
@@ -3445,7 +3410,6 @@ general_item:       general_hide_spoof_ips | general_ignore_bogus_ts |
                     general_true_no_oper_flood | general_oper_pass_resv |
                     general_idletime |
                     general_oper_only_umodes | general_max_targets |
-                    general_use_egd | general_egdpool_path |
                     general_oper_umodes | general_caller_id_wait |
                     general_opers_bypass_callerid | general_default_floodcount |
                     general_min_nonwildcard | general_min_nonwildcard_simple |
@@ -3736,20 +3700,6 @@ general_compression_level: COMPRESSION_LEVEL '=' NUMBER ';'
       ConfigFileEntry.compression_level = 0;
     }
 #endif
-  }
-};
-
-general_use_egd: USE_EGD '=' TBOOL ';'
-{
-  ConfigFileEntry.use_egd = yylval.number;
-};
-
-general_egdpool_path: EGDPOOL_PATH '=' QSTRING ';'
-{
-  if (ypass == 2)
-  {
-    MyFree(ConfigFileEntry.egdpool_path);
-    DupString(ConfigFileEntry.egdpool_path, yylval.string);
   }
 };
 

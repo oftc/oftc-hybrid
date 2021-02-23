@@ -22,10 +22,9 @@ AM_ENABLE_SHARED
 # Checks for programs.
 
 CFLAGS="-g -Wall -Wextra -Wno-missing-braces -Wno-padded -Wno-unused-parameter \
-        -Wno-documentation -Wno-gnu -Wno-used-but-marked-unused \
-        -Wno-missing-field-initializers -Wno-static-in-inline \
-        -Wno-missing-variable-declarations -Wno-error=deprecated-declarations \
-        -Wno-unused-result"
+        -Wno-missing-field-initializers -Wno-implicit-fallthrough \
+        -Wno-error=deprecated-declarations -Wno-int-in-bool-context \
+        -Wno-unused-result -Wno-format-truncation"
 
 AX_ARG_ENABLE_DEBUGGING
 AX_ARG_ENABLE_PROFILING

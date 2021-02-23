@@ -498,7 +498,7 @@ read_data(void)
     {
       /* encrypt data */
       ret = blen;
-      if (!EVP_EncryptUpdate(&out_state.crypt_state.ctx,
+      if (!EVP_EncryptUpdate(out_state.crypt_state.ctx,
                                 out_state.buf, &blen,
                                 buf, ret))
         send_error("error encrypting outgoing data: EncryptUpdate: %s",
@@ -580,7 +580,7 @@ read_net(void)
       if (in_state.zip)
         buf = tmp2_buf;
 #endif
-      if (!EVP_DecryptUpdate(&in_state.crypt_state.ctx,
+      if (!EVP_DecryptUpdate(in_state.crypt_state.ctx,
                                buf, &blen,
                                tmp_buf, ret))
         send_error("error decompressing incoming data - DecryptUpdate: %s",
