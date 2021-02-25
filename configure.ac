@@ -21,10 +21,6 @@ AM_ENABLE_SHARED
 
 # Checks for programs.
 
-CFLAGS="-g -Wall -Wextra -Wno-missing-braces -Wno-padded -Wno-unused-parameter \
-        -Wno-missing-field-initializers -Wno-implicit-fallthrough \
-        -Wno-error=deprecated-declarations -Wno-int-in-bool-context \
-        -Wno-unused-result -Wno-format-truncation"
 
 AX_ARG_ENABLE_DEBUGGING
 AX_ARG_ENABLE_PROFILING
@@ -133,8 +129,11 @@ AX_ARG_ENABLE_WARNINGS
 AX_ARG_ENABLE_EFENCE
 AX_ARG_ENABLE_SYSLOG
 
-dnl Only put werror on here because configure checks can fail otherwise
-CFLAGS="-Werror $CFLAGS"
+dnl Only put CFLAGS here because configure checks can fail otherwise
+CFLAGS="-g -Wall -Wextra -Werror \
+        -Wno-unused-parameter -Wno-implicit-fallthrough -Wno-int-in-bool-context \
+        -Wno-format-truncation \
+        -Wno-error=deprecated-declarations"
 
 AC_DEFINE_DIR([PREFIX],[prefix],[Set to prefix.])
 AC_DEFINE_DIR([SYSCONFDIR],[sysconfdir],[Set to sysconfdir.])
