@@ -662,7 +662,7 @@ is_quiet(const struct Channel *chptr, const struct Client *who)
 }
 /*!
  * \param chptr pointer to channel block
- * \param who   pointer to client to check access fo
+ * \param who   pointer to client to check access for
  * \return 0 if not banned, 1 otherwise
  */
 int
@@ -671,6 +671,22 @@ is_banned(struct Channel *chptr, struct Client *who)
   if (find_bmask(who, &chptr->banlist))
     if (!ConfigChannel.use_except || !find_bmask(who, &chptr->exceptlist))
       return 1;
+
+  return 0;
+}
+
+/*!
+ * \param chptr pointer to the channel block
+ * \param who   pointer to client to check access for
+ * \return      1 if the user is in the exceptlist, 0 otherwise
+ */
+int
+is_except(struct Channel *chptr, struct Client *who)
+{
+  assert(IsClient(who));
+
+  if (ConfigChannel.use_except && find_bmask(who, &chptr->exceptlist))
+    return 1;
 
   return 0;
 }
@@ -710,7 +726,7 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
       chptr->mode.limit)
     return ERR_CHANNELISFULL;
 
-  if(RegOnlyChannel(chptr) && !IsNickServReg(source_p))
+  if (RegOnlyChannel(chptr) && !IsNickServReg(source_p) && !is_except(chptr, source_p))
     return(ERR_REGONLYCHAN);
 
   if (SSLonlyChannel(chptr))
