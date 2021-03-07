@@ -447,14 +447,14 @@ ignoreErrno(int ierrno)
 /*
  * comm_settimeout() - set the socket timeout
  *
- * Set the timeout for the fd
+ * Set the timeout IN SECONDS for the fd
  */
 void
 comm_settimeout(fde_t *fd, time_t timeout, PF *callback, void *cbdata)
 {
   assert(fd->flags.open);
 
-  fd->timeout = CurrentTime + (timeout / 1000);
+  fd->timeout = CurrentTime + timeout;
   fd->timeout_handler = callback;
   fd->timeout_data = cbdata;
 }
@@ -595,7 +595,7 @@ comm_connect_tcp(fde_t *fd, const char *host, unsigned short port,
     fd->connect.hostaddr.ss_len = res->ai_addrlen;
     fd->connect.hostaddr.ss.ss_family = res->ai_family;
     irc_freeaddrinfo(res);
-    comm_settimeout(fd, timeout*1000, comm_connect_timeout, NULL);
+    comm_settimeout(fd, timeout, comm_connect_timeout, NULL);
     comm_connect_tryconnect(fd, NULL);
   }
 }
@@ -654,8 +654,8 @@ comm_connect_dns_callback(void *vptr, struct DNSReply *reply)
     return;
   }
 
-  /* No error, set a 10 second timeout */
-  comm_settimeout(F, 30*1000, comm_connect_timeout, NULL);
+  /* No error, set a 30 second timeout */
+  comm_settimeout(F, 30, comm_connect_timeout, NULL);
 
   /* Copy over the DNS reply info so we can use it in the connect() */
   /*

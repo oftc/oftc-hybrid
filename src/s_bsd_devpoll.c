@@ -115,7 +115,7 @@ comm_setselect(fde_t *F, unsigned int type, PF *handler,
 
   if (timeout != 0)
   {
-    F->timeout = CurrentTime + (timeout / 1000);
+    F->timeout = CurrentTime + timeout;
     F->timeout_handler = handler;
     F->timeout_data = client_data;
   }
