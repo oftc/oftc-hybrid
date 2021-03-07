@@ -342,6 +342,7 @@ ssl_handshake(fde_t *fd, struct Client *client_p)
     }
   }
 
+  comm_setselect(&client_p->localClient->fd, COMM_SELECT_READ | COMM_SELECT_WRITE, NULL, NULL, 0);
   comm_settimeout(&client_p->localClient->fd, 0, NULL, NULL);
   execute_callback(auth_cb, client_p);
 }
