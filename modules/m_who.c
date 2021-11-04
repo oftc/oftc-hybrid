@@ -544,6 +544,35 @@ do_who_channel(struct Client *source_p, struct Channel *chptr, int showall)
   return shown;
 }
 
+static int
+is_exact_nick_search(void)
+{
+  return !wsopts.check_umode && !wsopts.check_away && !wsopts.serv_plus &&
+    wsopts.user == NULL && wsopts.host == NULL && wsopts.ip == NULL &&
+    wsopts.gcos == NULL && wsopts.nick != NULL &&
+    strpbrk(wsopts.nick, "?#*") == NULL;
+}
+
+static void
+who_person(struct Client *source_p, struct Client *target_p)
+{
+  char status[4];
+  status[0]=(target_p->away==NULL ? 'H' : 'G');
+  status[1]=(IsOper(target_p) ? '*' : (IsInvisible(target_p) && 
+        IsOper(source_p) ? '%' : 0));
+  status[2]=0;
+  sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
+      wsopts.show_chan ? first_visible_channel(target_p, source_p) :
+      "*", target_p->username,
+      wsopts.show_ip
+      ? ( (target_p->realhost[0] != '\0' && !IsOper(source_p)) || target_p->sockhost[0] == '\0'
+        ? "255.255.255.255"
+        : target_p->sockhost)
+      : target_p->host,
+      target_p->servptr->name, target_p->name, status,
+      WHO_HOPCOUNT(source_p, target_p), target_p->info);
+}
+
 /* allow lusers only 200 replies from /who */
 static void
 m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
@@ -551,7 +580,6 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
   struct Client *target_p;
   dlink_node *ptr;
   int shown = 0, showall = IsOper(source_p);
-  char status[4];
   static int last_used = 0;
 
   /* drop nonlocal clients */
@@ -606,6 +634,11 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
       shown += do_who_channel(source_p, chan_p, 1);
     }
   }
+  else if(is_exact_nick_search())
+  {
+    if((target_p = find_person(client_p, wsopts.nick)) != NULL)
+      who_person(source_p, target_p);
+  }
   else
   {
     DLINK_FOREACH(ptr, global_client_list.head)
@@ -621,20 +654,7 @@ m_who(struct Client *client_p, struct Client *source_p, int parc, char *parv[])
             source_p->name, MAXWHOREPLIES);
         break; /* break out of loop so we can send end of who */
       }
-      status[0]=(target_p->away==NULL ? 'H' : 'G');
-      status[1]=(IsOper(target_p) ? '*' : (IsInvisible(target_p) && 
-            IsOper(source_p) ? '%' : 0));
-      status[2]=0;
-      sendto_one(source_p, form_str(RPL_WHOREPLY), me.name, source_p->name,
-          wsopts.show_chan ? first_visible_channel(target_p, source_p) :
-          "*", target_p->username,
-          wsopts.show_ip
-          ? ( (target_p->realhost[0] != '\0' && !IsOper(source_p)) || target_p->sockhost[0] == '\0'
-            ? "255.255.255.255"
-            : target_p->sockhost)
-          : target_p->host,
-          target_p->servptr->name, target_p->name, status,
-          WHO_HOPCOUNT(source_p, target_p), target_p->info);
+      who_person(source_p, target_p);
       shown++;
     }
   }
