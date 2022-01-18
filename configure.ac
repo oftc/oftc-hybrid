@@ -133,7 +133,7 @@ dnl Only put CFLAGS here because configure checks can fail otherwise
 CFLAGS="-g -Wall -Wextra -Werror \
         -Wno-unused-parameter -Wno-implicit-fallthrough -Wno-int-in-bool-context \
         -Wno-format-truncation \
-        -Wno-error=deprecated-declarations \
+        -Wno-error=deprecated-declarations -Wno-error=stringop-overflow \
 	$CFLAGS"
 
 AC_DEFINE_DIR([PREFIX],[prefix],[Set to prefix.])
