@@ -130,10 +130,11 @@ AX_ARG_ENABLE_EFENCE
 AX_ARG_ENABLE_SYSLOG
 
 dnl Only put CFLAGS here because configure checks can fail otherwise
-CFLAGS="-g -Wall -Wextra -Werror \
-        -Wno-unused-parameter -Wno-implicit-fallthrough -Wno-int-in-bool-context \
-        -Wno-format-truncation \
-        -Wno-error=deprecated-declarations \
+CFLAGS="-ggdb3 -O2 -fvar-tracking-assignments -fno-omit-frame-pointer \
+	-Wall -Wextra -Werror \
+	-Wno-unused-parameter -Wno-implicit-fallthrough -Wno-int-in-bool-context \
+	-Wno-format-truncation -Wno-maybe-uninitialized \
+	-Wno-error=deprecated-declarations -Wno-error=stringop-overflow \
 	$CFLAGS"
 
 AC_DEFINE_DIR([PREFIX],[prefix],[Set to prefix.])
