@@ -119,7 +119,8 @@ mo_capture(struct Client *client_p, struct Client *source_p,
 
         if (!IsCaptured(target_p))
         {
-          sendto_realops_flags(UMODE_ALL, L_ALL, "Captured %s (%s@%s)",
+          sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                               "Captured %s (%s@%s)",
                                target_p->name, target_p->username,
                                target_p->host);
           SetCaptured(target_p);
@@ -179,7 +180,7 @@ mo_capture(struct Client *client_p, struct Client *source_p,
       }
     }
 
-    sendto_realops_flags(UMODE_ALL, L_ALL,
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                          "Bulk captured %s!%s@%s, %u local match(es)",
                          nick, user, host, matches);
   }
@@ -221,7 +222,8 @@ mo_uncapture(struct Client *client_p, struct Client *source_p,
         {
           ClearCaptured(target_p);
 
-          sendto_realops_flags(UMODE_ALL, L_ALL, "Uncaptured %s (%s@%s)",
+          sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                               "Uncaptured %s (%s@%s)",
                                target_p->name, target_p->username,
                                target_p->host);
         }
@@ -277,7 +279,7 @@ mo_uncapture(struct Client *client_p, struct Client *source_p,
       }
     }
 
-    sendto_realops_flags(UMODE_ALL, L_ALL,
+    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
                          "Bulk uncaptured %s!%s@%s, %u local match(es)",
                          nick, user, host, matches);
   }
