@@ -10,6 +10,7 @@ lex.yy.c
 src/ircd
 servlink/servlink
 include/setup.h
+include/serno.h
 *.la
 *.lo
 .deps
