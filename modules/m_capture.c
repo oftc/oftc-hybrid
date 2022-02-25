@@ -160,29 +160,46 @@ mo_capture(struct Client *client_p, struct Client *source_p,
     if (!valid_wild_card(source_p, YES, 3, nick, user, host))
       return;
 
-    if (IsClient(client_p))
-      sendto_server(client_p, NULL, NULL, CAP_ENCAP, 0, 0,
-                    ":%s ENCAP * CAPTURE %s!%s@%s",
-                    source_p->name, nick, user, host);
-
-    DLINK_FOREACH(ptr, local_client_list.head)
+    DLINK_FOREACH(ptr, global_client_list.head)
     {
       target_p = ptr->data;
 
-      if ((source_p == target_p) || IsOper(target_p) || IsCaptured(target_p))
+      if (!IsClient(target_p) || (source_p == target_p) || IsOper(target_p))
         continue;
 
       if (match(nick, target_p->name) &&
           match(host, target_p->host) && match(user, target_p->username))
       {
-        SetCaptured(target_p);
+        if (MyConnect(target_p))
+        {
+          if (!IsCaptured(target_p))
+          {
+            sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                                 "Captured %s (%s@%s)",
+                                 target_p->name, target_p->username,
+                                 target_p->host);
+            SetCaptured(target_p);
+          }
+
+          sendto_one(source_p, form_str(RPL_ISCAPTURED),
+                     me.name, source_p->name, target_p->name);
+        }
+        else if (IsCapable(target_p->from, CAP_ENCAP))
+        {
+          sendto_one(target_p, ":%s ENCAP %s CAPTURE %s",
+                     source_p->name, target_p->from->name, target_p->name);
+        }
+
         ++matches;
       }
     }
 
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                         "Bulk captured %s!%s@%s, %u local match(es)",
-                         nick, user, host, matches);
+    if (IsClient(client_p))
+    {
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                           "Bulk captured %s!%s@%s, %u match(es)",
+                           nick, user, host, matches);
+    }
   }
 }
 
@@ -259,28 +276,45 @@ mo_uncapture(struct Client *client_p, struct Client *source_p,
       nick = "*";
     }
 
-    if (IsClient(client_p))
-      sendto_server(client_p, NULL, NULL, CAP_ENCAP, 0, 0,
-                    ":%s ENCAP * UNCAPTURE %s!%s@%s",
-                    source_p->name, nick, user, host);
-
-    DLINK_FOREACH(ptr, local_client_list.head)
+    DLINK_FOREACH(ptr, global_client_list.head)
     {
       target_p = ptr->data;
 
-      if (!IsCaptured(target_p))
+      if (!IsClient(target_p))
         continue;
 
       if (match(nick, target_p->name) &&
           match(host, target_p->host) && match(user, target_p->username))
       {
-        ClearCaptured(target_p);
+        if (MyConnect(target_p))
+        {
+          if (IsCaptured(target_p))
+          {
+            sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                                 "Uncaptured %s (%s@%s)",
+                                 target_p->name, target_p->username,
+                                 target_p->host);
+            ClearCaptured(target_p);
+          }
+
+          sendto_one(source_p, form_str(RPL_ISUNCAPTURED),
+                     me.name, source_p->name, target_p->name);
+        }
+        else if (IsCapable(target_p->from, CAP_ENCAP))
+        {
+          sendto_one(target_p, ":%s ENCAP %s UNCAPTURE %s",
+                     source_p->name, target_p->from->name, target_p->name);
+        }
+
         ++matches;
       }
     }
 
-    sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-                         "Bulk uncaptured %s!%s@%s, %u local match(es)",
-                         nick, user, host, matches);
+    if (IsClient(client_p))
+    {
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                           "Bulk uncaptured %s!%s@%s, %u match(es)",
+                           nick, user, host, matches);
+    }
   }
 }
