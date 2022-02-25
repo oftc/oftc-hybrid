@@ -168,7 +168,10 @@ mo_capture(struct Client *client_p, struct Client *source_p,
         continue;
 
       if (match(nick, target_p->name) &&
-          match(host, target_p->host) && match(user, target_p->username))
+          match(user, target_p->username) &&
+          (match(host, target_p->host) ||
+           match(host, target_p->realhost) ||
+           match(host, target_p->sockhost)))
       {
         if (MyConnect(target_p))
         {
@@ -284,7 +287,10 @@ mo_uncapture(struct Client *client_p, struct Client *source_p,
         continue;
 
       if (match(nick, target_p->name) &&
-          match(host, target_p->host) && match(user, target_p->username))
+          match(user, target_p->username) &&
+          (match(host, target_p->host) ||
+           match(host, target_p->realhost) ||
+           match(host, target_p->sockhost)))
       {
         if (MyConnect(target_p))
         {
