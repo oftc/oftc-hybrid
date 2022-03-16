@@ -113,7 +113,7 @@ static char buffer[1024];
 static int cancel_clients(struct Client *, struct Client *, char *);
 static void remove_unknown(struct Client *, char *, char *);
 static void do_numeric(char[], struct Client *, struct Client *, int, char **);
-static void handle_command(struct Message *, struct Client *, struct Client *, unsigned int, char **);
+static void handle_command(struct Message *, struct Client *, struct Client *, unsigned int, char *[MAXPARA]);
 static void recurse_report_messages(struct Client *source_p, struct MessageTree *mtree);
 static void add_msg_element(struct MessageTree *mtree_p, struct Message *msg_p, const char *cmd);
 static void del_msg_element(struct MessageTree *mtree_p, const char *cmd);
