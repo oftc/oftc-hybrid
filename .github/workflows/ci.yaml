@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+  pull_request:
+    branches:
+      - develop
+      - master
+
+jobs:
+  linux:
+    name: Linux
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+        compiler:
+          - gcc-10
+
+    env:
+      CC: ${{ matrix.compiler }}
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ${CC} \
+            autoconf \
+            automake \
+            bison \
+            flex \
+            libtool \
+            libltdl-dev \
+            libssl-dev \
+            zlib1g-dev \
+            # EOF
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: autogen.sh
+        run: bash autogen.sh --prefix=${RUNNER_TEMP}/hybrid
+      - name: make
+        run: make
+      - name: make install
+        run: make install
