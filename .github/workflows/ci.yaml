@@ -43,6 +43,8 @@ jobs:
             zlib1g-dev \
             # EOF
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: autogen.sh
         run: bash autogen.sh --prefix=${RUNNER_TEMP}/hybrid
       - name: make
