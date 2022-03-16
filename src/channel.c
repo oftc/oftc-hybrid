@@ -692,6 +692,22 @@ is_except(struct Channel *chptr, struct Client *who)
 }
 
 /*!
+ * \param chptr pointer to the channel block
+ * \param who   pointer to client to check access for
+ * \return      1 if the user is in the invexlist, 0 otherwise
+ */
+int
+is_invex(struct Channel *chptr, struct Client *who)
+{
+  assert(IsClient(who));
+
+  if (ConfigChannel.use_except && find_bmask(who, &chptr->invexlist))
+    return 1;
+
+  return 0;
+}
+
+/*!
  * \param source_p pointer to client attempting to join
  * \param chptr    pointer to channel 
  * \param key      key sent by client attempting to join if present
@@ -716,7 +732,7 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
 
   if (chptr->mode.mode & MODE_INVITEONLY)
     if (!dlinkFind(&source_p->localClient->invited, chptr))
-      if (!ConfigChannel.use_invex || !find_bmask(source_p, &chptr->invexlist))
+      if (!is_invex(chptr, source_p))
         return ERR_INVITEONLYCHAN;
 
   if (chptr->mode.key[0] && (!key || irccmp(chptr->mode.key, key)))
@@ -726,7 +742,7 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key)
       chptr->mode.limit)
     return ERR_CHANNELISFULL;
 
-  if (RegOnlyChannel(chptr) && !IsNickServReg(source_p) && !is_except(chptr, source_p))
+  if (RegOnlyChannel(chptr) && !IsNickServReg(source_p) && !is_except(chptr, source_p) && !is_invex(chptr, source_p))
     return(ERR_REGONLYCHAN);
 
   if (SSLonlyChannel(chptr))
