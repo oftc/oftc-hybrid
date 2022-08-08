@@ -78,7 +78,7 @@ AC_DEFUN([AX_ARG_ENABLE_IOLOOP_MECHANISM],[
 #endif
 _syscall1(int, epoll_create, int, size)
 #endif
-main() { return epoll_create(256) == -1 ? 1 : 0; }
+], [return epoll_create(256) == -1 ? 1 : 0;
   ])],[is_epoll_mechanism_available="yes"],[is_epoll_mechanism_available="no"])
   dnl }}}
   dnl {{{ check for devpoll mechanism support
