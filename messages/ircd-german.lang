@@ -28,7 +28,7 @@ RPL_LUSERCHANNELS:	 :%s 254 %s %d :Chaträume existieren.
 RPL_LUSERME:		 :%s 255 %s :Ich habe %d Benutzer und %d verbundene Server.
 RPL_ADMINME:		 :%s 256 %s :Administrative Informationen über %s
 RPL_ENDOFTRACE:		 :%s 262 %s %s :Ende von TRACE.
-RPL_LOAD2HI:		 :%s 263 %s :Zur Zeit kann Ihre Anfrage nicht bearbeitet werden. Der Server ist überlastet.
+RPL_LOAD2HI:		 :%s 263 %s %s :Zur Zeit kann Ihre Anfrage nicht bearbeitet werden. Der Server ist überlastet.
 RPL_LOCALUSERS:		 :%s 265 %s :Anzahl der lokalen User, zur Zeit: %d  Maximum: %d
 RPL_GLOBALUSERS:	 :%s 266 %s :Anzahl der globalen User, zur Zeit: %d  Maximum: %d
 RPL_WHOISSSL:            :%s 275 %s %s :ist über SSL verbunden (verschlüsselt).

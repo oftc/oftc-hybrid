@@ -595,7 +595,7 @@ m_info(struct Client *client_p, struct Client *source_p,
   {
     /* safe enough to give this on a local connect only */
     sendto_one(source_p, form_str(RPL_LOAD2HI),
-               me.name, source_p->name);
+               me.name, source_p->name, "INFO");
     return;
   }
   else

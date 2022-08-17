@@ -80,7 +80,7 @@ m_lusers(struct Client *client_p, struct Client *source_p,
   {
     /* safe enough to give this on a local connect only */
     if (MyClient(source_p))
-      sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0]);
+      sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, parv[0], "LUSERS");
     return;
   }
   else

@@ -19,7 +19,7 @@ RPL_LUSERUNKNOWN:       :%s 253 %s %d :- liczba niezarejestrowanych po³aczeñ
 RPL_LUSERCHANNELS:      :%s 254 %s %d :- liczba utworzonych kana³ów
 RPL_LUSERME:            :%s 255 %s :Mam %d po³aczonych klientów, serwerów: %d
 RPL_ADMINME:            :%s 256 %s :Informacje administracyjne o %s
-RPL_LOAD2HI:            :%s 263 %s :Obcia¿enie serwera jest chwilowo zbyt du¿e. Proszê zaczekaæ chwilê i spróbowaæ ponownie.
+RPL_LOAD2HI:            :%s 263 %s %s :Obcia¿enie serwera jest chwilowo zbyt du¿e. Proszê zaczekaæ chwilê i spróbowaæ ponownie.
 RPL_LOCALUSERS:         :%s 265 %s :Liczba lokalnych u¿ytkowników: %d  Rekord: %d
 RPL_GLOBALUSERS:        :%s 266 %s :Liczba globalnych u¿ytkowników: %d  Rekord: %d
 RPL_WHOISSSL:           :%s 275 %s %s :u¿ywa SSL (bezpiecznego po³aczenia)

@@ -22,7 +22,7 @@ RPL_LUSERCHANNELS:       :%s 254 %s %d :kanaler laget
 RPL_LUSERME:             :%s 255 %s :Jeg har %d klienter og %d serverere
 RPL_ADMINME:             :%s 256 %s :Administrativ informasjon om %s
 RPL_ENDOFTRACE:          :%s 262 %s %s :Slutten av TRACE
-RPL_LOAD2HI:             :%s 263 %s :Server lasten er for tiden for høy. Vennligst vent litt og prøv igjen.
+RPL_LOAD2HI:             :%s 263 %s %s :Server lasten er for tiden for høy. Vennligst vent litt og prøv igjen.
 RPL_LOCALUSERS:          :%s 265 %s :Lokale brukere nå: %d  Maks: %d
 RPL_GLOBALUSERS:         :%s 266 %s :Globale brukere nå: %d  Maks: %d
 RPL_UNAWAY:              :%s 305 %s :Du er ikke lenger markert som vekke (away)

@@ -23,7 +23,7 @@ RPL_LUSERCHANNELS:       :%s 254 %s %d :kanala formirano
 RPL_LUSERME:             :%s 255 %s :Imam %d klijenata i %d servera
 RPL_ADMINME:             :%s 256 %s :Administrativne informacije o %s
 RPL_ENDOFTRACE:          :%s 262 %s %s :Kraj TRACEa
-RPL_LOAD2HI:             :%s 263 %s :Prièekajte, server je trenutno preoptereæen.
+RPL_LOAD2HI:             :%s 263 %s %s :Prièekajte, server je trenutno preoptereæen.
 RPL_LOCALUSERS:          :%s 265 %s :Trenutno lokalnih korisnika: %d  Maks: %d
 RPL_GLOBALUSERS:         :%s 266 %s :Trenutno globalnih korisnika: %d  Maks: %d
 RPL_UNAWAY:              :%s 305 %s :OK, nisi vi¹e /away. Je li bilo zabavno?
