@@ -26,7 +26,7 @@ RPL_LUSERCHANNELS:       :%s 254 %s %d :canales formados
 RPL_LUSERME:             :%s 255 %s :Tengo %d clientes en %d servidor(es)
 RPL_ADMINME:             :%s 256 %s :Informacion Administrativa de %s
 RPL_ENDOFTRACE:          :%s 262 %s %s :Fin de TRACE
-RPL_LOAD2HI:             :%s 263 %s :Servidor actualmente muy cargado. Porfavor espere un momento y trate otra vez.
+RPL_LOAD2HI:             :%s 263 %s %s :Servidor actualmente muy cargado. Porfavor espere un momento y trate otra vez.
 RPL_LOCALUSERS:          :%s 265 %s :Usuarios locales actuales: %d  Max: %d
 RPL_GLOBALUSERS:         :%s 266 %s :Usuarios globales actuales: %d  Max: %d
 RPL_UNAWAY:              :%s 305 %s :Ahora ya no estas marcado como Ausente (away)

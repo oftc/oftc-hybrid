@@ -540,7 +540,7 @@
 #define NUMERIC_STR_258 ":%s 258 %s :%s"
 #define NUMERIC_STR_259 ":%s 259 %s :%s"
 #define NUMERIC_STR_262 ":%s 262 %s %s :End of TRACE"
-#define NUMERIC_STR_263 ":%s 263 %s :Server load is temporarily too heavy. Please wait a while and try again."
+#define NUMERIC_STR_263 ":%s 263 %s %s :Server load is temporarily too heavy. Please wait a while and try again."
 #define NUMERIC_STR_265 ":%s 265 %s :Current local users: %d  Max: %d"
 #define NUMERIC_STR_266 ":%s 266 %s :Current global users: %d  Max: %d"
 #define NUMERIC_STR_275 ":%s 275 %s %s :is connected via SSL (secure link)"

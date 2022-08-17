@@ -62,7 +62,7 @@ m_mkpasswd(struct Client *client_p, struct Client *source_p,
   if ((last_used + ConfigFileEntry.pace_wait) > CurrentTime)
   {
     sendto_one(source_p, form_str(RPL_LOAD2HI),
-               me.name, source_p->name);
+               me.name, source_p->name, "MKPASSWD");
     return;
   }
 

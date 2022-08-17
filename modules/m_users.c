@@ -71,7 +71,7 @@ m_users(struct Client *client_p, struct Client *source_p,
 
   if (last_used + ConfigFileEntry.pace_wait_simple > CurrentTime)
   {
-    sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name);
+    sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name, "USERS");
     return;
   }
 

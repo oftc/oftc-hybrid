@@ -4,7 +4,7 @@
 RPL_CREATED:           :%s 003 %s :This server rose from the ashes %s
 RPL_STATSUPTIME:       :%s 242 %s :Dianora hasn't messed with the server code now in %d days, %d:%02d:%02d
 RPL_LUSEROP:           :%s 252 %s %d :Smurf Targets (IRC Operators) online
-RPL_LOAD2HI:           :%s 263 %s :Hold your horses... the server load is temporarily too heavy. Try again later, ok?
+RPL_LOAD2HI:           :%s 263 %s %s :Hold your horses... the server load is temporarily too heavy. Try again later, ok?
 RPL_UNAWAY:            :%s 305 %s :OK, you're not /away anymore. Did you have fun?
 RPL_NOWAWAY:           :%s 306 %s :OK, you're /away now. Hurry back!
 RPL_WHOISOPERATOR:     :%s 313 %s %s :is a Smurf Target (IRC Operator)

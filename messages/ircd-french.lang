@@ -4,7 +4,7 @@
 ; $Id$
 
 RPL_LUSEROP:             :%s 252 %s %d :opérateurs IRC en ligne
-RPL_LOAD2HI:             :%s 263 %s :Veuillez patienter, le serveur est trop occupé
+RPL_LOAD2HI:             :%s 263 %s %s :Veuillez patienter, le serveur est trop occupé
 RPL_UNAWAY:              :%s 305 %s :Vous n'êtes plus marqué 'absent'
 RPL_NOWAWAY:             :%s 306 %s :Vous êtes maintenant marqué 'absent'
 RPL_YOUREOPER:           :%s 381 %s :Vous êtes maintenant un opérateur IRC
