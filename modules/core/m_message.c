@@ -615,14 +615,9 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
   if (MyClient(source_p))
   {
     /*
-     * reset idle time for message only if its not to self 
-     * and its not a notice
-     * NOTE: Normally we really should reset their idletime
-     * if the are messaging themselves, but we have to go
-     * this way in order to prevent them to trick out
-     * idle-klines.
+     * reset idle time for message if its not a notice
      */
-    if ((p_or_n != NOTICE) && (source_p != target_p))
+    if (p_or_n != NOTICE)
       source_p->localClient->last = CurrentTime;
   }
 
