@@ -506,7 +506,9 @@ msg_channel(int p_or_n, const char *command, struct Client *client_p,
   {
     if (p_or_n != NOTICE)
     {
-      if(chptr->mode.mode & MODE_OPMODERATED)
+      if(chptr->mode.mode & MODE_OPMODERATED &&
+         (!(chptr->mode.mode & MODE_NOPRIVMSGS) ||
+          IsMember(source_p, chptr)))
       {
         msg_channel_flags(p_or_n, command, client_p, source_p, chptr, CHFL_CHANOP,
             text);
