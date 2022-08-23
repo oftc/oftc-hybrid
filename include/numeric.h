@@ -396,6 +396,7 @@
 #define ERR_NOOPERHOST       491
 /*      ERR_NOSERVICEHOST    492 	   IRCnet extension */
 
+#define ERR_OWNMODE          494        /* stolen from solanum */
 #define ERR_UMODEUNKNOWNFLAG 501
 #define ERR_USERSDONTMATCH   502
 
@@ -653,6 +654,7 @@
 #define NUMERIC_STR_483 ":%s 483 %s :You can't kill a server!"
 #define NUMERIC_STR_484 ":%s 484 %s :You are restricted"
 #define NUMERIC_STR_491 ":%s 491 %s :Only few of mere mortals may try to enter the twilight zone"
+#define NUMERIC_STR_494 ":%s 494 %s %s :cannot answer you while you are +g, +j, or +G, your message was not sent"
 #define NUMERIC_STR_501 ":%s 501 %s :Unknown MODE flag"
 #define NUMERIC_STR_502 ":%s 502 %s :Can't change mode for other users"
 #define NUMERIC_STR_503 ":%s 503 %s :Message could not be delivered to %s"

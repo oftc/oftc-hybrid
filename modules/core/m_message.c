@@ -627,9 +627,28 @@ msg_client(int p_or_n, const char *command, struct Client *source_p,
   execute_callback(client_message, source_p, target_p, text);
 #endif
 
-  if (MyConnect(source_p) && (p_or_n != NOTICE) && target_p->away)
-    sendto_one(source_p, form_str(RPL_AWAY), me.name,
-               source_p->name, target_p->name, target_p->away);
+  if (MyConnect(source_p) && (p_or_n != NOTICE))
+  {
+    if(target_p->away)
+      sendto_one(source_p, form_str(RPL_AWAY), me.name,
+                 source_p->name, target_p->name, target_p->away);
+
+    /* reverse auto-/accept */
+    if (source_p != target_p && !accept_message(target_p, source_p) &&
+        !(IsOper(target_p) && ConfigFileEntry.opers_bypass_callerid == 1))
+    {
+      if (dlink_list_length(&source_p->allow_list) < ConfigFileEntry.max_accept)
+      {
+        dlinkAdd(target_p, make_dlink_node(), &source_p->allow_list);
+        dlinkAdd(source_p, make_dlink_node(), &target_p->on_allow_list);
+      }
+      else
+      {
+        sendto_one(source_p, form_str(ERR_OWNMODE), me.name, source_p->name, target_p->name);
+        return;
+      }
+    }
+  }
 
   if (MyClient(target_p))
   {
