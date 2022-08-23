@@ -171,7 +171,7 @@ m_invite(struct Client *client_p, struct Client *source_p,
     if (!accept_message(target_p, source_p) &&
         !(IsOper(target_p) && ConfigFileEntry.opers_bypass_callerid == 1))
     {
-      if (dlink_list_length(&source_p->allow_list) < ConfigFileEntry.max_accept)
+      if (dlink_list_length(&source_p->allow_list) < (unsigned long)ConfigFileEntry.max_accept)
       {
         dlinkAdd(target_p, make_dlink_node(), &source_p->allow_list);
         dlinkAdd(source_p, make_dlink_node(), &target_p->on_allow_list);
