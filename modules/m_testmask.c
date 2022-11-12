@@ -90,6 +90,10 @@ mo_testmask(struct Client *client_p, struct Client *source_p,
   int local_count = 0, remote_count = 0;
   dlink_node *ptr, *next_ptr;
   struct Client *target_p;
+  char type;
+  struct irc_ssaddr addr;
+  int bits;
+  int matched = 0;
 
   if (parc < 2 || ((given_host = strchr(given_user, '@')) == NULL))
   {
@@ -100,23 +104,49 @@ mo_testmask(struct Client *client_p, struct Client *source_p,
 
   *given_host++ = '\0';
 
+  type = parse_netmask(given_host, &addr, &bits);
+
   DLINK_FOREACH_SAFE(ptr, next_ptr, global_client_list.head)
   {
     target_p = ptr->data;
+    matched = 0;
 
     if (IsDead(target_p) || !IsClient(target_p))
       continue;
 
-    if (match(given_user, target_p->username) &&
-	match(given_host, target_p->host))
+    if (match(given_user, target_p->username))
     {
-      if (MyConnect(target_p))
-	local_count++;
-      else
-	remote_count++;
+      switch (type)
+      {
+        case HM_HOST:
+          if (match(given_host, target_p->host) ||
+              match(given_host, target_p->realhost) ||
+              match(given_host, target_p->sockhost))
+            matched = 1;
+          break;
+        case HM_IPV4:
+          if (target_p->aftype == AF_INET &&
+              match_ipv4(&target_p->ip, &addr, bits))
+            matched = 1;
+          break;
+#ifdef IPV6
+        case HM_IPV6:
+          if (target_p->aftype == AF_INET6 &&
+              match_ipv6(&target_p->ip, &addr, bits))
+            matched = 1;
+          break;
+#endif
+      }
+      if (matched)
+      {
+        if (MyConnect(target_p))
+          local_count++;
+        else
+          remote_count++;
+      }
     }
   }
 
   sendto_one(source_p, form_str(RPL_TESTMASK), me.name, source_p->name,
-	     given_user, given_host, local_count, remote_count);
+             given_user, given_host, local_count, remote_count);
 }
