@@ -809,6 +809,7 @@ client_from_server(struct Client *client_p, struct Client *source_p, int parc,
 
   if(res != NULL)
   {
+    source_p->aftype = res->ai_family;
     memcpy(&source_p->ip, res->ai_addr, res->ai_addrlen);
     source_p->ip.ss_len = res->ai_addrlen;
     irc_freeaddrinfo(res);
