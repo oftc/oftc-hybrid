@@ -76,7 +76,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
         parse_csv_line(line, &user_field, &host_field, &reason_field,
             &oper_reason, &temp, &temp, &temp, &duration_field, NULL);
         conf = make_conf_item(KLINE_TYPE);
-        aconf = map_to_conf(conf);
+        aconf = &conf->aconf;
 
         if (host_field != NULL)
           DupString(aconf->host, host_field);
@@ -117,7 +117,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
           }
 
           conf = make_conf_item(RKLINE_TYPE);
-          aconf = map_to_conf(conf);
+          aconf = &conf->aconf;
 
           aconf->regexuser = exp_user;
           aconf->regexhost = exp_host;
@@ -145,7 +145,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
         parse_csv_line(line, &host_field, &reason_field, &temp, &temp, &temp, 
             &temp, &duration_field, NULL);
         conf = make_conf_item(DLINE_TYPE);
-        aconf = (struct AccessItem *)map_to_conf(conf);
+        aconf = &conf->aconf;
         if (host_field != NULL)
           DupString(aconf->host, host_field);
         if (reason_field != NULL)
@@ -163,7 +163,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
         parse_csv_line(line, &name_field, &reason_field, &oper_reason, &temp,
             &temp, &temp, &temp, &duration_field, NULL);
         conf = make_conf_item(XLINE_TYPE);
-        match_item = (struct MatchItem *)map_to_conf(conf);
+        match_item = &conf->mconf;
         if (name_field != NULL)
           DupString(conf->name, name_field);
         if (reason_field != NULL)
@@ -196,7 +196,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
 
           conf = make_conf_item(RXLINE_TYPE);
           conf->regexpname = exp_p;
-          match_item = map_to_conf(conf);
+          match_item = &conf->mconf;
           DupString(conf->name, name_field);
 
           if (reason_field != NULL)
@@ -217,7 +217,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
         conf = create_channel_resv(name_field, reason_field, 0);
         if(duration_field != NULL)
         {
-          cresv = map_to_conf(conf);
+          cresv = &conf->cresv;
           cresv->hold = atoi(duration_field);
           add_temp_line(conf);
         }
@@ -228,7 +228,7 @@ parse_csv_file(FBFILE *file, ConfType conf_type)
         conf = create_nick_resv(name_field, reason_field, 0);
         if(duration_field != NULL)
         {
-          nresv = map_to_conf(conf);
+          nresv = &conf->mconf;
           nresv->hold = atoi(duration_field);
           add_temp_line(conf);
         }
@@ -330,7 +330,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
   switch(type)
   {
   case KLINE_TYPE:
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->aconf;
     if(duration == 0)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -366,7 +366,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     break;
 
   case RKLINE_TYPE:
-    aconf = map_to_conf(conf);
+    aconf = &conf->aconf;
     if(duration == 0)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -406,7 +406,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     break;
 
   case DLINE_TYPE:
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->aconf;
     if(duration == 0)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -442,7 +442,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     break;
 
   case XLINE_TYPE:
-    xconf = (struct MatchItem *)map_to_conf(conf);
+    xconf = &conf->mconf;
     if(duration == 0)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -479,7 +479,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     break;
 
   case RXLINE_TYPE:
-    xconf = (struct MatchItem *)map_to_conf(conf);
+    xconf = &conf->mconf;
     if(duration == 0)
     {
       sendto_realops_flags(UMODE_ALL, L_ALL,
@@ -514,7 +514,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     break;
 
   case CRESV_TYPE:
-    cresv_p = (struct ResvChannel *)map_to_conf(conf);
+    cresv_p = &conf->cresv;
     if(duration == 0)
       write_csv_line(out, "%s%s", cresv_p->name, cresv_p->reason);
     else
@@ -522,7 +522,7 @@ write_conf_line(struct Client *source_p, struct ConfItem *conf,
     break;
 
   case NRESV_TYPE:
-    nresv_p = (struct MatchItem *)map_to_conf(conf);
+    nresv_p = &conf->mconf;
     if(duration == 0)
       write_csv_line(out, "%s%s", conf->name, nresv_p->reason);
     else

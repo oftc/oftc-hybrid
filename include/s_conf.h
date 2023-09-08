@@ -34,6 +34,7 @@
 #include "client.h"
 #include "hook.h"
 #include "pcre.h"
+#include "resv.h"		/* ResvChannel */
 
 struct Client;
 struct DNSReply;
@@ -77,15 +78,6 @@ struct split_nuh_item
   size_t nicksize;
   size_t usersize;
   size_t hostsize;
-};
-
-struct ConfItem
-{
-  char *name;		/* Primary key */
-  pcre *regexpname;
-  dlink_node node;	/* link into known ConfItems of this type */
-  unsigned int flags;
-  ConfType type;
 };
 
 /*
@@ -154,6 +146,22 @@ struct ClassItem
   dlink_list list_ipv6;         /* base of per cidr ipv6 client link list */
   int active;
   char *reject_message;
+};
+
+struct ConfItem
+{
+  char *name;		/* Primary key */
+  pcre *regexpname;
+  dlink_node node;	/* link into known ConfItems of this type */
+  unsigned int flags;
+  ConfType type;
+  union
+  {
+    struct AccessItem aconf;
+    struct MatchItem mconf;
+    struct ClassItem aclass;
+    struct ResvChannel cresv;
+  };
 };
 
 struct CidrItem
@@ -565,8 +573,10 @@ extern void parse_csv_file(FBFILE *, ConfType);
 
 extern char *get_oper_name(const struct Client *);
 
-extern void *map_to_conf(struct ConfItem *);
-extern struct ConfItem *unmap_conf_item(void *);
+#define container_of(ptr, type, member) ({                      \
+	const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
+	(type *)( (char *)__mptr - offsetof(type, member) );})
+#define unmap_conf_item(ptr, member) container_of(ptr, struct ConfItem, member)
 /* XXX should the parse_aline stuff go into another file ?? */
 #define AWILD 0x1		/* check wild cards */
 #define NOUSERLOOKUP 0x2 /* Don't lookup the user@host on /rkline nick */

@@ -364,7 +364,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
     if (match(conf->name, client_p->name))
     {
-      match_item = (struct MatchItem *)map_to_conf(conf);
+      match_item = &conf->mconf;
       if (match(match_item->host, name))
 	llined++;
     }
@@ -376,7 +376,7 @@ ms_server(struct Client *client_p, struct Client *source_p,
 
     if (match(conf->name, client_p->name))
     {
-      match_item = (struct MatchItem *)map_to_conf(conf);
+      match_item = &conf->mconf;
 
       if (match(match_item->host, name))
 	hlined++;
@@ -608,7 +608,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
 
     if (match(conf->name, client_p->name))
     {
-      match_item = (struct MatchItem *)map_to_conf(conf);
+      match_item = &conf->mconf;
       if (match(match_item->host, SID_NAME))
 	llined++;
     }
@@ -620,7 +620,7 @@ ms_sid(struct Client *client_p, struct Client *source_p,
 
     if (match(conf->name, client_p->name))
     {
-      match_item = (struct MatchItem *)map_to_conf(conf);
+      match_item = &conf->mconf;
 
       if (match(match_item->host, SID_NAME))
 	hlined++;

@@ -113,7 +113,7 @@ mr_webirc(struct Client *client_p, struct Client *source_p, int parc, char *parv
   if (aconf == NULL || !IsConfClient(aconf))
     return;
 
-  conf = unmap_conf_item(aconf);
+  conf = unmap_conf_item(aconf, aconf);
 
   if (!IsConfDoSpoofIp(aconf) || irccmp(conf->name, "webirc."))
   {

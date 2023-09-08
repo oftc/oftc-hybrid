@@ -103,7 +103,7 @@ m_oper(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = &conf->aconf;
 
   if (match_conf_password(password, aconf))
   {

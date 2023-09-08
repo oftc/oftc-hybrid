@@ -235,7 +235,7 @@ cryptlink_auth(struct Client *client_p, struct Client *source_p,
     return;
   }
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = &conf->aconf;
 
   if (!(client_p->localClient->out_cipher ||
       (client_p->localClient->out_cipher = check_cipher(client_p, aconf))))
@@ -419,7 +419,7 @@ cryptlink_serv(struct Client *client_p, struct Client *source_p,
   strlcpy(client_p->info, p, sizeof(client_p->info));
   client_p->hopcount = 0;
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = &conf->aconf;
 
   if (!(client_p->localClient->out_cipher ||
       (client_p->localClient->out_cipher = check_cipher(client_p, aconf))))

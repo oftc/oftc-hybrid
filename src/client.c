@@ -263,7 +263,7 @@ check_pings_list(dlink_list *list)
         struct AccessItem *aconf;
 
         conf = make_conf_item(KLINE_TYPE);
-        aconf = (struct AccessItem *)map_to_conf(conf);
+        aconf = &conf->aconf;
 
         DupString(aconf->host, client_p->host);
         DupString(aconf->reason, "idle exceeder");
@@ -394,6 +394,7 @@ check_conf_klines(void)
 {               
   struct Client *client_p = NULL;       /* current local client_p being examined */
   struct AccessItem *aconf = NULL;
+  struct MatchItem *mconf = NULL;
   struct ConfItem *conf = NULL;
   dlink_node *ptr, *next_ptr;
 
@@ -417,7 +418,7 @@ check_conf_klines(void)
           "DLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
           aconf->reason, get_client_name(client_p, SHOW_IP));
       
-      conf = unmap_conf_item(aconf);
+      conf = unmap_conf_item(aconf, aconf);
       ban_them(client_p, conf);
       continue; /* and go examine next fd/client_p */
     }
@@ -437,7 +438,7 @@ check_conf_klines(void)
           "GLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
           aconf->reason, get_client_name(client_p, SHOW_IP));
 
-      conf = unmap_conf_item(aconf);
+      conf = unmap_conf_item(aconf, aconf);
       ban_them(client_p, conf);
       /* and go examine next fd/client_p */    
       continue;
@@ -460,7 +461,7 @@ check_conf_klines(void)
           aconf->reason, get_client_name(client_p, SHOW_IP));
 
 
-      conf = unmap_conf_item(aconf);
+      conf = unmap_conf_item(aconf, aconf);
       ban_them(client_p, conf);
       continue; 
     }
@@ -471,10 +472,10 @@ check_conf_klines(void)
         (conf = find_matching_name_conf(RXLINE_TYPE, client_p->info,
                                         NULL, NULL, 0)) != NULL)
     {
-      aconf = map_to_conf(conf);
+      mconf = &conf->mconf;
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
-          "XLINE %s@%s (%s) active for %s", aconf->user, aconf->host,
-          aconf->reason, get_client_name(client_p, SHOW_IP));
+          "XLINE %s (%s) active for %s", conf->name, mconf->reason,
+          get_client_name(client_p, SHOW_IP));
 
       ban_them(client_p, conf);
       continue;
@@ -523,20 +524,20 @@ ban_them(struct Client *client_p, struct ConfItem *conf)
     case RKLINE_TYPE:
     case KLINE_TYPE:
       type_string = kline_string;
-      aconf = map_to_conf(conf);
+      aconf = &conf->aconf;
       break;
     case DLINE_TYPE:
       type_string = dline_string;
-      aconf = map_to_conf(conf);
+      aconf = &conf->aconf;
       break;
     case GLINE_TYPE:
       type_string = gline_string;
-      aconf = map_to_conf(conf);
+      aconf = &conf->aconf;
       break;
     case RXLINE_TYPE:
     case XLINE_TYPE:
       type_string = xline_string;
-      xconf = map_to_conf(conf);
+      xconf = &conf->mconf;
       ++xconf->count;
       break;
     default:
@@ -791,7 +792,7 @@ exit_one_client(struct Client *source_p, const char *quitmsg)
       aconf = find_conf_by_address(source_p->host, &source_p->ip, 
           CONF_CLIENT, source_p->aftype, source_p->username, NULL, source_p->certfp);
 
-      aclass = map_to_conf(aconf->class_ptr);
+      aclass = &aconf->class_ptr->aclass;
       assert(aclass != NULL);
       remove_from_cidr_check(&source_p->ip, aclass);
 

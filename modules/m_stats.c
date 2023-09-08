@@ -695,7 +695,7 @@ dump_counters(struct Client *source_p)
   DLINK_FOREACH(ptr, class_items.head)
   {
     conf = ptr->data;
-    classitem = map_to_conf(conf);
+    classitem = &conf->aclass;
     DLINK_FOREACH(ptr2, classitem->list_ipv4.head)
     {
       cidr = ptr2->data;

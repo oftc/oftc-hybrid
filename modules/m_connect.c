@@ -116,10 +116,10 @@ mo_connect(struct Client* client_p, struct Client* source_p,
    */
   if ((conf = find_matching_name_conf(SERVER_TYPE,
 				      parv[1], NULL, NULL, 0)) != NULL)
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->aconf;
   else if ((conf = find_matching_name_conf(SERVER_TYPE,
 					   NULL, NULL, parv[1], 0)) != NULL)
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->aconf;
   
   if (conf == NULL)
   {
@@ -236,10 +236,10 @@ ms_connect(struct Client *client_p, struct Client *source_p,
    */
   if ((conf = find_matching_name_conf(SERVER_TYPE,
 				      parv[1], NULL, NULL, 0)) != NULL)
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->aconf;
   else if ((conf = find_matching_name_conf(SERVER_TYPE,
 					   NULL, NULL, parv[1], 0)) != NULL)
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->aconf;
 
   if (aconf == NULL)
   {

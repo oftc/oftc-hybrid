@@ -255,7 +255,7 @@ my_name_for_link(struct ConfItem *conf)
 {
   struct AccessItem *aconf;
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = &conf->aconf;
   if (aconf->fakename != NULL)
     return(aconf->fakename);
   else
@@ -504,7 +504,7 @@ try_connections(void *unused)
   DLINK_FOREACH(ptr, server_items.head)
   {
     conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->aconf;
 
     /* Also when already connecting! (update holdtimes) --SRB 
      */
@@ -512,7 +512,7 @@ try_connections(void *unused)
         !(IsConfAllowAutoConn(aconf)))
       continue;
 
-    cltmp = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+    cltmp = &aconf->class_ptr->aclass;
 
     /* Skip this entry if the use of it is still on hold until
      * future. Otherwise handle this entry (and set it on hold
@@ -596,7 +596,7 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
   DLINK_FOREACH(ptr, server_items.head)
   {
     conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->aconf;
 
     if (!match(name, conf->name))
       continue;
@@ -703,7 +703,7 @@ check_server(const char *name, struct Client *client_p, int cryptlink)
     attach_conf(client_p, conf);
   }
 
-  server_aconf = (struct AccessItem *)map_to_conf(server_conf);
+  server_aconf = &server_conf->aconf;
 
   if (!IsConfLazyLink(server_aconf))
     ClearCap(client_p, CAP_LL);
@@ -948,7 +948,7 @@ sendnick_TS(struct Client *client_p, struct Client *target_p)
     sendto_one(client_p, "CERTFP %s %s", target_p->name, target_p->certfp);
 #endif
 
-  if (IsConfAwayBurst((struct AccessItem *)map_to_conf(client_p->serv->sconf)))
+  if (IsConfAwayBurst(&client_p->serv->sconf->aconf))
     if (!EmptyString(target_p->away))
       sendto_one(client_p, ":%s AWAY :%s", target_p->name,
                  target_p->away);
@@ -1088,7 +1088,7 @@ server_estab(struct Client *client_p)
     }
   }
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = &conf->aconf;
 
   if (IsUnknown(client_p) && !IsConfCryptLink(aconf))
   {
@@ -1852,7 +1852,7 @@ set_autoconn(struct Client *source_p, const char *name, int newval)
     conf = find_exact_name_conf(SERVER_TYPE, name, NULL, NULL, NULL);
     if (conf != NULL)
     {
-      aconf = (struct AccessItem *)map_to_conf(conf);
+      aconf = &conf->aconf;
       if (newval)
         SetConfAllowAutoConn(aconf);
       else
@@ -1947,7 +1947,7 @@ serv_connect(struct AccessItem *aconf, struct Client *by)
     return (0);
 
   /* XXX should be passing struct ConfItem in the first place */
-  conf = unmap_conf_item(aconf);
+  conf = unmap_conf_item(aconf, aconf);
 
   /* log */
   irc_getnameinfo((struct sockaddr*)&aconf->ipnum, aconf->ipnum.ss_len,
@@ -2179,7 +2179,7 @@ serv_connect_callback(fde_t *fd, int status, void *data)
     return;
   }
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = &conf->aconf;
   /* Next, send the initial handshake */
   SetHandshake(client_p);
 
@@ -2314,7 +2314,7 @@ ssllink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
     return;
   }
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = &conf->aconf;
 
   pubkey = RSAPublicKey_dup(ServerInfo.rsa_private_key);
   cert = create_certificate(pubkey, ServerInfo.rsa_private_key, 
@@ -2372,7 +2372,7 @@ cryptlink_init(struct Client *client_p, struct ConfItem *conf, fde_t *fd)
     return;
   }
 
-  aconf = (struct AccessItem *)map_to_conf(conf);
+  aconf = &conf->aconf;
 
   if (aconf->rsa_public_key == NULL)
   {

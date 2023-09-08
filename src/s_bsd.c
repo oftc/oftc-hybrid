@@ -235,8 +235,8 @@ close_connection(struct Client *client_p)
        * a rehash in between, the status has been changed to
        * CONF_ILLEGAL). But only do this if it was a "good" link.
        */
-      aconf = (struct AccessItem *)map_to_conf(conf);
-      aclass = (struct ClassItem *)map_to_conf(aconf->class_ptr);
+      aconf = &conf->aconf;
+      aclass = &aconf->class_ptr->aclass;
       aconf->hold = time(NULL);
       aconf->hold += (aconf->hold - client_p->since > HANGONGOODLINK) ?
         HANGONRETRYDELAY : ConFreq(aclass);

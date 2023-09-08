@@ -265,7 +265,7 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
       return;
     }
 
-    resv_p = map_to_conf(conf);
+    resv_p = &conf->cresv;
 
     if (tkline_time != 0)
     {
@@ -328,7 +328,7 @@ parse_resv(struct Client *source_p, char *name, int tkline_time, char *reason)
       return;
     }
 
-    resv_p = map_to_conf(conf);
+    resv_p = &conf->mconf;
 
     if (tkline_time != 0)
     {
@@ -416,7 +416,7 @@ remove_resv(struct Client *source_p, const char *name)
       return;
     }
 
-    resv_p = map_to_conf(conf);
+    resv_p = &conf->mconf;
 
     if (resv_p->action)
     {

@@ -75,7 +75,7 @@ mo_map(struct Client *client_p, struct Client *source_p,
   DLINK_FOREACH(ptr, server_items.head)
   {
     conf = ptr->data;
-    aconf = (struct AccessItem *)map_to_conf(conf);
+    aconf = &conf->aconf;
     if (aconf->status != CONF_SERVER)
       continue;
     if (strcmp(conf->name, me.name) == 0)

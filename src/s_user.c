@@ -284,6 +284,7 @@ register_local_user(struct Client *client_p, struct Client *source_p,
                     const char *nick, const char *username)
 {
   const struct AccessItem *aconf = NULL;
+  struct ConfItem *conf = NULL;
   char ipaddr[HOSTIPLEN];
   dlink_node *ptr = NULL;
   dlink_node *m = NULL;
@@ -327,7 +328,8 @@ register_local_user(struct Client *client_p, struct Client *source_p,
   }
 
   ptr   = source_p->localClient->confs.head;
-  aconf = map_to_conf(ptr->data);
+  conf = (struct ConfItem *)ptr->data;
+  aconf = &conf->aconf;
 
   if (!IsGotId(source_p))
   {
@@ -584,7 +586,7 @@ register_remote_user(struct Client *client_p, struct Client *source_p,
 
   aconf = find_conf_by_address(source_p->host, &source_p->ip,
        CONF_CLIENT, source_p->aftype, source_p->username, NULL, source_p->certfp);
-  aclass = map_to_conf(aconf->class_ptr);
+  aclass = &aconf->class_ptr->aclass;
 
   cidr_limit_reached(1, &source_p->ip, aclass);
 
@@ -1282,7 +1284,7 @@ check_xline(struct Client *source_p)
   if ((conf = find_matching_name_conf(XLINE_TYPE, source_p->info, NULL, NULL, 0)) ||
       (conf = find_matching_name_conf(RXLINE_TYPE, source_p->info, NULL, NULL, 0)))
   {
-    struct MatchItem *reg = map_to_conf(conf);
+    struct MatchItem *reg = &conf->mconf;
 
     ++reg->count;
 
@@ -1326,10 +1328,12 @@ oper_up(struct Client *source_p, const char *name)
 {
   unsigned int old = source_p->umodes;
   const char *operprivs = "";
+  struct ConfItem *conf = NULL;
   const struct AccessItem *oconf = NULL;
 
   assert(source_p->localClient->confs.head);
-  oconf = map_to_conf((source_p->localClient->confs.head)->data);
+  conf = source_p->localClient->confs.head->data;
+  oconf = &conf->aconf;
 
   ++Count.oper;
   SetOper(source_p);
