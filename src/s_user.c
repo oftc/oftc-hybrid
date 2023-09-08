@@ -1285,6 +1285,13 @@ check_xline(struct Client *source_p)
       (conf = find_matching_name_conf(RXLINE_TYPE, source_p->info, NULL, NULL, 0)))
   {
     struct MatchItem *reg = &conf->mconf;
+    if (IsExemptKline(source_p))
+    {
+      sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+		      "XLINE over-ruled for %s, client is kline_exempt",
+		      get_client_name(source_p, HIDE_IP));
+      return 0;
+    }
 
     ++reg->count;
 

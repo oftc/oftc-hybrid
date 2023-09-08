@@ -472,6 +472,14 @@ check_conf_klines(void)
         (conf = find_matching_name_conf(RXLINE_TYPE, client_p->info,
                                         NULL, NULL, 0)) != NULL)
     {
+      if (IsExemptKline(client_p))
+      {
+        sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
+                             "XLINE over-ruled for %s, client is kline_exempt",
+                             get_client_name(client_p, HIDE_IP));
+        continue;
+      }
+
       mconf = &conf->mconf;
       sendto_gnotice_flags(UMODE_ALL, L_ALL, me.name, &me, NULL,
           "XLINE %s (%s) active for %s", conf->name, mconf->reason,
